@@ -38,6 +38,7 @@ CXXSRCS = \
   SSecurityFactoryStandard.cxx \
   SSecurityVncAuth.cxx \
   TightDecoder.cxx \
+  TightEncoder.cxx \
   TransImageGetter.cxx \
   UpdateTracker.cxx \
   VNCSConnectionST.cxx \

@@ -22,6 +22,7 @@
 #include <rfb/RREEncoder.h>
 #include <rfb/HextileEncoder.h>
 #include <rfb/ZRLEEncoder.h>
+#include <rfb/TightEncoder.h>
 
 using namespace rfb;
 
@@ -72,4 +73,5 @@ EncoderInit::EncoderInit()
   Encoder::registerEncoder(encodingRRE, RREEncoder::create);
   Encoder::registerEncoder(encodingHextile, HextileEncoder::create);
   Encoder::registerEncoder(encodingZRLE, ZRLEEncoder::create);
+  Encoder::registerEncoder(encodingTight, TightEncoder::create);
 }

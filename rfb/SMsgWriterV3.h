@@ -51,6 +51,7 @@ namespace rfb {
     int nRectsInHeader;
     WriteSetCursorCallback* wsccb;
     bool needSetDesktopSize;
+    bool needLastRect;
   };
 }
 #endif

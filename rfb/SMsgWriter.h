@@ -62,6 +62,14 @@ namespace rfb {
     virtual void writeBell();
     virtual void writeServerCutText(const char* str, int len);
 
+    // setupCurrentEncoder() should be called before each framebuffer update,
+    // prior to calling getNumRects() or writeFramebufferUpdateStart().
+    void setupCurrentEncoder();
+
+    // getNumRects() computes the number of sub-rectangles that will compose a
+    // given rectangle, for current encoder.
+    int getNumRects(const Rect &r);
+
     // writeSetDesktopSize() on a V3 writer won't actually write immediately,
     // but will write the relevant pseudo-rectangle as part of the next update.
     virtual bool writeSetDesktopSize()=0;

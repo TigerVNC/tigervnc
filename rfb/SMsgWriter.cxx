@@ -90,6 +90,33 @@ void SMsgWriter::writeServerCutText(const char* str, int len)
   endMsg();
 }
 
+void SMsgWriter::setupCurrentEncoder()
+{
+  unsigned int encoding = cp->currentEncoding();
+
+  // FIXME: Code duplication, see writeRect().
+  if (!encoders[encoding]) {
+    encoders[encoding] = Encoder::createEncoder(encoding, this);
+    assert(encoders[encoding]);
+  }
+
+  encoders[encoding]->setCompressLevel(cp->compressLevel);
+  encoders[encoding]->setQualityLevel(cp->qualityLevel);
+}
+
+int SMsgWriter::getNumRects(const Rect &r)
+{
+  unsigned int encoding = cp->currentEncoding();
+
+  if (!encoders[encoding])
+    setupCurrentEncoder();
+
+  return encoders[encoding]->getNumRects(r);
+}
+
+// FIXME: This functions does not compute the number of rectangles correctly
+//        if the Tight encoder is used (but currently that does not matter
+//        because this function is never used).
 void SMsgWriter::writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
                                         Region* updatedRegion)
 {

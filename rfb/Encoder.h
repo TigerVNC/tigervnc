@@ -31,6 +31,10 @@ namespace rfb {
   public:
     virtual ~Encoder();
 
+    virtual void setCompressLevel(int level) {};
+    virtual void setQualityLevel(int level) {};
+    virtual int getNumRects(const Rect &r) { return 1; }
+
     // writeRect() tries to write the given rectangle.  If it is unable to
     // write the whole rectangle it returns false and sets actual to the actual
     // rectangle which was updated.
