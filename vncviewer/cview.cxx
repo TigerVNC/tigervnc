@@ -1160,7 +1160,7 @@ CView::autoSelectFormatAndEncoding() {
     return;
   }
 
-  if (cp.majorVersion <= 3 && cp.minorVersion <= 7) {
+  if (cp.beforeVersion(3, 8)) {
     // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
     // cursors "asynchronously". If this happens in the middle of a
     // pixel format change, the server will encode the cursor with
@@ -1411,6 +1411,12 @@ CView::setName(const char* name) {
 
 void CView::serverInit() {
   CConnection::serverInit();
+
+  // If using AutoSelect with old servers, start in FullColor
+  // mode. See comment in autoSelectFormatAndEncoding. 
+  if (cp.beforeVersion(3, 8) && options.autoSelect) {
+    options.fullColour = true;
+  }
 
   // Save the server's current format
   serverDefaultPF = cp.pf();

@@ -229,6 +229,13 @@ CSecurity* CConn::getCSecurity(int secType) {
 // server the pixel format and encodings to use and request the first update.
 void CConn::serverInit() {
   CConnection::serverInit();
+
+  // If using AutoSelect with old servers, start in FullColor
+  // mode. See comment in autoSelectFormatAndEncoding. 
+  if (cp.beforeVersion(3, 8) && autoSelect) {
+    fullColour = true;
+  }
+
   serverPF = cp.pf();
   desktop = new DesktopWindow(dpy, cp.width, cp.height, serverPF, this);
   desktopEventHandler = desktop->setEventHandler(this);
@@ -668,7 +675,7 @@ void CConn::autoSelectFormatAndEncoding()
     return;
   }
 
-  if (cp.majorVersion <= 3 && cp.minorVersion <= 7) {
+  if (cp.beforeVersion(3, 8)) {
     // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
     // cursors "asynchronously". If this happens in the middle of a
     // pixel format change, the server will encode the cursor with
