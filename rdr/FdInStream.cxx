@@ -36,6 +36,14 @@
 #include <sys/time.h>
 #endif
 
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
 // XXX should use autoconf HAVE_SYS_SELECT_H
 #ifdef _AIX
 #include <sys/select.h>
@@ -130,14 +138,15 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
 
   int bytes_to_read;
   while (end < start + itemSize) {
-    if (timing) {
-      bytes_to_read = start + bufSize - end;
-    } else {
-      // When not timing, we must be careful not to read extra data
-      // into the buffer. Otherwise, the line speed estimation might
-      // stay at zero for a long time: All reads during timing=1 can
-      // be satisfied without calling readWithTimeoutOrCallback.
-      bytes_to_read = start + itemSize*nItems - end;
+    bytes_to_read = start + bufSize - end;
+    if (!timing) {
+      // When not timing, we must be careful not to read too much
+      // extra data into the buffer. Otherwise, the line speed
+      // estimation might stay at zero for a long time: All reads
+      // during timing=1 can be satisfied without calling
+      // readWithTimeoutOrCallback. However, reading only 1 or 2 bytes
+      // bytes is ineffecient.
+      bytes_to_read = min(bytes_to_read, max(itemSize*nItems, 8));
     }
     int n = readWithTimeoutOrCallback((U8*)end, bytes_to_read, wait);
     if (n == 0) return 0;
