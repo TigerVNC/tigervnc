@@ -398,6 +398,7 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 
 void RfbPlayer::run() {
   long initTime = -1;
+  long update_time = GetTickCount();
 
   // Process the rfb messages
   while (fRun) {
@@ -406,8 +407,10 @@ void RfbPlayer::run() {
         setPos(initTime);
         initTime = -1;
       }
-      if (!isSeeking())
+      if ((!isSeeking()) && ((GetTickCount() - update_time) >= 250)) {
         updatePos();
+        update_time = GetTickCount();
+      }
       processMsg();
     } catch (rdr::Exception e) {
       if (strcmp(e.str(), "[End Of File]") == 0) {
