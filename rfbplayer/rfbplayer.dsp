@@ -114,6 +114,10 @@ SOURCE=.\rfbplayer.rc
 
 SOURCE=.\RfbProto.cxx
 # End Source File
+# Begin Source File
+
+SOURCE=.\ToolBar.cxx
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -129,6 +133,10 @@ SOURCE=.\rfbplayer.h
 # Begin Source File
 
 SOURCE=.\RfbProto.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ToolBar.h
 # End Source File
 # Begin Source File
 
