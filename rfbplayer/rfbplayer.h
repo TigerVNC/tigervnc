@@ -23,16 +23,19 @@
 
 #include <rfb_win32/DIBSectionBuffer.h>
 
+#include <rfbplayer/resource.h>
 #include <rfbplayer/ToolBar.h>
 #include <rfbplayer/rfbSessionReader.h>
+#include <rfbplayer/GotoPosDialog.h>
+#include <rfbplayer/ChoosePixelFormatDialog.h>
+#include <rfbplayer/OptionsDialog.h>
 
 using namespace rfb;
 using namespace rfb::win32;
 
 class RfbPlayer : public RfbProto {
   public:
-    RfbPlayer(char *filename, int _depth, long _pos, double _speed, 
-              bool _autoplay, bool _acceptBell);
+    RfbPlayer(char *fileName, PlayerOptions *options);
     ~RfbPlayer();
 
     // -=- Window Message handling
@@ -133,8 +136,6 @@ class RfbPlayer : public RfbProto {
     void setSpeed(double speed);
     double getSpeed();
 
-    char *fileName;
-
   protected:
     bool seekMode;
     bool stopped;
@@ -144,7 +145,7 @@ class RfbPlayer : public RfbProto {
     char fullSessionTime[20];
     int time_pos_m;
     int time_pos_s;
-    int CTRL_BAR_HEIGHT;
+    char *fileName;
     
     // rfbReader is a class which used to reading the rfb data from the file
     rfbSessionReader *rfbReader;
@@ -175,12 +176,7 @@ class RfbPlayer : public RfbProto {
     ToolBar tb;
 
     // The player's parameters
-    bool autoplay;
-    int pixelFormat;
-    double playbackSpeed;
+    PlayerOptions options;
     long imageDataStartTime;
-    long initTime;
-    bool acceptBell;
     long sessionTimeMs;
-    bool loopPlayback;
 };

@@ -108,6 +108,10 @@ SOURCE=.\FbsInputStream.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\PlayerOptions.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\rfbplayer.cxx
 # End Source File
 # Begin Source File
@@ -137,6 +141,14 @@ SOURCE=.\FbsInputStream.h
 # Begin Source File
 
 SOURCE=.\GotoPosDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionsDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\PlayerOptions.h
 # End Source File
 # Begin Source File
 

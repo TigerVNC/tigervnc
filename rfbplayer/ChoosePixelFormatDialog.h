@@ -39,7 +39,6 @@ protected:
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("8 bit depth (RGB332)"));
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("16 bit depth (RGB655)"));
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("24 bit depth (RGB888)"));
-    SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("24 bit depth (RGB888)"));
     SendMessage(combo, CB_SETCURSEL, pf, 0);
   }
   virtual bool onOk() {

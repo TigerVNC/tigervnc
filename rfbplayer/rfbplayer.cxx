@@ -27,9 +27,6 @@
 
 #include <rfbplayer/rfbplayer.h>
 #include <rfbplayer/utils.h>
-#include <rfbplayer/resource.h>
-#include <rfbplayer/GotoPosDialog.h>
-#include <rfbplayer/ChoosePixelFormatDialog.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -59,8 +56,7 @@ char usage_msg[] =
  "                \t  is double speed, 0.5 is half speed. Default: 1.0.\n"
  "  -pos <ms>     \t- Sets initial time position in the session file,\n"
  "                \t  in milliseconds. Default: 0.\n"
- "  -autoplay     \t- Runs the player in the playback mode.\n"
- "  -bell         \t- Accepts the bell.\n";
+ "  -autoplay     \t- Runs the player in the playback mode.\n";
 
 // -=- RfbPlayer's defines
 
@@ -68,14 +64,9 @@ char usage_msg[] =
 #define MAX_SPEED 10.00
 #define CALCULATION_ERROR MAX_SPEED / 1000
 #define MAX_POS_TRACKBAR_RANGE 50
+#define CTRL_BAR_HEIGHT 28
 #define DEFAULT_PLAYER_WIDTH 640
 #define DEFAULT_PLAYER_HEIGHT 480 
-
-#define PF_AUTO 0
-#define PF_D8_RGB332 1
-#define PF_D16_RGB655 2
-#define PF_D24_RGB888 3
-#define PF_MODES 3
 
 #define ID_TOOLBAR 500
 #define ID_PLAY 510
@@ -223,19 +214,15 @@ RfbFrameClass frameClass;
 // -=- RfbPlayer instance implementation
 //
 
-RfbPlayer::RfbPlayer(char *_fileName, int _pixelFormat = PF_AUTO, 
-                     long _initTime = 0, double _playbackSpeed = 1.0, 
-                     bool _autoplay = false, bool _acceptBell = false)
-: RfbProto(_fileName), pixelFormat(_pixelFormat), initTime(_initTime), 
-  playbackSpeed(_playbackSpeed), autoplay(_autoplay), buffer(0), 
-  client_size(0, 0, 32, 32), window_size(0, 0, 32, 32), cutText(0), 
-  seekMode(false), fileName(_fileName), lastPos(0), timeStatic(0), 
-  speedEdit(0), posTrackBar(0), speedUpDown(0), acceptBell(_acceptBell), 
+RfbPlayer::RfbPlayer(char *_fileName, PlayerOptions *_options)
+: RfbProto(_fileName), fileName(_fileName), buffer(0), client_size(0, 0, 32, 32),
+  window_size(0, 0, 32, 32), cutText(0), seekMode(false), lastPos(0), 
+  timeStatic(0), speedEdit(0), posTrackBar(0), speedUpDown(0), 
   rfbReader(0), sessionTimeMs(0), sliderDraging(false), sliderStepMs(0), 
-  loopPlayback(false), imageDataStartTime(0), rewindFlag(false),
-  stopped(false) {
+  imageDataStartTime(0), rewindFlag(false), stopped(false) {
 
-  CTRL_BAR_HEIGHT = 28;
+  // Save the player options
+  memcpy(&options, _options, sizeof(options));
 
   // Reset the full session time
   strcpy(fullSessionTime, "00m:00s");
@@ -255,18 +242,22 @@ RfbPlayer::RfbPlayer(char *_fileName, int _pixelFormat = PF_AUTO,
   buffer = new win32::DIBSectionBuffer(getFrameHandle());
   setVisible(true);
 
-  // Open the session file
+  // If run with command-line parameters,
+  // open the session file with default settings, otherwise
+  // restore player settings from the registry
   if (fileName) {
     openSessionFile(fileName);
-    if (initTime > 0) setPos(initTime);
-    setSpeed(playbackSpeed);
+    if (options.initTime > 0) setPos(options.initTime);
+    setSpeed(options.playbackSpeed);
   } else {
+    options.readFromRegistry();
     disableTBandMenuItems();
     setTitle("None");
   }
 }
 
 RfbPlayer::~RfbPlayer() {
+  options.writeToRegistry();
   vlog.debug("~RfbPlayer");
   if (rfbReader) {
     delete rfbReader->join();
@@ -325,7 +316,6 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ofn.lpstrDefExt = "rfb";
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
         if (GetOpenFileName(&ofn)) {
-          pixelFormat = PF_AUTO;
           openSessionFile(filename);
         }
       }
@@ -366,8 +356,8 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       MessageBox(getMainHandle(), "It is not working yet!", "RfbPlayer", MB_OK);
       break;
     case ID_LOOP:
-      loopPlayback = !loopPlayback;
-      if (loopPlayback) CheckMenuItem(hMenu, ID_LOOP, MF_CHECKED);
+      options.loopPlayback = !options.loopPlayback;
+      if (options.loopPlayback) CheckMenuItem(hMenu, ID_LOOP, MF_CHECKED);
       else CheckMenuItem(hMenu, ID_LOOP, MF_UNCHECKED);
       break;
     case ID_RETURN:
@@ -382,6 +372,12 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           speed = getSpeed();
         }
         setSpeed(speed);
+      }
+      break;
+    case ID_OPTIONS:
+      {
+        OptionsDialog optionsDialog(&options);
+        optionsDialog.showDialog();
       }
       break;
     case ID_EXIT:
@@ -475,7 +471,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         sprintf(speedStr, "%.2f", speed);
         SetWindowText(speedEdit, speedStr);
         is->setSpeed(speed);
-        playbackSpeed = speed;
+        options.playbackSpeed = speed;
         return lResult;
       }
     }
@@ -807,7 +803,7 @@ void RfbPlayer::rewind() {
   blankBuffer();
   newSession(fileName);
   skipHandshaking();
-  is->setSpeed(playbackSpeed);
+  is->setSpeed(options.playbackSpeed);
   if (paused) is->pausePlayback();
   else is->resumePlayback();
 }
@@ -829,7 +825,7 @@ void RfbPlayer::processMsg() {
   } catch (rdr::Exception e) {
     if (strcmp(e.str(), "[End Of File]") == 0) {
       rewind();
-      setPaused(!loopPlayback);
+      setPaused(!options.loopPlayback);
       updatePos(getTimeOffset());
       SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
       return;
@@ -865,6 +861,15 @@ void RfbPlayer::serverInit() {
     throw rdr::Exception("This version plays only true color session!");
 
   // Set the session pixel format
+  static long pixelFormat = PF_AUTO;
+  if (options.askPixelFormat) {
+    ChoosePixelFormatDialog choosePixelFormatDialog(pixelFormat);
+    if (choosePixelFormatDialog.showDialog()) {
+      pixelFormat = choosePixelFormatDialog.getPF();
+    }
+  } else {
+    pixelFormat = options.pixelFormat;
+  }
   switch (pixelFormat) {
   case PF_AUTO: 
     break;
@@ -898,7 +903,10 @@ void RfbPlayer::serverInit() {
   sliderStepMs = sessionTimeMs / SendMessage(posTrackBar, TBM_GETRANGEMAX, 0, 0);
   updatePos(getTimeOffset());
 
-  setPaused(!autoplay);
+  setPaused(!options.autoPlay);
+  // Restore the parameters from registry,
+  // which was replaced by command-line parameters.
+  options.readFromRegistry();
 }
 
 void RfbPlayer::setColourMapEntries(int first, int count, U16* rgbs) {
@@ -915,7 +923,7 @@ void RfbPlayer::setColourMapEntries(int first, int count, U16* rgbs) {
 } 
 
 void RfbPlayer::bell() {
-  if (acceptBell)
+  if (options.acceptBell)
     MessageBeep(-1);
 }
 
@@ -1010,10 +1018,10 @@ void RfbPlayer::closeSessionFile() {
   blankBuffer();
   setTitle("None");
   SetWindowText(timeStatic,"00m:00s (00m:00s)");
-  playbackSpeed = 1.0;
+  options.playbackSpeed = 1.0;
   SendMessage(speedUpDown, UDM_SETPOS, 
-    0, MAKELONG((short)(playbackSpeed / 0.5), 0));
-  sprintf(speedStr, "%.2f", playbackSpeed);
+    0, MAKELONG((short)(options.playbackSpeed / 0.5), 0));
+  sprintf(speedStr, "%.2f", options.playbackSpeed);
   SetWindowText(speedEdit, speedStr);
   SendMessage(posTrackBar, TBM_SETRANGE, TRUE, MAKELONG(0, 0));
     
@@ -1049,7 +1057,7 @@ void RfbPlayer::openSessionFile(char *_fileName) {
   }
   blankBuffer();
   newSession(fileName);
-  setSpeed(playbackSpeed);
+  setSpeed(options.playbackSpeed);
   rfbReader = new rfbSessionReader(this);
   rfbReader->start();
   SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
@@ -1094,7 +1102,7 @@ void RfbPlayer::setSpeed(double speed) {
     char speedStr[20] = "\0";
     double newSpeed = min(speed, MAX_SPEED);
     is->setSpeed(newSpeed);
-    playbackSpeed = newSpeed;
+    options.playbackSpeed = newSpeed;
     SendMessage(speedUpDown, UDM_SETPOS, 
       0, MAKELONG((short)(newSpeed / 0.5), 0));
     sprintf(speedStr, "%.2f", newSpeed);
@@ -1168,13 +1176,12 @@ void programUsage() {
   MessageBox(0, usage_msg, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
 }
 
-double playbackSpeed = 1.0;
-long initTime = -1;
-int pf = PF_AUTO;
-bool autoplay = false;
 char *fileName = 0;
+
+// playerOptions is the player options with default parameters values,
+// it is used only for run the player with command-line parameters
+PlayerOptions playerOptions;
 bool print_usage = false;
-bool acceptBell = false;
 
 bool processParams(int argc, char* argv[]) {
   for (int i = 1; i < argc; i++) {
@@ -1191,40 +1198,37 @@ bool processParams(int argc, char* argv[]) {
 
     if ((strcasecmp(argv[i], "-pf") == 0) ||
         (strcasecmp(argv[i], "/pf") == 0) && (i < argc-1)) {
-      pf = atoi(argv[++i]);
+      long pf = atoi(argv[++i]);
       if ((pf < 0) || (pf > PF_MODES)) {
         return false;
       }
+      playerOptions.pixelFormat = pf;
       continue;
     }
 
 
     if ((strcasecmp(argv[i], "-speed") == 0) ||
         (strcasecmp(argv[i], "/speed") == 0) && (i < argc-1)) {
-      playbackSpeed = atof(argv[++i]);
+      double playbackSpeed = atof(argv[++i]);
       if (playbackSpeed <= 0) {
         return false;
       }
+      playerOptions.playbackSpeed = playbackSpeed;
       continue;
     }
 
     if ((strcasecmp(argv[i], "-pos") == 0) ||
         (strcasecmp(argv[i], "/pos") == 0) && (i < argc-1)) {
-      initTime = atol(argv[++i]);
+      long initTime = atol(argv[++i]);
       if (initTime <= 0)
         return false;
+      playerOptions.initTime = initTime;
       continue;
     }
 
     if ((strcasecmp(argv[i], "-autoplay") == 0) ||
         (strcasecmp(argv[i], "/autoplay") == 0) && (i < argc-1)) {
-      autoplay = true;
-      continue;
-    }
-
-    if ((strcasecmp(argv[i], "-bell") == 0) ||
-        (strcasecmp(argv[i], "/bell") == 0) && (i < argc-1)) {
-      acceptBell  = true;
+      playerOptions.autoPlay = true;
       continue;
     }
 
@@ -1259,8 +1263,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   // Create the player
   RfbPlayer *player = NULL;
   try {
-    player = new RfbPlayer(fileName, pf, initTime, playbackSpeed, autoplay, 
-                           acceptBell);
+    player = new RfbPlayer(fileName, &playerOptions);
   } catch (rdr::Exception e) {
     MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);
     delete player;

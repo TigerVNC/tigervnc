@@ -8,8 +8,15 @@
 #define IDB_TOOLBAR                     132
 #define IDD_GOTO                        133
 #define IDD_PIXELFORMAT                 134
+#define IDD_OPTIONS                     137
 #define IDC_GOTO_EDIT                   1003
 #define IDC_PIXELFORMAT                 1004
+#define IDC_ASK_PF                      1006
+#define IDC_DEFAULT                     1008
+#define IDC_ACCEPT_BELL                 1009
+#define IDC_ACCEPT_CUT_TEXT             1010
+#define IDC_AUTO_STORE_PARAM            1011
+#define IDC_AUTOPLAY                    1012
 #define ID_OPENFILE                     40011
 #define ID_CLOSEFILE                    40012
 #define ID_EXIT                         40013
@@ -33,9 +40,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        136
+#define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         40045
-#define _APS_NEXT_CONTROL_VALUE         1005
+#define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
