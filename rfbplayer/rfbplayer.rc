@@ -143,7 +143,6 @@ BEGIN
         MENUITEM "Play/Pause\tSpace",           ID_PLAYPAUSE
         MENUITEM "Stop\tC",                     ID_STOP
         MENUITEM "Go To...\tCtrl+G",            ID_GOTO
-        MENUITEM "Set Speed...\tCtrl+S",        ID_SETSPEED
         MENUITEM SEPARATOR
         MENUITEM "Loop\tCtrl+L",                ID_LOOP
     END
@@ -179,7 +178,6 @@ BEGIN
     "O",            ID_OPENFILE,            VIRTKEY, CONTROL, NOINVERT
     "P",            ID_OPTIONS,             VIRTKEY, CONTROL, NOINVERT
     "Q",            ID_CLOSEFILE,           VIRTKEY, CONTROL, NOINVERT
-    "S",            ID_SETSPEED,            VIRTKEY, CONTROL, NOINVERT
     VK_F5,          ID_ZOOM_50,             VIRTKEY, NOINVERT
     VK_F6,          ID_ZOOM_100,            VIRTKEY, NOINVERT
     VK_F7,          ID_ZOOM_200,            VIRTKEY, NOINVERT

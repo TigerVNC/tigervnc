@@ -16,7 +16,6 @@
 #define ID_PLAYPAUSE                    40018
 #define ID_STOP                         40019
 #define ID_GOTO                         40020
-#define ID_SETSPEED                     40021
 #define ID_LOOP                         40022
 #define ID_COPYTOCLIPBOARD              40023
 #define ID_FRAMEEXTRACT                 40024
