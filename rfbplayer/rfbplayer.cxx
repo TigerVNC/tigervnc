@@ -546,6 +546,11 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
       EndPaint(getFrameHandle(), &ps); 
     }
     return 0;
+    
+    // Process play/pause by the right mouse button
+  case WM_RBUTTONDOWN:
+    SendMessage(getMainHandle(), WM_COMMAND, ID_PLAYPAUSE, 0);
+    return 0;
 
   case WM_VSCROLL:
   case WM_HSCROLL:
