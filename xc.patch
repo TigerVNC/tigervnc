@@ -1,27 +1,3 @@
-diff -bcr xc.xorg.org/config/cf/host.def xc/config/cf/host.def
-*** xc.xorg.org/config/cf/host.def	2004-10-08 11:44:16.000000000 +0200
---- xc/config/cf/host.def	2005-02-11 14:08:51.000000000 +0100
-***************
-*** 1 ****
---- 1,4 ----
-  #include <vnc.def>
-+ #define HasFreetype2 NO
-+ 
-+ 
-diff -bcr xc.xorg.org/config/cf/vnc.def xc/config/cf/vnc.def
-*** xc.xorg.org/config/cf/vnc.def	2005-02-10 14:48:28.000000000 +0100
---- xc/config/cf/vnc.def	2005-02-11 10:34:29.000000000 +0100
-***************
-*** 8,13 ****
---- 8,15 ----
-  #define BuildGlxExt NO
-  #define XnestServer NO
-  #define XprtServer NO
-+ #define XdmxServer NO
-+ #define BuildDmx NO
-  
-  #ifdef SunArchitecture
-  #define ProjectRoot /usr/openwin
 diff -bcr xc.xorg.org/programs/Xserver/cfb/cfb8line.c xc/programs/Xserver/cfb/cfb8line.c
 *** xc.xorg.org/programs/Xserver/cfb/cfb8line.c	2004-04-23 21:00:12.000000000 +0200
 --- xc/programs/Xserver/cfb/cfb8line.c	2005-02-11 09:49:18.000000000 +0100
