@@ -158,7 +158,7 @@ RfbPlayerClass::RfbPlayerClass() : classAtom(0) {
     printf("unable to load icon:%ld", GetLastError());
   wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
   wndClass.hbrBackground = HBRUSH(COLOR_WINDOW);
-  wndClass.lpszMenuName = 0;
+  wndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU);
   wndClass.lpszClassName = _T("RfbPlayerClass");
   classAtom = RegisterClass(&wndClass);
   if (!classAtom) {
