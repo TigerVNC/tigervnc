@@ -128,8 +128,18 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
   end -= ptr - start;
   ptr = start;
 
+  int bytes_to_read;
   while (end < start + itemSize) {
-    int n = readWithTimeoutOrCallback((U8*)end, start + bufSize - end, wait);
+    if (timing) {
+      bytes_to_read = start + bufSize - end;
+    } else {
+      // When not timing, we must be careful not to read extra data
+      // into the buffer. Otherwise, the line speed estimation might
+      // stay at zero for a long time: All reads during timing=1 can
+      // be satisfied without calling readWithTimeoutOrCallback.
+      bytes_to_read = start + itemSize*nItems - end;
+    }
+    int n = readWithTimeoutOrCallback((U8*)end, bytes_to_read, wait);
     if (n == 0) return 0;
     end += n;
   }
