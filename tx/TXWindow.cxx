@@ -73,7 +73,7 @@ void TXWindow::init(Display* dpy, const char* defaultWindowClass_)
   white = enabledBg = cols[5].pixel;
   defaultGC = XCreateGC(dpy, DefaultRootWindow(dpy), 0, 0);
   defaultFS
-    = XLoadQueryFont(dpy, "-*-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*");
+    = XLoadQueryFont(dpy, "-*-helvetica-medium-r-*-*-12-*-*-*-*-*-iso8859-*");
   if (!defaultFS) {
     defaultFS = XLoadQueryFont(dpy, "fixed");
     if (!defaultFS) {

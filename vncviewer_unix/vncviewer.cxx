@@ -194,6 +194,8 @@ int main(int argc, char** argv)
 	     buildtime);
   fprintf(stderr,"\n%s\n", aboutText);
 
+  bind_textdomain_codeset(PACKAGE, "iso-8859-1");
+
   rfb::initStdIOLoggers();
   rfb::LogWriter::setLogParams("*:stderr:30");
 
