@@ -274,6 +274,27 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
   case WM_COMMAND:
     switch (LOWORD(wParam)) {
+    case ID_OPENFILE:
+      {
+        char curDir[_MAX_DIR];
+        static char filename[_MAX_PATH];
+        OPENFILENAME ofn;
+        memset((void *) &ofn, 0, sizeof(OPENFILENAME));
+        GetCurrentDirectory(sizeof(curDir), curDir);
+       
+        ofn.lStructSize = sizeof(OPENFILENAME);
+        ofn.hwndOwner = getMainHandle();
+        ofn.lpstrFile = filename;
+        ofn.nMaxFile = sizeof(filename);
+        ofn.lpstrInitialDir = curDir;
+        ofn.lpstrFilter = "Rfb Session files (*.rfb)\0*.rfb\0" \
+                          "All files (*.*)\0*.*\0";
+        ofn.lpstrDefExt = "rfb";
+        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+        if (GetOpenFileName(&ofn))
+          openSessionFile(filename);
+      }
+      break;
     case ID_PLAY:
       setPaused(false);
       break;
@@ -852,6 +873,7 @@ void RfbPlayer::openSessionFile(char *_fileName) {
 
   // Close the previous reading thread
   if (rfbReader) {
+    is->resumePlayback();
     delete rfbReader->join();
   }
   blankBuffer();
@@ -859,6 +881,7 @@ void RfbPlayer::openSessionFile(char *_fileName) {
   setSpeed(playbackSpeed);
   rfbReader = new rfbSessionReader(this);
   rfbReader->start();
+  SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
 }
 
 void RfbPlayer::setPaused(bool paused) {

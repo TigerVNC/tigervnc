@@ -18,6 +18,7 @@
 
 // -=- RfbPlayer.h
 
+#include <commdlg.h>
 #include <windows.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
