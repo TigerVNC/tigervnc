@@ -152,6 +152,10 @@ SOURCE=.\GotoPosDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\InfoDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\OptionsDialog.h
 # End Source File
 # Begin Source File
