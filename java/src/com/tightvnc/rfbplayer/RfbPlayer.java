@@ -57,7 +57,8 @@ public class RfbPlayer extends java.applet.Applet
 
   Frame vncFrame;
   Container vncContainer;
-  ScrollPane desktopScrollPane;
+  //ScrollPane desktopScrollPane;
+  LWScrollPane desktopScrollPane;
   GridBagLayout gridbag;
   ButtonPanel buttonPanel;
   VncCanvas vc;
@@ -141,23 +142,26 @@ public class RfbPlayer extends java.applet.Applet
 
       // Create a panel which itself is resizeable and can hold
       // non-resizeable VncCanvas component at the top left corner.
-      Panel canvasPanel = new Panel();
-      canvasPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-      canvasPanel.add(vc);
+      //Panel canvasPanel = new Panel();
+      //canvasPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+      //canvasPanel.add(vc);
 
       // Create a ScrollPane which will hold a panel with VncCanvas
       // inside.
-      desktopScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
+      //desktopScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
+      desktopScrollPane = new LWScrollPane();
       gbc.fill = GridBagConstraints.BOTH;
-      gridbag.setConstraints(canvasPanel, gbc);
-      desktopScrollPane.add(canvasPanel);
+      gridbag.setConstraints(vc, gbc);
+      //gridbag.setConstraints(canvasPanel, gbc);
+      desktopScrollPane.addComp(vc);
+      desktopScrollPane.setSize(dispW, dispH);
+      //desktopScrollPane.add(canvasPanel);
 
       // Now add the scroll bar to the container.
       if (inSeparateFrame) {
         gridbag.setConstraints(desktopScrollPane, gbc);
         vncFrame.add(desktopScrollPane);
         vncFrame.setTitle(rfb.desktopName);
-        vncFrame.pack();
         vc.resizeDesktopFrame();
       } else {
         // Size the scroll pane to display size.

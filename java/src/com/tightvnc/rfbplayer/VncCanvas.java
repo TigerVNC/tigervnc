@@ -263,10 +263,10 @@ class VncCanvas extends Canvas implements Observer {
     if (needResize)
       player.desktopScrollPane.setSize(w, h);
 
-    player.vncFrame.pack();
-
     // size the canvas
     setSize(getPreferredSize());
+
+    player.vncFrame.pack();
   }
 
   void resizeEmbeddedApplet() {
@@ -275,9 +275,9 @@ class VncCanvas extends Canvas implements Observer {
     if (scrollSize.width != player.dispW ||
         scrollSize.height != player.dispH) {
       player.desktopScrollPane.setSize(player.dispW, player.dispH);
-      player.desktopScrollPane.validate();
     }
 
+    player.desktopScrollPane.validate();
     // size the canvas
     setSize(getPreferredSize());
   }
