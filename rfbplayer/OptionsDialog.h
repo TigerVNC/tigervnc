@@ -44,7 +44,6 @@ protected:
     SendMessage(combo, CB_SETCURSEL, options->pixelFormatIndex + 1, 0);
     setItemChecked(IDC_ACCEPT_BELL, options->acceptBell);
     setItemChecked(IDC_ACCEPT_CUT_TEXT, options->acceptCutText);
-    setItemChecked(IDC_AUTO_STORE_PARAM, options->autoStoreSettings);
     setItemChecked(IDC_AUTOPLAY, options->autoPlay);
     setItemChecked(IDC_BIG_ENDIAN, options->bigEndianFlag);
     if (options->askPixelFormat) {
@@ -57,7 +56,6 @@ protected:
     options->askPixelFormat = isItemChecked(IDC_ASK_PF);
     options->acceptBell = isItemChecked(IDC_ACCEPT_BELL);
     options->acceptCutText = isItemChecked(IDC_ACCEPT_CUT_TEXT);
-    options->autoStoreSettings = isItemChecked(IDC_AUTO_STORE_PARAM);
     options->autoPlay = isItemChecked(IDC_AUTOPLAY);
     options->bigEndianFlag = isItemChecked(IDC_BIG_ENDIAN);
     if (!options->askPixelFormat) {
@@ -84,7 +82,6 @@ protected:
       setItemChecked(IDC_ASK_PF, DEFAULT_ASK_PF);
       setItemChecked(IDC_ACCEPT_BELL, DEFAULT_ACCEPT_BELL);
       setItemChecked(IDC_ACCEPT_CUT_TEXT, DEFAULT_ACCEPT_CUT_TEXT);
-      setItemChecked(IDC_AUTO_STORE_PARAM, DEFAULT_STORE_SETTINGS);
       setItemChecked(IDC_AUTOPLAY, DEFAULT_AUTOPLAY);
       setItemChecked(IDC_BIG_ENDIAN, DEFAULT_BIG_ENDIAN);
     }

@@ -41,7 +41,6 @@ void PlayerOptions::readFromRegistry() {
     setPF(pPF);
     acceptBell = regKey.getBool(_T("AcceptBell"), DEFAULT_ACCEPT_BELL);
     acceptCutText = regKey.getBool(_T("AcceptCutText"), DEFAULT_ACCEPT_CUT_TEXT);
-    autoStoreSettings = regKey.getBool(_T("AutoStoreSettings"), DEFAULT_STORE_SETTINGS);
     autoPlay = regKey.getBool(_T("AutoPlay"), DEFAULT_AUTOPLAY);
     loopPlayback = regKey.getBool(_T("LoopPlayback"), DEFAULT_LOOP_PLAYBACK);
     askPixelFormat = regKey.getBool(_T("AskPixelFormat"), DEFAULT_ASK_PF);
@@ -62,7 +61,6 @@ void PlayerOptions::writeToRegistry() {
     regKey.setBinary(_T("PixelFormat"), &pixelFormat, sizeof(PixelFormat));
     regKey.setBool(_T("AcceptBell"), acceptBell);
     regKey.setBool(_T("AcceptCutText"), acceptCutText);
-    regKey.setBool(_T("AutoStoreSettings"), autoStoreSettings);
     regKey.setBool(_T("AutoPlay"), autoPlay);
     regKey.setBool(_T("LoopPlayback"), loopPlayback);
     regKey.setBool(_T("AskPixelFormat"), askPixelFormat);
@@ -85,7 +83,6 @@ void PlayerOptions::writeDefaults() {
   acceptCutText = DEFAULT_ACCEPT_CUT_TEXT;
   loopPlayback = DEFAULT_LOOP_PLAYBACK;
   askPixelFormat = DEFAULT_ASK_PF; 
-  autoStoreSettings = DEFAULT_STORE_SETTINGS;
   commandLineParam = false;
 }
 

@@ -51,7 +51,6 @@
 #define DEFAULT_ASK_PF FALSE
 #define DEFAULT_AUTOPLAY FALSE
 #define DEFAULT_FULL_SCREEN FALSE
-#define DEFAULT_STORE_SETTINGS FALSE
 
 using namespace rfb;
 
@@ -76,6 +75,5 @@ public:
   bool loopPlayback;
   bool askPixelFormat;
   long frameScale;
-  bool autoStoreSettings;
   bool commandLineParam;
 };
