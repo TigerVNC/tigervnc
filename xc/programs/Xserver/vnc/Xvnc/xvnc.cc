@@ -149,31 +149,33 @@ static char displayNumStr[16];
     else _dst = _src;
 
 
-static void vfbInitializePixmapDepths()
+static void
+vfbInitializePixmapDepths(void)
 {
-  int i;
-  vfbPixmapDepths[1] = TRUE; /* always need bitmaps */
-  for (i = 2; i <= 32; i++)
-    vfbPixmapDepths[i] = FALSE;
+    int i;
+    vfbPixmapDepths[1] = TRUE; /* always need bitmaps */
+    for (i = 2; i <= 32; i++)
+	vfbPixmapDepths[i] = FALSE;
 }
 
-static void vfbInitializeDefaultScreens()
+static void
+vfbInitializeDefaultScreens(void)
 {
-  int i;
+    int i;
 
-  for (i = 0; i < MAXSCREENS; i++)
-  {
-    vfbScreens[i].scrnum = i;
-    vfbScreens[i].width  = VFB_DEFAULT_WIDTH;
-    vfbScreens[i].height = VFB_DEFAULT_HEIGHT;
-    vfbScreens[i].depth  = VFB_DEFAULT_DEPTH;
-    vfbScreens[i].blackPixel = VFB_DEFAULT_BLACKPIXEL;
-    vfbScreens[i].whitePixel = VFB_DEFAULT_WHITEPIXEL;
-    vfbScreens[i].lineBias = VFB_DEFAULT_LINEBIAS;
-    vfbScreens[i].pixelFormatDefined = FALSE;
-    vfbScreens[i].pfbMemory = NULL;
-  }
-  vfbNumScreens = 1;
+    for (i = 0; i < MAXSCREENS; i++)
+    {
+	vfbScreens[i].scrnum = i;
+	vfbScreens[i].width  = VFB_DEFAULT_WIDTH;
+	vfbScreens[i].height = VFB_DEFAULT_HEIGHT;
+	vfbScreens[i].depth  = VFB_DEFAULT_DEPTH;
+	vfbScreens[i].blackPixel = VFB_DEFAULT_BLACKPIXEL;
+	vfbScreens[i].whitePixel = VFB_DEFAULT_WHITEPIXEL;
+	vfbScreens[i].lineBias = VFB_DEFAULT_LINEBIAS;
+	vfbScreens[i].pixelFormatDefined = FALSE;
+	vfbScreens[i].pfbMemory = NULL;
+    }
+    vfbNumScreens = 1;
 }
 
 static int vfbBitsPerPixel(int depth)
