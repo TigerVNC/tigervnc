@@ -179,7 +179,7 @@ parameter to "None".
 .TP
 .B \-IdleTimeout \fIseconds\fP
 The number of seconds after which an idle VNC connection will be dropped
-(default is 3600 i.e. an hour).
+(default is 0, which means that idle connections will never be dropped).
 
 .TP
 .B \-localhost

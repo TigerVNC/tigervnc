@@ -29,7 +29,7 @@
 rfb::IntParameter rfb::Server::idleTimeout
 ("IdleTimeout",
  "The number of seconds after which an idle VNC connection will be dropped",
- 3600);
+ 0);
 rfb::IntParameter rfb::Server::clientWaitTimeMillis
 ("ClientWaitTimeMillis",
  "The number of milliseconds to wait for a client which is no longer "
