@@ -199,7 +199,7 @@ BEGIN
     CONTROL         "Allow JPEG compression:",IDC_ALLOW_JPEG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,126,96,10
     EDITTEXT        IDC_QUALITYLEVEL,25,137,15,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "quality (0=poor, 9=best)",IDC_STATIC,44,140,81,9
+    LTEXT           "quality (1=poor, 9=best)",IDC_STATIC,44,140,81,9
 
 END
 
