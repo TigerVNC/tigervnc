@@ -113,7 +113,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
 
       // Create the required configuration registry key
       RegKey rootKey;
-      rootKey.createKey(configKey, _T("Software\\RealVNC\\WinVNC4"));
+      rootKey.createKey(configKey, _T("Software\\TightVNC\\WinVNC4"));
   
       // Override whatever security it already had (NT only)
       bool warnOnChangePassword = false;
@@ -147,7 +147,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
 
       // Start the RegConfig reader, to load in existing settings
       RegistryReader config;
-      config.setKey(configKey, _T("Software\\RealVNC\\WinVNC4"));
+      config.setKey(configKey, _T("Software\\TightVNC\\WinVNC4"));
 
       // Build the dialog
       std::list<PropSheetPage*> pages;

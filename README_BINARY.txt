@@ -1,11 +1,17 @@
 
-VNC 4 Binary Distribution for Windows platforms
-=============================================
+TightVNC Binary Distribution for Windows platforms
+==================================================
 
-VNC 4 is Copyright RealVNC Ltd. 2002-2004.  This software is
-distributed under the GNU General Public Licence as published by the
-Free Software Foundation. VNC also contains code from other sources,
-as outlined in the Acknowledgements section below.
+Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
+Copyright (C) 2000-2004 Constantin Kaplinsky.
+Copyright (C) 2004 Peter Astrand, Cendio AB
+
+This software is distributed under the GNU General Public Licence as
+published by the Free Software Foundation.  See the file LICENCE.TXT
+for the conditions under which this software is made available.
+TightVNC also contains code from other sources.  See the
+Acknowledgements section below, and the individual files for details
+of the conditions under which they are made available.
 
 The installer package contains two VNC components:
 

@@ -1,14 +1,17 @@
 
-VNC 4.0 Source Distribution for Unix platforms
-==============================================
+TightVNC Source Distribution for Unix platforms
+===============================================
 
 Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
+Copyright (C) 2000-2004 Constantin Kaplinsky.
+Copyright (C) 2004 Peter Astrand, Cendio AB
 
-This software is distributed under the GNU General Public Licence as published
-by the Free Software Foundation.  See the file LICENCE.TXT for the conditions
-under which this software is made available.  VNC also contains code from other
-sources.  See the Acknowledgements section below, and the individual files for
-details of the conditions under which they are made available.
+This software is distributed under the GNU General Public Licence as
+published by the Free Software Foundation.  See the file LICENCE.TXT
+for the conditions under which this software is made available.
+TightVNC also contains code from other sources.  See the
+Acknowledgements section below, and the individual files for details
+of the conditions under which they are made available.
 
 
 There are six programs here:

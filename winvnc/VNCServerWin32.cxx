@@ -36,7 +36,7 @@ using namespace network;
 static LogWriter vlog("VNCServerWin32");
 
 
-const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\RealVNC\\WinVNC4");
+const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TightVNC\\WinVNC4");
 
 const UINT VNCM_REG_CHANGED = WM_USER;
 const UINT VNCM_COMMAND = WM_USER + 1;

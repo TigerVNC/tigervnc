@@ -1,4 +1,4 @@
-.TH vncconfig 1 "3 June 2003" "RealVNC Ltd" "Virtual Network Computing"
+.TH vncconfig 1 "30 December 2004" "TightVNC" "Virtual Network Computing"
 .SH NAME
 vncconfig \- configure and control a VNC server
 .SH SYNOPSIS
@@ -105,11 +105,12 @@ Prints a short description of the given Xvnc parameter.
 .BR vncserver (1),
 .BR Xvnc (1)
 .br
-http://www.realvnc.com
+http://www.tightvnc.com
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd.
 
-VNC was originally developed by the RealVNC team while at Olivetti Research Ltd
-/ AT&T Laboratories Cambridge.  It is now being maintained by RealVNC Ltd.  See
-http://www.realvnc.com for details.
+VNC was originally developed by the RealVNC team while at Olivetti
+Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions was
+implemented by Constantin Kaplinsky. Many other people participated in
+development, testing and support.

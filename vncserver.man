@@ -1,4 +1,4 @@
-.TH vncserver 1 "18 May 2004" "RealVNC Ltd" "Virtual Network Computing"
+.TH vncserver 1 "18 May 2004" "TightVNC" "Virtual Network Computing"
 .SH NAME
 vncserver \- start or stop a VNC server
 .SH SYNOPSIS
@@ -110,11 +110,12 @@ option.
 .BR vncconfig (1),
 .BR Xvnc (1)
 .br
-http://www.realvnc.com
+http://www.tightvnc.com
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd.
 
-VNC was originally developed by the RealVNC team while at Olivetti Research Ltd
-/ AT&T Laboratories Cambridge.  It is now being maintained by RealVNC Ltd.  See
-http://www.realvnc.com for details.
+VNC was originally developed by the RealVNC team while at Olivetti
+Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions was
+implemented by Constantin Kaplinsky. Many other people participated in
+development, testing and support.

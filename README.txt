@@ -1,15 +1,17 @@
 
-VNC 4 Source Distribution for Windows platforms
-=============================================
+TightVNC Source Distribution for Windows platforms
+==================================================
 
-VNC 4 is Copyright RealVNC Ltd. 2002-2004.  This software is
-distributed under the GNU General Public Licence as published by the
-Free Software Foundation.  See the accompanying licence.txt file for
-the conditions under which the software is made available.
+Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
+Copyright (C) 2000-2004 Constantin Kaplinsky.
+Copyright (C) 2004 Peter Astrand, Cendio AB
 
-VNC 4 also contains code from other sources.  See the Acknowledgements
-section below, and the individual files for details of the conditions
-under which they are made available.
+This software is distributed under the GNU General Public Licence as
+published by the Free Software Foundation.  See the file LICENCE.TXT
+for the conditions under which this software is made available.
+TightVNC also contains code from other sources.  See the
+Acknowledgements section below, and the individual files for details
+of the conditions under which they are made available.
 
 The source tree contains a number of directories, and is most easily
 built by loading the VNC workspace file (vnc.dsw) into Microsoft

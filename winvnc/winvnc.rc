@@ -71,15 +71,15 @@ BEGIN
         BLOCK "080904b0"
         BEGIN
             VALUE "Comments", "\0"
-            VALUE "CompanyName", "RealVNC Ltd.\0"
-            VALUE "FileDescription", "VNC Server for Win32\0"
+            VALUE "CompanyName", "Constantin Kaplinsky\0"
+            VALUE "FileDescription", "TightVNC Server for Win32\0"
             VALUE "FileVersion", "4.0\0"
             VALUE "InternalName", "WinVNC 4.0\0"
-            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2004\0"
-            VALUE "LegalTrademarks", "RealVNC\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2004 [many holders]\0"
+            VALUE "LegalTrademarks", "TightVNC\0"
             VALUE "OriginalFilename", "winvnc4.exe\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "VNC Server 4.0\0"
+            VALUE "ProductName", "TightVNC Server 4.0\0"
             VALUE "ProductVersion", "4.0\0"
             VALUE "SpecialBuild", "\0"
         END
@@ -140,7 +140,7 @@ BEGIN
     LTEXT           ">version<",IDC_VERSION,165,7,77,18
     LTEXT           ">buildtime<",IDC_BUILDTIME,40,25,202,15
     LTEXT           ">copyright<",IDC_COPYRIGHT,40,40,202,15
-    LTEXT           "See http://www.realvnc.com for more information on VNC.",
+    LTEXT           "See http://www.tightvnc.com for more information on TightVNC.",
                     IDC_STATIC,40,55,202,15
 END
 

@@ -314,7 +314,7 @@ void CViewOptions::writeToFile(const char* filename) {
 
 void CViewOptions::writeDefaults() {
   RegKey key;
-  key.createKey(HKEY_CURRENT_USER, _T("Software\\RealVNC\\VNCviewer4"));
+  key.createKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCviewer4"));
   key.setBool(_T("UseLocalCursor"), useLocalCursor);
   key.setBool(_T("UseDesktopResize"), useDesktopResize);
   key.setBool(_T("FullScreen"), fullScreen);

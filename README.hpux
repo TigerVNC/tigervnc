@@ -36,4 +36,4 @@ path, since many of the font directories on HPUX are different from the
 defaults compiled into Xvnc.
 
 If anyone can find a neater way of building a VNC-compatible X tree on HPUX
-please let us know (see http://www.realvnc.com for contact details).
+please let us know (see http://www.tightvnc.com for contact details).

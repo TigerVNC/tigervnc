@@ -53,7 +53,7 @@ ExtensionModule vncExt =
 static XF86ModuleVersionInfo vncVersRec =
 {
     "vnc",
-    "RealVNC Ltd",
+    "Constantin Kaplinsky",
     MODINFOSTRING1,
     MODINFOSTRING2,
     XF86_VERSION_CURRENT,

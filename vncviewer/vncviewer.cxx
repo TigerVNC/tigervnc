@@ -270,7 +270,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
 
 #ifdef _DIALOG_CAPTURE
     if (captureDialogs) {
-      CView::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\RealVNC\\VNCViewer4"));
+      CView::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
       OptionsDialog::global.showDialog(0, true);
       return 0;
     }
@@ -286,10 +286,10 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
     if (!configFiles.empty() || !hosts.empty() || acceptIncoming) {
       // - Configure the registry configuration reader
       win32::RegistryReader reg_reader;
-      reg_reader.setKey(HKEY_CURRENT_USER, _T("Software\\RealVNC\\VNCViewer4"));
+      reg_reader.setKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
 
       // - Tell the rest of VNC Viewer where to write config data to
-      CView::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\RealVNC\\VNCViewer4"));
+      CView::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
 
       // - Start the Socket subsystem for TCP
       TcpSocket::initTcpSockets();
