@@ -382,7 +382,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
     case ID_OPTIONS:
       {
-        OptionsDialog optionsDialog(&options);
+        OptionsDialog optionsDialog(&options, &supportedPF);
         optionsDialog.showDialog(getMainHandle());
       }
       break;
@@ -891,34 +891,31 @@ void RfbPlayer::serverInit() {
     throw rdr::Exception("This version plays only true color session!");
 
   // Set the session pixel format
-  static long pixelFormat = PF_AUTO;
+  static long pixelFormatIndex = -1;
   if (options.askPixelFormat) {
-    ChoosePixelFormatDialog choosePixelFormatDialog(pixelFormat);
+    ChoosePixelFormatDialog choosePixelFormatDialog(pixelFormatIndex, &supportedPF);
     if (choosePixelFormatDialog.showDialog(getMainHandle())) {
-      pixelFormat = choosePixelFormatDialog.getPF();
+      pixelFormatIndex = choosePixelFormatDialog.getPF();
+      if (pixelFormatIndex < 0) {
+        options.autoDetectPF = true;
+        options.setPF((PixelFormat *)&cp.pf());
+      } else {
+        options.autoDetectPF = false;
+        options.setPF(&supportedPF[pixelFormatIndex].PF);
+      }
     } else {
       is->pausePlayback();
       throw rdr::Exception("[TERMINATE]");
     }
   } else {
-    pixelFormat = options.pixelFormatIndex;
+    if (options.autoDetectPF) {
+      options.setPF((PixelFormat *)&cp.pf());
+    } else {
+      options.setPF(&supportedPF[options.pixelFormatIndex].PF);
+    }
   }
-  switch (pixelFormat) {
-  case PF_AUTO: 
-    break;
-  case PF_D8_RGB332: 
-    cp.setPF(PixelFormat(8,8,0,1,7,7,3,0,3,6)); 
-    break;
-  case PF_D16_RGB655: 
-    cp.setPF(PixelFormat(16,16,0,1,63,31,31,0,6,11)); 
-    break;
-  case PF_D24_RGB888: 
-    cp.setPF(PixelFormat(32,24,0,1,255,255,255,16,8,0)); 
-    break;
-  default: 
-    throw rdr::Exception("This color depth is not supported!");
-  }
-  buffer->setPF(cp.pf());
+  cp.setPF(options.pixelFormat);
+  buffer->setPF(options.pixelFormat);
 
   // If the window is not maximised then resize it
   if (!(GetWindowLong(getMainHandle(), GWL_STYLE) & WS_MAXIMIZE))
