@@ -939,6 +939,7 @@ long RfbPlayer::calculateSessionTime(char *filename) {
 
 void RfbPlayer::closeSessionFile() {
   char speedStr[10];
+  DWORD dwStyle;
   RECT r;
 
   // Uncheck all toolbar buttons
@@ -967,6 +968,10 @@ void RfbPlayer::closeSessionFile() {
   SendMessage(posTrackBar, TBM_SETRANGE, TRUE, MAKELONG(0, 0));
     
   // Change the player window size and frame size to default
+  if ((dwStyle = GetWindowLong(getMainHandle(), GWL_STYLE)) & WS_MAXIMIZE) {
+    dwStyle &= ~WS_MAXIMIZE;
+    SetWindowLong(getMainHandle(), GWL_STYLE, dwStyle);
+  }
   SetWindowPos(getMainHandle(), 0, 0, 0, 
     DEFAULT_PLAYER_WIDTH, DEFAULT_PLAYER_HEIGHT, 
     SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
