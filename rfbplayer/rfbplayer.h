@@ -135,8 +135,9 @@ class RfbPlayer : public RfbProto {
 
     char *fileName;
 
-  private:
+  protected:
     bool seekMode;
+    bool stopped;
     long lastPos;
     bool sliderDraging;
     long sliderStepMs;
@@ -145,17 +146,18 @@ class RfbPlayer : public RfbProto {
     int time_pos_s;
     int CTRL_BAR_HEIGHT;
     
-  protected:
     // rfbReader is a class which used to reading the rfb data from the file
     rfbSessionReader *rfbReader;
 
     // Returns true if part of the supplied rect is visible, false otherwise
     bool invalidateBufferRect(const Rect& crect);
 
+    bool waitWhilePaused();
+
     // rewindFlag is a flag wich disable the update of the frame buffer window 
     // while the rewind is performing.
     bool rewindFlag;
-
+    
     // Local window state
     HWND mainHwnd;
     HWND frameHwnd;

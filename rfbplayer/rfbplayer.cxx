@@ -226,7 +226,8 @@ RfbPlayer::RfbPlayer(char *_fileName, int _depth = DEPTH_AUTO,
   seekMode(false), fileName(_fileName), lastPos(0), timeStatic(0), 
   speedEdit(0), posTrackBar(0), speedUpDown(0), acceptBell(_acceptBell), 
   rfbReader(0), sessionTimeMs(0), sliderDraging(false), sliderStepMs(0), 
-  loopPlayback(false), imageDataStartTime(0), rewindFlag(false) {
+  loopPlayback(false), imageDataStartTime(0), rewindFlag(false),
+  stopped(false) {
 
   CTRL_BAR_HEIGHT = 28;
 
@@ -806,6 +807,10 @@ void RfbPlayer::rewind() {
 }
 
 void RfbPlayer::processMsg() {
+  // Perform return if waitWhilePaused processed because 
+  // rfbReader thread could receive the signal to close
+  if (waitWhilePaused()) return;
+  
   static long update_time = GetTickCount();
   try {
     if ((!isSeeking()) && ((GetTickCount() - update_time) > 250)
@@ -829,7 +834,8 @@ void RfbPlayer::processMsg() {
       rewindFlag = true; 
       long seekOffset = max(getSeekOffset(), imageDataStartTime);
       rewind();
-      setPos(seekOffset);
+      if (!stopped) setPos(seekOffset);
+      else stopped = false;
       updatePos(seekOffset);
       rewindFlag = false;
     } else {
@@ -948,6 +954,15 @@ bool RfbPlayer::invalidateBufferRect(const Rect& crect) {
   return true;
 }
 
+bool RfbPlayer::waitWhilePaused() {
+  bool result = false;
+  while(isPaused() && !isSeeking()) {
+    Sleep(20);
+    result = true;
+  }
+  return result;
+}
+
 long RfbPlayer::calculateSessionTime(char *filename) {
   FbsInputStream sessionFile(filename);
   sessionFile.setTimeOffset(100000000);
@@ -1054,8 +1069,9 @@ void RfbPlayer::setPaused(bool paused) {
 }
 
 void RfbPlayer::stopPlayback() {
-  setPos(0);
+  stopped = true;
   if (is) is->pausePlayback();
+  setPos(0);
   tb.checkButton(ID_STOP, true);
   tb.checkButton(ID_PLAY, false);
   tb.checkButton(ID_PAUSE, false);
