@@ -679,50 +679,61 @@ vfbInstallColormap(ColormapPtr pmap)
     }
 }
 
-static void vfbUninstallColormap(ColormapPtr pmap)
+static void
+vfbUninstallColormap(ColormapPtr pmap)
 {
-  ColormapPtr curpmap = InstalledMaps[pmap->pScreen->myNum];
+    ColormapPtr curpmap = InstalledMaps[pmap->pScreen->myNum];
 
-  if(pmap == curpmap)
-  {
-    if (pmap->mid != pmap->pScreen->defColormap)
+    if(pmap == curpmap)
     {
-      curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
-                                             RT_COLORMAP);
-      (*pmap->pScreen->InstallColormap)(curpmap);
+	if (pmap->mid != pmap->pScreen->defColormap)
+	{
+	    curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
+						   RT_COLORMAP);
+	    (*pmap->pScreen->InstallColormap)(curpmap);
+	}
     }
-  }
 }
 
-static void vfbStoreColors(ColormapPtr pmap, int ndef, xColorItem *pdefs)
+static void
+vfbStoreColors(ColormapPtr pmap, int ndef, xColorItem *pdefs)
 {
-  XWDColor *pXWDCmap;
-  int i;
+    XWDColor *pXWDCmap;
+    int i;
 
-  if (pmap != InstalledMaps[pmap->pScreen->myNum]) return;
-
-  pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
-
-  if ((pmap->pVisual->c_class | DynamicClass) == DirectColor)
-    return;
-
-  for (i = 0; i < ndef; i++)
-  {
-    if (pdefs[i].flags & DoRed) {
-      swapcopy16(pXWDCmap[pdefs[i].pixel].red, pdefs[i].red);
+    if (pmap != InstalledMaps[pmap->pScreen->myNum])
+    {
+	return;
     }
-    if (pdefs[i].flags & DoGreen) {
-      swapcopy16(pXWDCmap[pdefs[i].pixel].green, pdefs[i].green);
+
+    pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
+
+    if ((pmap->pVisual->class | DynamicClass) == DirectColor)
+    {
+	return;
     }
-    if (pdefs[i].flags & DoBlue) {
-      swapcopy16(pXWDCmap[pdefs[i].pixel].blue, pdefs[i].blue);
+
+    for (i = 0; i < ndef; i++)
+    {
+	if (pdefs[i].flags & DoRed)
+	{
+	    swapcopy16(pXWDCmap[pdefs[i].pixel].red, pdefs[i].red);
+	}
+	if (pdefs[i].flags & DoGreen)
+	{
+	    swapcopy16(pXWDCmap[pdefs[i].pixel].green, pdefs[i].green);
+	}
+	if (pdefs[i].flags & DoBlue)
+	{
+	    swapcopy16(pXWDCmap[pdefs[i].pixel].blue, pdefs[i].blue);
+	}
     }
-  }
 }
 
-static Bool vfbSaveScreen(ScreenPtr pScreen, int on)
+static Bool
+vfbSaveScreen(ScreenPtr pScreen, int on)
 {
-  return TRUE;
+    return TRUE;
 }
 
 static char* vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
