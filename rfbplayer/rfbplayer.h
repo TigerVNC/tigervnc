@@ -90,6 +90,7 @@ class RfbPlayer : public RfbProto {
 
     // -=- RfbProto interface overrides
 
+    virtual void processMsg();
     virtual void serverInit();
     virtual void frameBufferUpdateEnd();
     virtual void setColourMapEntries(int first, int count, U16* rgbs);

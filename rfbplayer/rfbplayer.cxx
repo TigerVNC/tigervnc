@@ -288,8 +288,8 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
     case ID_STOP:
       if (getTimeOffset() != 0) {
-        setPaused(true);
         setPos(0);
+        setPaused(true);
       }
       tb.checkButton(ID_STOP, true);
       tb.checkButton(ID_PLAY, false);
@@ -688,9 +688,43 @@ void RfbPlayer::blankBuffer() {
 }
 
 void RfbPlayer::rewind() {
+  bool paused = isPaused();
   blankBuffer();
   newSession(fileName);
   skipHandshaking();
+  setSpeed(playbackSpeed);
+  setPaused(paused);
+}
+
+void RfbPlayer::processMsg() {
+  static long update_time = GetTickCount();
+  try {
+    if ((!isSeeking()) && ((GetTickCount() - update_time) > 250)) {
+      // Update pos in the toolbar 4 times in 1 second
+      updatePos();
+      update_time = GetTickCount();
+    }
+    RfbProto::processMsg();
+  } catch (rdr::Exception e) {
+    if (strcmp(e.str(), "[End Of File]") == 0) {
+      rewind();
+      setPaused(true);
+      tb.checkButton(ID_STOP, true);
+      tb.checkButton(ID_PAUSE, false);
+      tb.checkButton(ID_PLAY, false);
+      return;
+    }
+    // It's a special exception to perform backward seeking.
+    // We only rewind the stream and seek the offset
+    if (strcmp(e.str(), "[REWIND]") == 0) {
+      long initTime = getSeekOffset();
+      rewind();
+      setPos(initTime);
+    } else {
+      MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
+      return;
+    }
+  }
 }
 
 void RfbPlayer::serverInit() {
@@ -787,6 +821,7 @@ void RfbPlayer::setPaused(bool paused) {
 void RfbPlayer::setSpeed(double speed) {
   serverInitTime = serverInitTime * getSpeed() / speed;
   is->setSpeed(speed);
+  playbackSpeed = speed;
 }
 
 double RfbPlayer::getSpeed() {
