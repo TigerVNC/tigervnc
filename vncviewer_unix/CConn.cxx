@@ -365,6 +365,10 @@ void CConn::initMenu() {
 
 void CConn::showMenu(int x, int y) {
   menu.check(ID_FULLSCREEN, fullScreen);
+  if (x + menu.width() > viewport->width())
+      x = viewport->width() - menu.width();
+  if (y + menu.height() > viewport->height())
+      y = viewport->height() - menu.height();
   menu.move(x, y);
   menu.raise();
   menu.map();
