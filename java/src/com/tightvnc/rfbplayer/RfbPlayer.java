@@ -191,9 +191,14 @@ public class RfbPlayer extends java.applet.Applet
     }
   }
 
+  public void setSpeed(double speed) {
+    fbsStream.setSpeed(speed);
+  }
+
   public void setPos(int pos) {
     fbsStream.setTimeOffset(pos * 1000);
   }
+
 
   public void updatePos() {
     if (showControls)

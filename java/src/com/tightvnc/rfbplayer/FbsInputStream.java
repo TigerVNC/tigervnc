@@ -30,6 +30,7 @@ class FbsInputStream extends InputStream {
   protected long timeOffset;
   protected long seekOffset;
   protected boolean paused;
+  protected double playbackSpeed;
 
   protected byte[] buffer;
   protected int bufferSize;
@@ -54,6 +55,7 @@ class FbsInputStream extends InputStream {
     timeOffset = 0;
     seekOffset = -1;
     paused = false;
+    playbackSpeed = 1.0;
 
     byte[] b = new byte[12];
     readFully(b);
@@ -101,6 +103,7 @@ class FbsInputStream extends InputStream {
     timeOffset = 0;
     seekOffset = -1;
     paused = false;
+    playbackSpeed = 1.0;
 
     buffer = null;
     bufferSize = 0;
@@ -111,17 +114,27 @@ class FbsInputStream extends InputStream {
   // Methods providing additional functionality.
   //
 
-  public long getTimeOffset()
+  public synchronized long getTimeOffset()
   {
-    return timeOffset;
+    return (long)(timeOffset * playbackSpeed);
   }
 
   public synchronized void setTimeOffset(long pos)
   {
     // FIXME: Seeking works only in paused mode.
     paused = true;
-    seekOffset = pos;
+    seekOffset = (long)(pos / playbackSpeed);
     notify();
+  }
+
+  public synchronized void setSpeed(double newSpeed)
+  {
+    timeOffset = (long)(timeOffset * playbackSpeed / newSpeed);
+    startTime = System.currentTimeMillis() - timeOffset;
+    if (isSeeking()) {
+      seekOffset = (long)(seekOffset * playbackSpeed / newSpeed);
+    }
+    playbackSpeed = newSpeed;
   }
 
   public boolean isSeeking()
@@ -146,7 +159,7 @@ class FbsInputStream extends InputStream {
   // Methods for internal use.
   //
 
-  private boolean fillBuffer() throws IOException
+  private synchronized boolean fillBuffer() throws IOException
   {
     waitWhilePaused();
 
@@ -156,8 +169,7 @@ class FbsInputStream extends InputStream {
       buffer = new byte[realSize];
       readFully(buffer);
       bufferPos = 0;
-
-      timeOffset = readUnsigned32();
+      timeOffset = (long)(readUnsigned32() / playbackSpeed);
     }
 
     if (bufferSize < 0 || timeOffset < 0) {
@@ -179,11 +191,9 @@ class FbsInputStream extends InputStream {
       if (timeDiff <= 0) {
 	break;
       }
-      synchronized(this) {
-	try {
-	  wait(timeDiff);
-	} catch (InterruptedException e) {
-	}
+      try {
+	wait(timeDiff);
+      } catch (InterruptedException e) {
       }
       waitWhilePaused();
     }
