@@ -246,12 +246,53 @@ ddxGiveUp()
     }
 }
 
-  void AbortDDX() { ddxGiveUp(); }
-  void OsVendorInit() {}
-  void OsVendorFatalError() {}
+void
+AbortDDX()
+{
+    ddxGiveUp();
+}
 
-  void ddxUseMsg()
-  {
+#ifdef __DARWIN__
+void
+DarwinHandleGUI(int argc, char *argv[])
+{
+}
+
+void GlxExtensionInit();
+void GlxWrapInitVisuals(void *procPtr);
+
+void
+DarwinGlxExtensionInit()
+{
+    GlxExtensionInit();
+}
+
+void
+DarwinGlxWrapInitVisuals(
+    void *procPtr)
+{
+    GlxWrapInitVisuals(procPtr);
+}
+#endif
+
+void
+OsVendorInit()
+{
+}
+
+void
+OsVendorFatalError()
+{
+}
+
+void ddxBeforeReset(void)
+{
+    return;
+}
+
+void 
+ddxUseMsg()
+{
     ErrorF("\nXvnc version %s - built %s\n", XVNCVERSION, buildtime);
     ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
            VENDOR_STRING);
@@ -264,6 +305,15 @@ ddxGiveUp()
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
     ErrorF("-whitepixel n          pixel value for white\n");
+
+#ifdef HAS_MMAP
+    ErrorF("-fbdir directory       put framebuffers in mmap'ed files in directory\n");
+#endif
+
+#ifdef HAS_SHM
+    ErrorF("-shmem                 put framebuffers in shared memory\n");
+#endif
+
     ErrorF("-geometry WxH          set screen 0's width, height\n");
     ErrorF("-depth D               set screen 0's depth\n");
     ErrorF("-pixelformat fmt       set pixel format (rgbNNN or bgrNNN)\n");
