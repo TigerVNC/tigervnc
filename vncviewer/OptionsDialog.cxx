@@ -98,6 +98,8 @@ public:
     setItemChecked(IDC_ALLOW_JPEG, !dlg->options.noJpeg);
     setItemInt(IDC_QUALITYLEVEL, dlg->options.qualityLevel);
     onCommand(IDC_ENCODING_AUTO, 0 /* ? */); // Force enableItem status to refresh
+    onCommand(IDC_CUSTOM_COMPRESSLEVEL, 0 /* ? */); // Force enableItem status to refresh
+    onCommand(IDC_ALLOW_JPEG, 0 /* ? */); // Force enableItem status to refresh
   }
   virtual bool onOk() {
     dlg->options.autoSelect = isItemChecked(IDC_ENCODING_AUTO);
@@ -133,6 +135,14 @@ public:
       enableItem(IDC_FORMAT_MEDIUMCOLOUR, ok);
       enableItem(IDC_FORMAT_LOWCOLOUR, ok);
       enableItem(IDC_FORMAT_VERYLOWCOLOUR, ok);
+      return true;
+    }
+    if (id == IDC_CUSTOM_COMPRESSLEVEL) {
+      enableItem(IDC_COMPRESSLEVEL, isItemChecked(IDC_CUSTOM_COMPRESSLEVEL));
+      return true;
+    }
+    if (id == IDC_ALLOW_JPEG) {
+      enableItem(IDC_QUALITYLEVEL, isItemChecked(IDC_ALLOW_JPEG));
       return true;
     }
     return false;
