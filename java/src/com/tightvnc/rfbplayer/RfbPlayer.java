@@ -173,14 +173,13 @@ public class RfbPlayer extends java.applet.Applet
 	    // A special type of EOFException allowing us to seek backwards.
 	    initialTimeOffset = rfb.fbs.getSeekOffset();
 	    autoPlay = !rfb.fbs.isPaused();
-	    rfb.newSession(url);
 	  } else {
 	    // Return to the beginning after the playback is finished.
 	    initialTimeOffset = 0;
 	    autoPlay = false;
-	    rfb.newSession(url);
-	    vc.updateFramebufferSize();
 	  }
+          rfb.newSession(url);
+          vc.updateFramebufferSize();
 	}
       }
 
