@@ -22,34 +22,35 @@
 
 class ChoosePixelFormatDialog : public rfb::win32::Dialog {
 public:
-  ChoosePixelFormatDialog(long _pf) : Dialog(GetModuleHandle(0)), 
-    pf(_pf), combo(0) {}
+  ChoosePixelFormatDialog(long _pfIndex, PixelFormatList *_supportedPF) 
+  : Dialog(GetModuleHandle(0)), supportedPF(_supportedPF), pfIndex(_pfIndex), 
+    combo(0) {}
   // - Show the dialog and return true if OK was clicked,
   //   false in case of error or Cancel
   virtual bool showDialog(HWND parent) {
     return Dialog::showDialog(MAKEINTRESOURCE(IDD_PIXELFORMAT), parent);
   }
-  const long getPF() const {return pf;}
+  const long getPF() const {return pfIndex;}
 protected:
 
   // Dialog methods (protected)
   virtual void initDialog() {
     combo = GetDlgItem(handle, IDC_PIXELFORMAT);
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("Auto"));
-    SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("8 bit depth (RGB332)"));
-    SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("16 bit depth (RGB655)"));
-    SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("24 bit depth (RGB888)"));
-    SendMessage(combo, CB_SETCURSEL, pf, 0);
+    for (int i = 0; i < supportedPF->count(); i++) {
+      SendMessage(combo, CB_ADDSTRING, 
+        0, (LPARAM)(LPCTSTR)(((*supportedPF)[i]).format_name));
+    }
+    SendMessage(combo, CB_SETCURSEL, pfIndex + 1, 0);
   }
   virtual bool onOk() {
-    pf = SendMessage(combo, CB_GETCURSEL, 0, 0);
+    pfIndex = SendMessage(combo, CB_GETCURSEL, 0, 0) - 1;
     return true;
   }
   virtual bool onCancel() {
-    pf = -1;
     return false;
   }
-
-  long pf;
+  long pfIndex;
+  PixelFormatList *supportedPF;
   HWND combo;
 };
