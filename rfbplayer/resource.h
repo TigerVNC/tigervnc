@@ -2,14 +2,9 @@
 // Microsoft Developer Studio generated include file.
 // Used by rfbplayer.rc
 //
-#define IDD_DIALOGBAR                   103
-#define IDI_ICON1                       105
 #define IDI_ICON                        105
 #define IDR_MENU                        128
 #define IDR_ACCELERATOR                 131
-#define IDC_BUTTON1                     1000
-#define IDC_EDIT1                       1001
-#define IDC_EDIT2                       1002
 #define ID_FILE_OPENFILE                40011
 #define ID_FILE_CLOSEFILE               40012
 #define ID_FILE_EXIT                    40013

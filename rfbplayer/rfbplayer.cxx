@@ -45,13 +45,6 @@ extern const char* buildTime;
 
 #define strcasecmp _stricmp
 
-#define ID_START_BTN 0
-#define ID_POS_EDT 1
-#define ID_SPEED_EDT 2
-#define ID_POS_TXT 3
-#define ID_SPEED_TXT 4
-#define ID_CLIENT_STC 5
-
 // -=- Custom thread class used to reading the rfb data
 
 class CRfbThread : public Thread {
@@ -153,7 +146,7 @@ RfbPlayerClass::RfbPlayerClass() : classAtom(0) {
   wndClass.cbWndExtra = 0;
   wndClass.hInstance = instance = GetModuleHandle(0);
   wndClass.hIcon = (HICON)LoadImage(GetModuleHandle(0),
-    MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, LR_SHARED);
+    MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_SHARED);
   if (!wndClass.hIcon)
     printf("unable to load icon:%ld", GetLastError());
   wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -282,128 +275,14 @@ RfbPlayer::~RfbPlayer() {
   vlog.debug("~RfbPlayer done"); 
 }
 
-// RfbPlayer control's tabstop processing
-
-WNDPROC OldProc[3];
-static HWND focusHwnd = 0;
-
-LRESULT CALLBACK TabProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-  int CONTROL_ID = GetWindowLong(hwnd, GWL_ID);
-  
-  if (msg == WM_DESTROY)
-    SetWindowLong(hwnd, GWL_USERDATA, 0);
-
-  RfbPlayer* _this = (RfbPlayer*) GetWindowLong(hwnd, GWL_USERDATA);
-  if (!_this)
-    return CallWindowProc(OldProc[CONTROL_ID], hwnd, msg, wParam, lParam);
-
-  switch (msg) {
-  case WM_KEYDOWN:
-    
-    // Process tab pressing
-    if (wParam == VK_TAB) {
-      switch (CONTROL_ID){
-      case ID_START_BTN:
-        focusHwnd = _this->getPosEdit();
-        break;
-      case ID_POS_EDT:
-        focusHwnd = _this->getSpeedEdit();
-        break;
-      case ID_SPEED_EDT:
-        focusHwnd = _this->getStartBtn();
-        break;
-      }
-      SetFocus(focusHwnd);
-    }
-    
-    // Process return/enter pressing (set the speed and the position)
-    if (wParam == VK_RETURN) {
-      switch (CONTROL_ID){
-
-          // Change the position
-
-      case ID_POS_EDT:
-        {
-          char posTxt[20];
-          long pos;
-          GetWindowText(_this->getPosEdit(), posTxt, 10);
-          pos = atol(posTxt);
-          if (pos != long(_this->getTimeOffset() / 1000) && (pos >= 0))
-            _this->setPos(pos * 1000);
-          else
-            SetWindowText(_this->getPosEdit(), LongToStr(_this->getTimeOffset() / 1000));
-        }
-        break;
-
-          // Change the playback speed
-
-      case ID_SPEED_EDT:
-        {
-          char speedTxt[20];
-          double speed;
-          GetWindowText(_this->getSpeedEdit(), speedTxt, 10);
-          speed = atof(speedTxt);
-          if ((speed != _this->getSpeed()) && (speed != 0))
-            _this->setSpeed(speed);
-          else
-            SetWindowText(_this->getSpeedEdit(), DoubleToStr(_this->getSpeed()));
-        }
-        break;
-      }
-    }
-    break;
-
-  case WM_SETFOCUS:
-    focusHwnd = hwnd;
-    break;
-  }
-
-  return CallWindowProc(OldProc[CONTROL_ID], hwnd, msg, wParam, lParam);
-}
-
 LRESULT 
 RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
   switch (msg) {
 
     // -=- Process standard window messages
-
-  case WM_SETFOCUS:
-    {
-      if (focusHwnd)
-        SetFocus(focusHwnd);
-      else 
-        SetFocus(btnStart);
-    }
-    break;
   
   case WM_CREATE:
     {
-      // Create the player controls
-      if (showControls) {
-        btnStart = CreateWindow("BUTTON", "Stop", WS_CHILD | WS_VISIBLE |
-          BS_PUSHBUTTON | BS_NOTIFY, 5, 5, 60, 20, hwnd, (HMENU)ID_START_BTN,
-          baseClass.instance, NULL);
-        txtPos = CreateWindow("STATIC", "Position:", WS_CHILD | WS_VISIBLE,
-          70, 5, 60, 20, hwnd, (HMENU)ID_POS_TXT, baseClass.instance, NULL);
-        editPos = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "0", WS_CHILD |
-          WS_VISIBLE | ES_NUMBER |ES_RIGHT, 135, 5, 60, 20, hwnd,
-          (HMENU)ID_POS_EDT, baseClass.instance, this);
-        txtSpeed = CreateWindow("STATIC", "Speed:", WS_CHILD | WS_VISIBLE,
-          200, 5, 50, 20, hwnd, (HMENU)ID_SPEED_TXT, baseClass.instance, NULL);
-        editSpeed = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "1.0", WS_CHILD |
-          WS_VISIBLE | ES_RIGHT, 255, 5, 60, 20, hwnd, (HMENU)ID_SPEED_EDT, 
-          baseClass.instance, this);
-
-        // Windows subclassing (It's used to implement "TabStop")
-        OldProc[0] = (WNDPROC)SetWindowLong(btnStart, GWL_WNDPROC, (LONG)TabProc);
-        OldProc[1] = (WNDPROC)SetWindowLong(editPos, GWL_WNDPROC, (LONG)TabProc);
-        OldProc[2] = (WNDPROC)SetWindowLong(editSpeed, GWL_WNDPROC, (LONG)TabProc);
-
-        SetWindowLong(btnStart, GWL_USERDATA, (long)this);
-        SetWindowLong(editPos, GWL_USERDATA, (long)this);
-        SetWindowLong(editSpeed, GWL_USERDATA, (long)this);
-      }
-
       // Create the frame window
       frameHwnd = CreateWindowEx(WS_EX_CLIENTEDGE, (const TCHAR*)frameClass.classAtom,
         0, WS_CHILD | WS_VISIBLE, 0, CTRL_BAR_HEIGHT, 10, CTRL_BAR_HEIGHT + 10,
@@ -412,33 +291,11 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       return 0;
     }
   
-    // Process the start button messages
+    // Process the main menu and toolbar's messages
 
   case WM_COMMAND:
     {
-      if ((LOWORD(wParam) == ID_START_BTN) && (HIWORD(wParam) == BN_CLICKED)) {
-        if (is->isPaused()) {
-          long pos;
-          double speed;
-          char str[20];
 
-          // Change the playback speed
-          GetWindowText(editSpeed, str, 10);
-          speed = atof(str);
-          if ((speed != getSpeed()) && (speed != 0))
-            setSpeed(speed);
-
-          // Change the position
-          GetWindowText(editPos, str, 10);
-          pos = atol(str);
-          if (pos != long(getTimeOffset() / 1000))
-            setPos(pos * 1000);
-          setPaused(false);
-        } else {
-          setPaused(true);
-          updatePos();
-        }
-      }
     }
     break;
 
