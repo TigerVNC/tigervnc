@@ -27,7 +27,7 @@ using namespace rfb;
 
 ConnParams::ConnParams()
   : majorVersion(0), minorVersion(0), width(0), height(0), useCopyRect(false),
-    supportsLocalCursor(false), supportsDesktopResize(false), supportsLastRect(false), 
+    supportsLocalCursor(false), supportsLocalXCursor(false), supportsDesktopResize(false), supportsLastRect(false), 
     customCompressLevel(false), compressLevel(6), noJpeg(false), qualityLevel(-1), 
     name_(0), nEncodings_(0), encodings_(0), 
     currentEncoding_(encodingRaw), verStrPos(0)
@@ -88,6 +88,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
   nEncodings_ = nEncodings;
   useCopyRect = false;
   supportsLocalCursor = false;
+  supportsLocalXCursor = false;
   supportsLastRect = false;
   customCompressLevel = false;
   compressLevel = -1;
@@ -102,6 +103,8 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
       useCopyRect = true;
     else if (encodings[i] == pseudoEncodingCursor)
       supportsLocalCursor = true;
+    else if (encodings[i] == pseudoEncodingXCursor)
+      supportsLocalXCursor = true;
     else if (encodings[i] == pseudoEncodingDesktopSize)
       supportsDesktopResize = true;
     else if (encodings[i] == pseudoEncodingLastRect)

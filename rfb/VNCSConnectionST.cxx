@@ -277,7 +277,7 @@ void VNCSConnectionST::renderedCursorChange()
 bool VNCSConnectionST::needRenderedCursor()
 {
   return (state() == RFBSTATE_NORMAL
-          && (!cp.supportsLocalCursor
+          && (!cp.supportsLocalCursor && !cp.supportsLocalXCursor
               || (!server->cursorPos.equals(pointerEventPos) &&
                   (time(0) - pointerEventTime) > 0)));
 }
@@ -478,7 +478,7 @@ void VNCSConnectionST::setInitialColourMap()
 
 void VNCSConnectionST::supportsLocalCursor()
 {
-  if (cp.supportsLocalCursor) {
+  if (cp.supportsLocalCursor || cp.supportsLocalXCursor) {
     removeRenderedCursor = true;
     drawRenderedCursor = false;
     setCursor();
@@ -487,15 +487,37 @@ void VNCSConnectionST::supportsLocalCursor()
 
 void VNCSConnectionST::writeSetCursorCallback()
 {
+  if (cp.supportsLocalXCursor) {
+    Pixel pix0, pix1;
+    rdr::U8Array bitmap(server->cursor.getBitmap(&pix0, &pix1));
+    if (bitmap.buf) {
+      // The client supports XCursor and the cursor only has two
+      // colors. Use the XCursor encoding.
+      writer()->writeSetXCursor(server->cursor.width(),
+				server->cursor.height(),
+				server->cursor.hotspot.x,
+				server->cursor.hotspot.y,
+				bitmap.buf, server->cursor.mask.buf);
+      return;
+    } else {
+      // More than two colors
+      if (!cp.supportsLocalCursor) {
+	// FIXME: We could reduce to two colors. 
+	vlog.info("Unable to send multicolor cursor: RichCursor not supported by client");
+	return;
+      }
+    }
+  }
+
+  // Use RichCursor
   rdr::U8* transData = writer()->getImageBuf(server->cursor.area());
   image_getter.translatePixels(server->cursor.data, transData,
-                               server->cursor.area());
-
+			       server->cursor.area());
   writer()->writeSetCursor(server->cursor.width(),
-                           server->cursor.height(),
-                           server->cursor.hotspot.x,
-                           server->cursor.hotspot.y,
-                           transData, server->cursor.mask.buf);
+			   server->cursor.height(),
+			   server->cursor.hotspot.x,
+			   server->cursor.hotspot.y,
+			   transData, server->cursor.mask.buf);
 }
 
 

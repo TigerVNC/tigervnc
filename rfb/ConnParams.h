@@ -70,6 +70,7 @@ namespace rfb {
     bool useCopyRect;
 
     bool supportsLocalCursor;
+    bool supportsLocalXCursor;
     bool supportsDesktopResize;
     bool supportsLastRect;
 

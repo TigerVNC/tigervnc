@@ -30,6 +30,7 @@ namespace rfb {
 
   const unsigned int encodingMax = 255;
 
+  const unsigned int pseudoEncodingXCursor = 0xffffff10;
   const unsigned int pseudoEncodingCursor = 0xffffff11;
   const unsigned int pseudoEncodingDesktopSize = 0xffffff21;
 

@@ -35,6 +35,8 @@ namespace rfb {
     virtual void cursorChange(WriteSetCursorCallback* cb);
     virtual void writeSetCursor(int width, int height, int hotspotX,
                                 int hotspotY, void* data, void* mask);
+    virtual void writeSetXCursor(int width, int height, int hotspotX,
+				 int hotspotY, void* data, void* mask);
     virtual void writeFramebufferUpdateStart(int nRects);
     virtual void writeFramebufferUpdateStart();
     virtual void writeFramebufferUpdateEnd();

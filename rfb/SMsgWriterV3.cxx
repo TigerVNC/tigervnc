@@ -84,6 +84,32 @@ void SMsgWriterV3::writeSetCursor(int width, int height, int hotspotX,
   os->writeBytes(mask, (width+7)/8 * height);
 }
 
+void SMsgWriterV3::writeSetXCursor(int width, int height, int hotspotX,
+				   int hotspotY, void* data, void* mask)
+{
+  if (!wsccb) return;
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriterV3::writeSetXCursor: nRects out of sync");
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingXCursor);
+  // FIXME: We only support black and white cursors, currently. We
+  // could pass the correct color by using the pix0/pix1 values
+  // returned from getBitmap, in writeSetCursorCallback. However, we
+  // would then need to undo the conversion from rgb to Pixel that is
+  // done by FakeAllocColor. 
+  os->writeU8(0);
+  os->writeU8(0);
+  os->writeU8(0);
+  os->writeU8(255);
+  os->writeU8(255);
+  os->writeU8(255);
+  os->writeBytes(data, (width+7)/8 * height);
+  os->writeBytes(mask, (width+7)/8 * height);
+}
+
 void SMsgWriterV3::writeFramebufferUpdateStart(int nRects)
 {
   startMsg(msgTypeFramebufferUpdate);

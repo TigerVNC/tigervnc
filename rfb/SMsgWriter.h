@@ -82,6 +82,8 @@ namespace rfb {
     virtual void cursorChange(WriteSetCursorCallback* cb)=0;
     virtual void writeSetCursor(int width, int height, int hotspotX,
                                 int hotspotY, void* data, void* mask)=0;
+    virtual void writeSetXCursor(int width, int height, int hotspotX,
+                                int hotspotY, void* data, void* mask)=0;
 
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out setDesktopSize or setCursor pseudo-rectangles to the
