@@ -23,7 +23,8 @@
 #define VncExtLibs $(TOP)/../rfb/librfb.a \
                    $(TOP)/../Xregion/libXregion.a \
                    $(TOP)/../network/libnetwork.a \
-                   $(TOP)/../rdr/librdr.a
+                   $(TOP)/../rdr/librdr.a \
+                   $(TOP)/../jpeg/build/libjpeg.a
 
 #define SiteExtensionLibs vnc/LibraryTargetName(vnc) VncExtLibs
 
