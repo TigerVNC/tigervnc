@@ -70,6 +70,9 @@ class VncCanvas extends Canvas implements Observer {
   // Distance of mouse from viewer border to trigger automatic scrolling
   final static int SCROLL_MARGIN = 50;
 
+  // Color for border around small shared area
+  static final Color DARK_GRAY = new Color(132, 138, 156);
+
   //
   // The constructor.
   //
@@ -81,21 +84,39 @@ class VncCanvas extends Canvas implements Observer {
     cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
 
     updateFramebufferSize();
+
+    setBackground(Color.white);
   }
 
   //
   // Callback methods to determine geometry of our Component.
   //
   public Dimension getPreferredSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+    Dimension d = player.desktopScrollPane.getViewportSize();
+    Dimension sz = new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+    if (d.width > sz.width)
+      sz.width = d.width;
+    if (d.height > sz.height)
+      sz.height = d.height;
+    return sz;
   }
 
   public Dimension getMinimumSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+    return getPreferredSize();
   }
 
   public Dimension getMaximumSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+    return getPreferredSize();
+  }
+
+  Point getImageOrigin() {
+    int x = 0, y = 0;
+    Dimension d = player.desktopScrollPane.getViewportSize();
+    if (rfb.framebufferWidth < d.width)
+      x = d.width / 2 - rfb.framebufferWidth / 2;
+    if (rfb.framebufferHeight < d.height)
+      y = d.height / 2 - rfb.framebufferHeight / 2;
+    return new Point(x, y);
   }
 
   //
@@ -106,14 +127,38 @@ class VncCanvas extends Canvas implements Observer {
   }
 
   public synchronized void paint(Graphics g) {
+    Point o = getImageOrigin();
+    Dimension d = getPreferredSize();
     synchronized(memImage) {
-      g.drawImage(memImage, 0, 0, null);
+      g.drawImage(memImage, o.x, o.y, null);
+
+      // fill in background
+      if (o.x > 0 || o.y > 0) {
+        // left, right, top, bottom
+        Color c = g.getColor();
+        g.setColor(Color.white);
+        g.fillRect(0, 0, o.x, d.height);
+        g.fillRect(o.x + rfb.framebufferWidth, 0, d.width - (o.x +
+                   rfb.framebufferWidth), d.height);
+        g.fillRect(o.x, 0, rfb.framebufferWidth, o.y);
+        g.fillRect(o.x, o.y + rfb.framebufferHeight, rfb.framebufferWidth,
+                   d.height - (o.y + rfb.framebufferHeight));
+        g.setColor(DARK_GRAY);
+        g.drawRect(o.x - 1, o.y - 1, rfb.framebufferWidth + 1,
+                   rfb.framebufferHeight + 1);
+        g.setColor(c);
+      }
     }
     if (showSoftCursor) {
       int x0 = cursorX - hotX, y0 = cursorY - hotY;
+      x0 += o.x;
+      y0 += o.y;
       Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
       if (r.intersects(g.getClipBounds())) {
+        Rectangle c = g.getClipBounds();
+        g.setClip(o.x, o.y, rfb.framebufferWidth, rfb.framebufferHeight);
         g.drawImage(softCursor, x0, y0, null);
+        g.setClip(c.x, c.y, c.width, c.height);
       }
     }
   }
@@ -180,9 +225,6 @@ class VncCanvas extends Canvas implements Observer {
   }
 
   void resizeDesktopFrame() {
-    // size the canvas
-    setSize(rfb.framebufferWidth, rfb.framebufferHeight);
-
     // determine screen size
     Dimension screenSize = player.vncFrame.getToolkit().getScreenSize();
     Dimension scrollSize = player.desktopScrollPane.getSize();
@@ -220,19 +262,22 @@ class VncCanvas extends Canvas implements Observer {
       player.desktopScrollPane.setSize(w, h);
 
     player.vncFrame.pack();
+
+    // size the canvas
+    setSize(getPreferredSize());
   }
 
   void resizeEmbeddedApplet() {
-    // size the canvas
-    setSize(rfb.framebufferWidth, rfb.framebufferHeight);
-
     // resize scroll pane if necessary
     Dimension scrollSize = player.desktopScrollPane.getSize();
     if (scrollSize.width != player.dispW ||
-        scrollSize.height != player.dispH)
+        scrollSize.height != player.dispH) {
       player.desktopScrollPane.setSize(player.dispW, player.dispH);
+      player.desktopScrollPane.validate();
+    }
 
-    player.validate();
+    // size the canvas
+    setSize(getPreferredSize());
   }
 
   //
@@ -1038,11 +1083,17 @@ class VncCanvas extends Canvas implements Observer {
   // softCursorMove(). Moves soft cursor into a particular location.
   //
   synchronized void softCursorMove(int x, int y) {
+    Point o = getImageOrigin();
+    int oldX = cursorX + o.x;
+    int oldY = cursorY + o.y;
+    cursorX = x;
+    cursorY = y;
     if (showSoftCursor) {
       repaint(deferCursorUpdates,
-              cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+              oldX - hotX, oldY - hotY, cursorWidth, cursorHeight);
       repaint(deferCursorUpdates,
-              x - hotX, y - hotY, cursorWidth, cursorHeight);
+              cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
+              cursorHeight);
 
       // Automatic viewport scrolling 
       if (player.desktopScrollPane != null) {
@@ -1086,8 +1137,10 @@ class VncCanvas extends Canvas implements Observer {
       softCursorSource = null;
       softCursorPixels = null;
 
+      Point o = getImageOrigin();
       repaint(deferCursorUpdates,
-              cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+              cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
+              cursorHeight);
     }
   }
   //
@@ -1103,7 +1156,8 @@ class VncCanvas extends Canvas implements Observer {
         repaint();
       } else {
         // Usual incremental repaint.
-        repaint(player.deferScreenUpdates, x, y, w, h);
+        Point o = getImageOrigin();
+        repaint(player.deferScreenUpdates, o.x + x, o.y + y, w, h);
       }
       seekMode = false;
     }
