@@ -19,3 +19,6 @@
   should be safe to allow dynamic pixel format changes again, as long
   as we only orders new pixel formats after recieving a framebuffer
   update with real pixel data. 
+
+* The vncviewer password dialog should probably display the server
+  name in the password dialog windows title. Wish from Gaetano Giunta. 
