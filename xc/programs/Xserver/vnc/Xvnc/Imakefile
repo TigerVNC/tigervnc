@@ -27,15 +27,17 @@ SRCS1 = os2_stubs.c
 OBJS1 = os2_stubs.o
 #endif
 
+FBINCLUDE = -I../../fb
+
 SRCSA =	xvnc.cc stubs.c $(SRCS1) miinitext.c $(SRCS2)
 
 OBJSA =	xvnc.o stubs.o $(OBJS1) miinitext.o $(OBJS2)
 
 INCLUDES = -I. -I.. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
-	   -I../../cfb -I../../mfb -I../../mi -I../../include -I../../os  \
+           $(FBINCLUDE) -I../../mfb -I../../mi -I../../include -I../../os  \
            -I$(EXTINCSRC) -I$(XINCLUDESRC)  -I$(SERVERSRC)/render $(VNCINCLUDE)
 
-DEFINES = $(OS_DEFINES) $(SHMDEF) $(MMAPDEF) \
+DEFINES = $(OS_DEFINES) $(SHMDEF) $(MMAPDEF) $(FB_DEFINES) \
           $(VENDOR_STRING) $(VENDOR_RELEASE) $(STD_DEFINES) ServerOSDefines \
           -UXFree86LOADER
 
