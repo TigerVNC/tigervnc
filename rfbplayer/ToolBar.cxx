@@ -19,3 +19,17 @@
 // -=- ToolBar control class.
 
 #include "ToolBar.h"
+
+ToolBar::ToolBar() : hwndToolBar(0), tbID(-1) {
+  INITCOMMONCONTROLSEX icex;
+
+  // Ensure that the common control DLL is loaded
+  icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+  icex.dwICC  = ICC_BAR_CLASSES;
+  InitCommonControlsEx(&icex);
+}
+
+ToolBar::~ToolBar() {
+  DestroyWindow(getHandle());
+}
+

@@ -20,3 +20,17 @@
 
 #include <windows.h>
 #include <commctrl.h>
+
+class ToolBar {
+public:
+  ToolBar();
+  virtual ~ToolBar();
+
+  // getHandle() returns handle to a toolbar window.
+  HWND getHandle() { return hwndToolBar; }
+
+protected:
+  HWND hwndToolBar;
+  int tbID;
+
+};
