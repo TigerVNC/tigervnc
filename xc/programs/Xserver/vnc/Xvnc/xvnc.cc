@@ -74,7 +74,9 @@ extern "C" {
 #include "gcstruct.h"
 #include "input.h"
 #include "mipointer.h"
+#define new New
 #include "micmap.h"
+#undef new
 #include <sys/types.h>
 #ifdef HAS_MMAP
 #include <sys/mman.h>
