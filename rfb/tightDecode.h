@@ -59,6 +59,7 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 #endif
                       )
 {
+  rdr::U8 *bytebuf = (rdr::U8*) buf;
   bool cutZeros = false;
   const rfb::PixelFormat& myFormat = handler->cp.pf();
 #if BPP == 32
@@ -82,9 +83,8 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   if (comp_ctl == rfbTightFill) {
     PIXEL_T pix;
     if (cutZeros) {
-      rdr::U8 *fillColorBuf = (rdr::U8*)buf;
-      is->readBytes(fillColorBuf, 3);
-      pix = RGB24_TO_PIXEL32(fillColorBuf[0], fillColorBuf[1], fillColorBuf[2]);
+      is->readBytes(bytebuf, 3);
+      pix = RGB24_TO_PIXEL32(bytebuf[0], bytebuf[1], bytebuf[2]);
     } else {
       pix = is->READ_PIXEL();
     }
@@ -142,6 +142,8 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   int bppp = BPP;
   if (palSize != 0) {
     bppp = (palSize <= 2) ? 1 : 8;
+  } else if (cutZeros) {
+    bppp = 24;
   }
 
   // Determine if the data should be decompressed or just copied.
@@ -160,9 +162,16 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   if (palSize == 0) {
     // Truecolor data
     if (useGradient) {
-	FilterGradient(r, input, dataSize, buf, handler);
+      FilterGradient(r, input, dataSize, buf, handler);
     } else {
-	input->readBytes(buf, dataSize);
+      input->readBytes(buf, dataSize); 
+      if (cutZeros) {
+	for (int p = r.height() * r.width() - 1; p >= 0; p--) {
+	  buf[p] = RGB24_TO_PIXEL32(bytebuf[p*3],
+				    bytebuf[p*3+1],
+				    bytebuf[p*3+2]);
+	}
+      }
     }
   } else {
     int x, y, b, w;
