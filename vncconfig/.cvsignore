@@ -1,5 +1,5 @@
-Makefile
 Debug
 Debug_Unicode
-Profile
 Release
+Profile
+vncconfig.plg

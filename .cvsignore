@@ -3,3 +3,9 @@ config.cache
 config.log
 config.status
 autom4te.cache
+Debug
+Debug_Unicode
+Profile
+Release
+vnc.ncb
+vnc.opt
