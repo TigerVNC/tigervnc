@@ -76,12 +76,22 @@ extern "C" {
 #include "mipointer.h"
 #include "micmap.h"
 #include <sys/types.h>
+#ifdef HAS_MMAP
+#include <sys/mman.h>
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
+#endif /* HAS_MMAP */
 #include <sys/stat.h>
 #include <errno.h>
 #ifndef WIN32
 #include <sys/param.h>
 #endif
 #include <X11/XWDFile.h>
+#ifdef HAS_SHM
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#endif /* HAS_SHM */
 #include "dix.h"
 #include "miline.h"
 #include "inputstr.h"
@@ -747,6 +757,123 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
 {
     return TRUE;
 }
+
+#ifdef HAS_MMAP
+
+/* this flushes any changes to the screens out to the mmapped file */
+static void
+vfbBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
+{
+    int i;
+
+    for (i = 0; i < vfbNumScreens; i++)
+    {
+#ifdef MS_ASYNC
+	if (-1 == msync((caddr_t)vfbScreens[i].pXWDHeader,
+			(size_t)vfbScreens[i].sizeInBytes, MS_ASYNC))
+#else
+	/* silly NetBSD and who else? */
+	if (-1 == msync((caddr_t)vfbScreens[i].pXWDHeader,
+			(size_t)vfbScreens[i].sizeInBytes))
+#endif
+	{
+	    perror("msync");
+	    ErrorF("msync failed, errno %d", errno);
+	}
+    }
+}
+
+
+static void
+vfbWakeupHandler(pointer blockData, int result, pointer pReadmask)
+{
+}
+
+
+static void
+vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
+{
+#define DUMMY_BUFFER_SIZE 65536
+    char dummyBuffer[DUMMY_BUFFER_SIZE];
+    int currentFileSize, writeThisTime;
+
+    sprintf(pvfb->mmap_file, "%s/Xvfb_screen%d", pfbdir, pvfb->scrnum);
+    if (-1 == (pvfb->mmap_fd = open(pvfb->mmap_file, O_CREAT|O_RDWR, 0666)))
+    {
+	perror("open");
+	ErrorF("open %s failed, errno %d", pvfb->mmap_file, errno);
+	return;
+    }
+
+    /* Extend the file to be the proper size */
+
+    bzero(dummyBuffer, DUMMY_BUFFER_SIZE);
+    for (currentFileSize = 0;
+	 currentFileSize < pvfb->sizeInBytes;
+	 currentFileSize += writeThisTime)
+    {
+	writeThisTime = min(DUMMY_BUFFER_SIZE,
+			    pvfb->sizeInBytes - currentFileSize);
+	if (-1 == write(pvfb->mmap_fd, dummyBuffer, writeThisTime))
+	{
+	    perror("write");
+	    ErrorF("write %s failed, errno %d", pvfb->mmap_file, errno);
+	    return;
+	}
+    }
+
+    /* try to mmap the file */
+
+    pvfb->pXWDHeader = (XWDFileHeader *)mmap((caddr_t)NULL, pvfb->sizeInBytes,
+				    PROT_READ|PROT_WRITE,
+				    MAP_FILE|MAP_SHARED,
+				    pvfb->mmap_fd, 0);
+    if (-1 == (long)pvfb->pXWDHeader)
+    {
+	perror("mmap");
+	ErrorF("mmap %s failed, errno %d", pvfb->mmap_file, errno);
+	pvfb->pXWDHeader = NULL;
+	return;
+    }
+
+    if (!RegisterBlockAndWakeupHandlers(vfbBlockHandler, vfbWakeupHandler,
+					NULL))
+    {
+	pvfb->pXWDHeader = NULL;
+    }
+}
+#endif /* HAS_MMAP */
+
+
+#ifdef HAS_SHM
+static void
+vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
+{
+    /* create the shared memory segment */
+
+    pvfb->shmid = shmget(IPC_PRIVATE, pvfb->sizeInBytes, IPC_CREAT|0777);
+    if (pvfb->shmid < 0)
+    {
+	perror("shmget");
+	ErrorF("shmget %d bytes failed, errno %d", pvfb->sizeInBytes, errno);
+	return;
+    }
+
+    /* try to attach it */
+
+    pvfb->pXWDHeader = (XWDFileHeader *)shmat(pvfb->shmid, 0, 0);
+    if (-1 == (long)pvfb->pXWDHeader)
+    {
+	perror("shmat");
+	ErrorF("shmat failed, errno %d", errno);
+	pvfb->pXWDHeader = NULL; 
+	return;
+    }
+
+    ErrorF("screen %d shmid %d\n", pvfb->scrnum, pvfb->shmid);
+}
+#endif /* HAS_SHM */
+
 
 static char *
 vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)

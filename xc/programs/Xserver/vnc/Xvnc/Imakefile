@@ -7,6 +7,21 @@
 
 #include <Server.tmpl>
 
+#if HasShm
+SHMDEF = -DHAS_SHM
+#endif
+
+XCOMM add more architectures here as we discover them
+#if defined(HPArchitecture) || \
+    (defined(SparcArchitecture) && !defined(LynxOSArchitecture)) || \
+    SystemV4 || \
+    defined(OSF1Architecture) || \
+    defined(i386BsdArchitecture) || \
+    defined(LinuxArchitecture) || \
+    defined(DarwinArchitecture)
+MMAPDEF = -DHAS_MMAP
+#endif
+
 #ifdef XVendorString
 VENDORSTRING = XVendorString
 #else
