@@ -28,8 +28,8 @@ public:
   : Dialog(GetModuleHandle(0)), options(_options), combo(0) {}
   // - Show the dialog and return true if OK was clicked,
   //   false in case of error or Cancel
-  virtual bool showDialog() {
-    return Dialog::showDialog(MAKEINTRESOURCE(IDD_OPTIONS));
+  virtual bool showDialog(HWND parent) {
+    return Dialog::showDialog(MAKEINTRESOURCE(IDD_OPTIONS), parent);
   }
 protected:
 

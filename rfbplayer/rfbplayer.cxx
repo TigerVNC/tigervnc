@@ -344,7 +344,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case ID_GOTO:
       {
         GotoPosDialog gotoPosDlg;
-        if (gotoPosDlg.showDialog()) {
+        if (gotoPosDlg.showDialog(getMainHandle())) {
           long gotoTime = min(gotoPosDlg.getPos(), sessionTimeMs);
           setPos(gotoTime);
           updatePos(gotoTime);
@@ -377,7 +377,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case ID_OPTIONS:
       {
         OptionsDialog optionsDialog(&options);
-        optionsDialog.showDialog();
+        optionsDialog.showDialog(getMainHandle());
       }
       break;
     case ID_EXIT:
@@ -877,7 +877,7 @@ void RfbPlayer::serverInit() {
   static long pixelFormat = PF_AUTO;
   if (options.askPixelFormat) {
     ChoosePixelFormatDialog choosePixelFormatDialog(pixelFormat);
-    if (choosePixelFormatDialog.showDialog()) {
+    if (choosePixelFormatDialog.showDialog(getMainHandle())) {
       pixelFormat = choosePixelFormatDialog.getPF();
     } else {
       is->pausePlayback();

@@ -25,8 +25,8 @@ public:
   GotoPosDialog() : Dialog(GetModuleHandle(0)) {}
   // - Show the dialog and return true if OK was clicked,
   //   false in case of error or Cancel
-  virtual bool showDialog() {
-    return Dialog::showDialog(MAKEINTRESOURCE(IDD_GOTO));
+  virtual bool showDialog(HWND parent) {
+    return Dialog::showDialog(MAKEINTRESOURCE(IDD_GOTO), parent);
   }
   const long getPos() const {return pos;}
 protected:
