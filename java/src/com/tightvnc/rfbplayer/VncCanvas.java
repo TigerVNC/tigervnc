@@ -180,48 +180,59 @@ class VncCanvas extends Canvas implements Observer {
   }
 
   void resizeDesktopFrame() {
+    // size the canvas
     setSize(rfb.framebufferWidth, rfb.framebufferHeight);
 
-    // FIXME: Find a better way to determine correct size of a
-    // ScrollPane.  -- const
-    Insets insets = player.desktopScrollPane.getInsets();
-    player.desktopScrollPane.setSize(rfb.framebufferWidth +
-                                     2 * Math.min(insets.left, insets.right),
-                                     rfb.framebufferHeight +
-                                     2 * Math.min(insets.top, insets.bottom));
-
-    player.vncFrame.pack();
-
-    // Try to limit the frame size to the screen size.
+    // determine screen size
     Dimension screenSize = player.vncFrame.getToolkit().getScreenSize();
-    Dimension frameSize = player.vncFrame.getSize();
-    Dimension newSize = frameSize;
+    Dimension scrollSize = player.desktopScrollPane.getSize();
 
     // Reduce Screen Size by 30 pixels in each direction;
     // This is a (poor) attempt to account for
     //     1) Menu bar on Macintosh (should really also account for
     //        Dock on OSX).  Usually 22px on top of screen.
-    //	   2) Taxkbar on Windows (usually about 28 px on bottom)
-    //	   3) Other obstructions.
-
+    //     2) Taxkbar on Windows (usually about 28 px on bottom)
+    //     3) Other obstructions.
     screenSize.height -= 30;
     screenSize.width -= 30;
 
+    // Further reduce the screen size to account for the
+    // scroll pane's insets.
+    Insets insets = player.desktopScrollPane.getInsets();
+    screenSize.height -= insets.top + insets.bottom;
+    screenSize.width -= insets.left + insets.right;
 
-    boolean needToResizeFrame = false;
-    if (frameSize.height > screenSize.height) {
-      newSize.height = screenSize.height;
-      needToResizeFrame = true;
+    // Limit pane size to fit on screen. 
+    boolean needResize = false;
+    if (scrollSize.width != rfb.framebufferWidth ||
+        scrollSize.height != rfb.framebufferHeight)
+      needResize = true;
+    int w = rfb.framebufferWidth, h = rfb.framebufferHeight;
+    if (w > screenSize.width) {
+      w = screenSize.width;
+      needResize = true;
     }
-    if (frameSize.width > screenSize.width) {
-      newSize.width = screenSize.width;
-      needToResizeFrame = true;
+    if (h > screenSize.height) {
+      h = screenSize.height;
+      needResize = true;
     }
-    if (needToResizeFrame) {
-      player.vncFrame.setSize(newSize);
-    }
+    if (needResize)
+      player.desktopScrollPane.setSize(w, h);
 
-    player.desktopScrollPane.doLayout();
+    player.vncFrame.pack();
+  }
+
+  void resizeEmbeddedApplet() {
+    // size the canvas
+    setSize(rfb.framebufferWidth, rfb.framebufferHeight);
+
+    // resize scroll pane if necessary
+    Dimension scrollSize = player.desktopScrollPane.getSize();
+    if (scrollSize.width != player.dispW ||
+        scrollSize.height != player.dispH)
+      player.desktopScrollPane.setSize(player.dispW, player.dispH);
+
+    player.validate();
   }
 
   //

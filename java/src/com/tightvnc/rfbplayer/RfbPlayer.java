@@ -31,6 +31,11 @@ public class RfbPlayer extends java.applet.Applet
   boolean inAnApplet = true;
   boolean inSeparateFrame = false;
 
+  /** current applet width */
+  int dispW = 300;
+  /** current applet height */
+  int dispH = 200;
+
   //
   // main() is called when run as a java program from the command line.
   // It simply runs the applet inside a newly-created frame.
@@ -133,34 +138,36 @@ public class RfbPlayer extends java.applet.Applet
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
 
+      // Create a panel which itself is resizeable and can hold
+      // non-resizeable VncCanvas component at the top left corner.
+      Panel canvasPanel = new Panel();
+      canvasPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+      canvasPanel.add(vc);
+
+      // Create a ScrollPane which will hold a panel with VncCanvas
+      // inside.
+      desktopScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
+      gbc.fill = GridBagConstraints.BOTH;
+      gridbag.setConstraints(canvasPanel, gbc);
+      desktopScrollPane.add(canvasPanel);
+
+      // Now add the scroll bar to the container.
       if (inSeparateFrame) {
-
-        // Create a panel which itself is resizeable and can hold
-        // non-resizeable VncCanvas component at the top left corner.
-        Panel canvasPanel = new Panel();
-        canvasPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        canvasPanel.add(vc);
-
-        // Create a ScrollPane which will hold a panel with VncCanvas
-        // inside.
-        desktopScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
-        gbc.fill = GridBagConstraints.BOTH;
         gridbag.setConstraints(desktopScrollPane, gbc);
-        desktopScrollPane.add(canvasPanel);
-
-        // Finally, add our ScrollPane to the Frame window.
         vncFrame.add(desktopScrollPane);
         vncFrame.setTitle(rfb.desktopName);
         vncFrame.pack();
         vc.resizeDesktopFrame();
-
       } else {
+        // Size the scroll pane to display size.
+        desktopScrollPane.setSize(dispW, dispH);
 
         // Just add the VncCanvas component to the Applet.
-        gridbag.setConstraints(vc, gbc);
-        add(vc);
+        gbc.fill = GridBagConstraints.NONE;
+        gridbag.setConstraints(desktopScrollPane, gbc);
+        add(desktopScrollPane);
         validate();
-
+        vc.resizeEmbeddedApplet();
       }
 
       while (true) {
@@ -271,6 +278,10 @@ public class RfbPlayer extends java.applet.Applet
     deferScreenUpdates = (int)readLongParameter("Defer screen updates", 20);
     if (deferScreenUpdates < 0)
       deferScreenUpdates = 0;	// Just in case.
+
+    // Display width and height.
+    dispW = readIntParameter("DISPLAY_WIDTH", dispW);
+    dispH = readIntParameter("DISPLAY_HEIGHT", dispH);
   }
 
   public String readParameter(String name, boolean required) {
@@ -324,6 +335,18 @@ public class RfbPlayer extends java.applet.Applet
     return result;
   }
 
+  int readIntParameter(String name, int defaultValue) {
+    String str = readParameter(name, false);
+    int result = defaultValue;
+    if (str != null) {
+      try {
+        result = Integer.parseInt(str);
+      } catch (NumberFormatException e) {
+      }
+    }
+    return result;
+  }
+
   //
   // fatalError() - print out a fatal error message.
   //
@@ -364,6 +387,17 @@ public class RfbPlayer extends java.applet.Applet
     }
   }
 
+  //
+  // Set the new width and height of the applet. Call when browser is resized to 
+  // resize the viewer.
+  //
+  public void displaySize(int width, int height) {
+    dispW = width;
+    dispH = height;
+    if (!inSeparateFrame) {
+      vc.resizeEmbeddedApplet();
+    }
+  }
 
   //
   // Close application properly on window close event.
