@@ -23,7 +23,7 @@
 // This file is #included after having set the following macros:
 // BPP                - 8, 16 or 32
 // EXTRA_ARGS         - optional extra arguments
-// FILL_RECT          - fill a rectangle with a single colour
+// FILL_RECT          - fill a rectangle with a single color
 // IMAGE_RECT         - draw a rectangle of pixel data from a buffer
 
 #include <rdr/InStream.h>
@@ -100,8 +100,9 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
     case rfbTightFilterPalette: 
       palSize = is->readU8() + 1;
       {
-        for (int i = 0; i < palSize; i++)
+	for (int i = 0; i < palSize; i++) {
           palette[i] = is->READ_PIXEL();
+	}
       }
       break;
     case rfbTightFilterGradient: 
@@ -150,8 +151,9 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
       for (y = 0; y < r.height(); y++) {
         for (x = 0; x < r.width() / 8; x++) {
           bits = input->readU8();
-          for (b = 7; b >= 0; b--)
+          for (b = 7; b >= 0; b--) {
             *ptr++ = palette[bits >> b & 1];
+	  }
         }
         if (r.width() % 8 != 0) {
           bits = input->readU8();
@@ -162,9 +164,11 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
       }
     } else {
       // 256-color palette
-      for (y = 0; y < r.height(); y++)
-        for (x = 0; x < r.width(); x++)
+      for (y = 0; y < r.height(); y++) {
+        for (x = 0; x < r.width(); x++) {
           *ptr++ = palette[input->readU8()];
+	}
+      }
     }
   }
 
@@ -188,8 +192,9 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
 
   // Allocate netbuf and read in data
   rdr::U8* netbuf = new rdr::U8[compressedLen];
-  if (!netbuf)
+  if (!netbuf) {
     throw Exception("rfb::tightDecode unable to allocate buffer");
+  }
   is->readBytes(netbuf, compressedLen);
 
   // Set up JPEG decompression
@@ -226,8 +231,9 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
 
   IMAGE_RECT(r, buf);
 
-  if (!jpegError)
+  if (!jpegError) {
     jpeg_finish_decompress(&cinfo);
+  }
 
   jpeg_destroy_decompress(&cinfo);
 
@@ -253,8 +259,9 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
 
   // Allocate netbuf and read in data
   PIXEL_T *netbuf = (PIXEL_T*)new rdr::U8[dataSize];
-  if (!netbuf)
+  if (!netbuf) {
     throw Exception("rfb::tightDecode unable to allocate buffer");
+  }
   is->readBytes(netbuf, dataSize);
 
   // Set up shortcut variables
