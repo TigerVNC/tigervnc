@@ -23,7 +23,6 @@
 
 #include <rfb_win32/DIBSectionBuffer.h>
 
-//#include <rfbplayer/RfbProto.h>
 #include <rfbplayer/ToolBar.h>
 #include <rfbplayer/rfbSessionReader.h>
 

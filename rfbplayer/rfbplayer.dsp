@@ -128,6 +128,10 @@ SOURCE=.\FbsInputStream.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\GotoPosDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\rfbplayer.h
 # End Source File
 # Begin Source File

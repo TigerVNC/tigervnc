@@ -28,6 +28,7 @@
 #include <rfbplayer/rfbplayer.h>
 #include <rfbplayer/utils.h>
 #include <rfbplayer/resource.h>
+#include <rfbplayer/GotoPosDialog.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -322,6 +323,15 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         setPaused(false);
       } else {
         setPaused(true);
+      }
+      break;
+    case ID_GOTO:
+      {
+        GotoPosDialog gotoPosDlg;
+        if (gotoPosDlg.showDialog()) {
+          setPos(gotoPosDlg.getPos());
+          updatePos(getTimeOffset());
+        }
       }
       break;
     case ID_FULLSCREEN:
