@@ -110,6 +110,9 @@ class RfbPlayer : public RfbProto {
 
     // -=- Player functions
 
+    // openSessionFile() opens the new session file and starts play it
+    void openSessionFile(char *fileName);
+
     // skipHandshaking() - is implemented to skip the initial handshaking when
     // perform backward seeking OR replaying.
     void skipHandshaking();

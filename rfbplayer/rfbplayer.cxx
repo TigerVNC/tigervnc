@@ -225,6 +225,11 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   // Create the backing buffer
   buffer = new win32::DIBSectionBuffer(getFrameHandle());
   setVisible(true);
+  
+  // Open the session file
+  if (fileName) {
+    openSessionFile(fileName);
+  }
 }
 
 RfbPlayer::~RfbPlayer() {
@@ -808,6 +813,21 @@ bool RfbPlayer::invalidateBufferRect(const Rect& crect) {
   RECT invalid = {rect.tl.x, rect.tl.y, rect.br.x, rect.br.y};
   InvalidateRect(getFrameHandle(), &invalid, FALSE);
   return true;
+}
+
+void RfbPlayer::openSessionFile(char *_fileName) {
+  fileName = strDup(_fileName);
+
+  // Close the previous reading thread
+  if (rfbReader) {
+    rfbReader->stop();
+    delete rfbReader->join();
+  }
+  blankBuffer();
+  newSession(fileName);
+  setSpeed(playbackSpeed);
+  rfbReader = new rfbSessionReader(this);
+  rfbReader->start();
 }
 
 void RfbPlayer::setPaused(bool paused) {
