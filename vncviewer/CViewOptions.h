@@ -83,6 +83,7 @@ namespace rfb {
       bool noJpeg;
       int qualityLevel;
 
+      CharArray passwordFile;
     };
 
 

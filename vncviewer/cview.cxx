@@ -1484,6 +1484,19 @@ void CView::invertRect(const Rect& r) {
 }
 
 bool CView::getUserPasswd(char** user, char** password) {
+  if (!user && options.passwordFile.buf[0]) {
+    FILE* fp = fopen(options.passwordFile.buf, "r");
+    if (!fp) return false;
+    char data[256];
+    int datalen = fread(data, 1, 256, fp);
+    fclose(fp);
+    if (datalen != 8) return false;
+    vncAuthUnobfuscatePasswd(data);
+    *password = strDup(data);
+    memset(data, 0, strlen(data));
+    return true;
+  }
+
   if (user && options.userName.buf)
     *user = strDup(options.userName.buf);
   if (password && options.password.buf)

@@ -30,6 +30,8 @@
 using namespace rfb;
 using namespace rfb::win32;
 
+static StringParameter passwordFile("PasswordFile",
+				    "Password file for VNC authentication", "");
 
 static BoolParameter useLocalCursor("UseLocalCursor", "Render the mouse cursor locally", true);
 static BoolParameter useDesktopResize("UseDesktopResize", "Support dynamic desktop resizing", true);
@@ -113,7 +115,7 @@ preferredEncoding(encodingZRLE), clientCutText(::clientCutText), serverCutText(:
 protocol3_3(::protocol3_3), acceptBell(::acceptBell), lowColourLevel(::lowColourLevel),
 pointerEventInterval(ptrEventInterval), emulate3(::emulate3), monitor(::monitor.getData()),
 customCompressLevel(::customCompressLevel), compressLevel(::compressLevel), 
-noJpeg(::noJpeg), qualityLevel(::qualityLevel)
+noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getData())
 {
   CharArray encodingName(::preferredEncoding.getData());
   preferredEncoding = encodingNum(encodingName.buf);
