@@ -626,6 +626,27 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
     ID_SPEED_UPDOWN, GetModuleHandle(0), speedEdit, 20, 1, 2);
 }
 
+void RfbPlayer::disableTBandMenuItems() {
+  // Disable the menu items
+  EnableMenuItem(hMenu, ID_CLOSEFILE, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_FULLSCREEN, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_GRAYED | MF_BYPOSITION);
+  EnableMenuItem(hMenu, ID_PLAYPAUSE, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_STOP, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_GOTO, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_LOOP, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_COPYTOCLIPBOARD, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_GRAYED | MF_BYCOMMAND);
+  
+  // Disable the toolbar buttons and child controls
+  tb.enableButton(ID_PLAY, false);
+  tb.enableButton(ID_PAUSE, false);
+  tb.enableButton(ID_STOP, false);
+  tb.enableButton(ID_FULLSCREEN, false);
+  EnableWindow(posTrackBar, false);
+  EnableWindow(speedEdit, false);
+}
+
 void RfbPlayer::setVisible(bool visible) {
   ShowWindow(getMainHandle(), visible ? SW_SHOW : SW_HIDE);
   if (visible) {

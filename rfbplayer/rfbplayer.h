@@ -45,6 +45,7 @@ class RfbPlayer : public RfbProto {
     HWND getMainHandle() const {return mainHwnd;}
     HWND getFrameHandle() const {return frameHwnd;}
     void createToolBar(HWND parentHwnd);
+    void disableTBandMenuItems();
     void setFrameSize(int width, int height);
     void setVisible(bool visible);
     void setTitle(const char *title);
