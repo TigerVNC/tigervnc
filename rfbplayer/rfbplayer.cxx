@@ -647,6 +647,27 @@ void RfbPlayer::disableTBandMenuItems() {
   EnableWindow(speedEdit, false);
 }
 
+void RfbPlayer::enableTBandMenuItems() {
+  // Enable the menu items
+  EnableMenuItem(hMenu, ID_CLOSEFILE, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_FULLSCREEN, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_ENABLED | MF_BYPOSITION);
+  EnableMenuItem(hMenu, ID_PLAYPAUSE, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_STOP, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_GOTO, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_LOOP, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_COPYTOCLIPBOARD, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_ENABLED | MF_BYCOMMAND);
+  
+  // Enable the toolbar buttons and child controls
+  tb.enableButton(ID_PLAY, true);
+  tb.enableButton(ID_PAUSE, true);
+  tb.enableButton(ID_STOP, true);
+  tb.enableButton(ID_FULLSCREEN, true);
+  EnableWindow(posTrackBar, true);
+  EnableWindow(speedEdit, true);
+}
+
 void RfbPlayer::setVisible(bool visible) {
   ShowWindow(getMainHandle(), visible ? SW_SHOW : SW_HIDE);
   if (visible) {
