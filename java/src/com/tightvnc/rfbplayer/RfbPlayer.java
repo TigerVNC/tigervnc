@@ -179,6 +179,7 @@ public class RfbPlayer extends java.applet.Applet
 	    initialTimeOffset = 0;
 	    autoPlay = false;
 	    rfb.newSession(url);
+	    vc.updateFramebufferSize();
 	  }
 	}
       }
