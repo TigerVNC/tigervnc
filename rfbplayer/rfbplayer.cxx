@@ -1017,10 +1017,13 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   }
 
   // Run the player
+  HACCEL hAccel = LoadAccelerators(inst, MAKEINTRESOURCE(IDR_ACCELERATOR));
   MSG msg;
   while (GetMessage(&msg, NULL, 0, 0) > 0) {
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
+    if(!TranslateAccelerator(player->getMainHandle(), hAccel, &msg)) {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+    }
   }
 
   // Wait while the thread destroying and then destroy the player

@@ -6,6 +6,7 @@
 #define IDI_ICON1                       105
 #define IDI_ICON                        105
 #define IDR_MENU                        128
+#define IDR_ACCELERATOR                 131
 #define IDC_BUTTON1                     1000
 #define IDC_EDIT1                       1001
 #define IDC_EDIT2                       1002
@@ -26,13 +27,14 @@
 #define ID_HELP_HOMEPAGE                40025
 #define ID_HELP_COMMANDLINESEITCHES     40026
 #define ID_HELP_ABOUT                   40027
+#define ID_OPTIONS                      40029
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40028
+#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_COMMAND_VALUE         40030
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
