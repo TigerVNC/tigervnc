@@ -115,6 +115,9 @@ class RfbPlayer : public RfbProto {
     // calculateSessionTime() calculates the full session time in sec
     long calculateSessionTime(char *fileName);
 
+    // closeSessionFile() closes the session file and blanks the frame buffer
+    void closeSessionFile();
+
     // openSessionFile() opens the new session file and starts play it
     void openSessionFile(char *fileName);
 

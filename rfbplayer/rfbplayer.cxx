@@ -943,6 +943,50 @@ long RfbPlayer::calculateSessionTime(char *filename) {
   return 0;
 }
 
+void RfbPlayer::closeSessionFile() {
+  char speedStr[10];
+  RECT r;
+
+  // Uncheck all toolbar buttons
+  if (tb.getHandle()) {
+    tb.checkButton(ID_PLAY, false);
+    tb.checkButton(ID_PAUSE, false);
+    tb.checkButton(ID_STOP, false);
+  }
+
+  // Stop playback and update the player state
+  disableTBandMenuItems();
+  if (rfbReader) {
+    delete rfbReader->join();
+    rfbReader = 0;
+    delete [] fileName;
+    fileName = 0;
+  }
+  blankBuffer();
+  setTitle("None");
+  playbackSpeed = 1.0;
+  SendMessage(speedUpDown, UDM_SETPOS, 
+    0, MAKELONG((short)(playbackSpeed / 0.5), 0));
+  sprintf(speedStr, "%.2f", playbackSpeed);
+  SetWindowText(speedEdit, speedStr);
+  SendMessage(posTrackBar, TBM_SETRANGE, TRUE, MAKELONG(0, 0));
+    
+  // Change the player window size and frame size to default
+  SetWindowPos(getMainHandle(), 0, 0, 0, 
+    DEFAULT_PLAYER_WIDTH, DEFAULT_PLAYER_HEIGHT, 
+    SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  buffer->setSize(32, 32);
+  calculateScrollBars();
+  
+  // Update the cached sizing information and repaint the frame window
+  GetWindowRect(getFrameHandle(), &r);
+  window_size = Rect(r.left, r.top, r.right, r.bottom);
+  GetClientRect(getFrameHandle(), &r);
+  client_size = Rect(r.left, r.top, r.right, r.bottom);
+  InvalidateRect(getFrameHandle(), 0, TRUE);
+  UpdateWindow(getFrameHandle());
+}
+
 void RfbPlayer::openSessionFile(char *_fileName) {
   fileName = strDup(_fileName);
 
