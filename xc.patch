@@ -29,7 +29,7 @@ diff -bcr xc.org/programs/Xserver/Imakefile xc/programs/Xserver/Imakefile
 + XCOMM
 + FBSUBDIR = fb
 + XVNCDDXDIR = vnc/Xvnc
-+ XVNCDIRS = $(STDDIRS) $(FBSUBDIR) $(XVNCDDXDIR) $(DEPDIRS)
++ XVNCDIRS = $(STDDIRS) $(FBSUBDIR) miext/damage $(XVNCDDXDIR) $(DEPDIRS)
 + XVNCLIBS = PreFbLibs vnc/Xvnc/LibraryTargetName(xvnc) FbPostFbLibs
 + XVNCOBJS = $(XVNCDDXDIR)/stubs.o $(XVNCDDXDIR)/miinitext.o
 + XVNCSYSLIBS = $(FONTLIBS) $(SYSLIBS)
