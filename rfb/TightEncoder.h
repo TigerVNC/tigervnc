@@ -55,7 +55,7 @@ namespace rfb {
     static Encoder* create(SMsgWriter* writer);
     virtual void setCompressLevel(int level);
     virtual void setQualityLevel(int level);
-      //    virtual int getNumRects(const Rect &r);
+    virtual int getNumRects(const Rect &r);
     virtual bool writeRect(const Rect& r, ImageGetter* ig, Rect* actual);
     virtual ~TightEncoder();
 

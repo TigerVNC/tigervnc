@@ -112,27 +112,27 @@ void TightEncoder::setQualityLevel(int level)
   }
 }
 
-//int TightEncoder::getNumRects(const Rect &r)
-//{
-//  const unsigned int w = r.width();
-//  const unsigned int h = r.height();
-//
-//  // Will this rectangle split into subrects?
-//  bool rectTooBig = w > pconf->maxRectWidth || w * h > pconf->maxRectSize;
-//  if (!rectTooBig)
-//    return 1;
-//
-//  // Compute max sub-rectangle size.
-//  const unsigned int subrectMaxWidth =
-//    (w > pconf->maxRectWidth) ? pconf->maxRectWidth : w;
-//  const unsigned int subrectMaxHeight =
-//    pconf->maxRectSize / subrectMaxWidth;
-//
-//  // Return the number of subrects.
-//  return (((w - 1) / pconf->maxRectWidth + 1) *
-//          ((h - 1) / subrectMaxHeight + 1));
-//}
-//
+int TightEncoder::getNumRects(const Rect &r)
+{
+  const unsigned int w = r.width();
+  const unsigned int h = r.height();
+
+  // Will this rectangle split into subrects?
+  bool rectTooBig = w > pconf->maxRectWidth || w * h > pconf->maxRectSize;
+  if (!rectTooBig)
+    return 1;
+
+  // Compute max sub-rectangle size.
+  const unsigned int subrectMaxWidth =
+    (w > pconf->maxRectWidth) ? pconf->maxRectWidth : w;
+  const unsigned int subrectMaxHeight =
+    pconf->maxRectSize / subrectMaxWidth;
+
+  // Return the number of subrects.
+  return (((w - 1) / pconf->maxRectWidth + 1) *
+          ((h - 1) / subrectMaxHeight + 1));
+}
+
 bool TightEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
 {
   // Shortcuts to rectangle coordinates and dimensions.
