@@ -226,7 +226,7 @@ RfbPlayer::RfbPlayer(char *_fileName, int _depth = DEPTH_AUTO,
   seekMode(false), fileName(_fileName), lastPos(0), timeStatic(0), 
   speedEdit(0), posTrackBar(0), speedUpDown(0), acceptBell(_acceptBell), 
   rfbReader(0), sessionTimeMs(0), sliderDraging(false), sliderStepMs(0), 
-  loopPlayback(false), imageDataStartTime(0) {
+  loopPlayback(false), imageDataStartTime(0), rewindFlag(false) {
 
   CTRL_BAR_HEIGHT = 28;
 
@@ -488,7 +488,7 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 
   case WM_PAINT:
     {
-      if (isSeeking()) {
+      if (isSeeking() || rewindFlag) {
         seekMode = true;
         return 0;
       } else {
@@ -826,10 +826,12 @@ void RfbPlayer::processMsg() {
     // It's a special exception to perform backward seeking.
     // We only rewind the stream and seek the offset
     if (strcmp(e.str(), "[REWIND]") == 0) {
+      rewindFlag = true; 
       long seekOffset = max(getSeekOffset(), imageDataStartTime);
       rewind();
       setPos(seekOffset);
       updatePos(seekOffset);
+      rewindFlag = false;
     } else {
       MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
       return;

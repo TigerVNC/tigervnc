@@ -152,6 +152,10 @@ class RfbPlayer : public RfbProto {
     // Returns true if part of the supplied rect is visible, false otherwise
     bool invalidateBufferRect(const Rect& crect);
 
+    // rewindFlag is a flag wich disable the update of the frame buffer window 
+    // while the rewind is performing.
+    bool rewindFlag;
+
     // Local window state
     HWND mainHwnd;
     HWND frameHwnd;
