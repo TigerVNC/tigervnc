@@ -27,8 +27,8 @@ class FbsInputStream extends InputStream {
 
   protected InputStream in;
   protected long startTime;
-  protected long pausedTime;
   protected long timeOffset;
+  protected boolean paused;
 
   protected byte[] buffer;
   protected int bufferSize;
@@ -50,8 +50,8 @@ class FbsInputStream extends InputStream {
   {
     this.in = in;
     startTime = System.currentTimeMillis();
-    pausedTime = -1;
     timeOffset = 0;
+    paused = false;
 
     byte[] b = new byte[12];
     readFully(b);
@@ -96,8 +96,8 @@ class FbsInputStream extends InputStream {
     in.close();
     in = null;
     startTime = -1;
-    pausedTime = -1;
     timeOffset = 0;
+    paused = false;
 
     buffer = null;
     bufferSize = 0;
@@ -124,15 +124,14 @@ class FbsInputStream extends InputStream {
 
   public synchronized void pausePlayback()
   {
-    // FIXME: There is no need to remember the time?
-    pausedTime = System.currentTimeMillis();
+    paused = true;
     notify();
   }
 
   public synchronized void resumePlayback()
   {
+    paused = false;
     startTime = System.currentTimeMillis() - timeOffset;
-    pausedTime = -1;
     notify();
   }
 
@@ -184,7 +183,7 @@ class FbsInputStream extends InputStream {
 
   private void waitWhilePaused()
   {
-    while (pausedTime >= 0) {
+    while (paused) {
       synchronized(this) {
 	try {
 	  wait();
