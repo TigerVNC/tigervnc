@@ -173,7 +173,6 @@ class RfbPlayer : public RfbProto {
     int colourDepth;
     double playbackSpeed;
     long initTime;
-    long serverInitTime;
     bool acceptBell;
     long sessionTimeMs;
     bool loopPlayback;

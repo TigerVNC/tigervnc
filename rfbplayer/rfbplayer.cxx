@@ -223,10 +223,10 @@ RfbPlayer::RfbPlayer(char *_fileName, int _depth = DEPTH_AUTO,
 : RfbProto(_fileName), colourDepth(_depth), initTime(_initTime), 
   playbackSpeed(_playbackSpeed), autoplay(_autoplay), buffer(0), 
   client_size(0, 0, 32, 32), window_size(0, 0, 32, 32), cutText(0), 
-  seekMode(false), fileName(_fileName), serverInitTime(0), lastPos(0), 
-  timeStatic(0), speedEdit(0), posTrackBar(0), speedUpDown(0), 
-  acceptBell(_acceptBell), rfbReader(0), sessionTimeMs(0),
-  sliderDraging(false), sliderStepMs(0), loopPlayback(false) {
+  seekMode(false), fileName(_fileName), lastPos(0), timeStatic(0), 
+  speedEdit(0), posTrackBar(0), speedUpDown(0), acceptBell(_acceptBell), 
+  rfbReader(0), sessionTimeMs(0), sliderDraging(false), sliderStepMs(0), 
+  loopPlayback(false) {
 
   CTRL_BAR_HEIGHT = 28;
 
@@ -822,10 +822,10 @@ void RfbPlayer::processMsg() {
     // It's a special exception to perform backward seeking.
     // We only rewind the stream and seek the offset
     if (strcmp(e.str(), "[REWIND]") == 0) {
-      long initTime = getSeekOffset();
+      long seekOffset = getSeekOffset();
       rewind();
-      setPos(initTime);
-      updatePos(getTimeOffset());
+      setPos(seekOffset);
+      updatePos(seekOffset);
     } else {
       MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
       return;
@@ -836,9 +836,6 @@ void RfbPlayer::processMsg() {
 void RfbPlayer::serverInit() {
   RfbProto::serverInit();
 
-  // Save the server init time for using in setPos()
-  serverInitTime = getTimeOffset() / getSpeed();
-  
   // Resize the backing buffer
   buffer->setSize(cp.width, cp.height);
 
@@ -1062,7 +1059,6 @@ void RfbPlayer::setSpeed(double speed) {
   if (speed > 0) {
     char speedStr[20] = "\0";
     double newSpeed = min(speed, MAX_SPEED);
-    serverInitTime = serverInitTime * getSpeed() / newSpeed;
     is->setSpeed(newSpeed);
     playbackSpeed = newSpeed;
     SendMessage(speedUpDown, UDM_SETPOS, 
@@ -1077,7 +1073,7 @@ double RfbPlayer::getSpeed() {
 }
 
 void RfbPlayer::setPos(long pos) {
-  is->setTimeOffset(max(pos, serverInitTime));
+  is->setTimeOffset(max(pos, 0));
 }
 
 long RfbPlayer::getSeekOffset() {
