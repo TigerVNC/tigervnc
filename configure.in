@@ -1,6 +1,13 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(rdr/InStream.h)
 
+PACKAGE=tightvnc
+VERSION=1.5.0
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+
 dnl dirty hack to prevent use of -g in CFLAGS and CXXFLAGS
 ac_cv_prog_cc_g=no
 ac_cv_prog_cxx_g=no
@@ -98,6 +105,8 @@ AC_MSG_RESULT(using int)
 SOCKLEN_T_DEFINE='-DVNC_SOCKLEN_T=int')
 AC_SUBST(SOCKLEN_T_DEFINE)
 
+AM_GNU_GETTEXT
+
 BOILERPLATE=boilerplate.mk
 
 if (sh -c "make --version" 2>/dev/null | grep GNU 2>&1 >/dev/null); then
@@ -106,7 +115,7 @@ if (sh -c "make --version" 2>/dev/null | grep GNU 2>&1 >/dev/null); then
   fi
 fi
 
-AC_OUTPUT(Makefile:Makefile.in:$BOILERPLATE \
+AC_OUTPUT(Makefile:Makefile.in:$BOILERPLATE  intl/Makefile po/Makefile.in \
          rdr/Makefile:rdr/Makefile.in:$BOILERPLATE \
          network/Makefile:network/Makefile.in:$BOILERPLATE \
          Xregion/Makefile:Xregion/Makefile.in:$BOILERPLATE \

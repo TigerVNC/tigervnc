@@ -35,6 +35,11 @@
 #include "TXWindow.h"
 #include "CConn.h"
 
+#include <intl/gettext.h>
+#define _(String) gettext (String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop (String)
+
 rfb::LogWriter vlog("main");
 
 using namespace network;
@@ -176,13 +181,17 @@ static void usage()
 
 int main(int argc, char** argv)
 {
+  setlocale(LC_ALL, "");
+  bindtextdomain(PACKAGE, LOCALEDIR);
+  textdomain(PACKAGE);
+
   snprintf(aboutText, sizeof(aboutText), 
-	   "TightVNC viewer for X version 4.0 - built %s\n"
-	   "Copyright (C) 2002-2004 RealVNC Ltd.\n"
-	   "Copyright (C) 2000-2004 Constantin Kaplinsky.\n"
-	   "Copyright (C) 2004 Peter Astrand, Cendio AB\n"
-	   "See http://www.tightvnc.com for information on TightVNC.",
-	   buildtime);
+	   _("TightVNC viewer for X version 4.0 - built %s\n"
+	     "Copyright (C) 2002-2004 RealVNC Ltd.\n"
+	     "Copyright (C) 2000-2004 Constantin Kaplinsky.\n"
+	     "Copyright (C) 2004 Peter Astrand, Cendio AB\n"
+	     "See http://www.tightvnc.com for information on TightVNC."),
+	     buildtime);
   fprintf(stderr,"\n%s\n", aboutText);
 
   rfb::initStdIOLoggers();
