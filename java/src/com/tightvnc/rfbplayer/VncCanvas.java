@@ -815,7 +815,7 @@ class VncCanvas extends Canvas {
   //
 
   void scheduleRepaint(int x, int y, int w, int h) {
-    if (player.fbsStream.isSeeking()) {
+    if (rfb.fbs.isSeeking()) {
       // Do nothing, and remember we are seeking.
       seekMode = true;
     } else {

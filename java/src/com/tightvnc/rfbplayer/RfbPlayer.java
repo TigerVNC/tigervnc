@@ -49,8 +49,6 @@ public class RfbPlayer extends java.applet.Applet
   RfbProto rfb;
   Thread rfbThread;
 
-  FbsInputStream fbsStream;
-
   Frame vncFrame;
   Container vncContainer;
   ScrollPane desktopScrollPane;
@@ -121,8 +119,7 @@ public class RfbPlayer extends java.applet.Applet
 
     try {
       URL url = new URL(sessionURL);
-      fbsStream = new FbsInputStream(url.openStream());
-      rfb = new RfbProto(fbsStream);
+      rfb = new RfbProto(url);
 
       vc = new VncCanvas(this);
       gbc.weightx = 1.0;
@@ -161,14 +158,12 @@ public class RfbPlayer extends java.applet.Applet
       while (true) {
 	try {
 	  setPaused(true);
-	  fbsStream.setTimeOffset(initialTimeOffset);
-	  fbsStream.setSpeed(playbackSpeed);
+	  rfb.fbs.setTimeOffset(initialTimeOffset);
+	  rfb.fbs.setSpeed(playbackSpeed);
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
 	  initialTimeOffset = 0;
-	  fbsStream.close();
-	  fbsStream = new FbsInputStream(url.openStream());
-	  rfb.newInputStream(fbsStream);
+	  rfb.newSession(url);
 	}
       }
 
@@ -184,12 +179,10 @@ public class RfbPlayer extends java.applet.Applet
   public void setPaused(boolean paused) {
     if (showControls)
       buttonPanel.setPaused(paused);
-    if (fbsStream != null) {
-      if (paused) {
-	fbsStream.pausePlayback();
-      } else {
-	fbsStream.resumePlayback();
-      }
+    if (paused) {
+      rfb.fbs.pausePlayback();
+    } else {
+      rfb.fbs.resumePlayback();
     }
   }
 
@@ -199,17 +192,17 @@ public class RfbPlayer extends java.applet.Applet
 
   public void setSpeed(double speed) {
     playbackSpeed = speed;
-    fbsStream.setSpeed(speed);
+    rfb.fbs.setSpeed(speed);
   }
 
   public void setPos(int pos) {
-    fbsStream.setTimeOffset(pos * 1000);
+    rfb.fbs.setTimeOffset(pos * 1000);
   }
 
 
   public void updatePos() {
     if (showControls)
-      buttonPanel.setPos((int)(fbsStream.getTimeOffset() / 1000));
+      buttonPanel.setPos((int)(rfb.fbs.getTimeOffset() / 1000));
   }
 
   //

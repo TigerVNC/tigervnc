@@ -27,7 +27,7 @@
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.net.Socket;
+import java.net.*;
 
 class RfbProto {
 
@@ -73,6 +73,7 @@ class RfbProto {
 
   final static int TightMinToCompress   = 12;
 
+  FbsInputStream fbs;
   DataInputStream is;
 
 
@@ -80,12 +81,16 @@ class RfbProto {
   // Constructor.
   //
 
-  RfbProto(InputStream is) throws Exception {
-    newInputStream(is);
+  RfbProto(URL url) throws Exception {
+    fbs = null;
+    newSession(url);
   }
 
-  public void newInputStream(InputStream is) throws Exception {
-    this.is = new DataInputStream(is);
+  public void newSession(URL url) throws Exception {
+    if (fbs != null)
+      fbs.close();
+    fbs = new FbsInputStream(url.openStream());
+    is = new DataInputStream(fbs);
 
     readVersionMsg();
     if (readAuthScheme() != NoAuth) {
