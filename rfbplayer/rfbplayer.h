@@ -120,6 +120,7 @@ class RfbPlayer : public RfbProto {
     void blankBuffer();
     void rewind();
     void setPaused(bool paused);
+    void stopPlayback();
     long getTimeOffset();
     bool isSeekMode();
     bool isSeeking();
@@ -153,6 +154,7 @@ class RfbPlayer : public RfbProto {
     HWND speedEdit;
     HWND speedTrackBar;
     HWND speedUpDown;
+    HMENU hMenu;
     Rect window_size;
     Rect client_size;
     Point scrolloffset;
