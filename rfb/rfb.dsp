@@ -307,6 +307,11 @@ SOURCE=.\TightDecoder.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\TightEncoder.cxx
+# ADD CPP /I "../jpeg"
+# End Source File
+# Begin Source File
+
 SOURCE=.\ZRLEEncoder.cxx
 # End Source File
 # End Group
@@ -632,6 +637,14 @@ SOURCE=.\tightDecode.h
 # Begin Source File
 
 SOURCE=.\TightDecoder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\tightEncode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TightEncoder.h
 # End Source File
 # End Group
 # End Target
