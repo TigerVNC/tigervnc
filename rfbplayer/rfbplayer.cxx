@@ -766,6 +766,10 @@ void RfbPlayer::calculateScrollBars() {
     si.nPos   = scrolloffset.x;
     SetScrollInfo(getFrameHandle(), SB_HORZ, &si, TRUE);
   }
+
+  // Update the cached client size
+  GetClientRect(getFrameHandle(), &r);
+  client_size = Rect(r.left, r.top, r.right, r.bottom);
 }
 
 bool RfbPlayer::setViewportOffset(const Point& tl) {
