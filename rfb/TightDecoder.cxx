@@ -18,8 +18,24 @@
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/TightDecoder.h>
+#include <stdio.h> /* jpeglib.h needs FILE */
+#include <jpeglib.h>
 
 using namespace rfb;
+
+#define RGB24_TO_PIXEL(bpp,r,g,b)                                       \
+   ((((PIXEL_T)(r) & 0xFF) * myFormat.redMax + 127) / 255             \
+    << myFormat.redShift |                                              \
+    (((PIXEL_T)(g) & 0xFF) * myFormat.greenMax + 127) / 255           \
+    << myFormat.greenShift |                                            \
+    (((PIXEL_T)(b) & 0xFF) * myFormat.blueMax + 127) / 255            \
+    << myFormat.blueShift)
+
+#define TIGHT_MAX_WIDTH 2048
+
+static void JpegSetSrcManager(j_decompress_ptr cinfo, char *compressedData,
+			      int compressedLen);
+static bool jpegError;
 
 #define EXTRA_ARGS CMsgHandler* handler
 #define FILL_RECT(r, p) handler->fillRect(r, p)
@@ -50,7 +66,9 @@ TightDecoder::~TightDecoder()
 void TightDecoder::readRect(const Rect& r, CMsgHandler* handler)
 {
   rdr::InStream* is = reader->getInStream();
-  rdr::U8* buf = reader->getImageBuf(r.area());
+  /* Uncompressed RGB24 JPEG data, before translated, can be up to 3
+     times larger, if VNC bpp is 8. */
+  rdr::U8* buf = reader->getImageBuf(r.area()*3);
   switch (reader->bpp()) {
   case 8:
     tightDecode8 (r, is, zis, (rdr::U8*) buf, handler); break;
@@ -59,4 +77,70 @@ void TightDecoder::readRect(const Rect& r, CMsgHandler* handler)
   case 32:
     tightDecode32(r, is, zis, (rdr::U32*)buf, handler); break;
   }
+}
+
+
+//
+// A "Source manager" for the JPEG library.
+//
+
+static struct jpeg_source_mgr jpegSrcManager;
+static JOCTET *jpegBufferPtr;
+static size_t jpegBufferLen;
+
+static void JpegInitSource(j_decompress_ptr cinfo);
+static boolean JpegFillInputBuffer(j_decompress_ptr cinfo);
+static void JpegSkipInputData(j_decompress_ptr cinfo, long num_bytes);
+static void JpegTermSource(j_decompress_ptr cinfo);
+
+static void
+JpegInitSource(j_decompress_ptr cinfo)
+{
+  jpegError = false;
+}
+
+static boolean
+JpegFillInputBuffer(j_decompress_ptr cinfo)
+{
+  jpegError = true;
+  jpegSrcManager.bytes_in_buffer = jpegBufferLen;
+  jpegSrcManager.next_input_byte = (JOCTET *)jpegBufferPtr;
+
+  return TRUE;
+}
+
+static void
+JpegSkipInputData(j_decompress_ptr cinfo, long num_bytes)
+{
+  if (num_bytes < 0 || (size_t)num_bytes > jpegSrcManager.bytes_in_buffer) {
+    jpegError = true;
+    jpegSrcManager.bytes_in_buffer = jpegBufferLen;
+    jpegSrcManager.next_input_byte = (JOCTET *)jpegBufferPtr;
+  } else {
+    jpegSrcManager.next_input_byte += (size_t) num_bytes;
+    jpegSrcManager.bytes_in_buffer -= (size_t) num_bytes;
+  }
+}
+
+static void
+JpegTermSource(j_decompress_ptr cinfo)
+{
+  /* No work necessary here. */
+}
+
+static void
+JpegSetSrcManager(j_decompress_ptr cinfo, char *compressedData, int compressedLen)
+{
+  jpegBufferPtr = (JOCTET *)compressedData;
+  jpegBufferLen = (size_t)compressedLen;
+
+  jpegSrcManager.init_source = JpegInitSource;
+  jpegSrcManager.fill_input_buffer = JpegFillInputBuffer;
+  jpegSrcManager.skip_input_data = JpegSkipInputData;
+  jpegSrcManager.resync_to_restart = jpeg_resync_to_restart;
+  jpegSrcManager.term_source = JpegTermSource;
+  jpegSrcManager.next_input_byte = jpegBufferPtr;
+  jpegSrcManager.bytes_in_buffer = jpegBufferLen;
+
+  cinfo->src = &jpegSrcManager;
 }

@@ -44,6 +44,8 @@ namespace rfb {
 #define TIGHT_DECODE CONCAT2E(tightDecode,BPP)
 
 #define TIGHT_MIN_TO_COMPRESS 12
+static bool DecompressJpegRect(const Rect& r, rdr::InStream* is,
+			       PIXEL_T* buf, CMsgHandler* handler);
 
 // Main function implementing Tight decoder
 
@@ -73,8 +75,8 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 
   // "JPEG" compression type.
   if (comp_ctl == rfbTightJpeg) {
-    throw Exception("TightDecoder: FIXME: JPEG compression is not supported yet");
-	return;
+    DecompressJpegRect(r, is, buf, handler);
+    return;
   }
 
   // Quit on unsupported compression type.
@@ -164,6 +166,72 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 
   IMAGE_RECT(r, buf);
 }
+
+static bool
+DecompressJpegRect(const Rect& r, rdr::InStream* is,
+		   PIXEL_T* buf, CMsgHandler* handler)
+{
+  struct jpeg_decompress_struct cinfo;
+  struct jpeg_error_mgr jerr;
+  PIXEL_T *pixelPtr;
+  JSAMPROW scanline;
+
+  // Read length
+  int compressedLen = is->readCompactLength();
+  if (compressedLen <= 0) {
+      throw Exception("Incorrect data received from the server.\n");
+  }
+
+  // Allocate netbuf and read in data
+  rdr::U8* netbuf = new rdr::U8[compressedLen];
+  if (!netbuf)
+    throw Exception("rfb::tightDecode unable to allocate buffer");
+  is->readBytes(netbuf, compressedLen);
+
+  // Set up JPEG decompression
+  cinfo.err = jpeg_std_error(&jerr);
+  jpeg_create_decompress(&cinfo);
+  JpegSetSrcManager(&cinfo, (char*)netbuf, compressedLen);
+  jpeg_read_header(&cinfo, TRUE);
+  cinfo.out_color_space = JCS_RGB;
+
+  jpeg_start_decompress(&cinfo);
+  if (cinfo.output_width != (unsigned)r.width() || cinfo.output_height != (unsigned)r.height() ||
+      cinfo.output_components != 3) {
+      jpeg_destroy_decompress(&cinfo);
+      throw Exception("Tight Encoding: Wrong JPEG data received.\n");
+  }
+
+  // Decompress
+  scanline = (JSAMPROW)buf;
+  const rfb::PixelFormat& myFormat = handler->cp.pf();
+  int bytesPerRow = cinfo.output_width * myFormat.bpp/8;
+  while (cinfo.output_scanline < cinfo.output_height) {
+    jpeg_read_scanlines(&cinfo, &scanline, 1);
+    if (jpegError) {
+      break;
+    }
+
+    pixelPtr = (PIXEL_T*)(scanline);
+    for (int dx = 0; dx < r.width(); dx++) {
+      *pixelPtr++ = 
+	RGB24_TO_PIXEL(BPP, scanline[dx*3], scanline[dx*3+1], scanline[dx*3+2]);
+    }
+    scanline += bytesPerRow;
+  }
+
+  IMAGE_RECT(r, buf);
+
+  if (!jpegError)
+    jpeg_finish_decompress(&cinfo);
+
+  jpeg_destroy_decompress(&cinfo);
+
+  delete [] netbuf;
+
+  return !jpegError;
+}
+
 
 #undef TIGHT_DECODE
 #undef READ_PIXEL
