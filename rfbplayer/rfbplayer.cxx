@@ -436,9 +436,11 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         sliderDraging = true;
         updatePos(Pos);
         return 0;
+      case TB_THUMBPOSITION:
       case TB_ENDTRACK: 
         setPos(Pos);
         setPaused(isPaused());;
+        updatePos(Pos);
         sliderDraging = false;
         return 0;
       default:
