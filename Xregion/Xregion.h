@@ -61,14 +61,6 @@ SOFTWARE.
 #define Xfree free
 #define Xrealloc realloc
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 #define NeedFunctionPrototypes 1
 
 // - Cribbed from Xlib.h

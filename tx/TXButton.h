@@ -62,8 +62,8 @@ public:
     text.buf = rfb::strDup(text_);
     int textWidth = XTextWidth(defaultFS, text.buf, strlen(text.buf));
     int textHeight = (defaultFS->ascent + defaultFS->descent);
-    int newWidth = max(width(), textWidth + xPad*2 + bevel*2);
-    int newHeight = max(height(), textHeight + yPad*2 + bevel*2);
+    int newWidth = vncmax(width(), textWidth + xPad*2 + bevel*2);
+    int newHeight = vncmax(height(), textHeight + yPad*2 + bevel*2);
     if (width() < newWidth || height() < newHeight) {
       resize(newWidth, newHeight);
     }

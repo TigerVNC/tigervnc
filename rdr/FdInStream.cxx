@@ -36,12 +36,11 @@
 #include <sys/time.h>
 #endif
 
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#ifndef vncmin
+#define vncmin(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
-
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#ifndef vncmax
+#define vncmax(a,b)            (((a) > (b)) ? (a) : (b))
 #endif
 
 // XXX should use autoconf HAVE_SYS_SELECT_H
@@ -146,7 +145,7 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
       // during timing=1 can be satisfied without calling
       // readWithTimeoutOrCallback. However, reading only 1 or 2 bytes
       // bytes is ineffecient.
-      bytes_to_read = min(bytes_to_read, max(itemSize*nItems, 8));
+      bytes_to_read = vncmin(bytes_to_read, vncmax(itemSize*nItems, 8));
     }
     int n = readWithTimeoutOrCallback((U8*)end, bytes_to_read, wait);
     if (n == 0) return 0;

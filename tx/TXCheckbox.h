@@ -71,8 +71,8 @@ public:
     text = strdup(text_);
     int textWidth = XTextWidth(defaultFS, text, strlen(text));
     int textHeight = (defaultFS->ascent + defaultFS->descent);
-    int newWidth = max(width(), textWidth + xPad*2 + boxPad*2 + boxSize);
-    int newHeight = max(height(), textHeight + yPad*2);
+    int newWidth = vncmax(width(), textWidth + xPad*2 + boxPad*2 + boxSize);
+    int newHeight = vncmax(height(), textHeight + yPad*2);
     if (width() < newWidth || height() < newHeight) {
       resize(newWidth, newHeight);
     }

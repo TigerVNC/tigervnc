@@ -23,6 +23,13 @@
 #ifndef __RFB_UTIL_H__
 #define __RFB_UTIL_H__
 
+#ifndef vncmin
+#define vncmin(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef vncmax
+#define vncmax(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
 #include <string.h>
 
 namespace rfb {
@@ -65,21 +72,6 @@ namespace rfb {
   // Copies src to dest, up to specified length-1, and guarantees termination
   void strCopy(char* dest, const char* src, int destlen);
 }
-#endif
-
-// Some platforms (e.g. Windows) include max() and min() macros in their
-// standard headers, so we define them only when not already defined.  Note
-// also that max() & min() are standard C++ template functions, so some C++
-// headers will undefine them.  We place our definitions outside the #ifndef
-// __RFB_UTIL_H__, so that you can always guarantee they will be defined if
-// this file is the last #include before you use them.
-
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
 

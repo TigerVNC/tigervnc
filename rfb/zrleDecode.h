@@ -61,11 +61,11 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 64) {
 
-    t.br.y = min(r.br.y, t.tl.y + 64);
+    t.br.y = vncmin(r.br.y, t.tl.y + 64);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 64) {
 
-      t.br.x = min(r.br.x, t.tl.x + 64);
+      t.br.x = vncmin(r.br.x, t.tl.x + 64);
 
       int mode = zis->readU8();
       bool rle = mode & 128;

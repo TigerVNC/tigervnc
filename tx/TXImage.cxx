@@ -71,8 +71,8 @@ void TXImage::resize(int w, int h)
   if (w == width() && h == height()) return;
 
   int oldStrideBytes = getStride() * (format.bpp/8);
-  int rowsToCopy = min(h, height());
-  int bytesPerRow = min(w, width()) * (format.bpp/8);
+  int rowsToCopy = vncmin(h, height());
+  int bytesPerRow = vncmin(w, width()) * (format.bpp/8);
   rdr::U8* oldData = 0;
   bool allocData = false;
 

@@ -60,7 +60,7 @@ void ComparingUpdateTracker::compare()
     // since in effect the entire framebuffer has changed.
     oldFb.setSize(fb->width(), fb->height());
     for (int y=0; y<fb->height(); y+=BLOCK_SIZE) {
-      Rect pos(0, y, fb->width(), min(fb->height(), y+BLOCK_SIZE));
+      Rect pos(0, y, fb->width(), vncmin(fb->height(), y+BLOCK_SIZE));
       int srcStride;
       const rdr::U8* srcData = fb->getPixelsR(pos, &srcStride);
       oldFb.imageRect(pos, srcData, srcStride);
@@ -100,20 +100,20 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
   for (int blockTop = r.tl.y; blockTop < r.br.y; blockTop += BLOCK_SIZE)
   {
     // Get a strip of the source buffer
-    Rect pos(r.tl.x, blockTop, r.br.x, min(r.br.y, blockTop+BLOCK_SIZE));
+    Rect pos(r.tl.x, blockTop, r.br.x, vncmin(r.br.y, blockTop+BLOCK_SIZE));
     int fbStride;
     const rdr::U8* newBlockPtr = fb->getPixelsR(pos, &fbStride);
     int newStrideBytes = fbStride * bytesPerPixel;
 
     rdr::U8* oldBlockPtr = oldData;
-    int blockBottom = min(blockTop+BLOCK_SIZE, r.br.y);
+    int blockBottom = vncmin(blockTop+BLOCK_SIZE, r.br.y);
 
     for (int blockLeft = r.tl.x; blockLeft < r.br.x; blockLeft += BLOCK_SIZE)
     {
       const rdr::U8* newPtr = newBlockPtr;
       rdr::U8* oldPtr = oldBlockPtr;
 
-      int blockRight = min(blockLeft+BLOCK_SIZE, r.br.x);
+      int blockRight = vncmin(blockLeft+BLOCK_SIZE, r.br.x);
       int blockWidthInBytes = (blockRight-blockLeft) * bytesPerPixel;
 
       for (int y = blockTop; y < blockBottom; y++)

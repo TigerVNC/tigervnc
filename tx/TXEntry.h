@@ -58,7 +58,7 @@ public:
                  | ButtonPressMask);
     text[0] = 0;
     int textHeight = (defaultFS->ascent + defaultFS->descent);
-    int newHeight = max(height(), textHeight + yPad*2 + bevel*2);
+    int newHeight = vncmax(height(), textHeight + yPad*2 + bevel*2);
     if (height() < newHeight) {
       resize(width(), newHeight);
     }

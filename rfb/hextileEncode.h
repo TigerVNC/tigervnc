@@ -60,11 +60,11 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
-    t.br.y = min(r.br.y, t.tl.y + 16);
+    t.br.y = vncmin(r.br.y, t.tl.y + 16);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
 
-      t.br.x = min(r.br.x, t.tl.x + 16);
+      t.br.x = vncmin(r.br.x, t.tl.x + 16);
 
       GET_IMAGE_INTO_BUF(t,buf);
 

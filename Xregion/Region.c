@@ -78,6 +78,13 @@ SOFTWARE.
 #include "region.h"
 //#include "poly.h"
 
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
 #ifdef DEBUG
 #include <stdio.h>
 #define assert(expr) {if (!(expr)) fprintf(stderr,\
