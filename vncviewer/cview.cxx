@@ -252,6 +252,7 @@ CView::applyOptions(CViewOptions& opt) {
     (options.useDesktopResize != opt.useDesktopResize));
   cp.supportsLocalCursor = options.useLocalCursor = opt.useLocalCursor;
   cp.supportsDesktopResize = options.useDesktopResize = opt.useDesktopResize;
+  cp.qualityLevel = options.qualityLevel = opt.qualityLevel;
   if (cursorAvailable)
     hideLocalCursor();
   cursorAvailable = cursorAvailable && options.useLocalCursor;
