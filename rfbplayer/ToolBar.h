@@ -49,6 +49,41 @@ public:
   // You must call it before addBitmap().
   bool setBitmapSize(int width, int height);
 
+  // -=- Button operations
+
+  // addButton() adds one button.
+  bool addButton(int iBitmap, int idCommand, BYTE state=TBSTATE_ENABLED, BYTE style=TBSTYLE_BUTTON, UINT dwData=0, int iString=0);
+
+  // addNButton() adds nButtons buttons to a toolbar.
+  bool addNButton(int nButtons, LPTBBUTTON tbb);
+
+  // deleteButton() removes a button from the toolbar.
+  bool deleteButton(int nIndex);
+
+  // insertButton() inserts a button in a toolbar control by index.
+  bool insertButton(int nIndex, LPTBBUTTON tbb);
+
+  // getButtonInfo() retrieves extended information about a toolbar's button.
+  // It returns index of the button if successful, or -1 otherwise.
+  int getButtonInfo(int idButton, TBBUTTONINFO *btnInfo);
+
+  // setButtonInfo() sets the information for an existing button in a toolbar.
+  bool setButtonInfo(int idButton, TBBUTTONINFO* ptbbi);
+
+  // checkButton() checks or unchecks a given button in a toolbar control.
+  bool checkButton(int idButton, bool check);
+
+  // enableButton() enables or disables the specified button in the toolbar.
+  bool enableButton(int idButton, bool enable);
+
+  // pressButton() presses or releases the specified button in the toolbar.
+  bool pressButton(int idButton, bool press);
+
+  // setButtonSize() sets the size of the buttons to be added to a toolbar.
+  // Button size must be largen the button bitmap.
+  bool setButtonSize(int width, int height);
+
+
   // getHandle() returns handle to a toolbar window.
   HWND getHandle() { return hwndToolBar; }
 

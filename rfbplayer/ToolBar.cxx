@@ -69,3 +69,98 @@ bool ToolBar::setBitmapSize(int width, int height) {
     0, MAKELONG(width, height));
   return (result ? true : false);
 }
+
+bool ToolBar::addButton(int iBitmap, int idCommand, BYTE state, BYTE style, UINT dwData, int iString) {
+  TBBUTTON tbb;
+  tbb.iBitmap = iBitmap;
+  tbb.idCommand = idCommand;
+  tbb.fsState = state;
+  tbb.fsStyle = style;
+  tbb.dwData = dwData;
+  tbb.iString = iString;
+
+  int result = SendMessage(getHandle(), TB_ADDBUTTONS, 1, (LPARAM)&tbb);
+  if (result) {
+    SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
+  }
+  return (result ? true : false);
+}
+
+bool ToolBar::addNButton(int nButtons, LPTBBUTTON tbb) {
+  assert(nButtons > 0);
+  assert(tbb > 0);
+  int result = SendMessage(getHandle(), TB_ADDBUTTONS, nButtons, (LPARAM)tbb);
+  if (result) {
+    SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
+  }
+  return (result ? true : false);
+}
+
+bool ToolBar::deleteButton(int indexButton) {
+  assert(indexButton >= 0);
+  int result = SendMessage(getHandle(), TB_DELETEBUTTON, indexButton, 0);
+  
+  if (result) {
+    SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
+  }
+  return (result ? true : false);
+}
+
+bool ToolBar::insertButton(int indexButton, LPTBBUTTON tbb) {
+  assert(indexButton >= 0);
+  assert(tbb > 0);
+  int result = SendMessage(getHandle(), TB_INSERTBUTTON, 
+    indexButton, (LPARAM)tbb);
+
+  if (result) {
+    SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
+  }
+  return (result ? true : false);
+}
+
+int ToolBar::getButtonInfo(int idButton, TBBUTTONINFO *btnInfo) {
+  assert(idButton >= 0);
+  assert(btnInfo > 0);
+  return SendMessage(getHandle(), TB_GETBUTTONINFO, idButton, (LPARAM)btnInfo);
+}
+
+bool ToolBar::setButtonInfo(int idButton, TBBUTTONINFO* btnInfo) {
+  assert(idButton >= 0);
+  assert(btnInfo > 0);
+  int result = SendMessage(getHandle(), TB_SETBUTTONINFO, 
+    idButton, (LPARAM)(LPTBBUTTONINFO)btnInfo);
+  return (result ? true : false);
+}
+
+bool ToolBar::checkButton(int idButton, bool check) {
+  assert(idButton >= 0);
+  int result = SendMessage(getHandle(), TB_CHECKBUTTON, 
+    idButton, MAKELONG(check, 0));
+  return (result ? true : false);
+}
+
+bool ToolBar::enableButton(int idButton, bool enable) {
+  assert(idButton >= 0);
+  int result = SendMessage(getHandle(), TB_ENABLEBUTTON, 
+    idButton, MAKELONG(enable, 0));
+  return (result ? true : false);
+}
+
+bool ToolBar::pressButton(int idButton, bool press) {
+  assert(idButton >= 0);
+  int result = SendMessage(getHandle(), TB_PRESSBUTTON, 
+    idButton, MAKELONG(press, 0));
+  return (result ? true : false);
+}
+
+bool ToolBar::setButtonSize(int width, int height) {
+  assert(width > 0);
+  assert(height > 0);
+  int result = SendMessage(getHandle(), TB_SETBUTTONSIZE, 
+    0, MAKELONG(width, height));
+  if (result) {
+    SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
+    return true;
+  }
+  return false; 
+}
