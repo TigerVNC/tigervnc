@@ -19,7 +19,9 @@
 #include <rfb/CMsgHandler.h>
 #include <rfb/TightDecoder.h>
 #include <stdio.h> /* jpeglib.h needs FILE */
+extern "C" {
 #include <jpeglib.h>
+}
 
 using namespace rfb;
 
