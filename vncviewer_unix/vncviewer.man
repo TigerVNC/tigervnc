@@ -38,11 +38,18 @@ encoding and pixel format (color level) appropriately.  This makes it much
 easier to use than previous versions where the user had to specify arcane
 command line arguments.
 
-The viewer normally starts out assuming the link is slow, using a low color
-level and using the encoding with the best compression.  If it turns out that
-the link is fast enough it switches to full-color mode and will use an
-encoding which compresses less but is faster to generate, thus improving the
-interactive feel.  Automatic selection can be turned off by setting the
+The viewer normally starts out assuming the link is slow, using the
+encoding with the best compression.  If it turns out that the link is
+fast enough it switches to an encoding which compresses less but is
+faster to generate, thus improving the interactive feel.
+
+The viewer normally starts in full-color mode, but switches to
+low-color mode if the bandwidth is insufficient. However, this only
+occurs when communicating with servers supporting protocol 3.8 or
+newer, since many old servers does not support color mode changes
+safely.
+
+Automatic selection can be turned off by setting the
 \fBAutoSelect\fP parameter to false, or from the options dialog.
 
 .SH POPUP MENU
@@ -133,10 +140,7 @@ encoding and pixel format appropriately.  Turn it off with \fB-AutoSelect=0\fP.
 .TP
 .B \-FullColor, \-FullColour
 Tells the VNC server to send full-color pixels in the best format for this
-display.  By default a low color mode is used until AutoSelect decides the
-link is fast enough.  However if the server's native pixel format is
-colormapped (as opposed to truecolor) then the server's format is used by
-default.
+display.  This is default. 
 
 .TP
 .B \-LowColorLevel, \-LowColourLevel \fIlevel\fP
@@ -146,7 +150,7 @@ from 0 to 2, 0 meaning 8 colors, 1 meaning 64 colors (the default), 2 meaning
 
 .TP
 .B \-PreferredEncoding \fIencoding\fP
-This option specifies the preferred encoding to use from one of "ZRLE",
+This option specifies the preferred encoding to use from one of "Tight", "ZRLE",
 "hextile" or "raw".
 
 .TP
