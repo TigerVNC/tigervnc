@@ -35,6 +35,7 @@ class RfbProto : public CMsgHandler {
 
     void newSession(char *filename);
     void initialiseProtocol();
+    void interruptFrameDelay() { is->interruptFrameDelay(); };
     const rdr::InStream* getInStream() { return is; }
 
     virtual void processMsg();

@@ -36,6 +36,8 @@ FbsInputStream::FbsInputStream(char* FileName) {
   seekBackwards = false;
   paused        = false;
 
+  interruptDelay = false;
+
   fbsFile = fopen(FileName, "rb");
   if (fbsFile == NULL) {
     char *msg = new char[12 + sizeof(FileName)];
@@ -142,14 +144,15 @@ int FbsInputStream::overrun(int itemSize, int nItems, bool wait=true) {
     }
   }
 
-  while (true) {
+  while (!interruptDelay) {
     long timeDiff = startTime + timeOffset - GetTickCount();
     if (timeDiff <= 0) {
 	    break;
     }
-    Sleep(timeDiff);
+    Sleep(min(20, timeDiff));
     waitWhilePaused();
   }
+  interruptDelay = false;
 
   return nItems;
 }
@@ -190,6 +193,10 @@ void FbsInputStream::waitWhilePaused() {
     // A small delay helps to decrease the cpu usage
     Sleep(20);
   }
+}
+
+void FbsInputStream::interruptFrameDelay() {
+  interruptDelay = true;
 }
 
 //

@@ -29,6 +29,7 @@ public:
   rfbSessionReader(RfbProto *_rfbSession) {
     rfbSession = _rfbSession;
     fStop = false;
+    rfbSession->interruptFrameDelay();
   };
   
   ~rfbSessionReader() {

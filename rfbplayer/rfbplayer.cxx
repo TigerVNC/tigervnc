@@ -1070,8 +1070,11 @@ void RfbPlayer::setPaused(bool paused) {
 
 void RfbPlayer::stopPlayback() {
   stopped = true;
-  if (is) is->pausePlayback();
   setPos(0);
+  if (is) { 
+    is->pausePlayback();
+    is->interruptFrameDelay();
+  }
   tb.checkButton(ID_STOP, true);
   tb.checkButton(ID_PLAY, false);
   tb.checkButton(ID_PAUSE, false);

@@ -37,6 +37,7 @@ class FbsInputStream : public InStream {
     bool isPaused();
     void pausePlayback();
     void resumePlayback();
+    void interruptFrameDelay();
     void close();
     int  pos();
 
@@ -49,6 +50,7 @@ class FbsInputStream : public InStream {
     double playbackSpeed;
     bool seekBackwards;
     bool paused;
+    bool interruptDelay;
 
     FILE  *fbsFile;
 
