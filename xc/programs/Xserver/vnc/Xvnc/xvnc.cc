@@ -110,8 +110,8 @@ typedef struct
 {
   int scrnum;
   int width;
+  int paddedBytesWidth;
   int paddedWidth;
-  int paddedWidthInBytes;
   int height;
   int depth;
   int bitsPerPixel;
@@ -740,7 +740,7 @@ static char* vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 {
   if (pvfb->pfbMemory) return pvfb->pfbMemory; /* already done */
 
-  pvfb->sizeInBytes = pvfb->paddedWidthInBytes * pvfb->height;
+  pvfb->sizeInBytes = pvfb->paddedBytesWidth * pvfb->height;
 
   /* Calculate how many entries in colormap.  This is rather bogus, because
    * the visuals haven't even been set up yet, but we need to know because we
@@ -772,7 +772,7 @@ static char* vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
     pvfb->pXWDCmap = (XWDColor *)((char *)pvfb->pXWDHeader
                                   + SIZEOF(XWDheader) + XWD_WINDOW_NAME_LEN);
     pvfb->pfbMemory = (char *)(pvfb->pXWDCmap + pvfb->ncolors);
-    memset(pvfb->pfbMemory, 0, pvfb->paddedWidthInBytes * pvfb->height);
+    memset(pvfb->pfbMemory, 0, pvfb->paddedBytesWidth * pvfb->height);
     return pvfb->pfbMemory;
   }
   else
@@ -810,7 +810,7 @@ static void vfbWriteXWDFileHeader(ScreenPtr pScreen)
   pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD_PROTO;
 #endif
   pXWDHeader->bits_per_pixel = pvfb->bitsPerPixel;
-  pXWDHeader->bytes_per_line = pvfb->paddedWidthInBytes;
+  pXWDHeader->bytes_per_line = pvfb->paddedBytesWidth;
   pXWDHeader->ncolors = pvfb->ncolors;
 
   /* visual related fields are written when colormap is installed */
@@ -881,9 +881,9 @@ static Bool vfbScreenInit(int index, ScreenPtr pScreen, int argc, char** argv)
 
   if (monitorResolution) dpi = monitorResolution;
 
-  pvfb->paddedWidthInBytes = PixmapBytePad(pvfb->width, pvfb->depth);
+  pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);
   pvfb->bitsPerPixel = vfbBitsPerPixel(pvfb->depth);
-  pvfb->paddedWidth = pvfb->paddedWidthInBytes * 8 / pvfb->bitsPerPixel;
+  pvfb->paddedWidth = pvfb->paddedBytesWidth * 8 / pvfb->bitsPerPixel;
   pbits = vfbAllocateFramebufferMemory(pvfb);
   if (!pbits) return FALSE;
   vncFbptr[index] = pbits;
