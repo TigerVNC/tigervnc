@@ -1288,7 +1288,7 @@ bool processParams(int argc, char* argv[]) {
         }
         pf++;
       }
-      if ((r < 0) || (g < 0) || (b < 0)) return false;
+      if ((r < 0) || (g < 0) || (b < 0) || (r + g + b > 32)) return false;
       if (strcasecmp(rgb_order, "rgb") == 0) { order = RGB_ORDER; }
       else if (strcasecmp(rgb_order, "rbg") == 0) { order = RBG_ORDER; }
       else if (strcasecmp(rgb_order, "grb") == 0) { order = GRB_ORDER; }
