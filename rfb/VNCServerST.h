@@ -225,6 +225,10 @@ namespace rfb {
     SSecurityFactory* securityFactory;
     QueryConnectionHandler* queryConnectionHandler;
     bool useEconomicTranslate;
+    
+    time_t lastUserInputTime;
+    time_t lastDisconnectTime;
+    time_t lastConnectionTime;
   };
 
 };

@@ -98,6 +98,10 @@ void VNCSConnectionST::close(const char* reason)
   else
     vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
 
+  if (authenticated()) {
+      server->lastDisconnectTime = time(0);
+  }
+
   // Just shutdown the socket.  This will cause processMessages to
   // eventually fail, causing us and our socket to be deleted.
   sock->shutdown();
@@ -389,6 +393,7 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
 void VNCSConnectionST::pointerEvent(int x, int y, int buttonMask)
 {
   pointerEventTime = lastEventTime = time(0);
+  server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
   if (!server->pointerClient || server->pointerClient == this) {
@@ -421,6 +426,7 @@ public:
 // multiple down events (for autorepeat), but only allow a single up event.
 void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
   lastEventTime = time(0);
+  server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 

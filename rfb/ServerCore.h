@@ -33,6 +33,9 @@ namespace rfb {
   public:
 
     static IntParameter idleTimeout;
+    static IntParameter maxDisconnectionTime;
+    static IntParameter maxConnectionTime;
+    static IntParameter maxIdleTime;
     static IntParameter clientWaitTimeMillis;
     static StringParameter sec_types;
     static StringParameter rev_sec_types;

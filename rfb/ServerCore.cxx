@@ -30,6 +30,19 @@ rfb::IntParameter rfb::Server::idleTimeout
 ("IdleTimeout",
  "The number of seconds after which an idle VNC connection will be dropped",
  0);
+
+rfb::IntParameter rfb::Server::maxDisconnectionTime
+("MaxDisconnectionTime",
+ "Terminate when no client has been connected for s seconds", 
+ 0);
+rfb::IntParameter rfb::Server::maxConnectionTime
+("MaxConnectionTime",
+ "Terminate when a client has been connected for s seconds", 
+ 0);
+rfb::IntParameter rfb::Server::maxIdleTime
+("MaxIdleTime",
+ "Terminate after s seconds of user inactivity", 
+ 0);
 rfb::IntParameter rfb::Server::clientWaitTimeMillis
 ("ClientWaitTimeMillis",
  "The number of milliseconds to wait for a client which is no longer "

@@ -80,8 +80,10 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
     name(strDup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
     securityFactory(sf ? sf : &defaultSecurityFactory),
-    queryConnectionHandler(0), useEconomicTranslate(false)
+    queryConnectionHandler(0), useEconomicTranslate(false),
+    lastConnectionTime(0)
 {
+  lastUserInputTime = lastDisconnectTime = time(0);
   slog.debug("creating single-threaded server %s", name.buf);
 }
 
@@ -138,6 +140,10 @@ void VNCServerST::addClient(network::Socket* sock, bool reverse)
     return;
   }
 
+  if (clients.empty()) {
+    lastConnectionTime = time(0);
+  }
+
   VNCSConnectionST* client = new VNCSConnectionST(this, sock, reverse);
   client->init();
 }
@@ -179,6 +185,79 @@ int VNCServerST::checkTimeouts()
     ci_next = ci; ci_next++;
     soonestTimeout(&timeout, (*ci)->checkIdleTimeout());
   }
+
+  int timeLeft;
+  time_t now;
+
+  // Optimization: Only call time() if using any maxTime. 
+  if (rfb::Server::maxDisconnectionTime || rfb::Server::maxConnectionTime || rfb::Server::maxIdleTime) {
+    now = time(0);
+  }
+  
+  // Check MaxDisconnectionTime 
+  if (rfb::Server::maxDisconnectionTime && clients.empty()) {
+    if (now < lastDisconnectTime) {
+      // Someone must have set the time backwards. 
+      slog.info("Time has gone backwards - resetting lastDisconnectTime");
+      lastDisconnectTime = now;
+    }
+    timeLeft = lastDisconnectTime + rfb::Server::maxDisconnectionTime - now;
+    if (timeLeft < -60) {
+      // Someone must have set the time forwards.
+      slog.info("Time has gone forwards - resetting lastDisconnectTime");
+      lastDisconnectTime = now;
+      timeLeft = rfb::Server::maxDisconnectionTime;
+    }
+    if (timeLeft <= 0) { 
+      slog.info("MaxDisconnectionTime reached, exiting");
+      exit(0);
+    }
+    soonestTimeout(&timeout, timeLeft * 1000);
+  }
+
+  // Check MaxConnectionTime 
+  if (rfb::Server::maxConnectionTime && lastConnectionTime && !clients.empty()) {
+    if (now < lastConnectionTime) {
+      // Someone must have set the time backwards. 
+      slog.info("Time has gone backwards - resetting lastConnectionTime");
+      lastConnectionTime = now;
+    }
+    timeLeft = lastConnectionTime + rfb::Server::maxConnectionTime - now;
+    if (timeLeft < -60) {
+      // Someone must have set the time forwards.
+      slog.info("Time has gone forwards - resetting lastConnectionTime");
+      lastConnectionTime = now;
+      timeLeft = rfb::Server::maxConnectionTime;
+    }
+    if (timeLeft <= 0) {
+      slog.info("MaxConnectionTime reached, exiting");
+      exit(0);
+    }
+    soonestTimeout(&timeout, timeLeft * 1000);
+  }
+
+  
+  // Check MaxIdleTime 
+  if (rfb::Server::maxIdleTime) {
+    if (now < lastUserInputTime) {
+      // Someone must have set the time backwards. 
+      slog.info("Time has gone backwards - resetting lastUserInputTime");
+      lastUserInputTime = now;
+    }
+    timeLeft = lastUserInputTime + rfb::Server::maxIdleTime - now;
+    if (timeLeft < -60) {
+      // Someone must have set the time forwards.
+      slog.info("Time has gone forwards - resetting lastUserInputTime");
+      lastUserInputTime = now;
+      timeLeft = rfb::Server::maxIdleTime;
+    }
+    if (timeLeft <= 0) { // enough time has gone 
+      slog.info("MaxIdleTime reached, exiting");
+      exit(0);
+    }
+    soonestTimeout(&timeout, timeLeft * 1000);
+  }
+  
   return timeout;
 }
 
