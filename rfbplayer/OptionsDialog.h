@@ -24,8 +24,9 @@
 
 class OptionsDialog : public rfb::win32::Dialog {
 public:
-  OptionsDialog(PlayerOptions *_options) 
-  : Dialog(GetModuleHandle(0)), options(_options), combo(0) {}
+  OptionsDialog(PlayerOptions *_options, PixelFormatList *_supportedPF) 
+  : Dialog(GetModuleHandle(0)), options(_options), combo(0),
+  supportedPF(_supportedPF) {}
   // - Show the dialog and return true if OK was clicked,
   //   false in case of error or Cancel
   virtual bool showDialog(HWND parent) {
@@ -37,10 +38,11 @@ protected:
   virtual void initDialog() {
     combo = GetDlgItem(handle, IDC_PIXELFORMAT);
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("Auto"));
-    SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("8 bit depth (RGB332)"));
-    SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("16 bit depth (RGB655)"));
-    SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("24 bit depth (RGB888)"));
-    SendMessage(combo, CB_SETCURSEL, options->pixelFormatIndex, 0);
+    for (int i = 0; i < supportedPF->count(); i++) {
+      SendMessage(combo, CB_ADDSTRING, 
+        0, (LPARAM)(LPCTSTR)(((*supportedPF)[i]).format_name));
+    }
+    SendMessage(combo, CB_SETCURSEL, options->pixelFormatIndex + 1, 0);
     if (options->askPixelFormat) {
       setItemChecked(IDC_ASK_PF, true);
       enableItem(IDC_PIXELFORMAT, false);
@@ -52,7 +54,13 @@ protected:
   }
   virtual bool onOk() {
     if (!isItemChecked(IDC_ASK_PF)) {
-      options->pixelFormatIndex = SendMessage(combo, CB_GETCURSEL, 0, 0);
+      options->pixelFormatIndex = SendMessage(combo, CB_GETCURSEL, 0, 0) - 1;
+      if (options->pixelFormatIndex < 0) {
+        options->autoDetectPF = true;
+      } else {
+        options->setPF(&((*supportedPF)[options->pixelFormatIndex]).PF);
+        options->autoDetectPF = false;
+      }
     }
     options->askPixelFormat = isItemChecked(IDC_ASK_PF);
     options->acceptBell = isItemChecked(IDC_ACCEPT_BELL);
@@ -67,7 +75,7 @@ protected:
       enableItem(IDC_PIXELFORMAT, !isItemChecked(IDC_ASK_PF));
     }
     if (item == IDC_DEFAULT) {
-      SendMessage(combo, CB_SETCURSEL, DEFAULT_PF, 0);
+      SendMessage(combo, CB_SETCURSEL, DEFAULT_PF_INDEX, 0);
       enableItem(IDC_PIXELFORMAT, !DEFAULT_ASK_PF);
       setItemChecked(IDC_ASK_PF, DEFAULT_ASK_PF);
       setItemChecked(IDC_ACCEPT_BELL, DEFAULT_ACCEPT_BELL);
@@ -80,4 +88,5 @@ protected:
 
   HWND combo;
   PlayerOptions *options;
+  PixelFormatList *supportedPF;
 };
