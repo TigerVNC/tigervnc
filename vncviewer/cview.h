@@ -183,6 +183,9 @@ namespace rfb {
       void hideSystemCursor();
       void showSystemCursor();
 
+      // Grab AltTab?
+      void setAltTabGrab(bool grab);
+
       // cursorOutsideBuffer() is called whenever we detect that the mouse has
       // moved outside the desktop.  It restores the system arrow cursor.
       void cursorOutsideBuffer();

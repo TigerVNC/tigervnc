@@ -232,17 +232,19 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,10,172,15
     CONTROL         "Send keyboard events to server",IDC_SEND_KEYS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,25,172,15
-    CONTROL         "Send clipboard changes to server",IDC_CLIENT_CUTTEXT,
+    CONTROL         "Send system keys (Alt combinations) to server",IDC_SEND_SYSKEYS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,172,15
+    CONTROL         "Send clipboard changes to server",IDC_CLIENT_CUTTEXT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,172,15
     CONTROL         "Accept clipboard changes from server",
                     IDC_SERVER_CUTTEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    7,55,172,15
+                    7,70,172,15
     CONTROL         "Enable 3-button mouse emulation",IDC_EMULATE3,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,172,15
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,85,172,15
     CONTROL         "Rate-limit mouse move events",IDC_POINTER_INTERVAL,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,86,172,14
-    LTEXT           "Menu key",IDC_STATIC,7,100,98,15,SS_CENTERIMAGE
-    COMBOBOX        IDC_MENU_KEY,105,100,74,105,CBS_DROPDOWNLIST | CBS_SORT | 
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,100,172,14
+    LTEXT           "Menu key",IDC_STATIC,7,115,98,15,SS_CENTERIMAGE
+    COMBOBOX        IDC_MENU_KEY,105,115,74,105,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
 END
 

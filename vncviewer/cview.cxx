@@ -63,6 +63,8 @@ const int TIMER_BUMPSCROLL = 1;
 const int TIMER_POINTER_INTERVAL = 2;
 const int TIMER_POINTER_3BUTTON = 3;
 
+const int HOTKEY_ALTTAB = 0;
+
 
 IntParameter debugDelay("DebugDelay","Milliseconds to display inverted "
                         "pixel data - a debugging feature", 0);
@@ -173,6 +175,9 @@ CView::CView()
   // Initialise the bumpscroll timer
   bumpScrollTimer.setHWND(getHandle());
   bumpScrollTimer.setId(TIMER_BUMPSCROLL);
+
+  // Grab AltTab
+  setAltTabGrab(options.sendSysKeys);
 
   // Hook the clipboard
   clipboard.setNotifier(this);
@@ -290,6 +295,8 @@ CView::applyOptions(CViewOptions& opt) {
   // - Inputs
   options.sendPtrEvents = opt.sendPtrEvents;
   options.sendKeyEvents = opt.sendKeyEvents;
+  options.sendSysKeys = opt.sendSysKeys;
+  setAltTabGrab(options.sendSysKeys);
   options.clientCutText = opt.clientCutText;
   options.serverCutText = opt.serverCutText;
   options.emulate3 = opt.emulate3;
@@ -692,10 +699,14 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
 
   case WM_SETFOCUS:
     has_focus = true;
+    // Re-register AltTab hotkey
+    setAltTabGrab(options.sendSysKeys);
     break;
   case WM_KILLFOCUS:
     has_focus = false;
     cursorOutsideBuffer();
+    // Unregister AltTab hotkey
+    setAltTabGrab(false);
     // Restore the remote keys to consistent states
     try {
       kbd.releaseAllKeys(writer());
@@ -795,6 +806,35 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
 
     // -=- Handle keyboard input
 
+  case WM_HOTKEY:
+    if (wParam == HOTKEY_ALTTAB) {
+      writeKeyEvent(VK_TAB, 0, true);
+      writeKeyEvent(VK_TAB, 0, false);
+      return 0;
+    }
+    break;
+
+  case WM_SYSKEYDOWN:
+    // Translate Alt-Space and Alt-F4 to WM_SYSCHAR and WM_CLOSE,
+    // since we are not using TranslateMessage(). 
+    if (!options.sendSysKeys) {
+      switch (wParam) {
+      case VK_SPACE:
+	writeKeyEvent(VK_MENU, 0, false);
+	SendMessage(getHandle(), WM_SYSCHAR, wParam, lParam);
+	return 0; 
+      case VK_F4:
+	SendMessage(getHandle(), WM_CLOSE, wParam, lParam);
+	return 0; 
+      }
+    }
+
+  case WM_SYSKEYUP:
+    // When we have registered for AltTab as a hotkey, SYSKEYUPs for
+    // Tabs are sent (but no SYSKEYDOWNs). AltTab is handled by
+    // WM_HOTKEY, though.
+    if (wParam == VK_TAB) return 0; 
+
   case WM_KEYUP:
   case WM_KEYDOWN:
     // Hook the MenuKey to pop-up the window menu
@@ -818,12 +858,11 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
             TPM_CENTERALIGN | TPM_VCENTERALIGN, pt.x, pt.y, 0, getHandle(), 0);
         }
 
-        // Ignore the MenuKey keypress for both press & release events
-        return 0;
+	// Ignore the MenuKey keypress for both press & release events
+	return 0;
       }
     }
-	case WM_SYSKEYDOWN:
-	case WM_SYSKEYUP:
+
     writeKeyEvent(wParam, lParam, (msg == WM_KEYDOWN) || (msg == WM_SYSKEYDOWN));
     return 0;
 
@@ -949,6 +988,26 @@ CView::showSystemCursor() {
   }
 }
 
+void
+CView::setAltTabGrab(bool grab) {
+  BOOL hotKeyResult;
+  static bool grabstate = false;
+
+  // Do not call RegisterHotKey/UnregisterHotKey if not necessary
+  if (grabstate == grab)
+    return;
+
+  grabstate = grab;
+    
+  // Only works for NT/2k/XP
+  if (grab) {
+    hotKeyResult = RegisterHotKey(hwnd, HOTKEY_ALTTAB, MOD_ALT, VK_TAB);
+    if (!hotKeyResult)
+      vlog.debug("RegisterHotkey failed with error %d", GetLastError());
+  } else {
+    hotKeyResult = UnregisterHotKey(hwnd, HOTKEY_ALTTAB);
+  }
+}
 
 bool
 CView::invalidateBufferRect(const Rect& crect) {

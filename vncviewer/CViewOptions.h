@@ -58,6 +58,7 @@ namespace rfb {
       bool shared;
       bool sendPtrEvents;
       bool sendKeyEvents;
+      bool sendSysKeys;
       bool clientCutText;
       bool serverCutText;
       bool emulate3;

@@ -68,6 +68,7 @@
 #define IDC_COMPRESSLEVEL               1056
 #define IDC_ALLOW_JPEG                  1057
 #define IDC_QUALITYLEVEL                1058
+#define IDC_SEND_SYSKEYS                1059
 #define ID_CLOSE                        40002
 #define ID_OPTIONS                      40003
 #define ID_NEW_CONNECTION               40004
