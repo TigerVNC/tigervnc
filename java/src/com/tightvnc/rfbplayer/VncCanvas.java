@@ -330,6 +330,8 @@ class VncCanvas extends Canvas {
 
 	  case RfbProto.EncodingHextile:
 	  {
+	    byte[] buf = new byte[256 * 4];
+
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    Color bg = new Color(0), fg = new Color(0);
@@ -350,16 +352,15 @@ class VncCanvas extends Canvas {
 
 		// Is it a raw-encoded sub-rectangle?
 		if ((subencoding & rfb.HextileRaw) != 0) {
-		  byte[] buf = new byte[tw * 4];
 		  int count, offset;
 		  for (int j = ty; j < ty + th; j++) {
-		    rfb.is.readFully(buf);
+		    rfb.is.readFully(buf, 0, tw * 4);
 		    offset = j * rfb.framebufferWidth + tx;
 		    for (count = 0; count < tw; count++) {
 		      pixels24[offset + count] =
-			(buf[count * 4 + 1] & 0xFF) << 16 |
-			(buf[count * 4 + 2] & 0xFF) << 8 |
-			(buf[count * 4 + 3] & 0xFF);
+			(buf[count * 4 + 2] & 0xFF) << 16 |
+			(buf[count * 4 + 1] & 0xFF) << 8 |
+			(buf[count * 4] & 0xFF);
 		    }
 		  }
 		  handleUpdatedPixels(tx, ty, tw, th);
@@ -368,14 +369,20 @@ class VncCanvas extends Canvas {
 
 		// Read and draw the background if specified.
 		if ((subencoding & rfb.HextileBackgroundSpecified) != 0) {
-		  bg = new Color(0xFF000000 | rfb.is.readInt());
+		  rfb.is.readFully(buf, 0, 4);
+		  bg = new Color((buf[2] & 0xFF) << 16 |
+				 (buf[1] & 0xFF) << 8 |
+				 (buf[0] & 0xFF));
 		}
 		memGraphics.setColor(bg);
 		memGraphics.fillRect(tx, ty, tw, th);
 
 		// Read the foreground color if specified.
 		if ((subencoding & rfb.HextileForegroundSpecified) != 0) {
-		  fg = new Color(0xFF000000 | rfb.is.readInt());
+		  rfb.is.readFully(buf, 0, 4);
+		  fg = new Color((buf[2] & 0xFF) << 16 |
+				 (buf[1] & 0xFF) << 8 |
+				 (buf[0] & 0xFF));
 		}
 
 		// Done with this tile if there is no sub-rectangles.
@@ -387,7 +394,10 @@ class VncCanvas extends Canvas {
 		int b1, b2, sx, sy, sw, sh;
 		if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
 		  for (int j = 0; j < nSubrects; j++) {
-		    fg = new Color(0xFF000000 | rfb.is.readInt());
+		    rfb.is.readFully(buf, 0, 4);
+		    fg = new Color((buf[2] & 0xFF) << 16 |
+				   (buf[1] & 0xFF) << 8 |
+				   (buf[0] & 0xFF));
 		    b1 = rfb.is.readUnsignedByte();
 		    b2 = rfb.is.readUnsignedByte();
 		    sx = tx + (b1 >> 4);
@@ -486,9 +496,9 @@ class VncCanvas extends Canvas {
       offset = dy * rfb.framebufferWidth + x;
       for (i = 0; i < w; i++) {
 	pixels24[offset + i] =
-	  (buf[i * 4 + 1] & 0xFF) << 16 |
-	  (buf[i * 4 + 2] & 0xFF) << 8 |
-	  (buf[i * 4 + 3] & 0xFF);
+	  (buf[i * 4 + 2] & 0xFF) << 16 |
+	  (buf[i * 4 + 1] & 0xFF) << 8 |
+	  (buf[i * 4] & 0xFF);
       }
     }
 
@@ -512,9 +522,9 @@ class VncCanvas extends Canvas {
 	offset = dy * rfb.framebufferWidth + x;
 	for (i = 0; i < w; i++) {
 	  pixels24[offset + i] =
-	    (buf[i * 4 + 1] & 0xFF) << 16 |
-	    (buf[i * 4 + 2] & 0xFF) << 8 |
-	    (buf[i * 4 + 3] & 0xFF);
+	    (buf[i * 4 + 2] & 0xFF) << 16 |
+	    (buf[i * 4 + 1] & 0xFF) << 8 |
+	    (buf[i * 4] & 0xFF);
 	}
       }
     }
