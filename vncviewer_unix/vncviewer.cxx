@@ -91,10 +91,23 @@ BoolParameter listenMode("listen", "Listen for connections from VNC servers",
 StringParameter geometry("geometry", "X geometry specification", "");
 StringParameter displayname("display", "The X display", "");
 
+BoolParameter customCompressLevel("CustomCompressLevel",
+				  "Use custom compression level",
+				  false);
+
+IntParameter compressLevel("CompressLevel",
+			   "Use specified compression level"
+			   "0 = Low, 9 = High",
+			   6);
+
+BoolParameter noJpeg("NoJPEG",
+		     "Disable lossy JPEG compression in Tight encoding.",
+		     false);
+
 IntParameter qualityLevel("QualityLevel",
 			  "JPEG quality level. "
 			  "0 = Low, 9 = High",
-			  5);
+			  6);
 
 char aboutText[256];
 char* programName;

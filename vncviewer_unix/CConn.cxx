@@ -74,6 +74,9 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   }
   cp.supportsDesktopResize = true;
   cp.supportsLocalCursor = useLocalCursor;
+  cp.customCompressLevel = customCompressLevel;
+  cp.compressLevel = compressLevel;
+  cp.noJpeg = noJpeg;
   cp.qualityLevel = qualityLevel;
   initMenu();
 
@@ -480,6 +483,7 @@ void CConn::menuSelect(long id, TXMenu* m) {
 // options dialog's checkboxes.
 
 void CConn::setOptions() {
+  char digit[2] = "0";
   options.autoSelect.checked(autoSelect);
   options.fullColour.checked(fullColour);
   options.veryLowColour.checked(!fullColour && lowColourLevel == 0);
@@ -489,6 +493,14 @@ void CConn::setOptions() {
   options.zrle.checked(currentEncoding == encodingZRLE);
   options.hextile.checked(currentEncoding == encodingHextile);
   options.raw.checked(currentEncoding == encodingRaw);
+
+  options.customCompressLevel.checked(customCompressLevel); 
+  digit[0] = '0' + compressLevel;
+  options.compressLevel.setText(digit); 
+  options.noJpeg.checked(!noJpeg);
+  digit[0] = '0' + qualityLevel;
+  options.qualityLevel.setText(digit); 
+
   options.viewOnly.checked(viewOnly);
   options.acceptClipboard.checked(acceptClipboard);
   options.sendClipboard.checked(sendClipboard);
@@ -523,6 +535,12 @@ void CConn::getOptions() {
     currentEncoding = newEncoding;
     encodingChange = true;
   }
+
+  customCompressLevel.setParam(options.customCompressLevel.checked());
+  compressLevel.setParam(options.compressLevel.getText());
+  noJpeg.setParam(!options.noJpeg.checked());
+  qualityLevel.setParam(options.qualityLevel.getText());
+
   viewOnly.setParam(options.viewOnly.checked());
   acceptClipboard.setParam(options.acceptClipboard.checked());
   sendClipboard.setParam(options.sendClipboard.checked());

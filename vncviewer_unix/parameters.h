@@ -37,6 +37,9 @@ extern rfb::BoolParameter sendClipboard;
 extern rfb::BoolParameter sendPrimary;
 extern rfb::BoolParameter fullScreen;
 extern rfb::StringParameter geometry;
+extern rfb::BoolParameter customCompressLevel;
+extern rfb::IntParameter compressLevel;
+extern rfb::BoolParameter noJpeg;
 extern rfb::IntParameter qualityLevel;
 
 extern char aboutText[];

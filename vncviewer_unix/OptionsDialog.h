@@ -36,10 +36,10 @@ public:
 };
 
 class OptionsDialog : public TXDialog, public TXButtonCallback,
-                      public TXCheckboxCallback {
+                      public TXCheckboxCallback, public TXEntryCallback  {
 public:
   OptionsDialog(Display* dpy, OptionsDialogCallback* cb_)
-    : TXDialog(dpy, 400, 400, "VNC Viewer: Connection Options"), cb(cb_),
+    : TXDialog(dpy, 400, 450, "VNC Viewer: Connection Options"), cb(cb_),
       formatAndEnc(dpy, "Encoding and Colour Level:", this),
       inputs(dpy, "Inputs:", this),
       misc(dpy, "Misc:", this),
@@ -52,6 +52,12 @@ public:
       zrle(dpy, "ZRLE", this, true, this),
       hextile(dpy, "Hextile", this, true, this),
       raw(dpy, "Raw", this, true, this),
+      customCompressLevel(dpy, "Custom compression level:", this, false, this),
+      compressLevel(dpy, this, this, false, 30),
+      compressLevelLabel(dpy, "level (1=fast, 9=best)", this),
+      noJpeg(dpy, "Allow JPEG compression:", this, false, this),
+      qualityLevel(dpy, this, this, false, 30),
+      qualityLevelLabel(dpy, "quality (1=poor, 9=best)", this),
       viewOnly(dpy, "View only (ignore mouse & keyboard)", this, false, this),
       acceptClipboard(dpy, "Accept clipboard from server", this, false, this),
       sendClipboard(dpy, "Send clipboard to server", this, false, this),
@@ -81,7 +87,19 @@ public:
     veryLowColour.move(x2, y);
     y += hextile.height();
     raw.move(xPad, y);
-    y += raw.height();
+    y += raw.height() + yPad;
+
+    customCompressLevel.move(xPad, y);
+    y += customCompressLevel.height();
+    compressLevel.move(xPad*10, y);
+    compressLevelLabel.move(xPad*20, y);
+    y += compressLevel.height();
+
+    noJpeg.move(xPad, y);
+    y += noJpeg.height();
+    qualityLevel.move(xPad*10, y);
+    qualityLevelLabel.move(xPad*20, y);
+    y += qualityLevel.height();
 
     y += yPad*4;
     inputs.move(xPad, y);
@@ -126,6 +144,8 @@ public:
     veryLowColour.disabled(autoSelect.checked());
     sendPrimary.disabled(!sendClipboard.checked());
     dotWhenNoCursor.disabled(!useLocalCursor.checked());
+    compressLevel.disabled(!customCompressLevel.checked());
+    qualityLevel.disabled(!noJpeg.checked());
   }
 
   virtual void takeFocus(Time time) {
@@ -166,7 +186,14 @@ public:
       sendPrimary.disabled(!sendClipboard.checked());
     } else if (checkbox == &useLocalCursor) {
       dotWhenNoCursor.disabled(!useLocalCursor.checked());
+    } else if (checkbox == &customCompressLevel) {
+      compressLevel.disabled(!customCompressLevel.checked());
+    } else if (checkbox == &noJpeg) {
+      qualityLevel.disabled(!noJpeg.checked());
     }
+  }
+
+  virtual void entryCallback(TXEntry* e, Detail detail, Time time) {
   }
 
   OptionsDialogCallback* cb;
@@ -174,6 +201,10 @@ public:
   TXCheckbox autoSelect;
   TXCheckbox fullColour, mediumColour, lowColour, veryLowColour;
   TXCheckbox tight, zrle, hextile, raw;
+
+  TXCheckbox customCompressLevel; TXEntry compressLevel; TXLabel compressLevelLabel;
+  TXCheckbox noJpeg; TXEntry qualityLevel; TXLabel qualityLevelLabel;
+
   TXCheckbox viewOnly, acceptClipboard, sendClipboard, sendPrimary;
   TXCheckbox shared, fullScreen, useLocalCursor, dotWhenNoCursor;
   TXButton okButton, cancelButton;
