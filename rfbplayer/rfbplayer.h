@@ -23,6 +23,7 @@
 #include <rfb_win32/DIBSectionBuffer.h>
 
 #include <rfbplayer/RfbProto.h>
+#include <rfbplayer/ToolBar.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -42,9 +43,7 @@ class RfbPlayer : public Thread, public RfbProto{
 
     HWND getMainHandle() const {return mainHwnd;}
     HWND getFrameHandle() const {return frameHwnd;}
-    HWND getStartBtn() const {return btnStart;}
-    HWND getPosEdit() const {return editPos;}
-    HWND getSpeedEdit() const {return editSpeed;}
+    void createToolBar(HWND parentHwnd);
     void setFrameSize(int width, int height);
     void setVisible(bool visible);
     void setTitle(const char *title);
@@ -145,18 +144,18 @@ class RfbPlayer : public Thread, public RfbProto{
 
     // Local window state
     HWND mainHwnd;
-    HWND btnStart;
-    HWND txtPos;
-    HWND editPos;
-    HWND txtSpeed;
-    HWND editSpeed;
     HWND frameHwnd;
+    HWND timeStatic;
+    HWND speedEdit;
+    HWND speedTrackBar;
+    HWND speedUpDown;
     Rect window_size;
     Rect client_size;
     Point scrolloffset;
     Point maxscrolloffset;
     char *cutText;
     win32::DIBSectionBuffer* buffer;
+    ToolBar tb;
 
     // The player's parameters
     bool showControls;

@@ -24,13 +24,18 @@
 #define ID_HELP_COMMANDLINESEITCHES     40026
 #define ID_HELP_ABOUT                   40027
 #define ID_OPTIONS                      40029
+#define ID_FULLSCREEN                   40030
+#define ID_STOP                         40031
+#define ID_GOTO                         40032
+#define ID_SETSPEED                     40033
+#define ID_LOOP                         40034
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        133
-#define _APS_NEXT_COMMAND_VALUE         40030
+#define _APS_NEXT_COMMAND_VALUE         40035
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -45,6 +45,16 @@ extern const char* buildTime;
 
 #define strcasecmp _stricmp
 
+#define ID_TOOLBAR 500
+#define ID_PLAY 510
+#define ID_PAUSE 520
+#define ID_TIME_STATIC 530
+#define ID_SPEED_STATIC 540
+#define ID_SPEED_EDIT 550
+#define ID_POS_TRACKBAR 560
+#define ID_SPEED_UPDOWN 570
+
+
 //
 // -=- RfbPlayerClass
 
@@ -192,11 +202,11 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
 : RfbProto(_fileName), initTime(_initTime), playbackSpeed(_playbackSpeed),
   autoplay(_autoplay), showControls(_showControls), buffer(0), client_size(0, 0, 32, 32), 
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), fRun(true), 
-  serverInitTime(0), btnStart(0), txtPos(0), editPos(0), txtSpeed(0), editSpeed(0), 
-  lastPos(0), acceptBell(_acceptBell) {
+  serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), speedTrackBar(0),
+  speedUpDown(0), acceptBell(_acceptBell) {
 
   if (showControls)
-    CTRL_BAR_HEIGHT = 30;
+    CTRL_BAR_HEIGHT = 28;
   else
     CTRL_BAR_HEIGHT = 0;
 
@@ -239,6 +249,8 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         0, WS_CHILD | WS_VISIBLE, 0, CTRL_BAR_HEIGHT, 10, CTRL_BAR_HEIGHT + 10,
         hwnd, 0, frameClass.instance, this);
 
+      createToolBar(hwnd);
+
       return 0;
     }
   
@@ -254,6 +266,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
   case WM_SIZE:
     {
+    
       Point old_offset = bufferToClient(Point(0, 0));
 
       // Update the cached sizing information
@@ -269,6 +282,9 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
       // Determine whether scrollbars are required
       calculateScrollBars();
+         
+      // Resize the ToolBar
+      tb.autoSize();
 
       // Redraw if required
       if (!old_offset.equals(bufferToClient(Point(0, 0))))
@@ -426,9 +442,63 @@ void RfbPlayer::applyOptions() {
     setPos(initTime);
   setSpeed(playbackSpeed);
   setPaused(!autoplay);
+}
 
-  // Update the position
-  SetWindowText(editPos, LongToStr(initTime / 1000));
+void RfbPlayer::createToolBar(HWND parentHwnd) {
+  RECT tRect;
+  InitCommonControls();
+
+  tb.create(ID_TOOLBAR, parentHwnd);
+  tb.addBitmap(4, IDB_TOOLBAR);
+
+  // Create the control buttons
+  tb.addButton(0, ID_PLAY);
+  tb.addButton(1, ID_PAUSE);
+  tb.addButton(2, ID_STOP);
+  tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+  tb.addButton(3, ID_FULLSCREEN);
+  tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+
+  // Create the static control for the time output
+  tb.addButton(125, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+  tb.getButtonRect(6, &tRect);
+  timeStatic = CreateWindowEx(0, "Static", "00m:00s (00m:00s)", 
+    WS_CHILD | WS_VISIBLE, tRect.left, tRect.top+2, tRect.right-tRect.left, 
+    tRect.bottom-tRect.top, tb.getHandle(), (HMENU)ID_TIME_STATIC, 
+    GetModuleHandle(0), 0);
+  tb.addButton(0, 10, TBSTATE_ENABLED, TBSTYLE_SEP);
+    
+  // Create the trackbar control for the time position
+  tb.addButton(200, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+  tb.getButtonRect(8, &tRect);
+  speedTrackBar = CreateWindowEx(0, TRACKBAR_CLASS, "Trackbar Control", 
+    WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE,
+    tRect.left, tRect.top, tRect.right-tRect.left, tRect.bottom-tRect.top,
+    parentHwnd, (HMENU)ID_POS_TRACKBAR, GetModuleHandle(0), 0);
+  // It's need to send notify messages to toolbar parent window
+  SetParent(speedTrackBar, tb.getHandle());
+  tb.addButton(0, 10, TBSTATE_ENABLED, TBSTYLE_SEP);
+
+  // Create the label with "Speed:" caption
+  tb.addButton(50, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+  tb.getButtonRect(10, &tRect);
+  CreateWindowEx(0, "Static", "Speed:", WS_CHILD | WS_VISIBLE, 
+    tRect.left, tRect.top+2, tRect.right-tRect.left, tRect.bottom-tRect.top,
+    tb.getHandle(), (HMENU)ID_SPEED_STATIC, GetModuleHandle(0), 0);
+
+  // Create the edit control and the spin for the speed managing
+  tb.addButton(60, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+  tb.getButtonRect(11, &tRect);
+  speedEdit = CreateWindowEx(WS_EX_CLIENTEDGE, "Edit", "1.00", 
+    WS_CHILD | WS_VISIBLE | ES_RIGHT, tRect.left, tRect.top, 
+    tRect.right-tRect.left, tRect.bottom-tRect.top, parentHwnd,
+    (HMENU)ID_SPEED_EDIT, GetModuleHandle(0), 0);
+  // It's need to send notify messages to toolbar parent window
+  SetParent(speedEdit, tb.getHandle());
+
+  speedUpDown = CreateUpDownControl(WS_CHILD | WS_VISIBLE  
+    | WS_BORDER | UDS_ALIGNRIGHT, 0, 0, 0, 0, tb.getHandle(),
+    ID_SPEED_UPDOWN, GetModuleHandle(0), speedEdit, 100, 1, 10);
 }
 
 void RfbPlayer::setVisible(bool visible) {
@@ -642,10 +712,8 @@ bool RfbPlayer::invalidateBufferRect(const Rect& crect) {
 
 void RfbPlayer::setPaused(bool paused) {
   if (paused) {
-    if (btnStart) SetWindowText(btnStart, "Start");
     is->pausePlayback();
   } else {
-    if (btnStart) SetWindowText(btnStart, "Stop");
     is->resumePlayback();
   }
 }
@@ -653,8 +721,6 @@ void RfbPlayer::setPaused(bool paused) {
 void RfbPlayer::setSpeed(double speed) {
   serverInitTime = serverInitTime * getSpeed() / speed;
   is->setSpeed(speed);
-  if (editSpeed)
-    SetWindowText(editSpeed, DoubleToStr(speed, 1));
 }
 
 double RfbPlayer::getSpeed() {
@@ -687,10 +753,6 @@ long RfbPlayer::getTimeOffset() {
 
 void RfbPlayer::updatePos() {
   long newPos = is->getTimeOffset() / 1000;
-  if (editPos && lastPos != newPos) {
-    lastPos = newPos;
-    SetWindowText(editPos, LongToStr(lastPos));
-  }
 }
 
 void RfbPlayer::skipHandshaking() {
