@@ -1,8 +1,4 @@
 
-* The dialog boxes in the UNIX viewer isn't as modal as they should
-  be. For example, sometimes, when opening the OptionsDialog from the
-  login window, the OptionsDialog appears *behind* the login window. 
-
 * Change version strings. 
 
 * Perhaps change icons. 
