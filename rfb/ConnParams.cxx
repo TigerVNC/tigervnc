@@ -27,9 +27,9 @@ using namespace rfb;
 
 ConnParams::ConnParams()
   : majorVersion(0), minorVersion(0), width(0), height(0), useCopyRect(false),
-    supportsLocalCursor(false), supportsDesktopResize(false),
-    supportsLastRect(false), qualityLevel(-1), noJpeg(false),
-    name_(0), nEncodings_(0), encodings_(0),
+    supportsLocalCursor(false), supportsDesktopResize(false), supportsLastRect(false), 
+    customCompressLevel(false), compressLevel(6), noJpeg(false), qualityLevel(-1), 
+    name_(0), nEncodings_(0), encodings_(0), 
     currentEncoding_(encodingRaw), verStrPos(0)
 {
   setName("");
@@ -89,8 +89,10 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
   useCopyRect = false;
   supportsLocalCursor = false;
   supportsLastRect = false;
+  customCompressLevel = false;
+  compressLevel = -1;
+  noJpeg = true;
   qualityLevel = -1;
-  noJpeg = false;
   currentEncoding_ = encodingRaw;
 
   for (int i = nEncodings-1; i >= 0; i--) {
@@ -104,10 +106,15 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
       supportsDesktopResize = true;
     else if (encodings[i] == pseudoEncodingLastRect)
       supportsLastRect = true;
-    else if (encodings[i] >= pseudoEncodingQualityLevel0 &&
-             encodings[i] <= pseudoEncodingQualityLevel9)
-	qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
-    else if (encodings[i] <= encodingMax && Encoder::supported(encodings[i]))
+    else if (encodings[i] >= pseudoEncodingCompressLevel0 &&
+	     encodings[i] <= pseudoEncodingCompressLevel9) {
+      customCompressLevel = true;
+      compressLevel = encodings[i] - pseudoEncodingCompressLevel0;
+    } else if (encodings[i] >= pseudoEncodingQualityLevel0 &&
+	       encodings[i] <= pseudoEncodingQualityLevel9) {
+      noJpeg = false;
+      qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
+    } else if (encodings[i] <= encodingMax && Encoder::supported(encodings[i]))
       currentEncoding_ = encodings[i];
   }
 }

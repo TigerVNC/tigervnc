@@ -93,6 +93,8 @@ public:
     case encodingHextile: setItemChecked(IDC_ENCODING_HEXTILE, true); break;
     case encodingRaw: setItemChecked(IDC_ENCODING_RAW, true); break;
     }
+    setItemChecked(IDC_ALLOW_COMPRESSLEVEL, dlg->options.customCompressLevel);
+    setItemInt(IDC_COMPRESSLEVEL, dlg->options.compressLevel);
     setItemChecked(IDC_ALLOW_JPEG, !dlg->options.noJpeg);
     setItemInt(IDC_QUALITYLEVEL, dlg->options.qualityLevel);
     onCommand(IDC_ENCODING_AUTO, 0 /* ? */); // Force enableItem status to refresh
@@ -100,6 +102,8 @@ public:
   virtual bool onOk() {
     dlg->options.autoSelect = isItemChecked(IDC_ENCODING_AUTO);
     dlg->options.fullColour = isItemChecked(IDC_FORMAT_FULLCOLOUR);
+    dlg->options.customCompressLevel = isItemChecked(IDC_ALLOW_COMPRESSLEVEL);
+    dlg->options.compressLevel = getItemInt(IDC_COMPRESSLEVEL);
     dlg->options.noJpeg = !isItemChecked(IDC_ALLOW_JPEG);
     dlg->options.qualityLevel = getItemInt(IDC_QUALITYLEVEL);
     if (isItemChecked(IDC_FORMAT_VERYLOWCOLOUR))

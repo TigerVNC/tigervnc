@@ -73,8 +73,10 @@ namespace rfb {
     bool supportsDesktopResize;
     bool supportsLastRect;
 
-    int qualityLevel;
+    bool customCompressLevel;
+    int compressLevel;
     bool noJpeg;
+    int qualityLevel;
 
   private:
 

@@ -81,14 +81,23 @@ static BoolParameter acceptBell("AcceptBell",
 static StringParameter monitor("Monitor", "The monitor to open the VNC Viewer window on, if available.", "");
 static StringParameter menuKey("MenuKey", "The key which brings up the popup menu", "F8");
 
-static IntParameter qualityLevel("QualityLevel",
-				 "JPEG quality level. "
-				 "0 = Low, 9 = High",
-				 5);
+static BoolParameter customCompressLevel("CustomCompressLevel",
+				      "Use custom compression level",
+				      false);
+
+static IntParameter compressLevel("CompressLevel",
+				  "Use specified compression level"
+				  "0 = Low, 9 = High",
+				  6);
 
 static BoolParameter noJpeg("NoJPEG",
 			    "Disable lossy JPEG compression in Tight encoding.",
 			    false);
+
+static IntParameter qualityLevel("QualityLevel",
+				 "JPEG quality level. "
+				 "0 = Low, 9 = High",
+				 6);
 
 CViewOptions::CViewOptions()
 : useLocalCursor(::useLocalCursor), useDesktopResize(::useDesktopResize),
@@ -97,7 +106,8 @@ shared(::sharedConnection), sendPtrEvents(::sendPtrEvents), sendKeyEvents(::send
 preferredEncoding(encodingZRLE), clientCutText(::clientCutText), serverCutText(::serverCutText),
 protocol3_3(::protocol3_3), acceptBell(::acceptBell), lowColourLevel(::lowColourLevel),
 pointerEventInterval(ptrEventInterval), emulate3(::emulate3), monitor(::monitor.getData()),
-qualityLevel(::qualityLevel), noJpeg(::noJpeg)
+customCompressLevel(::customCompressLevel), compressLevel(::compressLevel), 
+noJpeg(::noJpeg), qualityLevel(::qualityLevel)
 {
   CharArray encodingName(::preferredEncoding.getData());
   preferredEncoding = encodingNum(encodingName.buf);
@@ -197,10 +207,14 @@ void CViewOptions::readFromFile(const char* filename) {
             monitor.replaceBuf(value.takeBuf());
           } else if (stricmp(name.buf, "MenuKey") == 0) {
             setMenuKey(value.buf);
-          } else if (stricmp(name.buf, "QualityLevel") == 0) {
-	    qualityLevel = atoi(value.buf);
+          } else if (stricmp(name.buf, "CustomCompressLevel") == 0) {
+	    customCompressLevel = atoi(value.buf);
+          } else if (stricmp(name.buf, "CompressLevel") == 0) {
+	    compressLevel = atoi(value.buf);
           } else if (stricmp(name.buf, "NoJPEG") == 0) {
 	    noJpeg = atoi(value.buf);
+          } else if (stricmp(name.buf, "QualityLevel") == 0) {
+	    qualityLevel = atoi(value.buf);
             // Legacy options
           } else if (stricmp(name.buf, "Preferred_Encoding") == 0) {
             preferredEncoding = atoi(value.buf);
@@ -284,8 +298,10 @@ void CViewOptions::writeToFile(const char* filename) {
     if (monitor.buf)
       fprintf(f, "Monitor=%s\n", monitor.buf);
     fprintf(f, "MenuKey=%s\n", CharArray(menuKeyName()).buf);
-    fprintf(f, "QualityLevel=%d\n", qualityLevel);
+    fprintf(f, "CustomCompressLevel=%d\n", customCompressLevel);
+    fprintf(f, "CompressLevel=%d\n", compressLevel);
     fprintf(f, "NoJPEG=%d\n", noJpeg);
+    fprintf(f, "QualityLevel=%d\n", qualityLevel);
     fclose(f); f=0;
 
     setConfigFileName(filename);
@@ -318,8 +334,10 @@ void CViewOptions::writeDefaults() {
   if (monitor.buf)
     key.setString(_T("Monitor"), TStr(monitor.buf));
   key.setString(_T("MenuKey"), TCharArray(menuKeyName()).buf);
-  key.setInt(_T("QualityLevel"), qualityLevel);
+  key.setInt(_T("CustomCompressLevel"), customCompressLevel);
+  key.setInt(_T("CompressLevel"), compressLevel);
   key.setInt(_T("NoJPEG"), noJpeg);
+  key.setInt(_T("QualityLevel"), qualityLevel);
 }
 
 
@@ -374,7 +392,10 @@ CViewOptions& CViewOptions::operator=(const CViewOptions& o) {
   setHost(o.host.buf);
   setMonitor(o.monitor.buf);
   menuKey = o.menuKey;
-  qualityLevel = o.qualityLevel;
+  customCompressLevel = o.customCompressLevel;
+  compressLevel = o.compressLevel;
   noJpeg = o.noJpeg;
+  qualityLevel = o.qualityLevel;
+
   return *this;
 }
