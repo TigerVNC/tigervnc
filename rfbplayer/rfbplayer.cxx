@@ -365,7 +365,6 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
       case TB_ENDTRACK: 
         setPos(Pos);
-        updatePos(Pos);
         sliderDraging = false;
         return 0;
       default:
@@ -719,6 +718,7 @@ void RfbPlayer::processMsg() {
       rewind();
       setPaused(true);
       updatePos(getTimeOffset());
+      SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
       return;
     }
     // It's a special exception to perform backward seeking.
@@ -765,7 +765,6 @@ void RfbPlayer::serverInit() {
   SendMessage(posTrackBar, TBM_SETRANGE, 
     TRUE, MAKELONG(0, min(sessionTimeMs / 1000, MAX_POS_TRACKBAR_RANGE)));
   sliderStepMs = sessionTimeMs / SendMessage(posTrackBar, TBM_GETRANGEMAX, 0, 0);
-    
   updatePos(getTimeOffset());
 
   setPaused(!autoplay);
@@ -927,7 +926,7 @@ long RfbPlayer::getTimeOffset() {
 void RfbPlayer::updatePos(long newPos) {
   // Update time pos in static control
   char timePos[30] = "\0";
-  double sliderPos = newPos;
+  long sliderPos = newPos;
   newPos /= 1000;
   sprintf(timePos, "%.2um:%.2us (%s)", newPos/60, newPos%60, fullSessionTime);
   SetWindowText(timeStatic, timePos);
@@ -935,7 +934,8 @@ void RfbPlayer::updatePos(long newPos) {
   // Update the position of slider
   if (!sliderDraging) {
     sliderPos /= sliderStepMs;
-    SendMessage(posTrackBar, TBM_SETPOS, TRUE, sliderPos);
+    if (sliderPos > SendMessage(posTrackBar, TBM_GETPOS, 0, 0))
+      SendMessage(posTrackBar, TBM_SETPOS, TRUE, sliderPos);
   }
 }
 
