@@ -640,6 +640,7 @@ void RfbPlayer::disableTBandMenuItems() {
   tb.enableButton(ID_FULLSCREEN, false);
   EnableWindow(posTrackBar, false);
   EnableWindow(speedEdit, false);
+  EnableWindow(speedUpDown, false);
 }
 
 void RfbPlayer::enableTBandMenuItems() {
@@ -661,6 +662,7 @@ void RfbPlayer::enableTBandMenuItems() {
   tb.enableButton(ID_FULLSCREEN, true);
   EnableWindow(posTrackBar, true);
   EnableWindow(speedEdit, true);
+  EnableWindow(speedUpDown, true);
 }
 
 void RfbPlayer::setVisible(bool visible) {
