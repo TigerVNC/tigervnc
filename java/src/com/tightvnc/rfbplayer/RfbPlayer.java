@@ -197,11 +197,7 @@ public class RfbPlayer extends java.applet.Applet
   }
 
   public void setPos(long pos) {
-    if (pos > rfb.fbs.getTimeOffset()) {
-      rfb.fbs.setTimeOffset(pos);
-    } else {
-      System.out.println("Seeking backwards is not implemented yet.");
-    }
+    rfb.fbs.setTimeOffset(pos);
   }
 
 
