@@ -65,20 +65,20 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   }
 
   // "Fill" compression type.
-  if (comp_ctl == 0x08) {
+  if (comp_ctl == rfbTightFill) {
     PIXEL_T pix = is->READ_PIXEL();
     FILL_RECT(r, pix);
     return;
   }
 
   // "JPEG" compression type.
-  if (comp_ctl == 0x09) {
+  if (comp_ctl == rfbTightJpeg) {
     throw Exception("TightDecoder: FIXME: JPEG compression is not supported yet");
 	return;
   }
 
   // Quit on unsupported compression type.
-  if (comp_ctl > 0x09) {
+  if (comp_ctl > rfbTightMaxSubencoding) {
     throw Exception("TightDecoder: bad subencoding value received");
     return;
   }
@@ -88,21 +88,21 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   PIXEL_T palette[256];
   bool useGradient = false;
 
-  if ((comp_ctl & 0x04) != 0) {
+  if ((comp_ctl & rfbTightExplicitFilter) != 0) {
     rdr::U8 filterId = is->readU8();
 
     switch (filterId) {
-    case 0x01:    // "palette" filter
+    case rfbTightFilterPalette: 
       palSize = is->readU8() + 1;
       {
         for (int i = 0; i < palSize; i++)
           palette[i] = is->READ_PIXEL();
       }
       break;
-    case 0x02:    // "gradient" filter
+    case rfbTightFilterGradient: 
       useGradient = true;
       break;
-    case 0x00:    // no filter
+    case rfbTightFilterCopy:
       break;
     default:
       throw Exception("TightDecoder: unknown filter code received");
