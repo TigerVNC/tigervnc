@@ -44,6 +44,7 @@ rfb::LogWriter vlog("main");
 
 using namespace network;
 using namespace rfb;
+using namespace std;
 
 IntParameter pointerEventInterval("PointerEventInterval",
                                   "Time in milliseconds to rate-limit"
@@ -98,6 +99,8 @@ BoolParameter listenMode("listen", "Listen for connections from VNC servers",
                          false);
 StringParameter geometry("geometry", "X geometry specification", "");
 StringParameter displayname("display", "The X display", "");
+
+StringParameter via("via", "Gateway to tunnel via", "");
 
 BoolParameter customCompressLevel("CustomCompressLevel",
 				 "Use custom compression level. "
@@ -179,6 +182,61 @@ static void usage()
   exit(1);
 }
 
+/* Tunnelling support. */
+static void
+interpretViaParam (char **gatewayHost, char **remoteHost,
+		   int *remotePort, char **vncServerName,
+		   int localPort)
+{
+  const int SERVER_PORT_OFFSET = 5900;
+  char *pos = strchr (*vncServerName, ':');
+  if (pos == NULL)
+    *remotePort = SERVER_PORT_OFFSET;
+  else {
+    int portOffset = SERVER_PORT_OFFSET;
+    size_t len;
+    *pos++ = '\0';
+    len = strlen (pos);
+    if (*pos == ':') {
+      /* Two colons is an absolute port number, not an offset. */
+      pos++;
+      len--;
+      portOffset = 0;
+    }
+    if (!len || strspn (pos, "-0123456789") != len )
+      usage ();
+    *remotePort = atoi (pos) + portOffset;
+  }
+
+  if (**vncServerName != '\0')
+    *remoteHost = *vncServerName;
+
+  *gatewayHost = strDup (via.getValueStr ());
+  *vncServerName = new char[50];
+  sprintf (*vncServerName, "localhost::%d", localPort);
+}
+
+static void
+createTunnel (const char *gatewayHost, const char *remoteHost,
+	      int remotePort, int localPort)
+{
+  char *cmd = getenv ("VNC_VIA_CMD");
+  char *percent;
+  char lport[10], rport[10];
+  sprintf (lport, "%d", localPort);
+  sprintf (rport, "%d", remotePort);
+  setenv ("G", gatewayHost, 1);
+  setenv ("H", remoteHost, 1);
+  setenv ("R", rport, 1);
+  setenv ("L", lport, 1);
+  if (!cmd)
+    cmd = "/usr/bin/ssh -f -L \"$L\":\"$H\":\"$R\" \"$G\" sleep 20";
+  /* Compatibility with TightVNC's method. */
+  while ((percent = strchr (cmd, '%')) != NULL)
+    *percent = '$';
+  system (cmd);
+}
+
 int main(int argc, char** argv)
 {
   setlocale(LC_ALL, "");
@@ -221,8 +279,6 @@ int main(int argc, char** argv)
       usage();
     }
 
-    if (vncServerName)
-      usage();
     vncServerName = argv[i];
   }
 
@@ -239,6 +295,19 @@ int main(int argc, char** argv)
 
   try {
     TcpSocket::initTcpSockets();
+
+    /* Tunnelling support. */
+    if (strlen (via.getValueStr ()) > 0) {
+      char *gatewayHost = "";
+      char *remoteHost = "localhost";
+      int localPort = findFreeTcpPort ();
+      int remotePort;
+      if (!vncServerName)
+        usage();
+      interpretViaParam (&gatewayHost, &remoteHost, &remotePort,
+			 &vncServerName, localPort);
+      createTunnel (gatewayHost, remoteHost, remotePort, localPort);
+    }
 
     Socket* sock = 0;
 

@@ -54,6 +54,29 @@ using namespace rdr;
 
 static rfb::LogWriter vlog("TcpSocket");
 
+/* Tunnelling support. */
+int network::findFreeTcpPort (void)
+{
+  int sock, port;
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = INADDR_ANY;
+
+  if ((sock = socket (AF_INET, SOCK_STREAM, 0)) < 0)
+    throw SocketException ("unable to create socket", errorNumber);
+
+  for (port = TUNNEL_PORT_OFFSET + 99; port > TUNNEL_PORT_OFFSET; port--) {
+    addr.sin_port = htons ((unsigned short) port);
+    if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) == 0) {
+      close (sock);
+      return port;
+    }
+  }
+  throw SocketException ("no free port in range", 0);
+  return 0;
+}
+
 
 void
 TcpSocket::initTcpSockets() {

@@ -32,7 +32,13 @@
 
 #include <list>
 
+/* Tunnelling support. */
+#define TUNNEL_PORT_OFFSET 5500
+
 namespace network {
+
+  /* Tunnelling support. */
+  int findFreeTcpPort (void);
 
   class TcpSocket : public Socket {
   public:

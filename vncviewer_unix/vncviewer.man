@@ -178,6 +178,23 @@ This option specifies the key which brings up the popup menu.  The key is
 specified as an X11 keysym name (these can be obtained by removing the XK_
 prefix from the entries in "/usr/include/X11/keysymdef.h").  Default is F8.
 
+.TP
+\fB\-via\fR \fIgateway\fR
+Automatically create encrypted TCP tunnel to the \fIgateway\fR machine
+before connection, connect to the \fIhost\fR through that tunnel
+(TightVNC\-specific). By default, this option invokes SSH local port
+forwarding, assuming that SSH client binary can be accessed as
+/usr/bin/ssh. Note that when using the \fB\-via\fR option, the host
+machine name should be specified as known to the gateway machine, e.g. 
+"localhost" denotes the \fIgateway\fR, not the machine where vncviewer
+was launched. The environment variable \fIVNC_VIA_CMD\fR can override
+the default tunnel command of
+\fB/usr/bin/ssh\ -f\ -L\ "$L":"$H":"$R"\ "$G"\ sleep\ 20\fR.  The tunnel
+command is executed with the environment variables \fIL\fR, \fIH\fR,
+\fIR\fR, and \fIG\fR taken the values of the local port number, the remote
+host, the port number on the remote host, and the gateway machine
+respectively.
+
 .SH SEE ALSO
 .BR Xvnc (1)
 .BR vncconfig (1),
