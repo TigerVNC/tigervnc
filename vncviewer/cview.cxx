@@ -1491,7 +1491,7 @@ void CView::invertRect(const Rect& r) {
 
 bool CView::getUserPasswd(char** user, char** password) {
   if (!user && options.passwordFile.buf[0]) {
-    FILE* fp = fopen(options.passwordFile.buf, "r");
+    FILE* fp = fopen(options.passwordFile.buf, "rb");
     if (!fp) return false;
     char data[256];
     int datalen = fread(data, 1, 256, fp);
