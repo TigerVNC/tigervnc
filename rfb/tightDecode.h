@@ -49,6 +49,10 @@ static bool DecompressJpegRect(const Rect& r, rdr::InStream* is,
 			       PIXEL_T* buf, CMsgHandler* handler);
 static void FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
 			   PIXEL_T* buf, CMsgHandler* handler);
+#if BPP == 32
+static void FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
+			     PIXEL_T* buf, CMsgHandler* handler);
+#endif
 
 // Main function implementing Tight decoder
 
@@ -162,7 +166,14 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   if (palSize == 0) {
     // Truecolor data
     if (useGradient) {
-      FilterGradient(r, input, dataSize, buf, handler);
+#if BPP == 32
+      if (cutZeros) {
+	FilterGradient24(r, input, dataSize, buf, handler);
+      } else 
+#endif
+	{
+	  FilterGradient(r, input, dataSize, buf, handler);
+	}
     } else {
       input->readBytes(buf, dataSize); 
       if (cutZeros) {
@@ -271,14 +282,70 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
   return !jpegError;
 }
 
+#if BPP == 32
+
+static void
+FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
+		 PIXEL_T* buf, CMsgHandler* handler)
+{
+  int x, y, c;
+  static rdr::U8 prevRow[TIGHT_MAX_WIDTH*3];
+  static rdr::U8 thisRow[TIGHT_MAX_WIDTH*3];
+  rdr::U8 pix[3]; 
+  int est[3]; 
+
+  memset(prevRow, 0, sizeof(prevRow));
+
+  // Allocate netbuf and read in data
+  rdr::U8 *netbuf = new rdr::U8[dataSize];
+  if (!netbuf) {
+    throw Exception("rfb::tightDecode unable to allocate buffer");
+  }
+  is->readBytes(netbuf, dataSize);
+
+  // Set up shortcut variables
+  const rfb::PixelFormat& myFormat = handler->cp.pf();
+  int rectHeight = r.height();
+  int rectWidth = r.width();
+
+  for (y = 0; y < rectHeight; y++) {
+    /* First pixel in a row */
+    for (c = 0; c < 3; c++) {
+      pix[c] = netbuf[y*rectWidth*3+c] + prevRow[c];
+      thisRow[c] = pix[c];
+    }
+    buf[y*rectWidth] = RGB24_TO_PIXEL32(pix[0], pix[1], pix[2]);
+
+    /* Remaining pixels of a row */
+    for (x = 1; x < rectWidth; x++) {
+      for (c = 0; c < 3; c++) {
+	est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+	if (est[c] > 0xff) {
+	  est[c] = 0xff;
+	} else if (est[c] < 0) {
+	  est[c] = 0;
+	}
+	pix[c] = netbuf[(y*rectWidth+x)*3+c] + est[c];
+	thisRow[x*3+c] = pix[c];
+      }
+      buf[y*rectWidth+x] = RGB24_TO_PIXEL32(pix[0], pix[1], pix[2]);
+    }
+
+    memcpy(prevRow, thisRow, sizeof(prevRow));
+  }
+
+  delete [] netbuf;
+}
+
+#endif
 
 static void
 FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
 	       PIXEL_T* buf, CMsgHandler* handler)
 {
   int x, y, c;
-  static PIXEL_T prevRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
-  static PIXEL_T thisRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
+  static rdr::U8 prevRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
+  static rdr::U8 thisRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
   int pix[3]; 
   int max[3]; 
   int shift[3]; 
