@@ -7,17 +7,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: tightvnc 1.5.0\n"
-"Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
-"POT-Creation-Date: 2005-01-19 23:32+0100\n"
+"POT-Creation-Date: 2005-01-23 22:03+0100\n"
 "PO-Revision-Date: 2005-01-23 21:33+0100\n"
 "Last-Translator: Peter Astrand <astrand@cendio.se>\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: vncviewer_unix/vncviewer.cxx:188
+#: vncviewer_unix/vncviewer.cxx:189
 #, c-format
 msgid ""
 "TightVNC viewer for X version 4.0 - built %s\n"
