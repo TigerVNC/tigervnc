@@ -100,6 +100,10 @@ SOURCE=.\buildTime.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\CommonControls.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\FbsInputStream.cxx
 # End Source File
 # Begin Source File
@@ -118,6 +122,10 @@ SOURCE=.\RfbProto.cxx
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\CommonControls.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\FbsInputStream.h
