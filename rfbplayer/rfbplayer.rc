@@ -128,16 +128,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Exit\tAlt+X",                 ID_EXIT
     END
-    POPUP "View"
-    BEGIN
-        MENUITEM "Full Screen\tAlt+Enter",      ID_FULLSCREEN
-        POPUP "Zoom"
-        BEGIN
-            MENUITEM "50%\tF5",                     ID_ZOOM_50
-            MENUITEM "100%\tF6",                    ID_ZOOM_100
-            MENUITEM "200%\tF7",                    ID_ZOOM_200
-        END
-    END
     POPUP "Play"
     BEGIN
         MENUITEM "Play/Pause\tSpace",           ID_PLAYPAUSE
@@ -146,16 +136,10 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Loop\tCtrl+L",                ID_LOOP
     END
-    POPUP "Frame"
-    BEGIN
-        MENUITEM "Copy To Clipboard\tCtrl+C",   ID_COPYTOCLIPBOARD
-        MENUITEM SEPARATOR
-        MENUITEM "Extract...\tAlt+C",           ID_FRAMEEXTRACT
-    END
     MENUITEM "Options",                     ID_OPTIONS
     POPUP "Help"
     BEGIN
-        MENUITEM "Home Page",                   ID_HELP_HOMEPAGE
+        MENUITEM "Home Page",                   ID_HOMEPAGE
         MENUITEM "Command Line Switches",       ID_HELP_COMMANDLINESWITCHES
         MENUITEM SEPARATOR
         MENUITEM "About RfbPlayer...",          ID_ABOUT

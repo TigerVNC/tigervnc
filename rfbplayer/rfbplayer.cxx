@@ -405,6 +405,8 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case ID_EXIT:
       PostQuitMessage(0);
       break;
+    case ID_HOMEPAGE:
+      break;
     case ID_HELP_COMMANDLINESWITCHES:
       {
         InfoDialog usageDialog(usage_msg);
@@ -672,14 +674,14 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
 void RfbPlayer::disableTBandMenuItems() {
   // Disable the menu items
   EnableMenuItem(hMenu, ID_CLOSEFILE, MF_GRAYED | MF_BYCOMMAND);
-  EnableMenuItem(hMenu, ID_FULLSCREEN, MF_GRAYED | MF_BYCOMMAND);
-  EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_GRAYED | MF_BYPOSITION);
+  ///EnableMenuItem(hMenu, ID_FULLSCREEN, MF_GRAYED | MF_BYCOMMAND);
+  ///EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_GRAYED | MF_BYPOSITION);
   EnableMenuItem(hMenu, ID_PLAYPAUSE, MF_GRAYED | MF_BYCOMMAND);
   EnableMenuItem(hMenu, ID_STOP, MF_GRAYED | MF_BYCOMMAND);
   EnableMenuItem(hMenu, ID_GOTO, MF_GRAYED | MF_BYCOMMAND);
   EnableMenuItem(hMenu, ID_LOOP, MF_GRAYED | MF_BYCOMMAND);
-  EnableMenuItem(hMenu, ID_COPYTOCLIPBOARD, MF_GRAYED | MF_BYCOMMAND);
-  EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_GRAYED | MF_BYCOMMAND);
+  ///EnableMenuItem(hMenu, ID_COPYTOCLIPBOARD, MF_GRAYED | MF_BYCOMMAND);
+  ///EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_GRAYED | MF_BYCOMMAND);
   
   // Disable the toolbar buttons and child controls
   tb.enableButton(ID_PLAY, false);
@@ -694,14 +696,14 @@ void RfbPlayer::disableTBandMenuItems() {
 void RfbPlayer::enableTBandMenuItems() {
   // Enable the menu items
   EnableMenuItem(hMenu, ID_CLOSEFILE, MF_ENABLED | MF_BYCOMMAND);
-  EnableMenuItem(hMenu, ID_FULLSCREEN, MF_ENABLED | MF_BYCOMMAND);
-  EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_ENABLED | MF_BYPOSITION);
+  ///EnableMenuItem(hMenu, ID_FULLSCREEN, MF_ENABLED | MF_BYCOMMAND);
+  ///EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_ENABLED | MF_BYPOSITION);
   EnableMenuItem(hMenu, ID_PLAYPAUSE, MF_ENABLED | MF_BYCOMMAND);
   EnableMenuItem(hMenu, ID_STOP, MF_ENABLED | MF_BYCOMMAND);
   EnableMenuItem(hMenu, ID_GOTO, MF_ENABLED | MF_BYCOMMAND);
   EnableMenuItem(hMenu, ID_LOOP, MF_ENABLED | MF_BYCOMMAND);
-  EnableMenuItem(hMenu, ID_COPYTOCLIPBOARD, MF_ENABLED | MF_BYCOMMAND);
-  EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_ENABLED | MF_BYCOMMAND);
+  ///EnableMenuItem(hMenu, ID_COPYTOCLIPBOARD, MF_ENABLED | MF_BYCOMMAND);
+  ///EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_ENABLED | MF_BYCOMMAND);
   
   // Enable the toolbar buttons and child controls
   tb.enableButton(ID_PLAY, true);
