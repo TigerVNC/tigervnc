@@ -156,7 +156,7 @@ BEGIN
     POPUP "Help"
     BEGIN
         MENUITEM "Home Page",                   ID_HELP_HOMEPAGE
-        MENUITEM "Command Line Switches",       ID_HELP_COMMANDLINESEITCHES
+        MENUITEM "Command Line Switches",       ID_HELP_COMMANDLINESWITCHES
         MENUITEM SEPARATOR
         MENUITEM "About RfbPlayer...",          ID_HELP_ABOUT
     END

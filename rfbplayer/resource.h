@@ -20,7 +20,7 @@
 #define ID_COPYTOCLIPBOARD              40023
 #define ID_FRAMEEXTRACT                 40024
 #define ID_HELP_HOMEPAGE                40025
-#define ID_HELP_COMMANDLINESEITCHES     40026
+#define ID_HELP_COMMANDLINESWITCHES     40026
 #define ID_HELP_ABOUT                   40027
 #define ID_OPTIONS                      40029
 #define ID_RETURN                       40044

@@ -355,7 +355,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       is->resumePlayback();
       PostQuitMessage(0);
       break;
-    case ID_HELP_COMMANDLINESEITCHES:
+    case ID_HELP_COMMANDLINESWITCHES:
       MessageBox(getMainHandle(), 
       usage_msg, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
       break;
