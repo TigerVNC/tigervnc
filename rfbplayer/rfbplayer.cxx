@@ -910,6 +910,7 @@ void RfbPlayer::stopPlayback() {
   tb.checkButton(ID_PAUSE, false);
   CheckMenuItem(hMenu, ID_STOP, MF_CHECKED);
   CheckMenuItem(hMenu, ID_PLAYPAUSE, MF_UNCHECKED);
+  SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
 }
 
 void RfbPlayer::setSpeed(double speed) {
