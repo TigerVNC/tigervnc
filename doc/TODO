@@ -1,0 +1,13 @@
+
+* Finish the Tight decoder: Implement the gradient filter. 
+
+* Tight encoding support
+
+* Document the Tight protocol extensions in a text file. 
+
+* Add GUI support for selecting TightVNC encoding, JPEG quality etc
+
+* Support selecting zlib compression from the client side (the old
+  -compresslevel option)
+
+* All other features from the TightVNC 1.3 series: Filetransfer etc
