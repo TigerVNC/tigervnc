@@ -339,10 +339,12 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       break;
     case ID_PLAYPAUSE:
-      if (isPaused()) {
-        setPaused(false);
-      } else {
-        setPaused(true);
+      if (rfbReader) {
+        if (isPaused()) {
+          setPaused(false);
+        } else {
+         setPaused(true);
+        }
       }
       break;
     case ID_GOTO:
