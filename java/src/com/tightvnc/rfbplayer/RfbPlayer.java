@@ -161,12 +161,21 @@ public class RfbPlayer extends java.applet.Applet
 	try {
 	  setPaused(!autoPlay);
 	  rfb.fbs.setSpeed(playbackSpeed);
-          setPos(initialTimeOffset);
+	  if (initialTimeOffset > rfb.fbs.getTimeOffset())
+	    setPos(initialTimeOffset); // don't seek backwards here
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
-	  initialTimeOffset = 0;
-	  autoPlay = false;
-	  rfb.newSession(url);
+	  if (e.getMessage() != null && e.getMessage().equals("[REWIND]")) {
+	    // A special type of EOFException allowing us to seek backwards.
+	    initialTimeOffset = rfb.fbs.getSeekOffset();
+	    autoPlay = !rfb.fbs.isPaused();
+	    rfb.newSession(url);
+	  } else {
+	    // Return to the beginning after the playback is finished.
+	    initialTimeOffset = 0;
+	    autoPlay = false;
+	    rfb.newSession(url);
+	  }
 	}
       }
 

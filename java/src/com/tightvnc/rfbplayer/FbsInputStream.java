@@ -30,6 +30,7 @@ class FbsInputStream extends InputStream {
   protected long startTime;
   protected long timeOffset;
   protected long seekOffset;
+  protected boolean seekBackwards;
   protected boolean paused;
   protected double playbackSpeed;
 
@@ -57,6 +58,7 @@ class FbsInputStream extends InputStream {
     startTime = System.currentTimeMillis();
     timeOffset = 0;
     seekOffset = -1;
+    seekBackwards = false;
     paused = false;
     playbackSpeed = 1.0;
 
@@ -105,6 +107,7 @@ class FbsInputStream extends InputStream {
     startTime = -1;
     timeOffset = 0;
     seekOffset = -1;
+    seekBackwards = false;
     paused = false;
     playbackSpeed = 1.0;
 
@@ -128,6 +131,9 @@ class FbsInputStream extends InputStream {
   public synchronized void setTimeOffset(long pos)
   {
     seekOffset = (long)(pos / playbackSpeed);
+    if (seekOffset < timeOffset) {
+      seekBackwards = true;
+    }
     notify();
   }
 
@@ -145,6 +151,16 @@ class FbsInputStream extends InputStream {
   public boolean isSeeking()
   {
     return (seekOffset >= 0);
+  }
+
+  public long getSeekOffset()
+  {
+    return seekOffset;
+  }
+
+  public boolean isPaused()
+  {
+    return paused;
   }
 
   public synchronized void pausePlayback()
@@ -171,6 +187,11 @@ class FbsInputStream extends InputStream {
 
   private synchronized boolean fillBuffer() throws IOException
   {
+    // The reading thread should be interrupted on backward seeking.
+    if (seekBackwards)
+      throw new EOFException("[REWIND]");
+
+    // Just wait unless we are performing playback OR seeking.
     waitWhilePaused();
 
     bufferSize = (int)readUnsigned32();
