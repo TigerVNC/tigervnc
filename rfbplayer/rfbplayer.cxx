@@ -877,6 +877,9 @@ void RfbPlayer::processMsg() {
   }
 }
 
+long ChoosePixelFormatDialog::pfIndex = DEFAULT_PF_INDEX;
+bool ChoosePixelFormatDialog::bigEndian = false;
+
 void RfbPlayer::serverInit() {
   RfbProto::serverInit();
 
@@ -891,17 +894,17 @@ void RfbPlayer::serverInit() {
     throw rdr::Exception("This version plays only true color session!");
 
   // Set the session pixel format
-  static long pixelFormatIndex = DEFAULT_PF_INDEX;
   if (options.askPixelFormat) {
-    ChoosePixelFormatDialog choosePixelFormatDialog(pixelFormatIndex, &supportedPF);
+    ChoosePixelFormatDialog choosePixelFormatDialog(&supportedPF);
     if (choosePixelFormatDialog.showDialog(getMainHandle())) {
-      pixelFormatIndex = choosePixelFormatDialog.getPF();
+      long pixelFormatIndex = choosePixelFormatDialog.getPFIndex();
       if (pixelFormatIndex < 0) {
         options.autoDetectPF = true;
         options.setPF((PixelFormat *)&cp.pf());
       } else {
         options.autoDetectPF = false;
         options.setPF(&supportedPF[pixelFormatIndex].PF);
+        options.pixelFormat.bigEndian = choosePixelFormatDialog.isBigEndian();
       }
     } else {
       is->pausePlayback();
@@ -912,6 +915,7 @@ void RfbPlayer::serverInit() {
       options.setPF((PixelFormat *)&cp.pf());
     } else {
       options.setPF(&supportedPF[options.pixelFormatIndex].PF);
+      options.pixelFormat.bigEndian = options.bigEndianFlag;
     }
   }
   cp.setPF(options.pixelFormat);

@@ -22,15 +22,15 @@
 
 class ChoosePixelFormatDialog : public rfb::win32::Dialog {
 public:
-  ChoosePixelFormatDialog(long _pfIndex, PixelFormatList *_supportedPF) 
-  : Dialog(GetModuleHandle(0)), supportedPF(_supportedPF), pfIndex(_pfIndex), 
-    combo(0) {}
+  ChoosePixelFormatDialog(PixelFormatList *_supportedPF) 
+  : Dialog(GetModuleHandle(0)), supportedPF(_supportedPF), combo(0) {}
   // - Show the dialog and return true if OK was clicked,
   //   false in case of error or Cancel
   virtual bool showDialog(HWND parent) {
     return Dialog::showDialog(MAKEINTRESOURCE(IDD_PIXELFORMAT), parent);
   }
-  const long getPF() const {return pfIndex;}
+  const long getPFIndex() const {return pfIndex;}
+  bool isBigEndian() {return isItemChecked(IDC_BIG_ENDIAN);}
 protected:
 
   // Dialog methods (protected)
@@ -42,15 +42,18 @@ protected:
         0, (LPARAM)(LPCTSTR)(((*supportedPF)[i]).format_name));
     }
     SendMessage(combo, CB_SETCURSEL, pfIndex + 1, 0);
+    setItemChecked(IDC_BIG_ENDIAN, bigEndian);
   }
   virtual bool onOk() {
     pfIndex = SendMessage(combo, CB_GETCURSEL, 0, 0) - 1;
+    bigEndian = isItemChecked(IDC_BIG_ENDIAN);
     return true;
   }
   virtual bool onCancel() {
     return false;
   }
-  long pfIndex;
+  static long pfIndex;
+  static bool bigEndian;
   PixelFormatList *supportedPF;
   HWND combo;
 };
