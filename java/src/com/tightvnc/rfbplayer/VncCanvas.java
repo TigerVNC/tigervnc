@@ -215,12 +215,14 @@ class VncCanvas extends Canvas implements Observer {
     pixelsSource.setAnimated(true);
     rawPixelsImage = createImage(pixelsSource);
 
-    // Update the size of desktop containers.
-    if (player.inSeparateFrame) {
-      if (player.desktopScrollPane != null)
-        resizeDesktopFrame();
-    } else {
-      setSize(fbWidth, fbHeight);
+    // Update the size of desktop containers unless seeking 
+    if (!seekMode) {
+      if (player.inSeparateFrame) {
+        if (player.desktopScrollPane != null)
+          resizeDesktopFrame();
+      } else {
+        setSize(fbWidth, fbHeight);
+      }
     }
   }
 
@@ -1074,9 +1076,38 @@ class VncCanvas extends Canvas implements Observer {
     showSoftCursor = true;
 
     // Show the cursor.
+    scheduleRepaint(cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+  }
 
-    repaint(deferCursorUpdates,
-            cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+  private void scrollToPoint(int x, int y) {
+    boolean needScroll = false;
+
+    if (player.desktopScrollPane == null)
+      return;
+
+    Dimension d = player.desktopScrollPane.getSize();
+    Point topLeft = player.desktopScrollPane.getScrollPosition();
+    Point botRight = new Point(topLeft.x + d.width, topLeft.y + d.height);
+
+    if (x < topLeft.x + SCROLL_MARGIN) {
+      // shift left
+      topLeft.x = x - SCROLL_MARGIN;
+      needScroll = true;
+    } else if (x > botRight.x - SCROLL_MARGIN) {
+      // shift right
+      topLeft.x = x - d.width + SCROLL_MARGIN;
+      needScroll = true;
+    }
+    if (y < topLeft.y + SCROLL_MARGIN) {
+      // shift up
+      topLeft.y = y - SCROLL_MARGIN;
+      needScroll = true;
+    } else if (y > botRight.y - SCROLL_MARGIN) {
+      // shift down
+      topLeft.y = y - d.height + SCROLL_MARGIN;
+      needScroll = true;
+    }
+    player.desktopScrollPane.setScrollPosition(topLeft.x, topLeft.y);
   }
 
   //
@@ -1088,40 +1119,14 @@ class VncCanvas extends Canvas implements Observer {
     int oldY = cursorY + o.y;
     cursorX = x;
     cursorY = y;
+
+    // paint and scroll 
     if (showSoftCursor) {
-      repaint(deferCursorUpdates,
-              oldX - hotX, oldY - hotY, cursorWidth, cursorHeight);
-      repaint(deferCursorUpdates,
-              cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
-              cursorHeight);
-
-      // Automatic viewport scrolling 
-      if (player.desktopScrollPane != null) {
-        boolean needScroll = false;
-        Dimension d = player.desktopScrollPane.getSize();
-        Point topLeft = player.desktopScrollPane.getScrollPosition();
-        Point botRight = new Point(topLeft.x + d.width, topLeft.y + d.height);
-
-        if (x < topLeft.x + SCROLL_MARGIN) {
-          // shift left
-          topLeft.x = x - SCROLL_MARGIN;
-          needScroll = true;
-        } else if (x > botRight.x - SCROLL_MARGIN) {
-          // shift right
-          topLeft.x = x - d.width + SCROLL_MARGIN;
-          needScroll = true;
-        }
-        if (y < topLeft.y + SCROLL_MARGIN) {
-          // shift up
-          topLeft.y = y - SCROLL_MARGIN;
-          needScroll = true;
-        } else if (y > botRight.y - SCROLL_MARGIN) {
-          // shift down
-          topLeft.y = y - d.height + SCROLL_MARGIN;
-          needScroll = true;
-        }
-        player.desktopScrollPane.setScrollPosition(topLeft.x, topLeft.y);
-      }
+      scheduleRepaint(oldX - hotX, oldY - hotY, cursorWidth, cursorHeight);
+      scheduleRepaint(cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
+                      cursorHeight);
+      if (!seekMode)
+        scrollToPoint(x, y);
     }
 
     cursorX = x;
@@ -1138,9 +1143,8 @@ class VncCanvas extends Canvas implements Observer {
       softCursorPixels = null;
 
       Point o = getImageOrigin();
-      repaint(deferCursorUpdates,
-              cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
-              cursorHeight);
+      scheduleRepaint(cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
+                      cursorHeight);
     }
   }
   //
@@ -1153,13 +1157,16 @@ class VncCanvas extends Canvas implements Observer {
     } else {
       if (seekMode) {
         // Immediate repaint of the whole desktop after seeking.
+        seekMode = false;
+        if (showSoftCursor)
+          scrollToPoint(cursorX, cursorY);
+        updateFramebufferSize();
         repaint();
       } else {
         // Usual incremental repaint.
         Point o = getImageOrigin();
         repaint(player.deferScreenUpdates, o.x + x, o.y + y, w, h);
       }
-      seekMode = false;
     }
   }
 
