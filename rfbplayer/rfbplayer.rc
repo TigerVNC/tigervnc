@@ -123,24 +123,24 @@ IDR_MENU MENU DISCARDABLE
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "Open File...\tCtrl+O",        ID_FILE_OPENFILE
-        MENUITEM "Close File...\tCtrl+Q",       ID_FILE_CLOSEFILE
+        MENUITEM "Open File...\tCtrl+O",        ID_OPENFILE
+        MENUITEM "Close File...\tCtrl+Q",       ID_CLOSEFILE
         MENUITEM SEPARATOR
-        MENUITEM "Exit\tAlt+X",                 ID_FILE_EXIT
+        MENUITEM "Exit\tAlt+X",                 ID_EXIT
     END
     POPUP "View"
     BEGIN
         MENUITEM "Full Screen\tAlt+Enter",      ID_FULLSCREEN
         POPUP "Zoom"
         BEGIN
-            MENUITEM "50%\tF5",                     ID_VIEW_ZOOM_50
-            MENUITEM "100%\tF6",                    ID_VIEW_ZOOM_100
-            MENUITEM "200%\tF7",                    ID_VIEW_ZOOM_200
+            MENUITEM "50%\tF5",                     ID_ZOOM_50
+            MENUITEM "100%\tF6",                    ID_ZOOM_100
+            MENUITEM "200%\tF7",                    ID_ZOOM_200
         END
     END
     POPUP "Play"
     BEGIN
-        MENUITEM "Play/Pause\tSpace",           ID_PLAY_PLAYPAUSE
+        MENUITEM "Play/Pause\tSpace",           ID_PLAYPAUSE
         MENUITEM "Stop\tC",                     ID_STOP
         MENUITEM "Go To...\tCtrl+G",            ID_GOTO
         MENUITEM "Set Speed...\tCtrl+S",        ID_SETSPEED
@@ -149,9 +149,9 @@ BEGIN
     END
     POPUP "Frame"
     BEGIN
-        MENUITEM "Copy To Clipboard\tCtrl+C",   ID_FRAME_COPYTOCLIPBOARD
+        MENUITEM "Copy To Clipboard\tCtrl+C",   ID_COPYTOCLIPBOARD
         MENUITEM SEPARATOR
-        MENUITEM "Extract...\tAlt+C",           ID_FRAME_EXTRACT
+        MENUITEM "Extract...\tAlt+C",           ID_FRAMEEXTRACT
     END
     MENUITEM "Options",                     65535
     POPUP "Help"
@@ -171,21 +171,21 @@ END
 
 IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
 BEGIN
-    "C",            ID_PLAY_STOP,           VIRTKEY, NOINVERT
-    "C",            ID_FRAME_COPYTOCLIPBOARD, VIRTKEY, CONTROL, NOINVERT
-    "C",            ID_FRAME_EXTRACT,       VIRTKEY, ALT, NOINVERT
-    "G",            ID_PLAY_GOTO,           VIRTKEY, CONTROL, NOINVERT
-    "L",            ID_PLAY_LOOP,           VIRTKEY, CONTROL, NOINVERT
-    "O",            ID_FILE_OPENFILE,       VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_STOP,                VIRTKEY, NOINVERT
+    "C",            ID_COPYTOCLIPBOARD,     VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_FRAMEEXTRACT,        VIRTKEY, ALT, NOINVERT
+    "G",            ID_GOTO,                VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_LOOP,                VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_OPENFILE,            VIRTKEY, CONTROL, NOINVERT
     "P",            ID_OPTIONS,             VIRTKEY, CONTROL, NOINVERT
-    "Q",            ID_FILE_CLOSEFILE,      VIRTKEY, CONTROL, NOINVERT
-    "S",            ID_PLAY_SETSPEED,       VIRTKEY, CONTROL, NOINVERT
-    VK_F5,          ID_VIEW_ZOOM_50,        VIRTKEY, NOINVERT
-    VK_F6,          ID_VIEW_ZOOM_100,       VIRTKEY, NOINVERT
-    VK_F7,          ID_VIEW_ZOOM_200,       VIRTKEY, NOINVERT
-    VK_RETURN,      ID_VIEW_FULLSCREEN,     VIRTKEY, ALT, NOINVERT
-    VK_SPACE,       ID_PLAY_PLAYPAUSE,      VIRTKEY, NOINVERT
-    "X",            ID_FILE_EXIT,           VIRTKEY, ALT, NOINVERT
+    "Q",            ID_CLOSEFILE,           VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_SETSPEED,            VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_ZOOM_50,             VIRTKEY, NOINVERT
+    VK_F6,          ID_ZOOM_100,            VIRTKEY, NOINVERT
+    VK_F7,          ID_ZOOM_200,            VIRTKEY, NOINVERT
+    VK_RETURN,      ID_FULLSCREEN,          VIRTKEY, ALT, NOINVERT
+    VK_SPACE,       ID_PLAYPAUSE,           VIRTKEY, NOINVERT
+    "X",            ID_EXIT,                VIRTKEY, ALT, NOINVERT
 END
 
 

@@ -241,6 +241,8 @@ RfbPlayer::~RfbPlayer() {
 
 LRESULT 
 RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+  static HMENU hmenu;       // handle to main menu
+
   switch (msg) {
 
     // -=- Process standard window messages
@@ -254,14 +256,60 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
       createToolBar(hwnd);
 
+      hmenu = GetMenu(hwnd);
+
       return 0;
     }
   
     // Process the main menu and toolbar's messages
 
   case WM_COMMAND:
-    {
-
+    switch (LOWORD(wParam)) {
+    case ID_PLAY:
+      setPaused(false);
+      tb.checkButton(ID_PLAY, true);
+      tb.checkButton(ID_STOP, false);
+      tb.checkButton(ID_PAUSE, false);
+      CheckMenuItem(hmenu, ID_PLAYPAUSE, MF_CHECKED);
+      CheckMenuItem(hmenu, ID_STOP, MF_UNCHECKED);
+      break;
+    case ID_PAUSE:
+      setPaused(true);
+      tb.checkButton(ID_PAUSE, true);
+      tb.checkButton(ID_PLAY, false);
+      tb.checkButton(ID_STOP, false);
+      CheckMenuItem(hmenu, ID_PLAYPAUSE, MF_CHECKED);
+      CheckMenuItem(hmenu, ID_STOP, MF_UNCHECKED);
+      break;
+    case ID_STOP:
+      if (getTimeOffset() != 0) {
+        setPaused(true);
+        setPos(0);
+      }
+      tb.checkButton(ID_STOP, true);
+      tb.checkButton(ID_PLAY, false);
+      tb.checkButton(ID_PAUSE, false);
+      CheckMenuItem(hmenu, ID_STOP, MF_CHECKED);
+      CheckMenuItem(hmenu, ID_PLAYPAUSE, MF_UNCHECKED);
+      break;
+    case ID_PLAYPAUSE:
+      if (isPaused()) {
+        setPaused(false);
+        tb.checkButton(ID_PLAY, true);
+        tb.checkButton(ID_STOP, false);
+        tb.checkButton(ID_PAUSE, false);
+      } else {
+        setPaused(true);
+        tb.checkButton(ID_PAUSE, true);
+        tb.checkButton(ID_PLAY, false);
+        tb.checkButton(ID_STOP, false);
+      }
+      CheckMenuItem(hmenu, ID_PLAYPAUSE, MF_CHECKED);
+      CheckMenuItem(hmenu, ID_STOP, MF_UNCHECKED);
+      break;
+    case ID_FULLSCREEN:
+      MessageBox(getMainHandle(), "It is not working yet!", "RfbPlayer", MB_OK);
+      break;
     }
     break;
 
@@ -400,6 +448,12 @@ void RfbPlayer::run() {
   long initTime = -1;
   long update_time = GetTickCount();
 
+  // Check the play button if autoplay
+  if (autoplay) {
+    tb.checkButton(ID_PLAY, true);
+    CheckMenuItem(GetMenu(getMainHandle()), ID_PLAYPAUSE, MF_CHECKED);
+  }
+
   // Process the rfb messages
   while (fRun) {
     try {
@@ -416,6 +470,9 @@ void RfbPlayer::run() {
       if (strcmp(e.str(), "[End Of File]") == 0) {
         rewind();
         setPaused(true);
+        tb.checkButton(ID_STOP, true);
+        tb.checkButton(ID_PAUSE, false);
+        tb.checkButton(ID_PLAY, false);
         continue;
       }
       // It's a special exception to perform backward seeking.
@@ -652,9 +709,6 @@ void RfbPlayer::serverInit() {
 
   // Set the window title and show it
   setTitle(cp.name());
-
-  // Set the player's param
-  applyOptions();
 }
 
 void RfbPlayer::setColourMapEntries(int first, int count, U16* rgbs) {
