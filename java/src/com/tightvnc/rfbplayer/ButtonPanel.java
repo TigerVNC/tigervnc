@@ -56,10 +56,8 @@ class ButtonPanel extends Panel implements ActionListener {
   {
     if (paused) {
       playButton.setLabel("Play");
-      posText.setEditable(true);
     } else {
       playButton.setLabel("Pause");
-      posText.setEditable(false);
     }
     playButton.setEnabled(true);
   }

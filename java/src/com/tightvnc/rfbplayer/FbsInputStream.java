@@ -22,6 +22,7 @@
 //
 
 import java.io.*;
+import java.util.*;
 
 class FbsInputStream extends InputStream {
 
@@ -35,6 +36,8 @@ class FbsInputStream extends InputStream {
   protected byte[] buffer;
   protected int bufferSize;
   protected int bufferPos;
+
+  protected Observer obs;
 
   //
   // Constructors.
@@ -108,6 +111,8 @@ class FbsInputStream extends InputStream {
     buffer = null;
     bufferSize = 0;
     bufferPos = 0;
+
+    obs = null;
   }
 
   //
@@ -116,21 +121,21 @@ class FbsInputStream extends InputStream {
 
   public synchronized long getTimeOffset()
   {
-    return (long)(timeOffset * playbackSpeed);
+    long off = Math.max(seekOffset, timeOffset);
+    return (long)(off * playbackSpeed);
   }
 
   public synchronized void setTimeOffset(long pos)
   {
-    // FIXME: Seeking works only in paused mode.
-    paused = true;
     seekOffset = (long)(pos / playbackSpeed);
     notify();
   }
 
   public synchronized void setSpeed(double newSpeed)
   {
-    timeOffset = (long)(timeOffset * playbackSpeed / newSpeed);
-    startTime = System.currentTimeMillis() - timeOffset;
+    long newOffset = (long)(timeOffset * playbackSpeed / newSpeed);
+    startTime += timeOffset - newOffset;
+    timeOffset = newOffset;
     if (isSeeking()) {
       seekOffset = (long)(seekOffset * playbackSpeed / newSpeed);
     }
@@ -153,6 +158,11 @@ class FbsInputStream extends InputStream {
     paused = false;
     startTime = System.currentTimeMillis() - timeOffset;
     notify();
+  }
+
+  public void addObserver(Observer target)
+  {
+    obs = target;
   }
 
   //
@@ -181,9 +191,11 @@ class FbsInputStream extends InputStream {
 
     if (seekOffset >= 0) {
       if (timeOffset >= seekOffset) {
+	startTime = System.currentTimeMillis() - seekOffset;
 	seekOffset = -1;
+      } else {
+	return true;
       }
-      return true;
     }
 
     while (true) {
@@ -210,6 +222,9 @@ class FbsInputStream extends InputStream {
     while (paused && !isSeeking()) {
       synchronized(this) {
 	try {
+	  // Note: we call Observer.update(Observable,Object) method
+	  // directly instead of maintaining an Observable object.
+	  obs.update(null, null);
 	  wait();
 	} catch (InterruptedException e) {
 	}

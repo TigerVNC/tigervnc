@@ -25,6 +25,7 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.lang.*;
+import java.util.*;
 import java.util.zip.*;
 
 
@@ -32,7 +33,7 @@ import java.util.zip.*;
 // VncCanvas is a subclass of Canvas which draws a VNC desktop on it.
 //
 
-class VncCanvas extends Canvas {
+class VncCanvas extends Canvas implements Observer {
 
   RfbPlayer player;
   RfbProto rfb;
@@ -214,7 +215,12 @@ class VncCanvas extends Canvas {
     zlibInflater = new Inflater();
     tightInflaters = new Inflater[4];
 
+    // Show current time position in the control panel.
     player.updatePos();
+
+    // Tell our FbsInputStream object to notify us when it goes to the
+    // `paused' mode.
+    rfb.fbs.addObserver(this);
 
     // Main dispatch loop.
 
@@ -820,14 +826,27 @@ class VncCanvas extends Canvas {
       seekMode = true;
     } else {
       if (seekMode) {
-	// Full-screen immediate repaint after seeking.
+	// Immediate repaint of the whole desktop after seeking.
 	repaint();
       } else {
-	// Usual incremental repaint in playback mode.
+	// Usual incremental repaint.
 	repaint(player.deferScreenUpdates, x, y, w, h);
       }
       seekMode = false;
     }
+  }
+
+  //
+  // We are observing our FbsInputStream object to get notified on
+  // switching to the `paused' mode. In such cases we want to repaint
+  // our desktop if we were seeking.
+  //
+
+  public void update(Observable o, Object arg) {
+    // Immediate repaint of the whole desktop after seeking.
+    repaint();
+    // Let next scheduleRepaint() call invoke incremental drawing.
+    seekMode = false;
   }
 
 }

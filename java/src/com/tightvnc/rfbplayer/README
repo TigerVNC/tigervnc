@@ -29,6 +29,14 @@ Applet Parameters
 
     Set initial time position in the session file, in milliseconds.
 
+--> "Autoplay"
+
+    Values: "Yes", "No".
+    Default: "No".
+
+    If set to "Yes", then start in the playback mode. By default, the
+    player starts in the paused state.
+
 --> "Open new window" (applicable only in the applet mode)
 
     Values: "Yes", "No".

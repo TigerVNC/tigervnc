@@ -60,6 +60,7 @@ public class RfbPlayer extends java.applet.Applet
   URL url;
   long initialTimeOffset;
   double playbackSpeed;
+  boolean autoPlay;
   boolean showControls;
   int deferScreenUpdates;
 
@@ -158,12 +159,13 @@ public class RfbPlayer extends java.applet.Applet
 
       while (true) {
 	try {
-	  setPaused(true);
-	  setPos(initialTimeOffset);
+	  setPaused(!autoPlay);
 	  rfb.fbs.setSpeed(playbackSpeed);
+          setPos(initialTimeOffset);
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
 	  initialTimeOffset = 0;
+	  autoPlay = false;
 	  rfb.newSession(url);
 	}
       }
@@ -216,15 +218,22 @@ public class RfbPlayer extends java.applet.Applet
   public void readParameters() {
 
     sessionURL = readParameter("URL", true);
+
     initialTimeOffset = readLongParameter("Position", 0);
     if (initialTimeOffset < 0)
       initialTimeOffset = 0;
+
     playbackSpeed = readDoubleParameter("Speed", 1.0);
     if (playbackSpeed <= 0.0)
       playbackSpeed = 1.0;
 
+    autoPlay = false;
+    String str = readParameter("Autoplay", false);
+    if (str != null && str.equalsIgnoreCase("Yes"))
+      autoPlay = true;
+
     showControls = true;
-    String str = readParameter("Show Controls", false);
+    str = readParameter("Show Controls", false);
     if (str != null && str.equalsIgnoreCase("No"))
       showControls = false;
 
