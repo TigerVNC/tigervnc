@@ -78,7 +78,6 @@ LRESULT CALLBACK RfbPlayerProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     SetWindowLong(hwnd, GWL_USERDATA, (long)((CREATESTRUCT*)lParam)->lpCreateParams);
   else if (msg == WM_DESTROY) {
     RfbPlayer* _this = (RfbPlayer*) GetWindowLong(hwnd, GWL_USERDATA);
-    _this->fRun = false;
 
     // Resume playback (It's need to quit from FbsInputStream::waitWhilePaused())
     _this->setPaused(false);
@@ -202,7 +201,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
                      bool _acceptBell = false)
 : RfbProto(_fileName), initTime(_initTime), playbackSpeed(_playbackSpeed),
   autoplay(_autoplay), showControls(_showControls), buffer(0), client_size(0, 0, 32, 32), 
-  window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), fRun(true), 
+  window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), 
   serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), speedTrackBar(0),
   speedUpDown(0), acceptBell(_acceptBell) {
 
@@ -492,54 +491,6 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
   }
 
   return DefWindowProc(hwnd, msg, wParam, lParam);
-}
-
-void RfbPlayer::run() {
-  long initTime = -1;
-  long update_time = GetTickCount();
-
-  // Check the play button if autoplay
-  if (autoplay) {
-    tb.checkButton(ID_PLAY, true);
-    CheckMenuItem(GetMenu(getMainHandle()), ID_PLAYPAUSE, MF_CHECKED);
-  }
-
-  // Process the rfb messages
-  while (fRun) {
-    try {
-      if (initTime >= 0) {
-        setPos(initTime);
-        initTime = -1;
-      }
-      if ((!isSeeking()) && ((GetTickCount() - update_time) >= 250)) {
-        updatePos();
-        update_time = GetTickCount();
-      }
-      processMsg();
-    } catch (rdr::Exception e) {
-      if (strcmp(e.str(), "[End Of File]") == 0) {
-        rewind();
-        setPaused(true);
-        tb.checkButton(ID_STOP, true);
-        tb.checkButton(ID_PAUSE, false);
-        tb.checkButton(ID_PLAY, false);
-        continue;
-      }
-      // It's a special exception to perform backward seeking.
-      // We only rewind the stream and seek the offset
-      if (strcmp(e.str(), "[REWIND]") == 0) {
-        initTime = getSeekOffset();
-        double speed = getSpeed();
-        bool play = !isPaused();
-        rewind();
-        setSpeed(speed);
-        setPaused(!play);
-      } else {
-        MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
-        return;
-      }
-    }
-  }
 }
 
 void RfbPlayer::setOptions(long _initTime = 0, double _playbackSpeed = 1.0,
@@ -1043,7 +994,6 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   try {
     player = new RfbPlayer(fileName, initTime, playbackSpeed, autoplay, 
                            showControls, acceptBell);
-    if (autoplay) player->start();
   } catch (rdr::Exception e) {
     MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);
     delete player;
@@ -1062,7 +1012,6 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
 
   // Wait while the thread destroying and then destroy the player
   try{
-    while (player->getState() == ThreadStarted) {}
     if (player) delete player;
   } catch (rdr::Exception e) {
     MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);

@@ -28,7 +28,7 @@
 using namespace rfb;
 using namespace rfb::win32;
 
-class RfbPlayer : public Thread, public RfbProto{
+class RfbPlayer : public RfbProto {
   public:
     RfbPlayer(char *filename, long _pos, double s_peed, bool autoplay, 
               bool _showControls, bool _acceptBell);
@@ -101,9 +101,6 @@ class RfbPlayer : public Thread, public RfbProto{
     virtual void imageRect(const Rect& r, void* pixels);
     virtual void copyRect(const Rect& r, int srcX, int srcY);
 
-    // run() is a thread function wich reading the rfb data
-    void run();
-
     // -=- Functions used to manage player's parameters
 
     void setOptions(long pos, double speed, bool autoPlay, bool showControls);
@@ -128,9 +125,6 @@ class RfbPlayer : public Thread, public RfbProto{
     double getSpeed();
 
     char *fileName;
-    
-    // fRun is a flag which display the player status (running or destroing).
-    bool fRun;
 
   private:
     bool seekMode;
