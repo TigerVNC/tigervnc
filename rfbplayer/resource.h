@@ -21,6 +21,7 @@
 #define IDC_AUTO_STORE_PARAM            1011
 #define IDC_AUTOPLAY                    1012
 #define IDC_BIG_ENDIAN                  1013
+#define IDC_EDIT_UPF                    1015
 #define IDC_COPYRIGHT                   1021
 #define IDC_DESCRIPTION                 1022
 #define ID_OPENFILE                     40011
@@ -49,7 +50,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         40045
-#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

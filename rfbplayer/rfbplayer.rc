@@ -230,29 +230,30 @@ STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,20,174,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,75,174,50,14
-    GROUPBOX        "Pixel format",IDC_STATIC,7,6,173,79
-    COMBOBOX        IDC_PIXELFORMAT,15,30,145,75,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_PIXELFORMAT,15,30,157,75,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Big endian flag",IDC_BIG_ENDIAN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,52,60,10
     CONTROL         "Ask the pixel format before playing",IDC_ASK_PF,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,67,145,10
-    PUSHBUTTON      "Default",IDC_DEFAULT,130,174,50,14
-    LTEXT           "Forces the pixel format for the rfb session:",
-                    IDC_STATIC,15,17,145,13
-    GROUPBOX        "Other",IDC_STATIC,7,90,173,79
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,67,157,10
     CONTROL         "Accept the bells",IDC_ACCEPT_BELL,"Button",
-                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,105,145,15
+                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,105,157,15
     CONTROL         "Accept the cut text",IDC_ACCEPT_CUT_TEXT,"Button",
-                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,120,145,15
+                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,120,157,15
     CONTROL         "Auto store the player settings",IDC_AUTO_STORE_PARAM,
                     "Button",BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,135,
-                    145,15
+                    157,15
     CONTROL         "Start play the session when it is opened",IDC_AUTOPLAY,
                     "Button",BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,150,
-                    145,9
-    CONTROL         "Big endian flag",IDC_BIG_ENDIAN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,52,145,10
+                    157,9
+    DEFPUSHBUTTON   "OK",IDOK,20,174,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,174,50,14
+    PUSHBUTTON      "Default",IDC_DEFAULT,130,174,50,14
+    PUSHBUTTON      "Edit User PF",IDC_EDIT_UPF,110,52,62,14
+    GROUPBOX        "Pixel format",IDC_STATIC,7,6,173,79
+    LTEXT           "Forces the pixel format for the rfb session:",
+                    IDC_STATIC,15,17,157,13
+    GROUPBOX        "Other",IDC_STATIC,7,90,173,79
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 251, 95
@@ -321,7 +322,7 @@ BEGIN
         VERTGUIDE, 75
         VERTGUIDE, 125
         VERTGUIDE, 130
-        VERTGUIDE, 160
+        VERTGUIDE, 172
         TOPMARGIN, 6
         BOTTOMMARGIN, 188
         HORZGUIDE, 17
