@@ -203,7 +203,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   // Create the main window
   const TCHAR* name = _T("RfbPlayer");
   mainHwnd = CreateWindow((const TCHAR*)baseClass.classAtom, name, WS_OVERLAPPEDWINDOW,
-    0, 0, 10, 10, 0, 0, baseClass.instance, this);
+    0, 0, 640, 480, 0, 0, baseClass.instance, this);
   if (!mainHwnd) {
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }
@@ -211,6 +211,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
 
   // Create the backing buffer
   buffer = new win32::DIBSectionBuffer(getFrameHandle());
+  setVisible(true);
 }
 
 RfbPlayer::~RfbPlayer() {
@@ -575,7 +576,6 @@ void RfbPlayer::serverInit() {
 
   // Set the window title and show it
   setTitle(cp.name());
-  setVisible(true);
 
   // Set the player's param
   applyOptions();
@@ -850,7 +850,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   try {
     player = new RfbPlayer(fileName, initTime, playbackSpeed, autoplay, 
                            showControls, acceptBell);
-    player->start();
+    if (autoplay) player->start();
   } catch (rdr::Exception e) {
     MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);
     delete player;
