@@ -128,6 +128,10 @@ SOURCE=.\ToolBar.cxx
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=.\ChoosePixelFormatDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FbsInputStream.h
 # End Source File
 # Begin Source File

@@ -211,6 +211,18 @@ BEGIN
     LTEXT           "Pos (ms):",IDC_STATIC,7,9,33,15,SS_CENTERIMAGE
 END
 
+IDD_PIXELFORMAT DIALOG DISCARDABLE  0, 0, 144, 62
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "RfbPlayer : Pixel Format"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_PIXELFORMAT,7,20,130,98,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,20,40,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,40,50,14
+    LTEXT           "Choose the pixel format:",IDC_STATIC,7,7,130,13
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -232,6 +244,22 @@ BEGIN
         HORZGUIDE, 9
         HORZGUIDE, 24
         HORZGUIDE, 35
+    END
+
+    IDD_PIXELFORMAT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 137
+        VERTGUIDE, 20
+        VERTGUIDE, 70
+        VERTGUIDE, 75
+        VERTGUIDE, 125
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+        HORZGUIDE, 7
+        HORZGUIDE, 20
+        HORZGUIDE, 35
+        HORZGUIDE, 40
     END
 END
 #endif    // APSTUDIO_INVOKED
