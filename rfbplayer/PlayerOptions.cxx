@@ -34,6 +34,7 @@ void PlayerOptions::readFromRegistry() {
     regKey.createKey(HKEY_CURRENT_USER, _T("Software\\TightVnc\\RfbPlayer"));
     autoPlay = regKey.getBool(_T("AutoPlay"), DEFAULT_AUTOPLAY);
     autoDetectPF = regKey.getBool(_T("AutoDetectPixelFormat"), DEFAULT_AUTOPF);
+    bigEndianFlag = regKey.getBool(_T("BigEndianFlag"), DEFAULT_BIG_ENDIAN);
     pixelFormatIndex = regKey.getInt(_T("PixelFormatIndex"), DEFAULT_PF_INDEX);
     regKey.getBinary(_T("PixelFormat"), (void**)&pPF, &pfSize, 
       &PixelFormat(32,24,0,1,255,255,255,16,8,0), sizeof(PixelFormat));
@@ -56,6 +57,7 @@ void PlayerOptions::writeToRegistry() {
     regKey.createKey(HKEY_CURRENT_USER, _T("Software\\TightVnc\\RfbPlayer"));
     regKey.setBool(_T("AutoPlay"), autoPlay);
     regKey.setBool(_T("AutoDetectPixelFormat"), autoDetectPF);
+    regKey.setBool(_T("BigEndianFlag"), bigEndianFlag);
     regKey.setInt(_T("PixelFormatIndex"), pixelFormatIndex);
     regKey.setBinary(_T("PixelFormat"), &pixelFormat, sizeof(PixelFormat));
     regKey.setBool(_T("AcceptBell"), acceptBell);
@@ -73,6 +75,7 @@ void PlayerOptions::writeDefaults() {
   initTime = DEFAULT_INIT_TIME;
   playbackSpeed = DEFAULT_SPEED;
   autoDetectPF = DEFAULT_AUTOPF;
+  bigEndianFlag = DEFAULT_BIG_ENDIAN;
   pixelFormatIndex = DEFAULT_PF_INDEX;
   pixelFormat = PixelFormat(32,24,0,1,255,255,255,16,8,0);
   frameScale = DEFAULT_FRAME_SCALE;

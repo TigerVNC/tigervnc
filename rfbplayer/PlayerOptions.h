@@ -46,6 +46,7 @@
 #define DEFAULT_FRAME_SCALE 100
 #define DEFAULT_ACCEPT_BELL FALSE
 #define DEFAULT_ACCEPT_CUT_TEXT FALSE
+#define DEFAULT_BIG_ENDIAN FALSE
 #define DEFAULT_LOOP_PLAYBACK FALSE
 #define DEFAULT_ASK_PF FALSE
 #define DEFAULT_AUTOPLAY FALSE
@@ -67,6 +68,7 @@ public:
   bool autoPlay;
   bool fullScreen;
   bool autoDetectPF;
+  bool bigEndianFlag;
   long pixelFormatIndex;
   PixelFormat pixelFormat;
   bool acceptBell;
