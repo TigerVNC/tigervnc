@@ -42,10 +42,10 @@ RfbProto::RfbProto(char *fileName) {
 //
 
 RfbProto::~RfbProto() {
-  delete is;
-  is = NULL;
-  delete reader;
-  reader = NULL;
+  if (is) delete is;
+  is = 0;
+  if (reader) delete reader;
+  reader = 0;
 }
 
 void RfbProto::newSession(char *fileName) {

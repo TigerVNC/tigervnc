@@ -237,7 +237,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   // Create the backing buffer
   buffer = new win32::DIBSectionBuffer(getFrameHandle());
   setVisible(true);
-    
+
   // Open the session file
   if (fileName) {
     openSessionFile(fileName);
@@ -257,8 +257,8 @@ RfbPlayer::~RfbPlayer() {
     DestroyWindow(mainHwnd);
     mainHwnd = 0;
   }
-  delete buffer;
-  delete cutText;
+  if (buffer) delete buffer;
+  if (cutText) delete [] cutText;
   vlog.debug("~RfbPlayer done"); 
 }
 
@@ -362,7 +362,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       break;
     case ID_EXIT:
-      is->resumePlayback();
+      if (is) is->resumePlayback();
       PostQuitMessage(0);
       break;
     case ID_HELP_COMMANDLINESWITCHES:
@@ -472,7 +472,7 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 
   case WM_PAINT:
     {
-      if (is->isSeeking()) {
+      if (isSeeking()) {
         seekMode = true;
         return 0;
       } else {
@@ -926,7 +926,7 @@ void RfbPlayer::setPaused(bool paused) {
     CheckMenuItem(hMenu, ID_PLAYPAUSE, MF_CHECKED);
     CheckMenuItem(hMenu, ID_STOP, MF_UNCHECKED);
   } else {
-    is->resumePlayback();
+    if (is) is->resumePlayback();
     tb.checkButton(ID_PLAY, true);
     tb.checkButton(ID_STOP, false);
     tb.checkButton(ID_PAUSE, false);
@@ -937,7 +937,7 @@ void RfbPlayer::setPaused(bool paused) {
 
 void RfbPlayer::stopPlayback() {
   setPos(0);
-  is->pausePlayback();
+  if (is) is->pausePlayback();
   tb.checkButton(ID_STOP, true);
   tb.checkButton(ID_PLAY, false);
   tb.checkButton(ID_PAUSE, false);
@@ -965,7 +965,8 @@ long RfbPlayer::getSeekOffset() {
 }
 
 bool RfbPlayer::isSeeking() {
-  return is->isSeeking();
+  if (is) return is->isSeeking();
+  else return false;
 }
 
 bool RfbPlayer::isSeekMode() {
@@ -1019,7 +1020,7 @@ void programUsage() {
 double playbackSpeed = 1.0;
 long initTime = -1;
 bool autoplay = false;
-char *fileName;
+char *fileName = 0;
 bool print_usage = false;
 bool acceptBell = false;
 
