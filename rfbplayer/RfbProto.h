@@ -36,7 +36,7 @@ class RfbProto : public CMsgHandler {
     void newSession(char *filename);
     void initialiseProtocol();
 
-    void processMsg();
+    virtual void processMsg();
 
     // serverInit() is called when the ServerInit message is received.  The
     // derived class must call on to CMsgHandler::serverInit().
