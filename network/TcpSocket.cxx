@@ -111,10 +111,14 @@ TcpSocket::TcpSocket(const char *host, int port)
   }
 
   // Attempt to connect to the remote host
-  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
-    int e = errorNumber;
-    closesocket(sock);
-    throw SocketException("unable to connect to host", e);
+  for (;;) {
+    if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+      int e = errorNumber;
+      if (e == EINTR)
+	continue;
+      closesocket(sock);
+      throw SocketException("unable to connect to host", e);
+    } else break;
   }
 
   int one = 1;
