@@ -85,6 +85,7 @@ void RfbProto::processMsg()
 void RfbProto::processVersionMsg()
 {
   vlog.debug("reading protocol version");
+  memset(&cp, 0, sizeof(cp));
   bool done;
   if (!cp.readVersion(is, &done)) {
     state_ = RFBSTATE_INVALID;
