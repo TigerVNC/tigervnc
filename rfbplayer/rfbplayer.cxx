@@ -406,6 +406,8 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       PostQuitMessage(0);
       break;
     case ID_HOMEPAGE:
+      ShellExecute(getMainHandle(), _T("open"), _T("http://www.tightvnc.com/"),
+        NULL, NULL, SW_SHOWDEFAULT);
       break;
     case ID_HELP_COMMANDLINESWITCHES:
       {

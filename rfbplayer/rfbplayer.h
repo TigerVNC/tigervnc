@@ -20,6 +20,7 @@
 
 #include <commdlg.h>
 #include <windows.h>
+#include <shellapi.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
 
