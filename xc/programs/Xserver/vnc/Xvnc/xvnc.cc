@@ -599,81 +599,84 @@ ddxProcessArgument(int argc, char *argv[], int i)
 }
 
 #ifdef DDXTIME /* from ServerOSDefines */
-CARD32 GetTimeInMillis()
+CARD32
+GetTimeInMillis()
 {
-  struct timeval  tp;
+    struct timeval  tp;
 
-  X_GETTIMEOFDAY(&tp);
-  return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
+    X_GETTIMEOFDAY(&tp);
+    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
 #endif
 
 static ColormapPtr InstalledMaps[MAXSCREENS];
 
-static int vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
+static int 
+vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
-  /* By the time we are processing requests, we can guarantee that there
-   * is always a colormap installed */
-  *pmaps = InstalledMaps[pScreen->myNum]->mid;
-  return (1);
+    /* By the time we are processing requests, we can guarantee that there
+     * is always a colormap installed */
+    *pmaps = InstalledMaps[pScreen->myNum]->mid;
+    return (1);
 }
 
 
-static void vfbInstallColormap(ColormapPtr pmap)
+static void 
+vfbInstallColormap(ColormapPtr pmap)
 {
-  int index = pmap->pScreen->myNum;
-  ColormapPtr oldpmap = InstalledMaps[index];
+    int index = pmap->pScreen->myNum;
+    ColormapPtr oldpmap = InstalledMaps[index];
 
-  if (pmap != oldpmap)
-  {
-    int entries;
-    XWDFileHeader *pXWDHeader;
-    XWDColor *pXWDCmap;
-    VisualPtr pVisual;
-    Pixel *     ppix;
-    xrgb *      prgb;
-    xColorItem *defs;
-    int i;
+    if (pmap != oldpmap)
+    {
+	int entries;
+	XWDFileHeader *pXWDHeader;
+	XWDColor *pXWDCmap;
+	VisualPtr pVisual;
+	Pixel *     ppix;
+	xrgb *      prgb;
+	xColorItem *defs;
+	int i;
 
-    if(oldpmap != (ColormapPtr)None)
-      WalkTree(pmap->pScreen, TellLostMap, (char *)&oldpmap->mid);
-    /* Install pmap */
-    InstalledMaps[index] = pmap;
-    WalkTree(pmap->pScreen, TellGainedMap, (char *)&pmap->mid);
+	if(oldpmap != (ColormapPtr)None)
+	    WalkTree(pmap->pScreen, TellLostMap, (char *)&oldpmap->mid);
+	/* Install pmap */
+	InstalledMaps[index] = pmap;
+	WalkTree(pmap->pScreen, TellGainedMap, (char *)&pmap->mid);
 
-    entries = pmap->pVisual->ColormapEntries;
-    pXWDHeader = vfbScreens[pmap->pScreen->myNum].pXWDHeader;
-    pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
-    pVisual = pmap->pVisual;
+	entries = pmap->pVisual->ColormapEntries;
+	pXWDHeader = vfbScreens[pmap->pScreen->myNum].pXWDHeader;
+	pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
+	pVisual = pmap->pVisual;
 
-    swapcopy32(pXWDHeader->visual_class, pVisual->c_class);
-    swapcopy32(pXWDHeader->red_mask, pVisual->redMask);
-    swapcopy32(pXWDHeader->green_mask, pVisual->greenMask);
-    swapcopy32(pXWDHeader->blue_mask, pVisual->blueMask);
-    swapcopy32(pXWDHeader->bits_per_rgb, pVisual->bitsPerRGBValue);
-    swapcopy32(pXWDHeader->colormap_entries, pVisual->ColormapEntries);
+	swapcopy32(pXWDHeader->visual_class, pVisual->c_class);
+	swapcopy32(pXWDHeader->red_mask, pVisual->redMask);
+	swapcopy32(pXWDHeader->green_mask, pVisual->greenMask);
+	swapcopy32(pXWDHeader->blue_mask, pVisual->blueMask);
+	swapcopy32(pXWDHeader->bits_per_rgb, pVisual->bitsPerRGBValue);
+	swapcopy32(pXWDHeader->colormap_entries, pVisual->ColormapEntries);
 
-    ppix = (Pixel *)ALLOCATE_LOCAL(entries * sizeof(Pixel));
-    prgb = (xrgb *)ALLOCATE_LOCAL(entries * sizeof(xrgb));
-    defs = (xColorItem *)ALLOCATE_LOCAL(entries * sizeof(xColorItem));
+	ppix = (Pixel *)ALLOCATE_LOCAL(entries * sizeof(Pixel));
+	prgb = (xrgb *)ALLOCATE_LOCAL(entries * sizeof(xrgb));
+	defs = (xColorItem *)ALLOCATE_LOCAL(entries * sizeof(xColorItem));
 
-    for (i = 0; i < entries; i++)  ppix[i] = i;
-    /* XXX truecolor */
-    QueryColors(pmap, entries, ppix, prgb);
+	for (i = 0; i < entries; i++)  ppix[i] = i;
+	/* XXX truecolor */
+	QueryColors(pmap, entries, ppix, prgb);
 
-    for (i = 0; i < entries; i++) { /* convert xrgbs to xColorItems */
-      defs[i].pixel = ppix[i] & 0xff; /* change pixel to index */
-      defs[i].red = prgb[i].red;
-      defs[i].green = prgb[i].green;
-      defs[i].blue = prgb[i].blue;
-      defs[i].flags =  DoRed|DoGreen|DoBlue;
+	for (i = 0; i < entries; i++) { /* convert xrgbs to xColorItems */
+	    defs[i].pixel = ppix[i] & 0xff; /* change pixel to index */
+	    defs[i].red = prgb[i].red;
+	    defs[i].green = prgb[i].green;
+	    defs[i].blue = prgb[i].blue;
+	    defs[i].flags =  DoRed|DoGreen|DoBlue;
+	}
+	(*pmap->pScreen->StoreColors)(pmap, entries, defs);
+	
+	DEALLOCATE_LOCAL(ppix);
+	DEALLOCATE_LOCAL(prgb);
+	DEALLOCATE_LOCAL(defs);
     }
-    (*pmap->pScreen->StoreColors)(pmap, entries, defs);
-
-    DEALLOCATE_LOCAL(ppix);
-    DEALLOCATE_LOCAL(prgb);
-    DEALLOCATE_LOCAL(defs);
-  }
 }
 
 static void vfbUninstallColormap(ColormapPtr pmap)
