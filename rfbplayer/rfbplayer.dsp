@@ -150,6 +150,10 @@ SOURCE=.\utils.h
 
 SOURCE=.\rfbplayer.ico
 # End Source File
+# Begin Source File
+
+SOURCE=.\toolbar.bmp
+# End Source File
 # End Group
 # End Target
 # End Project
