@@ -1068,54 +1068,25 @@ static Bool
 vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[index];
-    int dpix = 100, dpiy = 100;
+    int dpi = 100;
     int ret;
     char *pbits;
 
+    if (monitorResolution) dpi = monitorResolution;
+
     pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);
     pvfb->bitsPerPixel = vfbBitsPerPixel(pvfb->depth);
-    if (pvfb->bitsPerPixel >= 8 )
-	pvfb->paddedWidth = pvfb->paddedBytesWidth / (pvfb->bitsPerPixel / 8);
-    else
-	pvfb->paddedWidth = pvfb->paddedBytesWidth * 8;
+    pvfb->paddedWidth = pvfb->paddedBytesWidth * 8 / pvfb->bitsPerPixel;
     pbits = vfbAllocateFramebufferMemory(pvfb);
     if (!pbits) return FALSE;
+    vncFbptr[index] = pbits;
 
-    miSetPixmapDepths ();
+    defaultColorVisualClass
+	= (pvfb->bitsPerPixel > 8) ? TrueColor : PseudoColor;
 
-    switch (pvfb->depth) {
-    case 8:
-	miSetVisualTypesAndMasks (8,
-				  ((1 << StaticGray) |
-				   (1 << GrayScale) |
-				   (1 << StaticColor) |
-				   (1 << PseudoColor) |
-				   (1 << TrueColor) |
-				   (1 << DirectColor)),
-				  8, PseudoColor, 0x07, 0x38, 0xc0);
-	break;
-    case 15:
-	miSetVisualTypesAndMasks (15,
-				  ((1 << TrueColor) |
-				   (1 << DirectColor)),
-				  8, TrueColor, 0x7c00, 0x03e0, 0x001f);
-	break;
-    case 16:
-	miSetVisualTypesAndMasks (16,
-				  ((1 << TrueColor) |
-				   (1 << DirectColor)),
-				  8, TrueColor, 0xf800, 0x07e0, 0x001f);
-	break;
-    case 24:
-	miSetVisualTypesAndMasks (24,
-				  ((1 << TrueColor) |
-				   (1 << DirectColor)),
-				  8, TrueColor, 0xff0000, 0x00ff00, 0x0000ff);
-	break;
-    }
-	
     ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-		       dpix, dpiy, pvfb->paddedWidth,pvfb->bitsPerPixel);
+		       dpi, dpi, pvfb->paddedWidth, pvfb->bitsPerPixel);
+  
 #ifdef RENDER
     if (ret && Render) 
 	fbPictureInit (pScreen, 0, 0);
@@ -1136,14 +1107,44 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 
     pScreen->SaveScreen = vfbSaveScreen;
     pScreen->StoreColors = vfbStoreColors;
-
-    miDCInitialize(pScreen, &vfbPointerCursorFuncs);
-
+    
+    miPointerInitialize(pScreen, &vfbPointerSpriteFuncs, &vfbPointerCursorFuncs,
+			FALSE);
+    
     vfbWriteXWDFileHeader(pScreen);
 
     pScreen->blackPixel = pvfb->blackPixel;
     pScreen->whitePixel = pvfb->whitePixel;
 
+    if (!pvfb->pixelFormatDefined && pvfb->depth == 16) {
+	pvfb->pixelFormatDefined = TRUE;
+	pvfb->rgbNotBgr = TRUE;
+	pvfb->blueBits = pvfb->redBits = 5;
+	pvfb->greenBits = 6;
+    }
+    
+    if (pvfb->pixelFormatDefined) {
+	VisualPtr vis;
+	for (vis = pScreen->visuals; vis->vid != pScreen->rootVisual; vis++)
+	    ;
+	
+	if (pvfb->rgbNotBgr) {
+	    vis->offsetBlue = 0;
+	    vis->blueMask = (1 << pvfb->blueBits) - 1;
+	    vis->offsetGreen = pvfb->blueBits;
+	    vis->greenMask = ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
+	    vis->offsetRed = vis->offsetGreen + pvfb->greenBits;
+	    vis->redMask = ((1 << pvfb->redBits) - 1) << vis->offsetRed;
+	} else {
+	    vis->offsetRed = 0;
+	    vis->redMask = (1 << pvfb->redBits) - 1;
+	    vis->offsetGreen = pvfb->redBits;
+	    vis->greenMask = ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
+	    vis->offsetBlue = vis->offsetGreen + pvfb->greenBits;
+	    vis->blueMask = ((1 << pvfb->blueBits) - 1) << vis->offsetBlue;
+	}
+    }
+    
     ret = fbCreateDefColormap(pScreen);
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
