@@ -136,6 +136,10 @@ SOURCE=.\RfbProto.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\rfbSessionReader.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ToolBar.h
 # End Source File
 # Begin Source File
