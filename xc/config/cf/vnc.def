@@ -14,8 +14,7 @@
 
 #ifdef SunArchitecture
 #define ProjectRoot /usr/openwin
-#define HasGcc2 YES
-#define BuildXKB NO
+#define HasGcc3 YES
 #endif
 
 #define BuildVNCExt YES
