@@ -31,8 +31,8 @@ using namespace rfb::win32;
 
 class RfbPlayer : public RfbProto {
   public:
-    RfbPlayer(char *filename, long _pos, double s_peed, bool autoplay, 
-              bool _acceptBell);
+    RfbPlayer(char *filename, int _depth, long _pos, double _speed, 
+              bool _autoplay, bool _acceptBell);
     ~RfbPlayer();
 
     // -=- Window Message handling
@@ -170,6 +170,7 @@ class RfbPlayer : public RfbProto {
 
     // The player's parameters
     bool autoplay;
+    int colourDepth;
     double playbackSpeed;
     long initTime;
     long serverInitTime;

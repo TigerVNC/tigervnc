@@ -48,6 +48,8 @@ char usage_msg[] =
  "usage: rfbplayer <options> <filename>\n"
  "Command-line options:\n"
  "  -help         \t- Provide usage information.\n"
+ "  -depth <bit>  \t- Forces the color depth for the session."
+ "                \t  Supports 8, 16 and 24 bit mode."
  "  -speed <value>\t- Sets playback speed, where 1 is normal speed,\n"
  "                \t  is double speed, 0.5 is half speed. Default: 1.0.\n"
  "  -pos <ms>     \t- Sets initial time position in the session file,\n"
@@ -64,6 +66,11 @@ char usage_msg[] =
 #define DEFAULT_PLAYER_WIDTH 640
 #define DEFAULT_PLAYER_HEIGHT 480 
 
+#define DEPTH_AUTO 0
+#define DEPTH8_RGB332 8
+#define DEPTH16_RGB655 16
+#define DEPTH24_RGB888 24
+
 #define ID_TOOLBAR 500
 #define ID_PLAY 510
 #define ID_PAUSE 520
@@ -72,7 +79,6 @@ char usage_msg[] =
 #define ID_SPEED_EDIT 550
 #define ID_POS_TRACKBAR 560
 #define ID_SPEED_UPDOWN 570
-
 
 //
 // -=- RfbPlayerClass
@@ -211,13 +217,15 @@ RfbFrameClass frameClass;
 // -=- RfbPlayer instance implementation
 //
 
-RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed = 1.0,
+RfbPlayer::RfbPlayer(char *_fileName, int _depth = DEPTH_AUTO, 
+                     long _initTime = 0, double _playbackSpeed = 1.0, 
                      bool _autoplay = false, bool _acceptBell = false)
-: RfbProto(_fileName), initTime(_initTime), playbackSpeed(_playbackSpeed),
-  autoplay(_autoplay), buffer(0), client_size(0, 0, 32, 32), 
-  window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), 
-  serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), posTrackBar(0),
-  speedUpDown(0), acceptBell(_acceptBell), rfbReader(0), sessionTimeMs(0),
+: RfbProto(_fileName), colourDepth(_depth), initTime(_initTime), 
+  playbackSpeed(_playbackSpeed), autoplay(_autoplay), buffer(0), 
+  client_size(0, 0, 32, 32), window_size(0, 0, 32, 32), cutText(0), 
+  seekMode(false), fileName(_fileName), serverInitTime(0), lastPos(0), 
+  timeStatic(0), speedEdit(0), posTrackBar(0), speedUpDown(0), 
+  acceptBell(_acceptBell), rfbReader(0), sessionTimeMs(0),
   sliderDraging(false), sliderStepMs(0), loopPlayback(false) {
 
   CTRL_BAR_HEIGHT = 28;
@@ -839,7 +847,22 @@ void RfbPlayer::serverInit() {
     throw rdr::Exception("This version plays only true color session!");
 
   // Set the session pixel format
-  buffer->setPF(cp.pf()); 
+  switch (colourDepth) {
+  case DEPTH_AUTO: 
+    break;
+  case DEPTH8_RGB332: 
+    cp.setPF(PixelFormat(8,8,0,1,7,7,3,0,3,6)); 
+    break;
+  case DEPTH16_RGB655: 
+    cp.setPF(PixelFormat(16,16,0,1,63,31,31,0,6,11)); 
+    break;
+  case DEPTH24_RGB888: 
+    cp.setPF(PixelFormat(32,24,0,1,255,255,255,16,8,0)); 
+    break;
+  default: 
+    throw rdr::Exception("This color depth is not supported!");
+  }
+  buffer->setPF(cp.pf());
 
   // If the window is not maximised then resize it
   if (!(GetWindowLong(getMainHandle(), GWL_STYLE) & WS_MAXIMIZE))
@@ -1117,6 +1140,7 @@ void programUsage() {
 
 double playbackSpeed = 1.0;
 long initTime = -1;
+int depth = DEPTH_AUTO;
 bool autoplay = false;
 char *fileName = 0;
 bool print_usage = false;
@@ -1134,6 +1158,16 @@ bool processParams(int argc, char* argv[]) {
       print_usage = true;
       return true;
     }
+
+    if ((strcasecmp(argv[i], "-depth") == 0) ||
+        (strcasecmp(argv[i], "/depth") == 0) && (i < argc-1)) {
+      depth = atoi(argv[++i]);
+      if (depth < 0) {
+        return false;
+      }
+      continue;
+    }
+
 
     if ((strcasecmp(argv[i], "-speed") == 0) ||
         (strcasecmp(argv[i], "/speed") == 0) && (i < argc-1)) {
@@ -1195,7 +1229,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   // Create the player
   RfbPlayer *player = NULL;
   try {
-    player = new RfbPlayer(fileName, initTime, playbackSpeed, autoplay, 
+    player = new RfbPlayer(fileName, depth, initTime, playbackSpeed, autoplay, 
                            acceptBell);
   } catch (rdr::Exception e) {
     MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);
