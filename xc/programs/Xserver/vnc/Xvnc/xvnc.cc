@@ -877,26 +877,32 @@ vfbCrossScreen (ScreenPtr pScreen, Bool entering)
 }
 
 static Bool vfbRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor) {
-  return TRUE;
+    return TRUE;
 }
+
 static Bool vfbUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor) {
-  return TRUE;
+    return TRUE;
 }
-static void vfbSetCursor(ScreenPtr pScreen, CursorPtr pCursor,
-                               int x, int y) {}
-static void vfbMoveCursor(ScreenPtr pScreen, int x, int y) {}
+
+static void vfbSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y) 
+{
+}
+
+static void vfbMoveCursor(ScreenPtr pScreen, int x, int y) 
+{
+}
 
 static miPointerSpriteFuncRec vfbPointerSpriteFuncs = {
-  vfbRealizeCursor,
-  vfbUnrealizeCursor,
-  vfbSetCursor,
-  vfbMoveCursor
+    vfbRealizeCursor,
+    vfbUnrealizeCursor,
+    vfbSetCursor,
+    vfbMoveCursor
 };
 
-static miPointerScreenFuncRec vfbPointerScreenFuncs = {
-  vfbCursorOffScreen,
-  vfbCrossScreen,
-  miPointerWarpCursor
+static miPointerScreenFuncRec vfbPointerCursorFuncs = {
+    vfbCursorOffScreen,
+    vfbCrossScreen,
+    miPointerWarpCursor
 };
 
 static Bool vfbScreenInit(int index, ScreenPtr pScreen, int argc, char** argv)
@@ -935,7 +941,7 @@ static Bool vfbScreenInit(int index, ScreenPtr pScreen, int argc, char** argv)
   pScreen->SaveScreen = vfbSaveScreen;
   pScreen->StoreColors = vfbStoreColors;
 
-  miPointerInitialize(pScreen, &vfbPointerSpriteFuncs, &vfbPointerScreenFuncs,
+  miPointerInitialize(pScreen, &vfbPointerSpriteFuncs, &vfbPointerCursorFuncs,
                       FALSE);
 
   vfbWriteXWDFileHeader(pScreen);
