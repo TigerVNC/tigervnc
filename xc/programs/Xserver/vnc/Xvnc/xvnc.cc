@@ -708,7 +708,7 @@ vfbStoreColors(ColormapPtr pmap, int ndef, xColorItem *pdefs)
 
     pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
 
-    if ((pmap->pVisual->class | DynamicClass) == DirectColor)
+    if ((pmap->pVisual->c_class | DynamicClass) == DirectColor)
     {
 	return;
     }
