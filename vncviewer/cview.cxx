@@ -252,10 +252,16 @@ CView::applyOptions(CViewOptions& opt) {
     (options.useDesktopResize != opt.useDesktopResize));
   cp.supportsLocalCursor = options.useLocalCursor = opt.useLocalCursor;
   cp.supportsDesktopResize = options.useDesktopResize = opt.useDesktopResize;
+
+  encodingChange |= ((options.customCompressLevel != opt.customCompressLevel) ||
+		     (options.compressLevel != opt.compressLevel) ||
+		     (options.noJpeg != opt.noJpeg) ||
+		     (options.qualityLevel != opt.qualityLevel));
   cp.customCompressLevel = options.customCompressLevel = opt.customCompressLevel;
   cp.compressLevel = options.compressLevel = opt.compressLevel;
   cp.noJpeg = options.noJpeg = opt.noJpeg;
   cp.qualityLevel = options.qualityLevel = opt.qualityLevel;
+
   if (cursorAvailable)
     hideLocalCursor();
   cursorAvailable = cursorAvailable && options.useLocalCursor;
