@@ -335,6 +335,10 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         SetWindowText(speedEdit, speedStr);
       }
       break;
+    case ID_EXIT:
+      is->resumePlayback();
+      PostQuitMessage(0);
+      break;
     }
     break;
 
