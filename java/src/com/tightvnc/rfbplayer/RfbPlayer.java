@@ -49,11 +49,6 @@ public class RfbPlayer extends java.applet.Applet
   RfbProto rfb;
   Thread rfbThread;
 
-  public static final int MODE_STOPPED  = 0;
-  public static final int MODE_PLAYBACK = 1;
-  public static final int MODE_PAUSED   = 2;
-  protected int mode;
-
   FbsInputStream fbsStream;
 
   Frame vncFrame;
@@ -163,7 +158,7 @@ public class RfbPlayer extends java.applet.Applet
 
       while (true) {
 	try {
-	  buttonPanel.setMode(MODE_STOPPED);
+	  buttonPanel.setPaused(true);
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
 	  fbsStream.close();
@@ -181,25 +176,22 @@ public class RfbPlayer extends java.applet.Applet
     
   }
 
-  public int getMode() {
-    return mode;
-  }
-
-  public void setMode(int mode) {
-    this.mode = mode;
-    if (vc != null) {
-      synchronized(vc) {
-	vc.notify();
+  public void setPaused(boolean paused) {
+    if (fbsStream != null) {
+      if (paused) {
+	fbsStream.pausePlayback();
+      } else {
+	fbsStream.resumePlayback();
       }
     }
   }
 
   public void setPos(int pos) {
-    fbsStream.setPos(pos);
+    fbsStream.setTimeOffset(pos * 1000);
   }
 
   public void updatePos() {
-    buttonPanel.setPos(fbsStream.getPos());
+    buttonPanel.setPos((int)(fbsStream.getTimeOffset() / 1000));
   }
 
   //

@@ -214,21 +214,6 @@ class VncCanvas extends Canvas {
 
     while (true) {
 
-      while (player.getMode() != player.MODE_PLAYBACK) {
-	synchronized(this) {
-	  try {
-	    wait();
-	  } catch (InterruptedException e) {
-	  }
-	}
-	if (player.getMode() == player.MODE_STOPPED) {
-	  throw new EOFException("Playback stopped");
-	}
-	if (player.getMode() == player.MODE_PLAYBACK) {
-	  player.fbsStream.resumePlayback();
-	}
-      }
-
       int msgType = rfb.readServerMessageType();
 
       switch (msgType) {
@@ -485,10 +470,6 @@ class VncCanvas extends Canvas {
       }
 
       player.updatePos();
-
-      if (player.getMode() == player.MODE_STOPPED) {
-	throw new EOFException("Playback stopped");
-      }
     }
   }
 

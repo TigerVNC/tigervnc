@@ -25,8 +25,8 @@ class ButtonPanel extends Panel implements ActionListener {
 
   protected RfbPlayer player;
   protected Button playButton;
-  protected Button pauseButton;
   protected TextField posText;
+  protected TextField timeScaleText;
 
   protected int lastPos = -1;
 
@@ -40,42 +40,31 @@ class ButtonPanel extends Panel implements ActionListener {
     add(playButton);
     playButton.addActionListener(this);
 
-    pauseButton = new Button("Pause");
-    pauseButton.setEnabled(false);
-    add(pauseButton);
-    pauseButton.addActionListener(this);
-
+    add(new Label(" Position:"));
     posText = new TextField(5);
     add(posText);
     posText.addActionListener(this);
+
+    add(new Label(" Speed:"));
+    timeScaleText = new TextField(5);
+    timeScaleText.setText("1.0");
+    timeScaleText.setEnabled(false);
+    timeScaleText.setEditable(false);
+    add(timeScaleText);
+    timeScaleText.addActionListener(this);
   }
 
-  public void setMode(int mode) {
-    switch(mode) {
-    case RfbPlayer.MODE_PLAYBACK:
-      playButton.setLabel("Stop");
-      playButton.setEnabled(true);
-      pauseButton.setLabel("Pause");
-      pauseButton.setEnabled(true);
-      posText.setEditable(false);
-      break;
-    case RfbPlayer.MODE_PAUSED:
-      playButton.setLabel("Stop");
-      playButton.setEnabled(true);
-      pauseButton.setLabel("Resume");
-      pauseButton.setEnabled(true);
-      posText.setEditable(true);
-      break;
-    default:
-      // case RfbPlayer.MODE_STOPPED:
+  public void setPaused(boolean paused)
+  {
+    if (paused) {
       playButton.setLabel("Play");
-      playButton.setEnabled(true);
-      pauseButton.setLabel("Pause");
-      pauseButton.setEnabled(false);
       posText.setEditable(true);
-      break;
+    } else {
+      playButton.setLabel("Pause");
+      posText.setEditable(false);
     }
-    player.setMode(mode);
+    playButton.setEnabled(true);
+    player.setPaused(paused);
   }
 
   public void setPos(int pos) {
@@ -97,11 +86,7 @@ class ButtonPanel extends Panel implements ActionListener {
 
   public void actionPerformed(ActionEvent evt) {
     if (evt.getSource() == playButton) {
-      setMode((player.getMode() == RfbPlayer.MODE_STOPPED) ?
-              RfbPlayer.MODE_PLAYBACK : RfbPlayer.MODE_STOPPED);
-    } else if (evt.getSource() == pauseButton) {
-      setMode((player.getMode() == RfbPlayer.MODE_PAUSED) ?
-              RfbPlayer.MODE_PLAYBACK : RfbPlayer.MODE_PAUSED);
+      setPaused(playButton.getLabel().equals("Pause"));
     } else if (evt.getSource() == posText) {
       player.setPos(Integer.parseInt(posText.getText()));
     }

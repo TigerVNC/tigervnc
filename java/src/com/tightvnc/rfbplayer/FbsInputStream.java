@@ -27,6 +27,7 @@ class FbsInputStream extends InputStream {
 
   protected InputStream in;
   protected long startTime;
+  protected long pausedTime;
   protected long timeOffset;
 
   protected byte[] buffer;
@@ -41,10 +42,15 @@ class FbsInputStream extends InputStream {
     throw new IOException("FbsInputStream: no such constructor");
   }
 
+  //
+  // Construct FbsInputStream object, begin playback.
+  //
+
   FbsInputStream(InputStream in) throws IOException
   {
     this.in = in;
     startTime = System.currentTimeMillis();
+    pausedTime = -1;
     timeOffset = 0;
 
     byte[] b = new byte[12];
@@ -85,11 +91,12 @@ class FbsInputStream extends InputStream {
     return bufferSize;
   }
 
-  public void close() throws IOException
+  public synchronized void close() throws IOException
   {
     in.close();
     in = null;
-    startTime = 0;
+    startTime = -1;
+    pausedTime = -1;
     timeOffset = 0;
 
     buffer = null;
@@ -101,12 +108,12 @@ class FbsInputStream extends InputStream {
   // Methods providing additional functionality.
   //
 
-  public int getPos()
+  public long getTimeOffset()
   {
-    return (int)(timeOffset / 1000);
+    return timeOffset;
   }
 
-  public void setPos(int pos)
+  public void setTimeOffset(int pos)
   {
   }
 
@@ -115,13 +122,18 @@ class FbsInputStream extends InputStream {
     return false;
   }
 
-  public void pausePlayback()
+  public synchronized void pausePlayback()
   {
+    // FIXME: There is no need to remember the time?
+    pausedTime = System.currentTimeMillis();
+    notify();
   }
 
-  public void resumePlayback()
+  public synchronized void resumePlayback()
   {
     startTime = System.currentTimeMillis() - timeOffset;
+    pausedTime = -1;
+    notify();
   }
 
   //
@@ -130,6 +142,8 @@ class FbsInputStream extends InputStream {
 
   private boolean fillBuffer() throws IOException
   {
+    waitWhilePaused();
+
     bufferSize = (int)readUnsigned32();
     if (bufferSize >= 0) {
       int realSize = (bufferSize + 3) & 0xFFFFFFFC;
@@ -152,13 +166,32 @@ class FbsInputStream extends InputStream {
       if (timeDiff <= 0) {
 	break;
       }
-      try {
-	Thread.currentThread().sleep(timeDiff);
-      } catch (InterruptedException e) {
+      synchronized(this) {
+	try {
+	  wait(timeDiff);
+	} catch (InterruptedException e) {
+	}
       }
+      waitWhilePaused();
     }
 
     return true;
+  }
+
+  //
+  // In paused mode, wait for external notification on this object.
+  //
+
+  private void waitWhilePaused()
+  {
+    while (pausedTime >= 0) {
+      synchronized(this) {
+	try {
+	  wait();
+	} catch (InterruptedException e) {
+	}
+      }
+    }
   }
 
   private long readUnsigned32() throws IOException
