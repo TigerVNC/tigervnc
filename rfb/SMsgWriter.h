@@ -74,7 +74,7 @@ namespace rfb {
     // but will write the relevant pseudo-rectangle as part of the next update.
     virtual bool writeSetDesktopSize()=0;
 
-    // Like setDestkopSize, we can't just write out a setCursor message
+    // Like setDesktopSize, we can't just write out a setCursor message
     // immediately on a V3 writer.  Instead of calling writeSetCursor()
     // directly, you must call cursorChange(), and then invoke writeSetCursor()
     // in response to the writeSetCursorCallback() callback.  For a V3 writer
