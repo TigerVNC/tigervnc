@@ -840,6 +840,12 @@ void RfbPlayer::processMsg() {
       else stopped = false;
       updatePos(seekOffset);
       rewindFlag = false;
+      return;
+    } 
+    // It's a special exception which is used to terminate the playback
+    if (strcmp(e.str(), "[TERMINATE]") == 0) {
+      sessionTerminateThread *terminate = new sessionTerminateThread(this);
+      terminate->start();
     } else {
       MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
       return;
@@ -866,6 +872,9 @@ void RfbPlayer::serverInit() {
     ChoosePixelFormatDialog choosePixelFormatDialog(pixelFormat);
     if (choosePixelFormatDialog.showDialog()) {
       pixelFormat = choosePixelFormatDialog.getPF();
+    } else {
+      is->pausePlayback();
+      throw rdr::Exception("[TERMINATE]");
     }
   } else {
     pixelFormat = options.pixelFormat;
