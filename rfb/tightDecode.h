@@ -47,6 +47,8 @@ namespace rfb {
 #define TIGHT_MIN_TO_COMPRESS 12
 static bool DecompressJpegRect(const Rect& r, rdr::InStream* is,
 			       PIXEL_T* buf, CMsgHandler* handler);
+static void FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
+			   PIXEL_T* buf, CMsgHandler* handler);
 
 // Main function implementing Tight decoder
 
@@ -88,7 +90,7 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 
   // "Basic" compression type.
   int palSize = 0;
-  PIXEL_T palette[256];
+  static PIXEL_T palette[256];
   bool useGradient = false;
 
   if ((comp_ctl & rfbTightExplicitFilter) != 0) {
@@ -133,9 +135,10 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 
   if (palSize == 0) {
     // Truecolor data
-    input->readBytes(buf, dataSize);
     if (useGradient) {
-      // FIXME: Implement the "gradient" filter.
+	FilterGradient(r, input, dataSize, buf, handler);
+    } else {
+	input->readBytes(buf, dataSize);
     }
   } else {
     int x, y, b, w;
@@ -216,7 +219,7 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
     pixelPtr = (PIXEL_T*)(scanline);
     for (int dx = 0; dx < r.width(); dx++) {
       *pixelPtr++ = 
-	RGB24_TO_PIXEL(BPP, scanline[dx*3], scanline[dx*3+1], scanline[dx*3+2]);
+	RGB24_TO_PIXEL(scanline[dx*3], scanline[dx*3+1], scanline[dx*3+2]);
     }
     scanline += bytesPerRow;
   }
@@ -234,6 +237,67 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
 }
 
 
+static void
+FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
+	       PIXEL_T* buf, CMsgHandler* handler)
+{
+  int x, y, c;
+  static PIXEL_T prevRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
+  static PIXEL_T thisRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
+  int pix[3]; 
+  int max[3]; 
+  int shift[3]; 
+  int est[3]; 
+
+  memset(prevRow, 0, sizeof(prevRow));
+
+  // Allocate netbuf and read in data
+  PIXEL_T *netbuf = (PIXEL_T*)new rdr::U8[dataSize];
+  if (!netbuf)
+    throw Exception("rfb::tightDecode unable to allocate buffer");
+  is->readBytes(netbuf, dataSize);
+
+  // Set up shortcut variables
+  const rfb::PixelFormat& myFormat = handler->cp.pf();
+  max[0] = myFormat.redMax; 
+  max[1] = myFormat.greenMax; 
+  max[2] = myFormat.blueMax; 
+  shift[0] = myFormat.redShift; 
+  shift[1] = myFormat.greenShift; 
+  shift[2] = myFormat.blueShift; 
+  int rectHeight = r.height();
+  int rectWidth = r.width();
+
+  for (y = 0; y < rectHeight; y++) {
+    /* First pixel in a row */
+    for (c = 0; c < 3; c++) {
+      pix[c] = (netbuf[y*rectWidth] >> shift[c]) + prevRow[c] & max[c];
+      thisRow[c] = pix[c];
+    }
+    buf[y*rectWidth] = RGB_TO_PIXEL(pix[0], pix[1], pix[2]);
+
+    /* Remaining pixels of a row */
+    for (x = 1; x < rectWidth; x++) {
+      for (c = 0; c < 3; c++) {
+	est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+	if (est[c] > max[c]) {
+	  est[c] = max[c];
+	} else if (est[c] < 0) {
+	  est[c] = 0;
+	}
+	pix[c] = (netbuf[y*rectWidth+x] >> shift[c]) + est[c] & max[c];
+	thisRow[x*3+c] = pix[c];
+      }
+      buf[y*rectWidth+x] = RGB_TO_PIXEL(pix[0], pix[1], pix[2]);
+    }
+
+    memcpy(prevRow, thisRow, sizeof(prevRow));
+  }
+
+  delete [] netbuf;
+}
+
+#undef TIGHT_MIN_TO_COMPRESS
 #undef TIGHT_DECODE
 #undef READ_PIXEL
 #undef PIXEL_T

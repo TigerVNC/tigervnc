@@ -26,7 +26,12 @@ extern "C" {
 
 using namespace rfb;
 
-#define RGB24_TO_PIXEL(bpp,r,g,b)                                       \
+#define RGB_TO_PIXEL(r,g,b)						\
+  (((PIXEL_T)(r) & myFormat.redMax) << myFormat.redShift |		\
+   ((PIXEL_T)(g) & myFormat.greenMax) << myFormat.greenShift |	        \
+   ((PIXEL_T)(b) & myFormat.blueMax) << myFormat.blueShift)
+
+#define RGB24_TO_PIXEL(r,g,b)                                       \
    ((((PIXEL_T)(r) & 0xFF) * myFormat.redMax + 127) / 255             \
     << myFormat.redShift |                                              \
     (((PIXEL_T)(g) & 0xFF) * myFormat.greenMax + 127) / 255           \
