@@ -73,3 +73,70 @@ void PlayerOptions::writeDefaults() {
   askPixelFormat = DEFAULT_ASK_PF; 
   autoStoreSettings = DEFAULT_STORE_SETTINGS;
 }
+
+void PlayerOptions::setPF(PixelFormat *newPF) {
+  memcpy(&PF, newPF, sizeof(PixelFormat));
+}
+
+bool PlayerOptions::setPF(int rgb_order, int rm, int gm, int bm, bool big_endian) {
+  PixelFormat newPF;
+  
+  // Calculate the colour bits per pixel
+  int bpp = rm + gm + bm;
+  if (bpp < 0) {
+    return false;
+  } else if (bpp <= 8 ) {
+    newPF.bpp = 8;
+  } else if (bpp <= 16) {
+    newPF.bpp = 16;
+  } else if (bpp <= 32) {
+    newPF.bpp = 32;
+  } else {
+    return false;
+  }
+  newPF.depth = bpp;
+
+  // Calculate the r, g and b bits shifts
+  switch (rgb_order) {
+  case RGB_ORDER:
+    newPF.redShift = gm + bm;
+    newPF.greenShift = bm;
+    newPF.blueShift = 0;
+    break;
+  case RBG_ORDER:
+    newPF.redShift = bm + gm;
+    newPF.blueShift = gm;
+    newPF.greenShift = 0;
+    break;
+  case GRB_ORDER:
+    newPF.greenShift = rm + bm;
+    newPF.redShift = bm;
+    newPF.blueShift = 0;
+    break;
+  case GBR_ORDER:
+    newPF.greenShift = bm + rm;
+    newPF.blueShift = rm;
+    newPF.redShift = 0;
+    break;
+  case BGR_ORDER:
+    newPF.blueShift = gm + rm;
+    newPF.greenShift = rm;
+    newPF.redShift = 0;
+    break;
+  case BRG_ORDER:
+    newPF.blueShift = rm + gm;
+    newPF.redShift = gm;
+    newPF.greenShift = 0;
+    break;
+  default:
+    return false;
+  }
+
+  newPF.trueColour = true;
+  newPF.bigEndian = big_endian;
+  newPF.redMax = (1 << rm) - 1;
+  newPF.greenMax = (1 << gm) - 1;
+  newPF.blueMax = (1 << bm) - 1;
+  setPF(&newPF);
+  return true;
+}
