@@ -797,75 +797,85 @@ vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 	return NULL;
 }
 
-static void vfbWriteXWDFileHeader(ScreenPtr pScreen)
+static void
+vfbWriteXWDFileHeader(ScreenPtr pScreen)
 {
-  vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-  XWDFileHeader *pXWDHeader = pvfb->pXWDHeader;
-  char hostname[XWD_WINDOW_NAME_LEN];
-  VisualPtr	pVisual;
-  unsigned long swaptest = 1;
-  int i;
+    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+    XWDFileHeader *pXWDHeader = pvfb->pXWDHeader;
+    char hostname[XWD_WINDOW_NAME_LEN];
+    unsigned long swaptest = 1;
+    int i;
 
-  needswap = *(char *) &swaptest;
+    needswap = *(char *) &swaptest;
 
-  pXWDHeader->header_size = (char *)pvfb->pXWDCmap - (char *)pvfb->pXWDHeader;
-  pXWDHeader->file_version = XWD_FILE_VERSION;
+    pXWDHeader->header_size = (char *)pvfb->pXWDCmap - (char *)pvfb->pXWDHeader;
+    pXWDHeader->file_version = XWD_FILE_VERSION;
 
-  pXWDHeader->pixmap_format = ZPixmap;
-  pXWDHeader->pixmap_depth = pvfb->depth;
-  pXWDHeader->pixmap_height = pXWDHeader->window_height = pvfb->height;
-  pXWDHeader->xoffset = 0;
-  pXWDHeader->byte_order = IMAGE_BYTE_ORDER;
-  pXWDHeader->bitmap_bit_order = BITMAP_BIT_ORDER;
+    pXWDHeader->pixmap_format = ZPixmap;
+    pXWDHeader->pixmap_depth = pvfb->depth;
+    pXWDHeader->pixmap_height = pXWDHeader->window_height = pvfb->height;
+    pXWDHeader->xoffset = 0;
+    pXWDHeader->byte_order = IMAGE_BYTE_ORDER;
+    pXWDHeader->bitmap_bit_order = BITMAP_BIT_ORDER;
 #ifndef INTERNAL_VS_EXTERNAL_PADDING
-  pXWDHeader->pixmap_width = pXWDHeader->window_width = pvfb->width;
-  pXWDHeader->bitmap_unit = BITMAP_SCANLINE_UNIT;
-  pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD;
+    pXWDHeader->pixmap_width = pXWDHeader->window_width = pvfb->width;
+    pXWDHeader->bitmap_unit = BITMAP_SCANLINE_UNIT;
+    pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD;
 #else
-  pXWDHeader->pixmap_width = pXWDHeader->window_width = pvfb->paddedWidth;
-  pXWDHeader->bitmap_unit = BITMAP_SCANLINE_UNIT_PROTO;
-  pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD_PROTO;
+    pXWDHeader->pixmap_width = pXWDHeader->window_width = pvfb->paddedWidth;
+    pXWDHeader->bitmap_unit = BITMAP_SCANLINE_UNIT_PROTO;
+    pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD_PROTO;
 #endif
-  pXWDHeader->bits_per_pixel = pvfb->bitsPerPixel;
-  pXWDHeader->bytes_per_line = pvfb->paddedBytesWidth;
-  pXWDHeader->ncolors = pvfb->ncolors;
+    pXWDHeader->bits_per_pixel = pvfb->bitsPerPixel;
+    pXWDHeader->bytes_per_line = pvfb->paddedBytesWidth;
+    pXWDHeader->ncolors = pvfb->ncolors;
 
-  /* visual related fields are written when colormap is installed */
+    /* visual related fields are written when colormap is installed */
 
-  pXWDHeader->window_x = pXWDHeader->window_y = 0;
-  pXWDHeader->window_bdrwidth = 0;
+    pXWDHeader->window_x = pXWDHeader->window_y = 0;
+    pXWDHeader->window_bdrwidth = 0;
 
-  /* write xwd "window" name: Xvfb hostname:server.screen */
+    /* write xwd "window" name: Xvfb hostname:server.screen */
 
-  hostname[0] = 0;
-  sprintf((char *)(pXWDHeader+1), "Xvfb %s:%s.%d", hostname, display,
-          pScreen->myNum);
+    if (-1 == gethostname(hostname, sizeof(hostname)))
+	hostname[0] = 0;
+    else
+	hostname[XWD_WINDOW_NAME_LEN-1] = 0;
+    sprintf((char *)(pXWDHeader+1), "Xvfb %s:%s.%d", hostname, display,
+	    pScreen->myNum);
 
-  /* write colormap pixel slot values */
+    /* write colormap pixel slot values */
 
-  for (i = 0; i < pvfb->ncolors; i++)
-  {
-    pvfb->pXWDCmap[i].pixel = i;
-  }
-
-  /* byte swap to most significant byte first */
-
-  if (needswap)
-  {
-    SwapLongs((CARD32 *)pXWDHeader, SIZEOF(XWDheader)/4);
     for (i = 0; i < pvfb->ncolors; i++)
     {
-      register char n;
-      swapl(&pvfb->pXWDCmap[i].pixel, n);
+	pvfb->pXWDCmap[i].pixel = i;
     }
-  }
+
+    /* byte swap to most significant byte first */
+
+    if (needswap)
+    {
+	SwapLongs((CARD32 *)pXWDHeader, SIZEOF(XWDheader)/4);
+	for (i = 0; i < pvfb->ncolors; i++)
+	{
+	    register char n;
+	    swapl(&pvfb->pXWDCmap[i].pixel, n);
+	}
+    }
 }
 
 
-static Bool vfbCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y) {
-  return FALSE;
+static Bool
+vfbCursorOffScreen (ScreenPtr *ppScreen, int *x, int *y)
+{
+    return FALSE;
 }
-static void vfbCrossScreen (ScreenPtr pScreen, Bool entering) {}
+
+static void
+vfbCrossScreen (ScreenPtr pScreen, Bool entering)
+{
+}
+
 static Bool vfbRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor) {
   return TRUE;
 }
