@@ -5,7 +5,8 @@
 #define BuildPexExt NO
 #define BuildNls NO
 #define BuildXIE NO
-#define BuildGlxExt NO
+#define BuildGlxExt YES
+#define GlxBuiltInXMesa YES
 #define XnestServer YES
 #define XF86Server NO
 #define XprtServer NO
