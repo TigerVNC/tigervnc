@@ -249,8 +249,10 @@ class VncCanvas extends Canvas implements Observer {
             break;
 
           if (rfb.updateRectEncoding == rfb.EncodingNewFBSize) {
-            rfb.setFramebufferSize(rfb.updateRectW, rfb.updateRectH);
-            updateFramebufferSize();
+            if (rfb.updateRectW != 0 && rfb.updateRectH != 0) {
+              rfb.setFramebufferSize(rfb.updateRectW, rfb.updateRectH);
+              updateFramebufferSize();
+            }
             break;
           }
 
