@@ -53,7 +53,7 @@ SRCS = d3des.c $(CXXSRCS)
 
 OBJS = d3des.o $(CXXSRCS:.cxx=.o)
 
-DIR_CPPFLAGS = -I$(top_srcdir) @VSNPRINTF_DEFINE@
+DIR_CPPFLAGS = -I$(top_srcdir) @ZLIB_INCLUDE@ @JPEG_INCLUDE@ @VSNPRINTF_DEFINE@
 
 library = librfb.a
 
