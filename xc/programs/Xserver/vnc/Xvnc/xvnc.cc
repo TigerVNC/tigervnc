@@ -1031,68 +1031,66 @@ static void vfbClientStateChange(CallbackListPtr*, pointer, pointer) {
   dispatchException &= ~DE_RESET;
 }
 
-void InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
+void
+InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 {
-  ErrorF("\nXvnc version %s - built %s\n", XVNCVERSION, buildtime);
-  ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
-         VENDOR_STRING);
-  wellKnownSocketsCreated = true;
+    ErrorF("\nXvnc version %s - built %s\n", XVNCVERSION, buildtime);
+    ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
+	   VENDOR_STRING);
+    int i;
+    int NumFormats = 0;
 
-  int i;
-  int NumFormats = 0;
+    /* initialize pixmap formats */
 
-  /* initialize pixmap formats */
-
-  /* must have a pixmap depth to match every screen depth */
-  for (i = 0; i < vfbNumScreens; i++)
-  {
-    vfbPixmapDepths[vfbScreens[i].depth] = TRUE;
-  }
-
-  /* RENDER needs a good set of pixmaps. */
-  if (Render) {
-      vfbPixmapDepths[1] = TRUE;
-      vfbPixmapDepths[4] = TRUE;
-      vfbPixmapDepths[8] = TRUE;
-/*    vfbPixmapDepths[15] = TRUE; */
-      vfbPixmapDepths[16] = TRUE;
-      vfbPixmapDepths[24] = TRUE;
-      vfbPixmapDepths[32] = TRUE;
-  }
-
-  for (i = 1; i <= 32; i++)
-  {
-    if (vfbPixmapDepths[i])
+    /* must have a pixmap depth to match every screen depth */
+    for (i = 0; i < vfbNumScreens; i++)
     {
-      if (NumFormats >= MAXFORMATS)
-        FatalError ("MAXFORMATS is too small for this server\n");
-      screenInfo->formats[NumFormats].depth = i;
-      screenInfo->formats[NumFormats].bitsPerPixel = vfbBitsPerPixel(i);
-      screenInfo->formats[NumFormats].scanlinePad = BITMAP_SCANLINE_PAD;
-      NumFormats++;
+	vfbPixmapDepths[vfbScreens[i].depth] = TRUE;
     }
-  }
 
-  screenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
-  screenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
-  screenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
-  screenInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
-  screenInfo->numPixmapFormats = NumFormats;
+    /* RENDER needs a good set of pixmaps. */
+    if (Render) {
+	vfbPixmapDepths[1] = TRUE;
+	vfbPixmapDepths[4] = TRUE;
+	vfbPixmapDepths[8] = TRUE;
+/*	vfbPixmapDepths[15] = TRUE; */
+	vfbPixmapDepths[16] = TRUE;
+	vfbPixmapDepths[24] = TRUE;
+	vfbPixmapDepths[32] = TRUE;
+    }
 
-  /* initialize screens */
-
-  for (i = 0; i < vfbNumScreens; i++)
-  {
-    if (-1 == AddScreen(vfbScreenInit, argc, argv))
+    for (i = 1; i <= 32; i++)
     {
-      FatalError("Couldn't add screen %d", i);
+	if (vfbPixmapDepths[i])
+	{
+	    if (NumFormats >= MAXFORMATS)
+		FatalError ("MAXFORMATS is too small for this server\n");
+	    screenInfo->formats[NumFormats].depth = i;
+	    screenInfo->formats[NumFormats].bitsPerPixel = vfbBitsPerPixel(i);
+	    screenInfo->formats[NumFormats].scanlinePad = BITMAP_SCANLINE_PAD;
+	    NumFormats++;
+	}
     }
-  }
 
-  if (!AddCallback(&ClientStateCallback, vfbClientStateChange, 0)) {
-    FatalError("AddCallback failed\n");
-  }
+    screenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
+    screenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
+    screenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
+    screenInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
+    screenInfo->numPixmapFormats = NumFormats;
 
+    /* initialize screens */
+
+    for (i = 0; i < vfbNumScreens; i++)
+    {
+	if (-1 == AddScreen(vfbScreenInit, argc, argv))
+	{
+	    FatalError("Couldn't add screen %d", i);
+	}
+    }
+
+    if (!AddCallback(&ClientStateCallback, vfbClientStateChange, 0)) {
+	FatalError("AddCallback failed\n");
+    }
 } /* end InitOutput */
 
 #ifdef DPMSExtension
