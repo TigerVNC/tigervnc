@@ -102,6 +102,7 @@ protected:
           index = SendMessage(combo, CB_GETCOUNT, 0, 0) - 1;
         }
         SendMessage(combo, CB_SETCURSEL, index, 0);
+        options->pixelFormatIndex = index - 1;
       }
     }
     return false;

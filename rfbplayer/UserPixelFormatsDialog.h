@@ -52,8 +52,7 @@ protected:
         if (edit.showDialog(handle)) {
           supportedPF->add(format_name, pf);
           SendMessage(pfList, LB_ADDSTRING, 0, (LPARAM)(LPCTSTR)format_name);
-        };
-       (*supportedPF)[15];
+        }
       }
       break;
     case IDC_REMOVE_BUTTON:
@@ -74,6 +73,11 @@ protected:
     case IDC_EDIT_BUTTON:
       {
         int index = SendMessage(pfList, LB_GETCURSEL, 0, 0);
+        if (index == LB_ERR) {
+          MessageBox(handle, "You must select the pixel format for remove.", 
+                     "RfbPlayer", MB_OK | MB_ICONWARNING);
+          return false;
+        }
         PixelFormat *pf = 
           &(supportedPF->operator[](index + supportedPF->getDefaultPFCount())->PF);
         char *format_name = 
@@ -83,7 +87,7 @@ protected:
           SendMessage(pfList, LB_DELETESTRING, index, 0);
           SendMessage(pfList, LB_INSERTSTRING, index, (LPARAM)(LPCTSTR)format_name);
           SendMessage(pfList, LB_SETCURSEL, index, 0);
-        };
+        }
       }
       break;
     default:

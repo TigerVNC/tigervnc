@@ -56,6 +56,10 @@ char usage_msg[] =
  "                \t  be - big endian byte order.\n"
  "                \t  The r, g, b component is in any order.\n"
  "                \t  Default: auto detect the pixel format.\n"
+ "  -upf <name>   \t- Forces the user defined pixel format for\n"
+ "                \t  the session. If <name> is empty then application\n"
+ "                \t  shows the list of user defined pixel formats.\n"
+ "                \t  Don't use this option with -pf.\n"
  "  -speed <value>\t- Sets playback speed, where 1 is normal speed,\n"
  "                \t  is double speed, 0.5 is half speed. Default: 1.0.\n"
  "  -pos <ms>     \t- Sets initial time position in the session file,\n"
@@ -1236,6 +1240,7 @@ char *fileName = 0;
 // it is used only for run the player with command-line parameters
 PlayerOptions playerOptions;
 bool print_usage = false;
+bool print_upf_list = false;
 
 bool processParams(int argc, char* argv[]) {
   playerOptions.commandLineParam = true;
@@ -1300,6 +1305,23 @@ bool processParams(int argc, char* argv[]) {
       continue;
     }
 
+    if ((strcasecmp(argv[i], "-upf") == 0) ||
+        (strcasecmp(argv[i], "/upf") == 0) && (i < argc-1)) {
+      if ((i == argc - 1) || (argv[++i][0] == '-')) {
+        print_upf_list = true;
+        return true;
+      }
+      PixelFormatList userPfList;
+      userPfList.readUserDefinedPF(HKEY_CURRENT_USER, UPF_REGISTRY_PATH);
+      int index = userPfList.getIndexByPFName(argv[i]);
+      if (index > 0) {
+        playerOptions.autoDetectPF = false;
+        playerOptions.setPF(&userPfList[index]->PF);
+      } else {
+        return false;
+      }
+      continue;
+    }
 
     if ((strcasecmp(argv[i], "-speed") == 0) ||
         (strcasecmp(argv[i], "/speed") == 0) && (i < argc-1)) {
@@ -1351,6 +1373,31 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   
   if (print_usage) {
     programUsage();
+    return 0;
+  }
+  // Show the user defined pixel formats if required
+  if (print_upf_list) {
+    int list_size = 45;
+    char *upf_list = new char[list_size];
+    PixelFormatList userPfList;
+    userPfList.readUserDefinedPF(HKEY_CURRENT_USER, UPF_REGISTRY_PATH);
+    strcpy(upf_list, "The list of the user defined pixel formats:\n");
+    for (int i = userPfList.getDefaultPFCount(); i < userPfList.count(); i++) {
+      if ((list_size - strlen(upf_list) - 1) < 
+          (strlen(userPfList[i]->format_name) + 2)) {
+        char *tmpStr = new char[list_size = 
+          list_size + strlen(userPfList[i]->format_name) + 2];
+        strcpy(tmpStr, upf_list);
+        delete [] upf_list;
+        upf_list = new char[list_size];
+        strcpy(upf_list, tmpStr);
+        delete [] tmpStr;
+      }
+      strcat(upf_list, userPfList[i]->format_name);
+      strcat(upf_list, "\n");
+    }
+    MessageBox(0, upf_list, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
+    delete [] upf_list;
     return 0;
   }
 
