@@ -235,7 +235,6 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
 RfbPlayer::~RfbPlayer() {
   vlog.debug("~RfbPlayer");
   if (rfbReader) {
-    rfbReader->stop();
     delete rfbReader->join();
     rfbReader = 0;
   }
@@ -820,7 +819,6 @@ void RfbPlayer::openSessionFile(char *_fileName) {
 
   // Close the previous reading thread
   if (rfbReader) {
-    rfbReader->stop();
     delete rfbReader->join();
   }
   blankBuffer();

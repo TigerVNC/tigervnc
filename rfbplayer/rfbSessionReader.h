@@ -32,16 +32,14 @@ public:
   };
   
   ~rfbSessionReader() {
-    fStop = true;
-    delete join();
   }
 
-  void stop() {
+  virtual Thread* join() {
     fStop = true;
+    return Thread::join();
   }
 
-  void rfbSessionReader::run() {
-    fStop = false;
+  virtual void rfbSessionReader::run() {
     // Process the rfb messages
     while (!fStop) {
       try {
