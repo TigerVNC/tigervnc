@@ -48,3 +48,24 @@ bool ToolBar::create(int _tbID, HWND parentHwnd, DWORD dwStyle) {
   }
   return (hwndToolBar ? true : false);
 };
+
+int ToolBar::addBitmap(int nButtons, UINT bitmapID) {
+  assert(nButtons > 0);
+  TBADDBITMAP resBitmap;
+  resBitmap.hInst = GetModuleHandle(0);
+  resBitmap.nID = bitmapID;
+  return SendMessage(getHandle(), TB_ADDBITMAP, nButtons, (LPARAM)&resBitmap);
+}
+
+int ToolBar::addSystemBitmap(UINT stdBitmapID) {
+  TBADDBITMAP resBitmap;
+  resBitmap.hInst = HINST_COMMCTRL;
+  resBitmap.nID = stdBitmapID;
+  return SendMessage(getHandle(), TB_ADDBITMAP, 0, (LPARAM)&resBitmap);
+}
+
+bool ToolBar::setBitmapSize(int width, int height) {
+  int result = SendMessage(getHandle(), TB_SETBITMAPSIZE, 
+    0, MAKELONG(width, height));
+  return (result ? true : false);
+}
