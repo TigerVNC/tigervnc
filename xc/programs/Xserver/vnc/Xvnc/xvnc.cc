@@ -108,24 +108,35 @@ extern int monitorResolution;
 
 typedef struct
 {
-  int scrnum;
-  int width;
-  int paddedBytesWidth;
-  int paddedWidth;
-  int height;
-  int depth;
-  int bitsPerPixel;
-  int sizeInBytes;
-  int ncolors;
-  char *pfbMemory;
-  XWDColor *pXWDCmap;
-  XWDFileHeader *pXWDHeader;
-  Pixel blackPixel;
-  Pixel whitePixel;
-  unsigned int lineBias;
-  Bool pixelFormatDefined;
-  Bool rgbNotBgr;
-  int redBits, greenBits, blueBits;
+    int scrnum;
+    int width;
+    int paddedBytesWidth;
+    int paddedWidth;
+    int height;
+    int depth;
+    int bitsPerPixel;
+    int sizeInBytes;
+    int ncolors;
+    char *pfbMemory;
+    XWDColor *pXWDCmap;
+    XWDFileHeader *pXWDHeader;
+    Pixel blackPixel;
+    Pixel whitePixel;
+    unsigned int lineBias;
+    CloseScreenProcPtr closeScreen;
+
+#ifdef HAS_MMAP
+    int mmap_fd;
+    char mmap_file[MAXPATHLEN];
+#endif
+
+#ifdef HAS_SHM
+    int shmid;
+#endif
+
+    Bool pixelFormatDefined;
+    Bool rgbNotBgr;
+    int redBits, greenBits, blueBits;
 
 } vfbScreenInfo, *vfbScreenInfoPtr;
 
@@ -904,6 +915,24 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs = {
     vfbCrossScreen,
     miPointerWarpCursor
 };
+
+static Bool
+vfbCloseScreen(int index, ScreenPtr pScreen)
+{
+    vfbScreenInfoPtr pvfb = &vfbScreens[index];
+    int i;
+ 
+    pScreen->CloseScreen = pvfb->closeScreen;
+
+    /*
+     * XXX probably lots of stuff to clean.  For now,
+     * clear InstalledMaps[] so that server reset works correctly.
+     */
+    for (i = 0; i < MAXSCREENS; i++)
+	InstalledMaps[i] = NULL;
+
+    return pScreen->CloseScreen(index, pScreen);
+}
 
 static Bool vfbScreenInit(int index, ScreenPtr pScreen, int argc, char** argv)
 {
