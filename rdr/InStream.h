@@ -71,6 +71,23 @@ namespace rdr {
     inline S16 readS16() { return (S16)readU16(); }
     inline S32 readS32() { return (S32)readU32(); }
 
+    // readCompactLength() reads 1..3 bytes representing length of the data
+    // following.  This method is used by the Tight decoder.
+
+    inline unsigned int readCompactLength() {
+      U8 b = readU8();
+      int result = (int)b & 0x7F;
+      if (b & 0x80) {
+        b = readU8();
+        result |= ((int)b & 0x7F) << 7;
+        if (b & 0x80) {
+          b = readU8();
+          result |= ((int)b & 0xFF) << 14;
+        }
+      }
+      return result;
+    }
+
     // readString() reads a string - a U32 length followed by the data.
     // Returns a null-terminated string - the caller should delete[] it
     // afterwards.
