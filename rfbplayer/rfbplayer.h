@@ -155,7 +155,7 @@ class RfbPlayer : public RfbProto {
     HWND frameHwnd;
     HWND timeStatic;
     HWND speedEdit;
-    HWND speedTrackBar;
+    HWND posTrackBar;
     HWND speedUpDown;
     HMENU hMenu;
     Rect window_size;

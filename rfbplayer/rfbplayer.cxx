@@ -45,6 +45,7 @@ extern const char* buildTime;
 
 #define strcasecmp _stricmp
 #define MAX_SPEED 10
+#define MAX_POS_TRACKBAR_RANGE 50
 
 #define ID_TOOLBAR 500
 #define ID_PLAY 510
@@ -202,7 +203,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
 : RfbProto(_fileName), initTime(_initTime), playbackSpeed(_playbackSpeed),
   autoplay(_autoplay), showControls(_showControls), buffer(0), client_size(0, 0, 32, 32), 
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), 
-  serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), speedTrackBar(0),
+  serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), posTrackBar(0),
   speedUpDown(0), acceptBell(_acceptBell), rfbReader(0) {
 
   if (showControls)
@@ -518,12 +519,12 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
   // Create the trackbar control for the time position
   tb.addButton(200, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
   tb.getButtonRect(8, &tRect);
-  speedTrackBar = CreateWindowEx(0, TRACKBAR_CLASS, "Trackbar Control", 
+  posTrackBar = CreateWindowEx(0, TRACKBAR_CLASS, "Trackbar Control", 
     WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE,
     tRect.left, tRect.top, tRect.right-tRect.left, tRect.bottom-tRect.top,
     parentHwnd, (HMENU)ID_POS_TRACKBAR, GetModuleHandle(0), 0);
   // It's need to send notify messages to toolbar parent window
-  SetParent(speedTrackBar, tb.getHandle());
+  SetParent(posTrackBar, tb.getHandle());
   tb.addButton(0, 10, TBSTATE_ENABLED, TBSTYLE_SEP);
 
   // Create the label with "Speed:" caption
@@ -724,6 +725,13 @@ void RfbPlayer::serverInit() {
 
   // Set the window title and show it
   setTitle(cp.name());
+
+  // Calculate the full session time and update posTrackBar control
+  long sec = calculateSessionTime(fileName);
+  sprintf(fullSessionTime, "%.2um:%.2us", sec / 60, sec % 60);
+  updatePos();
+  SendMessage(posTrackBar, TBM_SETRANGE, 
+    TRUE, MAKELONG(0, min(sec, MAX_POS_TRACKBAR_RANGE)));
 
   setPaused(!autoplay);
 }
