@@ -1174,7 +1174,7 @@ CView::autoSelectFormatAndEncoding() {
   // Select best color level
   newFullColour = (kbitsPerSecond > 256);
   if (newFullColour != options.fullColour) {
-    vlog.info("Throughput %d kbit/s - full colour is now %s", 
+    vlog.info("Throughput %d kbit/s - full color is now %s", 
 	      kbitsPerSecond,
 	      newFullColour ? "enabled" : "disabled");
     options.fullColour = newFullColour;

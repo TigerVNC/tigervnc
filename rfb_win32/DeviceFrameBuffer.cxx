@@ -146,7 +146,7 @@ void copyDevicePaletteToDIB(HDC dc, DIBSectionBuffer* dib) {
   UINT entries = ::GetSystemPaletteEntries(dc, 0, 256, syspalette);
 
   if (entries == 0) {
-    vlog.info("resorting to standard 16 colour palette");
+    vlog.info("resorting to standard 16 color palette");
     for (unsigned int i=0;i<256;i++) {
       int v = (i%16) >= 8 ? 127 : 255;
       syspalette[i].peRed = i & 1 ? v : 0;

@@ -170,11 +170,11 @@ void TransImageGetter::init(PixelBuffer* pb_, const PixelFormat& out,
 
   if (!outPF.trueColour) {
     if (outPF.bpp != 8)
-      throw Exception("TransImageGetter: outPF has colour map but not 8bpp");
+      throw Exception("TransImageGetter: outPF has color map but not 8bpp");
 
     if (!inPF.trueColour) {
       if (inPF.bpp != 8)
-        throw Exception("TransImageGetter: inPF has colourMap but not 8bpp");
+        throw Exception("TransImageGetter: inPF has colorMap but not 8bpp");
 
       // CM to CM/Cube
 
@@ -220,7 +220,7 @@ void TransImageGetter::init(PixelBuffer* pb_, const PixelFormat& out,
     // CM to TC
 
     if (inPF.bpp != 8)
-      throw Exception("TransImageGetter: inPF has colourMap but not 8bpp");
+      throw Exception("TransImageGetter: inPF has colorMap but not 8bpp");
     transFn = transSimpleFns[inPF.bpp/16][outPF.bpp/16];
     (*initSimpleCMtoTCFns[outPF.bpp/16]) (&table, inPF, pb->getColourMap(),
                                           outPF);

@@ -53,7 +53,7 @@ void DIBSectionBuffer::setPF(const PixelFormat& pf) {
   format = pf;
   recreateBuffer();
   if ((pf.bpp <= 8) && pf.trueColour) {
-    vlog.debug("creating %d-bit TrueColour palette", pf.depth);
+    vlog.debug("creating %d-bit TrueColor palette", pf.depth);
     for (int i=0; i < (1<<(pf.depth)); i++) {
       palette[i].b = ((((i >> pf.blueShift) & pf.blueMax) * 65535) + pf.blueMax/2) / pf.blueMax;
       palette[i].g = ((((i >> pf.greenShift) & pf.greenMax) * 65535) + pf.greenMax/2) / pf.greenMax;
@@ -208,7 +208,7 @@ void DIBSectionBuffer::recreateBuffer() {
 
 void DIBSectionBuffer::refreshPalette() {
   if (format.bpp > 8) {
-    vlog.error("refresh palette called for truecolour DIB");
+    vlog.error("refresh palette called for truecolor DIB");
     return;
   }
   vlog.debug("refreshing palette");

@@ -154,7 +154,7 @@ void PixelFormat::print(char* str, int len) const
   }
 
   if (!trueColour) {
-    strncat(str, " colour-map", len-1-strlen(str));
+    strncat(str, " color-map", len-1-strlen(str));
     return;
   }
 

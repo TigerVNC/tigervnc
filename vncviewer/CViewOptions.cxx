@@ -34,12 +34,16 @@ using namespace rfb::win32;
 static BoolParameter useLocalCursor("UseLocalCursor", "Render the mouse cursor locally", true);
 static BoolParameter useDesktopResize("UseDesktopResize", "Support dynamic desktop resizing", true);
 
-static BoolParameter fullColour("FullColour",
-				"Use full colour", true);
-static IntParameter lowColourLevel("LowColourLevel",
-                         "Colour level to use on slow connections. "
-                         "0 = Very Low (8 colours), 1 = Low (64 colours), 2 = Medium (256 colours)",
+static BoolParameter fullColour("FullColor",
+				"Use full color", true);
+static AliasParameter fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
+
+static IntParameter lowColourLevel("LowColorLevel",
+                         "Color level to use on slow connections. "
+                         "0 = Very Low (8 colors), 1 = Low (64 colors), 2 = Medium (256 colors)",
                          2);
+static AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", &lowColourLevel);
+
 static BoolParameter fullScreen("FullScreen",
                          "Use the whole display to show the remote desktop."
                          "(Press F8 to access the viewer menu)",

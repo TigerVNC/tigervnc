@@ -683,7 +683,7 @@ void CConn::autoSelectFormatAndEncoding()
   // Select best color level
   newFullColour = (kbitsPerSecond > 256);
   if (newFullColour != fullColour) {
-    vlog.info("Throughput %d kbit/s - full colour is now %s", 
+    vlog.info("Throughput %d kbit/s - full color is now %s", 
 	      kbitsPerSecond,
 	      newFullColour ? "enabled" : "disabled");
     fullColour = newFullColour;

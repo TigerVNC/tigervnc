@@ -578,7 +578,7 @@ void RfbPlayer::serverInit() {
 
   // Check on the true colour mode
   if (!(cp.pf()).trueColour)
-    throw rdr::Exception("This version plays only true colour session!");
+    throw rdr::Exception("This version plays only true color session!");
 
   // Set the session pixel format
   buffer->setPF(cp.pf()); 

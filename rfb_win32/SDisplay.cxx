@@ -452,7 +452,7 @@ SDisplay::notifyDisplayEvent(WMMonitor::Notifier::DisplayEventType evt) {
     recreatePixelBuffer();
     break;
   case WMMonitor::Notifier::DisplayColourMapChanged:
-    vlog.debug("desktop colourmap changed");
+    vlog.debug("desktop colormap changed");
     pb->updateColourMap();
     if (server)
       server->setColourMapEntries();

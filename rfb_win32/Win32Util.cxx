@@ -115,7 +115,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
       switch (bi.bmiHeader.biBitCount) {
       case 16:
         // RGB 555 - High Colour
-        dcLog.info("16-bit High Colour");
+        dcLog.info("16-bit High Color");
         rMask = 0x7c00;
         bMask = 0x001f;
         gMask = 0x03e0;
@@ -124,7 +124,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
       case 24:
       case 32:
         // RGB 888 - True Colour
-        dcLog.info("24/32-bit High Colour");
+        dcLog.info("24/32-bit High Color");
         rMask = 0xff0000;
         gMask = 0x00ff00;
         bMask = 0x0000ff;

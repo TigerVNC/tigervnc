@@ -166,7 +166,7 @@ END
 
 IDD_FORMAT DIALOG DISCARDABLE  0, 0, 201, 160
 STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Colour/Encoding"
+CAPTION "Color/Encoding"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "&Auto select",IDC_ENCODING_AUTO,"Button",
@@ -180,14 +180,14 @@ BEGIN
     CONTROL         "Raw",IDC_ENCODING_RAW,"Button",BS_AUTORADIOBUTTON,10,75,
                     75,15
 
-    GROUPBOX        "Colour level",IDC_STATIC,95,20,99,75
-    CONTROL         "&Full (all available colours)",IDC_FORMAT_FULLCOLOUR,
+    GROUPBOX        "Color level",IDC_STATIC,95,20,99,75
+    CONTROL         "&Full (all available colors)",IDC_FORMAT_FULLCOLOUR,
                     "Button",BS_AUTORADIOBUTTON | WS_GROUP,100,30,90,15
-    CONTROL         "&Medium (256 colours)",IDC_FORMAT_MEDIUMCOLOUR,"Button",
+    CONTROL         "&Medium (256 colors)",IDC_FORMAT_MEDIUMCOLOUR,"Button",
                     BS_AUTORADIOBUTTON,100,45,90,14
-    CONTROL         "&Low (64 colours)",IDC_FORMAT_LOWCOLOUR,"Button",
+    CONTROL         "&Low (64 colors)",IDC_FORMAT_LOWCOLOUR,"Button",
                     BS_AUTORADIOBUTTON,100,60,90,16
-    CONTROL         "&Very low (8 colours)",IDC_FORMAT_VERYLOWCOLOUR,"Button",
+    CONTROL         "&Very low (8 colors)",IDC_FORMAT_VERYLOWCOLOUR,"Button",
                     BS_AUTORADIOBUTTON,100,75,90,15
 
     CONTROL         "Custom compression level:",IDC_CUSTOM_COMPRESSLEVEL,

@@ -50,7 +50,7 @@ for depth 16 is RGB565 and for depth 24 is RGB888.
 .TP
 .B \-cc 3
 As an alternative to the default TrueColor visual, this allows you to run an
-Xvnc server with a PseudoColor visual (i.e. one which uses a colour map or
+Xvnc server with a PseudoColor visual (i.e. one which uses a color map or
 palette), which can be useful for running some old X applications which only
 work on such a display.  Values other than 3 (PseudoColor) and 4 (TrueColor)
 for the \-cc option may result in strange behaviour, and PseudoColor desktops
