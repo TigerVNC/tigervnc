@@ -262,6 +262,7 @@ RfbPlayer::~RfbPlayer() {
   }
   if (buffer) delete buffer;
   if (cutText) delete [] cutText;
+  if (fileName) delete [] fileName;
   vlog.debug("~RfbPlayer done"); 
 }
 
@@ -957,6 +958,7 @@ void RfbPlayer::closeSessionFile() {
   }
   blankBuffer();
   setTitle("None");
+  SetWindowText(timeStatic,"00m:00s (00m:00s)");
   playbackSpeed = 1.0;
   SendMessage(speedUpDown, UDM_SETPOS, 
     0, MAKELONG((short)(playbackSpeed / 0.5), 0));
