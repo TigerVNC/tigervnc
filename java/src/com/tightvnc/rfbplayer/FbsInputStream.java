@@ -28,6 +28,7 @@ class FbsInputStream extends InputStream {
   protected InputStream in;
   protected long startTime;
   protected long timeOffset;
+  protected long seekOffset;
   protected boolean paused;
 
   protected byte[] buffer;
@@ -51,6 +52,7 @@ class FbsInputStream extends InputStream {
     this.in = in;
     startTime = System.currentTimeMillis();
     timeOffset = 0;
+    seekOffset = -1;
     paused = false;
 
     byte[] b = new byte[12];
@@ -97,6 +99,7 @@ class FbsInputStream extends InputStream {
     in = null;
     startTime = -1;
     timeOffset = 0;
+    seekOffset = -1;
     paused = false;
 
     buffer = null;
@@ -113,13 +116,17 @@ class FbsInputStream extends InputStream {
     return timeOffset;
   }
 
-  public void setTimeOffset(int pos)
+  public synchronized void setTimeOffset(int pos)
   {
+    // FIXME: Seeking works only in paused mode.
+    paused = true;
+    seekOffset = pos;
+    notify();
   }
 
   public boolean isSeeking()
   {
-    return false;
+    return (seekOffset >= 0);
   }
 
   public synchronized void pausePlayback()
@@ -160,6 +167,13 @@ class FbsInputStream extends InputStream {
       return false;
     }
 
+    if (seekOffset >= 0) {
+      if (timeOffset >= seekOffset) {
+	seekOffset = -1;
+      }
+      return true;
+    }
+
     while (true) {
       long timeDiff = startTime + timeOffset - System.currentTimeMillis();
       if (timeDiff <= 0) {
@@ -183,7 +197,7 @@ class FbsInputStream extends InputStream {
 
   private void waitWhilePaused()
   {
-    while (paused) {
+    while (paused && !isSeeking()) {
       synchronized(this) {
 	try {
 	  wait();

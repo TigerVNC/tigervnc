@@ -60,6 +60,11 @@ class VncCanvas extends Canvas {
   // which decodes and loads JPEG images.
   Rectangle jpegRect;
 
+  // When we're in the seeking mode, we should not update the desktop. 
+  // This variable helps us to remember that repainting the desktop at
+  // once is necessary when the seek operation is finished.
+  boolean seekMode;
+
   //
   // The constructor.
   //
@@ -67,6 +72,7 @@ class VncCanvas extends Canvas {
   VncCanvas(RfbPlayer player) throws IOException {
     this.player = player;
     rfb = player.rfb;
+    seekMode = false;
 
     cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
 
@@ -809,9 +815,19 @@ class VncCanvas extends Canvas {
   //
 
   void scheduleRepaint(int x, int y, int w, int h) {
-    // Request repaint if not in the seeking mode.
-    if (!player.fbsStream.isSeeking())
-      repaint(player.deferScreenUpdates, x, y, w, h);
+    if (player.fbsStream.isSeeking()) {
+      // Do nothing, and remember we are seeking.
+      seekMode = true;
+    } else {
+      if (seekMode) {
+	// Full-screen immediate repaint after seeking.
+	repaint();
+      } else {
+	// Usual incremental repaint in playback mode.
+	repaint(player.deferScreenUpdates, x, y, w, h);
+      }
+      seekMode = false;
+    }
   }
 
 }
