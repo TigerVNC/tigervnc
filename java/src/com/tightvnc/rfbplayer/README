@@ -17,10 +17,11 @@ Applet Parameters
     Value: URL of the session file to play.
     Default: none (required parameter).
 
-    This parameter tells the player which session file to play. Please note
-    that if the player operates as an unsigned applet, it is able to play
-    only files from the host where the applet was loaded from. It's a usual
-    JVM security limitation.
+    This parameter tells the player which session file to play. The URL can
+    be either a complete one (e.g. "file:/your/path/session.fbs") or relative
+    (e.g. "session.fbs"). Please note that if the player operates as an
+    unsigned applet, it is able to play only files from the host where the
+    applet was loaded from. It's a usual JVM security limitation.
 
 --> "Position"
 

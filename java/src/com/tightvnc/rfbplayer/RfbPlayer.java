@@ -120,7 +120,11 @@ public class RfbPlayer extends java.applet.Applet
     }
 
     try {
-      url = new URL(sessionURL);
+      if (inAnApplet) {
+	url = new URL(getCodeBase(), sessionURL);
+      } else {
+	url = new URL(sessionURL);
+      }
       rfb = new RfbProto(url);
 
       vc = new VncCanvas(this);
