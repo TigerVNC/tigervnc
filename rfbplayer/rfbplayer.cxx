@@ -408,7 +408,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case ID_HELP_COMMANDLINESWITCHES:
       {
         InfoDialog usageDialog(usage_msg);
-        usageDialog.showDialog();
+        usageDialog.showDialog(getMainHandle());
       }
       break;
     case ID_ABOUT:
