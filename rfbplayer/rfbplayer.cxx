@@ -240,6 +240,8 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
     openSessionFile(fileName);
     if (initTime > 0) setPos(initTime);
     setSpeed(playbackSpeed);
+  } else {
+    disableTBandMenuItems();
   }
 }
 
@@ -953,6 +955,7 @@ void RfbPlayer::openSessionFile(char *_fileName) {
   rfbReader = new rfbSessionReader(this);
   rfbReader->start();
   SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
+  enableTBandMenuItems();
 }
 
 void RfbPlayer::setPaused(bool paused) {
