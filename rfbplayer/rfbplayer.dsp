@@ -140,6 +140,10 @@ SOURCE=.\ChoosePixelFormatDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\EditPixelFormatDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FbsInputStream.h
 # End Source File
 # Begin Source File
