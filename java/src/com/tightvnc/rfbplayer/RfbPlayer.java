@@ -283,7 +283,7 @@ public class RfbPlayer extends java.applet.Applet
     double result = defaultValue;
     if (str != null) {
       try {
-	result = Double.parseDouble(str);
+	result = Double.valueOf(str).doubleValue();
       } catch (NumberFormatException e) { }
     }
     return result;

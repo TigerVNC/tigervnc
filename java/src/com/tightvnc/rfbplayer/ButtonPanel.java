@@ -88,7 +88,7 @@ class ButtonPanel extends Panel implements ActionListener {
     } else if (evt.getSource() == posText) {
       player.setPos(Long.parseLong(posText.getText()) * 1000);
     } else if (evt.getSource() == timeScaleText) {
-      double speed = Double.parseDouble(timeScaleText.getText());
+      double speed = Double.valueOf(timeScaleText.getText()).doubleValue();
       if (speed <= 0.0)
 	speed = 1.0;
       timeScaleText.setText(String.valueOf(speed));
