@@ -1,0 +1,1 @@
+const char* buildTime = "Built on " __DATE__ " at " __TIME__;

@@ -1,0 +1,254 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 4,0,0,26
+ PRODUCTVERSION 4,0,0,26
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "RealVNC Ltd.\0"
+            VALUE "FileDescription", "VNC Server for Win32\0"
+            VALUE "FileVersion", "4.0\0"
+            VALUE "InternalName", "WinVNC 4.0\0"
+            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2004\0"
+            VALUE "LegalTrademarks", "RealVNC\0"
+            VALUE "OriginalFilename", "winvnc4.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "VNC Server 4.0\0"
+            VALUE "ProductVersion", "4.0\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON    DISCARDABLE     "winvnc.ico"
+IDI_CONNECTED           ICON    DISCARDABLE     "connected.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_TRAY MENU DISCARDABLE 
+BEGIN
+    POPUP "Tray Menu"
+    BEGIN
+        MENUITEM "&Options...",                 ID_OPTIONS
+        MENUITEM SEPARATOR
+        MENUITEM "Add &New Client",             ID_CONNECT
+        MENUITEM "&Disconnect Clients",         ID_DISCONNECT
+        MENUITEM SEPARATOR
+        MENUITEM "&Close VNC Server",           ID_CLOSE
+        MENUITEM "&About...",                   ID_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About VNC Server for Windows"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,195,70,47,15
+    ICON            IDI_ICON,IDC_STATIC,7,7,20,20
+    LTEXT           ">appname<",IDC_DESCRIPTION,40,7,125,18
+    LTEXT           ">version<",IDC_VERSION,165,7,77,18
+    LTEXT           ">buildtime<",IDC_BUILDTIME,40,25,202,15
+    LTEXT           ">copyright<",IDC_COPYRIGHT,40,40,202,15
+    LTEXT           "See http://www.realvnc.com for more information on VNC.",
+                    IDC_STATIC,40,55,202,15
+END
+
+IDD_QUERY_CONNECT DIALOG DISCARDABLE  0, 0, 164, 93
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "VNC Server : Accept Connection?"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&Reject",IDCANCEL,105,72,52,14
+    PUSHBUTTON      "&Accept",IDOK,7,72,53,14
+    RTEXT           "User:",IDC_STATIC,7,10,28,15,SS_CENTERIMAGE
+    RTEXT           "Host:",IDC_STATIC,7,30,28,15,SS_CENTERIMAGE
+    CTEXT           "Seconds until automatic reject:",IDC_STATIC,7,50,113,15,
+                    SS_CENTERIMAGE
+    LTEXT           "-",IDC_QUERY_COUNTDOWN,125,50,32,15,SS_CENTERIMAGE
+    LTEXT           "-",IDC_QUERY_USER,40,10,117,15,SS_CENTERIMAGE
+    LTEXT           "-",IDC_QUERY_HOST,40,30,117,15,SS_CENTERIMAGE
+END
+
+IDD_ADD_NEW_CLIENT DIALOG DISCARDABLE  0, 0, 183, 53
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "VNC Server : Add New Client"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_HOST,70,10,105,15,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,70,32,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,125,32,50,14
+    ICON            IDI_ICON,IDC_STATIC,7,10,21,20,SS_REALSIZEIMAGE
+    CONTROL         "Viewer:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | 
+                    SS_CENTERIMAGE | WS_GROUP,35,10,30,15
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// HTTPFILE
+//
+
+/VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "java\\vncviewer.jar"
+/LOGO150X150.GIF        HTTPFILE DISCARDABLE    "java\\logo150x150.gif"
+/INDEX.VNC              HTTPFILE DISCARDABLE    "java\\index.vnc"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 24
+//
+
+IDR_MANIFEST            24      DISCARDABLE     "winvnc4.exe.manifest"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_QUERY_CONNECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 157
+        VERTGUIDE, 35
+        VERTGUIDE, 40
+        VERTGUIDE, 60
+        VERTGUIDE, 120
+        VERTGUIDE, 125
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+        HORZGUIDE, 30
+        HORZGUIDE, 45
+        HORZGUIDE, 50
+        HORZGUIDE, 65
+    END
+
+    IDD_ADD_NEW_CLIENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        VERTGUIDE, 35
+        VERTGUIDE, 65
+        VERTGUIDE, 70
+        VERTGUIDE, 120
+        VERTGUIDE, 125
+        VERTGUIDE, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 46
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.K.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
