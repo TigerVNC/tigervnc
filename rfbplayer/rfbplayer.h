@@ -33,7 +33,7 @@ using namespace rfb::win32;
 class RfbPlayer : public RfbProto {
   public:
     RfbPlayer(char *filename, long _pos, double s_peed, bool autoplay, 
-              bool _showControls, bool _acceptBell);
+              bool _acceptBell);
     ~RfbPlayer();
 
     // -=- Window Message handling
@@ -106,7 +106,7 @@ class RfbPlayer : public RfbProto {
 
     // -=- Functions used to manage player's parameters
 
-    void setOptions(long pos, double speed, bool autoPlay, bool showControls);
+    void setOptions(long pos, double speed, bool autoPlay);
     void applyOptions();
 
     // -=- Player functions
@@ -170,7 +170,6 @@ class RfbPlayer : public RfbProto {
     ToolBar tb;
 
     // The player's parameters
-    bool showControls;
     bool autoplay;
     double playbackSpeed;
     long initTime;

@@ -18,8 +18,6 @@
 
 // -=- RFB Player for Win32
 
-#include <conio.h>
-
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/Threading.h>
@@ -40,6 +38,21 @@ static LogWriter vlog("RfbPlayer");
 
 TStr rfb::win32::AppName("RfbPlayer");
 extern const char* buildTime;
+
+char wrong_cmd_msg[] = 
+ "Wrong command-line parameters!\n"
+ "Use for help: rfbplayer -help";
+
+char usage_msg[] = 
+ "usage: rfbplayer <options> <filename>\n"
+ "Command-line options:\n"
+ "  -help         \t- Provide usage information.\n"
+ "  -speed <value>\t- Sets playback speed, where 1 is normal speed,\n"
+ "                \t  is double speed, 0.5 is half speed. Default: 1.0.\n"
+ "  -pos <ms>     \t- Sets initial time position in the session file,\n"
+ "                \t  in milliseconds. Default: 0.\n"
+ "  -autoplay     \t- Runs the player in the playback mode.\n"
+ "  -bell         \t- Accepts the bell.\n";
 
 // -=- RfbPlayer's defines
 
@@ -198,19 +211,15 @@ RfbFrameClass frameClass;
 //
 
 RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed = 1.0,
-                     bool _autoplay = false, bool _showControls = true, 
-                     bool _acceptBell = false)
+                     bool _autoplay = false, bool _acceptBell = false)
 : RfbProto(_fileName), initTime(_initTime), playbackSpeed(_playbackSpeed),
-  autoplay(_autoplay), showControls(_showControls), buffer(0), client_size(0, 0, 32, 32), 
+  autoplay(_autoplay), buffer(0), client_size(0, 0, 32, 32), 
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), 
   serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), posTrackBar(0),
   speedUpDown(0), acceptBell(_acceptBell), rfbReader(0), sessionTimeMs(0),
   sliderDraging(false), sliderStepMs(0), loopPlayback(false) {
 
-  if (showControls)
-    CTRL_BAR_HEIGHT = 28;
-  else
-    CTRL_BAR_HEIGHT = 0;
+  CTRL_BAR_HEIGHT = 28;
 
   // Reset the full session time
   strcpy(fullSessionTime, "00m:00s");
@@ -227,10 +236,12 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   // Create the backing buffer
   buffer = new win32::DIBSectionBuffer(getFrameHandle());
   setVisible(true);
-  
+    
   // Open the session file
   if (fileName) {
     openSessionFile(fileName);
+    if (initTime > 0) setPos(initTime);
+    setSpeed(playbackSpeed);
   }
 }
 
@@ -535,8 +546,7 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 }
 
 void RfbPlayer::setOptions(long _initTime = 0, double _playbackSpeed = 1.0,
-                           bool _autoplay = false, bool _showControls = true) {
-  showControls = _showControls;
+                           bool _autoplay = false) {
   autoplay = _autoplay;
   playbackSpeed = _playbackSpeed;
   initTime = _initTime;
@@ -989,25 +999,13 @@ void programInfo() {
 }
 
 void programUsage() {
-  printf("usage: rfbplayer <options> <filename>\n");
-  printf("Command-line options:\n");
-  printf("  -help               - Provide usage information.\n");
-  printf("  -speed <value>      - Sets playback speed, where 1 is normal speed,\n");
-  printf("                        2 is double speed, 0.5 is half speed. Default: 1.0.\n");
-  printf("  -pos <ms>           - Sets initial time position in the session file,\n"); 
-  printf("                        in milliseconds. Default: 0.\n");
-  printf("  -autoplay <yes|no>  - Runs the player in the playback mode. Default: \"no\".\n");
-  printf("  -controls <yes|no>  - Shows the control panel at the top. Default: \"yes\".\n");
-  printf("  -bell <yes|no>      - Accepts the bell. Default: \"no\".\n");
+  MessageBox(0, usage_msg, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
 }
 
 double playbackSpeed = 1.0;
 long initTime = -1;
 bool autoplay = false;
-bool showControls = true;
 char *fileName;
-bool console = false;
-bool wrong_param = false;
 bool print_usage = false;
 bool acceptBell = false;
 
@@ -1018,7 +1016,8 @@ bool processParams(int argc, char* argv[]) {
         (strcasecmp(argv[i], "/help") == 0) ||
         (strcasecmp(argv[i], "-h") == 0) ||
         (strcasecmp(argv[i], "/h") == 0) ||
-        (strcasecmp(argv[i], "/?") == 0)) {
+        (strcasecmp(argv[i], "/?") == 0) ||
+        (strcasecmp(argv[i], "-?") == 0)) {
       print_usage = true;
       return true;
     }
@@ -1042,44 +1041,14 @@ bool processParams(int argc, char* argv[]) {
 
     if ((strcasecmp(argv[i], "-autoplay") == 0) ||
         (strcasecmp(argv[i], "/autoplay") == 0) && (i < argc-1)) {
-      i++;
-      if (strcasecmp(argv[i], "yes") == 0) {
-        autoplay = true;
-        continue;
-      }
-      if (strcasecmp(argv[i], "no") == 0) {
-        autoplay = false;
-        continue;
-      }
-      return false;
-    }
-
-    if ((strcasecmp(argv[i], "-controls") == 0) ||
-        (strcasecmp(argv[i], "/controls") == 0) && (i < argc-1)) {
-      i++;
-      if (strcasecmp(argv[i], "yes") == 0) {
-        showControls  = true;
-        continue;
-      }
-      if (strcasecmp(argv[i], "no") == 0) {
-        showControls = false;
-        continue;
-      }
-      return false;
+      autoplay = true;
+      continue;
     }
 
     if ((strcasecmp(argv[i], "-bell") == 0) ||
         (strcasecmp(argv[i], "/bell") == 0) && (i < argc-1)) {
-      i++;
-      if (strcasecmp(argv[i], "yes") == 0) {
-        acceptBell  = true;
-        continue;
-      }
-      if (strcasecmp(argv[i], "no") == 0) {
-        acceptBell = false;
-        continue;
-      }
-      return false;
+      acceptBell  = true;
+      continue;
     }
 
     if (i != argc - 1)
@@ -1100,35 +1069,21 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
 
   int argc = __argc;
   char** argv = __argv;
-  if (argc > 1) {
-    wrong_param = !processParams(argc, argv);
-    console = print_usage | wrong_param;
-  } else {
-    console = true;
+  if ((argc > 1) && (!processParams(argc, argv))) {
+    MessageBox(0, wrong_cmd_msg, "RfbPlayer", MB_OK | MB_ICONWARNING);
+    return 0;
   }
-
-  if (console) {
-    AllocConsole();
-    freopen("CONOUT$","wb",stdout);
-
-    programInfo();
-    if (wrong_param)
-      printf("Wrong a command line.\n");
-    else
-      programUsage();
-
-    printf("\nPress Enter/Return key to continue\n");
-    char c = getch();
-    FreeConsole();
-
+  
+  if (print_usage) {
+    programUsage();
     return 0;
   }
 
-  // Create the player and the thread which reading the rfb data
+  // Create the player
   RfbPlayer *player = NULL;
   try {
     player = new RfbPlayer(fileName, initTime, playbackSpeed, autoplay, 
-                           showControls, acceptBell);
+                           acceptBell);
   } catch (rdr::Exception e) {
     MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);
     delete player;
@@ -1145,7 +1100,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
     }
   }
 
-  // Wait while the thread destroying and then destroy the player
+  // Destroy the player
   try{
     if (player) delete player;
   } catch (rdr::Exception e) {
