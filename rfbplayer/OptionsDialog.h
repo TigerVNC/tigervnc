@@ -43,36 +43,41 @@ protected:
         0, (LPARAM)(LPCTSTR)(((*supportedPF)[i]).format_name));
     }
     SendMessage(combo, CB_SETCURSEL, options->pixelFormatIndex + 1, 0);
-    if (options->askPixelFormat) {
-      setItemChecked(IDC_ASK_PF, true);
-      enableItem(IDC_PIXELFORMAT, false);
-    }
     setItemChecked(IDC_ACCEPT_BELL, options->acceptBell);
     setItemChecked(IDC_ACCEPT_CUT_TEXT, options->acceptCutText);
     setItemChecked(IDC_AUTO_STORE_PARAM, options->autoStoreSettings);
     setItemChecked(IDC_AUTOPLAY, options->autoPlay);
+    setItemChecked(IDC_BIG_ENDIAN, options->bigEndianFlag);
+    if (options->askPixelFormat) {
+      setItemChecked(IDC_ASK_PF, true);
+      enableItem(IDC_PIXELFORMAT, false);
+      enableItem(IDC_BIG_ENDIAN, false);
+    }
   }
   virtual bool onOk() {
-    if (!isItemChecked(IDC_ASK_PF)) {
-      options->pixelFormatIndex = SendMessage(combo, CB_GETCURSEL, 0, 0) - 1;
-      if (options->pixelFormatIndex < 0) {
-        options->autoDetectPF = true;
-      } else {
-        options->setPF(&((*supportedPF)[options->pixelFormatIndex]).PF);
-        options->autoDetectPF = false;
-      }
-    }
     options->askPixelFormat = isItemChecked(IDC_ASK_PF);
     options->acceptBell = isItemChecked(IDC_ACCEPT_BELL);
     options->acceptCutText = isItemChecked(IDC_ACCEPT_CUT_TEXT);
     options->autoStoreSettings = isItemChecked(IDC_AUTO_STORE_PARAM);
     options->autoPlay = isItemChecked(IDC_AUTOPLAY);
+    options->bigEndianFlag = isItemChecked(IDC_BIG_ENDIAN);
     options->writeToRegistry();
+    if (!options->askPixelFormat) {
+      options->pixelFormatIndex = SendMessage(combo, CB_GETCURSEL, 0, 0) - 1;
+      if (options->pixelFormatIndex < 0) {
+        options->autoDetectPF = true;
+      } else {
+        options->setPF(&((*supportedPF)[options->pixelFormatIndex]).PF);
+        options->pixelFormat.bigEndian = options->bigEndianFlag;
+        options->autoDetectPF = false;
+      }
+    }
     return true;
   }
   virtual bool onCommand(int item, int cmd) { 
     if (item == IDC_ASK_PF) {
       enableItem(IDC_PIXELFORMAT, !isItemChecked(IDC_ASK_PF));
+      enableItem(IDC_BIG_ENDIAN, !isItemChecked(IDC_ASK_PF));
     }
     if (item == IDC_DEFAULT) {
       SendMessage(combo, CB_SETCURSEL, DEFAULT_PF_INDEX, 0);
@@ -82,6 +87,7 @@ protected:
       setItemChecked(IDC_ACCEPT_CUT_TEXT, DEFAULT_ACCEPT_CUT_TEXT);
       setItemChecked(IDC_AUTO_STORE_PARAM, DEFAULT_STORE_SETTINGS);
       setItemChecked(IDC_AUTOPLAY, DEFAULT_AUTOPLAY);
+      setItemChecked(IDC_BIG_ENDIAN, DEFAULT_BIG_ENDIAN);
     }
     return false;
   }

@@ -17,6 +17,7 @@
 #define IDC_ACCEPT_CUT_TEXT             1010
 #define IDC_AUTO_STORE_PARAM            1011
 #define IDC_AUTOPLAY                    1012
+#define IDC_BIG_ENDIAN                  1013
 #define ID_OPENFILE                     40011
 #define ID_CLOSEFILE                    40012
 #define ID_EXIT                         40013
@@ -42,7 +43,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         40045
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -223,32 +223,34 @@ BEGIN
     LTEXT           "Choose the pixel format:",IDC_STATIC,7,7,130,13
 END
 
-IDD_OPTIONS DIALOG DISCARDABLE  0, 0, 187, 181
+IDD_OPTIONS DIALOG DISCARDABLE  0, 0, 187, 194
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,20,160,50,15
-    PUSHBUTTON      "Cancel",IDCANCEL,75,160,50,15
-    GROUPBOX        "Pixel format",IDC_STATIC,7,6,173,64
+    DEFPUSHBUTTON   "OK",IDOK,20,174,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,174,50,14
+    GROUPBOX        "Pixel format",IDC_STATIC,7,6,173,79
     COMBOBOX        IDC_PIXELFORMAT,15,30,145,75,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Ask the pixel format before playing",IDC_ASK_PF,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,52,145,10
-    PUSHBUTTON      "Default",IDC_DEFAULT,130,160,50,15
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,67,145,10
+    PUSHBUTTON      "Default",IDC_DEFAULT,130,174,50,14
     LTEXT           "Forces the pixel format for the rfb session:",
                     IDC_STATIC,15,17,145,13
-    GROUPBOX        "Other",IDC_STATIC,7,75,173,80
+    GROUPBOX        "Other",IDC_STATIC,7,90,173,79
     CONTROL         "Accept the bells",IDC_ACCEPT_BELL,"Button",
-                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,90,145,15
-    CONTROL         "Accept the cut text",IDC_ACCEPT_CUT_TEXT,"Button",
                     BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,105,145,15
+    CONTROL         "Accept the cut text",IDC_ACCEPT_CUT_TEXT,"Button",
+                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,120,145,15
     CONTROL         "Auto store the player settings",IDC_AUTO_STORE_PARAM,
-                    "Button",BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,120,
-                    145,15
-    CONTROL         "Start play the session when it is opened",IDC_AUTOPLAY,
                     "Button",BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,135,
                     145,15
+    CONTROL         "Start play the session when it is opened",IDC_AUTOPLAY,
+                    "Button",BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,150,
+                    145,9
+    CONTROL         "Big endian flag",IDC_BIG_ENDIAN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,52,145,10
 END
 
 
@@ -302,19 +304,20 @@ BEGIN
         VERTGUIDE, 130
         VERTGUIDE, 160
         TOPMARGIN, 6
-        BOTTOMMARGIN, 175
+        BOTTOMMARGIN, 188
         HORZGUIDE, 17
         HORZGUIDE, 30
+        HORZGUIDE, 42
         HORZGUIDE, 52
-        HORZGUIDE, 70
-        HORZGUIDE, 75
+        HORZGUIDE, 67
+        HORZGUIDE, 85
         HORZGUIDE, 90
         HORZGUIDE, 105
         HORZGUIDE, 120
         HORZGUIDE, 135
         HORZGUIDE, 150
-        HORZGUIDE, 155
-        HORZGUIDE, 160
+        HORZGUIDE, 169
+        HORZGUIDE, 174
     END
 END
 #endif    // APSTUDIO_INVOKED
