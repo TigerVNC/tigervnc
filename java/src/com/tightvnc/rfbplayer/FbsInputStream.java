@@ -155,7 +155,7 @@ class FbsInputStream extends InputStream {
 
   public long getSeekOffset()
   {
-    return seekOffset;
+    return (long)(seekOffset * playbackSpeed);
   }
 
   public boolean isPaused()
