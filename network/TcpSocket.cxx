@@ -69,7 +69,7 @@ int network::findFreeTcpPort (void)
   for (port = TUNNEL_PORT_OFFSET + 99; port > TUNNEL_PORT_OFFSET; port--) {
     addr.sin_port = htons ((unsigned short) port);
     if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) == 0) {
-      close (sock);
+      closesocket (sock);
       return port;
     }
   }
@@ -137,8 +137,10 @@ TcpSocket::TcpSocket(const char *host, int port)
   for (;;) {
     if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
       int e = errorNumber;
+#ifndef WIN32
       if (e == EINTR)
 	continue;
+#endif
       closesocket(sock);
       throw SocketException("unable to connect to host", e);
     } else break;
