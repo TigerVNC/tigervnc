@@ -80,16 +80,16 @@ class RfbProto {
   // Constructor.
   //
 
-  RfbProto(InputStream is) throws IOException {
+  RfbProto(InputStream is) throws Exception {
     newInputStream(is);
   }
 
-  public void newInputStream(InputStream is) throws IOException {
+  public void newInputStream(InputStream is) throws Exception {
     this.is = new DataInputStream(is);
 
     readVersionMsg();
     if (readAuthScheme() != NoAuth) {
-      throw new IOException("Wrong authentication type in the session file");
+      throw new Exception("Wrong authentication type in the session file");
     }
     readServerInit();
   }
@@ -156,7 +156,7 @@ class RfbProto {
   boolean bigEndian, trueColour;
   int redMax, greenMax, blueMax, redShift, greenShift, blueShift;
 
-  void readServerInit() throws IOException {
+  void readServerInit() throws Exception {
     framebufferWidth = is.readUnsignedShort();
     framebufferHeight = is.readUnsignedShort();
     bitsPerPixel = is.readUnsignedByte();
