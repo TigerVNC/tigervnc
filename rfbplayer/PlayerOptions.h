@@ -77,4 +77,5 @@ public:
   bool askPixelFormat;
   long frameScale;
   bool autoStoreSettings;
+  bool commandLineParam;
 };

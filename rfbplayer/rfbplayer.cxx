@@ -48,11 +48,14 @@ char usage_msg[] =
  "Command-line options:\n"
  "  -help         \t- Provide usage information.\n"
  "  -pf <mode>    \t- Forces the pixel format for the session.\n"
- "                \t  List of the pixel formats:\n"
- "                \t  0 - Auto,\n"
- "                \t  1 - depth 8 (RGB332),\n"
- "                \t  2 - depth 16 (RGB655),\n"
- "                \t  3 - depth 24 (RGB888).\n"
+ "                \t  <mode>=r<r_bits>g<g_bits>b<b_bits>[le|be],\n"
+ "                \t  r_bits - size the red component, in bits,\n"
+ "                \t  g_bits - size the green component, in bits,\n"
+ "                \t  b_bits - size the blue component, in bits,\n"
+ "                \t  le - little endian byte order (default),\n"
+ "                \t  be - big endian byte order.\n"
+ "                \t  The r, g, b component is in any order.\n"
+ "                \t  Default: auto detect the pixel format.\n"
  "  -speed <value>\t- Sets playback speed, where 1 is normal speed,\n"
  "                \t  is double speed, 0.5 is half speed. Default: 1.0.\n"
  "  -pos <ms>     \t- Sets initial time position in the session file,\n"
@@ -272,7 +275,6 @@ RfbPlayer::RfbPlayer(char *_fileName, PlayerOptions *_options)
 }
 
 RfbPlayer::~RfbPlayer() {
-  options.writeToRegistry();
   vlog.debug("~RfbPlayer");
   if (rfbReader) {
     delete rfbReader->join();
@@ -925,11 +927,13 @@ void RfbPlayer::serverInit() {
       throw rdr::Exception("[TERMINATE]");
     }
   } else {
-    if (options.autoDetectPF) {
-      options.setPF((PixelFormat *)&cp.pf());
-    } else {
-      options.setPF(&supportedPF[options.pixelFormatIndex].PF);
-      options.pixelFormat.bigEndian = options.bigEndianFlag;
+    if (!options.commandLineParam) {
+      if (options.autoDetectPF) {
+        options.setPF((PixelFormat *)&cp.pf());
+      } else {
+        options.setPF(&supportedPF[options.pixelFormatIndex].PF);
+        options.pixelFormat.bigEndian = options.bigEndianFlag;
+      }
     }
   }
   cp.setPF(options.pixelFormat);
@@ -954,7 +958,10 @@ void RfbPlayer::serverInit() {
   setPaused(!options.autoPlay);
   // Restore the parameters from registry,
   // which was replaced by command-line parameters.
-  options.readFromRegistry();
+  if (options.commandLineParam) {
+    options.readFromRegistry();
+    options.commandLineParam = false;
+  }
 }
 
 void RfbPlayer::setColourMapEntries(int first, int count, U16* rgbs) {
@@ -1232,6 +1239,7 @@ PlayerOptions playerOptions;
 bool print_usage = false;
 
 bool processParams(int argc, char* argv[]) {
+  playerOptions.commandLineParam = true;
   for (int i = 1; i < argc; i++) {
     if ((strcasecmp(argv[i], "-help") == 0) ||
         (strcasecmp(argv[i], "--help") == 0) ||
@@ -1246,11 +1254,50 @@ bool processParams(int argc, char* argv[]) {
 
     if ((strcasecmp(argv[i], "-pf") == 0) ||
         (strcasecmp(argv[i], "/pf") == 0) && (i < argc-1)) {
-      long pf = atoi(argv[++i]);
-      if ((pf < 0) || (pf > PF_MODES)) {
-        return false;
+      char *pf = argv[++i];
+      char rgb_order[4] = "\0";
+      int order = RGB_ORDER;
+      int r = -1, g = -1, b = -1;
+      bool big_endian = false;
+      if (strlen(pf) < 6) return false;
+      while (strlen(pf)) {
+        if ((pf[0] == 'r') || (pf[0] == 'R')) {
+          if (r >=0 ) return false;
+          r = atoi(++pf);
+          strcat(rgb_order, "r");
+          continue;
+        }
+        if ((pf[0] == 'g') || (pf[0] == 'G')) {
+          if (g >=0 ) return false;
+          g = atoi(++pf);
+          strcat(rgb_order, "g");
+          continue;
+        }
+        if (((pf[0] == 'b') || (pf[0] == 'B')) && 
+             (pf[1] != 'e') && (pf[1] != 'E')) {
+          if (b >=0 ) return false;
+          b = atoi(++pf);
+          strcat(rgb_order, "b");
+          continue;
+        }
+        if ((pf[0] == 'l') || (pf[0] == 'L') || 
+            (pf[0] == 'b') || (pf[0] == 'B')) {
+          if (strcasecmp(pf, "le") == 0) break;
+          if (strcasecmp(pf, "be") == 0) { big_endian = true; break;}
+          return false;
+        }
+        pf++;
       }
-      playerOptions.pixelFormatIndex = pf;
+      if ((r < 0) || (g < 0) || (b < 0)) return false;
+      if (strcasecmp(rgb_order, "rgb") == 0) { order = RGB_ORDER; }
+      else if (strcasecmp(rgb_order, "rbg") == 0) { order = RBG_ORDER; }
+      else if (strcasecmp(rgb_order, "grb") == 0) { order = GRB_ORDER; }
+      else if (strcasecmp(rgb_order, "gbr") == 0) { order = GBR_ORDER; }
+      else if (strcasecmp(rgb_order, "bgr") == 0) { order = BGR_ORDER; }
+      else if (strcasecmp(rgb_order, "brg") == 0) { order = BRG_ORDER; }
+      else return false;
+      playerOptions.autoDetectPF = false;
+      playerOptions.setPF(order, r, g, b, big_endian);
       continue;
     }
 

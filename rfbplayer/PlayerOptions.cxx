@@ -86,6 +86,7 @@ void PlayerOptions::writeDefaults() {
   loopPlayback = DEFAULT_LOOP_PLAYBACK;
   askPixelFormat = DEFAULT_ASK_PF; 
   autoStoreSettings = DEFAULT_STORE_SETTINGS;
+  commandLineParam = false;
 }
 
 void PlayerOptions::setPF(PixelFormat *newPF) {

@@ -61,9 +61,8 @@ protected:
     options->autoStoreSettings = isItemChecked(IDC_AUTO_STORE_PARAM);
     options->autoPlay = isItemChecked(IDC_AUTOPLAY);
     options->bigEndianFlag = isItemChecked(IDC_BIG_ENDIAN);
-    options->writeToRegistry();
     if (!options->askPixelFormat) {
-      options->pixelFormatIndex = SendMessage(combo, CB_GETCURSEL, 0, 0) - 1;
+      options->pixelFormatIndex = int(SendMessage(combo, CB_GETCURSEL, 0, 0)) - 1;
       if (options->pixelFormatIndex < 0) {
         options->autoDetectPF = true;
       } else {
@@ -72,6 +71,7 @@ protected:
         options->autoDetectPF = false;
       }
     }
+    options->writeToRegistry();
     return true;
   }
   virtual bool onCommand(int item, int cmd) { 
