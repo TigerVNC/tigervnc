@@ -29,6 +29,9 @@ extern "C" {
 #include "regionstr.h"
 #include "dixfontstr.h"
 #include "colormapst.h"
+#ifdef RENDER
+#include "picturestr.h"
+#endif
 
 #ifdef GC_HAS_COMPOSITE_CLIP
 #define COMPOSITE_CLIP(gc) ((gc)->pCompositeClip)
@@ -74,6 +77,9 @@ typedef struct {
   StoreColorsProcPtr           StoreColors;
   DisplayCursorProcPtr         DisplayCursor;
   ScreenBlockHandlerProcPtr    BlockHandler;
+#ifdef RENDER
+  CompositeProcPtr             Composite;
+#endif
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
 typedef struct {
@@ -104,6 +110,11 @@ static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
 static Bool vncHooksDisplayCursor(ScreenPtr pScreen, CursorPtr cursor);
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask);
+#ifdef RENDER
+static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
+			      PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
+			      INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
+#endif
 
 // GC "funcs"
 
@@ -229,6 +240,13 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   vncHooksScreen->StoreColors = pScreen->StoreColors;
   vncHooksScreen->DisplayCursor = pScreen->DisplayCursor;
   vncHooksScreen->BlockHandler = pScreen->BlockHandler;
+#ifdef RENDER
+  PictureScreenPtr ps;
+  ps = GetPictureScreenIfSet(pScreen);
+  if (ps) {
+    vncHooksScreen->Composite = ps->Composite;
+  }
+#endif
 
   pScreen->CloseScreen = vncHooksCloseScreen;
   pScreen->CreateGC = vncHooksCreateGC;
@@ -241,6 +259,11 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   pScreen->StoreColors = vncHooksStoreColors;
   pScreen->DisplayCursor = vncHooksDisplayCursor;
   pScreen->BlockHandler = vncHooksBlockHandler;
+#ifdef RENDER
+  if (ps) {
+    ps->Composite = vncHooksComposite;
+  }
+#endif
 
   return TRUE;
 }
@@ -470,6 +493,33 @@ static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
   SCREEN_REWRAP(BlockHandler);
 }
 
+// Composite - needed for RENDER
+
+#ifdef RENDER
+void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
+		       PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
+		       INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height)
+{
+  ScreenPtr pScreen = pDst->pDrawable->pScreen;
+  vncHooksScreenPtr vncHooksScreen = ((vncHooksScreenPtr)pScreen->devPrivates[vncHooksScreenIndex].ptr); 
+  BoxRec box;
+  PictureScreenPtr ps = GetPictureScreen(pScreen);
+
+  box.x1 = pDst->pDrawable->x + xDst;
+  box.y1 = pDst->pDrawable->y + yDst;
+  box.x2 = box.x1 + width;
+  box.y2 = box.y1 + height;
+
+  RegionHelper changed(pScreen, &box, 0);
+  vncHooksScreen->desktop->add_changed(changed.reg);
+
+  ps->Composite = vncHooksScreen->Composite;
+  (*ps->Composite)(op, pSrc, pMask, pDst, xSrc, ySrc,
+		   xMask, yMask, xDst, yDst, width, height);
+  ps->Composite = vncHooksComposite;
+}
+
+#endif /* RENDER */
 
 
 /////////////////////////////////////////////////////////////////////////////

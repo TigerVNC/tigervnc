@@ -18,7 +18,7 @@ XCOMM CXXDEBUGFLAGS = -g
          SRCS = vncExtInit.cc vncHooks.cc XserverDesktop.cc
          OBJS = vncExtInit.o vncHooks.o XserverDesktop.o
      INCLUDES = -I../include -I$(EXTINCSRC) -I$(XINCLUDESRC) -I$(FONTINCSRC) \
-                -I../mfb -I../mi $(VNCINCLUDE)
+                -I../render $(VNCINCLUDE)
 #if defined(XFree86Version) && XFree86Version >= 4000
    VNCDEFINES = -DGC_HAS_COMPOSITE_CLIP
 #endif
