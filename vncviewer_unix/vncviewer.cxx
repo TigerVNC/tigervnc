@@ -216,6 +216,27 @@ interpretViaParam (char **gatewayHost, char **remoteHost,
   sprintf (*vncServerName, "localhost::%d", localPort);
 }
 
+#ifndef HAVE_SETENV
+int
+setenv(const char *envname, const char * envval, int overwrite)
+{
+  if (envname && envval) {
+    char * envp = NULL;
+    envp = (char*)malloc(strlen(envname) + strlen(envval) + 2);
+    if (envp) {
+      // The putenv API guarantees memory leaks when
+      // changing environment variables repeatedly.
+      sprintf(envp, "%s=%s", envname, envval);
+      
+      // Cannot free envp
+      putenv(envp);
+      return(0);
+    }
+  }
+  return(-1);
+}
+#endif
+
 static void
 createTunnel (const char *gatewayHost, const char *remoteHost,
 	      int remotePort, int localPort)
