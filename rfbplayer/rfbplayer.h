@@ -180,3 +180,20 @@ class RfbPlayer : public RfbProto {
     long imageDataStartTime;
     long sessionTimeMs;
 };
+
+// -=- sessionTerminateThread class
+
+// It is a special thread class, wich is allow the rfbSessionReader class
+// terminate itself.
+
+class sessionTerminateThread : public rfb::Thread {
+public:
+  sessionTerminateThread(RfbPlayer *_player) : player(_player) {
+    setDeleteAfterRun();
+  }
+  virtual void run() {
+    player->closeSessionFile();
+  }
+protected:
+  RfbPlayer *player;
+};
