@@ -1,4 +1,5 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright (C) 2004 Peter Astrand, Cendio AB.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
