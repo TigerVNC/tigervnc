@@ -929,25 +929,7 @@ void RfbPlayer::updatePos(long newPos) {
   char timePos[30] = "\0";
   double sliderPos = newPos;
   newPos /= 1000;
-  time_pos_m = newPos / 60;
-  time_pos_s = newPos % 60;
-  if (time_pos_m < 10) {
-    strcat(timePos, "0");
-    _itoa(time_pos_m, timePos+1, 10);
-  } else {
-    _itoa(time_pos_m, timePos, 10);
-  }
-  strcat(timePos, "m:");
-  if (time_pos_s < 10) {
-    strcat(timePos, "0");
-    _itoa(time_pos_s, timePos+strlen(timePos), 10);
-  } else {
-    _itoa(time_pos_s, timePos+strlen(timePos), 10);
-  }
-  strcat(timePos, "s ");
-  strcat(timePos, "(");
-  strcat(timePos, fullSessionTime);
-  strcat(timePos, ")");
+  sprintf(timePos, "%.2um:%.2us (%s)", newPos/60, newPos%60, fullSessionTime);
   SetWindowText(timeStatic, timePos);
 
   // Update the position of slider
