@@ -14,7 +14,3 @@
 * Document the Tight protocol extensions in a text file. 
 
 * All other features from the TightVNC 1.3 series: Filetransfer etc
-
-* Improve bandwidth tests: The routine only works when doing
-  block reads, currently. If reading data pixel by pixel, or reading
-  through a ZlibInStream, the bandwidth tests don't work. 
