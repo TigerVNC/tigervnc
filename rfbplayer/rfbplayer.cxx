@@ -351,6 +351,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           long gotoTime = min(gotoPosDlg.getPos(), sessionTimeMs);
           setPos(gotoTime);
           updatePos(gotoTime);
+          setPaused(isPaused());;
         }
       }
       break;
@@ -434,6 +435,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
       case TB_ENDTRACK: 
         setPos(Pos);
+        setPaused(isPaused());;
         sliderDraging = false;
         return 0;
       default:
