@@ -36,7 +36,7 @@ public:
   RegionHelper(ScreenPtr pScreen_, RegionPtr pRegion)
     : pScreen(pScreen_), reg(&regRec)
   {
-    REGION_INIT(pScreen, reg, NullBox, 0);
+    REGION_NULL(pScreen, reg);
     REGION_COPY(pScreen, reg, pRegion);
   }
 
