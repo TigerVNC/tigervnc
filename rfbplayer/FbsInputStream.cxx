@@ -197,8 +197,8 @@ void FbsInputStream::waitWhilePaused() {
 //
 
 long FbsInputStream::getTimeOffset() {
-  long off = max(seekOffset, timeOffset);
-  return (long)(off * playbackSpeed);
+  //long off = max(seekOffset, timeOffset);
+  return (long)(timeOffset * playbackSpeed);
 }
 
 void FbsInputStream::setTimeOffset(long pos) {
