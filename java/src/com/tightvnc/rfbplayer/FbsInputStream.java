@@ -34,6 +34,7 @@ class FbsInputStream extends InputStream {
   protected long seekOffset;
   protected boolean seekBackwards;
   protected boolean paused;
+  protected boolean isQuitting = false;
   protected double playbackSpeed;
 
   protected byte[] buffer;
@@ -74,6 +75,14 @@ class FbsInputStream extends InputStream {
     buffer = null;
     bufferSize = 0;
     bufferPos = 0;
+  }
+
+  // Force stream to finish any wait.
+  public void quit() {
+    isQuitting = true;
+    synchronized(this) {
+      notify();
+    }
   }
 
   //
@@ -202,7 +211,7 @@ class FbsInputStream extends InputStream {
       }
     }
 
-    while (true) {
+    while (!isQuitting) {
       long timeDiff = startTime + timeOffset - System.currentTimeMillis();
       if (timeDiff <= 0) {
         break;
@@ -221,7 +230,7 @@ class FbsInputStream extends InputStream {
   // In paused mode, wait for external notification on this object.
   //
   private void waitWhilePaused() {
-    while (paused && !isSeeking()) {
+    while (paused && !isSeeking() && !isQuitting) {
       synchronized(this) {
         try {
           // Note: we call Observer.update(Observable,Object) method

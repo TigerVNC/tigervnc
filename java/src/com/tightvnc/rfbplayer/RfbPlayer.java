@@ -68,6 +68,7 @@ public class RfbPlayer extends java.applet.Applet
   double playbackSpeed;
   boolean autoPlay;
   boolean showControls;
+  boolean isQuitting = false;
   int deferScreenUpdates;
 
   //
@@ -93,7 +94,7 @@ public class RfbPlayer extends java.applet.Applet
     if (inSeparateFrame)
       vncFrame.addWindowListener(this);
 
-    rfbThread = new Thread(this);
+    rfbThread = new Thread(this, "RfbThread");
     rfbThread.start();
   }
 
@@ -170,7 +171,7 @@ public class RfbPlayer extends java.applet.Applet
         vc.resizeEmbeddedApplet();
       }
 
-      while (true) {
+      while (!isQuitting) {
         try {
           setPaused(!autoPlay);
           rfb.fbs.setSpeed(playbackSpeed);
@@ -378,9 +379,14 @@ public class RfbPlayer extends java.applet.Applet
   // This method is called before the applet is destroyed.
   //
   public void destroy() {
+    isQuitting = true;
     vncContainer.removeAll();
     if (rfb != null) {
-      rfb = null;
+      rfb.quit();
+    }
+    try {
+      rfbThread.join();
+    } catch (InterruptedException e) {
     }
     if (inSeparateFrame) {
       vncFrame.dispose();

@@ -80,6 +80,16 @@ class RfbProto {
     newSession(url);
   }
 
+  // Force processing to quit
+  public void quit() {
+    fbs.quit();
+    try {
+      is.close();
+    } catch (IOException e) {
+      System.out.println("IOException quitting RfbProto: " + e);
+    }
+  }
+
   //
   // Open new session URL.
   //
