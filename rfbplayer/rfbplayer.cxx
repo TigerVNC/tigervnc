@@ -93,9 +93,6 @@ LRESULT CALLBACK RfbPlayerProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     SetWindowLong(hwnd, GWL_USERDATA, (long)((CREATESTRUCT*)lParam)->lpCreateParams);
   else if (msg == WM_DESTROY) {
     RfbPlayer* _this = (RfbPlayer*) GetWindowLong(hwnd, GWL_USERDATA);
-
-    // Resume playback (It's need to quit from FbsInputStream::waitWhilePaused())
-    _this->setPaused(false);
     SetWindowLong(hwnd, GWL_USERDATA, 0);
   }
   RfbPlayer* _this = (RfbPlayer*) GetWindowLong(hwnd, GWL_USERDATA);
@@ -362,7 +359,6 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
       break;
     case ID_EXIT:
-      if (is) is->resumePlayback();
       PostQuitMessage(0);
       break;
     case ID_HELP_COMMANDLINESWITCHES:
@@ -906,8 +902,8 @@ void RfbPlayer::openSessionFile(char *_fileName) {
 
   // Close the previous reading thread
   if (rfbReader) {
-    is->resumePlayback();
     delete rfbReader->join();
+    rfbReader = 0;
   }
   blankBuffer();
   newSession(fileName);

@@ -35,6 +35,7 @@ public:
   }
 
   virtual Thread* join() {
+    ((FbsInputStream*)(rfbSession->getInStream()))->resumePlayback();
     fStop = true;
     return Thread::join();
   }
