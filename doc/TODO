@@ -14,3 +14,5 @@
 * Document the Tight protocol extensions in a text file. 
 
 * All other features from the TightVNC 1.3 series: Filetransfer etc
+
+* Consider adding the toolbar from http://lars.werner.no/vnc/. 
