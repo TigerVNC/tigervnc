@@ -317,8 +317,10 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                           "All files (*.*)\0*.*\0";
         ofn.lpstrDefExt = "rfb";
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-        if (GetOpenFileName(&ofn))
+        if (GetOpenFileName(&ofn)) {
+          colourDepth = DEPTH_AUTO;
           openSessionFile(filename);
+        }
       }
       break;
     case ID_CLOSEFILE:
