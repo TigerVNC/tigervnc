@@ -1,0 +1,40 @@
+How to build TightVNC with VC7 (Visual C++ .NET)
+================================================
+
+
+Introduction
+------------
+
+This text documents how to build TightVNC with VC7. 
+
+
+The VC7 "Standard" Edition
+--------------------------
+
+The VC7 "Standard" Edition does not come with an optimizing
+compiler. It is possible to use the compiler from the free Visual C++
+Toolkit 2003, though. See
+http://www.sawtoothdistortion.com/Articles/FreeOptimizingCompiler.html
+for more information. (This documents assumes that you are using Method
+Two.)
+
+
+Building
+--------
+
+* Open vnc.dsw. Select "Yes to all". 
+
+* Select Build->Configuration Manager->Active Solution
+  Configuration->Release.
+
+* In Solution Explorer, select all projects except
+  "logmessages". Right-click, and select properties.
+
+* Below Configuration Properties->C/C++->Precompiled Headers, select
+  "Not Using Precompiled Headers". 
+
+* If you are using the Standard Edition and would like to build with
+  optimizations, select Configuration Properties->C/C++->Command Line
+  and fill in "/O2". 
+
+* Build Solution. 
