@@ -272,7 +272,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
 ac_unique_file="rdr/InStream.h"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB SET_MAKE MITSHM_CPPFLAGS CXXCPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS ZLIB_DIR ZLIB_INCLUDE ZLIB_LIB VSNPRINTF_DEFINE SOCKLEN_T_DEFINE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB SET_MAKE MITSHM_CPPFLAGS CXXCPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS ZLIB_DIR ZLIB_INCLUDE ZLIB_LIB JPEG_DIR JPEG_INCLUDE JPEG_LIB VSNPRINTF_DEFINE SOCKLEN_T_DEFINE LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -817,6 +817,8 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-x                use the X Window System
   --with-installed-zlib   use the version of zlib which is installed on the
+                          system instead of the one distributed with VNC
+  --with-installed-jpeg   use the version of jpeg which is installed on the
                           system instead of the one distributed with VNC
 
 Some influential environment variables:
@@ -4346,6 +4348,29 @@ fi
 
 
 
+
+# Check whether --with-installed-jpeg or --without-installed-jpeg was given.
+if test "${with_installed_jpeg+set}" = set; then
+  withval="$with_installed_jpeg"
+
+fi;
+
+if test "$with_installed_jpeg" = yes; then
+  echo "using installed jpeg"
+  JPEG_LIB=-ljpeg
+else
+  JPEG_DIR=jpeg
+  JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
+  JPEG_LIB='$(top_srcdir)/jpeg/libjpeg.a'
+  echo "configuring jpeg..."
+  (cd jpeg; ./configure)
+  echo "...done configuring jpeg"
+fi
+
+
+
+
+
 echo "$as_me:$LINENO: checking for vsnprintf" >&5
 echo $ECHO_N "checking for vsnprintf... $ECHO_C" >&6
 if test "${ac_cv_func_vsnprintf+set}" = set; then
@@ -5173,6 +5198,9 @@ s,@X_EXTRA_LIBS@,$X_EXTRA_LIBS,;t t
 s,@ZLIB_DIR@,$ZLIB_DIR,;t t
 s,@ZLIB_INCLUDE@,$ZLIB_INCLUDE,;t t
 s,@ZLIB_LIB@,$ZLIB_LIB,;t t
+s,@JPEG_DIR@,$JPEG_DIR,;t t
+s,@JPEG_INCLUDE@,$JPEG_INCLUDE,;t t
+s,@JPEG_LIB@,$JPEG_LIB,;t t
 s,@VSNPRINTF_DEFINE@,$VSNPRINTF_DEFINE,;t t
 s,@SOCKLEN_T_DEFINE@,$SOCKLEN_T_DEFINE,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
