@@ -120,6 +120,10 @@ public:
     zrle.disabled(autoSelect.checked());
     hextile.disabled(autoSelect.checked());
     raw.disabled(autoSelect.checked());
+    fullColour.disabled(autoSelect.checked());
+    mediumColour.disabled(autoSelect.checked());
+    lowColour.disabled(autoSelect.checked());
+    veryLowColour.disabled(autoSelect.checked());
     sendPrimary.disabled(!sendClipboard.checked());
     dotWhenNoCursor.disabled(!useLocalCursor.checked());
   }
@@ -143,6 +147,10 @@ public:
       zrle.disabled(autoSelect.checked());
       hextile.disabled(autoSelect.checked());
       raw.disabled(autoSelect.checked());
+      fullColour.disabled(autoSelect.checked());
+      mediumColour.disabled(autoSelect.checked());
+      lowColour.disabled(autoSelect.checked());
+      veryLowColour.disabled(autoSelect.checked());
     } else if (checkbox == &fullColour || checkbox == &mediumColour ||
                checkbox == &lowColour || checkbox == &veryLowColour) {
       fullColour.checked(checkbox == &fullColour);

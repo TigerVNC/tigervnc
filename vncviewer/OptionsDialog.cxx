@@ -121,6 +121,10 @@ public:
       enableItem(IDC_ENCODING_ZRLE, ok);
       enableItem(IDC_ENCODING_HEXTILE, ok);
       enableItem(IDC_ENCODING_RAW, ok);
+      enableItem(IDC_FORMAT_FULLCOLOUR, ok);
+      enableItem(IDC_FORMAT_MEDIUMCOLOUR, ok);
+      enableItem(IDC_FORMAT_LOWCOLOUR, ok);
+      enableItem(IDC_FORMAT_VERYLOWCOLOUR, ok);
       return true;
     }
     return false;
