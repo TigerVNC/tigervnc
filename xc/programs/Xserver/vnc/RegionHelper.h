@@ -54,8 +54,8 @@ public:
 
   void init(BoxPtr rect, int size) {
     reg = &regRec;
-    if (rect && (rect->x2 == rect->x1 || rect->y2 == rect->y1)) {
-      REGION_INIT(pScreen, reg, NullBox, 0);
+    if (!rect || (rect->x2 == rect->x1 || rect->y2 == rect->y1)) {
+      REGION_NULL(pScreen, reg);
     } else {
       REGION_INIT(pScreen, reg, rect, size);
     }

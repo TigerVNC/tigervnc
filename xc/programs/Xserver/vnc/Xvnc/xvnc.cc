@@ -195,6 +195,7 @@ static int vfbBitsPerPixel(int depth)
 }
 
 extern "C" {
+  void ddxInitGlobals() {}
   void ddxGiveUp()
   {
     int i;
@@ -909,11 +910,6 @@ static Bool vfbScreenInit(int index, ScreenPtr pScreen, int argc, char** argv)
 
 static void vfbClientStateChange(CallbackListPtr*, pointer, pointer) {
   dispatchException &= ~DE_RESET;
-}
-
-/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
-void ddxInitGlobals(void)
-{
 }
 
 void InitOutput(ScreenInfo *screenInfo, int argc, char **argv)

@@ -6,10 +6,10 @@
 #define BuildNls NO
 #define BuildXIE NO
 #define BuildGlxExt NO
-#define XnestServer NO
+#define XnestServer YES
+#define XF86Server NO
 #define XprtServer NO
-#define XdmxServer NO
-#define BuildDmx NO
+#define BuildXFree86ConfigTools NO
 
 #ifdef SunArchitecture
 #define ProjectRoot /usr/openwin
