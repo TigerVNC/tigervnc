@@ -360,15 +360,10 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         double speed = strtod(speedStr, &stopStr);
         if (speed > 0) {
           speed = min(MAX_SPEED, speed);
-          // Update speedUpDown position
-          SendMessage(speedUpDown, UDM_SETPOS, 
-            0, MAKELONG((short)(speed / 0.5), 0));
         } else {
           speed = getSpeed();
         }
         setSpeed(speed);
-        sprintf(speedStr, "%.2f", speed);
-        SetWindowText(speedEdit, speedStr);
       }
       break;
     case ID_EXIT:
@@ -458,10 +453,10 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           }
           speed = max(upDown->iPos + upDown->iDelta, HIWORD(speedRange)) * 0.5;
         }
-        _gcvt(speed, 5, speedStr);
         sprintf(speedStr, "%.2f", speed);
         SetWindowText(speedEdit, speedStr);
-        setSpeed(speed);
+        is->setSpeed(speed);
+        playbackSpeed = speed;
         return lResult;
       }
     }
@@ -793,7 +788,7 @@ void RfbPlayer::rewind() {
   blankBuffer();
   newSession(fileName);
   skipHandshaking();
-  setSpeed(playbackSpeed);
+  is->setSpeed(playbackSpeed);
   if (paused) is->pausePlayback();
   else is->resumePlayback();
 }
@@ -1041,9 +1036,17 @@ void RfbPlayer::stopPlayback() {
 }
 
 void RfbPlayer::setSpeed(double speed) {
-  serverInitTime = serverInitTime * getSpeed() / speed;
-  is->setSpeed(speed);
-  playbackSpeed = speed;
+  if (speed > 0) {
+    char speedStr[20] = "\0";
+    double newSpeed = min(speed, MAX_SPEED);
+    serverInitTime = serverInitTime * getSpeed() / newSpeed;
+    is->setSpeed(newSpeed);
+    playbackSpeed = newSpeed;
+    SendMessage(speedUpDown, UDM_SETPOS, 
+      0, MAKELONG((short)(newSpeed / 0.5), 0));
+    sprintf(speedStr, "%.2f", newSpeed);
+    SetWindowText(speedEdit, speedStr);
+  }
 }
 
 double RfbPlayer::getSpeed() {
