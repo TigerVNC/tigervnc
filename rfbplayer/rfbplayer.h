@@ -29,6 +29,7 @@
 #include <rfbplayer/GotoPosDialog.h>
 #include <rfbplayer/ChoosePixelFormatDialog.h>
 #include <rfbplayer/OptionsDialog.h>
+#include <rfbplayer/InfoDialog.h>
 
 using namespace rfb;
 using namespace rfb::win32;

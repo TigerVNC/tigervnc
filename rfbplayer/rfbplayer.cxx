@@ -44,27 +44,27 @@ char wrong_cmd_msg[] =
  "Use for help: rfbplayer -help";
 
 char usage_msg[] = 
- "usage: rfbplayer <options> <filename>\n"
- "Command-line options:\n"
- "  -help         \t- Provide usage information.\n"
- "  -pf <mode>    \t- Forces the pixel format for the session.\n"
- "                \t  <mode>=r<r_bits>g<g_bits>b<b_bits>[le|be],\n"
- "                \t  r_bits - size the red component, in bits,\n"
- "                \t  g_bits - size the green component, in bits,\n"
- "                \t  b_bits - size the blue component, in bits,\n"
- "                \t  le - little endian byte order (default),\n"
- "                \t  be - big endian byte order.\n"
- "                \t  The r, g, b component is in any order.\n"
- "                \t  Default: auto detect the pixel format.\n"
- "  -upf <name>   \t- Forces the user defined pixel format for\n"
- "                \t  the session. If <name> is empty then application\n"
- "                \t  shows the list of user defined pixel formats.\n"
- "                \t  Don't use this option with -pf.\n"
- "  -speed <value>\t- Sets playback speed, where 1 is normal speed,\n"
- "                \t  is double speed, 0.5 is half speed. Default: 1.0.\n"
- "  -pos <ms>     \t- Sets initial time position in the session file,\n"
- "                \t  in milliseconds. Default: 0.\n"
- "  -autoplay     \t- Runs the player in the playback mode.\n";
+ "usage: rfbplayer <options> <filename>\r\n"
+ "Command-line options:\r\n"
+ "  -help         \t- Provide usage information.\r\n"
+ "  -pf <mode>    \t- Forces the pixel format for the session.\r\n"
+ "                \t  <mode>=r<r_bits>g<g_bits>b<b_bits>[le|be],\r\n"
+ "                \t  r_bits - size the red component, in bits,\r\n"
+ "                \t  g_bits - size the green component, in bits,\r\n"
+ "                \t  b_bits - size the blue component, in bits,\r\n"
+ "                \t  le - little endian byte order (default),\r\n"
+ "                \t  be - big endian byte order.\r\n"
+ "                \t  The r, g, b component is in any order.\r\n"
+ "                \t  Default: auto detect the pixel format.\r\n"
+ "  -upf <name>   \t- Forces the user defined pixel format for\r\n"
+ "                \t  the session. If <name> is empty then application\r\n"
+ "                \t  shows the list of user defined pixel formats.\r\n"
+ "                \t  Don't use this option with -pf.\r\n"
+ "  -speed <value>\t- Sets playback speed, where 1 is normal speed,\r\n"
+ "                \t  is double speed, 0.5 is half speed. Default: 1.0.\r\n"
+ "  -pos <ms>     \t- Sets initial time position in the session file,\r\n"
+ "                \t  in milliseconds. Default: 0.\r\n"
+ "  -autoplay     \t- Runs the player in the playback mode.\r\n";
 
 // -=- RfbPlayer's defines
 
@@ -406,8 +406,10 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       PostQuitMessage(0);
       break;
     case ID_HELP_COMMANDLINESWITCHES:
-      MessageBox(getMainHandle(), 
-      usage_msg, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
+      {
+        InfoDialog usageDialog(usage_msg);
+        usageDialog.showDialog();
+      }
       break;
     case ID_ABOUT:
       AboutDialog::instance.showDialog();
@@ -1231,7 +1233,8 @@ void programInfo() {
 }
 
 void programUsage() {
-  MessageBox(0, usage_msg, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
+  InfoDialog usageDialog(usage_msg);
+  usageDialog.showDialog();
 }
 
 char *fileName = 0;
@@ -1377,11 +1380,11 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   }
   // Show the user defined pixel formats if required
   if (print_upf_list) {
-    int list_size = 45;
+    int list_size = 256;
     char *upf_list = new char[list_size];
     PixelFormatList userPfList;
     userPfList.readUserDefinedPF(HKEY_CURRENT_USER, UPF_REGISTRY_PATH);
-    strcpy(upf_list, "The list of the user defined pixel formats:\n");
+    strcpy(upf_list, "The list of the user defined pixel formats:\r\n");
     for (int i = userPfList.getDefaultPFCount(); i < userPfList.count(); i++) {
       if ((list_size - strlen(upf_list) - 1) < 
           (strlen(userPfList[i]->format_name) + 2)) {
@@ -1394,9 +1397,10 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
         delete [] tmpStr;
       }
       strcat(upf_list, userPfList[i]->format_name);
-      strcat(upf_list, "\n");
+      strcat(upf_list, "\r\n");
     }
-    MessageBox(0, upf_list, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
+    InfoDialog upfInfoDialog(upf_list);
+    upfInfoDialog.showDialog();
     delete [] upf_list;
     return 0;
   }
