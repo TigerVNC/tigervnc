@@ -53,7 +53,7 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   : dpy(dpy_), argc(argc_),
     argv(argv_), serverHost(0), serverPort(0), sock(sock_), viewport(0),
     desktop(0), desktopEventHandler(0),
-    currentEncoding(encodingZRLE), lastServerEncoding((unsigned int)-1),
+    currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     fullColour(::fullColour),
     autoSelect(::autoSelect), shared(::shared), formatChange(false),
     encodingChange(false), sameMachine(false), fullScreen(::fullScreen),
@@ -485,6 +485,7 @@ void CConn::setOptions() {
   options.veryLowColour.checked(!fullColour && lowColourLevel == 0);
   options.lowColour.checked(!fullColour && lowColourLevel == 1);
   options.mediumColour.checked(!fullColour && lowColourLevel == 2);
+  options.tight.checked(currentEncoding == encodingTight);
   options.zrle.checked(currentEncoding == encodingZRLE);
   options.hextile.checked(currentEncoding == encodingHextile);
   options.raw.checked(currentEncoding == encodingRaw);
@@ -514,7 +515,8 @@ void CConn::getOptions() {
       formatChange = true;
     }
   }
-  unsigned int newEncoding = (options.zrle.checked() ? encodingZRLE :
+  unsigned int newEncoding = (options.tight.checked() ? encodingTight :
+			      options.zrle.checked() ? encodingZRLE :
                               options.hextile.checked() ? encodingHextile :
                               encodingRaw);
   if (newEncoding != currentEncoding) {
@@ -599,7 +601,7 @@ void CConn::reconfigureViewport()
 // to the connection speed:
 //   Above 16Mbps (timing for at least a second), same machine, switch to raw
 //   Above 3Mbps, switch to hextile
-//   Below 1.5Mbps, switch to ZRLE
+//   Below 1.5Mbps, switch to Tight
 //   Above 1Mbps, switch to full colour mode
 void CConn::autoSelectFormatAndEncoding()
 {
@@ -612,7 +614,7 @@ void CConn::autoSelectFormatAndEncoding()
   } else if (kbitsPerSecond > 3000) {
     newEncoding = encodingHextile;
   } else if (kbitsPerSecond < 1500) {
-    newEncoding = encodingZRLE;
+    newEncoding = encodingTight;
   }
 
   if (newEncoding != currentEncoding) {

@@ -48,6 +48,7 @@ public:
       mediumColour(dpy, "Medium (256 colours)", this, true, this),
       lowColour(dpy, "Low (64 colours)", this, true, this),
       veryLowColour(dpy, "Very low (8 colours)", this, true, this),
+      tight(dpy, "Tight", this, true, this),
       zrle(dpy, "ZRLE", this, true, this),
       hextile(dpy, "Hextile", this, true, this),
       raw(dpy, "Raw", this, true, this),
@@ -70,14 +71,16 @@ public:
     int x2 = xPad + autoSelect.width() + xPad*5;
     fullColour.move(x2, y);
     y += autoSelect.height();
-    zrle.move(xPad, y);
+    tight.move(xPad, y);
     mediumColour.move(x2, y);
+    y += tight.height();
+    zrle.move(xPad, y);
+    lowColour.move(x2, y);
     y += zrle.height();
     hextile.move(xPad, y);
-    lowColour.move(x2, y);
+    veryLowColour.move(x2, y);
     y += hextile.height();
     raw.move(xPad, y);
-    veryLowColour.move(x2, y);
     y += raw.height();
 
     y += yPad*4;
@@ -113,6 +116,7 @@ public:
 
   virtual void initDialog() {
     if (cb) cb->setOptions();
+    tight.disabled(autoSelect.checked());
     zrle.disabled(autoSelect.checked());
     hextile.disabled(autoSelect.checked());
     raw.disabled(autoSelect.checked());
@@ -135,6 +139,7 @@ public:
 
   virtual void checkboxSelect(TXCheckbox* checkbox) {
     if (checkbox == &autoSelect) {
+      tight.disabled(autoSelect.checked());
       zrle.disabled(autoSelect.checked());
       hextile.disabled(autoSelect.checked());
       raw.disabled(autoSelect.checked());
@@ -144,7 +149,8 @@ public:
       mediumColour.checked(checkbox == &mediumColour);
       lowColour.checked(checkbox == &lowColour);
       veryLowColour.checked(checkbox == &veryLowColour);
-    } else if (checkbox == &zrle || checkbox == &hextile || checkbox == &raw) {
+    } else if (checkbox == &tight || checkbox == &zrle || checkbox == &hextile || checkbox == &raw) {
+      tight.checked(checkbox == &tight);
       zrle.checked(checkbox == &zrle);
       hextile.checked(checkbox == &hextile);
       raw.checked(checkbox == &raw);
@@ -159,7 +165,7 @@ public:
   TXLabel formatAndEnc, inputs, misc;
   TXCheckbox autoSelect;
   TXCheckbox fullColour, mediumColour, lowColour, veryLowColour;
-  TXCheckbox zrle, hextile, raw;
+  TXCheckbox tight, zrle, hextile, raw;
   TXCheckbox viewOnly, acceptClipboard, sendClipboard, sendPrimary;
   TXCheckbox shared, fullScreen, useLocalCursor, dotWhenNoCursor;
   TXButton okButton, cancelButton;
