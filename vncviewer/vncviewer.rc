@@ -171,12 +171,13 @@ FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "&Auto select",IDC_ENCODING_AUTO,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,7,88,13
-    GROUPBOX        "Preferred encoding",IDC_STATIC,7,25,83,60
-    CONTROL         "ZRLE",IDC_ENCODING_ZRLE,"Button",BS_AUTORADIOBUTTON | 
+    GROUPBOX        "Preferred encoding",IDC_STATIC,7,25,83,75
+    CONTROL         "Tight",IDC_ENCODING_TIGHT,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP,10,35,75,14
+    CONTROL         "ZRLE",IDC_ENCODING_ZRLE,"Button",BS_AUTORADIOBUTTON,10,50,75,14
     CONTROL         "Hextile",IDC_ENCODING_HEXTILE,"Button",
-                    BS_AUTORADIOBUTTON,10,49,75,16
-    CONTROL         "Raw",IDC_ENCODING_RAW,"Button",BS_AUTORADIOBUTTON,10,65,
+                    BS_AUTORADIOBUTTON,10,65,75,16
+    CONTROL         "Raw",IDC_ENCODING_RAW,"Button",BS_AUTORADIOBUTTON,10,80,
                     75,15
     GROUPBOX        "Colour level",IDC_STATIC,95,10,99,75
     CONTROL         "&Full (all available colours)",IDC_FORMAT_FULLCOLOUR,

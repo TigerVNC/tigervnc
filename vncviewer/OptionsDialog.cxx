@@ -88,6 +88,7 @@ public:
       }
     }
     switch (dlg->options.preferredEncoding) {
+    case encodingTight: setItemChecked(IDC_ENCODING_TIGHT, true); break;
     case encodingZRLE: setItemChecked(IDC_ENCODING_ZRLE, true); break;
     case encodingHextile: setItemChecked(IDC_ENCODING_HEXTILE, true); break;
     case encodingRaw: setItemChecked(IDC_ENCODING_RAW, true); break;
@@ -103,7 +104,9 @@ public:
       dlg->options.lowColourLevel = 1;
     if (isItemChecked(IDC_FORMAT_MEDIUMCOLOUR))
       dlg->options.lowColourLevel = 2;
-    dlg->options.preferredEncoding = encodingZRLE;
+    dlg->options.preferredEncoding = encodingTight;
+    if (isItemChecked(IDC_ENCODING_ZRLE))
+      dlg->options.preferredEncoding = encodingZRLE;
     if (isItemChecked(IDC_ENCODING_HEXTILE))
       dlg->options.preferredEncoding = encodingHextile;
     if (isItemChecked(IDC_ENCODING_RAW))
@@ -114,6 +117,7 @@ public:
   virtual bool onCommand(int id, int cmd) {
     if (id == IDC_ENCODING_AUTO) {
       bool ok = !isItemChecked(IDC_ENCODING_AUTO);
+      enableItem(IDC_ENCODING_TIGHT, ok);
       enableItem(IDC_ENCODING_ZRLE, ok);
       enableItem(IDC_ENCODING_HEXTILE, ok);
       enableItem(IDC_ENCODING_RAW, ok);

@@ -63,6 +63,7 @@
 #define IDC_MENU_KEY                    1051
 #define IDC_REQUESTED_ENCODING          1052
 #define IDC_LAST_ENCODING               1053
+#define IDC_ENCODING_TIGHT              1054
 #define ID_CLOSE                        40002
 #define ID_OPTIONS                      40003
 #define ID_NEW_CONNECTION               40004
