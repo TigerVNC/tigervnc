@@ -21,6 +21,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.*;
 
 public class RfbPlayer extends java.applet.Applet
   implements java.lang.Runnable, WindowListener {
@@ -62,7 +63,7 @@ public class RfbPlayer extends java.applet.Applet
   ButtonPanel buttonPanel;
   VncCanvas vc;
 
-  String sessionFileName;
+  String sessionURL;
   boolean showControls;
   int deferScreenUpdates;
 
@@ -122,8 +123,8 @@ public class RfbPlayer extends java.applet.Applet
     }
 
     try {
-      FileInputStream file = new FileInputStream(sessionFileName);
-      fbsStream = new FbsInputStream(file);
+      URL url = new URL(sessionURL);
+      fbsStream = new FbsInputStream(url.openStream());
       rfb = new RfbProto(fbsStream);
 
       vc = new VncCanvas(this);
@@ -165,9 +166,8 @@ public class RfbPlayer extends java.applet.Applet
 	  buttonPanel.setMode(MODE_STOPPED);
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
-	  file.close();
-	  file = new FileInputStream(sessionFileName);
-	  fbsStream = new FbsInputStream(file);
+	  fbsStream.close();
+	  fbsStream = new FbsInputStream(url.openStream());
 	  rfb.newInputStream(fbsStream);
 	}
       }
@@ -203,7 +203,7 @@ public class RfbPlayer extends java.applet.Applet
 
   public void readParameters() {
 
-    sessionFileName = readParameter("FILE", true);
+    sessionURL = readParameter("URL", true);
 
     showControls = true;
     String str = readParameter("Show Controls", false);

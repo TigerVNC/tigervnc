@@ -1,12 +1,13 @@
 
-RFB Session Player 0.1.0
+RFB Session Player 0.7.0
 ========================
 
 RFB Session Player is a Java application/applet for playing back RFB
 session files in FBS format saved by such programs as VNC Reflector or
 rfbproxy.
 
-Usage:  java RfbPlayer FILE test.fbs
+Usage:  java RfbPlayer URL file:test.fbs
+        java RfbPlayer URL http://remote.host/sessions/test.fbs
 
 
 Licensing Terms
