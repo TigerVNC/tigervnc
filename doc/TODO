@@ -1,6 +1,4 @@
 
-* Tight support for other BPPs than 16. 
-
 * Tight encoding support
 
 * Document the Tight protocol extensions in a text file. 
