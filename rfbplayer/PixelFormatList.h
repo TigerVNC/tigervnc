@@ -26,6 +26,8 @@
 #include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 
+#include <rfb_win32/registry.h>
+
 // Definition indexes of the default pixel formats
 #define PF_BGR233 0
 #define PF_RGB555 1
@@ -34,7 +36,6 @@
 #define PF_BGR565 4
 #define PF_RGB888 5
 #define PF_BGR888 6
-#define PF_DEFAULT_COUNT 7
 
 using namespace rfb;
 using namespace std;
@@ -44,6 +45,9 @@ using namespace std;
 
 class PixelFormatListElement {
 public:
+  PixelFormatListElement() {
+    format_name[0] = 0;
+  }
   char format_name[256];
   PixelFormat PF;
   void setName(const char *name) {
@@ -59,13 +63,23 @@ public:
 class PixelFormatList {
 public:
   PixelFormatList();
+
   PixelFormatListElement operator[](int index);
   void add(char *format_name, PixelFormat PF);
   void insert(int index, char *format_name, PixelFormat PF);
   void remove(int index);
+
+  void readUserDefinedPF(HKEY root, const char *keypath);
+  void writeUserDefinedPF(HKEY root, const char *keypath);
+  
   int count() { return PFList.size(); }
+  int getDefaultPFCount() { return  PF_DEFAULT_COUNT; }
+  int getUserPFCount() { return max(0, count() - PF_DEFAULT_COUNT); }
+  int getIndexByPFName(const char *format_name);
+  bool isDefaultPF(int index);
 
 protected:
   list <PixelFormatListElement>::iterator getIterator(int index);
   list <PixelFormatListElement> PFList;
+  int PF_DEFAULT_COUNT;
 };
