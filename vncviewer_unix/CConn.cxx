@@ -537,9 +537,25 @@ void CConn::getOptions() {
   }
 
   customCompressLevel.setParam(options.customCompressLevel.checked());
+  if (cp.customCompressLevel != customCompressLevel) {
+    cp.customCompressLevel = customCompressLevel;
+    encodingChange = true;
+  }
   compressLevel.setParam(options.compressLevel.getText());
+  if (cp.compressLevel != compressLevel) {
+    cp.compressLevel = compressLevel;
+    encodingChange = true;
+  }
   noJpeg.setParam(!options.noJpeg.checked());
+  if (cp.noJpeg != noJpeg) {
+    cp.noJpeg = noJpeg;
+    encodingChange = true;
+  }
   qualityLevel.setParam(options.qualityLevel.getText());
+  if (cp.qualityLevel != qualityLevel) {
+    cp.qualityLevel = qualityLevel;
+    encodingChange = true;
+  }
 
   viewOnly.setParam(options.viewOnly.checked());
   acceptClipboard.setParam(options.acceptClipboard.checked());
