@@ -193,8 +193,6 @@ vfbBitsPerPixel(int depth)
 }
 
 extern "C" {
-  void ddxInitGlobals() {}
-
 void
 ddxGiveUp()
 {
@@ -331,181 +329,206 @@ ddxUseMsg()
   }
 }
 
-static bool displayNumFree(int num)
+/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
+void ddxInitGlobals(void)
 {
-  try {
-    network::TcpListener l(6000+num);
-  } catch (rdr::Exception& e) {
-    return false;
-  }
-  char file[256];
-  sprintf(file, "/tmp/.X%d-lock", num);
-  if (access(file, F_OK) == 0) return false;
-  sprintf(file, "/tmp/.X11-unix/X%d", num);
-  if (access(file, F_OK) == 0) return false;
-  sprintf(file, "/usr/spool/sockets/X11/%d", num);
-  if (access(file, F_OK) == 0) return false;
-  return true;
 }
 
-int ddxProcessArgument(int argc, char *argv[], int i)
+static 
+bool displayNumFree(int num)
 {
-  static Bool firstTime = TRUE;
-
-  if (firstTime)
-  {
-    vfbInitializeDefaultScreens();
-    vfbInitializePixmapDepths();
-    firstTime = FALSE;
-    rfb::initStdIOLoggers();
-    rfb::LogWriter::setLogParams("*:stderr:30");
-  }
-
-  if (argv[i][0] ==  ':')
-    displaySpecified = true;
-
-  if (strcmp (argv[i], "-screen") == 0)	/* -screen n WxHxD */
-  {
-    int screenNum;
-    if (i + 2 >= argc) UseMsg();
-    screenNum = atoi(argv[i+1]);
-    if (screenNum < 0 || screenNum >= MAXSCREENS)
-    {
-      ErrorF("Invalid screen number %d\n", screenNum);
-      UseMsg();
+    try {
+	network::TcpListener l(6000+num);
+    } catch (rdr::Exception& e) {
+	return false;
     }
-    if (3 != sscanf(argv[i+2], "%dx%dx%d",
-                    &vfbScreens[screenNum].width,
-                    &vfbScreens[screenNum].height,
-                    &vfbScreens[screenNum].depth))
+    char file[256];
+    sprintf(file, "/tmp/.X%d-lock", num);
+    if (access(file, F_OK) == 0) return false;
+    sprintf(file, "/tmp/.X11-unix/X%d", num);
+    if (access(file, F_OK) == 0) return false;
+    sprintf(file, "/usr/spool/sockets/X11/%d", num);
+    if (access(file, F_OK) == 0) return false;
+    return true;
+}
+
+int 
+ddxProcessArgument(int argc, char *argv[], int i)
+{
+    static Bool firstTime = TRUE;
+
+    if (firstTime)
     {
-      ErrorF("Invalid screen configuration %s\n", argv[i+2]);
-      UseMsg();
+	vfbInitializeDefaultScreens();
+	vfbInitializePixmapDepths();
+	firstTime = FALSE;
+	rfb::initStdIOLoggers();
+	rfb::LogWriter::setLogParams("*:stderr:30");
     }
 
-    if (screenNum >= vfbNumScreens)
-      vfbNumScreens = screenNum + 1;
-    lastScreen = screenNum;
-    return 3;
-  }
+    if (argv[i][0] ==  ':')
+	displaySpecified = true;
 
-  if (strcmp (argv[i], "-pixdepths") == 0)	/* -pixdepths list-of-depth */
-  {
-    int depth, ret = 1;
-
-    if (++i >= argc) UseMsg();
-    while ((i < argc) && (depth = atoi(argv[i++])) != 0)
+    if (strcmp (argv[i], "-screen") == 0)	/* -screen n WxHxD */
     {
-      if (depth < 0 || depth > 32)
-      {
-        ErrorF("Invalid pixmap depth %d\n", depth);
-        UseMsg();
-      }
-      vfbPixmapDepths[depth] = TRUE;
-      ret++;
-    }
-    return ret;
-  }
+	int screenNum;
+	if (i + 2 >= argc) UseMsg();
+	screenNum = atoi(argv[i+1]);
+	if (screenNum < 0 || screenNum >= MAXSCREENS)
+	{
+	    ErrorF("Invalid screen number %d\n", screenNum);
+	    UseMsg();
+	}
+	if (3 != sscanf(argv[i+2], "%dx%dx%d",
+			&vfbScreens[screenNum].width,
+			&vfbScreens[screenNum].height,
+			&vfbScreens[screenNum].depth))
+	{
+	    ErrorF("Invalid screen configuration %s\n", argv[i+2]);
+	    UseMsg();
+	}
 
-  if (strcmp (argv[i], "+render") == 0)	/* +render */
-  {
-    Render = TRUE;
-    return 1;
-  }
+	if (screenNum >= vfbNumScreens)
+	    vfbNumScreens = screenNum + 1;
+	lastScreen = screenNum;
+	return 3;
+    }
+
+    if (strcmp (argv[i], "-pixdepths") == 0)	/* -pixdepths list-of-depth */
+    {
+	int depth, ret = 1;
+
+	if (++i >= argc) UseMsg();
+	while ((i < argc) && (depth = atoi(argv[i++])) != 0)
+	{
+	    if (depth < 0 || depth > 32)
+	    {
+		ErrorF("Invalid pixmap depth %d\n", depth);
+		UseMsg();
+	    }
+	    vfbPixmapDepths[depth] = TRUE;
+	    ret++;
+	}
+	return ret;
+    }
+    
+    if (strcmp (argv[i], "+render") == 0)	/* +render */
+    {
+	Render = TRUE;
+	return 1;
+    }
   
-  if (strcmp (argv[i], "-render") == 0)	/* -render */
-  {
-    Render = FALSE;
-    return 1;
-  }
-
-  if (strcmp (argv[i], "-blackpixel") == 0)	/* -blackpixel n */
-  {
-    Pixel pix;
-    if (++i >= argc) UseMsg();
-    pix = atoi(argv[i]);
-    if (-1 == lastScreen)
+    if (strcmp (argv[i], "-render") == 0)	/* -render */
     {
-      int i;
-      for (i = 0; i < MAXSCREENS; i++)
-      {
-        vfbScreens[i].blackPixel = pix;
-      }
+	Render = FALSE;
+	return 1;
     }
-    else
-    {
-      vfbScreens[lastScreen].blackPixel = pix;
-    }
-    return 2;
-  }
 
-  if (strcmp (argv[i], "-whitepixel") == 0)	/* -whitepixel n */
-  {
-    Pixel pix;
-    if (++i >= argc) UseMsg();
-    pix = atoi(argv[i]);
-    if (-1 == lastScreen)
+    if (strcmp (argv[i], "-blackpixel") == 0)	/* -blackpixel n */
     {
-      int i;
-      for (i = 0; i < MAXSCREENS; i++)
-      {
-        vfbScreens[i].whitePixel = pix;
-      }
+	Pixel pix;
+	if (++i >= argc) UseMsg();
+	pix = atoi(argv[i]);
+	if (-1 == lastScreen)
+	{
+	    int i;
+	    for (i = 0; i < MAXSCREENS; i++)
+	    {
+		vfbScreens[i].blackPixel = pix;
+	    }
+	}
+	else
+	{
+	    vfbScreens[lastScreen].blackPixel = pix;
+	}
+	return 2;
     }
-    else
+
+    if (strcmp (argv[i], "-whitepixel") == 0)	/* -whitepixel n */
     {
-      vfbScreens[lastScreen].whitePixel = pix;
+	Pixel pix;
+	if (++i >= argc) UseMsg();
+	pix = atoi(argv[i]);
+	if (-1 == lastScreen)
+	{
+	    int i;
+	    for (i = 0; i < MAXSCREENS; i++)
+	    {
+		vfbScreens[i].whitePixel = pix;
+	    }
+	}
+	else
+	{
+	    vfbScreens[lastScreen].whitePixel = pix;
+	}
+	return 2;
     }
-    return 2;
-  }
-
-  if (strcmp (argv[i], "-linebias") == 0)	/* -linebias n */
-  {
-    unsigned int linebias;
-    if (++i >= argc) UseMsg();
-    linebias = atoi(argv[i]);
-    if (-1 == lastScreen)
+    
+    if (strcmp (argv[i], "-linebias") == 0)	/* -linebias n */
     {
-      int i;
-      for (i = 0; i < MAXSCREENS; i++)
-      {
-        vfbScreens[i].lineBias = linebias;
-      }
+	unsigned int linebias;
+	if (++i >= argc) UseMsg();
+	linebias = atoi(argv[i]);
+	if (-1 == lastScreen)
+	{
+	    int i;
+	    for (i = 0; i < MAXSCREENS; i++)
+	    {
+		vfbScreens[i].lineBias = linebias;
+	    }
+	}
+	else
+	{
+	    vfbScreens[lastScreen].lineBias = linebias;
+	}
+	return 2;
     }
-    else
+
+#ifdef HAS_MMAP
+    if (strcmp (argv[i], "-fbdir") == 0)	/* -fbdir directory */
     {
-      vfbScreens[lastScreen].lineBias = linebias;
+	if (++i >= argc) UseMsg();
+	pfbdir = argv[i];
+	fbmemtype = MMAPPED_FILE_FB;
+	return 2;
     }
-    return 2;
-  }
+#endif /* HAS_MMAP */
 
-  if (strcmp(argv[i], "-geometry") == 0)
-  {
-    if (++i >= argc) UseMsg();
-    if (sscanf(argv[i],"%dx%d",&vfbScreens[0].width,
-               &vfbScreens[0].height) != 2) {
-      ErrorF("Invalid geometry %s\n", argv[i]);
-      UseMsg();
+#ifdef HAS_SHM
+    if (strcmp (argv[i], "-shmem") == 0)	/* -shmem */
+    {
+	fbmemtype = SHARED_MEMORY_FB;
+	return 1;
     }
-    return 2;
-  }
-
-  if (strcmp(argv[i], "-depth") == 0)
-  {
-    if (++i >= argc) UseMsg();
-    vfbScreens[0].depth = atoi(argv[i]);
-    return 2;
-  }
-
-  if (strcmp(argv[i], "-pixelformat") == 0)
-  {
-    char rgbbgr[4];
-    int bits1, bits2, bits3;
-    if (++i >= argc) UseMsg();
-    if (sscanf(argv[i], "%3s%1d%1d%1d", rgbbgr,&bits1,&bits2,&bits3) < 4) {
-      ErrorF("Invalid pixel format %s\n", argv[i]);
-      UseMsg();
+#endif
+    
+    if (strcmp(argv[i], "-geometry") == 0)
+    {
+	if (++i >= argc) UseMsg();
+	if (sscanf(argv[i],"%dx%d",&vfbScreens[0].width,
+		   &vfbScreens[0].height) != 2) {
+	    ErrorF("Invalid geometry %s\n", argv[i]);
+	    UseMsg();
+	}
+	return 2;
     }
+    
+    if (strcmp(argv[i], "-depth") == 0)
+    {
+	if (++i >= argc) UseMsg();
+	vfbScreens[0].depth = atoi(argv[i]);
+	return 2;
+    }
+
+    if (strcmp(argv[i], "-pixelformat") == 0)
+    {
+	char rgbbgr[4];
+	int bits1, bits2, bits3;
+	if (++i >= argc) UseMsg();
+	if (sscanf(argv[i], "%3s%1d%1d%1d", rgbbgr,&bits1,&bits2,&bits3) < 4) {
+	    ErrorF("Invalid pixel format %s\n", argv[i]);
+	    UseMsg();
+	}
 
 #define SET_PIXEL_FORMAT(vfbScreen)                     \
     (vfbScreen).pixelFormatDefined = TRUE;              \
@@ -524,55 +547,55 @@ int ddxProcessArgument(int argc, char *argv[], int i)
         UseMsg();                                       \
     }
 
-    if (-1 == lastScreen)
+	if (-1 == lastScreen)
+	{
+	    int i;
+	    for (i = 0; i < MAXSCREENS; i++)
+	    {
+		SET_PIXEL_FORMAT(vfbScreens[i]);
+	    }
+	}
+	else
+	{
+	    SET_PIXEL_FORMAT(vfbScreens[lastScreen]);
+	}
+
+	return 2;
+    }
+
+    if (strcmp(argv[i], "-inetd") == 0)
     {
-      int i;
-      for (i = 0; i < MAXSCREENS; i++)
-      {
-        SET_PIXEL_FORMAT(vfbScreens[i]);
-      }
+	dup2(0,3);
+	vncInetdSock = 3;
+	close(2);
+	
+	if (!displaySpecified) {
+	    int port = network::TcpSocket::getSockPort(vncInetdSock);
+	    int displayNum = port - 5900;
+	    if (displayNum < 0 || displayNum > 99 || !displayNumFree(displayNum)) {
+		for (displayNum = 1; displayNum < 100; displayNum++)
+		    if (displayNumFree(displayNum)) break;
+		
+		if (displayNum == 100)
+		    FatalError("Xvnc error: no free display number for -inetd");
+	    }
+	    
+	    display = displayNumStr;
+	    sprintf(displayNumStr, "%d", displayNum);
+	}
+	
+	return 1;
     }
-    else
-    {
-      SET_PIXEL_FORMAT(vfbScreens[lastScreen]);
+    
+    if (rfb::Configuration::setParam(argv[i]))
+	return 1;
+    
+    if (argv[i][0] == '-' && i+1 < argc) {
+	if (rfb::Configuration::setParam(&argv[i][1], argv[i+1]))
+	    return 2;
     }
-
-    return 2;
-  }
-
-  if (strcmp(argv[i], "-inetd") == 0)
-  {
-    dup2(0,3);
-    vncInetdSock = 3;
-    close(2);
-
-    if (!displaySpecified) {
-      int port = network::TcpSocket::getSockPort(vncInetdSock);
-      int displayNum = port - 5900;
-      if (displayNum < 0 || displayNum > 99 || !displayNumFree(displayNum)) {
-        for (displayNum = 1; displayNum < 100; displayNum++)
-          if (displayNumFree(displayNum)) break;
-
-        if (displayNum == 100)
-          FatalError("Xvnc error: no free display number for -inetd");
-      }
-
-      display = displayNumStr;
-      sprintf(displayNumStr, "%d", displayNum);
-    }
-
-    return 1;
-  }
-
-  if (rfb::Configuration::setParam(argv[i]))
-    return 1;
-
-  if (argv[i][0] == '-' && i+1 < argc) {
-    if (rfb::Configuration::setParam(&argv[i][1], argv[i+1]))
-      return 2;
-  }
-
-  return 0;
+    
+    return 0;
 }
 
 #ifdef DDXTIME /* from ServerOSDefines */
