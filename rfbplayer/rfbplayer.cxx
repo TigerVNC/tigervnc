@@ -226,7 +226,7 @@ RfbPlayer::RfbPlayer(char *_fileName, int _depth = DEPTH_AUTO,
   seekMode(false), fileName(_fileName), lastPos(0), timeStatic(0), 
   speedEdit(0), posTrackBar(0), speedUpDown(0), acceptBell(_acceptBell), 
   rfbReader(0), sessionTimeMs(0), sliderDraging(false), sliderStepMs(0), 
-  loopPlayback(false) {
+  loopPlayback(false), imageDataStartTime(0) {
 
   CTRL_BAR_HEIGHT = 28;
 
@@ -824,7 +824,7 @@ void RfbPlayer::processMsg() {
     // It's a special exception to perform backward seeking.
     // We only rewind the stream and seek the offset
     if (strcmp(e.str(), "[REWIND]") == 0) {
-      long seekOffset = getSeekOffset();
+      long seekOffset = max(getSeekOffset(), imageDataStartTime);
       rewind();
       setPos(seekOffset);
       updatePos(seekOffset);
@@ -837,6 +837,9 @@ void RfbPlayer::processMsg() {
 
 void RfbPlayer::serverInit() {
   RfbProto::serverInit();
+
+  // Save the image data start time
+  imageDataStartTime = is->getTimeOffset();
 
   // Resize the backing buffer
   buffer->setSize(cp.width, cp.height);
@@ -1075,7 +1078,7 @@ double RfbPlayer::getSpeed() {
 }
 
 void RfbPlayer::setPos(long pos) {
-  is->setTimeOffset(max(pos, 0));
+  is->setTimeOffset(max(pos, imageDataStartTime));
 }
 
 long RfbPlayer::getSeekOffset() {
