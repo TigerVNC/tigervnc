@@ -644,7 +644,6 @@ void CConn::reconfigureViewport()
 // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
 // to the connection speed:
 //
-//   Above 16Mbps (timing for at least a second), same machine, switch to raw
 //   Above 16Mbps (timing for at least a second), switch to hextile
 //   Otherwise, switch to Tight
 //
@@ -658,9 +657,7 @@ void CConn::autoSelectFormatAndEncoding()
   unsigned int timeWaited = sock->inStream().timeWaited();
 
   // Select best encoding
-  if (kbitsPerSecond > 16000 && sameMachine && timeWaited >= 10000) {
-    newEncoding = encodingRaw;
-  } else if (kbitsPerSecond > 16000 && timeWaited >= 10000) {
+  if (kbitsPerSecond > 16000 && timeWaited >= 10000) {
     newEncoding = encodingHextile;
   } else {
     newEncoding = encodingTight;
