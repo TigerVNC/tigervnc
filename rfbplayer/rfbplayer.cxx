@@ -342,6 +342,30 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         InvalidateRect(getFrameHandle(), 0, TRUE);
     } 
     break;
+  
+  case WM_NOTIFY:
+    switch (((NMHDR*)lParam)->code) {
+    case UDN_DELTAPOS:
+      if ((int)wParam == ID_SPEED_UPDOWN) {
+        char speedStr[20] = "\0";
+        DWORD speedRange = SendMessage(speedUpDown, UDM_GETRANGE, 0, 0);
+        LPNM_UPDOWN upDown = (LPNM_UPDOWN)lParam;
+        double speed;
+
+        // the out of range checking
+        if (upDown->iDelta > 0) {
+          speed = min(upDown->iPos + upDown->iDelta, LOWORD(speedRange)) * 0.5;
+        } else {
+          speed = max(upDown->iPos + upDown->iDelta, HIWORD(speedRange)) * 0.5;
+        }
+        _gcvt(speed, 5, speedStr);
+        sprintf(speedStr, "%.2f", speed);
+        SetWindowText(speedEdit, speedStr);
+        setSpeed(speed);
+      }
+      return 0;
+    };
+    return 0;
 
   case WM_CLOSE:
     vlog.debug("WM_CLOSE %x", getMainHandle());
@@ -561,7 +585,7 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
 
   speedUpDown = CreateUpDownControl(WS_CHILD | WS_VISIBLE  
     | WS_BORDER | UDS_ALIGNRIGHT, 0, 0, 0, 0, tb.getHandle(),
-    ID_SPEED_UPDOWN, GetModuleHandle(0), speedEdit, 100, 1, 10);
+    ID_SPEED_UPDOWN, GetModuleHandle(0), speedEdit, 20, 1, 2);
 }
 
 void RfbPlayer::setVisible(bool visible) {
