@@ -687,9 +687,6 @@ void RfbPlayer::processMsg() {
     if (strcmp(e.str(), "[End Of File]") == 0) {
       rewind();
       setPaused(true);
-///      tb.checkButton(ID_STOP, true);
-///      tb.checkButton(ID_PAUSE, false);
-///      tb.checkButton(ID_PLAY, false);
       return;
     }
     // It's a special exception to perform backward seeking.
