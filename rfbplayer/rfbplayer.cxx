@@ -941,6 +941,8 @@ void RfbPlayer::serverInit() {
         options.setPF(&supportedPF[options.pixelFormatIndex]->PF);
         options.pixelFormat.bigEndian = options.bigEndianFlag;
       }
+    } else if (options.autoDetectPF) {
+      options.setPF((PixelFormat *)&cp.pf());
     }
   }
   cp.setPF(options.pixelFormat);
