@@ -203,7 +203,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   autoplay(_autoplay), showControls(_showControls), buffer(0), client_size(0, 0, 32, 32), 
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), 
   serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), speedTrackBar(0),
-  speedUpDown(0), acceptBell(_acceptBell) {
+  speedUpDown(0), acceptBell(_acceptBell), rfbReader(0) {
 
   if (showControls)
     CTRL_BAR_HEIGHT = 28;
@@ -229,6 +229,11 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
 
 RfbPlayer::~RfbPlayer() {
   vlog.debug("~RfbPlayer");
+  if (rfbReader) {
+    rfbReader->stop();
+    delete rfbReader->join();
+    rfbReader = 0;
+  }
   if (mainHwnd) {
     setVisible(false);
     DestroyWindow(mainHwnd);

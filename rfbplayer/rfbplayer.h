@@ -22,8 +22,9 @@
 
 #include <rfb_win32/DIBSectionBuffer.h>
 
-#include <rfbplayer/RfbProto.h>
+//#include <rfbplayer/RfbProto.h>
 #include <rfbplayer/ToolBar.h>
+#include <rfbplayer/rfbSessionReader.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -135,6 +136,8 @@ class RfbPlayer : public RfbProto {
     int CTRL_BAR_HEIGHT;
     
   protected:
+    // rfbReader is a class which used to reading the rfb data from the file
+    rfbSessionReader *rfbReader;
 
     // Returns true if part of the supplied rect is visible, false otherwise
     bool invalidateBufferRect(const Rect& crect);

@@ -16,7 +16,7 @@
  * USA.
  */
 
-// -=- RfbProto.h
+// -=- rfbSessionReader.h
 
 #include <rfb/Threading.h>
 
