@@ -84,7 +84,7 @@ class RfbProto {
   public void quit() {
     fbs.quit();
     try {
-      is.close();
+      fbs.close();
     } catch (IOException e) {
       System.out.println("IOException quitting RfbProto: " + e);
     }

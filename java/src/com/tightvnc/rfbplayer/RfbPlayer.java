@@ -190,6 +190,9 @@ public class RfbPlayer extends java.applet.Applet
           }
           rfb.newSession(url);
           vc.updateFramebufferSize();
+        } catch (NullPointerException e) {
+          // catching this causes a hang with 1.4.1 JVM's under Win32 IE
+          throw e;
         }
       }
 
@@ -389,6 +392,7 @@ public class RfbPlayer extends java.applet.Applet
     } catch (InterruptedException e) {
     }
     if (inSeparateFrame) {
+      vncFrame.removeWindowListener(this);
       vncFrame.dispose();
     }
   }
