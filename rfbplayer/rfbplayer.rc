@@ -96,11 +96,11 @@ BEGIN
             VALUE "FileDescription", "RFB Session Player for Win32\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
             VALUE "InternalName", "rfbplayer\0"
-            VALUE "LegalCopyright", "Copyright (C) 2004 TightVNC Team.\0"
+            VALUE "LegalCopyright", "Copyright (C) 2004-2005 TightVNC Team.\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "rfbplayer.exe\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "RFB Session Player 1.0\0"
+            VALUE "ProductName", "Rfb Session Player 1.0\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
             VALUE "SpecialBuild", "\0"
         END
@@ -158,7 +158,7 @@ BEGIN
         MENUITEM "Home Page",                   ID_HELP_HOMEPAGE
         MENUITEM "Command Line Switches",       ID_HELP_COMMANDLINESWITCHES
         MENUITEM SEPARATOR
-        MENUITEM "About RfbPlayer...",          ID_HELP_ABOUT
+        MENUITEM "About RfbPlayer...",          ID_ABOUT
     END
 END
 
@@ -253,6 +253,21 @@ BEGIN
                     145,9
     CONTROL         "Big endian flag",IDC_BIG_ENDIAN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,52,145,10
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 251, 95
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About Rfb Session Player for Windows"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,195,70,47,15
+    ICON            IDI_ICON,IDC_STATIC,7,10,20,20
+    LTEXT           ">appname<",IDC_DESCRIPTION,40,10,125,15
+    LTEXT           ">version<",IDC_VERSION,165,10,77,15
+    LTEXT           ">buildtime<",IDC_BUILDTIME,40,25,202,15
+    LTEXT           ">copyright<",IDC_COPYRIGHT,40,40,202,15
+    LTEXT           "See http://www.tightvnc.com for more information on TightVNC.",
+                    IDC_STATIC,40,55,202,15
 END
 
 

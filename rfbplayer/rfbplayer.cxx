@@ -24,10 +24,11 @@
 
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/WMShatter.h> 
+#include <rfb_win32/AboutDialog.h>
 
 #include <rfbplayer/PixelFormatList.h>
 #include <rfbplayer/rfbplayer.h>
-
+  
 using namespace rfb;
 using namespace rfb::win32;
 
@@ -77,6 +78,16 @@ char usage_msg[] =
 #define ID_SPEED_EDIT 550
 #define ID_POS_TRACKBAR 560
 #define ID_SPEED_UPDOWN 570
+
+//
+// -=- AboutDialog global values
+//
+
+const WORD rfb::win32::AboutDialog::DialogId = IDD_ABOUT;
+const WORD rfb::win32::AboutDialog::Copyright = IDC_COPYRIGHT;
+const WORD rfb::win32::AboutDialog::Version = IDC_VERSION;
+const WORD rfb::win32::AboutDialog::BuildTime = IDC_BUILDTIME;
+const WORD rfb::win32::AboutDialog::Description = IDC_DESCRIPTION;
 
 //
 // -=- RfbPlayerClass
@@ -392,6 +403,9 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case ID_HELP_COMMANDLINESWITCHES:
       MessageBox(getMainHandle(), 
       usage_msg, "RfbPlayer", MB_OK | MB_ICONINFORMATION);
+      break;
+    case ID_ABOUT:
+      AboutDialog::instance.showDialog();
       break;
     }
     break;

@@ -9,15 +9,20 @@
 #define IDD_GOTO                        133
 #define IDD_PIXELFORMAT                 134
 #define IDD_OPTIONS                     137
+#define IDD_ABOUT                       138
 #define IDC_GOTO_EDIT                   1003
 #define IDC_PIXELFORMAT                 1004
 #define IDC_ASK_PF                      1006
 #define IDC_DEFAULT                     1008
+#define IDC_VERSION                     1008
 #define IDC_ACCEPT_BELL                 1009
+#define IDC_BUILDTIME                   1009
 #define IDC_ACCEPT_CUT_TEXT             1010
 #define IDC_AUTO_STORE_PARAM            1011
 #define IDC_AUTOPLAY                    1012
 #define IDC_BIG_ENDIAN                  1013
+#define IDC_COPYRIGHT                   1021
+#define IDC_DESCRIPTION                 1022
 #define ID_OPENFILE                     40011
 #define ID_CLOSEFILE                    40012
 #define ID_EXIT                         40013
@@ -34,6 +39,7 @@
 #define ID_HELP_HOMEPAGE                40025
 #define ID_HELP_COMMANDLINESWITCHES     40026
 #define ID_HELP_ABOUT                   40027
+#define ID_ABOUT                        40027
 #define ID_OPTIONS                      40029
 #define ID_RETURN                       40044
 
@@ -41,7 +47,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        138
+#define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         40045
 #define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           101
