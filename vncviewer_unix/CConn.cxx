@@ -198,8 +198,9 @@ bool CConn::getUserPasswd(char** user, char** password)
 
   const char* secType = secTypeName(getCurrentCSecurity()->getType());
   const char* titlePrefix = "VNC Authentication";
-  CharArray title(strlen(titlePrefix) + strlen(secType) + 4);
-  sprintf(title.buf, "%s [%s]", titlePrefix, secType);
+  unsigned int titleLen = strlen(titlePrefix) + strlen(secType) + 4;
+  CharArray title(titleLen);
+  snprintf(title.buf, titleLen, "%s [%s]", titlePrefix, secType);
   PasswdDialog dlg(dpy, title.buf, !user);
   if (!dlg.show()) return false;
   if (user)
@@ -345,8 +346,9 @@ void CConn::initMenu() {
   menu.addEntry("Ctrl", ID_CTRL);
   menu.addEntry("Alt", ID_ALT);
   CharArray menuKeyStr(menuKey.getData());
-  CharArray sendMenuKey(6+strlen(menuKeyStr.buf));
-  sprintf(sendMenuKey.buf, "Send %s", menuKeyStr.buf);
+  unsigned int sendMenuKeyLen = 6+strlen(menuKeyStr.buf);
+  CharArray sendMenuKey(sendMenuKeyLen);
+  snprintf(sendMenuKey.buf, sendMenuKeyLen, "Send %s", menuKeyStr.buf);
   menu.addEntry(sendMenuKey.buf, ID_F8);
   menu.addEntry("Send Ctrl-Alt-Del", ID_CTRLALTDEL);
   menu.addEntry(0, 0);
@@ -405,7 +407,7 @@ void CConn::menuSelect(long id, TXMenu* m) {
       serverPF.print(spfStr, 100);
       int secType = getCurrentCSecurity()->getType();
       char infoText[1024];
-      sprintf(infoText,
+      snprintf(infoText, sizeof(infoText),
               "Desktop name: %.80s\n"
               "Host: %.80s port: %d\n"
               "Size: %d x %d\n"
@@ -592,7 +594,7 @@ void CConn::recreateViewport()
   CharArray windowNameStr(windowName.getData());
   if (!windowNameStr.buf[0]) {
     windowNameStr.replaceBuf(new char[256]);
-    sprintf(windowNameStr.buf,"VNC: %.240s",cp.name());
+    snprintf(windowNameStr.buf, 256, "VNC: %.240s", cp.name());
   }
   viewport->toplevel(windowNameStr.buf, this, argc, argv);
   viewport->setBumpScroll(fullScreen);

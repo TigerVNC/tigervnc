@@ -112,7 +112,7 @@ IntParameter qualityLevel("QualityLevel",
 			  "0 = Low, 9 = High",
 			  6);
 
-char aboutText[256];
+char aboutText[1024];
 char* programName;
 extern char buildtime[];
 
@@ -176,12 +176,13 @@ static void usage()
 
 int main(int argc, char** argv)
 {
-  sprintf(aboutText, "TightVNC viewer for X version 4.0 - built %s\n"
-          "Copyright (C) 2002-2004 RealVNC Ltd.\n"
-	  "Copyright (C) 2000-2004 Constantin Kaplinsky.\n"
-	  "Copyright (C) 2004 Peter Astrand, Cendio AB\n"
-          "See http://www.tightvnc.com for information on TightVNC.",
-          buildtime);
+  snprintf(aboutText, sizeof(aboutText), 
+	   "TightVNC viewer for X version 4.0 - built %s\n"
+	   "Copyright (C) 2002-2004 RealVNC Ltd.\n"
+	   "Copyright (C) 2000-2004 Constantin Kaplinsky.\n"
+	   "Copyright (C) 2004 Peter Astrand, Cendio AB\n"
+	   "See http://www.tightvnc.com for information on TightVNC.",
+	   buildtime);
   fprintf(stderr,"\n%s\n", aboutText);
 
   rfb::initStdIOLoggers();
