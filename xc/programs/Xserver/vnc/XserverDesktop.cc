@@ -614,14 +614,9 @@ void XserverDesktop::pointerEvent(const Point& pos, rdr::U8 buttonMask)
 
   for (int i = 0; i < 5; i++) {
     if ((buttonMask ^ oldButtonMask) & (1<<i)) {
-#ifdef XINPUT
-      // God knows why but some idiot decided to conditionally move the pointer
-      // mapping out of DIX, so we guess here that if XINPUT is defined we have
-      // to do it ourselves...
-      ev.u.u.detail = ((DeviceIntPtr)dev)->button->map[i + 1];
-#else
+      // Do not use the pointer mapping. Treat VNC buttons as logical
+      // buttons.
       ev.u.u.detail = i + 1;
-#endif
       ev.u.u.type = (buttonMask & (1<<i)) ? ButtonPress : ButtonRelease;
       (*dev->processInputProc)(&ev, (DeviceIntPtr)dev, 1);
     }
