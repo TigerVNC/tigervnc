@@ -20,6 +20,8 @@
 
 #include <rfb_win32/Dialog.h>
 
+#define MAX_STR_LEN 256
+
 class EditPixelFormatDialog : public rfb::win32::Dialog {
 public:
   EditPixelFormatDialog(PixelFormatList *_supportedPF, char *_format_name,
@@ -68,8 +70,9 @@ protected:
         ((getItemString(IDC_BLUESHIFT_EDIT))[0] == '\0')) {
       strcpy(err_msg, "Please fill the all fields in the dialog.");
     }
-    if (supportedPF->getIndexByPFName(format_name) != 
-        supportedPF->getIndexByPFName(getItemString(IDC_NAME_EDIT))) {
+    int newIndex = supportedPF->getIndexByPFName(getItemString(IDC_NAME_EDIT));
+    if ((supportedPF->getIndexByPFName(format_name) != newIndex) && 
+        (newIndex != -1)) {
       strcpy(err_msg, "The pixel format with that name is already exist.");
     }
     if (getItemInt(IDC_DEPTH_EDIT) <= 0) {
@@ -80,8 +83,7 @@ protected:
       return false;
     }
     // Fill the pixel format structure
-    strncpy(format_name, getItemString(IDC_NAME_EDIT), sizeof(format_name));
-    format_name[sizeof(format_name) - 1] = 0;
+    strCopy(format_name, getItemString(IDC_NAME_EDIT), MAX_STR_LEN);
     pf->bpp = getItemInt(IDC_BPP_COMBO);
     pf->depth = getItemInt(IDC_DEPTH_EDIT);
     pf->bigEndian = (SendMessage(GetDlgItem(handle, IDC_BIGENDIAN_COMBO), 

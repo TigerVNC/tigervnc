@@ -39,7 +39,7 @@ protected:
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("Auto"));
     for (int i = 0; i < supportedPF->count(); i++) {
       SendMessage(combo, CB_ADDSTRING, 
-        0, (LPARAM)(LPCTSTR)(((*supportedPF)[i]).format_name));
+        0, (LPARAM)(LPCTSTR)(((*supportedPF)[i])->format_name));
     }
     SendMessage(combo, CB_SETCURSEL, pfIndex + 1, 0);
     setItemChecked(IDC_BIG_ENDIAN, bigEndian);

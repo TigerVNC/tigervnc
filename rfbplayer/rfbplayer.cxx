@@ -65,7 +65,6 @@ char usage_msg[] =
 // -=- RfbPlayer's defines
 
 #define strcasecmp _stricmp
-#define UPF_REGISTRY_PATH "Software\\TightVnc\\RfbPlayer\\UserDefinedPF"
 #define MAX_SPEED 10.00
 #define CALCULATION_ERROR MAX_SPEED / 1000
 #define MAX_POS_TRACKBAR_RANGE 50
@@ -919,7 +918,7 @@ void RfbPlayer::serverInit() {
         options.setPF((PixelFormat *)&cp.pf());
       } else {
         options.autoDetectPF = false;
-        options.setPF(&supportedPF[pixelFormatIndex].PF);
+        options.setPF(&supportedPF[pixelFormatIndex]->PF);
         options.pixelFormat.bigEndian = choosePixelFormatDialog.isBigEndian();
       }
     } else {
@@ -931,7 +930,7 @@ void RfbPlayer::serverInit() {
       if (options.autoDetectPF) {
         options.setPF((PixelFormat *)&cp.pf());
       } else {
-        options.setPF(&supportedPF[options.pixelFormatIndex].PF);
+        options.setPF(&supportedPF[options.pixelFormatIndex]->PF);
         options.pixelFormat.bigEndian = options.bigEndianFlag;
       }
     }

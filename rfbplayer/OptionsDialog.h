@@ -39,7 +39,7 @@ protected:
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("Auto"));
     for (int i = 0; i < supportedPF->count(); i++) {
       SendMessage(combo, CB_ADDSTRING, 
-        0, (LPARAM)(LPCTSTR)(((*supportedPF)[i]).format_name));
+        0, (LPARAM)(LPCTSTR)(((*supportedPF)[i])->format_name));
     }
     SendMessage(combo, CB_SETCURSEL, options->pixelFormatIndex + 1, 0);
     setItemChecked(IDC_ACCEPT_BELL, options->acceptBell);
@@ -65,7 +65,7 @@ protected:
       if (options->pixelFormatIndex < 0) {
         options->autoDetectPF = true;
       } else {
-        options->setPF(&((*supportedPF)[options->pixelFormatIndex]).PF);
+        options->setPF(&((*supportedPF)[options->pixelFormatIndex])->PF);
         options->pixelFormat.bigEndian = options->bigEndianFlag;
         options->autoDetectPF = false;
       }
@@ -90,7 +90,19 @@ protected:
     }
     if (item == IDC_EDIT_UPF) {
       UserPixelFormatsDialog UpfListDialog(supportedPF);
-      UpfListDialog.showDialog(handle);
+      if (UpfListDialog.showDialog(handle)) {
+        int index = SendMessage(combo, CB_GETCURSEL, 0, 0);
+        SendMessage(combo, CB_RESETCONTENT, 0, 0);
+        SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("Auto"));
+        for (int i = 0; i < supportedPF->count(); i++) {
+          SendMessage(combo, CB_ADDSTRING, 
+            0, (LPARAM)(LPCTSTR)(((*supportedPF)[i])->format_name));
+        }
+        if ( index > (SendMessage(combo, CB_GETCOUNT, 0, 0) - 1)) {
+          index = SendMessage(combo, CB_GETCOUNT, 0, 0) - 1;
+        }
+        SendMessage(combo, CB_SETCURSEL, index, 0);
+      }
     }
     return false;
   }
