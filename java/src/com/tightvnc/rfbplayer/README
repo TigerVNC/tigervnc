@@ -58,6 +58,15 @@ Applet Parameters
     coalesce several small updates into one drawing operation, improving CPU
     usage. Set this parameter to 0 to disable deferred updates.
 
+--> "Speed"
+
+    Value: positive fixed-point or floating-point number.
+    Default: "1.0".
+
+    Sets playback speed where 1 is normal speed, 2 is double speed,
+    and 0.5 is half speed etc. Both number formats like 0.2 and 2e-1
+    are acceptable.
+
 
 Licensing Terms
 ===============

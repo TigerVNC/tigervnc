@@ -60,6 +60,7 @@ public class RfbPlayer extends java.applet.Applet
 
   String sessionURL;
   long initialTimeOffset;
+  double playbackSpeed;
   boolean showControls;
   int deferScreenUpdates;
 
@@ -161,6 +162,7 @@ public class RfbPlayer extends java.applet.Applet
 	try {
 	  setPaused(true);
 	  fbsStream.setTimeOffset(initialTimeOffset);
+	  fbsStream.setSpeed(playbackSpeed);
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
 	  initialTimeOffset = 0;
@@ -191,7 +193,12 @@ public class RfbPlayer extends java.applet.Applet
     }
   }
 
+  public double getSpeed() {
+    return playbackSpeed;
+  }
+
   public void setSpeed(double speed) {
+    playbackSpeed = speed;
     fbsStream.setSpeed(speed);
   }
 
@@ -216,6 +223,11 @@ public class RfbPlayer extends java.applet.Applet
 
     sessionURL = readParameter("URL", true);
     initialTimeOffset = readLongParameter("Position", 0);
+    if (initialTimeOffset < 0)
+      initialTimeOffset = 0;
+    playbackSpeed = readDoubleParameter("Speed", 1.0);
+    if (playbackSpeed <= 0.0)
+      playbackSpeed = 1.0;
 
     showControls = true;
     String str = readParameter("Show Controls", false);
@@ -267,6 +279,17 @@ public class RfbPlayer extends java.applet.Applet
     if (str != null) {
       try {
 	result = Long.parseLong(str);
+      } catch (NumberFormatException e) { }
+    }
+    return result;
+  }
+
+  double readDoubleParameter(String name, double defaultValue) {
+    String str = readParameter(name, false);
+    double result = defaultValue;
+    if (str != null) {
+      try {
+	result = Double.parseDouble(str);
       } catch (NumberFormatException e) { }
     }
     return result;

@@ -47,7 +47,7 @@ class ButtonPanel extends Panel implements ActionListener {
 
     add(new Label(" Speed:"));
     timeScaleText = new TextField(5);
-    timeScaleText.setText("1.0");
+    timeScaleText.setText(String.valueOf(player.getSpeed()));
     add(timeScaleText);
     timeScaleText.addActionListener(this);
   }
@@ -87,7 +87,11 @@ class ButtonPanel extends Panel implements ActionListener {
     } else if (evt.getSource() == posText) {
       player.setPos(Integer.parseInt(posText.getText()));
     } else if (evt.getSource() == timeScaleText) {
-      player.setSpeed(Double.parseDouble(timeScaleText.getText()));
+      double speed = Double.parseDouble(timeScaleText.getText());
+      if (speed <= 0.0)
+	speed = 1.0;
+      timeScaleText.setText(String.valueOf(speed));
+      player.setSpeed(speed);
     }
   }
 }
