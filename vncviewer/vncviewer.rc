@@ -164,30 +164,43 @@ BEGIN
                     IDC_STATIC,40,55,202,15
 END
 
-IDD_FORMAT DIALOG DISCARDABLE  0, 0, 201, 101
+IDD_FORMAT DIALOG DISCARDABLE  0, 0, 201, 160
 STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Colour/Encoding"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "&Auto select",IDC_ENCODING_AUTO,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,7,88,13
-    GROUPBOX        "Preferred encoding",IDC_STATIC,7,25,83,75
+    GROUPBOX        "Preferred encoding",IDC_STATIC,7,20,83,75
     CONTROL         "Tight",IDC_ENCODING_TIGHT,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP,10,35,75,14
-    CONTROL         "ZRLE",IDC_ENCODING_ZRLE,"Button",BS_AUTORADIOBUTTON,10,50,75,14
+                    WS_GROUP,10,30,75,14
+    CONTROL         "ZRLE",IDC_ENCODING_ZRLE,"Button",BS_AUTORADIOBUTTON,10,45,75,14
     CONTROL         "Hextile",IDC_ENCODING_HEXTILE,"Button",
-                    BS_AUTORADIOBUTTON,10,65,75,16
-    CONTROL         "Raw",IDC_ENCODING_RAW,"Button",BS_AUTORADIOBUTTON,10,80,
+                    BS_AUTORADIOBUTTON,10,60,75,16
+    CONTROL         "Raw",IDC_ENCODING_RAW,"Button",BS_AUTORADIOBUTTON,10,75,
                     75,15
-    GROUPBOX        "Colour level",IDC_STATIC,95,10,99,75
+
+    GROUPBOX        "Colour level",IDC_STATIC,95,20,99,75
     CONTROL         "&Full (all available colours)",IDC_FORMAT_FULLCOLOUR,
-                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,100,20,90,15
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,100,30,90,15
     CONTROL         "&Medium (256 colours)",IDC_FORMAT_MEDIUMCOLOUR,"Button",
-                    BS_AUTORADIOBUTTON,100,35,90,14
+                    BS_AUTORADIOBUTTON,100,45,90,14
     CONTROL         "&Low (64 colours)",IDC_FORMAT_LOWCOLOUR,"Button",
-                    BS_AUTORADIOBUTTON,100,49,90,16
+                    BS_AUTORADIOBUTTON,100,60,90,16
     CONTROL         "&Very low (8 colours)",IDC_FORMAT_VERYLOWCOLOUR,"Button",
-                    BS_AUTORADIOBUTTON,100,65,90,15
+                    BS_AUTORADIOBUTTON,100,75,90,15
+
+    CONTROL         "Custom compression level:",IDC_ALLOW_COMPRESSLEVEL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,100,99,10 
+    EDITTEXT        IDC_COMPRESSLEVEL,25,111,15,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "level (1=fast, 9=best)",IDC_STATIC,44,114,81,9,NOT 
+                    WS_GROUP
+
+    CONTROL         "Allow JPEG compression:",IDC_ALLOW_JPEG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,126,96,10
+    EDITTEXT        IDC_QUALITYLEVEL,25,137,15,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "quality (0=poor, 9=best)",IDC_STATIC,44,140,81,9
+
 END
 
 IDD_MISC DIALOG DISCARDABLE  0, 0, 213, 137

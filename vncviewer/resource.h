@@ -64,6 +64,10 @@
 #define IDC_REQUESTED_ENCODING          1052
 #define IDC_LAST_ENCODING               1053
 #define IDC_ENCODING_TIGHT              1054
+#define IDC_ALLOW_COMPRESSLEVEL         1055
+#define IDC_COMPRESSLEVEL               1056
+#define IDC_ALLOW_JPEG                  1057
+#define IDC_QUALITYLEVEL                1058
 #define ID_CLOSE                        40002
 #define ID_OPTIONS                      40003
 #define ID_NEW_CONNECTION               40004
