@@ -59,6 +59,15 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 #endif
                       )
 {
+  bool cutZeros = false;
+  const rfb::PixelFormat& myFormat = handler->cp.pf();
+#if BPP == 32
+  if (myFormat.depth == 24 && myFormat.redMax == 0xFF &&
+      myFormat.greenMax == 0xFF && myFormat.blueMax == 0xFF) {
+    cutZeros = true;
+  } 
+#endif
+
   rdr::U8 comp_ctl = is->readU8();
 
   // Flush zlib streams if we are told by the server to do so.
@@ -71,7 +80,14 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 
   // "Fill" compression type.
   if (comp_ctl == rfbTightFill) {
-    PIXEL_T pix = is->READ_PIXEL();
+    PIXEL_T pix;
+    if (cutZeros) {
+      rdr::U8 *fillColorBuf = (rdr::U8*)buf;
+      is->readBytes(fillColorBuf, 3);
+      pix = RGB24_TO_PIXEL32(fillColorBuf[0], fillColorBuf[1], fillColorBuf[2]);
+    } else {
+      pix = is->READ_PIXEL();
+    }
     FILL_RECT(r, pix);
     return;
   }
@@ -99,10 +115,17 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
     switch (filterId) {
     case rfbTightFilterPalette: 
       palSize = is->readU8() + 1;
-      {
-	for (int i = 0; i < palSize; i++) {
-          palette[i] = is->READ_PIXEL();
-	}
+      if (cutZeros) {
+	rdr::U8 *tightPalette = (rdr::U8*) palette;
+	is->readBytes(tightPalette, palSize*3);
+	for (int i = palSize - 1; i >= 0; i--) {
+	  palette[i] = RGB24_TO_PIXEL32(tightPalette[i*3],
+					tightPalette[i*3+1],
+					tightPalette[i*3+2]);
+        }
+      } else {
+	for (int i = 0; i < palSize; i++)
+	  palette[i] = is->READ_PIXEL();
       }
       break;
     case rfbTightFilterGradient: 
