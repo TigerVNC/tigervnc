@@ -34,13 +34,13 @@ namespace rfb {
     rdr::ZlibInStream zis[4];
   };
 
-  /* Compression control */
+  // Compression control 
   const unsigned int rfbTightExplicitFilter = 0x04;
   const unsigned int rfbTightFill = 0x08;
   const unsigned int rfbTightJpeg = 0x09;
   const unsigned int rfbTightMaxSubencoding = 0x09;
 
-  /* Filters to improve compression efficiency */
+  // Filters to improve compression efficiency
   const unsigned int rfbTightFilterCopy = 0x00;
   const unsigned int rfbTightFilterPalette = 0x01;
   const unsigned int rfbTightFilterGradient = 0x02;
