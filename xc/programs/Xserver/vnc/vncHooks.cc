@@ -505,6 +505,14 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   BoxRec box;
   PictureScreenPtr ps = GetPictureScreen(pScreen);
 
+  // For some reason, this hook is sometimes called with a negative
+  // xDst. This causes graphics errors, as well as error messages of
+  // the type:
+  // ComparingUpdateTracker: rect outside fb (-47,76-171,89)
+  // I've never observed a negative yDst, but let's check it anyway. 
+  if ((xDst < 0) || (yDst < 0))
+      return;
+
   box.x1 = pDst->pDrawable->x + xDst;
   box.y1 = pDst->pDrawable->y + yDst;
   box.x2 = box.x1 + width;
