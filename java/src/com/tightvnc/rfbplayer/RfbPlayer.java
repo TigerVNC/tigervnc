@@ -194,6 +194,10 @@ public class RfbPlayer extends java.applet.Applet
     }
   }
 
+  public void setPos(int pos) {
+    fbsStream.setPos(pos);
+  }
+
   public void updatePos() {
     buttonPanel.setPos(fbsStream.getPos());
   }

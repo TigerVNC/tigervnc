@@ -225,7 +225,7 @@ class VncCanvas extends Canvas {
 	  throw new EOFException("Playback stopped");
 	}
 	if (player.getMode() == player.MODE_PLAYBACK) {
-	  player.fbsStream.resumeReading();
+	  player.fbsStream.resumePlayback();
 	}
       }
 
@@ -828,8 +828,9 @@ class VncCanvas extends Canvas {
   //
 
   void scheduleRepaint(int x, int y, int w, int h) {
-    // Request repaint, deferred if necessary.
-    repaint(player.deferScreenUpdates, x, y, w, h);
+    // Request repaint if not in the seeking mode.
+    if (!player.fbsStream.isSeeking())
+      repaint(player.deferScreenUpdates, x, y, w, h);
   }
 
 }

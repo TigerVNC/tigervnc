@@ -106,7 +106,20 @@ class FbsInputStream extends InputStream {
     return (int)(timeOffset / 1000);
   }
 
-  public void resumeReading()
+  public void setPos(int pos)
+  {
+  }
+
+  public boolean isSeeking()
+  {
+    return false;
+  }
+
+  public void pausePlayback()
+  {
+  }
+
+  public void resumePlayback()
   {
     startTime = System.currentTimeMillis() - timeOffset;
   }

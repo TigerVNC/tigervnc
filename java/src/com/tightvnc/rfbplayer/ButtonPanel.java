@@ -45,9 +45,9 @@ class ButtonPanel extends Panel implements ActionListener {
     add(pauseButton);
     pauseButton.addActionListener(this);
 
-    posText = new TextField(4);
-    posText.setEditable(false);
+    posText = new TextField(5);
     add(posText);
+    posText.addActionListener(this);
   }
 
   public void setMode(int mode) {
@@ -57,12 +57,14 @@ class ButtonPanel extends Panel implements ActionListener {
       playButton.setEnabled(true);
       pauseButton.setLabel("Pause");
       pauseButton.setEnabled(true);
+      posText.setEditable(false);
       break;
     case RfbPlayer.MODE_PAUSED:
       playButton.setLabel("Stop");
       playButton.setEnabled(true);
       pauseButton.setLabel("Resume");
       pauseButton.setEnabled(true);
+      posText.setEditable(true);
       break;
     default:
       // case RfbPlayer.MODE_STOPPED:
@@ -70,6 +72,7 @@ class ButtonPanel extends Panel implements ActionListener {
       playButton.setEnabled(true);
       pauseButton.setLabel("Pause");
       pauseButton.setEnabled(false);
+      posText.setEditable(true);
       break;
     }
     player.setMode(mode);
@@ -99,6 +102,8 @@ class ButtonPanel extends Panel implements ActionListener {
     } else if (evt.getSource() == pauseButton) {
       setMode((player.getMode() == RfbPlayer.MODE_PAUSED) ?
               RfbPlayer.MODE_PLAYBACK : RfbPlayer.MODE_PAUSED);
+    } else if (evt.getSource() == posText) {
+      player.setPos(Integer.parseInt(posText.getText()));
     }
   }
 }
