@@ -26,7 +26,6 @@
 #include <rfb_win32/WMShatter.h> 
 
 #include <rfbplayer/rfbplayer.h>
-#include <rfbplayer/utils.h>
 
 using namespace rfb;
 using namespace rfb::win32;

@@ -174,10 +174,6 @@ SOURCE=.\rfbSessionReader.h
 
 SOURCE=.\ToolBar.h
 # End Source File
-# Begin Source File
-
-SOURCE=.\utils.h
-# End Source File
 # End Group
 # Begin Group "Resource Files"
 
