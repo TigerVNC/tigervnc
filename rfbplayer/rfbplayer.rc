@@ -271,6 +271,19 @@ BEGIN
                     IDC_STATIC,40,55,202,15
 END
 
+IDD_USERPF_LIST DIALOG DISCARDABLE  0, 0, 207, 162
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add / Remove the user pixel formats"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_PF_LIST,7,7,136,148,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add",IDC_ADD_BUTTON,150,7,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE_BUTTON,150,26,50,14
+    PUSHBUTTON      "Edit",IDC_EDIT_BUTTON,150,45,50,14
+    PUSHBUTTON      "Close",IDOK,150,64,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -338,6 +351,20 @@ BEGIN
         HORZGUIDE, 150
         HORZGUIDE, 169
         HORZGUIDE, 174
+    END
+
+    IDD_USERPF_LIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 155
+        HORZGUIDE, 21
+        HORZGUIDE, 26
+        HORZGUIDE, 40
+        HORZGUIDE, 45
+        HORZGUIDE, 59
+        HORZGUIDE, 64
     END
 END
 #endif    // APSTUDIO_INVOKED

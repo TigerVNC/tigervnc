@@ -10,6 +10,7 @@
 #define IDD_PIXELFORMAT                 134
 #define IDD_OPTIONS                     137
 #define IDD_ABOUT                       138
+#define IDD_USERPF_LIST                 139
 #define IDC_GOTO_EDIT                   1003
 #define IDC_PIXELFORMAT                 1004
 #define IDC_ASK_PF                      1006
@@ -22,6 +23,10 @@
 #define IDC_AUTOPLAY                    1012
 #define IDC_BIG_ENDIAN                  1013
 #define IDC_EDIT_UPF                    1015
+#define IDC_PF_LIST                     1016
+#define IDC_ADD_BUTTON                  1017
+#define IDC_REMOVE_BUTTON               1018
+#define IDC_EDIT_BUTTON                 1019
 #define IDC_COPYRIGHT                   1021
 #define IDC_DESCRIPTION                 1022
 #define ID_OPENFILE                     40011
@@ -48,9 +53,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        139
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         40045
-#define _APS_NEXT_CONTROL_VALUE         1016
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

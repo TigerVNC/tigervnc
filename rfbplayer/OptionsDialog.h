@@ -18,9 +18,8 @@
 
 // -=- OptionsDialog.h
 
-#include <rfb_win32/Dialog.h>
-
 #include <rfbplayer/PlayerOptions.h>
+#include <rfbplayer/UserPixelFormatsDialog.h>
 
 class OptionsDialog : public rfb::win32::Dialog {
 public:
@@ -88,6 +87,10 @@ protected:
       setItemChecked(IDC_AUTO_STORE_PARAM, DEFAULT_STORE_SETTINGS);
       setItemChecked(IDC_AUTOPLAY, DEFAULT_AUTOPLAY);
       setItemChecked(IDC_BIG_ENDIAN, DEFAULT_BIG_ENDIAN);
+    }
+    if (item == IDC_EDIT_UPF) {
+      UserPixelFormatsDialog UpfListDialog(supportedPF);
+      UpfListDialog.showDialog(handle);
     }
     return false;
   }

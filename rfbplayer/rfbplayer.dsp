@@ -174,6 +174,10 @@ SOURCE=.\rfbSessionReader.h
 
 SOURCE=.\ToolBar.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\UserPixelFormatsDialog.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
