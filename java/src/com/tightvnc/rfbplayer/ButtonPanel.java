@@ -26,6 +26,9 @@ class ButtonPanel extends Panel implements ActionListener {
   protected RfbPlayer player;
   protected Button playButton;
   protected Button pauseButton;
+  protected TextField posText;
+
+  protected int lastPos = -1;
 
   ButtonPanel(RfbPlayer player) {
     this.player = player;
@@ -41,6 +44,10 @@ class ButtonPanel extends Panel implements ActionListener {
     pauseButton.setEnabled(false);
     add(pauseButton);
     pauseButton.addActionListener(this);
+
+    posText = new TextField(4);
+    posText.setEditable(false);
+    add(posText);
   }
 
   public void setMode(int mode) {
@@ -66,6 +73,19 @@ class ButtonPanel extends Panel implements ActionListener {
       break;
     }
     player.setMode(mode);
+  }
+
+  public void setPos(int pos) {
+    if (pos != lastPos) {
+      lastPos = pos;
+      char[] zeroes = {'0', '0', '0', '0'};
+      String text = String.valueOf(pos);
+      if (text.length() < 4) {
+	text = new String(zeroes, 0, 4 - text.length()) + text;
+      }
+      posText.setText(text);
+      posText.setCaretPosition(text.length());
+    }
   }
 
   //

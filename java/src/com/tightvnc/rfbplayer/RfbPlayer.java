@@ -194,6 +194,10 @@ public class RfbPlayer extends java.applet.Applet
     }
   }
 
+  public void updatePos() {
+    buttonPanel.setPos(fbsStream.getPos());
+  }
+
   //
   // readParameters() - read parameters from the html source or from the
   // command line.  On the command line, the arguments are just a sequence of

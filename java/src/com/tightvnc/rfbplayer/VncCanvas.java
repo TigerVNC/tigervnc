@@ -208,6 +208,8 @@ class VncCanvas extends Canvas {
     zlibInflater = new Inflater();
     tightInflaters = new Inflater[4];
 
+    player.updatePos();
+
     // Main dispatch loop.
 
     while (true) {
@@ -481,6 +483,8 @@ class VncCanvas extends Canvas {
       default:
 	throw new IOException("Unknown RFB message type " + msgType);
       }
+
+      player.updatePos();
 
       if (player.getMode() == player.MODE_STOPPED) {
 	throw new EOFException("Playback stopped");
