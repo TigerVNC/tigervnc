@@ -176,7 +176,7 @@ class RfbPlayer : public RfbProto {
 
     // The player's parameters
     bool autoplay;
-    int colourDepth;
+    int pixelFormat;
     double playbackSpeed;
     long imageDataStartTime;
     long initTime;
