@@ -27,11 +27,6 @@
 
 #include <rfb_win32/registry.h>
 
-// Supported pixel formats
-#define PF_AUTO 0
-#define PF_D8_RGB332 1
-#define PF_D16_RGB655 2
-#define PF_D24_RGB888 3
 #define PF_MODES 3
 
 // The R, G and B values order in the pixel
@@ -43,7 +38,9 @@
 #define BRG_ORDER 5
 
 // Default options values
-#define DEFAULT_PF PF_AUTO
+//#define DEFAULT_PF 0
+#define DEFAULT_PF_INDEX 0
+#define DEFAULT_AUTOPF TRUE
 #define DEFAULT_INIT_TIME -1
 #define DEFAULT_SPEED 1.0
 #define DEFAULT_FRAME_SCALE 100
@@ -69,6 +66,7 @@ public:
   double playbackSpeed;
   bool autoPlay;
   bool fullScreen;
+  bool autoDetectPF;
   long pixelFormatIndex;
   PixelFormat pixelFormat;
   bool acceptBell;
