@@ -67,6 +67,9 @@ class VncCanvas extends Canvas implements Observer {
   // once is necessary when the seek operation is finished.
   boolean seekMode;
 
+  // Distance of mouse from viewer border to trigger automatic scrolling
+  final static int SCROLL_MARGIN = 50;
+
   //
   // The constructor.
   //
@@ -886,7 +889,6 @@ class VncCanvas extends Canvas implements Observer {
     softCursorPixels = new int[width * height];
 
     if (encodingType == rfb.EncodingXCursor) {
-      System.out.println("Reading x cursor");
 
       // Read foreground and background colors of the cursor.
       byte[] rgb = new byte[6];
@@ -896,9 +898,6 @@ class VncCanvas extends Canvas implements Observer {
                       (0xFF000000 | (rgb[0] & 0xFF) << 16 |
                       (rgb[1] & 0xFF) << 8 | (rgb[2] & 0xFF))
       };
-      for (int i = 0; i < 2; i++) {
-        System.out.println("Color is " + Integer.toString(colors[i], 16));
-      }
 
       // Read pixel and mask data.
       byte[] pixBuf = new byte[bytesMaskData];
@@ -935,7 +934,6 @@ class VncCanvas extends Canvas implements Observer {
 
     } else {
       // encodingType == rfb.EncodingRichCursor
-      System.out.println("Reading x cursor");
 
       // Read pixel and mask data.
       byte[] pixBuf = new byte[width * height * 4];
@@ -1035,33 +1033,33 @@ class VncCanvas extends Canvas implements Observer {
       repaint(deferCursorUpdates,
               x - hotX, y - hotY, cursorWidth, cursorHeight);
 
-    // Automatic viewport scrolling 
-//      if (viewer.desktopScrollPane != null) {
-//	boolean needScroll = false;
-//	Dimension d = viewer.desktopScrollPane.getSize();
-//	Point topLeft = viewer.desktopScrollPane.getScrollPosition();
-//	Point botRight = new Point(topLeft.x + d.width, topLeft.y + d.height);
-//
-//	if (x < topLeft.x + SCROLL_MARGIN) {
-//	  // shift left
-//	  topLeft.x = x - SCROLL_MARGIN;
-//	  needScroll = true;
-//	} else if (x > botRight.x - SCROLL_MARGIN) {
-//	  // shift right
-//	  topLeft.x = x - d.width + SCROLL_MARGIN;
-//	  needScroll = true;
-//	} 
-//	if (y < topLeft.y + SCROLL_MARGIN) {
-//	  // shift up
-//	  topLeft.y = y - SCROLL_MARGIN;
-//	  needScroll = true;
-//	} else if (y > botRight.y - SCROLL_MARGIN) {
-//	  // shift down
-//	  topLeft.y = y - d.height + SCROLL_MARGIN;
-//	  needScroll = true;
-//	}
-//	viewer.desktopScrollPane.setScrollPosition(topLeft.x, topLeft.y);
-//      }
+      // Automatic viewport scrolling 
+      if (player.desktopScrollPane != null) {
+        boolean needScroll = false;
+        Dimension d = player.desktopScrollPane.getSize();
+        Point topLeft = player.desktopScrollPane.getScrollPosition();
+        Point botRight = new Point(topLeft.x + d.width, topLeft.y + d.height);
+
+        if (x < topLeft.x + SCROLL_MARGIN) {
+          // shift left
+          topLeft.x = x - SCROLL_MARGIN;
+          needScroll = true;
+        } else if (x > botRight.x - SCROLL_MARGIN) {
+          // shift right
+          topLeft.x = x - d.width + SCROLL_MARGIN;
+          needScroll = true;
+        }
+        if (y < topLeft.y + SCROLL_MARGIN) {
+          // shift up
+          topLeft.y = y - SCROLL_MARGIN;
+          needScroll = true;
+        } else if (y > botRight.y - SCROLL_MARGIN) {
+          // shift down
+          topLeft.y = y - d.height + SCROLL_MARGIN;
+          needScroll = true;
+        }
+        player.desktopScrollPane.setScrollPosition(topLeft.x, topLeft.y);
+      }
     }
 
     cursorX = x;
