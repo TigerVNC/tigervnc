@@ -1128,7 +1128,7 @@ CView::framebufferUpdateEnd() {
 // to the connection speed:
 //
 //   Above 16Mbps (timing for at least a second), same machine, switch to raw
-//   Above 3Mbps, switch to hextile
+//   Above 16Mbps (timing for at least a second), switch to hextile
 //   Otherwise, switch to Tight
 //
 //   Above 256Kbps, use full colour mode
@@ -1143,7 +1143,7 @@ CView::autoSelectFormatAndEncoding() {
   // Select best encoding
   if (kbitsPerSecond > 16000 && sameMachine && timeWaited >= 10000) {
     newEncoding = encodingRaw;
-  } else if (kbitsPerSecond > 3000 && timeWaited >= 10000) {
+  } else if (kbitsPerSecond > 16000 && timeWaited >= 10000) {
     newEncoding = encodingHextile;
   } else {
     newEncoding = encodingTight;
