@@ -16,3 +16,8 @@
 * All other features from the TightVNC 1.3 series: Filetransfer etc
 
 * Consider adding the toolbar from http://lars.werner.no/vnc/. 
+
+* Implement support for rfbEncodingXCursor. When this is finished, it
+  should be safe to allow dynamic pixel format changes again, as long
+  as we only orders new pixel formats after recieving a framebuffer
+  update with real pixel data. 
