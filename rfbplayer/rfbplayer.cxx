@@ -60,6 +60,8 @@ char usage_msg[] =
 #define strcasecmp _stricmp
 #define MAX_SPEED 10
 #define MAX_POS_TRACKBAR_RANGE 50
+#define DEFAULT_PLAYER_WIDTH 640
+#define DEFAULT_PLAYER_HEIGHT 480 
 
 #define ID_TOOLBAR 500
 #define ID_PLAY 510
@@ -225,7 +227,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   // Create the main window
   const TCHAR* name = _T("RfbPlayer");
   mainHwnd = CreateWindow((const TCHAR*)baseClass.classAtom, name, WS_OVERLAPPEDWINDOW,
-    0, 0, 640, 480, 0, 0, baseClass.instance, this);
+    0, 0, DEFAULT_PLAYER_WIDTH, DEFAULT_PLAYER_HEIGHT, 0, 0, baseClass.instance, this);
   if (!mainHwnd) {
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }
