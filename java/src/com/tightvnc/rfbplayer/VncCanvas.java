@@ -276,18 +276,25 @@ class VncCanvas extends Canvas {
 
 	  case RfbProto.EncodingRRE:
 	  {
+	    byte[] buf = new byte[4];
+
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    int nSubrects = rfb.is.readInt();
 	    int x, y, w, h;
-	    Color pixel;
 
-	    pixel = new Color(0xFF000000 | rfb.is.readInt());
+	    rfb.is.readFully(buf);
+	    Color pixel = new Color((buf[2] & 0xFF) << 16 |
+				    (buf[1] & 0xFF) << 8 |
+				    (buf[0] & 0xFF));
 	    memGraphics.setColor(pixel);
 	    memGraphics.fillRect(rx, ry, rw, rh);
 
 	    for (int j = 0; j < nSubrects; j++) {
-	      pixel = new Color(0xFF000000 | rfb.is.readInt());
+	      rfb.is.readFully(buf);
+	      pixel = new Color((buf[2] & 0xFF) << 16 |
+				(buf[1] & 0xFF) << 8 |
+				(buf[0] & 0xFF));
 	      x = rx + rfb.is.readUnsignedShort();
 	      y = ry + rfb.is.readUnsignedShort();
 	      w = rfb.is.readUnsignedShort();
@@ -303,18 +310,25 @@ class VncCanvas extends Canvas {
 
 	  case RfbProto.EncodingCoRRE:
 	  {
+	    byte[] buf = new byte[4];
+
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    int nSubrects = rfb.is.readInt();
 	    int x, y, w, h;
-	    Color pixel;
 
-	    pixel = new Color(0xFF000000 | rfb.is.readInt());
+	    rfb.is.readFully(buf);
+	    Color pixel = new Color((buf[2] & 0xFF) << 16 |
+				    (buf[1] & 0xFF) << 8 |
+				    (buf[0] & 0xFF));
 	    memGraphics.setColor(pixel);
 	    memGraphics.fillRect(rx, ry, rw, rh);
 
 	    for (int j = 0; j < nSubrects; j++) {
-	      pixel = new Color(0xFF000000 | rfb.is.readInt());
+	      rfb.is.readFully(buf);
+	      pixel = new Color((buf[2] & 0xFF) << 16 |
+				(buf[1] & 0xFF) << 8 |
+				(buf[0] & 0xFF));
 	      x = rx + rfb.is.readUnsignedByte();
 	      y = ry + rfb.is.readUnsignedByte();
 	      w = rfb.is.readUnsignedByte();
