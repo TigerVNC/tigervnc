@@ -183,6 +183,7 @@ BEGIN
     VK_F5,          ID_ZOOM_50,             VIRTKEY, NOINVERT
     VK_F6,          ID_ZOOM_100,            VIRTKEY, NOINVERT
     VK_F7,          ID_ZOOM_200,            VIRTKEY, NOINVERT
+    VK_RETURN,      ID_RETURN,              VIRTKEY, NOINVERT
     VK_RETURN,      ID_FULLSCREEN,          VIRTKEY, ALT, NOINVERT
     VK_SPACE,       ID_PLAYPAUSE,           VIRTKEY, NOINVERT
     "X",            ID_EXIT,                VIRTKEY, ALT, NOINVERT

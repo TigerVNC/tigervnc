@@ -24,13 +24,14 @@
 #define ID_HELP_COMMANDLINESEITCHES     40026
 #define ID_HELP_ABOUT                   40027
 #define ID_OPTIONS                      40029
+#define ID_RETURN                       40044
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        133
-#define _APS_NEXT_COMMAND_VALUE         40044
+#define _APS_NEXT_COMMAND_VALUE         40045
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -44,6 +44,7 @@ extern const char* buildTime;
 // -=- RfbPlayer's defines
 
 #define strcasecmp _stricmp
+#define MAX_SPEED 10
 
 #define ID_TOOLBAR 500
 #define ID_PLAY 510
@@ -310,6 +311,25 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case ID_FULLSCREEN:
       MessageBox(getMainHandle(), "It is not working yet!", "RfbPlayer", MB_OK);
       break;
+    case ID_RETURN:
+        // Update the speed if return pressed in speedEdit
+      if (speedEdit == GetFocus()) {
+        char speedStr[20], *stopStr;
+        GetWindowText(speedEdit, speedStr, sizeof(speedStr));
+        double speed = strtod(speedStr, &stopStr);
+        if (speed > 0) {
+          speed = min(MAX_SPEED, speed);
+          // Update speedUpDown position
+          SendMessage(speedUpDown, UDM_SETPOS, 
+            0, MAKELONG((short)(speed / 0.5), 0));
+        } else {
+          speed = getSpeed();
+        }
+        setSpeed(speed);
+        sprintf(speedStr, "%.2f", speed);
+        SetWindowText(speedEdit, speedStr);
+      }
+      break;
     }
     break;
 
@@ -347,24 +367,30 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     switch (((NMHDR*)lParam)->code) {
     case UDN_DELTAPOS:
       if ((int)wParam == ID_SPEED_UPDOWN) {
+        BOOL lResult = FALSE;
         char speedStr[20] = "\0";
         DWORD speedRange = SendMessage(speedUpDown, UDM_GETRANGE, 0, 0);
         LPNM_UPDOWN upDown = (LPNM_UPDOWN)lParam;
         double speed;
 
-        // the out of range checking
+        // The out of range checking
         if (upDown->iDelta > 0) {
           speed = min(upDown->iPos + upDown->iDelta, LOWORD(speedRange)) * 0.5;
         } else {
+          // It's need to round the UpDown position
+          if ((upDown->iPos * 0.5) != getSpeed()) {
+            upDown->iDelta = 0;
+            lResult = TRUE;
+          }
           speed = max(upDown->iPos + upDown->iDelta, HIWORD(speedRange)) * 0.5;
         }
         _gcvt(speed, 5, speedStr);
         sprintf(speedStr, "%.2f", speed);
         SetWindowText(speedEdit, speedStr);
         setSpeed(speed);
+        return lResult;
       }
-      return 0;
-    };
+    }
     return 0;
 
   case WM_CLOSE:
