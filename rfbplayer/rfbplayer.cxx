@@ -562,20 +562,6 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
   return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-void RfbPlayer::setOptions(long _initTime = 0, double _playbackSpeed = 1.0,
-                           bool _autoplay = false) {
-  autoplay = _autoplay;
-  playbackSpeed = _playbackSpeed;
-  initTime = _initTime;
-}
-
-void RfbPlayer::applyOptions() {
-  if (initTime >= 0)
-    setPos(initTime);
-  setSpeed(playbackSpeed);
-  setPaused(!autoplay);
-}
-
 void RfbPlayer::createToolBar(HWND parentHwnd) {
   RECT tRect;
   InitCommonControls();

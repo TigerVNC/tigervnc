@@ -105,11 +105,6 @@ class RfbPlayer : public RfbProto {
     virtual void imageRect(const Rect& r, void* pixels);
     virtual void copyRect(const Rect& r, int srcX, int srcY);
 
-    // -=- Functions used to manage player's parameters
-
-    void setOptions(long pos, double speed, bool autoPlay);
-    void applyOptions();
-
     // -=- Player functions
 
     // calculateSessionTime() calculates the full session time in sec
