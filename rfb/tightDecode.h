@@ -58,21 +58,9 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 
   // Flush zlib streams if we are told by the server to do so.
   for (int i = 0; i < 4; i++) {
-    /* FIXME: Implement flushing
-    if ((comp_ctl & 1) && m_tightZlibStreamActive[i]) {
-      int err = inflateEnd (&m_tightZlibStream[i]);
-      if (err != Z_OK) {
-        if (m_tightZlibStream[i].msg != NULL) {
-          vnclog.Print(0, _T("zlib inflateEnd() error: %s\n"),
-                       m_tightZlibStream[i].msg);
-        } else {
-          vnclog.Print(0, _T("zlib inflateEnd() error: %d\n"), err);
-        }
-        return;
-      }
-      m_tightZlibStreamActive[i] = FALSE;
+    if (comp_ctl & 1) {
+      zis[i].reset();
     }
-    */
     comp_ctl >>= 1;
   }
 
@@ -175,8 +163,6 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   }
 
   IMAGE_RECT(r, buf);
-
-  // zis->reset();   // FIXME: Is that needed?
 }
 
 #undef TIGHT_DECODE
