@@ -108,6 +108,10 @@ SOURCE=.\FbsInputStream.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\PixelFormatList.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\PlayerOptions.cxx
 # End Source File
 # Begin Source File
@@ -145,6 +149,10 @@ SOURCE=.\GotoPosDialog.h
 # Begin Source File
 
 SOURCE=.\OptionsDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\PixelFormatList.h
 # End Source File
 # Begin Source File
 
