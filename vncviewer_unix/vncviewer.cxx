@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 	   _("TightVNC viewer for X version 4.0 - built %s\n"
 	     "Copyright (C) 2002-2004 RealVNC Ltd.\n"
 	     "Copyright (C) 2000-2004 Constantin Kaplinsky\n"
-	     "Copyright (C) 2004 Peter Astrand, Cendio AB\n"
+	     "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
 	     "See http://www.tightvnc.com for information on TightVNC."),
 	     buildtime);
   fprintf(stderr,"\n%s\n", aboutText);

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2004 Peter Astrand, Cendio AB.  All Rights Reserved.
+ * Copyright (C) 2004-2005 Cendio AB. All rights reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
