@@ -244,6 +244,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
     setSpeed(playbackSpeed);
   } else {
     disableTBandMenuItems();
+    setTitle("None");
   }
 }
 
