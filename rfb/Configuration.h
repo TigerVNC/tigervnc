@@ -97,6 +97,7 @@ namespace rfb {
     virtual char* getDefaultStr() const;
     virtual char* getValueStr() const;
     virtual bool isBool() const;
+    virtual void setImmutable();
   private:
     VoidParameter* param;
   };

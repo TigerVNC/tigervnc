@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2004 Peter Astrand, Cendio AB.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,8 +69,8 @@ bool Configuration::setParam(const char* name, int len,
     {
       bool b = current->setParam(val);
       current->setHasBeenSet(); 
-      if (b && immutable)
-        current->setImmutable();
+      if (b && immutable) 
+	current->setImmutable();
       return b;
     }
     current = current->_next;
@@ -93,8 +94,8 @@ bool Configuration::setParam(const char* config, bool immutable) {
       if (strcasecmp(current->getName(), config) == 0) {
         bool b = current->setParam();
 	current->setHasBeenSet(); 
-        if (b && immutable)
-          current->setImmutable();
+        if (b && immutable) 
+	  current->setImmutable();
         return b;
       }
       current = current->_next;
@@ -224,6 +225,13 @@ char* AliasParameter::getValueStr() const {
 bool AliasParameter::isBool() const {
   return param->isBool();
 }
+
+void
+AliasParameter::setImmutable() {
+  vlog.debug("set immutable %s (Alias)", getName());
+  param->setImmutable();
+}
+
 
 // -=- BoolParameter
 
@@ -389,7 +397,7 @@ void BinaryParameter::setParam(const void* v, int len) {
 #ifdef WIN32
   Lock l(configLock);
 #endif
-  if (immutable) return;
+  if (immutable) return; 
   vlog.debug("set %s(Binary)", getName());
   delete [] value; value = 0;
   if (len) {
