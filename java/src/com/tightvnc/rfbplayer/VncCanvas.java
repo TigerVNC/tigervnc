@@ -20,6 +20,8 @@
 //  USA.
 //
 
+package com.HorizonLive.RfbPlayer;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -184,6 +186,18 @@ class VncCanvas extends Canvas implements Observer {
     Dimension screenSize = player.vncFrame.getToolkit().getScreenSize();
     Dimension frameSize = player.vncFrame.getSize();
     Dimension newSize = frameSize;
+
+    // Reduce Screen Size by 30 pixels in each direction;
+    // This is a (poor) attempt to account for
+    //     1) Menu bar on Macintosh (should really also account for
+    //        Dock on OSX).  Usually 22px on top of screen.
+    //	   2) Taxkbar on Windows (usually about 28 px on bottom)
+    //	   3) Other obstructions.
+
+    screenSize.height -= 30;
+    screenSize.width -= 30;
+
+
     boolean needToResizeFrame = false;
     if (frameSize.height > screenSize.height) {
       newSize.height = screenSize.height;

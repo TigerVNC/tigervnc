@@ -18,6 +18,8 @@
 //  USA.
 //
 
+package com.HorizonLive.RfbPlayer;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -67,6 +69,9 @@ public class RfbPlayer extends java.applet.Applet
   // init()
   //
   public void init() {
+
+    // LiveConnect work-a-round
+    RfbSharedStatic.refApplet = this;
 
     readParameters();
 
@@ -206,6 +211,17 @@ public class RfbPlayer extends java.applet.Applet
   public void setSpeed(double speed) {
     playbackSpeed = speed;
     rfb.fbs.setSpeed(speed);
+  }
+
+  public void jumpTo(long pos) {
+    long diff = Math.abs(pos - rfb.fbs.getTimeOffset());
+
+    // Current threshold is 5 seconds
+    if (diff > 5000) {
+      rfb.fbs.pausePlayback();
+      setPos(pos);
+      rfb.fbs.resumePlayback();
+    }
   }
 
   public void setPos(long pos) {

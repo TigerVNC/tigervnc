@@ -21,6 +21,8 @@
 // FbsInputStream.java
 //
 
+package com.HorizonLive.RfbPlayer;
+
 import java.io.*;
 import java.util.*;
 

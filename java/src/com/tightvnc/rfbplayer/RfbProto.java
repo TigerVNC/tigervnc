@@ -24,6 +24,8 @@
 // RfbProto.java
 //
 
+package com.HorizonLive.RfbPlayer;
+
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -99,6 +101,9 @@ class RfbProto {
   void readVersionMsg() throws IOException {
 
     byte[] b = new byte[12];
+
+    for (int i = 0; i < b.length; i++)
+      b[i] = (byte)'0';
 
     is.readFully(b);
 
