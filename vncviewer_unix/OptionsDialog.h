@@ -75,19 +75,19 @@ public:
     y += formatAndEnc.height();
     autoSelect.move(xPad, y);
     int x2 = xPad + autoSelect.width() + xPad*5;
-    fullColour.move(x2, y);
     y += autoSelect.height();
     tight.move(xPad, y);
-    mediumColour.move(x2, y);
+    fullColour.move(x2, y);
     y += tight.height();
     zrle.move(xPad, y);
-    lowColour.move(x2, y);
+    mediumColour.move(x2, y);
     y += zrle.height();
     hextile.move(xPad, y);
-    veryLowColour.move(x2, y);
+    lowColour.move(x2, y);
     y += hextile.height();
     raw.move(xPad, y);
-    y += raw.height() + yPad;
+    veryLowColour.move(x2, y);
+    y += raw.height() + yPad*2;
 
     customCompressLevel.move(xPad, y);
     y += customCompressLevel.height();
