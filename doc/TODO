@@ -7,6 +7,10 @@
 
 * Update vncviewer.man: many parameters are currently not documented. 
 
+* When manually changing color level and running against an old server
+  (Xvnc from TightVNC 1.2.9, for example), the user should perhaps be
+  warned that vncviewer might crash. 
+
 * Document the Tight protocol extensions in a text file. 
 
 * All other features from the TightVNC 1.3 series: Filetransfer etc
