@@ -204,7 +204,8 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   autoplay(_autoplay), showControls(_showControls), buffer(0), client_size(0, 0, 32, 32), 
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), 
   serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), posTrackBar(0),
-  speedUpDown(0), acceptBell(_acceptBell), rfbReader(0) {
+  speedUpDown(0), acceptBell(_acceptBell), rfbReader(0), sessionTimeMs(0),
+  sliderDraging(false), sliderStepMs(0) {
 
   if (showControls)
     CTRL_BAR_HEIGHT = 28;
@@ -344,6 +345,33 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (!old_offset.equals(bufferToClient(Point(0, 0))))
         InvalidateRect(getFrameHandle(), 0, TRUE);
     } 
+    break;
+
+    // Process messages from posTrackBar
+
+  case WM_HSCROLL:
+    {
+      long Pos = SendMessage(posTrackBar, TBM_GETPOS, 0, 0);
+      Pos *= sliderStepMs;
+
+      switch (LOWORD(wParam)) { 
+      case TB_PAGEUP:
+      case TB_PAGEDOWN:
+      case TB_LINEUP:
+      case TB_LINEDOWN:
+      case TB_THUMBTRACK:
+        sliderDraging = true;
+        updatePos(Pos);
+        return 0;
+      case TB_ENDTRACK: 
+        setPos(Pos);
+        updatePos(Pos);
+        sliderDraging = false;
+        return 0;
+      default:
+        break;
+      }
+    }
     break;
   
   case WM_NOTIFY:
@@ -672,15 +700,17 @@ void RfbPlayer::rewind() {
   newSession(fileName);
   skipHandshaking();
   setSpeed(playbackSpeed);
-  is->pausePlayback();
+  if (paused) is->pausePlayback();
+  else is->resumePlayback();
 }
 
 void RfbPlayer::processMsg() {
   static long update_time = GetTickCount();
   try {
-    if ((!isSeeking()) && ((GetTickCount() - update_time) > 250)) {
+    if ((!isSeeking()) && ((GetTickCount() - update_time) > 250)
+      && (!sliderDraging)) {
       // Update pos in the toolbar 4 times in 1 second
-      updatePos();
+      updatePos(getTimeOffset());
       update_time = GetTickCount();
     }
     RfbProto::processMsg();
@@ -688,6 +718,7 @@ void RfbPlayer::processMsg() {
     if (strcmp(e.str(), "[End Of File]") == 0) {
       rewind();
       setPaused(true);
+      updatePos(getTimeOffset());
       return;
     }
     // It's a special exception to perform backward seeking.
@@ -696,6 +727,7 @@ void RfbPlayer::processMsg() {
       long initTime = getSeekOffset();
       rewind();
       setPos(initTime);
+      updatePos(getTimeOffset());
     } else {
       MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
       return;
@@ -727,11 +759,14 @@ void RfbPlayer::serverInit() {
   setTitle(cp.name());
 
   // Calculate the full session time and update posTrackBar control
-  long sec = calculateSessionTime(fileName);
-  sprintf(fullSessionTime, "%.2um:%.2us", sec / 60, sec % 60);
-  updatePos();
+  sessionTimeMs = calculateSessionTime(fileName);
+  sprintf(fullSessionTime, "%.2um:%.2us", 
+    sessionTimeMs / 1000 / 60, sessionTimeMs / 1000 % 60);
   SendMessage(posTrackBar, TBM_SETRANGE, 
-    TRUE, MAKELONG(0, min(sec, MAX_POS_TRACKBAR_RANGE)));
+    TRUE, MAKELONG(0, min(sessionTimeMs / 1000, MAX_POS_TRACKBAR_RANGE)));
+  sliderStepMs = sessionTimeMs / SendMessage(posTrackBar, TBM_GETRANGEMAX, 0, 0);
+    
+  updatePos(getTimeOffset());
 
   setPaused(!autoplay);
 }
@@ -797,14 +832,14 @@ bool RfbPlayer::invalidateBufferRect(const Rect& crect) {
 
 long RfbPlayer::calculateSessionTime(char *filename) {
   FbsInputStream sessionFile(filename);
-  sessionFile.setSpeed(1000);
+  sessionFile.setTimeOffset(100000000);
   try {
     while (TRUE) {
       sessionFile.skip(1024);
     }
   } catch (rdr::Exception e) {
     if (strcmp(e.str(), "[End Of File]") == 0) {
-      return sessionFile.getTimeOffset() / 1000;
+      return sessionFile.getTimeOffset();
     } else {
       MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
       return 0;
@@ -886,12 +921,14 @@ bool RfbPlayer::isPaused() {
 }
 
 long RfbPlayer::getTimeOffset() {
-  return is->getTimeOffset();
+  return max(is->getTimeOffset(), is->getSeekOffset());
 }
 
-void RfbPlayer::updatePos() {
+void RfbPlayer::updatePos(long newPos) {
+  // Update time pos in static control
   char timePos[30] = "\0";
-  long newPos = is->getTimeOffset() / 1000;
+  double sliderPos = newPos;
+  newPos /= 1000;
   time_pos_m = newPos / 60;
   time_pos_s = newPos % 60;
   if (time_pos_m < 10) {
@@ -912,6 +949,12 @@ void RfbPlayer::updatePos() {
   strcat(timePos, fullSessionTime);
   strcat(timePos, ")");
   SetWindowText(timeStatic, timePos);
+
+  // Update the position of slider
+  if (!sliderDraging) {
+    sliderPos /= sliderStepMs;
+    SendMessage(posTrackBar, TBM_SETPOS, TRUE, sliderPos);
+  }
 }
 
 void RfbPlayer::skipHandshaking() {

@@ -50,7 +50,7 @@ class RfbPlayer : public RfbProto {
     void setTitle(const char *title);
     void calculateScrollBars();
     void close(const char* reason=0);
-    void updatePos();
+    void updatePos(long pos);
 
     // -=- Coordinate conversions
 
@@ -138,6 +138,8 @@ class RfbPlayer : public RfbProto {
   private:
     bool seekMode;
     long lastPos;
+    bool sliderDraging;
+    long sliderStepMs;
     char fullSessionTime[20];
     int time_pos_m;
     int time_pos_s;
@@ -173,4 +175,5 @@ class RfbPlayer : public RfbProto {
     long initTime;
     long serverInitTime;
     bool acceptBell;
+    long sessionTimeMs;
 };
