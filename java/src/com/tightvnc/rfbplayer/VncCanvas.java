@@ -205,11 +205,11 @@ class VncCanvas extends Canvas {
   }
 
   //
-  // processNormalProtocol() - executed by the rfbThread to deal with the
-  // RFB socket.
+  // processNormalProtocol() - executed by the rfbThread to deal with
+  // the RFB data.
   //
 
-  public void processNormalProtocol() throws IOException {
+  public void processNormalProtocol() throws Exception {
 
     zlibInflater = new Inflater();
     tightInflaters = new Inflater[4];
@@ -228,6 +228,8 @@ class VncCanvas extends Canvas {
 
 	for (int i = 0; i < rfb.updateNRects; i++) {
 	  rfb.readFramebufferUpdateRectHdr();
+	  int rx = rfb.updateRectX, ry = rfb.updateRectY;
+	  int rw = rfb.updateRectW, rh = rfb.updateRectH;
 
 	  if (rfb.updateRectEncoding == rfb.EncodingLastRect)
 	    break;
@@ -240,228 +242,41 @@ class VncCanvas extends Canvas {
 
 	  if (rfb.updateRectEncoding == rfb.EncodingXCursor ||
 	      rfb.updateRectEncoding == rfb.EncodingRichCursor) {
-	    throw new IOException("Sorry, no support for" +
-				  " cursor shape updates yet");
+	    throw new Exception("Sorry, no support for" +
+				" cursor shape updates yet");
 	  }
 
 	  switch (rfb.updateRectEncoding) {
-
 	  case RfbProto.EncodingRaw:
-	  {
-	    handleRawRect(rfb.updateRectX, rfb.updateRectY,
-			  rfb.updateRectW, rfb.updateRectH);
+	    handleRawRect(rx, ry, rw, rh);
 	    break;
-	  }
-
 	  case RfbProto.EncodingCopyRect:
-	  {
-	    rfb.readCopyRect();
-
-	    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
-	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
-	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-
-	    memGraphics.copyArea(sx, sy, rw, rh, rx - sx, ry - sy);
-
-	    scheduleRepaint(rx, ry, rw, rh);
+	    handleCopyRect(rx, ry, rw, rh);
 	    break;
-	  }
-
 	  case RfbProto.EncodingRRE:
-	  {
-	    byte[] buf = new byte[4];
-
-	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
-	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-	    int nSubrects = rfb.is.readInt();
-	    int x, y, w, h;
-
-	    rfb.is.readFully(buf);
-	    Color pixel = new Color(buf[2] & 0xFF,
-				    buf[1] & 0xFF,
-				    buf[0] & 0xFF);
-	    memGraphics.setColor(pixel);
-	    memGraphics.fillRect(rx, ry, rw, rh);
-
-	    for (int j = 0; j < nSubrects; j++) {
-	      rfb.is.readFully(buf);
-	      pixel = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
-	      x = rx + rfb.is.readUnsignedShort();
-	      y = ry + rfb.is.readUnsignedShort();
-	      w = rfb.is.readUnsignedShort();
-	      h = rfb.is.readUnsignedShort();
-
-	      memGraphics.setColor(pixel);
-	      memGraphics.fillRect(x, y, w, h);
-	    }
-
-	    scheduleRepaint(rx, ry, rw, rh);
+	    handleRRERect(rx, ry, rw, rh);
 	    break;
-	  }
-
 	  case RfbProto.EncodingCoRRE:
-	  {
-	    byte[] buf = new byte[4];
-
-	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
-	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-	    int nSubrects = rfb.is.readInt();
-	    int x, y, w, h;
-
-	    rfb.is.readFully(buf);
-	    Color pixel = new Color(buf[2] & 0xFF,
-				    buf[1] & 0xFF,
-				    buf[0] & 0xFF);
-	    memGraphics.setColor(pixel);
-	    memGraphics.fillRect(rx, ry, rw, rh);
-
-	    for (int j = 0; j < nSubrects; j++) {
-	      rfb.is.readFully(buf);
-	      pixel = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
-	      x = rx + rfb.is.readUnsignedByte();
-	      y = ry + rfb.is.readUnsignedByte();
-	      w = rfb.is.readUnsignedByte();
-	      h = rfb.is.readUnsignedByte();
-
-	      memGraphics.setColor(pixel);
-	      memGraphics.fillRect(x, y, w, h);
-	    }
-
-	    scheduleRepaint(rx, ry, rw, rh);
+	    handleCoRRERect(rx, ry, rw, rh);
 	    break;
-	  }
-
 	  case RfbProto.EncodingHextile:
-	  {
-	    byte[] buf = new byte[256 * 4];
-
-	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
-	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-	    Color bg = new Color(0, 0, 0), fg = new Color(0, 0, 0);
-
-	    for (int ty = ry; ty < ry + rh; ty += 16) {
-
-	      int th = 16;
-	      if (ry + rh - ty < 16)
-		th = ry + rh - ty;
-
-	      for (int tx = rx; tx < rx + rw; tx += 16) {
-
-		int tw = 16;
-		if (rx + rw - tx < 16)
-		  tw = rx + rw - tx;
-
-		int subencoding = rfb.is.readUnsignedByte();
-
-		// Is it a raw-encoded sub-rectangle?
-		if ((subencoding & rfb.HextileRaw) != 0) {
-		  int count, offset;
-		  for (int j = ty; j < ty + th; j++) {
-		    rfb.is.readFully(buf, 0, tw * 4);
-		    offset = j * rfb.framebufferWidth + tx;
-		    for (count = 0; count < tw; count++) {
-		      pixels24[offset + count] =
-			(buf[count * 4 + 2] & 0xFF) << 16 |
-			(buf[count * 4 + 1] & 0xFF) << 8 |
-			(buf[count * 4] & 0xFF);
-		    }
-		  }
-		  handleUpdatedPixels(tx, ty, tw, th);
-		  continue;
-		}
-
-		// Read and draw the background if specified.
-		if ((subencoding & rfb.HextileBackgroundSpecified) != 0) {
-		  rfb.is.readFully(buf, 0, 4);
-		  bg = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
-		}
-		memGraphics.setColor(bg);
-		memGraphics.fillRect(tx, ty, tw, th);
-
-		// Read the foreground color if specified.
-		if ((subencoding & rfb.HextileForegroundSpecified) != 0) {
-		  rfb.is.readFully(buf, 0, 4);
-		  fg = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
-		}
-
-		// Done with this tile if there is no sub-rectangles.
-		if ((subencoding & rfb.HextileAnySubrects) == 0)
-		  continue;
-
-		int nSubrects = rfb.is.readUnsignedByte();
-
-		int b1, b2, sx, sy, sw, sh;
-		if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
-		  for (int j = 0; j < nSubrects; j++) {
-		    rfb.is.readFully(buf, 0, 4);
-		    fg = new Color(buf[2] & 0xFF,
-				   buf[1] & 0xFF,
-				   buf[0] & 0xFF);
-		    b1 = rfb.is.readUnsignedByte();
-		    b2 = rfb.is.readUnsignedByte();
-		    sx = tx + (b1 >> 4);
-		    sy = ty + (b1 & 0xf);
-		    sw = (b2 >> 4) + 1;
-		    sh = (b2 & 0xf) + 1;
-		    memGraphics.setColor(fg);
-		    memGraphics.fillRect(sx, sy, sw, sh);
-		  }
-		} else {
-		  memGraphics.setColor(fg);
-		  for (int j = 0; j < nSubrects; j++) {
-		    b1 = rfb.is.readUnsignedByte();
-		    b2 = rfb.is.readUnsignedByte();
-		    sx = tx + (b1 >> 4);
-		    sy = ty + (b1 & 0xf);
-		    sw = (b2 >> 4) + 1;
-		    sh = (b2 & 0xf) + 1;
-		    memGraphics.fillRect(sx, sy, sw, sh);
-		  }
-		}
-
-	      }
-	      // Finished with a row of tiles, now let's show it.
-	      scheduleRepaint(rx, ty, rw, th);
-	    }
+	    handleHextileRect(rx, ry, rw, rh);
 	    break;
-	  }
-
 	  case RfbProto.EncodingZlib:
-	  {
-	    int nBytes = rfb.is.readInt();
-
-            if (zlibBuf == null || zlibBufLen < nBytes) {
-              zlibBufLen = nBytes * 2;
-              zlibBuf = new byte[zlibBufLen];
-            }
-
-            rfb.is.readFully(zlibBuf, 0, nBytes);
-            zlibInflater.setInput(zlibBuf, 0, nBytes);
-
-            handleZlibRect(rfb.updateRectX, rfb.updateRectY,
-			   rfb.updateRectW, rfb.updateRectH);
-
+            handleZlibRect(rx, ry, rw, rh);
 	    break;
-	  }
-
 	  case RfbProto.EncodingTight:
-	  {
-	    handleTightRect(rfb.updateRectX, rfb.updateRectY,
-			    rfb.updateRectW, rfb.updateRectH);
-
+	    handleTightRect(rx, ry, rw, rh);
 	    break;
-	  }
-
 	  default:
-	    throw new IOException("Unknown RFB rectangle encoding " +
-				  rfb.updateRectEncoding);
+	    throw new Exception("Unknown RFB rectangle encoding " +
+				rfb.updateRectEncoding);
 	  }
-
 	}
 	break;
 
       case RfbProto.SetColourMapEntries:
-	throw new IOException("Can't handle SetColourMapEntries message");
+	throw new Exception("Can't handle SetColourMapEntries message");
 
       case RfbProto.Bell:
         Toolkit.getDefaultToolkit().beep();
@@ -472,7 +287,7 @@ class VncCanvas extends Canvas {
 	break;
 
       default:
-	throw new IOException("Unknown RFB message type " + msgType);
+	throw new Exception("Unknown RFB message type " + msgType);
       }
 
       player.updatePos();
@@ -505,11 +320,199 @@ class VncCanvas extends Canvas {
 
 
   //
+  // Handle a CopyRect rectangle.
+  //
+
+  void handleCopyRect(int x, int y, int w, int h) throws IOException {
+
+    rfb.readCopyRect();
+    memGraphics.copyArea(rfb.copyRectSrcX, rfb.copyRectSrcY, w, h,
+			 x - rfb.copyRectSrcX, y - rfb.copyRectSrcY);
+
+    scheduleRepaint(x, y, w, h);
+  }
+
+  //
+  // Handle an RRE-encoded rectangle.
+  //
+
+  void handleRRERect(int x, int y, int w, int h) throws IOException {
+
+    int nSubrects = rfb.is.readInt();
+    int sx, sy, sw, sh;
+
+    byte[] buf = new byte[4];
+    rfb.is.readFully(buf);
+    Color pixel = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
+    memGraphics.setColor(pixel);
+    memGraphics.fillRect(x, y, w, h);
+
+    for (int j = 0; j < nSubrects; j++) {
+      rfb.is.readFully(buf);
+      pixel = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
+      sx = x + rfb.is.readUnsignedShort();
+      sy = y + rfb.is.readUnsignedShort();
+      sw = rfb.is.readUnsignedShort();
+      sh = rfb.is.readUnsignedShort();
+
+      memGraphics.setColor(pixel);
+      memGraphics.fillRect(sx, sy, sw, sh);
+    }
+
+    scheduleRepaint(x, y, w, h);
+  }
+
+  //
+  // Handle a CoRRE-encoded rectangle.
+  //
+
+  void handleCoRRERect(int x, int y, int w, int h) throws IOException {
+
+    int nSubrects = rfb.is.readInt();
+    int sx, sy, sw, sh;
+
+    byte[] buf = new byte[4];
+    rfb.is.readFully(buf);
+    Color pixel = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
+    memGraphics.setColor(pixel);
+    memGraphics.fillRect(x, y, w, h);
+
+    for (int j = 0; j < nSubrects; j++) {
+      rfb.is.readFully(buf);
+      pixel = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
+      sx = x + rfb.is.readUnsignedByte();
+      sy = y + rfb.is.readUnsignedByte();
+      sw = rfb.is.readUnsignedByte();
+      sh = rfb.is.readUnsignedByte();
+
+      memGraphics.setColor(pixel);
+      memGraphics.fillRect(sx, sy, sw, sh);
+    }
+
+    scheduleRepaint(x, y, w, h);
+  }
+
+  //
+  // Handle a Hextile-encoded rectangle.
+  //
+
+  // These colors should be kept between handleHextileSubrect() calls.
+  private Color hextile_bg, hextile_fg;
+
+  void handleHextileRect(int x, int y, int w, int h) throws IOException {
+
+    hextile_bg = new Color(0, 0, 0);
+    hextile_fg = new Color(0, 0, 0);
+
+    for (int ty = y; ty < y + h; ty += 16) {
+      int th = 16;
+      if (y + h - ty < 16)
+	th = y + h - ty;
+
+      for (int tx = x; tx < x + w; tx += 16) {
+	int tw = 16;
+	if (x + w - tx < 16)
+	  tw = x + w - tx;
+
+	handleHextileSubrect(tx, ty, tw, th);
+      }
+
+      // Finished with a row of tiles, now let's show it.
+      scheduleRepaint(x, y, w, h);
+    }
+  }
+
+  //
+  // Handle one tile in the Hextile-encoded data.
+  //
+
+  void handleHextileSubrect(int tx, int ty, int tw, int th)
+    throws IOException {
+
+    byte[] buf = new byte[256 * 4];
+
+    int subencoding = rfb.is.readUnsignedByte();
+
+    // Is it a raw-encoded sub-rectangle?
+    if ((subencoding & rfb.HextileRaw) != 0) {
+      int count, offset;
+      for (int j = ty; j < ty + th; j++) {
+	rfb.is.readFully(buf, 0, tw * 4);
+	offset = j * rfb.framebufferWidth + tx;
+	for (count = 0; count < tw; count++) {
+	  pixels24[offset + count] =
+	    (buf[count * 4 + 2] & 0xFF) << 16 |
+	    (buf[count * 4 + 1] & 0xFF) << 8 |
+	    (buf[count * 4] & 0xFF);
+	}
+      }
+      handleUpdatedPixels(tx, ty, tw, th);
+      return;
+    }
+
+    // Read and draw the background if specified.
+    if ((subencoding & rfb.HextileBackgroundSpecified) != 0) {
+      rfb.is.readFully(buf, 0, 4);
+      hextile_bg = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
+    }
+    memGraphics.setColor(hextile_bg);
+    memGraphics.fillRect(tx, ty, tw, th);
+
+    // Read the foreground color if specified.
+    if ((subencoding & rfb.HextileForegroundSpecified) != 0) {
+      rfb.is.readFully(buf, 0, 4);
+      hextile_fg = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
+    }
+
+    // Done with this tile if there is no sub-rectangles.
+    if ((subencoding & rfb.HextileAnySubrects) == 0)
+      return;
+
+    int nSubrects = rfb.is.readUnsignedByte();
+
+    int b1, b2, sx, sy, sw, sh;
+    if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
+      for (int j = 0; j < nSubrects; j++) {
+	rfb.is.readFully(buf, 0, 4);
+	hextile_fg = new Color(buf[2] & 0xFF, buf[1] & 0xFF, buf[0] & 0xFF);
+	b1 = rfb.is.readUnsignedByte();
+	b2 = rfb.is.readUnsignedByte();
+	sx = tx + (b1 >> 4);
+	sy = ty + (b1 & 0xf);
+	sw = (b2 >> 4) + 1;
+	sh = (b2 & 0xf) + 1;
+	memGraphics.setColor(hextile_fg);
+	memGraphics.fillRect(sx, sy, sw, sh);
+      }
+    } else {
+      memGraphics.setColor(hextile_fg);
+      for (int j = 0; j < nSubrects; j++) {
+	b1 = rfb.is.readUnsignedByte();
+	b2 = rfb.is.readUnsignedByte();
+	sx = tx + (b1 >> 4);
+	sy = ty + (b1 & 0xf);
+	sw = (b2 >> 4) + 1;
+	sh = (b2 & 0xf) + 1;
+	memGraphics.fillRect(sx, sy, sw, sh);
+      }
+    }
+  }
+
+  //
   // Handle a Zlib-encoded rectangle.
   //
 
-  void handleZlibRect(int x, int y, int w, int h)
-    throws IOException {
+  void handleZlibRect(int x, int y, int w, int h) throws Exception {
+
+    int nBytes = rfb.is.readInt();
+
+    if (zlibBuf == null || zlibBufLen < nBytes) {
+      zlibBufLen = nBytes * 2;
+      zlibBuf = new byte[zlibBufLen];
+    }
+
+    rfb.is.readFully(zlibBuf, 0, nBytes);
+    zlibInflater.setInput(zlibBuf, 0, nBytes);
 
     try {
       byte[] buf = new byte[w * 4];
@@ -526,19 +529,18 @@ class VncCanvas extends Canvas {
       }
     }
     catch (DataFormatException dfe) {
-      throw new IOException(dfe.toString());
+      throw new Exception(dfe.toString());
     }
 
     handleUpdatedPixels(x, y, w, h);
     scheduleRepaint(x, y, w, h);
   }
 
-
   //
-  // Handle a tight rectangle.
+  // Handle a Tight-encoded rectangle.
   //
 
-  void handleTightRect(int x, int y, int w, int h) throws IOException {
+  void handleTightRect(int x, int y, int w, int h) throws Exception {
 
     int comp_ctl = rfb.is.readUnsignedByte();
 
@@ -552,7 +554,7 @@ class VncCanvas extends Canvas {
 
     // Check correctness of subencoding value.
     if (comp_ctl > rfb.TightMaxSubencoding) {
-      throw new IOException("Incorrect tight subencoding: " + comp_ctl);
+      throw new Exception("Incorrect tight subencoding: " + comp_ctl);
     }
 
     // Handle solid-color rectangles.
@@ -586,7 +588,7 @@ class VncCanvas extends Canvas {
 	  // Wait no longer than three seconds.
 	  jpegRect.wait(3000);
 	} catch (InterruptedException e) {
-	  throw new IOException("Interrupted while decoding JPEG image");
+	  throw new Exception("Interrupted while decoding JPEG image");
 	}
       }
 
@@ -617,7 +619,7 @@ class VncCanvas extends Canvas {
       } else if (filter_id == rfb.TightFilterGradient) {
 	useGradient = true;
       } else if (filter_id != rfb.TightFilterCopy) {
-	throw new IOException("Incorrect tight filter id: " + filter_id);
+	throw new Exception("Incorrect tight filter id: " + filter_id);
       }
     }
     if (numColors == 0)
@@ -715,7 +717,7 @@ class VncCanvas extends Canvas {
 	}
       }
       catch(DataFormatException dfe) {
-	throw new IOException(dfe.toString());
+	throw new Exception(dfe.toString());
       }
     }
 
@@ -727,8 +729,7 @@ class VncCanvas extends Canvas {
   // Decode 1bpp-encoded bi-color rectangle.
   //
 
-  void decodeMonoData(int x, int y, int w, int h, byte[] src, int[] palette)
-    throws IOException {
+  void decodeMonoData(int x, int y, int w, int h, byte[] src, int[] palette) {
 
     int dx, dy, n;
     int i = y * rfb.framebufferWidth + x;
@@ -752,8 +753,7 @@ class VncCanvas extends Canvas {
   // Decode data processed with the "Gradient" filter.
   //
 
-  void decodeGradientData (int x, int y, int w, int h, byte[] buf)
-    throws IOException {
+  void decodeGradientData (int x, int y, int w, int h, byte[] buf) {
 
     int dx, dy, c;
     byte[] prevRow = new byte[w * 3];
