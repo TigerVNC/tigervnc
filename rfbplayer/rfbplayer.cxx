@@ -338,8 +338,9 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       {
         GotoPosDialog gotoPosDlg;
         if (gotoPosDlg.showDialog()) {
-          setPos(gotoPosDlg.getPos());
-          updatePos(gotoPosDlg.getPos());
+          long gotoTime = min(gotoPosDlg.getPos(), sessionTimeMs);
+          setPos(gotoTime);
+          updatePos(gotoTime);
         }
       }
       break;
