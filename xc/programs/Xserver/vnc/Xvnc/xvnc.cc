@@ -132,6 +132,11 @@ typedef struct
 static int vfbNumScreens;
 static vfbScreenInfo vfbScreens[MAXSCREENS];
 static Bool vfbPixmapDepths[33];
+#ifdef HAS_MMAP
+static char *pfbdir = NULL;
+#endif
+typedef enum { NORMAL_MEMORY_FB, SHARED_MEMORY_FB, MMAPPED_FILE_FB } fbMemType;
+static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static char needswap = 0;
 static int lastScreen = -1;
 static Bool Render = TRUE;
@@ -178,37 +183,68 @@ vfbInitializeDefaultScreens(void)
     vfbNumScreens = 1;
 }
 
-static int vfbBitsPerPixel(int depth)
+static int
+vfbBitsPerPixel(int depth)
 {
-  if (depth == 1) return 1;
-  else if (depth <= 8) return 8;
-  else if (depth <= 16) return 16;
-  else return 32;
+    if (depth == 1) return 1;
+    else if (depth <= 8) return 8;
+    else if (depth <= 16) return 16;
+    else return 32;
 }
 
 extern "C" {
   void ddxInitGlobals() {}
-  void ddxGiveUp()
-  {
+
+void
+ddxGiveUp()
+{
     int i;
 
     /* clean up the framebuffers */
 
-    for (i = 0; i < vfbNumScreens; i++)
+    switch (fbmemtype)
     {
-      Xfree(vfbScreens[i].pXWDHeader);
+#ifdef HAS_MMAP
+    case MMAPPED_FILE_FB: 
+	for (i = 0; i < vfbNumScreens; i++)
+	{
+	    if (-1 == unlink(vfbScreens[i].mmap_file))
+	    {
+		perror("unlink");
+		ErrorF("unlink %s failed, errno %d",
+		       vfbScreens[i].mmap_file, errno);
+	    }
+	}
+	break;
+#else /* HAS_MMAP */
+    case MMAPPED_FILE_FB:
+        break;
+#endif /* HAS_MMAP */
+	
+#ifdef HAS_SHM
+    case SHARED_MEMORY_FB:
+	for (i = 0; i < vfbNumScreens; i++)
+	{
+	    if (-1 == shmdt((char *)vfbScreens[i].pXWDHeader))
+	    {
+		perror("shmdt");
+		ErrorF("shmdt failed, errno %d", errno);
+	    }
+	}
+	break;
+#else /* HAS_SHM */
+    case SHARED_MEMORY_FB:
+        break;
+#endif /* HAS_SHM */
+	
+    case NORMAL_MEMORY_FB:
+	for (i = 0; i < vfbNumScreens; i++)
+	{
+	    Xfree(vfbScreens[i].pXWDHeader);
+	}
+	break;
     }
-
-    // Remove any unix domain sockets left behind.  I think these should
-    // already have been cleaned up but it doesn't hurt to try again.
-    if (wellKnownSocketsCreated) {
-      char sockName[64];
-      sprintf(sockName,"/tmp/.X11-unix/X%s",display);
-      unlink(sockName);
-      sprintf(sockName,"/usr/spool/sockets/X11/%s",display);
-      unlink(sockName);
-    }
-  }
+}
 
   void AbortDDX() { ddxGiveUp(); }
   void OsVendorInit() {}
