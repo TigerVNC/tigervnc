@@ -177,6 +177,7 @@ class RfbPlayer : public RfbProto {
 
     // The player's parameters
     PlayerOptions options;
+    PixelFormatList supportedPF;
     long imageDataStartTime;
     long sessionTimeMs;
 };

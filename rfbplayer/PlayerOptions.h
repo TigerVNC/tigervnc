@@ -69,8 +69,8 @@ public:
   double playbackSpeed;
   bool autoPlay;
   bool fullScreen;
-  long pixelFormat;
-  PixelFormat PF;
+  long pixelFormatIndex;
+  PixelFormat pixelFormat;
   bool acceptBell;
   bool acceptCutText;
   bool loopPlayback;

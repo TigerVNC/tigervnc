@@ -40,7 +40,7 @@ protected:
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("8 bit depth (RGB332)"));
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("16 bit depth (RGB655)"));
     SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)("24 bit depth (RGB888)"));
-    SendMessage(combo, CB_SETCURSEL, options->pixelFormat, 0);
+    SendMessage(combo, CB_SETCURSEL, options->pixelFormatIndex, 0);
     if (options->askPixelFormat) {
       setItemChecked(IDC_ASK_PF, true);
       enableItem(IDC_PIXELFORMAT, false);
@@ -52,7 +52,7 @@ protected:
   }
   virtual bool onOk() {
     if (!isItemChecked(IDC_ASK_PF)) {
-      options->pixelFormat = SendMessage(combo, CB_GETCURSEL, 0, 0);
+      options->pixelFormatIndex = SendMessage(combo, CB_GETCURSEL, 0, 0);
     }
     options->askPixelFormat = isItemChecked(IDC_ASK_PF);
     options->acceptBell = isItemChecked(IDC_ACCEPT_BELL);

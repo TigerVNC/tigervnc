@@ -25,6 +25,7 @@
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/WMShatter.h> 
 
+#include <rfbplayer/PixelFormatList.h>
 #include <rfbplayer/rfbplayer.h>
 
 using namespace rfb;
@@ -60,6 +61,7 @@ char usage_msg[] =
 // -=- RfbPlayer's defines
 
 #define strcasecmp _stricmp
+#define UPF_REGISTRY_PATH "Software\\TightVnc\\RfbPlayer\\UserDefinedPF"
 #define MAX_SPEED 10.00
 #define CALCULATION_ERROR MAX_SPEED / 1000
 #define MAX_POS_TRACKBAR_RANGE 50
@@ -225,6 +227,9 @@ RfbPlayer::RfbPlayer(char *_fileName, PlayerOptions *_options)
 
   // Reset the full session time
   strcpy(fullSessionTime, "00m:00s");
+
+  // Load the user defined pixel formats from the registry
+  supportedPF.readUserDefinedPF(HKEY_CURRENT_USER, UPF_REGISTRY_PATH);
 
   // Create the main window
   const TCHAR* name = _T("RfbPlayer");
@@ -894,7 +899,7 @@ void RfbPlayer::serverInit() {
       throw rdr::Exception("[TERMINATE]");
     }
   } else {
-    pixelFormat = options.pixelFormat;
+    pixelFormat = options.pixelFormatIndex;
   }
   switch (pixelFormat) {
   case PF_AUTO: 
@@ -1228,7 +1233,7 @@ bool processParams(int argc, char* argv[]) {
       if ((pf < 0) || (pf > PF_MODES)) {
         return false;
       }
-      playerOptions.pixelFormat = pf;
+      playerOptions.pixelFormatIndex = pf;
       continue;
     }
 

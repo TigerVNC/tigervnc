@@ -28,16 +28,21 @@ PlayerOptions::PlayerOptions() {
 
 void PlayerOptions::readFromRegistry() {
   try {
+    PixelFormat *pPF = 0;
+    int pfSize = sizeof(PixelFormat);
     RegKey regKey;
     regKey.createKey(HKEY_CURRENT_USER, _T("Software\\TightVnc\\RfbPlayer"));
     autoPlay = regKey.getBool(_T("AutoPlay"), DEFAULT_AUTOPLAY);
-    pixelFormat = regKey.getInt(_T("PixelFormat"), DEFAULT_PF);
+    pixelFormatIndex = regKey.getInt(_T("PixelFormatIndex"), DEFAULT_PF);
+    regKey.getBinary(_T("PixelFormat"), (void**)&pPF, &pfSize, 
+      &PixelFormat(32,24,0,1,255,255,255,16,8,0), sizeof(PixelFormat));
     acceptBell = regKey.getBool(_T("AcceptBell"), DEFAULT_ACCEPT_BELL);
     acceptCutText = regKey.getBool(_T("AcceptCutText"), DEFAULT_ACCEPT_CUT_TEXT);
     autoStoreSettings = regKey.getBool(_T("AutoStoreSettings"), DEFAULT_STORE_SETTINGS);
     autoPlay = regKey.getBool(_T("AutoPlay"), DEFAULT_AUTOPLAY);
     loopPlayback = regKey.getBool(_T("LoopPlayback"), DEFAULT_LOOP_PLAYBACK);
     askPixelFormat = regKey.getBool(_T("AskPixelFormat"), DEFAULT_ASK_PF);
+    if (pPF) delete pPF;
   } catch (rdr::Exception e) {
     MessageBox(0, e.str(), e.type(), MB_OK | MB_ICONERROR);
   }
@@ -48,7 +53,8 @@ void PlayerOptions::writeToRegistry() {
     RegKey regKey;
     regKey.createKey(HKEY_CURRENT_USER, _T("Software\\TightVnc\\RfbPlayer"));
     regKey.setBool(_T("AutoPlay"), autoPlay);
-    regKey.setInt(_T("PixelFormat"), pixelFormat);
+    regKey.setInt(_T("PixelFormatIndex"), pixelFormatIndex);
+    regKey.setBinary(_T("PixelFormat"), &pixelFormat, sizeof(PixelFormat));
     regKey.setBool(_T("AcceptBell"), acceptBell);
     regKey.setBool(_T("AcceptCutText"), acceptCutText);
     regKey.setBool(_T("AutoStoreSettings"), autoStoreSettings);
@@ -63,7 +69,8 @@ void PlayerOptions::writeToRegistry() {
 void PlayerOptions::writeDefaults() {
   initTime = DEFAULT_INIT_TIME;
   playbackSpeed = DEFAULT_SPEED;
-  pixelFormat = PF_AUTO;
+  pixelFormatIndex = PF_AUTO;
+  pixelFormat = PixelFormat(32,24,0,1,255,255,255,16,8,0);
   frameScale = DEFAULT_FRAME_SCALE;
   autoPlay = DEFAULT_AUTOPLAY;
   fullScreen = DEFAULT_FULL_SCREEN;
@@ -75,7 +82,7 @@ void PlayerOptions::writeDefaults() {
 }
 
 void PlayerOptions::setPF(PixelFormat *newPF) {
-  memcpy(&PF, newPF, sizeof(PixelFormat));
+  memcpy(&pixelFormat, newPF, sizeof(PixelFormat));
 }
 
 bool PlayerOptions::setPF(int rgb_order, int rm, int gm, int bm, bool big_endian) {
