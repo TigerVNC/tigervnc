@@ -547,8 +547,8 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
     }
     return 0;
     
-    // Process play/pause by the right mouse button
-  case WM_RBUTTONDOWN:
+    // Process play/pause by the left mouse button
+  case WM_LBUTTONDOWN:
     SendMessage(getMainHandle(), WM_COMMAND, ID_PLAYPAUSE, 0);
     return 0;
 
