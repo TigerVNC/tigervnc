@@ -58,7 +58,8 @@ char usage_msg[] =
 // -=- RfbPlayer's defines
 
 #define strcasecmp _stricmp
-#define MAX_SPEED 10
+#define MAX_SPEED 10.00
+#define CALCULATION_ERROR MAX_SPEED / 1000
 #define MAX_POS_TRACKBAR_RANGE 50
 #define DEFAULT_PLAYER_WIDTH 640
 #define DEFAULT_PLAYER_HEIGHT 480 
@@ -335,7 +336,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         GotoPosDialog gotoPosDlg;
         if (gotoPosDlg.showDialog()) {
           setPos(gotoPosDlg.getPos());
-          updatePos(getTimeOffset());
+          updatePos(gotoPosDlg.getPos());
         }
       }
       break;
@@ -1061,16 +1062,17 @@ long RfbPlayer::getTimeOffset() {
 void RfbPlayer::updatePos(long newPos) {
   // Update time pos in static control
   char timePos[30] = "\0";
-  long sliderPos = newPos;
-  newPos /= 1000;
-  sprintf(timePos, "%.2um:%.2us (%s)", newPos/60, newPos%60, fullSessionTime);
+  long time = newPos / 1000;
+  sprintf(timePos, "%.2um:%.2us (%s)", time/60, time%60, fullSessionTime);
   SetWindowText(timeStatic, timePos);
 
   // Update the position of slider
   if (!sliderDraging) {
-    sliderPos /= sliderStepMs;
-    if (sliderPos > SendMessage(posTrackBar, TBM_GETPOS, 0, 0))
-      SendMessage(posTrackBar, TBM_SETPOS, TRUE, sliderPos);
+    double error = SendMessage(posTrackBar, TBM_GETPOS, 0, 0) * 
+      sliderStepMs / double(newPos);
+    if (!((error > 1 - CALCULATION_ERROR) && (error <= 1 + CALCULATION_ERROR))) {
+      SendMessage(posTrackBar, TBM_SETPOS, TRUE, newPos / sliderStepMs);
+    }
   }
 }
 
