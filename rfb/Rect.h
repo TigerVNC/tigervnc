@@ -21,7 +21,12 @@
 #ifndef __RFB_RECT_INCLUDED__
 #define __RFB_RECT_INCLUDED__
 
-#include <rfb/util.h>
+#ifndef vncmin
+#define vncmin(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef vncmax
+#define vncmax(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
 
 namespace rfb {
 
