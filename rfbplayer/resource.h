@@ -6,6 +6,8 @@
 #define IDR_MENU                        128
 #define IDR_ACCELERATOR                 131
 #define IDB_TOOLBAR                     132
+#define IDD_GOTO                        133
+#define IDC_GOTO_EDIT                   1003
 #define ID_OPENFILE                     40011
 #define ID_CLOSEFILE                    40012
 #define ID_EXIT                         40013
@@ -29,9 +31,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         40045
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
