@@ -787,6 +787,24 @@ bool RfbPlayer::invalidateBufferRect(const Rect& crect) {
   return true;
 }
 
+long RfbPlayer::calculateSessionTime(char *filename) {
+  FbsInputStream sessionFile(filename);
+  sessionFile.setSpeed(1000);
+  try {
+    while (TRUE) {
+      sessionFile.skip(1024);
+    }
+  } catch (rdr::Exception e) {
+    if (strcmp(e.str(), "[End Of File]") == 0) {
+      return sessionFile.getTimeOffset() / 1000;
+    } else {
+      MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
+      return 0;
+    }
+  }
+  return 0;
+}
+
 void RfbPlayer::openSessionFile(char *_fileName) {
   fileName = strDup(_fileName);
 

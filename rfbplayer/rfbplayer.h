@@ -110,6 +110,9 @@ class RfbPlayer : public RfbProto {
 
     // -=- Player functions
 
+    // calculateSessionTime() calculates the full session time in sec
+    long calculateSessionTime(char *fileName);
+
     // openSessionFile() opens the new session file and starts play it
     void openSessionFile(char *fileName);
 
