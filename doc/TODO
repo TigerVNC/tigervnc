@@ -1,8 +1,6 @@
 
 * Change version strings. 
 
-* Perhaps change icons. 
-
 * Tight encoding support
 
 * Update vncviewer.man: many parameters are currently not documented. 
