@@ -205,7 +205,7 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), fileName(_fileName), 
   serverInitTime(0), lastPos(0), timeStatic(0), speedEdit(0), posTrackBar(0),
   speedUpDown(0), acceptBell(_acceptBell), rfbReader(0), sessionTimeMs(0),
-  sliderDraging(false), sliderStepMs(0) {
+  sliderDraging(false), sliderStepMs(0), loopPlayback(false) {
 
   if (showControls)
     CTRL_BAR_HEIGHT = 28;
@@ -315,6 +315,11 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
     case ID_FULLSCREEN:
       MessageBox(getMainHandle(), "It is not working yet!", "RfbPlayer", MB_OK);
+      break;
+    case ID_LOOP:
+      loopPlayback = !loopPlayback;
+      if (loopPlayback) CheckMenuItem(hMenu, ID_LOOP, MF_CHECKED);
+      else CheckMenuItem(hMenu, ID_LOOP, MF_UNCHECKED);
       break;
     case ID_RETURN:
         // Update the speed if return pressed in speedEdit
@@ -741,7 +746,7 @@ void RfbPlayer::processMsg() {
   } catch (rdr::Exception e) {
     if (strcmp(e.str(), "[End Of File]") == 0) {
       rewind();
-      setPaused(true);
+      setPaused(!loopPlayback);
       updatePos(getTimeOffset());
       SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
       return;

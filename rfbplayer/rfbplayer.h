@@ -177,4 +177,5 @@ class RfbPlayer : public RfbProto {
     long serverInitTime;
     bool acceptBell;
     long sessionTimeMs;
+    bool loopPlayback;
 };
