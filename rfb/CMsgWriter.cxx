@@ -76,8 +76,9 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     }
   }
   encodings[nEncodings++] = pseudoEncodingLastRect;
-  // FIXME
-  encodings[nEncodings++] = pseudoEncodingQualityLevel9;
+  if (cp->qualityLevel >= 0 && cp->qualityLevel <= 9)
+      encodings[nEncodings++] = pseudoEncodingQualityLevel0 + cp->qualityLevel;
+
   writeSetEncodings(nEncodings, encodings);
 }
   

@@ -74,6 +74,7 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   }
   cp.supportsDesktopResize = true;
   cp.supportsLocalCursor = useLocalCursor;
+  cp.qualityLevel = qualityLevel;
   initMenu();
 
   if (sock) {

@@ -83,6 +83,10 @@ static BoolParameter acceptBell("AcceptBell",
 static StringParameter monitor("Monitor", "The monitor to open the VNC Viewer window on, if available.", "");
 static StringParameter menuKey("MenuKey", "The key which brings up the popup menu", "F8");
 
+static IntParameter qualityLevel("QualityLevel",
+				 "JPEG quality level. "
+				 "0 = Low, 9 = High",
+				 5);
 
 CViewOptions::CViewOptions()
 : useLocalCursor(::useLocalCursor), useDesktopResize(::useDesktopResize),
@@ -90,7 +94,8 @@ autoSelect(::autoSelect), fullColour(::fullColour), fullScreen(::fullScreen),
 shared(::sharedConnection), sendPtrEvents(::sendPtrEvents), sendKeyEvents(::sendKeyEvents),
 preferredEncoding(encodingZRLE), clientCutText(::clientCutText), serverCutText(::serverCutText),
 protocol3_3(::protocol3_3), acceptBell(::acceptBell), lowColourLevel(::lowColourLevel),
-pointerEventInterval(ptrEventInterval), emulate3(::emulate3), monitor(::monitor.getData())
+pointerEventInterval(ptrEventInterval), emulate3(::emulate3), monitor(::monitor.getData()),
+qualityLevel(::qualityLevel)
 {
   CharArray encodingName(::preferredEncoding.getData());
   preferredEncoding = encodingNum(encodingName.buf);
@@ -190,6 +195,8 @@ void CViewOptions::readFromFile(const char* filename) {
             monitor.replaceBuf(value.takeBuf());
           } else if (stricmp(name.buf, "MenuKey") == 0) {
             setMenuKey(value.buf);
+          } else if (stricmp(name.buf, "QualityLevel") == 0) {
+	    qualityLevel = atoi(value.buf);
 
             // Legacy options
           } else if (stricmp(name.buf, "Preferred_Encoding") == 0) {
@@ -274,6 +281,7 @@ void CViewOptions::writeToFile(const char* filename) {
     if (monitor.buf)
       fprintf(f, "Monitor=%s\n", monitor.buf);
     fprintf(f, "MenuKey=%s\n", CharArray(menuKeyName()).buf);
+    fprintf(f, "QualityLevel=%d\n", qualityLevel);
     fclose(f); f=0;
 
     setConfigFileName(filename);
@@ -306,6 +314,7 @@ void CViewOptions::writeDefaults() {
   if (monitor.buf)
     key.setString(_T("Monitor"), TStr(monitor.buf));
   key.setString(_T("MenuKey"), TCharArray(menuKeyName()).buf);
+  key.setInt(_T("QualityLevel"), qualityLevel);
 }
 
 
@@ -360,5 +369,6 @@ CViewOptions& CViewOptions::operator=(const CViewOptions& o) {
   setHost(o.host.buf);
   setMonitor(o.monitor.buf);
   menuKey = o.menuKey;
+  qualityLevel = o.qualityLevel;
   return *this;
 }

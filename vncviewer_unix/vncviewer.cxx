@@ -93,6 +93,11 @@ BoolParameter listenMode("listen", "Listen for connections from VNC servers",
 StringParameter geometry("geometry", "X geometry specification", "");
 StringParameter displayname("display", "The X display", "");
 
+IntParameter qualityLevel("QualityLevel",
+			  "JPEG quality level. "
+			  "0 = Low, 9 = High",
+			  5);
+
 char aboutText[256];
 char* programName;
 extern char buildtime[];

@@ -77,6 +77,7 @@ namespace rfb {
       unsigned int menuKey;
       void setMenuKey(const char* keyName);
       char* menuKeyName();
+      int qualityLevel;
     };
 
 
