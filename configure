@@ -4425,11 +4425,11 @@ if test "$with_installed_jpeg" = yes; then
   echo "using installed jpeg"
   JPEG_LIB=-ljpeg
 else
-  JPEG_DIR=jpeg
+  JPEG_DIR=jpeg/build
   JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
   JPEG_LIB='$(top_srcdir)/jpeg/libjpeg.a'
   echo "configuring jpeg..."
-  (cd jpeg; ./configure)
+  (mkdir jpeg/build; cd jpeg/build; ../configure)
   echo "...done configuring jpeg"
 fi
 
