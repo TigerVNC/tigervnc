@@ -1151,14 +1151,17 @@ CView::autoSelectFormatAndEncoding() {
     return;
   }
 
-  // FIXME: The code below is currently disabled, since, as far as I
-  // understand, it is not possible to switch pixel format on the fly
-  // against TightVNC 1.2.X servers, for example. See mail to the
-  // mailing list, sent on 2004-12-21. If we cannot find any better
-  // solution, we could add code to only allow pixel format switching
-  // against VNC4 servers (if these don't use deferred updates).
+  if (cp.majorVersion <= 3 && cp.minorVersion <= 7) {
+    // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
+    // cursors "asynchronously". If this happens in the middle of a
+    // pixel format change, the server will encode the cursor with
+    // the old format, but the client will try to decode it
+    // according to the new format. This will lead to a
+    // crash. Therefore, we do not allow automatic format change for
+    // old servers.
+    return;
+  }
   
-#if 0
   // Select best color level
   newFullColour = (kbitsPerSecond > 256);
   if (newFullColour != options.fullColour) {
@@ -1168,7 +1171,6 @@ CView::autoSelectFormatAndEncoding() {
     options.fullColour = newFullColour;
     formatChange = true;
   } 
-#endif
 }
 
 void
