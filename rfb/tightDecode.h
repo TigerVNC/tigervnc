@@ -153,12 +153,13 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   // Determine if the data should be decompressed or just copied.
   int rowSize = (r.width() * bppp + 7) / 8;
   int dataSize = r.height() * rowSize;
+  int streamId = -1;
   rdr::InStream *input;
   if (dataSize < TIGHT_MIN_TO_COMPRESS) {
     input = is;
   } else {
     int length = is->readCompactLength();
-    int streamId = comp_ctl & 0x03;
+    streamId = comp_ctl & 0x03;
     zis[streamId].setUnderlying(is, length);
     input = &zis[streamId];
   }
@@ -216,6 +217,10 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   }
 
   IMAGE_RECT(r, buf);
+
+  if (streamId != -1) {
+    zis[streamId].reset();
+  }
 }
 
 static bool
