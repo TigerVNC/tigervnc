@@ -847,7 +847,14 @@ void RfbPlayer::processMsg() {
       sessionTerminateThread *terminate = new sessionTerminateThread(this);
       terminate->start();
     } else {
-      MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
+      // Show the exception message and close the session playback
+      is->pausePlayback();
+      char message[256] = "\0";
+      strcat(message, e.str());
+      strcat(message, "\nMaybe you force wrong the pixel format for this session");
+      MessageBox(getMainHandle(), message, e.type(), MB_OK | MB_ICONERROR);
+      sessionTerminateThread *terminate = new sessionTerminateThread(this);
+      terminate->start();
       return;
     }
   }
