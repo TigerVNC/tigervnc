@@ -561,7 +561,18 @@ void VNCSConnectionST::writeFramebufferUpdate()
   updates.enable_copyrect(cp.useCopyRect);
   updates.get_update(&update, requested);
   if (!update.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
-    int nRects = update.numRects() + (drawRenderedCursor ? 1 : 0);
+    // Compute the number of rectangles. Tight encoder makes the things more
+    // complicated as compared to the original RealVNC.
+    writer()->setupCurrentEncoder();
+    int nRects = update.copied.numRects() + (drawRenderedCursor ? 1 : 0);
+    std::vector<Rect> rects;
+    std::vector<Rect>::const_iterator i;
+    update.changed.get_rects(&rects);
+    for (i = rects.begin(); i != rects.end(); i++) {
+      if (i->width() && i->height())
+	nRects += writer()->getNumRects(*i);
+    }
+    
     writer()->writeFramebufferUpdateStart(nRects);
     Region updatedRegion;
     writer()->writeRects(update, &image_getter, &updatedRegion);
