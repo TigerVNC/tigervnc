@@ -10,6 +10,7 @@ clean::
 
 SHELL = @SHELL@
 top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
 @SET_MAKE@
 CC = @CC@
 CFLAGS = @CFLAGS@ $(DIR_CFLAGS)
