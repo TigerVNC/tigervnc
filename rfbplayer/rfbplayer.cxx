@@ -227,8 +227,10 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
 
   // Create the main window
   const TCHAR* name = _T("RfbPlayer");
+  int x = max(0, (GetSystemMetrics(SM_CXSCREEN) - DEFAULT_PLAYER_WIDTH) / 2);
+  int y = max(0, (GetSystemMetrics(SM_CYSCREEN) - DEFAULT_PLAYER_HEIGHT) / 2);
   mainHwnd = CreateWindow((const TCHAR*)baseClass.classAtom, name, WS_OVERLAPPEDWINDOW,
-    0, 0, DEFAULT_PLAYER_WIDTH, DEFAULT_PLAYER_HEIGHT, 0, 0, baseClass.instance, this);
+    x, y, DEFAULT_PLAYER_WIDTH, DEFAULT_PLAYER_HEIGHT, 0, 0, baseClass.instance, this);
   if (!mainHwnd) {
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }
@@ -690,7 +692,9 @@ void RfbPlayer::setFrameSize(int width, int height) {
     GetWindowLong(getFrameHandle(), GWL_EXSTYLE));
   r.bottom += CTRL_BAR_HEIGHT; // Include RfbPlayr's controls area
   AdjustWindowRect(&r, GetWindowLong(getMainHandle(), GWL_STYLE), FALSE);
-  SetWindowPos(getMainHandle(), 0, 0, 0, r.right-r.left, r.bottom-r.top,
+  int x = max(0, (GetSystemMetrics(SM_CXSCREEN) - (r.right - r.left)) / 2);
+  int y = max(0, (GetSystemMetrics(SM_CYSCREEN) - (r.bottom - r.top)) / 2);
+  SetWindowPos(getMainHandle(), 0, x, y, r.right-r.left, r.bottom-r.top,
     SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
   // Enable/disable scrollbars as appropriate
@@ -972,9 +976,11 @@ void RfbPlayer::closeSessionFile() {
     dwStyle &= ~WS_MAXIMIZE;
     SetWindowLong(getMainHandle(), GWL_STYLE, dwStyle);
   }
-  SetWindowPos(getMainHandle(), 0, 0, 0, 
+  int x = max(0, (GetSystemMetrics(SM_CXSCREEN) - DEFAULT_PLAYER_WIDTH) / 2);
+  int y = max(0, (GetSystemMetrics(SM_CYSCREEN) - DEFAULT_PLAYER_HEIGHT) / 2);
+  SetWindowPos(getMainHandle(), 0, x, y, 
     DEFAULT_PLAYER_WIDTH, DEFAULT_PLAYER_HEIGHT, 
-    SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+    SWP_NOZORDER | SWP_FRAMECHANGED);
   buffer->setSize(32, 32);
   calculateScrollBars();
   
