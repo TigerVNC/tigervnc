@@ -26,11 +26,15 @@ public:
   ToolBar();
   virtual ~ToolBar();
 
+  // create() creates a windows toolbar. dwStyle is a combination of 
+  // the toolbar control and button styles. It returns TRUE if successful,
+  // or FALSE otherwise.
+  bool create(int tbID, HWND parentHwnd, DWORD dwStyle = WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT);
+
   // getHandle() returns handle to a toolbar window.
   HWND getHandle() { return hwndToolBar; }
 
 protected:
   HWND hwndToolBar;
   int tbID;
-
 };

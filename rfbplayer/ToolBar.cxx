@@ -33,3 +33,18 @@ ToolBar::~ToolBar() {
   DestroyWindow(getHandle());
 }
 
+bool ToolBar::create(int _tbID, HWND parentHwnd, DWORD dwStyle) {
+  dwStyle |= WS_CHILD;
+
+  // Create the ToolBar window
+  hwndToolBar = CreateWindowEx(0, TOOLBARCLASSNAME, 0, dwStyle, 
+    0, 0, 25, 25, parentHwnd, (HMENU)_tbID, GetModuleHandle(0), 0);
+
+  if (hwndToolBar) {
+    tbID = _tbID;
+
+    // It's required for backward compatibility
+    SendMessage(hwndToolBar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+  }
+  return (hwndToolBar ? true : false);
+};
