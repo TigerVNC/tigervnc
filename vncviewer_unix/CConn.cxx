@@ -597,23 +597,30 @@ void CConn::reconfigureViewport()
   }
 }
 
+// Note: The method below is duplicated in vncviewer/cview.cxx!
+
 // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
 // to the connection speed:
+//
 //   Above 16Mbps (timing for at least a second), same machine, switch to raw
 //   Above 3Mbps, switch to hextile
-//   Below 1.5Mbps, switch to Tight
-//   Above 1Mbps, switch to full colour mode
+//   Otherwise, switch to Tight
+//
+//   Above 256Kbps, use full colour mode
+//
 void CConn::autoSelectFormatAndEncoding()
 {
   int kbitsPerSecond = sock->inStream().kbitsPerSecond();
   unsigned int newEncoding = currentEncoding;
+  bool newFullColour = fullColour;
+  unsigned int timeWaited = sock->inStream().timeWaited();
 
-  if (kbitsPerSecond > 16000 && sameMachine &&
-      sock->inStream().timeWaited() >= 10000) {
+  // Select best encoding
+  if (kbitsPerSecond > 16000 && sameMachine && timeWaited >= 10000) {
     newEncoding = encodingRaw;
-  } else if (kbitsPerSecond > 3000) {
+  } else if (kbitsPerSecond > 3000 && timeWaited >= 10000) {
     newEncoding = encodingHextile;
-  } else if (kbitsPerSecond < 1500) {
+  } else {
     newEncoding = encodingTight;
   }
 
@@ -624,14 +631,28 @@ void CConn::autoSelectFormatAndEncoding()
     encodingChange = true;
   }
 
-  if (kbitsPerSecond > 1000) {
-    if (!fullColour) {
-      vlog.info("Throughput %d kbit/s - changing to full colour",
-                kbitsPerSecond);
-      fullColour = true;
-      formatChange = true;
-    }
+  if (kbitsPerSecond == 0) {
+    return;
   }
+
+  // FIXME: The code below is currently disabled, since, as far as I
+  // understand, it is not possible to switch pixel format on the fly
+  // against TightVNC 1.2.X servers, for example. See mail to the
+  // mailing list, sent on 2004-12-21. If we cannot find any better
+  // solution, we could add code to only allow pixel format switching
+  // against VNC4 servers (if these don't use deferred updates).
+  
+#if 0
+  // Select best color level
+  newFullColour = (kbitsPerSecond > 256);
+  if (newFullColour != fullColour) {
+    vlog.info("Throughput %d kbit/s - full colour is now %s", 
+	      kbitsPerSecond,
+	      newFullColour ? "enabled" : "disabled");
+    fullColour = newFullColour;
+    formatChange = true;
+  } 
+#endif
 }
 
 // checkEncodings() sends a setEncodings message if one is needed.

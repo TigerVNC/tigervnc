@@ -59,14 +59,12 @@ BoolParameter dotWhenNoCursor("DotWhenNoCursor",
 BoolParameter autoSelect("AutoSelect",
                          "Auto select pixel format and encoding", true);
 BoolParameter fullColour("FullColour",
-                         "Use full colour - otherwise low colour level is used"
-                         " until AutoSelect decides the link is fast enough",
-                         false);
+                         "Use full colour", true);
 AliasParameter fullColor("FullColor", "Alias for FullColour", &fullColour);
 IntParameter lowColourLevel("LowColourLevel",
                             "Colour level to use on slow connections. "
                             "0 = Very Low (8 colours), 1 = Low (64 colours), "
-                            "2 = Medium (256 colours)", 1);
+                            "2 = Medium (256 colours)", 2);
 StringParameter preferredEncoding("PreferredEncoding",
                                   "Preferred encoding to use (ZRLE, hextile or"
                                   " raw) - implies AutoSelect=0", "");

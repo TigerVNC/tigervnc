@@ -35,13 +35,11 @@ static BoolParameter useLocalCursor("UseLocalCursor", "Render the mouse cursor l
 static BoolParameter useDesktopResize("UseDesktopResize", "Support dynamic desktop resizing", true);
 
 static BoolParameter fullColour("FullColour",
-                         "Use full colour (default is to use low colour "
-                         "unless auto select decides the link is fast enough)",
-                         false);
+				"Use full colour", true);
 static IntParameter lowColourLevel("LowColourLevel",
                          "Colour level to use on slow connections. "
                          "0 = Very Low (8 colours), 1 = Low (64 colours), 2 = Medium (256 colours)",
-                         1);
+                         2);
 static BoolParameter fullScreen("FullScreen",
                          "Use the whole display to show the remote desktop."
                          "(Press F8 to access the viewer menu)",
