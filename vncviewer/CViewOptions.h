@@ -78,6 +78,7 @@ namespace rfb {
       void setMenuKey(const char* keyName);
       char* menuKeyName();
       int qualityLevel;
+      bool noJpeg;
     };
 
 

@@ -253,6 +253,7 @@ CView::applyOptions(CViewOptions& opt) {
   cp.supportsLocalCursor = options.useLocalCursor = opt.useLocalCursor;
   cp.supportsDesktopResize = options.useDesktopResize = opt.useDesktopResize;
   cp.qualityLevel = options.qualityLevel = opt.qualityLevel;
+  cp.noJpeg = options.noJpeg = opt.noJpeg;
   if (cursorAvailable)
     hideLocalCursor();
   cursorAvailable = cursorAvailable && options.useLocalCursor;

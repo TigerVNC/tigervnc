@@ -74,6 +74,7 @@ namespace rfb {
     bool supportsLastRect;
 
     int qualityLevel;
+    bool noJpeg;
 
   private:
 

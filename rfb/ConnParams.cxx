@@ -28,7 +28,7 @@ using namespace rfb;
 ConnParams::ConnParams()
   : majorVersion(0), minorVersion(0), width(0), height(0), useCopyRect(false),
     supportsLocalCursor(false), supportsDesktopResize(false),
-    supportsLastRect(false), qualityLevel(-1),
+    supportsLastRect(false), qualityLevel(-1), noJpeg(false),
     name_(0), nEncodings_(0), encodings_(0),
     currentEncoding_(encodingRaw), verStrPos(0)
 {
@@ -90,6 +90,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
   supportsLocalCursor = false;
   supportsLastRect = false;
   qualityLevel = -1;
+  noJpeg = false;
   currentEncoding_ = encodingRaw;
 
   for (int i = nEncodings-1; i >= 0; i--) {
@@ -105,7 +106,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
       supportsLastRect = true;
     else if (encodings[i] >= pseudoEncodingQualityLevel0 &&
              encodings[i] <= pseudoEncodingQualityLevel9)
-      qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
+	qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
     else if (encodings[i] <= encodingMax && Encoder::supported(encodings[i]))
       currentEncoding_ = encodings[i];
   }
