@@ -213,8 +213,9 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
 {
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;
-  PIXEL_T *pixelPtr;
-  JSAMPROW scanline;
+  PIXEL_T *pixelPtr = buf;
+  static rdr::U8 scanline_buffer[TIGHT_MAX_WIDTH*3];
+  JSAMPROW scanline = scanline_buffer;
 
   // Read length
   int compressedLen = is->readCompactLength();
@@ -244,21 +245,17 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
   }
 
   // Decompress
-  scanline = (JSAMPROW)buf;
   const rfb::PixelFormat& myFormat = handler->cp.pf();
-  int bytesPerRow = cinfo.output_width * myFormat.bpp/8;
   while (cinfo.output_scanline < cinfo.output_height) {
     jpeg_read_scanlines(&cinfo, &scanline, 1);
     if (jpegError) {
       break;
     }
 
-    pixelPtr = (PIXEL_T*)(scanline);
     for (int dx = 0; dx < r.width(); dx++) {
       *pixelPtr++ = 
 	RGB24_TO_PIXEL(scanline[dx*3], scanline[dx*3+1], scanline[dx*3+2]);
     }
-    scanline += bytesPerRow;
   }
 
   IMAGE_RECT(r, buf);
