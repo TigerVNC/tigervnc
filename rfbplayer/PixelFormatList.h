@@ -64,7 +64,7 @@ class PixelFormatList {
 public:
   PixelFormatList();
 
-  PixelFormatListElement operator[](int index);
+  PixelFormatListElement* operator[](int index);
   void add(char *format_name, PixelFormat PF);
   void insert(int index, char *format_name, PixelFormat PF);
   void remove(int index);

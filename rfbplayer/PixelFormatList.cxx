@@ -59,8 +59,8 @@ PixelFormatList::PixelFormatList() {
   PF_DEFAULT_COUNT = PFList.size();
 }
 
-PixelFormatListElement PixelFormatList::operator[](int index) {
-  return *getIterator(index);
+PixelFormatListElement *PixelFormatList::operator[](int index) {
+  return &(*getIterator(index));
 }
 
 void PixelFormatList::add(char *format_name, PixelFormat PF) {
@@ -146,14 +146,14 @@ void PixelFormatList::writeUserDefinedPF(HKEY root, const char *keypath) {
   for (i = 0; i < getUserPFCount(); i++) {
     char upf_name[20] = "\0";
     sprintf(upf_name, "%s%i", "Upf", i);
-    regKey.setBinary(upf_name, (void *)&operator[](i+getDefaultPFCount()), 
+    regKey.setBinary(upf_name, (void *)operator[](i+getDefaultPFCount()), 
       sizeof(PixelFormatListElement));
   }
 }
 
 int PixelFormatList::getIndexByPFName(const char *format_name) {
   for (int i = 0; i < PixelFormatList::count(); i++) {
-    if (_stricmp(operator[](i).format_name, format_name) == 0) return i;
+    if (_stricmp(operator[](i)->format_name, format_name) == 0) return i;
   }
   return -1;
 }
