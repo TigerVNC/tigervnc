@@ -891,7 +891,7 @@ void RfbPlayer::serverInit() {
     throw rdr::Exception("This version plays only true color session!");
 
   // Set the session pixel format
-  static long pixelFormatIndex = -1;
+  static long pixelFormatIndex = DEFAULT_PF_INDEX;
   if (options.askPixelFormat) {
     ChoosePixelFormatDialog choosePixelFormatDialog(pixelFormatIndex, &supportedPF);
     if (choosePixelFormatDialog.showDialog(getMainHandle())) {

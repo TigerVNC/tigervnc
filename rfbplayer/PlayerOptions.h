@@ -39,7 +39,7 @@
 
 // Default options values
 //#define DEFAULT_PF 0
-#define DEFAULT_PF_INDEX 0
+#define DEFAULT_PF_INDEX -1
 #define DEFAULT_AUTOPF TRUE
 #define DEFAULT_INIT_TIME -1
 #define DEFAULT_SPEED 1.0
