@@ -686,7 +686,7 @@ void RfbPlayer::setTitle(const char *title) {
 void RfbPlayer::setFrameSize(int width, int height) {
   // Calculate and set required size for main window
   RECT r = {0, 0, width, height};
-  AdjustWindowRectEx(&r, GetWindowLong(getFrameHandle(), GWL_STYLE), FALSE, 
+  AdjustWindowRectEx(&r, GetWindowLong(getFrameHandle(), GWL_STYLE), TRUE, 
     GetWindowLong(getFrameHandle(), GWL_EXSTYLE));
   r.bottom += CTRL_BAR_HEIGHT; // Include RfbPlayr's controls area
   AdjustWindowRect(&r, GetWindowLong(getMainHandle(), GWL_STYLE), FALSE);
