@@ -93,11 +93,13 @@ public:
     case encodingHextile: setItemChecked(IDC_ENCODING_HEXTILE, true); break;
     case encodingRaw: setItemChecked(IDC_ENCODING_RAW, true); break;
     }
+    setItemInt(IDC_QUALITYLEVEL, dlg->options.qualityLevel);
     onCommand(IDC_ENCODING_AUTO, 0 /* ? */); // Force enableItem status to refresh
   }
   virtual bool onOk() {
     dlg->options.autoSelect = isItemChecked(IDC_ENCODING_AUTO);
     dlg->options.fullColour = isItemChecked(IDC_FORMAT_FULLCOLOUR);
+    dlg->options.qualityLevel = getItemInt(IDC_QUALITYLEVEL);
     if (isItemChecked(IDC_FORMAT_VERYLOWCOLOUR))
       dlg->options.lowColourLevel = 0;
     if (isItemChecked(IDC_FORMAT_LOWCOLOUR))
