@@ -251,7 +251,7 @@ int VNCServerST::checkTimeouts()
       lastUserInputTime = now;
       timeLeft = rfb::Server::maxIdleTime;
     }
-    if (timeLeft <= 0) { // enough time has gone 
+    if (timeLeft <= 0) {
       slog.info("MaxIdleTime reached, exiting");
       exit(0);
     }
