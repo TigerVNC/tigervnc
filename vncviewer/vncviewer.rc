@@ -190,7 +190,7 @@ BEGIN
     CONTROL         "&Very low (8 colours)",IDC_FORMAT_VERYLOWCOLOUR,"Button",
                     BS_AUTORADIOBUTTON,100,75,90,15
 
-    CONTROL         "Custom compression level:",IDC_ALLOW_COMPRESSLEVEL,
+    CONTROL         "Custom compression level:",IDC_CUSTOM_COMPRESSLEVEL,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,100,99,10 
     EDITTEXT        IDC_COMPRESSLEVEL,25,111,15,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "level (1=fast, 9=best)",IDC_STATIC,44,114,81,9,NOT 
