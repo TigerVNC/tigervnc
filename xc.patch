@@ -1,9 +1,61 @@
-diff -bcr xc.xorg.org/programs/Xserver/cfb/cfb8line.c xc/programs/Xserver/cfb/cfb8line.c
-*** xc.xorg.org/programs/Xserver/cfb/cfb8line.c	2004-04-23 21:00:12.000000000 +0200
---- xc/programs/Xserver/cfb/cfb8line.c	2005-02-11 09:49:18.000000000 +0100
+*** xc/programs/Xserver/Imakefile.orig	Fri Jun  6 11:02:36 2003
+--- xc/programs/Xserver/Imakefile	Fri Jun  6 11:14:39 2003
 ***************
-*** 695,716 ****
-  # if PSZ == 24
+*** 409,412 ****
+--- 409,435 ----
+  #endif
+  #endif /* XsunServer */
++ XCOMM
++ XCOMM X VNC server
++ XCOMM
++ MFBSUBDIR = mfb
++ CFB8SUBDIR = cfb
++ CFB16SUBDIR = cfb16
++ CFB24SUBDIR = cfb24
++ CFB32SUBDIR = cfb32
++ FBSUBDIR = fb
++ XVNCDDXDIR = vnc/Xvnc
++ #if VncUseFb
++ XVNCDIRS = $(STDDIRS) $(FBSUBDIR) $(XVNCDDXDIR) $(DEPDIRS)
++ XVNCLIBS = PreFbLibs vnc/Xvnc/LibraryTargetName(xvnc) FbPostFbLibs
++ #else
++ XVNCDIRS = $(STDDIRS) $(MFBSUBDIR) \
++ 	    $(CFB8SUBDIR) $(CFB16SUBDIR) $(CFB24SUBDIR) $(CFB32SUBDIR) \
++ 	    $(XVNCDDXDIR) $(DEPDIRS)
++ XVNCLIBS = PreFbLibs vnc/Xvnc/LibraryTargetName(xvnc) CFBLibs PostFbLibs
++ #endif
++ XVNCOBJS = $(XVNCDDXDIR)/stubs.o $(XVNCDDXDIR)/miinitext.o
++ XVNCSYSLIBS = $(FONTLIBS) $(SYSLIBS)
++ ServerTarget(Xvnc,$(XVNCDIRS),$(XVNCOBJS), \
++ 	$(XVNCLIBS) $(LOADABLEEXTS) $(LIBCWRAPPER),$(XVNCSYSLIBS))
+  
+  
+*** xc/programs/Xserver/mi/miinitext.c.orig	Fri Jun  6 11:02:59 2003
+--- xc/programs/Xserver/mi/miinitext.c	Fri Jun  6 11:17:15 2003
+***************
+*** 150,153 ****
+--- 150,156 ----
+  extern void MITMiscExtensionInit(INITARGS);
+  #endif
++ #ifdef VNCEXT
++ extern void vncExtensionInit(INITARGS);
++ #endif
+  #ifdef XIDLE
+  extern void XIdleExtensionInit(INITARGS);
+***************
+*** 285,288 ****
+--- 288,294 ----
+      MITMiscExtensionInit();
+  #endif
++ #ifdef VNCEXT
++     vncExtensionInit();
++ #endif
+  #ifdef XIDLE
+      XIdleExtensionInit();
+*** xc/programs/Xserver/cfb/cfb8line.c.orig	Wed Sep 18 18:11:47 2002
+--- xc/programs/Xserver/cfb/cfb8line.c	Thu Jun  5 18:32:04 2003
+***************
+*** 688,707 ****
   	    y1_or_e1 = xOffset & 3;
   # else
 ! #  if PGSZ == 64 /* PIM value from <cfbmskbits.h> is not it! (for 16/32 PSZ)*/
@@ -24,9 +76,7 @@ diff -bcr xc.xorg.org/programs/Xserver/cfb/cfb8line.c xc/programs/Xserver/cfb/cf
 ! #endif /* PGSZ */
   # endif /* PSZ == 24 */
   #if PSZ == 24
-  	    {
---- 695,705 ----
-  # if PSZ == 24
+--- 688,696 ----
   	    y1_or_e1 = xOffset & 3;
   # else
 ! 	    /* Round addrp down to the next PixelGroup boundary, and
@@ -36,10 +86,98 @@ diff -bcr xc.xorg.org/programs/Xserver/cfb/cfb8line.c xc/programs/Xserver/cfb/cf
 ! 	    addrp -= y1_or_e1;
   # endif /* PSZ == 24 */
   #if PSZ == 24
-  	    {
-diff -bcr xc.xorg.org/programs/Xserver/cfb/cfbcppl.c xc/programs/Xserver/cfb/cfbcppl.c
-*** xc.xorg.org/programs/Xserver/cfb/cfbcppl.c	2004-04-23 21:00:12.000000000 +0200
---- xc/programs/Xserver/cfb/cfbcppl.c	2005-02-11 09:49:18.000000000 +0100
+*** xc/programs/Xserver/cfb/cfbtile32.c.orig	Fri Dec 14 19:59:25 2001
+--- xc/programs/Xserver/cfb/cfbtile32.c	Thu Jun  5 18:16:48 2003
+***************
+*** 73,77 ****
+                        (p)++,(*(p) = MROP_PREBUILT_SOLID(((srcpix<<8)|(srcpix>>16)),*(p))))
+  
+! #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE)
+  # define Expand(left,right) {\
+      int part = nlwMiddle & ((PGSZB*2)-1); \
+--- 73,83 ----
+                        (p)++,(*(p) = MROP_PREBUILT_SOLID(((srcpix<<8)|(srcpix>>16)),*(p))))
+  
+! 
+! 
+! /* XXX TJR: I doubt that this optimised case works (because the non-24 bit case
+!    was broken), so I've added the #if 0 below.  Someone who knows what they're
+!    doing can re-enable it if they fix it */
+! 
+! #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE) && 0
+  # define Expand(left,right) {\
+      int part = nlwMiddle & ((PGSZB*2)-1); \
+***************
+*** 145,150 ****
+  #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE)
+  # define Expand(left,right) {\
+!     int part = nlwMiddle & ((PGSZB*2)-1); \
+!     nlwMiddle >>= PWSH + 1; \
+      while (h--) { \
+  	srcpix = psrc[srcy]; \
+--- 151,156 ----
+  #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE)
+  # define Expand(left,right) {\
+!     int part = nlwMiddle & 7; \
+!     nlwMiddle >>= 3; \
+      while (h--) { \
+  	srcpix = psrc[srcy]; \
+*** xc/programs/Xserver/cfb/cfbglblt8.c.orig	Fri Dec 14 19:59:23 2001
+--- xc/programs/Xserver/cfb/cfbglblt8.c	Tue Aug 12 10:05:57 2003
+***************
+*** 284,288 ****
+      register glyphPointer   glyphBits;
+      register int	xoff;
+! #if defined(USE_LEFT_BITS) || (!defined(STIPPLE) && !defined(USE_STIPPLE_CODE))
+      register CfbBits	*dst;
+  #endif
+--- 284,288 ----
+      register glyphPointer   glyphBits;
+      register int	xoff;
+! #if defined(USE_LEFTBITS) || (!defined(STIPPLE) && !defined(USE_STIPPLE_CODE))
+      register CfbBits	*dst;
+  #endif
+***************
+*** 292,296 ****
+      CfbBits		*dstLine;
+      CfbBits		*pdstBase;
+! #ifdef USE_LEFT_BITS
+      CARD32		*cTmp;
+  #endif
+--- 292,296 ----
+      CfbBits		*dstLine;
+      CfbBits		*pdstBase;
+! #ifdef USE_LEFTBITS
+      CARD32		*cTmp;
+  #endif
+***************
+*** 399,403 ****
+  	    	} while (--hTmp);
+  	    	break;
+! #else /* !USE_LEFT_BITS */
+  	    	{
+  		    int h;
+--- 399,403 ----
+  	    	} while (--hTmp);
+  	    	break;
+! #else /* !USE_LEFTBITS */
+  	    	{
+  		    int h;
+***************
+*** 412,416 ****
+  	    	glyphBits = clips;
+  	    	/* fall through */
+! #endif /* USE_LEFT_BITS */
+  	    case rgnIN:
+  #ifdef STIPPLE
+--- 412,416 ----
+  	    	glyphBits = clips;
+  	    	/* fall through */
+! #endif /* USE_LEFTBITS */
+  	    case rgnIN:
+  #ifdef STIPPLE
+*** xc/programs/Xserver/cfb/cfbcppl.c.orig	Fri Dec 14 19:59:22 2001
+--- xc/programs/Xserver/cfb/cfbcppl.c	Sun Apr 18 12:53:36 2004
 ***************
 *** 383,389 ****
   	psrcLine = (unsigned int *)psrcBase + srcy * widthSrc + srcx;
@@ -57,120 +195,3 @@ diff -bcr xc.xorg.org/programs/Xserver/cfb/cfbcppl.c xc/programs/Xserver/cfb/cfb
   	{
   	    mfbmaskpartialbits(dstx, width, startmask);
   	    nlMiddle = 0;
-diff -bcr xc.xorg.org/programs/Xserver/cfb/cfbtile32.c xc/programs/Xserver/cfb/cfbtile32.c
-*** xc.xorg.org/programs/Xserver/cfb/cfbtile32.c	2004-04-23 21:00:12.000000000 +0200
---- xc/programs/Xserver/cfb/cfbtile32.c	2005-02-11 09:49:18.000000000 +0100
-***************
-*** 72,78 ****
-                        (p)++,(*(p) = MROP_PREBUILT_SOLID(((srcpix<<16)|(srcpix>>8)),*(p))), \
-                        (p)++,(*(p) = MROP_PREBUILT_SOLID(((srcpix<<8)|(srcpix>>16)),*(p))))
-  
-! #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE)
-  # define Expand(left,right) {\
-      int part = nlwMiddle & ((PGSZB*2)-1); \
-      nlwMiddle *= 3; \
---- 72,84 ----
-                        (p)++,(*(p) = MROP_PREBUILT_SOLID(((srcpix<<16)|(srcpix>>8)),*(p))), \
-                        (p)++,(*(p) = MROP_PREBUILT_SOLID(((srcpix<<8)|(srcpix>>16)),*(p))))
-  
-! 
-! 
-! /* XXX TJR: I doubt that this optimised case works (because the non-24 bit case
-!    was broken), so I've added the #if 0 below.  Someone who knows what they're
-!    doing can re-enable it if they fix it */
-! 
-! #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE) && 0
-  # define Expand(left,right) {\
-      int part = nlwMiddle & ((PGSZB*2)-1); \
-      nlwMiddle *= 3; \
-***************
-*** 144,151 ****
-  
-  #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE)
-  # define Expand(left,right) {\
-!     int part = nlwMiddle & ((PGSZB*2)-1); \
-!     nlwMiddle >>= PWSH + 1; \
-      while (h--) { \
-  	srcpix = psrc[srcy]; \
-  	MROP_PREBUILD(srcpix); \
---- 150,157 ----
-  
-  #if (MROP == Mcopy) && defined(FAST_CONSTANT_OFFSET_MODE) && defined(SHARED_IDCACHE)
-  # define Expand(left,right) {\
-!     int part = nlwMiddle & 7; \
-!     nlwMiddle >>= 3; \
-      while (h--) { \
-  	srcpix = psrc[srcy]; \
-  	MROP_PREBUILD(srcpix); \
-diff -bcr xc.xorg.org/programs/Xserver/Imakefile xc/programs/Xserver/Imakefile
-*** xc.xorg.org/programs/Xserver/Imakefile	2004-12-15 20:22:53.000000000 +0100
---- xc/programs/Xserver/Imakefile	2005-02-11 13:36:54.000000000 +0100
-***************
-*** 414,419 ****
---- 414,435 ----
-  #define ServerToInstall Xsun
-  #endif
-  #endif /* XsunServer */
-+ XCOMM
-+ XCOMM X VNC server
-+ XCOMM
-+ MFBSUBDIR = mfb
-+ CFB8SUBDIR  = cfb   (8 bit cfb)
-+ CFB16SUBDIR = cfb16 (16 bit cfb)
-+ CFB24SUBDIR = cfb24 (24 bit cfb)
-+ CFB32SUBDIR = cfb32 (32 bit cfb)
-+ XVNCDDXDIR = vnc/Xvnc
-+ XVNCDIRS = $(STDDIRS) $(MFBDIR) \
-+ 	    $(CFB8DIR) $(CFB16DIR) $(CFB24DIR) $(CFB32DIR) \
-+ 	    $(XVNCDDXDIR) $(DEPDIRS)
-+ XVNCOBJS = $(XVNCDDXDIR)/stubs.o $(XVNCDDXDIR)/miinitext.o
-+ XVNCLIBS = PreFbLibs vnc/Xvnc/LibraryTargetName(xvnc) CFBLibs PostFbLibs
-+ ServerTarget(Xvnc,$(XVNCDIRS),$(XVNCOBJS), \
-+ 	$(LIBCWRAPPER) $(XVNCLIBS) $(LOADABLEEXTS),$(FONTLIBS) $(SYSLIBS))
-  
-  
-  #if defined(Xsun24Server) && Xsun24Server
-diff -bcr xc.xorg.org/programs/Xserver/mi/miinitext.c xc/programs/Xserver/mi/miinitext.c
-*** xc.xorg.org/programs/Xserver/mi/miinitext.c	2004-12-13 06:48:41.000000000 +0100
---- xc/programs/Xserver/mi/miinitext.c	2005-02-11 09:49:18.000000000 +0100
-***************
-*** 286,291 ****
---- 286,294 ----
-  #ifdef MITMISC
-  extern void MITMiscExtensionInit(INITARGS);
-  #endif
-+ #ifdef VNCEXT
-+ extern void vncExtensionInit(INITARGS);
-+ #endif
-  #ifdef XIDLE
-  extern void XIdleExtensionInit(INITARGS);
-  #endif
-***************
-*** 587,592 ****
---- 590,598 ----
-  #ifdef MITMISC
-      if (!noMITMiscExtension) MITMiscExtensionInit();
-  #endif
-+ #ifdef VNCEXT
-+     vncExtensionInit();
-+ #endif
-  #ifdef XIDLE
-      if (!noXIdleExtension) XIdleExtensionInit();
-  #endif
-diff -bcr xc.xorg.org/programs/Xserver/vnc/Xvnc/xvnc.cc xc/programs/Xserver/vnc/Xvnc/xvnc.cc
-*** xc.xorg.org/programs/Xserver/vnc/Xvnc/xvnc.cc	2004-10-08 11:44:19.000000000 +0200
---- xc/programs/Xserver/vnc/Xvnc/xvnc.cc	2005-02-11 11:28:36.000000000 +0100
-***************
-*** 911,916 ****
---- 911,921 ----
-    dispatchException &= ~DE_RESET;
-  }
-  
-+ /* ddxInitGlobals - called by |InitGlobals| from os/util.c */
-+ void ddxInitGlobals(void)
-+ {
-+ }
-+ 
-  void InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
-  {
-    ErrorF("\nXvnc version %s - built %s\n", XVNCVERSION, buildtime);
