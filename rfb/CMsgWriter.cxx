@@ -59,7 +59,7 @@ void CMsgWriter::writeSetEncodings(int nEncodings, rdr::U32* encodings)
 void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
 {
   int nEncodings = 0;
-  rdr::U32 encodings[encodingMax+2];
+  rdr::U32 encodings[encodingMax+3];
   if (cp->supportsLocalCursor)
     encodings[nEncodings++] = pseudoEncodingCursor;
   if (cp->supportsDesktopResize)
@@ -75,6 +75,7 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
       encodings[nEncodings++] = i;
     }
   }
+  encodings[nEncodings++] = pseudoEncodingLastRect;
   writeSetEncodings(nEncodings, encodings);
 }
   

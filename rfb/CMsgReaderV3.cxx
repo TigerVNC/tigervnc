@@ -78,6 +78,9 @@ void CMsgReaderV3::readMsg()
     case pseudoEncodingCursor:
       readSetCursor(Point(x, y), Point(w, h));
       break;
+    case pseudoEncodingLastRect:
+      nUpdateRectsLeft = 1;     // this rectangle is the last one
+      break;
     default:
       readRect(Rect(x, y, x+w, y+h), encoding);
       break;

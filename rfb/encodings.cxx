@@ -29,6 +29,7 @@ int rfb::encodingNum(const char* name)
   if (strcasecmp(name, "CoRRE") == 0)    return encodingCoRRE;
   if (strcasecmp(name, "hextile") == 0)  return encodingHextile;
   if (strcasecmp(name, "ZRLE") == 0)     return encodingZRLE;
+  if (strcasecmp(name, "Tight") == 0)    return encodingTight;
   return -1;
 }
 
@@ -41,6 +42,7 @@ const char* rfb::encodingName(unsigned int num)
   case encodingCoRRE:    return "CoRRE";
   case encodingHextile:  return "hextile";
   case encodingZRLE:     return "ZRLE";
+  case encodingTight:    return "Tight";
   default:               return "[unknown encoding]";
   }
 }

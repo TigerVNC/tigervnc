@@ -22,6 +22,7 @@
 #include <rfb/RREDecoder.h>
 #include <rfb/HextileDecoder.h>
 #include <rfb/ZRLEDecoder.h>
+#include <rfb/TightDecoder.h>
 
 using namespace rfb;
 
@@ -65,4 +66,5 @@ DecoderInit::DecoderInit()
   Decoder::registerDecoder(encodingRRE, RREDecoder::create);
   Decoder::registerDecoder(encodingHextile, HextileDecoder::create);
   Decoder::registerDecoder(encodingZRLE, ZRLEDecoder::create);
+  Decoder::registerDecoder(encodingTight, TightDecoder::create);
 }

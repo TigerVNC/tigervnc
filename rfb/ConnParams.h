@@ -71,6 +71,9 @@ namespace rfb {
 
     bool supportsLocalCursor;
     bool supportsDesktopResize;
+    bool supportsLastRect;
+
+    int qualityLevel;
 
   private:
 

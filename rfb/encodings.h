@@ -25,12 +25,18 @@ namespace rfb {
   const unsigned int encodingRRE = 2;
   const unsigned int encodingCoRRE = 4;
   const unsigned int encodingHextile = 5;
+  const unsigned int encodingTight = 7;
   const unsigned int encodingZRLE = 16;
 
   const unsigned int encodingMax = 255;
 
   const unsigned int pseudoEncodingCursor = 0xffffff11;
   const unsigned int pseudoEncodingDesktopSize = 0xffffff21;
+
+  // TightVNC-specific
+  const unsigned int pseudoEncodingLastRect = 0xFFFFFF20;
+  const unsigned int pseudoEncodingQualityLevel0 = 0xFFFFFFE0;
+  const unsigned int pseudoEncodingQualityLevel9 = 0xFFFFFFE9;
 
   int encodingNum(const char* name);
   const char* encodingName(unsigned int num);
