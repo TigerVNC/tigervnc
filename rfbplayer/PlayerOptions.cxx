@@ -36,6 +36,7 @@ void PlayerOptions::readFromRegistry() {
     pixelFormatIndex = regKey.getInt(_T("PixelFormatIndex"), DEFAULT_PF);
     regKey.getBinary(_T("PixelFormat"), (void**)&pPF, &pfSize, 
       &PixelFormat(32,24,0,1,255,255,255,16,8,0), sizeof(PixelFormat));
+    setPF(pPF);
     acceptBell = regKey.getBool(_T("AcceptBell"), DEFAULT_ACCEPT_BELL);
     acceptCutText = regKey.getBool(_T("AcceptCutText"), DEFAULT_ACCEPT_CUT_TEXT);
     autoStoreSettings = regKey.getBool(_T("AutoStoreSettings"), DEFAULT_STORE_SETTINGS);
