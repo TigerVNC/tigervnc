@@ -308,6 +308,9 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           openSessionFile(filename);
       }
       break;
+    case ID_CLOSEFILE:
+      closeSessionFile();
+      break;
     case ID_PLAY:
       setPaused(false);
       break;
