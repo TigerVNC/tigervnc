@@ -1,4 +1,11 @@
 
+* When running the UNIX vncviewer on a host with a different byte
+  order than the Xserver, the colors are incorrect. This happens when
+  using color depth 24 ("cutZeros"). Basically, the problem is that 
+  the RGB24_TO_PIXEL32 macro is wrong; we need to swap endianess
+  in this situation. There seems to be something wrong with the local
+  cursor handling as well. 
+
 * Change version strings. 
 
 * Tight encoding support
