@@ -49,10 +49,12 @@ static BoolParameter fullScreen("FullScreen",
                          "(Press F8 to access the viewer menu)",
                          false);
 static StringParameter preferredEncoding("PreferredEncoding",
-                         "Preferred graphical encoding to use - overridden by AutoSelect if set. "
-                         "(ZRLE, Hextile or Raw)", "ZRLE");
-
-static BoolParameter autoSelect("AutoSelect", "Auto select pixel format and encoding", true);
+					 "Preferred encoding to use (Tight, ZRLE, Hextile or"
+					 " Raw)", "Tight");
+static BoolParameter autoSelect("AutoSelect", 
+				"Auto select pixel format and encoding. "
+				"Default if PreferredEncoding and FullColor are not specified.", 
+				true);
 static BoolParameter sharedConnection("Shared",
                          "Allow existing connections to the server to continue."
                          "(Default is to disconnect all other clients)",
@@ -86,8 +88,8 @@ static StringParameter monitor("Monitor", "The monitor to open the VNC Viewer wi
 static StringParameter menuKey("MenuKey", "The key which brings up the popup menu", "F8");
 
 static BoolParameter customCompressLevel("CustomCompressLevel",
-				      "Use custom compression level",
-				      false);
+					 "Use custom compression level. "
+					 "Default if CompressLevel is specified.", false);
 
 static IntParameter compressLevel("CompressLevel",
 				  "Use specified compression level"
@@ -116,6 +118,17 @@ noJpeg(::noJpeg), qualityLevel(::qualityLevel)
   CharArray encodingName(::preferredEncoding.getData());
   preferredEncoding = encodingNum(encodingName.buf);
   setMenuKey(CharArray(::menuKey.getData()).buf);
+
+  if (!::autoSelect.hasBeenSet()) {
+      // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
+    autoSelect = (!::preferredEncoding.hasBeenSet() 
+		  && !::fullColour.hasBeenSet()
+		  && !::fullColourAlias.hasBeenSet());
+  }
+  if (!::customCompressLevel.hasBeenSet()) {
+    // Default to CustomCompressLevel=1 if CompressLevel is used.
+    customCompressLevel = ::compressLevel.hasBeenSet();
+  }
 }
 
 

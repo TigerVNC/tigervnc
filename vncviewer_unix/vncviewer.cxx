@@ -57,7 +57,9 @@ BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", true);
 BoolParameter autoSelect("AutoSelect",
-                         "Auto select pixel format and encoding", true);
+			"Auto select pixel format and encoding. "
+			 "Default if PreferredEncoding and FullColor are not specified.", 
+			 true);
 BoolParameter fullColour("FullColor",
                          "Use full color", true);
 AliasParameter fullColourAlias("FullColour", "Alias for FullColor", &fullColour);
@@ -67,8 +69,8 @@ IntParameter lowColourLevel("LowColorLevel",
                             "2 = Medium (256 colors)", 2);
 AliasParameter lowColourLevelAlias("LowColourLevel", "Alias for LowColorLevel", &lowColourLevel);
 StringParameter preferredEncoding("PreferredEncoding",
-                                  "Preferred encoding to use (ZRLE, hextile or"
-                                  " raw) - implies AutoSelect=0", "");
+                                  "Preferred encoding to use (Tight, ZRLE, Hextile or"
+                                  " Raw)", "Tight");
 BoolParameter fullScreen("FullScreen", "Full screen mode", false);
 BoolParameter viewOnly("ViewOnly",
                        "Don't send any mouse or keyboard events to the server",
@@ -93,8 +95,8 @@ StringParameter geometry("geometry", "X geometry specification", "");
 StringParameter displayname("display", "The X display", "");
 
 BoolParameter customCompressLevel("CustomCompressLevel",
-				  "Use custom compression level",
-				  false);
+				 "Use custom compression level. "
+				 "Default if CompressLevel is specified.", false);
 
 IntParameter compressLevel("CompressLevel",
 			   "Use specified compression level"
@@ -210,6 +212,17 @@ int main(int argc, char** argv)
     if (vncServerName)
       usage();
     vncServerName = argv[i];
+  }
+
+  if (!::autoSelect.hasBeenSet()) {
+    // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
+    ::autoSelect.setParam(!::preferredEncoding.hasBeenSet() 
+			&& !::fullColour.hasBeenSet()
+			&& !::fullColourAlias.hasBeenSet());
+  }
+  if (!::customCompressLevel.hasBeenSet()) {
+    // Default to CustomCompressLevel=1 if CompressLevel is used.
+    ::customCompressLevel.setParam(::compressLevel.hasBeenSet());
   }
 
   try {

@@ -78,10 +78,13 @@ namespace rfb {
     virtual bool isBool() const;
 
     virtual void setImmutable();
+    virtual void setHasBeenSet();
+    bool hasBeenSet();
 
     VoidParameter* _next;
   protected:
     bool immutable;
+    bool _hasBeenSet;
     const char* name;
     const char* description;
   };

@@ -70,7 +70,6 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   int encNum = encodingNum(encStr.buf);
   if (encNum != -1) {
     currentEncoding = encNum;
-    autoSelect = false;
   }
   cp.supportsDesktopResize = true;
   cp.supportsLocalCursor = useLocalCursor;
