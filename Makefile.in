@@ -1,5 +1,5 @@
 
-SUBDIRS = @ZLIB_DIR@ rdr network Xregion rfb tx x0vncserver vncviewer \
-          vncconfig vncpasswd
+SUBDIRS = @ZLIB_DIR@ rdr network Xregion rfb tx x0vncserver vncviewer_unix \
+          vncconfig_unix vncpasswd
 
 # followed by boilerplate.mk

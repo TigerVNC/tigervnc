@@ -93,7 +93,7 @@ AC_OUTPUT(Makefile:Makefile.in:$BOILERPLATE \
          rfb/Makefile:rfb/Makefile.in:$BOILERPLATE \
          tx/Makefile:tx/Makefile.in:$BOILERPLATE \
          x0vncserver/Makefile:x0vncserver/Makefile.in:$BOILERPLATE \
-         vncviewer/Makefile:vncviewer_unix/Makefile.in:$BOILERPLATE \
-         vncconfig/Makefile:vncconfig_unix/Makefile.in:$BOILERPLATE \
+         vncviewer_unix/Makefile:vncviewer_unix/Makefile.in:$BOILERPLATE \
+         vncconfig_unix/Makefile:vncconfig_unix/Makefile.in:$BOILERPLATE \
          vncpasswd/Makefile:vncpasswd/Makefile.in:$BOILERPLATE \
 )
