@@ -8,6 +8,8 @@
 #define BuildGlxExt NO
 #define XnestServer NO
 #define XprtServer NO
+#define XdmxServer NO
+#define BuildDmx NO
 
 #ifdef SunArchitecture
 #define ProjectRoot /usr/openwin

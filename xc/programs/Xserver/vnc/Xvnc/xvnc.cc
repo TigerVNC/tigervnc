@@ -911,6 +911,11 @@ static void vfbClientStateChange(CallbackListPtr*, pointer, pointer) {
   dispatchException &= ~DE_RESET;
 }
 
+/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
+void ddxInitGlobals(void)
+{
+}
+
 void InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 {
   ErrorF("\nXvnc version %s - built %s\n", XVNCVERSION, buildtime);

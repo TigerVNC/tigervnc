@@ -1,1 +1,4 @@
 #include <vnc.def>
+#define HasFreetype2 NO
+
+

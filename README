@@ -37,15 +37,15 @@ There are six programs here:
                 X display, allowing it to be controlled via VNC.  It is
                 intended mainly as a demonstration of a simple VNC server.
 
-In addition to these standalone programs, this distribution can also be used to
-turn the native X server for a platform into a VNC server.  For XFree86 version
-4 servers, this is done using a module loaded at run-time.  For other X servers
-it requires replacing the native X server binary.
+In addition to these standalone programs, this distribution can also
+be used to turn the native X server for a platform into a VNC server.
+For X.Org servers, this is done using a module loaded at run-time.
+For other X servers it requires replacing the native X server binary.
 
 To build this distribution you need a C++ compiler as well as a C compiler.
 You also need a reasonably recent version of the X window system installed.
 This comes as standard with most unix machines.  If you don't have it
-installed, see http://www.xfree86.org or http://www.x.org
+installed, see http://www.x.org. 
 
 To build everything but Xvnc, do:
 
@@ -69,10 +69,7 @@ tree.  Unlike previous versions of Xvnc, we do not provide an X source tree
 with this distribution.  We have designed the distribution to be as independent
 as possible of the X tree used.
 
-We have successfully used XFree86 version 4.3.0, 4.2.0 and 3.3.6 (available
-from http://www.xfree86.org).  You could also try the original X.org tree
-available from http://www.x.org but this does not build as easily because of
-lack of support for C++, no support for building server only, and other issues.
+We have successfully used X.Org 6.8.2 (available from http://www.x.org/).  
 Note that the X tree is enormous and notoriously difficult to deal with -
 building it is not for the faint-hearted!
 
@@ -80,7 +77,7 @@ Once you have a copy of the X source tree, make sure it is unpacked at the top
 level of this distribution, so that the xc directory of the X source tree
 matches the xc of this distribution, for example:
 
-  % tar xzf X420src-1.tgz
+  % tar xzf X11R6.8.2-src.tar.bz2
 
 Then you must apply a patch to some files in the X source tree:
 
@@ -97,7 +94,7 @@ isolation first before attempting it with the VNC additions.
 
 If successful, in the xc/programs/Xserver directory you should find an Xvnc
 binary, plus the native X server binary(ies) for your platform with VNC support
-compiled in.  If you are building from an XFree86 version 4 tree on a supported
+compiled in.  If you are building from an X.Org tree on a supported
 platform, you should also find a vnc.so module in
 xc/programs/Xserver/vnc/modules.
 
@@ -122,13 +119,13 @@ You can specify an alternative directory as a second argument to vncinstall:
 
   % ./vncinstall /usr/local/bin /usr/local/man
 
-It will also try to install the vnc.so XFree86 version 4 module if appropriate.
+It will also try to install the vnc.so X.Org module if appropriate.
 This will be copied to the /usr/X11R6/lib/modules/extensions directory and can
 be enabled like any other module by adding a Load "vnc" line to the Module
-section of XF86Config.  The parameters listed in the Xvnc manual page can be
-set as options in XF86Config e.g. Option "passwordFile" "/root/.vnc/passwd".
+section of xorg.conf.  The parameters listed in the Xvnc manual page can be
+set as options in xorg.conf e.g. Option "passwordFile" "/root/.vnc/passwd".
 Note that for some reason options cannot be set in the Module section of
-XF86Config - try the Screen section.
+xorg.conf - try the Screen section.
 
 If you want to use the Java VNC viewer, you should copy the files from
 the java directory to some suitable installation directory such as
