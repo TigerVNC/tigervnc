@@ -135,8 +135,11 @@ class RfbPlayer : public Thread, public RfbProto{
   private:
     bool seekMode;
     long lastPos;
+    char fullSessionTime[20];
+    int time_pos_m;
+    int time_pos_s;
     int CTRL_BAR_HEIGHT;
-
+    
   protected:
 
     // Returns true if part of the supplied rect is visible, false otherwise

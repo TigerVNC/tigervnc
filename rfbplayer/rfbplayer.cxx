@@ -210,6 +210,9 @@ RfbPlayer::RfbPlayer(char *_fileName, long _initTime = 0, double _playbackSpeed 
   else
     CTRL_BAR_HEIGHT = 0;
 
+  // Reset the full session time
+  strcpy(fullSessionTime, "00m:00s");
+
   // Create the main window
   const TCHAR* name = _T("RfbPlayer");
   mainHwnd = CreateWindow((const TCHAR*)baseClass.classAtom, name, WS_OVERLAPPEDWINDOW,
@@ -752,7 +755,28 @@ long RfbPlayer::getTimeOffset() {
 }
 
 void RfbPlayer::updatePos() {
+  char timePos[30] = "\0";
   long newPos = is->getTimeOffset() / 1000;
+  time_pos_m = newPos / 60;
+  time_pos_s = newPos % 60;
+  if (time_pos_m < 10) {
+    strcat(timePos, "0");
+    _itoa(time_pos_m, timePos+1, 10);
+  } else {
+    _itoa(time_pos_m, timePos, 10);
+  }
+  strcat(timePos, "m:");
+  if (time_pos_s < 10) {
+    strcat(timePos, "0");
+    _itoa(time_pos_s, timePos+strlen(timePos), 10);
+  } else {
+    _itoa(time_pos_s, timePos+strlen(timePos), 10);
+  }
+  strcat(timePos, "s ");
+  strcat(timePos, "(");
+  strcat(timePos, fullSessionTime);
+  strcat(timePos, ")");
+  SetWindowText(timeStatic, timePos);
 }
 
 void RfbPlayer::skipHandshaking() {
