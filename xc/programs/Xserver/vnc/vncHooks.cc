@@ -510,16 +510,15 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   // the type:
   // ComparingUpdateTracker: rect outside fb (-47,76-171,89)
   // I've never observed a negative yDst, but let's check it anyway. 
-  if ((xDst < 0) || (yDst < 0))
-      return;
+  if ((xDst >= 0) && (yDst >= 0)) {
+      box.x1 = pDst->pDrawable->x + xDst;
+      box.y1 = pDst->pDrawable->y + yDst;
+      box.x2 = box.x1 + width;
+      box.y2 = box.y1 + height;
 
-  box.x1 = pDst->pDrawable->x + xDst;
-  box.y1 = pDst->pDrawable->y + yDst;
-  box.x2 = box.x1 + width;
-  box.y2 = box.y1 + height;
-
-  RegionHelper changed(pScreen, &box, 0);
-  vncHooksScreen->desktop->add_changed(changed.reg);
+      RegionHelper changed(pScreen, &box, 0);
+      vncHooksScreen->desktop->add_changed(changed.reg);
+  } 
 
   ps->Composite = vncHooksScreen->Composite;
   (*ps->Composite)(op, pSrc, pMask, pDst, xSrc, ySrc,
