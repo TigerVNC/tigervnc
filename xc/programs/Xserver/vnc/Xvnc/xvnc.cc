@@ -134,6 +134,7 @@ static vfbScreenInfo vfbScreens[MAXSCREENS];
 static Bool vfbPixmapDepths[33];
 static char needswap = 0;
 static int lastScreen = -1;
+static Bool Render = TRUE;
 
 static bool displaySpecified = false;
 static bool wellKnownSocketsCreated = false;
@@ -218,6 +219,10 @@ extern "C" {
            VENDOR_STRING);
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
+#ifdef RENDER
+    ErrorF("+/-render		   turn on/off RENDER extension support"
+	   "(default on)\n");
+#endif
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
     ErrorF("-whitepixel n          pixel value for white\n");
@@ -312,6 +317,18 @@ int ddxProcessArgument(int argc, char *argv[], int i)
       ret++;
     }
     return ret;
+  }
+
+  if (strcmp (argv[i], "+render") == 0)	/* +render */
+  {
+    Render = TRUE;
+    return 1;
+  }
+  
+  if (strcmp (argv[i], "-render") == 0)	/* -render */
+  {
+    Render = FALSE;
+    return 1;
   }
 
   if (strcmp (argv[i], "-blackpixel") == 0)	/* -blackpixel n */
@@ -749,9 +766,15 @@ static Bool vfbScreenInit(int index, ScreenPtr pScreen, int argc, char** argv)
   defaultColorVisualClass
     = (pvfb->bitsPerPixel > 8) ? TrueColor : PseudoColor;
 
-  if (!fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-                    dpi, dpi, pvfb->paddedWidth, pvfb->bitsPerPixel))
-      return FALSE;
+  ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
+		     dpi, dpi, pvfb->paddedWidth, pvfb->bitsPerPixel);
+  
+#ifdef RENDER
+  if (ret && Render) 
+      fbPictureInit(pScreen, 0, 0); 
+#endif
+
+  if (!ret) return FALSE;
 
   pScreen->InstallColormap = vfbInstallColormap;
   pScreen->UninstallColormap = vfbUninstallColormap;
@@ -826,6 +849,17 @@ void InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
   for (i = 0; i < vfbNumScreens; i++)
   {
     vfbPixmapDepths[vfbScreens[i].depth] = TRUE;
+  }
+
+  /* RENDER needs a good set of pixmaps. */
+  if (Render) {
+      vfbPixmapDepths[1] = TRUE;
+      vfbPixmapDepths[4] = TRUE;
+      vfbPixmapDepths[8] = TRUE;
+/*    vfbPixmapDepths[15] = TRUE; */
+      vfbPixmapDepths[16] = TRUE;
+      vfbPixmapDepths[24] = TRUE;
+      vfbPixmapDepths[32] = TRUE;
   }
 
   for (i = 1; i <= 32; i++)
