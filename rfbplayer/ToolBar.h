@@ -79,10 +79,17 @@ public:
   // pressButton() presses or releases the specified button in the toolbar.
   bool pressButton(int idButton, bool press);
 
+  // getButtonRect() gets the bounding rectangle of a button in a toolbar.
+  bool getButtonRect(int nIndex, LPRECT buttonRect);
+  
   // setButtonSize() sets the size of the buttons to be added to a toolbar.
   // Button size must be largen the button bitmap.
   bool setButtonSize(int width, int height);
 
+   
+  
+  // autoSize() resizes the toolbar window.
+  void autoSize();
 
   // getHandle() returns handle to a toolbar window.
   HWND getHandle() { return hwndToolBar; }

@@ -153,6 +153,12 @@ bool ToolBar::pressButton(int idButton, bool press) {
   return (result ? true : false);
 }
 
+bool ToolBar::getButtonRect(int nIndex, LPRECT buttonRect) {
+  int result = SendMessage(getHandle(), TB_GETITEMRECT, 
+    nIndex, (LPARAM)buttonRect);
+  return (result ? true : false);
+}
+
 bool ToolBar::setButtonSize(int width, int height) {
   assert(width > 0);
   assert(height > 0);
@@ -163,4 +169,8 @@ bool ToolBar::setButtonSize(int width, int height) {
     return true;
   }
   return false; 
+}
+
+void ToolBar::autoSize() {
+  SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
 }
