@@ -57,6 +57,7 @@ public class RfbPlayer extends java.applet.Applet
   VncCanvas vc;
 
   String sessionURL;
+  URL url;
   long initialTimeOffset;
   double playbackSpeed;
   boolean showControls;
@@ -118,7 +119,7 @@ public class RfbPlayer extends java.applet.Applet
     }
 
     try {
-      URL url = new URL(sessionURL);
+      url = new URL(sessionURL);
       rfb = new RfbProto(url);
 
       vc = new VncCanvas(this);
@@ -158,7 +159,7 @@ public class RfbPlayer extends java.applet.Applet
       while (true) {
 	try {
 	  setPaused(true);
-	  rfb.fbs.setTimeOffset(initialTimeOffset);
+	  setPos(initialTimeOffset);
 	  rfb.fbs.setSpeed(playbackSpeed);
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
@@ -195,14 +196,18 @@ public class RfbPlayer extends java.applet.Applet
     rfb.fbs.setSpeed(speed);
   }
 
-  public void setPos(int pos) {
-    rfb.fbs.setTimeOffset(pos * 1000);
+  public void setPos(long pos) {
+    if (pos > rfb.fbs.getTimeOffset()) {
+      rfb.fbs.setTimeOffset(pos);
+    } else {
+      System.out.println("Seeking backwards is not implemented yet.");
+    }
   }
 
 
   public void updatePos() {
     if (showControls)
-      buttonPanel.setPos((int)(rfb.fbs.getTimeOffset() / 1000));
+      buttonPanel.setPos(rfb.fbs.getTimeOffset());
   }
 
   //

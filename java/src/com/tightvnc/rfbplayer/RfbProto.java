@@ -86,6 +86,10 @@ class RfbProto {
     newSession(url);
   }
 
+  //
+  // Open new session URL.
+  //
+
   public void newSession(URL url) throws Exception {
     if (fbs != null)
       fbs.close();
@@ -100,7 +104,7 @@ class RfbProto {
   }
 
   //
-  // Read server's protocol version message
+  // Read server's protocol version message.
   //
 
   int serverMajor, serverMinor;

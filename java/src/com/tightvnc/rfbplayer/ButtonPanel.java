@@ -28,7 +28,7 @@ class ButtonPanel extends Panel implements ActionListener {
   protected TextField posText;
   protected TextField timeScaleText;
 
-  protected int lastPos = -1;
+  protected int lastPosSeconds = -1;
 
   ButtonPanel(RfbPlayer player) {
     this.player = player;
@@ -64,11 +64,12 @@ class ButtonPanel extends Panel implements ActionListener {
     playButton.setEnabled(true);
   }
 
-  public void setPos(int pos) {
-    if (pos != lastPos) {
-      lastPos = pos;
+  public void setPos(long pos) {
+    int seconds = (int)(pos / 1000);
+    if (seconds != lastPosSeconds) {
+      lastPosSeconds = seconds;
       char[] zeroes = {'0', '0', '0', '0'};
-      String text = String.valueOf(pos);
+      String text = String.valueOf(seconds);
       if (text.length() < 4) {
 	text = new String(zeroes, 0, 4 - text.length()) + text;
       }
@@ -85,7 +86,7 @@ class ButtonPanel extends Panel implements ActionListener {
     if (evt.getSource() == playButton) {
       player.setPaused(playButton.getLabel().equals("Pause"));
     } else if (evt.getSource() == posText) {
-      player.setPos(Integer.parseInt(posText.getText()));
+      player.setPos(Long.parseLong(posText.getText()) * 1000);
     } else if (evt.getSource() == timeScaleText) {
       double speed = Double.parseDouble(timeScaleText.getText());
       if (speed <= 0.0)
