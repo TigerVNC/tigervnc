@@ -59,6 +59,7 @@ public class RfbPlayer extends java.applet.Applet
   VncCanvas vc;
 
   String sessionURL;
+  long initialTimeOffset;
   boolean showControls;
   int deferScreenUpdates;
 
@@ -158,9 +159,11 @@ public class RfbPlayer extends java.applet.Applet
 
       while (true) {
 	try {
-	  buttonPanel.setPaused(true);
+	  setPaused(true);
+	  fbsStream.setTimeOffset(initialTimeOffset);
 	  vc.processNormalProtocol();
 	} catch (EOFException e) {
+	  initialTimeOffset = 0;
 	  fbsStream.close();
 	  fbsStream = new FbsInputStream(url.openStream());
 	  rfb.newInputStream(fbsStream);
@@ -177,6 +180,8 @@ public class RfbPlayer extends java.applet.Applet
   }
 
   public void setPaused(boolean paused) {
+    if (showControls)
+      buttonPanel.setPaused(paused);
     if (fbsStream != null) {
       if (paused) {
 	fbsStream.pausePlayback();
@@ -191,7 +196,8 @@ public class RfbPlayer extends java.applet.Applet
   }
 
   public void updatePos() {
-    buttonPanel.setPos((int)(fbsStream.getTimeOffset() / 1000));
+    if (showControls)
+      buttonPanel.setPos((int)(fbsStream.getTimeOffset() / 1000));
   }
 
   //
@@ -204,6 +210,7 @@ public class RfbPlayer extends java.applet.Applet
   public void readParameters() {
 
     sessionURL = readParameter("URL", true);
+    initialTimeOffset = readLongParameter("Position", 0);
 
     showControls = true;
     String str = readParameter("Show Controls", false);
@@ -217,7 +224,9 @@ public class RfbPlayer extends java.applet.Applet
     }
 
     // Fine tuning options.
-    deferScreenUpdates = readIntParameter("Defer screen updates", 20);
+    deferScreenUpdates = (int)readLongParameter("Defer screen updates", 20);
+    if (deferScreenUpdates < 0)
+      deferScreenUpdates = 0;	// Just in case.
   }
 
   public String readParameter(String name, boolean required) {
@@ -247,12 +256,12 @@ public class RfbPlayer extends java.applet.Applet
     return null;
   }
 
-  int readIntParameter(String name, int defaultValue) {
+  long readLongParameter(String name, long defaultValue) {
     String str = readParameter(name, false);
-    int result = defaultValue;
+    long result = defaultValue;
     if (str != null) {
       try {
-	result = Integer.parseInt(str);
+	result = Long.parseLong(str);
       } catch (NumberFormatException e) { }
     }
     return result;

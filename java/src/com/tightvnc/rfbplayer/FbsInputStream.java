@@ -116,7 +116,7 @@ class FbsInputStream extends InputStream {
     return timeOffset;
   }
 
-  public synchronized void setTimeOffset(int pos)
+  public synchronized void setTimeOffset(long pos)
   {
     // FIXME: Seeking works only in paused mode.
     paused = true;

@@ -64,7 +64,6 @@ class ButtonPanel extends Panel implements ActionListener {
       posText.setEditable(false);
     }
     playButton.setEnabled(true);
-    player.setPaused(paused);
   }
 
   public void setPos(int pos) {
@@ -86,7 +85,7 @@ class ButtonPanel extends Panel implements ActionListener {
 
   public void actionPerformed(ActionEvent evt) {
     if (evt.getSource() == playButton) {
-      setPaused(playButton.getLabel().equals("Pause"));
+      player.setPaused(playButton.getLabel().equals("Pause"));
     } else if (evt.getSource() == posText) {
       player.setPos(Integer.parseInt(posText.getText()));
     }
