@@ -1,5 +1,6 @@
 //
-//  Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
+//  Copyright (C) 2004 Horizon Wimba.  All Rights Reserved.
+//  Copyright (C) 2001-2003 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 2001 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
@@ -34,17 +35,23 @@ import java.util.zip.*;
 //
 // VncCanvas is a subclass of Canvas which draws a VNC desktop on it.
 //
-class VncCanvas extends Canvas implements Observer {
+class VncCanvas extends Component
+    implements Observer {
 
-  RfbPlayer player;
+  RfbPlayer appClass;
   RfbProto rfb;
-  ColorModel cm24;
+  ColorModel cm8, cm24;
+  int bytesPixel;
 
   Image memImage;
   Graphics memGraphics;
 
+  Image offImage;
+  Graphics offGraphics;
+
   Image rawPixelsImage;
   MemoryImageSource pixelsSource;
+  byte[] pixels8;
   int[] pixels24;
 
   // Zlib encoder's data.
@@ -77,22 +84,32 @@ class VncCanvas extends Canvas implements Observer {
   // The constructor.
   //
   VncCanvas(RfbPlayer player) throws IOException {
-    this.player = player;
-    rfb = player.rfb;
+    this.appClass = player;
+    rfb = appClass.rfb;
     seekMode = false;
 
     cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
 
-    updateFramebufferSize();
+    setPixelFormat();
 
+    // Style canvas.
     setBackground(Color.white);
+
+  }
+
+  //
+  // Override the 1.4 focus traversal keys accesor to allow
+  // our keyListener to receive tab presses.
+  //
+  public boolean getFocusTraversalKeysEnabled() {
+    return false;
   }
 
   //
   // Callback methods to determine geometry of our Component.
   //
   public Dimension getPreferredSize() {
-    Dimension d = player.desktopScrollPane.getViewportSize();
+    Dimension d = appClass.desktopScrollPane.getViewportSize();
     Dimension sz = new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
     if (d.width > sz.width)
       sz.width = d.width;
@@ -111,7 +128,7 @@ class VncCanvas extends Canvas implements Observer {
 
   Point getImageOrigin() {
     int x = 0, y = 0;
-    Dimension d = player.desktopScrollPane.getViewportSize();
+    Dimension d = appClass.desktopScrollPane.getViewportSize();
     if (rfb.framebufferWidth < d.width)
       x = d.width / 2 - rfb.framebufferWidth / 2;
     if (rfb.framebufferHeight < d.height)
@@ -126,41 +143,66 @@ class VncCanvas extends Canvas implements Observer {
     paint(g);
   }
 
-  public synchronized void paint(Graphics g) {
+  public void paint(Graphics g) {
     Point o = getImageOrigin();
     Dimension d = getPreferredSize();
-    synchronized(memImage) {
-      g.drawImage(memImage, o.x, o.y, null);
 
-      // fill in background
-      if (o.x > 0 || o.y > 0) {
-        // left, right, top, bottom
-        Color c = g.getColor();
-        g.setColor(Color.white);
-        g.fillRect(0, 0, o.x, d.height);
-        g.fillRect(o.x + rfb.framebufferWidth, 0, d.width - (o.x +
-                   rfb.framebufferWidth), d.height);
-        g.fillRect(o.x, 0, rfb.framebufferWidth, o.y);
-        g.fillRect(o.x, o.y + rfb.framebufferHeight, rfb.framebufferWidth,
-                   d.height - (o.y + rfb.framebufferHeight));
-        g.setColor(DARK_GRAY);
-        g.drawRect(o.x - 1, o.y - 1, rfb.framebufferWidth + 1,
-                   rfb.framebufferHeight + 1);
-        g.setColor(c);
-      }
+    // create new offscreen
+    if (offImage == null) {
+      offImage = createImage(d.width, d.height);
+      offGraphics = offImage.getGraphics();
+    } else if (offImage.getWidth(null) != d.width ||
+        offImage.getHeight(null) != d.height) {
+      offGraphics.dispose();
+      offGraphics = null;
+      offImage.flush();
+      offImage = null;
+      offImage = createImage(d.width, d.height);
+      offGraphics = offImage.getGraphics();
     }
+
+    synchronized(memImage) {
+      offGraphics.drawImage(memImage, o.x, o.y, null);
+    }
+
+    // fill in background
+    if (o.x > 0 || o.y > 0) {
+      // left, right, top, bottom
+      Color c = g.getColor();
+      offGraphics.setColor(Color.white);
+      offGraphics.fillRect(0, 0, o.x, d.height);
+      offGraphics.fillRect(o.x + rfb.framebufferWidth, 0, d.width - (o.x +
+                           rfb.framebufferWidth), d.height);
+      offGraphics.fillRect(o.x, 0, rfb.framebufferWidth, o.y);
+      offGraphics.fillRect(o.x, o.y + rfb.framebufferHeight,
+                           rfb.framebufferWidth, d.height - (o.y +
+                           rfb.framebufferHeight));
+      offGraphics.setColor(c);
+    }
+
+    // draw border
+    Color oc = g.getColor();
+    offGraphics.setColor(DARK_GRAY);
+    offGraphics.drawRect(o.x - 1, o.y - 1, rfb.framebufferWidth + 1,
+                         rfb.framebufferHeight + 1);
+    offGraphics.setColor(oc);
+
+    // draw cursor
     if (showSoftCursor) {
       int x0 = cursorX - hotX, y0 = cursorY - hotY;
       x0 += o.x;
       y0 += o.y;
       Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
       if (r.intersects(g.getClipBounds())) {
-        Rectangle c = g.getClipBounds();
-        g.setClip(o.x, o.y, rfb.framebufferWidth, rfb.framebufferHeight);
-        g.drawImage(softCursor, x0, y0, null);
-        g.setClip(c.x, c.y, c.width, c.height);
+        offGraphics.setClip(o.x, o.y, rfb.framebufferWidth,
+                            rfb.framebufferHeight);
+        offGraphics.drawImage(softCursor, x0, y0, null);
+        offGraphics.setClip(null);
       }
     }
+
+    // draw offscreen
+    g.drawImage(offImage, 0, 0, null);
   }
 
   //
@@ -187,6 +229,11 @@ class VncCanvas extends Canvas implements Observer {
     }
   }
 
+  private void setPixelFormat() throws IOException {
+    bytesPixel = 4;
+    updateFramebufferSize();
+  }
+
   void updateFramebufferSize() {
 
     // Useful shortcuts.
@@ -197,39 +244,50 @@ class VncCanvas extends Canvas implements Observer {
     // its geometry should be changed. It's not necessary to replace
     // existing image if only pixel format should be changed.
     if (memImage == null) {
-      memImage = player.createImage(fbWidth, fbHeight);
+      memImage = appClass.createImage(fbWidth, fbHeight);
       memGraphics = memImage.getGraphics();
     } else if (memImage.getWidth(null) != fbWidth ||
         memImage.getHeight(null) != fbHeight) {
       synchronized(memImage) {
-        memImage = player.createImage(fbWidth, fbHeight);
+        memImage = appClass.createImage(fbWidth, fbHeight);
         memGraphics = memImage.getGraphics();
       }
     }
 
     // Images with raw pixels should be re-allocated on every change
     // of geometry or pixel format.
-    pixels24 = new int[fbWidth * fbHeight];
-    pixelsSource =
-        new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
+    if (bytesPixel == 1) {
+      pixels24 = null;
+      pixels8 = new byte[fbWidth * fbHeight];
+
+      pixelsSource =
+          new MemoryImageSource(fbWidth, fbHeight, cm8, pixels8, 0, fbWidth);
+    } else {
+      pixels8 = null;
+      pixels24 = new int[fbWidth * fbHeight];
+
+      pixelsSource =
+          new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
+    }
     pixelsSource.setAnimated(true);
     rawPixelsImage = createImage(pixelsSource);
 
     // Update the size of desktop containers unless seeking 
-    if (!seekMode) {
-      if (player.inSeparateFrame) {
-        if (player.desktopScrollPane != null)
-          resizeDesktopFrame();
+    if (!seekMode && appClass.desktopScrollPane != null) {
+      if (appClass.inSeparateFrame) {
+        resizeDesktopFrame();
       } else {
-        setSize(fbWidth, fbHeight);
+        resizeEmbeddedApplet();
+        // if the framebuffer shrunk, need to clear and repaint
+        appClass.desktopScrollPane.clearAndRepaint();
       }
     }
   }
 
   void resizeDesktopFrame() {
     // determine screen size
-    Dimension screenSize = player.vncFrame.getToolkit().getScreenSize();
-    Dimension scrollSize = player.desktopScrollPane.getSize();
+    Dimension screenSize = appClass.vncFrame.getToolkit().getScreenSize();
+    Dimension scrollSize = appClass.desktopScrollPane.getSize();
 
     // Reduce Screen Size by 30 pixels in each direction;
     // This is a (poor) attempt to account for
@@ -242,7 +300,7 @@ class VncCanvas extends Canvas implements Observer {
 
     // Further reduce the screen size to account for the
     // scroll pane's insets.
-    Insets insets = player.desktopScrollPane.getInsets();
+    Insets insets = appClass.desktopScrollPane.getInsets();
     screenSize.height -= insets.top + insets.bottom;
     screenSize.width -= insets.left + insets.right;
 
@@ -260,24 +318,25 @@ class VncCanvas extends Canvas implements Observer {
       h = screenSize.height;
       needResize = true;
     }
-    if (needResize)
-      player.desktopScrollPane.setSize(w, h);
+    if (needResize) {
+      appClass.desktopScrollPane.setSize(w, h);
+      appClass.desktopScrollPane.validate();
+    }
 
     // size the canvas
     setSize(getPreferredSize());
 
-    player.vncFrame.pack();
+    appClass.vncFrame.pack();
   }
 
   void resizeEmbeddedApplet() {
     // resize scroll pane if necessary
-    Dimension scrollSize = player.desktopScrollPane.getSize();
-    if (scrollSize.width != player.dispW ||
-        scrollSize.height != player.dispH) {
-      player.desktopScrollPane.setSize(player.dispW, player.dispH);
+    Dimension scrollSize = appClass.desktopScrollPane.getSize();
+    if (scrollSize.width != appClass.dispW ||
+        scrollSize.height != appClass.dispH) {
+      appClass.desktopScrollPane.setSize(appClass.dispW, appClass.dispH);
     }
-
-    player.desktopScrollPane.validate();
+    appClass.desktopScrollPane.validate();
     // size the canvas
     setSize(getPreferredSize());
   }
@@ -292,27 +351,29 @@ class VncCanvas extends Canvas implements Observer {
     tightInflaters = new Inflater[4];
 
     // Show current time position in the control panel.
-    player.updatePos();
+    appClass.updatePos();
 
     // Tell our FbsInputStream object to notify us when it goes to the
     // `paused' mode.
     rfb.fbs.addObserver(this);
 
-    // Main dispatch loop.
+    //
+    // main dispatch loop
+    //
 
     while (true) {
 
       int msgType = rfb.readServerMessageType();
 
+      // Process the message depending on its type.
       switch (msgType) {
       case RfbProto.FramebufferUpdate:
         rfb.readFramebufferUpdate();
 
+        boolean cursorPosReceived = false;
+
         for (int i = 0; i < rfb.updateNRects; i++) {
           rfb.readFramebufferUpdateRectHdr();
-
-          boolean cursorPosReceived = false;
-
           int rx = rfb.updateRectX, ry = rfb.updateRectY;
           int rw = rfb.updateRectW, rh = rfb.updateRectH;
 
@@ -320,8 +381,8 @@ class VncCanvas extends Canvas implements Observer {
             break;
 
           if (rfb.updateRectEncoding == rfb.EncodingNewFBSize) {
-            if (rfb.updateRectW != 0 && rfb.updateRectH != 0) {
-              rfb.setFramebufferSize(rfb.updateRectW, rfb.updateRectH);
+            if (rw != 0 && rh != 0) {
+              rfb.setFramebufferSize(rw, rh);
               updateFramebufferSize();
             }
             break;
@@ -332,11 +393,6 @@ class VncCanvas extends Canvas implements Observer {
             handleCursorShapeUpdate(rfb.updateRectEncoding, rx, ry, rw, rh);
             continue;
           }
-//	  if (rfb.updateRectEncoding == rfb.EncodingXCursor ||
-//	      rfb.updateRectEncoding == rfb.EncodingRichCursor) {
-//	    throw new Exception("Sorry, no support for" +
-//				" cursor shape updates yet");
-//	  }
 
           if (rfb.updateRectEncoding == rfb.EncodingPointerPos) {
             softCursorMove(rx, ry);
@@ -385,37 +441,54 @@ class VncCanvas extends Canvas implements Observer {
         break;
 
       default:
-        throw new Exception("Unknown RFB message type " +
-                            Integer.toString(msgType, 16));
+        throw new Exception("Unknown RFB message type " + msgType);
       }
 
-      player.updatePos();
+      appClass.updatePos();
     }
   }
 
 
   //
-  // Handle a raw rectangle.
+  // Handle a raw rectangle. The second form with paint==false is used
+  // by the Hextile decoder for raw-encoded tiles.
   //
   void handleRawRect(int x, int y, int w, int h) throws IOException {
+    handleRawRect(x, y, w, h, true);
+  }
 
-    byte[] buf = new byte[w * 4];
-    int i, offset;
-    for (int dy = y; dy < y + h; dy++) {
-      rfb.is.readFully(buf);
-      offset = dy * rfb.framebufferWidth + x;
-      for (i = 0; i < w; i++) {
-        pixels24[offset + i] =
-            (buf[i * 4 + 2] & 0xFF) << 16 |
-            (buf[i * 4 + 1] & 0xFF) << 8 |
-            (buf[i * 4] & 0xFF);
+  void handleRawRect(int x, int y, int w, int h, boolean paint)
+      throws IOException {
+
+    if (bytesPixel == 1) {
+      for (int dy = y; dy < y + h; dy++) {
+        rfb.is.readFully(pixels8, dy * rfb.framebufferWidth + x, w);
+      //if (rfb.rec != null) {
+      //  rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
+      //}
+      }
+    } else {
+      byte[] buf = new byte[w * 4];
+      int i, offset;
+      for (int dy = y; dy < y + h; dy++) {
+        rfb.is.readFully(buf);
+        //if (rfb.rec != null) {
+        //  rfb.rec.write(buf);
+        //}
+        offset = dy * rfb.framebufferWidth + x;
+        for (i = 0; i < w; i++) {
+          pixels24[offset + i] =
+              (buf[i * 4 + 2] & 0xFF) << 16 |
+              (buf[i * 4 + 1] & 0xFF) << 8 |
+              (buf[i * 4] & 0xFF);
+        }
       }
     }
 
     handleUpdatedPixels(x, y, w, h);
-    scheduleRepaint(x, y, w, h);
+    if (paint)
+      scheduleRepaint(x, y, w, h);
   }
-
 
   //
   // Handle a CopyRect rectangle.
@@ -462,7 +535,6 @@ class VncCanvas extends Canvas implements Observer {
   // Handle a CoRRE-encoded rectangle.
   //
   void handleCoRRERect(int x, int y, int w, int h) throws IOException {
-
     int nSubrects = rfb.is.readInt();
     int sx, sy, sw, sh;
 
@@ -496,8 +568,8 @@ class VncCanvas extends Canvas implements Observer {
 
   void handleHextileRect(int x, int y, int w, int h) throws IOException {
 
-    hextile_bg = new Color(0, 0, 0);
-    hextile_fg = new Color(0, 0, 0);
+    hextile_bg = new Color(0);
+    hextile_fg = new Color(0);
 
     for (int ty = y; ty < y + h; ty += 16) {
       int th = 16;
@@ -578,6 +650,7 @@ class VncCanvas extends Canvas implements Observer {
         memGraphics.setColor(hextile_fg);
         memGraphics.fillRect(sx, sy, sw, sh);
       }
+
     } else {
       memGraphics.setColor(hextile_fg);
       for (int j = 0; j < nSubrects; j++) {
@@ -589,6 +662,7 @@ class VncCanvas extends Canvas implements Observer {
         sh = (b2 & 0xf) + 1;
         memGraphics.fillRect(sx, sy, sw, sh);
       }
+
     }
   }
 
@@ -657,6 +731,7 @@ class VncCanvas extends Canvas implements Observer {
       memGraphics.fillRect(x, y, w, h);
       scheduleRepaint(x, y, w, h);
       return;
+
     }
 
     if (comp_ctl == rfb.TightJpeg) {
@@ -713,7 +788,7 @@ class VncCanvas extends Canvas implements Observer {
         throw new Exception("Incorrect tight filter id: " + filter_id);
       }
     }
-    if (numColors == 0)
+    if (numColors == 0 && bytesPixel == 4)
       rowSize *= 3;
 
     // Read, optionally uncompress and decode data.
@@ -726,9 +801,13 @@ class VncCanvas extends Canvas implements Observer {
         rfb.is.readFully(indexedData);
         if (numColors == 2) {
           // Two colors.
+          //if (bytesPixel == 1) {
+          //  decodeMonoData(x, y, w, h, indexedData, palette8);
+          //} else {
           decodeMonoData(x, y, w, h, indexedData, palette24);
+        //}
         } else {
-          // 3..255 colors.
+          // 3..255 colors (assuming bytesPixel == 4).
           int i = 0;
           for (int dy = y; dy < y + h; dy++) {
             for (int dx = x; dx < x + w; dx++) {
@@ -744,16 +823,28 @@ class VncCanvas extends Canvas implements Observer {
         decodeGradientData(x, y, w, h, buf);
       } else {
         // Raw truecolor data.
-        byte[] buf = new byte[w * 3];
-        int i, offset;
-        for (int dy = y; dy < y + h; dy++) {
-          rfb.is.readFully(buf);
-          offset = dy * rfb.framebufferWidth + x;
-          for (i = 0; i < w; i++) {
-            pixels24[offset + i] =
-                (buf[i * 3] & 0xFF) << 16 |
-                (buf[i * 3 + 1] & 0xFF) << 8 |
-                (buf[i * 3 + 2] & 0xFF);
+        if (bytesPixel == 1) {
+          for (int dy = y; dy < y + h; dy++) {
+            rfb.is.readFully(pixels8, dy * rfb.framebufferWidth + x, w);
+          //if (rfb.rec != null) {
+          //  rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
+          //}
+          }
+        } else {
+          byte[] buf = new byte[w * 3];
+          int i, offset;
+          for (int dy = y; dy < y + h; dy++) {
+            rfb.is.readFully(buf);
+            //if (rfb.rec != null) {
+            //  rfb.rec.write(buf);
+            //}
+            offset = dy * rfb.framebufferWidth + x;
+            for (i = 0; i < w; i++) {
+              pixels24[offset + i] =
+                  (buf[i * 3] & 0xFF) << 16 |
+                  (buf[i * 3 + 1] & 0xFF) << 8 |
+                  (buf[i * 3 + 2] & 0xFF);
+            }
           }
         }
       }
@@ -816,8 +907,28 @@ class VncCanvas extends Canvas implements Observer {
   }
 
   //
-  // Decode 1bpp-encoded bi-color rectangle.
+  // Decode 1bpp-encoded bi-color rectangle (8-bit and 24-bit versions).
   //
+  void decodeMonoData(int x, int y, int w, int h, byte[] src, byte[] palette) {
+
+    int dx, dy, n;
+    int i = y * rfb.framebufferWidth + x;
+    int rowBytes = (w + 7) / 8;
+    byte b;
+
+    for (dy = 0; dy < h; dy++) {
+      for (dx = 0; dx < w / 8; dx++) {
+        b = src[dy * rowBytes + dx];
+        for (n = 7; n >= 0; n--)
+          pixels8[i++] = palette[b >> n & 1];
+      }
+      for (n = 7; n >= 8 - w % 8; n--) {
+        pixels8[i++] = palette[src[dy * rowBytes + dx] >> n & 1];
+      }
+      i += (rfb.framebufferWidth - w);
+    }
+  }
+
   void decodeMonoData(int x, int y, int w, int h, byte[] src, int[] palette) {
 
     int dx, dy, n;
@@ -883,19 +994,41 @@ class VncCanvas extends Canvas implements Observer {
     }
   }
 
-
   //
   // Display newly updated area of pixels.
   //
   void handleUpdatedPixels(int x, int y, int w, int h) {
 
     // Draw updated pixels of the off-screen image.
-
     pixelsSource.newPixels(x, y, w, h);
     memGraphics.setClip(x, y, w, h);
     memGraphics.drawImage(rawPixelsImage, 0, 0, null);
     memGraphics.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
   }
+
+  //
+  // Tell JVM to repaint specified desktop area.
+  //
+  void scheduleRepaint(int x, int y, int w, int h) {
+    if (rfb.fbs.isSeeking()) {
+      // Do nothing, and remember we are seeking.
+      seekMode = true;
+    } else {
+      if (seekMode) {
+        // Immediate repaint of the whole desktop after seeking.
+        seekMode = false;
+        if (showSoftCursor)
+          scrollToPoint(cursorX, cursorY);
+        updateFramebufferSize();
+        repaint();
+      } else {
+        // Usual incremental repaint.
+        Point o = getImageOrigin();
+        repaint(appClass.deferScreenUpdates, o.x + x, o.y + y, w, h);
+      }
+    }
+  }
+
 
   //////////////////////////////////////////////////////////////////
   //
@@ -903,7 +1036,6 @@ class VncCanvas extends Canvas implements Observer {
   //
   boolean showSoftCursor = false;
 
-  int[] softCursorPixels;
   MemoryImageSource softCursorSource;
   Image softCursor;
 
@@ -912,7 +1044,6 @@ class VncCanvas extends Canvas implements Observer {
   int origCursorWidth, origCursorHeight;
   int hotX, hotY;
   int origHotX, origHotY;
-  int deferCursorUpdates = 10;
 
   //
   // Handle cursor shape update (XCursor and RichCursor encodings).
@@ -922,29 +1053,57 @@ class VncCanvas extends Canvas implements Observer {
                                              int height)
       throws IOException {
 
-    int bytesPerRow = (width + 7) / 8;
-    int bytesMaskData = bytesPerRow * height;
-
     softCursorFree();
 
     if (width * height == 0)
       return;
 
-//    // Ignore cursor shape data if requested by user.
-//
-//    if (viewer.options.ignoreCursorUpdates) {
-//      if (encodingType == rfb.EncodingXCursor) {
-//	rfb.is.skipBytes(6 + bytesMaskData * 2);
-//      } else {
-//	// rfb.EncodingRichCursor
-//	rfb.is.skipBytes(width * height + bytesMaskData);
-//      }
-//      return;
-//    }
+    // Ignore cursor shape data if requested by user.
+    //if (appClass.options.ignoreCursorUpdates) {
+    if (false) {
+      int bytesPerRow = (width + 7) / 8;
+      int bytesMaskData = bytesPerRow * height;
+
+      if (encodingType == rfb.EncodingXCursor) {
+        rfb.is.skipBytes(6 + bytesMaskData * 2);
+      } else {
+        // rfb.EncodingRichCursor
+        rfb.is.skipBytes(width * height + bytesMaskData);
+      }
+      return;
+    }
 
     // Decode cursor pixel data.
+    softCursorSource = decodeCursorShape(encodingType, width, height);
 
-    softCursorPixels = new int[width * height];
+    // Set original (non-scaled) cursor dimensions.
+    origCursorWidth = width;
+    origCursorHeight = height;
+    origHotX = xhot;
+    origHotY = yhot;
+
+    // Create off-screen cursor image.
+    createSoftCursor();
+
+    // Show the cursor.
+    showSoftCursor = true;
+    Point p = getImageOrigin();
+    scheduleCursorRepaint(cursorX - hotX + p.x, cursorY - hotY + p.y,
+                          cursorWidth, cursorHeight, 5);
+  }
+
+  //
+  // decodeCursorShape(). Decode cursor pixel data and return
+  // corresponding MemoryImageSource instance.
+  //
+  synchronized MemoryImageSource decodeCursorShape(int encodingType, int width,
+                                                    int height)
+      throws IOException {
+
+    int bytesPerRow = (width + 7) / 8;
+    int bytesMaskData = bytesPerRow * height;
+
+    int[] softCursorPixels = new int[width * height];
 
     if (encodingType == rfb.EncodingXCursor) {
 
@@ -994,7 +1153,7 @@ class VncCanvas extends Canvas implements Observer {
       // encodingType == rfb.EncodingRichCursor
 
       // Read pixel and mask data.
-      byte[] pixBuf = new byte[width * height * 4];
+      byte[] pixBuf = new byte[width * height * bytesPixel];
       rfb.is.readFully(pixBuf);
       byte[] maskBuf = new byte[bytesMaskData];
       rfb.is.readFully(maskBuf);
@@ -1008,35 +1167,30 @@ class VncCanvas extends Canvas implements Observer {
           maskByte = maskBuf[y * bytesPerRow + x];
           for (n = 7; n >= 0; n--) {
             if ((maskByte >> n & 1) != 0) {
-//	      if (bytesPerPixel == 1) {
-//		result = cm8.getRGB(pixBuf[i]);
-//	      } else {
-              result = (pixBuf[i * 4] & 0xFF) << 24 |
-                  (pixBuf[i * 4 + 1] & 0xFF) << 16 |
-                  (pixBuf[i * 4 + 2] & 0xFF) << 8 |
-                  (pixBuf[i * 4 + 3] & 0xFF);
-            //result = 0xFF000000 |
-            // (pixBuf[i * 4 + 1] & 0xFF) << 16 |
-            // (pixBuf[i * 4 + 2] & 0xFF) << 8 |
-            // (pixBuf[i * 4 + 3] & 0xFF);
-//	      }
+              if (bytesPixel == 1) {
+                result = cm8.getRGB(pixBuf[i]);
+              } else {
+                result = (pixBuf[i * 4] & 0xFF) << 24 |
+                    (pixBuf[i * 4 + 1] & 0xFF) << 16 |
+                    (pixBuf[i * 4 + 2] & 0xFF) << 8 |
+                    (pixBuf[i * 4 + 3] & 0xFF);
+              }
             } else {
               result = 0;	// Transparent pixel
             }
             softCursorPixels[i++] = result;
           }
         }
-
         for (n = 7; n >= 8 - width % 8; n--) {
           if ((maskBuf[y * bytesPerRow + x] >> n & 1) != 0) {
-//	    if (bytesPerPixel == 1) {
-//	      result = cm8.getRGB(pixBuf[i]);
-//	    } else {
-            result = 0xFF000000 |
-                (pixBuf[i * 4 + 1] & 0xFF) << 16 |
-                (pixBuf[i * 4 + 2] & 0xFF) << 8 |
-                (pixBuf[i * 4 + 3] & 0xFF);
-//	    }
+            if (bytesPixel == 1) {
+              result = cm8.getRGB(pixBuf[i]);
+            } else {
+              result = 0xFF000000 |
+                  (pixBuf[i * 4 + 1] & 0xFF) << 16 |
+                  (pixBuf[i * 4 + 2] & 0xFF) << 8 |
+                  (pixBuf[i * 4 + 3] & 0xFF);
+            }
           } else {
             result = 0;		// Transparent pixel
           }
@@ -1046,68 +1200,70 @@ class VncCanvas extends Canvas implements Observer {
 
     }
 
-    // Draw the cursor on an off-screen image.
+    return new MemoryImageSource(width, height, softCursorPixels, 0, width);
+  }
 
-    softCursorSource =
-        new MemoryImageSource(width, height, softCursorPixels, 0, width);
+  //
+  // createSoftCursor(). Assign softCursor new Image (scaled if necessary).
+  // Uses softCursorSource as a source for new cursor image.
+  //
+  synchronized void createSoftCursor() {
+
+    if (softCursorSource == null)
+      return;
+
+    int scaleCursor = 100;
+    //int scaleCursor = appClass.options.scaleCursor;
+    //if (scaleCursor == 0 || !inputEnabled)
+    //scaleCursor = 100;
+
+    // Save original cursor coordinates.
+    int x = cursorX - hotX;
+    int y = cursorY - hotY;
+    int w = cursorWidth;
+    int h = cursorHeight;
+
+    cursorWidth = (origCursorWidth * scaleCursor + 50) / 100;
+    cursorHeight = (origCursorHeight * scaleCursor + 50) / 100;
+    hotX = (origHotX * scaleCursor + 50) / 100;
+    hotY = (origHotY * scaleCursor + 50) / 100;
     softCursor = Toolkit.getDefaultToolkit().createImage(softCursorSource);
-//    if (inputEnabled && viewer.options.scaleCursor != 0) {
-//	int w = (width * viewer.options.scaleCursor) / 100;
-//	int h = (height * viewer.options.scaleCursor) / 100;
-//	Image newCursor = softCursor.getScaledInstance(w, h, Image.SCALE_SMOOTH);
-//	softCursor = newCursor;
-//	cursorWidth = w;
-//	cursorHeight = h;
-//	hotX = (xhot * viewer.options.scaleCursor) / 100;
-//	hotY = (yhot * viewer.options.scaleCursor) / 100;
-//    } else {
-    cursorWidth = width;
-    cursorHeight = height;
-    hotX = xhot;
-    hotY = yhot;
-//    }
 
-    // Set data associated with cursor.
-    origCursorWidth = width;
-    origCursorHeight = height;
-    origHotX = xhot;
-    origHotY = yhot;
-
-    showSoftCursor = true;
-
-    // Show the cursor.
-    scheduleRepaint(cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+    if (scaleCursor != 100) {
+      softCursor = softCursor.getScaledInstance(cursorWidth, cursorHeight,
+                                                Image.SCALE_SMOOTH);
+    }
   }
 
   private void scrollToPoint(int x, int y) {
-    boolean needScroll = false;
+    // Automatic viewport scrolling 
+    if (appClass.desktopScrollPane != null) {
+      boolean needScroll = false;
+      Dimension d = appClass.desktopScrollPane.getViewportSize();
+      Point topLeft = appClass.desktopScrollPane.getScrollPosition();
+      Point botRight = new Point(topLeft.x + d.width, topLeft.y + d.height);
 
-    if (player.desktopScrollPane == null)
-      return;
-
-    Dimension d = player.desktopScrollPane.getSize();
-    Point topLeft = player.desktopScrollPane.getScrollPosition();
-    Point botRight = new Point(topLeft.x + d.width, topLeft.y + d.height);
-
-    if (x < topLeft.x + SCROLL_MARGIN) {
-      // shift left
-      topLeft.x = x - SCROLL_MARGIN;
-      needScroll = true;
-    } else if (x > botRight.x - SCROLL_MARGIN) {
-      // shift right
-      topLeft.x = x - d.width + SCROLL_MARGIN;
-      needScroll = true;
+      if (x < topLeft.x + SCROLL_MARGIN) {
+        // shift left
+        topLeft.x = x - SCROLL_MARGIN;
+        needScroll = true;
+      } else if (x > botRight.x - SCROLL_MARGIN) {
+        // shift right
+        topLeft.x = x - d.width + SCROLL_MARGIN;
+        needScroll = true;
+      }
+      if (y < topLeft.y + SCROLL_MARGIN) {
+        // shift up
+        topLeft.y = y - SCROLL_MARGIN;
+        needScroll = true;
+      } else if (y > botRight.y - SCROLL_MARGIN) {
+        // shift down
+        topLeft.y = y - d.height + SCROLL_MARGIN;
+        needScroll = true;
+      }
+      if (needScroll)
+        appClass.desktopScrollPane.setScrollPosition(topLeft.x, topLeft.y);
     }
-    if (y < topLeft.y + SCROLL_MARGIN) {
-      // shift up
-      topLeft.y = y - SCROLL_MARGIN;
-      needScroll = true;
-    } else if (y > botRight.y - SCROLL_MARGIN) {
-      // shift down
-      topLeft.y = y - d.height + SCROLL_MARGIN;
-      needScroll = true;
-    }
-    player.desktopScrollPane.setScrollPosition(topLeft.x, topLeft.y);
   }
 
   //
@@ -1119,19 +1275,16 @@ class VncCanvas extends Canvas implements Observer {
     int oldY = cursorY + o.y;
     cursorX = x;
     cursorY = y;
-
-    // paint and scroll 
     if (showSoftCursor) {
-      scheduleRepaint(oldX - hotX, oldY - hotY, cursorWidth, cursorHeight);
-      scheduleRepaint(cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
-                      cursorHeight);
+      scheduleCursorRepaint(oldX - hotX, oldY - hotY, cursorWidth, cursorHeight,
+                            0);
+      scheduleCursorRepaint(cursorX - hotX + o.x, cursorY - hotY + o.y,
+                            cursorWidth, cursorHeight, 1);
       if (!seekMode)
         scrollToPoint(x, y);
     }
-
-    cursorX = x;
-    cursorY = y;
   }
+
   //
   // softCursorFree(). Remove soft cursor, dispose resources.
   //
@@ -1140,17 +1293,40 @@ class VncCanvas extends Canvas implements Observer {
       showSoftCursor = false;
       softCursor = null;
       softCursorSource = null;
-      softCursorPixels = null;
 
-      Point o = getImageOrigin();
-      scheduleRepaint(cursorX - hotX + o.x, cursorY - hotY + o.y, cursorWidth,
-                      cursorHeight);
+      Point p = getImageOrigin();
+      scheduleCursorRepaint(cursorX - hotX + p.x, cursorY - hotY + p.y,
+                            cursorWidth, cursorHeight, 3);
     }
   }
+
+  Point getFrameCenter() {
+    Dimension d = appClass.desktopScrollPane.getViewportSize();
+    Point p = appClass.desktopScrollPane.getScrollPosition();
+    if (d.width > rfb.framebufferWidth)
+      p.x = d.width / 2;
+    else
+      p.x += d.width / 2;
+    if (d.height > rfb.framebufferHeight)
+      p.y = d.height / 2;
+    else
+      p.y += d.height / 2;
+    return p;
+  }
+
   //
-  // Tell JVM to repaint specified desktop area.
+  // We are observing our FbsInputStream object to get notified on
+  // switching to the `paused' mode. In such cases we want to repaint
+  // our desktop if we were seeking.
   //
-  void scheduleRepaint(int x, int y, int w, int h) {
+  public void update(Observable o, Object arg) {
+    // Immediate repaint of the whole desktop after seeking.
+    repaint();
+    // Let next scheduleRepaint() call invoke incremental drawing.
+    seekMode = false;
+  }
+
+  void scheduleCursorRepaint(int x, int y, int w, int h, int n) {
     if (rfb.fbs.isSeeking()) {
       // Do nothing, and remember we are seeking.
       seekMode = true;
@@ -1164,22 +1340,9 @@ class VncCanvas extends Canvas implements Observer {
         repaint();
       } else {
         // Usual incremental repaint.
-        Point o = getImageOrigin();
-        repaint(player.deferScreenUpdates, o.x + x, o.y + y, w, h);
+        repaint(appClass.deferScreenUpdates, x, y, w, h);
       }
     }
-  }
-
-  //
-  // We are observing our FbsInputStream object to get notified on
-  // switching to the `paused' mode. In such cases we want to repaint
-  // our desktop if we were seeking.
-  //
-  public void update(Observable o, Object arg) {
-    // Immediate repaint of the whole desktop after seeking.
-    repaint();
-    // Let next scheduleRepaint() call invoke incremental drawing.
-    seekMode = false;
   }
 
 }
