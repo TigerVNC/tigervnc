@@ -1,6 +1,5 @@
 //
-//  Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
-//  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
+//  Copyright (C) 2002 HorizonLive.com, Inc.  All Rights Reserved.
 //
 //  This is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -18,62 +17,55 @@
 //  USA.
 //
 
-//
-// ButtonPanel class implements panel with four buttons in the
-// VNCViewer desktop window.
-//
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
 class ButtonPanel extends Panel implements ActionListener {
 
-  VncViewer viewer;
-  Button disconnectButton;
-  Button optionsButton;
-  Button clipboardButton;
-  Button ctrlAltDelButton;
-  Button refreshButton;
+  protected RfbPlayer player;
+  protected Button playButton;
+  protected Button pauseButton;
 
-  ButtonPanel(VncViewer v) {
-    viewer = v;
+  ButtonPanel(RfbPlayer player) {
+    this.player = player;
 
     setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    disconnectButton = new Button("Disconnect");
-    disconnectButton.setEnabled(false);
-    add(disconnectButton);
-    disconnectButton.addActionListener(this);
-    optionsButton = new Button("Options");
-    add(optionsButton);
-    optionsButton.addActionListener(this);
-    clipboardButton = new Button("Clipboard");
-    clipboardButton.setEnabled(false);
-    add(clipboardButton);
-    clipboardButton.addActionListener(this);
-    ctrlAltDelButton = new Button("Send Ctrl-Alt-Del");
-    ctrlAltDelButton.setEnabled(false);
-    add(ctrlAltDelButton);
-    ctrlAltDelButton.addActionListener(this);
-    refreshButton = new Button("Refresh");
-    refreshButton.setEnabled(false);
-    add(refreshButton);
-    refreshButton.addActionListener(this);
+
+    playButton = new Button("Play");
+    playButton.setEnabled(false);
+    add(playButton);
+    playButton.addActionListener(this);
+
+    pauseButton = new Button("Pause");
+    pauseButton.setEnabled(false);
+    add(pauseButton);
+    pauseButton.addActionListener(this);
   }
 
-  public void enableButtons() {
-    disconnectButton.setEnabled(true);
-    clipboardButton.setEnabled(true);
-    refreshButton.setEnabled(true);
-  }
-
-  //
-  // Enable/disable controls that should not be available in view-only
-  // mode.
-  //
-
-  void enableRemoteAccessControls(boolean enable) {
-    ctrlAltDelButton.setEnabled(enable);
+  public void setMode(int mode) {
+    switch(mode) {
+    case RfbPlayer.MODE_PLAYBACK:
+      playButton.setLabel("Stop");
+      playButton.setEnabled(true);
+      pauseButton.setLabel("Pause");
+      pauseButton.setEnabled(true);
+      break;
+    case RfbPlayer.MODE_PAUSED:
+      playButton.setLabel("Stop");
+      playButton.setEnabled(true);
+      pauseButton.setLabel("Resume");
+      pauseButton.setEnabled(true);
+      break;
+    default:
+      // case RfbPlayer.MODE_STOPPED:
+      playButton.setLabel("Play");
+      playButton.setEnabled(true);
+      pauseButton.setLabel("Pause");
+      pauseButton.setEnabled(false);
+      break;
+    }
+    player.setMode(mode);
   }
 
   //
@@ -81,40 +73,13 @@ class ButtonPanel extends Panel implements ActionListener {
   //
 
   public void actionPerformed(ActionEvent evt) {
-    if (evt.getSource() == disconnectButton) {
-      viewer.disconnect();
-
-    } else if (evt.getSource() == optionsButton) {
-      viewer.options.setVisible(!viewer.options.isVisible());
-
-    } else if (evt.getSource() == clipboardButton) {
-      viewer.clipboard.setVisible(!viewer.clipboard.isVisible());
-
-    } else if (evt.getSource() == ctrlAltDelButton) {
-      try {
-        final int modifiers = InputEvent.CTRL_MASK | InputEvent.ALT_MASK;
-
-        KeyEvent ctrlAltDelEvent =
-          new KeyEvent(this, KeyEvent.KEY_PRESSED, 0, modifiers, 127);
-        viewer.rfb.writeKeyEvent(ctrlAltDelEvent);
-
-        ctrlAltDelEvent =
-          new KeyEvent(this, KeyEvent.KEY_RELEASED, 0, modifiers, 127);
-        viewer.rfb.writeKeyEvent(ctrlAltDelEvent);
-
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    } else if (evt.getSource() == refreshButton) {
-      try {
-	RfbProto rfb = viewer.rfb;
-	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-					  rfb.framebufferHeight, false);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    if (evt.getSource() == playButton) {
+      setMode((player.getMode() == RfbPlayer.MODE_STOPPED) ?
+              RfbPlayer.MODE_PLAYBACK : RfbPlayer.MODE_STOPPED);
+    } else if (evt.getSource() == pauseButton) {
+      setMode((player.getMode() == RfbPlayer.MODE_PAUSED) ?
+              RfbPlayer.MODE_PLAYBACK : RfbPlayer.MODE_PAUSED);
     }
-    viewer.moveFocusToDesktop();
   }
 }
 

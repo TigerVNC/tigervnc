@@ -1,274 +1,29 @@
 
-TightVNC 1.2.3 Java Viewer
-==========================
+RFB Session Player 0.1.0
+========================
 
-Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
-Copyright (C) 2001 Constantin Kaplinsky.  All Rights Reserved.
-Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
+RFB Session Player is a Java application/applet for playing back RFB
+session files in FBS format saved by such programs as VNC Reflector or
+rfbproxy.
+
+
+Licensing Terms
+===============
+
+RFB Session Player is
+
+  Copyright (C) 2002 HorizonLive.com, Inc.  All Rights Reserved.
+
+This software is based on the TightVNC Java viewer which is
+
+  Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
+  Copyright (C) 2001 Constantin Kaplinsky.  All Rights Reserved.
+  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 
 This software is distributed under the GNU General Public Licence as
-published by the Free Software Foundation. See the file LICENCE.TXT for the
-conditions under which this software is made available. VNC also contains
-code from other sources. See the Acknowledgements section below, and the
-individual files for details of the conditions under which they are made
-available.
+published by the Free Software Foundation. See the file LICENCE.TXT
+for the conditions under which this software is made available. VNC
+also contains code from other sources. See the Acknowledgements
+section below, and the individual files for details of the conditions
+under which they are made available.
 
-
-Compiling from the sources
-==========================
-
-To compile all the .java files to .class files, simply do:
-
-	% make all
-
-This will also generate a JAR (Java archive) file containing all the classes. 
-Copy all the .class files, the .jar file and the .vnc files to an
-installation directory (e.g. /usr/local/vnc/classes):
-
-	% cp *.class *.jar *.vnc /usr/local/vnc/classes
-
-Make sure that the vncserver script is configured to point to the
-installation directory.
-
-
-Configuration
-=============
-
-TightVNC Java viewer supports a number of parameters allowing you to
-customize its behaviour. Most parameter names copy settings available from
-the Options frame in the Java viewer. Both parameter names and their values
-are case-insensitive, with one exception for the "PASSWORD" parameter. Here
-is the full list of parameters supported in TightVNC Java viewer:
-
---> "HOST" (no GUI equivalent)
-
-    Value: host name or IP address of the VNC server.
-    Default: in applet mode, the host from which the applet was loaded.
-
-    This parameter tells the viewer which server to connect to. Normally,
-    it's not needed, because default Java security policy allow connections
-    from applets to the only one host anyway, and that is the host from which
-    the applet was loaded.
-
---> "PORT" (no GUI equivalent)
-
-    Value: TCP port number on the VNC server.
-    Default: none.
-
-    This parameter is required in all cases. Note that this port is not the
-    one used for HTTP connection from the browser, it is the port used for
-    RFB connection. Usually, VNC servers use ports 58xx for HTTP connections,
-    and ports 59xx for RFB connections. Thus, most likely, this parameter
-    should be set to something like 5900, 5901 etc.
-
---> "PASSWORD"
-
-    Value: session password in plan text.
-    Default: none, ask user.
-
-    DO NOT EVER USE THIS PARAMETER, unless you really know what you are
-    doing. It's extremely dangerous from the security point of view. When
-    this parameter is set, the viewer won't ever ask for a password.
-
---> "Encoding"
-
-    Values: "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight".
-    Default: "Tight".
-
-    The preferred encoding. "Hextile" is a good choice for fast networks,
-    while "Tight" is better suited for low-bandwidth connections. From the
-    other side, the "Tight" decoder in TightVNC Java viewer seems to be more
-    efficient than "Hextile" decoder so it's possible that this default
-    setting can be ok for fast networks too.
-
---> "Compression level"
-
-    Values: "Default", "1", "2", "3", "4", "5", "6", "7", "8", "9".
-    Default: "Default". ;-)
-
-    Use specified compression level for "Tight" and "Zlib" encodings. Level 1
-    uses minimum of CPU time on the server but achieves weak compression
-    ratios. Level 9 offers best compression but may be slow in terms of CPU
-    time consumption on the server side. Use high levels with very slow
-    network connections, and low levels when working over higher-speed
-    networks. The "Default" value means that the server's default compression
-    level should be used.
-
---> "JPEG image quality"
-
-    Values: "JPEG off", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9".
-    Default: "6".
-
-    Use the specified image quality level in "Tight" encoding. Quality level
-    0 denotes bad image quality but very impressive compression ratios, while
-    level 9 offers very good image quality at lower compression ratios. If
-    the value is "JPEG off", the server will not use lossy JPEG compression
-    in "Tight" encoding.
-
---> "Cursor shape updates"
-
-    Values: "Enable", "Ignore", "Disable".
-    Default: "Enable".
-
-    Cursor shape updates is a protocol extension used to handle remote cursor
-    movements locally on the client side, saving bandwidth and eliminating
-    delays in mouse pointer movement. Note that current implementation of
-    cursor shape updates does not allow a client to track mouse cursor
-    position at the server side. This means that clients would not see mouse
-    cursor movements if mouse was moved either locally on the server, or by
-    another remote VNC client. Set this parameter to "Disable" if you always
-    want to see real cursor position on the remote side. Setting this option
-    to "Ignore" is similar to "Enable" but the remote cursor will not be
-    visible at all. This can be a reasonable setting if you don't care about
-    cursor shape and don't want to see two mouse cursors, one above another.
-
---> "Use CopyRect"
-
-    Values: "Yes", "No".
-    Default: "Yes".
-
-    The "CopyRect" encoding saves bandwidth and drawing time when parts of
-    the remote screen are moving around. Most likely, you don't want to
-    change this setting.
-
---> "Restricted colors"
-
-    Values: "Yes", "No".
-    Default: "No".
-
-    If set to "No", then 24-bit color format is used to represent pixel data. 
-    If set to "Yes", then only 8 bits are used to represent each pixel. 8-bit
-    color format can save bandwidth, but colors may look very inaccurate.
-
---> "Mouse buttons 2 and 3"
-
-    Values: "Normal", "Reversed".
-    Default: "Normal".
-
-    If set to "Reversed", then right mouse button (button 2) will act as it
-    was middle mouse button (button 3), and vice versa.
-
---> "View only"
-
-    Values: "Yes", "No".
-    Default: "No".
-
-    If set to "Yes", then all keyboard and mouse events in the desktop window
-    will be silently ignored and will not be passed to the remote side.
-
---> "Share desktop"
-
-    Values: "Yes", "No".
-    Default: "Yes".
-
-    Share the connection with other clients on the same VNC server. The exact
-    behaviour in each case depends on the server configuration.
-
---> "Open new window" (no GUI equivalent, applicable only in the applet mode)
-
-    Values: "Yes", "No".
-    Default: "No".
-
-    Operate in a separate window. This makes possible resizing the desktop,
-    and adds scroll bars when necessary. If the server supports variable
-    desktop size, the window will resize automatically when remote desktop
-    size changes.
-
---> "Show controls" (no GUI equivalent)
-
-    Values: "Yes", "No".
-    Default: "Yes".
-
-    Set to "No" if you want to get rid of that button panel at the top.
-
---> "Defer screen updates" (no GUI equivalent)
-
-    Value: time in milliseconds.
-    Default: "20".
-
-    When updating the desktop contents after receiving an update from server,
-    schedule repaint within the specified number of milliseconds. Small delay
-    helps to coalesce several small updates into one drawing operation,
-    improving CPU usage. Set this parameter to 0 to disable deferred updates.
-
---> "Defer cursor updates" (no GUI equivalent)
-
-    Value: time in milliseconds.
-    Default: "10".
-
-    When updating the desktop after moving the mouse, schedule repaint within
-    the specified number of milliseconds. This setting makes sense only when
-    "Cursor shape updates" parameter is set to "Enable". Small delay helps to
-    coalesce several small updates into one drawing operation, improving CPU
-    usage. Set this parameter to 0 to disable deferred cursor updates.
-
---> "Defer update requests" (no GUI equivalent)
-
-    Value: time in milliseconds.
-    Default: "50".
-
-    After processing an update received from server, wait for the specified
-    number of milliseconds before requesting next screen update. Such delay
-    will end immediately on every mouse or keyboard event if not in the "view
-    only" mode. Small delay helps the server to coalesce several small
-    updates into one framebuffer update, improving both bandwidth and CPU
-    usage. Increasing the parameter value does not affect responsiveness on
-    mouse and keyboard events, but causes delays in updating the screen when
-    there is no mouse and keyboard activity on the client side.
-
-
-ACKNOWLEDGEMENTS
-================
-
-This distribution contains Java DES software by Dave Zimmerman
-<dzimm@widget.com> and Jef Poskanzer <jef@acme.com>.  This is:
-
-    Copyright (c) 1996 Widget Workshop, Inc. All Rights Reserved.
-
-    Permission to use, copy, modify, and distribute this software and its
-    documentation for NON-COMMERCIAL or COMMERCIAL purposes and without fee
-    is hereby granted, provided that this copyright notice is kept intact.
-    
-    WIDGET WORKSHOP MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE
-    SUITABILITY OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT
-    NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-    PARTICULAR PURPOSE, OR NON-INFRINGEMENT. WIDGET WORKSHOP SHALL NOT BE
-    LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING,
-    MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
-    
-    THIS SOFTWARE IS NOT DESIGNED OR INTENDED FOR USE OR RESALE AS ON-LINE
-    CONTROL EQUIPMENT IN HAZARDOUS ENVIRONMENTS REQUIRING FAIL-SAFE
-    PERFORMANCE, SUCH AS IN THE OPERATION OF NUCLEAR FACILITIES, AIRCRAFT
-    NAVIGATION OR COMMUNICATION SYSTEMS, AIR TRAFFIC CONTROL, DIRECT LIFE
-    SUPPORT MACHINES, OR WEAPONS SYSTEMS, IN WHICH THE FAILURE OF THE
-    SOFTWARE COULD LEAD DIRECTLY TO DEATH, PERSONAL INJURY, OR SEVERE
-    PHYSICAL OR ENVIRONMENTAL DAMAGE ("HIGH RISK ACTIVITIES").  WIDGET
-    WORKSHOP SPECIFICALLY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTY OF
-    FITNESS FOR HIGH RISK ACTIVITIES.
-
-    Copyright (C) 1996 by Jef Poskanzer <jef@acme.com>.  All rights
-    reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
-    1. Redistributions of source code must retain the above copyright
-       notice, this list of conditions and the following disclaimer.
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-
-    THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
-    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-    PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
-    BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-    OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-    ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-    Visit the ACME Labs Java page for up-to-date versions of this and other
-    fine Java utilities: http://www.acme.com/java/
