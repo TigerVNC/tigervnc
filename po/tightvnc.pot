@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
-"POT-Creation-Date: 2005-01-23 22:03+0100\n"
+"POT-Creation-Date: 2005-01-24 20:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,153 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: vncviewer_unix/vncviewer.cxx:189
+msgid "About VNC Viewer"
+msgstr ""
+
+msgid "VNC authentication"
+msgstr ""
+
+msgid "Exit viewer"
+msgstr ""
+
+msgid "Full screen"
+msgstr ""
+
+msgid "Ctrl"
+msgstr ""
+
+msgid "Alt"
+msgstr ""
+
+#, c-format
+msgid "Send %s"
+msgstr ""
+
+msgid "Send Ctrl-Alt-Del"
+msgstr ""
+
+msgid "Refresh screen"
+msgstr ""
+
+msgid "New connection..."
+msgstr ""
+
+msgid "Options..."
+msgstr ""
+
+msgid "Connection info..."
+msgstr ""
+
+msgid "About VNCviewer..."
+msgstr ""
+
+msgid "Dismiss menu"
+msgstr ""
+
+msgid "VNC Menu"
+msgstr ""
+
+#, c-format
+msgid ""
+"Desktop name: %.80s\n"
+"Host: %.80s port: %d\n"
+"Size: %d x %d\n"
+"Pixel format: %s\n"
+"(server default %s)\n"
+"Requested encoding: %s\n"
+"Last used encoding: %s\n"
+"Line speed estimate: %d kbit/s\n"
+"Protocol version: %d.%d\n"
+"Security method: %s\n"
+msgstr ""
+
+msgid "VNC connection info"
+msgstr ""
+
+msgid "VNC Viewer: Connection Options"
+msgstr ""
+
+msgid "Encoding and Color Level:"
+msgstr ""
+
+msgid "Inputs:"
+msgstr ""
+
+msgid "Misc:"
+msgstr ""
+
+msgid "Auto select"
+msgstr ""
+
+msgid "Full (all available colors)"
+msgstr ""
+
+msgid "Medium (256 colors)"
+msgstr ""
+
+msgid "Low (64 colors)"
+msgstr ""
+
+msgid "Very low (8 colors)"
+msgstr ""
+
+msgid "Custom compression level:"
+msgstr ""
+
+msgid "level (1=fast, 9=best)"
+msgstr ""
+
+msgid "Allow JPEG compression:"
+msgstr ""
+
+msgid "quality (1=poor, 9=best)"
+msgstr ""
+
+msgid "View only (ignore mouse & keyboard)"
+msgstr ""
+
+msgid "Accept clipboard from server"
+msgstr ""
+
+msgid "Send clipboard to server"
+msgstr ""
+
+msgid "Send primary selection & cut buffer as clipboard"
+msgstr ""
+
+msgid "Shared (don't disconnect other viewers)"
+msgstr ""
+
+msgid "Full-screen mode"
+msgstr ""
+
+msgid "Render cursor locally"
+msgstr ""
+
+msgid "Show dot when no cursor"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Username:"
+msgstr ""
+
+msgid "Password:"
+msgstr ""
+
+msgid "VNC Viewer: Connection Details"
+msgstr ""
+
+msgid "VNC server:"
+msgstr ""
+
+msgid "About..."
+msgstr ""
+
 #, c-format
 msgid ""
 "TightVNC viewer for X version 4.0 - built %s\n"

@@ -197,7 +197,7 @@ bool CConn::getUserPasswd(char** user, char** password)
   }
 
   const char* secType = secTypeName(getCurrentCSecurity()->getType());
-  const char* titlePrefix = "VNC Authentication";
+  const char* titlePrefix = _("VNC authentication");
   unsigned int titleLen = strlen(titlePrefix) + strlen(secType) + 4;
   CharArray title(titleLen);
   snprintf(title.buf, titleLen, "%s [%s]", titlePrefix, secType);
@@ -338,29 +338,28 @@ enum { ID_OPTIONS, ID_INFO, ID_FULLSCREEN, ID_REFRESH, ID_F8, ID_CTRLALTDEL,
 void CConn::initMenu() {
   menuEventHandler = menu.setEventHandler(this);
   menu.addEventMask(KeyPressMask | KeyReleaseMask);
-  menu.addEntry("Exit viewer", ID_EXIT);
+  menu.addEntry(_("Exit viewer"), ID_EXIT);
   menu.addEntry(0, 0);
-  menu.addEntry("Full screen", ID_FULLSCREEN);
+  menu.addEntry(_("Full screen"), ID_FULLSCREEN);
   menu.check(ID_FULLSCREEN, fullScreen);
   menu.addEntry(0, 0);
-  menu.addEntry("Ctrl", ID_CTRL);
-  menu.addEntry("Alt", ID_ALT);
+  menu.addEntry(_("Ctrl"), ID_CTRL);
+  menu.addEntry(_("Alt"), ID_ALT);
   CharArray menuKeyStr(menuKey.getData());
-  unsigned int sendMenuKeyLen = 6+strlen(menuKeyStr.buf);
-  CharArray sendMenuKey(sendMenuKeyLen);
-  snprintf(sendMenuKey.buf, sendMenuKeyLen, "Send %s", menuKeyStr.buf);
+  CharArray sendMenuKey(64);
+  snprintf(sendMenuKey.buf, 64, _("Send %s"), menuKeyStr.buf);
   menu.addEntry(sendMenuKey.buf, ID_F8);
-  menu.addEntry("Send Ctrl-Alt-Del", ID_CTRLALTDEL);
+  menu.addEntry(_("Send Ctrl-Alt-Del"), ID_CTRLALTDEL);
   menu.addEntry(0, 0);
-  menu.addEntry("Refresh screen", ID_REFRESH);
+  menu.addEntry(_("Refresh screen"), ID_REFRESH);
   menu.addEntry(0, 0);
-  menu.addEntry("New connection...", ID_NEWCONN);
-  menu.addEntry("Options...", ID_OPTIONS);
-  menu.addEntry("Connection info...", ID_INFO);
-  menu.addEntry("About VNCviewer...", ID_ABOUT);
+  menu.addEntry(_("New connection..."), ID_NEWCONN);
+  menu.addEntry(_("Options..."), ID_OPTIONS);
+  menu.addEntry(_("Connection info..."), ID_INFO);
+  menu.addEntry(_("About VNCviewer..."), ID_ABOUT);
   menu.addEntry(0, 0);
-  menu.addEntry("Dismiss menu", ID_DISMISS);
-  menu.toplevel("VNC Menu", this);
+  menu.addEntry(_("Dismiss menu"), ID_DISMISS);
+  menu.toplevel(_("VNC Menu"), this);
   menu.setBorderWidth(1);
 }
 
@@ -408,16 +407,16 @@ void CConn::menuSelect(long id, TXMenu* m) {
       int secType = getCurrentCSecurity()->getType();
       char infoText[1024];
       snprintf(infoText, sizeof(infoText),
-              "Desktop name: %.80s\n"
-              "Host: %.80s port: %d\n"
-              "Size: %d x %d\n"
-              "Pixel format: %s\n"
-              "(server default %s)\n"
-              "Requested encoding: %s\n"
-              "Last used encoding: %s\n"
-              "Line speed estimate: %d kbit/s\n"
-              "Protocol version: %d.%d\n"
-              "Security method: %s\n",
+	       _("Desktop name: %.80s\n"
+		 "Host: %.80s port: %d\n"
+		 "Size: %d x %d\n"
+		 "Pixel format: %s\n"
+		 "(server default %s)\n"
+		 "Requested encoding: %s\n"
+		 "Last used encoding: %s\n"
+		 "Line speed estimate: %d kbit/s\n"
+		 "Protocol version: %d.%d\n"
+		 "Security method: %s\n"),
               cp.name(), serverHost, serverPort, cp.width, cp.height,
               pfStr, spfStr, encodingName(currentEncoding),
               encodingName(lastServerEncoding),

@@ -30,9 +30,9 @@ class PasswdDialog : public TXDialog, public TXEntryCallback {
 public:
   PasswdDialog(Display* dpy, const char* title, bool userDisabled)
     : TXDialog(dpy, 320, 100, title, true),
-      userLabel(dpy, "Username:", this, 120),
+      userLabel(dpy, _("Username:"), this, 120),
       userEntry(dpy, this, this, false, 180),
-      passwdLabel(dpy, "Password:", this, 120),
+      passwdLabel(dpy, _("Password:"), this, 120),
       passwdEntry(dpy, this, this, true, 180)
   {
     userLabel.move(0, 20);

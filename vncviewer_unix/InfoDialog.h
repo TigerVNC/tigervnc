@@ -31,7 +31,7 @@ extern char buildtime[];
 class InfoDialog : public TXDialog, public TXButtonCallback {
 public:
   InfoDialog(Display* dpy)
-    : TXDialog(dpy, 1, 1, "VNC connection info"),
+    : TXDialog(dpy, 1, 1, _("VNC connection info")),
       infoLabel(dpy, "", this, 1, 1, TXLabel::left),
       okButton(dpy, "OK", this, this, 60)
   {

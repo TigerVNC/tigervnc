@@ -25,12 +25,17 @@
 #include "TXMsgBox.h"
 #include "parameters.h"
 
+#include <intl/gettext.h>
+#define _(String) gettext (String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop (String)
+
 extern char buildtime[];
 
 class AboutDialog : public TXMsgBox {
 public:
   AboutDialog(Display* dpy)
-    : TXMsgBox(dpy, aboutText, MB_OK, "About VNC Viewer") {
+    : TXMsgBox(dpy, aboutText, MB_OK, _("About VNC Viewer")) {
   }
 };
 

@@ -33,26 +33,26 @@ class ServerDialog : public TXDialog, public TXEntryCallback,
                      public TXButtonCallback {
 public:
   ServerDialog(Display* dpy, OptionsDialog* options_, AboutDialog* about_)
-    : TXDialog(dpy, 332, 120, "VNC Viewer: Connection Details", true),
-      label(dpy, "VNC server:", this, 100),
+    : TXDialog(dpy, 355, 120, _("VNC Viewer: Connection Details"), true),
+      label(dpy, _("VNC server:"), this, 100),
       entry(dpy, this, this, false, 180),
-      aboutButton(dpy, "About...", this, this, 60),
-      optionsButton(dpy, "Options...", this, this, 60),
-      okButton(dpy, "OK", this, this, 60),
-      cancelButton(dpy, "Cancel", this, this, 60),
+      aboutButton(dpy, _("About..."), this, this, 70),
+      optionsButton(dpy, _("Options..."), this, this, 70),
+      okButton(dpy, _("OK"), this, this, 70),
+      cancelButton(dpy, _("Cancel"), this, this, 70),
       options(options_), about(about_)
   {
     label.move(0, 30);
     entry.move(label.width(), 28);
     int x = width();
     int y = height() - yPad*4 - cancelButton.height();
-    x -= cancelButton.width() + xPad*6;
+    x -= cancelButton.width() + xPad*4;
     cancelButton.move(x, y);
-    x -= okButton.width() + xPad*6;
+    x -= okButton.width() + xPad*4;
     okButton.move(x, y);
-    x -= optionsButton.width() + xPad*6;
+    x -= optionsButton.width() + xPad*4;
     optionsButton.move(x, y);
-    x -= aboutButton.width() + xPad*6;
+    x -= aboutButton.width() + xPad*4;
     aboutButton.move(x, y);
   }
 
