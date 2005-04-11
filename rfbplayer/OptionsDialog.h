@@ -79,6 +79,7 @@ protected:
     if (item == IDC_DEFAULT) {
       SendMessage(combo, CB_SETCURSEL, DEFAULT_PF_INDEX + 1, 0);
       enableItem(IDC_PIXELFORMAT, !DEFAULT_ASK_PF);
+      enableItem(IDC_BIG_ENDIAN, !DEFAULT_ASK_PF);
       setItemChecked(IDC_ASK_PF, DEFAULT_ASK_PF);
       setItemChecked(IDC_ACCEPT_BELL, DEFAULT_ACCEPT_BELL);
       setItemChecked(IDC_ACCEPT_CUT_TEXT, DEFAULT_ACCEPT_CUT_TEXT);
