@@ -1362,7 +1362,8 @@ bool processParams(int argc, char* argv[]) {
   }
 
   fileName = strDup(argv[argc-1]);
-  return true;
+  if (fileName[0] == '-') return false;
+  else return true;
 }
 
 //
