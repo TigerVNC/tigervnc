@@ -331,7 +331,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ofn.lpstrFile = filename;
         ofn.nMaxFile = sizeof(filename);
         ofn.lpstrInitialDir = curDir;
-        ofn.lpstrFilter = "Rfb Session files (*.rfb)\0*.rfb\0" \
+        ofn.lpstrFilter = "Rfb Session files (*.rfb, *.fbs)\0*.rfb;*.fbs\0" \
                           "All files (*.*)\0*.*\0";
         ofn.lpstrDefExt = "rfb";
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
