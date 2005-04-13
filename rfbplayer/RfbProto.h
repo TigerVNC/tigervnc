@@ -59,7 +59,7 @@ class RfbProto : public CMsgHandler {
     virtual void framebufferUpdateEnd() {};
 
     FbsInputStream* is;
-    CMsgReader* reader;
+    CMsgReaderV3* reader;
     stateEnum state_;
 
   private:

@@ -31,6 +31,7 @@
 #include <rfbplayer/ChoosePixelFormatDialog.h>
 #include <rfbplayer/OptionsDialog.h>
 #include <rfbplayer/InfoDialog.h>
+#include <rfbplayer/SessionInfoDialog.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -182,6 +183,7 @@ class RfbPlayer : public RfbProto {
     PixelFormatList supportedPF;
     long imageDataStartTime;
     long sessionTimeMs;
+    int currentEncoding;
 };
 
 // -=- sessionTerminateThread class

@@ -180,6 +180,10 @@ SOURCE=.\rfbSessionReader.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SessionInfoDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ToolBar.h
 # End Source File
 # Begin Source File

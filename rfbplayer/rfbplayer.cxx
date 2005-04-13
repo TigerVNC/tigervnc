@@ -237,7 +237,8 @@ RfbPlayer::RfbPlayer(char *_fileName, PlayerOptions *_options)
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), lastPos(0), 
   timeStatic(0), speedEdit(0), posTrackBar(0), speedUpDown(0), 
   rfbReader(0), sessionTimeMs(0), sliderDraging(false), sliderStepMs(0), 
-  imageDataStartTime(0), rewindFlag(false), stopped(false) {
+  imageDataStartTime(0), rewindFlag(false), stopped(false), 
+  currentEncoding(-1) {
 
   // Save the player options
   memcpy(&options, _options, sizeof(options));
@@ -342,6 +343,12 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
     case ID_CLOSEFILE:
       closeSessionFile();
+      break;
+    case ID_SESSION_INFO:
+      {
+        SessionInfoDialog sessionInfo(&cp, currentEncoding);
+        sessionInfo.showDialog(getMainHandle());
+      }
       break;
     case ID_PLAY:
       setPaused(false);
@@ -676,6 +683,7 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
 void RfbPlayer::disableTBandMenuItems() {
   // Disable the menu items
   EnableMenuItem(hMenu, ID_CLOSEFILE, MF_GRAYED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_SESSION_INFO, MF_GRAYED | MF_BYCOMMAND);
   ///EnableMenuItem(hMenu, ID_FULLSCREEN, MF_GRAYED | MF_BYCOMMAND);
   ///EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_GRAYED | MF_BYPOSITION);
   EnableMenuItem(hMenu, ID_PLAYPAUSE, MF_GRAYED | MF_BYCOMMAND);
@@ -698,6 +706,7 @@ void RfbPlayer::disableTBandMenuItems() {
 void RfbPlayer::enableTBandMenuItems() {
   // Enable the menu items
   EnableMenuItem(hMenu, ID_CLOSEFILE, MF_ENABLED | MF_BYCOMMAND);
+  EnableMenuItem(hMenu, ID_SESSION_INFO, MF_ENABLED | MF_BYCOMMAND);
   ///EnableMenuItem(hMenu, ID_FULLSCREEN, MF_ENABLED | MF_BYCOMMAND);
   ///EnableMenuItem(GetSubMenu(hMenu, 1), 1, MF_ENABLED | MF_BYPOSITION);
   EnableMenuItem(hMenu, ID_PLAYPAUSE, MF_ENABLED | MF_BYCOMMAND);
@@ -1005,6 +1014,7 @@ void RfbPlayer::frameBufferUpdateEnd() {
 };
 
 void RfbPlayer::beginRect(const Rect& r, unsigned int encoding) {
+  currentEncoding = encoding;
 }
 
 void RfbPlayer::endRect(const Rect& r, unsigned int encoding) {

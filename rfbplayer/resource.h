@@ -13,6 +13,7 @@
 #define IDD_USERPF_LIST                 139
 #define IDD_UPF_EDIT                    140
 #define IDD_INFO                        141
+#define IDD_SESSION_INFO                142
 #define IDC_GOTO_EDIT                   1003
 #define IDC_PIXELFORMAT                 1004
 #define IDC_ASK_PF                      1006
@@ -39,8 +40,12 @@
 #define IDC_GREENMAX_EDIT               1024
 #define IDC_BLUEMAX_EDIT                1025
 #define IDC_REDSHIFT_EDIT               1026
+#define IDC_DESKTOP_NAME                1026
 #define IDC_GREENSHIFT_EDIT             1027
+#define IDC_DESKTOP_SIZE                1027
 #define IDC_BLUESHIFT_EDIT              1028
+#define IDC_CURRENT_ENCODING            1029
+#define IDC_PIXEL_FORMAT                1030
 #define IDC_INFO_EDIT                   1076
 #define ID_OPENFILE                     40011
 #define ID_CLOSEFILE                    40012
@@ -62,13 +67,14 @@
 #define ID_ABOUT                        40027
 #define ID_OPTIONS                      40029
 #define ID_RETURN                       40044
+#define ID_SESSION_INFO                 40045
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        142
-#define _APS_NEXT_COMMAND_VALUE         40045
+#define _APS_NEXT_RESOURCE_VALUE        143
+#define _APS_NEXT_COMMAND_VALUE         40046
 #define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

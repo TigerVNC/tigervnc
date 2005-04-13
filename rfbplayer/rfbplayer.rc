@@ -126,6 +126,8 @@ BEGIN
         MENUITEM "Open File...\tCtrl+O",        ID_OPENFILE
         MENUITEM "Close File...\tCtrl+Q",       ID_CLOSEFILE
         MENUITEM SEPARATOR
+        MENUITEM "Info...\tCtrl+I",             ID_SESSION_INFO
+        MENUITEM SEPARATOR
         MENUITEM "Exit\tAlt+X",                 ID_EXIT
     END
     POPUP "Play"
@@ -158,6 +160,7 @@ BEGIN
     "C",            ID_COPYTOCLIPBOARD,     VIRTKEY, CONTROL, NOINVERT
     "C",            ID_FRAMEEXTRACT,        VIRTKEY, ALT, NOINVERT
     "G",            ID_GOTO,                VIRTKEY, CONTROL, NOINVERT
+    "I",            ID_SESSION_INFO,        VIRTKEY, CONTROL, NOINVERT
     "L",            ID_LOOP,                VIRTKEY, CONTROL, NOINVERT
     "O",            ID_OPENFILE,            VIRTKEY, CONTROL, NOINVERT
     "P",            ID_OPTIONS,             VIRTKEY, CONTROL, NOINVERT
@@ -310,6 +313,24 @@ BEGIN
                     WS_VSCROLL | WS_HSCROLL
 END
 
+IDD_SESSION_INFO DIALOG DISCARDABLE  0, 0, 239, 106
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "RFB Session Info"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,182,85,50,14
+    LTEXT           "Desktop Name:",IDC_STATIC,7,10,73,15
+    LTEXT           "Desktop Size:",IDC_STATIC,7,25,73,15
+    LTEXT           "Pixel Format:",IDC_STATIC,7,40,73,15
+    LTEXT           "Current Encoding:",IDC_STATIC,7,55,73,15
+    LTEXT           "RFB Protocol Version:",IDC_STATIC,7,70,73,15
+    LTEXT           "",IDC_DESKTOP_NAME,80,10,152,15
+    LTEXT           "",IDC_DESKTOP_SIZE,80,25,152,15
+    LTEXT           "",IDC_CURRENT_ENCODING,80,55,152,15
+    LTEXT           "",IDC_VERSION,80,70,152,15
+    LTEXT           "",IDC_PIXEL_FORMAT,80,40,152,15
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -408,6 +429,20 @@ BEGIN
         RIGHTMARGIN, 288
         TOPMARGIN, 7
         BOTTOMMARGIN, 200
+    END
+
+    IDD_SESSION_INFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 232
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+        HORZGUIDE, 40
+        HORZGUIDE, 55
+        HORZGUIDE, 70
+        HORZGUIDE, 85
     END
 END
 #endif    // APSTUDIO_INVOKED
