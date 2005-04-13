@@ -42,7 +42,6 @@ void PlayerOptions::readFromRegistry() {
     acceptBell = regKey.getBool(_T("AcceptBell"), DEFAULT_ACCEPT_BELL);
     acceptCutText = regKey.getBool(_T("AcceptCutText"), DEFAULT_ACCEPT_CUT_TEXT);
     autoPlay = regKey.getBool(_T("AutoPlay"), DEFAULT_AUTOPLAY);
-    loopPlayback = regKey.getBool(_T("LoopPlayback"), DEFAULT_LOOP_PLAYBACK);
     askPixelFormat = regKey.getBool(_T("AskPixelFormat"), DEFAULT_ASK_PF);
     if (pPF) delete pPF;
   } catch (rdr::Exception e) {
@@ -62,7 +61,6 @@ void PlayerOptions::writeToRegistry() {
     regKey.setBool(_T("AcceptBell"), acceptBell);
     regKey.setBool(_T("AcceptCutText"), acceptCutText);
     regKey.setBool(_T("AutoPlay"), autoPlay);
-    regKey.setBool(_T("LoopPlayback"), loopPlayback);
     regKey.setBool(_T("AskPixelFormat"), askPixelFormat);
   } catch (rdr::Exception e) {
     MessageBox(0, e.str(), e.type(), MB_OK | MB_ICONERROR);

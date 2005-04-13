@@ -64,7 +64,8 @@ char usage_msg[] =
  "                \t  is double speed, 0.5 is half speed. Default: 1.0.\r\n"
  "  -pos <ms>     \t- Sets initial time position in the session file,\r\n"
  "                \t  in milliseconds. Default: 0.\r\n"
- "  -autoplay     \t- Runs the player in the playback mode.\r\n";
+ "  -autoplay     \t- Runs the player in the playback mode.\r\n"
+ "  -loop         \t- Replays the rfb session.";
 
 // -=- RfbPlayer's defines
 
@@ -276,6 +277,7 @@ RfbPlayer::RfbPlayer(char *_fileName, PlayerOptions *_options)
     disableTBandMenuItems();
     setTitle("None");
   }
+  init();
 }
 
 RfbPlayer::~RfbPlayer() {
@@ -1071,6 +1073,11 @@ long RfbPlayer::calculateSessionTime(char *filename) {
   return 0;
 }
 
+void RfbPlayer::init() {
+  if (options.loopPlayback) CheckMenuItem(hMenu, ID_LOOP, MF_CHECKED);
+  else CheckMenuItem(hMenu, ID_LOOP, MF_UNCHECKED);
+}
+
 void RfbPlayer::closeSessionFile() {
   char speedStr[10];
   DWORD dwStyle;
@@ -1364,6 +1371,12 @@ bool processParams(int argc, char* argv[]) {
     if ((strcasecmp(argv[i], "-autoplay") == 0) ||
         (strcasecmp(argv[i], "/autoplay") == 0) && (i < argc-1)) {
       playerOptions.autoPlay = true;
+      continue;
+    }
+
+    if ((strcasecmp(argv[i], "-loop") == 0) ||
+        (strcasecmp(argv[i], "/loop") == 0) && (i < argc-1)) {
+      playerOptions.loopPlayback = true;
       continue;
     }
 

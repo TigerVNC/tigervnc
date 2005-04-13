@@ -59,6 +59,7 @@ class RfbPlayer : public RfbProto {
     void calculateScrollBars();
     void close(const char* reason=0);
     void updatePos(long pos);
+    void init();
 
     // -=- Coordinate conversions
 
