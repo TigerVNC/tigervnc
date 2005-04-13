@@ -359,9 +359,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       setPaused(true);
       break;
     case ID_STOP:
-      if (getTimeOffset() != 0) {
-        stopPlayback();
-      }
+      stopPlayback();
       break;
     case ID_PLAYPAUSE:
       if (rfbReader) {
@@ -1153,16 +1151,14 @@ void RfbPlayer::setPaused(bool paused) {
     tb.checkButton(ID_PAUSE, true);
     tb.checkButton(ID_PLAY, false);
     tb.checkButton(ID_STOP, false);
-    CheckMenuItem(hMenu, ID_PLAYPAUSE, MF_CHECKED);
-    CheckMenuItem(hMenu, ID_STOP, MF_UNCHECKED);
   } else {
     if (is) is->resumePlayback();
     tb.checkButton(ID_PLAY, true);
     tb.checkButton(ID_STOP, false);
     tb.checkButton(ID_PAUSE, false);
-    CheckMenuItem(hMenu, ID_PLAYPAUSE, MF_CHECKED);
-    CheckMenuItem(hMenu, ID_STOP, MF_UNCHECKED);
   }
+  tb.enableButton(ID_PAUSE, true);
+  EnableMenuItem(hMenu, ID_STOP, MF_ENABLED | MF_BYCOMMAND);
 }
 
 void RfbPlayer::stopPlayback() {
@@ -1175,8 +1171,8 @@ void RfbPlayer::stopPlayback() {
   tb.checkButton(ID_STOP, true);
   tb.checkButton(ID_PLAY, false);
   tb.checkButton(ID_PAUSE, false);
-  CheckMenuItem(hMenu, ID_STOP, MF_CHECKED);
-  CheckMenuItem(hMenu, ID_PLAYPAUSE, MF_UNCHECKED);
+  tb.enableButton(ID_PAUSE, false);
+  EnableMenuItem(hMenu, ID_STOP, MF_GRAYED | MF_BYCOMMAND);
   SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
 }
 
