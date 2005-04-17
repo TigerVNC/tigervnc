@@ -38,6 +38,7 @@ static LogWriter vlog("RfbPlayer");
 
 TStr rfb::win32::AppName("RfbPlayer");
 extern const char* buildTime;
+HFONT hFont = 0;
 
 char wrong_cmd_msg[] = 
  "Wrong command-line parameters!\n"
@@ -293,6 +294,7 @@ RfbPlayer::~RfbPlayer() {
   if (buffer) delete buffer;
   if (cutText) delete [] cutText;
   if (fileName) delete [] fileName;
+  if (hFont) DeleteObject(hFont);
   vlog.debug("~RfbPlayer done"); 
 }
 
@@ -620,8 +622,18 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 }
 
 void RfbPlayer::createToolBar(HWND parentHwnd) {
+  HDC hdc;
+  SIZE sz;
   RECT tRect;
-  InitCommonControls();
+  NONCLIENTMETRICS nonClientMetrics;
+
+  // Get the default font for the main menu
+  nonClientMetrics.cbSize = sizeof(NONCLIENTMETRICS);
+  if (!SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nonClientMetrics, 0))
+    MessageBox(getMainHandle(), "Can't access to the system font.", 
+    "RfbPlayer", MB_OK | MB_ICONERROR);
+  nonClientMetrics.lfMenuFont.lfHeight = 16;
+  hFont = CreateFontIndirect(&nonClientMetrics.lfMenuFont);
 
   tb.create(ID_TOOLBAR, parentHwnd, WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT | CCS_NORESIZE);
   tb.addBitmap(4, IDB_TOOLBAR);
@@ -630,18 +642,21 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
   tb.addButton(0, ID_PLAY);
   tb.addButton(1, ID_PAUSE);
   tb.addButton(2, ID_STOP);
-///  tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-///  tb.addButton(3, ID_FULLSCREEN);
   tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
 
   // Create the static control for the time output
-  tb.addButton(125, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(4, &tRect);
   timeStatic = CreateWindowEx(0, "Static", "00m:00s (00m:00s)", 
-    WS_CHILD | WS_VISIBLE, tRect.left, tRect.top+2, tRect.right-tRect.left, 
-    tRect.bottom-tRect.top, tb.getHandle(), (HMENU)ID_TIME_STATIC, 
+    WS_CHILD | WS_VISIBLE, 0, 0, 20, 20, tb.getHandle(), (HMENU)ID_TIME_STATIC, 
     GetModuleHandle(0), 0);
+  SendMessage(timeStatic, WM_SETFONT,(WPARAM) hFont, TRUE);
+  hdc = GetDC(timeStatic);
+  SelectObject(hdc, hFont);
+  GetTextExtentPoint32(hdc, "00m:00s (00m:00s)", 16, &sz);
+  tb.addButton(sz.cx + 10, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
   tb.addButton(0, 10, TBSTATE_ENABLED, TBSTYLE_SEP);
+  tb.getButtonRect(4, &tRect);
+  MoveWindow(timeStatic, tRect.left, tRect.top+2, tRect.right-tRect.left, 
+    tRect.bottom-tRect.top, FALSE);
     
   // Create the trackbar control for the time position
   tb.addButton(200, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
@@ -655,11 +670,16 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
   tb.addButton(0, 10, TBSTATE_ENABLED, TBSTYLE_SEP);
 
   // Create the label with "Speed:" caption
-  tb.addButton(50, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+  HWND speedStatic = CreateWindowEx(0, "Static", "Speed:", WS_CHILD | WS_VISIBLE, 
+    0, 0, 5, 5, tb.getHandle(), (HMENU)ID_SPEED_STATIC, GetModuleHandle(0), 0);
+  SendMessage(speedStatic, WM_SETFONT,(WPARAM) hFont, TRUE);
+  hdc = GetDC(speedStatic);
+  SelectObject(hdc, hFont);
+  GetTextExtentPoint32(hdc, "Speed:", 6, &sz);
+  tb.addButton(sz.cx + 10, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
   tb.getButtonRect(8, &tRect);
-  CreateWindowEx(0, "Static", "Speed:", WS_CHILD | WS_VISIBLE, 
-    tRect.left, tRect.top+2, tRect.right-tRect.left, tRect.bottom-tRect.top,
-    tb.getHandle(), (HMENU)ID_SPEED_STATIC, GetModuleHandle(0), 0);
+  MoveWindow(speedStatic, tRect.left, tRect.top+2, tRect.right-tRect.left, 
+    tRect.bottom-tRect.top, FALSE);
 
   // Create the edit control and the spin for the speed managing
   tb.addButton(60, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
@@ -668,6 +688,7 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
     WS_CHILD | WS_VISIBLE | ES_RIGHT, tRect.left, tRect.top, 
     tRect.right-tRect.left, tRect.bottom-tRect.top, parentHwnd,
     (HMENU)ID_SPEED_EDIT, GetModuleHandle(0), 0);
+  SendMessage(speedEdit, WM_SETFONT,(WPARAM) hFont, TRUE);
   // It's need to send notify messages to toolbar parent window
   SetParent(speedEdit, tb.getHandle());
 
