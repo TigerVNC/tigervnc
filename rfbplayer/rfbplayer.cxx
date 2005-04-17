@@ -381,9 +381,6 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
       }
       break;
-    case ID_FULLSCREEN:
-      MessageBox(getMainHandle(), "It is not working yet!", "RfbPlayer", MB_OK);
-      break;
     case ID_LOOP:
       options.loopPlayback = !options.loopPlayback;
       if (options.loopPlayback) CheckMenuItem(hMenu, ID_LOOP, MF_CHECKED);
@@ -634,13 +631,13 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
   tb.addButton(0, ID_PLAY);
   tb.addButton(1, ID_PAUSE);
   tb.addButton(2, ID_STOP);
-  tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.addButton(3, ID_FULLSCREEN);
+///  tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+///  tb.addButton(3, ID_FULLSCREEN);
   tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
 
   // Create the static control for the time output
   tb.addButton(125, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(6, &tRect);
+  tb.getButtonRect(4, &tRect);
   timeStatic = CreateWindowEx(0, "Static", "00m:00s (00m:00s)", 
     WS_CHILD | WS_VISIBLE, tRect.left, tRect.top+2, tRect.right-tRect.left, 
     tRect.bottom-tRect.top, tb.getHandle(), (HMENU)ID_TIME_STATIC, 
@@ -649,7 +646,7 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
     
   // Create the trackbar control for the time position
   tb.addButton(200, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(8, &tRect);
+  tb.getButtonRect(6, &tRect);
   posTrackBar = CreateWindowEx(0, TRACKBAR_CLASS, "Trackbar Control", 
     WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE,
     tRect.left, tRect.top, tRect.right-tRect.left, tRect.bottom-tRect.top,
@@ -660,14 +657,14 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
 
   // Create the label with "Speed:" caption
   tb.addButton(50, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(10, &tRect);
+  tb.getButtonRect(8, &tRect);
   CreateWindowEx(0, "Static", "Speed:", WS_CHILD | WS_VISIBLE, 
     tRect.left, tRect.top+2, tRect.right-tRect.left, tRect.bottom-tRect.top,
     tb.getHandle(), (HMENU)ID_SPEED_STATIC, GetModuleHandle(0), 0);
 
   // Create the edit control and the spin for the speed managing
   tb.addButton(60, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(11, &tRect);
+  tb.getButtonRect(9, &tRect);
   speedEdit = CreateWindowEx(WS_EX_CLIENTEDGE, "Edit", "1.00", 
     WS_CHILD | WS_VISIBLE | ES_RIGHT, tRect.left, tRect.top, 
     tRect.right-tRect.left, tRect.bottom-tRect.top, parentHwnd,
