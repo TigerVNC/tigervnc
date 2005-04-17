@@ -197,5 +197,5 @@ void ToolBar::autoSize() {
 int ToolBar::getHeight() {
   RECT r;
   GetWindowRect(getHandle(), &r);
-  return r.bottom - r.top + 1;
+  return r.bottom - r.top;
 }
