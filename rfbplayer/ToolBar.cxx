@@ -186,7 +186,7 @@ void ToolBar::autoSize() {
     RECT r, btnRect;
     GetClientRect(parentHwnd, &r);
     getButtonRect(0, &btnRect);
-    int height = getButtonsHeight() + btnRect.top * 2 + 1;
+    int height = getButtonsHeight() + btnRect.top * 2 + 2;
     SetWindowPos(getHandle(), HWND_TOP, 0, 0, r.right - r.left, height, 
       SWP_NOMOVE);
   } else {
