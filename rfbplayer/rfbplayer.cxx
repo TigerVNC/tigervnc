@@ -73,7 +73,6 @@ char usage_msg[] =
 #define MAX_SPEED 10.00
 #define CALCULATION_ERROR MAX_SPEED / 1000
 #define MAX_POS_TRACKBAR_RANGE 50
-#define CTRL_BAR_HEIGHT 28
 #define DEFAULT_PLAYER_WIDTH 640
 #define DEFAULT_PLAYER_HEIGHT 480 
 
@@ -305,12 +304,12 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   
   case WM_CREATE:
     {
+      createToolBar(hwnd);
+
       // Create the frame window
       frameHwnd = CreateWindowEx(WS_EX_CLIENTEDGE, (const TCHAR*)frameClass.classAtom,
-        0, WS_CHILD | WS_VISIBLE, 0, CTRL_BAR_HEIGHT, 10, CTRL_BAR_HEIGHT + 10,
+        0, WS_CHILD | WS_VISIBLE, 0, tb.getHeight(), 10, tb.getHeight() + 10,
         hwnd, 0, frameClass.instance, this);
-
-      createToolBar(hwnd);
 
       hMenu = GetMenu(hwnd);
 
@@ -435,8 +434,8 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       // Update the cached sizing information
       RECT r;
       GetClientRect(getMainHandle(), &r);
-      MoveWindow(getFrameHandle(), 0, CTRL_BAR_HEIGHT, r.right - r.left,
-                 r.bottom - r.top - CTRL_BAR_HEIGHT, TRUE);
+      MoveWindow(getFrameHandle(), 0, tb.getHeight(), r.right - r.left,
+                 r.bottom - r.top - tb.getHeight(), TRUE);
 
       GetWindowRect(getFrameHandle(), &r);
       window_size = Rect(r.left, r.top, r.right, r.bottom);
@@ -624,7 +623,7 @@ void RfbPlayer::createToolBar(HWND parentHwnd) {
   RECT tRect;
   InitCommonControls();
 
-  tb.create(ID_TOOLBAR, parentHwnd);
+  tb.create(ID_TOOLBAR, parentHwnd, WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT | CCS_NORESIZE);
   tb.addBitmap(4, IDB_TOOLBAR);
 
   // Create the control buttons
@@ -745,7 +744,7 @@ void RfbPlayer::setFrameSize(int width, int height) {
   RECT r = {0, 0, width, height};
   AdjustWindowRectEx(&r, GetWindowLong(getFrameHandle(), GWL_STYLE), TRUE, 
     GetWindowLong(getFrameHandle(), GWL_EXSTYLE));
-  r.bottom += CTRL_BAR_HEIGHT; // Include RfbPlayr's controls area
+  r.bottom += tb.getHeight(); // Include RfbPlayr's controls area
   AdjustWindowRect(&r, GetWindowLong(getMainHandle(), GWL_STYLE), FALSE);
   int x = max(0, (GetSystemMetrics(SM_CXSCREEN) - (r.right - r.left)) / 2);
   int y = max(0, (GetSystemMetrics(SM_CYSCREEN) - (r.bottom - r.top)) / 2);
