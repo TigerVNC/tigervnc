@@ -33,7 +33,8 @@ ToolBar::~ToolBar() {
   DestroyWindow(getHandle());
 }
 
-bool ToolBar::create(int _tbID, HWND parentHwnd, DWORD dwStyle) {
+bool ToolBar::create(int _tbID, HWND _parentHwnd, DWORD dwStyle) {
+  parentHwnd = _parentHwnd;
   dwStyle |= WS_CHILD;
 
   // Create the ToolBar window
@@ -124,6 +125,14 @@ int ToolBar::getButtonInfo(int idButton, TBBUTTONINFO *btnInfo) {
   return SendMessage(getHandle(), TB_GETBUTTONINFO, idButton, (LPARAM)btnInfo);
 }
 
+int ToolBar::getButtonsHeight() {
+  return HIWORD(SendMessage(getHandle(), TB_GETBUTTONSIZE, 0, 0));
+}
+
+int ToolBar::getButtonsWidth() {
+  return LOWORD(SendMessage(getHandle(), TB_GETBUTTONSIZE, 0, 0));
+}
+
 bool ToolBar::setButtonInfo(int idButton, TBBUTTONINFO* btnInfo) {
   assert(idButton >= 0);
   assert(btnInfo > 0);
@@ -172,5 +181,21 @@ bool ToolBar::setButtonSize(int width, int height) {
 }
 
 void ToolBar::autoSize() {
-  SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
+  DWORD style = SendMessage(getHandle(), TB_GETSTYLE,  0, 0);
+  if (style & CCS_NORESIZE) {
+    RECT r, btnRect;
+    GetClientRect(parentHwnd, &r);
+    getButtonRect(0, &btnRect);
+    int height = getButtonsHeight() + btnRect.top * 2 + 1;
+    SetWindowPos(getHandle(), HWND_TOP, 0, 0, r.right - r.left, height, 
+      SWP_NOMOVE);
+  } else {
+    SendMessage(getHandle(), TB_AUTOSIZE, 0, 0);
+  }
+}
+
+int ToolBar::getHeight() {
+  RECT r;
+  GetWindowRect(getHandle(), &r);
+  return r.bottom - r.top + 1;
 }

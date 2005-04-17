@@ -67,6 +67,12 @@ public:
   // It returns index of the button if successful, or -1 otherwise.
   int getButtonInfo(int idButton, TBBUTTONINFO *btnInfo);
 
+  // getButtonsHeight() retrieves the height of the toolbar buttons.
+  int getButtonsHeight();
+
+  // getButtonsWidth() retrieves the width of the toolbar buttons.
+  int getButtonsWidth();
+
   // setButtonInfo() sets the information for an existing button in a toolbar.
   bool setButtonInfo(int idButton, TBBUTTONINFO* ptbbi);
 
@@ -94,7 +100,11 @@ public:
   // getHandle() returns handle to a toolbar window.
   HWND getHandle() { return hwndToolBar; }
 
+  // getHeight() returns the toolbar window height.
+  int getHeight();
+
 protected:
   HWND hwndToolBar;
+  HWND parentHwnd;
   int tbID;
 };
