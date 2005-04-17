@@ -137,8 +137,9 @@ BEGIN
         MENUITEM "Go To...\tCtrl+G",            ID_GOTO
         MENUITEM SEPARATOR
         MENUITEM "Loop\tCtrl+L",                ID_LOOP
+        MENUITEM SEPARATOR
+        MENUITEM "Options...\tO",               ID_OPTIONS
     END
-    MENUITEM "Options",                     ID_OPTIONS
     POPUP "Help"
     BEGIN
         MENUITEM "Home Page",                   ID_HOMEPAGE
@@ -162,6 +163,7 @@ BEGIN
     "G",            ID_GOTO,                VIRTKEY, CONTROL, NOINVERT
     "I",            ID_SESSION_INFO,        VIRTKEY, CONTROL, NOINVERT
     "L",            ID_LOOP,                VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_OPTIONS,             VIRTKEY, NOINVERT
     "O",            ID_OPENFILE,            VIRTKEY, CONTROL, NOINVERT
     "P",            ID_OPTIONS,             VIRTKEY, CONTROL, NOINVERT
     "Q",            ID_CLOSEFILE,           VIRTKEY, CONTROL, NOINVERT
