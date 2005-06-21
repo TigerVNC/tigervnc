@@ -1124,24 +1124,24 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     }
     
     if (pvfb->pixelFormatDefined) {
-	VisualPtr vis;
-	for (vis = pScreen->visuals; vis->vid != pScreen->rootVisual; vis++)
-	    ;
-	
-	if (pvfb->rgbNotBgr) {
-	    vis->offsetBlue = 0;
-	    vis->blueMask = (1 << pvfb->blueBits) - 1;
-	    vis->offsetGreen = pvfb->blueBits;
-	    vis->greenMask = ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
-	    vis->offsetRed = vis->offsetGreen + pvfb->greenBits;
-	    vis->redMask = ((1 << pvfb->redBits) - 1) << vis->offsetRed;
-	} else {
-	    vis->offsetRed = 0;
-	    vis->redMask = (1 << pvfb->redBits) - 1;
-	    vis->offsetGreen = pvfb->redBits;
-	    vis->greenMask = ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
-	    vis->offsetBlue = vis->offsetGreen + pvfb->greenBits;
-	    vis->blueMask = ((1 << pvfb->blueBits) - 1) << vis->offsetBlue;
+	VisualPtr vis = pScreen->visuals;
+	for (int i = 0; i < pScreen->numVisuals; i++) {
+	    if (pvfb->rgbNotBgr) {
+		vis->offsetBlue = 0;
+		vis->blueMask = (1 << pvfb->blueBits) - 1;
+		vis->offsetGreen = pvfb->blueBits;
+		vis->greenMask = ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
+		vis->offsetRed = vis->offsetGreen + pvfb->greenBits;
+		vis->redMask = ((1 << pvfb->redBits) - 1) << vis->offsetRed;
+	    } else {
+		vis->offsetRed = 0;
+		vis->redMask = (1 << pvfb->redBits) - 1;
+		vis->offsetGreen = pvfb->redBits;
+		vis->greenMask = ((1 << pvfb->greenBits) - 1) << vis->offsetGreen;
+		vis->offsetBlue = vis->offsetGreen + pvfb->greenBits;
+		vis->blueMask = ((1 << pvfb->blueBits) - 1) << vis->offsetBlue;
+	    }
+	    vis++;
 	}
     }
     
