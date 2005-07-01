@@ -18,13 +18,13 @@
 #include <rfb_win32/Win32Util.h>
 
 namespace winvnc {
-
+  
   class ControlPanel : rfb::win32::Dialog, rfb::win32::ListViewControl {
   public:
-	ControlPanel(VNCServerWin32 * server, HWND hSTIcon) : Dialog(GetModuleHandle(0)), ListViewControl(){
-		m_server = server;
-		m_hSTIcon = hSTIcon;
-	};
+    ControlPanel(VNCServerWin32 * server, HWND hSTIcon) : Dialog(GetModuleHandle(0)), ListViewControl(){
+      m_server = server;
+      m_hSTIcon = hSTIcon;
+    };
     virtual bool showDialog();
     virtual void initDialog();
     virtual bool onCommand(int cmd);
@@ -34,9 +34,9 @@ namespace winvnc {
   protected: 
     virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     void getSelectedConn(std::list<network::Socket*>* selsockets);
-		VNCServerWin32 * m_server;
-		std::list<network::Socket*> sockets;
-		HWND m_hSTIcon;
+    VNCServerWin32 * m_server;
+    std::list<network::Socket*> sockets;
+    HWND m_hSTIcon;
   };
 };
 

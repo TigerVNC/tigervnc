@@ -13,24 +13,24 @@ using namespace winvnc;
 
 bool ControlPanel::showDialog()
 {
-	return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONTROL_PANEL), NULL);
+  return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONTROL_PANEL), NULL);
 }
 
 void ControlPanel::initDialog()
 {
-	TCHAR *ColumnsStrings[] = {
+  TCHAR *ColumnsStrings[] = {
     "IP address",
     "Time connected",
     "Status"
   };
-	InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 3, ColumnsStrings,
-								LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
-								LVS_EX_FULLROWSELECT, LVCFMT_LEFT);
+  InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 3, ColumnsStrings,
+                LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+                LVS_EX_FULLROWSELECT, LVCFMT_LEFT);
 }
 
 bool ControlPanel::onCommand(int cmd)
 {
-	 switch (cmd) {
+  switch (cmd) {
   case IDC_PROPERTIES:
     SendMessage(m_hSTIcon, WM_COMMAND, ID_OPTIONS, 0);
     return false;
@@ -54,17 +54,17 @@ bool ControlPanel::onCommand(int cmd)
     }
   }
   return false;
-
+  
 }
 
 void ControlPanel::UpdateListView()
 {
-
+  
 }
 
 BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	switch (msg) {
+  switch (msg) {
   case WM_INITDIALOG:
     handle = hwnd;
     initDialog();
@@ -84,10 +84,10 @@ BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 void ControlPanel::getSelectedConn(std::list<network::Socket*>* selsockets)
 {
-
+  
 }
 
 ControlPanel::~ControlPanel()
 {
-
+  
 }
