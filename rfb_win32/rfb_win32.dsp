@@ -150,6 +150,10 @@ SOURCE=.\LaunchProcess.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ListViewControl.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\MsgWindow.cxx
 # End Source File
 # Begin Source File
@@ -263,6 +267,10 @@ SOURCE=.\keymap.h
 # Begin Source File
 
 SOURCE=.\LaunchProcess.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ListViewControl.h
 # End Source File
 # Begin Source File
 

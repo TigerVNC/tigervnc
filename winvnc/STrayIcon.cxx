@@ -29,6 +29,7 @@
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/CurrentUser.h>
+#include <winvnc/ControlPanel.h>
 
 using namespace rfb;
 using namespace win32;
@@ -70,6 +71,7 @@ public:
     SetTimer(getHandle(), 1, 3000, 0);
     PostMessage(getHandle(), WM_TIMER, 1, 0);
     PostMessage(getHandle(), WM_SET_TOOLTIP, 0, 0);
+    CPanel = new ControlPanel(&thread.server, getHandle());
   }
 
   virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -82,7 +84,7 @@ public:
 
         switch (lParam) {
         case WM_LBUTTONDBLCLK:
-          SendMessage(getHandle(), WM_COMMAND, allowOptions ? ID_OPTIONS : ID_ABOUT, 0);
+          SendMessage(getHandle(), WM_COMMAND, ID_CONTR0L_PANEL, 0);
           break;
         case WM_RBUTTONUP:
           HMENU menu = LoadMenu(GetModuleHandle(0), MAKEINTRESOURCE(thread.menu));
@@ -90,7 +92,7 @@ public:
 
 
           // Default item is Options, if available, or About if not
-          SetMenuDefaultItem(trayMenu, allowOptions ? ID_OPTIONS : ID_ABOUT, FALSE);
+          SetMenuDefaultItem(trayMenu, ID_CONTR0L_PANEL, FALSE);
           
           // Enable/disable options as required
           EnableMenuItem(trayMenu, ID_OPTIONS, (!allowOptions ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
@@ -114,6 +116,11 @@ public:
       // Handle tray icon menu commands
     case WM_COMMAND:
       switch (LOWORD(wParam)) {
+			case ID_CONTR0L_PANEL:
+				{
+					CPanel->showDialog();
+				}
+		  break;
       case ID_OPTIONS:
         {
           CurrentUserToken token;
@@ -194,6 +201,7 @@ protected:
   LaunchProcess vncConfig;
   LaunchProcess vncConnect;
   STrayIconThread& thread;
+  ControlPanel * CPanel;
 };
 
 

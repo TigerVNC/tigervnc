@@ -137,6 +137,10 @@ SOURCE=.\buildTime.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ControlPanel.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\JavaViewer.cxx
 # End Source File
 # Begin Source File
@@ -170,6 +174,10 @@ SOURCE=.\winvnc.rc
 # Begin Source File
 
 SOURCE=.\AddNewClientDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ControlPanel.h
 # End Source File
 # Begin Source File
 
