@@ -190,6 +190,10 @@ SOURCE=.\TCharArray.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ToolBar.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\Win32Util.cxx
 # End Source File
 # Begin Source File
@@ -311,6 +315,10 @@ SOURCE=.\SocketManager.h
 # Begin Source File
 
 SOURCE=.\TCharArray.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ToolBar.h
 # End Source File
 # Begin Source File
 
