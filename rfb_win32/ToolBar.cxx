@@ -20,6 +20,8 @@
 
 #include "ToolBar.h"
 
+using namespace rfb::win32;
+
 ToolBar::ToolBar() : hwndToolBar(0), tbID(-1) {
   INITCOMMONCONTROLSEX icex;
 

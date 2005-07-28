@@ -16,95 +16,107 @@
  * USA.
  */
 
-// -=- ToolBar.h
+// -=- ToolBar control class.
 
 #include <windows.h>
 #include <commctrl.h>
 #include <assert.h>
 
-class ToolBar {
-public:
-  ToolBar();
-  virtual ~ToolBar();
+namespace rfb {
 
-  // create() creates a windows toolbar. dwStyle is a combination of 
-  // the toolbar control and button styles. It returns TRUE if successful,
-  // or FALSE otherwise.
-  bool create(int tbID, HWND parentHwnd, DWORD dwStyle = WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT);
+  namespace win32 {
 
-  // -=- Button images operations
+    class ToolBar {
+    public:
+      ToolBar();
+      virtual ~ToolBar();
 
-  // addBitmap() adds one or more images from resources to the list of button
-  // images available for a toolbar. Returns the index of the first new image 
-  // if successful, or -1 otherwise.
-  int addBitmap(int nButtons, UINT bitmapID);
+      // create() creates a windows toolbar. dwStyle is a combination of 
+      // the toolbar control and button styles. It returns TRUE if successful,
+      // or FALSE otherwise.
+      bool create(int tbID, HWND parentHwnd, 
+                  DWORD dwStyle = WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT);
 
-  // addSystemBitmap() adds the system-defined button bitmaps to the list
-  // of the toolbar button specifying by stdBitmapID. Returns the index of 
-  // the first new image if successful, or -1 otherwise.
-  int addSystemBitmap(UINT stdBitmapID);
+      // -=- Button images operations
 
-  // setBitmapSize() sets the size of the bitmapped images to be added
-  // to a toolbar. It returns TRUE if successful, or FALSE otherwise.
-  // You must call it before addBitmap().
-  bool setBitmapSize(int width, int height);
+      // addBitmap() adds one or more images from resources to
+      // the list of button images available for a toolbar.
+      // Returns the index of the first new image if successful,
+      // or -1 otherwise.
+      int addBitmap(int nButtons, UINT bitmapID);
 
-  // -=- Button operations
+      // addSystemBitmap() adds the system-defined button bitmaps to the list
+      // of the toolbar button specifying by stdBitmapID. Returns the index of 
+      // the first new image if successful, or -1 otherwise.
+      int addSystemBitmap(UINT stdBitmapID);
 
-  // addButton() adds one button.
-  bool addButton(int iBitmap, int idCommand, BYTE state=TBSTATE_ENABLED, BYTE style=TBSTYLE_BUTTON, UINT dwData=0, int iString=0);
+      // setBitmapSize() sets the size of the bitmapped images to be added
+      // to a toolbar. It returns TRUE if successful, or FALSE otherwise.
+      // You must call it before addBitmap().
+      bool setBitmapSize(int width, int height);
 
-  // addNButton() adds nButtons buttons to a toolbar.
-  bool addNButton(int nButtons, LPTBBUTTON tbb);
+      // -=- Button operations
 
-  // deleteButton() removes a button from the toolbar.
-  bool deleteButton(int nIndex);
+      // addButton() adds one button.
+      bool addButton(int iBitmap, int idCommand, BYTE state=TBSTATE_ENABLED, 
+                     BYTE style=TBSTYLE_BUTTON,  UINT dwData=0, int iString=0);
 
-  // insertButton() inserts a button in a toolbar control by index.
-  bool insertButton(int nIndex, LPTBBUTTON tbb);
+      // addNButton() adds nButtons buttons to a toolbar.
+      bool addNButton(int nButtons, LPTBBUTTON tbb);
 
-  // getButtonInfo() retrieves extended information about a toolbar's button.
-  // It returns index of the button if successful, or -1 otherwise.
-  int getButtonInfo(int idButton, TBBUTTONINFO *btnInfo);
+      // deleteButton() removes a button from the toolbar.
+      bool deleteButton(int nIndex);
 
-  // getButtonsHeight() retrieves the height of the toolbar buttons.
-  int getButtonsHeight();
+      // insertButton() inserts a button in a toolbar control by index.
+      bool insertButton(int nIndex, LPTBBUTTON tbb);
 
-  // getButtonsWidth() retrieves the width of the toolbar buttons.
-  int getButtonsWidth();
+      // getButtonInfo() retrieves extended information about a toolbar's 
+      // button. It returns index of the button if successful, or -1 otherwise.
+      int getButtonInfo(int idButton, TBBUTTONINFO *btnInfo);
 
-  // setButtonInfo() sets the information for an existing button in a toolbar.
-  bool setButtonInfo(int idButton, TBBUTTONINFO* ptbbi);
+      // getButtonsHeight() retrieves the height of the toolbar buttons.
+      int getButtonsHeight();
 
-  // checkButton() checks or unchecks a given button in a toolbar control.
-  bool checkButton(int idButton, bool check);
+      // getButtonsWidth() retrieves the width of the toolbar buttons.
+      int getButtonsWidth();
 
-  // enableButton() enables or disables the specified button in the toolbar.
-  bool enableButton(int idButton, bool enable);
+      // setButtonInfo() sets the information for an existing button 
+      // in a toolbar.
+      bool setButtonInfo(int idButton, TBBUTTONINFO* ptbbi);
 
-  // pressButton() presses or releases the specified button in the toolbar.
-  bool pressButton(int idButton, bool press);
+      // checkButton() checks or unchecks a given button in a toolbar control.
+      bool checkButton(int idButton, bool check);
 
-  // getButtonRect() gets the bounding rectangle of a button in a toolbar.
-  bool getButtonRect(int nIndex, LPRECT buttonRect);
+      // enableButton() enables or disables the specified button 
+      // in the toolbar.
+      bool enableButton(int idButton, bool enable);
+
+      // pressButton() presses or releases the specified button in the toolbar.
+      bool pressButton(int idButton, bool press);
+
+      // getButtonRect() gets the bounding rectangle of a button in a toolbar.
+      bool getButtonRect(int nIndex, LPRECT buttonRect);
   
-  // setButtonSize() sets the size of the buttons to be added to a toolbar.
-  // Button size must be largen the button bitmap.
-  bool setButtonSize(int width, int height);
+      // setButtonSize() sets the size of the buttons to be added to a toolbar.
+      // Button size must be largen the button bitmap.
+      bool setButtonSize(int width, int height);
 
-   
-  
-  // autoSize() resizes the toolbar window.
-  void autoSize();
 
-  // getHandle() returns handle to a toolbar window.
-  HWND getHandle() { return hwndToolBar; }
+      // autoSize() resizes the toolbar window.
+      void autoSize();
 
-  // getHeight() returns the toolbar window height.
-  int getHeight();
+      // getHandle() returns handle to a toolbar window.
+      HWND getHandle() { return hwndToolBar; }
 
-protected:
-  HWND hwndToolBar;
-  HWND parentHwnd;
-  int tbID;
-};
+      // getHeight() returns the toolbar window height.
+      int getHeight();
+
+    protected:
+      HWND hwndToolBar;
+      HWND parentHwnd;
+      int tbID;
+    };
+
+  }; // win32
+
+}; // rfb
