@@ -306,6 +306,35 @@ static bool DETECT_SMOOTH_IMAGE (PIXEL_T *buf, const Rect& r)
       s_pjconf == NULL)
     return 0;
 
+  // Quick-n-dirty code to prevent jpeg on images with vertical or
+  // horizontal outer-bands with the same color, such as updates in
+  // response to window moves. Without this code, window movements
+  // leaves dark "trails". The pixels used for this detection are
+  // illustrated below:
+  // *    *
+  //
+  // *         *
+  //
+  //      *    *
+  unsigned int row2_offset = r.height() / 2; row2_offset *= r.width();
+  unsigned int row3_offset = r.width() * (r.height() - 1);
+  PIXEL_T row1_first = buf[0];
+  PIXEL_T row1_middle = buf[r.width() / 2];
+  PIXEL_T row2_first = buf[row2_offset];
+  PIXEL_T row2_last = buf[row2_offset + r.width() - 1];
+  PIXEL_T row3_middle = buf[row3_offset + r.width() / 2];
+  PIXEL_T row3_last = buf[row3_offset + r.width() - 1];
+
+  if ( ((row1_first == row1_middle) || (row3_middle == row3_last)) 
+       && (row1_first != row3_middle) ) {
+      return 0;
+  }
+
+  if ( ((row1_first == row2_first) || (row2_last == row3_last)) 
+       && (row2_first != row2_last) ) {
+      return 0;
+  }
+
   return 1;
 }
 #endif
