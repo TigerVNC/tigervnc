@@ -1187,7 +1187,7 @@ CView::framebufferUpdateEnd() {
 // to the connection speed:
 //
 //   Above 16Mbps (timing for at least a second), switch to hextile
-//   Otherwise, switch to Tight
+//   Otherwise, switch to ZRLE
 //
 //   Above 256Kbps, use full colour mode
 //
@@ -1202,7 +1202,7 @@ CView::autoSelectFormatAndEncoding() {
   if (kbitsPerSecond > 16000 && timeWaited >= 10000) {
     newEncoding = encodingHextile;
   } else {
-    newEncoding = encodingTight;
+    newEncoding = encodingZRLE;
   }
 
   if (newEncoding != options.preferredEncoding) {

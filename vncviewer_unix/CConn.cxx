@@ -53,7 +53,7 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   : dpy(dpy_), argc(argc_),
     argv(argv_), serverHost(0), serverPort(0), sock(sock_), viewport(0),
     desktop(0), desktopEventHandler(0),
-    currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
+    currentEncoding(encodingZRLE), lastServerEncoding((unsigned int)-1),
     fullColour(::fullColour),
     autoSelect(::autoSelect), shared(::shared), formatChange(false),
     encodingChange(false), sameMachine(false), fullScreen(::fullScreen),
@@ -648,7 +648,7 @@ void CConn::reconfigureViewport()
 // to the connection speed:
 //
 //   Above 16Mbps (timing for at least a second), switch to hextile
-//   Otherwise, switch to Tight
+//   Otherwise, switch to ZRLE
 //
 //   Above 256Kbps, use full colour mode
 //
@@ -663,7 +663,7 @@ void CConn::autoSelectFormatAndEncoding()
   if (kbitsPerSecond > 16000 && timeWaited >= 10000) {
     newEncoding = encodingHextile;
   } else {
-    newEncoding = encodingTight;
+    newEncoding = encodingZRLE;
   }
 
   if (newEncoding != currentEncoding) {
