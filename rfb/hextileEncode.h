@@ -222,7 +222,7 @@ int TEST_TILE_TYPE (PIXEL_T* data, int w, int h, PIXEL_T* bg, PIXEL_T* fg)
       pix2 = *ptr;
     }
 
-    if (*data == pix2) {
+    if (*ptr == pix2) {
       count2++;
       continue;
     }
