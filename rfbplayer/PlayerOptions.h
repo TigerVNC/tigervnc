@@ -21,8 +21,6 @@
 // Definition of the PlayerOptions class, responsible for 
 // storing & retrieving the RfbPlayer's options.
 
-#include <windows.h>
-
 #include <rfb/PixelFormat.h>
 
 #include <rfb_win32/registry.h>

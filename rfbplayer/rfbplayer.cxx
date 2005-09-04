@@ -18,16 +18,16 @@
 
 // -=- RFB Player for Win32
 
-#include <rfb/LogWriter.h>
-#include <rfb/Exception.h>
-#include <rfb/Threading.h>
+#include <windows.h>
 
-#include <rfb_win32/Win32Util.h>
-#include <rfb_win32/WMShatter.h> 
 #include <rfb_win32/AboutDialog.h>
+#include <rfb_win32/WMShatter.h>
 
-#include <rfbplayer/PixelFormatList.h>
 #include <rfbplayer/rfbplayer.h>
+#include <rfbplayer/ChoosePixelFormatDialog.h>
+#include <rfbplayer/GotoPosDialog.h>
+#include <rfbplayer/InfoDialog.h>
+#include <rfbplayer/SessionInfoDialog.h>
   
 using namespace rfb;
 using namespace rfb::win32;
@@ -68,23 +68,11 @@ char usage_msg[] =
  "  -autoplay     \t- Runs the player in the playback mode.\r\n"
  "  -loop         \t- Replays the rfb session.";
 
-// -=- RfbPlayer's defines
+// -=- RfbPlayer's defines and consts
 
 #define strcasecmp _stricmp
-#define MAX_SPEED 10.00
-#define CALCULATION_ERROR MAX_SPEED / 1000
-#define MAX_POS_TRACKBAR_RANGE 50
 #define DEFAULT_PLAYER_WIDTH 640
 #define DEFAULT_PLAYER_HEIGHT 480 
-
-#define ID_TOOLBAR 500
-#define ID_PLAY 510
-#define ID_PAUSE 520
-#define ID_TIME_STATIC 530
-#define ID_SPEED_STATIC 540
-#define ID_SPEED_EDIT 550
-#define ID_POS_TRACKBAR 560
-#define ID_SPEED_UPDOWN 570
 
 //
 // -=- AboutDialog global values
@@ -236,10 +224,8 @@ RfbFrameClass frameClass;
 RfbPlayer::RfbPlayer(char *_fileName, PlayerOptions *_options)
 : RfbProto(_fileName), fileName(_fileName), buffer(0), client_size(0, 0, 32, 32),
   window_size(0, 0, 32, 32), cutText(0), seekMode(false), lastPos(0), 
-  timeStatic(0), speedEdit(0), posTrackBar(0), speedUpDown(0), 
-  rfbReader(0), sessionTimeMs(0), sliderDraging(false), sliderStepMs(0), 
-  imageDataStartTime(0), rewindFlag(false), stopped(false), 
-  currentEncoding(-1) {
+  rfbReader(0), sessionTimeMs(0), sliderStepMs(0), imageDataStartTime(0), 
+  rewindFlag(false), stopped(false), currentEncoding(-1) {
 
   // Save the player options
   memcpy(&options, _options, sizeof(options));
@@ -300,13 +286,14 @@ RfbPlayer::~RfbPlayer() {
 
 LRESULT 
 RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+
   switch (msg) {
 
     // -=- Process standard window messages
   
   case WM_CREATE:
     {
-      createToolBar(hwnd);
+      tb.create(this, hwnd);
 
       // Create the frame window
       frameHwnd = CreateWindowEx(WS_EX_CLIENTEDGE, (const TCHAR*)frameClass.classAtom,
@@ -321,6 +308,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     // Process the main menu and toolbar's messages
 
   case WM_COMMAND:
+
     switch (LOWORD(wParam)) {
     case ID_OPENFILE:
       {
@@ -377,7 +365,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (gotoPosDlg.showDialog(getMainHandle())) {
           long gotoTime = min(gotoPosDlg.getPos(), sessionTimeMs);
           setPos(gotoTime);
-          updatePos(gotoTime);
+          tb.updatePos(gotoTime);
           setPaused(isPaused());;
         }
       }
@@ -388,18 +376,7 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       else CheckMenuItem(hMenu, ID_LOOP, MF_UNCHECKED);
       break;
     case ID_RETURN:
-        // Update the speed if return pressed in speedEdit
-      if (speedEdit == GetFocus()) {
-        char speedStr[20], *stopStr;
-        GetWindowText(speedEdit, speedStr, sizeof(speedStr));
-        double speed = strtod(speedStr, &stopStr);
-        if (speed > 0) {
-          speed = min(MAX_SPEED, speed);
-        } else {
-          speed = getSpeed();
-        }
-        setSpeed(speed);
-      }
+      tb.processWM_COMMAND(wParam, lParam);
       break;
     case ID_OPTIONS:
       {
@@ -456,64 +433,12 @@ RfbPlayer::processMainMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     } 
     break;
 
-    // Process messages from posTrackBar
-
   case WM_HSCROLL:
-    {
-      long Pos = SendMessage(posTrackBar, TBM_GETPOS, 0, 0);
-      Pos *= sliderStepMs;
-
-      switch (LOWORD(wParam)) { 
-      case TB_PAGEUP:
-      case TB_PAGEDOWN:
-      case TB_LINEUP:
-      case TB_LINEDOWN:
-      case TB_THUMBTRACK:
-        sliderDraging = true;
-        updatePos(Pos);
-        return 0;
-      case TB_THUMBPOSITION:
-      case TB_ENDTRACK: 
-        setPos(Pos);
-        setPaused(isPaused());;
-        updatePos(Pos);
-        sliderDraging = false;
-        return 0;
-      default:
-        break;
-      }
-    }
+    tb.processWM_HSCROLL(wParam, lParam);
     break;
   
   case WM_NOTIFY:
-    switch (((NMHDR*)lParam)->code) {
-    case UDN_DELTAPOS:
-      if ((int)wParam == ID_SPEED_UPDOWN) {
-        BOOL lResult = FALSE;
-        char speedStr[20] = "\0";
-        DWORD speedRange = SendMessage(speedUpDown, UDM_GETRANGE, 0, 0);
-        LPNM_UPDOWN upDown = (LPNM_UPDOWN)lParam;
-        double speed;
-
-        // The out of range checking
-        if (upDown->iDelta > 0) {
-          speed = min(upDown->iPos + upDown->iDelta, LOWORD(speedRange)) * 0.5;
-        } else {
-          // It's need to round the UpDown position
-          if ((upDown->iPos * 0.5) != getSpeed()) {
-            upDown->iDelta = 0;
-            lResult = TRUE;
-          }
-          speed = max(upDown->iPos + upDown->iDelta, HIWORD(speedRange)) * 0.5;
-        }
-        sprintf(speedStr, "%.2f", speed);
-        SetWindowText(speedEdit, speedStr);
-        is->setSpeed(speed);
-        options.playbackSpeed = speed;
-        return lResult;
-      }
-    }
-    return 0;
+    return tb.processWM_NOTIFY(wParam, lParam);
 
   case WM_CLOSE:
     vlog.debug("WM_CLOSE %x", getMainHandle());
@@ -621,82 +546,6 @@ LRESULT RfbPlayer::processFrameMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARA
   return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-void RfbPlayer::createToolBar(HWND parentHwnd) {
-  HDC hdc;
-  SIZE sz;
-  RECT tRect;
-  NONCLIENTMETRICS nonClientMetrics;
-
-  // Get the default font for the main menu
-  nonClientMetrics.cbSize = sizeof(NONCLIENTMETRICS);
-  if (!SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nonClientMetrics, 0))
-    MessageBox(getMainHandle(), "Can't access to the system font.", 
-    "RfbPlayer", MB_OK | MB_ICONERROR);
-  nonClientMetrics.lfMenuFont.lfHeight = 16;
-  hFont = CreateFontIndirect(&nonClientMetrics.lfMenuFont);
-
-  tb.create(ID_TOOLBAR, parentHwnd, WS_CHILD | WS_VISIBLE | TBSTYLE_FLAT | CCS_NORESIZE);
-  tb.addBitmap(4, IDB_TOOLBAR);
-
-  // Create the control buttons
-  tb.addButton(0, ID_PLAY);
-  tb.addButton(1, ID_PAUSE);
-  tb.addButton(2, ID_STOP);
-  tb.addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-
-  // Create the static control for the time output
-  timeStatic = CreateWindowEx(0, "Static", "00m:00s (00m:00s)", 
-    WS_CHILD | WS_VISIBLE, 0, 0, 20, 20, tb.getHandle(), (HMENU)ID_TIME_STATIC, 
-    GetModuleHandle(0), 0);
-  SendMessage(timeStatic, WM_SETFONT,(WPARAM) hFont, TRUE);
-  hdc = GetDC(timeStatic);
-  SelectObject(hdc, hFont);
-  GetTextExtentPoint32(hdc, "00m:00s (00m:00s)", 16, &sz);
-  tb.addButton(sz.cx + 10, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.addButton(0, 10, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(4, &tRect);
-  MoveWindow(timeStatic, tRect.left, tRect.top+2, tRect.right-tRect.left, 
-    tRect.bottom-tRect.top, FALSE);
-    
-  // Create the trackbar control for the time position
-  tb.addButton(200, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(6, &tRect);
-  posTrackBar = CreateWindowEx(0, TRACKBAR_CLASS, "Trackbar Control", 
-    WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE,
-    tRect.left, tRect.top, tRect.right-tRect.left, tRect.bottom-tRect.top,
-    parentHwnd, (HMENU)ID_POS_TRACKBAR, GetModuleHandle(0), 0);
-  // It's need to send notify messages to toolbar parent window
-  SetParent(posTrackBar, tb.getHandle());
-  tb.addButton(0, 10, TBSTATE_ENABLED, TBSTYLE_SEP);
-
-  // Create the label with "Speed:" caption
-  HWND speedStatic = CreateWindowEx(0, "Static", "Speed:", WS_CHILD | WS_VISIBLE, 
-    0, 0, 5, 5, tb.getHandle(), (HMENU)ID_SPEED_STATIC, GetModuleHandle(0), 0);
-  SendMessage(speedStatic, WM_SETFONT,(WPARAM) hFont, TRUE);
-  hdc = GetDC(speedStatic);
-  SelectObject(hdc, hFont);
-  GetTextExtentPoint32(hdc, "Speed:", 6, &sz);
-  tb.addButton(sz.cx + 10, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(8, &tRect);
-  MoveWindow(speedStatic, tRect.left, tRect.top+2, tRect.right-tRect.left, 
-    tRect.bottom-tRect.top, FALSE);
-
-  // Create the edit control and the spin for the speed managing
-  tb.addButton(60, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  tb.getButtonRect(9, &tRect);
-  speedEdit = CreateWindowEx(WS_EX_CLIENTEDGE, "Edit", "1.00", 
-    WS_CHILD | WS_VISIBLE | ES_RIGHT, tRect.left, tRect.top, 
-    tRect.right-tRect.left, tRect.bottom-tRect.top, parentHwnd,
-    (HMENU)ID_SPEED_EDIT, GetModuleHandle(0), 0);
-  SendMessage(speedEdit, WM_SETFONT,(WPARAM) hFont, TRUE);
-  // It's need to send notify messages to toolbar parent window
-  SetParent(speedEdit, tb.getHandle());
-
-  speedUpDown = CreateUpDownControl(WS_CHILD | WS_VISIBLE  
-    | WS_BORDER | UDS_ALIGNRIGHT, 0, 0, 0, 0, tb.getHandle(),
-    ID_SPEED_UPDOWN, GetModuleHandle(0), speedEdit, 20, 1, 2);
-}
-
 void RfbPlayer::disableTBandMenuItems() {
   // Disable the menu items
   EnableMenuItem(hMenu, ID_CLOSEFILE, MF_GRAYED | MF_BYCOMMAND);
@@ -711,13 +560,7 @@ void RfbPlayer::disableTBandMenuItems() {
   ///EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_GRAYED | MF_BYCOMMAND);
   
   // Disable the toolbar buttons and child controls
-  tb.enableButton(ID_PLAY, false);
-  tb.enableButton(ID_PAUSE, false);
-  tb.enableButton(ID_STOP, false);
-  tb.enableButton(ID_FULLSCREEN, false);
-  EnableWindow(posTrackBar, false);
-  EnableWindow(speedEdit, false);
-  EnableWindow(speedUpDown, false);
+  tb.disable();
 }
 
 void RfbPlayer::enableTBandMenuItems() {
@@ -734,13 +577,7 @@ void RfbPlayer::enableTBandMenuItems() {
   ///EnableMenuItem(hMenu, ID_FRAMEEXTRACT, MF_ENABLED | MF_BYCOMMAND);
   
   // Enable the toolbar buttons and child controls
-  tb.enableButton(ID_PLAY, true);
-  tb.enableButton(ID_PAUSE, true);
-  tb.enableButton(ID_STOP, true);
-  tb.enableButton(ID_FULLSCREEN, true);
-  EnableWindow(posTrackBar, true);
-  EnableWindow(speedEdit, true);
-  EnableWindow(speedUpDown, true);
+  tb.enable();
 }
 
 void RfbPlayer::setVisible(bool visible) {
@@ -884,9 +721,9 @@ void RfbPlayer::processMsg() {
   static long update_time = GetTickCount();
   try {
     if ((!isSeeking()) && ((GetTickCount() - update_time) > 250)
-      && (!sliderDraging)) {
+      && (!tb.isPosSliderDragging())) {
       // Update pos in the toolbar 4 times in 1 second
-      updatePos(getTimeOffset());
+      tb.updatePos(getTimeOffset());
       update_time = GetTickCount();
     }
     RfbProto::processMsg();
@@ -894,8 +731,7 @@ void RfbPlayer::processMsg() {
     if (strcmp(e.str(), "[End Of File]") == 0) {
       rewind();
       setPaused(!options.loopPlayback);
-      updatePos(getTimeOffset());
-      SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
+      tb.updatePos(getTimeOffset());
       return;
     }
     // It's a special exception to perform backward seeking.
@@ -906,10 +742,10 @@ void RfbPlayer::processMsg() {
       rewind();
       if (!stopped) setPos(seekOffset);
       else stopped = false;
-      updatePos(seekOffset);
+      tb.updatePos(seekOffset);
       rewindFlag = false;
       return;
-    } 
+    }
     // It's a special exception which is used to terminate the playback
     if (strcmp(e.str(), "[TERMINATE]") == 0) {
       sessionTerminateThread *terminate = new sessionTerminateThread(this);
@@ -983,14 +819,10 @@ void RfbPlayer::serverInit() {
   // Set the window title and show it
   setTitle(cp.name());
 
-  // Calculate the full session time and update posTrackBar control
+  // Calculate the full session time and update posTrackBar control in toolbar
   sessionTimeMs = calculateSessionTime(fileName);
-  sprintf(fullSessionTime, "%.2um:%.2us", 
-    sessionTimeMs / 1000 / 60, sessionTimeMs / 1000 % 60);
-  SendMessage(posTrackBar, TBM_SETRANGE, 
-    TRUE, MAKELONG(0, min(sessionTimeMs / 1000, MAX_POS_TRACKBAR_RANGE)));
-  sliderStepMs = sessionTimeMs / SendMessage(posTrackBar, TBM_GETRANGEMAX, 0, 0);
-  updatePos(getTimeOffset());
+  tb.init(sessionTimeMs);
+  tb.updatePos(getTimeOffset());
 
   setPaused(!options.autoPlay);
   // Restore the parameters from registry,
@@ -1094,7 +926,6 @@ void RfbPlayer::init() {
 }
 
 void RfbPlayer::closeSessionFile() {
-  char speedStr[10];
   DWORD dwStyle;
   RECT r;
 
@@ -1115,13 +946,8 @@ void RfbPlayer::closeSessionFile() {
   }
   blankBuffer();
   setTitle("None");
-  SetWindowText(timeStatic,"00m:00s (00m:00s)");
   options.playbackSpeed = 1.0;
-  SendMessage(speedUpDown, UDM_SETPOS, 
-    0, MAKELONG((short)(options.playbackSpeed / 0.5), 0));
-  sprintf(speedStr, "%.2f", options.playbackSpeed);
-  SetWindowText(speedEdit, speedStr);
-  SendMessage(posTrackBar, TBM_SETRANGE, TRUE, MAKELONG(0, 0));
+  tb.init(0);
     
   // Change the player window size and frame size to default
   if ((dwStyle = GetWindowLong(getMainHandle(), GWL_STYLE)) & WS_MAXIMIZE) {
@@ -1158,7 +984,7 @@ void RfbPlayer::openSessionFile(char *_fileName) {
   setSpeed(options.playbackSpeed);
   rfbReader = new rfbSessionReader(this);
   rfbReader->start();
-  SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
+  tb.setTimePos(0);
   enableTBandMenuItems();
 }
 
@@ -1189,8 +1015,8 @@ void RfbPlayer::stopPlayback() {
   tb.checkButton(ID_PLAY, false);
   tb.checkButton(ID_PAUSE, false);
   tb.enableButton(ID_PAUSE, false);
+  tb.setTimePos(0);
   EnableMenuItem(hMenu, ID_STOP, MF_GRAYED | MF_BYCOMMAND);
-  SendMessage(posTrackBar, TBM_SETPOS, TRUE, 0);
 }
 
 void RfbPlayer::setSpeed(double speed) {
@@ -1199,10 +1025,10 @@ void RfbPlayer::setSpeed(double speed) {
     double newSpeed = min(speed, MAX_SPEED);
     is->setSpeed(newSpeed);
     options.playbackSpeed = newSpeed;
-    SendMessage(speedUpDown, UDM_SETPOS, 
+    SendMessage(tb.getSpeedUpDownHwnd(), UDM_SETPOS, 
       0, MAKELONG((short)(newSpeed / 0.5), 0));
     sprintf(speedStr, "%.2f", newSpeed);
-    SetWindowText(speedEdit, speedStr);
+    SetWindowText(tb.getSpeedEditHwnd(), speedStr);
   }
 }
 
@@ -1233,23 +1059,6 @@ bool RfbPlayer::isPaused() {
 
 long RfbPlayer::getTimeOffset() {
   return max(is->getTimeOffset(), is->getSeekOffset());
-}
-
-void RfbPlayer::updatePos(long newPos) {
-  // Update time pos in static control
-  char timePos[30] = "\0";
-  long time = newPos / 1000;
-  sprintf(timePos, "%.2um:%.2us (%s)", time/60, time%60, fullSessionTime);
-  SetWindowText(timeStatic, timePos);
-
-  // Update the position of slider
-  if (!sliderDraging) {
-    double error = SendMessage(posTrackBar, TBM_GETPOS, 0, 0) * 
-      sliderStepMs / double(newPos);
-    if (!((error > 1 - CALCULATION_ERROR) && (error <= 1 + CALCULATION_ERROR))) {
-      SendMessage(posTrackBar, TBM_SETPOS, TRUE, newPos / sliderStepMs);
-    }
-  }
 }
 
 void RfbPlayer::skipHandshaking() {

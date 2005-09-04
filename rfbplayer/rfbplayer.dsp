@@ -116,6 +116,10 @@ SOURCE=.\PlayerOptions.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\PlayerToolBar.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\rfbplayer.cxx
 # End Source File
 # Begin Source File
@@ -125,10 +129,6 @@ SOURCE=.\rfbplayer.rc
 # Begin Source File
 
 SOURCE=.\RfbProto.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\ToolBar.cxx
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -168,6 +168,10 @@ SOURCE=.\PlayerOptions.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\PlayerToolBar.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\rfbplayer.h
 # End Source File
 # Begin Source File
@@ -181,10 +185,6 @@ SOURCE=.\rfbSessionReader.h
 # Begin Source File
 
 SOURCE=.\SessionInfoDialog.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ToolBar.h
 # End Source File
 # Begin Source File
 

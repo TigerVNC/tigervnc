@@ -18,23 +18,20 @@
 
 // -=- RfbPlayer.h
 
-#include <commdlg.h>
 #include <windows.h>
-#include <shellapi.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
 
 #include <rfbplayer/resource.h>
-#include <rfbplayer/ToolBar.h>
-#include <rfbplayer/rfbSessionReader.h>
-#include <rfbplayer/GotoPosDialog.h>
-#include <rfbplayer/ChoosePixelFormatDialog.h>
+#include <rfbplayer/PixelFormatList.h>
+#include <rfbplayer/PlayerToolBar.h>
 #include <rfbplayer/OptionsDialog.h>
-#include <rfbplayer/InfoDialog.h>
-#include <rfbplayer/SessionInfoDialog.h>
+#include <rfbplayer/rfbSessionReader.h>
 
 using namespace rfb;
 using namespace rfb::win32;
+
+class PlayerToolBar;
 
 class RfbPlayer : public RfbProto {
   public:
@@ -50,7 +47,6 @@ class RfbPlayer : public RfbProto {
 
     HWND getMainHandle() const {return mainHwnd;}
     HWND getFrameHandle() const {return frameHwnd;}
-    void createToolBar(HWND parentHwnd);
     void disableTBandMenuItems();
     void enableTBandMenuItems();
     void setFrameSize(int width, int height);
@@ -58,7 +54,6 @@ class RfbPlayer : public RfbProto {
     void setTitle(const char *title);
     void calculateScrollBars();
     void close(const char* reason=0);
-    void updatePos(long pos);
     void init();
 
     // -=- Coordinate conversions
@@ -144,7 +139,6 @@ class RfbPlayer : public RfbProto {
     bool seekMode;
     bool stopped;
     long lastPos;
-    bool sliderDraging;
     long sliderStepMs;
     char fullSessionTime[20];
     int time_pos_m;
@@ -166,10 +160,6 @@ class RfbPlayer : public RfbProto {
     // Local window state
     HWND mainHwnd;
     HWND frameHwnd;
-    HWND timeStatic;
-    HWND speedEdit;
-    HWND posTrackBar;
-    HWND speedUpDown;
     HMENU hMenu;
     Rect window_size;
     Rect client_size;
@@ -177,7 +167,7 @@ class RfbPlayer : public RfbProto {
     Point maxscrolloffset;
     char *cutText;
     win32::DIBSectionBuffer* buffer;
-    ToolBar tb;
+    PlayerToolBar tb;
 
     // The player's parameters
     PlayerOptions options;
