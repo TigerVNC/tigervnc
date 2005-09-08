@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2004-2005 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
+// FIXME: Check cases when screen width/height is not a multiply of 32.
+//        e.g. 800x600.
+
 #include <strings.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 #include <rfb/Logger_stdio.h>
@@ -33,8 +39,9 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#ifdef HAVE_XTEST
 #include <X11/extensions/XTest.h>
-
+#endif
 
 #include <rfb/Encoder.h>
 
@@ -44,8 +51,14 @@ using namespace network;
 
 LogWriter vlog("main");
 
+IntParameter pollingCycle("PollingCycle", "Milliseconds per one "
+                          "polling cycle", 50);
+BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
+BoolParameter useOverlay("OverlayMode", "Use overlay mode under "
+                         "IRIX or Solaris", true);
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
+StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
 VncAuthPasswdFileParameter vncAuthPasswdFile;
 
 static void CleanupSignalHandler(int sig)
@@ -61,8 +74,10 @@ class XDesktop : public SDesktop, public rfb::ColourMap
 {
 public:
   XDesktop(Display* dpy_)
-    : dpy(dpy_), pb(0), server(0), oldButtonMask(0), haveXtest(false)
+    : dpy(dpy_), pb(0), server(0), oldButtonMask(0), haveXtest(false),
+      maxButtons(0), pollingStep(0)
   {
+#ifdef HAVE_XTEST
     int xtestEventBase;
     int xtestErrorBase;
     int major, minor;
@@ -73,27 +88,41 @@ public:
       vlog.info("XTest extension present - version %d.%d",major,minor);
       haveXtest = true;
     } else {
+#endif
       vlog.info("XTest extension not present");
       vlog.info("unable to inject events or display while server is grabbed");
+#ifdef HAVE_XTEST
     }
+#endif
+
+    // Determine actual number of buttons of the X pointer device.
+    unsigned char btnMap[8];
+    int numButtons = XGetPointerMapping(dpy, btnMap, 8);
+    maxButtons = (numButtons > 8) ? 8 : numButtons;
+    vlog.info("Enabling %d button%s of X pointer device",
+              maxButtons, (maxButtons != 1) ? "s" : "");
 
     int dpyWidth = DisplayWidth(dpy, DefaultScreen(dpy));
     int dpyHeight = DisplayHeight(dpy, DefaultScreen(dpy));
-    Visual* vis = DefaultVisual(dpy, DefaultScreen(dpy));
 
-    image = new Image(dpy, dpyWidth, dpyHeight);
+    // FIXME: verify that all three images use the same pixel format.
+    ImageFactory factory((bool)useShm, (bool)useOverlay);
+    image = factory.newImage(dpy, dpyWidth, dpyHeight);
+    rowImage = factory.newImage(dpy, dpyWidth, 1);
+    tileImage = factory.newImage(dpy, 32, 32);
+
     image->get(DefaultRootWindow(dpy));
 
     pf.bpp = image->xim->bits_per_pixel;
     pf.depth = image->xim->depth;
     pf.bigEndian = (image->xim->byte_order == MSBFirst);
-    pf.trueColour = (vis->c_class == TrueColor);
-    pf.redShift   = ffs(vis->red_mask) - 1;
-    pf.greenShift = ffs(vis->green_mask) - 1;
-    pf.blueShift  = ffs(vis->blue_mask) - 1;
-    pf.redMax     = vis->red_mask   >> pf.redShift;
-    pf.greenMax   = vis->green_mask >> pf.greenShift;
-    pf.blueMax    = vis->blue_mask  >> pf.blueShift;
+    pf.trueColour = image->isTrueColor();
+    pf.redShift   = ffs(image->xim->red_mask) - 1;
+    pf.greenShift = ffs(image->xim->green_mask) - 1;
+    pf.blueShift  = ffs(image->xim->blue_mask) - 1;
+    pf.redMax     = image->xim->red_mask   >> pf.redShift;
+    pf.greenMax   = image->xim->green_mask >> pf.greenShift;
+    pf.blueMax    = image->xim->blue_mask  >> pf.blueShift;
 
     pb = new FullFramePixelBuffer(pf, dpyWidth, dpyHeight,
                                   (rdr::U8*)image->xim->data, this);
@@ -110,10 +139,11 @@ public:
   // -=- SDesktop interface
 
   virtual void pointerEvent(const Point& pos, rdr::U8 buttonMask) {
+#ifdef HAVE_XTEST
     if (!haveXtest) return;
     XTestFakeMotionEvent(dpy, DefaultScreen(dpy), pos.x, pos.y, CurrentTime);
     if (buttonMask != oldButtonMask) {
-      for (int i = 0; i < 5; i++) {
+      for (int i = 0; i < maxButtons; i++) {
 	if ((buttonMask ^ oldButtonMask) & (1<<i)) {
           if (buttonMask & (1<<i)) {
             XTestFakeButtonEvent(dpy, i+1, True, CurrentTime);
@@ -124,13 +154,16 @@ public:
       }
     }
     oldButtonMask = buttonMask;
+#endif
   }
 
   virtual void keyEvent(rdr::U32 key, bool down) {
+#ifdef HAVE_XTEST
     if (!haveXtest) return;
     int keycode = XKeysymToKeycode(dpy, key);
     if (keycode)
       XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
+#endif
   }
 
   virtual void clientCutText(const char* str, int len) {
@@ -154,12 +187,73 @@ public:
     *b = xc.blue;
   }
 
-  virtual void poll() {
-    if (server && server->clientsReadyForUpdate()) {
-      image->get(DefaultRootWindow(dpy));
-      server->add_changed(pb->getRect());
-      server->tryUpdate();
+  //
+  // DEBUG: a version of poll() measuring time spent in the function.
+  //
+
+  virtual void pollDebug()
+  {
+    struct timeval timeSaved, timeNow;
+    struct timezone tz;
+    timeSaved.tv_sec = 0;
+    timeSaved.tv_usec = 0;
+    gettimeofday(&timeSaved, &tz);
+
+    poll();
+
+    gettimeofday(&timeNow, &tz);
+    int diff = (int)((timeNow.tv_usec - timeSaved.tv_usec + 500) / 1000 +
+                     (timeNow.tv_sec - timeSaved.tv_sec) * 1000);
+    if (diff != 0)
+      fprintf(stderr, "DEBUG: poll(): %4d ms\n", diff);
+  }
+
+  //
+  // Search for changed rectangles on the screen.
+  //
+
+  virtual void poll()
+  {
+    if (server == NULL)
+      return;
+
+    int nTilesChanged = 0;
+    int scanLine = XDesktop::pollingOrder[pollingStep++ % 32];
+    int bytesPerPixel = image->xim->bits_per_pixel / 8;
+    int bytesPerLine = image->xim->bytes_per_line;
+    int w = image->xim->width, h = image->xim->height;
+    Rect rect;
+
+    for (int y = 0; y * 32 < h; y++) {
+      int tile_h = (h - y * 32 >= 32) ? 32 : h - y * 32;
+      if (scanLine >= tile_h)
+        continue;
+      int scan_y = y * 32 + scanLine;
+      rowImage->get(DefaultRootWindow(dpy), 0, scan_y);
+      char *ptr_old = image->xim->data + scan_y * bytesPerLine;
+      char *ptr_new = rowImage->xim->data;
+      for (int x = 0; x * 32 < w; x++) {
+        int tile_w = (w - x * 32 >= 32) ? 32 : w - x * 32;
+        int nBytes = tile_w * bytesPerPixel;
+        if (memcmp(ptr_old, ptr_new, nBytes)) {
+          if (tile_w == 32 && tile_h == 32) {
+            tileImage->get(DefaultRootWindow(dpy), x * 32, y * 32);
+          } else {
+            tileImage->get(DefaultRootWindow(dpy), x * 32, y * 32,
+                           tile_w, tile_h);
+          }
+          image->updateRect(tileImage, x * 32, y * 32);
+          rect.setXYWH(x * 32, y * 32, tile_w, tile_h);
+          server->add_changed(rect);
+          nTilesChanged++;
+        }
+        ptr_old += nBytes;
+        ptr_new += nBytes;
+      }
     }
+
+    if (nTilesChanged)
+      server->tryUpdate();
   }
 
 protected:
@@ -168,9 +262,122 @@ protected:
   PixelBuffer* pb;
   VNCServer* server;
   Image* image;
+  Image* rowImage;
+  Image* tileImage;
   int oldButtonMask;
   bool haveXtest;
+  int maxButtons;
+  unsigned int pollingStep;
+  static const int pollingOrder[];
 };
+
+const int XDesktop::pollingOrder[32] = {
+   0, 16,  8, 24,  4, 20, 12, 28,
+  10, 26, 18,  2, 22,  6, 30, 14,
+   1, 17,  9, 25,  7, 23, 15, 31,
+  19,  3, 27, 11, 29, 13,  5, 21
+};
+
+
+class FileTcpFilter : public TcpFilter
+{
+
+public:
+
+  FileTcpFilter(const char *fname)
+    : TcpFilter("-"), fileName(NULL), lastModTime(0)
+  {
+    if (fname != NULL)
+      fileName = strdup((char *)fname);
+  }
+
+  virtual ~FileTcpFilter()
+  {
+    if (fileName != NULL)
+      free(fileName);
+  }
+
+  virtual bool verifyConnection(Socket* s)
+  {
+    if (!reloadRules()) {
+      vlog.error("Could not read IP filtering rules: rejecting all clients");
+      filter.clear();
+      filter.push_back(parsePattern("-"));
+      return false;
+    }
+
+    return TcpFilter::verifyConnection(s);
+  }
+
+protected:
+
+  bool reloadRules()
+  {
+    if (fileName == NULL)
+      return true;
+
+    struct stat st;
+    if (stat(fileName, &st) != 0)
+      return false;
+
+    if (st.st_mtime != lastModTime) {
+      // Actually reload only if the file was modified
+      FILE *fp = fopen(fileName, "r");
+      if (fp == NULL)
+        return false;
+
+      // Remove all the rules from the parent class
+      filter.clear();
+
+      // Parse the file contents adding rules to the parent class
+      char buf[32];
+      while (readLine(buf, 32, fp)) {
+        if (buf[0] && strchr("+-?", buf[0])) {
+          filter.push_back(parsePattern(buf));
+        }
+      }
+
+      fclose(fp);
+      lastModTime = st.st_mtime;
+    }
+    return true;
+  }
+
+protected:
+
+  char *fileName;
+  time_t lastModTime;
+
+private:
+
+  //
+  // NOTE: we silently truncate long lines in this function.
+  //
+
+  bool readLine(char *buf, int bufSize, FILE *fp)
+  {
+    if (fp == NULL || buf == NULL || bufSize == 0)
+      return false;
+
+    if (fgets(buf, bufSize, fp) == NULL)
+      return false;
+
+    char *ptr = strchr(buf, '\n');
+    if (ptr != NULL) {
+      *ptr = '\0';              // remove newline at the end
+    } else {
+      if (!feof(fp)) {
+        int c;
+        do {                    // skip the rest of a long line
+          c = getc(fp);
+        } while (c != '\n' && c != EOF);
+      }
+    }
+    return true;
+  }
+
+};
+
 
 char* programName;
 
@@ -233,12 +440,21 @@ int main(int argc, char** argv)
     TcpListener listener((int)rfbport);
     vlog.info("Listening on port %d", (int)rfbport);
 
+    FileTcpFilter fileTcpFilter(hostsFile.getData());
+    if (strlen(hostsFile.getData()) != 0)
+      listener.setFilter(&fileTcpFilter);
+
+    struct timeval timeSaved, timeNow;
+    struct timezone tz;
+    gettimeofday(&timeSaved, &tz);
+    timeSaved.tv_sec -= 60;
+
     while (true) {
       fd_set rfds;
       struct timeval tv;
 
       tv.tv_sec = 0;
-      tv.tv_usec = 50*1000;
+      tv.tv_usec = (int)pollingCycle * 1000;
 
       FD_ZERO(&rfds);
       FD_SET(listener.getFd(), &rfds);
@@ -255,10 +471,19 @@ int main(int argc, char** argv)
 
       if (FD_ISSET(listener.getFd(), &rfds)) {
         Socket* sock = listener.accept();
-        server.addClient(sock);
+        if (sock) {
+          server.addClient(sock);
+        } else {
+          vlog.status("Client connection rejected");
+        }
       }
 
       server.getSockets(&sockets);
+
+      // Nothing more to do if there are no client connections.
+      if (sockets.empty())
+        continue;
+
       for (i = sockets.begin(); i != sockets.end(); i++) {
         if (FD_ISSET((*i)->getFd(), &rfds)) {
           server.processSocketEvent(*i);
@@ -266,7 +491,19 @@ int main(int argc, char** argv)
       }
 
       server.checkTimeouts();
-      desktop.poll();
+
+      if (gettimeofday(&timeNow, &tz) == 0) {
+        int diff = (int)((timeNow.tv_usec - timeSaved.tv_usec + 500) / 1000 +
+                         (timeNow.tv_sec - timeSaved.tv_sec) * 1000);
+        if (diff >= (int)pollingCycle) {
+          timeSaved = timeNow;
+          desktop.poll();
+        }
+      } else {
+        // Something strange has happened -- gettimeofday(2) failed.
+        // Poll after each select(), as in the original VNC4 code.
+        desktop.poll();
+      }
     }
 
   } catch (rdr::Exception &e) {

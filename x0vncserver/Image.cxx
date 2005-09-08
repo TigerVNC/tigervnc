@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2004-2005 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,24 +20,31 @@
 // Image.cxx
 //
 
-
 #include <stdio.h>
 #include <sys/types.h>
+
+#ifdef HAVE_MITSHM
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/extensions/XShm.h>
+#endif
+
 #include "Image.h"
+
+//
+// ImageCleanup is used to delete Image instances automatically on
+// program shutdown. This is important for shared memory images.
+//
+
 #include <list>
 
 class ImageCleanup {
 public:
-  std::list<Image*> images;
+  std::list<Image *> images;
 
   ~ImageCleanup()
   {
-    fprintf(stderr,"~ImageCleanup called\n");
+    // DEBUG:
+    // fprintf(stderr, "~ImageCleanup() called\n");
 
     while (!images.empty()) {
       delete images.front();
@@ -46,6 +54,91 @@ public:
 
 ImageCleanup imageCleanup;
 
+//
+// Image class implementation.
+//
+
+Image::Image(Display *d)
+  : xim(NULL), dpy(d), trueColor(true)
+{
+  imageCleanup.images.push_back(this);
+}
+
+Image::Image(Display *d, int width, int height)
+  : xim(NULL), dpy(d), trueColor(true)
+{
+  imageCleanup.images.push_back(this);
+  Init(width, height);
+}
+
+void Image::Init(int width, int height)
+{
+  Visual* vis = DefaultVisual(dpy, DefaultScreen(dpy));
+  trueColor = (vis->c_class == TrueColor);
+
+  xim = XCreateImage(dpy, vis, DefaultDepth(dpy, DefaultScreen(dpy)),
+                     ZPixmap, 0, 0, width, height, BitmapPad(dpy), 0);
+
+  xim->data = (char *)malloc(xim->bytes_per_line * xim->height);
+  if (xim->data == NULL) {
+    fprintf(stderr, "malloc() failed\n");
+    exit(1);
+  }
+}
+
+Image::~Image()
+{
+  // DEBUG:
+  // fprintf(stderr, "~Image() called\n");
+
+  imageCleanup.images.remove(this);
+  if (xim != NULL)
+    XDestroyImage(xim);
+}
+
+void Image::get(Window wnd, int x, int y)
+{
+  get(wnd, x, y, xim->width, xim->height);
+}
+
+void Image::get(Window wnd, int x, int y, int w, int h)
+{
+  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, 0, 0);
+}
+
+void Image::updateRect(Image *src, int dst_x, int dst_y)
+{
+  updateRect(src->xim, dst_x, dst_y);
+}
+
+void Image::updateRect(XImage *src, int dst_x, int dst_y)
+{
+  // Limit width and height at destination image size
+  int w = src->width;
+  if (dst_x + w > xim->width)
+    w = xim->width - dst_x;
+  int h = src->height;
+  if (dst_y + h > xim->height)
+    h = xim->height - dst_y;
+
+  // Copy pixels
+  const char *srcOffset = src->data;
+  char *dstOffset = xim->data + (dst_y * xim->bytes_per_line +
+                                 dst_x * (xim->bits_per_pixel / 8));
+  int lineLength = w * (xim->bits_per_pixel / 8);
+  for (int i = 0; i < h ; i++) {
+    memcpy(dstOffset, srcOffset, lineLength);
+    srcOffset += src->bytes_per_line;
+    dstOffset += xim->bytes_per_line;
+  }
+}
+
+#ifdef HAVE_MITSHM
+
+//
+// ShmImage class implementation.
+//
+
 static bool caughtShmError = false;
 
 static int ShmCreationXErrorHandler(Display *dpy, XErrorEvent *error)
@@ -54,96 +147,360 @@ static int ShmCreationXErrorHandler(Display *dpy, XErrorEvent *error)
   return 0;
 }
 
-Image::Image(Display* d, int width, int height)
-  : xim(0), dpy(d), shminfo(0), usingShm(false)
+ShmImage::ShmImage(Display *d)
+  : Image(d), shminfo(NULL)
 {
-  if (createShmImage(width, height)) return;
-
-  xim = XCreateImage(dpy, DefaultVisual(dpy, DefaultScreen(dpy)),
-                     DefaultDepth(dpy,DefaultScreen(dpy)), ZPixmap,
-                     0, 0, width, height, BitmapPad(dpy), 0);
-
-  xim->data = (char*)malloc(xim->bytes_per_line * xim->height);
-  if (!xim->data) {
-    fprintf(stderr,"malloc failed\n");
-    exit(1);
-  }
 }
 
-Image::~Image()
+ShmImage::ShmImage(Display *d, int width, int height)
+  : Image(d), shminfo(NULL)
 {
-  fprintf(stderr,"~Image called - usingShm %d\n",usingShm);
-  if (usingShm) {
-    usingShm = false;
+  Init(width, height);
+}
+
+// FIXME: Remove duplication of cleanup operations.
+void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
+{
+  int major, minor;
+  Bool pixmaps;
+
+  if (!XShmQueryVersion(dpy, &major, &minor, &pixmaps)) {
+    fprintf(stderr, "XShmQueryVersion() failed\n");
+    return;
+  }
+
+  Visual *visual;
+  int depth;
+
+  if (vinfo == NULL) {
+    visual = DefaultVisual(dpy, DefaultScreen(dpy));
+    depth = DefaultDepth(dpy, DefaultScreen(dpy));
+  } else {
+    visual = vinfo->visual;
+    depth = vinfo->depth;
+  }
+
+  trueColor = (visual->c_class == TrueColor);
+
+  shminfo = new XShmSegmentInfo;
+
+  xim = XShmCreateImage(dpy, visual, depth, ZPixmap, 0, shminfo,
+			width, height);
+  if (xim == NULL) {
+    fprintf(stderr, "XShmCreateImage() failed\n");
+    delete shminfo;
+    shminfo = NULL;
+    return;
+  }
+
+  shminfo->shmid = shmget(IPC_PRIVATE,
+                          xim->bytes_per_line * xim->height,
+                          IPC_CREAT|0777);
+  if (shminfo->shmid == -1) {
+    perror("shmget");
+    fprintf(stderr,
+            "shmget() failed (%d bytes requested)\n",
+            int(xim->bytes_per_line * xim->height));
+    XDestroyImage(xim);
+    xim = NULL;
+    delete shminfo;
+    shminfo = NULL;
+    return;
+  }
+
+  shminfo->shmaddr = xim->data = (char *)shmat(shminfo->shmid, 0, 0);
+  if (shminfo->shmaddr == (char *)-1) {
+    perror("shmat");
+    fprintf(stderr,
+            "shmat() failed (%d bytes requested)\n",
+            int(xim->bytes_per_line * xim->height));
+    shmctl(shminfo->shmid, IPC_RMID, 0);
+    XDestroyImage(xim);
+    xim = NULL;
+    delete shminfo;
+    shminfo = NULL;
+    return;
+  }
+
+  shminfo->readOnly = False;
+
+  XErrorHandler oldHdlr = XSetErrorHandler(ShmCreationXErrorHandler);
+  XShmAttach(dpy, shminfo);
+  XSync(dpy, False);
+  XSetErrorHandler(oldHdlr);
+  if (caughtShmError) {
+    fprintf(stderr, "XShmAttach() failed\n");
     shmdt(shminfo->shmaddr);
     shmctl(shminfo->shmid, IPC_RMID, 0);
-    imageCleanup.images.remove(this);
+    XDestroyImage(xim);
+    xim = NULL;
+    delete shminfo;
+    shminfo = NULL;
+    return;
   }
-  delete shminfo;
-  if (xim) XDestroyImage(xim);
+
+  // DEBUG:
+  // fprintf(stderr,
+  //        "Using shared memory XImage (%d bytes image data)\n",
+  //        int(xim->bytes_per_line * xim->height));
 }
 
-void Image::get(Window w)
+ShmImage::~ShmImage()
 {
-  if (usingShm) {
-    XShmGetImage(dpy, w, xim, 0, 0, AllPlanes);
-  } else {
-    XGetSubImage(dpy, w, 0, 0, xim->width, xim->height,
-                 AllPlanes, ZPixmap, xim, 0, 0);
+  // DEBUG:
+  // fprintf(stderr,"~ShmImage called\n");
+
+  // FIXME: Destroy image as described in MIT-SHM documentation.
+  if (shminfo != NULL) {
+    shmdt(shminfo->shmaddr);
+    shmctl(shminfo->shmid, IPC_RMID, 0);
+    delete shminfo;
   }
 }
 
-bool Image::createShmImage(int width, int height)
+void ShmImage::get(Window wnd, int x, int y)
 {
-  if (XShmQueryExtension(dpy)) {
-    shminfo = new XShmSegmentInfo;
+  XShmGetImage(dpy, wnd, xim, x, y, AllPlanes);
+}
 
-    xim = XShmCreateImage(dpy, DefaultVisual(dpy, DefaultScreen(dpy)),
-                          DefaultDepth(dpy,DefaultScreen(dpy)), ZPixmap,
-                          0, shminfo, width, height);
+void ShmImage::get(Window wnd, int x, int y, int w, int h)
+{
+  // FIXME: Use SHM for this as well?
+  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, 0, 0);
+}
 
-    if (xim) {
-      shminfo->shmid = shmget(IPC_PRIVATE,
-                              xim->bytes_per_line * xim->height,
-                              IPC_CREAT|0777);
+#ifdef HAVE_READDISPLAY
 
-      if (shminfo->shmid != -1) {
-        shminfo->shmaddr = xim->data = (char*)shmat(shminfo->shmid, 0, 0);
+//
+// IrixOverlayShmImage class implementation.
+//
 
-        if (shminfo->shmaddr != (char *)-1) {
+IrixOverlayShmImage::IrixOverlayShmImage(Display *d)
+  : ShmImage(d), readDisplayBuf(NULL)
+{
+}
 
-          shminfo->readOnly = False;
+IrixOverlayShmImage::IrixOverlayShmImage(Display *d, int width, int height)
+  : ShmImage(d), readDisplayBuf(NULL)
+{
+  Init(width, height);
+}
 
-          XErrorHandler oldHdlr = XSetErrorHandler(ShmCreationXErrorHandler);
-          XShmAttach(dpy, shminfo);
-          XSync(dpy, False);
-          XSetErrorHandler(oldHdlr);
+void IrixOverlayShmImage::Init(int width, int height)
+{
+  // First determine the pixel format used by XReadDisplay.
+  XVisualInfo vinfo;
+  if (!getOverlayVisualInfo(&vinfo))
+    return;
 
-          if (!caughtShmError) {
-            fprintf(stderr,"Using shared memory XImage\n");
-            usingShm = true;
-            imageCleanup.images.push_back(this);
-            return true;
-          }
+  // Create an SHM image of the same format.
+  ShmImage::Init(width, height, &vinfo);
+  if (xim == NULL)
+    return;
 
-          shmdt(shminfo->shmaddr);
-        } else {
-          fprintf(stderr,"shmat failed\n");
-          perror("shmat");
-        }
+  // FIXME: Check if the extension is available at run time.
+  // FIXME: Does XShmCreateReadDisplayBuf() require some cleanup?
+  readDisplayBuf = XShmCreateReadDisplayBuf(dpy, NULL, shminfo, width, height);
+}
 
-        shmctl(shminfo->shmid, IPC_RMID, 0);
-      } else {
-        fprintf(stderr,"shmget failed\n");
-        perror("shmget");
+bool IrixOverlayShmImage::getOverlayVisualInfo(XVisualInfo *vinfo_ret)
+{
+  // First, get an image in the format returned by XReadDisplay.
+  unsigned long hints = 0, hints_ret;
+  XImage *testImage = XReadDisplay(dpy, DefaultRootWindow(dpy),
+				   0, 0, 8, 8, hints, &hints_ret);
+  if (testImage == NULL)
+    return false;
+
+  // Fill in a template for matching visuals.
+  XVisualInfo tmpl;
+  tmpl.c_class = TrueColor;
+  tmpl.depth = 24;
+  tmpl.red_mask = testImage->red_mask;
+  tmpl.green_mask = testImage->green_mask;
+  tmpl.blue_mask = testImage->blue_mask;
+
+  // List fields in template that make sense.
+  long mask = (VisualClassMask |
+	       VisualRedMaskMask |
+	       VisualGreenMaskMask |
+	       VisualBlueMaskMask);
+
+  // We don't need that image any more.
+  XDestroyImage(testImage);
+
+  // Now, get a list of matching visuals available.
+  int nVisuals;
+  XVisualInfo *vinfo = XGetVisualInfo(dpy, mask, &tmpl, &nVisuals);
+  if (vinfo == NULL || nVisuals <= 0) {
+    if (vinfo != NULL) {
+      XFree(vinfo);
+    }
+    return false;
+  }
+
+  // Use first visual from the list.
+  *vinfo_ret = vinfo[0];
+
+  XFree(vinfo);
+
+  return true;
+}
+
+IrixOverlayShmImage::~IrixOverlayShmImage()
+{
+  // DEBUG:
+  // fprintf(stderr,"~IrixOverlayShmImage called\n");
+}
+
+void IrixOverlayShmImage::get(Window wnd, int x, int y)
+{
+    XRectangle rect; 
+    unsigned long hints = XRD_TRANSPARENT | XRD_READ_POINTER;
+
+    rect.x = x;
+    rect.y = y;
+    rect.width = xim->width;
+    rect.height = xim->height;
+
+    XShmReadDisplayRects(dpy, wnd,
+                         &rect, 1, readDisplayBuf, -x, -y,
+                         hints, &hints);
+}
+
+void IrixOverlayShmImage::get(Window wnd, int x, int y, int w, int h)
+{
+  // FIXME: Use XReadDisplay extension here as well!
+  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, 0, 0);
+}
+
+#endif // HAVE_READDISPLAY
+#endif // HAVE_MITSHM
+
+#ifdef HAVE_SUN_OVL
+
+//
+// SolarisOverlayImage class implementation
+//
+
+SolarisOverlayImage::SolarisOverlayImage(Display *d)
+  : Image(d)
+{
+}
+
+SolarisOverlayImage::SolarisOverlayImage(Display *d, int width, int height)
+  : Image(d)
+{
+  Init(width, height);
+}
+
+void SolarisOverlayImage::Init(int width, int height)
+{
+  // FIXME: Check if the extension is available at run time.
+  // FIXME: Maybe just read a small (e.g. 8x8) screen area then
+  //        reallocate xim->data[] and correct width and height?
+  xim = XReadScreen(dpy, DefaultRootWindow(dpy), 0, 0, width, height, True);
+  if (xim == NULL) {
+    fprintf(stderr, "XReadScreen() failed\n");
+    return;
+  }
+}
+
+SolarisOverlayImage::~SolarisOverlayImage()
+{
+  // DEBUG:
+  // fprintf(stderr, "~SolarisOverlayImage() called\n");
+}
+
+void SolarisOverlayImage::get(Window wnd, int x, int y)
+{
+  get(wnd, x, y, xim->width, xim->height);
+}
+
+void SolarisOverlayImage::get(Window wnd, int x, int y, int w, int h)
+{
+  XImage *tmp_xim = XReadScreen(dpy, wnd, x, y, w, h, True);
+  if (tmp_xim == NULL)
+    return;
+
+  updateRect(tmp_xim, 0, 0);
+
+  XDestroyImage(tmp_xim);
+}
+
+#endif // HAVE_SUN_OVL
+
+//
+// ImageFactory class implementation
+//
+
+// Prepare useful shortcuts for compile-time options.
+#if defined(HAVE_READDISPLAY) && defined(HAVE_MITSHM)
+#define HAVE_SHM_READDISPLAY
+#endif
+#if defined(HAVE_SHM_READDISPLAY) || defined(HAVE_SUN_OVL)
+#define HAVE_OVERLAY_EXT
+#endif
+
+ImageFactory::ImageFactory(bool allowShm, bool allowOverlay)
+  : mayUseShm(allowShm), mayUseOverlay(allowOverlay)
+{
+}
+
+ImageFactory::~ImageFactory()
+{
+}
+
+Image *ImageFactory::newImage(Display *d, int width, int height)
+{
+  Image *image = NULL;
+
+  // First, try to create an image with overlay support.
+
+#ifdef HAVE_OVERLAY_EXT
+  if (mayUseOverlay) {
+#if defined(HAVE_SHM_READDISPLAY)
+    if (mayUseShm) {
+      image = new IrixOverlayShmImage(d, width, height);
+      if (image->xim != NULL) {
+        fprintf(stderr, "Using IRIX overlay image with SHM support\n");
+        return image;
       }
-
-      XDestroyImage(xim);
-      xim = 0;
-    } else {
-      fprintf(stderr,"XShmCreateImage failed\n");
+    }
+#elif defined(HAVE_SUN_OVL)
+    image = new SolarisOverlayImage(d, width, height);
+    if (image->xim != NULL) {
+      fprintf(stderr, "Using Solaris overlay image\n");
+      return image;
+    }
+#endif
+    if (image != NULL) {
+      delete image;
+      fprintf(stderr,
+              "Failed to create overlay image, trying other options\n");
     }
   }
+#endif // HAVE_OVERLAY_EXT
 
-  return false;
+  // Now, try to use shared memory image.
+
+#ifdef HAVE_MITSHM
+  if (mayUseShm) {
+    image = new ShmImage(d, width, height);
+    if (image->xim != NULL) {
+      fprintf(stderr, "Using shared memory image\n");
+      return image;
+    }
+
+    delete image;
+    fprintf(stderr, 
+            "Failed to create SHM image, falling back to Xlib image\n");
+  }
+#endif // HAVE_MITSHM
+
+  // Fall back to Xlib image.
+
+  fprintf(stderr, "Using Xlib-based image\n");
+  image = new Image(d, width, height);
+  return image;
 }
