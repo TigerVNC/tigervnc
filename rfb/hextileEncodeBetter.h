@@ -42,7 +42,7 @@ namespace rfb {
 
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
 #define WRITE_PIXEL CONCAT2E(writeOpaque,BPP)
-#define HEXTILE_ENCODE CONCAT2E(hextileEncode,BPP)
+#define HEXTILE_ENCODE CONCAT2E(hextileEncodeBetter,BPP)
 
 /********************************************************************/
 

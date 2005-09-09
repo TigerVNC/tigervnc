@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2005 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,19 +20,28 @@
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/HextileEncoder.h>
+#include <rfb/Configuration.h>
 
 using namespace rfb;
+
+BoolParameter improvedHextile("ImprovedHextile",
+                              "Use improved compression algorithm for Hextile "
+                              "encoding which achieves better compression "
+                              "ratios by the cost of using more CPU time",
+                              false);
 
 #define EXTRA_ARGS ImageGetter* ig
 #define GET_IMAGE_INTO_BUF(r,buf) ig->getImage(buf, r);
 #define BPP 8
-#include <rfb/hextileEncode.h>
+#include <rfb/hextileEncodeBetter.h>
 #undef BPP
 #define BPP 16
 #include <rfb/hextileEncode.h>
+#include <rfb/hextileEncodeBetter.h>
 #undef BPP
 #define BPP 32
 #include <rfb/hextileEncode.h>
+#include <rfb/hextileEncodeBetter.h>
 #undef BPP
 
 Encoder* HextileEncoder::create(SMsgWriter* writer)
@@ -52,9 +62,24 @@ bool HextileEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
   writer->startRect(r, encodingHextile);
   rdr::OutStream* os = writer->getOutStream();
   switch (writer->bpp()) {
-  case 8:  hextileEncode8(r, os, ig);  break;
-  case 16: hextileEncode16(r, os, ig); break;
-  case 32: hextileEncode32(r, os, ig); break;
+  case 8:
+    // NOTE: We always use improved Hextile for 8-bit data.
+    hextileEncodeBetter8(r, os, ig);
+    break;
+  case 16:
+    if (improvedHextile) {
+      hextileEncodeBetter16(r, os, ig);
+    } else {
+      hextileEncode16(r, os, ig);
+    }
+    break;
+  case 32:
+    if (improvedHextile) {
+      hextileEncodeBetter32(r, os, ig);
+    } else {
+      hextileEncode32(r, os, ig);
+    }
+    break;
   }
   writer->endRect();
   return true;
