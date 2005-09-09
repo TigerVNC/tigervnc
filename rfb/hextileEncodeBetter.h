@@ -161,35 +161,47 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
     }
   }
 
-  // Choose the best background color
-  int maxCount = 0, count;
+  // Save the number of colors
+  m_numColors = m_counts.size();
+
+  // Handle solid tile
+  if (m_numColors == 1) {
+    m_background = m_tile[0];
+    return 0;
+  }
+
   std::map<PIXEL_T,short>::iterator i;
+
+  // Handle monochrome tile - choose background and foreground
+  if (m_numColors == 2) {
+    i = m_counts.begin();
+    m_background = i->first;
+    int bgCount = i->second;
+    i++;
+    if (i->second <= bgCount) {
+      m_foreground = i->first;
+    } else {
+      m_foreground = m_background;
+      m_background = i->first;
+      bgCount = i->second;;
+    }
+
+    return 1 + 2 * (m_numSubrects - bgCount);
+  }
+
+  // Handle colored tile - choose the best background color
+  int bgCount = 0, count;
   for (i = m_counts.begin(); i != m_counts.end(); i++) {
-    color = (*i).first;
-    count = (*i).second;
-    if (count > maxCount) {
-      maxCount = count;
+    color = i->first;
+    count = i->second;
+    if (count > bgCount) {
+      bgCount = count;
       m_background = color;
     }
   }
 
-  // Save the number of colors
-  m_numColors = m_counts.size();
-
-  // Set foreground color if it's a monochrome tile
-  if (m_numColors == 2) {
-    i = m_counts.begin();
-    m_foreground = (*i).first;
-    if (m_foreground == m_background) {
-      i++;
-      m_foreground = (*i).first;
-    }
-    // Calculate and return encoded data size
-    return 1 + 2 * (m_numSubrects - maxCount);
-  }
-
   // Calculate and return encoded data size (colored subrects)
-  return 1 + (2 + (BPP/8)) * (m_numSubrects - maxCount);
+  return 1 + (2 + (BPP/8)) * (m_numSubrects - bgCount);
 }
 
 /*
