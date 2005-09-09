@@ -83,7 +83,7 @@ class HEXTILE_SUBRECTS_TABLE {
 
   /* FIXME: Use array for (BPP == 8)? */
   /* DEBUG: Use own hashing like in ZRLE? */
-  std::map<PIXEL_T,int> m_counts;
+  std::map<PIXEL_T,short> m_counts;
 };
 
 HEXTILE_SUBRECTS_TABLE::HEXTILE_SUBRECTS_TABLE()
@@ -163,7 +163,7 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
 
   // Choose the best background color
   int maxCount = 0, count;
-  std::map<PIXEL_T,int>::iterator i;
+  std::map<PIXEL_T,short>::iterator i;
   for (i = m_counts.begin(); i != m_counts.end(); i++) {
     color = (*i).first;
     count = (*i).second;
