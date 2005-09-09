@@ -58,7 +58,9 @@ class HEXTILE_SUBRECTS_TABLE {
   int buildTables();
   int encode(rdr::U8* dst);
 
-  int getNumColors() const { return m_numColors; }
+  // Flags can include: hextileAnySubrects, hextileSubrectsColoured
+  int getFlags() const { return m_flags; }
+
   int getBackground() const { return m_background; }
   int getForeground() const { return m_foreground; }
 
@@ -68,7 +70,7 @@ class HEXTILE_SUBRECTS_TABLE {
   int m_width;
   int m_height;
   int m_numSubrects;
-  int m_numColors;
+  int m_flags;
   PIXEL_T m_background;
   PIXEL_T m_foreground;
 
@@ -87,8 +89,8 @@ class HEXTILE_SUBRECTS_TABLE {
 };
 
 HEXTILE_SUBRECTS_TABLE::HEXTILE_SUBRECTS_TABLE()
-  : m_tile(NULL), m_width(0), m_height(0), m_numSubrects(-1), m_numColors(0),
-    m_background(0), m_foreground(0)
+  : m_tile(NULL), m_width(0), m_height(0), m_numSubrects(0),
+    m_flags(0), m_background(0), m_foreground(0)
 {
 }
 
@@ -97,8 +99,6 @@ void HEXTILE_SUBRECTS_TABLE::newTile(const PIXEL_T *src, int w, int h)
   m_tile = src;
   m_width = w;
   m_height = h;
-  m_numSubrects = -1;
-  m_numColors = 0;
 }
 
 /*
@@ -107,8 +107,7 @@ void HEXTILE_SUBRECTS_TABLE::newTile(const PIXEL_T *src, int w, int h)
 
 int HEXTILE_SUBRECTS_TABLE::buildTables()
 {
-  if (m_tile == NULL || m_width == 0 || m_height == 0)
-    return -1;
+  assert(m_tile && m_width && m_height);
 
   m_numSubrects = 0;
   memset(m_processed, 0, 16 * 16 * sizeof(bool));
@@ -162,18 +161,19 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
   }
 
   // Save the number of colors
-  m_numColors = m_counts.size();
+  int numColors = m_counts.size();
 
   // Handle solid tile
-  if (m_numColors == 1) {
+  if (numColors == 1) {
     m_background = m_tile[0];
+    m_flags = 0;
     return 0;
   }
 
   std::map<PIXEL_T,short>::iterator i;
 
   // Handle monochrome tile - choose background and foreground
-  if (m_numColors == 2) {
+  if (numColors == 2) {
     i = m_counts.begin();
     m_background = i->first;
     int bgCount = i->second;
@@ -186,6 +186,7 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
       bgCount = i->second;;
     }
 
+    m_flags = hextileAnySubrects;
     return 1 + 2 * (m_numSubrects - bgCount);
   }
 
@@ -200,12 +201,12 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
     }
   }
 
-  // Calculate and return encoded data size (colored subrects)
+  m_flags = hextileAnySubrects | hextileSubrectsColoured;
   return 1 + (2 + (BPP/8)) * (m_numSubrects - bgCount);
 }
 
 /*
- * Call this function only if there are any subrects in the tile.
+ * Call this function only if hextileAnySubrects bit is set in flags.
  * The buffer size should be enough to store at least that number of
  * bytes returned by buildTables() method.
  * Returns encoded data size, or zero if something is wrong.
@@ -213,8 +214,7 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
 
 int HEXTILE_SUBRECTS_TABLE::encode(rdr::U8 *dst)
 {
-  if (m_numSubrects == -1 || m_numColors == 0)
-    return 0;
+  assert(m_numSubrects && (m_flags & hextileAnySubrects));
 
   // Zero subrects counter.
   rdr::U8 *numSubrectsPtr = dst;
@@ -224,7 +224,7 @@ int HEXTILE_SUBRECTS_TABLE::encode(rdr::U8 *dst)
     if (m_colors[i] == m_background)
       continue;
 
-    if (m_numColors > 2) {      /* FIXME: Duplicate */
+    if (m_flags & hextileSubrectsColoured) {
 #if (BPP == 8)
       *dst++ = m_colors[i];
 #elif (BPP == 16)
@@ -276,7 +276,6 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
       subrects.newTile(buf, t.width(), t.height());
       int encodedLen = subrects.buildTables();
 
-      // FIXME: Adjust encodedLen comparison!
       if (encodedLen >= t.width() * t.height() * (BPP/8)) {
         os->writeU8(hextileRaw);
         os->writeBytes(buf, t.width() * t.height() * (BPP/8));
@@ -284,11 +283,9 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
         continue;
       }
 
-      int numColors = subrects.getNumColors();
+      int tileType = subrects.getFlags();
       PIXEL_T bg = subrects.getBackground();
-      PIXEL_T fg = subrects.getForeground();
-
-      int tileType = 0;
+      PIXEL_T fg = 0;
 
       if (!oldBgValid || oldBg != bg) {
         tileType |= hextileBgSpecified;
@@ -296,17 +293,16 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
         oldBgValid = true;
       }
 
-      if (numColors >= 2) {
-        tileType |= hextileAnySubrects;
-        if (numColors == 2) {
+      if (tileType & hextileAnySubrects) {
+        if (tileType & hextileSubrectsColoured) {
+          oldFgValid = false;
+        } else {
+          fg = subrects.getForeground();
           if (!oldFgValid || oldFg != fg) {
             tileType |= hextileFgSpecified;
             oldFg = fg;
             oldFgValid = true;
           }
-        } else {
-          tileType |= hextileSubrectsColoured;
-          oldFgValid = false;
         }
         int finalEncodedLen = subrects.encode(encoded);
         assert(finalEncodedLen == encodedLen);
