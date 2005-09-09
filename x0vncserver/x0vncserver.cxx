@@ -467,7 +467,14 @@ int main(int argc, char** argv)
       }
 
       int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
-      if (n < 0) throw rdr::SystemException("select",errno);
+      if (n < 0) {
+        if (errno == EINTR) {
+          vlog.debug("interrupted select() system call");
+          continue;
+        } else {
+          throw rdr::SystemException("select", errno);
+        }
+      }
 
       if (FD_ISSET(listener.getFd(), &rfds)) {
         Socket* sock = listener.accept();
