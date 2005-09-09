@@ -309,7 +309,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PACKAGE VERSION CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB SET_MAKE MITSHM_CPPFLAGS CXXCPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS ZLIB_DIR ZLIB_INCLUDE ZLIB_LIB JPEG_DIR JPEG_INCLUDE JPEG_LIB VSNPRINTF_DEFINE SOCKLEN_T_DEFINE INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA MKINSTALLDIRS USE_NLS MSGFMT GMSGFMT XGETTEXT MSGMERGE build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP ALLOCA GLIBC21 HAVE_POSIX_PRINTF HAVE_ASPRINTF HAVE_SNPRINTF HAVE_WPRINTF LIBICONV LTLIBICONV INTLBISON BUILD_INCLUDED_LIBINTL USE_INCLUDED_LIBINTL CATOBJEXT DATADIRNAME INSTOBJEXT GENCAT INTLOBJS INTL_LIBTOOL_SUFFIX_PREFIX INTLLIBS LIBINTL LTLIBINTL POSUB LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PACKAGE VERSION CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB SET_MAKE MITSHM_DEFINE CXXCPP X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS ZLIB_DIR ZLIB_INCLUDE ZLIB_LIB JPEG_DIR JPEG_INCLUDE JPEG_LIB VNCCONFIG_DIR XTEST_DEFINE XTEST_LIB READDISPLAY_DEFINE VSNPRINTF_DEFINE STRCASECMP_DEFINE STRNCASECMP_DEFINE INET_LIB SOCKLEN_T_DEFINE INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA MKINSTALLDIRS USE_NLS MSGFMT GMSGFMT XGETTEXT MSGMERGE build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP ALLOCA GLIBC21 HAVE_POSIX_PRINTF HAVE_ASPRINTF HAVE_SNPRINTF HAVE_WPRINTF LIBICONV LTLIBICONV INTLBISON BUILD_INCLUDED_LIBINTL USE_INCLUDED_LIBINTL CATOBJEXT DATADIRNAME INSTOBJEXT GENCAT INTLOBJS INTL_LIBTOOL_SUFFIX_PREFIX INTLLIBS LIBINTL LTLIBINTL POSUB LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -856,6 +856,8 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-vncconfig      build the vncconfig utility (assumed by default),
+                          use --disable-vncconfig to skip building vncconfig
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
 
@@ -2745,15 +2747,24 @@ case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
   SOLARIS=yes
   USE_MITSHM=yes
+  USE_SUN_OVL=yes
   ;;
 "Linux"*)
   LINUX=yes
   USE_MITSHM=yes
   ;;
+"IRIX 6"*)
+  X_LIBS="-L/usr/lib32"
+  USE_MITSHM=yes
+  USE_READDISPLAY=yes
+  ;;
+"LynxOS 2"*)
+  SJLJ_EXCEPTIONS=yes
+  ;;
 esac
 
 if test "$USE_MITSHM" = yes; then
-  MITSHM_CPPFLAGS="-DMITSHM"
+  MITSHM_DEFINE="-DHAVE_MITSHM"
 fi
 
 
@@ -2766,7 +2777,10 @@ fi
 if test "$GXX" = yes; then
   CXXFLAGS="$CXXFLAGS -Wall"
   if test "$SOLARIS" = yes; then
-    CXXFLAGS="$CXXFLAGS -Wno-unknown-pragmas -Wno-implicit-int -fpermissive"
+    CXXFLAGS="$CXXFLAGS -Wno-unknown-pragmas -fpermissive"
+  fi
+  if test "$SJLJ_EXCEPTIONS" = yes; then
+    CXXFLAGS="$CXXFLAGS -fsjlj-exceptions"
   fi
 fi
 
@@ -4437,6 +4451,109 @@ fi
 
 
 
+# Check whether --enable-vncconfig or --disable-vncconfig was given.
+if test "${enable_vncconfig+set}" = set; then
+  enableval="$enable_vncconfig"
+
+fi;
+if test "$enable_vncconfig" = no; then
+  echo "vncconfig utility will not be built"
+  VNCCONFIG_DIR=
+else
+  VNCCONFIG_DIR='vncconfig_unix'
+fi
+
+
+echo "$as_me:$LINENO: checking for XTestGrabControl in -lXtst" >&5
+echo $ECHO_N "checking for XTestGrabControl in -lXtst... $ECHO_C" >&6
+if test "${ac_cv_lib_Xtst_XTestGrabControl+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXtst "$X_LIBS" -lXext -lX11 $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char XTestGrabControl ();
+int
+main ()
+{
+XTestGrabControl ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_Xtst_XTestGrabControl=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_Xtst_XTestGrabControl=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_Xtst_XTestGrabControl" >&5
+echo "${ECHO_T}$ac_cv_lib_Xtst_XTestGrabControl" >&6
+if test $ac_cv_lib_Xtst_XTestGrabControl = yes; then
+  USE_XTEST=yes
+else
+  USE_XTEST=
+fi
+
+if test "$USE_XTEST" = yes; then
+  XTEST_DEFINE='-DHAVE_XTEST'
+  XTEST_LIB=-lXtst
+else
+  echo Warning: No XTest extension, building x0vncserver view-only
+  XTEST_DEFINE=
+  XTEST_LIB=
+fi
+
+
+
+if test "$USE_READDISPLAY" = yes; then
+  READDISPLAY_DEFINE='-DHAVE_READDISPLAY'
+elif test "$USE_SUN_OVL" = yes; then
+  READDISPLAY_DEFINE='-DHAVE_SUN_OVL'
+else
+  READDISPLAY_DEFINE=
+fi
+
+
 echo "$as_me:$LINENO: checking for vsnprintf" >&5
 echo $ECHO_N "checking for vsnprintf... $ECHO_C" >&6
 if test "${ac_cv_func_vsnprintf+set}" = set; then
@@ -4532,6 +4649,387 @@ if test $ac_cv_func_vsnprintf = yes; then
 else
   VSNPRINTF_DEFINE=
 fi
+
+
+
+echo "$as_me:$LINENO: checking for strcasecmp" >&5
+echo $ECHO_N "checking for strcasecmp... $ECHO_C" >&6
+if test "${ac_cv_func_strcasecmp+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define strcasecmp to an innocuous variant, in case <limits.h> declares strcasecmp.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define strcasecmp innocuous_strcasecmp
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char strcasecmp (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef strcasecmp
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char strcasecmp ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strcasecmp) || defined (__stub___strcasecmp)
+choke me
+#else
+char (*f) () = strcasecmp;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != strcasecmp;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_strcasecmp=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_strcasecmp=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_strcasecmp" >&5
+echo "${ECHO_T}$ac_cv_func_strcasecmp" >&6
+if test $ac_cv_func_strcasecmp = yes; then
+  STRCASECMP_DEFINE='-DHAVE_STRCASECMP'
+else
+  STRCASECMP_DEFINE=
+fi
+
+
+
+echo "$as_me:$LINENO: checking for strncasecmp" >&5
+echo $ECHO_N "checking for strncasecmp... $ECHO_C" >&6
+if test "${ac_cv_func_strncasecmp+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define strncasecmp to an innocuous variant, in case <limits.h> declares strncasecmp.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define strncasecmp innocuous_strncasecmp
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char strncasecmp (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef strncasecmp
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char strncasecmp ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strncasecmp) || defined (__stub___strncasecmp)
+choke me
+#else
+char (*f) () = strncasecmp;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != strncasecmp;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_strncasecmp=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_strncasecmp=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_strncasecmp" >&5
+echo "${ECHO_T}$ac_cv_func_strncasecmp" >&6
+if test $ac_cv_func_strncasecmp = yes; then
+  STRNCASECMP_DEFINE='-DHAVE_STRNCASECMP'
+else
+  STRNCASECMP_DEFINE=
+fi
+
+
+
+
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+echo "$as_me:$LINENO: checking for gethostbyname" >&5
+echo $ECHO_N "checking for gethostbyname... $ECHO_C" >&6
+if test "${ac_cv_func_gethostbyname+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define gethostbyname to an innocuous variant, in case <limits.h> declares gethostbyname.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define gethostbyname innocuous_gethostbyname
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char gethostbyname (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef gethostbyname
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char gethostbyname ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_gethostbyname) || defined (__stub___gethostbyname)
+choke me
+#else
+char (*f) () = gethostbyname;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != gethostbyname;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_gethostbyname=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_gethostbyname=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_gethostbyname" >&5
+echo "${ECHO_T}$ac_cv_func_gethostbyname" >&6
+if test $ac_cv_func_gethostbyname = yes; then
+  INET_LIB_REQ=
+else
+  INET_LIB_REQ=yes
+fi
+
+if test "$INET_LIB_REQ" = yes; then
+  echo "$as_me:$LINENO: checking for gethostbyname in -lbsd" >&5
+echo $ECHO_N "checking for gethostbyname in -lbsd... $ECHO_C" >&6
+if test "${ac_cv_lib_bsd_gethostbyname+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lbsd  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char gethostbyname ();
+int
+main ()
+{
+gethostbyname ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_bsd_gethostbyname=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_bsd_gethostbyname=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_bsd_gethostbyname" >&5
+echo "${ECHO_T}$ac_cv_lib_bsd_gethostbyname" >&6
+if test $ac_cv_lib_bsd_gethostbyname = yes; then
+  INET_LIB=-lbsd
+else
+  INET_LIB=
+fi
+
+fi
+ac_ext=cc
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
@@ -11998,7 +12496,7 @@ s,@ac_ct_CXX@,$ac_ct_CXX,;t t
 s,@RANLIB@,$RANLIB,;t t
 s,@ac_ct_RANLIB@,$ac_ct_RANLIB,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
-s,@MITSHM_CPPFLAGS@,$MITSHM_CPPFLAGS,;t t
+s,@MITSHM_DEFINE@,$MITSHM_DEFINE,;t t
 s,@CXXCPP@,$CXXCPP,;t t
 s,@X_CFLAGS@,$X_CFLAGS,;t t
 s,@X_PRE_LIBS@,$X_PRE_LIBS,;t t
@@ -12010,7 +12508,14 @@ s,@ZLIB_LIB@,$ZLIB_LIB,;t t
 s,@JPEG_DIR@,$JPEG_DIR,;t t
 s,@JPEG_INCLUDE@,$JPEG_INCLUDE,;t t
 s,@JPEG_LIB@,$JPEG_LIB,;t t
+s,@VNCCONFIG_DIR@,$VNCCONFIG_DIR,;t t
+s,@XTEST_DEFINE@,$XTEST_DEFINE,;t t
+s,@XTEST_LIB@,$XTEST_LIB,;t t
+s,@READDISPLAY_DEFINE@,$READDISPLAY_DEFINE,;t t
 s,@VSNPRINTF_DEFINE@,$VSNPRINTF_DEFINE,;t t
+s,@STRCASECMP_DEFINE@,$STRCASECMP_DEFINE,;t t
+s,@STRNCASECMP_DEFINE@,$STRNCASECMP_DEFINE,;t t
+s,@INET_LIB@,$INET_LIB,;t t
 s,@SOCKLEN_T_DEFINE@,$SOCKLEN_T_DEFINE,;t t
 s,@INSTALL_PROGRAM@,$INSTALL_PROGRAM,;t t
 s,@INSTALL_SCRIPT@,$INSTALL_SCRIPT,;t t
