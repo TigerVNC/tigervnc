@@ -100,14 +100,16 @@ void SMsgWriterV3::writeSetXCursor(int width, int height, int hotspotX,
   // returned from getBitmap, in writeSetCursorCallback. However, we
   // would then need to undo the conversion from rgb to Pixel that is
   // done by FakeAllocColor. 
-  os->writeU8(0);
-  os->writeU8(0);
-  os->writeU8(0);
-  os->writeU8(255);
-  os->writeU8(255);
-  os->writeU8(255);
-  os->writeBytes(data, (width+7)/8 * height);
-  os->writeBytes(mask, (width+7)/8 * height);
+  if (width * height) {
+    os->writeU8(0);
+    os->writeU8(0);
+    os->writeU8(0);
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeBytes(data, (width+7)/8 * height);
+    os->writeBytes(mask, (width+7)/8 * height);
+  }
 }
 
 void SMsgWriterV3::writeFramebufferUpdateStart(int nRects)
