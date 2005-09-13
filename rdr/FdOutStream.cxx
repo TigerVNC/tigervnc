@@ -39,8 +39,7 @@
 
 using namespace rdr;
 
-enum { DEFAULT_BUF_SIZE = 16384,
-       MIN_BULK_SIZE = 1024 };
+enum { DEFAULT_BUF_SIZE = 16384 };
 
 FdOutStream::FdOutStream(int fd_, int timeoutms_, int bufSize_)
   : fd(fd_), timeoutms(timeoutms_),
@@ -61,25 +60,6 @@ FdOutStream::~FdOutStream()
 
 void FdOutStream::setTimeout(int timeoutms_) {
   timeoutms = timeoutms_;
-}
-
-void FdOutStream::writeBytes(const void* data, int length)
-{
-  if (length < MIN_BULK_SIZE) {
-    OutStream::writeBytes(data, length);
-    return;
-  }
-
-  const U8* dataPtr = (const U8*)data;
-
-  flush();
-
-  while (length > 0) {
-    int n = writeWithTimeout(dataPtr, length);
-    length -= n;
-    dataPtr += n;
-    offset += n;
-  }
 }
 
 int FdOutStream::length()

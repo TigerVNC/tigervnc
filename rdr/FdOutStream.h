@@ -39,7 +39,6 @@ namespace rdr {
 
     void flush();
     int length();
-    void writeBytes(const void* data, int length);
 
   private:
     int overrun(int itemSize, int nItems);
