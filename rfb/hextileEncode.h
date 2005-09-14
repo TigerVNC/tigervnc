@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2005 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,33 +141,11 @@ int HEXTILE_ENCODE_TILE (PIXEL_T* data, int w, int h, int tileType,
       while (sh < h-y) {
         eol = ptr + sw;
         while (ptr < eol)
-          if (*ptr++ != *data) goto endOfHorizSubrect;
+          if (*ptr++ != *data) goto endOfSubrect;
         ptr += w - sw;
         sh++;
       }
-    endOfHorizSubrect:
-
-      // Find vertical subrect
-      int vh;
-      for (vh = sh; vh < h-y; vh++)
-        if (data[vh*w] != *data) break;
-
-      if (vh != sh) {
-        ptr = data+1;
-        int vw;
-        for (vw = 1; vw < sw; vw++) {
-          for (int i = 0; i < vh; i++)
-            if (ptr[i*w] != *data) goto endOfVertSubrect;
-          ptr++;
-        }
-      endOfVertSubrect:
-
-        // If vertical subrect bigger than horizontal then use that.
-        if (sw*sh < vw*vh) {
-          sw = vw;
-          sh = vh;
-        }
-      }
+    endOfSubrect:
 
       (*nSubrectsPtr)++;
 
@@ -206,29 +185,32 @@ int HEXTILE_ENCODE_TILE (PIXEL_T* data, int w, int h, int tileType,
 
 int TEST_TILE_TYPE (PIXEL_T* data, int w, int h, PIXEL_T* bg, PIXEL_T* fg)
 {
-  int tileType = 0;
-  PIXEL_T pix1 = *data, pix2 = 0;
-  int count1 = 0, count2 = 0;
-  PIXEL_T* end = data + w*h;
+  PIXEL_T pix1 = *data;
+  PIXEL_T* end = data + w * h;
 
-  for (PIXEL_T* ptr = data; ptr < end; ptr++) {
+  PIXEL_T* ptr = data + 1;
+  while (ptr < end && *ptr == pix1)
+    ptr++;
+
+  if (ptr == end) {
+    *bg = pix1;
+    return 0;                   // solid-color tile
+  }
+
+  int count1 = ptr - data;
+  int count2 = 1;
+  PIXEL_T pix2 = *ptr++;
+  int tileType = hextileAnySubrects;
+
+  for (; ptr < end; ptr++) {
     if (*ptr == pix1) {
       count1++;
-      continue;
-    }
-
-    if (count2 == 0) {
-      tileType |= hextileAnySubrects;
-      pix2 = *ptr;
-    }
-
-    if (*ptr == pix2) {
+    } else if (*ptr == pix2) {
       count2++;
-      continue;
+    } else {
+      tileType |= hextileSubrectsColoured;
+      break;
     }
-
-    tileType |= hextileSubrectsColoured;
-    break;
   }
 
   if (count1 >= count2) {
