@@ -272,18 +272,18 @@ public class RfbPlayer extends java.applet.Applet
       autoPlay = true;
 
     showControls = true;
-    str = readParameter("Show Controls", false);
+    str = readParameter("Show_Controls", false);
     if (str != null && str.equalsIgnoreCase("No"))
       showControls = false;
 
     if (inAnApplet) {
-      str = readParameter("Open New Window", false);
+      str = readParameter("Open_New_Window", false);
       if (str != null && str.equalsIgnoreCase("Yes"))
         inSeparateFrame = true;
     }
 
     // Fine tuning options.
-    deferScreenUpdates = (int)readLongParameter("Defer screen updates", 20);
+    deferScreenUpdates = (int)readLongParameter("Defer_screen_updates", 20);
     if (deferScreenUpdates < 0)
       deferScreenUpdates = 0;	// Just in case.
 
