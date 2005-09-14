@@ -1,5 +1,5 @@
 
-SRCS = Image.cxx x0vncserver.cxx
+SRCS = Image.cxx CPUMonitor.cxx x0vncserver.cxx
 
 OBJS = $(SRCS:.cxx=.o)
 

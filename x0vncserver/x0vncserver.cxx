@@ -35,6 +35,8 @@
 #include <network/TcpSocket.h>
 
 #include "Image.h"
+#include "CPUMonitor.h"
+
 #include <signal.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -51,8 +53,11 @@ using namespace network;
 
 LogWriter vlog("main");
 
-IntParameter pollingCycle("PollingCycle", "Milliseconds per one "
-                          "polling cycle", 50);
+IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
+                          "cycle; actual interval may be dynamically "
+                          "adjusted to satisfy MaxProcessorUsage setting", 50);
+IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
+                               "CPU time to be consumed", 35);
 BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
 BoolParameter useOverlay("OverlayMode", "Use overlay mode under "
                          "IRIX or Solaris", true);
@@ -444,6 +449,9 @@ int main(int argc, char** argv)
     if (strlen(hostsFile.getData()) != 0)
       listener.setFilter(&fileTcpFilter);
 
+    CPUMonitor cpumon((int)maxProcessorUsage, 1000);
+    int dynPollingCycle = (int)pollingCycle;
+
     struct timeval timeSaved, timeNow;
     struct timezone tz;
     gettimeofday(&timeSaved, &tz);
@@ -454,7 +462,10 @@ int main(int argc, char** argv)
       struct timeval tv;
 
       tv.tv_sec = 0;
-      tv.tv_usec = (int)pollingCycle * 1000;
+      tv.tv_usec = dynPollingCycle * 1000;
+      if (tv.tv_usec > 500000) {
+        tv.tv_usec = 500000;
+      }
 
       FD_ZERO(&rfds);
       FD_SET(listener.getFd(), &rfds);
@@ -480,6 +491,7 @@ int main(int argc, char** argv)
         Socket* sock = listener.accept();
         if (sock) {
           server.addClient(sock);
+          cpumon.update();      // count time from now
         } else {
           vlog.status("Client connection rejected");
         }
@@ -502,8 +514,22 @@ int main(int argc, char** argv)
       if (gettimeofday(&timeNow, &tz) == 0) {
         int diff = (int)((timeNow.tv_usec - timeSaved.tv_usec + 500) / 1000 +
                          (timeNow.tv_sec - timeSaved.tv_sec) * 1000);
-        if (diff >= (int)pollingCycle) {
+        if (diff >= dynPollingCycle) {
           timeSaved = timeNow;
+          int coeff = cpumon.check();
+          if (coeff < 90 || coeff > 110) {
+            // Adjust polling cycle to satisfy MaxProcessorUsage setting
+            dynPollingCycle = (dynPollingCycle * 100 + coeff/2) / coeff;
+            if (dynPollingCycle < (int)pollingCycle) {
+              dynPollingCycle = (int)pollingCycle;
+            } else if (dynPollingCycle > (int)pollingCycle * 32) {
+              dynPollingCycle = (int)pollingCycle * 32;
+            }
+            // DEBUG:
+            // if (dynPollingCycle != old) {
+            //   fprintf(stderr, "[%dms]\t", dynPollingCycle);
+            // }
+          }
           desktop.poll();
         }
       } else {
