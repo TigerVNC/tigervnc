@@ -42,36 +42,75 @@ namespace rfb {
 
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
 #define WRITE_PIXEL CONCAT2E(writeOpaque,BPP)
-#define HEXTILE_SUBRECTS_TABLE CONCAT2E(HextileSubrectsTable,BPP)
+#define HEXTILE_TILE CONCAT2E(HextileTile,BPP)
 #define HEXTILE_ENCODE CONCAT2E(hextileEncodeBetter,BPP)
 
-class HEXTILE_SUBRECTS_TABLE {
+//
+// This class analyzes a separate tile and encodes its subrectangles.
+//
+
+class HEXTILE_TILE {
 
  public:
 
-  HEXTILE_SUBRECTS_TABLE ();
+  HEXTILE_TILE ();
 
+  //
+  // Initialize the object with new tile data.
+  //
   void newTile(const PIXEL_T *src, int w, int h);
-  int buildTables();
-  int encode(rdr::U8* dst);
 
-  // Flags can include: hextileAnySubrects, hextileSubrectsColoured
+  //
+  // Returns the size of encoded subrects data, including subrects count.
+  //
+  int getSize() const { return m_size; }
+
+  //
+  // Flags can include: hextileAnySubrects, hextileSubrectsColoured.
+  //
   int getFlags() const { return m_flags; }
 
+  //
+  // Return optimal background.
+  //
   int getBackground() const { return m_background; }
+
+  //
+  // Return foreground if flags include hextileSubrectsColoured.
+  //
   int getForeground() const { return m_foreground; }
 
+  //
+  // Encode subrects. This function may be called only if
+  // hextileAnySubrects bit is set in flags. The buffer size should be
+  // big enough to store at least the number of bytes returned by the
+  // getSize() method.
+  //
+  void encode(rdr::U8* dst) const;
+
  protected:
+
+  //
+  // Fill in m_coords[], m_colors[], m_counts[] and set m_numSubrects.
+  //
+  void buildTables();
+
+  //
+  // Fill in m_size, m_flags, m_background and m_foreground.
+  // Must be called after buildTables(), before encode().
+  //
+  void computeSize();
 
   const PIXEL_T *m_tile;
   int m_width;
   int m_height;
-  int m_numSubrects;
+
+  int m_size;
   int m_flags;
   PIXEL_T m_background;
   PIXEL_T m_foreground;
 
-  // FIXME: Comment data structures.
+  int m_numSubrects;
   rdr::U8 m_coords[256 * 2];
   PIXEL_T m_colors[256];
 
@@ -85,24 +124,24 @@ class HEXTILE_SUBRECTS_TABLE {
   std::map<PIXEL_T,short> m_counts;
 };
 
-HEXTILE_SUBRECTS_TABLE::HEXTILE_SUBRECTS_TABLE()
-  : m_tile(NULL), m_width(0), m_height(0), m_numSubrects(0),
-    m_flags(0), m_background(0), m_foreground(0)
+HEXTILE_TILE::HEXTILE_TILE()
+  : m_tile(NULL), m_width(0), m_height(0),
+    m_size(0), m_flags(0), m_background(0), m_foreground(0),
+    m_numSubrects(0)
 {
 }
 
-void HEXTILE_SUBRECTS_TABLE::newTile(const PIXEL_T *src, int w, int h)
+void HEXTILE_TILE::newTile(const PIXEL_T *src, int w, int h)
 {
   m_tile = src;
   m_width = w;
   m_height = h;
+
+  buildTables();
+  computeSize();
 }
 
-//
-// Returns estimated encoded data size.
-//
-
-int HEXTILE_SUBRECTS_TABLE::buildTables()
+void HEXTILE_TILE::buildTables()
 {
   assert(m_tile && m_width && m_height);
 
@@ -156,7 +195,10 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
       x += (sw - 1);
     }
   }
+}
 
+void HEXTILE_TILE::computeSize()
+{
   // Save the number of colors
   int numColors = m_counts.size();
 
@@ -164,7 +206,8 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
   if (numColors == 1) {
     m_background = m_tile[0];
     m_flags = 0;
-    return 0;
+    m_size = 0;
+    return;
   }
 
   std::map<PIXEL_T,short>::iterator i;
@@ -184,11 +227,13 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
     }
 
     m_flags = hextileAnySubrects;
-    return 1 + 2 * (m_numSubrects - bgCount);
+    m_size = 1 + 2 * (m_numSubrects - bgCount);
+    return;
   }
 
   // Handle colored tile - choose the best background color
   int bgCount = 0, count;
+  PIXEL_T color;
   for (i = m_counts.begin(); i != m_counts.end(); i++) {
     color = i->first;
     count = i->second;
@@ -199,17 +244,10 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
   }
 
   m_flags = hextileAnySubrects | hextileSubrectsColoured;
-  return 1 + (2 + (BPP/8)) * (m_numSubrects - bgCount);
+  m_size = 1 + (2 + (BPP/8)) * (m_numSubrects - bgCount);
 }
 
-//
-// Call this function only if hextileAnySubrects bit is set in flags.
-// The buffer size should be enough to store at least that number of
-// bytes returned by buildTables() method.
-// Returns encoded data size, or zero if something is wrong.
-//
-
-int HEXTILE_SUBRECTS_TABLE::encode(rdr::U8 *dst)
+void HEXTILE_TILE::encode(rdr::U8 *dst) const
 {
   assert(m_numSubrects && (m_flags & hextileAnySubrects));
 
@@ -240,7 +278,7 @@ int HEXTILE_SUBRECTS_TABLE::encode(rdr::U8 *dst)
     (*numSubrectsPtr)++;
   }
 
-  return (dst - numSubrectsPtr);
+  assert(dst - numSubrectsPtr == m_size);
 }
 
 //
@@ -260,7 +298,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
   bool oldFgValid = false;
   rdr::U8 encoded[256*(BPP/8)];
 
-  HEXTILE_SUBRECTS_TABLE subrects;
+  HEXTILE_TILE tile;
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
@@ -272,8 +310,8 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
       GET_IMAGE_INTO_BUF(t,buf);
 
-      subrects.newTile(buf, t.width(), t.height());
-      int encodedLen = subrects.buildTables();
+      tile.newTile(buf, t.width(), t.height());
+      int encodedLen = tile.getSize();
 
       if (encodedLen >= t.width() * t.height() * (BPP/8)) {
         os->writeU8(hextileRaw);
@@ -282,8 +320,8 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
         continue;
       }
 
-      int tileType = subrects.getFlags();
-      PIXEL_T bg = subrects.getBackground();
+      int tileType = tile.getFlags();
+      PIXEL_T bg = tile.getBackground();
       PIXEL_T fg = 0;
 
       if (!oldBgValid || oldBg != bg) {
@@ -296,16 +334,14 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
         if (tileType & hextileSubrectsColoured) {
           oldFgValid = false;
         } else {
-          fg = subrects.getForeground();
+          fg = tile.getForeground();
           if (!oldFgValid || oldFg != fg) {
             tileType |= hextileFgSpecified;
             oldFg = fg;
             oldFgValid = true;
           }
         }
-        int finalEncodedLen = subrects.encode(encoded);
-        assert(finalEncodedLen == encodedLen);
-        assert(finalEncodedLen <= 256*(BPP/8));
+        tile.encode(encoded);
       }
 
       os->writeU8(tileType);
@@ -318,7 +354,6 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
 #undef PIXEL_T
 #undef WRITE_PIXEL
+#undef HEXTILE_TILE
 #undef HEXTILE_ENCODE
-
-#undef HEXTILE_SUBRECTS_TABLE
 }
