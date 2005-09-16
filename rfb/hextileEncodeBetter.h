@@ -42,11 +42,8 @@ namespace rfb {
 
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
 #define WRITE_PIXEL CONCAT2E(writeOpaque,BPP)
-#define HEXTILE_ENCODE CONCAT2E(hextileEncodeBetter,BPP)
-
-/********************************************************************/
-
 #define HEXTILE_SUBRECTS_TABLE CONCAT2E(HextileSubrectsTable,BPP)
+#define HEXTILE_ENCODE CONCAT2E(hextileEncodeBetter,BPP)
 
 class HEXTILE_SUBRECTS_TABLE {
 
@@ -80,11 +77,11 @@ class HEXTILE_SUBRECTS_TABLE {
 
  private:
 
-  /* DEBUG: Check performance for: (1) U8[] and (2) dyn.allocated. */
+  // DEBUG: Check performance for: (1) U8[] and (2) dyn.allocated.
   bool m_processed[16][16];
 
-  /* FIXME: Use array for (BPP == 8)? */
-  /* DEBUG: Use own hashing like in ZRLE? */
+  // FIXME: Use array for (BPP == 8)?
+  // DEBUG: Use own hashing like in ZRLE?
   std::map<PIXEL_T,short> m_counts;
 };
 
@@ -101,9 +98,9 @@ void HEXTILE_SUBRECTS_TABLE::newTile(const PIXEL_T *src, int w, int h)
   m_height = h;
 }
 
-/*
- * Returns estimated encoded data size.
- */
+//
+// Returns estimated encoded data size.
+//
 
 int HEXTILE_SUBRECTS_TABLE::buildTables()
 {
@@ -120,11 +117,11 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
 
   for (y = 0; y < m_height; y++) {
     for (x = 0; x < m_width; x++) {
-      /* Skip pixels that were processed earlier */
+      // Skip pixels that were processed earlier
       if (m_processed[y][x]) {
         continue;
       }
-      /* Determine dimensions of the horizontal subrect */
+      // Determine dimensions of the horizontal subrect
       color = m_tile[y * m_width + x];
       for (sx = x + 1; sx < m_width; sx++) {
         if (m_tile[y * m_width + sx] != color)
@@ -141,7 +138,7 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
     done:
       sh = sy - y;
 
-      /* Save properties of this subrect */
+      // Save properties of this subrect
       *colorsPtr++ = color;
       *coordsPtr++ = (rdr::U8)((x << 4) | (y & 0x0F));
       *coordsPtr++ = (rdr::U8)(((sw - 1) << 4) | ((sh - 1) & 0x0F));
@@ -149,13 +146,13 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
 
       m_numSubrects++;
 
-      /* Mark pixels of this subrect as processed, below this row */
+      // Mark pixels of this subrect as processed, below this row
       for (sy = y + 1; sy < y + sh; sy++) {
         for (sx = x; sx < x + sw; sx++)
           m_processed[sy][sx] = true;
       }
 
-      /* Skip processed pixels of this row */
+      // Skip processed pixels of this row
       x += (sw - 1);
     }
   }
@@ -205,18 +202,18 @@ int HEXTILE_SUBRECTS_TABLE::buildTables()
   return 1 + (2 + (BPP/8)) * (m_numSubrects - bgCount);
 }
 
-/*
- * Call this function only if hextileAnySubrects bit is set in flags.
- * The buffer size should be enough to store at least that number of
- * bytes returned by buildTables() method.
- * Returns encoded data size, or zero if something is wrong.
- */
+//
+// Call this function only if hextileAnySubrects bit is set in flags.
+// The buffer size should be enough to store at least that number of
+// bytes returned by buildTables() method.
+// Returns encoded data size, or zero if something is wrong.
+//
 
 int HEXTILE_SUBRECTS_TABLE::encode(rdr::U8 *dst)
 {
   assert(m_numSubrects && (m_flags & hextileAnySubrects));
 
-  // Zero subrects counter.
+  // Zero subrects counter
   rdr::U8 *numSubrectsPtr = dst;
   *dst++ = 0;
 
@@ -246,7 +243,9 @@ int HEXTILE_SUBRECTS_TABLE::encode(rdr::U8 *dst)
   return (dst - numSubrectsPtr);
 }
 
-/*------------------------------------------------------------------*/
+//
+// Main encoding function.
+//
 
 void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 #ifdef EXTRA_ARGS
