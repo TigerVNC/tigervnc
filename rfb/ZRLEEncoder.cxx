@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -27,7 +27,7 @@
 using namespace rfb;
 
 rdr::MemOutStream* ZRLEEncoder::sharedMos = 0;
-int ZRLEEncoder::maxLen = 513 * 1024; // enough for width 2048 32-bit pixels
+int ZRLEEncoder::maxLen = 4097 * 1024; // enough for width 16384 32-bit pixels
 
 IntParameter zlibLevel("ZlibLevel","Zlib compression level",-1);
 
