@@ -164,7 +164,7 @@ void HEXTILE_TILE::analyze()
     *colorsPtr++ = color;
     *coordsPtr++ = 0;
     *coordsPtr++ = (rdr::U8)(((m_width - 1) << 4) | ((y - 1) & 0x0F));
-    m_pal.insert(color, 1, BPP);
+    m_pal.insert(color, 1);
     m_numSubrects++;
   }
 
@@ -200,7 +200,7 @@ void HEXTILE_TILE::analyze()
       *coordsPtr++ = (rdr::U8)((x << 4) | (y & 0x0F));
       *coordsPtr++ = (rdr::U8)(((sw - 1) << 4) | ((sh - 1) & 0x0F));
 
-      if (m_pal.insert(color, 1, BPP) == 0) {
+      if (m_pal.insert(color, 1) == 0) {
         // Handle palette overflow
         m_flags = hextileRaw;
         m_size = 0;

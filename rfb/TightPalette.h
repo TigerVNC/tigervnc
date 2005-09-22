@@ -74,7 +74,7 @@ namespace rfb {
     // reports zero colors and cannot be used any more without calling
     // reset().
     //
-    int insert(rdr::U32 rgb, int numPixels, int bpp);
+    int insert(rdr::U32 rgb, int numPixels);
 
     //
     // Return number of colors in the palette.

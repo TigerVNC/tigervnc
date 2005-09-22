@@ -46,7 +46,7 @@ void TightPalette::setMaxColors(int maxColors)
   }
 }
 
-int TightPalette::insert(rdr::U32 rgb, int numPixels, int bpp)
+int TightPalette::insert(rdr::U32 rgb, int numPixels)
 {
   TightColorList *pnode;
   TightColorList *prev_pnode = NULL;
