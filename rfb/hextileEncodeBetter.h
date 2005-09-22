@@ -94,15 +94,9 @@ class HEXTILE_TILE {
  protected:
 
   //
-  // Fill in m_coords[], m_colors[], m_pal and set m_numSubrects.
+  // Analyze the tile pixels, fill in all the data fields.
   //
-  void buildTables();
-
-  //
-  // Fill in m_size, m_flags, m_background and m_foreground.
-  // Must be called after buildTables(), before encode().
-  //
-  void computeSize();
+  void analyze();
 
   const PIXEL_T *m_tile;
   int m_width;
@@ -136,26 +130,49 @@ void HEXTILE_TILE::newTile(const PIXEL_T *src, int w, int h)
   m_width = w;
   m_height = h;
 
-  // NOTE: These two methods should always be called from this place
-  //       only, and exactly in this order.
-  buildTables();
-  computeSize();
+  analyze();
 }
 
-void HEXTILE_TILE::buildTables()
+void HEXTILE_TILE::analyze()
 {
   assert(m_tile && m_width && m_height);
 
-  m_numSubrects = 0;
-  memset(m_processed, 0, 16 * 16 * sizeof(bool));
+  const PIXEL_T *ptr = m_tile;
+  const PIXEL_T *end = &m_tile[m_width * m_height];
+  PIXEL_T color = *ptr++;
+  while (ptr != end && *ptr == color)
+    ptr++;
+
+  // Handle solid tile
+  if (ptr == end) {
+    m_background = m_tile[0];
+    m_flags = 0;
+    m_size = 0;
+    return;
+  }
+
+  // Compute number of complete rows of the same color, at the top
+  int y = (ptr - m_tile) / m_width;
+
+  PIXEL_T *colorsPtr = m_colors;
+  rdr::U8 *coordsPtr = m_coords;
   m_pal.reset();
+  m_numSubrects = 0;
 
-  int x, y, sx, sy, sw, sh, max_x;
-  PIXEL_T color;
-  PIXEL_T *colorsPtr = &m_colors[0];
-  rdr::U8 *coordsPtr = &m_coords[0];
+  // Have we found the first subrect already?
+  if (y > 0) {
+    *colorsPtr++ = color;
+    *coordsPtr++ = 0;
+    *coordsPtr++ = (rdr::U8)(((m_width - 1) << 4) | ((y - 1) & 0x0F));
+    m_pal.insert(color, 1, BPP);
+    m_numSubrects++;
+  }
 
-  for (y = 0; y < m_height; y++) {
+  memset(m_processed, 0, 16 * 16 * sizeof(bool));
+
+  int x, sx, sy, sw, sh, max_x;
+
+  for (; y < m_height; y++) {
     for (x = 0; x < m_width; x++) {
       // Skip pixels that were processed earlier
       if (m_processed[y][x]) {
@@ -183,8 +200,12 @@ void HEXTILE_TILE::buildTables()
       *coordsPtr++ = (rdr::U8)((x << 4) | (y & 0x0F));
       *coordsPtr++ = (rdr::U8)(((sw - 1) << 4) | ((sh - 1) & 0x0F));
 
-      if (m_pal.insert(color, 1, BPP) == 0)
-        return;                 // palette overflow
+      if (m_pal.insert(color, 1, BPP) == 0) {
+        // Handle palette overflow
+        m_flags = hextileRaw;
+        m_size = 0;
+        return;
+      }
 
       m_numSubrects++;
 
@@ -198,45 +219,24 @@ void HEXTILE_TILE::buildTables()
       x += (sw - 1);
     }
   }
-}
 
-void HEXTILE_TILE::computeSize()
-{
-  // Save the number of colors
+  // Save number of colors in this tile (should be no less than 2)
   int numColors = m_pal.getNumColors();
+  assert(numColors >= 2);
 
-  // Handle solid tile
-  if (numColors == 1) {
-    m_background = m_tile[0];
-    m_flags = 0;
-    m_size = 0;
-    return;
-  }
-
-  // Handle monochrome tile - choose background and foreground
-  if (numColors == 2) {
-    int bgCount = m_pal.getCount(0);
-    m_background = (PIXEL_T)m_pal.getEntry(0);
-    m_foreground = (PIXEL_T)m_pal.getEntry(1);
-
-    m_flags = hextileAnySubrects;
-    m_size = 1 + 2 * (m_numSubrects - bgCount);
-    return;
-  }
-
-  // Handle raw-encoded tile (there was palette overflow)
-  if (numColors == 0) {
-    m_flags = hextileRaw;
-    m_size = 0;
-    return;
-  }
-
-  // Handle colored tile - choose the best background color
-  int bgCount = m_pal.getCount(0);
   m_background = (PIXEL_T)m_pal.getEntry(0);
+  m_flags = hextileAnySubrects;
+  int numSubrects = m_numSubrects - m_pal.getCount(0);
 
-  m_flags = hextileAnySubrects | hextileSubrectsColoured;
-  m_size = 1 + (2 + (BPP/8)) * (m_numSubrects - bgCount);
+  if (numColors == 2) {
+    // Monochrome tile
+    m_foreground = (PIXEL_T)m_pal.getEntry(1);
+    m_size = 1 + 2 * numSubrects;
+  } else {
+    // Colored tile
+    m_flags |= hextileSubrectsColoured;
+    m_size = 1 + (2 + (BPP/8)) * numSubrects;
+  }
 }
 
 void HEXTILE_TILE::encode(rdr::U8 *dst) const
