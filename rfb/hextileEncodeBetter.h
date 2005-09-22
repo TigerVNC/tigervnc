@@ -24,10 +24,9 @@
 // EXTRA_ARGS         - optional extra arguments
 // GET_IMAGE_INTO_BUF - gets a rectangle of pixel data into a buffer
 
-#include <map>
-
 #include <rdr/OutStream.h>
 #include <rfb/hextileConstants.h>
+#include <rfb/TightPalette.h>
 
 #include <assert.h>
 
@@ -56,19 +55,23 @@ class HEXTILE_TILE {
   HEXTILE_TILE ();
 
   //
-  // Initialize the object with new tile data.
+  // Initialize existing object instance with new tile data.
   //
   void newTile(const PIXEL_T *src, int w, int h);
 
   //
-  // Returns the size of encoded subrects data, including subrects count.
-  //
-  int getSize() const { return m_size; }
-
-  //
-  // Flags can include: hextileAnySubrects, hextileSubrectsColoured.
+  // Flags can include: hextileRaw, hextileAnySubrects and
+  // hextileSubrectsColoured. Note that if hextileRaw is set, other
+  // flags make no sense. Also, hextileSubrectsColoured is meaningful
+  // only when hextileAnySubrects is set as well.
   //
   int getFlags() const { return m_flags; }
+
+  //
+  // Returns the size of encoded subrects data, including subrect count.
+  // The size is zero if flags do not include hextileAnySubrects.
+  //
+  int getSize() const { return m_size; }
 
   //
   // Return optimal background.
@@ -91,7 +94,7 @@ class HEXTILE_TILE {
  protected:
 
   //
-  // Fill in m_coords[], m_colors[], m_counts[] and set m_numSubrects.
+  // Fill in m_coords[], m_colors[], m_pal and set m_numSubrects.
   //
   void buildTables();
 
@@ -116,12 +119,8 @@ class HEXTILE_TILE {
 
  private:
 
-  // DEBUG: Check performance for: (1) U8[] and (2) dyn.allocated.
   bool m_processed[16][16];
-
-  // FIXME: Use array for (BPP == 8)?
-  // DEBUG: Use own hashing like in ZRLE?
-  std::map<PIXEL_T,short> m_counts;
+  TightPalette m_pal;
 };
 
 HEXTILE_TILE::HEXTILE_TILE()
@@ -137,6 +136,8 @@ void HEXTILE_TILE::newTile(const PIXEL_T *src, int w, int h)
   m_width = w;
   m_height = h;
 
+  // NOTE: These two methods should always be called from this place
+  //       only, and exactly in this order.
   buildTables();
   computeSize();
 }
@@ -147,7 +148,7 @@ void HEXTILE_TILE::buildTables()
 
   m_numSubrects = 0;
   memset(m_processed, 0, 16 * 16 * sizeof(bool));
-  m_counts.clear();
+  m_pal.reset();
 
   int x, y, sx, sy, sw, sh, max_x;
   PIXEL_T color;
@@ -181,7 +182,9 @@ void HEXTILE_TILE::buildTables()
       *colorsPtr++ = color;
       *coordsPtr++ = (rdr::U8)((x << 4) | (y & 0x0F));
       *coordsPtr++ = (rdr::U8)(((sw - 1) << 4) | ((sh - 1) & 0x0F));
-      m_counts[color] += 1;
+
+      if (m_pal.insert(color, 1, BPP) == 0)
+        return;                 // palette overflow
 
       m_numSubrects++;
 
@@ -200,7 +203,7 @@ void HEXTILE_TILE::buildTables()
 void HEXTILE_TILE::computeSize()
 {
   // Save the number of colors
-  int numColors = m_counts.size();
+  int numColors = m_pal.getNumColors();
 
   // Handle solid tile
   if (numColors == 1) {
@@ -210,38 +213,27 @@ void HEXTILE_TILE::computeSize()
     return;
   }
 
-  std::map<PIXEL_T,short>::iterator i;
-
   // Handle monochrome tile - choose background and foreground
   if (numColors == 2) {
-    i = m_counts.begin();
-    m_background = i->first;
-    int bgCount = i->second;
-    i++;
-    if (i->second <= bgCount) {
-      m_foreground = i->first;
-    } else {
-      m_foreground = m_background;
-      m_background = i->first;
-      bgCount = i->second;;
-    }
+    int bgCount = m_pal.getCount(0);
+    m_background = (PIXEL_T)m_pal.getEntry(0);
+    m_foreground = (PIXEL_T)m_pal.getEntry(1);
 
     m_flags = hextileAnySubrects;
     m_size = 1 + 2 * (m_numSubrects - bgCount);
     return;
   }
 
-  // Handle colored tile - choose the best background color
-  int bgCount = 0, count;
-  PIXEL_T color;
-  for (i = m_counts.begin(); i != m_counts.end(); i++) {
-    color = i->first;
-    count = i->second;
-    if (count > bgCount) {
-      bgCount = count;
-      m_background = color;
-    }
+  // Handle raw-encoded tile (there was palette overflow)
+  if (numColors == 0) {
+    m_flags = hextileRaw;
+    m_size = 0;
+    return;
   }
+
+  // Handle colored tile - choose the best background color
+  int bgCount = m_pal.getCount(0);
+  m_background = (PIXEL_T)m_pal.getEntry(0);
 
   m_flags = hextileAnySubrects | hextileSubrectsColoured;
   m_size = 1 + (2 + (BPP/8)) * (m_numSubrects - bgCount);
@@ -311,16 +303,17 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
       GET_IMAGE_INTO_BUF(t,buf);
 
       tile.newTile(buf, t.width(), t.height());
+      int tileType = tile.getFlags();
       int encodedLen = tile.getSize();
 
-      if (encodedLen >= t.width() * t.height() * (BPP/8)) {
+      if ( (tileType & hextileRaw) != 0 ||
+           encodedLen >= t.width() * t.height() * (BPP/8)) {
         os->writeU8(hextileRaw);
         os->writeBytes(buf, t.width() * t.height() * (BPP/8));
         oldBgValid = oldFgValid = false;
         continue;
       }
 
-      int tileType = tile.getFlags();
       PIXEL_T bg = tile.getBackground();
       PIXEL_T fg = 0;
 
