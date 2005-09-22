@@ -274,6 +274,20 @@ SOURCE=.\win32\Threading_win32.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\TightDecoder.cxx
+# ADD CPP /I "../jpeg"
+# End Source File
+# Begin Source File
+
+SOURCE=.\TightEncoder.cxx
+# ADD CPP /I "../jpeg"
+# End Source File
+# Begin Source File
+
+SOURCE=.\TightPalette.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\TransImageGetter.cxx
 # End Source File
 # Begin Source File
@@ -299,16 +313,6 @@ SOURCE=.\VNCServerST.cxx
 # Begin Source File
 
 SOURCE=.\ZRLEDecoder.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\TightDecoder.cxx
-# ADD CPP /I "../jpeg"
-# End Source File
-# Begin Source File
-
-SOURCE=.\TightEncoder.cxx
-# ADD CPP /I "../jpeg"
 # End Source File
 # Begin Source File
 
@@ -417,6 +421,10 @@ SOURCE=.\HextileDecoder.h
 # Begin Source File
 
 SOURCE=.\hextileEncode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\hextileEncodeBetter.h
 # End Source File
 # Begin Source File
 
@@ -568,6 +576,26 @@ SOURCE=.\win32\Threading_win32.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\tightDecode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TightDecoder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\tightEncode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TightEncoder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TightPalette.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\TransImageGetter.h
 # End Source File
 # Begin Source File
@@ -629,22 +657,6 @@ SOURCE=.\zrleEncode.h
 # Begin Source File
 
 SOURCE=.\ZRLEEncoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\tightDecode.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\TightDecoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\tightEncode.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\TightEncoder.h
 # End Source File
 # End Group
 # End Target
