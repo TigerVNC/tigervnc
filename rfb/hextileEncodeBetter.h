@@ -126,7 +126,7 @@ class HEXTILE_TILE {
 HEXTILE_TILE::HEXTILE_TILE()
   : m_tile(NULL), m_width(0), m_height(0),
     m_size(0), m_flags(0), m_background(0), m_foreground(0),
-    m_numSubrects(0)
+    m_numSubrects(0), m_pal(48 + 2 * BPP)
 {
 }
 
