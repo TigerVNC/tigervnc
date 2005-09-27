@@ -28,11 +28,12 @@ BoolParameter improvedHextile("ImprovedHextile",
                               "Use improved compression algorithm for Hextile "
                               "encoding which achieves better compression "
                               "ratios by the cost of using more CPU time",
-                              false);
+                              true);
 
 #define EXTRA_ARGS ImageGetter* ig
 #define GET_IMAGE_INTO_BUF(r,buf) ig->getImage(buf, r);
 #define BPP 8
+#include <rfb/hextileEncode.h>
 #include <rfb/hextileEncodeBetter.h>
 #undef BPP
 #define BPP 16
@@ -63,8 +64,11 @@ bool HextileEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
   rdr::OutStream* os = writer->getOutStream();
   switch (writer->bpp()) {
   case 8:
-    // NOTE: We always use improved Hextile for 8-bit data.
-    hextileEncodeBetter8(r, os, ig);
+    if (improvedHextile) {
+      hextileEncodeBetter8(r, os, ig);
+    } else {
+      hextileEncode8(r, os, ig);
+    }
     break;
   case 16:
     if (improvedHextile) {
