@@ -39,7 +39,7 @@ namespace rfb {
   const unsigned int pseudoEncodingQualityLevel0 = 0xFFFFFFE0;
   const unsigned int pseudoEncodingQualityLevel9 = 0xFFFFFFE9;
   const unsigned int pseudoEncodingCompressLevel0 = 0xFFFFFF00;
-  const unsigned int pseudoEncodingCompressLevel9 = 0xFFFFFF00;
+  const unsigned int pseudoEncodingCompressLevel9 = 0xFFFFFF09;
 
   int encodingNum(const char* name);
   const char* encodingName(unsigned int num);
