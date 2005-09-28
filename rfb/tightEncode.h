@@ -360,6 +360,11 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
   if (s_palMaxColors < 2 && r.area() >= s_pconf->monoMinRectSize) {
     s_palMaxColors = 2;
   }
+  // FIXME: Temporary limitation for switching to JPEG earlier.
+  if (s_palMaxColors > 96 && s_pjconf != NULL) {
+    s_palMaxColors = 96;
+  }
+
   FILL_PALETTE(pixels, r.area());
 
   switch (s_palNumColors) {
@@ -384,12 +389,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
 #if (BPP != 8)
   default:
     // Up to 256 different colors
-    if (s_palNumColors > 96 && s_pjconf != NULL &&
-        DETECT_SMOOTH_IMAGE(pixels, r)) {
-      ENCODE_JPEG_RECT(os, pixels, pf, r);
-    } else {
-      ENCODE_INDEXED_RECT(os, zos, pixels, r);
-    }
+    ENCODE_INDEXED_RECT(os, zos, pixels, r);
 #endif
   }
 }

@@ -30,7 +30,7 @@ using namespace rfb;
 
 // Adjustable parameters.
 // FIXME: Get rid of #defines
-#define TIGHT_JPEG_MIN_RECT_SIZE 2048
+#define TIGHT_JPEG_MIN_RECT_SIZE 1024
 #define TIGHT_DETECT_MIN_WIDTH      8
 #define TIGHT_DETECT_MIN_HEIGHT     8
 
@@ -48,12 +48,12 @@ const TIGHT_CONF TightEncoder::conf[10] = {
   {   512,   32,   6, 0, 0, 0,   4,  5 },
   {  2048,   64,   6, 1, 1, 1,   8, 10 },
   {  4096,  128,   8, 3, 3, 2,  24, 15 },
-  {  8192,  256,  12, 5, 5, 3,  32, 25 },
-  { 16384,  512,  12, 6, 6, 4,  32, 37 },
-  { 32768,  512,  12, 7, 7, 5,  32, 50 },
-  { 65536,  512,  16, 7, 7, 6,  48, 60 },
-  { 65536, 1024,  16, 8, 8, 7,  64, 70 },
-  { 65536, 2048,  24, 9, 9, 8,  64, 75 },
+  {  8192,  256,  12, 5, 5, 2,  32, 25 },
+  { 16384,  512,  12, 6, 7, 3,  32, 37 },
+  { 32768,  512,  12, 7, 8, 4,  32, 50 },
+  { 65536, 1024,  16, 7, 8, 5,  32, 60 },
+  { 65536, 1024,  16, 8, 9, 6,  64, 70 },
+  { 65536, 2048,  24, 9, 9, 7,  64, 75 },
   { 65536, 2048,  32, 9, 9, 9,  96, 80 }
 };
 const int TightEncoder::defaultCompressLevel = 6;
