@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,7 +17,7 @@
  */
 #include <rdr/Exception.h>
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
+#include <tchar.h>
 #include <windows.h>
 #include <winsock2.h>
 #endif
@@ -25,7 +25,7 @@
 using namespace rdr;
 
 SystemException::SystemException(const char* s, int err_)
-  : Exception(s, "rdr::SystemException"), err(err_)
+  : Exception(s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
 #ifdef _WIN32
@@ -48,17 +48,26 @@ SystemException::SystemException(const char* s, int err_)
 		              str_+strlen(str_), len-strlen(str_), 0, 0);
     delete [] tmsg;
 #else
+    char* currStr = str_+strlen(str_);
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                  0, err, 0, str_+strlen(str_), len-1-strlen(str_), 0);
+                  0, err, 0, currStr, len-1-strlen(str_), 0);
 #endif
+    int l = strlen(str_);
+    if ((l >= 2) && (str_[l-2] == '\r') && (str_[l-1] == '\n'))
+      str_[l-2] = 0;
   }
-    
+
 #else
   strncat(str_, strerror(err), len-1-strlen(str_));
 #endif
   strncat(str_, " (", len-1-strlen(str_));
   char buf[20];
-  sprintf(buf,"%d",err);
+#ifdef WIN32
+  if (err < 0)
+    sprintf(buf, "%x", err);
+  else
+#endif
+    sprintf(buf,"%d",err);
   strncat(str_, buf, len-1-strlen(str_));
   strncat(str_, ")", len-1-strlen(str_));
 }

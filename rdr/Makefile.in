@@ -1,6 +1,6 @@
 
 SRCS = Exception.cxx FdInStream.cxx FdOutStream.cxx InStream.cxx \
-       NullOutStream.cxx RandomStream.cxx ZlibInStream.cxx ZlibOutStream.cxx \
+       RandomStream.cxx ZlibInStream.cxx ZlibOutStream.cxx \
        HexInStream.cxx HexOutStream.cxx
 
 OBJS = $(SRCS:.cxx=.o)

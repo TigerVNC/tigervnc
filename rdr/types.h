@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -49,6 +49,16 @@ namespace rdr {
     ~U16Array() { delete [] buf; }
     U16* takeBuf() { U16* tmp = buf; buf = 0; return tmp; }
     U16* buf;
+  };
+
+  class U32Array {
+  public:
+    U32Array() : buf(0) {}
+    U32Array(U32* a) : buf(a) {} // note: assumes ownership
+    U32Array(int len) : buf(new U32[len]) {}
+    ~U32Array() { delete [] buf; }
+    U32* takeBuf() { U32* tmp = buf; buf = 0; return tmp; }
+    U32* buf;
   };
 
 } // end of namespace rdr

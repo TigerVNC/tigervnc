@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,17 +21,17 @@
 #include <rdr/Exception.h>
 
 namespace rfb {
-  struct Exception : public rdr::Exception {
-    Exception(const char* s=0, const char* e="rfb::Exception")
-      : rdr::Exception(s,e) {}
-  };
+  typedef rdr::Exception Exception;
   struct AuthFailureException : public Exception {
     AuthFailureException(const char* s="Authentication failure")
-      : Exception(s,"rfb::AuthFailureException") {}
+      : Exception(s) {}
+  };
+  struct AuthCancelledException : public rfb::Exception {
+    AuthCancelledException(const char* s="Authentication cancelled")
+      : Exception(s) {}
   };
   struct ConnFailedException : public Exception {
-    ConnFailedException(const char* s="Connection failed")
-      : Exception(s,"rfb::ConnFailedException") {}
+    ConnFailedException(const char* s="Connection failed") : Exception(s) {}
   };
 }
 #endif

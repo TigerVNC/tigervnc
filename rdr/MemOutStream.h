@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -48,6 +48,7 @@ namespace rdr {
 
     int length() { return ptr - start; }
     void clear() { ptr = start; };
+    void clearAndZero() { memset(start, 0, ptr-start); clear(); }
     void reposition(int pos) { ptr = start + pos; }
 
     // data() returns a pointer to the buffer.

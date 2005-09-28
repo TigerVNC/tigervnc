@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,6 +25,9 @@
 #include <errno.h>
 #else
 #define getpid() GetCurrentProcessId()
+#ifndef RFB_HAVE_WINCRYPT
+#pragma message("  NOTE: Not building WinCrypt-based RandomStream")
+#endif
 #endif
 
 using namespace rdr;
@@ -38,7 +41,7 @@ RandomStream::RandomStream()
 {
   ptr = end = start = new U8[DEFAULT_BUF_LEN];
 
-#ifdef WIN32
+#ifdef RFB_HAVE_WINCRYPT
   provider = 0;
   if (!CryptAcquireContext(&provider, 0, 0, PROV_RSA_FULL, 0)) {
     if (GetLastError() == NTE_BAD_KEYSET) {
@@ -53,10 +56,14 @@ RandomStream::RandomStream()
   }
   if (!provider) {
 #else
+#ifndef WIN32
   fp = fopen("/dev/urandom", "r");
   if (!fp)
     fp = fopen("/dev/random", "r");
   if (!fp) {
+#else
+  {
+#endif
 #endif
     fprintf(stderr,"RandomStream: warning: no OS supplied random source - using rand()\n");
     seed += (unsigned int) time(0) + getpid() + getpid() * 987654 + rand();
@@ -67,11 +74,11 @@ RandomStream::RandomStream()
 RandomStream::~RandomStream() {
   delete [] start;
 
-#ifdef WIN32
-  if (provider) {
+#ifdef RFB_HAVE_WINCRYPT
+  if (provider)
     CryptReleaseContext(provider, 0);
-  }
-#else
+#endif
+#ifndef WIN32
   if (fp) fclose(fp);
 #endif
 }
@@ -93,20 +100,25 @@ int RandomStream::overrun(int itemSize, int nItems, bool wait) {
 
   int length = start + DEFAULT_BUF_LEN - end;
 
-#ifdef WIN32
+#ifdef RFB_HAVE_WINCRYPT
   if (provider) {
     if (!CryptGenRandom(provider, length, (U8*)end))
       throw rdr::SystemException("unable to CryptGenRandom", GetLastError());
     end += length;
+  } else {
 #else
+#ifndef WIN32
   if (fp) {
     int n = fread((U8*)end, length, 1, fp);
     if (n != 1)
       throw rdr::SystemException("reading /dev/urandom or /dev/random failed",
                                  errno);
     end += length;
-#endif
   } else {
+#else
+  {
+#endif
+#endif
     for (int i=0; i<length; i++)
       *(U8*)end++ = (int) (256.0*rand()/(RAND_MAX+1.0));
   }

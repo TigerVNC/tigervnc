@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,12 +23,11 @@
 #include <rdr/InStream.h>
 
 #ifdef WIN32
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0400
-#endif
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <wincrypt.h>
+#ifdef WINCRYPT32API
+#define RFB_HAVE_WINCRYPT
+#endif
 #endif
 
 namespace rdr {
@@ -50,9 +49,10 @@ namespace rdr {
     int offset;
 
     static unsigned int seed;
-#ifdef WIN32
+#ifdef RFB_HAVE_WINCRYPT
     HCRYPTPROV provider;
-#else
+#endif
+#ifndef WIN32
     FILE* fp;
 #endif
 

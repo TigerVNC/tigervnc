@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -27,18 +27,14 @@ namespace rdr {
   struct Exception {
     enum { len = 256 };
     char str_[len];
-    char type_[len];
-    Exception(const char* s=0, const char* e="rdr::Exception") {
+    Exception(const char* s=0) {
       str_[0] = 0;
       if (s)
         strncat(str_, s, len-1);
       else
         strcat(str_, "Exception");
-      type_[0] = 0;
-      strncat(type_, e, len-1);
     }
     virtual const char* str() const { return str_; }
-    virtual const char* type() const { return type_; }
   };
 
   struct SystemException : public Exception {
@@ -47,12 +43,15 @@ namespace rdr {
   }; 
 
   struct TimedOut : public Exception {
-    TimedOut(const char* s="Timed out") : Exception(s,"rdr::TimedOut") {}
+    TimedOut(const char* s="Timed out") : Exception(s) {}
   };
  
   struct EndOfStream : public Exception {
-    EndOfStream(const char* s="End of stream")
-      : Exception(s,"rdr::EndOfStream") {}
+    EndOfStream(const char* s="End of stream") : Exception(s) {}
+  };
+
+  struct FrameException : public Exception {
+    FrameException(const char* s="Frame exception") : Exception(s) {}
   };
 }
 
