@@ -18,8 +18,8 @@
 #include <rdr/Exception.h>
 #ifdef _WIN32
 #include <tchar.h>
-#include <windows.h>
 #include <winsock2.h>
+#include <windows.h>
 #endif
 
 using namespace rdr;
