@@ -25,7 +25,8 @@ using namespace rdr;
 enum { DEFAULT_BUF_SIZE = 16384 };
 
 ZlibOutStream::ZlibOutStream(OutStream* os, int bufSize_, int compressLevel)
-  : underlying(os), bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
+  : underlying(os), compressionLevel(compressLevel), newLevel(compressLevel),
+    bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
 {
   zs = new z_stream;
   zs->zalloc    = Z_NULL;
@@ -55,6 +56,14 @@ void ZlibOutStream::setUnderlying(OutStream* os)
   underlying = os;
 }
 
+void ZlibOutStream::setCompressionLevel(int level)
+{
+  if (level < -1 || level > 9)
+    level = -1;                 // Z_DEFAULT_COMPRESSION
+
+  newLevel = level;
+}
+
 int ZlibOutStream::length()
 {
   return offset + ptr - start;
@@ -76,6 +85,7 @@ void ZlibOutStream::flush()
 
 //        fprintf(stderr,"zos flush: calling deflate, avail_in %d, avail_out %d\n",
 //                zs->avail_in,zs->avail_out);
+      checkCompressionLevel();
       int rc = deflate(zs, Z_SYNC_FLUSH);
       if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
 
@@ -109,6 +119,7 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
 //        fprintf(stderr,"zos overrun: calling deflate, avail_in %d, avail_out %d\n",
 //                zs->avail_in,zs->avail_out);
 
+      checkCompressionLevel();
       int rc = deflate(zs, 0);
       if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
 
@@ -137,4 +148,14 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
     nItems = (end - ptr) / itemSize;
 
   return nItems;
+}
+
+void ZlibOutStream::checkCompressionLevel()
+{
+  if (newLevel != compressionLevel) {
+    if (deflateParams (zs, newLevel, Z_DEFAULT_STRATEGY) != Z_OK) {
+      throw Exception("ZlibOutStream: deflateParams failed");
+    }
+    compressionLevel = newLevel;
+  }
 }

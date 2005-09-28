@@ -192,6 +192,7 @@ static void compressData(rdr::OutStream *os, rdr::ZlibOutStream *zos,
     //        Maybe use the same static object used in the JPEG coder?
     rdr::MemOutStream mem_os;
     zos->setUnderlying(&mem_os);
+    zos->setCompressionLevel(zlibLevel);
     zos->writeBytes(buf, length);
     zos->flush();
     os->writeCompactLength(mem_os.length());

@@ -38,14 +38,18 @@ namespace rdr {
     virtual ~ZlibOutStream();
 
     void setUnderlying(OutStream* os);
+    void setCompressionLevel(int level=-1);
     void flush();
     int length();
 
   private:
 
     int overrun(int itemSize, int nItems);
+    void checkCompressionLevel();
 
     OutStream* underlying;
+    int compressionLevel;
+    int newLevel;
     int bufSize;
     int offset;
     z_stream_s* zs;
