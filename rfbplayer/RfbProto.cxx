@@ -89,7 +89,7 @@ void RfbProto::processVersionMsg()
   bool done;
   if (!cp.readVersion(is, &done)) {
     state_ = RFBSTATE_INVALID;
-    throw rfb::Exception("reading version failed: wrong file format?", "RfbPlayer");
+    throw rfb::Exception("reading version failed: wrong file format?");
   }
   if (!done) return;
 
@@ -99,7 +99,7 @@ void RfbProto::processVersionMsg()
     sprintf(msg,"File have unsupported RFB protocol version %d.%d",
             cp.majorVersion, cp.minorVersion);
     state_ = RFBSTATE_INVALID;
-    throw rfb::Exception(msg, "RfbPlayer Error");
+    throw rfb::Exception(msg);
   }
 
   state_ = RFBSTATE_SECURITY;
@@ -120,12 +120,11 @@ void RfbProto::processSecurityMsg()
     int reasonLen = is->readU32();
     char *reason = new char[reasonLen];
     is->readBytes(reason, reasonLen);
-    throw rfb::Exception(reason, "RfbPlayer"); 
+    throw rfb::Exception(reason); 
   }
 
   if (secType != secTypeNone) {
-    throw rfb::Exception("Wrong authentication type in the session file", 
-                         "RfbPlayer Error");
+    throw rfb::Exception("Wrong authentication type in the session file");
   }
 
   state_ = RFBSTATE_INITIALISATION;

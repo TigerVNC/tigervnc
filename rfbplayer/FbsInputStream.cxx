@@ -43,7 +43,7 @@ FbsInputStream::FbsInputStream(char* FileName) {
     char *msg = new char[12 + sizeof(FileName)];
     strcpy(msg, "Can't open ");
     strcat(msg, FileName);
-    throw rfb::Exception(msg,"RfbPlayer Error");
+    throw rfb::Exception(msg);
   }
 
   byte b[12];
@@ -53,7 +53,7 @@ FbsInputStream::FbsInputStream(char* FileName) {
       b[4] != '0' || b[5] != '0' || b[6] != '1' || b[7] != '.' ||
 	    b[8]  < '0' || b[8]  > '9' || b[9]  < '0' || b[9] > '9'  ||
 	    b[10] < '0' || b[10] > '9' || b[11] != '\n') {
-    throw rfb::Exception("Incorrect protocol version", "RfbPlayer Error");
+    throw rfb::Exception("Incorrect protocol version");
   }
 }
 
@@ -98,7 +98,7 @@ int FbsInputStream::overrun(int itemSize, int nItems, bool wait=true) {
   
   // Perform backwardSeek (throws the special exception)
   if (seekBackwards) {
-    throw rfb::Exception("[REWIND]", "RfbPlayer");
+    throw rfb::Exception("[REWIND]");
   }
 
   // Save a tail of data
@@ -179,9 +179,9 @@ bool FbsInputStream::readNByte(byte b[], int n) {
     int count = fread(b, 1, n - off, fbsFile);
     if (count < n) {
       if (ferror(fbsFile)) 
-        throw rfb::Exception("Read error from session file", "RfbPlayer Error");
+        throw rfb::Exception("Read error from session file");
       if (feof(fbsFile))
-        throw rfb::Exception("[End Of File]", "RfbPlayer Error");
+        throw rfb::Exception("[End Of File]");
     }
     off += count;
   }

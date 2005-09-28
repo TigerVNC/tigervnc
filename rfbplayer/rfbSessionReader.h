@@ -47,7 +47,7 @@ public:
       try {
         rfbSession->processMsg();
       } catch (rdr::Exception e) {
-        MessageBox(0, e.str(), e.type(), MB_OK | MB_ICONERROR);
+        MessageBox(0, e.str(), "RFB Player", MB_OK | MB_ICONERROR);
         break;
       }
     }

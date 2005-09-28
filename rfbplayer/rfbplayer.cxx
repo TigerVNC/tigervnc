@@ -756,7 +756,7 @@ void RfbPlayer::processMsg() {
       char message[256] = "\0";
       strcat(message, e.str());
       strcat(message, "\nMaybe you force wrong the pixel format for this session");
-      MessageBox(getMainHandle(), message, e.type(), MB_OK | MB_ICONERROR);
+      MessageBox(getMainHandle(), message, "RFB Player", MB_OK | MB_ICONERROR);
       sessionTerminateThread *terminate = new sessionTerminateThread(this);
       terminate->start();
       return;
@@ -835,7 +835,7 @@ void RfbPlayer::serverInit() {
 
 void RfbPlayer::setColourMapEntries(int first, int count, U16* rgbs) {
   vlog.debug("setColourMapEntries: first=%d, count=%d", first, count);
-  throw rdr::Exception("Can't handle SetColourMapEntries message", "RfbPlayer");
+  throw rdr::Exception("Can't handle SetColourMapEntries message");
 /*  int i;
   for (i=0;i<count;i++) {
     buffer->setColour(i+first, rgbs[i*3], rgbs[i*3+1], rgbs[i*3+2]);
@@ -913,7 +913,7 @@ long RfbPlayer::calculateSessionTime(char *filename) {
     if (strcmp(e.str(), "[End Of File]") == 0) {
       return sessionFile.getTimeOffset();
     } else {
-      MessageBox(getMainHandle(), e.str(), e.type(), MB_OK | MB_ICONERROR);
+      MessageBox(getMainHandle(), e.str(), "RFB Player", MB_OK | MB_ICONERROR);
       return 0;
     }
   }
@@ -1262,7 +1262,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   try {
     player = new RfbPlayer(fileName, &playerOptions);
   } catch (rdr::Exception e) {
-    MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);
+    MessageBox(NULL, e.str(), "RFB Player", MB_OK | MB_ICONERROR);
     delete player;
     return 0;
   }
@@ -1281,7 +1281,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   try{
     if (player) delete player;
   } catch (rdr::Exception e) {
-    MessageBox(NULL, e.str(), e.type(), MB_OK | MB_ICONERROR);
+    MessageBox(NULL, e.str(), "RFB Player", MB_OK | MB_ICONERROR);
   }
 
   return 0;

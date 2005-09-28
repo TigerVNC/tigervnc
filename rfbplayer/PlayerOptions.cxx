@@ -45,7 +45,7 @@ void PlayerOptions::readFromRegistry() {
     askPixelFormat = regKey.getBool(_T("AskPixelFormat"), DEFAULT_ASK_PF);
     if (pPF) delete pPF;
   } catch (rdr::Exception e) {
-    MessageBox(0, e.str(), e.type(), MB_OK | MB_ICONERROR);
+    MessageBox(0, e.str(), "RFB Player", MB_OK | MB_ICONERROR);
   }
 }
 
@@ -63,7 +63,7 @@ void PlayerOptions::writeToRegistry() {
     regKey.setBool(_T("AutoPlay"), autoPlay);
     regKey.setBool(_T("AskPixelFormat"), askPixelFormat);
   } catch (rdr::Exception e) {
-    MessageBox(0, e.str(), e.type(), MB_OK | MB_ICONERROR);
+    MessageBox(0, e.str(), "RFB Player", MB_OK | MB_ICONERROR);
   }
 }
 
