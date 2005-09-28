@@ -36,7 +36,6 @@ namespace rfb {
     int idxZlibLevel, monoZlibLevel, rawZlibLevel;
     int idxMaxColorsDivisor;
     int jpegQuality;
-    unsigned long jpegThreshold, jpegThreshold24;
   };
 
   //
