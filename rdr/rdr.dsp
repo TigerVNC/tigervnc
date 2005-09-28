@@ -150,10 +150,6 @@ SOURCE=.\msvcwarning.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\NullOutStream.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\OutStream.h
 # End Source File
 # Begin Source File
@@ -205,11 +201,6 @@ SOURCE=.\HexOutStream.cxx
 # Begin Source File
 
 SOURCE=.\InStream.cxx
-# ADD CPP /I "../zlib"
-# End Source File
-# Begin Source File
-
-SOURCE=.\NullOutStream.cxx
 # ADD CPP /I "../zlib"
 # End Source File
 # Begin Source File
