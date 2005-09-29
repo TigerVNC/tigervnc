@@ -34,9 +34,6 @@
 
 #include <network/TcpSocket.h>
 
-#include "Image.h"
-#include "CPUMonitor.h"
-
 #include <signal.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -45,10 +42,11 @@
 #include <X11/extensions/XTest.h>
 #endif
 
-#include <rfb/Encoder.h>
+#include <x0vncserver/Image.h>
+#include <x0vncserver/PollingManager.h>
+#include <x0vncserver/CPUMonitor.h>
 
 using namespace rfb;
-using namespace rdr;
 using namespace network;
 
 LogWriter vlog("main");
@@ -80,7 +78,7 @@ class XDesktop : public SDesktop, public rfb::ColourMap
 public:
   XDesktop(Display* dpy_)
     : dpy(dpy_), pb(0), server(0), oldButtonMask(0), haveXtest(false),
-      maxButtons(0), pollingStep(0)
+      maxButtons(0)
   {
 #ifdef HAVE_XTEST
     int xtestEventBase;
@@ -110,13 +108,11 @@ public:
     int dpyWidth = DisplayWidth(dpy, DefaultScreen(dpy));
     int dpyHeight = DisplayHeight(dpy, DefaultScreen(dpy));
 
-    // FIXME: verify that all three images use the same pixel format.
     ImageFactory factory((bool)useShm, (bool)useOverlay);
     image = factory.newImage(dpy, dpyWidth, dpyHeight);
-    rowImage = factory.newImage(dpy, dpyWidth, 1);
-    tileImage = factory.newImage(dpy, 32, 32);
-
     image->get(DefaultRootWindow(dpy));
+
+    pollmgr = new PollingManager(dpy, image, &factory);
 
     pf.bpp = image->xim->bits_per_pixel;
     pf.depth = image->xim->depth;
@@ -134,11 +130,17 @@ public:
   }
   virtual ~XDesktop() {
     delete pb;
+    delete pollmgr;
   }
 
   void setVNCServer(VNCServer* s) {
     server = s;
+    pollmgr->setVNCServer(s);
     server->setPixelBuffer(pb);
+  }
+
+  inline void poll() {
+    pollmgr->poll();
   }
 
   // -=- SDesktop interface
@@ -192,95 +194,16 @@ public:
     *b = xc.blue;
   }
 
-  //
-  // DEBUG: a version of poll() measuring time spent in the function.
-  //
-
-  virtual void pollDebug()
-  {
-    struct timeval timeSaved, timeNow;
-    struct timezone tz;
-    timeSaved.tv_sec = 0;
-    timeSaved.tv_usec = 0;
-    gettimeofday(&timeSaved, &tz);
-
-    poll();
-
-    gettimeofday(&timeNow, &tz);
-    int diff = (int)((timeNow.tv_usec - timeSaved.tv_usec + 500) / 1000 +
-                     (timeNow.tv_sec - timeSaved.tv_sec) * 1000);
-    if (diff != 0)
-      fprintf(stderr, "DEBUG: poll(): %4d ms\n", diff);
-  }
-
-  //
-  // Search for changed rectangles on the screen.
-  //
-
-  virtual void poll()
-  {
-    if (server == NULL)
-      return;
-
-    int nTilesChanged = 0;
-    int scanLine = XDesktop::pollingOrder[pollingStep++ % 32];
-    int bytesPerPixel = image->xim->bits_per_pixel / 8;
-    int bytesPerLine = image->xim->bytes_per_line;
-    int w = image->xim->width, h = image->xim->height;
-    Rect rect;
-
-    for (int y = 0; y * 32 < h; y++) {
-      int tile_h = (h - y * 32 >= 32) ? 32 : h - y * 32;
-      if (scanLine >= tile_h)
-        continue;
-      int scan_y = y * 32 + scanLine;
-      rowImage->get(DefaultRootWindow(dpy), 0, scan_y);
-      char *ptr_old = image->xim->data + scan_y * bytesPerLine;
-      char *ptr_new = rowImage->xim->data;
-      for (int x = 0; x * 32 < w; x++) {
-        int tile_w = (w - x * 32 >= 32) ? 32 : w - x * 32;
-        int nBytes = tile_w * bytesPerPixel;
-        if (memcmp(ptr_old, ptr_new, nBytes)) {
-          if (tile_w == 32 && tile_h == 32) {
-            tileImage->get(DefaultRootWindow(dpy), x * 32, y * 32);
-          } else {
-            tileImage->get(DefaultRootWindow(dpy), x * 32, y * 32,
-                           tile_w, tile_h);
-          }
-          image->updateRect(tileImage, x * 32, y * 32);
-          rect.setXYWH(x * 32, y * 32, tile_w, tile_h);
-          server->add_changed(rect);
-          nTilesChanged++;
-        }
-        ptr_old += nBytes;
-        ptr_new += nBytes;
-      }
-    }
-
-    if (nTilesChanged)
-      server->tryUpdate();
-  }
-
 protected:
   Display* dpy;
   PixelFormat pf;
   PixelBuffer* pb;
   VNCServer* server;
   Image* image;
-  Image* rowImage;
-  Image* tileImage;
+  PollingManager* pollmgr;
   int oldButtonMask;
   bool haveXtest;
   int maxButtons;
-  unsigned int pollingStep;
-  static const int pollingOrder[];
-};
-
-const int XDesktop::pollingOrder[32] = {
-   0, 16,  8, 24,  4, 20, 12, 28,
-  10, 26, 18,  2, 22,  6, 30, 14,
-   1, 17,  9, 25,  7, 23, 15, 31,
-  19,  3, 27, 11, 29, 13,  5, 21
 };
 
 

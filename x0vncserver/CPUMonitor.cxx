@@ -20,7 +20,7 @@
 // CPUMonitor.cxx
 //
 
-#include "CPUMonitor.h"
+#include <x0vncserver/CPUMonitor.h>
 
 CPUMonitor::CPUMonitor(int optimalLevel, int updatePeriod)
 {

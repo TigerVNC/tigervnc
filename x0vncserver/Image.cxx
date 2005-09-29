@@ -28,7 +28,7 @@
 #include <sys/shm.h>
 #endif
 
-#include "Image.h"
+#include <x0vncserver/Image.h>
 
 //
 // ImageCleanup is used to delete Image instances automatically on
