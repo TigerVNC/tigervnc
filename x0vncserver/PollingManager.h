@@ -35,20 +35,35 @@ class PollingManager {
 public:
 
   PollingManager(Display *dpy, Image *image, ImageFactory *factory);
+  virtual ~PollingManager();
 
-  void setVNCServer(VNCServer* s);
+  void setVNCServer(VNCServer *s);
   void pollDebug();
   void poll();
 
 protected:
 
-  Display* m_dpy;
-  VNCServer* m_server;
-  Image* m_image;
-  Image* m_rowImage;
-  Image* m_tileImage;
+  void poll_SkipCycles();
+  void poll_Traditional();
+  void poll_Dumb();
+
+  Display *m_dpy;
+  VNCServer *m_server;
+
+  Image *m_image;
+  int m_width;
+  int m_height;
+  int m_widthTiles;
+  int m_heightTiles;
+
+  Image *m_rowImage;
+  Image *m_tileImage;
+
+  char *m_statusMatrix;
+
   unsigned int m_pollingStep;
   static const int m_pollingOrder[];
+  static const char m_bitsSet[];
 
 };
 
