@@ -174,6 +174,18 @@ SOURCE=.\encodings.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FileManager.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileReader.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileWriter.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\HextileDecoder.cxx
 # End Source File
 # Begin Source File
@@ -405,6 +417,18 @@ SOURCE=.\encodings.h
 # Begin Source File
 
 SOURCE=.\Exception.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileReader.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileWriter.h
 # End Source File
 # Begin Source File
 

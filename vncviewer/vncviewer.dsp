@@ -150,6 +150,18 @@ SOURCE=.\CViewOptions.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=..\rfb\FileManager.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\rfb\FileReader.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\rfb\FileWriter.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\InfoDialog.cxx
 # End Source File
 # Begin Source File
