@@ -174,6 +174,10 @@ SOURCE=.\encodings.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FileInfo.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileManager.cxx
 # End Source File
 # Begin Source File
@@ -417,6 +421,10 @@ SOURCE=.\encodings.h
 # Begin Source File
 
 SOURCE=.\Exception.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileInfo.h
 # End Source File
 # Begin Source File
 

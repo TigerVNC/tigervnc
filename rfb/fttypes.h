@@ -16,10 +16,45 @@
  * USA.
  */
 
-// -=- CommonTypes.h
+// -=- fttypes.h
 
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 
 #define FT_FILENAME_SIZE 256
+
+#define FT_MAX_STATUS_STRINGS		 255
+#define FT_MAX_LENGTH_STATUS_STRINGS 130
+
+#define FT_ATTR_UNKNOWN			0x00000000
+#define FT_ATTR_FILE			0x00000001
+#define FT_ATTR_FOLDER			0x00000002
+
+typedef struct tagSIZEDATAINFO
+{
+	unsigned int size;
+	unsigned int data;
+} SIZEDATAINFO;
+
+typedef struct tagSIZEDATAFLAGSINFO
+{
+	unsigned int size;
+	unsigned int data;
+	unsigned int flags;
+} SIZEDATAFLAGSINFO;
+
+typedef struct tagFILEINFO
+{
+	char name[FT_FILENAME_SIZE];
+	SIZEDATAFLAGSINFO info;
+} FILEINFO;
+
+typedef struct tagFILEINFOEX
+{
+	char locPath[FT_FILENAME_SIZE];
+	char locName[FT_FILENAME_SIZE];
+	char remPath[FT_FILENAME_SIZE];
+	char remName[FT_FILENAME_SIZE];
+	SIZEDATAFLAGSINFO info;
+} FILEINFOEX;

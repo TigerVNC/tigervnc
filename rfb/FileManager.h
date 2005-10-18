@@ -14,6 +14,9 @@
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
+ *
+ * TightVNC distribution homepage on the Web: http://www.tightvnc.com/
+ *
  */
 
 // -=- FileManager.
@@ -21,21 +24,21 @@
 #ifndef __RFB_FILEMANAGER_H__
 #define __RFB_FILEMANAGER_H__
 
-#include "rfb/fttypes.h"
+#include <rfb/fttypes.h>
 
 namespace rfb {
-	class FileManager {
-	public:
-	  FileManager();
-	  ~FileManager();
-
-	  bool create();
-	  bool close();
-
-	protected:
-	  FILE *m_pFile;
-	  char m_szMode[4];
-	  char m_szFilename[FT_FILENAME_SIZE];
-	};
+  class FileManager {
+  public:
+    FileManager();
+    ~FileManager();
+    
+    bool create();
+    bool close();
+    
+  protected:
+    FILE *m_pFile;
+    char m_szMode[4];
+    char m_szFilename[FT_FILENAME_SIZE];
+  };
 }
 #endif // __RFB_FILEMANAGER_H__

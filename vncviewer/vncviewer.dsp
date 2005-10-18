@@ -150,6 +150,10 @@ SOURCE=.\CViewOptions.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=..\rfb\FileInfo.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=..\rfb\FileManager.cxx
 # End Source File
 # Begin Source File

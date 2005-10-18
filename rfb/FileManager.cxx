@@ -14,49 +14,52 @@
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
+ *
+ * TightVNC distribution homepage on the Web: http://www.tightvnc.com/
+ *
  */
 
 // -=- FileManager.cxx
 
-#include "FileManager.h"
+#include <rfb/FileManager.h>
 
 using namespace rfb;
 
 FileManager::FileManager()
 {
-	m_pFile = NULL;
+  m_pFile = NULL;
 }
 
 FileManager::~FileManager()
 {
-	close();
+  close();
 }
 
 bool 
 FileManager::create()
 {
-	if (m_pFile != NULL) return false;
-
-	m_pFile = fopen(m_szFilename, m_szMode);
-
-	if (m_pFile == NULL) {
-		return false;
-	} else {
-		return true;
-	}
+  if (m_pFile != NULL) return false;
+  
+  m_pFile = fopen(m_szFilename, m_szMode);
+  
+  if (m_pFile == NULL) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 bool 
 FileManager::close()
 {
-	if (m_pFile == NULL) return false;
-
-	int result = fclose(m_pFile);
-
-	if (result != 0) {
-		return false;
-	} else {
-		m_pFile = NULL;
-		return true;
-	}
+  if (m_pFile == NULL) return false;
+  
+  int result = fclose(m_pFile);
+  
+  if (result != 0) {
+    return false;
+  } else {
+    m_pFile = NULL;
+    return true;
+  }
 }
