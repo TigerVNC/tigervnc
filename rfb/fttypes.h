@@ -18,6 +18,9 @@
 
 // -=- fttypes.h
 
+#ifndef __RFB_FTTYPES_H__
+#define __RFB_FTTYPES_H__
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -58,3 +61,5 @@ typedef struct tagFILEINFOEX
 	char remName[FT_FILENAME_SIZE];
 	SIZEDATAFLAGSINFO info;
 } FILEINFOEX;
+
+#endif // __RFB_FTTYPES_H__

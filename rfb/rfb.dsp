@@ -304,6 +304,10 @@ SOURCE=.\TightPalette.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\TransferQueue.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\TransImageGetter.cxx
 # End Source File
 # Begin Source File
@@ -625,6 +629,10 @@ SOURCE=.\TightEncoder.h
 # Begin Source File
 
 SOURCE=.\TightPalette.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TransferQueue.h
 # End Source File
 # Begin Source File
 
