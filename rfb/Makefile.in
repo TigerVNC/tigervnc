@@ -14,6 +14,10 @@ CXXSRCS = \
   Cursor.cxx \
   Decoder.cxx \
   Encoder.cxx \
+  FileInfo.cxx \
+  FileManager.cxx \
+  FileReader.cxx \
+  FileWriter.cxx \
   HTTPServer.cxx \
   HextileDecoder.cxx \
   HextileEncoder.cxx \
@@ -41,6 +45,7 @@ CXXSRCS = \
   TightEncoder.cxx \
   TightPalette.cxx \
   TransImageGetter.cxx \
+  TransferQueue.cxx \
   UpdateTracker.cxx \
   VNCSConnectionST.cxx \
   VNCServerST.cxx \
