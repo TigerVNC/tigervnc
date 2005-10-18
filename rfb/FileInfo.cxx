@@ -21,6 +21,10 @@
 
 #include <rfb/FileInfo.h>
 
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#endif
+
 using namespace rfb;
 
 int 
@@ -29,13 +33,13 @@ CompareFileInfo(const void *F, const void *S)
 	FILEINFO *pF = (FILEINFO *) F;
 	FILEINFO *pS = (FILEINFO *) S;
 	if (pF->info.flags == pS->info.flags) {
-		return stricmp(pF->name, pS->name);
+		return strcasecmp(pF->name, pS->name);
 	} else {
 		if (pF->info.flags == FT_ATTR_FOLDER) return -1;
 		if (pS->info.flags == FT_ATTR_FOLDER)
 			return 1;
 		else
-			return stricmp(pF->name, pS->name);
+			return strcasecmp(pF->name, pS->name);
 	}
 	return 0;
 }
