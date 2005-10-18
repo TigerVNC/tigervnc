@@ -150,31 +150,11 @@ SOURCE=.\CViewOptions.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\rfb\FileInfo.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=..\rfb\FileManager.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=..\rfb\FileReader.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=..\rfb\FileWriter.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=.\InfoDialog.cxx
 # End Source File
 # Begin Source File
 
 SOURCE=.\OptionsDialog.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=..\rfb\TransferQueue.cxx
 # End Source File
 # Begin Source File
 
@@ -223,10 +203,6 @@ SOURCE=.\MRU.h
 # Begin Source File
 
 SOURCE=.\OptionsDialog.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\rfb\TransferQueue.h
 # End Source File
 # Begin Source File
 
