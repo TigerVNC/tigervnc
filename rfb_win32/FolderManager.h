@@ -24,6 +24,8 @@
 #ifndef __RFB_WIN32_FOLDERMANAGER_H__
 #define __RFB_WIN32_FOLDERMANAGER_H__
 
+#include <windows.h>
+
 #include <rfb/FileInfo.h>
 #include <rfb/DirManager.h>
 

@@ -30,7 +30,7 @@ namespace rfb {
   class DirManager {
   public:
     DirManager();
-    ~DirManager();
+    virtual ~DirManager();
 
     virtual bool createDir(char *pFullPath);
     virtual bool renameDir(char *pOldName, char *pNewName);

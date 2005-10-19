@@ -448,10 +448,6 @@ SOURCE=.\FileWriter.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\rfb_win32\FolderManager.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\hextileConstants.h
 # End Source File
 # Begin Source File

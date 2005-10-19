@@ -39,12 +39,16 @@ FolderManager::~FolderManager()
 bool 
 FolderManager::createDir(char *pFullPath)
 {
-  return false;
+  if (CreateDirectory(pFullPath, NULL) == 0) return false;
+
+  return true;
 }
 
 bool 
 FolderManager::renameDir(char *pOldName, char *pNewName)
 {
+  if (MoveFile(pOldName, pNewName)) return true;
+
   return false;
 }
 
