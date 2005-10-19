@@ -13,6 +13,95 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FILETRANSFER_DLG DIALOGEX 0, 0, 530, 282
+STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
+CAPTION "TightVNC File Transfers"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Local Computer",IDC_FTLOCALLABEL,7,7,200,10
+    CTEXT           "TightVNC Server",IDC_FTREMOTELABEL,323,7,200,10
+    COMBOBOX        IDC_FTLOCALPATH,7,20,156,30,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FTREMOTEPATH,323,20,156,30,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "List1",IDC_FTLOCALLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,7,40,200,196
+    CONTROL         "List2",IDC_FTREMOTELIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,323,40,200,196
+    PUSHBUTTON      "",IDC_FTLOCALRELOAD,193,20,14,12,BS_ICON
+    PUSHBUTTON      "",IDC_FTLOCALUP,179,20,14,12,BS_ICON
+    PUSHBUTTON      "...",IDC_FTLOCALBROWSE,165,20,14,12
+    PUSHBUTTON      "",IDC_FTREMOTERELOAD,509,20,14,12,BS_ICON
+    PUSHBUTTON      "",IDC_FTREMOTEUP,495,20,14,12,BS_ICON
+    PUSHBUTTON      "...",IDC_FTREMOTEBROWSE,481,20,14,12
+    LTEXT           "File Transfer",IDC_STATIC,7,245,40,8
+    LTEXT           "Current File",IDC_STATIC,323,245,36,8
+    CONTROL         "Progress1",IDC_FTPROGRESS,"msctls_progress32",WS_BORDER,
+                    55,244,128,10
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,
+                    370,244,128,10
+    CTEXT           "0%",IDC_FTTOTALPROCENT,189,245,18,8
+    CTEXT           "0%",IDC_FTCURRENTPROCENT,505,245,18,8
+    COMBOBOX        IDC_FTSTATUS,7,262,516,30,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Upload Files and Folders",IDC_FTUPLOAD,218,66,94,12,
+                    WS_DISABLED
+    PUSHBUTTON      "Cancel File Transfer",IDC_FTCANCEL,218,167,94,12,
+                    WS_DISABLED
+    PUSHBUTTON      "Download Files and Folders",IDC_FTDOWNLOAD,218,85,94,12,
+                    WS_DISABLED
+    PUSHBUTTON      "Close File Transfers",IDC_FTCLOSE,218,217,94,12
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_FILETRANSFER_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 523
+        VERTGUIDE, 207
+        VERTGUIDE, 265
+        VERTGUIDE, 323
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 275
+        HORZGUIDE, 12
+        HORZGUIDE, 26
+        HORZGUIDE, 40
+        HORZGUIDE, 47
+        HORZGUIDE, 249
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (U.K.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
@@ -174,12 +263,12 @@ BEGIN
     GROUPBOX        "Preferred encoding",IDC_STATIC,7,20,83,75
     CONTROL         "Tight",IDC_ENCODING_TIGHT,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP,10,30,75,14
-    CONTROL         "ZRLE",IDC_ENCODING_ZRLE,"Button",BS_AUTORADIOBUTTON,10,45,75,14
+    CONTROL         "ZRLE",IDC_ENCODING_ZRLE,"Button",BS_AUTORADIOBUTTON,10,
+                    45,75,14
     CONTROL         "Hextile",IDC_ENCODING_HEXTILE,"Button",
                     BS_AUTORADIOBUTTON,10,60,75,16
     CONTROL         "Raw",IDC_ENCODING_RAW,"Button",BS_AUTORADIOBUTTON,10,75,
                     75,15
-
     GROUPBOX        "Color level",IDC_STATIC,95,20,99,75
     CONTROL         "&Full (all available colors)",IDC_FORMAT_FULLCOLOUR,
                     "Button",BS_AUTORADIOBUTTON | WS_GROUP,100,30,90,15
@@ -189,18 +278,16 @@ BEGIN
                     BS_AUTORADIOBUTTON,100,60,90,16
     CONTROL         "&Very low (8 colors)",IDC_FORMAT_VERYLOWCOLOUR,"Button",
                     BS_AUTORADIOBUTTON,100,75,90,15
-
     CONTROL         "Custom compression level:",IDC_CUSTOM_COMPRESSLEVEL,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,100,99,10 
-    EDITTEXT        IDC_COMPRESSLEVEL,25,111,15,12,ES_AUTOHSCROLL | ES_NUMBER
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,100,99,10
+    EDITTEXT        IDC_COMPRESSLEVEL,25,111,15,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
     LTEXT           "level (1=fast, 9=best)",IDC_STATIC,44,114,81,9,NOT 
                     WS_GROUP
-
     CONTROL         "Allow JPEG compression:",IDC_ALLOW_JPEG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,126,96,10
     EDITTEXT        IDC_QUALITYLEVEL,25,137,15,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "quality (1=poor, 9=best)",IDC_STATIC,44,140,81,9
-
 END
 
 IDD_MISC DIALOG DISCARDABLE  0, 0, 213, 137
@@ -232,8 +319,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,10,172,15
     CONTROL         "Send keyboard events to server",IDC_SEND_KEYS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,25,172,15
-    CONTROL         "Send system keys (Alt combinations) to server",IDC_SEND_SYSKEYS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,172,15
+    CONTROL         "Send system keys (Alt combinations) to server",
+                    IDC_SEND_SYSKEYS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,
+                    40,172,15
     CONTROL         "Send clipboard changes to server",IDC_CLIENT_CUTTEXT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,172,15
     CONTROL         "Accept clipboard changes from server",

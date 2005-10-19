@@ -16,6 +16,7 @@
 #define IDR_TRAY                        112
 #define IDD_CONNECTION_INFO             113
 #define IDD_DEFAULTS                    116
+#define IDD_FILETRANSFER_DLG            120
 #define IDC_PASSWORD                    1000
 #define IDC_CONNECTING_TEXT             1001
 #define IDC_SERVER_EDIT                 1002
@@ -40,6 +41,7 @@
 #define IDC_OPTIONS                     1023
 #define IDC_ABOUT                       1024
 #define IDC_LIST1                       1025
+#define IDC_FTLOCALLIST                 1025
 #define IDC_INFO_NAME                   1026
 #define IDC_INFO_HOST                   1027
 #define IDC_INFO_SIZE                   1028
@@ -64,11 +66,31 @@
 #define IDC_REQUESTED_ENCODING          1052
 #define IDC_LAST_ENCODING               1053
 #define IDC_ENCODING_TIGHT              1054
+#define IDC_FTLOCALPATH                 1054
 #define IDC_CUSTOM_COMPRESSLEVEL        1055
+#define IDC_FTREMOTEPATH                1055
 #define IDC_COMPRESSLEVEL               1056
+#define IDC_FTREMOTELIST                1056
 #define IDC_ALLOW_JPEG                  1057
+#define IDC_FTLOCALRELOAD               1057
 #define IDC_QUALITYLEVEL                1058
+#define IDC_FTLOCALUP                   1058
 #define IDC_SEND_SYSKEYS                1059
+#define IDC_FTLOCALBROWSE               1059
+#define IDC_FTREMOTERELOAD              1060
+#define IDC_FTREMOTEUP                  1061
+#define IDC_FTREMOTEBROWSE              1062
+#define IDC_FTPROGRESS                  1063
+#define IDC_PROGRESS                    1064
+#define IDC_FTSTATUS                    1065
+#define IDC_FTCURRENTPROCENT            1066
+#define IDC_FTTOTALPROCENT              1067
+#define IDC_FTUPLOAD                    1072
+#define IDC_FTCANCEL                    1073
+#define IDC_FTDOWNLOAD                  1074
+#define IDC_FTCLOSE                     1075
+#define IDC_FTLOCALLABEL                1076
+#define IDC_FTREMOTELABEL               1077
 #define ID_CLOSE                        40002
 #define ID_OPTIONS                      40003
 #define ID_NEW_CONNECTION               40004
@@ -78,9 +100,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        120
+#define _APS_NEXT_RESOURCE_VALUE        121
 #define _APS_NEXT_COMMAND_VALUE         40006
-#define _APS_NEXT_CONTROL_VALUE         1054
+#define _APS_NEXT_CONTROL_VALUE         1078
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
