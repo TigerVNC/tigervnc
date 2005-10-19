@@ -43,6 +43,7 @@ public:
 
 protected:
 
+  void poll_DetectVideo();
   void poll_SkipCycles();
   void poll_Traditional();
   void poll_Dumb();
@@ -61,9 +62,12 @@ protected:
 
   char *m_statusMatrix;
 
+  char *m_rateMatrix;
+  char *m_videoFlags;
+  char *m_changedFlags;
+
   unsigned int m_pollingStep;
   static const int m_pollingOrder[];
-  static const char m_bitsSet[];
 
 };
 

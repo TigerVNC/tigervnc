@@ -29,7 +29,7 @@
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
 
-IntParameter pollingType("PollingType", "Polling algorithm to use (0..2)", 2);
+IntParameter pollingType("PollingType", "Polling algorithm to use (0..3)", 3);
 
 const int PollingManager::m_pollingOrder[32] = {
    0, 16,  8, 24,  4, 20, 12, 28,
@@ -62,16 +62,32 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   m_rowImage = factory->newImage(m_dpy, m_width, 1);
   m_tileImage = factory->newImage(m_dpy, 32, 32);
 
+  // FIXME: Extend the comment.
   // Create a matrix with one byte per each 32x32 tile. It will be
   // used to limit the rate of updates on continuously-changed screen
   // areas (like video).
   int numTiles = m_widthTiles * m_heightTiles;
   m_statusMatrix = new char[numTiles];
   memset(m_statusMatrix, 0, numTiles);
+
+  // FIXME: Extend the comment.
+  // Create a matrix with one byte per each 32x32 tile. It will be
+  // used to limit the rate of updates on continuously-changed screen
+  // areas (like video).
+  m_rateMatrix = new char[numTiles];
+  m_videoFlags = new char[numTiles];
+  m_changedFlags = new char[numTiles];
+  memset(m_rateMatrix, 0, numTiles);
+  memset(m_videoFlags, 0, numTiles);
+  memset(m_changedFlags, 0, numTiles);
 }
 
 PollingManager::~PollingManager()
 {
+  delete[] m_changedFlags;
+  delete[] m_videoFlags;
+  delete[] m_rateMatrix;
+
   delete[] m_statusMatrix;
 }
 
@@ -118,11 +134,86 @@ void PollingManager::poll()
   case 1:
     poll_Traditional();
     break;
-//case 2:
-  default:
+  case 2:
     poll_SkipCycles();
     break;
+//case 3:
+  default:
+    poll_DetectVideo();
+    break;
   }
+}
+
+void PollingManager::poll_DetectVideo()
+{
+  if (!m_server)
+    return;
+
+  const int GRAND_STEP_DIVISOR = 8;
+  const int VIDEO_THRESHOLD_0 = 3;
+  const int VIDEO_THRESHOLD_1 = 5;
+
+  bool grandStep = (m_pollingStep % GRAND_STEP_DIVISOR == 0);
+
+  // FIXME: Save shortcuts in member variables.
+  int scanLine = m_pollingOrder[m_pollingStep++ % 32];
+  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
+  int bytesPerLine = m_image->xim->bytes_per_line;
+
+  Rect rect;
+  int nTilesChanged = 0;
+  int idx = 0;
+
+  for (int y = 0; y * 32 < m_height; y++) {
+    int tile_h = (m_height - y * 32 >= 32) ? 32 : m_height - y * 32;
+    if (scanLine >= tile_h)
+      break;
+    int scan_y = y * 32 + scanLine;
+    m_rowImage->get(DefaultRootWindow(m_dpy), 0, scan_y);
+    char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
+    char *ptr_new = m_rowImage->xim->data;
+    for (int x = 0; x * 32 < m_width; x++) {
+      int tile_w = (m_width - x * 32 >= 32) ? 32 : m_width - x * 32;
+      int nBytes = tile_w * bytesPerPixel;
+
+      char wasChanged = (memcmp(ptr_old, ptr_new, nBytes) != 0);
+      m_rateMatrix[idx] += wasChanged;
+
+      if (grandStep) {
+        if (m_rateMatrix[idx] <= VIDEO_THRESHOLD_0) {
+          m_videoFlags[idx] = 0;
+        } else if (m_rateMatrix[idx] >= VIDEO_THRESHOLD_1) {
+          m_videoFlags[idx] = 1;
+        }
+        m_rateMatrix[idx] = 0;
+      }
+
+      m_changedFlags[idx] |= wasChanged;
+      if ( m_changedFlags[idx] && (!m_videoFlags[idx] || grandStep) ) {
+        if (tile_w == 32 && tile_h == 32) {
+          m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32);
+        } else {
+          m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32,
+                           tile_w, tile_h);
+        }
+        m_image->updateRect(m_tileImage, x * 32, y * 32);
+        rect.setXYWH(x * 32, y * 32, tile_w, tile_h);
+        m_server->add_changed(rect);
+        nTilesChanged++;
+        m_changedFlags[idx] = 0;
+      }
+
+      if (wasChanged) {
+      }
+
+      ptr_old += nBytes;
+      ptr_new += nBytes;
+      idx++;
+    }
+  }
+
+  if (nTilesChanged)
+    m_server->tryUpdate();
 }
 
 void PollingManager::poll_SkipCycles()
