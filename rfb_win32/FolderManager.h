@@ -40,7 +40,8 @@ namespace rfb {
       bool renameDir(char *pOldName, char *pNewName);
       bool deleteDir(char *pFullPath);
       
-      bool getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly);
+      bool getFolderInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly);
+      bool getDrivesInfo(FileInfo *pFI);
     };
   }
 }

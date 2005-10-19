@@ -59,7 +59,59 @@ FolderManager::deleteDir(char *pFullPath)
 }
     
 bool 
-FolderManager::getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly)
+FolderManager::getFolderInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly)
 {
-  return false;
+	if (strlen(pPath) == 0) return getDrivesInfo(pFileInfo);
+
+	char path[FT_FILENAME_SIZE];
+	sprintf(path, "%s\\*", pPath);
+
+	WIN32_FIND_DATA FindFileData;
+	SetErrorMode(SEM_FAILCRITICALERRORS);
+	HANDLE handle = FindFirstFile(path, &FindFileData);
+	DWORD lastError = GetLastError();
+	SetErrorMode(0);
+
+	if (handle != INVALID_HANDLE_VALUE) {
+		do {
+			if (strcmp(FindFileData.cFileName, ".") != 0 &&
+				strcmp(FindFileData.cFileName, "..") != 0) {
+				LARGE_INTEGER li;
+				li.LowPart = FindFileData.ftLastWriteTime.dwLowDateTime;
+				li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
+				li.QuadPart = (li.QuadPart - 116444736000000000) / 10000000;
+				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+					pFileInfo->add(FindFileData.cFileName, 0, li.LowPart, FT_ATTR_FOLDER);
+				} else {
+					if (!dirOnly)
+						pFileInfo->add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.LowPart, FT_ATTR_FILE);
+				}
+			}
+			
+		} while (FindNextFile(handle, &FindFileData));
+	} else {
+		return false;
+	}
+	FindClose(handle);
+	return true;
+}
+
+bool 
+FolderManager::getDrivesInfo(FileInfo *pFileInfo)
+{
+	TCHAR szDrivesList[256];
+	if (GetLogicalDriveStrings(255, szDrivesList) == 0)
+		return false;
+
+	int i = 0;
+	while (szDrivesList[i] != '\0') {
+		char *drive = strdup(&szDrivesList[i]);
+		char *backslash = strrchr(drive, '\\');
+		if (backslash != NULL)
+			*backslash = '\0';
+		pFileInfo->add(drive, 0, 0, FT_ATTR_FOLDER);
+		free(drive);
+		i += strcspn(&szDrivesList[i], "\0") + 1;
+	}
+	return true;
 }
