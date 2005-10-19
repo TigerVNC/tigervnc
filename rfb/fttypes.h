@@ -32,7 +32,7 @@
 
 #define FT_ATTR_UNKNOWN			0x00000000
 #define FT_ATTR_FILE			0x00000001
-#define FT_ATTR_FOLDER			0x00000002
+#define FT_ATTR_DIR 			0x00000002
 
 typedef struct tagSIZEDATAINFO
 {

@@ -35,8 +35,8 @@ CompareFileInfo(const void *F, const void *S)
 	if (pF->info.flags == pS->info.flags) {
 		return strcasecmp(pF->name, pS->name);
 	} else {
-		if (pF->info.flags == FT_ATTR_FOLDER) return -1;
-		if (pS->info.flags == FT_ATTR_FOLDER)
+		if (pF->info.flags == FT_ATTR_DIR) return -1;
+		if (pS->info.flags == FT_ATTR_DIR)
 			return 1;
 		else
 			return strcasecmp(pF->name, pS->name);

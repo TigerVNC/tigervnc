@@ -55,7 +55,59 @@ FolderManager::renameDir(char *pOldName, char *pNewName)
 bool 
 FolderManager::deleteDir(char *pFullPath)
 {
-  return false;
+  FileInfo fileInfo;
+  fileInfo.add(pFullPath, 0, 0, FT_ATTR_DIR);
+
+  unsigned int num = fileInfo.getNumEntries();
+  unsigned int last = num - 1;
+
+  while (num > 0) {
+    if (fileInfo.getFlagsAt(last) & FT_ATTR_DIR) {
+      if (RemoveDirectory(fileInfo.getNameAt(last)) == 0) {
+        if (GetLastError() == ERROR_DIR_NOT_EMPTY) {
+          if (!getFolderInfoWithPrefix(fileInfo.getNameAt(last), &fileInfo)) {
+            fileInfo.free();
+            return false;
+          }
+        }
+      } else {
+        fileInfo.deleteAt(last);
+      }
+    } else {
+      if (DeleteFile(fileInfo.getNameAt(last)) == 0) {
+        fileInfo.free();
+        return false;
+      } else {
+        fileInfo.deleteAt(last);
+      }
+    }
+
+    num = fileInfo.getNumEntries();
+    last = num - 1;
+  }
+
+  return true;
+}
+
+bool 
+FolderManager::getFolderInfoWithPrefix(char *pPrefix, FileInfo *pFileInfo)
+{
+  char prefix[FT_FILENAME_SIZE];
+  strcpy(prefix, pPrefix);
+
+  FileInfo tmpFileInfo;
+  if (!getFolderInfo(prefix, &tmpFileInfo, 0)) {
+    tmpFileInfo.free();
+    return false;
+  } else {
+    char buf[FT_FILENAME_SIZE];
+    for (unsigned int i = 0; i < tmpFileInfo.getNumEntries(); i++) {
+      sprintf(buf, "%s\\%s", prefix, tmpFileInfo.getNameAt(i));
+      pFileInfo->add(buf, tmpFileInfo.getSizeAt(i), tmpFileInfo.getDataAt(i), tmpFileInfo.getFlagsAt(i));
+    }
+  }
+  tmpFileInfo.free();
+  return true;
 }
     
 bool 
@@ -81,7 +133,7 @@ FolderManager::getFolderInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirO
 				li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
 				li.QuadPart = (li.QuadPart - 116444736000000000) / 10000000;
 				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-					pFileInfo->add(FindFileData.cFileName, 0, li.LowPart, FT_ATTR_FOLDER);
+					pFileInfo->add(FindFileData.cFileName, 0, li.LowPart, FT_ATTR_DIR);
 				} else {
 					if (!dirOnly)
 						pFileInfo->add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.LowPart, FT_ATTR_FILE);
@@ -109,7 +161,7 @@ FolderManager::getDrivesInfo(FileInfo *pFileInfo)
 		char *backslash = strrchr(drive, '\\');
 		if (backslash != NULL)
 			*backslash = '\0';
-		pFileInfo->add(drive, 0, 0, FT_ATTR_FOLDER);
+		pFileInfo->add(drive, 0, 0, FT_ATTR_DIR);
 		free(drive);
 		i += strcspn(&szDrivesList[i], "\0") + 1;
 	}
