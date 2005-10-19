@@ -146,6 +146,10 @@ SOURCE=.\DIBSectionBuffer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FolderManager.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\LaunchProcess.cxx
 # End Source File
 # Begin Source File
@@ -259,6 +263,10 @@ SOURCE=.\Dialog.h
 # Begin Source File
 
 SOURCE=.\DIBSectionBuffer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FolderManager.h
 # End Source File
 # Begin Source File
 

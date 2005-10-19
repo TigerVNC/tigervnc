@@ -416,6 +416,10 @@ SOURCE=.\Decoder.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DirManager.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Encoder.h
 # End Source File
 # Begin Source File
@@ -441,6 +445,10 @@ SOURCE=.\FileReader.h
 # Begin Source File
 
 SOURCE=.\FileWriter.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\rfb_win32\FolderManager.h
 # End Source File
 # Begin Source File
 
