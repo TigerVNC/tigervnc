@@ -218,6 +218,10 @@ SOURCE=.\cursor1.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\toolbar.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\vncviewer.exe.manifest
 # End Source File
 # Begin Source File
