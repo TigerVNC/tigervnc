@@ -98,7 +98,7 @@
 #define IDC_FTCLOSE                     1075
 #define IDC_FTLOCALLABEL                1076
 #define IDC_FTREMOTELABEL               1077
-#define IDC_EDIT1                       1078
+#define IDC_FTDIRNAME                   1078
 #define IDC_CONFIRM_YESTOALL            1079
 #define IDC_CONFIRM_TEXT                1080
 #define ID_CLOSE                        40002
