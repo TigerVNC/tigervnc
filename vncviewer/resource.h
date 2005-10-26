@@ -20,6 +20,10 @@
 #define IDB_TOOLBAR                     121
 #define IDD_FTDIRNAME_DLG               123
 #define IDD_FTCONFIRM_DLG               124
+#define IDI_FTUP                        125
+#define IDI_FTDIR                       126
+#define IDI_FTFILE                      127
+#define IDI_FTRELOAD                    128
 #define IDC_PASSWORD                    1000
 #define IDC_CONNECTING_TEXT             1001
 #define IDC_SERVER_EDIT                 1002
@@ -106,7 +110,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        125
+#define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40006
 #define _APS_NEXT_CONTROL_VALUE         1081
 #define _APS_NEXT_SYMED_VALUE           101

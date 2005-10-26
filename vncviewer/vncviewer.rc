@@ -13,72 +13,6 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Russian resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
-#ifdef _WIN32
-LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
-#pragma code_page(1251)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_FTDIRNAME_DLG DIALOG DISCARDABLE  0, 0, 193, 63
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Create a New Folder"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,80,42,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,136,42,50,14
-    EDITTEXT        IDC_EDIT1,7,19,179,14,ES_AUTOHSCROLL
-    LTEXT           "New Folder Name",IDC_STATIC,7,7,93,8
-END
-
-IDD_FTCONFIRM_DLG DIALOG DISCARDABLE  0, 0, 188, 143
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "Yes",IDOK,69,122,50,14
-    PUSHBUTTON      "No",IDCANCEL,131,122,50,14
-    PUSHBUTTON      "Yes to All",IDC_CONFIRM_YESTOALL,7,122,50,14
-    LTEXT           "Static",IDC_CONFIRM_TEXT,7,7,174,107
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_FTDIRNAME_DLG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 186
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 56
-    END
-
-    IDD_FTCONFIRM_DLG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 181
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 136
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-#endif    // Russian resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -136,6 +70,27 @@ BEGIN
     PUSHBUTTON      "Close File Transfers",IDC_FTCLOSE,218,217,94,12
 END
 
+IDD_FTDIRNAME_DLG DIALOG DISCARDABLE  0, 0, 193, 63
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Create a New Folder"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,80,42,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,136,42,50,14
+    EDITTEXT        IDC_EDIT1,7,19,179,14,ES_AUTOHSCROLL
+    LTEXT           "New Folder Name",IDC_STATIC,7,7,93,8
+END
+
+IDD_FTCONFIRM_DLG DIALOG DISCARDABLE  0, 0, 188, 143
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,69,122,50,14
+    PUSHBUTTON      "No",IDCANCEL,131,122,50,14
+    PUSHBUTTON      "Yes to All",IDC_CONFIRM_YESTOALL,7,122,50,14
+    LTEXT           "Static",IDC_CONFIRM_TEXT,7,7,174,107
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -160,9 +115,37 @@ BEGIN
         HORZGUIDE, 47
         HORZGUIDE, 249
     END
+
+    IDD_FTDIRNAME_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 186
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 56
+    END
+
+    IDD_FTCONFIRM_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 181
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 136
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_FTUP                ICON    DISCARDABLE     "ftup.ico"
+IDI_FTDIR               ICON    DISCARDABLE     "ftdir.ico"
+IDI_FTFILE              ICON    DISCARDABLE     "ftfile.ico"
+IDI_FTRELOAD            ICON    DISCARDABLE     "ftreload.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

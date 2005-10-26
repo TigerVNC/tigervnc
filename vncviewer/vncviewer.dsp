@@ -218,6 +218,22 @@ SOURCE=.\cursor1.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\ftdir.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\ftfile.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\ftreload.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\ftup.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\toolbar.bmp
 # End Source File
 # Begin Source File
