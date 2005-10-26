@@ -26,6 +26,13 @@ namespace rfb {
   const int msgTypeBell = 2;
   const int msgTypeServerCutText = 3;
 
+  const int msgTypeFileListData = 130;
+  const int msgTypeFileDownloadData = 131;
+  const int msgTypeFileUploadCancel = 132;
+  const int msgTypeFileDownloadFailed = 133;
+  const int msgTypeFileDirSizeData = 134;
+  const int msgTypeFileLastRequestFailed = 135;
+
   // client to server
 
   const int msgTypeSetPixelFormat = 0;
@@ -35,5 +42,16 @@ namespace rfb {
   const int msgTypeKeyEvent = 4;
   const int msgTypePointerEvent = 5;
   const int msgTypeClientCutText = 6;
+
+  const int msgTypeFileListRequest = 130;
+  const int msgTypeFileDownloadRequest = 131;
+  const int msgTypeFileUploadRequest = 132;
+  const int msgTypeFileUploadData = 133;
+  const int msgTypeFileDownloadCancel = 134;
+  const int msgTypeFileUploadFailed = 135;
+  const int msgTypeFileCreateDirRequest = 136;
+  const int msgTypeFileDirSizeRequest = 137;
+  const int	msgTypeFileRenameRequest = 138;
+  const int msgTypeFileDeleteRequest = 139;
 }
 #endif
