@@ -45,7 +45,7 @@ FolderManager::createDir(char *pFullPath)
 }
 
 bool 
-FolderManager::renameDir(char *pOldName, char *pNewName)
+FolderManager::renameIt(char *pOldName, char *pNewName)
 {
   if (MoveFile(pOldName, pNewName)) return true;
 
@@ -53,10 +53,14 @@ FolderManager::renameDir(char *pOldName, char *pNewName)
 }
 
 bool 
-FolderManager::deleteDir(char *pFullPath)
+FolderManager::deleteIt(char *pFullPath)
 {
   FileInfo fileInfo;
-  fileInfo.add(pFullPath, 0, 0, FT_ATTR_DIR);
+
+  FILEINFO FIStruct;
+  if (!getInfo(pFullPath, &FIStruct)) return false;
+
+  fileInfo.add(&FIStruct);
 
   unsigned int num = fileInfo.getNumEntries();
   unsigned int last = num - 1;
@@ -128,15 +132,12 @@ FolderManager::getFolderInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirO
 		do {
 			if (strcmp(FindFileData.cFileName, ".") != 0 &&
 				strcmp(FindFileData.cFileName, "..") != 0) {
-				LARGE_INTEGER li;
-				li.LowPart = FindFileData.ftLastWriteTime.dwLowDateTime;
-				li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
-				li.QuadPart = (li.QuadPart - 116444736000000000) / 10000000;
+                unsigned int lastWriteTime = getTime70(FindFileData.ftLastWriteTime);
 				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-					pFileInfo->add(FindFileData.cFileName, 0, li.LowPart, FT_ATTR_DIR);
+					pFileInfo->add(FindFileData.cFileName, 0, lastWriteTime, FT_ATTR_DIR);
 				} else {
 					if (!dirOnly)
-						pFileInfo->add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.LowPart, FT_ATTR_FILE);
+						pFileInfo->add(FindFileData.cFileName, FindFileData.nFileSizeLow, lastWriteTime, FT_ATTR_FILE);
 				}
 			}
 			
@@ -166,4 +167,47 @@ FolderManager::getDrivesInfo(FileInfo *pFileInfo)
 		i += strcspn(&szDrivesList[i], "\0") + 1;
 	}
 	return true;
+}
+
+bool
+FolderManager::getInfo(char *pFullPath, FILEINFO *pFIStruct)
+{
+	WIN32_FIND_DATA FindFileData;
+	SetErrorMode(SEM_FAILCRITICALERRORS);
+	HANDLE hFile = FindFirstFile(pFullPath, &FindFileData);
+	DWORD lastError = GetLastError();
+	SetErrorMode(0);
+	if (hFile != INVALID_HANDLE_VALUE) {
+		FindClose(hFile);
+		strcpy(pFIStruct->name, FindFileData.cFileName);
+		pFIStruct->info.data = getTime70(FindFileData.ftLastWriteTime);
+		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	
+			pFIStruct->info.size = 0;
+			pFIStruct->info.flags = FT_ATTR_DIR;
+			return true;
+		} else {
+			pFIStruct->info.size = FindFileData.nFileSizeLow;
+			pFIStruct->info.flags = FT_ATTR_FILE;
+			return true;
+		}
+	}
+	return false;
+}
+
+unsigned int 
+FolderManager::getTime70(FILETIME ftime)
+{
+	LARGE_INTEGER uli;
+	uli.LowPart = ftime.dwLowDateTime;
+	uli.HighPart = ftime.dwHighDateTime;
+	uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
+	return uli.LowPart;
+}
+
+void 
+FolderManager::getFiletime(unsigned int time70, FILETIME *pftime)
+{
+    LONGLONG ll = Int32x32To64(time70, 10000000) + 116444736000000000;
+    pftime->dwLowDateTime = (DWORD) ll;
+    pftime->dwHighDateTime = (DWORD) (ll >> 32);
 }
