@@ -37,6 +37,16 @@ BEGIN
     LTEXT           "New Folder Name",IDC_STATIC,7,7,93,8
 END
 
+IDD_FTCONFIRM_DLG DIALOG DISCARDABLE  0, 0, 188, 143
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,69,122,50,14
+    PUSHBUTTON      "No",IDCANCEL,131,122,50,14
+    PUSHBUTTON      "Yes to All",IDC_CONFIRM_YESTOALL,7,122,50,14
+    LTEXT           "Static",IDC_CONFIRM_TEXT,7,7,174,107
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -52,6 +62,14 @@ BEGIN
         RIGHTMARGIN, 186
         TOPMARGIN, 7
         BOTTOMMARGIN, 56
+    END
+
+    IDD_FTCONFIRM_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 181
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 136
     END
 END
 #endif    // APSTUDIO_INVOKED
