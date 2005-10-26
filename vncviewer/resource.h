@@ -18,6 +18,7 @@
 #define IDD_DEFAULTS                    116
 #define IDD_FILETRANSFER_DLG            120
 #define IDB_TOOLBAR                     121
+#define IDD_FTDIRNAME_DLG               123
 #define IDC_PASSWORD                    1000
 #define IDC_CONNECTING_TEXT             1001
 #define IDC_SERVER_EDIT                 1002
@@ -92,6 +93,7 @@
 #define IDC_FTCLOSE                     1075
 #define IDC_FTLOCALLABEL                1076
 #define IDC_FTREMOTELABEL               1077
+#define IDC_EDIT1                       1078
 #define ID_CLOSE                        40002
 #define ID_OPTIONS                      40003
 #define ID_NEW_CONNECTION               40004
@@ -101,9 +103,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        123
+#define _APS_NEXT_RESOURCE_VALUE        124
 #define _APS_NEXT_COMMAND_VALUE         40006
-#define _APS_NEXT_CONTROL_VALUE         1078
+#define _APS_NEXT_CONTROL_VALUE         1079
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
