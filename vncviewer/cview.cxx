@@ -122,7 +122,7 @@ CViewClass::CViewClass() : classAtom(0) {
   wndClass.hIcon = (HICON)LoadImage(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_SHARED);
   if (!wndClass.hIcon)
     printf("unable to load icon:%ld", GetLastError());
-  wndClass.hCursor = NULL;
+  wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
   wndClass.hbrBackground = NULL;
   wndClass.lpszMenuName = 0;
   wndClass.lpszClassName = _T("rfb::win32::CViewClass");
@@ -140,6 +140,69 @@ CViewClass::~CViewClass() {
 
 CViewClass baseClass;
 
+//
+// -=- FrameClass
+
+//
+// Window class used to display the rfb data
+//
+
+class FrameClass {
+public:
+  FrameClass();
+  ~FrameClass();
+  ATOM classAtom;
+  HINSTANCE instance;
+};
+
+LRESULT CALLBACK FrameProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+  LRESULT result;
+
+  if (msg == WM_CREATE)
+    SetWindowLong(hwnd, GWL_USERDATA, (long)((CREATESTRUCT*)lParam)->lpCreateParams);
+  else if (msg == WM_DESTROY)
+    SetWindowLong(hwnd, GWL_USERDATA, 0);
+  CView* _this = (CView*) GetWindowLong(hwnd, GWL_USERDATA);
+  if (!_this) {
+    vlog.info("null _this in %x, message %u", hwnd, msg);
+    return DefWindowProc(hwnd, msg, wParam, lParam);
+  }
+
+  try {
+    result = _this->processFrameMessage(msg, wParam, lParam);
+  } catch (rdr::Exception& e) {
+    vlog.error("untrapped: %s", e.str());
+  }
+
+  return result;
+}
+
+FrameClass::FrameClass() : classAtom(0) {
+  WNDCLASS wndClass;
+  wndClass.style = 0;
+  wndClass.lpfnWndProc = FrameProc;
+  wndClass.cbClsExtra = 0;
+  wndClass.cbWndExtra = 0;
+  wndClass.hInstance = instance = GetModuleHandle(0);
+  wndClass.hIcon = 0;
+  wndClass.hCursor = NULL;
+  wndClass.hbrBackground = 0;
+  wndClass.lpszMenuName = 0;
+  wndClass.lpszClassName = _T("FrameClass");
+  classAtom = RegisterClass(&wndClass);
+  if (!classAtom) {
+    throw rdr::SystemException("unable to register frame window class",
+                               GetLastError());
+  }
+}
+
+FrameClass::~FrameClass() {
+  if (classAtom) {
+    UnregisterClass((const TCHAR*)classAtom, instance);
+  }
+}
+
+FrameClass frameClass;
 
 //
 // -=- CView instance implementation
@@ -153,22 +216,31 @@ CView::CView()
     client_size(0, 0, 16, 16), window_size(0, 0, 32, 32),
     cursorVisible(false), cursorAvailable(false), cursorInBuffer(false),
     systemCursorVisible(true), trackingMouseLeave(false),
-    hwnd(0), requestUpdate(false), has_focus(false), palette_changed(false),
-    sameMachine(false), encodingChange(false), formatChange(false),
-    lastUsedEncoding_(encodingRaw), fullScreenActive(false),
+    hwnd(0), frameHwnd(0), requestUpdate(false), has_focus(false), 
+    palette_changed(false), sameMachine(false), encodingChange(false), 
+    formatChange(false), lastUsedEncoding_(encodingRaw), fullScreenActive(false),
     bumpScroll(false), manager(0) {
 
-  // Create the window
+  // Create the main window
   const TCHAR* name = _T("VNC Viewer 4.0b");
-  hwnd = CreateWindow((const TCHAR*)baseClass.classAtom, name, WS_OVERLAPPEDWINDOW,
+  hwnd = CreateWindow((const TCHAR*)baseClass.classAtom, name, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
     0, 0, 10, 10, 0, 0, baseClass.instance, this);
   if (!hwnd) {
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }
   vlog.debug("created window \"%s\" (%x)", (const char*)CStr(name), hwnd);
 
+  // Create the frame window
+  frameHwnd = CreateWindow((const TCHAR*)frameClass.classAtom,
+    0, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT,
+    CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0, frameClass.instance, this);
+  if (!frameHwnd) {
+    throw rdr::SystemException("unable to create rfb frame window instance", GetLastError());
+  }
+  vlog.debug("created window \"%s\" (%x)", "Frame Window", frameHwnd);
+
   // Initialise the CPointer pointer handler
-  ptr.setHWND(getHandle());
+  ptr.setHWND(getFrameHandle());
   ptr.setIntervalTimerId(TIMER_POINTER_INTERVAL);
   ptr.set3ButtonTimerId(TIMER_POINTER_3BUTTON);
 
@@ -183,7 +255,7 @@ CView::CView()
   clipboard.setNotifier(this);
 
   // Create the backing buffer
-  buffer = new win32::DIBSectionBuffer(getHandle());
+  buffer = new win32::DIBSectionBuffer(getFrameHandle());
 }
 
 CView::~CView() {
@@ -378,8 +450,8 @@ bool CView::setViewportOffset(const Point& tl) {
   Point delta = np.translate(scrolloffset.negate());
   if (!np.equals(scrolloffset)) {
     scrolloffset = np;
-    ScrollWindowEx(getHandle(), -delta.x, -delta.y, 0, 0, 0, 0, SW_INVALIDATE);
-    UpdateWindow(getHandle());
+    ScrollWindowEx(getFrameHandle(), -delta.x, -delta.y, 0, 0, 0, 0, SW_INVALIDATE);
+    UpdateWindow(getFrameHandle());
     return true;
   }
   return false;
@@ -425,82 +497,6 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     calculateFullColourPF();
     break;
 
-  case WM_PAINT:
-    {
-      PAINTSTRUCT ps;
-      HDC paintDC = BeginPaint(getHandle(), &ps);
-      if (!paintDC)
-        throw SystemException("unable to BeginPaint", GetLastError());
-      Rect pr = Rect(ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
-
-      if (!pr.is_empty()) {
-
-        // Draw using the correct palette
-        PaletteSelector pSel(paintDC, windowPalette.getHandle());
-
-        if (buffer->bitmap) {
-          // Update the bitmap's palette
-          if (palette_changed) {
-            palette_changed = false;
-            buffer->refreshPalette();
-          }
-
-          // Get device context
-          BitmapDC bitmapDC(paintDC, buffer->bitmap);
-
-          // Blit the border if required
-          Rect bufpos = bufferToClient(buffer->getRect());
-          if (!pr.enclosed_by(bufpos)) {
-            vlog.debug("draw border");
-            HBRUSH black = (HBRUSH) GetStockObject(BLACK_BRUSH);
-            RECT r;
-            SetRect(&r, 0, 0, bufpos.tl.x, client_size.height()); FillRect(paintDC, &r, black);
-            SetRect(&r, bufpos.tl.x, 0, bufpos.br.x, bufpos.tl.y); FillRect(paintDC, &r, black);
-            SetRect(&r, bufpos.br.x, 0, client_size.width(), client_size.height()); FillRect(paintDC, &r, black);
-            SetRect(&r, bufpos.tl.x, bufpos.br.y, bufpos.br.x, client_size.height()); FillRect(paintDC, &r, black);
-          }
-
-          // Do the blit
-          Point buf_pos = clientToBuffer(pr.tl);
-          if (!BitBlt(paintDC, pr.tl.x, pr.tl.y, pr.width(), pr.height(),
-            bitmapDC, buf_pos.x, buf_pos.y, SRCCOPY))
-            throw SystemException("unable to BitBlt to window", GetLastError());
-
-        } else {
-          // Blit a load of black
-          if (!BitBlt(paintDC, pr.tl.x, pr.tl.y, pr.width(), pr.height(),
-            0, 0, 0, BLACKNESS))
-            throw SystemException("unable to BitBlt to blank window", GetLastError());
-        }
-      }
-
-      EndPaint(getHandle(), &ps);
-
-      // - Request the next update from the server, if required
-      requestNewUpdate();
-    }
-    return 0;
-
-    // -=- Palette management
-
-  case WM_PALETTECHANGED:
-    vlog.debug("WM_PALETTECHANGED");
-    if ((HWND)wParam == getHandle()) {
-      vlog.debug("ignoring");
-      break;
-    }
-  case WM_QUERYNEWPALETTE:
-    vlog.debug("re-selecting palette");
-    {
-      WindowDC wdc(getHandle());
-      PaletteSelector pSel(wdc, windowPalette.getHandle());
-      if (pSel.isRedrawRequired()) {
-        InvalidateRect(getHandle(), 0, FALSE);
-        UpdateWindow(getHandle());
-      }
-    }
-    return TRUE;
-
     // -=- Window position
 
     // Prevent the window from being resized to be too large if in normal mode.
@@ -513,16 +509,21 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         break;
 
       // Work out how big the window should ideally be
-      DWORD current_style = GetWindowLong(getHandle(), GWL_STYLE);
-      DWORD style = current_style & ~(WS_VSCROLL | WS_HSCROLL);
+      DWORD frame_current_style = GetWindowLong(getFrameHandle(), GWL_STYLE);
+      DWORD frame_style = frame_current_style & ~(WS_VSCROLL | WS_HSCROLL);
+
       RECT r;
       SetRect(&r, 0, 0, buffer->width(), buffer->height());
-      AdjustWindowRect(&r, style, FALSE);
+      AdjustWindowRect(&r, frame_style, FALSE);
       Rect reqd_size = Rect(r.left, r.top, r.right, r.bottom);
-      if (current_style & WS_VSCROLL)
+      if (frame_current_style & WS_VSCROLL)
         reqd_size.br.x += GetSystemMetrics(SM_CXVSCROLL);
-      if (current_style & WS_HSCROLL)
+      if (frame_current_style & WS_HSCROLL)
         reqd_size.br.y += GetSystemMetrics(SM_CXHSCROLL);
+      r.left = reqd_size.tl.x; r.right  = reqd_size.br.x;
+      r.top  = reqd_size.tl.y; r.bottom = reqd_size.br.y;
+      AdjustWindowRect(&r, GetWindowLong(getHandle(), GWL_STYLE), FALSE);
+      reqd_size = Rect(r.left, r.top, r.right, r.bottom);
       RECT current;
       GetWindowRect(getHandle(), &current);
 
@@ -542,54 +543,29 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     }
     break;
 
-    // Add scrollbars if required and update window size info we have cached.
+    // Resize child windows and update window size info we have cached.
 
   case WM_SIZE:
     {
       Point old_offset = bufferToClient(Point(0, 0));
 
-      // Update the cached sizing information
+      // Reseze the child windows
       RECT r;
-      GetWindowRect(getHandle(), &r);
-      window_size = Rect(r.left, r.top, r.right, r.bottom);
       GetClientRect(getHandle(), &r);
+      MoveWindow(getFrameHandle(), 0, 0, r.right, r.bottom, TRUE);
+ 
+      // Update the cached sizing information
+      GetWindowRect(getFrameHandle(), &r);
+      window_size = Rect(r.left, r.top, r.right, r.bottom);
+      GetClientRect(getFrameHandle(), &r);
       client_size = Rect(r.left, r.top, r.right, r.bottom);
 
       // Determine whether scrollbars are required
       calculateScrollBars();
-
+         
       // Redraw if required
       if (!old_offset.equals(bufferToClient(Point(0, 0))))
-        InvalidateRect(getHandle(), 0, TRUE);
-    }
-    break;
-
-  case WM_VSCROLL:
-  case WM_HSCROLL: 
-    {
-      Point delta;
-      int newpos = (msg == WM_VSCROLL) ? scrolloffset.y : scrolloffset.x;
-
-      switch (LOWORD(wParam)) {
-      case SB_PAGEUP: newpos -= 50; break;
-      case SB_PAGEDOWN: newpos += 50; break;
-      case SB_LINEUP: newpos -= 5; break;
-      case SB_LINEDOWN: newpos += 5; break;
-      case SB_THUMBTRACK:
-      case SB_THUMBPOSITION: newpos = HIWORD(wParam); break;
-      default: vlog.info("received unknown scroll message");
-      };
-
-      if (msg == WM_HSCROLL)
-        setViewportOffset(Point(newpos, scrolloffset.y));
-      else
-        setViewportOffset(Point(scrolloffset.x, newpos));
-  
-      SCROLLINFO si;
-      si.cbSize = sizeof(si); 
-      si.fMask  = SIF_POS; 
-      si.nPos   = newpos; 
-      SetScrollInfo(getHandle(), (msg == WM_VSCROLL) ? SB_VERT : SB_HORZ, &si, TRUE); 
+        InvalidateRect(getFrameHandle(), 0, TRUE);
     }
     break;
 
@@ -609,89 +585,6 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         close(e.str());
       }
       break;
-    }
-    break;
-
-    // -=- Cursor shape/visibility handling
-
-  case WM_SETCURSOR:
-    if (LOWORD(lParam) != HTCLIENT)
-      break;
-    SetCursor(cursorInBuffer ? dotCursor : arrowCursor);
-    return TRUE;
-
-  case WM_MOUSELEAVE:
-    trackingMouseLeave = false;
-    cursorOutsideBuffer();
-    return 0;
-
-    // -=- Mouse input handling
-
-  case WM_MOUSEMOVE:
-  case WM_LBUTTONUP:
-  case WM_MBUTTONUP:
-  case WM_RBUTTONUP:
-  case WM_LBUTTONDOWN:
-  case WM_MBUTTONDOWN:
-  case WM_RBUTTONDOWN:
-  case WM_MOUSEWHEEL:
-    if (has_focus)
-    {
-      if (!trackingMouseLeave) {
-        TRACKMOUSEEVENT tme;
-        tme.cbSize = sizeof(TRACKMOUSEEVENT);
-        tme.dwFlags = TME_LEAVE;
-        tme.hwndTrack = hwnd;
-        _TrackMouseEvent(&tme);
-        trackingMouseLeave = true;
-      }
-      int mask = 0;
-      if (LOWORD(wParam) & MK_LBUTTON) mask |= 1;
-      if (LOWORD(wParam) & MK_MBUTTON) mask |= 2;
-      if (LOWORD(wParam) & MK_RBUTTON) mask |= 4;
-
-      if (msg == WM_MOUSEWHEEL) {
-        int delta = (short)HIWORD(wParam);
-        int repeats = (abs(delta)+119) / 120;
-        int wheelMask = (delta > 0) ? 8 : 16;
-        vlog.debug("repeats %d, mask %d\n",repeats,wheelMask);
-        for (int i=0; i<repeats; i++) {
-          writePointerEvent(oldpos.x, oldpos.y, mask | wheelMask);
-          writePointerEvent(oldpos.x, oldpos.y, mask);
-        }
-      } else {
-        Point clientPos = Point(LOWORD(lParam), HIWORD(lParam));
-        Point p = clientToBuffer(clientPos);
-
-        // If the mouse is not within the server buffer area, do nothing
-        cursorInBuffer = buffer->getRect().contains(p);
-        if (!cursorInBuffer) {
-          cursorOutsideBuffer();
-          break;
-        }
-
-        // If we're locally rendering the cursor then redraw it
-        if (cursorAvailable) {
-          // - Render the cursor!
-          if (!p.equals(cursorPos)) {
-            hideLocalCursor();
-            cursorPos = p;
-            showLocalCursor();
-            if (cursorVisible)
-              hideSystemCursor();
-          }
-        }
-
-        // If we are doing bump-scrolling then try that first...
-        if (processBumpScroll(clientPos))
-          break;
-
-        // Send a pointer event to the server
-        writePointerEvent(p.x, p.y, mask);
-        oldpos = p;
-      }
-    } else {
-      cursorOutsideBuffer();
     }
     break;
 
@@ -889,6 +782,205 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   return rfb::win32::SafeDefWindowProc(getHandle(), msg, wParam, lParam);
 }
 
+LRESULT CView::processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
+  switch (msg) {
+
+    // -=- Palette management
+
+  case WM_PALETTECHANGED:
+    vlog.debug("WM_PALETTECHANGED");
+    if ((HWND)wParam == getFrameHandle()) {
+      vlog.debug("ignoring");
+      break;
+    }
+  case WM_QUERYNEWPALETTE:
+    vlog.debug("re-selecting palette");
+    {
+      WindowDC wdc(getFrameHandle());
+      PaletteSelector pSel(wdc, windowPalette.getHandle());
+      if (pSel.isRedrawRequired()) {
+        InvalidateRect(getFrameHandle(), 0, FALSE);
+        UpdateWindow(getFrameHandle());
+      }
+    }
+    return TRUE;
+
+    // Paint the remote frame buffer
+
+  case WM_PAINT:
+    {
+      PAINTSTRUCT ps;
+      HDC paintDC = BeginPaint(getFrameHandle(), &ps);
+      if (!paintDC)
+        throw SystemException("unable to BeginPaint", GetLastError());
+      Rect pr = Rect(ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
+
+      if (!pr.is_empty()) {
+
+        // Draw using the correct palette
+        PaletteSelector pSel(paintDC, windowPalette.getHandle());
+
+        if (buffer->bitmap) {
+          // Update the bitmap's palette
+          if (palette_changed) {
+            palette_changed = false;
+            buffer->refreshPalette();
+          }
+
+          // Get device context
+          BitmapDC bitmapDC(paintDC, buffer->bitmap);
+
+          // Blit the border if required
+          Rect bufpos = bufferToClient(buffer->getRect());
+          if (!pr.enclosed_by(bufpos)) {
+            vlog.debug("draw border");
+            HBRUSH black = (HBRUSH) GetStockObject(BLACK_BRUSH);
+            RECT r;
+            SetRect(&r, 0, 0, bufpos.tl.x, client_size.height()); FillRect(paintDC, &r, black);
+            SetRect(&r, bufpos.tl.x, 0, bufpos.br.x, bufpos.tl.y); FillRect(paintDC, &r, black);
+            SetRect(&r, bufpos.br.x, 0, client_size.width(), client_size.height()); FillRect(paintDC, &r, black);
+            SetRect(&r, bufpos.tl.x, bufpos.br.y, bufpos.br.x, client_size.height()); FillRect(paintDC, &r, black);
+          }
+
+          // Do the blit
+          Point buf_pos = clientToBuffer(pr.tl);
+          if (!BitBlt(paintDC, pr.tl.x, pr.tl.y, pr.width(), pr.height(),
+            bitmapDC, buf_pos.x, buf_pos.y, SRCCOPY))
+            throw SystemException("unable to BitBlt to window", GetLastError());
+
+        } else {
+          // Blit a load of black
+          if (!BitBlt(paintDC, pr.tl.x, pr.tl.y, pr.width(), pr.height(),
+            0, 0, 0, BLACKNESS))
+            throw SystemException("unable to BitBlt to blank window", GetLastError());
+        }
+      }
+
+      EndPaint(getFrameHandle(), &ps);
+
+      // - Request the next update from the server, if required
+      requestNewUpdate();
+    }
+    return 0;
+
+    // Process the frame scroll messages
+
+  case WM_VSCROLL:
+  case WM_HSCROLL: 
+    {
+      Point delta;
+      int newpos = (msg == WM_VSCROLL) ? scrolloffset.y : scrolloffset.x;
+
+      switch (LOWORD(wParam)) {
+      case SB_PAGEUP: newpos -= 50; break;
+      case SB_PAGEDOWN: newpos += 50; break;
+      case SB_LINEUP: newpos -= 5; break;
+      case SB_LINEDOWN: newpos += 5; break;
+      case SB_THUMBTRACK:
+      case SB_THUMBPOSITION: newpos = HIWORD(wParam); break;
+      default: vlog.info("received unknown scroll message");
+      };
+
+      if (msg == WM_HSCROLL)
+        setViewportOffset(Point(newpos, scrolloffset.y));
+      else
+        setViewportOffset(Point(scrolloffset.x, newpos));
+  
+      SCROLLINFO si;
+      si.cbSize = sizeof(si); 
+      si.fMask  = SIF_POS; 
+      si.nPos   = newpos; 
+      SetScrollInfo(getFrameHandle(), (msg == WM_VSCROLL) ? SB_VERT : SB_HORZ, &si, TRUE); 
+    }
+    break;
+
+    // -=- Cursor shape/visibility handling
+
+  case WM_SETCURSOR:
+    if (LOWORD(lParam) != HTCLIENT)
+      break;
+    SetCursor(cursorInBuffer ? dotCursor : arrowCursor);
+    return TRUE;
+
+  case WM_MOUSELEAVE:
+    trackingMouseLeave = false;
+    cursorOutsideBuffer();
+    return 0;
+
+    // -=- Mouse input handling
+
+  case WM_MOUSEMOVE:
+  case WM_LBUTTONUP:
+  case WM_MBUTTONUP:
+  case WM_RBUTTONUP:
+  case WM_LBUTTONDOWN:
+  case WM_MBUTTONDOWN:
+  case WM_RBUTTONDOWN:
+  case WM_MOUSEWHEEL:
+    if (has_focus)
+    {
+      if (!trackingMouseLeave) {
+        TRACKMOUSEEVENT tme;
+        tme.cbSize = sizeof(TRACKMOUSEEVENT);
+        tme.dwFlags = TME_LEAVE;
+        tme.hwndTrack = getFrameHandle();
+        _TrackMouseEvent(&tme);
+        trackingMouseLeave = true;
+      }
+      int mask = 0;
+      if (LOWORD(wParam) & MK_LBUTTON) mask |= 1;
+      if (LOWORD(wParam) & MK_MBUTTON) mask |= 2;
+      if (LOWORD(wParam) & MK_RBUTTON) mask |= 4;
+
+      if (msg == WM_MOUSEWHEEL) {
+        int delta = (short)HIWORD(wParam);
+        int repeats = (abs(delta)+119) / 120;
+        int wheelMask = (delta > 0) ? 8 : 16;
+        vlog.debug("repeats %d, mask %d\n",repeats,wheelMask);
+        for (int i=0; i<repeats; i++) {
+          writePointerEvent(oldpos.x, oldpos.y, mask | wheelMask);
+          writePointerEvent(oldpos.x, oldpos.y, mask);
+        }
+      } else {
+        Point clientPos = Point(LOWORD(lParam), HIWORD(lParam));
+        Point p = clientToBuffer(clientPos);
+
+        // If the mouse is not within the server buffer area, do nothing
+        cursorInBuffer = buffer->getRect().contains(p);
+        if (!cursorInBuffer) {
+          cursorOutsideBuffer();
+          break;
+        }
+
+        // If we're locally rendering the cursor then redraw it
+        if (cursorAvailable) {
+          // - Render the cursor!
+          if (!p.equals(cursorPos)) {
+            hideLocalCursor();
+            cursorPos = p;
+            showLocalCursor();
+            if (cursorVisible)
+              hideSystemCursor();
+          }
+        }
+
+        // If we are doing bump-scrolling then try that first...
+        if (processBumpScroll(clientPos))
+          break;
+
+        // Send a pointer event to the server
+        writePointerEvent(p.x, p.y, mask);
+        oldpos = p;
+      }
+    } else {
+      cursorOutsideBuffer();
+    }
+    break;
+  }
+
+  return rfb::win32::SafeDefWindowProc(getFrameHandle(), msg, wParam, lParam);
+}
+
 void CView::blockCallback() {
   // - An InStream has blocked on I/O while processing an RFB message
   //   We re-enable socket event notifications, so we'll know when more
@@ -1014,7 +1106,7 @@ CView::invalidateBufferRect(const Rect& crect) {
   Rect rect = bufferToClient(crect);
   if (rect.intersect(client_size).is_empty()) return false;
   RECT invalid = {rect.tl.x, rect.tl.y, rect.br.x, rect.br.y};
-  InvalidateRect(getHandle(), &invalid, FALSE);
+  InvalidateRect(getFrameHandle(), &invalid, FALSE);
   return true;
 }
 
@@ -1078,6 +1170,7 @@ CView::setDesktopSize(int w, int h) {
   if (!(GetWindowLong(getHandle(), GWL_STYLE) & WS_MAXIMIZE) && !fullScreenActive) {
     // Resize the window to the required size
     RECT r = {0, 0, w, h};
+    AdjustWindowRect(&r, GetWindowLong(getFrameHandle(), GWL_STYLE), FALSE);
     AdjustWindowRect(&r, GetWindowLong(getHandle(), GWL_STYLE), FALSE);
     SetWindowPos(getHandle(), 0, 0, 0, r.right-r.left, r.bottom-r.top,
       SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
@@ -1090,7 +1183,7 @@ CView::setDesktopSize(int w, int h) {
     centerWindow(getHandle(), 0, true);
   } else {
     // Ensure the screen contents are consistent
-    InvalidateRect(getHandle(), 0, FALSE);
+    InvalidateRect(getFrameHandle(), 0, FALSE);
   }
 
   // Tell the underlying CConnection
@@ -1342,7 +1435,7 @@ CView::refreshWindowPalette(int start, int count) {
 
 void CView::calculateScrollBars() {
   // Calculate the required size of window
-  DWORD current_style = GetWindowLong(getHandle(), GWL_STYLE);
+  DWORD current_style = GetWindowLong(getFrameHandle(), GWL_STYLE);
   DWORD style = current_style & ~(WS_VSCROLL | WS_HSCROLL);
   DWORD old_style;
   RECT r;
@@ -1354,7 +1447,6 @@ void CView::calculateScrollBars() {
     // We only enable scrollbars if bump-scrolling is not active.
     // Effectively, this means if full-screen is not active,
     // but I think it's better to make these things explicit.
-    
     // Work out whether scroll bars are required
     do {
       old_style = style;
@@ -1369,37 +1461,41 @@ void CView::calculateScrollBars() {
       }
     } while (style != old_style);
   }
-
+  
   // Tell Windows to update the window style & cached settings
   if (style != current_style) {
-    SetWindowLong(getHandle(), GWL_STYLE, style);
-    SetWindowPos(getHandle(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+    SetWindowLong(getFrameHandle(), GWL_STYLE, style);
+    SetWindowPos(getFrameHandle(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
   }
 
   // Update the scroll settings
   SCROLLINFO si;
   if (style & WS_VSCROLL) {
-    si.cbSize = sizeof(si); 
-    si.fMask  = SIF_RANGE | SIF_PAGE | SIF_POS; 
-    si.nMin   = 0; 
-    si.nMax   = buffer->height(); 
-    si.nPage  = buffer->height() - (reqd_size.height() - window_size.height()); 
+    si.cbSize = sizeof(si);
+    si.fMask  = SIF_RANGE | SIF_PAGE | SIF_POS;
+    si.nMin   = 0;
+    si.nMax   = buffer->height();
+    si.nPage  = buffer->height() - (reqd_size.height() - window_size.height());
     maxscrolloffset.y = max(0, si.nMax-si.nPage);
     scrolloffset.y = min(maxscrolloffset.y, scrolloffset.y);
     si.nPos   = scrolloffset.y;
-    SetScrollInfo(getHandle(), SB_VERT, &si, TRUE);
+    SetScrollInfo(getFrameHandle(), SB_VERT, &si, TRUE);
   }
   if (style & WS_HSCROLL) {
-    si.cbSize = sizeof(si); 
-    si.fMask  = SIF_RANGE | SIF_PAGE | SIF_POS; 
+    si.cbSize = sizeof(si);
+    si.fMask  = SIF_RANGE | SIF_PAGE | SIF_POS;
     si.nMin   = 0;
-    si.nMax   = buffer->width(); 
-    si.nPage  = buffer->width() - (reqd_size.width() - window_size.width()); 
+    si.nMax   = buffer->width();
+    si.nPage  = buffer->width() - (reqd_size.width() - window_size.width());
     maxscrolloffset.x = max(0, si.nMax-si.nPage);
     scrolloffset.x = min(maxscrolloffset.x, scrolloffset.x);
     si.nPos   = scrolloffset.x;
-    SetScrollInfo(getHandle(), SB_HORZ, &si, TRUE);
+    SetScrollInfo(getFrameHandle(), SB_HORZ, &si, TRUE);
   }
+
+  // Update the cached client size
+  GetClientRect(getFrameHandle(), &r);
+  client_size = Rect(r.left, r.top, r.right, r.bottom);
 }
 
 

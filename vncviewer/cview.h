@@ -67,6 +67,7 @@ namespace rfb {
       // -=- Window Message handling
 
       virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+      virtual LRESULT processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
       // -=- Socket blocking handling
       //     blockCallback will throw QuitMessage(result) when
@@ -88,6 +89,7 @@ namespace rfb {
       void setVisible(bool visible);
       void close(const char* reason=0);
       HWND getHandle() const {return hwnd;}
+      HWND getFrameHandle() const {return frameHwnd;}
 
       void notifyClipboardChanged(const char* text, int len);
 
@@ -284,6 +286,7 @@ namespace rfb {
       Point scrolloffset;
       Point maxscrolloffset;
       HWND hwnd;
+      HWND frameHwnd;
 
       // Handle back to CViewManager instance, if any
       CViewManager* manager;
