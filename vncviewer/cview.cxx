@@ -549,7 +549,7 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     {
       Point old_offset = bufferToClient(Point(0, 0));
 
-      // Reseze the child windows
+      // Resize the child windows
       RECT r;
       GetClientRect(getHandle(), &r);
       MoveWindow(getFrameHandle(), 0, 0, r.right, r.bottom, TRUE);
