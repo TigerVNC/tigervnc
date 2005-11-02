@@ -150,6 +150,14 @@ SOURCE=.\CViewOptions.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FileTransfer.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTDialog.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\FTListView.cxx
 # End Source File
 # Begin Source File
@@ -195,6 +203,14 @@ SOURCE=.\CViewManager.h
 # Begin Source File
 
 SOURCE=.\CViewOptions.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileTransfer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTDialog.h
 # End Source File
 # Begin Source File
 
