@@ -101,17 +101,28 @@
 #define IDC_FTDIRNAME                   1078
 #define IDC_CONFIRM_YESTOALL            1079
 #define IDC_CONFIRM_TEXT                1080
-#define ID_CLOSE                        40002
-#define ID_OPTIONS                      40003
-#define ID_NEW_CONNECTION               40004
-#define ID_ABOUT                        40005
+#define ID_TOOLBAR                      40002
+#define ID_CLOSE                        40003
+#define ID_OPTIONS                      40004
+#define ID_NEW_CONNECTION               40005
+#define ID_ABOUT                        40006
+#define ID_FULLSCREEN                   40007
+#define ID_SEND_CAD                     40008
+#define ID_INFO                         40009
+#define ID_REQUEST_REFRESH              40010
+#define ID_CTRL_KEY                     40011
+#define ID_ALT_KEY                      40012
+#define ID_SEND_MENU_KEY                40013
+#define ID_SEND_CTLESC                  40014
+#define ID_CONN_SAVE_AS                 40015
+#define ID_FILE_TRANSFER                40016
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40006
+#define _APS_NEXT_COMMAND_VALUE         40017
 #define _APS_NEXT_CONTROL_VALUE         1081
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

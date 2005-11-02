@@ -48,16 +48,16 @@ using namespace rdr;
 
 static LogWriter vlog("CView");
 
-const int IDM_FULLSCREEN = 1;
-const int IDM_SEND_MENU_KEY = 2;
-const int IDM_SEND_CAD = 3;
-const int IDM_ABOUT = 4;
-const int IDM_OPTIONS = 5;
-const int IDM_INFO = 6;
-const int IDM_NEWCONN = 7;
-const int IDM_REQUEST_REFRESH = 9;
-const int IDM_CTRL_KEY = 10;
-const int IDM_ALT_KEY = 11;
+const int IDM_FULLSCREEN = ID_FULLSCREEN;
+const int IDM_SEND_MENU_KEY = ID_SEND_MENU_KEY;
+const int IDM_SEND_CAD = ID_SEND_CAD;
+const int IDM_ABOUT = ID_ABOUT;
+const int IDM_OPTIONS = ID_OPTIONS;
+const int IDM_INFO = ID_INFO;
+const int IDM_NEWCONN = ID_NEW_CONNECTION;
+const int IDM_REQUEST_REFRESH = ID_REQUEST_REFRESH;
+const int IDM_CTRL_KEY = ID_CTRL_KEY;
+const int IDM_ALT_KEY = ID_ALT_KEY;
 
 const int TIMER_BUMPSCROLL = 1;
 const int TIMER_POINTER_INTERVAL = 2;
