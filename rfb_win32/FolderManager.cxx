@@ -100,7 +100,7 @@ FolderManager::getFolderInfoWithPrefix(char *pPrefix, FileInfo *pFileInfo)
   strcpy(prefix, pPrefix);
 
   FileInfo tmpFileInfo;
-  if (!getFolderInfo(prefix, &tmpFileInfo, 0)) {
+  if (!getDirInfo(prefix, &tmpFileInfo, 0)) {
     tmpFileInfo.free();
     return false;
   } else {
@@ -115,99 +115,99 @@ FolderManager::getFolderInfoWithPrefix(char *pPrefix, FileInfo *pFileInfo)
 }
     
 bool 
-FolderManager::getFolderInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly)
+FolderManager::getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly)
 {
-	if (strlen(pPath) == 0) return getDrivesInfo(pFileInfo);
-
-	char path[FT_FILENAME_SIZE];
-	sprintf(path, "%s\\*", pPath);
-
-	WIN32_FIND_DATA FindFileData;
-	SetErrorMode(SEM_FAILCRITICALERRORS);
-	HANDLE handle = FindFirstFile(path, &FindFileData);
-	DWORD lastError = GetLastError();
-	SetErrorMode(0);
-
-	if (handle != INVALID_HANDLE_VALUE) {
-		do {
-			if (strcmp(FindFileData.cFileName, ".") != 0 &&
-				strcmp(FindFileData.cFileName, "..") != 0) {
-                unsigned int lastWriteTime = getTime70(FindFileData.ftLastWriteTime);
-				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-					pFileInfo->add(FindFileData.cFileName, 0, lastWriteTime, FT_ATTR_DIR);
-				} else {
-					if (!dirOnly)
-						pFileInfo->add(FindFileData.cFileName, FindFileData.nFileSizeLow, lastWriteTime, FT_ATTR_FILE);
-				}
-			}
-			
-		} while (FindNextFile(handle, &FindFileData));
-	} else {
-		return false;
-	}
-	FindClose(handle);
-	return true;
+  if (strlen(pPath) == 0) return getDrivesInfo(pFileInfo);
+  
+  char path[FT_FILENAME_SIZE];
+  sprintf(path, "%s\\*", pPath);
+  
+  WIN32_FIND_DATA FindFileData;
+  SetErrorMode(SEM_FAILCRITICALERRORS);
+  HANDLE handle = FindFirstFile(path, &FindFileData);
+  DWORD lastError = GetLastError();
+  SetErrorMode(0);
+  
+  if (handle != INVALID_HANDLE_VALUE) {
+    do {
+      if (strcmp(FindFileData.cFileName, ".") != 0 &&
+        strcmp(FindFileData.cFileName, "..") != 0) {
+        unsigned int lastWriteTime = getTime70(FindFileData.ftLastWriteTime);
+        if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+          pFileInfo->add(FindFileData.cFileName, 0, lastWriteTime, FT_ATTR_DIR);
+        } else {
+          if (!dirOnly)
+            pFileInfo->add(FindFileData.cFileName, FindFileData.nFileSizeLow, lastWriteTime, FT_ATTR_FILE);
+        }
+      }
+      
+    } while (FindNextFile(handle, &FindFileData));
+  } else {
+    return false;
+  }
+  FindClose(handle);
+  return true;
 }
 
 bool 
 FolderManager::getDrivesInfo(FileInfo *pFileInfo)
 {
-	TCHAR szDrivesList[256];
-	if (GetLogicalDriveStrings(255, szDrivesList) == 0)
-		return false;
-
-	int i = 0;
-	while (szDrivesList[i] != '\0') {
-		char *drive = strdup(&szDrivesList[i]);
-		char *backslash = strrchr(drive, '\\');
-		if (backslash != NULL)
-			*backslash = '\0';
-		pFileInfo->add(drive, 0, 0, FT_ATTR_DIR);
-		free(drive);
-		i += strcspn(&szDrivesList[i], "\0") + 1;
-	}
-	return true;
+  TCHAR szDrivesList[256];
+  if (GetLogicalDriveStrings(255, szDrivesList) == 0)
+    return false;
+  
+  int i = 0;
+  while (szDrivesList[i] != '\0') {
+    char *drive = strdup(&szDrivesList[i]);
+    char *backslash = strrchr(drive, '\\');
+    if (backslash != NULL)
+      *backslash = '\0';
+    pFileInfo->add(drive, 0, 0, FT_ATTR_DIR);
+    free(drive);
+    i += strcspn(&szDrivesList[i], "\0") + 1;
+  }
+  return true;
 }
 
 bool
 FolderManager::getInfo(char *pFullPath, FILEINFO *pFIStruct)
 {
-	WIN32_FIND_DATA FindFileData;
-	SetErrorMode(SEM_FAILCRITICALERRORS);
-	HANDLE hFile = FindFirstFile(pFullPath, &FindFileData);
-	DWORD lastError = GetLastError();
-	SetErrorMode(0);
-	if (hFile != INVALID_HANDLE_VALUE) {
-		FindClose(hFile);
-		strcpy(pFIStruct->name, FindFileData.cFileName);
-		pFIStruct->info.data = getTime70(FindFileData.ftLastWriteTime);
-		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	
-			pFIStruct->info.size = 0;
-			pFIStruct->info.flags = FT_ATTR_DIR;
-			return true;
-		} else {
-			pFIStruct->info.size = FindFileData.nFileSizeLow;
-			pFIStruct->info.flags = FT_ATTR_FILE;
-			return true;
-		}
-	}
-	return false;
+  WIN32_FIND_DATA FindFileData;
+  SetErrorMode(SEM_FAILCRITICALERRORS);
+  HANDLE hFile = FindFirstFile(pFullPath, &FindFileData);
+  DWORD lastError = GetLastError();
+  SetErrorMode(0);
+  if (hFile != INVALID_HANDLE_VALUE) {
+    FindClose(hFile);
+    strcpy(pFIStruct->name, FindFileData.cFileName);
+    pFIStruct->info.data = getTime70(FindFileData.ftLastWriteTime);
+    if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	
+      pFIStruct->info.size = 0;
+      pFIStruct->info.flags = FT_ATTR_DIR;
+      return true;
+    } else {
+      pFIStruct->info.size = FindFileData.nFileSizeLow;
+      pFIStruct->info.flags = FT_ATTR_FILE;
+      return true;
+    }
+  }
+  return false;
 }
 
 unsigned int 
 FolderManager::getTime70(FILETIME ftime)
 {
-	LARGE_INTEGER uli;
-	uli.LowPart = ftime.dwLowDateTime;
-	uli.HighPart = ftime.dwHighDateTime;
-	uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
-	return uli.LowPart;
+  LARGE_INTEGER uli;
+  uli.LowPart = ftime.dwLowDateTime;
+  uli.HighPart = ftime.dwHighDateTime;
+  uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
+  return uli.LowPart;
 }
 
 void 
 FolderManager::getFiletime(unsigned int time70, FILETIME *pftime)
 {
-    LONGLONG ll = Int32x32To64(time70, 10000000) + 116444736000000000;
-    pftime->dwLowDateTime = (DWORD) ll;
-    pftime->dwHighDateTime = (DWORD) (ll >> 32);
+  LONGLONG ll = Int32x32To64(time70, 10000000) + 116444736000000000;
+  pftime->dwLowDateTime = (DWORD) ll;
+  pftime->dwHighDateTime = (DWORD) (ll >> 32);
 }

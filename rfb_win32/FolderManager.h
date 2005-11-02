@@ -43,14 +43,14 @@ namespace rfb {
 
       bool getInfo(char *pFullPath, FILEINFO *pFIStruct);
       
-      bool getFolderInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly);
+      bool getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly);
       bool getDrivesInfo(FileInfo *pFI);
-    private:
-      bool getFolderInfoWithPrefix(char *pPrefix, FileInfo *pFileInfo);
-      
+
       unsigned int getTime70(FILETIME ftime);
       void getFiletime(unsigned int time70, FILETIME *pftime);
 
+    private:
+      bool getFolderInfoWithPrefix(char *pPrefix, FileInfo *pFileInfo);
     };
   }
 }

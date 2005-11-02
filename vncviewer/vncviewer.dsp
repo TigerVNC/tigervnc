@@ -150,6 +150,10 @@ SOURCE=.\CViewOptions.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FTListView.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\InfoDialog.cxx
 # End Source File
 # Begin Source File
@@ -191,6 +195,10 @@ SOURCE=.\CViewManager.h
 # Begin Source File
 
 SOURCE=.\CViewOptions.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTListView.h
 # End Source File
 # Begin Source File
 

@@ -19,22 +19,45 @@
  *
  */
 
-// -=- DirManager.cxx
+// -=- FTListView.h
 
-#ifndef __RFB_DIRMANAGER_H__
-#define __RFB_DIRMANAGER_H__
+#ifndef __RFB_WIN32_FTLISTVIEW_H__
+#define __RFB_WIN32_FTLISTVIEW_H__
+
+#include <windows.h>
 
 #include <rfb/FileInfo.h>
+#include <rfb_win32/FolderManager.h>
+#include <rfb_win32/ListViewControl.h>
+#include <vncviewer/resource.h>
 
 namespace rfb {
-  class DirManager {
-  public:
-    virtual bool createDir(char *pFullPath);
-    virtual bool renameIt(char *pOldName, char *pNewName);
-    virtual bool deleteIt(char *pFullPath);
+  namespace win32{
+    class FTListView : private ListViewControl
+    {
+    public:
+      FTListView(HWND hLV);
+      ~FTListView();
 
-    virtual bool getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly);
-  };
+      bool initialize();
+      
+      void onGetDispInfo(NMLVDISPINFO *di);
+      void addItems(FileInfo *pFI);
+      void deleteAllItems();
+      void initImageList(HINSTANCE hInst);
+      
+      char *getActivateItemName(LPNMITEMACTIVATE lpnmia);
+      int getSelectedItems(FileInfo *pFI);
+      
+      HWND getWndHandle() { return m_hListView; };
+      
+    private:
+      HWND m_hListView;
+      FileInfo m_fileInfo;
+      HIMAGELIST m_hImageList;
+      
+    };
+  }
 }
 
-#endif // __RFB_DIRMANAGER_H__
+#endif // __RFB_WIN32_FTLISTVIEW_H__
