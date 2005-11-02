@@ -166,6 +166,10 @@ SOURCE=.\OSVersion.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ProgressControl.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\RegConfig.cxx
 # End Source File
 # Begin Source File
@@ -291,6 +295,10 @@ SOURCE=.\MsgWindow.h
 # Begin Source File
 
 SOURCE=.\OSVersion.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ProgressControl.h
 # End Source File
 # Begin Source File
 
