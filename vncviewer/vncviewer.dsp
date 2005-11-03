@@ -174,6 +174,10 @@ SOURCE=.\UserPasswdDialog.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ViewerToolBar.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\vncviewer.cxx
 # End Source File
 # Begin Source File
@@ -231,6 +235,10 @@ SOURCE=.\OptionsDialog.h
 # Begin Source File
 
 SOURCE=.\UserPasswdDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ViewerToolBar.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
