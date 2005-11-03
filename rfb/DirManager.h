@@ -29,11 +29,11 @@
 namespace rfb {
   class DirManager {
   public:
-    virtual bool createDir(char *pFullPath);
-    virtual bool renameIt(char *pOldName, char *pNewName);
-    virtual bool deleteIt(char *pFullPath);
+    virtual bool createDir(char *pFullPath) = 0;
+    virtual bool renameIt(char *pOldName, char *pNewName) = 0;
+    virtual bool deleteIt(char *pFullPath) = 0;
 
-    virtual bool getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly);
+    virtual bool getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly) = 0;
   };
 }
 
