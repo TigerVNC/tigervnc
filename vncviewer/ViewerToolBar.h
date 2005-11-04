@@ -31,8 +31,5 @@ public:
 
   void create(HWND parentHwnd);
 
-  void enable();
-  void disable();
-
   LRESULT processWM_COMMAND(WPARAM wParam, LPARAM lParam);
 };
