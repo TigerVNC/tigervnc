@@ -39,7 +39,7 @@ void ViewerToolBar::create(HWND parentHwnd) {
   addButton(6, ID_CTRL_KEY);
   addButton(7, ID_ALT_KEY);
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  addButton(8, ID_FILE_TRANSFER );
+  addButton(8, ID_FILE_TRANSFER);
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
   addButton(9, ID_NEW_CONNECTION);
   addButton(10, ID_CONN_SAVE_AS);

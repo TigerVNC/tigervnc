@@ -33,6 +33,4 @@ public:
 
   void show();
   void hide();
-
-  LRESULT processWM_COMMAND(WPARAM wParam, LPARAM lParam);
 };
