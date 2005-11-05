@@ -118,6 +118,9 @@ namespace rfb {
       // hide() hides the toolbar window.
       void hide();
 
+      // isVisible() check the toolbar window on visible.
+      bool isVisible();
+
     protected:
       HWND hwndToolBar;
       HWND parentHwnd;

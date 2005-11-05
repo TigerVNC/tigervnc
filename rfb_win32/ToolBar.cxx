@@ -209,3 +209,8 @@ void ToolBar::show() {
 void ToolBar::hide() {
   ShowWindow(getHandle(), SW_HIDE);
 }
+
+bool ToolBar::isVisible() {
+  DWORD style = GetWindowLong(getHandle(), GWL_STYLE);
+  return (bool)(style & WS_VISIBLE);
+}
