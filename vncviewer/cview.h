@@ -39,6 +39,7 @@
 
 #include <vncviewer/InfoDialog.h>
 #include <vncviewer/OptionsDialog.h>
+#include <vncviewer/ViewerToolBar.h>
 #include <vncviewer/CViewOptions.h>
 #include <vncviewer/CViewManager.h>
 #include <list>
@@ -276,6 +277,9 @@ namespace rfb {
       Rect update_extent;
       */
       std::list<Rect> debugRects;
+
+      // ToolBar handling
+      ViewerToolBar tb;
 
       // Local window state
       win32::DIBSectionBuffer* buffer;

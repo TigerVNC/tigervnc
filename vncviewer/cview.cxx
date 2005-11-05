@@ -51,6 +51,7 @@ static LogWriter vlog("CView");
 const int IDM_FULLSCREEN = ID_FULLSCREEN;
 const int IDM_SEND_MENU_KEY = ID_SEND_MENU_KEY;
 const int IDM_SEND_CAD = ID_SEND_CAD;
+const int IDM_SEND_CTLESC = ID_SEND_CTLESC;
 const int IDM_ABOUT = ID_ABOUT;
 const int IDM_OPTIONS = ID_OPTIONS;
 const int IDM_INFO = ID_INFO;
@@ -58,6 +59,8 @@ const int IDM_NEWCONN = ID_NEW_CONNECTION;
 const int IDM_REQUEST_REFRESH = ID_REQUEST_REFRESH;
 const int IDM_CTRL_KEY = ID_CTRL_KEY;
 const int IDM_ALT_KEY = ID_ALT_KEY;
+const int IDM_FILE_TRANSFER = ID_FILE_TRANSFER;
+const int IDM_CONN_SAVE_AS = ID_CONN_SAVE_AS;
 
 const int TIMER_BUMPSCROLL = 1;
 const int TIMER_POINTER_INTERVAL = 2;
@@ -229,6 +232,10 @@ CView::CView()
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }
   vlog.debug("created window \"%s\" (%x)", (const char*)CStr(name), hwnd);
+
+  // Create the viewer toolbar
+  tb.create(getHandle());
+  vlog.debug("created toolbar window \"%s\" (%x)", "ViewerToolBar", tb.getHandle());
 
   // Create the frame window
   frameHwnd = CreateWindow((const TCHAR*)frameClass.classAtom,
@@ -418,6 +425,7 @@ CView::setFullscreen(bool fs) {
     flags = flags & ~(WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZE | WS_MINIMIZE);
     vlog.debug("flags=%x", flags);
 
+    tb.hide();
     SetWindowLong(getHandle(), GWL_STYLE, flags);
     SetWindowPos(getHandle(), HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
       mi.rcMonitor.right-mi.rcMonitor.left,
@@ -427,6 +435,7 @@ CView::setFullscreen(bool fs) {
     fullScreenActive = bumpScroll = false;
 
     // Set the window non-fullscreen
+    tb.show();
     SetWindowLong(getHandle(), GWL_STYLE, fullScreenOldFlags);
     SetWindowPos(getHandle(), HWND_NOTOPMOST,
       fullScreenOldRect.tl.x, fullScreenOldRect.tl.y,
@@ -522,6 +531,7 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         reqd_size.br.y += GetSystemMetrics(SM_CXHSCROLL);
       r.left = reqd_size.tl.x; r.right  = reqd_size.br.x;
       r.top  = reqd_size.tl.y; r.bottom = reqd_size.br.y;
+      if (tb.isVisible()) r.bottom += tb.getHeight();
       AdjustWindowRect(&r, GetWindowLong(getHandle(), GWL_STYLE), FALSE);
       reqd_size = Rect(r.left, r.top, r.right, r.bottom);
       RECT current;
@@ -552,7 +562,13 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       // Resize the child windows
       RECT r;
       GetClientRect(getHandle(), &r);
-      MoveWindow(getFrameHandle(), 0, 0, r.right, r.bottom, TRUE);
+      if (tb.isVisible()) {
+        MoveWindow(getFrameHandle(), 0, tb.getHeight(), r.right,
+          r.bottom - tb.getHeight(), TRUE);
+      } else {
+        MoveWindow(getFrameHandle(), 0, 0, r.right, r.bottom, TRUE);
+      }
+      tb.autoSize();
  
       // Update the cached sizing information
       GetWindowRect(getFrameHandle(), &r);
@@ -637,6 +653,8 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       writeKeyEvent(VK_MENU, 0, false);
       writeKeyEvent(VK_CONTROL, 0, false);
       return 0;
+    case IDM_SEND_CTLESC:
+      return 0;
     case IDM_REQUEST_REFRESH:
       try {
         writer()->writeFramebufferUpdateRequest(Rect(0,0,cp.width,cp.height), false);
@@ -661,6 +679,13 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       return 0;
     case IDM_ABOUT:
       AboutDialog::instance.showDialog();
+      return 0;
+    case IDM_FILE_TRANSFER:
+      return 0;
+    case IDM_CONN_SAVE_AS:
+      return 0;
+    case ID_CLOSE:
+      PostQuitMessage(0);
       return 0;
     };
 
@@ -1171,6 +1196,7 @@ CView::setDesktopSize(int w, int h) {
     // Resize the window to the required size
     RECT r = {0, 0, w, h};
     AdjustWindowRect(&r, GetWindowLong(getFrameHandle(), GWL_STYLE), FALSE);
+    if (tb.isVisible()) r.bottom += tb.getHeight();
     AdjustWindowRect(&r, GetWindowLong(getHandle(), GWL_STYLE), FALSE);
     SetWindowPos(getHandle(), 0, 0, 0, r.right-r.left, r.bottom-r.top,
       SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
