@@ -101,6 +101,7 @@ namespace rfb {
       // Button size must be largen the button bitmap.
       bool setButtonSize(int width, int height);
 
+      // -=- ToolBar operations
 
       // autoSize() resizes the toolbar window.
       void autoSize();
@@ -110,6 +111,12 @@ namespace rfb {
 
       // getHeight() returns the toolbar window height.
       int getHeight();
+
+      // show() displays the toolbar window.
+      void show();
+
+      // hide() hides the toolbar window.
+      void hide();
 
     protected:
       HWND hwndToolBar;

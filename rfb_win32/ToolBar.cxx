@@ -201,3 +201,11 @@ int ToolBar::getHeight() {
   GetWindowRect(getHandle(), &r);
   return r.bottom - r.top;
 }
+
+void ToolBar::show() {
+  ShowWindow(getHandle(), SW_SHOW);
+}
+
+void ToolBar::hide() {
+  ShowWindow(getHandle(), SW_HIDE);
+}
