@@ -162,6 +162,10 @@ SOURCE=.\FTListView.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FTProgress.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\InfoDialog.cxx
 # End Source File
 # Begin Source File
@@ -219,6 +223,10 @@ SOURCE=.\FTDialog.h
 # Begin Source File
 
 SOURCE=.\FTListView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTProgress.h
 # End Source File
 # Begin Source File
 
