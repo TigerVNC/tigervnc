@@ -19,7 +19,7 @@
  *
  */
 
-// -=- ProgressControl.h
+// -=- ProgressControl.cxx
 
 #include <rfb_win32/ProgressControl.h>
 
@@ -71,8 +71,8 @@ ProgressControl::increase(DWORD64 value)
 bool
 ProgressControl::show()
 {
-	DWORD curPos = (DWORD) ((m_dw64CurrentValue * MAX_RANGE) / m_dw64MaxValue);
-	SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) curPos, (LPARAM) 0);
-	
-	return true;
+  DWORD curPos = (DWORD) ((m_dw64CurrentValue * MAX_RANGE) / m_dw64MaxValue);
+  SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) curPos, (LPARAM) 0);
+  
+  return true;
 }
