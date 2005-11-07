@@ -54,6 +54,8 @@ FTProgress::initialize(DWORD64 totalMaxValue, DWORD maxValue)
 
   if (!initProgressControls(totalMaxValue, maxValue)) return false;
 
+  setProgressText();
+
   m_bInitialized = true;
   return true;
 }

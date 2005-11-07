@@ -24,13 +24,24 @@
 #ifndef __RFB_WIN32_FILETRANSFER_H__
 #define __RFB_WIN32_FILETRANSFER_H__
 
+#include <vncviewer/FTDialog.h>
+
 namespace rfb {
   namespace win32 {
+    class FTDialog;
+
     class FileTransfer
     {
     public:
       FileTransfer();
       ~FileTransfer();
+
+      void createFileTransfer();
+
+    private:
+      bool m_bFTDlgShown;
+
+      FTDialog *m_pFTDialog;
       
     };
   }

@@ -28,13 +28,15 @@
 #include <commctrl.h>
 
 #include <rfb/FileInfo.h>
+#include <vncviewer/FileTransfer.h>
 #include <vncviewer/FTListView.h>
 #include <vncviewer/FTProgress.h>
-#include <vncviewer/FileTransfer.h>
 #include <vncviewer/resource.h>
 
 namespace rfb {
   namespace win32 {
+    class FileTransfer;
+
     class FTDialog
     {
     public:

@@ -28,10 +28,20 @@ using namespace rfb::win32;
 
 FileTransfer::FileTransfer()
 {
-
+  m_bFTDlgShown = false;
+  m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
 }
 
 FileTransfer::~FileTransfer()
 {
+  if (m_pFTDialog != NULL) {
+    delete m_pFTDialog;
+    m_pFTDialog = NULL;
+  }
+}
 
+void 
+FileTransfer::createFileTransfer()
+{
+  m_bFTDlgShown = m_pFTDialog->createFTDialog();
 }
