@@ -56,7 +56,9 @@ FTListView::initialize(HINSTANCE hInst)
   addColumn("Name", 0, xwidth0, LVCFMT_LEFT);
   addColumn("Size", 1, xwidth1, LVCFMT_RIGHT);
   addColumn("Data", 2, xwidth2, LVCFMT_LEFT);
-  
+
+  ListView_SetExtendedListViewStyleEx(m_hListView, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+ 
   return true;
 }
 

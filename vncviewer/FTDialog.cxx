@@ -26,7 +26,7 @@
 using namespace rfb;
 using namespace rfb::win32;
 
-FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT) : Dialog(hInst)
+FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
 {
   m_pFileTransfer = pFT;
   m_hInstance = hInst;
@@ -35,17 +35,46 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT) : Dialog(hInst)
   m_szRemotePath[0] = '\0';
   m_szLocalPathTmp[0] = '\0';
   m_szRemotePathTmp[0] = '\0';
+
+  m_pLocalLV = NULL;
+  m_pRemoteLV = NULL;
+  m_pProgress = NULL;
 }
 
 FTDialog::~FTDialog()
 {
-  closeFTDialog();
+  destroyFTDialog();
 }
 
 bool
 FTDialog::createFTDialog()
 {
-	return false;
+  m_hwndFTDialog = CreateDialogParam(m_hInstance, 
+                                     MAKEINTRESOURCE(IDD_FILETRANSFER_DLG),
+                                     NULL, 
+                                     (DLGPROC) FTDialogProc,
+                                     (LONG) this);
+  
+  if (m_hwndFTDialog == NULL) return false;
+  
+  m_pLocalLV = new FTListView(GetDlgItem(m_hwndFTDialog, IDC_FTLOCALLIST));
+  m_pRemoteLV = new FTListView(GetDlgItem(m_hwndFTDialog, IDC_FTREMOTELIST));
+  
+  m_pProgress = new FTProgress(m_hwndFTDialog);
+  
+  if ((m_pLocalLV == NULL) || (m_pRemoteLV == NULL) || (m_pProgress == NULL)) {
+    destroyFTDialog();
+    return false;
+  }
+  
+  m_pLocalLV->initialize(m_hInstance);
+  m_pRemoteLV->initialize(m_hInstance);
+  
+  ShowWindow(m_hwndFTDialog, SW_SHOW);
+  UpdateWindow(m_hwndFTDialog);
+  m_bDlgShown = true;
+  
+  return true;
 }
 
 bool
@@ -54,9 +83,29 @@ FTDialog::initFTDialog()
   return false;
 }
 
-void
+bool
 FTDialog::closeFTDialog()
 {
+  return false;
+}
+
+void
+FTDialog::destroyFTDialog()
+{
+  if (m_pLocalLV != NULL) {
+    delete m_pLocalLV;
+    m_pLocalLV = NULL;
+  }
+
+  if (m_pRemoteLV != NULL) {
+    delete m_pRemoteLV;
+    m_pRemoteLV = NULL;
+  }
+
+  if (m_pProgress != NULL) {
+    delete m_pProgress;
+    m_pProgress = NULL;
+  }
 }
 
 BOOL CALLBACK 

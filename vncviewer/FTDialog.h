@@ -28,20 +28,22 @@
 #include <commctrl.h>
 
 #include <rfb/FileInfo.h>
-#include <rfb_win32/Dialog.h>
+#include <vncviewer/FTListView.h>
+#include <vncviewer/FTProgress.h>
 #include <vncviewer/FileTransfer.h>
 #include <vncviewer/resource.h>
 
 namespace rfb {
   namespace win32 {
-    class FTDialog : public Dialog
+    class FTDialog
     {
     public:
       FTDialog(HINSTANCE hInst, FileTransfer *pFT);
       ~FTDialog();
       
       bool createFTDialog();
-      void closeFTDialog();
+      bool closeFTDialog();
+      void destroyFTDialog();
       
       static BOOL CALLBACK FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
       
@@ -74,6 +76,11 @@ namespace rfb {
       char m_szRemotePathTmp[MAX_PATH];
       
       bool m_bDlgShown;
+
+      FTListView *m_pLocalLV;
+      FTListView *m_pRemoteLV;
+
+      FTProgress *m_pProgress;
     };
   }
 }
