@@ -26,7 +26,9 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <stdio.h>
 
+#include <rfb_win32/ProgressControl.h>
 #include <vncviewer/resource.h>
 
 namespace rfb {
@@ -34,12 +36,28 @@ namespace rfb {
     class FTProgress
     {
     public:
-      FTProgress();
+      FTProgress(HWND hwndParent);
       ~FTProgress();
       
       bool initialize(DWORD64 totalMaxValue, DWORD maxValue);
       void increase(DWORD value);
       void clear();
+
+    private:
+      ProgressControl *m_pSingleProgress;
+      ProgressControl *m_pGeneralProgress;
+
+      HWND m_hwndParent;
+      HWND m_hwndSinglePercent;
+      HWND m_hwndGeneralPercent;
+
+      bool m_bInitialized;
+
+      bool initProgressControls(DWORD64 totalMaxValue, DWORD maxValue);
+
+      void setProgressText();
+      bool createProgressBarObjects();
+      bool destroyProgressBarObjects();
     };
   }
 }

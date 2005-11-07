@@ -31,7 +31,7 @@ STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
 CAPTION "TightVNC File Transfers"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     CTEXT           "Local Computer",IDC_FTLOCALLABEL,7,7,200,10
     CTEXT           "TightVNC Server",IDC_FTREMOTELABEL,323,7,200,10
@@ -53,12 +53,12 @@ BEGIN
     PUSHBUTTON      "...",IDC_FTREMOTEBROWSE,481,20,14,12
     LTEXT           "File Transfer",IDC_STATIC,7,245,40,8
     LTEXT           "Current File",IDC_STATIC,323,245,36,8
-    CONTROL         "Progress1",IDC_FTPROGRESS,"msctls_progress32",WS_BORDER,
-                    55,244,128,10
-    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,
-                    370,244,128,10
-    CTEXT           "0%",IDC_FTTOTALPROCENT,189,245,18,8
-    CTEXT           "0%",IDC_FTCURRENTPROCENT,505,245,18,8
+    CONTROL         "Progress1",IDC_FTGENERALPROGRESS,"msctls_progress32",
+                    WS_BORDER,55,244,128,10
+    CONTROL         "Progress1",IDC_FTSINGLEPROGRESS,"msctls_progress32",
+                    WS_BORDER,370,244,128,10
+    CTEXT           "0%",IDC_FTGENERALPERCENT,189,245,18,8
+    CTEXT           "0%",IDC_FTSINGLEPERCENT,505,245,18,8
     COMBOBOX        IDC_FTSTATUS,7,262,516,30,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Upload Files and Folders",IDC_FTUPLOAD,218,66,94,12,
@@ -510,6 +510,15 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON    DISCARDABLE     "vncviewer.ico"
+
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -535,15 +544,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_ICON                ICON    DISCARDABLE     "vncviewer.ico"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////

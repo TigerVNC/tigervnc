@@ -88,10 +88,14 @@
 #define IDC_FTREMOTEUP                  1061
 #define IDC_FTREMOTEBROWSE              1062
 #define IDC_FTPROGRESS                  1063
+#define IDC_FTGENERALPROGRESS           1063
 #define IDC_PROGRESS                    1064
+#define IDC_FTSINGLEPROGRESS            1064
 #define IDC_FTSTATUS                    1065
 #define IDC_FTCURRENTPROCENT            1066
+#define IDC_FTSINGLEPERCENT             1066
 #define IDC_FTTOTALPROCENT              1067
+#define IDC_FTGENERALPERCENT            1067
 #define IDC_FTUPLOAD                    1072
 #define IDC_FTCANCEL                    1073
 #define IDC_FTDOWNLOAD                  1074

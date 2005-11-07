@@ -45,7 +45,8 @@ ProgressControl::init(DWORD64 maxValue, DWORD64 position)
   m_dw64CurrentValue = position;
   m_dw64MaxValue = maxValue;
   
-  SendMessage(m_hwndProgress, PBM_SETRANGE, (WPARAM) 0, MAKELPARAM(0, MAX_RANGE)); 
+  if (!SendMessage(m_hwndProgress, PBM_SETRANGE, (WPARAM) 0, MAKELPARAM(0, MAX_RANGE))) 
+    return false;
   
   return true;
 }
@@ -72,7 +73,15 @@ bool
 ProgressControl::show()
 {
   DWORD curPos = (DWORD) ((m_dw64CurrentValue * MAX_RANGE) / m_dw64MaxValue);
-  SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) curPos, (LPARAM) 0);
+  
+  if (!SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) curPos, (LPARAM) 0))
+    return false;
   
   return true;
+}
+
+int 
+ProgressControl::getCurrentPercent()
+{
+  return ((int) ((m_dw64CurrentValue * 100) / m_dw64MaxValue));
 }

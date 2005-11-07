@@ -39,18 +39,16 @@ namespace rfb {
       
       bool increase(DWORD64 value);
       bool clear();
+
+      int getCurrentPercent();
       
     private:
       HWND m_hwndProgress;
-      
-      DWORD m_dwBarValue;
-      DWORD m_dwBarValueMax;
       
       DWORD64 m_dw64MaxValue;
       DWORD64 m_dw64CurrentValue;
       
       bool show();
-      
     };
   }
 }
