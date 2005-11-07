@@ -25,26 +25,25 @@
 #define __RFB_WIN32_FTLISTVIEW_H__
 
 #include <windows.h>
+#include <commctrl.h>
 
 #include <rfb/FileInfo.h>
 #include <rfb_win32/FolderManager.h>
-#include <rfb_win32/ListViewControl.h>
 #include <vncviewer/resource.h>
 
 namespace rfb {
   namespace win32{
-    class FTListView : private ListViewControl
+    class FTListView
     {
     public:
-      FTListView(HWND hLV);
+      FTListView(HWND hListView);
       ~FTListView();
 
-      bool initialize();
+      bool initialize(HINSTANCE hInst);
       
       void onGetDispInfo(NMLVDISPINFO *di);
       void addItems(FileInfo *pFI);
       void deleteAllItems();
-      void initImageList(HINSTANCE hInst);
       
       char *getActivateItemName(LPNMITEMACTIVATE lpnmia);
       int getSelectedItems(FileInfo *pFI);
@@ -55,6 +54,11 @@ namespace rfb {
       HWND m_hListView;
       FileInfo m_fileInfo;
       HIMAGELIST m_hImageList;
+
+      bool m_bInitialized;
+
+      void addColumn(char *iText, int iOrder, int xWidth, int alignFmt);
+      void initImageList(HINSTANCE hInst);
       
     };
   }

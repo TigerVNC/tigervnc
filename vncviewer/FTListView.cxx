@@ -26,9 +26,10 @@
 using namespace rfb;
 using namespace rfb::win32;
 
-FTListView::FTListView(HWND hLV)
+FTListView::FTListView(HWND hListView)
 {
-  m_hListView = hLV;
+  m_bInitialized = false;
+  m_hListView = hListView;
   m_fileInfo.free();
 }
 
@@ -39,9 +40,24 @@ FTListView::~FTListView()
 
 
 bool 
-FTListView::initialize()
+FTListView::initialize(HINSTANCE hInst)
 {
-  return false;
+  if (m_bInitialized) return false;
+
+  initImageList(hInst);
+  
+  RECT Rect;
+  GetClientRect(m_hListView, &Rect);
+  Rect.right -= GetSystemMetrics(SM_CXHSCROLL);
+  int xwidth0 = (int) (0.35 * Rect.right);
+  int xwidth1 = (int) (0.22 * Rect.right);
+  int xwidth2 = (int) (0.43 * Rect.right);
+  
+  addColumn("Name", 0, xwidth0, LVCFMT_LEFT);
+  addColumn("Size", 1, xwidth1, LVCFMT_RIGHT);
+  addColumn("Data", 2, xwidth2, LVCFMT_LEFT);
+  
+  return true;
 }
 
 void 
@@ -174,4 +190,18 @@ FTListView::initImageList(HINSTANCE hInst)
   DestroyIcon(hiconItem); 
   
   ListView_SetImageList(m_hListView, m_hImageList, LVSIL_SMALL); 
+}
+
+void 
+FTListView::addColumn(char *iText, int iOrder, int xWidth, int alignFmt)
+{
+	LVCOLUMN lvc; 
+	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM | LVCF_ORDER;
+	lvc.fmt = alignFmt;
+	lvc.iSubItem = iOrder;
+	lvc.pszText = iText;	
+	lvc.cchTextMax = 32;
+	lvc.cx = xWidth;
+	lvc.iOrder = iOrder;
+	ListView_InsertColumn(m_hListView, iOrder, &lvc);
 }
