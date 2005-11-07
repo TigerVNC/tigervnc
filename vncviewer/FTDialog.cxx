@@ -40,7 +40,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_pRemoteLV = NULL;
   m_pProgress = NULL;
 
-  m_hwndFTDialog = false;
+  m_hwndFTDialog = NULL;
 }
 
 FTDialog::~FTDialog()
