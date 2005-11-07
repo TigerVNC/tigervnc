@@ -37,7 +37,7 @@ FTProgress::FTProgress(HWND hwndParent)
 
 FTProgress::~FTProgress()
 {
-
+  destroyProgressBarObjects();
 }
 
 bool
@@ -61,13 +61,33 @@ FTProgress::initialize(DWORD64 totalMaxValue, DWORD maxValue)
 void
 FTProgress::increase(DWORD value)
 {
+  if (!m_bInitialized) return;
 
+  m_pSingleProgress->increase(value);
+  m_pGeneralProgress->increase(value);
+
+  setProgressText();
 }
 
 void
-FTProgress::clear()
+FTProgress::clearSingle()
 {
+  if (!m_bInitialized) return;
 
+  m_pSingleProgress->clear();
+
+  setProgressText();
+}
+
+void
+FTProgress::clearAll()
+{
+  if (!m_bInitialized) return;
+
+  m_pSingleProgress->clear();
+  m_pGeneralProgress->clear();
+
+  setProgressText();
 }
 
 bool 
@@ -95,6 +115,8 @@ FTProgress::createProgressBarObjects()
 bool 
 FTProgress::destroyProgressBarObjects()
 {
+  clearAll();
+
   if (m_pSingleProgress != NULL) {
     delete m_pSingleProgress;
   }

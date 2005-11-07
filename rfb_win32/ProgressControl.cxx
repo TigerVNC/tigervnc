@@ -31,6 +31,9 @@ using namespace rfb::win32;
 ProgressControl::ProgressControl(HWND hwndProgress)
 {
   m_hwndProgress = hwndProgress;
+  
+  m_dw64MaxValue = 0;
+  m_dw64CurrentValue = 0;
 }
 
 ProgressControl::~ProgressControl()
@@ -72,7 +75,12 @@ ProgressControl::increase(DWORD64 value)
 bool
 ProgressControl::show()
 {
-  DWORD curPos = (DWORD) ((m_dw64CurrentValue * MAX_RANGE) / m_dw64MaxValue);
+  DWORD curPos;
+  if (m_dw64MaxValue != 0) {
+    curPos = (DWORD) ((m_dw64CurrentValue * MAX_RANGE) / m_dw64MaxValue);
+  } else {
+    curPos = 0;
+  }
   
   if (!SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) curPos, (LPARAM) 0))
     return false;
@@ -83,5 +91,7 @@ ProgressControl::show()
 int 
 ProgressControl::getCurrentPercent()
 {
+  if (m_dw64MaxValue == 0) return 0;
+
   return ((int) ((m_dw64CurrentValue * 100) / m_dw64MaxValue));
 }

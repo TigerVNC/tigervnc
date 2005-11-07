@@ -41,7 +41,8 @@ namespace rfb {
       
       bool initialize(DWORD64 totalMaxValue, DWORD maxValue);
       void increase(DWORD value);
-      void clear();
+      void clearSingle();
+      void clearAll();
 
     private:
       ProgressControl *m_pSingleProgress;
