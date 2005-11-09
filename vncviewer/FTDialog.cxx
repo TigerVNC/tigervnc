@@ -59,8 +59,16 @@ FTDialog::createFTDialog()
   
   if (m_hwndFTDialog == NULL) return false;
   
-  m_pLocalLV = new FTListView(GetDlgItem(m_hwndFTDialog, IDC_FTLOCALLIST));
-  m_pRemoteLV = new FTListView(GetDlgItem(m_hwndFTDialog, IDC_FTREMOTELIST));
+  HWND hwndLocalList = GetDlgItem(m_hwndFTDialog, IDC_FTLOCALLIST);
+  HWND hwndRemoteList = GetDlgItem(m_hwndFTDialog, IDC_FTREMOTELIST);
+
+  if ((hwndLocalList == NULL) || (hwndRemoteList == NULL)) {
+    destroyFTDialog();
+    return false;
+  }
+
+  m_pLocalLV = new FTListView(hwndLocalList);
+  m_pRemoteLV = new FTListView(hwndRemoteList);
   
   m_pProgress = new FTProgress(m_hwndFTDialog);
   
@@ -71,15 +79,10 @@ FTDialog::createFTDialog()
 
   initFTDialog();
   
-  if (ShowWindow(m_hwndFTDialog, SW_SHOW) == 0) {
-    UpdateWindow(m_hwndFTDialog);
-    m_bDlgShown = true;
-    return true;
-  } else {
-    destroyFTDialog();
-    m_bDlgShown = false;
-    return false;
-  } 
+  ShowWindow(m_hwndFTDialog, SW_SHOW);
+  UpdateWindow(m_hwndFTDialog);
+  m_bDlgShown = true;
+  return true;
 }
 
 bool
@@ -99,6 +102,8 @@ FTDialog::initFTDialog()
 bool
 FTDialog::closeFTDialog()
 {
+  ShowWindow(m_hwndFTDialog, SW_HIDE);
+  m_bDlgShown = false;
   return false;
 }
 
@@ -119,13 +124,64 @@ FTDialog::destroyFTDialog()
     delete m_pProgress;
     m_pProgress = NULL;
   }
+
+  if (DestroyWindow(m_hwndFTDialog)) m_hwndFTDialog = NULL;
 }
 
 BOOL CALLBACK 
 FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	FTDialog *_this = (FTDialog *) GetWindowLong(hwnd, GWL_USERDATA);
-	return FALSE;
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+		SetForegroundWindow(hwnd);
+		return TRUE;
+	case WM_COMMAND:
+		{
+		switch (LOWORD(wParam))
+		{
+			case IDC_FTCLOSE:
+				_this->closeFTDialog();
+				return FALSE;
+			case IDC_FTLOCALUP:
+				_this->onLocalOneUpFolder();
+				return FALSE;
+			case IDC_FTREMOTEUP:
+				_this->onRemoteOneUpFolder();
+				return FALSE;
+		}
+		}
+	break;
+
+	case WM_NOTIFY:
+		switch (LOWORD(wParam))
+		{
+		case IDC_FTLOCALLIST:
+			switch (((LPNMHDR) lParam)->code)
+			{
+				case LVN_GETDISPINFO:
+					_this->m_pLocalLV->onGetDispInfo((NMLVDISPINFO *) lParam);
+					return FALSE;
+			}
+		break;
+		case IDC_FTREMOTELIST:
+			switch (((LPNMHDR) lParam)->code)
+			{
+				case LVN_GETDISPINFO:
+					_this->m_pRemoteLV->onGetDispInfo((NMLVDISPINFO *) lParam);
+					return FALSE;
+			}
+		break;
+		}
+		break;
+	case WM_CLOSE:
+	case WM_DESTROY:
+		_this->closeFTDialog();
+		return FALSE;
+	}
+    return FALSE;
 }
 
 void 

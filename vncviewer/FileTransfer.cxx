@@ -67,5 +67,11 @@ FileTransfer::show()
   if (!m_bInitialized) return false;
 
   m_bFTDlgShown = m_pFTDialog->createFTDialog();
+
+  FolderManager fm;
+  FileInfo fileInfo;
+  fm.getDirInfo("",&fileInfo, 0);
+  m_pFTDialog->addLocalLVItems("", &fileInfo);
+
   return m_bFTDlgShown;
 }
