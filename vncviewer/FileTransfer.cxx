@@ -29,7 +29,11 @@ using namespace rfb::win32;
 FileTransfer::FileTransfer()
 {
   m_bFTDlgShown = false;
+  m_bInitialized = false;
+
   m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
+  m_pInStream = NULL;
+  m_pOutStream = NULL;
 }
 
 FileTransfer::~FileTransfer()
@@ -40,8 +44,21 @@ FileTransfer::~FileTransfer()
   }
 }
 
-void 
-FileTransfer::createFileTransfer()
+bool 
+FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
+{
+  if (m_bInitialized) return false;
+
+  m_pInStream = pIS;
+  m_pOutStream = pOS;
+
+  m_bInitialized = true;
+  return true;
+}
+
+bool 
+FileTransfer::create()
 {
   m_bFTDlgShown = m_pFTDialog->createFTDialog();
+  return m_bFTDlgShown;
 }

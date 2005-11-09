@@ -24,6 +24,8 @@
 #ifndef __RFB_WIN32_FILETRANSFER_H__
 #define __RFB_WIN32_FILETRANSFER_H__
 
+#include <rdr/InStream.h>
+#include <rdr/OutStream.h>
 #include <vncviewer/FTDialog.h>
 
 namespace rfb {
@@ -36,13 +38,17 @@ namespace rfb {
       FileTransfer();
       ~FileTransfer();
 
-      void createFileTransfer();
+      bool initialize(rdr::InStream *pIS, rdr::OutStream *pOS);
+      bool create();
 
     private:
       bool m_bFTDlgShown;
+      bool m_bInitialized;
 
       FTDialog *m_pFTDialog;
-      
+
+      rdr::InStream *m_pInStream;
+      rdr::OutStream *m_pOutStream;
     };
   }
 }
