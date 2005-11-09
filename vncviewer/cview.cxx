@@ -316,6 +316,8 @@ bool CView::initialise(network::Socket* s) {
   WSAAsyncSelect(s->getFd(), getHandle(), WM_USER, FD_READ | FD_CLOSE);
   sock = s;
 
+  m_fileTransfer.initialize(&s->inStream(), &s->outStream());
+
   return true;
 }
 
@@ -681,6 +683,7 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       AboutDialog::instance.showDialog();
       return 0;
     case IDM_FILE_TRANSFER:
+      m_fileTransfer.create();
       return 0;
     case IDM_CONN_SAVE_AS:
       return 0;

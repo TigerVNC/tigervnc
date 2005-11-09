@@ -42,6 +42,7 @@
 #include <vncviewer/ViewerToolBar.h>
 #include <vncviewer/CViewOptions.h>
 #include <vncviewer/CViewManager.h>
+#include <vncviewer/FileTransfer.h>
 #include <list>
 
 
@@ -294,6 +295,8 @@ namespace rfb {
 
       // Handle back to CViewManager instance, if any
       CViewManager* manager;
+
+      FileTransfer m_fileTransfer;
 
     };
 

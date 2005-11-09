@@ -59,6 +59,8 @@ FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
 bool 
 FileTransfer::create()
 {
+  if (!m_bInitialized) return false;
+
   m_bFTDlgShown = m_pFTDialog->createFTDialog();
   return m_bFTDlgShown;
 }
