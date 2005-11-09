@@ -31,16 +31,14 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_pFileTransfer = pFT;
   m_hInstance = hInst;
   m_bDlgShown = false;
-  m_szLocalPath[0] = '\0';
-  m_szRemotePath[0] = '\0';
-  m_szLocalPathTmp[0] = '\0';
-  m_szRemotePathTmp[0] = '\0';
 
   m_pLocalLV = NULL;
   m_pRemoteLV = NULL;
   m_pProgress = NULL;
 
   m_hwndFTDialog = NULL;
+  m_hwndLocalPath = NULL;
+  m_hwndRemotePath = NULL;
 }
 
 FTDialog::~FTDialog()
@@ -92,6 +90,9 @@ FTDialog::initFTDialog()
 
   m_pProgress->initialize(0,0);
 
+  m_hwndLocalPath = GetDlgItem(m_hwndLocalPath, IDC_FTLOCALPATH);
+  m_hwndRemotePath = GetDlgItem(m_hwndRemotePath, IDC_FTREMOTEPATH);
+
   return true;
 }
 
@@ -127,16 +128,6 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-void
-FTDialog::reloadLocalFileList()
-{
-}
-
-void
-FTDialog::reloadRemoteFileList()
-{
-}
-
 void 
 FTDialog::onLocalItemActivate(LPNMITEMACTIVATE lpnmia)
 {
@@ -148,21 +139,29 @@ FTDialog::onRemoteItemActivate(LPNMITEMACTIVATE lpnmia)
 }
 
 void
-FTDialog::addLocalLVItems(FileInfo *pFI)
+FTDialog::addLocalLVItems(char *pPath, FileInfo *pFI)
+{
+  pFI->sort();
+  SetWindowText(m_hwndLocalPath, pPath);
+  m_pLocalLV->deleteAllItems();
+  m_pLocalLV->addItems(pFI);
+}
+
+void 
+FTDialog::addRemoteLVItems(char *pPath, FileInfo *pFI)
+{
+  pFI->sort();
+  SetWindowText(m_hwndRemotePath, pPath);
+  m_pRemoteLV->deleteAllItems();
+  m_pRemoteLV->addItems(pFI);
+}
+
+void 
+FTDialog::onLocalOneUpFolder()
 {
 }
 
 void 
-FTDialog::addRemoteLVItems(FileInfo *pFI)
-{
-}
-
-void 
-FTDialog::onLocalOneUpFolder(char *pPath)
-{
-}
-
-void 
-FTDialog::onRemoteOneUpFolder(char *pPath)
+FTDialog::onRemoteOneUpFolder()
 {
 }

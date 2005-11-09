@@ -49,19 +49,15 @@ namespace rfb {
       
       static BOOL CALLBACK FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
       
-      void addLocalLVItems(FileInfo *pFI);
-      void addRemoteLVItems(FileInfo *pFI);
-      
-      void reloadLocalFileList();
-      void reloadRemoteFileList();
-      
-      char *getLocalPath() { return m_szLocalPath; };
-      char *getRemotePath() { return m_szRemotePath; };
+      void addLocalLVItems(char *pPath, FileInfo *pFI);
+      void addRemoteLVItems(char *pPath, FileInfo *pFI);
       
     private:
       FileTransfer *m_pFileTransfer;
       
       HWND m_hwndFTDialog;
+      HWND m_hwndLocalPath;
+      HWND m_hwndRemotePath;
       HINSTANCE m_hInstance;
       
       void onLocalItemActivate(LPNMITEMACTIVATE lpnmia);
@@ -69,13 +65,8 @@ namespace rfb {
 
       bool initFTDialog();
       
-      void onLocalOneUpFolder(char *pPath);
-      void onRemoteOneUpFolder(char *pPath);
-      
-      char m_szLocalPath[MAX_PATH];
-      char m_szRemotePath[MAX_PATH];
-      char m_szLocalPathTmp[MAX_PATH];
-      char m_szRemotePathTmp[MAX_PATH];
+      void onLocalOneUpFolder();
+      void onRemoteOneUpFolder();
       
       bool m_bDlgShown;
 

@@ -683,7 +683,7 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       AboutDialog::instance.showDialog();
       return 0;
     case IDM_FILE_TRANSFER:
-      m_fileTransfer.create();
+      m_fileTransfer.show();
       return 0;
     case IDM_CONN_SAVE_AS:
       return 0;

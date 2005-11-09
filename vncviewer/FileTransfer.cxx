@@ -34,6 +34,11 @@ FileTransfer::FileTransfer()
   m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
   m_pInStream = NULL;
   m_pOutStream = NULL;
+
+  m_szLocalPath[0] = '\0';
+  m_szRemotePath[0] = '\0';
+  m_szLocalPathTmp[0] = '\0';
+  m_szRemotePathTmp[0] = '\0';
 }
 
 FileTransfer::~FileTransfer()
@@ -57,7 +62,7 @@ FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
 }
 
 bool 
-FileTransfer::create()
+FileTransfer::show()
 {
   if (!m_bInitialized) return false;
 
