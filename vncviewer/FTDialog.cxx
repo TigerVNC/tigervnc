@@ -39,6 +39,11 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_hwndFTDialog = NULL;
   m_hwndLocalPath = NULL;
   m_hwndRemotePath = NULL;
+
+  m_szLocalPath[0] = '\0';
+  m_szRemotePath[0] = '\0';
+  m_szLocalPathTmp[0] = '\0';
+  m_szRemotePathTmp[0] = '\0';
 }
 
 FTDialog::~FTDialog()
@@ -49,7 +54,11 @@ FTDialog::~FTDialog()
 bool
 FTDialog::createFTDialog()
 {
-  if (m_hwndFTDialog != NULL) return true;
+  if (m_hwndFTDialog != NULL) {
+    ShowWindow(m_hwndFTDialog, SW_SHOW);
+    m_bDlgShown = true;
+    return true;
+  }
 
   m_hwndFTDialog = CreateDialogParam(m_hInstance, 
                                      MAKEINTRESOURCE(IDD_FILETRANSFER_DLG),
@@ -96,6 +105,8 @@ FTDialog::initFTDialog()
   m_hwndLocalPath = GetDlgItem(m_hwndLocalPath, IDC_FTLOCALPATH);
   m_hwndRemotePath = GetDlgItem(m_hwndRemotePath, IDC_FTREMOTEPATH);
 
+  showLocalLVItems();
+
   return true;
 }
 
@@ -104,7 +115,7 @@ FTDialog::closeFTDialog()
 {
   ShowWindow(m_hwndFTDialog, SW_HIDE);
   m_bDlgShown = false;
-  return false;
+  return true;
 }
 
 void
@@ -131,62 +142,74 @@ FTDialog::destroyFTDialog()
 BOOL CALLBACK 
 FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	FTDialog *_this = (FTDialog *) GetWindowLong(hwnd, GWL_USERDATA);
-	switch (uMsg)
-	{
-	case WM_INITDIALOG:
-		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
-		SetForegroundWindow(hwnd);
-		return TRUE;
-	case WM_COMMAND:
-		{
-		switch (LOWORD(wParam))
-		{
-			case IDC_FTCLOSE:
-				_this->closeFTDialog();
-				return FALSE;
-			case IDC_FTLOCALUP:
-				_this->onLocalOneUpFolder();
-				return FALSE;
-			case IDC_FTREMOTEUP:
-				_this->onRemoteOneUpFolder();
-				return FALSE;
-		}
-		}
-	break;
-
-	case WM_NOTIFY:
-		switch (LOWORD(wParam))
-		{
-		case IDC_FTLOCALLIST:
-			switch (((LPNMHDR) lParam)->code)
-			{
-				case LVN_GETDISPINFO:
-					_this->m_pLocalLV->onGetDispInfo((NMLVDISPINFO *) lParam);
-					return FALSE;
-			}
-		break;
-		case IDC_FTREMOTELIST:
-			switch (((LPNMHDR) lParam)->code)
-			{
-				case LVN_GETDISPINFO:
-					_this->m_pRemoteLV->onGetDispInfo((NMLVDISPINFO *) lParam);
-					return FALSE;
-			}
-		break;
-		}
-		break;
-	case WM_CLOSE:
-	case WM_DESTROY:
-		_this->closeFTDialog();
-		return FALSE;
-	}
-    return FALSE;
+  FTDialog *_this = (FTDialog *) GetWindowLong(hwnd, GWL_USERDATA);
+  switch (uMsg)
+  {
+  case WM_INITDIALOG:
+    SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+    SetForegroundWindow(hwnd);
+    return TRUE;
+  case WM_COMMAND:
+    {
+      switch (LOWORD(wParam))
+      {
+      case IDC_FTCLOSE:
+        _this->closeFTDialog();
+        return FALSE;
+      case IDC_FTLOCALUP:
+        _this->onLocalOneUpFolder();
+        return FALSE;
+      case IDC_FTREMOTEUP:
+        _this->onRemoteOneUpFolder();
+        return FALSE;
+      }
+    }
+    break;
+    
+  case WM_NOTIFY:
+    switch (LOWORD(wParam))
+    {
+    case IDC_FTLOCALLIST:
+      switch (((LPNMHDR) lParam)->code)
+      {
+      case LVN_GETDISPINFO:
+        _this->m_pLocalLV->onGetDispInfo((NMLVDISPINFO *) lParam);
+        return FALSE;
+      case LVN_ITEMACTIVATE:
+        _this->onLocalItemActivate((LPNMITEMACTIVATE) lParam);
+        return FALSE;
+      }
+      break;
+    case IDC_FTREMOTELIST:
+      switch (((LPNMHDR) lParam)->code)
+      {
+      case LVN_GETDISPINFO:
+        _this->m_pRemoteLV->onGetDispInfo((NMLVDISPINFO *) lParam);
+        return FALSE;
+      case LVN_ITEMACTIVATE:
+        _this->onRemoteItemActivate((LPNMITEMACTIVATE) lParam);
+        return FALSE;
+      }
+      break;
+    }
+    break;
+    case WM_CLOSE:
+    case WM_DESTROY:
+      _this->closeFTDialog();
+      return FALSE;
+  }
+  return FALSE;
 }
 
 void 
 FTDialog::onLocalItemActivate(LPNMITEMACTIVATE lpnmia)
 {
+  if (strlen(m_szLocalPath) == 0) {
+   strcpy(m_szLocalPathTmp, m_pLocalLV->getActivateItemName(lpnmia)); 
+  } else {
+    sprintf(m_szLocalPathTmp, "%s\\%s", m_szLocalPath, m_pLocalLV->getActivateItemName(lpnmia));
+  }
+  showLocalLVItems();
 }
 
 void 
@@ -195,21 +218,22 @@ FTDialog::onRemoteItemActivate(LPNMITEMACTIVATE lpnmia)
 }
 
 void
-FTDialog::addLocalLVItems(char *pPath, FileInfo *pFI)
+FTDialog::showLocalLVItems()
 {
-  pFI->sort();
-  SetWindowText(m_hwndLocalPath, pPath);
-  m_pLocalLV->deleteAllItems();
-  m_pLocalLV->addItems(pFI);
+  FolderManager fm;
+  FileInfo fileInfo;
+  if (fm.getDirInfo(m_szLocalPathTmp, &fileInfo, 0)) {
+    fileInfo.sort();
+    m_pLocalLV->deleteAllItems();
+    m_pLocalLV->addItems(&fileInfo);
+    strcpy(m_szLocalPath, m_szLocalPathTmp);
+    SetWindowText(m_hwndLocalPath, m_szLocalPath);
+  }
 }
 
 void 
-FTDialog::addRemoteLVItems(char *pPath, FileInfo *pFI)
+FTDialog::addRemoteLVItems(FileInfo *pFI)
 {
-  pFI->sort();
-  SetWindowText(m_hwndRemotePath, pPath);
-  m_pRemoteLV->deleteAllItems();
-  m_pRemoteLV->addItems(pFI);
 }
 
 void 

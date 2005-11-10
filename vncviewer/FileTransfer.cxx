@@ -34,11 +34,6 @@ FileTransfer::FileTransfer()
   m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
   m_pInStream = NULL;
   m_pOutStream = NULL;
-
-  m_szLocalPath[0] = '\0';
-  m_szRemotePath[0] = '\0';
-  m_szLocalPathTmp[0] = '\0';
-  m_szRemotePathTmp[0] = '\0';
 }
 
 FileTransfer::~FileTransfer()
@@ -67,11 +62,5 @@ FileTransfer::show()
   if (!m_bInitialized) return false;
 
   m_bFTDlgShown = m_pFTDialog->createFTDialog();
-
-  FolderManager fm;
-  FileInfo fileInfo;
-  fm.getDirInfo("",&fileInfo, 0);
-  m_pFTDialog->addLocalLVItems("", &fileInfo);
-
   return m_bFTDlgShown;
 }

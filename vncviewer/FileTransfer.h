@@ -49,11 +49,6 @@ namespace rfb {
 
       rdr::InStream *m_pInStream;
       rdr::OutStream *m_pOutStream;
-
-      char m_szLocalPath[FT_FILENAME_SIZE];
-      char m_szRemotePath[FT_FILENAME_SIZE];
-      char m_szLocalPathTmp[FT_FILENAME_SIZE];
-      char m_szRemotePathTmp[FT_FILENAME_SIZE];
     };
   }
 }

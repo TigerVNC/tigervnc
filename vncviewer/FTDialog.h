@@ -49,8 +49,8 @@ namespace rfb {
       
       static BOOL CALLBACK FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
       
-      void addLocalLVItems(char *pPath, FileInfo *pFI);
-      void addRemoteLVItems(char *pPath, FileInfo *pFI);
+      void showLocalLVItems();
+      void addRemoteLVItems(FileInfo *pFI);
       
     private:
       FileTransfer *m_pFileTransfer;
@@ -74,6 +74,11 @@ namespace rfb {
       FTListView *m_pRemoteLV;
 
       FTProgress *m_pProgress;
+
+      char m_szLocalPath[FT_FILENAME_SIZE];
+      char m_szRemotePath[FT_FILENAME_SIZE];
+      char m_szLocalPathTmp[FT_FILENAME_SIZE];
+      char m_szRemotePathTmp[FT_FILENAME_SIZE];
     };
   }
 }
