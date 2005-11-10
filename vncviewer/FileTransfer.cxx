@@ -32,8 +32,9 @@ FileTransfer::FileTransfer()
   m_bInitialized = false;
 
   m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
-  m_pInStream = NULL;
-  m_pOutStream = NULL;
+
+  m_pReader = NULL;
+  m_pWriter = NULL;
 }
 
 FileTransfer::~FileTransfer()
@@ -49,8 +50,8 @@ FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
 {
   if (m_bInitialized) return false;
 
-  m_pInStream = pIS;
-  m_pOutStream = pOS;
+  m_pReader = new FTMsgReader(pIS);
+  m_pWriter = new FTMsgWriter(pOS);
 
   m_bInitialized = true;
   return true;
@@ -63,4 +64,30 @@ FileTransfer::show()
 
   m_bFTDlgShown = m_pFTDialog->createFTDialog();
   return m_bFTDlgShown;
+}
+
+bool
+FileTransfer::processFTMsg(int type)
+{
+  if (m_bInitialized) return false;
+
+  switch (type)
+  {
+  case msgTypeFileListData:
+    break;
+  case msgTypeFileDownloadData:
+    break;
+  case msgTypeFileUploadCancel:
+    break;
+  case msgTypeFileDownloadFailed:
+    break;
+  case msgTypeFileDirSizeData:
+    break;
+  case msgTypeFileLastRequestFailed:
+    break;
+  default:
+    return false;
+  }
+
+  return false;
 }

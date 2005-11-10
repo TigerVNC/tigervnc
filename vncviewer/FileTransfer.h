@@ -26,7 +26,10 @@
 
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
+#include <rfb/msgTypes.h>
 #include <vncviewer/FTDialog.h>
+#include <vncviewer/FTMsgReader.h>
+#include <vncviewer/FTMsgWriter.h>
 
 namespace rfb {
   namespace win32 {
@@ -39,6 +42,7 @@ namespace rfb {
       ~FileTransfer();
 
       bool initialize(rdr::InStream *pIS, rdr::OutStream *pOS);
+      bool processFTMsg(int type);
       bool show();
 
     private:
@@ -47,8 +51,9 @@ namespace rfb {
 
       FTDialog *m_pFTDialog;
 
-      rdr::InStream *m_pInStream;
-      rdr::OutStream *m_pOutStream;
+      FTMsgReader *m_pReader;
+      FTMsgWriter *m_pWriter;
+
     };
   }
 }

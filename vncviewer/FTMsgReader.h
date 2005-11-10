@@ -24,9 +24,10 @@
 #ifndef __RFB_WIN32_FTMSGREADER_H__
 #define __RFB_WIN32_FTMSGREADER_H__
 
+#include <windows.h>
+
 #include <rdr/InStream.h>
 #include <rfb/FileInfo.h>
-#include <vncviewer/FileTransfer.h>
 
 namespace rfb {
   namespace win32 {

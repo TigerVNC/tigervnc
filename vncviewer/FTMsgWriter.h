@@ -26,7 +26,6 @@
 
 #include <rdr/types.h>
 #include <rdr/OutStream.h>
-#include <vncviewer/FileTransfer.h>
 
 namespace rfb {
   namespace win32 {
