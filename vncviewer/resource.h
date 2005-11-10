@@ -105,6 +105,7 @@
 #define IDC_FTDIRNAME                   1078
 #define IDC_CONFIRM_YESTOALL            1079
 #define IDC_CONFIRM_TEXT                1080
+#define IDC_EDIT2                       1082
 #define ID_TOOLBAR                      40002
 #define ID_CLOSE                        40003
 #define ID_OPTIONS                      40004
@@ -127,7 +128,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40017
-#define _APS_NEXT_CONTROL_VALUE         1081
+#define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

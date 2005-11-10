@@ -102,8 +102,13 @@ FTDialog::initFTDialog()
 
   m_pProgress->initialize(0,0);
 
-  m_hwndLocalPath = GetDlgItem(m_hwndLocalPath, IDC_FTLOCALPATH);
-  m_hwndRemotePath = GetDlgItem(m_hwndRemotePath, IDC_FTREMOTEPATH);
+  m_hwndLocalPath = GetDlgItem(m_hwndFTDialog, IDC_FTLOCALPATH);
+  m_hwndRemotePath = GetDlgItem(m_hwndFTDialog, IDC_FTREMOTEPATH);
+
+  setIcon(IDC_FTLOCALUP, IDI_FTUP);
+  setIcon(IDC_FTREMOTEUP, IDI_FTUP);
+  setIcon(IDC_FTLOCALRELOAD, IDI_FTRELOAD);
+  setIcon(IDC_FTREMOTERELOAD, IDI_FTRELOAD);
 
   showLocalLVItems();
 
@@ -162,6 +167,12 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case IDC_FTREMOTEUP:
         _this->onRemoteOneUpFolder();
         return FALSE;
+      case IDC_FTLOCALRELOAD:
+        _this->onLocalReload();
+        return FALSE;
+      case IDC_FTREMOTERELOAD:
+        _this->onRemoteReload();
+        return FALSE;
       }
     }
     break;
@@ -217,6 +228,19 @@ FTDialog::onRemoteItemActivate(LPNMITEMACTIVATE lpnmia)
 {
 }
 
+void 
+FTDialog::onLocalReload()
+{
+  strcpy(m_szLocalPathTmp, m_szLocalPath);
+  showLocalLVItems();
+}
+
+void 
+FTDialog::onRemoteReload()
+{
+
+}
+
 void
 FTDialog::showLocalLVItems()
 {
@@ -239,9 +263,34 @@ FTDialog::addRemoteLVItems(FileInfo *pFI)
 void 
 FTDialog::onLocalOneUpFolder()
 {
+  strcpy(m_szLocalPathTmp, m_szLocalPath);
+  makeOneUpFolder(m_szLocalPathTmp);
+  showLocalLVItems();
 }
 
 void 
 FTDialog::onRemoteOneUpFolder()
 {
+}
+
+int
+FTDialog::makeOneUpFolder(char *pPath)
+{
+  if (strcmp(pPath, "") == 0) return strlen(pPath);
+  for (int i=(strlen(pPath)-2); i>=0; i--) {
+    if (pPath[i] == '\\') {
+      pPath[i] = '\0';
+      break;
+    }
+    if (i == 0) pPath[0] = '\0';
+  }
+  return strlen(pPath);
+}
+
+void
+FTDialog::setIcon(int dest, int idIcon)
+{
+  HANDLE hIcon = LoadImage(m_hInstance, MAKEINTRESOURCE(idIcon), IMAGE_ICON, 16, 16, LR_SHARED);
+  SendMessage(GetDlgItem(m_hwndFTDialog, dest), BM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) hIcon);
+  DestroyIcon((HICON) hIcon);
 }

@@ -63,10 +63,15 @@ namespace rfb {
       void onLocalItemActivate(LPNMITEMACTIVATE lpnmia);
       void onRemoteItemActivate(LPNMITEMACTIVATE lpnmia);
 
+      void onLocalReload();
+      void onRemoteReload();
+
+      void setIcon(int dest, int idIcon);
       bool initFTDialog();
       
       void onLocalOneUpFolder();
       void onRemoteOneUpFolder();
+      int makeOneUpFolder(char *pPath);
       
       bool m_bDlgShown;
 
