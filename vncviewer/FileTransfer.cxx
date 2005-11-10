@@ -74,20 +74,54 @@ FileTransfer::processFTMsg(int type)
   switch (type)
   {
   case msgTypeFileListData:
-    break;
+    return procFileListDataMsg();
   case msgTypeFileDownloadData:
-    break;
+    return procFileDownloadDataMsg();
   case msgTypeFileUploadCancel:
-    break;
+    return procFileUploadCancelMsg();
   case msgTypeFileDownloadFailed:
-    break;
+    return procFileDownloadFailedMsg();
   case msgTypeFileDirSizeData:
-    break;
+    return procFileDirSizeDataMsg();
   case msgTypeFileLastRequestFailed:
-    break;
+    return procFileLastRqstFailedMsg();
   default:
     return false;
   }
+}
 
+bool 
+FileTransfer::procFileListDataMsg()
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFileDownloadDataMsg()
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFileUploadCancelMsg()
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFileDownloadFailedMsg()
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFileDirSizeDataMsg()
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFileLastRqstFailedMsg()
+{
   return false;
 }

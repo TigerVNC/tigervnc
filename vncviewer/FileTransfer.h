@@ -53,7 +53,14 @@ namespace rfb {
 
       FTMsgReader *m_pReader;
       FTMsgWriter *m_pWriter;
-
+      
+      bool procFileListDataMsg();
+      bool procFileSpecDirDataMsg();
+      bool procFileDownloadDataMsg();
+      bool procFileUploadCancelMsg();
+      bool procFileDownloadFailedMsg();
+      bool procFileDirSizeDataMsg();
+      bool procFileLastRqstFailedMsg();
     };
   }
 }
