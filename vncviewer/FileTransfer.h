@@ -27,6 +27,8 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/FileInfo.h>
+#include <rfb/TransferQueue.h>
 #include <vncviewer/FTDialog.h>
 #include <vncviewer/FTMsgReader.h>
 #include <vncviewer/FTMsgWriter.h>
@@ -45,6 +47,8 @@ namespace rfb {
       bool processFTMsg(int type);
       bool show();
 
+      void requestFileList(char *pPath, int dest, bool bDirOnly);
+
     private:
       bool m_bFTDlgShown;
       bool m_bInitialized;
@@ -53,14 +57,23 @@ namespace rfb {
 
       FTMsgReader *m_pReader;
       FTMsgWriter *m_pWriter;
+
+      FileInfo m_queueFileListRqst;
       
       bool procFileListDataMsg();
-      bool procFileSpecDirDataMsg();
       bool procFileDownloadDataMsg();
       bool procFileUploadCancelMsg();
       bool procFileDownloadFailedMsg();
       bool procFileDirSizeDataMsg();
       bool procFileLastRqstFailedMsg();
+      
+      bool procFLRMain(FileInfo *pFI);
+      bool procFLRBrowse(FileInfo *pFI);
+      bool procFLRUpload(FileInfo *pFI);
+      bool procFLRDownload(FileInfo *pFI);
+      bool procFLRDelete(FileInfo *pFI);
+      bool procFLRRename(FileInfo *pFI);
+      
     };
   }
 }

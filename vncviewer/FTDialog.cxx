@@ -111,6 +111,7 @@ FTDialog::initFTDialog()
   setIcon(IDC_FTREMOTERELOAD, IDI_FTRELOAD);
 
   showLocalLVItems();
+  showRemoteLVItems();
 
   return true;
 }
@@ -255,9 +256,20 @@ FTDialog::showLocalLVItems()
   }
 }
 
+void
+FTDialog::showRemoteLVItems()
+{
+  m_pFileTransfer->requestFileList(m_szRemotePathTmp, FT_FLR_DEST_MAIN, 0);
+}
+
 void 
 FTDialog::addRemoteLVItems(FileInfo *pFI)
 {
+  pFI->sort();
+  m_pRemoteLV->deleteAllItems();
+  m_pRemoteLV->addItems(pFI);
+  strcpy(m_szRemotePath, m_szRemotePathTmp);
+  SetWindowText(m_hwndRemotePath, m_szRemotePath);
 }
 
 void 
@@ -271,6 +283,12 @@ FTDialog::onLocalOneUpFolder()
 void 
 FTDialog::onRemoteOneUpFolder()
 {
+}
+
+void 
+FTDialog::reqFolderUnavailable()
+{
+  strcpy(m_szRemotePathTmp, m_szRemotePath);
 }
 
 int

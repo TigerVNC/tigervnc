@@ -93,6 +93,41 @@ FileTransfer::processFTMsg(int type)
 bool 
 FileTransfer::procFileListDataMsg()
 {
+  FileInfo fileInfo;
+  int res = m_pReader->readFileListData(&fileInfo);
+
+  bool bResult;
+  switch (m_queueFileListRqst.getFlagsAt(0))
+  {
+  case FT_FLR_DEST_MAIN:
+    if (!m_bFTDlgShown) break;
+    
+    if (res < 0) {
+      m_pFTDialog->reqFolderUnavailable();
+      bResult = true;
+    } else {
+      bResult = procFLRMain(&fileInfo);
+    }
+    break;
+  case FT_FLR_DEST_BROWSE:
+    bResult = procFLRBrowse(&fileInfo);
+    break;
+  case FT_FLR_DEST_UPLOAD:
+    bResult = procFLRUpload(&fileInfo);
+    break;
+  case FT_FLR_DEST_DOWNLOAD:
+    bResult = procFLRDownload(&fileInfo);
+    break;
+  case FT_FLR_DEST_DELETE:
+    bResult = procFLRDelete(&fileInfo);
+    break;
+  case FT_FLR_DEST_RENAME:
+    bResult = procFLRRename(&fileInfo);
+    break;
+  }
+  m_queueFileListRqst.deleteAt(0);
+  return bResult;
+  
   return false;
 }
 
@@ -124,4 +159,49 @@ bool
 FileTransfer::procFileLastRqstFailedMsg()
 {
   return false;
+}
+
+bool 
+FileTransfer::procFLRMain(FileInfo *pFI)
+{
+  if (m_bFTDlgShown) m_pFTDialog->addRemoteLVItems(pFI);
+  return true;
+}
+
+bool 
+FileTransfer::procFLRBrowse(FileInfo *pFI)
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFLRUpload(FileInfo *pFI)
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFLRDownload(FileInfo *pFI)
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFLRDelete(FileInfo *pFI)
+{
+  return false;
+}
+
+bool 
+FileTransfer::procFLRRename(FileInfo *pFI)
+{
+  return false;
+}
+
+void 
+FileTransfer::requestFileList(char *pPath, int dest, bool bDirOnly)
+{
+  m_queueFileListRqst.add(pPath, 0, 0, dest);
+
+  m_pWriter->writeFileListRqst(pPath, bDirOnly);
 }

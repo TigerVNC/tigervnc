@@ -34,6 +34,13 @@
 #define FT_ATTR_FILE			0x00000001
 #define FT_ATTR_DIR 			0x00000002
 
+#define FT_FLR_DEST_MAIN     101
+#define FT_FLR_DEST_BROWSE   102
+#define FT_FLR_DEST_DOWNLOAD 103
+#define FT_FLR_DEST_UPLOAD   104
+#define FT_FLR_DEST_DELETE   105
+#define FT_FLR_DEST_RENAME   106
+
 typedef struct tagSIZEDATAINFO
 {
 	unsigned int size;

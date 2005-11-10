@@ -49,8 +49,8 @@ namespace rfb {
       
       static BOOL CALLBACK FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
       
-      void showLocalLVItems();
       void addRemoteLVItems(FileInfo *pFI);
+      void reqFolderUnavailable();
       
     private:
       FileTransfer *m_pFileTransfer;
@@ -60,6 +60,9 @@ namespace rfb {
       HWND m_hwndRemotePath;
       HINSTANCE m_hInstance;
       
+      void showLocalLVItems();
+      void showRemoteLVItems();
+
       void onLocalItemActivate(LPNMITEMACTIVATE lpnmia);
       void onRemoteItemActivate(LPNMITEMACTIVATE lpnmia);
 
