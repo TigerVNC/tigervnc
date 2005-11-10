@@ -36,10 +36,22 @@ FTMsgWriter::~FTMsgWriter()
 }
 
 bool 
-FTMsgWriter::writeFileListRqst(unsigned short dirNameSize, char *pDirName,
-                               int dest, unsigned char flags)
+FTMsgWriter::writeFileListRqst(char *pDirName, bool bDirOnly)
 {
-  return false;
+  char dirName[FT_FILENAME_SIZE];
+  strcpy(dirName, pDirName);
+  int len = convertToUnixPath(dirName);
+  if (len <= 0) return false;
+
+  unsigned char flags = 0;
+  if (bDirOnly) flags = 0x10;
+
+  m_pOutStream->writeU8(msgTypeFileListRequest);
+  m_pOutStream->writeU8(flags);
+  m_pOutStream->writeU16(len);
+  m_pOutStream->writeBytes((void *)dirName, len);
+
+  return true;
 }
 
 
@@ -104,4 +116,19 @@ bool
 FTMsgWriter::writeFileDeleteRqst(unsigned short nameLen, char *pName)
 {
   return false;
+}
+
+int
+FTMsgWriter::convertToUnixPath(char *path)
+{
+  int len = strlen(path);
+  if (len >= FT_FILENAME_SIZE) return -1;
+  if (len == 0) {strcpy(path, "/"); return 1;}
+  for (int i = (len - 1); i >= 0; i--) {
+    if (path[i] == '\\') path[i] = '/';
+    path[i+1] = path[i];
+  }
+  path[len + 1] = '\0';
+  path[0] = '/';
+  return strlen(path);
 }

@@ -26,6 +26,8 @@
 
 #include <rdr/types.h>
 #include <rdr/OutStream.h>
+#include <rfb/msgTypes.h>
+#include <rfb/fttypes.h>
 
 namespace rfb {
   namespace win32 {
@@ -35,8 +37,7 @@ namespace rfb {
       FTMsgWriter(rdr::OutStream *pOS);
       ~FTMsgWriter();
 
-      bool writeFileListRqst(unsigned short dirNameSize, char *pDirName,
-							 int dest, unsigned char flags);
+      bool writeFileListRqst(char *pDirName, bool bDirOnly);
       
       bool writeFileDownloadCancel(unsigned short reasonLen, char *pReason);
       bool writeFileDownloadRqst(unsigned short filenameLen, char *pFilename, 
@@ -57,6 +58,8 @@ namespace rfb {
 
     private:
       rdr::OutStream *m_pOutStream;
+
+      int convertToUnixPath(char *path);
     };
   }
 }
