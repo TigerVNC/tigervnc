@@ -162,6 +162,14 @@ SOURCE=.\FTListView.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FTMsgReader.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTMsgWriter.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\FTProgress.cxx
 # End Source File
 # Begin Source File
@@ -223,6 +231,14 @@ SOURCE=.\FTDialog.h
 # Begin Source File
 
 SOURCE=.\FTListView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTMsgReader.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTMsgWriter.h
 # End Source File
 # Begin Source File
 
