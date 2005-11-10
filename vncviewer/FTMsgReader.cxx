@@ -39,7 +39,28 @@ FTMsgReader::~FTMsgReader()
 int 
 FTMsgReader::readFileListData(FileInfo *pFileInfo)
 {
-  return 0;  
+  unsigned char flags = m_pInStream->readU8();
+  int numFiles = m_pInStream->readU16();
+  int dataSize = m_pInStream->readU16();
+  int compressedSize = m_pInStream->readU16();
+  
+  if (flags & 0x80) {
+    return -1;
+  } else {
+    if (numFiles > 0) {
+      char *pFilenames = new char[compressedSize];
+      SIZEDATAINFO *pSDI = new SIZEDATAINFO[numFiles];
+      for (int i = 0; i < numFiles; i++) {
+        pSDI[i].size = m_pInStream->readU32();
+        pSDI[i].data = m_pInStream->readU32();
+      }
+      m_pInStream->readBytes((void *)pFilenames, compressedSize);
+      createFileInfo(numFiles, pFileInfo, pSDI, pFilenames);
+      delete [] pSDI;
+      delete [] pFilenames;
+    }
+  }
+  return numFiles;
 }
 
 int 
@@ -70,4 +91,22 @@ int
 FTMsgReader::readFileLastRqstFailed(int *pTypeOfRequest, char *pReason)
 {
   return 0;
+}
+
+bool 
+FTMsgReader::createFileInfo(unsigned int numFiles, FileInfo *fi, 
+                            SIZEDATAINFO *pSDInfo, char *pFilenames)
+{
+  int pos = 0;
+  int size = 0;
+  for (unsigned int i = 0; i < numFiles; i++) {
+    size = pSDInfo[i].size;
+    if (size == -1) {
+      fi->add((pFilenames + pos), size, pSDInfo[i].data, FT_ATTR_DIR);
+    } else {
+      fi->add((pFilenames + pos), size, pSDInfo[i].data, FT_ATTR_FILE);
+    }
+    pos += strlen(pFilenames + pos) + 1;
+  }
+  return true;
 }

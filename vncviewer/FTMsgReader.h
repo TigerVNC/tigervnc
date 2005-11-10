@@ -46,6 +46,9 @@ namespace rfb {
       
     private:
       rdr::InStream *m_pInStream;
+
+      bool createFileInfo(unsigned int numFiles, FileInfo *fi, 
+                          SIZEDATAINFO *pSDInfo, char *pFilenames);
     };
   }
 }
