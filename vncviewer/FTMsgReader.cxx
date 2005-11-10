@@ -33,4 +33,41 @@ FTMsgReader::FTMsgReader(rdr::InStream *pIS)
 
 FTMsgReader::~FTMsgReader()
 {
+
+}
+
+int 
+FTMsgReader::readFileListData(FileInfo *pFileInfo)
+{
+  return 0;  
+}
+
+int 
+FTMsgReader::readFileDownloadData(char *pFile, unsigned int *pModTime)
+{
+  return 0;  
+}
+
+int 
+FTMsgReader::readFileUploadCancel(char *pReason)
+{
+  return 0;
+}
+
+int 
+FTMsgReader::readFileDownloadFailed(char *pReason)
+{
+  return 0;
+}
+
+int 
+FTMsgReader::readFileDirSizeData(DWORD64 *pdw64DirSize)
+{
+  return 0;
+}
+
+int 
+FTMsgReader::readFileLastRqstFailed(int *pTypeOfRequest, char *pReason)
+{
+  return 0;
 }

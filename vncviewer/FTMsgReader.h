@@ -25,6 +25,7 @@
 #define __RFB_WIN32_FTMSGREADER_H__
 
 #include <rdr/InStream.h>
+#include <rfb/FileInfo.h>
 #include <vncviewer/FileTransfer.h>
 
 namespace rfb {
@@ -35,6 +36,13 @@ namespace rfb {
       FTMsgReader(rdr::InStream *pIS);
       ~FTMsgReader();
 
+      int readFileListData(FileInfo *pFileInfo);
+      int readFileDownloadData(char *pFile, unsigned int *pModTime);
+      int readFileUploadCancel(char *pReason);
+      int readFileDownloadFailed(char *pReason);
+      int readFileDirSizeData(DWORD64 *pdw64DirSize);
+      int readFileLastRqstFailed(int *pTypeOfRequest, char *pReason);
+      
     private:
       rdr::InStream *m_pInStream;
     };
