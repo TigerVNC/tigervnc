@@ -34,3 +34,74 @@ FTMsgWriter::FTMsgWriter(rdr::OutStream *pOS)
 FTMsgWriter::~FTMsgWriter()
 {
 }
+
+bool 
+FTMsgWriter::writeFileListRqst(unsigned short dirNameSize, char *pDirName,
+                               int dest, unsigned char flags)
+{
+  return false;
+}
+
+
+bool 
+FTMsgWriter::writeFileDownloadCancel(unsigned short reasonLen, char *pReason)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileDownloadRqst(unsigned short filenameLen, char *pFilename, 
+                                   unsigned int position)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileUploadData(unsigned short dataSize, char *pData)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileUploadData(unsigned int modTime)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileUploadFailed(unsigned short reasonLen, char *pReason)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileUploadRqst(unsigned short filenameLen, char *pFilename, 
+                                 unsigned int position)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileCreateDirRqst(unsigned short dirNameLen, char *pDirName)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileDirSizeRqst(unsigned short dirNameLen, char *pDirName, int dest)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileRenameRqst(unsigned short oldNameLen, unsigned short newNameLen,
+                                 char *pOldName, char *pNewName)
+{
+  return false;
+}
+
+bool 
+FTMsgWriter::writeFileDeleteRqst(unsigned short nameLen, char *pName)
+{
+  return false;
+}
