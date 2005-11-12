@@ -64,33 +64,59 @@ FTMsgReader::readFileListData(FileInfo *pFileInfo)
 }
 
 int 
-FTMsgReader::readFileDownloadData(char *pFile, unsigned int *pModTime)
+FTMsgReader::readFileDownloadData(void *pFile, unsigned int *pModTime)
 {
-  return 0;  
+  unsigned char compressLevel = m_pInStream->readU8();
+  int realSize = m_pInStream->readU16();
+  int compressedSize = m_pInStream->readU16();
+
+  if ((realSize == 0) && (compressedSize == 0)) {
+    *pModTime = m_pInStream->readU32();
+    return 0;
+  } else {
+    pFile = malloc(compressedSize);
+    if (pFile == NULL) {
+      m_pInStream->skip(compressedSize);
+      return -1;
+    } else {
+      m_pInStream->readBytes(pFile, compressedSize);
+      return compressedSize;
+    }
+  }
 }
 
 int 
-FTMsgReader::readFileUploadCancel(char *pReason)
+FTMsgReader::readFileUploadCancel(void *pReason)
 {
-  return 0;
+  m_pInStream->skip(1);
+  return readReasonMsg(pReason);
 }
 
 int 
-FTMsgReader::readFileDownloadFailed(char *pReason)
+FTMsgReader::readFileDownloadFailed(void *pReason)
 {
-  return 0;
+  m_pInStream->skip(1);
+  return readReasonMsg(pReason);
 }
 
 int 
 FTMsgReader::readFileDirSizeData(DWORD64 *pdw64DirSize)
 {
-  return 0;
+  m_pInStream->skip(1);
+  unsigned short size16 = m_pInStream->readU16();
+  unsigned int size32 = m_pInStream->readU32();
+  DWORD64 dw64Size = 0;
+  dw64Size = size16;
+  dw64Size = (dw64Size << 32) + size32;
+  *pdw64DirSize = dw64Size;
+  return 1;
 }
 
 int 
-FTMsgReader::readFileLastRqstFailed(int *pTypeOfRequest, char *pReason)
+FTMsgReader::readFileLastRqstFailed(int *pTypeOfRequest, void *pReason)
 {
-  return 0;
+  *pTypeOfRequest = m_pInStream->readU8();
+  return readReasonMsg(pReason);
 }
 
 bool 
@@ -109,4 +135,23 @@ FTMsgReader::createFileInfo(unsigned int numFiles, FileInfo *fi,
     pos += strlen(pFilenames + pos) + 1;
   }
   return true;
+}
+
+int 
+FTMsgReader::readReasonMsg(void *pReason)
+{
+  int reasonLen = m_pInStream->readU16();
+  int _reasonLen = reasonLen + 1;
+  if (reasonLen == 0) {
+    return 0;
+  } else {
+    pReason = malloc(_reasonLen);
+    if (pReason == NULL) {
+      m_pInStream->skip(reasonLen);
+      return -1;
+    }
+    m_pInStream->readBytes(pReason, reasonLen);
+    memset(((char *)pReason+reasonLen), '\0', 1);
+    return _reasonLen;
+  }
 }

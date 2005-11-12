@@ -38,17 +38,18 @@ namespace rfb {
       ~FTMsgReader();
 
       int readFileListData(FileInfo *pFileInfo);
-      int readFileDownloadData(char *pFile, unsigned int *pModTime);
-      int readFileUploadCancel(char *pReason);
-      int readFileDownloadFailed(char *pReason);
+      int readFileDownloadData(void *pFile, unsigned int *pModTime);
+      int readFileUploadCancel(void *pReason);
+      int readFileDownloadFailed(void *pReason);
       int readFileDirSizeData(DWORD64 *pdw64DirSize);
-      int readFileLastRqstFailed(int *pTypeOfRequest, char *pReason);
+      int readFileLastRqstFailed(int *pTypeOfRequest, void *pReason);
       
     private:
       rdr::InStream *m_pInStream;
 
       bool createFileInfo(unsigned int numFiles, FileInfo *fi, 
                           SIZEDATAINFO *pSDInfo, char *pFilenames);
+      int readReasonMsg(void *pReason);
     };
   }
 }
