@@ -50,7 +50,7 @@ namespace rfb {
                                unsigned int position);
 
       bool writeFileCreateDirRqst(unsigned short dirNameLen, char *pDirName);
-      bool writeFileDirSizeRqst(unsigned short dirNameLen, char *pDirName, int dest);
+      bool writeFileDirSizeRqst(unsigned short dirNameLen, char *pDirName);
       
       bool writeFileRenameRqst(unsigned short oldNameLen, unsigned short newNameLen,
                                char *pOldName, char *pNewName);
@@ -60,6 +60,8 @@ namespace rfb {
       rdr::OutStream *m_pOutStream;
 
       int convertToUnixPath(char *path);
+
+      bool writeU8U16StringMsg(unsigned short strLength, char *pString);
     };
   }
 }

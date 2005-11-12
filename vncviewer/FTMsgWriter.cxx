@@ -58,64 +58,118 @@ FTMsgWriter::writeFileListRqst(char *pDirName, bool bDirOnly)
 bool 
 FTMsgWriter::writeFileDownloadCancel(unsigned short reasonLen, char *pReason)
 {
-  return false;
+  m_pOutStream->writeU8(msgTypeFileDownloadCancel);
+  return writeU8U16StringMsg(reasonLen, pReason);
 }
 
 bool 
 FTMsgWriter::writeFileDownloadRqst(unsigned short filenameLen, char *pFilename, 
                                    unsigned int position)
 {
+  m_pOutStream->writeU8(msgTypeFileDownloadRequest);
   return false;
 }
 
 bool 
 FTMsgWriter::writeFileUploadData(unsigned short dataSize, char *pData)
 {
+  m_pOutStream->writeU8(msgTypeFileUploadData);
   return false;
 }
 
 bool 
 FTMsgWriter::writeFileUploadData(unsigned int modTime)
 {
+  m_pOutStream->writeU8(msgTypeFileUploadData);
   return false;
 }
 
 bool 
 FTMsgWriter::writeFileUploadFailed(unsigned short reasonLen, char *pReason)
 {
-  return false;
+  m_pOutStream->writeU8(msgTypeFileUploadFailed);
+  return writeU8U16StringMsg(reasonLen, pReason);
 }
 
 bool 
 FTMsgWriter::writeFileUploadRqst(unsigned short filenameLen, char *pFilename, 
                                  unsigned int position)
 {
+  m_pOutStream->writeU8(msgTypeFileUploadRequest);
   return false;
 }
 
 bool 
 FTMsgWriter::writeFileCreateDirRqst(unsigned short dirNameLen, char *pDirName)
 {
-  return false;
+  if (dirNameLen >= FT_FILENAME_SIZE) return false;
+
+  char path[FT_FILENAME_SIZE];
+  strcpy(path, pDirName);
+  int nameLen = convertToUnixPath(path);
+
+  m_pOutStream->writeU8(msgTypeFileCreateDirRequest);
+  return writeU8U16StringMsg(nameLen, path);
 }
 
 bool 
-FTMsgWriter::writeFileDirSizeRqst(unsigned short dirNameLen, char *pDirName, int dest)
+FTMsgWriter::writeFileDirSizeRqst(unsigned short dirNameLen, char *pDirName)
 {
-  return false;
+  if (dirNameLen >= FT_FILENAME_SIZE) return false;
+
+  char path[FT_FILENAME_SIZE];
+  strcpy(path, pDirName);
+  int nameLen = convertToUnixPath(path);
+
+  m_pOutStream->writeU8(msgTypeFileDirSizeRequest);
+  return writeU8U16StringMsg(nameLen, path);
 }
 
 bool 
 FTMsgWriter::writeFileRenameRqst(unsigned short oldNameLen, unsigned short newNameLen,
                                  char *pOldName, char *pNewName)
 {
-  return false;
+  if ((oldNameLen >= FT_FILENAME_SIZE) || (newNameLen >= FT_FILENAME_SIZE)) return false;
+
+  char oldName[FT_FILENAME_SIZE];
+  char newName[FT_FILENAME_SIZE];
+
+  strcpy(oldName, pOldName);
+  strcpy(newName, pNewName);
+
+  int _oldNameLen = convertToUnixPath(oldName);
+  int _newNameLen = convertToUnixPath(newName);
+
+  m_pOutStream->writeU8(msgTypeFileRenameRequest);
+  m_pOutStream->writeU8(0);
+  m_pOutStream->writeU16(_oldNameLen);
+  m_pOutStream->writeU16(_newNameLen);
+  m_pOutStream->writeBytes(oldName, _oldNameLen);
+  m_pOutStream->writeBytes(newName, _newNameLen);
+  
+  return true;
 }
 
 bool 
 FTMsgWriter::writeFileDeleteRqst(unsigned short nameLen, char *pName)
 {
-  return false;
+  if (nameLen >= FT_FILENAME_SIZE) return false;
+
+  char path[FT_FILENAME_SIZE];
+  strcpy(path, pName);
+  int _nameLen = convertToUnixPath(path);
+
+  m_pOutStream->writeU8(msgTypeFileDeleteRequest);
+  return writeU8U16StringMsg(_nameLen, path);
+}
+
+bool 
+FTMsgWriter::writeU8U16StringMsg(unsigned short strLength, char *pString)
+{
+  m_pOutStream->writeU8(0);
+  m_pOutStream->writeU16(strLength);
+  m_pOutStream->writeBytes(pString, strLength);
+  return true;
 }
 
 int
