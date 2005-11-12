@@ -227,6 +227,12 @@ FTDialog::onLocalItemActivate(LPNMITEMACTIVATE lpnmia)
 void 
 FTDialog::onRemoteItemActivate(LPNMITEMACTIVATE lpnmia)
 {
+  if (strlen(m_szRemotePath) == 0) {
+   strcpy(m_szRemotePathTmp, m_pRemoteLV->getActivateItemName(lpnmia)); 
+  } else {
+    sprintf(m_szRemotePathTmp, "%s\\%s", m_szRemotePath, m_pRemoteLV->getActivateItemName(lpnmia));
+  }
+  showRemoteLVItems();
 }
 
 void 
@@ -239,7 +245,8 @@ FTDialog::onLocalReload()
 void 
 FTDialog::onRemoteReload()
 {
-
+  strcpy(m_szRemotePathTmp, m_szRemotePath);
+  showRemoteLVItems();
 }
 
 void
@@ -283,6 +290,9 @@ FTDialog::onLocalOneUpFolder()
 void 
 FTDialog::onRemoteOneUpFolder()
 {
+  strcpy(m_szRemotePathTmp, m_szRemotePath);
+  makeOneUpFolder(m_szRemotePathTmp);
+  showRemoteLVItems();
 }
 
 void 
