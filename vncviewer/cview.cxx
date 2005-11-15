@@ -238,7 +238,7 @@ CView::CView()
   vlog.debug("created toolbar window \"%s\" (%x)", "ViewerToolBar", tb.getHandle());
 
   // Create the frame window
-  frameHwnd = CreateWindow((const TCHAR*)frameClass.classAtom,
+  frameHwnd = CreateWindowEx(WS_EX_CLIENTEDGE, (const TCHAR*)frameClass.classAtom,
     0, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT,
     CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0, frameClass.instance, this);
   if (!frameHwnd) {
@@ -428,6 +428,7 @@ CView::setFullscreen(bool fs) {
     vlog.debug("flags=%x", flags);
 
     tb.hide();
+    SetWindowLong(getFrameHandle(), GWL_EXSTYLE, 0);
     SetWindowLong(getHandle(), GWL_STYLE, flags);
     SetWindowPos(getHandle(), HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
       mi.rcMonitor.right-mi.rcMonitor.left,
@@ -438,6 +439,7 @@ CView::setFullscreen(bool fs) {
 
     // Set the window non-fullscreen
     tb.show();
+    SetWindowLong(getFrameHandle(), GWL_EXSTYLE, WS_EX_CLIENTEDGE);
     SetWindowLong(getHandle(), GWL_STYLE, fullScreenOldFlags);
     SetWindowPos(getHandle(), HWND_NOTOPMOST,
       fullScreenOldRect.tl.x, fullScreenOldRect.tl.y,
@@ -522,10 +524,11 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       // Work out how big the window should ideally be
       DWORD frame_current_style = GetWindowLong(getFrameHandle(), GWL_STYLE);
       DWORD frame_style = frame_current_style & ~(WS_VSCROLL | WS_HSCROLL);
+      DWORD frame_ex_style = GetWindowLong(getFrameHandle(), GWL_EXSTYLE);
 
       RECT r;
       SetRect(&r, 0, 0, buffer->width(), buffer->height());
-      AdjustWindowRect(&r, frame_style, FALSE);
+      AdjustWindowRectEx(&r, frame_style, FALSE, frame_ex_style);
       Rect reqd_size = Rect(r.left, r.top, r.right, r.bottom);
       if (frame_current_style & WS_VSCROLL)
         reqd_size.br.x += GetSystemMetrics(SM_CXVSCROLL);
@@ -1198,7 +1201,8 @@ CView::setDesktopSize(int w, int h) {
   if (!(GetWindowLong(getHandle(), GWL_STYLE) & WS_MAXIMIZE) && !fullScreenActive) {
     // Resize the window to the required size
     RECT r = {0, 0, w, h};
-    AdjustWindowRect(&r, GetWindowLong(getFrameHandle(), GWL_STYLE), FALSE);
+    AdjustWindowRectEx(&r, GetWindowLong(getFrameHandle(), GWL_STYLE), FALSE,
+      GetWindowLong(getFrameHandle(), GWL_EXSTYLE));
     if (tb.isVisible()) r.bottom += tb.getHeight();
     AdjustWindowRect(&r, GetWindowLong(getHandle(), GWL_STYLE), FALSE);
     SetWindowPos(getHandle(), 0, 0, 0, r.right-r.left, r.bottom-r.top,
@@ -1466,10 +1470,11 @@ void CView::calculateScrollBars() {
   // Calculate the required size of window
   DWORD current_style = GetWindowLong(getFrameHandle(), GWL_STYLE);
   DWORD style = current_style & ~(WS_VSCROLL | WS_HSCROLL);
+  DWORD ex_style = GetWindowLong(getFrameHandle(), GWL_EXSTYLE);
   DWORD old_style;
   RECT r;
   SetRect(&r, 0, 0, buffer->width(), buffer->height());
-  AdjustWindowRect(&r, style, FALSE);
+  AdjustWindowRectEx(&r, style, FALSE, ex_style);
   Rect reqd_size = Rect(r.left, r.top, r.right, r.bottom);
 
   if (!bumpScroll) {
