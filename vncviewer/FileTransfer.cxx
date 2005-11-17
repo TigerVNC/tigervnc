@@ -127,8 +127,6 @@ FileTransfer::procFileListDataMsg()
   }
   m_queueFileListRqst.deleteAt(0);
   return bResult;
-  
-  return false;
 }
 
 bool 
