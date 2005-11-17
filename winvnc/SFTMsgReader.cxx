@@ -32,3 +32,71 @@ SFTMsgReader::SFTMsgReader()
 SFTMsgReader::~SFTMsgReader()
 {
 }
+
+int 
+SFTMsgReader::readFileListRqst(unsigned char *pFlags, char *pDirName, bool bDirOnly)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileDownloadCancel(char *pReason)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileDownloadRqst(char *pFilename, unsigned int *pPosition)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileUploadData(char *pData)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileUploadData(unsigned int *pModTime)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileUploadFailed(char *pReason)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileUploadRqst(char *pFilename, unsigned int *pPosition)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileCreateDirRqst(char *pDirName)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileDirSizeRqst(char *pDirName)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileRenameRqst(unsigned short *pOldNameLen, 
+                                 unsigned short *pNewNameLen,
+                                 char *pOldName, char *pNewName)
+{
+  return 0;
+}
+
+int 
+SFTMsgReader::readFileDeleteRqst(char *pName)
+{
+  return 0;
+}

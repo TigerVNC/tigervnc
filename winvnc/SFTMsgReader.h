@@ -30,6 +30,25 @@ namespace winvnc {
   public:
     SFTMsgReader();
     ~SFTMsgReader();
+    
+    int readFileListRqst(unsigned char *pFlags, char *pDirName, bool bDirOnly);
+    
+    int readFileDownloadCancel(char *pReason);
+    int readFileDownloadRqst(char *pFilename, unsigned int *pPosition);
+    
+    int readFileUploadData(char *pData);
+    int readFileUploadData(unsigned int *pModTime);
+
+    int readFileUploadFailed(char *pReason);
+    int readFileUploadRqst(char *pFilename, unsigned int *pPosition);
+    
+    int readFileCreateDirRqst(char *pDirName);
+    int readFileDirSizeRqst(char *pDirName);
+    
+    int readFileRenameRqst(unsigned short *pOldNameLen, unsigned short *pNewNameLen,
+                           char *pOldName, char *pNewName);
+
+    int readFileDeleteRqst(char *pName);
   };
 }
 
