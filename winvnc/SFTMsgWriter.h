@@ -24,12 +24,24 @@
 #ifndef __RFB_WIN32_SFTMSGWRITER_H__
 #define __RFB_WIN32_SFTMSGWRITER_H__
 
+#include <windows.h>
+#include <rfb/FileInfo.h>
+
 namespace winvnc {
   class SFTMsgWriter
   {
   public:
     SFTMsgWriter();
     ~SFTMsgWriter();
+    
+    bool writeFileListData(unsigned char flags, rfb::FileInfo *pFileInfo);
+    bool writeFileDownloadData(unsigned short dataSize, void *pData);
+    bool writeFileDownloadData(unsigned int modTime);
+    bool writeFileUploadCancel(unsigned short reasonLen, char *pReason);
+    bool writeFileDownloadFailed(unsigned short reasonLen, char *pReason);
+    bool writeFileDirSizeData(DWORD64 dw64DirSize);
+    bool writeFileLastRqstFailed(unsigned char lastRequest, unsigned short reasonLen, 
+                                 char *pReason);
   };
 }
 

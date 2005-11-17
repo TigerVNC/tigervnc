@@ -32,3 +32,47 @@ SFTMsgWriter::SFTMsgWriter()
 SFTMsgWriter::~SFTMsgWriter()
 {
 }
+
+bool 
+SFTMsgWriter::writeFileListData(unsigned char flags, rfb::FileInfo *pFileInfo)
+{
+  return false;
+}
+
+bool 
+SFTMsgWriter::writeFileDownloadData(unsigned short dataSize, void *pData)
+{
+  return false;
+}
+
+bool 
+SFTMsgWriter::writeFileDownloadData(unsigned int modTime)
+{
+  return false;
+}
+
+bool 
+SFTMsgWriter::writeFileUploadCancel(unsigned short reasonLen, char *pReason)
+{
+  return false;
+}
+
+bool 
+SFTMsgWriter::writeFileDownloadFailed(unsigned short reasonLen, char *pReason)
+{
+  return false;
+}
+
+bool 
+SFTMsgWriter::writeFileDirSizeData(DWORD64 dw64DirSize)
+{
+  return false;
+}
+
+bool 
+SFTMsgWriter::writeFileLastRqstFailed(unsigned char lastRequest, 
+                                      unsigned short reasonLen, 
+                                      char *pReason)
+{
+  return false;
+}
