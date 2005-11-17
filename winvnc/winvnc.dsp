@@ -149,6 +149,18 @@ SOURCE=.\QueryConnectDialog.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\SFileTransfer.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFTMsgReader.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFTMsgWriter.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\STrayIcon.cxx
 # End Source File
 # Begin Source File
@@ -186,6 +198,18 @@ SOURCE=.\JavaViewer.h
 # Begin Source File
 
 SOURCE=.\QueryConnectDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFileTransfer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFTMsgReader.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFTMsgWriter.h
 # End Source File
 # Begin Source File
 
