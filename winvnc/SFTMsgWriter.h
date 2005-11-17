@@ -42,6 +42,9 @@ namespace winvnc {
     bool writeFileDirSizeData(DWORD64 dw64DirSize);
     bool writeFileLastRqstFailed(unsigned char lastRequest, unsigned short reasonLen, 
                                  char *pReason);
+
+  private:
+    bool writeBytes(unsigned int dataSize, void *pData);
   };
 }
 

@@ -49,6 +49,9 @@ namespace winvnc {
                            char *pOldName, char *pNewName);
 
     int readFileDeleteRqst(char *pName);
+
+  private:
+    bool readBytes(unsigned int dataSize, void *pData);
   };
 }
 

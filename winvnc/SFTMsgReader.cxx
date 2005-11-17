@@ -33,6 +33,12 @@ SFTMsgReader::~SFTMsgReader()
 {
 }
 
+bool 
+SFTMsgReader::readBytes(unsigned int dataSize, void *pData)
+{
+  return false;
+}
+
 int 
 SFTMsgReader::readFileListRqst(unsigned char *pFlags, char *pDirName, bool bDirOnly)
 {

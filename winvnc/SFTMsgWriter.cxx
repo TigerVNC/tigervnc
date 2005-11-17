@@ -34,6 +34,12 @@ SFTMsgWriter::~SFTMsgWriter()
 }
 
 bool 
+SFTMsgWriter::writeBytes(unsigned int dataSize, void *pData)
+{
+  return false;
+}
+
+bool 
 SFTMsgWriter::writeFileListData(unsigned char flags, rfb::FileInfo *pFileInfo)
 {
   return false;
