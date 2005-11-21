@@ -176,6 +176,8 @@ namespace rfb {
       // Global user-config registry key
       static RegKey userConfigKey;
 
+      bool processFTMsg(int type);
+
     protected:
 
       // Locally-rendered VNC cursor

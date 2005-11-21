@@ -1705,3 +1705,7 @@ bool CView::getUserPasswd(char** user, char** password) {
   return true;
 }
 
+bool CView::processFTMsg(int type)
+{
+  return m_fileTransfer.processFTMsg(type);
+}

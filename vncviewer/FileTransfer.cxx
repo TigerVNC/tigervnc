@@ -69,7 +69,7 @@ FileTransfer::show()
 bool
 FileTransfer::processFTMsg(int type)
 {
-  if (m_bInitialized) return false;
+  if (!m_bInitialized) return false;
 
   switch (type)
   {
