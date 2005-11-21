@@ -58,11 +58,11 @@ FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
 }
 
 bool 
-FileTransfer::show()
+FileTransfer::show(HWND hwndParent)
 {
   if (!m_bInitialized) return false;
 
-  m_bFTDlgShown = m_pFTDialog->createFTDialog();
+  m_bFTDlgShown = m_pFTDialog->createFTDialog(hwndParent);
   return m_bFTDlgShown;
 }
 

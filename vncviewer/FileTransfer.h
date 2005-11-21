@@ -45,7 +45,7 @@ namespace rfb {
 
       bool initialize(rdr::InStream *pIS, rdr::OutStream *pOS);
       bool processFTMsg(int type);
-      bool show();
+      bool show(HWND hwndParent);
 
       void requestFileList(char *pPath, int dest, bool bDirOnly);
 

@@ -52,7 +52,7 @@ FTDialog::~FTDialog()
 }
 
 bool
-FTDialog::createFTDialog()
+FTDialog::createFTDialog(HWND hwndParent)
 {
   if (m_hwndFTDialog != NULL) {
     ShowWindow(m_hwndFTDialog, SW_SHOW);
@@ -62,7 +62,7 @@ FTDialog::createFTDialog()
 
   m_hwndFTDialog = CreateDialogParam(m_hInstance, 
                                      MAKEINTRESOURCE(IDD_FILETRANSFER_DLG),
-                                     NULL, 
+                                     hwndParent, 
                                      (DLGPROC) FTDialogProc,
                                      (LONG) this);
   
@@ -277,6 +277,7 @@ FTDialog::addRemoteLVItems(FileInfo *pFI)
   m_pRemoteLV->addItems(pFI);
   strcpy(m_szRemotePath, m_szRemotePathTmp);
   SetWindowText(m_hwndRemotePath, m_szRemotePath);
+  UpdateWindow(m_hwndFTDialog);
 }
 
 void 

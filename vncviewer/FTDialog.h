@@ -43,7 +43,7 @@ namespace rfb {
       FTDialog(HINSTANCE hInst, FileTransfer *pFT);
       ~FTDialog();
       
-      bool createFTDialog();
+      bool createFTDialog(HWND hwndParent);
       bool closeFTDialog();
       void destroyFTDialog();
       
