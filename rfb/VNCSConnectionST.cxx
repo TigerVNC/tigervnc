@@ -56,6 +56,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   }
 
   server->clients.push_front(this);
+  startTime = time(0);
 }
 
 

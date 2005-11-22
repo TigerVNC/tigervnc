@@ -488,6 +488,10 @@ SOURCE=.\keysymdef.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ListConnInfo.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Logger.h
 # End Source File
 # Begin Source File

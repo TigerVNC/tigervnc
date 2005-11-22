@@ -44,7 +44,11 @@ bool ControlPanel::onCommand(int cmd)
     }
   case IDC_KILL_ALL:
     {
-      m_server->disconnectClients();
+      COPYDATASTRUCT copyData;
+      copyData.dwData = 2;
+      copyData.lpData = 0;
+      copyData.cbData = 0;
+      SendMessage(m_hSTIcon, WM_COPYDATA, 0, (LPARAM)&copyData);
       return false;
     }
   case IDC_DISABLE_CLIENTS:
@@ -57,9 +61,19 @@ bool ControlPanel::onCommand(int cmd)
   
 }
 
-void ControlPanel::UpdateListView()
+void ControlPanel::UpdateListView(rfb::ListConnInfo* LCInfo)
 {
-  
+  DeleteAllLVItem(IDC_LIST_CONNECTIONS, handle);
+  if(LCInfo->Empty()) return;
+
+  char* ItemString[3];
+  int i = 0;
+
+  for (LCInfo->iBegin(); !LCInfo->iEnd(); LCInfo->iNext()) {
+    LCInfo->iGetCharInfo(ItemString);
+    InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, ItemString, 3);
+    i++;
+  } 
 }
 
 BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -82,7 +96,7 @@ BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
-void ControlPanel::getSelectedConn(std::list<network::Socket*>* selsockets)
+void ControlPanel::getSelConnInfo(std::list<DWORD>* conn, std::list<int>* status)
 {
   
 }

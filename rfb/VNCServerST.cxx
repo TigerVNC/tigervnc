@@ -507,3 +507,16 @@ void VNCServerST::checkUpdate()
 
   comparer->clear();
 }
+
+bool VNCServerST::getConnInfo(ListConnInfo * listConn)
+{
+  listConn->Clear();
+  if (clients.empty())
+    return false;
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ci++) {
+    listConn->addInfo((DWORD)(*ci), (*ci)->getSock()->getPeerAddress(),
+                      (*ci)->getStartTime(), 4);
+  }
+  return true;
+}

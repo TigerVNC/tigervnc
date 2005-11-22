@@ -103,6 +103,8 @@ namespace rfb {
 
     void approveConnectionOrClose(bool accept, const char* reason);
 
+    char* getStartTime() { return ctime(&startTime); }
+
   private:
     // SConnection callbacks
 
@@ -163,6 +165,7 @@ namespace rfb {
     AccessRights accessRights;
 
     CharArray closeReason;
+    time_t startTime;
   };
 }
 #endif

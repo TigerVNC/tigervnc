@@ -270,6 +270,9 @@ bool VNCServerWin32::addNewClient(const char* client) {
   return false;
 }
 
+bool VNCServerWin32::getClientsInfo(rfb::ListConnInfo* LCInfo) {
+  return queueCommand(GetClientsInfo, LCInfo, 0);
+}
 
 VNCServerST::queryResult VNCServerWin32::queryConnection(network::Socket* sock,
                                             const char* userName,
@@ -329,6 +332,9 @@ void VNCServerWin32::doCommand() {
                                 queryConnectDialog->isAccepted(),
                                 "Connection rejected by user");
     queryConnectDialog = 0;
+    break;
+  case GetClientsInfo:
+    vncServer.getConnInfo((ListConnInfo*)commandData); 
     break;
 
   default:

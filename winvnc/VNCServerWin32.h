@@ -28,6 +28,7 @@
 #include <rfb_win32/TCharArray.h>
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/JavaViewer.h>
+//#include <rfb/ListConnInfo.h>
 
 namespace winvnc {
 
@@ -66,13 +67,15 @@ namespace winvnc {
                                                           const char* userName,
                                                           char** reason);
 
+    bool getClientsInfo(rfb::ListConnInfo* LCInfo);
+
     // Where to read the configuration settings from
     static const TCHAR* RegConfigPath;
 
   protected:
 
     // Perform a particular internal function in the server thread
-    typedef enum {NoCommand, DisconnectClients, AddClient, QueryConnectionComplete} Command;
+    typedef enum {NoCommand, DisconnectClients, AddClient, QueryConnectionComplete, GetClientsInfo} Command;
     bool queueCommand(Command cmd, const void* data, int len);
     void doCommand();
     Command command;

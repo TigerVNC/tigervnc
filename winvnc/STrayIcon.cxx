@@ -71,7 +71,7 @@ public:
     SetTimer(getHandle(), 1, 3000, 0);
     PostMessage(getHandle(), WM_TIMER, 1, 0);
     PostMessage(getHandle(), WM_SET_TOOLTIP, 0, 0);
-    CPanel = new ControlPanel(&thread.server, getHandle());
+    CPanel = new ControlPanel(getHandle());
   }
 
   virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -182,6 +182,10 @@ public:
         return 0;
       }
       setIcon(thread.server.isServerInUse() ? thread.activeIcon : thread.inactiveIcon);
+
+      thread.server.getClientsInfo(&LCInfo);
+      CPanel->UpdateListView(&LCInfo);
+
       return 0;
 
     case WM_SET_TOOLTIP:
@@ -202,6 +206,7 @@ protected:
   LaunchProcess vncConnect;
   STrayIconThread& thread;
   ControlPanel * CPanel;
+  rfb::ListConnInfo LCInfo;
 };
 
 

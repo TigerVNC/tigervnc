@@ -31,7 +31,9 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
+#include <rfb/ListConnInfo.h>
 #include <network/Socket.h>
+#include <rfb/ListConnInfo.h>
 
 namespace rfb {
 
@@ -186,6 +188,8 @@ namespace rfb {
     // or separate, smaller R, G and B tables (slower).  If set to true, small tables
     // are used, to save memory.
     void setEconomicTranslate(bool et) { useEconomicTranslate = et; }
+
+    bool getConnInfo(ListConnInfo * listConn);
 
   protected:
 
