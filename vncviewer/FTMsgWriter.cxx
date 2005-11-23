@@ -50,6 +50,7 @@ FTMsgWriter::writeFileListRqst(char *pDirName, bool bDirOnly)
   m_pOutStream->writeU8(flags);
   m_pOutStream->writeU16(len);
   m_pOutStream->writeBytes((void *)dirName, len);
+  m_pOutStream->flush();
 
   return true;
 }
@@ -67,6 +68,9 @@ FTMsgWriter::writeFileDownloadRqst(unsigned short filenameLen, char *pFilename,
                                    unsigned int position)
 {
   m_pOutStream->writeU8(msgTypeFileDownloadRequest);
+
+  m_pOutStream->flush();
+
   return false;
 }
 
@@ -74,6 +78,9 @@ bool
 FTMsgWriter::writeFileUploadData(unsigned short dataSize, char *pData)
 {
   m_pOutStream->writeU8(msgTypeFileUploadData);
+  
+  m_pOutStream->flush();
+
   return false;
 }
 
@@ -81,6 +88,9 @@ bool
 FTMsgWriter::writeFileUploadData(unsigned int modTime)
 {
   m_pOutStream->writeU8(msgTypeFileUploadData);
+
+  m_pOutStream->flush();
+
   return false;
 }
 
@@ -96,6 +106,9 @@ FTMsgWriter::writeFileUploadRqst(unsigned short filenameLen, char *pFilename,
                                  unsigned int position)
 {
   m_pOutStream->writeU8(msgTypeFileUploadRequest);
+
+  m_pOutStream->flush();
+
   return false;
 }
 
@@ -146,6 +159,7 @@ FTMsgWriter::writeFileRenameRqst(unsigned short oldNameLen, unsigned short newNa
   m_pOutStream->writeU16(_newNameLen);
   m_pOutStream->writeBytes(oldName, _oldNameLen);
   m_pOutStream->writeBytes(newName, _newNameLen);
+  m_pOutStream->flush();
   
   return true;
 }
@@ -169,6 +183,7 @@ FTMsgWriter::writeU8U16StringMsg(unsigned short strLength, char *pString)
   m_pOutStream->writeU8(0);
   m_pOutStream->writeU16(strLength);
   m_pOutStream->writeBytes(pString, strLength);
+  m_pOutStream->flush();
   return true;
 }
 
