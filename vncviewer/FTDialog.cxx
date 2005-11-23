@@ -222,6 +222,7 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         _this->onLocalItemActivate((LPNMITEMACTIVATE) lParam);
         return FALSE;
       case NM_RCLICK:
+        _this->onLocalRButton();
         return FALSE;
       }
       break;
@@ -239,6 +240,7 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         _this->onRemoteItemActivate((LPNMITEMACTIVATE) lParam);
         return FALSE;
       case NM_RCLICK:
+        _this->onRemoteRButton();
         return FALSE;
       }
       break;
@@ -365,6 +367,33 @@ void
 FTDialog::onDownload()
 {
 
+}
+
+void 
+FTDialog::onLocalRButton()
+{
+  showFTMenu(1, 1, 1, 1);
+}
+
+void 
+FTDialog::onRemoteRButton()
+{
+  showFTMenu(1, 1, 1, 1);
+}
+
+void
+FTDialog::showFTMenu(int copyBtnState, int renameBtnState, int deleteBtnState, int cancelBtnState)
+{
+  HMENU hMenu = LoadMenu(m_hInstance, MAKEINTRESOURCE(IDR_FTMENU));
+  HMENU hFTMenu = GetSubMenu(hMenu, 0);
+
+  SetMenuDefaultItem(hFTMenu, IDM_FTCOPY, FALSE);
+
+  SetForegroundWindow(m_hwndFTDialog);
+
+  POINT cursorPosition;
+  GetCursorPos(&cursorPosition);
+  TrackPopupMenu(hFTMenu, 0, cursorPosition.x, cursorPosition.y, 0, m_hwndFTDialog, 0);
 }
 
 void

@@ -627,6 +627,19 @@ BEGIN
     END
 END
 
+IDR_FTMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "File Transfer"
+    BEGIN
+        MENUITEM "Copy Files and Folders",      IDM_FTCOPY
+        MENUITEM SEPARATOR
+        MENUITEM "Rename File or Folder",       IDM_FTRENAME
+        MENUITEM "Delete Files and Folders",    IDM_FTDELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Cancel File Transfer",        IDM_FTCANCEL
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

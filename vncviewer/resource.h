@@ -24,6 +24,7 @@
 #define IDI_FTDIR                       126
 #define IDI_FTFILE                      127
 #define IDI_FTRELOAD                    128
+#define IDR_FTMENU                      130
 #define IDC_PASSWORD                    1000
 #define IDC_CONNECTING_TEXT             1001
 #define IDC_SERVER_EDIT                 1002
@@ -121,13 +122,17 @@
 #define ID_SEND_CTLESC                  40014
 #define ID_CONN_SAVE_AS                 40015
 #define ID_FILE_TRANSFER                40016
+#define IDM_FTCOPY                      40022
+#define IDM_FTRENAME                    40023
+#define IDM_FTDELETE                    40024
+#define IDM_FTCANCEL                    40025
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40017
+#define _APS_NEXT_RESOURCE_VALUE        131
+#define _APS_NEXT_COMMAND_VALUE         40026
 #define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -69,6 +69,11 @@ namespace rfb {
       void onLocalReload();
       void onRemoteReload();
 
+      void onLocalRButton();
+      void onRemoteRButton();
+      void showFTMenu(int copyBtnState, int renameBtnState, 
+                      int deleteBtnState, int cancelBtnState);
+
       void onUpload();
       void onDownload();
 
