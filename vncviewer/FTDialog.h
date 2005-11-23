@@ -71,11 +71,21 @@ namespace rfb {
 
       void onLocalRButton();
       void onRemoteRButton();
-      void showFTMenu(int copyBtnState, int renameBtnState, 
-                      int deleteBtnState, int cancelBtnState);
+      void showFTMenu(bool copyBtnState, bool createFldBtnState, 
+                      bool renameBtnState, bool deleteBtnState, 
+                      bool cancelBtnState);
+      void onFTMenuCommand(int command);
 
       void onUpload();
       void onDownload();
+
+      void onLocalRename();
+      void onRemoteRename();
+
+      void onLocalDelete();
+      void onRemoteDelete();
+
+      void onFTCancel();
 
       void setIcon(int dest, int idIcon);
       bool initFTDialog();
@@ -84,8 +94,8 @@ namespace rfb {
       void onRemoteOneUpFolder();
       int makeOneUpFolder(char *pPath);
 
-      void refreshState();
-      void setButtonsState(int uploadBtnState, int downloadBtnState, int cancelBtnState);
+      void refreshBtnState();
+      void setButtonsState();
       
       bool m_bDlgShown;
 
@@ -94,10 +104,27 @@ namespace rfb {
 
       FTProgress *m_pProgress;
 
+      int m_FTMenuSource;
+
       char m_szLocalPath[FT_FILENAME_SIZE];
       char m_szRemotePath[FT_FILENAME_SIZE];
       char m_szLocalPathTmp[FT_FILENAME_SIZE];
       char m_szRemotePathTmp[FT_FILENAME_SIZE];
+
+      typedef struct tagFTBUTTONSSTATE
+      {
+        bool uploadBtn;
+        bool downloadBtn;
+        bool createLocalFldBtn;
+        bool createRemoteFldBtn;
+        bool renameLocalBtn;
+        bool renameRemoteBtn;
+        bool deleteLocalBtn;
+        bool deleteRemoteBtn;
+        bool cancelBtn;
+      } FTBUTTONSSTATE;
+
+      FTBUTTONSSTATE m_BtnState;
     };
   }
 }

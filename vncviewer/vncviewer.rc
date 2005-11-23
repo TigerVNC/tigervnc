@@ -633,6 +633,7 @@ BEGIN
     BEGIN
         MENUITEM "Copy Files and Folders",      IDM_FTCOPY
         MENUITEM SEPARATOR
+        MENUITEM "Create a Folder",             IDM_FTCREATEFOLDER
         MENUITEM "Rename File or Folder",       IDM_FTRENAME
         MENUITEM "Delete Files and Folders",    IDM_FTDELETE
         MENUITEM SEPARATOR
