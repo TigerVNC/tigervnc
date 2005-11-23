@@ -201,5 +201,5 @@ FileTransfer::requestFileList(char *pPath, int dest, bool bDirOnly)
 {
   m_queueFileListRqst.add(pPath, 0, 0, dest);
 
-  m_pWriter->writeFileListRqst(pPath, bDirOnly);
+  m_pWriter->writeFileListRqst(strlen(pPath), pPath, bDirOnly);
 }

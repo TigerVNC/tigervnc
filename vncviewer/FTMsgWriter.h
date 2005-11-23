@@ -37,7 +37,7 @@ namespace rfb {
       FTMsgWriter(rdr::OutStream *pOS);
       ~FTMsgWriter();
 
-      bool writeFileListRqst(char *pDirName, bool bDirOnly);
+      bool writeFileListRqst(unsigned short dirnameLen, char *pDirName, bool bDirOnly);
       
       bool writeFileDownloadCancel(unsigned short reasonLen, char *pReason);
       bool writeFileDownloadRqst(unsigned short filenameLen, char *pFilename, 

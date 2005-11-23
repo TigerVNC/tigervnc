@@ -36,8 +36,11 @@ FTMsgWriter::~FTMsgWriter()
 }
 
 bool 
-FTMsgWriter::writeFileListRqst(char *pDirName, bool bDirOnly)
+FTMsgWriter::writeFileListRqst(unsigned short dirnameLen, char *pDirName, 
+                               bool bDirOnly)
 {
+  if (dirnameLen >= FT_FILENAME_SIZE) return false;
+
   char dirName[FT_FILENAME_SIZE];
   strcpy(dirName, pDirName);
   int len = convertToUnixPath(dirName);
@@ -67,31 +70,47 @@ bool
 FTMsgWriter::writeFileDownloadRqst(unsigned short filenameLen, char *pFilename, 
                                    unsigned int position)
 {
-  m_pOutStream->writeU8(msgTypeFileDownloadRequest);
+  if (filenameLen >= FT_FILENAME_SIZE) return false;
 
+  char filename[FT_FILENAME_SIZE];
+  strcpy(filename, pFilename);
+  unsigned short len = (unsigned short) convertToUnixPath(filename);
+  if (len <= 0) return false;
+
+  m_pOutStream->writeU8(msgTypeFileDownloadRequest);
+  m_pOutStream->writeU8(0);
+  m_pOutStream->writeU16(len);
+  m_pOutStream->writeU32(position);
+  m_pOutStream->writeBytes(filename, len);
   m_pOutStream->flush();
 
-  return false;
+  return true;
 }
 
 bool 
 FTMsgWriter::writeFileUploadData(unsigned short dataSize, char *pData)
 {
   m_pOutStream->writeU8(msgTypeFileUploadData);
-  
+  m_pOutStream->writeU8(0);
+  m_pOutStream->writeU16(dataSize);
+  m_pOutStream->writeU16(dataSize);
+  m_pOutStream->writeBytes(pData, dataSize);
   m_pOutStream->flush();
 
-  return false;
+  return true;
 }
 
 bool 
 FTMsgWriter::writeFileUploadData(unsigned int modTime)
 {
   m_pOutStream->writeU8(msgTypeFileUploadData);
-
+  m_pOutStream->writeU8(0);
+  m_pOutStream->writeU16(0);
+  m_pOutStream->writeU16(0);
+  m_pOutStream->writeU32(modTime);
   m_pOutStream->flush();
 
-  return false;
+  return true;
 }
 
 bool 
@@ -105,11 +124,21 @@ bool
 FTMsgWriter::writeFileUploadRqst(unsigned short filenameLen, char *pFilename, 
                                  unsigned int position)
 {
-  m_pOutStream->writeU8(msgTypeFileUploadRequest);
+  if (filenameLen >= FT_FILENAME_SIZE) return false;
 
+  char filename[FT_FILENAME_SIZE];
+  strcpy(filename, pFilename);
+  unsigned short len = (unsigned short) convertToUnixPath(filename);
+  if (len <= 0) return false;
+
+  m_pOutStream->writeU8(msgTypeFileUploadRequest);
+  m_pOutStream->writeU8(0);
+  m_pOutStream->writeU16(len);
+  m_pOutStream->writeU32(position);
+  m_pOutStream->writeBytes(filename, len);
   m_pOutStream->flush();
 
-  return false;
+  return true;
 }
 
 bool 
