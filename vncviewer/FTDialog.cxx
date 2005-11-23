@@ -159,20 +159,46 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       switch (LOWORD(wParam))
       {
+      case IDC_FTLOCALPATH:
+        switch (HIWORD (wParam))
+        {
+        case CBN_SETFOCUS:
+          _this->refreshState();
+          return FALSE;
+        }
+        break;
+        case IDC_FTREMOTEPATH:
+          switch (HIWORD (wParam))
+          {
+          case CBN_SETFOCUS:
+            _this->refreshState();
+            return FALSE;
+          }
+          break;
       case IDC_FTCLOSE:
         _this->closeFTDialog();
         return FALSE;
       case IDC_FTLOCALUP:
+        _this->refreshState();
         _this->onLocalOneUpFolder();
         return FALSE;
       case IDC_FTREMOTEUP:
+        _this->refreshState();
         _this->onRemoteOneUpFolder();
         return FALSE;
       case IDC_FTLOCALRELOAD:
+        _this->refreshState();
         _this->onLocalReload();
         return FALSE;
       case IDC_FTREMOTERELOAD:
-        _this->onRemoteReload();
+       _this->refreshState();
+       _this->onRemoteReload();
+        return FALSE;
+      case IDC_FTUPLOAD:
+        _this->onUpload();
+        return FALSE;
+      case IDC_FTDOWNLOAD:
+        _this->onDownload();
         return FALSE;
       }
     }
@@ -184,22 +210,35 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case IDC_FTLOCALLIST:
       switch (((LPNMHDR) lParam)->code)
       {
+      case NM_CLICK:
+      case NM_SETFOCUS:
+      case LVN_ITEMCHANGED:
+        _this->refreshState();
+        return FALSE;
       case LVN_GETDISPINFO:
         _this->m_pLocalLV->onGetDispInfo((NMLVDISPINFO *) lParam);
         return FALSE;
       case LVN_ITEMACTIVATE:
         _this->onLocalItemActivate((LPNMITEMACTIVATE) lParam);
         return FALSE;
+      case NM_RCLICK:
+        return FALSE;
       }
       break;
     case IDC_FTREMOTELIST:
       switch (((LPNMHDR) lParam)->code)
       {
+      case NM_CLICK:
+      case NM_SETFOCUS:
+      case LVN_ITEMCHANGED:
+        _this->refreshState();
       case LVN_GETDISPINFO:
         _this->m_pRemoteLV->onGetDispInfo((NMLVDISPINFO *) lParam);
         return FALSE;
       case LVN_ITEMACTIVATE:
         _this->onRemoteItemActivate((LPNMITEMACTIVATE) lParam);
+        return FALSE;
+      case NM_RCLICK:
         return FALSE;
       }
       break;
@@ -316,10 +355,99 @@ FTDialog::makeOneUpFolder(char *pPath)
   return strlen(pPath);
 }
 
+void 
+FTDialog::onUpload()
+{
+
+}
+
+void 
+FTDialog::onDownload()
+{
+
+}
+
 void
 FTDialog::setIcon(int dest, int idIcon)
 {
   HANDLE hIcon = LoadImage(m_hInstance, MAKEINTRESOURCE(idIcon), IMAGE_ICON, 16, 16, LR_SHARED);
   SendMessage(GetDlgItem(m_hwndFTDialog, dest), BM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) hIcon);
   DestroyIcon((HICON) hIcon);
+}
+
+void
+FTDialog::refreshState()
+{
+  if (!m_bDlgShown) return;
+  
+  int locPathLen = strlen(m_szLocalPath);
+  int remPathLen = strlen(m_szRemotePath);
+  
+  if (GetFocus() == m_pLocalLV->getWndHandle()) {
+    if (strlen(m_szLocalPath) != 0) {
+      int nCount = ListView_GetSelectedCount(m_pLocalLV->getWndHandle());
+      if (nCount <= 0) {
+        setButtonsState(0, 0, -1);
+      } else {
+        if (remPathLen == 0) {
+          setButtonsState(0, 0, -1);
+        } else {
+          setButtonsState(1, 0, -1);
+        }
+      }
+    } else {
+      setButtonsState(0, 0, -1);
+    }
+  } else {
+    if (GetFocus() == m_pRemoteLV->getWndHandle()) {
+      if (strlen(m_szRemotePath) != 0) {
+        int nCount = ListView_GetSelectedCount(m_pRemoteLV->getWndHandle());
+        if (nCount <= 0) {
+          setButtonsState(0, 0, -1);
+        } else {
+          if (locPathLen == 0) {
+            setButtonsState(0, 0, -1);
+          } else {
+            setButtonsState(0, 1, -1);
+          }
+        }
+      } else {
+        setButtonsState(0, 0, -1);
+      }
+    } else {
+      setButtonsState(0, 0, -1);
+    }
+  }
+/*
+  if (m_pFileTransfer->isTransferEnable()) {
+    setAllButtonsState(-1, -1, -1, -1, 1);
+  } else {
+    setAllButtonsState(-1, -1, -1, -1, 0);
+  }
+*/
+}
+
+void
+FTDialog::setButtonsState(int uploadBtnState, int downloadBtnState, int cancelBtnState)
+{
+  switch (uploadBtnState)
+  {
+  case 0: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTUPLOAD), FALSE); break;
+  case 1: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTUPLOAD), TRUE); break;
+  default: break;
+  }
+
+  switch (downloadBtnState)
+  {
+  case 0: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTDOWNLOAD), FALSE); break;
+  case 1: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTDOWNLOAD), TRUE); break;
+  default: break;
+  }
+
+  switch (cancelBtnState)
+  {
+  case 0: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTCANCEL), FALSE); break;
+  case 1: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTCANCEL), TRUE); break;
+  default: break;
+  }
 }

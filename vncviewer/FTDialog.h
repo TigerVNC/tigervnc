@@ -69,12 +69,18 @@ namespace rfb {
       void onLocalReload();
       void onRemoteReload();
 
+      void onUpload();
+      void onDownload();
+
       void setIcon(int dest, int idIcon);
       bool initFTDialog();
       
       void onLocalOneUpFolder();
       void onRemoteOneUpFolder();
       int makeOneUpFolder(char *pPath);
+
+      void refreshState();
+      void setButtonsState(int uploadBtnState, int downloadBtnState, int cancelBtnState);
       
       bool m_bDlgShown;
 
