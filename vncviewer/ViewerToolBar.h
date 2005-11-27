@@ -30,4 +30,7 @@ public:
   ~ViewerToolBar() {}
 
   void create(HWND parentHwnd);
+
+  void show();
+  void hide();
 };

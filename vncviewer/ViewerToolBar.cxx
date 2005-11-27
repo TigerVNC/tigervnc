@@ -48,3 +48,13 @@ void ViewerToolBar::create(HWND parentHwnd) {
   // Resize the toolbar window
   autoSize();
 }
+
+void ViewerToolBar::show() {
+  ShowWindow(getHandle(), SW_SHOW);
+  SendMessage(parentHwnd, WM_SIZE, 0, 0);
+}
+
+void ViewerToolBar::hide() {
+  ShowWindow(getHandle(), SW_HIDE);
+  SendMessage(parentHwnd, WM_SIZE, 0, 0);
+}
