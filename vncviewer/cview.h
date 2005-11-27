@@ -283,6 +283,7 @@ namespace rfb {
 
       // ToolBar handling
       ViewerToolBar tb;
+      bool toolbar;
 
       // Local window state
       win32::DIBSectionBuffer* buffer;

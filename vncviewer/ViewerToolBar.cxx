@@ -23,7 +23,7 @@
 
 void ViewerToolBar::create(HWND parentHwnd) {
   // Create the toolbar panel
-  ToolBar::create(ID_TOOLBAR, parentHwnd, WS_CHILD | WS_VISIBLE | 
+  ToolBar::create(ID_TOOLBAR, parentHwnd, WS_CHILD | 
     TBSTYLE_FLAT | CCS_NORESIZE);
   addBitmap(4, IDB_TOOLBAR);
 

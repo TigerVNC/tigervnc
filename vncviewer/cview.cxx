@@ -222,7 +222,7 @@ CView::CView()
     hwnd(0), frameHwnd(0), requestUpdate(false), has_focus(false), 
     palette_changed(false), sameMachine(false), encodingChange(false), 
     formatChange(false), lastUsedEncoding_(encodingRaw), fullScreenActive(false),
-    bumpScroll(false), manager(0) {
+    bumpScroll(false), manager(0), toolbar(true) {
 
   // Create the main window
   const TCHAR* name = _T("VNC Viewer 4.0b");
@@ -263,6 +263,9 @@ CView::CView()
 
   // Create the backing buffer
   buffer = new win32::DIBSectionBuffer(getFrameHandle());
+  
+  // Show the toolbar if needed
+  if (toolbar) tb.show();
 }
 
 CView::~CView() {
@@ -282,6 +285,8 @@ bool CView::initialise(network::Socket* s) {
   HMENU wndmenu = GetSystemMenu(hwnd, FALSE);
   AppendMenu(wndmenu, MF_SEPARATOR, 0, 0);
   AppendMenu(wndmenu, MF_STRING, IDM_FULLSCREEN, _T("&Full screen"));
+  AppendMenu(wndmenu, (toolbar ? MF_STRING | MF_CHECKED : MF_STRING), 
+    IDM_SHOW_TOOLBAR, _T("Show tool&bar"));
   AppendMenu(wndmenu, MF_SEPARATOR, 0, 0);
   AppendMenu(wndmenu, MF_STRING, IDM_CTRL_KEY, _T("Ctr&l"));
   AppendMenu(wndmenu, MF_STRING, IDM_ALT_KEY, _T("Al&t"));
@@ -400,6 +405,11 @@ CView::setFullscreen(bool fs) {
   CheckMenuItem(GetSystemMenu(getHandle(), FALSE), IDM_FULLSCREEN,
     (options.fullScreen ? MF_CHECKED : 0) | MF_BYCOMMAND);
 
+  // If the fullscreen mode is active then disable the menu point 
+  // "Show toolbar", otherwise enable the menu point.
+  EnableMenuItem(GetSystemMenu(getHandle(), FALSE), IDM_SHOW_TOOLBAR,
+    (options.fullScreen ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
+
   // If the window is not visible then we ignore the request.
   // setVisible() will call us to correct the full-screen state when
   // the window is visible, to keep things consistent.
@@ -427,7 +437,7 @@ CView::setFullscreen(bool fs) {
     flags = flags & ~(WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZE | WS_MINIMIZE);
     vlog.debug("flags=%x", flags);
 
-    tb.hide();
+    if (toolbar) tb.hide();
     SetWindowLong(getFrameHandle(), GWL_EXSTYLE, 0);
     SetWindowLong(getHandle(), GWL_STYLE, flags);
     SetWindowPos(getHandle(), HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
@@ -438,7 +448,7 @@ CView::setFullscreen(bool fs) {
     fullScreenActive = bumpScroll = false;
 
     // Set the window non-fullscreen
-    tb.show();
+    if (toolbar) tb.show();
     SetWindowLong(getFrameHandle(), GWL_EXSTYLE, WS_EX_CLIENTEDGE);
     SetWindowLong(getHandle(), GWL_STYLE, fullScreenOldFlags);
     SetWindowPos(getHandle(), HWND_NOTOPMOST,
@@ -639,6 +649,13 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     case IDM_FULLSCREEN:
       options.fullScreen = !options.fullScreen;
       setFullscreen(options.fullScreen);
+      return 0;
+    case IDM_SHOW_TOOLBAR:
+      toolbar = !toolbar;
+      CheckMenuItem(GetSystemMenu(getHandle(), FALSE), IDM_SHOW_TOOLBAR,
+        (toolbar ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+      if (toolbar) tb.show();
+      else tb.hide();
       return 0;
     case IDM_CTRL_KEY:
       writeKeyEvent(VK_CONTROL, 0, !kbd.keyPressed(VK_CONTROL));
