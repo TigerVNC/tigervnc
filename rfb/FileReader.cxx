@@ -25,9 +25,8 @@
 
 using namespace rfb;
 
-FileReader::FileReader(char *pFilename)
+FileReader::FileReader()
 {
-  strcpy(m_szFilename, pFilename);
   strcpy(m_szMode, "r");
 }
 

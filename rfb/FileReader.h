@@ -29,7 +29,7 @@
 namespace rfb {
   class FileReader : public FileManager {
   public:
-    FileReader(char *pFilename);
+    FileReader();
 
     bool read(void *pBuf, unsigned int count, unsigned int *pBytesRead);
   };

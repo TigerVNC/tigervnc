@@ -28,6 +28,8 @@
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
 #include <rfb/FileInfo.h>
+#include <rfb/FileReader.h>
+#include <rfb/FileWriter.h>
 #include <rfb/TransferQueue.h>
 #include <vncviewer/FTDialog.h>
 #include <vncviewer/FTMsgReader.h>

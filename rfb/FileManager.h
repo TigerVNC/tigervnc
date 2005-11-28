@@ -32,7 +32,7 @@ namespace rfb {
     FileManager();
     ~FileManager();
     
-    bool create();
+    bool create(char *pFilename);
     bool close();
     
   protected:

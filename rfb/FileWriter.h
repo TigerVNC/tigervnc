@@ -29,7 +29,7 @@
 namespace rfb {
   class FileWriter : public FileManager {
   public:
-    FileWriter(char *pFilename);
+    FileWriter();
 
     bool write(const void *pBuf, unsigned int count, unsigned int *pBytesWritten);
   };

@@ -25,9 +25,8 @@
 
 using namespace rfb;
 
-FileWriter::FileWriter(char *pFilename)
+FileWriter::FileWriter()
 {
-  strcpy(m_szFilename, pFilename);
   strcpy(m_szMode, "w");
 }
 
