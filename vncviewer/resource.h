@@ -60,6 +60,7 @@
 #define IDC_PROTOCOL_3_3                1034
 #define IDC_ACCEPT_BELL                 1035
 #define IDC_FORMAT_VERYLOWCOLOUR        1036
+#define IDC_SHOW_TOOLBAR                1036
 #define IDC_FORMAT_LOWCOLOUR            1037
 #define IDC_FORMAT_MEDIUMCOLOUR         1038
 #define IDC_LOAD_DEFAULTS               1040

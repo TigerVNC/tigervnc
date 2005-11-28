@@ -31,7 +31,7 @@ STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
 CAPTION "TightVNC File Transfers"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_FTLOCALLIST,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
@@ -277,7 +277,9 @@ BEGIN
     CONTROL         "Only use protocol version 3.3",IDC_PROTOCOL_3_3,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,70,199,15
     CONTROL         "Beep when requested to by the server",IDC_ACCEPT_BELL,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,86,199,15
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,85,199,14
+    CONTROL         "Show toolbar by default",IDC_SHOW_TOOLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,100,199,15
 END
 
 IDD_INPUTS DIALOG DISCARDABLE  0, 0, 186, 138
@@ -452,6 +454,7 @@ BEGIN
         HORZGUIDE, 70
         HORZGUIDE, 85
         HORZGUIDE, 100
+        HORZGUIDE, 115
     END
 
     IDD_INPUTS, DIALOG
