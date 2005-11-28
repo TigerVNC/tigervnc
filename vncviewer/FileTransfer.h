@@ -67,6 +67,10 @@ namespace rfb {
       FileInfo m_queueFileListRqst;
 
       TransferQueue m_TransferQueue;
+
+      void checkTransferQueue();
+      bool uploadFile();
+      bool downloadFile();
       
       bool procFileListDataMsg();
       bool procFileDownloadDataMsg();
@@ -81,6 +85,9 @@ namespace rfb {
       bool procFLRDownload(FileInfo *pFI);
       bool procFLRDelete(FileInfo *pFI);
       bool procFLRRename(FileInfo *pFI);
+
+      DWORD64 m_dw64SizeSending;
+      unsigned int m_dirSizeRqstNum;
       
     };
   }

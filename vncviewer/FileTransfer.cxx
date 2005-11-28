@@ -35,6 +35,9 @@ FileTransfer::FileTransfer()
 
   m_pReader = NULL;
   m_pWriter = NULL;
+
+  m_dw64SizeSending = 0;
+  m_dirSizeRqstNum = 0;
 }
 
 FileTransfer::~FileTransfer()
@@ -108,7 +111,8 @@ FileTransfer::upload(TransferQueue *pTransQueue)
   m_TransferQueue.add(pTransQueue);
 
   resizeSending();
-  
+
+  checkTransferQueue();
 }
 
 void 
@@ -121,6 +125,87 @@ void
 FileTransfer::resizeSending()
 {
 
+}
+
+void
+FileTransfer::checkTransferQueue()
+{
+  if (!isTransferEnable()) {
+    if (m_bFTDlgShown) {
+      m_pFTDialog->setStatusText("File Transfer Operation Completed Successfully");
+      PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTLOCALRELOAD, 0), 0);
+      PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTREMOTERELOAD, 0), 0);
+      return;
+    }
+  } else {
+    for (unsigned int i = 0; i < m_TransferQueue.getNumEntries(); i++) {
+      unsigned int flags = m_TransferQueue.getFlagsAt(i);
+      if (flags & FT_ATTR_RESIZE_NEEDED) {
+        if (flags & FT_ATTR_FILE) {
+          m_dw64SizeSending += m_TransferQueue.getSizeAt(i);
+          m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
+        } else {
+          if (flags & FT_ATTR_DIR) {
+            if (flags & FT_ATTR_COPY_DOWNLOAD) {
+              char *pPath = m_TransferQueue.getFullRemPathAt(i);
+              m_dirSizeRqstNum = i;
+              m_pWriter->writeFileDirSizeRqst(strlen(pPath), pPath);
+              return;
+            } else {
+              if (flags & FT_ATTR_COPY_UPLOAD) {
+                FolderManager fm;
+                DWORD64 dw64Size;
+                fm.getDirSize(m_TransferQueue.getFullLocPathAt(i), &dw64Size);
+                m_dw64SizeSending += dw64Size;
+                m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
+              }
+            } // if (flags & FT_ATTR_COPY_DOWNLOAD)
+          } // if (flags & FT_ATTR_FOLDER)
+        } // if (flags & FT_ATTR_FILE)
+      } // if (flags & FT_ATTR_NEEDED_RESIZE)
+    } // for (unsigned int i = 0; i < m_TransferQueue.getNumEntries(); i++)
+
+    unsigned int flag0 = m_TransferQueue.getFlagsAt(0);
+    
+    if (flag0 & FT_ATTR_COPY_UPLOAD) {
+      if (flag0 & FT_ATTR_FILE) {
+          uploadFile();
+          return;
+      }
+      if (flag0 & FT_ATTR_DIR) {
+        char *pFullPath = m_TransferQueue.getFullRemPathAt(0);
+        if (m_bFTDlgShown) m_pFTDialog->setStatusText("Creating Remote Folder. %s", pFullPath);
+        m_pWriter->writeFileCreateDirRqst(strlen(pFullPath), pFullPath);
+
+        char *pPath = m_TransferQueue.getRemPathAt(0);
+        m_TransferQueue.setFlagsAt(0, (flag0 | FT_ATTR_FLR_UPLOAD_CHECK));
+        m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_UPLOAD);
+        m_pWriter->writeFileListRqst(strlen(pPath), pPath, 0);
+        return;
+      }
+    } else {
+      if (flag0 & FT_ATTR_COPY_DOWNLOAD) {
+        if (flag0 & FT_ATTR_FILE) {
+        }
+        if (flag0 & FT_ATTR_DIR) {
+        }
+      }
+    }
+    if (m_bFTDlgShown) m_pFTDialog->setStatusText("File Transfer Operation Failed. Unknown data in the transfer queue");
+
+  } // if (!isTransferEnable())
+}
+
+bool
+FileTransfer::uploadFile()
+{
+  return false;
+}
+
+bool
+FileTransfer::downloadFile()
+{
+  return false;
 }
 
 bool 
@@ -183,7 +268,10 @@ FileTransfer::procFileDownloadFailedMsg()
 bool 
 FileTransfer::procFileDirSizeDataMsg()
 {
-  return false;
+  DWORD64 dw64DirSize = 0;
+  m_pReader->readFileDirSizeData(&dw64DirSize);
+  m_TransferQueue.clearFlagAt(m_dirSizeRqstNum, FT_ATTR_RESIZE_NEEDED);
+  return true;
 }
 
 bool 

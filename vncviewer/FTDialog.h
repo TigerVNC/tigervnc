@@ -52,7 +52,9 @@ namespace rfb {
       void addRemoteLVItems(FileInfo *pFI);
       void reqFolderUnavailable();
 
-      void setStatusText(char *pText);
+      void setStatusText(LPCSTR format,...);
+
+      HWND getWndHandle() { return m_hwndFTDialog; }
 
       FTProgress *m_pProgress;
       

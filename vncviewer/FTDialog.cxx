@@ -622,7 +622,11 @@ FTDialog::setButtonsState()
 }
 
 void 
-FTDialog::setStatusText(char *pText)
+FTDialog::setStatusText(LPCSTR format,...)
 {
-  SetDlgItemText(m_hwndFTDialog, IDC_FTSTATUS, pText);
+  char text[1024];
+  va_list args;
+  va_start(args, format);
+  int nSize = _vsnprintf(text, sizeof(text), format, args);
+  SetDlgItemText(m_hwndFTDialog, IDC_FTSTATUS, text);
 }

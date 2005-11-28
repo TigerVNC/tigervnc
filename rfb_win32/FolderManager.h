@@ -49,6 +49,8 @@ namespace rfb {
       unsigned int getTime70(FILETIME ftime);
       void getFiletime(unsigned int time70, FILETIME *pftime);
 
+      bool getDirSize(char *pFullPath, DWORD64 *dirSize);
+
     private:
       bool getFolderInfoWithPrefix(char *pPrefix, FileInfo *pFileInfo);
     };

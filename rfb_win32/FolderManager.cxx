@@ -211,3 +211,39 @@ FolderManager::getFiletime(unsigned int time70, FILETIME *pftime)
   pftime->dwLowDateTime = (DWORD) ll;
   pftime->dwHighDateTime = (DWORD) (ll >> 32);
 }
+
+bool
+FolderManager::getDirSize(char *pFullPath, DWORD64 *dirSize)
+{
+  char fullPath[FT_FILENAME_SIZE];
+  FileInfo fi;
+  fi.add(pFullPath, 0, 0, FT_ATTR_DIR);
+  DWORD64 dirFileSize64 = 0;
+  do {
+    sprintf(fullPath, "%s\\*", fi.getNameAt(0));
+    WIN32_FIND_DATA FindFileData;
+    SetErrorMode(SEM_FAILCRITICALERRORS);
+    HANDLE hFile = FindFirstFile(fullPath, &FindFileData);
+    SetErrorMode(0);
+    
+    if (hFile != INVALID_HANDLE_VALUE) {
+      do {
+        if (strcmp(FindFileData.cFileName, ".") != 0 &&
+          strcmp(FindFileData.cFileName, "..") != 0) {
+          char buff[MAX_PATH];
+          if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+            sprintf(buff, "%s\\%s", fi.getNameAt(0), FindFileData.cFileName);
+            fi.add(buff, 0, 0, FT_ATTR_DIR);
+          } else {
+            dirFileSize64 += FindFileData.nFileSizeLow;
+          }
+        }
+      } while (FindNextFile(hFile, &FindFileData));
+      FindClose(hFile);
+    }
+    fi.deleteAt(0);
+  } while (fi.getNumEntries() > 0);
+  
+  *dirSize = dirFileSize64;
+  return true;
+}
