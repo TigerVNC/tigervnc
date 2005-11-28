@@ -49,6 +49,12 @@ namespace rfb {
 
       void requestFileList(char *pPath, int dest, bool bDirOnly);
 
+      void upload(TransferQueue *pTransQueue);
+      void download(TransferQueue *pTransQueue);
+
+      bool isTransferEnable();
+      void resizeSending();
+
     private:
       bool m_bFTDlgShown;
       bool m_bInitialized;
@@ -59,6 +65,8 @@ namespace rfb {
       FTMsgWriter *m_pWriter;
 
       FileInfo m_queueFileListRqst;
+
+      TransferQueue m_TransferQueue;
       
       bool procFileListDataMsg();
       bool procFileDownloadDataMsg();

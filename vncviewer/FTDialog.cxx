@@ -102,8 +102,6 @@ FTDialog::initFTDialog()
   m_pLocalLV->initialize(m_hInstance);
   m_pRemoteLV->initialize(m_hInstance);
 
-  m_pProgress->initialize(0,0);
-
   m_hwndLocalPath = GetDlgItem(m_hwndFTDialog, IDC_FTLOCALPATH);
   m_hwndRemotePath = GetDlgItem(m_hwndFTDialog, IDC_FTREMOTEPATH);
 
@@ -597,13 +595,6 @@ FTDialog::refreshBtnState()
     }
   }
   m_BtnState.cancelBtn = false;
-/*
-  if (m_pFileTransfer->isTransferEnable()) {
-    setAllButtonsState(-1, -1, -1, -1, 1);
-  } else {
-    setAllButtonsState(-1, -1, -1, -1, 0);
-  }
-*/
 }
 
 void
@@ -628,4 +619,10 @@ FTDialog::setButtonsState()
   case false: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTCANCEL), FALSE); break;
   case true: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTCANCEL), TRUE); break;
   }
+}
+
+void 
+FTDialog::setStatusText(char *pText)
+{
+  SetDlgItemText(m_hwndFTDialog, IDC_FTSTATUS, pText);
 }

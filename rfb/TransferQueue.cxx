@@ -242,10 +242,29 @@ bool
 TransferQueue::setFlagsAt(unsigned int number, unsigned int value)
 {
   if ((number >= 0) && (number < m_numEntries)) {
-    m_pEntries[number].info.flags = value;
+    m_pEntries[number].info.flags = m_pEntries[number].info.flags | value;
     return true;
   }
   return false;
+}
+
+bool 
+TransferQueue::clearFlagAt(unsigned int number, unsigned int value)
+{
+  if ((number >= 0) && (number < m_numEntries)) {
+    m_pEntries[number].info.flags = (m_pEntries[number].info.flags & (value ^ 0xFFFFFFFF));
+    return true;
+  }
+  return false;
+}
+
+bool 
+TransferQueue::setFlagToAll(unsigned int flag)
+{
+  for (unsigned int i = 0; i < m_numEntries; i++) {
+    setFlagsAt(i, flag);
+  }
+  return true;
 }
 
 bool 

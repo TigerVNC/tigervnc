@@ -64,6 +64,8 @@ namespace rfb {
     bool setSizeAt(unsigned int number, unsigned int value);
     bool setDataAt(unsigned int number, unsigned int value);
     bool setFlagsAt(unsigned int number, unsigned int value);
+    bool clearFlagAt(unsigned int number, unsigned int value);
+    bool setFlagToAll(unsigned int flag);
     
     bool deleteAt(unsigned int number);
     

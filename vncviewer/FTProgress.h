@@ -39,9 +39,9 @@ namespace rfb {
       FTProgress(HWND hwndParent);
       ~FTProgress();
       
-      bool initialize(DWORD64 totalMaxValue, DWORD maxValue);
       void increase(DWORD value);
-      void clearSingle();
+      void clearAndInitGeneral(DWORD64 dw64MaxValue, DWORD64 dw64Position);
+      void clearAndInitSingle(DWORD dwMaxValue, DWORD dwPosition);
       void clearAll();
 
     private:
@@ -53,8 +53,6 @@ namespace rfb {
       HWND m_hwndGeneralPercent;
 
       bool m_bInitialized;
-
-      bool initProgressControls(DWORD64 totalMaxValue, DWORD maxValue);
 
       void setProgressText();
       bool createProgressBarObjects();

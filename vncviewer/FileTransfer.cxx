@@ -53,6 +53,8 @@ FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
   m_pReader = new FTMsgReader(pIS);
   m_pWriter = new FTMsgWriter(pOS);
 
+  m_TransferQueue.free();
+
   m_bInitialized = true;
   return true;
 }
@@ -88,6 +90,37 @@ FileTransfer::processFTMsg(int type)
   default:
     return false;
   }
+}
+
+bool 
+FileTransfer::isTransferEnable()
+{
+  if (m_TransferQueue.getNumEntries() > 0) return true; else return false;
+}
+
+void 
+FileTransfer::upload(TransferQueue *pTransQueue)
+{
+  if ((m_bFTDlgShown) && (!isTransferEnable())) m_pFTDialog->setStatusText("Starting Copy Operation");
+  
+  pTransQueue->setFlagToAll(FT_ATTR_RESIZE_NEEDED);
+  
+  m_TransferQueue.add(pTransQueue);
+
+  resizeSending();
+  
+}
+
+void 
+FileTransfer::download(TransferQueue *pTransQueue)
+{
+
+}
+
+void
+FileTransfer::resizeSending()
+{
+
 }
 
 bool 

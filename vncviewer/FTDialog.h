@@ -51,6 +51,10 @@ namespace rfb {
       
       void addRemoteLVItems(FileInfo *pFI);
       void reqFolderUnavailable();
+
+      void setStatusText(char *pText);
+
+      FTProgress *m_pProgress;
       
     private:
       FileTransfer *m_pFileTransfer;
@@ -101,8 +105,6 @@ namespace rfb {
 
       FTListView *m_pLocalLV;
       FTListView *m_pRemoteLV;
-
-      FTProgress *m_pProgress;
 
       int m_FTMenuSource;
 

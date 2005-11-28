@@ -33,31 +33,16 @@ FTProgress::FTProgress(HWND hwndParent)
 
   m_pSingleProgress = NULL;
   m_pGeneralProgress = NULL;
+
+  m_hwndSinglePercent = GetDlgItem(m_hwndParent, IDC_FTSINGLEPERCENT);
+  m_hwndGeneralPercent = GetDlgItem(m_hwndParent, IDC_FTGENERALPERCENT);
+
+  m_bInitialized = createProgressBarObjects();
 }
 
 FTProgress::~FTProgress()
 {
   destroyProgressBarObjects();
-}
-
-bool
-FTProgress::initialize(DWORD64 totalMaxValue, DWORD maxValue)
-{
-  m_bInitialized = false;
-
-  m_hwndSinglePercent = GetDlgItem(m_hwndParent, IDC_FTSINGLEPERCENT);
-  m_hwndGeneralPercent = GetDlgItem(m_hwndParent, IDC_FTGENERALPERCENT);
-
-  if ((m_hwndSinglePercent == NULL) || (m_hwndGeneralPercent == NULL)) return false;
- 
-  if (!createProgressBarObjects()) return false;
-
-  if (!initProgressControls(totalMaxValue, maxValue)) return false;
-
-  setProgressText();
-
-  m_bInitialized = true;
-  return true;
 }
 
 void
@@ -72,11 +57,23 @@ FTProgress::increase(DWORD value)
 }
 
 void
-FTProgress::clearSingle()
+FTProgress::clearAndInitGeneral(DWORD64 dw64MaxValue, DWORD64 dw64Position)
+{
+  if (!m_bInitialized) return;
+
+  m_pGeneralProgress->clear();
+  m_pGeneralProgress->init(dw64MaxValue, dw64Position);
+
+  setProgressText();
+}
+
+void
+FTProgress::clearAndInitSingle(DWORD dwMaxValue, DWORD dwPosition)
 {
   if (!m_bInitialized) return;
 
   m_pSingleProgress->clear();
+  m_pSingleProgress->init(dwMaxValue, dwPosition);
 
   setProgressText();
 }
@@ -127,22 +124,6 @@ FTProgress::destroyProgressBarObjects()
     delete m_pGeneralProgress;
   }
 
-  return true;
-}
-
-bool
-FTProgress::initProgressControls(DWORD64 totalMaxValue, DWORD maxValue)
-{
-  bool bResult = true;
-
-  if ((m_pSingleProgress != NULL) && (m_pGeneralProgress != NULL)) {
-    if (!m_pSingleProgress->init(totalMaxValue, 0)) return false;
-    if (!m_pGeneralProgress->init(maxValue, 0)) return false;
-  } else {
-    return false;
-  }
-
-  setProgressText();
   return true;
 }
 
