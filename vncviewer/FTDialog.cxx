@@ -26,6 +26,10 @@
 using namespace rfb;
 using namespace rfb::win32;
 
+const char FTDialog::szCheckTransferQueueText[]  = "TightVNC.Viewer.CheckTransferQueue.Msg";
+const char FTDialog::szDownloadFilePortionText[] = "TightVNC.Viewer.DownloadFilePortion.Msg";
+const char FTDialog::szUploadFilePortionText[]   = "TightVNC.Viewer.UploadFilePortion.Msg";
+
 FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
 {
   m_pFileTransfer = pFT;
@@ -69,6 +73,8 @@ FTDialog::createFTDialog(HWND hwndParent)
                                      (LONG) this);
   
   if (m_hwndFTDialog == NULL) return false;
+
+  if (!initFTWndMsgs()) return false;
   
   HWND hwndLocalList = GetDlgItem(m_hwndFTDialog, IDC_FTLOCALLIST);
   HWND hwndRemoteList = GetDlgItem(m_hwndFTDialog, IDC_FTREMOTELIST);
@@ -114,6 +120,20 @@ FTDialog::initFTDialog()
   showRemoteLVItems();
 
   return true;
+}
+
+bool
+FTDialog::initFTWndMsgs()
+{
+  m_msgCheckTransferQueue  = RegisterWindowMessage(szCheckTransferQueueText);
+  m_msgUploadFilePortion   = RegisterWindowMessage(szUploadFilePortionText);
+  m_msgDownloadFilePortion = RegisterWindowMessage(szDownloadFilePortionText);
+
+  if ((m_msgCheckTransferQueue) && 
+      (m_msgUploadFilePortion)  && 
+      (m_msgDownloadFilePortion)) return true;
+
+  return false;
 }
 
 bool
@@ -257,6 +277,16 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       _this->closeFTDialog();
       return FALSE;
   }
+
+  if (uMsg == _this->m_msgCheckTransferQueue)  
+    _this->m_pFileTransfer->checkTransferQueue();
+
+  if (uMsg == _this->m_msgDownloadFilePortion) 
+    _this->m_pFileTransfer->downloadFilePortion();
+
+  if (uMsg == _this->m_msgUploadFilePortion)   
+    _this->m_pFileTransfer->uploadFilePortion();
+
   return FALSE;
 }
 
@@ -366,7 +396,11 @@ FTDialog::makeOneUpFolder(char *pPath)
 void 
 FTDialog::onUpload()
 {
-  MessageBox(NULL, "onUpload", "FTDialog", MB_OK);
+  FileInfo fi;
+  TransferQueue tq;
+  if (m_pLocalLV->getSelectedItems(&fi) > 0) {
+    m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
+  }
 }
 
 void 
@@ -629,4 +663,22 @@ FTDialog::setStatusText(LPCSTR format,...)
   va_start(args, format);
   int nSize = _vsnprintf(text, sizeof(text), format, args);
   SetDlgItemText(m_hwndFTDialog, IDC_FTSTATUS, text);
+}
+
+void 
+FTDialog::postCheckTransferQueueMsg()
+{
+  PostMessage(m_hwndFTDialog, m_msgCheckTransferQueue, 0, 0);
+}
+
+void 
+FTDialog::postUploadFilePortionMsg()
+{
+  PostMessage(m_hwndFTDialog, m_msgUploadFilePortion, 0, 0);
+}
+
+void 
+FTDialog::postDownloadFilePortionMsg()
+{
+  PostMessage(m_hwndFTDialog, m_msgDownloadFilePortion, 0, 0);
 }

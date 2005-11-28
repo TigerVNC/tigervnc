@@ -56,6 +56,10 @@ namespace rfb {
 
       HWND getWndHandle() { return m_hwndFTDialog; }
 
+      void postCheckTransferQueueMsg();
+      void postUploadFilePortionMsg();
+      void postDownloadFilePortionMsg();
+
       FTProgress *m_pProgress;
       
     private:
@@ -95,6 +99,7 @@ namespace rfb {
 
       void setIcon(int dest, int idIcon);
       bool initFTDialog();
+      bool initFTWndMsgs();
       
       void onLocalOneUpFolder();
       void onRemoteOneUpFolder();
@@ -105,6 +110,10 @@ namespace rfb {
       
       bool m_bDlgShown;
 
+      UINT m_msgCheckTransferQueue;
+      UINT m_msgUploadFilePortion;
+      UINT m_msgDownloadFilePortion;
+
       FTListView *m_pLocalLV;
       FTListView *m_pRemoteLV;
 
@@ -114,6 +123,10 @@ namespace rfb {
       char m_szRemotePath[FT_FILENAME_SIZE];
       char m_szLocalPathTmp[FT_FILENAME_SIZE];
       char m_szRemotePathTmp[FT_FILENAME_SIZE];
+
+      static const char szCheckTransferQueueText[];
+      static const char szUploadFilePortionText[];
+      static const char szDownloadFilePortionText[];
 
       typedef struct tagFTBUTTONSSTATE
       {

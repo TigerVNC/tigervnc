@@ -49,11 +49,13 @@ namespace rfb {
 
       void requestFileList(char *pPath, int dest, bool bDirOnly);
 
-      void upload(TransferQueue *pTransQueue);
-      void download(TransferQueue *pTransQueue);
+      void addTransferQueue(char *pLocalPath, char *pRemotePath, 
+                            FileInfo *pFI, unsigned int flags);
 
       bool isTransferEnable();
-      void resizeSending();
+      void checkTransferQueue();
+      void uploadFilePortion();
+      void downloadFilePortion();
 
     private:
       bool m_bFTDlgShown;
@@ -64,11 +66,14 @@ namespace rfb {
       FTMsgReader *m_pReader;
       FTMsgWriter *m_pWriter;
 
+      FileReader m_fileReader;
+      FileWriter m_fileWriter;
+
       FileInfo m_queueFileListRqst;
 
       TransferQueue m_TransferQueue;
 
-      void checkTransferQueue();
+      bool resizeSending();
       bool uploadFile();
       bool downloadFile();
       
@@ -88,7 +93,7 @@ namespace rfb {
 
       DWORD64 m_dw64SizeSending;
       unsigned int m_dirSizeRqstNum;
-      
+
     };
   }
 }

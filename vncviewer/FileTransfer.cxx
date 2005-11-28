@@ -102,29 +102,46 @@ FileTransfer::isTransferEnable()
 }
 
 void 
-FileTransfer::upload(TransferQueue *pTransQueue)
+FileTransfer::addTransferQueue(char *pLocalPath, char *pRemotePath, 
+                               FileInfo *pFI, unsigned int flags)
 {
   if ((m_bFTDlgShown) && (!isTransferEnable())) m_pFTDialog->setStatusText("Starting Copy Operation");
   
-  pTransQueue->setFlagToAll(FT_ATTR_RESIZE_NEEDED);
-  
-  m_TransferQueue.add(pTransQueue);
-
-  resizeSending();
+  m_TransferQueue.add(pLocalPath, pRemotePath, pFI, (flags | FT_ATTR_RESIZE_NEEDED));
 
   checkTransferQueue();
 }
 
-void 
-FileTransfer::download(TransferQueue *pTransQueue)
-{
-
-}
-
-void
+bool
 FileTransfer::resizeSending()
 {
-
+  for (unsigned int i = 0; i < m_TransferQueue.getNumEntries(); i++) {
+    unsigned int flags = m_TransferQueue.getFlagsAt(i);
+    if (flags & FT_ATTR_RESIZE_NEEDED) {
+      if (flags & FT_ATTR_FILE) {
+        m_dw64SizeSending += m_TransferQueue.getSizeAt(i);
+        m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
+      } else {
+        if (flags & FT_ATTR_DIR) {
+          if (flags & FT_ATTR_COPY_DOWNLOAD) {
+            char *pPath = m_TransferQueue.getFullRemPathAt(i);
+            m_dirSizeRqstNum = i;
+            m_pWriter->writeFileDirSizeRqst(strlen(pPath), pPath);
+            return false;
+          } else {
+            if (flags & FT_ATTR_COPY_UPLOAD) {
+              FolderManager fm;
+              DWORD64 dw64Size;
+              fm.getDirSize(m_TransferQueue.getFullLocPathAt(i), &dw64Size);
+              m_dw64SizeSending += dw64Size;
+              m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
+            }
+          } // if (flags & FT_ATTR_COPY_DOWNLOAD)
+        } // if (flags & FT_ATTR_FOLDER)
+      } // if (flags & FT_ATTR_FILE)
+    } // if (flags & FT_ATTR_NEEDED_RESIZE)
+  } // for (unsigned int i = 0; i < m_TransferQueue.getNumEntries(); i++)
+  return true;
 }
 
 void
@@ -138,35 +155,10 @@ FileTransfer::checkTransferQueue()
       return;
     }
   } else {
-    for (unsigned int i = 0; i < m_TransferQueue.getNumEntries(); i++) {
-      unsigned int flags = m_TransferQueue.getFlagsAt(i);
-      if (flags & FT_ATTR_RESIZE_NEEDED) {
-        if (flags & FT_ATTR_FILE) {
-          m_dw64SizeSending += m_TransferQueue.getSizeAt(i);
-          m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
-        } else {
-          if (flags & FT_ATTR_DIR) {
-            if (flags & FT_ATTR_COPY_DOWNLOAD) {
-              char *pPath = m_TransferQueue.getFullRemPathAt(i);
-              m_dirSizeRqstNum = i;
-              m_pWriter->writeFileDirSizeRqst(strlen(pPath), pPath);
-              return;
-            } else {
-              if (flags & FT_ATTR_COPY_UPLOAD) {
-                FolderManager fm;
-                DWORD64 dw64Size;
-                fm.getDirSize(m_TransferQueue.getFullLocPathAt(i), &dw64Size);
-                m_dw64SizeSending += dw64Size;
-                m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
-              }
-            } // if (flags & FT_ATTR_COPY_DOWNLOAD)
-          } // if (flags & FT_ATTR_FOLDER)
-        } // if (flags & FT_ATTR_FILE)
-      } // if (flags & FT_ATTR_NEEDED_RESIZE)
-    } // for (unsigned int i = 0; i < m_TransferQueue.getNumEntries(); i++)
+    if (!resizeSending()) return;
 
     unsigned int flag0 = m_TransferQueue.getFlagsAt(0);
-    
+   
     if (flag0 & FT_ATTR_COPY_UPLOAD) {
       if (flag0 & FT_ATTR_FILE) {
           uploadFile();
@@ -206,6 +198,18 @@ bool
 FileTransfer::downloadFile()
 {
   return false;
+}
+
+void
+FileTransfer::uploadFilePortion()
+{
+
+}
+
+void
+FileTransfer::downloadFilePortion()
+{
+
 }
 
 bool 
@@ -271,6 +275,7 @@ FileTransfer::procFileDirSizeDataMsg()
   DWORD64 dw64DirSize = 0;
   m_pReader->readFileDirSizeData(&dw64DirSize);
   m_TransferQueue.clearFlagAt(m_dirSizeRqstNum, FT_ATTR_RESIZE_NEEDED);
+  checkTransferQueue();
   return true;
 }
 
