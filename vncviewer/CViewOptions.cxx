@@ -88,6 +88,8 @@ static BoolParameter acceptBell("AcceptBell",
                          "Produce a system beep when requested to by the server.",
                          true);
 
+static BoolParameter showToolbar("ShowToolbar", "Show toolbar by default.", true);
+
 static StringParameter monitor("Monitor", "The monitor to open the VNC Viewer window on, if available.", "");
 static StringParameter menuKey("MenuKey", "The key which brings up the popup menu", "F8");
 
@@ -114,7 +116,7 @@ CViewOptions::CViewOptions()
 autoSelect(::autoSelect), fullColour(::fullColour), fullScreen(::fullScreen),
 shared(::sharedConnection), sendPtrEvents(::sendPtrEvents), sendKeyEvents(::sendKeyEvents), sendSysKeys(::sendSysKeys),
 preferredEncoding(encodingZRLE), clientCutText(::clientCutText), serverCutText(::serverCutText),
-protocol3_3(::protocol3_3), acceptBell(::acceptBell), lowColourLevel(::lowColourLevel),
+protocol3_3(::protocol3_3), acceptBell(::acceptBell), showToolbar(::showToolbar), lowColourLevel(::lowColourLevel),
 pointerEventInterval(ptrEventInterval), emulate3(::emulate3), monitor(::monitor.getData()),
 customCompressLevel(::customCompressLevel), compressLevel(::compressLevel), 
 noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getData())
@@ -224,6 +226,8 @@ void CViewOptions::readFromFile(const char* filename) {
             serverCutText = atoi(value.buf);
           } else if (stricmp(name.buf, "Emulate3") == 0) {
             emulate3 = atoi(value.buf);
+          } else if (stricmp(name.buf, "ShowToolbar") == 0) {
+            showToolbar = atoi(value.buf);
           } else if (stricmp(name.buf, "PointerEventInterval") == 0) {
             pointerEventInterval = atoi(value.buf);
           } else if (stricmp(name.buf, "Monitor") == 0) {
@@ -318,6 +322,7 @@ void CViewOptions::writeToFile(const char* filename) {
     fprintf(f, "SendCutText=%d\n", (int)clientCutText);
     fprintf(f, "AcceptCutText=%d\n", (int)serverCutText);
     fprintf(f, "Emulate3=%d\n", (int)emulate3);
+    fprintf(f, "ShowToolbar=%d\n", (int)showToolbar);
     fprintf(f, "PointerEventInterval=%d\n", pointerEventInterval);
     if (monitor.buf)
       fprintf(f, "Monitor=%s\n", monitor.buf);
@@ -354,6 +359,7 @@ void CViewOptions::writeDefaults() {
   key.setBool(_T("ServerCutText"), serverCutText);
   key.setBool(_T("Protocol3.3"), protocol3_3);
   key.setBool(_T("AcceptBell"), acceptBell);
+  key.setBool(_T("ShowToolbar"), showToolbar);
   key.setBool(_T("Emulate3"), emulate3);
   key.setInt(_T("PointerEventInterval"), pointerEventInterval);
   if (monitor.buf)
@@ -412,6 +418,7 @@ CViewOptions& CViewOptions::operator=(const CViewOptions& o) {
   pointerEventInterval = o.pointerEventInterval;
   protocol3_3 = o.protocol3_3;
   acceptBell = o.acceptBell;
+  showToolbar = o.showToolbar;
   setUserName(o.userName.buf);
   setPassword(o.password.buf);
   setConfigFileName(o.configFileName.buf);
