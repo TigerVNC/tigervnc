@@ -27,7 +27,7 @@ using namespace rfb;
 
 FileWriter::FileWriter()
 {
-  strcpy(m_szMode, "w");
+  strcpy(m_szMode, "wb");
 }
 
 bool 

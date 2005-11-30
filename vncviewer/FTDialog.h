@@ -60,6 +60,9 @@ namespace rfb {
       void postUploadFilePortionMsg();
       void postDownloadFilePortionMsg();
 
+      char *getLocalPath() { return m_szLocalPath; }
+      char *getRemotePath() { return m_szRemotePath; }
+
       FTProgress *m_pProgress;
       
     private:

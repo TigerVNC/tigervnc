@@ -78,6 +78,8 @@ namespace rfb {
       bool resizeSending();
       bool uploadFile();
       bool downloadFile();
+
+      int isExistName(FileInfo *pFI, char *pName);
       
       bool procFileListDataMsg();
       bool procFileDownloadDataMsg();

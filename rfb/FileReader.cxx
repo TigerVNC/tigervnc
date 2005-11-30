@@ -27,7 +27,7 @@ using namespace rfb;
 
 FileReader::FileReader()
 {
-  strcpy(m_szMode, "r");
+  strcpy(m_szMode, "rb");
 }
 
 bool 
@@ -35,15 +35,9 @@ FileReader::read(void *pBuf, unsigned int count, unsigned int *pBytesRead)
 {
   if (m_pFile == NULL) return false;
 
-  unsigned int bytesRead = fread(pBuf, 1, count, m_pFile);
-
+  *pBytesRead = fread(pBuf, 1, count, m_pFile);
+  
   if (ferror(m_pFile)) return false;
-
-  if (feof(m_pFile)) {
-    *pBytesRead = 0;
-  } else {
-    *pBytesRead = bytesRead;
-  }
-
+ 
   return true;
 }

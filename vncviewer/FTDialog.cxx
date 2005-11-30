@@ -66,6 +66,8 @@ FTDialog::createFTDialog(HWND hwndParent)
     return true;
   }
 
+  if (!initFTWndMsgs()) return false;
+
   m_hwndFTDialog = CreateDialogParam(m_hInstance, 
                                      MAKEINTRESOURCE(IDD_FILETRANSFER_DLG),
                                      hwndParent, 
@@ -74,8 +76,6 @@ FTDialog::createFTDialog(HWND hwndParent)
   
   if (m_hwndFTDialog == NULL) return false;
 
-  if (!initFTWndMsgs()) return false;
-  
   HWND hwndLocalList = GetDlgItem(m_hwndFTDialog, IDC_FTLOCALLIST);
   HWND hwndRemoteList = GetDlgItem(m_hwndFTDialog, IDC_FTREMOTELIST);
 
@@ -169,9 +169,11 @@ BOOL CALLBACK
 FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   FTDialog *_this = (FTDialog *) GetWindowLong(hwnd, GWL_USERDATA);
+
   switch (uMsg)
   {
   case WM_INITDIALOG:
+    _this = (FTDialog*)lParam;
     SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
     SetForegroundWindow(hwnd);
     return TRUE;
@@ -278,14 +280,16 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return FALSE;
   }
 
-  if (uMsg == _this->m_msgCheckTransferQueue)  
-    _this->m_pFileTransfer->checkTransferQueue();
+  if (_this != NULL) {
+    if (uMsg == _this->m_msgCheckTransferQueue)
+      _this->m_pFileTransfer->checkTransferQueue();
 
-  if (uMsg == _this->m_msgDownloadFilePortion) 
-    _this->m_pFileTransfer->downloadFilePortion();
-
-  if (uMsg == _this->m_msgUploadFilePortion)   
-    _this->m_pFileTransfer->uploadFilePortion();
+    if (uMsg == _this->m_msgUploadFilePortion)
+      _this->m_pFileTransfer->uploadFilePortion();
+    
+    if (uMsg == _this->m_msgDownloadFilePortion)
+      _this->m_pFileTransfer->downloadFilePortion();
+  }
 
   return FALSE;
 }

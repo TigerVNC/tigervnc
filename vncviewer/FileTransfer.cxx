@@ -68,6 +68,7 @@ FileTransfer::show(HWND hwndParent)
   if (!m_bInitialized) return false;
 
   m_bFTDlgShown = m_pFTDialog->createFTDialog(hwndParent);
+
   return m_bFTDlgShown;
 }
 
@@ -161,8 +162,8 @@ FileTransfer::checkTransferQueue()
    
     if (flag0 & FT_ATTR_COPY_UPLOAD) {
       if (flag0 & FT_ATTR_FILE) {
-          uploadFile();
-          return;
+        uploadFile();
+        return;
       }
       if (flag0 & FT_ATTR_DIR) {
         char *pFullPath = m_TransferQueue.getFullRemPathAt(0);
@@ -172,7 +173,7 @@ FileTransfer::checkTransferQueue()
         char *pPath = m_TransferQueue.getRemPathAt(0);
         m_TransferQueue.setFlagsAt(0, (flag0 | FT_ATTR_FLR_UPLOAD_CHECK));
         m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_UPLOAD);
-        m_pWriter->writeFileListRqst(strlen(pPath), pPath, 0);
+        m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
         return;
       }
     } else {
@@ -191,6 +192,13 @@ FileTransfer::checkTransferQueue()
 bool
 FileTransfer::uploadFile()
 {
+  if (m_TransferQueue.getFlagsAt(0) & FT_ATTR_FILE) {
+    if (m_fileReader.create(m_TransferQueue.getFullLocPathAt(0))) {
+      m_pWriter->writeFileUploadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
+                                     m_TransferQueue.getFullRemPathAt(0), 0);
+      uploadFilePortion();
+    }
+  }
   return false;
 }
 
@@ -203,7 +211,25 @@ FileTransfer::downloadFile()
 void
 FileTransfer::uploadFilePortion()
 {
-
+  if (m_fileReader.isCreated()) {
+    char buf[FT_MAX_SENDING_SIZE];
+    unsigned int bytesRead = 0;
+    if (m_fileReader.read((void *)buf, FT_MAX_SENDING_SIZE, &bytesRead)) {
+      if (bytesRead == 0) {
+        m_pWriter->writeFileUploadData(m_TransferQueue.getDataAt(0));
+        m_fileReader.close();
+        m_TransferQueue.deleteAt(0);
+        m_pFTDialog->postCheckTransferQueueMsg();
+      } else {
+        m_pWriter->writeFileUploadData(bytesRead, (char *)buf);
+        m_pFTDialog->postUploadFilePortionMsg();
+      }
+    } else {
+      m_fileReader.close();
+      m_TransferQueue.deleteAt(0);
+      m_pFTDialog->postCheckTransferQueueMsg();
+    }
+  }
 }
 
 void
@@ -301,7 +327,36 @@ FileTransfer::procFLRBrowse(FileInfo *pFI)
 bool 
 FileTransfer::procFLRUpload(FileInfo *pFI)
 {
-  return false;
+  unsigned int flags = m_TransferQueue.getFlagsAt(0);
+  if (flags & FT_ATTR_FLR_UPLOAD_CHECK) {
+    int num = isExistName(pFI, m_TransferQueue.getRemNameAt(0));
+    if (num >= 0) { 
+      if ((m_bFTDlgShown) && (strcmp(m_TransferQueue.getRemPathAt(0), m_pFTDialog->getRemotePath()) == 0)) {
+        m_pFTDialog->addRemoteLVItems(pFI);
+      }
+    } else {
+      if (flags & FT_ATTR_DIR) {
+        m_TransferQueue.deleteAt(0);
+        if (m_bFTDlgShown) m_pFTDialog->setStatusText("Create Remote Folder Failed.");
+      }
+    }
+  }
+  FolderManager fm;
+  FileInfo fi;
+  flags = m_TransferQueue.getFlagsAt(0);
+  if (flags & FT_ATTR_FILE) {
+    uploadFile();
+    return true;
+  } else {
+    if (fm.getDirInfo(m_TransferQueue.getFullLocPathAt(0), &fi, 0)) {
+      m_TransferQueue.add(m_TransferQueue.getFullLocPathAt(0),
+        m_TransferQueue.getFullRemPathAt(0),
+        &fi, FT_ATTR_COPY_UPLOAD);
+    }
+  }
+  m_TransferQueue.deleteAt(0);
+  m_pFTDialog->postCheckTransferQueueMsg();
+  return true;
 }
 
 bool 
@@ -328,4 +383,15 @@ FileTransfer::requestFileList(char *pPath, int dest, bool bDirOnly)
   m_queueFileListRqst.add(pPath, 0, 0, dest);
 
   m_pWriter->writeFileListRqst(strlen(pPath), pPath, bDirOnly);
+}
+
+int
+FileTransfer::isExistName(FileInfo *pFI, char *pName)
+{
+  for (int i = 0; i < pFI->getNumEntries(); i++) {
+    if (strcmp(pFI->getNameAt(i), pName) == 0) {
+      return i;
+    }
+  }
+  return -1;
 }

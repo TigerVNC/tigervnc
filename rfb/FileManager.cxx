@@ -65,3 +65,9 @@ FileManager::close()
     return true;
   }
 }
+
+bool 
+FileManager::isCreated()
+{
+  if (m_pFile != NULL) return true; else return false;
+}
