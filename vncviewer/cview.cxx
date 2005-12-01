@@ -685,6 +685,10 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       writeKeyEvent(VK_CONTROL, 0, false);
       return 0;
     case IDM_SEND_CTLESC:
+      writeKeyEvent(VK_CONTROL, 0, true);
+      writeKeyEvent(VK_ESCAPE, 0, true);
+      writeKeyEvent(VK_CONTROL, 0, false);
+      writeKeyEvent(VK_ESCAPE, 0, false);
       return 0;
     case IDM_REQUEST_REFRESH:
       try {
