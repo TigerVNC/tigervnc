@@ -24,7 +24,7 @@
 void ViewerToolBar::create(HWND parentHwnd) {
   // Create the toolbar panel
   ToolBar::create(ID_TOOLBAR, parentHwnd, WS_CHILD | 
-    TBSTYLE_FLAT | CCS_NORESIZE);
+    TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | CCS_NORESIZE);
   addBitmap(4, IDB_TOOLBAR);
 
   // Create the control buttons
@@ -47,6 +47,63 @@ void ViewerToolBar::create(HWND parentHwnd) {
 
   // Resize the toolbar window
   autoSize();
+}
+
+LRESULT ViewerToolBar::processWM_NOTIFY(WPARAM wParam, LPARAM lParam) {
+  switch (((LPNMHDR)lParam)->code) { 
+    // Process tooltips text
+  case TTN_NEEDTEXT:
+    {
+      LPTOOLTIPTEXT TTStr = (LPTOOLTIPTEXT)lParam;
+      if (TTStr->hdr.code != TTN_NEEDTEXT)
+        return 0;
+
+      switch (TTStr->hdr.idFrom) {
+      case ID_OPTIONS:
+        TTStr->lpszText = "Connection options...";
+        break;
+      case ID_INFO:
+        TTStr->lpszText = "Connection info";
+        break;
+      case ID_FULLSCREEN:
+        TTStr->lpszText = "Full screen";
+        break;
+      case ID_REQUEST_REFRESH:
+        TTStr->lpszText = "Request screen refresh";
+        break;
+      case ID_SEND_CAD:
+        TTStr->lpszText = "Send Ctrl-Alt-Del";
+        break;
+      case ID_SEND_CTLESC:
+        TTStr->lpszText = "Send Ctrl-Esc";
+        break;
+      case ID_CTRL_KEY:
+        TTStr->lpszText = "Send Ctrl key press/release";
+        break;
+      case ID_ALT_KEY:
+        TTStr->lpszText = "Send Alt key press/release";
+        break;
+      case ID_FILE_TRANSFER:
+        TTStr->lpszText = "Transfer files...";
+        break;
+      case ID_NEW_CONNECTION:
+        TTStr->lpszText = "New connection...";
+        break;
+      case ID_CONN_SAVE_AS:
+        TTStr->lpszText = "Save connection info as...";
+        break;
+      case ID_CLOSE:
+        TTStr->lpszText = "Disconnect";
+        break;
+      default:
+        break;
+      }
+    }
+
+  default:
+    break;
+  }
+  return 0;
 }
 
 void ViewerToolBar::show() {
