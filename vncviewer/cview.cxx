@@ -263,9 +263,6 @@ CView::CView()
 
   // Create the backing buffer
   buffer = new win32::DIBSectionBuffer(getFrameHandle());
-  
-  // Show the toolbar if needed
-  if (toolbar) tb.show();
 }
 
 CView::~CView() {
@@ -285,7 +282,7 @@ bool CView::initialise(network::Socket* s) {
   HMENU wndmenu = GetSystemMenu(hwnd, FALSE);
   AppendMenu(wndmenu, MF_SEPARATOR, 0, 0);
   AppendMenu(wndmenu, MF_STRING, IDM_FULLSCREEN, _T("&Full screen"));
-  AppendMenu(wndmenu, (toolbar ? MF_STRING | MF_CHECKED : MF_STRING), 
+  AppendMenu(wndmenu, (options.showToolbar ? MF_STRING | MF_CHECKED : MF_STRING), 
     IDM_SHOW_TOOLBAR, _T("Show tool&bar"));
   AppendMenu(wndmenu, MF_SEPARATOR, 0, 0);
   AppendMenu(wndmenu, MF_STRING, IDM_CTRL_KEY, _T("Ctr&l"));
@@ -322,6 +319,11 @@ bool CView::initialise(network::Socket* s) {
   sock = s;
 
   m_fileTransfer.initialize(&s->inStream(), &s->outStream());
+
+  // Show toolbar if needed
+  toolbar = options.showToolbar;
+  if (options.showToolbar) tb.show();
+  else tb.hide();
 
   return true;
 }
@@ -397,6 +399,9 @@ CView::applyOptions(CViewOptions& opt) {
 
   // - Bell
   options.acceptBell = opt.acceptBell;
+
+  // - Show/hide toolbar
+  options.showToolbar = opt.showToolbar;
 }
 
 void

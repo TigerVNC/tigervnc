@@ -165,6 +165,7 @@ public:
     enableItem(IDC_PROTOCOL_3_3, (!dlg->view) || (dlg->view->state() != CConnection::RFBSTATE_NORMAL));
     setItemChecked(IDC_PROTOCOL_3_3, dlg->options.protocol3_3);
     setItemChecked(IDC_ACCEPT_BELL, dlg->options.acceptBell);
+    setItemChecked(IDC_SHOW_TOOLBAR, dlg->options.showToolbar);
   }
   virtual bool onOk() {
     dlg->options.shared = isItemChecked(IDC_CONN_SHARED);
@@ -173,6 +174,7 @@ public:
     dlg->options.useDesktopResize = isItemChecked(IDC_DESKTOP_RESIZE);
     dlg->options.protocol3_3 = isItemChecked(IDC_PROTOCOL_3_3);
     dlg->options.acceptBell = isItemChecked(IDC_ACCEPT_BELL);
+    dlg->options.showToolbar = isItemChecked(IDC_SHOW_TOOLBAR);
     ((VNCviewerOptions*)propSheet)->setChanged();
     return true;
   }
