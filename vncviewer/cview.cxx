@@ -520,6 +520,10 @@ CView::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
 
     // -=- Process standard window messages
 
+  case WM_NOTIFY:
+    if (wParam = (ID_TOOLBAR)) tb.processWM_NOTIFY(wParam, lParam);
+    break;
+
   case WM_DISPLAYCHANGE:
     // Display has changed - use new pixel format
     calculateFullColourPF();
