@@ -288,6 +288,7 @@ bool CView::initialise(network::Socket* s) {
   AppendMenu(wndmenu, MF_STRING, IDM_CTRL_KEY, _T("Ctr&l"));
   AppendMenu(wndmenu, MF_STRING, IDM_ALT_KEY, _T("Al&t"));
   AppendMenu(wndmenu, MF_STRING, IDM_SEND_CAD, _T("Send Ctrl-Alt-&Del"));
+  AppendMenu(wndmenu, MF_STRING, IDM_SEND_CTLESC, _T("Send Ctrl-&Esc"));
   AppendMenu(wndmenu, MF_STRING, IDM_REQUEST_REFRESH, _T("Refres&h Screen"));
   AppendMenu(wndmenu, MF_SEPARATOR, 0, 0);
   if (manager) AppendMenu(wndmenu, MF_STRING, IDM_NEWCONN, _T("Ne&w Connection..."));
