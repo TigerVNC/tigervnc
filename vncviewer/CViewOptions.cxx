@@ -224,6 +224,8 @@ void CViewOptions::readFromFile(const char* filename) {
             clientCutText = atoi(value.buf);
           } else if (stricmp(name.buf, "AcceptCutText") == 0) {
             serverCutText = atoi(value.buf);
+          } else if (stricmp(name.buf, "AcceptBell") == 0) {
+            acceptBell = atoi(value.buf);
           } else if (stricmp(name.buf, "Emulate3") == 0) {
             emulate3 = atoi(value.buf);
           } else if (stricmp(name.buf, "ShowToolbar") == 0) {
@@ -321,6 +323,7 @@ void CViewOptions::writeToFile(const char* filename) {
     fprintf(f, "SendSysKeys=%d\n", (int)sendSysKeys);
     fprintf(f, "SendCutText=%d\n", (int)clientCutText);
     fprintf(f, "AcceptCutText=%d\n", (int)serverCutText);
+    fprintf(f, "AcceptBell=%d\n", (int)acceptBell);
     fprintf(f, "Emulate3=%d\n", (int)emulate3);
     fprintf(f, "ShowToolbar=%d\n", (int)showToolbar);
     fprintf(f, "PointerEventInterval=%d\n", pointerEventInterval);
