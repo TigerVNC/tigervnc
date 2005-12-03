@@ -246,6 +246,10 @@ SOURCE=.\RREEncoder.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScaledPixelBuffer.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\SConnection.cxx
 # End Source File
 # Begin Source File
@@ -557,6 +561,10 @@ SOURCE=.\rreEncode.h
 # Begin Source File
 
 SOURCE=.\RREEncoder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScaledPixelBuffer.h
 # End Source File
 # Begin Source File
 
