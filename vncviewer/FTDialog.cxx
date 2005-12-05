@@ -46,6 +46,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_hwndRemotePath = NULL;
 
   m_FTMenuSource = 0;
+  m_dwNumStatusStrings = 0;
 
   m_szLocalPath[0] = '\0';
   m_szRemotePath[0] = '\0';
@@ -674,7 +675,22 @@ FTDialog::setStatusText(LPCSTR format,...)
   va_list args;
   va_start(args, format);
   int nSize = _vsnprintf(text, sizeof(text), format, args);
-  SetDlgItemText(m_hwndFTDialog, IDC_FTSTATUS, text);
+
+  HWND hStatusBox = GetDlgItem(m_hwndFTDialog, IDC_FTSTATUS);
+
+  LRESULT lRes = SendMessage(hStatusBox, (UINT) CB_INSERTSTRING, (WPARAM) 0, (LPARAM) text);
+  if ((lRes != CB_ERR) && (lRes != CB_ERRSPACE)) {
+    lRes = SendMessage(hStatusBox, (UINT) CB_SETCURSEL, (WPARAM) lRes, (LPARAM) 0);
+  }
+  
+  m_dwNumStatusStrings++;
+  if (m_dwNumStatusStrings > FT_MAX_STATUS_STRINGS) {
+    int numItems = SendMessage(hStatusBox, (UINT) CB_GETCOUNT, (WPARAM) 0, (LPARAM) 0); 
+    if (numItems != CB_ERR) {
+      m_dwNumStatusStrings--;
+      SendMessage(hStatusBox, (UINT) CB_DELETESTRING, (WPARAM) numItems - 1, (LPARAM) 0); 
+    }
+  }
 }
 
 void 

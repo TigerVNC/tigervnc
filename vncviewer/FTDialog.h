@@ -119,6 +119,8 @@ namespace rfb {
       UINT m_msgUploadFilePortion;
       UINT m_msgDownloadFilePortion;
 
+      DWORD m_dwNumStatusStrings;
+
       FTListView *m_pLocalLV;
       FTListView *m_pRemoteLV;
 

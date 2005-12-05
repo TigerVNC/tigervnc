@@ -195,7 +195,7 @@ FolderManager::getInfo(char *pFullPath, FILEINFO *pFIStruct)
   SetErrorMode(0);
   if (hFile != INVALID_HANDLE_VALUE) {
     FindClose(hFile);
-    strcpy(pFIStruct->name, FindFileData.cFileName);
+    strcpy(pFIStruct->name, pFullPath);
     pFIStruct->info.data = getTime70(FindFileData.ftLastWriteTime);
     if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	
       pFIStruct->info.size = 0;

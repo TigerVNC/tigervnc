@@ -116,9 +116,11 @@ void
 FileTransfer::checkDeleteQueue()
 {
   if (m_DeleteQueue.getNumEntries() > 0) {
+    if (m_bFTDlgShown) 
+      m_pFTDialog->setStatusText("Delete Operation Executing: %s", m_DeleteQueue.getFullLocPathAt(0));
     if (m_DeleteQueue.getFlagsAt(0) & FT_ATTR_DELETE_LOCAL) {
       FolderManager fm;
-      if (!fm.deleteIt(m_DeleteQueue.getLocNameAt(0))) {
+      if (!fm.deleteIt(m_DeleteQueue.getFullLocPathAt(0))) {
         if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Failed");
       } else {
         if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Completed");
@@ -130,13 +132,17 @@ FileTransfer::checkDeleteQueue()
         m_pWriter->writeFileDeleteRqst(strlen(m_DeleteQueue.getFullLocPathAt(0)), 
                                        m_DeleteQueue.getFullLocPathAt(0));
 
-        char *pPath = m_DeleteQueue.getRemPathAt(0);
+        char *pPath = m_DeleteQueue.getLocPathAt(0);
         m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_DELETE);
         m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
       }
     }
   } else {
-    if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Completed Successfully");
+    if (m_bFTDlgShown) {
+      m_pFTDialog->setStatusText("Delete Operation Completed Successfully");
+      PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTLOCALRELOAD, 0), 0);
+      PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTREMOTERELOAD, 0), 0);
+    }
   }
 }
 
@@ -406,7 +412,14 @@ FileTransfer::procFLRDownload(FileInfo *pFI)
 bool 
 FileTransfer::procFLRDelete(FileInfo *pFI)
 {
-  return false;
+  if (isExistName(pFI, m_DeleteQueue.getLocNameAt(0)) >= 0) {
+    if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Failed.");
+  } else {
+    if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Completed.");
+  }
+  m_DeleteQueue.deleteAt(0);
+  checkDeleteQueue();
+  return true;
 }
 
 bool 
