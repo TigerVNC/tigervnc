@@ -107,7 +107,7 @@ FileTransfer::isTransferEnable()
 void 
 FileTransfer::addDeleteQueue(char *pPathPrefix, FileInfo *pFI, unsigned int flags)
 {
-  m_DeleteQueue.add(pPathPrefix, "", pFI, flags);
+  m_DeleteQueue.add(pPathPrefix, pPathPrefix, pFI, flags);
 
   checkDeleteQueue();
 }
@@ -115,7 +115,29 @@ FileTransfer::addDeleteQueue(char *pPathPrefix, FileInfo *pFI, unsigned int flag
 void
 FileTransfer::checkDeleteQueue()
 {
+  if (m_DeleteQueue.getNumEntries() > 0) {
+    if (m_DeleteQueue.getFlagsAt(0) & FT_ATTR_DELETE_LOCAL) {
+      FolderManager fm;
+      if (!fm.deleteIt(m_DeleteQueue.getLocNameAt(0))) {
+        if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Failed");
+      } else {
+        if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Completed");
+      }
+      m_DeleteQueue.deleteAt(0);
+      m_pFTDialog->postCheckDeleteQueueMsg();
+    } else {
+      if (m_DeleteQueue.getFlagsAt(0) & FT_ATTR_DELETE_REMOTE) {
+        m_pWriter->writeFileDeleteRqst(strlen(m_DeleteQueue.getFullLocPathAt(0)), 
+                                       m_DeleteQueue.getFullLocPathAt(0));
 
+        char *pPath = m_DeleteQueue.getRemPathAt(0);
+        m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_DELETE);
+        m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
+      }
+    }
+  } else {
+    if (m_bFTDlgShown) m_pFTDialog->setStatusText("Delete Operation Completed Successfully");
+  }
 }
 
 void 

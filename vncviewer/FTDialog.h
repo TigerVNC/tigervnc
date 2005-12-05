@@ -56,6 +56,7 @@ namespace rfb {
 
       HWND getWndHandle() { return m_hwndFTDialog; }
 
+      void postCheckDeleteQueueMsg();
       void postCheckTransferQueueMsg();
       void postUploadFilePortionMsg();
       void postDownloadFilePortionMsg();
@@ -113,6 +114,7 @@ namespace rfb {
       
       bool m_bDlgShown;
 
+      UINT m_msgCheckDeleteQueue;
       UINT m_msgCheckTransferQueue;
       UINT m_msgUploadFilePortion;
       UINT m_msgDownloadFilePortion;
@@ -127,6 +129,7 @@ namespace rfb {
       char m_szLocalPathTmp[FT_FILENAME_SIZE];
       char m_szRemotePathTmp[FT_FILENAME_SIZE];
 
+      static const char szCheckDeleteQueueText[];
       static const char szCheckTransferQueueText[];
       static const char szUploadFilePortionText[];
       static const char szDownloadFilePortionText[];

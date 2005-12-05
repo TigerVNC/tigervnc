@@ -26,6 +26,7 @@
 using namespace rfb;
 using namespace rfb::win32;
 
+const char FTDialog::szCheckDeleteQueueText[]    = "TightVNC.Viewer.CheckDeleteQueue.Msg";
 const char FTDialog::szCheckTransferQueueText[]  = "TightVNC.Viewer.CheckTransferQueue.Msg";
 const char FTDialog::szDownloadFilePortionText[] = "TightVNC.Viewer.DownloadFilePortion.Msg";
 const char FTDialog::szUploadFilePortionText[]   = "TightVNC.Viewer.UploadFilePortion.Msg";
@@ -125,13 +126,13 @@ FTDialog::initFTDialog()
 bool
 FTDialog::initFTWndMsgs()
 {
+  m_msgCheckDeleteQueue    = RegisterWindowMessage(szCheckDeleteQueueText);
   m_msgCheckTransferQueue  = RegisterWindowMessage(szCheckTransferQueueText);
   m_msgUploadFilePortion   = RegisterWindowMessage(szUploadFilePortionText);
   m_msgDownloadFilePortion = RegisterWindowMessage(szDownloadFilePortionText);
 
-  if ((m_msgCheckTransferQueue) && 
-      (m_msgUploadFilePortion)  && 
-      (m_msgDownloadFilePortion)) return true;
+  if ((m_msgCheckDeleteQueue) && (m_msgCheckTransferQueue) && 
+      (m_msgUploadFilePortion)  && (m_msgDownloadFilePortion)) return true;
 
   return false;
 }
@@ -289,6 +290,9 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     
     if (uMsg == _this->m_msgDownloadFilePortion)
       _this->m_pFileTransfer->downloadFilePortion();
+
+    if (uMsg == _this->m_msgCheckDeleteQueue)
+      _this->m_pFileTransfer->checkDeleteQueue();
   }
 
   return FALSE;
@@ -689,4 +693,10 @@ void
 FTDialog::postDownloadFilePortionMsg()
 {
   PostMessage(m_hwndFTDialog, m_msgDownloadFilePortion, 0, 0);
+}
+
+void 
+FTDialog::postCheckDeleteQueueMsg()
+{
+  PostMessage(m_hwndFTDialog, m_msgCheckDeleteQueue, 0, 0);
 }
