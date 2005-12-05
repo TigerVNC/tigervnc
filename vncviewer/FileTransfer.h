@@ -53,9 +53,14 @@ namespace rfb {
 
       void addTransferQueue(char *pLocalPath, char *pRemotePath, 
                             FileInfo *pFI, unsigned int flags);
+      void addDeleteQueue(char *pPathPrefix, FileInfo *pFI, 
+                          unsigned int flags);
 
       bool isTransferEnable();
+
       void checkTransferQueue();
+      void checkDeleteQueue();
+
       void uploadFilePortion();
       void downloadFilePortion();
 
@@ -74,12 +79,14 @@ namespace rfb {
       FileInfo m_queueFileListRqst;
 
       TransferQueue m_TransferQueue;
+      TransferQueue m_DeleteQueue;
 
       bool resizeSending();
       bool uploadFile();
       bool downloadFile();
 
-      int isExistName(FileInfo *pFI, char *pName);
+      int  isExistName(FileInfo *pFI, char *pName);
+      void freeQueues();
       
       bool procFileListDataMsg();
       bool procFileDownloadDataMsg();

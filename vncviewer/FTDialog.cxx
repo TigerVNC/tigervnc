@@ -431,15 +431,19 @@ FTDialog::onRemoteRename()
 void 
 FTDialog::onLocalDelete()
 {
-  MessageBox(NULL, "onLocalDelete", "FTDialog", MB_OK);
-
+  FileInfo fi;
+  if (m_pLocalLV->getSelectedItems(&fi) > 0) {
+    m_pFileTransfer->addDeleteQueue(m_szLocalPath, &fi, FT_ATTR_DELETE_LOCAL);
+  }
 }
 
 void 
 FTDialog::onRemoteDelete()
 {
-  MessageBox(NULL, "onRemoteDelete", "FTDialog", MB_OK);
-
+  FileInfo fi;
+  if (m_pRemoteLV->getSelectedItems(&fi) > 0) {
+    m_pFileTransfer->addDeleteQueue(m_szRemotePath, &fi, FT_ATTR_DELETE_REMOTE);
+  }
 }
 
 void 

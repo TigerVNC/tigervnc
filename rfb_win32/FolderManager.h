@@ -39,7 +39,10 @@ namespace rfb {
       bool createDir(char *pFullPath);
 
       bool renameIt(char *pOldName, char *pNewName);
+      
+      bool deleteIt(char *pPrefix, FileInfo *pFI);
       bool deleteIt(char *pFullPath);
+      bool deleteIt(FileInfo *pFI);
 
       bool getInfo(char *pFullPath, FILEINFO *pFIStruct);
       

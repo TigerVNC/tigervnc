@@ -46,6 +46,8 @@ FileTransfer::~FileTransfer()
     delete m_pFTDialog;
     m_pFTDialog = NULL;
   }
+  
+  freeQueues();
 }
 
 bool 
@@ -56,7 +58,7 @@ FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
   m_pReader = new FTMsgReader(pIS);
   m_pWriter = new FTMsgWriter(pOS);
 
-  m_TransferQueue.free();
+  freeQueues();
 
   m_bInitialized = true;
   return true;
@@ -100,6 +102,20 @@ bool
 FileTransfer::isTransferEnable()
 {
   if (m_TransferQueue.getNumEntries() > 0) return true; else return false;
+}
+
+void 
+FileTransfer::addDeleteQueue(char *pPathPrefix, FileInfo *pFI, unsigned int flags)
+{
+  m_DeleteQueue.add(pPathPrefix, "", pFI, flags);
+
+  checkDeleteQueue();
+}
+
+void
+FileTransfer::checkDeleteQueue()
+{
+
 }
 
 void 
@@ -388,10 +404,17 @@ FileTransfer::requestFileList(char *pPath, int dest, bool bDirOnly)
 int
 FileTransfer::isExistName(FileInfo *pFI, char *pName)
 {
-  for (int i = 0; i < pFI->getNumEntries(); i++) {
+  for (unsigned int i = 0; i < pFI->getNumEntries(); i++) {
     if (strcmp(pFI->getNameAt(i), pName) == 0) {
       return i;
     }
   }
   return -1;
+}
+
+void
+FileTransfer::freeQueues()
+{
+  m_TransferQueue.free();
+  m_DeleteQueue.free();
 }

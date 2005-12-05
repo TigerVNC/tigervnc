@@ -62,31 +62,47 @@ FolderManager::deleteIt(char *pFullPath)
 
   fileInfo.add(&FIStruct);
 
-  unsigned int num = fileInfo.getNumEntries();
+  return deleteIt(&fileInfo);
+}
+
+bool
+FolderManager::deleteIt(char *pPrefix, FileInfo *pFI)
+{
+  char buf[FT_FILENAME_SIZE];
+  for (unsigned int i = 0; i < pFI->getNumEntries(); i++) {
+    sprintf(buf, "%s\\%s", pPrefix, pFI->getNameAt(i));
+    pFI->setNameAt(i,buf);
+  }
+  return deleteIt(pFI);
+}
+
+bool
+FolderManager::deleteIt(FileInfo *pFI)
+{
+  unsigned int num = pFI->getNumEntries();
   unsigned int last = num - 1;
 
   while (num > 0) {
-    if (fileInfo.getFlagsAt(last) & FT_ATTR_DIR) {
-      if (RemoveDirectory(fileInfo.getNameAt(last)) == 0) {
+    if (pFI->getFlagsAt(last) & FT_ATTR_DIR) {
+      if (RemoveDirectory(pFI->getNameAt(last)) == 0) {
         if (GetLastError() == ERROR_DIR_NOT_EMPTY) {
-          if (!getFolderInfoWithPrefix(fileInfo.getNameAt(last), &fileInfo)) {
-            fileInfo.free();
+          if (!getFolderInfoWithPrefix(pFI->getNameAt(last), pFI)) {
+            pFI->free();
             return false;
           }
         }
       } else {
-        fileInfo.deleteAt(last);
+        pFI->deleteAt(last);
       }
     } else {
-      if (DeleteFile(fileInfo.getNameAt(last)) == 0) {
-        fileInfo.free();
+      if (DeleteFile(pFI->getNameAt(last)) == 0) {
+        pFI->free();
         return false;
       } else {
-        fileInfo.deleteAt(last);
+        pFI->deleteAt(last);
       }
     }
-
-    num = fileInfo.getNumEntries();
+    num = pFI->getNumEntries();
     last = num - 1;
   }
 
