@@ -63,15 +63,24 @@ bool ControlPanel::onCommand(int cmd)
 
 void ControlPanel::UpdateListView(rfb::ListConnInfo* LCInfo)
 {
+  getSelConnInfo();
   DeleteAllLVItem(IDC_LIST_CONNECTIONS, handle);
-  if(LCInfo->Empty()) return;
+
+  if(LCInfo->Empty()) 
+    return;
+
+  ListConn.Copy(LCInfo);
 
   char* ItemString[3];
   int i = 0;
 
-  for (LCInfo->iBegin(); !LCInfo->iEnd(); LCInfo->iNext()) {
-    LCInfo->iGetCharInfo(ItemString);
+  for (ListConn.iBegin(); !ListConn.iEnd(); ListConn.iNext()) {
+    ListConn.iGetCharInfo(ItemString);
     InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, ItemString, 3);
+    for (ListSelConn.iBegin(); !ListSelConn.iEnd(); ListSelConn.iNext()) {
+      if (ListSelConn.iGetConn() == ListConn.iGetConn())
+        SelectLVItem(IDC_LIST_CONNECTIONS, handle, i);
+    }
     i++;
   } 
 }
@@ -96,9 +105,16 @@ BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
-void ControlPanel::getSelConnInfo(std::list<DWORD>* conn, std::list<int>* status)
+void ControlPanel::getSelConnInfo()
 {
-  
+  int i = 0;
+  ListSelConn.Clear();
+  if(ListConn.Empty()) return;
+  for (ListConn.iBegin(); !ListConn.iEnd(); ListConn.iNext()) {
+    if (IsSelectedLVItem(IDC_LIST_CONNECTIONS, handle, i))
+      ListSelConn.iAdd(&ListConn);
+    i++;
+  }
 }
 
 ControlPanel::~ControlPanel()

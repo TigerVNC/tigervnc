@@ -103,7 +103,7 @@ namespace rfb {
 
     void approveConnectionOrClose(bool accept, const char* reason);
 
-    char* getStartTime() { return ctime(&startTime); }
+    char* getStartTime();
 
   private:
     // SConnection callbacks

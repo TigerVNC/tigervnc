@@ -15,7 +15,7 @@ namespace rfb {
     {
     public:
       ListViewControl();
-      int IsSelectedLVItem(DWORD idListView, HWND hDlg, int numberItem);
+      bool IsSelectedLVItem(DWORD idListView, HWND hDlg, int numberItem);
       void SelectLVItem(DWORD idListView, HWND hDlg, int numberItem);
       BOOL InitLVColumns(DWORD idListView, HWND hDlg, int width, int columns,
         TCHAR * title[], DWORD mask, DWORD style, DWORD format);

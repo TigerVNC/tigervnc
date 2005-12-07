@@ -667,3 +667,10 @@ void VNCSConnectionST::setSocketTimeouts()
   sock->inStream().setTimeout(timeoutms);
   sock->outStream().setTimeout(timeoutms);
 }
+
+char* VNCSConnectionST::getStartTime()
+{
+  char* result = ctime(&startTime);
+  result[24] = '\0';
+  return result; 
+}

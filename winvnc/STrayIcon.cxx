@@ -183,8 +183,8 @@ public:
       }
       setIcon(thread.server.isServerInUse() ? thread.activeIcon : thread.inactiveIcon);
 
-      thread.server.getClientsInfo(&LCInfo);
       CPanel->UpdateListView(&LCInfo);
+      thread.server.getClientsInfo(&LCInfo);
 
       return 0;
 

@@ -14,14 +14,14 @@ ListViewControl::ListViewControl()
 {
 }
 
-int ListViewControl::IsSelectedLVItem(DWORD idListView,
+bool ListViewControl::IsSelectedLVItem(DWORD idListView,
                                       HWND hDlg, int numberItem)
 {	
   return (ListView_GetItemState(GetDlgItem(hDlg, idListView),
     numberItem, LVIS_SELECTED) == LVIS_SELECTED);
 }
 
-void SelectLVItem(DWORD idListView, HWND hDlg, int numberItem)
+void ListViewControl::SelectLVItem(DWORD idListView, HWND hDlg, int numberItem)
 {
   ListView_SetItemState(GetDlgItem(hDlg, idListView),
     numberItem, LVIS_SELECTED, LVIS_SELECTED);

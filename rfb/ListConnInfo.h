@@ -23,20 +23,16 @@
 namespace rfb {
 
   struct ListConnInfo  {
-    ListConnInfo() {
-      Clear();
-    };
+    ListConnInfo() {}
 
     void Clear() {
       conn.clear();
       IP_address.clear();
       time_conn.clear();
       status.clear();
-    };
-
-    bool Empty() {
-      return conn.empty();
     }
+
+    bool Empty() { return conn.empty();}
 
     void iBegin() {
       ci = conn.begin();
@@ -45,9 +41,7 @@ namespace rfb {
       si = status.begin();
     }
 
-    bool iEnd() {
-      return ci == conn.end();
-    }
+    bool iEnd() { return ci == conn.end();}
 
     void iNext() {
       ci++;
@@ -57,17 +51,15 @@ namespace rfb {
     }
 
     void addInfo(DWORD Conn, char* IP, char* Time, int Status) {
-      conn.push_front(Conn);
-      IP_address.push_front(IP);
-      time_conn.push_front(Time);
-      status.push_front(Status);
+      conn.push_back(Conn);
+      IP_address.push_back(strDup(IP));
+      time_conn.push_back(strDup(Time));
+      status.push_back(Status);
     }
 
     void iGetCharInfo(char* buf[3]) {
-      if (Empty())
-        return;
-      buf[0] = (*Ii);
-      buf[1] = (*ti);
+      buf[0] = *Ii;
+      buf[1] = *ti;
       switch (*si) {
       case 0:
         buf[2] = strDup("Full control");
@@ -80,23 +72,37 @@ namespace rfb {
         break;
       default:
         buf[2] = strDup("Unknown");
-      };
+      }
     }
 
-    DWORD iGetConn() { return *ci;};
+    DWORD iGetConn() { return *ci;}
 
-    int iGetStatus() { return *si;};
+    int iGetStatus() { return *si;}
 
+    void Copy(ListConnInfo* InputList) {
+      Clear();
+      if (InputList->Empty()) return;
+      for (InputList->iBegin(); !InputList->iEnd(); InputList->iNext()) {
+        iAdd(InputList);
+      }
+    }
+
+    void iAdd (ListConnInfo* InputList) {
+      char* buf[3];
+      InputList->iGetCharInfo(buf);
+      addInfo(InputList->iGetConn(), buf[0], buf[1], InputList->iGetStatus());
+    }
+
+  private:
     std::list<DWORD> conn;
     std::list<char*> IP_address;
     std::list<char*> time_conn;
     std::list<int> status;
     std::list<DWORD>::iterator ci;
-    std::list<char*>::iterator Ii, ti;
+    std::list<char*>::iterator Ii;
+    std::list<char*>::iterator ti;
     std::list<int>::iterator si;
-
   };
-
-}
+};
 #endif
 

@@ -189,7 +189,7 @@ namespace rfb {
     // are used, to save memory.
     void setEconomicTranslate(bool et) { useEconomicTranslate = et; }
 
-    bool getConnInfo(ListConnInfo * listConn);
+    void getConnInfo(ListConnInfo * listConn);
 
   protected:
 

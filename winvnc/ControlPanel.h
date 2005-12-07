@@ -31,9 +31,10 @@ namespace winvnc {
     ~ControlPanel();
   protected: 
     virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-    void getSelConnInfo(std::list<DWORD>* conn, std::list<int>* status);
+    void getSelConnInfo();
     HWND m_hSTIcon;
-    std::list<DWORD> Conn;
+    rfb::ListConnInfo ListConn;
+    rfb::ListConnInfo ListSelConn;
   };
 };
 
