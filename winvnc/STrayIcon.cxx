@@ -170,6 +170,8 @@ public:
           break;
         case 3:
           thread.server.setClientsStatus((rfb::ListConnInfo *)command->cbData);
+          thread.server.getClientsInfo(&LCInfo);
+          CPanel->UpdateListView(&LCInfo);
           break;
         };
       };
