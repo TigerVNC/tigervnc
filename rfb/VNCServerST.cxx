@@ -513,9 +513,28 @@ void VNCServerST::getConnInfo(ListConnInfo * listConn)
   listConn->Clear();
   if (clients.empty())
     return;
-  int s=0;
   std::list<VNCSConnectionST*>::iterator i;
   for (i = clients.begin(); i != clients.end(); i++)
     listConn->addInfo((DWORD)(*i), (*i)->getSock()->getPeerAddress(),
-                      (*i)->getStartTime(), s++);
+                      (*i)->getStartTime(), (*i)->getStatus());
+}
+
+void VNCServerST::setConnStatus(ListConnInfo* listConn)
+{
+  if (listConn->Empty() || clients.empty()) return;
+  for (listConn->iBegin(); !listConn->iEnd(); listConn->iNext()) {
+    VNCSConnectionST* conn = (VNCSConnectionST*)listConn->iGetConn();
+    std::list<VNCSConnectionST*>::iterator i;
+    for (i = clients.begin(); i != clients.end(); i++) {
+      if ((*i) == conn) {
+        int status = listConn->iGetStatus();
+        if (status == 3) {
+          (*i)->close(0);
+        } else {
+          (*i)->setStatus(status);
+        }
+        break;
+      }
+    }
+  }
 }

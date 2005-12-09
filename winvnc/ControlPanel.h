@@ -22,19 +22,23 @@ namespace winvnc {
   public:
     ControlPanel(HWND hSTIcon) : Dialog(GetModuleHandle(0)), ListViewControl(){
       m_hSTIcon = hSTIcon;
+      stop_updating = false;
     };
     virtual bool showDialog();
     virtual void initDialog();
     virtual bool onCommand(int cmd);
     void UpdateListView(rfb::ListConnInfo* LCInfo);
     HWND GetHandle() {return handle;};
+    void SendCommand(DWORD command, int data);
     ~ControlPanel();
+    rfb::ListConnInfo ListConnStatus;
   protected: 
     virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     void getSelConnInfo();
     HWND m_hSTIcon;
     rfb::ListConnInfo ListConn;
     rfb::ListConnInfo ListSelConn;
+    bool stop_updating;
   };
 };
 

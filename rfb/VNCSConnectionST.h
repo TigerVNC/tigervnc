@@ -105,6 +105,9 @@ namespace rfb {
 
     char* getStartTime();
 
+    void setStatus(int status);
+    int getStatus();
+
   private:
     // SConnection callbacks
 

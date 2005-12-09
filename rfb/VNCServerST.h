@@ -190,6 +190,7 @@ namespace rfb {
     void setEconomicTranslate(bool et) { useEconomicTranslate = et; }
 
     void getConnInfo(ListConnInfo * listConn);
+    void setConnStatus(ListConnInfo* listConn);
 
   protected:
 

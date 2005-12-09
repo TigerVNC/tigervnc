@@ -34,7 +34,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   : sock(s), reverseConnection(reverse), server(server_),
     image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
-    pointerEventTime(0), accessRights(AccessDefault)
+    pointerEventTime(0), accessRights(AccessDefault),
+    startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -56,7 +57,6 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   }
 
   server->clients.push_front(this);
-  startTime = time(0);
 }
 
 
@@ -341,6 +341,7 @@ void VNCSConnectionST::authSuccess()
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->pb->getRect());
+  startTime = time(0);
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -673,4 +674,29 @@ char* VNCSConnectionST::getStartTime()
   char* result = ctime(&startTime);
   result[24] = '\0';
   return result; 
+}
+
+void VNCSConnectionST::setStatus(int status)
+{
+  switch (status) {
+  case 0:
+    accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
+    break;
+  case 1:
+    accessRights = accessRights & !(AccessPtrEvents | AccessKeyEvents) | AccessView;
+    break;
+  case 2:
+    accessRights = accessRights & !(AccessPtrEvents | AccessKeyEvents | AccessView);
+    break;
+  }
+}
+int VNCSConnectionST::getStatus()
+{
+  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0007)
+    return 0;
+  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0001)
+    return 1;
+  if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0000)
+    return 2;
+  return 4;
 }

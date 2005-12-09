@@ -69,13 +69,15 @@ namespace winvnc {
 
     bool getClientsInfo(rfb::ListConnInfo* LCInfo);
 
+    bool setClientsStatus(rfb::ListConnInfo* LCInfo);
+
     // Where to read the configuration settings from
     static const TCHAR* RegConfigPath;
 
   protected:
 
     // Perform a particular internal function in the server thread
-    typedef enum {NoCommand, DisconnectClients, AddClient, QueryConnectionComplete, GetClientsInfo} Command;
+    typedef enum {NoCommand, DisconnectClients, AddClient, QueryConnectionComplete, SetClientsStatus, GetClientsInfo} Command;
     bool queueCommand(Command cmd, const void* data, int len);
     void doCommand();
     Command command;

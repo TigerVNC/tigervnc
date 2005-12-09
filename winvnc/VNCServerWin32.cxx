@@ -274,6 +274,10 @@ bool VNCServerWin32::getClientsInfo(rfb::ListConnInfo* LCInfo) {
   return queueCommand(GetClientsInfo, LCInfo, 0);
 }
 
+bool VNCServerWin32::setClientsStatus(rfb::ListConnInfo* LCInfo) {
+  return queueCommand(SetClientsStatus, LCInfo, 0);
+}
+
 VNCServerST::queryResult VNCServerWin32::queryConnection(network::Socket* sock,
                                             const char* userName,
                                             char** reason)
@@ -335,6 +339,9 @@ void VNCServerWin32::doCommand() {
     break;
   case GetClientsInfo:
     vncServer.getConnInfo((ListConnInfo*)commandData); 
+    break;
+  case SetClientsStatus:
+    vncServer.setConnStatus((ListConnInfo*)commandData); 
     break;
 
   default:

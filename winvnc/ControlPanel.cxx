@@ -37,23 +37,35 @@ bool ControlPanel::onCommand(int cmd)
   case IDC_ADD_CLIENT:
     SendMessage(m_hSTIcon, WM_COMMAND, ID_CONNECT, 0);
     return false;
-  case IDC_KILL_SEL_CLIENT:
-    {
-      
-      return false;
-    }
   case IDC_KILL_ALL:
     {
-      COPYDATASTRUCT copyData;
-      copyData.dwData = 2;
-      copyData.lpData = 0;
-      copyData.cbData = 0;
-      SendMessage(m_hSTIcon, WM_COPYDATA, 0, (LPARAM)&copyData);
+      SendCommand(2, -1);
       return false;
     }
   case IDC_DISABLE_CLIENTS:
     {     
       
+      return false;
+    }
+  case IDC_KILL_SEL_CLIENT:
+    {     
+      SendCommand(3, 3);
+      return false;
+    }
+  case IDC_VIEW_ONLY:
+    {     
+      SendCommand(3, 1);
+      return false;
+    }
+  case IDC_FULL_CONTROL:
+    {     
+      SendCommand(3, 0);
+      return false;
+    }
+  case IDC_STOP_UPDATE:
+    {     
+      stop_updating = true;
+      EndDialog(handle, 0);
       return false;
     }
   }
@@ -92,6 +104,13 @@ BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     handle = hwnd;
     initDialog();
     return TRUE;
+  case WM_DESTROY:
+    if (stop_updating) {
+      stop_updating = false;
+      SendCommand(3, 2);
+    }
+    initDialog();
+    return TRUE;
   case WM_COMMAND:
     switch (LOWORD(wParam)) {
     case IDCANCEL:
@@ -115,6 +134,23 @@ void ControlPanel::getSelConnInfo()
       ListSelConn.iAdd(&ListConn);
     i++;
   }
+}
+
+void ControlPanel::SendCommand(DWORD command, int data)
+{
+  COPYDATASTRUCT copyData;
+  copyData.dwData = command;
+  copyData.lpData = 0;
+  if (data != -1) {
+    getSelConnInfo();
+    ListConnStatus.Copy(&ListSelConn);
+    for (ListConnStatus.iBegin(); !ListConnStatus.iEnd(); ListConnStatus.iNext())
+      ListConnStatus.iSetStatus(data);
+    copyData.cbData = (DWORD)&ListConnStatus;
+  } else {
+    copyData.cbData = 0;
+  }
+  SendMessage(m_hSTIcon, WM_COPYDATA, 0, (LPARAM)&copyData);
 }
 
 ControlPanel::~ControlPanel()

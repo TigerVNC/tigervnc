@@ -168,6 +168,9 @@ public:
         case 2:
           thread.server.disconnectClients("IPC disconnect");
           break;
+        case 3:
+          thread.server.setClientsStatus((rfb::ListConnInfo *)command->cbData);
+          break;
         };
       };
       break;
