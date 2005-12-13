@@ -427,6 +427,18 @@ FileTransfer::procFLRUpload(FileInfo *pFI)
 bool 
 FileTransfer::procFLRDownload(FileInfo *pFI)
 {
+  unsigned int flags = m_TransferQueue.getFlagsAt(0);
+  
+  if ((flags & FT_ATTR_DIR) && (flags & FT_ATTR_FLR_DOWNLOAD_ADD)) {
+    m_TransferQueue.add(m_TransferQueue.getLocPathAt(0), 
+                        m_TransferQueue.getRemPathAt(0), 
+                        pFI, FT_ATTR_COPY_DOWNLOAD);
+    m_TransferQueue.deleteAt(0);
+    m_pFTDialog->postCheckTransferQueueMsg();
+    return true;
+  } else {
+    if (m_bFTDlgShown) m_pFTDialog->setStatusText("File Transfer Operation Failed: Unknown data from server.");
+  }
   return false;
 }
 
