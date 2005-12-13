@@ -406,7 +406,6 @@ void
 FTDialog::onUpload()
 {
   FileInfo fi;
-  TransferQueue tq;
   if (m_pLocalLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
   }
@@ -415,8 +414,10 @@ FTDialog::onUpload()
 void 
 FTDialog::onDownload()
 {
-  MessageBox(NULL, "onDownload", "FTDialog", MB_OK);
-
+  FileInfo fi;
+  if (m_pRemoteLV->getSelectedItems(&fi) > 0) {
+    m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
+  }
 }
 
 void 

@@ -223,13 +223,34 @@ FileTransfer::checkTransferQueue()
     } else {
       if (flag0 & FT_ATTR_COPY_DOWNLOAD) {
         if (flag0 & FT_ATTR_FILE) {
+          downloadFile();
+          return;
         }
         if (flag0 & FT_ATTR_DIR) {
+          FolderManager fm;
+          char *pLocPath = m_TransferQueue.getFullLocPathAt(0);
+          if (m_bFTDlgShown) m_pFTDialog->setStatusText("Creating Local Folder. %s", pLocPath);
+          
+          if (!fm.createDir(pLocPath)) {
+            if (m_bFTDlgShown) m_pFTDialog->setStatusText("Creating Local Folder Failed.");
+            m_TransferQueue.deleteAt(0);
+            m_pFTDialog->postCheckTransferQueueMsg();
+            return;
+          } else {
+            if ((m_bFTDlgShown) && (strcmp(m_TransferQueue.getLocPathAt(0), m_pFTDialog->getLocalPath()) == 0))
+              PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTLOCALRELOAD, 0), 0);
+
+            m_TransferQueue.setFlagsAt(0, (m_TransferQueue.getFlagsAt(0) | FT_ATTR_FLR_DOWNLOAD_ADD));
+            char *pRemPath = m_TransferQueue.getFullRemPathAt(0);
+            m_queueFileListRqst.add(pRemPath, 0, 0, FT_FLR_DEST_DOWNLOAD);
+            m_pWriter->writeFileListRqst(strlen(pRemPath), pRemPath, 0);
+            m_TransferQueue.deleteAt(0);
+            return;
+          }
         }
       }
     }
     if (m_bFTDlgShown) m_pFTDialog->setStatusText("File Transfer Operation Failed. Unknown data in the transfer queue");
-
   } // if (!isTransferEnable())
 }
 
