@@ -30,6 +30,7 @@ FileTransfer::FileTransfer()
 {
   m_bFTDlgShown = false;
   m_bInitialized = false;
+  m_bResized = false;
 
   m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
 
@@ -117,6 +118,9 @@ FileTransfer::isTransferEnable()
 void 
 FileTransfer::addDeleteQueue(char *pPathPrefix, FileInfo *pFI, unsigned int flags)
 {
+  if ((m_bFTDlgShown) && (m_DeleteQueue.getNumEntries() > 0)) 
+    m_pFTDialog->setStatusText("Starting Delete Operation");
+
   m_DeleteQueue.add(pPathPrefix, pPathPrefix, pFI, flags);
 
   checkDeleteQueue();
@@ -174,11 +178,13 @@ FileTransfer::resizeSending()
     unsigned int flags = m_TransferQueue.getFlagsAt(i);
     if (flags & FT_ATTR_RESIZE_NEEDED) {
       if (flags & FT_ATTR_FILE) {
+        m_bResized = true;
         m_dw64SizeSending += m_TransferQueue.getSizeAt(i);
         m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
       } else {
         if (flags & FT_ATTR_DIR) {
           if (flags & FT_ATTR_COPY_DOWNLOAD) {
+            m_bResized = true;
             char *pPath = m_TransferQueue.getFullRemPathAt(i);
             m_dirSizeRqstNum = i;
             m_pWriter->writeFileDirSizeRqst(strlen(pPath), pPath);
@@ -187,6 +193,7 @@ FileTransfer::resizeSending()
             if (flags & FT_ATTR_COPY_UPLOAD) {
               FolderManager fm;
               DWORD64 dw64Size;
+              m_bResized = true;
               fm.getDirSize(m_TransferQueue.getFullLocPathAt(i), &dw64Size);
               m_dw64SizeSending += dw64Size;
               m_TransferQueue.clearFlagAt(i, FT_ATTR_RESIZE_NEEDED);
@@ -196,6 +203,12 @@ FileTransfer::resizeSending()
       } // if (flags & FT_ATTR_FILE)
     } // if (flags & FT_ATTR_NEEDED_RESIZE)
   } // for (unsigned int i = 0; i < m_TransferQueue.getNumEntries(); i++)
+
+  if ((m_bFTDlgShown) && (m_bResized)) {
+    m_pFTDialog->m_pProgress->clearAndInitGeneral(m_dw64SizeSending, 0);
+    m_bResized = false;
+  }
+
   return true;
 }
 
@@ -204,6 +217,9 @@ FileTransfer::checkTransferQueue()
 {
   if (!isTransferEnable()) {
     if (m_bFTDlgShown) {
+      m_pFTDialog->m_pProgress->clearAll();
+      m_dw64SizeSending = 0;
+      m_bResized = false;
       m_pFTDialog->setStatusText("File Transfer Operation Completed Successfully");
       PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTLOCALRELOAD, 0), 0);
       PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTREMOTERELOAD, 0), 0);
@@ -268,9 +284,14 @@ FileTransfer::uploadFile()
 {
   if (m_TransferQueue.getFlagsAt(0) & FT_ATTR_FILE) {
     if (m_fileReader.create(m_TransferQueue.getFullLocPathAt(0))) {
-      if (m_bFTDlgShown) m_pFTDialog->setStatusText("Upload Started: %s to %s", 
-                                                    m_TransferQueue.getFullLocPathAt(0), 
-                                                    m_TransferQueue.getFullRemPathAt(0));
+      
+      if (m_bFTDlgShown) {
+        m_pFTDialog->setStatusText("Upload Started: %s to %s", 
+                                   m_TransferQueue.getFullLocPathAt(0), 
+                                   m_TransferQueue.getFullRemPathAt(0));
+        m_pFTDialog->m_pProgress->clearAndInitSingle(m_TransferQueue.getSizeAt(0), 0);
+      }
+
       m_pWriter->writeFileUploadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
                                      m_TransferQueue.getFullRemPathAt(0), 0);
       uploadFilePortion();
@@ -284,9 +305,12 @@ FileTransfer::downloadFile()
 {
   if (m_TransferQueue.getFlagsAt(0) & FT_ATTR_FILE) {
     if (m_fileWriter.create(m_TransferQueue.getFullLocPathAt(0))) {
-      if (m_bFTDlgShown) m_pFTDialog->setStatusText("Download Started: %s to %s", 
-                                                    m_TransferQueue.getFullRemPathAt(0), 
-                                                    m_TransferQueue.getFullLocPathAt(0));
+      if (m_bFTDlgShown) {
+        m_pFTDialog->setStatusText("Download Started: %s to %s", 
+                                   m_TransferQueue.getFullRemPathAt(0), 
+                                   m_TransferQueue.getFullLocPathAt(0));
+        m_pFTDialog->m_pProgress->clearAndInitSingle(m_TransferQueue.getSizeAt(0), 0);
+      }
       m_pWriter->writeFileDownloadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
                                        m_TransferQueue.getFullRemPathAt(0), 0);
       return true;
@@ -305,11 +329,14 @@ FileTransfer::uploadFilePortion()
       if (bytesRead == 0) {
         m_pWriter->writeFileUploadData(m_TransferQueue.getDataAt(0));
         m_fileReader.close();
-        if (m_bFTDlgShown) 
+        if (m_bFTDlgShown) {
+          m_pFTDialog->m_pProgress->clearAndInitSingle(0, 0);
           m_pFTDialog->setStatusText("Upload Completed");
+        }
         m_TransferQueue.deleteAt(0);
         m_pFTDialog->postCheckTransferQueueMsg();
       } else {
+        if (m_bFTDlgShown) m_pFTDialog->m_pProgress->increase(bytesRead);
         m_pWriter->writeFileUploadData(bytesRead, (char *)buf);
         m_pFTDialog->postUploadFilePortionMsg();
       }
@@ -317,6 +344,10 @@ FileTransfer::uploadFilePortion()
       m_fileReader.close();
       char reason[] = "Error While Reading File";
       m_pWriter->writeFileUploadFailed(strlen(reason), reason);
+      if (m_bFTDlgShown) {
+          m_pFTDialog->m_pProgress->clearAndInitSingle(0, 0);
+          m_pFTDialog->setStatusText("Upload Failed");
+      }
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();
     }
@@ -382,25 +413,37 @@ FileTransfer::procFileDownloadDataMsg()
     if (bytesWritten != bufSize) {
       char reason[] = "Error File Writting to File";
       m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
+      if (m_bFTDlgShown) {
+        m_pFTDialog->setStatusText("Download Failed");
+        m_pFTDialog->m_pProgress->clearAndInitSingle(0, 0);
+      }
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();
       return false;
+    } else {
+      if (m_bFTDlgShown) {
+        m_pFTDialog->m_pProgress->increase(bufSize);
+      }
     }
     return true;
   } else {
     if (modTime != 0) {
       m_fileWriter.setTime(modTime);
       m_fileWriter.close();
-      if (m_bFTDlgShown) 
+      if (m_bFTDlgShown) {
         m_pFTDialog->setStatusText("Download Completed");
-
+        m_pFTDialog->m_pProgress->clearAndInitSingle(0, 0);
+      }
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();
       return true;
     } else {
       m_fileWriter.close();
       char reason[] = "Error File Writting";
-      m_pFTDialog->setStatusText("Download Failed");
+      if (m_bFTDlgShown) {
+        m_pFTDialog->setStatusText("Download Failed");
+        m_pFTDialog->m_pProgress->clearAndInitSingle(0, 0);
+      }
       m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();
@@ -426,6 +469,7 @@ FileTransfer::procFileDirSizeDataMsg()
 {
   DWORD64 dw64DirSize = 0;
   m_pReader->readFileDirSizeData(&dw64DirSize);
+  m_dw64SizeSending += dw64DirSize;
   m_TransferQueue.clearFlagAt(m_dirSizeRqstNum, FT_ATTR_RESIZE_NEEDED);
   checkTransferQueue();
   return true;

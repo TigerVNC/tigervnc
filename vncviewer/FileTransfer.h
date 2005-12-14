@@ -66,6 +66,7 @@ namespace rfb {
     private:
       bool m_bFTDlgShown;
       bool m_bInitialized;
+      bool m_bResized;
 
       FTDialog *m_pFTDialog;
 
