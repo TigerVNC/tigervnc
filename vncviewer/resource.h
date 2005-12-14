@@ -26,6 +26,7 @@
 #define IDI_FTRELOAD                    128
 #define IDR_FTMENU                      130
 #define IDD_FTCANCELING                 131
+#define IDD_FTCREATEFOLDER              132
 #define IDC_PASSWORD                    1000
 #define IDC_CONNECTING_TEXT             1001
 #define IDC_SERVER_EDIT                 1002
@@ -109,6 +110,7 @@
 #define IDC_CONFIRM_YESTOALL            1079
 #define IDC_CONFIRM_TEXT                1080
 #define IDC_EDIT2                       1082
+#define IDC_FTFOLDERNAME                1083
 #define ID_TOOLBAR                      40002
 #define ID_CLOSE                        40003
 #define ID_OPTIONS                      40004
@@ -135,9 +137,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         40028
-#define _APS_NEXT_CONTROL_VALUE         1083
+#define _APS_NEXT_CONTROL_VALUE         1084
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

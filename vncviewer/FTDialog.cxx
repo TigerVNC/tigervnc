@@ -235,6 +235,7 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case IDM_FTRENAME:
       case IDM_FTDELETE:
       case IDM_FTCANCEL:
+      case IDM_FTCREATEFOLDER:
         _this->onFTMenuCommand(LOWORD(wParam));
         return FALSE;
       }
@@ -471,6 +472,18 @@ FTDialog::onRemoteDelete()
 }
 
 void 
+FTDialog::onLocalCreateFolder()
+{
+
+}
+
+void 
+FTDialog::onRemoteCreateFolder()
+{
+
+}
+
+void 
 FTDialog::onFTCancel()
 {
   if (m_pCancelingDlg != NULL) return;
@@ -543,6 +556,16 @@ FTDialog::onFTMenuCommand(int command)
     }
     break;
   case IDM_FTCANCEL: onFTCancel(); break;
+  case IDM_FTCREATEFOLDER:
+    {
+      switch (m_FTMenuSource)
+      {
+        case IDC_FTLOCALLIST:  onLocalCreateFolder();  break;
+        case IDC_FTREMOTELIST: onRemoteCreateFolder(); break;
+        default: break;
+      }
+    }
+    break;
   default:
     break;
   }

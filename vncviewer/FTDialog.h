@@ -92,6 +92,10 @@ namespace rfb {
 
       void onLocalRButton();
       void onRemoteRButton();
+
+      void onLocalCreateFolder();
+      void onRemoteCreateFolder();
+
       void showFTMenu(bool copyBtnState, bool createFldBtnState, 
                       bool renameBtnState, bool deleteBtnState, 
                       bool cancelBtnState);
