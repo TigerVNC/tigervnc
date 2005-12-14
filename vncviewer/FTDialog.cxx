@@ -34,7 +34,9 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
 {
   m_pFileTransfer = pFT;
   m_hInstance = hInst;
+
   m_bDlgShown = false;
+  m_bCloseDlgAfterCancel = false;
 
   m_pLocalLV = NULL;
   m_pRemoteLV = NULL;
@@ -65,6 +67,8 @@ FTDialog::createFTDialog(HWND hwndParent)
   if (m_hwndFTDialog != NULL) {
     ShowWindow(m_hwndFTDialog, SW_SHOW);
     m_bDlgShown = true;
+    showLocalLVItems();
+    showRemoteLVItems();
     return true;
   }
 
@@ -200,7 +204,7 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         break;
       case IDC_FTCLOSE:
-        _this->closeFTDialog();
+        _this->onClose();
         return FALSE;
       case IDC_FTLOCALUP:
         _this->setButtonsState();
@@ -280,8 +284,7 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     break;
     case WM_CLOSE:
-    case WM_DESTROY:
-      _this->closeFTDialog();
+      _this->onClose();
       return FALSE;
   }
 
@@ -297,6 +300,17 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
 
   return FALSE;
+}
+
+void
+FTDialog::onClose()
+{
+  if (m_pFileTransfer->isTransferEnable()) {
+    m_bCloseDlgAfterCancel = true;
+    onFTCancel();
+  } else {
+    closeFTDialog();
+  }  
 }
 
 void 
@@ -409,7 +423,7 @@ FTDialog::onUpload()
   if (m_pLocalLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
   }
-  refreshBtnState();
+  setButtonsState();
 }
 
 void 
@@ -419,7 +433,7 @@ FTDialog::onDownload()
   if (m_pRemoteLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
   }
-  refreshBtnState();
+  setButtonsState();
 }
 
 void 
@@ -443,7 +457,7 @@ FTDialog::onLocalDelete()
   if (m_pLocalLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addDeleteQueue(m_szLocalPath, &fi, FT_ATTR_DELETE_LOCAL);
   }
-  refreshBtnState();
+  setButtonsState();
 }
 
 void 
@@ -453,7 +467,7 @@ FTDialog::onRemoteDelete()
   if (m_pRemoteLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addDeleteQueue(m_szRemotePath, &fi, FT_ATTR_DELETE_REMOTE);
   }
-  refreshBtnState();
+  setButtonsState();
 }
 
 void 
@@ -474,7 +488,23 @@ FTDialog::cancelTransfer(bool bResult)
     m_pCancelingDlg = NULL;
   }
 
-  MessageBox(NULL, "FTDialog::cancelTransfer()", "FTDialog::cancelTransfer()", MB_OK);
+  setButtonsState();
+
+  if ((m_bCloseDlgAfterCancel) && (bResult)) {
+    m_bCloseDlgAfterCancel = false;
+    closeFTDialog();
+  }
+
+  m_pFileTransfer->m_bCancel = bResult;
+}
+
+void 
+FTDialog::afterCancelTransfer()
+{
+  if (m_pCancelingDlg != NULL) {
+    delete m_pCancelingDlg;
+    m_pCancelingDlg = NULL;
+  }
 }
 
 void
@@ -688,6 +718,8 @@ FTDialog::setButtonsState()
   case false: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTCANCEL), FALSE); break;
   case true: EnableWindow(GetDlgItem(m_hwndFTDialog, IDC_FTCANCEL), TRUE); break;
   }
+
+  UpdateWindow(m_hwndFTDialog);
 }
 
 void 

@@ -60,8 +60,11 @@ namespace rfb {
 
       void checkTransferQueue();
       void checkDeleteQueue();
+      bool checkCancelOperations();
 
       void uploadFilePortion();
+
+      bool m_bCancel;
 
     private:
       bool m_bFTDlgShown;
@@ -87,6 +90,8 @@ namespace rfb {
 
       int  isExistName(FileInfo *pFI, char *pName);
       void freeQueues();
+
+      void endUndoneOperation();
       
       bool procFileListDataMsg();
       bool procFileDownloadDataMsg();

@@ -31,6 +31,7 @@ FileTransfer::FileTransfer()
   m_bFTDlgShown = false;
   m_bInitialized = false;
   m_bResized = false;
+  m_bCancel = false;
 
   m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
 
@@ -221,6 +222,7 @@ FileTransfer::checkTransferQueue()
       m_dw64SizeSending = 0;
       m_bResized = false;
       m_pFTDialog->setStatusText("File Transfer Operation Completed Successfully");
+      m_pFTDialog->afterCancelTransfer();
       PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTLOCALRELOAD, 0), 0);
       PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTREMOTERELOAD, 0), 0);
       return;
@@ -322,7 +324,10 @@ FileTransfer::downloadFile()
 void
 FileTransfer::uploadFilePortion()
 {
-  if (m_bFTDlgShown) m_pFTDialog->processDlgMsgs();
+  if (checkCancelOperations()) {
+    char reason[] = "The user cancel transfer";
+    m_pWriter->writeFileUploadFailed(strlen(reason), reason);
+  }
 
   if (m_fileReader.isCreated()) {
     char buf[FT_MAX_SENDING_SIZE];
@@ -403,12 +408,15 @@ FileTransfer::procFileDownloadDataMsg()
 
   void *pFile = m_pReader->readFileDownloadData(&bufSize, &modTime);
 
+  if (checkCancelOperations()) {
+    char reason[] = "The user cancel transfer";
+    m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
+  }
+
   if ((!m_fileWriter.isCreated()) || (!isTransferEnable())) {
     if (pFile != NULL) delete pFile;
     return false;
   }
-
-  if (m_bFTDlgShown) m_pFTDialog->processDlgMsgs();
 
   if (bufSize > 0) {
     unsigned int bytesWritten = 0;
@@ -589,9 +597,36 @@ FileTransfer::isExistName(FileInfo *pFI, char *pName)
   return -1;
 }
 
+bool
+FileTransfer::checkCancelOperations()
+{
+  if (m_bFTDlgShown) m_pFTDialog->processDlgMsgs();
+  if (m_bCancel) {
+    endUndoneOperation();
+    if (m_bFTDlgShown) {
+      m_pFTDialog->setStatusText("All Operations Canceled");
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
+
+void 
+FileTransfer::endUndoneOperation()
+{
+  m_bCancel = false;
+  m_fileReader.close();
+  m_fileWriter.close();
+  freeQueues();
+  m_dw64SizeSending = 0;
+  m_pFTDialog->m_pProgress->clearAll();
+}
+
 void
 FileTransfer::freeQueues()
 {
   m_TransferQueue.free();
   m_DeleteQueue.free();
+  m_queueFileListRqst.free();
 }

@@ -50,6 +50,7 @@ namespace rfb {
       void processDlgMsgs();
 
       void cancelTransfer(bool bResult);
+      void afterCancelTransfer();
       
       static BOOL CALLBACK FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
       
@@ -80,6 +81,8 @@ namespace rfb {
       
       void showLocalLVItems();
       void showRemoteLVItems();
+
+      void onClose();
 
       void onLocalItemActivate(LPNMITEMACTIVATE lpnmia);
       void onRemoteItemActivate(LPNMITEMACTIVATE lpnmia);
@@ -117,6 +120,7 @@ namespace rfb {
       void setButtonsState();
       
       bool m_bDlgShown;
+      bool m_bCloseDlgAfterCancel;
 
       UINT m_msgCheckDeleteQueue;
       UINT m_msgCheckTransferQueue;
