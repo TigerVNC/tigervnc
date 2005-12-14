@@ -43,6 +43,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_pProgress = NULL;
   m_pCancelingDlg = NULL;
   m_pCreateFolderDlg = NULL;
+  m_pRenameDlg = NULL;
 
   m_hwndFTDialog = NULL;
   m_hwndLocalPath = NULL;
@@ -168,6 +169,21 @@ FTDialog::destroyFTDialog()
   if (m_pProgress != NULL) {
     delete m_pProgress;
     m_pProgress = NULL;
+  }
+
+  if(m_pCancelingDlg != NULL) {
+    delete m_pCancelingDlg;
+    m_pCancelingDlg = NULL;
+  }
+
+  if (m_pCreateFolderDlg != NULL) {
+    delete m_pCreateFolderDlg;
+    m_pCreateFolderDlg = NULL;
+  }
+
+  if(m_pRenameDlg != NULL) {
+    delete m_pRenameDlg;
+    m_pRenameDlg = NULL;
   }
 
   if (DestroyWindow(m_hwndFTDialog)) m_hwndFTDialog = NULL;
@@ -442,15 +458,53 @@ FTDialog::onDownload()
 void 
 FTDialog::onLocalRename()
 {
-  MessageBox(NULL, "onLocalRename", "FTDialog", MB_OK);
+  if (m_pRenameDlg != NULL) return;
 
+  FileInfo fi;
+  if (m_pLocalLV->getSelectedItems(&fi) == 1) {
+    unsigned int flags = fi.getFlagsAt(0);
+    m_pRenameDlg = new FTDialog::RenameDlg(this);
+    if (m_pRenameDlg != NULL) {
+      if (flags & FT_ATTR_DIR) {
+        m_pRenameDlg->create(fi.getNameAt(0), true);
+      } else {
+        m_pRenameDlg->create(fi.getNameAt(0), false);
+      }
+      if (strlen(m_pRenameDlg->getFolderName()) > 0) {
+        FolderManager fm;
+        fm.renameIt(m_szLocalPath, fi.getNameAt(0), m_pRenameDlg->getFolderName());
+        showLocalLVItems();
+      }
+      delete m_pRenameDlg;
+      m_pRenameDlg = NULL;
+    }
+  }
+  setButtonsState();
 }
 
 void 
 FTDialog::onRemoteRename()
 {
-  MessageBox(NULL, "onRemoteRename", "FTDialog", MB_OK);
+  if (m_pRenameDlg != NULL) return;
 
+  FileInfo fi;
+  if (m_pRemoteLV->getSelectedItems(&fi) == 1) {
+    unsigned int flags = fi.getFlagsAt(0);
+    m_pRenameDlg = new FTDialog::RenameDlg(this);
+    if (m_pRenameDlg != NULL) {
+      if (flags & FT_ATTR_DIR) {
+        m_pRenameDlg->create(fi.getNameAt(0), true);
+      } else {
+        m_pRenameDlg->create(fi.getNameAt(0), false);
+      }
+      if (strlen(m_pRenameDlg->getFolderName()) > 0) {
+        m_pFileTransfer->renameRemote(m_szRemotePath, fi.getNameAt(0), m_pRenameDlg->getFolderName());
+      }
+      delete m_pRenameDlg;
+      m_pRenameDlg = NULL;
+    }
+  }
+  setButtonsState();
 }
 
 void 
@@ -937,4 +991,38 @@ FTDialog::CreateFolderDlg::onOk()
 {
   strcpy(m_szFolderName, getItemString(IDC_FTFOLDERNAME));
   return true;
+}
+
+FTDialog::RenameDlg::RenameDlg(FTDialog *pFTDlg) : CreateFolderDlg(pFTDlg)
+{
+  m_bFolder = false;
+}
+
+FTDialog::RenameDlg::~RenameDlg()
+{
+}
+
+bool 
+FTDialog::RenameDlg::create(char *pFilename, bool bFolder)
+{
+  m_bFolder = bFolder;
+  strcpy(m_szFilename, pFilename);
+  return showDialog(MAKEINTRESOURCE(IDD_FTCREATEFOLDER), m_pFTDlg->getWndHandle());
+}
+
+void
+FTDialog::RenameDlg::initDialog()
+{
+  char buf[2*FT_FILENAME_SIZE];
+  if (m_bFolder) {
+    SetWindowText(handle, "Rename Folder");
+    sprintf(buf, "Rename Folder '%s'", m_szFilename);
+  } else {
+    SetWindowText(handle, "Rename File");
+    sprintf(buf, "Rename File '%s'", m_szFilename);
+  }
+
+  setItemString(IDC_FTTEXT, buf);
+  setItemString(IDC_FTFOLDERNAME, m_szFilename);
+  SendDlgItemMessage(handle, IDC_FTFOLDERNAME, EM_SETSEL, (WPARAM) 0, (LPARAM) -1);
 }

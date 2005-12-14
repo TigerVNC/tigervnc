@@ -65,6 +65,7 @@ namespace rfb {
       void uploadFilePortion();
 
       void createRemoteFolder(char *pPath, char *pName);
+      void renameRemote(char *pPath, char *pOldName, char *pNewName);
 
       bool m_bCancel;
 

@@ -198,13 +198,31 @@ namespace rfb {
         bool create();
         char *getFolderName() { return m_szFolderName; }
 
-      private:
+      protected:
         FTDialog *m_pFTDlg;
         char m_szFolderName[FT_FILENAME_SIZE];
       };
 
       private:
         CreateFolderDlg *m_pCreateFolderDlg;
+
+    public:
+      class RenameDlg : public CreateFolderDlg
+      {
+      public:
+        RenameDlg(FTDialog *pFTDlg);
+        ~RenameDlg();
+
+        bool create(char *pFilename, bool bFolder);
+        void initDialog();
+
+      private:
+        bool m_bFolder;
+        char m_szFilename[FT_FILENAME_SIZE];
+      };
+
+      private:
+        RenameDlg *m_pRenameDlg;
     };
   }
 }

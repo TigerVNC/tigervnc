@@ -44,6 +44,18 @@ FolderManager::createDir(char *pFullPath)
   return true;
 }
 
+bool
+FolderManager::renameIt(char *pPath, char *pOldName, char *pNewName)
+{
+  char fullOldName[FT_FILENAME_SIZE];
+  char fullNewName[FT_FILENAME_SIZE];
+
+  sprintf(fullOldName, "%s\\%s", pPath, pOldName);
+  sprintf(fullNewName, "%s\\%s", pPath, pNewName);
+
+  return renameIt(fullOldName, fullNewName);
+}
+
 bool 
 FolderManager::renameIt(char *pOldName, char *pNewName)
 {

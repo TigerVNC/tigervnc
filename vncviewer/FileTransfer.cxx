@@ -372,6 +372,21 @@ FileTransfer::createRemoteFolder(char *pPath, char *pName)
   m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
 }
 
+void 
+FileTransfer::renameRemote(char *pPath, char *pOldName, char *pNewName)
+{
+  char fullOldName[FT_FILENAME_SIZE];
+  char fullNewName[FT_FILENAME_SIZE];
+
+  sprintf(fullOldName, "%s\\%s", pPath, pOldName);
+  sprintf(fullNewName, "%s\\%s", pPath, pNewName);
+
+  m_pWriter->writeFileRenameRqst(strlen(fullOldName), strlen(fullNewName),
+                                 fullOldName, fullNewName);
+  m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_MAIN);
+  m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
+}
+
 bool 
 FileTransfer::procFileListDataMsg()
 {

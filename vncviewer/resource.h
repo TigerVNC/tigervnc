@@ -111,6 +111,7 @@
 #define IDC_CONFIRM_TEXT                1080
 #define IDC_EDIT2                       1082
 #define IDC_FTFOLDERNAME                1083
+#define IDC_FTTEXT                      1084
 #define ID_TOOLBAR                      40002
 #define ID_CLOSE                        40003
 #define ID_OPTIONS                      40004
@@ -139,7 +140,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         40028
-#define _APS_NEXT_CONTROL_VALUE         1084
+#define _APS_NEXT_CONTROL_VALUE         1085
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
