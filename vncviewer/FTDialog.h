@@ -134,7 +134,6 @@ namespace rfb {
       static const char szCheckDeleteQueueText[];
       static const char szCheckTransferQueueText[];
       static const char szUploadFilePortionText[];
-      static const char szDownloadFilePortionText[];
 
       typedef struct tagFTBUTTONSSTATE
       {

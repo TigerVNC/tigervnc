@@ -268,6 +268,9 @@ FileTransfer::uploadFile()
 {
   if (m_TransferQueue.getFlagsAt(0) & FT_ATTR_FILE) {
     if (m_fileReader.create(m_TransferQueue.getFullLocPathAt(0))) {
+      if (m_bFTDlgShown) m_pFTDialog->setStatusText("Upload Started: %s to %s", 
+                                                    m_TransferQueue.getFullLocPathAt(0), 
+                                                    m_TransferQueue.getFullRemPathAt(0));
       m_pWriter->writeFileUploadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
                                      m_TransferQueue.getFullRemPathAt(0), 0);
       uploadFilePortion();
@@ -281,6 +284,9 @@ FileTransfer::downloadFile()
 {
   if (m_TransferQueue.getFlagsAt(0) & FT_ATTR_FILE) {
     if (m_fileWriter.create(m_TransferQueue.getFullLocPathAt(0))) {
+      if (m_bFTDlgShown) m_pFTDialog->setStatusText("Download Started: %s to %s", 
+                                                    m_TransferQueue.getFullRemPathAt(0), 
+                                                    m_TransferQueue.getFullLocPathAt(0));
       m_pWriter->writeFileDownloadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
                                        m_TransferQueue.getFullRemPathAt(0), 0);
       return true;
@@ -299,6 +305,8 @@ FileTransfer::uploadFilePortion()
       if (bytesRead == 0) {
         m_pWriter->writeFileUploadData(m_TransferQueue.getDataAt(0));
         m_fileReader.close();
+        if (m_bFTDlgShown) 
+          m_pFTDialog->setStatusText("Upload Completed");
         m_TransferQueue.deleteAt(0);
         m_pFTDialog->postCheckTransferQueueMsg();
       } else {
@@ -307,16 +315,12 @@ FileTransfer::uploadFilePortion()
       }
     } else {
       m_fileReader.close();
+      char reason[] = "Error While Reading File";
+      m_pWriter->writeFileUploadFailed(strlen(reason), reason);
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();
     }
   }
-}
-
-void
-FileTransfer::downloadFilePortion()
-{
-
 }
 
 bool 
@@ -376,7 +380,7 @@ FileTransfer::procFileDownloadDataMsg()
     m_fileWriter.write(pFile, bufSize, &bytesWritten);
     delete pFile;
     if (bytesWritten != bufSize) {
-      char reason[] = "Error File Writting";
+      char reason[] = "Error File Writting to File";
       m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();
@@ -387,12 +391,16 @@ FileTransfer::procFileDownloadDataMsg()
     if (modTime != 0) {
       m_fileWriter.setTime(modTime);
       m_fileWriter.close();
+      if (m_bFTDlgShown) 
+        m_pFTDialog->setStatusText("Download Completed");
+
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();
       return true;
     } else {
       m_fileWriter.close();
       char reason[] = "Error File Writting";
+      m_pFTDialog->setStatusText("Download Failed");
       m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
       m_TransferQueue.deleteAt(0);
       m_pFTDialog->postCheckTransferQueueMsg();

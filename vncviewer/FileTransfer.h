@@ -62,7 +62,6 @@ namespace rfb {
       void checkDeleteQueue();
 
       void uploadFilePortion();
-      void downloadFilePortion();
 
     private:
       bool m_bFTDlgShown;
