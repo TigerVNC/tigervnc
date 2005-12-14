@@ -39,6 +39,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_pLocalLV = NULL;
   m_pRemoteLV = NULL;
   m_pProgress = NULL;
+  m_pCancelingDlg = NULL;
 
   m_hwndFTDialog = NULL;
   m_hwndLocalPath = NULL;
@@ -223,6 +224,9 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case IDC_FTDOWNLOAD:
         _this->onDownload();
         return FALSE;
+      case IDC_FTCANCEL:
+        _this->onFTCancel();
+        return FALSE;
       case IDM_FTCOPY:
       case IDM_FTRENAME:
       case IDM_FTDELETE:
@@ -405,6 +409,7 @@ FTDialog::onUpload()
   if (m_pLocalLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
   }
+  refreshBtnState();
 }
 
 void 
@@ -414,6 +419,7 @@ FTDialog::onDownload()
   if (m_pRemoteLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
   }
+  refreshBtnState();
 }
 
 void 
@@ -437,6 +443,7 @@ FTDialog::onLocalDelete()
   if (m_pLocalLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addDeleteQueue(m_szLocalPath, &fi, FT_ATTR_DELETE_LOCAL);
   }
+  refreshBtnState();
 }
 
 void 
@@ -446,13 +453,28 @@ FTDialog::onRemoteDelete()
   if (m_pRemoteLV->getSelectedItems(&fi) > 0) {
     m_pFileTransfer->addDeleteQueue(m_szRemotePath, &fi, FT_ATTR_DELETE_REMOTE);
   }
+  refreshBtnState();
 }
 
 void 
 FTDialog::onFTCancel()
 {
-  MessageBox(NULL, "onFTCancel", "FTDialog", MB_OK);
+  if (m_pCancelingDlg != NULL) return;
 
+  m_pCancelingDlg = new CancelingDlg(this);
+
+  m_pCancelingDlg->create();
+}
+
+void 
+FTDialog::cancelTransfer(bool bResult)
+{
+  if (m_pCancelingDlg != NULL) {
+    delete m_pCancelingDlg;
+    m_pCancelingDlg = NULL;
+  }
+
+  MessageBox(NULL, "FTDialog::cancelTransfer()", "FTDialog::cancelTransfer()", MB_OK);
 }
 
 void
@@ -638,7 +660,10 @@ FTDialog::refreshBtnState()
     } else {
     }
   }
-  m_BtnState.cancelBtn = false;
+  if (m_pFileTransfer->isTransferEnable()) 
+    m_BtnState.cancelBtn = true;
+  else
+    m_BtnState.cancelBtn = false;
 }
 
 void
@@ -691,6 +716,16 @@ FTDialog::setStatusText(LPCSTR format,...)
 }
 
 void 
+FTDialog::processDlgMsgs()
+{
+  MSG msg;
+  while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
+  }
+}
+
+void 
 FTDialog::postCheckTransferQueueMsg()
 {
   PostMessage(m_hwndFTDialog, m_msgCheckTransferQueue, 0, 0);
@@ -706,4 +741,89 @@ void
 FTDialog::postCheckDeleteQueueMsg()
 {
   PostMessage(m_hwndFTDialog, m_msgCheckDeleteQueue, 0, 0);
+}
+
+FTDialog::CancelingDlg::CancelingDlg(FTDialog *pFTDlg)
+{
+  m_pFTDlg = pFTDlg;
+  m_hwndDlg = NULL;
+}
+
+FTDialog::CancelingDlg::~CancelingDlg()
+{
+  destroy();
+}
+
+bool 
+FTDialog::CancelingDlg::create()
+{
+  if (m_hwndDlg != NULL) return false;
+
+  m_hwndDlg = CreateDialogParam(GetModuleHandle(0), 
+                                MAKEINTRESOURCE(IDD_FTCANCELING),
+                                NULL, 
+                                (DLGPROC) cancelingDlgProc,
+                                (LONG) this);
+
+  if (m_hwndDlg == NULL) return false;
+
+  ShowWindow(m_hwndDlg, SW_SHOW);
+  DrawIcon(GetDC(m_hwndDlg), 15, 22, LoadIcon(NULL, IDI_QUESTION));
+  UpdateWindow(m_hwndDlg);
+
+  return true;
+}
+
+bool 
+FTDialog::CancelingDlg::destroy()
+{
+  if (m_hwndDlg == NULL) return true;
+
+  if (DestroyWindow(m_hwndDlg)) {
+    m_hwndDlg = NULL;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool
+FTDialog::CancelingDlg::close(bool bResult)
+{
+  if (m_hwndDlg == NULL) return true;
+
+  destroy();
+
+  m_pFTDlg->cancelTransfer(bResult);
+
+  return false;
+}
+
+BOOL CALLBACK 
+FTDialog::CancelingDlg::cancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  FTDialog::CancelingDlg *_this = (FTDialog::CancelingDlg *) GetWindowLong(hwnd, GWL_USERDATA);
+  switch (uMsg)
+  {
+  case WM_INITDIALOG:
+      SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+      SetForegroundWindow(hwnd);
+    return TRUE;
+
+  case WM_COMMAND:
+    switch (LOWORD(wParam))
+    {
+    case IDOK:
+      _this->close(true);
+      return TRUE;
+    case IDCANCEL:
+      _this->close(false);
+      return TRUE;
+    }
+    break;
+    case WM_CLOSE:
+      _this->close(false);
+      return TRUE;
+  }
+  return FALSE;
 }

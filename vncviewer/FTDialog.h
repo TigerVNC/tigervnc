@@ -46,6 +46,10 @@ namespace rfb {
       bool createFTDialog(HWND hwndParent);
       bool closeFTDialog();
       void destroyFTDialog();
+
+      void processDlgMsgs();
+
+      void cancelTransfer(bool bResult);
       
       static BOOL CALLBACK FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
       
@@ -149,6 +153,28 @@ namespace rfb {
       } FTBUTTONSSTATE;
 
       FTBUTTONSSTATE m_BtnState;
+
+    public:
+      class CancelingDlg
+      {
+      public:
+        CancelingDlg(FTDialog *pFTDlg);
+        ~CancelingDlg();
+
+        static BOOL CALLBACK cancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+        bool create();
+        bool destroy();
+
+      private:
+        FTDialog *m_pFTDlg;
+        HWND m_hwndDlg;
+
+        bool close(bool bResult);
+      };
+
+      private:
+        CancelingDlg *m_pCancelingDlg;
     };
   }
 }

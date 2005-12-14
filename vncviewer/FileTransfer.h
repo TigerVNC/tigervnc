@@ -104,7 +104,6 @@ namespace rfb {
 
       DWORD64 m_dw64SizeSending;
       unsigned int m_dirSizeRqstNum;
-
     };
   }
 }

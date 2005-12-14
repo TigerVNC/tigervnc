@@ -25,6 +25,7 @@
 #define IDI_FTFILE                      127
 #define IDI_FTRELOAD                    128
 #define IDR_FTMENU                      130
+#define IDD_FTCANCELING                 131
 #define IDC_PASSWORD                    1000
 #define IDC_CONNECTING_TEXT             1001
 #define IDC_SERVER_EDIT                 1002
@@ -134,7 +135,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        131
+#define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         40028
 #define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101

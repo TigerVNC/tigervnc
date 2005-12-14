@@ -322,6 +322,8 @@ FileTransfer::downloadFile()
 void
 FileTransfer::uploadFilePortion()
 {
+  if (m_bFTDlgShown) m_pFTDialog->processDlgMsgs();
+
   if (m_fileReader.isCreated()) {
     char buf[FT_MAX_SENDING_SIZE];
     unsigned int bytesRead = 0;
@@ -405,6 +407,8 @@ FileTransfer::procFileDownloadDataMsg()
     if (pFile != NULL) delete pFile;
     return false;
   }
+
+  if (m_bFTDlgShown) m_pFTDialog->processDlgMsgs();
 
   if (bufSize > 0) {
     unsigned int bytesWritten = 0;
