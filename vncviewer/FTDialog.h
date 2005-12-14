@@ -94,6 +94,7 @@ namespace rfb {
       void onLocalRButton();
       void onRemoteRButton();
 
+      bool getCreateFolderName();
       void onLocalCreateFolder();
       void onRemoteCreateFolder();
 
@@ -143,6 +144,7 @@ namespace rfb {
       char m_szRemotePath[FT_FILENAME_SIZE];
       char m_szLocalPathTmp[FT_FILENAME_SIZE];
       char m_szRemotePathTmp[FT_FILENAME_SIZE];
+      char m_szCreateFolderName[FT_FILENAME_SIZE];
 
       static const char szCheckDeleteQueueText[];
       static const char szCheckTransferQueueText[];
@@ -192,6 +194,13 @@ namespace rfb {
         CreateFolderDlg(FTDialog *pFTDlg);
         ~CreateFolderDlg();
 
+        bool onOk();
+        bool create();
+        char *getFolderName() { return m_szFolderName; }
+
+      private:
+        FTDialog *m_pFTDlg;
+        char m_szFolderName[FT_FILENAME_SIZE];
       };
 
       private:

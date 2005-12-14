@@ -42,6 +42,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_pRemoteLV = NULL;
   m_pProgress = NULL;
   m_pCancelingDlg = NULL;
+  m_pCreateFolderDlg = NULL;
 
   m_hwndFTDialog = NULL;
   m_hwndLocalPath = NULL;
@@ -54,6 +55,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_szRemotePath[0] = '\0';
   m_szLocalPathTmp[0] = '\0';
   m_szRemotePathTmp[0] = '\0';
+  m_szCreateFolderName[0] = '\0';
 }
 
 FTDialog::~FTDialog()
@@ -471,16 +473,46 @@ FTDialog::onRemoteDelete()
   setButtonsState();
 }
 
+bool
+FTDialog::getCreateFolderName()
+{
+  if (m_pCreateFolderDlg != NULL) return false;
+
+  bool bResult = false;
+
+  m_pCreateFolderDlg = new FTDialog::CreateFolderDlg(this);
+  m_pCreateFolderDlg->create();
+  if (strlen(m_pCreateFolderDlg->getFolderName()) != 0) {
+    strcpy(m_szCreateFolderName, m_pCreateFolderDlg->getFolderName());
+    bResult = true;
+  } else {
+    m_szCreateFolderName[0] = '\0';
+    bResult = false;
+  }
+  delete m_pCreateFolderDlg;
+  m_pCreateFolderDlg = NULL;
+
+  return bResult;
+}
+
 void 
 FTDialog::onLocalCreateFolder()
 {
-
+  if (getCreateFolderName()) {
+    char path[FT_FILENAME_SIZE];
+    sprintf(path, "%s\\%s", m_szLocalPath, m_szCreateFolderName);
+    setStatusText("Creating Local Folder: %s", path);
+    FolderManager fm;
+    if (fm.createDir(path)) showLocalLVItems();
+  }
 }
 
 void 
 FTDialog::onRemoteCreateFolder()
 {
-
+  if (getCreateFolderName()) {
+    m_pFileTransfer->createRemoteFolder(m_szRemotePath, m_szCreateFolderName);
+  }
 }
 
 void 
@@ -881,4 +913,28 @@ FTDialog::CancelingDlg::cancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
       return TRUE;
   }
   return FALSE;
+}
+
+FTDialog::CreateFolderDlg::CreateFolderDlg(FTDialog *pFTDlg) : Dialog(GetModuleHandle(0))
+{
+  m_pFTDlg = pFTDlg;
+  m_szFolderName[0] = '\0';
+}
+
+FTDialog::CreateFolderDlg::~CreateFolderDlg()
+{
+
+}
+
+bool
+FTDialog::CreateFolderDlg::create()
+{
+  return showDialog(MAKEINTRESOURCE(IDD_FTCREATEFOLDER), m_pFTDlg->getWndHandle());
+}
+
+bool 
+FTDialog::CreateFolderDlg::onOk()
+{
+  strcpy(m_szFolderName, getItemString(IDC_FTFOLDERNAME));
+  return true;
 }

@@ -361,6 +361,17 @@ FileTransfer::uploadFilePortion()
   }
 }
 
+void 
+FileTransfer::createRemoteFolder(char *pPath, char *pName)
+{
+  char fullPath[FT_FILENAME_SIZE];
+  sprintf(fullPath, "%s\\%s", pPath, pName);
+  m_pFTDialog->setStatusText("Creating Remote Folder: %s", fullPath);
+  m_pWriter->writeFileCreateDirRqst(strlen(fullPath), fullPath);
+  m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_MAIN);
+  m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
+}
+
 bool 
 FileTransfer::procFileListDataMsg()
 {
