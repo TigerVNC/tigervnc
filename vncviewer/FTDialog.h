@@ -28,6 +28,7 @@
 #include <commctrl.h>
 
 #include <rfb/FileInfo.h>
+#include <rfb_win32/Dialog.h>
 #include <vncviewer/FileTransfer.h>
 #include <vncviewer/FTListView.h>
 #include <vncviewer/FTProgress.h>
@@ -181,8 +182,20 @@ namespace rfb {
         bool close(bool bResult);
       };
 
-      private:
+    private:
         CancelingDlg *m_pCancelingDlg;
+
+    public:
+      class CreateFolderDlg : public Dialog
+      {
+      public:
+        CreateFolderDlg(FTDialog *pFTDlg);
+        ~CreateFolderDlg();
+
+      };
+
+      private:
+        CreateFolderDlg *m_pCreateFolderDlg;
     };
   }
 }
