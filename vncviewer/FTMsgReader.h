@@ -38,11 +38,11 @@ namespace rfb {
       ~FTMsgReader();
 
       int readFileListData(FileInfo *pFileInfo);
-      int readFileDownloadData(void *pFile, unsigned int *pModTime);
       int readFileUploadCancel(void *pReason);
       int readFileDownloadFailed(void *pReason);
       int readFileDirSizeData(DWORD64 *pdw64DirSize);
       int readFileLastRqstFailed(int *pTypeOfRequest, void *pReason);
+      void *readFileDownloadData(unsigned int *pSize, unsigned int *pModTime);
       
     private:
       rdr::InStream *m_pInStream;

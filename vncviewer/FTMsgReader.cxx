@@ -63,24 +63,27 @@ FTMsgReader::readFileListData(FileInfo *pFileInfo)
   return numFiles;
 }
 
-int 
-FTMsgReader::readFileDownloadData(void *pFile, unsigned int *pModTime)
+void * 
+FTMsgReader::readFileDownloadData(unsigned int *pSize, unsigned int *pModTime)
 {
   unsigned char compressLevel = m_pInStream->readU8();
   int realSize = m_pInStream->readU16();
   int compressedSize = m_pInStream->readU16();
 
   if ((realSize == 0) && (compressedSize == 0)) {
+    *pSize = 0;
     *pModTime = m_pInStream->readU32();
-    return 0;
+    return NULL;
   } else {
-    pFile = malloc(compressedSize);
+    char *pFile = new char [compressedSize];
     if (pFile == NULL) {
       m_pInStream->skip(compressedSize);
-      return -1;
+      *pModTime = 0;
+      return NULL;
     } else {
       m_pInStream->readBytes(pFile, compressedSize);
-      return compressedSize;
+      *pSize = compressedSize;
+      return pFile;
     }
   }
 }

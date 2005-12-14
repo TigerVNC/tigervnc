@@ -43,7 +43,7 @@ FileManager::create(char *pFilename)
   strcpy(m_szFilename, pFilename);
 
   m_pFile = fopen(m_szFilename, m_szMode);
-  
+
   if (m_pFile == NULL) {
     return false;
   } else {

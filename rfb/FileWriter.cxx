@@ -33,7 +33,7 @@ FileWriter::FileWriter()
 bool 
 FileWriter::write(const void *pBuf, unsigned int count, unsigned int *pBytesWritten)
 {
-  if (m_pFile == NULL) return false;
+  if (!isCreated()) return false;
 
   unsigned int bytesWritten = fwrite(pBuf, 1, count, m_pFile);
 
@@ -41,4 +41,10 @@ FileWriter::write(const void *pBuf, unsigned int count, unsigned int *pBytesWrit
 
   *pBytesWritten = bytesWritten;
   return true;
+}
+
+bool 
+FileWriter::setTime(unsigned int modTime)
+{
+  return false;
 }

@@ -244,7 +244,6 @@ FileTransfer::checkTransferQueue()
             char *pRemPath = m_TransferQueue.getFullRemPathAt(0);
             m_queueFileListRqst.add(pRemPath, 0, 0, FT_FLR_DEST_DOWNLOAD);
             m_pWriter->writeFileListRqst(strlen(pRemPath), pRemPath, 0);
-            m_TransferQueue.deleteAt(0);
             return;
           }
         }
@@ -270,6 +269,13 @@ FileTransfer::uploadFile()
 bool
 FileTransfer::downloadFile()
 {
+  if (m_TransferQueue.getFlagsAt(0) & FT_ATTR_FILE) {
+    if (m_fileWriter.create(m_TransferQueue.getFullLocPathAt(0))) {
+      m_pWriter->writeFileDownloadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
+                                       m_TransferQueue.getFullRemPathAt(0), 0);
+      return true;
+    } else return false;
+  }
   return false;
 }
 
@@ -345,6 +351,43 @@ FileTransfer::procFileListDataMsg()
 bool 
 FileTransfer::procFileDownloadDataMsg()
 {
+  unsigned int bufSize = 0;
+  unsigned int modTime = 0;
+
+  void *pFile = m_pReader->readFileDownloadData(&bufSize, &modTime);
+
+  if ((!m_fileWriter.isCreated()) || (!isTransferEnable())) {
+    if (pFile != NULL) delete pFile;
+    return false;
+  }
+
+  if (bufSize > 0) {
+    unsigned int bytesWritten = 0;
+    m_fileWriter.write(pFile, bufSize, &bytesWritten);
+    delete pFile;
+    if (bytesWritten != bufSize) {
+      char reason[] = "Error File Writting";
+      m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
+      m_TransferQueue.deleteAt(0);
+      m_pFTDialog->postCheckTransferQueueMsg();
+      return false;
+    }
+    return true;
+  } else {
+    if (modTime != 0) {
+      m_fileWriter.setTime(modTime);
+      m_fileWriter.close();
+      m_TransferQueue.deleteAt(0);
+      m_pFTDialog->postCheckTransferQueueMsg();
+      return true;
+    } else {
+      m_fileWriter.close();
+      char reason[] = "Error File Writting";
+      m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
+      m_TransferQueue.deleteAt(0);
+      m_pFTDialog->postCheckTransferQueueMsg();
+    }
+  }
   return false;
 }
 
@@ -430,8 +473,8 @@ FileTransfer::procFLRDownload(FileInfo *pFI)
   unsigned int flags = m_TransferQueue.getFlagsAt(0);
   
   if ((flags & FT_ATTR_DIR) && (flags & FT_ATTR_FLR_DOWNLOAD_ADD)) {
-    m_TransferQueue.add(m_TransferQueue.getLocPathAt(0), 
-                        m_TransferQueue.getRemPathAt(0), 
+    m_TransferQueue.add(m_TransferQueue.getFullLocPathAt(0), 
+                        m_TransferQueue.getFullRemPathAt(0), 
                         pFI, FT_ATTR_COPY_DOWNLOAD);
     m_TransferQueue.deleteAt(0);
     m_pFTDialog->postCheckTransferQueueMsg();

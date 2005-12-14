@@ -32,6 +32,7 @@ namespace rfb {
     FileWriter();
 
     bool write(const void *pBuf, unsigned int count, unsigned int *pBytesWritten);
+    bool setTime(unsigned int modTime);
   };
 }
 

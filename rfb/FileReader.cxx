@@ -33,11 +33,17 @@ FileReader::FileReader()
 bool 
 FileReader::read(void *pBuf, unsigned int count, unsigned int *pBytesRead)
 {
-  if (m_pFile == NULL) return false;
+  if (!isCreated()) return false;
 
   *pBytesRead = fread(pBuf, 1, count, m_pFile);
   
   if (ferror(m_pFile)) return false;
  
   return true;
+}
+
+unsigned int 
+FileReader::getTime()
+{
+  return 0;
 }

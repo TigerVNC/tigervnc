@@ -32,6 +32,8 @@ namespace rfb {
     FileReader();
 
     bool read(void *pBuf, unsigned int count, unsigned int *pBytesRead);
+
+    unsigned int getTime();
   };
 }
 #endif // __RFB_FILEREADER_H__
