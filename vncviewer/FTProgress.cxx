@@ -118,10 +118,12 @@ FTProgress::destroyProgressBarObjects()
 
   if (m_pSingleProgress != NULL) {
     delete m_pSingleProgress;
+    m_pSingleProgress = NULL;
   }
 
   if (m_pGeneralProgress != NULL) {
     delete m_pGeneralProgress;
+    m_pGeneralProgress = NULL;
   }
 
   return true;

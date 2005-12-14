@@ -47,6 +47,16 @@ FileTransfer::~FileTransfer()
     m_pFTDialog = NULL;
   }
   
+  if (m_pReader != NULL) {
+    delete m_pReader;
+    m_pReader = NULL;
+  }
+
+  if (m_pWriter != NULL) {
+    delete m_pWriter;
+    m_pWriter = NULL;
+  }
+
   freeQueues();
 }
 
