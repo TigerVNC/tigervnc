@@ -58,6 +58,23 @@ FTBrowseDlg::destroy()
   EndDialog(m_hwndDlg, 0);
 }
 
+void
+FTBrowseDlg::addItems(FileInfo *pFI)
+{
+  TVITEM tvi;
+  TVINSERTSTRUCT tvins;
+
+  for (unsigned int i = 0; i < pFI->getNumEntries(); i++)
+  {
+    tvi.mask = TVIF_TEXT;
+    tvi.pszText = pFI->getNameAt(i);;
+    tvins.hParent = NULL;
+    tvins.item = tvi;
+    tvins.hParent = TreeView_InsertItem(GetDlgItem(m_hwndDlg, IDC_FTBROWSETREE), &tvins);
+    TreeView_InsertItem(GetDlgItem(m_hwndDlg, IDC_FTBROWSETREE), &tvins);
+  }
+}
+
 BOOL CALLBACK 
 FTBrowseDlg::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {

@@ -32,11 +32,13 @@
 #include <vncviewer/FileTransfer.h>
 #include <vncviewer/FTListView.h>
 #include <vncviewer/FTProgress.h>
+#include <vncviewer/FTBrowseDlg.h>
 #include <vncviewer/resource.h>
 
 namespace rfb {
   namespace win32 {
     class FileTransfer;
+    class FTBrowseDlg;
 
     class FTDialog
     {
@@ -141,6 +143,8 @@ namespace rfb {
 
       FTListView *m_pLocalLV;
       FTListView *m_pRemoteLV;
+
+      FTBrowseDlg *m_pBrowseDlg;
 
       int m_FTMenuSource;
 

@@ -44,6 +44,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_pCancelingDlg = NULL;
   m_pCreateFolderDlg = NULL;
   m_pRenameDlg = NULL;
+  m_pBrowseDlg = NULL;
 
   m_hwndFTDialog = NULL;
   m_hwndLocalPath = NULL;
@@ -369,7 +370,12 @@ FTDialog::onLocalBrowse()
 void 
 FTDialog::onRemoteBrowse()
 {
- 
+  if (m_pBrowseDlg != NULL) return;
+  
+  m_pBrowseDlg = new FTBrowseDlg(this);
+  m_pBrowseDlg->create();
+
+  m_pFileTransfer->requestFileList("", FT_FLR_DEST_BROWSE, true);
 }
 
 void 
@@ -877,6 +883,9 @@ FTDialog::setStatusText(LPCSTR format,...)
 void 
 FTDialog::addBrowseItems(FileInfo *pFI)
 {
+  if (m_pBrowseDlg == NULL) return;
+
+  m_pBrowseDlg->addItems(pFI);
 }
 
 void 

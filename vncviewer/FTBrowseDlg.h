@@ -33,6 +33,8 @@
 
 namespace rfb {
   namespace win32 {
+    class FTDialog;
+
     class FTBrowseDlg
     {
     public:
@@ -43,6 +45,8 @@ namespace rfb {
 
       bool create();
       void destroy();
+
+      void addItems(FileInfo *pFI);
 
     private:
       HWND m_hwndDlg;
