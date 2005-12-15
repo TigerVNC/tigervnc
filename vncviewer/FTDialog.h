@@ -60,6 +60,8 @@ namespace rfb {
       void addRemoteLVItems(FileInfo *pFI);
       void reqFolderUnavailable();
 
+      void onEndBrowseDlg(bool bResult);
+      void getBrowseItems(char *pPath);
       void addBrowseItems(FileInfo *pFI);
 
       void setStatusText(LPCSTR format,...);
@@ -132,6 +134,7 @@ namespace rfb {
       void setButtonsState();
       
       bool m_bDlgShown;
+      bool m_bLocalBrowsing;
       bool m_bCloseDlgAfterCancel;
 
       UINT m_msgCheckDeleteQueue;

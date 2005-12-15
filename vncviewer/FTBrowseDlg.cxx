@@ -30,6 +30,8 @@ FTBrowseDlg::FTBrowseDlg(FTDialog *pFTDlg)
 {
   m_pFTDlg = pFTDlg;
   m_hwndDlg = NULL;
+  m_hwndTree = NULL;
+  m_hParentItem = NULL;
 }
 
 FTBrowseDlg::~FTBrowseDlg()
@@ -45,6 +47,8 @@ FTBrowseDlg::create()
                                 (LONG) this);
 
   if (m_hwndDlg == NULL) return false;
+
+  m_hwndTree = GetDlgItem(m_hwndDlg, IDC_FTBROWSETREE);
 
   ShowWindow(m_hwndDlg, SW_SHOW);
   UpdateWindow(m_hwndDlg);
@@ -64,15 +68,68 @@ FTBrowseDlg::addItems(FileInfo *pFI)
   TVITEM tvi;
   TVINSERTSTRUCT tvins;
 
+  while (TreeView_GetChild(m_hwndTree, m_hParentItem) != NULL) {
+    TreeView_DeleteItem(m_hwndTree, TreeView_GetChild(m_hwndTree, m_hParentItem));
+  }
+
   for (unsigned int i = 0; i < pFI->getNumEntries(); i++)
   {
     tvi.mask = TVIF_TEXT;
     tvi.pszText = pFI->getNameAt(i);;
-    tvins.hParent = NULL;
+    tvins.hParent = m_hParentItem;
     tvins.item = tvi;
-    tvins.hParent = TreeView_InsertItem(GetDlgItem(m_hwndDlg, IDC_FTBROWSETREE), &tvins);
-    TreeView_InsertItem(GetDlgItem(m_hwndDlg, IDC_FTBROWSETREE), &tvins);
+    tvins.hParent = TreeView_InsertItem(m_hwndTree, &tvins);
+    TreeView_InsertItem(m_hwndTree, &tvins);
   }
+}
+
+char *
+FTBrowseDlg::getTVPath(HTREEITEM hTItem)
+{
+  char path[FT_FILENAME_SIZE];
+  char szText[FT_FILENAME_SIZE];
+
+  TVITEM tvi;
+  path[0] = '\0';
+
+  do {
+    tvi.mask = TVIF_TEXT | TVIF_HANDLE;
+    tvi.hItem = hTItem;
+    tvi.pszText = szText;
+    tvi.cchTextMax = FT_FILENAME_SIZE;
+    TreeView_GetItem(m_hwndTree, &tvi);
+    sprintf(path, "%s\\%s", path, tvi.pszText);
+    hTItem = TreeView_GetParent(m_hwndTree, hTItem);
+  } while(hTItem != NULL);
+
+  return pathInvert(path);
+}
+
+char *
+FTBrowseDlg::pathInvert(char *pPath)
+{
+  int len = strlen(pPath);
+  m_szPath[0] = '\0';
+  char *pos = NULL;
+  
+  while ((pos = strrchr(pPath, '\\')) != NULL) {
+    if (strlen(m_szPath) == 0) {
+      strcpy(m_szPath, (pos + 1));
+    } else {
+      sprintf(m_szPath, "%s\\%s", m_szPath, (pos + 1));
+    }
+    *pos = '\0';
+  }
+
+  m_szPath[len] = '\0';
+  return m_szPath;
+}
+
+char *
+FTBrowseDlg::getPath()
+{
+  GetDlgItemText(m_hwndDlg, IDC_FTBROWSEPATH, m_szPath, FT_FILENAME_SIZE);
+  return m_szPath;
 }
 
 BOOL CALLBACK 
@@ -92,8 +149,10 @@ FTBrowseDlg::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       switch (LOWORD(wParam))
       {
       case IDOK:
+        _this->m_pFTDlg->onEndBrowseDlg(true);
         return FALSE;
       case IDCANCEL:
+        _this->m_pFTDlg->onEndBrowseDlg(false);
         return FALSE;
       }
     }
@@ -105,16 +164,23 @@ FTBrowseDlg::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       switch (((LPNMHDR) lParam)->code)
       {
       case TVN_SELCHANGED:
+        SetDlgItemText(hwnd, IDC_FTBROWSEPATH, _this->getTVPath(((NMTREEVIEW *) lParam)->itemNew.hItem));
         return FALSE;
       case TVN_ITEMEXPANDING:
+        {
+          NMTREEVIEW *nmCode = (NMTREEVIEW *) lParam;
+          if (nmCode->action == 2) {
+            _this->m_hParentItem = nmCode->itemNew.hItem;
+            _this->m_pFTDlg->getBrowseItems(_this->getTVPath(_this->m_hParentItem));
+          }
+        }
         return FALSE;
       }
-      break;
-    }
     break;
     case WM_CLOSE:
-    case WM_DESTROY:
+      _this->m_pFTDlg->onEndBrowseDlg(false);
       return FALSE;
     }
+  }
     return 0;
 }

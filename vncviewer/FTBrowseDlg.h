@@ -47,10 +47,18 @@ namespace rfb {
       void destroy();
 
       void addItems(FileInfo *pFI);
+      char *getPath();
 
     private:
       HWND m_hwndDlg;
+      HWND m_hwndTree;
       FTDialog *m_pFTDlg;
+      HTREEITEM m_hParentItem;
+
+      char m_szPath[FT_FILENAME_SIZE];
+
+      char *pathInvert(char *pPath);
+      char *getTVPath(HTREEITEM hTItem);
     };
   }
 }

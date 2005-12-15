@@ -36,6 +36,7 @@ FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
   m_hInstance = hInst;
 
   m_bDlgShown = false;
+  m_bLocalBrowsing = true;
   m_bCloseDlgAfterCancel = false;
 
   m_pLocalLV = NULL;
@@ -362,9 +363,35 @@ FTDialog::onRemoteItemActivate(LPNMITEMACTIVATE lpnmia)
 }
 
 void 
+FTDialog::onEndBrowseDlg(bool bResult)
+{
+  if (m_pBrowseDlg == NULL) return;
+
+  if (bResult) {
+    if (m_bLocalBrowsing) {
+      strcpy(m_szLocalPathTmp, m_pBrowseDlg->getPath());
+      showLocalLVItems();
+    } else {
+      strcpy(m_szRemotePathTmp, m_pBrowseDlg->getPath());
+      showRemoteLVItems();
+    }
+  }
+
+  delete m_pBrowseDlg;
+  m_pBrowseDlg = NULL;
+}
+
+void 
 FTDialog::onLocalBrowse()
 {
+  if (m_pBrowseDlg != NULL) return;
+  
+  m_bLocalBrowsing = true;
 
+  m_pBrowseDlg = new FTBrowseDlg(this);
+  m_pBrowseDlg->create();
+
+  getBrowseItems("");
 }
 
 void 
@@ -372,6 +399,8 @@ FTDialog::onRemoteBrowse()
 {
   if (m_pBrowseDlg != NULL) return;
   
+  m_bLocalBrowsing = false;
+
   m_pBrowseDlg = new FTBrowseDlg(this);
   m_pBrowseDlg->create();
 
@@ -877,6 +906,19 @@ FTDialog::setStatusText(LPCSTR format,...)
       m_dwNumStatusStrings--;
       SendMessage(hStatusBox, (UINT) CB_DELETESTRING, (WPARAM) numItems - 1, (LPARAM) 0); 
     }
+  }
+}
+
+void 
+FTDialog::getBrowseItems(char *pPath)
+{
+  if (m_bLocalBrowsing) {
+    FileInfo fi;
+    FolderManager fm;
+    fm.getDirInfo(pPath, &fi, 1);
+    if (m_pBrowseDlg != NULL) m_pBrowseDlg->addItems(&fi);
+  } else {
+    m_pFileTransfer->requestFileList(pPath, FT_FLR_DEST_BROWSE, true);
   }
 }
 
