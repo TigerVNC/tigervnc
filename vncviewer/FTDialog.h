@@ -221,8 +221,26 @@ namespace rfb {
         char m_szFilename[FT_FILENAME_SIZE];
       };
 
-      private:
+    private:
         RenameDlg *m_pRenameDlg;
+
+    public:
+      class BrowseDlg : public Dialog
+      {
+      public:
+        BrowseDlg(FTDialog *pFTDlg);
+        ~BrowseDlg();
+
+        bool onOk();
+        bool create();
+        void initDialog();
+
+      private:
+        char m_szFilename[FT_FILENAME_SIZE];
+      };
+
+    private:
+        BrowseDlg *m_pBrowseDlg;
     };
   }
 }

@@ -1026,3 +1026,31 @@ FTDialog::RenameDlg::initDialog()
   setItemString(IDC_FTFOLDERNAME, m_szFilename);
   SendDlgItemMessage(handle, IDC_FTFOLDERNAME, EM_SETSEL, (WPARAM) 0, (LPARAM) -1);
 }
+
+FTDialog::BrowseDlg::BrowseDlg(FTDialog *pFTDlg) : Dialog(GetModuleHandle(0))
+{
+
+}
+
+FTDialog::BrowseDlg::~BrowseDlg()
+{
+
+}
+
+bool 
+FTDialog::BrowseDlg::onOk()
+{
+  return false;
+}
+
+bool 
+FTDialog::BrowseDlg::create()
+{
+  return false;
+}
+
+void 
+FTDialog::BrowseDlg::initDialog()
+{
+
+}
