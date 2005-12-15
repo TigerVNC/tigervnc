@@ -58,6 +58,8 @@ namespace rfb {
       void addRemoteLVItems(FileInfo *pFI);
       void reqFolderUnavailable();
 
+      void addBrowseItems(FileInfo *pFI);
+
       void setStatusText(LPCSTR format,...);
 
       HWND getWndHandle() { return m_hwndFTDialog; }
@@ -71,10 +73,9 @@ namespace rfb {
       char *getRemotePath() { return m_szRemotePath; }
 
       FTProgress *m_pProgress;
-      
-    private:
       FileTransfer *m_pFileTransfer;
       
+    private:
       HWND m_hwndFTDialog;
       HWND m_hwndLocalPath;
       HWND m_hwndRemotePath;
@@ -87,6 +88,9 @@ namespace rfb {
 
       void onLocalItemActivate(LPNMITEMACTIVATE lpnmia);
       void onRemoteItemActivate(LPNMITEMACTIVATE lpnmia);
+
+      void onLocalBrowse();
+      void onRemoteBrowse();
 
       void onLocalReload();
       void onRemoteReload();
@@ -223,24 +227,6 @@ namespace rfb {
 
     private:
         RenameDlg *m_pRenameDlg;
-
-    public:
-      class BrowseDlg : public Dialog
-      {
-      public:
-        BrowseDlg(FTDialog *pFTDlg);
-        ~BrowseDlg();
-
-        bool onOk();
-        bool create();
-        void initDialog();
-
-      private:
-        char m_szFilename[FT_FILENAME_SIZE];
-      };
-
-    private:
-        BrowseDlg *m_pBrowseDlg;
     };
   }
 }

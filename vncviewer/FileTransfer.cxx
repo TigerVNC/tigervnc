@@ -529,6 +529,7 @@ FileTransfer::procFLRMain(FileInfo *pFI)
 bool 
 FileTransfer::procFLRBrowse(FileInfo *pFI)
 {
+  m_pFTDialog->addBrowseItems(pFI);
   return false;
 }
 

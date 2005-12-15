@@ -224,6 +224,12 @@ FTDialog::FTDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case IDC_FTCLOSE:
         _this->onClose();
         return FALSE;
+      case IDC_FTLOCALBROWSE:
+        _this->onLocalBrowse();
+        return FALSE;
+      case IDC_FTREMOTEBROWSE:
+        _this->onRemoteBrowse();
+        return FALSE;
       case IDC_FTLOCALUP:
         _this->setButtonsState();
         _this->onLocalOneUpFolder();
@@ -352,6 +358,18 @@ FTDialog::onRemoteItemActivate(LPNMITEMACTIVATE lpnmia)
     sprintf(m_szRemotePathTmp, "%s\\%s", m_szRemotePath, m_pRemoteLV->getActivateItemName(lpnmia));
   }
   showRemoteLVItems();
+}
+
+void 
+FTDialog::onLocalBrowse()
+{
+
+}
+
+void 
+FTDialog::onRemoteBrowse()
+{
+ 
 }
 
 void 
@@ -857,6 +875,11 @@ FTDialog::setStatusText(LPCSTR format,...)
 }
 
 void 
+FTDialog::addBrowseItems(FileInfo *pFI)
+{
+}
+
+void 
 FTDialog::processDlgMsgs()
 {
   MSG msg;
@@ -1025,32 +1048,4 @@ FTDialog::RenameDlg::initDialog()
   setItemString(IDC_FTTEXT, buf);
   setItemString(IDC_FTFOLDERNAME, m_szFilename);
   SendDlgItemMessage(handle, IDC_FTFOLDERNAME, EM_SETSEL, (WPARAM) 0, (LPARAM) -1);
-}
-
-FTDialog::BrowseDlg::BrowseDlg(FTDialog *pFTDlg) : Dialog(GetModuleHandle(0))
-{
-
-}
-
-FTDialog::BrowseDlg::~BrowseDlg()
-{
-
-}
-
-bool 
-FTDialog::BrowseDlg::onOk()
-{
-  return false;
-}
-
-bool 
-FTDialog::BrowseDlg::create()
-{
-  return false;
-}
-
-void 
-FTDialog::BrowseDlg::initDialog()
-{
-
 }
