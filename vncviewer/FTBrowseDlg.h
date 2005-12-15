@@ -41,6 +41,12 @@ namespace rfb {
 
       static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+      bool create();
+      void destroy();
+
+    private:
+      HWND m_hwndDlg;
+      FTDialog *m_pFTDlg;
     };
   }
 }

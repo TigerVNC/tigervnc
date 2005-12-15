@@ -28,12 +28,34 @@ using namespace rfb::win32;
 
 FTBrowseDlg::FTBrowseDlg(FTDialog *pFTDlg)
 {
-
+  m_pFTDlg = pFTDlg;
+  m_hwndDlg = NULL;
 }
 
 FTBrowseDlg::~FTBrowseDlg()
 {
+  destroy();
+}
 
+bool
+FTBrowseDlg::create()
+{
+  m_hwndDlg = CreateDialogParam(GetModuleHandle(0), MAKEINTRESOURCE(IDD_FTBROWSE), 
+                                m_pFTDlg->getWndHandle(), (DLGPROC) FTBrowseDlgProc, 
+                                (LONG) this);
+
+  if (m_hwndDlg == NULL) return false;
+
+  ShowWindow(m_hwndDlg, SW_SHOW);
+  UpdateWindow(m_hwndDlg);
+
+  return true;
+}
+
+void
+FTBrowseDlg::destroy()
+{
+  EndDialog(m_hwndDlg, 0);
 }
 
 BOOL CALLBACK 
