@@ -35,3 +35,47 @@ FTBrowseDlg::~FTBrowseDlg()
 {
 
 }
+
+BOOL CALLBACK 
+FTBrowseDlg::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  FTBrowseDlg *_this = (FTBrowseDlg *) GetWindowLong(hwnd, GWL_USERDATA);
+  switch (uMsg)
+  {
+  case WM_INITDIALOG:
+    {
+      SetWindowLong(hwnd, GWL_USERDATA, lParam);
+      return FALSE;
+    }
+    break;
+  case WM_COMMAND:
+    {
+      switch (LOWORD(wParam))
+      {
+      case IDOK:
+        return FALSE;
+      case IDCANCEL:
+        return FALSE;
+      }
+    }
+    break;
+  case WM_NOTIFY:
+    switch (LOWORD(wParam))
+    {
+    case IDC_FTBROWSETREE:
+      switch (((LPNMHDR) lParam)->code)
+      {
+      case TVN_SELCHANGED:
+        return FALSE;
+      case TVN_ITEMEXPANDING:
+        return FALSE;
+      }
+      break;
+    }
+    break;
+    case WM_CLOSE:
+    case WM_DESTROY:
+      return FALSE;
+    }
+    return 0;
+}

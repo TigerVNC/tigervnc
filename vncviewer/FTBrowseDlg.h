@@ -38,6 +38,9 @@ namespace rfb {
     public:
       FTBrowseDlg(FTDialog *pFTDlg);
       ~FTBrowseDlg();
+
+      static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
     };
   }
 }
