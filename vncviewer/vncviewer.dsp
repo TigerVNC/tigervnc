@@ -154,6 +154,10 @@ SOURCE=.\FileTransfer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\FTBrowseDlg.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\FTDialog.cxx
 # End Source File
 # Begin Source File
@@ -223,6 +227,10 @@ SOURCE=.\CViewOptions.h
 # Begin Source File
 
 SOURCE=.\FileTransfer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTBrowseDlg.h
 # End Source File
 # Begin Source File
 
