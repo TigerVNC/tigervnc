@@ -27,6 +27,7 @@
 #define IDR_FTMENU                      130
 #define IDD_FTCANCELING                 131
 #define IDD_FTCREATEFOLDER              132
+#define IDD_FTBROWSE                    133
 #define IDC_PASSWORD                    1000
 #define IDC_CONNECTING_TEXT             1001
 #define IDC_SERVER_EDIT                 1002
@@ -112,6 +113,8 @@
 #define IDC_EDIT2                       1082
 #define IDC_FTFOLDERNAME                1083
 #define IDC_FTTEXT                      1084
+#define IDC_FTBROWSEPATH                1085
+#define IDC_FTBROWSETREE                1086
 #define ID_TOOLBAR                      40002
 #define ID_CLOSE                        40003
 #define ID_OPTIONS                      40004
@@ -138,9 +141,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         40028
-#define _APS_NEXT_CONTROL_VALUE         1085
+#define _APS_NEXT_CONTROL_VALUE         1087
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
