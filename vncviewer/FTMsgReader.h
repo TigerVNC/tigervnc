@@ -38,10 +38,11 @@ namespace rfb {
       ~FTMsgReader();
 
       int readFileListData(FileInfo *pFileInfo);
-      int readFileUploadCancel(void *pReason);
-      int readFileDownloadFailed(void *pReason);
       int readFileDirSizeData(DWORD64 *pdw64DirSize);
-      int readFileLastRqstFailed(int *pTypeOfRequest, void *pReason);
+
+      char *readFileUploadCancel(unsigned int *pReasonSize);
+      char *readFileDownloadFailed(unsigned int *pReasonSize);
+      char *readFileLastRqstFailed(int *pTypeOfRequest, unsigned int *pReasonSize);
       void *readFileDownloadData(unsigned int *pSize, unsigned int *pModTime);
       
     private:
@@ -49,7 +50,7 @@ namespace rfb {
 
       bool createFileInfo(unsigned int numFiles, FileInfo *fi, 
                           SIZEDATAINFO *pSDInfo, char *pFilenames);
-      int readReasonMsg(void *pReason);
+      char *readReasonMsg(unsigned int *pReasonSize);
     };
   }
 }

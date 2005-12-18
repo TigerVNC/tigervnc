@@ -88,18 +88,18 @@ FTMsgReader::readFileDownloadData(unsigned int *pSize, unsigned int *pModTime)
   }
 }
 
-int 
-FTMsgReader::readFileUploadCancel(void *pReason)
+char * 
+FTMsgReader::readFileUploadCancel(unsigned int *pReasonSize)
 {
   m_pInStream->skip(1);
-  return readReasonMsg(pReason);
+  return readReasonMsg(pReasonSize);
 }
 
-int 
-FTMsgReader::readFileDownloadFailed(void *pReason)
+char * 
+FTMsgReader::readFileDownloadFailed(unsigned int *pReasonSize)
 {
   m_pInStream->skip(1);
-  return readReasonMsg(pReason);
+  return readReasonMsg(pReasonSize);
 }
 
 int 
@@ -115,11 +115,11 @@ FTMsgReader::readFileDirSizeData(DWORD64 *pdw64DirSize)
   return 1;
 }
 
-int 
-FTMsgReader::readFileLastRqstFailed(int *pTypeOfRequest, void *pReason)
+char * 
+FTMsgReader::readFileLastRqstFailed(int *pTypeOfRequest, unsigned int *pReasonSize)
 {
   *pTypeOfRequest = m_pInStream->readU8();
-  return readReasonMsg(pReason);
+  return readReasonMsg(pReasonSize);
 }
 
 bool 
@@ -140,21 +140,25 @@ FTMsgReader::createFileInfo(unsigned int numFiles, FileInfo *fi,
   return true;
 }
 
-int 
-FTMsgReader::readReasonMsg(void *pReason)
+char * 
+FTMsgReader::readReasonMsg(unsigned int *pReasonSize)
 {
   int reasonLen = m_pInStream->readU16();
   int _reasonLen = reasonLen + 1;
+  char *pReason;
   if (reasonLen == 0) {
-    return 0;
+    *pReasonSize = 0;
+    return NULL;
   } else {
-    pReason = malloc(_reasonLen);
+    pReason = new char [_reasonLen];
     if (pReason == NULL) {
       m_pInStream->skip(reasonLen);
-      return -1;
+      *pReasonSize = 0;
+      return NULL;
     }
     m_pInStream->readBytes(pReason, reasonLen);
     memset(((char *)pReason+reasonLen), '\0', 1);
-    return _reasonLen;
+    return pReason;
   }
 }
+

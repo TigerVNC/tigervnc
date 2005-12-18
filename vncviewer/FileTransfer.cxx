@@ -452,14 +452,14 @@ FileTransfer::procFileDownloadDataMsg()
 
   if ((!m_fileWriter.isCreated()) || (!isTransferEnable())) {
     m_bTransferSuccess = false;
-    if (pFile != NULL) delete pFile;
+    if (pFile != NULL) delete [] pFile;
     return false;
   }
 
   if (bufSize > 0) {
     unsigned int bytesWritten = 0;
     m_fileWriter.write(pFile, bufSize, &bytesWritten);
-    delete pFile;
+    delete [] pFile;
     if (bytesWritten != bufSize) {
       m_bTransferSuccess = false;
       char reason[] = "Error File Writting to File";
@@ -507,13 +507,33 @@ FileTransfer::procFileDownloadDataMsg()
 bool 
 FileTransfer::procFileUploadCancelMsg()
 {
-  return false;
+  unsigned int reasonSize = 0;
+  char *pReason = m_pReader->readFileUploadCancel(&reasonSize);
+
+  if (m_bFTDlgShown) {
+    m_pFTDialog->setStatusText("Upload Canceled by Remote Computer : %s", pReason);
+  }
+  endUndoneOperation();
+  m_pFTDialog->postCheckTransferQueueMsg();
+
+  delete [] pReason;
+  return true;
 }
 
 bool 
 FileTransfer::procFileDownloadFailedMsg()
 {
-  return false;
+  unsigned int reasonSize = 0;
+  char *pReason = m_pReader->readFileDownloadFailed(&reasonSize);
+
+  if (m_bFTDlgShown) {
+    m_pFTDialog->setStatusText("Download Failed by Remote Computer : %s", pReason);
+  }
+  endUndoneOperation();
+  m_pFTDialog->postCheckTransferQueueMsg();
+
+  delete [] pReason;
+  return true;
 }
 
 bool 
@@ -530,7 +550,11 @@ FileTransfer::procFileDirSizeDataMsg()
 bool 
 FileTransfer::procFileLastRqstFailedMsg()
 {
-  return false;
+  unsigned int reasonSize = 0;
+  int requestType;
+  char *pReason = m_pReader->readFileLastRqstFailed(&requestType, &reasonSize);
+  delete [] pReason;
+  return true;
 }
 
 bool 
@@ -646,7 +670,6 @@ FileTransfer::checkCancelOperations()
   if (m_bFTDlgShown) m_pFTDialog->processDlgMsgs();
   if (m_bCancel) {
     endUndoneOperation();
-    m_bTransferSuccess = false;
     if (m_bFTDlgShown) {
       m_pFTDialog->setStatusText("All Operations Canceled");
     }
@@ -660,6 +683,7 @@ void
 FileTransfer::endUndoneOperation()
 {
   m_bCancel = false;
+  m_bTransferSuccess = false;
   m_fileReader.close();
   m_fileWriter.close();
   freeQueues();
