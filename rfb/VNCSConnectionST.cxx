@@ -700,3 +700,8 @@ int VNCSConnectionST::getStatus()
     return 2;
   return 4;
 }
+
+bool VNCSConnectionST::processFTMsg(int type)
+{
+  return false;
+}

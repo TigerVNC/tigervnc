@@ -108,6 +108,8 @@ namespace rfb {
     void setStatus(int status);
     int getStatus();
 
+    bool processFTMsg(int type);
+
   private:
     // SConnection callbacks
 

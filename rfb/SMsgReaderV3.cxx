@@ -50,6 +50,18 @@ void SMsgReaderV3::readMsg()
   case msgTypeKeyEvent:                 readKeyEvent(); break;
   case msgTypePointerEvent:             readPointerEvent(); break;
   case msgTypeClientCutText:            readClientCutText(); break;
+
+  case msgTypeFileListRequest:
+  case msgTypeFileDownloadRequest:
+  case msgTypeFileUploadRequest:
+  case msgTypeFileUploadData:
+  case msgTypeFileDownloadCancel:
+  case msgTypeFileUploadFailed:
+  case msgTypeFileCreateDirRequest:
+  case msgTypeFileDirSizeRequest:
+  case msgTypeFileRenameRequest:
+  case msgTypeFileDeleteRequest:        handler->processFTMsg(msgType); break;
+
   default:
     fprintf(stderr, "unknown message type %d\n", msgType);
     throw Exception("unknown message type");
