@@ -165,7 +165,10 @@ void
 FileTransfer::addTransferQueue(char *pLocalPath, char *pRemotePath, 
                                FileInfo *pFI, unsigned int flags)
 {
-  if ((m_bFTDlgShown) && (!isTransferEnable())) m_pFTDialog->setStatusText("Starting Copy Operation");
+  if (!isTransferEnable()) {
+    if (m_bFTDlgShown) m_pFTDialog->setStatusText("Starting Copy Operation");
+    m_bTransferSuccess = true;
+  }
   
   m_TransferQueue.add(pLocalPath, pRemotePath, pFI, (flags | FT_ATTR_RESIZE_NEEDED));
 
@@ -221,7 +224,12 @@ FileTransfer::checkTransferQueue()
       m_pFTDialog->m_pProgress->clearAll();
       m_dw64SizeSending = 0;
       m_bResized = false;
-      m_pFTDialog->setStatusText("File Transfer Operation Completed Successfully");
+
+      if (m_bTransferSuccess) 
+        m_pFTDialog->setStatusText("File Transfer Operation Completed Successfully");
+      else 
+        m_pFTDialog->setStatusText("File Transfer Operation Completed");
+
       m_pFTDialog->afterCancelTransfer();
       PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTLOCALRELOAD, 0), 0);
       PostMessage(m_pFTDialog->getWndHandle(), WM_COMMAND, MAKEWPARAM(IDC_FTREMOTERELOAD, 0), 0);
@@ -261,6 +269,7 @@ FileTransfer::checkTransferQueue()
           
           if (!fm.createDir(pLocPath)) {
             if (m_bFTDlgShown) m_pFTDialog->setStatusText("Creating Local Folder Failed.");
+            m_bTransferSuccess = false;
             m_TransferQueue.deleteAt(0);
             m_pFTDialog->postCheckTransferQueueMsg();
             return;
@@ -277,6 +286,7 @@ FileTransfer::checkTransferQueue()
         }
       }
     }
+    m_bTransferSuccess = false;
     if (m_bFTDlgShown) m_pFTDialog->setStatusText("File Transfer Operation Failed. Unknown data in the transfer queue");
   } // if (!isTransferEnable())
 }
@@ -349,6 +359,7 @@ FileTransfer::uploadFilePortion()
       }
     } else {
       m_fileReader.close();
+      m_bTransferSuccess = false;
       char reason[] = "Error While Reading File";
       m_pWriter->writeFileUploadFailed(strlen(reason), reason);
       if (m_bFTDlgShown) {
@@ -440,6 +451,7 @@ FileTransfer::procFileDownloadDataMsg()
   }
 
   if ((!m_fileWriter.isCreated()) || (!isTransferEnable())) {
+    m_bTransferSuccess = false;
     if (pFile != NULL) delete pFile;
     return false;
   }
@@ -449,6 +461,7 @@ FileTransfer::procFileDownloadDataMsg()
     m_fileWriter.write(pFile, bufSize, &bytesWritten);
     delete pFile;
     if (bytesWritten != bufSize) {
+      m_bTransferSuccess = false;
       char reason[] = "Error File Writting to File";
       m_pWriter->writeFileDownloadCancel(strlen(reason), reason);
       if (m_bFTDlgShown) {
@@ -477,6 +490,7 @@ FileTransfer::procFileDownloadDataMsg()
       return true;
     } else {
       m_fileWriter.close();
+      m_bTransferSuccess = false;
       char reason[] = "Error File Writting";
       if (m_bFTDlgShown) {
         m_pFTDialog->setStatusText("Download Failed");
@@ -546,6 +560,7 @@ FileTransfer::procFLRUpload(FileInfo *pFI)
     } else {
       if (flags & FT_ATTR_DIR) {
         m_TransferQueue.deleteAt(0);
+        m_bTransferSuccess = false;
         if (m_bFTDlgShown) m_pFTDialog->setStatusText("Create Remote Folder Failed.");
       }
     }
@@ -581,6 +596,7 @@ FileTransfer::procFLRDownload(FileInfo *pFI)
     m_pFTDialog->postCheckTransferQueueMsg();
     return true;
   } else {
+    m_bTransferSuccess = false;
     if (m_bFTDlgShown) m_pFTDialog->setStatusText("File Transfer Operation Failed: Unknown data from server.");
   }
   return false;
@@ -630,6 +646,7 @@ FileTransfer::checkCancelOperations()
   if (m_bFTDlgShown) m_pFTDialog->processDlgMsgs();
   if (m_bCancel) {
     endUndoneOperation();
+    m_bTransferSuccess = false;
     if (m_bFTDlgShown) {
       m_pFTDialog->setStatusText("All Operations Canceled");
     }

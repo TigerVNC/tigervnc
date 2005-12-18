@@ -73,6 +73,7 @@ namespace rfb {
       bool m_bFTDlgShown;
       bool m_bInitialized;
       bool m_bResized;
+      bool m_bTransferSuccess;
 
       FTDialog *m_pFTDialog;
 

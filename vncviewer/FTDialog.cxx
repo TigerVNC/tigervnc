@@ -492,20 +492,70 @@ void
 FTDialog::onUpload()
 {
   FileInfo fi;
-  if (m_pLocalLV->getSelectedItems(&fi) > 0) {
-    m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
+  char prefix[FT_FILENAME_SIZE];
+  prefix[0] = '\0';
+
+  if (m_pFileTransfer->isTransferEnable())
+    strcpy(prefix, "File Transfer is active.\nDo you want to add selected file(s)/folder(s) to transfer queue?\n\n");
+  
+  int numSel = m_pLocalLV->getSelectedItems(&fi);
+  if (numSel > 0) {
+    char *pBuf = new char [(numSel + 4) * (MAX_PATH + 3) + strlen(prefix) + 1];
+    sprintf(pBuf, "%sFrom: Local Computer %s\\\n\n", prefix, m_szLocalPath);
+    
+    for (unsigned int i = 0; i < fi.getNumEntries(); i++)
+      sprintf(pBuf, "%s%s, ", pBuf, fi.getNameAt(i));
+    
+    sprintf(pBuf, "%s\n\nTo: Remote Computer %s\\", pBuf, m_szRemotePath);
+    
+    if (strlen(pBuf) > 2048) 
+      sprintf(pBuf, "%sFrom: Local Computer %s\\\n\nTo: Remote Computer %s\\\n\nTotal %d file(s)/folder(s)",
+        prefix, m_szLocalPath, m_szRemotePath, numSel);
+    
+    if (MessageBox(m_hwndFTDialog, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK)
+      m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
+    
+    delete [] pBuf;
+    return;
   }
+  
   setButtonsState();
+  setStatusText("File Transfer Impossible. No file(s) selected for transfer");
 }
 
 void 
 FTDialog::onDownload()
 {
   FileInfo fi;
-  if (m_pRemoteLV->getSelectedItems(&fi) > 0) {
-    m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
+  char prefix[FT_FILENAME_SIZE];
+  prefix[0] = '\0';
+
+  if (m_pFileTransfer->isTransferEnable())
+    strcpy(prefix, "File Transfer is active.\nDo you want to add selected file(s)/folder(s) to transfer queue?\n\n");
+  
+  int numSel = m_pRemoteLV->getSelectedItems(&fi);
+  if (numSel > 0) {
+    char *pBuf = new char [(numSel + 4) * (MAX_PATH + 3) + strlen(prefix) + 1];
+    sprintf(pBuf, "%sFrom: Remote Computer %s\\\n\n", prefix, m_szRemotePath);
+    
+    for (unsigned int i = 0; i < fi.getNumEntries(); i++)
+      sprintf(pBuf, "%s%s, ", pBuf, fi.getNameAt(i));
+    
+    sprintf(pBuf, "%s\n\nTo: Local Computer %s\\", pBuf, m_szLocalPath);
+    
+    if (strlen(pBuf) > 2048) 
+      sprintf(pBuf, "%sFrom: Remote Computer %s\\\n\nTo: Local Computer %s\\\n\nTotal %d file(s)/folder(s)",
+        prefix, m_szRemotePath, m_szLocalPath, numSel);
+    
+    if (MessageBox(m_hwndFTDialog, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK)
+      m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
+    
+    delete [] pBuf;
+    return;
   }
+  
   setButtonsState();
+  setStatusText("File Transfer Impossible. No file(s) selected for transfer");
 }
 
 void 
