@@ -55,7 +55,6 @@ namespace rfb {
     unsigned int getNumEntries();
 
     unsigned int getFilenamesSize();
-    char *getAllFilenames(unsigned int *pFilenameSize);
     
     void sort();
     void free();

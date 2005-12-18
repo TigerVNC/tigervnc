@@ -37,7 +37,43 @@ SFTMsgWriter::~SFTMsgWriter()
 bool 
 SFTMsgWriter::writeFileListData(unsigned char flags, rfb::FileInfo *pFileInfo)
 {
-  return false;
+  unsigned int numFiles = pFileInfo->getNumEntries();
+
+  m_pOS->writeU8(msgTypeFileListData);
+  m_pOS->writeU8(flags);
+  m_pOS->writeU16(numFiles);
+  
+  if (numFiles == 0) {
+    m_pOS->writeU16(0);
+    m_pOS->writeU16(0);
+  } else {
+    unsigned int filenamesSize = pFileInfo->getFilenamesSize() + numFiles;
+
+    m_pOS->writeU16(filenamesSize);
+    m_pOS->writeU16(filenamesSize);
+
+    char *pFilenames = new char [filenamesSize];
+    unsigned int pos = 0;
+
+    for (unsigned int i = 0; i < numFiles; i++) {
+      char *pName = pFileInfo->getNameAt(i);
+      unsigned int len = strlen(pName);
+
+      memcpy((void *)&pFilenames[pos], pName, len + 1);
+      pos += len + 2;
+
+      m_pOS->writeU32(pFileInfo->getSizeAt(i));
+      m_pOS->writeU32(pFileInfo->getDataAt(i));
+    }
+
+    m_pOS->writeBytes(pFilenames, filenamesSize);
+
+    delete [] pFilenames;
+  }
+
+  m_pOS->flush();
+
+  return true;
 }
 
 bool 

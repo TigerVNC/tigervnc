@@ -237,23 +237,3 @@ FileInfo::getFilenamesSize()
 
   return filenamesSize;
 }
-
-char *
-FileInfo::getAllFilenames(unsigned int *pFilenameSize)
-{
-  unsigned int filenameSize = getFilenamesSize() + getNumEntries();
-
-  char *pFilenames = new char[filenameSize];
-  unsigned int pos = 0;
-
-  for (unsigned int i = 0; i < getNumEntries(); i++) {
-    char *pName = getNameAt(i);
-    unsigned int len = strlen(pName);
-
-    memcpy((void *)&pFilenames[pos], pName, len + 1);
-    pos += len + 2;
-  }
-
-  *pFilenameSize = filenameSize;
-  return pFilenames;
-}
