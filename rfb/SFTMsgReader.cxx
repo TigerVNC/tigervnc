@@ -36,47 +36,74 @@ SFTMsgReader::~SFTMsgReader()
     
 bool 
 SFTMsgReader::readFileListRqst(unsigned int *pDirNameSize, char *pDirName, 
-                               unsigned int *pFlags, bool *bDirOnly)
+                               unsigned int *pFlags)
 {
-  return false;
+  *pFlags = m_pIS->readU8();
+  unsigned int dirNameSize = m_pIS->readU16();
+
+  if (dirNameSize >= FT_FILENAME_SIZE) {
+    m_pIS->skip(dirNameSize);
+    return false;
+  } else {
+    m_pIS->readBytes(pDirName, dirNameSize);
+    *pDirNameSize = dirNameSize;
+    pDirName[dirNameSize] = '\0';
+    return true;
+  }
 }
     
 bool 
 SFTMsgReader::readFileDownloadRqst(unsigned int *pFilenameSize, char *pFilename, 
                                    unsigned int *pPosition)
 {
-  return false;
+  unsigned char compressedLevel = 0;
+  return readU8U16U32StringMsg(&compressedLevel, pFilenameSize, pPosition, pFilename);
 }
 
 bool 
 SFTMsgReader::readFileUploadRqst(unsigned int *pFilenameSize, char *pFilename, 
                                  unsigned int *pPosition)
 {
-  return false;
+  unsigned char compressedLevel = 0;
+  return readU8U16U32StringMsg(&compressedLevel, pFilenameSize, pPosition, pFilename);
 }
     
 void *
 SFTMsgReader::readFileUploadData(unsigned int *pDataSize, unsigned int *pModTime)
 {
-  return NULL;
+  unsigned char compressedLevel = m_pIS->readU8();
+  unsigned int realSize = m_pIS->readU16();
+  unsigned int compressedSize = m_pIS->readU16();
+
+  if ((realSize == 0) && (compressedSize == 0)) {
+    *pDataSize = 0;
+    *pModTime = m_pIS->readU32();
+    return NULL;
+  } else {
+    char *pData = new char [compressedSize];
+    m_pIS->readBytes(pData, compressedSize);
+    *pDataSize = compressedSize;
+    *pModTime = 0;
+    return pData;
+  }
 }
     
 bool 
 SFTMsgReader::readFileCreateDirRqst(unsigned int *pDirNameSize, char *pDirName)
 {
-  return false;
+  return readU8U16StringMsg(pDirNameSize, pDirName);
 }
 
 bool 
 SFTMsgReader::readFileDirSizeRqst(unsigned int *pDirNameSize, char *pDirName)
 {
-  return false;
+  return readU8U16StringMsg(pDirNameSize, pDirName);
 }
 
 bool 
 SFTMsgReader::readFileDeleteRqst(unsigned int *pNameSize, char *pName)
 {
-  return false;
+  return readU8U16StringMsg(pNameSize, pName);
 }
     
 bool readFileRenameRqst(unsigned int *pOldNameSize, unsigned int *pNewNameSize,
@@ -85,20 +112,58 @@ bool readFileRenameRqst(unsigned int *pOldNameSize, unsigned int *pNewNameSize,
   return false;
 }
 
-char *
-SFTMsgReader::readFileDownloadCancel(unsigned int *pReasonSize)
+bool
+SFTMsgReader::readFileDownloadCancel(unsigned int *pReasonSize, char *pReason)
 {
-  return NULL;
+  return readU8U16StringMsg(pReasonSize, pReason);
 }
 
-char *
-SFTMsgReader::readFileUploadFailed(unsigned int *pReasonSize)
+bool
+SFTMsgReader::readFileUploadFailed(unsigned int *pReasonSize, char *pReason)
 {
-  return NULL;
+  return readU8U16StringMsg(pReasonSize, pReason);
 }
 
 bool 
 SFTMsgReader::readU8U16StringMsg(unsigned int *pReasonSize, char *pReason)
 {
-  return false;
+  m_pIS->skip(1);
+  unsigned int reasonSize = m_pIS->readU16();
+
+  if (reasonSize >= FT_FILENAME_SIZE) {
+    m_pIS->skip(reasonSize);
+    return false;
+  } else {
+    if (reasonSize == 0) {
+      pReason[0] = '\0';
+    } else {
+      m_pIS->readBytes(pReason, reasonSize);
+      pReason[reasonSize] = '\0';
+    }
+      *pReasonSize = reasonSize;
+    return true;
+  }
+}
+
+bool 
+SFTMsgReader::readU8U16U32StringMsg(unsigned char *pU8, unsigned int *pU16, 
+                                    unsigned int *pU32, char *pString)
+{
+  *pU8 = m_pIS->readU8();
+  unsigned int strSize = m_pIS->readU16();
+  *pU32 = m_pIS->readU32();
+
+  if (strSize >= FT_FILENAME_SIZE) {
+    m_pIS->skip(strSize);
+    return false;
+  } else {
+    *pU16 = strSize;
+    if (strSize == 0) {
+      pString[0] = '\0';
+    } else {
+      m_pIS->readBytes(pString, strSize);
+      pString[strSize] = '\0';
+    }
+    return true;
+  }
 }

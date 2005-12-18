@@ -25,6 +25,7 @@
 #define __RFB_SFTMSGREADER_H__
 
 #include <rdr/InStream.h>
+#include <rfb/fttypes.h>
 
 namespace rfb {
   class SFTMsgReader
@@ -34,7 +35,7 @@ namespace rfb {
     ~SFTMsgReader();
     
     bool readFileListRqst(unsigned int *pDirNameSize, char *pDirName, 
-                          unsigned int *pFlags, bool *bDirOnly);
+                          unsigned int *pFlags);
     
     
     bool readFileDownloadRqst(unsigned int *pFilenameSize, char *pFilename, 
@@ -53,13 +54,15 @@ namespace rfb {
     bool readFileRenameRqst(unsigned int *pOldNameSize, unsigned int *pNewNameSize,
                             char *pOldName, char *pNewName);
 
-    char *readFileDownloadCancel(unsigned int *pReasonSize);
-    char *readFileUploadFailed(unsigned int *pReasonSize);
+    bool readFileDownloadCancel(unsigned int *pReasonSize, char *pReason);
+    bool readFileUploadFailed(unsigned int *pReasonSize, char *pReason);
 
   private:
     rdr::InStream *m_pIS;
 
     bool readU8U16StringMsg(unsigned int *pReasonSize, char *pReason);
+    bool readU8U16U32StringMsg(unsigned char *pU8, unsigned int *pU16, 
+                               unsigned int *pU32, char *pString);
   };
 }
 
