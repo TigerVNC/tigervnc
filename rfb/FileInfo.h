@@ -53,6 +53,9 @@ namespace rfb {
     bool deleteAt(unsigned int number);
     
     unsigned int getNumEntries();
+
+    unsigned int getFilenamesSize();
+    char *getAllFilenames(unsigned int *pFilenameSize);
     
     void sort();
     void free();
@@ -63,6 +66,7 @@ namespace rfb {
   private:
     FILEINFO *m_pEntries;
     unsigned int m_numEntries;
+
   };
 }
 
