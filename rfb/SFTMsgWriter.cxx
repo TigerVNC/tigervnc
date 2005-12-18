@@ -43,32 +43,51 @@ SFTMsgWriter::writeFileListData(unsigned char flags, rfb::FileInfo *pFileInfo)
 bool 
 SFTMsgWriter::writeFileDownloadData(unsigned int dataSize, void *pData)
 {
-  return false;
+  m_pOS->writeU8(msgTypeFileDownloadData);
+  m_pOS->writeU8(0);
+  m_pOS->writeU16(dataSize);
+  m_pOS->writeU16(dataSize);
+  m_pOS->writeBytes(pData, dataSize);
+  m_pOS->flush();
+  return true;
 }
 
 bool 
 SFTMsgWriter::writeFileDownloadData(unsigned int modTime)
 {
-  return false;
+  m_pOS->writeU8(msgTypeFileDownloadData);
+  m_pOS->writeU8(0);
+  m_pOS->writeU16(0);
+  m_pOS->writeU16(0);
+  m_pOS->writeU32(modTime);
+  m_pOS->flush();
+  return true;
 }
 
 bool
 SFTMsgWriter::writeFileUploadCancel(unsigned int reasonLen, char *pReason)
 {
-  return false;
+  m_pOS->writeU8(msgTypeFileUploadCancel);
+  return writeU8U16StringMsg(0, reasonLen, pReason);
 }
 
 bool 
 SFTMsgWriter::writeFileDownloadFailed(unsigned int reasonLen, char *pReason)
 {
-  return false;
+  m_pOS->writeU8(msgTypeFileDownloadFailed);
+  return writeU8U16StringMsg(0, reasonLen, pReason);
 }
 
 bool 
 SFTMsgWriter::writeFileDirSizeData(unsigned int dirSizeLow, 
                                    unsigned short dirSizeHigh)
 {
-  return false;
+  m_pOS->writeU8(msgTypeFileDirSizeData);
+  m_pOS->writeU8(0);
+  m_pOS->writeU16(dirSizeHigh);
+  m_pOS->writeU32(dirSizeLow);
+  m_pOS->flush();
+  return true;
 }
 
 bool 
@@ -76,11 +95,16 @@ SFTMsgWriter::writeFileLastRqstFailed(unsigned char lastRequest,
                                       unsigned short reasonLen,
                                       char *pReason)
 {
-  return false;
+  m_pOS->writeU8(msgTypeFileLastRequestFailed);
+  return writeU8U16StringMsg(lastRequest, reasonLen, pReason);
 }
 
 bool
 SFTMsgWriter::writeU8U16StringMsg(unsigned char p1, unsigned short p2, char *pP3)
 {
-  return false;
+  m_pOS->writeU8(p1);
+  m_pOS->writeU16(p2);
+  m_pOS->writeBytes(pP3, p2);
+  m_pOS->flush();
+  return true;
 }

@@ -26,6 +26,7 @@
 
 #include <rdr/OutStream.h>
 #include <rfb/FileInfo.h>
+#include <rfb/msgTypes.h>
 
 namespace rfb {
   class SFTMsgWriter
