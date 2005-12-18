@@ -262,6 +262,14 @@ SOURCE=.\ServerCore.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\SFTMsgReader.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFTMsgWriter.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\SMsgHandler.cxx
 # End Source File
 # Begin Source File
@@ -581,6 +589,14 @@ SOURCE=.\secTypes.h
 # Begin Source File
 
 SOURCE=.\ServerCore.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFTMsgReader.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFTMsgWriter.h
 # End Source File
 # Begin Source File
 
