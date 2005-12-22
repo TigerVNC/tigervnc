@@ -81,7 +81,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
     renderedCursorInvalid(false),
     securityFactory(sf ? sf : &defaultSecurityFactory),
     queryConnectionHandler(0), useEconomicTranslate(false),
-    lastConnectionTime(0)
+    lastConnectionTime(0), disableclients(false)
 {
   lastUserInputTime = lastDisconnectTime = time(0);
   slog.debug("creating single-threaded server %s", name.buf);
@@ -511,6 +511,7 @@ void VNCServerST::checkUpdate()
 void VNCServerST::getConnInfo(ListConnInfo * listConn)
 {
   listConn->Clear();
+  listConn->setDisable(getDisable());
   if (clients.empty())
     return;
   std::list<VNCSConnectionST*>::iterator i;
@@ -521,6 +522,7 @@ void VNCServerST::getConnInfo(ListConnInfo * listConn)
 
 void VNCServerST::setConnStatus(ListConnInfo* listConn)
 {
+  setDisable(listConn->getDisable());
   if (listConn->Empty() || clients.empty()) return;
   for (listConn->iBegin(); !listConn->iEnd(); listConn->iNext()) {
     VNCSConnectionST* conn = (VNCSConnectionST*)listConn->iGetConn();

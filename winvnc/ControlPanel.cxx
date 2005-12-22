@@ -8,7 +8,6 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-//using namespace rfb_win32;
 using namespace winvnc;
 
 bool ControlPanel::showDialog()
@@ -26,6 +25,8 @@ void ControlPanel::initDialog()
   InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 3, ColumnsStrings,
                 LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
                 LVS_EX_FULLROWSELECT, LVCFMT_LEFT);
+  SendCommand(3, -1);
+  setItemChecked(IDC_DISABLE_CLIENTS, ListConnStatus.getDisable());
 }
 
 bool ControlPanel::onCommand(int cmd)
@@ -40,11 +41,6 @@ bool ControlPanel::onCommand(int cmd)
   case IDC_KILL_ALL:
     {
       SendCommand(2, -1);
-      return false;
-    }
-  case IDC_DISABLE_CLIENTS:
-    {     
-      
       return false;
     }
   case IDC_KILL_SEL_CLIENT:
@@ -66,6 +62,12 @@ bool ControlPanel::onCommand(int cmd)
     {     
       stop_updating = true;
       EndDialog(handle, 0);
+      return false;
+    }
+  case IDC_DISABLE_CLIENTS:
+    {   
+      ListConnStatus.setDisable(isItemChecked(IDC_DISABLE_CLIENTS));
+      SendCommand(3, -1);
       return false;
     }
   }
@@ -109,7 +111,6 @@ BOOL ControlPanel::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       stop_updating = false;
       SendCommand(3, 2);
     }
-    initDialog();
     return TRUE;
   case WM_COMMAND:
     switch (LOWORD(wParam)) {
@@ -141,15 +142,15 @@ void ControlPanel::SendCommand(DWORD command, int data)
   COPYDATASTRUCT copyData;
   copyData.dwData = command;
   copyData.lpData = 0;
+  getSelConnInfo();
   if (data != -1) {
-    getSelConnInfo();
     ListConnStatus.Copy(&ListSelConn);
-    for (ListConnStatus.iBegin(); !ListConnStatus.iEnd(); ListConnStatus.iNext())
-      ListConnStatus.iSetStatus(data);
+    ListConnStatus.setAllStatus(data);
     copyData.cbData = (DWORD)&ListConnStatus;
   } else {
-    copyData.cbData = 0;
+    ListConnStatus.Clear();
   }
+  copyData.cbData = (DWORD)&ListConnStatus;
   SendMessage(m_hSTIcon, WM_COPYDATA, 0, (LPARAM)&copyData);
 }
 

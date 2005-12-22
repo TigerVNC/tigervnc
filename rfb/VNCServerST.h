@@ -31,7 +31,6 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
-#include <rfb/ListConnInfo.h>
 #include <network/Socket.h>
 #include <rfb/ListConnInfo.h>
 
@@ -192,6 +191,9 @@ namespace rfb {
     void getConnInfo(ListConnInfo * listConn);
     void setConnStatus(ListConnInfo* listConn);
 
+    bool getDisable() { return disableclients;};
+    void setDisable(bool disable) { disableclients = disable;};
+
   protected:
 
     friend class VNCSConnectionST;
@@ -234,6 +236,8 @@ namespace rfb {
     time_t lastUserInputTime;
     time_t lastDisconnectTime;
     time_t lastConnectionTime;
+
+    bool disableclients;
   };
 
 };

@@ -23,7 +23,7 @@
 namespace rfb {
 
   struct ListConnInfo  {
-    ListConnInfo() {}
+    ListConnInfo() : disableClients(false) {}
 
     void Clear() {
       conn.clear();
@@ -95,6 +95,16 @@ namespace rfb {
       addInfo(InputList->iGetConn(), buf[0], buf[1], InputList->iGetStatus());
     }
 
+    void setDisable(bool disable) {disableClients = disable;}
+
+    bool getDisable() {return disableClients;}
+
+    void setAllStatus(int stat) {
+      std::list<int>::iterator st;
+      for (st = status.begin(); st != status.end(); st++)
+        *st = stat;
+    }
+
   private:
     std::list<DWORD> conn;
     std::list<char*> IP_address;
@@ -104,6 +114,7 @@ namespace rfb {
     std::list<char*>::iterator Ii;
     std::list<char*>::iterator ti;
     std::list<int>::iterator si;
+    bool disableClients;
   };
 };
 #endif

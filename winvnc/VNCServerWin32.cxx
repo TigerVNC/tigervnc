@@ -155,7 +155,8 @@ int VNCServerWin32::run() {
   config.setNotifyThread(Thread::self(), VNCM_REG_CHANGED);
 
   // - Create the tray icon if possible
-  STrayIconThread trayIcon(*this, IDI_ICON, IDI_CONNECTED, IDR_TRAY);
+  STrayIconThread trayIcon(*this, IDI_ICON, IDI_CONNECTED, IDI_ICON_DISABLE,
+                            IDI_CONNECTED_DISABLE, IDR_TRAY);
 
   DWORD result = 0;
   try {

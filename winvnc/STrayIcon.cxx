@@ -186,10 +186,13 @@ public:
         SendMessage(getHandle(), WM_CLOSE, 0, 0);
         return 0;
       }
-      setIcon(thread.server.isServerInUse() ? thread.activeIcon : thread.inactiveIcon);
 
-      CPanel->UpdateListView(&LCInfo);
       thread.server.getClientsInfo(&LCInfo);
+      CPanel->UpdateListView(&LCInfo);
+
+      setIcon(thread.server.isServerInUse() ?
+              (!LCInfo.getDisable() ? thread.activeIcon : thread.dis_activeIcon) : 
+              (!LCInfo.getDisable() ? thread.inactiveIcon : thread.dis_inactiveIcon));
 
       return 0;
 
@@ -215,8 +218,10 @@ protected:
 };
 
 
-STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT activeIcon_, UINT menu_)
-: server(sm), inactiveIcon(inactiveIcon_), activeIcon(activeIcon_), menu(menu_),
+STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT activeIcon_, 
+                                 UINT dis_inactiveIcon_, UINT dis_activeIcon_, UINT menu_)
+: server(sm), inactiveIcon(inactiveIcon_), activeIcon(activeIcon_),
+  dis_inactiveIcon(dis_inactiveIcon_), dis_activeIcon(dis_activeIcon_),menu(menu_),
   windowHandle(0), runTrayIcon(true) {
   start();
 }

@@ -139,6 +139,10 @@ BOOL SocketManager::getMessage(MSG* msg, HWND hwnd, UINT minMsg, UINT maxMsg) {
         WSAEnumNetworkEvents(sockets[index].fd, events[index], &network_events);
         if (network_events.lNetworkEvents & FD_ACCEPT) {
           network::Socket* new_sock = sockets[index].sock.listener->accept();
+          if ((sockets[index].server)->getDisable()) {
+            delete new_sock;
+            new_sock = 0;
+          }
           if (new_sock) {
             sockets[index].server->addClient(new_sock);
             addSocket(new_sock, sockets[index].server);

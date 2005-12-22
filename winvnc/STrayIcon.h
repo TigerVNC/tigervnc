@@ -29,7 +29,7 @@ namespace winvnc {
   class STrayIconThread : rfb::Thread {
   public:
     STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon,
-      UINT activeIcon, UINT menu);
+      UINT activeIcon, UINT dis_inactiveIcon, UINT dis_activeIcon, UINT menu);
     virtual ~STrayIconThread() {
       runTrayIcon = false;
       PostThreadMessage(getThreadId(), WM_QUIT, 0, 0);
@@ -49,6 +49,8 @@ namespace winvnc {
     VNCServerWin32& server;
     UINT inactiveIcon;
     UINT activeIcon;
+    UINT dis_inactiveIcon;
+    UINT dis_activeIcon;
     UINT menu;
     bool runTrayIcon;
   };

@@ -205,7 +205,15 @@ SOURCE=.\VNCServerWin32.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\connecte.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\connected.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\icon_dis.ico
 # End Source File
 # Begin Source File
 
