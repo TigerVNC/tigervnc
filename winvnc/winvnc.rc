@@ -295,13 +295,14 @@ IDR_TRAY MENU DISCARDABLE
 BEGIN
     POPUP "Tray Menu"
     BEGIN
-        MENUITEM "&Control Panel",              ID_CONTR0L_PANEL
+        MENUITEM "Control &Panel",              ID_CONTR0L_PANEL
         MENUITEM SEPARATOR
         MENUITEM "&Options...",                 ID_OPTIONS
         MENUITEM "Add &New Client",             ID_CONNECT
         MENUITEM "&Disconnect Clients",         ID_DISCONNECT
+        MENUITEM "Disable New &Clients",        ID_DISABLE_NEW_CLIENTS
         MENUITEM SEPARATOR
-        MENUITEM "&Close VNC Server",           ID_CLOSE
+        MENUITEM "Close &VNC Server",           ID_CLOSE
         MENUITEM "&About...",                   ID_ABOUT
     END
 END

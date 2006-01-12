@@ -689,6 +689,7 @@ void VNCSConnectionST::setStatus(int status)
     accessRights = accessRights & !(AccessPtrEvents | AccessKeyEvents | AccessView);
     break;
   }
+  framebufferUpdateRequest(server->pb->getRect(), false);
 }
 int VNCSConnectionST::getStatus()
 {

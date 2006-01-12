@@ -99,6 +99,9 @@ public:
           EnableMenuItem(trayMenu, ID_CONNECT, (!userKnown ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
           EnableMenuItem(trayMenu, ID_CLOSE, (isServiceProcess() ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
 
+          thread.server.getClientsInfo(&LCInfo);
+          CheckMenuItem(trayMenu, ID_DISABLE_NEW_CLIENTS, (LCInfo.getDisable() ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+
           // SetForegroundWindow is required, otherwise Windows ignores the
           // TrackPopupMenu because the window isn't the foreground one, on
           // some older Windows versions...
@@ -108,19 +111,26 @@ public:
           POINT pos;
           GetCursorPos(&pos);
           TrackPopupMenu(trayMenu, 0, pos.x, pos.y, 0, getHandle(), 0);
+
           break;
-			  } 
-			  return 0;
+		} 
+        return 0;
       }
     
       // Handle tray icon menu commands
     case WM_COMMAND:
       switch (LOWORD(wParam)) {
-			case ID_CONTR0L_PANEL:
-				{
-					CPanel->showDialog();
-				}
-		  break;
+      case ID_CONTR0L_PANEL:
+        CPanel->showDialog();
+        break;
+      case ID_DISABLE_NEW_CLIENTS:
+        {
+          thread.server.getClientsInfo(&LCInfo);
+          LCInfo.setDisable(!LCInfo.getDisable());
+          thread.server.setClientsStatus(&LCInfo);
+          CPanel->UpdateListView(&LCInfo);
+        }
+        break;
       case ID_OPTIONS:
         {
           CurrentUserToken token;
@@ -170,6 +180,7 @@ public:
           break;
         case 3:
           thread.server.setClientsStatus((rfb::ListConnInfo *)command->cbData);
+        case 4:
           thread.server.getClientsInfo(&LCInfo);
           CPanel->UpdateListView(&LCInfo);
           break;

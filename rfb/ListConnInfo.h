@@ -87,6 +87,7 @@ namespace rfb {
       for (InputList->iBegin(); !InputList->iEnd(); InputList->iNext()) {
         iAdd(InputList);
       }
+      setDisable(InputList->getDisable());
     }
 
     void iAdd (ListConnInfo* InputList) {

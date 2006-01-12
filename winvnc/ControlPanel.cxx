@@ -25,8 +25,7 @@ void ControlPanel::initDialog()
   InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 3, ColumnsStrings,
                 LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
                 LVS_EX_FULLROWSELECT, LVCFMT_LEFT);
-  SendCommand(3, -1);
-  setItemChecked(IDC_DISABLE_CLIENTS, ListConnStatus.getDisable());
+  SendCommand(4, -1);
 }
 
 bool ControlPanel::onCommand(int cmd)
@@ -79,6 +78,7 @@ void ControlPanel::UpdateListView(rfb::ListConnInfo* LCInfo)
 {
   getSelConnInfo();
   DeleteAllLVItem(IDC_LIST_CONNECTIONS, handle);
+  setItemChecked(IDC_DISABLE_CLIENTS, LCInfo->getDisable());
 
   if(LCInfo->Empty()) 
     return;
@@ -146,6 +146,7 @@ void ControlPanel::SendCommand(DWORD command, int data)
   if (data != -1) {
     ListConnStatus.Copy(&ListSelConn);
     ListConnStatus.setAllStatus(data);
+    ListConnStatus.setDisable(isItemChecked(IDC_DISABLE_CLIENTS));
     copyData.cbData = (DWORD)&ListConnStatus;
   } else {
     ListConnStatus.Clear();

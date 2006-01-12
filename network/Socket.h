@@ -122,7 +122,7 @@ namespace network {
       if (newTimeout && (!*timeout || newTimeout < *timeout))
         *timeout = newTimeout;
     }
-    virtual bool getDisable() {return true;};
+    virtual bool getDisable() {return false;};
   };
 
 }
