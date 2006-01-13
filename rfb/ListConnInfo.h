@@ -50,7 +50,7 @@ namespace rfb {
       si++;
     }
 
-    void addInfo(DWORD Conn, char* IP, char* Time, int Status) {
+    void addInfo(void* Conn, char* IP, char* Time, int Status) {
       conn.push_back(Conn);
       IP_address.push_back(strDup(IP));
       time_conn.push_back(strDup(Time));
@@ -75,7 +75,7 @@ namespace rfb {
       }
     }
 
-    DWORD iGetConn() { return *ci;}
+    void* iGetConn() { return *ci;}
 
     int iGetStatus() { return *si;}
 
@@ -107,11 +107,11 @@ namespace rfb {
     }
 
   private:
-    std::list<DWORD> conn;
+    std::list<void*> conn;
     std::list<char*> IP_address;
     std::list<char*> time_conn;
     std::list<int> status;
-    std::list<DWORD>::iterator ci;
+    std::list<void*>::iterator ci;
     std::list<char*>::iterator Ii;
     std::list<char*>::iterator ti;
     std::list<int>::iterator si;
