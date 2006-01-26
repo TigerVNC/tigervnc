@@ -671,13 +671,16 @@ void VNCSConnectionST::setSocketTimeouts()
 
 char* VNCSConnectionST::getStartTime()
 {
+  // FIXME: Using ctime() is not thread-safe.
+  //        Also, it's not good to return the pointer instead of copying.
   char* result = ctime(&startTime);
   result[24] = '\0';
-  return result; 
+  return result;
 }
 
 void VNCSConnectionST::setStatus(int status)
 {
+  // FIXME: What do numbers mean?
   switch (status) {
   case 0:
     accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
@@ -691,8 +694,10 @@ void VNCSConnectionST::setStatus(int status)
   }
   framebufferUpdateRequest(server->pb->getRect(), false);
 }
+
 int VNCSConnectionST::getStatus()
 {
+  // FIXME: What do numbers mean?
   if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0007)
     return 0;
   if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0001)
