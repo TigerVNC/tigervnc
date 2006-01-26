@@ -191,8 +191,8 @@ namespace rfb {
     void getConnInfo(ListConnInfo * listConn);
     void setConnStatus(ListConnInfo* listConn);
 
-    bool getDisable() { return disableclients;};
-    void setDisable(bool disable) { disableclients = disable;};
+    bool getDisable() { return disableclients; }
+    void setDisable(bool disable) { disableclients = disable; }
 
   protected:
 
