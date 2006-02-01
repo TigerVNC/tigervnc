@@ -203,9 +203,6 @@ void PollingManager::poll_DetectVideo()
         m_changedFlags[idx] = 0;
       }
 
-      if (wasChanged) {
-      }
-
       ptr_old += nBytes;
       ptr_new += nBytes;
       idx++;
