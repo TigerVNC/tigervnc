@@ -127,27 +127,32 @@ void PollingManager::pollDebug()
 
 void PollingManager::poll()
 {
+  bool someChanges = false;
+
   switch((int)pollingType) {
   case 0:
-    poll_Dumb();
+    someChanges = poll_Dumb();
     break;
   case 1:
-    poll_Traditional();
+    someChanges = poll_Traditional();
     break;
   case 2:
-    poll_SkipCycles();
+    someChanges = poll_SkipCycles();
     break;
 //case 3:
   default:
-    poll_DetectVideo();
+    someChanges = poll_DetectVideo();
     break;
   }
+
+  if (someChanges)
+    m_server->tryUpdate();
 }
 
-void PollingManager::poll_DetectVideo()
+bool PollingManager::poll_DetectVideo()
 {
   if (!m_server)
-    return;
+    return false;
 
   const int GRAND_STEP_DIVISOR = 8;
   const int VIDEO_THRESHOLD_0 = 3;
@@ -209,14 +214,13 @@ void PollingManager::poll_DetectVideo()
     }
   }
 
-  if (nTilesChanged)
-    m_server->tryUpdate();
+  return (nTilesChanged != 0);
 }
 
-void PollingManager::poll_SkipCycles()
+bool PollingManager::poll_SkipCycles()
 {
   if (!m_server)
-    return;
+    return false;
 
   enum {
     NOT_CHANGED, CHANGED_ONCE, CHANGED_AGAIN
@@ -274,14 +278,13 @@ void PollingManager::poll_SkipCycles()
     }
   }
 
-  if (nTilesChanged)
-    m_server->tryUpdate();
+  return (nTilesChanged != 0);
 }
 
-void PollingManager::poll_Traditional()
+bool PollingManager::poll_Traditional()
 {
   if (!m_server)
-    return;
+    return false;
 
   int nTilesChanged = 0;
   int scanLine = m_pollingOrder[m_pollingStep++ % 32];
@@ -317,16 +320,23 @@ void PollingManager::poll_Traditional()
     }
   }
 
-  if (nTilesChanged)
-    m_server->tryUpdate();
+  return (nTilesChanged != 0);
 }
 
-void PollingManager::poll_Dumb()
+//
+// Simplest polling method, from the original x0vncserver of VNC4.
+//
+
+bool PollingManager::poll_Dumb()
 {
-  if (m_server) {
-    m_image->get(DefaultRootWindow(m_dpy));
-    Rect rect(0, 0, m_width, m_height);
-    m_server->add_changed(rect);
-    m_server->tryUpdate();
-  }
+  if (!m_server)
+    return false;
+
+  m_image->get(DefaultRootWindow(m_dpy));
+  Rect rect(0, 0, m_width, m_height);
+  m_server->add_changed(rect);
+
+  // As we have no idea if any pixels were changed,
+  // always report that some changes have been detected.
+  return true;
 }

@@ -43,10 +43,14 @@ public:
 
 protected:
 
-  void poll_DetectVideo();
-  void poll_SkipCycles();
-  void poll_Traditional();
-  void poll_Dumb();
+  //
+  // Implementations of different polling algorithms.
+  // Return value of true reports that some changes were detected.
+  //
+  bool poll_DetectVideo();
+  bool poll_SkipCycles();
+  bool poll_Traditional();
+  bool poll_Dumb();
 
   Display *m_dpy;
   VNCServer *m_server;
