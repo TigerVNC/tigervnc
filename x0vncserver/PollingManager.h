@@ -61,6 +61,10 @@ protected:
   int m_widthTiles;
   int m_heightTiles;
 
+private:
+
+  void adjustVideoArea();
+
   Image *m_rowImage;
   Image *m_tileImage;
 

@@ -214,6 +214,9 @@ bool PollingManager::poll_DetectVideo()
     }
   }
 
+  if (grandStep)
+    adjustVideoArea();
+
   return (nTilesChanged != 0);
 }
 
@@ -339,4 +342,91 @@ bool PollingManager::poll_Dumb()
   // As we have no idea if any pixels were changed,
   // always report that some changes have been detected.
   return true;
+}
+
+//
+// FIXME: Replace with a normal comment.
+// Make video area pattern more regular.
+//
+
+// FIXME: Is it efficient enough?
+void PollingManager::adjustVideoArea()
+{
+  char newFlags[m_widthTiles * m_heightTiles];
+  char *ptr = newFlags;
+  int x, y;
+
+  // DEBUG:
+  // int nVideoTiles = 0;
+
+  for (y = 0; y < m_heightTiles; y++) {
+    for (x = 0; x < m_widthTiles; x++) {
+
+      // DEBUG:
+      // nVideoTiles += m_videoFlags[y * m_widthTiles + x];
+
+      int weightedSum = 0, n;
+      if (y > 0 && x > 0) {
+        n = (m_videoFlags[ y    * m_widthTiles + (x-1)] +
+             m_videoFlags[(y-1) * m_widthTiles + (x-1)] +
+             m_videoFlags[(y-1) * m_widthTiles +  x   ]);
+        if (n == 3) {
+          *ptr++ = 1;
+          continue;
+        }
+        weightedSum += n;
+      }
+      if (y > 0 && x < m_widthTiles - 1) {
+        n = (m_videoFlags[ y    * m_widthTiles + (x+1)] +
+             m_videoFlags[(y-1) * m_widthTiles + (x+1)] +
+             m_videoFlags[(y-1) * m_widthTiles +  x   ]);
+        if (n == 3) {
+          *ptr++ = 1;
+          continue;
+        }
+        weightedSum += n;
+      }
+      if (y < m_heightTiles - 1 && x > 0) {
+        n = (m_videoFlags[ y    * m_widthTiles + (x-1)] +
+             m_videoFlags[(y+1) * m_widthTiles + (x-1)] +
+             m_videoFlags[(y+1) * m_widthTiles +  x   ]);
+        if (n == 3) {
+          *ptr++ = 1;
+          continue;
+        }
+        weightedSum += n;
+      }
+      if (y < m_heightTiles - 1 && x < m_widthTiles - 1) {
+        n = (m_videoFlags[ y    * m_widthTiles + (x+1)] +
+             m_videoFlags[(y+1) * m_widthTiles + (x+1)] +
+             m_videoFlags[(y+1) * m_widthTiles +  x   ]);
+        if (n == 3) {
+          *ptr++ = 1;
+          continue;
+        }
+        weightedSum += n;
+      }
+      *ptr++ = (weightedSum <= 3) ? 0 : m_videoFlags[y * m_widthTiles + x];
+    }
+  }
+
+  /*
+  /// DEBUG: ------------------------------------------------------
+  if (nVideoTiles) {
+    for (y = 0; y < m_heightTiles; y++) {
+      for (x = 0; x < m_widthTiles; x++) {
+        printf("%c", m_videoFlags[y * m_widthTiles + x] ? '@' : ':');
+      }
+      printf("        ");
+      for (x = 0; x < m_widthTiles; x++) {
+        printf("%c", newFlags[y * m_widthTiles + x] ? '@' : ':');
+      }
+      printf("\n");
+    }
+    printf("\n");
+  }
+  /// -------------------------------------------------------------
+  */
+
+  memcpy(m_videoFlags, newFlags, m_widthTiles * m_heightTiles);
 }
