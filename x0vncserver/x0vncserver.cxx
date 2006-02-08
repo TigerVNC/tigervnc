@@ -146,6 +146,7 @@ public:
   // -=- SDesktop interface
 
   virtual void pointerEvent(const Point& pos, rdr::U8 buttonMask) {
+    pollmgr->setPointerPos(pos);
 #ifdef HAVE_XTEST
     if (!haveXtest) return;
     XTestFakeMotionEvent(dpy, DefaultScreen(dpy), pos.x, pos.y, CurrentTime);

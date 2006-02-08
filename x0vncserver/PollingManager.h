@@ -38,8 +38,16 @@ public:
   virtual ~PollingManager();
 
   void setVNCServer(VNCServer *s);
+
+  void setPointerPos(const Point &pos);
+  void unsetPointerPos();
+
   void pollDebug();
   void poll();
+
+  // Configurable parameters.
+  static BoolParameter pollPointer;
+  static IntParameter pollingType;
 
 protected:
 
@@ -52,6 +60,10 @@ protected:
   bool poll_Traditional();
   bool poll_Dumb();
 
+  // Separate polling for the area around current pointer position.
+  void computePointerArea(Rect *r);
+  bool pollPointerArea();
+
   Display *m_dpy;
   VNCServer *m_server;
 
@@ -61,12 +73,18 @@ protected:
   int m_widthTiles;
   int m_heightTiles;
 
+  // Tracking pointer position for polling improvements.
+  bool m_pointerPosKnown;
+  Point m_pointerPos;
+
 private:
 
   void adjustVideoArea();
 
-  Image *m_rowImage;
-  Image *m_tileImage;
+  // Additional images used in polling algorithms.
+  Image *m_rowImage;            // One row of the framebuffer
+  Image *m_tileImage;           // One tile (32x32 or less)
+  Image *m_areaImage;           // Area around the pointer (up to 128x128)
 
   char *m_statusMatrix;
 

@@ -106,14 +106,38 @@ void Image::get(Window wnd, int x, int y, int w, int h)
   XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, 0, 0);
 }
 
-void Image::updateRect(Image *src, int dst_x, int dst_y)
+//
+// Copying pixels from one image to another.
+//
+// FIXME: Use Point and Rect structures?
+// FIXME: Too many similar methods?
+//
+
+inline
+void Image::copyPixels(XImage *src,
+                       int dst_x, int dst_y,
+                       int src_x, int src_y,
+                       int w, int h)
 {
-  updateRect(src->xim, dst_x, dst_y);
+  const char *srcOffset =
+    src->data + (src_y * src->bytes_per_line +
+                 src_x * (src->bits_per_pixel / 8));
+  char *dstOffset =
+    xim->data + (dst_y * xim->bytes_per_line +
+                 dst_x * (xim->bits_per_pixel / 8));
+
+  int rowLength = w * (xim->bits_per_pixel / 8);
+
+  for (int i = 0; i < h ; i++) {
+    memcpy(dstOffset, srcOffset, rowLength);
+    srcOffset += src->bytes_per_line;
+    dstOffset += xim->bytes_per_line;
+  }
 }
 
 void Image::updateRect(XImage *src, int dst_x, int dst_y)
 {
-  // Limit width and height at destination image size
+  // Limit width and height at destination image size.
   int w = src->width;
   if (dst_x + w > xim->width)
     w = xim->width - dst_x;
@@ -121,16 +145,54 @@ void Image::updateRect(XImage *src, int dst_x, int dst_y)
   if (dst_y + h > xim->height)
     h = xim->height - dst_y;
 
-  // Copy pixels
-  const char *srcOffset = src->data;
-  char *dstOffset = xim->data + (dst_y * xim->bytes_per_line +
-                                 dst_x * (xim->bits_per_pixel / 8));
-  int lineLength = w * (xim->bits_per_pixel / 8);
-  for (int i = 0; i < h ; i++) {
-    memcpy(dstOffset, srcOffset, lineLength);
-    srcOffset += src->bytes_per_line;
-    dstOffset += xim->bytes_per_line;
-  }
+  copyPixels(src, dst_x, dst_y, 0, 0, w, h);
+}
+
+void Image::updateRect(Image *src, int dst_x, int dst_y)
+{
+  updateRect(src->xim, dst_x, dst_y);
+}
+
+void Image::updateRect(XImage *src, int dst_x, int dst_y, int w, int h)
+{
+  // Correct width and height if necessary.
+  if (w > src->width)
+    w = src->width;
+  if (dst_x + w > xim->width)
+    w = xim->width - dst_x;
+  if (h > src->height)
+    h = src->height;
+  if (dst_y + h > xim->height)
+    h = xim->height - dst_y;
+
+  copyPixels(src, dst_x, dst_y, 0, 0, w, h);
+}
+
+void Image::updateRect(Image *src, int dst_x, int dst_y, int w, int h)
+{
+  updateRect(src->xim, dst_x, dst_y, w, h);
+}
+
+void Image::updateRect(XImage *src, int dst_x, int dst_y,
+                       int src_x, int src_y, int w, int h)
+{
+  // Correct width and height if necessary.
+  if (src_x + w > src->width)
+    w = src->width - src_x;
+  if (dst_x + w > xim->width)
+    w = xim->width - dst_x;
+  if (src_y + h > src->height)
+    h = src->height - src_y;
+  if (dst_y + h > xim->height)
+    h = xim->height - dst_y;
+
+  copyPixels(src, dst_x, dst_y, src_x, src_y, w, h);
+}
+
+void Image::updateRect(Image *src, int dst_x, int dst_y,
+                       int src_x, int src_y, int w, int h)
+{
+  updateRect(src->xim, dst_x, dst_y, src_x, src_y, w, h);
 }
 
 #ifdef HAVE_MITSHM
@@ -433,6 +495,8 @@ void SolarisOverlayImage::get(Window wnd, int x, int y, int w, int h)
 //
 // ImageFactory class implementation
 //
+// FIXME: Make ImageFactory always create images of the same class?
+//
 
 // Prepare useful shortcuts for compile-time options.
 #if defined(HAVE_READDISPLAY) && defined(HAVE_MITSHM)
@@ -456,6 +520,7 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
   Image *image = NULL;
 
   // First, try to create an image with overlay support.
+  // FIXME: Replace fprintf() with proper logging.
 
 #ifdef HAVE_OVERLAY_EXT
   if (mayUseOverlay) {

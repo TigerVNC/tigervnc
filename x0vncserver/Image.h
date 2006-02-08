@@ -43,8 +43,15 @@ public:
   virtual void get(Window wnd, int x = 0, int y = 0);
   virtual void get(Window wnd, int x, int y, int w, int h);
 
-  virtual void updateRect(Image *src, int dst_x = 0, int dst_y = 0);
+// Copying pixels from one image to another.
   virtual void updateRect(XImage *src, int dst_x = 0, int dst_y = 0);
+  virtual void updateRect(Image *src, int dst_x = 0, int dst_y = 0);
+  virtual void updateRect(XImage *src, int dst_x, int dst_y, int w, int h);
+  virtual void updateRect(Image *src, int dst_x, int dst_y, int w, int h);
+  virtual void updateRect(XImage *src, int dst_x, int dst_y,
+                          int src_x, int src_y, int w, int h);
+  virtual void updateRect(Image *src, int dst_x, int dst_y,
+                          int src_x, int src_y, int w, int h);
 
   // Pointer to corresponding XImage, made public for efficiency.
   // NOTE: if this field is NULL, then no methods other than Init()
@@ -54,6 +61,12 @@ public:
 protected:
 
   void Init(int width, int height);
+
+  // Like updateRect(), but does not check arguments.
+  void copyPixels(XImage *src,
+                  int dst_x, int dst_y,
+                  int src_x, int src_y,
+                  int w, int h);
 
   Display *dpy;
   bool trueColor;

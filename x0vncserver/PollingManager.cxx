@@ -19,17 +19,30 @@
 // PollingManager.cxx
 //
 
+// FIXME: Don't compare pixels already marked as changed.
+// FIXME: Use Image::copyPixels() instead of Image::updateRect()?
+//        In that case, note the fact that arguments are not checked.
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 #include <X11/Xlib.h>
 #include <rfb/VNCServer.h>
 #include <rfb/Configuration.h>
+#include <rfb/ServerCore.h>
 
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
 
-IntParameter pollingType("PollingType", "Polling algorithm to use (0..3)", 3);
+BoolParameter PollingManager::pollPointer
+("PollPointer",
+ "Poll area under the pointer with higher priority",
+ true);
+
+IntParameter PollingManager::pollingType
+("PollingType",
+ "Polling algorithm to use (0..3)",
+ 3);
 
 const int PollingManager::m_pollingOrder[32] = {
    0, 16,  8, 24,  4, 20, 12, 28,
@@ -47,7 +60,8 @@ const int PollingManager::m_pollingOrder[32] = {
 
 PollingManager::PollingManager(Display *dpy, Image *image,
                                ImageFactory *factory)
-  : m_dpy(dpy), m_server(0), m_image(image), m_pollingStep(0)
+  : m_dpy(dpy), m_server(0), m_image(image), m_pointerPosKnown(false),
+    m_pollingStep(0)
 {
   // Save width and height of the screen (and the image).
   m_width = m_image->xim->width;
@@ -57,10 +71,11 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   m_widthTiles = (m_width + 31) / 32;
   m_heightTiles = (m_height + 31) / 32;
 
-  // Create two additional images used in the polling algorithm.
+  // Create additional images used in the polling algorithm.
   // FIXME: verify that these images use the same pixel format as in m_image.
   m_rowImage = factory->newImage(m_dpy, m_width, 1);
   m_tileImage = factory->newImage(m_dpy, 32, 32);
+  m_areaImage = factory->newImage(m_dpy, 128, 128);
 
   // FIXME: Extend the comment.
   // Create a matrix with one byte per each 32x32 tile. It will be
@@ -89,6 +104,10 @@ PollingManager::~PollingManager()
   delete[] m_rateMatrix;
 
   delete[] m_statusMatrix;
+
+  delete m_areaImage;
+  delete m_tileImage;
+  delete m_rowImage;
 }
 
 //
@@ -98,6 +117,28 @@ PollingManager::~PollingManager()
 void PollingManager::setVNCServer(VNCServer *s)
 {
   m_server = s;
+}
+
+//
+// Update current pointer position which may be used as a hint for
+// polling algorithms.
+//
+
+void PollingManager::setPointerPos(const Point &pos)
+{
+  m_pointerPos = pos;
+  m_pointerPosKnown = true;
+}
+
+//
+// Indicate that current pointer position is unknown.
+// FIXME: Perhaps this should be done automatically after a number of
+//        polling cycles if the cursor position have not been changed?
+//
+
+void PollingManager::unsetPointerPos()
+{
+  m_pointerPosKnown = false;
 }
 
 //
@@ -160,7 +201,7 @@ bool PollingManager::poll_DetectVideo()
 
   bool grandStep = (m_pollingStep % GRAND_STEP_DIVISOR == 0);
 
-  // FIXME: Save shortcuts in member variables.
+  // FIXME: Save shortcuts in member variables?
   int scanLine = m_pollingOrder[m_pollingStep++ % 32];
   int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
   int bytesPerLine = m_image->xim->bytes_per_line;
@@ -216,6 +257,11 @@ bool PollingManager::poll_DetectVideo()
 
   if (grandStep)
     adjustVideoArea();
+
+  // FIXME: Exclude area near the pointer from the comparisons above.
+  // FIXME: Code duplication.
+  if (pollPointer && m_pointerPosKnown && pollPointerArea())
+    nTilesChanged++;
 
   return (nTilesChanged != 0);
 }
@@ -281,6 +327,11 @@ bool PollingManager::poll_SkipCycles()
     }
   }
 
+  // FIXME: Exclude area near the pointer from the comparisons above.
+  // FIXME: Code duplication.
+  if (pollPointer && m_pointerPosKnown && pollPointerArea())
+    nTilesChanged++;
+
   return (nTilesChanged != 0);
 }
 
@@ -323,6 +374,11 @@ bool PollingManager::poll_Traditional()
     }
   }
 
+  // FIXME: Exclude area near the pointer from the comparisons above.
+  // FIXME: Code duplication.
+  if (pollPointer && m_pointerPosKnown && pollPointerArea())
+    nTilesChanged++;
+
   return (nTilesChanged != 0);
 }
 
@@ -339,17 +395,118 @@ bool PollingManager::poll_Dumb()
   Rect rect(0, 0, m_width, m_height);
   m_server->add_changed(rect);
 
-  // As we have no idea if any pixels were changed,
-  // always report that some changes have been detected.
+  // Report that some changes have been detected.
   return true;
 }
 
 //
-// FIXME: Replace with a normal comment.
-// Make video area pattern more regular.
+// Compute coordinates of the rectangle around the pointer.
 //
 
-// FIXME: Is it efficient enough?
+void PollingManager::computePointerArea(Rect *r)
+{
+  int x = m_pointerPos.x - 64;
+  int y = m_pointerPos.y - 64;
+  int w = 128;
+  int h = 128;
+  if (x < 0) {
+    w += x; x = 0;
+  }
+  if (x + w > m_width) {
+    w = m_width - x;
+  }
+  if (y < 0) {
+    h += y; y = 0;
+  }
+  if (y + h > m_height) {
+    h = m_height - y;
+  }
+
+  r->setXYWH(x, y, w, h);
+}
+
+//
+// Poll the area under current pointer position. Each pixel of the
+// area should be compared. Using such polling option gives higher
+// priority to screen area under the pointer.
+//
+// ASSUMES: (m_server != NULL && m_pointerPosKnown != false)
+//
+
+bool PollingManager::pollPointerArea()
+{
+  Rect r;
+  computePointerArea(&r);
+
+  // Shortcuts for coordinates.
+  int x = r.tl.x, y = r.tl.y;
+  int w = r.width(), h = r.height();
+
+  // Get new pixels.
+  if (w == 128 && h == 128) {
+    m_areaImage->get(DefaultRootWindow(m_dpy), x, y);
+  } else {
+    m_areaImage->get(DefaultRootWindow(m_dpy), x, y, w, h);
+  }
+
+  // Now, try to minimize the rectangle by cutting out unchanged
+  // borders (at top and bottom).
+  //
+  // FIXME: Perhaps we should work on 32x32 tiles (properly aligned)
+  //        to produce a region instead of a rectangle. If there would
+  //        be just one universal polling algorithm, it could be
+  //        better to integrate pointer area polling into that
+  //        algorithm, instead of a separate pollPointerArea()
+  //        function.
+
+  // Shortcuts.
+  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
+  int oldBytesPerLine = m_image->xim->bytes_per_line;
+  int newBytesPerLine = m_areaImage->xim->bytes_per_line;
+  char *oldPtr = m_image->xim->data + y * oldBytesPerLine + x * bytesPerPixel;
+  char *newPtr = m_areaImage->xim->data;
+
+  // Check and cut out unchanged rows at the top.
+  int ty;
+  for (ty = 0; ty < h; ty++) {
+    if (memcmp(oldPtr, newPtr, w * bytesPerPixel) != 0)
+      break;
+    oldPtr += oldBytesPerLine;
+    newPtr += newBytesPerLine;
+  }
+  if (ty == h) {
+    return false;               // no changes at all
+  }
+  y += ty; h -= ty;
+
+  // Check and cut out unchanged rows at the bottom.
+  oldPtr = m_image->xim->data + (y+h-1) * oldBytesPerLine + x * bytesPerPixel;
+  newPtr = m_areaImage->xim->data + (ty+h-1) * newBytesPerLine;
+  int by;
+  for (by = 0; by < h - 1; by++) {
+    if (memcmp(oldPtr, newPtr, w * bytesPerPixel) != 0)
+      break;
+    oldPtr -= oldBytesPerLine;
+    newPtr -= newBytesPerLine;
+  }
+  h -= by;
+
+  // Copy pixels.
+  m_image->updateRect(m_areaImage, x, y, 0, ty, w, h);
+
+  // Report updates to the server.
+  Rect rect(x, y, x+w, y+h);
+  m_server->add_changed(rect);
+  return true;
+}
+
+//
+// Make video area pattern more regular.
+//
+// FIXME: Replace the above with a normal comment.
+// FIXME: Is the function efficient enough?
+//
+
 void PollingManager::adjustVideoArea()
 {
   char newFlags[m_widthTiles * m_heightTiles];
