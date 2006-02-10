@@ -152,6 +152,7 @@ void PollingManager::pollDebug()
   timeSaved.tv_sec = 0;
   timeSaved.tv_usec = 0;
   gettimeofday(&timeSaved, &tz);
+  int step = m_pollingStep;
 
   poll();
 
@@ -159,7 +160,7 @@ void PollingManager::pollDebug()
   int diff = (int)((timeNow.tv_usec - timeSaved.tv_usec + 500) / 1000 +
                    (timeNow.tv_sec - timeSaved.tv_sec) * 1000);
   if (diff != 0)
-    fprintf(stderr, "DEBUG: poll(): %4d ms\n", diff);
+    fprintf(stderr, "DEBUG: poll(): %4d ms [step %2d]\n", diff, step % 32);
 }
 
 //
