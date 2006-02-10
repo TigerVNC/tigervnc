@@ -168,25 +168,33 @@ void PollingManager::pollDebug()
 
 void PollingManager::poll()
 {
-  bool someChanges = false;
+  // First step: full-screen polling.
+
+  bool changes1 = false;
 
   switch((int)pollingType) {
   case 0:
-    someChanges = poll_Dumb();
+    changes1 = poll_Dumb();
     break;
   case 1:
-    someChanges = poll_Traditional();
+    changes1 = poll_Traditional();
     break;
   case 2:
-    someChanges = poll_SkipCycles();
+    changes1 = poll_SkipCycles();
     break;
 //case 3:
   default:
-    someChanges = poll_DetectVideo();
+    changes1 = poll_DetectVideo();
     break;
   }
 
-  if (someChanges)
+  // Second step: optional thorough polling of the area around the pointer.
+
+  bool changes2 = pollPointer && m_pointerPosKnown && pollPointerArea();
+
+  // Update if needed.
+
+  if (changes1 || changes2)
     m_server->tryUpdate();
 }
 
@@ -258,11 +266,6 @@ bool PollingManager::poll_DetectVideo()
   if (grandStep)
     adjustVideoArea();
 
-  // FIXME: Exclude area near the pointer from the comparisons above.
-  // FIXME: Code duplication.
-  if (pollPointer && m_pointerPosKnown && pollPointerArea())
-    nTilesChanged++;
-
   return (nTilesChanged != 0);
 }
 
@@ -327,11 +330,6 @@ bool PollingManager::poll_SkipCycles()
     }
   }
 
-  // FIXME: Exclude area near the pointer from the comparisons above.
-  // FIXME: Code duplication.
-  if (pollPointer && m_pointerPosKnown && pollPointerArea())
-    nTilesChanged++;
-
   return (nTilesChanged != 0);
 }
 
@@ -374,11 +372,6 @@ bool PollingManager::poll_Traditional()
     }
   }
 
-  // FIXME: Exclude area near the pointer from the comparisons above.
-  // FIXME: Code duplication.
-  if (pollPointer && m_pointerPosKnown && pollPointerArea())
-    nTilesChanged++;
-
   return (nTilesChanged != 0);
 }
 
@@ -401,6 +394,8 @@ bool PollingManager::poll_Dumb()
 
 //
 // Compute coordinates of the rectangle around the pointer.
+//
+// ASSUMES: (m_pointerPosKnown != false)
 //
 
 void PollingManager::computePointerArea(Rect *r)
