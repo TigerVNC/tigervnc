@@ -53,7 +53,7 @@ LogWriter vlog("main");
 
 IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
                           "cycle; actual interval may be dynamically "
-                          "adjusted to satisfy MaxProcessorUsage setting", 50);
+                          "adjusted to satisfy MaxProcessorUsage setting", 30);
 IntParameter maxProcessorUsage("MaxProcessorUsage", "Maximum percentage of "
                                "CPU time to be consumed", 35);
 BoolParameter useShm("UseSHM", "Use MIT-SHM extension if available", true);
