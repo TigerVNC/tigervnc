@@ -76,6 +76,7 @@ protected:
   // Tracking pointer position for polling improvements.
   bool m_pointerPosKnown;
   Point m_pointerPos;
+  time_t m_pointerPosTime;
 
 private:
 

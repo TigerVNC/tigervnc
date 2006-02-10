@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <sys/time.h>
 #include <X11/Xlib.h>
 #include <rfb/VNCServer.h>
@@ -126,14 +127,13 @@ void PollingManager::setVNCServer(VNCServer *s)
 
 void PollingManager::setPointerPos(const Point &pos)
 {
+  m_pointerPosTime = time(NULL);
   m_pointerPos = pos;
   m_pointerPosKnown = true;
 }
 
 //
 // Indicate that current pointer position is unknown.
-// FIXME: Perhaps this should be done automatically after a number of
-//        polling cycles if the cursor position have not been changed?
 //
 
 void PollingManager::unsetPointerPos()
@@ -190,8 +190,17 @@ void PollingManager::poll()
   }
 
   // Second step: optional thorough polling of the area around the pointer.
+  // We do that only if the pointer position is known and was set recently.
 
-  bool changes2 = pollPointer && m_pointerPosKnown && pollPointerArea();
+  bool changes2 = false;
+  if (pollPointer) {
+    if (m_pointerPosKnown && time(NULL) - m_pointerPosTime >= 5) {
+      unsetPointerPos();
+    }
+    if (m_pointerPosKnown) {
+      changes2 = pollPointerArea();
+    }
+  }
 
   // Update if needed.
 
