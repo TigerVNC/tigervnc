@@ -36,12 +36,12 @@
 
 BoolParameter PollingManager::pollPointer
 ("PollPointer",
- "Poll area under the pointer with higher priority",
+ "DEBUG: Poll area under the pointer with higher priority",
  true);
 
 IntParameter PollingManager::pollingType
 ("PollingType",
- "Polling algorithm to use (0..3)",
+ "DEBUG: Select particular polling algorithm (0..3)",
  3);
 
 const int PollingManager::m_pollingOrder[32] = {
