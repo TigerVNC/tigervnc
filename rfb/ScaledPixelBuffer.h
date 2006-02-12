@@ -69,6 +69,8 @@ namespace rfb {
     virtual void scaleRect(const Rect& r);
 
   protected:
+    virtual void recreateScaledBuffer();
+
     int src_width;
     int src_height;
     int scaled_width;
