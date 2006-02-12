@@ -29,27 +29,28 @@ using namespace rfb;
 ScaledPixelBuffer::ScaledPixelBuffer(U8 *src_data_, int src_width_,
                                      int src_height_, int scale)
   : src_data(src_data_), src_width(src_width_), src_height(src_height_),
-    bpp(32), data(0) {
+    bpp(32), scaled_data(0) {
 
   scale_ratio = double(scale) / 100;
 
   width_  = (int)ceil(src_width  * scale_ratio);
   height_ = (int)ceil(src_height * scale_ratio);
   
-  data = new U8[width_ * height_ * 4];
+  scaled_data = new U8[width_ * height_ * 4];
 }
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
-  : src_data(0), src_width(0), src_height(0), scale_ratio(1), bpp(32), data(0) {
+  : src_data(0), src_width(0), src_height(0), scale_ratio(1), bpp(32), 
+    scaled_data(0) {
 }
 
 ScaledPixelBuffer::~ScaledPixelBuffer() {
-  if (data) delete [] data;
+  if (scaled_data) delete [] scaled_data;
 }
 
 const U8* ScaledPixelBuffer::getPixelsR(const Rect& r, int* stride) {
   *stride = getStride();
-  return &data[(r.tl.x + (r.tl.y * *stride)) * bpp/8];
+  return &scaled_data[(r.tl.x + (r.tl.y * *stride)) * bpp/8];
 }
 
 void ScaledPixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
@@ -77,8 +78,8 @@ void ScaledPixelBuffer::setScale(int scale) {
     width_  = (int)ceil(src_width  * scale_ratio);
     height_ = (int)ceil(src_height * scale_ratio);
 
-    if (data) delete [] data;
-    data = new U8[width_ * height_ * 4];
+    if (scaled_data) delete [] scaled_data;
+    scaled_data = new U8[width_ * height_ * 4];
 
     scaleRect(Rect(0, 0, width_, height_));
   }
@@ -112,7 +113,7 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
     c1_sub_dy = 1 - dy;
 
     for (int x = (int)x_start; x <= x_end; x++) {
-      ptr = &data[(x + y*width_) * 4];
+      ptr = &scaled_data[(x + y*width_) * 4];
 
       i = (int)(dx = x / scale_ratio);
       dx -= i;

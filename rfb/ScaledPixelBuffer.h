@@ -76,7 +76,7 @@ namespace rfb {
     int bpp;
     double scale_ratio;
     U8 *src_data;
-    U8 *data;
+    U8 *scaled_data;
   };
 
 };
