@@ -33,10 +33,10 @@ ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
 
   scale_ratio = double(scale) / 100;
 
-  width_  = (int)ceil(src_width  * scale_ratio);
-  height_ = (int)ceil(src_height * scale_ratio);
+  scaled_width  = (int)ceil(src_width  * scale_ratio);
+  scaled_height = (int)ceil(src_height * scale_ratio);
   
-  scaled_data = new U8[width_ * height_ * 4];
+  scaled_data = new U8[scaled_width * scaled_height * 4];
 }
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
@@ -75,13 +75,13 @@ void ScaledPixelBuffer::setScale(int scale) {
   if (scale != scale_ratio * 100) {
     scale_ratio = double(scale) / 100;
 
-    width_  = (int)ceil(src_width  * scale_ratio);
-    height_ = (int)ceil(src_height * scale_ratio);
+    scaled_width  = (int)ceil(src_width  * scale_ratio);
+    scaled_height = (int)ceil(src_height * scale_ratio);
 
     if (scaled_data) delete [] scaled_data;
-    scaled_data = new U8[width_ * height_ * 4];
+    scaled_data = new U8[scaled_width * scaled_height * 4];
 
-    scaleRect(Rect(0, 0, width_, height_));
+    scaleRect(Rect(0, 0, scaled_width, scaled_height));
   }
 }
 
@@ -98,12 +98,12 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
   // Calculate the scale boundaries
   x_start = vncmax(0, (r.tl.x-1) * scale_ratio);
   (x_start==int(x_start)) ? true : x_start=(int)(x_start+1);
-  x_end = vncmin(width_ - 1, r.br.x * scale_ratio);
-  ((x_end==int(x_end))&&(x_end!=width_-1)&&(x_end>0)) ? x_end-=1:x_end=(int)(x_end);
+  x_end = vncmin(scaled_width - 1, r.br.x * scale_ratio);
+  ((x_end==int(x_end))&&(x_end!=scaled_width-1)&&(x_end>0)) ? x_end-=1:x_end=(int)(x_end);
   y_start = vncmax(0, (r.tl.y-1) * scale_ratio);
   (y_start==int(y_start)) ? true : y_start=(int)(y_start+1);
-  y_end = vncmin(height_ - 1, r.br.y * scale_ratio);
-  ((y_end==int(y_end))&&(y_end!=height_-1)&&(y_end>0)) ? y_end-=1:y_end=(int)(y_end);
+  y_end = vncmin(scaled_height - 1, r.br.y * scale_ratio);
+  ((y_end==int(y_end))&&(y_end!=scaled_height-1)&&(y_end>0)) ? y_end-=1:y_end=(int)(y_end);
 
   // Scale the source rect to the destination image buffer using
   // bilinear interplation
@@ -113,7 +113,7 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
     c1_sub_dy = 1 - dy;
 
     for (int x = (int)x_start; x <= x_end; x++) {
-      ptr = &scaled_data[(x + y*width_) * 4];
+      ptr = &scaled_data[(x + y*scaled_width) * 4];
 
       i = (int)(dx = x / scale_ratio);
       dx -= i;

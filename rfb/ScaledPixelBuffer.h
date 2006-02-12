@@ -36,16 +36,16 @@ namespace rfb {
     virtual ~ScaledPixelBuffer();
 
     // Get width, height, number of pixels and scale
-    int width()  const { return width_; }
-    int height() const { return height_; }
-    int area() const { return width_ * height_; }
+    int width()  const { return scaled_width; }
+    int height() const { return scaled_height; }
+    int area() const { return scaled_width * scaled_height; }
     int scale() const { return (int)(scale_ratio * 100); }
 
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.
-    Rect getRect() const { return Rect(0, 0, width_, height_); }
+    Rect getRect() const { return Rect(0, 0, scaled_width, scaled_height); }
     Rect getRect(const Point& pos) const {
-      return Rect(pos, pos.translate(Point(width_, height_)));
+      return Rect(pos, pos.translate(Point(scaled_width, scaled_height)));
     }
 
     // Get the number of pixels per row in the actual pixel buffer data area
@@ -69,10 +69,10 @@ namespace rfb {
     virtual void scaleRect(const Rect& r);
 
   protected:
-    int width_;
-    int height_;
     int src_width;
     int src_height;
+    int scaled_width;
+    int scaled_height;
     int bpp;
     double scale_ratio;
     U8 **src_data;
