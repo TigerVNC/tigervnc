@@ -31,7 +31,7 @@ namespace rfb {
 
   class ScaledPixelBuffer {
   public:
-    ScaledPixelBuffer(U8 *data, int width, int height, int scale);
+    ScaledPixelBuffer(U8 **data, int width, int height, int scale);
     ScaledPixelBuffer();
     virtual ~ScaledPixelBuffer();
 
@@ -75,7 +75,7 @@ namespace rfb {
     int src_height;
     int bpp;
     double scale_ratio;
-    U8 *src_data;
+    U8 **src_data;
     U8 *scaled_data;
   };
 

@@ -26,7 +26,7 @@
 using namespace rdr;
 using namespace rfb;
 
-ScaledPixelBuffer::ScaledPixelBuffer(U8 *src_data_, int src_width_,
+ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
                                      int src_height_, int scale)
   : src_data(src_data_), src_width(src_width_), src_height(src_height_),
     bpp(32), scaled_data(0) {
@@ -119,7 +119,7 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
       dx -= i;
       c1_sub_dx = 1 - dx;
 
-      src_ptr = &src_data[(i + (j*src_width))*4];
+      src_ptr = &(*src_data)[(i + (j*src_width))*4];
       b0 = *src_ptr; g0 = *(src_ptr+1); r0 = *(src_ptr+2);
       if (i+1 < src_width) {
         b1 = *(src_ptr+4); g1 = *(src_ptr+5); r1 = *(src_ptr+6);
