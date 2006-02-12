@@ -39,8 +39,12 @@ ScaledPixelBuffer::ScaledPixelBuffer(U8 *src_data_, int src_width_,
   data = new U8[width_ * height_ * 4];
 }
 
+ScaledPixelBuffer::ScaledPixelBuffer() 
+  : src_data(0), src_width(0), src_height(0), scale_ratio(1), bpp(32), data(0) {
+}
+
 ScaledPixelBuffer::~ScaledPixelBuffer() {
-  delete [] data;
+  if (data) delete [] data;
 }
 
 const U8* ScaledPixelBuffer::getPixelsR(const Rect& r, int* stride) {
@@ -73,7 +77,7 @@ void ScaledPixelBuffer::setScale(int scale) {
     width_  = (int)ceil(src_width  * scale_ratio);
     height_ = (int)ceil(src_height * scale_ratio);
 
-    delete [] data;
+    if (data) delete [] data;
     data = new U8[width_ * height_ * 4];
 
     scaleRect(Rect(0, 0, width_, height_));

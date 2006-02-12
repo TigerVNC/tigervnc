@@ -32,6 +32,7 @@ namespace rfb {
   class ScaledPixelBuffer {
   public:
     ScaledPixelBuffer(U8 *data, int width, int height, int scale);
+    ScaledPixelBuffer();
     virtual ~ScaledPixelBuffer();
 
     // Get width, height, number of pixels and scale
