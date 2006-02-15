@@ -23,6 +23,8 @@
 #ifndef __POLLINGMANAGER_H__
 #define __POLLINGMANAGER_H__
 
+#include <sys/time.h>
+
 #include <X11/Xlib.h>
 #include <rfb/VNCServer.h>
 
@@ -42,7 +44,6 @@ public:
   void setPointerPos(const Point &pos);
   void unsetPointerPos();
 
-  void pollDebug();
   void poll();
 
   // Configurable parameters.
@@ -95,6 +96,15 @@ private:
 
   unsigned int m_pollingStep;
   static const int m_pollingOrder[];
+
+#ifdef DEBUG
+private:
+
+  void debugBeforePoll();
+  void debugAfterPoll();
+
+  struct timeval m_timeSaved;
+#endif
 
 };
 

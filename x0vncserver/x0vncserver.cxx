@@ -443,16 +443,19 @@ int main(int argc, char** argv)
           int coeff = cpumon.check();
           if (coeff < 90 || coeff > 110) {
             // Adjust polling cycle to satisfy MaxProcessorUsage setting
+#ifdef DEBUG
+            int oldPollingCycle = dynPollingCycle;
+#endif
             dynPollingCycle = (dynPollingCycle * 100 + coeff/2) / coeff;
             if (dynPollingCycle < (int)pollingCycle) {
               dynPollingCycle = (int)pollingCycle;
             } else if (dynPollingCycle > (int)pollingCycle * 32) {
               dynPollingCycle = (int)pollingCycle * 32;
             }
-            // DEBUG:
-            // if (dynPollingCycle != old) {
-            //   fprintf(stderr, "[%dms]\t", dynPollingCycle);
-            // }
+#ifdef DEBUG
+            if (dynPollingCycle != oldPollingCycle)
+              fprintf(stderr, "\t[new cycle %dms]\n", dynPollingCycle);
+#endif
           }
           desktop.poll();
         }

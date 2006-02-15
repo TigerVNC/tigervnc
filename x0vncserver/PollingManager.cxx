@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <sys/time.h>
 #include <X11/Xlib.h>
 #include <rfb/VNCServer.h>
 #include <rfb/Configuration.h>
@@ -96,6 +95,10 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   memset(m_rateMatrix, 0, numTiles);
   memset(m_videoFlags, 0, numTiles);
   memset(m_changedFlags, 0, numTiles);
+
+#ifdef DEBUG
+  memset(&m_timeSaved, 0, sizeof(m_timeSaved));
+#endif
 }
 
 PollingManager::~PollingManager()
@@ -142,26 +145,34 @@ void PollingManager::unsetPointerPos()
 }
 
 //
-// DEBUG: a version of poll() measuring time spent in the function.
+// DEBUG: Measuring time spent in the poll() function,
+//        as well as time intervals between poll() calls.
 //
 
-void PollingManager::pollDebug()
+#ifdef DEBUG
+void PollingManager::debugBeforePoll()
 {
-  struct timeval timeSaved, timeNow;
+  struct timeval timeNow;
   struct timezone tz;
-  timeSaved.tv_sec = 0;
-  timeSaved.tv_usec = 0;
-  gettimeofday(&timeSaved, &tz);
-  int step = m_pollingStep;
-
-  poll();
-
   gettimeofday(&timeNow, &tz);
-  int diff = (int)((timeNow.tv_usec - timeSaved.tv_usec + 500) / 1000 +
-                   (timeNow.tv_sec - timeSaved.tv_sec) * 1000);
-  if (diff != 0)
-    fprintf(stderr, "DEBUG: poll(): %4d ms [step %2d]\n", diff, step % 32);
+  int diff = (int)((timeNow.tv_usec - m_timeSaved.tv_usec + 500) / 1000 +
+                   (timeNow.tv_sec - m_timeSaved.tv_sec) * 1000);
+  fprintf(stderr, "[wait%4dms]\t[step %2d]\t", diff, m_pollingStep % 32);
+  m_timeSaved = timeNow;
 }
+
+void PollingManager::debugAfterPoll()
+{
+  struct timeval timeNow;
+  struct timezone tz;
+  gettimeofday(&timeNow, &tz);
+  int diff = (int)((timeNow.tv_usec - m_timeSaved.tv_usec + 500) / 1000 +
+                   (timeNow.tv_sec - m_timeSaved.tv_sec) * 1000);
+  fprintf(stderr, "[poll%4dms]\n", diff);
+  m_timeSaved = timeNow;
+}
+
+#endif
 
 //
 // Search for changed rectangles on the screen.
@@ -169,6 +180,10 @@ void PollingManager::pollDebug()
 
 void PollingManager::poll()
 {
+#ifdef DEBUG
+  debugBeforePoll();
+#endif
+
   // First step: full-screen polling.
 
   bool changes1 = false;
@@ -206,6 +221,10 @@ void PollingManager::poll()
 
   if (changes1 || changes2)
     m_server->tryUpdate();
+
+#ifdef DEBUG
+  debugAfterPoll();
+#endif
 }
 
 bool PollingManager::poll_DetectVideo()
