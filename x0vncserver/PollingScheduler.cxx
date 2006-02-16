@@ -17,7 +17,7 @@
  */
 
 //
-// PollingScheduler.cxx
+// PollingScheduler class implementation.
 //
 
 #include <x0vncserver/PollingScheduler.h>
@@ -58,3 +58,7 @@ int PollingScheduler::millisRemaining() const
   return (m_interval - elapsed);
 }
 
+bool PollingScheduler::goodTimeToPoll() const
+{
+  return (millisRemaining() == 0);
+}

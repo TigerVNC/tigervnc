@@ -17,7 +17,10 @@
  */
 
 //
-// PollingScheduler.h
+// PollingScheduler class. It is used for deciding when to start new
+// polling pass, and how much time it is ok to wait before starting. 
+// PollingScheduler is provided a desired polling interval and watches
+// for actual intervals between past polling cycles.
 //
 
 #ifndef __POLLINGSCHEDULER_H__
@@ -42,6 +45,9 @@ public:
 
   // This function estimates time remaining before new polling pass.
   int millisRemaining() const;
+
+  // This function tells if it's ok to start polling pass right now.
+  bool goodTimeToPoll() const;
 
 protected:
 

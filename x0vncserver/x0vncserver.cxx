@@ -485,7 +485,7 @@ int main(int argc, char** argv)
 
       server.checkTimeouts();
 
-      if (sched.millisRemaining() <= 0) {
+      if (sched.goodTimeToPoll()) {
         adjustPollingCycle(&dynPollingCycle, &cpumon);
         sched.setInterval(dynPollingCycle);
         sched.newPass();
