@@ -51,7 +51,7 @@ void CPUMonitor::update()
 
 int CPUMonitor::check()
 {
-  struct timeval timeNow;
+  TimeMillis timeNow;
   clock_t clockNow;
   getClock(&timeNow, &clockNow);
 
@@ -60,8 +60,8 @@ int CPUMonitor::check()
   if (m_savedClock != (clock_t)-1 && clockNow != (clock_t)-1) {
 
     // Find out how much real time has been elapsed (in milliseconds).
-    int timeDiff = (int)((timeNow.tv_usec - m_savedTime.tv_usec + 500) / 1000 +
-                         (timeNow.tv_sec - m_savedTime.tv_sec) * 1000);
+    int timeDiff = timeNow.diffFrom(m_savedTime);
+
     if (timeDiff < m_updatePeriod) {
       // Measuring CPU usage is problematic in this case. So return
       // 100 and do not update saved time and clock numbers.
@@ -92,11 +92,11 @@ int CPUMonitor::check()
   return coeff;
 }
 
-void CPUMonitor::getClock(struct timeval *tv, clock_t *clk)
+void CPUMonitor::getClock(TimeMillis *tm, clock_t *clk)
 {
-  if (gettimeofday(tv, NULL) != 0) {
-    *clk = (clock_t)-1;
-  } else {
+  if (tm->update()) {
     *clk = clock();
+  } else {
+    *clk = (clock_t)-1;
   }
 }

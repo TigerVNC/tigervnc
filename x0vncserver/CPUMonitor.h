@@ -23,8 +23,9 @@
 #ifndef __CPUMONITOR_H__
 #define __CPUMONITOR_H__
 
-#include <sys/time.h>
 #include <time.h>
+
+#include <x0vncserver/TimeMillis.h>
 
 class CPUMonitor {
 
@@ -65,11 +66,11 @@ public:
 
 protected:
 
-  static void getClock(struct timeval *tv, clock_t *clk);
+  static void getClock(TimeMillis *tm, clock_t *clk);
 
   int m_optimalLevel;
   int m_updatePeriod;
-  struct timeval m_savedTime;
+  TimeMillis m_savedTime;
   clock_t m_savedClock;
 
 };

@@ -23,12 +23,14 @@
 #ifndef __POLLINGMANAGER_H__
 #define __POLLINGMANAGER_H__
 
-#include <sys/time.h>
-
 #include <X11/Xlib.h>
 #include <rfb/VNCServer.h>
 
 #include <x0vncserver/Image.h>
+
+#ifdef DEBUG
+#include <x0vncserver/TimeMillis.h>
+#endif
 
 using namespace rfb;
 
@@ -103,7 +105,7 @@ private:
   void debugBeforePoll();
   void debugAfterPoll();
 
-  struct timeval m_timeSaved;
+  TimeMillis m_timeSaved;
 #endif
 
 };

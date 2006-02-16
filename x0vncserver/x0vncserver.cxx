@@ -21,7 +21,6 @@
 //        e.g. 800x600.
 
 #include <strings.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -45,6 +44,7 @@
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
 #include <x0vncserver/CPUMonitor.h>
+#include <x0vncserver/TimeMillis.h>
 
 using namespace rfb;
 using namespace network;
@@ -324,6 +324,30 @@ static void usage()
   exit(1);
 }
 
+//
+// Adjust polling cycle to satisfy MaxProcessorUsage setting.
+//
+
+static void adjustPollingCycle(int *cycle, CPUMonitor *mon)
+{
+  int coeff = mon->check();
+  if (coeff < 90 || coeff > 110) {
+#ifdef DEBUG
+    int oldPollingCycle = *cycle;
+#endif
+    *cycle = (*cycle * 100 + coeff/2) / coeff;
+    if (*cycle < (int)pollingCycle) {
+      *cycle = (int)pollingCycle;
+    } else if (*cycle > (int)pollingCycle * 32) {
+      *cycle = (int)pollingCycle * 32;
+    }
+#ifdef DEBUG
+    if (*cycle != oldPollingCycle)
+      fprintf(stderr, "\t[new cycle %dms]\n", *cycle);
+#endif
+  }
+}
+
 int main(int argc, char** argv)
 {
   initStdIOLoggers();
@@ -376,15 +400,13 @@ int main(int argc, char** argv)
     CPUMonitor cpumon((int)maxProcessorUsage, 1000);
     int dynPollingCycle = (int)pollingCycle;
 
-    struct timeval timeSaved, timeNow;
-    struct timezone tz;
-    gettimeofday(&timeSaved, &tz);
-    timeSaved.tv_sec -= 60;
+    TimeMillis timeSaved, timeNow;
 
     while (true) {
       fd_set rfds;
       struct timeval tv;
 
+      // FIXME: This seems to be wrong.
       tv.tv_sec = 0;
       tv.tv_usec = dynPollingCycle * 1000;
       if (tv.tv_usec > 500000) {
@@ -435,32 +457,15 @@ int main(int argc, char** argv)
 
       server.checkTimeouts();
 
-      if (gettimeofday(&timeNow, &tz) == 0) {
-        int diff = (int)((timeNow.tv_usec - timeSaved.tv_usec + 500) / 1000 +
-                         (timeNow.tv_sec - timeSaved.tv_sec) * 1000);
+      if (timeNow.update()) {
+        int diff = timeNow.diffFrom(timeSaved);
         if (diff >= dynPollingCycle) {
+          adjustPollingCycle(&dynPollingCycle, &cpumon);
           timeSaved = timeNow;
-          int coeff = cpumon.check();
-          if (coeff < 90 || coeff > 110) {
-            // Adjust polling cycle to satisfy MaxProcessorUsage setting
-#ifdef DEBUG
-            int oldPollingCycle = dynPollingCycle;
-#endif
-            dynPollingCycle = (dynPollingCycle * 100 + coeff/2) / coeff;
-            if (dynPollingCycle < (int)pollingCycle) {
-              dynPollingCycle = (int)pollingCycle;
-            } else if (dynPollingCycle > (int)pollingCycle * 32) {
-              dynPollingCycle = (int)pollingCycle * 32;
-            }
-#ifdef DEBUG
-            if (dynPollingCycle != oldPollingCycle)
-              fprintf(stderr, "\t[new cycle %dms]\n", dynPollingCycle);
-#endif
-          }
           desktop.poll();
         }
       } else {
-        // Something strange has happened -- gettimeofday(2) failed.
+        // Something strange has happened -- TimeMillis::update() failed.
         // Poll after each select(), as in the original VNC4 code.
         desktop.poll();
       }

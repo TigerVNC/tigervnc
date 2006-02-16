@@ -31,7 +31,6 @@
 #include <rfb/Configuration.h>
 #include <rfb/ServerCore.h>
 
-#include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
 
 BoolParameter PollingManager::pollPointer
@@ -95,10 +94,6 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   memset(m_rateMatrix, 0, numTiles);
   memset(m_videoFlags, 0, numTiles);
   memset(m_changedFlags, 0, numTiles);
-
-#ifdef DEBUG
-  memset(&m_timeSaved, 0, sizeof(m_timeSaved));
-#endif
 }
 
 PollingManager::~PollingManager()
@@ -152,22 +147,16 @@ void PollingManager::unsetPointerPos()
 #ifdef DEBUG
 void PollingManager::debugBeforePoll()
 {
-  struct timeval timeNow;
-  struct timezone tz;
-  gettimeofday(&timeNow, &tz);
-  int diff = (int)((timeNow.tv_usec - m_timeSaved.tv_usec + 500) / 1000 +
-                   (timeNow.tv_sec - m_timeSaved.tv_sec) * 1000);
+  TimeMillis timeNow;
+  int diff = timeNow.diffFrom(m_timeSaved);
   fprintf(stderr, "[wait%4dms]\t[step %2d]\t", diff, m_pollingStep % 32);
   m_timeSaved = timeNow;
 }
 
 void PollingManager::debugAfterPoll()
 {
-  struct timeval timeNow;
-  struct timezone tz;
-  gettimeofday(&timeNow, &tz);
-  int diff = (int)((timeNow.tv_usec - m_timeSaved.tv_usec + 500) / 1000 +
-                   (timeNow.tv_sec - m_timeSaved.tv_sec) * 1000);
+  TimeMillis timeNow;
+  int diff = timeNow.diffFrom(m_timeSaved);
   fprintf(stderr, "[poll%4dms]\n", diff);
   m_timeSaved = timeNow;
 }
