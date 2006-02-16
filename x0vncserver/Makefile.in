@@ -1,5 +1,6 @@
 
-SRCS = Image.cxx CPUMonitor.cxx PollingManager.cxx x0vncserver.cxx
+SRCS = Image.cxx CPUMonitor.cxx TimeMillis.cxx PollingManager.cxx \
+       x0vncserver.cxx
 
 OBJS = $(SRCS:.cxx=.o)
 
