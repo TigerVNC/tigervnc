@@ -401,17 +401,10 @@ int main(int argc, char** argv)
     int dynPollingCycle = (int)pollingCycle;
 
     TimeMillis timeSaved, timeNow;
+    fd_set rfds;
+    struct timeval tv;
 
     while (true) {
-      fd_set rfds;
-      struct timeval tv;
-
-      // FIXME: This seems to be wrong.
-      tv.tv_sec = 0;
-      tv.tv_usec = dynPollingCycle * 1000;
-      if (tv.tv_usec > 500000) {
-        tv.tv_usec = 500000;
-      }
 
       FD_ZERO(&rfds);
       FD_SET(listener.getFd(), &rfds);
@@ -419,9 +412,31 @@ int main(int argc, char** argv)
       std::list<Socket*> sockets;
       server.getSockets(&sockets);
       std::list<Socket*>::iterator i;
+      int clients_connected = 0;
       for (i = sockets.begin(); i != sockets.end(); i++) {
         FD_SET((*i)->getFd(), &rfds);
+        clients_connected++;
       }
+
+      if (clients_connected) {
+        int poll_ms = 20;
+        if (timeNow.update()) {
+          poll_ms = timeNow.diffFrom(timeSaved);
+        }
+        int wait_ms = dynPollingCycle - poll_ms;
+        if (wait_ms < 0) {
+          wait_ms = 0;
+        } else if (wait_ms > 500) {
+          wait_ms = 500;
+        }
+        tv.tv_usec = wait_ms * 1000;
+#ifdef DEBUG
+        fprintf(stderr, "[%d]\t", wait_ms);
+#endif
+      } else {
+        tv.tv_usec = 50000;
+      }
+      tv.tv_sec = 0;
 
       int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
       if (n < 0) {
