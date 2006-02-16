@@ -35,18 +35,18 @@ void PollingScheduler::setInterval(int interval)
 
 void PollingScheduler::reset()
 {
-  initialState = true;
+  m_initialState = true;
 }
 
 void PollingScheduler::newPass()
 {
   m_passStarted.update();
-  initialState = false;
+  m_initialState = false;
 }
 
 int PollingScheduler::millisRemaining() const
 {
-  if (initialState)
+  if (m_initialState)
     return 0;
 
   TimeMillis timeNow;

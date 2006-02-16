@@ -51,7 +51,7 @@ public:
 
 protected:
 
-  bool initialState;
+  bool m_initialState;
   int m_interval;
   TimeMillis m_passStarted;
 
