@@ -332,19 +332,37 @@ static void adjustPollingCycle(int *cycle, CPUMonitor *mon)
 {
   int coeff = mon->check();
   if (coeff < 90 || coeff > 110) {
-#ifdef DEBUG
-    int oldPollingCycle = *cycle;
-#endif
-    *cycle = (*cycle * 100 + coeff/2) / coeff;
-    if (*cycle < (int)pollingCycle) {
-      *cycle = (int)pollingCycle;
-    } else if (*cycle > (int)pollingCycle * 32) {
-      *cycle = (int)pollingCycle * 32;
+    int oldValue = *cycle;
+    int newValue = (oldValue * 100 + coeff/2) / coeff;
+
+    // Correct sudden changes.
+    if (newValue < oldValue / 2) {
+      newValue = oldValue / 2;
+    } else if (newValue > oldValue * 2) {
+      newValue = oldValue * 2;
     }
+
+    // Compute upper limit.
+    int upperLimit = (int)pollingCycle * 32;
+    if (upperLimit < 100) {
+      upperLimit = 100;
+    } else if (upperLimit > 1000) {
+      upperLimit = 1000;
+    }
+
+    // Limit lower and upper bounds.
+    if (newValue < (int)pollingCycle) {
+      newValue = (int)pollingCycle;
+    } else if (newValue > upperLimit) {
+      newValue = upperLimit;
+    }
+
+    if (newValue != oldValue) {
+      *cycle = newValue;
 #ifdef DEBUG
-    if (*cycle != oldPollingCycle)
-      fprintf(stderr, "\t[new cycle %dms]\n", *cycle);
+      fprintf(stderr, "\t[new cycle %dms]\n", newValue);
 #endif
+    }
   }
 }
 
