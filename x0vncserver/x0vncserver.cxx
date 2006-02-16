@@ -44,7 +44,7 @@
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
 #include <x0vncserver/CPUMonitor.h>
-#include <x0vncserver/TimeMillis.h>
+#include <x0vncserver/PollingScheduler.h>
 
 using namespace rfb;
 using namespace network;
@@ -417,8 +417,8 @@ int main(int argc, char** argv)
 
     CPUMonitor cpumon((int)maxProcessorUsage, 1000);
     int dynPollingCycle = (int)pollingCycle;
+    PollingScheduler sched(dynPollingCycle);
 
-    TimeMillis timeSaved, timeNow;
     fd_set rfds;
     struct timeval tv;
 
@@ -437,14 +437,8 @@ int main(int argc, char** argv)
       }
 
       if (clients_connected) {
-        int poll_ms = 20;
-        if (timeNow.update()) {
-          poll_ms = timeNow.diffFrom(timeSaved);
-        }
-        int wait_ms = dynPollingCycle - poll_ms;
-        if (wait_ms < 0) {
-          wait_ms = 0;
-        } else if (wait_ms > 500) {
+        int wait_ms = sched.millisRemaining();
+        if (wait_ms > 500) {
           wait_ms = 500;
         }
         tv.tv_usec = wait_ms * 1000;
@@ -452,7 +446,8 @@ int main(int argc, char** argv)
         fprintf(stderr, "[%d]\t", wait_ms);
 #endif
       } else {
-        tv.tv_usec = 50000;
+        sched.reset();
+        tv.tv_usec = 100000;
       }
       tv.tv_sec = 0;
 
@@ -490,16 +485,10 @@ int main(int argc, char** argv)
 
       server.checkTimeouts();
 
-      if (timeNow.update()) {
-        int diff = timeNow.diffFrom(timeSaved);
-        if (diff >= dynPollingCycle) {
-          adjustPollingCycle(&dynPollingCycle, &cpumon);
-          timeSaved = timeNow;
-          desktop.poll();
-        }
-      } else {
-        // Something strange has happened -- TimeMillis::update() failed.
-        // Poll after each select(), as in the original VNC4 code.
+      if (sched.millisRemaining() <= 0) {
+        adjustPollingCycle(&dynPollingCycle, &cpumon);
+        sched.setInterval(dynPollingCycle);
+        sched.newPass();
         desktop.poll();
       }
     }
