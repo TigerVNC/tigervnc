@@ -18,9 +18,10 @@
 
 //
 // PollingScheduler class. It is used for deciding when to start new
-// polling pass, and how much time it is ok to wait before starting. 
-// PollingScheduler is provided a desired polling interval and watches
-// for actual intervals between past polling cycles.
+// polling pass, and how much time it is ok to sleep before starting. 
+// PollingScheduler is given a desired polling interval, but it can
+// add time between polling passes if needed for satisfying processor
+// usage limitation.
 //
 
 #ifndef __POLLINGSCHEDULER_H__
@@ -32,16 +33,20 @@ class PollingScheduler {
 
 public:
 
-  PollingScheduler(int interval);
+  PollingScheduler(int interval, int maxload = 50);
 
-  // Set desired polling interval.
-  void setInterval(int interval);
+  // Set polling parameters.
+  void setParameters(int interval, int maxload = 50);
 
   // Reset the object into the initial state (no polling performed).
   void reset();
 
   // Tell the scheduler that new polling pass is just being started.
   void newPass();
+
+  // Inform the scheduler about times when we sleep.
+  void sleepStarted();
+  void sleepFinished();
 
   // This function estimates time remaining before new polling pass.
   int millisRemaining() const;
@@ -51,9 +56,39 @@ public:
 
 protected:
 
-  bool m_initialState;
+  // Parameters.
   int m_interval;
+  int m_maxload;
+
+  // This boolean flag is true when we do not poll the screen.
+  bool m_initialState;
+
+  // Time stamp saved on starting current polling pass.
   TimeMillis m_passStarted;
+
+  // Desired duration of current polling pass.
+  int m_ratedDuration;
+
+  // These are for measuring sleep time in current pass.
+  TimeMillis m_sleepStarted;
+  bool m_sleeping;
+  int m_sleptThisPass;
+
+  // Ring buffer for tracking past timing errors.
+  int m_errors[8];
+  int m_errorSum;
+  int m_errorAbsSum;
+
+  // Ring buffer for tracking total pass durations (work + sleep).
+  int m_durations[8];
+  int m_durationSum;
+
+  // Ring buffer for tracking past sleep times.
+  int m_slept[8];
+  int m_sleptSum;
+
+  // Indexer for all ring buffers.
+  int m_idx;
 
 };
 

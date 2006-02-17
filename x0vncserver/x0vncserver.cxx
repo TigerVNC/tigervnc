@@ -43,7 +43,6 @@
 
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
-#include <x0vncserver/CPUMonitor.h>
 #include <x0vncserver/PollingScheduler.h>
 
 using namespace rfb;
@@ -324,48 +323,6 @@ static void usage()
   exit(1);
 }
 
-//
-// Adjust polling cycle to satisfy MaxProcessorUsage setting.
-//
-
-static void adjustPollingCycle(int *cycle, CPUMonitor *mon)
-{
-  int coeff = mon->check();
-  if (coeff < 90 || coeff > 110) {
-    int oldValue = *cycle;
-    int newValue = (oldValue * 100 + coeff/2) / coeff;
-
-    // Correct sudden changes.
-    if (newValue < oldValue / 2) {
-      newValue = oldValue / 2;
-    } else if (newValue > oldValue * 2) {
-      newValue = oldValue * 2;
-    }
-
-    // Compute upper limit.
-    int upperLimit = (int)pollingCycle * 32;
-    if (upperLimit < 100) {
-      upperLimit = 100;
-    } else if (upperLimit > 1000) {
-      upperLimit = 1000;
-    }
-
-    // Limit lower and upper bounds.
-    if (newValue < (int)pollingCycle) {
-      newValue = (int)pollingCycle;
-    } else if (newValue > upperLimit) {
-      newValue = upperLimit;
-    }
-
-    if (newValue != oldValue) {
-      *cycle = newValue;
-#ifdef DEBUG
-      fprintf(stderr, "\t[new cycle %dms]\n", newValue);
-#endif
-    }
-  }
-}
-
 int main(int argc, char** argv)
 {
   initStdIOLoggers();
@@ -415,9 +372,7 @@ int main(int argc, char** argv)
     if (strlen(hostsFile.getData()) != 0)
       listener.setFilter(&fileTcpFilter);
 
-    CPUMonitor cpumon((int)maxProcessorUsage, 1000);
-    int dynPollingCycle = (int)pollingCycle;
-    PollingScheduler sched(dynPollingCycle);
+    PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);
 
     fd_set rfds;
     struct timeval tv;
@@ -451,7 +406,10 @@ int main(int argc, char** argv)
       }
       tv.tv_sec = 0;
 
+      sched.sleepStarted();
       int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
+      sched.sleepFinished();
+
       if (n < 0) {
         if (errno == EINTR) {
           vlog.debug("interrupted select() system call");
@@ -465,7 +423,6 @@ int main(int argc, char** argv)
         Socket* sock = listener.accept();
         if (sock) {
           server.addClient(sock);
-          cpumon.update();      // count time from now
         } else {
           vlog.status("Client connection rejected");
         }
@@ -486,8 +443,6 @@ int main(int argc, char** argv)
       server.checkTimeouts();
 
       if (sched.goodTimeToPoll()) {
-        adjustPollingCycle(&dynPollingCycle, &cpumon);
-        sched.setInterval(dynPollingCycle);
         sched.newPass();
         desktop.poll();
       }
