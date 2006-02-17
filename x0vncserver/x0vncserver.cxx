@@ -398,7 +398,7 @@ int main(int argc, char** argv)
         }
         tv.tv_usec = wait_ms * 1000;
 #ifdef DEBUG
-        fprintf(stderr, "[%d]\t", wait_ms);
+        // fprintf(stderr, "[%d]\t", wait_ms);
 #endif
       } else {
         sched.reset();

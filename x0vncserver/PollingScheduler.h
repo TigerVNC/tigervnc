@@ -90,6 +90,8 @@ protected:
   // Indexer for all ring buffers.
   int m_idx;
 
+  // Pass counter.
+  int m_count;
 };
 
 #endif // __POLLINGSCHEDULER_H__

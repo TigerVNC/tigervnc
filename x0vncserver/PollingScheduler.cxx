@@ -23,6 +23,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 #include <x0vncserver/PollingScheduler.h>
 
 PollingScheduler::PollingScheduler(int interval, int maxload)
@@ -69,6 +73,7 @@ void PollingScheduler::newPass()
     memset(m_slept, 0, sizeof(m_slept));
     m_sleptSum = 0;
     m_idx = 0;
+    m_count = 0;
 
   } else {
 
@@ -95,25 +100,62 @@ void PollingScheduler::newPass()
     m_errorAbsSum = m_errorAbsSum - abs(oldest) + abs(newError);
 
     //
-    // Here is the most important part.
+    // Below is the most important part.
     // Compute desired duration of the upcoming polling pass.
     //
-    m_ratedDuration = m_interval - m_errorSum;
 
-    int optimalLoadDuration =
-      ((m_durationSum - m_sleptSum) * 900 + m_maxload * 4) / (m_maxload * 8)
-      - m_durationSum;
+    // Estimation based on keeping up constant interval.
+    m_ratedDuration = m_interval - m_errorSum / 2;
 
+    // Estimations based on keeping up desired CPU load.
+    int optimalLoadDuration1 = 0;
+    int optimalLoadDuration8 = 0;
+    int optimalLoadDuration = 0;
+
+    if (m_count > 4) {
+      // Estimation 1 (use previous pass statistics).
+      optimalLoadDuration1 =
+        ((duration - m_sleptThisPass) * 100 + m_maxload/2) / m_maxload;
+
+      if (m_count > 16) {
+        // Estimation 2 (use history of 8 previous passes).
+        optimalLoadDuration8 =
+          ((m_durationSum - m_sleptSum) * 900 + m_maxload*4) / (m_maxload*8)
+          - m_durationSum;
+        // Mix the above two giving more priority to the first.
+        optimalLoadDuration =
+          (2 * optimalLoadDuration1 + optimalLoadDuration8) / 3;
+      } else {
+        optimalLoadDuration = optimalLoadDuration1;
+      }
+    }
+
+#ifdef DEBUG
+    fprintf(stderr, "<est %3d,%3d,%d>\t",
+            m_ratedDuration, optimalLoadDuration1, optimalLoadDuration8);
+#endif
+
+    // Choose final estimation.
     if (m_ratedDuration < optimalLoadDuration) {
       m_ratedDuration = optimalLoadDuration;
     }
-
     if (m_ratedDuration < 0) {
       m_ratedDuration = 0;
+    } else if (m_ratedDuration > 500 && m_interval <= 100) {
+      m_ratedDuration = 500;
+    } else if (m_ratedDuration > 1000) {
+      m_ratedDuration = 1000;
     }
 
-    // Update ring buffer indexer (8 elements in the arrays).
+#ifdef DEBUG
+    fprintf(stderr, "<final est %3d>\t", m_ratedDuration);
+#endif
+
+    // Update ring buffer indexer (8 elements per each arrays).
     m_idx = (m_idx + 1) & 7;
+
+    // Update pass counter.
+    m_count++;
 
   }
 
