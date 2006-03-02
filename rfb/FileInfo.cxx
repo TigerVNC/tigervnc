@@ -28,6 +28,8 @@
 
 using namespace rfb;
 
+// FIXME: Under Unix, file names are case-sensitive.
+
 int 
 CompareFileInfo(const void *F, const void *S)
 {
