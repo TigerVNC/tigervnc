@@ -39,8 +39,11 @@ using namespace rfb;
 static rfb::LogWriter vlog("TXImage");
 
 TXImage::TXImage(Display* d, int width, int height, Visual* vis_, int depth_)
-  : xim(0), dpy(d), vis(vis_), depth(depth_), shminfo(0), tig(0), cube(0)
+  : xim(0), dpy(d), vis(vis_), depth(depth_), tig(0), cube(0)
 {
+#ifdef HAVE_MITSHM
+  shminfo = 0;
+#endif
   width_ = width;
   height_ = height;
   for (int i = 0; i < 256; i++)
@@ -140,11 +143,13 @@ void TXImage::put(Window win, GC gc, const rfb::Rect& r)
     tig->getImage(ximDataStart, r,
                   xim->bytes_per_line / (xim->bits_per_pixel / 8));
   }
+#ifdef HAVE_MITSHM
   if (usingShm()) {
     XShmPutImage(dpy, win, gc, xim, x, y, x, y, w, h, False);
-  } else {
-    XPutImage(dpy, win, gc, xim, x, y, x, y, w, h);
+    return;
   }
+#endif
+  XPutImage(dpy, win, gc, xim, x, y, x, y, w, h);
 }
 
 void TXImage::setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs)
@@ -168,7 +173,7 @@ void TXImage::lookup(int index, int* r, int* g, int* b)
   *b = colourMap[index].b;
 }
 
-
+#ifdef HAVE_MITSHM
 static bool caughtError = false;
 
 static int XShmAttachErrorHandler(Display *dpy, XErrorEvent *error)
@@ -187,10 +192,15 @@ public:
 };
 
 static TXImageCleanup imageCleanup;
+#endif
 
 void TXImage::createXImage()
 {
-  if (XShmQueryExtension(dpy)) {
+#ifdef HAVE_MITSHM
+  int major, minor;
+  Bool pixmaps;
+
+  if (XShmQueryVersion(dpy, &major, &minor, &pixmaps)) {
     shminfo = new XShmSegmentInfo;
 
     xim = XShmCreateImage(dpy, vis, depth, ZPixmap,
@@ -240,6 +250,7 @@ void TXImage::createXImage()
     delete shminfo;
     shminfo = 0;
   }
+#endif
 
   xim = XCreateImage(dpy, vis, depth, ZPixmap,
                      0, 0, width(), height(), BitmapPad(dpy), 0);
@@ -253,6 +264,7 @@ void TXImage::createXImage()
 
 void TXImage::destroyXImage()
 {
+#ifdef HAVE_MITSHM
   if (shminfo) {
     vlog.debug("Freeing shared memory XImage");
     shmdt(shminfo->shmaddr);
@@ -261,6 +273,7 @@ void TXImage::destroyXImage()
     shminfo = 0;
     imageCleanup.images.remove(this);
   }
+#endif
   // XDestroyImage() will free(xim->data) if appropriate
   if (xim) XDestroyImage(xim);
   xim = 0;

@@ -19,6 +19,11 @@
 // Timer.cxx
 //
 
+// XXX Lynx/OS 2.3: get proto for gettimeofday()
+#ifdef Lynx
+#include <sys/proto.h>
+#endif
+
 #include "Timer.h"
 
 static Timer* timers;

@@ -20,6 +20,7 @@
  */
 
 #include <rfb/FileInfo.h>
+#include <rfb/util.h>
 
 #ifdef _WIN32
 #define strcasecmp _stricmp

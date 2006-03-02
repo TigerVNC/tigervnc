@@ -72,8 +72,21 @@ namespace rfb {
   // Copies src to dest, up to specified length-1, and guarantees termination
   void strCopy(char* dest, const char* src, int destlen);
 }
+
+// Declare strcasecmp() and/or strncasecmp() if absent on this system.
+
+#if !defined(WIN32) && !defined(HAVE_STRCASECMP)
+extern "C" {
+  int strcasecmp(const char *s1, const char *s2);
+}
+#endif
+#if !defined(WIN32) && !defined(HAVE_STRNCASECMP)
+extern "C" {
+  int strncasecmp(const char *s1, const char *s2, size_t n);
+}
 #endif
 
+#endif // __RFB_UTIL_H__
 
 // -=- PLATFORM SPECIFIC UTILITY FUNCTIONS/IMPLEMENTATIONS
 #ifdef WIN32

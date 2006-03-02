@@ -22,6 +22,11 @@
 
 #include <x0vncserver/TimeMillis.h>
 
+// XXX Lynx/OS 2.3: get proto for gettimeofday()
+#ifdef Lynx
+#include <sys/proto.h>
+#endif
+
 TimeMillis::TimeMillis()
 {
   update();

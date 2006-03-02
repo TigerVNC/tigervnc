@@ -48,6 +48,9 @@
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long)-1)
 #endif
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK ((unsigned long)0x7F000001)
+#endif
 
 using namespace network;
 using namespace rdr;
@@ -118,12 +121,12 @@ TcpSocket::TcpSocket(const char *host, int port)
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = inet_addr(host);
+  addr.sin_addr.s_addr = inet_addr((char *)host);
   addr.sin_port = htons(port);
   if ((int)addr.sin_addr.s_addr == -1) {
     // Host was not an IP address - try resolving as DNS name
     struct hostent *hostinfo;
-    hostinfo = gethostbyname(host);
+    hostinfo = gethostbyname((char *)host);
     if (hostinfo && hostinfo->h_addr) {
       addr.sin_addr.s_addr = ((struct in_addr *)hostinfo->h_addr)->s_addr;
     } else {
@@ -285,7 +288,7 @@ TcpListener::TcpListener(int port, bool localhostOnly, int sock, bool close_)
 
   int one = 1;
   if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
-		 (const char *)&one, sizeof(one)) < 0) {
+		 (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     closesocket(fd);
     throw SocketException("unable to create listening socket", e);
@@ -396,7 +399,7 @@ TcpFilter::~TcpFilter() {
 
 static bool
 patternMatchIP(const TcpFilter::Pattern& pattern, const char* value) {
-  unsigned long address = inet_addr(value);
+  unsigned long address = inet_addr((char *)value);
   if (address == INADDR_NONE) return false;
   return ((pattern.address & pattern.mask) == (address & pattern.mask));
 }

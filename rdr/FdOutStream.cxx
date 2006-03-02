@@ -33,6 +33,11 @@
 #include <sys/time.h>
 #endif
 
+// XXX Lynx/OS 2.3: protos for select(), bzero()
+#ifdef Lynx
+#include <sys/proto.h>
+#endif
+
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>
 

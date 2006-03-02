@@ -48,6 +48,11 @@
 #include <sys/select.h>
 #endif
 
+// XXX Lynx/OS 2.3: protos for gettimeofday(), select(), bzero()
+#ifdef Lynx
+#include <sys/proto.h>
+#endif
+
 #include <rdr/FdInStream.h>
 #include <rdr/Exception.h>
 

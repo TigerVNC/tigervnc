@@ -37,7 +37,9 @@
 #include <rfb/PixelBuffer.h>
 #include <rfb/ColourMap.h>
 #include <rfb/ColourCube.h>
+#ifdef HAVE_MITSHM
 #include <X11/extensions/XShm.h>
+#endif
 
 namespace rfb { class TransImageGetter; }
 
@@ -59,7 +61,11 @@ public:
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
   void updateColourMap();
 
+#ifdef HAVE_MITSHM
   bool usingShm() { return shminfo; }
+#else
+  bool usingShm() { return 0; }
+#endif
 
   // PixelBuffer methods
   // width(), height(), getPF() etc are inherited from PixelBuffer
@@ -79,7 +85,9 @@ private:
   Display* dpy;
   Visual* vis;
   int depth;
+#ifdef HAVE_MITSHM
   XShmSegmentInfo* shminfo;
+#endif
   rfb::TransImageGetter* tig;
   rfb::Colour colourMap[256];
   rfb::PixelFormat nativePF;
