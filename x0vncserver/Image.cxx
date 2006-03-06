@@ -361,7 +361,6 @@ void IrixOverlayShmImage::Init(int width, int height)
     return;
 
   // FIXME: Check if the extension is available at run time.
-  // FIXME: Does XShmCreateReadDisplayBuf() require some cleanup?
   readDisplayBuf = XShmCreateReadDisplayBuf(dpy, NULL, shminfo, width, height);
 }
 
@@ -413,6 +412,9 @@ IrixOverlayShmImage::~IrixOverlayShmImage()
 {
   // DEBUG:
   // fprintf(stderr,"~IrixOverlayShmImage called\n");
+
+  if (readDisplayBuf != NULL)
+    XShmDestroyReadDisplayBuf(readDisplayBuf);
 }
 
 void IrixOverlayShmImage::get(Window wnd, int x, int y)
