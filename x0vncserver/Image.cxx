@@ -417,23 +417,22 @@ IrixOverlayShmImage::~IrixOverlayShmImage()
 
 void IrixOverlayShmImage::get(Window wnd, int x, int y)
 {
-    XRectangle rect; 
-    unsigned long hints = XRD_TRANSPARENT | XRD_READ_POINTER;
-
-    rect.x = x;
-    rect.y = y;
-    rect.width = xim->width;
-    rect.height = xim->height;
-
-    XShmReadDisplayRects(dpy, wnd,
-                         &rect, 1, readDisplayBuf, -x, -y,
-                         hints, &hints);
+  get(wnd, x, y, xim->width, xim->height);
 }
 
 void IrixOverlayShmImage::get(Window wnd, int x, int y, int w, int h)
 {
-  // FIXME: Use XReadDisplay extension here as well!
-  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, 0, 0);
+  XRectangle rect;
+  unsigned long hints = XRD_TRANSPARENT | XRD_READ_POINTER;
+
+  rect.x = x;
+  rect.y = y;
+  rect.width = w;
+  rect.height = h;
+
+  XShmReadDisplayRects(dpy, wnd,
+                       &rect, 1, readDisplayBuf, -x, -y,
+                       hints, &hints);
 }
 
 #endif // HAVE_READDISPLAY
