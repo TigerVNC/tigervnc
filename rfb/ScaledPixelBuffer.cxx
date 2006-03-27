@@ -87,19 +87,19 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
   static double c1_sub_dx, c1_sub_dy;
   static double dx, dy;
   static int i, j;
-  static Rect scaled_rect;
+  static Rect changed_rect;
 
-  // Calculate the scale boundaries
-  scaled_rect = calculateScaleBoundary(r);
+  // Calculate the changed pixel rect in the scaled image
+  changed_rect = calculateScaleBoundary(r);
 
   // Scale the source rect to the destination image buffer using
   // bilinear interplation
-  for (int y = scaled_rect.tl.y; y < scaled_rect.br.y; y++) {
+  for (int y = changed_rect.tl.y; y < changed_rect.br.y; y++) {
     j = (int)(dy = y / scale_ratio);
     dy -= j;
     c1_sub_dy = 1 - dy;
 
-    for (int x = scaled_rect.tl.x; x < scaled_rect.br.x; x++) {
+    for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
       ptr = &scaled_data[(x + y*scaled_width) * 4];
 
       i = (int)(dx = x / scale_ratio);
