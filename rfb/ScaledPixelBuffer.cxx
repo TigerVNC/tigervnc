@@ -85,28 +85,21 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
   static U8 g0, g1, g2, g3;
   static U8 b0, b1, b2, b3;
   static double c1_sub_dx, c1_sub_dy;
-  static double x_start, x_end, y_start, y_end;
   static double dx, dy;
   static int i, j;
+  static Rect scaled_rect;
 
   // Calculate the scale boundaries
-  x_start = vncmax(0, (r.tl.x-1) * scale_ratio);
-  (x_start==int(x_start)) ? true : x_start=(int)(x_start+1);
-  x_end = vncmin(scaled_width - 1, r.br.x * scale_ratio);
-  ((x_end==int(x_end))&&(x_end!=scaled_width-1)&&(x_end>0)) ? x_end-=1:x_end=(int)(x_end);
-  y_start = vncmax(0, (r.tl.y-1) * scale_ratio);
-  (y_start==int(y_start)) ? true : y_start=(int)(y_start+1);
-  y_end = vncmin(scaled_height - 1, r.br.y * scale_ratio);
-  ((y_end==int(y_end))&&(y_end!=scaled_height-1)&&(y_end>0)) ? y_end-=1:y_end=(int)(y_end);
+  scaled_rect = calculateScaleBoundary(r);
 
   // Scale the source rect to the destination image buffer using
   // bilinear interplation
-  for (int y = (int)y_start; y <= y_end; y++) {
+  for (int y = scaled_rect.tl.y; y < scaled_rect.br.y; y++) {
     j = (int)(dy = y / scale_ratio);
     dy -= j;
     c1_sub_dy = 1 - dy;
 
-    for (int x = (int)x_start; x <= x_end; x++) {
+    for (int x = scaled_rect.tl.x; x < scaled_rect.br.x; x++) {
       ptr = &scaled_data[(x + y*scaled_width) * 4];
 
       i = (int)(dx = x / scale_ratio);
