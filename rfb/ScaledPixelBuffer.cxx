@@ -140,6 +140,17 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
   }
 }
 
+Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
+  static int x_start, y_start, x_end, y_end;
+  x_start = r.tl.x == 0 ? 0 : ceil((r.tl.x-1) * scale_ratio);
+  y_start = r.tl.y == 0 ? 0 : ceil((r.tl.y-1) * scale_ratio);
+  x_end = ceil(r.br.x * scale_ratio - 1); 
+  x_end = x_end < scaled_width ? x_end + 1 : scaled_width;
+  y_end = ceil(r.br.y * scale_ratio - 1);
+  y_end = y_end < scaled_height ? y_end + 1 : scaled_height;
+  return Rect(x_start, y_start, x_end, y_end);
+}
+
 void ScaledPixelBuffer::recreateScaledBuffer() {
   if (scaled_data) delete [] scaled_data;
   scaled_data = new U8[scaled_width * scaled_height * (bpp / 8)];

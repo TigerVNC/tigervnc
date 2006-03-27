@@ -68,6 +68,10 @@ namespace rfb {
     // using bilinear interpolation
     virtual void scaleRect(const Rect& r);
 
+    // Calculate the scaled image rectangle which depend on the source 
+    // image rectangle.
+    inline Rect calculateScaleBoundary(const Rect& r);
+
   protected:
     virtual void recreateScaledBuffer();
 
