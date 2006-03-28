@@ -178,6 +178,10 @@ SOURCE=.\Registry.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScaledDIBSectionBuffer.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\SDisplay.cxx
 # End Source File
 # Begin Source File
@@ -307,6 +311,10 @@ SOURCE=.\RegConfig.h
 # Begin Source File
 
 SOURCE=.\Registry.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScaledDIBSectionBuffer.h
 # End Source File
 # Begin Source File
 
