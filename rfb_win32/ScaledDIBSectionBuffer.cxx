@@ -39,12 +39,11 @@ void ScaledDIBSectionBuffer::setSrcPixelBuffer(U8 **src_data_, int w, int h, Pix
   src_height = h;
   scaled_width  = width_  = (int)ceil(src_width  * scale_ratio);
   scaled_height = height_ = (int)ceil(src_height * scale_ratio);
-  setPF(pf); //recreateScaledBuffer() was run
+  setPF(pf);
 }
 
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf) {
   DIBSectionBuffer::setPF(pf);
-  scaled_data = data;
 }
 
 void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
