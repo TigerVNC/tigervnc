@@ -40,7 +40,6 @@ ScaledPixelBuffer::ScaledPixelBuffer()
 }
 
 ScaledPixelBuffer::~ScaledPixelBuffer() {
-  if (scaled_data) delete [] scaled_data;
 }
 
 const U8* ScaledPixelBuffer::getPixelsR(const Rect& r, int* stride) {
@@ -145,6 +144,4 @@ Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
 }
 
 void ScaledPixelBuffer::recreateScaledBuffer() {
-  if (scaled_data) delete [] scaled_data;
-  scaled_data = new U8[scaled_width * scaled_height * (bpp / 8)];
 }
