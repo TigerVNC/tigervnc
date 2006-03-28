@@ -56,6 +56,6 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
 void ScaledDIBSectionBuffer::recreateScaledBuffer() {
   width_  = scaled_width;
   height_ = scaled_height;
-  recreateBuffer();
+  DIBSectionBuffer::recreateBuffer();
   scaled_data = data;
 }

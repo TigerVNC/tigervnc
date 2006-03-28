@@ -50,6 +50,9 @@ namespace rfb {
 
     protected:
       virtual void recreateScaledBuffer();
+      virtual void recreateBuffer() {
+        recreateScaledBuffer();
+      };
     };
 
   };
