@@ -48,6 +48,9 @@ namespace rfb {
       return Rect(pos, pos.translate(Point(scaled_width, scaled_height)));
     }
 
+    // Set the new source buffer and its parameters
+    void setSourceBuffer(U8 **src_data, int w, int h);
+
     // Set the new scale, in percent
     virtual void setScale(int scale);
 

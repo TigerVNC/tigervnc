@@ -28,10 +28,9 @@ using namespace rfb;
 
 ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
                                      int src_height_, int scale)
-  : src_data(src_data_), src_width(src_width_), src_height(src_height_),
-    bpp(32), scaled_data(0), scale_ratio(0), scale(100) {
+  : bpp(32), scaled_data(0), scale_ratio(1), scale(100) {
 
-  setScale(scale);
+  setSourceBuffer(src_data_, src_width_, src_height_);
 }
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
@@ -40,6 +39,15 @@ ScaledPixelBuffer::ScaledPixelBuffer()
 }
 
 ScaledPixelBuffer::~ScaledPixelBuffer() {
+}
+
+void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
+  src_data = src_data_;
+  src_width  = w;
+  src_height = h;
+  scaled_width  = (int)ceil(src_width  * scale_ratio);
+  scaled_height = (int)ceil(src_height * scale_ratio);
+  recreateScaledBuffer();
 }
 
 void ScaledPixelBuffer::setScale(int scale_) {
