@@ -43,6 +43,7 @@ namespace rfb {
 
       int width()  const { return scaled_width; }
       int height() const { return scaled_height; }
+      bool isScaling() const { return scaling; }
 
       virtual void setSrcPixelBuffer(U8 **src_data, int w, int h, PixelFormat pf=PixelFormat());
       virtual void setPF(const PixelFormat &pf);
@@ -53,6 +54,8 @@ namespace rfb {
       virtual void recreateBuffer() {
         recreateScaledBuffer();
       };
+
+      bool scaling;
     };
 
   };
