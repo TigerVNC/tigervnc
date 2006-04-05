@@ -39,7 +39,7 @@ namespace rfb {
     int width()  const { return scaled_width; }
     int height() const { return scaled_height; }
     int area() const { return scaled_width * scaled_height; }
-    int scale() const { return (int)(scale_ratio * 100); }
+    int getScale() const { return scale; }
 
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.
@@ -80,6 +80,7 @@ namespace rfb {
     int scaled_width;
     int scaled_height;
     int bpp;
+    int scale;
     double scale_ratio;
     U8 **src_data;
     U8 *scaled_data;
