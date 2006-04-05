@@ -36,18 +36,30 @@ namespace rfb {
     // -=- ScaledDIBSectionBuffer
     //
 
-    class ScaledDIBSectionBuffer : public ScaledPixelBuffer, DIBSectionBuffer {
+    class ScaledDIBSectionBuffer : public ScaledPixelBuffer, public DIBSectionBuffer {
     public:
       ScaledDIBSectionBuffer(HWND window);
-      virtual ~ScaledDIBSectionBuffer() {};
+      virtual ~ScaledDIBSectionBuffer();
 
       int width()  const { return scaled_width; }
       int height() const { return scaled_height; }
       bool isScaling() const { return scaling; }
 
-      virtual void setSrcPixelBuffer(U8 **src_data, int w, int h, PixelFormat pf=PixelFormat());
       virtual void setPF(const PixelFormat &pf);
       virtual void setSize(int w, int h);
+      virtual void setScale(int scale);
+
+      Rect getRect() const { return ScaledPixelBuffer::getRect(); }
+      Rect getRect(const Point& pos) const { return ScaledPixelBuffer::getRect(pos); }
+
+      // -=- Overrides basic rendering operations of 
+      //     FullFramePixelBuffer class
+
+      virtual void fillRect(const Rect &dest, Pixel pix);
+      virtual void imageRect(const Rect &dest, const void* pixels, int stride=0);
+      virtual void copyRect(const Rect &dest, const Point &move_by_delta);
+      virtual void maskRect(const Rect& r, const void* pixels, const void* mask_);
+      virtual void maskRect(const Rect& r, Pixel pixel, const void* mask_);
 
     protected:
       virtual void recreateScaledBuffer();
@@ -55,6 +67,7 @@ namespace rfb {
         recreateScaledBuffer();
       };
 
+      ManagedPixelBuffer *src_buffer;
       bool scaling;
     };
 

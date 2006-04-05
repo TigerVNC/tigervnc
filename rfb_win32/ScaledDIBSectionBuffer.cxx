@@ -29,27 +29,46 @@ using namespace rfb;
 using namespace win32;
 
 ScaledDIBSectionBuffer::ScaledDIBSectionBuffer(HWND window) 
-  : DIBSectionBuffer(window) {
+  : src_buffer(0), scaling(false), DIBSectionBuffer(window) {
   scaled_data = data;
 }
 
-void ScaledDIBSectionBuffer::setSrcPixelBuffer(U8 **src_data_, int w, int h, PixelFormat pf) {
-  src_data = src_data_;
-  src_width  = w;
-  src_height = h;
-  scaled_width  = width_  = (int)ceil(src_width  * scale_ratio);
-  scaled_height = height_ = (int)ceil(src_height * scale_ratio);
-  setPF(pf);
+ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
+  if (src_buffer) delete src_buffer;
+}
+
+void ScaledDIBSectionBuffer::setScale(int scale_) {
+  if (scale_ == getScale()) return;
+
+  if (src_buffer) {
+    delete src_buffer;
+    src_buffer = 0;
+  }
+  if (scale_ != 100) {
+    scaling = true;
+    src_buffer = new ManagedPixelBuffer(format, src_width, src_height);
+    src_data = &(src_buffer->data);
+  } else {
+    scaling = false;
+  }
+  ScaledPixelBuffer::setScale(scale_);
 }
 
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf) {
+  if (scaling) src_buffer->setPF(pf);
   DIBSectionBuffer::setPF(pf);
+  scaled_data = data;
 }
 
 void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
   src_width = src_width_;
   src_height = src_height_;
-  setScale(scale_ratio * 100);
+  if (scaling) {
+    src_buffer->setSize(src_width, src_height);
+  }
+  calculateScaledBufferSize();
+  recreateScaledBuffer();
+  scaled_data = data;
 }
 
 void ScaledDIBSectionBuffer::recreateScaledBuffer() {
@@ -57,4 +76,49 @@ void ScaledDIBSectionBuffer::recreateScaledBuffer() {
   height_ = scaled_height;
   DIBSectionBuffer::recreateBuffer();
   scaled_data = data;
+}
+
+void ScaledDIBSectionBuffer::fillRect(const Rect &dest, Pixel pix) {
+  if (scaling) {
+    src_buffer->fillRect(dest, pix);
+    scaleRect(dest);
+  } else {
+    DIBSectionBuffer::fillRect(dest, pix);
+  }
+}
+
+void ScaledDIBSectionBuffer::imageRect(const Rect &dest, const void* pixels, int stride) {
+  if (scaling) {
+    src_buffer->imageRect(dest, pixels, stride);
+    scaleRect(dest);
+  } else {
+    DIBSectionBuffer::imageRect(dest, pixels, stride);
+  }
+}
+
+void ScaledDIBSectionBuffer::copyRect(const Rect &dest, const Point &move_by_delta) {
+  if (scaling) {
+    src_buffer->copyRect(dest, move_by_delta);
+    scaleRect(dest);
+  } else {
+    DIBSectionBuffer::copyRect(dest, move_by_delta);
+  }
+}
+      
+void ScaledDIBSectionBuffer::maskRect(const Rect& r, const void* pixels, const void* mask_) {
+  if (scaling) {
+    src_buffer->maskRect(r, pixels, mask_);
+    scaleRect(r);
+  } else {
+    DIBSectionBuffer::maskRect(r, pixels, mask_);
+  }
+}
+
+void ScaledDIBSectionBuffer::maskRect(const Rect& r, Pixel pixel, const void* mask_) {
+  if (scaling) {
+    src_buffer->maskRect(r, pixel, mask_);
+    scaleRect(r);
+  } else {
+    DIBSectionBuffer::maskRect(r, pixel, mask_);
+  }
 }
