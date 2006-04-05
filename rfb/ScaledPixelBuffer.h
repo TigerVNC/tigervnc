@@ -63,6 +63,12 @@ namespace rfb {
     inline Rect calculateScaleBoundary(const Rect& r);
 
   protected:
+
+    // Calculate the scaled buffer size depending on the source buffer
+    // parameters (width, height, pixel format)
+    void calculateScaledBufferSize();
+
+    // Recreate the scaled pixel buffer
     virtual void recreateScaledBuffer();
 
     int src_width;

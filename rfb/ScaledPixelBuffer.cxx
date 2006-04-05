@@ -45,8 +45,7 @@ void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
   src_data = src_data_;
   src_width  = w;
   src_height = h;
-  scaled_width  = (int)ceil(src_width  * scale_ratio);
-  scaled_height = (int)ceil(src_height * scale_ratio);
+  calculateScaledBufferSize();
   recreateScaledBuffer();
 }
 
@@ -54,13 +53,8 @@ void ScaledPixelBuffer::setScale(int scale_) {
   if (scale != scale_) {
     scale = scale_;
     scale_ratio = double(scale) / 100;
-
-    scaled_width  = (int)ceil(src_width  * scale_ratio);
-    scaled_height = (int)ceil(src_height * scale_ratio);
-
+    calculateScaledBufferSize();
     recreateScaledBuffer();
-
-    scaleRect(Rect(0, 0, scaled_width, scaled_height));
   }
 }
 
@@ -127,6 +121,11 @@ Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
   y_end = ceil(r.br.y * scale_ratio - 1);
   y_end = y_end < scaled_height ? y_end + 1 : scaled_height;
   return Rect(x_start, y_start, x_end, y_end);
+}
+
+void ScaledPixelBuffer::calculateScaledBufferSize() {
+  scaled_width  = (int)ceil(src_width  * scale_ratio);
+  scaled_height = (int)ceil(src_height * scale_ratio);
 }
 
 void ScaledPixelBuffer::recreateScaledBuffer() {
