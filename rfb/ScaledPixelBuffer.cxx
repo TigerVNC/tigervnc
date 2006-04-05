@@ -42,29 +42,6 @@ ScaledPixelBuffer::ScaledPixelBuffer()
 ScaledPixelBuffer::~ScaledPixelBuffer() {
 }
 
-const U8* ScaledPixelBuffer::getPixelsR(const Rect& r, int* stride) {
-  *stride = getStride();
-  return &scaled_data[(r.tl.x + (r.tl.y * *stride)) * bpp/8];
-}
-
-void ScaledPixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
-  int inStride;
-  const U8* pixels_data = getPixelsR(r, &inStride);
-  // We assume that the specified rectangle is pre-clipped to the buffer
-  int bytesPerPixel = bpp/8;
-  int inBytesPerRow = inStride * bytesPerPixel;
-  if (!outStride) outStride = r.width();
-  int outBytesPerRow = outStride * bytesPerPixel;
-  int bytesPerMemCpy = r.width() * bytesPerPixel;
-  U8* imageBufPos = (U8*)imageBuf;
-  const U8* end = pixels_data + (inBytesPerRow * r.height());
-  while (pixels_data < end) {
-    memcpy(imageBufPos, pixels_data, bytesPerMemCpy);
-    imageBufPos += outBytesPerRow;
-    pixels_data += inBytesPerRow;
-  }
-} 
-
 void ScaledPixelBuffer::setScale(int scale_) {
   if (scale != scale_) {
     scale = scale_;

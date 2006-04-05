@@ -48,19 +48,6 @@ namespace rfb {
       return Rect(pos, pos.translate(Point(scaled_width, scaled_height)));
     }
 
-    // Get the number of pixels per row in the actual pixel buffer data area
-    virtual int getStride() const { return width(); } 
-
-    // Get a pointer into the buffer
-    //   The pointer is to the top-left pixel of the specified Rect.
-    //   The buffer stride (in pixels) is returned.
-    virtual const U8* getPixelsR(const Rect& r, int* stride);
-
-    // Get pixel data for a given part of the buffer
-    //   Data is copied into the supplied buffer, with the specified
-    //   stride.
-    virtual void getImage(void* imageBuf, const Rect& r, int stride=0);
-
     // Set the new scale, in percent
     virtual void setScale(int scale);
 
