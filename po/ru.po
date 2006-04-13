@@ -1,0 +1,188 @@
+# Russian translation for tightvnc package
+# Русский перевод пакета tightvnc
+# Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
+# This file is distributed under the same license as the tightvnc package.
+# Constantin Kaplinsky <const@tightvnc.com>, 2006.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: tightvnc 1.5.0\n"
+"Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
+"POT-Creation-Date: 2005-03-01 20:37+0100\n"
+"PO-Revision-Date: 2006-04-13 20:13+0700\n"
+"Last-Translator: Constantin Kaplinsky <const@tightvnc.com>\n"
+"Language-Team: Russian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=KOI8-R\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "About VNC Viewer"
+msgstr "О VNC Viewer"
+
+msgid "VNC authentication"
+msgstr "Аутентификация VNC"
+
+msgid "Exit viewer"
+msgstr "Выход"
+
+msgid "Full screen"
+msgstr "Полноэкранный режим"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Alt"
+msgstr "Alt"
+
+#, c-format
+msgid "Send %s"
+msgstr "Послать %s"
+
+msgid "Send Ctrl-Alt-Del"
+msgstr "Послать Ctrl-Alt-Del"
+
+msgid "Refresh screen"
+msgstr "Обновить экран"
+
+msgid "New connection..."
+msgstr "Новое соединение..."
+
+msgid "Options..."
+msgstr "Параметры..."
+
+msgid "Connection info..."
+msgstr "Информация о соединении..."
+
+msgid "About VNCviewer..."
+msgstr "О VNC Viewer..."
+
+msgid "Dismiss menu"
+msgstr "Закрыть меню"
+
+msgid "VNC Menu"
+msgstr "Меню VNC"
+
+#, c-format
+msgid ""
+"Desktop name: %.80s\n"
+"Host: %.80s port: %d\n"
+"Size: %d x %d\n"
+"Pixel format: %s\n"
+"(server default %s)\n"
+"Requested encoding: %s\n"
+"Last used encoding: %s\n"
+"Line speed estimate: %d kbit/s\n"
+"Protocol version: %d.%d\n"
+"Security method: %s\n"
+msgstr ""
+"Имя сеанса: %.80s\n"
+"Машина: %.80s порт: %d\n"
+"Размер: %d x %d\n"
+"Формат цвета: %s\n"
+"(значение сервера %s)\n"
+"Запрошенная схема кодирования: %s\n"
+"Последняя схема кодирования: %s\n"
+"Скорость линии связи: %d кбит/с\n"
+"Версия протокола: %d.%d\n"
+"Схема безопасности: %s\n"
+
+msgid "VNC connection info"
+msgstr "Информация о соединении VNC"
+
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC Viewer: параметры соединения"
+
+msgid "Encoding and Color Level:"
+msgstr "Кодирование и цветовой режим:"
+
+msgid "Inputs:"
+msgstr "Ввод:"
+
+msgid "Misc:"
+msgstr "Разное:"
+
+msgid "Auto select"
+msgstr "Автоматический выбор"
+
+msgid "Full (all available colors)"
+msgstr "Многоцветный режим (все доступные цвета)"
+
+msgid "Medium (256 colors)"
+msgstr "Среднее качество цвета (256 цветов)"
+
+msgid "Low (64 colors)"
+msgstr "Низкое качество цвета (64 цвета)"
+
+msgid "Very low (8 colors)"
+msgstr "Минимум цвета (8 цветов)"
+
+msgid "Custom compression level:"
+msgstr "Нестандартный уровень сжатия:"
+
+msgid "level (1=fast, 9=best)"
+msgstr "уровень (1=быстро, 9=макс.сжатие)"
+
+msgid "Allow JPEG compression:"
+msgstr "Разрешить сжатие JPEG:"
+
+msgid "quality (1=poor, 9=best)"
+msgstr "качество (1=низкое, 9=наилучшее)"
+
+msgid "View only (ignore mouse & keyboard)"
+msgstr "Только просмотр (игнорировать мышь и клавиатуру)"
+
+msgid "Accept clipboard from server"
+msgstr "Принимать буфер обмена с сервера"
+
+msgid "Send clipboard to server"
+msgstr "Посылать буфер обмена на сервер"
+
+msgid "Send primary selection & cut buffer as clipboard"
+msgstr "Посылать \"primary selection\" и \"cut buffer\" как буфер обмена"
+
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Разделяемый режим (не отключать других клиентов)"
+
+msgid "Full-screen mode"
+msgstr "Полноэкранный режим"
+
+msgid "Render cursor locally"
+msgstr "Рисовать курсор локально"
+
+msgid "Show dot when no cursor"
+msgstr "Показывать точку при отсутствии курсора"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Username:"
+msgstr "Имя пользователя:"
+
+msgid "Password:"
+msgstr "Пароль:"
+
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC Viewer: детали соединения"
+
+msgid "VNC server:"
+msgstr "Сервер VNC:"
+
+msgid "About..."
+msgstr "О программе..."
+
+#, c-format
+msgid ""
+"TightVNC viewer for X version 4.0 - built %s\n"
+"Copyright (C) 2002-2004 RealVNC Ltd.\n"
+"Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+"Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+"See http://www.tightvnc.com for information on TightVNC."
+msgstr ""
+"TightVNC viewer для X, версия 4.0 - время сборки %s\n"
+"Copyright (C) 2002-2004 RealVNC Ltd.\n"
+"Copyright (C) 2000-2004 Константин Каплинский\n"
+"Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+"Ищите информацию о TightVNC на сайте http://www.tightvnc.com"
