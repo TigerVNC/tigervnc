@@ -1,7 +1,0 @@
-Makefile
-Makefile.in
-Makevars.template
-POTFILES
-remove-potcdate.sed
-stamp-po
-*.gmo
