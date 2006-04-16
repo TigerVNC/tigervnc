@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,19 +18,25 @@
 //
 // CSecurityVncAuth
 //
+// XXX not thread-safe, because d3des isn't - do we need to worry about this?
+//
 
 #include <string.h>
 #include <stdio.h>
 #include <rfb/CConnection.h>
 #include <rfb/UserPasswdGetter.h>
-#include <rfb/vncAuth.h>
+#include <rfb/Password.h>
 #include <rfb/CSecurityVncAuth.h>
-#include <rfb/LogWriter.h>
 #include <rfb/util.h>
+extern "C" {
+#include <rfb/d3des.h>
+}
+
 
 using namespace rfb;
 
-static LogWriter vlog("VncAuth");
+static const int vncAuthChallengeSize = 16;
+
 
 CSecurityVncAuth::CSecurityVncAuth(UserPasswdGetter* upg_)
   : upg(upg_)
@@ -41,23 +47,28 @@ CSecurityVncAuth::~CSecurityVncAuth()
 {
 }
 
-bool CSecurityVncAuth::processMsg(CConnection* cc, bool* done)
+bool CSecurityVncAuth::processMsg(CConnection* cc)
 {
-  *done = false;
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();
 
+  // Read the challenge & obtain the user's password
   rdr::U8 challenge[vncAuthChallengeSize];
   is->readBytes(challenge, vncAuthChallengeSize);
-  CharArray passwd;
-  if (!upg->getUserPasswd(0, &passwd.buf)) {
-    vlog.error("Getting password failed");
-    return false;
-  }
-  vncAuthEncryptChallenge(challenge, passwd.buf);
-  memset(passwd.buf, 0, strlen(passwd.buf));
+  PlainPasswd passwd;
+  upg->getUserPasswd(0, &passwd.buf);
+
+  // Calculate the correct response
+  rdr::U8 key[8];
+  int pwdLen = strlen(passwd.buf);
+  for (int i=0; i<8; i++)
+    key[i] = i<pwdLen ? passwd.buf[i] : 0;
+  deskey(key, EN0);
+  for (int j = 0; j < vncAuthChallengeSize; j += 8)
+    des(challenge+j, challenge+j);
+
+  // Return the response to the server
   os->writeBytes(challenge, vncAuthChallengeSize);
   os->flush();
-  *done = true;
   return true;
 }

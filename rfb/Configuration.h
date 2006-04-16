@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -27,38 +27,106 @@
 // Simply defining a new parameter and associating it with a Configuration
 // will allow it to be configured by the user.
 //
-// The Configuration class is used to allow multiple distinct configurations
-// to co-exist at the same time.  A process serving several desktops, for
-// instance, can create a Configuration instance for each, to allow them
-// to be configured independently, from the command-line, registry, etc.
+// If no Configuration is specified when creating a Parameter, then the
+// global Configuration will be assumed.
+//
+// Configurations can be "chained" into groups.  Each group has a root
+// Configuration, a pointer to which should be passed to the constructors
+// of the other group members.  set() and get() operations called on the
+// root will iterate through all of the group's members.
+//
+// NB: On platforms that support Threading, locking is performed to protect
+//     complex parameter types from concurrent access (e.g. strings).
+// NB: NO LOCKING is performed when linking Configurations to groups
+//     or when adding Parameters to Configurations.
 
 #ifndef __RFB_CONFIGURATION_H__
 #define __RFB_CONFIGURATION_H__
 
+#include <rfb/util.h>
+
 namespace rfb {
   class VoidParameter;
+  struct ParameterIterator;
 
   // -=- Configuration
   //     Class used to access parameters.
 
   class Configuration {
   public:
+    // - Create a new Configuration object
+    Configuration(const char* name, Configuration* attachToGroup=0);
+
+    // - Return the buffer containing the Configuration's name
+    const char* getName() const { return name.buf; }
+
+    // - Assignment operator.  For every Parameter in this Configuration's
+    //   group, get()s the corresponding source parameter and copies its
+    //   content.
+    Configuration& operator=(const Configuration& src);
+
     // - Set named parameter to value
-    static bool setParam(const char* param, const char* value, bool immutable=false);
+    bool set(const char* param, const char* value, bool immutable=false);
 
     // - Set parameter to value (separated by "=")
-    static bool setParam(const char* config, bool immutable=false);
+    bool set(const char* config, bool immutable=false);
 
     // - Set named parameter to value, with name truncated at len
-    static bool setParam(const char* name, int len,
-                         const char* val, bool immutable);
+    bool set(const char* name, int len,
+                  const char* val, bool immutable);
 
     // - Get named parameter
-    static VoidParameter* getParam(const char* param);
+    VoidParameter* get(const char* param);
 
-    static void listParams(int width=79, int nameWidth=10);
+    // - List the parameters of this Configuration group
+    void list(int width=79, int nameWidth=10);
 
-    static VoidParameter* head;
+    // - readFromFile
+    //   Read configuration parameters from the specified file.
+    void readFromFile(const char* filename);
+
+    // - writeConfigToFile
+    //   Write a new configuration parameters file, then mv it
+    //   over the old file.
+    void writeToFile(const char* filename);
+
+
+    // - Get the Global Configuration object
+    //   NB: This call does NOT lock the Configuration system.
+    //       ALWAYS ensure that if you have ANY global Parameters,
+    //       then they are defined as global objects, to ensure that
+    //       global() is called when only the main thread is running.
+    static Configuration* global();
+
+    // - Container for process-wide Global parameters
+    static bool setParam(const char* param, const char* value, bool immutable=false) {
+      return global()->set(param, value, immutable);
+    }
+    static bool setParam(const char* config, bool immutable=false) { 
+      return global()->set(config, immutable);
+    }
+    static bool setParam(const char* name, int len,
+      const char* val, bool immutable) {
+      return global()->set(name, len, val, immutable);
+    }
+    static VoidParameter* getParam(const char* param) { return global()->get(param); }
+    static void listParams(int width=79, int nameWidth=10) { global()->list(width, nameWidth); }
+
+  protected:
+    friend class VoidParameter;
+    friend struct ParameterIterator;
+
+    // Name for this Configuration
+    CharArray name;
+
+    // - Pointer to first Parameter in this group
+    VoidParameter* head;
+
+    // Pointer to next Configuration in this group
+    Configuration* _next;
+
+    // The process-wide, Global Configuration object
+    static Configuration* global_;
   };
 
   // -=- VoidParameter
@@ -66,7 +134,7 @@ namespace rfb {
 
   class VoidParameter {
   public:
-    VoidParameter(const char* name_, const char* desc_);
+    VoidParameter(const char* name_, const char* desc_, Configuration* conf=0);
     virtual  ~VoidParameter();
     const char* getName() const;
     const char* getDescription() const;
@@ -81,8 +149,11 @@ namespace rfb {
     virtual void setHasBeenSet();
     bool hasBeenSet();
 
-    VoidParameter* _next;
   protected:
+    friend class Configuration;
+    friend struct ParameterIterator;
+
+    VoidParameter* _next;
     bool immutable;
     bool _hasBeenSet;
     const char* name;
@@ -91,7 +162,7 @@ namespace rfb {
 
   class AliasParameter : public VoidParameter {
   public:
-    AliasParameter(const char* name_, const char* desc_,VoidParameter* param_);
+    AliasParameter(const char* name_, const char* desc_,VoidParameter* param_, Configuration* conf=0);
     virtual bool setParam(const char* value);
     virtual bool setParam();
     virtual char* getDefaultStr() const;
@@ -104,7 +175,7 @@ namespace rfb {
 
   class BoolParameter : public VoidParameter {
   public:
-    BoolParameter(const char* name_, const char* desc_, bool v);
+    BoolParameter(const char* name_, const char* desc_, bool v, Configuration* conf=0);
     virtual bool setParam(const char* value);
     virtual bool setParam();
     virtual void setParam(bool b);
@@ -119,7 +190,8 @@ namespace rfb {
 
   class IntParameter : public VoidParameter {
   public:
-    IntParameter(const char* name_, const char* desc_, int v);
+    IntParameter(const char* name_, const char* desc_, int v,
+                 int minValue=INT_MIN, int maxValue=INT_MAX, Configuration* conf=0);
     virtual bool setParam(const char* value);
     virtual bool setParam(int v);
     virtual char* getDefaultStr() const;
@@ -128,13 +200,14 @@ namespace rfb {
   protected:
     int value;
     int def_value;
+    int minValue, maxValue;
   };
 
   class StringParameter : public VoidParameter {
   public:
     // StringParameter contains a null-terminated string, which CANNOT
     // be Null, and so neither can the default value!
-    StringParameter(const char* name_, const char* desc_, const char* v);
+    StringParameter(const char* name_, const char* desc_, const char* v, Configuration* conf=0);
     virtual ~StringParameter();
     virtual bool setParam(const char* value);
     virtual char* getDefaultStr() const;
@@ -150,13 +223,15 @@ namespace rfb {
 
   class BinaryParameter : public VoidParameter {
   public:
-    BinaryParameter(const char* name_, const char* desc_, const void* v, int l);
+    BinaryParameter(const char* name_, const char* desc_, const void* v, int l, Configuration* conf=0);
     virtual ~BinaryParameter();
     virtual bool setParam(const char* value);
     virtual void setParam(const void* v, int l);
     virtual char* getDefaultStr() const;
     virtual char* getValueStr() const;
 
+    // getData() will return length zero if there is no data
+    // NB: data may be set to zero, OR set to a zero-length buffer
     void getData(void** data, int* length) const;
 
   protected:
@@ -164,6 +239,25 @@ namespace rfb {
     int length;
     char* def_value;
     int def_length;
+  };
+
+  // -=- ParameterIterator
+  //     Iterates over all the Parameters in a Configuration group.  The
+  //     current Parameter is accessed via param, the current Configuration
+  //     via config.  The next() method moves on to the next Parameter.
+
+  struct ParameterIterator {
+    ParameterIterator(Configuration* c) : config(c), param(c ? c->head : 0) {}
+    void next() {
+      param = param->_next;
+      while (!param) {
+        config = config->_next;
+        if (!config) break;
+        param = config->head;
+      }
+    }
+    Configuration* config;
+    VoidParameter* param;
   };
 
 };

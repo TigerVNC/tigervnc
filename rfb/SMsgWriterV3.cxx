@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -69,14 +69,14 @@ void SMsgWriterV3::cursorChange(WriteSetCursorCallback* cb)
   wsccb = cb;
 }
 
-void SMsgWriterV3::writeSetCursor(int width, int height, int hotspotX,
-                                  int hotspotY, void* data, void* mask)
+void SMsgWriterV3::writeSetCursor(int width, int height, const Point& hotspot,
+                                  void* data, void* mask)
 {
   if (!wsccb) return;
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriterV3::writeSetCursor: nRects out of sync");
-  os->writeS16(hotspotX);
-  os->writeS16(hotspotY);
+  os->writeS16(hotspot.x);
+  os->writeS16(hotspot.y);
   os->writeU16(width);
   os->writeU16(height);
   os->writeU32(pseudoEncodingCursor);
@@ -138,6 +138,8 @@ void SMsgWriterV3::writeFramebufferUpdateStart()
 void SMsgWriterV3::writeFramebufferUpdateEnd()
 {
   if (needSetDesktopSize) {
+    if (!cp->supportsDesktopResize)
+      throw Exception("Client does not support desktop resize");
     if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
       throw Exception("SMsgWriterV3 setDesktopSize: nRects out of sync");
     os->writeS16(0);
@@ -192,10 +194,4 @@ void SMsgWriterV3::endRect()
     bytesSent[currentEncoding] += os->length() - lenBeforeRect;
     rectsSent[currentEncoding]++;
   }
-}
-
-void SMsgWriterV3::setOutStream(rdr::OutStream* os_)
-{
-  SMsgWriter::setOutStream(os_);
-  realOS = os;
 }

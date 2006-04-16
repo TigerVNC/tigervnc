@@ -202,6 +202,10 @@ SOURCE=.\HTTPServer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\KeyRemapper.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\Logger.cxx
 # End Source File
 # Begin Source File
@@ -215,6 +219,10 @@ SOURCE=.\Logger_stdio.cxx
 # Begin Source File
 
 SOURCE=.\LogWriter.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\Password.cxx
 # End Source File
 # Begin Source File
 
@@ -298,10 +306,6 @@ SOURCE=.\SSecurityVncAuth.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32\Threading_win32.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=.\TightDecoder.cxx
 # ADD CPP /I "../jpeg"
 # End Source File
@@ -329,10 +333,6 @@ SOURCE=.\UpdateTracker.cxx
 # Begin Source File
 
 SOURCE=.\util.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\vncAuth.cxx
 # End Source File
 # Begin Source File
 
@@ -496,6 +496,14 @@ SOURCE=.\ImageGetter.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\InputHandler.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\KeyRemapper.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\keysymdef.h
 # End Source File
 # Begin Source File
@@ -525,6 +533,10 @@ SOURCE=.\msgTypes.h
 # Begin Source File
 
 SOURCE=.\msvcwarning.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Password.h
 # End Source File
 # Begin Source File
 
@@ -640,10 +652,6 @@ SOURCE=.\Threading.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32\Threading_win32.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\tightDecode.h
 # End Source File
 # Begin Source File
@@ -693,14 +701,6 @@ SOURCE=.\UserPasswdGetter.h
 # Begin Source File
 
 SOURCE=.\util.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32\util_win32.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\vncAuth.h
 # End Source File
 # Begin Source File
 

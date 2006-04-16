@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -39,6 +39,7 @@ namespace rfb {
   class VNCSConnectionST;
   class ComparingUpdateTracker;
   class PixelBuffer;
+  class KeyRemapper;
 
   class VNCServerST : public VNCServer, public network::SocketServer {
   public:
@@ -52,30 +53,25 @@ namespace rfb {
 
     // Methods overridden from SocketServer
 
-    // - Run a client connection on the supplied socket
-    //   This causes the server to allocate the required structures
-    //   to handle a client connection, and to initialise the RFB
-    //   protocol.
-    //   NB:  The server assumes ownership of the Socket object.
+    // addSocket
+    //   Causes the server to allocate an RFB-protocol management
+    //   structure for the socket & initialise it.
+    virtual void addSocket(network::Socket* sock, bool outgoing=false);
 
-    virtual void addClient(network::Socket* sock);
+    // removeSocket
+    //   Clean up any resources associated with the Socket
+    virtual void removeSocket(network::Socket* sock);
 
-    // - Process an input event on a particular Socket
-    //   The platform-specific side of the server implementation calls
-    //   this method whenever data arrives on one of the active
-    //   network sockets.
-    //   The method returns true if the Socket is still in use by the
-    //   server, or false if it is no longer required and has been
-    //   deleted.
-    //   NB:  If false is returned then the Socket is deleted and must
-    //   not be accessed again!
+    // processSocketEvent
+    //   Read more RFB data from the Socket.  If an error occurs during
+    //   processing then shutdown() is called on the Socket, causing
+    //   removeSocket() to be called by the caller at a later time.
+    virtual void processSocketEvent(network::Socket* sock);
 
-    virtual bool processSocketEvent(network::Socket* sock);
-
-    // - checkTimeouts() returns the number of milliseconds left until the next
-    //   idle timeout expires.  If any have already expired, the corresponding
-    //   connections are closed.  Zero is returned if there is no idle timeout.
-
+    // checkTimeouts
+    //   Returns the number of milliseconds left until the next idle timeout
+    //   expires.  If any have already expired, the corresponding connections
+    //   are closed.  Zero is returned if there is no idle timeout.
     virtual int checkTimeouts();
 
 
@@ -88,9 +84,9 @@ namespace rfb {
     virtual void add_copied(const Region &dest, const Point &delta);
     virtual bool clientsReadyForUpdate();
     virtual void tryUpdate();
-    virtual void setCursor(int width, int height, int hotspotX, int hotspotY,
+    virtual void setCursor(int width, int height, const Point& hotspot,
                            void* cursorData, void* mask);
-    virtual void setCursorPos(int x, int y);
+    virtual void setCursorPos(const Point& p);
     virtual void setSSecurityFactory(SSecurityFactory* f) {securityFactory=f;}
 
     virtual void bell();
@@ -101,16 +97,9 @@ namespace rfb {
 
     // VNCServerST-only methods
 
-    //   If a particular VNCSConnectionST* is specified then
-    //   that connection will NOT be closed.
+    // closeClients() closes all RFB sessions, except the specified one (if
+    // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);
-
-    // addClient() with an extra flag to say if this is a reverse connection to
-    // a listening client.  Reverse connections are not authenticated and are
-    // always shared (unless the NeverShared parameter is set).
-
-    void addClient(network::Socket* sock, bool reverse);
-
 
     // getSockets() gets a list of sockets.  This can be used to generate an
     // fd_set for calling select().
@@ -183,10 +172,14 @@ namespace rfb {
     void setBlacklist(Blacklist* bl) {blHosts = bl ? bl : &blacklist;}
 
     // setEconomicTranslate() determines (for new connections) whether pixels
-    // should be translated for <=16bpp clients using a large lookup table (fast)
-    // or separate, smaller R, G and B tables (slower).  If set to true, small tables
-    // are used, to save memory.
+    // should be translated for <=16bpp clients using a large lookup table
+    // (fast) or separate, smaller R, G and B tables (slower).  If set to true,
+    // small tables are used, to save memory.
     void setEconomicTranslate(bool et) { useEconomicTranslate = et; }
+
+    // setKeyRemapper() replaces the VNCServerST's default key remapper.
+    // NB: A null pointer is valid here.
+    void setKeyRemapper(KeyRemapper* kr) { keyRemapper = kr; }
 
     void getConnInfo(ListConnInfo * listConn);
     void setConnStatus(ListConnInfo* listConn);
@@ -231,6 +224,7 @@ namespace rfb {
 
     SSecurityFactory* securityFactory;
     QueryConnectionHandler* queryConnectionHandler;
+    KeyRemapper* keyRemapper;
     bool useEconomicTranslate;
     
     time_t lastUserInputTime;

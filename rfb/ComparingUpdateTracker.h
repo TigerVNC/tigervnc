@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -32,10 +32,6 @@ namespace rfb {
     // as appropriate.
 
     virtual void compare();
-
-    virtual void flush_update(UpdateInfo* info, const Region& cliprgn,
-                              int maxArea);
-    virtual void flush_update(UpdateTracker &info, const Region &cliprgn);
   private:
     void compareRect(const Rect& r, Region* newchanged);
     PixelBuffer* fb;

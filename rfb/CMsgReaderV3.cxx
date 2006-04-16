@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,6 +21,7 @@
 #include <rdr/InStream.h>
 #include <rfb/CMsgReaderV3.h>
 #include <rfb/CMsgHandler.h>
+#include <rfb/util.h>
 
 using namespace rfb;
 
@@ -41,10 +42,8 @@ void CMsgReaderV3::readServerInit()
   PixelFormat pf;
   pf.read(is);
   handler->setPixelFormat(pf);
-  char* name = is->readString();
-  handler->setName(name);
-  delete [] name;
-  endMsg();
+  CharArray name(is->readString());
+  handler->setName(name.buf);
   handler->serverInit();
 }
 
@@ -85,7 +84,7 @@ void CMsgReaderV3::readMsg()
       handler->setDesktopSize(w, h);
       break;
     case pseudoEncodingCursor:
-      readSetCursor(Point(x, y), Point(w, h));
+      readSetCursor(w, h, Point(x,y));
       break;
     case pseudoEncodingLastRect:
       nUpdateRectsLeft = 1;     // this rectangle is the last one
@@ -104,6 +103,5 @@ void CMsgReaderV3::readFramebufferUpdate()
 {
   is->skip(1);
   nUpdateRectsLeft = is->readU16();
-  endMsg();
   handler->framebufferUpdateStart();
 }

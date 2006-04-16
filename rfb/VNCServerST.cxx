@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -32,25 +32,19 @@
 // reason for disconnecting clients is when the desktop size has changed as a
 // result of a call to setPixelBuffer().
 //
-// Because we don't want to mess up any data structures which the calling code
-// may maintain regarding sockets with data to process, we can't just delete a
-// socket when we decide to close the connection to a client.  Instead, we only
-// go as far as calling shutdown() on the socket.  This should ensure that
-// eventually the calling code will get round to calling processSocketEvent()
-// for that socket.  Then we can delete the VNCSConnectionST object and its
-// associated network::Socket object, and return false from that call to let
-// the calling code know that the socket has been deleted.  This is the only
-// way that these objects get deleted.
-//
-// It is possible that there are platforms where calling shutdown() cannot
-// guarantee that processSocketEvent() will be called - if so then it may be
-// necessary to introduce some kind of "socket closure callback", but we'll
-// only do that if it proves absolutely necessary.
+// The responsibility for creating and deleting sockets is entirely with the
+// calling code.  When VNCServerST wants to close a connection to a client it
+// calls the VNCSConnectionST's close() method which calls shutdown() on the
+// socket.  Eventually the calling code will notice that the socket has been
+// shut down and call removeSocket() so that we can delete the
+// VNCSConnectionST.  Note that the socket must not be deleted by the calling
+// code until after removeSocket() has been called.
 //
 // One minor complication is that we don't allocate a VNCSConnectionST object
 // for a blacklisted host (since we want to minimise the resources used for
-// dealing with such a connection).  So we maintain a separate list of
-// closingSockets for this purpose.
+// dealing with such a connection).  In order to properly implement the
+// getSockets function, we must maintain a separate closingSockets list,
+// otherwise blacklisted connections might be "forgotten".
 
 
 #include <rfb/ServerCore.h>
@@ -58,6 +52,7 @@
 #include <rfb/VNCSConnectionST.h>
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/SSecurityFactoryStandard.h>
+#include <rfb/KeyRemapper.h>
 #include <rfb/util.h>
 
 #include <rdr/types.h>
@@ -80,7 +75,8 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
     name(strDup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
     securityFactory(sf ? sf : &defaultSecurityFactory),
-    queryConnectionHandler(0), useEconomicTranslate(false),
+    queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
+    useEconomicTranslate(false),
     lastConnectionTime(0), disableclients(false)
 {
   lastUserInputTime = lastDisconnectTime = time(0);
@@ -97,12 +93,7 @@ VNCServerST::~VNCServerST()
   // Delete all the clients, and their sockets, and any closing sockets
   //   NB: Deleting a client implicitly removes it from the clients list
   while (!clients.empty()) {
-    delete clients.front()->getSock();
     delete clients.front();
-  }
-  while (!closingSockets.empty()) {
-    delete closingSockets.front();
-    closingSockets.pop_front();
   }
 
   // Stop the desktop object if active, *only* after deleting all clients!
@@ -117,18 +108,12 @@ VNCServerST::~VNCServerST()
 
 // SocketServer methods
 
-void VNCServerST::addClient(network::Socket* sock)
-{
-  addClient(sock, false);
-}
-
-void VNCServerST::addClient(network::Socket* sock, bool reverse)
+void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
 {
   // - Check the connection isn't black-marked
   // *** do this in getSecurity instead?
   CharArray address(sock->getPeerAddress());
-  if ((rfb::Server::blacklistLevel == 2) &&
-      blHosts->isBlackmarked(address.buf)) {
+  if (blHosts->isBlackmarked(address.buf)) {
     connectionsLog.error("blacklisted: %s", address.buf);
     try {
       SConnection::writeConnFailedFromScratch("Too many security failures",
@@ -144,37 +129,43 @@ void VNCServerST::addClient(network::Socket* sock, bool reverse)
     lastConnectionTime = time(0);
   }
 
-  VNCSConnectionST* client = new VNCSConnectionST(this, sock, reverse);
+  VNCSConnectionST* client = new VNCSConnectionST(this, sock, outgoing);
   client->init();
 }
 
-bool VNCServerST::processSocketEvent(network::Socket* sock)
+void VNCServerST::removeSocket(network::Socket* sock) {
+  // - If the socket has resources allocated to it, delete them
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ci++) {
+    if ((*ci)->getSock() == sock) {
+      // - Delete the per-Socket resources
+      delete *ci;
+
+      // - Check that the desktop object is still required
+      if (authClientCount() == 0 && desktopStarted) {
+        slog.debug("no authenticated clients - stopping desktop");
+        desktopStarted = false;
+        desktop->stop();
+      }
+      return;
+    }
+  }
+
+  // - If the Socket has no resources, it may have been a closingSocket
+  closingSockets.remove(sock);
+}
+
+void VNCServerST::processSocketEvent(network::Socket* sock)
 {
   // - Find the appropriate VNCSConnectionST and process the event
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
-      if ((*ci)->processMessages())
-        return true;
-      // processMessages failed, so delete the client
-      delete *ci;
-      break;
+      (*ci)->processMessages();
+      return;
     }
   }
-
-  // - If no client is using the Socket then delete it
-  closingSockets.remove(sock);
-  delete sock;
-
-  // - Check that the desktop object is still required
-  if (authClientCount() == 0 && desktopStarted) {
-    slog.debug("no authenticated clients - stopping desktop");
-    desktopStarted = false;
-    desktop->stop();
-  }
-  
-  // - Inform the caller not to continue handling the Socket
-  return false;
+  throw rdr::Exception("invalid Socket in VNCServerST");
 }
 
 int VNCServerST::checkTimeouts()
@@ -342,11 +333,10 @@ void VNCServerST::tryUpdate()
   }
 }
 
-void VNCServerST::setCursor(int width, int height, int newHotspotX,
-                            int newHotspotY, void* data, void* mask)
+void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
+                            void* data, void* mask)
 {
-  cursor.hotspot.x = newHotspotX;
-  cursor.hotspot.y = newHotspotY;
+  cursor.hotspot = newHotspot;
   cursor.setSize(width, height);
   memcpy(cursor.data, data, cursor.dataLen());
   memcpy(cursor.mask.buf, mask, cursor.maskLen());
@@ -363,11 +353,10 @@ void VNCServerST::setCursor(int width, int height, int newHotspotX,
   }
 }
 
-void VNCServerST::setCursorPos(int x, int y)
+void VNCServerST::setCursorPos(const Point& pos)
 {
-  if (cursorPos.x != x || cursorPos.y != y) {
-    cursorPos.x = x;
-    cursorPos.y = y;
+  if (!cursorPos.equals(pos)) {
+    cursorPos = pos;
     renderedCursorInvalid = true;
     std::list<VNCSConnectionST*>::iterator ci;
     for (ci = clients.begin(); ci != clients.end(); ci++)

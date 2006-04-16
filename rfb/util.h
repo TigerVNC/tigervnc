@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,13 +23,7 @@
 #ifndef __RFB_UTIL_H__
 #define __RFB_UTIL_H__
 
-#ifndef vncmin
-#define vncmin(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-#ifndef vncmax
-#define vncmax(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-
+#include <limits.h>
 #include <string.h>
 
 namespace rfb {
@@ -71,7 +65,35 @@ namespace rfb {
 
   // Copies src to dest, up to specified length-1, and guarantees termination
   void strCopy(char* dest, const char* src, int destlen);
+
+
+  // HELPER functions for timeout handling
+
+  // soonestTimeout() is a function to help work out the soonest of several
+  //   timeouts.
+  inline void soonestTimeout(int* timeout, int newTimeout) {
+    if (newTimeout && (!*timeout || newTimeout < *timeout))
+      *timeout = newTimeout;
+  }
+
+  // secsToMillis() turns seconds into milliseconds, capping the value so it
+  //   can't wrap round and become -ve
+  inline int secsToMillis(int secs) {
+    return (secs < 0 || secs > (INT_MAX/1000) ? INT_MAX : secs * 1000);
+  }
 }
+
+// Some platforms (e.g. Windows) include max() and min() macros in their
+// standard headers, but they are also standard C++ template functions, so some
+// C++ headers will undefine them.  So we steer clear of the names min and max
+// and define __rfbmin and __rfbmax instead.
+
+#ifndef __rfbmax
+#define __rfbmax(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef __rfbmin
+#define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
+#endif
 
 // Declare strcasecmp() and/or strncasecmp() if absent on this system.
 
@@ -86,10 +108,4 @@ extern "C" {
 }
 #endif
 
-#endif // __RFB_UTIL_H__
-
-// -=- PLATFORM SPECIFIC UTILITY FUNCTIONS/IMPLEMENTATIONS
-#ifdef WIN32
-#include "win32/util_win32.h"
 #endif
-

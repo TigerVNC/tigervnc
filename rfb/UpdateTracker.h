@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -47,25 +47,24 @@ namespace rfb {
     virtual void add_copied(const Region &dest, const Point &delta) = 0;
   };
 
-  class ClippedUpdateTracker : public UpdateTracker {
+  class ClippingUpdateTracker : public UpdateTracker {
   public:
-    ClippedUpdateTracker(UpdateTracker &child_) : child(child_) {};
-    ClippedUpdateTracker(UpdateTracker &child_,
-      const Region &cliprgn_) : child(child_), cliprgn(cliprgn_) {};
-    virtual ~ClippedUpdateTracker() {};
-
-    virtual void set_clip_region(const Region cliprgn_) {cliprgn = cliprgn_;};
+    ClippingUpdateTracker() : ut(0) {}
+    ClippingUpdateTracker(UpdateTracker* ut_, const Rect& r=Rect()) : ut(ut_), clipRect(r) {}
+    
+    void setUpdateTracker(UpdateTracker* ut_) {ut = ut_;}
+    void setClipRect(const Rect& cr) {clipRect = cr;}
 
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
   protected:
-    UpdateTracker &child;
-    Region cliprgn;
+    UpdateTracker* ut;
+    Region clipRect;
   };
 
   class SimpleUpdateTracker : public UpdateTracker {
   public:
-    SimpleUpdateTracker(bool use_copyrect=false);
+    SimpleUpdateTracker(bool use_copyrect=true);
     virtual ~SimpleUpdateTracker();
 
     virtual void enable_copyrect(bool enable);
@@ -75,13 +74,10 @@ namespace rfb {
     virtual void subtract(const Region& region);
 
     // Fill the supplied UpdateInfo structure with update information
-    virtual void get_update(UpdateInfo* info, const Region& cliprgn);
+    virtual void getUpdateInfo(UpdateInfo* info, const Region& cliprgn);
 
-    // Pass the current updates to the supplied tracker
-    virtual void get_update(UpdateTracker &to) const;
-
-    // Also removes the updates that are returned from this update tracker
-    virtual void flush_update(UpdateTracker &to, const Region &cliprgn);
+    // Copy the contained updates to another tracker
+    virtual void copyTo(UpdateTracker* to) const;
 
 
     // Get the changed/copied regions

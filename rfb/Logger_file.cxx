@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -53,6 +53,10 @@ void Logger_File::write(int level, const char *logname, const char *message)
 #endif
   if (!m_file) {
     if (!m_filename) return;
+    CharArray bakFilename(strlen(m_filename) + 1 + 4);
+    sprintf(bakFilename.buf, "%s.bak", m_filename);
+    remove(bakFilename.buf);
+    rename(m_filename, bakFilename.buf);
     m_file = fopen(m_filename, "w+");
     if (!m_file) return;
   }

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,11 +19,13 @@
 #ifndef __RFB_HOSTNAME_H__
 #define __RFB_HOSTNAME_H__
 
+#include <stdlib.h>
+#include <rdr/Exception.h>
 #include <rfb/util.h>
 
 namespace rfb {
 
-  void getHostAndPort(const char* hi, char** host, int* port, int basePort=5900) {
+  static void getHostAndPort(const char* hi, char** host, int* port, int basePort=5900) {
     CharArray portBuf;
     CharArray hostBuf;
     if (hi[0] == '[') {

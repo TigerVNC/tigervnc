@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,17 +15,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_VNCAUTH_H__
-#define __RFB_VNCAUTH_H__
 
+#ifndef __RFB_KEYREMAPPER_H__
+#define __RFB_KEYREMAPPER_H__
+
+#include <map>
 #include <rdr/types.h>
 
 namespace rfb {
 
-  const int vncAuthChallengeSize = 16;
+  class KeyRemapper {
+  public:
+    KeyRemapper(const char* m="") { setMapping(m); }
+    void setMapping(const char* m);
+    rdr::U32 remapKey(rdr::U32 key) const;
+    static KeyRemapper defInstance;
+  private:
+    std::map<rdr::U32,rdr::U32> mapping;
+  };
 
-  void vncAuthEncryptChallenge(rdr::U8* challenge, const char* passwd);
-  void vncAuthObfuscatePasswd(char* passwd);
-  void vncAuthUnobfuscatePasswd(char* passwd);
-}
-#endif
+};
+
+#endif // __RFB_KEYREMAPPER_H__

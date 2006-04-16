@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -69,11 +69,11 @@ namespace rfb {
     // significant bit represents the leftmost pixel, and the bytes are simply
     // in left-to-right order.  The server takes its own copy of the data in
     // cursorData and mask.
-    virtual void setCursor(int width, int height, int hotspotX, int hotspotY,
+    virtual void setCursor(int width, int height, const Point& hotspot,
                            void* cursorData, void* mask) = 0;
 
     // setCursorPos() tells the server the current position of the cursor.
-    virtual void setCursorPos(int x, int y) = 0;
+    virtual void setCursorPos(const Point& p) = 0;
 
     // setSSecurityFactory() tells the server which factory to use when
     // attempting to authenticate connections.

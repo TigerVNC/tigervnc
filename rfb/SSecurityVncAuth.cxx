@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,20 +18,27 @@
 //
 // SSecurityVncAuth
 //
+// XXX not thread-safe, because d3des isn't - do we need to worry about this?
+//
 
 #include <rfb/SSecurityVncAuth.h>
 #include <rdr/RandomStream.h>
 #include <rfb/SConnection.h>
-#include <rfb/vncAuth.h>
+#include <rfb/Password.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
+#include <rfb/Exception.h>
 #include <string.h>
 #include <stdio.h>
+extern "C" {
+#include <rfb/d3des.h>
+}
+
 
 using namespace rfb;
 
-static LogWriter vlog("VncAuth");
+static LogWriter vlog("SVncAuth");
 
 
 SSecurityVncAuth::SSecurityVncAuth(VncAuthPasswdGetter* pg_)
@@ -39,9 +46,8 @@ SSecurityVncAuth::SSecurityVncAuth(VncAuthPasswdGetter* pg_)
 {
 }
 
-bool SSecurityVncAuth::processMsg(SConnection* sc, bool* done)
+bool SSecurityVncAuth::processMsg(SConnection* sc)
 {
-  *done = false;
   rdr::InStream* is = sc->getInStream();
   rdr::OutStream* os = sc->getOutStream();
 
@@ -51,33 +57,31 @@ bool SSecurityVncAuth::processMsg(SConnection* sc, bool* done)
     os->writeBytes(challenge, vncAuthChallengeSize);
     os->flush();
     sentChallenge = true;
-    return true;
+    return false;
   }
 
-  if (responsePos >= vncAuthChallengeSize) return false;
-  while (is->checkNoWait(1) && responsePos < vncAuthChallengeSize) {
+  while (responsePos < vncAuthChallengeSize && is->checkNoWait(1))
     response[responsePos++] = is->readU8();
-  }
 
-  if (responsePos < vncAuthChallengeSize) return true;
+  if (responsePos < vncAuthChallengeSize) return false;
 
-  CharArray passwd(pg->getVncAuthPasswd());
+  PlainPasswd passwd(pg->getVncAuthPasswd());
 
-  // Beyond this point, there is no more VNCAuth protocol to perform.
-  *done = true;
+  if (!passwd.buf)
+    throw AuthFailureException("No password configured for VNC Auth");
 
-  if (!passwd.buf) {
-    failureMessage_.buf = strDup("No password configured for VNC Auth");
-    vlog.error(failureMessage_.buf);
-    return false;
-  }
+  // Calculate the expected response
+  rdr::U8 key[8];
+  int pwdLen = strlen(passwd.buf);
+  for (int i=0; i<8; i++)
+    key[i] = i<pwdLen ? passwd.buf[i] : 0;
+  deskey(key, EN0);
+  for (int j = 0; j < vncAuthChallengeSize; j += 8)
+    des(challenge+j, challenge+j);
 
-  vncAuthEncryptChallenge(challenge, passwd.buf);
-  memset(passwd.buf, 0, strlen(passwd.buf));
-
-  if (memcmp(challenge, response, vncAuthChallengeSize) != 0) {
-    return false;
-  }
+  // Check the actual response
+  if (memcmp(challenge, response, vncAuthChallengeSize) != 0)
+    throw AuthFailureException();
 
   return true;
 }

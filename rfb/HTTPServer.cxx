@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -20,11 +20,6 @@
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rdr/MemOutStream.h>
-#include <time.h>
-
-// *** Shouldn't really link against this - only for ClientWaitTimeMillis
-//     and IdleTimeout
-#include <rfb/ServerCore.h>
 
 #ifdef WIN32
 #define strcasecmp _stricmp
@@ -35,6 +30,9 @@ using namespace rfb;
 using namespace rdr;
 
 static LogWriter vlog("HTTPServer");
+
+const int clientWaitTimeMillis = 20000;
+const int idleTimeoutSecs = 5 * 60;
 
 
 //
@@ -94,7 +92,8 @@ protected:
 class rfb::HTTPServer::Session {
 public:
   Session(network::Socket& s, rfb::HTTPServer& srv)
-    : contentType(0), line(s.inStream(), 256), sock(s),
+    : contentType(0), contentLength(-1), lastModified(-1),
+      line(s.inStream(), 256), sock(s),
       server(srv), state(ReadRequestLine), lastActive(time(0)) {
   }
   ~Session() {
@@ -111,6 +110,8 @@ public:
 protected:
   CharArray uri;
   const char* contentType;
+  int contentLength;
+  time_t lastModified;
   LineReader line;
   network::Socket& sock;
   rfb::HTTPServer& server;
@@ -140,6 +141,7 @@ void writeLine(OutStream& os, const char* text) {
 
 // - Write an HTTP-compliant response to the client
 
+
 void
 HTTPServer::Session::writeResponse(int result, const char* text) {
   char buffer[1024];
@@ -149,6 +151,19 @@ HTTPServer::Session::writeResponse(int result, const char* text) {
   OutStream& os=sock.outStream();
   writeLine(os, buffer);
   writeLine(os, "Server: TightVNC/4.0");
+  time_t now = time(0);
+  struct tm* tm = gmtime(&now);
+  strftime(buffer, 1024, "Date: %a, %d %b %Y %H:%M:%S GMT", tm);
+  writeLine(os, buffer);
+  if (lastModified == (time_t)-1 || lastModified == 0)
+    lastModified = now;
+  tm = gmtime(&lastModified);
+  strftime(buffer, 1024, "Last-Modified: %a, %d %b %Y %H:%M:%S GMT", tm);
+  writeLine(os, buffer);
+  if (contentLength != -1) {
+    sprintf(buffer,"Content-Length: %d",contentLength);
+    writeLine(os, buffer);
+  }
   writeLine(os, "Connection: close");
   os.writeBytes("Content-Type: ", 14);
   if (result == 200) {
@@ -247,7 +262,10 @@ HTTPServer::Session::processHTTP() {
       {
         CharArray address(sock.getPeerAddress());
         vlog.info("getting %s for %s", uri.buf, address.buf);
-        InStream* data = server.getFile(uri.buf, &contentType);
+        contentLength = -1;
+        lastModified = -1;
+        InStream* data = server.getFile(uri.buf, &contentType, &contentLength,
+                                        &lastModified);
         if (!data)
           return writeResponse(404);
 
@@ -277,9 +295,9 @@ HTTPServer::Session::processHTTP() {
 
 int HTTPServer::Session::checkIdleTimeout() {
   time_t now = time(0);
-  int timeout = (lastActive + rfb::Server::idleTimeout) - now;
+  int timeout = (lastActive + idleTimeoutSecs) - now;
   if (timeout > 0)
-    return timeout * 1000;
+    return secsToMillis(timeout);
   sock.shutdown();
   return 0;
 }
@@ -291,28 +309,38 @@ HTTPServer::HTTPServer() {
 
 HTTPServer::~HTTPServer() {
   std::list<Session*>::iterator i;
-  for (i=sessions.begin(); i!=sessions.end(); i++) {
-    delete (*i)->getSock();
+  for (i=sessions.begin(); i!=sessions.end(); i++)
     delete *i;
-  }
 }
 
 
 // -=- SocketServer interface implementation
 
 void
-HTTPServer::addClient(network::Socket* sock) {
+HTTPServer::addSocket(network::Socket* sock, bool) {
   Session* s = new Session(*sock, *this);
   if (!s) {
     sock->shutdown();
   } else {
-    sock->inStream().setTimeout(rfb::Server::clientWaitTimeMillis);
-    sock->outStream().setTimeout(rfb::Server::clientWaitTimeMillis);
+    sock->inStream().setTimeout(clientWaitTimeMillis);
+    sock->outStream().setTimeout(clientWaitTimeMillis);
     sessions.push_front(s);
   }
 }
 
-bool
+void
+HTTPServer::removeSocket(network::Socket* sock) {
+  std::list<Session*>::iterator i;
+  for (i=sessions.begin(); i!=sessions.end(); i++) {
+    if ((*i)->getSock() == sock) {
+      delete *i;
+      sessions.erase(i);
+      return;
+    }
+  }
+}
+
+void
 HTTPServer::processSocketEvent(network::Socket* sock) {
   std::list<Session*>::iterator i;
   for (i=sessions.begin(); i!=sessions.end(); i++) {
@@ -320,21 +348,16 @@ HTTPServer::processSocketEvent(network::Socket* sock) {
       try {
         if ((*i)->processHTTP()) {
           vlog.info("completed HTTP request");
-          delete *i;
-          sessions.erase(i);
-          break;
+          sock->shutdown();
         }
-        return true;
       } catch (rdr::Exception& e) {
         vlog.error("untrapped: %s", e.str());
-        delete *i;
-        sessions.erase(i);
-        break;
+        sock->shutdown();
       }
+      return;
     }
   }
-  delete sock;
-  return false;
+  throw rdr::Exception("invalid Socket in HTTPServer");
 }
 
 void HTTPServer::getSockets(std::list<network::Socket*>* sockets)
@@ -359,7 +382,9 @@ int HTTPServer::checkTimeouts() {
 // -=- Default getFile implementation
 
 InStream*
-HTTPServer::getFile(const char* name, const char** contentType) {
+HTTPServer::getFile(const char* name, const char** contentType,
+                    int* contentLength, time_t* lastModified)
+{
   return 0;
 }
 

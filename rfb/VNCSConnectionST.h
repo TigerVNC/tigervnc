@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -56,9 +56,9 @@ namespace rfb {
 
     // processMessages() processes incoming messages from the client, invoking
     // various callbacks as a result.  It continues to process messages until
-    // reading might block.  Returns true if the client is still valid &
-    // active, or false if it has disconnected or an error has occurred.
-    bool processMessages();
+    // reading might block.  shutdown() will be called on the connection's
+    // Socket if an error occurs, via the close() call.
+    void processMessages();
 
     void writeFramebufferUpdateOrClose();
     void pixelBufferChange();
@@ -117,16 +117,14 @@ namespace rfb {
     // none of these methods should call any of the above methods which may
     // delete the SConnectionST object.
 
-    virtual void versionReceived();
-    virtual SSecurity* getSSecurity(int secType);
     virtual void authSuccess();
     virtual void queryConnection(const char* userName);
     virtual void clientInit(bool shared);
     virtual void setPixelFormat(const PixelFormat& pf);
-    virtual void pointerEvent(int x, int y, int buttonMask);
+    virtual void pointerEvent(const Point& pos, int buttonMask);
     virtual void keyEvent(rdr::U32 key, bool down);
-    virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void clientCutText(const char* str, int len);
+    virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setInitialColourMap();
     virtual void supportsLocalCursor();
 
@@ -153,7 +151,6 @@ namespace rfb {
 
     network::Socket* sock;
     CharArray peerEndpoint;
-    bool reverseConnection;
     VNCServerST* server;
     SimpleUpdateTracker updates;
     TransImageGetter image_getter;

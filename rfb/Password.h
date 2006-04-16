@@ -15,21 +15,32 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_CMSGWRITERV3_H__
-#define __RFB_CMSGWRITERV3_H__
+#ifndef __RFB_PASSWORD_H__
+#define __RFB_PASSWORD_H__
 
-#include <rfb/CMsgWriter.h>
+#include <rfb/util.h>
 
 namespace rfb {
-  class CMsgWriterV3 : public CMsgWriter {
+
+  class ObfuscatedPasswd;
+
+  class PlainPasswd : public CharArray {
   public:
-    CMsgWriterV3(ConnParams* cp, rdr::OutStream* os);
-    virtual ~CMsgWriterV3();
-
-    virtual void writeClientInit(bool shared);
-    virtual void startMsg(int type);
-    virtual void endMsg();
-
+    PlainPasswd();
+    PlainPasswd(char* pwd);
+    PlainPasswd(const ObfuscatedPasswd& obfPwd);
+    ~PlainPasswd();
+    void replaceBuf(char* b);
   };
+
+  class ObfuscatedPasswd : public CharArray {
+  public:
+    ObfuscatedPasswd();
+    ObfuscatedPasswd(int l);
+    ObfuscatedPasswd(const PlainPasswd& plainPwd);
+    ~ObfuscatedPasswd();
+    int length;
+  };
+
 }
 #endif

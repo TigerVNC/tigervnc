@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -96,7 +96,7 @@ void CMsgWriter::writeFramebufferUpdateRequest(const Rect& r, bool incremental)
 }
 
 
-void CMsgWriter::writeKeyEvent(rdr::U32 key, bool down)
+void CMsgWriter::keyEvent(rdr::U32 key, bool down)
 {
   startMsg(msgTypeKeyEvent);
   os->writeU8(down);
@@ -106,31 +106,27 @@ void CMsgWriter::writeKeyEvent(rdr::U32 key, bool down)
 }
 
 
-void CMsgWriter::writePointerEvent(int x, int y, int buttonMask)
+void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
 {
-  if (x < 0) x = 0;
-  if (y < 0) y = 0;
-  if (x >= cp->width) x = cp->width - 1;
-  if (y >= cp->height) y = cp->height - 1;
+  Point p(pos);
+  if (p.x < 0) p.x = 0;
+  if (p.y < 0) p.y = 0;
+  if (p.x >= cp->width) p.x = cp->width - 1;
+  if (p.y >= cp->height) p.y = cp->height - 1;
 
   startMsg(msgTypePointerEvent);
   os->writeU8(buttonMask);
-  os->writeU16(x);
-  os->writeU16(y);
+  os->writeU16(p.x);
+  os->writeU16(p.y);
   endMsg();
 }
 
 
-void CMsgWriter::writeClientCutText(const char* str, int len)
+void CMsgWriter::clientCutText(const char* str, int len)
 {
   startMsg(msgTypeClientCutText);
   os->pad(3);
   os->writeU32(len);
   os->writeBytes(str, len);
   endMsg();
-}
-
-void CMsgWriter::setOutStream(rdr::OutStream* os_)
-{
-  os = os_;
 }

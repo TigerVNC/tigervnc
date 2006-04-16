@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,6 +21,7 @@
 #include <rfb/secTypes.h>
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>
+#include <rfb/KeyRemapper.h>
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -31,8 +32,8 @@ static LogWriter vlog("VNCSConnST");
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
-  : sock(s), reverseConnection(reverse), server(server_),
-    image_getter(server->useEconomicTranslate),
+  : SConnection(server_->securityFactory, reverse), sock(s), server(server_),
+    updates(false), image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
     pointerEventTime(0), accessRights(AccessDefault),
     startTime(time(0))
@@ -41,21 +42,11 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   peerEndpoint.buf = sock->getPeerEndpoint();
   VNCServerST::connectionsLog.write(1,"accepted: %s", peerEndpoint.buf);
 
+  // Configure the socket
   setSocketTimeouts();
   lastEventTime = time(0);
 
-  // Initialise security
-  CharArray sec_types_str;
-  if (reverseConnection)
-    sec_types_str.buf = rfb::Server::rev_sec_types.getData();
-  else
-    sec_types_str.buf = rfb::Server::sec_types.getData();
-  std::list<int> sec_types = parseSecTypes(sec_types_str.buf);
-  std::list<int>::iterator i;
-  for (i=sec_types.begin(); i!=sec_types.end(); i++) {
-    addSecType(*i);
-  }
-
+  // Add this client to the VNCServerST
   server->clients.push_front(this);
 }
 
@@ -64,7 +55,8 @@ VNCSConnectionST::~VNCSConnectionST()
 {
   // If we reach here then VNCServerST is deleting us!
   VNCServerST::connectionsLog.write(1,"closed: %s (%s)",
-                                    peerEndpoint.buf, closeReason.buf);
+                                    peerEndpoint.buf,
+                                    (closeReason.buf) ? closeReason.buf : "");
 
   // Release any keys the client still had pressed
   std::set<rdr::U32>::iterator i;
@@ -103,16 +95,17 @@ void VNCSConnectionST::close(const char* reason)
       server->lastDisconnectTime = time(0);
   }
 
-  // Just shutdown the socket.  This will cause processMessages to
-  // eventually fail, causing us and our socket to be deleted.
+  // Just shutdown the socket and mark our state as closing.  Eventually the
+  // calling code will call VNCServerST's removeSocket() method causing us to
+  // be deleted.
   sock->shutdown();
   setState(RFBSTATE_CLOSING);
 }
 
 
-bool VNCSConnectionST::processMessages()
+void VNCSConnectionST::processMessages()
 {
-  if (state() == RFBSTATE_CLOSING) return false;
+  if (state() == RFBSTATE_CLOSING) return;
   try {
     // - Now set appropriate socket timeouts and process data
     setSocketTimeouts();
@@ -124,15 +117,11 @@ bool VNCSConnectionST::processMessages()
 
     if (!clientsReadyBefore && !requested.is_empty())
       server->desktop->framebufferUpdateRequest();
-
-    return true;
-
   } catch (rdr::EndOfStream&) {
     close("Clean disconnection");
   } catch (rdr::Exception &e) {
     close(e.str());
   }
-  return false;
 }
 
 void VNCSConnectionST::writeFramebufferUpdateOrClose()
@@ -170,9 +159,11 @@ void VNCSConnectionST::pixelBufferChange()
 
       cp.width = server->pb->width();
       cp.height = server->pb->height();
-      if (!writer()->writeSetDesktopSize()) {
-        close("Client does not support desktop resize");
-        return;
+      if (state() == RFBSTATE_NORMAL) {
+        if (!writer()->writeSetDesktopSize()) {
+          close("Client does not support desktop resize");
+          return;
+        }
       }
     }
     // Just update the whole screen at the moment because we're too lazy to
@@ -248,13 +239,13 @@ int VNCSConnectionST::checkIdleTimeout()
     // now.
     vlog.info("Time has gone forwards - resetting idle timeout");
     lastEventTime = now;
-    return idleTimeout;
+    return secsToMillis(idleTimeout);
   }
   if (timeLeft <= 0) {
     close("Idle timeout");
     return 0;
   }
-  return timeLeft * 1000;
+  return secsToMillis(timeLeft);
 }
 
 // renderedCursorChange() is called whenever the server-side rendered cursor
@@ -302,28 +293,9 @@ void VNCSConnectionST::approveConnectionOrClose(bool accept,
 
 // -=- Callbacks from SConnection
 
-void VNCSConnectionST::versionReceived() {
-  CharArray address(sock->getPeerAddress());
-  if ((rfb::Server::blacklistLevel == 1) &&
-      server->blHosts->isBlackmarked(address.buf)) {
-    server->connectionsLog.error("blacklisted: %s", address.buf);
-    throwConnFailedException("Too many security failures");
-  }
-}
-
-SSecurity* VNCSConnectionST::getSSecurity(int secType) {
-  if (!server->securityFactory)
-    throw rdr::Exception("no SSecurityFactory registered!");
-  return server->securityFactory->getSSecurity(secType, reverseConnection);
-}
-
 void VNCSConnectionST::authSuccess()
 {
   lastEventTime = time(0);
-
-  // - Authentication succeeded - clear from blacklist
-  CharArray name; name.buf = sock->getPeerAddress();
-  server->blHosts->clearBlackmark(name.buf);
 
   server->startDesktop();
 
@@ -346,18 +318,36 @@ void VNCSConnectionST::authSuccess()
 
 void VNCSConnectionST::queryConnection(const char* userName)
 {
+  // - Authentication succeeded - clear from blacklist
+  CharArray name; name.buf = sock->getPeerAddress();
+  server->blHosts->clearBlackmark(name.buf);
+
+  // - Special case to provide a more useful error message
+  if (rfb::Server::neverShared && !rfb::Server::disconnectClients &&
+    server->authClientCount() > 0) {
+    approveConnection(false, "The server is already in use");
+    return;
+  }
+
   // - Does the client have the right to bypass the query?
-  if (reverseConnection || !rfb::Server::queryConnect ||
+  if (reverseConnection ||
+      !(rfb::Server::queryConnect || sock->requiresQuery()) ||
       (accessRights & AccessNoQuery))
   {
     approveConnection(true);
     return;
   }
 
+  // - Get the server to display an Accept/Reject dialog, if required
+  //   If a dialog is displayed, the result will be PENDING, and the
+  //   server will call approveConnection at a later time
   CharArray reason;
   VNCServerST::queryResult qr = server->queryConnection(sock, userName,
                                                         &reason.buf);
-  if (qr == VNCServerST::PENDING) return;
+  if (qr == VNCServerST::PENDING)
+    return;
+
+  // - If server returns ACCEPT/REJECT then pass result to SConnection
   approveConnection(qr == VNCServerST::ACCEPT, reason.buf);
 }
 
@@ -372,7 +362,8 @@ void VNCSConnectionST::clientInit(bool shared)
       vlog.debug("non-shared connection - closing clients");
       server->closeClients("Non-shared connection requested", getSock());
     } else {
-      // - Refuse this connection if there are existing clients, in addition to this one
+      // - Refuse this connection if there are existing clients, in addition to
+      // this one
       if (server->authClientCount() > 1) {
         close("Server is already in use");
         return;
@@ -392,14 +383,14 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
   setCursor();
 }
 
-void VNCSConnectionST::pointerEvent(int x, int y, int buttonMask)
+void VNCSConnectionST::pointerEvent(const Point& pos, int buttonMask)
 {
   pointerEventTime = lastEventTime = time(0);
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessPtrEvents)) return;
   if (!rfb::Server::acceptPointerEvents) return;
   if (!server->pointerClient || server->pointerClient == this) {
-    pointerEventPos = Point(x, y);
+    pointerEventPos = pos;
     if (buttonMask)
       server->pointerClient = this;
     else
@@ -431,6 +422,10 @@ void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
+
+  // Remap the key if required
+  if (server->keyRemapper)
+    key = server->keyRemapper->remapKey(key);
 
   // Turn ISO_Left_Tab into shifted Tab.
   VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
@@ -522,10 +517,9 @@ void VNCSConnectionST::writeSetCursorCallback()
   image_getter.translatePixels(server->cursor.data, transData,
 			       server->cursor.area());
   writer()->writeSetCursor(server->cursor.width(),
-			   server->cursor.height(),
-			   server->cursor.hotspot.x,
-			   server->cursor.hotspot.y,
-			   transData, server->cursor.mask.buf);
+                           server->cursor.height(),
+                           server->cursor.hotspot,
+                           transData, server->cursor.mask.buf);
 }
 
 
@@ -574,7 +568,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
     if (renderedCursorRect.is_empty()) {
       drawRenderedCursor = false;
     } else if (!updates.get_changed().union_(updates.get_copied())
-        .intersect(renderedCursorRect).is_empty()) {
+               .intersect(renderedCursorRect).is_empty()) {
       drawRenderedCursor = true;
     }
 
@@ -589,7 +583,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   UpdateInfo update;
   updates.enable_copyrect(cp.useCopyRect);
-  updates.get_update(&update, requested);
+  updates.getUpdateInfo(&update, requested);
   if (!update.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original RealVNC.
@@ -660,11 +654,9 @@ void VNCSConnectionST::setCursor()
 void VNCSConnectionST::setSocketTimeouts()
 {
   int timeoutms = rfb::Server::clientWaitTimeMillis;
-  if (timeoutms == 0 || timeoutms > rfb::Server::idleTimeout * 1000) {
-    timeoutms = rfb::Server::idleTimeout * 1000;
-    if (timeoutms == 0)
-      timeoutms = -1;
-  }
+  soonestTimeout(&timeoutms, secsToMillis(rfb::Server::idleTimeout));
+  if (timeoutms == 0)
+    timeoutms = -1;
   sock->inStream().setTimeout(timeoutms);
   sock->outStream().setTimeout(timeoutms);
 }

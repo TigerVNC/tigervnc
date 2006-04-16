@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -33,8 +33,8 @@ namespace rfb {
     virtual void endMsg();
     virtual bool writeSetDesktopSize();
     virtual void cursorChange(WriteSetCursorCallback* cb);
-    virtual void writeSetCursor(int width, int height, int hotspotX,
-                                int hotspotY, void* data, void* mask);
+    virtual void writeSetCursor(int width, int height, const Point& hotspot,
+                                void* data, void* mask);
     virtual void writeSetXCursor(int width, int height, int hotspotX,
 				 int hotspotY, void* data, void* mask);
     virtual void writeFramebufferUpdateStart(int nRects);
@@ -43,8 +43,6 @@ namespace rfb {
     virtual bool needFakeUpdate();
     virtual void startRect(const Rect& r, unsigned int encoding);
     virtual void endRect();
-
-    virtual void setOutStream(rdr::OutStream* os);
 
   private:
     rdr::MemOutStream* updateOS;

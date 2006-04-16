@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -42,10 +42,6 @@ CConnection::~CConnection()
 {
   if (security) security->destroy();
   deleteReaderAndWriter();
-}
-
-void CConnection::setServerName(const char* serverName_) {
-  serverName.buf = strDup(serverName_);
 }
 
 void CConnection::deleteReaderAndWriter()
@@ -207,10 +203,7 @@ void CConnection::processSecurityTypesMsg()
 void CConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
-  bool done;
-  if (!security->processMsg(this, &done))
-    throwAuthFailureException();
-  if (done) {
+  if (security->processMsg(this)) {
     state_ = RFBSTATE_SECURITY_RESULT;
     processSecurityResultMsg();
   }
@@ -229,37 +222,29 @@ void CConnection::processSecurityResultMsg()
   switch (result) {
   case secResultOK:
     securityCompleted();
-    break;
+    return;
   case secResultFailed:
     vlog.debug("auth failed");
-    throwAuthFailureException();
+    break;
   case secResultTooMany:
     vlog.debug("auth failed - too many tries");
-    throwAuthFailureException();
+    break;
   default:
-    vlog.error("unknown security result");
-    throwAuthFailureException();
-  };
+    throw Exception("Unknown security result from server");
+  }
+  CharArray reason;
+  if (cp.beforeVersion(3,8))
+    reason.buf = strDup("Authentication failure");
+  else
+    reason.buf = is->readString();
+  state_ = RFBSTATE_INVALID;
+  throw AuthFailureException(reason.buf);
 }
 
 void CConnection::processInitMsg()
 {
   vlog.debug("reading server initialisation");
   reader_->readServerInit();
-}
-
-void CConnection::throwAuthFailureException()
-{
-  CharArray reason;
-  vlog.debug("state=%d, ver=%d.%d", state(), cp.majorVersion, cp.minorVersion);
-  if (state()==RFBSTATE_SECURITY_RESULT && !cp.beforeVersion(3,8)) {
-    reason.buf = is->readString();
-  } else {
-    reason.buf = strDup("Authentication failure");
-  }
-  state_ = RFBSTATE_INVALID;
-  vlog.error(reason.buf);
-  throw AuthFailureException(reason.buf);
 }
 
 void CConnection::throwConnFailedException()

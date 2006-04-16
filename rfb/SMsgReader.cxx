@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,8 +21,11 @@
 #include <rfb/util.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SMsgReader.h>
+#include <rfb/Configuration.h>
 
 using namespace rfb;
+
+static IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
 
 SMsgReader::SMsgReader(SMsgHandler* handler_, rdr::InStream* is_)
   : handler(handler_), is(is_)
@@ -33,16 +36,11 @@ SMsgReader::~SMsgReader()
 {
 }
 
-void SMsgReader::endMsg()
-{
-}
-
 void SMsgReader::readSetPixelFormat()
 {
   is->skip(3);
   PixelFormat pf;
   pf.read(is);
-  endMsg();
   handler->setPixelFormat(pf);
 }
 
@@ -50,12 +48,10 @@ void SMsgReader::readSetEncodings()
 {
   is->skip(1);
   int nEncodings = is->readU16();
-  rdr::U32* encodings = new rdr::U32[nEncodings];
+  rdr::U32Array encodings(nEncodings);
   for (int i = 0; i < nEncodings; i++)
-    encodings[i] = is->readU32();
-  endMsg();
-  handler->setEncodings(nEncodings, encodings);
-  delete [] encodings;
+    encodings.buf[i] = is->readU32();
+  handler->setEncodings(nEncodings, encodings.buf);
 }
 
 void SMsgReader::readFramebufferUpdateRequest()
@@ -65,7 +61,6 @@ void SMsgReader::readFramebufferUpdateRequest()
   int y = is->readU16();
   int w = is->readU16();
   int h = is->readU16();
-  endMsg();
   handler->framebufferUpdateRequest(Rect(x, y, x+w, y+h), inc);
 }
 
@@ -74,7 +69,6 @@ void SMsgReader::readKeyEvent()
   bool down = is->readU8();
   is->skip(2);
   rdr::U32 key = is->readU32();
-  endMsg();
   handler->keyEvent(key, down);
 }
 
@@ -83,8 +77,7 @@ void SMsgReader::readPointerEvent()
   int mask = is->readU8();
   int x = is->readU16();
   int y = is->readU16();
-  endMsg();
-  handler->pointerEvent(x, y, mask);
+  handler->pointerEvent(Point(x, y), mask);
 }
 
 
@@ -92,7 +85,7 @@ void SMsgReader::readClientCutText()
 {
   is->skip(3);
   int len = is->readU32();
-  if (len > 256*1024) {
+  if (len > maxCutText) {
     is->skip(len);
     fprintf(stderr,"cut text too long (%d bytes) - ignoring\n",len);
     return;
@@ -100,6 +93,5 @@ void SMsgReader::readClientCutText()
   CharArray ca(len+1);
   ca.buf[len] = 0;
   is->readBytes(ca.buf, len);
-  endMsg();
   handler->clientCutText(ca.buf, len);
 }

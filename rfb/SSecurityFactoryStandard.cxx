@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,77 +25,104 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/SSecurityFactoryStandard.h>
+#include <rfb/Password.h>
 
 using namespace rfb;
 
 static LogWriter vlog("SSecurityFactoryStandard");
 
-VncAuthPasswdParameter* SSecurityFactoryStandard::vncAuthPasswd = 0;
+StringParameter SSecurityFactoryStandard::sec_types
+("SecurityTypes",
+ "Specify which security scheme to use for incoming connections (None, VncAuth)",
+ "VncAuth");
+
+StringParameter SSecurityFactoryStandard::rev_sec_types
+("ReverseSecurityTypes",
+ "Specify encryption scheme to use for reverse connections (None)",
+ "None");
 
 
-SSecurity* SSecurityFactoryStandard::getSSecurity(int secType, bool noAuth) {
+StringParameter SSecurityFactoryStandard::vncAuthPasswdFile
+("PasswordFile", "Password file for VNC authentication", "");
+VncAuthPasswdParameter SSecurityFactoryStandard::vncAuthPasswd
+("Password", "Obfuscated binary encoding of the password which clients must supply to "
+ "access the server", &SSecurityFactoryStandard::vncAuthPasswdFile);
+
+
+SSecurity* SSecurityFactoryStandard::getSSecurity(rdr::U8 secType, bool reverseConnection) {
   switch (secType) {
-  case secTypeNone:    return new SSecurityNone();
+  case secTypeNone: return new SSecurityNone();
   case secTypeVncAuth:
-    if (!vncAuthPasswd)
-      throw rdr::Exception("No VncAuthPasswdParameter defined!");
-    return new SSecurityVncAuth(vncAuthPasswd);
+    return new SSecurityVncAuth(&vncAuthPasswd);
   default:
-    throw Exception("Unsupported secType?");
+    throw Exception("Security type not supported");
   }
 }
 
-VncAuthPasswdParameter::VncAuthPasswdParameter() {
-  if (SSecurityFactoryStandard::vncAuthPasswd)
-    throw rdr::Exception("duplicate VncAuthPasswdParameter!");
-  SSecurityFactoryStandard::vncAuthPasswd = this;
+void SSecurityFactoryStandard::getSecTypes(std::list<rdr::U8>* secTypes, bool reverseConnection) {
+  CharArray secTypesStr;
+  if (reverseConnection)
+    secTypesStr.buf = rev_sec_types.getData();
+  else
+    secTypesStr.buf = sec_types.getData();
+  std::list<int> configured = parseSecTypes(secTypesStr.buf);
+  std::list<int>::iterator i;
+  for (i=configured.begin(); i!=configured.end(); i++) {
+    if (isSecTypeSupported(*i))
+      secTypes->push_back(*i);
+  }
+}
+
+bool SSecurityFactoryStandard::isSecTypeSupported(rdr::U8 secType) {
+  switch (secType) {
+  case secTypeNone:
+  case secTypeVncAuth:
+    return true;
+  default:
+    return false;
+  }
 }
 
 
-VncAuthPasswdConfigParameter::VncAuthPasswdConfigParameter()
-: passwdParam("Password",
-   "Obfuscated binary encoding of the password which clients must supply to "
-   "access the server", 0, 0) {
+VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name,
+                                               const char* desc,
+                                               StringParameter* passwdFile_)
+: BinaryParameter(name, desc, 0, 0), passwdFile(passwdFile_) {
 }
 
-char* VncAuthPasswdConfigParameter::getVncAuthPasswd() {
-  CharArray obfuscated;
-  int len;
-  passwdParam.getData((void**)&obfuscated.buf, &len);
-  printf("vnc password len=%d\n", len); // ***
-  if (len == 8) {
-    CharArray password(9);
-    memcpy(password.buf, obfuscated.buf, 8);
-    vncAuthUnobfuscatePasswd(password.buf);
+char* VncAuthPasswdParameter::getVncAuthPasswd() {
+  ObfuscatedPasswd obfuscated;
+  getData((void**)&obfuscated.buf, &obfuscated.length);
+
+  if (obfuscated.length == 0) {
+    if (passwdFile) {
+      CharArray fname(passwdFile->getData());
+      if (!fname.buf[0]) {
+        vlog.info("neither %s nor %s params set", getName(), passwdFile->getName());
+        return 0;
+      }
+
+      FILE* fp = fopen(fname.buf, "r");
+      if (!fp) {
+        vlog.error("opening password file '%s' failed",fname.buf);
+        return 0;
+      }
+
+      vlog.debug("reading password file");
+      obfuscated.buf = new char[128];
+      obfuscated.length = fread(obfuscated.buf, 1, 128, fp);
+      fclose(fp);
+    } else {
+      vlog.info("%s parameter not set", getName());
+    }
+  }
+
+  try {
+    PlainPasswd password(obfuscated);
     return password.takeBuf();
-  }
-  return 0;
-}
-
-
-VncAuthPasswdFileParameter::VncAuthPasswdFileParameter()
-  : param("PasswordFile", "Password file for VNC authentication", "") {
-}
-
-char* VncAuthPasswdFileParameter::getVncAuthPasswd() {
-  CharArray fname(param.getData());
-  if (!fname.buf[0]) {
-    vlog.error("passwordFile parameter not set");
+  } catch (...) {
     return 0;
   }
-  FILE* fp = fopen(fname.buf, "r");
-  if (!fp) {
-    vlog.error("opening password file '%s' failed",fname.buf);
-    return 0;
-  }
-  CharArray passwd(9);
-  int len = fread(passwd.buf, 1, 9, fp);
-  fclose(fp);
-  if (len != 8) {
-    vlog.error("password file '%s' is the wrong length",fname.buf);
-    return 0;
-  }
-  vncAuthUnobfuscatePasswd(passwd.buf);
-  return passwd.takeBuf();
 }
+
 

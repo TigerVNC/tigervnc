@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -29,6 +29,8 @@ int rfb::secTypeNum(const char* name)
   if (strcasecmp(name, "Tight") == 0)      return secTypeTight;
   if (strcasecmp(name, "RA2") == 0)        return secTypeRA2;
   if (strcasecmp(name, "RA2ne") == 0)      return secTypeRA2ne;
+  if (strcasecmp(name, "SSPI") == 0)       return secTypeSSPI;
+  if (strcasecmp(name, "SSPIne") == 0)       return secTypeSSPIne;
   return secTypeInvalid;
 }
 
@@ -40,6 +42,8 @@ const char* rfb::secTypeName(int num)
   case secTypeTight:      return "Tight";
   case secTypeRA2:        return "RA2";
   case secTypeRA2ne:      return "RA2ne";
+  case secTypeSSPI:       return "SSPI";
+  case secTypeSSPIne:     return "SSPIne";
   default:                return "[unknown secType]";
   }
 }
@@ -47,8 +51,11 @@ const char* rfb::secTypeName(int num)
 bool rfb::secTypeEncrypts(int num)
 {
   switch (num) {
-  case secTypeRA2:        return true;
-  default:                return false;
+  case secTypeRA2:
+  case secTypeSSPI:
+    return true;
+  default:
+    return false;
   }
 }
 

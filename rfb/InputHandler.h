@@ -15,21 +15,26 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_CMSGWRITERV3_H__
-#define __RFB_CMSGWRITERV3_H__
+//
+// InputHandler - abstract interface for accepting keyboard &
+// pointer input and clipboard data.
+//
 
-#include <rfb/CMsgWriter.h>
+#ifndef __RFB_INPUTHANDLER_H__
+#define __RFB_INPUTHANDLER_H__
+
+#include <rdr/types.h>
+#include <rfb/Rect.h>
 
 namespace rfb {
-  class CMsgWriterV3 : public CMsgWriter {
+
+  class InputHandler {
   public:
-    CMsgWriterV3(ConnParams* cp, rdr::OutStream* os);
-    virtual ~CMsgWriterV3();
-
-    virtual void writeClientInit(bool shared);
-    virtual void startMsg(int type);
-    virtual void endMsg();
-
+    virtual ~InputHandler() {}
+    virtual void keyEvent(rdr::U32 key, bool down) {}
+    virtual void pointerEvent(const Point& pos, int buttonMask) {}
+    virtual void clientCutText(const char* str, int len) {}
   };
+
 }
 #endif
