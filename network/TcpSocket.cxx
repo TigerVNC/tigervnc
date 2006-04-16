@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -81,8 +81,11 @@ int network::findFreeTcpPort (void)
 }
 
 
-void
-TcpSocket::initTcpSockets() {
+// -=- Socket initialisation
+static bool socketsInitialised = false;
+static void initSockets() {
+  if (socketsInitialised)
+    return;
 #ifdef WIN32
   WORD requiredVersion = MAKEWORD(2,0);
   WSADATA initResult;
@@ -92,7 +95,9 @@ TcpSocket::initTcpSockets() {
 #else
   signal(SIGPIPE, SIG_IGN);
 #endif
+  socketsInitialised = true;
 }
+
 
 // -=- TcpSocket
 
@@ -107,6 +112,7 @@ TcpSocket::TcpSocket(const char *host, int port)
   int sock;
 
   // - Create a socket
+  initSockets();
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     throw SocketException("unable to create socket", errorNumber);
 
@@ -149,18 +155,13 @@ TcpSocket::TcpSocket(const char *host, int port)
     } else break;
   }
 
-  int one = 1;
-  if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
-		 (char *)&one, sizeof(one)) < 0) {
-    int e = errorNumber;
-    closesocket(sock);
-    throw SocketException("unable to setsockopt TCP_NODELAY", e);
-  }
+  // Disable Nagle's algorithm, to reduce latency
+  enableNagles(sock, false);
 
   // Create the input and output streams
   instream = new FdInStream(sock);
   outstream = new FdOutStream(sock);
-  own_streams = true;
+  ownStreams = true;
 }
 
 TcpSocket::~TcpSocket() {
@@ -244,7 +245,19 @@ bool TcpSocket::sameMachine() {
 
 void TcpSocket::shutdown()
 {
+  Socket::shutdown();
   ::shutdown(getFd(), 2);
+}
+
+bool TcpSocket::enableNagles(int sock, bool enable) {
+  int one = enable ? 0 : 1;
+  if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+		 (char *)&one, sizeof(one)) < 0) {
+    int e = errorNumber;
+    vlog.error("unable to setsockopt TCP_NODELAY: %d", e);
+    return false;
+  }
+  return true;
 }
 
 bool TcpSocket::isSocket(int sock)
@@ -279,12 +292,13 @@ TcpListener::TcpListener(int port, bool localhostOnly, int sock, bool close_)
     return;
   }
 
+  initSockets();
   if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     throw SocketException("unable to create listening socket", errorNumber);
 
 #ifndef WIN32
   // - By default, close the socket on exec()
-  fcntl(sock, F_SETFD, FD_CLOEXEC);
+  fcntl(fd, F_SETFD, FD_CLOEXEC);
 
   int one = 1;
   if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
@@ -345,14 +359,8 @@ TcpListener::accept() {
   fcntl(new_sock, F_SETFD, FD_CLOEXEC);
 #endif
 
-  // Disable Nagle's algorithm
-  int one = 1;
-  if (setsockopt(new_sock, IPPROTO_TCP, TCP_NODELAY,
-   (char *)&one, sizeof(one)) < 0) {
-    int e = errorNumber;
-    closesocket(new_sock);
-    throw SocketException("unable to setsockopt TCP_NODELAY", e);
-  }
+  // Disable Nagle's algorithm, to reduce latency
+  TcpSocket::enableNagles(new_sock, false);
 
   // Create the socket object & check connection is allowed
   TcpSocket* s = new TcpSocket(new_sock);
@@ -418,7 +426,8 @@ TcpFilter::verifyConnection(Socket* s) {
         return true;
       case Query:
         vlog.debug("QUERY %s", name.buf);
-        return queryUserAcceptConnection(s);
+        s->setRequiresQuery();
+        return true;
       case Reject:
         vlog.debug("REJECT %s", name.buf);
         return false;

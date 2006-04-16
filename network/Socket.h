@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,6 +21,7 @@
 #ifndef __NETWORK_SOCKET_H__
 #define __NETWORK_SOCKET_H__
 
+#include <limits.h>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>
@@ -32,9 +33,10 @@ namespace network {
     Socket(int fd)
       : instream(new rdr::FdInStream(fd)),
       outstream(new rdr::FdOutStream(fd)),
-      own_streams(true) {}
+      ownStreams(true), isShutdown_(false),
+      queryConnection(false) {}
     virtual ~Socket() {
-      if (own_streams) {
+      if (ownStreams) {
         delete instream;
         delete outstream;
       }
@@ -42,7 +44,10 @@ namespace network {
     rdr::FdInStream &inStream() {return *instream;}
     rdr::FdOutStream &outStream() {return *outstream;}
     int getFd() {return outstream->getFd();}
-    virtual void shutdown() = 0;
+
+    // if shutdown() is overridden then the override MUST call on to here
+    virtual void shutdown() {isShutdown_ = true;}
+    bool isShutdown() const {return isShutdown_;}
 
     // information about this end of the socket
     virtual char* getMyAddress() = 0; // a string e.g. "192.168.0.1"
@@ -57,19 +62,26 @@ namespace network {
     // Is the remote end on the same machine?
     virtual bool sameMachine() = 0;
 
+    // Was there a "?" in the ConnectionFilter used to accept this Socket?
+    void setRequiresQuery() {queryConnection = true;}
+    bool requiresQuery() const {return queryConnection;}
+
   protected:
-    Socket() : instream(0), outstream(0), own_streams(false) {}
+    Socket() : instream(0), outstream(0), ownStreams(false),
+      isShutdown_(false), queryConnection(false) {}
     Socket(rdr::FdInStream* i, rdr::FdOutStream* o, bool own)
-      : instream(i), outstream(o), own_streams(own) {}
+      : instream(i), outstream(o), ownStreams(own),
+      isShutdown_(false), queryConnection(false) {}
     rdr::FdInStream* instream;
     rdr::FdOutStream* outstream;
-    bool own_streams;
+    bool ownStreams;
+    bool isShutdown_;
+    bool queryConnection;
   };
 
   class ConnectionFilter {
   public:
     virtual bool verifyConnection(Socket* s) = 0;
-    virtual bool queryUserAcceptConnection(Socket*) {return false;}
   };
 
   class SocketListener {
@@ -85,6 +97,7 @@ namespace network {
     // if one is installed.  Otherwise, returns 0.
     virtual Socket* accept() = 0;
 
+    // setFilter() applies the specified filter to all new connections
     void setFilter(ConnectionFilter* f) {filter = f;}
     int getFd() {return fd;}
   protected:
@@ -100,28 +113,34 @@ namespace network {
   public:
     virtual ~SocketServer() {}
 
-    // addClient() tells the server to manage the socket.
-    //   If the server can't manage the socket, it must shutdown() it.
-    virtual void addClient(network::Socket* sock) = 0;
+    // addSocket() tells the server to serve the Socket.  The caller
+    //   retains ownership of the Socket - the only way for the server
+    //   to discard a Socket is by calling shutdown() on it.
+    //   outgoing is set to true if the socket was created by connecting out
+    //   to another host, or false if the socket was created by accept()ing
+    //   an incoming connection.
+    virtual void addSocket(network::Socket* sock, bool outgoing=false) = 0;
 
-    // processSocketEvent() tells the server there is a socket read event.
-    //   If there is an error, or the socket has been closed/shutdown then
-    //   the server MUST delete the socket AND return false.
-    virtual bool processSocketEvent(network::Socket* sock) = 0;
+    // removeSocket() tells the server to stop serving the Socket.  The
+    //   caller retains ownership of the Socket - the server must NOT
+    //   delete the Socket!  This call is used mainly to cause per-Socket
+    //   resources to be freed.
+    virtual void removeSocket(network::Socket* sock) = 0;
+
+    // processSocketEvent() tells the server there is a Socket read event.
+    //   The implementation can indicate that the Socket is no longer active
+    //   by calling shutdown() on it.  The caller will then call removeSocket()
+    //   soon after processSocketEvent returns, to allow any pre-Socket
+    //   resources to be tidied up.
+    virtual void processSocketEvent(network::Socket* sock) = 0;
 
     // checkTimeouts() allows the server to check socket timeouts, etc.  The
-    // return value is the number of milliseconds to wait before
-    // checkTimeouts() should be called again.  If this number is zero then
-    // there is no timeout and checkTimeouts() should be called the next time
-    // an event occurs.
+    //   return value is the number of milliseconds to wait before
+    //   checkTimeouts() should be called again.  If this number is zero then
+    //   there is no timeout and checkTimeouts() should be called the next time
+    //   an event occurs.
     virtual int checkTimeouts() = 0;
 
-    // soonestTimeout() is a function to help work out the soonest of several
-    // timeouts.
-    static void soonestTimeout(int* timeout, int newTimeout) {
-      if (newTimeout && (!*timeout || newTimeout < *timeout))
-        *timeout = newTimeout;
-    }
     virtual bool getDisable() {return false;};
   };
 
