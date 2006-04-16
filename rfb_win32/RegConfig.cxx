@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,7 +23,7 @@
 #include <rfb_win32/RegConfig.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
-#include <rdr/HexOutStream.h>
+//#include <rdr/HexOutStream.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -32,90 +32,28 @@ using namespace rfb::win32;
 static LogWriter vlog("RegConfig");
 
 
-class rfb::win32::RegReaderThread : public Thread {
-public:
-  RegReaderThread(RegistryReader& reader, const HKEY key);
-  ~RegReaderThread();
-  virtual void run();
-  virtual Thread* join();
-protected:
-  RegistryReader& reader;
-  RegKey key;
-  HANDLE event;
-};
-
-RegReaderThread::RegReaderThread(RegistryReader& reader_, const HKEY key_) : Thread("RegConfig"), reader(reader_), key(key_) {
+RegConfig::RegConfig(EventManager* em) : eventMgr(em), event(CreateEvent(0, TRUE, FALSE, 0)), callback(0) {
+  if (em->addEvent(event, this))
+    eventMgr = em;
 }
 
-RegReaderThread::~RegReaderThread() {
+RegConfig::~RegConfig() {
+  if (eventMgr)
+    eventMgr->removeEvent(event);
 }
 
-void
-RegReaderThread::run() {
-  vlog.debug("RegReaderThread started");
-  while (key) {
-    // - Wait for changes
-    vlog.debug("waiting for changes");
-    key.awaitChange(true, REG_NOTIFY_CHANGE_NAME | REG_NOTIFY_CHANGE_LAST_SET);
-
-    // - Load settings
-    RegistryReader::loadRegistryConfig(key);
-
-    // - Notify specified thread of changes
-    if (reader.notifyThread)
-      PostThreadMessage(reader.notifyThread->getThreadId(),
-        reader.notifyMsg.message, 
-        reader.notifyMsg.wParam, 
-        reader.notifyMsg.lParam);
-    else if (reader.notifyWindow)
-      PostMessage(reader.notifyWindow,
-        reader.notifyMsg.message, 
-        reader.notifyMsg.wParam, 
-        reader.notifyMsg.lParam);
-  }
-}
-
-Thread*
-RegReaderThread::join() {
-  RegKey old_key = key;
-  key.close();
-  if ((HKEY)old_key) {
-    // *** Closing the key doesn't always seem to work
-    //     Writing to it always will, instead...
-    vlog.debug("closing key");
-    old_key.setString(_T("dummy"), _T(""));
-  }
-  return Thread::join();
-}
-
-
-RegistryReader::RegistryReader() : thread(0), notifyThread(0) {
-  memset(&notifyMsg, 0, sizeof(notifyMsg));
-}
-
-RegistryReader::~RegistryReader() {
-  if (thread) delete thread->join();
-}
-
-bool RegistryReader::setKey(const HKEY rootkey, const TCHAR* keyname) {
-  if (thread) delete thread->join();
-  thread = 0;
-  
-  RegKey key;
+bool RegConfig::setKey(const HKEY rootkey, const TCHAR* keyname) {
   try {
     key.createKey(rootkey, keyname);
-    loadRegistryConfig(key);
+    processEvent(event);
+    return true;
   } catch (rdr::Exception& e) {
     vlog.debug(e.str());
     return false;
   }
-  thread = new RegReaderThread(*this, key);
-  if (thread) thread->start();
-  return true;
 }
 
-void
-RegistryReader::loadRegistryConfig(RegKey& key) {
+void RegConfig::loadRegistryConfig(RegKey& key) {
   DWORD i = 0;
   try {
     while (1) {
@@ -131,21 +69,46 @@ RegistryReader::loadRegistryConfig(RegKey& key) {
   }
 }
 
-bool RegistryReader::setNotifyThread(Thread* thread, UINT winMsg, WPARAM wParam, LPARAM lParam) {
-  notifyMsg.message = winMsg;
-  notifyMsg.wParam = wParam;
-  notifyMsg.lParam = lParam;
-  notifyThread = thread;
-  notifyWindow = 0;
-  return true;
+void RegConfig::processEvent(HANDLE event_) {
+  vlog.info("registry changed");
+
+  // Reinstate the registry change notifications
+  ResetEvent(event);
+  key.awaitChange(true, REG_NOTIFY_CHANGE_NAME | REG_NOTIFY_CHANGE_LAST_SET, event);
+
+  // Load settings
+  loadRegistryConfig(key);
+
+  // Notify the callback, if supplied
+  if (callback)
+    callback->regConfigChanged();
 }
 
-bool RegistryReader::setNotifyWindow(HWND window, UINT winMsg, WPARAM wParam, LPARAM lParam) {
-  notifyMsg.message = winMsg;
-  notifyMsg.wParam = wParam;
-  notifyMsg.lParam = lParam;
-  notifyWindow = window;
-  notifyThread = 0;
-  return true;
+
+RegConfigThread::RegConfigThread() : Thread("RegConfigThread"), config(&eventMgr) {
 }
 
+RegConfigThread::~RegConfigThread() {
+  join();
+}
+
+bool RegConfigThread::start(const HKEY rootKey, const TCHAR* keyname) {
+  if (config.setKey(rootKey, keyname)) {
+    Thread::start();
+    return true;
+  }
+  return false;
+}
+
+void RegConfigThread::run() {
+  DWORD result = 0;
+  MSG msg;
+  while ((result = eventMgr.getMessage(&msg, 0, 0, 0)) > 0) {}
+  if (result < 0)
+    throw rdr::SystemException("RegConfigThread failed", GetLastError());
+}
+
+Thread* RegConfigThread::join() {
+  PostThreadMessage(getThreadId(), WM_QUIT, 0, 0);
+  return Thread::join();
+}

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -36,15 +36,12 @@ namespace rfb {
     class WMCopyRect {
     public:
       WMCopyRect();
-      ~WMCopyRect();
 
       bool processEvent();
-      bool setClipRect(const Rect& cr);
       bool setUpdateTracker(UpdateTracker* ut);
 
     protected:
-      ClippedUpdateTracker* clipper;
-      Region clip_region;
+      UpdateTracker* ut;
       void* fg_window;
       Rect fg_window_rect;
     };

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,27 +26,55 @@
 
 #include <rfb/Threading.h>
 #include <rfb/Configuration.h>
-
 #include <rfb_win32/Registry.h>
+#include <rfb_win32/EventManager.h>
+#include <rfb_win32/Handle.h>
 
 namespace rfb {
 
   namespace win32 {
 
-    class RegistryReader {
+    class RegConfig : EventHandler {
     public:
-      RegistryReader();
-      ~RegistryReader();
+      RegConfig(EventManager* em);
+      ~RegConfig();
+
+      // Specify the registry key to read Configuration items from
       bool setKey(const HKEY rootkey, const TCHAR* keyname);
-      bool setNotifyThread(Thread* thread, UINT winMsg, WPARAM wParam=0, LPARAM lParam=0);
-      bool setNotifyWindow(HWND window, UINT winMsg, WPARAM wParam=0, LPARAM lParam=0);
+
+      // Support for a callback, run in the RegConfig host thread whenever
+      // the registry configuration changes
+      class Callback {
+      public:
+        virtual ~Callback() {}
+        virtual void regConfigChanged() = 0;
+      };
+      void setCallback(Callback* cb) { callback = cb; }
+
+      // Read entries from the specified key into the Configuration
       static void loadRegistryConfig(RegKey& key);
     protected:
-      friend class RegReaderThread;
-      Thread* thread;
-      Thread* notifyThread;
-      HWND notifyWindow;
-      MSG notifyMsg;
+      // EventHandler interface and trigger event
+      virtual void processEvent(HANDLE event);
+
+      EventManager* eventMgr;
+      Handle event;
+      Callback* callback;
+      RegKey key;
+    };
+
+    class RegConfigThread : Thread {
+    public:
+      RegConfigThread();
+      ~RegConfigThread();
+
+      // Start the thread, reading from the specified key
+      bool start(const HKEY rootkey, const TCHAR* keyname);
+    protected:
+      void run();
+      Thread* join();
+      EventManager eventMgr;
+      RegConfig config;
     };
 
   };

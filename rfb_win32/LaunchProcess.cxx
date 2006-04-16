@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,9 +19,10 @@
 // -=- LaunchProcess.cxx
 
 #include <rfb_win32/LaunchProcess.h>
+#include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Win32Util.h>
-
-#include <rfb/util.h>
+#include <rdr/Exception.h>
+#include <stdio.h>
 
 using namespace rfb;
 using namespace win32;
@@ -37,10 +38,11 @@ LaunchProcess::~LaunchProcess() {
 }
 
 
-void LaunchProcess::start(HANDLE userToken) {
+void LaunchProcess::start(HANDLE userToken, bool createConsole) {
   if (procInfo.hProcess && (WaitForSingleObject(procInfo.hProcess, 0) != WAIT_OBJECT_0))
     return;
   await();
+  returnCode = STILL_ACTIVE;
 
   // - Create storage for the process startup information
   STARTUPINFO sinfo;
@@ -58,19 +60,15 @@ void LaunchProcess::start(HANDLE userToken) {
     exePath.buf = tstrDup(exeName.buf);
   }
 
-  // - Start the VNC server
+  // - Start the process
   // Note: We specify the exe's precise path in the ApplicationName parameter,
   //       AND include the name as the first part of the CommandLine parameter,
   //       because CreateProcess doesn't make ApplicationName argv[0] in C programs.
   TCharArray cmdLine(_tcslen(exeName.buf) + 3 + _tcslen(params.buf) + 1);
   _stprintf(cmdLine.buf, _T("\"%s\" %s"), exeName.buf, params.buf);
-#ifdef _DEBUG
-  DWORD flags = CREATE_NEW_CONSOLE;
-#else
-  DWORD flags = CREATE_NO_WINDOW;
-#endif
+  DWORD flags = createConsole ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW;
   BOOL success;
-  if (userToken)
+  if (userToken != INVALID_HANDLE_VALUE)
     success = CreateProcessAsUser(userToken, exePath.buf, cmdLine.buf, 0, 0, FALSE, flags, 0, 0, &sinfo, &procInfo);
   else
     success = CreateProcess(exePath.buf, cmdLine.buf, 0, 0, FALSE, flags, 0, 0, &sinfo, &procInfo);
@@ -81,12 +79,25 @@ void LaunchProcess::start(HANDLE userToken) {
   WaitForInputIdle(procInfo.hProcess, 15000);
 }
 
-void LaunchProcess::await() {
+void LaunchProcess::detach()
+{
   if (!procInfo.hProcess)
     return;
-  WaitForSingleObject(procInfo.hProcess, INFINITE);
   CloseHandle(procInfo.hProcess);
   CloseHandle(procInfo.hThread);
   memset(&procInfo, 0, sizeof(procInfo));
 }
 
+bool LaunchProcess::await(DWORD timeoutMs) {
+  if (!procInfo.hProcess)
+    return true;
+  DWORD result = WaitForSingleObject(procInfo.hProcess, timeoutMs);
+  if (result == WAIT_OBJECT_0) {
+    GetExitCodeProcess(procInfo.hProcess, &returnCode);
+    detach();
+    return true;
+  } else if (result == WAIT_FAILED) {
+    throw rdr::SystemException("await() failed", GetLastError());
+  }
+  return false;
+}

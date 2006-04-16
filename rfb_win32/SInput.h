@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -32,8 +32,6 @@
 
 namespace rfb {
 
-  class CMsgWriter;
-
   namespace win32 {
 
     // -=- Pointer event handling
@@ -44,7 +42,7 @@ namespace rfb {
       // - Create a pointer event at a the given coordinates, with the
       //   specified button state.  The event must be specified using
       //   Screen coordinates.
-      void pointerEvent(const Point& pos, rdr::U8 buttonmask);
+      void pointerEvent(const Point& pos, int buttonmask);
     protected:
       Point last_position;
       rdr::U8 last_buttonmask;

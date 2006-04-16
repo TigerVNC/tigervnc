@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -28,7 +28,6 @@
 #ifndef __RFB_WIN32_WM_POLLER_H__
 #define __RFB_WIN32_WM_POLLER_H__
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/Configuration.h>
@@ -39,11 +38,9 @@ namespace rfb {
 
     class WMPoller {
     public:
-      WMPoller();
-      ~WMPoller();
+      WMPoller() : ut(0) {}
 
       bool processEvent();
-      bool setClipRect(const Rect& cr);
       bool setUpdateTracker(UpdateTracker* ut);
 
       static BoolParameter poll_console_windows;
@@ -55,9 +52,7 @@ namespace rfb {
       static bool checkPollWindow(HWND w);
       static void pollWindow(HWND w, PollInfo* info);
       static BOOL CALLBACK enumWindowProc(HWND w, LPARAM lp);
-
-      ClippedUpdateTracker* clipper;
-      Region clip_region;
+      UpdateTracker* ut;
     };
 
   };

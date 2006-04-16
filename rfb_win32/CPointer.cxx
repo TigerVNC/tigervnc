@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,9 +16,7 @@
  * USA.
  */
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include <rfb/LogWriter.h>
 #include <rfb_win32/CPointer.h>
 
@@ -37,21 +35,21 @@ CPointer::~CPointer() {
 }
 
 
-void CPointer::pointerEvent(CMsgWriter* writer, int x, int y, int buttonMask) {
+void CPointer::pointerEvent(InputHandler* writer, const Point& pos, int buttonMask) {
   //
   // - Duplicate Event Filtering
   //
 
   bool maskChanged = buttonMask != currButtonMask;
-  bool posChanged = !Point(x, y).equals(currPos);
+  bool posChanged = !pos.equals(currPos);
   if (!(posChanged || maskChanged))
     return;
 
   // Pass on the event to the event-interval handler
-  threePointerEvent(writer, x, y, buttonMask);
+  threePointerEvent(writer, pos, buttonMask);
 
   // Save the position and mask
-  currPos = Point(x, y);
+  currPos = pos;
   currButtonMask = buttonMask;
 }
 
@@ -66,7 +64,7 @@ int emulate3Mask(int buttonMask) {
   return buttonMask;
 }
 
-void CPointer::threePointerEvent(CMsgWriter* writer, int x, int y, int buttonMask) {
+void CPointer::threePointerEvent(InputHandler* writer, const Point& pos, int buttonMask) {
   //
   // - 3-Button Mouse Emulation
   //
@@ -84,7 +82,7 @@ void CPointer::threePointerEvent(CMsgWriter* writer, int x, int y, int buttonMas
         //   expires then we know we should actually send this event
         vlog.debug("emulate3: start timer");
         threeTimer.start(100);
-        threePos = Point(x, y);
+        threePos = pos;
         threeMask = buttonMask;
         return;
 
@@ -94,7 +92,7 @@ void CPointer::threePointerEvent(CMsgWriter* writer, int x, int y, int buttonMas
         vlog.debug("emulate3: stop timer (state)");
         threeTimer.stop();
         if (threeEmulating == ((buttonMask & 5) == 5))
-          intervalPointerEvent(writer, threePos.x, threePos.y, threeMask);
+          intervalPointerEvent(writer, threePos, threeMask);
         else
           threeEmulating = ((buttonMask & 5) == 5);
       }
@@ -104,11 +102,11 @@ void CPointer::threePointerEvent(CMsgWriter* writer, int x, int y, int buttonMas
       if (threeTimer.isActive()) {
         // - We are timing for an emulation event
 
-        if (abs(threePos.x - x) <= 4 || abs(threePos.y - y) <= 4) {
+        if (abs(threePos.x - pos.x) <= 4 || abs(threePos.y - pos.y) <= 4) {
           //   If the mouse has moved too far since the button-change event then flush
           vlog.debug("emulate3: stop timer (moved)");
           threeTimer.stop();
-          intervalPointerEvent(writer, threePos.x, threePos.y, threeMask);
+          intervalPointerEvent(writer, threePos, threeMask);
 
         } else {
           //   Otherwise, we ignore the new event
@@ -129,14 +127,14 @@ void CPointer::threePointerEvent(CMsgWriter* writer, int x, int y, int buttonMas
   }
 
   // - Let the event pass through to the next stage of processing
-  intervalPointerEvent(writer, x, y, buttonMask);
+  intervalPointerEvent(writer, pos, buttonMask);
 }
 
-void CPointer::intervalPointerEvent(CMsgWriter* writer, int x, int y, int buttonMask) {
+void CPointer::intervalPointerEvent(InputHandler* writer, const Point& pos, int buttonMask) {
   //
   // - Pointer Event Interval
   //
-  vlog.write(101, "ptrEvent: %d,%d (%lx)", x, y, buttonMask);
+  vlog.write(101, "ptrEvent: %d,%d (%lx)", pos.x, pos.y, buttonMask);
 
   // Send the event immediately if we haven't sent one for a while
   bool sendNow = !intervalTimer.isActive();
@@ -145,14 +143,14 @@ void CPointer::intervalPointerEvent(CMsgWriter* writer, int x, int y, int button
     // If the buttons have changed then flush queued events and send now
     sendNow = true;
     if (intervalQueued)
-      writer->writePointerEvent(intervalPos.x, intervalPos.y, intervalMask);
+      writer->pointerEvent(intervalPos, intervalMask);
     intervalQueued = false;
   }
 
   if (!sendNow) {
     // If we're not sending now then just queue the event
     intervalQueued = true;
-    intervalPos = Point(x, y);
+    intervalPos = pos;
     intervalMask = buttonMask;
   } else {
     // Start the interval timer if required, and send the event
@@ -160,15 +158,15 @@ void CPointer::intervalPointerEvent(CMsgWriter* writer, int x, int y, int button
     intervalMask = buttonMask;
     if (pointerEventInterval)
       intervalTimer.start(pointerEventInterval);
-    writer->writePointerEvent(x, y, buttonMask);
+    writer->pointerEvent(pos, buttonMask);
   }
 }
 
-void CPointer::handleTimer(CMsgWriter* writer, int timerId) {
+void CPointer::handleTimer(InputHandler* writer, int timerId) {
   if (timerId == intervalTimer.getId()) {
     // Pointer interval has expired - send any queued events
     if (intervalQueued) {
-      writer->writePointerEvent(intervalPos.x, intervalPos.y, intervalMask);
+      writer->pointerEvent(intervalPos, intervalMask);
       intervalQueued = false;
     } else {
       intervalTimer.stop();
@@ -183,6 +181,6 @@ void CPointer::handleTimer(CMsgWriter* writer, int timerId) {
     if (threeEmulating)
       threeMask = emulate3Mask(threeMask);
 
-    intervalPointerEvent(writer, threePos.x, threePos.y, threeMask);
+    intervalPointerEvent(writer, threePos, threeMask);
   }
 }

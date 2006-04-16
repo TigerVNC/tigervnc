@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,9 +22,7 @@
 #ifndef __RFB_WIN32_REGISTRY_H__
 #define __RFB_WIN32_REGISTRY_H__
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include <rfb_win32/Security.h>
 #include <rfb/util.h>
 
@@ -45,9 +43,9 @@ namespace rfb {
       ~RegKey();
 
       void setHKEY(HKEY key, bool freeKey);
-    protected:
-      HKEY operator=(const RegKey& k);
-      HKEY operator=(HKEY k);
+    private:
+      RegKey& operator=(const RegKey& k);
+      HKEY& operator=(const HKEY& k);
     public:
 
       // Returns true if key was created, false if already existed
@@ -67,7 +65,9 @@ namespace rfb {
       void deleteValue(const TCHAR* name) const;
 
 
-      void awaitChange(bool watchSubTree, DWORD filter) const;
+      // Block waiting for a registry change, OR return immediately and notify the
+      // event when there is a change, if specified
+      void awaitChange(bool watchSubTree, DWORD filter, HANDLE event=0) const;
 
       void setExpandString(const TCHAR* valname, const TCHAR* s) const;
       void setString(const TCHAR* valname, const TCHAR* s) const;
@@ -91,10 +91,11 @@ namespace rfb {
 
       bool isValue(const TCHAR* valname) const;
 
-      // Get the name of value number "i"
+      // Get the name of value/key number "i"
       // If there are fewer than "i" values then return 0
       // NAME IS OWNED BY RegKey OBJECT!
       const TCHAR* getValueName(int i);
+      const TCHAR* getKeyName(int i);
 
       operator HKEY() const;
     protected:

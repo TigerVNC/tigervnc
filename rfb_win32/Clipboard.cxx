@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -61,15 +61,16 @@ unix2dos(const char* text) {
 
 
 //
-// -=- ASCII filter (in-place)
+// -=- ISO-8859-1 (Latin 1) filter (in-place)
 //
 
 void
-removeNonAsciiChars(char* text) {
+removeNonISOLatin1Chars(char* text) {
   int len = strlen(text);
   int i=0, j=0;
   for (; i<len; i++) {
-    if ((text[i] >= 1) && (text[i] <= 127))
+    if (((text[i] >= 1) && (text[i] <= 127)) ||
+        ((text[i] >= 160) && (text[i] <= 255)))
       text[j++] = text[i];
   }
   text[j] = 0;
@@ -126,7 +127,7 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
               } else {
                 CharArray unix_text;
                 unix_text.buf = dos2unix(clipdata);
-                // removeNonAsciiChars(unix_text.buf);
+                removeNonISOLatin1Chars(unix_text.buf);
                 notifier->notifyClipboardChanged(unix_text.buf, strlen(unix_text.buf));
               }
             } else {
@@ -162,7 +163,7 @@ Clipboard::setClipText(const char* text) {
     // - Pre-process the supplied clipboard text into DOS format
     CharArray dos_text;
     dos_text.buf = unix2dos(text);
-    // removeNonAsciiChars(dos_text.buf); 
+    removeNonISOLatin1Chars(dos_text.buf);
     int dos_text_len = strlen(dos_text.buf);
 
     // - Allocate global memory for the data

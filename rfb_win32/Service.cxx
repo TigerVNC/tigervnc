@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -20,15 +20,15 @@
 
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
+#include <rfb_win32/DynamicFn.h>
+#include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Registry.h>
-#include <rfb_win32/Win32Util.h>
 #include <rfb_win32/OSVersion.h>
 #include <rfb/Threading.h>
-#include <rfb/LogWriter.h>
-#include <rfb/util.h>
-#include <rdr/Exception.h>
-
 #include <logmessages/messages.h>
+#include <rdr/Exception.h>
+#include <rfb/LogWriter.h>
+
 
 using namespace rdr;
 using namespace rfb;
@@ -42,22 +42,26 @@ static LogWriter vlog("Service");
 Service* service = 0;
 
 VOID WINAPI serviceHandler(DWORD control) {
-  vlog.debug("service control %u", control);
   switch (control) {
   case SERVICE_CONTROL_INTERROGATE:
+    vlog.info("cmd: report status");
     service->setStatus();
-    break;
+    return;
   case SERVICE_CONTROL_PARAMCHANGE:
+    vlog.info("cmd: param change");
     service->readParams();
-    break;
+    return;
   case SERVICE_CONTROL_SHUTDOWN:
+    vlog.info("cmd: OS shutdown");
     service->osShuttingDown();
-    break;
+    return;
   case SERVICE_CONTROL_STOP:
+    vlog.info("cmd: stop");
     service->setStatus(SERVICE_STOP_PENDING);
     service->stop();
-    break;
-  }
+    return;
+  };
+  vlog.debug("cmd: unknown %lu", control);
 }
 
 
@@ -87,11 +91,14 @@ const TCHAR* ServiceMsgWindow::baseName = _T("ServiceWindow:");
 
 VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
   vlog.debug("entering %s serviceProc", service->getName());
+  vlog.info("registering handler...");
   service->status_handle = RegisterServiceCtrlHandler(service->getName(), serviceHandler);
   if (!service->status_handle) {
-    vlog.error("unable to register service control handler");
-    return;
+    DWORD err = GetLastError();
+    vlog.error("failed to register handler: %lu", err);
+    ExitProcess(err);
   }
+  vlog.debug("registered handler (%lx)", service->status_handle);
   service->setStatus(SERVICE_START_PENDING);
   vlog.debug("entering %s serviceMain", service->getName());
   service->status.dwWin32ExitCode = service->serviceMain(dwArgc, lpszArgv);
@@ -166,9 +173,9 @@ Service::setStatus(DWORD state) {
   status.dwCurrentState = state;
   status.dwCheckPoint++;
   if (!SetServiceStatus(status_handle, &status)) {
+    status.dwCurrentState = SERVICE_STOPPED;
     status.dwWin32ExitCode = GetLastError();
     vlog.error("unable to set service status:%u", status.dwWin32ExitCode);
-    stop();
   }
   vlog.debug("set status to %u(%u)", state, status.dwCheckPoint);
 }
@@ -597,7 +604,7 @@ bool rfb::win32::stopService(const TCHAR* name) {
   return true;
 }
 
-void rfb::win32::printServiceStatus(const TCHAR* name) {
+DWORD rfb::win32::getServiceState(const TCHAR* name) {
   if (osVersion.isPlatformNT) {
     // - Open the SCM
     ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
@@ -614,22 +621,22 @@ void rfb::win32::printServiceStatus(const TCHAR* name) {
     if (!ControlService(service, SERVICE_CONTROL_INTERROGATE, (SERVICE_STATUS*)&status))
       throw rdr::SystemException("unable to query the service", GetLastError());
 
-    printf("Service is in the ");
-    switch (status.dwCurrentState) {
-    case SERVICE_RUNNING: printf("running"); break;
-    case SERVICE_STOPPED: printf("stopped"); break;
-    case SERVICE_STOP_PENDING: printf("stop pending"); break;
-    default: printf("unknown (%lu)", status.dwCurrentState); break;
-    };
-    printf(" state.\n");
-
+    return status.dwCurrentState;
   } else {
     HWND service_window = findServiceWindow(name);
-    printf("Service is in the ");
-    if (!service_window) printf("stopped");
-    else printf("running");
-    printf(" state.\n");
+    return service_window ? SERVICE_RUNNING : SERVICE_STOPPED;
   }
+}
+
+char* rfb::win32::serviceStateName(DWORD state) {
+  switch (state) {
+  case SERVICE_RUNNING: return strDup("Running");
+  case SERVICE_STOPPED: return strDup("Stopped");
+  case SERVICE_STOP_PENDING: return strDup("Stopping");
+  };
+  CharArray tmp(32);
+  sprintf(tmp.buf, "Unknown (%lu)", state);
+  return tmp.takeBuf();
 }
 
 

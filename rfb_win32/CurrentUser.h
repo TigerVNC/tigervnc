@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,29 +26,41 @@
 #ifndef __RFB_WIN32_CURRENT_USER_H__
 #define __RFB_WIN32_CURRENT_USER_H__
 
-#include <rfb_win32/Service.h>
-#include <rfb_win32/OSVersion.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/Handle.h>
+#include <rfb_win32/Security.h>
 
 namespace rfb {
 
   namespace win32 {
 
     // CurrentUserToken
-    //   h == 0
-    //     if platform is not NT *or* unable to get token
-    //     *or* if process is hosting service.
-    //   h != 0
-    //     if process is hosting service *and*
-    //     if platform is NT *and* able to get token.
-    //   isValid() == true
-    //     if platform is not NT *or* token is valid.
+    //   CurrentUserToken is a Handle containing the security token
+    //   for the currently logged-on user, or null if no user is
+    //   logged on.
+    //
+    //   Under Windows 95/98/Me, which don't support security tokens,
+    //   the token will be INVALID_HANDLE_VALUE if a user is logged on.
+    //
+    //   Under Windows NT/2K, it may be the case that the token is
+    //   null even when a user *is* logged on, because we use some hacks
+    //   to detect the user's token and sometimes they fail.  On these
+    //   platforms, isSafe() will return False if the token is null.
+    //
+    //   Under Windows XP, etc, isSafe() will always be True, and the token
+    //   will always be set to the currently logged on user's token.
+    //
+    //   canImpersonate() tests whether there is a user token that is safe
+    //   to impersonate.
+    //
+    //   noUserLoggedOn() tests whether there is *definitely* no user logged on.
 
     struct CurrentUserToken : public Handle {
       CurrentUserToken();
-      bool isValid() const {return isValid_;};
+      bool isSafe() const { return isSafe_; };
+      bool canImpersonate() const { return h && isSafe(); }
+      bool noUserLoggedOn() const { return !h && isSafe(); }
     private:
-      bool isValid_;
+      bool isSafe_;
     };
 
     // ImpersonateCurrentUser
@@ -66,9 +78,19 @@ namespace rfb {
 
     // UserName
     //   Returns the name of the user the thread is currently running as.
+    //   Raises a SystemException in case of error.
+    //   NB: Raises a SystemException with err == ERROR_NOT_LOGGED_ON if
+    //       running under Windows 9x/95/Me and no user is logged on.
 
     struct UserName : public TCharArray {
       UserName();
+    };
+
+    // UserSID
+    //   Returns the SID of the currently logged-on user (i.e. the session user)
+
+    struct UserSID : public Sid {
+      UserSID();
     };
 
   }

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,43 +21,50 @@
 #ifndef __RFB_WIN32_WM_HOOKS_H__
 #define __RFB_WIN32_WM_HOOKS_H__
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <rfb/UpdateTracker.h>
 #include <rdr/Exception.h>
-#include <rfb_win32/MsgWindow.h>
+#include <rfb_win32/Win32Util.h>
 
 namespace rfb {
 
   namespace win32 {
 
-    class WMHooks : public MsgWindow {
+    // -=- WMHooks
+    //     Uses the wm_hooks DLL to intercept window messages, to get _hints_ as
+    //     to what may have changed on-screen.  Updates are notified via a Win32
+    //     event, and retrieved using the getUpdates method, which is thread-safe.
+    class WMHooks {
     public:
       WMHooks();
       ~WMHooks();
 
-      bool setClipRect(const Rect& cr);
-      bool setUpdateTracker(UpdateTracker* ut);
+      // Specify the event object to notify.  Starts the hook subsystem if it is
+      // not already active, and returns false if the hooks fail to start.
+      bool setEvent(HANDLE updateEvent);
 
-      virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+      // Copies any new updates to the UpdateTracker.  Returns true if new updates
+      // were added, false otherwise.
+      bool getUpdates(UpdateTracker* ut);
+
+      // Determine whether the hooks DLL is installed on the system
+      static bool areAvailable();
 
 #ifdef _DEBUG
       // Get notifications of any messages in the given range, to any hooked window
       void setDiagnosticRange(UINT min, UINT max);
 #endif
 
+      // * INTERNAL NOTIFICATION FUNCTION * 
+      void NotifyHooksRegion(const Region& r);
     protected:
-      ClippedUpdateTracker* clipper;
-      Region clip_region;
-
-      void* fg_window;
-      Rect fg_window_rect;
-
-    public:
-      SimpleUpdateTracker new_changes;
-      bool notified;
+      HANDLE updateEvent;
+      bool updatesReady;
+      SimpleUpdateTracker updates;
     };
 
+    // -=- Support for filtering out local input events while remote connections are
+    //     active.  Implemented using SetWindowsHookEx for portability.
     class WMBlockInput {
     public:
       WMBlockInput();

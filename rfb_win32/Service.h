@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -27,7 +27,6 @@
 #ifndef __RFB_WIN32_SERVICE_H__
 #define __RFB_WIN32_SERVICE_H__
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 namespace rfb {
@@ -61,13 +60,13 @@ namespace rfb {
       // - Service control notifications
 
       // To get notified when the OS is shutting down
-      virtual void osShuttingDown() = 0;
+      virtual void osShuttingDown() {};
 
       // To get notified when the service parameters change
-      virtual void readParams() = 0;
+      virtual void readParams() {};
 
       // To cause the serviceMain() routine to return
-      virtual void stop() = 0;
+      virtual void stop() {};
 
     public:
       SERVICE_STATUS_HANDLE status_handle;
@@ -111,7 +110,13 @@ namespace rfb {
 
     bool startService(const TCHAR* name);
     bool stopService(const TCHAR* name);
-    void printServiceStatus(const TCHAR* name);
+
+    // -=- Get the state of the named service (one of the NT service state values)
+    DWORD getServiceState(const TCHAR* name);
+
+    // -=- Convert a supplied service state value to a printable string e.g. Running, Stopped...
+    //     The caller must delete the returned string buffer
+    char* serviceStateName(DWORD state);
 
     // -=- Routine to determine whether the host process is running a service
     bool isServiceProcess();

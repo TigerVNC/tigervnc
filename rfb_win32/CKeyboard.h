@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,25 +23,23 @@
 #ifndef __RFB_WIN32_CKEYBOARD_H__
 #define __RFB_WIN32_CKEYBOARD_H__
 
-#include <rdr/types.h>
+#include <rfb/InputHandler.h>
 #include <map>
 
 namespace rfb {
-
-  class CMsgWriter;
 
   namespace win32 {
 
     class CKeyboard {
     public:
-      void keyEvent(CMsgWriter* writer, rdr::U8 vkey, rdr::U32 flags,
+      void keyEvent(InputHandler* writer, rdr::U8 vkey, rdr::U32 flags,
                     bool down);
-      void releaseAllKeys(CMsgWriter* writer);
+      void releaseAllKeys(InputHandler* writer);
       const std::map<int,rdr::U32>& pressedKeys() const {return downKeysym;};
       bool keyPressed(int k) const {return downKeysym.find(k)!=downKeysym.end();}
     private:
-      void win32::CKeyboard::releaseKey(CMsgWriter* writer, int extendedVkey);
-      void win32::CKeyboard::pressKey(CMsgWriter* writer, int extendedVkey,
+      void win32::CKeyboard::releaseKey(InputHandler* writer, int extendedVkey);
+      void win32::CKeyboard::pressKey(InputHandler* writer, int extendedVkey,
                                       rdr::U32 keysym);
       std::map<int,rdr::U32> downKeysym;
     };

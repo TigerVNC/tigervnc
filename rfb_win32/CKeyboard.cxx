@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -24,7 +24,6 @@
 #include <rfb/keysymdef.h>
 
 #include <rfb_win32/CKeyboard.h>
-#include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/OSVersion.h>
 #include "keymap.h"
@@ -67,7 +66,7 @@ private:
 
 class ModifierKeyReleaser {
 public:
-  ModifierKeyReleaser(CMsgWriter* writer_, int vkCode, bool extended)
+  ModifierKeyReleaser(InputHandler* writer_, int vkCode, bool extended)
     : writer(writer_), extendedVkey(vkCode + (extended ? 256 : 0)),
       keysym(0)
   {}
@@ -76,17 +75,17 @@ public:
       keysym = (*downKeysym)[extendedVkey];
       vlog.debug("fake release extendedVkey 0x%x, keysym 0x%x",
                  extendedVkey, keysym);
-      writer->writeKeyEvent(keysym, false);
+      writer->keyEvent(keysym, false);
     }
   }
   ~ModifierKeyReleaser() {
     if (keysym) {
       vlog.debug("fake press extendedVkey 0x%x, keysym 0x%x",
                  extendedVkey, keysym);
-      writer->writeKeyEvent(keysym, true);
+      writer->keyEvent(keysym, true);
     }
   }
-  CMsgWriter* writer;
+  InputHandler* writer;
   int extendedVkey;
   rdr::U32 keysym;
 };
@@ -96,7 +95,7 @@ public:
 #define IS_PRINTABLE_LATIN1(c) (((c) >= 32 && (c) <= 126) || (c) == 128 || \
                                 ((c) >= 160 && (c) <= 255))
 
-void win32::CKeyboard::keyEvent(CMsgWriter* writer, rdr::U8 vkey,
+void win32::CKeyboard::keyEvent(InputHandler* writer, rdr::U8 vkey,
                                 rdr::U32 flags, bool down)
 {
   bool extended = (flags & 0x1000000);
@@ -212,11 +211,11 @@ void win32::CKeyboard::keyEvent(CMsgWriter* writer, rdr::U8 vkey,
 
 // releaseAllKeys() - write key release events to the server for all keys
 // that are currently regarded as being down.
-void win32::CKeyboard::releaseAllKeys(CMsgWriter* writer) {
+void win32::CKeyboard::releaseAllKeys(InputHandler* writer) {
   std::map<int,rdr::U32>::iterator i, next_i;
   for (i=downKeysym.begin(); i!=downKeysym.end(); i=next_i) {
     next_i = i; next_i++;
-    writer->writeKeyEvent((*i).second, false);
+    writer->keyEvent((*i).second, false);
     downKeysym.erase(i);
   }
 }
@@ -225,12 +224,12 @@ void win32::CKeyboard::releaseAllKeys(CMsgWriter* writer) {
 // actually sent a key down event for the given key.  The key up event always
 // contains the same keysym we used in the key down event, regardless of what
 // it would look up as using the current keyboard state.
-void win32::CKeyboard::releaseKey(CMsgWriter* writer, int extendedVkey)
+void win32::CKeyboard::releaseKey(InputHandler* writer, int extendedVkey)
 {
   if (downKeysym.find(extendedVkey) != downKeysym.end()) {
     vlog.debug("release extendedVkey 0x%x, keysym 0x%x",
                extendedVkey, downKeysym[extendedVkey]);
-    writer->writeKeyEvent(downKeysym[extendedVkey], false);
+    writer->keyEvent(downKeysym[extendedVkey], false);
     downKeysym.erase(extendedVkey);
   }
 }
@@ -242,18 +241,18 @@ void win32::CKeyboard::releaseKey(CMsgWriter* writer, int extendedVkey)
 // first.  This can happen in two cases: (a) when a single key press results in
 // more than one character, and (b) when shift is released while another key is
 // autorepeating.
-void win32::CKeyboard::pressKey(CMsgWriter* writer, int extendedVkey,
+void win32::CKeyboard::pressKey(InputHandler* writer, int extendedVkey,
                                 rdr::U32 keysym)
 {
   if (downKeysym.find(extendedVkey) != downKeysym.end()) {
     if (downKeysym[extendedVkey] != keysym) {
       vlog.debug("release extendedVkey 0x%x, keysym 0x%x",
                  extendedVkey, downKeysym[extendedVkey]);
-      writer->writeKeyEvent(downKeysym[extendedVkey], false);
+      writer->keyEvent(downKeysym[extendedVkey], false);
     }
   }
   vlog.debug("press   extendedVkey 0x%x, keysym 0x%x",
              extendedVkey, keysym);
-  writer->writeKeyEvent(keysym, true);
+  writer->keyEvent(keysym, true);
   downKeysym[extendedVkey] = keysym;
 }

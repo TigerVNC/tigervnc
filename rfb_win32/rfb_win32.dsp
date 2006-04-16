@@ -134,6 +134,10 @@ SOURCE=.\CurrentUser.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\DeviceContext.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\DeviceFrameBuffer.cxx
 # End Source File
 # Begin Source File
@@ -146,6 +150,14 @@ SOURCE=.\DIBSectionBuffer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\DynamicFn.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\EventManager.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\FolderManager.cxx
 # End Source File
 # Begin Source File
@@ -155,6 +167,10 @@ SOURCE=.\LaunchProcess.cxx
 # Begin Source File
 
 SOURCE=.\ListViewControl.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\MonitorInfo.cxx
 # End Source File
 # Begin Source File
 
@@ -186,6 +202,18 @@ SOURCE=.\SDisplay.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\SDisplayCorePolling.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\SDisplayCoreWMHooks.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\Security.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\Service.cxx
 # End Source File
 # Begin Source File
@@ -202,7 +230,15 @@ SOURCE=.\TCharArray.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\Threading.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ToolBar.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\TsSessions.cxx
 # End Source File
 # Begin Source File
 
@@ -242,6 +278,10 @@ SOURCE=.\AboutDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\BitmapInfo.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CKeyboard.h
 # End Source File
 # Begin Source File
@@ -254,11 +294,23 @@ SOURCE=.\Clipboard.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CompatibleBitmap.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ComputerName.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CPointer.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\CurrentUser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DeviceContext.h
 # End Source File
 # Begin Source File
 
@@ -274,7 +326,23 @@ SOURCE=.\DIBSectionBuffer.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DynamicFn.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EventManager.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FolderManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Handle.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\IconInfo.h
 # End Source File
 # Begin Source File
 
@@ -291,6 +359,26 @@ SOURCE=.\LaunchProcess.h
 # Begin Source File
 
 SOURCE=.\ListViewControl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LocalMem.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LogicalPalette.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ModuleFileName.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MonitorInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MsgBox.h
 # End Source File
 # Begin Source File
 
@@ -322,6 +410,18 @@ SOURCE=.\SDisplay.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SDisplayCoreDriver.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SDisplayCorePolling.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SDisplayCoreWMHooks.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Security.h
 # End Source File
 # Begin Source File
@@ -342,11 +442,19 @@ SOURCE=.\TCharArray.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Threading.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ToolBar.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\TrayIcon.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TsSessions.h
 # End Source File
 # Begin Source File
 

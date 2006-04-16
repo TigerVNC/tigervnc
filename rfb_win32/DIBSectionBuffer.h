@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,9 +25,7 @@
 #ifndef __RFB_WIN32_DIB_SECTION_BUFFER_H__
 #define __RFB_WIN32_DIB_SECTION_BUFFER_H__
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include <rfb/PixelBuffer.h>
 #include <rfb/Region.h>
 #include <rfb/ColourMap.h>

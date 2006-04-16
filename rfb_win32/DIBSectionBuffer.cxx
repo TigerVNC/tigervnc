@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,16 +15,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/LogWriter.h>
 
 #include <rfb_win32/DIBSectionBuffer.h>
-#include <rfb_win32/Win32Util.h>
-
+#include <rfb_win32/DeviceContext.h>
+#include <rfb_win32/BitmapInfo.h>
+#include <rfb/LogWriter.h>
 
 using namespace rfb;
 using namespace win32;
 
-static LogWriter vlog("DIBSection");
+static LogWriter vlog("DIBSectionBuffer");
 
 
 DIBSectionBuffer::DIBSectionBuffer(HWND window_)
@@ -53,7 +53,7 @@ void DIBSectionBuffer::setPF(const PixelFormat& pf) {
   format = pf;
   recreateBuffer();
   if ((pf.bpp <= 8) && pf.trueColour) {
-    vlog.debug("creating %d-bit TrueColor palette", pf.depth);
+    vlog.info("creating %d-bit TrueColour palette", pf.depth);
     for (int i=0; i < (1<<(pf.depth)); i++) {
       palette[i].b = ((((i >> pf.blueShift) & pf.blueMax) * 65535) + pf.blueMax/2) / pf.blueMax;
       palette[i].g = ((((i >> pf.greenShift) & pf.greenMax) * 65535) + pf.greenMax/2) / pf.greenMax;
@@ -113,8 +113,6 @@ void DIBSectionBuffer::recreateBuffer() {
     bi.mask.red = format.redMax << format.redShift;
     bi.mask.green = format.greenMax << format.greenShift;
     bi.mask.blue = format.blueMax << format.blueShift;
-
-    vlog.debug("area=%d, bpp=%d", width_ * height_, format.bpp);
 
     // Create a DIBSection to draw into
     if (device)
@@ -199,10 +197,13 @@ void DIBSectionBuffer::recreateBuffer() {
         format.depth++;
         bits = bits >> 1;
       }
+      if (format.depth > format.bpp)
+        throw Exception("Bad DIBSection format (depth exceeds bpp)");
     } else {
       // Set the DIBSection's palette
       refreshPalette();
     }
+
   }
 }
 
