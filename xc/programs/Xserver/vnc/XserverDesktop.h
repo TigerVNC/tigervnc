@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,8 +23,10 @@
 #define __XSERVERDESKTOP_H__
 
 #include <rfb/SDesktop.h>
+#include <rfb/HTTPServer.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Configuration.h>
+#include <rfb/VNCServerST.h>
 #include <rdr/SubstitutingInStream.h>
 
 extern "C" {
@@ -39,10 +41,10 @@ namespace rfb {
 }
 
 namespace network { class TcpListener; class Socket; }
-class MyHTTPServer;
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
-                       public rfb::ColourMap, public rdr::Substitutor {
+                       public rfb::ColourMap, public rdr::Substitutor,
+                       public rfb::VNCServerST::QueryConnectionHandler {
 public:
 
   XserverDesktop(ScreenPtr pScreen, network::TcpListener* listener,
@@ -66,8 +68,24 @@ public:
   void addClient(network::Socket* sock, bool reverse);
   void disconnectClients();
 
+  // QueryConnect methods called from X server code
+  // getQueryTimeout()
+  //   Returns the timeout associated with a particular
+  //   connection, identified by an opaque Id passed to the
+  //   X code earlier.  Also optionally gets the address and
+  //   name associated with that connection.
+  //   Returns zero if the Id is not recognised.
+  int getQueryTimeout(void* opaqueId,
+                      const char** address=0,
+                      const char** username=0);
+
+  // approveConnection()
+  //   Used by X server code to supply the result of a query.
+  void approveConnection(void* opaqueId, bool accept,
+                         const char* rejectMsg=0);
+
   // rfb::SDesktop callbacks
-  virtual void pointerEvent(const rfb::Point& pos, rdr::U8 buttonMask);
+  virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
   virtual void keyEvent(rdr::U32 key, bool down);
   virtual void clientCutText(const char* str, int len);
   virtual rfb::Point getFbSize() { return rfb::Point(width(), height()); }
@@ -81,14 +99,20 @@ public:
   // rdr::Substitutor callback
   virtual char* substitute(const char* varName);
 
+  // rfb::VNCServerST::QueryConnectionHandler callback
+  virtual rfb::VNCServerST::queryResult queryConnection(network::Socket* sock,
+                                                        const char* userName,
+                                                        char** reason);
+
 private:
   void setColourMapEntries(int firstColour, int nColours);
   static CARD32 deferredUpdateTimerCallback(OsTimerPtr timer, CARD32 now,
                                             pointer arg);
+  void deferUpdate();
   ScreenPtr pScreen;
   OsTimerPtr deferredUpdateTimer, dummyTimer;
   rfb::VNCServerST* server;
-  MyHTTPServer* httpServer;
+  rfb::HTTPServer* httpServer;
   network::TcpListener* listener;
   network::TcpListener* httpListener;
   ColormapPtr cmap;
@@ -97,6 +121,10 @@ private:
   bool ignoreHooks_;
   bool directFbptr;
   int oldButtonMask;
-  int cursorX, cursorY, oldCursorX, oldCursorY;
+  rfb::Point cursorPos, oldCursorPos;
+
+  void* queryConnectId;
+  rfb::CharArray queryConnectAddress;
+  rfb::CharArray queryConnectUsername;
 };
 #endif

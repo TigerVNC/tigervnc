@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -1342,10 +1342,10 @@ static void vncHooksPolyFillArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
 static void GetTextBoundingRect(DrawablePtr pDrawable, FontPtr font, int x,
                                 int y, int nchars, BoxPtr box)
 {
-  int ascent = max(FONTASCENT(font), FONTMAXBOUNDS(font, ascent));
-  int descent = max(FONTDESCENT(font), FONTMAXBOUNDS(font, descent));
-  int charWidth = max(FONTMAXBOUNDS(font,rightSideBearing),
-                      FONTMAXBOUNDS(font,characterWidth));
+  int ascent = __rfbmax(FONTASCENT(font), FONTMAXBOUNDS(font, ascent));
+  int descent = __rfbmax(FONTDESCENT(font), FONTMAXBOUNDS(font, descent));
+  int charWidth = __rfbmax(FONTMAXBOUNDS(font,rightSideBearing),
+                           FONTMAXBOUNDS(font,characterWidth));
 
   box->x1 = pDrawable->x + x;
   box->y1 = pDrawable->y + y - ascent;

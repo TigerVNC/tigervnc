@@ -1,24 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- * 
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
- * USA.
- */
-
-/*
-
-Copyright (c) 1993  X Consortium
+/* Copyright (c) 1993  X Consortium
+   Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -106,7 +87,10 @@ extern "C" {
 #undef and
 }
 
-#define XVNCVERSION "4.0"
+#define XVNCVERSION "Free Edition 4.1.1"
+#define XVNCCOPYRIGHT ("Copyright (C) 2002-2005 RealVNC Ltd.\n" \
+                       "See http://www.realvnc.com for information on VNC.\n")
+
 
 extern char *display;
 extern int monitorResolution;
@@ -216,10 +200,16 @@ vfbBitsPerPixel(int depth)
     else return 32;
 }
 
+
 extern "C" {
-void
-ddxGiveUp()
-{
+
+  /* ddxInitGlobals - called by |InitGlobals| from os/util.c in XOrg */
+  void ddxInitGlobals(void)
+  {
+  }
+
+  void ddxGiveUp()
+  {
     int i;
 
     /* clean up the framebuffers */
@@ -315,7 +305,7 @@ void ddxBeforeReset(void)
 void 
 ddxUseMsg()
 {
-    ErrorF("\nXvnc version %s - built %s\n", XVNCVERSION, buildtime);
+    ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
     ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
            VENDOR_STRING);
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
@@ -1152,7 +1142,12 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
 
-    return ret;
+#ifndef NO_INIT_BACKING_STORE
+  miInitializeBackingStore(pScreen);
+  pScreen->backingStoreSupport = Always;
+#endif
+
+  return ret;
 
 } /* end vfbScreenInit */
 
@@ -1164,9 +1159,9 @@ static void vfbClientStateChange(CallbackListPtr*, pointer, pointer) {
 void
 InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 {
-    ErrorF("\nXvnc version %s - built %s\n", XVNCVERSION, buildtime);
-    ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
-	   VENDOR_STRING);
+  ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
+  ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
+         VENDOR_STRING);
     int i;
     int NumFormats = 0;
 

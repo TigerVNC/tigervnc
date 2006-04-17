@@ -17,6 +17,7 @@
 #define HasGcc3 YES
 #endif
 
+#define HasFreetype2 NO
 #define BuildVNCExt YES
 #define VNCExtDefines -DVNCEXT
 #define SiteExtensionDefines VNCExtDefines

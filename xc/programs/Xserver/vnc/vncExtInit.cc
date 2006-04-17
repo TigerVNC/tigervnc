@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -81,6 +81,11 @@ void* vncFbptr[MAXSCREENS] = { 0, };
 static char* clientCutText = 0;
 static int clientCutTextLen = 0;
 
+static XserverDesktop* queryConnectDesktop = 0;
+static void* queryConnectId = 0;
+static int queryConnectTimeout = 0;
+static OsTimerPtr queryConnectTimer = 0;
+
 static struct VncInputSelect* vncInputSelectHead = 0;
 struct VncInputSelect {
   VncInputSelect(ClientPtr c, Window w, int m) : client(c), window(w), mask(m)
@@ -102,9 +107,8 @@ static int vncEventBase = 0;
 static char* vncPasswdFile = 0;
 int vncInetdSock = -1;
 
-rfb::VncAuthPasswdFileParameter vncAuthPasswdFile;
 rfb::AliasParameter rfbauth("rfbauth", "Alias for PasswordFile",
-                            &vncAuthPasswdFile.param);
+                            &SSecurityFactoryStandard::vncAuthPasswdFile);
 rfb::StringParameter httpDir("httpd",
                              "Directory containing files to serve via HTTP",
                              "");
@@ -315,6 +319,74 @@ void vncClientCutText(const char* str, int len)
   }
 }
 
+
+static CARD32 queryConnectTimerCallback(OsTimerPtr timer,
+                                        CARD32 now, pointer arg)
+{
+  if (queryConnectTimeout)
+    queryConnectDesktop->approveConnection(queryConnectId, false, "The attempt to prompt the user to accept the connection failed");
+  // Re-notify clients, causing them to discover that we're done
+  vncQueryConnect(queryConnectDesktop, queryConnectId);
+  return 0;
+}
+
+void vncQueryConnect(XserverDesktop* desktop, void* opaqueId)
+{
+  // Only one query can be processed at any one time
+  if (queryConnectTimeout && ((desktop != queryConnectDesktop) ||
+                              (opaqueId != queryConnectId))) {
+    desktop->approveConnection(opaqueId, false,
+                               "Another connection is currently being queried.");
+    return;
+  }
+
+  // Get the query timeout.  If it's zero, there is no query.
+  queryConnectTimeout = desktop->getQueryTimeout(opaqueId);
+  queryConnectId = queryConnectTimeout ? opaqueId : 0;
+  queryConnectDesktop = queryConnectTimeout ? desktop : 0;
+
+  // Notify clients
+  bool notified = false;
+  xVncExtQueryConnectNotifyEvent ev;
+  ev.type = vncEventBase + VncExtQueryConnectNotify;
+  for (VncInputSelect* cur = vncInputSelectHead; cur; cur = cur->next) {
+    if (cur->mask & VncExtQueryConnectMask) {
+      ev.sequenceNumber = cur->client->sequence;
+      ev.window = cur->window;
+      if (cur->client->swapped) {
+        int n;
+        swaps(&ev.sequenceNumber, n);
+        swapl(&ev.window, n);
+      }
+      WriteToClient(cur->client, sizeof(xVncExtQueryConnectNotifyEvent),
+                    (char *)&ev);
+      notified = true;
+    }
+  }
+
+  // If we're being asked to query a connection (rather than to cancel
+  //   a query), and haven't been able to notify clients then reject it.
+  if (queryConnectTimeout && !notified) {
+    queryConnectTimeout = 0;
+    queryConnectId = 0;
+    queryConnectDesktop = 0;
+    desktop->approveConnection(opaqueId, false,
+                               "Unable to query the local user to accept the connection.");
+    return;
+  }    
+
+  // Set a timer so that if no-one ever responds, we will eventually 
+  //   reject the connection
+  //   NB: We don't set a timer if sock is null, since that indicates
+  //       that pending queries should be cancelled.
+  if (queryConnectDesktop)
+    queryConnectTimer = TimerSet(queryConnectTimer, 0,
+                                 queryConnectTimeout*2000,
+                                 queryConnectTimerCallback, 0);
+  else
+    TimerCancel(queryConnectTimer);
+}
+
 static void SendSelectionChangeEvent(Atom selection)
 {
   xVncExtSelectionChangeNotifyEvent ev;
@@ -469,14 +541,12 @@ static int ProcVncExtListParams(ClientPtr client)
 
   int nParams = 0;
   int len = 0;
-  rfb::VoidParameter* current = rfb::Configuration::head;
-  while (current) {
-    int l = strlen(current->getName());
+  for (ParameterIterator i(Configuration::global()); i.param; i.next()) {
+    int l = strlen(i.param->getName());
     if (l <= 255) {
       nParams++;
       len += l + 1;
     }
-    current = current->_next;
   }
   rep.length = (len + 3) >> 2;
   rep.nParams = nParams;
@@ -488,15 +558,13 @@ static int ProcVncExtListParams(ClientPtr client)
   WriteToClient(client, sizeof(xVncExtListParamsReply), (char *)&rep);
   rdr::U8* data = new rdr::U8[len];
   rdr::U8* ptr = data;
-  current = rfb::Configuration::head;
-  while (current) {
-    int l = strlen(current->getName());
+  for (ParameterIterator i(Configuration::global()); i.param; i.next()) {
+    int l = strlen(i.param->getName());
     if (l <= 255) {
       *ptr++ = l;
-      memcpy(ptr, current->getName(), l);
+      memcpy(ptr, i.param->getName(), l);
       ptr += l;
     }
-    current = current->_next;
   }
   WriteToClient(client, len, (char*)data);
   delete [] data;
@@ -662,6 +730,82 @@ static int SProcVncExtConnect(ClientPtr client)
   return ProcVncExtConnect(client);
 }
 
+
+static int ProcVncExtGetQueryConnect(ClientPtr client)
+{
+  REQUEST(xVncExtGetQueryConnectReq);
+  REQUEST_SIZE_MATCH(xVncExtGetQueryConnectReq);
+
+  const char *qcAddress=0, *qcUsername=0;
+  int qcTimeout;
+  if (queryConnectDesktop)
+    qcTimeout = queryConnectDesktop->getQueryTimeout(queryConnectId,
+                                                     &qcAddress, &qcUsername);
+  else
+    qcTimeout = 0;
+
+  xVncExtGetQueryConnectReply rep;
+  int n;
+  rep.type = X_Reply;
+  rep.sequenceNumber = client->sequence;
+  rep.timeout = qcTimeout;
+  rep.addrLen = qcTimeout ? strlen(qcAddress) : 0;
+  rep.userLen = qcTimeout ? strlen(qcUsername) : 0;
+  rep.opaqueId = (CARD32)queryConnectId;
+  rep.length = (rep.userLen + rep.addrLen + 3) >> 2;
+  if (client->swapped) {
+    swaps(&rep.sequenceNumber, n);
+    swapl(&rep.userLen, n);
+    swapl(&rep.addrLen, n);
+    swapl(&rep.timeout, n);
+    swapl(&rep.opaqueId, n);
+  }
+  WriteToClient(client, sizeof(xVncExtGetQueryConnectReply), (char *)&rep);
+  if (qcTimeout)
+    WriteToClient(client, strlen(qcAddress), (char*)qcAddress);
+  if (qcTimeout)
+    WriteToClient(client, strlen(qcUsername), (char*)qcUsername);
+  return (client->noClientException);
+}
+
+static int SProcVncExtGetQueryConnect(ClientPtr client)
+{
+  register char n;
+  REQUEST(xVncExtGetQueryConnectReq);
+  swaps(&stuff->length, n);
+  REQUEST_SIZE_MATCH(xVncExtGetQueryConnectReq);
+  return ProcVncExtGetQueryConnect(client);
+}
+
+
+static int ProcVncExtApproveConnect(ClientPtr client)
+{
+  REQUEST(xVncExtApproveConnectReq);
+  REQUEST_SIZE_MATCH(xVncExtApproveConnectReq);
+  if (queryConnectId == (void*)stuff->opaqueId) {
+    for (int scr = 0; scr < screenInfo.numScreens; scr++) {
+      if (desktop[scr]) {
+        desktop[scr]->approveConnection(queryConnectId, stuff->approve,
+                                        "Connection rejected by local user");
+      }
+    }
+    // Inform other clients of the event and tidy up
+    vncQueryConnect(queryConnectDesktop, queryConnectId);
+  }
+  return (client->noClientException);
+}
+
+static int SProcVncExtApproveConnect(ClientPtr client)
+{
+  register char n;
+  REQUEST(xVncExtApproveConnectReq);
+  swaps(&stuff->length, n);
+  swapl(&stuff->opaqueId, n);
+  REQUEST_SIZE_MATCH(xVncExtApproveConnectReq);
+  return ProcVncExtApproveConnect(client);
+}
+
+
 static int ProcVncExtDispatch(ClientPtr client)
 {
   REQUEST(xReq);
@@ -682,6 +826,10 @@ static int ProcVncExtDispatch(ClientPtr client)
     return ProcVncExtSelectInput(client);
   case X_VncExtConnect:
     return ProcVncExtConnect(client);
+  case X_VncExtGetQueryConnect:
+    return ProcVncExtGetQueryConnect(client);
+  case X_VncExtApproveConnect:
+    return ProcVncExtApproveConnect(client);
   default:
     return BadRequest;
   }
@@ -707,6 +855,10 @@ static int SProcVncExtDispatch(ClientPtr client)
     return SProcVncExtSelectInput(client);
   case X_VncExtConnect:
     return SProcVncExtConnect(client);
+  case X_VncExtGetQueryConnect:
+    return SProcVncExtGetQueryConnect(client);
+  case X_VncExtApproveConnect:
+    return SProcVncExtApproveConnect(client);
   default:
     return BadRequest;
   }
