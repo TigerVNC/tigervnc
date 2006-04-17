@@ -1,4 +1,4 @@
-.TH vncserver 1 "18 May 2004" "TightVNC" "Virtual Network Computing"
+.TH vncserver 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
 .SH NAME
 vncserver \- start or stop a VNC server
 .SH SYNOPSIS

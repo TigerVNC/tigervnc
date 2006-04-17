@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Copyright (C) 2002-2003 RealVNC Ltd.
+#  Copyright (C) 2002-2005 RealVNC Ltd.
 #
 #  This is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -58,7 +58,6 @@ fi
 
 for f in xc/programs/Xserver/Xvnc vncviewer/vncviewer vncpasswd/vncpasswd \
 	 vncconfig/vncconfig vncserver x0vncserver/x0vncserver; do
-
   if [ ! -f $f ]; then
     echo "Couldn't find $f"
   else
