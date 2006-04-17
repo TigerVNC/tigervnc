@@ -27,6 +27,7 @@
 #include <rfb/SSecurityFactoryStandard.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
+#include <rfb_win32/SFileTransferWin32.h>
 
 using namespace rfb;
 using namespace win32;
@@ -40,6 +41,8 @@ const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TightVNC\\Win
 
 const UINT VNCM_REG_CHANGED = WM_USER;
 const UINT VNCM_COMMAND = WM_USER + 1;
+
+extern const UINT VNCM_FT_DOWNLOAD;
 
 
 static IntParameter http_port("HTTPPortNumber",
@@ -130,6 +133,8 @@ VNCServerWin32::VNCServerWin32()
 
   // Register the desktop's event to be handled
   sockMgr.addEvent(desktop.getUpdateEvent(), &desktop);
+
+  vncServer.setFTManager((rfb::SFileTransferManager *)&m_FTManager);
 }
 
 VNCServerWin32::~VNCServerWin32() {
@@ -220,6 +225,8 @@ int VNCServerWin32::run() {
             break;
           if (msg.message == VNCM_COMMAND)
             doCommand();
+          if (msg.message == VNCM_FT_DOWNLOAD)
+            m_FTManager.processDownloadMsg(msg);
         }
         TranslateMessage(&msg);
         DispatchMessage(&msg);

@@ -73,3 +73,9 @@ FileManager::isCreated()
 {
   if (m_pFile != NULL) return true; else return false;
 }
+
+char *
+FileManager::getFilename()
+{
+  return m_szFilename;
+}

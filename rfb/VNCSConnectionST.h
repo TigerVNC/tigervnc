@@ -31,6 +31,7 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/TransImageGetter.h>
 #include <rfb/VNCServerST.h>
+#include <rfb/SFileTransfer.h>
 
 namespace rfb {
   class VNCSConnectionST : public SConnection,
@@ -171,6 +172,8 @@ namespace rfb {
 
     CharArray closeReason;
     time_t startTime;
+
+    SFileTransfer *m_pFileTransfer;
   };
 }
 #endif

@@ -190,6 +190,14 @@ SOURCE=.\Service.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\SFileTransferManagerWin32.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFileTransferWin32.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\SInput.cxx
 # End Source File
 # Begin Source File
@@ -327,6 +335,14 @@ SOURCE=.\Security.h
 # Begin Source File
 
 SOURCE=.\Service.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFileTransferManagerWin32.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFileTransferWin32.h
 # End Source File
 # Begin Source File
 

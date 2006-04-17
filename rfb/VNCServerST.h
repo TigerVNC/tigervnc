@@ -33,6 +33,7 @@
 #include <rfb/Cursor.h>
 #include <network/Socket.h>
 #include <rfb/ListConnInfo.h>
+#include <rfb/SFileTransferManager.h>
 
 namespace rfb {
 
@@ -110,7 +111,6 @@ namespace rfb {
     // always shared (unless the NeverShared parameter is set).
 
     void addClient(network::Socket* sock, bool reverse);
-
 
     // getSockets() gets a list of sockets.  This can be used to generate an
     // fd_set for calling select().
@@ -191,8 +191,10 @@ namespace rfb {
     void getConnInfo(ListConnInfo * listConn);
     void setConnStatus(ListConnInfo* listConn);
 
-    bool getDisable() { return disableclients; }
-    void setDisable(bool disable) { disableclients = disable; }
+    bool getDisable() { return disableclients;};
+    void setDisable(bool disable) { disableclients = disable;};
+
+    void setFTManager(rfb::SFileTransferManager *pFTManager) { m_pFTManager = pFTManager; };
 
   protected:
 
@@ -207,6 +209,8 @@ namespace rfb {
     SDesktop* desktop;
     bool desktopStarted;
     PixelBuffer* pb;
+
+    SFileTransferManager *m_pFTManager;
 
     CharArray name;
 

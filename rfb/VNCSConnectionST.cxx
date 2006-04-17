@@ -35,7 +35,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
     pointerEventTime(0), accessRights(AccessDefault),
-    startTime(time(0))
+    startTime(time(0)), m_pFileTransfer(0)
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -56,6 +56,13 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     addSecType(*i);
   }
 
+  if (server->m_pFTManager != NULL) {
+    SFileTransfer *pFT = server->m_pFTManager->createObject(sock);
+    if (pFT != NULL) {
+      m_pFileTransfer = pFT;
+    }
+  }
+
   server->clients.push_front(this);
 }
 
@@ -73,8 +80,12 @@ VNCSConnectionST::~VNCSConnectionST()
   if (server->pointerClient == this)
     server->pointerClient = 0;
 
+  if (m_pFileTransfer) 
+    server->m_pFTManager->destroyObject(m_pFileTransfer);
+
   // Remove this client from the server
   server->clients.remove(this);
+
 }
 
 
@@ -671,16 +682,13 @@ void VNCSConnectionST::setSocketTimeouts()
 
 char* VNCSConnectionST::getStartTime()
 {
-  // FIXME: Using ctime() is not thread-safe.
-  //        Also, it's not good to return the pointer instead of copying.
   char* result = ctime(&startTime);
   result[24] = '\0';
-  return result;
+  return result; 
 }
 
 void VNCSConnectionST::setStatus(int status)
 {
-  // FIXME: What do numbers mean?
   switch (status) {
   case 0:
     accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
@@ -694,10 +702,8 @@ void VNCSConnectionST::setStatus(int status)
   }
   framebufferUpdateRequest(server->pb->getRect(), false);
 }
-
 int VNCSConnectionST::getStatus()
 {
-  // FIXME: What do numbers mean?
   if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0007)
     return 0;
   if ((accessRights & (AccessPtrEvents | AccessKeyEvents | AccessView)) == 0x0001)
@@ -709,5 +715,8 @@ int VNCSConnectionST::getStatus()
 
 bool VNCSConnectionST::processFTMsg(int type)
 {
-  return false;
+  if (m_pFileTransfer != NULL) 
+    return m_pFileTransfer->processMessages(type);
+  else 
+    return false;
 }

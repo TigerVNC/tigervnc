@@ -39,6 +39,8 @@ namespace rfb {
     
     bool isCreated();
 
+    char *getFilename();
+
   protected:
     FILE *m_pFile;
     char m_szMode[4];

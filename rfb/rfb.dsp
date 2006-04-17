@@ -270,6 +270,14 @@ SOURCE=.\ServerCore.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\SFileTransfer.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFileTransferManager.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\SFTMsgReader.cxx
 # End Source File
 # Begin Source File
@@ -605,6 +613,14 @@ SOURCE=.\secTypes.h
 # Begin Source File
 
 SOURCE=.\ServerCore.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFileTransfer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SFileTransferManager.h
 # End Source File
 # Begin Source File
 
