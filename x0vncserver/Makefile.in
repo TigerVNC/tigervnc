@@ -1,6 +1,6 @@
 
 SRCS = Image.cxx TimeMillis.cxx PollingScheduler.cxx PollingManager.cxx \
-       x0vncserver.cxx ../vncconfig/QueryConnectDialog.cxx
+       x0vncserver.cxx ../vncconfig_unix/QueryConnectDialog.cxx
 
 OBJS = $(SRCS:.cxx=.o)
 
@@ -15,7 +15,7 @@ EXTRA_LIBS = @ZLIB_LIB@ @JPEG_LIB@ @INET_LIB@ @X_PRE_LIBS@ @X_LIBS@ \
              @XTEST_LIB@ -lXext -lX11 @X_EXTRA_LIBS@
 
 # X_CFLAGS are really CPPFLAGS
-DIR_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/tx -I$(top_srcdir)/vncconfig \
+DIR_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/tx -I$(top_srcdir)/vncconfig_unix \
   @XTEST_DEFINE@ @READDISPLAY_DEFINE@ @MITSHM_DEFINE@ @X_CFLAGS@
 
 all:: $(program)
