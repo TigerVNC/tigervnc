@@ -271,7 +271,7 @@ PACKAGE_VERSION=
 PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
-ac_unique_file="rdr/InStream.h"
+ac_unique_file="vncviewer_unix/vncviewer.cxx"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
