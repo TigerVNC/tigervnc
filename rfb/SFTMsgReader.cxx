@@ -106,10 +106,40 @@ SFTMsgReader::readFileDeleteRqst(unsigned int *pNameSize, char *pName)
   return readU8U16StringMsg(pNameSize, pName);
 }
     
-bool readFileRenameRqst(unsigned int *pOldNameSize, unsigned int *pNewNameSize,
-                        char *pOldName, char *pNewName)
+bool 
+SFTMsgReader::readFileRenameRqst(unsigned int *pOldNameSize, 
+                                 unsigned int *pNewNameSize,
+                                 char *pOldName, char *pNewName)
 {
-  return false;
+  m_pIS->skip(1);
+
+  unsigned int oldNameSize = m_pIS->readU16();
+  unsigned int newNameSize = m_pIS->readU16();
+
+  if ((oldNameSize >= *pOldNameSize) || (newNameSize >= *pNewNameSize)) {
+    m_pIS->skip(oldNameSize);
+    m_pIS->skip(newNameSize);
+    return false;
+  }
+
+  if (oldNameSize != 0) {
+    m_pIS->readBytes(pOldName, oldNameSize);
+    pOldName[oldNameSize] = '\0';
+    *pOldNameSize = oldNameSize;
+  } else {
+    *pOldNameSize = 0;
+    pOldName[0] = '\0';
+  }
+
+  if (newNameSize != 0) {
+    m_pIS->readBytes(pNewName, newNameSize);
+    pNewName[newNameSize] = '\0';
+  } else {
+    *pNewNameSize = 0;
+    pNewName[0] = '\0';
+  }
+
+  return true;
 }
 
 bool

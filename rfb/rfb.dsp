@@ -118,6 +118,14 @@ SOURCE=.\CConnection.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\CFTMsgReader.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\CFTMsgWriter.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\CMsgHandler.cxx
 # End Source File
 # Begin Source File
@@ -361,6 +369,14 @@ SOURCE=.\Blacklist.h
 # Begin Source File
 
 SOURCE=.\CConnection.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CFTMsgReader.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CFTMsgWriter.h
 # End Source File
 # Begin Source File
 

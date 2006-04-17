@@ -1,4 +1,6 @@
 /* Copyright (C) 2005 TightVNC Team.  All Rights Reserved.
+ *
+ * Developed by Dennis Syrovatsky
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +50,8 @@ namespace rfb {
 
       void addItems(FileInfo *pFI);
       char *getPath();
+
+      void deleteChildItems();
 
     private:
       HWND m_hwndDlg;

@@ -1,4 +1,6 @@
 /* Copyright (C) 2005 TightVNC Team.  All Rights Reserved.
+ *
+ * Developed by Dennis Syrovatsky.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +34,7 @@ FileTransfer::FileTransfer()
   m_bInitialized = false;
   m_bResized = false;
   m_bCancel = false;
+  m_bOverwriteAll = false;
 
   m_pFTDialog = new FTDialog(GetModuleHandle(0), this);
 
@@ -67,8 +70,8 @@ FileTransfer::initialize(rdr::InStream *pIS, rdr::OutStream *pOS)
 {
   if (m_bInitialized) return false;
 
-  m_pReader = new FTMsgReader(pIS);
-  m_pWriter = new FTMsgWriter(pOS);
+  m_pReader = new CFTMsgReader(pIS);
+  m_pWriter = new CFTMsgWriter(pOS);
 
   freeQueues();
 
@@ -144,12 +147,12 @@ FileTransfer::checkDeleteQueue()
       m_pFTDialog->postCheckDeleteQueueMsg();
     } else {
       if (m_DeleteQueue.getFlagsAt(0) & FT_ATTR_DELETE_REMOTE) {
-        m_pWriter->writeFileDeleteRqst(strlen(m_DeleteQueue.getFullLocPathAt(0)), 
-                                       m_DeleteQueue.getFullLocPathAt(0));
+        writeFileDeleteRqst(strlen(m_DeleteQueue.getFullLocPathAt(0)), 
+                            m_DeleteQueue.getFullLocPathAt(0));
 
         char *pPath = m_DeleteQueue.getLocPathAt(0);
         m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_DELETE);
-        m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
+        writeFileListRqst(strlen(pPath), pPath, false);
       }
     }
   } else {
@@ -191,7 +194,7 @@ FileTransfer::resizeSending()
             m_bResized = true;
             char *pPath = m_TransferQueue.getFullRemPathAt(i);
             m_dirSizeRqstNum = i;
-            m_pWriter->writeFileDirSizeRqst(strlen(pPath), pPath);
+            writeFileDirSizeRqst(strlen(pPath), pPath);
             return false;
           } else {
             if (flags & FT_ATTR_COPY_UPLOAD) {
@@ -248,12 +251,12 @@ FileTransfer::checkTransferQueue()
       if (flag0 & FT_ATTR_DIR) {
         char *pFullPath = m_TransferQueue.getFullRemPathAt(0);
         if (m_bFTDlgShown) m_pFTDialog->setStatusText("Creating Remote Folder. %s", pFullPath);
-        m_pWriter->writeFileCreateDirRqst(strlen(pFullPath), pFullPath);
+        writeFileCreateDirRqst(strlen(pFullPath), pFullPath);
 
         char *pPath = m_TransferQueue.getRemPathAt(0);
         m_TransferQueue.setFlagsAt(0, (flag0 | FT_ATTR_FLR_UPLOAD_CHECK));
         m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_UPLOAD);
-        m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
+        writeFileListRqst(strlen(pPath), pPath, false);
         return;
       }
     } else {
@@ -280,7 +283,7 @@ FileTransfer::checkTransferQueue()
             m_TransferQueue.setFlagsAt(0, (m_TransferQueue.getFlagsAt(0) | FT_ATTR_FLR_DOWNLOAD_ADD));
             char *pRemPath = m_TransferQueue.getFullRemPathAt(0);
             m_queueFileListRqst.add(pRemPath, 0, 0, FT_FLR_DEST_DOWNLOAD);
-            m_pWriter->writeFileListRqst(strlen(pRemPath), pRemPath, 0);
+            writeFileListRqst(strlen(pRemPath), pRemPath, 0);
             return;
           }
         }
@@ -304,8 +307,8 @@ FileTransfer::uploadFile()
         m_pFTDialog->m_pProgress->clearAndInitSingle(m_TransferQueue.getSizeAt(0), 0);
       }
 
-      m_pWriter->writeFileUploadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
-                                     m_TransferQueue.getFullRemPathAt(0), 0);
+      writeFileUploadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
+                          m_TransferQueue.getFullRemPathAt(0), 0);
       uploadFilePortion();
     }
   }
@@ -323,8 +326,8 @@ FileTransfer::downloadFile()
                                    m_TransferQueue.getFullLocPathAt(0));
         m_pFTDialog->m_pProgress->clearAndInitSingle(m_TransferQueue.getSizeAt(0), 0);
       }
-      m_pWriter->writeFileDownloadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
-                                       m_TransferQueue.getFullRemPathAt(0), 0);
+      writeFileDownloadRqst(strlen(m_TransferQueue.getFullRemPathAt(0)),
+                            m_TransferQueue.getFullRemPathAt(0), 0);
       return true;
     } else return false;
   }
@@ -378,9 +381,9 @@ FileTransfer::createRemoteFolder(char *pPath, char *pName)
   char fullPath[FT_FILENAME_SIZE];
   sprintf(fullPath, "%s\\%s", pPath, pName);
   m_pFTDialog->setStatusText("Creating Remote Folder: %s", fullPath);
-  m_pWriter->writeFileCreateDirRqst(strlen(fullPath), fullPath);
+  writeFileCreateDirRqst(strlen(fullPath), fullPath);
   m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_MAIN);
-  m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
+  writeFileListRqst(strlen(pPath), pPath, false);
 }
 
 void 
@@ -392,10 +395,10 @@ FileTransfer::renameRemote(char *pPath, char *pOldName, char *pNewName)
   sprintf(fullOldName, "%s\\%s", pPath, pOldName);
   sprintf(fullNewName, "%s\\%s", pPath, pNewName);
 
-  m_pWriter->writeFileRenameRqst(strlen(fullOldName), strlen(fullNewName),
-                                 fullOldName, fullNewName);
+  writeFileRenameRqst(strlen(fullOldName), strlen(fullNewName),
+                      fullOldName, fullNewName);
   m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_MAIN);
-  m_pWriter->writeFileListRqst(strlen(pPath), pPath, false);
+  writeFileListRqst(strlen(pPath), pPath, false);
 }
 
 bool 
@@ -540,7 +543,13 @@ bool
 FileTransfer::procFileDirSizeDataMsg()
 {
   DWORD64 dw64DirSize = 0;
-  m_pReader->readFileDirSizeData(&dw64DirSize);
+  unsigned short dirSizeLow16 = 0;
+  unsigned int dirSizeHigh32 = 0;
+  m_pReader->readFileDirSizeData(&dirSizeLow16, &dirSizeHigh32);
+
+  dw64DirSize = dirSizeLow16;
+  dw64DirSize = (dw64DirSize << 32) + dirSizeHigh32;
+  
   m_dw64SizeSending += dw64DirSize;
   m_TransferQueue.clearFlagAt(m_dirSizeRqstNum, FT_ATTR_RESIZE_NEEDED);
   checkTransferQueue();
@@ -650,7 +659,7 @@ FileTransfer::requestFileList(char *pPath, int dest, bool bDirOnly)
 {
   m_queueFileListRqst.add(pPath, 0, 0, dest);
 
-  m_pWriter->writeFileListRqst(strlen(pPath), pPath, bDirOnly);
+  writeFileListRqst(strlen(pPath), pPath, bDirOnly);
 }
 
 int
@@ -697,4 +706,100 @@ FileTransfer::freeQueues()
   m_TransferQueue.free();
   m_DeleteQueue.free();
   m_queueFileListRqst.free();
+}
+
+int
+FileTransfer::convertToUnixPath(char *path)
+{
+  int len = strlen(path);
+  if (len >= FT_FILENAME_SIZE) return -1;
+  if (len == 0) {strcpy(path, "/"); return 1;}
+  for (int i = (len - 1); i >= 0; i--) {
+    if (path[i] == '\\') path[i] = '/';
+    path[i+1] = path[i];
+  }
+  path[len + 1] = '\0';
+  path[0] = '/';
+  return strlen(path);
+}
+
+bool 
+FileTransfer::writeFileListRqst(unsigned short dirnameLen, char *pDirName, bool bDirOnly)
+{
+  char dirName[FT_FILENAME_SIZE];
+  strcpy(dirName, pDirName);
+  int len = convertToUnixPath(dirName);
+  if (len <= 0) return false;
+
+  return m_pWriter->writeFileListRqst(len, dirName, bDirOnly);
+}
+
+bool 
+FileTransfer::writeFileDownloadRqst(unsigned short filenameLen, char *pFilename, 
+                                    unsigned int position)
+{
+  char filename[FT_FILENAME_SIZE];
+  strcpy(filename, pFilename);
+  unsigned short len = (unsigned short) convertToUnixPath(filename);
+  if (len <= 0) return false;
+
+  return m_pWriter->writeFileDownloadRqst(len, filename, position);
+}
+
+bool 
+FileTransfer::writeFileUploadRqst(unsigned short filenameLen, char *pFilename, 
+                                  unsigned int position)
+{
+  char filename[FT_FILENAME_SIZE];
+  strcpy(filename, pFilename);
+  unsigned short len = (unsigned short) convertToUnixPath(filename);
+  if (len <= 0) return false;
+
+  return m_pWriter->writeFileUploadRqst(len, filename, position);
+}
+
+bool 
+FileTransfer::writeFileCreateDirRqst(unsigned short dirNameLen, char *pDirName)
+{
+  char path[FT_FILENAME_SIZE];
+  strcpy(path, pDirName);
+  int nameLen = convertToUnixPath(path);
+
+  return m_pWriter->writeFileCreateDirRqst(nameLen, path);
+}
+
+bool 
+FileTransfer::writeFileDirSizeRqst(unsigned short dirNameLen, char *pDirName)
+{
+  char path[FT_FILENAME_SIZE];
+  strcpy(path, pDirName);
+  int nameLen = convertToUnixPath(path);
+
+  return m_pWriter->writeFileDirSizeRqst(nameLen, path);
+}
+
+bool 
+FileTransfer::writeFileRenameRqst(unsigned short oldNameLen, unsigned short newNameLen,
+                                  char *pOldName, char *pNewName)
+{
+  char oldName[FT_FILENAME_SIZE];
+  char newName[FT_FILENAME_SIZE];
+
+  strcpy(oldName, pOldName);
+  strcpy(newName, pNewName);
+
+  int _oldNameLen = convertToUnixPath(oldName);
+  int _newNameLen = convertToUnixPath(newName);
+
+  return m_pWriter->writeFileRenameRqst(_oldNameLen, _newNameLen, oldName, newName);
+}
+
+bool 
+FileTransfer::writeFileDeleteRqst(unsigned short nameLen, char *pName)
+{
+  char path[FT_FILENAME_SIZE];
+  strcpy(path, pName);
+  int _nameLen = convertToUnixPath(path);
+
+  return m_pWriter->writeFileDeleteRqst(_nameLen, path);
 }

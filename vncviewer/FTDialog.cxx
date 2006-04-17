@@ -1,4 +1,6 @@
 /* Copyright (C) 2005 TightVNC Team.  All Rights Reserved.
+ *
+ * Developed by Dennis Syrovatsky
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -376,7 +378,6 @@ FTDialog::onEndBrowseDlg(bool bResult)
       showRemoteLVItems();
     }
   }
-
   delete m_pBrowseDlg;
   m_pBrowseDlg = NULL;
 }
@@ -514,6 +515,8 @@ FTDialog::onUpload()
     
     if (MessageBox(m_hwndFTDialog, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK)
       m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
+
+    setButtonsState();
     
     delete [] pBuf;
     return;
@@ -549,6 +552,8 @@ FTDialog::onDownload()
     
     if (MessageBox(m_hwndFTDialog, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK)
       m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
+
+    setButtonsState();
     
     delete [] pBuf;
     return;

@@ -1,4 +1,6 @@
 /* Copyright (C) 2005 TightVNC Team.  All Rights Reserved.
+ *
+ * Developed by Dennis Syrovatsky
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,9 +70,7 @@ FTBrowseDlg::addItems(FileInfo *pFI)
   TVITEM tvi;
   TVINSERTSTRUCT tvins;
 
-  while (TreeView_GetChild(m_hwndTree, m_hParentItem) != NULL) {
-    TreeView_DeleteItem(m_hwndTree, TreeView_GetChild(m_hwndTree, m_hParentItem));
-  }
+  if (pFI->getNumEntries() <= 0) return;
 
   for (unsigned int i = 0; i < pFI->getNumEntries(); i++)
   {
@@ -132,6 +132,14 @@ FTBrowseDlg::getPath()
   return m_szPath;
 }
 
+void
+FTBrowseDlg::deleteChildItems()
+{
+  while (TreeView_GetChild(m_hwndTree, m_hParentItem) != NULL) {
+    TreeView_DeleteItem(m_hwndTree, TreeView_GetChild(m_hwndTree, m_hParentItem));
+  }
+}
+
 BOOL CALLBACK 
 FTBrowseDlg::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -166,11 +174,13 @@ FTBrowseDlg::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case TVN_SELCHANGED:
         SetDlgItemText(hwnd, IDC_FTBROWSEPATH, _this->getTVPath(((NMTREEVIEW *) lParam)->itemNew.hItem));
         return FALSE;
-      case TVN_ITEMEXPANDING:
+//      case TVN_ITEMEXPANDING:
+      case TVN_ITEMEXPANDED:
         {
           NMTREEVIEW *nmCode = (NMTREEVIEW *) lParam;
           if (nmCode->action == 2) {
             _this->m_hParentItem = nmCode->itemNew.hItem;
+            _this->deleteChildItems();
             _this->m_pFTDlg->getBrowseItems(_this->getTVPath(_this->m_hParentItem));
           }
         }

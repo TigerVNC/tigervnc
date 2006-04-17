@@ -32,6 +32,8 @@
 
 #define FT_MAX_SENDING_SIZE 8192
 
+#define FT_NET_ATTR_DIR ((unsigned int)-1)
+
 #define FT_ATTR_UNKNOWN			    0x00000000
 #define FT_ATTR_FILE			    0x00000001
 #define FT_ATTR_DIR 			    0x00000002

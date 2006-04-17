@@ -1,4 +1,6 @@
 /* Copyright (C) 2005 TightVNC Team.  All Rights Reserved.
+ *
+ * Developed by Dennis Syrovatsky
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +33,9 @@
 #include <rfb/FileReader.h>
 #include <rfb/FileWriter.h>
 #include <rfb/TransferQueue.h>
+#include <rfb/CFTMsgReader.h>
+#include <rfb/CFTMsgWriter.h>
 #include <vncviewer/FTDialog.h>
-#include <vncviewer/FTMsgReader.h>
-#include <vncviewer/FTMsgWriter.h>
 
 namespace rfb {
   namespace win32 {
@@ -74,11 +76,12 @@ namespace rfb {
       bool m_bInitialized;
       bool m_bResized;
       bool m_bTransferSuccess;
+      bool m_bOverwriteAll;
 
       FTDialog *m_pFTDialog;
 
-      FTMsgReader *m_pReader;
-      FTMsgWriter *m_pWriter;
+      rfb::CFTMsgReader *m_pReader;
+      rfb::CFTMsgWriter *m_pWriter;
 
       FileReader m_fileReader;
       FileWriter m_fileWriter;
@@ -110,6 +113,19 @@ namespace rfb {
       bool procFLRDownload(FileInfo *pFI);
       bool procFLRDelete(FileInfo *pFI);
       bool procFLRRename(FileInfo *pFI);
+
+      int convertToUnixPath(char *path);
+
+      bool writeFileListRqst(unsigned short dirnameLen, char *pDirName, bool bDirOnly);
+      bool writeFileDownloadRqst(unsigned short filenameLen, char *pFilename, 
+                                 unsigned int position);
+      bool writeFileUploadRqst(unsigned short filenameLen, char *pFilename, 
+                               unsigned int position);
+      bool writeFileCreateDirRqst(unsigned short dirNameLen, char *pDirName);
+      bool writeFileDirSizeRqst(unsigned short dirNameLen, char *pDirName);
+      bool writeFileRenameRqst(unsigned short oldNameLen, unsigned short newNameLen,
+                               char *pOldName, char *pNewName);
+      bool writeFileDeleteRqst(unsigned short nameLen, char *pName);
 
       DWORD64 m_dw64SizeSending;
       unsigned int m_dirSizeRqstNum;

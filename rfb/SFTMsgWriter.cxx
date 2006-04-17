@@ -60,9 +60,13 @@ SFTMsgWriter::writeFileListData(unsigned char flags, rfb::FileInfo *pFileInfo)
       unsigned int len = strlen(pName);
 
       memcpy((void *)&pFilenames[pos], pName, len + 1);
-      pos += len + 2;
+      pos += (len + 1);
 
-      m_pOS->writeU32(pFileInfo->getSizeAt(i));
+      if (pFileInfo->getFlagsAt(i) & FT_ATTR_DIR) {
+        m_pOS->writeU32(FT_NET_ATTR_DIR);
+      } else {
+        m_pOS->writeU32(pFileInfo->getSizeAt(i));
+      }
       m_pOS->writeU32(pFileInfo->getDataAt(i));
     }
 

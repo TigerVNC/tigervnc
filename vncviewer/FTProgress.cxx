@@ -1,4 +1,6 @@
 /* Copyright (C) 2005 TightVNC Team.  All Rights Reserved.
+ *
+ * Developed by Dennis Syrovatsky
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,13 +134,18 @@ FTProgress::destroyProgressBarObjects()
 void
 FTProgress::setProgressText()
 {
-  	char buf[16];
-
-    int percent = m_pSingleProgress->getCurrentPercent();
-	sprintf(buf, "%d%%", percent);
-	SetWindowText(m_hwndSinglePercent, buf);
-
-    percent = m_pGeneralProgress->getCurrentPercent();
-	sprintf(buf, "%d%%", percent);
-	SetWindowText(m_hwndGeneralPercent, buf);
+  char buf[16] = {0};
+  char buf2[16] = {0};
+  
+  int percent = m_pSingleProgress->getCurrentPercent();
+  sprintf(buf, "%d%%", percent);
+  GetWindowText(m_hwndSinglePercent, buf2, 16);
+  if (strcmp(buf, buf2) != 0)
+    SetWindowText(m_hwndSinglePercent, buf);
+  
+  percent = m_pGeneralProgress->getCurrentPercent();
+  sprintf(buf, "%d%%", percent);
+  GetWindowText(m_hwndGeneralPercent, buf2, 16);
+  if (strcmp(buf, buf2) != 0)
+    SetWindowText(m_hwndGeneralPercent, buf);
 }
