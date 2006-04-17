@@ -1,4 +1,4 @@
-.TH x0vncserver 1 "30 December 2004" "TightVNC" "Virtual Network Computing"
+.TH x0vncserver 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
 .SH NAME
 x0vncserver \- VNC server which continuously polls an X display
 .SH SYNOPSIS
