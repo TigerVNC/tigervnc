@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -74,8 +74,8 @@ void TXImage::resize(int w, int h)
   if (w == width() && h == height()) return;
 
   int oldStrideBytes = getStride() * (format.bpp/8);
-  int rowsToCopy = vncmin(h, height());
-  int bytesPerRow = vncmin(w, width()) * (format.bpp/8);
+  int rowsToCopy = __rfbmin(h, height());
+  int bytesPerRow = __rfbmin(w, width()) * (format.bpp/8);
   rdr::U8* oldData = 0;
   bool allocData = false;
 

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -28,12 +28,12 @@
 #ifndef __TXVIEWPORT_H__
 #define __TXVIEWPORT_H__
 
+#include <rfb/Timer.h>
 #include "TXWindow.h"
 #include "TXScrollbar.h"
-#include "Timer.h"
 
 class TXViewport : public TXWindow, public TXScrollbarCallback,
-                   public TimerCallback {
+                   public rfb::Timer::Callback {
 public:
   TXViewport(Display* dpy_, int width, int height, TXWindow* parent_=0);
   virtual ~TXViewport();
@@ -62,14 +62,14 @@ public:
 private:
   virtual void resizeNotify();
   virtual void scrollbarPos(int x, int y, TXScrollbar* sb);
-  virtual void timerCallback(Timer* timer);
+  virtual bool handleTimeout(rfb::Timer* timer);
   TXWindow* clipper;
   TXWindow* child;
   TXScrollbar* hScrollbar;
   TXScrollbar* vScrollbar;
   const int scrollbarSize;
   int xOff, yOff;
-  Timer bumpScrollTimer;
+  rfb::Timer bumpScrollTimer;
   bool bumpScroll;
   bool needScrollbars;
   int bumpScrollX, bumpScrollY;

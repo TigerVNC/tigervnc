@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -100,21 +100,19 @@ bool TXViewport::bumpScrollEvent(XMotionEvent* ev)
   else if (ev->y_root == 0)     bumpScrollY = bumpScrollPixels;
 
   if (bumpScrollX || bumpScrollY) {
-    if (bumpScrollTimer.isSet()) return true;
+    if (bumpScrollTimer.isStarted()) return true;
     if (setOffset(xOff + bumpScrollX, yOff + bumpScrollY)) {
-      bumpScrollTimer.reset(25);
+      bumpScrollTimer.start(25);
       return true;
     }
   }
 
-  bumpScrollTimer.cancel();
+  bumpScrollTimer.stop();
   return false;
 }
 
-void TXViewport::timerCallback(Timer* timer)
-{
-  if (setOffset(xOff + bumpScrollX, yOff + bumpScrollY))
-    bumpScrollTimer.reset(25);
+bool TXViewport::handleTimeout(rfb::Timer* timer) {
+  return setOffset(xOff + bumpScrollX, yOff + bumpScrollY);
 }
 
 void TXViewport::resizeNotify()

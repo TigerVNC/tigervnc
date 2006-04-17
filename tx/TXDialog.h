@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -38,9 +38,7 @@ public:
     : TXWindow(dpy, width, height), done(false), ok(false), modal(modal_)
   {
     toplevel(name, this);
-    int dpyWidth = WidthOfScreen(DefaultScreenOfDisplay(dpy));
-    int dpyHeight = HeightOfScreen(DefaultScreenOfDisplay(dpy));
-    setUSPosition((dpyWidth - width - 10) / 2, (dpyHeight - height - 30) / 2);
+    resize(width, height);
   }
 
   virtual ~TXDialog() {}
@@ -74,6 +72,14 @@ public:
   // initDialog() can be overridden in a derived class.  Typically it is used
   // to make sure that checkboxes have the right state, etc.
   virtual void initDialog() {}
+
+  // resize() is overidden here to re-center the dialog
+  void resize(int w, int h) {
+    TXWindow::resize(w,h);
+    int dpyWidth = WidthOfScreen(DefaultScreenOfDisplay(dpy));
+    int dpyHeight = HeightOfScreen(DefaultScreenOfDisplay(dpy));
+    setUSPosition((dpyWidth - width() - 10) / 2, (dpyHeight - height() - 30) / 2);
+  }    
 
 protected:
   virtual void deleteWindow(TXWindow* w) {
