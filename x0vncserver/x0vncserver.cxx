@@ -131,8 +131,8 @@ class XDesktop : public SDesktop, public ColourMap
 {
 public:
   XDesktop(Display* dpy_)
-        : dpy(dpy_), pb(0), server(0), image(0), pollmgr(0),
-          oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
+    : dpy(dpy_), pb(0), server(0), image(0), pollmgr(0),
+      oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
     int xtestEventBase;
