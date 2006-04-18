@@ -30,7 +30,7 @@ AR = ar cq
 .SUFFIXES: .cxx .c .o
 
 .c.o:
-	$(CC) $(ALL_CPPFLAGS) $(CFLAGS) -c $<
+	$(CC) $(ALL_CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
 .cxx.o:
-	$(CXX) $(ALL_CPPFLAGS) $(CXXFLAGS) -c $<
+	$(CXX) $(ALL_CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
