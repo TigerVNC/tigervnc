@@ -132,7 +132,7 @@ class XDesktop : public SDesktop, public ColourMap
 public:
   XDesktop(Display* dpy_)
         : dpy(dpy_), pb(0), server(0), image(0), pollmgr(0),
-      oldButtonMask(0), haveXtest(false), maxButtons(0)
+          oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
     int xtestEventBase;
@@ -193,16 +193,28 @@ public:
                                   (rdr::U8*)image->xim->data, this);
     server = vs;
     server->setPixelBuffer(pb);
+
+    running = true;
   }
 
   virtual void stop() {
+    running = false;
+
+    // FIXME: Delete images as well?!
     delete pb;
     delete pollmgr;
-    // FIXME: Delete images as well?!
+
+    pb = 0;
+    pollmgr = 0;
+  }
+
+  inline bool isRunning() {
+    return running;
   }
 
   inline void poll() {
-    pollmgr->poll();
+    if (pollmgr)
+      pollmgr->poll();
   }
 
   virtual void pointerEvent(const Point& pos, int buttonMask) {
@@ -265,6 +277,7 @@ protected:
   int oldButtonMask;
   bool haveXtest;
   int maxButtons;
+  bool running;
 };
 
 
@@ -508,6 +521,10 @@ int main(int argc, char** argv)
         if (FD_ISSET((*i)->getFd(), &rfds))
           server.processSocketEvent(*i);
       }
+
+      // Don't poll if the desktop object in not ready.
+      if (!desktop.isRunning())
+        continue;
 
       server.checkTimeouts();
 
