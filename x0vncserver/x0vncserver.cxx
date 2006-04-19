@@ -200,12 +200,13 @@ public:
   virtual void stop() {
     running = false;
 
-    // FIXME: Delete images as well?!
     delete pb;
     delete pollmgr;
+    delete image;
 
     pb = 0;
     pollmgr = 0;
+    image = 0;
   }
 
   inline bool isRunning() {
