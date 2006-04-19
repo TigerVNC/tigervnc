@@ -30,7 +30,7 @@
 #include <rfb/VNCServerST.h>
 #include <rfb/Configuration.h>
 #include <rfb/SSecurityFactoryStandard.h>
-
+#include <rfb/Timer.h>
 #include <network/TcpSocket.h>
 #include <tx/TXWindow.h>
 
@@ -510,6 +510,10 @@ int main(int argc, char** argv)
         }
       }
 
+      Timer::checkTimeouts();
+      server.checkTimeouts();
+
+      // Client list could have been changed.
       server.getSockets(&sockets);
 
       // Nothing more to do if there are no client connections.
@@ -522,13 +526,7 @@ int main(int argc, char** argv)
           server.processSocketEvent(*i);
       }
 
-      // Don't poll if the desktop object in not ready.
-      if (!desktop.isRunning())
-        continue;
-
-      server.checkTimeouts();
-
-      if (sched.goodTimeToPoll()) {
+      if (desktop.isRunning() && sched.goodTimeToPoll()) {
         sched.newPass();
         desktop.poll();
       }
