@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -48,7 +48,7 @@ class CConn : public rfb::CConnection, public rfb::UserPasswdGetter,
 public:
 
   CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
-        char* vncServerName);
+        char* vncServerName, bool reverse=false);
   ~CConn();
 
   // TXDeleteWindowCallback methods
@@ -58,7 +58,7 @@ public:
   void blockCallback();
 
   // UserPasswdGetter methods
-  virtual bool getUserPasswd(char** user, char** password);
+  virtual void getUserPasswd(char** user, char** password);
 
   // TXMenuCallback methods
   void menuSelect(long id, TXMenu* m);
@@ -69,7 +69,7 @@ public:
 
   // TXEventHandler callback method
   virtual void handleEvent(TXWindow* w, XEvent* ev);
-
+  
   // CConnection callback methods
   rfb::CSecurity* getCSecurity(int secType);
   void serverInit();
@@ -83,7 +83,7 @@ public:
   void fillRect(const rfb::Rect& r, rfb::Pixel p);
   void imageRect(const rfb::Rect& r, void* p);
   void copyRect(const rfb::Rect& r, int sx, int sy);
-  void setCursor(const rfb::Point& hotspot, const rfb::Point& size,
+  void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
 
 private:
@@ -124,6 +124,7 @@ private:
   OptionsDialog options;
   AboutDialog about;
   InfoDialog info;
+  bool reverseConnection;
 };
 
 #endif

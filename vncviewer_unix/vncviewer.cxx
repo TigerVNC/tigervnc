@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
@@ -33,6 +34,7 @@
 #include <rfb/LogWriter.h>
 #include <network/TcpSocket.h>
 #include "TXWindow.h"
+#include "TXMsgBox.h"
 #include "CConn.h"
 
 #include <intl/gettext.h>
@@ -265,12 +267,12 @@ int main(int argc, char** argv)
   textdomain(PACKAGE);
 
   snprintf(aboutText, sizeof(aboutText), 
-	   _("TightVNC viewer for X version 4.0 - built %s\n"
-	     "Copyright (C) 2002-2004 RealVNC Ltd.\n"
-	     "Copyright (C) 2000-2004 Constantin Kaplinsky\n"
-	     "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
-	     "See http://www.tightvnc.com for information on TightVNC."),
-	     buildtime);
+           _("TightVNC viewer for X version 1.5 - built %s\n"
+             "Copyright (C) 2002-2005 RealVNC Ltd.\n"
+             "Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+             "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+             "See http://www.tightvnc.com for information on TightVNC."),
+           buildtime);
   fprintf(stderr,"\n%s\n", aboutText);
 
   bind_textdomain_codeset(PACKAGE, "iso-8859-1");
@@ -284,7 +286,7 @@ int main(int argc, char** argv)
 
   programName = argv[0];
   char* vncServerName = 0;
-  Display* dpy;
+  Display* dpy = 0;
 
   for (int i = 1; i < argc; i++) {
     if (Configuration::setParam(argv[i]))
@@ -303,6 +305,17 @@ int main(int argc, char** argv)
     vncServerName = argv[i];
   }
 
+  // Create .vnc in the user's home directory if it doesn't already exist
+  char* homeDir = getenv("HOME");
+  if (homeDir) {
+    CharArray vncDir(strlen(homeDir)+6);
+    sprintf(vncDir.buf, "%s/.vnc", homeDir);
+    int result =  mkdir(vncDir.buf, 0755);
+    if (result == -1 && errno != EEXIST)
+      vlog.error("Could not create .vnc directory: %s.", strerror(errno));
+  } else
+    vlog.error("Could not create .vnc directory: environment variable $HOME not set.");
+
   if (!::autoSelect.hasBeenSet()) {
     // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
     ::autoSelect.setParam(!::preferredEncoding.hasBeenSet() 
@@ -315,8 +328,6 @@ int main(int argc, char** argv)
   }
 
   try {
-    TcpSocket::initTcpSockets();
-
     /* Tunnelling support. */
     if (strlen (via.getValueStr ()) > 0) {
       char *gatewayHost = "";
@@ -361,7 +372,7 @@ int main(int argc, char** argv)
 
     TXWindow::init(dpy, "Vncviewer");
     xloginIconifier.iconify(dpy);
-    CConn cc(dpy, argc, argv, sock, vncServerName);
+    CConn cc(dpy, argc, argv, sock, vncServerName, listenMode);
 
     // X events are processed whenever reading from the socket would block.
 
@@ -370,8 +381,15 @@ int main(int argc, char** argv)
       cc.processMsg();
     }
 
-  } catch (rdr::Exception &e) {
+  } catch (rdr::EndOfStream& e) {
+    vlog.info(e.str());
+  } catch (rdr::Exception& e) {
     vlog.error(e.str());
+    if (dpy) {
+      TXMsgBox msgBox(dpy, e.str(), MB_OK, "VNC Viewer: Information");
+      msgBox.show();
+    }
+    return 1;
   }
 
   return 0;
