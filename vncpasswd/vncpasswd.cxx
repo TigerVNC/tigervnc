@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,8 +21,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <rfb/vncAuth.h>
+#include <rfb/Password.h>
 #include <rfb/util.h>
+
+#include <termios.h>
+
 
 using namespace rfb;
 
@@ -33,6 +36,33 @@ static void usage()
   fprintf(stderr,"usage: %s [file]\n",prog);
   exit(1);
 }
+
+
+static void enableEcho(bool enable) {
+  termios attrs;
+  tcgetattr(fileno(stdin), &attrs);
+  if (enable)
+    attrs.c_lflag |= ECHO;
+  else
+    attrs.c_lflag &= ~ECHO;
+  attrs.c_lflag |= ECHONL;
+  tcsetattr(fileno(stdin), TCSAFLUSH, &attrs);
+}
+
+static char* getpassword(const char* prompt) {
+  PlainPasswd buf(256);
+  fputs(prompt, stdout);
+  enableEcho(false);
+  char* result = fgets(buf.buf, 256, stdin);
+  enableEcho(true);
+  if (result) {
+    if (result[strlen(result)-1] == '\n')
+      result[strlen(result)-1] = 0;
+    return buf.takeBuf();
+  }
+  return 0;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -63,13 +93,13 @@ int main(int argc, char** argv)
   }
 
   while (true) {
-    char* passwd = getpass("Password: ");
-    if (!passwd) {
-      perror("getpass error");
+    PlainPasswd passwd(getpassword("Password:"));
+    if (!passwd.buf) {
+      perror("getpassword error");
       exit(1);
     }   
-    if (strlen(passwd) < 6) {
-      if (strlen(passwd) == 0) {
+    if (strlen(passwd.buf) < 6) {
+      if (strlen(passwd.buf) == 0) {
         fprintf(stderr,"Password not changed\n");
         exit(1);
       }
@@ -77,20 +107,12 @@ int main(int argc, char** argv)
       continue;
     }
 
-    if (strlen(passwd) > 8)
-      passwd[8] = '\0';
-
-    CharArray passwdCopy(strDup(passwd));
-
-    passwd = getpass("Verify: ");
-    if (!passwd) {
+    PlainPasswd passwd2(getpassword("Verify:"));
+    if (!passwd2.buf) {
       perror("getpass error");
       exit(1);
     }   
-    if (strlen(passwd) > 8)
-      passwd[8] = '\0';
-
-    if (strcmp(passwdCopy.buf, passwd) != 0) {
+    if (strcmp(passwd.buf, passwd2.buf) != 0) {
       fprintf(stderr,"Passwords don't match - try again\n");
       continue;
     }
@@ -102,17 +124,14 @@ int main(int argc, char** argv)
     }
     chmod(fname, S_IRUSR|S_IWUSR);
 
-    vncAuthObfuscatePasswd(passwd);
+    ObfuscatedPasswd obfuscated(passwd);
 
-    if (fwrite(passwd, 8, 1, fp) != 1) {
+    if (fwrite(obfuscated.buf, obfuscated.length, 1, fp) != 1) {
       fprintf(stderr,"Writing to %s failed\n",fname);
       exit(1);
     }
 
     fclose(fp);
-
-    for (unsigned int i = 0; i < strlen(passwd); i++)
-      passwd[i] = passwdCopy.buf[i] = 0;
 
     return 0;
   }
