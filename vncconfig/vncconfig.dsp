@@ -125,6 +125,10 @@ SOURCE=.\Legacy.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\PasswordDialog.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\vncconfig.cxx
 # End Source File
 # End Group
@@ -154,6 +158,10 @@ SOURCE=.\Inputs.h
 # Begin Source File
 
 SOURCE=.\Legacy.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\PasswordDialog.h
 # End Source File
 # Begin Source File
 

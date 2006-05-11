@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,7 +16,6 @@
  * USA.
  */
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
 #include <string.h>
@@ -49,8 +48,6 @@ static LogWriter vlog("main");
 
 TStr rfb::win32::AppName("VNC Config");
 
-
-VncAuthPasswdConfigParameter vncAuthPasswd;
 
 #ifdef _DEBUG
 BoolParameter captureDialogs("CaptureDialogs", "", false);
@@ -119,14 +116,14 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
       bool warnOnChangePassword = false;
       try {
         AccessEntries access;
-        Sid adminSID = Sid::Administrators();
-        Sid systemSID = Sid::SYSTEM();
+        Sid::Administrators adminSID;
+        Sid::SYSTEM systemSID;
         access.addEntry(adminSID, KEY_ALL_ACCESS, GRANT_ACCESS);
         access.addEntry(systemSID, KEY_ALL_ACCESS, GRANT_ACCESS);
-        UserName user;
+        UserSID userSID;
         if (configKey == HKEY_CURRENT_USER)
-          access.addEntry(user.buf, KEY_ALL_ACCESS, GRANT_ACCESS);
-        AccessControlList acl = CreateACL(access);
+          access.addEntry(userSID, KEY_ALL_ACCESS, GRANT_ACCESS);
+        AccessControlList acl(CreateACL(access));
 
         // Set the DACL, and don't allow the key to inherit its parent's DACL
         rootKey.setDACL(acl, false);
@@ -145,9 +142,9 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
         warnOnChangePassword = true;
       }
 
-      // Start the RegConfig reader, to load in existing settings
-      RegistryReader config;
-      config.setKey(configKey, _T("Software\\TightVNC\\WinVNC4"));
+      // Start a RegConfig thread, to load in existing settings
+      RegConfigThread config;
+      config.start(configKey, _T("Software\\TightVNC\\WinVNC4"));
 
       // Build the dialog
       std::list<PropSheetPage*> pages;
@@ -175,8 +172,6 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
 #else
       sheet.showPropSheet(0, true, false);
 #endif
-
-      return 0;
     } catch (rdr::SystemException& e) {
       switch (e.err) {
       case ERROR_ACCESS_DENIED:
@@ -186,8 +181,11 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
       };
       throw;
     }
+
   } catch (rdr::Exception& e) {
     MsgBox(NULL, TStr(e.str()), MB_ICONEXCLAMATION | MB_OK);
     return 1;
   }
+
+  return 0;
 }

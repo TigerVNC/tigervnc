@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,62 +18,28 @@
 #ifndef WINVNCCONF_AUTHENTICATION
 #define WINVNCCONF_AUTHENTICATION
 
+#include <vncconfig/PasswordDialog.h>
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/OSVersion.h>
+#include <rfb_win32/MsgBox.h>
 #include <rfb/ServerCore.h>
 #include <rfb/secTypes.h>
-#include <rfb/vncAuth.h>
+#include <rfb/Password.h>
 
-
-extern rfb::VncAuthPasswdConfigParameter vncAuthPasswd;
+static rfb::BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
+  "Only prompt for a local user to accept incoming connections if there is a user logged on", false);
 
 namespace rfb {
 
   namespace win32 {
 
-    class VncPasswdDialog : public Dialog {
-    public:
-      VncPasswdDialog(const RegKey& rk) : Dialog(GetModuleHandle(0)), regKey(rk), warnPasswdInsecure(false) {}
-      bool showDialog() {
-        return Dialog::showDialog(MAKEINTRESOURCE(IDD_AUTH_VNC_PASSWD));
-      }
-      bool onOk() {
-        TCharArray password1 = getItemString(IDC_PASSWORD1);
-        TCharArray password2 = getItemString(IDC_PASSWORD2);;
-        if (_tcscmp(password1.buf, password2.buf) != 0) {
-          MsgBox(0, _T("The supplied passwords do not match"),
-                 MB_ICONEXCLAMATION | MB_OK);
-          return false;
-        }
-        if (warnPasswdInsecure &&
-          (MsgBox(0, _T("Please note that your VNC password cannot be stored securely on this system.  ")
-                     _T("Are you sure you wish to continue?"),
-                  MB_YESNO | MB_ICONWARNING) == IDNO))
-          return false;
-        char passwd[9];
-        memset(passwd, 0, sizeof(passwd));
-        strCopy(passwd, CStr(password1.buf), sizeof(passwd));
-        vncAuthObfuscatePasswd(passwd);
-        regKey.setBinary(_T("Password"), passwd, 8);
-        return true;
-      }
-      void setWarnPasswdInsecure(bool warn) {
-        warnPasswdInsecure = warn;
-      }
-    protected:
-      const RegKey& regKey;
-      bool warnPasswdInsecure;
-    };
-
     class AuthenticationPage : public PropSheetPage {
     public:
       AuthenticationPage(const RegKey& rk)
-        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_AUTHENTICATION)),
-        passwd(rk), regKey(rk) {}
+        : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_AUTHENTICATION)), regKey(rk) {}
       void initDialog() {
-        CharArray sec_types_str;
-        sec_types_str.buf = rfb::Server::sec_types.getData();
+        CharArray sec_types_str(SSecurityFactoryStandard::sec_types.getData());
         std::list<int> sec_types = parseSecTypes(sec_types_str.buf);
 
         useNone = useVNC = false;
@@ -83,54 +49,93 @@ namespace rfb {
           else if ((*i) == secTypeVncAuth) useVNC = true;
         }
 
+        HWND security = GetDlgItem(handle, IDC_ENCRYPTION);
+        SendMessage(security, CB_ADDSTRING, 0, (LPARAM)_T("Always Off"));
+        SendMessage(security, CB_SETCURSEL, 0, 0);
+        enableItem(IDC_AUTH_NT, false); enableItem(IDC_AUTH_NT_CONF, false);
+        enableItem(IDC_ENCRYPTION, false); enableItem(IDC_AUTH_RA2_CONF, false);
+
         setItemChecked(IDC_AUTH_NONE, useNone);
         setItemChecked(IDC_AUTH_VNC, useVNC);
         setItemChecked(IDC_QUERY_CONNECT, rfb::Server::queryConnect);
+        setItemChecked(IDC_QUERY_LOGGED_ON, queryOnlyIfLoggedOn);
+        onCommand(IDC_AUTH_NONE, 0);
       }
       bool onCommand(int id, int cmd) {
         switch (id) {
         case IDC_AUTH_VNC_PASSWD:
-          passwd.showDialog();
+          {
+            PasswordDialog passwdDlg(regKey, registryInsecure);
+            passwdDlg.showDialog(handle);
+          }
           return true;
         case IDC_AUTH_NONE:
         case IDC_AUTH_VNC:
+          enableItem(IDC_AUTH_VNC_PASSWD, isItemChecked(IDC_AUTH_VNC));
         case IDC_QUERY_CONNECT:
-          setChanged((rfb::Server::queryConnect != isItemChecked(IDC_QUERY_CONNECT)) ||
-                     (useNone != isItemChecked(IDC_AUTH_NONE)) ||
-                     (useVNC != isItemChecked(IDC_AUTH_VNC)));
+        case IDC_QUERY_LOGGED_ON:
+          setChanged((useNone != isItemChecked(IDC_AUTH_NONE)) ||
+                     (useVNC != isItemChecked(IDC_AUTH_VNC)) ||
+                     (rfb::Server::queryConnect != isItemChecked(IDC_QUERY_CONNECT)) ||
+                     (queryOnlyIfLoggedOn != isItemChecked(IDC_QUERY_LOGGED_ON)));
+          enableItem(IDC_QUERY_LOGGED_ON, enableQueryOnlyIfLoggedOn());
           return false;
         };
         return false;
       }
       bool onOk() {
+        bool useVncChanged = useVNC != isItemChecked(IDC_AUTH_VNC);
         useVNC = isItemChecked(IDC_AUTH_VNC);
         useNone = isItemChecked(IDC_AUTH_NONE);
         if (useVNC) {
-          CharArray password = vncAuthPasswd.getVncAuthPasswd();
-          if (!password.buf || strlen(password.buf) == 0) {
-            MsgBox(0, _T("The VNC authentication method is enabled, but no password is specified!  ")
-                      _T("The password dialog will now be shown."), MB_ICONEXCLAMATION | MB_OK);
-            passwd.showDialog();
-          }
+          verifyVncPassword(regKey);
           regKey.setString(_T("SecurityTypes"), _T("VncAuth"));
-        } else if (useNone) {
+        } else {
+          if (haveVncPassword() && useVncChanged &&
+              MsgBox(0, _T("The VNC authentication method is disabled, but a password is still stored for it.\n")
+                        _T("Do you want to remove the VNC authentication password from the registry?"),
+                        MB_ICONWARNING | MB_YESNO) == IDYES) {
+            regKey.setBinary(_T("Password"), 0, 0);
+          }
           regKey.setString(_T("SecurityTypes"), _T("None"));
         }
         regKey.setString(_T("ReverseSecurityTypes"), _T("None"));
         regKey.setBool(_T("QueryConnect"), isItemChecked(IDC_QUERY_CONNECT));
+        regKey.setBool(_T("QueryOnlyIfLoggedOn"), isItemChecked(IDC_QUERY_LOGGED_ON));
         return true;
       }
       void setWarnPasswdInsecure(bool warn) {
-        passwd.setWarnPasswdInsecure(warn);
+        registryInsecure = warn;
       }
+      bool enableQueryOnlyIfLoggedOn() {
+        return isItemChecked(IDC_QUERY_CONNECT) && osVersion.isPlatformNT && (osVersion.dwMajorVersion >= 5);
+      }
+
+
+      static bool haveVncPassword() {
+        PlainPasswd password(SSecurityFactoryStandard::vncAuthPasswd.getVncAuthPasswd());
+        return password.buf && strlen(password.buf) != 0;
+      }
+
+      static void verifyVncPassword(const RegKey& regKey) {
+        if (!haveVncPassword()) {
+          MsgBox(0, _T("The VNC authentication method is enabled, but no password is specified.\n")
+                    _T("The password dialog will now be shown."), MB_ICONINFORMATION | MB_OK);
+          PasswordDialog passwd(regKey, registryInsecure);
+          passwd.showDialog();
+        }
+      }
+
     protected:
       RegKey regKey;
-      VncPasswdDialog passwd;
+      static bool registryInsecure;
       bool useNone;
       bool useVNC;
     };
 
   };
+
+  bool AuthenticationPage::registryInsecure = false;
 
 };
 
