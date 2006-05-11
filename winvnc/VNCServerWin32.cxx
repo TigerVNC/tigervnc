@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,8 +21,8 @@
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/resource.h>
 #include <winvnc/STrayIcon.h>
-
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/ComputerName.h>
+#include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
 #include <rfb/SSecurityFactoryStandard.h>
 #include <rfb/Hostname.h>
@@ -38,90 +38,28 @@ static LogWriter vlog("VNCServerWin32");
 
 const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TightVNC\\WinVNC4");
 
-const UINT VNCM_REG_CHANGED = WM_USER;
-const UINT VNCM_COMMAND = WM_USER + 1;
-
 
 static IntParameter http_port("HTTPPortNumber",
   "TCP/IP port on which the server will serve the Java applet VNC Viewer ", 5800);
 static IntParameter port_number("PortNumber",
   "TCP/IP port on which the server will accept connections", 5900);
 static StringParameter hosts("Hosts",
-  "Filter describing which hosts are allowed access to this server", "+");
-static VncAuthPasswdConfigParameter vncAuthPasswd;
+  "Filter describing which hosts are allowed access to this server", "+0.0.0.0/0.0.0.0");
 static BoolParameter localHost("LocalHost",
   "Only accept connections from via the local loop-back network interface", false);
-
-
-// -=- ManagedListener
-//     Wrapper class which simplifies the management of a listening socket
-//     on a specified port, attached to a SocketManager and SocketServer.
-//     Ensures that socket and filter are deleted and updated appropriately.
-
-class ManagedListener {
-public:
-  ManagedListener(win32::SocketManager* mgr, SocketServer* svr)
-    : sock(0), filter(0), port(0), manager(mgr),
-      server(svr), localOnly(0) {}
-  ~ManagedListener() {setPort(0);}
-  void setPort(int port, bool localOnly=false);
-  void setFilter(const char* filter);
-  TcpListener* sock;
-protected:
-  TcpFilter* filter;
-  win32::SocketManager* manager;
-  SocketServer* server;
-  int port;
-  bool localOnly;
-};
-
-// - If the port number/localHost setting has changed then tell the
-//   SocketManager to shutdown and delete it.  Also remove &
-//   delete the filter.  Then try to open a socket on the new port.
-void ManagedListener::setPort(int newPort, bool newLocalOnly) {
-  if ((port == newPort) && (localOnly == newLocalOnly) && sock) return;
-  if (sock) {
-    vlog.info("Closed TcpListener on port %d", port);
-    sock->setFilter(0);
-    delete filter;
-    manager->remListener(sock);
-    sock = 0;
-    filter = 0;
-  }
-  port = newPort;
-  localOnly = newLocalOnly;
-  if (port != 0) {
-    try {
-      sock = new TcpListener(port, localOnly);
-      vlog.info("Created TcpListener on port %d%s", port,
-                localOnly ? "(localhost)" : "(any)");
-    } catch (rdr::Exception& e) {
-      vlog.error("TcpListener on port %d failed (%s)", port, e.str());
-    }
-  }
-  if (sock)
-    manager->addListener(sock, server);
-}
-
-void ManagedListener::setFilter(const char* newFilter) {
-  if (!sock) return;
-  vlog.info("Updating TcpListener filter");
-  sock->setFilter(0);
-  delete filter;
-  filter = new TcpFilter(newFilter);
-  sock->setFilter(filter);
-}
+static BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
+  "Only prompt for a local user to accept incoming connections if there is a user logged on", false);
 
 
 VNCServerWin32::VNCServerWin32()
-  : vncServer(CStr(ComputerName().buf), &desktop),
-    httpServer(0), runServer(false),
-    isDesktopStarted(false),
-    command(NoCommand), commandSig(commandLock),
-    queryConnectDialog(0) {
-  // Create the Java-viewer HTTP server
-  httpServer = new JavaViewerServer(&vncServer);
-
+  : command(NoCommand), commandSig(commandLock),
+    commandEvent(CreateEvent(0, TRUE, FALSE, 0)),
+    vncServer(CStr(ComputerName().buf), &desktop),
+    hostThread(0), runServer(false), isDesktopStarted(false),
+    httpServer(&vncServer), config(&sockMgr), trayIcon(0),
+    rfbSock(&sockMgr), httpSock(&sockMgr),
+    queryConnectDialog(0)
+{
   // Initialise the desktop
   desktop.setStatusLocation(&isDesktopStarted);
 
@@ -130,14 +68,78 @@ VNCServerWin32::VNCServerWin32()
 
   // Register the desktop's event to be handled
   sockMgr.addEvent(desktop.getUpdateEvent(), &desktop);
+
+  // Register the queued command event to be handled
+  sockMgr.addEvent(commandEvent, this);
 }
 
 VNCServerWin32::~VNCServerWin32() {
+  delete trayIcon;
+
   // Stop the SDisplay from updating our state
   desktop.setStatusLocation(0);
 
-  // Destroy the HTTP server
-  delete httpServer;
+  // Join the Accept/Reject dialog thread
+  if (queryConnectDialog)
+    delete queryConnectDialog->join();
+}
+
+
+void VNCServerWin32::processAddressChange(network::SocketListener* sock_) {
+  if (!trayIcon || (sock_ != rfbSock.sock))
+    return;
+
+  // Tool-tip prefix depends on server mode
+  const TCHAR* prefix = _T("VNC Server (User):");
+  if (isServiceProcess())
+    prefix = _T("VNC Server (Service):");
+
+  // Fetch the list of addresses
+  std::list<char*> addrs;
+  if (rfbSock.sock)
+    rfbSock.sock->getMyAddresses(&addrs);
+  else
+    addrs.push_front(strDup("Not accepting connections"));
+
+  // Allocate space for the new tip
+  std::list<char*>::iterator i, next_i;
+  int length = _tcslen(prefix)+1;
+  for (i=addrs.begin(); i!= addrs.end(); i++)
+    length += strlen(*i) + 1;
+
+  // Build the new tip
+  TCharArray toolTip(length);
+  _tcscpy(toolTip.buf, prefix);
+  for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
+    next_i = i; next_i ++;
+    TCharArray addr = *i;    // Assumes ownership of string
+    _tcscat(toolTip.buf, addr.buf);
+    if (next_i != addrs.end())
+      _tcscat(toolTip.buf, _T(","));
+  }
+  
+  // Pass the new tip to the tray icon
+  vlog.info("Refreshing tray icon");
+  trayIcon->setToolTip(toolTip.buf);
+}
+
+void VNCServerWin32::regConfigChanged() {
+  // -=- Make sure we're listening on the right ports.
+  rfbSock.setServer(&vncServer);
+  rfbSock.setPort(port_number, localHost);
+  httpSock.setServer(&httpServer);
+  httpSock.setPort(http_port, localHost);
+
+  // -=- Update the Java viewer's web page port number.
+  httpServer.setRFBport(rfbSock.sock ? port_number : 0);
+
+  // -=- Update the TCP address filter for both ports, if open.
+  CharArray pattern(hosts.getData());
+  rfbSock.setFilter(pattern.buf);
+  httpSock.setFilter(pattern.buf);
+
+  // -=- Update the tray icon tooltip text with IP addresses
+  processAddressChange(rfbSock.sock);
 }
 
 
@@ -147,85 +149,37 @@ int VNCServerWin32::run() {
     runServer = true;
   }
 
+  // - Create the tray icon (if possible)
+  trayIcon = new STrayIconThread(*this, IDI_ICON, IDI_CONNECTED,
+                                 IDI_ICON_DISABLE, IDI_CONNECTED_DISABLE,
+                                 IDR_TRAY);
+
   // - Register for notification of configuration changes
+  config.setCallback(this);
   if (isServiceProcess())
     config.setKey(HKEY_LOCAL_MACHINE, RegConfigPath);
   else
     config.setKey(HKEY_CURRENT_USER, RegConfigPath);
-  config.setNotifyThread(Thread::self(), VNCM_REG_CHANGED);
 
-  // - Create the tray icon if possible
-  STrayIconThread trayIcon(*this, IDI_ICON, IDI_CONNECTED, IDI_ICON_DISABLE,
-                            IDI_CONNECTED_DISABLE, IDR_TRAY);
+  // - Set the address-changed handler for the RFB socket
+  rfbSock.setAddressChangeNotifier(this);
 
   DWORD result = 0;
   try {
-    // - Create some managed listening sockets
-    ManagedListener rfb(&sockMgr, &vncServer);
-    ManagedListener http(&sockMgr, httpServer);
+    vlog.debug("Entering message loop");
 
-    // - Continue to operate until WM_QUIT is processed
+    // - Run the server until we're told to quit
     MSG msg;
-    do {
-      // -=- Make sure we're listening on the right ports.
-      rfb.setPort(port_number, localHost);
-      http.setPort(http_port, localHost);
-
-      // -=- Update the Java viewer's web page port number.
-      httpServer->setRFBport(rfb.sock ? port_number : 0);
-
-      // -=- Update the TCP address filter for both ports, if open.
-      CharArray pattern;
-      pattern.buf = hosts.getData();
-      if (!localHost) {
-        rfb.setFilter(pattern.buf);
-        http.setFilter(pattern.buf);
-      }
-
-      // - If there is a listening port then add the address to the
-      //   tray icon's tool-tip text.
-      {
-        const TCHAR* prefix = isServiceProcess() ?
-          _T("VNC Server (Service):") : _T("VNC Server (User):");
-
-        std::list<char*> addrs;
-        if (rfb.sock)
-          rfb.sock->getMyAddresses(&addrs);
-        else
-          addrs.push_front(strDup("Not accepting connections"));
-
-        std::list<char*>::iterator i, next_i;
-        int length = _tcslen(prefix)+1;
-        for (i=addrs.begin(); i!= addrs.end(); i++)
-          length += strlen(*i) + 1;
-
-        TCharArray toolTip(length);
-        _tcscpy(toolTip.buf, prefix);
-        for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
-          next_i = i; next_i ++;
-          TCharArray addr = *i;    // Assumes ownership of string
-          _tcscat(toolTip.buf, addr.buf);
-          if (next_i != addrs.end())
-            _tcscat(toolTip.buf, _T(","));
-        }
-        trayIcon.setToolTip(toolTip.buf);
-      }
-
-      vlog.debug("Entering message loop");
-
-      // - Run the server until the registry changes, or we're told to quit
-      while (sockMgr.getMessage(&msg, NULL, 0, 0)) {
-        if (msg.hwnd == 0) {
-          if (msg.message == VNCM_REG_CHANGED)
-            break;
-          if (msg.message == VNCM_COMMAND)
-            doCommand();
-        }
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-      }
-
-    } while ((msg.message != WM_QUIT) || runServer);
+    int result = 0;
+    while (runServer) {
+      result = sockMgr.getMessage(&msg, NULL, 0, 0);
+      if (result < 0)
+        throw rdr::SystemException("getMessage", GetLastError());
+      if (!isServiceProcess() && (result == 0))
+        break;
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+    }
 
     vlog.debug("Server exited cleanly");
   } catch (rdr::SystemException &s) {
@@ -246,7 +200,8 @@ int VNCServerWin32::run() {
 void VNCServerWin32::stop() {
   Lock l(runLock);
   runServer = false;
-  PostThreadMessage(hostThread->getThreadId(), WM_QUIT, 0, 0);
+  if (hostThread)
+    PostThreadMessage(hostThread->getThreadId(), WM_QUIT, 0, 0);
 }
 
 
@@ -283,6 +238,8 @@ VNCServerST::queryResult VNCServerWin32::queryConnection(network::Socket* sock,
                                             const char* userName,
                                             char** reason)
 {
+  if (queryOnlyIfLoggedOn && CurrentUserToken().noUserLoggedOn())
+    return VNCServerST::ACCEPT;
   if (queryConnectDialog) {
     *reason = rfb::strDup("Another connection is currently being queried.");
     return VNCServerST::REJECT;
@@ -293,51 +250,49 @@ VNCServerST::queryResult VNCServerWin32::queryConnection(network::Socket* sock,
 }
 
 void VNCServerWin32::queryConnectionComplete() {
-  Thread* qcd = queryConnectDialog;
-  queueCommand(QueryConnectionComplete, 0, 0);
-  delete qcd->join();
+  queueCommand(QueryConnectionComplete, 0, 0, false);
 }
 
 
-bool VNCServerWin32::queueCommand(Command cmd, const void* data, int len) {
+bool VNCServerWin32::queueCommand(Command cmd, const void* data, int len, bool wait) {
   Lock l(commandLock);
-  while (command != NoCommand) commandSig.wait();
+  while (command != NoCommand)
+    commandSig.wait();
   command = cmd;
   commandData = data;
   commandDataLen = len;
-  if (PostThreadMessage(hostThread->getThreadId(), VNCM_COMMAND, 0, 0))
-    while (command != NoCommand) commandSig.wait();
-  else
-    return false;
+  SetEvent(commandEvent);
+  if (wait) {
+    while (command != NoCommand)
+      commandSig.wait();
+    commandSig.signal();
+  }
   return true;
 }
 
-void VNCServerWin32::doCommand() {
-  Lock l(commandLock);
-  if (command == NoCommand) return;
+void VNCServerWin32::processEvent(HANDLE event_) {
+  ResetEvent(event_);
 
-  // Perform the required command
-  switch (command) {
+  if (event_ == commandEvent.h) {
+    // If there is no command queued then return immediately
+    {
+      Lock l(commandLock);
+      if (command == NoCommand)
+        return;
+    }
 
-  case DisconnectClients:
-    // Disconnect all currently active VNC Viewers
-    vncServer.closeClients((const char*)commandData);
-    break;
+    // Perform the required command
+    switch (command) {
 
-  case AddClient:
-    // Make a reverse connection to a VNC Viewer
-    vncServer.addClient((network::Socket*)commandData, true);
-    sockMgr.addSocket((network::Socket*)commandData, &vncServer);
-    break;
+    case DisconnectClients:
+      // Disconnect all currently active VNC Viewers
+      vncServer.closeClients((const char*)commandData);
+      break;
 
-  case QueryConnectionComplete:
-    // The Accept/Reject dialog has completed
-    // Get the result, then clean it up
-    vncServer.approveConnection(queryConnectDialog->getSock(),
-                                queryConnectDialog->isAccepted(),
-                                "Connection rejected by user");
-    queryConnectDialog = 0;
-    break;
+    case AddClient:
+      // Make a reverse connection to a VNC Viewer
+      sockMgr.addSocket((network::Socket*)commandData, &vncServer);
+      break;
   case GetClientsInfo:
     vncServer.getConnInfo((ListConnInfo*)commandData); 
     break;
@@ -345,11 +300,26 @@ void VNCServerWin32::doCommand() {
     vncServer.setConnStatus((ListConnInfo*)commandData); 
     break;
 
-  default:
-    vlog.error("unknown command %d queued", command);
-  };
+    case QueryConnectionComplete:
+      // The Accept/Reject dialog has completed
+      // Get the result, then clean it up
+      vncServer.approveConnection(queryConnectDialog->getSock(),
+                                  queryConnectDialog->isAccepted(),
+                                  "Connection rejected by user");
+      delete queryConnectDialog->join();
+      queryConnectDialog = 0;
+      break;
 
-  // Clear the command and signal completion
-  command = NoCommand;
-  commandSig.signal();
+    default:
+      vlog.error("unknown command %d queued", command);
+    };
+
+    // Clear the command and signal completion
+    {
+      Lock l(commandLock);
+      command = NoCommand;
+      commandSig.signal();
+    }
+  }
 }
+

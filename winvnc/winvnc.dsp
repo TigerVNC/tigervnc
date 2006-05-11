@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".." /FI"msvcwarning.h" /D "NDEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".." /FI"rdr/msvcwarning.h" /D "NDEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -73,7 +73,7 @@ PreLink_Cmds=cl /c /nologo /FoRelease\ /FdRelease\ /MT buildTime.cxx
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_DEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -104,7 +104,7 @@ PreLink_Cmds=cl /c /nologo /FoDebug\ /FdDebug\ /MTd buildTime.cxx
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_CONSOLE" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_CONSOLE" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -142,6 +142,10 @@ SOURCE=.\ControlPanel.cxx
 # Begin Source File
 
 SOURCE=.\JavaViewer.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ManagedListener.cxx
 # End Source File
 # Begin Source File
 
@@ -185,6 +189,10 @@ SOURCE=.\JavaViewer.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ManagedListener.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\QueryConnectDialog.h
 # End Source File
 # Begin Source File
@@ -221,6 +229,10 @@ SOURCE=.\java\logo150x150.gif
 # End Source File
 # Begin Source File
 
+SOURCE=.\winvnc.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\winvnc.ico
 # End Source File
 # End Group
@@ -231,10 +243,6 @@ SOURCE=.\java\index.vnc
 # Begin Source File
 
 SOURCE=.\java\vncviewer.jar
-# End Source File
-# Begin Source File
-
-SOURCE=.\vncviewer.jar
 # End Source File
 # Begin Source File
 

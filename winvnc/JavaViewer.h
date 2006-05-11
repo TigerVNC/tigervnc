@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -35,7 +35,8 @@ namespace winvnc {
     JavaViewerServer(rfb::VNCServerST* desktop);
     virtual ~JavaViewerServer();
 
-    virtual rdr::InStream* getFile(const char* name, const char** contentType);
+    virtual rdr::InStream* getFile(const char* name, const char** contentType,
+                                   int* contentLength, time_t* lastModified);
 
     // rdr::Substitutor callback
     virtual char* substitute(const char* varName);

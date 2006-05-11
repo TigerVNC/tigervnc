@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,6 +19,7 @@
 // -=- WinVNC Version 4.0 Tray Icon implementation
 
 #include <winvnc/STrayIcon.h>
+#include <winvnc/VNCServerService.h>
 #include <winvnc/resource.h>
 
 #include <rfb/LogWriter.h>
@@ -26,7 +27,7 @@
 #include <rfb_win32/LaunchProcess.h>
 #include <rfb_win32/TrayIcon.h>
 #include <rfb_win32/AboutDialog.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/MsgBox.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/CurrentUser.h>
 #include <winvnc/ControlPanel.h>
@@ -38,6 +39,7 @@ using namespace winvnc;
 static LogWriter vlog("STrayIcon");
 
 BoolParameter STrayIconThread::disableOptions("DisableOptions", "Disable the Options entry in the VNC Server tray menu.", false);
+BoolParameter STrayIconThread::disableClose("DisableClose", "Disable the Close entry in the VNC Server tray menu.", false);
 
 
 //
@@ -62,7 +64,7 @@ class winvnc::STrayIcon : public TrayIcon {
 public:
   STrayIcon(STrayIconThread& t) : thread(t),
     vncConfig(_T("vncconfig.exe"), isServiceProcess() ? _T("-noconsole -service") : _T("-noconsole")),
-    vncConnect(_T("winvnc4.exe"), _T("-connect")) {
+    vncConnect(_T("winvnc4.exe"), _T("-noconsole -connect")) {
 
     // ***
     SetWindowText(getHandle(), _T("winvnc::IPC_Interface"));
@@ -79,8 +81,9 @@ public:
 
     case WM_USER:
       {
-        bool userKnown = CurrentUserToken().isValid();
+        bool userKnown = CurrentUserToken().canImpersonate();
         bool allowOptions = !STrayIconThread::disableOptions && userKnown;
+        bool allowClose = !STrayIconThread::disableClose && userKnown;
 
         switch (lParam) {
         case WM_LBUTTONDBLCLK:
@@ -97,7 +100,7 @@ public:
           // Enable/disable options as required
           EnableMenuItem(trayMenu, ID_OPTIONS, (!allowOptions ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
           EnableMenuItem(trayMenu, ID_CONNECT, (!userKnown ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
-          EnableMenuItem(trayMenu, ID_CLOSE, (isServiceProcess() ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
+          EnableMenuItem(trayMenu, ID_CLOSE, (!allowClose ? MF_GRAYED : MF_ENABLED) | MF_BYCOMMAND);
 
           thread.server.getClientsInfo(&LCInfo);
           CheckMenuItem(trayMenu, ID_DISABLE_NEW_CLIENTS, (LCInfo.getDisable() ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
@@ -134,8 +137,8 @@ public:
       case ID_OPTIONS:
         {
           CurrentUserToken token;
-          if (token.isValid())
-            vncConfig.start(isServiceProcess() ? (HANDLE)token : 0);
+          if (token.canImpersonate())
+            vncConfig.start(isServiceProcess() ? (HANDLE)token : INVALID_HANDLE_VALUE);
           else
             vlog.error("Options: unknown current user");
         }
@@ -143,8 +146,8 @@ public:
       case ID_CONNECT:
         {
           CurrentUserToken token;
-          if (token.isValid())
-            vncConnect.start(isServiceProcess() ? (HANDLE)token : 0);
+          if (token.canImpersonate())
+            vncConnect.start(isServiceProcess() ? (HANDLE)token : INVALID_HANDLE_VALUE);
           else
             vlog.error("Options: unknown current user");
         }
@@ -153,8 +156,19 @@ public:
         thread.server.disconnectClients("tray menu disconnect");
         break;
       case ID_CLOSE:
-        if (!isServiceProcess())
-          thread.server.stop();
+        if (MsgBox(0, _T("Are you sure you want to close the server?"),
+                   MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2) == IDYES) {
+          if (isServiceProcess()) {
+            ImpersonateCurrentUser icu;
+            try {
+              rfb::win32::stopService(VNCServerService::Name);
+            } catch (rdr::Exception& e) {
+              MsgBox(0, TStr(e.str()), MB_ICONERROR | MB_OK);
+            }
+          } else {
+            thread.server.stop();
+          }
+        }
         break;
       case ID_ABOUT:
         AboutDialog::instance.showDialog();
@@ -172,12 +186,10 @@ public:
             CharArray viewer = new char[command->cbData + 1];
             memcpy(viewer.buf, command->lpData, command->cbData);
             viewer.buf[command->cbData] = 0;
-            thread.server.addNewClient(viewer.buf);
+            return thread.server.addNewClient(viewer.buf) ? 1 : 0;
           }
-          break;
         case 2:
-          thread.server.disconnectClients("IPC disconnect");
-          break;
+          return thread.server.disconnectClients("IPC disconnect") ? 1 : 0;
         case 3:
           thread.server.setClientsStatus((rfb::ListConnInfo *)command->cbData);
         case 4:
@@ -231,7 +243,7 @@ protected:
 
 STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT activeIcon_, 
                                  UINT dis_inactiveIcon_, UINT dis_activeIcon_, UINT menu_)
-: server(sm), inactiveIcon(inactiveIcon_), activeIcon(activeIcon_),
+: Thread("TrayIcon"), server(sm), inactiveIcon(inactiveIcon_), activeIcon(activeIcon_),
   dis_inactiveIcon(dis_inactiveIcon_), dis_activeIcon(dis_activeIcon_),menu(menu_),
   windowHandle(0), runTrayIcon(true) {
   start();
