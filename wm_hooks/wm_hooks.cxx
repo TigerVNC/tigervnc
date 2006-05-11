@@ -20,7 +20,6 @@
 //
 // Window Message Hooks Dynamic Link library
 
-#define _WIN32_WINNT 0x0400
 #include <tchar.h>
 
 #include <wm_hooks/wm_hooks.h>
