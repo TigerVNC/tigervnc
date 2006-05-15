@@ -170,6 +170,10 @@ SOURCE=.\ListViewControl.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\LowLevelKeyEvents.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\MonitorInfo.cxx
 # End Source File
 # Begin Source File
@@ -367,6 +371,10 @@ SOURCE=.\LocalMem.h
 # Begin Source File
 
 SOURCE=.\LogicalPalette.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LowLevelKeyEvents.h
 # End Source File
 # Begin Source File
 
