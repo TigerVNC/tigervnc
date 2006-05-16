@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,12 +18,14 @@
 
 #include <vncviewer/UserPasswdDialog.h>
 #include <vncviewer/resource.h>
+#include <rfb/Exception.h>
 
 using namespace rfb;
 using namespace rfb::win32;
 
 
-UserPasswdDialog::UserPasswdDialog() : Dialog(GetModuleHandle(0)), showUsername(false) {
+UserPasswdDialog::UserPasswdDialog() : Dialog(GetModuleHandle(0)),
+  showUsername(false), showPassword(false) {
 }
 
 
@@ -36,17 +38,17 @@ bool UserPasswdDialog::showDialog() {
 }
 
 void UserPasswdDialog::initDialog() {
-  if (username.buf) {
+  if (username.buf)
     setItemString(IDC_USERNAME, username.buf);
-    tstrFree(username.takeBuf());
-  }
-  if (password.buf) {
+  if (password.buf)
     setItemString(IDC_PASSWORD, password.buf);
-    tstrFree(password.takeBuf());
-  }
   if (!showUsername) {
     setItemString(IDC_USERNAME, _T(""));
     enableItem(IDC_USERNAME, false);
+  }
+  if (!showPassword) {
+    setItemString(IDC_PASSWORD, _T(""));
+    enableItem(IDC_PASSWORD, false);
   }
   if (description.buf) {
     TCharArray title(128);
@@ -59,26 +61,25 @@ void UserPasswdDialog::initDialog() {
 }
 
 bool UserPasswdDialog::onOk() {
-	username.buf = getItemString(IDC_USERNAME);
-	password.buf = getItemString(IDC_PASSWORD);
+	username.replaceBuf(getItemString(IDC_USERNAME));
+	password.replaceBuf(getItemString(IDC_PASSWORD));
   return true;
 }
 
 
-bool UserPasswdDialog::getUserPasswd(char** user, char** passwd) {
-  bool result = false;
+void UserPasswdDialog::getUserPasswd(char** user, char** passwd) {
   showUsername = user != 0;
+  showPassword = passwd != 0;
   if (user && *user)
-    username.buf = tstrDup(*user);
+    username.replaceBuf(tstrDup(*user));
   if (passwd && *passwd)
-    password.buf = tstrDup(*passwd);
-  if (showDialog()) {
-    if (user)
-      *user = strDup(username.buf);
+    password.replaceBuf(tstrDup(*passwd));
+
+  if (!showDialog())
+    throw rfb::AuthCancelledException();
+
+  if (user)
+    *user = strDup(username.buf);
+  if (passwd)
     *passwd = strDup(password.buf);
-    result = true;
-  }
-  tstrFree(username.takeBuf());
-  tstrFree(password.takeBuf());
-  return result;
 }

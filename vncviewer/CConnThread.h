@@ -16,33 +16,42 @@
  * USA.
  */
 
-// -=- InfoDialog.h
+// -=- CConnThread.h
 
-// Info dialog for VNC Viewer 4.0
+// CConn-managing Thread implementation.
 
-#ifndef __RFB_WIN32_INFO_DIALOG_H__
-#define __RFB_WIN32_INFO_DIALOG_H__
+#ifndef __RFB_WIN32_CCONN_THREAD_H__
+#define __RFB_WIN32_CCONN_THREAD_H__
 
-#include <rfb_win32/Dialog.h>
+#include <network/Socket.h>
+#include <rfb/Threading.h>
 #include <rfb/util.h>
 
 namespace rfb {
 
   namespace win32 {
 
-    class CConn;
-
-    class InfoDialog : Dialog {
+    class CConnThread : public Thread {
     public:
-      InfoDialog() : Dialog(GetModuleHandle(0)), conn(0) {}
-      virtual bool showDialog(CConn* vw);
-      virtual void initDialog();
+      CConnThread();
+      CConnThread(const char* hostOrConfig, bool isConfig=false);
+      CConnThread(network::Socket* sock, bool reverse=false);
+      ~CConnThread();
+
+      void run();
+
+      // Special getMessage call that returns FALSE if message is WM_QUIT,
+      // OR if there are no more CConnThreads running.
+      static BOOL getMessage(MSG* msg, HWND hwnd, UINT minMsg, UINT maxMsg);
     protected:
-      CConn* conn;
+      CharArray hostOrConfig;
+      bool isConfig;
+      network::Socket* sock;
+      bool reverse;
     };
 
   };
 
 };
 
-#endif
+#endif // __RFB_WIN32_CCONN_THREAD_H__

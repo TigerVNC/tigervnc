@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,12 +16,11 @@
  * USA.
  */
 
-#include <vncviewer/CViewOptions.h>
+#include <vncviewer/CConnOptions.h>
 #include <rfb/Configuration.h>
 #include <rfb/encodings.h>
-#include <rfb/vncAuth.h>
 #include <rfb/LogWriter.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/MsgBox.h>
 #include <rfb_win32/Registry.h>
 #include <rdr/HexInStream.h>
 #include <rdr/HexOutStream.h>
@@ -32,6 +31,9 @@ using namespace rfb::win32;
 
 static StringParameter passwordFile("PasswordFile",
 				    "Password file for VNC authentication", "");
+
+// - Settings stored in the registry & in .vnc files, by Save Defaults and
+//   Save Configuration respectively.
 
 static BoolParameter useLocalCursor("UseLocalCursor", "Render the mouse cursor locally", true);
 static BoolParameter useDesktopResize("UseDesktopResize", "Support dynamic desktop resizing", true);
@@ -74,6 +76,9 @@ static BoolParameter clientCutText("ClientCutText",
 static BoolParameter serverCutText("ServerCutText",
                          "Accept clipboard changes from the server.", true);
 
+static BoolParameter disableWinKeys("DisableWinKeys",
+                         "Pass special Windows keys directly to the server.", true);
+
 static BoolParameter protocol3_3("Protocol3.3",
                          "Only use protocol version 3.3", false);
 
@@ -92,6 +97,8 @@ static BoolParameter showToolbar("ShowToolbar", "Show toolbar by default.", true
 
 static StringParameter monitor("Monitor", "The monitor to open the VNC Viewer window on, if available.", "");
 static StringParameter menuKey("MenuKey", "The key which brings up the popup menu", "F8");
+static BoolParameter autoReconnect("AutoReconnect", "Offer to reconnect to the remote server if the connection"
+                                   "is dropped because an error occurs.", true);
 
 static BoolParameter customCompressLevel("CustomCompressLevel",
 					 "Use custom compression level. "
@@ -111,18 +118,24 @@ static IntParameter qualityLevel("QualityLevel",
 				 "0 = Low, 9 = High",
 				 6);
 
-CViewOptions::CViewOptions()
+CConnOptions::CConnOptions()
 : useLocalCursor(::useLocalCursor), useDesktopResize(::useDesktopResize),
 autoSelect(::autoSelect), fullColour(::fullColour), fullScreen(::fullScreen),
 shared(::sharedConnection), sendPtrEvents(::sendPtrEvents), sendKeyEvents(::sendKeyEvents), sendSysKeys(::sendSysKeys),
 preferredEncoding(encodingZRLE), clientCutText(::clientCutText), serverCutText(::serverCutText),
-protocol3_3(::protocol3_3), acceptBell(::acceptBell), showToolbar(::showToolbar), lowColourLevel(::lowColourLevel),
-pointerEventInterval(ptrEventInterval), emulate3(::emulate3), monitor(::monitor.getData()),
+disableWinKeys(::disableWinKeys), protocol3_3(::protocol3_3), acceptBell(::acceptBell),
+lowColourLevel(::lowColourLevel), pointerEventInterval(ptrEventInterval),
+emulate3(::emulate3), monitor(::monitor.getData()), showToolbar(::showToolbar),
 customCompressLevel(::customCompressLevel), compressLevel(::compressLevel), 
-noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getData())
+noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getData()),
+autoReconnect(::autoReconnect)
 {
-  CharArray encodingName(::preferredEncoding.getData());
-  preferredEncoding = encodingNum(encodingName.buf);
+  if (autoSelect) {
+    preferredEncoding = encodingZRLE;
+  } else {
+    CharArray encodingName(::preferredEncoding.getData());
+    preferredEncoding = encodingNum(encodingName.buf);
+  }
   setMenuKey(CharArray(::menuKey.getData()).buf);
 
   if (!::autoSelect.hasBeenSet()) {
@@ -138,7 +151,7 @@ noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getD
 }
 
 
-void CViewOptions::readFromFile(const char* filename) {
+void CConnOptions::readFromFile(const char* filename) {
   FILE* f = fopen(filename, "r");
   if (!f)
     throw rdr::Exception("Failed to read configuration file");
@@ -185,15 +198,10 @@ void CViewOptions::readFromFile(const char* filename) {
           } else if (stricmp(name.buf, "UserName") == 0) {
             userName.replaceBuf(value.takeBuf());
           } else if (stricmp(name.buf, "Password") == 0) {
-            int len = 0;
-            CharArray obfuscated;
-            rdr::HexInStream::hexStrToBin(value.buf, &obfuscated.buf, &len);
-            if (len == 8) {
-              password.replaceBuf(new char[9]);
-              memcpy(password.buf, obfuscated.buf, 8);
-              vncAuthUnobfuscatePasswd(password.buf);
-              password.buf[8] = 0;
-            }
+            ObfuscatedPasswd obfPwd;
+            rdr::HexInStream::hexStrToBin(value.buf, (char**)&obfPwd.buf, &obfPwd.length);
+            PlainPasswd passwd(obfPwd);
+            password.replaceBuf(passwd.takeBuf());
           }
         } else if (stricmp(section.buf, "Options") == 0) {
             // V4 options
@@ -224,6 +232,8 @@ void CViewOptions::readFromFile(const char* filename) {
             clientCutText = atoi(value.buf);
           } else if (stricmp(name.buf, "AcceptCutText") == 0) {
             serverCutText = atoi(value.buf);
+          } else if (stricmp(name.buf, "DisableWinKeys") == 0) {
+            disableWinKeys = atoi(value.buf);
           } else if (stricmp(name.buf, "AcceptBell") == 0) {
             acceptBell = atoi(value.buf);
           } else if (stricmp(name.buf, "Emulate3") == 0) {
@@ -236,6 +246,9 @@ void CViewOptions::readFromFile(const char* filename) {
             monitor.replaceBuf(value.takeBuf());
           } else if (stricmp(name.buf, "MenuKey") == 0) {
             setMenuKey(value.buf);
+          } else if (stricmp(name.buf, "AutoReconnect") == 0) {
+            autoReconnect = atoi(value.buf);
+
           } else if (stricmp(name.buf, "CustomCompressLevel") == 0) {
 	    customCompressLevel = atoi(value.buf);
           } else if (stricmp(name.buf, "CompressLevel") == 0) {
@@ -274,6 +287,10 @@ void CViewOptions::readFromFile(const char* filename) {
       }
     }
 
+    // If AutoSelect is enabled then override the preferred encoding
+    if (autoSelect)
+      preferredEncoding = encodingZRLE;
+
     setConfigFileName(filename);
   } catch (rdr::Exception&) {
     if (f) fclose(f);
@@ -281,7 +298,7 @@ void CViewOptions::readFromFile(const char* filename) {
   }
 }
 
-void CViewOptions::writeToFile(const char* filename) {
+void CConnOptions::writeToFile(const char* filename) {
   FILE* f = fopen(filename, "w");
   if (!f)
     throw rdr::Exception("Failed to write configuration file");
@@ -298,11 +315,8 @@ void CViewOptions::writeToFile(const char* filename) {
       if (MsgBox(0, _T("Do you want to include the VNC Password in this configuration file?\n")
                     _T("Storing the password is more convenient but poses a security risk."),
                     MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING) == IDYES) {
-        char obfuscated[9];
-        memset(obfuscated, 0, sizeof(obfuscated));
-        strCopy(obfuscated, password.buf, sizeof(obfuscated));
-        vncAuthObfuscatePasswd(obfuscated);
-        CharArray obfuscatedHex = rdr::HexOutStream::binToHexStr(obfuscated, 8);
+        ObfuscatedPasswd obfPwd(password);
+        CharArray obfuscatedHex = rdr::HexOutStream::binToHexStr(obfPwd.buf, obfPwd.length);
         fprintf(f, "Password=%s\n", obfuscatedHex.buf);
       }
     }
@@ -323,6 +337,7 @@ void CViewOptions::writeToFile(const char* filename) {
     fprintf(f, "SendSysKeys=%d\n", (int)sendSysKeys);
     fprintf(f, "SendCutText=%d\n", (int)clientCutText);
     fprintf(f, "AcceptCutText=%d\n", (int)serverCutText);
+    fprintf(f, "DisableWinKeys=%d\n", (int)disableWinKeys);
     fprintf(f, "AcceptBell=%d\n", (int)acceptBell);
     fprintf(f, "Emulate3=%d\n", (int)emulate3);
     fprintf(f, "ShowToolbar=%d\n", (int)showToolbar);
@@ -330,6 +345,7 @@ void CViewOptions::writeToFile(const char* filename) {
     if (monitor.buf)
       fprintf(f, "Monitor=%s\n", monitor.buf);
     fprintf(f, "MenuKey=%s\n", CharArray(menuKeyName()).buf);
+    fprintf(f, "AutoReconnect=%d\n", (int)autoReconnect);
     fprintf(f, "CustomCompressLevel=%d\n", customCompressLevel);
     fprintf(f, "CompressLevel=%d\n", compressLevel);
     fprintf(f, "NoJPEG=%d\n", noJpeg);
@@ -344,7 +360,7 @@ void CViewOptions::writeToFile(const char* filename) {
 }
 
 
-void CViewOptions::writeDefaults() {
+void CConnOptions::writeDefaults() {
   RegKey key;
   key.createKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCviewer4"));
   key.setBool(_T("UseLocalCursor"), useLocalCursor);
@@ -360,6 +376,7 @@ void CViewOptions::writeDefaults() {
   key.setBool(_T("SendSysKeys"), sendSysKeys);
   key.setBool(_T("ClientCutText"), clientCutText);
   key.setBool(_T("ServerCutText"), serverCutText);
+  key.setBool(_T("DisableWinKeys"), disableWinKeys);
   key.setBool(_T("Protocol3.3"), protocol3_3);
   key.setBool(_T("AcceptBell"), acceptBell);
   key.setBool(_T("ShowToolbar"), showToolbar);
@@ -368,6 +385,7 @@ void CViewOptions::writeDefaults() {
   if (monitor.buf)
     key.setString(_T("Monitor"), TStr(monitor.buf));
   key.setString(_T("MenuKey"), TCharArray(menuKeyName()).buf);
+  key.setBool(_T("AutoReconnect"), autoReconnect);
   key.setInt(_T("CustomCompressLevel"), customCompressLevel);
   key.setInt(_T("CompressLevel"), compressLevel);
   key.setInt(_T("NoJPEG"), noJpeg);
@@ -375,13 +393,13 @@ void CViewOptions::writeDefaults() {
 }
 
 
-void CViewOptions::setUserName(const char* user) {userName.replaceBuf(strDup(user));}
-void CViewOptions::setPassword(const char* pwd) {password.replaceBuf(strDup(pwd));}
-void CViewOptions::setConfigFileName(const char* cfn) {configFileName.replaceBuf(strDup(cfn));}
-void CViewOptions::setHost(const char* h) {host.replaceBuf(strDup(h));}
-void CViewOptions::setMonitor(const char* m) {monitor.replaceBuf(strDup(m));}
+void CConnOptions::setUserName(const char* user) {userName.replaceBuf(strDup(user));}
+void CConnOptions::setPassword(const char* pwd) {password.replaceBuf(strDup(pwd));}
+void CConnOptions::setConfigFileName(const char* cfn) {configFileName.replaceBuf(strDup(cfn));}
+void CConnOptions::setHost(const char* h) {host.replaceBuf(strDup(h));}
+void CConnOptions::setMonitor(const char* m) {monitor.replaceBuf(strDup(m));}
 
-void CViewOptions::setMenuKey(const char* keyName) {
+void CConnOptions::setMenuKey(const char* keyName) {
   if (!keyName[0]) {
     menuKey = 0;
   } else {
@@ -393,7 +411,7 @@ void CViewOptions::setMenuKey(const char* keyName) {
     }
   }
 }
-char* CViewOptions::menuKeyName() {
+char* CConnOptions::menuKeyName() {
   int fNum = (menuKey-VK_F1)+1;
   if (fNum<1 || fNum>12)
     return strDup("");
@@ -403,7 +421,7 @@ char* CViewOptions::menuKeyName() {
 }
 
 
-CViewOptions& CViewOptions::operator=(const CViewOptions& o) {
+CConnOptions& CConnOptions::operator=(const CConnOptions& o) {
   useLocalCursor = o.useLocalCursor;
   useDesktopResize = o.useDesktopResize;
   fullScreen = o.fullScreen;
@@ -417,6 +435,7 @@ CViewOptions& CViewOptions::operator=(const CViewOptions& o) {
   sendSysKeys = o.sendSysKeys;
   clientCutText = o.clientCutText;
   serverCutText = o.serverCutText;
+  disableWinKeys = o.disableWinKeys;
   emulate3 = o.emulate3;
   pointerEventInterval = o.pointerEventInterval;
   protocol3_3 = o.protocol3_3;
@@ -428,6 +447,7 @@ CViewOptions& CViewOptions::operator=(const CViewOptions& o) {
   setHost(o.host.buf);
   setMonitor(o.monitor.buf);
   menuKey = o.menuKey;
+  autoReconnect = o.autoReconnect;
   customCompressLevel = o.customCompressLevel;
   compressLevel = o.compressLevel;
   noJpeg = o.noJpeg;

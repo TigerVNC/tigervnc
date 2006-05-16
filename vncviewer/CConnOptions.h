@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,15 +16,15 @@
  * USA.
  */
 
-// -=- CViewOptions.h
+// -=- CConnOptions.h
 
-// Definition of the CViewOptions class, responsible for storing the
-// current & requested VNCviewer options.
+// Definition of the CConnOptions class, responsible for storing the
+// current & requested VNC Viewer options.
 
-#ifndef __RFB_WIN32_CVIEW_OPTIONS_H__
-#define __RFB_WIN32_CVIEW_OPTIONS_H__
+#ifndef __RFB_WIN32_CCONN_OPTIONS_H__
+#define __RFB_WIN32_CCONN_OPTIONS_H__
 
-#include <rfb/util.h>
+#include <rfb/Password.h>
 
 namespace rfb {
 
@@ -32,19 +32,19 @@ namespace rfb {
 
     //
     // -=- Options structure.  Each viewer option has a corresponding
-    //     entry in CViewOptions.  The viewer options are set by calling
-    //     CView::applyOptions(...)
-    //     The CViewOptions structure automatically picks up the default
+    //     entry in CConnOptions.  The viewer options are set by calling
+    //     CConn::applyOptions(...)
+    //     The CConnOptions structure automatically picks up the default
     //     value of each option from the Configuration system
     //     The readFromFile and writeFromFile methods can be used to load
     //     and save VNC configuration files.  readFromFile is backwards
     //     compatible with 3.3 releases, while writeToFile is not.
 
-    class CViewOptions {
+    class CConnOptions {
     public:
-      CViewOptions();
-      CViewOptions(const CViewOptions& o) {operator=(o);}
-      CViewOptions& operator=(const CViewOptions& o);
+      CConnOptions();
+      CConnOptions(const CConnOptions& o) {operator=(o);}
+      CConnOptions& operator=(const CConnOptions& o);
       void readFromFile(const char* filename_);
       void writeToFile(const char* filename_);
       void writeDefaults();
@@ -62,13 +62,14 @@ namespace rfb {
       bool showToolbar;
       bool clientCutText;
       bool serverCutText;
+      bool disableWinKeys;
       bool emulate3;
       int pointerEventInterval;
       bool protocol3_3;
       bool acceptBell;
       CharArray userName;
       void setUserName(const char* user);
-      CharArray password;
+      PlainPasswd password;
       void setPassword(const char* pwd);
       CharArray configFileName;
       void setConfigFileName(const char* cfn);
@@ -79,6 +80,7 @@ namespace rfb {
       unsigned int menuKey;
       void setMenuKey(const char* keyName);
       char* menuKeyName();
+      bool autoReconnect;
 
       bool customCompressLevel;
       int compressLevel;

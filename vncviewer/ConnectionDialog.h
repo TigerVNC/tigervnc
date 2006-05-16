@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -31,18 +31,18 @@ namespace rfb {
 
   namespace win32 {
 
-    class CView;
+    class CConn;
 
     class ConnectionDialog : Dialog {
     public:
-      ConnectionDialog(CView* view);
+      ConnectionDialog(CConn* view);
       virtual bool showDialog();
       virtual void initDialog();
       virtual bool onOk();
       virtual bool onCommand(int id, int cmd);
       TCharArray hostname;
     protected:
-      CView* view;
+      CConn* conn;
     };
 
   };

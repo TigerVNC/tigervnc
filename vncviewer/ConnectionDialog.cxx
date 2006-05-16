@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,9 +15,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
 #include <vncviewer/ConnectionDialog.h>
-#include <vncviewer/CView.h>
+#include <vncviewer/CConn.h>
 #include <vncviewer/resource.h>
+#include <rfb_win32/AboutDialog.h>
 
 #include <tchar.h>
 
@@ -25,7 +27,7 @@ using namespace rfb;
 using namespace rfb::win32;
 
 
-ConnectionDialog::ConnectionDialog(CView* view_) : Dialog(GetModuleHandle(0)), view(view_) {
+ConnectionDialog::ConnectionDialog(CConn* conn_) : Dialog(GetModuleHandle(0)), conn(conn_) {
 }
 
 
@@ -47,6 +49,13 @@ void ConnectionDialog::initDialog() {
 
   // Select the first item in the list
   SendMessage(box, CB_SETCURSEL, 0, 0);
+
+  // Fill out the Security: drop-down and select the preferred option
+  HWND security = GetDlgItem(handle, IDC_SECURITY_LEVEL);
+  LRESULT n = SendMessage(security, CB_ADDSTRING, 0, (LPARAM)_T("Always Off"));
+  if (n != CB_ERR)
+    SendMessage(security, CB_SETCURSEL, n, 0);
+  enableItem(IDC_SECURITY_LEVEL, false);
 }
 
 
@@ -63,7 +72,7 @@ bool ConnectionDialog::onCommand(int id, int cmd) {
     AboutDialog::instance.showDialog();
     return true;
   case IDC_OPTIONS:
-    view->optionsDialog.showDialog(view);
+    conn->showOptionsDialog();
     return true;
   };
   return false;

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,74 +18,44 @@
 
 // -=- ConnectingDialog.h
 
-// Dialog to indicate to the user that the viewer is attempting to make an
-// outgoing connection.
+// ConnectingDialog instances are used to display a status dialog while a
+// connection attempt is in progress.  The connection attempt is performed
+// in a background thread by the ConnectingDialog, to allow the status dialog
+// to remain interactive.  If the dialog is cancelled then it will close and
+// the connection dialog will eventually tidy itself up.
 
 #ifndef __RFB_WIN32_CONNECTING_DLG_H__
 #define __RFB_WIN32_CONNECTING_DLG_H__
 
-#include <rfb_win32/Dialog.h>
-#include <rfb/Threading.h>
-#include <vncviewer/resource.h>
+#include <windows.h>
+#include <network/Socket.h>
+#include <rfb/util.h>
+#include <rfb_win32/Handle.h>
 
 namespace rfb {
 
   namespace win32 {
 
-    BOOL CALLBACK ConnectingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
-	    switch (uMsg) {
-	    case WM_INITDIALOG:
-		    {
-			    SetWindowLong(hwnd, GWL_USERDATA, lParam);
-			    return TRUE;
-		    }
-	    case WM_COMMAND:
-		    switch (LOWORD(wParam)) {
-		    case IDCANCEL:
-          network::Socket* sock = (network::Socket*) GetWindowLong(hwnd, GWL_USERDATA);
-          sock->shutdown();
-			    EndDialog(hwnd, FALSE);
-			    return TRUE;
-		    }
-		    break;
-	    case WM_DESTROY:
-		    EndDialog(hwnd, TRUE);
-		    return TRUE;
-	    }
-	    return 0;
-    }
-
-    // *** hacky bit - should use async connect so dialog behaves properly
-    class ConnectingDialog : public Thread {
+    class ConnectingDialog {
     public:
-      ConnectingDialog() : Thread("ConnectingDialog") {
-        dialog = 0;
-        active = true;
-        start();
-      }
-      virtual ~ConnectingDialog() {
-        // *** join() required here because otherwise ~Thread calls Thread::join()
-        join();
-      }
-      virtual void run() {
-        dialog = CreateDialogParam(GetModuleHandle(0),
-          MAKEINTRESOURCE(IDD_CONNECTING_DLG), 0, &ConnectingDlgProc, 0);
-        ShowWindow(dialog, SW_SHOW);
-        MSG msg;
-        while (active && GetMessage(&msg, dialog, 0, 0)) {
-          DispatchMessage(&msg);
-        }
-        DestroyWindow(dialog);
-      }
-      virtual Thread* join() {
-        active = false;
-        if (dialog)
-          PostMessage(dialog, WM_QUIT, 0, 0);
-        return Thread::join();
-      }
+      ConnectingDialog();
+
+      // connect
+      //   Show a Connecting dialog and attempt to connect to the specified host
+      //   in the background.
+      //   If the connection succeeds then the Socket is returned.
+      //   If an error occurs, an Exception is thrown.
+      //   If the dialog is cancelled then null is returned.
+      network::Socket* connect(const char* hostAndPort);
     protected:
       HWND dialog;
-      bool active;
+      network::Socket* newSocket;
+      CharArray errMsg;
+      Handle readyEvent;
+      int dialogId;
+
+      class Thread;
+      friend class Thread;
     };
 
   };

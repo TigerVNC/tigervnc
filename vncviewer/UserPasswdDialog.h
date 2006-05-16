@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,6 +19,10 @@
 // -=- UserPasswdDialog.h
 
 // Username and password dialog for VNC Viewer 4.0
+// Note that the password and username fields are only freed
+// when the dialog instance is deleted - it is important to
+// ensure that the instance is deleted as early as possible, to
+// avoid the password being retained in memory for too long.
 
 #ifndef __RFB_WIN32_USERPASSWD_DIALOG_H__
 #define __RFB_WIN32_USERPASSWD_DIALOG_H__
@@ -38,12 +42,12 @@ namespace rfb {
       virtual bool showDialog();
       virtual void initDialog();
       virtual bool onOk();
-      virtual bool getUserPasswd(char** user, char** passwd);
+      virtual void getUserPasswd(char** user, char** passwd);
       void setCSecurity(const CSecurity* cs);
     protected:
       TCharArray username;
-      TCharArray password;
-      bool showUsername;
+      TPlainPasswd password;
+      bool showUsername, showPassword;
       TCharArray description;
     };
 

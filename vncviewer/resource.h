@@ -16,8 +16,9 @@
 #define IDR_TRAY                        112
 #define IDD_CONNECTION_INFO             113
 #define IDD_DEFAULTS                    116
-#define IDD_FILETRANSFER_DLG            120
-#define IDB_TOOLBAR                     121
+#define IDB_BITMAP                      120
+#define IDD_FILETRANSFER_DLG            121
+#define IDB_TOOLBAR                     122
 #define IDD_FTDIRNAME_DLG               123
 #define IDD_FTCONFIRM_DLG               124
 #define IDI_FTUP                        125
@@ -77,14 +78,10 @@
 #define IDC_MENU_KEY                    1051
 #define IDC_REQUESTED_ENCODING          1052
 #define IDC_LAST_ENCODING               1053
-#define IDC_ENCODING_TIGHT              1054
-#define IDC_FTLOCALPATH                 1054
-#define IDC_CUSTOM_COMPRESSLEVEL        1055
-#define IDC_FTREMOTEPATH                1055
-#define IDC_COMPRESSLEVEL               1056
-#define IDC_FTREMOTELIST                1056
-#define IDC_ALLOW_JPEG                  1057
-#define IDC_FTLOCALRELOAD               1057
+#define IDC_SECURITY_LEVEL              1054
+#define IDC_INFO_ENCRYPTION             1055
+#define IDC_AUTO_RECONNECT              1056
+#define IDC_DISABLE_WINKEYS             1057
 #define IDC_QUALITYLEVEL                1058
 #define IDC_FTLOCALUP                   1058
 #define IDC_SEND_SYSKEYS                1059
@@ -115,6 +112,15 @@
 #define IDC_FTTEXT                      1084
 #define IDC_FTBROWSEPATH                1085
 #define IDC_FTBROWSETREE                1086
+#define IDC_TYPE                        1088
+#define IDC_ENCODING_TIGHT              1089
+#define IDC_FTLOCALPATH                 1090
+#define IDC_CUSTOM_COMPRESSLEVEL        1091
+#define IDC_FTREMOTEPATH                1092
+#define IDC_COMPRESSLEVEL               1093
+#define IDC_FTREMOTELIST                1094
+#define IDC_ALLOW_JPEG                  1095
+#define IDC_FTLOCALRELOAD               1096
 #define ID_TOOLBAR                      40002
 #define ID_CLOSE                        40003
 #define ID_OPTIONS                      40004
@@ -143,7 +149,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         40028
-#define _APS_NEXT_CONTROL_VALUE         1087
+#define _APS_NEXT_CONTROL_VALUE         1097
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

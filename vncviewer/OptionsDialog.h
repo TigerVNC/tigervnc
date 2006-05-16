@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,19 +23,18 @@
 #ifndef __RFB_WIN32_OPTIONS_DIALOG_H__
 #define __RFB_WIN32_OPTIONS_DIALOG_H__
 
-#include <vncviewer/CViewOptions.h>
 #include <rfb_win32/Dialog.h>
 
 namespace rfb {
 
   namespace win32 {
 
-    class CView;
+    class CConn;
 
     class OptionsDialog {
     public:
       OptionsDialog();
-      virtual bool showDialog(CView* cfg, bool capture=false);
+      virtual bool showDialog(CConn* cfg, bool capture=false);
 
       static OptionsDialog global;
     protected:
