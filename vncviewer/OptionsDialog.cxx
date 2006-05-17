@@ -188,7 +188,6 @@ public:
   virtual void initDialog() {
     setItemChecked(IDC_SEND_POINTER, dlg->options.sendPtrEvents);
     setItemChecked(IDC_SEND_KEYS, dlg->options.sendKeyEvents);
-    setItemChecked(IDC_SEND_SYSKEYS, dlg->options.sendSysKeys);
     setItemChecked(IDC_CLIENT_CUTTEXT, dlg->options.clientCutText);
     setItemChecked(IDC_SERVER_CUTTEXT, dlg->options.serverCutText);
     setItemChecked(IDC_DISABLE_WINKEYS, dlg->options.disableWinKeys && !osVersion.isPlatformWindows);
@@ -213,7 +212,6 @@ public:
   virtual bool onOk() {
     dlg->options.sendPtrEvents = isItemChecked(IDC_SEND_POINTER);
     dlg->options.sendKeyEvents = isItemChecked(IDC_SEND_KEYS);
-    dlg->options.sendSysKeys = isItemChecked(IDC_SEND_SYSKEYS);
     dlg->options.clientCutText = isItemChecked(IDC_CLIENT_CUTTEXT);
     dlg->options.serverCutText = isItemChecked(IDC_SERVER_CUTTEXT);
     dlg->options.disableWinKeys = isItemChecked(IDC_DISABLE_WINKEYS);

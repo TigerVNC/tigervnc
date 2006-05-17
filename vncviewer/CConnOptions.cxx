@@ -68,8 +68,6 @@ static BoolParameter sendPtrEvents("SendPointerEvents",
                          "Send pointer (mouse) events to the server.", true);
 static BoolParameter sendKeyEvents("SendKeyEvents",
                          "Send key presses (and releases) to the server.", true);
-static BoolParameter sendSysKeys("SendSysKeys",
-                         "Send system keys (Alt combinations) to the server.", true);
 
 static BoolParameter clientCutText("ClientCutText",
                          "Send clipboard changes to the server.", true);
@@ -121,7 +119,7 @@ static IntParameter qualityLevel("QualityLevel",
 CConnOptions::CConnOptions()
 : useLocalCursor(::useLocalCursor), useDesktopResize(::useDesktopResize),
 autoSelect(::autoSelect), fullColour(::fullColour), fullScreen(::fullScreen),
-shared(::sharedConnection), sendPtrEvents(::sendPtrEvents), sendKeyEvents(::sendKeyEvents), sendSysKeys(::sendSysKeys),
+shared(::sharedConnection), sendPtrEvents(::sendPtrEvents), sendKeyEvents(::sendKeyEvents),
 preferredEncoding(encodingZRLE), clientCutText(::clientCutText), serverCutText(::serverCutText),
 disableWinKeys(::disableWinKeys), protocol3_3(::protocol3_3), acceptBell(::acceptBell),
 lowColourLevel(::lowColourLevel), pointerEventInterval(ptrEventInterval),
@@ -226,8 +224,6 @@ void CConnOptions::readFromFile(const char* filename) {
             sendPtrEvents = atoi(value.buf);
           } else if (stricmp(name.buf, "SendKeyEvents") == 0) {
             sendKeyEvents = atoi(value.buf);
-          } else if (stricmp(name.buf, "SendSysKeys") == 0) {
-            sendSysKeys = atoi(value.buf);
           } else if (stricmp(name.buf, "SendCutText") == 0) {
             clientCutText = atoi(value.buf);
           } else if (stricmp(name.buf, "AcceptCutText") == 0) {
@@ -334,7 +330,6 @@ void CConnOptions::writeToFile(const char* filename) {
     fprintf(f, "Shared=%d\n", (int)shared);
     fprintf(f, "SendPtrEvents=%d\n", (int)sendPtrEvents);
     fprintf(f, "SendKeyEvents=%d\n", (int)sendKeyEvents);
-    fprintf(f, "SendSysKeys=%d\n", (int)sendSysKeys);
     fprintf(f, "SendCutText=%d\n", (int)clientCutText);
     fprintf(f, "AcceptCutText=%d\n", (int)serverCutText);
     fprintf(f, "DisableWinKeys=%d\n", (int)disableWinKeys);
@@ -373,7 +368,6 @@ void CConnOptions::writeDefaults() {
   key.setBool(_T("Shared"), shared);
   key.setBool(_T("SendPointerEvents"), sendPtrEvents);
   key.setBool(_T("SendKeyEvents"), sendKeyEvents);
-  key.setBool(_T("SendSysKeys"), sendSysKeys);
   key.setBool(_T("ClientCutText"), clientCutText);
   key.setBool(_T("ServerCutText"), serverCutText);
   key.setBool(_T("DisableWinKeys"), disableWinKeys);
@@ -432,7 +426,6 @@ CConnOptions& CConnOptions::operator=(const CConnOptions& o) {
   shared = o.shared;
   sendPtrEvents = o.sendPtrEvents;
   sendKeyEvents = o.sendKeyEvents;
-  sendSysKeys = o.sendSysKeys;
   clientCutText = o.clientCutText;
   serverCutText = o.serverCutText;
   disableWinKeys = o.disableWinKeys;
