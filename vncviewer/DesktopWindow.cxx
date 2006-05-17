@@ -177,7 +177,7 @@ FrameClass frameClass;
 
 DesktopWindow::DesktopWindow(Callback* cb) 
   : buffer(0),
-    showToolbar(true),
+    showToolbar(false),
     client_size(0, 0, 16, 16), window_size(0, 0, 32, 32),
     cursorVisible(false), cursorAvailable(false), cursorInBuffer(false),
     systemCursorVisible(true), trackingMouseLeave(false),
@@ -255,7 +255,7 @@ void DesktopWindow::setFullscreen(bool fs) {
     MonitorInfo mi(handle);
 
     // Hide the toolbar
-    if (showToolbar)
+    if (tb.isVisible())
       tb.hide();
     SetWindowLong(frameHandle, GWL_EXSTYLE, 0);
 
@@ -292,6 +292,17 @@ void DesktopWindow::setFullscreen(bool fs) {
   // Adjust the viewport offset to cope with change in size between FS
   // and previous window state.
   setViewportOffset(scrolloffset);
+}
+
+void DesktopWindow::setShowToolbar(bool st)
+{
+  showToolbar = st;
+
+  if (showToolbar && !tb.isVisible()) {
+    tb.show();
+  } else if (!showToolbar && tb.isVisible()) {
+    tb.hide();
+  }
 }
 
 void DesktopWindow::setDisableWinKeys(bool dwk) {

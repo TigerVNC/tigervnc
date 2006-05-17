@@ -177,10 +177,8 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     window->setFullscreen(options.fullScreen);
     return true;
   case IDM_SHOW_TOOLBAR:
-    options.showToolbar = !options.showToolbar;
+    options.showToolbar = !window->isToolbarEnabled();
     window->setShowToolbar(options.showToolbar);
-    // FIXME: Update menu in DesktopWindow?
-    // FIXME: Actually show or hide the toolbar?
     return true;
   case IDM_CTRL_KEY:
     window->kbd.keyEvent(this, VK_CONTROL, 0, !window->kbd.keyPressed(VK_CONTROL));
@@ -283,8 +281,12 @@ CConn::refreshMenu(bool enableSysItems) {
   // Set the menu fullscreen option tick
   CheckMenuItem(menu, IDM_FULLSCREEN, (window->isFullscreen() ? MF_CHECKED : 0) | MF_BYCOMMAND);
 
+  // Set the menu toolbar option tick
+  int toolbarFlags = window->isToolbarEnabled() ? MF_CHECKED : 0;
+  CheckMenuItem(menu, IDM_SHOW_TOOLBAR, MF_BYCOMMAND | toolbarFlags);
+
   // In the full-screen mode, "Show toolbar" should be grayed.
-  int toolbarFlags = options.fullScreen ? MF_GRAYED : MF_ENABLED;
+  toolbarFlags = window->isFullscreen() ? MF_GRAYED : MF_ENABLED;
   EnableMenuItem(menu, IDM_SHOW_TOOLBAR, MF_BYCOMMAND | toolbarFlags);
 }
 

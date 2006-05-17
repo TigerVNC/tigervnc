@@ -87,13 +87,13 @@ namespace rfb {
       void setCursor(int w, int h, const Point& hotspot, void* data, void* mask);
       void showCursor() { showLocalCursor(); }
 
-      // - Set whether to show the toolbar
-      // FIXME: Actually show/hide the toolbar.
-      void setShowToolbar(bool st) { showToolbar = st; }
-
       // - Set the window fullscreen / determine whether it is fullscreen
       void setFullscreen(bool fs);
       bool isFullscreen() { return fullscreenActive; }
+
+      // - Set/get the toolbar's state
+      void setShowToolbar(bool st);
+      bool isToolbarEnabled() { return showToolbar; }
 
       // - Set whether to disable special Windows keys & pass them straight to server
       void setDisableWinKeys(bool dwk);
