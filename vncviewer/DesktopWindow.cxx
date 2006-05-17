@@ -866,7 +866,7 @@ DesktopWindow::setPF(const PixelFormat& pf) {
   buffer->setPF(pf);
   
   // Redraw the window
-  InvalidateRect(handle, 0, 0);
+  InvalidateRect(frameHandle, 0, FALSE);
 }
 
 void
