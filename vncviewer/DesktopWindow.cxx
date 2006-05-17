@@ -195,13 +195,13 @@ DesktopWindow::DesktopWindow(Callback* cb)
   vlog.debug("created window \"%s\" (%x)", name, handle);
 
   // Create the toolbar
-  tb.create(getHandle());
+  tb.create(handle);
   vlog.debug("created toolbar window \"%s\" (%x)", "ViewerToolBar", tb.getHandle());
 
   // Create the frame window
   frameHandle = CreateWindowEx(WS_EX_CLIENTEDGE, (const TCHAR*)frameClass.classAtom,
     0, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT,
-    CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0, frameClass.instance, this);
+    CW_USEDEFAULT, CW_USEDEFAULT, handle, 0, frameClass.instance, this);
   if (!frameHandle) {
     throw rdr::SystemException("unable to create rfb frame window instance", GetLastError());
   }
@@ -397,7 +397,7 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       if (current_style & WS_HSCROLL)
         reqd_size.br.y += GetSystemMetrics(SM_CXHSCROLL);
 
-      SetRect(&r, reqd_size.tl.x, reqd_size.br.x, reqd_size.tl.y, reqd_size.br.y);
+      SetRect(&r, reqd_size.tl.x, reqd_size.tl.y, reqd_size.br.x, reqd_size.br.y);
       if (tb.isVisible())
         r.bottom += tb.getHeight();
       AdjustWindowRect(&r, GetWindowLong(handle, GWL_STYLE), FALSE);
@@ -428,12 +428,12 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       RECT r;
 
       // Resize child windows
-      GetClientRect(getHandle(), &r);
+      GetClientRect(handle, &r);
       if (tb.isVisible()) {
-        MoveWindow(getFrameHandle(), 0, tb.getHeight(),
+        MoveWindow(frameHandle, 0, tb.getHeight(),
                    r.right, r.bottom - tb.getHeight(), TRUE);
       } else {
-        MoveWindow(getFrameHandle(), 0, 0, r.right, r.bottom, TRUE);
+        MoveWindow(frameHandle, 0, 0, r.right, r.bottom, TRUE);
       }
       tb.autoSize();
  
