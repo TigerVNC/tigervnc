@@ -490,6 +490,12 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     kbd.releaseAllKeys(callback);
     break;
 
+    // -=- If the menu is about to be shown, make sure it's up to date
+
+  case WM_INITMENU:
+    callback->refreshMenu(true);
+    break;
+
     // -=- Handle the extra window menu items
 
     // Pass system menu messages to the callback and only attempt
@@ -524,13 +530,7 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       setFullscreen(false);
       break;
 
-      // If the menu is about to be shown, make sure it's up to date
-    case SC_KEYMENU:
-    case SC_MOUSEMENU:
-      callback->refreshMenu(true);
-      break;
-
-    };
+    }
     break;
 
     // Treat all menu commands as system menu commands
@@ -553,6 +553,11 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         // If MenuKey is being released then pop-up the menu
         if ((msg == WM_KEYDOWN)) {
           // Make sure it's up to date
+          //
+          // NOTE: Here we call refreshMenu only to grey out Move and Size
+          //       menu items. Other things will be refreshed once again
+          //       while processing the WM_INITMENU message.
+          //
           callback->refreshMenu(false);
 
           // Show it under the pointer
