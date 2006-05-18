@@ -3,6 +3,10 @@
       VNCLIBS = VncExtLibs
    VNCINCLUDE = -I$(VNCTOP) -I$(VNCTOP)/vncconfig_unix
 
+#if defined(XFree86Version) && XFree86Version < 4000
+   VNCDEFINES = -DNO_INIT_BACKING_STORE
+#endif
+
 #define CplusplusSource
 
 #include <Server.tmpl>
@@ -54,14 +58,14 @@ INCLUDES = -I. -I.. -I$(XBUILDINCDIR) -I$(FONTINCSRC) \
 
 DEFINES = $(OS_DEFINES) $(SHMDEF) $(MMAPDEF) $(FB_DEFINES) \
           $(VENDOR_STRING) $(VENDOR_RELEASE) $(STD_DEFINES) ServerOSDefines \
-          -UXFree86LOADER
+          $(VNCDEFINES) -UXFree86LOADER
 
 #ifdef XFree86Version
 /* 
  * Make sure XINPUT, XF86VidTune, etc arent defined for the miinitext.o 
  * used by Xvnc 
  */
-EXT_DEFINES = ExtensionDefines -UXINPUT -UXF86VIDMODE -UXFreeXDGA -UXF86MISC
+EXT_DEFINES = ExtensionDefines -UXF86VIDMODE -UXFreeXDGA -UXF86MISC
 #endif
 
 
@@ -83,7 +87,7 @@ LinkSourceFile(stubs.c,../../Xi)
 SpecialCplusplusObjectRule(xvnc,$(ICONFIGFILES) xvnc,$(EXT_DEFINES) $(NO_OPERATOR_NAMES))
 
 LinkSourceFile(miinitext.c,$(SERVERSRC)/mi)
-SpecialCObjectRule(miinitext,$(ICONFIGFILES),$(EXT_DEFINES) $(PAN_DEFINES) -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS $(EXT_MODULE_DEFINES) -UXFree86LOADER)
+SpecialCObjectRule(miinitext,$(ICONFIGFILES),$(EXT_DEFINES) $(PAN_DEFINES) -DNO_MODULE_EXTS $(EXT_MODULE_DEFINES) -UXFree86LOADER)
 
 /* InstallManPage(Xvfb,$(MANDIR)) */
 DependTarget()

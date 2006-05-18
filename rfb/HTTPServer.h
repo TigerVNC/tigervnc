@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -32,6 +32,7 @@
 #include <rfb/UpdateTracker.h>
 #include <rfb/Configuration.h>
 #include <network/Socket.h>
+#include <time.h>
 
 namespace rfb {
 
@@ -46,31 +47,26 @@ namespace rfb {
 
     virtual ~HTTPServer();
 
-    // -=- Client management
+    // SocketServer interface
 
-    // - Run a client connection on the supplied socket
+    // addSocket()
     //   This causes the server to perform HTTP protocol on the
     //   supplied socket.
-    //   The socket will be closed if protocol initialisation
-    //   fails.
-    virtual void addClient(network::Socket* sock);
+    virtual void addSocket(network::Socket* sock, bool outgoing=false);
 
-    // -=- Event processing methods
+    // removeSocket()
+    //   Could clean up socket-specific resources here.
+    virtual void removeSocket(network::Socket* sock);
 
-    // - Process an input event on a particular Socket
+    // processSocketEvent()
     //   The platform-specific side of the server implementation calls
     //   this method whenever data arrives on one of the active
     //   network sockets.
-    //   The method returns true if the Socket is still in use by the
-    //   server, or false if it is no longer required and should be
-    //   deleted.
-    //   NB:  If false is returned then the Socket is deleted and must
-    //   not be accessed again!
+    virtual void processSocketEvent(network::Socket* sock);
 
-    virtual bool processSocketEvent(network::Socket* sock);
-
-    // - Check for socket timeouts
+    // Check for socket timeouts
     virtual int checkTimeouts();
+
 
     // getSockets() gets a list of sockets.  This can be used to generate an
     // fd_set for calling select().
@@ -92,13 +88,15 @@ namespace rfb {
     //   NB: The contentType is statically allocated by the getFile impl.
     //   NB: contentType is *guaranteed* to be valid when getFile is called.
 
-    virtual rdr::InStream* getFile(const char* name, const char** contentType);
+    virtual rdr::InStream* getFile(const char* name, const char** contentType,
+                                   int* contentLength, time_t* lastModified);
 
     // - guessContentType is passed the name of a file and returns the
     //   name of an HTTP content type, based on the file's extension.  If
     //   the extension isn't recognised then defType is returned.  This can
     //   be used from getFile to easily default to the supplied contentType,
-    //   or by passing zero in to determine whether a type is recognised or not.
+    //   or by passing zero in to determine whether a type is recognised or
+    //   not.
 
     static const char* guessContentType(const char* name, const char* defType);
 

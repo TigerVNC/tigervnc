@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,6 +19,7 @@
 #include <vncconfig/Legacy.h>
 
 #include <rfb/LogWriter.h>
+#include <rfb/Password.h>
 #include <rfb_win32/CurrentUser.h>
 
 using namespace rfb;
@@ -216,10 +217,9 @@ void LegacyPage::LoadPrefs()
         }
         regKey.setInt(_T("QueryTimeout"), key.getInt(_T("QueryTimeout"), 10));
 
-        rfb::CharArray passwd;
-        int length;
-        key.getBinary(_T("Password"), (void**)&passwd.buf, &length, 0, 0);
-        regKey.setBinary(_T("Password"), passwd.buf, length);
+        ObfuscatedPasswd passwd;
+        key.getBinary(_T("Password"), (void**)&passwd.buf, &passwd.length, 0, 0);
+        regKey.setBinary(_T("Password"), passwd.buf, passwd.length);
 
         bool enableInputs = key.getBool(_T("InputsEnabled"), true);
         regKey.setBool(_T("AcceptKeyEvents"), enableInputs);

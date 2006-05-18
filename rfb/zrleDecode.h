@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -61,11 +61,11 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 64) {
 
-    t.br.y = vncmin(r.br.y, t.tl.y + 64);
+    t.br.y = __rfbmin(r.br.y, t.tl.y + 64);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 64) {
 
-      t.br.x = vncmin(r.br.x, t.tl.x + 64);
+      t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
 
       int mode = zis->readU8();
       bool rle = mode & 128;

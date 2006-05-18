@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,13 +25,13 @@
 #include <rdr/types.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ConnParams.h>
-#include <rfb/Rect.h>
+#include <rfb/InputHandler.h>
 
 namespace rdr { class InStream; }
 
 namespace rfb {
 
-  class SMsgHandler {
+  class SMsgHandler : public InputHandler {
   public:
     SMsgHandler();
     virtual ~SMsgHandler();
@@ -46,9 +46,9 @@ namespace rfb {
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setEncodings(int nEncodings, rdr::U32* encodings);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
-    virtual void keyEvent(rdr::U32 key, bool down);
-    virtual void pointerEvent(int x, int y, int buttonMask);
-    virtual void clientCutText(const char* str, int len);
+
+    // InputHandler interface
+    // The InputHandler methods will be called for the corresponding messages.
 
     // supportsLocalCursor() is called whenever the status of
     // cp.supportsLocalCursor has changed.  At the moment this happens on a

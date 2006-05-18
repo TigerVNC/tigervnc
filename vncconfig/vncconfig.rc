@@ -61,19 +61,29 @@ IDI_ICON                ICON    DISCARDABLE     "vncconfig.ico"
 // Dialog
 //
 
-IDD_AUTHENTICATION DIALOG DISCARDABLE  0, 0, 225, 86
+IDD_AUTHENTICATION DIALOG DISCARDABLE  0, 0, 193, 135
 STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Authentication"
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "No Authentication or Encryption",IDC_AUTH_NONE,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,7,10,143,15
-    CONTROL         "VNC 3.3 Authentication, no Encryption",IDC_AUTH_VNC,
-                    "Button",BS_AUTORADIOBUTTON,7,30,143,15
-    PUSHBUTTON      "Set Password",IDC_AUTH_VNC_PASSWD,155,30,55,15
-    CONTROL         "Prompt local user to accept incoming connections",
+    CONTROL         "No Authentication",IDC_AUTH_NONE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,7,10,113,15
+    CONTROL         "VNC Password Authentication",IDC_AUTH_VNC,"Button",
+                    BS_AUTORADIOBUTTON,7,30,113,15
+    PUSHBUTTON      "Configure",IDC_AUTH_VNC_PASSWD,125,30,61,15
+    CONTROL         "NT Logon Authentication",IDC_AUTH_NT,"Button",
+                    BS_AUTORADIOBUTTON,7,50,113,15
+    PUSHBUTTON      "Configure",IDC_AUTH_NT_CONF,125,50,61,15
+    LTEXT           "Encryption:",IDC_STATIC,7,70,42,15,SS_CENTERIMAGE
+    COMBOBOX        IDC_ENCRYPTION,49,70,71,50,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "Generate Keys",IDC_AUTH_RA2_CONF,125,70,61,15
+    CONTROL         "Prompt local user to accept connections",
                     IDC_QUERY_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    7,50,211,15
+                    7,95,181,15
+    CONTROL         "Only prompt when there is a user logged on",
+                    IDC_QUERY_LOGGED_ON,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,20,110,166,15
 END
 
 IDD_CONNECTIONS DIALOG DISCARDABLE  0, 0, 218, 198
@@ -81,11 +91,11 @@ STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Connections"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Accept connections on port:",IDC_STATIC,7,10,138,15,
-                    SS_CENTERIMAGE
+    CONTROL         "Accept connections on port:",IDC_RFB_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,10,138,15
+    EDITTEXT        IDC_PORT,150,10,61,15,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Disconnect idle clients after (seconds):",IDC_STATIC,7,
                     25,138,15,SS_CENTERIMAGE
-    EDITTEXT        IDC_PORT,150,10,61,15,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_IDLE_TIMEOUT,150,25,61,15,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Serve Java viewer via HTTP on port:",IDC_HTTP_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,138,15
@@ -103,32 +113,35 @@ BEGIN
     PUSHBUTTON      "&Edit",IDC_HOST_EDIT,150,170,55,15
 END
 
-IDD_HOOKING DIALOG DISCARDABLE  0, 0, 198, 95
+IDD_HOOKING DIALOG DISCARDABLE  0, 0, 197, 101
 STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Hooks"
+CAPTION "Capture Method"
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Use VNC hooks to track graphical updates",IDC_USEHOOKS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,10,184,15
+    CONTROL         "Poll for changes to the desktop",IDC_USEPOLLING,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,7,10,183,15
+    CONTROL         "Use VNC hooks to track changes",IDC_USEHOOKS,"Button",
+                    BS_AUTORADIOBUTTON,7,25,183,15
     CONTROL         "Poll console windows for updates",IDC_POLLCONSOLES,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,25,184,15
-    CONTROL         "Filter out updates that have no effect (recommended)",
-                    IDC_COMPAREFB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,
-                    184,15
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,25,40,165,15
+    CONTROL         "Use VNC Mirror driver to track changes",IDC_USEDRIVER,
+                    "Button",BS_AUTORADIOBUTTON,7,55,183,15
+    CONTROL         "Capture alpha-blended windows",IDC_CAPTUREBLT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,183,15
 END
 
 IDD_AUTH_VNC_PASSWD DIALOG DISCARDABLE  0, 0, 212, 70
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "WinVNC Password"
+CAPTION "VNC Server Password"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_PASSWORD1,75,10,130,15,ES_PASSWORD | ES_AUTOHSCROLL
-    EDITTEXT        IDC_PASSWORD2,75,30,130,14,ES_PASSWORD | ES_AUTOHSCROLL
     LTEXT           "New Password:",IDC_STATIC,7,10,63,15
+    EDITTEXT        IDC_PASSWORD1,75,10,130,15,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "Confirm Password:",IDC_STATIC,7,30,63,14
+    EDITTEXT        IDC_PASSWORD2,75,30,130,14,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,100,50,50,15
     PUSHBUTTON      "Cancel",IDCANCEL,155,50,50,15
-    LTEXT           "Confirm Password:",IDC_STATIC,7,30,63,14
 END
 
 IDD_LEGACY DIALOG DISCARDABLE  0, 0, 166, 92
@@ -141,18 +154,19 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,35,152,15
 END
 
-IDD_CONN_HOST DIALOG DISCARDABLE  0, 0, 225, 47
+IDD_CONN_HOST DIALOG DISCARDABLE  0, 0, 225, 57
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "Specify Host IP Address Pattern"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,168,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,168,24,50,14
+    EDITTEXT        IDC_HOST_PATTERN,65,5,100,15,ES_AUTOHSCROLL
     CONTROL         "&Allow",IDC_ALLOW,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP,7,7,53,16
-    CONTROL         "&Deny",IDC_DENY,"Button",BS_AUTORADIOBUTTON,7,23,53,15
-    EDITTEXT        IDC_HOST_PATTERN,65,7,100,16,ES_AUTOHSCROLL
-    LTEXT           "e.g. 192.168.0.0/255.255.0.0",IDC_STATIC,65,25,100,15
+                    WS_GROUP,7,5,53,15
+    CONTROL         "&Deny",IDC_DENY,"Button",BS_AUTORADIOBUTTON,7,20,53,15
+    CONTROL         "Query",IDC_QUERY,"Button",BS_AUTORADIOBUTTON,7,35,53,15
+    DEFPUSHBUTTON   "OK",IDOK,115,35,50,15
+    PUSHBUTTON      "Cancel",IDCANCEL,170,35,50,15
+    LTEXT           "e.g. 192.168.0.0/255.255.0.0",IDC_STATIC,65,20,100,15
 END
 
 IDD_SHARING DIALOG DISCARDABLE  0, 0, 186, 95
@@ -177,10 +191,10 @@ STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Inputs"
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Accept keyboard events from clients",IDC_ACCEPT_KEYS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,25,172,15
     CONTROL         "Accept pointer events from clients",IDC_ACCEPT_PTR,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,10,172,15
+    CONTROL         "Accept keyboard events from clients",IDC_ACCEPT_KEYS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,25,172,15
     CONTROL         "Accept clipboard updates from clients",
                     IDC_ACCEPT_CUTTEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     7,40,172,15
@@ -216,13 +230,6 @@ STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CONTROL | WS_POPUP | WS_CAPTION |
 CAPTION "Desktop"
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Do nothing",IDC_DISCONNECT_NONE,"Button",
-                    BS_AUTORADIOBUTTON,15,80,155,15
-    CONTROL         "Lock workstation",IDC_DISCONNECT_LOCK,"Button",
-                    BS_AUTORADIOBUTTON,15,95,155,15
-    CONTROL         "Logoff user",IDC_DISCONNECT_LOGOFF,"Button",
-                    BS_AUTORADIOBUTTON,15,110,155,15
-    GROUPBOX        "When last client disconnects",IDC_STATIC,7,70,171,60
     GROUPBOX        "While connected",IDC_STATIC,7,5,171,60
     CONTROL         "Remove wallpaper",IDC_REMOVE_WALLPAPER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,15,155,15
@@ -230,6 +237,13 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,30,155,15
     CONTROL         "Disable user interface effects",IDC_DISABLE_EFFECTS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,46,155,14
+    GROUPBOX        "When last client disconnects",IDC_STATIC,7,70,171,60
+    CONTROL         "Do nothing",IDC_DISCONNECT_NONE,"Button",
+                    BS_AUTORADIOBUTTON,15,80,155,15
+    CONTROL         "Lock workstation",IDC_DISCONNECT_LOCK,"Button",
+                    BS_AUTORADIOBUTTON,15,95,155,15
+    CONTROL         "Logoff user",IDC_DISCONNECT_LOGOFF,"Button",
+                    BS_AUTORADIOBUTTON,15,110,155,15
 END
 
 
@@ -244,18 +258,25 @@ BEGIN
     IDD_AUTHENTICATION, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 218
-        VERTGUIDE, 150
-        VERTGUIDE, 155
-        VERTGUIDE, 210
+        RIGHTMARGIN, 186
+        VERTGUIDE, 20
+        VERTGUIDE, 49
+        VERTGUIDE, 120
+        VERTGUIDE, 125
         TOPMARGIN, 7
-        BOTTOMMARGIN, 79
+        BOTTOMMARGIN, 128
         HORZGUIDE, 10
         HORZGUIDE, 25
         HORZGUIDE, 30
         HORZGUIDE, 45
         HORZGUIDE, 50
         HORZGUIDE, 65
+        HORZGUIDE, 70
+        HORZGUIDE, 85
+        HORZGUIDE, 90
+        HORZGUIDE, 105
+        HORZGUIDE, 110
+        HORZGUIDE, 125
     END
 
     IDD_CONNECTIONS, DIALOG
@@ -290,13 +311,16 @@ BEGIN
     IDD_HOOKING, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 191
+        RIGHTMARGIN, 190
+        VERTGUIDE, 25
         TOPMARGIN, 7
-        BOTTOMMARGIN, 88
+        BOTTOMMARGIN, 94
         HORZGUIDE, 10
         HORZGUIDE, 25
         HORZGUIDE, 40
         HORZGUIDE, 55
+        HORZGUIDE, 70
+        HORZGUIDE, 85
     END
 
     IDD_AUTH_VNC_PASSWD, DIALOG
@@ -305,6 +329,7 @@ BEGIN
         RIGHTMARGIN, 205
         VERTGUIDE, 70
         VERTGUIDE, 75
+        VERTGUIDE, 90
         VERTGUIDE, 100
         VERTGUIDE, 150
         VERTGUIDE, 155
@@ -334,12 +359,16 @@ BEGIN
     IDD_CONN_HOST, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 218
+        RIGHTMARGIN, 220
         VERTGUIDE, 60
         VERTGUIDE, 65
+        VERTGUIDE, 115
         VERTGUIDE, 165
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 40
+        VERTGUIDE, 170
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 50
+        HORZGUIDE, 20
+        HORZGUIDE, 35
     END
 
     IDD_SHARING, DIALOG
@@ -390,21 +419,9 @@ BEGIN
     IDD_DESKTOP, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 178
-        VERTGUIDE, 15
-        VERTGUIDE, 170
-        TOPMARGIN, 5
-        BOTTOMMARGIN, 130
-        HORZGUIDE, 15
-        HORZGUIDE, 30
-        HORZGUIDE, 45
-        HORZGUIDE, 60
-        HORZGUIDE, 65
-        HORZGUIDE, 70
-        HORZGUIDE, 80
-        HORZGUIDE, 95
-        HORZGUIDE, 110
-        HORZGUIDE, 125
+        RIGHTMARGIN, 182
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 32
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -417,8 +434,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,0,0,26
- PRODUCTVERSION 4,0,0,26
+ FILEVERSION 4,1,1,0
+ PRODUCTVERSION 4,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -435,15 +452,15 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Constantin Kaplinsky\0"
-            VALUE "FileDescription", "VNC Server Configuration Applet for Win32\0"
-            VALUE "FileVersion", "4.0\0"
-            VALUE "InternalName", "VNC Config 4.0\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2004 [many holders]\0"
+            VALUE "FileDescription", "TightVNC Server Configuration Applet for Win32\0"
+            VALUE "FileVersion", "4.1.1\0"
+            VALUE "InternalName", "vncconfig\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2005 [many holders]\0"
             VALUE "LegalTrademarks", "TightVNC\0"
             VALUE "OriginalFilename", "vncconfig.exe\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "TightVNC Config 4.0\0"
-            VALUE "ProductVersion", "4.0\0"
+            VALUE "ProductName", "TightVNC Configurator\0"
+            VALUE "ProductVersion", "4.1.1\0"
             VALUE "SpecialBuild", "\0"
         END
     END

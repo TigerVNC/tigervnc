@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -35,35 +35,19 @@ BoolParameter rfb::win32::WMPoller::poll_console_windows("PollConsoleWindows",
 
 // -=- WMPoller class
 
-rfb::win32::WMPoller::WMPoller() : clipper(0) {
-}
-
-rfb::win32::WMPoller::~WMPoller() {
-  if (clipper) delete clipper;
-}
-
 bool
 rfb::win32::WMPoller::processEvent() {
   PollInfo info;
-  if (clipper && poll_console_windows) {
+  if (poll_console_windows && ut) {
     ::EnumWindows(WMPoller::enumWindowProc, (LPARAM) &info);
-    clipper->add_changed(info.poll_include);
+    ut->add_changed(info.poll_include);
   }
   return false;
 }
 
 bool
-rfb::win32::WMPoller::setClipRect(const Rect& r) {
-  clip_region = r;
-  if (clipper) clipper->set_clip_region(clip_region);
-  return true;
-}
-
-bool
-rfb::win32::WMPoller::setUpdateTracker(UpdateTracker* ut) {
-  if (clipper) delete clipper;
-  clipper = new ClippedUpdateTracker(*ut);
-  clipper->set_clip_region(clip_region);
+rfb::win32::WMPoller::setUpdateTracker(UpdateTracker* ut_) {
+  ut = ut_;
   return true;
 }
 

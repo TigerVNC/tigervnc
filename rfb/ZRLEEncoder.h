@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -34,7 +34,8 @@ namespace rfb {
     // can be used to stop the MemOutStream from growing too large.  The value
     // must be large enough to allow for at least one row of ZRLE tiles.  So
     // for example for a screen width of 2048 32-bit pixels this is 2K*4*64 =
-    // 512Kbytes plus a bit of overhead.
+    // 512Kbytes plus a bit of overhead (the overhead is about 1/16 of the
+    // width, in this example about 128 bytes).
     static void setMaxLen(int m) { maxLen = m; }
 
     // setSharedMos() sets a MemOutStream to be shared amongst all

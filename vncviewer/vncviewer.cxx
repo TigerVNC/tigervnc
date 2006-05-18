@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,21 +25,18 @@
 #include <list>
 
 #include <vncviewer/resource.h>
-#include <vncviewer/CViewManager.h>
-#include <vncviewer/CView.h>
+#include <vncviewer/CConn.h>
+#include <vncviewer/CConnThread.h>
 #include <vncviewer/OptionsDialog.h>
-
+#include <vncviewer/ListenServer.h>
+#include <vncviewer/ListenTrayIcon.h>
+#include <network/TcpSocket.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/Logger_file.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-
 #include <rfb_win32/RegConfig.h>
-#include <rfb_win32/TrayIcon.h>
-#include <rfb_win32/Win32Util.h>
-#include <rfb_win32/AboutDialog.h>
-
-#include <network/TcpSocket.h>
+#include <rfb_win32/MsgBox.h>
 
 #ifdef _DIALOG_CAPTURE
 #include <extra/LoadBMP.h>
@@ -80,72 +77,6 @@ const WORD rfb::win32::AboutDialog::Description = IDC_DESCRIPTION;
 
 
 //
-// -=- VNCviewer Tray Icon
-//
-
-class CViewTrayIcon : public TrayIcon {
-public:
-  CViewTrayIcon(CViewManager& mgr) : manager(mgr) {
-    setIcon(IDI_ICON);
-    setToolTip(_T("VNC Viewer"));
-  }
-  virtual LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch(msg) {
-
-    case WM_USER:
-      switch (lParam) {
-      case WM_LBUTTONDBLCLK:
-        SendMessage(getHandle(), WM_COMMAND, ID_NEW_CONNECTION, 0);
-        break;
-      case WM_RBUTTONUP:
-        HMENU menu = LoadMenu(GetModuleHandle(0), MAKEINTRESOURCE(IDR_TRAY));
-        HMENU trayMenu = GetSubMenu(menu, 0);
-
-        // First item is New Connection, the default
-        SetMenuDefaultItem(trayMenu, ID_NEW_CONNECTION, FALSE);
-
-        // SetForegroundWindow is required, otherwise Windows ignores the
-        // TrackPopupMenu because the window isn't the foreground one, on
-        // some older Windows versions...
-        SetForegroundWindow(getHandle());
-
-        // Display the menu
-        POINT pos;
-        GetCursorPos(&pos);
-        TrackPopupMenu(trayMenu, 0, pos.x, pos.y, 0, getHandle(), 0);
-        break;
-			} 
-			return 0;
-
-    case WM_COMMAND:
-      switch (LOWORD(wParam)) {
-      case ID_NEW_CONNECTION:
-        manager.addClient(0);
-        break;
-      case ID_OPTIONS:
-        OptionsDialog::global.showDialog(0);
-        break;
-      case ID_ABOUT:
-        AboutDialog::instance.showDialog();
-        break;
-      case ID_CLOSE:
-        SendMessage(getHandle(), WM_CLOSE, 0, 0);
-        break;
-      }
-      return 0;
-
-    case WM_CLOSE:
-      PostQuitMessage(0);
-      return 0;
-    }
-
-    return TrayIcon::processMessage(msg, wParam, lParam);
-  }
-protected:
-  CViewManager& manager;
-};
-
-//
 // -=- processParams
 //     Read in the command-line parameters and interpret them.
 //
@@ -166,7 +97,7 @@ programUsage() {
   printf("usage: vncviewer <options> <hostname>[:<display>]\n");
   printf("Command-line options:\n");
   printf("  -help                                - Provide usage information.\n");
-  printf("  -config <file>                       - Load connection settings from VNCViewer 3.3 settings file\n");
+  printf("  -config <file>                       - Load connection settings from VNC Viewer 3.3 settings file\n");
   printf("  -console                             - Run with a console window visible.\n");
   printf("  <setting>=<value>                    - Set the named configuration parameter.\n");
   printf("    (Parameter values specified on the command-line override those specified by other configuration methods.)\n");
@@ -176,6 +107,9 @@ programUsage() {
   Logger::listLoggers();
   printf("\nParameters:\n");
   Configuration::listParams();
+  printf("Press Enter/Return key to continue\n");
+  char c = getchar();
+  exit(1);
 }
 
 
@@ -224,6 +158,8 @@ processParams(int argc, char* argv[]) {
           sprintf(tmp.buf, fmt, argv[i]);
           MsgBox(0, TStr(tmp.buf), MB_ICONSTOP | MB_OK);
           exit(1);
+        } else if (strContains(argv[i], '\\')) {
+          configFiles.push_back(strDup(argv[i]));
         } else {
           hosts.push_back(strDup(argv[i]));
         }
@@ -241,7 +177,6 @@ processParams(int argc, char* argv[]) {
 //
 
 int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdShow) {
-
   try {
 
     // - Initialise the available loggers
@@ -270,7 +205,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
 
 #ifdef _DIALOG_CAPTURE
     if (captureDialogs) {
-      CView::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
+      CConn::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
       OptionsDialog::global.showDialog(0, true);
       return 0;
     }
@@ -285,35 +220,27 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
     // - Connect to the clients
     if (!configFiles.empty() || !hosts.empty() || acceptIncoming) {
       // - Configure the registry configuration reader
-      win32::RegistryReader reg_reader;
-      reg_reader.setKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
+      win32::RegConfigThread config;
+      config.start(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
 
       // - Tell the rest of VNC Viewer where to write config data to
-      CView::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
-
-      // - Start the Socket subsystem for TCP
-      TcpSocket::initTcpSockets();
-
-      // Create the client connection manager
-      CViewManager view_manager;
+      CConn::userConfigKey.createKey(HKEY_CURRENT_USER, _T("Software\\TightVNC\\VNCViewer4"));
 
       if (acceptIncoming) {
         int port = 5500;
 
         // Listening viewer
-        if (hosts.size() > 1) {
+        if (hosts.size() > 1)
           programUsage();
-          exit(2);
-        }
-        if (!hosts.empty()) {
+        if (!hosts.empty())
           port = atoi(hosts.front());  
-        }
 
-        vlog.debug("opening listener");
+        // Show the tray icon & menu
+        ListenTrayIcon tray;
 
-        CViewTrayIcon tray(view_manager);
-
-        view_manager.addDefaultTCPListener(port);
+        // Listen for reverse connections
+        network::TcpListener sock(port);
+        ListenServer listener(&sock);
 
         // Run the view manager
         // Also processes the tray icon if necessary
@@ -322,13 +249,11 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
           TranslateMessage(&msg);
           DispatchMessage(&msg);
         }
-
-        vlog.debug("quitting viewer");
       } else {
         // Read each config file in turn
         while (!configFiles.empty()) {
           char* filename = configFiles.front();
-          view_manager.addClient(filename, true);
+          Thread* connThread = new CConnThread(filename, true);
           strFree(filename);
           configFiles.pop_front();
         }
@@ -336,14 +261,14 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
         // Connect to each client in turn
         while (!hosts.empty()) {
           char* hostinfo = hosts.front();
-          view_manager.addClient(hostinfo);
+          Thread* connThread = new CConnThread(hostinfo);
           strFree(hostinfo);
           hosts.pop_front();
         }
 
         // Run the view manager
         MSG msg;
-        while (GetMessage(&msg, NULL, 0, 0) > 0) {
+        while (CConnThread::getMessage(&msg, NULL, 0, 0) > 0) {
           TranslateMessage(&msg);
           DispatchMessage(&msg);
         }

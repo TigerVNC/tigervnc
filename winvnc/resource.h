@@ -9,11 +9,12 @@
 #define IDD_ABOUT                       104
 #define IDI_CONNECTED                   105
 #define IDR_VNCVIEWER_JAR               106
-#define IDD_CONTROL_PANEL               106
 #define IDD_QUERY_CONNECT               107
 #define IDD_ADD_NEW_CLIENT              108
-#define IDI_ICON_DISABLE                109
-#define IDI_CONNECTED_DISABLE           110
+#define IDB_BITMAP                      109
+#define IDD_CONTROL_PANEL               110
+#define IDI_ICON_DISABLE                111
+#define IDI_CONNECTED_DISABLE           112
 #define IDC_DESCRIPTION                 1000
 #define IDC_BUILDTIME                   1001
 #define IDC_VERSION                     1002
@@ -45,9 +46,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        111
+#define _APS_NEXT_RESOURCE_VALUE        113
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

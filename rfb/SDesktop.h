@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -39,13 +39,14 @@
 
 #include <rfb/PixelBuffer.h>
 #include <rfb/VNCServer.h>
+#include <rfb/InputHandler.h>
 #include <rfb/Exception.h>
 
 namespace rfb {
 
   class VNCServer;
 
-  class SDesktop {
+  class SDesktop : public InputHandler {
   public:
     // start() is called by the server when the first client authenticates
     // successfully, and can be used to begin any expensive tasks which are not
@@ -62,13 +63,6 @@ namespace rfb {
 
     virtual void stop() {}
 
-    // pointerEvent(), keyEvent() and clientCutText() are called in response to
-    // the relevant RFB protocol messages from clients.
-
-    virtual void pointerEvent(const Point& pos, rdr::U8 buttonmask) {}
-    virtual void keyEvent(rdr::U32 key, bool down) {}
-    virtual void clientCutText(const char* str, int len) {}
-
     // framebufferUpdateRequest() is called to let the desktop know that at
     // least one client has become ready for an update.  Desktops can check
     // whether there are clients ready at any time by calling the VNCServer's
@@ -81,6 +75,10 @@ namespace rfb {
 
     virtual Point getFbSize() = 0;
 
+    // InputHandler interface
+    // pointerEvent(), keyEvent() and clientCutText() are called in response to
+    // the relevant RFB protocol messages from clients.
+    // See InputHandler for method signatures.
   protected:
     virtual ~SDesktop() {}
   };

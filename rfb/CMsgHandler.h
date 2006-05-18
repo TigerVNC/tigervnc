@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -36,8 +36,15 @@ namespace rfb {
     CMsgHandler();
     virtual ~CMsgHandler();
 
+    // The following methods are called as corresponding messages are read.  A
+    // derived class should override these methods as desired.  Note that for
+    // the setDesktopSize(), setPixelFormat() and setName() methods, a derived
+    // class should call on to CMsgHandler's methods to set the members of cp
+    // appropriately.
+
     virtual void setDesktopSize(int w, int h);
-    virtual void setCursor(const Point& hotspot, const Point& size, void* data, void* mask);
+    virtual void setCursor(int width, int height, const Point& hotspot,
+                           void* data, void* mask);
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
     virtual void serverInit();

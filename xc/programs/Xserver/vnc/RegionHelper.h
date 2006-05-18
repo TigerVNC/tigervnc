@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,6 +21,13 @@
 // RegionHelper is a class which helps in using X server regions by
 // automatically freeing them in the destructor.  It also fixes a problem with
 // REGION_INIT when given an empty rectangle.
+
+// REGION_NULL was introduced in the Xorg tree as the way to initialise an
+// empty region.  If it's not already defined do it the old way.  Note that the
+// old way causes a segfault in the new tree...
+#ifndef REGION_NULL
+#define REGION_NULL(pScreen,pReg) REGION_INIT(pScreen,pReg,NullBox,0)
+#endif
 
 class RegionHelper {
 public:
@@ -54,7 +61,7 @@ public:
 
   void init(BoxPtr rect, int size) {
     reg = &regRec;
-    if (!rect || (rect->x2 == rect->x1 || rect->y2 == rect->y1)) {
+    if (!rect || (rect && (rect->x2 == rect->x1 || rect->y2 == rect->y1))) {
       REGION_NULL(pScreen, reg);
     } else {
       REGION_INIT(pScreen, reg, rect, size);

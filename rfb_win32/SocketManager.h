@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -30,23 +30,32 @@
 #ifndef __RFB_WIN32_SOCKET_MGR_H__
 #define __RFB_WIN32_SOCKET_MGR_H__
 
-#include <list>
-
+#include <map>
 #include <network/Socket.h>
-#include <rfb_win32/MsgWindow.h>
+#include <rfb_win32/EventManager.h>
 
 namespace rfb {
-
   namespace win32 {
 
-    class SocketManager {
+    class SocketManager : public EventManager, EventHandler {
     public:
       SocketManager();
       virtual ~SocketManager();
 
+      // AddressChangeNotifier callback interface
+      // If an object implementing this is passed to addListener then it will be
+      // called whenever the SocketListener's address list changes
+      class AddressChangeNotifier {
+      public:
+        virtual ~AddressChangeNotifier() {}
+        virtual void processAddressChange(network::SocketListener* sl) = 0;
+      };
+
       // Add a listening socket.  Incoming connections will be added to the supplied
       // SocketServer.
-      void addListener(network::SocketListener* sock_, network::SocketServer* srvr);
+      void addListener(network::SocketListener* sock_,
+                       network::SocketServer* srvr,
+                       AddressChangeNotifier* acn = 0);
 
       // Remove and delete a listening socket.
       void remListener(network::SocketListener* sock);
@@ -54,50 +63,24 @@ namespace rfb {
       // Add an already-connected socket.  Socket events will cause the supplied
       // SocketServer to be called.  The socket must ALREADY BE REGISTERED with
       // the SocketServer.
-      void addSocket(network::Socket* sock_, network::SocketServer* srvr);
-
-      // Add a Win32 event & handler for it to the SocketManager
-      // This event will be blocked on along with the registered Sockets, and the
-      // handler called whenever it is discovered to be set.
-      // NB: SocketManager does NOT call ResetEvent on the event!
-      // NB: If processEvent returns false then the event is no longer registered,
-      //     and the event object is assumed to have been closed by processEvent()
-      struct EventHandler {
-        virtual ~EventHandler() {}
-        virtual bool processEvent(HANDLE event) = 0;
-      };
-      void addEvent(HANDLE event, EventHandler* ecb);
-
-      // getMessage
-      //
-      // Either return a message from the thread's message queue or process a socket
-      // event.
-      // Returns whenever a message needs processing.  Returns false if message is
-      // WM_QUIT, true for all other messages.
-      BOOL getMessage(MSG* msg, HWND hwnd, UINT minMsg, UINT maxMsg);
+      void addSocket(network::Socket* sock_, network::SocketServer* srvr, bool outgoing=true);
 
     protected:
-      void addListener(network::SocketListener* sock, HANDLE event, network::SocketServer* server);
-      void addSocket(network::Socket* sock, HANDLE event, network::SocketServer* server);
-      void resizeArrays(int numSockets);
-      void removeSocket(int index);
-      struct SocketInfo {
-        union {
-          network::Socket* conn;
-          network::SocketListener* listener;
-        } sock;
-        SOCKET fd;
-        bool is_conn;
-        bool is_event;
-        union {
-          network::SocketServer* server;
-          EventHandler* handler;
-        };
+      virtual int checkTimeouts();
+      virtual void processEvent(HANDLE event);
+      virtual void remSocket(network::Socket* sock);
+
+      struct ConnInfo {
+        network::Socket* sock;
+        network::SocketServer* server;
       };
-      SocketInfo* sockets;
-      HANDLE* events;
-      int nSockets;
-      int nAvail;
+      struct ListenInfo {
+        network::SocketListener* sock;
+        network::SocketServer* server;
+        AddressChangeNotifier* notifier;
+      };
+      std::map<HANDLE, ListenInfo> listeners;
+      std::map<HANDLE, ConnInfo> connections;
    };
 
   }

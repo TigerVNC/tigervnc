@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,9 +25,15 @@
 #include <rfb/LogWriter.h>
 #include <rdr/Exception.h>
 #include <rfb_win32/Win32Util.h>
+
 #ifdef _DIALOG_CAPTURE
+#ifdef PropSheet_IndexToId
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <extra/LoadBMP.cxx>
+#else
+#undef _DIALOG_CAPTURE
+#pragma message("  NOTE: Not building Dialog Capture support.")
+#endif
 #endif
 
 using namespace rfb;
@@ -208,6 +214,33 @@ PropSheet::~PropSheet() {
 }
 
 
+// For some reason, DLGTEMPLATEEX isn't defined in the Windows headers - go figure...
+struct DLGTEMPLATEEX {
+  WORD dlgVer;
+  WORD signature;
+  DWORD helpID;
+  DWORD exStyle;
+  DWORD style;
+  WORD cDlgItems;
+  short x;
+  short y;
+  short cx;
+  short cy;
+};
+
+static int CALLBACK removeCtxtHelp(HWND hwnd, UINT message, LPARAM lParam) {
+  if (message == PSCB_PRECREATE) {
+    // Remove the context-help style, to remove the titlebar ? button
+    // *** Nasty hack to cope with new & old dialog template formats...
+    if (((DLGTEMPLATEEX*)lParam)->signature == 0xffff)
+      ((DLGTEMPLATEEX*)lParam)->style &= ~DS_CONTEXTHELP;
+    else
+      ((LPDLGTEMPLATE)lParam)->style &= ~DS_CONTEXTHELP;
+  }
+  return TRUE;
+}
+
+
 bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, bool capture) {
   if (alreadyShowing) return false;
   alreadyShowing = true;
@@ -227,7 +260,8 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     // Initialise and create the PropertySheet itself
     PROPSHEETHEADER header;
     header.dwSize = PROPSHEETHEADER_V1_SIZE;
-    header.dwFlags = PSH_MODELESS | (showApply ? 0 : PSH_NOAPPLYNOW) /*| (showCtxtHelp ? 0 : PSH_NOCONTEXTHELP)*/;
+    header.dwFlags = PSH_MODELESS | (showApply ? 0 : PSH_NOAPPLYNOW) | (showCtxtHelp ? 0 : PSH_USECALLBACK);
+    header.pfnCallback = removeCtxtHelp;
     header.hwndParent = owner;
     header.hInstance = inst;
     header.pszCaption = title.buf;
@@ -245,9 +279,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     centerWindow(handle, owner);
     plog.info("created %lx", handle);
 
-#if (WINVER >= 0x0500)
 #ifdef _DIALOG_CAPTURE
-    // *** NOT TESTED
     if (capture) {
       plog.info("capturing \"%s\"", (const char*)CStr(title.buf));
       char* tmpdir = getenv("TEMP");
@@ -264,14 +296,22 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
             DispatchMessage(&msg);
         }
         fb.grabRect(fb.getRect());
+        TCHAR title[128];
+        if (!GetWindowText(PropSheet_GetCurrentPageHwnd(handle), title, sizeof(title)))
+          _stprintf(title, _T("capture%d"), i);
+        CharArray pageTitle(strDup(title));
+        for (int j=0; j<strlen(pageTitle.buf); j++) {
+          if (pageTitle.buf[j] == '/' || pageTitle.buf[j] == '\\' || pageTitle.buf[j] == ':')
+            pageTitle.buf[j] = '-';
+        }
         char filename[256];
-        sprintf(filename, "%s\\capture%d.bmp", tmpdir, i);
+        sprintf(filename, "%s\\%s.bmp", tmpdir, pageTitle.buf);
+        vlog.debug("writing to %s", filename);
         saveBMP(filename, &fb);
         i++;
       }
       ReleaseDC(handle, dc);
     } else {
-#endif
 #endif
       try {
         if (owner)
@@ -291,10 +331,8 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
           EnableWindow(owner, TRUE);
         throw;
       }
-#if (WINVER >= 0x0500)
 #ifdef _DIALOG_CAPTURE
     }
-#endif
 #endif
 
     plog.info("finished %lx", handle);

@@ -54,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,0,0,26
- PRODUCTVERSION 4,0,0,26
+ FILEVERSION 4,1,0,0
+ PRODUCTVERSION 4,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -72,15 +72,15 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Constantin Kaplinsky\0"
-            VALUE "FileDescription", "TightVNC Server for Win32 Hooking DLL\0"
-            VALUE "FileVersion", "4.0\0"
-            VALUE "InternalName", "WMHooks 4.0\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2004 [many holders]\0"
+            VALUE "FileDescription", "TightVNC Server Hooking DLL for Win32\0"
+            VALUE "FileVersion", "4.1\0"
+            VALUE "InternalName", "\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2005 [many holders]\0"
             VALUE "LegalTrademarks", "TightVNC\0"
             VALUE "OriginalFilename", "wm_hooks.dll\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "TightVNC Server 4.0\0"
-            VALUE "ProductVersion", "4.0\0"
+            VALUE "ProductName", "TightVNC Server\0"
+            VALUE "ProductVersion", "4.1\0"
             VALUE "SpecialBuild", "\0"
         END
     END

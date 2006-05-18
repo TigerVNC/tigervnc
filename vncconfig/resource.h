@@ -37,6 +37,7 @@
 #define IDC_HOST_UP                     1019
 #define IDC_BUTTON4                     1020
 #define IDC_HOST_DOWN                   1020
+#define IDC_AUTH_INPUTONLY_PASSWD       1020
 #define IDC_HOST_EDIT                   1021
 #define IDC_PASSWORD2                   1022
 #define IDC_LEGACY_IMPORT               1023
@@ -57,19 +58,34 @@
 #define IDC_COPYRIGHT                   1042
 #define IDC_HTTP_ENABLE                 1043
 #define IDC_HTTP_PORT                   1044
-#define A                               1045
 #define IDC_BL_THRESHOLD                1046
 #define IDC_BL_TIMEOUT                  1047
 #define IDC_AFFECT_SCREENSAVER          1048
 #define IDC_LOCALHOST                   1049
 #define IDC_DISABLE_LOCAL_INPUTS        1050
-#define IDC_QUERY_CONNECT               1051
+#define IDC_AUTH_NT                     1051
+#define IDC_AUTH_NT_CONF                1052
+#define IDC_AUTH_RA2_CONF               1053
+#define IDC_QUERY_CONNECT               1055
 #define IDC_DISCONNECT_NONE             1056
 #define IDC_DISCONNECT_LOCK             1057
 #define IDC_DISCONNECT_LOGOFF           1058
 #define IDC_REMOVE_WALLPAPER            1059
 #define IDC_REMOVE_PATTERN              1060
 #define IDC_DISABLE_EFFECTS             1061
+#define IDC_CAPTUREBLT                  1062
+#define IDC_ENCRYPTION                  1063
+#define IDC_QUERY                       1064
+#define IDC_USEPOLLING                  1066
+#define IDC_USEDRIVER                   1068
+#define IDC_QUERY_LOGGED_ON             1069
+#define IDC_AUTH_ADMIN_PASSWD           1076
+#define IDC_AUTH_VIEWONLY_PASSWD        1077
+#define IDC_AUTH_ADMIN_ENABLE           1078
+#define IDC_AUTH_VIEWONLY_ENABLE        1079
+#define IDC_AUTH_INPUTONLY_ENABLE       1080
+#define IDC_AUTH_VNC_EXT                1081
+#define IDC_RFB_ENABLE                  1082
 #define ID_OPTIONS                      40001
 #define ID_CLOSE                        40002
 #define ID_ABOUT                        40003
@@ -80,7 +96,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        117
 #define _APS_NEXT_COMMAND_VALUE         40004
-#define _APS_NEXT_CONTROL_VALUE         1062
+#define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,6 +26,7 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/SMsgHandler.h>
+#include <rfb/SSecurity.h>
 
 namespace rfb {
 
@@ -36,7 +37,7 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection();
+    SConnection(SSecurityFactory* sf, bool reverseConnection_);
     virtual ~SConnection();
 
     // Methods to initialise the connection
@@ -48,10 +49,6 @@ namespace rfb {
     // streams).  Ownership of the streams remains with the caller
     // (i.e. SConnection will not delete them).
     void setStreams(rdr::InStream* is, rdr::OutStream* os);
-
-    // addSecType() should be called once for each security type which the
-    // server supports to this client.
-    void addSecType(rdr::U8 secType);
 
     // initialiseProtocol() should be called once the streams and security
     // types are set.  Subsequently, processMsg() should be called whenever
@@ -78,18 +75,8 @@ namespace rfb {
     // to deal with unknown/bogus viewer protocol numbers.
     virtual void versionReceived();
 
-    // getSSecurity() gets the SSecurity object for the given type.  The type
-    // is guaranteed to be one of the secTypes passed in to addSecType().  The
-    // SSecurity object's destroy() method will be called by the SConnection
-    // from its destructor.
-    virtual SSecurity* getSSecurity(int secType)=0;
-
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();
-
-    // authFailure() is called when authentication has failed.  This method is
-    // not normally overridden since an exception is thrown anyway.
-    virtual void authFailure();
 
     // queryConnection() is called when authentication has succeeded, but
     // before informing the client.  It can be overridden to query a local user
@@ -178,7 +165,8 @@ namespace rfb {
 
     stateEnum state() { return state_; }
 
-    // ssecurity() returns a pointer to this connection's SSecurity object, if any
+    // ssecurity() returns a pointer to this connection's SSecurity object, if
+    // any
     const SSecurity* ssecurity() const { return security; }
 
   protected:
@@ -186,7 +174,6 @@ namespace rfb {
 
     bool readyForSetColourMapEntries;
 
-  private:
     void processVersionMsg();
     void processSecurityTypeMsg();
     void processSecurityMsg();
@@ -197,11 +184,10 @@ namespace rfb {
     rdr::OutStream* os;
     SMsgReader* reader_;
     SMsgWriter* writer_;
-    enum { maxSecTypes = 8 };
-    int nSecTypes;
-    rdr::U8 secTypes[maxSecTypes];
     SSecurity* security;
+    SSecurityFactory* securityFactory;
     stateEnum state_;
+    bool reverseConnection;
   };
 }
 #endif

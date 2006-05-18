@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -40,10 +40,10 @@
 #ifndef __RFB_WIN32_TCHARARRAY_H__
 #define __RFB_WIN32_TCHARARRAY_H__
 
-#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <tchar.h>
-
 #include <rfb/util.h>
+#include <rfb/Password.h>
 
 namespace rfb {
 
@@ -98,6 +98,20 @@ namespace rfb {
     WCHAR* buf;
   };
 
+  // -=- Wide-character-based password-buffer handler.  Zeroes the password
+  //     buffer when deleted or replaced.
+  class WPlainPasswd : public WCharArray {
+  public:
+    WPlainPasswd() {}
+    WPlainPasswd(WCHAR* str) : WCharArray(str) {}
+    ~WPlainPasswd() {replaceBuf(0);}
+    void replaceBuf(WCHAR* str) {
+      if (buf)
+        memset(buf, 0, sizeof(WCHAR)*wcslen(buf));
+      WCharArray::replaceBuf(str);
+    }
+  };
+    
 #ifdef _UNICODE
 #define tstrDup wstrDup
 #define tstrFree wstrFree
@@ -105,6 +119,7 @@ namespace rfb {
 #define tstrContains wstrContains
   typedef WCharArray TCharArray;
   typedef WStr TStr;
+  typedef WPlainPasswd TPlainPasswd;
 #else
 #define tstrDup strDup
 #define tstrFree strFree
@@ -112,6 +127,7 @@ namespace rfb {
 #define tstrContains strContains
   typedef CharArray TCharArray;
   typedef CStr TStr;
+  typedef PlainPasswd TPlainPasswd;
 #endif
 
 };

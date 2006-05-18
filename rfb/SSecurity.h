@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,10 +18,16 @@
 //
 // SSecurity - class on the server side for handling security handshaking.  A
 // derived class for a particular security type overrides the processMsg()
-// method.  processMsg() is called first when the security type has been
-// decided on, and will keep being called whenever there is data to read from
-// the client until either it returns false, indicating authentication/security
-// failure, or it returns with done set to true, to indicate success.
+// method.
+
+// processMsg() is called first when the security type has been decided on, and
+// will keep being called whenever there is data to read from the client.  It
+// should return false when it needs more data, or true when the connection has
+// been successfully authenticated.  In the event of authentication failure an
+// AuthFailureException should be thrown - this will result in a "failed"
+// security result being sent to the client with the str() from the exception
+// being sent as the reason.  Any other type of failure should be indicated by
+// some other kind of exception which will cause the connection to be aborted.
 //
 // processMsg() must never block (or at least must never block until the client
 // has been authenticated) - this is to prevent denial of service attacks.
@@ -33,13 +39,13 @@
 // getType() should return the secType value corresponding to the SSecurity
 // implementation.
 //
-// failureMessage_.buf can be set to a string which will be passed to the client
-// if processMsg returns false, to indicate the reason for the failure.
 
 #ifndef __RFB_SSECURITY_H__
 #define __RFB_SSECURITY_H__
 
+#include <rdr/types.h>
 #include <rfb/util.h>
+#include <list>
 
 namespace rfb {
 
@@ -48,7 +54,7 @@ namespace rfb {
   class SSecurity {
   public:
     virtual ~SSecurity() {}
-    virtual bool processMsg(SConnection* sc, bool* done)=0;
+    virtual bool processMsg(SConnection* sc)=0;
     virtual void destroy() { delete this; }
     virtual int getType() const = 0;
 
@@ -57,20 +63,21 @@ namespace rfb {
     // necessary.  Null may be returned to indicate that there is no user name
     // for this security type.
     virtual const char* getUserName() const = 0;
-
-    virtual const char* failureMessage() {return failureMessage_.buf;}
-  protected:
-    CharArray failureMessage_;
   };
 
   // SSecurityFactory creates new SSecurity instances for
   // particular security types.
   // The instances must be destroyed by calling destroy()
   // on them when done.
+  // getSecTypes returns a list of the security types that are both configured
+  // and actually supported.  Which configuration is considered depends on the
+  // reverseConnection parameter.
   class SSecurityFactory {
   public:
     virtual ~SSecurityFactory() {}
-    virtual SSecurity* getSSecurity(int secType, bool noAuth=false)=0;
+    virtual SSecurity* getSSecurity(rdr::U8 secType, bool noAuth=false)=0;
+    virtual void getSecTypes(std::list<rdr::U8>* secTypes,
+                             bool reverseConnection) = 0;
   };
 
 }

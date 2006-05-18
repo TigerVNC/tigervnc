@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -41,10 +41,13 @@ namespace rfb {
     CConnection();
     virtual ~CConnection();
 
-    // ***
-    void setServerName(const char* serverName_);
-
     // Methods to initialise the connection
+
+    // setServerName() is used to provide a unique(ish) name for the server to
+    // which we are connected.  This might be the result of getPeerEndpoint on
+    // a TcpSocket, for example, or a host specified by DNS name & port.
+    // The serverName is used when verifying the Identity of a host (see RA2).
+    void setServerName(const char* name_) { serverName.replaceBuf(strDup(name_)); }
 
     // setStreams() sets the streams to be used for the connection.  These must
     // be set before initialiseProtocol() and processMsg() are called.  The
@@ -129,7 +132,9 @@ namespace rfb {
     rdr::InStream* getInStream() { return is; }
     rdr::OutStream* getOutStream() { return os; }
 
-    char* getServerName() {return strDup(serverName.buf);}
+    // Access method used by SSecurity implementations that can verify servers'
+    // Identities, to determine the unique(ish) name of the server.
+    const char* getServerName() const { return serverName.buf; }
 
     enum stateEnum {
       RFBSTATE_UNINITIALISED,

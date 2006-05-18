@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,7 +22,7 @@
 #ifndef __RFB_CMSGWRITER_H__
 #define __RFB_CMSGWRITER_H__
 
-#include <rdr/types.h>
+#include <rfb/InputHandler.h>
 
 namespace rdr { class OutStream; }
 
@@ -32,24 +32,25 @@ namespace rfb {
   class ConnParams;
   struct Rect;
 
-  class CMsgWriter {
+  class CMsgWriter : public InputHandler {
   public:
     virtual ~CMsgWriter();
 
+    // CMsgWriter abstract interface methods
     virtual void writeClientInit(bool shared)=0;
+    virtual void startMsg(int type)=0;
+    virtual void endMsg()=0;
 
+    // CMsgWriter implemented methods
     virtual void writeSetPixelFormat(const PixelFormat& pf);
     virtual void writeSetEncodings(int nEncodings, rdr::U32* encodings);
     virtual void writeSetEncodings(int preferredEncoding, bool useCopyRect);
     virtual void writeFramebufferUpdateRequest(const Rect& r,bool incremental);
-    virtual void writeKeyEvent(rdr::U32 key, bool down);
-    virtual void writePointerEvent(int x, int y, int buttonMask);
-    virtual void writeClientCutText(const char* str, int len);
 
-    virtual void startMsg(int type)=0;
-    virtual void endMsg()=0;
-
-    virtual void setOutStream(rdr::OutStream* os);
+    // InputHandler implementation
+    virtual void keyEvent(rdr::U32 key, bool down);
+    virtual void pointerEvent(const Point& pos, int buttonMask);
+    virtual void clientCutText(const char* str, int len);
 
     ConnParams* getConnParams() { return cp; }
     rdr::OutStream* getOutStream() { return os; }

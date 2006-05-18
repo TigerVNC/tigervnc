@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -53,15 +53,13 @@ namespace rfb {
     virtual void readBell();
     virtual void readServerCutText();
 
-    virtual void endMsg();
-
     virtual void readFramebufferUpdateStart();
     virtual void readFramebufferUpdateEnd();
     virtual void readRect(const Rect& r, unsigned int encoding);
 
     virtual void readCopyRect(const Rect& r);
 
-    virtual void readSetCursor(const Point& hotspot, const Point& size);
+    virtual void readSetCursor(int width, int height, const Point& hotspot);
 
     CMsgReader(CMsgHandler* handler, rdr::InStream* is);
 

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -20,12 +20,11 @@
 namespace rfb {
   class UserPasswdGetter {
   public:
-    // getUserPasswd gets the username and password.  This might
-    // involve a dialog, getpass(), etc.  The user buffer pointer
-    // can be null, in which case no user name will be retrieved.
-    // The caller MUST delete [] the result(s) iff the
-    // call succeeds (returns true), and ignore them if failed.
-    virtual bool getUserPasswd(char** user, char** password)=0;
+    // getUserPasswd gets the username and password.  This might involve a
+    // dialog, getpass(), etc.  The user buffer pointer can be null, in which
+    // case no user name will be retrieved.  The caller MUST delete [] the
+    // result(s).
+    virtual void getUserPasswd(char** user, char** password)=0;
   };
 }
 #endif

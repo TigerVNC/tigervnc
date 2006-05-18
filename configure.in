@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(rdr/InStream.h)
+AC_INIT(vncviewer_unix/vncviewer.cxx)
 
 PACKAGE=tightvnc
 VERSION=1.5.0

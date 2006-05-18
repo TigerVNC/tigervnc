@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -53,13 +53,13 @@ void
 LogWriter::listLogWriters(int width) {
   // *** make this respect width...
   LogWriter* current = log_writers;
-  printf("  ");
+  fprintf(stderr, "  ");
   while (current) {
-    printf("%s", current->m_name);
+    fprintf(stderr, "%s", current->m_name);
     current = current->m_next;
-    if (current) printf(", ");
+    if (current) fprintf(stderr, ", ");
   }
-  printf("\n");
+  fprintf(stderr, "\n");
 }
 
 LogWriter* LogWriter::log_writers;

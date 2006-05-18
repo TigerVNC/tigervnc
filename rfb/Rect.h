@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,11 +21,16 @@
 #ifndef __RFB_RECT_INCLUDED__
 #define __RFB_RECT_INCLUDED__
 
-#ifndef vncmin
-#define vncmin(a,b)            (((a) < (b)) ? (a) : (b))
+// Some platforms (e.g. Windows) include max() and min() macros in their
+// standard headers, but they are also standard C++ template functions, so some
+// C++ headers will undefine them.  So we steer clear of the names min and max
+// and define __rfbmin and __rfbmax instead.
+
+#ifndef __rfbmax
+#define __rfbmax(a,b) (((a) > (b)) ? (a) : (b))
 #endif
-#ifndef vncmax
-#define vncmax(a,b)            (((a) > (b)) ? (a) : (b))
+#ifndef __rfbmin
+#define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
 namespace rfb {
@@ -69,20 +74,20 @@ namespace rfb {
     }
     inline Rect intersect(const Rect &r) const {
       Rect result;
-      result.tl.x = vncmax(tl.x, r.tl.x);
-      result.tl.y = vncmax(tl.y, r.tl.y);
-      result.br.x = vncmax(vncmin(br.x, r.br.x), result.tl.x);
-      result.br.y = vncmax(vncmin(br.y, r.br.y), result.tl.y);
+      result.tl.x = __rfbmax(tl.x, r.tl.x);
+      result.tl.y = __rfbmax(tl.y, r.tl.y);
+      result.br.x = __rfbmax(__rfbmin(br.x, r.br.x), result.tl.x);
+      result.br.y = __rfbmax(__rfbmin(br.y, r.br.y), result.tl.y);
       return result;
     }
     inline Rect union_boundary(const Rect &r) const {
       if (r.is_empty()) return *this;
       if (is_empty()) return r;
       Rect result;
-      result.tl.x = vncmin(tl.x, r.tl.x);
-      result.tl.y = vncmin(tl.y, r.tl.y);
-      result.br.x = vncmax(br.x, r.br.x);
-      result.br.y = vncmax(br.y, r.br.y);
+      result.tl.x = __rfbmin(tl.x, r.tl.x);
+      result.tl.y = __rfbmin(tl.y, r.tl.y);
+      result.br.x = __rfbmax(br.x, r.br.x);
+      result.br.y = __rfbmax(br.y, r.br.y);
       return result;
     }
     inline Rect translate(const Point &p) const {

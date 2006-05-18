@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -49,7 +49,7 @@ enum TXMsgBoxFlags {
 class TXMsgBox : public TXDialog, public TXButtonCallback {
 public:
   TXMsgBox(Display* dpy, const char* text, unsigned int flags, const char* title=0)
-    : TXDialog(dpy, 1, 1, "Message"),
+    : TXDialog(dpy, 1, 1, "Message", true),
       textLabel(dpy, "", this),
     okButton(dpy, "OK", this, this, 60),
     cancelButton(dpy, "Cancel", this, this, 60)
@@ -99,7 +99,8 @@ public:
   }
 
   virtual void buttonActivate(TXButton* b) {
-    ok = (b == &okButton);   
+    ok = (b == &okButton);
+    done = true; 
     unmap();
   }
 

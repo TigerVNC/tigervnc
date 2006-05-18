@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,25 +21,22 @@
 // The DeviceFrameBuffer class encapsulates the pixel data of the system
 // display.
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <assert.h>
-
 #include <vector>
-
-#include <rfb/LogWriter.h>
-#include <rfb/Exception.h>
-#include <rdr/types.h>
-#include <rfb/VNCServer.h>
 #include <rfb_win32/DeviceFrameBuffer.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/OSVersion.h>
+#include <rfb_win32/IconInfo.h>
+#include <rfb/VNCServer.h>
+#include <rfb/LogWriter.h>
 
-namespace rfb {
+using namespace rfb;
+using namespace win32;
 
-namespace win32 {
+static LogWriter vlog("DeviceFrameBuffer");
 
-static LogWriter vlog("FrameBuffer");
+BoolParameter DeviceFrameBuffer::useCaptureBlt("UseCaptureBlt",
+  "Use a slower capture method that ensures that alpha blended windows appear correctly",
+  true);
 
 
 // -=- DeviceFrameBuffer class
@@ -67,10 +64,7 @@ DeviceFrameBuffer::DeviceFrameBuffer(HDC deviceContext, const Rect& wRect)
   // -=- Get the display dimensions and pixel format
 
   // Get the display dimensions
-  RECT cr;
-  if (!GetClipBox(device, &cr))
-    throw rdr::SystemException("GetClipBox", GetLastError());
-  deviceCoords = Rect(cr.left, cr.top, cr.right, cr.bottom);
+  deviceCoords = DeviceContext::getClipBox(device);
   if (!wRect.is_empty())
     deviceCoords = wRect.translate(deviceCoords.tl);
   int w = deviceCoords.width();
@@ -120,7 +114,7 @@ DeviceFrameBuffer::grabRect(const Rect &rect) {
   // Note: Microsoft's documentation lies directly about CAPTUREBLT and claims it works on 98/ME
   //       If you try CAPTUREBLT on 98 then you get blank output...
   if (!::BitBlt(tmpDC, rect.tl.x, rect.tl.y, rect.width(), rect.height(), device, src.x, src.y,
-    osVersion.isPlatformNT ? CAPTUREBLT | SRCCOPY : SRCCOPY)) {
+    (osVersion.isPlatformNT && useCaptureBlt) ? (CAPTUREBLT | SRCCOPY) : SRCCOPY)) {
     if (ignoreGrabErrors)
       vlog.error("BitBlt failed:%ld", GetLastError());
     else
@@ -176,7 +170,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
   // - If hCursor is null then there is no cursor - clear the old one
 
   if (hCursor == 0) {
-    server->setCursor(0, 0, 0, 0, 0, 0);
+    server->setCursor(0, 0, Point(), 0, 0);
     return;
   }
 
@@ -189,8 +183,10 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     BITMAP maskInfo;
     if (!GetObject(iconInfo.hbmMask, sizeof(BITMAP), &maskInfo))
       throw rdr::SystemException("GetObject() failed", GetLastError());
-
-    assert(maskInfo.bmPlanes == 1 && maskInfo.bmBitsPixel == 1);
+    if (maskInfo.bmPlanes != 1)
+      throw rdr::Exception("unsupported multi-plane cursor");
+    if (maskInfo.bmBitsPixel != 1)
+      throw rdr::Exception("unsupported cursor mask format");
 
     // - Create the cursor pixel buffer and mask storage
     //   NB: The cursor pixel buffer is NOT used here.  Instead, we
@@ -278,8 +274,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
       memcpy(cursorBm.data, cursor.data, cursor.dataLen());
     }
 
-    server->setCursor(cursor.width(), cursor.height(),
-                      cursor.hotspot.x, cursor.hotspot.y,
+    server->setCursor(cursor.width(), cursor.height(), cursor.hotspot,
                       cursorBm.data, cursor.mask.buf);
   } catch (rdr::Exception& e) {
     vlog.error(e.str());
@@ -292,7 +287,3 @@ DeviceFrameBuffer::updateColourMap() {
   if (!format.trueColour)
     copyDevicePaletteToDIB(device, this);
 }
-
-}; // namespace win32
-
-}; // namespace rfb

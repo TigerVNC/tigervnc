@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,13 +25,11 @@
 
 #include <rdr/Exception.h>
 #include <rfb/Configuration.h>
-#include <rfb/CMsgWriter.h>
+#include <rfb/InputHandler.h>
 #include <rfb/Rect.h>
 #include <rfb_win32/IntervalTimer.h>
 
 namespace rfb {
-
-  class CMsgWriter;
 
   namespace win32 {
 
@@ -40,8 +38,8 @@ namespace rfb {
       CPointer();
       ~CPointer();
 
-      void pointerEvent(CMsgWriter* writer, int x, int y, int buttonMask);
-      void handleTimer(CMsgWriter* writer, int timerId);
+      void pointerEvent(InputHandler* writer, const Point& pos, int buttonMask);
+      void handleTimer(InputHandler* writer, int timerId);
 
       void setHWND(HWND w) {intervalTimer.setHWND(w); threeTimer.setHWND(w);}
       void setIntervalTimerId(int id) {intervalTimer.setId(id);}
@@ -56,13 +54,13 @@ namespace rfb {
       bool emulate3;
       int pointerEventInterval;
 
-      void intervalPointerEvent(CMsgWriter* writer, int x, int y, int buttonMask);
+      void intervalPointerEvent(InputHandler* writer, const Point& pos, int buttonMask);
       IntervalTimer intervalTimer;
       bool intervalQueued;
       Point intervalPos;
       int intervalMask;
 
-      void threePointerEvent(CMsgWriter* writer, int x, int y, int buttonMask);
+      void threePointerEvent(InputHandler* writer, const Point& pos, int buttonMask);
       IntervalTimer threeTimer;
       Point threePos;
       int threeMask;

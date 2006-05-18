@@ -1,34 +1,35 @@
-.TH vncconfig 1 "30 December 2004" "TightVNC" "Virtual Network Computing"
+.TH vncconfig 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
 .SH NAME
 vncconfig \- configure and control a VNC server
 .SH SYNOPSIS
 .B vncconfig
-[\fB\-display\fP \fIXdisplay\fP] [\fB\-nowin\fP] [\fB\-iconic\fP]
+.RI [ parameters ] 
 .br
 .B vncconfig
-[\fB\-display\fP \fIXdisplay\fP]
+.RI [ parameters ] 
 .B \-connect
 .IR host [: port ]
 .br
 .B vncconfig
-[\fB\-display\fP \fIXdisplay\fP]
+.RI [ parameters ] 
 .B \-disconnect
 .br
 .B vncconfig
-[\fB\-display\fP \fIXdisplay\fP]
-.IR param = value " ..."
+.RI [ parameters ] 
+.RB [ -set ] 
+.IR Xvnc-param = value " ..."
 .br
 .B vncconfig
-[\fB\-display\fP \fIXdisplay\fP]
+.RI [ parameters ] 
 .B \-list
 .br
 .B vncconfig
-[\fB\-display\fP \fIXdisplay\fP]
-\fB\-get\fP \fIparam\fP
+.RI [ parameters ] 
+\fB\-get\fP \fIXvnc-param\fP
 .br
 .B vncconfig
-[\fB\-display\fP \fIXdisplay\fP]
-\fB\-desc\fP \fIparam\fP
+.RI [ parameters ] 
+\fB\-desc\fP \fIXvnc-param\fP
 .SH DESCRIPTION
 .B vncconfig
 is used to configure and control a running instance of Xvnc, or any other X
@@ -57,18 +58,6 @@ is no VNC extension.
 
 .SH OPTIONS
 .TP
-.B \-display \fIXdisplay\fP
-Specifies the Xvnc server to control.
-
-.TP
-.B \-nowin
-When run as a "helper" app, don't put up a window.
-
-.TP
-.B \-iconic
-When run as a "helper" app, make the window iconified at startup.
-
-.TP
 .B \-connect \fIhost\fP[:\fIport\fP]
 Tells an Xvnc server to make a "reverse" connection to a listening VNC viewer
 (normally connections are made the other way round - the viewer connects to the
@@ -82,7 +71,7 @@ This causes Xvnc to disconnect from all viewers so that the VNC desktop is not
 displayed anywhere.
 
 .TP
-.IR param = value
+[\fB-set\fP] \fIXvnc-param\fP=\fIvalue\fP
 Sets an Xvnc parameter to the given value.  Note that some of Xvnc's parameters
 are read only once at startup so that changing them in this way may not have
 any effect.
@@ -92,12 +81,35 @@ any effect.
 Lists all the parameters supported by Xvnc.
 
 .TP
-.B \-get \fIparam\fP
+.B \-get \fIXvnc-param\fP
 Prints the current value of the given Xvnc parameter.
 
 .TP
-.B \-desc \fIparam\fP
+.B \-desc \fIXvnc-param\fP
 Prints a short description of the given Xvnc parameter.
+
+.SH PARAMETERS
+.B vncconfig
+also has parameters of its own which can be set on the command line.  These
+should not be confused with Xvnc's parameters which are manipulated with the
+\fB-set\fP, \fB-get\fP, \fB-list\fP and \fB-desc\fP options.
+
+Parameters can be turned on with -\fIparam\fP or off with -\fIparam\fP=0.
+Parameters which take a value can be specified as -\fIparam\fP \fIvalue\fP.
+Other valid forms are \fIparam\fP\fB=\fP\fIvalue\fP -\fIparam\fP=\fIvalue\fP
+--\fIparam\fP=\fIvalue\fP.  Parameter names are case-insensitive.
+
+.TP
+.B \-display \fIXdisplay\fP
+Specifies the Xvnc server to control.
+
+.TP
+.B \-nowin
+When run as a "helper" app, don't put up a window.
+
+.TP
+.B \-iconic
+When run as a "helper" app, make the window iconified at startup.
 
 .SH SEE ALSO
 .BR vncpasswd (1),

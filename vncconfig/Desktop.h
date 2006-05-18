@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,6 +21,7 @@
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/SDisplay.h>
+#include <rfb_win32/DynamicFn.h>
 
 namespace rfb {
 

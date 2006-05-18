@@ -92,6 +92,8 @@ Image::~Image()
   // fprintf(stderr, "~Image() called\n");
 
   imageCleanup.images.remove(this);
+
+  // XDestroyImage will free xim->data if necessary
   if (xim != NULL)
     XDestroyImage(xim);
 }

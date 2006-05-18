@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,13 +18,10 @@
 #ifndef __VIEWER_MRU_H__
 #define __VIEWER_MRU_H__
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <list>
 #include <set>
-
 #include <rfb_win32/Registry.h>
-
 #include <rfb/util.h>
 #include <rdr/HexOutStream.h>
 
@@ -85,7 +82,7 @@ namespace rfb {
             TCharArray keyname = rdr::HexOutStream::binToHexStr(&order[i], 1);
             try {
               TCharArray hostname = key.getString(keyname.buf);
-              if (strcmp(name, CStr(hostname.buf)) == 0) {
+              if (stricmp(name, CStr(hostname.buf)) == 0) {
                 keycode = order[i];
                 found = true;
                 break;
@@ -109,8 +106,6 @@ namespace rfb {
           orderlen = 0;
         }
 
-        printf("keycode=%d\n", (int)keycode);
-
         orderlen++;
         int i, j=orderlen-1;
         for (i=0; i<orderlen-1; i++) {
@@ -123,8 +118,6 @@ namespace rfb {
         for (i=j; i>0; i--)
           order[i] = order[i-1];
         order[0] = keycode;
-
-        printf("selected %d\n", (int)keycode);
 
         TCharArray keyname = rdr::HexOutStream::binToHexStr((char*)&keycode, 1);
         key.setString(keyname.buf, TStr(name));

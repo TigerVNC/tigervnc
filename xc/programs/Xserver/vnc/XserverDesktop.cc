@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -67,6 +67,11 @@ rfb::IntParameter deferUpdateTime("DeferUpdate",
 rfb::BoolParameter alwaysSetDeferUpdateTimer("AlwaysSetDeferUpdateTimer",
                   "Always reset the defer update timer on every change",false);
 
+IntParameter queryConnectTimeout("QueryConnectTimeout",
+                                 "Number of seconds to show the Accept Connection dialog before "
+                                 "rejecting the connection",
+                                 10);
+
 static KeyCode KeysymToKeycode(KeySymsPtr keymap, KeySym ks, int* col);
 
 static rdr::U8 reverseBits[] = {
@@ -95,12 +100,14 @@ static rdr::U8 reverseBits[] = {
 };
 
 
-class MyHTTPServer : public rfb::HTTPServer {
+class FileHTTPServer : public rfb::HTTPServer {
 public:
-  MyHTTPServer(XserverDesktop* d) : desktop(d) {}
-  virtual ~MyHTTPServer() {}
+  FileHTTPServer(XserverDesktop* d) : desktop(d) {}
+  virtual ~FileHTTPServer() {}
 
-  virtual rdr::InStream* getFile(const char* name, const char** contentType) {
+  virtual rdr::InStream* getFile(const char* name, const char** contentType,
+                                 int* contentLength, time_t* lastModified)
+  {
     if (name[0] != '/' || strstr(name, "..") != 0) {
       vlog.info("http request was for invalid file name");
       return 0;
@@ -113,12 +120,17 @@ public:
     sprintf(fname.buf, "%s%s", httpDirStr.buf, name);
     int fd = open(fname.buf, O_RDONLY);
     if (fd < 0) return 0;
-
     rdr::InStream* is = new rdr::FdInStream(fd, -1, 0, true);
     *contentType = guessContentType(name, *contentType);
     if (strlen(name) > 4 && strcasecmp(&name[strlen(name)-4], ".vnc") == 0) {
       is = new rdr::SubstitutingInStream(is, desktop, 20);
       *contentType = "text/html";
+    } else {
+      struct stat st;
+      if (fstat(fd, &st) == 0) {
+        *contentLength = st.st_size;
+        *lastModified = st.st_mtime;
+      }
     }
     return is;
   }
@@ -136,8 +148,8 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
     listener(listener_), httpListener(httpListener_),
     cmap(0), deferredUpdateTimerSet(false),
     grabbing(false), ignoreHooks_(false), directFbptr(fbptr != 0),
-    oldButtonMask(0), cursorX(0), cursorY(0),
-    oldCursorX(0), oldCursorY(0)
+    oldButtonMask(0),
+    queryConnectId(0)
 {
   int i;
   format.depth = pScreen->rootDepth;
@@ -186,9 +198,10 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
 
   server = new VNCServerST(name, this);
   server->setPixelBuffer(this);
+  server->setQueryConnectionHandler(this);
 
   if (httpListener)
-    httpServer = new MyHTTPServer(this);
+    httpServer = new FileHTTPServer(this);
 }
 
 XserverDesktop::~XserverDesktop()
@@ -258,6 +271,24 @@ char* XserverDesktop::substitute(const char* varName)
   }
   return 0;
 }
+
+rfb::VNCServerST::queryResult
+XserverDesktop::queryConnection(network::Socket* sock,
+                                const char* userName,
+                                char** reason) {
+  if (queryConnectId) {
+    *reason = strDup("Another connection is currently being queried.");
+    return rfb::VNCServerST::REJECT;
+  }
+  queryConnectAddress.replaceBuf(sock->getPeerAddress());
+  if (!userName)
+    userName = "(anonymous)";
+  queryConnectUsername.replaceBuf(strDup(userName));
+  queryConnectId = sock;
+  vncQueryConnect(this, sock);
+  return rfb::VNCServerST::PENDING;
+}
+
 
 void XserverDesktop::setColormap(ColormapPtr cmap_)
 {
@@ -372,7 +403,7 @@ void XserverDesktop::setCursor(CursorPtr cursor)
     }
 
     server->setCursor(cursor->bits->width, cursor->bits->height,
-                      cursor->bits->xhot, cursor->bits->yhot,
+                      Point(cursor->bits->xhot, cursor->bits->yhot),
                       cursorData, cursorMask);
     server->tryUpdate();
     delete [] cursorData;
@@ -414,6 +445,20 @@ CARD32 XserverDesktop::deferredUpdateTimerCallback(OsTimerPtr timer,
   return 0;
 }
 
+void XserverDesktop::deferUpdate()
+{
+  if (deferUpdateTime != 0) {
+    if (!deferredUpdateTimerSet || alwaysSetDeferUpdateTimer) {
+      deferredUpdateTimerSet = true;
+      deferredUpdateTimer = TimerSet(deferredUpdateTimer, 0,
+                                     deferUpdateTime,
+                                     deferredUpdateTimerCallback, this);
+    }
+  } else {
+    server->tryUpdate();
+  }
+}
+
 void XserverDesktop::add_changed(RegionPtr reg)
 {
   if (ignoreHooks_) return;
@@ -424,12 +469,7 @@ void XserverDesktop::add_changed(RegionPtr reg)
                                      REGION_NUM_RECTS(reg),
                                      (ShortRect*)REGION_RECTS(reg));
     server->add_changed(rfbReg);
-    if (!deferredUpdateTimerSet || alwaysSetDeferUpdateTimer) {
-      deferredUpdateTimer = TimerSet(deferredUpdateTimer, 0,
-                                     deferUpdateTime,
-                                     deferredUpdateTimerCallback, this);
-      deferredUpdateTimerSet = true;
-    }
+    deferUpdate();
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::add_changed: %s",e.str());
   }
@@ -445,12 +485,7 @@ void XserverDesktop::add_copied(RegionPtr dst, int dx, int dy)
                                      REGION_NUM_RECTS(dst),
                                      (ShortRect*)REGION_RECTS(dst));
     server->add_copied(rfbReg, rfb::Point(dx, dy));
-    if (!deferredUpdateTimerSet || alwaysSetDeferUpdateTimer) {
-      deferredUpdateTimer = TimerSet(deferredUpdateTimer, 0,
-                                     deferUpdateTime,
-                                     deferredUpdateTimerCallback, this);
-      deferredUpdateTimerSet = true;
-    }
+    deferUpdate();
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::add_copied: %s",e.str());
   }
@@ -458,11 +493,10 @@ void XserverDesktop::add_copied(RegionPtr dst, int dx, int dy)
 
 void XserverDesktop::positionCursor()
 {
-  if (cursorX != oldCursorX || cursorY != oldCursorY) {
-    oldCursorX = cursorX;
-    oldCursorY = cursorY;
-    (*pScreen->SetCursorPosition) (pScreen, cursorX, cursorY, FALSE);
-    server->setCursorPos(cursorX, cursorY);
+  if (!cursorPos.equals(oldCursorPos)) {
+    oldCursorPos = cursorPos;
+    (*pScreen->SetCursorPosition) (pScreen, cursorPos.x, cursorPos.y, FALSE);
+    server->setCursorPos(cursorPos);
     server->tryUpdate();
   }
 }
@@ -474,10 +508,9 @@ void XserverDesktop::blockHandler(fd_set* fds)
     if (screenWithCursor == pScreen) {
       int x, y;
       GetSpritePosition(&x, &y);
-      if (x != cursorX || y != cursorY) {
-        cursorX = oldCursorX = x;
-        cursorY = oldCursorY = y;
-        server->setCursorPos(x, y);
+      if (x != cursorPos.x || y != cursorPos.y) {
+        cursorPos = oldCursorPos = Point(x, y);
+        server->setCursorPos(cursorPos);
         server->tryUpdate();
       }
     }
@@ -491,12 +524,27 @@ void XserverDesktop::blockHandler(fd_set* fds)
     server->getSockets(&sockets);
     std::list<Socket*>::iterator i;
     for (i = sockets.begin(); i != sockets.end(); i++) {
-      FD_SET((*i)->getFd(), fds);
+      int fd = (*i)->getFd();
+      if ((*i)->isShutdown()) {
+        vlog.debug("client gone, sock %d",fd);
+        server->removeSocket(*i);
+        vncClientGone(fd);
+        delete (*i);
+      } else {
+        FD_SET(fd, fds);
+      }
     }
     if (httpServer) {
       httpServer->getSockets(&sockets);
       for (i = sockets.begin(); i != sockets.end(); i++) {
-        FD_SET((*i)->getFd(), fds);
+        int fd = (*i)->getFd();
+        if ((*i)->isShutdown()) {
+          vlog.debug("http client gone, sock %d",fd);
+          httpServer->removeSocket(*i);
+          delete (*i);
+        } else {
+          FD_SET(fd, fds);
+        }
       }
     }
   } catch (rdr::Exception& e) {
@@ -517,7 +565,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         if (FD_ISSET(listener->getFd(), fds)) {
           FD_CLR(listener->getFd(), fds);
           Socket* sock = listener->accept();
-          server->addClient(sock);
+          server->addSocket(sock);
           vlog.debug("new client, sock %d",sock->getFd());
         }
       }
@@ -526,7 +574,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         if (FD_ISSET(httpListener->getFd(), fds)) {
           FD_CLR(httpListener->getFd(), fds);
           Socket* sock = httpListener->accept();
-          httpServer->addClient(sock);
+          httpServer->addSocket(sock);
           vlog.debug("new http client, sock %d",sock->getFd());
         }
       }
@@ -538,10 +586,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         int fd = (*i)->getFd();
         if (FD_ISSET(fd, fds)) {
           FD_CLR(fd, fds);
-          if (!server->processSocketEvent(*i)) {
-            vlog.debug("client gone, sock %d",fd);
-            vncClientGone(fd);
-          }
+          server->processSocketEvent(*i);
         }
       }
 
@@ -551,9 +596,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
           int fd = (*i)->getFd();
           if (FD_ISSET(fd, fds)) {
             FD_CLR(fd, fds);
-            if (!httpServer->processSocketEvent(*i)) {
-              vlog.debug("http client gone, sock %d",fd);
-            }
+            httpServer->processSocketEvent(*i);
           }
         }
       }
@@ -576,7 +619,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
 void XserverDesktop::addClient(Socket* sock, bool reverse)
 {
   vlog.debug("new client, sock %d reverse %d",sock->getFd(),reverse);
-  server->addClient(sock, reverse);
+  server->addSocket(sock, reverse);
 }
 
 void XserverDesktop::disconnectClients()
@@ -586,12 +629,36 @@ void XserverDesktop::disconnectClients()
 }
 
 
+int XserverDesktop::getQueryTimeout(void* opaqueId,
+                                    const char** address,
+                                    const char** username)
+{
+  if (opaqueId && queryConnectId == opaqueId) {
+    vlog.info("address=%s, username=%s, timeout=%d",
+              queryConnectAddress.buf, queryConnectUsername.buf,
+              (int)queryConnectTimeout);
+    if (address) *address = queryConnectAddress.buf;
+    if (username) *username = queryConnectUsername.buf;
+    return queryConnectTimeout;
+  }
+  return 0;
+}
+
+void XserverDesktop::approveConnection(void* opaqueId, bool accept,
+                                       const char* rejectMsg)
+{
+  if (queryConnectId == opaqueId) {
+    server->approveConnection((network::Socket*)opaqueId, accept, rejectMsg);
+    queryConnectId = 0;
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // SDesktop callbacks
 
 
-void XserverDesktop::pointerEvent(const Point& pos, rdr::U8 buttonMask)
+void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {
   xEvent ev;
   DevicePtr dev = LookupPointerDevice();
@@ -609,7 +676,7 @@ void XserverDesktop::pointerEvent(const Point& pos, rdr::U8 buttonMask)
   ev.u.keyButtonPointer.rootY = pos.y;
   ev.u.keyButtonPointer.time = GetTimeInMillis();
 
-  if (pos.x != cursorX || pos.y != cursorY)
+  if (!pos.equals(cursorPos))
     (*dev->processInputProc)(&ev, (DeviceIntPtr)dev, 1);
 
   for (int i = 0; i < 5; i++) {
@@ -622,8 +689,7 @@ void XserverDesktop::pointerEvent(const Point& pos, rdr::U8 buttonMask)
     }
   }
 
-  cursorX = pos.x;
-  cursorY = pos.y;
+  cursorPos = pos;
   oldButtonMask = buttonMask;
 }
 
@@ -662,16 +728,23 @@ void XserverDesktop::grabRegion(const rfb::Region& region)
 
 void XserverDesktop::lookup(int index, int* r, int* g, int* b)
 {
-  EntryPtr pent;
-  pent = (EntryPtr)&cmap->red[index];
-  if (pent->fShared) {
-    *r = pent->co.shco.red->color;
-    *g = pent->co.shco.green->color;
-    *b = pent->co.shco.blue->color;
+  if ((cmap->c_class | DynamicClass) == DirectColor) {
+    VisualPtr v = cmap->pVisual;
+    *r = cmap->red  [(index & v->redMask  ) >> v->offsetRed  ].co.local.red;
+    *g = cmap->green[(index & v->greenMask) >> v->offsetGreen].co.local.green;
+    *b = cmap->blue [(index & v->blueMask ) >> v->offsetBlue ].co.local.blue;
   } else {
-    *r = pent->co.local.red;
-    *g = pent->co.local.green;
-    *b = pent->co.local.blue;
+    EntryPtr pent;
+    pent = (EntryPtr)&cmap->red[index];
+    if (pent->fShared) {
+      *r = pent->co.shco.red->color;
+      *g = pent->co.shco.green->color;
+      *b = pent->co.shco.blue->color;
+    } else {
+      *r = pent->co.local.red;
+      *g = pent->co.local.green;
+      *b = pent->co.local.blue;
+    }
   }
 }
 

@@ -1,6 +1,5 @@
 
-SRCS = TXWindow.cxx TXScrollbar.cxx TXViewport.cxx TXImage.cxx TXMenu.cxx \
-       Timer.cxx
+SRCS = TXWindow.cxx TXScrollbar.cxx TXViewport.cxx TXImage.cxx TXMenu.cxx
 
 OBJS = $(SRCS:.cxx=.o)
 

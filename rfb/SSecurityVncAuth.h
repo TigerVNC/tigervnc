@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,7 +26,7 @@
 
 #include <rfb/SSecurity.h>
 #include <rfb/secTypes.h>
-#include <rfb/vncAuth.h>
+#include <rdr/types.h>
 
 namespace rfb {
 
@@ -40,10 +40,11 @@ namespace rfb {
   class SSecurityVncAuth : public SSecurity {
   public:
     SSecurityVncAuth(VncAuthPasswdGetter* pg);
-    virtual bool processMsg(SConnection* sc, bool* done);
+    virtual bool processMsg(SConnection* sc);
     virtual int getType() const {return secTypeVncAuth;}
     virtual const char* getUserName() const {return 0;}
   private:
+    enum {vncAuthChallengeSize = 16};
     rdr::U8 challenge[vncAuthChallengeSize];
     rdr::U8 response[vncAuthChallengeSize];
     bool sentChallenge;

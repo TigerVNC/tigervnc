@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,6 +22,7 @@
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
+#include <rfb_win32/ModuleFileName.h>
 #include <rfb/Configuration.h>
 #include <rfb/Blacklist.h>
 #include <network/TcpSocket.h>
@@ -43,42 +44,37 @@ namespace rfb {
     public:
       ConnHostDialog() : Dialog(GetModuleHandle(0)) {}
       bool showDialog(const TCHAR* pat) {
-        delete [] pattern.buf;
-        pattern.buf = tstrDup(pat);
+        pattern.replaceBuf(tstrDup(pat));
         return Dialog::showDialog(MAKEINTRESOURCE(IDD_CONN_HOST));
       }
       void initDialog() {
-        if (_tcslen(pattern.buf) == 0) {
-          delete [] pattern.buf;
-          pattern.buf = tstrDup(_T("+"));
-        }
+        if (_tcslen(pattern.buf) == 0)
+          pattern.replaceBuf(tstrDup("+"));
 
         if (pattern.buf[0] == _T('+'))
           setItemChecked(IDC_ALLOW, true);
+        else if (pattern.buf[0] == _T('?'))
+          setItemChecked(IDC_QUERY, true);
         else
           setItemChecked(IDC_DENY, true);
 
         setItemString(IDC_HOST_PATTERN, &pattern.buf[1]);
-
-        delete [] pattern.buf;
-        pattern.buf = 0;
+        pattern.replaceBuf(0);
       }
       bool onOk() {
-        delete [] pattern.buf;
-        pattern.buf = 0;
-
         TCharArray host = getItemString(IDC_HOST_PATTERN);
-
         TCharArray newPat(_tcslen(host.buf)+2);
         if (isItemChecked(IDC_ALLOW))
           newPat.buf[0] = _T('+');
+        else if (isItemChecked(IDC_QUERY))
+          newPat.buf[0] = _T('?');
         else
           newPat.buf[0] = _T('-');
         newPat.buf[1] = 0;
         _tcscat(newPat.buf, host.buf);
 
-        network::TcpFilter::Pattern pat = network::TcpFilter::parsePattern(CStr(newPat.buf));
-        pattern.buf = TCharArray(network::TcpFilter::patternToStr(pat)).takeBuf();
+        network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(CStr(newPat.buf)));
+        pattern.replaceBuf(TCharArray(network::TcpFilter::patternToStr(pat)).takeBuf());
         return true;
       }
       const TCHAR* getPattern() {return pattern.buf;}
@@ -92,10 +88,11 @@ namespace rfb {
         : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_CONNECTIONS)), regKey(rk) {}
       void initDialog() {
         vlog.debug("set IDC_PORT %d", (int)port_number);
-        setItemInt(IDC_PORT, port_number);
+        setItemInt(IDC_PORT, port_number ? port_number : 5900);
+        setItemChecked(IDC_RFB_ENABLE, port_number != 0);
         setItemInt(IDC_IDLE_TIMEOUT, rfb::Server::idleTimeout);
         vlog.debug("set IDC_HTTP_PORT %d", (int)http_port);
-        setItemInt(IDC_HTTP_PORT, http_port);
+        setItemInt(IDC_HTTP_PORT, http_port ? http_port : 5800);
         setItemChecked(IDC_HTTP_ENABLE, http_port != 0);
         enableItem(IDC_HTTP_PORT, http_port != 0);
         setItemChecked(IDC_LOCALHOST, localHost);
@@ -113,7 +110,7 @@ namespace rfb {
             SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)(const TCHAR*)TStr(first.buf));
         }
 
-        onCommand(IDC_HOSTS, EN_CHANGE);
+        onCommand(IDC_RFB_ENABLE, EN_CHANGE);
       }
       bool onCommand(int id, int cmd) {
         switch (id) {
@@ -133,8 +130,7 @@ namespace rfb {
         case IDC_PORT:
           if (cmd == EN_CHANGE) {
             try {
-              if (getItemInt(IDC_PORT) > 100)
-                setItemInt(IDC_HTTP_PORT, getItemInt(IDC_PORT)-100);
+              setItemInt(IDC_HTTP_PORT, rfbPortToHTTP(getItemInt(IDC_PORT)));
             } catch (...) {
             }
           }
@@ -145,19 +141,33 @@ namespace rfb {
           return false;
 
         case IDC_HTTP_ENABLE:
-          enableItem(IDC_HTTP_PORT, isItemChecked(IDC_HTTP_ENABLE));
-          setChanged(isChanged());
-          return false;
-
+        case IDC_RFB_ENABLE:
         case IDC_LOCALHOST:
-          enableItem(IDC_HOSTS, !isItemChecked(IDC_LOCALHOST));
-          enableItem(IDC_HOST_REMOVE, !isItemChecked(IDC_LOCALHOST));
-          enableItem(IDC_HOST_UP, !isItemChecked(IDC_LOCALHOST));
-          enableItem(IDC_HOST_DOWN, !isItemChecked(IDC_LOCALHOST));
-          enableItem(IDC_HOST_EDIT, !isItemChecked(IDC_LOCALHOST));
-          enableItem(IDC_HOST_ADD, !isItemChecked(IDC_LOCALHOST));
-          setChanged(isChanged());
-          return false;
+          {
+            // HTTP port
+            enableItem(IDC_HTTP_PORT, isItemChecked(IDC_HTTP_ENABLE) && isItemChecked(IDC_RFB_ENABLE));
+            enableItem(IDC_HTTP_ENABLE, isItemChecked(IDC_RFB_ENABLE));
+
+            // RFB port
+            enableItem(IDC_PORT, isItemChecked(IDC_RFB_ENABLE));
+
+            // Hosts
+            enableItem(IDC_LOCALHOST, isItemChecked(IDC_RFB_ENABLE));
+
+            bool enableHosts = !isItemChecked(IDC_LOCALHOST) && isItemChecked(IDC_RFB_ENABLE);
+            enableItem(IDC_HOSTS, enableHosts);
+            enableItem(IDC_HOST_ADD, enableHosts);
+            if (!enableHosts) {
+              enableItem(IDC_HOST_REMOVE, enableHosts);
+              enableItem(IDC_HOST_UP, enableHosts);
+              enableItem(IDC_HOST_DOWN, enableHosts);
+              enableItem(IDC_HOST_EDIT, enableHosts);
+            } else {
+              onCommand(IDC_HOSTS, EN_CHANGE);
+            }
+            setChanged(isChanged());
+            return false;
+          }
 
         case IDC_HOST_ADD:
           if (hostDialog.showDialog(_T("")))
@@ -228,11 +238,11 @@ namespace rfb {
         return false;
       }
       bool onOk() {
-        regKey.setInt(_T("PortNumber"), getItemInt(IDC_PORT));
-        regKey.setInt(_T("LocalHost"), isItemChecked(IDC_LOCALHOST));
+        regKey.setInt(_T("PortNumber"), isItemChecked(IDC_RFB_ENABLE) ? getItemInt(IDC_PORT) : 0);
         regKey.setInt(_T("IdleTimeout"), getItemInt(IDC_IDLE_TIMEOUT));
-        regKey.setInt(_T("HTTPPortNumber"), isItemChecked(IDC_HTTP_ENABLE) ? getItemInt(IDC_HTTP_PORT) : 0);
-
+        regKey.setInt(_T("HTTPPortNumber"), isItemChecked(IDC_HTTP_ENABLE) && isItemChecked(IDC_RFB_ENABLE)
+                                            ? getItemInt(IDC_HTTP_PORT) : 0);
+        regKey.setInt(_T("LocalHost"), isItemChecked(IDC_LOCALHOST));
         regKey.setString(_T("Hosts"), TCharArray(getHosts()).buf);
         return true;
       }
@@ -266,6 +276,16 @@ namespace rfb {
         }
         return strDup(hosts_str.buf);
       }
+      int rfbPortToHTTP(int rfbPort) {
+        int offset = -100;
+        if (http_port)
+          offset = http_port - port_number;
+        int httpPort = rfbPort + offset;
+        if (httpPort <= 0)
+          httpPort = rfbPort;
+        return httpPort;
+      }
+
     protected:
       RegKey regKey;
       ConnHostDialog hostDialog;

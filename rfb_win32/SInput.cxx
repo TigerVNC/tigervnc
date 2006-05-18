@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,23 +26,30 @@
 #define XK_CURRENCY
 #include <rfb/keysymdef.h>
 
-// * Force the windows headers to include all the SendInput stuff
-#define _WIN32_WINNT 0x401
-
+#include <tchar.h>
 #include <rfb_win32/SInput.h>
+#include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Service.h>
-#include <rfb/LogWriter.h>
 #include <rfb_win32/OSVersion.h>
-#include <rfb_win32/Win32Util.h>
-#include "keymap.h"
+#include <rfb_win32/DynamicFn.h>
+#include <rfb_win32/keymap.h>
+#include <rdr/Exception.h>
+#include <rfb/LogWriter.h>
+
+#if(defined(INPUT_MOUSE) && defined(RFB_HAVE_MONITORINFO))
+#define RFB_HAVE_SENDINPUT
+#else
+#pragma message("  NOTE: Not building SendInput support.")
+#endif
 
 using namespace rfb;
 
 static LogWriter vlog("SInput");
 
-
+#ifdef RFB_HAVE_SENDINPUT
 typedef UINT (WINAPI *_SendInput_proto)(UINT, LPINPUT, int);
 static win32::DynamicFn<_SendInput_proto> _SendInput(_T("user32.dll"), "SendInput");
+#endif
 
 //
 // -=- Pointer implementation for Win32
@@ -68,7 +75,7 @@ win32::SPointer::SPointer()
 }
 
 void
-win32::SPointer::pointerEvent(const Point& pos, rdr::U8 buttonmask)
+win32::SPointer::pointerEvent(const Point& pos, int buttonmask)
 {
   // - We are specifying absolute coordinates
   DWORD flags = MOUSEEVENTF_ABSOLUTE;
@@ -118,7 +125,7 @@ win32::SPointer::pointerEvent(const Point& pos, rdr::U8 buttonmask)
     // The event lies outside the primary monitor.  Under Win2K, we can just use
     // SendInput, which allows us to provide coordinates scaled to the virtual desktop.
     // SendInput is available on all multi-monitor-aware platforms.
-#ifdef SM_CXVIRTUALSCREEN
+#ifdef RFB_HAVE_SENDINPUT
     if (osVersion.isPlatformNT) {
       if (!_SendInput.isValid())
         throw rdr::Exception("SendInput not available");

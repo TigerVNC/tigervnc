@@ -1,7 +1,7 @@
 
-SRCS = vncExt.c vncconfig.cxx
+SRCS = vncExt.c vncconfig.cxx QueryConnectDialog.cxx
 
-OBJS = vncExt.o vncconfig.o
+OBJS = vncExt.o vncconfig.o QueryConnectDialog.o
 
 program = vncconfig
 

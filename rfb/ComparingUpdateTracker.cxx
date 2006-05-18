@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -24,27 +24,13 @@
 using namespace rfb;
 
 ComparingUpdateTracker::ComparingUpdateTracker(PixelBuffer* buffer)
-  : SimpleUpdateTracker(true), fb(buffer),
-    oldFb(fb->getPF(), 0, 0), firstCompare(true)
+  : fb(buffer), oldFb(fb->getPF(), 0, 0), firstCompare(true)
 {
     changed.assign_union(fb->getRect());
 }
 
 ComparingUpdateTracker::~ComparingUpdateTracker()
 {
-}
-
-
-void ComparingUpdateTracker::flush_update(UpdateInfo* info,
-                                          const Region& cliprgn, int maxArea)
-{
-  throw rfb::Exception("flush_update(UpdateInfo*) not implemented");
-}
-
-void ComparingUpdateTracker::flush_update(UpdateTracker &ut,
-                                          const Region &cliprgn)
-{
-  throw rfb::Exception("flush_update(UpdateTracker&) not implemented");
 }
 
 
@@ -60,7 +46,7 @@ void ComparingUpdateTracker::compare()
     // since in effect the entire framebuffer has changed.
     oldFb.setSize(fb->width(), fb->height());
     for (int y=0; y<fb->height(); y+=BLOCK_SIZE) {
-      Rect pos(0, y, fb->width(), vncmin(fb->height(), y+BLOCK_SIZE));
+      Rect pos(0, y, fb->width(), __rfbmin(fb->height(), y+BLOCK_SIZE));
       int srcStride;
       const rdr::U8* srcData = fb->getPixelsR(pos, &srcStride);
       oldFb.imageRect(pos, srcData, srcStride);
@@ -100,20 +86,20 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
   for (int blockTop = r.tl.y; blockTop < r.br.y; blockTop += BLOCK_SIZE)
   {
     // Get a strip of the source buffer
-    Rect pos(r.tl.x, blockTop, r.br.x, vncmin(r.br.y, blockTop+BLOCK_SIZE));
+    Rect pos(r.tl.x, blockTop, r.br.x, __rfbmin(r.br.y, blockTop+BLOCK_SIZE));
     int fbStride;
     const rdr::U8* newBlockPtr = fb->getPixelsR(pos, &fbStride);
     int newStrideBytes = fbStride * bytesPerPixel;
 
     rdr::U8* oldBlockPtr = oldData;
-    int blockBottom = vncmin(blockTop+BLOCK_SIZE, r.br.y);
+    int blockBottom = __rfbmin(blockTop+BLOCK_SIZE, r.br.y);
 
     for (int blockLeft = r.tl.x; blockLeft < r.br.x; blockLeft += BLOCK_SIZE)
     {
       const rdr::U8* newPtr = newBlockPtr;
       rdr::U8* oldPtr = oldBlockPtr;
 
-      int blockRight = vncmin(blockLeft+BLOCK_SIZE, r.br.x);
+      int blockRight = __rfbmin(blockLeft+BLOCK_SIZE, r.br.x);
       int blockWidthInBytes = (blockRight-blockLeft) * bytesPerPixel;
 
       for (int y = blockTop; y < blockBottom; y++)

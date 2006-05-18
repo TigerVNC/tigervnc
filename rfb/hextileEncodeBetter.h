@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2005 Constantin Kaplinsky.  All Rights Reserved.
- *    
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -294,11 +294,11 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
-    t.br.y = vncmin(r.br.y, t.tl.y + 16);
+    t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
 
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
 
-      t.br.x = vncmin(r.br.x, t.tl.x + 16);
+      t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
 
       GET_IMAGE_INTO_BUF(t,buf);
 

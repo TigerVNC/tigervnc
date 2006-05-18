@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -70,7 +70,7 @@ DesktopWindow::DesktopWindow(Display* dpy, int w, int h,
     newSelection(0), gettingInitialSelectionTime(true),
     newServerCutText(false), serverCutText_(0),
     setColourMapEntriesTimer(this), viewport(0),
-    pointerEventTimer(this), lastPointerX(0), lastPointerY(0),
+    pointerEventTimer(this),
     lastButtonMask(0)
 {
   setEventHandler(this);
@@ -125,14 +125,14 @@ void DesktopWindow::createXCursors()
   localXCursor = 0;
 }
 
-void DesktopWindow::setCursor(const Point& hotspot, const Point& size,
+void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
                               void* data, void* mask)
 {
   if (!useLocalCursor) return;
 
   hideLocalCursor();
 
-  int mask_len = ((size.x+7)/8) * size.y;
+  int mask_len = ((width+7)/8) * height;
 
   int i;
   for (i = 0; i < mask_len; i++)
@@ -151,11 +151,11 @@ void DesktopWindow::setCursor(const Point& hotspot, const Point& size,
 
   cursor.hotspot = hotspot;
 
-  cursor.setSize(size.x, size.y);
+  cursor.setSize(width, height);
   cursor.setPF(getPF());
   cursor.imageRect(cursor.getRect(), data);
 
-  cursorBacking.setSize(size.x, size.y);
+  cursorBacking.setSize(width, height);
   cursorBacking.setPF(getPF());
 
   delete [] cursor.mask.buf;
@@ -250,8 +250,8 @@ void DesktopWindow::setColourMapEntries(int firstColour, int nColours,
                                         rdr::U16* rgbs)
 {
   im->setColourMapEntries(firstColour, nColours, rgbs);
-  if (!setColourMapEntriesTimer.isSet())
-    setColourMapEntriesTimer.reset(100);
+  if (!setColourMapEntriesTimer.isStarted())
+    setColourMapEntriesTimer.start(100);
 }
 
 void DesktopWindow::serverCutText(const char* str, int len)
@@ -311,41 +311,39 @@ void DesktopWindow::resize(int w, int h)
 }
 
 
-void DesktopWindow::timerCallback(Timer* timer)
+bool DesktopWindow::handleTimeout(rfb::Timer* timer)
 {
   if (timer == &setColourMapEntriesTimer) {
     im->updateColourMap();
     im->put(win(), gc, im->getRect());
   } else if (timer == &pointerEventTimer) {
     if (!viewOnly) {
-      cc->writer()->writePointerEvent(lastPointerX, lastPointerY,
-                                      lastButtonMask);
+      cc->writer()->pointerEvent(lastPointerPos, lastButtonMask);
     }
   }
+  return false;
 }
 
 
-void DesktopWindow::handlePointerEvent(int x, int y, int buttonMask)
+void DesktopWindow::handlePointerEvent(const Point& pos, int buttonMask)
 {
   if (!viewOnly) {
     if (pointerEventInterval == 0 || buttonMask != lastButtonMask) {
-      cc->writer()->writePointerEvent(x, y, buttonMask);
+      cc->writer()->pointerEvent(pos, buttonMask);
     } else {
-      if (!pointerEventTimer.isSet())
-        pointerEventTimer.reset(pointerEventInterval);
+      if (!pointerEventTimer.isStarted())
+        pointerEventTimer.start(pointerEventInterval);
     }
-    lastPointerX = x;
-    lastPointerY = y;
+    lastPointerPos = pos;
     lastButtonMask = buttonMask;
   }
   // - If local cursor rendering is enabled then use it
   if (cursorAvailable) {
     // - Render the cursor!
-    Point p(x, y);
-    if (!p.equals(cursorPos)) {
+    if (!pos.equals(cursorPos)) {
       hideLocalCursor();
-      if (im->getRect().contains(p)) {
-        cursorPos = p;
+      if (im->getRect().contains(pos)) {
+        cursorPos = pos;
         showLocalCursor();
       }
     }
@@ -367,18 +365,18 @@ void DesktopWindow::handleEvent(TXWindow* w, XEvent* ev)
   case MotionNotify:
     while (XCheckTypedWindowEvent(dpy, win(), MotionNotify, ev));
     if (viewport && viewport->bumpScrollEvent(&ev->xmotion)) break;
-    handlePointerEvent(ev->xmotion.x, ev->xmotion.y,
+    handlePointerEvent(Point(ev->xmotion.x, ev->xmotion.y),
                        (ev->xmotion.state & 0x1f00) >> 8);
     break;
 
   case ButtonPress:
-    handlePointerEvent(ev->xbutton.x, ev->xbutton.y,
+    handlePointerEvent(Point(ev->xbutton.x, ev->xbutton.y),
                        (((ev->xbutton.state & 0x1f00) >> 8) |
                         (1 << (ev->xbutton.button-1))));
     break;
 
   case ButtonRelease:
-    handlePointerEvent(ev->xbutton.x, ev->xbutton.y,
+    handlePointerEvent(Point(ev->xbutton.x, ev->xbutton.y),
                        (((ev->xbutton.state & 0x1f00) >> 8) &
                         ~(1 << (ev->xbutton.button-1))));
     break;
@@ -397,20 +395,20 @@ void DesktopWindow::handleEvent(TXWindow* w, XEvent* ev)
       }
 
       if (fakeShiftPress)
-        cc->writer()->writeKeyEvent(XK_Shift_L, true);
+        cc->writer()->keyEvent(XK_Shift_L, true);
 
       downKeysym[ev->xkey.keycode] = ks;
-      cc->writer()->writeKeyEvent(ks, true);
+      cc->writer()->keyEvent(ks, true);
 
       if (fakeShiftPress)
-        cc->writer()->writeKeyEvent(XK_Shift_L, false);
+        cc->writer()->keyEvent(XK_Shift_L, false);
       break;
     }
 
   case KeyRelease:
     if (!viewOnly) {
       if (downKeysym[ev->xkey.keycode]) {
-        cc->writer()->writeKeyEvent(downKeysym[ev->xkey.keycode], false);
+        cc->writer()->keyEvent(downKeysym[ev->xkey.keycode], false);
         downKeysym[ev->xkey.keycode] = 0;
       }
     }
@@ -440,7 +438,7 @@ void DesktopWindow::handleEvent(TXWindow* w, XEvent* ev)
     // LeaveNotify is near enough...
     for (int i = 8; i < 256; i++) {
       if (downKeysym[i]) {
-        cc->writer()->writeKeyEvent(downKeysym[i], false);
+        cc->writer()->keyEvent(downKeysym[i], false);
         downKeysym[i] = 0;
       }
     }
@@ -545,7 +543,7 @@ void DesktopWindow::selectionNotify(XSelectionEvent* ev, Atom type, int format,
         if (str) {
           if (!viewOnly) {
             vlog.debug("sending cut buffer to server");
-            cc->writer()->writeClientCutText(str, len);
+            cc->writer()->clientCutText(str, len);
           }
           XFree(str);
           return;
@@ -565,7 +563,7 @@ void DesktopWindow::selectionNotify(XSelectionEvent* ev, Atom type, int format,
           vlog.debug("sending %s selection to server",
                      ev->selection == XA_PRIMARY ? "primary" :
                      ev->selection == xaCLIPBOARD ? "clipboard" : "unknown" );
-          cc->writer()->writeClientCutText((char*)data, nitems);
+          cc->writer()->clientCutText((char*)data, nitems);
         }
       }
     }

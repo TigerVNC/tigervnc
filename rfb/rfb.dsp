@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O1 /I ".." /FI"msvcwarning.h" /D "NDEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O1 /I ".." /FI"rdr/msvcwarning.h" /D "NDEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -65,7 +65,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -88,7 +88,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug_Unicode"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_LIB" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_LIB" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -210,6 +210,10 @@ SOURCE=.\HTTPServer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\KeyRemapper.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\Logger.cxx
 # End Source File
 # Begin Source File
@@ -223,6 +227,10 @@ SOURCE=.\Logger_stdio.cxx
 # Begin Source File
 
 SOURCE=.\LogWriter.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\Password.cxx
 # End Source File
 # Begin Source File
 
@@ -314,10 +322,6 @@ SOURCE=.\SSecurityVncAuth.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32\Threading_win32.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=.\TightDecoder.cxx
 # ADD CPP /I "../jpeg"
 # End Source File
@@ -345,10 +349,6 @@ SOURCE=.\UpdateTracker.cxx
 # Begin Source File
 
 SOURCE=.\util.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\vncAuth.cxx
 # End Source File
 # Begin Source File
 
@@ -520,6 +520,14 @@ SOURCE=.\ImageGetter.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\InputHandler.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\KeyRemapper.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\keysymdef.h
 # End Source File
 # Begin Source File
@@ -549,6 +557,10 @@ SOURCE=.\msgTypes.h
 # Begin Source File
 
 SOURCE=.\msvcwarning.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Password.h
 # End Source File
 # Begin Source File
 
@@ -672,10 +684,6 @@ SOURCE=.\Threading.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32\Threading_win32.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\tightDecode.h
 # End Source File
 # Begin Source File
@@ -725,14 +733,6 @@ SOURCE=.\UserPasswdGetter.h
 # Begin Source File
 
 SOURCE=.\util.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32\util_win32.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\vncAuth.h
 # End Source File
 # Begin Source File
 

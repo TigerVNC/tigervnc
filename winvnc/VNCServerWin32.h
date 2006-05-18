@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -29,11 +29,16 @@
 #include <rfb_win32/SFileTransferManagerWin32.h>
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/JavaViewer.h>
-//#include <rfb/ListConnInfo.h>
+#include <winvnc/ManagedListener.h>
 
 namespace winvnc {
 
-  class VNCServerWin32 : rfb::VNCServerST::QueryConnectionHandler {
+  class STrayIconThread;
+
+  class VNCServerWin32 : rfb::VNCServerST::QueryConnectionHandler,
+                         rfb::win32::SocketManager::AddressChangeNotifier,
+                         rfb::win32::RegConfig::Callback,
+                         rfb::win32::EventHandler {
   public:
     VNCServerWin32();
     virtual ~VNCServerWin32();
@@ -61,31 +66,43 @@ namespace winvnc {
     // CALLED FROM AcceptConnectDialog THREAD
     void queryConnectionComplete();
 
-    // Overridden VNCServerST::QueryConnectionHandler callback,
-    // used to prompt user to accept or reject a connection.
-    // CALLBACK IN VNCServerST "HOST" THREAD
-    virtual rfb::VNCServerST::queryResult queryConnection(network::Socket* sock,
-                                                          const char* userName,
-                                                          char** reason);
+    // Where to read the configuration settings from
+    static const TCHAR* RegConfigPath;
 
     bool getClientsInfo(rfb::ListConnInfo* LCInfo);
 
     bool setClientsStatus(rfb::ListConnInfo* LCInfo);
 
-    // Where to read the configuration settings from
-    static const TCHAR* RegConfigPath;
+  protected:
+    // VNCServerST::QueryConnectionHandler interface
+    // Callback used to prompt user to accept or reject a connection.
+    // CALLBACK IN VNCServerST "HOST" THREAD
+    virtual rfb::VNCServerST::queryResult queryConnection(network::Socket* sock,
+                                                          const char* userName,
+                                                          char** reason);
+
+    // SocketManager::AddressChangeNotifier interface
+    // Used to keep tray icon up to date
+    virtual void processAddressChange(network::SocketListener* sl);
+
+    // RegConfig::Callback interface
+    // Called via the EventManager whenver RegConfig sees the registry change
+    virtual void regConfigChanged();
+
+    // EventHandler interface
+    // Used to perform queued commands
+    virtual void processEvent(HANDLE event);
 
   protected:
-
     // Perform a particular internal function in the server thread
     typedef enum {NoCommand, DisconnectClients, AddClient, QueryConnectionComplete, SetClientsStatus, GetClientsInfo} Command;
-    bool queueCommand(Command cmd, const void* data, int len);
-    void doCommand();
+    bool queueCommand(Command cmd, const void* data, int len, bool wait=true);
     Command command;
     const void* commandData;
     int commandDataLen;
     rfb::Mutex commandLock;
     rfb::Condition commandSig;
+    rfb::win32::Handle commandEvent;
 
     // VNCServerWin32 Server-internal state
     rfb::win32::SDisplay desktop;
@@ -94,9 +111,16 @@ namespace winvnc {
     rfb::Thread* hostThread;
     bool runServer;
     bool isDesktopStarted;
-    JavaViewerServer* httpServer;
-    rfb::win32::RegistryReader config;
+    JavaViewerServer httpServer;
     rfb::win32::SocketManager sockMgr;
+    rfb::win32::RegConfig config;
+
+    ManagedListener rfbSock;
+    ManagedListener httpSock;
+    STrayIconThread* trayIcon;
+
+    //rfb::SSecurityFactoryStandard securityFactory;
+
     QueryConnectDialog* queryConnectDialog;
     rfb::win32::SFileTransferManagerWin32 m_FTManager;
   };

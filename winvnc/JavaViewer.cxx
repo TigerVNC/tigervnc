@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,7 +16,6 @@
  * USA.
  */
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winvnc/JavaViewer.h>
 #include <winvnc/resource.h>
@@ -39,7 +38,11 @@ JavaViewerServer::JavaViewerServer(rfb::VNCServerST* svr) : server(svr) {
 JavaViewerServer::~JavaViewerServer() {
 }
 
-rdr::InStream* JavaViewerServer::getFile(const char* name, const char** contentType) {
+rdr::InStream* JavaViewerServer::getFile(const char* name,
+                                         const char** contentType,
+                                         int* contentLength,
+                                         time_t* lastModified)
+{
   if (strcmp(name, "/") == 0)
     name = "/index.vnc";
 

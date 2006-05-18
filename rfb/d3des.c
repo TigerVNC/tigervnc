@@ -173,14 +173,14 @@ static void unscrun(outof, into)
 register unsigned long *outof;
 register unsigned char *into;
 {
-	*into++ = (*outof >> 24) & 0xffL;
-	*into++ = (*outof >> 16) & 0xffL;
-	*into++ = (*outof >>  8) & 0xffL;
-	*into++ =  *outof++	 & 0xffL;
-	*into++ = (*outof >> 24) & 0xffL;
-	*into++ = (*outof >> 16) & 0xffL;
-	*into++ = (*outof >>  8) & 0xffL;
-	*into	=  *outof	 & 0xffL;
+	*into++ = (unsigned char)((*outof >> 24) & 0xffL);
+	*into++ = (unsigned char)((*outof >> 16) & 0xffL);
+	*into++ = (unsigned char)((*outof >>  8) & 0xffL);
+	*into++ = (unsigned char)(*outof++	 & 0xffL);
+	*into++ = (unsigned char)((*outof >> 24) & 0xffL);
+	*into++ = (unsigned char)((*outof >> 16) & 0xffL);
+	*into++ = (unsigned char)((*outof >>  8) & 0xffL);
+	*into	=  (unsigned char)(*outof	 & 0xffL);
 	return;
 	}
 

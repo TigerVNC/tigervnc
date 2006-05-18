@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -30,34 +30,34 @@ using namespace rfb;
 
 static LogWriter vlog("UpdateTracker");
 
-// -=- ClippedUpdateTracker
 
-void ClippedUpdateTracker::add_changed(const Region &region) {
-  child.add_changed(region.intersect(cliprgn));
+// -=- ClippingUpdateTracker
+
+void ClippingUpdateTracker::add_changed(const Region &region) {
+  ut->add_changed(region.intersect(clipRect));
 }
 
-void ClippedUpdateTracker::add_copied(const Region &dest, const Point &delta) {
+void ClippingUpdateTracker::add_copied(const Region &dest, const Point &delta) {
   // Clip the destination to the display area
-  Region clipdest = dest.intersect(cliprgn);
+  Region clipdest = dest.intersect(clipRect);
   if (clipdest.is_empty())  return;
 
   // Clip the source to the screen
   Region tmp = clipdest;
   tmp.translate(delta.negate());
-  tmp.assign_intersect(cliprgn);
+  tmp.assign_intersect(clipRect);
   if (!tmp.is_empty()) {
     // Translate the source back to a destination region
     tmp.translate(delta);
 
     // Pass the copy region to the child tracker
-    child.add_copied(tmp, delta);
+    ut->add_copied(tmp, delta);
   }
 
   // And add any bits that we had to remove to the changed region
   tmp = clipdest.subtract(tmp);
-  if (!tmp.is_empty()) {
-    child.add_changed(tmp);
-  }
+  if (!tmp.is_empty())
+    ut->add_changed(tmp);
 }
 
 // SimpleUpdateTracker
@@ -140,7 +140,7 @@ void SimpleUpdateTracker::subtract(const Region& region) {
   changed.assign_subtract(region);
 }
 
-void SimpleUpdateTracker::get_update(UpdateInfo* info, const Region& clip)
+void SimpleUpdateTracker::getUpdateInfo(UpdateInfo* info, const Region& clip)
 {
   copied.assign_subtract(changed);
   info->changed = changed.intersect(clip);
@@ -148,25 +148,9 @@ void SimpleUpdateTracker::get_update(UpdateInfo* info, const Region& clip)
   info->copy_delta = copy_delta;
 }
 
-void SimpleUpdateTracker::flush_update(UpdateTracker &info,
-                                       const Region &cliprgn)
-{
-  Region copied_clipped = copied.intersect(cliprgn);
-  Region changed_clipped = changed.intersect(cliprgn);
-  copied.assign_subtract(copied_clipped);
-  changed.assign_subtract(changed_clipped);
-  if (!copied_clipped.is_empty()) {
-    info.add_copied(copied_clipped, copy_delta);
-  }
-  if (!changed_clipped.is_empty())
-    info.add_changed(changed_clipped);
-}
-
-void SimpleUpdateTracker::get_update(UpdateTracker &to) const {
-  if (!copied.is_empty()) {
-    to.add_copied(copied, copy_delta);
-  }
-  if (!changed.is_empty()) {
-    to.add_changed(changed);
-  }
+void SimpleUpdateTracker::copyTo(UpdateTracker* to) const {
+  if (!copied.is_empty())
+    to->add_copied(copied, copy_delta);
+  if (!changed.is_empty())
+    to->add_changed(changed);
 }

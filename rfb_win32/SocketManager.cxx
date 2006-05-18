@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,10 +18,8 @@
 
 // -=- SocketManager.cxx
 
-#define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
-#include <assert.h>
-
+#include <list>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/SocketManager.h>
 
@@ -33,218 +31,183 @@ static LogWriter vlog("SocketManager");
 
 // -=- SocketManager
 
-SocketManager::SocketManager() : sockets(0), events(0), nSockets(0), nAvail(0) {
+SocketManager::SocketManager() {
 }
 
 SocketManager::~SocketManager() {
-  for (int i=0; i<nSockets; i++) {
-    if (!sockets[i].is_event)
-      WSACloseEvent(events[i]);
-  }
-  delete [] events;
-  delete [] sockets;
 }
 
 
-void SocketManager::addListener(network::SocketListener* sock_, network::SocketServer* srvr) {
+static requestAddressChangeEvents(network::SocketListener* sock_) {
+  DWORD dummy = 0;
+  if (WSAIoctl(sock_->getFd(), SIO_ADDRESS_LIST_CHANGE, 0, 0, 0, 0, &dummy, 0, 0) == SOCKET_ERROR) {
+    DWORD err = WSAGetLastError();
+    if (err != WSAEWOULDBLOCK)
+      vlog.error("Unable to track address changes", err);
+  }
+}
+
+
+void SocketManager::addListener(network::SocketListener* sock_,
+                                network::SocketServer* srvr,
+                                AddressChangeNotifier* acn) {
   WSAEVENT event = WSACreateEvent();
-  assert(event != WSA_INVALID_EVENT);
-  addListener(sock_, event, srvr);
-}
+  long flags = FD_ACCEPT | FD_CLOSE;
+  if (acn)
+    flags |= FD_ADDRESS_LIST_CHANGE;
+  try {
+    if (event && (WSAEventSelect(sock_->getFd(), event, flags) == SOCKET_ERROR))
+      throw rdr::SystemException("Unable to select on listener", WSAGetLastError());
 
-void SocketManager::addSocket(network::Socket* sock_, network::SocketServer* srvr) {
-  WSAEVENT event = WSACreateEvent();
-  assert(event != WSA_INVALID_EVENT);
-  addSocket(sock_, event, srvr);
-}
+    // requestAddressChangeEvents MUST happen after WSAEventSelect, so that the socket is non-blocking
+    if (acn)
+      requestAddressChangeEvents(sock_);
 
-
-BOOL SocketManager::getMessage(MSG* msg, HWND hwnd, UINT minMsg, UINT maxMsg) {
-  while (true) {
-    // First check for idle timeout
-
-    network::SocketServer* server = 0;
-    int timeout = 0;
-    for (int i=0; i<nSockets; i++) {
-      if (!sockets[i].is_event &&
-          sockets[i].server != server) {
-        server = sockets[i].server;
-        int t = server->checkTimeouts();
-        if (t > 0 && (timeout == 0 || t < timeout))
-          timeout = t;
-      }
-    }
-    if (timeout == 0)
-      timeout = INFINITE;
-
-    // - Network IO is less common than messages - process it first
-    DWORD result;
-    if (nSockets) {
-      result = WaitForMultipleObjects(nSockets, events, FALSE, 0);
-      if (result == WAIT_TIMEOUT) {
-        if (PeekMessage(msg, hwnd, minMsg, maxMsg, PM_REMOVE)) 
-          return msg->message != WM_QUIT;
-
-        result = MsgWaitForMultipleObjects(nSockets, events, FALSE, timeout,
-                                           QS_ALLINPUT);
-        if (result == WAIT_OBJECT_0 + nSockets) {
-          if (PeekMessage(msg, hwnd, minMsg, maxMsg, PM_REMOVE)) 
-            return msg->message != WM_QUIT;
-          continue;
-        }
-      }
-    } else
-      return GetMessage(msg, hwnd, minMsg, maxMsg);
-
-    if ((result >= WAIT_OBJECT_0) && (result < (WAIT_OBJECT_0 + nSockets))) {
-      int index = result - WAIT_OBJECT_0;
-
-      // - Process a socket event
-
-      if (sockets[index].is_event) {
-        // Process a general Win32 event
-        // NB: The handler must reset the event!
-
-        if (!sockets[index].handler->processEvent(events[index])) {
-          removeSocket(index);
-          continue;
-        }
-      } else if (sockets[index].is_conn) {
-        // Process data from an active connection
-
-        // Cancel event notification for this socket
-        if (WSAEventSelect(sockets[index].fd, events[index], 0) == SOCKET_ERROR)
-          vlog.info("unable to disable WSAEventSelect:%u", WSAGetLastError());
-
-        // Reset the event object
-        WSAResetEvent(events[index]);
-
-        // Call the socket server to process the event
-        if (!sockets[index].server->processSocketEvent(sockets[index].sock.conn)) {
-          removeSocket(index);
-          continue;
-        }
-
-        // Re-instate the required socket event
-        // If the read event is still valid, the event object gets set here
-        if (WSAEventSelect(sockets[index].fd, events[index], FD_READ | FD_CLOSE) == SOCKET_ERROR)
-          throw rdr::SystemException("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
-
-      } else {
-        // Accept an incoming connection
-        vlog.debug("accepting incoming connection");
-
-        // What kind of event is this?
-        WSANETWORKEVENTS network_events;
-        WSAEnumNetworkEvents(sockets[index].fd, events[index], &network_events);
-        if (network_events.lNetworkEvents & FD_ACCEPT) {
-          network::Socket* new_sock = sockets[index].sock.listener->accept();
-          if ((sockets[index].server)->getDisable()) {
-            delete new_sock;
-            new_sock = 0;
-          }
-          if (new_sock) {
-            sockets[index].server->addClient(new_sock);
-            addSocket(new_sock, sockets[index].server);
-          }
-        } else if (network_events.lNetworkEvents & FD_CLOSE) {
-          vlog.info("deleting listening socket");
-          network::SocketListener* s = sockets[index].sock.listener;
-          removeSocket(index);
-          delete s;
-        } else {
-          vlog.error("unknown network event for listener");
-        }
-
-      }
-    } else if (result == WAIT_FAILED) {
-      throw rdr::SystemException("unable to wait for events", GetLastError());
-    }
+    // addEvent is the last thing we do, so that the event is NOT registered if previous steps fail
+    if (!event || !addEvent(event, this))
+      throw rdr::Exception("Unable to add listener");
+  } catch (rdr::Exception& e) {
+    if (event)
+      WSACloseEvent(event);
+    delete sock_;
+    vlog.error(e.str());
+    throw;
   }
-}
 
-
-void SocketManager::resizeArrays(int numSockets) {
-  if (nAvail >= numSockets) return;
-  while (nAvail < numSockets)
-    nAvail = max(16, nAvail*2);
-
-  SocketInfo* newinfo = new SocketInfo[nAvail];
-  HANDLE* newevents = new HANDLE[nAvail];
-  for (int i=0; i<nSockets; i++) {
-    newinfo[i] = sockets[i];
-    newevents[i] = events[i];
-  }
-  delete [] sockets;
-  delete [] events;
-  sockets = newinfo;
-  events = newevents;
-}
-
-void SocketManager::addSocket(network::Socket* sock, HANDLE event, network::SocketServer* server) {
-  resizeArrays(nSockets+1);
-
-  sockets[nSockets].sock.conn = sock;
-  sockets[nSockets].fd = sock->getFd();
-  sockets[nSockets].server = server;
-  events[nSockets] = event;
-  sockets[nSockets].is_conn = true;
-  sockets[nSockets].is_event = false;
-
-  if (WSAEventSelect(sock->getFd(), event, FD_READ | FD_CLOSE) == SOCKET_ERROR)
-    throw rdr::SystemException("unable to select on socket", WSAGetLastError());
-  nSockets++;
-}
-
-void SocketManager::addListener(network::SocketListener* sock, HANDLE event, network::SocketServer* server) {
-  resizeArrays(nSockets+1);
-
-  sockets[nSockets].sock.listener = sock;
-  sockets[nSockets].fd = sock->getFd();
-  sockets[nSockets].server = server;
-  events[nSockets] = event;
-  sockets[nSockets].is_conn = false;
-  sockets[nSockets].is_event = false;
-
-  if (WSAEventSelect(sock->getFd(), event, FD_ACCEPT | FD_CLOSE) == SOCKET_ERROR)
-    throw rdr::SystemException("unable to select on listener", WSAGetLastError());
-  nSockets++;
+  ListenInfo li;
+  li.sock = sock_;
+  li.server = srvr;
+  li.notifier = acn;
+  listeners[event] = li;
 }
 
 void SocketManager::remListener(network::SocketListener* sock) {
-  for (int index=0; index<nSockets; index++) {
-    if (!sockets[index].is_conn &&
-        !sockets[index].is_event) {
-      vlog.debug("removing listening socket");
-      removeSocket(index);
+  std::map<HANDLE,ListenInfo>::iterator i;
+  for (i=listeners.begin(); i!=listeners.end(); i++) {
+    if (i->second.sock == sock) {
+      removeEvent(i->first);
+      WSACloseEvent(i->first);
       delete sock;
+      listeners.erase(i);
+      return;
+    }
+  }
+  throw rdr::Exception("Listener not registered");
+}
+
+
+void SocketManager::addSocket(network::Socket* sock_, network::SocketServer* srvr, bool outgoing) {
+  WSAEVENT event = WSACreateEvent();
+  if (!event || !addEvent(event, this) ||
+      (WSAEventSelect(sock_->getFd(), event, FD_READ | FD_CLOSE) == SOCKET_ERROR)) {
+    if (event)
+      WSACloseEvent(event);
+    delete sock_;
+    vlog.error("Unable to add connection");
+    return;
+  }
+  ConnInfo ci;
+  ci.sock = sock_;
+  ci.server = srvr;
+  connections[event] = ci;
+  srvr->addSocket(sock_, outgoing);
+}
+
+void SocketManager::remSocket(network::Socket* sock_) {
+  std::map<HANDLE,ConnInfo>::iterator i;
+  for (i=connections.begin(); i!=connections.end(); i++) {
+    if (i->second.sock == sock_) {
+      i->second.server->removeSocket(sock_);
+      removeEvent(i->first);
+      WSACloseEvent(i->first);
+      delete sock_;
+      connections.erase(i);
+      return;
+    }
+  }
+  throw rdr::Exception("Socket not registered");
+}
+
+
+int SocketManager::checkTimeouts() {
+  network::SocketServer* server = 0;
+  int timeout = EventManager::checkTimeouts();
+
+  std::map<HANDLE,ListenInfo>::iterator i;
+  for (i=listeners.begin(); i!=listeners.end(); i++)
+    soonestTimeout(&timeout, i->second.server->checkTimeouts());
+
+  std::list<network::Socket*> shutdownSocks;
+  std::map<HANDLE,ConnInfo>::iterator j, j_next;
+  for (j=connections.begin(); j!=connections.end(); j=j_next) {
+    j_next = j; j_next++;
+    if (j->second.sock->isShutdown())
+      shutdownSocks.push_back(j->second.sock);
+  }
+
+  std::list<network::Socket*>::iterator k;
+  for (k=shutdownSocks.begin(); k!=shutdownSocks.end(); k++)
+    remSocket(*k);
+
+  return timeout;
+}
+
+
+void SocketManager::processEvent(HANDLE event) {
+  if (listeners.count(event)) {
+    ListenInfo li = listeners[event];
+
+    // Accept an incoming connection
+    vlog.debug("accepting incoming connection");
+
+    // What kind of event is this?
+    WSANETWORKEVENTS network_events;
+    WSAEnumNetworkEvents(li.sock->getFd(), event, &network_events);
+    if (network_events.lNetworkEvents & FD_ACCEPT) {
+      network::Socket* new_sock = li.sock->accept();
+      if (new_sock && li.server->getDisable()) {
+        delete new_sock;
+        new_sock = 0;
+      }
+      if (new_sock)
+        addSocket(new_sock, li.server, false);
+    } else if (network_events.lNetworkEvents & FD_CLOSE) {
+      vlog.info("deleting listening socket");
+      remListener(li.sock);
+    } else if (network_events.lNetworkEvents & FD_ADDRESS_LIST_CHANGE) {
+      li.notifier->processAddressChange(li.sock);
+      DWORD dummy = 0;
+      requestAddressChangeEvents(li.sock);
+    } else {
+      vlog.error("unknown listener event: %lx", network_events.lNetworkEvents);
+    }
+  } else if (connections.count(event)) {
+    ConnInfo ci = connections[event];
+
+    try {
+      // Process data from an active connection
+
+      // Cancel event notification for this socket
+      if (WSAEventSelect(ci.sock->getFd(), event, 0) == SOCKET_ERROR)
+        throw rdr::SystemException("unable to disable WSAEventSelect:%u", WSAGetLastError());
+
+      // Reset the event object
+      WSAResetEvent(event);
+
+      // Call the socket server to process the event
+      ci.server->processSocketEvent(ci.sock);
+      if (ci.sock->isShutdown()) {
+        remSocket(ci.sock);
+        return;
+      }
+
+      // Re-instate the required socket event
+      // If the read event is still valid, the event object gets set here
+      if (WSAEventSelect(ci.sock->getFd(), event, FD_READ | FD_CLOSE) == SOCKET_ERROR)
+        throw rdr::SystemException("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
+    } catch (rdr::Exception& e) {
+      vlog.error(e.str());
+      remSocket(ci.sock);
     }
   }
 }
-
-void SocketManager::addEvent(HANDLE event, EventHandler* ecb) {
-  resizeArrays(nSockets+1);
-
-  sockets[nSockets].handler = ecb;
-  events[nSockets] = event;
-  sockets[nSockets].is_conn = false;
-  sockets[nSockets].is_event = true;
-
-  nSockets++;
-}
-
-void SocketManager::removeSocket(int index) {
-  if (index >= nSockets)
-    throw rdr::Exception("attempting to remove unregistered socket");
-
-  if (!sockets[index].is_event)
-    WSACloseEvent(events[index]);
-
-  for (int i=index; i<nSockets-1; i++) {
-    sockets[i] = sockets[i+1];
-    events[i] = events[i+1];
-  }
-
-  nSockets--;
-}
-

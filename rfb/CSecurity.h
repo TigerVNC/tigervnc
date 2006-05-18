@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,10 +18,14 @@
 //
 // CSecurity - class on the client side for handling security handshaking.  A
 // derived class for a particular security type overrides the processMsg()
-// method.  processMsg() is called first when the security type has been
-// decided on, and will keep being called whenever there is data to read from
-// the server until either it returns false, indicating authentication/security
-// failure, or it returns with done set to true, to indicate success.
+// method.
+
+// processMsg() is called first when the security type has been decided on, and
+// will keep being called whenever there is data to read from the server.  It
+// should return false when it needs more data, or true when the security
+// handshaking is over and we are now waiting for the SecurityResult message
+// from the server.  In the event of failure a suitable exception should be
+// thrown.
 //
 // Note that the first time processMsg() is called, there is no guarantee that
 // there is any data to read from the CConnection's InStream, but subsequent
@@ -39,7 +43,7 @@ namespace rfb {
   class CSecurity {
   public:
     virtual ~CSecurity() {}
-    virtual bool processMsg(CConnection* cc, bool* done)=0;
+    virtual bool processMsg(CConnection* cc)=0;
     virtual void destroy() { delete this; }
     virtual int getType() const = 0;
     virtual const char* description() const = 0;

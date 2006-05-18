@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,7 +25,7 @@
 #define __RFB_THREADING_H__
 
 #ifdef WIN32
-#include <rfb/win32/Threading_win32.h>
+#include <rfb_win32/Threading.h>
 #endif
 
 #endif // __RFB_THREADING_H__

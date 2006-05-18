@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -30,7 +30,7 @@ using namespace rfb::win32;
 static LogWriter vlog("WMMonitor");
 
 
-WMMonitor::WMMonitor() : MsgWindow(_T("WMMonitor")) {
+WMMonitor::WMMonitor() : MsgWindow(_T("WMMonitor")), notifier(0) {
 }
 
 WMMonitor::~WMMonitor() {

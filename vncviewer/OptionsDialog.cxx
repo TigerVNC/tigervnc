@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,20 +16,16 @@
  * USA.
  */
 
-#define WIN32_LEAN_AND_MEAN
-#if (_WIN32_WINNT < 0x0400)
-#define _WIN32_WINNT 0x0400
-#endif
-#include <windows.h>
-#include <commdlg.h>
-
 #include <vncviewer/OptionsDialog.h>
-#include <vncviewer/CView.h>
+#include <vncviewer/CConn.h>
 #include <vncviewer/resource.h>
 #include <rfb_win32/Registry.h>
-#include <rfb/LogWriter.h>
+#include <rfb_win32/MsgBox.h>
+#include <rfb_win32/OSVersion.h>
 #include <rfb/encodings.h>
 #include <rfb/CConnection.h>
+#include <commdlg.h>
+#include <rfb/LogWriter.h>
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -38,22 +34,22 @@ static LogWriter vlog("Options");
 
 
 struct OptionsInfo {
-  CView* view;
-  CViewOptions options;
+  CConn* view;
+  CConnOptions options;
 };
 
 
 OptionsDialog rfb::win32::OptionsDialog::global;
 
 
-class VNCviewerOptions : public PropSheet {
+class ViewerOptions : public PropSheet {
 public:
-  VNCviewerOptions(OptionsInfo& info_, std::list<PropSheetPage*> pages)
+  ViewerOptions(OptionsInfo& info_, std::list<PropSheetPage*> pages)
     : PropSheet(GetModuleHandle(0), 
     info_.view ? _T("VNC Viewer Options") : _T("VNC Viewer Defaults"), pages),
     info(info_), changed(false) {
   }
-  ~VNCviewerOptions() {
+  ~ViewerOptions() {
     if (changed) {
       if (info.view)
         // Apply the settings to the supplied session object
@@ -121,7 +117,7 @@ public:
       dlg->options.preferredEncoding = encodingHextile;
     if (isItemChecked(IDC_ENCODING_RAW))
       dlg->options.preferredEncoding = encodingRaw;
-    ((VNCviewerOptions*)propSheet)->setChanged();
+    ((ViewerOptions*)propSheet)->setChanged();
     return true;
   }
   virtual bool onCommand(int id, int cmd) {
@@ -165,6 +161,7 @@ public:
     enableItem(IDC_PROTOCOL_3_3, (!dlg->view) || (dlg->view->state() != CConnection::RFBSTATE_NORMAL));
     setItemChecked(IDC_PROTOCOL_3_3, dlg->options.protocol3_3);
     setItemChecked(IDC_ACCEPT_BELL, dlg->options.acceptBell);
+    setItemChecked(IDC_AUTO_RECONNECT, dlg->options.autoReconnect);
     setItemChecked(IDC_SHOW_TOOLBAR, dlg->options.showToolbar);
   }
   virtual bool onOk() {
@@ -174,8 +171,9 @@ public:
     dlg->options.useDesktopResize = isItemChecked(IDC_DESKTOP_RESIZE);
     dlg->options.protocol3_3 = isItemChecked(IDC_PROTOCOL_3_3);
     dlg->options.acceptBell = isItemChecked(IDC_ACCEPT_BELL);
+    dlg->options.autoReconnect = isItemChecked(IDC_AUTO_RECONNECT);
     dlg->options.showToolbar = isItemChecked(IDC_SHOW_TOOLBAR);
-    ((VNCviewerOptions*)propSheet)->setChanged();
+    ((ViewerOptions*)propSheet)->setChanged();
     return true;
   }
 protected:
@@ -190,9 +188,10 @@ public:
   virtual void initDialog() {
     setItemChecked(IDC_SEND_POINTER, dlg->options.sendPtrEvents);
     setItemChecked(IDC_SEND_KEYS, dlg->options.sendKeyEvents);
-    setItemChecked(IDC_SEND_SYSKEYS, dlg->options.sendSysKeys);
     setItemChecked(IDC_CLIENT_CUTTEXT, dlg->options.clientCutText);
     setItemChecked(IDC_SERVER_CUTTEXT, dlg->options.serverCutText);
+    setItemChecked(IDC_DISABLE_WINKEYS, dlg->options.disableWinKeys && !osVersion.isPlatformWindows);
+    enableItem(IDC_DISABLE_WINKEYS, !osVersion.isPlatformWindows);
     setItemChecked(IDC_EMULATE3, dlg->options.emulate3);
     setItemChecked(IDC_POINTER_INTERVAL, dlg->options.pointerEventInterval != 0);
 
@@ -213,9 +212,9 @@ public:
   virtual bool onOk() {
     dlg->options.sendPtrEvents = isItemChecked(IDC_SEND_POINTER);
     dlg->options.sendKeyEvents = isItemChecked(IDC_SEND_KEYS);
-    dlg->options.sendSysKeys = isItemChecked(IDC_SEND_SYSKEYS);
     dlg->options.clientCutText = isItemChecked(IDC_CLIENT_CUTTEXT);
     dlg->options.serverCutText = isItemChecked(IDC_SERVER_CUTTEXT);
+    dlg->options.disableWinKeys = isItemChecked(IDC_DISABLE_WINKEYS);
     dlg->options.emulate3 = isItemChecked(IDC_EMULATE3);
     dlg->options.pointerEventInterval = 
       isItemChecked(IDC_POINTER_INTERVAL) ? 200 : 0;
@@ -229,13 +228,12 @@ public:
     else
       dlg->options.setMenuKey(CStr(keyName.buf));
 
-    ((VNCviewerOptions*)propSheet)->setChanged();
+    ((ViewerOptions*)propSheet)->setChanged();
     return true;
   }
 protected:
   OptionsInfo* dlg;
 };
-
 
 class DefaultsPage : public PropSheetPage {
 public:
@@ -247,10 +245,9 @@ public:
     enableItem(IDC_SAVE_CONFIG, dlg->options.configFileName.buf);
   }
   virtual bool onCommand(int id, int cmd) {
-    HWND hwnd = dlg->view ? dlg->view->getHandle() : 0;
     switch (id) {
     case IDC_LOAD_DEFAULTS:
-      dlg->options = CViewOptions();
+      dlg->options = CConnOptions();
       break;
     case IDC_SAVE_DEFAULTS:
       propSheet->commitPages();
@@ -262,7 +259,7 @@ public:
     case IDC_SAVE_CONFIG:
       propSheet->commitPages();
       dlg->options.writeToFile(dlg->options.configFileName.buf);
-      MsgBox(hwnd, _T("Options saved successfully"),
+      MsgBox(handle, _T("Options saved successfully"),
              MB_OK | MB_ICONINFORMATION);
       return 0;
     case IDC_SAVE_CONFIG_AS:
@@ -281,7 +278,7 @@ public:
 #else
       ofn.lStructSize = sizeof(ofn);
 #endif
-      ofn.hwndOwner = hwnd;
+      ofn.hwndOwner = handle;
       ofn.lpstrFilter = _T("VNC Connection Options\000*.vnc\000");
       ofn.lpstrFile = newFilename;
       currentDir[0] = 0;
@@ -298,7 +295,7 @@ public:
 
       // Save the Options
       dlg->options.writeToFile(CStr(newFilename));
-      MsgBox(hwnd, _T("Options saved successfully"),
+      MsgBox(handle, _T("Options saved successfully"),
              MB_OK | MB_ICONINFORMATION);
       return 0;
     };
@@ -313,7 +310,7 @@ protected:
 OptionsDialog::OptionsDialog() : visible(false) {
 }
 
-bool OptionsDialog::showDialog(CView* view, bool capture) {
+bool OptionsDialog::showDialog(CConn* view, bool capture) {
   if (visible) return false;
   visible = true;
 
@@ -331,8 +328,9 @@ bool OptionsDialog::showDialog(CView* view, bool capture) {
   DefaultsPage defPage(&info); if (view) pages.push_back(&defPage);
 
   // Show the property sheet
-  VNCviewerOptions dialog(info, pages);
-  dialog.showPropSheet(view ? view->getHandle() : 0, false, false, capture);
+  ViewerOptions dialog(info, pages);
+  dialog.showPropSheet(view && view->getWindow() ? view->getWindow()->getHandle() : 0,
+                       false, false, capture);
 
   visible = false;
   return dialog.changed;

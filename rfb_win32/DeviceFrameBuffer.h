@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,13 +26,12 @@
 #ifndef __RFB_WIN32_DEVICE_FRAME_BUFFER_H__
 #define __RFB_WIN32_DEVICE_FRAME_BUFFER_H__
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include <rfb_win32/DIBSectionBuffer.h>
 #include <rfb/Cursor.h>
 #include <rfb/Region.h>
 #include <rfb/Exception.h>
+#include <rfb/Configuration.h>
 
 namespace rfb {
 
@@ -85,6 +84,8 @@ namespace rfb {
       // Set whether grabRect should ignore errors or throw exceptions
       // Only set this if you are sure you'll capture the errors some other way!
       void setIgnoreGrabErrors(bool ie) {ignoreGrabErrors=ie;}
+      
+      static BoolParameter useCaptureBlt;
 
     protected:
       // Translate supplied Desktop coordinates into Device-relative coordinates
@@ -97,22 +98,6 @@ namespace rfb {
       Rect deviceCoords;
       bool ignoreGrabErrors;
     };
-
-    // -=- createDisplayDeviceFrameBuffer
-    // createDisplayDeviceFrameBuffer must be passed the name of a display device,
-    // and will return a new FrameBuffer object attached to that display
-    // device.
-    // If the device name is not specified then the default display is
-    // returned.
-
-    DeviceFrameBuffer *createDisplayDeviceFrameBuffer(const char *device=0);
-
-    // -=- createDisplayFrameBuffers
-    // Creates a set of framebuffers, one for each available display
-    // device.
-
-    typedef std::vector<DeviceFrameBuffer *> DeviceFrameBuffers;
-    void createDisplayDeviceFrameBuffers(DeviceFrameBuffers *fbs);
 
   };
 

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -24,38 +24,29 @@
 #include <string.h>
 #include <rfb/util.h>
 #include <rfb/ServerCore.h>
-#include <rfb/vncAuth.h>
 
 rfb::IntParameter rfb::Server::idleTimeout
 ("IdleTimeout",
- "The number of seconds after which an idle VNC connection will be dropped",
- 0);
-
+ "The number of seconds after which an idle VNC connection will be dropped "
+ "(zero means no timeout)",
+ 0, 0);
 rfb::IntParameter rfb::Server::maxDisconnectionTime
 ("MaxDisconnectionTime",
  "Terminate when no client has been connected for s seconds", 
- 0);
+ 0, 0);
 rfb::IntParameter rfb::Server::maxConnectionTime
 ("MaxConnectionTime",
  "Terminate when a client has been connected for s seconds", 
- 0);
+ 0, 0);
 rfb::IntParameter rfb::Server::maxIdleTime
 ("MaxIdleTime",
  "Terminate after s seconds of user inactivity", 
- 0);
+ 0, 0);
 rfb::IntParameter rfb::Server::clientWaitTimeMillis
 ("ClientWaitTimeMillis",
  "The number of milliseconds to wait for a client which is no longer "
  "responding",
- 20000);
-rfb::StringParameter rfb::Server::sec_types
-("SecurityTypes",
- "Specify which security scheme to use for incoming connections (None, VncAuth)",
- "VncAuth");
-rfb::StringParameter rfb::Server::rev_sec_types
-("ReverseSecurityTypes",
- "Specify encryption scheme to use for reverse connections (None)",
- "None");
+ 20000, 0);
 rfb::BoolParameter rfb::Server::compareFB
 ("CompareFB",
  "Perform pixel comparison on framebuffer to reduce unnecessary updates",
@@ -101,8 +92,3 @@ rfb::BoolParameter rfb::Server::queryConnect
 ("QueryConnect",
  "Prompt the local user to accept or reject incoming connections.",
  false);
-rfb::IntParameter rfb::Server::blacklistLevel
-("BlacklistLevel",
- "When to test whether particular host should be blacklisted.  (0 = Never, "
- "1 = Test before authentication, 2 = Test on connect)",
- 1);

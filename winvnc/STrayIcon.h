@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -40,6 +40,7 @@ namespace winvnc {
     void setToolTip(const TCHAR* text);
 
     static rfb::BoolParameter disableOptions;
+    static rfb::BoolParameter disableClose;
 
     friend class STrayIcon;
   protected:

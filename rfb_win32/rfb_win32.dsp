@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".." /FI"msvcwarning.h" /D "NDEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".." /FI"rdr/msvcwarning.h" /D "NDEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -65,7 +65,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -88,7 +88,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug_Unicode"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_LIB" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_LIB" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -134,6 +134,10 @@ SOURCE=.\CurrentUser.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\DeviceContext.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\DeviceFrameBuffer.cxx
 # End Source File
 # Begin Source File
@@ -146,6 +150,14 @@ SOURCE=.\DIBSectionBuffer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\DynamicFn.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\EventManager.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\FolderManager.cxx
 # End Source File
 # Begin Source File
@@ -155,6 +167,14 @@ SOURCE=.\LaunchProcess.cxx
 # Begin Source File
 
 SOURCE=.\ListViewControl.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\LowLevelKeyEvents.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\MonitorInfo.cxx
 # End Source File
 # Begin Source File
 
@@ -186,6 +206,18 @@ SOURCE=.\SDisplay.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\SDisplayCorePolling.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\SDisplayCoreWMHooks.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\Security.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\Service.cxx
 # End Source File
 # Begin Source File
@@ -210,7 +242,15 @@ SOURCE=.\TCharArray.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\Threading.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ToolBar.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\TsSessions.cxx
 # End Source File
 # Begin Source File
 
@@ -250,6 +290,10 @@ SOURCE=.\AboutDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\BitmapInfo.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CKeyboard.h
 # End Source File
 # Begin Source File
@@ -262,11 +306,23 @@ SOURCE=.\Clipboard.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CompatibleBitmap.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ComputerName.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CPointer.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\CurrentUser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DeviceContext.h
 # End Source File
 # Begin Source File
 
@@ -282,7 +338,23 @@ SOURCE=.\DIBSectionBuffer.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DynamicFn.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EventManager.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FolderManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Handle.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\IconInfo.h
 # End Source File
 # Begin Source File
 
@@ -299,6 +371,30 @@ SOURCE=.\LaunchProcess.h
 # Begin Source File
 
 SOURCE=.\ListViewControl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LocalMem.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LogicalPalette.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LowLevelKeyEvents.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ModuleFileName.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MonitorInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MsgBox.h
 # End Source File
 # Begin Source File
 
@@ -330,6 +426,18 @@ SOURCE=.\SDisplay.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SDisplayCoreDriver.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SDisplayCorePolling.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SDisplayCoreWMHooks.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Security.h
 # End Source File
 # Begin Source File
@@ -358,11 +466,19 @@ SOURCE=.\TCharArray.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Threading.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ToolBar.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\TrayIcon.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TsSessions.h
 # End Source File
 # Begin Source File
 

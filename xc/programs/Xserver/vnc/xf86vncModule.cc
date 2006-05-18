@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -33,6 +33,8 @@ extern "C" {
 #undef private
 #undef bool
 #undef new
+
+using namespace rfb;
 
 extern void vncExtensionInit();
 static void vncExtensionInitWithParams(INITARGS);
@@ -81,11 +83,10 @@ static void vncExtensionInitWithParams(INITARGS)
   for (int scr = 0; scr < screenInfo.numScreens; scr++) {
     ScrnInfoPtr pScrn = xf86Screens[scr];
 
-    rfb::VoidParameter* p;
-    for (p = rfb::Configuration::head; p; p = p->_next) {
-      char* val = xf86FindOptionValue(pScrn->options, p->getName());
+    for (ParameterIterator i(Configuration::global()); i.param; i.next()) {
+      char* val = xf86FindOptionValue(pScrn->options, i.param->getName());
       if (val)
-        p->setParam(val);
+        i.param->setParam(val);
     }
   }
 

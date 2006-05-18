@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -44,18 +44,6 @@ void SMsgHandler::setEncodings(int nEncodings, rdr::U32* encodings)
 }
 
 void SMsgHandler::framebufferUpdateRequest(const Rect& r, bool incremental)
-{
-}
-
-void SMsgHandler::keyEvent(rdr::U32 key, bool down)
-{
-}
-
-void SMsgHandler::pointerEvent(int x, int y, int buttonMask)
-{
-}
-
-void SMsgHandler::clientCutText(const char* str, int len)
 {
 }
 

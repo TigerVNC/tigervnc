@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".." /FI"msvcwarning.h" /D "NDEBUG" /D "_WINDOWS" /D "WIN32" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".." /FI"rdr/msvcwarning.h" /D "NDEBUG" /D "_WINDOWS" /D "WIN32" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -73,7 +73,7 @@ PreLink_Cmds=cl /c /nologo /FoRelease\ /FdRelease\ /MT buildTime.cxx
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_WINDOWS" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_DEBUG" /D "_WINDOWS" /D "WIN32" /D "_MBCS" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -103,7 +103,7 @@ PreLink_Cmds=cl /c /nologo /FoDebug\ /FdDebug\ /MTd buildTime.cxx
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_DEBUG" /D "_WINDOWS" /D "WIN32" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"msvcwarning.h" /D "_WINDOWS" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I ".." /FI"rdr/msvcwarning.h" /D "_WINDOWS" /D "_DEBUG" /D "WIN32" /D "_UNICODE" /D "UNICODE" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -134,19 +134,27 @@ SOURCE=.\buildTime.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\CConn.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\CConnOptions.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\CConnThread.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ConnectingDialog.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ConnectionDialog.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\cview.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\CViewManager.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\CViewOptions.cxx
+SOURCE=.\DesktopWindow.cxx
 # End Source File
 # Begin Source File
 
@@ -198,6 +206,18 @@ SOURCE=.\vncviewer.rc
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=.\CConn.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CConnOptions.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CConnThread.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ConnectingDialog.h
 # End Source File
 # Begin Source File
@@ -206,15 +226,7 @@ SOURCE=.\ConnectionDialog.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\cview.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CViewManager.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CViewOptions.h
+SOURCE=.\DesktopWindow.h
 # End Source File
 # Begin Source File
 
@@ -239,6 +251,14 @@ SOURCE=.\FTProgress.h
 # Begin Source File
 
 SOURCE=.\InfoDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ListenServer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ListenTrayIcon.h
 # End Source File
 # Begin Source File
 
@@ -283,6 +303,10 @@ SOURCE=.\ftup.ico
 # Begin Source File
 
 SOURCE=.\toolbar.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\vncviewer.bmp
 # End Source File
 # Begin Source File
 

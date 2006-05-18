@@ -1,4 +1,4 @@
-.TH Xvnc 1 "30 December 2004" "TightVNC" "Virtual Network Computing"
+.TH Xvnc 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
 .SH NAME
 Xvnc \- the X VNC server 
 .SH SYNOPSIS
@@ -182,6 +182,17 @@ The number of seconds after which an idle VNC connection will be dropped
 (default is 0, which means that idle connections will never be dropped).
 
 .TP
+.B \-QueryConnect
+Prompts the user of the desktop to explicitly accept or reject incoming
+connections.  This is most useful when using the vnc.so module or
+\fBx0vncserver\fP(1) program to access an existing X desktop via VNC.
+
+The \fBvncconfig\fP(1) program must be running on the desktop in order for
+QueryConnect to be supported by the \fBvnc.so\fP(1) module or
+\fBXvnc\fP(1) program.  The \fBx0vncserver\fP(1) program does not require
+\fBvncconfig\fP(1) to be running.
+
+.TP
 .B \-localhost
 Only allow connections from the same machine. Useful if you use SSH and want to
 stop non-SSH connections from any other hosts. See the guide to using VNC with
@@ -194,6 +205,20 @@ Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
 output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can target a
 specific source file if you know the name of its "LogWriter".  Default is
 \fB*:stderr:30\fP.
+
+.TP
+.B \-RemapKeys \fImapping
+Sets up a keyboard mapping.
+.I mapping
+is a comma-separated string of character mappings, each of the form
+.IR char -> char ,
+or
+.IR char <> char ,
+where
+.I char
+is a hexadecimal keysym. For example, to exchange the " and @ symbols you would specify the following:
+.IP "" 10
+RemapKeys=0x22<>0x40
 
 .SH USAGE WITH INETD
 By configuring the \fBinetd\fP(1) service appropriately, Xvnc can be launched

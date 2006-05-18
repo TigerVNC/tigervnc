@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -20,11 +20,10 @@
 
 // *** DOESN'T SEEM TO WORK WITH GetCursorInfo POS CODE BUILT-IN UNDER NT4SP6
 // *** INSTEAD, WE LOOK FOR Win2000/Win98 OR ABOVE
-#define WINVER 0x0500
 
 #include <rfb_win32/WMCursor.h>
 #include <rfb_win32/OSVersion.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/DynamicFn.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
@@ -35,12 +34,19 @@ using namespace rfb::win32;
 static LogWriter vlog("WMCursor");
 
 
+#ifdef CURSOR_SHOWING
+#define RFB_HAVE_GETCURSORINFO
+#else
+#pragma message("  NOTE: Not building GetCursorInfo support.")
+#endif
+
+#ifdef RFB_HAVE_GETCURSORINFO
 typedef BOOL (WINAPI *_GetCursorInfo_proto)(PCURSORINFO pci);
 DynamicFn<_GetCursorInfo_proto> _GetCursorInfo(_T("user32.dll"), "GetCursorInfo");
+#endif
 
-
-WMCursor::WMCursor() : hooks(0), library(0), use_getCursorInfo(false), cursor(0) {
-#if (WINVER >= 0x0500)
+WMCursor::WMCursor() : hooks(0), use_getCursorInfo(false), cursor(0) {
+#ifdef RFB_HAVE_GETCURSORINFO
   // Check the OS version
   bool is_win98 = (osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) &&
     (osVersion.dwMajorVersion > 4) || ((osVersion.dwMajorVersion == 4) && (osVersion.dwMinorVersion > 0));
@@ -48,13 +54,12 @@ WMCursor::WMCursor() : hooks(0), library(0), use_getCursorInfo(false), cursor(0)
 
   // Use GetCursorInfo if OS version is sufficient
   use_getCursorInfo = (is_win98 || is_win2K) && _GetCursorInfo.isValid();
-#else
-#pragma message ("not building in GetCursorInfo support")
 #endif
+  cursor = (HCURSOR)LoadImage(0, IDC_ARROW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
   if (!use_getCursorInfo) {
     hooks = new WMCursorHooks();
     if (hooks && hooks->start()) {
-      vlog.info("falling back to cursor hooking");
+      vlog.info("falling back to cursor hooking: %p", hooks);
     } else {
       delete hooks;
       hooks = 0;
@@ -63,18 +68,18 @@ WMCursor::WMCursor() : hooks(0), library(0), use_getCursorInfo(false), cursor(0)
   } else {
     vlog.info("using GetCursorInfo");
   }
-  cursor = (HCURSOR)LoadImage(0, IDC_ARROW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
 }
 
 WMCursor::~WMCursor() {
-  if (hooks) delete hooks;
-  if (library) FreeLibrary(library);
+  vlog.debug("deleting WMCursorHooks (%p)", hooks);
+  if (hooks)
+    delete hooks;
 }
   
 WMCursor::Info
 WMCursor::getCursorInfo() {
   Info result;
-#if (WINVER >= 0x0500)
+#ifdef RFB_HAVE_GETCURSORINFO
   if (use_getCursorInfo) {
     CURSORINFO info;
     info.cbSize = sizeof(CURSORINFO);
@@ -88,7 +93,8 @@ WMCursor::getCursorInfo() {
 #endif
   // Fall back to the old way of doing things
   POINT pos;
-  if (hooks) cursor = hooks->getCursor();
+  if (hooks)
+    cursor = hooks->getCursor();
   result.cursor = cursor;
   result.visible = cursor != 0;
   GetCursorPos(&pos);

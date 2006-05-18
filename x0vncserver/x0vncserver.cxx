@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2004-2005 Constantin Kaplinsky.  All Rights Reserved.
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2004-2006 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,11 @@
 #include <rfb/VNCServerST.h>
 #include <rfb/Configuration.h>
 #include <rfb/SSecurityFactoryStandard.h>
-
+#include <rfb/Timer.h>
 #include <network/TcpSocket.h>
+#include <tx/TXWindow.h>
+
+#include <vncconfig_unix/QueryConnectDialog.h>
 
 #include <signal.h>
 #include <X11/X.h>
@@ -65,8 +68,11 @@ BoolParameter useOverlay("OverlayMode", "Use overlay mode under "
                          "IRIX or Solaris", true);
 StringParameter displayname("display", "The X display", "");
 IntParameter rfbport("rfbport", "TCP port to listen for RFB protocol",5900);
+IntParameter queryConnectTimeout("QueryConnectTimeout",
+                                 "Number of seconds to show the Accept Connection dialog before "
+                                 "rejecting the connection",
+                                 10);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
-VncAuthPasswdFileParameter vncAuthPasswdFile;
 
 static void CleanupSignalHandler(int sig)
 {
@@ -77,12 +83,56 @@ static void CleanupSignalHandler(int sig)
 }
 
 
-class XDesktop : public SDesktop, public rfb::ColourMap
+class QueryConnHandler : public VNCServerST::QueryConnectionHandler,
+                         public QueryResultCallback {
+public:
+  QueryConnHandler(Display* dpy, VNCServerST* vs)
+    : display(dpy), server(vs), queryConnectDialog(0), queryConnectSock(0) {}
+  ~QueryConnHandler() { delete queryConnectDialog; }
+
+  // -=- VNCServerST::QueryConnectionHandler interface
+  virtual VNCServerST::queryResult queryConnection(network::Socket* sock,
+                                                   const char* userName,
+                                                   char** reason) {
+    if (queryConnectSock) {
+      *reason = strDup("Another connection is currently being queried.");
+      return VNCServerST::REJECT;
+    }
+    if (!userName) userName = "(anonymous)";
+    queryConnectSock = sock;
+    CharArray address(sock->getPeerAddress());
+    delete queryConnectDialog;
+    queryConnectDialog = new QueryConnectDialog(display, address.buf,
+                                                userName, queryConnectTimeout,
+                                                this);
+    queryConnectDialog->map();
+    return VNCServerST::PENDING;
+  }
+
+  // -=- QueryResultCallback interface
+  virtual void queryApproved() {
+    server->approveConnection(queryConnectSock, true, 0);
+    queryConnectSock = 0;
+  }
+  virtual void queryRejected() {
+    server->approveConnection(queryConnectSock, false,
+                              "Connection rejected by local user");
+    queryConnectSock = 0;
+  }
+private:
+  Display* display;
+  VNCServerST* server;
+  QueryConnectDialog* queryConnectDialog;
+  network::Socket* queryConnectSock;
+};
+
+
+class XDesktop : public SDesktop, public ColourMap
 {
 public:
   XDesktop(Display* dpy_)
-    : dpy(dpy_), pb(0), server(0), oldButtonMask(0), haveXtest(false),
-      maxButtons(0)
+    : dpy(dpy_), pb(0), server(0), image(0), pollmgr(0),
+      oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
     int xtestEventBase;
@@ -102,6 +152,15 @@ public:
     }
 #endif
 
+  }
+  virtual ~XDesktop() {
+    stop();
+  }
+
+  // -=- SDesktop interface
+
+  virtual void start(VNCServer* vs) {
+
     // Determine actual number of buttons of the X pointer device.
     unsigned char btnMap[8];
     int numButtons = XGetPointerMapping(dpy, btnMap, 8);
@@ -117,6 +176,7 @@ public:
     image->get(DefaultRootWindow(dpy));
 
     pollmgr = new PollingManager(dpy, image, &factory);
+    pollmgr->setVNCServer(vs);
 
     pf.bpp = image->xim->bits_per_pixel;
     pf.depth = image->xim->depth;
@@ -131,25 +191,34 @@ public:
 
     pb = new FullFramePixelBuffer(pf, dpyWidth, dpyHeight,
                                   (rdr::U8*)image->xim->data, this);
-  }
-  virtual ~XDesktop() {
-    delete pb;
-    delete pollmgr;
+    server = vs;
+    server->setPixelBuffer(pb);
+
+    running = true;
   }
 
-  void setVNCServer(VNCServer* s) {
-    server = s;
-    pollmgr->setVNCServer(s);
-    server->setPixelBuffer(pb);
+  virtual void stop() {
+    running = false;
+
+    delete pb;
+    delete pollmgr;
+    delete image;
+
+    pb = 0;
+    pollmgr = 0;
+    image = 0;
+  }
+
+  inline bool isRunning() {
+    return running;
   }
 
   inline void poll() {
-    pollmgr->poll();
+    if (pollmgr)
+      pollmgr->poll();
   }
 
-  // -=- SDesktop interface
-
-  virtual void pointerEvent(const Point& pos, rdr::U8 buttonMask) {
+  virtual void pointerEvent(const Point& pos, int buttonMask) {
     pollmgr->setPointerPos(pos);
 #ifdef HAVE_XTEST
     if (!haveXtest) return;
@@ -185,7 +254,7 @@ public:
     return Point(pb->width(), pb->height());
   }
 
-  // rfb::ColourMap callbacks
+  // -=- ColourMap callbacks
   virtual void lookup(int index, int* r, int* g, int* b) {
     XColor xc;
     xc.pixel = index;
@@ -209,6 +278,7 @@ protected:
   int oldButtonMask;
   bool haveXtest;
   int maxButtons;
+  bool running;
 };
 
 
@@ -311,7 +381,6 @@ private:
 
 };
 
-
 char* programName;
 
 static void usage()
@@ -365,11 +434,12 @@ int main(int argc, char** argv)
   signal(SIGTERM, CleanupSignalHandler);
 
   try {
+    TXWindow::init(dpy,"x0vncserver");
     XDesktop desktop(dpy);
     VNCServerST server("x0vncserver", &desktop);
-    desktop.setVNCServer(&server);
+    QueryConnHandler qcHandler(dpy, &server);
+    server.setQueryConnectionHandler(&qcHandler);
 
-    TcpSocket::initTcpSockets();
     TcpListener listener((int)rfbport);
     vlog.info("Listening on port %d", (int)rfbport);
 
@@ -379,21 +449,27 @@ int main(int argc, char** argv)
 
     PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);
 
-    fd_set rfds;
-    struct timeval tv;
-
     while (true) {
+      struct timeval tv;
+      fd_set rfds;
+      std::list<Socket*> sockets;
+      std::list<Socket*>::iterator i;
+
+      // Process any incoming X events
+      TXWindow::handleXEvents(dpy);
 
       FD_ZERO(&rfds);
       FD_SET(listener.getFd(), &rfds);
-
-      std::list<Socket*> sockets;
       server.getSockets(&sockets);
-      std::list<Socket*>::iterator i;
       int clients_connected = 0;
       for (i = sockets.begin(); i != sockets.end(); i++) {
-        FD_SET((*i)->getFd(), &rfds);
-        clients_connected++;
+        if ((*i)->isShutdown()) {
+          server.removeSocket(*i);
+          delete (*i);
+        } else {
+          FD_SET((*i)->getFd(), &rfds);
+          clients_connected++;
+        }
       }
 
       if (clients_connected) {
@@ -411,6 +487,7 @@ int main(int argc, char** argv)
       }
       tv.tv_sec = 0;
 
+      // Do the wait...
       sched.sleepStarted();
       int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
       sched.sleepFinished();
@@ -424,30 +501,33 @@ int main(int argc, char** argv)
         }
       }
 
+      // Accept new VNC connections
       if (FD_ISSET(listener.getFd(), &rfds)) {
         Socket* sock = listener.accept();
         if (sock) {
-          server.addClient(sock);
+          server.addSocket(sock);
         } else {
           vlog.status("Client connection rejected");
         }
       }
 
+      Timer::checkTimeouts();
+      server.checkTimeouts();
+
+      // Client list could have been changed.
       server.getSockets(&sockets);
 
       // Nothing more to do if there are no client connections.
       if (sockets.empty())
         continue;
 
+      // Process events on existing VNC connections
       for (i = sockets.begin(); i != sockets.end(); i++) {
-        if (FD_ISSET((*i)->getFd(), &rfds)) {
+        if (FD_ISSET((*i)->getFd(), &rfds))
           server.processSocketEvent(*i);
-        }
       }
 
-      server.checkTimeouts();
-
-      if (sched.goodTimeToPoll()) {
+      if (desktop.isRunning() && sched.goodTimeToPoll()) {
         sched.newPass();
         desktop.poll();
       }

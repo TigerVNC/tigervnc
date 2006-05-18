@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -30,13 +30,17 @@ extern "C" {
 #define X_VncExtGetClientCutText 5
 #define X_VncExtSelectInput 6
 #define X_VncExtConnect 7
+#define X_VncExtGetQueryConnect 8
+#define X_VncExtApproveConnect 9
 
 #define VncExtClientCutTextNotify 0
 #define VncExtSelectionChangeNotify 1
+#define VncExtQueryConnectNotify 2
 #define VncExtClientCutTextMask (1 << VncExtClientCutTextNotify)
 #define VncExtSelectionChangeMask (1 << VncExtSelectionChangeNotify)
+#define VncExtQueryConnectMask (1 << VncExtQueryConnectNotify)
 
-#define VncExtNumberEvents 2
+#define VncExtNumberEvents 3
 #define VncExtNumberErrors 0
 
 #ifndef _VNCEXT_SERVER_
@@ -51,6 +55,10 @@ Bool XVncExtSetServerCutText(Display* dpy, const char* str, int len);
 Bool XVncExtGetClientCutText(Display* dpy, char** str, int* len);
 Bool XVncExtSelectInput(Display* dpy, Window w, int mask);
 Bool XVncExtConnect(Display* dpy, char* hostAndPort);
+Bool XVncExtGetQueryConnect(Display* dpy, char** addr,
+                            char** user, int* timeout, void** opaqueId);
+Bool XVncExtApproveConnect(Display* dpy, void* opaqueId, int approve);
+
 
 typedef struct {
   int type;
@@ -69,6 +77,14 @@ typedef struct {
   Window window;
   Atom selection;
 } XVncExtSelectionChangeEvent;
+
+typedef struct {
+  int type;
+  unsigned long serial;
+  Bool send_event;
+  Display *display;
+  Window window;
+} XVncExtQueryConnectEvent;
 
 #endif
 
@@ -243,6 +259,40 @@ typedef struct {
 
 
 typedef struct {
+  CARD8 reqType;       /* always VncExtReqCode */
+  CARD8 vncExtReqType; /* always VncExtGetQueryConnect */
+  CARD16 length B16;
+} xVncExtGetQueryConnectReq;
+#define sz_xVncExtGetQueryConnectReq 4
+
+typedef struct {
+ BYTE type; /* X_Reply */
+ BYTE pad0;
+ CARD16 sequenceNumber B16;
+ CARD32 length B32;
+ CARD32 addrLen B32;
+ CARD32 userLen B32;
+ CARD32 timeout B32;
+ CARD32 opaqueId B32;
+ CARD32 pad4 B32;
+ CARD32 pad5 B32;
+} xVncExtGetQueryConnectReply;
+#define sz_xVncExtGetQueryConnectReply 32
+
+typedef struct {
+  CARD8 reqType;       /* always VncExtReqCode */
+  CARD8 vncExtReqType; /* always VncExtApproveConnect */
+  CARD16 length B16;
+  CARD8 approve;
+  CARD8 pad0;
+  CARD16 pad1;
+  CARD32 opaqueId B32;
+} xVncExtApproveConnectReq;
+#define sz_xVncExtApproveConnectReq 12
+
+
+
+typedef struct {
   BYTE type;    /* always eventBase + VncExtClientCutTextNotify */
   BYTE pad0;
   CARD16 sequenceNumber B16;
@@ -269,6 +319,20 @@ typedef struct {
   CARD32 pad5 B32;
 } xVncExtSelectionChangeNotifyEvent;
 #define sz_xVncExtSelectionChangeNotifyEvent 32
+
+typedef struct {
+  BYTE type;    /* always eventBase + VncExtQueryConnectNotify */
+  BYTE pad0;
+  CARD16 sequenceNumber B16;
+  CARD32 window B32;
+  CARD32 pad6 B32;
+  CARD32 pad1 B32;
+  CARD32 pad2 B32;
+  CARD32 pad3 B32;
+  CARD32 pad4 B32;
+  CARD32 pad5 B32;
+} xVncExtQueryConnectNotifyEvent;
+#define sz_xVncExtQueryConnectNotifyEvent 32
 
 #endif
 

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -63,12 +63,12 @@ public:
     } while (text.buf[i] != 0);
     int textHeight = ((defaultFS->ascent + defaultFS->descent + lineSpacing)
                       * lines);
-
-    int newWidth = vncmax(width(), textWidth + xPad*2);
-    int newHeight = vncmax(height(), textHeight + yPad*2);
+    int newWidth = __rfbmax(width(), textWidth + xPad*2);
+    int newHeight = __rfbmax(height(), textHeight + yPad*2);
     if (width() < newWidth || height() < newHeight) {
       resize(newWidth, newHeight);
     }
+    invalidate();
   }
 
 private:

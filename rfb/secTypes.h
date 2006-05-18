@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -31,6 +31,9 @@ namespace rfb {
 
   const int secTypeRA2     = 5;
   const int secTypeRA2ne   = 6;
+
+  const int secTypeSSPI    = 7;
+  const int secTypeSSPIne    = 8;
 
   const int secTypeTight   = 16;
   const int secTypeUltra   = 17;

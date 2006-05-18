@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -29,6 +29,7 @@
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
+#include <rfb/Password.h>
 #include <network/TcpSocket.h>
 
 #include "TXViewport.h"
@@ -49,7 +50,7 @@ StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
 StringParameter windowName("name", "The X window name", "");
 
 CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
-             char* vncServerName)
+             char* vncServerName, bool reverse)
   : dpy(dpy_), argc(argc_),
     argv(argv_), serverHost(0), serverPort(0), sock(sock_), viewport(0),
     desktop(0), desktopEventHandler(0),
@@ -58,7 +59,8 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
     autoSelect(::autoSelect), shared(::shared), formatChange(false),
     encodingChange(false), sameMachine(false), fullScreen(::fullScreen),
     ctrlDown(false), altDown(false),
-    menuKeysym(0), menu(dpy, this), options(dpy, this), about(dpy), info(dpy)
+    menuKeysym(0), menu(dpy, this), options(dpy, this), about(dpy), info(dpy),
+    reverseConnection(reverse)
 {
   CharArray menuKeyStr(menuKey.getData());
   menuKeysym = XStringToKeysym(menuKeyStr.buf);
@@ -160,19 +162,32 @@ void CConn::handleEvent(TXWindow* w, XEvent* ev)
 void CConn::blockCallback() {
   fd_set rfds;
   do {
-    TXWindow::handleXEvents(dpy);
     struct timeval tv;
-    struct timeval* tvp;
-    if (Timer::getTimeout(&tv))
+    struct timeval* tvp = 0;
+
+    // Process any incoming X events
+    TXWindow::handleXEvents(dpy);
+    
+    // Process expired timers and get the time until the next one
+    int timeoutMs = Timer::checkTimeouts();
+    if (timeoutMs) {
+      tv.tv_sec = timeoutMs / 1000;
+      tv.tv_usec = (timeoutMs % 1000) * 1000;
       tvp = &tv;
-    else
-      tvp = 0;
+    }
+    
+    // If there are X requests pending then poll, don't wait!
+    if (XPending(dpy)) {
+      tv.tv_usec = tv.tv_sec = 0;
+      tvp = &tv;
+    }
+
+    // Wait for X events, VNC traffic, or the next timer expiry
     FD_ZERO(&rfds);
     FD_SET(ConnectionNumber(dpy), &rfds);
     FD_SET(sock->getFd(), &rfds);
     int n = select(FD_SETSIZE, &rfds, 0, 0, tvp);
     if (n < 0) throw rdr::SystemException("select",errno);
-    Timer::callTimers();
   } while (!(FD_ISSET(sock->getFd(), &rfds)));
 }
 
@@ -180,20 +195,18 @@ void CConn::blockCallback() {
 // getPasswd() is called by the CSecurity object when it needs us to read a
 // password from the user.
 
-bool CConn::getUserPasswd(char** user, char** password)
+void CConn::getUserPasswd(char** user, char** password)
 {
   CharArray passwordFileStr(passwordFile.getData());
   if (!user && passwordFileStr.buf[0]) {
     FILE* fp = fopen(passwordFileStr.buf, "r");
-    if (!fp) return false;
-    char data[256];
-    int datalen = fread(data, 1, 256, fp);
+    if (!fp) throw rfb::Exception("Opening password file failed");
+    ObfuscatedPasswd obfPwd(256);
+    obfPwd.length = fread(obfPwd.buf, 1, obfPwd.length, fp);
     fclose(fp);
-    if (datalen != 8) return false;
-    vncAuthUnobfuscatePasswd(data);
-    *password = strDup(data);
-    memset(data, 0, strlen(data));
-    return true;
+    PlainPasswd passwd(obfPwd);
+    *password = passwd.takeBuf();
+    return;
   }
 
   const char* secType = secTypeName(getCurrentCSecurity()->getType());
@@ -202,11 +215,10 @@ bool CConn::getUserPasswd(char** user, char** password)
   CharArray title(titleLen);
   snprintf(title.buf, titleLen, "%s [%s]", titlePrefix, secType);
   PasswdDialog dlg(dpy, title.buf, !user);
-  if (!dlg.show()) return false;
+  if (!dlg.show()) throw rfb::Exception("Authentication cancelled");
   if (user)
     *user = strDup(dlg.userEntry.getText());
   *password = strDup(dlg.passwdEntry.getText());
-  return true;
 }
 
 
@@ -324,9 +336,9 @@ void CConn::imageRect(const rfb::Rect& r, void* p) {
 void CConn::copyRect(const rfb::Rect& r, int sx, int sy) {
   desktop->copyRect(r,sx,sy);
 }
-void CConn::setCursor(const Point& hotspot, const Point& size,
+void CConn::setCursor(int width, int height, const Point& hotspot,
                       void* data, void* mask) {
-  desktop->setCursor(hotspot, size, data, mask);
+  desktop->setCursor(width, height, hotspot, data, mask);
 }
 
 
@@ -444,26 +456,26 @@ void CConn::menuSelect(long id, TXMenu* m) {
   case ID_F8:
     menu.unmap();
     if (!viewOnly) {
-      writer()->writeKeyEvent(menuKeysym, true);
-      writer()->writeKeyEvent(menuKeysym, false);
+      writer()->keyEvent(menuKeysym, true);
+      writer()->keyEvent(menuKeysym, false);
     }
     break;
   case ID_CTRLALTDEL:
     menu.unmap();
     if (!viewOnly) {
-      writer()->writeKeyEvent(XK_Control_L, true);
-      writer()->writeKeyEvent(XK_Alt_L, true);
-      writer()->writeKeyEvent(XK_Delete, true);
-      writer()->writeKeyEvent(XK_Delete, false);
-      writer()->writeKeyEvent(XK_Alt_L, false);
-      writer()->writeKeyEvent(XK_Control_L, false);
+      writer()->keyEvent(XK_Control_L, true);
+      writer()->keyEvent(XK_Alt_L, true);
+      writer()->keyEvent(XK_Delete, true);
+      writer()->keyEvent(XK_Delete, false);
+      writer()->keyEvent(XK_Alt_L, false);
+      writer()->keyEvent(XK_Control_L, false);
     }
     break;
   case ID_CTRL:
     menu.unmap();
     if (!viewOnly) {
       ctrlDown = !ctrlDown;
-      writer()->writeKeyEvent(XK_Control_L, ctrlDown);
+      writer()->keyEvent(XK_Control_L, ctrlDown);
       menu.check(ID_CTRL, ctrlDown);
     }
     break;
@@ -471,7 +483,7 @@ void CConn::menuSelect(long id, TXMenu* m) {
     menu.unmap();
     if (!viewOnly) {
       altDown = !altDown;
-      writer()->writeKeyEvent(XK_Alt_L, altDown);
+      writer()->keyEvent(XK_Alt_L, altDown);
       menu.check(ID_ALT, altDown);
     }
     break;

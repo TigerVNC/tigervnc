@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,15 +19,14 @@
 #ifndef WINVNCCONF_LEGACY
 #define WINVNCCONF_LEGACY
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <lmcons.h>
-
 #include <vncconfig/resource.h>
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/MsgBox.h>
 #include <rfb/ServerCore.h>
+#include <rfb/secTypes.h>
 
 namespace rfb {
 

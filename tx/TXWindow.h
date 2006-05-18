@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -110,6 +110,7 @@ public:
   void resize(int w, int h);
   void raise()                 { XRaiseWindow(dpy, win()); }
   void setBorderWidth(int bw);
+  void invalidate(int x=0, int y=0, int w=0, int h=0) { XClearArea(dpy, win(), x, y, w, h, True); }
 
   // ownSelection requests that the window owns the given selection from the
   // given time (the time should be taken from an X event).

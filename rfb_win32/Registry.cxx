@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,14 +18,14 @@
 
 // -=- Registry.cxx
 
-#include <rfb/LogWriter.h>
 #include <rfb_win32/Registry.h>
+#include <rfb_win32/Security.h>
+#include <rfb_win32/DynamicFn.h>
 #include <rdr/MemOutStream.h>
 #include <rdr/HexOutstream.h>
 #include <rdr/HexInStream.h>
-#include <rfb_win32/Security.h>
-
 #include <stdlib.h>
+#include <rfb/LogWriter.h>
 
 // These flags are required to control access control inheritance,
 // but are not defined by VC6's headers.  These definitions comes
@@ -69,6 +69,7 @@ RegKey::~RegKey() {
 
 
 void RegKey::setHKEY(HKEY k, bool fK) {
+  vlog.debug("setHKEY(%x,%d)", k, (int)fK);
   close();
   freeKey = fK;
   key = k;
@@ -82,6 +83,7 @@ bool RegKey::createKey(const RegKey& root, const TCHAR* name) {
     vlog.error("RegCreateKey(%x, %s): %x", root.key, name, result);
     throw rdr::SystemException("RegCreateKeyEx", result);
   }
+  vlog.debug("createKey(%x,%s) = %x", root.key, (const char*)CStr(name), key);
   freeKey = true;
   return true;
 }
@@ -91,6 +93,8 @@ void RegKey::openKey(const RegKey& root, const TCHAR* name, bool readOnly) {
   LONG result = RegOpenKeyEx(root.key, name, 0, readOnly ? KEY_READ : KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx (open)", result);
+  vlog.debug("openKey(%x,%s,%s) = %x", root.key, (const char*)CStr(name),
+	         readOnly ? "ro" : "rw", key);
   freeKey = true;
 }
 
@@ -109,6 +113,7 @@ void RegKey::setDACL(const PACL acl, bool inherit) {
 
 void RegKey::close() {
   if (freeKey) {
+    vlog.debug("RegCloseKey(%x)", key);
     RegCloseKey(key);
     key = 0;
   }
@@ -126,8 +131,8 @@ void RegKey::deleteValue(const TCHAR* name) const {
     throw rdr::SystemException("RegDeleteValue", result);
 }
 
-void RegKey::awaitChange(bool watchSubTree, DWORD filter) const {
-  LONG result = RegNotifyChangeKeyValue(key, watchSubTree, filter, 0, FALSE);
+void RegKey::awaitChange(bool watchSubTree, DWORD filter, HANDLE event) const {
+  LONG result = RegNotifyChangeKeyValue(key, watchSubTree, filter, event, event != 0);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegNotifyChangeKeyValue", result);
 }
@@ -206,6 +211,16 @@ bool RegKey::getBool(const TCHAR* valname, bool def) const {
   return getInt(valname, def ? 1 : 0) > 0;
 }
 
+static inline TCHAR* terminateData(char* data, int length)
+{
+  // We must terminate the string, just to be sure.  Stupid Win32...
+  int len = length/sizeof(TCHAR);
+  TCharArray str(len+1);
+  memcpy(str.buf, data, length);
+  str.buf[len] = 0;
+  return str.takeBuf();
+}
+
 TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
   DWORD type, length;
   LONG result = RegQueryValueEx(key, valname, 0, &type, 0, &length);
@@ -224,12 +239,7 @@ TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
     }
   case REG_SZ:
     if (length) {
-      // We must terminate the string, just to be sure.  Stupid Win32...
-      int len = length/sizeof(TCHAR);
-      TCharArray str(len+1);
-      memcpy(str.buf, data.buf, length);
-      str.buf[len] = 0;
-      return str.takeBuf();
+      return terminateData(data.buf, length);
     } else {
       return tstrDup(_T(""));
     }
@@ -238,6 +248,22 @@ TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
       TCharArray tmp(16);
       _stprintf(tmp.buf, _T("%u"), *((DWORD*)data.buf));
       return tmp.takeBuf();
+    }
+  case REG_EXPAND_SZ:
+    {
+    if (length) {
+      TCharArray str(terminateData(data.buf, length));
+      DWORD required = ExpandEnvironmentStrings(str.buf, 0, 0);
+      if (required==0)
+        throw rdr::SystemException("ExpandEnvironmentStrings", GetLastError());
+      TCharArray result(required);
+      length = ExpandEnvironmentStrings(str.buf, result.buf, required);
+      if (required<length)
+        rdr::Exception("unable to expand environment strings");
+      return result.takeBuf();
+    } else {
+      return tstrDup(_T(""));
+    }
     }
   default:
     throw rdr::Exception("unsupported registry type");
@@ -268,5 +294,23 @@ const TCHAR* RegKey::getValueName(int i) {
   if (result == ERROR_NO_MORE_ITEMS) return 0;
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegEnumValue", result);
+  return valueName.buf;
+}
+
+const TCHAR* RegKey::getKeyName(int i) {
+  DWORD maxValueNameLen;
+  LONG result = RegQueryInfoKey(key, 0, 0, 0, 0, &maxValueNameLen, 0, 0, 0, 0, 0, 0);
+  if (result != ERROR_SUCCESS)
+    throw rdr::SystemException("RegQueryInfoKey", result);
+  if (valueNameBufLen < maxValueNameLen + 1) {
+    valueNameBufLen = maxValueNameLen + 1;
+    delete [] valueName.buf;
+    valueName.buf = new TCHAR[valueNameBufLen];
+  }
+  DWORD length = valueNameBufLen;
+  result = RegEnumKeyEx(key, i, valueName.buf, &length, NULL, 0, 0, 0);
+  if (result == ERROR_NO_MORE_ITEMS) return 0;
+  if (result != ERROR_SUCCESS)
+    throw rdr::SystemException("RegEnumKey", result);
   return valueName.buf;
 }

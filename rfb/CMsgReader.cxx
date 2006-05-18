@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -41,10 +41,6 @@ CMsgReader::~CMsgReader()
   delete [] imageBuf;
 }
 
-void CMsgReader::endMsg()
-{
-}
-
 void CMsgReader::readSetColourMapEntries()
 {
   is->skip(1);
@@ -53,13 +49,11 @@ void CMsgReader::readSetColourMapEntries()
   rdr::U16Array rgbs(nColours * 3);
   for (int i = 0; i < nColours * 3; i++)
     rgbs.buf[i] = is->readU16();
-  endMsg();
   handler->setColourMapEntries(firstColour, nColours, rgbs.buf);
 }
 
 void CMsgReader::readBell()
 {
-  endMsg();
   handler->bell();
 }
 
@@ -75,19 +69,16 @@ void CMsgReader::readServerCutText()
   CharArray ca(len+1);
   ca.buf[len] = 0;
   is->readBytes(ca.buf, len);
-  endMsg();
   handler->serverCutText(ca.buf, len);
 }
 
 void CMsgReader::readFramebufferUpdateStart()
 {
-  endMsg();
   handler->framebufferUpdateStart();
 }
 
 void CMsgReader::readFramebufferUpdateEnd()
 {
-  endMsg();
   handler->framebufferUpdateEnd();
 }
 
@@ -128,17 +119,17 @@ void CMsgReader::readCopyRect(const Rect& r)
   handler->copyRect(r, srcX, srcY);
 }
 
-void CMsgReader::readSetCursor(const Point& hotspot, const Point& size)
+void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 {
-  int data_len = size.x * size.y * (handler->cp.pf().bpp/8);
-  int mask_len = ((size.x+7)/8) * size.y;
+  int data_len = width * height * (handler->cp.pf().bpp/8);
+  int mask_len = ((width+7)/8) * height;
   rdr::U8Array data(data_len);
   rdr::U8Array mask(mask_len);
 
   is->readBytes(data.buf, data_len);
   is->readBytes(mask.buf, mask_len);
 
-  handler->setCursor(hotspot, size, data.buf, mask.buf);
+  handler->setCursor(width, height, hotspot, data.buf, mask.buf);
 }
 
 rdr::U8* CMsgReader::getImageBuf(int required, int requested, int* nPixels)

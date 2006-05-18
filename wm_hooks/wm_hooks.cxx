@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -20,7 +20,6 @@
 //
 // Window Message Hooks Dynamic Link library
 
-#define _WIN32_WINNT 0x0400
 #include <tchar.h>
 
 #include <wm_hooks/wm_hooks.h>
@@ -187,6 +186,10 @@ void ProcessWindowMessage(UINT msg, HWND wnd, WPARAM wParam, LPARAM lParam) {
     }
     break;
 
+  case WM_WINDOWPOSCHANGED:
+    NotifyWindow(wnd, msg);
+    break;
+
 	case WM_PAINT:
     // *** could improve this
     NotifyWindowClientArea(wnd, msg);
@@ -329,7 +332,7 @@ BOOL WM_Hooks_Install(DWORD owner, DWORD thread) {
   hook_target = thread;
 
   hook_CallWndProc = SetWindowsHookEx(WH_CALLWNDPROC, HookCallWndProc, dll_instance, thread);
-  //hook_CallWndProcRet = SetWindowsHookEx(WH_CALLWNDPROCRET, HookCallWndProcRet, dll_instance, thread);
+  hook_CallWndProcRet = SetWindowsHookEx(WH_CALLWNDPROCRET, HookCallWndProcRet, dll_instance, thread);
   hook_GetMessage = SetWindowsHookEx(WH_GETMESSAGE, HookGetMessage, dll_instance, thread);
   hook_DialogMessage = SetWindowsHookEx(WH_SYSMSGFILTER, HookDialogMessage, dll_instance, thread);
 
@@ -427,7 +430,7 @@ bool RefreshInputHooks() {
   return success;
 }
 #else
-#pragma message("WARNING: low-level mouse and keyboard hooks not supported")
+#pragma message("  NOTE: low-level mouse and keyboard hooks not supported")
 #endif
 
 // - WM_Hooks_EnableRealInputs
@@ -458,5 +461,5 @@ BOOL WM_Hooks_EnableSynthInputs(BOOL pointer, BOOL keyboard) {
 
 BOOL WM_Hooks_EnableCursorShape(BOOL enable) {
   enable_cursor_shape = enable;
-  return FALSE;
+  return TRUE;
 }

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,10 +25,10 @@
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
+#include <rfb_win32/OSVersion.h>
 #include <rfb/ServerCore.h>
 
 namespace rfb {
-
   namespace win32 {
 
     class InputsPage : public PropSheetPage {
@@ -42,6 +42,7 @@ namespace rfb {
         setItemChecked(IDC_ACCEPT_CUTTEXT, rfb::Server::acceptCutText);
         setItemChecked(IDC_SEND_CUTTEXT, rfb::Server::sendCutText);
         setItemChecked(IDC_DISABLE_LOCAL_INPUTS, SDisplay::disableLocalInputs);
+        enableItem(IDC_DISABLE_LOCAL_INPUTS, !osVersion.isPlatformWindows);
         BOOL blocked = FALSE;
         if (SystemParametersInfo(SPI_GETBLOCKSENDINPUTRESETS, 0, &blocked, 0))
           setItemChecked(IDC_AFFECT_SCREENSAVER, !blocked);
@@ -78,7 +79,6 @@ namespace rfb {
     };
 
   };
-
 };
 
 #endif

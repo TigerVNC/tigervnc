@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -80,8 +80,8 @@ namespace rfb {
     // in response to the writeSetCursorCallback() callback.  For a V3 writer
     // this will happen when the next update is sent.
     virtual void cursorChange(WriteSetCursorCallback* cb)=0;
-    virtual void writeSetCursor(int width, int height, int hotspotX,
-                                int hotspotY, void* data, void* mask)=0;
+    virtual void writeSetCursor(int width, int height, const Point& hotspot,
+                                void* data, void* mask)=0;
     virtual void writeSetXCursor(int width, int height, int hotspotX,
                                 int hotspotY, void* data, void* mask)=0;
 
@@ -126,9 +126,6 @@ namespace rfb {
 
     virtual void startRect(const Rect& r, unsigned int enc)=0;
     virtual void endRect()=0;
-
-    // setOutStream() changes the OutStream on the fly.
-    virtual void setOutStream(rdr::OutStream* os);
 
     ConnParams* getConnParams() { return cp; }
     rdr::OutStream* getOutStream() { return os; }

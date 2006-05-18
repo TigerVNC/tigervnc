@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,6 +18,7 @@
 #include <stdio.h>
 
 #define NEED_REPLIES
+#include <X11/Xlib.h>
 #include <X11/Xlibint.h>
 #define _VNCEXT_PROTO_
 #include "vncExt.h"
@@ -26,6 +27,8 @@ static Bool XVncExtClientCutTextNotifyWireToEvent(Display* dpy, XEvent* e,
                                                   xEvent* w);
 static Bool XVncExtSelectionChangeNotifyWireToEvent(Display* dpy, XEvent* e,
                                                     xEvent* w);
+static Bool XVncExtQueryConnectNotifyWireToEvent(Display* dpy, XEvent* e,
+                                                 xEvent* w);
 
 static Bool extensionInited = False;
 static XExtCodes* codes = 0;
@@ -40,6 +43,8 @@ static Bool checkExtension(Display* dpy)
                      XVncExtClientCutTextNotifyWireToEvent);
     XESetWireToEvent(dpy, codes->first_event + VncExtSelectionChangeNotify,
                      XVncExtSelectionChangeNotifyWireToEvent);
+    XESetWireToEvent(dpy, codes->first_event + VncExtQueryConnectNotify,
+                     XVncExtQueryConnectNotifyWireToEvent);
   }
   return codes != 0;
 }
@@ -286,6 +291,55 @@ Bool XVncExtConnect(Display* dpy, char* hostAndPort)
   return rep.success;
 }
 
+Bool XVncExtGetQueryConnect(Display* dpy, char** addr, char** user,
+                            int* timeout, void** opaqueId)
+{
+  xVncExtGetQueryConnectReq* req;
+  xVncExtGetQueryConnectReply rep;
+
+  if (!checkExtension(dpy)) return False;
+
+  LockDisplay(dpy);
+  GetReq(VncExtGetQueryConnect, req);
+  req->reqType = codes->major_opcode;
+  req->vncExtReqType = X_VncExtGetQueryConnect;
+  if (!_XReply(dpy, (xReply *)&rep, 0, xFalse)) {
+    UnlockDisplay(dpy);
+    SyncHandle();
+    return False;
+  }
+  UnlockDisplay(dpy);
+  SyncHandle();
+
+  *addr = Xmalloc(rep.addrLen+1);
+  _XReadPad(dpy, *addr, rep.addrLen);
+  (*addr)[rep.addrLen] = 0;
+  *user = Xmalloc(rep.userLen+1);
+  _XReadPad(dpy, *user, rep.userLen);
+  (*user)[rep.userLen] = 0;
+  *timeout = rep.timeout;
+  *opaqueId = (void*)rep.opaqueId;
+  return True;
+}
+
+Bool XVncExtApproveConnect(Display* dpy, void* opaqueId, int approve)
+{
+  xVncExtApproveConnectReq* req;
+
+  if (!checkExtension(dpy)) return False;
+
+  LockDisplay(dpy);
+  GetReq(VncExtApproveConnect, req);
+  req->reqType = codes->major_opcode;
+  req->vncExtReqType = X_VncExtApproveConnect;
+  req->approve = approve;
+  req->opaqueId = (CARD32)opaqueId;
+  UnlockDisplay(dpy);
+  SyncHandle();
+  return True;
+}
+
+
 static Bool XVncExtClientCutTextNotifyWireToEvent(Display* dpy, XEvent* e,
                                                   xEvent* w)
 {
@@ -312,5 +366,19 @@ static Bool XVncExtSelectionChangeNotifyWireToEvent(Display* dpy, XEvent* e,
   ev->display = dpy;
   ev->window = wire->window;
   ev->selection = wire->selection;
+  return True;
+}
+
+static Bool XVncExtQueryConnectNotifyWireToEvent(Display* dpy, XEvent* e,
+                                                    xEvent* w)
+{
+  XVncExtQueryConnectEvent* ev = (XVncExtQueryConnectEvent*)e;
+  xVncExtQueryConnectNotifyEvent* wire
+    = (xVncExtQueryConnectNotifyEvent*)w;
+  ev->type = wire->type & 0x7f;
+  ev->serial = _XSetLastRequestRead(dpy,(xGenericReply*)wire);
+  ev->send_event = (wire->type & 0x80) != 0;
+  ev->display = dpy;
+  ev->window = wire->window;
   return True;
 }

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -44,31 +44,24 @@
 
 namespace rfb {
 
-  class VncAuthPasswdParameter : public VncAuthPasswdGetter {
+  class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {
   public:
-    VncAuthPasswdParameter();
-    virtual ~VncAuthPasswdParameter() {}
+    VncAuthPasswdParameter(const char* name, const char* desc, StringParameter* passwdFile_);
+    virtual char* getVncAuthPasswd();
+  protected:
+    StringParameter* passwdFile;
   };
 
   class SSecurityFactoryStandard : public SSecurityFactory {
   public:
-    virtual SSecurity* getSSecurity(int secType, bool noAuth);
-    static VncAuthPasswdParameter* vncAuthPasswd;
-  };
-
-  class VncAuthPasswdConfigParameter : public VncAuthPasswdParameter {
-  public:
-    VncAuthPasswdConfigParameter();
-    virtual char* getVncAuthPasswd();
+    virtual SSecurity* getSSecurity(rdr::U8 secType, bool reverse);
+    virtual void getSecTypes(std::list<rdr::U8>* secTypes, bool reverse);
+    static StringParameter sec_types;
+    static StringParameter rev_sec_types;
+    static StringParameter vncAuthPasswdFile;
+    static VncAuthPasswdParameter vncAuthPasswd;
   protected:
-    BinaryParameter passwdParam;
-  };
-
-  class VncAuthPasswdFileParameter : public VncAuthPasswdParameter {
-  public:
-    VncAuthPasswdFileParameter();
-    virtual char* getVncAuthPasswd();
-    StringParameter param;
+    virtual bool isSecTypeSupported(rdr::U8 secType);
   };
 
 }

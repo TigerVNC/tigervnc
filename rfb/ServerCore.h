@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -37,8 +37,6 @@ namespace rfb {
     static IntParameter maxConnectionTime;
     static IntParameter maxIdleTime;
     static IntParameter clientWaitTimeMillis;
-    static StringParameter sec_types;
-    static StringParameter rev_sec_types;
     static BoolParameter compareFB;
     static BoolParameter protocol3_3;
     static BoolParameter alwaysShared;
@@ -49,7 +47,6 @@ namespace rfb {
     static BoolParameter acceptCutText;
     static BoolParameter sendCutText;
     static BoolParameter queryConnect;
-    static IntParameter blacklistLevel;
 
   };
 

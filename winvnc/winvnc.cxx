@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -31,7 +31,7 @@
 #include <rfb/Logger_file.h>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/AboutDialog.h>
-#include <rfb_win32/Win32Util.h>
+#include <rfb_win32/MsgBox.h>
 #include <network/TcpSocket.h>
 
 using namespace winvnc;
@@ -53,8 +53,7 @@ static bool close_console = false;
 //     Read in the command-line parameters and interpret them.
 //
 
-void
-programInfo() {
+static void programInfo() {
   win32::FileVersionInfo inf;
   _tprintf(_T("%s - %s, Version %s\n"),
     inf.getVerString(_T("ProductName")),
@@ -64,8 +63,7 @@ programInfo() {
   _tprintf(_T("%s\n\n"), inf.getVerString(_T("LegalCopyright")));
 }
 
-void
-programUsage() {
+static void programUsage() {
   printf("Command-line options:\n");
   printf("  -connect [<host[::port]>]            - Connect an existing WinVNC server to a listening viewer.\n");
   printf("  -disconnect                          - Disconnect all clients from an existing WinVNC server.\n");
@@ -86,8 +84,22 @@ programUsage() {
   Configuration::listParams();
 }
 
-void
-processParams(int argc, const char* argv[]) {
+static void MsgBoxOrLog(const char* msg, bool isError=false) {
+  if (close_console) {
+    MsgBox(0, TStr(msg), (isError ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
+  } else {
+    if (isError) {
+      try {
+        vlog.error(msg);
+        return;
+      } catch (...) {
+      }
+    }
+    fprintf(stderr, "%s\n", msg);
+  }
+}
+
+static void processParams(int argc, const char* argv[]) {
   for (int i=1; i<argc; i++) {
     try {
 
@@ -96,6 +108,7 @@ processParams(int argc, const char* argv[]) {
         CharArray host;
         if (i+1 < argc) {
           host.buf = strDup(argv[i+1]);
+          i++;
         } else {
           AddNewClientDialog ancd;
           if (ancd.showDialog())
@@ -103,38 +116,47 @@ processParams(int argc, const char* argv[]) {
         }
         if (host.buf) {
           HWND hwnd = FindWindow(0, _T("winvnc::IPC_Interface"));
+          if (!hwnd)
+            throw rdr::Exception("Unable to locate existing VNC Server.");
           COPYDATASTRUCT copyData;
           copyData.dwData = 1; // *** AddNewClient
           copyData.cbData = strlen(host.buf);
           copyData.lpData = (void*)host.buf;
-          i++;
-          SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData);
-          printf("Sent connect request to VNC Server...\n");
+          printf("Sending connect request to VNC Server...\n");
+          if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
+            MsgBoxOrLog("Connection failed.", true);
         }
       } else if (strcasecmp(argv[i], "-disconnect") == 0) {
+        runServer = false;
         HWND hwnd = FindWindow(0, _T("winvnc::IPC_Interface"));
+        if (!hwnd)
+          throw rdr::Exception("Unable to locate existing VNC Server.");
         COPYDATASTRUCT copyData;
         copyData.dwData = 2; // *** DisconnectClients
         copyData.lpData = 0;
         copyData.cbData = 0;
-        SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData);
-        printf("Sent disconnect request to VNC Server...\n");
-        runServer = false;
+        printf("Sending disconnect request to VNC Server...\n");
+        if (!SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM)&copyData))
+          MsgBoxOrLog("Failed to disconnect clients.", true);
       } else if (strcasecmp(argv[i], "-start") == 0) {
         printf("Attempting to start service...\n");
         runServer = false;
         if (rfb::win32::startService(VNCServerService::Name))
-          printf("Started service successfully\n");
+          MsgBoxOrLog("Started service successfully");
       } else if (strcasecmp(argv[i], "-stop") == 0) {
         printf("Attempting to stop service...\n");
         runServer = false;
         if (rfb::win32::stopService(VNCServerService::Name))
-          printf("Stopped service successfully\n");
+          MsgBoxOrLog("Stopped service successfully");
       } else if (strcasecmp(argv[i], "-status") == 0) {
         printf("Querying service status...\n");
         runServer = false;
-        rfb::win32::printServiceStatus(VNCServerService::Name);
-
+        DWORD state = rfb::win32::getServiceState(VNCServerService::Name);
+        CharArray stateStr(rfb::win32::serviceStateName(state));
+        const char* stateMsg = "The %s Service is in the %s state.";
+        CharArray result(strlen(stateStr.buf) + _tcslen(VNCServerService::Name) + strlen(stateMsg) + 1);
+        sprintf(result.buf, stateMsg, (const char*)CStr(VNCServerService::Name), stateStr.buf);
+        MsgBoxOrLog(result.buf);
       } else if (strcasecmp(argv[i], "-service") == 0) {
         printf("Run in service mode\n");
         runAsService = true;
@@ -147,15 +169,18 @@ processParams(int argc, const char* argv[]) {
         if (rfb::win32::registerService(VNCServerService::Name,
                                         _T("VNC Server Version 4"),
                                         argc-(j+1), &argv[j+1]))
-          printf("Registered service successfully\n");
+          MsgBoxOrLog("Registered service successfully");
       } else if (strcasecmp(argv[i], "-unregister") == 0) {
         printf("Attempting to unregister service...\n");
         runServer = false;
         if (rfb::win32::unregisterService(VNCServerService::Name))
-          printf("Unregistered service successfully\n");
+          MsgBoxOrLog("Unregistered service successfully");
 
       } else if (strcasecmp(argv[i], "-noconsole") == 0) {
         close_console = true;
+        vlog.info("closing console");
+        if (!FreeConsole())
+          vlog.info("unable to close console:%u", GetLastError());
 
       } else if ((strcasecmp(argv[i], "-help") == 0) ||
         (strcasecmp(argv[i], "--help") == 0) ||
@@ -183,7 +208,7 @@ processParams(int argc, const char* argv[]) {
       }
 
     } catch (rdr::Exception& e) {
-      vlog.error(e.str());
+      MsgBoxOrLog(e.str(), true);
     }
   }
 }
@@ -213,13 +238,7 @@ int main(int argc, const char* argv[]) {
 
     // - Run the server if required
     if (runServer) {
-      if (close_console) {
-        vlog.info("closing console");
-        if (!FreeConsole())
-          vlog.info("unable to close console:%u", GetLastError());
-      }
-
-      network::TcpSocket::initTcpSockets();
+      // Start the network subsystem and run the server
       VNCServerWin32 server;
 
       if (runAsService) {
@@ -235,13 +254,7 @@ int main(int argc, const char* argv[]) {
 
     vlog.debug("WinVNC service destroyed");
   } catch (rdr::Exception& e) {
-    try {
-      vlog.error("Fatal Error: %s", e.str());
-    } catch (...) {
-      fprintf(stderr, "WinVNC: Fatal Error: %s\n", e.str());
-    }
-    if (!runAsService)
-      MsgBox(0, TStr(e.str()), MB_ICONERROR | MB_OK);
+    MsgBoxOrLog(e.str(), true);
   }
 
   vlog.debug("WinVNC process quitting");
