@@ -19,7 +19,6 @@
 #define IDB_BITMAP                      120
 #define IDD_FILETRANSFER_DLG            121
 #define IDB_TOOLBAR                     122
-#define IDD_FTDIRNAME_DLG               123
 #define IDD_FTCONFIRM_DLG               124
 #define IDI_FTUP                        125
 #define IDI_FTDIR                       126
