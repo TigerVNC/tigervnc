@@ -178,6 +178,16 @@ void SConnection::processSecurityTypeMsg()
 {
   vlog.debug("processing security type message");
   int secType = is->readU8();
+
+  // Verify that the requested security type should be offered
+  std::list<rdr::U8> secTypes;
+  std::list<rdr::U8>::iterator i;
+  securityFactory->getSecTypes(&secTypes, reverseConnection);
+  for (i=secTypes.begin(); i!=secTypes.end(); i++)
+    if (*i == secType) break;
+  if (i == secTypes.end())
+    throw Exception("Requested security type not available");
+
   vlog.info("Client requests security type %s(%d)",
             secTypeName(secType),secType);
 
