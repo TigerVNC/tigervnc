@@ -36,8 +36,8 @@ namespace rfb {
     {
     public:
       SFileTransferManagerWin32();
-      ~SFileTransferManagerWin32();  
-      
+      virtual ~SFileTransferManagerWin32();
+
       void processDownloadMsg(MSG msg);
 
       virtual SFileTransfer *createObject(network::Socket *sock);

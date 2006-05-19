@@ -39,9 +39,9 @@ namespace rfb {
   {
   public:
     SFileTransfer(network::Socket *sock);
-    ~SFileTransfer();
+    virtual ~SFileTransfer();
 
-	bool processMessages(int type);
+    bool processMessages(int type);
     bool sendFileDownloadPortion();
 
   protected:

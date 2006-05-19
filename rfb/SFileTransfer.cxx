@@ -199,6 +199,9 @@ SFileTransfer::processFileUploadData()
       }
     }
   }
+  // FIXME: For the next line, gcc says:
+  //        warning: deleting `void *' is undefined
+  //        Perhaps it should not be `void *' at all.
   delete [] pUploadData;
   return true;
 }

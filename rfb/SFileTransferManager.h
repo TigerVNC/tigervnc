@@ -36,7 +36,7 @@ namespace rfb {
   {
   public:
     SFileTransferManager();
-    ~SFileTransferManager();
+    virtual ~SFileTransferManager();
 
     virtual SFileTransfer *createObject(network::Socket *sock) = 0;
     void destroyObject(SFileTransfer *pFT);

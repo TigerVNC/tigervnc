@@ -38,7 +38,7 @@ namespace rfb {
     {
     public:
       SFileTransferWin32(network::Socket *sock);
-      ~SFileTransferWin32();
+      virtual ~SFileTransferWin32();
 
       bool processDownloadCallback();
       virtual bool initDownloadCallback();
