@@ -677,20 +677,22 @@ void CConn::copyRect(const Rect& r, int srcX, int srcY) {
 }
 
 void CConn::getUserPasswd(char** user, char** password) {
-/*
   if (!user && options.passwordFile.buf[0]) {
     FILE* fp = fopen(options.passwordFile.buf, "rb");
-    if (!fp) return false;
-    char data[256];
-    int datalen = fread(data, 1, 256, fp);
-    fclose(fp);
-    if (datalen != 8) return false;
-    vncAuthUnobfuscatePasswd(data);
-    *password = strDup(data);
-    memset(data, 0, strlen(data));
-    return true;
+    if (fp) {
+      char data[256];
+      int datalen = fread(data, 1, 256, fp);
+      fclose(fp);
+      if (datalen == 8) {
+	ObfuscatedPasswd obfPwd;
+	obfPwd.buf = data;
+	obfPwd.length  = datalen; 
+	PlainPasswd passwd(obfPwd);
+	*password = strDup(passwd.buf);
+	memset(data, 0, strlen(data));
+      }
+    }
   }
-*/
   if (user && options.userName.buf)
     *user = strDup(options.userName.buf);
   if (password && options.password.buf)
