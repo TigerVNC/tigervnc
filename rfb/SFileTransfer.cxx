@@ -29,8 +29,8 @@
 using namespace rfb;
 
 SFileTransfer::SFileTransfer(network::Socket *sock) : 
-  m_pSocket(sock), m_reader(&sock->inStream()), m_writer(&sock->outStream()),
-  m_bUploadStarted(false), m_bDownloadStarted(false)
+  m_bUploadStarted(false), m_bDownloadStarted(false),
+  m_reader(&sock->inStream()), m_writer(&sock->outStream()), m_pSocket(sock)
 {
 }
 
