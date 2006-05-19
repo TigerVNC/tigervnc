@@ -35,6 +35,10 @@ CXXSRCS = \
   RawEncoder.cxx \
   Region.cxx \
   SConnection.cxx \
+  SFTMsgReader.cxx \
+  SFTMsgWriter.cxx \
+  SFileTransfer.cxx \
+  SFileTransferManager.cxx \
   SMsgHandler.cxx \
   SMsgReader.cxx \
   SMsgReaderV3.cxx \
