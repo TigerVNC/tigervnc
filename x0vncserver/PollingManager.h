@@ -38,7 +38,8 @@ class PollingManager {
 
 public:
 
-  PollingManager(Display *dpy, Image *image, ImageFactory *factory);
+  PollingManager(Display *dpy, Image *image, ImageFactory *factory,
+                 int offsetLeft = 0, int offsetTop = 0);
   virtual ~PollingManager();
 
   void setVNCServer(VNCServer *s);
@@ -71,6 +72,8 @@ protected:
   VNCServer *m_server;
 
   Image *m_image;
+  int m_offsetLeft;
+  int m_offsetTop;
   int m_width;
   int m_height;
   int m_widthTiles;
@@ -82,6 +85,38 @@ protected:
   time_t m_pointerPosTime;
 
 private:
+
+  inline void getScreen() {
+    m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
+  }
+
+  inline void getRow(int y) {
+    m_rowImage->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop + y);
+  }
+
+  inline void getTile32(int tx, int ty, int w, int h) {
+    if (w == 32 && h == 32) {
+      // This version of get() may be better optimized.
+      m_tileImage->get(DefaultRootWindow(m_dpy),
+                       m_offsetLeft + tx * 32, m_offsetTop + ty * 32);
+    } else {
+      // Generic version of get() for arbitrary width and height.
+      m_tileImage->get(DefaultRootWindow(m_dpy),
+                       m_offsetLeft + tx * 32, m_offsetTop + ty * 32, w, h);
+    }
+  }
+
+  inline void getArea128(int x, int y, int w, int h) {
+    if (w == 128 && h == 128) {
+      // This version of get() may be better optimized.
+      m_areaImage->get(DefaultRootWindow(m_dpy),
+                       m_offsetLeft + x, m_offsetTop + y);
+    } else {
+      // Generic version of get() for arbitrary width and height.
+      m_areaImage->get(DefaultRootWindow(m_dpy),
+                       m_offsetLeft + x, m_offsetTop + y, w, h);
+    }
+  }
 
   void adjustVideoArea();
 

@@ -44,6 +44,7 @@
 #include <X11/extensions/XTest.h>
 #endif
 
+#include <x0vncserver/Geometry.h>
 #include <x0vncserver/Image.h>
 #include <x0vncserver/PollingManager.h>
 #include <x0vncserver/PollingScheduler.h>
@@ -130,8 +131,8 @@ private:
 class XDesktop : public SDesktop, public ColourMap
 {
 public:
-  XDesktop(Display* dpy_)
-    : dpy(dpy_), pb(0), server(0), image(0), pollmgr(0),
+  XDesktop(Display* dpy_, Geometry *geometry_)
+    : dpy(dpy_), geometry(geometry_), pb(0), server(0), image(0), pollmgr(0),
       oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
@@ -168,14 +169,15 @@ public:
     vlog.info("Enabling %d button%s of X pointer device",
               maxButtons, (maxButtons != 1) ? "s" : "");
 
-    int dpyWidth = DisplayWidth(dpy, DefaultScreen(dpy));
-    int dpyHeight = DisplayHeight(dpy, DefaultScreen(dpy));
-
     ImageFactory factory((bool)useShm, (bool)useOverlay);
-    image = factory.newImage(dpy, dpyWidth, dpyHeight);
-    image->get(DefaultRootWindow(dpy));
+    image = factory.newImage(dpy, geometry->width(), geometry->height());
+    image->get(DefaultRootWindow(dpy),
+               geometry->offsetLeft(), geometry->offsetTop());
 
-    pollmgr = new PollingManager(dpy, image, &factory);
+    // FIXME: Duplication in using offsets above and here:
+    pollmgr = new PollingManager(dpy, image, &factory,
+                                 geometry->offsetLeft(),
+                                 geometry->offsetTop());
     pollmgr->setVNCServer(vs);
 
     pf.bpp = image->xim->bits_per_pixel;
@@ -189,7 +191,7 @@ public:
     pf.greenMax   = image->xim->green_mask >> pf.greenShift;
     pf.blueMax    = image->xim->blue_mask  >> pf.blueShift;
 
-    pb = new FullFramePixelBuffer(pf, dpyWidth, dpyHeight,
+    pb = new FullFramePixelBuffer(pf, geometry->width(), geometry->height(),
                                   (rdr::U8*)image->xim->data, this);
     server = vs;
     server->setPixelBuffer(pb);
@@ -222,7 +224,10 @@ public:
     pollmgr->setPointerPos(pos);
 #ifdef HAVE_XTEST
     if (!haveXtest) return;
-    XTestFakeMotionEvent(dpy, DefaultScreen(dpy), pos.x, pos.y, CurrentTime);
+    XTestFakeMotionEvent(dpy, DefaultScreen(dpy),
+                         geometry->offsetLeft() + pos.x,
+                         geometry->offsetTop() + pos.y,
+                         CurrentTime);
     if (buttonMask != oldButtonMask) {
       for (int i = 0; i < maxButtons; i++) {
 	if ((buttonMask ^ oldButtonMask) & (1<<i)) {
@@ -270,6 +275,7 @@ public:
 
 protected:
   Display* dpy;
+  Geometry* geometry;
   PixelFormat pf;
   PixelBuffer* pb;
   VNCServer* server;
@@ -435,7 +441,9 @@ int main(int argc, char** argv)
 
   try {
     TXWindow::init(dpy,"x0vncserver");
-    XDesktop desktop(dpy);
+    Geometry geo(DisplayWidth(dpy, DefaultScreen(dpy)),
+                 DisplayHeight(dpy, DefaultScreen(dpy)));
+    XDesktop desktop(dpy, &geo);
     VNCServerST server("x0vncserver", &desktop);
     QueryConnHandler qcHandler(dpy, &server);
     server.setQueryConnectionHandler(&qcHandler);

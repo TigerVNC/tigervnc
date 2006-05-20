@@ -58,9 +58,11 @@ const int PollingManager::m_pollingOrder[32] = {
 //
 
 PollingManager::PollingManager(Display *dpy, Image *image,
-                               ImageFactory *factory)
-  : m_dpy(dpy), m_server(0), m_image(image), m_pointerPosKnown(false),
-    m_pollingStep(0)
+                               ImageFactory *factory,
+                               int offsetLeft, int offsetTop)
+  : m_dpy(dpy), m_server(0), m_image(image),
+    m_offsetLeft(offsetLeft), m_offsetTop(offsetTop),
+    m_pointerPosKnown(false), m_pollingStep(0)
 {
   // Save width and height of the screen (and the image).
   m_width = m_image->xim->width;
@@ -241,7 +243,7 @@ bool PollingManager::poll_DetectVideo()
     if (scanLine >= tile_h)
       break;
     int scan_y = y * 32 + scanLine;
-    m_rowImage->get(DefaultRootWindow(m_dpy), 0, scan_y);
+    getRow(scan_y);
     char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
     char *ptr_new = m_rowImage->xim->data;
     for (int x = 0; x * 32 < m_width; x++) {
@@ -262,12 +264,7 @@ bool PollingManager::poll_DetectVideo()
 
       m_changedFlags[idx] |= wasChanged;
       if ( m_changedFlags[idx] && (!m_videoFlags[idx] || grandStep) ) {
-        if (tile_w == 32 && tile_h == 32) {
-          m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32);
-        } else {
-          m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32,
-                           tile_w, tile_h);
-        }
+        getTile32(x, y, tile_w, tile_h);
         m_image->updateRect(m_tileImage, x * 32, y * 32);
         rect.setXYWH(x * 32, y * 32, tile_w, tile_h);
         m_server->add_changed(rect);
@@ -311,7 +308,7 @@ bool PollingManager::poll_SkipCycles()
     if (scanLine >= tile_h)
       scanLine %= tile_h;
     int scan_y = y * 32 + scanLine;
-    m_rowImage->get(DefaultRootWindow(m_dpy), 0, scan_y);
+    getRow(scan_y);
     char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
     char *ptr_new = m_rowImage->xim->data;
     for (int x = 0; x * 32 < m_width; x++) {
@@ -323,12 +320,7 @@ bool PollingManager::poll_SkipCycles()
           true : (memcmp(ptr_old, ptr_new, nBytes) != 0);
         if (wasChanged) {
           if (grandStep || *pstatus == NOT_CHANGED) {
-            if (tile_w == 32 && tile_h == 32) {
-              m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32);
-            } else {
-              m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32,
-                               tile_w, tile_h);
-            }
+            getTile32(x, y, tile_w, tile_h);
             m_image->updateRect(m_tileImage, x * 32, y * 32);
             rect.setXYWH(x * 32, y * 32, tile_w, tile_h);
             m_server->add_changed(rect);
@@ -367,19 +359,14 @@ bool PollingManager::poll_Traditional()
     if (scanLine >= tile_h)
       break;
     int scan_y = y * 32 + scanLine;
-    m_rowImage->get(DefaultRootWindow(m_dpy), 0, scan_y);
+    getRow(scan_y);
     char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
     char *ptr_new = m_rowImage->xim->data;
     for (int x = 0; x * 32 < m_width; x++) {
       int tile_w = (m_width - x * 32 >= 32) ? 32 : m_width - x * 32;
       int nBytes = tile_w * bytesPerPixel;
       if (memcmp(ptr_old, ptr_new, nBytes)) {
-        if (tile_w == 32 && tile_h == 32) {
-          m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32);
-        } else {
-          m_tileImage->get(DefaultRootWindow(m_dpy), x * 32, y * 32,
-                           tile_w, tile_h);
-        }
+        getTile32(x, y, tile_w, tile_h);
         m_image->updateRect(m_tileImage, x * 32, y * 32);
         rect.setXYWH(x * 32, y * 32, tile_w, tile_h);
         m_server->add_changed(rect);
@@ -402,7 +389,7 @@ bool PollingManager::poll_Dumb()
   if (!m_server)
     return false;
 
-  m_image->get(DefaultRootWindow(m_dpy));
+  getScreen();
   Rect rect(0, 0, m_width, m_height);
   m_server->add_changed(rect);
 
@@ -456,11 +443,7 @@ bool PollingManager::pollPointerArea()
   int w = r.width(), h = r.height();
 
   // Get new pixels.
-  if (w == 128 && h == 128) {
-    m_areaImage->get(DefaultRootWindow(m_dpy), x, y);
-  } else {
-    m_areaImage->get(DefaultRootWindow(m_dpy), x, y, w, h);
-  }
+  getArea128(x, y, w, h);
 
   // Now, try to minimize the rectangle by cutting out unchanged
   // borders (at top and bottom).
