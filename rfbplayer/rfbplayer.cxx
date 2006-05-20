@@ -17,18 +17,24 @@
  */
 
 // -=- RFB Player for Win32
-
 #include <windows.h>
+#include <commdlg.h>
+#include <shellapi.h>
+
+#include <rfb/LogWriter.h>
 
 #include <rfb_win32/AboutDialog.h>
+#include <rfb_win32/DeviceContext.h>
+#include <rfb_win32/MsgBox.h>
 #include <rfb_win32/WMShatter.h>
+#include <rfb_win32/Win32Util.h>
 
 #include <rfbplayer/rfbplayer.h>
 #include <rfbplayer/ChoosePixelFormatDialog.h>
 #include <rfbplayer/GotoPosDialog.h>
 #include <rfbplayer/InfoDialog.h>
 #include <rfbplayer/SessionInfoDialog.h>
-  
+
 using namespace rfb;
 using namespace rfb::win32;
 

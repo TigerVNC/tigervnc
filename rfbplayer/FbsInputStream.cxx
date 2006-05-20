@@ -46,7 +46,7 @@ FbsInputStream::FbsInputStream(char* FileName) {
     throw rfb::Exception(msg);
   }
 
-  byte b[12];
+  U8 b[12];
   readNByte(b, 12);
 
   if (b[0] != 'F' || b[1] != 'B' || b[2] != 'S' || b[3] != ' ' ||
@@ -114,7 +114,7 @@ int FbsInputStream::overrun(int itemSize, int nItems, bool wait=true) {
     if (start != NULL)
       delete [] start;
     int realSize = (bufferSize + 3) & 0xFFFFFFFC; // padding to multiple of 32-bits
-    ptr = start = new byte[realSize + n];
+    ptr = start = new U8[realSize + n];
     end = ptr + bufferSize + n;
     if (n) {
       memmove(start, tmp, n);
@@ -158,7 +158,7 @@ int FbsInputStream::overrun(int itemSize, int nItems, bool wait=true) {
 }
 
 int FbsInputStream::readUnsigned32() {
-  byte buf[4];
+  U8 buf[4];
   if (!readNByte(buf, 4))
     return -1;
 
@@ -172,7 +172,7 @@ int FbsInputStream::readUnsigned32() {
 // Read n-bytes from the session file
 //
 
-bool FbsInputStream::readNByte(byte b[], int n) {
+bool FbsInputStream::readNByte(U8 b[], int n) {
   int off = 0;
   
   while (off != n) {
