@@ -298,7 +298,7 @@ void DesktopWindow::setShowToolbar(bool st)
 {
   showToolbar = st;
 
-  if (showToolbar && !tb.isVisible()) {
+  if (showToolbar && !tb.isVisible() && !fullscreenActive) {
     tb.show();
   } else if (!showToolbar && tb.isVisible()) {
     tb.hide();
