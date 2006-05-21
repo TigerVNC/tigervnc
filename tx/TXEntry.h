@@ -33,6 +33,9 @@
 #ifndef XK_ISO_Left_Tab
 #define	XK_ISO_Left_Tab					0xFE20
 #endif
+#ifndef XK_KP_Delete
+#define XK_KP_Delete					0xFF9F
+#endif
 
 // TXEntryCallback's entryCallback() method is called when one of three special
 // key presses have happened: Enter/Return, forward tab, or backward tab.

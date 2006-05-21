@@ -29,6 +29,11 @@
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
 
+// XXX Lynx/OS 2.3: proto for gettimeofday()
+#ifdef Lynx
+#include <sys/proto.h>
+#endif
+
 using namespace rfb;
 
 #ifndef __NO_DEFINE_VLOG__

@@ -31,6 +31,11 @@
 #include "TXWindow.h"
 #include <errno.h>
 
+// XXX Lynx/OS 2.3: protos for bzero(), select()
+#ifdef Lynx
+#include <sys/proto.h>
+#endif
+
 class TXDialog : public TXWindow, public TXDeleteWindowCallback {
 public:
   TXDialog(Display* dpy, int width, int height, const char* name,

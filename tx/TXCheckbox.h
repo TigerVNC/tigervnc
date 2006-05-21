@@ -68,7 +68,7 @@ public:
   // setText() changes the text in the checkbox.
   void setText(const char* text_) {
     if (text) free(text);
-    text = strdup(text_);
+    text = strdup((char*)text_);
     int textWidth = XTextWidth(defaultFS, text, strlen(text));
     int textHeight = (defaultFS->ascent + defaultFS->descent);
     int newWidth = __rfbmax(width(), textWidth + xPad*2 + boxPad*2 + boxSize);
