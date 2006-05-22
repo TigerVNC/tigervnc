@@ -83,8 +83,9 @@ SFileTransfer::processFileListRequest()
   if (flags & 0x10) bDirOnly = true;
 
   FileInfo fi;
-  if (!makeFileList(szDirName, &fi, bDirOnly)) return false;
-
+  if (!makeFileList(szDirName, &fi, bDirOnly)) {
+    flags = (flags | 0x80);  
+  }
   return m_writer.writeFileListData((unsigned char)flags, &fi);
 }
 

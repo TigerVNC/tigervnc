@@ -403,9 +403,12 @@ FTDialog::onRemoteBrowse()
   m_bLocalBrowsing = false;
 
   m_pBrowseDlg = new FTBrowseDlg(this);
-  m_pBrowseDlg->create();
-
-  m_pFileTransfer->requestFileList("", FT_FLR_DEST_BROWSE, true);
+  if (m_pBrowseDlg->create()) {
+    m_pFileTransfer->requestFileList("", FT_FLR_DEST_BROWSE, true);
+  } else {
+    delete m_pBrowseDlg;
+    m_pBrowseDlg = NULL;
+  }
 }
 
 void 
@@ -439,7 +442,7 @@ FTDialog::showLocalLVItems()
 void
 FTDialog::showRemoteLVItems()
 {
-  m_pFileTransfer->requestFileList(m_szRemotePathTmp, FT_FLR_DEST_MAIN, 0);
+  m_pFileTransfer->requestFileList(m_szRemotePathTmp, FT_FLR_DEST_MAIN, false);
 }
 
 void 
@@ -473,6 +476,8 @@ void
 FTDialog::reqFolderUnavailable()
 {
   strcpy(m_szRemotePathTmp, m_szRemotePath);
+  SetWindowText(m_hwndRemotePath, m_szRemotePath);
+  UpdateWindow(m_hwndFTDialog);
 }
 
 int

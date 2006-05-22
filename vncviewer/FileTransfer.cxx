@@ -382,8 +382,7 @@ FileTransfer::createRemoteFolder(char *pPath, char *pName)
   sprintf(fullPath, "%s\\%s", pPath, pName);
   m_pFTDialog->setStatusText("Creating Remote Folder: %s", fullPath);
   writeFileCreateDirRqst(strlen(fullPath), fullPath);
-  m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_MAIN);
-  writeFileListRqst(strlen(pPath), pPath, false);
+  requestFileList(pPath, FT_FLR_DEST_MAIN, false);
 }
 
 void 
@@ -397,8 +396,7 @@ FileTransfer::renameRemote(char *pPath, char *pOldName, char *pNewName)
 
   writeFileRenameRqst(strlen(fullOldName), strlen(fullNewName),
                       fullOldName, fullNewName);
-  m_queueFileListRqst.add(pPath, 0, 0, FT_FLR_DEST_MAIN);
-  writeFileListRqst(strlen(pPath), pPath, false);
+  requestFileList(pPath, FT_FLR_DEST_MAIN, false);
 }
 
 bool 
