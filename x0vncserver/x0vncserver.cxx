@@ -169,12 +169,12 @@ public:
     vlog.info("Enabling %d button%s of X pointer device",
               maxButtons, (maxButtons != 1) ? "s" : "");
 
+    // Create an image for maintaining framebuffer data.
     ImageFactory factory((bool)useShm, (bool)useOverlay);
     image = factory.newImage(dpy, geometry->width(), geometry->height());
-    image->get(DefaultRootWindow(dpy),
-               geometry->offsetLeft(), geometry->offsetTop());
 
-    // FIXME: Duplication in using offsets above and here:
+    // Create polling manager object. It will track screen changes and
+    // keep pixels of the `image' object up to date.
     pollmgr = new PollingManager(dpy, image, &factory,
                                  geometry->offsetLeft(),
                                  geometry->offsetTop());

@@ -72,6 +72,9 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   m_widthTiles = (m_width + 31) / 32;
   m_heightTiles = (m_height + 31) / 32;
 
+  // Get initial screen image.
+  m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
+
   // Create additional images used in the polling algorithm.
   // FIXME: verify that these images use the same pixel format as in m_image.
   m_rowImage = factory->newImage(m_dpy, m_width, 1);
