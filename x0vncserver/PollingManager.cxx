@@ -27,11 +27,14 @@
 #include <string.h>
 #include <time.h>
 #include <X11/Xlib.h>
+#include <rfb/LogWriter.h>
 #include <rfb/VNCServer.h>
 #include <rfb/Configuration.h>
 #include <rfb/ServerCore.h>
 
 #include <x0vncserver/PollingManager.h>
+
+static LogWriter vlog("PollingMgr");
 
 BoolParameter PollingManager::pollPointer
 ("PollPointer",
@@ -75,11 +78,20 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   // Get initial screen image.
   m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
 
-  // Create additional images used in the polling algorithm.
-  // FIXME: verify that these images use the same pixel format as in m_image.
+  // Create additional images used in polling algorithms, warn if
+  // underlying class names are different from the class name of the
+  // primary image.
   m_rowImage = factory->newImage(m_dpy, m_width, 1);
   m_tileImage = factory->newImage(m_dpy, 32, 32);
   m_areaImage = factory->newImage(m_dpy, 128, 128);
+  if (strcmp(m_image->className(), m_rowImage->className()) != 0 ||
+      strcmp(m_image->className(), m_tileImage->className()) != 0 ||
+      strcmp(m_image->className(), m_areaImage->className()) != 0) {
+    vlog.error("Image types do not match (%s, %s, %s)",
+               m_rowImage->className(),
+               m_tileImage->className(),
+               m_areaImage->className());
+  }
 
   // FIXME: Extend the comment.
   // Create a matrix with one byte per each 32x32 tile. It will be

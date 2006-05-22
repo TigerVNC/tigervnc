@@ -57,7 +57,7 @@
 using namespace rfb;
 using namespace network;
 
-LogWriter vlog("main");
+LogWriter vlog("Main");
 
 IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
                           "cycle; actual interval may be dynamically "
@@ -75,11 +75,16 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  10);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
 
+//
+// CleanupSignalHandler allows C++ object cleanup to happen because
+// it calls exit() rather than the default which is to abort.
+//
+
 static void CleanupSignalHandler(int sig)
 {
-  // CleanupSignalHandler allows C++ object cleanup to happen because it calls
-  // exit() rather than the default which is to abort.
+#ifdef DEBUG
   fprintf(stderr,"CleanupSignalHandler called\n");
+#endif
   exit(1);
 }
 
@@ -172,6 +177,7 @@ public:
     // Create an image for maintaining framebuffer data.
     ImageFactory factory((bool)useShm, (bool)useOverlay);
     image = factory.newImage(dpy, geometry->width(), geometry->height());
+    vlog.info("Allocated %s", image->classDesc());
 
     // Create polling manager object. It will track screen changes and
     // keep pixels of the `image' object up to date.

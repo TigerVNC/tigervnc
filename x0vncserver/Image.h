@@ -38,7 +38,14 @@ public:
   Image(Display *d, int width, int height);
   virtual ~Image();
 
-  bool isTrueColor() { return trueColor; }
+  bool isTrueColor() const { return trueColor; }
+
+  virtual const char *className() const {
+    return "Image";
+  }
+  virtual const char *classDesc() const {
+    return "basic Xlib image";
+  }
 
   virtual void get(Window wnd, int x = 0, int y = 0);
   virtual void get(Window wnd, int x, int y, int w, int h);
@@ -89,6 +96,13 @@ public:
   ShmImage(Display *d, int width, int height);
   virtual ~ShmImage();
 
+  virtual const char *className() const {
+    return "ShmImage";
+  }
+  virtual const char *classDesc() const {
+    return "shared memory image";
+  }
+
   virtual void get(Window wnd, int x = 0, int y = 0);
   virtual void get(Window wnd, int x, int y, int w, int h);
 
@@ -117,6 +131,13 @@ public:
   IrixOverlayShmImage(Display *d);
   IrixOverlayShmImage(Display *d, int width, int height);
   virtual ~IrixOverlayShmImage();
+
+  virtual const char *className() const {
+    return "IrixOverlayShmImage";
+  }
+  virtual const char *classDesc() const {
+    return "IRIX-specific SHM-aware overlay image";
+  }
 
   virtual void get(Window wnd, int x = 0, int y = 0);
   virtual void get(Window wnd, int x, int y, int w, int h);
@@ -155,6 +176,13 @@ public:
   SolarisOverlayImage(Display *d);
   SolarisOverlayImage(Display *d, int width, int height);
   virtual ~SolarisOverlayImage();
+
+  virtual const char *className() const {
+    return "SolarisOverlayImage";
+  }
+  virtual const char *classDesc() const {
+    return "Solaris-specific non-SHM overlay image";
+  }
 
   virtual void get(Window wnd, int x = 0, int y = 0);
   virtual void get(Window wnd, int x, int y, int w, int h);

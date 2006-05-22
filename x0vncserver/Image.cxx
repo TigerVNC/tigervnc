@@ -512,14 +512,12 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
     if (mayUseShm) {
       image = new IrixOverlayShmImage(d, width, height);
       if (image->xim != NULL) {
-        vlog.info("Using IRIX overlay image with SHM support");
         return image;
       }
     }
 #elif defined(HAVE_SUN_OVL)
     image = new SolarisOverlayImage(d, width, height);
     if (image->xim != NULL) {
-      vlog.info("Using Solaris overlay image");
       return image;
     }
 #endif
@@ -536,7 +534,6 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
   if (mayUseShm) {
     image = new ShmImage(d, width, height);
     if (image->xim != NULL) {
-      vlog.info("Using shared memory image");
       return image;
     }
 
@@ -547,7 +544,6 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
 
   // Fall back to Xlib image.
 
-  vlog.info("Using Xlib-based image");
   image = new Image(d, width, height);
   return image;
 }
