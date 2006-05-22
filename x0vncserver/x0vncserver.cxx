@@ -57,7 +57,7 @@
 using namespace rfb;
 using namespace network;
 
-LogWriter vlog("Main");
+static LogWriter vlog("Main");
 
 IntParameter pollingCycle("PollingCycle", "Milliseconds per one polling "
                           "cycle; actual interval may be dynamically "
@@ -76,16 +76,14 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
 
 //
-// CleanupSignalHandler allows C++ object cleanup to happen because
-// it calls exit() rather than the default which is to abort.
+// Allow the main loop terminate itself gracefully on receiving a signal.
 //
+
+static bool caughtSignal = false;
 
 static void CleanupSignalHandler(int sig)
 {
-#ifdef DEBUG
-  fprintf(stderr,"CleanupSignalHandler called\n");
-#endif
-  exit(1);
+  caughtSignal = true;
 }
 
 
@@ -153,7 +151,7 @@ public:
     } else {
 #endif
       vlog.info("XTest extension not present");
-      vlog.info("unable to inject events or display while server is grabbed");
+      vlog.info("Unable to inject events or display while server is grabbed");
 #ifdef HAVE_XTEST
     }
 #endif
@@ -463,7 +461,7 @@ int main(int argc, char** argv)
 
     PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);
 
-    while (true) {
+    while (!caughtSignal) {
       struct timeval tv;
       fd_set rfds;
       std::list<Socket*> sockets;
@@ -508,7 +506,7 @@ int main(int argc, char** argv)
 
       if (n < 0) {
         if (errno == EINTR) {
-          vlog.debug("interrupted select() system call");
+          vlog.debug("Interrupted select() system call");
           continue;
         } else {
           throw rdr::SystemException("select", errno);
@@ -549,7 +547,9 @@ int main(int argc, char** argv)
 
   } catch (rdr::Exception &e) {
     vlog.error(e.str());
-  };
+    return 1;
+  }
 
+  vlog.info("Terminated");
   return 0;
 }
