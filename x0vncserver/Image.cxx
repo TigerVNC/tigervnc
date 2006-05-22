@@ -28,6 +28,7 @@
 #include <sys/shm.h>
 #endif
 
+#include <rfb/LogWriter.h>
 #include <x0vncserver/Image.h>
 
 //
@@ -43,9 +44,6 @@ public:
 
   ~ImageCleanup()
   {
-    // DEBUG:
-    // fprintf(stderr, "~ImageCleanup() called\n");
-
     while (!images.empty()) {
       delete images.front();
     }
@@ -57,6 +55,8 @@ ImageCleanup imageCleanup;
 //
 // Image class implementation.
 //
+
+static rfb::LogWriter vlog("Image");
 
 Image::Image(Display *d)
   : xim(NULL), dpy(d), trueColor(true)
@@ -81,16 +81,13 @@ void Image::Init(int width, int height)
 
   xim->data = (char *)malloc(xim->bytes_per_line * xim->height);
   if (xim->data == NULL) {
-    fprintf(stderr, "malloc() failed\n");
+    vlog.error("malloc() failed");
     exit(1);
   }
 }
 
 Image::~Image()
 {
-  // DEBUG:
-  // fprintf(stderr, "~Image() called\n");
-
   imageCleanup.images.remove(this);
 
   // XDestroyImage will free xim->data if necessary
@@ -229,7 +226,7 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
   Bool pixmaps;
 
   if (!XShmQueryVersion(dpy, &major, &minor, &pixmaps)) {
-    fprintf(stderr, "XShmQueryVersion() failed\n");
+    vlog.error("XShmQueryVersion() failed");
     return;
   }
 
@@ -251,7 +248,7 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
   xim = XShmCreateImage(dpy, visual, depth, ZPixmap, 0, shminfo,
 			width, height);
   if (xim == NULL) {
-    fprintf(stderr, "XShmCreateImage() failed\n");
+    vlog.error("XShmCreateImage() failed");
     delete shminfo;
     shminfo = NULL;
     return;
@@ -262,9 +259,8 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
                           IPC_CREAT|0777);
   if (shminfo->shmid == -1) {
     perror("shmget");
-    fprintf(stderr,
-            "shmget() failed (%d bytes requested)\n",
-            int(xim->bytes_per_line * xim->height));
+    vlog.error("shmget() failed (%d bytes requested)",
+               int(xim->bytes_per_line * xim->height));
     XDestroyImage(xim);
     xim = NULL;
     delete shminfo;
@@ -275,9 +271,8 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
   shminfo->shmaddr = xim->data = (char *)shmat(shminfo->shmid, 0, 0);
   if (shminfo->shmaddr == (char *)-1) {
     perror("shmat");
-    fprintf(stderr,
-            "shmat() failed (%d bytes requested)\n",
-            int(xim->bytes_per_line * xim->height));
+    vlog.error("shmat() failed (%d bytes requested)",
+               int(xim->bytes_per_line * xim->height));
     shmctl(shminfo->shmid, IPC_RMID, 0);
     XDestroyImage(xim);
     xim = NULL;
@@ -293,7 +288,7 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
   XSync(dpy, False);
   XSetErrorHandler(oldHdlr);
   if (caughtShmError) {
-    fprintf(stderr, "XShmAttach() failed\n");
+    vlog.error("XShmAttach() failed");
     shmdt(shminfo->shmaddr);
     shmctl(shminfo->shmid, IPC_RMID, 0);
     XDestroyImage(xim);
@@ -302,18 +297,10 @@ void ShmImage::Init(int width, int height, const XVisualInfo *vinfo)
     shminfo = NULL;
     return;
   }
-
-  // DEBUG:
-  // fprintf(stderr,
-  //        "Using shared memory XImage (%d bytes image data)\n",
-  //        int(xim->bytes_per_line * xim->height));
 }
 
 ShmImage::~ShmImage()
 {
-  // DEBUG:
-  // fprintf(stderr,"~ShmImage called\n");
-
   // FIXME: Destroy image as described in MIT-SHM documentation.
   if (shminfo != NULL) {
     shmdt(shminfo->shmaddr);
@@ -412,9 +399,6 @@ bool IrixOverlayShmImage::getOverlayVisualInfo(XVisualInfo *vinfo_ret)
 
 IrixOverlayShmImage::~IrixOverlayShmImage()
 {
-  // DEBUG:
-  // fprintf(stderr,"~IrixOverlayShmImage called\n");
-
   if (readDisplayBuf != NULL)
     XShmDestroyReadDisplayBuf(readDisplayBuf);
 }
@@ -466,15 +450,13 @@ void SolarisOverlayImage::Init(int width, int height)
   //        reallocate xim->data[] and correct width and height?
   xim = XReadScreen(dpy, DefaultRootWindow(dpy), 0, 0, width, height, True);
   if (xim == NULL) {
-    fprintf(stderr, "XReadScreen() failed\n");
+    vlog.error("XReadScreen() failed");
     return;
   }
 }
 
 SolarisOverlayImage::~SolarisOverlayImage()
 {
-  // DEBUG:
-  // fprintf(stderr, "~SolarisOverlayImage() called\n");
 }
 
 void SolarisOverlayImage::get(Window wnd, int x, int y)
@@ -523,7 +505,6 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
   Image *image = NULL;
 
   // First, try to create an image with overlay support.
-  // FIXME: Replace fprintf() with proper logging.
 
 #ifdef HAVE_OVERLAY_EXT
   if (mayUseOverlay) {
@@ -531,21 +512,20 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
     if (mayUseShm) {
       image = new IrixOverlayShmImage(d, width, height);
       if (image->xim != NULL) {
-        fprintf(stderr, "Using IRIX overlay image with SHM support\n");
+        vlog.info("Using IRIX overlay image with SHM support");
         return image;
       }
     }
 #elif defined(HAVE_SUN_OVL)
     image = new SolarisOverlayImage(d, width, height);
     if (image->xim != NULL) {
-      fprintf(stderr, "Using Solaris overlay image\n");
+      vlog.info("Using Solaris overlay image");
       return image;
     }
 #endif
     if (image != NULL) {
       delete image;
-      fprintf(stderr,
-              "Failed to create overlay image, trying other options\n");
+      vlog.error("Failed to create overlay image, trying other options");
     }
   }
 #endif // HAVE_OVERLAY_EXT
@@ -556,19 +536,18 @@ Image *ImageFactory::newImage(Display *d, int width, int height)
   if (mayUseShm) {
     image = new ShmImage(d, width, height);
     if (image->xim != NULL) {
-      fprintf(stderr, "Using shared memory image\n");
+      vlog.info("Using shared memory image");
       return image;
     }
 
     delete image;
-    fprintf(stderr, 
-            "Failed to create SHM image, falling back to Xlib image\n");
+    vlog.error("Failed to create SHM image, falling back to Xlib image");
   }
 #endif // HAVE_MITSHM
 
   // Fall back to Xlib image.
 
-  fprintf(stderr, "Using Xlib-based image\n");
+  vlog.info("Using Xlib-based image");
   image = new Image(d, width, height);
   return image;
 }

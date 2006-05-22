@@ -20,8 +20,6 @@
 // Geometry.cxx
 //
 
-#include <stdio.h>
-
 #include <rfb/Rect.h>
 #include <rfb/LogWriter.h>
 #include <x0vncserver/Geometry.h>
