@@ -70,7 +70,7 @@ SFTMsgReader::readFileUploadRqst(unsigned int *pFilenameSize, char *pFilename,
   return readU8U16U32StringMsg(&compressedLevel, pFilenameSize, pPosition, pFilename);
 }
     
-void *
+char *
 SFTMsgReader::readFileUploadData(unsigned int *pDataSize, unsigned int *pModTime)
 {
   unsigned char compressedLevel = m_pIS->readU8();

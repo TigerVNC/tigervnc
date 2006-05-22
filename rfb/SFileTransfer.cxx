@@ -174,7 +174,7 @@ SFileTransfer::processFileUploadData()
   unsigned int dataSize = 0;
   unsigned int modTime = 0;
 
-  void *pUploadData = m_reader.readFileUploadData(&dataSize, &modTime);
+  char *pUploadData = m_reader.readFileUploadData(&dataSize, &modTime);
 
   if (!m_bUploadStarted) {
       char reason[] = "Upload is impossible";
@@ -200,9 +200,6 @@ SFileTransfer::processFileUploadData()
       }
     }
   }
-  // FIXME: For the next line, gcc says:
-  //        warning: deleting `void *' is undefined
-  //        Perhaps it should not be `void *' at all.
   delete [] pUploadData;
   return true;
 }

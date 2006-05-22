@@ -46,7 +46,7 @@ namespace rfb {
     bool readFileUploadRqst(unsigned int *pFilenameSize, char *pFilename, 
                             unsigned int *pPosition);
     
-    void *readFileUploadData(unsigned int *pDataSize, unsigned int *pModTime);
+    char *readFileUploadData(unsigned int *pDataSize, unsigned int *pModTime);
 
     
     bool readFileCreateDirRqst(unsigned int *pDirNameSize, char *pDirName);
