@@ -34,7 +34,7 @@
 #include <rfb_win32/CKeyboard.h>
 #include <rfb_win32/CPointer.h>
 #include <rfb_win32/Clipboard.h>
-#include <rfb_win32/DIBSectionBuffer.h>
+#include <rfb_win32/ScaledDIBSectionBuffer.h>
 #include <rfb_win32/LogicalPalette.h>
 #include <vncviewer/ViewerToolBar.h>
 
@@ -195,7 +195,7 @@ namespace rfb {
       void cursorOutsideBuffer();
 
       // Returns true if part of the supplied rect is visible, false otherwise
-      bool invalidateDesktopRect(const Rect& crect);
+      bool invalidateDesktopRect(const Rect& crect, bool scaling=true);
 
       // Determine whether or not we need to enable/disable scrollbars and set the
       // window style accordingly
@@ -232,7 +232,7 @@ namespace rfb {
       bool showToolbar;
 
       // Local window state
-      win32::DIBSectionBuffer* buffer;
+      win32::ScaledDIBSectionBuffer* buffer;
       bool has_focus;
       Rect window_size;
       Rect client_size;

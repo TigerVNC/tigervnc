@@ -220,7 +220,7 @@ DesktopWindow::DesktopWindow(Callback* cb)
   clipboard.setNotifier(this);
 
   // Create the backing buffer
-  buffer = new win32::DIBSectionBuffer(frameHandle);
+  buffer = new win32::ScaledDIBSectionBuffer(frameHandle);
 
   // Show the window
   centerWindow(handle, 0);
@@ -774,8 +774,10 @@ DesktopWindow::processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
           break;
 
         // Send a pointer event to the server
-        ptr.pointerEvent(callback, p, mask);
         oldpos = p;
+        p.x /= double(buffer->getScale()) / 100;
+        p.y /= double(buffer->getScale()) / 100;
+        ptr.pointerEvent(callback, p, mask);
 #ifdef WM_MOUSEWHEEL
       }
 #endif
@@ -795,8 +797,8 @@ DesktopWindow::hideLocalCursor() {
   // *** ALWAYS call this BEFORE changing buffer PF!!!
   if (cursorVisible) {
     cursorVisible = false;
-    buffer->imageRect(cursorBackingRect, cursorBacking.data);
-    invalidateDesktopRect(cursorBackingRect);
+    buffer->DIBSectionBuffer::imageRect(cursorBackingRect, cursorBacking.data);
+    invalidateDesktopRect(cursorBackingRect, false);
   }
 }
 
@@ -818,7 +820,7 @@ DesktopWindow::showLocalCursor() {
 
     renderLocalCursor();
 
-    invalidateDesktopRect(cursorBackingRect);
+    invalidateDesktopRect(cursorBackingRect, false);
   }
 }
 
@@ -834,7 +836,7 @@ DesktopWindow::renderLocalCursor()
 {
   Rect r = cursor.getRect();
   r = r.translate(cursorPos).translate(cursor.hotspot.negate());
-  buffer->maskRect(r, cursor.data, cursor.mask.buf);
+  buffer->DIBSectionBuffer::maskRect(r, cursor.data, cursor.mask.buf);
 }
 
 void
@@ -857,8 +859,11 @@ DesktopWindow::showSystemCursor() {
 
 
 bool
-DesktopWindow::invalidateDesktopRect(const Rect& crect) {
-  Rect rect = desktopToClient(crect);
+DesktopWindow::invalidateDesktopRect(const Rect& crect, bool scaling) {
+  Rect rect;
+  if (buffer->isScaling() && scaling) {
+    rect = desktopToClient(buffer->calculateScaleBoundary(crect));
+  } else rect = desktopToClient(crect);
   if (rect.intersect(client_size).is_empty()) return false;
   RECT invalid = {rect.tl.x, rect.tl.y, rect.br.x, rect.br.y};
   InvalidateRect(frameHandle, &invalid, FALSE);
@@ -1059,18 +1064,21 @@ DesktopWindow::serverCutText(const char* str, int len) {
 
 
 void DesktopWindow::fillRect(const Rect& r, Pixel pix) {
-  if (cursorBackingRect.overlaps(r)) hideLocalCursor();
+  Rect img_rect = buffer->isScaling() ? buffer->calculateScaleBoundary(r) : r;
+  if (cursorBackingRect.overlaps(img_rect)) hideLocalCursor();
   buffer->fillRect(r, pix);
   invalidateDesktopRect(r);
 }
 void DesktopWindow::imageRect(const Rect& r, void* pixels) {
-  if (cursorBackingRect.overlaps(r)) hideLocalCursor();
+  Rect img_rect = buffer->isScaling() ? buffer->calculateScaleBoundary(r) : r;
+  if (cursorBackingRect.overlaps(img_rect)) hideLocalCursor();
   buffer->imageRect(r, pixels);
   invalidateDesktopRect(r);
 }
 void DesktopWindow::copyRect(const Rect& r, int srcX, int srcY) {
-  if (cursorBackingRect.overlaps(r) ||
-      cursorBackingRect.overlaps(Rect(srcX, srcY, srcX+r.width(), srcY+r.height())))
+  Rect img_rect = buffer->isScaling() ? buffer->calculateScaleBoundary(r) : r;
+  if (cursorBackingRect.overlaps(img_rect) ||
+      cursorBackingRect.overlaps(Rect(srcX, srcY, srcX+img_rect.width(), srcY+img_rect.height())))
     hideLocalCursor();
   buffer->copyRect(r, Point(r.tl.x-srcX, r.tl.y-srcY));
   invalidateDesktopRect(r);
@@ -1078,7 +1086,8 @@ void DesktopWindow::copyRect(const Rect& r, int srcX, int srcY) {
 
 void DesktopWindow::invertRect(const Rect& r) {
   int stride;
-  rdr::U8* p = buffer->getPixelsRW(r, &stride);
+  rdr::U8* p = buffer->isScaling() ? buffer->getPixelsRW(buffer->calculateScaleBoundary(r), &stride) 
+   : buffer->getPixelsRW(r, &stride);
   for (int y = 0; y < r.height(); y++) {
     for (int x = 0; x < r.width(); x++) {
       switch (buffer->getPF().bpp) {
