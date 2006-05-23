@@ -131,6 +131,27 @@ private:
 };
 
 
+//
+// XPixelBuffer is a modification of FullFramePixelBuffer that does
+// not always return buffer width in getStride().
+//
+
+class XPixelBuffer : public FullFramePixelBuffer
+{
+public:
+  XPixelBuffer(const PixelFormat& pf, int width, int height,
+               rdr::U8* data_, ColourMap* cm, int stride_) :
+    FullFramePixelBuffer(pf, width, height, data_, cm), stride(stride_)
+  {
+  }
+
+  virtual int getStride() const { return stride; }
+
+protected:
+  int stride;
+};
+
+
 class XDesktop : public SDesktop, public ColourMap
 {
 public:
@@ -195,8 +216,12 @@ public:
     pf.greenMax   = image->xim->green_mask >> pf.greenShift;
     pf.blueMax    = image->xim->blue_mask  >> pf.blueShift;
 
-    pb = new FullFramePixelBuffer(pf, geometry->width(), geometry->height(),
-                                  (rdr::U8*)image->xim->data, this);
+    // Calculate the number of pixels in a row, with padding included.
+    int stride = image->xim->bytes_per_line * 8 / image->xim->bits_per_pixel;
+
+    // Provide pixel buffer to the server object.
+    pb = new XPixelBuffer(pf, geometry->width(), geometry->height(),
+                          (rdr::U8*)image->xim->data, this, stride);
     server = vs;
     server->setPixelBuffer(pb);
 
