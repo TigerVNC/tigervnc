@@ -40,23 +40,28 @@ ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
 void ScaledDIBSectionBuffer::setScale(int scale_) {
   if (scale_ == getScale()) return;
 
-  if (src_buffer) {
-    delete src_buffer;
-    src_buffer = 0;
-  }
   if (scale_ != 100) {
     scaling = true;
-    src_buffer = new ManagedPixelBuffer(format, src_width, src_height);
-    src_data = &(src_buffer->data);
+    if (!src_buffer) {
+      src_buffer = new ManagedPixelBuffer(format, src_width, src_height);
+      src_data = &(src_buffer->data);
+    }
   } else {
     scaling = false;
+    if (src_buffer) delete src_buffer;
+    src_buffer = 0;
+    src_data = 0;
   }
   ScaledPixelBuffer::setScale(scale_);
+  recreateScaledBuffer();
 }
 
-void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf) {
-  if (scaling) src_buffer->setPF(pf);
-  DIBSectionBuffer::setPF(pf);
+void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
+  if (scaling) {
+    ScaledPixelBuffer::setPF(pf_);
+    src_buffer->setPF(pf_);
+  }
+  DIBSectionBuffer::setPF(pf_);
   scaled_data = data;
 }
 
