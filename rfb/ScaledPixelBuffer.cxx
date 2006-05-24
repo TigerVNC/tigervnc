@@ -18,6 +18,7 @@
 
 // -=- ScaledPixelBuffer.cxx
 
+#include <rfb/Exception.h>
 #include <rfb/ScaledPixelBuffer.h>
 
 #include <math.h>
@@ -27,15 +28,16 @@ using namespace rdr;
 using namespace rfb;
 
 ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
-                                     int src_height_, int scale)
-  : bpp(32), scaled_data(0), scale_ratio(1), scale(100) {
+                                     int src_height_, int scale, PixelFormat pf_)
+  : scaled_data(0), scale_ratio(1), scale(100) {
 
   setSourceBuffer(src_data_, src_width_, src_height_);
+  setPF(pf_);
 }
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
   : src_data(0), src_width(0), src_height(0), scale_ratio(1), scale(100),
-    bpp(32), scaled_data(0) {
+    pf(PixelFormat(32,24,0,1,255,255,255,0,8,16)), scaled_data(0) {
 }
 
 ScaledPixelBuffer::~ScaledPixelBuffer() {
@@ -46,7 +48,13 @@ void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
   src_width  = w;
   src_height = h;
   calculateScaledBufferSize();
-  recreateScaledBuffer();
+}
+
+void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
+  if (pf_.depth != 24) {
+    throw rfb::Exception("rfb::ScaledPixelBuffer support only the true colour pixel format.");
+  }
+  pf = pf_;
 }
 
 void ScaledPixelBuffer::setScale(int scale_) {
@@ -54,7 +62,6 @@ void ScaledPixelBuffer::setScale(int scale_) {
     scale = scale_;
     scale_ratio = double(scale) / 100;
     calculateScaledBufferSize();
-    recreateScaledBuffer();
   }
 }
 
@@ -126,7 +133,4 @@ Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
 void ScaledPixelBuffer::calculateScaledBufferSize() {
   scaled_width  = (int)ceil(src_width  * scale_ratio);
   scaled_height = (int)ceil(src_height * scale_ratio);
-}
-
-void ScaledPixelBuffer::recreateScaledBuffer() {
 }
