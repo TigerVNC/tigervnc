@@ -30,25 +30,36 @@
 #include <rfb/Logger.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
+#include <rfb/Threading.h>
 
 using namespace rfb;
 
 #ifndef HAVE_VSNPRINTF
-static int vsnprintf(char *str, size_t n, const char *format, va_list ap)
+#ifdef __RFB_THREADING_IMPL
+static Mutex fpLock;
+#endif
+static FILE* fp = 0;
+int vsnprintf(char *str, size_t n, const char *format, va_list ap)
 {
   str[0] = 0;
-  FILE* fp = fopen("/dev/null","w");
-  if (!fp) return 0;
+  if (!fp) {
+    // Safely create a FILE* for /dev/null if there isn't already one
+#ifdef __RFB_THREADING_IMPL
+    Lock l(fpLock);
+#endif
+    if (!fp)
+      fp = fopen("/dev/null","w");
+    if (!fp) return 0;
+  }
   int len = vfprintf(fp, format, ap);
   if (len <= 0) return 0;
-  fclose(fp);
 
   CharArray s(len+1);
   vsprintf(s.buf, format, ap);
 
-  if (len > (int)n-1) len = n-1;
-  memcpy(str, s.buf, len);
-  str[len] = 0;
+  int written = __rfbmin(len, (int)n-1);
+  memcpy(str, s.buf, written);
+  str[written] = 0;
   return len;
 }
 #endif

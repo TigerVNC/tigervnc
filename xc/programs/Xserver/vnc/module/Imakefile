@@ -26,6 +26,12 @@ ModuleObjectRule()
  InstallLibraryModule(vnc,$(MODULEDIR),extensions)
 */
 
+/* *** The imake rules don't define a ModuleCplusplusObjectRule so
+       for now we just assume that NormalCplusplusObjectRule will
+       do the job.
+   NB: If we don't do this then make will assume CC is the C++ compiler!
+*/
+NormalCplusplusObjectRule()
 
 /*
  * CplusplusDynamicModuleTarget - build a module to be dynamically loaded
