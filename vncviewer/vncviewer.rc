@@ -223,7 +223,7 @@ BEGIN
     CONTROL         "Show toolbar",IDC_SHOW_TOOLBAR,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,106,25,100,15
     CONTROL         "Render cursor locally",IDC_LOCAL_CURSOR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,40,199,15
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,40,99,15
     CONTROL         "Allow dynamic desktop resizing",IDC_DESKTOP_RESIZE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,199,15
     CONTROL         "Only use protocol version 3.3",IDC_PROTOCOL_3_3,"Button",
@@ -232,6 +232,10 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,85,199,15
     CONTROL         "Offer to automatically reconnect",IDC_AUTO_RECONNECT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,100,199,15
+    LTEXT           "Scale by:",IDC_STATIC_SCALE,106,40,34,15,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_SCALE,140,40,40,30,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "%",IDC_STATIC_PERCENT,185,40,21,15,SS_CENTERIMAGE
 END
 
 IDD_INPUTS DIALOG DISCARDABLE  0, 0, 186, 162
