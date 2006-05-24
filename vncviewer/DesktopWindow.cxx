@@ -775,8 +775,10 @@ DesktopWindow::processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
 
         // Send a pointer event to the server
         oldpos = p;
-        p.x /= double(buffer->getScale()) / 100;
-        p.y /= double(buffer->getScale()) / 100;
+        if (buffer->isScaling()) {
+          p.x /= double(buffer->getScale()) / 100.0;
+          p.y /= double(buffer->getScale()) / 100.0;
+        }
         ptr.pointerEvent(callback, p, mask);
 #ifdef WM_MOUSEWHEEL
       }
