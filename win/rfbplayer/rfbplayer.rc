@@ -1,0 +1,466 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON    DISCARDABLE     "rfbplayer.ico"
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "TightVNC Team\0"
+            VALUE "FileDescription", "RFB Session Player for Win32\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "rfbplayer\0"
+            VALUE "LegalCopyright", "Copyright (C) 2004-2005 TightVNC Team.\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "rfbplayer.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Rfb Session Player 1.0\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU MENU DISCARDABLE 
+BEGIN
+    POPUP "File"
+    BEGIN
+        MENUITEM "Open File...\tCtrl+O",        ID_OPENFILE
+        MENUITEM "Close File...\tCtrl+Q",       ID_CLOSEFILE
+        MENUITEM SEPARATOR
+        MENUITEM "Info...\tCtrl+I",             ID_SESSION_INFO
+        MENUITEM SEPARATOR
+        MENUITEM "Exit\tAlt+X",                 ID_EXIT
+    END
+    POPUP "Play"
+    BEGIN
+        MENUITEM "Play/Pause\tSpace",           ID_PLAYPAUSE
+        MENUITEM "Stop\tC",                     ID_STOP
+        MENUITEM "Go To...\tCtrl+G",            ID_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "Loop\tCtrl+L",                ID_LOOP
+        MENUITEM SEPARATOR
+        MENUITEM "Options...\tO",               ID_OPTIONS
+    END
+    POPUP "Help"
+    BEGIN
+        MENUITEM "Home Page",                   ID_HOMEPAGE
+        MENUITEM "Command Line Switches",       ID_HELP_COMMANDLINESWITCHES
+        MENUITEM SEPARATOR
+        MENUITEM "About RfbPlayer...",          ID_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
+BEGIN
+    "C",            ID_STOP,                VIRTKEY, NOINVERT
+    "C",            ID_COPYTOCLIPBOARD,     VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_FRAMEEXTRACT,        VIRTKEY, ALT, NOINVERT
+    "G",            ID_GOTO,                VIRTKEY, CONTROL, NOINVERT
+    "I",            ID_SESSION_INFO,        VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_LOOP,                VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_OPTIONS,             VIRTKEY, NOINVERT
+    "O",            ID_OPENFILE,            VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_OPTIONS,             VIRTKEY, CONTROL, NOINVERT
+    "Q",            ID_CLOSEFILE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_ZOOM_50,             VIRTKEY, NOINVERT
+    VK_F6,          ID_ZOOM_100,            VIRTKEY, NOINVERT
+    VK_F7,          ID_ZOOM_200,            VIRTKEY, NOINVERT
+    VK_RETURN,      ID_RETURN,              VIRTKEY, NOINVERT
+    VK_RETURN,      ID_FULLSCREEN,          VIRTKEY, ALT, NOINVERT
+    VK_SPACE,       ID_PLAYPAUSE,           VIRTKEY, NOINVERT
+    "X",            ID_EXIT,                VIRTKEY, ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_TOOLBAR             BITMAP  DISCARDABLE     "toolbar.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_GOTO DIALOG DISCARDABLE  0, 0, 153, 54
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "RfbPlayer : Go to position"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_GOTO_EDIT,40,9,106,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,40,33,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,33,51,14
+    LTEXT           "Pos (ms):",IDC_STATIC,7,9,33,15,SS_CENTERIMAGE
+END
+
+IDD_PIXELFORMAT DIALOG DISCARDABLE  0, 0, 144, 78
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "RfbPlayer : Pixel Format"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_PIXELFORMAT,7,20,130,98,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,20,57,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,57,50,14
+    LTEXT           "Choose the pixel format:",IDC_STATIC,7,7,130,13
+    CONTROL         "Big endian flag",IDC_BIG_ENDIAN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,40,63,12
+END
+
+IDD_OPTIONS DIALOG DISCARDABLE  0, 0, 187, 180
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_PIXELFORMAT,15,30,157,75,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Big endian flag",IDC_BIG_ENDIAN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,52,60,10
+    CONTROL         "Ask the pixel format before playing",IDC_ASK_PF,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,67,157,10
+    CONTROL         "Accept the bells",IDC_ACCEPT_BELL,"Button",
+                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,105,157,15
+    CONTROL         "Accept the cut text",IDC_ACCEPT_CUT_TEXT,"Button",
+                    BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,120,157,15
+    CONTROL         "Start play the session when it is opened",IDC_AUTOPLAY,
+                    "Button",BS_AUTOCHECKBOX | BS_TOP | WS_TABSTOP,15,135,
+                    157,9
+    DEFPUSHBUTTON   "OK",IDOK,20,161,50,13
+    PUSHBUTTON      "Cancel",IDCANCEL,75,161,50,13
+    PUSHBUTTON      "Default",IDC_DEFAULT,130,161,50,13
+    PUSHBUTTON      "Edit User PF",IDC_EDIT_UPF,110,52,62,14
+    GROUPBOX        "Pixel format",IDC_STATIC,7,6,173,79
+    LTEXT           "Forces the pixel format for the rfb session:",
+                    IDC_STATIC,15,17,157,13
+    GROUPBOX        "Other",IDC_STATIC,7,90,173,65
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 251, 95
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About Rfb Session Player for Windows"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,195,70,47,15
+    ICON            IDI_ICON,IDC_STATIC,7,10,20,20
+    LTEXT           ">appname<",IDC_DESCRIPTION,40,10,125,15
+    LTEXT           ">version<",IDC_VERSION,165,10,77,15
+    LTEXT           ">buildtime<",IDC_BUILDTIME,40,25,202,15
+    LTEXT           ">copyright<",IDC_COPYRIGHT,40,40,202,15
+    LTEXT           "See http://www.tightvnc.com for more information on TightVNC.",
+                    IDC_STATIC,40,55,202,15
+END
+
+IDD_USERPF_LIST DIALOG DISCARDABLE  0, 0, 207, 162
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add / Remove the user pixel formats"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_PF_LIST,7,7,136,148,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add",IDC_ADD_BUTTON,150,7,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE_BUTTON,150,26,50,14
+    PUSHBUTTON      "Edit",IDC_EDIT_BUTTON,150,45,50,14
+    PUSHBUTTON      "Close",IDOK,150,64,50,14
+END
+
+IDD_UPF_EDIT DIALOG DISCARDABLE  0, 0, 204, 126
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit the user pixel format"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_NAME_EDIT,68,7,129,13,ES_AUTOHSCROLL
+    COMBOBOX        IDC_BPP_COMBO,68,23,39,45,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_DEPTH_EDIT,157,22,40,13,ES_AUTOHSCROLL | ES_NUMBER
+    COMBOBOX        IDC_BIGENDIAN_COMBO,68,38,39,45,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_REDMAX_EDIT,68,54,39,13,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_GREENMAX_EDIT,68,70,39,13,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_BLUEMAX_EDIT,68,86,39,13,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_REDSHIFT_EDIT,157,54,39,13,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    EDITTEXT        IDC_GREENSHIFT_EDIT,157,70,40,13,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    EDITTEXT        IDC_BLUESHIFT_EDIT,157,86,40,13,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    PUSHBUTTON      "OK",IDOK,93,105,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,147,105,50,14
+    LTEXT           "Pixel format name:",IDC_STATIC,7,7,57,13,SS_CENTERIMAGE
+    LTEXT           "Bit per pixel:",IDC_STATIC,7,23,38,12,SS_CENTERIMAGE
+    LTEXT           "Big endian flag :",IDC_STATIC,7,38,53,13,SS_CENTERIMAGE
+    LTEXT           "Red max :",IDC_STATIC,7,54,33,13,SS_CENTERIMAGE
+    LTEXT           "Green max :",IDC_STATIC,7,70,38,13,SS_CENTERIMAGE
+    LTEXT           "Blue max :",IDC_STATIC,7,86,38,13,SS_CENTERIMAGE
+    LTEXT           "Depth:",IDC_STATIC,112,23,21,12,SS_CENTERIMAGE
+    LTEXT           "Red shifts :",IDC_STATIC,112,54,36,13,SS_CENTERIMAGE
+    LTEXT           "Green shifts :",IDC_STATIC,112,70,43,13,SS_CENTERIMAGE
+    LTEXT           "Blue shifts :",IDC_STATIC,112,86,43,13,SS_CENTERIMAGE
+END
+
+IDD_INFO DIALOG DISCARDABLE  0, 0, 295, 207
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Information"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,122,186,50,14
+    EDITTEXT        IDC_INFO_EDIT,7,7,281,172,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | 
+                    WS_VSCROLL | WS_HSCROLL
+END
+
+IDD_SESSION_INFO DIALOG DISCARDABLE  0, 0, 239, 106
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "RFB Session Info"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,182,85,50,14
+    LTEXT           "Desktop Name:",IDC_STATIC,7,10,73,15
+    LTEXT           "Desktop Size:",IDC_STATIC,7,25,73,15
+    LTEXT           "Pixel Format:",IDC_STATIC,7,40,73,15
+    LTEXT           "Current Encoding:",IDC_STATIC,7,55,73,15
+    LTEXT           "RFB Protocol Version:",IDC_STATIC,7,70,73,15
+    LTEXT           "",IDC_DESKTOP_NAME,80,10,152,15
+    LTEXT           "",IDC_DESKTOP_SIZE,80,25,152,15
+    LTEXT           "",IDC_CURRENT_ENCODING,80,55,152,15
+    LTEXT           "",IDC_VERSION,80,70,152,15
+    LTEXT           "",IDC_PIXEL_FORMAT,80,40,152,15
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_GOTO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 146
+        VERTGUIDE, 40
+        VERTGUIDE, 90
+        VERTGUIDE, 95
+        TOPMARGIN, 9
+        BOTTOMMARGIN, 47
+        HORZGUIDE, 9
+        HORZGUIDE, 24
+        HORZGUIDE, 35
+    END
+
+    IDD_PIXELFORMAT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 137
+        VERTGUIDE, 20
+        VERTGUIDE, 70
+        VERTGUIDE, 75
+        VERTGUIDE, 125
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 71
+        HORZGUIDE, 7
+        HORZGUIDE, 20
+        HORZGUIDE, 35
+        HORZGUIDE, 40
+        HORZGUIDE, 49
+        HORZGUIDE, 57
+    END
+
+    IDD_OPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        VERTGUIDE, 15
+        VERTGUIDE, 20
+        VERTGUIDE, 70
+        VERTGUIDE, 75
+        VERTGUIDE, 125
+        VERTGUIDE, 130
+        VERTGUIDE, 172
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 174
+        HORZGUIDE, 17
+        HORZGUIDE, 30
+        HORZGUIDE, 42
+        HORZGUIDE, 52
+        HORZGUIDE, 67
+        HORZGUIDE, 85
+        HORZGUIDE, 90
+        HORZGUIDE, 105
+        HORZGUIDE, 120
+        HORZGUIDE, 135
+        HORZGUIDE, 144
+        HORZGUIDE, 150
+        HORZGUIDE, 155
+        HORZGUIDE, 161
+    END
+
+    IDD_USERPF_LIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 155
+        HORZGUIDE, 21
+        HORZGUIDE, 26
+        HORZGUIDE, 40
+        HORZGUIDE, 45
+        HORZGUIDE, 59
+        HORZGUIDE, 64
+    END
+
+    IDD_UPF_EDIT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 197
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 119
+    END
+
+    IDD_INFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 288
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 200
+    END
+
+    IDD_SESSION_INFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 232
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+        HORZGUIDE, 40
+        HORZGUIDE, 55
+        HORZGUIDE, 70
+        HORZGUIDE, 85
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.K.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

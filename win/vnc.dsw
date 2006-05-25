@@ -1,0 +1,248 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "Xregion"=..\common\Xregion\Xregion.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "logmessages"=.\logmessages\logmessages.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "network"=..\common\network\network.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "rdr"=..\common\rdr\rdr.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "rfb"=..\common\rfb\rfb.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rdr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Xregion
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "rfb_win32"=.\rfb_win32\rfb_win32.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rfb
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "rfbplayer"=.\rfbplayer\rfbplayer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rdr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rfb
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rfb_win32
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Xregion
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name zlib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name jpeg
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "vncconfig"=.\vncconfig\vncconfig.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rfb
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rfb_win32
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Xregion
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "vncviewer"=.\vncviewer\vncviewer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rfb
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name zlib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name jpeg
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rfb_win32
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rdr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Xregion
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "winvnc"=.\winvnc\winvnc.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rfb_win32
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name zlib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name jpeg
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Xregion
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "wm_hooks"=.\wm_hooks\wm_hooks.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "zlib"=..\common\zlib\zlib.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "jpeg"=..\common\jpeg\jpeg.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

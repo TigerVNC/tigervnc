@@ -1,0 +1,708 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON    DISCARDABLE     "vncviewer.ico"
+IDI_FTDIR               ICON    DISCARDABLE     "ftdir.ico"
+IDI_FTFILE              ICON    DISCARDABLE     "ftfile.ico"
+IDI_FTRELOAD            ICON    DISCARDABLE     "ftreload.ico"
+IDI_FTUP                ICON    DISCARDABLE     "ftup.ico"
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 4,1,1,0
+ PRODUCTVERSION 4,1,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "Constantin Kaplinsky\0"
+            VALUE "FileDescription", "TightVNC Viewer for Win32\0"
+            VALUE "FileVersion", "4.1.1\0"
+            VALUE "InternalName", "free4/vncviewer/win\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2006 [many holders]\0"
+            VALUE "LegalTrademarks", "TightVNC\0"
+            VALUE "OriginalFilename", "vncviewer.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "TightVNC Viewer\0"
+            VALUE "ProductVersion", "4.1.1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_VNC_AUTH_DLG DIALOG DISCARDABLE  0, 0, 241, 46
+STYLE DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "VNC Viewer : Authentication"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_USERNAME,85,6,100,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD,85,25,100,15,ES_PASSWORD | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN
+    DEFPUSHBUTTON   "OK",IDOK,190,6,45,14
+    PUSHBUTTON      "Cancel",IDCANCEL,190,25,45,15
+    CONTROL         120,IDI_ICON,"Static",SS_BITMAP,7,6,21,20
+    LTEXT           "Username:",IDC_STATIC,45,6,35,14
+    LTEXT           "Password:",IDC_STATIC,45,25,35,15
+END
+
+IDD_CONNECTING_DLG DIALOG DISCARDABLE  0, 0, 185, 47
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "VNC Viewer : Connecting"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,128,26,50,14
+    CTEXT           "Attempting to connect to host...",IDC_CONNECTING_TEXT,7,
+                    7,171,14,SS_CENTERIMAGE
+END
+
+IDD_CONNECTION_DLG DIALOG DISCARDABLE  0, 0, 224, 66
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "VNC Viewer : Connection Details"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_SERVER_EDIT,85,6,105,234,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&About...",IDC_ABOUT,5,45,50,14
+    PUSHBUTTON      "&Options...",IDC_OPTIONS,60,45,50,14
+    DEFPUSHBUTTON   "OK",IDOK,115,45,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,170,45,48,14
+    CONTROL         120,IDI_ICON,"Static",SS_BITMAP | SS_REALSIZEIMAGE,5,6,
+                    20,20
+    RTEXT           "Server:",IDC_STATIC,43,6,37,13,SS_CENTERIMAGE
+    RTEXT           "Encryption:",IDC_STATIC,43,24,37,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_SECURITY_LEVEL,85,24,105,76,CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About VNC Viewer for Windows"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,195,70,47,15
+    CONTROL         120,IDC_STATIC,"Static",SS_BITMAP | SS_REALSIZEIMAGE,7,
+                    10,33,31
+    LTEXT           ">appname<",IDC_DESCRIPTION,46,10,119,15
+    LTEXT           ">version<",IDC_VERSION,165,10,77,15
+    LTEXT           ">buildtime<",IDC_BUILDTIME,46,25,196,15
+    LTEXT           ">copyright<",IDC_COPYRIGHT,46,40,196,15
+    LTEXT           "Visit www.tightvnc.com for more information on TightVNC.",
+                    IDC_STATIC,46,55,196,15
+END
+
+IDD_FORMAT DIALOG DISCARDABLE  0, 0, 201, 161
+STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Colour && Encoding"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "&Auto select",IDC_ENCODING_AUTO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,7,88,13
+    GROUPBOX        "Preferred encoding",IDC_STATIC,7,20,83,75
+    CONTROL         "Tight",IDC_ENCODING_TIGHT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,10,30,75,14
+    CONTROL         "ZRLE",IDC_ENCODING_ZRLE,"Button",BS_AUTORADIOBUTTON,10,
+                    45,75,14
+    CONTROL         "Hextile",IDC_ENCODING_HEXTILE,"Button",
+                    BS_AUTORADIOBUTTON,10,60,75,16
+    CONTROL         "Raw",IDC_ENCODING_RAW,"Button",BS_AUTORADIOBUTTON,10,75,
+                    75,15
+    GROUPBOX        "Color level",IDC_STATIC,95,20,99,75
+    CONTROL         "&Full (all available colors)",IDC_FORMAT_FULLCOLOUR,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,100,30,90,15
+    CONTROL         "&Medium (256 colors)",IDC_FORMAT_MEDIUMCOLOUR,"Button",
+                    BS_AUTORADIOBUTTON,100,45,90,14
+    CONTROL         "&Low (64 colors)",IDC_FORMAT_LOWCOLOUR,"Button",
+                    BS_AUTORADIOBUTTON,100,60,90,16
+    CONTROL         "&Very low (8 colors)",IDC_FORMAT_VERYLOWCOLOUR,"Button",
+                    BS_AUTORADIOBUTTON,100,75,90,15
+    CONTROL         "Custom compression level:",IDC_CUSTOM_COMPRESSLEVEL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,100,99,10
+    EDITTEXT        IDC_COMPRESSLEVEL,25,111,15,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "level (1=fast, 9=best)",IDC_STATIC,44,114,81,9,NOT 
+                    WS_GROUP
+    CONTROL         "Allow JPEG compression:",IDC_ALLOW_JPEG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,126,96,10
+    EDITTEXT        IDC_QUALITYLEVEL,25,137,15,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "quality (1=poor, 9=best)",IDC_STATIC,44,140,81,9
+END
+
+IDD_MISC DIALOG DISCARDABLE  0, 0, 213, 137
+STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Misc"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Shared connection (do not disconnect other viewers)",
+                    IDC_CONN_SHARED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,
+                    10,199,15
+    CONTROL         "Full-screen mode",IDC_FULL_SCREEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,25,99,15
+    CONTROL         "Show toolbar",IDC_SHOW_TOOLBAR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,106,25,100,15
+    CONTROL         "Render cursor locally",IDC_LOCAL_CURSOR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,40,199,15
+    CONTROL         "Allow dynamic desktop resizing",IDC_DESKTOP_RESIZE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,199,15
+    CONTROL         "Only use protocol version 3.3",IDC_PROTOCOL_3_3,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,199,15
+    CONTROL         "Beep when requested to by the server",IDC_ACCEPT_BELL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,85,199,15
+    CONTROL         "Offer to automatically reconnect",IDC_AUTO_RECONNECT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,100,199,15
+END
+
+IDD_INPUTS DIALOG DISCARDABLE  0, 0, 186, 162
+STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Inputs"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Send pointer events to server",IDC_SEND_POINTER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,10,172,15
+    CONTROL         "Send keyboard events to server",IDC_SEND_KEYS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,25,172,15
+    CONTROL         "Send clipboard changes to server",IDC_CLIENT_CUTTEXT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,172,15
+    CONTROL         "Accept clipboard changes from server",
+                    IDC_SERVER_CUTTEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    7,55,172,15
+    CONTROL         "Enable 3-button mouse emulation",IDC_EMULATE3,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,172,15
+    CONTROL         "Rate-limit mouse move events",IDC_POINTER_INTERVAL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,86,172,14
+    LTEXT           "Menu key",IDC_STATIC,7,100,98,15,SS_CENTERIMAGE
+    COMBOBOX        IDC_MENU_KEY,105,100,74,105,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Pass special keys directly to server",
+                    IDC_DISABLE_WINKEYS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,115,172,15
+END
+
+IDD_CONNECTION_INFO DIALOG DISCARDABLE  0, 0, 239, 199
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "VNC Connection Info"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,182,178,50,14
+    LTEXT           "Desktop Name:",IDC_STATIC,7,10,73,15
+    LTEXT           "Host:",IDC_STATIC,7,25,73,15
+    LTEXT           "Size:",IDC_STATIC,7,40,73,15
+    LTEXT           "Pixel Format:",IDC_STATIC,7,55,73,15
+    LTEXT           "Server Default:",IDC_STATIC,7,70,73,15
+    LTEXT           "Line Speed Estimate:",IDC_STATIC,7,115,73,15
+    LTEXT           "Protocol Version:",IDC_STATIC,7,130,73,15
+    LTEXT           "",IDC_INFO_NAME,80,10,152,15
+    LTEXT           "",IDC_INFO_HOST,80,25,152,15
+    LTEXT           "",IDC_INFO_SIZE,80,40,152,15
+    LTEXT           "",IDC_INFO_PF,80,55,152,15
+    LTEXT           "",IDC_INFO_DEF_PF,80,70,152,15
+    LTEXT           "",IDC_INFO_LINESPEED,80,115,152,15
+    LTEXT           "",IDC_INFO_VERSION,80,130,152,15
+    LTEXT           "Security Method:",IDC_STATIC,7,145,73,15
+    LTEXT           "",IDC_INFO_SECURITY,80,145,152,15
+    LTEXT           "Requested Encoding:",IDC_STATIC,7,85,73,15
+    LTEXT           "Last Used Encoding:",IDC_STATIC,7,100,73,15
+    LTEXT           "",IDC_REQUESTED_ENCODING,80,86,152,15
+    LTEXT           "",IDC_LAST_ENCODING,80,100,152,15
+    LTEXT           "Static",IDC_INFO_ENCRYPTION,80,160,152,15
+    LTEXT           "Encryption:",IDC_STATIC,7,160,73,15
+END
+
+IDD_DEFAULTS DIALOG DISCARDABLE  0, 0, 217, 87
+STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Load / Save"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "&Reload",IDC_LOAD_CONFIG,15,20,85,15
+    PUSHBUTTON      "&Save",IDC_SAVE_CONFIG,15,40,85,15
+    PUSHBUTTON      "Save &As ...",IDC_SAVE_CONFIG_AS,15,60,85,15
+    PUSHBUTTON      "R&eload",IDC_LOAD_DEFAULTS,120,20,85,15
+    PUSHBUTTON      "S&ave",IDC_SAVE_DEFAULTS,120,40,85,15
+    GROUPBOX        "Configuration File",IDC_STATIC,7,7,100,74
+    GROUPBOX        "Defaults",IDC_STATIC,113,7,97,53
+END
+
+IDD_FILETRANSFER_DLG DIALOGEX 0, 0, 530, 282
+STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
+CAPTION "TightVNC File Transfers"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "List1",IDC_FTLOCALLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,7,40,200,196
+    CONTROL         "List2",IDC_FTREMOTELIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,323,40,200,196
+    PUSHBUTTON      "Upload Files and Folders",IDC_FTUPLOAD,218,66,94,12,
+                    WS_DISABLED
+    PUSHBUTTON      "Download Files and Folders",IDC_FTDOWNLOAD,218,85,94,12,
+                    WS_DISABLED
+    PUSHBUTTON      "Cancel File Transfer",IDC_FTCANCEL,218,167,94,12,
+                    WS_DISABLED
+    PUSHBUTTON      "Close",IDC_FTCLOSE,218,217,94,12
+    EDITTEXT        IDC_FTLOCALPATH,7,20,155,12,ES_AUTOHSCROLL | NOT 
+                    WS_TABSTOP
+    CTEXT           "Local Computer",IDC_FTLOCALLABEL,7,7,200,10
+    PUSHBUTTON      "...",IDC_FTLOCALBROWSE,165,20,14,12,NOT WS_TABSTOP
+    PUSHBUTTON      "",IDC_FTLOCALUP,179,20,14,12,BS_ICON | NOT WS_TABSTOP
+    PUSHBUTTON      "",IDC_FTLOCALRELOAD,193,20,14,12,BS_ICON | NOT 
+                    WS_TABSTOP
+    CONTROL         "Progress1",IDC_FTGENERALPROGRESS,"msctls_progress32",
+                    WS_BORDER,55,244,128,10
+    LTEXT           "File Transfer",IDC_STATIC,7,245,40,8
+    COMBOBOX        IDC_FTSTATUS,7,263,516,65,CBS_DROPDOWNLIST | 
+                    CBS_NOINTEGRALHEIGHT | WS_VSCROLL
+    CONTROL         "Progress1",IDC_FTSINGLEPROGRESS,"msctls_progress32",
+                    WS_BORDER,370,244,128,10
+    EDITTEXT        IDC_FTREMOTEPATH,323,20,155,12,ES_AUTOHSCROLL | NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "...",IDC_FTREMOTEBROWSE,481,20,14,12,NOT WS_TABSTOP
+    PUSHBUTTON      "",IDC_FTREMOTEUP,495,20,14,12,BS_ICON | NOT WS_TABSTOP
+    PUSHBUTTON      "",IDC_FTREMOTERELOAD,509,20,14,12,BS_ICON | NOT 
+                    WS_TABSTOP
+    CTEXT           "TightVNC Server",IDC_FTREMOTELABEL,323,7,200,10
+    LTEXT           "Current File",IDC_STATIC,323,245,36,8
+    CTEXT           "0%",IDC_FTGENERALPERCENT,189,245,18,8
+    CTEXT           "0%",IDC_FTSINGLEPERCENT,505,245,18,8
+END
+
+IDD_FTBROWSE DIALOGEX 0, 0, 183, 196
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTROLPARENT
+CAPTION "Browse Folders"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,38,175,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,175,50,14
+    EDITTEXT        IDC_FTBROWSEPATH,7,7,169,12,ES_AUTOHSCROLL | ES_READONLY | 
+                    NOT WS_TABSTOP
+    CONTROL         "Tree1",IDC_FTBROWSETREE,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
+                    TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,7,25,169,143
+END
+
+IDD_FTCANCELING DIALOG DISCARDABLE  0, 0, 193, 63
+STYLE DS_SYSMODAL | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Canceling Active File Transfer"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,40,42,50,14
+    PUSHBUTTON      "No",IDCANCEL,102,42,50,14
+    LTEXT           "FileTransfer is active.\nAre you sure you want to cancel transfer?",
+                    IDC_STATIC,42,14,133,19
+END
+
+IDD_FTCONFIRM_DLG DIALOG DISCARDABLE  0, 0, 188, 143
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,69,122,50,14,WS_GROUP
+    PUSHBUTTON      "No",IDCANCEL,131,122,50,14
+    PUSHBUTTON      "Yes to All",IDC_CONFIRM_YESTOALL,7,122,50,14
+    LTEXT           "Static",IDC_CONFIRM_TEXT,7,7,174,107
+END
+
+IDD_FTCREATEFOLDER DIALOG DISCARDABLE  0, 0, 193, 63
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Create a New Folder"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_FTFOLDERNAME,7,19,179,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,80,42,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,136,42,50,14
+    LTEXT           "New folder name:",IDC_FTTEXT,7,7,179,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_VNC_AUTH_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 235
+        VERTGUIDE, 45
+        VERTGUIDE, 80
+        VERTGUIDE, 85
+        VERTGUIDE, 185
+        VERTGUIDE, 190
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 40
+        HORZGUIDE, 20
+        HORZGUIDE, 25
+        HORZGUIDE, 40
+    END
+
+    IDD_CONNECTING_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
+        HORZGUIDE, 21
+        HORZGUIDE, 26
+    END
+
+    IDD_CONNECTION_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 218
+        VERTGUIDE, 30
+        VERTGUIDE, 43
+        VERTGUIDE, 55
+        VERTGUIDE, 60
+        VERTGUIDE, 80
+        VERTGUIDE, 85
+        VERTGUIDE, 110
+        VERTGUIDE, 115
+        VERTGUIDE, 165
+        VERTGUIDE, 170
+        VERTGUIDE, 190
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 59
+        HORZGUIDE, 19
+        HORZGUIDE, 24
+        HORZGUIDE, 36
+        HORZGUIDE, 45
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 242
+        VERTGUIDE, 46
+        VERTGUIDE, 165
+        VERTGUIDE, 195
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+        HORZGUIDE, 40
+        HORZGUIDE, 55
+        HORZGUIDE, 70
+    END
+
+    IDD_FORMAT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 194
+        VERTGUIDE, 10
+        VERTGUIDE, 85
+        VERTGUIDE, 90
+        VERTGUIDE, 95
+        VERTGUIDE, 100
+        VERTGUIDE, 105
+        VERTGUIDE, 190
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 154
+        HORZGUIDE, 10
+        HORZGUIDE, 20
+        HORZGUIDE, 25
+        HORZGUIDE, 35
+        HORZGUIDE, 49
+        HORZGUIDE, 65
+        HORZGUIDE, 80
+        HORZGUIDE, 85
+    END
+
+    IDD_MISC, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 206
+        VERTGUIDE, 106
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 130
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+        HORZGUIDE, 40
+        HORZGUIDE, 55
+        HORZGUIDE, 70
+        HORZGUIDE, 85
+        HORZGUIDE, 100
+        HORZGUIDE, 115
+        HORZGUIDE, 130
+    END
+
+    IDD_INPUTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        VERTGUIDE, 105
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 155
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+        HORZGUIDE, 40
+        HORZGUIDE, 55
+        HORZGUIDE, 70
+        HORZGUIDE, 85
+        HORZGUIDE, 100
+        HORZGUIDE, 115
+        HORZGUIDE, 130
+        HORZGUIDE, 145
+    END
+
+    IDD_CONNECTION_INFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 232
+        VERTGUIDE, 80
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 192
+        HORZGUIDE, 10
+        HORZGUIDE, 25
+        HORZGUIDE, 40
+        HORZGUIDE, 55
+        HORZGUIDE, 70
+        HORZGUIDE, 85
+        HORZGUIDE, 100
+        HORZGUIDE, 115
+        HORZGUIDE, 130
+        HORZGUIDE, 145
+        HORZGUIDE, 160
+        HORZGUIDE, 175
+    END
+
+    IDD_DEFAULTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 210
+        VERTGUIDE, 15
+        VERTGUIDE, 100
+        VERTGUIDE, 107
+        VERTGUIDE, 113
+        VERTGUIDE, 120
+        VERTGUIDE, 205
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 80
+        HORZGUIDE, 20
+        HORZGUIDE, 35
+        HORZGUIDE, 40
+        HORZGUIDE, 55
+        HORZGUIDE, 60
+        HORZGUIDE, 75
+    END
+
+    IDD_FILETRANSFER_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 523
+        VERTGUIDE, 207
+        VERTGUIDE, 265
+        VERTGUIDE, 323
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 275
+        HORZGUIDE, 12
+        HORZGUIDE, 26
+        HORZGUIDE, 40
+        HORZGUIDE, 47
+        HORZGUIDE, 249
+    END
+
+    IDD_FTBROWSE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 189
+    END
+
+    IDD_FTCANCELING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 186
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 56
+    END
+
+    IDD_FTCONFIRM_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 181
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 136
+    END
+
+    IDD_FTCREATEFOLDER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 186
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 56
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_DOT_CURSOR          CURSOR  DISCARDABLE     "cursor1.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_CONNECTION_DLG DLGINIT
+BEGIN
+    IDC_SERVER_EDIT, 0x403, 16, 0
+0x796d, 0x616d, 0x6863, 0x6e69, 0x2e65, 0x726f, 0x3a67, 0x0031, 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_TRAY MENU DISCARDABLE 
+BEGIN
+    POPUP "Tray Menu"
+    BEGIN
+        MENUITEM "&New Connection...",          ID_NEW_CONNECTION
+        MENUITEM SEPARATOR
+        MENUITEM "Default &Options...",         ID_OPTIONS
+        MENUITEM SEPARATOR
+        MENUITEM "&Close Daemon",               ID_CLOSE
+        MENUITEM "&About...",                   ID_ABOUT
+    END
+END
+
+IDR_FTMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "File Transfer"
+    BEGIN
+        MENUITEM "Copy Files and Folders",      IDM_FTCOPY
+        MENUITEM SEPARATOR
+        MENUITEM "Create a Folder",             IDM_FTCREATEFOLDER
+        MENUITEM "Rename File or Folder",       IDM_FTRENAME
+        MENUITEM "Delete Files and Folders",    IDM_FTDELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Cancel File Transfer",        IDM_FTCANCEL
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 24
+//
+
+IDR_MANIFEST            24      DISCARDABLE     "vncviewer.exe.manifest"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP              BITMAP  DISCARDABLE     "vncviewer.bmp"
+IDB_TOOLBAR             BITMAP  DISCARDABLE     "toolbar.bmp"
+#endif    // English (U.K.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
