@@ -60,12 +60,12 @@ DEFINES = $(OS_DEFINES) $(SHMDEF) $(MMAPDEF) $(FB_DEFINES) \
           $(VENDOR_STRING) $(VENDOR_RELEASE) $(STD_DEFINES) ServerOSDefines \
           $(VNCDEFINES) -UXFree86LOADER
 
-#ifdef XFree86Version
+#if defined(XFree86Version) || defined(XorgVersion)
 /* 
  * Make sure XINPUT, XF86VidTune, etc arent defined for the miinitext.o 
  * used by Xvnc 
  */
-EXT_DEFINES = ExtensionDefines -UXF86VIDMODE -UXFreeXDGA -UXF86MISC
+EXT_DEFINES = ExtensionDefines -UXF86VIDMODE -UXFreeXDGA -UXF86MISC -UXF86DRI
 #endif
 
 

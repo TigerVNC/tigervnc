@@ -24,6 +24,7 @@
 
 #include <rdr/types.h>
 #include <rfb/Rect.h>
+#include <rfb/PixelFormat.h>
 
 using namespace rdr;
 
@@ -31,7 +32,7 @@ namespace rfb {
 
   class ScaledPixelBuffer {
   public:
-    ScaledPixelBuffer(U8 **data, int width, int height, int scale);
+    ScaledPixelBuffer(U8 **data, int width, int height, int scale, PixelFormat pf);
     ScaledPixelBuffer();
     virtual ~ScaledPixelBuffer();
 
@@ -51,6 +52,9 @@ namespace rfb {
     // Set the new source buffer and its parameters
     void setSourceBuffer(U8 **src_data, int w, int h);
 
+    // Set the new pixel format
+    void setPF(const PixelFormat &pf);
+
     // Set the new scale, in percent
     virtual void setScale(int scale);
 
@@ -68,14 +72,12 @@ namespace rfb {
     // parameters (width, height, pixel format)
     void calculateScaledBufferSize();
 
-    // Recreate the scaled pixel buffer
-    virtual void recreateScaledBuffer();
 
     int src_width;
     int src_height;
     int scaled_width;
     int scaled_height;
-    int bpp;
+    PixelFormat pf;
     int scale;
     double scale_ratio;
     U8 **src_data;

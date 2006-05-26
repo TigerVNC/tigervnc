@@ -87,9 +87,11 @@ extern "C" {
 #undef and
 }
 
-#define XVNCVERSION "Free Edition 4.1.1"
+#define XVNCVERSION "TightVNC 1.5 series"
 #define XVNCCOPYRIGHT ("Copyright (C) 2002-2005 RealVNC Ltd.\n" \
-                       "See http://www.realvnc.com for information on VNC.\n")
+		       "Copyright (C) 2000-2006 Constantin Kaplinsky\n" \
+		       "Copyright (C) 2004-2006 Peter Astrand, Cendio AB\n" \
+                       "See http://www.tightvnc.com for information on TightVNC.\n")
 
 
 extern char *display;
@@ -202,11 +204,6 @@ vfbBitsPerPixel(int depth)
 
 
 extern "C" {
-
-  /* ddxInitGlobals - called by |InitGlobals| from os/util.c in XOrg */
-  void ddxInitGlobals(void)
-  {
-  }
 
   void ddxGiveUp()
   {

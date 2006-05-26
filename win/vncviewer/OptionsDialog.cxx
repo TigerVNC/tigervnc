@@ -163,6 +163,15 @@ public:
     setItemChecked(IDC_ACCEPT_BELL, dlg->options.acceptBell);
     setItemChecked(IDC_AUTO_RECONNECT, dlg->options.autoReconnect);
     setItemChecked(IDC_SHOW_TOOLBAR, dlg->options.showToolbar);
+    char scale_values[8][20] = {
+      "25","50","75","90","100","125","150","Auto"
+    };
+    HWND hScaleCombo = GetDlgItem(handle, IDC_COMBO_SCALE);
+    for (int i = 0; i <= 7; i++) {
+      SendMessage(hScaleCombo, CB_INSERTSTRING, 
+        (WPARAM)i, (LPARAM)(int FAR*)scale_values[i]);
+    }
+    SetDlgItemText(handle, IDC_COMBO_SCALE, "100");
   }
   virtual bool onOk() {
     dlg->options.shared = isItemChecked(IDC_CONN_SHARED);
