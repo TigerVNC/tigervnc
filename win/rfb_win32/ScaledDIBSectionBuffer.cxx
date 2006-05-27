@@ -45,15 +45,23 @@ void ScaledDIBSectionBuffer::setScale(int scale_) {
     if (!src_buffer) {
       src_buffer = new ManagedPixelBuffer(format, src_width, src_height);
       src_data = &(src_buffer->data);
+      memcpy(src_buffer->data, data, area() * (getPF().bpp/8));
     }
   } else {
     scaling = false;
-    if (src_buffer) delete src_buffer;
-    src_buffer = 0;
-    src_data = 0;
   }
   ScaledPixelBuffer::setScale(scale_);
   recreateScaledBuffer();
+  if (scaling) {
+    scaleRect(Rect(0, 0, src_width, src_height));
+  } else {
+    memcpy(data, src_buffer->data, src_buffer->area() * (src_buffer->getPF().bpp/8));
+    if (src_buffer) {
+      delete src_buffer;
+      src_buffer = 0;
+      src_data = 0;
+    }
+  }
 }
 
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
