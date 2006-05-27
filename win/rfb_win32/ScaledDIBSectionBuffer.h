@@ -43,6 +43,7 @@ namespace rfb {
 
       int width()  const { return scaled_width; }
       int height() const { return scaled_height; }
+      int area() const { return scaled_width * scaled_height; }
       bool isScaling() const { return scaling; }
 
       virtual void setPF(const PixelFormat &pf);
