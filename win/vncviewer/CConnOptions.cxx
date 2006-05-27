@@ -116,6 +116,13 @@ static IntParameter qualityLevel("QualityLevel",
 				 "0 = Low, 9 = High",
 				 6);
 
+static BoolParameter autoScaling("AutoScaling",
+                          "Auto rescale local copy of the remote desktop to the client window.",
+                          false);
+static IntParameter scale("Scale", 
+                          "Scale local copy of the remote desktop, in percent",
+                          100);
+
 CConnOptions::CConnOptions()
 : useLocalCursor(::useLocalCursor), useDesktopResize(::useDesktopResize),
 autoSelect(::autoSelect), fullColour(::fullColour), fullScreen(::fullScreen),
@@ -126,7 +133,7 @@ lowColourLevel(::lowColourLevel), pointerEventInterval(ptrEventInterval),
 emulate3(::emulate3), monitor(::monitor.getData()), showToolbar(::showToolbar),
 customCompressLevel(::customCompressLevel), compressLevel(::compressLevel), 
 noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getData()),
-autoReconnect(::autoReconnect)
+autoReconnect(::autoReconnect), autoScaling(::autoScaling), scale(::scale)
 {
   if (autoSelect) {
     preferredEncoding = encodingZRLE;
@@ -146,6 +153,9 @@ autoReconnect(::autoReconnect)
     // Default to CustomCompressLevel=1 if CompressLevel is used.
     customCompressLevel = ::compressLevel.hasBeenSet();
   }
+
+  if (scale != 100) scaling = true;
+  else scaling = false; 
 }
 
 
@@ -264,6 +274,10 @@ void CConnOptions::readFromFile(const char* filename) {
             sendPtrEvents = sendKeyEvents = !atoi(value.buf);
           } else if (stricmp(name.buf, "DisableClipboard") == 0) {
             clientCutText = serverCutText = !atoi(value.buf);
+          } else if (stricmp(name.buf, "AutoScaling") == 0) {
+            autoScaling = atoi(value.buf);
+          } else if (stricmp(name.buf, "Scale") == 0) {
+            scale = atoi(value.buf);
           }
         }
       }
@@ -286,6 +300,9 @@ void CConnOptions::readFromFile(const char* filename) {
     // If AutoSelect is enabled then override the preferred encoding
     if (autoSelect)
       preferredEncoding = encodingZRLE;
+
+    if (scale == 100) scaling = false;
+    else scaling = true;
 
     setConfigFileName(filename);
   } catch (rdr::Exception&) {
@@ -345,6 +362,8 @@ void CConnOptions::writeToFile(const char* filename) {
     fprintf(f, "CompressLevel=%d\n", compressLevel);
     fprintf(f, "NoJPEG=%d\n", noJpeg);
     fprintf(f, "QualityLevel=%d\n", qualityLevel);
+    fprintf(f, "AutoScaling=%d\n", (int)autoScaling);
+    fprintf(f, "Scale=%d\n", scale);
     fclose(f); f=0;
 
     setConfigFileName(filename);
@@ -384,6 +403,8 @@ void CConnOptions::writeDefaults() {
   key.setInt(_T("CompressLevel"), compressLevel);
   key.setInt(_T("NoJPEG"), noJpeg);
   key.setInt(_T("QualityLevel"), qualityLevel);
+  key.setBool(_T("AutoScaling"), autoScaling);
+  key.setInt(_T("Scale"), scale);
 }
 
 
@@ -445,6 +466,9 @@ CConnOptions& CConnOptions::operator=(const CConnOptions& o) {
   compressLevel = o.compressLevel;
   noJpeg = o.noJpeg;
   qualityLevel = o.qualityLevel;
+  autoScaling = o.autoScaling;
+  scale = o.scale;
+  scaling = o.scaling;
 
   return *this;
 }

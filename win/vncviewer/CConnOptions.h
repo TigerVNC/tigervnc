@@ -66,6 +66,9 @@ namespace rfb {
       int pointerEventInterval;
       bool protocol3_3;
       bool acceptBell;
+      bool autoScaling;
+      bool scaling;
+      int scale;
       CharArray userName;
       void setUserName(const char* user);
       PlainPasswd password;
