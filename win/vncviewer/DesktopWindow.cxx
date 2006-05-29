@@ -25,6 +25,7 @@
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/Win32Util.h>
+#include <rfb_win32/MsgBox.h>
 #include <vncviewer/DesktopWindow.h>
 #include <vncviewer/resource.h>
 
@@ -70,6 +71,9 @@ LRESULT CALLBACK DesktopWindowProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lPa
 
   try {
     result = _this->processMessage(msg, wParam, lParam);
+  } catch (rfb::UnsupportedPixelFormatException &e) {
+    MsgBox(0, e.str(), MB_OK);
+    _this->getCallback()->closeWindow();
   } catch (rdr::Exception& e) {
     vlog.error("untrapped: %s", e.str());
   }

@@ -132,6 +132,8 @@ namespace rfb {
         virtual void refreshMenu(bool enableSysItems) = 0;
       };
 
+      Callback *getCallback() const { return callback; }
+
       // Currently accessible so that the CConn can releaseAllKeys & check
       // whether Ctrl and Alt are down...
       rfb::win32::CKeyboard kbd;
