@@ -40,6 +40,8 @@ ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
 void ScaledDIBSectionBuffer::setScale(int scale_) {
   if (scale_ == getScale()) return;
 
+  if (format.depth != 24) throw rfb::UnsupportedPixelFormatException();
+
   if (scale_ != 100) {
     scaling = true;
     if (!src_buffer) {
