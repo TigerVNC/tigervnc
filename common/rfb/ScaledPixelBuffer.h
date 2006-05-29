@@ -23,12 +23,18 @@
 // interpolation.
 
 #include <rdr/types.h>
+#include <rdr/Exception.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 
 using namespace rdr;
 
 namespace rfb {
+
+  struct UnsupportedPixelFormatException : public Exception {
+    UnsupportedPixelFormatException(const char* s="Now supported only true colour pixel data in the scaling mode.")
+      : Exception(s) {}
+  };
 
   class ScaledPixelBuffer {
   public:

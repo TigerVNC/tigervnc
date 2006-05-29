@@ -51,9 +51,7 @@ void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
 }
 
 void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
-  if (pf_.depth != 24) {
-    throw rfb::Exception("rfb::ScaledPixelBuffer support only the true colour pixel format.");
-  }
+  if (pf_.depth != 24) throw rfb::UnsupportedPixelFormatException();
   pf = pf_;
 }
 
