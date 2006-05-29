@@ -82,6 +82,7 @@ namespace rfb {
       PixelFormat getPF() const { return buffer->getPF(); }
       void setSize(int w, int h);
       void setColour(int i, int r, int g, int b) {buffer->setColour(i, r, g, b);}
+      void setDesktopScale(int scale);
 
       // - Set the cursor to render when the pointer is within the desktop buffer
       void setCursor(int w, int h, const Point& hotspot, void* data, void* mask);

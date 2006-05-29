@@ -171,7 +171,11 @@ public:
       SendMessage(hScaleCombo, CB_INSERTSTRING, 
         (WPARAM)i, (LPARAM)(int FAR*)scale_values[i]);
     }
-    SetDlgItemText(handle, IDC_COMBO_SCALE, "100");
+    if (dlg->options.autoScaling) {
+      SetDlgItemText(handle, IDC_COMBO_SCALE, "Auto");
+    } else {
+      SetDlgItemInt(handle, IDC_COMBO_SCALE, dlg->options.scale, FALSE);
+    }
   }
   virtual bool onOk() {
     dlg->options.shared = isItemChecked(IDC_CONN_SHARED);
@@ -182,6 +186,20 @@ public:
     dlg->options.acceptBell = isItemChecked(IDC_ACCEPT_BELL);
     dlg->options.autoReconnect = isItemChecked(IDC_AUTO_RECONNECT);
     dlg->options.showToolbar = isItemChecked(IDC_SHOW_TOOLBAR);
+    int s = GetDlgItemInt(handle, IDC_COMBO_SCALE, NULL, FALSE);
+    if (s > 0) {
+      dlg->options.scale = s;
+      dlg->options.autoScaling = false;
+      if (s == 100) dlg->options.scaling = false;
+      else dlg->options.scaling = true;
+    } else {
+      char scaleStr[20];
+      GetDlgItemText(handle, IDC_COMBO_SCALE, scaleStr, 20);
+      if (strcmp(scaleStr, "Auto") == 0) {
+        dlg->options.autoScaling = true;
+        dlg->options.scaling = true;
+      }
+    }
     ((ViewerOptions*)propSheet)->setChanged();
     return true;
   }

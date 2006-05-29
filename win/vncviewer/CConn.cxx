@@ -150,6 +150,7 @@ CConn::applyOptions(CConnOptions& opt) {
     window->setMenuKey(options.menuKey);
     window->setDisableWinKeys(options.disableWinKeys);
     window->setShowToolbar(options.showToolbar);
+    window->setDesktopScale(options.scale);
     if (!options.useLocalCursor)
       window->setCursor(0, 0, Point(), 0, 0);
   }

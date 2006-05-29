@@ -929,6 +929,12 @@ DesktopWindow::setSize(int w, int h) {
   calculateScrollBars();
 }
 
+void DesktopWindow::setDesktopScale(int scale) {
+  buffer->setScale(scale);
+  InvalidateRect(frameHandle, 0, FALSE);
+  calculateScrollBars();
+}
+
 void
 DesktopWindow::setCursor(int w, int h, const Point& hotspot, void* data, void* mask) {
   hideLocalCursor();
