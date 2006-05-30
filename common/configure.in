@@ -44,8 +44,6 @@ if test "$GXX" = yes; then
   fi
 fi
 
-AC_PATH_XTRA
-
 AC_ARG_WITH(installed-zlib,
 [  --with-installed-zlib   use the version of zlib which is installed on the
                           system instead of the one distributed with VNC])
