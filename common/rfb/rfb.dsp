@@ -175,6 +175,7 @@ SOURCE=.\Decoder.cxx
 # Begin Source File
 
 SOURCE=.\Encoder.cxx
+# ADD CPP /I "../jpeg"
 # End Source File
 # Begin Source File
 
