@@ -25,7 +25,7 @@
 // FIXME: Check if specifying extern "C" is really necessary.
 #include <stdio.h>
 extern "C" {
-#include "jpeg/jpeglib.h"
+#include <jpeglib.h>
 }
 
 namespace rfb {
