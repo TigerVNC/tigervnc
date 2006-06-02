@@ -1,5 +1,5 @@
 # Russian translation for tightvnc package
-# ░ЦАА╙╗╘ ╞╔Ю╔╒╝╓ ╞═╙╔Б═ tightvnc
+# Русский перевод пакета tightvnc
 # Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
 # This file is distributed under the same license as the tightvnc package.
 # Constantin Kaplinsky <const@tightvnc.com>, 2006.
@@ -17,16 +17,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "About VNC Viewer"
-msgstr "▌ VNC Viewer"
+msgstr "О VNC Viewer"
 
 msgid "VNC authentication"
-msgstr "─ЦБ╔╜Б╗Д╗╙═Ф╗О VNC"
+msgstr "Аутентификация VNC"
 
 msgid "Exit viewer"
-msgstr "┌КЕ╝╓"
+msgstr "Выход"
 
 msgid "Full screen"
-msgstr "▐╝╚╜╝М╙Ю═╜╜К╘ Ю╔╕╗╛"
+msgstr "Полноэкранный режим"
 
 msgid "Ctrl"
 msgstr "Ctrl"
@@ -36,31 +36,31 @@ msgstr "Alt"
 
 #, c-format
 msgid "Send %s"
-msgstr "▐╝А╚═БЛ %s"
+msgstr "Послать %s"
 
 msgid "Send Ctrl-Alt-Del"
-msgstr "▐╝А╚═БЛ Ctrl-Alt-Del"
+msgstr "Послать Ctrl-Alt-Del"
 
 msgid "Refresh screen"
-msgstr "▌║╜╝╒╗БЛ М╙Ю═╜"
+msgstr "Обновить экран"
 
 msgid "New connection..."
-msgstr "█╝╒╝╔ А╝╔╓╗╜╔╜╗╔..."
+msgstr "Новое соединение..."
 
 msgid "Options..."
-msgstr "▐═Ю═╛╔БЮК..."
+msgstr "Параметры..."
 
 msgid "Connection info..."
-msgstr "┬╜Д╝Ю╛═Ф╗О ╝ А╝╔╓╗╜╔╜╗╗..."
+msgstr "Информация о соединении..."
 
 msgid "About VNCviewer..."
-msgstr "▌ VNC Viewer..."
+msgstr "О VNC Viewer..."
 
 msgid "Dismiss menu"
-msgstr "┤═╙ЮКБЛ ╛╔╜Н"
+msgstr "Закрыть меню"
 
 msgid "VNC Menu"
-msgstr "▄╔╜Н VNC"
+msgstr "Меню VNC"
 
 #, c-format
 msgid ""
@@ -75,103 +75,103 @@ msgid ""
 "Protocol version: %d.%d\n"
 "Security method: %s\n"
 msgstr ""
-"┬╛О А╔═╜А═: %.80s\n"
-"▄═Х╗╜═: %.80s ╞╝ЮБ: %d\n"
-"░═╖╛╔Ю: %d x %d\n"
-"■╝Ю╛═Б Ф╒╔Б═: %s\n"
-"(╖╜═Г╔╜╗╔ А╔Ю╒╔Ю═ %s)\n"
-"┤═╞Ю╝Х╔╜╜═О АЕ╔╛═ ╙╝╓╗Ю╝╒═╜╗О: %s\n"
-"▐╝А╚╔╓╜ОО АЕ╔╛═ ╙╝╓╗Ю╝╒═╜╗О: %s\n"
-"▒╙╝Ю╝АБЛ ╚╗╜╗╗ А╒О╖╗: %d ╙║╗Б/А\n"
-"┌╔ЮА╗О ╞Ю╝Б╝╙╝╚═: %d.%d\n"
-"▒Е╔╛═ ║╔╖╝╞═А╜╝АБ╗: %s\n"
+"Имя сеанса: %.80s\n"
+"Машина: %.80s порт: %d\n"
+"Размер: %d x %d\n"
+"Формат цвета: %s\n"
+"(значение сервера %s)\n"
+"Запрошенная схема кодирования: %s\n"
+"Последняя схема кодирования: %s\n"
+"Скорость линии связи: %d кбит/с\n"
+"Версия протокола: %d.%d\n"
+"Схема безопасности: %s\n"
 
 msgid "VNC connection info"
-msgstr "┬╜Д╝Ю╛═Ф╗О ╝ А╝╔╓╗╜╔╜╗╗ VNC"
+msgstr "Информация о соединении VNC"
 
 msgid "VNC Viewer: Connection Options"
-msgstr "VNC Viewer: ╞═Ю═╛╔БЮК А╝╔╓╗╜╔╜╗О"
+msgstr "VNC Viewer: параметры соединения"
 
 msgid "Encoding and Color Level:"
-msgstr "┼╝╓╗Ю╝╒═╜╗╔ ╗ Ф╒╔Б╝╒╝╘ Ю╔╕╗╛:"
+msgstr "Кодирование и цветовой режим:"
 
 msgid "Inputs:"
-msgstr "┌╒╝╓:"
+msgstr "Ввод:"
 
 msgid "Misc:"
-msgstr "░═╖╜╝╔:"
+msgstr "Разное:"
 
 msgid "Auto select"
-msgstr "─╒Б╝╛═Б╗Г╔А╙╗╘ ╒К║╝Ю"
+msgstr "Автоматический выбор"
 
 msgid "Full (all available colors)"
-msgstr "▄╜╝ё╝Ф╒╔Б╜К╘ Ю╔╕╗╛ (╒А╔ ╓╝АБЦ╞╜К╔ Ф╒╔Б═)"
+msgstr "Многоцветный режим (все доступные цвета)"
 
 msgid "Medium (256 colors)"
-msgstr "▒Ю╔╓╜╔╔ ╙═Г╔АБ╒╝ Ф╒╔Б═ (256 Ф╒╔Б╝╒)"
+msgstr "Среднее качество цвета (256 цветов)"
 
 msgid "Low (64 colors)"
-msgstr "█╗╖╙╝╔ ╙═Г╔АБ╒╝ Ф╒╔Б═ (64 Ф╒╔Б═)"
+msgstr "Низкое качество цвета (64 цвета)"
 
 msgid "Very low (8 colors)"
-msgstr "▄╗╜╗╛Ц╛ Ф╒╔Б═ (8 Ф╒╔Б╝╒)"
+msgstr "Минимум цвета (8 цветов)"
 
 msgid "Custom compression level:"
-msgstr "█╔АБ═╜╓═ЮБ╜К╘ ЦЮ╝╒╔╜Л А╕═Б╗О:"
+msgstr "Нестандартный уровень сжатия:"
 
 msgid "level (1=fast, 9=best)"
-msgstr "ЦЮ╝╒╔╜Л (1=║КАБЮ╝, 9=╛═╙А.А╕═Б╗╔)"
+msgstr "уровень (1=быстро, 9=макс.сжатие)"
 
 msgid "Allow JPEG compression:"
-msgstr "░═╖Ю╔Х╗БЛ А╕═Б╗╔ JPEG:"
+msgstr "Разрешить сжатие JPEG:"
 
 msgid "quality (1=poor, 9=best)"
-msgstr "╙═Г╔АБ╒╝ (1=╜╗╖╙╝╔, 9=╜═╗╚ЦГХ╔╔)"
+msgstr "качество (1=низкое, 9=наилучшее)"
 
 msgid "View only (ignore mouse & keyboard)"
-msgstr "▓╝╚Л╙╝ ╞Ю╝А╛╝БЮ (╗ё╜╝Ю╗Ю╝╒═БЛ ╛КХЛ ╗ ╙╚═╒╗═БЦЮЦ)"
+msgstr "Только просмотр (игнорировать мышь и клавиатуру)"
 
 msgid "Accept clipboard from server"
-msgstr "▐Ю╗╜╗╛═БЛ ║ЦД╔Ю ╝║╛╔╜═ А А╔Ю╒╔Ю═"
+msgstr "Принимать буфер обмена с сервера"
 
 msgid "Send clipboard to server"
-msgstr "▐╝АК╚═БЛ ║ЦД╔Ю ╝║╛╔╜═ ╜═ А╔Ю╒╔Ю"
+msgstr "Посылать буфер обмена на сервер"
 
 msgid "Send primary selection & cut buffer as clipboard"
-msgstr "▐╝АК╚═БЛ \"primary selection\" ╗ \"cut buffer\" ╙═╙ ║ЦД╔Ю ╝║╛╔╜═"
+msgstr "Посылать \"primary selection\" и \"cut buffer\" как буфер обмена"
 
 msgid "Shared (don't disconnect other viewers)"
-msgstr "░═╖╓╔╚О╔╛К╘ Ю╔╕╗╛ (╜╔ ╝Б╙╚НГ═БЛ ╓ЮЦё╗Е ╙╚╗╔╜Б╝╒)"
+msgstr "Разделяемый режим (не отключать других клиентов)"
 
 msgid "Full-screen mode"
-msgstr "▐╝╚╜╝М╙Ю═╜╜К╘ Ю╔╕╗╛"
+msgstr "Полноэкранный режим"
 
 msgid "Render cursor locally"
-msgstr "░╗А╝╒═БЛ ╙ЦЮА╝Ю ╚╝╙═╚Л╜╝"
+msgstr "Рисовать курсор локально"
 
 msgid "Show dot when no cursor"
-msgstr "▐╝╙═╖К╒═БЛ Б╝Г╙Ц ╞Ю╗ ╝БАЦБАБ╒╗╗ ╙ЦЮА╝Ю═"
+msgstr "Показывать точку при отсутствии курсора"
 
 msgid "OK"
 msgstr "OK"
 
 msgid "Cancel"
-msgstr "▌Б╛╔╜═"
+msgstr "Отмена"
 
 msgid "Username:"
-msgstr "┬╛О ╞╝╚Л╖╝╒═Б╔╚О:"
+msgstr "Имя пользователя:"
 
 msgid "Password:"
-msgstr "▐═Ю╝╚Л:"
+msgstr "Пароль:"
 
 msgid "VNC Viewer: Connection Details"
-msgstr "VNC Viewer: ╓╔Б═╚╗ А╝╔╓╗╜╔╜╗О"
+msgstr "VNC Viewer: детали соединения"
 
 msgid "VNC server:"
-msgstr "▒╔Ю╒╔Ю VNC:"
+msgstr "Сервер VNC:"
 
 msgid "About..."
-msgstr "▌ ╞Ю╝ёЮ═╛╛╔..."
+msgstr "О программе..."
 
 #, c-format
 msgid ""
@@ -181,8 +181,8 @@ msgid ""
 "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
 "See http://www.tightvnc.com for information on TightVNC."
 msgstr ""
-"TightVNC viewer ╓╚О X, ╒╔ЮА╗О 4.0 - ╒Ю╔╛О А║╝Ю╙╗ %s\n"
+"TightVNC viewer для X, версия 4.0 - время сборки %s\n"
 "Copyright (C) 2002-2004 RealVNC Ltd.\n"
-"Copyright (C) 2000-2004 ┼╝╜АБ═╜Б╗╜ ┼═╞╚╗╜А╙╗╘\n"
+"Copyright (C) 2000-2004 Константин Каплинский\n"
 "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
-"┬И╗Б╔ ╗╜Д╝Ю╛═Ф╗Н ╝ TightVNC ╜═ А═╘Б╔ http://www.tightvnc.com"
+"Ищите информацию о TightVNC на сайте http://www.tightvnc.com"
