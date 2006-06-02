@@ -1,7 +1,8 @@
 
-       VNCTOP = $(TOP)/..
+   VNCUNIXDIR = VncUnixDir
+ VNCCOMMONDIR = VncCommonDir
       VNCLIBS = VncExtLibs
-   VNCINCLUDE = -I$(VNCTOP) -I$(VNCTOP)/vncconfig_unix
+   VNCINCLUDE = -I$(VNCCOMMONDIR) -I$(VNCUNIXDIR)/vncconfig
 
 #define CplusplusSource
 

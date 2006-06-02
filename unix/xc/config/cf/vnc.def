@@ -23,11 +23,13 @@
 #define SiteExtensionDefines VNCExtDefines
 #define SiteExtensionDirs vnc
 
-#define VncExtLibs $(TOP)/../rfb/librfb.a \
-                   $(TOP)/../Xregion/libXregion.a \
-                   $(TOP)/../network/libnetwork.a \
-                   $(TOP)/../rdr/librdr.a \
-                   $(TOP)/../jpeg/build/libjpeg.a
+#define VncUnixDir $(TOP)/..
+#define VncCommonDir VncUnixDir/../common
+#define VncExtLibs VncCommonDir/rfb/librfb.a \
+                   VncCommonDir/Xregion/libXregion.a \
+                   VncCommonDir/network/libnetwork.a \
+                   VncCommonDir/rdr/librdr.a \
+                   VncCommonDir/jpeg/build/libjpeg.a
 
 #define SiteExtensionLibs vnc/LibraryTargetName(vnc) VncExtLibs
 

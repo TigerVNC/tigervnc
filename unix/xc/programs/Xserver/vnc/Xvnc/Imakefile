@@ -1,7 +1,7 @@
 
-       VNCTOP = $(TOP)/..
+ VNCCOMMONDIR = VncCommonDir
+   VNCINCLUDE = -I$(VNCCOMMONDIR)
       VNCLIBS = VncExtLibs
-   VNCINCLUDE = -I$(VNCTOP) -I$(VNCTOP)/vncconfig_unix
 
 #if defined(XFree86Version) && XFree86Version < 4000
    VNCDEFINES = -DNO_INIT_BACKING_STORE

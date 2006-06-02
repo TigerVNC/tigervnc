@@ -1,8 +1,9 @@
 XCOMM CDEBUGFLAGS = -g
 XCOMM CXXDEBUGFLAGS = -g
 
-       VNCTOP = $(TOP)/..
-   VNCINCLUDE = -I$(VNCTOP) -I$(VNCTOP)/vncconfig_unix
+   VNCUNIXDIR = VncUnixDir
+ VNCCOMMONDIR = VncCommonDir
+   VNCINCLUDE = -I$(VNCCOMMONDIR) -I$(VNCUNIXDIR)/vncconfig
 
 #define CplusplusSource
 
