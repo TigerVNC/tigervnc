@@ -12,12 +12,14 @@ OBJS = $(SRCS:.cxx=.o)
 
 program = vncviewer
 
-DEP_LIBS = ../tx/libtx.a ../rfb/librfb.a ../network/libnetwork.a \
-           ../rdr/librdr.a
+DEP_LIBS = $(TOP)/tx/libtx.a \
+           $(COMMON)/rfb/librfb.a \
+           $(COMMON)/network/libnetwork.a \
+           $(COMMON)/rdr/librdr.a
 
 EXTRA_LIBS = @ZLIB_LIB@ @JPEG_LIB@ @X_PRE_LIBS@ @X_LIBS@ -lXext -lX11 @X_EXTRA_LIBS@ @LIBINTL@
 
-DIR_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -I$(top_srcdir) -I$(top_srcdir)/tx -I$(top_srcdir)/intl @X_CFLAGS@ # X_CFLAGS are really CPPFLAGS
+DIR_CPPFLAGS = -I$(COMMON) -I$(TOP) -I$(TOP)/tx -I$(TOP)/intl -DLOCALEDIR=\"$(localedir)\" @X_CFLAGS@ # X_CFLAGS are really CPPFLAGS
 
 all:: $(program)
 

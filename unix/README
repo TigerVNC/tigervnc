@@ -132,7 +132,7 @@ the java directory to some suitable installation directory such as
 /usr/local/vnc/classes:
 
   % mkdir -p /usr/local/vnc/classes
-  % cp java/* /usr/local/vnc/classes
+  % cp ../common/javabin/* /usr/local/vnc/classes
 
 We recommend that you use the vncserver script to run Xvnc for you.  You can
 edit the script as appropriate for your site.  Things you may need to change

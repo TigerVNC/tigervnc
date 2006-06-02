@@ -5,9 +5,9 @@ OBJS = vncpasswd.o
 
 program = vncpasswd
 
-DEP_LIBS = ../rfb/librfb.a
+DEP_LIBS = $(COMMON)/rfb/librfb.a
 
-DIR_CPPFLAGS = -I$(top_srcdir)
+DIR_CPPFLAGS = -I$(COMMON)
 
 all:: $(program)
 

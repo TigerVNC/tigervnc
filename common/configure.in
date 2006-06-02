@@ -95,19 +95,6 @@ AC_CHECK_FUNC(strncasecmp,STRNCASECMP_DEFINE='-DHAVE_STRNCASECMP',
   STRNCASECMP_DEFINE=)
 AC_SUBST(STRNCASECMP_DEFINE)
 
-dnl Under Lynx/OS 2.3, we have to link with -lbsd to resolve
-dnl gethostbyname, inet_addr, htons etc. Check if it's necessary.
-dnl NOTE: Did not want to use AC_SEARCH_LIBS which would add
-dnl   -lbsd to LIBS. We set INET_LIB instead.
-AC_LANG_SAVE
-AC_LANG_C
-AC_CHECK_FUNC(gethostbyname,INET_LIB_REQ=,INET_LIB_REQ=yes)
-if test "$INET_LIB_REQ" = yes; then
-  AC_CHECK_LIB(bsd,gethostbyname,INET_LIB=-lbsd,INET_LIB=)
-fi
-AC_LANG_RESTORE
-AC_SUBST(INET_LIB)
-
 AC_MSG_CHECKING(for socklen_t)
 AC_TRY_COMPILE(
 [#include <sys/types.h>

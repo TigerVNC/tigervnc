@@ -34,7 +34,7 @@
 #include <network/TcpSocket.h>
 #include <tx/TXWindow.h>
 
-#include <vncconfig_unix/QueryConnectDialog.h>
+#include <vncconfig/QueryConnectDialog.h>
 
 #include <signal.h>
 #include <X11/X.h>

@@ -2,7 +2,6 @@
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
-SUBDIRS = @ZLIB_DIR@ @JPEG_DIR@ intl rdr network Xregion rfb tx x0vncserver \
-          vncviewer_unix po vncpasswd @VNCCONFIG_DIR@
+SUBDIRS = ../common intl tx x0vncserver vncviewer po vncpasswd @VNCCONFIG_DIR@
 
 # followed by boilerplate.mk
