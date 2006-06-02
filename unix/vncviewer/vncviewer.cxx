@@ -267,12 +267,12 @@ int main(int argc, char** argv)
   textdomain(PACKAGE);
 
   snprintf(aboutText, sizeof(aboutText), 
-           _("TightVNC viewer for X version 1.5 - built %s\n"
+           _("TightVNC Viewer for X version %s - built %s\n"
              "Copyright (C) 2002-2005 RealVNC Ltd.\n"
-             "Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+             "Copyright (C) 2000-2006 TightVNC Group\n"
              "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
              "See http://www.tightvnc.com for information on TightVNC."),
-           buildtime);
+           VERSION, buildtime);
   fprintf(stderr,"\n%s\n", aboutText);
 
   bind_textdomain_codeset(PACKAGE, "iso-8859-1");

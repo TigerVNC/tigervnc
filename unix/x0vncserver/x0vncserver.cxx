@@ -420,7 +420,8 @@ char* programName;
 
 static void usage()
 {
-  fprintf(stderr, "\nusage: %s [<parameters>]\n", programName);
+  fprintf(stderr, "TightVNC Server version %s\n\n", VERSION);
+  fprintf(stderr, "Usage: %s [<parameters>]\n", programName);
   fprintf(stderr,"\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
           "Parameters which take a value can be specified as "
