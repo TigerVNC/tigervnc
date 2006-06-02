@@ -207,6 +207,6 @@ http://www.tightvnc.com
 Tristan Richardson, RealVNC Ltd.
 
 VNC was originally developed by the RealVNC team while at Olivetti
-Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions was
+Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
 implemented by Constantin Kaplinsky. Many other people participated in
 development, testing and support.
