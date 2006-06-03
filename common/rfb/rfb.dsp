@@ -114,6 +114,10 @@ SOURCE=.\Blacklist.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\CapsContainer.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\CConnection.cxx
 # End Source File
 # Begin Source File
@@ -374,6 +378,10 @@ SOURCE=.\ZRLEEncoder.cxx
 # Begin Source File
 
 SOURCE=.\Blacklist.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapsContainer.h
 # End Source File
 # Begin Source File
 
