@@ -54,7 +54,7 @@ CapsContainer::~CapsContainer()
 
 void
 CapsContainer::add(rdr::U32 code, const char *vendor, const char *name,
-				   const char *desc)
+                   const char *desc)
 {
   // Fill in an rfbCapabilityInfo structure and pass it to the overloaded
   // function.
