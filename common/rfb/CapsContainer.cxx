@@ -25,10 +25,8 @@ using namespace rfb;
 //
 
 CapsContainer::CapsContainer(int maxCaps)
+: m_maxSize(maxCaps), m_listSize(0), m_plist(new rdr::U32[m_maxSize])
 {
-  m_maxSize = maxCaps;
-  m_listSize = 0;
-  m_plist = new rdr::U32[m_maxSize];
 }
 
 //
