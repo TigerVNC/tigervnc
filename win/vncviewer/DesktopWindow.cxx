@@ -270,7 +270,7 @@ void DesktopWindow::setFullscreen(bool fs) {
     vlog.debug("flags=%x", flags);
 
     SetWindowLong(handle, GWL_STYLE, flags);
-    SetWindowPos(handle, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
+    SetWindowPos(handle, HWND_TOPMOST, mi.rcMonitor.left, mi.rcMonitor.top,
       mi.rcMonitor.right-mi.rcMonitor.left,
       mi.rcMonitor.bottom-mi.rcMonitor.top,
       SWP_FRAMECHANGED);
