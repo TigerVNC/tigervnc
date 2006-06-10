@@ -105,13 +105,3 @@ LRESULT ViewerToolBar::processWM_NOTIFY(WPARAM wParam, LPARAM lParam) {
   }
   return 0;
 }
-
-void ViewerToolBar::show() {
-  ShowWindow(getHandle(), SW_SHOW);
-  SendMessage(parentHwnd, WM_SIZE, 0, 0);
-}
-
-void ViewerToolBar::hide() {
-  ShowWindow(getHandle(), SW_HIDE);
-  SendMessage(parentHwnd, WM_SIZE, 0, 0);
-}

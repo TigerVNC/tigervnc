@@ -32,7 +32,4 @@ public:
   void create(HWND parentHwnd);
 
   LRESULT processWM_NOTIFY(WPARAM wParam, LPARAM lParam);
-
-  void show();
-  void hide();
 };
