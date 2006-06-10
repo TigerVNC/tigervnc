@@ -611,9 +611,9 @@ void CConn::serverInit() {
 
   // Show the window
   window = new DesktopWindow(this);
+  applyOptions(options);
   window->setName(cp.name());
   window->setSize(cp.width, cp.height);
-  applyOptions(options);
 
   // Save the server's current format
   serverDefaultPF = cp.pf();

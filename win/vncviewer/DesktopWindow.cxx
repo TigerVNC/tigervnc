@@ -301,12 +301,21 @@ void DesktopWindow::setFullscreen(bool fs) {
 void DesktopWindow::setShowToolbar(bool st)
 {
   showToolbar = st;
+  RECT r;
+  GetWindowRect(handle, &r);
+  bool maximized = GetWindowLong(handle, GWL_STYLE) & WS_MAXIMIZE;
 
-  if (showToolbar && !tb.isVisible() && !fullscreenActive) {
+  if (showToolbar && !tb.isVisible()) {
     tb.show();
+    if (!maximized) r.bottom += tb.getHeight();
   } else if (!showToolbar && tb.isVisible()) {
     tb.hide();
+    if (!maximized) r.bottom -= tb.getHeight();
   }
+  // Resize the chiled windows even if the parent window size 
+  // has not been changed (the main window is maximized)
+  if (maximized) SendMessage(handle, WM_SIZE, 0, 0);
+  else SetWindowPos(handle, NULL, 0, 0, r.right-r.left, r.bottom-r.top, SWP_NOMOVE | SWP_NOZORDER);
 }
 
 void DesktopWindow::setDisableWinKeys(bool dwk) {
