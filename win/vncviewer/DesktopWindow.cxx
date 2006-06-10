@@ -301,6 +301,8 @@ void DesktopWindow::setFullscreen(bool fs) {
 void DesktopWindow::setShowToolbar(bool st)
 {
   showToolbar = st;
+  if (fullscreenActive) return;
+
   RECT r;
   GetWindowRect(handle, &r);
   bool maximized = GetWindowLong(handle, GWL_STYLE) & WS_MAXIMIZE;
