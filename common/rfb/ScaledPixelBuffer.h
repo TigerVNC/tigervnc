@@ -45,6 +45,8 @@ namespace rfb {
     // Get width, height, number of pixels and scale
     int width()  const { return scaled_width; }
     int height() const { return scaled_height; }
+    int getSrcWidth()  const { return src_width; }
+    int getSrcHeight() const { return src_height; }
     int area() const { return scaled_width * scaled_height; }
     int getScale() const { return scale; }
 
