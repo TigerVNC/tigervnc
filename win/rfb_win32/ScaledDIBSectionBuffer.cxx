@@ -37,12 +37,12 @@ ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
   if (src_buffer) delete src_buffer;
 }
 
-void ScaledDIBSectionBuffer::setScale(int scale_) {
-  if (scale_ == getScale()) return;
+void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
+  if (scale_ratio == scale_ratio_) return;
 
   if (format.depth != 24) throw rfb::UnsupportedPixelFormatException();
 
-  if (scale_ != 100) {
+  if (scale_ratio_ != 1) {
     scaling = true;
     if (!src_buffer) {
       src_buffer = new ManagedPixelBuffer(format, src_width, src_height);
@@ -52,7 +52,7 @@ void ScaledDIBSectionBuffer::setScale(int scale_) {
   } else {
     scaling = false;
   }
-  ScaledPixelBuffer::setScale(scale_);
+  ScaledPixelBuffer::setScaleRatio(scale_ratio_);
   recreateScaledBuffer();
   if (scaling) {
     scaleRect(Rect(0, 0, src_width, src_height));
