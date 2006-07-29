@@ -48,7 +48,8 @@ namespace rfb {
     int getSrcWidth()  const { return src_width; }
     int getSrcHeight() const { return src_height; }
     int area() const { return scaled_width * scaled_height; }
-    int getScale() const { return scale; }
+    int getScale() const { return int(scale_ratio + 0.5); }
+    double getScaleRatio() const { return scale_ratio; }
 
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.
@@ -64,7 +65,8 @@ namespace rfb {
     void setPF(const PixelFormat &pf);
 
     // Set the new scale, in percent
-    virtual void setScale(int scale);
+    virtual void setScale(int scale) { setScaleRatio(double(scale)/100.0); }
+    virtual void setScaleRatio(double scale_ratio);
 
     // Scale rect from the source image buffer to the destination buffer
     // using bilinear interpolation
@@ -86,7 +88,6 @@ namespace rfb {
     int scaled_width;
     int scaled_height;
     PixelFormat pf;
-    int scale;
     double scale_ratio;
     U8 **src_data;
     U8 *scaled_data;
