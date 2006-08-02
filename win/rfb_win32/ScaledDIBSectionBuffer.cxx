@@ -67,6 +67,8 @@ void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
 }
 
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
+  if (memcmp(&getPF(), &pf_, sizeof(pf_)) == 0) return;
+
   if (scaling) {
     ScaledPixelBuffer::setPF(pf_);
     src_buffer->setPF(pf_);
@@ -76,6 +78,8 @@ void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
 }
 
 void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
+  if (src_width == src_width_ && src_height == src_height_) return;
+
   src_width = src_width_;
   src_height = src_height_;
   if (scaling) {
@@ -89,8 +93,10 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
 void ScaledDIBSectionBuffer::recreateScaledBuffer() {
   width_  = scaled_width;
   height_ = scaled_height;
-  DIBSectionBuffer::recreateBuffer();
-  scaled_data = data;
+  if (width_ && height_ && (format.depth != 0)) {
+    DIBSectionBuffer::recreateBuffer();
+    scaled_data = data;
+  }
 }
 
 void ScaledDIBSectionBuffer::fillRect(const Rect &dest, Pixel pix) {
