@@ -36,8 +36,9 @@ ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
 }
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
-  : src_data(0), src_width(0), src_height(0), scale_ratio(1),
-    pf(PixelFormat(32,24,0,1,255,255,255,0,8,16)), scaled_data(0) {
+  : src_data(0), src_width(0), src_height(0), scale_ratio(1), scaled_width(0), 
+    scaled_height(0), pf(PixelFormat(32,24,0,1,255,255,255,0,8,16)), 
+    scaled_data(0) {
 }
 
 ScaledPixelBuffer::~ScaledPixelBuffer() {
