@@ -83,6 +83,7 @@ namespace rfb {
       void setSize(int w, int h);
       void setColour(int i, int r, int g, int b) {buffer->setColour(i, r, g, b);}
       void setDesktopScale(int scale);
+      void fitBufferToWindow(bool repaint = true);
 
       // - Set the cursor to render when the pointer is within the desktop buffer
       void setCursor(int w, int h, const Point& hotspot, void* data, void* mask);
@@ -236,6 +237,7 @@ namespace rfb {
 
       // Local window state
       win32::ScaledDIBSectionBuffer* buffer;
+      double aspect_corr;
       bool has_focus;
       Rect window_size;
       Rect client_size;

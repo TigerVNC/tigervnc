@@ -946,6 +946,28 @@ void DesktopWindow::setDesktopScale(int scale) {
   calculateScrollBars();
 }
 
+void DesktopWindow::fitBufferToWindow(bool repaint) {
+  double scale_ratio;
+  double resized_aspect_corr = double(client_size.width()) / client_size.height();
+  DWORD style = GetWindowLong(frameHandle, GWL_STYLE);
+  if (style & (WS_VSCROLL | WS_HSCROLL)) {
+    style &= ~(WS_VSCROLL | WS_HSCROLL);
+    SetWindowLong(frameHandle, GWL_STYLE, style);
+    SetWindowPos(frameHandle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+    // Update the cached client size
+    RECT r;
+    GetClientRect(frameHandle, &r);
+    client_size = Rect(r.left, r.top, r.right, r.bottom);
+  }
+  if (resized_aspect_corr > aspect_corr) {
+    scale_ratio = double(client_size.height()) / buffer->getSrcHeight();
+  } else { 
+    scale_ratio = double(client_size.width()) / buffer->getSrcWidth();
+  }
+  buffer->setScaleRatio(scale_ratio);
+  if (repaint) InvalidateRect(frameHandle, 0, TRUE);
+}
+
 void
 DesktopWindow::setCursor(int w, int h, const Point& hotspot, void* data, void* mask) {
   hideLocalCursor();
