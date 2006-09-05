@@ -150,7 +150,12 @@ CConn::applyOptions(CConnOptions& opt) {
     window->setMenuKey(options.menuKey);
     window->setDisableWinKeys(options.disableWinKeys);
     window->setShowToolbar(options.showToolbar);
-    window->setDesktopScale(options.scale);
+    if (options.autoScaling) {
+      window->setAutoScaling(true);
+    } else {
+      window->setAutoScaling(false);
+      window->setDesktopScale(options.scale);
+    }
     if (!options.useLocalCursor)
       window->setCursor(0, 0, Point(), 0, 0);
   }
@@ -611,9 +616,9 @@ void CConn::serverInit() {
 
   // Show the window
   window = new DesktopWindow(this);
-  applyOptions(options);
   window->setName(cp.name());
   window->setSize(cp.width, cp.height);
+  applyOptions(options);
 
   // Save the server's current format
   serverDefaultPF = cp.pf();

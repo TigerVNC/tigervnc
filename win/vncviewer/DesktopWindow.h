@@ -82,6 +82,11 @@ namespace rfb {
       PixelFormat getPF() const { return buffer->getPF(); }
       void setSize(int w, int h);
       void setColour(int i, int r, int g, int b) {buffer->setColour(i, r, g, b);}
+      void setAutoScaling(bool as) { 
+        autoScaling = as;
+        if (as) fitBufferToWindow();
+      }
+      bool isAutoScaling() const { return autoScaling; }
       void setDesktopScale(int scale);
       void fitBufferToWindow(bool repaint = true);
 
@@ -239,6 +244,7 @@ namespace rfb {
       win32::ScaledDIBSectionBuffer* buffer;
       double aspect_corr;
       bool has_focus;
+      bool autoScaling;
       Rect window_size;
       Rect client_size;
       Point scrolloffset;

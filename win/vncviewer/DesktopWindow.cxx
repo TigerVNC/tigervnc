@@ -181,7 +181,7 @@ FrameClass frameClass;
 
 DesktopWindow::DesktopWindow(Callback* cb) 
   : buffer(0),
-    showToolbar(false),
+    showToolbar(false), autoScaling(false),
     client_size(0, 0, 16, 16), window_size(0, 0, 32, 32),
     cursorVisible(false), cursorAvailable(false), cursorInBuffer(false),
     systemCursorVisible(true), trackingMouseLeave(false),
@@ -406,7 +406,7 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   case WM_WINDOWPOSCHANGING:
     {
       WINDOWPOS* wpos = (WINDOWPOS*)lParam;
-      if (wpos->flags & SWP_NOSIZE)
+      if ((wpos->flags & SWP_NOSIZE) || isAutoScaling())
         break;
 
       // Work out how big the window should ideally be
@@ -469,11 +469,16 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       GetClientRect(frameHandle, &r);
       client_size = Rect(r.left, r.top, r.right, r.bottom);
 
-      // Determine whether scrollbars are required
-      calculateScrollBars();
+      // Perform the AutoScaling operation
+      if (isAutoScaling()) {
+        fitBufferToWindow(false);
+      } else {
+        // Determine whether scrollbars are required
+        calculateScrollBars();
+      }
 
       // Redraw if required
-      if ((!old_offset.equals(desktopToClient(Point(0, 0)))))
+      if ((!old_offset.equals(desktopToClient(Point(0, 0)))) || isAutoScaling())
         InvalidateRect(frameHandle, 0, TRUE);
     }
     break;
@@ -791,8 +796,8 @@ DesktopWindow::processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         // Send a pointer event to the server
         oldpos = p;
         if (buffer->isScaling()) {
-          p.x /= double(buffer->getScale()) / 100.0;
-          p.y /= double(buffer->getScale()) / 100.0;
+          p.x /= buffer->getScaleRatio();
+          p.y /= buffer->getScaleRatio();
         }
         ptr.pointerEvent(callback, p, mask);
 #ifdef WM_MOUSEWHEEL
@@ -916,6 +921,10 @@ DesktopWindow::setSize(int w, int h) {
 
   // Resize the backing buffer
   buffer->setSize(w, h);
+
+  // Calculate the pixel buffer aspect correlation. It's used
+  // for the autoScaling operation.
+  aspect_corr = (double)w / h;
 
   // If the window is not maximised or full-screen then resize it
   if (!(GetWindowLong(handle, GWL_STYLE) & WS_MAXIMIZE) && !fullscreenActive) {
