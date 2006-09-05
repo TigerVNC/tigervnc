@@ -45,6 +45,7 @@ void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
   if (scale_ratio_ != 1) scaling = true;
   else scaling = false;
   ScaledPixelBuffer::setScaleRatio(scale_ratio_);
+  calculateScaledBufferSize();
   recreateBuffers();
 }
 
@@ -73,8 +74,6 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
 }
 
 void ScaledDIBSectionBuffer::recreateScaledBuffer() {
-  width_  = scaled_width;
-  height_ = scaled_height;
   if (width_ && height_ && (format.depth != 0)) {
     DIBSectionBuffer::recreateBuffer();
     scaled_data = data;
@@ -82,8 +81,6 @@ void ScaledDIBSectionBuffer::recreateScaledBuffer() {
 }
 
 void ScaledDIBSectionBuffer::recreateBuffers() {
-  width_ = scaled_width;
-  height_ = scaled_height;
   if (scaled_width && scaled_height && format.depth != 0 && scale_ratio != 0) {
     if (scaling) {
       if (src_buffer) {
@@ -109,6 +106,12 @@ void ScaledDIBSectionBuffer::recreateBuffers() {
       }
     }
   }
+}
+
+void ScaledDIBSectionBuffer::calculateScaledBufferSize() {
+  ScaledPixelBuffer::calculateScaledBufferSize();
+  width_ = scaled_width;
+  height_ = scaled_height;
 }
 
 void ScaledDIBSectionBuffer::fillRect(const Rect &dest, Pixel pix) {

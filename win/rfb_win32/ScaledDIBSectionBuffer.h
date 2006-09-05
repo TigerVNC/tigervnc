@@ -51,6 +51,8 @@ namespace rfb {
       virtual void setScale(int scale) { setScaleRatio(double(scale)/100.0); };
       virtual void setScaleRatio(double scale_ratio);
 
+      virtual void calculateScaledBufferSize();
+
       Rect getRect() const { return ScaledPixelBuffer::getRect(); }
       Rect getRect(const Point& pos) const { return ScaledPixelBuffer::getRect(pos); }
 
