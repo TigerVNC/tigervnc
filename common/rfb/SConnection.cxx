@@ -179,6 +179,11 @@ void SConnection::processSecurityTypeMsg()
   vlog.debug("processing security type message");
   int secType = is->readU8();
 
+  processSecurityType(secType);
+}
+
+void SConnection::processSecurityType(int secType)
+{
   // Verify that the requested security type should be offered
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;

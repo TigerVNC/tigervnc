@@ -176,6 +176,7 @@ namespace rfb {
 
     void processVersionMsg();
     void processSecurityTypeMsg();
+    void processSecurityType(int secType);
     void processSecurityMsg();
     void processInitMsg();
 
