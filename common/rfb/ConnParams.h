@@ -39,6 +39,7 @@ namespace rfb {
 
     int majorVersion;
     int minorVersion;
+    bool tightExtensionsEnabled;
 
     void setVersion(int major, int minor) {
       majorVersion = major; minorVersion = minor;

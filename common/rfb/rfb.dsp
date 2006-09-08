@@ -118,6 +118,10 @@ SOURCE=.\CapsContainer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\CapsList.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\CConnection.cxx
 # End Source File
 # Begin Source File
@@ -382,6 +386,10 @@ SOURCE=.\Blacklist.h
 # Begin Source File
 
 SOURCE=.\CapsContainer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapsList.h
 # End Source File
 # Begin Source File
 

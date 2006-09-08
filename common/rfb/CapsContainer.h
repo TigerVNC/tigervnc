@@ -50,7 +50,7 @@ namespace rfb {
   class CapsContainer {
   public:
     CapsContainer(int maxCaps = 64);
-    ~CapsContainer();
+    virtual ~CapsContainer();
 
     void add(const CapabilityInfo *capinfo, const char *desc = 0);
     void add(rdr::U32 code, const char *vendor, const char *name,

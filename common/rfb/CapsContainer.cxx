@@ -16,6 +16,11 @@
  * USA.
  */
 
+//
+// CapsContainer class implementation.
+// FIXME: Extend the comment.
+//
+
 #include <rfb/CapsContainer.h>
 
 using namespace rfb;
