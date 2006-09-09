@@ -138,6 +138,10 @@
 #define ID_SEND_CTLESC                  40014
 #define ID_CONN_SAVE_AS                 40015
 #define ID_FILE_TRANSFER                40016
+#define ID_ZOOM_IN                      40017
+#define ID_ZOOM_OUT                     40018
+#define ID_ACTUAL_SIZE                  40019
+#define ID_AUTO_SIZE                    40020
 #define IDM_FTCOPY                      40022
 #define IDM_FTRENAME                    40023
 #define IDM_FTDELETE                    40024

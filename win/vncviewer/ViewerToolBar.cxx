@@ -34,16 +34,21 @@ void ViewerToolBar::create(HWND parentHwnd) {
   addButton(2, ID_FULLSCREEN);
   addButton(3, ID_REQUEST_REFRESH);
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  addButton(4, ID_SEND_CAD);
-  addButton(5, ID_SEND_CTLESC);
-  addButton(6, ID_CTRL_KEY);
-  addButton(7, ID_ALT_KEY);
+  addButton(4, ID_ZOOM_IN);
+  addButton(5, ID_ZOOM_OUT);
+  addButton(6, ID_ACTUAL_SIZE);
+  addButton(7, ID_AUTO_SIZE);
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  addButton(8, ID_FILE_TRANSFER);
+  addButton(8, ID_SEND_CAD);
+  addButton(9, ID_SEND_CTLESC);
+  addButton(10, ID_CTRL_KEY);
+  addButton(11, ID_ALT_KEY);
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  addButton(9, ID_NEW_CONNECTION);
-  addButton(10, ID_CONN_SAVE_AS);
-  addButton(11, ID_CLOSE);
+  addButton(12, ID_FILE_TRANSFER);
+  addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
+  addButton(13, ID_NEW_CONNECTION);
+  addButton(14, ID_CONN_SAVE_AS);
+  addButton(15, ID_CLOSE);
 
   // Resize the toolbar window
   autoSize();
