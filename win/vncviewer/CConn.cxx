@@ -239,9 +239,6 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     return true;
   case IDM_CONN_SAVE_AS:
     return true;
-  case ID_CLOSE:
-    // FIXME: Remove the corresponding toolbar button.
-    return true;
   };
   return false;
 }

@@ -48,7 +48,6 @@ void ViewerToolBar::create(HWND parentHwnd) {
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
   addButton(13, ID_NEW_CONNECTION);
   addButton(14, ID_CONN_SAVE_AS);
-  addButton(15, ID_CLOSE);
 
   // Resize the toolbar window
   autoSize();
@@ -96,9 +95,6 @@ LRESULT ViewerToolBar::processWM_NOTIFY(WPARAM wParam, LPARAM lParam) {
         break;
       case ID_CONN_SAVE_AS:
         TTStr->lpszText = "Save connection info as...";
-        break;
-      case ID_CLOSE:
-        TTStr->lpszText = "Disconnect";
         break;
       default:
         break;
