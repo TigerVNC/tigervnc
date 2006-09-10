@@ -53,6 +53,10 @@ const int IDM_CTRL_KEY = ID_CTRL_KEY;
 const int IDM_ALT_KEY = ID_ALT_KEY;
 const int IDM_FILE_TRANSFER = ID_FILE_TRANSFER;
 const int IDM_CONN_SAVE_AS = ID_CONN_SAVE_AS;
+const int IDM_ZOOM_IN = ID_ZOOM_IN;
+const int IDM_ZOOM_OUT = ID_ZOOM_OUT;
+const int IDM_ACTUAL_SIZE = ID_ACTUAL_SIZE;
+const int IDM_AUTO_SIZE = ID_AUTO_SIZE;
 
 
 static IntParameter debugDelay("DebugDelay","Milliseconds to display inverted "
@@ -181,6 +185,23 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
   case IDM_FULLSCREEN:
     options.fullScreen = !window->isFullscreen();
     window->setFullscreen(options.fullScreen);
+    return true;
+  case IDM_ZOOM_IN:
+    return true;
+  case IDM_ZOOM_OUT:
+    return true;
+  case IDM_ACTUAL_SIZE:
+    if (options.autoScaling) {
+      options.autoScaling = false;
+      window->setAutoScaling(false);
+    }
+    options.scaling = false;
+    options.scale = 100;
+    window->setDesktopScale(100);
+    return true;
+  case IDM_AUTO_SIZE:
+    options.autoScaling = true;
+    window->setAutoScaling(true);
     return true;
   case IDM_SHOW_TOOLBAR:
     options.showToolbar = !window->isToolbarEnabled();
