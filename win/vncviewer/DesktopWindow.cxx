@@ -270,7 +270,7 @@ void DesktopWindow::setFullscreen(bool fs) {
     vlog.debug("flags=%x", flags);
 
     SetWindowLong(handle, GWL_STYLE, flags);
-    SetWindowPos(handle, HWND_TOPMOST, mi.rcMonitor.left, mi.rcMonitor.top,
+    SetWindowPos(handle, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
       mi.rcMonitor.right-mi.rcMonitor.left,
       mi.rcMonitor.bottom-mi.rcMonitor.top,
       SWP_FRAMECHANGED);
@@ -424,7 +424,7 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         reqd_size.br.y += GetSystemMetrics(SM_CXHSCROLL);
 
       SetRect(&r, reqd_size.tl.x, reqd_size.tl.y, reqd_size.br.x, reqd_size.br.y);
-      if (tb.isVisible())
+      if (isToolbarEnabled())
         r.bottom += tb.getHeight();
       AdjustWindowRect(&r, GetWindowLong(handle, GWL_STYLE), FALSE);
       reqd_size = Rect(r.left, r.top, r.right, r.bottom);
@@ -932,7 +932,7 @@ DesktopWindow::setSize(int w, int h) {
     RECT r = {0, 0, w, h};
     AdjustWindowRectEx(&r, GetWindowLong(frameHandle, GWL_STYLE), FALSE,
                        GetWindowLong(frameHandle, GWL_EXSTYLE));
-    if (tb.isVisible())
+    if (isToolbarEnabled())
       r.bottom += tb.getHeight();
     AdjustWindowRect(&r, GetWindowLong(handle, GWL_STYLE), FALSE);
 
