@@ -223,8 +223,9 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     window->setDesktopScale(100);
     return true;
   case IDM_AUTO_SIZE:
-    options.autoScaling = true;
-    window->setAutoScaling(true);
+    options.autoScaling = !options.autoScaling;
+    window->setAutoScaling(options.autoScaling);
+    if (!options.autoScaling) options.scale = window->getDesktopScale();
     return true;
   case IDM_SHOW_TOOLBAR:
     options.showToolbar = !window->isToolbarEnabled();

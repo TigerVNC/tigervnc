@@ -82,10 +82,7 @@ namespace rfb {
       PixelFormat getPF() const { return buffer->getPF(); }
       void setSize(int w, int h);
       void setColour(int i, int r, int g, int b) {buffer->setColour(i, r, g, b);}
-      void setAutoScaling(bool as) { 
-        autoScaling = as;
-        if (as) fitBufferToWindow();
-      }
+      void setAutoScaling(bool as);
       bool isAutoScaling() const { return autoScaling; }
       void setDesktopScale(int scale);
       int  getDesktopScale() const { return buffer->getScale(); }
@@ -102,6 +99,7 @@ namespace rfb {
       // - Set/get the toolbar's state
       void setShowToolbar(bool st);
       bool isToolbarEnabled() { return showToolbar; }
+      void refreshToolbarButtons();
 
       // - Set whether to disable special Windows keys & pass them straight to server
       void setDisableWinKeys(bool dwk);

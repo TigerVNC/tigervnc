@@ -308,6 +308,7 @@ void DesktopWindow::setShowToolbar(bool st)
   bool maximized = GetWindowLong(handle, GWL_STYLE) & WS_MAXIMIZE;
 
   if (showToolbar && !tb.isVisible()) {
+    refreshToolbarButtons();
     tb.show();
     if (!maximized) r.bottom += tb.getHeight();
   } else if (!showToolbar && tb.isVisible()) {
@@ -318,6 +319,24 @@ void DesktopWindow::setShowToolbar(bool st)
   // has not been changed (the main window is maximized)
   if (maximized) SendMessage(handle, WM_SIZE, 0, 0);
   else SetWindowPos(handle, NULL, 0, 0, r.right-r.left, r.bottom-r.top, SWP_NOMOVE | SWP_NOZORDER);
+}
+
+void DesktopWindow::refreshToolbarButtons() {
+  int scale = getDesktopScale();
+  if (scale == 100) tb.enableButton(ID_ACTUAL_SIZE, false);
+  else tb.enableButton(ID_ACTUAL_SIZE, true);
+  if (scale <= 10) {
+    tb.enableButton(ID_ZOOM_IN, true);
+    tb.enableButton(ID_ZOOM_OUT, false);
+  } else if (scale >= 200) {
+    tb.enableButton(ID_ZOOM_IN, false);
+    tb.enableButton(ID_ZOOM_OUT, true);
+  } else {
+    tb.enableButton(ID_ZOOM_IN, true);
+    tb.enableButton(ID_ZOOM_OUT, true);
+  }
+  if (isAutoScaling()) tb.pressButton(ID_AUTO_SIZE, true);
+  else tb.pressButton(ID_AUTO_SIZE, false);
 }
 
 void DesktopWindow::setDisableWinKeys(bool dwk) {
@@ -949,10 +968,16 @@ DesktopWindow::setSize(int w, int h) {
   calculateScrollBars();
 }
 
+void DesktopWindow::setAutoScaling(bool as) { 
+  autoScaling = as;
+  if (as) fitBufferToWindow();
+}
+
 void DesktopWindow::setDesktopScale(int scale) {
   buffer->setScale(scale);
   InvalidateRect(frameHandle, 0, FALSE);
   calculateScrollBars();
+  if (isToolbarEnabled()) refreshToolbarButtons();
 }
 
 void DesktopWindow::fitBufferToWindow(bool repaint) {
@@ -975,6 +1000,7 @@ void DesktopWindow::fitBufferToWindow(bool repaint) {
   }
   buffer->setScaleRatio(scale_ratio);
   if (repaint) InvalidateRect(frameHandle, 0, TRUE);
+  if (isToolbarEnabled()) refreshToolbarButtons();
 }
 
 void
