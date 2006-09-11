@@ -190,14 +190,11 @@ public:
     if (s > 0) {
       dlg->options.scale = s;
       dlg->options.autoScaling = false;
-      if (s == 100) dlg->options.scaling = false;
-      else dlg->options.scaling = true;
     } else {
       char scaleStr[20];
       GetDlgItemText(handle, IDC_COMBO_SCALE, scaleStr, 20);
       if (strcmp(scaleStr, "Auto") == 0) {
         dlg->options.autoScaling = true;
-        dlg->options.scaling = true;
       }
     }
     ((ViewerOptions*)propSheet)->setChanged();

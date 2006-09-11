@@ -153,9 +153,6 @@ autoReconnect(::autoReconnect), autoScaling(::autoScaling), scale(::scale)
     // Default to CustomCompressLevel=1 if CompressLevel is used.
     customCompressLevel = ::compressLevel.hasBeenSet();
   }
-
-  if (scale != 100) scaling = true;
-  else scaling = false; 
 }
 
 
@@ -300,9 +297,6 @@ void CConnOptions::readFromFile(const char* filename) {
     // If AutoSelect is enabled then override the preferred encoding
     if (autoSelect)
       preferredEncoding = encodingZRLE;
-
-    if (scale == 100) scaling = false;
-    else scaling = true;
 
     setConfigFileName(filename);
   } catch (rdr::Exception&) {
@@ -468,7 +462,6 @@ CConnOptions& CConnOptions::operator=(const CConnOptions& o) {
   qualityLevel = o.qualityLevel;
   autoScaling = o.autoScaling;
   scale = o.scale;
-  scaling = o.scaling;
 
   return *this;
 }

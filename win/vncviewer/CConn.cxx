@@ -195,7 +195,6 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
       options.autoScaling = false;
       window->setAutoScaling(false);
     }
-    options.scaling = false;
     options.scale = 100;
     window->setDesktopScale(100);
     return true;
