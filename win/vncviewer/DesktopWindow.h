@@ -88,6 +88,7 @@ namespace rfb {
       }
       bool isAutoScaling() const { return autoScaling; }
       void setDesktopScale(int scale);
+      int  getDesktopScale() const { return buffer->getScale(); }
       void fitBufferToWindow(bool repaint = true);
 
       // - Set the cursor to render when the pointer is within the desktop buffer

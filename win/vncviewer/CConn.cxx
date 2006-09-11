@@ -62,6 +62,9 @@ const int IDM_AUTO_SIZE = ID_AUTO_SIZE;
 static IntParameter debugDelay("DebugDelay","Milliseconds to display inverted "
                                "pixel data - a debugging feature", 0);
 
+const int scaleValues[9] = {10, 25, 50, 75, 90, 100, 125, 150, 200};
+const int scaleCount = 9;
+
 
 //
 // -=- CConn implementation
@@ -187,8 +190,29 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     window->setFullscreen(options.fullScreen);
     return true;
   case IDM_ZOOM_IN:
-    return true;
   case IDM_ZOOM_OUT:
+    {
+      if (options.autoScaling) {
+        options.scale = window->getDesktopScale();
+        options.autoScaling = false;
+        window->setAutoScaling(false);
+      }
+      if (wParam == IDM_ZOOM_IN) {
+        for (int i = 0; i < scaleCount; i++)
+          if (options.scale < scaleValues[i]) { 
+            options.scale = scaleValues[i];
+            break;
+          }
+      } else {
+        for (int i = scaleCount-1; i >= 0; i--)
+          if (options.scale > scaleValues[i]) { 
+            options.scale = scaleValues[i];
+            break;
+          }
+      }
+      if (options.scale != window->getDesktopScale()) 
+        window->setDesktopScale(options.scale);
+    }
     return true;
   case IDM_ACTUAL_SIZE:
     if (options.autoScaling) {
