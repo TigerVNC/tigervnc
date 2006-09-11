@@ -976,8 +976,12 @@ void DesktopWindow::setAutoScaling(bool as) {
 void DesktopWindow::setDesktopScaleRatio(double scale_ratio) {
   buffer->setScaleRatio(scale_ratio);
   InvalidateRect(frameHandle, 0, FALSE);
-  calculateScrollBars();
+  if (!isAutoScaling()) calculateScrollBars();
   if (isToolbarEnabled()) refreshToolbarButtons();
+  char *newTitle = new char[strlen(desktopName)+20];
+  sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
+  SetWindowText(handle, TStr(newTitle));
+  delete [] newTitle;
 }
 
 void DesktopWindow::fitBufferToWindow(bool repaint) {
@@ -1129,6 +1133,7 @@ void DesktopWindow::calculateScrollBars() {
 void
 DesktopWindow::setName(const char* name) {
   SetWindowText(handle, TStr(name));
+  strCopy(desktopName, name, sizeof(desktopName));
 }
 
 

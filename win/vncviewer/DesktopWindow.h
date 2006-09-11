@@ -240,6 +240,9 @@ namespace rfb {
       ViewerToolBar tb;
       bool showToolbar;
 
+      // Remote desktop name
+      char desktopName[255];
+
       // Local window state
       win32::ScaledDIBSectionBuffer* buffer;
       double aspect_corr;
