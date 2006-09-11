@@ -48,7 +48,7 @@ namespace rfb {
     int getSrcWidth()  const { return src_width; }
     int getSrcHeight() const { return src_height; }
     int area() const { return scaled_width * scaled_height; }
-    int getScale() const { return int(scale_ratio + 0.5); }
+    int getScale() const { return int(scale_ratio * 100 + 0.5); }
     double getScaleRatio() const { return scale_ratio; }
 
     // Get rectangle encompassing this buffer
