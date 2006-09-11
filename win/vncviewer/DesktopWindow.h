@@ -84,7 +84,8 @@ namespace rfb {
       void setColour(int i, int r, int g, int b) {buffer->setColour(i, r, g, b);}
       void setAutoScaling(bool as);
       bool isAutoScaling() const { return autoScaling; }
-      void setDesktopScale(int scale);
+      void setDesktopScaleRatio(double scale_ratio);
+      void setDesktopScale(int scale) { setDesktopScaleRatio(double(scale)/100); }
       int  getDesktopScale() const { return buffer->getScale(); }
       void fitBufferToWindow(bool repaint = true);
 

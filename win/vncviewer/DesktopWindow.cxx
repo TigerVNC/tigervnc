@@ -973,8 +973,8 @@ void DesktopWindow::setAutoScaling(bool as) {
   if (as) fitBufferToWindow();
 }
 
-void DesktopWindow::setDesktopScale(int scale) {
-  buffer->setScale(scale);
+void DesktopWindow::setDesktopScaleRatio(double scale_ratio) {
+  buffer->setScaleRatio(scale_ratio);
   InvalidateRect(frameHandle, 0, FALSE);
   calculateScrollBars();
   if (isToolbarEnabled()) refreshToolbarButtons();
@@ -998,9 +998,7 @@ void DesktopWindow::fitBufferToWindow(bool repaint) {
   } else { 
     scale_ratio = double(client_size.width()) / buffer->getSrcWidth();
   }
-  buffer->setScaleRatio(scale_ratio);
-  if (repaint) InvalidateRect(frameHandle, 0, TRUE);
-  if (isToolbarEnabled()) refreshToolbarButtons();
+  setDesktopScaleRatio(scale_ratio);
 }
 
 void
