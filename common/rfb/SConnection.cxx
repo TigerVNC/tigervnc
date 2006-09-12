@@ -207,6 +207,7 @@ void SConnection::offerTunneling()
   os->writeU32(nTypes);
 
   if (nTypes) {
+    // NOTE: Never executed in current version.
     state_ = RFBSTATE_TIGHT_TUNN_TYPE;
   } else {
     offerAuthentication();
@@ -425,13 +426,36 @@ void SConnection::sendInteractionCaps()
 
   // Advertise all supported encoding types (except raw encoding).
   CapsList ecaps;
-  // FIXME: Add actually registered encodings (and CopyRect which is special).
-  //        Ideally, encoders themselves should provide capability info.
+
+  // First, add true encodings.
+  for (unsigned int i = 1; i <= encodingMax; i++) {
+    if (Encoder::supported(i)) {
+      // FIXME: Ideally, encoders themselves should provide capability info.
+      switch(i) {
+      case encodingRRE:
+        ecaps.addStandard(encodingRRE,            "RRE_____");
+        break;
+      case encodingCoRRE:
+        ecaps.addStandard(encodingCoRRE,          "CORRE___");
+        break;
+      case encodingHextile:
+        ecaps.addStandard(encodingHextile,        "HEXTILE_");
+        break;
+      case encodingZRLE:
+        ecaps.addStandard(encodingZRLE,           "ZRLE____");
+        break;
+      case encodingTight:
+        ecaps.addTightExt(encodingTight,          "TIGHT___");
+        break;
+      }
+    }
+  }
+
+  // CopyRect is special - Encoder::supported() returns 0 for it,
+  // that's why we add it here explicitly.
   ecaps.addStandard(encodingCopyRect,             "COPYRECT");
-  ecaps.addStandard(encodingRRE,                  "RRE_____");
-  ecaps.addStandard(encodingHextile,              "HEXTILE_");
-  ecaps.addStandard(encodingZRLE,                 "ZRLE____");
-  ecaps.addTightExt(encodingTight,                "TIGHT___");
+
+  // Add supported pseudo encodings as well.
   ecaps.addTightExt(pseudoEncodingCompressLevel0, "COMPRLVL");
   ecaps.addTightExt(pseudoEncodingQualityLevel0,  "JPEGQLVL");
   ecaps.addTightExt(pseudoEncodingXCursor,        "X11CURSR");
