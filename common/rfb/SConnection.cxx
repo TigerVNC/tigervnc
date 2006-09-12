@@ -227,33 +227,27 @@ void SConnection::offerAuthentication()
 {
   vlog.debug("offering list of authentication methods");
 
-  // FIXME: Security types and TightVNC's auth types should be distinguished
-  //        although we use the same codes for NoAuth and VncAuth.
+  // See processVersionMsg(), the code below is similar.
 
-  // See processVersionMsg(), the code below is very similar.
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;
+
+  // NOTE: In addition to standard security types, we might want to offer
+  //       TightVNC-specific authentication types. But currently we support
+  //       only the standard security types: secTypeNone and secTypeVncAuth.
   securityFactory->getSecTypes(&secTypes, reverseConnection);
 
   if (secTypes.empty())
     throwConnFailedException("No supported security types");
 
-  // FIXME: We should send an empty list for "no authentication".
+  // FIXME: Send an empty list for "no authentication".
 
   CapsList caps;
   for (i = secTypes.begin(); i != secTypes.end(); i++) {
-    // FIXME: Use mapping instead (authType -> ProtocolCapability).
-    //        Each auth type should provide its capability data.
-    // FIXME: Check that client will send auth type listed in capabilities.
-    //        Currently, capabilities should duplicate secTypes exactly,
-    //        but that may change in the future.
-    switch(*i) {
-    case secTypeNone:
-      caps.addStandard(secTypeNone, "NOAUTH__");
-      break;
-    case secTypeVncAuth:
-      caps.addStandard(secTypeVncAuth, "VNCAUTH_");
-      break;
+    // FIXME: Capability info should be provided by SSecurity objects.
+    switch (*i) {
+    case secTypeNone:     caps.addStandard(*i, "NOAUTH__"); break;
+    case secTypeVncAuth:  caps.addStandard(*i, "VNCAUTH_"); break;
     }
   }
   os->writeU32(caps.getSize());
@@ -405,15 +399,15 @@ void SConnection::setInitialColourMap()
 void SConnection::clientInit(bool shared)
 {
   writer_->writeServerInit();
-  
-  // FIXME: Is this a right place for this code?
+
+  // FIXME: Send interaction capabilities via writer_?
   if (cp.tightExtensionsEnabled)
     sendInteractionCaps();
 
   state_ = RFBSTATE_NORMAL;
 }
 
-// FIXME: Is this class a right place for this function?
+// FIXME: Move sendInteractionCaps() to a class derived from SMsgWriterV3?
 void SConnection::sendInteractionCaps()
 {
   // Advertise support for non-standard server-to-client messages.
@@ -430,23 +424,13 @@ void SConnection::sendInteractionCaps()
   // First, add true encodings.
   for (unsigned int i = 1; i <= encodingMax; i++) {
     if (Encoder::supported(i)) {
-      // FIXME: Ideally, encoders themselves should provide capability info.
-      switch(i) {
-      case encodingRRE:
-        ecaps.addStandard(encodingRRE,            "RRE_____");
-        break;
-      case encodingCoRRE:
-        ecaps.addStandard(encodingCoRRE,          "CORRE___");
-        break;
-      case encodingHextile:
-        ecaps.addStandard(encodingHextile,        "HEXTILE_");
-        break;
-      case encodingZRLE:
-        ecaps.addStandard(encodingZRLE,           "ZRLE____");
-        break;
-      case encodingTight:
-        ecaps.addTightExt(encodingTight,          "TIGHT___");
-        break;
+      // FIXME: Capability info should be provided by Encoder objects.
+      switch (i) {
+      case encodingRRE:      ecaps.addStandard(i, "RRE_____"); break;
+      case encodingCoRRE:    ecaps.addStandard(i, "CORRE___"); break;
+      case encodingHextile:  ecaps.addStandard(i, "HEXTILE_"); break;
+      case encodingZRLE:     ecaps.addStandard(i, "ZRLE____"); break;
+      case encodingTight:    ecaps.addTightExt(i, "TIGHT___"); break;
       }
     }
   }
