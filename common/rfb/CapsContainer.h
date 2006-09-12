@@ -55,7 +55,7 @@ namespace rfb {
   // capability becomes enabled if it is known (added by the client) and
   // matches that one received from the server. Finally, the client can
   // check if a given capability is enabled, and also get the list of
-  // capabilities in the order they were enabled.
+  // capabilities in the order they were listed by the server.
   //
 
   class CapsContainer
