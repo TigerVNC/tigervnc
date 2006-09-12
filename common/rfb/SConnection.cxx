@@ -205,6 +205,7 @@ void SConnection::offerTunneling()
 
   // Advertise our tunneling capabilities (currently, nothing to advertise).
   os->writeU32(nTypes);
+  os->flush();
 
   if (nTypes) {
     // NOTE: Never executed in current version.
@@ -237,35 +238,44 @@ void SConnection::offerAuthentication()
   //       only the standard security types: secTypeNone and secTypeVncAuth.
   securityFactory->getSecTypes(&secTypes, reverseConnection);
 
-  if (secTypes.empty())
-    throwConnFailedException("No supported security types");
-
-  // FIXME: Send an empty list for "no authentication".
-
   CapsList caps;
   for (i = secTypes.begin(); i != secTypes.end(); i++) {
     // FIXME: Capability info should be provided by SSecurity objects.
     switch (*i) {
     case secTypeNone:     caps.addStandard(*i, "NOAUTH__"); break;
     case secTypeVncAuth:  caps.addStandard(*i, "VNCAUTH_"); break;
+    default:
+      // This should not ever happen.
+      vlog.error("not offering unknown security type %d", (int)*i);
     }
   }
-  os->writeU32(caps.getSize());
-  caps.write(os);
-  os->flush();
 
-  // FIXME: Capability list is never empty here, otherwise
-  //        we would not expect authentication type message.
-  state_ = RFBSTATE_TIGHT_AUTH_TYPE;
+  if (caps.getSize() < 1)
+    throwConnFailedException("No supported security types");
+
+  if (caps.includesOnly(secTypeNone)) {
+    // Special case - if caps includes nothing else than secTypeNone, we send
+    // an empty capability list and do not expect security type selection from
+    // the client.
+    os->writeU32(0);
+    os->flush();
+    processSecurityType(secTypeNone);
+  } else {
+    // Normal case - sending the list of authentication capabilities.
+    os->writeU32(caps.getSize());
+    caps.write(os);
+    os->flush();
+    state_ = RFBSTATE_TIGHT_AUTH_TYPE;
+  }
 }
 
 void SConnection::processAuthTypeMsg()
 {
   vlog.debug("processing authentication type message (TightVNC extension)");
 
-  // FIXME: Security types and TightVNC's auth types should be distinguished
-  //        although we use the same codes for NoAuth and VncAuth.
-
+  // NOTE: Currently, we support only the standard security types, so we
+  //       just pass TightVNC authentication type for standard processing,
+  //       just as it was usual RFB security type.
   int secType = is->readU32();
   processSecurityType(secType);
 }
@@ -431,6 +441,9 @@ void SConnection::sendInteractionCaps()
       case encodingHextile:  ecaps.addStandard(i, "HEXTILE_"); break;
       case encodingZRLE:     ecaps.addStandard(i, "ZRLE____"); break;
       case encodingTight:    ecaps.addTightExt(i, "TIGHT___"); break;
+      default:
+        // This should not ever happen.
+        vlog.error("not advertising unknown encoding type %d", (int)i);
       }
     }
   }

@@ -48,6 +48,11 @@ namespace rfb {
     // Current number of capabilities in the list.
     int getSize() const { return numEnabled(); }
 
+    // Does the list include nothing more than one particular capability?
+    bool includesOnly(rdr::U32 code) {
+      return (numEnabled() == 1 && getByOrder(0) == code);
+    }
+
     // Add capability ("standard" vendor).
     void addStandard(rdr::U32 code, const char *name);
     // Add capability (TightVNC vendor).
