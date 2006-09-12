@@ -18,7 +18,7 @@
 
 //
 // CapsList class implementation.
-// FIXME: Extend the comment.
+// Member functions are documented in CapsList.h.
 //
 
 #include <rfb/CapsList.h>
