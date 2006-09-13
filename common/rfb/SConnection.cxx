@@ -420,13 +420,13 @@ void SConnection::clientInit(bool shared)
 // FIXME: Move sendInteractionCaps() to a class derived from SMsgWriterV3?
 void SConnection::sendInteractionCaps()
 {
-  // Advertise support for non-standard server-to-client messages.
+  // Advertise support for non-standard server-to-client messages
+  // (this version has nothing to advertise).
   CapsList scaps;
-  int nServerMsgTypes = scaps.getSize();
 
-  // Advertise support for non-standard client-to-server messages.
+  // Advertise support for non-standard client-to-server messages
+  // (this version has nothing to advertise).
   CapsList ccaps;
-  int nClientMsgTypes = ccaps.getSize();
 
   // Advertise all supported encoding types (except raw encoding).
   CapsList ecaps;
