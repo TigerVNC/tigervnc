@@ -9,6 +9,7 @@ CXXSRCS = \
   CMsgWriterV3.cxx \
   CSecurityVncAuth.cxx \
   CapsContainer.cxx \
+  CapsList.cxx \
   ComparingUpdateTracker.cxx \
   Configuration.cxx \
   ConnParams.cxx \
