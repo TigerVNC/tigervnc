@@ -616,6 +616,14 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     kbd.keyEvent(callback, wParam, lParam, (msg == WM_KEYDOWN) || (msg == WM_SYSKEYDOWN));
     return 0;
 
+    // -=- Handle mouse wheel scroll events
+
+#ifdef WM_MOUSEWHEEL
+  case WM_MOUSEWHEEL:
+    processMouseMessage(msg, wParam, lParam);
+    break;
+#endif
+
     // -=- Handle the window closing
 
   case WM_CLOSE:
@@ -756,81 +764,83 @@ DesktopWindow::processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   case WM_LBUTTONDOWN:
   case WM_MBUTTONDOWN:
   case WM_RBUTTONDOWN:
-#ifdef WM_MOUSEWHEEL
-  case WM_MOUSEWHEEL:
-#endif
-    if (has_focus)
-    {
-      if (!trackingMouseLeave) {
-        TRACKMOUSEEVENT tme;
-        tme.cbSize = sizeof(TRACKMOUSEEVENT);
-        tme.dwFlags = TME_LEAVE;
-        tme.hwndTrack = frameHandle;
-        _TrackMouseEvent(&tme);
-        trackingMouseLeave = true;
-      }
-      int mask = 0;
-      if (LOWORD(wParam) & MK_LBUTTON) mask |= 1;
-      if (LOWORD(wParam) & MK_MBUTTON) mask |= 2;
-      if (LOWORD(wParam) & MK_RBUTTON) mask |= 4;
-
-#ifdef WM_MOUSEWHEEL
-      if (msg == WM_MOUSEWHEEL) {
-        int delta = (short)HIWORD(wParam);
-        int repeats = (abs(delta)+119) / 120;
-        int wheelMask = (delta > 0) ? 8 : 16;
-        vlog.debug("repeats %d, mask %d\n",repeats,wheelMask);
-        for (int i=0; i<repeats; i++) {
-          ptr.pointerEvent(callback, oldpos, mask | wheelMask);
-          ptr.pointerEvent(callback, oldpos, mask);
-        }
-      } else {
-#endif
-        Point clientPos = Point(LOWORD(lParam), HIWORD(lParam));
-        Point p = clientToDesktop(clientPos);
-
-        // If the mouse is not within the server buffer area, do nothing
-        cursorInBuffer = buffer->getRect().contains(p);
-        if (!cursorInBuffer) {
-          cursorOutsideBuffer();
-          break;
-        }
-
-        // If we're locally rendering the cursor then redraw it
-        if (cursorAvailable) {
-          // - Render the cursor!
-          if (!p.equals(cursorPos)) {
-            hideLocalCursor();
-            cursorPos = p;
-            showLocalCursor();
-            if (cursorVisible)
-              hideSystemCursor();
-          }
-        }
-
-        // If we are doing bump-scrolling then try that first...
-        if (processBumpScroll(clientPos))
-          break;
-
-        // Send a pointer event to the server
-        oldpos = p;
-        if (buffer->isScaling()) {
-          p.x /= buffer->getScaleRatio();
-          p.y /= buffer->getScaleRatio();
-        }
-        ptr.pointerEvent(callback, p, mask);
-#ifdef WM_MOUSEWHEEL
-      }
-#endif
-    } else {
-      cursorOutsideBuffer();
-    }
+    processMouseMessage(msg, wParam, lParam);
     break;
   }
 
   return rfb::win32::SafeDefWindowProc(frameHandle, msg, wParam, lParam);
 }
 
+void
+DesktopWindow::processMouseMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+  if (!has_focus) {
+    cursorOutsideBuffer();
+    return;
+  }
+
+  if (!trackingMouseLeave) {
+    TRACKMOUSEEVENT tme;
+    tme.cbSize = sizeof(TRACKMOUSEEVENT);
+    tme.dwFlags = TME_LEAVE;
+    tme.hwndTrack = frameHandle;
+    _TrackMouseEvent(&tme);
+    trackingMouseLeave = true;
+  }
+  int mask = 0;
+  if (LOWORD(wParam) & MK_LBUTTON) mask |= 1;
+  if (LOWORD(wParam) & MK_MBUTTON) mask |= 2;
+  if (LOWORD(wParam) & MK_RBUTTON) mask |= 4;
+
+#ifdef WM_MOUSEWHEEL
+  if (msg == WM_MOUSEWHEEL) {
+    int delta = (short)HIWORD(wParam);
+    int repeats = (abs(delta)+119) / 120;
+    int wheelMask = (delta > 0) ? 8 : 16;
+    vlog.debug("repeats %d, mask %d\n",repeats,wheelMask);
+    for (int i=0; i<repeats; i++) {
+      ptr.pointerEvent(callback, oldpos, mask | wheelMask);
+      ptr.pointerEvent(callback, oldpos, mask);
+    }
+  } else {
+#endif
+    Point clientPos = Point(LOWORD(lParam), HIWORD(lParam));
+    Point p = clientToDesktop(clientPos);
+
+    // If the mouse is not within the server buffer area, do nothing
+    cursorInBuffer = buffer->getRect().contains(p);
+    if (!cursorInBuffer) {
+      cursorOutsideBuffer();
+      return;
+    }
+
+    // If we're locally rendering the cursor then redraw it
+    if (cursorAvailable) {
+      // - Render the cursor!
+      if (!p.equals(cursorPos)) {
+        hideLocalCursor();
+        cursorPos = p;
+        showLocalCursor();
+        if (cursorVisible)
+          hideSystemCursor();
+      }
+    }
+
+    // If we are doing bump-scrolling then try that first...
+    if (processBumpScroll(clientPos))
+      return;
+
+    // Send a pointer event to the server
+    oldpos = p;
+    if (buffer->isScaling()) {
+      p.x /= buffer->getScaleRatio();
+      p.y /= buffer->getScaleRatio();
+    }
+    ptr.pointerEvent(callback, p, mask);
+#ifdef WM_MOUSEWHEEL
+  }
+#endif
+}
 
 void
 DesktopWindow::hideLocalCursor() {

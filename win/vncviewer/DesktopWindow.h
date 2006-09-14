@@ -56,6 +56,10 @@ namespace rfb {
       // - Window message handling procedure for the framebuffer window
       LRESULT processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
+      // - Separate message handling procedure for mouse events
+      //   It's called from both processMessage() and processFrameMessage()
+      void processMouseMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+
       // - Determine the native pixel format of the window
       //   This can (and often will) differ from the PixelBuffer format
       PixelFormat getNativePF() const;
