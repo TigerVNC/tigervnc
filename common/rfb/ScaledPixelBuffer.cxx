@@ -84,7 +84,7 @@ void ScaledPixelBuffer::scaleRect(const Rect& r) {
     c1_sub_dy = 1 - dy;
 
     for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
-      ptr = &scaled_data[(x + y*scaled_width) * 4];
+      ptr = &(*scaled_data)[(x + y*scaled_width) * 4];
 
       i = (int)(dx = x / scale_ratio);
       dx -= i;

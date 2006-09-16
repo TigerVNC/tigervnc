@@ -90,7 +90,7 @@ namespace rfb {
     PixelFormat pf;
     double scale_ratio;
     U8 **src_data;
-    U8 *scaled_data;
+    U8 **scaled_data;
   };
 
 };

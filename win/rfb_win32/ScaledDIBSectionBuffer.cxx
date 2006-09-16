@@ -30,7 +30,7 @@ using namespace win32;
 
 ScaledDIBSectionBuffer::ScaledDIBSectionBuffer(HWND window) 
   : src_buffer(0), scaling(false), DIBSectionBuffer(window) {
-  scaled_data = data;
+  scaled_data = &data;
 }
 
 ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
@@ -61,7 +61,6 @@ void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
     }
   }
   DIBSectionBuffer::setPF(pf_);
-  scaled_data = data;
 }
 
 void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
@@ -76,7 +75,6 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
 void ScaledDIBSectionBuffer::recreateScaledBuffer() {
   if (width_ && height_ && (format.depth != 0)) {
     DIBSectionBuffer::recreateBuffer();
-    scaled_data = data;
   }
 }
 
