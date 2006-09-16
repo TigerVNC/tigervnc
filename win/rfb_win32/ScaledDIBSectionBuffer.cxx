@@ -28,6 +28,8 @@
 using namespace rfb;
 using namespace win32;
 
+const PixelFormat RGB24(32, 24, 0, 1, 255, 255, 255, 16, 8, 0);
+
 ScaledDIBSectionBuffer::ScaledDIBSectionBuffer(HWND window) 
   : src_buffer(0), scaling(false), DIBSectionBuffer(window) {
   scaled_data = &data;
@@ -42,25 +44,29 @@ void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
 
   if (format.depth != 24 && format.depth != 0) throw rfb::UnsupportedPixelFormatException();
 
-  if (scale_ratio_ != 1) scaling = true;
-  else scaling = false;
-  ScaledPixelBuffer::setScaleRatio(scale_ratio_);
-  calculateScaledBufferSize();
+  scale_ratio = scale_ratio_;
+  if (scale_ratio == 1) scaling = false;
+  else scaling = true;
   recreateBuffers();
 }
 
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
   if (memcmp(&(ScaledPixelBuffer::pf), &pf_, sizeof(pf_)) == 0) return;
 
-  ScaledPixelBuffer::pf = pf_;
+  pf = pf_;
   if (scaling) {
-    if (src_buffer) src_buffer->setPF(pf_);
-    else {
-      src_buffer = new ManagedPixelBuffer(pf_, src_width, src_height);
+    if (src_buffer) {
+      src_buffer->setPF(pf);
+    } else {
+      src_buffer = new ManagedPixelBuffer(pf, src_width, src_height);
       src_data = &(src_buffer->data);
     }
+    if (memcmp(&(DIBSectionBuffer::getPF()), &RGB24, sizeof(PixelFormat)) != 0) {
+      DIBSectionBuffer::setPF(RGB24);
+    }
+  } else {
+    DIBSectionBuffer::setPF(pf);
   }
-  DIBSectionBuffer::setPF(pf_);
 }
 
 void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
@@ -68,24 +74,24 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
 
   src_width = src_width_;
   src_height = src_height_;
-  calculateScaledBufferSize();
   recreateBuffers();
 }
 
 void ScaledDIBSectionBuffer::recreateScaledBuffer() {
-  if (width_ && height_ && (format.depth != 0)) {
+  calculateScaledBufferSize();
+  if (scaling && memcmp(&(DIBSectionBuffer::getPF()), &RGB24, sizeof(PixelFormat)) != 0) {
+    DIBSectionBuffer::setPF(RGB24);
+  } else {
     DIBSectionBuffer::recreateBuffer();
   }
 }
 
 void ScaledDIBSectionBuffer::recreateBuffers() {
-  if (scaled_width && scaled_height && format.depth != 0 && scale_ratio != 0) {
+  if (src_width && src_height && pf.depth != 0 && scale_ratio != 0) {
     if (scaling) {
-      if (src_buffer) {
+      if (src_buffer) { 
         if (src_buffer->width() != src_width || src_buffer->width() != src_height)
           src_buffer->setSize(src_width, src_height);
-        if (memcmp(&src_buffer->getPF(), &pf, sizeof(pf)) == 0)
-          src_buffer->setPF(pf);
       } else {
         src_buffer = new ManagedPixelBuffer(format, src_width, src_height);
         src_data = &(src_buffer->data);
@@ -95,13 +101,11 @@ void ScaledDIBSectionBuffer::recreateBuffers() {
     recreateScaledBuffer();
     if (scaling) {
       scaleRect(Rect(0, 0, src_width, src_height));
-    } else {
+    } else if (src_buffer) {
       memcpy(data, src_buffer->data, src_buffer->area() * (src_buffer->getPF().bpp/8));
-      if (src_buffer) {
-        delete src_buffer;
-        src_buffer = 0;
-        src_data = 0;
-      }
+      delete src_buffer;
+      src_buffer = 0;
+      src_data = 0;
     }
   }
 }
