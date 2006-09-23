@@ -40,9 +40,7 @@ ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
 }
 
 void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
-  if (scale_ratio == scale_ratio_) return;
-
-  if (format.depth != 24 && format.depth != 0) throw rfb::UnsupportedPixelFormatException();
+  if (scale_ratio == scale_ratio_ || scale_ratio <= 0) return;
 
   scale_ratio = scale_ratio_;
   if (scale_ratio == 1) scaling = false;
@@ -52,6 +50,8 @@ void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
 
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
   if (memcmp(&(ScaledPixelBuffer::pf), &pf_, sizeof(pf_)) == 0) return;
+
+  if (!pf_.trueColour) throw rfb::UnsupportedPixelFormatException();
 
   pf = pf_;
   if (scaling) {
@@ -81,32 +81,35 @@ void ScaledDIBSectionBuffer::recreateScaledBuffer() {
   calculateScaledBufferSize();
   if (scaling && memcmp(&(DIBSectionBuffer::getPF()), &RGB24, sizeof(PixelFormat)) != 0) {
     DIBSectionBuffer::setPF(RGB24);
+  } else if (!scaling && (memcmp(&(DIBSectionBuffer::getPF()), &pf, sizeof(PixelFormat)) != 0)){
+    DIBSectionBuffer::setPF(pf);
   } else {
     DIBSectionBuffer::recreateBuffer();
   }
 }
 
 void ScaledDIBSectionBuffer::recreateBuffers() {
-  if (src_width && src_height && pf.depth != 0 && scale_ratio != 0) {
+  // Recreate the source pixel buffer
+  if (src_width && src_height && pf.depth > 0) {
     if (scaling) {
       if (src_buffer) { 
         if (src_buffer->width() != src_width || src_buffer->width() != src_height)
           src_buffer->setSize(src_width, src_height);
       } else {
-        src_buffer = new ManagedPixelBuffer(format, src_width, src_height);
+        src_buffer = new ManagedPixelBuffer(pf, src_width, src_height);
         src_data = &(src_buffer->data);
-        memcpy(src_buffer->data, data, src_width * src_height * (getPF().bpp/8));
+        if (data) memcpy(src_buffer->data, data, src_width * src_height * (getPF().bpp/8));
       }
     }
-    recreateScaledBuffer();
-    if (scaling) {
-      scaleRect(Rect(0, 0, src_width, src_height));
-    } else if (src_buffer) {
-      memcpy(data, src_buffer->data, src_buffer->area() * (src_buffer->getPF().bpp/8));
-      delete src_buffer;
-      src_buffer = 0;
-      src_data = 0;
-    }
+  }
+  // Recreate the scaled pixel buffer
+  recreateScaledBuffer();
+  if (scaling && src_buffer && data) scaleRect(Rect(0, 0, src_width, src_height));
+  else if (!scaling && src_buffer) {
+    if (src_buffer->data && data) memcpy(data, src_buffer->data, src_buffer->area() * (getPF().bpp/8));
+    delete src_buffer;
+    src_buffer = 0;
+    src_data = 0;
   }
 }
 
