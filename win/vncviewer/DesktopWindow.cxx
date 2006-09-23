@@ -856,7 +856,7 @@ DesktopWindow::hideLocalCursor() {
 void
 DesktopWindow::showLocalCursor() {
   if (cursorAvailable && !cursorVisible && cursorInBuffer) {
-    if (!buffer->getPF().equal(cursor.getPF()) ||
+    if (!buffer->getScaledPixelFormat().equal(cursor.getPF()) ||
       cursor.getRect().is_empty()) {
       vlog.info("attempting to render invalid local cursor");
       cursorAvailable = false;
@@ -931,7 +931,7 @@ DesktopWindow::notifyClipboardChanged(const char* text, int len) {
 void
 DesktopWindow::setPF(const PixelFormat& pf) {
   // If the cursor is the wrong format then clear it
-  if (!pf.equal(buffer->getPF()))
+  if (!pf.equal(buffer->getScaledPixelFormat()))
     setCursor(0, 0, Point(), 0, 0);
 
   // Update the desktop buffer
@@ -1022,13 +1022,13 @@ DesktopWindow::setCursor(int w, int h, const Point& hotspot, void* data, void* m
   cursor.hotspot = hotspot;
 
   cursor.setSize(w, h);
-  cursor.setPF(buffer->getPF());
+  cursor.setPF(buffer->getScaledPixelFormat());
   cursor.imageRect(cursor.getRect(), data);
   memcpy(cursor.mask.buf, mask, cursor.maskLen());
   cursor.crop();
 
   cursorBacking.setSize(w, h);
-  cursorBacking.setPF(buffer->getPF());
+  cursorBacking.setPF(buffer->getScaledPixelFormat());
 
   cursorAvailable = true;
 

@@ -83,7 +83,7 @@ namespace rfb {
 
       // - Set the pixel format, size etc of the underlying PixelBuffer
       void setPF(const PixelFormat& pf);
-      PixelFormat getPF() const { return buffer->getPF(); }
+      PixelFormat getPF() const { return buffer->getPixelFormat(); }
       void setSize(int w, int h);
       void setColour(int i, int r, int g, int b) {buffer->setColour(i, r, g, b);}
       void setAutoScaling(bool as);
