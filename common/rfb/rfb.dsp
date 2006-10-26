@@ -629,6 +629,10 @@ SOURCE=.\ScaledPixelBuffer.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScaleFilters.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SConnection.h
 # End Source File
 # Begin Source File
