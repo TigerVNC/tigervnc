@@ -69,11 +69,18 @@ namespace rfb {
     else return sin(pi*x)/(pi*x);
   }
 
+
   typedef struct {
     char name[30];
     double radius;
     filter_func func;
   } SFilter;
+
+  typedef struct {
+    short int i0, i1;  // Filter function interval, [i0..i1)
+    float *weight;     // Weight coefficients on the filter function interval
+  } SFilterWeightTab;
+
 
   class ScaleFilters {
   public:
