@@ -69,11 +69,38 @@ namespace rfb {
     else return sin(pi*x)/(pi*x);
   }
 
-  class ScaleFilter {
-  public:
+  typedef struct {
     char name[30];
-    int radius;
+    double radius;
     filter_func func;
+  } SFilter;
+
+  class ScaleFilters {
+  public:
+    ScaleFilters() { initFilters(); };
+
+    SFilter &operator[](unsigned int filter_id) {
+      return filters[filter_id];
+    }
+
+  protected:
+    void initFilters() {
+      filters[scaleFilterNearestNeighbor] = create("Nearest neighbor", 0.5, nearest_neighbor);
+      filters[scaleFilterBilinear] = create("Bilinear", 1, linear);
+      filters[scaleFilterBicubic] = create("Bicubic", 2, cubic);
+      filters[scaleFilterSinc]  = create("Sinc", 4, sinc);
+    }
+
+    SFilter create(char *name_, double radius_, filter_func func_) {
+      SFilter filter;
+      strncpy(filter.name, name_, sizeof(filter.name)-1); 
+      filter.name[sizeof(filter.name)-1] = '\0';
+      filter.radius = radius_;
+      filter.func = func_;
+      return filter;
+    }
+
+    SFilter filters[scaleFiltersMax];
   };
 
 };
