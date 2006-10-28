@@ -22,6 +22,7 @@
 //  
 // 
 
+#include <assert.h>
 #include <math.h>
 
 namespace rfb {
@@ -35,7 +36,7 @@ namespace rfb {
   const unsigned int scaleFilterBicubic = 2;
   const unsigned int scaleFilterSinc = 3;
 
-  const unsigned int scaleFiltersMax = 10;
+  const unsigned int scaleFilterMaxNumber = 3;
 
   //
   // -=- 1-D filters functions
@@ -97,6 +98,7 @@ namespace rfb {
     ScaleFilters() { initFilters(); };
 
     SFilter &operator[](unsigned int filter_id) {
+      assert(filter_id < scaleFilterMaxNumber);
       return filters[filter_id];
     }
 
@@ -117,7 +119,7 @@ namespace rfb {
       return filter;
     }
 
-    SFilter filters[scaleFiltersMax];
+    SFilter filters[scaleFilterMaxNumber+1];
   };
 
 };
