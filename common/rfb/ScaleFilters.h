@@ -37,6 +37,10 @@ namespace rfb {
 
   const unsigned int scaleFiltersMax = 10;
 
+  //
+  // -=- 1-D filters functions
+  //
+
   // Nearest neighbor filter function
   double nearest_neighbor(double x) {
     if (x < -0.5) return 0.0;
@@ -69,19 +73,25 @@ namespace rfb {
     else return sin(pi*x)/(pi*x);
   }
 
+  //
+  // -=- Scale filters structures and routines
+  //
 
+  // Scale filter stuct
   typedef struct {
-    char name[30];
-    double radius;
-    filter_func func;
+    char name[30];     // Filter name
+    double radius;     // Radius where filter function is nonzero
+    filter_func func;  // Pointer to filter function
   } SFilter;
 
+  // Scale filter weight table
   typedef struct {
     short int i0, i1;  // Filter function interval, [i0..i1)
     float *weight;     // Weight coefficients on the filter function interval
   } SFilterWeightTab;
 
 
+  // ScaleFilters class helps us using a set of 1-d scale filters.
   class ScaleFilters {
   public:
     ScaleFilters() { initFilters(); };
