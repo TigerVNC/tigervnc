@@ -275,6 +275,10 @@ SOURCE=.\ScaledPixelBuffer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScaleFilters.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\SConnection.cxx
 # End Source File
 # Begin Source File

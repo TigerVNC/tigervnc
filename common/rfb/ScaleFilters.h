@@ -22,9 +22,6 @@
 //  
 // 
 
-#include <assert.h>
-#include <math.h>
-
 namespace rfb {
 
   typedef double (*filter_func)(double x);
@@ -37,42 +34,6 @@ namespace rfb {
   const unsigned int scaleFilterSinc = 3;
 
   const unsigned int scaleFilterMaxNumber = 3;
-
-  //
-  // -=- 1-D filters functions
-  //
-
-  // Nearest neighbor filter function
-  double nearest_neighbor(double x) {
-    if (x < -0.5) return 0.0;
-    if (x < 0.5) return 1.0;
-    return 0.0;
-  }
-
-  // Linear filter function
-  double linear(double x) {
-    if (x < -1.0) return 0.0;
-    if (x < 0.0) return 1.0+x;
-    if (x < 1.0) return 1.0-x;
-    return 0.0;
-  }
-
-  // Cubic filter functions
-  double cubic(double x) {
-    double t;
-    if (x < -2.0) return 0.0;
-    if (x < -1.0) {t = 2.0+x; return t*t*t/6.0;}
-    if (x < 0.0) return (4.0+x*x*(-6.0+x*-3.0))/6.0;
-    if (x < 1.0) return (4.0+x*x*(-6.0+x*3.0))/6.0;
-    if (x < 2.0) {t = 2.0-x; return t*t*t/6.0;}
-    return 0.0;
-  }
-
-  // Sinc filter function
-  double sinc(double x) {
-    if (x == 0.0) return 1.0;
-    else return sin(pi*x)/(pi*x);
-  }
 
   //
   // -=- Scale filters structures and routines
@@ -97,27 +58,12 @@ namespace rfb {
   public:
     ScaleFilters() { initFilters(); };
 
-    SFilter &operator[](unsigned int filter_id) {
-      assert(filter_id < scaleFilterMaxNumber);
-      return filters[filter_id];
-    }
+    SFilter &operator[](unsigned int filter_id);
 
   protected:
-    void initFilters() {
-      filters[scaleFilterNearestNeighbor] = create("Nearest neighbor", 0.5, nearest_neighbor);
-      filters[scaleFilterBilinear] = create("Bilinear", 1, linear);
-      filters[scaleFilterBicubic] = create("Bicubic", 2, cubic);
-      filters[scaleFilterSinc]  = create("Sinc", 4, sinc);
-    }
+    void initFilters();
 
-    SFilter create(char *name_, double radius_, filter_func func_) {
-      SFilter filter;
-      strncpy(filter.name, name_, sizeof(filter.name)-1); 
-      filter.name[sizeof(filter.name)-1] = '\0';
-      filter.radius = radius_;
-      filter.func = func_;
-      return filter;
-    }
+    SFilter create(char *name_, double radius_, filter_func func_);
 
     SFilter filters[scaleFilterMaxNumber+1];
   };
