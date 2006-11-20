@@ -110,7 +110,7 @@ inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
 }
 
 void ScaledPixelBuffer::scaleRect(const Rect& rect) {
-  U8 *src_ptr, *ptr;
+  U8 *ptr;
   static double c1_sub_dx, c1_sub_dy;
   Rect changed_rect;
   float rx, gx, bx;
