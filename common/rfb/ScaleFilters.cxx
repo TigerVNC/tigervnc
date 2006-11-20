@@ -67,7 +67,7 @@ double sinc(double x) {
 //
 
 SFilter &ScaleFilters::operator[](unsigned int filter_id) {
-  assert(filter_id < scaleFilterMaxNumber);
+  assert(filter_id <= scaleFilterMaxNumber);
   return filters[filter_id];
 }
 
