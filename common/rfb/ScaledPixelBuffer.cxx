@@ -23,13 +23,15 @@
 
 #include <math.h>
 #include <memory.h>
+#include <stdlib.h>
 
 using namespace rdr;
 using namespace rfb;
 
 ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
                                      int src_height_, int scale, PixelFormat pf_)
-  : scaled_data(0), scale_ratio(1) {
+  : xWeightTabs(0), yWeightTabs(0), scaled_data(0), scale_ratio(1),
+    scaleFilterID(scaleFilterBicubic) {
 
   setSourceBuffer(src_data_, src_width_, src_height_);
   setPF(pf_);
@@ -37,93 +39,128 @@ ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
   : src_data(0), src_width(0), src_height(0), scale_ratio(1), scaled_width(0), 
-    scaled_height(0), pf(PixelFormat(32,24,0,1,255,255,255,0,8,16)), 
-    scaled_data(0) {
+    xWeightTabs(0), yWeightTabs(0), scaled_height(0), scaled_data(0),
+    scaleFilterID(scaleFilterBicubic) {
+  memset(&pf, 0, sizeof(pf));
 }
 
 ScaledPixelBuffer::~ScaledPixelBuffer() {
+  freeWeightTabs();
+}
+
+void ScaledPixelBuffer::freeWeightTabs() {
+  if (xWeightTabs) {
+    for (int i = 0; i < scaled_width; i++) delete [] xWeightTabs[i].weight;
+    delete [] xWeightTabs;
+    xWeightTabs = 0;
+  }
+  if (yWeightTabs) {
+    for (int i = 0; i < scaled_height; i++) delete [] yWeightTabs[i].weight;
+    delete [] yWeightTabs;
+    yWeightTabs = 0;
+  }
 }
 
 void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
+  freeWeightTabs();
   src_data = src_data_;
   src_width  = w;
   src_height = h;
   calculateScaledBufferSize();
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
 }
 
 void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
-  if (pf_.depth != 24) throw rfb::UnsupportedPixelFormatException();
+  ///if (pf_.depth != 24) throw rfb::UnsupportedPixelFormatException();
   pf = pf_;
 }
 
 void ScaledPixelBuffer::setScaleRatio(double scale_ratio_) {
   if (scale_ratio != scale_ratio_) {
+    freeWeightTabs();
     scale_ratio = scale_ratio_;
     calculateScaledBufferSize();
+    scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+    scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
   }
 }
 
-void ScaledPixelBuffer::scaleRect(const Rect& r) {
-  static U8 *src_ptr, *ptr;
-  static U8 r0, r1, r2, r3;
-  static U8 g0, g1, g2, g3;
-  static U8 b0, b1, b2, b3;
+inline void ScaledPixelBuffer::rgbFromPixel(U32 p, int &r, int &g, int &b) {
+  r = (((p >> pf.redShift  ) & pf.redMax  ) * 255 + pf.redMax  /2) / pf.redMax;
+  g = (((p >> pf.greenShift) & pf.greenMax) * 255 + pf.greenMax/2) / pf.greenMax;
+  b = (((p >> pf.blueShift ) & pf.blueMax ) * 255 + pf.blueMax /2) / pf.blueMax;
+}
+
+inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
+  int bytes_per_pixel = pf.bpp / 8;
+  U8 *ptr = &(*src_data)[(x + y*src_width)*bytes_per_pixel];
+  if (bytes_per_pixel == 1) {
+    return *ptr;
+  } else if (bytes_per_pixel == 2) {
+    int b0 = *ptr++; int b1 = *ptr;
+    return b1 << 8 | b0;
+  } else if (bytes_per_pixel == 4) {
+    int b0 = *ptr++; int b1 = *ptr++;
+    int b2 = *ptr++; int b3 = *ptr;
+    return b3 << 24 | b2 << 16 | b1 << 8 | b0;
+  } else {
+    return 0;
+  }
+}
+
+void ScaledPixelBuffer::scaleRect(const Rect& rect) {
+  U8 *src_ptr, *ptr;
   static double c1_sub_dx, c1_sub_dy;
-  static double dx, dy;
-  static int i, j;
-  static Rect changed_rect;
+  Rect changed_rect;
+  float rx, gx, bx;
+  float red, green, blue; 
+  int r, g, b;
+  
 
   // Calculate the changed pixel rect in the scaled image
-  changed_rect = calculateScaleBoundary(r);
+  changed_rect = calculateScaleBoundary(rect);
 
-  // Scale the source rect to the destination image buffer using
-  // bilinear interplation
+  int bytesPerPixel = pf.bpp/8;
+  int bytesPerRow = src_width * bytesPerPixel;
+
   for (int y = changed_rect.tl.y; y < changed_rect.br.y; y++) {
-    j = (int)(dy = y / scale_ratio);
-    dy -= j;
-    c1_sub_dy = 1 - dy;
-
+    ptr = &(*scaled_data)[(changed_rect.tl.x + y*scaled_width) * bytesPerPixel];
+    
     for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
-      ptr = &(*scaled_data)[(x + y*scaled_width) * 4];
-
-      i = (int)(dx = x / scale_ratio);
-      dx -= i;
-      c1_sub_dx = 1 - dx;
-
-      src_ptr = &(*src_data)[(i + (j*src_width))*4];
-      b0 = *src_ptr; g0 = *(src_ptr+1); r0 = *(src_ptr+2);
-      if (i+1 < src_width) {
-        b1 = *(src_ptr+4); g1 = *(src_ptr+5); r1 = *(src_ptr+6);
-      } else {
-        b1 = b0; r1 = r0; g1 = g0;
+            
+      int ywi = 0; red = 0; green = 0; blue = 0;
+      for (int ys = yWeightTabs[y].i0; ys < yWeightTabs[y].i1; ys++) {
+        
+        int xwi = 0; rx = 0; gx = 0; bx = 0;
+        for (int xs = xWeightTabs[x].i0; xs < xWeightTabs[x].i1; xs++) {
+          rgbFromPixel(getSourcePixel(xs, ys), r, g, b);
+          rx += r * xWeightTabs[x].weight[xwi];
+          gx += g * xWeightTabs[x].weight[xwi];
+          bx += b * xWeightTabs[x].weight[xwi];
+          xwi++;
+        }
+        red += rx * yWeightTabs[y].weight[ywi];
+        green += gx * yWeightTabs[y].weight[ywi];
+        blue += bx * yWeightTabs[y].weight[ywi];
+        ywi++;
       }
-      if (j+1 < src_height) {
-        src_ptr += src_width * 4;
-        b3 = *src_ptr; g3 = *(src_ptr+1); r3 = *(src_ptr+2);
-      } else {
-        b3 = b0; r3 = r0; g3 = g0;
-      }
-      if ((i+1 < src_width) && (j+1 < src_height)) {
-        b2 = *(src_ptr+4); g2 = *(src_ptr+5); r2 = *(src_ptr+6);
-      } else if (i+1 >= src_width) {
-        b2 = b3; r2 = r3; g2 = g3;
-      } else {
-        b2 = b1; r2 = r1; g2 = g1;
-      }
-      *ptr++ = (U8)((b0*c1_sub_dx+b1*dx)*c1_sub_dy + (b3*c1_sub_dx+b2*dx)*dy);
-      *ptr++ = (U8)((g0*c1_sub_dx+g1*dx)*c1_sub_dy + (g3*c1_sub_dx+g2*dx)*dy);
-      *ptr   = (U8)((r0*c1_sub_dx+r1*dx)*c1_sub_dy + (r3*c1_sub_dx+r2*dx)*dy);
+      *ptr++ = U8(blue);
+      *ptr++ = U8(green);
+      *ptr++ = U8(red);
+      ptr++;
     }
   }
 }
 
 Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
-  static int x_start, y_start, x_end, y_end;
-  x_start = r.tl.x == 0 ? 0 : int(ceil((r.tl.x-1) * scale_ratio));
-  y_start = r.tl.y == 0 ? 0 : int(ceil((r.tl.y-1) * scale_ratio));
-  x_end = int(ceil(r.br.x * scale_ratio - 1));
+  int x_start, y_start, x_end, y_end;
+  double sup = scaleFilters[scaleFilterID].radius;
+  x_start = r.tl.x-sup < 0 ? 0 : int((r.tl.x-sup) * scale_ratio + 1);
+  y_start = r.tl.y-sup < 0 ? 0 : int((r.tl.y-sup) * scale_ratio + 1);
+  x_end = int((r.br.x+sup-1) * scale_ratio);
   x_end = x_end < scaled_width ? x_end + 1 : scaled_width;
-  y_end = int(ceil(r.br.y * scale_ratio - 1));
+  y_end = int((r.br.y+sup-1) * scale_ratio);
   y_end = y_end < scaled_height ? y_end + 1 : scaled_height;
   return Rect(x_start, y_start, x_end, y_end);
 }

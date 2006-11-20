@@ -26,6 +26,7 @@
 #include <rdr/Exception.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
+#include <rfb/ScaleFilters.h>
 
 using namespace rdr;
 
@@ -51,6 +52,10 @@ namespace rfb {
     int getScale() const { return int(scale_ratio * 100 + 0.5); }
     double getScaleRatio() const { return scale_ratio; }
 
+    // Pixel manipulation routines
+    inline U32 getSourcePixel(int x, int y);
+    inline void rgbFromPixel(U32 p, int &r, int &g, int &b);
+
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.
     Rect getRect() const { return Rect(0, 0, scaled_width, scaled_height); }
@@ -60,6 +65,10 @@ namespace rfb {
 
     // Set the new source buffer and its parameters
     void setSourceBuffer(U8 **src_data, int w, int h);
+
+    void setScaledBuffer(U8 **scaled_data_) {
+      scaled_data = scaled_data_;
+    };
 
     // Set the new pixel format
     void setPF(const PixelFormat &pf);
@@ -80,7 +89,10 @@ namespace rfb {
 
     // Calculate the scaled buffer size depending on the source buffer
     // parameters (width, height, pixel format)
-    void calculateScaledBufferSize();
+    virtual void calculateScaledBufferSize();
+
+    // Free the weight tabs for x and y 
+    virtual void freeWeightTabs();
 
 
     int src_width;
@@ -89,6 +101,10 @@ namespace rfb {
     int scaled_height;
     PixelFormat pf;
     double scale_ratio;
+    unsigned int scaleFilterID;
+    ScaleFilters scaleFilters;
+    SFilterWeightTab *xWeightTabs;
+    SFilterWeightTab *yWeightTabs;
     U8 **src_data;
     U8 **scaled_data;
   };
