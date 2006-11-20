@@ -60,7 +60,7 @@ namespace rfb {
 
     SFilter &operator[](unsigned int filter_id);
 
-    void makeWeightTabs(int filter, int src_x, int dst_x, SFilterWeightTab *weightTabs);
+    void makeWeightTabs(int filter, int src_x, int dst_x, SFilterWeightTab **weightTabs);
 
   protected:
     void initFilters();
