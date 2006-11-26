@@ -59,7 +59,7 @@ void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
   if (memcmp(&(ScaledPixelBuffer::pf), &pf_, sizeof(pf_)) == 0) return;
 
-  if (pf_.depth != 24) throw rfb::UnsupportedPixelFormatException();
+  if (!pf_.trueColour) throw rfb::UnsupportedPixelFormatException();
 
   pf = pf_;
   if (scaling) {
