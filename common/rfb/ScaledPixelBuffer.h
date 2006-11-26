@@ -78,7 +78,7 @@ namespace rfb {
     virtual void setScaleRatio(double scale_ratio);
 
     // Scale rect from the source image buffer to the destination buffer
-    // using bilinear interpolation
+    // using the current interpolation method
     virtual void scaleRect(const Rect& r);
 
     // Calculate the scaled image rectangle which depend on the source 
