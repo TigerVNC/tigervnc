@@ -54,6 +54,8 @@
 #include <sys/proto.h>
 #endif
 
+extern char buildtime[];
+
 using namespace rfb;
 using namespace network;
 
@@ -420,7 +422,8 @@ char* programName;
 
 static void usage()
 {
-  fprintf(stderr, "TightVNC Server version %s\n\n", VERSION);
+  fprintf(stderr, "TightVNC Server version %s, built %s\n\n",
+          VERSION, buildtime);
   fprintf(stderr, "Usage: %s [<parameters>]\n", programName);
   fprintf(stderr,"\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
