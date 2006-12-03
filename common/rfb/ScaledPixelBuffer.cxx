@@ -67,8 +67,8 @@ void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
   src_width  = w;
   src_height = h;
   calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
 }
 
 void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
@@ -81,8 +81,8 @@ void ScaledPixelBuffer::setScaleRatio(double scale_ratio_) {
     freeWeightTabs();
     scale_ratio = scale_ratio_;
     calculateScaledBufferSize();
-    scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
-    scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+    scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
+    scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
   }
 }
 
@@ -111,8 +111,8 @@ inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
 
 void ScaledPixelBuffer::scaleRect(const Rect& rect) {
   Rect changed_rect;
-  U8 *ptr, *pxs, *px;
-  float rx, gx, bx, red, green, blue, *xweight, *yweight, xWeight, yWeight;
+  U8 *ptr;
+  double rx, gx, bx, red, green, blue, *xweight, *yweight, xWeight, yWeight;
   int r, g, b, xwi, ywi;
 
   // Calculate the changed pixel rect in the scaled image
@@ -126,7 +126,6 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
 
     for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
       ywi = 0; red = 0; green = 0; blue = 0;
-      pxs = &(*src_data)[(xWeightTabs[x].i0 + yWeightTabs[y].i0*src_width) * bytesPerPixel];
       xweight = xWeightTabs[x].weight;
     
       // Calculate the scaled pixel value at (x, y) coordinates by
@@ -136,14 +135,13 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
       // [(xWeight.i0,yWeight.i1-1)..(xWeight.i1-1,yWeight.i1-1)],
       // where [i0, i1) is the scaled filter interval.
       for (int ys = yWeightTabs[y].i0; ys < yWeightTabs[y].i1; ys++) {
-        xwi = 0; rx = 0; gx = 0; bx = 0; px = pxs;
+        xwi = 0; rx = 0; gx = 0; bx = 0;
         for (int xs = xWeightTabs[x].i0; xs < xWeightTabs[x].i1; xs++) {
-          rgbFromPixel(*(U32*)(px), r, g, b);
+          rgbFromPixel(getSourcePixel(xs, ys), r, g, b);
           xWeight = xweight[xwi++];
           rx += r * xWeight;
           gx += g * xWeight;
           bx += b * xWeight;
-          px += bytesPerPixel;
         }
         yWeight = yweight[ywi++];
         red += rx * yWeight;

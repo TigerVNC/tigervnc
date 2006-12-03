@@ -49,7 +49,7 @@ namespace rfb {
   // Scale filter weight table
   typedef struct {
     short int i0, i1;  // Filter function interval, [i0..i1)
-    float *weight;     // Weight coefficients on the filter function interval
+    double *weight;    // Weight coefficients on the filter function interval
   } SFilterWeightTab;
 
 
@@ -60,7 +60,7 @@ namespace rfb {
 
     SFilter &operator[](unsigned int filter_id);
 
-    void makeWeightTabs(int filter, int src_x, int dst_x, SFilterWeightTab **weightTabs);
+    void makeWeightTabs(int filter, int src_x, int dst_x, double ratio, SFilterWeightTab **weightTabs);
 
   protected:
     void initFilters();

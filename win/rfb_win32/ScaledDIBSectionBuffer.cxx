@@ -50,8 +50,8 @@ void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
   // Calculate the scale weight tabs must be in the ScalePixelBuffer class
   freeWeightTabs();
   calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
 
   recreateBuffers();
 }
@@ -86,8 +86,8 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
   // Calculate the scale weight tabs must be in the ScalePixelBuffer class
   freeWeightTabs();
   calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
 
   recreateBuffers();
 }

@@ -87,9 +87,10 @@ SFilter ScaleFilters::create(char *name_, double radius_, filter_func func_) {
   return filter;
 }
 
-void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, SFilterWeightTab **pWeightTabs) {
-  double sx;
-  double ratio = double(dst_x) / src_x;
+void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, double ratio, SFilterWeightTab **pWeightTabs) {
+  double sxc;
+  double offset = 0.5;
+
   SFilter sFilter = filters[filter_id];
   
   *pWeightTabs = new SFilterWeightTab[dst_x];
@@ -97,17 +98,18 @@ void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, SFilterWe
 
   // Make the weight tab for the each dest x position
   for (int x = 0; x < dst_x; x++) {
-    sx = double(x) / ratio;
+    sxc = (double(x)+offset) / ratio;
 
     // Calculate the scale filter interval, [i0, i1)
-    int i0 = int(__rfbmax(ceil(sx-sFilter.radius), 0));
-    int i1 = int(__rfbmin(ceil(sx+sFilter.radius), src_x));
+    int i0 = int(__rfbmax(sxc-sFilter.radius+0.5, 0));
+    int i1 = int(__rfbmin(sxc+sFilter.radius+0.5, src_x));
+
     weightTabs[x].i0 = i0; weightTabs[x].i1 = i1;
-    weightTabs[x].weight = new float[i1-i0];
+    weightTabs[x].weight = new double[i1-i0];
 
     // Calculate the weight coeffs on the scale filter interval
     for (int ci = 0, i = i0; i < i1; i++) {
-      weightTabs[x].weight[ci++] = (float)sFilter.func(float(i)-sx);
+      weightTabs[x].weight[ci++] = (double)sFilter.func(double(i)-sxc+0.5);
     }
   }
 }
