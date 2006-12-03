@@ -158,13 +158,16 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
 
 Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
   int x_start, y_start, x_end, y_end;
-  double sup = scaleFilters[scaleFilterID].radius;
-  x_start = r.tl.x-sup < 0 ? 0 : int((r.tl.x-sup) * scale_ratio + 1);
-  y_start = r.tl.y-sup < 0 ? 0 : int((r.tl.y-sup) * scale_ratio + 1);
-  x_end = int((r.br.x+sup-1) * scale_ratio);
-  x_end = x_end < scaled_width ? x_end + 1 : scaled_width;
-  y_end = int((r.br.y+sup-1) * scale_ratio);
-  y_end = y_end < scaled_height ? y_end + 1 : scaled_height;
+  double radius = scaleFilters[scaleFilterID].radius;
+  double translate = 0.5*scale_ratio - 0.5;
+  x_start = (int)ceil(scale_ratio*(r.tl.x-radius) + translate);
+  y_start = (int)ceil(scale_ratio*(r.tl.y-radius) + translate);
+  x_end = (int)ceil(scale_ratio*(r.br.x+radius) + translate);
+  y_end = (int)ceil(scale_ratio*(r.br.y+radius) + translate);
+  if (x_start < 0) x_start = 0;
+  if (y_start < 0) y_start = 0;
+  if (x_end > scaled_width) x_end = scaled_width;
+  if (y_end > scaled_height) y_end = scaled_height;
   return Rect(x_start, y_start, x_end, y_end);
 }
 
