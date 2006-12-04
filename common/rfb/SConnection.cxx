@@ -253,6 +253,9 @@ void SConnection::offerAuthentication()
   if (caps.getSize() < 1)
     throwConnFailedException("No supported security types");
 
+  // FIXME: We should never send an empty capability list if we are prompting
+  //        local user to accept client connections. And if we do send an
+  //        empty list, then we cannot send a "security result".
   if (caps.includesOnly(secTypeNone)) {
     // Special case - if caps includes nothing else than secTypeNone, we send
     // an empty capability list and do not expect security type selection from
