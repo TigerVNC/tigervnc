@@ -122,7 +122,7 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
 
   for (int y = changed_rect.tl.y; y < changed_rect.br.y; y++) {
     ptr = &(*scaled_data)[(changed_rect.tl.x + y*scaled_width) * 4];
-    yweight = xWeightTabs[y].weight;
+    yweight = yWeightTabs[y].weight;
 
     for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
       ywi = 0; red = 0; green = 0; blue = 0;
