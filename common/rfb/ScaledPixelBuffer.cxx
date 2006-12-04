@@ -111,17 +111,20 @@ inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
 
 void ScaledPixelBuffer::scaleRect(const Rect& rect) {
   Rect changed_rect;
-  U8 *ptr;
+  U8 *ptr, *ptrs, *px, *pxs;
   double rx, gx, bx, red, green, blue, *xweight, *yweight, xWeight, yWeight;
   int r, g, b, xwi, ywi;
 
   // Calculate the changed pixel rect in the scaled image
   changed_rect = calculateScaleBoundary(rect);
 
-  int bytesPerPixel = pf.bpp / 8;
+  int bytesPerSrcPixel = pf.bpp / 8;
+  int bytesPerSrcRow = src_width * bytesPerSrcPixel;
+  int bytesPerScaledRow = scaled_width * 4;
 
+  ptrs = &(*scaled_data)[(changed_rect.tl.x + changed_rect.tl.y*scaled_width) * 4];
   for (int y = changed_rect.tl.y; y < changed_rect.br.y; y++) {
-    ptr = &(*scaled_data)[(changed_rect.tl.x + y*scaled_width) * 4];
+    ptr = ptrs;
     yweight = yWeightTabs[y].weight;
 
     for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
@@ -134,25 +137,29 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
       // [......................................................]
       // [(xWeight.i0,yWeight.i1-1)..(xWeight.i1-1,yWeight.i1-1)],
       // where [i0, i1) is the scaled filter interval.
+      pxs = &(*src_data)[(xWeightTabs[x].i0 + yWeightTabs[y].i0*src_width) * bytesPerSrcPixel];
       for (int ys = yWeightTabs[y].i0; ys < yWeightTabs[y].i1; ys++) {
-        xwi = 0; rx = 0; gx = 0; bx = 0;
+        xwi = 0; rx = 0; gx = 0; bx = 0; px = pxs;
         for (int xs = xWeightTabs[x].i0; xs < xWeightTabs[x].i1; xs++) {
-          rgbFromPixel(getSourcePixel(xs, ys), r, g, b);
+          rgbFromPixel(*((U32*)px), r, g, b);
           xWeight = xweight[xwi++];
           rx += r * xWeight;
           gx += g * xWeight;
           bx += b * xWeight;
+          px += bytesPerSrcPixel;
         }
         yWeight = yweight[ywi++];
         red += rx * yWeight;
         green += gx * yWeight;
         blue += bx * yWeight;
+        pxs += bytesPerSrcRow;
       }
       *ptr++ = U8(blue);
       *ptr++ = U8(green);
       *ptr++ = U8(red);
       ptr++;
     }
+    ptrs += bytesPerScaledRow;
   }
 }
 
