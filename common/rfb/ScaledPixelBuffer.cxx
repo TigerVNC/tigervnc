@@ -30,17 +30,17 @@ using namespace rfb;
 
 ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
                                      int src_height_, int scale, PixelFormat pf_)
-  : xWeightTabs(0), yWeightTabs(0), scaled_data(0), scale_ratio(1),
-    scaleFilterID(scaleFilterBicubic) {
+  : scale_ratio(1), scaleFilterID(scaleFilterBicubic),
+    xWeightTabs(0), yWeightTabs(0), scaled_data(0) {
 
   setSourceBuffer(src_data_, src_width_, src_height_);
   setPF(pf_);
 }
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
-  : src_data(0), src_width(0), src_height(0), scale_ratio(1), scaled_width(0), 
-    xWeightTabs(0), yWeightTabs(0), scaled_height(0), scaled_data(0),
-    scaleFilterID(scaleFilterBicubic) {
+  : src_width(0), src_height(0), scaled_width(0), scaled_height(0),
+    scale_ratio(1), scaleFilterID(scaleFilterBicubic),
+    xWeightTabs(0), yWeightTabs(0), src_data(0), scaled_data(0) {
   memset(&pf, 0, sizeof(pf));
 }
 
