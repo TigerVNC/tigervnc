@@ -49,6 +49,8 @@ CXXSRCS = \
   ServerCore.cxx \
   SSecurityFactoryStandard.cxx \
   SSecurityVncAuth.cxx \
+  ScaledPixelBuffer.cxx \
+  ScaleFilters.cxx \
   Timer.cxx \
   TightDecoder.cxx \
   TightEncoder.cxx \
