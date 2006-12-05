@@ -513,7 +513,10 @@ int main(int argc, char** argv)
         }
       }
 
-      if (clients_connected) {
+      if (!clients_connected)
+        sched.reset();
+
+      if (sched.isRunning()) {
         int wait_ms = sched.millisRemaining();
         if (wait_ms > 500) {
           wait_ms = 500;
@@ -523,7 +526,6 @@ int main(int argc, char** argv)
         // fprintf(stderr, "[%d]\t", wait_ms);
 #endif
       } else {
-        sched.reset();
         tv.tv_usec = 100000;
       }
       tv.tv_sec = 0;

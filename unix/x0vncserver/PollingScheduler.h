@@ -41,6 +41,9 @@ public:
   // Reset the object into the initial state (no polling performed).
   void reset();
 
+  // Check if the object is active (not in the initial state).
+  bool isRunning();
+
   // Tell the scheduler that new polling pass is just being started.
   void newPass();
 

@@ -55,6 +55,11 @@ void PollingScheduler::reset()
   m_initialState = true;
 }
 
+bool PollingScheduler::isRunning()
+{
+  return !m_initialState;
+}
+
 void PollingScheduler::newPass()
 {
   TimeMillis timeNow;
