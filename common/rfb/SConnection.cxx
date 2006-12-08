@@ -253,18 +253,22 @@ void SConnection::offerAuthentication()
   if (caps.getSize() < 1)
     throwConnFailedException("No supported security types");
 
-  // FIXME: We could send an empty capability list if we do not require
-  //        authentication and any local user interaction. But the problem
-  //        is that this class does not know if local user will be prompted
-  //        to accept/reject connection.
-  //        Thus, currently we always send non-empty capability lists,
-  //        although this is not compatible with certain TightVNC viewers
-  //        that do not understand authentication type "AuthNone" and expect
-  //        an empty capability list for no authentication.
-  os->writeU32(caps.getSize());
-  caps.write(os);
-  os->flush();
-  state_ = RFBSTATE_TIGHT_AUTH_TYPE;
+  if (caps.includesOnly(secTypeNone)) {
+    // Special case - if caps includes nothing else than secTypeNone, we send
+    // an empty capability list and do not expect security type selection from
+    // the client. Then, continue the protocol like if the client has selected
+    // secTypeNone (starting at base protocol version 3.8, "security result"
+    // will follow).
+    os->writeU32(0);
+    os->flush();
+    processSecurityType(secTypeNone);
+  } else {
+    // Normal case - sending the list of authentication capabilities.
+    os->writeU32(caps.getSize());
+    caps.write(os);
+    os->flush();
+    state_ = RFBSTATE_TIGHT_AUTH_TYPE;
+  }
 }
 
 void SConnection::processAuthTypeMsg()
