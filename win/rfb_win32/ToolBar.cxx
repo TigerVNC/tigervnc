@@ -202,6 +202,12 @@ int ToolBar::getHeight() {
   return r.bottom - r.top;
 }
 
+int ToolBar::getTotalWidth() {
+  SIZE *size;
+  SendMessage(getHandle(), TB_GETMAXSIZE, 0, (LPARAM)&size);
+  return size->cx;
+}
+
 void ToolBar::show() {
   ShowWindow(getHandle(), SW_SHOW);
 }

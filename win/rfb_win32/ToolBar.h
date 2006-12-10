@@ -112,6 +112,10 @@ namespace rfb {
       // getHeight() returns the toolbar window height.
       int getHeight();
 
+      // getTotalWidth() returns the total size of all buttons and 
+      // separators in the toolbar.
+      int getTotalWidth();
+
       // show() displays the toolbar window.
       void show();
 
