@@ -428,12 +428,23 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       if ((wpos->flags & SWP_NOSIZE) || isAutoScaling())
         break;
 
+      // Calculate the minimum size of main window
+      RECT r;
+      Rect min_size;
+      int tbMinWidth = 0, tbMinHeight = 0;
+      if (isToolbarEnabled()) {
+        tbMinWidth = tb.getTotalWidth();
+        tbMinHeight = tb.getHeight();
+        SetRect(&r, 0, 0, tbMinWidth, tbMinHeight);
+        AdjustWindowRect(&r, GetWindowLong(handle, GWL_STYLE), FALSE);
+        min_size = Rect(r.left, r.top, r.right, r.bottom);
+      }
+
       // Work out how big the window should ideally be
       DWORD current_style = GetWindowLong(frameHandle, GWL_STYLE);
       DWORD style = current_style & ~(WS_VSCROLL | WS_HSCROLL);
       DWORD style_ex = GetWindowLong(frameHandle, GWL_EXSTYLE);
 
-      RECT r;
       SetRect(&r, 0, 0, buffer->width(), buffer->height());
       AdjustWindowRectEx(&r, style, FALSE, style_ex);
       Rect reqd_size = Rect(r.left, r.top, r.right, r.bottom);
@@ -451,13 +462,28 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       RECT current;
       GetWindowRect(handle, &current);
 
+      if (min_size.width() > reqd_size.width()) {
+        reqd_size.tl.x = min_size.tl.x;
+        reqd_size.br.x = min_size.br.x;
+      }
+      if (min_size.height() > reqd_size.height()) {
+        reqd_size.tl.y = min_size.tl.y;
+        reqd_size.br.y = min_size.br.y;
+      }
+
       if (!(GetWindowLong(handle, GWL_STYLE) & WS_MAXIMIZE) && !fullscreenActive) {
-        // Ensure that the window isn't resized too large
-        if (wpos->cx > reqd_size.width()) {
+        // Ensure that the window isn't resized too large or too small
+        if ((wpos->cx < min_size.width()) && isToolbarEnabled()) {
+          wpos->cx = min_size.width();
+          wpos->x = current.left;
+        } else if ((wpos->cx > reqd_size.width())) {
           wpos->cx = reqd_size.width();
           wpos->x = current.left;
         }
-        if (wpos->cy > reqd_size.height()) {
+        if ((wpos->cy < min_size.height()) && isToolbarEnabled()) {
+          wpos->cy = min_size.height();
+          wpos->y = current.top;
+        } else if (wpos->cy > reqd_size.height()) {
           wpos->cy = reqd_size.height();
           wpos->y = current.top;
         }
