@@ -475,8 +475,7 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       // Resize child windows
       GetClientRect(handle, &r);
       if (tb.isVisible()) {
-        MoveWindow(frameHandle, 0, tb.getHeight(),
-                   r.right, r.bottom - tb.getHeight(), TRUE);
+        MoveWindow(frameHandle, 0, tb.getHeight(), r.right, r.bottom - tb.getHeight(), TRUE);
       } else {
         MoveWindow(frameHandle, 0, 0, r.right, r.bottom, TRUE);
       }
@@ -985,13 +984,13 @@ void DesktopWindow::setAutoScaling(bool as) {
 
 void DesktopWindow::setDesktopScaleRatio(double scale_ratio) {
   buffer->setScaleRatio(scale_ratio);
-  InvalidateRect(frameHandle, 0, FALSE);
-  if (!isAutoScaling()) calculateScrollBars();
+  if (!isAutoScaling()) resizeDesktopWindowToBuffer();
   if (isToolbarEnabled()) refreshToolbarButtons();
   char *newTitle = new char[strlen(desktopName)+20];
   sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
   SetWindowText(handle, TStr(newTitle));
   delete [] newTitle;
+  InvalidateRect(frameHandle, 0, FALSE);
 }
 
 void DesktopWindow::fitBufferToWindow(bool repaint) {
@@ -1137,6 +1136,28 @@ void DesktopWindow::calculateScrollBars() {
   // Update the cached client size
   GetClientRect(frameHandle, &r);
   client_size = Rect(r.left, r.top, r.right, r.bottom);
+}
+
+void DesktopWindow::resizeDesktopWindowToBuffer() {
+  RECT r;
+  DWORD style = GetWindowLong(frameHandle, GWL_STYLE) & ~(WS_VSCROLL | WS_HSCROLL);
+  DWORD style_ex = GetWindowLong(frameHandle, GWL_EXSTYLE);
+
+  // Calculate the required size of the desktop window
+  SetRect(&r, 0, 0, buffer->width(), buffer->height());
+  AdjustWindowRectEx(&r, style, FALSE, style_ex);
+  if (isToolbarEnabled())
+    r.bottom += tb.getHeight();
+  AdjustWindowRect(&r, GetWindowLong(handle, GWL_STYLE), FALSE);
+
+  // Set the required size, center the main window and clip to the current monitor
+  SetWindowPos(handle, 0, 0, 0, r.right-r.left, r.bottom-r.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOMOVE);
+  centerWindow(handle, NULL);
+  MonitorInfo mi(getMonitor());
+  mi.clipTo(handle);
+
+  // Enable/disable scrollbars as appropriate
+  calculateScrollBars();      
 }
 
 

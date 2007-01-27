@@ -214,6 +214,9 @@ namespace rfb {
       // window style accordingly
       void calculateScrollBars();
 
+      // Resizes the main window against the pixel buffer size
+      void resizeDesktopWindowToBuffer();
+
       // Win32-specific input handling
       rfb::win32::CPointer ptr;
       Point oldpos;
