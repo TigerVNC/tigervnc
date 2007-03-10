@@ -1013,7 +1013,7 @@ void DesktopWindow::setDesktopScale(int scale_) {
   if (buffer->getScale() == scale_ || scale_ <= 0) return;
   buffer->setScale(scale_);
   if (isToolbarEnabled()) refreshToolbarButtons();
-  if (!isAutoScaling()) resizeDesktopWindowToBuffer();
+  if (!isAutoScaling() && !isFullscreen()) resizeDesktopWindowToBuffer();
   char *newTitle = new char[strlen(desktopName)+20];
   sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
   SetWindowText(handle, TStr(newTitle));
