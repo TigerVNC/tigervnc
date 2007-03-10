@@ -87,9 +87,10 @@ SFilter ScaleFilters::create(char *name_, double radius_, filter_func func_) {
   return filter;
 }
 
-void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, double ratio, SFilterWeightTab **pWeightTabs) {
+void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, SFilterWeightTab **pWeightTabs) {
   double sxc;
   double offset = 0.5;
+  double ratio = (double)dst_x / src_x;
 
   SFilter sFilter = filters[filter_id];
   

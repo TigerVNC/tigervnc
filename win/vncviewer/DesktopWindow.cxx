@@ -858,8 +858,8 @@ DesktopWindow::processMouseMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     // Send a pointer event to the server
     oldpos = p;
     if (buffer->isScaling()) {
-      p.x /= buffer->getScaleRatio();
-      p.y /= buffer->getScaleRatio();
+      p.x /= buffer->getScaleRatioX();
+      p.y /= buffer->getScaleRatioY();
     }
     ptr.pointerEvent(callback, p, mask);
 #ifdef WM_MOUSEWHEEL
@@ -1005,13 +1005,15 @@ DesktopWindow::setSize(int w, int h) {
 
 void DesktopWindow::setAutoScaling(bool as) { 
   autoScaling = as;
+  if (isToolbarEnabled()) refreshToolbarButtons();
   if (as) fitBufferToWindow();
 }
 
-void DesktopWindow::setDesktopScaleRatio(double scale_ratio) {
-  buffer->setScaleRatio(scale_ratio);
-  if (!isAutoScaling()) resizeDesktopWindowToBuffer();
+void DesktopWindow::setDesktopScale(int scale_) {
+  if (buffer->getScale() == scale_ || scale_ <= 0) return;
+  buffer->setScale(scale_);
   if (isToolbarEnabled()) refreshToolbarButtons();
+  if (!isAutoScaling()) resizeDesktopWindowToBuffer();
   char *newTitle = new char[strlen(desktopName)+20];
   sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
   SetWindowText(handle, TStr(newTitle));
@@ -1037,7 +1039,7 @@ void DesktopWindow::fitBufferToWindow(bool repaint) {
   } else { 
     scale_ratio = double(client_size.width()) / buffer->getSrcWidth();
   }
-  setDesktopScaleRatio(scale_ratio);
+  setDesktopScale(int(scale_ratio * 100));
 }
 
 void

@@ -49,8 +49,9 @@ namespace rfb {
     int getSrcWidth()  const { return src_width; }
     int getSrcHeight() const { return src_height; }
     int area() const { return scaled_width * scaled_height; }
-    int getScale() const { return int(scale_ratio * 100 + 0.5); }
-    double getScaleRatio() const { return scale_ratio; }
+    int getScale() const { return scale; }
+    double getScaleRatioX() const { return scale_ratio_x; }
+    double getScaleRatioY() const { return scale_ratio_y; }
 
     // Pixel manipulation routines
     inline U32 getSourcePixel(int x, int y);
@@ -74,8 +75,7 @@ namespace rfb {
     void setPF(const PixelFormat &pf);
 
     // Set the new scale, in percent
-    virtual void setScale(int scale) { setScaleRatio(double(scale)/100.0); }
-    virtual void setScaleRatio(double scale_ratio);
+    virtual void setScale(int scale);
 
     // Scale rect from the source image buffer to the destination buffer
     // using the current interpolation method
@@ -99,8 +99,10 @@ namespace rfb {
     int src_height;
     int scaled_width;
     int scaled_height;
+    int scale;
+    double scale_ratio_x;
+    double scale_ratio_y;
     PixelFormat pf;
-    double scale_ratio;
     unsigned int scaleFilterID;
     ScaleFilters scaleFilters;
     SFilterWeightTab *xWeightTabs;

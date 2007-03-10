@@ -39,19 +39,19 @@ ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
   if (src_buffer) delete src_buffer;
 }
 
-void ScaledDIBSectionBuffer::setScaleRatio(double scale_ratio_) {
-  if (scale_ratio == scale_ratio_ || scale_ratio <= 0) return;
+void ScaledDIBSectionBuffer::setScale(int scale_) {
+  if (scale == scale_ || scale_ <= 0) return;
 
-  scale_ratio = scale_ratio_;
-  if (scale_ratio == 1) scaling = false;
+  scale = scale_;
+  if (scale == 100) scaling = false;
   else scaling = true;
   
   // FIXME:
   // Calculate the scale weight tabs must be in the ScalePixelBuffer class
   freeWeightTabs();
   calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
 
   recreateBuffers();
 }
@@ -86,8 +86,8 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
   // Calculate the scale weight tabs must be in the ScalePixelBuffer class
   freeWeightTabs();
   calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
 
   recreateBuffers();
 }

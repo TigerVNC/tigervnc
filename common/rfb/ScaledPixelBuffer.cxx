@@ -30,7 +30,7 @@ using namespace rfb;
 
 ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
                                      int src_height_, int scale, PixelFormat pf_)
-  : scale_ratio(1), scaleFilterID(scaleFilterBicubic),
+  : scale(100), scale_ratio_x(1), scale_ratio_y(1), scaleFilterID(scaleFilterBicubic),
     xWeightTabs(0), yWeightTabs(0), scaled_data(0) {
 
   setSourceBuffer(src_data_, src_width_, src_height_);
@@ -38,8 +38,8 @@ ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
 }
 
 ScaledPixelBuffer::ScaledPixelBuffer() 
-  : src_width(0), src_height(0), scaled_width(0), scaled_height(0),
-    scale_ratio(1), scaleFilterID(scaleFilterBicubic),
+  : src_width(0), src_height(0), scaled_width(0), scaled_height(0), scale(100), 
+    scale_ratio_x(1), scale_ratio_y(1), scaleFilterID(scaleFilterBicubic),
     xWeightTabs(0), yWeightTabs(0), src_data(0), scaled_data(0) {
   memset(&pf, 0, sizeof(pf));
 }
@@ -67,8 +67,8 @@ void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
   src_width  = w;
   src_height = h;
   calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
 }
 
 void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
@@ -76,13 +76,13 @@ void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
   pf = pf_;
 }
 
-void ScaledPixelBuffer::setScaleRatio(double scale_ratio_) {
-  if (scale_ratio != scale_ratio_) {
+void ScaledPixelBuffer::setScale(int scale_) {
+  if (scale != scale_ && scale_ > 0) {
     freeWeightTabs();
-    scale_ratio = scale_ratio_;
+    scale = scale_;
     calculateScaledBufferSize();
-    scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, scale_ratio, &xWeightTabs);
-    scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, scale_ratio, &yWeightTabs);
+    scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+    scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
   }
 }
 
@@ -166,11 +166,12 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
 Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
   int x_start, y_start, x_end, y_end;
   double radius = scaleFilters[scaleFilterID].radius;
-  double translate = 0.5*scale_ratio - 0.5;
-  x_start = (int)ceil(scale_ratio*(r.tl.x-radius) + translate);
-  y_start = (int)ceil(scale_ratio*(r.tl.y-radius) + translate);
-  x_end = (int)ceil(scale_ratio*(r.br.x+radius) + translate);
-  y_end = (int)ceil(scale_ratio*(r.br.y+radius) + translate);
+  double translate_x = 0.5*scale_ratio_x - 0.5;
+  double translate_y = 0.5*scale_ratio_y - 0.5;
+  x_start = (int)ceil(scale_ratio_x*(r.tl.x-radius) + translate_x);
+  y_start = (int)ceil(scale_ratio_y*(r.tl.y-radius) + translate_y);
+  x_end = (int)ceil(scale_ratio_x*(r.br.x+radius) + translate_x);
+  y_end = (int)ceil(scale_ratio_y*(r.br.y+radius) + translate_y);
   if (x_start < 0) x_start = 0;
   if (y_start < 0) y_start = 0;
   if (x_end > scaled_width) x_end = scaled_width;
@@ -179,6 +180,9 @@ Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
 }
 
 void ScaledPixelBuffer::calculateScaledBufferSize() {
+  double scale_ratio = (double)scale / 100;
   scaled_width  = (int)ceil(src_width  * scale_ratio);
   scaled_height = (int)ceil(src_height * scale_ratio);
+  scale_ratio_x = (double)scaled_width / src_width;
+  scale_ratio_y = (double)scaled_height / src_height;
 }
