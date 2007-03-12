@@ -324,8 +324,6 @@ void DesktopWindow::setShowToolbar(bool st)
 
 void DesktopWindow::refreshToolbarButtons() {
   int scale = getDesktopScale();
-  if (scale == 100) tb.enableButton(ID_ACTUAL_SIZE, false);
-  else tb.enableButton(ID_ACTUAL_SIZE, true);
   if (scale <= 10) {
     tb.enableButton(ID_ZOOM_IN, true);
     tb.enableButton(ID_ZOOM_OUT, false);
@@ -336,6 +334,8 @@ void DesktopWindow::refreshToolbarButtons() {
     tb.enableButton(ID_ZOOM_IN, true);
     tb.enableButton(ID_ZOOM_OUT, true);
   }
+  if (buffer->isScaling() || isAutoScaling()) tb.enableButton(ID_ACTUAL_SIZE, true);
+  else tb.enableButton(ID_ACTUAL_SIZE, false);
   if (isAutoScaling()) tb.pressButton(ID_AUTO_SIZE, true);
   else tb.pressButton(ID_AUTO_SIZE, false);
 }
