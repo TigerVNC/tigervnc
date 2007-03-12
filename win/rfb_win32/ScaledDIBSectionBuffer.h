@@ -51,6 +51,7 @@ namespace rfb {
       virtual const PixelFormat& getScaledPixelFormat() const { return getPF(); }
       virtual void setSize(int w, int h);
       virtual void setScale(int scale);
+      virtual void setScaleWindowSize(int width, int height);
       
       virtual void calculateScaledBufferSize();
 

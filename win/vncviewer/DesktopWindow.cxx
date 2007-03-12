@@ -18,6 +18,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <math.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/WMShatter.h>
@@ -1014,10 +1015,7 @@ void DesktopWindow::setDesktopScale(int scale_) {
   buffer->setScale(scale_);
   if (isToolbarEnabled()) refreshToolbarButtons();
   if (!isAutoScaling() && !isFullscreen()) resizeDesktopWindowToBuffer();
-  char *newTitle = new char[strlen(desktopName)+20];
-  sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
-  SetWindowText(handle, TStr(newTitle));
-  delete [] newTitle;
+  printScale();
   InvalidateRect(frameHandle, 0, FALSE);
 }
 
@@ -1035,11 +1033,21 @@ void DesktopWindow::fitBufferToWindow(bool repaint) {
     client_size = Rect(r.left, r.top, r.right, r.bottom);
   }
   if (resized_aspect_corr > aspect_corr) {
-    scale_ratio = double(client_size.height()) / buffer->getSrcHeight();
+    scale_ratio = (double)client_size.height() / buffer->getSrcHeight();
+    buffer->setScaleWindowSize(ceil(buffer->getSrcWidth()*scale_ratio), client_size.height());
   } else { 
-    scale_ratio = double(client_size.width()) / buffer->getSrcWidth();
+    scale_ratio = (double)client_size.width() / buffer->getSrcWidth();
+    buffer->setScaleWindowSize(client_size.width(), ceil(buffer->getSrcHeight()*scale_ratio));
   }
-  setDesktopScale(int(scale_ratio * 100));
+  printScale();
+  InvalidateRect(frameHandle, 0, FALSE);
+}
+
+void DesktopWindow::printScale() {
+  char *newTitle = new char[strlen(desktopName)+20];
+  sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
+  SetWindowText(handle, TStr(newTitle));
+  delete [] newTitle;
 }
 
 void

@@ -91,6 +91,7 @@ namespace rfb {
       void setDesktopScale(int scale);
       int  getDesktopScale() const { return buffer->getScale(); }
       void fitBufferToWindow(bool repaint = true);
+      void printScale();
 
       // - Set the cursor to render when the pointer is within the desktop buffer
       void setCursor(int w, int h, const Point& hotspot, void* data, void* mask);

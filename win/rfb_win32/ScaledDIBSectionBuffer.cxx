@@ -92,8 +92,29 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
   recreateBuffers();
 }
 
+void ScaledDIBSectionBuffer::setScaleWindowSize(int width, int height) {
+  if (scaled_width == width && scaled_height == height) return;
+
+  freeWeightTabs();
+
+  scaled_width = width_ = width;
+  scaled_height = height_ = height;
+
+  if (scaled_width == src_width && scaled_height == src_height) scaling = false;
+  else scaling = true;
+  scale_ratio_x = (double)scaled_width / src_width;
+  scale_ratio_y = (double)scaled_height / src_height;
+  scale = (int)(scale_ratio_x * 100);
+  
+  // FIXME:
+  // Calculate the scale weight tabs must be in the ScalePixelBuffer class
+  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+
+  recreateBuffers();
+}
+
 void ScaledDIBSectionBuffer::recreateScaledBuffer() {
-  calculateScaledBufferSize();
   if (scaling && memcmp(&(DIBSectionBuffer::getPF()), &RGB24, sizeof(PixelFormat)) != 0) {
     DIBSectionBuffer::setPF(RGB24);
   } else if (!scaling && (memcmp(&(DIBSectionBuffer::getPF()), &pf, sizeof(PixelFormat)) != 0)){
