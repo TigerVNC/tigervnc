@@ -96,6 +96,7 @@ namespace rfb {
       // - Set the cursor to render when the pointer is within the desktop buffer
       void setCursor(int w, int h, const Point& hotspot, void* data, void* mask);
       void showCursor() { showLocalCursor(); }
+      void convertCursorToBuffer();
 
       // - Set the window fullscreen / determine whether it is fullscreen
       void setFullscreen(bool fs);
@@ -239,9 +240,15 @@ namespace rfb {
       bool cursorInBuffer;    // Is cursor position within server buffer? (ONLY for LocalCursor)
       bool cursorVisible;     // Is cursor currently rendered?
       bool cursorAvailable;   // Is cursor available for rendering?
+      bool internalSetCursor;
       Point cursorPos;
       ManagedPixelBuffer cursorBacking;
       Rect cursorBackingRect;
+      U8 *cursorImage;
+      U8 *cursorMask;
+      int cursorWidth;
+      int cursorHeight;
+      Point cursorHotspot;
 
       // ToolBar handling
       ViewerToolBar tb;

@@ -181,8 +181,8 @@ FrameClass frameClass;
 //
 
 DesktopWindow::DesktopWindow(Callback* cb) 
-  : buffer(0),
-    showToolbar(false), autoScaling(false),
+  : buffer(0), cursorImage(0), cursorMask(0), cursorWidth(0), cursorHeight(0),
+    internalSetCursor(false), showToolbar(false), autoScaling(false),
     client_size(0, 0, 16, 16), window_size(0, 0, 32, 32),
     cursorVisible(false), cursorAvailable(false), cursorInBuffer(false),
     systemCursorVisible(true), trackingMouseLeave(false),
@@ -241,6 +241,8 @@ DesktopWindow::~DesktopWindow() {
     handle = 0;
   }
   delete buffer;
+  if (cursorImage) delete [] cursorImage;
+  if (cursorMask) delete [] cursorMask;
   vlog.debug("~DesktopWindow done");
 }
 
@@ -1012,11 +1014,21 @@ void DesktopWindow::setAutoScaling(bool as) {
 
 void DesktopWindow::setDesktopScale(int scale_) {
   if (buffer->getScale() == scale_ || scale_ <= 0) return;
+  bool state = buffer->isScaling();
   buffer->setScale(scale_);
+  state ^= buffer->isScaling();
+  if (state) convertCursorToBuffer();
   if (isToolbarEnabled()) refreshToolbarButtons();
   if (!isAutoScaling() && !isFullscreen()) resizeDesktopWindowToBuffer();
   printScale();
   InvalidateRect(frameHandle, 0, FALSE);
+}
+
+void DesktopWindow::convertCursorToBuffer() {
+  if (memcmp(&(cursor.getPF()), &(buffer->getPF()), sizeof(PixelBuffer)) == 0) return;
+  internalSetCursor = true;
+  setCursor(cursorWidth, cursorHeight, cursorHotspot, cursorImage, cursorMask);
+  internalSetCursor = false;
 }
 
 void DesktopWindow::fitBufferToWindow(bool repaint) {
@@ -1032,6 +1044,7 @@ void DesktopWindow::fitBufferToWindow(bool repaint) {
     GetClientRect(frameHandle, &r);
     client_size = Rect(r.left, r.top, r.right, r.bottom);
   }
+  bool state = buffer->isScaling();
   if (resized_aspect_corr > aspect_corr) {
     scale_ratio = (double)client_size.height() / buffer->getSrcHeight();
     buffer->setScaleWindowSize(ceil(buffer->getSrcWidth()*scale_ratio), client_size.height());
@@ -1039,6 +1052,8 @@ void DesktopWindow::fitBufferToWindow(bool repaint) {
     scale_ratio = (double)client_size.width() / buffer->getSrcWidth();
     buffer->setScaleWindowSize(client_size.width(), ceil(buffer->getSrcHeight()*scale_ratio));
   }
+  state ^= buffer->isScaling();
+  if (state) convertCursorToBuffer();
   printScale();
   InvalidateRect(frameHandle, 0, FALSE);
 }
@@ -1058,7 +1073,39 @@ DesktopWindow::setCursor(int w, int h, const Point& hotspot, void* data, void* m
 
   cursor.setSize(w, h);
   cursor.setPF(buffer->getScaledPixelFormat());
-  cursor.imageRect(cursor.getRect(), data);
+
+  // Convert the current cursor pixel format to bpp32 if scaling mode is on.
+  // It need because ScaledDIBSection buffer always works with bpp32 pixel data
+  // in scaling mode.
+  if (buffer->isScaling()) {
+    U8 *ptr = (U8*)cursor.data;
+    U8 *dataPtr = (U8*)data;
+    U32 pixel = 0;
+    int bytesPerPixel = buffer->getPixelFormat().bpp / 8;
+    int pixelCount = w * h;
+    PixelFormat pf = buffer->getPixelFormat();
+
+    while (pixelCount--) {
+      if (bytesPerPixel == 1) {
+        pixel = *dataPtr++;
+      } else if (bytesPerPixel == 2) {
+        int b0 = *dataPtr++; int b1 = *dataPtr++;
+        pixel =  b1 << 8 | b0;
+      } else if (bytesPerPixel == 4) {
+        int b0 = *dataPtr++; int b1 = *dataPtr++;
+        int b2 = *dataPtr++; int b3 = *dataPtr++;
+        pixel = b3 << 24 | b2 << 16 | b1 << 8 | b0;
+      } else {
+        pixel = 0;
+      }
+      *ptr++ = (U8)((((pixel >> pf.blueShift ) & pf.blueMax ) * 255 + pf.blueMax /2) / pf.blueMax);
+      *ptr++ = (U8)((((pixel >> pf.greenShift) & pf.greenMax) * 255 + pf.greenMax/2) / pf.greenMax);
+      *ptr++ = (U8)((((pixel >> pf.redShift  ) & pf.redMax  ) * 255 + pf.redMax  /2) / pf.redMax);
+      *ptr++ = (U8)0;
+    }
+  } else {
+    cursor.imageRect(cursor.getRect(), data);
+  }
   memcpy(cursor.mask.buf, mask, cursor.maskLen());
   cursor.crop();
 
@@ -1068,6 +1115,20 @@ DesktopWindow::setCursor(int w, int h, const Point& hotspot, void* data, void* m
   cursorAvailable = true;
 
   showLocalCursor();
+
+  // Save the cursor parameters
+  if (!internalSetCursor) {
+    if (cursorImage) delete [] cursorImage;
+    if (cursorMask) delete [] cursorMask;
+    int cursorImageSize = (buffer->getPixelFormat().bpp/8) * w * h; 
+    cursorImage = new U8[cursorImageSize];
+    cursorMask = new U8[cursor.maskLen()];
+    memcpy(cursorImage, data, cursorImageSize);
+    memcpy(cursorMask, mask, cursor.maskLen());
+    cursorWidth = w;
+    cursorHeight = h;
+    cursorHotspot = hotspot;
+  }
 }
 
 PixelFormat
