@@ -77,6 +77,10 @@ namespace rfb {
     // Set the new scale, in percent
     virtual void setScale(int scale);
 
+    // Set/get the scale method
+    virtual void setScaleFilter(unsigned int scaleFilterID);
+    unsigned int getScaleFilterID() const { return scaleFilterID; }
+
     // Scale rect from the source image buffer to the destination buffer
     // using the current interpolation method
     virtual void scaleRect(const Rect& r);

@@ -86,6 +86,19 @@ void ScaledPixelBuffer::setScale(int scale_) {
   }
 }
 
+void ScaledPixelBuffer::setScaleFilter(unsigned int scaleFilterID_) {
+  if (scaleFilterID == scaleFilterID_ || scaleFilterID_ > scaleFilterMaxNumber) return;
+
+  scaleFilterID = scaleFilterID_;
+  
+  if (src_width && src_height && scaled_width && scaled_height && pf.depth > 0) {
+    freeWeightTabs();
+    scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+    scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+    if (scale != 100) scaleRect(Rect(0, 0, src_width, src_height));
+  }
+}
+
 inline void ScaledPixelBuffer::rgbFromPixel(U32 p, int &r, int &g, int &b) {
   r = (((p >> pf.redShift  ) & pf.redMax  ) * 255 + pf.redMax  /2) / pf.redMax;
   g = (((p >> pf.greenShift) & pf.greenMax) * 255 + pf.greenMax/2) / pf.greenMax;

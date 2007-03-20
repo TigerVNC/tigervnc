@@ -90,6 +90,8 @@ namespace rfb {
       bool isAutoScaling() const { return autoScaling; }
       void setDesktopScale(int scale);
       int  getDesktopScale() const { return buffer->getScale(); }
+      void setDesktopScaleFilter(unsigned int scaleFilterID);
+      unsigned int getDesktopScaleFilterID() const { return buffer->getScaleFilterID(); }
       void fitBufferToWindow(bool repaint = true);
       void printScale();
 

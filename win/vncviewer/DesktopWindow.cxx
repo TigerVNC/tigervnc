@@ -1024,6 +1024,12 @@ void DesktopWindow::setDesktopScale(int scale_) {
   InvalidateRect(frameHandle, 0, FALSE);
 }
 
+void DesktopWindow::setDesktopScaleFilter(unsigned int scaleFilterID) { 
+  if (scaleFilterID == getDesktopScaleFilterID() || scaleFilterID > scaleFilterMaxNumber) return;
+  buffer->setScaleFilter(scaleFilterID);
+  InvalidateRect(frameHandle, 0, FALSE);
+}
+
 void DesktopWindow::convertCursorToBuffer() {
   if (memcmp(&(cursor.getPF()), &(buffer->getPF()), sizeof(PixelBuffer)) == 0) return;
   internalSetCursor = true;
