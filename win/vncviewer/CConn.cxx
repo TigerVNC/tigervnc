@@ -660,6 +660,7 @@ void CConn::serverInit() {
   // Show the window
   window = new DesktopWindow(this);
   window->setName(cp.name());
+  window->setShowToolbar(options.showToolbar);
   window->setSize(cp.width, cp.height);
   applyOptions(options);
 
