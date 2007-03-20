@@ -1019,7 +1019,7 @@ void DesktopWindow::setDesktopScale(int scale_) {
   state ^= buffer->isScaling();
   if (state) convertCursorToBuffer();
   if (isToolbarEnabled()) refreshToolbarButtons();
-  if (!isAutoScaling() && !isFullscreen()) resizeDesktopWindowToBuffer();
+  if (!(isAutoScaling() || isFullscreen() || (GetWindowLong(handle, GWL_STYLE) & WS_MAXIMIZE))) resizeDesktopWindowToBuffer();
   printScale();
   InvalidateRect(frameHandle, 0, FALSE);
 }
