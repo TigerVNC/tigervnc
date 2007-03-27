@@ -34,6 +34,7 @@ namespace rfb {
   const unsigned int scaleFilterSinc = 3;
 
   const unsigned int scaleFilterMaxNumber = 3;
+  const unsigned int defaultScaleFilter = scaleFilterBilinear;
 
   //
   // -=- Scale filters structures and routines
@@ -59,6 +60,8 @@ namespace rfb {
     ScaleFilters() { initFilters(); };
 
     SFilter &operator[](unsigned int filter_id);
+
+    int getFilterIdByName(char *filterName);
 
     void makeWeightTabs(int filter, int src_x, int dst_x, SFilterWeightTab **weightTabs);
 

@@ -71,6 +71,13 @@ SFilter &ScaleFilters::operator[](unsigned int filter_id) {
   return filters[filter_id];
 }
 
+int ScaleFilters::getFilterIdByName(char *filterName) {
+  for (int i = 0; i <= scaleFilterMaxNumber; i++) {
+    if (stricmp(filters[i].name, filterName) == 0) return i;
+  }
+  return -1;
+}
+
 void ScaleFilters::initFilters() {
   filters[scaleFilterNearestNeighbor] = create("Nearest neighbor", 0.5, nearest_neighbor);
   filters[scaleFilterBilinear] = create("Bilinear", 1, linear);
