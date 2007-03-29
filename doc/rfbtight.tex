@@ -1,0 +1,972 @@
+\documentclass[a4paper]{article}
+\usepackage{geometry}
+\geometry{verbose,a4paper,tmargin=20mm,bmargin=20mm,lmargin=30mm,rmargin=30mm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+
+\newcommand{\typestr}[1]{\textit{#1}}
+\newcommand{\literal}[1]{\textit{\textbf{#1}}}
+
+\begin{document}
+
+\title{TightVNC Extensions to the RFB~Protocol
+       \thanks{This document refers to RFB protocol versions 3.3, 3.7}}
+\author{Constantin Kaplinsky\\
+        TightVNC Group}
+\date{Revision 1 --- July, 2006}
+\maketitle
+
+\tableofcontents
+
+\newpage
+\section{Overview}
+This document describes various extensions to the RFB protocol used in
+the TightVNC distribution and in other software compatible with
+TightVNC. Only differences from the stardard RFB protocol are
+discussed. The original RFB protocol specification (protocol versions
+3.3, 3.7, 3.8) can be obtained here:
+\begin{center}
+\texttt{http://www.realvnc.com/docs/rfbproto.pdf}
+\end{center}
+
+At the moment of writing this document, TightVNC supports RFB protocol
+version 3.3 (all TightVNC versions) and 3.7 (TightVNC 1.3.x). It does
+not use the version 3.8 of the protocol, and it's not safe to assume
+that the TightVNC-specific changes to the protocol 3.7 initialization
+procedure can be used with the protocol 3.8. However, all encodings,
+pseudo-encodings and protocol messages described in this document can
+be safely used with the protocol 3.8.
+% (pseudo-)encodings: 3.3+, messages: 3.7+ with sec-type == Tight
+
+TightVNC introduces the following protocol changes:
+\begin{itemize}
+\item extended protocol initialization procedure,
+\item new encodings,
+\item new pseudo-encodings,
+\item new protocol messages.
+\end{itemize}
+
+\newpage
+\section{Protocol initialization}
+
+\subsection{Protocol version 3.3}
+\subsection{Protocol version 3.7}
+
+\newpage
+\section{Encodings}
+\subsection{Tight}
+\begin{verbatim}
+Encoding type:     7
+Name signature:    "TIGHT___"
+Vendor signature:  "TGHT"
+\end{verbatim}
+Tight encoding provides efficient compression for pixel data.
+
+The first byte of each Tight-encoded rectangle is a
+\typestr{compression-control} byte:
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8 &   & \typestr{compression-control} \\ \hline
+\end{tabular}
+
+\begin{quote}
+The least significant four bits of \typestr{compression-control} byte
+inform the client which zlib compression streams should be reset
+before decoding the rectangle. Each bit is independent and corresponds
+to a separate zlib stream that should be reset:
+
+\begin{tabular}{l|l}
+\hline
+Bit & Description    \\
+\hline
+0   & if 1: reset stream 0 \\
+1   & if 1: reset stream 1 \\
+2   & if 1: reset stream 2 \\
+3   & if 1: reset stream 4 \\
+\hline
+\end{tabular}
+
+One of three possible compression methods are supported in Tight
+encoding. These are \literal{BasicCompression},
+\literal{FillCompression} and \literal{JpegCompression}. If the bit 7 (the
+most significant bit) of \typestr{compression-control} byte is 0, then
+the compression type is \literal{BasicCompression}. In that case, bits
+7-4 (the most significant four bits) of \typestr{compression-control}
+should be interpreted as follows:
+
+\begin{tabular}{l|c|l}
+\hline
+Bits & Binary value & Description \\
+\hline
+5-4 & 00  & \literal{UseStream0} \\
+    & 01  & \literal{UseStream1} \\
+    & 10  & \literal{UseStream2} \\
+    & 11  & \literal{UseStream3} \\
+\hline
+6   & 0   & --- \\
+    & 1   & \literal{ReadFilterId} \\
+\hline
+7   & 0   & \literal{BasicCompression} \\
+\hline
+\end{tabular}
+
+Otherwise, if the bit 7 of \typestr{compression-control} is set to 1,
+then the compression method is either \literal{FillCompression} or
+\literal{JpegCompression}, depending on other bits of the same byte:
+
+\begin{tabular}{l|c|l}
+\hline
+Bits & Binary value & Description \\
+\hline
+7-4 & 1000 & \literal{FillCompression} \\
+    & 1001 & \literal{JpegCompression} \\
+    & any other & invalid \\
+\hline
+\end{tabular}
+
+Note: \literal{JpegCompression} may only be used when
+\typestr{bits-per-pixel} is either 16 or 32.
+
+\end{quote}
+
+The data following the \typestr{compression-control} byte depends on
+the compression method.
+
+\subsubsection*{\literal{FillCompression}}
+
+-- If the compression type is "fill", then the only pixel value follows, in
+ client pixel format (see NOTE 1). This value applies to all pixels of the
+ rectangle.
+
+\subsubsection*{\literal{JpegCompression}}
+
+-- If the compression type is "jpeg", the following data stream looks like
+ this:
+
+   1..3 bytes:  data size (N) in compact representation;
+   N bytes:     JPEG image.
+
+ Data size is compactly represented in one, two or three bytes, according
+ to the following scheme:
+
+  0xxxxxxx                    (for values 0..127)
+  1xxxxxxx 0yyyyyyy           (for values 128..16383)
+  1xxxxxxx 1yyyyyyy zzzzzzzz  (for values 16384..4194303)
+
+ Here each character denotes one bit, xxxxxxx are the least significant 7
+ bits of the value (bits 0-6), yyyyyyy are bits 7-13, and zzzzzzzz are the
+ most significant 8 bits (bits 14-21). For example, decimal value 10000
+ should be represented as two bytes: binary 10010000 01001110, or
+ hexadecimal 90 4E.
+
+\subsubsection*{\literal{BasicCompression}}
+
+-- If the compression type is "basic" and bit 6 of the compression control
+ byte was set to 1, then the next (second) byte specifies "filter id" which
+ tells the decoder what filter type was used by the encoder to pre-process
+ pixel data before the compression. The "filter id" byte can be one of the
+ following:
+
+   0:  no filter ("copy" filter);
+   1:  "palette" filter;
+   2:  "gradient" filter.
+
+-- If bit 6 of the compression control byte is set to 0 (no "filter id"
+ byte), or if the filter id is 0, then raw pixel values in the client
+ format (see NOTE 1) will be compressed. See below details on the
+ compression.
+
+-- The "gradient" filter pre-processes pixel data with a simple algorithm
+ which converts each color component to a difference between a "predicted"
+ intensity and the actual intensity. Such a technique does not affect
+ uncompressed data size, but helps to compress photo-like images better. 
+ Pseudo-code for converting intensities to differences is the following:
+
+   P[i,j] := V[i-1,j] + V[i,j-1] - V[i-1,j-1];
+   if (P[i,j] < 0) then P[i,j] := 0;
+   if (P[i,j] > MAX) then P[i,j] := MAX;
+   D[i,j] := V[i,j] - P[i,j];
+
+ Here V[i,j] is the intensity of a color component for a pixel at
+ coordinates (i,j). MAX is the maximum value of intensity for a color
+ component.
+
+-- The "palette" filter converts true-color pixel data to indexed colors
+ and a palette which can consist of 2..256 colors. If the number of colors
+ is 2, then each pixel is encoded in 1 bit, otherwise 8 bits is used to
+ encode one pixel. 1-bit encoding is performed such way that the most
+ significant bits correspond to the leftmost pixels, and each raw of pixels
+ is aligned to the byte boundary. When "palette" filter is used, the
+ palette is sent before the pixel data. The palette begins with an unsigned
+ byte which value is the number of colors in the palette minus 1 (i.e. 1
+ means 2 colors, 255 means 256 colors in the palette). Then follows the
+ palette itself which consist of pixel values in client pixel format (see
+ NOTE 1).
+
+-- The pixel data is compressed using the zlib library. But if the data
+ size after applying the filter but before the compression is less then 12,
+ then the data is sent as is, uncompressed. Four separate zlib streams
+ (0..3) can be used and the decoder should read the actual stream id from
+ the compression control byte (see NOTE 2).
+
+ If the compression is not used, then the pixel data is sent as is,
+ otherwise the data stream looks like this:
+
+   1..3 bytes:  data size (N) in compact representation;
+   N bytes:     zlib-compressed data.
+
+ Data size is compactly represented in one, two or three bytes, just like
+ in the "jpeg" compression method (see above).
+
+-- NOTE 1. If the color depth is 24, and all three color components are
+ 8-bit wide, then one pixel in Tight encoding is always represented by
+ three bytes, where the first byte is red component, the second byte is
+ green component, and the third byte is blue component of the pixel color
+ value. This applies to colors in palettes as well.
+
+-- NOTE 2. The decoder must reset compression streams' states before
+ decoding the rectangle, if some of bits 0,1,2,3 in the compression control
+ byte are set to 1. Note that the decoder must reset zlib streams even if
+ the compression type is "fill" or "jpeg".
+
+-- NOTE 3. The "gradient" filter and "jpeg" compression may be used only
+ when bits-per-pixel value is either 16 or 32, not 8.
+
+-- NOTE 4. The width of any Tight-encoded rectangle cannot exceed 2048
+ pixels. If a rectangle is wider, it must be split into several rectangles
+ and each one should be encoded separately.
+
+\newpage
+\section{Pseudo-encodings}
+\subsection{NewFBSize}
+\begin{verbatim}
+Encoding type:     0xFFFFFF21
+Name signature:    "NEWFBSIZ"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The NewFBSize pseudo-encoding is used to transmit information about
+framebuffer size changes from server to client.
+
+This pseudo-encoding was introduced in TightVNC, and was adopted for
+use in RealVNC 4 (see the DesktopSize pseudo-encoding in the RFB 3.7+
+specification). However, there is known incompatibility between
+TightVNC and RealVNC in the way the server sends information about new
+framebuffer size. TightVNC implementation requires that a NewFBSize
+``rectangle'' must be the last one in a framebuffer update, while
+RealVNC does not make such a requirement. As a result, TightVNC
+viewers may incorrectly interpret the data stream received from
+RealVNC 4 servers.
+
+Hopefully, this incompatibility will be fixed in future versions of
+TightVNC. Ideally, the server should send NewFBSize ``rectangles''
+according to the TightVNC rules (with valid rectangle counter in the
+FramebufferUpdate header), while the client should interpet it in
+accordance to the DesktopSize pseudo-encoding description from
+RealVNC's official RFB specification.
+
+Below is the complete specification of the NewFBSize pseudo-encoding,
+as it was introduced in TightVNC:
+
+\subsubsection*{
+\begin{center}
+      Handling framebuffer size changes in the RFB protocol v.3\\
+                 Technical Specification, revision 3
+\end{center}
+}
+
+\begin{quote}
+The following pseudo-encoding is used to transmit information about
+framebuffer size changes from server to client:
+
+\begin{center}
+\texttt{\#define rfbEncodingNewFBSize 0xFFFFFF21}
+\end{center}
+
+A client supporting variable framebuffer size should send this
+pseudo-encoding number in the encodings list within the SetEncodings
+RFB message.
+
+After a client informed the server about this capability, the server
+may send a special rectangle within the FramebufferUpdate RFB message,
+where the header contains encoding-type field set to the
+rfbEncodingNewFBSize value. Fields width and height in this rectangle
+header should be interpreted as new framebuffer size, fields
+x-position and y-position are currently not used and should be set to
+zero values by the server. Unlike true rectangle in framebuffer
+updates, this one should not include any pixel data. This rectangle
+must always be the last one in a FramebufferUpdate message, and a
+client should treat it similarly to the LastRect marker, that is, it
+should not expect more rectangles in this update, even if the
+number-of-rectangles field in the FramebufferUpdate message header
+exceeds current number of rectangles.
+
+Immediately after receiving such a special rectangle, a client should
+change its framebuffer size accordingly, and should interpret all
+following framebuffer updates in context of the new framebuffer size.
+
+Changing framebuffer size invalidates framebuffer contents, so the
+server should mark all the framebuffer contents as changed.
+
+FIXME: Allow zero-size framebuffer?
+\end{quote}
+
+\subsection{RichCursor}
+\subsection{XCursor}
+\subsection{PointerPos}
+\subsection{CompressLevel}
+\subsection{QualityLevel}
+\subsection{LastRect}
+
+% For each message, describe its place in the message sequence.
+
+\newpage
+\section{Protocol messages (client to server)}
+
+\subsection{FileListRequest}
+\begin{verbatim}
+Message type:      130
+Name signature:    "FTC_LSRQ"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The client sends \typestr{FileListRequest} message to obtain the list
+of files in a particular directory. The server is expected to respond
+with exactly one \typestr{FileListData} message.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 130 & \typestr{message-type} \\
+1 & U8  &     & \typestr{flags} \\
+2 & U16 &     & \typestr{dirname-length} \\
+\typestr{dirname-length} & U8 array & & \typestr{dirname-string} \\
+\hline\end{tabular}
+
+The \typestr{flags} byte has the following format:
+
+\begin{tabular}{l|l|l}
+\hline
+Bits & Binary value   & Description \\ \hline
+3-0 & 0000            & do not compress file list data \\
+    & 0001..1001      & use compression level 1..9 \\
+    & 1010 or greater & invalid \\
+\hline
+4   & 0   & list of files and directories requested \\
+    & 1   & list of directories only requested \\
+\hline
+\end{tabular}
+
+The client can request compression only if enabled via the server's
+\typestr{FileEnableCompression} message. Otherwise, bits 3-0 of
+\typestr{flags} must be all zeroes (for no compression). See more
+details in the specification for the \typestr{FileEnableCompression}
+message.
+
+% Add a note that specifying compression levels is not fatal here.
+
+The \typestr{dirname-string} should be an absolute path represented in
+Unix-style format: it should start with a forward slash
+(``\verb|/|''), path components should be separated also with forward
+slashes. There should be no trailing slash at the end of the path,
+except for the root (highest level) directory which is denoted with a
+single slash. Note that Windows-style path like
+``\verb|c:\Program Files\TightVNC|'' should be sent as
+``\verb|/c:/Program Files/TightVNC|''.
+
+\newpage
+\subsection{FileDownloadRequest}
+\begin{verbatim}
+Message type:      131
+Name signature:    "FTC_DNRQ"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The client sends \typestr{FileDownloadRequest} message to start
+downloading (receiving) a particular file from the server.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 131 & \typestr{message-type} \\
+1 & U8  &     & \typestr{flags} \\
+2 & U16 &     & \typestr{filename-length} \\
+4 & U32 &     & \typestr{initial-offset} \\
+\typestr{filename-length} & U8 array & & \typestr{filename-string} \\
+\hline\end{tabular}
+
+The \typestr{flags} byte has the following format:
+
+\begin{tabular}{l|l|l}
+\hline
+Bits & Binary value   & Description \\ \hline
+3-0 & 0000            & do not compress file data \\
+    & 0001..1001      & use compression level 1..9 \\
+    & 1010 or greater & invalid \\
+\hline
+\end{tabular}
+
+% \typestr{initial-offset}
+% do not use compression when not enabled by the server
+
+After the client sends \typestr{FileDownloadRequest}, the server is
+expected to respond with one of the following:
+
+\begin{itemize}
+
+\item \typestr{FileLastRequestFailed} message, if there was an error
+opening file on the server side.
+
+\item Arbitrary number (including zero) of \typestr{FileDownloadData}
+messages with file data, and then one more \typestr{FileDownloadData}
+message with \typestr{raw-length} and \typestr{compressed-length}
+fields set to zero. This is the normal scenario when there was no
+error and download was not interrupted.
+
+\item Arbitrary number (including zero) of \typestr{FileDownloadData}
+messages with file data, and then one \typestr{FileDownloadFailed}
+message. This happens when the server cannot complete file download
+for some reason.
+
+\item \dots
+
+\end{itemize}
+
+% Can FileDownloadFailed go first? -- probably yes.
+% How zero-size files are transmitted?
+% How to detect the beginning of the next file, when previous
+%   download was cancelled with FileDownloadCancel?
+
+The \typestr{filename-string} should be a file name with complete
+absolute path represented in Unix-style format: it should start with a
+forward slash (``\verb|/|''), path components should be separated also
+with forward slashes. For example, Windows-style file name
+``\verb|c:\Temp\Report.doc|'' should be sent as
+``\verb|/c:/Temp/Report.doc|''.
+
+\newpage
+\subsection{FileUploadRequest}
+\begin{verbatim}
+Message type:      132
+Name signature:    "FTC_UPRQ"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The client sends \typestr{FileUploadRequest} message to start
+uploading (sending) a particular file to the server.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 132 & \typestr{message-type} \\
+1 & U8  &     & \typestr{flags} \\
+2 & U16 &     & \typestr{filename-length} \\
+4 & U32 &     & \typestr{initial-offset} \\
+\typestr{filename-length} & U8 array & & \typestr{filename-string} \\
+\hline\end{tabular}
+
+The \typestr{flags} byte has the following format:
+
+\begin{tabular}{l|l|l}
+\hline
+Bits & Binary value   & Description \\ \hline
+3-0 & 0000            & file data is expected to be uncompressed \\
+    & 0001..1001      & expected compression level (1..9) \\
+    & 1010 or greater & invalid \\
+\hline
+\end{tabular}
+
+% \typestr{initial-offset}
+% do not use compression when not enabled by the server
+
+Normally, the server does not respond to this message, so the client
+can start sending \typestr{FileUploadData} messages immediately.
+However, the server may send \typestr{FileUploadCancel} to make the
+client cancel current upload. The client can cancel current upload by
+sending \typestr{FileUploadFailed} message.
+
+The \typestr{filename-string} should be a file name with complete
+absolute path represented in Unix-style format: it should start with a
+forward slash (``\verb|/|''), path components should be separated also
+with forward slashes. For example, Windows-style file name
+``\verb|c:\Temp\Report.doc|'' should be sent as
+``\verb|/c:/Temp/Report.doc|''.
+
+\newpage
+\subsection{FileUploadData}
+\begin{verbatim}
+Message type:      133
+Name signature:    "FTC_UPDT"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The client uses \typestr{FileUploadData} message to send each
+successive portion of file data, as a part of file upload procedure.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 133 & \typestr{message-type} \\
+1 & U8  &     & \typestr{flags} \\
+2 & U16 &     & \typestr{raw-length} \\
+2 & U16 &     & \typestr{compressed-length} \\
+\typestr{compressed-length} & U8 array & & \typestr{file-data} \\
+\hline\end{tabular}
+
+The \typestr{flags} byte has the following format:
+
+\begin{tabular}{l|l|l}
+\hline
+Bits & Binary value   & Description \\ \hline
+3-0 & 0000            & file data is not compressed \\
+    & 0001..1001      & compression level used (1..9) \\
+    & 1010 or greater & invalid \\
+\hline
+\end{tabular}
+
+Last message per file (both \typestr{raw-length} and
+\typestr{compressed-length} are set to zeroes):
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 133 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &   0 & \typestr{raw-length} \\
+2 & U16 &   0 & \typestr{compressed-length} \\
+4 & U32 &     & \typestr{modification-time} \\
+\hline\end{tabular}
+
+% do not use compression when not enabled by the server
+% data is compressed with zlib
+% format of the modification-time
+
+\newpage
+\subsection{FileDownloadCancel}
+\begin{verbatim}
+Message type:      134
+Name signature:    "FTC_DNCN"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The client sends \typestr{FileDownloadCancel} message to make the
+server break current download operation.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 134 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{reason-length} \\
+\typestr{reason-length} & U8 array & & \typestr{reason-string} \\
+\hline\end{tabular}
+
+% reason-string may be empty
+
+\newpage
+\subsection{FileUploadFailed}
+\begin{verbatim}
+Message type:      135
+Name signature:    "FTC_UPFL"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The client sends \typestr{FileUploadFailed} message to notify the
+server that current upload operation will not be completed.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 135 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{reason-length} \\
+\typestr{reason-length} & U8 array & & \typestr{reason-string} \\
+\hline\end{tabular}
+
+% reason-string may be empty
+
+\newpage
+\subsection{FileCreateDirRequest}
+\begin{verbatim}
+Message type:      136
+Name signature:    "FTC_FCDR"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+\typestr{FileCreateDirRequest} message requests the server to create a
+new directory.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 136 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{dirname-length} \\
+\typestr{dirname-length} & U8 array & & \typestr{dirname-string} \\
+\hline\end{tabular}
+
+The \typestr{dirname-string} should be an absolute path represented in
+Unix-style format: it should start with a forward slash
+(``\verb|/|''), path components should be separated also with forward
+slashes. There should be no trailing slash at the end of the path.
+Note that Windows-style path like
+``\verb|c:\Temp\MyNewDir|'' should be sent as
+``\verb|/c:/Temp/MyNewDir|''.
+
+% All components of the path except the last one should exist in the
+% server's file system?
+
+\newpage
+\subsection{FileDirSizeRequest}
+\begin{verbatim}
+Message type:      137
+Name signature:    "FTC_DSRQ"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The client can send \typestr{FileDirSizeRequest} message to inquire
+about the total size of all files within a particular directory on the
+server (including files in sub-directories).
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 137 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{dirname-length} \\
+\typestr{dirname-length} & U8 array & & \typestr{dirname-string} \\
+\hline\end{tabular}
+
+The \typestr{dirname-string} should be an absolute path represented in
+Unix-style format: it should start with a forward slash
+(``\verb|/|''), path components should be separated also with forward
+slashes. There should be no trailing slash at the end of the path,
+except for the root (highest level) directory which is denoted with a
+single slash. Note that Windows-style path like
+``\verb|c:\Program Files\TightVNC|'' should be sent as
+``\verb|/c:/Program Files/TightVNC|''.
+
+\newpage
+\subsection{FileRenameRequest}
+\begin{verbatim}
+Message type:      138
+Name signature:    "FTC_RNRQ"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+\typestr{FileRenameRequest} message requests the server to rename the
+specified file or directory.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 138 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{old-name-length} \\
+2 & U16 &     & \typestr{new-name-length} \\
+\typestr{old-name-length} & U8 array & & \typestr{old-name-string} \\
+\typestr{new-name-length} & U8 array & & \typestr{new-name-string} \\
+\hline\end{tabular}
+
+Both \typestr{old-name-string} and \typestr{new-name-string} should be
+file names with complete absolute paths and should be represented in
+Unix-style format: the strings should start with forward slashes
+(``\verb|/|''), path components should be separated also with forward
+slashes. For example, Windows-style file name
+``\verb|c:\Temp\Report.doc|'' should be sent as
+``\verb|/c:/Temp/Report.doc|''.
+
+% All components of two paths except the last one should be the same?
+
+\newpage
+\subsection{FileDeleteRequest}
+\begin{verbatim}
+Message type:      139
+Name signature:    "FTC_RMRQ"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+\typestr{FileDeleteRequest} message requests the server to delete the
+specified file or directory.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 139 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{filename-length} \\
+\typestr{filename-length} & U8 array & & \typestr{filename-string} \\
+\hline\end{tabular}
+
+The \typestr{filename-string} should be a file name with complete
+absolute path represented in Unix-style format: it should start with a
+forward slash (``\verb|/|''), path components should be separated also
+with forward slashes. For example, Windows-style file name
+``\verb|c:\Temp\Report.doc|'' should be sent as
+``\verb|/c:/Temp/Report.doc|''.
+
+\newpage
+\section{Protocol messages (server to client)}
+
+\subsection{FileListData}
+\begin{verbatim}
+Message type:      130
+Name signature:    "FTS_LSDT"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The server sends \typestr{FileListData} message in response to
+\typestr{FileListRequest} client message. \typestr{FileListData}
+message lists files and sub-directories in a particular directory, and
+includes information about file sizes and last modification times.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 130 & \typestr{message-type} \\
+1 & U8  &     & \typestr{flags} \\
+2 & U16 &     & \typestr{number-of-files} \\
+2 & U16 &     & \typestr{raw-length} \\
+2 & U16 &     & \typestr{compressed-length} \\
+8 $\times$ \typestr{number-of-files} & U32 array & & \typestr{file-properties-data} \\
+\typestr{compressed-length} & U8 array & & \typestr{file-names-data} \\
+\hline\end{tabular}
+
+The \typestr{flags} byte has the following format:
+
+\begin{tabular}{l|l|l}
+\hline
+Bits & Binary value   & Description \\ \hline
+3-0 & 0000            & file list data is not compressed \\
+    & 0001..1001      & compression level used (1..9) \\
+    & 1010 or greater & invalid \\
+\hline
+4   & 0   & list of files and directories requested \\
+    & 1   & list of directories only requested \\
+\hline
+5   & 0   & success \\
+    & 1   & non-existent or inaccessible directory requested \\
+\hline
+\end{tabular}
+
+In the \typestr{flags} byte:
+
+\begin{itemize}
+\item bit 4 duplicates the same bit from the corresponding
+  \typestr{FileListRequest} message;
+\item if bit 5 is set to 1, then \typestr{number-of-files},
+  \typestr{raw-length} and \typestr{compressed-length} all should be
+  set to zero values. In that case, \typestr{file-properties-data} and
+  \typestr{file-names-data} should be empty;
+\item compression bits (bits 3-0) should be set only if compression
+  was requested by the client in the corresponding
+  \typestr{FileListRequest} message.
+\end{itemize}
+
+\typestr{File-properties-data} array is sent as
+\typestr{number-of-files} repetitions of the following structure:
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+4 & U32 &  & \typestr{file-size} \\
+4 & U32 &  & \typestr{modification-time} \\
+\hline\end{tabular}
+
+In that structure, \typestr{file-size} is specified in bytes,
+\typestr{modification-time} is an offset is seconds since the Epoch
+(00:00:00 UTC, January 1, 1970).
+
+\typestr{File-names-data} is a sequence of file and directory names
+found in the requested directory. Names do not include paths.
+Each individual record is terminated with a zero byte. The
+\typestr{file-names-data} list should include
+\typestr{number-of-files} individual records. If compression is
+enabled (bits 3-0 of \typestr{flags} designate a valid compression
+level), then \typestr{file-names-data} is compressed using zlib
+library.
+
+% the number-of-files may be 0; in that case ...
+% how directories should be ditinguished
+% what about symbolic links etc.
+% describe raw-length and compressed-length
+
+\newpage
+\subsection{FileDownloadData}
+\begin{verbatim}
+Message type:      131
+Name signature:    "FTS_DNDT"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The server uses \typestr{FileDownloadData} message to send each
+successive portion of file data, as a part of file download procedure.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 131 & \typestr{message-type} \\
+1 & U8  &     & \typestr{flags} \\
+2 & U16 &     & \typestr{raw-length} \\
+2 & U16 &     & \typestr{compressed-length} \\
+\typestr{compressed-length} & U8 array & & \typestr{file-data} \\
+\hline\end{tabular}
+
+Last message per file (both \typestr{raw-length} and
+\typestr{compressed-length} are set to zeroes):
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 131 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &   0 & \typestr{raw-length} \\
+2 & U16 &   0 & \typestr{compressed-length} \\
+4 & U32 &     & \typestr{modification-time} \\
+\hline\end{tabular}
+
+The \typestr{flags} byte has the following format:
+
+\begin{tabular}{l|l|l}
+\hline
+Bits & Binary value   & Description \\ \hline
+3-0 & 0000            & file data is not compressed \\
+    & 0001..1001      & compression level used (1..9) \\
+    & 1010 or greater & invalid \\
+\hline
+\end{tabular}
+
+Compression should be used only if it was requested by the client in
+corresponding \typestr{FileListRequest} message.
+
+% data is compressed with zlib
+% format of the modification-time
+
+\newpage
+\subsection{FileUploadCancel}
+\begin{verbatim}
+Message type:      132
+Name signature:    "FTS_UPCN"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The server sends \typestr{FileUploadCancel} message to make the client
+break current upload operation.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 132 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{reason-length} \\
+\typestr{reason-length} & U8 array & & \typestr{reason-string} \\
+\hline\end{tabular}
+
+% reason-string may be empty
+
+\newpage
+\subsection{FileDownloadFailed}
+\begin{verbatim}
+Message type:      133
+Name signature:    "FTS_DNFL"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The server sends \typestr{FileDownloadFailed} message to notify the
+client that current download operation will not be completed.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 133 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{reason-length} \\
+\typestr{reason-length} & U8 array & & \typestr{reason-string} \\
+\hline\end{tabular}
+
+% reason-string may be empty
+
+\newpage
+\subsection{FileDirSizeData}
+\begin{verbatim}
+Message type:      134
+Name signature:    "FTS_DSDT"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The server sends \typestr{FileDirSizeData} message in response to
+\typestr{FileDirSizeRequest} client message. \typestr{FileDirSizeData}
+message returns total size of all files within the requested directory
+on the server (including files in sub-directories). The size in bytes
+is returned as an unsigned 48-bit value.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 134 & \typestr{message-type} \\
+1 &     &     & \typestr{padding} \\
+2 & U16 &     & \typestr{dir-size-high-bits} \\
+4 & U32 &     & \typestr{dir-size-low-bits} \\
+\hline\end{tabular}
+
+\newpage
+\subsection{FileLastRequestFailed}
+\begin{verbatim}
+Message type:      135
+Name signature:    "FTS_RQFL"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The server sends \typestr{FileLastRequestFailed} message if it cannot
+execute an operation requested by the client. It can be sent in
+response to the following client messages:
+\typestr{FileDownloadRequest}, \typestr{FileCreateDirRequest},
+\typestr{FileRenameRequest}, \typestr{FileDeleteRequest}.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 135 & \typestr{message-type} \\
+1 & U8  &     & \typestr{message-type-of-request} \\
+2 & U16 &     & \typestr{reason-length} \\
+\typestr{reason-length} & U8 array & & \typestr{reason-string} \\
+\hline\end{tabular}
+
+% reason-string may be empty
+
+\newpage
+\subsection{FileEnableCompression}
+\begin{verbatim}
+Message type:      137
+Name signature:    "FTS_CMPR"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+This message controls compression in file transfer operations.
+\typestr{Enable-flag} is non-zero (true) if the client should be
+allowed to request and use compression for file transfers, or zero
+(false) otherwise.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 137 & \typestr{message-type} \\
+1 & U8  &     & \typestr{enable-flag} \\
+\hline\end{tabular}
+
+\typestr{FileEnableCompression} message controls how clients send the
+following messages:
+
+\begin{itemize}
+\item \typestr{FileListRequest}
+\item \typestr{FileDownloadRequest}
+\item \typestr{FileUploadRequest}
+\item \typestr{FileUploadData}
+\end{itemize}
+
+If the client did not receive a \typestr{FileEnableCompression}
+message from the server, or the most recent
+\typestr{FileEnableCompression} message included \typestr{enable-flag}
+set to false, then it must specify zero as compression level in the
+messages listed above and, most importantly, may not compress file
+data on uploading files.
+
+Otherwise, if the most recent \typestr{FileEnableCompression} message
+included non-zero \typestr{enable-flag}, then the client is allowed to
+request non-zero compression level and may send compressed data in
+\typestr{FileUploadData} messages.
+
+This message should not have effect on file transfers that are already
+in progress.
+
+\begin{quote}
+Note: this message was introduced to preserve compatibility with
+servers that do not support compression in file transfers. Old servers
+expect uncompressed data in \typestr{FileUploadData} messages but new
+clients might send it compressed. Using
+\typestr{FileEnableCompression} message makes sure the client will
+never compress upload data unless enabled explicitly by the server.
+\end{quote}
+
+\end{document}
