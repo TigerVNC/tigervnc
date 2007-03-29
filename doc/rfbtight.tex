@@ -322,7 +322,7 @@ FIXME: Allow zero-size framebuffer?
 % For each message, describe its place in the message sequence.
 
 \newpage
-\section{Protocol messages (client to server)}
+\section{Protocol messages, file transfers (client to server)}
 
 \subsection{FileListRequest}
 \begin{verbatim}
@@ -696,7 +696,7 @@ with forward slashes. For example, Windows-style file name
 ``\verb|/c:/Temp/Report.doc|''.
 
 \newpage
-\section{Protocol messages (server to client)}
+\section{Protocol messages, file transfers (server to client)}
 
 \subsection{FileListData}
 \begin{verbatim}
@@ -968,5 +968,123 @@ clients might send it compressed. Using
 \typestr{FileEnableCompression} message makes sure the client will
 never compress upload data unless enabled explicitly by the server.
 \end{quote}
+
+\newpage
+\section{Protocol messages (client to server)}
+
+\subsection{EnableContinuousUpdates}
+\begin{verbatim}
+Message type:      150
+Name signature:    "FTS_ENCU"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+This message either enables continuous updates for the specified
+pixels, or disables continuous updates completely.
+
+If \typestr{enable-flag} is set to true (non-zero), continuous updates
+are enabled for the framebuffer area specified by
+\typestr{x-position}, \typestr{y-position}, \typestr{width} and
+\typestr{height}.
+
+If \typestr{enable-flag} is set to false (zero), continuous updates
+are to be completely disabled. In this case, the values of
+\typestr{x-position}, \typestr{y-position}, \typestr{width} and
+\typestr{height} are not used.
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 150 & \typestr{message-type} \\
+1 & U8  &     & \typestr{enable-flag} \\
+2 & U16 &     & \typestr{x-position} \\
+2 & U16 &     & \typestr{y-position} \\
+2 & U16 &     & \typestr{width} \\
+2 & U16 &     & \typestr{height} \\
+\hline\end{tabular}
+
+Normally, the server would send \typestr{FramebufferUpdate} messages
+only in response to corresponding \typestr{FramebufferUpdateRequest}
+messages received from the client. In contrast, when continuous
+updates are in effect, the server is allowed to send a
+\typestr{FramebufferUpdate} message at any time, not waiting for
+client requests.
+
+Initially, contunuous updates are disabled since they violate the
+original RFB protocol. To enable this mode, the client sends an
+\typestr{EnableContinuousUpdates} message with non-zero
+\typestr{enable-flag}. On receiving such a message, the server
+immediately enables continuous updates for the area specified by
+\typestr{x-position}, \typestr{y-position}, \typestr{width} and
+\typestr{height}. The server will not send updates for pixels outside
+of this area.
+
+If continuous updates are already in effect, the client may always
+change the coordinates of currently updated area by sending another
+\typestr{EnableContinuousUpdates} message with non-zero
+\typestr{enable-flag}. On receiving each next message, the server
+discards old coordinates and re-enables continuous updates for the
+newly specified area.
+
+If \typestr{enable-flag} is set to zero, the server should disable
+continuous updates completely and respond with an
+\typestr{EndOfContinuousUpdates} message. After the client has
+received an \typestr{EndOfContinuousUpdates}, it can be sure that
+there will be no more updates without prior update requests.
+
+The client may send a message with zero \typestr{enable-flag} even if
+continuous updates were disabled already. In response, the server
+should send an \typestr{EndOfContinuousUpdates} each time it is asked
+to disable continuous updates. This behavior may be useful for
+protocol synchronization purposes.
+
+While continuous updates are in effect, the server completely ignores
+incremental update requests (\typestr{FramebufferUpdateRequest} with
+\typestr{incremental} flag set to non-zero). Such requests are ignored
+regardless of the coordinates specified within the request. Thus, it's
+not possible to request an incremental update for pixels outside of
+current continuously updated area.
+
+Non-incremental update requests (\typestr{FramebufferUpdateRequest}
+with \typestr{incremental} flag set to zero) should work as usual.
+That is, in response to such requests, the server should send the
+entire contents of the specified area as soon as possible.
+
+See also:
+\begin{itemize}
+\item \typestr{EndOfContinuousUpdates} server-to-client message.
+\end{itemize}
+
+\newpage
+\section{Protocol messages (server to client)}
+
+\subsection{EndOfContinuousUpdates}
+\begin{verbatim}
+Message type:      150
+Name signature:    "FTS_EOCU"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+The server sends \typestr{EndOfContinuousUpdates} message in response
+to each \typestr{EnableContinuousUpdates} message if and only if its
+\typestr{enable-flag} was set to false (zero).
+
+\begin{tabular}{l|lc|l} \hline
+No.\ of bytes & Type & [Value] & Description \\ \hline
+1 & U8  & 150 & \typestr{message-type} \\
+\hline\end{tabular}
+
+The message informs the client that it should not expect unsolicited
+framebuffer updates any more. In other words, after this message,
+there will be no framebuffer updates with no corresponding update
+requests received from the client.
+
+Note that this message should be sent each time the client is asking
+to disable continuous updates, even if continuous updates were not
+previously enabled.
+
+See also:
+\begin{itemize}
+\item \typestr{EnableContinuousUpdates} client-to-server message.
+\end{itemize}
 
 \end{document}
