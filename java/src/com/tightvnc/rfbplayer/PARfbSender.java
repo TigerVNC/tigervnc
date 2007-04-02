@@ -9,9 +9,18 @@ public class PARfbSender extends Applet {
     Applet receiver = null;
     receiver = RfbSharedStatic.refApplet;
     long time = Long.valueOf(getParameter("time")).longValue();
+    boolean pause = (Integer.parseInt(getParameter("pause")) != 0);
+    boolean unpause = (Integer.parseInt(getParameter("unpause")) != 0);
 
     if (receiver != null) {
-      ((RfbPlayer)receiver).jumpTo(time);
+
+      if (pause) {
+        ((RfbPlayer)receiver).setPaused(true);
+      } else if (unpause) {
+        ((RfbPlayer)receiver).setPaused(false);
+      } else {
+        ((RfbPlayer)receiver).jumpTo(time);
+      }
     } else
       System.out.println("Couldn't jump to time: " + time + " in RfbPlayer.");
   }

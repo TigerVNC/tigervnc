@@ -209,6 +209,22 @@ public class RfbPlayer extends java.applet.Applet
 
   }
 
+  public void setPausedInt(String paused) {
+    // default to true (pause)
+    int pause = 1;
+
+    try {
+      pause = Integer.parseInt(paused);
+    } catch (NumberFormatException e) {
+    }
+
+    if (pause == 0) {
+      setPaused(false);
+    } else {
+      setPaused(true);
+    }
+  }
+
   public void setPaused(boolean paused) {
     if (showControls)
       buttonPanel.setPaused(paused);
