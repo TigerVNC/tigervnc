@@ -19,6 +19,7 @@
 #include <string.h>
 #include <rfb/Exception.h>
 #include <rfb/secTypes.h>
+#include <rfb/msgTypes.h>
 #include <rfb/CapsList.h>
 #include <rfb/SMsgReaderV3.h>
 #include <rfb/SMsgWriterV3.h>
@@ -422,13 +423,49 @@ void SConnection::clientInit(bool shared)
 // FIXME: Move sendInteractionCaps() to a class derived from SMsgWriterV3?
 void SConnection::sendInteractionCaps()
 {
+  //
   // Advertise support for non-standard server-to-client messages
-  // (this version has nothing to advertise).
+  //
+
   CapsList scaps;
 
+  // File transfer:
+  /* FIXME: File transfers are not finished yet: 
+  scaps.addTightExt(msgTypeFileListData,            "FTS_LSDT");
+  scaps.addTightExt(msgTypeFileDownloadData,        "FTS_DNDT");
+  scaps.addTightExt(msgTypeFileUploadCancel,        "FTS_UPCN");
+  scaps.addTightExt(msgTypeFileDownloadFailed,      "FTS_DNFL");
+  scaps.addTightExt(msgTypeFileDirSizeData,         "FTS_DSDT");
+  scaps.addTightExt(msgTypeFileLastRequestFailed,   "FTS_RQFL");
+  */
+
+  // Continuous updates:
+  /* FIXME: EndOfContinuousUpdates message is not supported yet:
+  scaps.addTightExt(msgTypeEndOfContinuousUpdates,  "CUS_EOCU");
+  */
+
+  //
   // Advertise support for non-standard client-to-server messages
-  // (this version has nothing to advertise).
+  //
+
   CapsList ccaps;
+
+  // File transfer:
+  /* FIXME: File transfers are not finished yet: 
+  ccaps.addTightExt(msgTypeFileListRequest,         "FTC_LSRQ");
+  ccaps.addTightExt(msgTypeFileDownloadRequest,     "FTC_DNRQ");
+  ccaps.addTightExt(msgTypeFileUploadRequest,       "FTC_UPRQ");
+  ccaps.addTightExt(msgTypeFileUploadRequest,       "FTC_UPDT");
+  ccaps.addTightExt(msgTypeFileDownloadCancel,      "FTC_DNCN");
+  ccaps.addTightExt(msgTypeFileUploadFailed,        "FTC_UPFL");
+  ccaps.addTightExt(msgTypeFileCreateDirRequest,    "FTC_FCDR");
+  ccaps.addTightExt(msgTypeFileDirSizeRequest,      "FTC_DSRQ");
+  ccaps.addTightExt(msgTypeFileRenameRequest,       "FTC_RNRQ");
+  ccaps.addTightExt(msgTypeFileDeleteRequest,       "FTC_RMRQ");
+  */
+
+  // Continuous updates:
+  ccaps.addTightExt(msgTypeEnableContinuousUpdates, "CUC_ENCU");
 
   // Advertise all supported encoding types (except raw encoding).
   CapsList ecaps;

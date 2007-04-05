@@ -47,6 +47,9 @@ namespace rfb {
     virtual void readPointerEvent();
     virtual void readClientCutText();
 
+    // Read TightVNC-specific protocol messages.
+    virtual void readEnableContinuousUpdates();
+
     SMsgReader(SMsgHandler* handler, rdr::InStream* is);
 
     SMsgHandler* handler;

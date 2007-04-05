@@ -35,6 +35,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   : SConnection(server_->securityFactory, reverse), sock(s), server(server_),
     updates(false), image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
+    autoUpdatesActive(false),
     pointerEventTime(0), accessRights(AccessDefault),
     startTime(time(0)), m_pFileTransfer(0)
 {
@@ -480,6 +481,35 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   writeFramebufferUpdate();
 }
 
+void VNCSConnectionST::enableContinuousUpdates(const Rect& r)
+{
+  // TightVNC-specific EnableContinuousUpdates message is very much like
+  // incremental FramebufferUpdateRequest. So here we copy some code from
+  // VNCSConnectionST::framebufferUpdateRequest().
+
+  if (!(accessRights & AccessView)) return;
+
+  SConnection::framebufferUpdateRequest(r, true);
+
+  autoUpdatesActive = true;
+  autoUpdatedRect = r;
+
+  Region reqRgn(autoUpdatedRect);
+  requested.assign_union(reqRgn);
+
+  writeFramebufferUpdate();
+}
+
+void VNCSConnectionST::disableContinuousUpdates()
+{
+  autoUpdatesActive = false;
+  autoUpdatedRect.clear();
+
+  writeFramebufferUpdate();
+
+  // FIXME: Send EndOfContinuousUpdates message.
+}
+
 void VNCSConnectionST::setInitialColourMap()
 {
   setColourMapEntries(0, 0);
@@ -615,6 +645,15 @@ void VNCSConnectionST::writeFramebufferUpdate()
     if (drawRenderedCursor)
       writeRenderedCursorRect();
     writer()->writeFramebufferUpdateEnd();
+    resetRequestedRegion();
+  }
+}
+
+void VNCSConnectionST::resetRequestedRegion()
+{
+  if (autoUpdatesActive) {
+    requested.reset(autoUpdatedRect);
+  } else {
     requested.clear();
   }
 }

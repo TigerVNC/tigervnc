@@ -33,6 +33,8 @@ namespace rfb {
   const int msgTypeFileDirSizeData = 134;
   const int msgTypeFileLastRequestFailed = 135;
 
+  const int msgTypeEndOfContinuousUpdates = 150;
+
   // client to server
 
   const int msgTypeSetPixelFormat = 0;
@@ -53,5 +55,7 @@ namespace rfb {
   const int msgTypeFileDirSizeRequest = 137;
   const int	msgTypeFileRenameRequest = 138;
   const int msgTypeFileDeleteRequest = 139;
+
+  const int msgTypeEnableContinuousUpdates = 150;
 }
 #endif

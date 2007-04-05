@@ -47,6 +47,9 @@ namespace rfb {
     virtual void setEncodings(int nEncodings, rdr::U32* encodings);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
 
+    virtual void enableContinuousUpdates(const Rect& r);
+    virtual void disableContinuousUpdates();
+
     // InputHandler interface
     // The InputHandler methods will be called for the corresponding messages.
 
