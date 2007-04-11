@@ -76,7 +76,7 @@ SFilter &ScaleFilters::operator[](unsigned int filter_id) {
 }
 
 int ScaleFilters::getFilterIdByName(char *filterName) {
-  for (int i = 0; i <= scaleFilterMaxNumber; i++) {
+  for (unsigned int i = 0; i <= scaleFilterMaxNumber; i++) {
     if (strcasecmp(filters[i].name, filterName) == 0) return i;
   }
   return -1;
