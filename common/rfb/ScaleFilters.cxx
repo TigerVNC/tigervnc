@@ -23,6 +23,10 @@
 #include <rfb/Rect.h>
 #include <rfb/ScaleFilters.h>
 
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#endif
+
 using namespace rfb;
 
 //
@@ -73,7 +77,7 @@ SFilter &ScaleFilters::operator[](unsigned int filter_id) {
 
 int ScaleFilters::getFilterIdByName(char *filterName) {
   for (int i = 0; i <= scaleFilterMaxNumber; i++) {
-    if (stricmp(filters[i].name, filterName) == 0) return i;
+    if (strcasecmp(filters[i].name, filterName) == 0) return i;
   }
   return -1;
 }
