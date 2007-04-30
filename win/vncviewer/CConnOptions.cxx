@@ -20,6 +20,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/encodings.h>
 #include <rfb/LogWriter.h>
+#include <rfb/ScaleFilters.h>
 #include <rfb_win32/MsgBox.h>
 #include <rfb_win32/Registry.h>
 #include <rdr/HexInStream.h>
@@ -122,6 +123,10 @@ static BoolParameter autoScaling("AutoScaling",
 static IntParameter scale("Scale", 
                           "Scale local copy of the remote desktop, in percent",
                           100);
+static IntParameter scaleFilter("ScaleFilter", 
+                                "Filter used for the remote desktop scaling. "
+                                "0 = Nearest Neighbor, 1 = Bilinear, 2 = Bicubic, 3 = Sinc.",
+                                rfb::defaultScaleFilter);
 
 CConnOptions::CConnOptions()
 : useLocalCursor(::useLocalCursor), useDesktopResize(::useDesktopResize),
@@ -133,7 +138,7 @@ lowColourLevel(::lowColourLevel), pointerEventInterval(ptrEventInterval),
 emulate3(::emulate3), monitor(::monitor.getData()), showToolbar(::showToolbar),
 customCompressLevel(::customCompressLevel), compressLevel(::compressLevel), 
 noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getData()),
-autoReconnect(::autoReconnect), autoScaling(::autoScaling), scale(::scale)
+autoReconnect(::autoReconnect), autoScaling(::autoScaling), scale(::scale), scaleFilter(::scaleFilter)
 {
   if (autoSelect) {
     preferredEncoding = encodingZRLE;
@@ -275,6 +280,11 @@ void CConnOptions::readFromFile(const char* filename) {
             autoScaling = atoi(value.buf);
           } else if (stricmp(name.buf, "Scale") == 0) {
             scale = atoi(value.buf);
+          } else if (stricmp(name.buf, "ScaleFilter") == 0) {
+            int scaleFilterID = atoi(value.buf);
+            if (scaleFilterID > rfb::scaleFilterMaxNumber || scaleFilterID < 0 ) {
+              scaleFilter = rfb::defaultScaleFilter;
+            } else scaleFilter = scaleFilterID;
           }
         }
       }
@@ -358,6 +368,7 @@ void CConnOptions::writeToFile(const char* filename) {
     fprintf(f, "QualityLevel=%d\n", qualityLevel);
     fprintf(f, "AutoScaling=%d\n", (int)autoScaling);
     fprintf(f, "Scale=%d\n", scale);
+    fprintf(f, "ScaleFilter=%d\n", scaleFilter);
     fclose(f); f=0;
 
     setConfigFileName(filename);
@@ -399,6 +410,7 @@ void CConnOptions::writeDefaults() {
   key.setInt(_T("QualityLevel"), qualityLevel);
   key.setBool(_T("AutoScaling"), autoScaling);
   key.setInt(_T("Scale"), scale);
+  key.setInt(_T("ScaleFilter"), scaleFilter);
 }
 
 
@@ -462,6 +474,7 @@ CConnOptions& CConnOptions::operator=(const CConnOptions& o) {
   qualityLevel = o.qualityLevel;
   autoScaling = o.autoScaling;
   scale = o.scale;
+  scaleFilter = o.scaleFilter;
 
   return *this;
 }

@@ -68,6 +68,7 @@ namespace rfb {
       bool acceptBell;
       bool autoScaling;
       int scale;
+      unsigned int scaleFilter;
       CharArray userName;
       void setUserName(const char* user);
       PlainPasswd password;
