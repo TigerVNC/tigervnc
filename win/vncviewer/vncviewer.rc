@@ -210,32 +210,36 @@ BEGIN
     LTEXT           "quality (1=poor, 9=best)",IDC_STATIC,44,140,81,9
 END
 
-IDD_MISC DIALOG DISCARDABLE  0, 0, 213, 137
+IDD_MISC DIALOG DISCARDABLE  0, 0, 216, 138
 STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Misc"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Shared connection (do not disconnect other viewers)",
                     IDC_CONN_SHARED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,
-                    10,199,15
+                    10,202,15
     CONTROL         "Full-screen mode",IDC_FULL_SCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,25,99,15
-    CONTROL         "Show toolbar",IDC_SHOW_TOOLBAR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,106,25,100,15
     CONTROL         "Render cursor locally",IDC_LOCAL_CURSOR,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,40,99,15
     CONTROL         "Allow dynamic desktop resizing",IDC_DESKTOP_RESIZE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,199,15
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,55,112,15
     CONTROL         "Only use protocol version 3.3",IDC_PROTOCOL_3_3,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,199,15
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,111,15
     CONTROL         "Beep when requested to by the server",IDC_ACCEPT_BELL,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,85,199,15
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,85,202,15
     CONTROL         "Offer to automatically reconnect",IDC_AUTO_RECONNECT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,100,199,15
-    LTEXT           "Scale by:",IDC_STATIC_SCALE,106,40,34,15,SS_CENTERIMAGE
-    COMBOBOX        IDC_COMBO_SCALE,140,40,40,134,CBS_DROPDOWN | CBS_SORT | 
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,100,202,15
+    CONTROL         "Show toolbar",IDC_SHOW_TOOLBAR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,106,25,103,15
+    COMBOBOX        IDC_COMBO_SCALE,138,40,42,134,CBS_DROPDOWN | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "%",IDC_STATIC_PERCENT,185,40,21,15,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_SCALE_FILTER,138,70,71,113,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Scale by:",IDC_STATIC_SCALE,106,40,32,15,SS_CENTERIMAGE
+    LTEXT           "%",IDC_STATIC_PERCENT,185,40,24,15,SS_CENTERIMAGE
+    LTEXT           "With filter:",IDC_SCALE_FILTER,138,55,71,15,
+                    SS_CENTERIMAGE
 END
 
 IDD_INPUTS DIALOG DISCARDABLE  0, 0, 186, 162
@@ -502,10 +506,13 @@ BEGIN
     IDD_MISC, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 206
+        RIGHTMARGIN, 209
         VERTGUIDE, 106
+        VERTGUIDE, 138
+        VERTGUIDE, 180
+        VERTGUIDE, 185
         TOPMARGIN, 7
-        BOTTOMMARGIN, 130
+        BOTTOMMARGIN, 131
         HORZGUIDE, 10
         HORZGUIDE, 25
         HORZGUIDE, 40

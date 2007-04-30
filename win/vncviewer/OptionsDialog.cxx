@@ -176,6 +176,14 @@ public:
     } else {
       SetDlgItemInt(handle, IDC_COMBO_SCALE, dlg->options.scale, FALSE);
     }
+    HWND hScaleFilterCombo = GetDlgItem(handle, IDC_COMBO_SCALE_FILTER);
+    SendMessage(hScaleFilterCombo, CB_RESETCONTENT, 0, 0);
+    ScaleFilters scaleFilters;
+    for (i = 0; i <= rfb::scaleFilterMaxNumber; i++) {
+      SendMessage(hScaleFilterCombo, CB_ADDSTRING, (WPARAM)0, (LPARAM)(int FAR*)scaleFilters[i].name);
+    }
+    SendMessage(hScaleFilterCombo, CB_SETCURSEL, (WPARAM)dlg->options.scaleFilter, (LPARAM)0);
+    if (dlg->options.scale == 100 && !dlg->options.autoScaling) enableItem(IDC_COMBO_SCALE_FILTER, 0);
   }
   virtual bool onOk() {
     dlg->options.shared = isItemChecked(IDC_CONN_SHARED);
@@ -197,8 +205,27 @@ public:
         dlg->options.autoScaling = true;
       }
     }
+    dlg->options.scaleFilter = SendMessage(GetDlgItem(handle, IDC_COMBO_SCALE_FILTER), CB_GETCURSEL, 0, 0);
     ((ViewerOptions*)propSheet)->setChanged();
     return true;
+  }
+  virtual bool onCommand(int id, int cmd) {
+    if (id == IDC_COMBO_SCALE) {
+      if (cmd == CBN_SELENDOK || cmd == CBN_EDITCHANGE) {
+        char scaleStr[20];
+        if (cmd == CBN_SELENDOK) {
+          HWND handleComboScale = GetDlgItem(handle, IDC_COMBO_SCALE);
+          int index = SendMessage(handleComboScale, CB_GETCURSEL, 0, 0);
+          SendMessage(handleComboScale, CB_GETLBTEXT, (WPARAM)index, (LPARAM)scaleStr);
+        } else {
+          GetDlgItemText(handle, IDC_COMBO_SCALE, scaleStr, 20);
+        }
+        if (strcmp(scaleStr, "100") == 0) enableItem(IDC_COMBO_SCALE_FILTER, 0);
+        else enableItem(IDC_COMBO_SCALE_FILTER, 1);
+        return true;
+      }
+    }
+    return false;
   }
 protected:
   OptionsInfo* dlg;

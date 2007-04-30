@@ -123,6 +123,8 @@
 #define IDC_STATIC_SCALE                1097
 #define IDC_COMBO_SCALE                 1098
 #define IDC_STATIC_PERCENT              1099
+#define IDC_COMBO_SCALE_FILTER          1100
+#define IDC_SCALE_FILTER                1101
 #define ID_TOOLBAR                      40002
 #define ID_CLOSE                        40003
 #define ID_OPTIONS                      40004
@@ -155,7 +157,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         40028
-#define _APS_NEXT_CONTROL_VALUE         1100
+#define _APS_NEXT_CONTROL_VALUE         1102
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
