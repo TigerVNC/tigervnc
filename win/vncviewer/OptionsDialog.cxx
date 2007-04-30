@@ -205,7 +205,12 @@ public:
         dlg->options.autoScaling = true;
       }
     }
-    dlg->options.scaleFilter = SendMessage(GetDlgItem(handle, IDC_COMBO_SCALE_FILTER), CB_GETCURSEL, 0, 0);
+    int scaleFilterID = SendMessage(GetDlgItem(handle, IDC_COMBO_SCALE_FILTER), CB_GETCURSEL, 0, 0);
+    if (scaleFilterID != rfb::scaleFilterBilinear &&  scaleFilterID != rfb::scaleFilterBicubic) {
+      MsgBox(handle, "Now supported only bilinear and bicubic scale filters.", MB_OK);
+    } else {
+      dlg->options.scaleFilter = SendMessage(GetDlgItem(handle, IDC_COMBO_SCALE_FILTER), CB_GETCURSEL, 0, 0);
+    }
     ((ViewerOptions*)propSheet)->setChanged();
     return true;
   }
