@@ -91,11 +91,11 @@ void ScaledPixelBuffer::setScaleFilter(unsigned int scaleFilterID_) {
 
   scaleFilterID = scaleFilterID_;
   
-  if (src_width && src_height && scaled_width && scaled_height && pf.depth > 0) {
+  if (src_width && src_height && scaled_width && scaled_height) {
     freeWeightTabs();
     scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
     scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
-    if (scale != 100) scaleRect(Rect(0, 0, src_width, src_height));
+    if (scale != 100 && pf.depth > 0) scaleRect(Rect(0, 0, src_width, src_height));
   }
 }
 

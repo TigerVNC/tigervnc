@@ -158,6 +158,7 @@ CConn::applyOptions(CConnOptions& opt) {
     window->setDisableWinKeys(options.disableWinKeys);
     window->setShowToolbar(options.showToolbar);
     window->printScale();
+    window->setDesktopScaleFilter(options.scaleFilter);
     if (options.autoScaling) {
       window->setAutoScaling(true);
     } else {
