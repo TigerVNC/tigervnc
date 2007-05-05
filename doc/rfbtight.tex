@@ -317,7 +317,33 @@ FIXME: Allow zero-size framebuffer?
 \subsection{PointerPos}
 \subsection{CompressLevel}
 \subsection{QualityLevel}
+
 \subsection{LastRect}
+\begin{verbatim}
+Encoding type:     0xFFFFFF20
+Name signature:    "LASTRECT"
+Vendor signature:  "TGHT"
+\end{verbatim}
+
+\typestr{LastRect} enables \typestr{FramebufferUpdate} messages that
+include less rectangles than was specified in the message header. For
+example, VNC server can send a big conter like 0xFFFF as
+\typestr{number-of-rectangles}, then arbitrary number of rectangles and
+pseudo-rectangles (less than 0xFFFF). Finally, it sends
+\typestr{LastRect} pseudo-rectangle which marks the end of current
+\typestr{FramebufferUpdate} message.
+
+\typestr{LastRect} pseudo-encoding is special -- it does not include
+\typestr{x-position}, \typestr{y-position}, \typestr{width} and
+\typestr{height} fields, and is not followed by any other data as
+well. Only 4 bytes is sent in \typestr{LastRect}, while other
+encodings and pseudo-encodings normally send 12 bytes as a rectangle
+header.
+
+To enable this pseudo-encoding, the client specifies
+\typestr{LastRect} in the \typestr{SetEncodings} message. From that
+moment, the server may use \typestr{LastRect} pseudo-encoding in some
+of the framebuffer updates it will send.
 
 % For each message, describe its place in the message sequence.
 
