@@ -59,12 +59,6 @@ double cubic(double x) {
   return 0.0;
 }
 
-// Sinc filter function
-double sinc(double x) {
-  if (x == 0.0) return 1.0;
-  else return sin(pi*x)/(pi*x);
-}
-
 
 //
 // -=- ScaleFilters class
@@ -86,7 +80,6 @@ void ScaleFilters::initFilters() {
   filters[scaleFilterNearestNeighbor] = create("Nearest neighbor", 0.5, nearest_neighbor);
   filters[scaleFilterBilinear] = create("Bilinear", 1, linear);
   filters[scaleFilterBicubic] = create("Bicubic", 2, cubic);
-  filters[scaleFilterSinc]  = create("Sinc", 4, sinc);
 }
 
 SFilter ScaleFilters::create(char *name_, double radius_, filter_func func_) {

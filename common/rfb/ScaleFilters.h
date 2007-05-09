@@ -31,9 +31,8 @@ namespace rfb {
   const unsigned int scaleFilterNearestNeighbor = 0;
   const unsigned int scaleFilterBilinear = 1;
   const unsigned int scaleFilterBicubic = 2;
-  const unsigned int scaleFilterSinc = 3;
 
-  const unsigned int scaleFilterMaxNumber = 3;
+  const unsigned int scaleFilterMaxNumber = 2;
   const unsigned int defaultScaleFilter = scaleFilterBilinear;
 
   //
