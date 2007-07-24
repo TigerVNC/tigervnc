@@ -44,6 +44,14 @@ if test "$GXX" = yes; then
   fi
 fi
 
+dnl Checks for IRIX-specific Digital Media libraries.
+AC_CHECK_LIB(dmedia, dmICCreate,
+  [AC_DEFINE(HAVE_DMEDIA)
+  PLATFORM_CXXSRCS="$PLATFORM_CXXSRCS IrixDMJpegCompressor.cxx"
+  PLATFORM_CXXSRCS="$PLATFORM_CXXSRCS IrixDMIC_RawToJpeg.cxx"
+  LIBS="$LIBS -ldmedia"])
+AC_SUBST(PLATFORM_CXXSRCS)
+
 AC_ARG_WITH(installed-zlib,
 [  --with-installed-zlib   use the version of zlib which is installed on the
                           system instead of the one distributed with VNC])

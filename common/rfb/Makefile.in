@@ -20,6 +20,7 @@ CXXSRCS = \
   FileManager.cxx \
   FileReader.cxx \
   FileWriter.cxx \
+  JpegCompressor.cxx \
   HTTPServer.cxx \
   HextileDecoder.cxx \
   HextileEncoder.cxx \
@@ -64,7 +65,8 @@ CXXSRCS = \
   ZRLEDecoder.cxx \
   encodings.cxx \
   secTypes.cxx \
-  util.cxx
+  util.cxx \
+  @PLATFORM_CXXSRCS@
 
 SRCS = d3des.c $(CXXSRCS)
 
