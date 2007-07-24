@@ -39,7 +39,7 @@ static LogWriter vlog("PollingMgr");
 BoolParameter PollingManager::pollPointer
 ("PollPointer",
  "DEBUG: Poll area under the pointer with higher priority",
- true);
+ false);
 
 IntParameter PollingManager::pollingType
 ("PollingType",
@@ -295,6 +295,12 @@ bool PollingManager::poll_DetectVideo()
 
   if (grandStep)
     adjustVideoArea();
+
+#ifdef DEBUG
+  if (nTilesChanged != 0) {
+    fprintf(stderr, "#%d# ", nTilesChanged);
+  }
+#endif
 
   return (nTilesChanged != 0);
 }
