@@ -219,6 +219,10 @@ SOURCE=.\HTTPServer.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\JpegCompressor.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\KeyRemapper.cxx
 # End Source File
 # Begin Source File
@@ -542,6 +546,10 @@ SOURCE=.\ImageGetter.h
 # Begin Source File
 
 SOURCE=.\InputHandler.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\JpegCompressor.h
 # End Source File
 # Begin Source File
 
