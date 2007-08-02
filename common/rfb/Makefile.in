@@ -21,6 +21,7 @@ CXXSRCS = \
   FileReader.cxx \
   FileWriter.cxx \
   JpegCompressor.cxx \
+  JpegEncoder.cxx \
   HTTPServer.cxx \
   HextileDecoder.cxx \
   HextileEncoder.cxx \
