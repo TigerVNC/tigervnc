@@ -223,6 +223,10 @@ SOURCE=.\JpegCompressor.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\JpegEncoder.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\KeyRemapper.cxx
 # End Source File
 # Begin Source File
@@ -550,6 +554,10 @@ SOURCE=.\InputHandler.h
 # Begin Source File
 
 SOURCE=.\JpegCompressor.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\JpegEncoder.h
 # End Source File
 # Begin Source File
 
