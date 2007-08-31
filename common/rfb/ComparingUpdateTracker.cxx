@@ -38,6 +38,14 @@ ComparingUpdateTracker::~ComparingUpdateTracker()
 
 void ComparingUpdateTracker::compare()
 {
+  // First of all, exclude video area from both changed and copied regions.
+  // We handle video area separately and do not compare it -- we know it's
+  // being changed continuously.
+  if (!video_area.is_empty()) {
+    changed.assign_subtract(video_area);
+    copied.assign_subtract(video_area);
+  }
+
   std::vector<Rect> rects;
   std::vector<Rect>::iterator i;
 

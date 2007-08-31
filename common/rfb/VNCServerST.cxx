@@ -314,6 +314,11 @@ void VNCServerST::add_copied(const Region& dest, const Point& delta)
   comparer->add_copied(dest, delta);
 }
 
+void VNCServerST::set_video_area(const Rect &rect)
+{
+  comparer->set_video_area(rect);
+}
+
 bool VNCServerST::clientsReadyForUpdate()
 {
   std::list<VNCSConnectionST*>::iterator ci;
@@ -459,7 +464,7 @@ void VNCServerST::checkUpdate()
   if (ui.is_empty() && !(renderCursor && renderedCursorInvalid))
     return;
 
-  Region toCheck = ui.changed.union_(ui.copied);
+  Region toCheck = ui.changed.union_(ui.copied).union_(ui.video_area);
 
   if (renderCursor) {
     Rect clippedCursorRect
@@ -495,6 +500,7 @@ void VNCServerST::checkUpdate()
     ci_next = ci; ci_next++;
     (*ci)->add_copied(ui.copied, ui.copy_delta);
     (*ci)->add_changed(ui.changed);
+    (*ci)->set_video_area(ui.video_area);
   }
 
   comparer->clear();

@@ -83,6 +83,7 @@ namespace rfb {
     virtual void serverCutText(const char* str, int len);
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
+    virtual void set_video_area(const Rect &rect);
     virtual bool clientsReadyForUpdate();
     virtual void tryUpdate();
     virtual void setCursor(int width, int height, const Point& hotspot,

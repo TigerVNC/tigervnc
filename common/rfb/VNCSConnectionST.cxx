@@ -574,7 +574,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
-  // `changed' and `copied' regions would not intersect.
+  // `changed', `copied' and `video_area' regions would not intersect.
 
   UpdateInfo ui;
   updates.getUpdateInfo(&ui, requested);
@@ -645,7 +645,11 @@ void VNCSConnectionST::writeFramebufferUpdate()
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original VNC4.
     writer()->setupCurrentEncoder();
-    int nRects = ui.copied.numRects() + (drawRenderedCursor ? 1 : 0);
+    int nRects = (ui.copied.numRects() +
+                  /* FIXME: Sending video area is not yet enabled.
+                  (ui.video_area.is_empty() ? 0 : 1) +
+                  */
+                  (drawRenderedCursor ? 1 : 0));
     std::vector<Rect> rects;
     std::vector<Rect>::const_iterator i;
     ui.changed.get_rects(&rects);

@@ -93,6 +93,7 @@ namespace rfb {
     void add_copied(const Region& dest, const Point& delta) {
       updates.add_copied(dest, delta);
     }
+    void set_video_area(const Rect &rect) { updates.set_video_area(rect); }
 
     const char* getPeerEndpoint() const {return peerEndpoint.buf;}
 
