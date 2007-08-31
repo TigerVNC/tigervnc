@@ -94,8 +94,13 @@ namespace rfb {
     // UpdateInfo and ImageGetter.  On a V3 writer this may have
     // pseudo-rectangles for setDesktopSize and setCursor added to it, and so
     // may invoke writeSetCursorCallback().
+    //
+    // FIXME: This functions is not used because it incorrectly computes
+    //        the number of rectangles if the Tight encoder is used.
+    /*
     virtual void writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
                                         Region* updatedRegion);
+    */
 
     // writeRects() accepts an UpdateInfo (changed & copied regions) and an
     // ImageGetter to fetch pixels from.  It then calls writeCopyRect() and

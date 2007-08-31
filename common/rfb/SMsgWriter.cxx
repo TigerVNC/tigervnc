@@ -114,9 +114,9 @@ int SMsgWriter::getNumRects(const Rect &r)
   return encoders[encoding]->getNumRects(r);
 }
 
-// FIXME: This functions does not compute the number of rectangles correctly
-//        if the Tight encoder is used (but currently that does not matter
-//        because this function is never used).
+// FIXME: This functions is not used because it incorrectly computes
+//        the number of rectangles if the Tight encoder is used.
+/*
 void SMsgWriter::writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
                                         Region* updatedRegion)
 {
@@ -124,6 +124,7 @@ void SMsgWriter::writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
   writeRects(ui, ig, updatedRegion);
   writeFramebufferUpdateEnd();
 }
+*/
 
 void SMsgWriter::writeRects(const UpdateInfo& ui, ImageGetter* ig,
                             Region* updatedRegion)
