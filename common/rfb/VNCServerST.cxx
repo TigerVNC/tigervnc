@@ -451,12 +451,15 @@ inline bool VNCServerST::needRenderedCursor()
 
 void VNCServerST::checkUpdate()
 {
+  UpdateInfo ui;
+  comparer->getUpdateInfo(&ui, pb->getRect());
+
   bool renderCursor = needRenderedCursor();
 
-  if (comparer->is_empty() && !(renderCursor && renderedCursorInvalid))
+  if (ui.is_empty() && !(renderCursor && renderedCursorInvalid))
     return;
 
-  Region toCheck = comparer->get_changed().union_(comparer->get_copied());
+  Region toCheck = ui.changed.union_(ui.copied);
 
   if (renderCursor) {
     Rect clippedCursorRect
@@ -490,8 +493,8 @@ void VNCServerST::checkUpdate()
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
-    (*ci)->add_copied(comparer->get_copied(), comparer->get_delta());
-    (*ci)->add_changed(comparer->get_changed());
+    (*ci)->add_copied(ui.copied, ui.copy_delta);
+    (*ci)->add_changed(ui.changed);
   }
 
   comparer->clear();
