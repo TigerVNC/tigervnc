@@ -572,22 +572,22 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   server->checkUpdate();
 
-  // Get the lists of updates. Prior to exporting the data to the `update' object,
+  // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
   // `changed' and `copied' regions would not intersect.
 
-  UpdateInfo update;
-  updates.getUpdateInfo(&update, requested);
+  UpdateInfo ui;
+  updates.getUpdateInfo(&ui, requested);
   bool needNewUpdateInfo = false;
 
   // If the previous position of the rendered cursor overlaps the source of the
   // copy, then when the copy happens the corresponding rectangle in the
   // destination will be wrong, so add it to the changed region.
 
-  if (!update.copied.is_empty() && !renderedCursorRect.is_empty()) {
-    Rect bogusCopiedCursor = (renderedCursorRect.translate(update.copy_delta)
+  if (!ui.copied.is_empty() && !renderedCursorRect.is_empty()) {
+    Rect bogusCopiedCursor = (renderedCursorRect.translate(ui.copy_delta)
                               .intersect(server->pb->getRect()));
-    if (!update.copied.intersect(bogusCopiedCursor).is_empty()) {
+    if (!ui.copied.intersect(bogusCopiedCursor).is_empty()) {
       updates.add_changed(bogusCopiedCursor);
       needNewUpdateInfo = true;
     }
@@ -611,7 +611,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // The `updates' object could change, make sure we have valid update info.
 
   if (needNewUpdateInfo)
-    updates.getUpdateInfo(&update, requested);
+    updates.getUpdateInfo(&ui, requested);
 
   // If the client needs a server-side rendered cursor, work out the cursor
   // rectangle.  If it's empty then don't bother drawing it, but if it overlaps
@@ -625,7 +625,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
     if (renderedCursorRect.is_empty()) {
       drawRenderedCursor = false;
-    } else if (!update.changed.union_(update.copied)
+    } else if (!ui.changed.union_(ui.copied)
                .intersect(renderedCursorRect).is_empty()) {
       drawRenderedCursor = true;
     }
@@ -637,18 +637,18 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
     //if (drawRenderedCursor) {
     //  updates.subtract(renderedCursorRect);
-    //  updates.getUpdateInfo(&update, requested);
+    //  updates.getUpdateInfo(&ui, requested);
     //}
   }
 
-  if (!update.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
+  if (!ui.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original VNC4.
     writer()->setupCurrentEncoder();
-    int nRects = update.copied.numRects() + (drawRenderedCursor ? 1 : 0);
+    int nRects = ui.copied.numRects() + (drawRenderedCursor ? 1 : 0);
     std::vector<Rect> rects;
     std::vector<Rect>::const_iterator i;
-    update.changed.get_rects(&rects);
+    ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++) {
       if (i->width() && i->height())
         nRects += writer()->getNumRects(*i);
@@ -656,7 +656,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
     
     writer()->writeFramebufferUpdateStart(nRects);
     Region updatedRegion;
-    writer()->writeRects(update, &image_getter, &updatedRegion);
+    writer()->writeRects(ui, &image_getter, &updatedRegion);
     updates.subtract(updatedRegion);
     if (drawRenderedCursor)
       writeRenderedCursorRect();
