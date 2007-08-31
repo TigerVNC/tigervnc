@@ -95,7 +95,7 @@ namespace rfb {
     // pseudo-rectangles for setDesktopSize and setCursor added to it, and so
     // may invoke writeSetCursorCallback().
     //
-    // FIXME: This functions is not used because it incorrectly computes
+    // FIXME: This function is not used because it incorrectly computes
     //        the number of rectangles if the Tight encoder is used.
     /*
     virtual void writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
