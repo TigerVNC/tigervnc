@@ -24,6 +24,7 @@
 #include <rfb/UpdateTracker.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/LogWriter.h>
+#include <rfb/JpegEncoder.h>
 
 using namespace rfb;
 
@@ -39,6 +40,7 @@ SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
     bytesSent[i] = 0;
     rectsSent[i] = 0;
   }
+  jpegEncoder = new JpegEncoder(this);
 }
 
 SMsgWriter::~SMsgWriter()
@@ -56,6 +58,7 @@ SMsgWriter::~SMsgWriter()
   vlog.info("  raw bytes equivalent %d, compression ratio %f",
           rawBytesEquivalent, (double)rawBytesEquivalent / bytes);
   delete [] imageBuf;
+  delete jpegEncoder;
 }
 
 void SMsgWriter::writeSetColourMapEntries(int firstColour, int nColours,
@@ -167,6 +170,11 @@ bool SMsgWriter::writeRect(const Rect& r, unsigned int encoding,
     assert(encoders[encoding]);
   }
   return encoders[encoding]->writeRect(r, ig, actual);
+}
+
+void SMsgWriter::writeVideoRect(PixelBuffer *pb, const Rect& r)
+{
+  jpegEncoder->writeRect(pb, r);
 }
 
 void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)
