@@ -79,6 +79,7 @@ namespace rfb {
     // Methods overridden from VNCServer
 
     virtual void setPixelBuffer(PixelBuffer* pb);
+    virtual PixelBuffer* getPixelBuffer() const { return pb; }
     virtual void setColourMapEntries(int firstColour=0, int nColours=0);
     virtual void serverCutText(const char* str, int len);
     virtual void add_changed(const Region &region);

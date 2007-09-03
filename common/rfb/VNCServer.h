@@ -35,6 +35,9 @@ namespace rfb {
     // protocol messages being sent, or clients being disconnected.
     virtual void setPixelBuffer(PixelBuffer* pb) = 0;
 
+    // getPixelBuffer() returns a pointer to the PixelBuffer object.
+    virtual PixelBuffer* getPixelBuffer() const = 0;
+
     // setColourMapEntries() tells the server that some entries in the colour
     // map have changed.  The server will retrieve them via the PixelBuffer's
     // ColourMap object.  This may result in protocol messages being sent.

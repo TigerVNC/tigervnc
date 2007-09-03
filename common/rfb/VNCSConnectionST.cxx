@@ -646,9 +646,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
     // complicated as compared to the original VNC4.
     writer()->setupCurrentEncoder();
     int nRects = (ui.copied.numRects() +
-                  /* FIXME: Sending video area is not yet enabled.
                   (ui.video_area.is_empty() ? 0 : 1) +
-                  */
                   (drawRenderedCursor ? 1 : 0));
     std::vector<Rect> rects;
     std::vector<Rect>::const_iterator i;
@@ -659,6 +657,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
     }
     
     writer()->writeFramebufferUpdateStart(nRects);
+    if (!ui.video_area.is_empty())
+      writer()->writeVideoRect(server->getPixelBuffer(), ui.video_area);
     Region updatedRegion;
     writer()->writeRects(ui, &image_getter, &updatedRegion);
     updates.subtract(updatedRegion);
