@@ -105,6 +105,7 @@ void SMsgWriter::setupCurrentEncoder()
 
   encoders[encoding]->setCompressLevel(cp->compressLevel);
   encoders[encoding]->setQualityLevel(cp->qualityLevel);
+  jpegEncoder->setQualityLevel(cp->qualityLevel);
 }
 
 int SMsgWriter::getNumRects(const Rect &r)
