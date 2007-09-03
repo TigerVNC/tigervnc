@@ -48,9 +48,10 @@ public:
   }
 
   virtual void get(Window wnd, int x = 0, int y = 0);
-  virtual void get(Window wnd, int x, int y, int w, int h);
+  virtual void get(Window wnd, int x, int y, int w, int h,
+                   int dst_x = 0, int dst_y = 0);
 
-// Copying pixels from one image to another.
+  // Copying pixels from one image to another.
   virtual void updateRect(XImage *src, int dst_x = 0, int dst_y = 0);
   virtual void updateRect(Image *src, int dst_x = 0, int dst_y = 0);
   virtual void updateRect(XImage *src, int dst_x, int dst_y, int w, int h);
@@ -104,7 +105,8 @@ public:
   }
 
   virtual void get(Window wnd, int x = 0, int y = 0);
-  virtual void get(Window wnd, int x, int y, int w, int h);
+  virtual void get(Window wnd, int x, int y, int w, int h,
+                   int dst_x = 0, int dst_y = 0);
 
 protected:
 
@@ -140,7 +142,8 @@ public:
   }
 
   virtual void get(Window wnd, int x = 0, int y = 0);
-  virtual void get(Window wnd, int x, int y, int w, int h);
+  virtual void get(Window wnd, int x, int y, int w, int h,
+                   int dst_x = 0, int dst_y = 0);
 
 protected:
 
@@ -185,7 +188,8 @@ public:
   }
 
   virtual void get(Window wnd, int x = 0, int y = 0);
-  virtual void get(Window wnd, int x, int y, int w, int h);
+  virtual void get(Window wnd, int x, int y, int w, int h,
+                   int dst_x = 0, int dst_y = 0);
 
 protected:
 

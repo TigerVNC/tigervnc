@@ -100,9 +100,10 @@ void Image::get(Window wnd, int x, int y)
   get(wnd, x, y, xim->width, xim->height);
 }
 
-void Image::get(Window wnd, int x, int y, int w, int h)
+void Image::get(Window wnd, int x, int y, int w, int h,
+                int dst_x, int dst_y)
 {
-  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, 0, 0);
+  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, dst_x, dst_y);
 }
 
 //
@@ -314,10 +315,11 @@ void ShmImage::get(Window wnd, int x, int y)
   XShmGetImage(dpy, wnd, xim, x, y, AllPlanes);
 }
 
-void ShmImage::get(Window wnd, int x, int y, int w, int h)
+void ShmImage::get(Window wnd, int x, int y, int w, int h,
+                   int dst_x, int dst_y)
 {
   // FIXME: Use SHM for this as well?
-  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, 0, 0);
+  XGetSubImage(dpy, wnd, x, y, w, h, AllPlanes, ZPixmap, xim, dst_x, dst_y);
 }
 
 #ifdef HAVE_READDISPLAY
@@ -408,7 +410,8 @@ void IrixOverlayShmImage::get(Window wnd, int x, int y)
   get(wnd, x, y, xim->width, xim->height);
 }
 
-void IrixOverlayShmImage::get(Window wnd, int x, int y, int w, int h)
+void IrixOverlayShmImage::get(Window wnd, int x, int y, int w, int h,
+                              int dst_x, int dst_y)
 {
   XRectangle rect;
   unsigned long hints = XRD_TRANSPARENT | XRD_READ_POINTER;
@@ -419,7 +422,8 @@ void IrixOverlayShmImage::get(Window wnd, int x, int y, int w, int h)
   rect.height = h;
 
   XShmReadDisplayRects(dpy, wnd,
-                       &rect, 1, readDisplayBuf, -x, -y,
+                       &rect, 1, readDisplayBuf,
+                       dst_x - x, dst_y - y,
                        hints, &hints);
 }
 
@@ -464,13 +468,14 @@ void SolarisOverlayImage::get(Window wnd, int x, int y)
   get(wnd, x, y, xim->width, xim->height);
 }
 
-void SolarisOverlayImage::get(Window wnd, int x, int y, int w, int h)
+void SolarisOverlayImage::get(Window wnd, int x, int y, int w, int h,
+                              int dst_x, int dst_y)
 {
   XImage *tmp_xim = XReadScreen(dpy, wnd, x, y, w, h, True);
   if (tmp_xim == NULL)
     return;
 
-  updateRect(tmp_xim, 0, 0);
+  updateRect(tmp_xim, dst_x, dst_y);
 
   XDestroyImage(tmp_xim);
 }
