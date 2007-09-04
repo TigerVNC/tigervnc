@@ -79,8 +79,9 @@ IrixDMJpegCompressor::compress(const rdr::U32 *buf,
   if (!m_ic.allocBuffer(&srcBuf, m_srcPool)) {
     return;
   }
-  // FIXME: Currently, copyToBuffer() copies parts of the image incorrectly.
-  if (!m_ic.copyToBuffer(srcBuf, buf, w * h * (fmt->bpp / 8))) {
+  int widthInBytes = w * (fmt->bpp / 8);
+  int strideInBytes = stride * (fmt->bpp / 8);
+  if (!m_ic.copyToBuffer(srcBuf, buf, widthInBytes, h, strideInBytes)) {
     m_ic.freeBuffer(srcBuf);
     return;
   }

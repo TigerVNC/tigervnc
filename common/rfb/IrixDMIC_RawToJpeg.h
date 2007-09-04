@@ -28,6 +28,8 @@ namespace rfb {
 
     static bool allocBuffer(DMbuffer *pbuf, DMbufferpool pool);
     static bool copyToBuffer(DMbuffer buf, const void *data, int dataSize);
+    static bool copyToBuffer(DMbuffer buf, const void *data,
+                             int rowSize, int nRows, int stride);
     static int getBufferSize(DMbuffer buf);
     static void * mapBufferData(DMbuffer buf);
     static void freeBuffer(DMbuffer buf);

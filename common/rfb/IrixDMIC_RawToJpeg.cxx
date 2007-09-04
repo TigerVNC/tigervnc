@@ -312,6 +312,32 @@ IrixDMIC_RawToJpeg::copyToBuffer(DMbuffer buf, const void *data, int dataSize)
 }
 
 //
+// Fill in a DMbuffer with data.
+//
+// NOTE: The caller must make sure that the buffer size is no less
+//       than (nRows * rowSize).
+//
+
+bool
+IrixDMIC_RawToJpeg::copyToBuffer(DMbuffer buf, const void *data,
+                                 int rowSize, int nRows, int stride)
+{
+  char *dataBytes = (char *)data;
+  char *bufPtr = (char *)dmBufferMapData(buf);
+  for (int i = 0; i < nRows; i++) {
+    memcpy(bufPtr, &dataBytes[i * stride], rowSize);
+    bufPtr += rowSize;
+  }
+
+  if (dmBufferSetSize(buf, nRows * rowSize) != DM_SUCCESS) {
+    reportError("dmBufferSetSize");
+    return false;
+  }
+
+  return true;
+}
+
+//
 // Map DMbuffer to physical memory.
 //
 
