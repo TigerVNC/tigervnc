@@ -20,6 +20,10 @@
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
 
+#ifdef HAVE_DMEDIA
+#include <rfb/IrixDMJpegCompressor.h>
+#endif
+
 using namespace rfb;
 
 const int JpegEncoder::qualityMap[10] = {
@@ -28,7 +32,11 @@ const int JpegEncoder::qualityMap[10] = {
 
 JpegEncoder::JpegEncoder(SMsgWriter* writer_) : writer(writer_)
 {
+#ifdef HAVE_DMEDIA
+  jcomp = new IrixDMJpegCompressor;
+#else
   jcomp = new StandardJpegCompressor;
+#endif
   jcomp->setQuality(qualityMap[6]);
 }
 
