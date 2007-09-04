@@ -120,6 +120,8 @@ private:
 
   void adjustVideoArea();
 
+  void getVideoAreaRect(Rect *result);
+
   // Additional images used in polling algorithms.
   Image *m_rowImage;            // One row of the framebuffer
   Image *m_tileImage;           // One tile (32x32 or less)

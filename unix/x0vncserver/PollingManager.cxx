@@ -296,13 +296,24 @@ bool PollingManager::poll_DetectVideo()
   if (grandStep)
     adjustVideoArea();
 
+  bool videoDetected = false;
+  Rect r;
+  getVideoAreaRect(&r);
+  m_server->set_video_area(r);
+  videoDetected = !r.is_empty();
+  if (videoDetected) {
+    m_image->get(DefaultRootWindow(m_dpy),
+                 m_offsetLeft + r.tl.x, m_offsetTop + r.tl.y,
+                 r.width(), r.height(), r.tl.x, r.tl.y);
+  }
+
 #ifdef DEBUG
   if (nTilesChanged != 0) {
     fprintf(stderr, "#%d# ", nTilesChanged);
   }
 #endif
 
-  return (nTilesChanged != 0);
+  return (nTilesChanged != 0 || videoDetected);
 }
 
 bool PollingManager::poll_SkipCycles()
@@ -603,4 +614,38 @@ void PollingManager::adjustVideoArea()
   */
 
   memcpy(m_videoFlags, newFlags, m_widthTiles * m_heightTiles);
+}
+
+void
+PollingManager::getVideoAreaRect(Rect *result)
+{
+  int y0 = m_heightTiles, y1 = 0;
+  int x0 = m_widthTiles, x1 = 0;
+
+  for (int y = 0; y < m_heightTiles; y++) {
+    for (int x = 0; x < m_widthTiles; x++) {
+      if (!m_videoFlags[y * m_widthTiles + x])
+        continue;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+    }
+  }
+
+  // Limit width and height at 800 and 576 correspondingly.
+  if (x1 - x0 > 24)
+    x1 = x0 + 24;
+  if (y1 - y0 > 17)
+    y1 = y0 + 17;
+
+  result->tl.x = x0 * 32;
+  result->tl.y = y0 * 32;
+  result->br.x = (x1 + 1) * 32;
+  result->br.y = (y1 + 1) * 32;
+
+  if (x1 >= x0) {
+    fprintf(stderr, "Video rect %dx%d\tat(%d,%d)\n",
+            result->width(), result->height(), result->tl.x, result->tl.y);
+  }
 }
