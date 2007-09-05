@@ -66,6 +66,12 @@ if test "$GXX" = yes; then
   fi
 fi
 
+dnl Check for IRIX-specific Digital Media libraries.
+AC_CHECK_LIB(dmedia, dmICCreate,
+  [AC_DEFINE(HAVE_DMEDIA)
+  DMEDIA_LIB=-ldmedia])
+AC_SUBST(DMEDIA_LIB)
+
 AC_PATH_XTRA
 
 AC_ARG_WITH(installed-zlib,
