@@ -73,7 +73,8 @@ SRCS = d3des.c $(CXXSRCS)
 
 OBJS = d3des.o $(CXXSRCS:.cxx=.o)
 
-DIR_CPPFLAGS = -I$(top_srcdir) @JPEG_INCLUDE@ @VSNPRINTF_DEFINE@
+DIR_CPPFLAGS = -I$(top_srcdir) @JPEG_INCLUDE@ @VSNPRINTF_DEFINE@ \
+  @STRCASECMP_DEFINE@ @STRNCASECMP_DEFINE@
 
 library = librfb.a
 
