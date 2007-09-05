@@ -34,6 +34,7 @@ namespace rdr {
       else
         strcat(str_, "Exception");
     }
+    virtual ~Exception() {}
     virtual const char* str() const { return str_; }
   };
 
