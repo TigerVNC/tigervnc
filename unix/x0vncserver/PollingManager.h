@@ -122,6 +122,11 @@ private:
 
   void getVideoAreaRect(Rect *result);
 
+  // Functions called by getVideoAreaRect().
+  void constructLengthMatrices(int **pmx_h, int **pmx_v);
+  void destroyLengthMatrices(int *mx_h, int *mx_v);
+  void findMaxLocalRect(Rect *r, int *mx_h, int *mx_v);
+
   // Additional images used in polling algorithms.
   Image *m_rowImage;            // One row of the framebuffer
   Image *m_tileImage;           // One tile (32x32 or less)

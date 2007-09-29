@@ -619,33 +619,133 @@ void PollingManager::adjustVideoArea()
 void
 PollingManager::getVideoAreaRect(Rect *result)
 {
-  int y0 = m_heightTiles, y1 = 0;
-  int x0 = m_widthTiles, x1 = 0;
+  int *mx_hlen, *mx_vlen;
+  constructLengthMatrices(&mx_hlen, &mx_vlen);
 
-  for (int y = 0; y < m_heightTiles; y++) {
-    for (int x = 0; x < m_widthTiles; x++) {
-      if (!m_videoFlags[y * m_widthTiles + x])
-        continue;
-      if (y < y0) y0 = y;
-      if (y > y1) y1 = y;
-      if (x < x0) x0 = x;
-      if (x > x1) x1 = x;
+  int full_h = m_heightTiles;
+  int full_w = m_widthTiles;
+  int x, y;
+  Rect max_rect(0, 0, 0, 0);
+  Rect local_rect;
+
+  for (y = 0; y < full_h; y++) {
+    for (x = 0; x < full_w; x++) {
+      int max_w = mx_hlen[y * full_w + x];
+      int max_h = mx_vlen[y * full_w + x];
+      if (max_w > 2 && max_h > 1 && max_h * max_w > (int)max_rect.area()) {
+        local_rect.tl.x = x;
+        local_rect.tl.y = y;
+        findMaxLocalRect(&local_rect, mx_hlen, mx_vlen);
+        if (local_rect.area() > max_rect.area()) {
+          max_rect = local_rect;
+        }
+      }
     }
   }
 
-  // Limit width and height at 800 and 576 correspondingly.
-  if (x1 - x0 > 24)
-    x1 = x0 + 24;
-  if (y1 - y0 > 17)
-    y1 = y0 + 17;
+  destroyLengthMatrices(mx_hlen, mx_vlen);
 
-  result->tl.x = x0 * 32;
-  result->tl.y = y0 * 32;
-  result->br.x = (x1 + 1) * 32;
-  result->br.y = (y1 + 1) * 32;
+  max_rect.tl.x *= 32;
+  max_rect.tl.y *= 32;
+  max_rect.br.x *= 32;
+  max_rect.br.y *= 32;
+  if (max_rect.br.x > m_width)
+    max_rect.br.x = m_width;
+  if (max_rect.br.y > m_height)
+    max_rect.br.y = m_height;
+  *result = max_rect;
 
-  if (x1 >= x0) {
+  if (!result->is_empty()) {
     fprintf(stderr, "Video rect %dx%d\tat(%d,%d)\n",
             result->width(), result->height(), result->tl.x, result->tl.y);
   }
 }
+
+void
+PollingManager::constructLengthMatrices(int **pmx_h, int **pmx_v)
+{
+  // Handy shortcuts.
+  int h = m_heightTiles;
+  int w = m_widthTiles;
+
+  // Allocate memory.
+  int *mx_h = new int[h * w];
+  memset(mx_h, 0, h * w * sizeof(int));
+  int *mx_v = new int[h * w];
+  memset(mx_v, 0, h * w * sizeof(int));
+
+  int x, y, len, i;
+
+  // Fill in horizontal length matrix.
+  for (y = 0; y < h; y++) {
+    for (x = 0; x < w; x++) {
+      len = 0;
+      while (x + len < w && m_videoFlags[y * w + x + len]) {
+        len++;
+      }
+      for (i = 0; i < len; i++) {
+        mx_h[y * w + x + i] = len - i;
+      }
+      x += len;
+    }
+  }
+
+  // Fill in vertical length matrix.
+  for (x = 0; x < w; x++) {
+    for (y = 0; y < h; y++) {
+      len = 0;
+      while (y + len < h && m_videoFlags[(y + len) * w + x]) {
+        len++;
+      }
+      for (i = 0; i < len; i++) {
+        mx_v[(y + i) * w + x] = len - i;
+      }
+      y += len;
+    }
+  }
+
+  *pmx_h = mx_h;
+  *pmx_v = mx_v;
+}
+
+void
+PollingManager::destroyLengthMatrices(int *mx_h, int *mx_v)
+{
+  delete[] mx_h;
+  delete[] mx_v;
+}
+
+// NOTE: This function assumes that current tile has non-zero in mx_h[],
+//       otherwise we get division by zero.
+void
+PollingManager::findMaxLocalRect(Rect *r, int mx_h[], int mx_v[])
+{
+  int idx = r->tl.y * m_widthTiles + r->tl.x;
+
+  // NOTE: Rectangle's maximum width and height are 25 and 18
+  //       (in tiles, where each tile is usually 32x32 pixels).
+  int max_w = mx_h[idx];
+  if (max_w > 25)
+    max_w = 25;
+  int cur_h = 18;
+
+  int best_w = max_w;
+  int best_area = 1 * best_w;
+
+  for (int i = 0; i < max_w; i++) {
+    int h = mx_v[idx + i];
+    if (h < cur_h) {
+      cur_h = h;
+      if (cur_h * max_w <= best_area)
+        break;
+    }
+    if (cur_h * (i + 1) > best_area) {
+      best_w = i + 1;
+      best_area = cur_h * best_w;
+    }
+  }
+
+  r->br.x = r->tl.x + best_w;
+  r->br.y = r->tl.y + best_area / best_w;
+}
+
