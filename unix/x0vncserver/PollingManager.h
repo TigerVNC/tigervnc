@@ -59,6 +59,7 @@ protected:
   // Implementations of different polling algorithms.
   // Return value of true reports that some changes were detected.
   //
+  bool poll_New();
   bool poll_DetectVideo();
   bool poll_SkipCycles();
   bool poll_Traditional();
@@ -88,6 +89,12 @@ private:
 
   inline void getScreen() {
     m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
+  }
+
+  inline void getScreenRect(const Rect& r) {
+    m_image->get(DefaultRootWindow(m_dpy),
+                 m_offsetLeft + r.tl.x, m_offsetTop + r.tl.y,
+                 r.width(), r.height(), r.tl.x, r.tl.y);
   }
 
   inline void getRow(int y) {

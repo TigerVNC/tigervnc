@@ -43,8 +43,8 @@ BoolParameter PollingManager::pollPointer
 
 IntParameter PollingManager::pollingType
 ("PollingType",
- "DEBUG: Select particular polling algorithm (0..3)",
- 3);
+ "DEBUG: Select particular polling algorithm (0..4)",
+ 4);
 
 const int PollingManager::m_pollingOrder[32] = {
    0, 16,  8, 24,  4, 20, 12, 28,
@@ -204,9 +204,12 @@ void PollingManager::poll()
   case 2:
     changes1 = poll_SkipCycles();
     break;
-//case 3:
-  default:
+  case 3:
     changes1 = poll_DetectVideo();
+    break;
+//case 4:
+  default:
+    changes1 = poll_New();
     break;
   }
 
@@ -231,6 +234,76 @@ void PollingManager::poll()
 #ifdef DEBUG
   debugAfterPoll();
 #endif
+}
+
+bool PollingManager::poll_New()
+{
+  if (!m_server)
+    return false;
+
+  // Resource allocation.
+  bool *mxChanged = new bool[m_widthTiles * m_heightTiles];
+  memset(mxChanged, 0, m_widthTiles * m_heightTiles);
+
+  // Handy shortcuts.
+  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
+  int bytesPerLine = m_image->xim->bytes_per_line;
+
+  // Fill in the mxChanged[] array.
+  int scanLine = m_pollingOrder[m_pollingStep++ % 32];
+  int nTilesChanged = 0;
+  for (int y = 0; y < m_heightTiles; y++) {
+    int tile_h = (m_height - y * 32 >= 32) ? 32 : m_height - y * 32;
+    if (scanLine >= tile_h)
+      break;
+    int scan_y = y * 32 + scanLine;
+    getRow(scan_y);
+    char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
+    char *ptr_new = m_rowImage->xim->data;
+    for (int x = 0; x < m_widthTiles; x++) {
+      int tile_w = (m_width - x * 32 >= 32) ? 32 : m_width - x * 32;
+      int nBytes = tile_w * bytesPerPixel;
+      if (memcmp(ptr_old, ptr_new, nBytes)) {
+        mxChanged[y * m_widthTiles + x] = true;
+        nTilesChanged++;
+      }
+      ptr_old += nBytes;
+      ptr_new += nBytes;
+    }
+  }
+
+  // Inform the server about the changes.
+  if (nTilesChanged) {
+    bool *pmxChanged = mxChanged;
+    Rect rect;
+    for (int y = 0; y < m_heightTiles; y++) {
+      for (int x = 0; x < m_widthTiles; x++) {
+        if (*pmxChanged++) {
+          // Count successive tiles marked as changed.
+          int count = 1;
+          while (x + count < m_widthTiles && *pmxChanged++) {
+            count++;
+          }
+          // Compute the coordinates and the size of this band.
+          rect.setXYWH(x * 32, y * 32, count * 32, 32);
+          if (rect.br.x > m_width)
+            rect.br.x = m_width;
+          if (rect.br.y > m_height)
+            rect.br.y = m_height;
+          // Add to the changed region maintained by the server.
+          getScreenRect(rect);
+          m_server->add_changed(rect);
+          // Skip processed tiles.
+          x += count;
+        }
+      }
+    }
+  }
+
+  // Cleanup.
+  delete[] mxChanged;
+
+  return (nTilesChanged != 0);
 }
 
 bool PollingManager::poll_DetectVideo()
