@@ -97,8 +97,18 @@ private:
                  r.width(), r.height(), r.tl.x, r.tl.y);
   }
 
-  inline void getRow(int y) {
+  inline void getFullRow(int y) {
     m_rowImage->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop + y);
+  }
+
+  inline void getRow(int x, int y, int w) {
+    m_rowImage->get(DefaultRootWindow(m_dpy),
+                    m_offsetLeft + x, m_offsetTop + y, w, 1);
+  }
+
+  inline void getColumn(int x, int y, int h) {
+    m_rowImage->get(DefaultRootWindow(m_dpy),
+                    m_offsetLeft + x, m_offsetTop + y, 1, h);
   }
 
   inline void getTile32(int tx, int ty, int w, int h) {
@@ -124,6 +134,8 @@ private:
                        m_offsetLeft + x, m_offsetTop + y, w, h);
     }
   }
+
+  int checkRow(int x, int y, int w, bool *pmxChanged);
 
   void adjustVideoArea();
 

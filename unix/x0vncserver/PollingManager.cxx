@@ -241,35 +241,22 @@ bool PollingManager::poll_New()
   if (!m_server)
     return false;
 
-  // Resource allocation.
+  // mxChanged[] array will hold boolean values corresponding to each
+  // 32x32 tile. If a value is true, then we've detected a change in
+  // that tile.
   bool *mxChanged = new bool[m_widthTiles * m_heightTiles];
   memset(mxChanged, 0, m_widthTiles * m_heightTiles);
 
-  // Handy shortcuts.
-  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
-  int bytesPerLine = m_image->xim->bytes_per_line;
-
-  // Fill in the mxChanged[] array.
-  int scanLine = m_pollingOrder[m_pollingStep++ % 32];
+  // First pass over the framebuffer. Here we scan 1/32 part of the
+  // framebuffer -- that is, one line in each (32 * m_width) stripe.
+  // We compare the pixels of that line with previous framebuffer
+  // contents and raise corresponding member values of mxChanged[].
+  int scanOffset = m_pollingOrder[m_pollingStep++ % 32];
+  bool *pmxChanged = mxChanged;
   int nTilesChanged = 0;
-  for (int y = 0; y < m_heightTiles; y++) {
-    int tile_h = (m_height - y * 32 >= 32) ? 32 : m_height - y * 32;
-    if (scanLine >= tile_h)
-      break;
-    int scan_y = y * 32 + scanLine;
-    getRow(scan_y);
-    char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
-    char *ptr_new = m_rowImage->xim->data;
-    for (int x = 0; x < m_widthTiles; x++) {
-      int tile_w = (m_width - x * 32 >= 32) ? 32 : m_width - x * 32;
-      int nBytes = tile_w * bytesPerPixel;
-      if (memcmp(ptr_old, ptr_new, nBytes)) {
-        mxChanged[y * m_widthTiles + x] = true;
-        nTilesChanged++;
-      }
-      ptr_old += nBytes;
-      ptr_new += nBytes;
-    }
+  for (int y = scanOffset; y < m_height; y += 32) {
+    nTilesChanged += checkRow(0, y, m_width, pmxChanged);
+    pmxChanged += m_widthTiles;
   }
 
   // Inform the server about the changes.
@@ -306,6 +293,32 @@ bool PollingManager::poll_New()
   return (nTilesChanged != 0);
 }
 
+int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
+{
+  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
+  int bytesPerLine = m_image->xim->bytes_per_line;
+
+  getRow(x, y, w);
+
+  char *ptr_old = m_image->xim->data + y * bytesPerLine + x * bytesPerPixel;
+  char *ptr_new = m_rowImage->xim->data;
+
+  int nTilesChanged = 0;
+  for (int i = 0; i < (w + 31) / 32; i++) {
+    int tile_w = (w - i * 32 >= 32) ? 32 : w - i * 32;
+    int nBytes = tile_w * bytesPerPixel;
+    if (memcmp(ptr_old, ptr_new, nBytes)) {
+      *pmxChanged = true;
+      nTilesChanged++;
+    }
+    pmxChanged++;
+    ptr_old += nBytes;
+    ptr_new += nBytes;
+  }
+
+  return nTilesChanged;
+}
+
 bool PollingManager::poll_DetectVideo()
 {
   if (!m_server)
@@ -331,7 +344,7 @@ bool PollingManager::poll_DetectVideo()
     if (scanLine >= tile_h)
       break;
     int scan_y = y * 32 + scanLine;
-    getRow(scan_y);
+    getFullRow(scan_y);
     char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
     char *ptr_new = m_rowImage->xim->data;
     for (int x = 0; x * 32 < m_width; x++) {
@@ -413,7 +426,7 @@ bool PollingManager::poll_SkipCycles()
     if (scanLine >= tile_h)
       scanLine %= tile_h;
     int scan_y = y * 32 + scanLine;
-    getRow(scan_y);
+    getFullRow(scan_y);
     char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
     char *ptr_new = m_rowImage->xim->data;
     for (int x = 0; x * 32 < m_width; x++) {
@@ -464,7 +477,7 @@ bool PollingManager::poll_Traditional()
     if (scanLine >= tile_h)
       break;
     int scan_y = y * 32 + scanLine;
-    getRow(scan_y);
+    getFullRow(scan_y);
     char *ptr_old = m_image->xim->data + scan_y * bytesPerLine;
     char *ptr_new = m_rowImage->xim->data;
     for (int x = 0; x * 32 < m_width; x++) {
