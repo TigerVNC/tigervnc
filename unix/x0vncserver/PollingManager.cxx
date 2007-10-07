@@ -243,7 +243,7 @@ bool PollingManager::poll_New()
 
   // mxChanged[] array will hold boolean values corresponding to each
   // 32x32 tile. If a value is true, then we've detected a change in
-  // that tile.
+  // that tile. Initially, we fill in the array with zero values.
   bool *mxChanged = new bool[m_widthTiles * m_heightTiles];
   memset(mxChanged, 0, m_widthTiles * m_heightTiles);
 
