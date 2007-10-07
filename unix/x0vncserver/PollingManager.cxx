@@ -260,32 +260,8 @@ bool PollingManager::poll_New()
   }
 
   // Inform the server about the changes.
-  if (nTilesChanged) {
-    bool *pmxChanged = mxChanged;
-    Rect rect;
-    for (int y = 0; y < m_heightTiles; y++) {
-      for (int x = 0; x < m_widthTiles; x++) {
-        if (*pmxChanged++) {
-          // Count successive tiles marked as changed.
-          int count = 1;
-          while (x + count < m_widthTiles && *pmxChanged++) {
-            count++;
-          }
-          // Compute the coordinates and the size of this band.
-          rect.setXYWH(x * 32, y * 32, count * 32, 32);
-          if (rect.br.x > m_width)
-            rect.br.x = m_width;
-          if (rect.br.y > m_height)
-            rect.br.y = m_height;
-          // Add to the changed region maintained by the server.
-          getScreenRect(rect);
-          m_server->add_changed(rect);
-          // Skip processed tiles.
-          x += count;
-        }
-      }
-    }
-  }
+  if (nTilesChanged)
+    sendChanges(mxChanged);
 
   // Cleanup.
   delete[] mxChanged;
@@ -317,6 +293,33 @@ int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
   }
 
   return nTilesChanged;
+}
+
+void PollingManager::sendChanges(bool *pmxChanged)
+{
+  Rect rect;
+  for (int y = 0; y < m_heightTiles; y++) {
+    for (int x = 0; x < m_widthTiles; x++) {
+      if (*pmxChanged++) {
+        // Count successive tiles marked as changed.
+        int count = 1;
+        while (x + count < m_widthTiles && *pmxChanged++) {
+          count++;
+        }
+        // Compute the coordinates and the size of this band.
+        rect.setXYWH(x * 32, y * 32, count * 32, 32);
+        if (rect.br.x > m_width)
+          rect.br.x = m_width;
+        if (rect.br.y > m_height)
+          rect.br.y = m_height;
+        // Add to the changed region maintained by the server.
+        getScreenRect(rect);
+        m_server->add_changed(rect);
+        // Skip processed tiles.
+        x += count;
+      }
+    }
+  }
 }
 
 bool PollingManager::poll_DetectVideo()
