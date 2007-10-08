@@ -274,7 +274,11 @@ int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
   int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
   int bytesPerLine = m_image->xim->bytes_per_line;
 
-  getRow(x, y, w);
+  if (x == 0 && w == m_width) {
+    getFullRow(y);              // use more efficient method if possible
+  } else {
+    getRow(x, y, w);
+  }
 
   char *ptr_old = m_image->xim->data + y * bytesPerLine + x * bytesPerPixel;
   char *ptr_new = m_rowImage->xim->data;
