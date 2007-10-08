@@ -259,6 +259,9 @@ bool PollingManager::poll_New()
     pmxChanged += m_widthTiles;
   }
 
+  // Do the work related to video area detection.
+  bool videoDetected = detectVideo(mxChanged);
+
   // Inform the server about the changes.
   if (nTilesChanged)
     sendChanges(mxChanged);
@@ -266,7 +269,13 @@ bool PollingManager::poll_New()
   // Cleanup.
   delete[] mxChanged;
 
-  return (nTilesChanged != 0);
+#ifdef DEBUG
+  if (nTilesChanged != 0) {
+    fprintf(stderr, "#%d# ", nTilesChanged);
+  }
+#endif
+
+  return (nTilesChanged != 0 || videoDetected);
 }
 
 int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
@@ -324,6 +333,52 @@ void PollingManager::sendChanges(bool *pmxChanged)
       }
     }
   }
+}
+
+bool PollingManager::detectVideo(bool *pmxChanged)
+{
+  // Configurable parameters.
+  const int VIDEO_THRESHOLD_0 = 3;
+  const int VIDEO_THRESHOLD_1 = 5;
+
+  // Each call: update counters in m_rateMatrix.
+  int numTiles = m_heightTiles * m_widthTiles;
+  for (int i = 0; i < numTiles; i++)
+    m_rateMatrix[i] += (pmxChanged[i] != false);
+
+  // Once per eight calls: detect video region. In other words, mark a
+  // region that consists of continuously changing pixels. Save the
+  // result in m_videoFlags[] and reset counters in m_rateMatrix[].
+  bool isGrandStep = (m_pollingStep % 8 == 0);
+  if (isGrandStep) {
+    for (int i = 0; i < numTiles; i++) {
+      if (m_rateMatrix[i] <= VIDEO_THRESHOLD_0) {
+        m_videoFlags[i] = 0;
+      } else if (m_rateMatrix[i] >= VIDEO_THRESHOLD_1) {
+        m_videoFlags[i] = 1;
+      }
+      m_rateMatrix[i] = 0;
+    }
+  }
+
+  // Choose the biggest rectangle from the region defined by
+  // m_videoFlags[].
+  Rect r;
+  getVideoAreaRect(&r);
+
+  // Exclude video rectangle from pmxChanged[].
+  for (int y = r.tl.y / 32; y < r.br.y / 32; y++) {
+    for (int x = r.tl.x / 32; x < r.br.x / 32; x++) {
+      pmxChanged[y * m_widthTiles + x] = false;
+    }
+  }
+
+  // Inform the server...
+  m_server->set_video_area(r);
+  if (!r.is_empty())
+    getScreenRect(r);
+
+  return (!r.is_empty());
 }
 
 bool PollingManager::poll_DetectVideo()

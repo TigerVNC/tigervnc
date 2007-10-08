@@ -137,6 +137,7 @@ private:
 
   int checkRow(int x, int y, int w, bool *pmxChanged);
   void sendChanges(bool *pmxChanged);
+  bool detectVideo(bool *pmxChanged);
 
   void adjustVideoArea();
 
