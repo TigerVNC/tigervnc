@@ -245,7 +245,7 @@ bool PollingManager::poll_New()
   // 32x32 tile. If a value is true, then we've detected a change in
   // that tile. Initially, we fill in the array with zero values.
   bool *mxChanged = new bool[m_widthTiles * m_heightTiles];
-  memset(mxChanged, 0, m_widthTiles * m_heightTiles);
+  memset(mxChanged, 0, m_widthTiles * m_heightTiles * sizeof(bool));
 
   // First pass over the framebuffer. Here we scan 1/32 part of the
   // framebuffer -- that is, one line in each (32 * m_width) stripe.
