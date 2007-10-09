@@ -164,9 +164,12 @@ bool PollingManager::pollScreen()
   }
 
   // Do the work related to video area detection.
-  bool videoDetected = detectVideo(mxChanged);
+  bool haveVideoRect = handleVideo(mxChanged);
 
   // Inform the server about the changes.
+  // FIXME: It's possible that (nTilesChanged != 0) but mxChanged[]
+  //        array is empty. That's possible because handleVideo()
+  //        modifies mxChanged[].
   if (nTilesChanged)
     sendChanges(mxChanged);
 
@@ -179,7 +182,7 @@ bool PollingManager::pollScreen()
   }
 #endif
 
-  return (nTilesChanged != 0 || videoDetected);
+  return (nTilesChanged != 0 || haveVideoRect);
 }
 
 int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
@@ -239,53 +242,18 @@ void PollingManager::sendChanges(bool *pmxChanged)
   }
 }
 
-bool PollingManager::detectVideo(bool *pmxChanged)
+bool PollingManager::handleVideo(bool *pmxChanged)
 {
-  // Configurable parameters.
-  const int VIDEO_THRESHOLD_0 = 3;
-  const int VIDEO_THRESHOLD_1 = 5;
-
-  // Each call: update counters in m_rateMatrix.
+  // Update counters in m_rateMatrix.
   int numTiles = m_heightTiles * m_widthTiles;
   for (int i = 0; i < numTiles; i++)
     m_rateMatrix[i] += (pmxChanged[i] != false);
 
-  // Once per eight calls: detect video rectangle.
-  bool isGrandStep = (m_pollingStep % 8 == 0);
-  if (isGrandStep) {
-    //
-    // First, detect candidate region that looks like video. In other
-    // words, find a region that consists of continuously changing
-    // pixels. Save the result in m_videoFlags[] and reset counters in
-    // m_rateMatrix[].
-    //
-    for (int i = 0; i < numTiles; i++) {
-      if (m_rateMatrix[i] <= VIDEO_THRESHOLD_0) {
-        m_videoFlags[i] = 0;
-      } else if (m_rateMatrix[i] >= VIDEO_THRESHOLD_1) {
-        m_videoFlags[i] = 1;
-      }
-      m_rateMatrix[i] = 0;
-    }
-    //
-    // Now, choose the biggest rectangle from that candidate region.
-    //
-    Rect newRect;
-    getVideoAreaRect(&newRect);
-    //
-    // Does new rectangle differ from the previously detected one?
-    // If it does, save new rectangle and inform the server.
-    //
-    if (!newRect.equals(m_videoRect)) {
-      if (newRect.is_empty()) {
-        fprintf(stderr, "No video detected\n");
-      } else {
-        fprintf(stderr, "Video rect %dx%d\tat(%d,%d)\n",
-                newRect.width(), newRect.height(), newRect.tl.x, newRect.tl.y);
-      }
-      m_videoRect = newRect;
-      m_server->set_video_area(newRect);
-    }
+  // Once per eight calls: detect video rectangle by examining
+  // m_rateMatrix[], then reset counters in m_rateMatrix[].
+  if (m_pollingStep % 8 == 0) {
+    detectVideo();
+    memset(m_rateMatrix, 0, numTiles);
   }
 
   // Grab the pixels of video area. Also, exclude video rectangle from
@@ -303,6 +271,43 @@ bool PollingManager::detectVideo(bool *pmxChanged)
   }
 
   return false;                 // video rectangle is empty
+}
+
+void
+PollingManager::detectVideo()
+{
+  // Configurable parameters.
+  const int VIDEO_THRESHOLD_0 = 3;
+  const int VIDEO_THRESHOLD_1 = 5;
+
+  // First, detect candidate region that looks like video. In other
+  // words, find a region that consists of continuously changing
+  // pixels. Save the result in m_videoFlags[].
+  int numTiles = m_heightTiles * m_widthTiles;
+  for (int i = 0; i < numTiles; i++) {
+    if (m_rateMatrix[i] <= VIDEO_THRESHOLD_0) {
+      m_videoFlags[i] = 0;
+    } else if (m_rateMatrix[i] >= VIDEO_THRESHOLD_1) {
+      m_videoFlags[i] = 1;
+    }
+  }
+
+  // Now, choose the biggest rectangle from that candidate region.
+  Rect newRect;
+  getVideoAreaRect(&newRect);
+
+  // Does new rectangle differ from the previously detected one?
+  // If it does, save new rectangle and inform the server.
+  if (!newRect.equals(m_videoRect)) {
+    if (newRect.is_empty()) {
+      fprintf(stderr, "No video detected\n");
+    } else {
+      fprintf(stderr, "Video rect %dx%d\tat(%d,%d)\n",
+              newRect.width(), newRect.height(), newRect.tl.x, newRect.tl.y);
+    }
+    m_videoRect = newRect;
+    m_server->set_video_area(newRect);
+  }
 }
 
 void
