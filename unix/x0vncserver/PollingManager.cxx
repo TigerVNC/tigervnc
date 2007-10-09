@@ -32,11 +32,6 @@
 
 static LogWriter vlog("PollingMgr");
 
-BoolParameter PollingManager::pollPointer
-("PollPointer",
- "DEBUG: Poll area under the pointer with higher priority",
- false);
-
 const int PollingManager::m_pollingOrder[32] = {
    0, 16,  8, 24,  4, 20, 12, 28,
   10, 26, 18,  2, 22,  6, 30, 14,
@@ -56,7 +51,7 @@ PollingManager::PollingManager(Display *dpy, Image *image,
                                int offsetLeft, int offsetTop)
   : m_dpy(dpy), m_server(0), m_image(image),
     m_offsetLeft(offsetLeft), m_offsetTop(offsetTop),
-    m_pointerPosKnown(false), m_pollingStep(0)
+    m_pollingStep(0)
 {
   // Save width and height of the screen (and the image).
   m_width = m_image->xim->width;
@@ -73,12 +68,9 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   // underlying class names are different from the class name of the
   // primary image.
   m_rowImage = factory->newImage(m_dpy, m_width, 1);
-  m_areaImage = factory->newImage(m_dpy, 128, 128);
-  if (strcmp(m_image->className(), m_rowImage->className()) != 0 ||
-      strcmp(m_image->className(), m_areaImage->className()) != 0) {
-    vlog.error("Image types do not match (%s, %s)",
-               m_rowImage->className(),
-               m_areaImage->className());
+  if (strcmp(m_image->className(), m_rowImage->className()) != 0) {
+    vlog.error("Image types do not match (%s)",
+               m_rowImage->className());
   }
 
   int numTiles = m_widthTiles * m_heightTiles;
@@ -93,7 +85,6 @@ PollingManager::~PollingManager()
   delete[] m_videoFlags;
   delete[] m_rateMatrix;
 
-  delete m_areaImage;
   delete m_rowImage;
 }
 
@@ -104,27 +95,6 @@ PollingManager::~PollingManager()
 void PollingManager::setVNCServer(VNCServer *s)
 {
   m_server = s;
-}
-
-//
-// Update current pointer position which may be used as a hint for
-// polling algorithms.
-//
-
-void PollingManager::setPointerPos(const Point &pos)
-{
-  m_pointerPosTime = time(NULL);
-  m_pointerPos = pos;
-  m_pointerPosKnown = true;
-}
-
-//
-// Indicate that current pointer position is unknown.
-//
-
-void PollingManager::unsetPointerPos()
-{
-  m_pointerPosKnown = false;
 }
 
 //
@@ -161,26 +131,8 @@ void PollingManager::poll()
   debugBeforePoll();
 #endif
 
-  // First step: full-screen polling.
-
-  bool changes1 = pollScreen();
-
-  // Second step: optional thorough polling of the area around the pointer.
-  // We do that only if the pointer position is known and was set recently.
-
-  bool changes2 = false;
-  if (pollPointer) {
-    if (m_pointerPosKnown && time(NULL) - m_pointerPosTime >= 5) {
-      unsetPointerPos();
-    }
-    if (m_pointerPosKnown) {
-      changes2 = pollPointerArea();
-    }
-  }
-
-  // Update if needed.
-
-  if (changes1 || changes2)
+  // Perform polling and try update clients if changes were detected.
+  if (pollScreen())
     m_server->tryUpdate();
 
 #ifdef DEBUG
@@ -331,105 +283,6 @@ bool PollingManager::detectVideo(bool *pmxChanged)
     getScreenRect(r);
 
   return (!r.is_empty());
-}
-
-//
-// Compute coordinates of the rectangle around the pointer.
-//
-// ASSUMES: (m_pointerPosKnown != false)
-//
-
-void PollingManager::computePointerArea(Rect *r)
-{
-  int x = m_pointerPos.x - 64;
-  int y = m_pointerPos.y - 64;
-  int w = 128;
-  int h = 128;
-  if (x < 0) {
-    w += x; x = 0;
-  }
-  if (x + w > m_width) {
-    w = m_width - x;
-  }
-  if (y < 0) {
-    h += y; y = 0;
-  }
-  if (y + h > m_height) {
-    h = m_height - y;
-  }
-
-  r->setXYWH(x, y, w, h);
-}
-
-//
-// Poll the area under current pointer position. Each pixel of the
-// area should be compared. Using such polling option gives higher
-// priority to screen area under the pointer.
-//
-// ASSUMES: (m_server != NULL && m_pointerPosKnown != false)
-//
-
-bool PollingManager::pollPointerArea()
-{
-  Rect r;
-  computePointerArea(&r);
-
-  // Shortcuts for coordinates.
-  int x = r.tl.x, y = r.tl.y;
-  int w = r.width(), h = r.height();
-
-  // Get new pixels.
-  getArea128(x, y, w, h);
-
-  // Now, try to minimize the rectangle by cutting out unchanged
-  // borders (at top and bottom).
-  //
-  // FIXME: Perhaps we should work on 32x32 tiles (properly aligned)
-  //        to produce a region instead of a rectangle. If there would
-  //        be just one universal polling algorithm, it could be
-  //        better to integrate pointer area polling into that
-  //        algorithm, instead of a separate pollPointerArea()
-  //        function.
-
-  // Shortcuts.
-  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
-  int oldBytesPerLine = m_image->xim->bytes_per_line;
-  int newBytesPerLine = m_areaImage->xim->bytes_per_line;
-  char *oldPtr = m_image->xim->data + y * oldBytesPerLine + x * bytesPerPixel;
-  char *newPtr = m_areaImage->xim->data;
-
-  // Check and cut out unchanged rows at the top.
-  int ty;
-  for (ty = 0; ty < h; ty++) {
-    if (memcmp(oldPtr, newPtr, w * bytesPerPixel) != 0)
-      break;
-    oldPtr += oldBytesPerLine;
-    newPtr += newBytesPerLine;
-  }
-  if (ty == h) {
-    return false;               // no changes at all
-  }
-  y += ty; h -= ty;
-
-  // Check and cut out unchanged rows at the bottom.
-  oldPtr = m_image->xim->data + (y+h-1) * oldBytesPerLine + x * bytesPerPixel;
-  newPtr = m_areaImage->xim->data + (ty+h-1) * newBytesPerLine;
-  int by;
-  for (by = 0; by < h - 1; by++) {
-    if (memcmp(oldPtr, newPtr, w * bytesPerPixel) != 0)
-      break;
-    oldPtr -= oldBytesPerLine;
-    newPtr -= newBytesPerLine;
-  }
-  h -= by;
-
-  // Copy pixels.
-  m_image->updateRect(m_areaImage, x, y, 0, ty, w, h);
-
-  // Report updates to the server.
-  Rect rect(x, y, x+w, y+h);
-  m_server->add_changed(rect);
-  return true;
 }
 
 void
