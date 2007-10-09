@@ -145,36 +145,36 @@ bool PollingManager::pollScreen()
   if (!m_server)
     return false;
 
-  // mxChanged[] array will hold boolean values corresponding to each
-  // 32x32 tile. If a value is true, then we've detected a change in
-  // that tile. Initially, we fill in the array with zero values.
-  bool *mxChanged = new bool[m_widthTiles * m_heightTiles];
-  memset(mxChanged, 0, m_widthTiles * m_heightTiles * sizeof(bool));
+  // changeFlags[] array will hold boolean values corresponding to
+  // each 32x32 tile. If a value is true, then we've detected a change
+  // in that tile. Initially, we fill in the array with zero values.
+  bool *changeFlags = new bool[m_widthTiles * m_heightTiles];
+  memset(changeFlags, 0, m_widthTiles * m_heightTiles * sizeof(bool));
 
   // First pass over the framebuffer. Here we scan 1/32 part of the
   // framebuffer -- that is, one line in each (32 * m_width) stripe.
   // We compare the pixels of that line with previous framebuffer
-  // contents and raise corresponding member values of mxChanged[].
+  // contents and raise corresponding member values of changeFlags[].
   int scanOffset = m_pollingOrder[m_pollingStep++ % 32];
-  bool *pmxChanged = mxChanged;
+  bool *pChangeFlags = changeFlags;
   int nTilesChanged = 0;
   for (int y = scanOffset; y < m_height; y += 32) {
-    nTilesChanged += checkRow(0, y, m_width, pmxChanged);
-    pmxChanged += m_widthTiles;
+    nTilesChanged += checkRow(0, y, m_width, pChangeFlags);
+    pChangeFlags += m_widthTiles;
   }
 
   // Do the work related to video area detection.
-  bool haveVideoRect = handleVideo(mxChanged);
+  bool haveVideoRect = handleVideo(changeFlags);
 
   // Inform the server about the changes.
-  // FIXME: It's possible that (nTilesChanged != 0) but mxChanged[]
+  // FIXME: It's possible that (nTilesChanged != 0) but changeFlags[]
   //        array is empty. That's possible because handleVideo()
-  //        modifies mxChanged[].
+  //        modifies changeFlags[].
   if (nTilesChanged)
-    sendChanges(mxChanged);
+    sendChanges(changeFlags);
 
   // Cleanup.
-  delete[] mxChanged;
+  delete[] changeFlags;
 
 #ifdef DEBUG
   if (nTilesChanged != 0) {
@@ -185,7 +185,7 @@ bool PollingManager::pollScreen()
   return (nTilesChanged != 0 || haveVideoRect);
 }
 
-int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
+int PollingManager::checkRow(int x, int y, int w, bool *pChangeFlags)
 {
   int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
   int bytesPerLine = m_image->xim->bytes_per_line;
@@ -204,10 +204,10 @@ int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
     int tile_w = (w - i * 32 >= 32) ? 32 : w - i * 32;
     int nBytes = tile_w * bytesPerPixel;
     if (memcmp(ptr_old, ptr_new, nBytes)) {
-      *pmxChanged = true;
+      *pChangeFlags = true;
       nTilesChanged++;
     }
-    pmxChanged++;
+    pChangeFlags++;
     ptr_old += nBytes;
     ptr_new += nBytes;
   }
@@ -215,15 +215,15 @@ int PollingManager::checkRow(int x, int y, int w, bool *pmxChanged)
   return nTilesChanged;
 }
 
-void PollingManager::sendChanges(bool *pmxChanged)
+void PollingManager::sendChanges(bool *pChangeFlags)
 {
   Rect rect;
   for (int y = 0; y < m_heightTiles; y++) {
     for (int x = 0; x < m_widthTiles; x++) {
-      if (*pmxChanged++) {
+      if (*pChangeFlags++) {
         // Count successive tiles marked as changed.
         int count = 1;
-        while (x + count < m_widthTiles && *pmxChanged++) {
+        while (x + count < m_widthTiles && *pChangeFlags++) {
           count++;
         }
         // Compute the coordinates and the size of this band.
@@ -242,12 +242,12 @@ void PollingManager::sendChanges(bool *pmxChanged)
   }
 }
 
-bool PollingManager::handleVideo(bool *pmxChanged)
+bool PollingManager::handleVideo(bool *pChangeFlags)
 {
   // Update counters in m_rateMatrix.
   int numTiles = m_heightTiles * m_widthTiles;
   for (int i = 0; i < numTiles; i++)
-    m_rateMatrix[i] += (pmxChanged[i] != false);
+    m_rateMatrix[i] += (pChangeFlags[i] != false);
 
   // Once per eight calls: detect video rectangle by examining
   // m_rateMatrix[], then reset counters in m_rateMatrix[].
@@ -257,13 +257,13 @@ bool PollingManager::handleVideo(bool *pmxChanged)
   }
 
   // Grab the pixels of video area. Also, exclude video rectangle from
-  // pmxChanged[], to prevent grabbing the same pixels twice.
+  // pChangeFlags[], to prevent grabbing the same pixels twice.
   if (!m_videoRect.is_empty()) {
     Rect r(m_videoRect.tl.x / 32, m_videoRect.tl.y / 32,
            m_videoRect.br.x / 32, m_videoRect.br.y / 32);
     for (int y = r.tl.y; y < r.br.y; y++) {
       for (int x = r.tl.x; x < r.br.x; x++) {
-        pmxChanged[y * m_widthTiles + x] = false;
+        pChangeFlags[y * m_widthTiles + x] = false;
       }
     }
     getScreenRect(m_videoRect);
