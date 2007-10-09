@@ -250,11 +250,15 @@ bool PollingManager::detectVideo(bool *pmxChanged)
   for (int i = 0; i < numTiles; i++)
     m_rateMatrix[i] += (pmxChanged[i] != false);
 
-  // Once per eight calls: detect video region. In other words, mark a
-  // region that consists of continuously changing pixels. Save the
-  // result in m_videoFlags[] and reset counters in m_rateMatrix[].
+  // Once per eight calls: detect video rectangle.
   bool isGrandStep = (m_pollingStep % 8 == 0);
   if (isGrandStep) {
+    //
+    // First, detect candidate region that looks like video. In other
+    // words, find a region that consists of continuously changing
+    // pixels. Save the result in m_videoFlags[] and reset counters in
+    // m_rateMatrix[].
+    //
     for (int i = 0; i < numTiles; i++) {
       if (m_rateMatrix[i] <= VIDEO_THRESHOLD_0) {
         m_videoFlags[i] = 0;
@@ -263,26 +267,42 @@ bool PollingManager::detectVideo(bool *pmxChanged)
       }
       m_rateMatrix[i] = 0;
     }
-  }
-
-  // Choose the biggest rectangle from the region defined by
-  // m_videoFlags[].
-  Rect r;
-  getVideoAreaRect(&r);
-
-  // Exclude video rectangle from pmxChanged[].
-  for (int y = r.tl.y / 32; y < r.br.y / 32; y++) {
-    for (int x = r.tl.x / 32; x < r.br.x / 32; x++) {
-      pmxChanged[y * m_widthTiles + x] = false;
+    //
+    // Now, choose the biggest rectangle from that candidate region.
+    //
+    Rect newRect;
+    getVideoAreaRect(&newRect);
+    //
+    // Does new rectangle differ from the previously detected one?
+    // If it does, save new rectangle and inform the server.
+    //
+    if (!newRect.equals(m_videoRect)) {
+      if (newRect.is_empty()) {
+        fprintf(stderr, "No video detected\n");
+      } else {
+        fprintf(stderr, "Video rect %dx%d\tat(%d,%d)\n",
+                newRect.width(), newRect.height(), newRect.tl.x, newRect.tl.y);
+      }
+      m_videoRect = newRect;
+      m_server->set_video_area(newRect);
     }
   }
 
-  // Inform the server...
-  m_server->set_video_area(r);
-  if (!r.is_empty())
-    getScreenRect(r);
+  // Grab the pixels of video area. Also, exclude video rectangle from
+  // pmxChanged[], to prevent grabbing the same pixels twice.
+  if (!m_videoRect.is_empty()) {
+    Rect r(m_videoRect.tl.x / 32, m_videoRect.tl.y / 32,
+           m_videoRect.br.x / 32, m_videoRect.br.y / 32);
+    for (int y = r.tl.y; y < r.br.y; y++) {
+      for (int x = r.tl.x; x < r.br.x; x++) {
+        pmxChanged[y * m_widthTiles + x] = false;
+      }
+    }
+    getScreenRect(m_videoRect);
+    return true;                // we've got a video rectangle
+  }
 
-  return (!r.is_empty());
+  return false;                 // video rectangle is empty
 }
 
 void
@@ -323,11 +343,6 @@ PollingManager::getVideoAreaRect(Rect *result)
   if (max_rect.br.y > m_height)
     max_rect.br.y = m_height;
   *result = max_rect;
-
-  if (!result->is_empty()) {
-    fprintf(stderr, "Video rect %dx%d\tat(%d,%d)\n",
-            result->width(), result->height(), result->tl.x, result->tl.y);
-  }
 }
 
 void
