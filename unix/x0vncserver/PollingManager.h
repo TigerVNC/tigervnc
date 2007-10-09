@@ -132,7 +132,6 @@ private:
 
   char *m_rateMatrix;
   char *m_videoFlags;
-  char *m_changedFlags;
 
   unsigned int m_pollingStep;
   static const int m_pollingOrder[];

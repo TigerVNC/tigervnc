@@ -84,15 +84,12 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   int numTiles = m_widthTiles * m_heightTiles;
   m_rateMatrix = new char[numTiles];
   m_videoFlags = new char[numTiles];
-  m_changedFlags = new char[numTiles];
   memset(m_rateMatrix, 0, numTiles);
   memset(m_videoFlags, 0, numTiles);
-  memset(m_changedFlags, 0, numTiles);
 }
 
 PollingManager::~PollingManager()
 {
-  delete[] m_changedFlags;
   delete[] m_videoFlags;
   delete[] m_rateMatrix;
 
