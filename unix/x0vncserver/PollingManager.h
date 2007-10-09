@@ -1,4 +1,4 @@
-/* Copyright (C) 2004-2005 Constantin Kaplinsky.  All Rights Reserved.
+/* Copyright (C) 2004-2007 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,19 +51,11 @@ public:
 
   // Configurable parameters.
   static BoolParameter pollPointer;
-  static IntParameter pollingType;
 
 protected:
 
-  //
-  // Implementations of different polling algorithms.
-  // Return value of true reports that some changes were detected.
-  //
-  bool poll_New();
-  bool poll_DetectVideo();
-  bool poll_SkipCycles();
-  bool poll_Traditional();
-  bool poll_Dumb();
+  // Screen polling. Returns true if some changes were detected.
+  bool pollScreen();
 
   // Separate polling for the area around current pointer position.
   void computePointerArea(Rect *r);
@@ -111,18 +103,6 @@ private:
                     m_offsetLeft + x, m_offsetTop + y, 1, h);
   }
 
-  inline void getTile32(int tx, int ty, int w, int h) {
-    if (w == 32 && h == 32) {
-      // This version of get() may be better optimized.
-      m_tileImage->get(DefaultRootWindow(m_dpy),
-                       m_offsetLeft + tx * 32, m_offsetTop + ty * 32);
-    } else {
-      // Generic version of get() for arbitrary width and height.
-      m_tileImage->get(DefaultRootWindow(m_dpy),
-                       m_offsetLeft + tx * 32, m_offsetTop + ty * 32, w, h);
-    }
-  }
-
   inline void getArea128(int x, int y, int w, int h) {
     if (w == 128 && h == 128) {
       // This version of get() may be better optimized.
@@ -139,8 +119,6 @@ private:
   void sendChanges(bool *pmxChanged);
   bool detectVideo(bool *pmxChanged);
 
-  void adjustVideoArea();
-
   void getVideoAreaRect(Rect *result);
 
   // Functions called by getVideoAreaRect().
@@ -150,10 +128,7 @@ private:
 
   // Additional images used in polling algorithms.
   Image *m_rowImage;            // One row of the framebuffer
-  Image *m_tileImage;           // One tile (32x32 or less)
   Image *m_areaImage;           // Area around the pointer (up to 128x128)
-
-  char *m_statusMatrix;
 
   char *m_rateMatrix;
   char *m_videoFlags;
