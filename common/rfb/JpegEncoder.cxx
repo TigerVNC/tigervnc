@@ -19,6 +19,7 @@
 #include <rfb/JpegEncoder.h>
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
+#include <rfb/LogWriter.h>
 
 #ifdef HAVE_DMEDIA
 #include <rfb/IrixDMJpegCompressor.h>
@@ -26,17 +27,40 @@
 
 using namespace rfb;
 
+static LogWriter vlog("JpegEncoder");
+
+BoolParameter JpegEncoder::useHardwareJPEG
+("UseHardwareJPEG",
+ "Use hardware-accelerated JPEG compressor for video if available",
+ true);
+
 const int JpegEncoder::qualityMap[10] = {
   5, 10, 15, 25, 37, 50, 60, 70, 75, 80
 };
 
-JpegEncoder::JpegEncoder(SMsgWriter* writer_) : writer(writer_)
+JpegEncoder::JpegEncoder(SMsgWriter* writer_) : writer(writer_), jcomp(0)
 {
 #ifdef HAVE_DMEDIA
-  jcomp = new IrixDMJpegCompressor;
+  if (useHardwareJPEG) {
+    vlog.debug("trying IRIX DM JPEG compressor");
+    IrixDMJpegCompressor *irixComp = new IrixDMJpegCompressor;
+    if (irixComp->isValid()) {
+      vlog.debug("initialized IRIX DM JPEG compressor successfully");
+      jcomp = irixComp;
+    } else {
+      vlog.error("warning: could not create IRIX DM JPEG compressor");
+      delete irixComp;
+    }
+  }
 #else
-  jcomp = new StandardJpegCompressor;
+  if (useHardwareJPEG) {
+    vlog.info("no hardware JPEG compressor available");
+  }
 #endif
+  if (!jcomp) {
+    vlog.debug("using software JPEG compressor");
+    jcomp = new StandardJpegCompressor;
+  }
   jcomp->setQuality(qualityMap[6]);
 }
 

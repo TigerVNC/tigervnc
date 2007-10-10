@@ -21,6 +21,7 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/JpegCompressor.h>
+#include <rfb/Configuration.h>
 
 //
 // JPEG Encoder.
@@ -38,6 +39,8 @@ namespace rfb {
 
     virtual void setQualityLevel(int level);
     virtual bool writeRect(PixelBuffer* pb, const Rect& r);
+
+    static BoolParameter useHardwareJPEG;
 
   private:
     SMsgWriter* writer;
