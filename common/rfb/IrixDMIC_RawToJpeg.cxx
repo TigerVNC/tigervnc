@@ -4,8 +4,11 @@
 #include <sys/poll.h>
 
 #include <rfb/IrixDMIC_RawToJpeg.h>
+#include <rfb/LogWriter.h>
 
 using namespace rfb;
+
+static LogWriter vlog("IrixDMIC_RawToJpeg");
 
 //
 // Constructor. Find a converter and create a context. Also, create
@@ -46,7 +49,7 @@ IrixDMIC_RawToJpeg::IrixDMIC_RawToJpeg(bool needRealtime)
 
       // FIXME: Just save the engine name and make x0vncserver print it.
       const char *engine = dmParamsGetString(p, DM_IC_ENGINE);
-      printf("Found JPEG encoder: \"%s\" (%d)\n", engine, n);
+      vlog.info("Found JPEG encoder: \"%s\" (%d)", engine, n);
 
       dmParamsDestroy(p);
       break;
@@ -55,7 +58,7 @@ IrixDMIC_RawToJpeg::IrixDMIC_RawToJpeg(bool needRealtime)
   }
   if (n < 0) {
     // FIXME: Unify error handling.
-    fprintf (stderr, "Error: No matching JPEG encoder found\n");
+    vlog.error("Error: No matching JPEG encoder found");
     return;
   }
   if (dmICCreate(n, &m_ic) != DM_SUCCESS) {
@@ -433,8 +436,8 @@ IrixDMIC_RawToJpeg::reportError(const char *funcName)
 {
   char errorDetail[DM_MAX_ERROR_DETAIL];
   const char *errorCategory = dmGetError(NULL, errorDetail);
-  fprintf(stderr, "%s() failed: %s: %s\n",
-	  funcName, errorCategory, errorDetail);
+  vlog.error("%s() failed: %s: %s",
+             funcName, errorCategory, errorDetail);
 }
 
 //
@@ -444,6 +447,6 @@ IrixDMIC_RawToJpeg::reportError(const char *funcName)
 void
 IrixDMIC_RawToJpeg::reportErrorNotInited()
 {
-  fprintf(stderr, "Internal error: Image converter not initialized\n");
+  vlog.error("Internal error: Image converter not initialized");
 }
 
