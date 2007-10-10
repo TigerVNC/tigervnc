@@ -35,7 +35,7 @@ IrixDMJpegCompressor::~IrixDMJpegCompressor()
 }
 
 //
-// Set JPEG quality level (0..100)
+// Set JPEG quality level (1..100)
 //
 // FIXME: Call m_ic.setImageQuality() when necessary.
 //
@@ -43,10 +43,11 @@ IrixDMJpegCompressor::~IrixDMJpegCompressor()
 void
 IrixDMJpegCompressor::setQuality(int level)
 {
-  if (level < 0)
-    level = 0;
-  if (level > 100)
+  if (level < 1) {
+    level = 1;
+  } else if (level > 100) {
     level = 100;
+  }
 
   m_quality = level;
 }

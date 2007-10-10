@@ -35,7 +35,7 @@ BoolParameter JpegEncoder::useHardwareJPEG
  true);
 
 const int JpegEncoder::qualityMap[10] = {
-  5, 10, 15, 25, 37, 50, 60, 70, 75, 80
+  2, 10, 15, 25, 37, 50, 60, 70, 80, 90
 };
 
 JpegEncoder::JpegEncoder(SMsgWriter* writer_) : writer(writer_), jcomp(0)
@@ -71,9 +71,12 @@ JpegEncoder::~JpegEncoder()
 
 void JpegEncoder::setQualityLevel(int level)
 {
-  if (level >= 0 && level <= 9) {
-    jcomp->setQuality(qualityMap[level]);
+  if (level < 0) {
+    level = 0;
+  } else if (level > 9) {
+    level = 9;
   }
+  jcomp->setQuality(qualityMap[level]);
 }
 
 bool JpegEncoder::writeRect(PixelBuffer* pb, const Rect& r)

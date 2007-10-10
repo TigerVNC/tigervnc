@@ -134,11 +134,11 @@ StandardJpegCompressor::termDestination()
 void
 StandardJpegCompressor::setQuality(int level)
 {
-  if (level < 0)
+  if (level < 0) {
     level = 0;
-  if (level > 100)
+  } else if (level > 100) {
     level = 100;
-
+  }
   jpeg_set_quality(&m_cinfo, level, true);
 }
 
