@@ -47,7 +47,6 @@ IrixDMIC_RawToJpeg::IrixDMIC_RawToJpeg(bool needRealtime)
     if ( id == JPEG_ID && direction == DM_IC_CODE_DIRECTION_ENCODE &&
 	 (!needRealtime || speed == DM_IC_SPEED_REALTIME) ) {
 
-      // FIXME: Just save the engine name and make x0vncserver print it.
       const char *engine = dmParamsGetString(p, DM_IC_ENGINE);
       vlog.info("Found JPEG encoder: \"%s\" (%d)", engine, n);
 
@@ -57,7 +56,6 @@ IrixDMIC_RawToJpeg::IrixDMIC_RawToJpeg(bool needRealtime)
     dmParamsDestroy(p);
   }
   if (n < 0) {
-    // FIXME: Unify error handling.
     vlog.error("Error: No matching JPEG encoder found");
     return;
   }
