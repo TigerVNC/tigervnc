@@ -17,6 +17,8 @@ namespace rfb {
     IrixDMIC_RawToJpeg(bool needRealtime = true);
     virtual ~IrixDMIC_RawToJpeg();
 
+    void debugListConverters();
+
     bool isValid() const { return m_valid_ic; }
 
     bool setImageParams(int w, int h);

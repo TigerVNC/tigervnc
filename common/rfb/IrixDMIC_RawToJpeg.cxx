@@ -8,7 +8,7 @@
 
 using namespace rfb;
 
-static LogWriter vlog("IrixDMIC_RawToJpeg");
+static LogWriter vlog("IrixDMIC");
 
 //
 // Constructor. Find a converter and create a context. Also, create
@@ -57,6 +57,7 @@ IrixDMIC_RawToJpeg::IrixDMIC_RawToJpeg(bool needRealtime)
   }
   if (n < 0) {
     vlog.error("Error: No matching JPEG encoder found");
+    debugListConverters();
     return;
   }
   if (dmICCreate(n, &m_ic) != DM_SUCCESS) {
@@ -82,6 +83,45 @@ IrixDMIC_RawToJpeg::~IrixDMIC_RawToJpeg()
     dmParamsDestroy(m_dstParams);
   if (m_srcParams)
     dmParamsDestroy(m_srcParams);
+}
+
+void
+IrixDMIC_RawToJpeg::debugListConverters()
+{
+  int n = dmICGetNum();
+  vlog.debug("IRIX DMIC converters available (%d):", n);
+  for (int i = 0; i < n; i++) {
+    DMparams *p;
+    if (dmParamsCreate(&p) != DM_SUCCESS) {
+      return;
+    }
+    if (dmICGetDescription(i, p) != DM_SUCCESS) {
+      vlog.debug("  continue");
+      continue;
+    }
+    union {
+      int id;
+      char label[5];
+    } id;
+    id.id = dmParamsGetInt(p, DM_IC_ID);
+    id.label[4] = '\0';
+    int direction = dmParamsGetEnum(p, DM_IC_CODE_DIRECTION);
+    const char *directionLabel = "converter";
+    if (direction == DM_IC_CODE_DIRECTION_ENCODE) {
+      directionLabel = "encoder";
+    } else if (direction == DM_IC_CODE_DIRECTION_DECODE) {
+      directionLabel = "decoder";
+    }
+    int speed = dmParamsGetEnum(p, DM_IC_SPEED);
+    const char *speedLabel = "";
+    if (speed == DM_IC_SPEED_REALTIME) {
+      speedLabel = "realtime ";
+    }
+    const char *engine = dmParamsGetString(p, DM_IC_ENGINE);
+    vlog.debug("  converter %d: '%s' %s%s (%s)",
+	       i, id.label, speedLabel, directionLabel, engine);
+    dmParamsDestroy(p);
+  }
 }
 
 //
