@@ -300,10 +300,11 @@ PollingManager::detectVideo()
   // If it does, save new rectangle and inform the server.
   if (!newRect.equals(m_videoRect)) {
     if (newRect.is_empty()) {
-      fprintf(stderr, "No video detected\n");
+      vlog.debug("No video detected");
     } else {
-      fprintf(stderr, "Video rect %dx%d\tat(%d,%d)\n",
-              newRect.width(), newRect.height(), newRect.tl.x, newRect.tl.y);
+      vlog.debug("Detected video %dx%d at (%d,%d)",
+                 newRect.width(), newRect.height(),
+                 newRect.tl.x, newRect.tl.y);
     }
     m_videoRect = newRect;
     m_server->set_video_area(newRect);
