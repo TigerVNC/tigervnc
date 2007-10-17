@@ -131,7 +131,8 @@ namespace rfb {
 
     virtual void writeCopyRect(const Rect& r, int srcX, int srcY);
 
-    virtual void writeVideoRect(PixelBuffer *pb, const Rect& r);
+    virtual bool canUseJpegEncoder(PixelBuffer *pb) const;
+    virtual void writeJpegRect(PixelBuffer *pb, const Rect& r);
 
     virtual void startRect(const Rect& r, unsigned int enc)=0;
     virtual void endRect()=0;

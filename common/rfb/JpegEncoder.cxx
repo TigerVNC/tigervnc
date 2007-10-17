@@ -18,7 +18,9 @@
 
 #include <rfb/JpegEncoder.h>
 #include <rdr/OutStream.h>
+#include <rdr/Exception.h>
 #include <rfb/encodings.h>
+#include <rfb/ConnParams.h>
 #include <rfb/LogWriter.h>
 
 #ifdef HAVE_DMEDIA
@@ -79,16 +81,27 @@ void JpegEncoder::setQualityLevel(int level)
   jcomp->setQuality(qualityMap[level]);
 }
 
-bool JpegEncoder::writeRect(PixelBuffer* pb, const Rect& r)
+bool JpegEncoder::isPixelFormatSupported(PixelBuffer* pb) const
 {
-  int serverBitsPerPixel = pb->getPF().bpp;
-  int clientBitsPerPixel = writer->bpp();
+  const PixelFormat &serverPF = pb->getPF();
+  const PixelFormat &clientPF = writer->getConnParams()->pf();
 
-  // FIXME: Implement JPEG compression for (serverBitsPerPixel == 16).
-  // FIXME: Check that all color components are actually 8 bits wide.
-  if (serverBitsPerPixel != 32 || clientBitsPerPixel < 16) {
-    // FIXME: Make sure this return value is checked properly.
-    return false;
+  // FIXME: Ask encoders if they support given pixel formats.
+
+  if ( serverPF.bpp == 32 && clientPF.bpp >= 16 &&
+       serverPF.depth == 24 && serverPF.redMax == 255 &&
+       serverPF.greenMax == 255 && serverPF.blueMax  == 255 ) {
+    return true;
+  }
+
+  return false;
+}
+
+void JpegEncoder::writeRect(PixelBuffer* pb, const Rect& r)
+{
+  if (!isPixelFormatSupported(pb)) {
+    vlog.error("pixel format unsupported by JPEG encoder");
+    throw rdr::Exception("internal error in JpegEncoder");
   }
 
   writer->startRect(r, encodingTight);
@@ -108,7 +121,5 @@ bool JpegEncoder::writeRect(PixelBuffer* pb, const Rect& r)
   os->writeBytes(jcomp->getDataPtr(), jcomp->getDataLength());
 
   writer->endRect();
-
-  return true;
 }
 

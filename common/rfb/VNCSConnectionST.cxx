@@ -646,8 +646,15 @@ void VNCSConnectionST::writeFramebufferUpdate()
     // complicated as compared to the original VNC4.
     writer()->setupCurrentEncoder();
     int nRects = (ui.copied.numRects() +
-                  (ui.video_area.is_empty() ? 0 : 1) +
                   (drawRenderedCursor ? 1 : 0));
+    if (!ui.video_area.is_empty()) {
+      if (writer()->canUseJpegEncoder(server->getPixelBuffer())) {
+        nRects++;
+      } else {
+        nRects += writer()->getNumRects(ui.video_area);
+      }
+    }
+
     std::vector<Rect> rects;
     std::vector<Rect>::const_iterator i;
     ui.changed.get_rects(&rects);
@@ -657,8 +664,14 @@ void VNCSConnectionST::writeFramebufferUpdate()
     }
     
     writer()->writeFramebufferUpdateStart(nRects);
-    if (!ui.video_area.is_empty())
-      writer()->writeVideoRect(server->getPixelBuffer(), ui.video_area);
+    if (!ui.video_area.is_empty()) {
+      if (writer()->canUseJpegEncoder(server->getPixelBuffer())) {
+        writer()->writeJpegRect(server->getPixelBuffer(), ui.video_area);
+      } else {
+        Rect actual;
+        writer()->writeRect(ui.video_area, &image_getter, &actual);
+      }
+    }
     Region updatedRegion;
     writer()->writeRects(ui, &image_getter, &updatedRegion);
     updates.subtract(updatedRegion);

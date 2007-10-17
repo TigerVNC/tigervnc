@@ -38,7 +38,8 @@ namespace rfb {
     virtual ~JpegEncoder();
 
     virtual void setQualityLevel(int level);
-    virtual bool writeRect(PixelBuffer* pb, const Rect& r);
+    virtual bool isPixelFormatSupported(PixelBuffer* pb) const;
+    virtual void writeRect(PixelBuffer* pb, const Rect& r);
 
     static BoolParameter useHardwareJPEG;
 

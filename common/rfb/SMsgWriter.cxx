@@ -173,7 +173,12 @@ bool SMsgWriter::writeRect(const Rect& r, unsigned int encoding,
   return encoders[encoding]->writeRect(r, ig, actual);
 }
 
-void SMsgWriter::writeVideoRect(PixelBuffer *pb, const Rect& r)
+bool SMsgWriter::canUseJpegEncoder(PixelBuffer *pb) const
+{
+  return jpegEncoder->isPixelFormatSupported(pb);
+}
+
+void SMsgWriter::writeJpegRect(PixelBuffer *pb, const Rect& r)
 {
   jpegEncoder->writeRect(pb, r);
 }
