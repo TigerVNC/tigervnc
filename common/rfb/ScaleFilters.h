@@ -24,6 +24,11 @@
 
 namespace rfb {
 
+  #define BITS_OF_CHANEL 8
+  #define BITS_OF_WEIGHT 14
+  #define FINALSHIFT 2 * BITS_OF_WEIGHT - BITS_OF_CHANEL
+  #define WEIGHT_OF_ONE 1 << BITS_OF_WEIGHT
+
   typedef double (*filter_func)(double x);
 
   const double pi = 3.14159265358979;
@@ -48,8 +53,8 @@ namespace rfb {
 
   // Scale filter weight table
   typedef struct {
-    short int i0, i1;  // Filter function interval, [i0..i1)
-    double *weight;    // Weight coefficients on the filter function interval
+    short i0, i1;  // Filter function interval, [i0..i1)
+    short *weight;    // Weight coefficients on the filter function interval
   } SFilterWeightTab;
 
 

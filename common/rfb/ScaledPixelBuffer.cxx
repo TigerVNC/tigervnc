@@ -125,8 +125,8 @@ inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
 void ScaledPixelBuffer::scaleRect(const Rect& rect) {
   Rect changed_rect;
   U8 *ptr, *ptrs, *px, *pxs;
-  double rx, gx, bx, red, green, blue, *xweight, *yweight, xWeight, yWeight;
-  int r, g, b, xwi, ywi;
+  int r, g, b, rx, gx, bx, red, green, blue, xwi, ywi;
+  short *xweight, *yweight, xWeight, yWeight;
 
   // Calculate the changed pixel rect in the scaled image
   changed_rect = calculateScaleBoundary(rect);
@@ -141,7 +141,8 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
     yweight = yWeightTabs[y].weight;
 
     for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
-      ywi = 0; red = 0; green = 0; blue = 0;
+      // Init the sum of colors with (1 << (shift-1)) for rounding
+      ywi = 0; red = green = blue = 1 << (FINALSHIFT-1);
       xweight = xWeightTabs[x].weight;
     
       // Calculate the scaled pixel value at (x, y) coordinates by
@@ -156,20 +157,20 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
         for (int xs = xWeightTabs[x].i0; xs < xWeightTabs[x].i1; xs++) {
           rgbFromPixel(*((U32*)px), r, g, b);
           xWeight = xweight[xwi++];
-          rx += r * xWeight;
-          gx += g * xWeight;
-          bx += b * xWeight;
+          rx += (int)xWeight * r;
+          gx += (int)xWeight * g;
+          bx += (int)xWeight * b;
           px += bytesPerSrcPixel;
         }
         yWeight = yweight[ywi++];
-        red += rx * yWeight;
-        green += gx * yWeight;
-        blue += bx * yWeight;
+        red +=   (int)yWeight * (rx >> BITS_OF_CHANEL);
+        green += (int)yWeight * (gx >> BITS_OF_CHANEL);
+        blue +=  (int)yWeight * (bx >> BITS_OF_CHANEL);
         pxs += bytesPerSrcRow;
       }
-      *ptr++ = U8(blue);
-      *ptr++ = U8(green);
-      *ptr++ = U8(red);
+      *ptr++ = U8(blue  >> FINALSHIFT);
+      *ptr++ = U8(green >> FINALSHIFT);
+      *ptr++ = U8(red   >> FINALSHIFT);
       ptr++;
     }
     ptrs += bytesPerScaledRow;
