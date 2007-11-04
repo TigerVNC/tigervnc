@@ -98,6 +98,9 @@ namespace rfb {
     // Free the weight tabs for x and y 
     virtual void freeWeightTabs();
 
+    // Recreates the row accumulators.
+    virtual void recreateRowAccum();
+
 
     int src_width;
     int src_height;
@@ -111,6 +114,9 @@ namespace rfb {
     ScaleFilters scaleFilters;
     SFilterWeightTab *xWeightTabs;
     SFilterWeightTab *yWeightTabs;
+    int *raccum;
+    int *gaccum;
+    int *baccum;
     U8 **src_data;
     U8 **scaled_data;
   };

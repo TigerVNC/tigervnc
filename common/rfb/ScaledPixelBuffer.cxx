@@ -31,7 +31,7 @@ using namespace rfb;
 ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
                                      int src_height_, int scale_, PixelFormat pf_)
   : scale(scale_), scale_ratio_x(1), scale_ratio_y(1), scaleFilterID(scaleFilterBicubic),
-    xWeightTabs(0), yWeightTabs(0), scaled_data(0) {
+    xWeightTabs(0), yWeightTabs(0), scaled_data(0), raccum(0), gaccum(0), baccum(0) {
 
   setSourceBuffer(src_data_, src_width_, src_height_);
   setPF(pf_);
@@ -40,12 +40,16 @@ ScaledPixelBuffer::ScaledPixelBuffer(U8 **src_data_, int src_width_,
 ScaledPixelBuffer::ScaledPixelBuffer() 
   : src_width(0), src_height(0), scaled_width(0), scaled_height(0), scale(100), 
     scale_ratio_x(1), scale_ratio_y(1), scaleFilterID(scaleFilterBicubic),
-    xWeightTabs(0), yWeightTabs(0), src_data(0), scaled_data(0) {
+    xWeightTabs(0), yWeightTabs(0), src_data(0), scaled_data(0), raccum(0),
+    gaccum(0), baccum(0) {
   memset(&pf, 0, sizeof(pf));
 }
 
 ScaledPixelBuffer::~ScaledPixelBuffer() {
   freeWeightTabs();
+  if (raccum) delete [] raccum;
+  if (gaccum) delete [] gaccum;
+  if (baccum) delete [] baccum;
 }
 
 void ScaledPixelBuffer::freeWeightTabs() {
@@ -61,14 +65,26 @@ void ScaledPixelBuffer::freeWeightTabs() {
   }
 }
 
+void ScaledPixelBuffer::recreateRowAccum() {
+  if (raccum) delete [] raccum;
+  if (gaccum) delete [] gaccum;
+  if (baccum) delete [] baccum;
+  raccum = new int[src_width];
+  gaccum = new int[src_width];
+  baccum = new int[src_width];
+}
+
 void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
-  freeWeightTabs();
-  src_data = src_data_;
-  src_width  = w;
-  src_height = h;
-  calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+  if (w > 0 && h > 0 && src_data != NULL) {
+    freeWeightTabs();
+    src_data = src_data_;
+    src_width  = w;
+    src_height = h;
+    recreateRowAccum();
+    calculateScaledBufferSize();
+    scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
+    scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
+  }
 }
 
 void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
@@ -125,8 +141,8 @@ inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
 void ScaledPixelBuffer::scaleRect(const Rect& rect) {
   Rect changed_rect;
   U8 *ptr, *ptrs, *px, *pxs;
-  int r, g, b, rx, gx, bx, red, green, blue, xwi, ywi;
-  short *xweight, *yweight, xWeight, yWeight;
+  int r, g, b, red, green, blue;
+  short *xweight, *yweight, weight;
 
   // Calculate the changed pixel rect in the scaled image
   changed_rect = calculateScaleBoundary(rect);
@@ -135,38 +151,47 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
   int bytesPerSrcRow = src_width * bytesPerSrcPixel;
   int bytesPerScaledRow = scaled_width * 4;
 
+  int bytesPerAccumRow = src_width * sizeof(int);
+
   ptrs = &(*scaled_data)[(changed_rect.tl.x + changed_rect.tl.y*scaled_width) * 4];
   for (int y = changed_rect.tl.y; y < changed_rect.br.y; y++) {
     ptr = ptrs;
     yweight = yWeightTabs[y].weight;
 
+    // Clear the color accumulators
+    memset(raccum, 0, bytesPerAccumRow);
+    memset(gaccum, 0, bytesPerAccumRow);
+    memset(baccum, 0, bytesPerAccumRow);
+
+    // Make the convolution the source image with scale filter weights
+    // by y axis and save results to the color accumulators.
+    pxs = &(*src_data)[(xWeightTabs[changed_rect.tl.x].i0 + yWeightTabs[y].i0*src_width) * bytesPerSrcPixel];
+    for (int ys = yWeightTabs[y].i0; ys < yWeightTabs[y].i1; ys++) {
+      px = pxs;
+      for (int xs = xWeightTabs[changed_rect.tl.x].i0; xs < xWeightTabs[changed_rect.br.x-1].i1; xs++) {
+        rgbFromPixel(*((U32*)px), r, g, b);
+        weight = *yweight;
+        raccum[xs] += (int)(weight) * r;
+        gaccum[xs] += (int)(weight) * g;
+        baccum[xs] += (int)(weight) * b;
+        px += bytesPerSrcPixel;
+      }
+      yweight++;
+      pxs += bytesPerSrcRow;
+    }
+
+    // Make the convolution the color accumulators with scale filter weights
+    // by x axis and save results to the scaled image.
     for (int x = changed_rect.tl.x; x < changed_rect.br.x; x++) {
-      // Init the sum of colors with (1 << (shift-1)) for rounding
-      ywi = 0; red = green = blue = 1 << (FINALSHIFT-1);
+      // Init the sum of colors with (1 << (shift-1)) for rounding.
+      red = green = blue = 1 << (FINALSHIFT-1);
       xweight = xWeightTabs[x].weight;
-    
-      // Calculate the scaled pixel value at (x, y) coordinates by
-      // convolution the matrix from source image:
-      // [(xWeight.i0,yWeight.i0)......(xWeight.i1-1,yWeight.i0)]
-      // [......................................................]
-      // [(xWeight.i0,yWeight.i1-1)..(xWeight.i1-1,yWeight.i1-1)],
-      // where [i0, i1) is the scaled filter interval.
-      pxs = &(*src_data)[(xWeightTabs[x].i0 + yWeightTabs[y].i0*src_width) * bytesPerSrcPixel];
-      for (int ys = yWeightTabs[y].i0; ys < yWeightTabs[y].i1; ys++) {
-        xwi = 0; rx = 0; gx = 0; bx = 0; px = pxs;
-        for (int xs = xWeightTabs[x].i0; xs < xWeightTabs[x].i1; xs++) {
-          rgbFromPixel(*((U32*)px), r, g, b);
-          xWeight = xweight[xwi++];
-          rx += (int)xWeight * r;
-          gx += (int)xWeight * g;
-          bx += (int)xWeight * b;
-          px += bytesPerSrcPixel;
-        }
-        yWeight = yweight[ywi++];
-        red +=   (int)yWeight * (rx >> BITS_OF_CHANEL);
-        green += (int)yWeight * (gx >> BITS_OF_CHANEL);
-        blue +=  (int)yWeight * (bx >> BITS_OF_CHANEL);
-        pxs += bytesPerSrcRow;
+      for (int xs = xWeightTabs[x].i0; xs < xWeightTabs[x].i1; xs++) {
+        weight = *xweight;
+        red   += (int)(weight) * (raccum[xs] >> BITS_OF_CHANEL);
+        green += (int)(weight) * (gaccum[xs] >> BITS_OF_CHANEL);
+        blue  += (int)(weight) * (baccum[xs] >> BITS_OF_CHANEL);
+        xweight++;
       }
       *ptr++ = U8(blue  >> FINALSHIFT);
       *ptr++ = U8(green >> FINALSHIFT);

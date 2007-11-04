@@ -84,6 +84,7 @@ void ScaledDIBSectionBuffer::setSize(int src_width_, int src_height_) {
   
   // FIXME:
   // Calculate the scale weight tabs must be in the ScalePixelBuffer class
+  recreateRowAccum();
   freeWeightTabs();
   calculateScaledBufferSize();
   scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
