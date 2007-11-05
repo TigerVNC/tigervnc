@@ -95,6 +95,8 @@ void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, SFilterWe
   double sxc;
   double offset = 0.5;
   double ratio = (double)dst_x / src_x;
+  double sourceScale  = __rfbmax(1.0, 1.0/ratio);
+  double sourceRadius = __rfbmax(0.5, sourceScale * filters[filter_id].radius);
   double sum, nc;
   int i, ci;
 
@@ -108,20 +110,20 @@ void ScaleFilters::makeWeightTabs(int filter_id, int src_x, int dst_x, SFilterWe
     sxc = (double(x)+offset) / ratio;
 
     // Calculate the scale filter interval, [i0, i1)
-    int i0 = int(__rfbmax(sxc-sFilter.radius+0.5, 0));
-    int i1 = int(__rfbmin(sxc+sFilter.radius+0.5, src_x));
+    int i0 = int(__rfbmax(sxc-sourceRadius+0.5, 0));
+    int i1 = int(__rfbmin(sxc+sourceRadius+0.5, src_x));
 
     weightTabs[x].i0 = i0; weightTabs[x].i1 = i1;
     weightTabs[x].weight = new short[i1-i0];
 
     // Calculate coeff to normalize the filter weights
-    for (sum = 0, i = i0; i < i1; i++) sum += sFilter.func(double(i)-sxc+0.5);
+    for (sum = 0, i = i0; i < i1; i++) sum += sFilter.func((double(i)-sxc+0.5)/sourceScale);
     if (sum == 0.) nc = (double)(WEIGHT_OF_ONE); else nc = (double)(WEIGHT_OF_ONE)/sum;
 
 
     // Calculate the weight coeffs on the scale filter interval
     for (ci = 0, i = i0; i < i1; i++) {
-      weightTabs[x].weight[ci++] = (short)floor((sFilter.func(double(i)-sxc+0.5) * nc) + 0.5);
+      weightTabs[x].weight[ci++] = (short)floor((sFilter.func((double(i)-sxc+0.5)/sourceScale) * nc) + 0.5);
     }
   }
 }

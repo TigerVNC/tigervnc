@@ -41,18 +41,9 @@ ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
 
 void ScaledDIBSectionBuffer::setScale(int scale_) {
   if (scale == scale_ || scale_ <= 0) return;
-
-  scale = scale_;
+  ScaledPixelBuffer::setScale(scale_);
   if (scale == 100) scaling = false;
   else scaling = true;
-  
-  // FIXME:
-  // Calculate the scale weight tabs must be in the ScalePixelBuffer class
-  freeWeightTabs();
-  calculateScaledBufferSize();
-  scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
-  scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
-
   recreateBuffers();
 }
 

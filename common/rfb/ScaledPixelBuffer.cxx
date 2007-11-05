@@ -94,8 +94,8 @@ void ScaledPixelBuffer::setPF(const PixelFormat &pf_) {
 
 void ScaledPixelBuffer::setScale(int scale_) {
   if (scale != scale_ && scale_ > 0) {
-    freeWeightTabs();
     scale = scale_;
+    freeWeightTabs();
     calculateScaledBufferSize();
     scaleFilters.makeWeightTabs(scaleFilterID, src_width, scaled_width, &xWeightTabs);
     scaleFilters.makeWeightTabs(scaleFilterID, src_height, scaled_height, &yWeightTabs);
@@ -204,13 +204,16 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
 
 Rect ScaledPixelBuffer::calculateScaleBoundary(const Rect& r) {
   int x_start, y_start, x_end, y_end;
-  double radius = scaleFilters[scaleFilterID].radius;
   double translate_x = 0.5*scale_ratio_x - 0.5;
   double translate_y = 0.5*scale_ratio_y - 0.5;
-  x_start = (int)ceil(scale_ratio_x*(r.tl.x-radius) + translate_x);
-  y_start = (int)ceil(scale_ratio_y*(r.tl.y-radius) + translate_y);
-  x_end = (int)ceil(scale_ratio_x*(r.br.x+radius) + translate_x);
-  y_end = (int)ceil(scale_ratio_y*(r.br.y+radius) + translate_y);
+  double sourceXScale  = __rfbmax(1.0, 1.0/scale_ratio_x);
+  double sourceYScale  = __rfbmax(1.0, 1.0/scale_ratio_y);
+  double sourceXRadius = __rfbmax(0.5, sourceXScale*scaleFilters[scaleFilterID].radius);
+  double sourceYRadius = __rfbmax(0.5, sourceYScale*scaleFilters[scaleFilterID].radius);
+  x_start = (int)ceil(scale_ratio_x*(r.tl.x-sourceXRadius) + translate_x + SCALE_ERROR);
+  y_start = (int)ceil(scale_ratio_y*(r.tl.y-sourceYRadius) + translate_y + SCALE_ERROR);
+  x_end   = (int)floor(scale_ratio_x*((r.br.x-1)+sourceXRadius) + translate_x - SCALE_ERROR) + 1;
+  y_end   = (int)floor(scale_ratio_y*((r.br.y-1)+sourceXRadius) + translate_y - SCALE_ERROR) + 1;
   if (x_start < 0) x_start = 0;
   if (y_start < 0) y_start = 0;
   if (x_end > scaled_width) x_end = scaled_width;
