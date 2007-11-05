@@ -123,8 +123,6 @@
 #define IDC_STATIC_SCALE                1097
 #define IDC_COMBO_SCALE                 1098
 #define IDC_STATIC_PERCENT              1099
-#define IDC_COMBO_SCALE_FILTER          1100
-#define IDC_SCALE_FILTER                1101
 #define ID_TOOLBAR                      40002
 #define ID_CLOSE                        40003
 #define ID_OPTIONS                      40004

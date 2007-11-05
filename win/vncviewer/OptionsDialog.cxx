@@ -176,14 +176,6 @@ public:
     } else {
       SetDlgItemInt(handle, IDC_COMBO_SCALE, dlg->options.scale, FALSE);
     }
-    HWND hScaleFilterCombo = GetDlgItem(handle, IDC_COMBO_SCALE_FILTER);
-    SendMessage(hScaleFilterCombo, CB_RESETCONTENT, 0, 0);
-    ScaleFilters scaleFilters;
-    for (i = 0; i <= rfb::scaleFilterMaxNumber; i++) {
-      SendMessage(hScaleFilterCombo, CB_ADDSTRING, (WPARAM)0, (LPARAM)(int FAR*)scaleFilters[i].name);
-    }
-    SendMessage(hScaleFilterCombo, CB_SETCURSEL, (WPARAM)dlg->options.scaleFilter, (LPARAM)0);
-    if (dlg->options.scale == 100 && !dlg->options.autoScaling) enableItem(IDC_COMBO_SCALE_FILTER, 0);
   }
   virtual bool onOk() {
     dlg->options.shared = isItemChecked(IDC_CONN_SHARED);
@@ -205,12 +197,6 @@ public:
         dlg->options.autoScaling = true;
       }
     }
-    int scaleFilterID = SendMessage(GetDlgItem(handle, IDC_COMBO_SCALE_FILTER), CB_GETCURSEL, 0, 0);
-    if (scaleFilterID != rfb::scaleFilterBilinear &&  scaleFilterID != rfb::scaleFilterBicubic) {
-      MsgBox(handle, "Now supported only bilinear and bicubic scale filters.", MB_OK);
-    } else {
-      dlg->options.scaleFilter = SendMessage(GetDlgItem(handle, IDC_COMBO_SCALE_FILTER), CB_GETCURSEL, 0, 0);
-    }
     ((ViewerOptions*)propSheet)->setChanged();
     return true;
   }
@@ -225,8 +211,6 @@ public:
         } else {
           GetDlgItemText(handle, IDC_COMBO_SCALE, scaleStr, 20);
         }
-        if (strcmp(scaleStr, "100") == 0) enableItem(IDC_COMBO_SCALE_FILTER, 0);
-        else enableItem(IDC_COMBO_SCALE_FILTER, 1);
         return true;
       }
     }
