@@ -41,6 +41,7 @@ ScaledDIBSectionBuffer::~ScaledDIBSectionBuffer() {
 
 void ScaledDIBSectionBuffer::setScale(int scale_) {
   if (scale == scale_ || scale_ <= 0) return;
+  if (!(getPixelFormat().trueColour) && scale_ != 100) throw rfb::UnsupportedPixelFormatException();
   ScaledPixelBuffer::setScale(scale_);
   if (scale == 100) scaling = false;
   else scaling = true;
@@ -50,7 +51,7 @@ void ScaledDIBSectionBuffer::setScale(int scale_) {
 void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
   if (memcmp(&(ScaledPixelBuffer::pf), &pf_, sizeof(pf_)) == 0) return;
 
-  if (!pf_.trueColour) throw rfb::UnsupportedPixelFormatException();
+  if (!pf_.trueColour && isScaling()) throw rfb::UnsupportedPixelFormatException();
 
   pf = pf_;
   if (scaling) {
