@@ -96,7 +96,13 @@ class RfbProto {
   public void newSession(URL url) throws Exception {
     if (fbs != null)
       fbs.close();
-    fbs = new FbsInputStream(url.openStream());
+
+    // open the connection, making sure that it does not use
+    // a cached version of the archive
+    URLConnection connection = url.openConnection();
+    connection.setUseCaches(false);
+
+    fbs = new FbsInputStream(connection.getInputStream());
     is = new DataInputStream(fbs);
 
     readVersionMsg();
