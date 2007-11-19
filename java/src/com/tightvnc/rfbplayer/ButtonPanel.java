@@ -17,11 +17,10 @@
 //  USA.
 //
 
-package com.HorizonLive.RfbPlayer;
+package com.wimba.RfbPlayer;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
 
 class ButtonPanel extends Panel implements ActionListener {
 

@@ -1,5 +1,5 @@
 
-package com.HorizonLive.RfbPlayer;
+package com.wimba.RfbPlayer;
 
 import java.applet.*;
 

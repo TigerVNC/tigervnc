@@ -21,13 +21,11 @@
 //  USA.
 //
 
-package com.HorizonLive.RfbPlayer;
+package com.wimba.RfbPlayer;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
-import java.lang.*;
 import java.util.*;
 import java.util.zip.*;
 
@@ -370,8 +368,6 @@ class VncCanvas extends Component
       case RfbProto.FramebufferUpdate:
         rfb.readFramebufferUpdate();
 
-        boolean cursorPosReceived = false;
-
         for (int i = 0; i < rfb.updateNRects; i++) {
           rfb.readFramebufferUpdateRectHdr();
           int rx = rfb.updateRectX, ry = rfb.updateRectY;
@@ -396,7 +392,6 @@ class VncCanvas extends Component
 
           if (rfb.updateRectEncoding == rfb.EncodingPointerPos) {
             softCursorMove(rx, ry);
-            cursorPosReceived = true;
             continue;
           }
 
@@ -437,7 +432,7 @@ class VncCanvas extends Component
         break;
 
       case RfbProto.ServerCutText:
-        String s = rfb.readServerCutText();
+        rfb.readServerCutText();
         break;
 
       default:
@@ -766,7 +761,6 @@ class VncCanvas extends Component
 
     // Read filter id and parameters.
     int numColors = 0, rowSize = w;
-    byte[] palette8 = new byte[2];
     int[] palette24 = new int[256];
     boolean useGradient = false;
     if ((comp_ctl & rfb.TightExplicitFilter) != 0) {
@@ -1159,7 +1153,7 @@ class VncCanvas extends Component
       rfb.is.readFully(maskBuf);
 
       // Decode pixel data into softCursorPixels[].
-      byte pixByte, maskByte;
+      byte maskByte;
       int x, y, n, result;
       int i = 0;
       for (y = 0; y < height; y++) {
@@ -1216,12 +1210,6 @@ class VncCanvas extends Component
     //int scaleCursor = appClass.options.scaleCursor;
     //if (scaleCursor == 0 || !inputEnabled)
     //scaleCursor = 100;
-
-    // Save original cursor coordinates.
-    int x = cursorX - hotX;
-    int y = cursorY - hotY;
-    int w = cursorWidth;
-    int h = cursorHeight;
 
     cursorWidth = (origCursorWidth * scaleCursor + 50) / 100;
     cursorHeight = (origCursorHeight * scaleCursor + 50) / 100;

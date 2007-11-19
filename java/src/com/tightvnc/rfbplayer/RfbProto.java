@@ -24,11 +24,9 @@
 // RfbProto.java
 //
 
-package com.HorizonLive.RfbPlayer;
+package com.wimba.RfbPlayer;
 
 import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.net.*;
 
 class RfbProto {
