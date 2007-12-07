@@ -26,15 +26,15 @@ namespace rfb {
     bool isValid() const { return m_ic.isValid(); }
 
     // Set JPEG quality level (0..100).
-    void setQuality(int level);
+    virtual void setQuality(int level);
 
     // Actually compress the image.
-    void compress(const rdr::U32 *buf, const PixelFormat *fmt,
-                  int w, int h, int stride);
+    virtual void compress(const rdr::U32 *buf, const PixelFormat *fmt,
+			  int w, int h, int stride);
 
     // Access results of the compression.
-    size_t getDataLength() { return m_compressedLength; }
-    const char *getDataPtr() { return m_compressedData; }
+    virtual size_t getDataLength() { return m_compressedLength; }
+    virtual const char *getDataPtr() { return m_compressedData; }
 
   protected:
     // Update image size and make sure that our buffer pools will
