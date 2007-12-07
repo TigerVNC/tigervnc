@@ -203,6 +203,15 @@ IrixDMIC_RawToJpeg::setImageQuality(int quality)
     reportError("dmParamsSetFloat");
     return false;
   }
+
+  // For some reason, dmICSetConvParams() does not have effect without
+  // calling dmICSetDstParams() as well. So we call it here.
+  if (m_dstParams && dmParamsGetNumElems(m_dstParams) &&
+      dmICSetDstParams(m_ic, m_dstParams) != DM_SUCCESS) {
+    reportError("dmICSetDstParams");
+    return false;
+  }
+
   if (dmICSetConvParams(m_ic, m_convParams) != DM_SUCCESS) {
     reportError("dmICSetConvParams");
     return false;
