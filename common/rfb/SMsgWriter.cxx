@@ -105,7 +105,8 @@ void SMsgWriter::setupCurrentEncoder()
 
   encoders[encoding]->setCompressLevel(cp->compressLevel);
   encoders[encoding]->setQualityLevel(cp->qualityLevel);
-  jpegEncoder->setQualityLevel(cp->qualityLevel);
+  if (cp->qualityLevel != -1)
+    jpegEncoder->setQualityLevel(cp->qualityLevel);
 }
 
 int SMsgWriter::getNumRects(const Rect &r)
@@ -175,7 +176,7 @@ bool SMsgWriter::writeRect(const Rect& r, unsigned int encoding,
 
 bool SMsgWriter::canUseJpegEncoder(PixelBuffer *pb) const
 {
-  return jpegEncoder->isPixelFormatSupported(pb);
+  return (cp->qualityLevel != -1 && jpegEncoder->isPixelFormatSupported(pb));
 }
 
 void SMsgWriter::writeJpegRect(PixelBuffer *pb, const Rect& r)
