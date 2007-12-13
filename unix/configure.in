@@ -66,6 +66,12 @@ if test "$GXX" = yes; then
   fi
 fi
 
+dnl Check for IRIX-specific Compression Library.
+AC_CHECK_LIB(cl, clQuerySchemeFromName,
+  [AC_DEFINE(HAVE_CL)
+  CL_LIB=-lcl])
+AC_SUBST(CL_LIB)
+
 dnl Check for IRIX-specific Digital Media libraries.
 AC_CHECK_LIB(dmedia, dmICCreate,
   [AC_DEFINE(HAVE_DMEDIA)
