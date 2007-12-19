@@ -23,6 +23,9 @@
 #include <rfb/ConnParams.h>
 #include <rfb/LogWriter.h>
 
+#ifdef HAVE_CL
+#include <rfb/IrixCLJpegCompressor.h>
+#endif
 #ifdef HAVE_DMEDIA
 #include <rfb/IrixDMJpegCompressor.h>
 #endif
@@ -42,24 +45,37 @@ const int JpegEncoder::qualityMap[10] = {
 
 JpegEncoder::JpegEncoder(SMsgWriter* writer_) : writer(writer_), jcomp(0)
 {
-#ifdef HAVE_DMEDIA
-  if (useHardwareJPEG) {
-    vlog.debug("trying IRIX DM JPEG compressor");
-    IrixDMJpegCompressor *irixComp = new IrixDMJpegCompressor;
-    if (irixComp->isValid()) {
-      vlog.debug("initialized IRIX DM JPEG compressor successfully");
-      jcomp = irixComp;
+  // FIXME: DM should be preferred over CL.
+#ifdef HAVE_CL
+  if (!jcomp && useHardwareJPEG) {
+    vlog.debug("trying IRIX CL JPEG compressor");
+    IrixCLJpegCompressor *clComp = new IrixCLJpegCompressor;
+    if (clComp->isValid()) {
+      vlog.debug("initialized IRIX CL JPEG compressor successfully");
+      jcomp = clComp;
     } else {
-      vlog.error("warning: could not create IRIX DM JPEG compressor");
-      delete irixComp;
+      vlog.error("warning: could not create IRIX CL JPEG compressor");
+      delete clComp;
     }
   }
-#else
-  if (useHardwareJPEG) {
-    vlog.info("no hardware JPEG compressor available");
+#endif
+#ifdef HAVE_DMEDIA
+  if (!jcomp && useHardwareJPEG) {
+    vlog.debug("trying IRIX DM JPEG compressor");
+    IrixDMJpegCompressor *dmComp = new IrixDMJpegCompressor;
+    if (dmComp->isValid()) {
+      vlog.debug("initialized IRIX DM JPEG compressor successfully");
+      jcomp = dmComp;
+    } else {
+      vlog.error("warning: could not create IRIX DM JPEG compressor");
+      delete dmComp;
+    }
   }
 #endif
   if (!jcomp) {
+    if (useHardwareJPEG) {
+      vlog.info("no hardware JPEG compressor available");
+    }
     vlog.debug("using software JPEG compressor");
     jcomp = new StandardJpegCompressor;
   }

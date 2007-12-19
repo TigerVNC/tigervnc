@@ -2,6 +2,7 @@
 #define __IRIXCLJPEGCOMPRESSOR_H__
 
 #include <sys/types.h>
+#include <dmedia/cl.h>
 
 #include <rdr/types.h>
 #include <rfb/PixelFormat.h>
@@ -22,7 +23,7 @@ namespace rfb {
     virtual ~IrixCLJpegCompressor();
 
     // Check if the object has been created successfully.
-    bool isValid() const { return false; }
+    bool isValid() const { return m_clHandleValid; }
 
     // Set JPEG quality level (0..100).
     virtual void setQuality(int level);
@@ -39,7 +40,15 @@ namespace rfb {
     static const int DEFAULT_QUALITY;
     int m_quality;
 
+    CLhandle m_clHandle;
+    bool m_clHandleValid;
+
+    int m_srcBufferSize;
+    int m_dstBufferSize;
+
+    rdr::U32 *m_sourceData;
     char *m_compressedData;
+
     size_t m_compressedLength;
   };
 
