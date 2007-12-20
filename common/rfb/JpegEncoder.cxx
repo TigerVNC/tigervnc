@@ -45,7 +45,24 @@ const int JpegEncoder::qualityMap[10] = {
 
 JpegEncoder::JpegEncoder(SMsgWriter* writer_) : writer(writer_), jcomp(0)
 {
-  // FIXME: DM should be preferred over CL.
+#ifdef HAVE_DMEDIA
+#ifdef DEBUG_FORCE_CL
+    vlog.debug("DEBUG: skipping IRIX DM JPEG compressor");
+#else
+  if (!jcomp && useHardwareJPEG) {
+    vlog.debug("trying IRIX DM JPEG compressor");
+    IrixDMJpegCompressor *dmComp = new IrixDMJpegCompressor;
+    if (dmComp->isValid()) {
+      vlog.debug("initialized IRIX DM JPEG compressor successfully");
+      jcomp = dmComp;
+    } else {
+      vlog.error("warning: could not create IRIX DM JPEG compressor");
+      delete dmComp;
+    }
+  }
+#endif
+#endif
+
 #ifdef HAVE_CL
   if (!jcomp && useHardwareJPEG) {
     vlog.debug("trying IRIX CL JPEG compressor");
@@ -59,19 +76,7 @@ JpegEncoder::JpegEncoder(SMsgWriter* writer_) : writer(writer_), jcomp(0)
     }
   }
 #endif
-#ifdef HAVE_DMEDIA
-  if (!jcomp && useHardwareJPEG) {
-    vlog.debug("trying IRIX DM JPEG compressor");
-    IrixDMJpegCompressor *dmComp = new IrixDMJpegCompressor;
-    if (dmComp->isValid()) {
-      vlog.debug("initialized IRIX DM JPEG compressor successfully");
-      jcomp = dmComp;
-    } else {
-      vlog.error("warning: could not create IRIX DM JPEG compressor");
-      delete dmComp;
-    }
-  }
-#endif
+
   if (!jcomp) {
     if (useHardwareJPEG) {
       vlog.info("no hardware JPEG compressor available");

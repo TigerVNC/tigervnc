@@ -45,16 +45,15 @@ IrixCLJpegCompressor::IrixCLJpegCompressor()
     return;
   }
 
-  // DEBUG: Uncomment to test without hardware compressor.
-  /*
-  vlog.debug("Trying Irix software JPEG compressor (debug mode!)");
+#ifdef DEBUG_FORCE_CL
+  vlog.debug("DEBUG: Trying Irix software JPEG compressor");
   r = clOpenCompressor(CL_JPEG_SOFTWARE, &m_clHandle);
   if (r == SUCCESS) {
-    vlog.debug("Using Irix software JPEG compressor (debug mode!)");
+    vlog.debug("DEBUG: Using Irix software JPEG compressor");
     m_clHandleValid = true;
     return;
   }
-  */
+#endif
 
   vlog.error("Ho hardware JPEG available via Irix CL library");
 }
@@ -128,16 +127,6 @@ IrixCLJpegCompressor::compress(const rdr::U32 *buf,
 
   // Determine buffer size required.
   int newBufferSize = clGetParam(m_clHandle, CL_COMPRESSED_BUFFER_SIZE);
-
-  /* DEBUG:
-  int arr[200];
-  int nn = clQueryParams(m_clHandle, arr, 200);
-  vlog.debug("Params:");
-  for (int ii = 0; ii < nn; ii += 2) {
-    int id = clGetParamID(m_clHandle, (char *)arr[ii]);
-    vlog.debug("  %s = %d", (char*)arr[ii], clGetParam(m_clHandle, id));
-  }
-  */
 
   // (Re)allocate destination buffer if necessary.
   if (newBufferSize > m_dstBufferSize) {
