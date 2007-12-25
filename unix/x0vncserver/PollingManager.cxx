@@ -39,6 +39,9 @@ const int PollingManager::m_pollingOrder[32] = {
   19,  3, 27, 11, 29, 13,  5, 21
 };
 
+IntParameter PollingManager::m_videoPriority("VideoPriority",
+  "Priority of sending updates for video area (0..8)", 2);
+
 //
 // Constructor.
 //
@@ -51,6 +54,7 @@ PollingManager::PollingManager(Display *dpy, Image *image,
                                int offsetLeft, int offsetTop)
   : m_dpy(dpy), m_server(0), m_image(image),
     m_offsetLeft(offsetLeft), m_offsetTop(offsetTop),
+    m_numVideoPasses(0),
     m_pollingStep(0)
 {
   // Save width and height of the screen (and the image).
@@ -145,6 +149,22 @@ bool PollingManager::pollScreen()
   if (!m_server)
     return false;
 
+  // If video data should have higher priority, and video area was
+  // detected, perform special passes to send video data only. Such
+  // "video passes" will be performed between normal polling passes.
+  // No actual polling is performed in a video pass since we know that
+  // video is changing continuously.
+  if ((int)m_videoPriority > 1 && !m_videoRect.is_empty()) {
+    if (m_numVideoPasses > 0) {
+      m_numVideoPasses--;
+      getScreenRect(m_videoRect);
+      return true;              // we've got changes
+    } else {
+      // Normal pass now, but schedule video passes for next calls.
+      m_numVideoPasses = (int)m_videoPriority - 1;
+    }
+  }
+
   // changeFlags[] array will hold boolean values corresponding to
   // each 32x32 tile. If a value is true, then we've detected a change
   // in that tile. Initially, we fill in the array with zero values.
@@ -164,7 +184,9 @@ bool PollingManager::pollScreen()
   }
 
   // Do the work related to video area detection.
-  bool haveVideoRect = handleVideo(changeFlags);
+  bool haveVideoRect = false;
+  if ((int)m_videoPriority != 0)
+    haveVideoRect = handleVideo(changeFlags);
 
   // Inform the server about the changes.
   // FIXME: It's possible that (nTilesChanged != 0) but changeFlags[]

@@ -115,9 +115,12 @@ private:
   char *m_rateMatrix;
   char *m_videoFlags;
   Rect m_videoRect;
+  int m_numVideoPasses;
 
   unsigned int m_pollingStep;
   static const int m_pollingOrder[];
+
+  static IntParameter m_videoPriority;
 
 #ifdef DEBUG
 private:
