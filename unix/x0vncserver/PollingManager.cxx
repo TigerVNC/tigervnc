@@ -39,6 +39,8 @@ const int PollingManager::m_pollingOrder[32] = {
   19,  3, 27, 11, 29, 13,  5, 21
 };
 
+// FIXME: Check that the parameter's value is in the allowed range.
+//        This applies to all other parameters as well.
 IntParameter PollingManager::m_videoPriority("VideoPriority",
   "Priority of sending updates for video area (0..8)", 2);
 
@@ -154,6 +156,10 @@ bool PollingManager::pollScreen()
   // "video passes" will be performed between normal polling passes.
   // No actual polling is performed in a video pass since we know that
   // video is changing continuously.
+  //
+  // FIXME: Should we move this block into a separate function?
+  // FIXME: Giving higher priority to video area lengthens video
+  //        detection cycles. Should we do something with that?
   if ((int)m_videoPriority > 1 && !m_videoRect.is_empty()) {
     if (m_numVideoPasses > 0) {
       m_numVideoPasses--;
@@ -168,6 +174,8 @@ bool PollingManager::pollScreen()
   // changeFlags[] array will hold boolean values corresponding to
   // each 32x32 tile. If a value is true, then we've detected a change
   // in that tile. Initially, we fill in the array with zero values.
+  //
+  // FIXME: Should we use a member variable in place of changeFlags?
   bool *changeFlags = new bool[m_widthTiles * m_heightTiles];
   memset(changeFlags, 0, m_widthTiles * m_heightTiles * sizeof(bool));
 
@@ -189,6 +197,7 @@ bool PollingManager::pollScreen()
     haveVideoRect = handleVideo(changeFlags);
 
   // Inform the server about the changes.
+  //
   // FIXME: It's possible that (nTilesChanged != 0) but changeFlags[]
   //        array is empty. That's possible because handleVideo()
   //        modifies changeFlags[].
@@ -277,6 +286,11 @@ bool PollingManager::handleVideo(bool *pChangeFlags)
     detectVideo();
     memset(m_rateMatrix, 0, numTiles);
   }
+
+  // FIXME: It looks like the code below rather belongs to
+  //        pollScreen(). Perhaps handleVideo() should be merged back
+  //        to pollScreen(), and then pollScreen() should be split in
+  //        some better way, if needed at all.
 
   // Grab the pixels of video area. Also, exclude video rectangle from
   // pChangeFlags[], to prevent grabbing the same pixels twice.
