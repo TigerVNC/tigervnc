@@ -280,10 +280,22 @@ PollingManager::detectVideo()
   const int VIDEO_THRESHOLD_0 = 3;
   const int VIDEO_THRESHOLD_1 = 5;
 
+  // In m_rateMatrix, clear counters corresponding to non-32x32 tiles.
+  // This will guarantee that the size of the video area is always a
+  // multiple of 32 pixels. This is important for hardware JPEG encoders.
+  int numTiles = m_heightTiles * m_widthTiles;
+  if (m_width % 32 != 0) {
+    for (int n = m_widthTiles - 1; n < numTiles; n += m_widthTiles)
+      m_rateMatrix[n] = 0;
+  }
+  if (m_height % 32 != 0) {
+    for (int n = numTiles - m_widthTiles; n < numTiles; n++)
+      m_rateMatrix[n] = 0;
+  }
+
   // First, detect candidate region that looks like video. In other
   // words, find a region that consists of continuously changing
   // pixels. Save the result in m_videoFlags[].
-  int numTiles = m_heightTiles * m_widthTiles;
   for (int i = 0; i < numTiles; i++) {
     if (m_rateMatrix[i] <= VIDEO_THRESHOLD_0) {
       m_videoFlags[i] = 0;
