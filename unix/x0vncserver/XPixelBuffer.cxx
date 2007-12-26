@@ -17,38 +17,12 @@
  */
 
 //
-// XPixelBuffer.h
+// XPixelBuffer.cxx
 //
 
-#ifndef __XPIXELBUFFER_H__
-#define __XPIXELBUFFER_H__
+#include <x0vncserver/XPixelBuffer.h>
 
-#include <rfb/PixelBuffer.h>
-
-using namespace rfb;
-
-//
-// XPixelBuffer is a modification of FullFramePixelBuffer that does
-// not always return buffer width in getStride().
-//
-
-class XPixelBuffer : public FullFramePixelBuffer
+void XPixelBuffer::grabRegion(const Region& region)
 {
-public:
-  XPixelBuffer(const PixelFormat& pf, int width, int height,
-               rdr::U8* data_, ColourMap* cm, int stride_) :
-    FullFramePixelBuffer(pf, width, height, data_, cm), stride(stride_)
-  {
-  }
-
-  virtual int getStride() const { return stride; }
-
-  // Override PixelBuffer's function.
-  virtual void grabRegion(const rfb::Region& region);
-
-protected:
-  int stride;
-};
-
-#endif // __XPIXELBUFFER_H__
+}
 

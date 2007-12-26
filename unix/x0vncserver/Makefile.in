@@ -1,6 +1,6 @@
 
 SRCS = Image.cxx TimeMillis.cxx PollingScheduler.cxx PollingManager.cxx \
-       Geometry.cxx \
+       Geometry.cxx XPixelBuffer.cxx \
        x0vncserver.cxx ../vncconfig/QueryConnectDialog.cxx
 
 OBJS = $(SRCS:.cxx=.o)
