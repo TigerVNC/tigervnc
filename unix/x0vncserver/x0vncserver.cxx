@@ -46,6 +46,7 @@
 
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/Image.h>
+#include <x0vncserver/XPixelBuffer.h>
 #include <x0vncserver/PollingManager.h>
 #include <x0vncserver/PollingScheduler.h>
 
@@ -130,27 +131,6 @@ private:
   VNCServerST* server;
   QueryConnectDialog* queryConnectDialog;
   network::Socket* queryConnectSock;
-};
-
-
-//
-// XPixelBuffer is a modification of FullFramePixelBuffer that does
-// not always return buffer width in getStride().
-//
-
-class XPixelBuffer : public FullFramePixelBuffer
-{
-public:
-  XPixelBuffer(const PixelFormat& pf, int width, int height,
-               rdr::U8* data_, ColourMap* cm, int stride_) :
-    FullFramePixelBuffer(pf, width, height, data_, cm), stride(stride_)
-  {
-  }
-
-  virtual int getStride() const { return stride; }
-
-protected:
-  int stride;
 };
 
 
