@@ -50,6 +50,8 @@ IntParameter PollingManager::m_videoPriority("VideoPriority",
 // Note that dpy and image should remain valid during the object
 // lifetime, while factory is used only in the constructor itself.
 //
+// FIXME: Pass XPixelBuffer* instead of Image*.
+//
 
 PollingManager::PollingManager(Display *dpy, Image *image,
                                ImageFactory *factory,

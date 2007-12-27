@@ -20,9 +20,31 @@
 // XPixelBuffer.cxx
 //
 
+#include <X11/Xlib.h>
 #include <x0vncserver/XPixelBuffer.h>
 
-void XPixelBuffer::grabRegion(const Region& region)
+using namespace rfb;
+
+XPixelBuffer::XPixelBuffer(Display *dpy, Image* image,
+                           int offsetLeft, int offsetTop,
+                           const PixelFormat& pf, ColourMap* cm)
+  : FullFramePixelBuffer(pf, image->xim->width, image->xim->height,
+                         (rdr::U8 *)image->xim->data, cm),
+    m_dpy(dpy),
+    m_image(image),
+    m_offsetLeft(offsetLeft),
+    m_offsetTop(offsetTop),
+    m_stride(image->xim->bytes_per_line * 8 / image->xim->bits_per_pixel)
 {
+}
+
+XPixelBuffer::~XPixelBuffer()
+{
+}
+
+void
+XPixelBuffer::grabRegion(const rfb::Region& region)
+{
+  // m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
 }
 

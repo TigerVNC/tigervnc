@@ -198,12 +198,10 @@ public:
     pf.greenMax   = image->xim->green_mask >> pf.greenShift;
     pf.blueMax    = image->xim->blue_mask  >> pf.blueShift;
 
-    // Calculate the number of pixels in a row, with padding included.
-    int stride = image->xim->bytes_per_line * 8 / image->xim->bits_per_pixel;
-
     // Provide pixel buffer to the server object.
-    pb = new XPixelBuffer(pf, geometry->width(), geometry->height(),
-                          (rdr::U8*)image->xim->data, this, stride);
+    pb = new XPixelBuffer(dpy, image,
+                          geometry->offsetLeft(), geometry->offsetTop(),
+                          pf, this);
     server = vs;
     server->setPixelBuffer(pb);
 
