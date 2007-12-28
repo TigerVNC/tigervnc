@@ -218,7 +218,15 @@ bool PollingManager::pollScreen()
   // Cleanup.
   delete[] changeFlags;
 
+#ifdef DEBUG_PRINT_NUM_CHANGED_TILES
+  printf("%3d ", nTilesChanged);
+  if (m_pollingStep % 32 == 0) {
+    printf("\n");
+  }
+#endif
+
 #ifdef DEBUG
+  // FIXME: Move this to sendChanges();
   if (nTilesChanged != 0) {
     fprintf(stderr, "#%d# ", nTilesChanged);
   }
