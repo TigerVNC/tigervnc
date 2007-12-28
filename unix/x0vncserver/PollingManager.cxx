@@ -297,18 +297,22 @@ bool PollingManager::handleVideo(bool *pChangeFlags)
   // Grab the pixels of video area. Also, exclude video rectangle from
   // pChangeFlags[], to prevent grabbing the same pixels twice.
   if (!m_videoRect.is_empty()) {
-    Rect r(m_videoRect.tl.x / 32, m_videoRect.tl.y / 32,
-           m_videoRect.br.x / 32, m_videoRect.br.y / 32);
-    for (int y = r.tl.y; y < r.br.y; y++) {
-      for (int x = r.tl.x; x < r.br.x; x++) {
-        pChangeFlags[y * m_widthTiles + x] = false;
-      }
-    }
+    flagVideoArea(pChangeFlags, false);
     getScreenRect(m_videoRect);
     return true;                // we've got a video rectangle
   }
 
   return false;                 // video rectangle is empty
+}
+
+void PollingManager::flagVideoArea(bool *pChangeFlags, bool value)
+{
+  Rect r(m_videoRect.tl.x / 32, m_videoRect.tl.y / 32,
+         m_videoRect.br.x / 32, m_videoRect.br.y / 32);
+
+  for (int y = r.tl.y; y < r.br.y; y++)
+    for (int x = r.tl.x; x < r.br.x; x++)
+      pChangeFlags[y * m_widthTiles + x] = value;
 }
 
 void

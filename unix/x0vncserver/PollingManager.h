@@ -97,14 +97,14 @@ private:
                     m_offsetLeft + x, m_offsetTop + y, 1, h);
   }
 
-  int checkRow(int x, int y, int w, bool *pmxChanged);
-  void sendChanges(bool *pmxChanged);
-  bool handleVideo(bool *pmxChanged);
+  int checkRow(int x, int y, int w, bool *pChangeFlags);
+  void sendChanges(bool *pChangeFlags);
+  bool handleVideo(bool *pChangeFlags);
+  void flagVideoArea(bool *pChangeFlags, bool value);
+
+  // Video detection functions.
   void detectVideo();
-
   void getVideoAreaRect(Rect *result);
-
-  // Functions called by getVideoAreaRect().
   void constructLengthMatrices(int **pmx_h, int **pmx_v);
   void destroyLengthMatrices(int *mx_h, int *mx_v);
   void findMaxLocalRect(Rect *r, int *mx_h, int *mx_v);
