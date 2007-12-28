@@ -199,18 +199,21 @@ bool PollingManager::pollScreen()
     pChangeFlags += m_widthTiles;
   }
 
-  // Do the work related to video area detection.
+  // Do the work related to video area detection, if enabled.
   bool haveVideoRect = false;
-  if ((int)m_videoPriority != 0)
-    haveVideoRect = handleVideo(changeFlags);
+  if ((int)m_videoPriority != 0) {
+    handleVideo(changeFlags);
+    if (!m_videoRect.is_empty()) {
+      getScreenRect(m_videoRect);
+      haveVideoRect = true;
+    }
+  }
 
   // Inform the server about the changes.
-  //
-  // FIXME: It's possible that (nTilesChanged != 0) but changeFlags[]
-  //        array is empty. That's possible because handleVideo()
-  //        modifies changeFlags[].
-  if (nTilesChanged)
+  if (nTilesChanged) {
+    flagVideoArea(changeFlags, false);
     sendChanges(changeFlags);
+  }
 
   // Cleanup.
   delete[] changeFlags;
@@ -254,7 +257,7 @@ int PollingManager::checkRow(int x, int y, int w, bool *pChangeFlags)
   return nTilesChanged;
 }
 
-void PollingManager::sendChanges(bool *pChangeFlags)
+void PollingManager::sendChanges(const bool *pChangeFlags)
 {
   Rect rect;
   for (int y = 0; y < m_heightTiles; y++) {
@@ -281,7 +284,7 @@ void PollingManager::sendChanges(bool *pChangeFlags)
   }
 }
 
-bool PollingManager::handleVideo(bool *pChangeFlags)
+void PollingManager::handleVideo(const bool *pChangeFlags)
 {
   // Update counters in m_rateMatrix.
   int numTiles = m_heightTiles * m_widthTiles;
@@ -294,25 +297,13 @@ bool PollingManager::handleVideo(bool *pChangeFlags)
     detectVideo();
     memset(m_rateMatrix, 0, numTiles);
   }
-
-  // FIXME: It looks like the code below rather belongs to
-  //        pollScreen(). Perhaps handleVideo() should be merged back
-  //        to pollScreen(), and then pollScreen() should be split in
-  //        some better way, if needed at all.
-
-  // Grab the pixels of video area. Also, exclude video rectangle from
-  // pChangeFlags[], to prevent grabbing the same pixels twice.
-  if (!m_videoRect.is_empty()) {
-    flagVideoArea(pChangeFlags, false);
-    getScreenRect(m_videoRect);
-    return true;                // we've got a video rectangle
-  }
-
-  return false;                 // video rectangle is empty
 }
 
 void PollingManager::flagVideoArea(bool *pChangeFlags, bool value)
 {
+  if (m_videoRect.is_empty())
+    return;
+
   Rect r(m_videoRect.tl.x / 32, m_videoRect.tl.y / 32,
          m_videoRect.br.x / 32, m_videoRect.br.y / 32);
 

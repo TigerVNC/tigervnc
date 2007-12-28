@@ -98,8 +98,8 @@ private:
   }
 
   int checkRow(int x, int y, int w, bool *pChangeFlags);
-  void sendChanges(bool *pChangeFlags);
-  bool handleVideo(bool *pChangeFlags);
+  void sendChanges(const bool *pChangeFlags);
+  void handleVideo(const bool *pChangeFlags);
   void flagVideoArea(bool *pChangeFlags, bool value);
 
   // Video detection functions.
