@@ -93,8 +93,8 @@ private:
   }
 
   inline void getColumn(int x, int y, int h) {
-    m_rowImage->get(DefaultRootWindow(m_dpy),
-                    m_offsetLeft + x, m_offsetTop + y, 1, h);
+    m_columnImage->get(DefaultRootWindow(m_dpy),
+                       m_offsetLeft + x, m_offsetTop + y, 1, h);
   }
 
   int checkRow(int x, int y, int w, bool *pChangeFlags);
@@ -110,7 +110,8 @@ private:
   void findMaxLocalRect(Rect *r, int *mx_h, int *mx_v);
 
   // Additional images used in polling algorithms.
-  Image *m_rowImage;            // One row of the framebuffer
+  Image *m_rowImage;            // one row of the framebuffer
+  Image *m_columnImage;         // one column of the framebuffer
 
   char *m_rateMatrix;
   char *m_videoFlags;

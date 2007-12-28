@@ -76,9 +76,14 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   // underlying class names are different from the class name of the
   // primary image.
   m_rowImage = factory->newImage(m_dpy, m_width, 1);
-  if (strcmp(m_image->className(), m_rowImage->className()) != 0) {
-    vlog.error("Image types do not match (%s)",
-               m_rowImage->className());
+  m_columnImage = factory->newImage(m_dpy, 1, m_height);
+  const char *primaryImgClass = m_image->className();
+  const char *rowImgClass = m_rowImage->className();
+  const char *columnImgClass = m_columnImage->className();
+  if (strcmp(rowImgClass, primaryImgClass) != 0 ||
+      strcmp(columnImgClass, primaryImgClass) != 0) {
+    vlog.error("Image types do not match (%s, %s, %s)",
+               primaryImgClass, rowImgClass, columnImgClass);
   }
 
   int numTiles = m_widthTiles * m_heightTiles;
@@ -94,6 +99,7 @@ PollingManager::~PollingManager()
   delete[] m_rateMatrix;
 
   delete m_rowImage;
+  delete m_columnImage;
 }
 
 //
