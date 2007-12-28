@@ -209,8 +209,15 @@ bool PollingManager::pollScreen()
     }
   }
 
-  // Inform the server about the changes.
+  // If some changes have been detected:
   if (nTilesChanged) {
+    // Try to find more changes around. Before doing that, mark the
+    // video area as changed, to skip comparisons of its pixels.
+    flagVideoArea(changeFlags, true);
+    checkNeighbors(changeFlags);
+
+    // Inform the server about the changes. This time, we mark the
+    // video area as NOT changed, to prevent reading its pixels again.
     flagVideoArea(changeFlags, false);
     sendChanges(changeFlags);
   }
@@ -260,6 +267,37 @@ int PollingManager::checkRow(int x, int y, int w, bool *pChangeFlags)
     pChangeFlags++;
     ptr_old += nBytes;
     ptr_new += nBytes;
+  }
+
+  return nTilesChanged;
+}
+
+int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
+{
+  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
+
+  getColumn(x, y, h);
+
+  int nTilesChanged = 0;
+  for (int nTile = 0; nTile < (h + 31) / 32; nTile++) {
+    if (!*pChangeFlags) {
+      int tile_h = (h - nTile * 32 >= 32) ? 32 : h - nTile * 32;
+      for (int i = 0; i < tile_h; i++) {
+        // FIXME: Provide an inline function Image::locatePixel(x, y).
+        // FIXME: Do not compute these pointers in the inner cycle.
+        char *ptr_old = (m_image->xim->data +
+                         (y + nTile * 32 + i) * m_image->xim->bytes_per_line +
+                         x * bytesPerPixel);
+        char *ptr_new = (m_columnImage->xim->data +
+                         (nTile * 32 + i) * m_columnImage->xim->bytes_per_line);
+        if (memcmp(ptr_old, ptr_new, bytesPerPixel)) {
+          *pChangeFlags = true;
+          nTilesChanged++;
+          break;
+        }
+      }
+    }
+    pChangeFlags += m_widthTiles;
   }
 
   return nTilesChanged;
@@ -318,6 +356,24 @@ void PollingManager::flagVideoArea(bool *pChangeFlags, bool value)
   for (int y = r.tl.y; y < r.br.y; y++)
     for (int x = r.tl.x; x < r.br.x; x++)
       pChangeFlags[y * m_widthTiles + x] = value;
+}
+
+void
+PollingManager::checkNeighbors(bool *pChangeFlags)
+{
+  // Check neighboring pixels at the right of changed tiles.
+  for (int x = 0; x < m_widthTiles - 1; x++) {
+    for (int y = 0; y < m_heightTiles; y++) {
+      if (pChangeFlags[y * m_widthTiles + x] &&
+          !pChangeFlags[y * m_widthTiles + x + 1]) {
+        // FIXME: Check pChangeFlags[] to decrease height of the column.
+        // FIXME: Check _only_ the tiles neighboring to changed tiles?
+        checkColumn((x + 1) * 32, y * 32, m_height - y * 32,
+                    &pChangeFlags[y * m_widthTiles + x + 1]);
+        break;
+      }
+    }
+  }
 }
 
 void
