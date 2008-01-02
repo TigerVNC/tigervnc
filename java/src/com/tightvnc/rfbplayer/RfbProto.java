@@ -95,10 +95,9 @@ class RfbProto {
     if (fbs != null)
       fbs.close();
 
-    // open the connection, making sure that it does not use
-    // a cached version of the archive
+    // open the connection, and use caching
     URLConnection connection = url.openConnection();
-    connection.setUseCaches(false);
+    connection.setUseCaches(true);
 
     fbs = new FbsInputStream(connection.getInputStream());
     is = new DataInputStream(fbs);
