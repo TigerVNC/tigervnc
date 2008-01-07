@@ -1,33 +1,43 @@
-.TH x0vncserver 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
+.TH X0VNCSERVER 1 "January  7, 2008" "TightVNC" "TightVNC Manual"
 .SH NAME
-x0vncserver \- VNC server which continuously polls an X display
+x0vncserver \- TightVNC Server for real X displays
 .SH SYNOPSIS
 .B x0vncserver
-[\fIparameters\fP]
+.RI [ options ]
 .SH DESCRIPTION
 .B x0vncserver
-is a VNC server which continuously polls any X display, allowing it to be
-controlled via VNC.  How usable it will be depends a lot on the machine it's
-running on, and what you're expecting.  It won't be as fast as Xvnc or a native
-X server with VNC support compiled in, but in many cases it is the best option
-since it is just an ordinary X application requiring no special installation.
-
-It has many of the same parameters as Xvnc.  Running \fBx0vncserver -h\fP will
-give a list of parameters with descriptions.  Note that you need to explicitly
-specify an appropriate password file using the PasswordFile parameter.
-
+is a TightVNC Server which makes any X display remotely accessible via VNC,
+TightVNC or compatible viewers. Unlike Xvnc, it does not create a virtual
+display. Instead, it just shares an existing X server (typically, that one
+connected to the physical screen).
+.SH OPTIONS
+.B x0vncserver
+interprets the command line as a list of parameters with optional values.
+Running \fBx0vncserver -h\fP will show a list of all valid parameters with
+short descriptions. All parameters are optional, but normally you would have
+to use the \fBPasswordFile\fP parameter.
+.PP
+There are several forms of specifying parameters in the command line (here we
+use `\fISomeParameter\fP' as an example parameter name):
+.TP
+.B -\fISomeParameter\fP
+Enable the parameter, turn the feature on. This form can be used with
+parameters that simply enable or disable some feature.
+.TP
+.B -\fISomeParameter\fP=0
+Disable the parameter, turn the feature off.
+.TP
+.B -\fISomeParameter\fP=\fIvalue\fP
+Assign the specified \fIvalue\fP to the parameter. The leading dash can be
+omitted, or it can be doubled if desired (like in GNU-style long
+options). The equality sign is optional so it can be replaced by spaces.
+.PP
+Parameter names are case-insensitive, their order in the command line can be
+arbitrary.
 .SH SEE ALSO
-.BR Xvnc (1)
+.BR Xvnc (1),
 .BR vncpasswd (1),
-.BR vncviewer (1),
-.BR vncserver (1),
 .br
-http://www.tightvnc.com
-
+http://www.tightvnc.com/
 .SH AUTHOR
-Tristan Richardson, RealVNC Ltd.
-
-VNC was originally developed by the RealVNC team while at Olivetti
-Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
-implemented by Constantin Kaplinsky. Many other people participated in
-development, testing and support.
+This manual page was written by Constantin Kaplinsky.
