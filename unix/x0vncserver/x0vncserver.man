@@ -15,7 +15,7 @@ connected to the physical screen).
 interprets the command line as a list of parameters with optional values.
 Running \fBx0vncserver -h\fP will show a list of all valid parameters with
 short descriptions. All parameters are optional, but normally you would have
-to use the \fBPasswordFile\fP parameter.
+to use the \fBPasswordFile\fP parameter (see its description below).
 .PP
 There are several forms of specifying parameters in the command line (here we
 use `\fISomeParameter\fP' as an example parameter name):
@@ -34,6 +34,139 @@ options). The equality sign is optional so it can be replaced by spaces.
 .PP
 Parameter names are case-insensitive, their order in the command line can be
 arbitrary.
+.SH PARAMETERS
+.TP
+.B VideoPriority
+Priority of sending updates for video area (0..8) (default=2)
+.TP
+.B Geometry
+Screen area shown to VNC clients. Format is
+<width>x<height>+<offset_x>+<offset_y>, more information in man X, section
+GEOMETRY SPECIFICATIONS. If the argument is empty, full screen is shown to
+VNC clients. (default=)
+.TP
+.B HostsFile
+File with IP access control rules (default=)
+.TP
+.B QueryConnectTimeout
+Number of seconds to show the Accept Connection dialog before rejecting the
+connection (default=10)
+.TP
+.B rfbport
+TCP port to listen for RFB protocol (default=5900)
+.TP
+.B display
+The X display (default=)
+.TP
+.B OverlayMode
+Use overlay mode under IRIX or Solaris (default=1)
+.TP
+.B UseSHM
+Use MIT-SHM extension if available (default=1)
+.TP
+.B MaxProcessorUsage
+Maximum percentage of CPU time to be consumed (default=35)
+.TP
+.B PollingCycle
+Milliseconds per one polling cycle; actual interval may be dynamically
+adjusted to satisfy MaxProcessorUsage setting (default=30)
+.TP
+.B Log
+Specifies which log output should be directed to which target logger, and the
+level of output to log. Format is <log>:<target>:<level>[, ...]. (default=)
+.TP
+.B BlacklistTimeout
+The initial timeout applied when a host is first black-listed.  The host
+cannot re-attempt a connection until the timeout expires. (default=10)
+.TP
+.B BlacklistThreshold
+The number of unauthenticated connection attempts allowed from any individual
+host before that host is black-listed (default=5)
+.TP
+.B ImprovedHextile
+Use improved compression algorithm for Hextile encoding which achieves better
+compression ratios by the cost of using more CPU time (default=1)
+.TP
+.B RemapKeys
+Comma-separated list of incoming keysyms to remap.  Mappings are expressed as
+two hex values, prefixed by 0x, and separated by -> (default=)
+.TP
+.B QueryConnect
+Prompt the local user to accept or reject incoming connections. (default=0)
+.TP
+.B SendCutText
+Send clipboard changes to clients. (default=1)
+.TP
+.B AcceptCutText
+Accept clipboard updates from clients. (default=1)
+.TP
+.B AcceptPointerEvents
+Accept pointer press and release events from clients.  (default=1)
+.TP
+.B AcceptKeyEvents
+Accept key press and release events from clients.  (default=1)
+.TP
+.B DisconnectClients
+Disconnect existing clients if an incoming connection is non-shared. If
+combined with NeverShared then new connections will be refused while there is
+a client active (default=1)
+.TP
+.B NeverShared
+Never treat incoming connections as shared, regardless of the
+client-specified setting (default=0)
+.TP
+.B AlwaysShared
+Always treat incoming connections as shared, regardless of the
+client-specified setting (default=0)
+.TP
+.B Protocol3.3
+Always use protocol version 3.3 for backwards compatibility with
+badly-behaved clients (default=0)
+.TP
+.B CompareFB
+Perform pixel comparison on framebuffer to reduce unnecessary updates
+(default=1)
+.TP
+.B ClientWaitTimeMillis
+The number of milliseconds to wait for a client which is no longer responding
+(default=20000)
+.TP
+.B MaxIdleTime
+Terminate after s seconds of user inactivity (default=0)
+.TP
+.B MaxConnectionTime
+Terminate when a client has been connected for s seconds (default=0)
+.TP
+.B MaxDisconnectionTime
+Terminate when no client has been connected for s seconds (default=0)
+.TP
+.B IdleTimeout
+The number of seconds after which an idle VNC connection will be dropped
+(zero means no timeout) (default=0)
+.TP
+.B Password
+Obfuscated binary encoding of the password which clients must supply to
+access the server (default=)
+.TP
+.B PasswordFile
+Password file for VNC authentication (default=)
+.TP
+.B ReverseSecurityTypes
+Specify encryption scheme to use for reverse connections (None)
+(default=None)
+.TP
+.B SecurityTypes
+Specify which security scheme to use for incoming connections (None, VncAuth)
+(default=VncAuth)
+.TP
+.B ZlibLevel
+Zlib compression level (default=-1)
+.TP
+.B UseHardwareJPEG
+Use hardware-accelerated JPEG compressor for video if available (default=1)
+.TP
+.B MaxCutText
+Maximum permitted length of an incoming clipboard update (default=262144)
 .SH SEE ALSO
 .BR Xvnc (1),
 .BR vncpasswd (1),
