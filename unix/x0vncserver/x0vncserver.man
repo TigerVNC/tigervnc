@@ -7,166 +7,177 @@ x0vncserver \- TightVNC Server for real X displays
 .SH DESCRIPTION
 .B x0vncserver
 is a TightVNC Server which makes any X display remotely accessible via VNC,
-TightVNC or compatible viewers. Unlike Xvnc, it does not create a virtual
-display. Instead, it just shares an existing X server (typically, that one
-connected to the physical screen).
+TightVNC or compatible viewers.  Unlike \fBXvnc\fP(1), it does not create a
+virtual display.  Instead, it just shares an existing X server (typically,
+that one connected to the physical screen).
 .SH OPTIONS
 .B x0vncserver
 interprets the command line as a list of parameters with optional values.
 Running \fBx0vncserver -h\fP will show a list of all valid parameters with
-short descriptions. All parameters are optional, but normally you would have
+short descriptions.  All parameters are optional, but normally you would have
 to use the \fBPasswordFile\fP parameter (see its description below).
 .PP
 There are several forms of specifying parameters in the command line (here we
 use `\fISomeParameter\fP' as an example parameter name):
 .TP
 .B -\fISomeParameter\fP
-Enable the parameter, turn the feature on. This form can be used with
+Enable the parameter, turn the feature on.  This form can be used with
 parameters that simply enable or disable some feature.
 .TP
 .B -\fISomeParameter\fP=0
 Disable the parameter, turn the feature off.
 .TP
 .B -\fISomeParameter\fP=\fIvalue\fP
-Assign the specified \fIvalue\fP to the parameter. The leading dash can be
-omitted, or it can be doubled if desired (like in GNU-style long
-options). The equality sign is optional so it can be replaced by spaces.
+Assign the specified \fIvalue\fP to the parameter.  The leading dash can be
+omitted, or it can be doubled if desired (like in GNU-style long options).
 .PP
 Parameter names are case-insensitive, their order in the command line can be
 arbitrary.
 .SH PARAMETERS
 .TP
 .B display
-The X display (default=)
+The X display name.  If not specified, it defaults to the value of the
+DISPLAY environment variable.
 .TP
 .B rfbport
-TCP port to listen for RFB protocol (default=5900)
+TCP port to listen for incoming VNC connections (RFB protocol).  The default
+port is 5900.
 .TP
 .B Log
 Specifies which log output should be directed to which target logger, and the
-level of output to log. Format is <log>:<target>:<level>[, ...]. (default=)
+level of output to log.  Format is \fIlog\fP:\fItarget\fP:\fIlevel\fP.
+Default is \fB*:stderr:30\fP (log everything to stderr, set log level to 30).
+Log level should be a value between 0 and 100, higher levels produce more
+output.
 .TP
 .B HostsFile
-File with IP access control rules (default=)
+.\" FIXME: Document this.
+File with IP access control rules.  Default is to allow connections from any
+IP address.
 .TP
 .B SecurityTypes
-Specify which security scheme to use for incoming connections (None, VncAuth)
-(default=VncAuth)
-.TP
-.B ReverseSecurityTypes
-Specify encryption scheme to use for reverse connections (None)
-(default=None)
+Specify which security scheme to use for incoming connections.  Valid values
+are \fBNone\fP and \fBVncAuth\fP.  Default is \fBVncAuth\fP.
 .TP
 .B PasswordFile
-Password file for VNC authentication (default=)
+Password file for VNC authentication.  There is no default, you should
+specify the password file explicitly.  Password file should be created with
+the \fBvncpasswd\fP(1) utility.
 .TP
 .B Password
 Obfuscated binary encoding of the password which clients must supply to
-access the server (default=)
+access the server.  Using this parameter is insecure, use \fBPasswordFile\fP
+parameter instead.
 .TP
 .B BlacklistThreshold
 The number of unauthenticated connection attempts allowed from any individual
-host before that host is black-listed (default=5)
+host before that host is black-listed.  Default is 5.
 .TP
 .B BlacklistTimeout
-The initial timeout applied when a host is first black-listed. The host
-cannot re-attempt a connection until the timeout expires. (default=10)
+The initial timeout applied when a host is first black-listed.  The host
+cannot re-attempt a connection until the timeout expires.  Default is 10.
 .TP
 .B QueryConnect
-Prompt the local user to accept or reject incoming connections. (default=0)
+Prompt the local user to accept or reject incoming connections.  Default is
+off.
 .TP
 .B QueryConnectTimeout
 Number of seconds to show the Accept Connection dialog before rejecting the
-connection (default=10)
+connection.  Default is 10.
 .TP
 .B AlwaysShared
 Always treat incoming connections as shared, regardless of the
-client-specified setting (default=0)
+client-specified setting.  Default is off.
 .TP
 .B NeverShared
 Never treat incoming connections as shared, regardless of the
-client-specified setting (default=0)
+client-specified setting.  Default is off.
 .TP
 .B DisconnectClients
-Disconnect existing clients if an incoming connection is non-shared. If
-combined with NeverShared then new connections will be refused while there is
-a client active (default=1)
+Disconnect existing clients if an incoming connection is non-shared.  If
+combined with \fBNeverShared\fP then new connections will be refused while
+there is a client active.  Default is on.
 .TP
 .B AcceptKeyEvents
-Accept key press and release events from clients. (default=1)
+Accept key press and release events from clients.  Default is on.
 .TP
 .B AcceptPointerEvents
-Accept pointer press and release events from clients. (default=1)
-.TP
-.B AcceptCutText
-Accept clipboard updates from clients. (default=1)
-.TP
-.B SendCutText
-Send clipboard changes to clients. (default=1)
+Accept pointer events from clients.  Default is on.
 .TP
 .B RemapKeys
-Comma-separated list of incoming keysyms to remap. Mappings are expressed as
-two hex values, prefixed by 0x, and separated by -> (default=)
-.TP
-.B MaxCutText
-Maximum permitted length of an incoming clipboard update (default=262144)
+Comma-separated list of incoming keysyms to remap.  Mappings are expressed as
+two hex values, prefixed by \fB0x\fP, and separated by \fB->\fP (`dash' and
+`greater than' characters).
 .TP
 .B Protocol3.3
-Always use protocol version 3.3 for backwards compatibility with
-badly-behaved clients (default=0)
+Always use RFB protocol version 3.3 for backwards compatibility with
+badly-behaved clients.  Default is off.
 .TP
 .B Geometry
-Screen area shown to VNC clients. Format is
-<width>x<height>+<offset_x>+<offset_y>, more information in man X, section
-GEOMETRY SPECIFICATIONS. If the argument is empty, full screen is shown to
-VNC clients. (default=)
+.\" FIXME: Document this.
+Screen area shown to VNC clients.  Format is
+.B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
+, see more information in the manual page for \fBX\fP(1), section GEOMETRY
+SPECIFICATIONS.  If the argument is empty, full screen is shown to VNC
+clients (this is the default).
 .TP
 .B MaxProcessorUsage
-Maximum percentage of CPU time to be consumed (default=35)
+Maximum percentage of CPU time to be consumed when polling the
+screen.  Default is 35.
 .TP
 .B PollingCycle
-Milliseconds per one polling cycle; actual interval may be dynamically
-adjusted to satisfy MaxProcessorUsage setting (default=30)
+Milliseconds per one polling cycle.  Actual interval may be dynamically
+adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
 .TP
 .B VideoPriority
-Priority of sending updates for video area (0..8) (default=2)
+.\" FIXME: Document this.
+Priority of sending updates for video area (0..8).  Default is 2.
 .TP
 .B CompareFB
-Perform pixel comparison on framebuffer to reduce unnecessary updates
-(default=1)
+Perform pixel comparison on framebuffer to reduce unnecessary updates.
+Default is on.
 .TP
 .B UseSHM
-Use MIT-SHM extension if available (default=1)
+.\" FIXME: Document this.
+Use MIT-SHM extension if available.  Default is on.
 .TP
 .B OverlayMode
-Use overlay mode under IRIX or Solaris (default=1)
+.\" FIXME: Document this.
+Use overlay mode under IRIX or Solaris.  Default is on.
 .TP
 .B UseHardwareJPEG
-Use hardware-accelerated JPEG compressor for video if available (default=1)
+.\" FIXME: Document this.
+Use hardware-accelerated JPEG compressor for video if available.  Default is
+on.
 .TP
 .B ZlibLevel
-Zlib compression level (default=-1)
+Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
+Acceptable values are between 0 and 9.  Default is to use the standard
+compression level provided by the \fBzlib\fP(3) compression library.
 .TP
 .B ImprovedHextile
 Use improved compression algorithm for Hextile encoding which achieves better
-compression ratios by the cost of using more CPU time (default=1)
+compression ratios by the cost of using slightly more CPU time.  Default is
+on.
 .TP
 .B IdleTimeout
 The number of seconds after which an idle VNC connection will be dropped
-(zero means no timeout) (default=0)
+(zero means no timeout).  Default is 0.
 .TP
 .B MaxDisconnectionTime
-Terminate when no client has been connected for s seconds (default=0)
+Terminate when no client has been connected for \fIN\fP seconds.  Default is
+0.
 .TP
 .B MaxConnectionTime
-Terminate when a client has been connected for s seconds (default=0)
+Terminate when a client has been connected for \fIN\fP seconds.  Default is
+0.
 .TP
 .B MaxIdleTime
-Terminate after s seconds of user inactivity (default=0)
+Terminate after \fIN\fP seconds of user inactivity.  Default is 0.
 .TP
 .B ClientWaitTimeMillis
-The number of milliseconds to wait for a client which is no longer responding
-(default=20000)
+The number of milliseconds to wait for a client which is no longer
+responding.  Default is 20000.
 .SH SEE ALSO
 .BR Xvnc (1),
 .BR vncpasswd (1),
