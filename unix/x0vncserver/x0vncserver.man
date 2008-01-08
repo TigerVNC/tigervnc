@@ -51,9 +51,16 @@ Log level should be a value between 0 and 100, higher levels produce more
 output.
 .TP
 .B HostsFile
-.\" FIXME: Document this.
-File with IP access control rules.  Default is to allow connections from any
-IP address.
+This parameter allows to specify a file name with IP access control rules.
+The file should include one rule per line, and the rule format is one of the
+following: +\fIaddress\fP/\fInetmask\fP (accept connections from the
+specified address group), -\fIaddress\fP/\fInetmask\fP (reject connections)
+or ?\fIaddress\fP/\fInetmask\fP (query the local user).  The first rule
+matching the IP address determines the action to be performed.  Rules that
+include only an action sign (+, - or ?) will match any IP address.
+\fINetmask\fP is optional and can be specified either in dotted format
+(e.g. /255.255.255.0), or as a single number of bits (e.g. /24).  Default is
+to accept connections from any IP address.
 .TP
 .B SecurityTypes
 Specify which security scheme to use for incoming connections.  Valid values
@@ -114,12 +121,13 @@ Always use RFB protocol version 3.3 for backwards compatibility with
 badly-behaved clients.  Default is off.
 .TP
 .B Geometry
-.\" FIXME: Document this.
-Screen area shown to VNC clients.  Format is
+This option specifies the screen area that will be shown to VNC clients.  The
+format is
 .B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
-, see more information in the manual page for \fBX\fP(1), section GEOMETRY
-SPECIFICATIONS.  If the argument is empty, full screen is shown to VNC
-clients (this is the default).
+, where `+' signs can be replaced with `-' signs to specify offsets from the
+right and/or from the bottom of the screen.  Offsets are optional, +0+0 is
+assumed by default (top left corner).  If the argument is empty, full screen
+is shown to VNC clients (this is the default).
 .TP
 .B MaxProcessorUsage
 Maximum percentage of CPU time to be consumed when polling the
@@ -130,25 +138,53 @@ Milliseconds per one polling cycle.  Actual interval may be dynamically
 adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
 .TP
 .B VideoPriority
-.\" FIXME: Document this.
-Priority of sending updates for video area (0..8).  Default is 2.
+Specify the priority of sending video area updates.  \fBx0vncserver\fP can
+detect video areas on the screen and handle them separately for improved
+performance.  This parameter controls how often video area will be sent to
+clients as compared to the rest of the screen.  The priority must be an
+integer between 0 and 8, and the default value is 2.
+
+\fBVideoPriority\fP set to 0 disables video detection completely, so
+\fBx0vncserver\fP will not use any video-specific tricks.
+
+The value 1 gives the same priority both to video and to other pixels.  That
+differs from the value 0 \- overall performance can be much better if there
+is some video on the screen. That's because video-specific polling and
+encoding algorithms can be used.
+
+Higher values give more priority to video.  For example, \fBVideoPriority\fP
+set to 5 specifies that the rate of sending video will be five times higher
+than the rate of updating the rest of the screen.
+
+\fBNote:\fP with high \fBVideoPriority\fP values, video detection will work
+slower.  For example, when the video area was moved, this fact will be
+discovered with a longer delay.  That's because high priority values make the
+server send video with highest rate possible, without spending time on
+polling and video detection.
+
 .TP
 .B CompareFB
 Perform pixel comparison on framebuffer to reduce unnecessary updates.
 Default is on.
 .TP
 .B UseSHM
-.\" FIXME: Document this.
-Use MIT-SHM extension if available.  Default is on.
+Use MIT-SHM extension if available.  Using that extension accelerates reading
+the screen.  Default is on.
 .TP
 .B OverlayMode
-.\" FIXME: Document this.
-Use overlay mode under IRIX or Solaris.  Default is on.
+Use overlay mode in IRIX or Solaris (does not have effect in other systems).
+This enables system-specific access to complete full-color version of the
+screen (the default X visual often provides 256 colors).  Also, in overlay
+mode, \fBx0vncserver\fP can show correct mouse cursor.  Default is on.
 .TP
 .B UseHardwareJPEG
-.\" FIXME: Document this.
-Use hardware-accelerated JPEG compressor for video if available.  Default is
-on.
+Use hardware-accelerated JPEG compressor for video if available.
+\fBx0vncserver\fP can detect video areas on the screen and handle them
+separately from the rest of the screen, for better performance.  If the
+client supports Tight encoding and JPEG compression, such video areas will be
+sent as JPEG-encoded rectangles.  And if this option is on, compression will
+be hardware-accelerated (currently, supported only in SGI/IRIX equipped with
+appropriate hardware).  Default is on.
 .TP
 .B ZlibLevel
 Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
