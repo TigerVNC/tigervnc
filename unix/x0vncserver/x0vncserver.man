@@ -161,7 +161,6 @@ slower.  For example, when the video area was moved, this fact will be
 discovered with a longer delay.  That's because high priority values make the
 server send video with highest rate possible, without spending time on
 polling and video detection.
-
 .TP
 .B CompareFB
 Perform pixel comparison on framebuffer to reduce unnecessary updates.
