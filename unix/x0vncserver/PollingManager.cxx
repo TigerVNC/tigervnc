@@ -364,15 +364,57 @@ void PollingManager::flagVideoArea(bool *pChangeFlags, bool value)
 void
 PollingManager::checkNeighbors(bool *pChangeFlags)
 {
-  // Check neighboring pixels at the right of changed tiles.
-  for (int x = 0; x < m_widthTiles - 1; x++) {
-    for (int y = 0; y < m_heightTiles; y++) {
+  int x, y;
+
+  // Check neighboring pixels above and below changed tiles.
+  // FIXME: Fast skip to the first changed tile (and to the last, too).
+  // FIXME: Check the full-width line above the first changed tile?
+  for (y = 0; y < m_heightTiles; y++) {
+    bool doneAbove = false;
+    bool doneBelow = false;
+    for (x = 0; x < m_widthTiles; x++) {
+      if (!doneAbove && y > 0 &&
+          pChangeFlags[y * m_widthTiles + x] &&
+          !pChangeFlags[(y - 1) * m_widthTiles + x]) {
+        // FIXME: Check pChangeFlags[] to decrease height of the row.
+        checkRow(x * 32, y * 32 - 1, m_width - x * 32,
+                 &pChangeFlags[(y - 1) * m_widthTiles + x]);
+        doneAbove = true;
+      }
+      if (!doneBelow && y < m_heightTiles - 1 &&
+          pChangeFlags[y * m_widthTiles + x] &&
+          !pChangeFlags[(y + 1) * m_widthTiles + x]) {
+        // FIXME: Check pChangeFlags[] to decrease height of the row.
+        checkRow(x * 32, (y + 1) * 32, m_width - x * 32,
+                 &pChangeFlags[(y + 1) * m_widthTiles + x]);
+        doneBelow = true;
+      }
+      if (doneBelow && doneAbove)
+        break;
+    }
+  }
+
+  // Check neighboring pixels at the right side of changed tiles.
+  for (x = 0; x < m_widthTiles - 1; x++) {
+    for (y = 0; y < m_heightTiles; y++) {
       if (pChangeFlags[y * m_widthTiles + x] &&
           !pChangeFlags[y * m_widthTiles + x + 1]) {
         // FIXME: Check pChangeFlags[] to decrease height of the column.
-        // FIXME: Check _only_ the tiles neighboring to changed tiles?
         checkColumn((x + 1) * 32, y * 32, m_height - y * 32,
                     &pChangeFlags[y * m_widthTiles + x + 1]);
+        break;
+      }
+    }
+  }
+
+  // Check neighboring pixels at the left side of changed tiles.
+  for (x = m_widthTiles - 1; x > 0; x--) {
+    for (y = 0; y < m_heightTiles; y++) {
+      if (pChangeFlags[y * m_widthTiles + x] &&
+          !pChangeFlags[y * m_widthTiles + x - 1]) {
+        // FIXME: Check pChangeFlags[] to decrease height of the column.
+        checkColumn(x * 32 - 1, y * 32, m_height - y * 32,
+                    &pChangeFlags[y * m_widthTiles + x - 1]);
         break;
       }
     }
