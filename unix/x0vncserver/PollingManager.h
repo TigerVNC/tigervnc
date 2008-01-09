@@ -99,7 +99,7 @@ private:
 
   int checkRow(int x, int y, int w, bool *pChangeFlags);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
-  void sendChanges(const bool *pChangeFlags);
+  int sendChanges(const bool *pChangeFlags);
   void handleVideo(const bool *pChangeFlags);
   void flagVideoArea(bool *pChangeFlags, bool value);
 

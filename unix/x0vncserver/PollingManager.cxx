@@ -219,7 +219,7 @@ bool PollingManager::pollScreen()
     // Inform the server about the changes. This time, we mark the
     // video area as NOT changed, to prevent reading its pixels again.
     flagVideoArea(changeFlags, false);
-    sendChanges(changeFlags);
+    nTilesChanged = sendChanges(changeFlags);
   }
 
   // Cleanup.
@@ -233,7 +233,6 @@ bool PollingManager::pollScreen()
 #endif
 
 #ifdef DEBUG
-  // FIXME: Move this to sendChanges();
   if (nTilesChanged != 0) {
     fprintf(stderr, "#%d# ", nTilesChanged);
   }
@@ -303,8 +302,10 @@ int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
   return nTilesChanged;
 }
 
-void PollingManager::sendChanges(const bool *pChangeFlags)
+int PollingManager::sendChanges(const bool *pChangeFlags)
 {
+  int nTilesChanged = 0;
+
   Rect rect;
   for (int y = 0; y < m_heightTiles; y++) {
     for (int x = 0; x < m_widthTiles; x++) {
@@ -314,6 +315,7 @@ void PollingManager::sendChanges(const bool *pChangeFlags)
         while (x + count < m_widthTiles && *pChangeFlags++) {
           count++;
         }
+        nTilesChanged += count;
         // Compute the coordinates and the size of this band.
         rect.setXYWH(x * 32, y * 32, count * 32, 32);
         if (rect.br.x > m_width)
@@ -328,6 +330,7 @@ void PollingManager::sendChanges(const bool *pChangeFlags)
       }
     }
   }
+  return nTilesChanged;
 }
 
 void PollingManager::handleVideo(const bool *pChangeFlags)
