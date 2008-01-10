@@ -154,6 +154,12 @@ void PollingManager::poll()
 #endif
 }
 
+#ifdef DEBUG_REPORT_CHANGED_TILES
+#define DBG_REPORT_CHANGES(title)  printChanges((title), changeFlags)
+#else
+#define DBG_REPORT_CHANGES(title)
+#endif
+
 bool PollingManager::pollScreen()
 {
   if (!m_server)
@@ -199,10 +205,6 @@ bool PollingManager::pollScreen()
     pChangeFlags += m_widthTiles;
   }
 
-#ifdef DEBUG_REPORT_CHANGED_TILES
-  printChanges("After 1st pass", changeFlags);
-#endif
-
   // Do the work related to video area detection, if enabled.
   bool haveVideoRect = false;
   if ((int)m_videoPriority != 0) {
@@ -213,25 +215,21 @@ bool PollingManager::pollScreen()
     }
   }
 
+  DBG_REPORT_CHANGES("After 1st pass");
+
   // If some changes have been detected:
   if (nTilesChanged) {
     // Try to find more changes around. Before doing that, mark the
     // video area as changed, to skip comparisons of its pixels.
     flagVideoArea(changeFlags, true);
-#ifdef DEBUG_REPORT_CHANGED_TILES
-    printChanges("Before checking neighbors", changeFlags);
-#endif
+    DBG_REPORT_CHANGES("Before checking neighbors");
     checkNeighbors(changeFlags);
-#ifdef DEBUG_REPORT_CHANGED_TILES
-    printChanges("After checking neighbors", changeFlags);
-#endif
+    DBG_REPORT_CHANGES("After checking neighbors");
 
     // Inform the server about the changes. This time, we mark the
     // video area as NOT changed, to prevent reading its pixels again.
     flagVideoArea(changeFlags, false);
-#ifdef DEBUG_REPORT_CHANGED_TILES
-    printChanges("Before sending", changeFlags);
-#endif
+    DBG_REPORT_CHANGES("Before sending");
     nTilesChanged = sendChanges(changeFlags);
   }
 
