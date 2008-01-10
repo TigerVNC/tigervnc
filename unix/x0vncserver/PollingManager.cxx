@@ -199,6 +199,10 @@ bool PollingManager::pollScreen()
     pChangeFlags += m_widthTiles;
   }
 
+#ifdef DEBUG_REPORT_CHANGED_TILES
+  printChanges("After 1st pass", changeFlags);
+#endif
+
   // Do the work related to video area detection, if enabled.
   bool haveVideoRect = false;
   if ((int)m_videoPriority != 0) {
@@ -214,11 +218,20 @@ bool PollingManager::pollScreen()
     // Try to find more changes around. Before doing that, mark the
     // video area as changed, to skip comparisons of its pixels.
     flagVideoArea(changeFlags, true);
+#ifdef DEBUG_REPORT_CHANGED_TILES
+    printChanges("Before checking neighbors", changeFlags);
+#endif
     checkNeighbors(changeFlags);
+#ifdef DEBUG_REPORT_CHANGED_TILES
+    printChanges("After checking neighbors", changeFlags);
+#endif
 
     // Inform the server about the changes. This time, we mark the
     // video area as NOT changed, to prevent reading its pixels again.
     flagVideoArea(changeFlags, false);
+#ifdef DEBUG_REPORT_CHANGED_TILES
+    printChanges("Before sending", changeFlags);
+#endif
     nTilesChanged = sendChanges(changeFlags);
   }
 
@@ -419,6 +432,30 @@ PollingManager::checkNeighbors(bool *pChangeFlags)
       }
     }
   }
+}
+
+void
+PollingManager::printChanges(const char *header, const bool *pChangeFlags)
+{
+  fprintf(stderr, "%s:", header);
+
+  for (int y = 0; y < m_heightTiles; y++) {
+    for (int x = 0; x < m_widthTiles; x++) {
+      if (*pChangeFlags++) {
+        // Count successive tiles marked as changed.
+        int count = 1;
+        while (x + count < m_widthTiles && *pChangeFlags++) {
+          count++;
+        }
+        // Print.
+        fprintf(stderr, " (%d,%d)*%d", x, y, count);
+        // Skip processed tiles.
+        x += count;
+      }
+    }
+  }
+
+  fprintf(stderr, "\n");
 }
 
 void

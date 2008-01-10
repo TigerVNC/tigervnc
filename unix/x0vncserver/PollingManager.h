@@ -106,6 +106,9 @@ private:
   // Check neighboring tiles and update pmxChanged[] matrix.
   void checkNeighbors(bool *pChangeFlags);
 
+  // DEBUG: Print the list of changed tiles.
+  void printChanges(const char *header, const bool *pChangeFlags);
+
   // Video detection functions.
   void detectVideo();
   void getVideoAreaRect(Rect *result);
