@@ -333,12 +333,9 @@ pseudo-rectangles (less than 0xFFFF). Finally, it sends
 \typestr{LastRect} pseudo-rectangle which marks the end of current
 \typestr{FramebufferUpdate} message.
 
-\typestr{LastRect} pseudo-encoding is special -- it does not include
+The fields
 \typestr{x-position}, \typestr{y-position}, \typestr{width} and
-\typestr{height} fields, and is not followed by any other data as
-well. Only 4 bytes is sent in \typestr{LastRect}, while other
-encodings and pseudo-encodings normally send 12 bytes as a rectangle
-header.
+\typestr{height} are not used and should be filled with zero values.
 
 To enable this pseudo-encoding, the client specifies
 \typestr{LastRect} in the \typestr{SetEncodings} message. From that
