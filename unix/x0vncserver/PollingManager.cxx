@@ -87,8 +87,10 @@ PollingManager::PollingManager(Display *dpy, Image *image,
                primaryImgClass, rowImgClass, columnImgClass);
   }
 
+  m_changeFlags = new bool[m_numTiles];
   m_rateMatrix = new char[m_numTiles];
   m_videoFlags = new char[m_numTiles];
+  memset(m_changeFlags, 0, m_numTiles * sizeof(bool));
   memset(m_rateMatrix, 0, m_numTiles);
   memset(m_videoFlags, 0, m_numTiles);
 }
@@ -97,6 +99,7 @@ PollingManager::~PollingManager()
 {
   delete[] m_videoFlags;
   delete[] m_rateMatrix;
+  delete[] m_changeFlags;
 
   delete m_rowImage;
   delete m_columnImage;
@@ -155,7 +158,7 @@ void PollingManager::poll()
 }
 
 #ifdef DEBUG_REPORT_CHANGED_TILES
-#define DBG_REPORT_CHANGES(title)  printChanges((title), changeFlags)
+#define DBG_REPORT_CHANGES(title)  printChanges((title), m_changeFlags)
 #else
 #define DBG_REPORT_CHANGES(title)
 #endif
@@ -185,20 +188,16 @@ bool PollingManager::pollScreen()
     }
   }
 
-  // changeFlags[] array will hold boolean values corresponding to
-  // each 32x32 tile. If a value is true, then we've detected a change
-  // in that tile. Initially, we fill in the array with zero values.
-  //
-  // FIXME: Should we use a member variable in place of changeFlags?
-  bool *changeFlags = new bool[m_numTiles];
-  memset(changeFlags, 0, m_numTiles * sizeof(bool));
+  // Clear the m_changeFlags[] array, indicating that no changes have
+  // been detected yet.
+  memset(m_changeFlags, 0, m_numTiles * sizeof(bool));
 
   // First pass over the framebuffer. Here we scan 1/32 part of the
   // framebuffer -- that is, one line in each (32 * m_width) stripe.
   // We compare the pixels of that line with previous framebuffer
-  // contents and raise corresponding member values of changeFlags[].
+  // contents and raise corresponding elements of m_changeFlags[].
   int scanOffset = m_pollingOrder[m_pollingStep++ % 32];
-  bool *pChangeFlags = changeFlags;
+  bool *pChangeFlags = m_changeFlags;
   int nTilesChanged = 0;
   for (int y = scanOffset; y < m_height; y += 32) {
     nTilesChanged += checkRow(0, y, m_width, pChangeFlags);
@@ -208,7 +207,7 @@ bool PollingManager::pollScreen()
   // Do the work related to video area detection, if enabled.
   bool haveVideoRect = false;
   if ((int)m_videoPriority != 0) {
-    handleVideo(changeFlags);
+    handleVideo(m_changeFlags);
     if (!m_videoRect.is_empty()) {
       getScreenRect(m_videoRect);
       haveVideoRect = true;
@@ -221,20 +220,17 @@ bool PollingManager::pollScreen()
   if (nTilesChanged) {
     // Try to find more changes around. Before doing that, mark the
     // video area as changed, to skip comparisons of its pixels.
-    flagVideoArea(changeFlags, true);
+    flagVideoArea(m_changeFlags, true);
     DBG_REPORT_CHANGES("Before checking neighbors");
-    checkNeighbors(changeFlags);
+    checkNeighbors(m_changeFlags);
     DBG_REPORT_CHANGES("After checking neighbors");
 
     // Inform the server about the changes. This time, we mark the
     // video area as NOT changed, to prevent reading its pixels again.
-    flagVideoArea(changeFlags, false);
+    flagVideoArea(m_changeFlags, false);
     DBG_REPORT_CHANGES("Before sending");
-    nTilesChanged = sendChanges(changeFlags);
+    nTilesChanged = sendChanges(m_changeFlags);
   }
-
-  // Cleanup.
-  delete[] changeFlags;
 
 #ifdef DEBUG_PRINT_NUM_CHANGED_TILES
   printf("%3d ", nTilesChanged);

@@ -122,6 +122,11 @@ private:
   int m_heightTiles;		// shortcut for ((m_height + 31) / 32)
   int m_numTiles;		// shortcut for (m_widthTiles * m_heightTiles)
 
+  // m_changeFlags[] array will hold boolean values corresponding to
+  // each 32x32 tile. If a value is true, then we've detected a change
+  // in that tile.
+  bool *m_changeFlags;
+
   char *m_rateMatrix;
   char *m_videoFlags;
   Rect m_videoRect;
