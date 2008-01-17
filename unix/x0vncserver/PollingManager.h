@@ -68,8 +68,6 @@ protected:
   int m_offsetTop;
   int m_width;
   int m_height;
-  int m_widthTiles;
-  int m_heightTiles;
 
 private:
 
@@ -119,6 +117,10 @@ private:
   // Additional images used in polling algorithms.
   Image *m_rowImage;            // one row of the framebuffer
   Image *m_columnImage;         // one column of the framebuffer
+
+  int m_widthTiles;		// shortcut for ((m_width + 31) / 32)
+  int m_heightTiles;		// shortcut for ((m_height + 31) / 32)
+  int m_numTiles;		// shortcut for (m_widthTiles * m_heightTiles)
 
   char *m_rateMatrix;
   char *m_videoFlags;

@@ -68,6 +68,7 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   // Compute width and height in 32x32 tiles.
   m_widthTiles = (m_width + 31) / 32;
   m_heightTiles = (m_height + 31) / 32;
+  m_numTiles = m_widthTiles * m_heightTiles;
 
   // Get initial screen image.
   m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
@@ -86,11 +87,10 @@ PollingManager::PollingManager(Display *dpy, Image *image,
                primaryImgClass, rowImgClass, columnImgClass);
   }
 
-  int numTiles = m_widthTiles * m_heightTiles;
-  m_rateMatrix = new char[numTiles];
-  m_videoFlags = new char[numTiles];
-  memset(m_rateMatrix, 0, numTiles);
-  memset(m_videoFlags, 0, numTiles);
+  m_rateMatrix = new char[m_numTiles];
+  m_videoFlags = new char[m_numTiles];
+  memset(m_rateMatrix, 0, m_numTiles);
+  memset(m_videoFlags, 0, m_numTiles);
 }
 
 PollingManager::~PollingManager()
@@ -190,8 +190,8 @@ bool PollingManager::pollScreen()
   // in that tile. Initially, we fill in the array with zero values.
   //
   // FIXME: Should we use a member variable in place of changeFlags?
-  bool *changeFlags = new bool[m_widthTiles * m_heightTiles];
-  memset(changeFlags, 0, m_widthTiles * m_heightTiles * sizeof(bool));
+  bool *changeFlags = new bool[m_numTiles];
+  memset(changeFlags, 0, m_numTiles * sizeof(bool));
 
   // First pass over the framebuffer. Here we scan 1/32 part of the
   // framebuffer -- that is, one line in each (32 * m_width) stripe.
@@ -347,15 +347,14 @@ int PollingManager::sendChanges(const bool *pChangeFlags)
 void PollingManager::handleVideo(const bool *pChangeFlags)
 {
   // Update counters in m_rateMatrix.
-  int numTiles = m_heightTiles * m_widthTiles;
-  for (int i = 0; i < numTiles; i++)
+  for (int i = 0; i < m_numTiles; i++)
     m_rateMatrix[i] += (pChangeFlags[i] != false);
 
   // Once per eight calls: detect video rectangle by examining
   // m_rateMatrix[], then reset counters in m_rateMatrix[].
   if (m_pollingStep % 8 == 0) {
     detectVideo();
-    memset(m_rateMatrix, 0, numTiles);
+    memset(m_rateMatrix, 0, m_numTiles);
   }
 }
 
@@ -466,20 +465,19 @@ PollingManager::detectVideo()
   // In m_rateMatrix, clear counters corresponding to non-32x32 tiles.
   // This will guarantee that the size of the video area is always a
   // multiple of 32 pixels. This is important for hardware JPEG encoders.
-  int numTiles = m_heightTiles * m_widthTiles;
   if (m_width % 32 != 0) {
-    for (int n = m_widthTiles - 1; n < numTiles; n += m_widthTiles)
+    for (int n = m_widthTiles - 1; n < m_numTiles; n += m_widthTiles)
       m_rateMatrix[n] = 0;
   }
   if (m_height % 32 != 0) {
-    for (int n = numTiles - m_widthTiles; n < numTiles; n++)
+    for (int n = m_numTiles - m_widthTiles; n < m_numTiles; n++)
       m_rateMatrix[n] = 0;
   }
 
   // First, detect candidate region that looks like video. In other
   // words, find a region that consists of continuously changing
   // pixels. Save the result in m_videoFlags[].
-  for (int i = 0; i < numTiles; i++) {
+  for (int i = 0; i < m_numTiles; i++) {
     if (m_rateMatrix[i] <= VIDEO_THRESHOLD_0) {
       m_videoFlags[i] = 0;
     } else if (m_rateMatrix[i] >= VIDEO_THRESHOLD_1) {
