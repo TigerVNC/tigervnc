@@ -158,7 +158,7 @@ void PollingManager::poll()
 }
 
 #ifdef DEBUG_REPORT_CHANGED_TILES
-#define DBG_REPORT_CHANGES(title)  printChanges((title), m_changeFlags)
+#define DBG_REPORT_CHANGES(title)  printChanges((title))
 #else
 #define DBG_REPORT_CHANGES(title)
 #endif
@@ -207,7 +207,7 @@ bool PollingManager::pollScreen()
   // Do the work related to video area detection, if enabled.
   bool haveVideoRect = false;
   if ((int)m_videoPriority != 0) {
-    handleVideo(m_changeFlags);
+    handleVideo();
     if (!m_videoRect.is_empty()) {
       getScreenRect(m_videoRect);
       haveVideoRect = true;
@@ -220,16 +220,16 @@ bool PollingManager::pollScreen()
   if (nTilesChanged) {
     // Try to find more changes around. Before doing that, mark the
     // video area as changed, to skip comparisons of its pixels.
-    flagVideoArea(m_changeFlags, true);
+    flagVideoArea(true);
     DBG_REPORT_CHANGES("Before checking neighbors");
-    checkNeighbors(m_changeFlags);
+    checkNeighbors();
     DBG_REPORT_CHANGES("After checking neighbors");
 
     // Inform the server about the changes. This time, we mark the
     // video area as NOT changed, to prevent reading its pixels again.
-    flagVideoArea(m_changeFlags, false);
+    flagVideoArea(false);
     DBG_REPORT_CHANGES("Before sending");
-    nTilesChanged = sendChanges(m_changeFlags);
+    nTilesChanged = sendChanges();
   }
 
 #ifdef DEBUG_PRINT_NUM_CHANGED_TILES
@@ -309,8 +309,9 @@ int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
   return nTilesChanged;
 }
 
-int PollingManager::sendChanges(const bool *pChangeFlags)
+int PollingManager::sendChanges()
 {
+  const bool *pChangeFlags = m_changeFlags;
   int nTilesChanged = 0;
 
   Rect rect;
@@ -340,11 +341,11 @@ int PollingManager::sendChanges(const bool *pChangeFlags)
   return nTilesChanged;
 }
 
-void PollingManager::handleVideo(const bool *pChangeFlags)
+void PollingManager::handleVideo()
 {
   // Update counters in m_rateMatrix.
   for (int i = 0; i < m_numTiles; i++)
-    m_rateMatrix[i] += (pChangeFlags[i] != false);
+    m_rateMatrix[i] += (m_changeFlags[i] != false);
 
   // Once per eight calls: detect video rectangle by examining
   // m_rateMatrix[], then reset counters in m_rateMatrix[].
@@ -354,7 +355,7 @@ void PollingManager::handleVideo(const bool *pChangeFlags)
   }
 }
 
-void PollingManager::flagVideoArea(bool *pChangeFlags, bool value)
+void PollingManager::flagVideoArea(bool value)
 {
   if (m_videoRect.is_empty())
     return;
@@ -364,11 +365,11 @@ void PollingManager::flagVideoArea(bool *pChangeFlags, bool value)
 
   for (int y = r.tl.y; y < r.br.y; y++)
     for (int x = r.tl.x; x < r.br.x; x++)
-      pChangeFlags[y * m_widthTiles + x] = value;
+      m_changeFlags[y * m_widthTiles + x] = value;
 }
 
 void
-PollingManager::checkNeighbors(bool *pChangeFlags)
+PollingManager::checkNeighbors()
 {
   int x, y;
 
@@ -380,19 +381,19 @@ PollingManager::checkNeighbors(bool *pChangeFlags)
     bool doneBelow = false;
     for (x = 0; x < m_widthTiles; x++) {
       if (!doneAbove && y > 0 &&
-          pChangeFlags[y * m_widthTiles + x] &&
-          !pChangeFlags[(y - 1) * m_widthTiles + x]) {
-        // FIXME: Check pChangeFlags[] to decrease height of the row.
+          m_changeFlags[y * m_widthTiles + x] &&
+          !m_changeFlags[(y - 1) * m_widthTiles + x]) {
+        // FIXME: Check m_changeFlags[] to decrease height of the row.
         checkRow(x * 32, y * 32 - 1, m_width - x * 32,
-                 &pChangeFlags[(y - 1) * m_widthTiles + x]);
+                 &m_changeFlags[(y - 1) * m_widthTiles + x]);
         doneAbove = true;
       }
       if (!doneBelow && y < m_heightTiles - 1 &&
-          pChangeFlags[y * m_widthTiles + x] &&
-          !pChangeFlags[(y + 1) * m_widthTiles + x]) {
-        // FIXME: Check pChangeFlags[] to decrease height of the row.
+          m_changeFlags[y * m_widthTiles + x] &&
+          !m_changeFlags[(y + 1) * m_widthTiles + x]) {
+        // FIXME: Check m_changeFlags[] to decrease height of the row.
         checkRow(x * 32, (y + 1) * 32, m_width - x * 32,
-                 &pChangeFlags[(y + 1) * m_widthTiles + x]);
+                 &m_changeFlags[(y + 1) * m_widthTiles + x]);
         doneBelow = true;
       }
       if (doneBelow && doneAbove)
@@ -403,11 +404,11 @@ PollingManager::checkNeighbors(bool *pChangeFlags)
   // Check neighboring pixels at the right side of changed tiles.
   for (x = 0; x < m_widthTiles - 1; x++) {
     for (y = 0; y < m_heightTiles; y++) {
-      if (pChangeFlags[y * m_widthTiles + x] &&
-          !pChangeFlags[y * m_widthTiles + x + 1]) {
-        // FIXME: Check pChangeFlags[] to decrease height of the column.
+      if (m_changeFlags[y * m_widthTiles + x] &&
+          !m_changeFlags[y * m_widthTiles + x + 1]) {
+        // FIXME: Check m_changeFlags[] to decrease height of the column.
         checkColumn((x + 1) * 32, y * 32, m_height - y * 32,
-                    &pChangeFlags[y * m_widthTiles + x + 1]);
+                    &m_changeFlags[y * m_widthTiles + x + 1]);
         break;
       }
     }
@@ -416,11 +417,11 @@ PollingManager::checkNeighbors(bool *pChangeFlags)
   // Check neighboring pixels at the left side of changed tiles.
   for (x = m_widthTiles - 1; x > 0; x--) {
     for (y = 0; y < m_heightTiles; y++) {
-      if (pChangeFlags[y * m_widthTiles + x] &&
-          !pChangeFlags[y * m_widthTiles + x - 1]) {
-        // FIXME: Check pChangeFlags[] to decrease height of the column.
+      if (m_changeFlags[y * m_widthTiles + x] &&
+          !m_changeFlags[y * m_widthTiles + x - 1]) {
+        // FIXME: Check m_changeFlags[] to decrease height of the column.
         checkColumn(x * 32 - 1, y * 32, m_height - y * 32,
-                    &pChangeFlags[y * m_widthTiles + x - 1]);
+                    &m_changeFlags[y * m_widthTiles + x - 1]);
         break;
       }
     }
@@ -428,9 +429,11 @@ PollingManager::checkNeighbors(bool *pChangeFlags)
 }
 
 void
-PollingManager::printChanges(const char *header, const bool *pChangeFlags)
+PollingManager::printChanges(const char *header) const
 {
   fprintf(stderr, "%s:", header);
+
+  const bool *pChangeFlags = m_changeFlags;
 
   for (int y = 0; y < m_heightTiles; y++) {
     for (int x = 0; x < m_widthTiles; x++) {

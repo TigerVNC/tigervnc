@@ -97,15 +97,15 @@ private:
 
   int checkRow(int x, int y, int w, bool *pChangeFlags);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
-  int sendChanges(const bool *pChangeFlags);
-  void handleVideo(const bool *pChangeFlags);
-  void flagVideoArea(bool *pChangeFlags, bool value);
+  int sendChanges();
+  void handleVideo();
+  void flagVideoArea(bool value);
 
-  // Check neighboring tiles and update pmxChanged[] matrix.
-  void checkNeighbors(bool *pChangeFlags);
+  // Check neighboring tiles and update m_changeFlags[].
+  void checkNeighbors();
 
   // DEBUG: Print the list of changed tiles.
-  void printChanges(const char *header, const bool *pChangeFlags);
+  void printChanges(const char *header) const;
 
   // Video detection functions.
   void detectVideo();
