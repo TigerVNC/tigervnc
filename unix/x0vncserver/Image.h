@@ -64,7 +64,14 @@ public:
   // Pointer to corresponding XImage, made public for efficiency.
   // NOTE: if this field is NULL, then no methods other than Init()
   //       may be called.
-  XImage* xim;
+  XImage *xim;
+
+  // Get a pointer to the data corresponding to the given coordinates.
+  inline char *locatePixel(int x, int y) const {
+    return (xim->data +
+            y * xim->bytes_per_line +
+            x * (xim->bits_per_pixel / 8));
+  }
 
 protected:
 

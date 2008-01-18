@@ -249,8 +249,6 @@ bool PollingManager::pollScreen()
 
 int PollingManager::checkRow(int x, int y, int w)
 {
-  int bytesPerLine = m_image->xim->bytes_per_line;
-
   // If necessary, expand the row to the left, to the tile border.
   // In other words, x must be a multiple of 32.
   if (x % 32 != 0) {
@@ -273,8 +271,7 @@ int PollingManager::checkRow(int x, int y, int w)
   }
 
   // Compute pointers to images to be compared.
-  // FIXME: Provide an inline function Image::locatePixel(x, y).
-  char *ptr_old = m_image->xim->data + y * bytesPerLine + x * m_bytesPerPixel;
+  char *ptr_old = m_image->locatePixel(x, y);
   char *ptr_new = m_rowImage->xim->data;
 
   // Compare pixels, raise corresponding elements of m_changeFlags[].
@@ -303,13 +300,9 @@ int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
     if (!*pChangeFlags) {
       int tile_h = (h - nTile * 32 >= 32) ? 32 : h - nTile * 32;
       for (int i = 0; i < tile_h; i++) {
-        // FIXME: Provide an inline function Image::locatePixel(x, y).
         // FIXME: Do not compute these pointers in the inner cycle.
-        char *ptr_old = (m_image->xim->data +
-                         (y + nTile * 32 + i) * m_image->xim->bytes_per_line +
-                         x * m_bytesPerPixel);
-        char *ptr_new = (m_columnImage->xim->data +
-                         (nTile * 32 + i) * m_columnImage->xim->bytes_per_line);
+        char *ptr_old = m_image->locatePixel(x, y + nTile * 32 + i);
+        char *ptr_new = m_columnImage->locatePixel(0, nTile * 32 + i);
         if (memcmp(ptr_old, ptr_new, m_bytesPerPixel)) {
           *pChangeFlags = true;
           nTilesChanged++;
