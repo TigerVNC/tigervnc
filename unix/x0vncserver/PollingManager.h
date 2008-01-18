@@ -97,6 +97,12 @@ private:
                        m_offsetLeft + x, m_offsetTop + y, 1, h);
   }
 
+  inline int getTileIndex(int x, int y) {
+    int tile_x = x / 32;
+    int tile_y = y / 32;
+    return tile_y * m_widthTiles + tile_x;
+  }
+
   int checkRow(int x, int y, int w);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
   int sendChanges();

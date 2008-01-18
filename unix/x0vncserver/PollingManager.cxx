@@ -257,10 +257,6 @@ int PollingManager::checkRow(int x, int y, int w)
     w += correction;
   }
 
-  // Compute a pointer to the corresponding element of m_changeFlags.
-  // FIXME: Provide an inline function for that?
-  bool *pChangeFlags = &m_changeFlags[(y / 32) * m_widthTiles + (x / 32)];
-
   // Read a row from the screen. Note that getFullRow() may be more
   // efficient than getRow() which is more general.
   // FIXME: Move the logic to getRow()?
@@ -270,7 +266,10 @@ int PollingManager::checkRow(int x, int y, int w)
     getRow(x, y, w);
   }
 
-  // Compute pointers to images to be compared.
+  // Compute a pointer to the initial element of m_changeFlags.
+  bool *pChangeFlags = &m_changeFlags[getTileIndex(x, y)];
+
+  // Compute pointers to image data to be compared.
   char *ptr_old = m_image->locatePixel(x, y);
   char *ptr_new = m_rowImage->xim->data;
 
