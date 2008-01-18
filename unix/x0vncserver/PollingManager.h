@@ -64,12 +64,12 @@ protected:
   VNCServer *m_server;
 
   Image *m_image;
-  int m_bytesPerPixel;
+  const int m_bytesPerPixel;
 
-  int m_offsetLeft;
-  int m_offsetTop;
-  int m_width;
-  int m_height;
+  const int m_offsetLeft;
+  const int m_offsetTop;
+  const int m_width;
+  const int m_height;
 
 private:
 
@@ -120,9 +120,9 @@ private:
   Image *m_rowImage;            // one row of the framebuffer
   Image *m_columnImage;         // one column of the framebuffer
 
-  int m_widthTiles;		// shortcut for ((m_width + 31) / 32)
-  int m_heightTiles;		// shortcut for ((m_height + 31) / 32)
-  int m_numTiles;		// shortcut for (m_widthTiles * m_heightTiles)
+  const int m_widthTiles;       // shortcut for ((m_width + 31) / 32)
+  const int m_heightTiles;      // shortcut for ((m_height + 31) / 32)
+  const int m_numTiles;         // shortcut for (m_widthTiles * m_heightTiles)
 
   // m_changeFlags[] array will hold boolean values corresponding to
   // each 32x32 tile. If a value is true, then we've detected a change

@@ -63,19 +63,14 @@ PollingManager::PollingManager(Display *dpy, Image *image,
     m_offsetLeft(offsetLeft),
     m_offsetTop(offsetTop),
     m_width(image->xim->width),
-    m_height(m_image->xim->height),
+    m_height(image->xim->height),
+    m_widthTiles((image->xim->width + 31) / 32),
+    m_heightTiles((image->xim->height + 31) / 32),
+    m_numTiles(((image->xim->width + 31) / 32) *
+               ((image->xim->height + 31) / 32)),
     m_numVideoPasses(0),
     m_pollingStep(0)
 {
-  // Save width and height of the screen (and the image).
-  m_width = m_image->xim->width;
-  m_height = m_image->xim->height;
-
-  // Compute width and height in 32x32 tiles.
-  m_widthTiles = (m_width + 31) / 32;
-  m_heightTiles = (m_height + 31) / 32;
-  m_numTiles = m_widthTiles * m_heightTiles;
-
   // Get initial screen image.
   m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
 
