@@ -56,8 +56,14 @@ IntParameter PollingManager::m_videoPriority("VideoPriority",
 PollingManager::PollingManager(Display *dpy, Image *image,
                                ImageFactory *factory,
                                int offsetLeft, int offsetTop)
-  : m_dpy(dpy), m_server(0), m_image(image),
-    m_offsetLeft(offsetLeft), m_offsetTop(offsetTop),
+  : m_dpy(dpy),
+    m_server(0),
+    m_image(image),
+    m_bytesPerPixel(image->xim->bits_per_pixel / 8),
+    m_offsetLeft(offsetLeft),
+    m_offsetTop(offsetTop),
+    m_width(image->xim->width),
+    m_height(m_image->xim->height),
     m_numVideoPasses(0),
     m_pollingStep(0)
 {
@@ -248,7 +254,6 @@ bool PollingManager::pollScreen()
 
 int PollingManager::checkRow(int x, int y, int w)
 {
-  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
   int bytesPerLine = m_image->xim->bytes_per_line;
 
   // If necessary, expand the row to the left, to the tile border.
@@ -274,14 +279,14 @@ int PollingManager::checkRow(int x, int y, int w)
 
   // Compute pointers to images to be compared.
   // FIXME: Provide an inline function Image::locatePixel(x, y).
-  char *ptr_old = m_image->xim->data + y * bytesPerLine + x * bytesPerPixel;
+  char *ptr_old = m_image->xim->data + y * bytesPerLine + x * m_bytesPerPixel;
   char *ptr_new = m_rowImage->xim->data;
 
   // Compare pixels, raise corresponding elements of m_changeFlags[].
   int nTilesChanged = 0;
   for (int i = 0; i < w; i += 32) {
     int tile_w = (w - i >= 32) ? 32 : w - i;
-    int nBytes = tile_w * bytesPerPixel;
+    int nBytes = tile_w * m_bytesPerPixel;
     if (memcmp(ptr_old, ptr_new, nBytes)) {
       *pChangeFlags = true;
       nTilesChanged++;
@@ -296,8 +301,6 @@ int PollingManager::checkRow(int x, int y, int w)
 
 int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
 {
-  int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
-
   getColumn(x, y, h);
 
   int nTilesChanged = 0;
@@ -309,10 +312,10 @@ int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
         // FIXME: Do not compute these pointers in the inner cycle.
         char *ptr_old = (m_image->xim->data +
                          (y + nTile * 32 + i) * m_image->xim->bytes_per_line +
-                         x * bytesPerPixel);
+                         x * m_bytesPerPixel);
         char *ptr_new = (m_columnImage->xim->data +
                          (nTile * 32 + i) * m_columnImage->xim->bytes_per_line);
-        if (memcmp(ptr_old, ptr_new, bytesPerPixel)) {
+        if (memcmp(ptr_old, ptr_new, m_bytesPerPixel)) {
           *pChangeFlags = true;
           nTilesChanged++;
           break;

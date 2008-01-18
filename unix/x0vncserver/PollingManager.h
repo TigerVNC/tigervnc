@@ -64,6 +64,8 @@ protected:
   VNCServer *m_server;
 
   Image *m_image;
+  int m_bytesPerPixel;
+
   int m_offsetLeft;
   int m_offsetTop;
   int m_width;
