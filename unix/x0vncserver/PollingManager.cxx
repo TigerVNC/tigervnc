@@ -197,11 +197,9 @@ bool PollingManager::pollScreen()
   // We compare the pixels of that line with previous framebuffer
   // contents and raise corresponding elements of m_changeFlags[].
   int scanOffset = m_pollingOrder[m_pollingStep++ % 32];
-  bool *pChangeFlags = m_changeFlags;
   int nTilesChanged = 0;
   for (int y = scanOffset; y < m_height; y += 32) {
-    nTilesChanged += checkRow(0, y, m_width, pChangeFlags);
-    pChangeFlags += m_widthTiles;
+    nTilesChanged += checkRow(0, y, m_width);
   }
 
   // Do the work related to video area detection, if enabled.
@@ -248,23 +246,41 @@ bool PollingManager::pollScreen()
   return (nTilesChanged != 0 || haveVideoRect);
 }
 
-int PollingManager::checkRow(int x, int y, int w, bool *pChangeFlags)
+int PollingManager::checkRow(int x, int y, int w)
 {
   int bytesPerPixel = m_image->xim->bits_per_pixel / 8;
   int bytesPerLine = m_image->xim->bytes_per_line;
 
+  // If necessary, expand the row to the left, to the tile border.
+  // In other words, x must be a multiple of 32.
+  if (x % 32 != 0) {
+    int correction = x % 32;
+    x -= correction;
+    w += correction;
+  }
+
+  // Compute a pointer to the corresponding element of m_changeFlags.
+  // FIXME: Provide an inline function for that?
+  bool *pChangeFlags = &m_changeFlags[(y / 32) * m_widthTiles + (x / 32)];
+
+  // Read a row from the screen. Note that getFullRow() may be more
+  // efficient than getRow() which is more general.
+  // FIXME: Move the logic to getRow()?
   if (x == 0 && w == m_width) {
-    getFullRow(y);              // use more efficient method if possible
+    getFullRow(y);
   } else {
     getRow(x, y, w);
   }
 
+  // Compute pointers to images to be compared.
+  // FIXME: Provide an inline function Image::locatePixel(x, y).
   char *ptr_old = m_image->xim->data + y * bytesPerLine + x * bytesPerPixel;
   char *ptr_new = m_rowImage->xim->data;
 
+  // Compare pixels, raise corresponding elements of m_changeFlags[].
   int nTilesChanged = 0;
-  for (int i = 0; i < (w + 31) / 32; i++) {
-    int tile_w = (w - i * 32 >= 32) ? 32 : w - i * 32;
+  for (int i = 0; i < w; i += 32) {
+    int tile_w = (w - i >= 32) ? 32 : w - i;
     int nBytes = tile_w * bytesPerPixel;
     if (memcmp(ptr_old, ptr_new, nBytes)) {
       *pChangeFlags = true;
@@ -384,16 +400,14 @@ PollingManager::checkNeighbors()
           m_changeFlags[y * m_widthTiles + x] &&
           !m_changeFlags[(y - 1) * m_widthTiles + x]) {
         // FIXME: Check m_changeFlags[] to decrease height of the row.
-        checkRow(x * 32, y * 32 - 1, m_width - x * 32,
-                 &m_changeFlags[(y - 1) * m_widthTiles + x]);
+        checkRow(x * 32, y * 32 - 1, m_width - x * 32);
         doneAbove = true;
       }
       if (!doneBelow && y < m_heightTiles - 1 &&
           m_changeFlags[y * m_widthTiles + x] &&
           !m_changeFlags[(y + 1) * m_widthTiles + x]) {
         // FIXME: Check m_changeFlags[] to decrease height of the row.
-        checkRow(x * 32, (y + 1) * 32, m_width - x * 32,
-                 &m_changeFlags[(y + 1) * m_widthTiles + x]);
+        checkRow(x * 32, (y + 1) * 32, m_width - x * 32);
         doneBelow = true;
       }
       if (doneBelow && doneAbove)

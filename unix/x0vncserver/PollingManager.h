@@ -95,7 +95,7 @@ private:
                        m_offsetLeft + x, m_offsetTop + y, 1, h);
   }
 
-  int checkRow(int x, int y, int w, bool *pChangeFlags);
+  int checkRow(int x, int y, int w);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
   int sendChanges();
   void handleVideo();
