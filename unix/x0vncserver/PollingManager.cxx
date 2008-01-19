@@ -257,14 +257,8 @@ int PollingManager::checkRow(int x, int y, int w)
     w += correction;
   }
 
-  // Read a row from the screen. Note that getFullRow() may be more
-  // efficient than getRow() which is more general.
-  // FIXME: Move the logic to getRow()?
-  if (x == 0 && w == m_width) {
-    getFullRow(y);
-  } else {
-    getRow(x, y, w);
-  }
+  // Read a row from the screen into m_rowImage.
+  getRow(x, y, w);
 
   // Compute a pointer to the initial element of m_changeFlags.
   bool *pChangeFlags = &m_changeFlags[getTileIndex(x, y)];

@@ -83,13 +83,15 @@ private:
                  r.width(), r.height(), r.tl.x, r.tl.y);
   }
 
-  inline void getFullRow(int y) {
-    m_rowImage->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop + y);
-  }
-
   inline void getRow(int x, int y, int w) {
-    m_rowImage->get(DefaultRootWindow(m_dpy),
-                    m_offsetLeft + x, m_offsetTop + y, w, 1);
+    if (w == m_width) {
+      // Getting full row may be more efficient.
+      m_rowImage->get(DefaultRootWindow(m_dpy),
+                      m_offsetLeft, m_offsetTop + y);
+    } else {
+      m_rowImage->get(DefaultRootWindow(m_dpy),
+                      m_offsetLeft + x, m_offsetTop + y, w, 1);
+    }
   }
 
   inline void getColumn(int x, int y, int h) {
