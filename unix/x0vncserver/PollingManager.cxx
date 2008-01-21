@@ -268,17 +268,26 @@ int PollingManager::checkRow(int x, int y, int w)
   char *ptr_new = m_rowImage->xim->data;
 
   // Compare pixels, raise corresponding elements of m_changeFlags[].
+  // First, handle full-size (32 pixels wide) tiles.
   int nTilesChanged = 0;
-  for (int i = 0; i < w; i += 32) {
-    int tile_w = (w - i >= 32) ? 32 : w - i;
-    int nBytes = tile_w * m_bytesPerPixel;
-    if (memcmp(ptr_old, ptr_new, nBytes)) {
+  int nBytesPerTile = 32 * m_bytesPerPixel;
+  for (int i = 0; i < w / 32; i++) {
+    if (memcmp(ptr_old, ptr_new, nBytesPerTile)) {
       *pChangeFlags = true;
       nTilesChanged++;
     }
     pChangeFlags++;
-    ptr_old += nBytes;
-    ptr_new += nBytes;
+    ptr_old += nBytesPerTile;
+    ptr_new += nBytesPerTile;
+  }
+
+  // Handle the rightmost pixels, if the width is not a multiple of 32.
+  int nBytesLeft = (w % 32) * m_bytesPerPixel;
+  if (nBytesLeft != 0) {
+    if (memcmp(ptr_old, ptr_new, nBytesLeft)) {
+      *pChangeFlags = true;
+      nTilesChanged++;
+    }
   }
 
   return nTilesChanged;
