@@ -71,7 +71,8 @@ private:
   int xOff, yOff;
   rfb::Timer bumpScrollTimer;
   bool bumpScroll;
-  bool needScrollbars;
+  bool needXScrollbar;
+  bool needYScrollbar;
   int bumpScrollX, bumpScrollY;
 };
 #endif

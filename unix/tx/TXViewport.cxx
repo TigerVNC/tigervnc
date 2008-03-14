@@ -25,7 +25,8 @@
 TXViewport::TXViewport(Display* dpy_, int w, int h, TXWindow* parent_)
   : TXWindow(dpy_, w, h, parent_), child(0), hScrollbar(0),
     vScrollbar(0), scrollbarSize(15), xOff(0), yOff(0), bumpScrollTimer(this),
-    bumpScroll(false), needScrollbars(false), bumpScrollX(0), bumpScrollY(0)
+    bumpScroll(false), needXScrollbar(false), needYScrollbar(false),
+    bumpScrollX(0), bumpScrollY(0)
 {
   clipper = new TXWindow(dpy, width()-scrollbarSize, height()-scrollbarSize,
                          this);
@@ -117,12 +118,22 @@ bool TXViewport::handleTimeout(rfb::Timer* timer) {
 
 void TXViewport::resizeNotify()
 {
-  needScrollbars = (!bumpScroll &&
-                    (width() < child->width() || height() < child->height()) &&
-                    (width() > scrollbarSize && height() > scrollbarSize));
-  if (needScrollbars) {
+  needXScrollbar = (!bumpScroll && width() < child->width() &&
+		    height() > scrollbarSize && width() > scrollbarSize);
+  needYScrollbar = (!bumpScroll && height() < child->height() &&
+		    height() > scrollbarSize && width() > scrollbarSize);
+
+  if (needXScrollbar && needYScrollbar) {
     clipper->resize(width()-scrollbarSize, height()-scrollbarSize);
     hScrollbar->map();
+    vScrollbar->map();
+  } else if (needXScrollbar) {
+    clipper->resize(width(), height()-scrollbarSize);
+    hScrollbar->map();
+    vScrollbar->unmap();
+  } else if (needYScrollbar) {
+    clipper->resize(width()-scrollbarSize, height());
+    hScrollbar->unmap();
     vScrollbar->map();
   } else {
     clipper->resize(width(), height());
@@ -132,10 +143,13 @@ void TXViewport::resizeNotify()
 
   setOffset(xOff, yOff);
 
-  if (needScrollbars) {
+  if (needXScrollbar) {
     hScrollbar->move(0, height()-scrollbarSize);
     hScrollbar->resize(width()-scrollbarSize, scrollbarSize);
     hScrollbar->set(child->width(), -xOff, width()-scrollbarSize);
+  }
+
+  if (needYScrollbar) {
     vScrollbar->move(width()-scrollbarSize, 0);
     vScrollbar->resize(scrollbarSize, height()-scrollbarSize);
     vScrollbar->set(child->height(), -yOff, height()-scrollbarSize);
