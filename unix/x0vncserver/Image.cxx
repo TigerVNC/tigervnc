@@ -21,6 +21,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 
 #ifdef HAVE_MITSHM

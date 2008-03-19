@@ -22,6 +22,7 @@
 //
 
 #include <rfb/CapsContainer.h>
+#include <string.h>
 
 using namespace rfb;
 

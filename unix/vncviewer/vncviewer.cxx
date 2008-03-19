@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <locale.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 #include <network/TcpSocket.h>
