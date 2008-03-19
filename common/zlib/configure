@@ -50,6 +50,7 @@ case "$1" in
     -l* | --l*) libdir="$2"; shift; shift;;
     -i* | --i*) includedir="$2"; shift; shift;;
     -s* | --s*) shared=1; shift;;
+    *) shift;;
     esac
 done
 
