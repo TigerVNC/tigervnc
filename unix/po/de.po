@@ -1,0 +1,191 @@
+# German translations for tightvnc package
+# Deutsche Übersetzung für das Tightvnc Paket
+# Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
+# Copyright (C) 2005 Klaus Franken, StrukturPunkt
+# This file is distributed under the same license as the tightvnc package.
+# Klaus Franken <Klaus.Franken@StrukturPunkt.de>, 2005.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: tightvnc 1.5.0\n"
+"Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
+"POT-Creation-Date: 2005-03-01 20:37+0100\n"
+"PO-Revision-Date: 2005-03-01 20:41+0100\n"
+"Last-Translator: Klaus Franken <Klaus.Franken@StrukturPunkt.de>\n"
+"Language-Team: German\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "About VNC Viewer"
+msgstr "Über VNC-Viewer"
+
+msgid "VNC authentication"
+msgstr "VNC Authentifizierung"
+
+msgid "Exit viewer"
+msgstr "Viewer beenden"
+
+msgid "Full screen"
+msgstr "Vollbild"
+
+msgid "Ctrl"
+msgstr "Strg"
+
+msgid "Alt"
+msgstr "Alt"
+
+#, c-format
+msgid "Send %s"
+msgstr "Sende %s"
+
+msgid "Send Ctrl-Alt-Del"
+msgstr "Sende Strg-Alt-Del"
+
+msgid "Refresh screen"
+msgstr "Bildschirm auffrischen"
+
+msgid "New connection..."
+msgstr "Neue Verbindung..."
+
+msgid "Options..."
+msgstr "Optionen..."
+
+msgid "Connection info..."
+msgstr "Verbindungsinformationen..."
+
+msgid "About VNCviewer..."
+msgstr "Über VNC-Viewer"
+
+msgid "Dismiss menu"
+msgstr "Menü verlassen"
+
+msgid "VNC Menu"
+msgstr "VNC-Menü"
+
+#, c-format
+msgid ""
+"Desktop name: %.80s\n"
+"Host: %.80s port: %d\n"
+"Size: %d x %d\n"
+"Pixel format: %s\n"
+"(server default %s)\n"
+"Requested encoding: %s\n"
+"Last used encoding: %s\n"
+"Line speed estimate: %d kbit/s\n"
+"Protocol version: %d.%d\n"
+"Security method: %s\n"
+msgstr ""
+"Desktopname: %.80s\n"
+"Host: %.80s port: %d\n"
+"Größe: %d x %d\n"
+"Pixelformat: %s\n"
+"(Server Standard %s)\n"
+"gewünschte Kodierung: %s\n"
+"letzte benutzte Kodierung: %s\n"
+"Leitungsgeschwindigkeit (geschätzt): %d kbit/s\n"
+"Protokollversion: %d.%d\n"
+"Sicherheitsmethode: %s\n"
+
+msgid "VNC connection info"
+msgstr "VNC Verbindungsinformation"
+
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC-Viewer: Verbindungsoptionen"
+
+msgid "Encoding and Color Level:"
+msgstr "Kodierung und Farbtiefe:"
+
+msgid "Inputs:"
+msgstr "Eingaben:"
+
+msgid "Misc:"
+msgstr "Diverses:"
+
+msgid "Auto select"
+msgstr "automatische Auswahl"
+
+msgid "Full (all available colors)"
+msgstr "Voll (alle verfügbaren Farben)"
+
+msgid "Medium (256 colors)"
+msgstr "Mittel (256 Farben)"
+
+msgid "Low (64 colors)"
+msgstr "Gering (64 Farben)"
+
+msgid "Very low (8 colors)"
+msgstr "Sehr gering (8 Farben)"
+
+msgid "Custom compression level:"
+msgstr "individueller Kompressionslevel:"
+
+msgid "level (1=fast, 9=best)"
+msgstr "Level (1=schnell, 9=bester)"
+
+msgid "Allow JPEG compression:"
+msgstr "Erlaube JPEG-Kompression:"
+
+msgid "quality (1=poor, 9=best)"
+msgstr "Qualität (0=schlechte, 9=beste)"
+
+msgid "View only (ignore mouse & keyboard)"
+msgstr "nur Ansicht (ignoriere Maus und Tastatur)"
+
+msgid "Accept clipboard from server"
+msgstr "Akzeptiere Zwischenablage vom Server"
+
+msgid "Send clipboard to server"
+msgstr "Sende Zwischenablage zum Server"
+
+msgid "Send primary selection & cut buffer as clipboard"
+msgstr "Sende primary selection & cut buffer als Zwischenablage"
+
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Gemeinsamer Zugriff (andere VNC-Viewer nicht trennen)"
+
+msgid "Full-screen mode"
+msgstr "Vollbild-Modus"
+
+msgid "Render cursor locally"
+msgstr "Zeige Cursor lokal"
+
+msgid "Show dot when no cursor"
+msgstr "Zeige Punkt wenn kein Cursor"
+
+msgid "OK"
+msgstr "Ok"
+
+msgid "Cancel"
+msgstr "Abbruch"
+
+msgid "Username:"
+msgstr "Benutzername:"
+
+msgid "Password:"
+msgstr "Passwort:"
+
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC-Viewer: Verbindungsdetails"
+
+msgid "VNC server:"
+msgstr "VNC-Server:"
+
+msgid "About..."
+msgstr "Über..."
+
+#, c-format
+msgid ""
+"TightVNC viewer for X version 4.0 - built %s\n"
+"Copyright (C) 2002-2004 RealVNC Ltd.\n"
+"Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+"Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+"See http://www.tightvnc.com for information on TightVNC."
+msgstr ""
+"TightVNC-Viewer für X version 4.0 - gebaut %s\n"
+"Copyright (C) 2002-2004 RealVNC Ltd.\n"
+"Copyright (C) 2000-2004 Constantin Kaplinsky.\n"
+"Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+"Copyright (C) 2005 Klaus Franken, StrukturPunkt\n"
+"Siehe http://www.tightvnc.com für Informationen über TightVNC."
