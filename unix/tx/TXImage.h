@@ -33,6 +33,10 @@
 #ifndef __TXIMAGE_H__
 #define __TXIMAGE_H__
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <X11/Xlib.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/ColourMap.h>

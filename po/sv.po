@@ -1,0 +1,189 @@
+# Swedish translations for tightvnc package
+# Svenska översättningar för paket tightvnc.
+# Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
+# This file is distributed under the same license as the tightvnc package.
+# Peter Astrand <astrand@cendio.se>, 2005.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: tightvnc 1.5.0\n"
+"Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
+"POT-Creation-Date: 2005-03-01 20:37+0100\n"
+"PO-Revision-Date: 2005-03-01 20:39+0100\n"
+"Last-Translator: Peter Astrand <astrand@cendio.se>\n"
+"Language-Team: Swedish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "About VNC Viewer"
+msgstr "Om VNC-visaren"
+
+msgid "VNC authentication"
+msgstr "VNC-autentisering"
+
+msgid "Exit viewer"
+msgstr "Avsluta visaren"
+
+msgid "Full screen"
+msgstr "Fullskärm"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Alt"
+msgstr "Alt"
+
+#, c-format
+msgid "Send %s"
+msgstr "Skicka %s"
+
+msgid "Send Ctrl-Alt-Del"
+msgstr "Skicka Ctrl-Alt-Del"
+
+msgid "Refresh screen"
+msgstr "Uppdatera skärm"
+
+msgid "New connection..."
+msgstr "Ny anslutning..."
+
+msgid "Options..."
+msgstr "Inställningar..."
+
+msgid "Connection info..."
+msgstr "Information om anslutningen..."
+
+msgid "About VNCviewer..."
+msgstr "Om VNC-visaren..."
+
+msgid "Dismiss menu"
+msgstr "Stäng meny"
+
+msgid "VNC Menu"
+msgstr "VNC-meny"
+
+#, c-format
+msgid ""
+"Desktop name: %.80s\n"
+"Host: %.80s port: %d\n"
+"Size: %d x %d\n"
+"Pixel format: %s\n"
+"(server default %s)\n"
+"Requested encoding: %s\n"
+"Last used encoding: %s\n"
+"Line speed estimate: %d kbit/s\n"
+"Protocol version: %d.%d\n"
+"Security method: %s\n"
+msgstr ""
+"Skrivbordsnamn: %.80s\n"
+"Värd: %.80s port: %d\n"
+"Storlek: %d x %d\n"
+"Pixelformat: %s\n"
+"(serverstandard %s)\n"
+"Begärd kodning: %s\n"
+"Senast använd kodning: %s\n"
+"Uppskattad hastighet på förbindelsen: %d kbit/s\n"
+"Protokollversion: %d.%d\n"
+"Säkerhetsmetod: %s\n"
+
+msgid "VNC connection info"
+msgstr "VNC anslutningsinformation"
+
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC-visare: Anslutningsalternativ"
+
+msgid "Encoding and Color Level:"
+msgstr "Kodning och färgnivå:"
+
+msgid "Inputs:"
+msgstr "Inmatning:"
+
+msgid "Misc:"
+msgstr "Diverse:"
+
+msgid "Auto select"
+msgstr "Automatiskt val"
+
+msgid "Full (all available colors)"
+msgstr "Full (alla tillgängliga färger)"
+
+msgid "Medium (256 colors)"
+msgstr "Medium (256 färger)"
+
+msgid "Low (64 colors)"
+msgstr "Låg (64 färger)"
+
+msgid "Very low (8 colors)"
+msgstr "Mycket låg (8 färger)"
+
+msgid "Custom compression level:"
+msgstr "Anpassad kompressionsnivå:"
+
+msgid "level (1=fast, 9=best)"
+msgstr "nivå (1=snabb, 9=bäst)"
+
+msgid "Allow JPEG compression:"
+msgstr "Tillåt JPEG-kompression:"
+
+msgid "quality (1=poor, 9=best)"
+msgstr "kvalitet (0=dålig, 9=bäst)"
+
+msgid "View only (ignore mouse & keyboard)"
+msgstr "Endast visning (ignorera mus och tangentbord)"
+
+msgid "Accept clipboard from server"
+msgstr "Acceptera urklipp från server"
+
+msgid "Send clipboard to server"
+msgstr "Skicka urklipp till server"
+
+msgid "Send primary selection & cut buffer as clipboard"
+msgstr "Skicka PRIMARY och CUT_BUFFER som urklipp"
+
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Delad (koppla ej från andra visare)"
+
+msgid "Full-screen mode"
+msgstr "Fullskärmsläge"
+
+msgid "Render cursor locally"
+msgstr "Hantera muspekaren lokalt"
+
+msgid "Show dot when no cursor"
+msgstr "Visa punkt när muspekare saknas"
+
+msgid "OK"
+msgstr "Ok"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Username:"
+msgstr "Användarnamn:"
+
+msgid "Password:"
+msgstr "Lösenord:"
+
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC-visare: Anslutningsdetaljer"
+
+msgid "VNC server:"
+msgstr "VNC-server:"
+
+msgid "About..."
+msgstr "Om..."
+
+#, c-format
+msgid ""
+"TightVNC viewer for X version 4.0 - built %s\n"
+"Copyright (C) 2002-2004 RealVNC Ltd.\n"
+"Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+"Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+"See http://www.tightvnc.com for information on TightVNC."
+msgstr ""
+"TightVNC-visare för X version 4.0 - byggd %s\n"
+"Copyright (C) 2002-2004 RealVNC Ltd.\n"
+"Copyright (C) 2000-2004 Constantin Kaplinsky.\n"
+"Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+"Se http://www.tightvnc.com för information om TightVNC."

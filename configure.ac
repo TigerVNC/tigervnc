@@ -4,8 +4,8 @@ AC_INIT([tightvnc], [1.5.0a1], [http://www.tightvnc.com/bugs.html])
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
 dnl Checks for programs.
-dnl AM_GNU_GETTEXT([external])
-dnl AM_GNU_GETTEXT_VERSION([0.17])
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.17])
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
@@ -28,13 +28,10 @@ AC_COMPILE_IFELSE(
 AC_SUBST([COMMON_DIR], ['$(top_srcdir)/common'])
 AC_SUBST([UNIX_DIR], ['$(top_srcdir)/unix'])
 AC_SUBST([TX_DIR], ['$(UNIX_DIR)/tx'])
-AC_SUBST([INTL_DIR], ['$(UNIX_DIR)/intl'])
 AC_SUBST([RFB_LIBS], ['$(COMMON_DIR)/rfb/librfb.la'])
 AC_SUBST([RDR_LIBS], ['$(COMMON_DIR)/rdr/librdr.la'])
 AC_SUBST([NETWORK_LIBS], ['$(COMMON_DIR)/network/libnetwork.la'])
 AC_SUBST([TX_LIBS], ['$(TX_DIR)/libtx.la'])
-
-AC_CONFIG_HEADERS([config.h])
 
 dnl XXX this statement really bother me
 case "`(uname -sr) 2>/dev/null`" in
@@ -59,9 +56,8 @@ esac
 
 dnl FIXME: Check for MIT-SHM properly, add a corresponding --with option.
 if test "$USE_MITSHM" = yes; then
-	MITSHM_DEFINE="-DHAVE_MITSHM"
+	AC_DEFINE([HAVE_MITSHM], 1, [Define if you have MIT-SHM extension])
 fi
-AC_SUBST(MITSHM_DEFINE)
 
 if test "$GCC" = yes; then
 	if test "$SOLARIS" = yes; then
@@ -143,7 +139,10 @@ AC_COMPILE_IFELSE(
  [AC_MSG_RESULT([using int])
   AC_DEFINE([VNC_SOCKLEN_T], [int], [Define to socklen_t or int])])
 
+AC_CONFIG_HEADER([config.h])
+
 AC_CONFIG_FILES([Makefile
+	   po/Makefile.in
 	   common/Makefile
 	   common/rdr/Makefile
 	   common/network/Makefile
