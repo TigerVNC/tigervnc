@@ -111,15 +111,16 @@ AC_SEARCH_LIBS([dmICCreate], [dmedia],
 	 USE_DMEDIA=yes])
 AM_CONDITIONAL([DMEDIA], [test "x$USE_DMEDIA" = xyes])
 
+
+AC_CONFIG_SUBDIRS([common/zlib])
 AC_SEARCH_LIBS([inflate], [z], [],
-	[AC_CONFIG_SUBDIRS([common/zlib])
-	 ZLIB_LIBS='$(COMMON_DIR)/zlib/libz.la'
+	[ZLIB_LIBS='$(COMMON_DIR)/zlib/libz.la'
 	 VNC_ZLIB=yes])
 AM_CONDITIONAL([ZLIB], [test "x$VNC_ZLIB" = xyes])
 AC_SUBST(ZLIB_LIBS)
 
+dnl AC_CONFIG_SUBDIRS([common/jpeg])
 AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg], [],
-dnl	[AC_CONFIG_SUBDIRS([common/jpeg])
 	[JPEG_LIBS='$(COMMON_DIR)/jpeg/libjpeg.a'
 	 VNC_JPEG=yes])
 AM_CONDITIONAL([JPEG], [test "x$VNC_JPEG" = xyes])
