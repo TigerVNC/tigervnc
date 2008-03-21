@@ -84,7 +84,8 @@ AM_CONDITIONAL([VNCCONFIG], [test "x$BUILD_VNCCONFIG" = xyes])
 dnl Check for the XTest X11 extension library.
 AC_SEARCH_LIBS([XTestGrabControl], [Xtst],
 	[AC_DEFINE([HAVE_XTEST], [], [Define if you have Xtst library])],
-	[AC_MSG_WARN([No XTest extension, building x0vncserver view-only])])
+	[AC_MSG_WARN([No XTest extension, building x0vncserver view-only])],
+	[-lXext -lX11])
 
 dnl Support for READDISPLAY (Irix) and SUN_OVL (Solaris) extensions
 dnl FIXME: Implement corresponding --with options.
