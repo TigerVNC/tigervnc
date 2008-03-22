@@ -56,8 +56,6 @@ extern "C" {
 // fix it here.
 #define MAX_RECTS_PER_OP 5
 
-static unsigned long vncHooksGeneration = 0;
-
 // vncHooksScreenRec and vncHooksGCRec contain pointers to the original
 // functions which we "wrap" in order to hook the screen changes.  The screen
 // functions are each wrapped individually, while the GC "funcs" and "ops" are
@@ -87,9 +85,15 @@ typedef struct {
     GCOps *wrappedOps;
 } vncHooksGCRec, *vncHooksGCPtr;
 
-static int vncHooksScreenIndex;
-static int vncHooksGCIndex;
+static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKey;
+static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKey;
 
+#define vncHooksScreenPrivate(pScreen) \
+        (vncHooksScreenPtr) dixLookupPrivate(&(pScreen)->devPrivates, \
+                                             vncHooksScreenPrivateKey)
+#define vncHooksGCPrivate(pGC) \
+        (vncHooksGCPtr) dixLookupPrivate(&(pGC)->devPrivates, \
+                                         vncHooksGCPrivateKey)
 
 // screen functions
 
@@ -203,29 +207,16 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 {
   vncHooksScreenPtr vncHooksScreen;
 
-  if (vncHooksGeneration != serverGeneration) {
-    vncHooksGeneration = serverGeneration;
-
-    vncHooksScreenIndex = AllocateScreenPrivateIndex();
-    if (vncHooksScreenIndex < 0) {
-      ErrorF("vncHooksInit: AllocateScreenPrivateIndex failed\n");
-      return FALSE;
-    }
-
-    vncHooksGCIndex = AllocateGCPrivateIndex();
-    if (vncHooksGCIndex < 0) {
-      ErrorF("vncHooksInit: AllocateGCPrivateIndex failed\n");
-      return FALSE;
-    }
+  if (!dixRequestPrivate(vncHooksScreenPrivateKey, sizeof(vncHooksScreenRec))) {
+    ErrorF("vncHooksInit: Allocation of vncHooksScreen failed\n");
+    return FALSE;
   }
-
-  if (!AllocateGCPrivate(pScreen, vncHooksGCIndex, sizeof(vncHooksGCRec))) {
-    ErrorF("vncHooksInit: AllocateGCPrivate failed\n");
+  if (!dixRequestPrivate(vncHooksGCPrivateKey, sizeof(vncHooksGCRec))) {
+    ErrorF("vncHooksInit: Allocation of vncHooksGCRec failed\n");
     return FALSE;
   }
 
-  vncHooksScreen = (vncHooksScreenPtr)xnfalloc(sizeof(vncHooksScreenRec));
-  pScreen->devPrivates[vncHooksScreenIndex].ptr = (pointer)vncHooksScreen;
+  vncHooksScreen = vncHooksScreenPrivate(pScreen);
 
   vncHooksScreen->desktop = desktop;
 
@@ -282,8 +273,7 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 
 #define SCREEN_UNWRAP(scrn,field)                                         \
   ScreenPtr pScreen = scrn;                                               \
-  vncHooksScreenPtr vncHooksScreen                                        \
-    = ((vncHooksScreenPtr)pScreen->devPrivates[vncHooksScreenIndex].ptr); \
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);      \
   pScreen->field = vncHooksScreen->field;                                 \
   DBGPRINT((stderr,"vncHooks" #field " called\n"));
 
@@ -308,8 +298,6 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
   pScreen->DisplayCursor = vncHooksScreen->DisplayCursor;
   pScreen->BlockHandler = vncHooksScreen->BlockHandler;
 
-  xfree((pointer)vncHooksScreen);
-
   DBGPRINT((stderr,"vncHooksCloseScreen: unwrapped screen functions\n"));
 
   return (*pScreen->CloseScreen)(i, pScreen);
@@ -321,8 +309,7 @@ static Bool vncHooksCreateGC(GCPtr pGC)
 {
   SCREEN_UNWRAP(pGC->pScreen, CreateGC);
     
-  vncHooksGCPtr vncHooksGC
-    = (vncHooksGCPtr)pGC->devPrivates[vncHooksGCIndex].ptr;
+  vncHooksGCPtr vncHooksGC = vncHooksGCPrivate(pGC);
 
   Bool ret = (*pScreen->CreateGC) (pGC);
 
@@ -501,7 +488,7 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 		       INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height)
 {
   ScreenPtr pScreen = pDst->pDrawable->pScreen;
-  vncHooksScreenPtr vncHooksScreen = ((vncHooksScreenPtr)pScreen->devPrivates[vncHooksScreenIndex].ptr); 
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
   BoxRec box;
   PictureScreenPtr ps = GetPictureScreen(pScreen);
   rfb::Rect rect1, rect2;
@@ -541,7 +528,7 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 class GCFuncUnwrapper {
 public:
   GCFuncUnwrapper(GCPtr pGC_) : pGC(pGC_) {
-    vncHooksGC = (vncHooksGCPtr)pGC->devPrivates[vncHooksGCIndex].ptr;
+    vncHooksGC = vncHooksGCPrivate(pGC);
     pGC->funcs = vncHooksGC->wrappedFuncs;
     if (vncHooksGC->wrappedOps)
       pGC->ops = vncHooksGC->wrappedOps;
@@ -626,7 +613,7 @@ public:
   GCOpUnwrapper(DrawablePtr pDrawable, GCPtr pGC_)
     : pGC(pGC_), pScreen(pDrawable->pScreen)
   {
-    vncHooksGC = (vncHooksGCPtr)pGC->devPrivates[vncHooksGCIndex].ptr;
+    vncHooksGC = vncHooksGCPrivate(pGC);
     oldFuncs = pGC->funcs;
     pGC->funcs = vncHooksGC->wrappedFuncs;
     pGC->ops = vncHooksGC->wrappedOps;
@@ -645,8 +632,7 @@ public:
 #define GC_OP_UNWRAPPER(pDrawable, pGC, name)                             \
   GCOpUnwrapper u(pDrawable, pGC);                                        \
   ScreenPtr pScreen = (pDrawable)->pScreen;                               \
-  vncHooksScreenPtr vncHooksScreen                                        \
-    = ((vncHooksScreenPtr)pScreen->devPrivates[vncHooksScreenIndex].ptr); \
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);      \
   DBGPRINT((stderr,"vncHooks" #name " called\n"));
 
 
