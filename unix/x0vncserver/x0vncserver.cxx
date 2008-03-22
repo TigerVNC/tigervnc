@@ -20,10 +20,6 @@
 // FIXME: Check cases when screen width/height is not a multiply of 32.
 //        e.g. 800x600.
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <strings.h>
 #include <sys/types.h>
 #include <sys/stat.h>

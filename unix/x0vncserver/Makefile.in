@@ -1,0 +1,30 @@
+
+SRCS = Image.cxx TimeMillis.cxx PollingScheduler.cxx PollingManager.cxx \
+       Geometry.cxx XPixelBuffer.cxx \
+       x0vncserver.cxx ../vncconfig/QueryConnectDialog.cxx
+
+OBJS = $(SRCS:.cxx=.o)
+
+program = x0vncserver
+
+DEP_LIBS = $(COMMON)/rfb/librfb.a \
+           $(COMMON)/network/libnetwork.a \
+           $(COMMON)/rdr/librdr.a \
+	   $(TOP)/tx/libtx.a
+
+EXTRA_LIBS = @ZLIB_LIB@ @JPEG_LIB@ @INET_LIB@ @X_PRE_LIBS@ @X_LIBS@ \
+             @XTEST_LIB@ -lXext -lX11 @X_EXTRA_LIBS@ @CL_LIB@ @DMEDIA_LIB@
+
+# X_CFLAGS are really CPPFLAGS
+DIR_CPPFLAGS = -I$(COMMON) -I$(TOP) -I$(TOP)/tx -I$(TOP)/vncconfig \
+  @XTEST_DEFINE@ @READDISPLAY_DEFINE@ @MITSHM_DEFINE@ @X_CFLAGS@
+
+all:: $(program)
+
+$(program): $(OBJS) buildtime.o $(DEP_LIBS)
+	rm -f $(program)
+	$(CXXLD) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJS) buildtime.o $(DEP_LIBS) $(LIBS) $(EXTRA_LIBS)
+
+buildtime.o: $(OBJS) $(DEP_LIBS)
+
+# followed by boilerplate.mk

@@ -18,10 +18,6 @@
 
 // -=- Logger.cxx - support for the Logger and LogWriter classes
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>

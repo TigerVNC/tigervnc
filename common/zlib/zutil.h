@@ -13,10 +13,6 @@
 #ifndef _Z_UTIL_H
 #define _Z_UTIL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "zlib.h"
 
 #ifdef STDC
@@ -24,10 +20,10 @@
 #  include <string.h>
 #  include <stdlib.h>
 #endif
-#ifdef HAVE_ERRNO_H
-#   include <errno.h>
-#else
+#ifdef NO_ERRNO_H
     extern int errno;
+#else
+#   include <errno.h>
 #endif
 
 #ifndef local

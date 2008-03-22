@@ -1,0 +1,184 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(vncviewer/vncviewer.cxx)
+
+PACKAGE=tightvnc
+VERSION=1.5.0
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+
+dnl Configure the common directory
+echo "configuring common..."
+(cd ../common; ./configure $*)
+echo "...done configuring common"
+
+dnl dirty hack to prevent use of -g in CFLAGS and CXXFLAGS
+ac_cv_prog_cc_g=no
+ac_cv_prog_cxx_g=no
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_RANLIB
+AC_PROG_MAKE_SET
+AC_LANG_CPLUSPLUS
+
+case "`(uname -sr) 2>/dev/null`" in
+"SunOS 5"*)
+  SOLARIS=yes
+  USE_MITSHM=yes
+  USE_SUN_OVL=yes
+  ;;
+"Linux"*)
+  LINUX=yes
+  USE_MITSHM=yes
+  ;;
+"IRIX 6"*)
+  X_LIBS="-L/usr/lib32"
+  USE_MITSHM=yes
+  USE_READDISPLAY=yes
+  ;;
+"LynxOS 2"*)
+  SJLJ_EXCEPTIONS=yes
+  ;;
+esac
+
+dnl FIXME: Check for MIT-SHM properly, add a corresponding --with option.
+if test "$USE_MITSHM" = yes; then
+  MITSHM_DEFINE="-DHAVE_MITSHM"
+fi
+AC_SUBST(MITSHM_DEFINE)
+
+if test "$GCC" = yes; then
+  CFLAGS="$CFLAGS -Wall"
+  if test "$SOLARIS" = yes; then
+    CFLAGS="$CFLAGS -Wno-unknown-pragmas -Wno-implicit-int"
+  fi
+fi
+if test "$GXX" = yes; then
+  CXXFLAGS="$CXXFLAGS -Wall"
+  if test "$SOLARIS" = yes; then
+    CXXFLAGS="$CXXFLAGS -Wno-unknown-pragmas -fpermissive"
+  fi
+  if test "$SJLJ_EXCEPTIONS" = yes; then
+    CXXFLAGS="$CXXFLAGS -fsjlj-exceptions"
+  fi
+fi
+
+dnl Check for IRIX-specific Compression Library.
+AC_CHECK_LIB(cl, clQuerySchemeFromName,
+  [AC_DEFINE(HAVE_CL)
+  CL_LIB=-lcl])
+AC_SUBST(CL_LIB)
+
+dnl Check for IRIX-specific Digital Media libraries.
+AC_CHECK_LIB(dmedia, dmICCreate,
+  [AC_DEFINE(HAVE_DMEDIA)
+  DMEDIA_LIB=-ldmedia])
+AC_SUBST(DMEDIA_LIB)
+
+AC_PATH_XTRA
+
+AC_ARG_WITH(installed-zlib,
+[  --with-installed-zlib   use the version of zlib which is installed on the
+                          system instead of the one distributed with VNC])
+
+if test "$with_installed_zlib" = yes; then
+  echo "using installed zlib"
+  ZLIB_LIB=-lz
+else
+  ZLIB_DIR='$(COMMON)/zlib'
+  ZLIB_INCLUDE='-I$(COMMON)/zlib'
+  ZLIB_LIB='$(COMMON)/zlib/libz.a'
+fi
+
+AC_SUBST(ZLIB_DIR)
+AC_SUBST(ZLIB_INCLUDE)
+AC_SUBST(ZLIB_LIB)
+
+AC_ARG_WITH(installed-jpeg,
+[  --with-installed-jpeg   use the version of jpeg which is installed on the
+                          system instead of the one distributed with VNC])
+
+if test "$with_installed_jpeg" = yes; then
+  echo "using installed jpeg"
+  JPEG_LIB=-ljpeg
+else
+  JPEG_DIR='$(COMMON)/jpeg/build'
+  JPEG_INCLUDE='-I$(COMMON)/jpeg'
+  JPEG_LIB='$(COMMON)/jpeg/build/libjpeg.a'
+fi
+
+AC_SUBST(JPEG_DIR)
+AC_SUBST(JPEG_INCLUDE)
+AC_SUBST(JPEG_LIB)
+
+AC_ARG_ENABLE(vncconfig,
+[  --enable-vncconfig      build the vncconfig utility (assumed by default),
+                          use --disable-vncconfig to skip building vncconfig])
+if test "$enable_vncconfig" = no; then
+  echo "vncconfig utility will not be built"
+  VNCCONFIG_DIR=
+else
+  VNCCONFIG_DIR='vncconfig'
+fi
+AC_SUBST(VNCCONFIG_DIR)
+
+dnl Check for the XTest X11 extension library.
+AC_CHECK_LIB(Xtst,XTestGrabControl,USE_XTEST=yes,USE_XTEST=,
+["$X_LIBS" -lXext -lX11])
+if test "$USE_XTEST" = yes; then
+  XTEST_DEFINE='-DHAVE_XTEST'
+  XTEST_LIB=-lXtst
+else
+  echo Warning: No XTest extension, building x0vncserver view-only
+  XTEST_DEFINE=
+  XTEST_LIB=
+fi
+AC_SUBST(XTEST_DEFINE)
+AC_SUBST(XTEST_LIB)
+
+dnl Support for READDISPLAY (Irix) and SUN_OVL (Solaris) extensions
+dnl FIXME: Implement corresponding --with options.
+if test "$USE_READDISPLAY" = yes; then
+  READDISPLAY_DEFINE='-DHAVE_READDISPLAY'
+elif test "$USE_SUN_OVL" = yes; then
+  READDISPLAY_DEFINE='-DHAVE_SUN_OVL'
+else
+  READDISPLAY_DEFINE=
+fi
+AC_SUBST(READDISPLAY_DEFINE)
+
+dnl Under Lynx/OS 2.3, we have to link with -lbsd to resolve
+dnl gethostbyname, inet_addr, htons etc. Check if it's necessary.
+dnl NOTE: Did not want to use AC_SEARCH_LIBS which would add
+dnl   -lbsd to LIBS. We set INET_LIB instead.
+AC_LANG_SAVE
+AC_LANG_C
+AC_CHECK_FUNC(gethostbyname,INET_LIB_REQ=,INET_LIB_REQ=yes)
+if test "$INET_LIB_REQ" = yes; then
+  AC_CHECK_LIB(bsd,gethostbyname,INET_LIB=-lbsd,INET_LIB=)
+fi
+AC_LANG_RESTORE
+AC_SUBST(INET_LIB)
+
+AM_GNU_GETTEXT
+
+BOILERPLATE=boilerplate.mk
+
+if (sh -c "make --version" 2>/dev/null | grep GNU 2>&1 >/dev/null); then
+  if sh -c "vncmkdepend" >/dev/null 2>&1; then
+    BOILERPLATE="$BOILERPLATE:depend.mk"
+  fi
+fi
+
+AC_OUTPUT(Makefile:common.mk:Makefile.in:$BOILERPLATE \
+         tx/Makefile:common.mk:tx/Makefile.in:$BOILERPLATE \
+         x0vncserver/Makefile:common.mk:x0vncserver/Makefile.in:$BOILERPLATE \
+         vncviewer/Makefile:common.mk:vncviewer/Makefile.in:$BOILERPLATE \
+         vncconfig/Makefile:common.mk:vncconfig/Makefile.in:$BOILERPLATE \
+         vncpasswd/Makefile:common.mk:vncpasswd/Makefile.in:$BOILERPLATE \
+         intl/Makefile \
+         po/Makefile.in \
+)
