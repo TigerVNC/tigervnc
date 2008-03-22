@@ -36,8 +36,6 @@ from the X Consortium.
 extern "C" {
 #define class c_class
 #define public c_public
-#define xor c_xor
-#define and c_and
 #ifdef WIN32
 #include <X11/Xwinsock.h>
 #endif
@@ -78,13 +76,11 @@ extern "C" {
 #include "dix.h"
 #include "miline.h"
 #include "inputstr.h"
-#include "keysym.h"
+#include <X11/keysym.h>
   extern int defaultColorVisualClass;
   extern char buildtime[];
 #undef class
 #undef public
-#undef xor
-#undef and
 }
 
 #define XVNCVERSION "TightVNC 1.5 series"
@@ -667,9 +663,9 @@ vfbInstallColormap(ColormapPtr pmap)
 	swapcopy32(pXWDHeader->bits_per_rgb, pVisual->bitsPerRGBValue);
 	swapcopy32(pXWDHeader->colormap_entries, pVisual->ColormapEntries);
 
-	ppix = (Pixel *)ALLOCATE_LOCAL(entries * sizeof(Pixel));
-	prgb = (xrgb *)ALLOCATE_LOCAL(entries * sizeof(xrgb));
-	defs = (xColorItem *)ALLOCATE_LOCAL(entries * sizeof(xColorItem));
+	ppix = (Pixel *)xalloc(entries * sizeof(Pixel));
+	prgb = (xrgb *)xalloc(entries * sizeof(xrgb));
+	defs = (xColorItem *)xalloc(entries * sizeof(xColorItem));
 
 	for (i = 0; i < entries; i++)  ppix[i] = i;
 	/* XXX truecolor */
@@ -684,9 +680,9 @@ vfbInstallColormap(ColormapPtr pmap)
 	}
 	(*pmap->pScreen->StoreColors)(pmap, entries, defs);
 	
-	DEALLOCATE_LOCAL(ppix);
-	DEALLOCATE_LOCAL(prgb);
-	DEALLOCATE_LOCAL(defs);
+	xfree(ppix);
+	xfree(prgb);
+	xfree(defs);
     }
 }
 
