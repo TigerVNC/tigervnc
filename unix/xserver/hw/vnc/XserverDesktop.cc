@@ -51,7 +51,7 @@ extern char *display;
 #include "cursorstr.h"
 #include "windowstr.h"
 #define XK_CYRILLIC
-#include "keysym.h"
+#include <X11/keysym.h>
 #undef public
 #undef class
 }
