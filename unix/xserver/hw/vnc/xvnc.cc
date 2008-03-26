@@ -1235,7 +1235,13 @@ extern "C" {
 int SelectWaitTime = 10000; /* usec */
 #endif
 
-Bool LegalModifier(unsigned int key, DevicePtr pDev)
+void DDXRingBell(int percent, int pitch, int duration)
+{
+  if (percent > 0)
+    vncBell();
+}
+
+Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
   return TRUE;
 }
