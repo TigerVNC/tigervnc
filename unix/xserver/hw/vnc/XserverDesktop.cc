@@ -56,6 +56,12 @@ extern char *display;
 #undef class
 }
 
+DeviceIntPtr vncKeyboardDevice = NULL;
+DeviceIntPtr vncPointerDevice = NULL;
+
+static int vfbKeybdProc(DeviceIntPtr pDevice, int onoff);
+static int vfbMouseProc(DeviceIntPtr pDevice, int onoff);
+
 using namespace rfb;
 using namespace network;
 
@@ -202,6 +208,16 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
 
   if (httpListener)
     httpServer = new FileHTTPServer(this);
+
+  if (vncKeyboardDevice == NULL) {
+    vncKeyboardDevice = AddInputDevice(vfbKeybdProc, TRUE);
+    RegisterKeyboardDevice(vncKeyboardDevice);
+  }
+
+  if (vncPointerDevice == NULL) {
+    vncPointerDevice = AddInputDevice(vfbMouseProc, TRUE);
+    RegisterPointerDevice(vncPointerDevice);
+  }
 }
 
 XserverDesktop::~XserverDesktop()
@@ -1335,8 +1351,8 @@ static int vfbMouseProc(DeviceIntPtr pDevice, int onoff)
     map[3] = 3;
     map[4] = 4;
     map[5] = 5;
-    InitPointerDeviceStruct(pDev, map, 5, miPointerGetMotionEvents,
-                            (PtrCtrlProcPtr)NoopDDA, miPointerGetMotionBufferSize());
+    InitPointerDeviceStruct(pDev, map, 5, GetMotionHistory,
+                            (PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
     break;
 
   case DEVICE_ON:

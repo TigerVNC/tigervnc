@@ -1251,11 +1251,5 @@ void ProcessInputEvents()
 
 void InitInput(int argc, char *argv[])
 {
-  DeviceIntPtr p, k;
-  p = AddInputDevice(vfbMouseProc, TRUE);
-  k = AddInputDevice(vfbKeybdProc, TRUE);
-  RegisterPointerDevice(p);
-  RegisterKeyboardDevice(k);
-  miRegisterPointerDevice(screenInfo.screens[0], p);
-  (void)mieqInit ((DevicePtr)k, (DevicePtr)p);
+  mieqInit ();
 }
