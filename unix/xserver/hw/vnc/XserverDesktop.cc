@@ -50,14 +50,16 @@ extern char *display;
 #include "resource.h"
 #include "cursorstr.h"
 #include "windowstr.h"
+#include "mi.h"
 #define XK_CYRILLIC
 #include <X11/keysym.h>
 #undef public
 #undef class
 }
 
-DeviceIntPtr vncKeyboardDevice = NULL;
-DeviceIntPtr vncPointerDevice = NULL;
+static DeviceIntPtr vncKeyboardDevice = NULL;
+static DeviceIntPtr vncPointerDevice = NULL;
+static xEvent *eventq = NULL;
 
 static int vfbKeybdProc(DeviceIntPtr pDevice, int onoff);
 static int vfbMouseProc(DeviceIntPtr pDevice, int onoff);
@@ -208,6 +210,14 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
 
   if (httpListener)
     httpServer = new FileHTTPServer(this);
+
+  /*
+   * XXX eventq is never free()-ed because it has to exist during server life
+   * */
+  if (!eventq)
+    eventq = (xEvent *) xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+  if (!eventq)
+    FatalError("Couldn't allocate eventq\n");
 
   if (vncKeyboardDevice == NULL) {
     vncKeyboardDevice = AddInputDevice(vfbKeybdProc, TRUE);
@@ -676,8 +686,7 @@ void XserverDesktop::approveConnection(void* opaqueId, bool accept,
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {
-  xEvent ev;
-  DevicePtr dev = LookupPointerDevice();
+  int i, j, n, valuators[2];
 
   // SetCursorPosition seems to be very expensive (at least on XFree86 3.3.6
   // for S3), so we delay calling it until positionCursor() is called at the
@@ -686,22 +695,27 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 
   NewCurrentScreen(pScreen, pos.x, pos.y);
 
-  ev.u.u.type = MotionNotify;
-  ev.u.u.detail = 0;
-  ev.u.keyButtonPointer.rootX = pos.x;
-  ev.u.keyButtonPointer.rootY = pos.y;
-  ev.u.keyButtonPointer.time = GetTimeInMillis();
+  if (!pos.equals(cursorPos)) {
+    valuators[0] = pos.x;
+    valuators[1] = pos.y;
 
-  if (!pos.equals(cursorPos))
-    (*dev->processInputProc)(&ev, (DeviceIntPtr)dev, 1);
+    n = GetPointerEvents (eventq, vncPointerDevice, MotionNotify, 0,
+			  POINTER_ABSOLUTE, 0, 2, valuators);
+    for (i = 0; i < n; i++)
+      mieqEnqueue (vncPointerDevice, eventq + i);
+  }
 
-  for (int i = 0; i < 5; i++) {
+  for (i = 0; i < 5; i++) {
     if ((buttonMask ^ oldButtonMask) & (1<<i)) {
       // Do not use the pointer mapping. Treat VNC buttons as logical
       // buttons.
-      ev.u.u.detail = i + 1;
-      ev.u.u.type = (buttonMask & (1<<i)) ? ButtonPress : ButtonRelease;
-      (*dev->processInputProc)(&ev, (DeviceIntPtr)dev, 1);
+      n = GetPointerEvents (eventq, vncPointerDevice,
+			    (buttonMask & (1<<i)) ?
+			     ButtonPress : ButtonRelease,
+			    i + 1, POINTER_RELATIVE, 0, 0, NULL);
+
+      for (j = 0; j < n; j++)
+	mieqEnqueue (vncPointerDevice, eventq + j);
     }
   }
 
@@ -782,8 +796,8 @@ void XserverDesktop::lookup(int index, int* r, int* g, int* b)
 
 class ModifierState {
 public:
-  ModifierState(DeviceIntPtr dev_, int modIndex_)
-    : dev(dev_), modIndex(modIndex_), nKeys(0), keys(0), pressed(false)
+  ModifierState(int modIndex_)
+    : modIndex(modIndex_), nKeys(0), keys(0), pressed(false)
   {
   }
   ~ModifierState() {
@@ -792,7 +806,7 @@ public:
     delete [] keys;
   }
   void press() {
-    KeyClassPtr keyc = dev->key;
+    KeyClassPtr keyc = vncKeyboardDevice->key;
     if (!(keyc->state & (1<<modIndex))) {
       tempKeyEvent(keyc->modifierKeyMap[modIndex * keyc->maxKeysPerModifier],
                    true);
@@ -800,7 +814,7 @@ public:
     }
   }
   void release() {
-    KeyClassPtr keyc = dev->key;
+    KeyClassPtr keyc = vncKeyboardDevice->key;
     if (keyc->state & (1<<modIndex)) {
       for (int k = 0; k < keyc->maxKeysPerModifier; k++) {
         int keycode
@@ -813,20 +827,19 @@ public:
 private:
   void tempKeyEvent(int keycode, bool down) {
     if (keycode) {
-      if (!keys) keys = new int[dev->key->maxKeysPerModifier];
+      if (!keys) keys = new int[vncKeyboardDevice->key->maxKeysPerModifier];
       keys[nKeys++] = keycode;
       generateXKeyEvent(keycode, down);
     }
   }
   void generateXKeyEvent(int keycode, bool down) {
-    xEvent ev;
-    ev.u.u.type = down ? KeyPress : KeyRelease;
-    ev.u.u.detail = keycode;
-    ev.u.keyButtonPointer.time = GetTimeInMillis();
-    (*dev->c_public.processInputProc)(&ev, dev, 1);
+    int i, n;
+    n = GetKeyboardEvents (eventq, vncKeyboardDevice,
+			   down ? KeyPress : KeyRelease, keycode);
+    for (i = 0; i < n; i++)
+      mieqEnqueue (vncKeyboardDevice, eventq + i);
     vlog.debug("fake keycode %d %s", keycode, down ? "down" : "up");
   }
-  DeviceIntPtr dev;
   int modIndex;
   int nKeys;
   int* keys;
@@ -895,20 +908,21 @@ altKeysym_t altKeysym[] = {
 
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 {
+  KeyClassPtr keyc = vncKeyboardDevice->key;
+  KeySymsPtr keymap = &keyc->curKeySyms;
+  int i, j, k, n;
+
   if (keysym == XK_Caps_Lock) {
     vlog.debug("Ignoring caps lock");
     return;
   }
-  DeviceIntPtr dev = (DeviceIntPtr)LookupKeyboardDevice();
-  KeyClassPtr keyc = dev->key;
-  KeySymsPtr keymap = &keyc->curKeySyms;
 
   // find which modifier Mode_switch is on.
   int modeSwitchMapIndex = 0;
-  for (int i = 3; i < 8; i++) {
-    for (int k = 0; k < keyc->maxKeysPerModifier; k++) {
+  for (i = 3; i < 8; i++) {
+    for (k = 0; k < keyc->maxKeysPerModifier; k++) {
       int keycode = keyc->modifierKeyMap[i * keyc->maxKeysPerModifier + k];
-      for (int j = 0; j < keymap->mapWidth; j++) {
+      for (j = 0; j < keymap->mapWidth; j++) {
         if (keycode != 0 &&
             keymap->map[(keycode - keymap->minKeyCode)
                         * keymap->mapWidth + j] == XK_Mode_switch)
@@ -937,7 +951,7 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
   if (kc == 0) {
     // Not a direct match in the local keyboard mapping.  Check for alternative
     // keysyms with the same meaning.
-    for (int i = 0; i < sizeof(altKeysym) / sizeof(altKeysym_t); i++) {
+    for (i = 0; i < sizeof(altKeysym) / sizeof(altKeysym_t); i++) {
       if (keysym == altKeysym[i].a)
         kc = KeysymToKeycode(keymap, altKeysym[i].b, &col);
       else if (keysym == altKeysym[i].b)
@@ -965,16 +979,16 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 
   // See if it's a modifier key.  If so, then don't do any auto-repeat, because
   // the X server will translate each press into a release followed by a press.
-  for (int i = 0; i < 8; i++) {
-    for (int k = 0; k < keyc->maxKeysPerModifier; k++) {
+  for (i = 0; i < 8; i++) {
+    for (k = 0; k < keyc->maxKeysPerModifier; k++) {
       if (kc == keyc->modifierKeyMap[i * keyc->maxKeysPerModifier + k] &&
           IS_PRESSED(keyc,kc) && down)
         return;
     }
   }
 
-  ModifierState shift(dev, ShiftMapIndex);
-  ModifierState modeSwitch(dev, modeSwitchMapIndex);
+  ModifierState shift(ShiftMapIndex);
+  ModifierState modeSwitch(modeSwitchMapIndex);
   if (down) {
     if (col & 1)
       shift.press();
@@ -988,11 +1002,10 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
     }
   }
   vlog.debug("keycode %d %s", kc, down ? "down" : "up");
-  xEvent ev;
-  ev.u.u.type = down ? KeyPress : KeyRelease;
-  ev.u.u.detail = kc;
-  ev.u.keyButtonPointer.time = GetTimeInMillis();
-  (*dev->c_public.processInputProc)(&ev, dev, 1);
+  n = GetKeyboardEvents (eventq, vncKeyboardDevice, down ?
+			 KeyPress : KeyRelease, kc);
+  for (i = 0; i < n; i++)
+    mieqEnqueue (vncKeyboardDevice, eventq + i);
 }
 
 
