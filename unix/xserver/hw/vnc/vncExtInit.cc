@@ -62,11 +62,10 @@ extern "C" {
   static void SendSelectionChangeEvent(Atom selection);
   static int ProcVncExtDispatch(ClientPtr client);
   static int SProcVncExtDispatch(ClientPtr client);
+  static void vncSelectionCallback(CallbackListPtr *callbacks, pointer data,
+				   pointer args);
 
   extern char *display;
-
-  extern Selection *CurrentSelections;
-  extern int NumCurrentSelections;
 }
 
 using namespace rfb;
@@ -98,9 +97,6 @@ struct VncInputSelect {
   int mask;
   VncInputSelect* next;
 };
-
-static int nPrevSelections = 0;
-static TimeStamp* prevSelectionTimes = 0;
 
 static int vncErrorBase = 0;
 static int vncEventBase = 0;
@@ -144,7 +140,11 @@ void vncExtensionInit()
   vlog.info("VNC extension running!");
 
   if (!AddCallback(&ClientStateCallback, vncClientStateChange, 0)) {
-    FatalError("AddCallback failed\n");
+    FatalError("Add ClientStateCallback failed\n");
+  }
+
+  if (!AddCallback(&SelectionCallback, vncSelectionCallback, 0)) {
+    FatalError("Add SelectionCallback failed\n");
   }
 
   try {
@@ -212,6 +212,14 @@ static void vncResetProc(ExtensionEntry* extEntry)
 {
 }
 
+static void vncSelectionCallback(CallbackListPtr *callbacks, pointer data, pointer args)
+{
+  SelectionInfoRec *info = (SelectionInfoRec *) args;
+  Selection *selection = info->selection;
+
+  SendSelectionChangeEvent(selection->selection);
+}
+
 //
 // vncBlockHandler - called just before the X server goes into select().  Call
 // on to the block handler for each desktop.  Then check whether any of the
@@ -222,32 +230,9 @@ static void vncBlockHandler(pointer data, OSTimePtr timeout, pointer readmask)
 {
   fd_set* fds = (fd_set*)readmask;
 
-  for (int scr = 0; scr < screenInfo.numScreens; scr++) {
-    if (desktop[scr]) {
+  for (int scr = 0; scr < screenInfo.numScreens; scr++)
+    if (desktop[scr])
       desktop[scr]->blockHandler(fds);
-    }
-  }
-
-  if (nPrevSelections != NumCurrentSelections) {
-    prevSelectionTimes
-      = (TimeStamp*)xnfrealloc(prevSelectionTimes,
-                               NumCurrentSelections * sizeof(TimeStamp));
-    for (int i = nPrevSelections; i < NumCurrentSelections; i++) {
-      prevSelectionTimes[i].months = 0;
-      prevSelectionTimes[i].milliseconds = 0;
-    }
-    nPrevSelections = NumCurrentSelections;
-  }
-  for (int i = 0; i < NumCurrentSelections; i++) {
-    if (CurrentSelections[i].lastTimeChanged.months
-        != prevSelectionTimes[i].months ||
-        CurrentSelections[i].lastTimeChanged.milliseconds
-        != prevSelectionTimes[i].milliseconds)
-    {
-      SendSelectionChangeEvent(CurrentSelections[i].selection);
-      prevSelectionTimes[i] = CurrentSelections[i].lastTimeChanged;
-    }
-  }
 }
 
 static void vncWakeupHandler(pointer data, int nfds, pointer readmask)
