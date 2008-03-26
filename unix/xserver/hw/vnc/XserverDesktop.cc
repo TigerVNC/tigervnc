@@ -1145,3 +1145,210 @@ static KeyCode KeysymToKeycode(KeySymsPtr keymap, KeySym ks, int* col)
   }
   return 0;
 }
+
+/* Fairly standard US PC Keyboard */
+
+#define VFB_MIN_KEY 8
+#define VFB_MAX_KEY 255
+#define VFB_MAP_LEN (VFB_MAX_KEY - VFB_MIN_KEY + 1)
+#define KEYSYMS_PER_KEY 2
+KeySym keyboardMap[VFB_MAP_LEN * KEYSYMS_PER_KEY] = {
+  NoSymbol, NoSymbol,
+  XK_Escape, NoSymbol,
+  XK_1, XK_exclam,
+  XK_2, XK_at,
+  XK_3, XK_numbersign,
+  XK_4, XK_dollar,
+  XK_5, XK_percent,
+  XK_6, XK_asciicircum,
+  XK_7, XK_ampersand,
+  XK_8, XK_asterisk,
+  XK_9, XK_parenleft,
+  XK_0, XK_parenright,
+  XK_minus, XK_underscore,
+  XK_equal, XK_plus,
+  XK_BackSpace, NoSymbol,
+  XK_Tab, NoSymbol,
+  XK_q, XK_Q,
+  XK_w, XK_W,
+  XK_e, XK_E,
+  XK_r, XK_R,
+  XK_t, XK_T,
+  XK_y, XK_Y,
+  XK_u, XK_U,
+  XK_i, XK_I,
+  XK_o, XK_O,
+  XK_p, XK_P,
+  XK_bracketleft, XK_braceleft,
+  XK_bracketright, XK_braceright,
+  XK_Return, NoSymbol,
+  XK_Control_L, NoSymbol,
+  XK_a, XK_A,
+  XK_s, XK_S,
+  XK_d, XK_D,
+  XK_f, XK_F,
+  XK_g, XK_G,
+  XK_h, XK_H,
+  XK_j, XK_J,
+  XK_k, XK_K,
+  XK_l, XK_L,
+  XK_semicolon, XK_colon,
+  XK_apostrophe, XK_quotedbl,
+  XK_grave, XK_asciitilde,
+  XK_Shift_L, NoSymbol,
+  XK_backslash, XK_bar,
+  XK_z, XK_Z,
+  XK_x, XK_X,
+  XK_c, XK_C,
+  XK_v, XK_V,
+  XK_b, XK_B,
+  XK_n, XK_N,
+  XK_m, XK_M,
+  XK_comma, XK_less,
+  XK_period, XK_greater,
+  XK_slash, XK_question,
+  XK_Shift_R, NoSymbol,
+  XK_KP_Multiply, NoSymbol,
+  XK_Alt_L, XK_Meta_L,
+  XK_space, NoSymbol,
+  /*XK_Caps_Lock*/ NoSymbol, NoSymbol,
+  XK_F1, NoSymbol,
+  XK_F2, NoSymbol,
+  XK_F3, NoSymbol,
+  XK_F4, NoSymbol,
+  XK_F5, NoSymbol,
+  XK_F6, NoSymbol,
+  XK_F7, NoSymbol,
+  XK_F8, NoSymbol,
+  XK_F9, NoSymbol,
+  XK_F10, NoSymbol,
+  XK_Num_Lock, XK_Pointer_EnableKeys,
+  XK_Scroll_Lock, NoSymbol,
+  XK_KP_Home, XK_KP_7,
+  XK_KP_Up, XK_KP_8,
+  XK_KP_Prior, XK_KP_9,
+  XK_KP_Subtract, NoSymbol,
+  XK_KP_Left, XK_KP_4,
+  XK_KP_Begin, XK_KP_5,
+  XK_KP_Right, XK_KP_6,
+  XK_KP_Add, NoSymbol,
+  XK_KP_End, XK_KP_1,
+  XK_KP_Down, XK_KP_2,
+  XK_KP_Next, XK_KP_3,
+  XK_KP_Insert, XK_KP_0,
+  XK_KP_Delete, XK_KP_Decimal,
+  NoSymbol, NoSymbol,
+  NoSymbol, NoSymbol,
+  NoSymbol, NoSymbol,
+  XK_F11, NoSymbol,
+  XK_F12, NoSymbol,
+  XK_Home, NoSymbol,
+  XK_Up, NoSymbol,
+  XK_Prior, NoSymbol,
+  XK_Left, NoSymbol,
+  NoSymbol, NoSymbol,
+  XK_Right, NoSymbol,
+  XK_End, NoSymbol,
+  XK_Down, NoSymbol,
+  XK_Next, NoSymbol,
+  XK_Insert, NoSymbol,
+  XK_Delete, NoSymbol,
+  XK_KP_Enter, NoSymbol,
+  XK_Control_R, NoSymbol,
+  XK_Pause, XK_Break,
+  XK_Print, XK_Execute,
+  XK_KP_Divide, NoSymbol,
+  XK_Alt_R, XK_Meta_R,
+};
+
+static Bool GetMappings(KeySymsPtr pKeySyms, CARD8 *pModMap)
+{
+  int i;
+
+  for (i = 0; i < MAP_LENGTH; i++)
+    pModMap[i] = NoSymbol;
+
+  for (i = 0; i < VFB_MAP_LEN; i++) {
+    if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Caps_Lock)
+      pModMap[i + VFB_MIN_KEY] = LockMask;
+    else if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Shift_L ||
+             keyboardMap[i * KEYSYMS_PER_KEY] == XK_Shift_R)
+      pModMap[i + VFB_MIN_KEY] = ShiftMask;
+    else if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Control_L ||
+             keyboardMap[i * KEYSYMS_PER_KEY] == XK_Control_R) {
+      pModMap[i + VFB_MIN_KEY] = ControlMask;
+    }
+    else if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Alt_L ||
+             keyboardMap[i * KEYSYMS_PER_KEY] == XK_Alt_R)
+      pModMap[i + VFB_MIN_KEY] = Mod1Mask;
+  }
+
+  pKeySyms->minKeyCode = VFB_MIN_KEY;
+  pKeySyms->maxKeyCode = VFB_MAX_KEY;
+  pKeySyms->mapWidth = KEYSYMS_PER_KEY;
+  pKeySyms->map = keyboardMap;
+
+  return TRUE;
+}
+
+static void vfbBell(int percent, DeviceIntPtr device, pointer ctrl, int class_)
+{
+  if (percent > 0)
+    vncBell();
+}
+
+static int vfbKeybdProc(DeviceIntPtr pDevice, int onoff)
+{
+  KeySymsRec            keySyms;
+  CARD8                 modMap[MAP_LENGTH];
+  DevicePtr pDev = (DevicePtr)pDevice;
+
+  switch (onoff)
+  {
+  case DEVICE_INIT:
+    GetMappings(&keySyms, modMap);
+    InitKeyboardDeviceStruct(pDev, &keySyms, modMap,
+                             (BellProcPtr)vfbBell, (KbdCtrlProcPtr)NoopDDA);
+    break;
+  case DEVICE_ON:
+    pDev->on = TRUE;
+    break;
+  case DEVICE_OFF:
+    pDev->on = FALSE;
+    break;
+  case DEVICE_CLOSE:
+    break;
+  }
+  return Success;
+}
+
+static int vfbMouseProc(DeviceIntPtr pDevice, int onoff)
+{
+  BYTE map[6];
+  DevicePtr pDev = (DevicePtr)pDevice;
+
+  switch (onoff)
+  {
+  case DEVICE_INIT:
+    map[1] = 1;
+    map[2] = 2;
+    map[3] = 3;
+    map[4] = 4;
+    map[5] = 5;
+    InitPointerDeviceStruct(pDev, map, 5, miPointerGetMotionEvents,
+                            (PtrCtrlProcPtr)NoopDDA, miPointerGetMotionBufferSize());
+    break;
+
+  case DEVICE_ON:
+    pDev->on = TRUE;
+    break;
+
+  case DEVICE_OFF:
+    pDev->on = FALSE;
+    break;
+
+  case DEVICE_CLOSE:
+    break;
+  }
+  return Success;
+}
