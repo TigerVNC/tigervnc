@@ -66,8 +66,6 @@ typedef struct {
 
   CloseScreenProcPtr           CloseScreen;
   CreateGCProcPtr              CreateGC;
-  PaintWindowBackgroundProcPtr PaintWindowBackground;
-  PaintWindowBorderProcPtr     PaintWindowBorder;
   CopyWindowProcPtr            CopyWindow;
   ClearToBackgroundProcPtr     ClearToBackground;
   RestoreAreasProcPtr          RestoreAreas;
@@ -99,10 +97,6 @@ static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKey;
 
 static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen);
 static Bool vncHooksCreateGC(GCPtr pGC);
-static void vncHooksPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion,
-                                          int what);
-static void vncHooksPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion,
-                                      int what);
 static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                                RegionPtr pOldRegion);
 static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
@@ -222,8 +216,6 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 
   vncHooksScreen->CloseScreen = pScreen->CloseScreen;
   vncHooksScreen->CreateGC = pScreen->CreateGC;
-  vncHooksScreen->PaintWindowBackground = pScreen->PaintWindowBackground;
-  vncHooksScreen->PaintWindowBorder = pScreen->PaintWindowBorder;
   vncHooksScreen->CopyWindow = pScreen->CopyWindow;
   vncHooksScreen->ClearToBackground = pScreen->ClearToBackground;
   vncHooksScreen->RestoreAreas = pScreen->RestoreAreas;
@@ -241,8 +233,6 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 
   pScreen->CloseScreen = vncHooksCloseScreen;
   pScreen->CreateGC = vncHooksCreateGC;
-  pScreen->PaintWindowBackground = vncHooksPaintWindowBackground;
-  pScreen->PaintWindowBorder = vncHooksPaintWindowBorder;
   pScreen->CopyWindow = vncHooksCopyWindow;
   pScreen->ClearToBackground = vncHooksClearToBackground;
   pScreen->RestoreAreas = vncHooksRestoreAreas;
@@ -288,8 +278,6 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
   SCREEN_UNWRAP(pScreen_, CloseScreen);
 
   pScreen->CreateGC = vncHooksScreen->CreateGC;
-  pScreen->PaintWindowBackground = vncHooksScreen->PaintWindowBackground;
-  pScreen->PaintWindowBorder = vncHooksScreen->PaintWindowBorder;
   pScreen->CopyWindow = vncHooksScreen->CopyWindow;
   pScreen->ClearToBackground = vncHooksScreen->ClearToBackground;
   pScreen->RestoreAreas = vncHooksScreen->RestoreAreas;
@@ -320,38 +308,6 @@ static Bool vncHooksCreateGC(GCPtr pGC)
   SCREEN_REWRAP(CreateGC);
 
   return ret;
-}
-
-// PaintWindowBackground - changed region is the given region
-
-static void vncHooksPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion,
-                                          int what)
-{
-  SCREEN_UNWRAP(pWin->drawable.pScreen, PaintWindowBackground);
-
-  RegionHelper changed(pScreen, pRegion);
-
-  (*pScreen->PaintWindowBackground) (pWin, pRegion, what);
-
-  vncHooksScreen->desktop->add_changed(changed.reg);
-
-  SCREEN_REWRAP(PaintWindowBackground);
-}
-
-// PaintWindowBorder - changed region is the given region
-
-static void vncHooksPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion,
-                                      int what)
-{
-  SCREEN_UNWRAP(pWin->drawable.pScreen, PaintWindowBorder);
-
-  RegionHelper changed(pScreen, pRegion);
-
-  (*pScreen->PaintWindowBorder) (pWin, pRegion, what);
-
-  vncHooksScreen->desktop->add_changed(changed.reg);
-
-  SCREEN_REWRAP(PaintWindowBorder);
 }
 
 // CopyWindow - destination of the copy is the old region, clipped by
@@ -546,7 +502,7 @@ public:
 };
 
 
-// ValidateGC - wrap the "ops" if a viewable window
+// ValidateGC - wrap the "ops" if a drawable window or pixmap
 
 static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
                                DrawablePtr pDrawable)
@@ -556,19 +512,12 @@ static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
   DBGPRINT((stderr,"vncHooksValidateGC called\n"));
 
   (*pGC->funcs->ValidateGC) (pGC, changes, pDrawable);
-    
-  u.vncHooksGC->wrappedOps = 0;
-  if (pDrawable->type == DRAWABLE_WINDOW && ((WindowPtr)pDrawable)->viewable) {
-    WindowPtr pWin = (WindowPtr)pDrawable;
-    RegionPtr pRegion = &pWin->clipList;
 
-    if (pGC->subWindowMode == IncludeInferiors)
-      pRegion = &pWin->borderClip;
-    if (REGION_NOTEMPTY(pDrawable->pScreen, pRegion)) {
-      u.vncHooksGC->wrappedOps = pGC->ops;
-      DBGPRINT((stderr,"vncHooksValidateGC: wrapped GC ops\n"));
-    }
-  }
+  u.vncHooksGC->wrappedOps = 0;
+  if (pDrawable->type == DRAWABLE_WINDOW || pDrawable->type == DRAWABLE_PIXMAP) {
+    u.vncHooksGC->wrappedOps = pGC->ops;
+    DBGPRINT((stderr,"vncHooksValidateGC: wrapped GC ops\n"));
+  }    
 }
 
 // Other GC funcs - just unwrap and call on
