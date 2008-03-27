@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(rdr/InStream.h)
+AC_INIT([librfb], [1.5.0a1], [http://www.tightvnc.com/bugs.html])
 
 dnl dirty hack to prevent use of -g in CFLAGS and CXXFLAGS
 ac_cv_prog_cc_g=no
