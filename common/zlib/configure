@@ -162,9 +162,9 @@ int main() { return 0; }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
   echo "Checking for errno.h...	 Yes."
+  CFLAGS="$CFLAGS -DHAVE_ERRNO_H"
 else
   echo "Checking for errno.h...	 No."
-  CFLAGS="$CFLAGS -DNO_ERRNO_H"
 fi
 
 cat > $test.c <<EOF
@@ -176,7 +176,7 @@ caddr_t hello() {
 }
 EOF
 if test "`($CC -c $CFLAGS $test.c) 2>&1`" = ""; then
-  CFLAGS="$CFLAGS -DUSE_MMAP"
+  CFLAGS="$CFLAGS -DHAVE_MMAP"
   echo Checking for mmap support... Yes.
 else
   echo Checking for mmap support... No.

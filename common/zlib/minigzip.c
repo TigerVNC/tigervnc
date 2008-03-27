@@ -15,6 +15,10 @@
 
 /* @(#) $Id: minigzip.c,v 1.1 2004/10/08 09:44:26 const_k Exp $ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include "zlib.h"
 
@@ -25,7 +29,7 @@
    extern void exit  OF((int));
 #endif
 
-#ifdef USE_MMAP
+#ifdef HAVE_MMAP
 #  include <sys/types.h>
 #  include <sys/mman.h>
 #  include <sys/stat.h>
@@ -75,7 +79,7 @@ char *prog;
 
 void error            OF((const char *msg));
 void gz_compress      OF((FILE   *in, gzFile out));
-#ifdef USE_MMAP
+#ifdef HAVE_MMAP
 int  gz_compress_mmap OF((FILE   *in, gzFile out));
 #endif
 void gz_uncompress    OF((gzFile in, FILE   *out));
@@ -105,7 +109,7 @@ void gz_compress(in, out)
     int len;
     int err;
 
-#ifdef USE_MMAP
+#ifdef HAVE_MMAP
     /* Try first compressing with mmap. If mmap fails (minigzip used in a
      * pipe), use the normal fread loop.
      */
@@ -125,7 +129,7 @@ void gz_compress(in, out)
     if (gzclose(out) != Z_OK) error("failed gzclose");
 }
 
-#ifdef USE_MMAP /* MMAP version, Miguel Albrecht <malbrech@eso.org> */
+#ifdef HAVE_MMAP /* MMAP version, Miguel Albrecht <malbrech@eso.org> */
 
 /* Try compressing the input file at once using mmap. Return Z_OK if
  * if success, Z_ERRNO otherwise.
@@ -160,7 +164,7 @@ int gz_compress_mmap(in, out)
     if (gzclose(out) != Z_OK) error("failed gzclose");
     return Z_OK;
 }
-#endif /* USE_MMAP */
+#endif /* HAVE_MMAP */
 
 /* ===========================================================================
  * Uncompress input to output then close both files.
