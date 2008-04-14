@@ -1,16 +1,14 @@
 dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ([2.61])
 AC_INIT([librfb], [1.5.0a1], [http://www.tightvnc.com/bugs.html])
-
-dnl dirty hack to prevent use of -g in CFLAGS and CXXFLAGS
-ac_cv_prog_cc_g=no
-ac_cv_prog_cxx_g=no
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_MAKE_SET
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 
 case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
@@ -79,21 +77,24 @@ AC_SUBST(ZLIB_DIR)
 AC_SUBST(ZLIB_INCLUDE)
 AC_SUBST(ZLIB_LIB)
 
-AC_ARG_WITH(installed-jpeg,
-[  --with-installed-jpeg   use the version of jpeg which is installed on the
-                          system instead of the one distributed with VNC])
+AC_ARG_WITH([tight-jpeg],
+	AS_HELP_STRING([--with-tight-jpeg], 
+		       [use libjpeg which is distributed with VNC]),
+	[], [with_tight_jpeg='no'])
 
-if test "$with_installed_jpeg" = yes; then
-  echo "using installed jpeg"
-  JPEG_LIB=-ljpeg
+if test "x$with_tight_jpeg" = xno; then
+  AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg],
+	[JPEG_LIB='-ljpeg'],
+	[JPEG_DIR=jpeg
+	 JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
+	 JPEG_LIB='$(top_srcdir)/jpeg/libjpeg.la'])
 else
-  JPEG_DIR=jpeg/build
-  JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
-  JPEG_LIB='$(top_srcdir)/jpeg/build/libjpeg.a'
-  echo "configuring jpeg..."
-  (mkdir jpeg/build; cd jpeg/build; ../configure)
-  echo "...done configuring jpeg"
+	JPEG_DIR=jpeg
+	JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
+	JPEG_LIB='$(top_srcdir)/jpeg/libjpeg.la'
 fi
+
+AC_CONFIG_SUBDIRS([jpeg])
 
 AC_SUBST(JPEG_DIR)
 AC_SUBST(JPEG_INCLUDE)
