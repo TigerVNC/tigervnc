@@ -16,6 +16,8 @@
  * USA.
  */
 
+package com.tightvnc.vncviewer;
+
 public class MemInStream extends InStream {
 
   public MemInStream(byte[] data, int offset, int len) {

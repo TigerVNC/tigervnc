@@ -70,6 +70,8 @@
 // fine Java utilities: http://www.acme.com/java/
 
 
+package com.tightvnc.vncviewer;
+
 import java.io.*;
 
 /// The DES encryption method.

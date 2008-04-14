@@ -22,6 +22,8 @@
 // FBS (FrameBuffer Stream) files.
 //
 
+package com.tightvnc.vncviewer;
+
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;

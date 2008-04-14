@@ -22,6 +22,8 @@
 // particular capability as used in the RFB protocol 3.130.
 //
 
+package com.tightvnc.vncviewer;
+
 class CapabilityInfo {
 
   // Public methods

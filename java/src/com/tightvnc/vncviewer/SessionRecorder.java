@@ -22,6 +22,8 @@
 // FBS files are used to save RFB sessions for later playback.
 //
 
+package com.tightvnc.vncviewer;
+
 import java.io.*;
 
 class SessionRecorder {

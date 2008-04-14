@@ -25,6 +25,8 @@
 // a VNC desktop.
 //
 
+package com.tightvnc.vncviewer;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;

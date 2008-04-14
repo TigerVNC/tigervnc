@@ -23,6 +23,7 @@
 // after fatal errors or disconnect
 //
 
+package com.tightvnc.vncviewer;
 
 import java.awt.*;
 import java.awt.event.*;

@@ -20,6 +20,8 @@
 // A ZlibInStream reads from a zlib.io.InputStream
 //
 
+package com.tightvnc.vncviewer;
+
 public class ZlibInStream extends InStream {
 
   static final int defaultBufSize = 16384;
