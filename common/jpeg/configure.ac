@@ -73,7 +73,8 @@ AC_CHECK_FUNCS([memset memcpy], [],
 	[AC_DEFINE([NEED_BSD_STRINGS], 1,
 		   [Define if you have BSD-like bzero and bcopy])])
 
-
-AC_CONFIG_HEADER([jconfig.h:config.h.in])
+# config.h should not be included
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([jconfig.h])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
