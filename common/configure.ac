@@ -57,25 +57,28 @@ AC_CHECK_LIB(dmedia, dmICCreate,
 
 AC_SUBST(PLATFORM_CXXSRCS)
 
-AC_ARG_WITH(installed-zlib,
-[  --with-installed-zlib   use the version of zlib which is installed on the
-                          system instead of the one distributed with VNC])
+AC_ARG_WITH([tight-zlib],
+	AS_HELP_STRING([--with-tight-zlib],
+		       [use libz which is distributed with VNC]),
+	[], [with_tight_zlib='no'])
 
-if test "$with_installed_zlib" = yes; then
-  echo "using installed zlib"
-  ZLIB_LIB=-lz
+if test "x$with_tight_zlib" = xno; then
+	AC_SEARCH_LIBS([inflateEnd], [z],
+		[ZLIB_LIB='-lz'],
+		[ZLIB_DIR=zlib
+		 ZLIB_INCLUDE='-I$(top_srcdir)/zlib'
+		 ZLIB_LIB='$(top_srcdir)/zlib/libz.la'])
 else
-  ZLIB_DIR=zlib
-  ZLIB_INCLUDE='-I$(top_srcdir)/zlib'
-  ZLIB_LIB='$(top_srcdir)/zlib/libz.a'
-  echo "configuring zlib..."
-  (cd zlib; ./configure)
-  echo "...done configuring zlib"
+	ZLIB_DIR=zlib
+	ZLIB_INCLUDE='-I$(top_srcdir)/zlib'
+	ZLIB_LIB='$(top_srcdir)/zlib/libz.la'
 fi
 
 AC_SUBST(ZLIB_DIR)
 AC_SUBST(ZLIB_INCLUDE)
 AC_SUBST(ZLIB_LIB)
+
+AC_CONFIG_SUBDIRS([zlib])
 
 AC_ARG_WITH([tight-jpeg],
 	AS_HELP_STRING([--with-tight-jpeg], 
