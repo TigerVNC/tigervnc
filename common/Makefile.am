@@ -1,4 +1,1 @@
-
 SUBDIRS = @ZLIB_DIR@ @JPEG_DIR@ rdr network Xregion rfb
-
-# followed by boilerplate.mk
