@@ -7,9 +7,7 @@ AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
-AC_PROG_INSTALL
 AC_PROG_LIBTOOL
-AC_PROG_MAKE_SET
 AC_LANG([C++])
 
 case "`(uname -sr) 2>/dev/null`" in
@@ -126,14 +124,6 @@ SOCKLEN_T_DEFINE='-DVNC_SOCKLEN_T=socklen_t',
 AC_MSG_RESULT(using int)
 SOCKLEN_T_DEFINE='-DVNC_SOCKLEN_T=int')
 AC_SUBST(SOCKLEN_T_DEFINE)
-
-BOILERPLATE=boilerplate.mk
-
-if (sh -c "make --version" 2>/dev/null | grep GNU 2>&1 >/dev/null); then
-  if sh -c "vncmkdepend" >/dev/null 2>&1; then
-    BOILERPLATE="$BOILERPLATE:depend.mk"
-  fi
-fi
 
 AC_OUTPUT([Makefile
 	   rdr/Makefile
