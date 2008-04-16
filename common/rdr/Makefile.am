@@ -5,3 +5,5 @@ librdr_la_SOURCES = Exception.cxx FdInStream.cxx FdOutStream.cxx InStream.cxx \
 	HexOutStream.cxx
 
 librdr_la_CPPFLAGS = -I$(top_srcdir) @ZLIB_INCLUDE@
+
+librdr_la_LIBADD = @ZLIB_LIB@
