@@ -1,28 +1,15 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(vncviewer/vncviewer.cxx)
+AC_PREREQ([2.61])
+AC_INIT([tightvnc], [1.5.0a1], [http://www.tightvnc.com/bugs.html])
 
-PACKAGE=tightvnc
-VERSION=1.5.0
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
-AC_SUBST(PACKAGE)
-AC_SUBST(VERSION)
-
-dnl Configure the common directory
-echo "configuring common..."
-(cd ../common; ./configure $*)
-echo "...done configuring common"
-
-dnl dirty hack to prevent use of -g in CFLAGS and CXXFLAGS
-ac_cv_prog_cc_g=no
-ac_cv_prog_cxx_g=no
+AC_CONFIG_SUBDIRS([../common])
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
 AC_PROG_MAKE_SET
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 
 case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
