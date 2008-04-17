@@ -18,6 +18,10 @@
 #ifndef __VNCHOOKS_H__
 #define __VNCHOOKS_H__
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 extern "C" {
 #include <screenint.h>
   extern Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop);

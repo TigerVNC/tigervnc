@@ -18,6 +18,10 @@
 #ifndef __VNCEXTINIT_H__
 #define __VNCEXTINIT_H__
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <rfb/Configuration.h>
 #include "XserverDesktop.h"
 

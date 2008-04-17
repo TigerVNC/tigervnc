@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <stdio.h>
 
 extern "C" {

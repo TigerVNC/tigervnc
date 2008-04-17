@@ -22,6 +22,10 @@
 #ifndef __XSERVERDESKTOP_H__
 #define __XSERVERDESKTOP_H__
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <rfb/SDesktop.h>
 #include <rfb/HTTPServer.h>
 #include <rfb/PixelBuffer.h>
