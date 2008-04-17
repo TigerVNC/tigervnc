@@ -71,40 +71,6 @@ AC_SUBST(DMEDIA_LIB)
 
 AC_PATH_XTRA
 
-AC_ARG_WITH(installed-zlib,
-[  --with-installed-zlib   use the version of zlib which is installed on the
-                          system instead of the one distributed with VNC])
-
-if test "$with_installed_zlib" = yes; then
-  echo "using installed zlib"
-  ZLIB_LIB=-lz
-else
-  ZLIB_DIR='$(COMMON)/zlib'
-  ZLIB_INCLUDE='-I$(COMMON)/zlib'
-  ZLIB_LIB='$(COMMON)/zlib/libz.a'
-fi
-
-AC_SUBST(ZLIB_DIR)
-AC_SUBST(ZLIB_INCLUDE)
-AC_SUBST(ZLIB_LIB)
-
-AC_ARG_WITH(installed-jpeg,
-[  --with-installed-jpeg   use the version of jpeg which is installed on the
-                          system instead of the one distributed with VNC])
-
-if test "$with_installed_jpeg" = yes; then
-  echo "using installed jpeg"
-  JPEG_LIB=-ljpeg
-else
-  JPEG_DIR='$(COMMON)/jpeg/build'
-  JPEG_INCLUDE='-I$(COMMON)/jpeg'
-  JPEG_LIB='$(COMMON)/jpeg/build/libjpeg.a'
-fi
-
-AC_SUBST(JPEG_DIR)
-AC_SUBST(JPEG_INCLUDE)
-AC_SUBST(JPEG_LIB)
-
 AC_ARG_ENABLE(vncconfig,
 [  --enable-vncconfig      build the vncconfig utility (assumed by default),
                           use --disable-vncconfig to skip building vncconfig])
@@ -153,14 +119,6 @@ if test "$INET_LIB_REQ" = yes; then
 fi
 AC_LANG_RESTORE
 AC_SUBST(INET_LIB)
-
-BOILERPLATE=boilerplate.mk
-
-if (sh -c "make --version" 2>/dev/null | grep GNU 2>&1 >/dev/null); then
-  if sh -c "vncmkdepend" >/dev/null 2>&1; then
-    BOILERPLATE="$BOILERPLATE:depend.mk"
-  fi
-fi
 
 AC_OUTPUT(Makefile
          tx/Makefile
