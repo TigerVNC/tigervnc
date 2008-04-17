@@ -168,6 +168,5 @@ AC_OUTPUT(Makefile
          vncviewer/Makefile
          vncconfig/Makefile
          vncpasswd/Makefile
-         intl/Makefile
          po/Makefile.in
 )
