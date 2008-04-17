@@ -1,1 +1,3 @@
-SUBDIRS = ../common tx x0vncserver vncviewer vncpasswd @VNCCONFIG_DIR@
+SUBDIRS = ../common tx x0vncserver vncviewer vncpasswd po @VNCCONFIG_DIR@
+
+ACLOCAL_AMFLAGS = -I m4

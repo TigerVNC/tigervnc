@@ -12,6 +12,8 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_LANG([C++])
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.17])
 
 case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
@@ -151,8 +153,6 @@ if test "$INET_LIB_REQ" = yes; then
 fi
 AC_LANG_RESTORE
 AC_SUBST(INET_LIB)
-
-dnl AM_GNU_GETTEXT
 
 BOILERPLATE=boilerplate.mk
 
