@@ -1,7 +1,0 @@
-
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
-SUBDIRS = ../common tx x0vncserver vncviewer vncpasswd @VNCCONFIG_DIR@
-
-# followed by boilerplate.mk

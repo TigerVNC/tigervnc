@@ -1,14 +1,16 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.61])
 AC_INIT([tightvnc], [1.5.0a1], [http://www.tightvnc.com/bugs.html])
+AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
+
+AC_SUBST([COMMON_DIR], ['$(top_srcdir)/../common'])
 
 AC_CONFIG_SUBDIRS([../common])
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
-AC_PROG_RANLIB
-AC_PROG_MAKE_SET
+AC_PROG_LIBTOOL
 AC_LANG([C++])
 
 case "`(uname -sr) 2>/dev/null`" in
@@ -160,12 +162,12 @@ if (sh -c "make --version" 2>/dev/null | grep GNU 2>&1 >/dev/null); then
   fi
 fi
 
-AC_OUTPUT(Makefile:common.mk:Makefile.in:$BOILERPLATE \
-         tx/Makefile:common.mk:tx/Makefile.in:$BOILERPLATE \
-         x0vncserver/Makefile:common.mk:x0vncserver/Makefile.in:$BOILERPLATE \
-         vncviewer/Makefile:common.mk:vncviewer/Makefile.in:$BOILERPLATE \
-         vncconfig/Makefile:common.mk:vncconfig/Makefile.in:$BOILERPLATE \
-         vncpasswd/Makefile:common.mk:vncpasswd/Makefile.in:$BOILERPLATE \
-         intl/Makefile \
-         po/Makefile.in \
+AC_OUTPUT(Makefile
+         tx/Makefile
+         x0vncserver/Makefile
+         vncviewer/Makefile
+         vncconfig/Makefile
+         vncpasswd/Makefile
+         intl/Makefile
+         po/Makefile.in
 )
