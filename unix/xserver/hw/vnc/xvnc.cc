@@ -1215,25 +1215,6 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
     }
 } /* end InitOutput */
 
-#ifdef DPMSExtension
-extern "C" {
-#if NeedFunctionPrototypes
-  void DPMSSet(CARD16 level)
-#else
-    void DPMSSet(level)
-    CARD16 level;
-#endif
-  {
-    return;
-  }
-
-  Bool DPMSSupported()
-  {
-    return FALSE;
-  }
-}
-#endif
-
 /* this is just to get the server to link on AIX */
 #ifdef AIXV3
 int SelectWaitTime = 10000; /* usec */
