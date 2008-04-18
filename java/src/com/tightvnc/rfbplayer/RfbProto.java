@@ -32,46 +32,36 @@ import java.net.*;
 class RfbProto {
 
   final String versionMsg = "RFB 003.003\n";
-  final static int ConnFailed = 0, NoAuth = 1, VncAuth = 2;
-  final static int VncAuthOK = 0, VncAuthFailed = 1, VncAuthTooMany = 2;
+  final static int ConnFailed = 0,  NoAuth = 1,  VncAuth = 2;
+  final static int VncAuthOK = 0,  VncAuthFailed = 1,  VncAuthTooMany = 2;
 
-  final static int FramebufferUpdate = 0, SetColourMapEntries = 1, Bell = 2,
-    ServerCutText = 3;
+  final static int FramebufferUpdate = 0,  SetColourMapEntries = 1,  Bell = 2,  ServerCutText =
+      3;
 
-  final int SetPixelFormat = 0, FixColourMapEntries = 1, SetEncodings = 2,
-    FramebufferUpdateRequest = 3, KeyboardEvent = 4, PointerEvent = 5,
-    ClientCutText = 6;
+  final int SetPixelFormat = 0,  FixColourMapEntries = 1,  SetEncodings = 2,  FramebufferUpdateRequest =
+      3,  KeyboardEvent = 4,  PointerEvent = 5,  ClientCutText = 6;
 
-  final static int
-    EncodingRaw            = 0,
-    EncodingCopyRect       = 1,
-    EncodingRRE            = 2,
-    EncodingCoRRE          = 4,
-    EncodingHextile        = 5,
-    EncodingZlib           = 6,
-    EncodingTight          = 7,
-    EncodingCompressLevel0 = 0xFFFFFF00,
-    EncodingQualityLevel0  = 0xFFFFFFE0,
-    EncodingXCursor        = 0xFFFFFF10,
-    EncodingRichCursor     = 0xFFFFFF11,
-    EncodingLastRect       = 0xFFFFFF20,
-    EncodingNewFBSize      = 0xFFFFFF21;
+  final static int EncodingRaw = 0,  EncodingCopyRect = 1,  EncodingRRE = 2,  EncodingCoRRE =
+      4,  EncodingHextile = 5,  EncodingZlib = 6,  EncodingTight = 7,  EncodingCompressLevel0 =
+      0xFFFFFF00,  EncodingQualityLevel0 = 0xFFFFFFE0,  EncodingXCursor =
+      0xFFFFFF10,  EncodingRichCursor = 0xFFFFFF11,  EncodingLastRect =
+      0xFFFFFF20,  EncodingNewFBSize = 0xFFFFFF21;
 
-  final int HextileRaw			= (1 << 0);
-  final int HextileBackgroundSpecified	= (1 << 1);
-  final int HextileForegroundSpecified	= (1 << 2);
-  final int HextileAnySubrects		= (1 << 3);
-  final int HextileSubrectsColoured	= (1 << 4);
+  final int HextileRaw = (1 << 0);
+  final int HextileBackgroundSpecified = (1 << 1);
+  final int HextileForegroundSpecified = (1 << 2);
+  final int HextileAnySubrects = (1 << 3);
+  final int HextileSubrectsColoured = (1 << 4);
 
-  final static int TightExplicitFilter  = 0x04;
-  final static int TightFill            = 0x08;
-  final static int TightJpeg            = 0x09;
-  final static int TightMaxSubencoding  = 0x09;
-  final static int TightFilterCopy      = 0x00;
-  final static int TightFilterPalette   = 0x01;
-  final static int TightFilterGradient  = 0x02;
+  final static int TightExplicitFilter = 0x04;
+  final static int TightFill = 0x08;
+  final static int TightJpeg = 0x09;
+  final static int TightMaxSubencoding = 0x09;
+  final static int TightFilterCopy = 0x00;
+  final static int TightFilterPalette = 0x01;
+  final static int TightFilterGradient = 0x02;
 
-  final static int TightMinToCompress   = 12;
+  final static int TightMinToCompress = 12;
 
   FbsInputStream fbs;
   DataInputStream is;
@@ -80,7 +70,6 @@ class RfbProto {
   //
   // Constructor.
   //
-
   RfbProto(URL url) throws Exception {
     fbs = null;
     newSession(url);
@@ -89,7 +78,6 @@ class RfbProto {
   //
   // Open new session URL.
   //
-
   public void newSession(URL url) throws Exception {
     if (fbs != null)
       fbs.close();
@@ -106,7 +94,6 @@ class RfbProto {
   //
   // Read server's protocol version message.
   //
-
   int serverMajor, serverMinor;
 
   void readVersionMsg() throws IOException {
@@ -115,12 +102,11 @@ class RfbProto {
 
     is.readFully(b);
 
-    if ((b[0] != 'R') || (b[1] != 'F') || (b[2] != 'B') || (b[3] != ' ')
-	|| (b[4] < '0') || (b[4] > '9') || (b[5] < '0') || (b[5] > '9')
-	|| (b[6] < '0') || (b[6] > '9') || (b[7] != '.')
-	|| (b[8] < '0') || (b[8] > '9') || (b[9] < '0') || (b[9] > '9')
-	|| (b[10] < '0') || (b[10] > '9') || (b[11] != '\n'))
-    {
+    if ((b[0] != 'R') || (b[1] != 'F') || (b[2] != 'B') || (b[3] != ' ') ||
+        (b[4] < '0') || (b[4] > '9') || (b[5] < '0') || (b[5] > '9') || (b[6] <
+        '0') || (b[6] > '9') || (b[7] != '.') || (b[8] < '0') || (b[8] > '9') ||
+        (b[9] < '0') || (b[9] > '9') || (b[10] < '0') || (b[10] > '9') ||
+        (b[11] != '\n')) {
       throw new IOException("Incorrect protocol version");
     }
 
@@ -132,7 +118,6 @@ class RfbProto {
   //
   // Find out the authentication scheme.
   //
-
   int readAuthScheme() throws IOException {
     int authScheme = is.readInt();
 
@@ -158,7 +143,6 @@ class RfbProto {
   //
   // Read the server initialisation message
   //
-
   String desktopName;
   int framebufferWidth, framebufferHeight;
   int bitsPerPixel, depth;
@@ -190,7 +174,6 @@ class RfbProto {
   //
   // Set new framebuffer size
   //
-
   void setFramebufferSize(int width, int height) {
     framebufferWidth = width;
     framebufferHeight = height;
@@ -200,7 +183,6 @@ class RfbProto {
   //
   // Read the server message type
   //
-
   int readServerMessageType() throws IOException {
     return is.readUnsignedByte();
   }
@@ -209,7 +191,6 @@ class RfbProto {
   //
   // Read a FramebufferUpdate message
   //
-
   int updateNRects;
 
   void readFramebufferUpdate() throws IOException {
@@ -218,7 +199,6 @@ class RfbProto {
   }
 
   // Read a FramebufferUpdate rectangle header
-
   int updateRectX, updateRectY, updateRectW, updateRectH, updateRectEncoding;
 
   void readFramebufferUpdateRectHdr() throws IOException {
@@ -229,19 +209,18 @@ class RfbProto {
     updateRectEncoding = is.readInt();
 
     if ((updateRectEncoding == EncodingLastRect) ||
-	(updateRectEncoding == EncodingNewFBSize))
+        (updateRectEncoding == EncodingNewFBSize))
       return;
 
     if ((updateRectX + updateRectW > framebufferWidth) ||
-	(updateRectY + updateRectH > framebufferHeight)) {
+        (updateRectY + updateRectH > framebufferHeight)) {
       throw new IOException("Framebuffer update rectangle too large: " +
-			    updateRectW + "x" + updateRectH + " at (" +
-			    updateRectX + "," + updateRectY + ")");
+                            updateRectW + "x" + updateRectH + " at (" +
+                            updateRectX + "," + updateRectY + ")");
     }
   }
 
   // Read CopyRect source X and Y.
-
   int copyRectSrcX, copyRectSrcY;
 
   void readCopyRect() throws IOException {
@@ -253,7 +232,6 @@ class RfbProto {
   //
   // Read a ServerCutText message
   //
-
   String readServerCutText() throws IOException {
     byte[] pad = new byte[3];
     is.readFully(pad);
@@ -267,7 +245,6 @@ class RfbProto {
   //
   // Read integer in compact representation
   //
-
   int readCompactLen() throws IOException {
     int portion = is.readUnsignedByte();
     int len = portion & 0x7F;
@@ -275,8 +252,8 @@ class RfbProto {
       portion = is.readUnsignedByte();
       len |= (portion & 0x7F) << 7;
       if ((portion & 0x80) != 0) {
-	portion = is.readUnsignedByte();
-	len |= (portion & 0xFF) << 14;
+        portion = is.readUnsignedByte();
+        len |= (portion & 0xFF) << 14;
       }
     }
     return len;

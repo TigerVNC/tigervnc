@@ -52,8 +52,7 @@ class ButtonPanel extends Panel implements ActionListener {
     timeScaleText.addActionListener(this);
   }
 
-  public void setPaused(boolean paused)
-  {
+  public void setPaused(boolean paused) {
     if (paused) {
       playButton.setLabel("Play");
     } else {
@@ -69,7 +68,7 @@ class ButtonPanel extends Panel implements ActionListener {
       char[] zeroes = {'0', '0', '0', '0'};
       String text = String.valueOf(seconds);
       if (text.length() < 4) {
-	text = new String(zeroes, 0, 4 - text.length()) + text;
+        text = new String(zeroes, 0, 4 - text.length()) + text;
       }
       posText.setText(text);
       posText.setCaretPosition(text.length());
@@ -79,7 +78,6 @@ class ButtonPanel extends Panel implements ActionListener {
   //
   // Event processing.
   //
-
   public void actionPerformed(ActionEvent evt) {
     if (evt.getSource() == playButton) {
       player.setPaused(playButton.getLabel().equals("Pause"));
@@ -88,10 +86,11 @@ class ButtonPanel extends Panel implements ActionListener {
     } else if (evt.getSource() == timeScaleText) {
       double speed = Double.valueOf(timeScaleText.getText()).doubleValue();
       if (speed <= 0.0)
-	speed = 1.0;
+        speed = 1.0;
       timeScaleText.setText(String.valueOf(speed));
       player.setSpeed(speed);
     }
   }
+
 }
 

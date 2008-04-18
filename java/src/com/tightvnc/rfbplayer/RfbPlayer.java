@@ -24,7 +24,7 @@ import java.io.*;
 import java.net.*;
 
 public class RfbPlayer extends java.applet.Applet
-  implements java.lang.Runnable, WindowListener {
+    implements java.lang.Runnable, WindowListener {
 
   boolean inAnApplet = true;
   boolean inSeparateFrame = false;
@@ -33,7 +33,6 @@ public class RfbPlayer extends java.applet.Applet
   // main() is called when run as a java program from the command line.
   // It simply runs the applet inside a newly-created frame.
   //
-
   public static void main(String[] argv) {
     RfbPlayer p = new RfbPlayer();
     p.mainArgs = argv;
@@ -67,7 +66,6 @@ public class RfbPlayer extends java.applet.Applet
   //
   // init()
   //
-
   public void init() {
 
     readParameters();
@@ -75,7 +73,7 @@ public class RfbPlayer extends java.applet.Applet
     if (inSeparateFrame) {
       vncFrame = new Frame("RFB Session Player");
       if (!inAnApplet) {
-	vncFrame.add("Center", this);
+        vncFrame.add("Center", this);
       }
       vncContainer = vncFrame;
     } else {
@@ -95,7 +93,6 @@ public class RfbPlayer extends java.applet.Applet
   //
   // run() - executed by the rfbThread to read RFB data.
   //
-
   public void run() {
 
     gridbag = new GridBagLayout();
@@ -121,9 +118,9 @@ public class RfbPlayer extends java.applet.Applet
 
     try {
       if (inAnApplet) {
-	url = new URL(getCodeBase(), sessionURL);
+        url = new URL(getCodeBase(), sessionURL);
       } else {
-	url = new URL(sessionURL);
+        url = new URL(sessionURL);
       }
       rfb = new RfbProto(url);
 
@@ -133,54 +130,54 @@ public class RfbPlayer extends java.applet.Applet
 
       if (inSeparateFrame) {
 
-	// Create a panel which itself is resizeable and can hold
-	// non-resizeable VncCanvas component at the top left corner.
-	Panel canvasPanel = new Panel();
-	canvasPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-	canvasPanel.add(vc);
+        // Create a panel which itself is resizeable and can hold
+        // non-resizeable VncCanvas component at the top left corner.
+        Panel canvasPanel = new Panel();
+        canvasPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        canvasPanel.add(vc);
 
-	// Create a ScrollPane which will hold a panel with VncCanvas
-	// inside.
-	desktopScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
-	gbc.fill = GridBagConstraints.BOTH;
-	gridbag.setConstraints(desktopScrollPane, gbc);
-	desktopScrollPane.add(canvasPanel);
+        // Create a ScrollPane which will hold a panel with VncCanvas
+        // inside.
+        desktopScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
+        gbc.fill = GridBagConstraints.BOTH;
+        gridbag.setConstraints(desktopScrollPane, gbc);
+        desktopScrollPane.add(canvasPanel);
 
-	// Finally, add our ScrollPane to the Frame window.
-	vncFrame.add(desktopScrollPane);
-	vncFrame.setTitle(rfb.desktopName);
-	vncFrame.pack();
-	vc.resizeDesktopFrame();
+        // Finally, add our ScrollPane to the Frame window.
+        vncFrame.add(desktopScrollPane);
+        vncFrame.setTitle(rfb.desktopName);
+        vncFrame.pack();
+        vc.resizeDesktopFrame();
 
       } else {
 
-	// Just add the VncCanvas component to the Applet.
-	gridbag.setConstraints(vc, gbc);
-	add(vc);
-	validate();
+        // Just add the VncCanvas component to the Applet.
+        gridbag.setConstraints(vc, gbc);
+        add(vc);
+        validate();
 
       }
 
       while (true) {
-	try {
-	  setPaused(!autoPlay);
-	  rfb.fbs.setSpeed(playbackSpeed);
-	  if (initialTimeOffset > rfb.fbs.getTimeOffset())
-	    setPos(initialTimeOffset); // don't seek backwards here
-	  vc.processNormalProtocol();
-	} catch (EOFException e) {
-	  if (e.getMessage() != null && e.getMessage().equals("[REWIND]")) {
-	    // A special type of EOFException allowing us to seek backwards.
-	    initialTimeOffset = rfb.fbs.getSeekOffset();
-	    autoPlay = !rfb.fbs.isPaused();
-	  } else {
-	    // Return to the beginning after the playback is finished.
-	    initialTimeOffset = 0;
-	    autoPlay = false;
-	  }
+        try {
+          setPaused(!autoPlay);
+          rfb.fbs.setSpeed(playbackSpeed);
+          if (initialTimeOffset > rfb.fbs.getTimeOffset())
+            setPos(initialTimeOffset); // don't seek backwards here
+          vc.processNormalProtocol();
+        } catch (EOFException e) {
+          if (e.getMessage() != null && e.getMessage().equals("[REWIND]")) {
+            // A special type of EOFException allowing us to seek backwards.
+            initialTimeOffset = rfb.fbs.getSeekOffset();
+            autoPlay = !rfb.fbs.isPaused();
+          } else {
+            // Return to the beginning after the playback is finished.
+            initialTimeOffset = 0;
+            autoPlay = false;
+          }
           rfb.newSession(url);
           vc.updateFramebufferSize();
-	}
+        }
       }
 
     } catch (FileNotFoundException e) {
@@ -189,7 +186,7 @@ public class RfbPlayer extends java.applet.Applet
       e.printStackTrace();
       fatalError(e.toString());
     }
-    
+
   }
 
   public void setPaused(boolean paused) {
@@ -215,7 +212,6 @@ public class RfbPlayer extends java.applet.Applet
     rfb.fbs.setTimeOffset(pos);
   }
 
-
   public void updatePos() {
     if (showControls)
       buttonPanel.setPos(rfb.fbs.getTimeOffset());
@@ -227,7 +223,6 @@ public class RfbPlayer extends java.applet.Applet
   // param_name/param_value pairs where the names and values correspond to
   // those expected in the html applet tag source.
   //
-
   public void readParameters() {
 
     sessionURL = readParameter("URL", true);
@@ -253,7 +248,7 @@ public class RfbPlayer extends java.applet.Applet
     if (inAnApplet) {
       str = readParameter("Open New Window", false);
       if (str != null && str.equalsIgnoreCase("Yes"))
-	inSeparateFrame = true;
+        inSeparateFrame = true;
     }
 
     // Fine tuning options.
@@ -266,21 +261,21 @@ public class RfbPlayer extends java.applet.Applet
     if (inAnApplet) {
       String s = getParameter(name);
       if ((s == null) && required) {
-	fatalError(name + " parameter not specified");
+        fatalError(name + " parameter not specified");
       }
       return s;
     }
 
     for (int i = 0; i < mainArgs.length; i += 2) {
       if (mainArgs[i].equalsIgnoreCase(name)) {
-	try {
-	  return mainArgs[i+1];
-	} catch (Exception e) {
-	  if (required) {
-	    fatalError(name + " parameter not specified");
-	  }
-	  return null;
-	}
+        try {
+          return mainArgs[i + 1];
+        } catch (Exception e) {
+          if (required) {
+            fatalError(name + " parameter not specified");
+          }
+          return null;
+        }
       }
     }
     if (required) {
@@ -294,8 +289,9 @@ public class RfbPlayer extends java.applet.Applet
     long result = defaultValue;
     if (str != null) {
       try {
-	result = Long.parseLong(str);
-      } catch (NumberFormatException e) { }
+        result = Long.parseLong(str);
+      } catch (NumberFormatException e) {
+      }
     }
     return result;
   }
@@ -305,8 +301,9 @@ public class RfbPlayer extends java.applet.Applet
     double result = defaultValue;
     if (str != null) {
       try {
-	result = Double.valueOf(str).doubleValue();
-      } catch (NumberFormatException e) { }
+        result = Double.valueOf(str).doubleValue();
+      } catch (NumberFormatException e) {
+      }
     }
     return result;
   }
@@ -314,23 +311,22 @@ public class RfbPlayer extends java.applet.Applet
   //
   // fatalError() - print out a fatal error message.
   //
-
   public void fatalError(String str) {
     System.out.println(str);
 
     if (inAnApplet) {
       vncContainer.removeAll();
       if (rfb != null) {
-	rfb = null;
+        rfb = null;
       }
       Label errLabel = new Label(str);
       errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
       vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
       vncContainer.add(errLabel);
       if (inSeparateFrame) {
-	vncFrame.pack();
+        vncFrame.pack();
       } else {
-	validate();
+        validate();
       }
       Thread.currentThread().stop();
     } else {
@@ -342,7 +338,6 @@ public class RfbPlayer extends java.applet.Applet
   //
   // This method is called before the applet is destroyed.
   //
-
   public void destroy() {
     vncContainer.removeAll();
     if (rfb != null) {
@@ -357,7 +352,6 @@ public class RfbPlayer extends java.applet.Applet
   //
   // Close application properly on window close event.
   //
-
   public void windowClosing(WindowEvent evt) {
     vncContainer.removeAll();
     if (rfb != null)
@@ -372,11 +366,22 @@ public class RfbPlayer extends java.applet.Applet
   //
   // Ignore window events we're not interested in.
   //
+  public void windowActivated(WindowEvent evt) {
+  }
 
-  public void windowActivated (WindowEvent evt) {}
-  public void windowDeactivated (WindowEvent evt) {}
-  public void windowOpened(WindowEvent evt) {}
-  public void windowClosed(WindowEvent evt) {}
-  public void windowIconified(WindowEvent evt) {}
-  public void windowDeiconified(WindowEvent evt) {}
+  public void windowDeactivated(WindowEvent evt) {
+  }
+
+  public void windowOpened(WindowEvent evt) {
+  }
+
+  public void windowClosed(WindowEvent evt) {
+  }
+
+  public void windowIconified(WindowEvent evt) {
+  }
+
+  public void windowDeiconified(WindowEvent evt) {
+  }
+
 }

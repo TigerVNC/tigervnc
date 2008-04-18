@@ -43,7 +43,6 @@ class FbsInputStream extends InputStream {
   //
   // Constructors.
   //
-
   FbsInputStream() throws IOException {
     throw new IOException("FbsInputStream: no such constructor");
   }
@@ -51,9 +50,7 @@ class FbsInputStream extends InputStream {
   //
   // Construct FbsInputStream object, begin playback.
   //
-
-  FbsInputStream(InputStream in) throws IOException
-  {
+  FbsInputStream(InputStream in) throws IOException {
     this.in = in;
     startTime = System.currentTimeMillis();
     timeOffset = 0;
@@ -66,9 +63,9 @@ class FbsInputStream extends InputStream {
     readFully(b);
 
     if (b[0] != 'F' || b[1] != 'B' || b[2] != 'S' || b[3] != ' ' ||
-	b[4] != '0' || b[5] != '0' || b[6] != '1' || b[7] != '.' ||
-	b[8] < '0' || b[8] > '9' || b[9] < '0' || b[9] > '9' ||
-	b[10] < '0' || b[10] > '9' || b[11] != '\n') {
+        b[4] != '0' || b[5] != '0' || b[6] != '1' || b[7] != '.' ||
+        b[8] < '0' || b[8] > '9' || b[9] < '0' || b[9] > '9' ||
+        b[10] < '0' || b[10] > '9' || b[11] != '\n') {
       throw new IOException("Incorrect protocol version");
     }
 
@@ -80,19 +77,16 @@ class FbsInputStream extends InputStream {
   //
   // Basic methods overriding InputStream's methods.
   //
-
-  public int read() throws IOException
-  {
+  public int read() throws IOException {
     while (bufferSize == 0) {
       if (!fillBuffer())
-	return -1;
+        return -1;
     }
     bufferSize--;
     return buffer[bufferPos++] & 0xFF;
   }
 
-  public int available() throws IOException
-  {
+  public int available() throws IOException {
     // FIXME: This will work incorrectly if our caller will wait until
     // some amount of data is available when the buffer contains less
     // data than then that. Current implementation never reads more
@@ -100,8 +94,7 @@ class FbsInputStream extends InputStream {
     return bufferSize;
   }
 
-  public synchronized void close() throws IOException
-  {
+  public synchronized void close() throws IOException {
     in.close();
     in = null;
     startTime = -1;
@@ -121,15 +114,12 @@ class FbsInputStream extends InputStream {
   //
   // Methods providing additional functionality.
   //
-
-  public synchronized long getTimeOffset()
-  {
+  public synchronized long getTimeOffset() {
     long off = Math.max(seekOffset, timeOffset);
     return (long)(off * playbackSpeed);
   }
 
-  public synchronized void setTimeOffset(long pos)
-  {
+  public synchronized void setTimeOffset(long pos) {
     seekOffset = (long)(pos / playbackSpeed);
     if (seekOffset < timeOffset) {
       seekBackwards = true;
@@ -137,8 +127,7 @@ class FbsInputStream extends InputStream {
     notify();
   }
 
-  public synchronized void setSpeed(double newSpeed)
-  {
+  public synchronized void setSpeed(double newSpeed) {
     long newOffset = (long)(timeOffset * playbackSpeed / newSpeed);
     startTime += timeOffset - newOffset;
     timeOffset = newOffset;
@@ -148,45 +137,37 @@ class FbsInputStream extends InputStream {
     playbackSpeed = newSpeed;
   }
 
-  public boolean isSeeking()
-  {
+  public boolean isSeeking() {
     return (seekOffset >= 0);
   }
 
-  public long getSeekOffset()
-  {
+  public long getSeekOffset() {
     return (long)(seekOffset * playbackSpeed);
   }
 
-  public boolean isPaused()
-  {
+  public boolean isPaused() {
     return paused;
   }
 
-  public synchronized void pausePlayback()
-  {
+  public synchronized void pausePlayback() {
     paused = true;
     notify();
   }
 
-  public synchronized void resumePlayback()
-  {
+  public synchronized void resumePlayback() {
     paused = false;
     startTime = System.currentTimeMillis() - timeOffset;
     notify();
   }
 
-  public void addObserver(Observer target)
-  {
+  public void addObserver(Observer target) {
     obs = target;
   }
 
   //
   // Methods for internal use.
   //
-
-  private synchronized boolean fillBuffer() throws IOException
-  {
+  private synchronized boolean fillBuffer() throws IOException {
     // The reading thread should be interrupted on backward seeking.
     if (seekBackwards)
       throw new EOFException("[REWIND]");
@@ -212,20 +193,20 @@ class FbsInputStream extends InputStream {
 
     if (seekOffset >= 0) {
       if (timeOffset >= seekOffset) {
-	startTime = System.currentTimeMillis() - seekOffset;
-	seekOffset = -1;
+        startTime = System.currentTimeMillis() - seekOffset;
+        seekOffset = -1;
       } else {
-	return true;
+        return true;
       }
     }
 
     while (true) {
       long timeDiff = startTime + timeOffset - System.currentTimeMillis();
       if (timeDiff <= 0) {
-	break;
+        break;
       }
       try {
-	wait(timeDiff);
+        wait(timeDiff);
       } catch (InterruptedException e) {
       }
       waitWhilePaused();
@@ -237,48 +218,45 @@ class FbsInputStream extends InputStream {
   //
   // In paused mode, wait for external notification on this object.
   //
-
-  private void waitWhilePaused()
-  {
+  private void waitWhilePaused() {
     while (paused && !isSeeking()) {
       synchronized(this) {
-	try {
-	  // Note: we call Observer.update(Observable,Object) method
-	  // directly instead of maintaining an Observable object.
-	  obs.update(null, null);
-	  wait();
-	} catch (InterruptedException e) {
-	}
+        try {
+          // Note: we call Observer.update(Observable,Object) method
+          // directly instead of maintaining an Observable object.
+          obs.update(null, null);
+          wait();
+        } catch (InterruptedException e) {
+        }
       }
     }
   }
 
-  private long readUnsigned32() throws IOException
-  {
+  private long readUnsigned32() throws IOException {
     byte[] buf = new byte[4];
     if (!readFully(buf))
       return -1;
 
     return ((long)(buf[0] & 0xFF) << 24 |
-	    (buf[1] & 0xFF) << 16 |
-	    (buf[2] & 0xFF) << 8  |
-	    (buf[3] & 0xFF));
+        (buf[1] & 0xFF) << 16 |
+        (buf[2] & 0xFF) << 8 |
+        (buf[3] & 0xFF));
   }
 
-  private boolean readFully(byte[] b) throws IOException
-  {
+  private boolean readFully(byte[] b) throws IOException {
     int off = 0;
     int len = b.length;
 
     while (off != len) {
       int count = in.read(b, off, len - off);
       if (count < 0) {
-	return false;
+        return false;
       }
       off += count;
     }
 
     return true;
   }
+
 }
 
