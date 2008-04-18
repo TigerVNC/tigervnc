@@ -1,0 +1,17 @@
+<!-- This is an example of how to set default options in the Java VNC viewer
+     applet - in this case the "Share Desktop" option is set to "Yes".  Any
+     option can be set by giving a parameter with the same name as the
+     option (spaces are important, but case isn't) -->
+
+<HTML>
+<TITLE>
+$USER's $DESKTOP desktop ($DISPLAY) [shared]
+</TITLE>
+<APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar
+        WIDTH=$APPLETWIDTH HEIGHT=$APPLETHEIGHT>
+<param name=PORT value=$PORT>
+<param name="share desktop" value=yes>
+</APPLET>
+<BR>
+<A href="http://www.tightvnc.com/">www.TightVNC.com</A>
+</HTML>
