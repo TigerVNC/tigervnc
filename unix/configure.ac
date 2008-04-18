@@ -5,8 +5,6 @@ AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
 AC_SUBST([COMMON_DIR], ['$(top_srcdir)/../common'])
 
-AC_CONFIG_SUBDIRS([../common])
-
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
