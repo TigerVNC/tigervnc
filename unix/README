@@ -52,11 +52,10 @@ To build everything but Xvnc, do:
   % ./configure
   % make
 
-This should build first some libraries - zlib, rdr, network, Xregion, rfb and
-tx - then vncviewer, vncconfig and vncpasswd.  If you already have zlib
-installed on your system you can run "./configure --with-installed-zlib" if you
-prefer (this is strongly advised on FreeBSD, since we've been told there are
-problems otherwise).
+This should build first some libraries - zlib, jpeg, rdr, network, Xregion, rfb
+and tx - then vncviewer, vncconfig and vncpasswd.  System zlib and jpeg are
+preferred. If you want use zlib and jpeg distributed with TightVNC you have to
+run configure "./configure --with-tight-zlib --with-tight-jpeg".
 
 Building Xvnc
 =============
@@ -69,61 +68,76 @@ tree.  Unlike previous versions of Xvnc, we do not provide an X source tree
 with this distribution.  We have designed the distribution to be as independent
 as possible of the X tree used.
 
-We have successfully used X.Org 6.8.2 (available from http://www.x.org/).  
+We have successfully used X.Org 7.4.99.901, (available from http://www.x.org/).
 Note that the X tree is enormous and notoriously difficult to deal with -
 building it is not for the faint-hearted!
 
-Once you have a copy of the X source tree, make sure it is unpacked at the top
-level of this distribution, so that the xc directory of the X source tree
-matches the xc of this distribution, for example:
+You have to install many additional things like GNU build system tools and many
+libraries needed by X server
 
-  % tar xzf X11R6.8.2-src.tar.bz2
+First you have to download X source:
 
-Then you must apply a patch to some files in the X source tree:
+  % git clone git://git.freedesktop.org/git/xorg/xserver xorg
+  % cd xorg
+  % git checkout origin/server-1.5-branch
 
-  % patch -Np0 <xc.patch
+Once you have a copy of the X source tree, copy it to vnc source tree
+
+  % cp -r xorg/* <path_to_tightvnc_source>/unix/xserver
+
+Then you have to apply a patch to some files in the X source tree:
+
+  % cd <path_to_tightvnc_source>/unix/xserver
+  % patch -p0 < ../xserver.patch
+
+After that you have to regenerate configure script and Makefile.in:
+
+  % autoreconf -fiv
+
+Next step is run configure script. It is very difficult use correct parameters.
+You should use same parameters as used in your distribution X server and add
+--disable-xvfb --disable-xnest --disable-xorg:
+
+  % ./configure <dist_X_flags> --disable-xvfb --disable-xnest --disable-xorg
 
 If this works, you should be able to build the entire X tree, including Xvnc:
 
-  % cd xc
-  % make World
+  % make
 
 This will take a long time, and will quite probably fail for one reason or
 another!  If you are having trouble, we suggest you try to build the X tree in
 isolation first before attempting it with the VNC additions.
 
-If successful, in the xc/programs/Xserver directory you should find an Xvnc
-binary, plus the native X server binary(ies) for your platform with VNC support
-compiled in.  If you are building from an X.Org tree on a supported
-platform, you should also find a vnc.so module in
-xc/programs/Xserver/vnc/modules.
+If successful, in the hw/vnc directory you should find an Xvnc and libvnc
+module.
 
 Exactly which X extensions and features are built into Xvnc and the native X
-server binary is determined by the settings in xc/config/cf.  The file vnc.def
-contains the settings we use to build our binary distributions.  You may need
-to edit this and the other files as appropriate.
+server binary is determined by configure parameters. Run ./configure --help for
+more information.
 
 Installing
 ==========
 
 Different unix platforms have different conventions for where software should
 be installed.  To copy the programs to some directory which is in your PATH
-environment variable, such as /usr/local/bin, there is a script called
-vncinstall which you can use:
+environment variable, such as /usr/local/bin you can use Makefile variables. In
+<tightvnc>/unix subdirectory run:
 
-  % cd ..
-  % ./vncinstall /usr/local/bin
+  % make install bindir=/usr/local/bin mandir=/usr/local/man
 
-This will also attempt to install the manual pages in an appropriate directory.
-You can specify an alternative directory as a second argument to vncinstall:
+It will also try to install the Xvnc and vnc.so X.Org module if appropriate.
+Both can be installed when you run:
 
-  % ./vncinstall /usr/local/bin /usr/local/man
+  % make install bindir=/usr/local/bin mandir=/usr/local/man
 
-It will also try to install the vnc.so X.Org module if appropriate.
-This will be copied to the /usr/X11R6/lib/modules/extensions directory and can
-be enabled like any other module by adding a Load "vnc" line to the Module
-section of xorg.conf.  The parameters listed in the Xvnc manual page can be
-set as options in xorg.conf e.g. Option "passwordFile" "/root/.vnc/passwd".
+in <tightvnc>/unix/xserver subdirectory
+
+Module can be enabled like any other module by adding a Load "vnc" line to
+the Module section of xorg.conf.  The parameters listed in the Xvnc manual
+page can be set as options in xorg.conf e.g.
+
+Option "passwordFile" "/root/.vnc/passwd".
+
 Note that for some reason options cannot be set in the Module section of
 xorg.conf - try the Screen section.
 
