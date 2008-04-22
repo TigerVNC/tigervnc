@@ -1,0 +1,94 @@
+[Vendor=TGHT]
+Title: TightVNC
+Web: http://www.tightvnc.com/
+
+[Vendor=STDV]
+Title: RealVNC
+Web: http://www.realvnc.com/
+
+[Vendor=TRDV]
+Title: TridiaVNC
+Web: http://www.tridiavnc.com/
+
+[Vendor=GGI_]
+Title: General Graphics Interface Project
+Web: http://www.ggi-project.org/
+
+[Tunneling=0]
+Vendor: TGHT
+Signature: NOTUNNEL
+Abbrev: NoTunelling
+Description: No tunneling
+
+[Auth=1]
+Vendor: STDV
+Signature: NOAUTH__
+Abbrev: AuthNone
+Description: No authentication
+
+[Auth=2]
+Vendor: STDV
+Signature: VNCAUTH_
+Abbrev: AuthVNC
+Description: Standard VNC Authentication
+
+[Auth=129]
+Vendor: THGT
+Signature: ULGNAUTH
+Abbrev: AuthUnixLogin
+Description: Unix Login Authentication
+Notes: Not used in public versions
+
+[Auth=130]
+Vendor: THGT
+Signature: XTRNAUTH
+Abbrev: AuthExternal
+Description: External Authentication
+Notes: Not used in public versions
+
+[ServerMessageRange=130..149]
+Vendor: THGT
+Description: TightVNC File Transfers
+
+[ServerMessage=150]
+Vendor: THGT
+Signature: CUS_EOCU
+Abbrev: EndOfContinuousUpdates
+Description: End Of Continuous Updates
+
+[ServerMessage=253]
+Vendor: GGI_
+Signature: GII_SERV
+
+[ClientMessageRange=130..150]
+Vendor: THGT
+Description: TightVNC File Transfers
+
+[ClientMessage=150]
+Vendor: THGT
+Signature: CUC_ENCU
+Abbrev: EnableContinuousUpdates
+Description: Enable/Disable Continuous Updates
+
+[ClientMessage=151]
+Vendor: THGT
+Signature: VRECTSEL
+Abbrev: VideoRectangleSelection
+Description: Video Rectangle Selection
+
+[ClientMessage=253]
+Vendor: GGI_
+Signature: GII_CLNT
+
+[EncodingRange=0xFFFFFF00..0xFFFFFFFF]
+AltNotation: -256..-1
+AltNotation: 4294967040..4294967295
+Vendor: TGHT
+Description: TightVNC-Specific Pseudo-Encodings
+
+[Encoding=0xFFFFFECF]
+AltNotation: -305
+AltNotation: 4294966991
+Vendor: GGI_
+Signature: GII_____
+
