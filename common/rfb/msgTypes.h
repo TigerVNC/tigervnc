@@ -57,5 +57,6 @@ namespace rfb {
   const int msgTypeFileDeleteRequest = 139;
 
   const int msgTypeEnableContinuousUpdates = 150;
+  const int msgTypeVideoRectangleSelection = 151;
 }
 #endif

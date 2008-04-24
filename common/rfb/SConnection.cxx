@@ -46,7 +46,8 @@ SConnection::SConnection(SSecurityFactory* secFact, bool reverseConnection_)
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
     security(0), securityFactory(secFact), state_(RFBSTATE_UNINITIALISED),
-    reverseConnection(reverseConnection_)
+    reverseConnection(reverseConnection_),
+    m_videoSelectionEnabled(false)
 {
   defaultMajorVersion = 3;
   defaultMinorVersion = 8;
@@ -74,6 +75,11 @@ void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 {
   is = is_;
   os = os_;
+}
+
+void SConnection::setProtocolOptions(bool enableVideoSelection)
+{
+  m_videoSelectionEnabled = enableVideoSelection;
 }
 
 void SConnection::initialiseProtocol()
@@ -464,10 +470,16 @@ void SConnection::sendInteractionCaps()
   ccaps.addTightExt(msgTypeFileDeleteRequest,       "FTC_RMRQ");
   */
 
-  // Continuous updates:
   ccaps.addTightExt(msgTypeEnableContinuousUpdates, "CUC_ENCU");
 
+  if (m_videoSelectionEnabled) {
+    ccaps.addTightExt(msgTypeVideoRectangleSelection, "VRECTSEL");
+  }
+
+  //
   // Advertise all supported encoding types (except raw encoding).
+  //
+
   CapsList ecaps;
 
   // First, add true encodings.

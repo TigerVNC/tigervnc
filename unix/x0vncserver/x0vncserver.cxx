@@ -455,9 +455,11 @@ int main(int argc, char** argv)
     Geometry geo(DisplayWidth(dpy, DefaultScreen(dpy)),
                  DisplayHeight(dpy, DefaultScreen(dpy)));
     XDesktop desktop(dpy, &geo);
+
     VNCServerST server("x0vncserver", &desktop);
     QueryConnHandler qcHandler(dpy, &server);
     server.setQueryConnectionHandler(&qcHandler);
+    server.enableVideoSelection(true);
 
     TcpListener listener((int)rfbport);
     vlog.info("Listening on port %d", (int)rfbport);

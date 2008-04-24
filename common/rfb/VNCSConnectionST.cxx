@@ -87,6 +87,7 @@ VNCSConnectionST::~VNCSConnectionST()
 bool VNCSConnectionST::init()
 {
   try {
+    setProtocolOptions(server->isVideoSelectionEnabled());
     initialiseProtocol();
   } catch (rdr::Exception& e) {
     close(e.str());

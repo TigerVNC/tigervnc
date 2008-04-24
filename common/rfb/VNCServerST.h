@@ -192,6 +192,16 @@ namespace rfb {
 
     void setFTManager(rfb::SFileTransferManager *pFTManager) { m_pFTManager = pFTManager; };
 
+    // Enable/disable support for TightVNC-specific VideoRectangleSelection
+    // client message. This is a protocol option that lets a client select a
+    // rectangle to be treated by the server as video data. Once selected, this
+    // part of the framebuffer will be sent using JpegEncoder, on each update
+    // request, as we expect that video data is changing continuously. By
+    // default, this option is disabled, as it's rather a specialized feature
+    // and video selection GUI can confuse users of the TightVNC client.
+    void enableVideoSelection(bool enable) { m_videoSelectionEnabled = enable; }
+    bool isVideoSelectionEnabled() { return m_videoSelectionEnabled; }
+
   protected:
 
     friend class VNCSConnectionST;
@@ -239,6 +249,8 @@ namespace rfb {
     time_t lastConnectionTime;
 
     bool disableclients;
+
+    bool m_videoSelectionEnabled;
   };
 
 };

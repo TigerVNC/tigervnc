@@ -62,6 +62,7 @@ void SMsgReaderV3::readMsg()
   case msgTypeFileDeleteRequest:        handler->processFTMsg(msgType); break;
 
   case msgTypeEnableContinuousUpdates:  readEnableContinuousUpdates(); break;
+  case msgTypeVideoRectangleSelection:  readVideoRectangleSelection(); break;
 
   default:
     fprintf(stderr, "unknown message type %d\n", msgType);

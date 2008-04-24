@@ -77,7 +77,8 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
     securityFactory(sf ? sf : &defaultSecurityFactory),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
     useEconomicTranslate(false),
-    lastConnectionTime(0), disableclients(false)
+    lastConnectionTime(0), disableclients(false),
+    m_videoSelectionEnabled(false)
 {
   lastUserInputTime = lastDisconnectTime = time(0);
   slog.debug("creating single-threaded server %s", name.buf);

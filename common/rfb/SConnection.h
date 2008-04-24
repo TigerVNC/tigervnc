@@ -50,6 +50,11 @@ namespace rfb {
     // (i.e. SConnection will not delete them).
     void setStreams(rdr::InStream* is, rdr::OutStream* os);
 
+    // setProtocolOptions() configures TightVNC-specific protocol options.
+    // It can be optionally called before calling initialiseProtocol().
+    // See also: VNCServerST::enableVideoSelection();
+    void setProtocolOptions(bool enableVideoSelection);
+
     // initialiseProtocol() should be called once the streams and security
     // types are set.  Subsequently, processMsg() should be called whenever
     // there is data to read on the InStream.
@@ -198,6 +203,9 @@ namespace rfb {
     SSecurityFactory* securityFactory;
     stateEnum state_;
     bool reverseConnection;
+
+    // TightVNC-specific protocol options.
+    bool m_videoSelectionEnabled;
   };
 }
 #endif

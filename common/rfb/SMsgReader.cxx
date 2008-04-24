@@ -110,3 +110,18 @@ void SMsgReader::readEnableContinuousUpdates()
   }
 }
 
+void SMsgReader::readVideoRectangleSelection()
+{
+  (void)is->readU8();
+  int x = is->readU16();
+  int y = is->readU16();
+  int w = is->readU16();
+  int h = is->readU16();
+  bool enable = w > 0 && h > 0;
+
+  // FIXME: Use proper logger.
+  fprintf(stderr, "Ignoring VideoRectangleSelection message\n");
+
+  // FIXME: Implement VideoRectangleSelection message handling.
+}
+
