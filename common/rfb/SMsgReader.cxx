@@ -22,8 +22,11 @@
 #include <rfb/SMsgHandler.h>
 #include <rfb/SMsgReader.h>
 #include <rfb/Configuration.h>
+#include <rfb/LogWriter.h>
 
 using namespace rfb;
+
+static LogWriter vlog("SMsgReader");
 
 static IntParameter maxCutText("MaxCutText", "Maximum permitted length of an incoming clipboard update", 256*1024);
 
@@ -87,7 +90,7 @@ void SMsgReader::readClientCutText()
   int len = is->readU32();
   if (len > maxCutText) {
     is->skip(len);
-    fprintf(stderr,"cut text too long (%d bytes) - ignoring\n",len);
+    vlog.error("Cut text too long (%d bytes) - ignoring", len);
     return;
   }
   CharArray ca(len+1);
@@ -119,8 +122,12 @@ void SMsgReader::readVideoRectangleSelection()
   int h = is->readU16();
   bool enable = w > 0 && h > 0;
 
-  // FIXME: Use proper logger.
-  fprintf(stderr, "Ignoring VideoRectangleSelection message\n");
+  if (enable) {
+    vlog.debug("Video area selected by client: %dx%d at (%d,%d)",
+               w, h, x, y);
+  } else {
+    vlog.debug("Video area discarded by client");
+  }
 
   // FIXME: Implement VideoRectangleSelection message handling.
 }
