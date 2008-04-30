@@ -17,7 +17,7 @@
 //  USA.
 //
 
-package com.wimba.RfbPlayer;
+package com.tightvnc.rfbplayer;
 
 import java.awt.*;
 import java.awt.event.*;

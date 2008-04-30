@@ -1,5 +1,5 @@
 
-package com.wimba.RfbPlayer;
+package com.tightvnc.rfbplayer;
 
 import java.applet.*;
 
