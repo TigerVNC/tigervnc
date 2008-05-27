@@ -160,6 +160,11 @@ public class VncViewer extends java.applet.Applet
       connectAndAuthenticate();
       doProtocolInitialisation();
 
+      if (showControls &&
+          rfb.clientMsgCaps.isEnabled(RfbProto.VideoRectangleSelection)) {
+        buttonPanel.addSelectButton();
+      }
+
       // FIXME: Use auto-scaling not only in a separate frame.
       if (options.autoScale && inSeparateFrame) {
 	Dimension screenSize;
@@ -206,8 +211,9 @@ public class VncViewer extends java.applet.Applet
 
       }
 
-      if (showControls)
-	buttonPanel.enableButtons();
+      if (showControls) {
+        buttonPanel.enableButtons();
+      }
 
       moveFocusToDesktop();
       processNormalProtocol();

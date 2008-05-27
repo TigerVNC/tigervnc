@@ -38,6 +38,10 @@ class ButtonPanel extends Panel implements ActionListener {
   Button clipboardButton;
   Button ctrlAltDelButton;
   Button refreshButton;
+  Button selectButton;
+
+  final String selectEnterLabel = "Select Video Area";
+  final String selectLeaveLabel = "Hide Selection";
 
   ButtonPanel(VncViewer v) {
     viewer = v;
@@ -69,6 +73,16 @@ class ButtonPanel extends Panel implements ActionListener {
     refreshButton.addActionListener(this);
   }
 
+  /**
+   * Add video selection button to the ButtonPanel.
+   */
+  public void addSelectButton() {
+    selectButton = new Button(selectEnterLabel);
+    selectButton.setEnabled(false);
+    add(selectButton);
+    selectButton.addActionListener(this);
+  }
+
   //
   // Enable buttons on successful connection.
   //
@@ -77,6 +91,9 @@ class ButtonPanel extends Panel implements ActionListener {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
     refreshButton.setEnabled(true);
+    if (selectButton != null) {
+      selectButton.setEnabled(true);
+    }
   }
 
   //
@@ -94,8 +111,9 @@ class ButtonPanel extends Panel implements ActionListener {
     clipboardButton.setEnabled(false);
     ctrlAltDelButton.setEnabled(false);
     refreshButton.setEnabled(false);
-
-    validate();
+    if (selectButton != null) {
+      selectButton.setEnabled(false);
+    }
   }
 
   //
@@ -149,6 +167,17 @@ class ButtonPanel extends Panel implements ActionListener {
 					  rfb.framebufferHeight, false);
       } catch (IOException e) {
         e.printStackTrace();
+      }
+    } else if (selectButton != null && evt.getSource() == selectButton) {
+      if (viewer.vc != null) {
+        boolean isSelecting = viewer.vc.isInSelectionMode();
+        if (!isSelecting) {
+          selectButton.setLabel(selectLeaveLabel);
+          viewer.vc.enableSelection(true);
+        } else {
+          selectButton.setLabel(selectEnterLabel);
+          viewer.vc.enableSelection(false);
+        }
       }
     }
   }

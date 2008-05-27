@@ -121,13 +121,16 @@ class VncCanvas extends Canvas
 
     setPixelFormat();
 
+    resetSelection();
+
     inputEnabled = false;
     if (!viewer.options.viewOnly)
       enableInput(true);
 
-    // Keyboard listener is enabled even in view-only mode, to catch
-    // 'r' or 'R' key presses used to request screen update.
+    // Enable mouse and keyboard event listeners.
     addKeyListener(this);
+    addMouseListener(this);
+    addMouseMotionListener(this);
   }
 
   public VncCanvas(VncViewer v) throws IOException {
@@ -173,6 +176,17 @@ class VncCanvas extends Canvas
 	g.drawImage(softCursor, x0, y0, null);
       }
     }
+    if (isInSelectionMode()) {
+      Rectangle r = getSelection(true);
+      if (r.width > 0 && r.height > 0) {
+        // Don't forget to correct the coordinates for the right and bottom
+        // borders, so that the borders are the part of the selection.
+        r.width -= 1;
+        r.height -= 1;
+        g.setXORMode(Color.yellow);
+        g.drawRect(r.x, r.y, r.width, r.height);
+      }
+    }
   }
 
   public void paintScaledFrameBuffer(Graphics g) {
@@ -213,16 +227,12 @@ class VncCanvas extends Canvas
   public synchronized void enableInput(boolean enable) {
     if (enable && !inputEnabled) {
       inputEnabled = true;
-      addMouseListener(this);
-      addMouseMotionListener(this);
       if (viewer.showControls) {
 	viewer.buttonPanel.enableRemoteAccessControls(true);
       }
       createSoftCursor();	// scaled cursor
     } else if (!enable && inputEnabled) {
       inputEnabled = false;
-      removeMouseListener(this);
-      removeMouseMotionListener(this);
       if (viewer.showControls) {
 	viewer.buttonPanel.enableRemoteAccessControls(false);
       }
@@ -1589,7 +1599,19 @@ class VncCanvas extends Canvas
     processLocalMouseEvent(evt, true);
   }
 
-  public void processLocalKeyEvent(KeyEvent evt) {
+  //
+  // Ignored events.
+  //
+
+  public void mouseClicked(MouseEvent evt) {}
+  public void mouseEntered(MouseEvent evt) {}
+  public void mouseExited(MouseEvent evt) {}
+
+  //
+  // Actual event processing.
+  //
+
+  private void processLocalKeyEvent(KeyEvent evt) {
     if (viewer.rfb != null && rfb.inNormalProtocol) {
       if (!inputEnabled) {
 	if ((evt.getKeyChar() == 'r' || evt.getKeyChar() == 'R') &&
@@ -1619,34 +1641,36 @@ class VncCanvas extends Canvas
     evt.consume();
   }
 
-  public void processLocalMouseEvent(MouseEvent evt, boolean moved) {
+  private void processLocalMouseEvent(MouseEvent evt, boolean moved) {
     if (viewer.rfb != null && rfb.inNormalProtocol) {
-      if (moved) {
-	softCursorMove(evt.getX(), evt.getY());
-      }
-      if (rfb.framebufferWidth != scaledWidth) {
-        int sx = (evt.getX() * 100 + scalingFactor/2) / scalingFactor;
-        int sy = (evt.getY() * 100 + scalingFactor/2) / scalingFactor;
-        evt.translatePoint(sx - evt.getX(), sy - evt.getY());
-      }
-      synchronized(rfb) {
-	try {
-	  rfb.writePointerEvent(evt);
-	} catch (Exception e) {
-	  e.printStackTrace();
-	}
-	rfb.notify();
+      if (!inSelectionMode) {
+        if (inputEnabled) {
+          sendMouseEvent(evt, moved);
+        }
+      } else {
+        handleSelectionMouseEvent(evt);
       }
     }
   }
 
-  //
-  // Ignored events.
-  //
-
-  public void mouseClicked(MouseEvent evt) {}
-  public void mouseEntered(MouseEvent evt) {}
-  public void mouseExited(MouseEvent evt) {}
+  private void sendMouseEvent(MouseEvent evt, boolean moved) {
+    if (moved) {
+      softCursorMove(evt.getX(), evt.getY());
+    }
+    if (rfb.framebufferWidth != scaledWidth) {
+      int sx = (evt.getX() * 100 + scalingFactor/2) / scalingFactor;
+      int sy = (evt.getY() * 100 + scalingFactor/2) / scalingFactor;
+      evt.translatePoint(sx - evt.getX(), sy - evt.getY());
+    }
+    synchronized(rfb) {
+      try {
+        rfb.writePointerEvent(evt);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      rfb.notify();
+    }
+  }
 
   //
   // Reset update statistics.
@@ -1914,4 +1938,162 @@ class VncCanvas extends Canvas
 	      cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
     }
   }
+
+  //////////////////////////////////////////////////////////////////
+  //
+  // Support for selecting a rectangular video area.
+  //
+
+  /** This flag is false in normal operation, and true in the selection mode. */
+  private boolean inSelectionMode;
+
+  /** The point where the selection was started. */
+  private Point selectionStart;
+
+  /** The second point of the selection. */
+  private Point selectionEnd;
+
+  /**
+   * We change cursor when enabling the selection mode. In this variable, we
+   * save the original cursor so we can restore it on returning to the normal
+   * mode.
+   */
+  private Cursor savedCursor;
+
+  /**
+   * Initialize selection-related varibles.
+   */
+  private synchronized void resetSelection() {
+    inSelectionMode = false;
+    selectionStart = new Point(0, 0);
+    selectionEnd = new Point(0, 0);
+
+    savedCursor = getCursor();
+  }
+
+  /**
+   * Check current state of the selection mode.
+   * @return true in the selection mode, false otherwise.
+   */
+  public boolean isInSelectionMode() {
+    return inSelectionMode;
+  }
+
+  /**
+   * Get current selection.
+   * @param useScreenCoords use screen coordinates if true, or framebuffer
+   * coordinates if false. This makes difference when scaling factor is not 100.
+   * @return The selection as a {@link Rectangle}.
+   */
+  private synchronized Rectangle getSelection(boolean useScreenCoords) {
+    int x = selectionStart.x;
+    int y = selectionStart.y;
+    int w = selectionEnd.x - selectionStart.x;
+    int h = selectionEnd.y - selectionStart.y;
+    // Make x and y point to the upper left corner of the selection.
+    boolean horizSwap = false;
+    boolean vertSwap = false;
+    if (w < 0) {
+      w = -w;
+      x = x - w;
+      horizSwap = true;
+    }
+    if (h < 0) {
+      h = -h;
+      y = y - h;
+      vertSwap = true;
+    }
+    // Make sure the borders are included in the selection.
+    if (w > 0 && h > 0) {
+      w += 1;
+      h += 1;
+    }
+    // Translate from screen coordinates to framebuffer coordinates.
+    if (rfb.framebufferWidth != scaledWidth) {
+      x = (x * 100 + scalingFactor/2) / scalingFactor;
+      y = (y * 100 + scalingFactor/2) / scalingFactor;
+      w = (w * 100 + scalingFactor/2) / scalingFactor;
+      h = (h * 100 + scalingFactor/2) / scalingFactor;
+    }
+    // Make width a multiple of 16.
+    int widthCorrection = w % 16;
+    if (widthCorrection >= 8) {
+      widthCorrection -= 16;
+    }
+    w -= widthCorrection;
+    if (horizSwap) {
+      x += widthCorrection;
+    }
+    // Make height a multiple of 8.
+    int heightCorrection = h % 8;
+    if (heightCorrection >= 4) {
+      heightCorrection -= 8;
+    }
+    h -= heightCorrection;
+    if (vertSwap) {
+      y += heightCorrection;
+    }
+    // Translate the selection back to screen coordinates if requested.
+    int clipWidth = rfb.framebufferWidth;
+    int clipHeight = rfb.framebufferHeight;
+    if (useScreenCoords && rfb.framebufferWidth != scaledWidth) {
+      x = (x * scalingFactor + 50) / 100;
+      y = (y * scalingFactor + 50) / 100;
+      w = (w * scalingFactor + 50) / 100;
+      h = (h * scalingFactor + 50) / 100;
+      clipWidth = scaledWidth;
+      clipHeight = scaledHeight;
+    }
+    // Clip the selection to screen/framebuffer and return the result.
+    Rectangle selection = new Rectangle(x, y, w, h);
+    Rectangle clip = new Rectangle(0, 0, clipWidth, clipHeight);
+    return selection.intersection(clip);
+  }
+
+  /**
+   * Enable or disable the selection mode.
+   * @param enable enables the selection mode if true, disables if fasle.
+   */
+  public synchronized void enableSelection(boolean enable) {
+    if (enable && !inSelectionMode) {
+      // Enter the selection mode.
+      inSelectionMode = true;
+      savedCursor = getCursor();
+      setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+      repaint();
+    } else if (!enable && inSelectionMode) {
+      // Leave the selection mode.
+      inSelectionMode = false;
+      setCursor(savedCursor);
+      repaint();
+    }
+  }
+
+  /**
+   * Process mouse events in the selection mode.
+   * 
+   * @param evt mouse event that was originally passed to
+   *   {@link MouseListener} or {@link MouseMotionListener}.
+   */
+  private synchronized void handleSelectionMouseEvent(MouseEvent evt) {
+    int id = evt.getID();
+    boolean button1 = (evt.getModifiers() & InputEvent.BUTTON1_MASK) != 0;
+
+    if (id == MouseEvent.MOUSE_PRESSED && button1) {
+      selectionStart = selectionEnd = evt.getPoint();
+      repaint();
+    }
+    if (id == MouseEvent.MOUSE_DRAGGED && button1) {
+      selectionEnd = evt.getPoint();
+      repaint();
+    }
+    if (id == MouseEvent.MOUSE_RELEASED && button1) {
+      try {
+        rfb.trySendVideoSelection(getSelection(false));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
 }
