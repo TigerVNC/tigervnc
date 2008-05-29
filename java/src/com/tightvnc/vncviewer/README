@@ -314,7 +314,7 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
 
     Set to "No" if you want to get rid of that button panel at the top.
 
---> "Offer relogin" (no GUI equivalent, not applicable in the applet mode)
+--> "Offer relogin" (no GUI equivalent, applicable only in the applet mode)
 
     Values: "Yes", "No".
     Default: "Yes".
