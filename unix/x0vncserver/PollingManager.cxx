@@ -1,4 +1,4 @@
-/* Copyright (C) 2004-2007 Constantin Kaplinsky.  All Rights Reserved.
+/* Copyright (C) 2004-2008 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
 //
 // PollingManager.cxx
 //
@@ -38,11 +39,6 @@ const int PollingManager::m_pollingOrder[32] = {
    1, 17,  9, 25,  7, 23, 15, 31,
   19,  3, 27, 11, 29, 13,  5, 21
 };
-
-// FIXME: Check that the parameter's value is in the allowed range.
-//        This applies to all other parameters as well.
-IntParameter PollingManager::m_videoPriority("VideoPriority",
-  "Priority of sending updates for video area (0..8)", 2);
 
 //
 // Constructor.
@@ -68,7 +64,6 @@ PollingManager::PollingManager(Display *dpy, Image *image,
     m_heightTiles((image->xim->height + 31) / 32),
     m_numTiles(((image->xim->width + 31) / 32) *
                ((image->xim->height + 31) / 32)),
-    m_numVideoPasses(0),
     m_pollingStep(0)
 {
   // Get initial screen image.
@@ -89,17 +84,11 @@ PollingManager::PollingManager(Display *dpy, Image *image,
   }
 
   m_changeFlags = new bool[m_numTiles];
-  m_rateMatrix = new char[m_numTiles];
-  m_videoFlags = new char[m_numTiles];
   memset(m_changeFlags, 0, m_numTiles * sizeof(bool));
-  memset(m_rateMatrix, 0, m_numTiles);
-  memset(m_videoFlags, 0, m_numTiles);
 }
 
 PollingManager::~PollingManager()
 {
-  delete[] m_videoFlags;
-  delete[] m_rateMatrix;
   delete[] m_changeFlags;
 
   delete m_rowImage;
@@ -169,26 +158,6 @@ bool PollingManager::pollScreen()
   if (!m_server)
     return false;
 
-  // If video data should have higher priority, and video area was
-  // detected, perform special passes to send video data only. Such
-  // "video passes" will be performed between normal polling passes.
-  // No actual polling is performed in a video pass since we know that
-  // video is changing continuously.
-  //
-  // FIXME: Should we move this block into a separate function?
-  // FIXME: Giving higher priority to video area lengthens video
-  //        detection cycles. Should we do something with that?
-  if ((int)m_videoPriority > 1 && !m_videoRect.is_empty()) {
-    if (m_numVideoPasses > 0) {
-      m_numVideoPasses--;
-      getScreenRect(m_videoRect);
-      return true;              // we've got changes
-    } else {
-      // Normal pass now, but schedule video passes for next calls.
-      m_numVideoPasses = (int)m_videoPriority - 1;
-    }
-  }
-
   // Clear the m_changeFlags[] array, indicating that no changes have
   // been detected yet.
   memset(m_changeFlags, 0, m_numTiles * sizeof(bool));
@@ -203,31 +172,14 @@ bool PollingManager::pollScreen()
     nTilesChanged += checkRow(0, y, m_width);
   }
 
-  // Do the work related to video area detection, if enabled.
-  bool haveVideoRect = false;
-  if ((int)m_videoPriority != 0) {
-    handleVideo();
-    if (!m_videoRect.is_empty()) {
-      getScreenRect(m_videoRect);
-      haveVideoRect = true;
-    }
-  }
-
   DBG_REPORT_CHANGES("After 1st pass");
 
   // If some changes have been detected:
   if (nTilesChanged) {
-    // Try to find more changes around. Before doing that, mark the
-    // video area as changed, to skip comparisons of its pixels.
-    flagVideoArea(true);
-    DBG_REPORT_CHANGES("Before checking neighbors");
+    // Try to find more changes around.
     checkNeighbors();
     DBG_REPORT_CHANGES("After checking neighbors");
-
-    // Inform the server about the changes. This time, we mark the
-    // video area as NOT changed, to prevent reading its pixels again.
-    flagVideoArea(false);
-    DBG_REPORT_CHANGES("Before sending");
+    // Inform the server about the changes.
     nTilesChanged = sendChanges();
   }
 
@@ -244,7 +196,7 @@ bool PollingManager::pollScreen()
   }
 #endif
 
-  return (nTilesChanged != 0 || haveVideoRect);
+  return (nTilesChanged != 0);
 }
 
 int PollingManager::checkRow(int x, int y, int w)
@@ -350,33 +302,6 @@ int PollingManager::sendChanges()
   return nTilesChanged;
 }
 
-void PollingManager::handleVideo()
-{
-  // Update counters in m_rateMatrix.
-  for (int i = 0; i < m_numTiles; i++)
-    m_rateMatrix[i] += (m_changeFlags[i] != false);
-
-  // Once per eight calls: detect video rectangle by examining
-  // m_rateMatrix[], then reset counters in m_rateMatrix[].
-  if (m_pollingStep % 8 == 0) {
-    detectVideo();
-    memset(m_rateMatrix, 0, m_numTiles);
-  }
-}
-
-void PollingManager::flagVideoArea(bool value)
-{
-  if (m_videoRect.is_empty())
-    return;
-
-  Rect r(m_videoRect.tl.x / 32, m_videoRect.tl.y / 32,
-         m_videoRect.br.x / 32, m_videoRect.br.y / 32);
-
-  for (int y = r.tl.y; y < r.br.y; y++)
-    for (int x = r.tl.x; x < r.br.x; x++)
-      m_changeFlags[y * m_widthTiles + x] = value;
-}
-
 void
 PollingManager::checkNeighbors()
 {
@@ -459,182 +384,5 @@ PollingManager::printChanges(const char *header) const
   }
 
   fprintf(stderr, "\n");
-}
-
-void
-PollingManager::detectVideo()
-{
-  // Configurable parameters.
-  const int VIDEO_THRESHOLD_0 = 3;
-  const int VIDEO_THRESHOLD_1 = 5;
-
-  // In m_rateMatrix, clear counters corresponding to non-32x32 tiles.
-  // This will guarantee that the size of the video area is always a
-  // multiple of 32 pixels. This is important for hardware JPEG encoders.
-  if (m_width % 32 != 0) {
-    for (int n = m_widthTiles - 1; n < m_numTiles; n += m_widthTiles)
-      m_rateMatrix[n] = 0;
-  }
-  if (m_height % 32 != 0) {
-    for (int n = m_numTiles - m_widthTiles; n < m_numTiles; n++)
-      m_rateMatrix[n] = 0;
-  }
-
-  // First, detect candidate region that looks like video. In other
-  // words, find a region that consists of continuously changing
-  // pixels. Save the result in m_videoFlags[].
-  for (int i = 0; i < m_numTiles; i++) {
-    if (m_rateMatrix[i] <= VIDEO_THRESHOLD_0) {
-      m_videoFlags[i] = 0;
-    } else if (m_rateMatrix[i] >= VIDEO_THRESHOLD_1) {
-      m_videoFlags[i] = 1;
-    }
-  }
-
-  // Now, choose the biggest rectangle from that candidate region.
-  Rect newRect;
-  getVideoAreaRect(&newRect);
-
-  // Does new rectangle differ from the previously detected one?
-  // If it does, save new rectangle and inform the server.
-  if (!newRect.equals(m_videoRect)) {
-    if (newRect.is_empty()) {
-      vlog.debug("No video detected");
-    } else {
-      vlog.debug("Detected video %dx%d at (%d,%d)",
-                 newRect.width(), newRect.height(),
-                 newRect.tl.x, newRect.tl.y);
-    }
-    m_videoRect = newRect;
-    m_server->set_video_area(newRect);
-  }
-}
-
-void
-PollingManager::getVideoAreaRect(Rect *result)
-{
-  int *mx_hlen, *mx_vlen;
-  constructLengthMatrices(&mx_hlen, &mx_vlen);
-
-  int full_h = m_heightTiles;
-  int full_w = m_widthTiles;
-  int x, y;
-  Rect max_rect(0, 0, 0, 0);
-  Rect local_rect;
-
-  for (y = 0; y < full_h; y++) {
-    for (x = 0; x < full_w; x++) {
-      int max_w = mx_hlen[y * full_w + x];
-      int max_h = mx_vlen[y * full_w + x];
-      if (max_w > 2 && max_h > 1 && max_h * max_w > (int)max_rect.area()) {
-        local_rect.tl.x = x;
-        local_rect.tl.y = y;
-        findMaxLocalRect(&local_rect, mx_hlen, mx_vlen);
-        if (local_rect.area() > max_rect.area()) {
-          max_rect = local_rect;
-        }
-      }
-    }
-  }
-
-  destroyLengthMatrices(mx_hlen, mx_vlen);
-
-  max_rect.tl.x *= 32;
-  max_rect.tl.y *= 32;
-  max_rect.br.x *= 32;
-  max_rect.br.y *= 32;
-  if (max_rect.br.x > m_width)
-    max_rect.br.x = m_width;
-  if (max_rect.br.y > m_height)
-    max_rect.br.y = m_height;
-  *result = max_rect;
-}
-
-void
-PollingManager::constructLengthMatrices(int **pmx_h, int **pmx_v)
-{
-  // Handy shortcuts.
-  int h = m_heightTiles;
-  int w = m_widthTiles;
-
-  // Allocate memory.
-  int *mx_h = new int[h * w];
-  memset(mx_h, 0, h * w * sizeof(int));
-  int *mx_v = new int[h * w];
-  memset(mx_v, 0, h * w * sizeof(int));
-
-  int x, y, len, i;
-
-  // Fill in horizontal length matrix.
-  for (y = 0; y < h; y++) {
-    for (x = 0; x < w; x++) {
-      len = 0;
-      while (x + len < w && m_videoFlags[y * w + x + len]) {
-        len++;
-      }
-      for (i = 0; i < len; i++) {
-        mx_h[y * w + x + i] = len - i;
-      }
-      x += len;
-    }
-  }
-
-  // Fill in vertical length matrix.
-  for (x = 0; x < w; x++) {
-    for (y = 0; y < h; y++) {
-      len = 0;
-      while (y + len < h && m_videoFlags[(y + len) * w + x]) {
-        len++;
-      }
-      for (i = 0; i < len; i++) {
-        mx_v[(y + i) * w + x] = len - i;
-      }
-      y += len;
-    }
-  }
-
-  *pmx_h = mx_h;
-  *pmx_v = mx_v;
-}
-
-void
-PollingManager::destroyLengthMatrices(int *mx_h, int *mx_v)
-{
-  delete[] mx_h;
-  delete[] mx_v;
-}
-
-// NOTE: This function assumes that current tile has non-zero in mx_h[],
-//       otherwise we get division by zero.
-void
-PollingManager::findMaxLocalRect(Rect *r, int mx_h[], int mx_v[])
-{
-  int idx = r->tl.y * m_widthTiles + r->tl.x;
-
-  // NOTE: Rectangle's maximum width and height are 25 and 18
-  //       (in tiles, where each tile is usually 32x32 pixels).
-  int max_w = mx_h[idx];
-  if (max_w > 25)
-    max_w = 25;
-  int cur_h = 18;
-
-  int best_w = max_w;
-  int best_area = 1 * best_w;
-
-  for (int i = 0; i < max_w; i++) {
-    int h = mx_v[idx + i];
-    if (h < cur_h) {
-      cur_h = h;
-      if (cur_h * max_w <= best_area)
-        break;
-    }
-    if (cur_h * (i + 1) > best_area) {
-      best_w = i + 1;
-      best_area = cur_h * best_w;
-    }
-  }
-
-  r->br.x = r->tl.x + best_w;
-  r->br.y = r->tl.y + best_area / best_w;
 }
 

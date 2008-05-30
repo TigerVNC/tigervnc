@@ -1,4 +1,4 @@
-/* Copyright (C) 2004-2007 Constantin Kaplinsky.  All Rights Reserved.
+/* Copyright (C) 2004-2008 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,21 +108,12 @@ private:
   int checkRow(int x, int y, int w);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
   int sendChanges();
-  void handleVideo();
-  void flagVideoArea(bool value);
 
   // Check neighboring tiles and update m_changeFlags[].
   void checkNeighbors();
 
   // DEBUG: Print the list of changed tiles.
   void printChanges(const char *header) const;
-
-  // Video detection functions.
-  void detectVideo();
-  void getVideoAreaRect(Rect *result);
-  void constructLengthMatrices(int **pmx_h, int **pmx_v);
-  void destroyLengthMatrices(int *mx_h, int *mx_v);
-  void findMaxLocalRect(Rect *r, int *mx_h, int *mx_v);
 
   // Additional images used in polling algorithms.
   Image *m_rowImage;            // one row of the framebuffer
@@ -137,15 +128,8 @@ private:
   // in that tile.
   bool *m_changeFlags;
 
-  char *m_rateMatrix;
-  char *m_videoFlags;
-  Rect m_videoRect;
-  int m_numVideoPasses;
-
   unsigned int m_pollingStep;
   static const int m_pollingOrder[];
-
-  static IntParameter m_videoPriority;
 
 #ifdef DEBUG
 private:

@@ -1,4 +1,4 @@
-.TH X0VNCSERVER 1 "January  7, 2008" "TightVNC" "TightVNC Manual"
+.TH X0VNCSERVER 1 "May 30, 2008" "TightVNC" "TightVNC Manual"
 .SH NAME
 x0vncserver \- TightVNC Server for real X displays
 .SH SYNOPSIS
@@ -136,31 +136,6 @@ screen.  Default is 35.
 .B PollingCycle
 Milliseconds per one polling cycle.  Actual interval may be dynamically
 adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
-.TP
-.B VideoPriority
-Specify the priority of sending video area updates.  \fBx0vncserver\fP can
-detect video areas on the screen and handle them separately for improved
-performance.  This parameter controls how often video area will be sent to
-clients as compared to the rest of the screen.  The priority must be an
-integer between 0 and 8, and the default value is 2.
-
-\fBVideoPriority\fP set to 0 disables video detection completely, so
-\fBx0vncserver\fP will not use any video-specific tricks.
-
-The value 1 gives the same priority both to video and to other pixels.  That
-differs from the value 0 \- overall performance can be much better if there
-is some video on the screen. That's because video-specific polling and
-encoding algorithms can be used.
-
-Higher values give more priority to video.  For example, \fBVideoPriority\fP
-set to 5 specifies that the rate of sending video will be five times higher
-than the rate of updating the rest of the screen.
-
-\fBNote:\fP with high \fBVideoPriority\fP values, video detection will work
-slower.  For example, when the video area was moved, this fact will be
-discovered with a longer delay.  That's because high priority values make the
-server send video with highest rate possible, without spending time on
-polling and video detection.
 .TP
 .B CompareFB
 Perform pixel comparison on framebuffer to reduce unnecessary updates.
