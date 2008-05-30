@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2004-2006 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright (C) 2004-2008 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -180,13 +180,6 @@ public:
     image = factory.newImage(dpy, geometry->width(), geometry->height());
     vlog.info("Allocated %s", image->classDesc());
 
-    // Create polling manager object. It will track screen changes and
-    // keep pixels of the `image' object up to date.
-    pollmgr = new PollingManager(dpy, image, &factory,
-                                 geometry->offsetLeft(),
-                                 geometry->offsetTop());
-    pollmgr->setVNCServer(vs);
-
     pf.bpp = image->xim->bits_per_pixel;
     pf.depth = image->xim->depth;
     pf.bigEndian = (image->xim->byte_order == MSBFirst);
@@ -204,6 +197,12 @@ public:
                           pf, this);
     server = vs;
     server->setPixelBuffer(pb);
+
+    // Create polling manager object for detection of pixel changes.
+    pollmgr = new PollingManager(dpy, pb, &factory,
+                                 geometry->offsetLeft(),
+                                 geometry->offsetTop());
+    pollmgr->setVNCServer(vs);
 
     running = true;
   }
@@ -286,7 +285,7 @@ protected:
   Display* dpy;
   Geometry* geometry;
   PixelFormat pf;
-  PixelBuffer* pb;
+  XPixelBuffer* pb;
   VNCServer* server;
   Image* image;
   PollingManager* pollmgr;

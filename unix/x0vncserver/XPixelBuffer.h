@@ -1,4 +1,4 @@
-/* Copyright (C) 2007 Constantin Kaplinsky.  All Rights Reserved.
+/* Copyright (C) 2007-2008 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,12 @@ public:
                int offsetLeft, int offsetTop,
                const PixelFormat& pf, ColourMap* cm);
   virtual ~XPixelBuffer();
+
+  // We allow public access to the underlying Image object.
+  // The image is heavily used by the PollingManager.
+  // TODO: Allow read-only (const Image *) access only.
+  //       Or better do not allow public access at all.
+  virtual Image *getImage() const { return m_image; }
 
   virtual int getStride() const { return m_stride; }
 
