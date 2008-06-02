@@ -59,6 +59,14 @@ protected:
 
   // The number of pixels in a row, with padding included.
   int m_stride;
+
+  // Copy pixels from the screen to the pixel buffer,
+  // for the specified rectangular area of the buffer.
+  inline void grabRect(const Rect &r) {
+    m_image->get(DefaultRootWindow(m_dpy),
+		 m_offsetLeft + r.tl.x, m_offsetTop + r.tl.y,
+		 r.width(), r.height(), r.tl.x, r.tl.y);
+  }
 };
 
 #endif // __XPIXELBUFFER_H__

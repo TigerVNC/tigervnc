@@ -20,6 +20,8 @@
 // XPixelBuffer.cxx
 //
 
+#include <vector>
+#include <rfb/Region.h>
 #include <X11/Xlib.h>
 #include <x0vncserver/XPixelBuffer.h>
 
@@ -36,6 +38,8 @@ XPixelBuffer::XPixelBuffer(Display *dpy, Image* image,
     m_offsetTop(offsetTop),
     m_stride(image->xim->bytes_per_line * 8 / image->xim->bits_per_pixel)
 {
+  // Get initial screen image.
+  m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
 }
 
 XPixelBuffer::~XPixelBuffer()
@@ -45,6 +49,11 @@ XPixelBuffer::~XPixelBuffer()
 void
 XPixelBuffer::grabRegion(const rfb::Region& region)
 {
-  // m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
+  std::vector<Rect> rects;
+  std::vector<Rect>::const_iterator i;
+  region.get_rects(&rects);
+  for (i = rects.begin(); i != rects.end(); i++) {
+    grabRect(*i);
+  }
 }
 

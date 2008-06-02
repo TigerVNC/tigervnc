@@ -64,9 +64,6 @@ PollingManager::PollingManager(Display *dpy, XPixelBuffer *buffer,
                ((buffer->height() + 31) / 32)),
     m_pollingStep(0)
 {
-  // Get initial screen image.
-  m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
-
   // Create additional images used in polling algorithm, warn if
   // underlying class names are different from the class name of the
   // primary image.
@@ -290,7 +287,6 @@ int PollingManager::sendChanges()
         if (rect.br.y > m_height)
           rect.br.y = m_height;
         // Add to the changed region maintained by the server.
-        getScreenRect(rect);
         m_server->add_changed(rect);
         // Skip processed tiles.
         x += count;

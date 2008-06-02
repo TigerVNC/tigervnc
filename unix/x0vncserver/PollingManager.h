@@ -64,7 +64,7 @@ protected:
   Display *m_dpy;
   VNCServer *m_server;
 
-  Image *m_image;
+  const Image *m_image;
   const int m_bytesPerPixel;
 
   const int m_offsetLeft;
@@ -73,16 +73,6 @@ protected:
   const int m_height;
 
 private:
-
-  inline void getScreen() {
-    m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
-  }
-
-  inline void getScreenRect(const Rect& r) {
-    m_image->get(DefaultRootWindow(m_dpy),
-                 m_offsetLeft + r.tl.x, m_offsetTop + r.tl.y,
-                 r.width(), r.height(), r.tl.x, r.tl.y);
-  }
 
   inline void getRow(int x, int y, int w) {
     if (w == m_width) {
