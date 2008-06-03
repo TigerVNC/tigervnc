@@ -41,6 +41,9 @@ static Mutex fpLock;
 static FILE* fp = 0;
 int vsnprintf(char *str, size_t n, const char *format, va_list ap)
 {
+  va_list ap_new;
+  int len, written;
+
   str[0] = 0;
   if (!fp) {
     // Safely create a FILE* for /dev/null if there isn't already one
@@ -51,15 +54,19 @@ int vsnprintf(char *str, size_t n, const char *format, va_list ap)
       fp = fopen("/dev/null","w");
     if (!fp) return 0;
   }
-  int len = vfprintf(fp, format, ap);
+
+  va_copy(ap_new, ap);
+  len = vfprintf(fp, format, ap_new);
+  va_end(ap_new);
+
   if (len <= 0) return 0;
 
   CharArray s(len+1);
   vsprintf(s.buf, format, ap);
 
-  int written = __rfbmin(len, (int)n-1);
+  written = __rfbmin(len, (int)n-1);
   memcpy(str, s.buf, written);
-  str[written] = 0;
+  str[written] = '\0';
   return len;
 }
 #endif
