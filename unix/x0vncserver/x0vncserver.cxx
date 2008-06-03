@@ -180,21 +180,10 @@ public:
     image = factory.newImage(dpy, geometry->width(), geometry->height());
     vlog.info("Allocated %s", image->classDesc());
 
-    pf.bpp = image->xim->bits_per_pixel;
-    pf.depth = image->xim->depth;
-    pf.bigEndian = (image->xim->byte_order == MSBFirst);
-    pf.trueColour = image->isTrueColor();
-    pf.redShift   = ffs(image->xim->red_mask) - 1;
-    pf.greenShift = ffs(image->xim->green_mask) - 1;
-    pf.blueShift  = ffs(image->xim->blue_mask) - 1;
-    pf.redMax     = image->xim->red_mask   >> pf.redShift;
-    pf.greenMax   = image->xim->green_mask >> pf.greenShift;
-    pf.blueMax    = image->xim->blue_mask  >> pf.blueShift;
-
     // Provide pixel buffer to the server object.
     pb = new XPixelBuffer(dpy, image,
                           geometry->offsetLeft(), geometry->offsetTop(),
-                          pf, this);
+                          this);
     server = vs;
     server->setPixelBuffer(pb);
 
@@ -282,7 +271,6 @@ public:
 protected:
   Display* dpy;
   Geometry* geometry;
-  PixelFormat pf;
   XPixelBuffer* pb;
   VNCServer* server;
   Image* image;

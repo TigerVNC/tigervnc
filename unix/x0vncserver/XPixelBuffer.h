@@ -37,7 +37,7 @@ class XPixelBuffer : public FullFramePixelBuffer
 public:
   XPixelBuffer(Display *dpy, Image* image,
                int offsetLeft, int offsetTop,
-               const PixelFormat& pf, ColourMap* cm);
+               ColourMap* cm);
   virtual ~XPixelBuffer();
 
   // We allow public access to the underlying Image object.
