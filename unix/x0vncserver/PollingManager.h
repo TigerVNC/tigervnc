@@ -43,8 +43,6 @@ public:
                  int offsetLeft = 0, int offsetTop = 0);
   virtual ~PollingManager();
 
-  void setVNCServer(VNCServer *s);
-
   // Currently, these functions do nothing. In past versions, we used
   // to poll area around the pointer if its position has been changed
   // recently. But that rather decreased overal polling performance,
@@ -54,15 +52,14 @@ public:
   void setPointerPos(const Point &pos) {}
   void unsetPointerPos() {}
 
-  void poll();
+  void poll(VNCServer *server);
 
 protected:
 
   // Screen polling. Returns true if some changes were detected.
-  bool pollScreen();
+  bool pollScreen(VNCServer *server);
 
   Display *m_dpy;
-  VNCServer *m_server;
 
   const Image *m_image;
   const int m_bytesPerPixel;
@@ -98,7 +95,7 @@ private:
 
   int checkRow(int x, int y, int w);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
-  int sendChanges();
+  int sendChanges(VNCServer *server);
 
   // Check neighboring tiles and update m_changeFlags[].
   void checkNeighbors();

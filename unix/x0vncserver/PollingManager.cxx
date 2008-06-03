@@ -51,7 +51,6 @@ PollingManager::PollingManager(Display *dpy, XPixelBuffer *buffer,
                                ImageFactory *factory,
                                int offsetLeft, int offsetTop)
   : m_dpy(dpy),
-    m_server(0),
     m_image(buffer->getImage()),
     m_bytesPerPixel(buffer->getPF().bpp / 8),
     m_offsetLeft(offsetLeft),
@@ -91,15 +90,6 @@ PollingManager::~PollingManager()
 }
 
 //
-// Register VNCServer object.
-//
-
-void PollingManager::setVNCServer(VNCServer *s)
-{
-  m_server = s;
-}
-
-//
 // DEBUG: Measuring time spent in the poll() function,
 //        as well as time intervals between poll() calls.
 //
@@ -127,15 +117,15 @@ void PollingManager::debugAfterPoll()
 // Search for changed rectangles on the screen.
 //
 
-void PollingManager::poll()
+void PollingManager::poll(VNCServer *server)
 {
 #ifdef DEBUG
   debugBeforePoll();
 #endif
 
   // Perform polling and try update clients if changes were detected.
-  if (pollScreen())
-    m_server->tryUpdate();
+  if (pollScreen(server))
+    server->tryUpdate();
 
 #ifdef DEBUG
   debugAfterPoll();
@@ -148,9 +138,9 @@ void PollingManager::poll()
 #define DBG_REPORT_CHANGES(title)
 #endif
 
-bool PollingManager::pollScreen()
+bool PollingManager::pollScreen(VNCServer *server)
 {
-  if (!m_server)
+  if (!server)
     return false;
 
   // Clear the m_changeFlags[] array, indicating that no changes have
@@ -175,7 +165,7 @@ bool PollingManager::pollScreen()
     checkNeighbors();
     DBG_REPORT_CHANGES("After checking neighbors");
     // Inform the server about the changes.
-    nTilesChanged = sendChanges();
+    nTilesChanged = sendChanges(server);
   }
 
 #ifdef DEBUG_PRINT_NUM_CHANGED_TILES
@@ -265,7 +255,7 @@ int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
   return nTilesChanged;
 }
 
-int PollingManager::sendChanges()
+int PollingManager::sendChanges(VNCServer *server)
 {
   const bool *pChangeFlags = m_changeFlags;
   int nTilesChanged = 0;
@@ -287,7 +277,7 @@ int PollingManager::sendChanges()
         if (rect.br.y > m_height)
           rect.br.y = m_height;
         // Add to the changed region maintained by the server.
-        m_server->add_changed(rect);
+        server->add_changed(rect);
         // Skip processed tiles.
         x += count;
       }

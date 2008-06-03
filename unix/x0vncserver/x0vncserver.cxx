@@ -202,8 +202,6 @@ public:
     pollmgr = new PollingManager(dpy, pb, &factory,
                                  geometry->offsetLeft(),
                                  geometry->offsetTop());
-    pollmgr->setVNCServer(vs);
-
     running = true;
   }
 
@@ -225,7 +223,7 @@ public:
 
   inline void poll() {
     if (pollmgr)
-      pollmgr->poll();
+      pollmgr->poll(server);
   }
 
   virtual void pointerEvent(const Point& pos, int buttonMask) {
