@@ -28,18 +28,14 @@
 using namespace rfb;
 
 XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
-                           int offsetLeft, int offsetTop,
-                           int width, int height,
-                           ColourMap* cm)
+                           const Rect &rect, ColourMap* cm)
   : FullFramePixelBuffer(),
     m_dpy(dpy),
-    m_image(0),
-    m_offsetLeft(offsetLeft),
-    m_offsetTop(offsetTop),
+    m_image(factory.newImage(dpy, rect.width(), rect.height())),
+    m_offsetLeft(rect.tl.x),
+    m_offsetTop(rect.tl.y),
     m_stride(0)
 {
-  m_image = factory.newImage(dpy, width, height);
-
   // Fill in the PixelFormat structure of the parent class.
   format.bpp        = m_image->xim->bits_per_pixel;
   format.depth      = m_image->xim->depth;
@@ -53,13 +49,13 @@ XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
   format.blueMax    = m_image->xim->blue_mask  >> format.blueShift;
 
   // Set up the remaining data of the parent class.
-  width_ = width;
-  height_ = height;
+  width_ = rect.width();
+  height_ = rect.height();
   data = (rdr::U8 *)m_image->xim->data;
   colourmap = cm;
 
   // Calculate the distance in pixels between two subsequent scan
-  // lines of the framebuffer.
+  // lines of the framebuffer. This may differ from image width.
   m_stride = m_image->xim->bytes_per_line * 8 / m_image->xim->bits_per_pixel;
 
   // Get initial screen image from the X display.

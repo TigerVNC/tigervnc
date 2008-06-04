@@ -180,10 +180,7 @@ public:
 
     // Provide pixel buffer to the server object.
     // FIXME: Pass coordinates in a structure?
-    pb = new XPixelBuffer(dpy, factory,
-                          geometry->offsetLeft(), geometry->offsetTop(),
-                          geometry->width(), geometry->height(),
-                          this);
+    pb = new XPixelBuffer(dpy, factory, geometry->getRect(), this);
     vlog.info("Allocated %s", pb->getImage()->classDesc());
 
     server = vs;
