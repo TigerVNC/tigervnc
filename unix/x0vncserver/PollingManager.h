@@ -38,18 +38,9 @@ class PollingManager {
 
 public:
 
-  PollingManager(Display *dpy, const Image *image, ImageFactory *factory,
+  PollingManager(Display *dpy, const Image *image, ImageFactory &factory,
                  int offsetLeft = 0, int offsetTop = 0);
   virtual ~PollingManager();
-
-  // Currently, these functions do nothing. In past versions, we used
-  // to poll area around the pointer if its position has been changed
-  // recently. But that rather decreased overal polling performance,
-  // so we don't do that any more. However, pointer position may be a
-  // useful hint and might be used in future code, so we do not remove
-  // these functions, just in case.
-  void setPointerPos(const Point &pos) {}
-  void unsetPointerPos() {}
 
   void poll(VNCServer *server);
 

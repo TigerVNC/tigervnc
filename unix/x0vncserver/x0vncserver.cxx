@@ -47,7 +47,6 @@
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/Image.h>
 #include <x0vncserver/XPixelBuffer.h>
-#include <x0vncserver/PollingManager.h>
 #include <x0vncserver/PollingScheduler.h>
 
 // XXX Lynx/OS 2.3: protos for select(), bzero()
@@ -138,7 +137,7 @@ class XDesktop : public SDesktop, public ColourMap
 {
 public:
   XDesktop(Display* dpy_, Geometry *geometry_)
-    : dpy(dpy_), geometry(geometry_), pb(0), server(0), pollmgr(0),
+    : dpy(dpy_), geometry(geometry_), pb(0), server(0),
       oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
@@ -186,10 +185,6 @@ public:
     server = vs;
     server->setPixelBuffer(pb);
 
-    // Create polling manager object for detection of pixel changes.
-    pollmgr = new PollingManager(dpy, pb->getImage(), &factory,
-                                 geometry->offsetLeft(),
-                                 geometry->offsetTop());
     running = true;
   }
 
@@ -197,10 +192,7 @@ public:
     running = false;
 
     delete pb;
-    delete pollmgr;
-
     pb = 0;
-    pollmgr = 0;
   }
 
   inline bool isRunning() {
@@ -208,12 +200,11 @@ public:
   }
 
   inline void poll() {
-    if (pollmgr)
-      pollmgr->poll(server);
+    if (pb)
+      pb->poll(server);
   }
 
   virtual void pointerEvent(const Point& pos, int buttonMask) {
-    pollmgr->setPointerPos(pos);
 #ifdef HAVE_XTEST
     if (!haveXtest) return;
     XTestFakeMotionEvent(dpy, DefaultScreen(dpy),
@@ -270,7 +261,6 @@ protected:
   Geometry* geometry;
   XPixelBuffer* pb;
   VNCServer* server;
-  PollingManager* pollmgr;
   int oldButtonMask;
   bool haveXtest;
   int maxButtons;

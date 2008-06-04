@@ -24,7 +24,9 @@
 #define __XPIXELBUFFER_H__
 
 #include <rfb/PixelBuffer.h>
+#include <rfb/VNCServer.h>
 #include <x0vncserver/Image.h>
+#include <x0vncserver/PollingManager.h>
 
 using namespace rfb;
 
@@ -40,7 +42,10 @@ public:
   virtual ~XPixelBuffer();
 
   // Provide access to the underlying Image object.
-  virtual const Image *getImage() const { return m_image; }
+  const Image *getImage() const { return m_image; }
+
+  // Detect changed pixels, notify the server.
+  inline void poll(VNCServer *server) { m_poller->poll(server); }
 
   // Override PixelBuffer::getStride().
   virtual int getStride() const { return m_stride; }
@@ -49,6 +54,8 @@ public:
   virtual void grabRegion(const rfb::Region& region);
 
 protected:
+  PollingManager *m_poller;
+
   Display *m_dpy;
   Image* m_image;
   int m_offsetLeft;

@@ -48,7 +48,7 @@ const int PollingManager::m_pollingOrder[32] = {
 //
 
 PollingManager::PollingManager(Display *dpy, const Image *image,
-                               ImageFactory *factory,
+                               ImageFactory &factory,
                                int offsetLeft, int offsetTop)
   : m_dpy(dpy),
     m_image(image),
@@ -66,8 +66,8 @@ PollingManager::PollingManager(Display *dpy, const Image *image,
   // Create additional images used in polling algorithm, warn if
   // underlying class names are different from the class name of the
   // primary image.
-  m_rowImage = factory->newImage(m_dpy, m_width, 1);
-  m_columnImage = factory->newImage(m_dpy, 1, m_height);
+  m_rowImage = factory.newImage(m_dpy, m_width, 1);
+  m_columnImage = factory.newImage(m_dpy, 1, m_height);
   const char *primaryImgClass = m_image->className();
   const char *rowImgClass = m_rowImage->className();
   const char *columnImgClass = m_columnImage->className();

@@ -30,6 +30,7 @@ using namespace rfb;
 XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
                            const Rect &rect, ColourMap* cm)
   : FullFramePixelBuffer(),
+    m_poller(0),
     m_dpy(dpy),
     m_image(factory.newImage(dpy, rect.width(), rect.height())),
     m_offsetLeft(rect.tl.x),
@@ -60,10 +61,15 @@ XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
 
   // Get initial screen image from the X display.
   m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
+
+  // PollingManager will detect changed pixels.
+  m_poller = new PollingManager(dpy, getImage(), factory,
+                                m_offsetLeft, m_offsetTop);
 }
 
 XPixelBuffer::~XPixelBuffer()
 {
+  delete m_poller;
   delete m_image;
 }
 
