@@ -255,7 +255,7 @@ int PollingManager::checkColumn(int x, int y, int h, bool *pChangeFlags)
   return nTilesChanged;
 }
 
-int PollingManager::sendChanges(VNCServer *server)
+int PollingManager::sendChanges(VNCServer *server) const
 {
   const bool *pChangeFlags = m_changeFlags;
   int nTilesChanged = 0;

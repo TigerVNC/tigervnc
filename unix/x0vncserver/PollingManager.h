@@ -85,7 +85,7 @@ private:
 
   int checkRow(int x, int y, int w);
   int checkColumn(int x, int y, int h, bool *pChangeFlags);
-  int sendChanges(VNCServer *server);
+  int sendChanges(VNCServer *server) const;
 
   // Check neighboring tiles and update m_changeFlags[].
   void checkNeighbors();
