@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
+/* Copyright (C) 2006-2008 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 // Geometry.cxx
 //
 
-#include <rfb/Rect.h>
 #include <rfb/LogWriter.h>
 #include <x0vncserver/Geometry.h>
 
@@ -34,8 +33,7 @@ StringParameter Geometry::m_geometryParam("Geometry",
   "");
 
 Geometry::Geometry(int fullWidth, int fullHeight)
-  : m_width(fullWidth), m_height(fullHeight),
-    m_offsetLeft(0), m_offsetTop(0)
+  : m_rect(0, 0, fullWidth, fullHeight)
 {
   const char *param = m_geometryParam.getData();
   if (strlen(param) != 0) {
@@ -52,20 +50,19 @@ Geometry::Geometry(int fullWidth, int fullHeight)
         y = fullHeight - h - y;
       Rect fullRect(0, 0, fullWidth, fullHeight);
       Rect partRect(x, y, x + w, y + h);
-      Rect r = partRect.intersect(fullRect);
-      if (r.area() > 0) {
-        m_width = r.width();
-        m_height = r.height();
-        m_offsetLeft = r.tl.x;
-        m_offsetTop = r.tl.y;
-      } else {
+      m_rect = partRect.intersect(fullRect);
+      if (m_rect.area() <= 0) {
         vlog.error("Requested area is out of the desktop boundaries");
+        m_rect.clear();
+        return;
       }
     } else {
       vlog.error("Wrong argument format");
+      m_rect.clear();
+      return;
     }
   }
   vlog.info("Desktop geometry is %dx%d+%d+%d",
-            m_width, m_height, m_offsetLeft, m_offsetTop);
+            width(), height(), offsetLeft(), offsetTop());
 }
 

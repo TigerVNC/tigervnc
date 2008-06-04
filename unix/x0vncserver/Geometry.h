@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
+/* Copyright (C) 2006-2008 Constantin Kaplinsky.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
 
+#include <rfb/Rect.h>
 #include <rfb/Configuration.h>
 
 using namespace rfb;
@@ -32,18 +33,17 @@ class Geometry
 public:
   Geometry(int fullWidth, int fullHeight);
 
-  int width() const { return m_width; }
-  int height() const { return m_height; }
-  int offsetLeft() const { return m_offsetLeft; }
-  int offsetTop() const { return m_offsetTop; }
+  int width() const { return m_rect.width(); }
+  int height() const { return m_rect.height(); }
+  int offsetLeft() const { return m_rect.tl.x; }
+  int offsetTop() const { return m_rect.tl.y; }
+
+  const Rect& getRect() const { return m_rect; }
 
 protected:
   static StringParameter m_geometryParam;
 
-  int m_width;
-  int m_height;
-  int m_offsetLeft;
-  int m_offsetTop;
+  Rect m_rect;
 };
 
 #endif // __GEOMETRY_H__

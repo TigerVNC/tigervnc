@@ -438,6 +438,10 @@ int main(int argc, char** argv)
     TXWindow::init(dpy,"x0vncserver");
     Geometry geo(DisplayWidth(dpy, DefaultScreen(dpy)),
                  DisplayHeight(dpy, DefaultScreen(dpy)));
+    if (geo.getRect().is_empty()) {
+      vlog.error("Exiting with error");
+      return 1;
+    }
     XDesktop desktop(dpy, &geo);
 
     VNCServerST server("x0vncserver", &desktop);
