@@ -138,7 +138,7 @@ class XDesktop : public SDesktop, public ColourMap
 {
 public:
   XDesktop(Display* dpy_, Geometry *geometry_)
-    : dpy(dpy_), geometry(geometry_), pb(0), server(0), image(0), pollmgr(0),
+    : dpy(dpy_), geometry(geometry_), pb(0), server(0), pollmgr(0),
       oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
@@ -175,15 +175,17 @@ public:
     vlog.info("Enabling %d button%s of X pointer device",
               maxButtons, (maxButtons != 1) ? "s" : "");
 
-    // Create an image for maintaining framebuffer data.
+    // Create an ImageFactory instance for producing Image objects.
     ImageFactory factory((bool)useShm, (bool)useOverlay);
-    image = factory.newImage(dpy, geometry->width(), geometry->height());
-    vlog.info("Allocated %s", image->classDesc());
 
     // Provide pixel buffer to the server object.
-    pb = new XPixelBuffer(dpy, image,
+    // FIXME: Pass coordinates in a structure?
+    pb = new XPixelBuffer(dpy, factory,
                           geometry->offsetLeft(), geometry->offsetTop(),
+                          geometry->width(), geometry->height(),
                           this);
+    vlog.info("Allocated %s", pb->getImage()->classDesc());
+
     server = vs;
     server->setPixelBuffer(pb);
 
@@ -199,11 +201,9 @@ public:
 
     delete pb;
     delete pollmgr;
-    delete image;
 
     pb = 0;
     pollmgr = 0;
-    image = 0;
   }
 
   inline bool isRunning() {
@@ -273,7 +273,6 @@ protected:
   Geometry* geometry;
   XPixelBuffer* pb;
   VNCServer* server;
-  Image* image;
   PollingManager* pollmgr;
   int oldButtonMask;
   bool haveXtest;

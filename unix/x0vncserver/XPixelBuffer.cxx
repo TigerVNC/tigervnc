@@ -27,33 +27,40 @@
 
 using namespace rfb;
 
-XPixelBuffer::XPixelBuffer(Display *dpy, Image* image,
+XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
                            int offsetLeft, int offsetTop,
+                           int width, int height,
                            ColourMap* cm)
   : FullFramePixelBuffer(),
     m_dpy(dpy),
-    m_image(image),
+    m_image(0),
     m_offsetLeft(offsetLeft),
     m_offsetTop(offsetTop),
-    m_stride(image->xim->bytes_per_line * 8 / image->xim->bits_per_pixel)
+    m_stride(0)
 {
+  m_image = factory.newImage(dpy, width, height);
+
   // Fill in the PixelFormat structure of the parent class.
-  format.bpp        = image->xim->bits_per_pixel;
-  format.depth      = image->xim->depth;
-  format.bigEndian  = (image->xim->byte_order == MSBFirst);
-  format.trueColour = image->isTrueColor();
-  format.redShift   = ffs(image->xim->red_mask) - 1;
-  format.greenShift = ffs(image->xim->green_mask) - 1;
-  format.blueShift  = ffs(image->xim->blue_mask) - 1;
-  format.redMax     = image->xim->red_mask   >> format.redShift;
-  format.greenMax   = image->xim->green_mask >> format.greenShift;
-  format.blueMax    = image->xim->blue_mask  >> format.blueShift;
+  format.bpp        = m_image->xim->bits_per_pixel;
+  format.depth      = m_image->xim->depth;
+  format.bigEndian  = (m_image->xim->byte_order == MSBFirst);
+  format.trueColour = m_image->isTrueColor();
+  format.redShift   = ffs(m_image->xim->red_mask) - 1;
+  format.greenShift = ffs(m_image->xim->green_mask) - 1;
+  format.blueShift  = ffs(m_image->xim->blue_mask) - 1;
+  format.redMax     = m_image->xim->red_mask   >> format.redShift;
+  format.greenMax   = m_image->xim->green_mask >> format.greenShift;
+  format.blueMax    = m_image->xim->blue_mask  >> format.blueShift;
 
   // Set up the remaining data of the parent class.
-  width_ = image->xim->width;
-  height_ = image->xim->height;
-  data = (rdr::U8 *)image->xim->data;
+  width_ = width;
+  height_ = height;
+  data = (rdr::U8 *)m_image->xim->data;
   colourmap = cm;
+
+  // Calculate the distance in pixels between two subsequent scan
+  // lines of the framebuffer.
+  m_stride = m_image->xim->bytes_per_line * 8 / m_image->xim->bits_per_pixel;
 
   // Get initial screen image from the X display.
   m_image->get(DefaultRootWindow(m_dpy), m_offsetLeft, m_offsetTop);
@@ -61,6 +68,7 @@ XPixelBuffer::XPixelBuffer(Display *dpy, Image* image,
 
 XPixelBuffer::~XPixelBuffer()
 {
+  delete m_image;
 }
 
 void

@@ -35,8 +35,9 @@ using namespace rfb;
 class XPixelBuffer : public FullFramePixelBuffer
 {
 public:
-  XPixelBuffer(Display *dpy, Image* image,
+  XPixelBuffer(Display *dpy, ImageFactory &factory,
                int offsetLeft, int offsetTop,
+               int width, int height,
                ColourMap* cm);
   virtual ~XPixelBuffer();
 
@@ -46,9 +47,10 @@ public:
   //       Or better do not allow public access at all.
   virtual Image *getImage() const { return m_image; }
 
+  // Override PixelBuffer::getStride().
   virtual int getStride() const { return m_stride; }
 
-  // Override PixelBuffer's function.
+  // Override PixelBuffer::grabRegion().
   virtual void grabRegion(const rfb::Region& region);
 
 protected:
