@@ -39,11 +39,8 @@ public:
                const Rect &rect, ColourMap* cm);
   virtual ~XPixelBuffer();
 
-  // We allow public access to the underlying Image object.
-  // The image is heavily used by the PollingManager.
-  // TODO: Allow read-only (const Image *) access only.
-  //       Or better do not allow public access at all.
-  virtual Image *getImage() const { return m_image; }
+  // Provide access to the underlying Image object.
+  virtual const Image *getImage() const { return m_image; }
 
   // Override PixelBuffer::getStride().
   virtual int getStride() const { return m_stride; }

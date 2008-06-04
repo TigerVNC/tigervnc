@@ -187,7 +187,7 @@ public:
     server->setPixelBuffer(pb);
 
     // Create polling manager object for detection of pixel changes.
-    pollmgr = new PollingManager(dpy, pb, &factory,
+    pollmgr = new PollingManager(dpy, pb->getImage(), &factory,
                                  geometry->offsetLeft(),
                                  geometry->offsetTop());
     running = true;

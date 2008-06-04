@@ -43,24 +43,24 @@ const int PollingManager::m_pollingOrder[32] = {
 //
 // Constructor.
 //
-// Note that dpy and buffer should remain valid during the object
+// Note that dpy and image should remain valid during the object
 // lifetime, while factory is used only in the constructor itself.
 //
 
-PollingManager::PollingManager(Display *dpy, XPixelBuffer *buffer,
+PollingManager::PollingManager(Display *dpy, const Image *image,
                                ImageFactory *factory,
                                int offsetLeft, int offsetTop)
   : m_dpy(dpy),
-    m_image(buffer->getImage()),
-    m_bytesPerPixel(buffer->getPF().bpp / 8),
+    m_image(image),
+    m_bytesPerPixel(image->xim->bits_per_pixel / 8),
     m_offsetLeft(offsetLeft),
     m_offsetTop(offsetTop),
-    m_width(buffer->width()),
-    m_height(buffer->height()),
-    m_widthTiles((buffer->width() + 31) / 32),
-    m_heightTiles((buffer->height() + 31) / 32),
-    m_numTiles(((buffer->width() + 31) / 32) *
-               ((buffer->height() + 31) / 32)),
+    m_width(image->xim->width),
+    m_height(image->xim->height),
+    m_widthTiles((image->xim->width + 31) / 32),
+    m_heightTiles((image->xim->height + 31) / 32),
+    m_numTiles(((image->xim->width + 31) / 32) *
+               ((image->xim->height + 31) / 32)),
     m_pollingStep(0)
 {
   // Create additional images used in polling algorithm, warn if

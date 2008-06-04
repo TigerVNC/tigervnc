@@ -27,7 +27,6 @@
 #include <rfb/VNCServer.h>
 
 #include <x0vncserver/Image.h>
-#include <x0vncserver/XPixelBuffer.h>
 
 #ifdef DEBUG
 #include <x0vncserver/TimeMillis.h>
@@ -39,7 +38,7 @@ class PollingManager {
 
 public:
 
-  PollingManager(Display *dpy, XPixelBuffer *buffer, ImageFactory *factory,
+  PollingManager(Display *dpy, const Image *image, ImageFactory *factory,
                  int offsetLeft = 0, int offsetTop = 0);
   virtual ~PollingManager();
 
