@@ -163,6 +163,11 @@ public:
     stop();
   }
 
+  inline void poll() {
+    if (pb)
+      pb->poll(server);
+  }
+
   // -=- SDesktop interface
 
   virtual void start(VNCServer* vs) {
@@ -177,8 +182,7 @@ public:
     // Create an ImageFactory instance for producing Image objects.
     ImageFactory factory((bool)useShm, (bool)useOverlay);
 
-    // Provide pixel buffer to the server object.
-    // FIXME: Pass coordinates in a structure?
+    // Create pixel buffer and provide it to the server object.
     pb = new XPixelBuffer(dpy, factory, geometry->getRect(), this);
     vlog.info("Allocated %s", pb->getImage()->classDesc());
 
@@ -197,11 +201,6 @@ public:
 
   inline bool isRunning() {
     return running;
-  }
-
-  inline void poll() {
-    if (pb)
-      pb->poll(server);
   }
 
   virtual void pointerEvent(const Point& pos, int buttonMask) {
