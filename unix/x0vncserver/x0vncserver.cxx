@@ -368,11 +368,17 @@ private:
 
 char* programName;
 
+static void printVersion(FILE *fp)
+{
+  fprintf(fp, "TightVNC Server version %s, built %s\n",
+          VERSION, buildtime);
+}
+
 static void usage()
 {
-  fprintf(stderr, "TightVNC Server version %s, built %s\n\n",
-          VERSION, buildtime);
-  fprintf(stderr, "Usage: %s [<parameters>]\n", programName);
+  printVersion(stderr);
+  fprintf(stderr, "\nUsage: %s [<parameters>]\n", programName);
+  fprintf(stderr, "       %s --version\n", programName);
   fprintf(stderr,"\n"
           "Parameters can be turned on with -<param> or off with -<param>=0\n"
           "Parameters which take a value can be specified as "
@@ -402,6 +408,12 @@ int main(int argc, char** argv)
           i++;
           continue;
         }
+      }
+      if (strcmp(argv[i], "-v") == 0 ||
+          strcmp(argv[i], "-version") == 0 ||
+          strcmp(argv[i], "--version") == 0) {
+        printVersion(stdout);
+        return 0;
       }
       usage();
     }

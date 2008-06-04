@@ -1,9 +1,11 @@
-.TH X0VNCSERVER 1 "May 30, 2008" "TightVNC" "TightVNC Manual"
+.TH X0VNCSERVER 1 "Jun 04, 2008" "TightVNC" "TightVNC Manual"
 .SH NAME
 x0vncserver \- TightVNC Server for real X displays
 .SH SYNOPSIS
 .B x0vncserver
 .RI [ options ]
+.br
+.B x0vncserver -version
 .SH DESCRIPTION
 .B x0vncserver
 is a TightVNC Server which makes any X display remotely accessible via VNC,
