@@ -445,11 +445,6 @@ void SConnection::sendInteractionCaps()
   scaps.addTightExt(msgTypeFileLastRequestFailed,   "FTS_RQFL");
   */
 
-  // Continuous updates:
-  /* FIXME: EndOfContinuousUpdates message is not supported yet:
-  scaps.addTightExt(msgTypeEndOfContinuousUpdates,  "CUS_EOCU");
-  */
-
   //
   // Advertise support for non-standard client-to-server messages
   //
@@ -469,8 +464,6 @@ void SConnection::sendInteractionCaps()
   ccaps.addTightExt(msgTypeFileRenameRequest,       "FTC_RNRQ");
   ccaps.addTightExt(msgTypeFileDeleteRequest,       "FTC_RMRQ");
   */
-
-  ccaps.addTightExt(msgTypeEnableContinuousUpdates, "CUC_ENCU");
 
   if (m_videoSelectionEnabled) {
     ccaps.addTightExt(msgTypeVideoRectangleSelection, "VRECTSEL");

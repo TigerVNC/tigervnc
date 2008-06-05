@@ -99,20 +99,6 @@ void SMsgReader::readClientCutText()
   handler->clientCutText(ca.buf, len);
 }
 
-void SMsgReader::readEnableContinuousUpdates()
-{
-  bool enable = is->readU8();
-  int x = is->readU16();
-  int y = is->readU16();
-  int w = is->readU16();
-  int h = is->readU16();
-  if (enable) {
-    handler->enableContinuousUpdates(Rect(x, y, x+w, y+h));
-  } else {
-    handler->disableContinuousUpdates();
-  }
-}
-
 void SMsgReader::readVideoRectangleSelection()
 {
   (void)is->readU8();

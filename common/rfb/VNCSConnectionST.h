@@ -130,9 +130,6 @@ namespace rfb {
     virtual void setInitialColourMap();
     virtual void supportsLocalCursor();
 
-    virtual void enableContinuousUpdates(const Rect& r);
-    virtual void disableContinuousUpdates();
-
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
     // such that the actual rights granted are the minimum of the server's
@@ -154,8 +151,6 @@ namespace rfb {
     void setCursor();
     void setSocketTimeouts();
 
-    void resetRequestedRegion();
-
     network::Socket* sock;
     CharArray peerEndpoint;
     VNCServerST* server;
@@ -164,9 +159,6 @@ namespace rfb {
     Region requested;
     bool drawRenderedCursor, removeRenderedCursor;
     Rect renderedCursorRect;
-
-    bool autoUpdatesActive;       // continuous updates enabled
-    Rect autoUpdatedRect;         // continuously updated area
 
     std::set<rdr::U32> pressedKeys;
 

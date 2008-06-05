@@ -50,11 +50,3 @@ void SMsgHandler::framebufferUpdateRequest(const Rect& r, bool incremental)
 void SMsgHandler::supportsLocalCursor()
 {
 }
-
-void SMsgHandler::enableContinuousUpdates(const Rect& r)
-{
-}
-
-void SMsgHandler::disableContinuousUpdates()
-{
-}

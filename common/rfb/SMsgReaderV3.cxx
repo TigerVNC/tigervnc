@@ -61,7 +61,6 @@ void SMsgReaderV3::readMsg()
   case msgTypeFileRenameRequest:
   case msgTypeFileDeleteRequest:        handler->processFTMsg(msgType); break;
 
-  case msgTypeEnableContinuousUpdates:  readEnableContinuousUpdates(); break;
   case msgTypeVideoRectangleSelection:  readVideoRectangleSelection(); break;
 
   default:
