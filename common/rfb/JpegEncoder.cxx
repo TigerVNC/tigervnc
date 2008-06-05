@@ -133,8 +133,16 @@ void JpegEncoder::writeRect(PixelBuffer* pb, const Rect& r)
   const rdr::U32* pixels = (const rdr::U32 *)pb->getPixelsR(r, &stride);
   const PixelFormat& fmt = pb->getPF();
 
-  // Encode data
+  // Try to encode data
   jcomp->compress(pixels, &fmt, r.width(), r.height(), stride);
+
+  // If not successful, switch to StandardJpegCompressor
+  if (jcomp->getDataLength() == 0) {
+    vlog.info("switching to standard software JPEG compressor");
+    delete jcomp;
+    jcomp = new StandardJpegCompressor;
+    jcomp->setQuality(qualityMap[6]);
+  }
 
   // Write Tight-encoded header and JPEG data.
   os->writeU8(0x09 << 4);
