@@ -56,12 +56,12 @@ AC_CHECK_LIB(dmedia, dmICCreate,
   LIBS="$LIBS -ldmedia"])
 AM_CONDITIONAL([IRIX_MEDIA], [ test "x$IRIX_MEDIA" = xyes ])
 
-AC_ARG_WITH([tight-zlib],
-	AS_HELP_STRING([--with-tight-zlib],
+AC_ARG_WITH([included-zlib],
+	AS_HELP_STRING([--with-included-zlib],
 		       [use libz which is distributed with VNC]),
-	[], [with_tight_zlib='no'])
+	[], [with_included_zlib='no'])
 
-if test "x$with_tight_zlib" = xno; then
+if test "x$with_included_zlib" = xno; then
 	AC_SEARCH_LIBS([inflateEnd], [z],
 		[ZLIB_LIB='-lz'],
 		[ZLIB_DIR=zlib
@@ -79,12 +79,12 @@ AC_SUBST(ZLIB_LIB)
 
 AC_CONFIG_SUBDIRS([zlib])
 
-AC_ARG_WITH([tight-jpeg],
-	AS_HELP_STRING([--with-tight-jpeg], 
+AC_ARG_WITH([included-jpeg],
+	AS_HELP_STRING([--with-included-jpeg], 
 		       [use libjpeg which is distributed with VNC]),
-	[], [with_tight_jpeg='no'])
+	[], [with_included_jpeg='no'])
 
-if test "x$with_tight_jpeg" = xno; then
+if test "x$with_included_jpeg" = xno; then
   AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg],
 	[JPEG_LIB='-ljpeg'],
 	[JPEG_DIR=jpeg
