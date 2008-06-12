@@ -13,7 +13,7 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_LANG([C++])
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.17])
+AM_GNU_GETTEXT_VERSION([0.14.6])
 
 case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
