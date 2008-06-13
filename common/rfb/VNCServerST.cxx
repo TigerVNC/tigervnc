@@ -507,6 +507,22 @@ void VNCServerST::checkUpdate()
   comparer->clear();
 }
 
+void VNCServerST::checkVideoUpdate()
+{
+  const Rect &videoRect = comparer->getVideoArea();
+  Region videoRegion(videoRect);
+
+  if (!videoRegion.is_empty()) {
+    pb->grabRegion(videoRegion);
+
+    std::list<VNCSConnectionST*>::iterator ci, ci_next;
+    for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
+      ci_next = ci; ci_next++;
+      (*ci)->set_video_area(videoRect);
+    }
+  }
+}
+
 void VNCServerST::getConnInfo(ListConnInfo * listConn)
 {
   listConn->Clear();

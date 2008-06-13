@@ -85,6 +85,11 @@ namespace rfb {
     // FIXME: Provide getUpdateInfo() with no clipping, for better efficiency.
     virtual void getUpdateInfo(UpdateInfo* info, const Region& cliprgn);
 
+    // Get coordinates of the video rectangle
+    virtual const Rect& getVideoArea() const {
+      return video_area;
+    }
+
     // Copy the contained updates to another tracker
     virtual void copyTo(UpdateTracker* to) const;
 

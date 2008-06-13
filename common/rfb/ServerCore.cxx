@@ -92,3 +92,10 @@ rfb::BoolParameter rfb::Server::queryConnect
 ("QueryConnect",
  "Prompt the local user to accept or reject incoming connections.",
  false);
+
+// TightVNC-specific parameters
+// FIXME: Disable special video handling when this parameter is 0.
+rfb::IntParameter rfb::Server::videoPriority
+("VideoPriority",
+ "Priority of sending updates for video area (0..8)",
+ 0, 0, 8);

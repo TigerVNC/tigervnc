@@ -238,6 +238,7 @@ namespace rfb {
 
     bool needRenderedCursor();
     void checkUpdate();
+    void checkVideoUpdate();
 
     SSecurityFactory* securityFactory;
     QueryConnectionHandler* queryConnectionHandler;

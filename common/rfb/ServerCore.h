@@ -48,6 +48,9 @@ namespace rfb {
     static BoolParameter sendCutText;
     static BoolParameter queryConnect;
 
+    // TightVNC-specific parameters
+    static IntParameter videoPriority;
+
   };
 
 };
