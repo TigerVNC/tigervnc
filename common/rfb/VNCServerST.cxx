@@ -555,3 +555,22 @@ void VNCServerST::setConnStatus(ListConnInfo* listConn)
     }
   }
 }
+
+void VNCServerST::setVideoRectangle(const Rect& r)
+{
+  if (isVideoSelectionEnabled()) {
+    // FIXME: Duplication between m_videoRect and comparer->video_area.
+    m_videoRect = r;
+    set_video_area(m_videoRect);
+  }
+}
+
+void VNCServerST::unsetVideoRectangle()
+{
+  if (isVideoSelectionEnabled()) {
+    // FIXME: Duplication between m_videoRect and comparer->video_area.
+    m_videoRect.clear();
+    set_video_area(m_videoRect);
+  }
+}
+

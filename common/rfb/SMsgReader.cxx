@@ -111,10 +111,10 @@ void SMsgReader::readVideoRectangleSelection()
   if (enable) {
     vlog.debug("Video area selected by client: %dx%d at (%d,%d)",
                w, h, x, y);
+    handler->setVideoRectangle(Rect(x, y, x+w, y+h));
   } else {
     vlog.debug("Video area discarded by client");
+    handler->unsetVideoRectangle();
   }
-
-  // FIXME: Implement VideoRectangleSelection message handling.
 }
 

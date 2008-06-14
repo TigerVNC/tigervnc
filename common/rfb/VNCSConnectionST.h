@@ -130,6 +130,9 @@ namespace rfb {
     virtual void setInitialColourMap();
     virtual void supportsLocalCursor();
 
+    virtual void setVideoRectangle(const Rect& r);
+    virtual void unsetVideoRectangle();
+
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
     // such that the actual rights granted are the minimum of the server's

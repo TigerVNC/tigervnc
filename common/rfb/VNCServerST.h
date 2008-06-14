@@ -202,6 +202,9 @@ namespace rfb {
     void enableVideoSelection(bool enable) { m_videoSelectionEnabled = enable; }
     bool isVideoSelectionEnabled() { return m_videoSelectionEnabled; }
 
+    void setVideoRectangle(const Rect& r);
+    void unsetVideoRectangle();
+
   protected:
 
     friend class VNCSConnectionST;
@@ -252,6 +255,7 @@ namespace rfb {
     bool disableclients;
 
     bool m_videoSelectionEnabled;
+    Rect m_videoRect;
   };
 
 };

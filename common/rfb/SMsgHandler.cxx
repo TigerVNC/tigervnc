@@ -50,3 +50,12 @@ void SMsgHandler::framebufferUpdateRequest(const Rect& r, bool incremental)
 void SMsgHandler::supportsLocalCursor()
 {
 }
+
+void SMsgHandler::setVideoRectangle(const Rect& r)
+{
+}
+
+void SMsgHandler::unsetVideoRectangle()
+{
+}
+
