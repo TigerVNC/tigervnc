@@ -123,7 +123,7 @@ public class RfbPlayer extends java.applet.Applet
 
     if (inSeparateFrame) {
       vncFrame.pack();
-      vncFrame.show();
+      vncFrame.setVisible(true);
     } else {
       validate();
     }
@@ -260,7 +260,7 @@ public class RfbPlayer extends java.applet.Applet
   }
 
   public void updatePos() {
-    if (showControls)
+    if (showControls && buttonPanel != null)
       buttonPanel.setPos(rfb.fbs.getTimeOffset());
   }
 
