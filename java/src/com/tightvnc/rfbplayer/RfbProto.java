@@ -73,9 +73,9 @@ class RfbProto {
   //
   // Constructor.
   //
-  RfbProto(URL url) throws Exception {
+  RfbProto(URL url, long timeOffset) throws Exception {
     fbs = null;
-    newSession(url);
+    newSession(url, timeOffset);
   }
 
   // Force processing to quit
@@ -91,7 +91,7 @@ class RfbProto {
   //
   // Open new session URL.
   //
-  public void newSession(URL url) throws Exception {
+  public void newSession(URL url, long timeOffset) throws Exception {
     if (fbs != null)
       fbs.close();
 
@@ -107,6 +107,11 @@ class RfbProto {
       throw new Exception("Wrong authentication type in the session file");
     }
     readServerInit();
+
+    // Go to initial position but make sure not to seek backwards.
+    if (timeOffset > fbs.getTimeOffset()) {
+      fbs.setTimeOffset(timeOffset);
+    }
   }
 
   //

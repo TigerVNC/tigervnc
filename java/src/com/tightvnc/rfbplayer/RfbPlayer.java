@@ -134,7 +134,7 @@ public class RfbPlayer extends java.applet.Applet
       } else {
         url = new URL(sessionURL);
       }
-      rfb = new RfbProto(url);
+      rfb = new RfbProto(url, initialTimeOffset);
 
       vc = new VncCanvas(this);
       gbc.weightx = 1.0;
@@ -179,8 +179,6 @@ public class RfbPlayer extends java.applet.Applet
         try {
           setPaused(!autoPlay);
           rfb.fbs.setSpeed(playbackSpeed);
-          if (initialTimeOffset > rfb.fbs.getTimeOffset())
-            setPos(initialTimeOffset); // don't seek backwards here
           vc.processNormalProtocol();
         } catch (EOFException e) {
           if (e.getMessage() != null && e.getMessage().equals("[REWIND]")) {
@@ -192,7 +190,7 @@ public class RfbPlayer extends java.applet.Applet
             initialTimeOffset = 0;
             autoPlay = false;
           }
-          rfb.newSession(url);
+          rfb.newSession(url, initialTimeOffset);
           vc.updateFramebufferSize();
         } catch (NullPointerException e) {
           // catching this causes a hang with 1.4.1 JVM's under Win32 IE
