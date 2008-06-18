@@ -1,3 +1,5 @@
 noinst_LTLIBRARIES = libXregion.la
 
-libXregion_la_SOURCES = Region.c
+HDRS = region.h Xregion.h
+
+libXregion_la_SOURCES = $(HDRS) Region.c

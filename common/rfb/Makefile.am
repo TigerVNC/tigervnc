@@ -1,6 +1,32 @@
 noinst_LTLIBRARIES = librfb.la
 
-librfb_la_SOURCES = Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
+HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h CFTMsgReader.h \
+	CFTMsgWriter.h CMsgHandler.h CMsgReader.h CMsgReaderV3.h CMsgWriter.h \
+	CMsgWriterV3.h ColourCube.h ColourMap.h ComparingUpdateTracker.h \
+	Configuration.h ConnParams.h CSecurity.h CSecurityNone.h \
+	CSecurityVncAuth.h Cursor.h Decoder.h DirManager.h d3des.h Encoder.h \
+	encodings.h Exception.h FileInfo.h FileManager.h FileReader.h \
+	FileWriter.h fttypes.h hextileConstants.h hextileDecode.h \
+	HextileDecoder.h hextileEncodeBetter.h hextileEncode.h \
+	HextileEncoder.h Hostname.h HTTPServer.h ImageGetter.h InputHandler.h \
+	IrixCLJpegCompressor.h IrixDMIC_RawToJpeg.h IrixDMJpegCompressor.h \
+	JpegCompressor.h JpegEncoder.h KeyRemapper.h keysymdef.h \
+	ListConnInfo.h Logger_file.h Logger.h Logger_stdio.h LogWriter.h \
+	msgTypes.h Password.h PixelBuffer.h PixelFormat.h Pixel.h \
+	RawDecoder.h RawEncoder.h Rect.h Region.h rreDecode.h RREDecoder.h \
+	rreEncode.h RREEncoder.h ScaledPixelBuffer.h ScaleFilters.h \
+	SConnection.h SDesktop.h secTypes.h ServerCore.h SFileTransfer.h \
+	SFileTransferManager.h SFTMsgReader.h SFTMsgWriter.h SMsgHandler.h \
+	SMsgReader.h SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h \
+	SSecurityFactoryStandard.h SSecurity.h SSecurityNone.h \
+	SSecurityVncAuth.h Threading.h tightDecode.h TightDecoder.h \
+	tightEncode.h TightEncoder.h TightPalette.h Timer.h TransferQueue.h \
+	TransImageGetter.h transInitTempl.h transTempl.h TrueColourMap.h \
+	UpdateTracker.h UserPasswdGetter.h util.h VNCSConnectionST.h \
+	VNCServer.h VNCServerST.h zrleDecode.h ZRLEDecoder.h zrleEncode.h \
+	ZRLEEncoder.h
+
+librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	CMsgReader.cxx CMsgReaderV3.cxx CMsgWriter.cxx CMsgWriterV3.cxx \
 	CSecurityVncAuth.cxx CapsContainer.cxx CapsList.cxx \
 	ComparingUpdateTracker.cxx Configuration.cxx ConnParams.cxx \
