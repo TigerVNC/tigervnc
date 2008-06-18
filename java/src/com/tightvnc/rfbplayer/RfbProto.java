@@ -1,4 +1,5 @@
 //
+//  Copyright (C) 2008 Wimba, Inc.  All Rights Reserved.
 //  Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 2001 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation.  All Rights Reserved.
@@ -31,30 +32,51 @@ import java.net.*;
 
 class RfbProto {
 
-  final String versionMsg = "RFB 003.003\n";
-  final static int ConnFailed = 0,  NoAuth = 1,  VncAuth = 2;
-  final static int VncAuthOK = 0,  VncAuthFailed = 1,  VncAuthTooMany = 2;
+  final static String versionMsg = "RFB 003.003\n";
 
-  final static int FramebufferUpdate = 0,  SetColourMapEntries = 1,  Bell = 2,  ServerCutText =
-      3;
+  final static int ConnFailed = 0;
+  final static int NoAuth = 1;
+  final static int VncAuth = 2;
 
-  final int SetPixelFormat = 0,  FixColourMapEntries = 1,  SetEncodings = 2,  FramebufferUpdateRequest =
-      3,  KeyboardEvent = 4,  PointerEvent = 5,  ClientCutText = 6;
+  final static int VncAuthOK = 0;
+  final static int VncAuthFailed = 1;
+  final static int VncAuthTooMany = 2;
 
-  final static int EncodingRaw = 0,  EncodingCopyRect = 1,  EncodingRRE = 2,  EncodingCoRRE =
-      4,  EncodingHextile = 5,  EncodingZlib = 6,  EncodingTight = 7,  EncodingCompressLevel0 =
-      0xFFFFFF00,  EncodingQualityLevel0 = 0xFFFFFFE0,  EncodingXCursor =
-      0xFFFFFF10,  EncodingRichCursor = 0xFFFFFF11,  EncodingPointerPos =
-      0xFFFFFF18,  EncodingLastRect = 0xFFFFFF20,  EncodingNewFBSize =
-      0xFFFFFF21;
+  final static int FramebufferUpdate = 0;
+  final static int SetColourMapEntries = 1;
+  final static int Bell = 2;
+  final static int ServerCutText = 3;
+
+  final static int SetPixelFormat = 0;
+  final static int FixColourMapEntries = 1;
+  final static int SetEncodings = 2;
+  final static int FramebufferUpdateRequest = 3;
+  final static int KeyboardEvent = 4;
+  final static int PointerEvent = 5;
+  final static int ClientCutText = 6;
+
+  final static int EncodingRaw = 0;
+  final static int EncodingCopyRect = 1;
+  final static int EncodingRRE = 2;
+  final static int EncodingCoRRE = 4;
+  final static int EncodingHextile = 5;
+  final static int EncodingZlib = 6;
+  final static int EncodingTight = 7;
+  final static int EncodingCompressLevel0 = 0xFFFFFF00;
+  final static int EncodingQualityLevel0 = 0xFFFFFFE0;
+  final static int EncodingXCursor = 0xFFFFFF10;
+  final static int EncodingRichCursor = 0xFFFFFF11;
+  final static int EncodingPointerPos = 0xFFFFFF18;
+  final static int EncodingLastRect = 0xFFFFFF20;
+  final static int EncodingNewFBSize = 0xFFFFFF21;
 
   final static int MaxNormalEncoding = 7;
 
-  final int HextileRaw = (1 << 0);
-  final int HextileBackgroundSpecified = (1 << 1);
-  final int HextileForegroundSpecified = (1 << 2);
-  final int HextileAnySubrects = (1 << 3);
-  final int HextileSubrectsColoured = (1 << 4);
+  final static int HextileRaw = (1 << 0);
+  final static int HextileBackgroundSpecified = (1 << 1);
+  final static int HextileForegroundSpecified = (1 << 2);
+  final static int HextileAnySubrects = (1 << 3);
+  final static int HextileSubrectsColoured = (1 << 4);
 
   final static int TightExplicitFilter = 0x04;
   final static int TightFill = 0x08;
