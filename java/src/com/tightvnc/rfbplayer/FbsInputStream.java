@@ -43,16 +43,13 @@ class FbsInputStream extends InputStream {
 
   protected Observer obs;
 
-  //
-  // Constructors.
-  //
-  FbsInputStream() throws IOException {
-    throw new IOException("FbsInputStream: no such constructor");
-  }
-
-  //
-  // Construct FbsInputStream object, begin playback.
-  //
+  /**
+   * Construct FbsInputStream object based on the given InputStream.
+   *
+   * @param in InputStream object that will be used as a base
+   * @throws java.io.IOException thrown on read error or on incorrect file
+   * header signature.
+   */
   FbsInputStream(InputStream in) throws IOException {
     this.in = in;
     startTime = System.currentTimeMillis();
