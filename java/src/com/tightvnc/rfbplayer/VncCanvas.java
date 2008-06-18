@@ -353,7 +353,7 @@ class VncCanvas extends Component
 
     // Tell our FbsInputStream object to notify us when it goes to the
     // `paused' mode.
-    rfb.fbs.addObserver(this);
+    appClass.fbs.addObserver(this);
 
     //
     // main dispatch loop
@@ -1004,7 +1004,7 @@ class VncCanvas extends Component
   // Tell JVM to repaint specified desktop area.
   //
   void scheduleRepaint(int x, int y, int w, int h) {
-    if (rfb.fbs.isSeeking()) {
+    if (appClass.fbs.isSeeking()) {
       // Do nothing, and remember we are seeking.
       seekMode = true;
     } else {
@@ -1315,7 +1315,7 @@ class VncCanvas extends Component
   }
 
   void scheduleCursorRepaint(int x, int y, int w, int h, int n) {
-    if (rfb.fbs.isSeeking()) {
+    if (appClass.fbs.isSeeking()) {
       // Do nothing, and remember we are seeking.
       seekMode = true;
     } else {

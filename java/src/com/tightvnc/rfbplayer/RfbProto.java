@@ -28,7 +28,6 @@
 package com.tightvnc.rfbplayer;
 
 import java.io.*;
-import java.net.*;
 
 class RfbProto {
 
@@ -88,52 +87,36 @@ class RfbProto {
 
   final static int TightMinToCompress = 12;
 
-  FbsInputStream fbs;
   DataInputStream is;
 
-
-  //
-  // Constructor.
-  //
-  RfbProto(URL url, long timeOffset) throws Exception {
-    fbs = null;
-    newSession(url, timeOffset);
+  /**
+   * Constructor. It calls <code>{@link #newSession(InputStream)}</code> to open
+   * new session.
+   *
+   * @param is the input stream from which RFB data will be read.
+   * @throws java.lang.Exception
+   * @throws java.io.IOException
+   */
+  RfbProto(InputStream is) throws Exception {
+    newSession(is);
   }
 
-  // Force processing to quit
-  public void quit() {
-    fbs.quit();
-    try {
-      fbs.close();
-    } catch (IOException e) {
-      System.out.println("IOException quitting RfbProto: " + e);
-    }
-  }
+  /**
+   * Open new session that can be read from the specified InputStream.
+   *
+   * @param is the input stream.
+   * @throws java.lang.Exception
+   * @throws java.io.IOException
+   */
+  public void newSession(InputStream is) throws Exception {
 
-  //
-  // Open new session URL.
-  //
-  public void newSession(URL url, long timeOffset) throws Exception {
-    if (fbs != null)
-      fbs.close();
-
-    // open the connection, and use caching
-    URLConnection connection = url.openConnection();
-    connection.setUseCaches(true);
-
-    fbs = new FbsInputStream(connection.getInputStream());
-    is = new DataInputStream(fbs);
+    this.is = new DataInputStream(is);
 
     readVersionMsg();
     if (readAuthScheme() != NoAuth) {
       throw new Exception("Wrong authentication type in the session file");
     }
     readServerInit();
-
-    // Go to initial position but make sure not to seek backwards.
-    if (timeOffset > fbs.getTimeOffset()) {
-      fbs.setTimeOffset(timeOffset);
-    }
   }
 
   //

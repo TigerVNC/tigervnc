@@ -52,6 +52,7 @@ public class RfbPlayer extends java.applet.Applet
 
   String[] mainArgs;
 
+  FbsInputStream fbs;
   RfbProto rfb;
   Thread rfbThread;
 
@@ -134,7 +135,9 @@ public class RfbPlayer extends java.applet.Applet
       } else {
         url = new URL(sessionURL);
       }
-      rfb = new RfbProto(url, initialTimeOffset);
+      newFbsConnection();
+      fbs.setTimeOffset(initialTimeOffset);
+      rfb = new RfbProto(fbs);
 
       vc = new VncCanvas(this);
       gbc.weightx = 1.0;
@@ -178,19 +181,23 @@ public class RfbPlayer extends java.applet.Applet
       while (!isQuitting) {
         try {
           setPaused(!autoPlay);
-          rfb.fbs.setSpeed(playbackSpeed);
+          fbs.setSpeed(playbackSpeed);
           vc.processNormalProtocol();
         } catch (EOFException e) {
+          long newTimeOffset;
           if (e.getMessage() != null && e.getMessage().equals("[REWIND]")) {
             // A special type of EOFException allowing us to seek backwards.
-            initialTimeOffset = rfb.fbs.getSeekOffset();
-            autoPlay = !rfb.fbs.isPaused();
+            newTimeOffset = fbs.getSeekOffset();
+            autoPlay = !fbs.isPaused();
           } else {
             // Return to the beginning after the playback is finished.
-            initialTimeOffset = 0;
+            newTimeOffset = 0;
             autoPlay = false;
           }
-          rfb.newSession(url, initialTimeOffset);
+          fbs.close();
+          newFbsConnection();
+          fbs.setTimeOffset(newTimeOffset);
+          rfb.newSession(fbs);
           vc.updateFramebufferSize();
         } catch (NullPointerException e) {
           // catching this causes a hang with 1.4.1 JVM's under Win32 IE
@@ -205,6 +212,17 @@ public class RfbPlayer extends java.applet.Applet
       fatalError(e.toString());
     }
 
+  }
+
+  /**
+   * Open new connection specified by this.url, save new FbsInputStream in
+   * this.fbs.
+   *
+   * @throws java.io.IOException
+   */
+  void newFbsConnection() throws IOException {
+    URLConnection connection = url.openConnection();
+    fbs = new FbsInputStream(connection.getInputStream());
   }
 
   public void setPausedInt(String paused) {
@@ -227,9 +245,9 @@ public class RfbPlayer extends java.applet.Applet
     if (showControls)
       buttonPanel.setPaused(paused);
     if (paused) {
-      rfb.fbs.pausePlayback();
+      fbs.pausePlayback();
     } else {
-      rfb.fbs.resumePlayback();
+      fbs.resumePlayback();
     }
   }
 
@@ -239,27 +257,27 @@ public class RfbPlayer extends java.applet.Applet
 
   public void setSpeed(double speed) {
     playbackSpeed = speed;
-    rfb.fbs.setSpeed(speed);
+    fbs.setSpeed(speed);
   }
 
   public void jumpTo(long pos) {
-    long diff = Math.abs(pos - rfb.fbs.getTimeOffset());
+    long diff = Math.abs(pos - fbs.getTimeOffset());
 
     // Current threshold is 5 seconds
     if (diff > 5000) {
-      rfb.fbs.pausePlayback();
+      fbs.pausePlayback();
       setPos(pos);
-      rfb.fbs.resumePlayback();
+      fbs.resumePlayback();
     }
   }
 
   public void setPos(long pos) {
-    rfb.fbs.setTimeOffset(pos);
+    fbs.setTimeOffset(pos);
   }
 
   public void updatePos() {
     if (showControls && buttonPanel != null)
-      buttonPanel.setPos(rfb.fbs.getTimeOffset());
+      buttonPanel.setPos(fbs.getTimeOffset());
   }
 
   //
@@ -402,8 +420,12 @@ public class RfbPlayer extends java.applet.Applet
   public void destroy() {
     isQuitting = true;
     vncContainer.removeAll();
-    if (rfb != null) {
-      rfb.quit();
+    if (fbs != null) {
+      fbs.quit();
+      try {
+        fbs.close();
+      } catch (IOException e) {
+      }
     }
     try {
       rfbThread.join();
