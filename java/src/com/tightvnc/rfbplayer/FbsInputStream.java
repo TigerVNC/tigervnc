@@ -44,11 +44,17 @@ class FbsInputStream extends InputStream {
   protected Observer obs;
 
   /**
-   * Construct FbsInputStream object based on the given InputStream.
+   * Construct FbsInputStream object based on the given InputStream, positioned
+   * at the very beginning of the corresponding FBS file. This constructor
+   * reads and checks FBS file signature which would look like "FBS 001.000\n",
+   * but any decimal number is allowed after the dot.
    *
-   * @param in InputStream object that will be used as a base
-   * @throws java.io.IOException thrown on read error or on incorrect file
-   * header signature.
+   * @param in the InputStream object that will be used as a base for this new
+   * FbsInputStream instance. It should be positioned at the very beginning of
+   * the corresponding FBS file, so that first 12 bytes read from the stream
+   * should form FBS file signature.
+   * @throws java.io.IOException thrown on read error or on incorrect FBS file
+   * signature.
    */
   FbsInputStream(InputStream in) throws IOException {
     this.in = in;
