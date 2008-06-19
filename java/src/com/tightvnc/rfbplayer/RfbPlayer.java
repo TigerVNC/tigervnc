@@ -23,7 +23,6 @@ package com.tightvnc.rfbplayer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.*;
 
 public class RfbPlayer extends java.applet.Applet
     implements java.lang.Runnable, WindowListener {
@@ -65,7 +64,6 @@ public class RfbPlayer extends java.applet.Applet
   VncCanvas vc;
 
   String sessionURL;
-  URL url;
   long initialTimeOffset;
   double playbackSpeed;
   boolean autoPlay;
