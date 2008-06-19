@@ -1,5 +1,6 @@
 //
 //  Copyright (C) 2002 HorizonLive.com, Inc.  All Rights Reserved.
+//  Copyright (C) 2008 Wimba, Inc.  All Rights Reserved.
 //
 //  This is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -41,6 +42,9 @@ class FbsInputStream extends InputStream {
   protected int bufferSize;
   protected int bufferPos;
 
+  /** The number of bytes to skip in the beginning of the next data block. */
+  protected int nextBlockOffset;
+
   protected Observer obs;
 
   /**
@@ -57,13 +61,7 @@ class FbsInputStream extends InputStream {
    * signature.
    */
   FbsInputStream(InputStream in) throws IOException {
-    this.in = in;
-    startTime = System.currentTimeMillis();
-    timeOffset = 0;
-    seekOffset = -1;
-    seekBackwards = false;
-    paused = false;
-    playbackSpeed = 1.0;
+    this(in, 0, null, 0);
 
     byte[] b = new byte[12];
     readFully(b);
@@ -72,12 +70,46 @@ class FbsInputStream extends InputStream {
         b[4] != '0' || b[5] != '0' || b[6] != '1' || b[7] != '.' ||
         b[8] < '0' || b[8] > '9' || b[9] < '0' || b[9] > '9' ||
         b[10] < '0' || b[10] > '9' || b[11] != '\n') {
-      throw new IOException("Incorrect protocol version");
+      throw new IOException("Incorrect FBS file signature");
     }
+  }
 
-    buffer = null;
-    bufferSize = 0;
+  /**
+   * Construct FbsInputStream object based on the given byte array and
+   * continued in the specified InputStream. Arbitrary position in the FBS file
+   * is allowed.
+   *
+   * @param in
+   *    the input stream for reading future data, after <code>buffer</code>
+   *    will be exhausted. The stream should be positioned at any data block
+   *    boundary (byte counter should follow in next four bytes).
+   * @param timeOffset
+   *    time position corresponding the the data block provided in
+   *    <code>buffer</code>.
+   * @param buffer
+   *    the data block that will be treated as the beginning of this FBS data
+   *    stream. This byte array is not copied into the new object so it should
+   *    not be altered by the caller afterwards.
+   * @param nextBlockOffset
+   *    the number of bytes that should be skipped in first data block read
+   *    from <code>in</code>.
+   */
+  FbsInputStream(InputStream in, long timeOffset, byte[] buffer,
+                 int nextBlockOffset) {
+
+    this.in = in;
+    startTime = System.currentTimeMillis() - timeOffset;
+    this.timeOffset = timeOffset;
+    seekOffset = -1;
+    seekBackwards = false;
+    paused = false;
+    playbackSpeed = 1.0;
+
+    this.buffer = buffer;
+    bufferSize = (buffer != null) ? buffer.length : 0;
     bufferPos = 0;
+
+    this.nextBlockOffset = nextBlockOffset;
   }
 
   // Force stream to finish any wait.
@@ -123,6 +155,7 @@ class FbsInputStream extends InputStream {
     bufferSize = 0;
     bufferPos = 0;
 
+    nextBlockOffset = 0;
     obs = null;
   }
 
@@ -190,7 +223,7 @@ class FbsInputStream extends InputStream {
     // Just wait unless we are performing playback OR seeking.
     waitWhilePaused();
 
-    if (!readDataBlock(0)) {
+    if (!readDataBlock()) {
       return false;
     }
 
@@ -220,14 +253,14 @@ class FbsInputStream extends InputStream {
 
   /**
    * Read FBS data block into the buffer.
+   * If {@link #nextBlockOffset} is not zero, that number of bytes will be
+   * skipped in the beginning of the data block.
    *
-   * @param numBytesSkip specifies how many bytes should be skipped in the
-   *   beginning of the data block.
    * @return true on success, false if end of file was reached.
    * @throws java.io.IOException can be thrown while reading from the
    *   underlying input stream, or as a result of bad FBS file data.
    */
-  private boolean readDataBlock(int numBytesSkip) throws IOException {
+  private boolean readDataBlock() throws IOException {
     // Read byte counter, check for EOF condition.
     long readResult = readUnsigned32();
     if (readResult < 0) {
@@ -235,11 +268,19 @@ class FbsInputStream extends InputStream {
     }
 
     bufferSize = (int)readResult;
+    int alignedSize = (bufferSize + 3) & 0xFFFFFFFC;
+
+    if (nextBlockOffset > 0) {
+      in.skip(nextBlockOffset);
+      bufferSize -= nextBlockOffset;
+      alignedSize -= nextBlockOffset;
+      nextBlockOffset = 0;
+    }
+
     if (bufferSize >= 0) {
-      int alignedSize = (bufferSize + 3) & 0xFFFFFFFC;
       buffer = new byte[alignedSize];
       readFully(buffer);
-      bufferPos = numBytesSkip;
+      bufferPos = 0;
       timeOffset = (long)(readUnsigned32() / playbackSpeed);
     }
 
