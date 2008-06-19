@@ -190,19 +190,7 @@ class FbsInputStream extends InputStream {
     // Just wait unless we are performing playback OR seeking.
     waitWhilePaused();
 
-    bufferSize = (int)readUnsigned32();
-    if (bufferSize >= 0) {
-      int realSize = (bufferSize + 3) & 0xFFFFFFFC;
-      buffer = new byte[realSize];
-      readFully(buffer);
-      bufferPos = 0;
-      timeOffset = (long)(readUnsigned32() / playbackSpeed);
-    }
-
-    if (bufferSize < 0 || timeOffset < 0) {
-      buffer = null;
-      bufferSize = 0;
-      bufferPos = 0;
+    if (!readDataBlock(0)) {
       return false;
     }
 
@@ -225,6 +213,41 @@ class FbsInputStream extends InputStream {
       } catch (InterruptedException e) {
       }
       waitWhilePaused();
+    }
+
+    return true;
+  }
+
+  /**
+   * Read FBS data block into the buffer.
+   *
+   * @param numBytesSkip specifies how many bytes should be skipped in the
+   *   beginning of the data block.
+   * @return true on success, false if end of file was reached.
+   * @throws java.io.IOException can be thrown while reading from the
+   *   underlying input stream, or as a result of bad FBS file data.
+   */
+  private boolean readDataBlock(int numBytesSkip) throws IOException {
+    // Read byte counter, check for EOF condition.
+    long readResult = readUnsigned32();
+    if (readResult < 0) {
+      return false;
+    }
+
+    bufferSize = (int)readResult;
+    if (bufferSize >= 0) {
+      int alignedSize = (bufferSize + 3) & 0xFFFFFFFC;
+      buffer = new byte[alignedSize];
+      readFully(buffer);
+      bufferPos = numBytesSkip;
+      timeOffset = (long)(readUnsigned32() / playbackSpeed);
+    }
+
+    if (bufferSize < 0 || timeOffset < 0 || bufferPos >= bufferSize) {
+      buffer = null;
+      bufferSize = 0;
+      bufferPos = 0;
+      throw new IOException("Invalid FBS file data");
     }
 
     return true;
