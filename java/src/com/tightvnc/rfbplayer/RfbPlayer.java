@@ -135,8 +135,7 @@ public class RfbPlayer extends java.applet.Applet
       } else {
         url = new URL(sessionURL);
       }
-      newFbsConnection();
-      fbs.setTimeOffset(initialTimeOffset);
+      newFbsConnection(initialTimeOffset);
       rfb = new RfbProto(fbs);
 
       vc = new VncCanvas(this);
@@ -195,8 +194,7 @@ public class RfbPlayer extends java.applet.Applet
             autoPlay = false;
           }
           fbs.close();
-          newFbsConnection();
-          fbs.setTimeOffset(newTimeOffset);
+          newFbsConnection(newTimeOffset);
           rfb.newSession(fbs);
           vc.updateFramebufferSize();
         } catch (NullPointerException e) {
@@ -218,11 +216,14 @@ public class RfbPlayer extends java.applet.Applet
    * Open new connection specified by this.url, save new FbsInputStream in
    * this.fbs.
    *
+   * @param timeOffset set this as current time position in the newly created
+   *   FbsInputStream object.
    * @throws java.io.IOException
    */
-  void newFbsConnection() throws IOException {
+  void newFbsConnection(long timeOffset) throws IOException {
     URLConnection connection = url.openConnection();
     fbs = new FbsInputStream(connection.getInputStream());
+    fbs.setTimeOffset(timeOffset);
   }
 
   public void setPausedInt(String paused) {
