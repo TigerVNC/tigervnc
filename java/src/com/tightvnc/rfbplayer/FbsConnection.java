@@ -63,6 +63,21 @@ public class FbsConnection {
   }
 
   FbsInputStream connect(long timeOffset) throws IOException {
+    // Try efficient seeking first.
+    if (timeOffset > 0 && indexData != null && numIndexRecords > 0) {
+      int i = 0;
+      while (i < numIndexRecords && indexData[i].timestamp <= timeOffset) {
+        i++;
+      }
+      if (i > 0) {
+        FbsEntryPoint entryPoint = indexData[i - 1];
+        if (entryPoint.key_size < entryPoint.fbs_fpos) {
+          System.err.println(entryPoint);
+        }
+      }
+    }
+
+    // Playback/seek from the beginning.
     URLConnection connection = fbsURL.openConnection();
     FbsInputStream fbs = new FbsInputStream(connection.getInputStream());
     fbs.setTimeOffset(timeOffset);
