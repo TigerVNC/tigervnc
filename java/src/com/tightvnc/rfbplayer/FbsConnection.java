@@ -25,6 +25,7 @@ package com.tightvnc.rfbplayer;
 
 import java.io.*;
 import java.net.*;
+import java.util.Vector;
 import java.applet.Applet;
 
 public class FbsConnection {
@@ -32,6 +33,9 @@ public class FbsConnection {
   URL fbsURL;
   URL fbiURL;
   URL fbkURL;
+
+  /** Index data read from the .fbi file. */
+  Vector idx;
 
   FbsConnection(String fbsLocation, String indexLocationPrefix, Applet applet)
       throws MalformedURLException {
@@ -53,6 +57,7 @@ public class FbsConnection {
     }
 
     // Try to load the .fbi index file.
+    idx = null;
     loadIndex();
   }
 
@@ -85,22 +90,23 @@ public class FbsConnection {
         }
 
         // Load index from the .fbi file.
-        // FIXME: Real loading is not implemented yet.
-        int numRecords = 0;
+        Vector newIndex = new Vector();
+        FbsEntryPoint record = new FbsEntryPoint();
         try {
           while (true) {
-            is.readInt();
-            is.readInt();
-            is.readInt();
-            is.readInt();
-            is.readInt();
-            numRecords++;
+            record.timestamp = is.readInt();
+            record.key_fpos = is.readInt();
+            record.key_size = is.readInt();
+            record.fbs_fpos = is.readInt();
+            record.fbs_skip = is.readInt();
+            newIndex.add(record);
           }
         } catch (EOFException e) {
         } catch (IOException e) {
           System.err.println("Warning: Index data may be incomplete");
         }
-        System.err.println("Loaded index data, " + numRecords + " records");
+        idx = newIndex;
+        System.err.println("Loaded index data, " + idx.size() + " records");
       } catch (IOException e) {
         System.err.println("Warning: I/O exception while loading index: " + e);
         System.err.println("Warning: failed to load .fbi, not using index");
