@@ -25,7 +25,6 @@ package com.tightvnc.rfbplayer;
 
 import java.io.*;
 import java.net.*;
-import java.util.Vector;
 import java.applet.Applet;
 
 public class FbsConnection {
@@ -35,7 +34,7 @@ public class FbsConnection {
   URL fbkURL;
 
   /** Index data loaded from the .fbi file. */
-  FbsEntryPoint idx[];
+  FbsEntryPoint[] idx;
 
   FbsConnection(String fbsLocation, String indexLocationPrefix, Applet applet)
       throws MalformedURLException {
