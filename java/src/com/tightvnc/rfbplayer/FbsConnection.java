@@ -34,7 +34,7 @@ public class FbsConnection {
   URL fbkURL;
 
   /** Index data loaded from the .fbi file. */
-  FbsEntryPoint[] idx;
+  FbsEntryPoint[] indexData;
   int numIndexRecords;
 
   FbsConnection(String fbsLocation, String indexLocationPrefix, Applet applet)
@@ -57,7 +57,7 @@ public class FbsConnection {
     }
 
     // Try to load the .fbi index file.
-    idx = null;
+    indexData = null;
     numIndexRecords = 0;
     loadIndex();
   }
@@ -71,7 +71,7 @@ public class FbsConnection {
   }
 
   /**
-   * Load index data from .fbi file to {@link #idx idx}.
+   * Load index data from .fbi file to {@link #indexData indexData}.
    */
   private void loadIndex() {
     // Loading .fbi makes sense only if both .fbi and .fbk files are available.
@@ -135,7 +135,7 @@ public class FbsConnection {
         System.err.println("Could not load index: failed to load .fbi file");
         return;
       }
-      idx = newIndex;
+      indexData = newIndex;
       numIndexRecords = numRecordsRead;
       System.err.println("Loaded index data, " + numRecordsRead + " records");
     }
