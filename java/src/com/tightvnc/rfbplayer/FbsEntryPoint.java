@@ -65,6 +65,11 @@ public class FbsEntryPoint {
    */
   public long fbs_skip;
 
+  /**
+   * A replacement for {@link Object#toString()}.
+   *
+   * @return a string representation of the object.
+   */
   public String toString() {
     String s = "[ timestamp:" + timestamp;
     s += " key_fpos:" + key_fpos;
