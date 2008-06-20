@@ -64,6 +64,7 @@ public class RfbPlayer extends java.applet.Applet
   VncCanvas vc;
 
   String sessionURL;
+  String idxPrefix;
   long initialTimeOffset;
   double playbackSpeed;
   boolean autoPlay;
@@ -129,7 +130,7 @@ public class RfbPlayer extends java.applet.Applet
 
     try {
       java.applet.Applet applet = (inAnApplet) ? this : null;
-      FbsConnection conn = new FbsConnection(sessionURL, null, applet);
+      FbsConnection conn = new FbsConnection(sessionURL, idxPrefix, applet);
       fbs = conn.connect(initialTimeOffset);
       rfb = new RfbProto(fbs);
 
@@ -271,6 +272,7 @@ public class RfbPlayer extends java.applet.Applet
   public void readParameters() {
 
     sessionURL = readParameter("URL", true);
+    idxPrefix = readParameter("Index", false);
 
     initialTimeOffset = readLongParameter("Position", 0);
     if (initialTimeOffset < 0)
