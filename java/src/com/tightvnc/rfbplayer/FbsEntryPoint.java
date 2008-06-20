@@ -65,4 +65,14 @@ public class FbsEntryPoint {
    */
   public long fbs_skip;
 
+  public String toString() {
+    String s = "[ timestamp:" + timestamp;
+    s += " key_fpos:" + key_fpos;
+    s += " key_size:" + key_size;
+    s += " fbs_fpos:" + fbs_fpos;
+    s += " fbs_skip:" + fbs_skip + " ]";
+
+    return s;
+  }
+
 }
