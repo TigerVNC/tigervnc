@@ -14,7 +14,7 @@ public class RfbPlayerSetDisplaySize extends Applet {
     if (receiver != null) {
       ((RfbPlayer)receiver).displaySize(width, height);
     } else
-      System.out.println("Couldn't resize RfbPlayer.");
+      System.err.println("Couldn't resize RfbPlayer.");
   }
 
 }

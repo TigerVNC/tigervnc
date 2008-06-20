@@ -22,7 +22,7 @@ public class PARfbSender extends Applet {
         ((RfbPlayer)receiver).jumpTo(time);
       }
     } else
-      System.out.println("Couldn't jump to time: " + time + " in RfbPlayer.");
+      System.err.println("Couldn't jump to time: " + time + " in RfbPlayer.");
   }
 
 }

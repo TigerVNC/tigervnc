@@ -375,7 +375,7 @@ public class RfbPlayer extends java.applet.Applet
   // fatalError() - print out a fatal error message.
   //
   public void fatalError(String str) {
-    System.out.println(str);
+    System.err.println(str);
 
     if (inAnApplet) {
       vncContainer.removeAll();
