@@ -35,6 +35,7 @@ public class FbsConnection {
 
   /** Index data loaded from the .fbi file. */
   FbsEntryPoint[] idx;
+  int numIndexRecords;
 
   FbsConnection(String fbsLocation, String indexLocationPrefix, Applet applet)
       throws MalformedURLException {
@@ -57,6 +58,7 @@ public class FbsConnection {
 
     // Try to load the .fbi index file.
     idx = null;
+    numIndexRecords = 0;
     loadIndex();
   }
 
@@ -134,6 +136,7 @@ public class FbsConnection {
         return;
       }
       idx = newIndex;
+      numIndexRecords = numRecordsRead;
       System.err.println("Loaded index data, " + numRecordsRead + " records");
     }
   }
