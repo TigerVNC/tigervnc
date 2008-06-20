@@ -63,6 +63,8 @@ public class FbsConnection {
   }
 
   FbsInputStream connect(long timeOffset) throws IOException {
+    FbsInputStream fbs = null;
+
     // Try efficient seeking first.
     if (timeOffset > 0 && indexData != null && numIndexRecords > 0) {
       int i = 0;
@@ -72,21 +74,31 @@ public class FbsConnection {
       if (i > 0) {
         FbsEntryPoint entryPoint = indexData[i - 1];
         if (entryPoint.key_size < entryPoint.fbs_fpos) {
-          System.err.println(entryPoint);
+          try {
+            fbs = openFbsFile(entryPoint);
+          } catch (IOException e) {
+            System.err.println(e);
+          }
+          if (fbs == null) {
+            System.err.println("Could not open FBS file at entry point " +
+                               entryPoint.timestamp + " ms");
+          }
         }
       }
     }
 
-    // Playback/seek from the beginning.
-    URLConnection connection = fbsURL.openConnection();
-    FbsInputStream fbs = new FbsInputStream(connection.getInputStream());
-    fbs.setTimeOffset(timeOffset);
+    // Fallback to the dumb version of openFbsFile().
+    if (fbs == null) {
+      fbs = openFbsFile();
+    }
 
+    // Seek to the specified position.
+    fbs.setTimeOffset(timeOffset);
     return fbs;
   }
 
   /**
-   * Load index data from .fbi file to {@link #indexData indexData}.
+   * Load index data from .fbi file to {@link #indexData}.
    */
   private void loadIndex() {
     // Loading .fbi makes sense only if both .fbi and .fbk files are available.
@@ -154,6 +166,32 @@ public class FbsConnection {
       numIndexRecords = numRecordsRead;
       System.err.println("Loaded index data, " + numRecordsRead + " records");
     }
+  }
+
+  /**
+   * Open FBS file identified by {@link #fbsURL}. The file is open at its very
+   * beginning, no seek is performed.
+   *
+   * @return a newly created FBS input stream.
+   * @throws java.io.IOException if an I/O exception occurs.
+   */
+  private FbsInputStream openFbsFile() throws IOException {
+    return new FbsInputStream(fbsURL.openStream());
+  }
+
+  /**
+   * Open FBS file identified by {@link #fbsURL}. The stream is
+   * positioned at the entry point described by <code>entryPoint</code>.
+   *
+   * @param entryPoint entry point information.
+   *
+   * @return a newly created FBS input stream on success, <code>null</code> if
+   *   any error occured and the FBS stream is not opened.
+   * @throws java.io.IOException if an I/O exception occurs.
+   */
+  private FbsInputStream openFbsFile(FbsEntryPoint entryPoint)
+      throws IOException {
+    return null;
   }
 
 }
