@@ -43,7 +43,7 @@ class FbsInputStream extends InputStream {
   protected int bufferPos;
 
   /** The number of bytes to skip in the beginning of the next data block. */
-  protected int nextBlockOffset;
+  protected long nextBlockOffset;
 
   protected Observer obs;
 
@@ -95,7 +95,7 @@ class FbsInputStream extends InputStream {
    *    from <code>in</code>.
    */
   FbsInputStream(InputStream in, long timeOffset, byte[] buffer,
-                 int nextBlockOffset) {
+                 long nextBlockOffset) {
 
     this.in = in;
     startTime = System.currentTimeMillis() - timeOffset;

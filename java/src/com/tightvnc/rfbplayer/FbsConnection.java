@@ -191,7 +191,34 @@ public class FbsConnection {
    */
   private FbsInputStream openFbsFile(FbsEntryPoint entryPoint)
       throws IOException {
-    return null;
+
+    // Make sure the protocol is HTTP.
+    if (!fbkURL.getProtocol().equalsIgnoreCase("http") ||
+        !fbsURL.getProtocol().equalsIgnoreCase("http")) {
+      return null;
+    }
+
+    // Prepare URLConnection to the right part of the .fbk file.
+    URLConnection fbkConn = fbkURL.openConnection();
+    long firstByteOffset = entryPoint.key_fpos;
+    long lastByteOffset = entryPoint.key_fpos + entryPoint.key_size - 1;
+    String rangeSpec = "bytes=" + firstByteOffset + "-" + lastByteOffset;
+    System.err.println("Range: " + rangeSpec);
+    fbkConn.setRequestProperty("Range", rangeSpec);
+    fbkConn.connect();
+    DataInputStream is = new DataInputStream(fbkConn.getInputStream());
+
+    // Load keyframe data from the .fbk file.
+    int keyDataSize = is.readInt();
+    byte[] keyData = new byte[keyDataSize];
+    is.readFully(keyData);
+    is.close();
+
+    // Open the FBS stream.
+    URLConnection fbsConn = fbsURL.openConnection();
+    fbsConn.connect();
+    return new FbsInputStream(fbsConn.getInputStream(), entryPoint.timestamp,
+                              keyData, entryPoint.fbs_skip);
   }
 
 }
