@@ -34,8 +34,8 @@ public class FbsConnection {
   URL fbiURL;
   URL fbkURL;
 
-  /** Index data read from the .fbi file. */
-  Vector idx;
+  /** Index data loaded from the .fbi file. */
+  FbsEntryPoint idx[];
 
   FbsConnection(String fbsLocation, String indexLocationPrefix, Applet applet)
       throws MalformedURLException {
@@ -69,9 +69,14 @@ public class FbsConnection {
     return fbs;
   }
 
+  /**
+   * Load index data from .fbi file to {@link #idx idx}.
+   */
   private void loadIndex() {
     // Loading .fbi makes sense only if both .fbi and .fbk files are available.
     if (fbiURL != null && fbkURL != null) {
+      FbsEntryPoint[] newIndex;
+      int numRecordsRead = 0;
       try {
         // Connect.
         URLConnection connection = fbiURL.openConnection();
@@ -85,32 +90,52 @@ public class FbsConnection {
             b[4] != '0' || b[5] != '0' || b[6] != '1' || b[7] != '.' ||
             b[8] < '0' || b[8] > '9' || b[9] < '0' || b[9] > '9' ||
             b[10] < '0' || b[10] > '9' || b[11] != '\n') {
-          System.err.println("Warning: bad .fbi file data, not using index");
-          fbiURL = null;
+          System.err.println("Could not load index: bad .fbi file signature");
+          return;
         }
 
+        // Read the record counter and allocate index array.
+        int numRecords = is.readInt();
+        if (numRecords <= 0) {
+          System.err.println("Could not load index: bad .fbi record counter");
+          return;
+        }
+        newIndex = new FbsEntryPoint[numRecords];
+
         // Load index from the .fbi file.
-        Vector newIndex = new Vector();
-        FbsEntryPoint record = new FbsEntryPoint();
         try {
-          while (true) {
-            record.timestamp = is.readInt();
-            record.key_fpos = is.readInt();
-            record.key_size = is.readInt();
-            record.fbs_fpos = is.readInt();
-            record.fbs_skip = is.readInt();
-            newIndex.add(record);
+          for (int i = 0; i < numRecords; i++) {
+            FbsEntryPoint record = new FbsEntryPoint();
+            record.timestamp = (long)is.readInt() & 0xFFFFFFFFL;
+            record.key_fpos = (long)is.readInt() & 0xFFFFFFFFL;
+            record.key_size = (long)is.readInt() & 0xFFFFFFFFL;
+            record.fbs_fpos = (long)is.readInt() & 0xFFFFFFFFL;
+            record.fbs_skip = (long)is.readInt() & 0xFFFFFFFFL;
+            newIndex[i] = record;
+            numRecordsRead++;
           }
         } catch (EOFException e) {
+          System.err.println("Preliminary end of .fbi file");
         } catch (IOException e) {
-          System.err.println("Warning: Index data may be incomplete");
+          System.err.println("Ignored exception: " + e);
         }
-        idx = newIndex;
-        System.err.println("Loaded index data, " + idx.size() + " records");
+        if (numRecordsRead == 0) {
+          System.err.println("Could not load index: failed to read .fbi data");
+          return;
+        } else if (numRecordsRead != numRecords) {
+          System.err.println("Warning: read not as much .fbi data as expected");
+        }
+      } catch (FileNotFoundException e) {
+        System.err.println("Could not load index: .fbi file not found: " +
+                           e.getMessage());
+        return;
       } catch (IOException e) {
-        System.err.println("Warning: I/O exception while loading index: " + e);
-        System.err.println("Warning: failed to load .fbi, not using index");
+        System.err.println(e);
+        System.err.println("Could not load index: failed to load .fbi file");
+        return;
       }
+      idx = newIndex;
+      System.err.println("Loaded index data, " + numRecordsRead + " records");
     }
   }
 
