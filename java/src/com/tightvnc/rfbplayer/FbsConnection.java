@@ -216,7 +216,7 @@ public class FbsConnection {
                               keyData, entryPoint.fbs_skip);
   }
 
-  private InputStream openByteRange(URL url, long offset, long length)
+  private static InputStream openByteRange(URL url, long offset, long length)
       throws IOException {
     URLConnection conn = url.openConnection();
     long lastByteOffset = offset + length - 1;
