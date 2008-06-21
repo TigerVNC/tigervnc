@@ -199,26 +199,32 @@ public class FbsConnection {
     }
 
     // Prepare URLConnection to the right part of the .fbk file.
-    URLConnection fbkConn = fbkURL.openConnection();
-    long firstByteOffset = entryPoint.key_fpos;
-    long lastByteOffset = entryPoint.key_fpos + entryPoint.key_size - 1;
-    String rangeSpec = "bytes=" + firstByteOffset + "-" + lastByteOffset;
-    System.err.println("Range: " + rangeSpec);
-    fbkConn.setRequestProperty("Range", rangeSpec);
-    fbkConn.connect();
-    DataInputStream is = new DataInputStream(fbkConn.getInputStream());
+    InputStream is =
+        openByteRange(fbkURL, entryPoint.key_fpos, entryPoint.key_size);
+    DataInputStream dis = new DataInputStream(is);
 
     // Load keyframe data from the .fbk file.
-    int keyDataSize = is.readInt();
+    int keyDataSize = dis.readInt();
     byte[] keyData = new byte[keyDataSize];
-    is.readFully(keyData);
-    is.close();
+    dis.readFully(keyData);
+    dis.close();
 
     // Open the FBS stream.
     URLConnection fbsConn = fbsURL.openConnection();
     fbsConn.connect();
     return new FbsInputStream(fbsConn.getInputStream(), entryPoint.timestamp,
                               keyData, entryPoint.fbs_skip);
+  }
+
+  private InputStream openByteRange(URL url, long offset, long length)
+      throws IOException {
+    URLConnection conn = url.openConnection();
+    long lastByteOffset = offset + length - 1;
+    String rangeSpec = "bytes=" + offset + "-" + lastByteOffset;
+    System.err.println("Range: " + rangeSpec);
+    conn.setRequestProperty("Range", rangeSpec);
+    conn.connect();
+    return conn.getInputStream();
   }
 
 }
