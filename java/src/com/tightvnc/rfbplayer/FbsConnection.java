@@ -195,13 +195,26 @@ public class FbsConnection {
     // Make sure the protocol is HTTP.
     if (!fbkURL.getProtocol().equalsIgnoreCase("http") ||
         !fbsURL.getProtocol().equalsIgnoreCase("http")) {
+      System.err.println("Indexed access requires HTTP protocol in URLs");
       return null;
     }
 
-    // Prepare URLConnection to the right part of the .fbk file.
+    // Request RFB initialization.
+    // FIXME: Check return value of openHttpByteRange(), it can be null.
     InputStream is =
-        openByteRange(fbkURL, entryPoint.key_fpos, entryPoint.key_size);
+        openHttpByteRange(fbkURL, 12, indexData[0].key_fpos - 12);
     DataInputStream dis = new DataInputStream(is);
+
+    // Read RFB initialization.
+    int initDataSize = dis.readInt();
+    byte[] initData = new byte[initDataSize];
+    dis.readFully(initData);
+    dis.close();
+
+    // Seek to the keyframe.
+    // FIXME: Check return value of openHttpByteRange(), it can be null.
+    is = openHttpByteRange(fbkURL, entryPoint.key_fpos, entryPoint.key_size);
+    dis = new DataInputStream(is);
 
     // Load keyframe data from the .fbk file.
     int keyDataSize = dis.readInt();
@@ -209,22 +222,36 @@ public class FbsConnection {
     dis.readFully(keyData);
     dis.close();
 
+    // Concatenate init and keyframe data.
+    // FIXME: Get rid of concatenation, read both parts to one array.
+    byte[] allData = new byte[initDataSize + keyDataSize];
+    System.arraycopy(initData, 0, allData, 0, initDataSize);
+    System.arraycopy(keyData, 0, allData, initDataSize, keyDataSize);
+
     // Open the FBS stream.
-    URLConnection fbsConn = fbsURL.openConnection();
-    fbsConn.connect();
-    return new FbsInputStream(fbsConn.getInputStream(), entryPoint.timestamp,
-                              keyData, entryPoint.fbs_skip);
+    // FIXME: Check return value of openHttpByteRange(), it can be null.
+    is = openHttpByteRange(fbsURL, entryPoint.fbs_fpos, -1);
+    return new FbsInputStream(is, entryPoint.timestamp, allData,
+                              entryPoint.fbs_skip);
   }
 
-  private static InputStream openByteRange(URL url, long offset, long length)
+  private static InputStream openHttpByteRange(URL url, long offset, long len)
       throws IOException {
-    URLConnection conn = url.openConnection();
-    long lastByteOffset = offset + length - 1;
-    String rangeSpec = "bytes=" + offset + "-" + lastByteOffset;
-    System.err.println("Range: " + rangeSpec);
+    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+    String rangeSpec = "bytes=" + offset + "-";
+    if (len != -1) {
+      long lastByteOffset = offset + len - 1;
+      rangeSpec += lastByteOffset;
+    }
     conn.setRequestProperty("Range", rangeSpec);
     conn.connect();
-    return conn.getInputStream();
+    InputStream is = conn.getInputStream();
+    if (conn.getResponseCode() != HttpURLConnection.HTTP_PARTIAL) {
+      System.err.println("HTTP server does not support Range request headers");
+      is.close();
+      return null;
+    }
+    return is;
   }
 
 }
