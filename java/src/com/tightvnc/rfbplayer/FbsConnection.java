@@ -223,19 +223,23 @@ public class FbsConnection {
     }
 
     // Seek to the keyframe.
-    // FIXME: Check return value of openHttpByteRange(), it can be null.
     InputStream is = openHttpByteRange(fbkURL, entry.key_fpos, entry.key_size);
-    DataInputStream data = new DataInputStream(is);
+    if (is == null) {
+      return null;
+    }
 
     // Load keyframe data from the .fbk file, prepend RFB initialization data.
+    DataInputStream data = new DataInputStream(is);
     byte[] keyData = new byte[rfbInitData.length + (int)entry.key_size];
     System.arraycopy(rfbInitData, 0, keyData, 0, rfbInitData.length);
     data.readFully(keyData, rfbInitData.length, (int)entry.key_size);
     data.close();
 
     // Open the FBS stream.
-    // FIXME: Check return value of openHttpByteRange(), it can be null.
     is = openHttpByteRange(fbsURL, entry.fbs_fpos, -1);
+    if (is == null) {
+      return null;
+    }
     return new FbsInputStream(is, entry.timestamp, keyData, entry.fbs_skip);
   }
 
