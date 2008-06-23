@@ -36,7 +36,7 @@ public class FbsConnection {
   /** Index data loaded from the .fbi file. */
   FbsEntryPoint[] indexData;
   int numIndexRecords;
-  
+
   /** RFB initialization data loaded from the .fbi file. */
   byte[] rfbInitData;
 
@@ -178,7 +178,7 @@ public class FbsConnection {
       }
       // Check correctness of the data read.
       for (int i = 1; i < numRecordsRead; i++) {
-        if (newIndex[i].timestamp <= newIndex[i-1].timestamp) {
+        if (newIndex[i].timestamp <= newIndex[i - 1].timestamp) {
           System.err.println("Could not load index: wrong .fbi file contents");
           return;
         }
