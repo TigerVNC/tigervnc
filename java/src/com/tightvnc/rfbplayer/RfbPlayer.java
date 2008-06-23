@@ -256,7 +256,7 @@ public class RfbPlayer extends java.applet.Applet
   }
 
   public void setPos(long pos) {
-    fbs.setTimeOffset(pos);
+    fbs.setTimeOffset(pos, true);
   }
 
   public void updatePos() {

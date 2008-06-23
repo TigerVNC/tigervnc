@@ -92,7 +92,7 @@ public class FbsConnection {
     }
 
     // Seek to the specified position.
-    fbs.setTimeOffset(timeOffset);
+    fbs.setTimeOffset(timeOffset, false);
     return fbs;
   }
 

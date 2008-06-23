@@ -167,11 +167,13 @@ class FbsInputStream extends InputStream {
     return (long)(off * playbackSpeed);
   }
 
-  public synchronized void setTimeOffset(long pos) {
+  public synchronized void setTimeOffset(long pos, boolean allowJump) {
     seekOffset = (long)(pos / playbackSpeed);
-    long minJumpForwardOffset = timeOffset + (long)(10000 / playbackSpeed);
-    if (seekOffset < timeOffset || seekOffset >  minJumpForwardOffset) {
-      farSeeking = true;
+    if (allowJump) {
+      long minJumpForwardOffset = timeOffset + (long)(10000 / playbackSpeed);
+      if (seekOffset < timeOffset || seekOffset > minJumpForwardOffset) {
+        farSeeking = true;
+      }
     }
     notify();
   }
