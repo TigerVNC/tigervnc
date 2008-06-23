@@ -212,7 +212,7 @@ public class FbsConnection {
    *   any error occured and the FBS stream is not opened.
    * @throws java.io.IOException if an I/O exception occurs.
    */
-  private FbsInputStream openFbsFile(FbsEntryPoint entryPoint)
+  private FbsInputStream openFbsFile(FbsEntryPoint entry)
       throws IOException {
 
     // Make sure the protocol is HTTP.
@@ -224,21 +224,19 @@ public class FbsConnection {
 
     // Seek to the keyframe.
     // FIXME: Check return value of openHttpByteRange(), it can be null.
-    InputStream is =
-        openHttpByteRange(fbkURL, entryPoint.key_fpos, entryPoint.key_size);
-    DataInputStream dis = new DataInputStream(is);
+    InputStream is = openHttpByteRange(fbkURL, entry.key_fpos, entry.key_size);
+    DataInputStream data = new DataInputStream(is);
 
     // Load keyframe data from the .fbk file, prepend RFB initialization data.
-    byte[] keyData = new byte[rfbInitData.length + (int)entryPoint.key_size];
+    byte[] keyData = new byte[rfbInitData.length + (int)entry.key_size];
     System.arraycopy(rfbInitData, 0, keyData, 0, rfbInitData.length);
-    dis.readFully(keyData, rfbInitData.length, (int)entryPoint.key_size);
-    dis.close();
+    data.readFully(keyData, rfbInitData.length, (int)entry.key_size);
+    data.close();
 
     // Open the FBS stream.
     // FIXME: Check return value of openHttpByteRange(), it can be null.
-    is = openHttpByteRange(fbsURL, entryPoint.fbs_fpos, -1);
-    return new FbsInputStream(is, entryPoint.timestamp, keyData,
-                              entryPoint.fbs_skip);
+    is = openHttpByteRange(fbsURL, entry.fbs_fpos, -1);
+    return new FbsInputStream(is, entry.timestamp, keyData, entry.fbs_skip);
   }
 
   private static InputStream openHttpByteRange(URL url, long offset, long len)
