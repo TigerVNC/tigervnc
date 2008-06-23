@@ -162,6 +162,14 @@ public class FbsConnection {
         System.err.println("Could not load index: failed to load .fbi file");
         return;
       }
+      // Check correctness of the data read.
+      for (int i = 1; i < numRecordsRead; i++) {
+        if (newIndex[i].timestamp <= newIndex[i-1].timestamp) {
+          System.err.println("Could not load index: wrong .fbi file contents");
+          return;
+        }
+      }
+      // Loaded successfully.
       indexData = newIndex;
       numIndexRecords = numRecordsRead;
       System.err.println("Loaded index data, " + numRecordsRead + " records");
