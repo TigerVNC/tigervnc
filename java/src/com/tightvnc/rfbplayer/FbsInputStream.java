@@ -33,7 +33,7 @@ class FbsInputStream extends InputStream {
   protected long startTime;
   protected long timeOffset;
   protected long seekOffset;
-  protected boolean seekBackwards;
+  protected boolean farSeeking;
   protected boolean paused;
   protected boolean isQuitting = false;
   protected double playbackSpeed;
@@ -101,7 +101,7 @@ class FbsInputStream extends InputStream {
     startTime = System.currentTimeMillis() - timeOffset;
     this.timeOffset = timeOffset;
     seekOffset = -1;
-    seekBackwards = false;
+    farSeeking = false;
     paused = false;
     playbackSpeed = 1.0;
 
@@ -147,7 +147,7 @@ class FbsInputStream extends InputStream {
     startTime = -1;
     timeOffset = 0;
     seekOffset = -1;
-    seekBackwards = false;
+    farSeeking = false;
     paused = false;
     playbackSpeed = 1.0;
 
@@ -169,8 +169,9 @@ class FbsInputStream extends InputStream {
 
   public synchronized void setTimeOffset(long pos) {
     seekOffset = (long)(pos / playbackSpeed);
-    if (seekOffset < timeOffset) {
-      seekBackwards = true;
+    long minJumpForwardOffset = timeOffset + (long)(10000 / playbackSpeed);
+    if (seekOffset < timeOffset || seekOffset >  minJumpForwardOffset) {
+      farSeeking = true;
     }
     notify();
   }
@@ -216,9 +217,9 @@ class FbsInputStream extends InputStream {
   // Methods for internal use.
   //
   private synchronized boolean fillBuffer() throws IOException {
-    // The reading thread should be interrupted on backward seeking.
-    if (seekBackwards)
-      throw new EOFException("[REWIND]");
+    // The reading thread should be interrupted on far seeking.
+    if (farSeeking)
+      throw new EOFException("[JUMP]");
 
     // Just wait unless we are performing playback OR seeking.
     waitWhilePaused();

@@ -180,8 +180,9 @@ public class RfbPlayer extends java.applet.Applet
           vc.processNormalProtocol();
         } catch (EOFException e) {
           long newTimeOffset;
-          if (e.getMessage() != null && e.getMessage().equals("[REWIND]")) {
-            // A special type of EOFException allowing us to seek backwards.
+          if (e.getMessage() != null && e.getMessage().equals("[JUMP]")) {
+            // A special type of EOFException allowing us to close FBS stream
+            // and then re-open it for jumping to a different time offset.
             newTimeOffset = fbs.getSeekOffset();
             autoPlay = !fbs.isPaused();
           } else {
