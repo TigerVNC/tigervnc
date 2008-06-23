@@ -222,6 +222,8 @@ public class FbsConnection {
   private FbsInputStream openFbsFile(FbsEntryPoint entry)
       throws IOException {
 
+    System.err.println("Entering FBS at " + entry.timestamp + " ms");
+
     // Make sure the protocol is HTTP.
     if (!fbkURL.getProtocol().equalsIgnoreCase("http") ||
         !fbsURL.getProtocol().equalsIgnoreCase("http")) {
