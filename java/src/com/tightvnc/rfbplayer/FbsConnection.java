@@ -70,23 +70,18 @@ public class FbsConnection {
     FbsInputStream fbs = null;
 
     // Try efficient seeking first.
-    if (timeOffset > 0 && indexData != null && numIndexRecords > 0) {
-      int i = 0;
-      while (i < numIndexRecords && indexData[i].timestamp <= timeOffset) {
-        i++;
-      }
-      if (i > 0) {
-        FbsEntryPoint entryPoint = indexData[i - 1];
-        if (entryPoint.key_size < entryPoint.fbs_fpos) {
-          try {
-            fbs = openFbsFile(entryPoint);
-          } catch (IOException e) {
-            System.err.println(e);
-          }
-          if (fbs == null) {
-            System.err.println("Could not open FBS file at entry point " +
-                               entryPoint.timestamp + " ms");
-          }
+    int i = indexForTimeOffset(timeOffset);
+    if (i >= 0) {
+      FbsEntryPoint entryPoint = indexData[i];
+      if (entryPoint.key_size < entryPoint.fbs_fpos) {
+        try {
+          fbs = openFbsFile(entryPoint);
+        } catch (IOException e) {
+          System.err.println(e);
+        }
+        if (fbs == null) {
+          System.err.println("Could not open FBS file at entry point " +
+                             entryPoint.timestamp + " ms");
         }
       }
     }
@@ -188,6 +183,18 @@ public class FbsConnection {
       numIndexRecords = numRecordsRead;
       rfbInitData = newInitData;
       System.err.println("Loaded index data, " + numRecordsRead + " records");
+    }
+  }
+
+  private int indexForTimeOffset(long timeOffset) {
+    if (timeOffset > 0 && indexData != null && numIndexRecords > 0) {
+      int i = 0;
+      while (i < numIndexRecords && indexData[i].timestamp <= timeOffset) {
+        i++;
+      }
+      return i - 1;
+    } else {
+      return -1;
     }
   }
 
