@@ -229,10 +229,9 @@ public class FbsConnection {
     DataInputStream dis = new DataInputStream(is);
 
     // Load keyframe data from the .fbk file, prepend RFB initialization data.
-    int keyDataSize = dis.readInt();
-    byte[] keyData = new byte[rfbInitData.length + keyDataSize];
+    byte[] keyData = new byte[rfbInitData.length + (int)entryPoint.key_size];
     System.arraycopy(rfbInitData, 0, keyData, 0, rfbInitData.length);
-    dis.readFully(keyData, rfbInitData.length, keyDataSize);
+    dis.readFully(keyData, rfbInitData.length, (int)entryPoint.key_size);
     dis.close();
 
     // Open the FBS stream.
