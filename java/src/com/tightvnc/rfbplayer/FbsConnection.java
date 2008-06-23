@@ -36,6 +36,9 @@ public class FbsConnection {
   /** Index data loaded from the .fbi file. */
   FbsEntryPoint[] indexData;
   int numIndexRecords;
+  
+  /** RFB initialization data loaded from the .fbi file. */
+  byte[] rfbInitData;
 
   FbsConnection(String fbsLocation, String indexLocationPrefix, Applet applet)
       throws MalformedURLException {
@@ -59,6 +62,7 @@ public class FbsConnection {
     // Try to load the .fbi index file.
     indexData = null;
     numIndexRecords = 0;
+    rfbInitData = null;
     loadIndex();
   }
 
@@ -105,6 +109,7 @@ public class FbsConnection {
     if (fbiURL != null && fbkURL != null) {
       FbsEntryPoint[] newIndex;
       int numRecordsRead = 0;
+      byte[] newInitData;
       try {
         // Connect.
         URLConnection connection = fbiURL.openConnection();
@@ -130,6 +135,14 @@ public class FbsConnection {
         }
         newIndex = new FbsEntryPoint[numRecords];
 
+        // Read byte counter and allocate byte array for RFB initialization.
+        int initSize = is.readInt();
+        if (initSize <= 0) {
+          System.err.println("Could not load index: bad RFB init data size");
+          return;
+        }
+        newInitData = new byte[initSize];
+
         // Load index from the .fbi file.
         try {
           for (int i = 0; i < numRecords; i++) {
@@ -153,6 +166,7 @@ public class FbsConnection {
         } else if (numRecordsRead != numRecords) {
           System.err.println("Warning: read not as much .fbi data as expected");
         }
+        is.readFully(newInitData);
       } catch (FileNotFoundException e) {
         System.err.println("Could not load index: .fbi file not found: " +
                            e.getMessage());
@@ -172,6 +186,7 @@ public class FbsConnection {
       // Loaded successfully.
       indexData = newIndex;
       numIndexRecords = numRecordsRead;
+      rfbInitData = newInitData;
       System.err.println("Loaded index data, " + numRecordsRead + " records");
     }
   }
@@ -207,39 +222,23 @@ public class FbsConnection {
       return null;
     }
 
-    // Request RFB initialization.
-    // FIXME: Check return value of openHttpByteRange(), it can be null.
-    InputStream is =
-        openHttpByteRange(fbkURL, 12, indexData[0].key_fpos - 12);
-    DataInputStream dis = new DataInputStream(is);
-
-    // Read RFB initialization.
-    int initDataSize = dis.readInt();
-    byte[] initData = new byte[initDataSize];
-    dis.readFully(initData);
-    dis.close();
-
     // Seek to the keyframe.
     // FIXME: Check return value of openHttpByteRange(), it can be null.
-    is = openHttpByteRange(fbkURL, entryPoint.key_fpos, entryPoint.key_size);
-    dis = new DataInputStream(is);
+    InputStream is =
+        openHttpByteRange(fbkURL, entryPoint.key_fpos, entryPoint.key_size);
+    DataInputStream dis = new DataInputStream(is);
 
-    // Load keyframe data from the .fbk file.
+    // Load keyframe data from the .fbk file, prepend RFB initialization data.
     int keyDataSize = dis.readInt();
-    byte[] keyData = new byte[keyDataSize];
-    dis.readFully(keyData);
+    byte[] keyData = new byte[rfbInitData.length + keyDataSize];
+    System.arraycopy(rfbInitData, 0, keyData, 0, rfbInitData.length);
+    dis.readFully(keyData, rfbInitData.length, keyDataSize);
     dis.close();
-
-    // Concatenate init and keyframe data.
-    // FIXME: Get rid of concatenation, read both parts to one array.
-    byte[] allData = new byte[initDataSize + keyDataSize];
-    System.arraycopy(initData, 0, allData, 0, initDataSize);
-    System.arraycopy(keyData, 0, allData, initDataSize, keyDataSize);
 
     // Open the FBS stream.
     // FIXME: Check return value of openHttpByteRange(), it can be null.
     is = openHttpByteRange(fbsURL, entryPoint.fbs_fpos, -1);
-    return new FbsInputStream(is, entryPoint.timestamp, allData,
+    return new FbsInputStream(is, entryPoint.timestamp, keyData,
                               entryPoint.fbs_skip);
   }
 
