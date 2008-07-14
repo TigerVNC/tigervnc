@@ -18,7 +18,7 @@ case "`(uname -sr) 2>/dev/null`" in
   LINUX=yes
   ;;
 "IRIX 6"*)
-  X_LIBS="-L/usr/lib32"
+  LDFLAGS="-L/usr/lib32 $LDFLAGS"
   ;;
 "LynxOS 2"*)
   SJLJ_EXCEPTIONS=yes

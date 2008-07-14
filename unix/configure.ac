@@ -26,7 +26,7 @@ case "`(uname -sr) 2>/dev/null`" in
   USE_MITSHM=yes
   ;;
 "IRIX 6"*)
-  X_LIBS="-L/usr/lib32"
+  LDFLAGS="-L/usr/lib32 $LDFLAGS"
   USE_MITSHM=yes
   USE_READDISPLAY=yes
   ;;
