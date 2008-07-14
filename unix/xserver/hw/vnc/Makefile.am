@@ -33,6 +33,8 @@ Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS \
 Xvnc_LDADD = $(XVNC_LIBS) libvnccommon.la $(COMMON_LIBS) \
 	$(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lX11
 
+Xvnc_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+
 libvnc_la_LTLIBRARIES = libvnc.la
 libvnc_ladir = $(moduledir)/extensions
 
