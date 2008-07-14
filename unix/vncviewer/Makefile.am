@@ -1,6 +1,10 @@
 bin_PROGRAMS = vncviewer
 
-vncviewer_SOURCES = DesktopWindow.cxx CConn.cxx vncviewer.cxx buildtime.c
+HDRS = AboutDialog.h CConn.h DesktopWindow.h gettext.h InfoDialog.h \
+	OptionsDialog.h parameters.h PasswdDialog.h ServerDialog.h
+
+vncviewer_SOURCES = $(HDRS) DesktopWindow.cxx CConn.cxx vncviewer.cxx \
+	buildtime.c
 
 vncviewer_CPPFLAGS = -I$(COMMON_DIR) -I$(top_srcdir) -I$(top_srcdir)/tx \
 	-I$(top_srcdir)/intl -DLOCALEDIR=\"$(localedir)\" @X_CFLAGS@ # X_CFLAGS are really CPPFLAGS

@@ -1,6 +1,9 @@
 bin_PROGRAMS = vncconfig
 
-vncconfig_SOURCES = vncExt.c vncconfig.cxx QueryConnectDialog.cxx buildtime.c
+HDRS = QueryConnectDialog.h vncExt.h
+
+vncconfig_SOURCES = $(HDRS) vncExt.c vncconfig.cxx QueryConnectDialog.cxx \
+	buildtime.c
 
 vncconfig_CPPFLAGS = -I$(COMMON_DIR) -I$(top_srcdir)/tx @X_CFLAGS@ # X_CFLAGS are really CPPFLAGS
 

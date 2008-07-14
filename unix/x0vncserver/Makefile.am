@@ -1,6 +1,9 @@
 bin_PROGRAMS = x0vncserver
 
-x0vncserver_SOURCES = Image.cxx TimeMillis.cxx PollingScheduler.cxx \
+HDRS = Geometry.h Image.h PollingManager.h PollingScheduler.h TimeMillis.h \
+	XPixelBuffer.h
+
+x0vncserver_SOURCES = $(HDRS) Image.cxx TimeMillis.cxx PollingScheduler.cxx \
 	PollingManager.cxx Geometry.cxx XPixelBuffer.cxx x0vncserver.cxx \
 	../vncconfig/QueryConnectDialog.cxx buildtime.c
 

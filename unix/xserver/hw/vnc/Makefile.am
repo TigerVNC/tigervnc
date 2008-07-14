@@ -8,7 +8,9 @@ COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB)
 
 noinst_LTLIBRARIES = libvnccommon.la
 
-libvnccommon_la_SOURCES = vncExtInit.cc vncHooks.cc XserverDesktop.cc
+HDRS = RegionHelper.h vncExtInit.h vncHooks.h XserverDesktop.h
+
+libvnccommon_la_SOURCES = $(HDRS) vncExtInit.cc vncHooks.cc XserverDesktop.cc
 
 libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(LIB_DIR) \
@@ -58,4 +60,3 @@ pixman.h: $(includedir)/pixman-1/pixman.h
 
 fbrop.h: $(top_srcdir)/fb/fbrop.h
 	cat $(top_srcdir)/fb/fbrop.h | sed -e 's,and,c_and,' -e 's,xor,c_xor,' > $(srcdir)/fbrop.h
-
