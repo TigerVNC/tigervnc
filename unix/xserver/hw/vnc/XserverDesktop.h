@@ -34,7 +34,7 @@
 #include <rdr/SubstitutingInStream.h>
 
 extern "C" {
-#define class c_class;
+#define class c_class
 #include <scrnintstr.h>
 #include <os.h>
 #undef class

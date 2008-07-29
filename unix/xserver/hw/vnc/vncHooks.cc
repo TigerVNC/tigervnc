@@ -27,6 +27,7 @@
 extern "C" {
 #define class c_class
 #define private c_private
+#define public c_public
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "gcstruct.h"
@@ -47,6 +48,7 @@ extern "C" {
 
 #undef class
 #undef private
+#undef public
 }
 
 #include "RegionHelper.h"
