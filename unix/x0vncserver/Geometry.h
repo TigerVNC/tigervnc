@@ -37,8 +37,10 @@ public:
   int height() const { return m_rect.height(); }
   int offsetLeft() const { return m_rect.tl.x; }
   int offsetTop() const { return m_rect.tl.y; }
-
   const Rect& getRect() const { return m_rect; }
+
+  bool isVideoAreaSet() const { return !m_videoRect.is_empty(); }
+  const Rect& getVideoRect() const { return m_videoRect; }
 
 protected:
   // Parse a string, extract size and coordinates,
@@ -46,8 +48,12 @@ protected:
   Rect parseString(const char *arg) const;
 
   static StringParameter m_geometryParam;
+  static StringParameter m_videoAreaParam;
 
+  int m_fullWidth;
+  int m_fullHeight;
   Rect m_rect;
+  Rect m_videoRect;
 };
 
 #endif // __GEOMETRY_H__

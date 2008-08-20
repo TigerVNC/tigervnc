@@ -32,18 +32,47 @@ StringParameter Geometry::m_geometryParam("Geometry",
   "If the argument is empty, full screen is shown to VNC clients.",
   "");
 
+StringParameter Geometry::m_videoAreaParam("VideoArea",
+  "Screen area to be handled as video. "
+  "Format is <width>x<height>+<offset_x>+<offset_y>.",
+  "");
+
 Geometry::Geometry(int fullWidth, int fullHeight)
-  : m_rect(0, 0, fullWidth, fullHeight)
+  : m_fullWidth(fullWidth),
+    m_fullHeight(fullHeight),
+    m_rect(0, 0, fullWidth, fullHeight)
 {
+  // Parse geometry specification and save the result in m_rect.
   const char *param = m_geometryParam.getData();
-  if (strlen(param) > 0) {
+  bool geometrySpecified = (strlen(param) > 0);
+  if (geometrySpecified) {
     m_rect = parseString(param);
   }
   delete[] param;               // don't forget to deallocate memory
                                 // allocated by StringParameter::getData()
+  if (m_rect.is_empty()) {
+    vlog.info("Desktop geometry is invalid");
+    return;                     // further processing does not make sense
+  }
 
-  vlog.info("Desktop geometry is %dx%d+%d+%d",
+  // Everything went good so far.
+  vlog.info("Desktop geometry is set to %dx%d+%d+%d",
             width(), height(), offsetLeft(), offsetTop());
+
+  // Handle the VideoArea parameter, save the result in m_videoRect.
+  param = m_videoAreaParam.getData();
+  bool videoAreaSpecified = (strlen(param) > 0);
+  if (videoAreaSpecified) {
+    m_videoRect = parseString(param);
+    if (isVideoAreaSet()) {
+      vlog.info("Video area set to %dx%d+%d+%d",
+                m_videoRect.width(), m_videoRect.height(),
+                m_videoRect.tl.x, m_videoRect.tl.y);
+    } else {
+      vlog.info("Video area was not set");
+    }
+  }
+  delete[] param;
 }
 
 Rect Geometry::parseString(const char *arg) const
@@ -59,9 +88,9 @@ Rect Geometry::parseString(const char *arg) const
                    &w, &h, sign_x, &x, sign_y, &y);
     if ((n == 2 || n == 6) && w > 0 && h > 0 && x >= 0 && y >= 0) {
       if (sign_x[0] == '-')
-        x = m_rect.width() - w - x;
+        x = m_fullWidth - w - x;
       if (sign_y[0] == '-')
-        y = m_rect.height() - h - y;
+        y = m_fullHeight - h - y;
       Rect partRect(x, y, x + w, y + h);
       result = partRect.intersect(m_rect);
       if (result.area() <= 0) {
