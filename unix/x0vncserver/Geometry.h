@@ -41,6 +41,8 @@ public:
   const Rect& getRect() const { return m_rect; }
 
 protected:
+  // Parse a string, extract size and coordinates,
+  // and return that rectangle clipped to m_rect.
   Rect parseString(const char *arg) const;
 
   static StringParameter m_geometryParam;
