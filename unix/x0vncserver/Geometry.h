@@ -41,6 +41,8 @@ public:
   const Rect& getRect() const { return m_rect; }
 
 protected:
+  Rect parseString(const char *arg) const;
+
   static StringParameter m_geometryParam;
 
   Rect m_rect;

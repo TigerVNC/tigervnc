@@ -36,33 +36,45 @@ Geometry::Geometry(int fullWidth, int fullHeight)
   : m_rect(0, 0, fullWidth, fullHeight)
 {
   const char *param = m_geometryParam.getData();
-  if (strlen(param) != 0) {
+  if (strlen(param) > 0) {
+    m_rect = parseString(param);
+  }
+  delete[] param;               // don't forget to deallocate memory
+                                // allocated by StringParameter::getData()
+
+  vlog.info("Desktop geometry is %dx%d+%d+%d",
+            width(), height(), offsetLeft(), offsetTop());
+}
+
+Rect Geometry::parseString(const char *arg) const
+{
+  Rect result;                  // empty by default
+
+  if (arg != NULL && strlen(arg) > 0) {
     int w, h;
     int x = 0, y = 0;
     char sign_x[2] = "+";
     char sign_y[2] = "+";
-    int n = sscanf(param, "%dx%d%1[+-]%d%1[+-]%d",
+    int n = sscanf(arg, "%dx%d%1[+-]%d%1[+-]%d",
                    &w, &h, sign_x, &x, sign_y, &y);
     if ((n == 2 || n == 6) && w > 0 && h > 0 && x >= 0 && y >= 0) {
       if (sign_x[0] == '-')
-        x = fullWidth - w - x;
+        x = m_rect.width() - w - x;
       if (sign_y[0] == '-')
-        y = fullHeight - h - y;
-      Rect fullRect(0, 0, fullWidth, fullHeight);
+        y = m_rect.height() - h - y;
       Rect partRect(x, y, x + w, y + h);
-      m_rect = partRect.intersect(fullRect);
-      if (m_rect.area() <= 0) {
+      result = partRect.intersect(m_rect);
+      if (result.area() <= 0) {
         vlog.error("Requested area is out of the desktop boundaries");
-        m_rect.clear();
-        return;
+        result.clear();
       }
     } else {
       vlog.error("Wrong argument format");
-      m_rect.clear();
-      return;
     }
+  } else {
+    vlog.error("Missing argument");
   }
-  vlog.info("Desktop geometry is %dx%d+%d+%d",
-            width(), height(), offsetLeft(), offsetTop());
+
+  return result;
 }
 
