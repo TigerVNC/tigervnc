@@ -205,6 +205,8 @@ namespace rfb {
     void setVideoRectangle(const Rect& r);
     void unsetVideoRectangle();
 
+    void setDefaultVideoRect(const Rect& r);
+
   protected:
 
     friend class VNCSConnectionST;
@@ -256,6 +258,7 @@ namespace rfb {
 
     bool m_videoSelectionEnabled;
     Rect m_videoRect;
+    Rect m_defaultVideoRect;
   };
 
 };

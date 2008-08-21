@@ -574,3 +574,7 @@ void VNCServerST::unsetVideoRectangle()
   }
 }
 
+void VNCServerST::setDefaultVideoRect(const Rect& r)
+{
+  m_defaultVideoRect = r;
+}

@@ -186,8 +186,9 @@ public:
     pb = new XPixelBuffer(dpy, factory, geometry->getRect(), this);
     vlog.info("Allocated %s", pb->getImage()->classDesc());
 
-    server = vs;
+    server = (VNCServerST *)vs;
     server->setPixelBuffer(pb);
+    server->setDefaultVideoRect(geometry->getVideoRect());
 
     running = true;
   }
@@ -259,7 +260,7 @@ protected:
   Display* dpy;
   Geometry* geometry;
   XPixelBuffer* pb;
-  VNCServer* server;
+  VNCServerST* server;
   int oldButtonMask;
   bool haveXtest;
   int maxButtons;
