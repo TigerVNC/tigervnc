@@ -1,5 +1,5 @@
 # Russian translation for tightvnc package
-# Русский перевод пакета tightvnc
+# п═я┐я│я│п╨п╦п╧ п©п╣я─п╣п╡п╬п╢ п©п╟п╨п╣я┌п╟ tightvnc
 # Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
 # This file is distributed under the same license as the tightvnc package.
 # Constantin Kaplinsky <const@tightvnc.com>, 2006.
@@ -13,20 +13,20 @@ msgstr ""
 "Last-Translator: Constantin Kaplinsky <const@tightvnc.com>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=KOI8-R\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "About VNC Viewer"
-msgstr "О VNC Viewer"
+msgstr "п· VNC Viewer"
 
 msgid "VNC authentication"
-msgstr "Аутентификация VNC"
+msgstr "п░я┐я┌п╣п╫я┌п╦я└п╦п╨п╟я├п╦я▐ VNC"
 
 msgid "Exit viewer"
-msgstr "Выход"
+msgstr "п▓я▀я┘п╬п╢"
 
 msgid "Full screen"
-msgstr "Полноэкранный режим"
+msgstr "п÷п╬п╩п╫п╬я█п╨я─п╟п╫п╫я▀п╧ я─п╣п╤п╦п╪"
 
 msgid "Ctrl"
 msgstr "Ctrl"
@@ -36,31 +36,31 @@ msgstr "Alt"
 
 #, c-format
 msgid "Send %s"
-msgstr "Послать %s"
+msgstr "п÷п╬я│п╩п╟я┌я▄ %s"
 
 msgid "Send Ctrl-Alt-Del"
-msgstr "Послать Ctrl-Alt-Del"
+msgstr "п÷п╬я│п╩п╟я┌я▄ Ctrl-Alt-Del"
 
 msgid "Refresh screen"
-msgstr "Обновить экран"
+msgstr "п·п╠п╫п╬п╡п╦я┌я▄ я█п╨я─п╟п╫"
 
 msgid "New connection..."
-msgstr "Новое соединение..."
+msgstr "п²п╬п╡п╬п╣ я│п╬п╣п╢п╦п╫п╣п╫п╦п╣..."
 
 msgid "Options..."
-msgstr "Параметры..."
+msgstr "п÷п╟я─п╟п╪п╣я┌я─я▀..."
 
 msgid "Connection info..."
-msgstr "Информация о соединении..."
+msgstr "п≤п╫я└п╬я─п╪п╟я├п╦я▐ п╬ я│п╬п╣п╢п╦п╫п╣п╫п╦п╦..."
 
 msgid "About VNCviewer..."
-msgstr "О VNC Viewer..."
+msgstr "п· VNC Viewer..."
 
 msgid "Dismiss menu"
-msgstr "Закрыть меню"
+msgstr "п≈п╟п╨я─я▀я┌я▄ п╪п╣п╫я▌"
 
 msgid "VNC Menu"
-msgstr "Меню VNC"
+msgstr "п°п╣п╫я▌ VNC"
 
 #, c-format
 msgid ""
@@ -75,103 +75,103 @@ msgid ""
 "Protocol version: %d.%d\n"
 "Security method: %s\n"
 msgstr ""
-"Имя сеанса: %.80s\n"
-"Машина: %.80s порт: %d\n"
-"Размер: %d x %d\n"
-"Формат цвета: %s\n"
-"(значение сервера %s)\n"
-"Запрошенная схема кодирования: %s\n"
-"Последняя схема кодирования: %s\n"
-"Скорость линии связи: %d кбит/с\n"
-"Версия протокола: %d.%d\n"
-"Схема безопасности: %s\n"
+"п≤п╪я▐ я│п╣п╟п╫я│п╟: %.80s\n"
+"п°п╟я┬п╦п╫п╟: %.80s п©п╬я─я┌: %d\n"
+"п═п╟п╥п╪п╣я─: %d x %d\n"
+"п╓п╬я─п╪п╟я┌ я├п╡п╣я┌п╟: %s\n"
+"(п╥п╫п╟я┤п╣п╫п╦п╣ я│п╣я─п╡п╣я─п╟ %s)\n"
+"п≈п╟п©я─п╬я┬п╣п╫п╫п╟я▐ я│я┘п╣п╪п╟ п╨п╬п╢п╦я─п╬п╡п╟п╫п╦я▐: %s\n"
+"п÷п╬я│п╩п╣п╢п╫я▐я▐ я│я┘п╣п╪п╟ п╨п╬п╢п╦я─п╬п╡п╟п╫п╦я▐: %s\n"
+"п║п╨п╬я─п╬я│я┌я▄ п╩п╦п╫п╦п╦ я│п╡я▐п╥п╦: %d п╨п╠п╦я┌/я│\n"
+"п▓п╣я─я│п╦я▐ п©я─п╬я┌п╬п╨п╬п╩п╟: %d.%d\n"
+"п║я┘п╣п╪п╟ п╠п╣п╥п╬п©п╟я│п╫п╬я│я┌п╦: %s\n"
 
 msgid "VNC connection info"
-msgstr "Информация о соединении VNC"
+msgstr "п≤п╫я└п╬я─п╪п╟я├п╦я▐ п╬ я│п╬п╣п╢п╦п╫п╣п╫п╦п╦ VNC"
 
 msgid "VNC Viewer: Connection Options"
-msgstr "VNC Viewer: параметры соединения"
+msgstr "VNC Viewer: п©п╟я─п╟п╪п╣я┌я─я▀ я│п╬п╣п╢п╦п╫п╣п╫п╦я▐"
 
 msgid "Encoding and Color Level:"
-msgstr "Кодирование и цветовой режим:"
+msgstr "п п╬п╢п╦я─п╬п╡п╟п╫п╦п╣ п╦ я├п╡п╣я┌п╬п╡п╬п╧ я─п╣п╤п╦п╪:"
 
 msgid "Inputs:"
-msgstr "Ввод:"
+msgstr "п▓п╡п╬п╢:"
 
 msgid "Misc:"
-msgstr "Разное:"
+msgstr "п═п╟п╥п╫п╬п╣:"
 
 msgid "Auto select"
-msgstr "Автоматический выбор"
+msgstr "п░п╡я┌п╬п╪п╟я┌п╦я┤п╣я│п╨п╦п╧ п╡я▀п╠п╬я─"
 
 msgid "Full (all available colors)"
-msgstr "Многоцветный режим (все доступные цвета)"
+msgstr "п°п╫п╬пЁп╬я├п╡п╣я┌п╫я▀п╧ я─п╣п╤п╦п╪ (п╡я│п╣ п╢п╬я│я┌я┐п©п╫я▀п╣ я├п╡п╣я┌п╟)"
 
 msgid "Medium (256 colors)"
-msgstr "Среднее качество цвета (256 цветов)"
+msgstr "п║я─п╣п╢п╫п╣п╣ п╨п╟я┤п╣я│я┌п╡п╬ я├п╡п╣я┌п╟ (256 я├п╡п╣я┌п╬п╡)"
 
 msgid "Low (64 colors)"
-msgstr "Низкое качество цвета (64 цвета)"
+msgstr "п²п╦п╥п╨п╬п╣ п╨п╟я┤п╣я│я┌п╡п╬ я├п╡п╣я┌п╟ (64 я├п╡п╣я┌п╟)"
 
 msgid "Very low (8 colors)"
-msgstr "Минимум цвета (8 цветов)"
+msgstr "п°п╦п╫п╦п╪я┐п╪ я├п╡п╣я┌п╟ (8 я├п╡п╣я┌п╬п╡)"
 
 msgid "Custom compression level:"
-msgstr "Нестандартный уровень сжатия:"
+msgstr "п²п╣я│я┌п╟п╫п╢п╟я─я┌п╫я▀п╧ я┐я─п╬п╡п╣п╫я▄ я│п╤п╟я┌п╦я▐:"
 
 msgid "level (1=fast, 9=best)"
-msgstr "уровень (1=быстро, 9=макс.сжатие)"
+msgstr "я┐я─п╬п╡п╣п╫я▄ (1=п╠я▀я│я┌я─п╬, 9=п╪п╟п╨я│.я│п╤п╟я┌п╦п╣)"
 
 msgid "Allow JPEG compression:"
-msgstr "Разрешить сжатие JPEG:"
+msgstr "п═п╟п╥я─п╣я┬п╦я┌я▄ я│п╤п╟я┌п╦п╣ JPEG:"
 
 msgid "quality (1=poor, 9=best)"
-msgstr "качество (1=низкое, 9=наилучшее)"
+msgstr "п╨п╟я┤п╣я│я┌п╡п╬ (1=п╫п╦п╥п╨п╬п╣, 9=п╫п╟п╦п╩я┐я┤я┬п╣п╣)"
 
 msgid "View only (ignore mouse & keyboard)"
-msgstr "Только просмотр (игнорировать мышь и клавиатуру)"
+msgstr "п╒п╬п╩я▄п╨п╬ п©я─п╬я│п╪п╬я┌я─ (п╦пЁп╫п╬я─п╦я─п╬п╡п╟я┌я▄ п╪я▀я┬я▄ п╦ п╨п╩п╟п╡п╦п╟я┌я┐я─я┐)"
 
 msgid "Accept clipboard from server"
-msgstr "Принимать буфер обмена с сервера"
+msgstr "п÷я─п╦п╫п╦п╪п╟я┌я▄ п╠я┐я└п╣я─ п╬п╠п╪п╣п╫п╟ я│ я│п╣я─п╡п╣я─п╟"
 
 msgid "Send clipboard to server"
-msgstr "Посылать буфер обмена на сервер"
+msgstr "п÷п╬я│я▀п╩п╟я┌я▄ п╠я┐я└п╣я─ п╬п╠п╪п╣п╫п╟ п╫п╟ я│п╣я─п╡п╣я─"
 
 msgid "Send primary selection & cut buffer as clipboard"
-msgstr "Посылать \"primary selection\" и \"cut buffer\" как буфер обмена"
+msgstr "п÷п╬я│я▀п╩п╟я┌я▄ \"primary selection\" п╦ \"cut buffer\" п╨п╟п╨ п╠я┐я└п╣я─ п╬п╠п╪п╣п╫п╟"
 
 msgid "Shared (don't disconnect other viewers)"
-msgstr "Разделяемый режим (не отключать других клиентов)"
+msgstr "п═п╟п╥п╢п╣п╩я▐п╣п╪я▀п╧ я─п╣п╤п╦п╪ (п╫п╣ п╬я┌п╨п╩я▌я┤п╟я┌я▄ п╢я─я┐пЁп╦я┘ п╨п╩п╦п╣п╫я┌п╬п╡)"
 
 msgid "Full-screen mode"
-msgstr "Полноэкранный режим"
+msgstr "п÷п╬п╩п╫п╬я█п╨я─п╟п╫п╫я▀п╧ я─п╣п╤п╦п╪"
 
 msgid "Render cursor locally"
-msgstr "Рисовать курсор локально"
+msgstr "п═п╦я│п╬п╡п╟я┌я▄ п╨я┐я─я│п╬я─ п╩п╬п╨п╟п╩я▄п╫п╬"
 
 msgid "Show dot when no cursor"
-msgstr "Показывать точку при отсутствии курсора"
+msgstr "п÷п╬п╨п╟п╥я▀п╡п╟я┌я▄ я┌п╬я┤п╨я┐ п©я─п╦ п╬я┌я│я┐я┌я│я┌п╡п╦п╦ п╨я┐я─я│п╬я─п╟"
 
 msgid "OK"
 msgstr "OK"
 
 msgid "Cancel"
-msgstr "Отмена"
+msgstr "п·я┌п╪п╣п╫п╟"
 
 msgid "Username:"
-msgstr "Имя пользователя:"
+msgstr "п≤п╪я▐ п©п╬п╩я▄п╥п╬п╡п╟я┌п╣п╩я▐:"
 
 msgid "Password:"
-msgstr "Пароль:"
+msgstr "п÷п╟я─п╬п╩я▄:"
 
 msgid "VNC Viewer: Connection Details"
-msgstr "VNC Viewer: детали соединения"
+msgstr "VNC Viewer: п╢п╣я┌п╟п╩п╦ я│п╬п╣п╢п╦п╫п╣п╫п╦я▐"
 
 msgid "VNC server:"
-msgstr "Сервер VNC:"
+msgstr "п║п╣я─п╡п╣я─ VNC:"
 
 msgid "About..."
-msgstr "О программе..."
+msgstr "п· п©я─п╬пЁя─п╟п╪п╪п╣..."
 
 #, c-format
 msgid ""
@@ -181,8 +181,8 @@ msgid ""
 "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
 "See http://www.tightvnc.com for information on TightVNC."
 msgstr ""
-"TightVNC viewer для X, версия 4.0 - время сборки %s\n"
+"TightVNC viewer п╢п╩я▐ X, п╡п╣я─я│п╦я▐ 4.0 - п╡я─п╣п╪я▐ я│п╠п╬я─п╨п╦ %s\n"
 "Copyright (C) 2002-2004 RealVNC Ltd.\n"
-"Copyright (C) 2000-2004 Константин Каплинский\n"
+"Copyright (C) 2000-2004 п п╬п╫я│я┌п╟п╫я┌п╦п╫ п п╟п©п╩п╦п╫я│п╨п╦п╧\n"
 "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
-"Ищите информацию о TightVNC на сайте http://www.tightvnc.com"
+"п≤я┴п╦я┌п╣ п╦п╫я└п╬я─п╪п╟я├п╦я▌ п╬ TightVNC п╫п╟ я│п╟п╧я┌п╣ http://www.tightvnc.com"
