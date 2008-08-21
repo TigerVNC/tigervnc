@@ -179,13 +179,8 @@ int VNCServerST::checkTimeouts()
   }
 
   int timeLeft;
-  time_t now;
+  time_t now = time(0);
 
-  // Optimization: Only call time() if using any maxTime. 
-  if (rfb::Server::maxDisconnectionTime || rfb::Server::maxConnectionTime || rfb::Server::maxIdleTime) {
-    now = time(0);
-  }
-  
   // Check MaxDisconnectionTime 
   if (rfb::Server::maxDisconnectionTime && clients.empty()) {
     if (now < lastDisconnectTime) {
