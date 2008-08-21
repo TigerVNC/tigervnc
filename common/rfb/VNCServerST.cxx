@@ -570,11 +570,14 @@ void VNCServerST::unsetVideoRectangle()
   if (isVideoSelectionEnabled()) {
     // FIXME: Duplication between m_videoRect and comparer->video_area.
     m_videoRect.clear();
-    set_video_area(m_videoRect);
+    set_video_area(m_defaultVideoRect);
   }
 }
 
 void VNCServerST::setDefaultVideoRect(const Rect& r)
 {
   m_defaultVideoRect = r;
+  if (m_videoRect.is_empty()) {
+    set_video_area(m_defaultVideoRect);
+  }
 }
