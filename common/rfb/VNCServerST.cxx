@@ -484,8 +484,10 @@ void VNCServerST::checkUpdate()
 
   pb->grabRegion(toCheck);
 
-  if (rfb::Server::compareFB)
+  if (rfb::Server::compareFB) {
     comparer->compare();
+    comparer->getUpdateInfo(&ui, pb->getRect());
+  }
 
   if (renderCursor) {
     pb->getImage(renderedCursor.data,
