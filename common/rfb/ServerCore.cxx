@@ -98,4 +98,4 @@ rfb::BoolParameter rfb::Server::queryConnect
 rfb::IntParameter rfb::Server::videoPriority
 ("VideoPriority",
  "Priority of sending updates for video area (0..8)",
- 0, 0, 8);
+ 2, 0, 8);
