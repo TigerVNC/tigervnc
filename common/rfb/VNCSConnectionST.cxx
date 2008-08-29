@@ -127,6 +127,17 @@ void VNCSConnectionST::processMessages()
       processMsg();
     }
 
+    // If there were update requests, try to send a framebuffer update.
+    // We don't send updates immediately on requests for two reasons:
+    //   (1) If a video area is set, we don't want to send it on every
+    //       update request. We should gobble all the pending update
+    //       requests and send just one update.
+    //   (2) This way, we give higher priority to user actions such as
+    //       keyboard and pointer events.
+    if (!requested.is_empty()) {
+      writeFramebufferUpdate();
+    }
+
     if (!clientsReadyBefore && !requested.is_empty())
       server->desktop->framebufferUpdateRequest();
   } catch (rdr::EndOfStream&) {
@@ -469,6 +480,8 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 
   SConnection::framebufferUpdateRequest(r, incremental);
 
+  // Just update the requested region.
+  // Framebuffer update will be sent a bit later, see processMessages().
   Region reqRgn(r);
   requested.assign_union(reqRgn);
 
@@ -477,8 +490,6 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
     updates.add_changed(reqRgn);
     server->comparer->add_changed(reqRgn);
   }
-
-  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::setVideoRectangle(const Rect& r)
