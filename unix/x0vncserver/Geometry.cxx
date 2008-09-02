@@ -60,16 +60,20 @@ Geometry::Geometry(int fullWidth, int fullHeight)
             width(), height(), offsetLeft(), offsetTop());
 
   // Handle the VideoArea parameter, save the result in m_videoRect.
+  // Note that we log absolute coordinates but save relative ones.
   param = m_videoAreaParam.getData();
   bool videoAreaSpecified = (strlen(param) > 0);
   if (videoAreaSpecified) {
-    m_videoRect = parseString(param);
-    if (isVideoAreaSet()) {
+    Rect absVideoRect = parseString(param);
+    if (!absVideoRect.is_empty()) {
       vlog.info("Video area set to %dx%d+%d+%d",
-                m_videoRect.width(), m_videoRect.height(),
-                m_videoRect.tl.x, m_videoRect.tl.y);
+                absVideoRect.width(), absVideoRect.height(),
+                absVideoRect.tl.x, absVideoRect.tl.y);
+      Point base(-offsetLeft(), -offsetTop());
+      m_videoRect = absVideoRect.translate(base);
     } else {
       vlog.info("Video area was not set");
+      m_videoRect.clear();
     }
   }
   delete[] param;
