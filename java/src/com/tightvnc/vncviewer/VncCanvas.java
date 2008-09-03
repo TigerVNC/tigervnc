@@ -1986,79 +1986,73 @@ class VncCanvas extends Canvas
    * @return The selection as a {@link Rectangle}.
    */
   private synchronized Rectangle getSelection(boolean useScreenCoords) {
-    int x = selectionStart.x;
-    int y = selectionStart.y;
-    int w = selectionEnd.x - selectionStart.x;
-    int h = selectionEnd.y - selectionStart.y;
+    int x0 = selectionStart.x;
+    int x1 = selectionEnd.x;
+    int y0 = selectionStart.y;
+    int y1 = selectionEnd.y;
     // Make x and y point to the upper left corner of the selection.
-    boolean horizSwap = false;
-    boolean vertSwap = false;
-    if (w < 0) {
-      w = -w;
-      x = x - w;
-      horizSwap = true;
+    if (x1 < x0) {
+      int t = x0; x0 = x1; x1 = t;
     }
-    if (h < 0) {
-      h = -h;
-      y = y - h;
-      vertSwap = true;
+    if (y1 < y0) {
+      int t = y0; y0 = y1; y1 = t;
     }
-    // Make sure the borders are included in the selection.
-    if (w > 0 && h > 0) {
-      w += 1;
-      h += 1;
+    // Include the borders in the selection (unless it's empty).
+    if (x0 != x1 && y0 != y1) {
+      x1 += 1;
+      y1 += 1;
     }
     // Translate from screen coordinates to framebuffer coordinates.
     if (rfb.framebufferWidth != scaledWidth) {
-      x = (x * 100 + scalingFactor/2) / scalingFactor;
-      y = (y * 100 + scalingFactor/2) / scalingFactor;
-      w = (w * 100 + scalingFactor/2) / scalingFactor;
-      h = (h * 100 + scalingFactor/2) / scalingFactor;
+      x0 = (x0 * 100 + scalingFactor/2) / scalingFactor;
+      y0 = (y0 * 100 + scalingFactor/2) / scalingFactor;
+      x1 = (x1 * 100 + scalingFactor/2) / scalingFactor;
+      y1 = (y1 * 100 + scalingFactor/2) / scalingFactor;
     }
     // Clip the selection to framebuffer.
-    if (x < 0) {
-      if (horizSwap) {
-        w += x;
-      }
-      x = 0;
-    }
-    if (y < 0) {
-      if (vertSwap) {
-        h += y;
-      }
-      y = 0;
-    }
-    if (x + w > rfb.framebufferWidth)
-      w = rfb.framebufferWidth - x;
-    if (y + h > rfb.framebufferHeight)
-      h = rfb.framebufferHeight - y;
+    if (x0 < 0)
+      x0 = 0;
+    if (y0 < 0)
+      y0 = 0;
+    if (x1 > rfb.framebufferWidth)
+      x1 = rfb.framebufferWidth;
+    if (y1 > rfb.framebufferHeight)
+      y1 = rfb.framebufferHeight;
     // Make width a multiple of 16.
-    int widthCorrection = w % 16;
-    if (widthCorrection >= 8 && x + (w / 16 + 1) * 16 <= rfb.framebufferWidth) {
-      widthCorrection -= 16;
-    }
-    w -= widthCorrection;
-    if (horizSwap) {
-      x += widthCorrection;
+    int widthBlocks = (x1 - x0 + 8) / 16;
+    if (selectionStart.x <= selectionEnd.x) {
+      x1 = x0 + widthBlocks * 16;
+      if (x1 > rfb.framebufferWidth) {
+        x1 -= 16;
+      }
+    } else {
+      x0 = x1 - widthBlocks * 16;
+      if (x0 < 0) {
+        x0 += 16;
+      }
     }
     // Make height a multiple of 8.
-    int heightCorrection = h % 8;
-    if (heightCorrection >= 4 && y + (h / 8 + 1) * 8 <= rfb.framebufferHeight) {
-      heightCorrection -= 8;
-    }
-    h -= heightCorrection;
-    if (vertSwap) {
-      y += heightCorrection;
+    int heightBlocks = (y1 - y0 + 4) / 8;
+    if (selectionStart.y <= selectionEnd.y) {
+      y1 = y0 + heightBlocks * 8;
+      if (y1 > rfb.framebufferHeight) {
+        y1 -= 8;
+      }
+    } else {
+      y0 = y1 - heightBlocks * 8;
+      if (y0 < 0) {
+        y0 += 8;
+      }
     }
     // Translate the selection back to screen coordinates if requested.
     if (useScreenCoords && rfb.framebufferWidth != scaledWidth) {
-      x = (x * scalingFactor + 50) / 100;
-      y = (y * scalingFactor + 50) / 100;
-      w = (w * scalingFactor + 50) / 100;
-      h = (h * scalingFactor + 50) / 100;
+      x0 = (x0 * scalingFactor + 50) / 100;
+      y0 = (y0 * scalingFactor + 50) / 100;
+      x1 = (x1 * scalingFactor + 50) / 100;
+      y1 = (y1 * scalingFactor + 50) / 100;
     }
-    // Clip the selection to screen/framebuffer and return the result.
-    return new Rectangle(x, y, w, h);
+    // Construct and return the result.
+    return new Rectangle(x0, y0, x1 - x0, y1 - y0);
   }
 
   /**
