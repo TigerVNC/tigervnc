@@ -142,6 +142,7 @@ void JpegEncoder::writeRect(PixelBuffer* pb, const Rect& r)
     delete jcomp;
     jcomp = new StandardJpegCompressor;
     jcomp->setQuality(qualityMap[6]);
+    jcomp->compress(pixels, &fmt, r.width(), r.height(), stride);
   }
 
   // Write Tight-encoded header and JPEG data.
