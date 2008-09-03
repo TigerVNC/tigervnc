@@ -2016,10 +2016,18 @@ class VncCanvas extends Canvas
       h = (h * 100 + scalingFactor/2) / scalingFactor;
     }
     // Clip the selection to framebuffer.
-    if (x < 0)
+    if (x < 0) {
+      if (horizSwap) {
+        w += x;
+      }
       x = 0;
-    if (y < 0)
+    }
+    if (y < 0) {
+      if (vertSwap) {
+        h += y;
+      }
       y = 0;
+    }
     if (x + w > rfb.framebufferWidth)
       w = rfb.framebufferWidth - x;
     if (y + h > rfb.framebufferHeight)
