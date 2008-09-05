@@ -1373,6 +1373,11 @@ class RfbProto {
       return;
     }
 
+    // Send zero coordinates if the rectangle is empty.
+    if (rect.isEmpty()) {
+      rect = new Rectangle();
+    }
+
     int x = rect.x;
     int y = rect.y;
     int w = rect.width;
