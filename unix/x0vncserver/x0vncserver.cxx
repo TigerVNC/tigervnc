@@ -188,7 +188,7 @@ public:
 
     server = (VNCServerST *)vs;
     server->setPixelBuffer(pb);
-    server->setDefaultVideoRect(geometry->getVideoRect());
+    server->setDefaultVideoRectangle(geometry->getVideoRect());
 
     running = true;
   }

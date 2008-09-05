@@ -497,11 +497,6 @@ void VNCSConnectionST::setVideoRectangle(const Rect& r)
   server->setVideoRectangle(r);
 }
 
-void VNCSConnectionST::unsetVideoRectangle()
-{
-  server->unsetVideoRectangle();
-}
-
 void VNCSConnectionST::setInitialColourMap()
 {
   setColourMapEntries(0, 0);

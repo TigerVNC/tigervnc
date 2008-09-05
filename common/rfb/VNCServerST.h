@@ -199,13 +199,11 @@ namespace rfb {
     // request, as we expect that video data is changing continuously. By
     // default, this option is disabled, as it's rather a specialized feature
     // and video selection GUI can confuse users of the TightVNC client.
-    void enableVideoSelection(bool enable) { m_videoSelectionEnabled = enable; }
-    bool isVideoSelectionEnabled() { return m_videoSelectionEnabled; }
+    void enableVideoSelection(bool enable);
+    bool isVideoSelectionEnabled() const;
 
     void setVideoRectangle(const Rect& r);
-    void unsetVideoRectangle();
-
-    void setDefaultVideoRect(const Rect& r);
+    void setDefaultVideoRectangle(const Rect& r);
 
   protected:
 
@@ -259,6 +257,8 @@ namespace rfb {
     bool m_videoSelectionEnabled;
     Rect m_videoRect;
     Rect m_defaultVideoRect;
+
+    void applyVideoRectangle();
   };
 
 };

@@ -48,7 +48,6 @@ namespace rfb {
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
 
     virtual void setVideoRectangle(const Rect& r);
-    virtual void unsetVideoRectangle();
 
     // InputHandler interface
     // The InputHandler methods will be called for the corresponding messages.

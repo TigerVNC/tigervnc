@@ -259,6 +259,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 
   if (pb) {
     comparer = new ComparingUpdateTracker(pb);
+    applyVideoRectangle();
     cursor.setPF(pb->getPF());
     renderedCursor.setPF(pb->getPF());
 
@@ -302,17 +303,23 @@ void VNCServerST::serverCutText(const char* str, int len)
 
 void VNCServerST::add_changed(const Region& region)
 {
-  comparer->add_changed(region);
+  if (comparer != 0) {
+    comparer->add_changed(region);
+  }
 }
 
 void VNCServerST::add_copied(const Region& dest, const Point& delta)
 {
-  comparer->add_copied(dest, delta);
+  if (comparer != 0) {
+    comparer->add_copied(dest, delta);
+  }
 }
 
 void VNCServerST::set_video_area(const Rect &rect)
 {
-  comparer->set_video_area(rect);
+  if (comparer != 0) {
+    comparer->set_video_area(rect);
+  }
 }
 
 bool VNCServerST::clientsReadyForUpdate()
@@ -553,28 +560,43 @@ void VNCServerST::setConnStatus(ListConnInfo* listConn)
   }
 }
 
+void VNCServerST::enableVideoSelection(bool enable)
+{
+  slog.debug("Enabling video selection");
+  m_videoSelectionEnabled = enable;
+  applyVideoRectangle();
+}
+
+bool VNCServerST::isVideoSelectionEnabled() const
+{
+  return m_videoSelectionEnabled;
+}
+
 void VNCServerST::setVideoRectangle(const Rect& r)
 {
-  if (isVideoSelectionEnabled()) {
-    // FIXME: Duplication between m_videoRect and comparer->video_area.
-    m_videoRect = r;
-    set_video_area(m_videoRect);
-  }
+  m_videoRect = r;
+  applyVideoRectangle();
 }
 
-void VNCServerST::unsetVideoRectangle()
-{
-  if (isVideoSelectionEnabled()) {
-    // FIXME: Duplication between m_videoRect and comparer->video_area.
-    m_videoRect.clear();
-    set_video_area(m_defaultVideoRect);
-  }
-}
-
-void VNCServerST::setDefaultVideoRect(const Rect& r)
+void VNCServerST::setDefaultVideoRectangle(const Rect& r)
 {
   m_defaultVideoRect = r;
-  if (m_videoRect.is_empty()) {
-    set_video_area(m_defaultVideoRect);
+  applyVideoRectangle();
+}
+
+void VNCServerST::applyVideoRectangle()
+{
+  if (pb != 0) {
+    if (isVideoSelectionEnabled() && !m_videoRect.is_empty()) {
+      slog.debug("Applying video selection");
+      set_video_area(m_videoRect);
+    } else {
+      if (!m_defaultVideoRect.is_empty()) {
+        slog.debug("Applying default video area");
+      } else {
+        slog.debug("Applying empty video area");
+      }
+      set_video_area(m_defaultVideoRect);
+    }
   }
 }

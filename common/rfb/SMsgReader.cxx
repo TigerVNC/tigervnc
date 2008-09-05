@@ -106,15 +106,18 @@ void SMsgReader::readVideoRectangleSelection()
   int y = is->readU16();
   int w = is->readU16();
   int h = is->readU16();
-  bool enable = w > 0 && h > 0;
+  Rect rect(x, y, x+w, y+h);
 
-  if (enable) {
+  if (!rect.is_empty()) {
     vlog.debug("Video area selected by client: %dx%d at (%d,%d)",
                w, h, x, y);
-    handler->setVideoRectangle(Rect(x, y, x+w, y+h));
+  } else if (x != 0 || y != 0 || w != 0 || h != 0) {
+    vlog.debug("Empty video area selected by client: %dx%d at (%d,%d)",
+               w, h, x, y);
+    rect.clear();
   } else {
     vlog.debug("Video area discarded by client");
-    handler->unsetVideoRectangle();
   }
+  handler->setVideoRectangle(rect);
 }
 
