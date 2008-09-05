@@ -147,6 +147,7 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         slog.debug("no authenticated clients - stopping desktop");
         desktopStarted = false;
         desktop->stop();
+        setVideoRectangle(Rect(0, 0, 0, 0));
       }
       return;
     }
