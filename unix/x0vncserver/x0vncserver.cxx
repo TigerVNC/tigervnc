@@ -551,6 +551,8 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  TXWindow::handleXEvents(dpy);
+
   vlog.info("Terminated");
   return 0;
 }
