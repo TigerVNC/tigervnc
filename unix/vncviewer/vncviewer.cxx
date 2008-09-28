@@ -38,7 +38,7 @@
 #include "TXMsgBox.h"
 #include "CConn.h"
 
-#include <intl/gettext.h>
+#include "gettext.h"
 #define _(String) gettext (String)
 #define gettext_noop(String) String
 #define N_(String) gettext_noop (String)
@@ -264,8 +264,8 @@ createTunnel (const char *gatewayHost, const char *remoteHost,
 int main(int argc, char** argv)
 {
   setlocale(LC_ALL, "");
-  bindtextdomain(PACKAGE, LOCALEDIR);
-  textdomain(PACKAGE);
+  bindtextdomain(PACKAGE_NAME, LOCALEDIR);
+  textdomain(PACKAGE_NAME);
 
   snprintf(aboutText, sizeof(aboutText), 
            _("TightVNC Viewer for X version %s - built %s\n"
@@ -273,10 +273,10 @@ int main(int argc, char** argv)
              "Copyright (C) 2000-2006 TightVNC Group\n"
              "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
              "See http://www.tightvnc.com for information on TightVNC."),
-           VERSION, buildtime);
+           PACKAGE_VERSION, buildtime);
   fprintf(stderr,"\n%s\n", aboutText);
 
-  bind_textdomain_codeset(PACKAGE, "iso-8859-1");
+  bind_textdomain_codeset(PACKAGE_NAME, "iso-8859-1");
 
   rfb::initStdIOLoggers();
   rfb::LogWriter::setLogParams("*:stderr:30");

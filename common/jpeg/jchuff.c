@@ -297,7 +297,7 @@ dump_buffer (working_state * state)
  * between calls, so 24 bits are sufficient.
  */
 
-INLINE
+inline
 LOCAL(boolean)
 emit_bits (working_state * state, unsigned int code, int size)
 /* Emit some bits; return TRUE if successful, FALSE if must suspend */

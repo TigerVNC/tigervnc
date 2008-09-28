@@ -15,28 +15,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-//
-// AboutDialog.h
-//
+#ifndef __VNCEXTINIT_H__
+#define __VNCEXTINIT_H__
 
-#ifndef __ABOUTDIALOG_H__
-#define __ABOUTDIALOG_H__
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 
-#include "TXMsgBox.h"
-#include "parameters.h"
+#include <rfb/Configuration.h>
+#include "XserverDesktop.h"
 
-#include "gettext.h"
-#define _(String) gettext (String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
-
-extern char buildtime[];
-
-class AboutDialog : public TXMsgBox {
-public:
-  AboutDialog(Display* dpy)
-    : TXMsgBox(dpy, aboutText, MB_OK, _("About VNC Viewer")) {
-  }
-};
+extern void vncClientCutText(const char* str, int len);
+extern void vncQueryConnect(XserverDesktop* desktop, void* opaqueId);
+extern void vncClientGone(int fd);
+extern void vncBell();
+extern void* vncFbptr[];
+extern int vncInetdSock;
+extern rfb::StringParameter httpDir;
 
 #endif

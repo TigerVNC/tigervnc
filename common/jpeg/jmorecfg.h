@@ -62,11 +62,11 @@ typedef unsigned char JSAMPLE;
 #else /* not HAVE_UNSIGNED_CHAR */
 
 typedef char JSAMPLE;
-#ifdef CHAR_IS_UNSIGNED
+#ifdef __CHAR_UNSIGNED__
 #define GETJSAMPLE(value)  ((int) (value))
 #else
 #define GETJSAMPLE(value)  ((int) (value) & 0xFF)
-#endif /* CHAR_IS_UNSIGNED */
+#endif /* __CHAR_UNSIGNED__ */
 
 #endif /* HAVE_UNSIGNED_CHAR */
 
@@ -113,11 +113,11 @@ typedef unsigned char JOCTET;
 #else /* not HAVE_UNSIGNED_CHAR */
 
 typedef char JOCTET;
-#ifdef CHAR_IS_UNSIGNED
+#ifdef __CHAR_UNSIGNED__
 #define GETJOCTET(value)  (value)
 #else
 #define GETJOCTET(value)  ((value) & 0xFF)
-#endif /* CHAR_IS_UNSIGNED */
+#endif /* __CHAR_UNSIGNED__ */
 
 #endif /* HAVE_UNSIGNED_CHAR */
 
@@ -134,11 +134,11 @@ typedef char JOCTET;
 #ifdef HAVE_UNSIGNED_CHAR
 typedef unsigned char UINT8;
 #else /* not HAVE_UNSIGNED_CHAR */
-#ifdef CHAR_IS_UNSIGNED
+#ifdef __CHAR_UNSIGNED__
 typedef char UINT8;
-#else /* not CHAR_IS_UNSIGNED */
+#else /* not __CHAR_UNSIGNED__ */
 typedef short UINT8;
-#endif /* CHAR_IS_UNSIGNED */
+#endif /* __CHAR_UNSIGNED__ */
 #endif /* HAVE_UNSIGNED_CHAR */
 
 /* UINT16 must hold at least the values 0..65535. */
@@ -318,21 +318,6 @@ typedef int boolean;
 
 
 /* Definitions for speed-related optimizations. */
-
-
-/* If your compiler supports inline functions, define INLINE
- * as the inline keyword; otherwise define it as empty.
- */
-
-#ifndef INLINE
-#ifdef __GNUC__			/* for instance, GNU C knows about inline */
-#define INLINE __inline__
-#endif
-#ifndef INLINE
-#define INLINE			/* default is to define it as empty */
-#endif
-#endif
-
 
 /* On some machines (notably 68000 series) "int" is 32 bits, but multiplying
  * two 16-bit shorts is faster than multiplying two ints.  Define MULTIPLIER

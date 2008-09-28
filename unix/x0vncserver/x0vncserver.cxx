@@ -372,7 +372,7 @@ char* programName;
 static void printVersion(FILE *fp)
 {
   fprintf(fp, "TightVNC Server version %s, built %s\n",
-          VERSION, buildtime);
+          PACKAGE_VERSION, buildtime);
 }
 
 static void usage()
