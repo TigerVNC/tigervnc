@@ -1,5 +1,7 @@
 bin_PROGRAMS = x0vncserver
 
+man1_MANS = x0vncserver.man
+
 HDRS = Geometry.h Image.h PollingManager.h PollingScheduler.h TimeMillis.h \
 	XPixelBuffer.h
 

@@ -1,5 +1,7 @@
 bin_PROGRAMS = vncviewer
 
+man1_MANS = vncviewer.man
+
 HDRS = AboutDialog.h CConn.h DesktopWindow.h gettext.h InfoDialog.h \
 	OptionsDialog.h parameters.h PasswdDialog.h ServerDialog.h
 

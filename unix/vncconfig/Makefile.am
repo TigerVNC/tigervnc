@@ -1,5 +1,7 @@
 bin_PROGRAMS = vncconfig
 
+man1_MANS = vncconfig.man
+
 HDRS = QueryConnectDialog.h vncExt.h
 
 vncconfig_SOURCES = $(HDRS) vncExt.c vncconfig.cxx QueryConnectDialog.cxx \

@@ -19,6 +19,8 @@ libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 
 bin_PROGRAMS = Xvnc
 
+man1_MANS = Xvnc.man
+
 Xvnc_SOURCES = xvnc.cc $(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c $(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/fb/fbcmap_mi.c buildtime.c
