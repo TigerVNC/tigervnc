@@ -10,6 +10,9 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_LANG([C++])
 
+AC_CONFIG_HEADERS([common-config.h])
+CPPFLAGS="-DHAVE_COMMON_CONFIG_H $CPPFLAGS"
+
 case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
   SOLARIS=yes
@@ -42,13 +45,13 @@ fi
 dnl Checks for IRIX-specific Compression Library.
 AC_SEARCH_LIBS([clQuerySchemeFromName])
 AC_CHECK_LIB(cl, clQuerySchemeFromName,
-  [AC_DEFINE(HAVE_CL)
+  [AC_DEFINE([HAVE_CL], 1, [Define if you have IRIX compression library])
   IRIX_COMPRESS=yes])
 AM_CONDITIONAL([IRIX_COMPRESS], [ test "x$IRIX_COMPRESS" = xyes ])
 
 dnl Checks for IRIX-specific Digital Media libraries.
 AC_CHECK_LIB(dmedia, dmICCreate,
-  [AC_DEFINE(HAVE_DMEDIA)
+  [AC_DEFINE(HAVE_DMEDIA, 1, [Define if you have IRIX Digital Media library])
   IRIX_MEDIA=yes])
 AM_CONDITIONAL([IRIX_MEDIA], [ test "x$IRIX_MEDIA" = xyes ])
 
@@ -96,28 +99,11 @@ AC_SUBST(JPEG_DIR)
 AC_SUBST(JPEG_INCLUDE)
 AC_SUBST(JPEG_LIB)
 
-AC_CHECK_FUNC(vsnprintf,VSNPRINTF_DEFINE='-DHAVE_VSNPRINTF',VSNPRINTF_DEFINE=)
-AC_SUBST(VSNPRINTF_DEFINE)
+AC_CHECK_FUNCS_ONCE([vsnprintf strcasecmp strncasecmp])
 
-AC_CHECK_FUNC(strcasecmp,STRCASECMP_DEFINE='-DHAVE_STRCASECMP',
-  STRCASECMP_DEFINE=)
-AC_SUBST(STRCASECMP_DEFINE)
-
-AC_CHECK_FUNC(strncasecmp,STRNCASECMP_DEFINE='-DHAVE_STRNCASECMP',
-  STRNCASECMP_DEFINE=)
-AC_SUBST(STRNCASECMP_DEFINE)
-
-AC_MSG_CHECKING(for socklen_t)
-AC_TRY_COMPILE(
-[#include <sys/types.h>
- #include <sys/socket.h>],
-[socklen_t x;
-accept(0, 0, &x);],
-AC_MSG_RESULT(yes)
-SOCKLEN_T_DEFINE='-DVNC_SOCKLEN_T=socklen_t',
-AC_MSG_RESULT(using int)
-SOCKLEN_T_DEFINE='-DVNC_SOCKLEN_T=int')
-AC_SUBST(SOCKLEN_T_DEFINE)
+AC_CHECK_TYPES([socklen_t],
+	[AC_DEFINE([VNC_SOCKLEN_T], [socklen_t], [Use correct size])],
+	[AC_DEFINE([VNC_SOCKLEN_T], [int])])
 
 AC_OUTPUT([Makefile
 	   rdr/Makefile

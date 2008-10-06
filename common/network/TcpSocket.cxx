@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_COMMON_CONFIG_H
+#include <common-config.h>
+#endif
+
 #ifdef WIN32
 //#include <io.h>
 #include <winsock2.h>
@@ -41,10 +45,6 @@
 #include <network/TcpSocket.h>
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
-
-#ifndef VNC_SOCKLEN_T
-#define VNC_SOCKLEN_T int
-#endif
 
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long)-1)

@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_COMMON_CONFIG_H
+#include <common-config.h>
+#endif
+
 #include <rfb/JpegEncoder.h>
 #include <rdr/OutStream.h>
 #include <rdr/Exception.h>

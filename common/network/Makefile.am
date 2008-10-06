@@ -4,5 +4,5 @@ HDRS = Socket.h TcpSocket.h
 
 libnetwork_la_SOURCES = $(HDRS) TcpSocket.cxx
 
-libnetwork_la_CPPFLAGS = -I$(top_srcdir) @SOCKLEN_T_DEFINE@
+libnetwork_la_CPPFLAGS = -I$(top_srcdir)
 

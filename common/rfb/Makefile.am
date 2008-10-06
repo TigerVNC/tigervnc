@@ -53,8 +53,7 @@ if IRIX_MEDIA
 librfb_la_SOURCES += IrixDMJpegCompressor.cxx IrixDMIC_RawToJpeg.cxx
 endif
 
-librfb_la_CPPFLAGS = -I$(top_srcdir) @JPEG_INCLUDE@ @VSNPRINTF_DEFINE@ \
-	@STRCASECMP_DEFINE@ @STRNCASECMP_DEFINE@
+librfb_la_CPPFLAGS = -I$(top_srcdir) @JPEG_INCLUDE@
 
 librfb_la_LIBADD = @JPEG_LIB@
 
