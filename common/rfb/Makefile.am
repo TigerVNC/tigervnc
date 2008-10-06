@@ -57,3 +57,10 @@ librfb_la_CPPFLAGS = -I$(top_srcdir) @JPEG_INCLUDE@ @VSNPRINTF_DEFINE@ \
 	@STRCASECMP_DEFINE@ @STRNCASECMP_DEFINE@
 
 librfb_la_LIBADD = @JPEG_LIB@
+
+if IRIX_COMPRESS
+librfb_la_LIBADD += -lcl
+endif
+if IRIX_MEDIA
+librfb_la_LIBADD += -ldmedia
+endif

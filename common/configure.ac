@@ -14,9 +14,6 @@ case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
   SOLARIS=yes
   ;;
-"Linux"*)
-  LINUX=yes
-  ;;
 "IRIX 6"*)
   LDFLAGS="-L/usr/lib32 $LDFLAGS"
   ;;
@@ -43,17 +40,16 @@ if test "$GXX" = yes; then
 fi
 
 dnl Checks for IRIX-specific Compression Library.
+AC_SEARCH_LIBS([clQuerySchemeFromName])
 AC_CHECK_LIB(cl, clQuerySchemeFromName,
   [AC_DEFINE(HAVE_CL)
-  IRIX_COMPRESS=yes
-  LIBS="$LIBS -lcl"])
+  IRIX_COMPRESS=yes])
 AM_CONDITIONAL([IRIX_COMPRESS], [ test "x$IRIX_COMPRESS" = xyes ])
 
 dnl Checks for IRIX-specific Digital Media libraries.
 AC_CHECK_LIB(dmedia, dmICCreate,
   [AC_DEFINE(HAVE_DMEDIA)
-  IRIX_MEDIA=yes
-  LIBS="$LIBS -ldmedia"])
+  IRIX_MEDIA=yes])
 AM_CONDITIONAL([IRIX_MEDIA], [ test "x$IRIX_MEDIA" = xyes ])
 
 AC_ARG_WITH([included-zlib],
@@ -62,8 +58,7 @@ AC_ARG_WITH([included-zlib],
 	[], [with_included_zlib='no'])
 
 if test "x$with_included_zlib" = xno; then
-	AC_SEARCH_LIBS([inflateEnd], [z],
-		[ZLIB_LIB='-lz'],
+	AC_SEARCH_LIBS([inflateEnd], [z], [],
 		[ZLIB_DIR=zlib
 		 ZLIB_INCLUDE='-I$(top_srcdir)/zlib'
 		 ZLIB_LIB='$(top_srcdir)/zlib/libz.la'])
@@ -85,8 +80,7 @@ AC_ARG_WITH([included-jpeg],
 	[], [with_included_jpeg='no'])
 
 if test "x$with_included_jpeg" = xno; then
-  AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg],
-	[JPEG_LIB='-ljpeg'],
+  AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg], [],
 	[JPEG_DIR=jpeg
 	 JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
 	 JPEG_LIB='$(top_srcdir)/jpeg/libjpeg.la'])

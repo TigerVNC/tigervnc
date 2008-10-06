@@ -21,10 +21,6 @@ case "`(uname -sr) 2>/dev/null`" in
   USE_MITSHM=yes
   USE_SUN_OVL=yes
   ;;
-"Linux"*)
-  LINUX=yes
-  USE_MITSHM=yes
-  ;;
 "IRIX 6"*)
   LDFLAGS="-L/usr/lib32 $LDFLAGS"
   USE_MITSHM=yes
@@ -56,18 +52,6 @@ if test "$GXX" = yes; then
     CXXFLAGS="$CXXFLAGS -fsjlj-exceptions"
   fi
 fi
-
-dnl Check for IRIX-specific Compression Library.
-AC_CHECK_LIB(cl, clQuerySchemeFromName,
-  [AC_DEFINE(HAVE_CL)
-  CL_LIB=-lcl])
-AC_SUBST(CL_LIB)
-
-dnl Check for IRIX-specific Digital Media libraries.
-AC_CHECK_LIB(dmedia, dmICCreate,
-  [AC_DEFINE(HAVE_DMEDIA)
-  DMEDIA_LIB=-ldmedia])
-AC_SUBST(DMEDIA_LIB)
 
 AC_PATH_XTRA
 

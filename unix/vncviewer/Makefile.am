@@ -13,5 +13,4 @@ vncviewer_CPPFLAGS = -I$(COMMON_DIR) -I$(top_srcdir) -I$(top_srcdir)/tx \
 
 vncviewer_LDADD = $(top_srcdir)/tx/libtx.la $(COMMON_DIR)/rfb/librfb.la \
 	$(COMMON_DIR)/network/libnetwork.la $(COMMON_DIR)/rdr/librdr.la \
-	@X_PRE_LIBS@ @X_LIBS@ -lXext -lX11 @X_EXTRA_LIBS@ @CL_LIB@ \
-	@DMEDIA_LIB@ # @LIBINTL@
+	@X_PRE_LIBS@ @X_LIBS@ -lXext -lX11 @X_EXTRA_LIBS@ # @LIBINTL@
