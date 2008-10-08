@@ -30,7 +30,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifndef HAVE_COMMON_CONFIG_H
+#ifdef HAVE_COMMON_CONFIG_H
 #include <common-config.h>
 #endif
 
