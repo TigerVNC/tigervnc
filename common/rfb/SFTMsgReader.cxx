@@ -73,7 +73,12 @@ SFTMsgReader::readFileUploadRqst(unsigned int *pFilenameSize, char *pFilename,
 char *
 SFTMsgReader::readFileUploadData(unsigned int *pDataSize, unsigned int *pModTime)
 {
-  unsigned char compressedLevel = m_pIS->readU8();
+  /*
+   * Compressed level is not used now so we have to skip one byte
+   *
+   * unsigned char compressedLevel = m_pIS->readU8();
+   */
+  (void) m_pIS->readU8();
   unsigned int realSize = m_pIS->readU16();
   unsigned int compressedSize = m_pIS->readU16();
 

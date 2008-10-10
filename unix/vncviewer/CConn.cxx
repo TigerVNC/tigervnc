@@ -404,7 +404,7 @@ void CConn::menuSelect(long id, TXMenu* m) {
         tv.tv_sec = 0;
         tv.tv_usec = 200*1000;
         select(0, 0, 0, 0, &tv);
-        execlp(programName, programName, 0);
+        execlp(programName, programName, NULL);
         perror("execlp"); exit(1);
       }
       break;

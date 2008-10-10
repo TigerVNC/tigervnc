@@ -24,11 +24,11 @@
 
 namespace rfb {
 
-  #define SCALE_ERROR 1e-7
+  #define SCALE_ERROR (1e-7)
   #define BITS_OF_CHANEL 8
   #define BITS_OF_WEIGHT 14
-  #define FINALSHIFT 2 * BITS_OF_WEIGHT - BITS_OF_CHANEL
-  #define WEIGHT_OF_ONE 1 << BITS_OF_WEIGHT
+  #define FINALSHIFT (2 * BITS_OF_WEIGHT - BITS_OF_CHANEL)
+  #define WEIGHT_OF_ONE (1 << BITS_OF_WEIGHT)
 
   typedef double (*filter_func)(double x);
 

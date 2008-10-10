@@ -248,7 +248,6 @@ void XserverDesktop::serverReset(ScreenPtr pScreen_)
 {
   pScreen = pScreen_;
   XID* ids = new XID[pScreen->maxInstalledCmaps];
-  int nmaps = (*pScreen->ListInstalledColormaps)(pScreen, ids);
   cmap = (ColormapPtr)LookupIDByType(ids[0], RT_COLORMAP);
   delete [] ids;
 }

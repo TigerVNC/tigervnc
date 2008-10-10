@@ -325,7 +325,9 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
 #endif
                   )
 {
+#if (BPP != 8) || (BPP == 32)
   const PixelFormat& pf = cp->pf();
+#endif
   GET_IMAGE_INTO_BUF(r, buf);
   PIXEL_T* pixels = (PIXEL_T*)buf;
 
