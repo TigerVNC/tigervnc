@@ -81,7 +81,6 @@ extern "C" {
 #include "miline.h"
 #include "inputstr.h"
 #include <X11/keysym.h>
-  extern int defaultColorVisualClass;
   extern char buildtime[];
 #undef class
 #undef public
@@ -1068,8 +1067,40 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!pbits) return FALSE;
     vncFbptr[index] = pbits;
 
-    defaultColorVisualClass
-	= (pvfb->bitsPerPixel > 8) ? TrueColor : PseudoColor;
+    miSetPixmapDepths();
+
+    switch (pvfb->depth) {
+    case 8:
+	miSetVisualTypesAndMasks (8,
+				  ((1 << StaticGray) |
+				  (1 << GrayScale) |
+				  (1 << StaticColor) |
+				  (1 << PseudoColor) |
+				  (1 << TrueColor) |
+				  (1 << DirectColor)),
+				  8, PseudoColor, 0, 0, 0);
+	break;
+    case 16:
+	miSetVisualTypesAndMasks (16,
+				  ((1 << TrueColor) |
+				  (1 << DirectColor)),
+				  8, TrueColor, 0xf800, 0x07e0, 0x001f);
+	break;
+    case 24:
+	miSetVisualTypesAndMasks (24,
+				  ((1 << TrueColor) |
+				  (1 << DirectColor)),
+				  8, TrueColor, 0xff0000, 0x00ff00, 0x0000ff);
+	break;
+    case 32:
+	miSetVisualTypesAndMasks (32,
+				  ((1 << TrueColor) |
+				  (1 << DirectColor)),
+				  8, TrueColor, 0xff000000, 0x00ff0000, 0x0000ff00);
+	break;
+    default:
+	return FALSE;
+    }
 
     ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
 		       dpi, dpi, pvfb->paddedWidth, pvfb->bitsPerPixel);
