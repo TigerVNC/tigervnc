@@ -23,6 +23,7 @@
 #include <dix-config.h>
 #endif
 
+#include <assert.h>
 #include <stdio.h>
 #include <strings.h>
 #include <unistd.h>
@@ -247,9 +248,16 @@ XserverDesktop::~XserverDesktop()
 void XserverDesktop::serverReset(ScreenPtr pScreen_)
 {
   pScreen = pScreen_;
-  XID* ids = new XID[pScreen->maxInstalledCmaps];
-  cmap = (ColormapPtr)LookupIDByType(ids[0], RT_COLORMAP);
-  delete [] ids;
+  int i;
+  pointer retval;
+
+  i = dixLookupResource(&retval, pScreen->defColormap, RT_COLORMAP, NullClient,
+			DixReadAccess);
+
+  /* Handle suspicious conditions */
+  assert(i != Success);
+
+  cmap = (ColormapPtr) retval;
 }
 
 char* XserverDesktop::substitute(const char* varName)
