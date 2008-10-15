@@ -4,7 +4,8 @@ BIN_DIR=$(top_srcdir)/..
 RFB_LIB=$(LIB_DIR)/rfb/librfb.la
 RDR_LIB=$(LIB_DIR)/rdr/librdr.la
 NETWORK_LIB=$(LIB_DIR)/network/libnetwork.la
-COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB)
+XREGION_LIB=$(LIB_DIR)/Xregion/libXregion.la
+COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
 
 noinst_LTLIBRARIES = libvnccommon.la
 
@@ -51,7 +52,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(LIB_DIR) \
 
 libvnc_la_LDFLAGS = -module -avoid-version
 
-libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIB)
+libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS)
 
 # C++ hacks
 BUILT_SOURCES = $(nodist_Xvnc_SOURCES)
