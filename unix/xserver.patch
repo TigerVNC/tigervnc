@@ -1,6 +1,6 @@
-diff -up xserver/configure.ac.orig xserver/configure.ac
---- xserver/configure.ac.orig	2008-10-15 14:19:12.000000000 +0200
-+++ xserver/configure.ac	2008-10-15 14:19:12.000000000 +0200
+diff -up xserver/configure.ac.vnc xserver/configure.ac
+--- xserver/configure.ac.vnc	2008-10-15 17:22:22.000000000 +0200
++++ xserver/configure.ac	2008-10-15 17:22:23.000000000 +0200
 @@ -30,7 +30,6 @@ AC_INIT([xorg-server], 1.5.2, [https://b
  RELEASE_DATE="10 October 2008"
  AC_CONFIG_SRCDIR([Makefile.am])
@@ -27,9 +27,22 @@ diff -up xserver/configure.ac.orig xserver/configure.ac
  hw/xgl/Makefile
  hw/xgl/egl/Makefile
  hw/xgl/egl/module/Makefile
-diff -up xserver/mi/miinitext.c.orig xserver/mi/miinitext.c
---- xserver/mi/miinitext.c.orig	2008-10-15 14:19:12.000000000 +0200
-+++ xserver/mi/miinitext.c	2008-10-15 14:19:12.000000000 +0200
+diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
+--- xserver/hw/Makefile.am.vnc	2008-10-15 17:22:23.000000000 +0200
++++ xserver/hw/Makefile.am	2008-10-15 17:22:23.000000000 +0200
+@@ -43,7 +43,8 @@ SUBDIRS =			\
+ 	$(DMX_SUBDIRS)		\
+ 	$(KDRIVE_SUBDIRS)	\
+ 	$(XQUARTZ_SUBDIRS)	\
+-	$(XPRINT_SUBDIRS)
++	$(XPRINT_SUBDIRS)	\
++	vnc
+ 
+ DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xgl xprint
+ 
+diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
+--- xserver/mi/miinitext.c.vnc	2008-10-15 17:22:23.000000000 +0200
++++ xserver/mi/miinitext.c	2008-10-15 17:22:23.000000000 +0200
 @@ -292,6 +292,7 @@ extern void BigReqExtensionInit(INITARGS
  #ifdef MITMISC
  extern void MITMiscExtensionInit(INITARGS);
