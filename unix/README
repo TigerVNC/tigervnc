@@ -88,7 +88,7 @@ Once you have a copy of the X source tree, copy it to vnc source tree
 Then you have to apply a patch to some files in the X source tree:
 
   % cd <path_to_tightvnc_source>/unix/xserver
-  % patch -p0 < ../xserver.patch
+  % patch -p1 < ../xserver.patch
 
 After that you have to regenerate configure script and Makefile.in:
 
