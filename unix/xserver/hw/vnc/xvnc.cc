@@ -1107,7 +1107,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
   
 #ifdef RENDER
     if (ret && Render) 
-	fbPictureInit (pScreen, 0, 0);
+	ret = fbPictureInit (pScreen, 0, 0);
 #endif
 
     if (!ret) return FALSE;
