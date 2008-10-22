@@ -18,3 +18,5 @@ x0vncserver_LDADD = $(COMMON_DIR)/rfb/librfb.la \
 	$(COMMON_DIR)/network/libnetwork.la $(COMMON_DIR)/rdr/librdr.la \
 	$(top_srcdir)/tx/libtx.la @INET_LIB@ @X_PRE_LIBS@ @X_LIBS@ \
 	@XTEST_LIB@ -lXext -lX11 @X_EXTRA_LIBS@
+
+EXTRA_DIST = x0vncserver.man

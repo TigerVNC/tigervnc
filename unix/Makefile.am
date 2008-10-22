@@ -5,3 +5,5 @@ dist_bin_SCRIPTS = vncserver
 man1_MANS = vncserver.man
 
 ACLOCAL_AMFLAGS = -I m4
+
+EXTRA_DIST = vncserver.man

@@ -54,6 +54,8 @@ libvnc_la_LDFLAGS = -module -avoid-version
 
 libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS)
 
+EXTRA_DIST = Xvnc.man
+
 # C++ hacks
 BUILT_SOURCES = $(nodist_Xvnc_SOURCES)
 

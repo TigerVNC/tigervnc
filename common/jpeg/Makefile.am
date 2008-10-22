@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libjpeg.la
 
-HDRS = jchuff.h jdct.h jdhuff.h jinclude.h jmemsys.h jpegint.h jpeglib.h \
-	jversion.h
+HDRS = jchuff.h jdct.h jdhuff.h jerror.h jinclude.h jmemsys.h jmorecfg.h \
+	jpegint.h jpeglib.h jversion.h
 
 libjpeg_la_SOURCES = $(HDRS) jcapimin.c jcapistd.c jccoefct.c jccolor.c \
 	jcdctmgr.c jchuff.c jcinit.c jcmainct.c jcmarker.c jcmaster.c \
