@@ -46,20 +46,19 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	VNCServerST.cxx ZRLEEncoder.cxx ZRLEDecoder.cxx encodings.cxx \
 	secTypes.cxx util.cxx
 
+librfb_la_CPPFLAGS = -I$(top_srcdir)
+librfb_la_LIBADD =
+
 if IRIX_COMPRESS
 librfb_la_SOURCES += IrixCLJpegCompressor.cxx
-endif
-if IRIX_MEDIA
-librfb_la_SOURCES += IrixDMJpegCompressor.cxx IrixDMIC_RawToJpeg.cxx
-endif
-
-librfb_la_CPPFLAGS = -I$(top_srcdir) @JPEG_INCLUDE@
-
-librfb_la_LIBADD = @JPEG_LIB@
-
-if IRIX_COMPRESS
 librfb_la_LIBADD += -lcl
 endif
 if IRIX_MEDIA
+librfb_la_SOURCES += IrixDMJpegCompressor.cxx IrixDMIC_RawToJpeg.cxx
 librfb_la_LIBADD += -ldmedia
+endif
+
+if INCLUDED_JPEG
+librfb_la_CPPFLAGS += -I$(top_srcdir)/jpeg
+librfb_la_LIBADD += $(top_srcdir)/jpeg/libjpeg.la
 endif

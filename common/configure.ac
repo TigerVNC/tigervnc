@@ -55,49 +55,28 @@ AC_CHECK_LIB(dmedia, dmICCreate,
   IRIX_MEDIA=yes])
 AM_CONDITIONAL([IRIX_MEDIA], [ test "x$IRIX_MEDIA" = xyes ])
 
+dnl Check for zlib library
+INCLUDED_ZLIB=no
 AC_ARG_WITH([included-zlib],
 	AS_HELP_STRING([--with-included-zlib],
 		       [use libz which is distributed with VNC]),
-	[], [with_included_zlib='no'])
+	[INCLUDED_ZLIB=yes],
+	[AC_SEARCH_LIBS([inflateEnd], [z], [], [INCLUDED_ZLIB=yes])])
 
-if test "x$with_included_zlib" = xno; then
-	AC_SEARCH_LIBS([inflateEnd], [z], [],
-		[ZLIB_DIR=zlib
-		 ZLIB_INCLUDE='-I$(top_srcdir)/zlib'
-		 ZLIB_LIB='$(top_srcdir)/zlib/libz.la'])
-else
-	ZLIB_DIR=zlib
-	ZLIB_INCLUDE='-I$(top_srcdir)/zlib'
-	ZLIB_LIB='$(top_srcdir)/zlib/libz.la'
-fi
-
-AC_SUBST(ZLIB_DIR)
-AC_SUBST(ZLIB_INCLUDE)
-AC_SUBST(ZLIB_LIB)
-
+AM_CONDITIONAL([INCLUDED_ZLIB], [ test "x$INCLUDED_ZLIB" = xyes ])
 AC_CONFIG_SUBDIRS([zlib])
 
+dnl Check for libjpeg library
+INCLUDED_JPEG=no
 AC_ARG_WITH([included-jpeg],
 	AS_HELP_STRING([--with-included-jpeg], 
 		       [use libjpeg which is distributed with VNC]),
-	[], [with_included_jpeg='no'])
+	[INCLUDED_JPEG=yes],
+	[AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg], [],
+			[INCLUDED_JPEG=yes])])
 
-if test "x$with_included_jpeg" = xno; then
-  AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg], [],
-	[JPEG_DIR=jpeg
-	 JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
-	 JPEG_LIB='$(top_srcdir)/jpeg/libjpeg.la'])
-else
-	JPEG_DIR=jpeg
-	JPEG_INCLUDE='-I$(top_srcdir)/jpeg'
-	JPEG_LIB='$(top_srcdir)/jpeg/libjpeg.la'
-fi
-
+AM_CONDITIONAL([INCLUDED_JPEG], [ test "x$INCLUDED_JPEG" = xyes ])
 AC_CONFIG_SUBDIRS([jpeg])
-
-AC_SUBST(JPEG_DIR)
-AC_SUBST(JPEG_INCLUDE)
-AC_SUBST(JPEG_LIB)
 
 AC_CHECK_FUNCS_ONCE([vsnprintf strcasecmp strncasecmp])
 

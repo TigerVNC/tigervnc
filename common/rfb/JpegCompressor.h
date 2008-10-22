@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 extern "C" {
-#include <jpeg/jpeglib.h>
+#include <jpeglib.h>
 }
 
 #include <rdr/types.h>

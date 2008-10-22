@@ -1,1 +1,10 @@
-SUBDIRS = @ZLIB_DIR@ @JPEG_DIR@ rdr network Xregion rfb
+SUBDIRS =
+
+if INCLUDED_ZLIB
+SUBDIRS += zlib
+endif
+if INCLUDED_JPEG
+SUBDIRS += jpeg
+endif
+
+SUBDIRS += rdr network Xregion rfb
