@@ -8,6 +8,10 @@ vncviewer \- VNC viewer for X
 .br
 .B vncviewer
 .RI [ options ] 
+.RI [ host ][:: port ]
+.br
+.B vncviewer
+.RI [ options ] 
 .B \-listen
 .RI [ port ]
 .SH DESCRIPTION
