@@ -28,10 +28,19 @@
 #endif
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef HAVE_VSNPRINTF
 int vsnprintf(char *str, size_t n, const char *format, va_list ap);
+#endif
+
+#ifdef __cplusplus
+};
 #endif
 
 #endif /* OS_PRINT_H */

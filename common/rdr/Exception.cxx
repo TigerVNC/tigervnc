@@ -22,7 +22,20 @@
 #include <windows.h>
 #endif
 
+#include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <os/print.h>
+
 using namespace rdr;
+
+Exception::Exception(const char *format, ...) {
+	va_list ap;
+
+	va_start(ap, format);
+	(void) vsnprintf(str_, len, format, ap);
+	va_end(ap);
+}
 
 SystemException::SystemException(const char* s, int err_)
   : Exception(s), err(err_)

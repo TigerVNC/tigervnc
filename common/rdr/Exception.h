@@ -19,21 +19,12 @@
 #ifndef __RDR_EXCEPTION_H__
 #define __RDR_EXCEPTION_H__
 
-#include <stdio.h>
-#include <string.h>
-
 namespace rdr {
 
   struct Exception {
     enum { len = 256 };
     char str_[len];
-    Exception(const char* s=0) {
-      str_[0] = 0;
-      if (s)
-        strncat(str_, s, len-1);
-      else
-        strcat(str_, "Exception");
-    }
+    Exception(const char *format = 0, ...);
     virtual ~Exception() {}
     virtual const char* str() const { return str_; }
   };

@@ -22,6 +22,7 @@
 #include <rfb/CMsgReaderV3.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/util.h>
+#include <stdio.h>
 
 using namespace rfb;
 

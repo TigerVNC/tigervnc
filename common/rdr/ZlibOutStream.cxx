@@ -18,6 +18,8 @@
 
 #include <rdr/ZlibOutStream.h>
 #include <rdr/Exception.h>
+#include <os/print.h>
+
 #include <zlib.h>
 
 using namespace rdr;

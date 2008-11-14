@@ -16,6 +16,7 @@
  * USA.
  */
 #include <stdio.h>
+#include <string.h>
 #include <vector>
 #include <rdr/types.h>
 #include <rfb/Exception.h>
