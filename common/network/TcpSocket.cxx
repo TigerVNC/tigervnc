@@ -56,6 +56,16 @@
 using namespace network;
 using namespace rdr;
 
+typedef struct vnc_sockaddr {
+	union {
+		sockaddr	sa;
+		sockaddr_in	sin;
+#ifdef HAVE_GETADDRINFO
+		sockaddr_in6	sin6;
+#endif
+	} u;
+} vnc_sockaddr_t;
+
 static rfb::LogWriter vlog("TcpSocket");
 
 /* Tunnelling support. */
@@ -110,51 +120,101 @@ TcpSocket::TcpSocket(int sock, bool close)
 TcpSocket::TcpSocket(const char *host, int port)
   : closeFd(true)
 {
-  int sock;
+  int sock, err, result, family;
+  vnc_sockaddr_t sa;
+  VNC_SOCKLEN_T salen;
+#ifdef HAVE_GETADDRINFO
+  struct addrinfo *ai, *current, hints;
+#endif
 
   // - Create a socket
   initSockets();
-  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    throw SocketException("unable to create socket", errorNumber);
+
+#ifdef HAVE_GETADDRINFO
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_canonname = NULL;
+  hints.ai_addr = NULL;
+  hints.ai_next = NULL;
+
+  if ((result = getaddrinfo(host, NULL, &hints, &ai)) != 0) {
+    throw Exception("unable to resolve host by name: %s",
+		    gai_strerror(result));
+  }
+
+  for (current = ai; current != NULL; current = current->ai_next) {
+    family = current->ai_family;
+    if (family != AF_INET && family != AF_INET6)
+      continue;
+
+    salen = current->ai_addrlen;
+    memcpy(&sa, current->ai_addr, salen);
+
+    if (family == AF_INET)
+      sa.u.sin.sin_port = htons(port);
+    else
+      sa.u.sin6.sin6_port = htons(port);
+
+#else /* HAVE_GETADDRINFO */
+    family = AF_INET;
+    salen = sizeof(struct sockaddr_in);
+
+    /* Try processing the host as an IP address */
+    memset(&sa, 0, sizeof(sa));
+    sa.u.sin.sin_family = AF_INET;
+    sa.u.sin.sin_addr.s_addr = inet_addr((char *)host);
+    sa.u.sin.sin_port = htons(port);
+    if ((int)sa.u.sin.sin_addr.s_addr == -1) {
+      /* Host was not an IP address - try resolving as DNS name */
+      struct hostent *hostinfo;
+      hostinfo = gethostbyname((char *)host);
+      if (hostinfo && hostinfo->h_addr) {
+        sa.u.sin.sin_addr.s_addr = ((struct in_addr *)hostinfo->h_addr)->s_addr;
+      } else {
+        err = errorNumber;
+        throw SocketException("unable to resolve host by name", err);
+      }
+    }
+#endif /* HAVE_GETADDRINFO */
+
+    sock = socket (family, SOCK_STREAM, 0);
+    if (sock == -1) {
+      err = errorNumber;
+#ifdef HAVE_GETADDRINFO
+      freeaddrinfo(ai);
+#endif /* HAVE_GETADDRINFO */
+      throw SocketException("unable to create socket", err);
+    }
+
+  /* Attempt to connect to the remote host */
+    while ((result = connect(sock, &sa.u.sa, sizeof(sa))) == -1) {
+      err = errorNumber;
+#ifndef WIN32
+      if (err == EINTR)
+	continue;
+#endif
+      closesocket(sock);
+      break;
+    }
+
+#ifdef HAVE_GETADDRINFO
+    if (result == 0)
+      break;
+    else
+      continue;
+  }
+
+  freeaddrinfo(ai);
+#endif /* HAVE_GETADDRINFO */
+
+  if (result == -1)
+    throw SocketException("unable connect to socket", err);
 
 #ifndef WIN32
   // - By default, close the socket on exec()
   fcntl(sock, F_SETFD, FD_CLOEXEC);
 #endif
-
-  // - Connect it to something
-
-  // Try processing the host as an IP address
-  struct sockaddr_in addr;
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = inet_addr((char *)host);
-  addr.sin_port = htons(port);
-  if ((int)addr.sin_addr.s_addr == -1) {
-    // Host was not an IP address - try resolving as DNS name
-    struct hostent *hostinfo;
-    hostinfo = gethostbyname((char *)host);
-    if (hostinfo && hostinfo->h_addr) {
-      addr.sin_addr.s_addr = ((struct in_addr *)hostinfo->h_addr)->s_addr;
-    } else {
-      int e = errorNumber;
-      closesocket(sock);
-      throw SocketException("unable to resolve host by name", e);
-    }
-  }
-
-  // Attempt to connect to the remote host
-  for (;;) {
-    if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
-      int e = errorNumber;
-#ifndef WIN32
-      if (e == EINTR)
-	continue;
-#endif
-      closesocket(sock);
-      throw SocketException("unable to connect to host", e);
-    } else break;
-  }
 
   // Disable Nagle's algorithm, to reduce latency
   enableNagles(sock, false);
