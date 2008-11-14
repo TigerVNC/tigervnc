@@ -1,4 +1,4 @@
-SUBDIRS =
+SUBDIRS = os
 
 if INCLUDED_ZLIB
 SUBDIRS += zlib

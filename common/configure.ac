@@ -87,6 +87,7 @@ AC_CHECK_TYPES([socklen_t],
 AC_CHECK_HEADERS([sys/select.h])
 
 AC_OUTPUT([Makefile
+	   os/Makefile
 	   rdr/Makefile
 	   network/Makefile
 	   Xregion/Makefile
