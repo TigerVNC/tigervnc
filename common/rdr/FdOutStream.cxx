@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_COMMON_CONFIG_H
+#include <common-config.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #ifdef _WIN32
@@ -33,9 +37,9 @@
 #include <sys/time.h>
 #endif
 
-// XXX Lynx/OS 2.3: protos for select(), bzero()
-#ifdef Lynx
-#include <sys/proto.h>
+/* Old systems have select() in sys/time.h */
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
 #endif
 
 #include <rdr/FdOutStream.h>

@@ -84,6 +84,8 @@ AC_CHECK_TYPES([socklen_t],
 	[AC_DEFINE([VNC_SOCKLEN_T], [socklen_t], [Use correct size])],
 	[AC_DEFINE([VNC_SOCKLEN_T], [int])])
 
+AC_CHECK_HEADERS([sys/select.h])
+
 AC_OUTPUT([Makefile
 	   rdr/Makefile
 	   network/Makefile
