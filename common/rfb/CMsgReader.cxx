@@ -99,6 +99,12 @@ void CMsgReader::readRect(const Rect& r, unsigned int encoding)
   if (encoding == encodingCopyRect) {
     readCopyRect(r);
   } else {
+
+    if (encoding > encodingMax) {
+      fprintf(stderr, "Unknown rect encoding %d\n", encoding);
+      throw Exception("Unknown rect encoding");
+    }
+
     if (!decoders[encoding]) {
       decoders[encoding] = Decoder::createDecoder(encoding, this);
       if (!decoders[encoding]) {
