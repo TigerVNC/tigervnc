@@ -201,8 +201,6 @@ TcpSocket::TcpSocket(const char *host, int port)
 #ifdef HAVE_GETADDRINFO
     if (result == 0)
       break;
-    else
-      continue;
   }
 
   freeaddrinfo(ai);
