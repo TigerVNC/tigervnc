@@ -3,13 +3,12 @@
 # This file is distributed under the same license as the TightVNC package.
 # Jozef Riha <jose1711@gmail.com>, 2008.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: TightVNC 1.5.0\n"
 "Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
 "POT-Creation-Date: 2005-03-01 20:37+0100\n"
-"PO-Revision-Date: 2008-08-05 14:28+0200\n"
+"PO-Revision-Date: 2008-11-30 21:34+0100\n"
 "Last-Translator: Jozef Riha <jose1711@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
 "MIME-Version: 1.0\n"
