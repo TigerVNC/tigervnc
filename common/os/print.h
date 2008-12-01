@@ -24,7 +24,7 @@
 #endif
 
 #ifdef WIN32
-#include <common-config.win32.h>
+#include <common-config.win.h>
 #endif
 
 #include <stdarg.h>
