@@ -25,6 +25,9 @@
 #include <winsock2.h>
 #define errorNumber WSAGetLastError()
 #define snprintf _snprintf
+#ifndef VNC_SOCKLEN_T
+#define VNC_SOCKLEN_T int
+#endif
 #else
 #define errorNumber errno
 #define closesocket close
