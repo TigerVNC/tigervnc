@@ -24,6 +24,7 @@
 #include <rfb_win32/Handle.h>
 #include <rdr/HexOutStream.h>
 #include <rdr/Exception.h>
+#include <stdio.h>
 
 namespace rfb {
 namespace win32 {
