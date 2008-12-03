@@ -73,10 +73,7 @@ SOFTWARE.
  */
 
 #include "Xregion.h"
-//#include "Xlibint.h"
-//#include "Xutil.h"
 #include "region.h"
-//#include "poly.h"
 
 #ifndef min
 #define min(a,b)            (((a) < (b)) ? (a) : (b))

@@ -51,7 +51,7 @@ SOFTWARE.
 #ifndef _XREGION_H_
 #define _XREGION_H_
 
-// - Faked defines to fool the X11 region code
+/* - Faked defines to fool the X11 region code */
 
 #include <stdlib.h>
 #include <string.h>
@@ -63,7 +63,7 @@ SOFTWARE.
 
 #define NeedFunctionPrototypes 1
 
-// - Cribbed from Xlib.h
+/* - Cribbed from Xlib.h */
 
 typedef struct {
     short x, y;
