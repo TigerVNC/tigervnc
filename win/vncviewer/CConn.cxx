@@ -738,8 +738,9 @@ void CConn::getUserPasswd(char** user, char** password) {
 	obfPwd.buf = data;
 	obfPwd.length  = datalen; 
 	PlainPasswd passwd(obfPwd);
+	obfPwd.takeBuf();
 	*password = strDup(passwd.buf);
-	memset(data, 0, strlen(data));
+	memset(data, 0, sizeof(data));
       }
     }
   }
