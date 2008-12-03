@@ -45,8 +45,9 @@ class OptionsFrame extends Frame
     "Restricted colors",
     "Mouse buttons 2 and 3",
     "View only",
+    "Scaling factor",
     "Scale remote cursor",
-    "Share desktop",
+    "Share desktop"
   };
 
   static String[][] values = {
@@ -59,8 +60,9 @@ class OptionsFrame extends Frame
     { "Yes", "No" },
     { "Normal", "Reversed" },
     { "Yes", "No" },
+    { "Auto", "1%", "5%", "10%", "20%", "25%", "50%", "75%", "100%"},
     { "No", "50%", "75%", "125%", "150%" },
-    { "Yes", "No" },
+    { "Yes", "No" }
   };
 
   final int
@@ -73,8 +75,9 @@ class OptionsFrame extends Frame
     eightBitColorsIndex  = 6,
     mouseButtonIndex     = 7,
     viewOnlyIndex        = 8,
-    scaleCursorIndex     = 9,
-    shareDesktopIndex    = 10;
+    scalingFactorIndex   = 9,
+    scaleCursorIndex     = 10,
+    shareDesktopIndex    = 11;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -174,11 +177,37 @@ class OptionsFrame extends Frame
       }
     }
 
-    // FIXME: Provide some sort of GUI for "Scaling Factor".
+    // Get scaling factor from parameters and set it
+    // to gui and class member scalingFactor
+    
+    String s = viewer.readParameter("Scaling Factor", false);
+    if (s == null) s = "100%";
+    setScalingFactor(s);
+    if (!s.equalsIgnoreCase("Auto")) {
+      choices[scalingFactorIndex].select(s.trim() + '%');
+    } else {
+      choices[scalingFactorIndex].select(s);
+    }
 
+    // Make the booleans and encodings array correspond to the state of the GUI
+
+    setEncodings();
+    setColorFormat();
+    setContinuousUpdates();
+    setOtherOptions();
+  }
+  
+  //
+  // Set scaling factor class member value
+  //
+  
+  void setScalingFactor(int sf) {
+      setScalingFactor(((Integer)sf).toString());
+  }
+  
+  void setScalingFactor(String s) {
     autoScale = false;
     scalingFactor = 100;
-    String s = viewer.readParameter("Scaling Factor", false);
     if (s != null) {
       if (s.equalsIgnoreCase("Auto")) {
 	autoScale = true;
@@ -202,13 +231,6 @@ class OptionsFrame extends Frame
 	}
       }
     }
-
-    // Make the booleans and encodings array correspond to the state of the GUI
-
-    setEncodings();
-    setColorFormat();
-    setContinuousUpdates();
-    setOtherOptions();
   }
 
 
@@ -422,6 +444,10 @@ class OptionsFrame extends Frame
 
       setOtherOptions();
 
+    } else if (source == choices[scalingFactorIndex]){
+        // Tell VNC canvas that scaling factor has changed
+        setScalingFactor(choices[scalingFactorIndex].getSelectedItem());
+        viewer.vc.setScalingFactor(scalingFactor);
     }
   }
 
