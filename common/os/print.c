@@ -21,38 +21,71 @@
 #endif
 
 #include <os/print.h>
+
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef HAVE_VSNPRINTF
-int vsnprintf(char *str, size_t n, const char *format, va_list ap) {
-	static FILE *fp = NULL;
-	va_list ap_new;
-	int len, written;
+size_t internal_memcpy(char *dest, const char *src, size_t destsize,
+		       size_t srcsize) {
+	size_t copied;
 
-	if (n < 1)
+	copied = ((destsize) < (srcsize)) ? (destsize) : (srcsize);
+	memcpy(dest, src, copied);
+
+	return copied;
+}
+
+int tight_vsnprintf(char *str, size_t n, const char *format, va_list ap) {
+	int written = 0;
+	int tmpint, len;
+	char buf[64]; /* Is it enough? */
+	char *tmpstr;
+
+	if (format == NULL || n < 1)
 		return 0;
 
-	str[0] = '\0';
-	if (fp == NULL) {
-		fp = fopen("/dev/null","w");
-		if (fp == NULL)
-			return 0;
+	while (*format != '\0' && written < n - 1) {
+		if (*format != '%') {
+			if (written < n) {
+				str[written++] = *format++;
+				continue;
+			} else
+				break;
+		}
+
+		format++;
+		switch (*format) {
+			case '\0':
+				str[written++] = '%';
+				continue;
+			case 'd':
+				tmpint = va_arg(ap, int);
+				sprintf(buf, "%d", tmpint);
+				len = strlen(buf);
+				written += internal_memcpy (&str[written], buf,
+							    len, n - written);
+				break;
+			case 's':
+				tmpstr = va_arg(ap, char *);
+				len = strlen(tmpstr);
+				written += internal_memcpy (&str[written],
+							    tmpstr, len,
+							    n - written);
+				break;
+			/* Catch unimplemented stuff */
+			default:
+				fprintf(stderr, "Unimplemented format: %c\n",
+					*format);
+				abort();
+		}
+		format++;
 	}
 
-	va_copy(ap_new, ap);
-	len = vfprintf(fp, format, ap_new);
-	va_end(ap_new);
-
-	if (len <= 0)
-		return 0;
-
-	CharArray s(len+1);
-	vsprintf(s.buf, format, ap);
-
-	written = (len < (n - 1)) ? len : (n - 1);
-	memcpy(str, s.buf, written);
 	str[written] = '\0';
-	return len;
+
+	return written;
 }
 #endif /* HAVE_VSNPRINTF */
 

@@ -36,7 +36,16 @@ extern "C" {
 #endif
 
 #ifndef HAVE_VSNPRINTF
-int vsnprintf(char *str, size_t n, const char *format, va_list ap);
+/* NOTE:
+ *
+ * This is only very limited implementation for our internal purposes. It
+ * doesn't conform to C99/POSIX
+ * - limited conversion specifiers
+ * - returns written number of characters instead of number what would be
+ *   written
+ */
+int tight_vsnprintf(char *str, size_t n, const char *format, va_list ap);
+#define vsnprintf tight_vsnprintf
 #endif
 
 #ifdef __cplusplus
