@@ -22,10 +22,9 @@
 #include <windows.h>
 #endif
 
-#include <string.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include <os/print.h>
+
+#include <string.h>
 
 using namespace rdr;
 
