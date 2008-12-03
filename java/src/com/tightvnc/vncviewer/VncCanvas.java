@@ -251,6 +251,12 @@ class VncCanvas extends Canvas
     updateFramebufferSize();
   }
 
+  void setScalingFactor(int sf) {
+    scalingFactor = sf;
+    updateFramebufferSize();
+    invalidate();
+  }
+
   void updateFramebufferSize() {
 
     // Useful shortcuts.
