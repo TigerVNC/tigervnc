@@ -2,3 +2,6 @@
 
 #define HAVE_VSNPRINTF 1
 #define vsnprintf _vsnprintf
+
+#define HAVE_SNPRINTF 1
+#define snprintf _snprintf

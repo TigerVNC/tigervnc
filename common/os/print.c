@@ -89,3 +89,16 @@ int tight_vsnprintf(char *str, size_t n, const char *format, va_list ap) {
 }
 #endif /* HAVE_VSNPRINTF */
 
+#ifndef HAVE_SNPRINTF
+int tight_snprintf(char *str, size_t n, const char *format, ...) {
+	va_list ap;
+	int written;
+
+	va_start(ap, format);
+	written = vsnprintf(str, n, format, ap);
+	va_end(ap);
+
+	return written;
+}
+#endif /* HAVE_SNPRINTF */
+

@@ -48,6 +48,12 @@ int tight_vsnprintf(char *str, size_t n, const char *format, va_list ap);
 #define vsnprintf tight_vsnprintf
 #endif
 
+#ifndef HAVE_SNPRINTF
+/* Inherits tight_vsnprintf limitations if vsnprintf is not present */
+int tight_snprintf(char *str, size_t n, const char *format, ...);
+#define snprintf tight_snprintf
+#endif
+
 #ifdef __cplusplus
 };
 #endif
