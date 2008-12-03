@@ -263,8 +263,11 @@ class VncCanvas extends Canvas
     int fbWidth = rfb.framebufferWidth;
     int fbHeight = rfb.framebufferHeight;
 
-    // Calculate scaling factor for auto scaling.
-    if (maxWidth > 0 && maxHeight > 0) {
+    if (viewer.options.autoScale) {
+      if (!(maxWidth > 0 && maxHeight > 0)) {
+        maxWidth = fbWidth;
+        maxHeight = fbHeight;
+      }
       int f1 = maxWidth * 100 / fbWidth;
       int f2 = maxHeight * 100 / fbHeight;
       scalingFactor = Math.min(f1, f2);

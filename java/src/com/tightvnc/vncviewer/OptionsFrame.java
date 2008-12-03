@@ -183,8 +183,8 @@ class OptionsFrame extends Frame
     String s = viewer.readParameter("Scaling Factor", false);
     if (s == null) s = "100%";
     setScalingFactor(s);
-    if (!s.equalsIgnoreCase("Auto")) {
-      choices[scalingFactorIndex].select(s.trim() + '%');
+    if (autoScale) {
+      choices[scalingFactorIndex].select("Auto");
     } else {
       choices[scalingFactorIndex].select(s);
     }
@@ -447,7 +447,8 @@ class OptionsFrame extends Frame
     } else if (source == choices[scalingFactorIndex]){
         // Tell VNC canvas that scaling factor has changed
         setScalingFactor(choices[scalingFactorIndex].getSelectedItem());
-        viewer.vc.setScalingFactor(scalingFactor);
+        if (viewer.vc != null)
+          viewer.vc.setScalingFactor(scalingFactor);
     }
   }
 
