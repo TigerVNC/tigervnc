@@ -33,7 +33,7 @@ import java.io.*;
 import java.net.*;
 
 public class VncViewer extends java.applet.Applet
-  implements java.lang.Runnable, WindowListener {
+  implements java.lang.Runnable, WindowListener, ComponentListener {
 
   boolean inAnApplet = true;
   boolean inSeparateFrame = false;
@@ -127,8 +127,10 @@ public class VncViewer extends java.applet.Applet
     cursorUpdatesDef = null;
     eightBitColorsDef = null;
 
-    if (inSeparateFrame)
+    if (inSeparateFrame) {
       vncFrame.addWindowListener(this);
+      vncFrame.addComponentListener(this);
+    }
 
     rfbThread = new Thread(this);
     rfbThread.start();
@@ -195,6 +197,11 @@ public class VncViewer extends java.applet.Applet
 	gbc.fill = GridBagConstraints.BOTH;
 	gridbag.setConstraints(desktopScrollPane, gbc);
 	desktopScrollPane.add(canvasPanel);
+        // If auto scale is not enabled we don't need to set first frame
+        // size to fullscreen
+        if (!options.autoScale) {
+          vc.isFirstSizeAutoUpdate = false;
+        }
 
 	// Finally, add our ScrollPane to the Frame window.
 	vncFrame.add(desktopScrollPane);
@@ -203,12 +210,10 @@ public class VncViewer extends java.applet.Applet
 	vc.resizeDesktopFrame();
 
       } else {
-
 	// Just add the VncCanvas component to the Applet.
 	gridbag.setConstraints(vc, gbc);
 	add(vc);
 	validate();
-
       }
 
       if (showControls) {
@@ -985,6 +990,30 @@ public class VncViewer extends java.applet.Applet
   public void enableInput(boolean enable) {
     vc.enableInput(enable);
   }
+  
+  //
+  // Resize framebuffer if autoScale is enabled.
+  //
+  
+  public void componentResized(ComponentEvent e) {
+    if (e.getComponent() == vncFrame) {
+      if (options.autoScale) {
+        if (vc != null) {
+          if (!vc.isFirstSizeAutoUpdate) {
+            vc.updateFramebufferSize();
+          }
+        }
+      }
+    }
+  }
+  
+  //
+  // Ignore component events we're not interested in.
+  //
+  
+  public void componentShown(ComponentEvent e) { }
+  public void componentMoved(ComponentEvent e) { }
+  public void componentHidden(ComponentEvent e) { }
 
   //
   // Close application properly on window close event.

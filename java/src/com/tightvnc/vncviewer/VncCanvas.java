@@ -77,6 +77,7 @@ class VncCanvas extends Canvas
   int[] zrleTilePixels24;
   ZlibInStream zrleInStream;
   boolean zrleRecWarningShown = false;
+  boolean isFirstSizeAutoUpdate = true;
 
   // Zlib encoder's data.
   byte[] zlibBuf;
@@ -263,10 +264,28 @@ class VncCanvas extends Canvas
     int fbWidth = rfb.framebufferWidth;
     int fbHeight = rfb.framebufferHeight;
 
+    // FIXME: This part of code must be in VncViewer i think
     if (viewer.options.autoScale) {
-      if (!(maxWidth > 0 && maxHeight > 0)) {
-        maxWidth = fbWidth;
-        maxHeight = fbHeight;
+      if (viewer.inAnApplet) {
+        maxWidth = viewer.getWidth();
+        maxHeight = viewer.getHeight();
+      } else {
+        if (viewer.vncFrame != null) {
+          if (isFirstSizeAutoUpdate) {
+            isFirstSizeAutoUpdate = false;
+            Dimension screenSize = viewer.vncFrame.getToolkit().getScreenSize();
+            maxWidth = (int)screenSize.getWidth() - 100;
+            maxHeight = (int)screenSize.getHeight() - 100;            
+            viewer.vncFrame.setSize(maxWidth, maxHeight);
+          } else {
+            viewer.desktopScrollPane.doLayout();
+            maxWidth = viewer.desktopScrollPane.getWidth();
+            maxHeight = viewer.desktopScrollPane.getHeight();
+          }
+        } else {
+          maxWidth = fbWidth;
+          maxHeight = fbHeight;
+        }
       }
       int f1 = maxWidth * 100 / fbWidth;
       int f2 = maxHeight * 100 / fbHeight;
@@ -322,10 +341,18 @@ class VncCanvas extends Canvas
     pixelsSource.setAnimated(true);
     rawPixelsImage = Toolkit.getDefaultToolkit().createImage(pixelsSource);
 
+    // FIXME: This part of code must be in VncViewer i think
     // Update the size of desktop containers.
     if (viewer.inSeparateFrame) {
-      if (viewer.desktopScrollPane != null)
-	resizeDesktopFrame();
+      if (viewer.desktopScrollPane != null) {
+        if (!viewer.options.autoScale) {
+          resizeDesktopFrame();
+        } else {
+          setSize(scaledWidth, scaledHeight);
+          viewer.desktopScrollPane.setSize(maxWidth + 200,
+                                           maxHeight + 200);
+        }
+      }
     } else {
       setSize(scaledWidth, scaledHeight);
     }
