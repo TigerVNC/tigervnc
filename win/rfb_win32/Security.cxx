@@ -186,7 +186,7 @@ PSECURITY_DESCRIPTOR rfb::win32::CreateSdWithDacl(const PACL dacl) {
     throw rdr::SystemException("SetSecurityDescriptorDacl", GetLastError());
   DWORD sdSize = GetSecurityDescriptorLength(&absSD);
   SecurityDescriptorPtr sd(sdSize);
-  if (!MakeSelfRelativeSD(&absSD, sd, &sdSize))
+  if (!MakeSelfRelativeSD(&absSD, (PSECURITY_DESCRIPTOR)sd.ptr, &sdSize))
     throw rdr::SystemException("MakeSelfRelativeSD", GetLastError());
   return sd.takeSD();
 }
