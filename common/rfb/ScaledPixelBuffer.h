@@ -22,6 +22,9 @@
 // from the source buffer to destination buffer using bilinear 
 // interpolation.
 
+#ifndef __RFB_SCALEDPIXELBUFFER_H__
+#define __RFB_SCALEDPIXELBUFFER_H__
+
 #include <rdr/types.h>
 #include <rdr/Exception.h>
 #include <rfb/Rect.h>
@@ -87,7 +90,7 @@ namespace rfb {
 
     // Calculate the scaled image rectangle which depend on the source 
     // image rectangle.
-    inline Rect calculateScaleBoundary(const Rect& r);
+    Rect calculateScaleBoundary(const Rect& r);
 
   protected:
 
@@ -122,3 +125,5 @@ namespace rfb {
   };
 
 };
+
+#endif
