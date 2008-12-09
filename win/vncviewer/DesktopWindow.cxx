@@ -111,7 +111,7 @@ DesktopWindowClass::~DesktopWindowClass() {
   }
 }
 
-DesktopWindowClass baseClass;
+static DesktopWindowClass baseClass;
 
 //
 // -=- FrameClass
