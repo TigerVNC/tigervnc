@@ -23,7 +23,7 @@
 #include <rfb/LogWriter.h>
 
 #include <lmcons.h>
-#include <Accctrl.h>
+#include <accctrl.h>
 #include <list>
 
 using namespace rfb;
