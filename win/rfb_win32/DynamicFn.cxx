@@ -32,7 +32,7 @@ DynamicFnBase::DynamicFnBase(const TCHAR* dllName, const char* fnName) : dllHand
     vlog.info("DLL %s not found (%d)", (const char*)CStr(dllName), GetLastError());
     return;
   }
-  fnPtr = GetProcAddress(dllHandle, fnName);
+  fnPtr = (void*) GetProcAddress(dllHandle, fnName);
   if (!fnPtr)
     vlog.info("proc %s not found in %s (%d)", fnName, (const char*)CStr(dllName), GetLastError());
 }
