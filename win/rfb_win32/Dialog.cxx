@@ -259,7 +259,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
  
     // Initialise and create the PropertySheet itself
     PROPSHEETHEADER header;
-    header.dwSize = PROPSHEETHEADER_V1_SIZE;
+    header.dwSize = sizeof(PROPSHEETHEADER); // Requires comctl32.dll 4.71 or greater, ie IE 4 or later
     header.dwFlags = PSH_MODELESS | (showApply ? 0 : PSH_NOAPPLYNOW) | (showCtxtHelp ? 0 : PSH_USECALLBACK);
     header.pfnCallback = removeCtxtHelp;
     header.hwndParent = owner;
