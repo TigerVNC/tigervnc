@@ -48,9 +48,9 @@ namespace rfb {
           key.getBinary(_T("Order"), (void**)&order.buf, &length);
 
           for (int i=0; i<length; i++) {
-            TCharArray keyname = rdr::HexOutStream::binToHexStr(&order.buf[i], 1);
+	    TCharArray keyname(rdr::HexOutStream::binToHexStr(&order.buf[i], 1));
             try {
-              TCharArray entry = key.getString(keyname.buf);
+              TCharArray entry(key.getString(keyname.buf));
               mru.push_back(strDup(entry.buf));
             } catch (rdr::Exception) {
             }
@@ -79,9 +79,9 @@ namespace rfb {
           keycode = 0;
           bool found = false;
           for (int i=0; i<orderlen; i++) {
-            TCharArray keyname = rdr::HexOutStream::binToHexStr(&order[i], 1);
+            TCharArray keyname(rdr::HexOutStream::binToHexStr(&order[i], 1));
             try {
-              TCharArray hostname = key.getString(keyname.buf);
+              TCharArray hostname(key.getString(keyname.buf));
               if (stricmp(name, CStr(hostname.buf)) == 0) {
                 keycode = order[i];
                 found = true;
@@ -119,7 +119,7 @@ namespace rfb {
           order[i] = order[i-1];
         order[0] = keycode;
 
-        TCharArray keyname = rdr::HexOutStream::binToHexStr((char*)&keycode, 1);
+        TCharArray keyname(rdr::HexOutStream::binToHexStr((char*)&keycode, 1));
         key.setString(keyname.buf, TStr(name));
         key.setBinary(_T("Order"), order, orderlen);
       }

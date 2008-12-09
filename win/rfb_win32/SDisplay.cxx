@@ -118,7 +118,7 @@ void SDisplay::stop()
   // If we successfully start()ed then perform the DisconnectAction
   if (core) {
     CurrentUserToken cut;
-    CharArray action = disconnectAction.getData();
+    CharArray action(disconnectAction.getData());
     if (stricmp(action.buf, "Logoff") == 0) {
       if (!cut.h)
         vlog.info("ignoring DisconnectAction=Logoff - no current user");

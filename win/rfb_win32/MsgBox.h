@@ -48,7 +48,7 @@ namespace rfb {
       flags |= MB_TOPMOST | MB_SETFOREGROUND;
       int len = _tcslen(AppName.buf) + 1;
       if (msgType) len += _tcslen(msgType) + 3;
-      TCharArray title = new TCHAR[len];
+      TCharArray title(new TCHAR[len]);
       _tcscpy(title.buf, AppName.buf);
       if (msgType) {
         _tcscat(title.buf, _T(" : "));

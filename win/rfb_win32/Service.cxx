@@ -534,7 +534,7 @@ bool rfb::win32::startService(const TCHAR* name) {
 		services.openKey(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Windows\\CurrentVersion\\RunServices"));
 
     // - Read the command-line from it
-    TCharArray cmdLine = services.getString(name);
+    TCharArray cmdLine(services.getString(name));
 
     // - Start the service
     PROCESS_INFORMATION proc_info;

@@ -63,7 +63,7 @@ const TCHAR* FileVersionInfo::getVerString(const TCHAR* name, DWORD langId) {
     langId = langId >> 8;
   }
 
-  TCharArray langIdStr = rdr::HexOutStream::binToHexStr(langIdBuf, sizeof(langId));
+  TCharArray langIdStr(rdr::HexOutStream::binToHexStr(langIdBuf, sizeof(langId)));
   TCharArray infoName(_tcslen(_T("StringFileInfo")) + 4 + _tcslen(name) + _tcslen(langIdStr.buf));
   _stprintf(infoName.buf, _T("\\StringFileInfo\\%s\\%s"), langIdStr.buf, name);
 

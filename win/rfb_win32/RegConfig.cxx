@@ -57,9 +57,9 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
   DWORD i = 0;
   try {
     while (1) {
-      TCharArray name = tstrDup(key.getValueName(i++));
+      TCharArray name(tstrDup(key.getValueName(i++)));
       if (!name.buf) break;
-      TCharArray value = key.getRepresentation(name.buf);
+      TCharArray value(key.getRepresentation(name.buf));
       if (!value.buf || !Configuration::setParam(CStr(name.buf), CStr(value.buf)))
         vlog.info("unable to process %s", CStr(name.buf));
     }

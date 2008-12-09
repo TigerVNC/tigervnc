@@ -324,7 +324,7 @@ void CConnOptions::writeToFile(const char* filename) {
                     _T("Storing the password is more convenient but poses a security risk."),
                     MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING) == IDYES) {
         ObfuscatedPasswd obfPwd(password);
-        CharArray obfuscatedHex = rdr::HexOutStream::binToHexStr(obfPwd.buf, obfPwd.length);
+        CharArray obfuscatedHex(rdr::HexOutStream::binToHexStr(obfPwd.buf, obfPwd.length));
         fprintf(f, "Password=%s\n", obfuscatedHex.buf);
       }
     }

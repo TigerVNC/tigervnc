@@ -95,7 +95,7 @@ void CConnThread::run() {
         try {
           if (isConfig) {
             // A configuration file name was specified - load it
-            CharArray filename = hostOrConfig.takeBuf();
+	    CharArray filename(hostOrConfig.takeBuf());
             options.readFromFile(filename.buf);
           } else {
             // An actual hostname (and possibly port) was specified
