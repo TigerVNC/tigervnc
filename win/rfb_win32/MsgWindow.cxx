@@ -88,7 +88,7 @@ MsgWindowClass::~MsgWindowClass() {
   }
 }
 
-MsgWindowClass baseClass;
+static MsgWindowClass baseClass;
 
 //
 // -=- MsgWindow
