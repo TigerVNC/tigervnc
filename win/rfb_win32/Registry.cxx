@@ -22,7 +22,7 @@
 #include <rfb_win32/Security.h>
 #include <rfb_win32/DynamicFn.h>
 #include <rdr/MemOutStream.h>
-#include <rdr/HexOutstream.h>
+#include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
 #include <stdlib.h>
 #include <rfb/LogWriter.h>
