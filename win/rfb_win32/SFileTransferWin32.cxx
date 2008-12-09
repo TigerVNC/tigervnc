@@ -116,7 +116,7 @@ SFileTransferWin32::getDirSize(char *pszName, unsigned short *pHighSize16,
 
   if (!fm.getDirSize(pszName, &dw64DirSize)) return false;
 
-  if (dw64DirSize & 0xFFFF000000000000) return false;
+  if (dw64DirSize & 0xFFFF000000000000LL) return false;
 
   *pHighSize16 = (unsigned short)((dw64DirSize >> 32) & 0xFFFF);
   *pLowSize32 = (unsigned int)(dw64DirSize & 0xFFFFFFFF);

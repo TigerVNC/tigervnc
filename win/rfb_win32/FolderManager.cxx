@@ -230,14 +230,14 @@ FolderManager::getTime70(FILETIME ftime)
   LARGE_INTEGER uli;
   uli.LowPart = ftime.dwLowDateTime;
   uli.HighPart = ftime.dwHighDateTime;
-  uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
+  uli.QuadPart = (uli.QuadPart - 116444736000000000LL) / 10000000;
   return uli.LowPart;
 }
 
 void 
 FolderManager::getFiletime(unsigned int time70, FILETIME *pftime)
 {
-  LONGLONG ll = Int32x32To64(time70, 10000000) + 116444736000000000;
+  LONGLONG ll = Int32x32To64(time70, 10000000) + 116444736000000000LL;
   pftime->dwLowDateTime = (DWORD) ll;
   pftime->dwHighDateTime = (DWORD) (ll >> 32);
 }
