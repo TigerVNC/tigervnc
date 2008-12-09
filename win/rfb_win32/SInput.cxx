@@ -36,7 +36,7 @@
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 
-#if(defined(INPUT_MOUSE) && defined(RFB_HAVE_MONITORINFO))
+#if(defined(INPUT_MOUSE) && defined(RFB_HAVE_MONITORINFO) && defined(MOUSEEVENTF_VIRTUALDESK))
 #define RFB_HAVE_SENDINPUT
 #else
 #pragma message("  NOTE: Not building SendInput support.")
