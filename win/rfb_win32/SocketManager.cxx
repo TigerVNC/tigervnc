@@ -38,7 +38,7 @@ SocketManager::~SocketManager() {
 }
 
 
-static requestAddressChangeEvents(network::SocketListener* sock_) {
+static void requestAddressChangeEvents(network::SocketListener* sock_) {
   DWORD dummy = 0;
   if (WSAIoctl(sock_->getFd(), SIO_ADDRESS_LIST_CHANGE, 0, 0, 0, 0, &dummy, 0, 0) == SOCKET_ERROR) {
     DWORD err = WSAGetLastError();
