@@ -108,7 +108,7 @@ namespace rfb {
     struct SecurityDescriptorPtr : LocalMem {
       SecurityDescriptorPtr(int size) : LocalMem(size) {}
       SecurityDescriptorPtr(PSECURITY_DESCRIPTOR sd_=0) : LocalMem(sd_) {}
-      PSECURITY_DESCRIPTOR takeSD() {return takePtr();}
+      PSECURITY_DESCRIPTOR takeSD() {return (PSECURITY_DESCRIPTOR)takePtr();}
     };
 
     // Create a new self-relative Security Descriptor, owned by SYSTEM/Administrators,
