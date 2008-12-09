@@ -27,6 +27,7 @@
 #include <rfb_win32/DeviceContext.h>
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/MsgBox.h>
+#include <rfb/util.h>
 #include <vncviewer/DesktopWindow.h>
 #include <vncviewer/resource.h>
 
@@ -363,8 +364,8 @@ char* DesktopWindow::getMonitor() const {
 
 
 bool DesktopWindow::setViewportOffset(const Point& tl) {
-  Point np = Point(max(0, min(tl.x, buffer->width()-client_size.width())),
-    max(0, min(tl.y, buffer->height()-client_size.height())));
+  Point np = Point(__rfbmax(0, __rfbmin(tl.x, buffer->width()-client_size.width())),
+    __rfbmax(0, __rfbmin(tl.y, buffer->height()-client_size.height())));
   Point delta = np.translate(scrolloffset.negate());
   if (!np.equals(scrolloffset)) {
     scrolloffset = np;
@@ -1219,8 +1220,8 @@ void DesktopWindow::calculateScrollBars() {
     si.nMin   = 0; 
     si.nMax   = buffer->height(); 
     si.nPage  = buffer->height() - (reqd_size.height() - window_size.height()); 
-    maxscrolloffset.y = max(0, si.nMax-si.nPage);
-    scrolloffset.y = min(maxscrolloffset.y, scrolloffset.y);
+    maxscrolloffset.y = __rfbmax(0, si.nMax-si.nPage);
+    scrolloffset.y = __rfbmin(maxscrolloffset.y, scrolloffset.y);
     si.nPos   = scrolloffset.y;
     SetScrollInfo(frameHandle, SB_VERT, &si, TRUE);
   }
@@ -1230,8 +1231,8 @@ void DesktopWindow::calculateScrollBars() {
     si.nMin   = 0;
     si.nMax   = buffer->width(); 
     si.nPage  = buffer->width() - (reqd_size.width() - window_size.width()); 
-    maxscrolloffset.x = max(0, si.nMax-si.nPage);
-    scrolloffset.x = min(maxscrolloffset.x, scrolloffset.x);
+    maxscrolloffset.x = __rfbmax(0, si.nMax-si.nPage);
+    scrolloffset.x = __rfbmin(maxscrolloffset.x, scrolloffset.x);
     si.nPos   = scrolloffset.x;
     SetScrollInfo(frameHandle, SB_HORZ, &si, TRUE);
   }
