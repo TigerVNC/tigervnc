@@ -25,6 +25,12 @@ case "`(uname -sr) 2>/dev/null`" in
   ;;
 esac
 
+case "$host_os" in
+    mingw*)
+        CPPFLAGS="$CPPFLAGS -DWINVER=0x0500 -D_WIN32_IE=0x0500"
+        ;;
+esac
+
 dnl FIXME: Remove duplication between this script and ../unix/configure.in
 if test "$GCC" = yes; then
   CFLAGS="$CFLAGS -Wall"

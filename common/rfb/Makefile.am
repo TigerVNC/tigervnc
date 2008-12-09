@@ -26,7 +26,7 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h CFTMsgReader.h \
 	VNCServer.h VNCServerST.h zrleDecode.h ZRLEDecoder.h zrleEncode.h \
 	ZRLEEncoder.h
 
-librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
+librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CFTMsgReader.cxx CFTMsgWriter.cxx CMsgHandler.cxx \
 	CMsgReader.cxx CMsgReaderV3.cxx CMsgWriter.cxx CMsgWriterV3.cxx \
 	CSecurityVncAuth.cxx CapsContainer.cxx CapsList.cxx \
 	ComparingUpdateTracker.cxx Configuration.cxx ConnParams.cxx \
@@ -46,7 +46,7 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	VNCServerST.cxx ZRLEEncoder.cxx ZRLEDecoder.cxx encodings.cxx \
 	secTypes.cxx util.cxx
 
-librfb_la_CPPFLAGS = -I$(top_srcdir)
+librfb_la_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/../win
 librfb_la_LIBADD =
 
 if IRIX_COMPRESS
