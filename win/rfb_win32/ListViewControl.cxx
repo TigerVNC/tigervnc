@@ -63,7 +63,7 @@ BOOL ListViewControl::InsertLVItem(DWORD idListView, HWND hDlg, int number,  TCH
   lvI.pszText = texts[0]; 									  
   
   if(ListView_InsertItem(GetDlgItem(hDlg, idListView), &lvI) == -1)
-    return NULL;
+    return FALSE;
   
   for (i =1; i < columns; i++) {	
     SetLVItemText(
