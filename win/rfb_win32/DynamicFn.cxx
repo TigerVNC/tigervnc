@@ -26,7 +26,7 @@ using namespace win32;
 static LogWriter vlog("DynamicFn");
 
 
-DynamicFnBase::DynamicFnBase(const TCHAR* dllName, const char* fnName) : dllHandle(0), fnPtr(0) {
+DynamicFnBase::DynamicFnBase(const TCHAR* dllName, const char* fnName) : fnPtr(0), dllHandle(0) {
   dllHandle = LoadLibrary(dllName);
   if (!dllHandle) {
     vlog.info("DLL %s not found (%d)", (const char*)CStr(dllName), GetLastError());
