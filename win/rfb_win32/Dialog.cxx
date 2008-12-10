@@ -44,7 +44,7 @@ static LogWriter plog("PropSheet");
 
 
 Dialog::Dialog(HINSTANCE inst_)
-: inst(inst_), alreadyShowing(false), handle(0)
+: inst(inst_), handle(0), alreadyShowing(false)
 {
 }
 
@@ -207,7 +207,7 @@ BOOL PropSheetPage::dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 
 PropSheet::PropSheet(HINSTANCE inst_, const TCHAR* title_, std::list<PropSheetPage*> pages_, HICON icon_)
-: title(tstrDup(title_)), inst(inst_), pages(pages_), alreadyShowing(0), handle(0), icon(icon_) {
+: icon(icon_), pages(pages_), inst(inst_), title(tstrDup(title_)), handle(0), alreadyShowing(0) {
 }
 
 PropSheet::~PropSheet() {
