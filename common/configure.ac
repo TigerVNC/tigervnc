@@ -28,6 +28,7 @@ esac
 case "$host_os" in
     mingw*)
         CPPFLAGS="$CPPFLAGS -DWINVER=0x0500 -D_WIN32_IE=0x0500"
+        CXXFLAGS="$CXXFLAGS -mthreads"
         ;;
 esac
 
