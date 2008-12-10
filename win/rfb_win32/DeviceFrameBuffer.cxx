@@ -233,7 +233,6 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     if (!iconInfo.hbmColor) {
       Pixel xorColour = format.pixelFromRGB(0, 0, 0, cursorBm.getColourMap());
       for (int y = 0; y < cursor.height(); y++) {
-        bool first = true;
         for (int x = 0; x < cursor.width(); x++) {
           int byte = y * maskInfo.bmWidthBytes + x / 8;
           int bit = 7 - x % 8;
