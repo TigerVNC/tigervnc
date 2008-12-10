@@ -31,7 +31,7 @@ using namespace win32;
 const PixelFormat RGB24(32, 24, 0, 1, 255, 255, 255, 16, 8, 0);
 
 ScaledDIBSectionBuffer::ScaledDIBSectionBuffer(HWND window) 
-  : src_buffer(0), scaling(false), DIBSectionBuffer(window) {
+  : DIBSectionBuffer(window), src_buffer(0), scaling(false) {
   scaled_data = &data;
 }
 
