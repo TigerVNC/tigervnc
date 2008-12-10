@@ -28,7 +28,7 @@ static LogWriter vlog("DIBSectionBuffer");
 
 
 DIBSectionBuffer::DIBSectionBuffer(HWND window_)
-  : bitmap(0), device(0), window(window_) {
+  : bitmap(0), window(window_), device(0) {
   memset(&format, 0, sizeof(format));
   memset(palette, 0, sizeof(palette));
 }
