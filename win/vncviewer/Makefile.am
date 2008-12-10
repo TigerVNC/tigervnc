@@ -42,9 +42,14 @@ vncviewer_SOURCES = $(HDRS) \
 
 vncviewer_CPPFLAGS = -I$(COMMON_DIR) -I$(top_srcdir)
 
-vncviewer_LDADD = $(COMMON_DIR)/rfb/librfb.la $(top_srcdir)/rfb_win32/librfb_win32.la $(COMMON_DIR)/Xregion/libXregion.la \
-	$(COMMON_DIR)/network/libnetwork.la $(COMMON_DIR)/rdr/librdr.la -lws2_32 -lgdi32 -luser32 -lcomctl32 -lversion -lcomdlg32
+vncviewer_LDADD = $(COMMON_DIR)/rfb/librfb.la \
+    $(top_srcdir)/rfb_win32/librfb_win32.la \
+    $(COMMON_DIR)/Xregion/libXregion.la \
+    $(COMMON_DIR)/network/libnetwork.la \
+    $(COMMON_DIR)/rdr/librdr.la \
+    resources.o -lws2_32 -lgdi32 -luser32 -lcomctl32 -lversion -lcomdlg32
 
 vncviewer_LDFLAGS = -I$(top_srcdir)/win 
 
-
+resources.o: vncviewer.rc
+	i386-mingw32msvc-windres $^ -o $@
