@@ -29,9 +29,9 @@ namespace rfb {
 
     struct IntervalTimer {
       IntervalTimer(HWND hwnd_, int id_)
-        : active(false), hwnd(hwnd_), id(id_) {
+        : hwnd(hwnd_), id(id_), active(false) {
       }
-      IntervalTimer() : active(false), hwnd(0), id(0) {
+      IntervalTimer() : hwnd(0), id(0), active(false) {
       }
       ~IntervalTimer() {
         stop();
