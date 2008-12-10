@@ -32,4 +32,4 @@ namespace rfb {
   };
 };
 
-#endif;
+#endif
