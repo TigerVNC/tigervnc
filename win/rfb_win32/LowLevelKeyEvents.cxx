@@ -63,7 +63,7 @@ LRESULT CALLBACK LowLevelKeyEventProc(int nCode,
         UINT msgType = wParam;
         KBDLLHOOKSTRUCT* msgInfo = (KBDLLHOOKSTRUCT*)lParam;
         if (filterKeyEvent(msgInfo->vkCode)) {
-          vlog.debug("filtered event %lx(%lu) %lu", msgInfo->vkCode, msgInfo->vkCode, wParam);
+          vlog.debug("filtered event %lx(%lu) %lu", msgInfo->vkCode, msgInfo->vkCode, msgType);
           PostMessage(*i, wParam, msgInfo->vkCode, (msgInfo->scanCode & 0xff) << 16);
           return 1;
         }
