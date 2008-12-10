@@ -46,10 +46,11 @@ DynamicFn<WM_Hooks_SetDiagnosticRange_proto> WM_Hooks_SetDiagnosticRange(_T("wm_
 
 class WMHooksThread : public Thread {
 public:
-  WMHooksThread() : Thread("WMHookThread"), active(true),
+  WMHooksThread() : Thread("WMHookThread"), 
     WM_Hooks_Install(_T("wm_hooks.dll"), "WM_Hooks_Install"),
     WM_Hooks_Remove(_T("wm_hooks.dll"), "WM_Hooks_Remove"),
-    WM_Hooks_EnableCursorShape(_T("wm_hooks.dll"), "WM_Hooks_EnableCursorShape") {
+    WM_Hooks_EnableCursorShape(_T("wm_hooks.dll"), "WM_Hooks_EnableCursorShape"),
+    active(true) {
   }
   virtual void run();
   virtual Thread* join();
