@@ -504,7 +504,7 @@ HWND findServiceWindow(const TCHAR* name) {
   TCharArray wndName(_tcslen(ServiceMsgWindow::baseName)+_tcslen(name)+1);
   _tcscpy(wndName.buf, ServiceMsgWindow::baseName);
   _tcscat(wndName.buf, name);
-  vlog.debug("searching for %s window", CStr(wndName.buf));
+  vlog.debug("searching for %s window", wndName.buf);
   return FindWindow(0, wndName.buf);
 }
 
