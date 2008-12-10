@@ -61,7 +61,7 @@ void RegConfig::loadRegistryConfig(RegKey& key) {
       if (!name.buf) break;
       TCharArray value(key.getRepresentation(name.buf));
       if (!value.buf || !Configuration::setParam(CStr(name.buf), CStr(value.buf)))
-        vlog.info("unable to process %s", CStr(name.buf));
+        vlog.info("unable to process %s", name.buf);
     }
   } catch (rdr::SystemException& e) {
     if (e.err != 6)
