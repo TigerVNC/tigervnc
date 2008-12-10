@@ -73,8 +73,8 @@ Thread::Thread(const char* name_) : name(strDup(name_ ? name_ : "Unnamed")), sig
   logAction(this, "created");
 }
 
-Thread::Thread(HANDLE thread_, DWORD thread_id_) : name(strDup("Native")), sig(0), deleteAfterRun(false),
-  thread(thread_), thread_id(thread_id_) {
+Thread::Thread(HANDLE thread_, DWORD thread_id_) : 
+  thread(thread_), thread_id(thread_id_), name(strDup("Native")), sig(0), deleteAfterRun(false) {
   cond_event.h = CreateEvent(NULL, TRUE, FALSE, NULL);
   state = ThreadNative;
   logAction(this, "created");
