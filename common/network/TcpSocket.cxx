@@ -24,9 +24,6 @@
 //#include <io.h>
 #include <winsock2.h>
 #define errorNumber WSAGetLastError()
-#ifndef VNC_SOCKLEN_T
-#define VNC_SOCKLEN_T int
-#endif
 #else
 #define errorNumber errno
 #define closesocket close
@@ -45,6 +42,7 @@
 
 #include <stdlib.h>
 #include <network/TcpSocket.h>
+#include <os/net.h>
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
 
@@ -124,7 +122,7 @@ TcpSocket::TcpSocket(const char *host, int port)
 {
   int sock, err, result, family;
   vnc_sockaddr_t sa;
-  VNC_SOCKLEN_T salen;
+  socklen_t salen;
 #ifdef HAVE_GETADDRINFO
   struct addrinfo *ai, *current, hints;
 #endif
@@ -233,7 +231,7 @@ TcpSocket::~TcpSocket() {
 char* TcpSocket::getMyAddress() {
   struct sockaddr_in  info;
   struct in_addr    addr;
-  VNC_SOCKLEN_T info_size = sizeof(info);
+  socklen_t info_size = sizeof(info);
 
   getsockname(getFd(), (struct sockaddr *)&info, &info_size);
   memcpy(&addr, &info.sin_addr, sizeof(addr));
@@ -263,7 +261,7 @@ char* TcpSocket::getMyEndpoint() {
 char* TcpSocket::getPeerAddress() {
   struct sockaddr_in  info;
   struct in_addr    addr;
-  VNC_SOCKLEN_T info_size = sizeof(info);
+  socklen_t info_size = sizeof(info);
 
   getpeername(getFd(), (struct sockaddr *)&info, &info_size);
   memcpy(&addr, &info.sin_addr, sizeof(addr));
@@ -278,7 +276,7 @@ char* TcpSocket::getPeerAddress() {
 
 int TcpSocket::getPeerPort() {
   struct sockaddr_in  info;
-  VNC_SOCKLEN_T info_size = sizeof(info);
+  socklen_t info_size = sizeof(info);
 
   getpeername(getFd(), (struct sockaddr *)&info, &info_size);
   return ntohs(info.sin_port);
@@ -296,7 +294,7 @@ char* TcpSocket::getPeerEndpoint() {
 
 bool TcpSocket::sameMachine() {
   struct sockaddr_in peeraddr, myaddr;
-  VNC_SOCKLEN_T addrlen = sizeof(struct sockaddr_in);
+  socklen_t addrlen = sizeof(struct sockaddr_in);
 
   getpeername(getFd(), (struct sockaddr *)&peeraddr, &addrlen);
   getsockname(getFd(), (struct sockaddr *)&myaddr, &addrlen);
@@ -324,21 +322,21 @@ bool TcpSocket::enableNagles(int sock, bool enable) {
 bool TcpSocket::isSocket(int sock)
 {
   struct sockaddr_in info;
-  VNC_SOCKLEN_T info_size = sizeof(info);
+  socklen_t info_size = sizeof(info);
   return getsockname(sock, (struct sockaddr *)&info, &info_size) >= 0;
 }
 
 bool TcpSocket::isConnected(int sock)
 {
   struct sockaddr_in info;
-  VNC_SOCKLEN_T info_size = sizeof(info);
+  socklen_t info_size = sizeof(info);
   return getpeername(sock, (struct sockaddr *)&info, &info_size) >= 0;
 }
 
 int TcpSocket::getSockPort(int sock)
 {
   struct sockaddr_in info;
-  VNC_SOCKLEN_T info_size = sizeof(info);
+  socklen_t info_size = sizeof(info);
   if (getsockname(sock, (struct sockaddr *)&info, &info_size) < 0)
     return 0;
   return ntohs(info.sin_port);

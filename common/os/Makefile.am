@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libos.la
 
-HDRS = print.h
+HDRS = net.h print.h
 
-libos_la_SOURCES = $(HDRS) print.c
+libos_la_SOURCES = $(HDRS) print.c net.c

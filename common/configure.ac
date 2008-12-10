@@ -85,11 +85,12 @@ AC_ARG_WITH([included-jpeg],
 AM_CONDITIONAL([INCLUDED_JPEG], [ test "x$INCLUDED_JPEG" = xyes ])
 AC_CONFIG_SUBDIRS([jpeg])
 
-AC_CHECK_FUNCS_ONCE([vsnprintf snprintf strcasecmp strncasecmp getaddrinfo])
+AC_CHECK_FUNCS_ONCE([vsnprintf snprintf strcasecmp strncasecmp])
 
-AC_CHECK_TYPES([socklen_t],
-	[AC_DEFINE([VNC_SOCKLEN_T], [socklen_t], [Use correct size])],
-	[AC_DEFINE([VNC_SOCKLEN_T], [int])])
+# IPv6 related functions
+AC_CHECK_FUNCS_ONCE([inet_ntop getaddrinfo])
+
+AC_CHECK_TYPES([socklen_t])
 
 AC_CHECK_HEADERS([sys/select.h])
 
