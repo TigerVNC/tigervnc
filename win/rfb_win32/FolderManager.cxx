@@ -155,7 +155,6 @@ FolderManager::getDirInfo(char *pPath, FileInfo *pFileInfo, unsigned int dirOnly
   WIN32_FIND_DATA FindFileData;
   SetErrorMode(SEM_FAILCRITICALERRORS);
   HANDLE handle = FindFirstFile(path, &FindFileData);
-  DWORD lastError = GetLastError();
   SetErrorMode(0);
   
   if (handle != INVALID_HANDLE_VALUE) {
@@ -205,7 +204,6 @@ FolderManager::getInfo(char *pFullPath, FILEINFO *pFIStruct)
   WIN32_FIND_DATA FindFileData;
   SetErrorMode(SEM_FAILCRITICALERRORS);
   HANDLE hFile = FindFirstFile(pFullPath, &FindFileData);
-  DWORD lastError = GetLastError();
   SetErrorMode(0);
   if (hFile != INVALID_HANDLE_VALUE) {
     FindClose(hFile);
