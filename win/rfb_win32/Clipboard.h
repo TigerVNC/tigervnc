@@ -40,6 +40,7 @@ namespace rfb {
       class Notifier {
       public:
         virtual void notifyClipboardChanged(const char* text, int len) = 0;
+        virtual ~Notifier() {};
       };
 
       Clipboard();
