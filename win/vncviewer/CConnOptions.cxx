@@ -125,16 +125,32 @@ static IntParameter scale("Scale",
                           100);
 
 CConnOptions::CConnOptions()
-: useLocalCursor(::useLocalCursor), useDesktopResize(::useDesktopResize),
-autoSelect(::autoSelect), fullColour(::fullColour), fullScreen(::fullScreen),
-shared(::sharedConnection), sendPtrEvents(::sendPtrEvents), sendKeyEvents(::sendKeyEvents),
-preferredEncoding(encodingZRLE), clientCutText(::clientCutText), serverCutText(::serverCutText),
-disableWinKeys(::disableWinKeys), protocol3_3(::protocol3_3), acceptBell(::acceptBell),
-lowColourLevel(::lowColourLevel), pointerEventInterval(ptrEventInterval),
-emulate3(::emulate3), monitor(::monitor.getData()), showToolbar(::showToolbar),
-customCompressLevel(::customCompressLevel), compressLevel(::compressLevel), 
-noJpeg(::noJpeg), qualityLevel(::qualityLevel), passwordFile(::passwordFile.getData()),
-autoReconnect(::autoReconnect), autoScaling(::autoScaling), scale(::scale)
+: useLocalCursor (::useLocalCursor), 
+useDesktopResize(::useDesktopResize),
+fullScreen(::fullScreen), 
+fullColour(::fullColour), 
+lowColourLevel(::lowColourLevel), 
+preferredEncoding(encodingZRLE), 
+autoSelect(::autoSelect), 
+shared(::sharedConnection), 
+sendPtrEvents(::sendPtrEvents), 
+sendKeyEvents(::sendKeyEvents),
+showToolbar(::showToolbar), 
+clientCutText(::clientCutText), 
+serverCutText(::serverCutText),
+disableWinKeys(::disableWinKeys), 
+emulate3(::emulate3), 
+pointerEventInterval(ptrEventInterval),
+protocol3_3(::protocol3_3), 
+acceptBell(::acceptBell),
+autoScaling(::autoScaling), 
+scale(::scale), 
+monitor(::monitor.getData()),
+autoReconnect(::autoReconnect), 
+customCompressLevel(::customCompressLevel), 
+compressLevel(::compressLevel), 
+noJpeg(::noJpeg), 
+qualityLevel(::qualityLevel) 
 {
   if (autoSelect) {
     preferredEncoding = encodingZRLE;
