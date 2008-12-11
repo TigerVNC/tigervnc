@@ -130,7 +130,7 @@ public:
 };
 
 LRESULT CALLBACK FrameProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-  LRESULT result;
+  LRESULT result = 0;
   if (msg == WM_CREATE)
     SetWindowLong(wnd, GWL_USERDATA, (long)((CREATESTRUCT*)lParam)->lpCreateParams);
   else if (msg == WM_DESTROY)
