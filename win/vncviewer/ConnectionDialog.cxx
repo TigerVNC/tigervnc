@@ -44,7 +44,7 @@ void ConnectionDialog::initDialog() {
   // Locate the combo-box
   // NB: TCharArray converts the supplied char* and assumes ownership!
   for (i=mru.begin(); i!=mru.end(); i++) {
-    int index = SendMessage(box, CB_ADDSTRING, 0, (LPARAM)TCharArray(*i).buf);
+    SendMessage(box, CB_ADDSTRING, 0, (LPARAM)TCharArray(*i).buf);
   }
 
   // Select the first item in the list
