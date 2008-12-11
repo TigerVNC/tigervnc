@@ -405,7 +405,7 @@ FileTransfer::procFileListDataMsg()
   FileInfo fileInfo;
   int res = m_pReader->readFileListData(&fileInfo);
 
-  bool bResult;
+  bool bResult = false;
   switch (m_queueFileListRqst.getFlagsAt(0))
   {
   case FT_FLR_DEST_MAIN:
