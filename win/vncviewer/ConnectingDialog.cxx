@@ -102,8 +102,8 @@ public:
 };
 
 
-ConnectingDialog::ConnectingDialog() : dialog(0), readyEvent(CreateEvent(0, TRUE, FALSE, 0)),
-                                       newSocket(0), dialogId(0) {
+ConnectingDialog::ConnectingDialog() : dialog(0), newSocket(0), 
+                                       readyEvent(CreateEvent(0, TRUE, FALSE, 0)), dialogId(0) {
 }
 
 network::Socket* ConnectingDialog::connect(const char* hostAndPort) {
