@@ -436,7 +436,7 @@ CConn::setColourMapEntries(int first, int count, U16* rgbs) {
 void
 CConn::bell() {
   if (options.acceptBell)
-    MessageBeep(-1);
+    MessageBeep((UINT)-1);
 }
 
 
