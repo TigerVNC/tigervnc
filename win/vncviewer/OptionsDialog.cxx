@@ -47,7 +47,7 @@ public:
   ViewerOptions(OptionsInfo& info_, std::list<PropSheetPage*> pages)
     : PropSheet(GetModuleHandle(0), 
     info_.view ? _T("VNC Viewer Options") : _T("VNC Viewer Defaults"), pages),
-    info(info_), changed(false) {
+    changed(false), info(info_) {
   }
   ~ViewerOptions() {
     if (changed) {
