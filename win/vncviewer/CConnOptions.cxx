@@ -150,7 +150,8 @@ autoReconnect(::autoReconnect),
 customCompressLevel(::customCompressLevel), 
 compressLevel(::compressLevel), 
 noJpeg(::noJpeg), 
-qualityLevel(::qualityLevel) 
+qualityLevel(::qualityLevel),
+passwordFile(::passwordFile.getData())
 {
   if (autoSelect) {
     preferredEncoding = encodingZRLE;
