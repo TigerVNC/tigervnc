@@ -74,9 +74,9 @@ RegKey            CConn::userConfigKey;
 
 
 CConn::CConn() 
-  : window(0), sock(0), sockEvent(CreateEvent(0, TRUE, FALSE, 0)), requestUpdate(false),
-    sameMachine(false), encodingChange(false), formatChange(false),
-    reverseConnection(false), lastUsedEncoding_(encodingRaw), isClosed_(false) {
+  : window(0), sameMachine(false), encodingChange(false), formatChange(false), 
+    lastUsedEncoding_(encodingRaw), sock(0), sockEvent(CreateEvent(0, TRUE, FALSE, 0)), 
+    reverseConnection(false), requestUpdate(false), isClosed_(false) {
 }
 
 CConn::~CConn() {
