@@ -42,8 +42,8 @@ typedef int socklen_t;
 
 /* IPv4-only stub implementation */
 #ifndef HAVE_INET_NTOP
-const char *tight_inet_ntop(int af, const void *restrict src,
-			    char *restrict dst, socklen_t size);
+const char *tight_inet_ntop(int af, const void *src,
+			    char *dst, socklen_t size);
 #define inet_ntop tight_inet_ntop
 #endif
 
