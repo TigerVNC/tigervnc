@@ -182,14 +182,14 @@ FrameClass frameClass;
 //
 
 DesktopWindow::DesktopWindow(Callback* cb) 
-  : buffer(0), cursorImage(0), cursorMask(0), cursorWidth(0), cursorHeight(0),
-    internalSetCursor(false), showToolbar(false), autoScaling(false),
-    client_size(0, 0, 16, 16), window_size(0, 0, 32, 32),
-    cursorVisible(false), cursorAvailable(false), cursorInBuffer(false),
-    systemCursorVisible(true), trackingMouseLeave(false),
-    handle(0), frameHandle(0), has_focus(false), palette_changed(false),
-    fullscreenActive(false), fullscreenRestore(false),
-    bumpScroll(false), callback(cb) {
+  : bumpScroll(false), palette_changed(false), fullscreenActive(false), 
+    fullscreenRestore(false), systemCursorVisible(true), trackingMouseLeave(false), 
+    cursorInBuffer(false), cursorVisible(false), cursorAvailable(false), 
+    internalSetCursor(false), cursorImage(0), cursorMask(0), 
+    cursorWidth(0), cursorHeight(0), showToolbar(false), 
+    buffer(0), has_focus(false), autoScaling(false), 
+    window_size(0, 0, 32, 32),  client_size(0, 0, 16, 16), handle(0), 
+    frameHandle(0), callback(cb) {
 
   // Create the window
   const char* name = "DesktopWindow";
