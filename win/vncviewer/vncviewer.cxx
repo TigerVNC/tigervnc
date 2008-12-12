@@ -108,7 +108,7 @@ programUsage() {
   printf("\nParameters:\n");
   Configuration::listParams();
   printf("Press Enter/Return key to continue\n");
-  char c = getchar();
+  getchar();
   exit(1);
 }
 
@@ -284,7 +284,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
 
     if (!close_console) {
       printf("Press Enter/Return key to continue\n");
-      char c = getchar();
+      getchar();
     }
 
   } catch (rdr::Exception& e) {
