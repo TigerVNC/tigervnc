@@ -1,0 +1,35 @@
+From: Peter Rosin <peda@lysator.liu.se>
+To: vnc-tight-list@lists.sourceforge.net
+Date: Thu, 25 Sep 2008 10:21:07 +0200
+Message-ID: <48DB49F3.6030609@lysator.liu.se>
+Subject: Problems with timestamps in file transfers.
+
+Hi list!
+
+I'm writing some VNC client software that supports the the file
+transfer extensions described in the rfbtight.tex document in
+the svn repo. However, when I communicate with a TightVNC server
+version 1.3.9 (WinVNC.exe) I get strange data for the modification
+times of the files.
+
+Specifically, in the FileListData message, I have understood
+that directories are encoded as <size ~0, mod-time 0>. For
+regular files I get the expected size, but the mod-time is
+always 0xffffffe7 (-25) which seem totally bogus.
+
+The next problem is more disturbing since you will get interop
+problems if you fix it. In the last FileDownloadData message
+(the one with raw-length = compressed-length = 0), the mod-time
+is transmitted in little-endian byte order (at least my TightVNC
+server does so). Since it's more problems fixing this than
+documenting it, I think this endianness issue should be recorded
+in the rfbtight.tex file.
+
+(However, when you use FileUploadData you should transmit
+  the mod-time in the expected big-endian network byte order.)
+
+Cheers,
+Peter
+
+==================================================================
+
