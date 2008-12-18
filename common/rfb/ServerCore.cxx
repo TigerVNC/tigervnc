@@ -94,8 +94,7 @@ rfb::BoolParameter rfb::Server::queryConnect
  false);
 
 // TightVNC-specific parameters
-// FIXME: Disable special video handling when this parameter is 0.
 rfb::IntParameter rfb::Server::videoPriority
 ("VideoPriority",
- "Priority of sending updates for video area (0..8)",
+ "Priority of sending video updates (0..8)",
  2, 0, 8);

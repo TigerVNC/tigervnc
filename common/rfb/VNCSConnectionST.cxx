@@ -565,6 +565,15 @@ void VNCSConnectionST::writeFramebufferUpdate()
     server->checkUpdate();
   }
 
+  // If VideoPriority is 0, convert video updates to normal updates.
+
+  if (rfb::Server::videoPriority == 0) {
+    // Region videoRegion(updates.getVideoArea());
+    // updates.add_changed(videoRegion);
+    Rect nullRect(0, 0, 0, 0);
+    updates.set_video_area(nullRect);
+  }
+
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
   // `changed', `copied' and `video_area' regions would not intersect.
