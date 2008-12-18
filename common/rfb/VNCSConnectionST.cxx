@@ -568,8 +568,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // If VideoPriority is 0, convert video updates to normal updates.
 
   if (rfb::Server::videoPriority == 0) {
-    // Region videoRegion(updates.getVideoArea());
-    // updates.add_changed(videoRegion);
+    Region videoRegion(updates.getVideoArea());
+    updates.add_changed(videoRegion);
     Rect nullRect(0, 0, 0, 0);
     updates.set_video_area(nullRect);
   }
