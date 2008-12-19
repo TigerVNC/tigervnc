@@ -691,39 +691,13 @@ class VncCanvas extends Canvas
   // by the Hextile decoder for raw-encoded tiles.
   //
 
-  void handleRawRect(int x, int y, int w, int h) throws IOException {
+  void handleRawRect(int x, int y, int w, int h) throws IOException, Exception {
     handleRawRect(x, y, w, h, true);
   }
 
   void handleRawRect(int x, int y, int w, int h, boolean paint)
-    throws IOException {
-
-    if (bytesPixel == 1) {
-      for (int dy = y; dy < y + h; dy++) {
-	rfb.readFully(pixels8, dy * rfb.framebufferWidth + x, w);
-	if (rfb.rec != null) {
-	  rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
-	}
-      }
-    } else {
-      byte[] buf = new byte[w * 4];
-      int i, offset;
-      for (int dy = y; dy < y + h; dy++) {
-	rfb.readFully(buf);
-	if (rfb.rec != null) {
-	  rfb.rec.write(buf);
-	}
-	offset = dy * rfb.framebufferWidth + x;
-	for (i = 0; i < w; i++) {
-	  pixels24[offset + i] =
-	    (buf[i * 4 + 2] & 0xFF) << 16 |
-	    (buf[i * 4 + 1] & 0xFF) << 8 |
-	    (buf[i * 4] & 0xFF);
-	}
-      }
-    }
-
-    handleUpdatedPixels(x, y, w, h);
+    throws IOException , Exception{
+    rawDecoder.handleRect(x, y, w, h);
     if (paint)
       scheduleRepaint(x, y, w, h);
   }
@@ -746,50 +720,7 @@ class VncCanvas extends Canvas
   //
 
   void handleRRERect(int x, int y, int w, int h) throws IOException {
-
-    int nSubrects = rfb.readU32();
-
-    byte[] bg_buf = new byte[bytesPixel];
-    rfb.readFully(bg_buf);
-    Color pixel;
-    if (bytesPixel == 1) {
-      pixel = colors[bg_buf[0] & 0xFF];
-    } else {
-      pixel = new Color(bg_buf[2] & 0xFF, bg_buf[1] & 0xFF, bg_buf[0] & 0xFF);
-    }
-    memGraphics.setColor(pixel);
-    memGraphics.fillRect(x, y, w, h);
-
-    byte[] buf = new byte[nSubrects * (bytesPixel + 8)];
-    rfb.readFully(buf);
-    DataInputStream ds = new DataInputStream(new ByteArrayInputStream(buf));
-
-    if (rfb.rec != null) {
-      rfb.rec.writeIntBE(nSubrects);
-      rfb.rec.write(bg_buf);
-      rfb.rec.write(buf);
-    }
-
-    int sx, sy, sw, sh;
-
-    for (int j = 0; j < nSubrects; j++) {
-      if (bytesPixel == 1) {
-	pixel = colors[ds.readUnsignedByte()];
-      } else {
-	ds.skip(4);
-	pixel = new Color(buf[j*12+2] & 0xFF,
-			  buf[j*12+1] & 0xFF,
-			  buf[j*12]   & 0xFF);
-      }
-      sx = x + ds.readUnsignedShort();
-      sy = y + ds.readUnsignedShort();
-      sw = ds.readUnsignedShort();
-      sh = ds.readUnsignedShort();
-
-      memGraphics.setColor(pixel);
-      memGraphics.fillRect(sx, sy, sw, sh);
-    }
-
+    rreDecoder.handleRect(x, y, w, h);
     scheduleRepaint(x, y, w, h);
   }
 
@@ -798,47 +729,7 @@ class VncCanvas extends Canvas
   //
 
   void handleCoRRERect(int x, int y, int w, int h) throws IOException {
-    int nSubrects = rfb.readU32();
-
-    byte[] bg_buf = new byte[bytesPixel];
-    rfb.readFully(bg_buf);
-    Color pixel;
-    if (bytesPixel == 1) {
-      pixel = colors[bg_buf[0] & 0xFF];
-    } else {
-      pixel = new Color(bg_buf[2] & 0xFF, bg_buf[1] & 0xFF, bg_buf[0] & 0xFF);
-    }
-    memGraphics.setColor(pixel);
-    memGraphics.fillRect(x, y, w, h);
-
-    byte[] buf = new byte[nSubrects * (bytesPixel + 4)];
-    rfb.readFully(buf);
-
-    if (rfb.rec != null) {
-      rfb.rec.writeIntBE(nSubrects);
-      rfb.rec.write(bg_buf);
-      rfb.rec.write(buf);
-    }
-
-    int sx, sy, sw, sh;
-    int i = 0;
-
-    for (int j = 0; j < nSubrects; j++) {
-      if (bytesPixel == 1) {
-	pixel = colors[buf[i++] & 0xFF];
-      } else {
-	pixel = new Color(buf[i+2] & 0xFF, buf[i+1] & 0xFF, buf[i] & 0xFF);
-	i += 4;
-      }
-      sx = x + (buf[i++] & 0xFF);
-      sy = y + (buf[i++] & 0xFF);
-      sw = buf[i++] & 0xFF;
-      sh = buf[i++] & 0xFF;
-
-      memGraphics.setColor(pixel);
-      memGraphics.fillRect(sx, sy, sw, sh);
-    }
-
+    correDecoder.handleRect(x, y, w, h);
     scheduleRepaint(x, y, w, h);
   }
 
@@ -849,27 +740,9 @@ class VncCanvas extends Canvas
   // These colors should be kept between handleHextileSubrect() calls.
   private Color hextile_bg, hextile_fg;
 
-  void handleHextileRect(int x, int y, int w, int h) throws IOException {
-
-    hextile_bg = new Color(0);
-    hextile_fg = new Color(0);
-
-    for (int ty = y; ty < y + h; ty += 16) {
-      int th = 16;
-      if (y + h - ty < 16)
-	th = y + h - ty;
-
-      for (int tx = x; tx < x + w; tx += 16) {
-	int tw = 16;
-	if (x + w - tx < 16)
-	  tw = x + w - tx;
-
-	handleHextileSubrect(tx, ty, tw, th);
-      }
-
-      // Finished with a row of tiles, now let's show it.
-      scheduleRepaint(x, y, w, h);
-    }
+  void handleHextileRect(int x, int y, int w, int h) throws IOException,
+                                                            Exception {
+    hextileDecoder.handleRect(x, y, w, h);
   }
 
   //
@@ -877,7 +750,7 @@ class VncCanvas extends Canvas
   //
 
   void handleHextileSubrect(int tx, int ty, int tw, int th)
-    throws IOException {
+    throws IOException, Exception {
 
     int subencoding = rfb.readU8();
     if (rfb.rec != null) {
