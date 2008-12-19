@@ -35,6 +35,10 @@ public class RawDecoder {
     cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
   }
 
+  //
+  // Set methods to set value of non-static protected members of class
+  //
+
   public void setRfbInputStream(RfbInputStream is) {
     rfbis = is;
   }
@@ -45,6 +49,11 @@ public class RawDecoder {
 
   public void setBPP(int bpp) {
     bytesPerPixel = bpp;
+  }
+
+  public void setFrameBufferSize(int w, int h) {
+    framebufferWidth = w;
+    framebufferHeight = h;
   }
 
   public void setSessionRecorder(RecordInterface ri) {
@@ -59,11 +68,6 @@ public class RawDecoder {
     return bytesPerPixel;
   }
 
-  public void setFrameBufferSize(int w, int h) {
-    framebufferWidth = w;
-    framebufferHeight = h;
-  }
-
   //
   // Decodes Raw Pixels data and draw it into graphics
   //
@@ -74,6 +78,9 @@ public class RawDecoder {
         if (pixels8 != null) {
           rfbis.readFully(pixels8, dy * framebufferWidth + x, w);
         }
+        //
+        // Save decoded data to RecordInterface
+        //
         if (rec.canWrite()) {
           rec.write(pixels8, dy * framebufferWidth + x, w);
         }
@@ -106,6 +113,7 @@ public class RawDecoder {
   //
   // Display newly updated area of pixels.
   //
+
   protected void handleUpdatedPixels(int x, int y, int w, int h) {
     // Draw updated pixels of the off-screen image.
     pixelsSource.newPixels(x, y, w, h);
@@ -171,6 +179,7 @@ public class RawDecoder {
   //
   // Unique data for every decoder (? maybe not ?)
   //
+
   protected int bytesPerPixel = 4;
   protected int framebufferWidth = 0;
   protected int framebufferHeight = 0;
@@ -181,6 +190,7 @@ public class RawDecoder {
   //
   // This data must be shared between decoders
   //
+
   protected static byte []pixels8 = null;
   protected static int []pixels24 = null;
   protected static MemoryImageSource pixelsSource = null;
@@ -189,6 +199,7 @@ public class RawDecoder {
   //
   // Access to this static members only though protected methods
   //
+
   private static ColorModel cm8 = null;
   private static ColorModel cm24 = null;
   private static Color []color256 = null;
