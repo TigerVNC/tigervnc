@@ -239,6 +239,7 @@ class RfbProto {
 
     if (viewer.socketFactory == null) {
       sock = new Socket(host, port);
+      sock.setTcpNoDelay(true);
     } else {
       try {
 	Class factoryClass = Class.forName(viewer.socketFactory);
