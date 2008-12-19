@@ -15,6 +15,7 @@ import java.awt.Toolkit;
 // This is base decoder class.
 // Other classes will be childs of RawDecoder.
 //
+
 public class RawDecoder {
 
   public RawDecoder(Graphics g, RfbInputStream is) {
