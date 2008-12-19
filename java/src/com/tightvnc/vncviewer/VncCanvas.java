@@ -50,7 +50,6 @@ class VncCanvas extends Canvas
   VncViewer viewer;
   RfbProto rfb;
   ColorModel cm8, cm24;
-  Color[] colors;
   int bytesPixel;
 
   int maxWidth = 0, maxHeight = 0;
@@ -59,11 +58,6 @@ class VncCanvas extends Canvas
 
   Image memImage;
   Graphics memGraphics;
-
-  Image rawPixelsImage;
-  MemoryImageSource pixelsSource;
-  byte[] pixels8;
-  int[] pixels24;
 
   //
   // Decoders
@@ -94,22 +88,11 @@ class VncCanvas extends Canvas
   int statNumBytesEncoded;      // number of bytes in updates, as received
   int statNumBytesDecoded;      // number of bytes, as if Raw encoding was used
 
-  // ZRLE encoder's data.
-  byte[] zrleBuf;
-  int zrleBufLen = 0;
-  byte[] zrleTilePixels8;
-  int[] zrleTilePixels24;
-  ZlibInStream zrleInStream;
-  boolean zrleRecWarningShown = false;
-  boolean isFirstSizeAutoUpdate = true;
-
-  // Zlib encoder's data.
-  byte[] zlibBuf;
-  int zlibBufLen = 0;
-  Inflater zlibInflater;
-
   // True if we process keyboard and mouse events.
   boolean inputEnabled;
+
+  // True if was no one auto resize of canvas
+  boolean isFirstSizeAutoUpdate = true;
 
   //
   // The constructors.
@@ -127,10 +110,6 @@ class VncCanvas extends Canvas
 
     cm8 = new DirectColorModel(8, 7, (7 << 3), (3 << 6));
     cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
-
-    colors = new Color[256];
-    for (int i = 0; i < 256; i++)
-      colors[i] = new Color(cm8.getRGB(i));
 
     //
     // Create decoders
@@ -174,7 +153,7 @@ class VncCanvas extends Canvas
     for (int i = 0; i < decoders.length; i++) {
       decoders[i].setSessionRecorder(this);
     }
-    
+
     setPixelFormat();
 
     resetSelection();
@@ -368,34 +347,6 @@ class VncCanvas extends Canvas
         decoders[i].update();
       }
     }
-
-    // Images with raw pixels should be re-allocated on every change
-    // of geometry or pixel format.
-    if (bytesPixel == 1) {
-
-      pixels24 = null;
-      pixels8 = new byte[fbWidth * fbHeight];
-
-      pixelsSource =
-	new MemoryImageSource(fbWidth, fbHeight, cm8, pixels8, 0, fbWidth);
-
-      zrleTilePixels24 = null;
-      zrleTilePixels8 = new byte[64 * 64];
-
-    } else {
-
-      pixels8 = null;
-      pixels24 = new int[fbWidth * fbHeight];
-
-      pixelsSource =
-	new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
-
-      zrleTilePixels8 = null;
-      zrleTilePixels24 = new int[64 * 64];
-
-    }
-    pixelsSource.setAnimated(true);
-    rawPixelsImage = Toolkit.getDefaultToolkit().createImage(pixelsSource);
 
     // FIXME: This part of code must be in VncViewer i think
     // Update the size of desktop containers.
@@ -685,7 +636,6 @@ class VncCanvas extends Canvas
     }
   }
 
-
   //
   // Handle a raw rectangle. The second form with paint==false is used
   // by the Hextile decoder for raw-encoded tiles.
@@ -737,127 +687,9 @@ class VncCanvas extends Canvas
   // Handle a Hextile-encoded rectangle.
   //
 
-  // These colors should be kept between handleHextileSubrect() calls.
-  private Color hextile_bg, hextile_fg;
-
   void handleHextileRect(int x, int y, int w, int h) throws IOException,
                                                             Exception {
     hextileDecoder.handleRect(x, y, w, h);
-  }
-
-  //
-  // Handle one tile in the Hextile-encoded data.
-  //
-
-  void handleHextileSubrect(int tx, int ty, int tw, int th)
-    throws IOException, Exception {
-
-    int subencoding = rfb.readU8();
-    if (rfb.rec != null) {
-      rfb.rec.writeByte(subencoding);
-    }
-
-    // Is it a raw-encoded sub-rectangle?
-    if ((subencoding & rfb.HextileRaw) != 0) {
-      handleRawRect(tx, ty, tw, th, false);
-      return;
-    }
-
-    // Read and draw the background if specified.
-    byte[] cbuf = new byte[bytesPixel];
-    if ((subencoding & rfb.HextileBackgroundSpecified) != 0) {
-      rfb.readFully(cbuf);
-      if (bytesPixel == 1) {
-	hextile_bg = colors[cbuf[0] & 0xFF];
-      } else {
-	hextile_bg = new Color(cbuf[2] & 0xFF, cbuf[1] & 0xFF, cbuf[0] & 0xFF);
-      }
-      if (rfb.rec != null) {
-	rfb.rec.write(cbuf);
-      }
-    }
-    memGraphics.setColor(hextile_bg);
-    memGraphics.fillRect(tx, ty, tw, th);
-
-    // Read the foreground color if specified.
-    if ((subencoding & rfb.HextileForegroundSpecified) != 0) {
-      rfb.readFully(cbuf);
-      if (bytesPixel == 1) {
-	hextile_fg = colors[cbuf[0] & 0xFF];
-      } else {
-	hextile_fg = new Color(cbuf[2] & 0xFF, cbuf[1] & 0xFF, cbuf[0] & 0xFF);
-      }
-      if (rfb.rec != null) {
-	rfb.rec.write(cbuf);
-      }
-    }
-
-    // Done with this tile if there is no sub-rectangles.
-    if ((subencoding & rfb.HextileAnySubrects) == 0)
-      return;
-
-    int nSubrects = rfb.readU8();
-    int bufsize = nSubrects * 2;
-    if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
-      bufsize += nSubrects * bytesPixel;
-    }
-    byte[] buf = new byte[bufsize];
-    rfb.readFully(buf);
-    if (rfb.rec != null) {
-      rfb.rec.writeByte(nSubrects);
-      rfb.rec.write(buf);
-    }
-
-    int b1, b2, sx, sy, sw, sh;
-    int i = 0;
-
-    if ((subencoding & rfb.HextileSubrectsColoured) == 0) {
-
-      // Sub-rectangles are all of the same color.
-      memGraphics.setColor(hextile_fg);
-      for (int j = 0; j < nSubrects; j++) {
-	b1 = buf[i++] & 0xFF;
-	b2 = buf[i++] & 0xFF;
-	sx = tx + (b1 >> 4);
-	sy = ty + (b1 & 0xf);
-	sw = (b2 >> 4) + 1;
-	sh = (b2 & 0xf) + 1;
-	memGraphics.fillRect(sx, sy, sw, sh);
-      }
-    } else if (bytesPixel == 1) {
-
-      // BGR233 (8-bit color) version for colored sub-rectangles.
-      for (int j = 0; j < nSubrects; j++) {
-	hextile_fg = colors[buf[i++] & 0xFF];
-	b1 = buf[i++] & 0xFF;
-	b2 = buf[i++] & 0xFF;
-	sx = tx + (b1 >> 4);
-	sy = ty + (b1 & 0xf);
-	sw = (b2 >> 4) + 1;
-	sh = (b2 & 0xf) + 1;
-	memGraphics.setColor(hextile_fg);
-	memGraphics.fillRect(sx, sy, sw, sh);
-      }
-
-    } else {
-
-      // Full-color (24-bit) version for colored sub-rectangles.
-      for (int j = 0; j < nSubrects; j++) {
-	hextile_fg = new Color(buf[i+2] & 0xFF,
-			       buf[i+1] & 0xFF,
-			       buf[i] & 0xFF);
-	i += 4;
-	b1 = buf[i++] & 0xFF;
-	b2 = buf[i++] & 0xFF;
-	sx = tx + (b1 >> 4);
-	sy = ty + (b1 & 0xf);
-	sw = (b2 >> 4) + 1;
-	sh = (b2 & 0xf) + 1;
-	memGraphics.setColor(hextile_fg);
-	memGraphics.fillRect(sx, sy, sw, sh);
-      }
-
-    }
   }
 
   //
@@ -867,228 +699,8 @@ class VncCanvas extends Canvas
   //
 
   void handleZRLERect(int x, int y, int w, int h) throws Exception {
-
-    if (zrleInStream == null)
-      zrleInStream = new ZlibInStream();
-
-    int nBytes = rfb.readU32();
-    if (nBytes > 64 * 1024 * 1024)
-      throw new Exception("ZRLE decoder: illegal compressed data size");
-
-    if (zrleBuf == null || zrleBufLen < nBytes) {
-      zrleBufLen = nBytes + 4096;
-      zrleBuf = new byte[zrleBufLen];
-    }
-
-    // FIXME: Do not wait for all the data before decompression.
-    rfb.readFully(zrleBuf, 0, nBytes);
-
-    if (rfb.rec != null) {
-      if (rfb.recordFromBeginning) {
-        rfb.rec.writeIntBE(nBytes);
-        rfb.rec.write(zrleBuf, 0, nBytes);
-      } else if (!zrleRecWarningShown) {
-        System.out.println("Warning: ZRLE session can be recorded" +
-                           " only from the beginning");
-        System.out.println("Warning: Recorded file may be corrupted");
-        zrleRecWarningShown = true;
-      }
-    }
-
-    zrleInStream.setUnderlying(new MemInStream(zrleBuf, 0, nBytes), nBytes);
-
-    for (int ty = y; ty < y+h; ty += 64) {
-
-      int th = Math.min(y+h-ty, 64);
-
-      for (int tx = x; tx < x+w; tx += 64) {
-
-        int tw = Math.min(x+w-tx, 64);
-
-        int mode = zrleInStream.readU8();
-        boolean rle = (mode & 128) != 0;
-        int palSize = mode & 127;
-        int[] palette = new int[128];
-
-        readZrlePalette(palette, palSize);
-
-        if (palSize == 1) {
-          int pix = palette[0];
-          Color c = (bytesPixel == 1) ?
-            colors[pix] : new Color(0xFF000000 | pix);
-          memGraphics.setColor(c);
-          memGraphics.fillRect(tx, ty, tw, th);
-          continue;
-        }
-
-        if (!rle) {
-          if (palSize == 0) {
-            readZrleRawPixels(tw, th);
-          } else {
-            readZrlePackedPixels(tw, th, palette, palSize);
-          }
-        } else {
-          if (palSize == 0) {
-            readZrlePlainRLEPixels(tw, th);
-          } else {
-            readZrlePackedRLEPixels(tw, th, palette);
-          }
-        }
-        handleUpdatedZrleTile(tx, ty, tw, th);
-      }
-    }
-
-    zrleInStream.reset();
-
+    zrleDecoder.handleRect(x, y, w, h);
     scheduleRepaint(x, y, w, h);
-  }
-
-  int readPixel(InStream is) throws Exception {
-    int pix;
-    if (bytesPixel == 1) {
-      pix = is.readU8();
-    } else {
-      int p1 = is.readU8();
-      int p2 = is.readU8();
-      int p3 = is.readU8();
-      pix = (p3 & 0xFF) << 16 | (p2 & 0xFF) << 8 | (p1 & 0xFF);
-    }
-    return pix;
-  }
-
-  void readPixels(InStream is, int[] dst, int count) throws Exception {
-    int pix;
-    if (bytesPixel == 1) {
-      byte[] buf = new byte[count];
-      is.readBytes(buf, 0, count);
-      for (int i = 0; i < count; i++) {
-        dst[i] = (int)buf[i] & 0xFF;
-      }
-    } else {
-      byte[] buf = new byte[count * 3];
-      is.readBytes(buf, 0, count * 3);
-      for (int i = 0; i < count; i++) {
-        dst[i] = ((buf[i*3+2] & 0xFF) << 16 |
-                  (buf[i*3+1] & 0xFF) << 8 |
-                  (buf[i*3] & 0xFF));
-      }
-    }
-  }
-
-  void readZrlePalette(int[] palette, int palSize) throws Exception {
-    readPixels(zrleInStream, palette, palSize);
-  }
-
-  void readZrleRawPixels(int tw, int th) throws Exception {
-    if (bytesPixel == 1) {
-      zrleInStream.readBytes(zrleTilePixels8, 0, tw * th);
-    } else {
-      readPixels(zrleInStream, zrleTilePixels24, tw * th); ///
-    }
-  }
-
-  void readZrlePackedPixels(int tw, int th, int[] palette, int palSize)
-    throws Exception {
-
-    int bppp = ((palSize > 16) ? 8 :
-                ((palSize > 4) ? 4 : ((palSize > 2) ? 2 : 1)));
-    int ptr = 0;
-
-    for (int i = 0; i < th; i++) {
-      int eol = ptr + tw;
-      int b = 0;
-      int nbits = 0;
-
-      while (ptr < eol) {
-        if (nbits == 0) {
-          b = zrleInStream.readU8();
-          nbits = 8;
-        }
-        nbits -= bppp;
-        int index = (b >> nbits) & ((1 << bppp) - 1) & 127;
-        if (bytesPixel == 1) {
-          zrleTilePixels8[ptr++] = (byte)palette[index];
-        } else {
-          zrleTilePixels24[ptr++] = palette[index];
-        }
-      }
-    }
-  }
-
-  void readZrlePlainRLEPixels(int tw, int th) throws Exception {
-    int ptr = 0;
-    int end = ptr + tw * th;
-    while (ptr < end) {
-      int pix = readPixel(zrleInStream);
-      int len = 1;
-      int b;
-      do {
-        b = zrleInStream.readU8();
-        len += b;
-      } while (b == 255);
-
-      if (!(len <= end - ptr))
-        throw new Exception("ZRLE decoder: assertion failed" +
-                            " (len <= end-ptr)");
-
-      if (bytesPixel == 1) {
-        while (len-- > 0) zrleTilePixels8[ptr++] = (byte)pix;
-      } else {
-        while (len-- > 0) zrleTilePixels24[ptr++] = pix;
-      }
-    }
-  }
-
-  void readZrlePackedRLEPixels(int tw, int th, int[] palette)
-    throws Exception {
-
-    int ptr = 0;
-    int end = ptr + tw * th;
-    while (ptr < end) {
-      int index = zrleInStream.readU8();
-      int len = 1;
-      if ((index & 128) != 0) {
-        int b;
-        do {
-          b = zrleInStream.readU8();
-          len += b;
-        } while (b == 255);
-
-        if (!(len <= end - ptr))
-          throw new Exception("ZRLE decoder: assertion failed" +
-                              " (len <= end - ptr)");
-      }
-
-      index &= 127;
-      int pix = palette[index];
-
-      if (bytesPixel == 1) {
-        while (len-- > 0) zrleTilePixels8[ptr++] = (byte)pix;
-      } else {
-        while (len-- > 0) zrleTilePixels24[ptr++] = pix;
-      }
-    }
-  }
-
-  //
-  // Copy pixels from zrleTilePixels8 or zrleTilePixels24, then update.
-  //
-
-  void handleUpdatedZrleTile(int x, int y, int w, int h) {
-    Object src, dst;
-    if (bytesPixel == 1) {
-      src = zrleTilePixels8; dst = pixels8;
-    } else {
-      src = zrleTilePixels24; dst = pixels24;
-    }
-    int offsetSrc = 0;
-    int offsetDst = (y * rfb.framebufferWidth + x);
-    for (int j = 0; j < h; j++) {
-      System.arraycopy(src, offsetSrc, dst, offsetDst, w);
-      offsetSrc += w;
-      offsetDst += rfb.framebufferWidth;
-    }
-    handleUpdatedPixels(x, y, w, h);
   }
 
   //
@@ -1096,50 +708,7 @@ class VncCanvas extends Canvas
   //
 
   void handleZlibRect(int x, int y, int w, int h) throws Exception {
-
-    int nBytes = rfb.readU32();
-
-    if (zlibBuf == null || zlibBufLen < nBytes) {
-      zlibBufLen = nBytes * 2;
-      zlibBuf = new byte[zlibBufLen];
-    }
-
-    rfb.readFully(zlibBuf, 0, nBytes);
-
-    if (rfb.rec != null && rfb.recordFromBeginning) {
-      rfb.rec.writeIntBE(nBytes);
-      rfb.rec.write(zlibBuf, 0, nBytes);
-    }
-
-    if (zlibInflater == null) {
-      zlibInflater = new Inflater();
-    }
-    zlibInflater.setInput(zlibBuf, 0, nBytes);
-
-    if (bytesPixel == 1) {
-      for (int dy = y; dy < y + h; dy++) {
-	zlibInflater.inflate(pixels8, dy * rfb.framebufferWidth + x, w);
-	if (rfb.rec != null && !rfb.recordFromBeginning)
-	  rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
-      }
-    } else {
-      byte[] buf = new byte[w * 4];
-      int i, offset;
-      for (int dy = y; dy < y + h; dy++) {
-	zlibInflater.inflate(buf);
-	offset = dy * rfb.framebufferWidth + x;
-	for (i = 0; i < w; i++) {
-	  pixels24[offset + i] =
-	    (buf[i * 4 + 2] & 0xFF) << 16 |
-	    (buf[i * 4 + 1] & 0xFF) << 8 |
-	    (buf[i * 4] & 0xFF);
-	}
-	if (rfb.rec != null && !rfb.recordFromBeginning)
-	  rfb.rec.write(buf);
-      }
-    }
-
-    handleUpdatedPixels(x, y, w, h);
+    zlibDecoder.handleRect(x, y, w, h);
     scheduleRepaint(x, y, w, h);
   }
 
@@ -1150,19 +719,6 @@ class VncCanvas extends Canvas
   void handleTightRect(int x, int y, int w, int h) throws Exception {
     tightDecoder.handleRect(x, y, w, h);
     scheduleRepaint(x, y, w, h);
-  }
-
-  //
-  // Display newly updated area of pixels.
-  //
-
-  void handleUpdatedPixels(int x, int y, int w, int h) {
-
-    // Draw updated pixels of the off-screen image.
-    pixelsSource.newPixels(x, y, w, h);
-    memGraphics.setClip(x, y, w, h);
-    memGraphics.drawImage(rawPixelsImage, 0, 0, null);
-    memGraphics.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
   }
 
   //
