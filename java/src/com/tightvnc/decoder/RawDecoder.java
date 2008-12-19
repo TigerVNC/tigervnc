@@ -47,6 +47,10 @@ public class RawDecoder {
     bytesPerPixel = bpp;
   }
 
+  public void setSessionRecorder(RecordInterface ri) {
+    rec = ri;
+  }
+
   //
   // FIXME: This method may be useless in future, remove if so
   //
