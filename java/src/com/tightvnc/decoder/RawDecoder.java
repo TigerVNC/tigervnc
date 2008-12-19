@@ -8,6 +8,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.DirectColorModel;
 import java.awt.image.MemoryImageSource;
 import java.awt.Color;
+import java.awt.Toolkit;
 
 //
 // This is base decoder class.
@@ -56,6 +57,33 @@ public class RawDecoder {
   public void setFrameBufferSize(int w, int h) {
     framebufferWidth = w;
     framebufferHeight = h;
+  }
+
+  //
+  // Updates pixels data.
+  // This methods must be called when framebuffer is resized
+  // or BPP is changed.
+  //
+
+  public void update() {
+    // Images with raw pixels should be re-allocated on every change
+    // of geometry or pixel format.
+    int fbWidth = framebufferWidth;
+    int fbHeight = framebufferHeight;
+
+    if (bytesPerPixel == 1) {
+      pixels24 = null;
+      pixels8 = new byte[fbWidth * fbHeight];
+      pixelsSource = new MemoryImageSource(fbWidth, fbHeight, getColorModel8(),
+                                           pixels8, 0, fbWidth);
+    } else {
+      pixels8 = null;
+      pixels24 = new int[fbWidth * fbHeight];
+      pixelsSource =
+        new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
+    }
+    pixelsSource.setAnimated(true);
+    rawPixelsImage = Toolkit.getDefaultToolkit().createImage(pixelsSource);
   }
 
   //
