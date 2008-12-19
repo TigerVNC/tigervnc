@@ -36,7 +36,7 @@ import java.util.zip.*;
 //
 
 class VncCanvas extends Canvas
-  implements KeyListener, MouseListener, MouseMotionListener {
+  implements KeyListener, MouseListener, MouseMotionListener, RecordInterface {
 
   VncViewer viewer;
   RfbProto rfb;
@@ -2137,4 +2137,44 @@ class VncCanvas extends Canvas
     }
   }
 
+  //
+  // Override RecordInterface methods
+  //
+
+  public boolean isRecordFromBeginning() {
+    return rfb.recordFromBeginning;
+  }
+
+  public boolean canWrite() {
+    // We can record if rec is not null
+    return rfb.rec != null;
+  }
+
+  public void write(byte b[]) throws IOException {
+    rfb.rec.write(b);
+  }
+
+  public void write(byte b[], int off, int len) throws IOException {
+    rfb.rec.write(b, off, len);
+  }
+
+  public void writeByte(byte b) throws IOException {
+    rfb.rec.writeByte(b);
+  }
+
+  public void writeByte(int i) throws IOException {
+    rfb.rec.writeByte(i);
+  }
+
+  public void writeIntBE(int v) throws IOException {
+    rfb.rec.writeIntBE(v);
+  }
+
+  public void recordCompactLen(int len) throws IOException {
+    rfb.recordCompactLen(len);
+  }
+
+  public void recordCompressedData(byte[] data) throws IOException {
+    rfb.recordCompressedData(data);
+  }
 }
