@@ -150,7 +150,7 @@ public class RawDecoder {
   }
 
   //
-  // Private static members access methdos
+  // Private static members access methods
   //
 
   protected ColorModel getColorModel8() {
