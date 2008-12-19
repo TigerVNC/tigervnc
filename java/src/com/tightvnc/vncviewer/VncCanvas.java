@@ -23,6 +23,7 @@
 
 package com.tightvnc.vncviewer;
 
+import com.tightvnc.decoder.common.Repaintable;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -36,7 +37,8 @@ import java.util.zip.*;
 //
 
 class VncCanvas extends Canvas
-  implements KeyListener, MouseListener, MouseMotionListener, RecordInterface {
+  implements KeyListener, MouseListener, MouseMotionListener, RecordInterface,
+             Repaintable {
 
   VncViewer viewer;
   RfbProto rfb;
@@ -1595,7 +1597,7 @@ class VncCanvas extends Canvas
   // Tell JVM to repaint specified desktop area.
   //
 
-  void scheduleRepaint(int x, int y, int w, int h) {
+  public void scheduleRepaint(int x, int y, int w, int h) {
     // Request repaint, deferred if necessary.
     if (rfb.framebufferWidth == scaledWidth) {
       repaint(viewer.deferScreenUpdates, x, y, w, h);
