@@ -23,6 +23,13 @@
 
 package com.tightvnc.vncviewer;
 
+import com.tightvnc.decoder.CoRREDecoder;
+import com.tightvnc.decoder.HextileDecoder;
+import com.tightvnc.decoder.RREDecoder;
+import com.tightvnc.decoder.RawDecoder;
+import com.tightvnc.decoder.TightDecoder;
+import com.tightvnc.decoder.ZRLEDecoder;
+import com.tightvnc.decoder.ZlibDecoder;
 import com.tightvnc.decoder.common.Repaintable;
 import java.awt.*;
 import java.awt.event.*;
@@ -57,6 +64,21 @@ class VncCanvas extends Canvas
   MemoryImageSource pixelsSource;
   byte[] pixels8;
   int[] pixels24;
+
+  //
+  // Decoders
+  //
+
+  RawDecoder rawDecoder;
+  RREDecoder rreDecoder;
+  CoRREDecoder correDecoder;
+  ZlibDecoder zlibDecoder;
+  HextileDecoder hextileDecoder;
+  ZRLEDecoder zrleDecoder;
+  TightDecoder tightDecoder;
+
+  // Base decoder decoders array
+  RawDecoder []decoders = null;
 
   // Update statistics.
   long statStartTime;           // time on first framebufferUpdateRequest
@@ -129,6 +151,48 @@ class VncCanvas extends Canvas
     inputEnabled = false;
     if (!viewer.options.viewOnly)
       enableInput(true);
+
+    //
+    // Create decoders
+    //
+
+    // Input stream for decoders
+    RfbInputStream rfbis = new RfbInputStream(rfb);
+
+    rawDecoder = new RawDecoder(memGraphics, rfbis);
+    rreDecoder = new RREDecoder(memGraphics, rfbis);
+    correDecoder = new CoRREDecoder(memGraphics, rfbis);
+    hextileDecoder = new HextileDecoder(memGraphics, rfbis);
+    tightDecoder = new TightDecoder(memGraphics, rfbis);
+    zrleDecoder = new ZRLEDecoder(memGraphics, rfbis);
+
+    //
+    // Set data for decoders that needs extra parameters
+    //
+
+    hextileDecoder.setRepainableControl(this);
+    tightDecoder.setRepainableControl(this);
+
+    //
+    // Create array that contains our decoders
+    //
+
+    decoders = new RawDecoder[7];
+    decoders[0] = rawDecoder;
+    decoders[1] = rreDecoder;
+    decoders[2] = correDecoder;
+    decoders[3] = hextileDecoder;
+    decoders[4] = zlibDecoder;
+    decoders[5] = tightDecoder;
+    decoders[6] = zrleDecoder;
+
+    //
+    // Set session recorder for decoders
+    //
+
+    for (int i = 0; i < decoders.length; i++) {
+      decoders[i].setSessionRecorder(this);
+    }
 
     // Enable mouse and keyboard event listeners.
     addKeyListener(this);
@@ -277,7 +341,7 @@ class VncCanvas extends Canvas
             isFirstSizeAutoUpdate = false;
             Dimension screenSize = viewer.vncFrame.getToolkit().getScreenSize();
             maxWidth = (int)screenSize.getWidth() - 100;
-            maxHeight = (int)screenSize.getHeight() - 100;            
+            maxHeight = (int)screenSize.getHeight() - 100;
             viewer.vncFrame.setSize(maxWidth, maxHeight);
           } else {
             viewer.desktopScrollPane.doLayout();
@@ -1124,7 +1188,7 @@ class VncCanvas extends Canvas
           b = zrleInStream.readU8();
           len += b;
         } while (b == 255);
-        
+
         if (!(len <= end - ptr))
           throw new Exception("ZRLE decoder: assertion failed" +
                               " (len <= end - ptr)");
@@ -1674,7 +1738,7 @@ class VncCanvas extends Canvas
 	}
       }
     }
-    // Don't ever pass keyboard events to AWT for default processing. 
+    // Don't ever pass keyboard events to AWT for default processing.
     // Otherwise, pressing Tab would switch focus to ButtonPanel etc.
     evt.consume();
   }
@@ -2114,7 +2178,7 @@ class VncCanvas extends Canvas
 
   /**
    * Process mouse events in the selection mode.
-   * 
+   *
    * @param evt mouse event that was originally passed to
    *   {@link MouseListener} or {@link MouseMotionListener}.
    */
