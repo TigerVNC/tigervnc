@@ -164,6 +164,7 @@ class VncCanvas extends Canvas
     correDecoder = new CoRREDecoder(memGraphics, rfbis);
     hextileDecoder = new HextileDecoder(memGraphics, rfbis);
     tightDecoder = new TightDecoder(memGraphics, rfbis);
+    zlibDecoder = new ZlibDecoder(memGraphics, rfbis);
     zrleDecoder = new ZRLEDecoder(memGraphics, rfbis);
 
     //
@@ -376,6 +377,32 @@ class VncCanvas extends Canvas
       synchronized(memImage) {
 	memImage = viewer.vncContainer.createImage(fbWidth, fbHeight);
 	memGraphics = memImage.getGraphics();
+      }
+    }
+
+    //
+    // Update decoders
+    //
+
+    //
+    // FIXME: Why decoders can be null here?
+    //
+
+    if (decoders != null) {
+      for (int i = 0; i < decoders.length; i++) {
+        //
+        // Set changes to every decoder that we can use
+        //
+
+        decoders[i].setBPP(bytesPixel);
+        decoders[i].setFrameBufferSize(fbWidth, fbHeight);
+        decoders[i].setGraphics(memGraphics);
+
+        //
+        // Update decoder
+        //
+
+        decoders[i].update();
       }
     }
 
