@@ -144,14 +144,6 @@ class VncCanvas extends Canvas
     for (int i = 0; i < 256; i++)
       colors[i] = new Color(cm8.getRGB(i));
 
-    setPixelFormat();
-
-    resetSelection();
-
-    inputEnabled = false;
-    if (!viewer.options.viewOnly)
-      enableInput(true);
-
     //
     // Create decoders
     //
@@ -194,6 +186,14 @@ class VncCanvas extends Canvas
     for (int i = 0; i < decoders.length; i++) {
       decoders[i].setSessionRecorder(this);
     }
+    
+    setPixelFormat();
+
+    resetSelection();
+
+    inputEnabled = false;
+    if (!viewer.options.viewOnly)
+      enableInput(true);
 
     // Enable mouse and keyboard event listeners.
     addKeyListener(this);
@@ -604,7 +604,9 @@ class VncCanvas extends Canvas
             handleZlibRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingTight:
-	    statNumRectsTight++;
+            if (tightDecoder != null) {
+	      statNumRectsTight = tightDecoder.getNumJPEGRects();
+            }
 	    handleTightRect(rx, ry, rw, rh);
 	    break;
 	  default:
@@ -1310,274 +1312,7 @@ class VncCanvas extends Canvas
   //
 
   void handleTightRect(int x, int y, int w, int h) throws Exception {
-
-    int comp_ctl = rfb.readU8();
-    if (rfb.rec != null) {
-      if (rfb.recordFromBeginning ||
-	  comp_ctl == (rfb.TightFill << 4) ||
-	  comp_ctl == (rfb.TightJpeg << 4)) {
-	// Send data exactly as received.
-	rfb.rec.writeByte(comp_ctl);
-      } else {
-	// Tell the decoder to flush each of the four zlib streams.
-	rfb.rec.writeByte(comp_ctl | 0x0F);
-      }
-    }
-
-    // Flush zlib streams if we are told by the server to do so.
-    for (int stream_id = 0; stream_id < 4; stream_id++) {
-      if ((comp_ctl & 1) != 0 && tightInflaters[stream_id] != null) {
-	tightInflaters[stream_id] = null;
-      }
-      comp_ctl >>= 1;
-    }
-
-    // Check correctness of subencoding value.
-    if (comp_ctl > rfb.TightMaxSubencoding) {
-      throw new Exception("Incorrect tight subencoding: " + comp_ctl);
-    }
-
-    // Handle solid-color rectangles.
-    if (comp_ctl == rfb.TightFill) {
-
-      if (bytesPixel == 1) {
-	int idx = rfb.readU8();
-	memGraphics.setColor(colors[idx]);
-	if (rfb.rec != null) {
-	  rfb.rec.writeByte(idx);
-	}
-      } else {
-	byte[] buf = new byte[3];
-	rfb.readFully(buf);
-	if (rfb.rec != null) {
-	  rfb.rec.write(buf);
-	}
-	Color bg = new Color(0xFF000000 | (buf[0] & 0xFF) << 16 |
-			     (buf[1] & 0xFF) << 8 | (buf[2] & 0xFF));
-	memGraphics.setColor(bg);
-      }
-      memGraphics.fillRect(x, y, w, h);
-      scheduleRepaint(x, y, w, h);
-      return;
-
-    }
-
-    if (comp_ctl == rfb.TightJpeg) {
-
-      statNumRectsTightJPEG++;
-
-      // Read JPEG data.
-      byte[] jpegData = new byte[rfb.readCompactLen()];
-      rfb.readFully(jpegData);
-      if (rfb.rec != null) {
-	if (!rfb.recordFromBeginning) {
-	  rfb.recordCompactLen(jpegData.length);
-	}
-	rfb.rec.write(jpegData);
-      }
-
-      // Create an Image object from the JPEG data.
-      Image jpegImage = Toolkit.getDefaultToolkit().createImage(jpegData);
-
-      // Remember the rectangle where the image should be drawn.
-      jpegRect = new Rectangle(x, y, w, h);
-
-      // Let the imageUpdate() method do the actual drawing, here just
-      // wait until the image is fully loaded and drawn.
-      synchronized(jpegRect) {
-	Toolkit.getDefaultToolkit().prepareImage(jpegImage, -1, -1, this);
-	try {
-	  // Wait no longer than three seconds.
-	  jpegRect.wait(3000);
-	} catch (InterruptedException e) {
-	  throw new Exception("Interrupted while decoding JPEG image");
-	}
-      }
-
-      // Done, jpegRect is not needed any more.
-      jpegRect = null;
-      return;
-
-    }
-
-    // Read filter id and parameters.
-    int numColors = 0, rowSize = w;
-    byte[] palette8 = new byte[2];
-    int[] palette24 = new int[256];
-    boolean useGradient = false;
-    if ((comp_ctl & rfb.TightExplicitFilter) != 0) {
-      int filter_id = rfb.readU8();
-      if (rfb.rec != null) {
-	rfb.rec.writeByte(filter_id);
-      }
-      if (filter_id == rfb.TightFilterPalette) {
-	numColors = rfb.readU8() + 1;
-	if (rfb.rec != null) {
-	  rfb.rec.writeByte(numColors - 1);
-	}
-        if (bytesPixel == 1) {
-	  if (numColors != 2) {
-	    throw new Exception("Incorrect tight palette size: " + numColors);
-	  }
-	  rfb.readFully(palette8);
-	  if (rfb.rec != null) {
-	    rfb.rec.write(palette8);
-	  }
-	} else {
-	  byte[] buf = new byte[numColors * 3];
-	  rfb.readFully(buf);
-	  if (rfb.rec != null) {
-	    rfb.rec.write(buf);
-	  }
-	  for (int i = 0; i < numColors; i++) {
-	    palette24[i] = ((buf[i * 3] & 0xFF) << 16 |
-			    (buf[i * 3 + 1] & 0xFF) << 8 |
-			    (buf[i * 3 + 2] & 0xFF));
-	  }
-	}
-	if (numColors == 2)
-	  rowSize = (w + 7) / 8;
-      } else if (filter_id == rfb.TightFilterGradient) {
-	useGradient = true;
-      } else if (filter_id != rfb.TightFilterCopy) {
-	throw new Exception("Incorrect tight filter id: " + filter_id);
-      }
-    }
-    if (numColors == 0 && bytesPixel == 4)
-      rowSize *= 3;
-
-    // Read, optionally uncompress and decode data.
-    int dataSize = h * rowSize;
-    if (dataSize < rfb.TightMinToCompress) {
-      // Data size is small - not compressed with zlib.
-      if (numColors != 0) {
-	// Indexed colors.
-	byte[] indexedData = new byte[dataSize];
-	rfb.readFully(indexedData);
-	if (rfb.rec != null) {
-	  rfb.rec.write(indexedData);
-	}
-	if (numColors == 2) {
-	  // Two colors.
-	  if (bytesPixel == 1) {
-	    decodeMonoData(x, y, w, h, indexedData, palette8);
-	  } else {
-	    decodeMonoData(x, y, w, h, indexedData, palette24);
-	  }
-	} else {
-	  // 3..255 colors (assuming bytesPixel == 4).
-	  int i = 0;
-	  for (int dy = y; dy < y + h; dy++) {
-	    for (int dx = x; dx < x + w; dx++) {
-	      pixels24[dy * rfb.framebufferWidth + dx] =
-		palette24[indexedData[i++] & 0xFF];
-	    }
-	  }
-	}
-      } else if (useGradient) {
-	// "Gradient"-processed data
-	byte[] buf = new byte[w * h * 3];
-	rfb.readFully(buf);
-	if (rfb.rec != null) {
-	  rfb.rec.write(buf);
-	}
-	decodeGradientData(x, y, w, h, buf);
-      } else {
-	// Raw truecolor data.
-	if (bytesPixel == 1) {
-	  for (int dy = y; dy < y + h; dy++) {
-	    rfb.readFully(pixels8, dy * rfb.framebufferWidth + x, w);
-	    if (rfb.rec != null) {
-	      rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
-	    }
-	  }
-	} else {
-	  byte[] buf = new byte[w * 3];
-	  int i, offset;
-	  for (int dy = y; dy < y + h; dy++) {
-	    rfb.readFully(buf);
-	    if (rfb.rec != null) {
-	      rfb.rec.write(buf);
-	    }
-	    offset = dy * rfb.framebufferWidth + x;
-	    for (i = 0; i < w; i++) {
-	      pixels24[offset + i] =
-		(buf[i * 3] & 0xFF) << 16 |
-		(buf[i * 3 + 1] & 0xFF) << 8 |
-		(buf[i * 3 + 2] & 0xFF);
-	    }
-	  }
-	}
-      }
-    } else {
-      // Data was compressed with zlib.
-      int zlibDataLen = rfb.readCompactLen();
-      byte[] zlibData = new byte[zlibDataLen];
-      rfb.readFully(zlibData);
-      if (rfb.rec != null && rfb.recordFromBeginning) {
-	rfb.rec.write(zlibData);
-      }
-      int stream_id = comp_ctl & 0x03;
-      if (tightInflaters[stream_id] == null) {
-	tightInflaters[stream_id] = new Inflater();
-      }
-      Inflater myInflater = tightInflaters[stream_id];
-      myInflater.setInput(zlibData);
-      byte[] buf = new byte[dataSize];
-      myInflater.inflate(buf);
-      if (rfb.rec != null && !rfb.recordFromBeginning) {
-	rfb.recordCompressedData(buf);
-      }
-
-      if (numColors != 0) {
-	// Indexed colors.
-	if (numColors == 2) {
-	  // Two colors.
-	  if (bytesPixel == 1) {
-	    decodeMonoData(x, y, w, h, buf, palette8);
-	  } else {
-	    decodeMonoData(x, y, w, h, buf, palette24);
-	  }
-	} else {
-	  // More than two colors (assuming bytesPixel == 4).
-	  int i = 0;
-	  for (int dy = y; dy < y + h; dy++) {
-	    for (int dx = x; dx < x + w; dx++) {
-	      pixels24[dy * rfb.framebufferWidth + dx] =
-		palette24[buf[i++] & 0xFF];
-	    }
-	  }
-	}
-      } else if (useGradient) {
-	// Compressed "Gradient"-filtered data (assuming bytesPixel == 4).
-	decodeGradientData(x, y, w, h, buf);
-      } else {
-	// Compressed truecolor data.
-	if (bytesPixel == 1) {
-	  int destOffset = y * rfb.framebufferWidth + x;
-	  for (int dy = 0; dy < h; dy++) {
-	    System.arraycopy(buf, dy * w, pixels8, destOffset, w);
-	    destOffset += rfb.framebufferWidth;
-	  }
-	} else {
-	  int srcOffset = 0;
-	  int destOffset, i;
-	  for (int dy = 0; dy < h; dy++) {
-	    myInflater.inflate(buf);
-	    destOffset = (y + dy) * rfb.framebufferWidth + x;
-	    for (i = 0; i < w; i++) {
-	      pixels24[destOffset + i] =
-		(buf[srcOffset] & 0xFF) << 16 |
-		(buf[srcOffset + 1] & 0xFF) << 8 |
-		(buf[srcOffset + 2] & 0xFF);
-	      srcOffset += 3;
-	    }
-	  }
-	}
-      }
-    }
-
-    handleUpdatedPixels(x, y, w, h);
+    tightDecoder.handleRect(x, y, w, h);
     scheduleRepaint(x, y, w, h);
   }
 
@@ -1818,6 +1553,8 @@ class VncCanvas extends Canvas
     statNumRectsCopy = 0;
     statNumBytesEncoded = 0;
     statNumBytesDecoded = 0;
+    if (tightDecoder != null)
+      tightDecoder.setNumJPEGRects(0);
   }
 
   //////////////////////////////////////////////////////////////////
