@@ -2,6 +2,7 @@ package com.tightvnc.decoder;
 
 import com.tightvnc.vncviewer.RecordInterface;
 import com.tightvnc.vncviewer.RfbInputStream;
+import java.io.IOException;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.ColorModel;
@@ -60,8 +61,58 @@ public class RawDecoder {
   }
 
   //
+  // Decodes Raw Pixels data and draw it into graphics
+  //
+
+  public void handleRect(int x, int y, int w, int h) throws IOException, Exception {
+    if (bytesPerPixel == 1) {
+      for (int dy = y; dy < y + h; dy++) {
+        if (pixels8 != null) {
+          rfbis.readFully(pixels8, dy * framebufferWidth + x, w);
+        }
+        if (rec.canWrite()) {
+          rec.write(pixels8, dy * framebufferWidth + x, w);
+        }
+      }
+    } else {
+      byte[] buf = new byte[w * 4];
+      int i, offset;
+      for (int dy = y; dy < y + h; dy++) {
+        rfbis.readFully(buf);
+        //
+        // Save decoded data to RecordInterface
+        //
+        if (rec.canWrite()) {
+          rec.write(buf);
+        }
+        offset = dy * framebufferWidth + x;
+        if (pixels24 != null) {
+          for (i = 0; i < w; i++) {
+            pixels24[offset + i] =
+              (buf[i * 4 + 2] & 0xFF) << 16 |
+              (buf[i * 4 + 1] & 0xFF) << 8 |
+              (buf[i * 4] & 0xFF);
+          } //for
+        } // if
+      } // for
+    } // else
+    handleUpdatedPixels(x, y, w, h);
+  } // void
+    
+  //
+  // Display newly updated area of pixels.
+  //
+  protected void handleUpdatedPixels(int x, int y, int w, int h) {
+    // Draw updated pixels of the off-screen image.
+    pixelsSource.newPixels(x, y, w, h);
+    graphics.setClip(x, y, w, h);
+    graphics.drawImage(rawPixelsImage, 0, 0, null);
+    graphics.setClip(0, 0, framebufferWidth, framebufferHeight);
+  }
+
+  //
   // Updates pixels data.
-  // This methods must be called when framebuffer is resized
+  // This method must be called when framebuffer is resized
   // or BPP is changed.
   //
 
