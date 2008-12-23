@@ -174,12 +174,12 @@ mode, \fBx0vncserver\fP can show correct mouse cursor.  Default is on.
 .TP
 .B UseHardwareJPEG
 Use hardware-accelerated JPEG compressor for video if available.
-\fBx0vncserver\fP can detect video areas on the screen and handle them
-separately from the rest of the screen, for better performance.  If the
-client supports Tight encoding and JPEG compression, such video areas will be
-sent as JPEG-encoded rectangles.  And if this option is on, compression will
-be hardware-accelerated (currently, supported only in SGI/IRIX equipped with
-appropriate hardware).  Default is on.
+\fBx0vncserver\fP can be instructed to treat certain rectangular part of the
+screen as a video area and handle it in a special way for improved
+performance.  If the client supports Tight encoding and JPEG compression,
+such video areas will be sent as JPEG-encoded rectangles.  And if this option
+is on, compression will be hardware-accelerated (currently, supported only in
+SGI/IRIX equipped with appropriate hardware).  Default is on.
 .TP
 .B ZlibLevel
 Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
