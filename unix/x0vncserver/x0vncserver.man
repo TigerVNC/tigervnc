@@ -126,7 +126,7 @@ badly-behaved clients.  Default is off.
 This option specifies the screen area that will be shown to VNC clients.  The
 format is
 .B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
-, where `+' signs can be replaced with `-' signs to specify offsets from the
+, where `+' signs can be replaced with `\-' signs to specify offsets from the
 right and/or from the bottom of the screen.  Offsets are optional, +0+0 is
 assumed by default (top left corner).  If the argument is empty, full screen
 is shown to VNC clients (this is the default).
@@ -139,13 +139,26 @@ screen.  Default is 35.
 Milliseconds per one polling cycle.  Actual interval may be dynamically
 adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
 .TP
+.B VideoArea
+This option specifies the screen area that will be handled as video.  The
+format is
+.B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
+, where `+' signs can be replaced with `\-' signs to specify offsets from the
+right and/or from the bottom of the screen.  Offsets are optional, +0+0 is
+assumed by default (top left corner).  Video area is not checked for actual
+changes, it is assumed to be changing continuously and is sent in each screen
+update.  Normally, video area is compressed with JPEG (if allowed by the
+client).  Note that this setting can be overriden by TightVNC clients
+supporting VideoRectangleSelection protocol extension.  In other words,
+clients may choose video selection themselves, but if they do not, then the
+\fBVideoArea\fP parameter will take effect.  If the argument is empty, no
+video area is set (this is the default).
+.TP
 .B VideoPriority
 Specify the priority of sending video updates.  \fBx0vncserver\fP can be
 instructed to treat certain rectangular part of the screen as a video area
-and handle it in a special way for improved performance.  Video area is not
-checked for actual changes, it is assumed to be changing continuously and is
-sent in each screen update.  Normally, video area is compressed with JPEG (if
-allowed by the client).  The \fBVideoPriority\fP parameter controls how often
+and handle it in a special way for improved performance (see documentation on
+the \fBVideoArea\fP parameter).  \fBVideoPriority\fP value controls how often
 video area will be sent to clients as compared to the rest of the screen.
 The priority must be an integer between 0 and 8, and the default value is 2.
 
