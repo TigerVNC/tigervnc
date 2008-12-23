@@ -1,6 +1,6 @@
-.TH X0VNCSERVER 1 "Jun 04, 2008" "TightVNC" "TightVNC Manual"
+.TH X0VNCSERVER 1 "Dec 23, 2008" "TightVNC" "TightVNC Manual"
 .SH NAME
-x0vncserver \- TightVNC Server for real X displays
+x0vncserver \- TightVNC Server for X displays
 .SH SYNOPSIS
 .B x0vncserver
 .RI [ options ]
@@ -138,6 +138,25 @@ screen.  Default is 35.
 .B PollingCycle
 Milliseconds per one polling cycle.  Actual interval may be dynamically
 adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
+.TP
+.B VideoPriority
+Specify the priority of sending video updates.  \fBx0vncserver\fP can be
+instructed to treat certain rectangular part of the screen as a video area
+and handle it in a special way for improved performance.  Video area is not
+checked for actual changes, it is assumed to be changing continuously and is
+sent in each screen update.  Normally, video area is compressed with JPEG (if
+allowed by the client).  The \fBVideoPriority\fP parameter controls how often
+video area will be sent to clients as compared to the rest of the screen.
+The priority must be an integer between 0 and 8, and the default value is 2.
+
+\fBVideoPriority\fP set to 1 gives the same priority both to video and to
+other pixels.  Higher values give more priority to video.  For example, the
+value 5 specifies that the rate of sending video will be five times higher
+than the rate of updating the rest of the screen.  If \fBVideoPriority\fP is
+set to 0, it gives equal priority to video and other updates (just like the
+value 1) and also disables special encoding for video data.  In other words,
+\fBVideoPriority\fP video area will be sent as a part of other screen
+contents.
 .TP
 .B CompareFB
 Perform pixel comparison on framebuffer to reduce unnecessary updates.
