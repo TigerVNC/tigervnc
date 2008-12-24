@@ -10,15 +10,18 @@ public class RecordOutputStream implements DataOutput {
   }
 
   public void write(byte[] b) throws IOException {
-    recordInterface.write(b);
+    if (recordInterface.canWrite())
+      recordInterface.write(b);
   }
 
   public void write(byte[] b, int off, int len) throws IOException {
-    recordInterface.write(b, off, len);
+    if (recordInterface.canWrite())
+      recordInterface.write(b, off, len);
   }
 
   public void write(int b) throws IOException {
-    recordInterface.writeIntBE(b);
+    if (recordInterface.canWrite())
+      recordInterface.writeIntBE(b);
   }
 
   public void writeBoolean(boolean v) { }
