@@ -46,6 +46,15 @@ public class HextileDecoder extends RawDecoder {
 
   public void handleRect(int x, int y, int w, int h) throws IOException,
                                                             Exception {
+
+    //
+    // Write encoding ID to record output stream
+    //
+
+    if (dos != null) {
+      dos.writeInt(HextileDecoder.EncodingHextile);
+    }
+
     hextile_bg = new Color(0);
     hextile_fg = new Color(0);
 
@@ -87,9 +96,16 @@ public class HextileDecoder extends RawDecoder {
 
     // Is it a raw-encoded sub-rectangle?
     if ((subencoding & HextileRaw) != 0) {
-      //handleRawRect(tx, ty, tw, th, false);
+      //
+      // Disable encoding id writting to record stream
+      // in super (RawDecoder) class, cause we write subencoding ID
+      // in this class (see code above).
+      //
+
+      super.enableEncodingRecordWritting(false);
       super.handleRect(tx, ty, tw, th);
       super.handleUpdatedPixels(tx, ty, tw, th);
+      super.enableEncodingRecordWritting(true);
       return;
     }
 

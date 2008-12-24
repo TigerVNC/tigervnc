@@ -34,6 +34,15 @@ public class ZRLEDecoder extends RawDecoder {
   //
 
   public void handleRect(int x, int y, int w, int h) throws IOException, Exception {
+
+    //
+    // Write encoding ID to record output stream
+    //
+
+    if (dos != null) {
+      dos.writeInt(ZRLEDecoder.EncodingZRLE);
+    }
+
     if (zrleInStream == null)
       zrleInStream = new ZlibInStream();
 

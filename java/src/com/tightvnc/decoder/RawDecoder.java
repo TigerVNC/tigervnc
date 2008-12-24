@@ -85,6 +85,15 @@ public class RawDecoder {
   //
 
   public void handleRect(int x, int y, int w, int h) throws IOException, Exception {
+
+    //
+    // Write encoding ID to record output stream
+    //
+
+    if ((dos != null) && (enableEncodingRecordWritting)) {
+      dos.writeInt(RawDecoder.EncodingRaw);
+    }
+
     if (bytesPerPixel == 1) {
       for (int dy = y; dy < y + h; dy++) {
         if (pixels8 != null) {
@@ -189,6 +198,17 @@ public class RawDecoder {
   }
 
   //
+  // This method will be used by HextileDecoder to disable
+  // double writting encoding id to record stream.
+  //
+  // FIXME: Try to find better solution than this.
+  //
+
+  protected void enableEncodingRecordWritting(boolean enable) {
+    enableEncodingRecordWritting = enable;
+  }
+
+  //
   // Unique data for every decoder (? maybe not ?)
   //
 
@@ -199,6 +219,7 @@ public class RawDecoder {
   protected Graphics graphics = null;
   protected RecordInterface rec = null;
   protected DataOutput dos = null;
+  protected boolean enableEncodingRecordWritting = true;
 
   //
   // This data must be shared between decoders

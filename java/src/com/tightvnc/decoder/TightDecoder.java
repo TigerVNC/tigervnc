@@ -71,6 +71,14 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
 
   public void handleRect(int x, int y, int w, int h) throws Exception {
 
+    //
+    // Write encoding ID to record output stream
+    //
+
+    if (dos != null) {
+      dos.writeInt(TightDecoder.EncodingTight);
+    }
+
     int comp_ctl = rfbis.readU8();
     if (rec.canWrite()) {
       if (rec.isRecordFromBeginning() ||

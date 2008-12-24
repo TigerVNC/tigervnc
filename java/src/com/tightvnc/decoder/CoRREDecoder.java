@@ -28,6 +28,15 @@ public class CoRREDecoder extends RawDecoder {
   //
 
   public void handleRect(int x, int y, int w, int h) throws IOException {
+
+    //
+    // Write encoding ID to record output stream
+    //
+
+    if (dos != null) {
+      dos.writeInt(CoRREDecoder.EncodingCoRRE);
+    }
+
     int nSubrects = rfbis.readU32();
 
     byte[] bg_buf = new byte[bytesPerPixel];

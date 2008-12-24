@@ -177,7 +177,7 @@ class RfbProto {
   // Java on UNIX does not call keyPressed() on some keys, for example
   // swedish keys To prevent our workaround to produce duplicate
   // keypresses on JVMs that actually works, keep track of if
-  // keyPressed() for a "broken" key was called or not. 
+  // keyPressed() for a "broken" key was called or not.
   boolean brokenKeyPressed = false;
 
   // This will be set to true on the first framebuffer update
@@ -196,7 +196,7 @@ class RfbProto {
 
   // Before starting to record each saved session, we set this field
   // to 0, and increment on each framebuffer update. We don't flush
-  // the SessionRecorder data into the file before the second update. 
+  // the SessionRecorder data into the file before the second update.
   // This allows us to write initial framebuffer update with zero
   // timestamp, to let the player show initial desktop before
   // playback.
@@ -758,6 +758,19 @@ class RfbProto {
     numUpdatesInSession++;
   }
 
+  //
+  // Returns true if encoding is not pseudo
+  //
+  // FIXME: Find better way to differ pseudo and real encodings
+  //
+
+  boolean isRealDecoderEncoding(int encoding) {
+    if ((encoding >= 1) && (encoding <= 16)) {
+      return true;
+    }
+    return false;
+  }
+
   // Read a FramebufferUpdate rectangle header
 
   int updateRectX, updateRectY, updateRectW, updateRectH, updateRectEncoding;
@@ -782,7 +795,25 @@ class RfbProto {
       rec.writeShortBE(updateRectY);
       rec.writeShortBE(updateRectW);
       rec.writeShortBE(updateRectH);
-      if (updateRectEncoding == EncodingZlib && !recordFromBeginning) {
+
+      //
+      // If this is pseudo encoding or CopyRect that write encoding ID
+      // in this place. All real encoding ID will be written to record stream
+      // in decoder classes.
+      //
+      // TODO: Make CopyRect decoder class.
+      //
+
+      if (((updateRectEncoding == EncodingCopyRect)
+          || (!isRealDecoderEncoding(updateRectEncoding))) && (rec != null)) {
+        rec.writeIntBE(updateRectEncoding);
+      }
+
+      //
+      // Old code
+      //
+
+      /*if (updateRectEncoding == EncodingZlib && !recordFromBeginning) {
 	// Here we cannot write Zlib-encoded rectangles because the
 	// decoder won't be able to reproduce zlib stream state.
 	if (!zlibWarningShown) {
@@ -799,7 +830,7 @@ class RfbProto {
 			     "updates for session recording.");
 	  tightWarningShown = true;
 	}
-      }
+      }*/
     }
 
     if (updateRectEncoding < 0 || updateRectEncoding > MaxNormalEncoding)
@@ -954,7 +985,7 @@ class RfbProto {
       b[6 + i * 6 + 4] = (byte) ((blue[i] >> 8) & 0xff);
       b[6 + i * 6 + 5] = (byte) (blue[i] & 0xff);
     }
- 
+
     os.write(b);
   }
 
@@ -1002,7 +1033,7 @@ class RfbProto {
 
   //
   // A buffer for putting pointer and keyboard events before being sent.  This
-  // is to ensure that multiple RFB events generated from a single Java Event 
+  // is to ensure that multiple RFB events generated from a single Java Event
   // will all be sent in a single network packet.  The maximum possible
   // length is 4 modifier down events, a single key event followed by 4
   // modifier up events i.e. 9 key events or 72 bytes.
@@ -1197,13 +1228,13 @@ class RfbProto {
 	(key == 0xa3)) {                  // XK_sterling
       // Make sure we do not send keypress events twice on platforms
       // with correct JVMs (those that actually report KeyPress for all
-      // keys)	
+      // keys)
       if (down)
 	brokenKeyPressed = true;
 
       if (!down && !brokenKeyPressed) {
 	// We've got a release event for this key, but haven't received
-        // a press. Fake it. 
+        // a press. Fake it.
 	eventBufLen = 0;
 	writeModifierKeyEvents(evt.getModifiers());
 	writeKeyEvent(key, true);
@@ -1211,7 +1242,7 @@ class RfbProto {
       }
 
       if (!down)
-	brokenKeyPressed = false;  
+	brokenKeyPressed = false;
     }
 
     eventBufLen = 0;
@@ -1383,7 +1414,7 @@ class RfbProto {
     int y = rect.y;
     int w = rect.width;
     int h = rect.height;
- 
+
     byte[] b = new byte[10];
 
     b[0] = (byte) VideoRectangleSelection;
@@ -1456,7 +1487,7 @@ class RfbProto {
   }
 
   public void stopTiming() {
-    timing = false; 
+    timing = false;
     if (timeWaitedIn100us < timedKbits/2)
       timeWaitedIn100us = timedKbits/2; // upper limit 20Mbit/s
   }
@@ -1534,4 +1565,3 @@ class RfbProto {
     return r;
   }
 }
-

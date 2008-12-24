@@ -29,6 +29,17 @@ public class ZlibDecoder extends RawDecoder {
   //
 
   public void handleRect(int x, int y, int w, int h) throws IOException  {
+
+    //
+    // Write encoding ID to record output stream.
+    // Remark: we forced changed encoding from zlib to raw
+    // cause at this moment we cannot save data in zlib encoding.
+    //
+
+    if (dos != null) {
+      dos.writeInt(RawDecoder.EncodingRaw);
+    }
+
     int nBytes = rfbis.readU32();
 
     if (zlibBuf == null || zlibBufLen < nBytes) {
@@ -37,17 +48,6 @@ public class ZlibDecoder extends RawDecoder {
     }
 
     rfbis.readFully(zlibBuf, 0, nBytes);
-
-    //
-    // FIXME: Now we think that isRecordFromBeggining 
-    // always returns false and this part of code will be never
-    // executed.
-    //
-
-    //if (rec.canWrite() && rec.isRecordFromBeginning()) {
-    // rec.writeIntBE(nBytes);
-    // rec.write(zlibBuf, 0, nBytes);
-    //}
 
     if (zlibInflater == null) {
       zlibInflater = new Inflater();
@@ -60,12 +60,11 @@ public class ZlibDecoder extends RawDecoder {
           zlibInflater.inflate(pixels8, dy * framebufferWidth + x, w);
 
           //
-          // Save decoded data to data output stream
+          // Save decoded raw data to data output stream
           //
 
-          //if (rec.canWrite() && !rec.isRecordFromBeginning())
-          //if (dos != null)
-          //  dos.write(pixels8, dy * framebufferWidth + x, w);
+          if (dos != null)
+            dos.write(pixels8, dy * framebufferWidth + x, w);
         }
       } else {
         byte[] buf = new byte[w * 4];
@@ -81,12 +80,11 @@ public class ZlibDecoder extends RawDecoder {
           }
 
           //
-          // Save decoded data to data output stream
+          // Save decoded raw data to data output stream
           //
 
-          //if (rec.canWrite() && !rec.isRecordFromBeginning())
-          //if (dos != null)
-          //  dos.write(buf);
+          if (dos != null)
+            dos.write(buf);
         }
       }
     } catch (DataFormatException ex) {
