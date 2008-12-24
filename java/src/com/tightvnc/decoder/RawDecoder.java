@@ -3,7 +3,7 @@ package com.tightvnc.decoder;
 import com.tightvnc.vncviewer.RecordInterface;
 import com.tightvnc.vncviewer.RfbInputStream;
 import java.io.IOException;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.ColorModel;
@@ -67,7 +67,7 @@ public class RawDecoder {
   // in RawDecoder class to record session
   //
 
-  public void setDataOutputStream(DataOutputStream os) {
+  public void setDataOutputStream(DataOutput os) {
     dos = os;
   }
 
@@ -197,7 +197,7 @@ public class RawDecoder {
   protected RfbInputStream rfbis = null;
   protected Graphics graphics = null;
   protected RecordInterface rec = null;
-  protected DataOutputStream dos = null;
+  protected DataOutput dos = null;
 
   //
   // This data must be shared between decoders
