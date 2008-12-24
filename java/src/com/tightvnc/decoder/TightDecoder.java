@@ -66,6 +66,18 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
   }
 
   //
+  // Tight processing statistic methods
+  //
+
+  public int getNumTightRects() {
+    return statNumRectsTight;
+  }
+
+  public void setNumTightRects(int v) {
+    statNumRectsTight = v;
+  }
+
+  //
   // Handle a Tight-encoded rectangle.
   //
 
@@ -166,6 +178,8 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       jpegRect = null;
       return;
 
+    } else {
+      statNumRectsTight++;
     }
 
     // Read filter id and parameters.
@@ -476,4 +490,6 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
   private Repaintable repainatableControl = null;
   // Jpeg decoding statistics
   private int statNumRectsTightJPEG = 0;
+  // Tight decoding statistics
+  private int statNumRectsTight = 0;
 }

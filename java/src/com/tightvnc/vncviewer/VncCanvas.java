@@ -523,7 +523,9 @@ class VncCanvas extends Canvas
 	  case RfbProto.EncodingTight:
             if (tightDecoder != null) {
 	      statNumRectsTightJPEG = tightDecoder.getNumJPEGRects();
+              //statNumRectsTight = tightDecoder.getNumTightRects();
             }
+            statNumRectsTight++;
 	    handleTightRect(rx, ry, rw, rh);
 	    break;
 	  default:
@@ -858,8 +860,10 @@ class VncCanvas extends Canvas
     statNumRectsCopy = 0;
     statNumBytesEncoded = 0;
     statNumBytesDecoded = 0;
-    if (tightDecoder != null)
+    if (tightDecoder != null) {
       tightDecoder.setNumJPEGRects(0);
+      tightDecoder.setNumTightRects(0);
+    }
   }
 
   //////////////////////////////////////////////////////////////////
