@@ -117,6 +117,8 @@ class VncCanvas extends Canvas
 
     // Input stream for decoders
     RfbInputStream rfbis = new RfbInputStream(rfb);
+    // Create output stream for session recording
+    RecordOutputStream ros = new RecordOutputStream(this);
 
     rawDecoder = new RawDecoder(memGraphics, rfbis);
     rreDecoder = new RREDecoder(memGraphics, rfbis);
@@ -152,6 +154,7 @@ class VncCanvas extends Canvas
 
     for (int i = 0; i < decoders.length; i++) {
       decoders[i].setSessionRecorder(this);
+      decoders[i].setDataOutputStream(ros);
     }
 
     setPixelFormat();
