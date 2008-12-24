@@ -44,12 +44,12 @@ public class RREDecoder extends RawDecoder {
     DataInputStream ds = new DataInputStream(new ByteArrayInputStream(buf));
 
     //
-    // Save decoded data to RecordInterface
+    // Save decoded data to data output stream
     //
-    if (rec.canWrite()) {
-      rec.writeIntBE(nSubrects);
-      rec.write(bg_buf);
-      rec.write(buf);
+    if (dos != null) {
+      dos.writeInt(nSubrects);
+      dos.write(bg_buf);
+      dos.write(buf);
     }
 
     int sx, sy, sw, sh;

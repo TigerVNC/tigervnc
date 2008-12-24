@@ -76,11 +76,11 @@ public class HextileDecoder extends RawDecoder {
     int subencoding = rfbis.readU8();
 
     //
-    // Save decoded data to RecordInterface
+    // Save decoded data to data output stream
     //
 
-    if (rec.canWrite()) {
-      rec.writeByte((byte)subencoding);
+    if (dos != null) {
+      dos.writeByte((byte)subencoding);
     }
 
     // Is it a raw-encoded sub-rectangle?
@@ -102,11 +102,11 @@ public class HextileDecoder extends RawDecoder {
       }
 
       //
-      // Save decoded data to RecordInterface
+      // Save decoded data to data output stream
       //
 
-      if (rec.canWrite()) {
-        rec.write(cbuf);
+      if (dos != null) {
+        dos.write(cbuf);
       }
     }
     graphics.setColor(hextile_bg);
@@ -122,11 +122,11 @@ public class HextileDecoder extends RawDecoder {
       }
 
       //
-      // Save decoded data to RecordInterface
+      // Save decoded data to data output stream
       //
 
-      if (rec.canWrite()) {
-        rec.write(cbuf);
+      if (dos != null) {
+        dos.write(cbuf);
       }
     }
 
@@ -143,12 +143,12 @@ public class HextileDecoder extends RawDecoder {
     rfbis.readFully(buf);
 
     //
-    // Save decoded data to RecordInterface
+    // Save decoded data to data output stream
     //
 
-    if (rec.canWrite()) {
-      rec.writeByte((byte)nSubrects);
-      rec.write(buf);
+    if (dos != null) {
+      dos.writeByte((byte)nSubrects);
+      dos.write(buf);
     }
 
     int b1, b2, sx, sy, sw, sh;
