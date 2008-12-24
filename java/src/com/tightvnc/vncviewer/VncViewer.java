@@ -838,12 +838,12 @@ public class VncViewer extends java.applet.Applet
     if (vc != null) {
       double sec = (System.currentTimeMillis() - vc.statStartTime) / 1000.0;
       double rate = Math.round(vc.statNumUpdates / sec * 100) / 100.0;
-      int nRealRects = vc.statNumPixelRects;
-      int nPseudoRects = vc.statNumTotalRects - vc.statNumPixelRects;
+      long nRealRects = vc.statNumPixelRects;
+      long nPseudoRects = vc.statNumTotalRects - vc.statNumPixelRects;
       System.out.println("Updates received: " + vc.statNumUpdates + " (" +
                          nRealRects + " rectangles + " + nPseudoRects +
                          " pseudo), " + rate + " updates/sec");
-      int numRectsOther = nRealRects - vc.statNumRectsTight
+      long numRectsOther = nRealRects - vc.statNumRectsTight
         - vc.statNumRectsZRLE - vc.statNumRectsHextile
         - vc.statNumRectsRaw - vc.statNumRectsCopy;
       System.out.println("Rectangles:" +
@@ -855,8 +855,8 @@ public class VncViewer extends java.applet.Applet
                          " CopyRect=" + vc.statNumRectsCopy +
                          " other=" + numRectsOther);
 
-      int raw = vc.statNumBytesDecoded;
-      int compressed = vc.statNumBytesEncoded;
+      long raw = vc.statNumBytesDecoded;
+      long compressed = vc.statNumBytesEncoded;
       if (compressed > 0) {
           double ratio = Math.round((double)raw / compressed * 1000) / 1000.0;
           System.out.println("Pixel data: " + vc.statNumBytesDecoded +

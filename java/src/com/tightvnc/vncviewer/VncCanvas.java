@@ -76,17 +76,17 @@ class VncCanvas extends Canvas
 
   // Update statistics.
   long statStartTime;           // time on first framebufferUpdateRequest
-  int statNumUpdates;           // counter for FramebufferUpdate messages
-  int statNumTotalRects;        // rectangles in FramebufferUpdate messages
-  int statNumPixelRects;        // the same, but excluding pseudo-rectangles
-  int statNumRectsTight;        // Tight-encoded rectangles (including JPEG)
-  int statNumRectsTightJPEG;    // JPEG-compressed Tight-encoded rectangles
-  int statNumRectsZRLE;         // ZRLE-encoded rectangles
-  int statNumRectsHextile;      // Hextile-encoded rectangles
-  int statNumRectsRaw;          // Raw-encoded rectangles
-  int statNumRectsCopy;         // CopyRect rectangles
-  int statNumBytesEncoded;      // number of bytes in updates, as received
-  int statNumBytesDecoded;      // number of bytes, as if Raw encoding was used
+  long statNumUpdates;           // counter for FramebufferUpdate messages
+  long statNumTotalRects;        // rectangles in FramebufferUpdate messages
+  long statNumPixelRects;        // the same, but excluding pseudo-rectangles
+  long statNumRectsTight;        // Tight-encoded rectangles (including JPEG)
+  long statNumRectsTightJPEG;    // JPEG-compressed Tight-encoded rectangles
+  long statNumRectsZRLE;         // ZRLE-encoded rectangles
+  long statNumRectsHextile;      // Hextile-encoded rectangles
+  long statNumRectsRaw;          // Raw-encoded rectangles
+  long statNumRectsCopy;         // CopyRect rectangles
+  long statNumBytesEncoded;      // number of bytes in updates, as received
+  long statNumBytesDecoded;      // number of bytes, as if Raw encoding was used
 
   // True if we process keyboard and mouse events.
   boolean inputEnabled;
