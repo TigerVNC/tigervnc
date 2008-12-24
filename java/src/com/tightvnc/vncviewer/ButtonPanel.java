@@ -39,7 +39,9 @@ class ButtonPanel extends Panel implements ActionListener {
   Button ctrlAltDelButton;
   Button refreshButton;
   Button selectButton;
+  Button videoIgnoreButton;
 
+  final String videoIgnoreLabel = "Video Ignore";
   final String selectEnterLabel = "Select Video Area";
   final String selectLeaveLabel = "Hide Selection";
 
@@ -81,6 +83,16 @@ class ButtonPanel extends Panel implements ActionListener {
     selectButton.setEnabled(false);
     add(selectButton);
     selectButton.addActionListener(this);
+  }
+
+  /**
+   * Add video ignore button to the ButtonPanel.
+   */
+  public void addVideoIgnoreButton() {
+    videoIgnoreButton = new Button(videoIgnoreLabel);
+    videoIgnoreButton.setEnabled(false);
+    add(selectButton);
+    videoIgnoreButton.addActionListener(this);
   }
 
   //
@@ -144,7 +156,11 @@ class ButtonPanel extends Panel implements ActionListener {
 
     } else if (evt.getSource() == clipboardButton) {
       viewer.clipboard.setVisible(!viewer.clipboard.isVisible());
-
+    } else if (evt.getSource() == videoIgnoreButton) {
+      //
+      // Do something onVideoIgnoreButtonClick event
+      // ...
+      //
     } else if (evt.getSource() == ctrlAltDelButton) {
       try {
         final int modifiers = InputEvent.CTRL_MASK | InputEvent.ALT_MASK;
