@@ -28,7 +28,7 @@ public class RecordOutputStream implements DataOutput {
 
   public void writeByte(int v) throws IOException {
     if (recordInterface.canWrite()) {
-      recordInterface.writeByte((byte)v);
+      recordInterface.writeByte(v);
     }
   }
 
