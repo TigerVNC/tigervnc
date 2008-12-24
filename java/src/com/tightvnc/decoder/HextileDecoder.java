@@ -12,6 +12,8 @@ import java.io.IOException;
 
 public class HextileDecoder extends RawDecoder {
 
+  final static int EncodingHextile = 5;
+
   // Contstants used in the Hextile decoder
   final static int
     HextileRaw                 = 1,

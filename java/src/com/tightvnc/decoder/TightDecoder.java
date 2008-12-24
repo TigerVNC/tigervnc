@@ -16,6 +16,8 @@ import java.util.zip.Inflater;
 
 public class TightDecoder extends RawDecoder implements ImageObserver {
 
+  final static int EncodingTight = 7;
+
   //
   // Tight decoder constants
   //

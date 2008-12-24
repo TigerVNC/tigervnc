@@ -18,6 +18,7 @@ import java.awt.Toolkit;
 //
 
 public class RawDecoder {
+  final static int EncodingRaw = 0;
 
   public RawDecoder(Graphics g, RfbInputStream is) {
     setGraphics(g);

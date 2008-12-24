@@ -16,6 +16,8 @@ import java.io.IOException;
 
 public class ZRLEDecoder extends RawDecoder {
 
+  final static int EncodingZRLE = 16;
+
   public ZRLEDecoder(Graphics g, RfbInputStream is) {
     super(g, is);
   }

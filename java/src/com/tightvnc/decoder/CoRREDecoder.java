@@ -11,6 +11,8 @@ import java.io.IOException;
 
 public class CoRREDecoder extends RawDecoder {
 
+  final static int EncodingCoRRE = 4;
+
   public CoRREDecoder(Graphics g, RfbInputStream is) {
     super(g, is);
   }

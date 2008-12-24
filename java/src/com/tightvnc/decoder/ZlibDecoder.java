@@ -12,6 +12,8 @@ import java.util.zip.Inflater;
 
 public class ZlibDecoder extends RawDecoder {
 
+  final static int EncodingZlib = 6;
+
   public ZlibDecoder(Graphics g, RfbInputStream is) {
     super(g, is);
   }
@@ -37,13 +39,15 @@ public class ZlibDecoder extends RawDecoder {
     rfbis.readFully(zlibBuf, 0, nBytes);
 
     //
-    // Save decoded data to RecordInterface
+    // FIXME: Now we think that isRecordFromBeggining 
+    // always returns false and this part of code will be never
+    // executed.
     //
 
-    if (rec.canWrite() && rec.isRecordFromBeginning()) {
-      rec.writeIntBE(nBytes);
-      rec.write(zlibBuf, 0, nBytes);
-    }
+    //if (rec.canWrite() && rec.isRecordFromBeginning()) {
+    // rec.writeIntBE(nBytes);
+    // rec.write(zlibBuf, 0, nBytes);
+    //}
 
     if (zlibInflater == null) {
       zlibInflater = new Inflater();
@@ -56,11 +60,12 @@ public class ZlibDecoder extends RawDecoder {
           zlibInflater.inflate(pixels8, dy * framebufferWidth + x, w);
 
           //
-          // Save decoded data to RecordInterface
+          // Save decoded data to data output stream
           //
 
-          if (rec.canWrite() && !rec.isRecordFromBeginning())
-            rec.write(pixels8, dy * framebufferWidth + x, w);
+          //if (rec.canWrite() && !rec.isRecordFromBeginning())
+          //if (dos != null)
+          //  dos.write(pixels8, dy * framebufferWidth + x, w);
         }
       } else {
         byte[] buf = new byte[w * 4];
@@ -76,11 +81,12 @@ public class ZlibDecoder extends RawDecoder {
           }
 
           //
-          // Save decoded data to RecordInterface
+          // Save decoded data to data output stream
           //
 
-          if (rec.canWrite() && !rec.isRecordFromBeginning())
-            rec.write(buf);
+          //if (rec.canWrite() && !rec.isRecordFromBeginning())
+          //if (dos != null)
+          //  dos.write(buf);
         }
       }
     } catch (DataFormatException ex) {

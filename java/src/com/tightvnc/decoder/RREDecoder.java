@@ -13,6 +13,8 @@ import java.io.IOException;
 
 public class RREDecoder extends RawDecoder {
 
+  final static int EncodingRRE = 2;
+
   public RREDecoder(Graphics g, RfbInputStream is) {
     super(g, is);
   }
