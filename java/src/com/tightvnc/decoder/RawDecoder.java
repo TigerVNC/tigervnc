@@ -90,10 +90,10 @@ public class RawDecoder {
           rfbis.readFully(pixels8, dy * framebufferWidth + x, w);
         }
         //
-        // Save decoded data to RecordInterface
+        // Save decoded data to record output stream
         //
-        if (rec.canWrite()) {
-          rec.write(pixels8, dy * framebufferWidth + x, w);
+        if (dos != null) {
+          dos.write(pixels8, dy * framebufferWidth + x, w);
         }
       }
     } else {
@@ -102,10 +102,10 @@ public class RawDecoder {
       for (int dy = y; dy < y + h; dy++) {
         rfbis.readFully(buf);
         //
-        // Save decoded data to RecordInterface
+        // Save decoded data to record output stream
         //
-        if (rec.canWrite()) {
-          rec.write(buf);
+        if (dos != null) {
+          dos.write(buf);
         }
         offset = dy * framebufferWidth + x;
         if (pixels24 != null) {
