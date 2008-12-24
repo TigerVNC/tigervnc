@@ -23,9 +23,6 @@ public class RawDecoder {
   public RawDecoder(Graphics g, RfbInputStream is) {
     setGraphics(g);
     setRfbInputStream(is);
-    // FIXME: cm24 created in getColorModel24.
-    // Remove if no bugs
-    cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
   }
 
   public RawDecoder(Graphics g, RfbInputStream is, int frameBufferW,
@@ -70,14 +67,6 @@ public class RawDecoder {
 
   public void setDataOutputStream(DataOutput os) {
     dos = os;
-  }
-
-  //
-  // FIXME: This method may be useless in future, remove if so
-  //
-
-  public int getBPP() {
-    return bytesPerPixel;
   }
 
   //
