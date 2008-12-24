@@ -3,6 +3,7 @@ package com.tightvnc.decoder;
 import com.tightvnc.vncviewer.RecordInterface;
 import com.tightvnc.vncviewer.RfbInputStream;
 import java.io.IOException;
+import java.io.DataOutputStream;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.ColorModel;
@@ -62,6 +63,15 @@ public class RawDecoder {
   }
 
   //
+  // FIXME: Rename this method after we don't need RecordInterface
+  // in RawDecoder class to record session
+  //
+
+  public void setDataOutputStream(DataOutputStream os) {
+    dos = os;
+  }
+
+  //
   // FIXME: This method may be useless in future, remove if so
   //
 
@@ -110,7 +120,7 @@ public class RawDecoder {
     } // else
     handleUpdatedPixels(x, y, w, h);
   } // void
-    
+
   //
   // Display newly updated area of pixels.
   //
@@ -187,6 +197,7 @@ public class RawDecoder {
   protected RfbInputStream rfbis = null;
   protected Graphics graphics = null;
   protected RecordInterface rec = null;
+  protected DataOutputStream dos = null;
 
   //
   // This data must be shared between decoders
