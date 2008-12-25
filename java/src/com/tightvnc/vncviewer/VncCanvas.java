@@ -45,8 +45,7 @@ import java.util.zip.*;
 //
 
 class VncCanvas extends Canvas
-  implements KeyListener, MouseListener, MouseMotionListener, RecordInterface,
-             Repaintable {
+  implements KeyListener, MouseListener, MouseMotionListener, Repaintable {
 
   VncViewer viewer;
   RfbProto rfb;
@@ -120,7 +119,7 @@ class VncCanvas extends Canvas
     // Input stream for decoders
     RfbInputStream rfbis = new RfbInputStream(rfb);
     // Create output stream for session recording
-    RecordOutputStream ros = new RecordOutputStream(this);
+    RecordOutputStream ros = new RecordOutputStream(rfb);
 
     rawDecoder = new RawDecoder(memGraphics, rfbis);
     rreDecoder = new RREDecoder(memGraphics, rfbis);
@@ -1272,38 +1271,5 @@ class VncCanvas extends Canvas
         e.printStackTrace();
       }
     }
-  }
-
-  //
-  // Override RecordInterface methods
-  //
-
-  public boolean canWrite() {
-    // We can record if rec is not null
-    return rfb.rec != null;
-  }
-
-  public void write(byte b[]) throws IOException {
-    rfb.rec.write(b);
-  }
-
-  public void write(byte b[], int off, int len) throws IOException {
-    rfb.rec.write(b, off, len);
-  }
-
-  public void writeByte(byte b) throws IOException {
-    rfb.rec.writeByte(b);
-  }
-
-  public void writeByte(int i) throws IOException {
-    rfb.rec.writeByte(i);
-  }
-
-  public void writeIntBE(int v) throws IOException {
-    rfb.rec.writeIntBE(v);
-  }
-
-  public void writeShortBE(int v) throws IOException {
-    rfb.rec.writeShortBE(v);
   }
 }

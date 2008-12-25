@@ -5,30 +5,34 @@ import java.io.IOException;
 
 public class RecordOutputStream implements DataOutput {
 
-  public RecordOutputStream(RecordInterface ri) {
-    recordInterface = ri;
+  public RecordOutputStream(RfbProto rfbproto) {
+    rfb = rfbproto;
+  }
+
+  private boolean canWrite() {
+    return ((rfb != null) && (rfb.rec != null));
   }
 
   public void write(byte[] b) throws IOException {
-    if (recordInterface.canWrite())
-      recordInterface.write(b);
+    if (canWrite())
+      rfb.rec.write(b);
   }
 
   public void write(byte[] b, int off, int len) throws IOException {
-    if (recordInterface.canWrite())
-      recordInterface.write(b, off, len);
+    if (canWrite())
+      rfb.rec.write(b, off, len);
   }
 
   public void write(int b) throws IOException {
-    if (recordInterface.canWrite())
-      recordInterface.writeIntBE(b);
+    if (canWrite())
+      rfb.rec.writeIntBE(b);
   }
 
   public void writeBoolean(boolean v) { }
 
   public void writeByte(int v) throws IOException {
-    if (recordInterface.canWrite()) {
-      recordInterface.writeByte(v);
+    if (canWrite()) {
+      rfb.rec.writeByte(v);
     }
   }
 
@@ -39,18 +43,18 @@ public class RecordOutputStream implements DataOutput {
   public void writeFloat(float v) { }
 
   public void writeInt(int v) throws IOException {
-    if (recordInterface.canWrite())
-      recordInterface.writeIntBE(v);
+    if (canWrite())
+      rfb.rec.writeIntBE(v);
   }
 
   public void writeLong(long v) { }
 
   public void writeShort(int v) throws IOException {
-    if (recordInterface.canWrite())
-      recordInterface.writeShortBE(v);
+    if (canWrite())
+      rfb.rec.writeShortBE(v);
   }
 
   public void writeUTF(String str) { }
-  
-  private RecordInterface recordInterface = null;
+
+  private RfbProto rfb = null;
 }
