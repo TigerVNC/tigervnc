@@ -35,8 +35,16 @@ public class CopyRectDecoder extends RawDecoder {
       dos.writeInt(CopyRectDecoder.EncodingCopyRect);
     }
 
-    //
-    // TODO: Place copy rect handler code here
-    //
+    int copyRectSrcX = rfbis.readU16();
+    int copyRectSrcY = rfbis.readU16();
+
+    // If the session is being recorded:
+    if (dos != null) {
+      dos.writeShort(copyRectSrcX);
+      dos.writeShort(copyRectSrcY);
+    }
+
+    graphics.copyArea(copyRectSrcX, copyRectSrcY, w, h,
+                      x - copyRectSrcX, y - copyRectSrcY);
   }
 }
