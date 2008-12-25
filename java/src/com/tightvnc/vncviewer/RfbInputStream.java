@@ -37,5 +37,9 @@ public class RfbInputStream {
     return rfb.readCompactLen();
   }
 
+  public int readU16() throws IOException {
+    return rfb.readU16();
+  }
+
   private RfbProto rfb = null;
 }

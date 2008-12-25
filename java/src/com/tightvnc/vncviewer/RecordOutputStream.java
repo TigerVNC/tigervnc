@@ -44,7 +44,12 @@ public class RecordOutputStream implements DataOutput {
   }
 
   public void writeLong(long v) { }
-  public void writeShort(int v) { }
+
+  public void writeShort(int v) throws IOException {
+    if (recordInterface.canWrite())
+      recordInterface.writeShortBE(v);
+  }
+
   public void writeUTF(String str) { }
   
   private RecordInterface recordInterface = null;
