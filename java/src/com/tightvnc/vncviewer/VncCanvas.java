@@ -24,6 +24,7 @@
 package com.tightvnc.vncviewer;
 
 import com.tightvnc.decoder.CoRREDecoder;
+import com.tightvnc.decoder.CopyRectDecoder;
 import com.tightvnc.decoder.HextileDecoder;
 import com.tightvnc.decoder.RREDecoder;
 import com.tightvnc.decoder.RawDecoder;
@@ -70,6 +71,7 @@ class VncCanvas extends Canvas
   HextileDecoder hextileDecoder;
   ZRLEDecoder zrleDecoder;
   TightDecoder tightDecoder;
+  CopyRectDecoder copyRectDecoder;
 
   // Base decoder decoders array
   RawDecoder []decoders = null;
@@ -127,6 +129,7 @@ class VncCanvas extends Canvas
     tightDecoder = new TightDecoder(memGraphics, rfbis);
     zlibDecoder = new ZlibDecoder(memGraphics, rfbis);
     zrleDecoder = new ZRLEDecoder(memGraphics, rfbis);
+    copyRectDecoder = new CopyRectDecoder(memGraphics, rfbis);
 
     //
     // Set data for decoders that needs extra parameters
@@ -139,7 +142,7 @@ class VncCanvas extends Canvas
     // Create array that contains our decoders
     //
 
-    decoders = new RawDecoder[7];
+    decoders = new RawDecoder[8];
     decoders[0] = rawDecoder;
     decoders[1] = rreDecoder;
     decoders[2] = correDecoder;
@@ -147,6 +150,7 @@ class VncCanvas extends Canvas
     decoders[4] = zlibDecoder;
     decoders[5] = tightDecoder;
     decoders[6] = zrleDecoder;
+    decoders[7] = copyRectDecoder;
 
     //
     // Set session recorder for decoders
@@ -662,10 +666,7 @@ class VncCanvas extends Canvas
   //
 
   void handleCopyRect(int x, int y, int w, int h) throws IOException {
-    rfb.readCopyRect();
-    memGraphics.copyArea(rfb.copyRectSrcX, rfb.copyRectSrcY, w, h,
-			 x - rfb.copyRectSrcX, y - rfb.copyRectSrcY);
-
+    copyRectDecoder.handleRect(x, y, w, h);
     scheduleRepaint(x, y, w, h);
   }
 
