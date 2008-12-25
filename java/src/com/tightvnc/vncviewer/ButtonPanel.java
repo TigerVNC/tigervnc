@@ -39,9 +39,10 @@ class ButtonPanel extends Panel implements ActionListener {
   Button ctrlAltDelButton;
   Button refreshButton;
   Button selectButton;
-  Button videoIgnoreButton;
+  Button videoFreezeButton;
 
-  final String videoIgnoreLabel = "Video Ignore";
+  final String enableVideoFreezeLabel = "Enable Video Freeze";
+  final String disableVideoFreezeLabel = "Disable Video Freeze";
   final String selectEnterLabel = "Select Video Area";
   final String selectLeaveLabel = "Hide Selection";
 
@@ -88,11 +89,10 @@ class ButtonPanel extends Panel implements ActionListener {
   /**
    * Add video ignore button to the ButtonPanel.
    */
-  public void addVideoIgnoreButton() {
-    videoIgnoreButton = new Button(videoIgnoreLabel);
-    videoIgnoreButton.setEnabled(false);
-    add(selectButton);
-    videoIgnoreButton.addActionListener(this);
+  public void addVideoFreezeButton() {
+    videoFreezeButton = new Button(enableVideoFreezeLabel);
+    add(videoFreezeButton);
+    videoFreezeButton.addActionListener(this);
   }
 
   //
@@ -156,11 +156,32 @@ class ButtonPanel extends Panel implements ActionListener {
 
     } else if (evt.getSource() == clipboardButton) {
       viewer.clipboard.setVisible(!viewer.clipboard.isVisible());
-    } else if (evt.getSource() == videoIgnoreButton) {
+    } else if (evt.getSource() == videoFreezeButton) {
+
       //
-      // Do something onVideoIgnoreButtonClick event
-      // ...
+      // Send video freeze message to server and change caption of button
       //
+
+      //
+      // TODO: Move this code to another place.
+      //
+
+      boolean sendOk = true;
+      boolean currentFreezeState =
+              videoFreezeButton.getLabel().equals(disableVideoFreezeLabel);
+      try {
+        viewer.rfb.trySendVideoFreeze(!currentFreezeState);
+      } catch (IOException ex) {
+        sendOk = false;
+        ex.printStackTrace();
+      }
+      if (sendOk) {
+        if (!currentFreezeState) {
+            videoFreezeButton.setLabel(disableVideoFreezeLabel);
+        } else {
+            videoFreezeButton.setLabel(enableVideoFreezeLabel);
+        }
+      }
     } else if (evt.getSource() == ctrlAltDelButton) {
       try {
         final int modifiers = InputEvent.CTRL_MASK | InputEvent.ALT_MASK;

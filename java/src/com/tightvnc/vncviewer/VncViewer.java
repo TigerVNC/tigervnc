@@ -167,6 +167,11 @@ public class VncViewer extends java.applet.Applet
         buttonPanel.addSelectButton();
       }
 
+      if (showControls &&
+          rfb.clientMsgCaps.isEnabled(RfbProto.VideoFreeze)) {
+        buttonPanel.addVideoFreezeButton();
+      }
+
       // FIXME: Use auto-scaling not only in a separate frame.
       if (options.autoScale && inSeparateFrame) {
 	Dimension screenSize;
