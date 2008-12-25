@@ -22,6 +22,4 @@ public interface RecordInterface {
   public void writeByte(int i) throws IOException;
   public void writeIntBE(int v) throws IOException;
   public void writeShortBE(int v) throws IOException;
-  public void recordCompactLen(int len) throws IOException;
-  public void recordCompressedData(byte[] data) throws IOException;
 }
