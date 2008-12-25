@@ -798,37 +798,10 @@ class RfbProto {
       // If this is pseudo encoding or CopyRect that write encoding ID
       // in this place. All real encoding ID will be written to record stream
       // in decoder classes.
-      //
-      // TODO: Make CopyRect decoder class.
-      //
 
-      if (((updateRectEncoding == EncodingCopyRect)
-          || (!isRealDecoderEncoding(updateRectEncoding))) && (rec != null)) {
+      if (((!isRealDecoderEncoding(updateRectEncoding))) && (rec != null)) {
         rec.writeIntBE(updateRectEncoding);
       }
-
-      //
-      // Old code
-      //
-
-      /*if (updateRectEncoding == EncodingZlib && !recordFromBeginning) {
-	// Here we cannot write Zlib-encoded rectangles because the
-	// decoder won't be able to reproduce zlib stream state.
-	if (!zlibWarningShown) {
-	  System.out.println("Warning: Raw encoding will be used " +
-			     "instead of Zlib in recorded session.");
-	  zlibWarningShown = true;
-	}
-	rec.writeIntBE(EncodingRaw);
-      } else {
-	rec.writeIntBE(updateRectEncoding);
-	if (updateRectEncoding == EncodingTight && !recordFromBeginning &&
-	    !tightWarningShown) {
-	  System.out.println("Warning: Re-compressing Tight-encoded " +
-			     "updates for session recording.");
-	  tightWarningShown = true;
-	}
-      }*/
     }
 
     if (updateRectEncoding < 0 || updateRectEncoding > MaxNormalEncoding)
