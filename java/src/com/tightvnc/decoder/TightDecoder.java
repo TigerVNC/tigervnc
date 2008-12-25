@@ -92,16 +92,10 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
     }
 
     int comp_ctl = rfbis.readU8();
-    if (rec.canWrite()) {
-      if (rec.isRecordFromBeginning() ||
-        comp_ctl == (TightFill << 4) ||
-        comp_ctl == (TightJpeg << 4)) {
-        // Send data exactly as received.
-        rec.writeByte(comp_ctl);
-      } else {
-        // Tell the decoder to flush each of the four zlib streams.
-        rec.writeByte(comp_ctl | 0x0F);
-      }
+
+    if (dos != null) {
+      // Tell the decoder to flush each of the four zlib streams.
+      dos.writeByte(comp_ctl | 0x0F);
     }
 
     // Flush zlib streams if we are told by the server to do so.
@@ -123,14 +117,14 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       if (bytesPerPixel == 1) {
         int idx = rfbis.readU8();
         graphics.setColor(getColor256()[idx]);
-        if (rec.canWrite()) {
-          rec.writeByte(idx);
+        if (dos != null) {
+          dos.writeByte(idx);
         }
       } else {
         byte[] buf = new byte[3];
         rfbis.readFully(buf);
-        if (rec.canWrite()) {
-          rec.write(buf);
+        if (dos != null) {
+          dos.write(buf);
         }
         Color bg = new Color(0xFF000000 | (buf[0] & 0xFF) << 16 |
                             (buf[1] & 0xFF) << 8 | (buf[2] & 0xFF));
@@ -149,11 +143,9 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       // Read JPEG data.
       byte[] jpegData = new byte[rfbis.readCompactLen()];
       rfbis.readFully(jpegData);
-      if (rec.canWrite()) {
-        if (!rec.isRecordFromBeginning()) {
-          rec.recordCompactLen(jpegData.length);
-        }
-        rec.write(jpegData);
+      if (dos != null) {
+        rec.recordCompactLen(jpegData.length);
+        dos.write(jpegData);
       }
 
       // Create an Image object from the JPEG data.
@@ -189,27 +181,27 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
     boolean useGradient = false;
     if ((comp_ctl & TightDecoder.TightExplicitFilter) != 0) {
       int filter_id = rfbis.readU8();
-      if (rec.canWrite()) {
-        rec.writeByte(filter_id);
+      if (dos != null) {
+        dos.writeByte(filter_id);
       }
       if (filter_id == TightDecoder.TightFilterPalette) {
         numColors = rfbis.readU8() + 1;
-        if (rec.canWrite()) {
-          rec.writeByte((numColors - 1));
+        if (dos != null) {
+          dos.writeByte((numColors - 1));
         }
         if (bytesPerPixel == 1) {
           if (numColors != 2) {
             throw new Exception("Incorrect tight palette size: " + numColors);
           }
           rfbis.readFully(palette8);
-          if (rec.canWrite()) {
-            rec.write(palette8);
+          if (dos != null) {
+            dos.write(palette8);
           }
         } else {
           byte[] buf = new byte[numColors * 3];
           rfbis.readFully(buf);
-          if (rec.canWrite()) {
-            rec.write(buf);
+          if (dos != null) {
+            dos.write(buf);
           }
           for (int i = 0; i < numColors; i++) {
            palette24[i] = ((buf[i * 3] & 0xFF) << 16 |
@@ -237,8 +229,8 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
         // Indexed colors.
         byte[] indexedData = new byte[dataSize];
         rfbis.readFully(indexedData);
-        if (rec.canWrite()) {
-          rec.write(indexedData);
+        if (dos != null) {
+          dos.write(indexedData);
         }
         if (numColors == 2) {
           // Two colors.
@@ -261,8 +253,8 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
         // "Gradient"-processed data
         byte[] buf = new byte[w * h * 3];
         rfbis.readFully(buf);
-        if (rec.canWrite()) {
-          rec.write(buf);
+        if (dos != null) {
+          dos.write(buf);
         }
         decodeGradientData(x, y, w, h, buf);
       } else {
@@ -270,8 +262,8 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
         if (bytesPerPixel == 1) {
           for (int dy = y; dy < y + h; dy++) {
             rfbis.readFully(pixels8, dy * framebufferWidth + x, w);
-            if (rec.canWrite()) {
-              rec.write(pixels8, dy * framebufferWidth + x, w);
+            if (dos != null) {
+              dos.write(pixels8, dy * framebufferWidth + x, w);
             }
           }
         } else {
@@ -279,8 +271,8 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
           int i, offset;
           for (int dy = y; dy < y + h; dy++) {
             rfbis.readFully(buf);
-            if (rec.canWrite()) {
-              rec.write(buf);
+            if (dos != null) {
+              dos.write(buf);
             }
             offset = dy * framebufferWidth + x;
             for (i = 0; i < w; i++) {
@@ -297,9 +289,6 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       int zlibDataLen = rfbis.readCompactLen();
       byte[] zlibData = new byte[zlibDataLen];
       rfbis.readFully(zlibData);
-      if ( (rec.canWrite()) && (rec.isRecordFromBeginning()) ) {
-        rec.write(zlibData);
-      }
       int stream_id = comp_ctl & 0x03;
       if (tightInflaters[stream_id] == null) {
         tightInflaters[stream_id] = new Inflater();
@@ -308,7 +297,7 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       myInflater.setInput(zlibData);
       byte[] buf = new byte[dataSize];
       myInflater.inflate(buf);
-      if ( (rec.canWrite()) && (!rec.isRecordFromBeginning()) ) {
+      if (dos != null) {
         rec.recordCompressedData(buf);
       }
 
