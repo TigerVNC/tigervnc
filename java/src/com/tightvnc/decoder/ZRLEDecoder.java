@@ -63,11 +63,8 @@ public class ZRLEDecoder extends RawDecoder {
     // raw pixel data.
     //
 
-    if (rec.canWrite()) {
-      if (rec.isRecordFromBeginning()) {
-        rec.writeIntBE(nBytes);
-        rec.write(zrleBuf, 0, nBytes);
-      } else if (!zrleRecWarningShown) {
+    if (dos != null) {
+      if (!zrleRecWarningShown) {
         System.out.println("Warning: ZRLE session can be recorded" +
                            " only from the beginning");
         System.out.println("Warning: Recorded file may be corrupted");
