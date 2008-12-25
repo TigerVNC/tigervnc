@@ -1315,10 +1315,10 @@ class VncCanvas extends Canvas
   }
 
   public void recordCompactLen(int len) throws IOException {
-    rfb.recordCompactLen(len);
+    //rfb.recordCompactLen(len);
   }
 
   public void recordCompressedData(byte[] data) throws IOException {
-    rfb.recordCompressedData(data);
+    //rfb.recordCompressedData(data);
   }
 }
