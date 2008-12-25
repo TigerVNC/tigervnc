@@ -1281,7 +1281,8 @@ class VncCanvas extends Canvas
   //
 
   public boolean isRecordFromBeginning() {
-    return rfb.recordFromBeginning;
+    return false;
+    //return rfb.recordFromBeginning;
   }
 
   public boolean canWrite() {

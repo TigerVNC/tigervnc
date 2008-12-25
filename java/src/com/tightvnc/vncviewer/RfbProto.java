@@ -184,11 +184,6 @@ class RfbProto {
   // containing Zlib-, ZRLE- or Tight-encoded data.
   boolean wereZlibUpdates = false;
 
-  // This will be set to false if the startSession() was called after
-  // we have received at least one Zlib-, ZRLE- or Tight-encoded
-  // framebuffer update.
-  boolean recordFromBeginning = true;
-
   // This fields are needed to show warnings about inefficiently saved
   // sessions only once per each saved session file.
   boolean zlibWarningShown;
@@ -689,8 +684,6 @@ class RfbProto {
     //        we should maintain separate flags for Zlib, ZRLE and
     //        Tight, instead of one ``wereZlibUpdates'' variable.
     //
-    if (wereZlibUpdates)
-      recordFromBeginning = false;
 
     zlibWarningShown = false;
     tightWarningShown = false;
@@ -879,10 +872,6 @@ class RfbProto {
 	len |= (portion[2] & 0xFF) << 14;
       }
     }
-
-    if (rec != null && recordFromBeginning)
-      for (int i = 0; i < byteCount; i++)
-	rec.writeByte(portion[i]);
 
     return len;
   }
@@ -1431,7 +1420,7 @@ class RfbProto {
     deflater.finish();
     int compressedSize = deflater.deflate(buf);
     recordCompactLen(compressedSize);
-    rec.write(buf, 0, compressedSize);
+    if (rec != null) rec.write(buf, 0, compressedSize);
   }
 
   void recordCompressedData(byte[] data) throws IOException {
@@ -1456,7 +1445,7 @@ class RfbProto {
 	buf[bytes++] = (byte)(len >> 14 & 0xFF);
       }
     }
-    rec.write(buf, 0, bytes);
+    if (rec != null) rec.write(buf, 0, bytes);
   }
 
   public void startTiming() {
