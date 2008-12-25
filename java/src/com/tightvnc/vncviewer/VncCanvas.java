@@ -662,7 +662,6 @@ class VncCanvas extends Canvas
   //
 
   void handleCopyRect(int x, int y, int w, int h) throws IOException {
-
     rfb.readCopyRect();
     memGraphics.copyArea(rfb.copyRectSrcX, rfb.copyRectSrcY, w, h,
 			 x - rfb.copyRectSrcX, y - rfb.copyRectSrcY);
@@ -1307,6 +1306,10 @@ class VncCanvas extends Canvas
 
   public void writeIntBE(int v) throws IOException {
     rfb.rec.writeIntBE(v);
+  }
+
+  public void writeShortBE(int v) throws IOException {
+    rfb.rec.writeShortBE(v);
   }
 
   public void recordCompactLen(int len) throws IOException {
