@@ -8,6 +8,8 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.image.ImageObserver;
+import java.io.IOException;
+import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 //
@@ -144,7 +146,7 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       byte[] jpegData = new byte[rfbis.readCompactLen()];
       rfbis.readFully(jpegData);
       if (dos != null) {
-        rec.recordCompactLen(jpegData.length);
+        recordCompactLen(jpegData.length);
         dos.write(jpegData);
       }
 
@@ -298,7 +300,7 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       byte[] buf = new byte[dataSize];
       myInflater.inflate(buf);
       if (dos != null) {
-        rec.recordCompressedData(buf);
+        recordCompressedData(buf);
       }
 
       if (numColors != 0) {
@@ -464,6 +466,45 @@ public class TightDecoder extends RawDecoder implements ImageObserver {
       }
       return false; // All image data was processed.
     }
+  }
+
+  //
+  // Write an integer in compact representation (1..3 bytes) into the
+  // recorded session file.
+  //
+
+  void recordCompactLen(int len) throws IOException {
+    byte[] buf = new byte[3];
+    int bytes = 0;
+    buf[bytes++] = (byte)(len & 0x7F);
+    if (len > 0x7F) {
+      buf[bytes-1] |= 0x80;
+      buf[bytes++] = (byte)(len >> 7 & 0x7F);
+      if (len > 0x3FFF) {
+	buf[bytes-1] |= 0x80;
+	buf[bytes++] = (byte)(len >> 14 & 0xFF);
+      }
+    }
+    if (dos != null) dos.write(buf, 0, bytes);
+  }
+
+  //
+  // Compress and write the data into the recorded session file.
+  //
+
+  void recordCompressedData(byte[] data, int off, int len) throws IOException {
+    Deflater deflater = new Deflater();
+    deflater.setInput(data, off, len);
+    int bufSize = len + len / 100 + 12;
+    byte[] buf = new byte[bufSize];
+    deflater.finish();
+    int compressedSize = deflater.deflate(buf);
+    recordCompactLen(compressedSize);
+    if (dos != null) dos.write(buf, 0, compressedSize);
+  }
+
+  void recordCompressedData(byte[] data) throws IOException {
+    recordCompressedData(data, 0, data.length);
   }
 
   //
