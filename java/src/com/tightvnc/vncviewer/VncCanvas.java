@@ -161,7 +161,6 @@ class VncCanvas extends Canvas
     }
 
     setPixelFormat();
-
     resetSelection();
 
     inputEnabled = false;
@@ -1278,11 +1277,6 @@ class VncCanvas extends Canvas
   //
   // Override RecordInterface methods
   //
-
-  public boolean isRecordFromBeginning() {
-    return false;
-    //return rfb.recordFromBeginning;
-  }
 
   public boolean canWrite() {
     // We can record if rec is not null
