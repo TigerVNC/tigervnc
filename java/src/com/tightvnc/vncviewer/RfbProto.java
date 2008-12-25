@@ -844,22 +844,6 @@ class RfbProto {
     }
   }
 
-  // Read CopyRect source X and Y.
-
-  int copyRectSrcX, copyRectSrcY;
-
-  void readCopyRect() throws IOException {
-    copyRectSrcX = readU16();
-    copyRectSrcY = readU16();
-
-    // If the session is being recorded:
-    if (rec != null) {
-      rec.writeShortBE(copyRectSrcX);
-      rec.writeShortBE(copyRectSrcY);
-    }
-  }
-
-
   //
   // Read a ServerCutText message
   //
