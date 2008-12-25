@@ -157,7 +157,6 @@ class VncCanvas extends Canvas
     //
 
     for (int i = 0; i < decoders.length; i++) {
-      decoders[i].setSessionRecorder(this);
       decoders[i].setDataOutputStream(ros);
     }
 

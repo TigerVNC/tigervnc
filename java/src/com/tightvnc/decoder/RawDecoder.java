@@ -1,6 +1,5 @@
 package com.tightvnc.decoder;
 
-import com.tightvnc.vncviewer.RecordInterface;
 import com.tightvnc.vncviewer.RfbInputStream;
 import java.io.IOException;
 import java.io.DataOutput;
@@ -54,10 +53,6 @@ public class RawDecoder {
   public void setFrameBufferSize(int w, int h) {
     framebufferWidth = w;
     framebufferHeight = h;
-  }
-
-  public void setSessionRecorder(RecordInterface ri) {
-    rec = ri;
   }
 
   //
@@ -206,7 +201,6 @@ public class RawDecoder {
   protected int framebufferHeight = 0;
   protected RfbInputStream rfbis = null;
   protected Graphics graphics = null;
-  protected RecordInterface rec = null;
   protected DataOutput dos = null;
   protected boolean enableEncodingRecordWritting = true;
 
