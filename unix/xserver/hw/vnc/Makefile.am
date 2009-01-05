@@ -47,7 +47,6 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(LIB_DIR) \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus \
-	-DXFree86Module -DXFree86LOADER -DIN_MODULE \
 	-I$(includedir)/pixman-1
 
 libvnc_la_LDFLAGS = -module -avoid-version
