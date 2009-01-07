@@ -45,8 +45,6 @@ extern "C" {
 #define public c_public
 #define class c_class
 
-  // windowTable is in globals.h in XFree 4, but not in XFree 3 unfortunately
-extern WindowPtr *WindowTable;
 extern char *display;
 
 #include "inputstr.h"
@@ -64,7 +62,11 @@ extern char *display;
 
 static DeviceIntPtr vncKeyboardDevice = NULL;
 static DeviceIntPtr vncPointerDevice = NULL;
+#ifdef XORG_15
 static xEvent *eventq = NULL;
+#else
+static EventList *eventq = NULL;
+#endif
 
 static int vfbKeybdProc(DeviceIntPtr pDevice, int onoff);
 static int vfbMouseProc(DeviceIntPtr pDevice, int onoff);
@@ -216,6 +218,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
   if (httpListener)
     httpServer = new FileHTTPServer(this);
 
+#ifdef XORG_15
   /*
    * XXX eventq is never free()-ed because it has to exist during server life
    * */
@@ -223,14 +226,23 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
     eventq = (xEvent *) xcalloc(sizeof(xEvent), GetMaximumEventsNum());
   if (!eventq)
     FatalError("Couldn't allocate eventq\n");
+#endif
 
   if (vncKeyboardDevice == NULL) {
-    vncKeyboardDevice = AddInputDevice(vfbKeybdProc, TRUE);
+    vncKeyboardDevice = AddInputDevice(
+#ifdef XORG_16
+				       serverClient,
+#endif
+				       vfbKeybdProc, TRUE);
     RegisterKeyboardDevice(vncKeyboardDevice);
   }
 
   if (vncPointerDevice == NULL) {
-    vncPointerDevice = AddInputDevice(vfbMouseProc, TRUE);
+    vncPointerDevice = AddInputDevice(
+#ifdef XORG_16
+				      serverClient,
+#endif
+				      vfbMouseProc, TRUE);
     RegisterPointerDevice(vncPointerDevice);
   }
 }
@@ -532,7 +544,11 @@ void XserverDesktop::positionCursor()
 {
   if (!cursorPos.equals(oldCursorPos)) {
     oldCursorPos = cursorPos;
-    (*pScreen->SetCursorPosition) (pScreen, cursorPos.x, cursorPos.y, FALSE);
+    (*pScreen->SetCursorPosition) (
+#ifdef XORG_16
+				   vncPointerDevice,
+#endif
+				   pScreen, cursorPos.x, cursorPos.y, FALSE);
     server->setCursorPos(cursorPos);
     server->tryUpdate();
   }
@@ -541,10 +557,19 @@ void XserverDesktop::positionCursor()
 void XserverDesktop::blockHandler(fd_set* fds)
 {
   try {
+#ifdef XORG_15
     ScreenPtr screenWithCursor = GetCurrentRootWindow()->drawable.pScreen;
+#else
+    ScreenPtr screenWithCursor =
+	GetCurrentRootWindow(vncPointerDevice)->drawable.pScreen;
+#endif
     if (screenWithCursor == pScreen) {
       int x, y;
-      GetSpritePosition(&x, &y);
+      GetSpritePosition(
+#ifdef XORG_16
+			vncPointerDevice,
+#endif
+			&x, &y);
       if (x != cursorPos.x || y != cursorPos.y) {
         cursorPos = oldCursorPos = Point(x, y);
         server->setCursorPos(cursorPos);
@@ -704,16 +729,31 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
   // end of processing a load of RFB.
   //(*pScreen->SetCursorPosition) (pScreen, pos.x, pos.y, FALSE);
 
-  NewCurrentScreen(pScreen, pos.x, pos.y);
+  NewCurrentScreen(
+#ifdef XORG_16
+		   vncPointerDevice,
+#endif
+		   pScreen, pos.x, pos.y);
 
   if (!pos.equals(cursorPos)) {
     valuators[0] = pos.x;
     valuators[1] = pos.y;
 
+#ifdef XORG_16
+    GetEventList(&eventq);
+#endif
     n = GetPointerEvents (eventq, vncPointerDevice, MotionNotify, 0,
 			  POINTER_ABSOLUTE, 0, 2, valuators);
-    for (i = 0; i < n; i++)
-      mieqEnqueue (vncPointerDevice, eventq + i);
+
+    for (i = 0; i < n; i++) {
+      mieqEnqueue (vncPointerDevice,
+#ifdef XORG_15
+		   eventq + i
+#else
+		   (eventq + i)->event
+#endif
+      );
+    }
   }
 
   for (i = 0; i < 5; i++) {
@@ -725,8 +765,15 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 			     ButtonPress : ButtonRelease,
 			    i + 1, POINTER_RELATIVE, 0, 0, NULL);
 
-      for (j = 0; j < n; j++)
-	mieqEnqueue (vncPointerDevice, eventq + j);
+      for (j = 0; j < n; j++) {
+	mieqEnqueue (vncPointerDevice,
+#ifdef XORG_15
+		     eventq + j
+#else
+		     (eventq + j)->event
+#endif
+	);
+      }
     }
   }
 
@@ -847,8 +894,15 @@ private:
     int i, n;
     n = GetKeyboardEvents (eventq, vncKeyboardDevice,
 			   down ? KeyPress : KeyRelease, keycode);
-    for (i = 0; i < n; i++)
-      mieqEnqueue (vncKeyboardDevice, eventq + i);
+    for (i = 0; i < n; i++) {
+      mieqEnqueue (vncKeyboardDevice,
+#ifdef XORG_15
+		   eventq + i
+#else
+		   (eventq + i)->event
+#endif
+      );
+    }
     vlog.debug("fake keycode %d %s", keycode, down ? "down" : "up");
   }
   int modIndex;
@@ -977,7 +1031,11 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
       if (!keymap->map[(kc - keymap->minKeyCode) * keymap->mapWidth]) {
         keymap->map[(kc - keymap->minKeyCode) * keymap->mapWidth] = keysym;
         col = 0;
-        SendMappingNotify(MappingKeyboard, kc, 1, serverClient);
+        SendMappingNotify(
+#ifdef XORG_16
+			  vncKeyboardDevice,
+#endif
+			  MappingKeyboard, kc, 1, serverClient);
         vlog.info("Added unknown keysym 0x%x to keycode %d",keysym,kc);
         break;
       }
@@ -1015,8 +1073,15 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
   vlog.debug("keycode %d %s", kc, down ? "down" : "up");
   n = GetKeyboardEvents (eventq, vncKeyboardDevice, down ?
 			 KeyPress : KeyRelease, kc);
-  for (i = 0; i < n; i++)
-    mieqEnqueue (vncKeyboardDevice, eventq + i);
+  for (i = 0; i < n; i++) {
+    mieqEnqueue (vncKeyboardDevice,
+#ifdef XORG_15
+		 eventq + i
+#else
+		 (eventq + i)->event
+#endif
+    );
+  }
 }
 
 
@@ -1375,8 +1440,11 @@ static int vfbMouseProc(DeviceIntPtr pDevice, int onoff)
     map[3] = 3;
     map[4] = 4;
     map[5] = 5;
-    InitPointerDeviceStruct(pDev, map, 5, GetMotionHistory,
-                            (PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
+    InitPointerDeviceStruct(pDev, map, 5,
+#ifdef XORG_15
+			    GetMotionHistory,
+#endif
+			    (PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
     break;
 
   case DEVICE_ON:

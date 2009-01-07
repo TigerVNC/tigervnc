@@ -89,8 +89,15 @@ typedef struct {
     GCOps *wrappedOps;
 } vncHooksGCRec, *vncHooksGCPtr;
 
+#ifdef XORG_15
 static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKey;
 static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKey;
+#else
+static int vncHooksScreenPrivateKeyIndex;
+static int vncHooksGCPrivateKeyIndex;
+static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKeyIndex;
+static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKeyIndex;
+#endif
 
 #define vncHooksScreenPrivate(pScreen) \
         (vncHooksScreenPtr) dixLookupPrivate(&(pScreen)->devPrivates, \
@@ -111,7 +118,11 @@ static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr prgnExposed);
 static void vncHooksInstallColormap(ColormapPtr pColormap);
 static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
                                 xColorItem* pdef);
-static Bool vncHooksDisplayCursor(ScreenPtr pScreen, CursorPtr cursor);
+static Bool vncHooksDisplayCursor(
+#ifdef XORG_16
+				  DeviceIntPtr pDev,
+#endif
+				  ScreenPtr pScreen, CursorPtr cursor);
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask);
 #ifdef RENDER
@@ -412,13 +423,30 @@ static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
 
 // DisplayCursor - get the cursor shape
 
-static Bool vncHooksDisplayCursor(ScreenPtr pScreen_, CursorPtr cursor)
+static Bool vncHooksDisplayCursor(
+#ifdef XORG_16
+				  DeviceIntPtr pDev,
+#endif
+				  ScreenPtr pScreen_, CursorPtr cursor)
 {
   SCREEN_UNWRAP(pScreen_, DisplayCursor);
 
-  Bool ret = (*pScreen->DisplayCursor) (pScreen, cursor);
-
-  vncHooksScreen->desktop->setCursor(cursor);
+  Bool ret = (*pScreen->DisplayCursor) (
+#ifdef XORG_16
+					pDev,
+#endif
+					pScreen, cursor);
+#ifdef XORG_16
+  /*
+   * XXX DIX calls this function with NULL argument to remove cursor sprite from
+   * screen. Should we handle this in setCursor as well?
+   */
+  if (cursor != NullCursor) {
+#endif
+    vncHooksScreen->desktop->setCursor(cursor);
+#ifdef XORG_16
+  }
+#endif
 
   SCREEN_REWRAP(DisplayCursor);
 
