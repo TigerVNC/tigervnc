@@ -267,7 +267,7 @@ void XserverDesktop::serverReset(ScreenPtr pScreen_)
 			DixReadAccess);
 
   /* Handle suspicious conditions */
-  assert(i != Success);
+  assert(i == Success);
 
   cmap = (ColormapPtr) retval;
 }
