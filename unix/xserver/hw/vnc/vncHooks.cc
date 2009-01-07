@@ -38,14 +38,6 @@ extern "C" {
 #include "picturestr.h"
 #endif
 
-#ifdef GC_HAS_COMPOSITE_CLIP
-#define COMPOSITE_CLIP(gc) ((gc)->pCompositeClip)
-#else
-#include "mfb.h"
-#define COMPOSITE_CLIP(gc) \
-  (((mfbPrivGCPtr)((gc)->devPrivates[mfbGCPrivateIndex].ptr))->pCompositeClip)
-#endif
-
 #undef class
 #undef private
 #undef public
@@ -667,7 +659,7 @@ static void vncHooksPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PutImage) (pDrawable, pGC, depth, x, y, w, h, leftPad, format,
                          pBits);
@@ -692,7 +684,7 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
   box.y2 = box.y1 + h;
 
   RegionHelper dst(pScreen, &box, 0);
-  REGION_INTERSECT(pScreen, dst.reg, dst.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, dst.reg, dst.reg, pGC->pCompositeClip);
 
   RegionHelper src(pScreen);
 
@@ -747,7 +739,7 @@ static RegionPtr vncHooksCopyPlane(DrawablePtr pSrc, DrawablePtr pDst,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   RegionPtr rgn = (*pGC->ops->CopyPlane) (pSrc, pDst, pGC, srcx, srcy, w, h,
                                           dstx, dsty, plane);
@@ -802,7 +794,7 @@ static void vncHooksPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyPoint) (pDrawable, pGC, mode, npt, pts);
 
@@ -913,7 +905,7 @@ static void vncHooksPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode,
 
   RegionHelper changed(pScreen, nRegRects, regRects);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->Polylines) (pDrawable, pGC, mode, npt, ppts);
 
@@ -986,7 +978,7 @@ static void vncHooksPolySegment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 
   RegionHelper changed(pScreen, nRegRects, regRects);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolySegment) (pDrawable, pGC, nseg, segs);
 
@@ -1063,7 +1055,7 @@ static void vncHooksPolyRectangle(DrawablePtr pDrawable, GCPtr pGC, int nrects,
 
   RegionHelper changed(pScreen, nRegRects, regRects);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyRectangle) (pDrawable, pGC, nrects, rects);
 
@@ -1125,7 +1117,7 @@ static void vncHooksPolyArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
 
   RegionHelper changed(pScreen, nRegRects, regRects);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyArc) (pDrawable, pGC, narcs, arcs);
 
@@ -1180,7 +1172,7 @@ static void vncHooksFillPolygon(DrawablePtr pDrawable, GCPtr pGC, int shape,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->FillPolygon) (pDrawable, pGC, shape, mode, count, pts);
 
@@ -1236,7 +1228,7 @@ static void vncHooksPolyFillRect(DrawablePtr pDrawable, GCPtr pGC, int nrects,
 
   RegionHelper changed(pScreen, nRegRects, regRects);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyFillRect) (pDrawable, pGC, nrects, rects);
 
@@ -1298,7 +1290,7 @@ static void vncHooksPolyFillArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
 
   RegionHelper changed(pScreen, nRegRects, regRects);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyFillArc) (pDrawable, pGC, narcs, arcs);
 
@@ -1341,7 +1333,7 @@ static int vncHooksPolyText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   int ret = (*pGC->ops->PolyText8) (pDrawable, pGC, x, y, count, chars);
 
@@ -1366,7 +1358,7 @@ static int vncHooksPolyText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   int ret = (*pGC->ops->PolyText16) (pDrawable, pGC, x, y, count, chars);
 
@@ -1393,7 +1385,7 @@ static void vncHooksImageText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->ImageText8) (pDrawable, pGC, x, y, count, chars);
 
@@ -1418,7 +1410,7 @@ static void vncHooksImageText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->ImageText16) (pDrawable, pGC, x, y, count, chars);
 
@@ -1444,7 +1436,7 @@ static void vncHooksImageGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->ImageGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 
@@ -1470,7 +1462,7 @@ static void vncHooksPolyGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 
@@ -1494,7 +1486,7 @@ static void vncHooksPushPixels(GCPtr pGC, PixmapPtr pBitMap,
 
   RegionHelper changed(pScreen, &box, 0);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, COMPOSITE_CLIP(pGC));
+  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
 
   (*pGC->ops->PushPixels) (pGC, pBitMap, pDrawable, w, h, x, y);
 

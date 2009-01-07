@@ -15,8 +15,7 @@ libvnccommon_la_SOURCES = $(HDRS) vncExtInit.cc vncHooks.cc XserverDesktop.cc
 
 libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(LIB_DIR) \
-	-I$(BIN_DIR)/vncconfig -DGC_HAS_COMPOSITE_CLIP $(XVNC_CPPFLAGS) \
-	-I$(includedir)/pixman-1
+	-I$(BIN_DIR)/vncconfig $(XVNC_CPPFLAGS) -I$(includedir)/pixman-1
 
 bin_PROGRAMS = Xvnc
 
