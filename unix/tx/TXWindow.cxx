@@ -288,7 +288,14 @@ void TXWindow::toplevel(const char* name, TXDeleteWindowCallback* dwc_,
 
 void TXWindow::setName(const char* name)
 {
-    XStoreName(dpy, win(), name);
+  XClassHint classHint;
+  XGetClassHint(dpy, win(), &classHint);
+  XFree(classHint.res_name);
+  classHint.res_name = (char*)name;
+  XSetClassHint(dpy, win(), &classHint);
+  XFree(classHint.res_class);
+  XStoreName(dpy, win(), name);
+  XSetIconName(dpy, win(), name);    
 }
 
 void TXWindow::setMaxSize(int w, int h)
