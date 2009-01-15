@@ -286,6 +286,11 @@ void TXWindow::toplevel(const char* name, TXDeleteWindowCallback* dwc_,
   addEventMask(StructureNotifyMask);
 }
 
+void TXWindow::setName(const char* name)
+{
+    XStoreName(dpy, win(), name);
+}
+
 void TXWindow::setMaxSize(int w, int h)
 {
   sizeHints.flags |= PMaxSize;

@@ -66,6 +66,7 @@ namespace rfb {
     void setColourMapEntriesOrClose(int firstColour, int nColours);
     void bell();
     void serverCutText(const char *str, int len);
+    void setDesktopName(const char *name);
     void setCursorOrClose();
 
     // checkIdleTimeout() returns the number of milliseconds left until the

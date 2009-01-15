@@ -64,6 +64,8 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     encodings[nEncodings++] = pseudoEncodingCursor;
   if (cp->supportsDesktopResize)
     encodings[nEncodings++] = pseudoEncodingDesktopSize;
+  if (cp->supportsDesktopRename)
+    encodings[nEncodings++] = pseudoEncodingDesktopName;
   if (Decoder::supported(preferredEncoding)) {
     encodings[nEncodings++] = preferredEncoding;
   }

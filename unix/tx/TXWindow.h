@@ -82,6 +82,8 @@ public:
 
   void setGeometry(const char* geom, int x, int y, int w, int h);
 
+  void setName(const char* name);
+
   // setTransientFor() tells the window manager that this window is "owned" by
   // the given window.  The window manager can use this information as it sees
   // fit.

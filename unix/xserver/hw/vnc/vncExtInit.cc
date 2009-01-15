@@ -410,7 +410,32 @@ static int ProcVncExtSetParam(ClientPtr client)
   rep.type = X_Reply;
   rep.length = 0;
   rep.sequenceNumber = client->sequence;
+
+  // Retrieve desktop name before setting
+  char* value1 = 0;
+  rfb::VoidParameter* desktop1 = rfb::Configuration::getParam("desktop");
+  if (desktop1)
+    value1 = desktop1->getValueStr();
+
   rep.success = rfb::Configuration::setParam(param.buf);
+
+  // Send DesktopName update if desktop name has been changed
+  char* value2 = 0;
+  rfb::VoidParameter* desktop2 = rfb::Configuration::getParam("desktop");
+  if (desktop2)
+    value2 = desktop2->getValueStr();
+  if (value1 && value2 && strcmp(value1, value2)) {
+    for (int scr = 0; scr < screenInfo.numScreens; scr++) {
+      if (desktop[scr]) {
+	desktop[scr]->setDesktopName(value2);
+      }
+    }
+  }
+  if (value1)
+    delete [] value1;
+  if (value2)
+    delete [] value2;
+
   if (client->swapped) {
     swaps(&rep.sequenceNumber, n);
     swapl(&rep.length, n);

@@ -71,6 +71,7 @@ public:
   void setColourMapEntries(ColormapPtr pColormap, int ndef, xColorItem* pdef);
   void bell();
   void serverCutText(const char* str, int len);
+  void setDesktopName(const char* name);
   void setCursor(CursorPtr cursor);
   void add_changed(RegionPtr reg);
   void add_copied(RegionPtr dst, int dx, int dy);

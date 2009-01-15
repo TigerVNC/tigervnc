@@ -390,6 +390,15 @@ void XserverDesktop::serverCutText(const char* str, int len)
   }
 }
 
+void XserverDesktop::setDesktopName(const char* name)
+{
+  try {
+    server->setName(name);
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::setDesktopName: %s",e.str());
+  }
+}
+
 void XserverDesktop::setCursor(CursorPtr cursor)
 {
   try {

@@ -32,6 +32,7 @@ namespace rfb {
     virtual void startMsg(int type);
     virtual void endMsg();
     virtual bool writeSetDesktopSize();
+    virtual bool writeSetDesktopName();
     virtual void cursorChange(WriteSetCursorCallback* cb);
     virtual void writeSetCursor(int width, int height, const Point& hotspot,
                                 void* data, void* mask);
@@ -51,6 +52,7 @@ namespace rfb {
     int nRectsInHeader;
     WriteSetCursorCallback* wsccb;
     bool needSetDesktopSize;
+    bool needSetDesktopName;
     bool needLastRect;
   };
 }

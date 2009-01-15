@@ -74,6 +74,7 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
     currentEncoding = encNum;
   }
   cp.supportsDesktopResize = true;
+  cp.supportsDesktopRename = true;
   cp.supportsLocalCursor = useLocalCursor;
   cp.customCompressLevel = customCompressLevel;
   cp.compressLevel = compressLevel;
@@ -268,6 +269,14 @@ void CConn::setDesktopSize(int w, int h) {
   if (desktop) {
     desktop->resize(w, h);
     recreateViewport();
+  }
+}
+
+// setName() is called when the desktop name changes
+void CConn::setName(const char* name) {
+  CConnection::setName(name);
+  if (viewport) {
+    viewport->setName(name);
   }
 }
 

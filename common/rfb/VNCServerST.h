@@ -125,7 +125,7 @@ namespace rfb {
 
     // setName() specifies the desktop name that the server should provide to
     // clients
-    void setName(const char* name_) {name.replaceBuf(strDup(name_));}
+    virtual void setName(const char* name_);
 
     // A QueryConnectionHandler, if supplied, is passed details of incoming
     // connections to approve, reject, or query the user about.

@@ -138,6 +138,19 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   handler->setCursor(width, height, hotspot, data.buf, mask.buf);
 }
 
+void CMsgReader::readSetDesktopName(int x, int y, int w, int h)
+{
+  char* name = is->readString();
+
+  if (x || y || w || h) {
+    fprintf(stderr, "Ignoring DesktopName rect with non-zero position/size\n");
+  } else {
+    handler->setName(name);
+  }
+
+  delete [] name;
+}
+
 rdr::U8* CMsgReader::getImageBuf(int required, int requested, int* nPixels)
 {
   int requiredBytes = required * (handler->cp.pf().bpp / 8);

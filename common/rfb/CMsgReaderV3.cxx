@@ -84,6 +84,9 @@ void CMsgReaderV3::readMsg()
     case pseudoEncodingDesktopSize:
       handler->setDesktopSize(w, h);
       break;
+    case pseudoEncodingDesktopName:
+      readSetDesktopName(x, y, w, h);
+      break;
     case pseudoEncodingCursor:
       readSetCursor(w, h, Point(x,y));
       break;

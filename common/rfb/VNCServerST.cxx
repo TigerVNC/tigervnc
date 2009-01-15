@@ -302,6 +302,16 @@ void VNCServerST::serverCutText(const char* str, int len)
   }
 }
 
+void VNCServerST::setName(const char* name_)
+{
+  name.replaceBuf(strDup(name_));
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
+    ci_next = ci; ci_next++;
+    (*ci)->setDesktopName(name_);
+  }
+}
+
 void VNCServerST::add_changed(const Region& region)
 {
   if (comparer != 0) {

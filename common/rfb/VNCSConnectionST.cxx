@@ -232,6 +232,22 @@ void VNCSConnectionST::serverCutText(const char *str, int len)
   }
 }
 
+
+void VNCSConnectionST::setDesktopName(const char *name)
+{
+  cp.setName(name);
+  try {
+    if (state() == RFBSTATE_NORMAL) {
+      if (!writer()->writeSetDesktopName()) {
+	fprintf(stderr, "Client does not support desktop rename\n");
+      }
+    }
+  } catch(rdr::Exception& e) {
+    close(e.str());
+  }
+}
+
+
 void VNCSConnectionST::setCursorOrClose()
 {
   try {

@@ -27,7 +27,7 @@ using namespace rfb;
 SMsgWriterV3::SMsgWriterV3(ConnParams* cp, rdr::OutStream* os)
   : SMsgWriter(cp, os), updateOS(0), realOS(os), nRectsInUpdate(0),
     nRectsInHeader(0), wsccb(0),
-    needSetDesktopSize(false)
+    needSetDesktopSize(false), needSetDesktopName(false)
 {
 }
 
@@ -61,6 +61,12 @@ void SMsgWriterV3::endMsg()
 bool SMsgWriterV3::writeSetDesktopSize() {
   if (!cp->supportsDesktopResize) return false;
   needSetDesktopSize = true;
+  return true;
+}
+
+bool SMsgWriterV3::writeSetDesktopName() {
+  if (!cp->supportsDesktopRename) return false;
+  needSetDesktopName = true;
   return true;
 }
 
@@ -118,6 +124,7 @@ void SMsgWriterV3::writeFramebufferUpdateStart(int nRects)
   os->pad(1);
   if (wsccb) nRects++;
   if (needSetDesktopSize) nRects++;
+  if (needSetDesktopName) nRects++;
   os->writeU16(nRects);
   nRectsInUpdate = 0;
   nRectsInHeader = nRects;
@@ -150,6 +157,18 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
     needSetDesktopSize = false;
   }
 
+  if (needSetDesktopName) {
+    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriterV3 setDesktopName: nRects out of sync");
+    os->writeS16(0);
+    os->writeS16(0);
+    os->writeU16(0);
+    os->writeU16(0);
+    os->writeU32(pseudoEncodingDesktopName);
+    os->writeString(cp->name());
+    needSetDesktopName = false;
+  }
+
   if (nRectsInUpdate != nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriterV3::writeFramebufferUpdateEnd: "
                     "nRects out of sync");
@@ -168,7 +187,7 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
 
 bool SMsgWriterV3::needFakeUpdate()
 {
-  return wsccb || needSetDesktopSize;
+  return wsccb || needSetDesktopSize || needSetDesktopName;
 }
 
 void SMsgWriterV3::startRect(const Rect& r, unsigned int encoding)

@@ -29,7 +29,7 @@ using namespace rfb;
 ConnParams::ConnParams()
   : majorVersion(0), minorVersion(0), tightExtensionsEnabled(false),
     width(0), height(0), useCopyRect(false),
-    supportsLocalCursor(false), supportsLocalXCursor(false), supportsDesktopResize(true),
+    supportsLocalCursor(false), supportsLocalXCursor(false), supportsDesktopResize(true), supportsDesktopRename(false),
     supportsLastRect(false), customCompressLevel(false), compressLevel(6),
     noJpeg(false), qualityLevel(-1), 
     name_(0), nEncodings_(0), encodings_(0),
@@ -111,6 +111,8 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
       supportsLocalXCursor = true;
     else if (encodings[i] == pseudoEncodingDesktopSize)
       supportsDesktopResize = true;
+    else if (encodings[i] == pseudoEncodingDesktopName)
+      supportsDesktopRename = true;
     else if (encodings[i] == pseudoEncodingLastRect)
       supportsLastRect = true;
     else if (encodings[i] >= pseudoEncodingCompressLevel0 &&

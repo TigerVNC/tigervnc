@@ -137,6 +137,7 @@ CConn::applyOptions(CConnOptions& opt) {
   // - Set optional features in ConnParams
   cp.supportsLocalCursor = options.useLocalCursor;
   cp.supportsDesktopResize = options.useDesktopResize;
+  cp.supportsDesktopRename = true;
   cp.customCompressLevel = options.customCompressLevel;
   cp.compressLevel = options.compressLevel;
   cp.noJpeg = options.noJpeg;
