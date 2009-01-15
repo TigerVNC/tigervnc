@@ -52,6 +52,32 @@ public:
   // first for an exact match including the extended flag, then try without the
   // extended flag.
   rdr::U32 lookup(int extendedVkey) {
+
+    // There's no real definition of the meaning of
+    // VK_SEPARATOR/XK_KP_Separator or VK_DECIMAL/XK_KP_Decimal. As
+    // http://blogs.msdn.com/michkap/archive/2006/09/13/752377.aspx
+    // puts it: "As for what is actually assigned to VK_DECIMAL, that
+    // is something that for every keyboard is either defined in a
+    // standard or decided by the person/people who submitted the
+    // keyboard layout. It may match the locale's preferences or it
+    // may not". In a VNC context, we are considering a SEPARATOR to
+    // be a comma and a DECIMAL to be a dot. 
+    if (extendedVkey == VK_DECIMAL || extendedVkey == VK_SEPARATOR) {
+      char buf[4];
+      if (!GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDECIMAL, buf, sizeof(buf))) {
+	vlog.debug("failed to retrieve LOCALE_SDECIMAL");
+      } else {
+	switch (buf[0]) {
+	case ',':
+	  extendedVkey = VK_SEPARATOR;
+	  break;
+	case '.':
+	  extendedVkey = VK_DECIMAL;
+	  break;
+	}
+      }
+    }
+
     if (keysymMap.find(extendedVkey) != keysymMap.end())
       return keysymMap[extendedVkey];
     if (keysymMap.find(extendedVkey ^ 256) != keysymMap.end())
