@@ -275,8 +275,15 @@ void CConn::setDesktopSize(int w, int h) {
 // setName() is called when the desktop name changes
 void CConn::setName(const char* name) {
   CConnection::setName(name);
+
+  CharArray windowNameStr(windowName.getData());
+  if (!windowNameStr.buf[0]) {
+    windowNameStr.replaceBuf(new char[256]);
+    snprintf(windowNameStr.buf, 256, _("VNC: %.240s"), cp.name());
+  }
+
   if (viewport) {
-    viewport->setName(name);
+    viewport->setName(windowNameStr.buf);
   }
 }
 
