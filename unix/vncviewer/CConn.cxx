@@ -279,7 +279,7 @@ void CConn::setName(const char* name) {
   CharArray windowNameStr(windowName.getData());
   if (!windowNameStr.buf[0]) {
     windowNameStr.replaceBuf(new char[256]);
-    snprintf(windowNameStr.buf, 256, _("VNC: %.240s"), cp.name());
+    snprintf(windowNameStr.buf, 256, _("TightVNC: %.240s"), cp.name());
   }
 
   if (viewport) {
@@ -625,7 +625,7 @@ void CConn::recreateViewport()
   CharArray windowNameStr(windowName.getData());
   if (!windowNameStr.buf[0]) {
     windowNameStr.replaceBuf(new char[256]);
-    snprintf(windowNameStr.buf, 256, _("VNC: %.240s", cp.name()));
+    snprintf(windowNameStr.buf, 256, _("TightVNC: %.240s", cp.name()));
   }
   viewport->toplevel(windowNameStr.buf, this, argc, argv);
   viewport->setBumpScroll(fullScreen);
