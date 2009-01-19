@@ -95,6 +95,10 @@ class VncCanvas extends Canvas
   // True if was no one auto resize of canvas
   boolean isFirstSizeAutoUpdate = true;
 
+  // Members for limiting sending mouse events to server
+  long lastMouseEventSendTime = System.currentTimeMillis();
+  long mouseMaxFreq = 20;
+
   //
   // The constructors.
   //
@@ -813,7 +817,10 @@ class VncCanvas extends Canvas
     if (viewer.rfb != null && rfb.inNormalProtocol) {
       if (!inSelectionMode) {
         if (inputEnabled) {
-          sendMouseEvent(evt, moved);
+          if (System.currentTimeMillis() - lastMouseEventSendTime >=
+              (1000 / mouseMaxFreq)) {
+            sendMouseEvent(evt, moved);
+          }
         }
       } else {
         handleSelectionMouseEvent(evt);
@@ -837,6 +844,7 @@ class VncCanvas extends Canvas
         e.printStackTrace();
       }
       rfb.notify();
+      lastMouseEventSendTime = System.currentTimeMillis();
     }
   }
 
