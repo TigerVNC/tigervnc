@@ -45,7 +45,7 @@ import java.util.zip.*;
 //
 
 class VncCanvas extends Canvas
-  implements KeyListener, MouseListener, MouseMotionListener, Repaintable {
+  implements KeyListener, MouseListener, MouseMotionListener, Repaintable, Runnable {
 
   VncViewer viewer;
   RfbProto rfb;
@@ -174,6 +174,11 @@ class VncCanvas extends Canvas
     addKeyListener(this);
     addMouseListener(this);
     addMouseMotionListener(this);
+
+    // Create thread, that will send mouse movement events
+    // to VNC server.
+    Thread mouseThread = new Thread(this);
+    mouseThread.start();
   }
 
   public VncCanvas(VncViewer v) throws IOException {
@@ -771,6 +776,26 @@ class VncCanvas extends Canvas
     processLocalMouseEvent(evt, true);
   }
 
+  private synchronized void trySendPointerEvent() {
+    if ((needToSendMouseEvent) && (mouseEvent!=null)) {
+      sendMouseEvent(mouseEvent, false);
+      needToSendMouseEvent = false;
+      lastMouseEventSendTime = System.currentTimeMillis();
+    }
+  }
+
+  public void run() {
+    while (true) {
+      // Send mouse movement if we have it
+      trySendPointerEvent();
+      // Sleep for some time
+      try {
+        Thread.sleep(1000 / mouseMaxFreq);
+      } catch (InterruptedException ex) {
+      }
+    }
+  }
+
   //
   // Ignored events.
   //
@@ -817,9 +842,15 @@ class VncCanvas extends Canvas
     if (viewer.rfb != null && rfb.inNormalProtocol) {
       if (!inSelectionMode) {
         if (inputEnabled) {
-          if (System.currentTimeMillis() - lastMouseEventSendTime >=
-              (1000 / mouseMaxFreq)) {
+          // If mouse not moved, but it's click event then
+          // send it to server immideanlty.
+          // Else, it's mouse movement - we can send it in
+          // our thread later.
+          if (!moved) {
             sendMouseEvent(evt, moved);
+          } else {
+            mouseEvent = evt;
+            needToSendMouseEvent = true;
           }
         }
       } else {
@@ -880,7 +911,8 @@ class VncCanvas extends Canvas
 
   MemoryImageSource softCursorSource;
   Image softCursor;
-
+  MouseEvent mouseEvent = null;
+  boolean needToSendMouseEvent = false;
   int cursorX = 0, cursorY = 0;
   int cursorWidth, cursorHeight;
   int origCursorWidth, origCursorHeight;
