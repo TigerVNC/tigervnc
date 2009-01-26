@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: devteam@tightvnc.com\n"
-"POT-Creation-Date: 2005-03-01 20:37+0100\n"
+"POT-Creation-Date: 2009-01-26 13:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,6 +20,10 @@ msgid "About VNC Viewer"
 msgstr ""
 
 msgid "VNC authentication"
+msgstr ""
+
+#, c-format
+msgid "TightVNC: %.240s"
 msgstr ""
 
 msgid "Exit viewer"
@@ -165,9 +169,9 @@ msgstr ""
 
 #, c-format
 msgid ""
-"TightVNC viewer for X version 4.0 - built %s\n"
-"Copyright (C) 2002-2004 RealVNC Ltd.\n"
-"Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+"TightVNC Viewer for X version %s - built %s\n"
+"Copyright (C) 2002-2005 RealVNC Ltd.\n"
+"Copyright (C) 2000-2006 TightVNC Group\n"
 "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
 "See http://www.tightvnc.com for information on TightVNC."
 msgstr ""
