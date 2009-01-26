@@ -180,7 +180,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
   }
   format.bigEndian = (screenInfo.imageByteOrder == MSBFirst);
 
-  VisualPtr vis;
+  VisualPtr vis = NULL;
   for (i = 0; i < pScreen->numVisuals; i++) {
     if (pScreen->visuals[i].vid == pScreen->rootVisual) {
       vis = &pScreen->visuals[i];
@@ -263,7 +263,7 @@ void XserverDesktop::serverReset(ScreenPtr pScreen_)
   int i;
   pointer retval;
 
-  i = dixLookupResource(&retval, pScreen->defColormap, RT_COLORMAP, NullClient,
+  i = dixLookupResourceByType(&retval, pScreen->defColormap, RT_COLORMAP, NullClient,
 			DixReadAccess);
 
   /* Handle suspicious conditions */
@@ -352,8 +352,8 @@ void XserverDesktop::setColourMapEntries(ColormapPtr pColormap, int ndef,
 {
   if (cmap != pColormap || ndef <= 0) return;
 
-  int first = pdef[0].pixel;
-  int n = 1;
+  unsigned int first = pdef[0].pixel;
+  unsigned int n = 1;
 
   for (int i = 1; i < ndef; i++) {
     if (first + n == pdef[i].pixel) {
@@ -984,7 +984,8 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 {
   KeyClassPtr keyc = vncKeyboardDevice->key;
   KeySymsPtr keymap = &keyc->curKeySyms;
-  int i, j, k, n;
+  unsigned int i, n;
+  int j, k;
 
   if (keysym == XK_Caps_Lock) {
     vlog.debug("Ignoring caps lock");
