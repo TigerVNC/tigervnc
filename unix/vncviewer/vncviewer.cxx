@@ -277,6 +277,9 @@ int main(int argc, char** argv)
   fprintf(stderr,"\n%s\n", aboutText);
 
   bind_textdomain_codeset(PACKAGE_NAME, "iso-8859-1");
+  // Since we are passing strings from strerror/gai_strerror to the
+  // GUI, these must be in GUI codeset as well. 
+  bind_textdomain_codeset("libc", "iso-8859-1");
 
   rfb::initStdIOLoggers();
   rfb::LogWriter::setLogParams("*:stderr:30");
