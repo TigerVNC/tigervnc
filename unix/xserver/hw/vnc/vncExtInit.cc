@@ -104,7 +104,6 @@ struct VncInputSelect {
 
 static int vncErrorBase = 0;
 static int vncEventBase = 0;
-static char* vncPasswdFile = 0;
 int vncInetdSock = -1;
 
 rfb::AliasParameter rfbauth("rfbauth", "Alias for PasswordFile",
