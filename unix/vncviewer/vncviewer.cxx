@@ -267,19 +267,26 @@ int main(int argc, char** argv)
   bindtextdomain(PACKAGE_NAME, LOCALEDIR);
   textdomain(PACKAGE_NAME);
 
-  snprintf(aboutText, sizeof(aboutText), 
-           _("TightVNC Viewer for X version %s - built %s\n"
-             "Copyright (C) 2002-2005 RealVNC Ltd.\n"
-             "Copyright (C) 2000-2006 TightVNC Group\n"
-             "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
-             "See http://www.tightvnc.com for information on TightVNC."),
-           PACKAGE_VERSION, buildtime);
+  const char englishAbout[] = N_("TightVNC Viewer for X version %s - built %s\n"
+				 "Copyright (C) 2002-2005 RealVNC Ltd.\n"
+				 "Copyright (C) 2000-2006 TightVNC Group\n"
+				 "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+				 "See http://www.tightvnc.com for information on TightVNC.");
+
+  // Write about text to console, still using normal locale codeset
+  snprintf(aboutText, sizeof(aboutText),
+	   gettext(englishAbout), PACKAGE_VERSION, buildtime);
   fprintf(stderr,"\n%s\n", aboutText);
 
+  // Set gettext codeset to what our GUI toolkit uses. Since we are
+  // passing strings from strerror/gai_strerror to the GUI, these must
+  // be in GUI codeset as well.
   bind_textdomain_codeset(PACKAGE_NAME, "iso-8859-1");
-  // Since we are passing strings from strerror/gai_strerror to the
-  // GUI, these must be in GUI codeset as well. 
   bind_textdomain_codeset("libc", "iso-8859-1");
+
+  // Re-create the aboutText for the GUI, now using GUI codeset
+  snprintf(aboutText, sizeof(aboutText),
+	   gettext(englishAbout), PACKAGE_VERSION, buildtime);
 
   rfb::initStdIOLoggers();
   rfb::LogWriter::setLogParams("*:stderr:30");
