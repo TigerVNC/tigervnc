@@ -1268,7 +1268,7 @@ DesktopWindow::setName(const char* name) {
     strCopy(desktopName, name, sizeof(desktopName));
   }
   char *newTitle = new char[strlen(desktopName)+20];
-  sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
+  sprintf(newTitle, "TightVNC: %.240s @ %i%%", desktopName, getDesktopScale());
   SetWindowText(handle, TStr(newTitle));
   delete [] newTitle;
 }
