@@ -1066,10 +1066,7 @@ void DesktopWindow::fitBufferToWindow(bool repaint) {
 }
 
 void DesktopWindow::printScale() {
-  char *newTitle = new char[strlen(desktopName)+20];
-  sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
-  SetWindowText(handle, TStr(newTitle));
-  delete [] newTitle;
+  setName(desktopName);
 }
 
 void
@@ -1267,8 +1264,13 @@ void DesktopWindow::resizeDesktopWindowToBuffer() {
 
 void
 DesktopWindow::setName(const char* name) {
-  SetWindowText(handle, TStr(name));
-  strCopy(desktopName, name, sizeof(desktopName));
+  if (name != desktopName) {
+    strCopy(desktopName, name, sizeof(desktopName));
+  }
+  char *newTitle = new char[strlen(desktopName)+20];
+  sprintf(newTitle, "%s @ %i%%", desktopName, getDesktopScale());
+  SetWindowText(handle, TStr(newTitle));
+  delete [] newTitle;
 }
 
 
