@@ -263,7 +263,7 @@ void XserverDesktop::serverReset(ScreenPtr pScreen_)
   int i;
   pointer retval;
 
-  i = dixLookupResourceByType(&retval, pScreen->defColormap, RT_COLORMAP, NullClient,
+  i = dixLookupResource(&retval, pScreen->defColormap, RT_COLORMAP, NullClient,
 			DixReadAccess);
 
   /* Handle suspicious conditions */
