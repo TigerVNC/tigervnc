@@ -2,7 +2,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
 --- xserver/configure.ac.vnc	2009-01-05 13:40:51.000000000 +0100
 +++ xserver/configure.ac	2009-01-05 13:48:18.000000000 +0100
 @@ -29,7 +29,6 @@ AC_PREREQ(2.57)
- AC_INIT([xorg-server], 1.5.99.3, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+ AC_INIT([xorg-server], 1.5.99.901, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
  AC_CONFIG_SRCDIR([Makefile.am])
  AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 -AM_MAINTAINER_MODE
