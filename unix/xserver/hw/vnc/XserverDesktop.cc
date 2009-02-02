@@ -56,9 +56,19 @@ extern char *display;
 #include "mi.h"
 #define XK_CYRILLIC
 #include <X11/keysym.h>
+#ifndef XKB_IN_SERVER
+#define XKB_IN_SERVER
+#endif
+#ifdef XKB
+#include <xkbsrv.h>
+#endif
 #undef public
 #undef class
 }
+
+#ifdef XORG_16
+#error "People, don't compile this code against 1.6 server, for now"
+#endif
 
 static DeviceIntPtr vncKeyboardDevice = NULL;
 static DeviceIntPtr vncPointerDevice = NULL;
@@ -228,6 +238,11 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
     FatalError("Couldn't allocate eventq\n");
 #endif
 
+  /*
+   * NOTE:
+   * We _might_ have to call ActivateDevice function for both keyboard and
+   * mouse. For Xvnc it's not needed but I have to check libvnc.so module.
+   */
   if (vncKeyboardDevice == NULL) {
     vncKeyboardDevice = AddInputDevice(
 #ifdef XORG_16
@@ -971,14 +986,26 @@ altKeysym_t altKeysym[] = {
   { XK_KP_9,           XK_9 },
 };
 
-// keyEvent() - work out the best keycode corresponding to the keysym sent by
-// the viewer.  This is non-trivial because we can't assume much about the
-// local keyboard layout.  We must also find out which column of the keyboard
-// mapping the keysym is in, and alter the shift state appropriately.  Column 0
-// means both shift and "mode_switch" (AltGr) must be released, column 1 means
-// shift must be pressed and mode_switch released, column 2 means shift must be
-// released and mode_switch pressed, and column 3 means both shift and
-// mode_switch must be pressed.
+/*
+ * keyEvent() - work out the best keycode corresponding to the keysym sent by
+ * the viewer.  This is non-trivial because we can't assume much about the
+ * local keyboard layout.  We must also find out which column of the keyboard
+ * mapping the keysym is in, and alter the shift state appropriately.  Column 0
+ * means both shift and "mode_switch" (AltGr) must be released, column 1 means
+ * shift must be pressed and mode_switch released, column 2 means shift must be
+ * released and mode_switch pressed, and column 3 means both shift and
+ * mode_switch must be pressed.
+ *
+ * Magic, which dynamically adds keysym<->keycode mapping depends on X.Org
+ * version. Quick explanation of that "magic":
+ * 
+ * 1.5
+ * - has only one core keyboard so we have to keep core keyboard mapping
+ *   synchronized with vncKeyboardDevice. Do it via SwitchCoreKeyboard()
+ *
+ * 1.6 (aka MPX - Multi pointer X)
+ * - not working
+ */
 
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 {
@@ -1041,12 +1068,23 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
       if (!keymap->map[(kc - keymap->minKeyCode) * keymap->mapWidth]) {
         keymap->map[(kc - keymap->minKeyCode) * keymap->mapWidth] = keysym;
         col = 0;
-        SendMappingNotify(
-#ifdef XORG_16
-			  vncKeyboardDevice,
-#endif
-			  MappingKeyboard, kc, 1, serverClient);
-        vlog.info("Added unknown keysym 0x%x to keycode %d",keysym,kc);
+
+	vlog.info("Added unknown keysym 0x%x to keycode %d",keysym,kc);
+
+	/*
+	 * If vncKeyboardDevice is already core keyboard remove it and then add
+	 * it. In theory, only copy of keysym map should be sufficient but, for
+	 * now, this should be enough.
+	 */
+	if (vncKeyboardDevice ==
+	    dixLookupPrivate(&inputInfo.keyboard->devPrivates,
+			     CoreDevicePrivateKey)) {
+
+	  dixSetPrivate(&inputInfo.keyboard->devPrivates,
+			CoreDevicePrivateKey, NULL);
+	  SwitchCoreKeyboard(vncKeyboardDevice);
+	}
+
         break;
       }
     }
@@ -1092,107 +1130,6 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 #endif
     );
   }
-}
-
-
-void XConvertCase(KeySym sym, KeySym *lower, KeySym *upper)
-{
-    *lower = sym;
-    *upper = sym;
-    switch(sym >> 8) {
-    case 0: /* Latin 1 */
-	if ((sym >= XK_A) && (sym <= XK_Z))
-	    *lower += (XK_a - XK_A);
-	else if ((sym >= XK_a) && (sym <= XK_z))
-	    *upper -= (XK_a - XK_A);
-	else if ((sym >= XK_Agrave) && (sym <= XK_Odiaeresis))
-	    *lower += (XK_agrave - XK_Agrave);
-	else if ((sym >= XK_agrave) && (sym <= XK_odiaeresis))
-	    *upper -= (XK_agrave - XK_Agrave);
-	else if ((sym >= XK_Ooblique) && (sym <= XK_Thorn))
-	    *lower += (XK_oslash - XK_Ooblique);
-	else if ((sym >= XK_oslash) && (sym <= XK_thorn))
-	    *upper -= (XK_oslash - XK_Ooblique);
-	break;
-    case 1: /* Latin 2 */
-	/* Assume the KeySym is a legal value (ignore discontinuities) */
-	if (sym == XK_Aogonek)
-	    *lower = XK_aogonek;
-	else if (sym >= XK_Lstroke && sym <= XK_Sacute)
-	    *lower += (XK_lstroke - XK_Lstroke);
-	else if (sym >= XK_Scaron && sym <= XK_Zacute)
-	    *lower += (XK_scaron - XK_Scaron);
-	else if (sym >= XK_Zcaron && sym <= XK_Zabovedot)
-	    *lower += (XK_zcaron - XK_Zcaron);
-	else if (sym == XK_aogonek)
-	    *upper = XK_Aogonek;
-	else if (sym >= XK_lstroke && sym <= XK_sacute)
-	    *upper -= (XK_lstroke - XK_Lstroke);
-	else if (sym >= XK_scaron && sym <= XK_zacute)
-	    *upper -= (XK_scaron - XK_Scaron);
-	else if (sym >= XK_zcaron && sym <= XK_zabovedot)
-	    *upper -= (XK_zcaron - XK_Zcaron);
-	else if (sym >= XK_Racute && sym <= XK_Tcedilla)
-	    *lower += (XK_racute - XK_Racute);
-	else if (sym >= XK_racute && sym <= XK_tcedilla)
-	    *upper -= (XK_racute - XK_Racute);
-	break;
-    case 2: /* Latin 3 */
-	/* Assume the KeySym is a legal value (ignore discontinuities) */
-	if (sym >= XK_Hstroke && sym <= XK_Hcircumflex)
-	    *lower += (XK_hstroke - XK_Hstroke);
-	else if (sym >= XK_Gbreve && sym <= XK_Jcircumflex)
-	    *lower += (XK_gbreve - XK_Gbreve);
-	else if (sym >= XK_hstroke && sym <= XK_hcircumflex)
-	    *upper -= (XK_hstroke - XK_Hstroke);
-	else if (sym >= XK_gbreve && sym <= XK_jcircumflex)
-	    *upper -= (XK_gbreve - XK_Gbreve);
-	else if (sym >= XK_Cabovedot && sym <= XK_Scircumflex)
-	    *lower += (XK_cabovedot - XK_Cabovedot);
-	else if (sym >= XK_cabovedot && sym <= XK_scircumflex)
-	    *upper -= (XK_cabovedot - XK_Cabovedot);
-	break;
-    case 3: /* Latin 4 */
-	/* Assume the KeySym is a legal value (ignore discontinuities) */
-	if (sym >= XK_Rcedilla && sym <= XK_Tslash)
-	    *lower += (XK_rcedilla - XK_Rcedilla);
-	else if (sym >= XK_rcedilla && sym <= XK_tslash)
-	    *upper -= (XK_rcedilla - XK_Rcedilla);
-	else if (sym == XK_ENG)
-	    *lower = XK_eng;
-	else if (sym == XK_eng)
-	    *upper = XK_ENG;
-	else if (sym >= XK_Amacron && sym <= XK_Umacron)
-	    *lower += (XK_amacron - XK_Amacron);
-	else if (sym >= XK_amacron && sym <= XK_umacron)
-	    *upper -= (XK_amacron - XK_Amacron);
-	break;
-    case 6: /* Cyrillic */
-	/* Assume the KeySym is a legal value (ignore discontinuities) */
-	if (sym >= XK_Serbian_DJE && sym <= XK_Serbian_DZE)
-	    *lower -= (XK_Serbian_DJE - XK_Serbian_dje);
-	else if (sym >= XK_Serbian_dje && sym <= XK_Serbian_dze)
-	    *upper += (XK_Serbian_DJE - XK_Serbian_dje);
-	else if (sym >= XK_Cyrillic_YU && sym <= XK_Cyrillic_HARDSIGN)
-	    *lower -= (XK_Cyrillic_YU - XK_Cyrillic_yu);
-	else if (sym >= XK_Cyrillic_yu && sym <= XK_Cyrillic_hardsign)
-	    *upper += (XK_Cyrillic_YU - XK_Cyrillic_yu);
-        break;
-    case 7: /* Greek */
-	/* Assume the KeySym is a legal value (ignore discontinuities) */
-	if (sym >= XK_Greek_ALPHAaccent && sym <= XK_Greek_OMEGAaccent)
-	    *lower += (XK_Greek_alphaaccent - XK_Greek_ALPHAaccent);
-	else if (sym >= XK_Greek_alphaaccent && sym <= XK_Greek_omegaaccent &&
-		 sym != XK_Greek_iotaaccentdieresis &&
-		 sym != XK_Greek_upsilonaccentdieresis)
-	    *upper -= (XK_Greek_alphaaccent - XK_Greek_ALPHAaccent);
-	else if (sym >= XK_Greek_ALPHA && sym <= XK_Greek_OMEGA)
-	    *lower += (XK_Greek_alpha - XK_Greek_ALPHA);
-	else if (sym >= XK_Greek_alpha && sym <= XK_Greek_omega &&
-		 sym != XK_Greek_finalsmallsigma)
-	    *upper -= (XK_Greek_alpha - XK_Greek_ALPHA);
-        break;
-    }
 }
 
 static KeySym KeyCodetoKeySym(KeySymsPtr keymap, int keycode, int col)
@@ -1417,13 +1354,27 @@ static int vfbKeybdProc(DeviceIntPtr pDevice, int onoff)
   KeySymsRec            keySyms;
   CARD8                 modMap[MAP_LENGTH];
   DevicePtr pDev = (DevicePtr)pDevice;
+#ifdef XKB
+  XkbComponentNamesRec names;
+#endif
 
   switch (onoff)
   {
   case DEVICE_INIT:
     GetMappings(&keySyms, modMap);
-    InitKeyboardDeviceStruct(pDev, &keySyms, modMap,
-                             (BellProcPtr)vfbBell, (KbdCtrlProcPtr)NoopDDA);
+#ifdef XKB
+    if (!noXkbExtension) {
+      memset(&names, 0, sizeof (names));
+      XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
+      XkbInitKeyboardDeviceStruct(pDevice, &names, &keySyms, modMap,
+				  (BellProcPtr)vfbBell,
+				  (KbdCtrlProcPtr)NoopDDA);
+    } else
+#endif
+    {
+      InitKeyboardDeviceStruct(pDev, &keySyms, modMap,
+			      (BellProcPtr)vfbBell, (KbdCtrlProcPtr)NoopDDA);
+    }
     break;
   case DEVICE_ON:
     pDev->on = TRUE;
