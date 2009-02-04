@@ -62,13 +62,14 @@ extern char *display;
 #ifdef XKB
 #include <xkbsrv.h>
 #endif
+#ifdef XORG_16
+#include "exevents.h"
+extern void
+CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
+#endif
 #undef public
 #undef class
 }
-
-#ifdef XORG_16
-#error "People, don't compile this code against 1.6 server, for now"
-#endif
 
 static DeviceIntPtr vncKeyboardDevice = NULL;
 static DeviceIntPtr vncPointerDevice = NULL;
@@ -1004,11 +1005,15 @@ altKeysym_t altKeysym[] = {
  *   synchronized with vncKeyboardDevice. Do it via SwitchCoreKeyboard()
  *
  * 1.6 (aka MPX - Multi pointer X)
- * - not working
+ * - multiple master devices (= core devices) exists, keep vncKeyboardDevice
+ *   synchronized with proper master device
  */
 
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 {
+#ifdef XORG_16
+  DeviceIntPtr master;
+#endif
   KeyClassPtr keyc = vncKeyboardDevice->key;
   KeySymsPtr keymap = &keyc->curKeySyms;
   unsigned int i, n;
@@ -1071,20 +1076,20 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 
 	vlog.info("Added unknown keysym 0x%x to keycode %d",keysym,kc);
 
-	/*
-	 * If vncKeyboardDevice is already core keyboard remove it and then add
-	 * it. In theory, only copy of keysym map should be sufficient but, for
-	 * now, this should be enough.
-	 */
+#ifdef XORG_15
+	master = inputInfo.keyboard;
+#else
+	master = vncKeyboardDevice->u.master;
+#endif
 	if (vncKeyboardDevice ==
-	    dixLookupPrivate(&inputInfo.keyboard->devPrivates,
-			     CoreDevicePrivateKey)) {
-
-	  dixSetPrivate(&inputInfo.keyboard->devPrivates,
-			CoreDevicePrivateKey, NULL);
+	    dixLookupPrivate(&master->devPrivates, CoreDevicePrivateKey)) {
+	  dixSetPrivate(&master->devPrivates, CoreDevicePrivateKey, NULL);
+#ifdef XORG_15
 	  SwitchCoreKeyboard(vncKeyboardDevice);
+#else
+	  CopyKeyClass(vncKeyboardDevice, master);
+#endif
 	}
-
         break;
       }
     }
