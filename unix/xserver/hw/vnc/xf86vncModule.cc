@@ -43,8 +43,6 @@ using namespace rfb;
 extern void vncExtensionInit();
 static void vncExtensionInitWithParams(INITARGS);
 
-#ifdef XFree86LOADER
-
 static MODULESETUPPROTO(vncSetup);
 
 ExtensionModule vncExt =
@@ -62,7 +60,7 @@ static XF86ModuleVersionInfo vncVersRec =
     "Constantin Kaplinsky",
     MODINFOSTRING1,
     MODINFOSTRING2,
-    XF86_VERSION_CURRENT,
+    XORG_VERSION_CURRENT,
     1, 0, 0,
     ABI_CLASS_EXTENSION,         /* needs the server extension ABI */
     ABI_EXTENSION_VERSION,
@@ -70,7 +68,7 @@ static XF86ModuleVersionInfo vncVersRec =
     {0,0,0,0}
 };
 
-XF86ModuleData vncModuleData = { &vncVersRec, vncSetup, NULL };
+_X_EXPORT XF86ModuleData vncModuleData = { &vncVersRec, vncSetup, NULL };
 
 static pointer
 vncSetup(pointer module, pointer opts, int *errmaj, int *errmin) {
@@ -96,6 +94,4 @@ static void vncExtensionInitWithParams(INITARGS)
 
   vncExtensionInit();
 }
-
-#endif /* XFree86LOADER */
 }
