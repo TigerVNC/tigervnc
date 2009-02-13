@@ -1011,9 +1011,7 @@ altKeysym_t altKeysym[] = {
 
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 {
-#ifdef XORG_16
   DeviceIntPtr master;
-#endif
   KeyClassPtr keyc = vncKeyboardDevice->key;
   KeySymsPtr keymap = &keyc->curKeySyms;
   unsigned int i, n;
