@@ -105,7 +105,7 @@ namespace rfb {
       void setCursor(int w, int h, const Point& hotspot, void* data, void* mask);
       void setName(const char* name);
       void serverInit();
-      void serverCutText(const char* str, int len);
+      void serverCutText(const char* str, rdr::U32 len);
       void beginRect(const Rect& r, unsigned int encoding);
       void endRect(const Rect& r, unsigned int encoding);
       void fillRect(const Rect& r, Pixel pix);

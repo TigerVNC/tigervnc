@@ -117,7 +117,7 @@ namespace rfb {
       char* getMonitor() const;
 
       // - Set the local clipboard
-      void serverCutText(const char* str, int len);
+      void serverCutText(const char* str, rdr::U32 len);
 
       // - Draw into the desktop buffer & update the window
       void fillRect(const Rect& r, Pixel pix);

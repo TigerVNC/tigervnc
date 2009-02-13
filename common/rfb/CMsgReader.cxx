@@ -60,7 +60,7 @@ void CMsgReader::readBell()
 void CMsgReader::readServerCutText()
 {
   is->skip(3);
-  int len = is->readU32();
+  rdr::U32 len = is->readU32();
   if (len > 256*1024) {
     is->skip(len);
     fprintf(stderr,"cut text too long (%d bytes) - ignoring\n",len);

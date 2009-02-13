@@ -698,7 +698,7 @@ void CConn::serverInit() {
 }
 
 void
-CConn::serverCutText(const char* str, int len) {
+CConn::serverCutText(const char* str, rdr::U32 len) {
   if (!options.serverCutText) return;
   window->serverCutText(str, len);
 }

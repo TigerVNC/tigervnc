@@ -80,7 +80,7 @@ void CMsgHandler::bell()
 {
 }
 
-void CMsgHandler::serverCutText(const char* str, int len)
+void CMsgHandler::serverCutText(const char* str, rdr::U32 len)
 {
 }
 

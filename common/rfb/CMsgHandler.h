@@ -57,7 +57,7 @@ namespace rfb {
     virtual void setColourMapEntries(int firstColour, int nColours,
 				     rdr::U16* rgbs);
     virtual void bell();
-    virtual void serverCutText(const char* str, int len);
+    virtual void serverCutText(const char* str, rdr::U32 len);
 
     virtual void fillRect(const Rect& r, Pixel pix);
     virtual void imageRect(const Rect& r, void* pixels);

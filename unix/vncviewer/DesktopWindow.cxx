@@ -254,7 +254,7 @@ void DesktopWindow::setColourMapEntries(int firstColour, int nColours,
     setColourMapEntriesTimer.start(100);
 }
 
-void DesktopWindow::serverCutText(const char* str, int len)
+void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
 {
   if (acceptClipboard) {
     newServerCutText = true;

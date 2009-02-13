@@ -1275,7 +1275,7 @@ DesktopWindow::setName(const char* name) {
 
 
 void
-DesktopWindow::serverCutText(const char* str, int len) {
+DesktopWindow::serverCutText(const char* str, rdr::U32 len) {
   CharArray t(len+1);
   memcpy(t.buf, str, len);
   t.buf[len] = 0;

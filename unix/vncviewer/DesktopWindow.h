@@ -55,7 +55,7 @@ public:
 
   // Methods forwarded from CConn
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
-  void serverCutText(const char* str, int len);
+  void serverCutText(const char* str, rdr::U32 len);
   void framebufferUpdateEnd();
 
   void fillRect(const rfb::Rect& r, rfb::Pixel pix) {
