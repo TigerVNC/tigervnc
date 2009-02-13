@@ -38,9 +38,8 @@ namespace rfb {
       const std::map<int,rdr::U32>& pressedKeys() const {return downKeysym;};
       bool keyPressed(int k) const {return downKeysym.find(k)!=downKeysym.end();}
     private:
-      void win32::CKeyboard::releaseKey(InputHandler* writer, int extendedVkey);
-      void win32::CKeyboard::pressKey(InputHandler* writer, int extendedVkey,
-                                      rdr::U32 keysym);
+      void releaseKey(InputHandler* writer, int extendedVkey);
+      void pressKey(InputHandler* writer, int extendedVkey, rdr::U32 keysym);
       std::map<int,rdr::U32> downKeysym;
     };
 
