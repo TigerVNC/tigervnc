@@ -1,0 +1,205 @@
+#!/bin/bash
+# 
+# Build Xvnc with Xorg from git master. Script adapted from http://www.x.org/wiki/Development/git
+#
+
+set -e
+
+PREFIX="/tmp/xorg-git-${USER}"
+PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig
+MAKE="make"
+REPOS="\
+git://git.freedesktop.org/git/xorg/util/macros \
+git://git.freedesktop.org/git/xorg/proto/x11proto \
+git://git.freedesktop.org/git/xorg/proto/damageproto \
+git://git.freedesktop.org/git/xorg/proto/xextproto \
+git://git.freedesktop.org/git/xorg/proto/fontsproto \
+git://git.freedesktop.org/git/xorg/proto/videoproto \
+git://git.freedesktop.org/git/xorg/proto/renderproto \
+git://git.freedesktop.org/git/xorg/proto/inputproto \
+git://git.freedesktop.org/git/xorg/proto/xf86vidmodeproto \
+git://git.freedesktop.org/git/xorg/proto/xf86dgaproto \
+git://git.freedesktop.org/git/xorg/proto/xf86driproto \
+git://git.freedesktop.org/git/xorg/proto/xcmiscproto \
+git://git.freedesktop.org/git/xorg/proto/scrnsaverproto \
+git://git.freedesktop.org/git/xorg/proto/bigreqsproto \
+git://git.freedesktop.org/git/xorg/proto/resourceproto \
+git://git.freedesktop.org/git/xorg/proto/compositeproto \
+git://git.freedesktop.org/git/xorg/proto/fixesproto \
+git://git.freedesktop.org/git/xorg/proto/evieproto \
+git://git.freedesktop.org/git/xorg/proto/kbproto \
+git://git.freedesktop.org/git/xorg/lib/libxtrans \
+git://git.freedesktop.org/git/xorg/lib/libX11 \
+git://git.freedesktop.org/git/xorg/lib/libXext \
+git://git.freedesktop.org/git/xorg/lib/libxkbfile \
+git://git.freedesktop.org/git/xorg/lib/libfontenc \
+git://git.freedesktop.org/git/xorg/lib/libXfont \
+git://git.freedesktop.org/git/xorg/lib/libXfixes \
+git://git.freedesktop.org/git/xorg/lib/libXdamage \
+git://git.freedesktop.org/git/xorg/lib/libXv \
+git://git.freedesktop.org/git/xorg/lib/libXvMC \
+git://git.freedesktop.org/git/xorg/lib/libXxf86vm \
+git://git.freedesktop.org/git/xorg/lib/libXinerama \
+git://git.freedesktop.org/git/xorg/proto/dri2proto \
+git://git.freedesktop.org/git/xorg/proto/glproto \
+git://git.freedesktop.org/git/xorg/lib/libpciaccess \
+git://git.freedesktop.org/git/pixman \
+git://git.freedesktop.org/git/xcb/proto \
+git://git.freedesktop.org/git/xcb/pthread-stubs \
+git://git.freedesktop.org/git/xcb/libxcb \
+git://git.freedesktop.org/git/xorg/proto/randrproto \
+git://git.freedesktop.org/git/mesa/drm \
+git://git.freedesktop.org/git/mesa/mesa \
+git://git.freedesktop.org/git/xorg/xserver \
+git://git.freedesktop.org/git/xorg/driver/xf86-input-mouse \
+git://git.freedesktop.org/git/xorg/driver/xf86-input-keyboard \
+git://git.freedesktop.org/git/xorg/driver/xf86-video-intel"
+
+modules="\
+fontsproto \
+x11proto \
+xextproto \
+videoproto \
+renderproto \
+inputproto \
+damageproto \
+xf86vidmodeproto \
+xf86dgaproto \
+xf86driproto \
+xcmiscproto \
+scrnsaverproto \
+bigreqsproto \
+resourceproto \
+compositeproto \
+resourceproto \
+evieproto \
+kbproto \
+fixesproto \
+libxtrans \
+proto \
+pthread-stubs \
+libxcb \
+libX11 \
+libXext \
+libxkbfile \
+libfontenc \
+libXfont \
+libXv \
+libXvMC \
+libXxf86vm \
+libXfixes \
+libXdamage \
+dri2proto \
+glproto \
+libpciaccess \
+pixman \
+randrproto"
+
+init()
+{
+    mv xserver xserver.vnc
+    for repo in $REPOS; do
+        echo "Cloning $repo";
+        git clone $repo || true
+    done
+    mv xserver xserver.xorg
+    mv xserver.vnc xserver
+
+    tar c -C xserver.xorg . | tar x -C xserver
+    cd xserver
+    patch -p1 < ../xserver16.patch
+    autoreconf -fiv
+    cd ..
+
+    cd macros
+    echo "Building macros"
+    ./autogen.sh --prefix="$PREFIX";
+    ($MAKE);
+    make install
+    cd ..
+}
+
+update_modules()
+{
+    for module in $modules; do
+        cd $module
+        git pull
+        cd ..
+    done
+}
+
+build ()
+{
+    export ACLOCAL="aclocal -I $PREFIX/share/aclocal"
+    export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
+
+    # Build VNC
+    make distclean || true
+    ./configure --prefix=${PREFIX}
+    make
+
+    # Build Xorg
+    for i in $modules; do
+        cd $i
+        echo ======================
+        echo configuring $i
+        echo ======================
+        ./autogen.sh --prefix="$PREFIX";
+        echo ======================
+        echo building $i
+        echo ======================
+        if [ $? -ne 0 ]; then
+                echo "Failed to configure $i."
+                exit
+        fi
+        ($MAKE);
+        make install
+        cd ..
+    done
+
+    # build drm
+    cd drm
+    ./autogen.sh --prefix="$PREFIX"
+    ($MAKE)
+    make -C linux-core
+    # assuming you're on Linux, otherwise use bsd-core
+    make install
+    cd ..
+
+    # build mesa
+    cd mesa
+    ./autogen.sh --prefix=$PREFIX --with-driver=dri --disable-glut
+    if [ $? -ne 0 ]; then
+	echo "Failed to configure Mesa."
+	exit
+    fi
+    ($MAKE)
+    make install
+    cd ..
+
+    # build xserver
+    cd xserver
+    ./autogen.sh --prefix=$PREFIX --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
+    if [ $? -ne 0 ]; then
+	echo "Failed to configure X server."
+	exit
+    fi
+    ($MAKE)
+    make install
+    cd ..
+}
+
+case "$1" in
+    init)
+	init
+	;;
+    build)
+	build
+	;;
+    update)
+	update_modules
+	;;
+    *)
+	echo "Usage: $0 init | build | update"
+	exit 3
+esac
