@@ -270,7 +270,7 @@ int main(int argc, char** argv)
   const char englishAbout[] = N_("TightVNC Viewer for X version %s - built %s\n"
 				 "Copyright (C) 2002-2005 RealVNC Ltd.\n"
 				 "Copyright (C) 2000-2006 TightVNC Group\n"
-				 "Copyright (C) 2004-2005 Peter Astrand, Cendio AB\n"
+				 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 				 "See http://www.tightvnc.com for information on TightVNC.");
 
   // Write about text to console, still using normal locale codeset
