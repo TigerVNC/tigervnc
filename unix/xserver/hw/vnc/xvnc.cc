@@ -89,7 +89,7 @@ extern "C" {
 #define XVNCVERSION "TightVNC 1.5 series"
 #define XVNCCOPYRIGHT ("Copyright (C) 2002-2005 RealVNC Ltd.\n" \
 		       "Copyright (C) 2000-2006 Constantin Kaplinsky\n" \
-		       "Copyright (C) 2004-2006 Peter Astrand, Cendio AB\n" \
+		       "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n" \
                        "See http://www.tightvnc.com for information on TightVNC.\n")
 
 

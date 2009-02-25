@@ -4,7 +4,7 @@ TightVNC Source Distribution for Windows platforms
 
 Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
 Copyright (C) 2000-2004 Constantin Kaplinsky.
-Copyright (C) 2004 Peter Astrand, Cendio AB
+Copyright (C) 2004-2009 Peter Astrand for Cendio AB
 
 This software is distributed under the GNU General Public Licence as
 published by the Free Software Foundation.  See the file LICENCE.TXT
