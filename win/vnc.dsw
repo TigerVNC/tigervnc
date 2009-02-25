@@ -84,36 +84,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "rfbplayer"=.\rfbplayer\rfbplayer.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name rdr
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name rfb
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name rfb_win32
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name Xregion
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name zlib
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name jpeg
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "vncconfig"=.\vncconfig\vncconfig.dsp - Package Owner=<4>
 
 Package=<5>
