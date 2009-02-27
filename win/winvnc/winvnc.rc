@@ -72,14 +72,14 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Constantin Kaplinsky\0"
-            VALUE "FileDescription", "TightVNC Server for Win32\0"
+            VALUE "FileDescription", "TigerVNC Server for Win32\0"
             VALUE "FileVersion", "4.1.1\0"
             VALUE "InternalName", "winvnc\0"
             VALUE "LegalCopyright", "Copyright (C) 1998-2005 [many holders]\0"
-            VALUE "LegalTrademarks", "TightVNC\0"
+            VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "winvnc4.exe\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "TightVNC Server\0"
+            VALUE "ProductName", "TigerVNC Server\0"
             VALUE "ProductVersion", "4.1.1\0"
             VALUE "SpecialBuild", "\0"
         END
@@ -144,7 +144,7 @@ BEGIN
     LTEXT           ">version<",IDC_VERSION,170,10,72,15
     LTEXT           ">buildtime<",IDC_BUILDTIME,45,25,202,15
     LTEXT           ">copyright<",IDC_COPYRIGHT,45,40,202,15
-    LTEXT           "See http://www.tightvnc.com for more information on VNC.",
+    LTEXT           "See http://www.tigervnc.org for more information on VNC.",
                     IDC_STATIC,45,55,202,15
 END
 

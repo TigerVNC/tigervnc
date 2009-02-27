@@ -1,11 +1,11 @@
-How to build TightVNC with VC7 (Visual C++ .NET)
+How to build TigerVNC with VC7 (Visual C++ .NET)
 ================================================
 
 
 Introduction
 ------------
 
-This text documents how to build TightVNC with VC7. 
+This text documents how to build TigerVNC with VC7. 
 
 
 The VC7 "Standard" Edition

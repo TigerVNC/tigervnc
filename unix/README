@@ -1,5 +1,5 @@
 
-TightVNC Source Distribution for Unix platforms
+TigerVNC Source Distribution for Unix platforms
 ===============================================
 
 Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
@@ -9,7 +9,7 @@ Copyright (C) 2004-2009 Peter Astrand for Cendio AB
 This software is distributed under the GNU General Public Licence as
 published by the Free Software Foundation.  See the file LICENCE.TXT
 for the conditions under which this software is made available.
-TightVNC also contains code from other sources.  See the
+TigerVNC also contains code from other sources.  See the
 Acknowledgements section below, and the individual files for details
 of the conditions under which they are made available.
 
@@ -54,7 +54,7 @@ To build everything but Xvnc, do:
 
 This should build first some libraries - zlib, jpeg, rdr, network, Xregion, rfb
 and tx - then vncviewer, vncconfig and vncpasswd.  System zlib and jpeg are
-preferred. If you want use zlib and jpeg distributed with TightVNC you have to
+preferred. If you want use zlib and jpeg distributed with TigerVNC you have to
 run configure "./configure --with-tight-zlib --with-tight-jpeg".
 
 Building Xvnc
@@ -83,11 +83,11 @@ First you have to download X source:
 
 Once you have a copy of the X source tree, copy it to vnc source tree
 
-  % cp -r xorg/* <path_to_tightvnc_source>/unix/xserver
+  % cp -r xorg/* <path_to_tigervnc_source>/unix/xserver
 
 Then you have to apply a patch to some files in the X source tree:
 
-  % cd <path_to_tightvnc_source>/unix/xserver
+  % cd <path_to_tigervnc_source>/unix/xserver
   % patch -p1 < ../xserver15.patch
 
 - note: you can use server-1.6-branch. Simply checkout it as written above
@@ -124,7 +124,7 @@ Installing
 Different unix platforms have different conventions for where software should
 be installed.  To copy the programs to some directory which is in your PATH
 environment variable, such as /usr/local/bin you can use Makefile variables. In
-<tightvnc>/unix subdirectory run:
+<tigervnc>/unix subdirectory run:
 
   % make install bindir=/usr/local/bin mandir=/usr/local/man
 
@@ -133,7 +133,7 @@ Both can be installed when you run:
 
   % make install bindir=/usr/local/bin mandir=/usr/local/man
 
-in <tightvnc>/unix/xserver subdirectory
+in <tigervnc>/unix/xserver subdirectory
 
 Module can be enabled like any other module by adding a Load "vnc" line to
 the Module section of xorg.conf.  The parameters listed in the Xvnc manual

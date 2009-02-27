@@ -8,7 +8,7 @@ as few changes to the RealVNC sources as possible.
 
 Files
 =====
-(t) means only in TightVNC. 
+(t) means only in TigerVNC. 
 
 Name				Server/Client/Both	Windows/UNIX/Both
 -------------------------------------------------------------------------

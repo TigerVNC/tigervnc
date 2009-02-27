@@ -1,5 +1,5 @@
 <!-- 
-     index.vnc - default HTML page for TightVNC Java viewer applet, to be
+     index.vnc - default HTML page for TigerVNC Java viewer applet, to be
      used with Xvnc. On any file ending in .vnc, the HTTP server embedded in
      Xvnc will substitute the following variables when preceded by a dollar:
      USER, DESKTOP, DISPLAY, APPLETWIDTH, APPLETHEIGHT, WIDTH, HEIGHT, PORT,
@@ -7,7 +7,7 @@
      HTML page.
 
      NOTE: the $PARAMS variable is not supported by the standard VNC, so
-     make sure you have TightVNC on the server side, if you're using this
+     make sure you have TigerVNC on the server side, if you're using this
      variable.
 -->
 
@@ -21,5 +21,5 @@ $USER's $DESKTOP desktop ($DISPLAY)
 $PARAMS
 </APPLET>
 <BR>
-<A href="http://www.tightvnc.com/">TightVNC site</A>
+<A href="http://www.tigervnc.org/">TigerVNC site</A>
 </HTML>

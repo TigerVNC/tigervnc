@@ -1,5 +1,5 @@
 
-TightVNC Source Distribution for Windows platforms
+TigerVNC Source Distribution for Windows platforms
 ==================================================
 
 Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
@@ -9,7 +9,7 @@ Copyright (C) 2004-2009 Peter Astrand for Cendio AB
 This software is distributed under the GNU General Public Licence as
 published by the Free Software Foundation.  See the file LICENCE.TXT
 for the conditions under which this software is made available.
-TightVNC also contains code from other sources.  See the
+TigerVNC also contains code from other sources.  See the
 Acknowledgements section below, and the individual files for details
 of the conditions under which they are made available.
 

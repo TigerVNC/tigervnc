@@ -113,7 +113,7 @@ class OptionsFrame extends Frame
   //
 
   OptionsFrame(VncViewer v) {
-    super("TightVNC Options");
+    super("TigerVNC Options");
 
     viewer = v;
 

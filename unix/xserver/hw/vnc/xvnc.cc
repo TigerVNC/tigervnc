@@ -86,11 +86,11 @@ extern "C" {
 #undef public
 }
 
-#define XVNCVERSION "TightVNC 1.5 series"
+#define XVNCVERSION "TigerVNC 1.5 series"
 #define XVNCCOPYRIGHT ("Copyright (C) 2002-2005 RealVNC Ltd.\n" \
 		       "Copyright (C) 2000-2006 Constantin Kaplinsky\n" \
 		       "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n" \
-                       "See http://www.tightvnc.com for information on TightVNC.\n")
+                       "See http://www.tigervnc.org for information on TigerVNC.\n")
 
 
 extern char *display;

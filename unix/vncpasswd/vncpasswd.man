@@ -1,4 +1,4 @@
-.TH vncpasswd 1 "05 May 2006" "TightVNC" "Virtual Network Computing"
+.TH vncpasswd 1 "05 May 2006" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncpasswd \- change a VNC password
 .SH SYNOPSIS
@@ -32,7 +32,7 @@ Default location of the VNC password file.
 .BR Xvnc (1)
 .BR vncconfig (1),
 .br
-http://www.tightvnc.com
+http://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd.

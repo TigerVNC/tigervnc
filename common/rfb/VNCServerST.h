@@ -198,7 +198,7 @@ namespace rfb {
     // part of the framebuffer will be sent using JpegEncoder, on each update
     // request, as we expect that video data is changing continuously. By
     // default, this option is disabled, as it's rather a specialized feature
-    // and video selection GUI can confuse users of the TightVNC client.
+    // and video selection GUI can confuse users of the TigerVNC client.
     void enableVideoSelection(bool enable);
     bool isVideoSelectionEnabled() const;
 

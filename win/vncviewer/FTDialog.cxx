@@ -28,9 +28,9 @@
 using namespace rfb;
 using namespace rfb::win32;
 
-const char FTDialog::szCheckDeleteQueueText[]    = "TightVNC.Viewer.CheckDeleteQueue.Msg";
-const char FTDialog::szCheckTransferQueueText[]  = "TightVNC.Viewer.CheckTransferQueue.Msg";
-const char FTDialog::szUploadFilePortionText[]   = "TightVNC.Viewer.UploadFilePortion.Msg";
+const char FTDialog::szCheckDeleteQueueText[]    = "TigerVNC.Viewer.CheckDeleteQueue.Msg";
+const char FTDialog::szCheckTransferQueueText[]  = "TigerVNC.Viewer.CheckTransferQueue.Msg";
+const char FTDialog::szUploadFilePortionText[]   = "TigerVNC.Viewer.UploadFilePortion.Msg";
 
 FTDialog::FTDialog(HINSTANCE hInst, FileTransfer *pFT)
 {

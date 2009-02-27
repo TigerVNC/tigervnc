@@ -1,4 +1,4 @@
-.TH Xvnc 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
+.TH Xvnc 1 "17 Apr 2006" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 Xvnc \- the X VNC server 
 .SH SYNOPSIS
@@ -273,7 +273,7 @@ created automatically the next time he connects.
 .BR Xserver (1),
 .BR inetd (1)
 .br
-http://www.tightvnc.com
+http://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd.

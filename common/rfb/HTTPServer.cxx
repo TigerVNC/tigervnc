@@ -150,7 +150,7 @@ HTTPServer::Session::writeResponse(int result, const char* text) {
   sprintf(buffer, "%s %d %s", "HTTP/1.1", result, text);
   OutStream& os=sock.outStream();
   writeLine(os, buffer);
-  writeLine(os, "Server: TightVNC/4.0");
+  writeLine(os, "Server: TigerVNC/4.0");
   time_t now = time(0);
   struct tm* tm = gmtime(&now);
   strftime(buffer, 1024, "Date: %a, %d %b %Y %H:%M:%S GMT", tm);

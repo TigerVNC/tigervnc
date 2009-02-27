@@ -37,7 +37,7 @@ using namespace network;
 static LogWriter vlog("VNCServerWin32");
 
 
-const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TightVNC\\WinVNC4");
+const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TigerVNC\\WinVNC4");
 
 // FIXME: Move into an .h file?
 extern const UINT VNCM_FT_DOWNLOAD;

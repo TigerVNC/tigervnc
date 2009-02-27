@@ -1,6 +1,6 @@
-.TH X0VNCSERVER 1 "Dec 23, 2008" "TightVNC" "TightVNC Manual"
+.TH X0VNCSERVER 1 "Dec 23, 2008" "TigerVNC" "TigerVNC Manual"
 .SH NAME
-x0vncserver \- TightVNC Server for X displays
+x0vncserver \- TigerVNC Server for X displays
 .SH SYNOPSIS
 .B x0vncserver
 .RI [ options ]
@@ -8,8 +8,8 @@ x0vncserver \- TightVNC Server for X displays
 .B x0vncserver -version
 .SH DESCRIPTION
 .B x0vncserver
-is a TightVNC Server which makes any X display remotely accessible via VNC,
-TightVNC or compatible viewers.  Unlike \fBXvnc\fP(1), it does not create a
+is a TigerVNC Server which makes any X display remotely accessible via VNC,
+TigerVNC or compatible viewers.  Unlike \fBXvnc\fP(1), it does not create a
 virtual display.  Instead, it just shares an existing X server (typically,
 that one connected to the physical screen).
 .SH OPTIONS
@@ -148,7 +148,7 @@ right and/or from the bottom of the screen.  Offsets are optional, +0+0 is
 assumed by default (top left corner).  Video area is not checked for actual
 changes, it is assumed to be changing continuously and is sent in each screen
 update.  Normally, video area is compressed with JPEG (if allowed by the
-client).  Note that this setting can be overriden by TightVNC clients
+client).  Note that this setting can be overriden by TigerVNC clients
 supporting VideoRectangleSelection protocol extension.  In other words,
 clients may choose video selection themselves, but if they do not, then the
 \fBVideoArea\fP parameter will take effect.  If the argument is empty, no
@@ -226,6 +226,6 @@ responding.  Default is 20000.
 .BR Xvnc (1),
 .BR vncpasswd (1),
 .br
-http://www.tightvnc.com/
+http://www.tigervnc.org/
 .SH AUTHOR
 This manual page was written by Constantin Kaplinsky.

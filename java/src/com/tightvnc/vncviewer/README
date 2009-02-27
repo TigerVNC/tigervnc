@@ -1,5 +1,5 @@
 
-  TightVNC Java Viewer version 1.3.9
+  TigerVNC Java Viewer version 1.3.9
 
 ======================================================================
 
@@ -17,7 +17,7 @@ optimizations, major GUI improvements, and more.
 
 This software is distributed under the GNU General Public Licence as
 published by the Free Software Foundation. See the file LICENCE.TXT for the
-conditions under which this software is made available. TightVNC also
+conditions under which this software is made available. TigerVNC also
 contains code from other sources. See the Acknowledgements section below, and
 the individual files for details of the conditions under which they are made
 available.
@@ -38,15 +38,15 @@ of .class files, or the JAR archive.
 Installation
 ============
 
-There are three basic ways to use TightVNC Java viewer:
+There are three basic ways to use TigerVNC Java viewer:
 
-  1. Running applet as part of TightVNC server installation.
+  1. Running applet as part of TigerVNC server installation.
 
-     Both the Unix and Windows versions of TightVNC servers include small
+     Both the Unix and Windows versions of TigerVNC servers include small
      built-in HTTP server which can serve Java viewer to Web clients. This
      enables easy Web access to the shared desktop without need to install
      any software on the client computer. Unix and Windows versions of
-     TightVNC servers are different in the way they store the .class and .jar
+     TigerVNC servers are different in the way they store the .class and .jar
      files: the Unix server (Xvnc) is able to serve any set of files present
      in a particular directory, while the Windows server (WinVNC) has all the
      .class and .jar files inside the WinVNC executable file. Therefore, for
@@ -70,7 +70,7 @@ There are three basic ways to use TightVNC Java viewer:
      fully-functional HTTP server such as Apache or IIS. Obviously, this
      method requires running an HTTP server, and due to the Java security
      restrictions, it's also required that the server should be installed on
-     the same machine which is running the TightVNC server. In this case,
+     the same machine which is running the TigerVNC server. In this case,
      installation is simply copying the .class and .jar files into a
      directory that is under control of the HTTP server. Also, an HTML page
      should be created which will act as a the base document for the viewer
@@ -98,7 +98,7 @@ There are three basic ways to use TightVNC Java viewer:
 Parameters
 ==========
 
-TightVNC Java viewer supports a number of parameters allowing you to
+TigerVNC Java viewer supports a number of parameters allowing you to
 customize its behavior. Most parameters directly correspond to the settings
 found in the Options window. However, there are parameters that do not
 correspond to those settings. For such parameters, you can see a note "no GUI
@@ -126,7 +126,7 @@ viewer is used:
 Both parameter names and their values are case-insensitive. The only
 exception is the "PASSWORD" parameter, as VNC passwords are case-sensitive.
 
-Here is the complete list of parameters supported in TightVNC Java viewer:
+Here is the complete list of parameters supported in TigerVNC Java viewer:
 
 --> "HOST" (no GUI equivalent)
 
@@ -182,7 +182,7 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
     that are appropriate for current connection speed. "Hextile" is an
     encoding that was designed for fast networks, while "Tight" is better
     suited for low-bandwidth connections. From the other side, "Tight"
-    decoder in the TightVNC Java viewer seems to be more efficient than
+    decoder in the TigerVNC Java viewer seems to be more efficient than
     "Hextile" decoder so it may be ok for fast networks too. "ZRLE" encoding
     is similar to "Tight", but it does not support JPEG compression and
     compression levels. Unlike "Tight" encoding, "ZRLE" is supported in
@@ -407,12 +407,12 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
 RECORDING VNC SESSIONS
 ======================
 
-Current version of the TightVNC Java viewer is able to record VNC (RFB)
+Current version of the TigerVNC Java viewer is able to record VNC (RFB)
 sessions in files for later playback. The data format in saved session files
 is compatible with the rfbproxy program written by Tim Waugh. Most important
 thing about session recording is that it's supported only if Java security
 manager allows access to local filesystem. Typically, it would not work for
-unsigned applets. To use this feature, either use TightVNC Java viewer as a
+unsigned applets. To use this feature, either use TigerVNC Java viewer as a
 standalone application (Java Runtime Environment or Java Development Kit
 should be installed), or as a signed applet. The code checks if it's possible
 to support session recording, and if everything's fine, the new "Record"

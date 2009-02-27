@@ -1,4 +1,4 @@
-.TH vncconfig 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
+.TH vncconfig 1 "17 Apr 2006" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncconfig \- configure and control a VNC server
 .SH SYNOPSIS
@@ -117,7 +117,7 @@ When run as a "helper" app, make the window iconified at startup.
 .BR vncserver (1),
 .BR Xvnc (1)
 .br
-http://www.tightvnc.com
+http://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd.

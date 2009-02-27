@@ -255,7 +255,7 @@ createTunnel (const char *gatewayHost, const char *remoteHost,
   setenv ("L", lport, 1);
   if (!cmd)
     cmd = "/usr/bin/ssh -f -L \"$L\":\"$H\":\"$R\" \"$G\" sleep 20";
-  /* Compatibility with TightVNC's method. */
+  /* Compatibility with TigerVNC's method. */
   while ((percent = strchr (cmd, '%')) != NULL)
     *percent = '$';
   system (cmd);
@@ -267,11 +267,11 @@ int main(int argc, char** argv)
   bindtextdomain(PACKAGE_NAME, LOCALEDIR);
   textdomain(PACKAGE_NAME);
 
-  const char englishAbout[] = N_("TightVNC Viewer for X version %s - built %s\n"
+  const char englishAbout[] = N_("TigerVNC Viewer for X version %s - built %s\n"
 				 "Copyright (C) 2002-2005 RealVNC Ltd.\n"
 				 "Copyright (C) 2000-2006 TightVNC Group\n"
 				 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
-				 "See http://www.tightvnc.com for information on TightVNC.");
+				 "See http://www.tigervnc.org for information on TigerVNC.");
 
   // Write about text to console, still using normal locale codeset
   snprintf(aboutText, sizeof(aboutText),

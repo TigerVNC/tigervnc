@@ -1,4 +1,4 @@
-.TH vncserver 1 "17 Apr 2006" "TightVNC" "Virtual Network Computing"
+.TH vncserver 1 "17 Apr 2006" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncserver \- start or stop a VNC server
 .SH SYNOPSIS
@@ -110,7 +110,7 @@ option.
 .BR vncconfig (1),
 .BR Xvnc (1)
 .br
-http://www.tightvnc.com
+http://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd.

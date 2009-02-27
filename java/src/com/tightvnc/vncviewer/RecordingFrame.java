@@ -67,7 +67,7 @@ class RecordingFrame extends Frame
   //
 
   RecordingFrame(VncViewer v) {
-    super("TightVNC Session Recording");
+    super("TigerVNC Session Recording");
 
     viewer = v;
 

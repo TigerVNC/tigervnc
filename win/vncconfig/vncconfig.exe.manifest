@@ -3,7 +3,7 @@
 <assemblyIdentity
    version="4.0.0.26"
    processorArchitecture="X86"
-   name="TightVNC.vncconfig.exe"
+   name="TigerVNC.vncconfig.exe"
    type="win32"
 />
 <description>.NET control deployment tool</description>

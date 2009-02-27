@@ -105,7 +105,7 @@ public class VncViewer extends java.applet.Applet
     refApplet = this;
 
     if (inSeparateFrame) {
-      vncFrame = new Frame("TightVNC");
+      vncFrame = new Frame("TigerVNC");
       if (!inAnApplet) {
 	vncFrame.add("Center", this);
       }
