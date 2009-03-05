@@ -84,7 +84,6 @@ namespace rfb {
     virtual void serverCutText(const char* str, int len);
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
-    virtual void set_video_area(const Rect &rect);
     virtual bool clientsReadyForUpdate();
     virtual void tryUpdate();
     virtual void setCursor(int width, int height, const Point& hotspot,
@@ -192,19 +191,6 @@ namespace rfb {
 
     void setFTManager(rfb::SFileTransferManager *pFTManager) { m_pFTManager = pFTManager; };
 
-    // Enable/disable support for TightVNC-specific VideoRectangleSelection
-    // client message. This is a protocol option that lets a client select a
-    // rectangle to be treated by the server as video data. Once selected, this
-    // part of the framebuffer will be sent using JpegEncoder, on each update
-    // request, as we expect that video data is changing continuously. By
-    // default, this option is disabled, as it's rather a specialized feature
-    // and video selection GUI can confuse users of the TigerVNC client.
-    void enableVideoSelection(bool enable);
-    bool isVideoSelectionEnabled() const;
-
-    void setVideoRectangle(const Rect& r);
-    void setDefaultVideoRectangle(const Rect& r);
-
   protected:
 
     friend class VNCSConnectionST;
@@ -241,7 +227,6 @@ namespace rfb {
 
     bool needRenderedCursor();
     void checkUpdate();
-    void checkVideoUpdate();
 
     SSecurityFactory* securityFactory;
     QueryConnectionHandler* queryConnectionHandler;
@@ -253,12 +238,6 @@ namespace rfb {
     time_t lastConnectionTime;
 
     bool disableclients;
-
-    bool m_videoSelectionEnabled;
-    Rect m_videoRect;
-    Rect m_defaultVideoRect;
-
-    void applyVideoRectangle();
   };
 
 };

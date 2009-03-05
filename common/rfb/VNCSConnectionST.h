@@ -94,7 +94,6 @@ namespace rfb {
     void add_copied(const Region& dest, const Point& delta) {
       updates.add_copied(dest, delta);
     }
-    void set_video_area(const Rect &rect) { updates.set_video_area(rect); }
 
     const char* getPeerEndpoint() const {return peerEndpoint.buf;}
 
@@ -130,8 +129,6 @@ namespace rfb {
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setInitialColourMap();
     virtual void supportsLocalCursor();
-
-    virtual void setVideoRectangle(const Rect& r);
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied

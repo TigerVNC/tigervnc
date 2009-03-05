@@ -86,7 +86,6 @@ VNCSConnectionST::~VNCSConnectionST()
 bool VNCSConnectionST::init()
 {
   try {
-    setProtocolOptions(server->isVideoSelectionEnabled());
     initialiseProtocol();
   } catch (rdr::Exception& e) {
     close(e.str());
@@ -128,12 +127,9 @@ void VNCSConnectionST::processMessages()
     }
 
     // If there were update requests, try to send a framebuffer update.
-    // We don't send updates immediately on requests for two reasons:
-    //   (1) If a video area is set, we don't want to send it on every
-    //       update request. We should gobble all the pending update
-    //       requests and send just one update.
-    //   (2) This way, we give higher priority to user actions such as
-    //       keyboard and pointer events.
+    // We don't send updates immediately on requests as this way, we
+    // give higher priority to user actions such as keyboard and
+    // pointer events.
     if (!requested.is_empty()) {
       writeFramebufferUpdate();
     }
@@ -508,11 +504,6 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   }
 }
 
-void VNCSConnectionST::setVideoRectangle(const Rect& r)
-{
-  server->setVideoRectangle(r);
-}
-
 void VNCSConnectionST::setInitialColourMap()
 {
   setColourMapEntries(0, 0);
@@ -573,26 +564,11 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   updates.enable_copyrect(cp.useCopyRect);
 
-  static int counter = 1;
-  if (--counter > 0) {
-    server->checkVideoUpdate();
-  } else {
-    counter = rfb::Server::videoPriority;
-    server->checkUpdate();
-  }
-
-  // If VideoPriority is 0, convert video updates to normal updates.
-
-  if (rfb::Server::videoPriority == 0) {
-    Region videoRegion(updates.getVideoArea());
-    updates.add_changed(videoRegion);
-    Rect nullRect(0, 0, 0, 0);
-    updates.set_video_area(nullRect);
-  }
+  server->checkUpdate();
 
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
-  // `changed', `copied' and `video_area' regions would not intersect.
+  // `changed' and `copied' regions would not intersect.
 
   UpdateInfo ui;
   updates.getUpdateInfo(&ui, requested);
@@ -665,13 +641,6 @@ void VNCSConnectionST::writeFramebufferUpdate()
     writer()->setupCurrentEncoder();
     int nRects = (ui.copied.numRects() +
                   (drawRenderedCursor ? 1 : 0));
-    if (!ui.video_area.is_empty()) {
-      if (writer()->canUseJpegEncoder(server->getPixelBuffer())) {
-        nRects++;
-      } else {
-        nRects += writer()->getNumRects(ui.video_area);
-      }
-    }
 
     std::vector<Rect> rects;
     std::vector<Rect>::const_iterator i;
@@ -682,14 +651,6 @@ void VNCSConnectionST::writeFramebufferUpdate()
     }
     
     writer()->writeFramebufferUpdateStart(nRects);
-    if (!ui.video_area.is_empty()) {
-      if (writer()->canUseJpegEncoder(server->getPixelBuffer())) {
-        writer()->writeJpegRect(server->getPixelBuffer(), ui.video_area);
-      } else {
-        Rect actual;
-        writer()->writeRect(ui.video_area, &image_getter, &actual);
-      }
-    }
     Region updatedRegion;
     writer()->writeRects(ui, &image_getter, &updatedRegion);
     updates.subtract(updatedRegion);

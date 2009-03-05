@@ -188,7 +188,6 @@ public:
 
     server = (VNCServerST *)vs;
     server->setPixelBuffer(pb);
-    server->setDefaultVideoRectangle(geometry->getVideoRect());
 
     running = true;
   }
@@ -447,7 +446,6 @@ int main(int argc, char** argv)
     VNCServerST server("x0vncserver", &desktop);
     QueryConnHandler qcHandler(dpy, &server);
     server.setQueryConnectionHandler(&qcHandler);
-    server.enableVideoSelection(true);
 
     TcpListener listener((int)rfbport);
     vlog.info("Listening on port %d", (int)rfbport);

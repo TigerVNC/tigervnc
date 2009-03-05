@@ -37,7 +37,6 @@ namespace rfb {
   class ColourMap;
   class Region;
   class UpdateInfo;
-  class JpegEncoder;
 
   class WriteSetCursorCallback {
   public:
@@ -133,9 +132,6 @@ namespace rfb {
 
     virtual void writeCopyRect(const Rect& r, int srcX, int srcY);
 
-    virtual bool canUseJpegEncoder(PixelBuffer *pb) const;
-    virtual void writeJpegRect(PixelBuffer *pb, const Rect& r);
-
     virtual void startRect(const Rect& r, unsigned int enc)=0;
     virtual void endRect()=0;
 
@@ -161,14 +157,12 @@ namespace rfb {
     rdr::OutStream* os;
 
     Encoder* encoders[encodingMax+1];
-    JpegEncoder* jpegEncoder;
     int lenBeforeRect;
     unsigned int currentEncoding;
     int updatesSent;
     int bytesSent[encodingMax+1];
     int rectsSent[encodingMax+1];
     int rawBytesEquivalent;
-    // FIXME: Gather statistics for JpegEncoder as well.
 
     rdr::U8* imageBuf;
     int imageBufSize;

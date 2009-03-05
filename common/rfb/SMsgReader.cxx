@@ -99,25 +99,3 @@ void SMsgReader::readClientCutText()
   handler->clientCutText(ca.buf, len);
 }
 
-void SMsgReader::readVideoRectangleSelection()
-{
-  (void)is->readU8();
-  int x = is->readU16();
-  int y = is->readU16();
-  int w = is->readU16();
-  int h = is->readU16();
-  Rect rect(x, y, x+w, y+h);
-
-  if (!rect.is_empty()) {
-    vlog.debug("Video area selected by client: %dx%d at (%d,%d)",
-               w, h, x, y);
-  } else if (x != 0 || y != 0 || w != 0 || h != 0) {
-    vlog.debug("Empty video area selected by client: %dx%d at (%d,%d)",
-               w, h, x, y);
-    rect.clear();
-  } else {
-    vlog.debug("Video area discarded by client");
-  }
-  handler->setVideoRectangle(rect);
-}
-

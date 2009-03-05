@@ -30,15 +30,14 @@ namespace rfb {
     Region changed;
     Region copied;
     Point copy_delta;
-    Rect video_area;
     bool is_empty() const {
-      return copied.is_empty() && changed.is_empty() && video_area.is_empty();
+      return copied.is_empty() && changed.is_empty();
     }
     // NOTE: We do not ever use UpdateInfo::numRects(), because Tight encoding
     //       complicates computing the number of rectangles.
     /*
     int numRects() const {
-      return copied.numRects() + changed.numRects() + !video_area.is_empty();
+      return copied.numRects() + changed.numRects();
     }
     */
   };
@@ -50,7 +49,6 @@ namespace rfb {
 
     virtual void add_changed(const Region &region) = 0;
     virtual void add_copied(const Region &dest, const Point &delta) = 0;
-    virtual void set_video_area(const Rect &rect) = 0;
   };
 
   class ClippingUpdateTracker : public UpdateTracker {
@@ -63,7 +61,6 @@ namespace rfb {
 
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
-    virtual void set_video_area(const Rect &rect);
   protected:
     UpdateTracker* ut;
     Rect clipRect;
@@ -78,49 +75,26 @@ namespace rfb {
 
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
-    virtual void set_video_area(const Rect &rect);
     virtual void subtract(const Region& region);
 
     // Fill the supplied UpdateInfo structure with update information
     // FIXME: Provide getUpdateInfo() with no clipping, for better efficiency.
     virtual void getUpdateInfo(UpdateInfo* info, const Region& cliprgn);
 
-    // Get coordinates of the video rectangle
-    virtual const Rect& getVideoArea() const {
-      return video_area;
-    }
-
     // Copy the contained updates to another tracker
     virtual void copyTo(UpdateTracker* to) const;
 
     // Move the entire update region by an offset
-    void translate(const Point& p) {
-      changed.translate(p);
-      copied.translate(p);
-      video_area.translate(p);
-    }
+    void translate(const Point& p) {changed.translate(p); copied.translate(p);}
 
-    virtual bool is_empty() const {
-      return changed.is_empty() && copied.is_empty() && video_area.is_empty();
-    }
+    virtual bool is_empty() const {return changed.is_empty() && copied.is_empty();}
 
-    // NOTE: We do not clear video_area intentionally.
-    virtual void clear() {
-      changed.clear();
-      copied.clear();
-    }
-
+    virtual void clear() {changed.clear(); copied.clear();};
   protected:
     Region changed;
     Region copied;
     Point copy_delta;
     bool copy_enabled;
-
-    // We can track one rectangle on the screen as a "video area". We assume
-    // it is changing continuously, in whole. Thus, we don't need to detect
-    // and track individual changes in the video area -- we can assume it's
-    // always in the changed state.
-    Rect video_area;
   };
 
 }

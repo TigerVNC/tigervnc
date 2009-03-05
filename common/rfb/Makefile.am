@@ -9,8 +9,7 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h CFTMsgReader.h \
 	FileWriter.h fttypes.h hextileConstants.h hextileDecode.h \
 	HextileDecoder.h hextileEncodeBetter.h hextileEncode.h \
 	HextileEncoder.h Hostname.h HTTPServer.h ImageGetter.h InputHandler.h \
-	IrixCLJpegCompressor.h IrixDMIC_RawToJpeg.h IrixDMJpegCompressor.h \
-	JpegCompressor.h JpegEncoder.h KeyRemapper.h keysymdef.h \
+	KeyRemapper.h keysymdef.h \
 	ListConnInfo.h Logger_file.h Logger.h Logger_stdio.h LogWriter.h \
 	msgTypes.h Password.h PixelBuffer.h PixelFormat.h Pixel.h \
 	RawDecoder.h RawEncoder.h Rect.h Region.h rreDecode.h RREDecoder.h \
@@ -31,8 +30,8 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CFTMsgReader.cxx CFTMs
 	CSecurityVncAuth.cxx CapsContainer.cxx CapsList.cxx \
 	ComparingUpdateTracker.cxx Configuration.cxx ConnParams.cxx \
 	Cursor.cxx Decoder.cxx d3des.c Encoder.cxx FileInfo.cxx \
-	FileManager.cxx FileReader.cxx FileWriter.cxx JpegCompressor.cxx \
-	JpegEncoder.cxx HTTPServer.cxx HextileDecoder.cxx HextileEncoder.cxx \
+	FileManager.cxx FileReader.cxx FileWriter.cxx \
+	HTTPServer.cxx HextileDecoder.cxx HextileEncoder.cxx \
 	KeyRemapper.cxx LogWriter.cxx Logger.cxx Logger_file.cxx \
 	Logger_stdio.cxx Password.cxx PixelBuffer.cxx PixelFormat.cxx \
 	RREEncoder.cxx RREDecoder.cxx RawDecoder.cxx RawEncoder.cxx \
@@ -48,15 +47,6 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CFTMsgReader.cxx CFTMs
 
 librfb_la_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/../win
 librfb_la_LIBADD =
-
-if IRIX_COMPRESS
-librfb_la_SOURCES += IrixCLJpegCompressor.cxx
-librfb_la_LIBADD += -lcl
-endif
-if IRIX_MEDIA
-librfb_la_SOURCES += IrixDMJpegCompressor.cxx IrixDMIC_RawToJpeg.cxx
-librfb_la_LIBADD += -ldmedia
-endif
 
 if INCLUDED_JPEG
 librfb_la_CPPFLAGS += -I$(top_srcdir)/jpeg

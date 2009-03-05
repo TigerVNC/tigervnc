@@ -63,8 +63,6 @@ void SMsgReaderV3::readMsg()
   case msgTypeFileRenameRequest:
   case msgTypeFileDeleteRequest:        handler->processFTMsg(msgType); break;
 
-  case msgTypeVideoRectangleSelection:  readVideoRectangleSelection(); break;
-
   default:
     fprintf(stderr, "unknown message type %d\n", msgType);
     throw Exception("unknown message type");

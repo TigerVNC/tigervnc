@@ -77,8 +77,7 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
     securityFactory(sf ? sf : &defaultSecurityFactory),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
     useEconomicTranslate(false),
-    lastConnectionTime(0), disableclients(false),
-    m_videoSelectionEnabled(false)
+    lastConnectionTime(0), disableclients(false)
 {
   lastUserInputTime = lastDisconnectTime = time(0);
   slog.debug("creating single-threaded server %s", name.buf);
@@ -147,7 +146,6 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         slog.debug("no authenticated clients - stopping desktop");
         desktopStarted = false;
         desktop->stop();
-        setVideoRectangle(Rect(0, 0, 0, 0));
       }
       return;
     }
@@ -260,7 +258,6 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
 
   if (pb) {
     comparer = new ComparingUpdateTracker(pb);
-    applyVideoRectangle();
     cursor.setPF(pb->getPF());
     renderedCursor.setPF(pb->getPF());
 
@@ -323,13 +320,6 @@ void VNCServerST::add_copied(const Region& dest, const Point& delta)
 {
   if (comparer != 0) {
     comparer->add_copied(dest, delta);
-  }
-}
-
-void VNCServerST::set_video_area(const Rect &rect)
-{
-  if (comparer != 0) {
-    comparer->set_video_area(rect);
   }
 }
 
@@ -478,7 +468,7 @@ void VNCServerST::checkUpdate()
   if (ui.is_empty() && !(renderCursor && renderedCursorInvalid))
     return;
 
-  Region toCheck = ui.changed.union_(ui.copied).union_(ui.video_area);
+  Region toCheck = ui.changed.union_(ui.copied);
 
   if (renderCursor) {
     Rect clippedCursorRect
@@ -516,26 +506,9 @@ void VNCServerST::checkUpdate()
     ci_next = ci; ci_next++;
     (*ci)->add_copied(ui.copied, ui.copy_delta);
     (*ci)->add_changed(ui.changed);
-    (*ci)->set_video_area(ui.video_area);
   }
 
   comparer->clear();
-}
-
-void VNCServerST::checkVideoUpdate()
-{
-  const Rect &videoRect = comparer->getVideoArea();
-  Region videoRegion(videoRect);
-
-  if (!videoRegion.is_empty()) {
-    pb->grabRegion(videoRegion);
-
-    std::list<VNCSConnectionST*>::iterator ci, ci_next;
-    for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-      ci_next = ci; ci_next++;
-      (*ci)->set_video_area(videoRect);
-    }
-  }
 }
 
 void VNCServerST::getConnInfo(ListConnInfo * listConn)
@@ -571,43 +544,3 @@ void VNCServerST::setConnStatus(ListConnInfo* listConn)
   }
 }
 
-void VNCServerST::enableVideoSelection(bool enable)
-{
-  slog.debug("Enabling video selection");
-  m_videoSelectionEnabled = enable;
-  applyVideoRectangle();
-}
-
-bool VNCServerST::isVideoSelectionEnabled() const
-{
-  return m_videoSelectionEnabled;
-}
-
-void VNCServerST::setVideoRectangle(const Rect& r)
-{
-  m_videoRect = r;
-  applyVideoRectangle();
-}
-
-void VNCServerST::setDefaultVideoRectangle(const Rect& r)
-{
-  m_defaultVideoRect = r;
-  applyVideoRectangle();
-}
-
-void VNCServerST::applyVideoRectangle()
-{
-  if (pb != 0) {
-    if (isVideoSelectionEnabled() && !m_videoRect.is_empty()) {
-      slog.debug("Applying video selection");
-      set_video_area(m_videoRect);
-    } else {
-      if (!m_defaultVideoRect.is_empty()) {
-        slog.debug("Applying default video area");
-      } else {
-        slog.debug("Applying empty video area");
-      }
-      set_video_area(m_defaultVideoRect);
-    }
-  }
-}

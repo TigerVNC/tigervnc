@@ -60,10 +60,6 @@ void ClippingUpdateTracker::add_copied(const Region &dest, const Point &delta) {
     ut->add_changed(tmp);
 }
 
-void ClippingUpdateTracker::set_video_area(const Rect &rect) {
-  ut->set_video_area(rect.intersect(clipRect));
-}
-
 // SimpleUpdateTracker
 
 SimpleUpdateTracker::SimpleUpdateTracker(bool use_copyrect) {
@@ -139,18 +135,6 @@ void SimpleUpdateTracker::add_copied(const Region &dest, const Point &delta) {
   return;
 }
 
-void SimpleUpdateTracker::set_video_area(const Rect &rect)
-{
-  video_area = rect;
-}
-
-//
-// subtract() is called to mark some region as unchanged. We just remove that
-// region from both `copied' and `changed' regions. Note that `video_area' is
-// not affected intentionally; we assume that video is continuously changing,
-// so it should always be treated as "changed".
-//
-
 void SimpleUpdateTracker::subtract(const Region& region) {
   copied.assign_subtract(region);
   changed.assign_subtract(region);
@@ -158,15 +142,10 @@ void SimpleUpdateTracker::subtract(const Region& region) {
 
 void SimpleUpdateTracker::getUpdateInfo(UpdateInfo* info, const Region& clip)
 {
-  changed.assign_subtract(video_area);
-  copied.assign_subtract(changed.union_(video_area));
+  copied.assign_subtract(changed);
   info->changed = changed.intersect(clip);
   info->copied = copied.intersect(clip);
   info->copy_delta = copy_delta;
-  // FIXME: Using get_bounding_rect() is not what should actually be done!
-  //        We should use the biggest inner rectangle of the `clip' instead.
-  //        From the other side, `clip' is usually just a sole rectangle.
-  info->video_area = video_area.intersect(clip.get_bounding_rect());
 }
 
 void SimpleUpdateTracker::copyTo(UpdateTracker* to) const {
@@ -174,5 +153,4 @@ void SimpleUpdateTracker::copyTo(UpdateTracker* to) const {
     to->add_copied(copied, copy_delta);
   if (!changed.is_empty())
     to->add_changed(changed);
-  to->set_video_area(video_area);
 }

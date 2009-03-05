@@ -93,8 +93,3 @@ rfb::BoolParameter rfb::Server::queryConnect
  "Prompt the local user to accept or reject incoming connections.",
  false);
 
-// TightVNC-specific parameters
-rfb::IntParameter rfb::Server::videoPriority
-("VideoPriority",
- "Priority of sending video updates (0..8)",
- 2, 0, 8);
