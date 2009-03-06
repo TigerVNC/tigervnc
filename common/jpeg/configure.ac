@@ -72,7 +72,10 @@ AC_CHECK_FUNCS([memset memcpy], [],
 	[AC_DEFINE([NEED_BSD_STRINGS], 1,
 		   [Define if you have BSD-like bzero and bcopy])])
 
-# config.h should not be included
+# jconfig.h is the file we use, but we have another before that to
+# fool autoheader. the reason is that we include this header in our
+# API headers, which can screw things up for users of the lib.
+# jconfig.h is a minimal version that allows this package to be built
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_HEADERS([jconfig.h])
 AC_CONFIG_FILES([Makefile])
