@@ -36,8 +36,8 @@ Specify the size of the desktop to be created. Default is 1024x768.
 
 .TP
 .B \-depth \fIdepth\fP
-Specify the pixel depth in bits of the desktop to be created. Default is 16,
-other possible values are 8, 15, and 24 - anything else is likely to cause
+Specify the pixel depth in bits of the desktop to be created. Default is 24,
+other possible values are 8, 15, and 16 - anything else is likely to cause
 strange behaviour by applications.
 
 .TP
