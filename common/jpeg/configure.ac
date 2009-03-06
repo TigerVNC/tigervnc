@@ -68,7 +68,6 @@ AC_TRY_LINK(
 	 AC_DEFINE([NEED_SHORT_EXTERNAL_NAMES], 1, [Define if you need short function names])])
 
 # Checks for library functions.
-AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset memcpy], [],
 	[AC_DEFINE([NEED_BSD_STRINGS], 1,
 		   [Define if you have BSD-like bzero and bcopy])])
