@@ -67,8 +67,7 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   bool cutZeros = false;
   const rfb::PixelFormat& myFormat = handler->cp.pf();
 #if BPP == 32
-  if (myFormat.depth == 24 && myFormat.redMax == 0xFF &&
-      myFormat.greenMax == 0xFF && myFormat.blueMax == 0xFF) {
+  if (myFormat.is888()) {
     cutZeros = true;
   } 
 #endif
@@ -88,7 +87,7 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
     PIXEL_T pix;
     if (cutZeros) {
       is->readBytes(bytebuf, 3);
-      pix = RGB24_TO_PIXEL32(bytebuf[0], bytebuf[1], bytebuf[2]);
+      pix = myFormat.pixelFromRGB(bytebuf[0], bytebuf[1], bytebuf[2]);
     } else {
       pix = is->READ_PIXEL();
     }
@@ -123,7 +122,7 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 	rdr::U8 *tightPalette = (rdr::U8*) palette;
 	is->readBytes(tightPalette, palSize*3);
 	for (int i = palSize - 1; i >= 0; i--) {
-	  palette[i] = RGB24_TO_PIXEL32(tightPalette[i*3],
+	  palette[i] = myFormat.pixelFromRGB(tightPalette[i*3],
 					tightPalette[i*3+1],
 					tightPalette[i*3+2]);
         }
@@ -179,7 +178,7 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
       input->readBytes(buf, dataSize); 
       if (cutZeros) {
 	for (int p = r.height() * r.width() - 1; p >= 0; p--) {
-	  buf[p] = RGB24_TO_PIXEL32(bytebuf[p*3],
+	  buf[p] = myFormat.pixelFromRGB(bytebuf[p*3],
 				    bytebuf[p*3+1],
 				    bytebuf[p*3+2]);
 	}
@@ -270,7 +269,7 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
 
     for (int dx = 0; dx < r.width(); dx++) {
       *pixelPtr++ = 
-	RGB24_TO_PIXEL(scanline[dx*3], scanline[dx*3+1], scanline[dx*3+2]);
+	myFormat.pixelFromRGB(scanline[dx*3], scanline[dx*3+1], scanline[dx*3+2]);
     }
   }
 
@@ -319,7 +318,7 @@ FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
       pix[c] = netbuf[y*rectWidth*3+c] + prevRow[c];
       thisRow[c] = pix[c];
     }
-    buf[y*rectWidth] = RGB24_TO_PIXEL32(pix[0], pix[1], pix[2]);
+    buf[y*rectWidth] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
@@ -333,7 +332,7 @@ FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
 	pix[c] = netbuf[(y*rectWidth+x)*3+c] + est[c];
 	thisRow[x*3+c] = pix[c];
       }
-      buf[y*rectWidth+x] = RGB24_TO_PIXEL32(pix[0], pix[1], pix[2]);
+      buf[y*rectWidth+x] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
@@ -351,9 +350,7 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
   int x, y, c;
   static rdr::U8 prevRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
   static rdr::U8 thisRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
-  int pix[3]; 
-  int max[3]; 
-  int shift[3]; 
+  rdr::U8 pix[3]; 
   int est[3]; 
 
   memset(prevRow, 0, sizeof(prevRow));
@@ -367,36 +364,39 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
 
   // Set up shortcut variables
   const rfb::PixelFormat& myFormat = handler->cp.pf();
-  max[0] = myFormat.redMax; 
-  max[1] = myFormat.greenMax; 
-  max[2] = myFormat.blueMax; 
-  shift[0] = myFormat.redShift; 
-  shift[1] = myFormat.greenShift; 
-  shift[2] = myFormat.blueShift; 
   int rectHeight = r.height();
   int rectWidth = r.width();
 
   for (y = 0; y < rectHeight; y++) {
     /* First pixel in a row */
-    for (c = 0; c < 3; c++) {
-      pix[c] = (netbuf[y*rectWidth] >> shift[c]) + prevRow[c] & max[c];
-      thisRow[c] = pix[c];
-    }
-    buf[y*rectWidth] = RGB_TO_PIXEL(pix[0], pix[1], pix[2]);
+    myFormat.rgbFromPixel(netbuf[y*rectWidth], NULL,
+                          &pix[0], &pix[1], &pix[2]);
+    for (c = 0; c < 3; c++)
+      pix[c] += prevRow[c];
+
+    memcpy(thisRow, pix, sizeof(pix));
+
+    buf[y*rectWidth] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
       for (c = 0; c < 3; c++) {
-	est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
-	if (est[c] > max[c]) {
-	  est[c] = max[c];
-	} else if (est[c] < 0) {
-	  est[c] = 0;
-	}
-	pix[c] = (netbuf[y*rectWidth+x] >> shift[c]) + est[c] & max[c];
-	thisRow[x*3+c] = pix[c];
+        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+        if (est[c] > 255) {
+          est[c] = 255;
+        } else if (est[c] < 0) {
+          est[c] = 0;
+        }
       }
-      buf[y*rectWidth+x] = RGB_TO_PIXEL(pix[0], pix[1], pix[2]);
+
+      myFormat.rgbFromPixel(netbuf[y*rectWidth+x], NULL,
+                            &pix[0], &pix[1], &pix[2]);
+      for (c = 0; c < 3; c++)
+        pix[c] += est[c];
+
+      memcpy(&thisRow[x*3], pix, sizeof(pix));
+
+      buf[y*rectWidth+x] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));

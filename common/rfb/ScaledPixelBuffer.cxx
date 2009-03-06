@@ -115,12 +115,6 @@ void ScaledPixelBuffer::setScaleFilter(unsigned int scaleFilterID_) {
   }
 }
 
-inline void ScaledPixelBuffer::rgbFromPixel(U32 p, int &r, int &g, int &b) {
-  r = (((p >> pf.redShift  ) & pf.redMax  ) * 255 + pf.redMax  /2) / pf.redMax;
-  g = (((p >> pf.greenShift) & pf.greenMax) * 255 + pf.greenMax/2) / pf.greenMax;
-  b = (((p >> pf.blueShift ) & pf.blueMax ) * 255 + pf.blueMax /2) / pf.blueMax;
-}
-
 inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
   int bytes_per_pixel = pf.bpp / 8;
   U8 *ptr = &(*src_data)[(x + y*src_width)*bytes_per_pixel];
@@ -141,7 +135,8 @@ inline U32 ScaledPixelBuffer::getSourcePixel(int x, int y) {
 void ScaledPixelBuffer::scaleRect(const Rect& rect) {
   Rect changed_rect;
   U8 *ptr, *ptrs, *px, *pxs;
-  int r, g, b, red, green, blue;
+  U16 r, g, b;
+  int red, green, blue;
   short *xweight, *yweight, weight;
 
   // Calculate the changed pixel rect in the scaled image
@@ -169,7 +164,7 @@ void ScaledPixelBuffer::scaleRect(const Rect& rect) {
     for (int ys = yWeightTabs[y].i0; ys < yWeightTabs[y].i1; ys++) {
       px = pxs;
       for (int xs = xWeightTabs[changed_rect.tl.x].i0; xs < xWeightTabs[changed_rect.br.x-1].i1; xs++) {
-        rgbFromPixel(*((U32*)px), r, g, b);
+        pf.rgbFromPixel(*((U32*)px), NULL, &r, &g, &b);
         weight = *yweight;
         raccum[xs] += (int)(weight) * r;
         gaccum[xs] += (int)(weight) * g;

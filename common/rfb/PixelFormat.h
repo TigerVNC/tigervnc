@@ -35,24 +35,56 @@ namespace rfb {
     PixelFormat(int b, int d, bool e, bool t,
                 int rm=0, int gm=0, int bm=0, int rs=0, int gs=0, int bs=0);
     PixelFormat();
+
     bool equal(const PixelFormat& other) const;
+
     void read(rdr::InStream* is);
     void write(rdr::OutStream* os) const;
+
+    bool is888(void) const;
+    bool isBigEndian(void) const;
+    bool isLittleEndian(void) const;
+
+    inline Pixel pixelFromBuffer(const rdr::U8* buffer) const;
+
     Pixel pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue, ColourMap* cm=0) const;
+    Pixel pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue, ColourMap* cm=0) const;
+
     void rgbFromPixel(Pixel pix, ColourMap* cm, Colour* rgb) const;
+    inline void rgbFromPixel(Pixel pix, ColourMap* cm, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const;
+    inline void rgbFromPixel(Pixel pix, ColourMap* cm, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const;
+
+    void rgbFromBuffer(rdr::U16* dst, const rdr::U8* src, int pixels, ColourMap* cm=0) const;
+    void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm=0) const;
+
     void print(char* str, int len) const;
     bool parse(const char* str);
 
+  protected:
+    void updateShifts(void);
+
+  public:
     int bpp;
     int depth;
-    bool bigEndian;
     bool trueColour;
+
+  // FIXME: These should be protected, but we need to fix TransImageGetter first.
+  public:
+    bool bigEndian;
     int redMax;
     int greenMax;
     int blueMax;
     int redShift;
     int greenShift;
     int blueShift;
+
+  protected:
+    int redConvShift;
+    int greenConvShift;
+    int blueConvShift;
   };
 }
+
+#include <rfb/PixelFormat.inl>
+
 #endif

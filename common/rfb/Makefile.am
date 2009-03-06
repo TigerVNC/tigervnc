@@ -11,7 +11,7 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h CFTMsgReader.h \
 	HextileEncoder.h Hostname.h HTTPServer.h ImageGetter.h InputHandler.h \
 	KeyRemapper.h keysymdef.h \
 	ListConnInfo.h Logger_file.h Logger.h Logger_stdio.h LogWriter.h \
-	msgTypes.h Password.h PixelBuffer.h PixelFormat.h Pixel.h \
+	msgTypes.h Password.h PixelBuffer.h PixelFormat.h PixelFormat.inl Pixel.h \
 	RawDecoder.h RawEncoder.h Rect.h Region.h rreDecode.h RREDecoder.h \
 	rreEncode.h RREEncoder.h ScaledPixelBuffer.h ScaleFilters.h \
 	SConnection.h SDesktop.h secTypes.h ServerCore.h SFileTransfer.h \

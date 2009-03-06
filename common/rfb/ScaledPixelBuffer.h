@@ -58,7 +58,6 @@ namespace rfb {
 
     // Pixel manipulation routines
     inline U32 getSourcePixel(int x, int y);
-    inline void rgbFromPixel(U32 p, int &r, int &g, int &b);
 
     // Get rectangle encompassing this buffer
     //   Top-left of rectangle is either at (0,0), or the specified point.

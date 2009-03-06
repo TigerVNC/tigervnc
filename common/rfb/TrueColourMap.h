@@ -28,12 +28,11 @@ namespace rfb {
 
     virtual void lookup(int i, int* r, int* g, int* b)
     {
-      *r = (((i >> pf.redShift  ) & pf.redMax)
-            * 65535 + pf.redMax/2) / pf.redMax;
-      *g = (((i >> pf.greenShift) & pf.greenMax)
-            * 65535 + pf.greenMax/2) / pf.greenMax;
-      *b = (((i >> pf.blueShift) & pf.blueMax)
-            * 65535 + pf.blueMax/2) / pf.blueMax;
+      rdr::U16 _r, _g, _b;
+      pf.rgbFromPixel(i, NULL, &_r, &_g, &_b);
+      *r = _r;
+      *g = _g;
+      *b = _b;
     }
   private:
     PixelFormat pf;

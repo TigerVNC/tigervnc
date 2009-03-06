@@ -87,21 +87,17 @@ bool ZRLEEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
     {
       const PixelFormat& pf = writer->getConnParams()->pf();
 
-      bool fitsInLS3Bytes = ((pf.redMax   << pf.redShift)   < (1<<24) &&
-                             (pf.greenMax << pf.greenShift) < (1<<24) &&
-                             (pf.blueMax  << pf.blueShift)  < (1<<24));
+      Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
+      bool fitsInLS3Bytes = maxPixel < (1<<24);
+      bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
 
-      bool fitsInMS3Bytes = (pf.redShift   > 7  &&
-                             pf.greenShift > 7  &&
-                             pf.blueShift  > 7);
-
-      if ((fitsInLS3Bytes && !pf.bigEndian) ||
-          (fitsInMS3Bytes && pf.bigEndian))
+      if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
+          (fitsInMS3Bytes && pf.isBigEndian()))
       {
         wroteAll = zrleEncode24A(r, mos, &zos, imageBuf, maxLen, actual, ig);
       }
-      else if ((fitsInLS3Bytes && pf.bigEndian) ||
-               (fitsInMS3Bytes && !pf.bigEndian))
+      else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
+               (fitsInMS3Bytes && pf.isLittleEndian()))
       {
         wroteAll = zrleEncode24B(r, mos, &zos, imageBuf, maxLen, actual, ig);
       }

@@ -79,9 +79,7 @@ struct TIGHT_PALETTE {
 };
 
 // FIXME: Is it really a good idea to use static variables for this?
-static int s_endianMismatch;      // local/remote formats differ in byte order
 static bool s_pack24;             // use 24-bit packing for 32-bit pixels
-static int s_rs, s_gs, s_bs;      // shifts for 24-bit pixel conversion
 
 // FIXME: Make a separate class for palette operations.
 static int s_palMaxColors, s_palNumColors;
@@ -251,14 +249,14 @@ JpegSetDstManager(j_compress_ptr cinfo, JOCTET *buf, size_t buflen)
 #endif  // #ifndef TIGHT_ONCE
 
 static void ENCODE_SOLID_RECT     (rdr::OutStream *os,
-                                   PIXEL_T *buf);
+                                   PIXEL_T *buf, const PixelFormat& pf);
 static void ENCODE_FULLCOLOR_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
-                                   PIXEL_T *buf, const Rect& r);
+                                   PIXEL_T *buf, const PixelFormat& pf, const Rect& r);
 static void ENCODE_MONO_RECT      (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
-                                   PIXEL_T *buf, const Rect& r);
+                                   PIXEL_T *buf, const PixelFormat& pf, const Rect& r);
 #if (BPP != 8)
 static void ENCODE_INDEXED_RECT   (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
-                                   PIXEL_T *buf, const Rect& r);
+                                   PIXEL_T *buf, const PixelFormat& pf, const Rect& r);
 static void ENCODE_JPEG_RECT      (rdr::OutStream *os,
                                    PIXEL_T *buf, const PixelFormat& pf, const Rect& r);
 #endif
@@ -271,7 +269,8 @@ static void FILL_PALETTE (PIXEL_T *data, int count);
 // Color components are assumed to be byte-aligned.
 //
 
-static inline unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count)
+static inline unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count,
+                                        const PixelFormat& pf)
 {
 #if (BPP != 32)
   return count * sizeof(PIXEL_T);
@@ -283,9 +282,8 @@ static inline unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count)
   rdr::U8 *dst = (rdr::U8 *)buf;
   for (unsigned int i = 0; i < count; i++) {
     pix = *buf++;
-    *dst++ = (rdr::U8)(pix >> s_rs);
-    *dst++ = (rdr::U8)(pix >> s_gs);
-    *dst++ = (rdr::U8)(pix >> s_bs);
+    pf.rgbFromPixel(pix, NULL, &dst[0], &dst[1], &dst[2]);
+    dst += 3;
   }
   return count * 3;
 #endif
@@ -325,37 +323,14 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
 #endif
                   )
 {
-#if (BPP != 8) || (BPP == 32)
   const PixelFormat& pf = cp->pf();
-#endif
   GET_IMAGE_INTO_BUF(r, buf);
   PIXEL_T* pixels = (PIXEL_T*)buf;
-
-#if (BPP != 8)
-  union {
-    rdr::U32 value32;
-    rdr::U8 test;
-  } littleEndian;
-  littleEndian.value32 = 1;
-  s_endianMismatch = (littleEndian.test != !pf.bigEndian);
-#endif
 
 #if (BPP == 32)
   // Check if it's necessary to pack 24-bit pixels, and
   // compute appropriate shift values if necessary.
-  s_pack24 = (pf.depth == 24 && pf.redMax == 0xFF &&
-              pf.greenMax == 0xFF && pf.blueMax == 0xFF);
-  if (s_pack24) {
-    if (!s_endianMismatch) {
-      s_rs = pf.redShift;
-      s_gs = pf.greenShift;
-      s_bs = pf.blueShift;
-    } else {
-      s_rs = 24 - pf.redShift;
-      s_gs = 24 - pf.greenShift;
-      s_bs = 24 - pf.blueShift;
-    }
-  }
+  s_pack24 = pf.is888();
 #endif
 
   s_palMaxColors = r.area() / s_pconf->idxMaxColorsDivisor;
@@ -378,20 +353,20 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
       break;
     }
 #endif
-    ENCODE_FULLCOLOR_RECT(os, zos, pixels, r);
+    ENCODE_FULLCOLOR_RECT(os, zos, pixels, pf, r);
     break;
   case 1:
     // Solid rectangle
-    ENCODE_SOLID_RECT(os, pixels);
+    ENCODE_SOLID_RECT(os, pixels, pf);
     break;
   case 2:
     // Two-color rectangle
-    ENCODE_MONO_RECT(os, zos, pixels, r);
+    ENCODE_MONO_RECT(os, zos, pixels, pf, r);
     break;
 #if (BPP != 8)
   default:
     // Up to 256 different colors
-    ENCODE_INDEXED_RECT(os, zos, pixels, r);
+    ENCODE_INDEXED_RECT(os, zos, pixels, pf, r);
 #endif
   }
 }
@@ -400,26 +375,26 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
 // Subencoding implementations.
 //
 
-static void ENCODE_SOLID_RECT (rdr::OutStream *os, PIXEL_T *buf)
+static void ENCODE_SOLID_RECT (rdr::OutStream *os, PIXEL_T *buf, const PixelFormat& pf)
 {
   os->writeU8(0x08 << 4);
 
-  int length = PACK_PIXELS(buf, 1);
+  int length = PACK_PIXELS(buf, 1, pf);
   os->writeBytes(buf, length);
 }
 
 static void ENCODE_FULLCOLOR_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
-                                   PIXEL_T *buf, const Rect& r)
+                                   PIXEL_T *buf, const PixelFormat& pf, const Rect& r)
 {
   const int streamId = 0;
   os->writeU8(streamId << 4);
 
-  int length = PACK_PIXELS(buf, r.area());
+  int length = PACK_PIXELS(buf, r.area(), pf);
   compressData(os, &zos[streamId], buf, length, s_pconf->rawZlibLevel);
 }
 
 static void ENCODE_MONO_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
-                              PIXEL_T *buf, const Rect& r)
+                              PIXEL_T *buf, const PixelFormat& pf, const Rect& r)
 {
   const int streamId = 1;
   os->writeU8((streamId | 0x04) << 4);
@@ -428,7 +403,7 @@ static void ENCODE_MONO_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
   // Write the palette
   PIXEL_T pal[2] = { (PIXEL_T)s_monoBackground, (PIXEL_T)s_monoForeground };
   os->writeU8(1);
-  os->writeBytes(pal, PACK_PIXELS(pal, 2));
+  os->writeBytes(pal, PACK_PIXELS(pal, 2, pf));
 
   // Encode the data in-place
   PIXEL_T *src = buf;
@@ -486,7 +461,7 @@ static void ENCODE_MONO_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
 
 #if (BPP != 8)
 static void ENCODE_INDEXED_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
-                                 PIXEL_T *buf, const Rect& r)
+                                 PIXEL_T *buf, const PixelFormat& pf, const Rect& r)
 {
   const int streamId = 2;
   os->writeU8((streamId | 0x04) << 4);
@@ -498,7 +473,7 @@ static void ENCODE_INDEXED_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
     for (int i = 0; i < s_palNumColors; i++)
       pal[i] = (PIXEL_T)s_palette.entry[i].listNode->rgb;
     os->writeU8((rdr::U8)(s_palNumColors - 1));
-    os->writeBytes(pal, PACK_PIXELS(pal, s_palNumColors));
+    os->writeBytes(pal, PACK_PIXELS(pal, s_palNumColors, pf));
   }
 
   // Encode data in-place
@@ -538,23 +513,6 @@ static void ENCODE_INDEXED_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
 //
 
 #if (BPP != 8)
-static void PREPARE_JPEG_ROW (PIXEL_T *src, const PixelFormat& pf,
-                              rdr::U8 *dst, int count)
-{
-  // FIXME: Add a version of this function optimized for 24-bit colors?
-  PIXEL_T pix;
-  while (count--) {
-    pix = *src++;
-    if (s_endianMismatch)
-      pix = SWAP_PIXEL(pix);
-    *dst++ = (rdr::U8)((pix >> pf.redShift   & pf.redMax)   * 255 / pf.redMax);
-    *dst++ = (rdr::U8)((pix >> pf.greenShift & pf.greenMax) * 255 / pf.greenMax);
-    *dst++ = (rdr::U8)((pix >> pf.blueShift  & pf.blueMax)  * 255 / pf.blueMax);
-  }
-}
-#endif  // #if (BPP != 8)
-
-#if (BPP != 8)
 static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
                               const PixelFormat& pf, const Rect& r)
 {
@@ -585,7 +543,7 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
 
   jpeg_start_compress(&cinfo, TRUE);
   for (int dy = 0; dy < h; dy++) {
-    PREPARE_JPEG_ROW(&buf[dy * w], pf, srcBuf, w);
+    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)(&buf[dy * w]), w);
     jpeg_write_scanlines(&cinfo, rowPointer, 1);
   }
   jpeg_finish_compress(&cinfo);

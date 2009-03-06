@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <rdr/InStream.h>
@@ -30,17 +32,25 @@ using namespace rfb;
 
 PixelFormat::PixelFormat(int b, int d, bool e, bool t,
                          int rm, int gm, int bm, int rs, int gs, int bs)
-  : bpp(b), depth(d), bigEndian(e), trueColour(t),
+  : bpp(b), depth(d), trueColour(t), bigEndian(e),
     redMax(rm), greenMax(gm), blueMax(bm),
     redShift(rs), greenShift(gs), blueShift(bs)
 {
+  assert((bpp == 8) || (bpp == 16) || (bpp == 32));
+  assert(depth <= bpp);
+  assert((redMax & (redMax + 1)) == 0);
+  assert((greenMax & (greenMax + 1)) == 0);
+  assert((blueMax & (blueMax + 1)) == 0);
+
+  updateShifts();
 }
 
 PixelFormat::PixelFormat()
-  : bpp(8), depth(8), bigEndian(false), trueColour(true),
+  : bpp(8), depth(8), trueColour(true), bigEndian(false),
     redMax(7), greenMax(7), blueMax(3),
     redShift(0), greenShift(3), blueShift(6)
 {
+  updateShifts();
 }
 
 bool PixelFormat::equal(const PixelFormat& other) const
@@ -70,6 +80,8 @@ void PixelFormat::read(rdr::InStream* is)
   greenShift = is->readU8();
   blueShift = is->readU8();
   is->skip(3);
+
+  updateShifts();
 }
 
 void PixelFormat::write(rdr::OutStream* os) const
@@ -86,6 +98,36 @@ void PixelFormat::write(rdr::OutStream* os) const
   os->writeU8(blueShift);
   os->pad(3);
 }
+
+
+bool PixelFormat::is888(void) const
+{
+  if (bpp != 32)
+    return false;
+  if (depth != 24)
+    return false;
+  if (redMax != 255)
+    return false;
+  if (greenMax != 255)
+    return false;
+  if (blueMax != 255)
+    return false;
+
+  return true;
+}
+
+
+bool PixelFormat::isBigEndian(void) const
+{
+  return bigEndian;
+}
+
+
+bool PixelFormat::isLittleEndian(void) const
+{
+  return ! bigEndian;
+}
+
 
 Pixel PixelFormat::pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue,
                                 ColourMap* cm) const
@@ -120,14 +162,64 @@ Pixel PixelFormat::pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue,
 }
 
 
-void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
+Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue,
+                                ColourMap* cm) const
 {
   if (trueColour) {
-    rgb->r = (((p >> redShift  ) & redMax  ) * 65535 + redMax  /2) / redMax;
-    rgb->g = (((p >> greenShift) & greenMax) * 65535 + greenMax/2) / greenMax;
-    rgb->b = (((p >> blueShift ) & blueMax ) * 65535 + blueMax /2) / blueMax;
-  } else {
-    cm->lookup(p, &rgb->r, &rgb->g, &rgb->b);
+    rdr::U32 r = ((rdr::U32)red   * redMax   + 127) / 255;
+    rdr::U32 g = ((rdr::U32)green * greenMax + 127) / 255;
+    rdr::U32 b = ((rdr::U32)blue  * blueMax  + 127) / 255;
+
+    return (r << redShift) | (g << greenShift) | (b << blueShift);
+  }
+
+  return pixelFromRGB((rdr::U16)(red << 8), (rdr::U16)(green << 8),
+      (rdr::U16)(blue << 8), cm);
+}
+
+
+void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
+{
+  rdr::U16 r, g, b;
+
+  rgbFromPixel(p, cm, &r, &g, &b);
+
+  rgb->r = r;
+  rgb->g = g;
+  rgb->b = b;
+}
+
+
+void PixelFormat::rgbFromBuffer(rdr::U16* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
+{
+  Pixel p;
+  rdr::U16 r, g, b;
+
+  while (pixels--) {
+    p = pixelFromBuffer(src);
+    src += bpp/8;
+
+    rgbFromPixel(p, cm, &r, &g, &b);
+    *(dst++) = r;
+    *(dst++) = g;
+    *(dst++) = b;
+  }
+}
+
+
+void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
+{
+  Pixel p;
+  rdr::U8 r, g, b;
+
+  while (pixels--) {
+    p = pixelFromBuffer(src);
+    src += bpp/8;
+
+    rgbFromPixel(p, cm, &r, &g, &b);
+    *(dst++) = r;
+    *(dst++) = g;
+    *(dst++) = b;
   }
 }
 
@@ -236,4 +328,44 @@ bool PixelFormat::parse(const char* str)
     return false;
   }
   return true;
+}
+
+
+static int bits(rdr::U16 value)
+{
+  int bits;
+
+  bits = 16;
+
+  if (!(value & 0xff00)) {
+    bits -= 8;
+    value <<= 8;
+  }
+  if (!(value & 0xf000)) {
+    bits -= 4;
+    value <<= 4;
+  }
+  if (!(value & 0xc000)) {
+    bits -= 2;
+    value <<= 2;
+  }
+  if (!(value & 0x8000)) {
+    bits -= 1;
+    value <<= 1;
+  }
+
+  return bits;
+}
+
+void PixelFormat::updateShifts(void)
+{
+  int redBits, greenBits, blueBits;
+
+  redBits = bits(redMax);
+  greenBits = bits(greenMax);
+  blueBits = bits(blueMax);
+
+  redConvShift = 16 - redBits;
+  greenConvShift = 16 - greenBits;
+  blueConvShift = 16 - blueBits;
 }

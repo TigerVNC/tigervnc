@@ -26,24 +26,6 @@ extern "C" {
 
 using namespace rfb;
 
-#define RGB_TO_PIXEL(r,g,b)						\
-  (((PIXEL_T)(r) & myFormat.redMax) << myFormat.redShift |		\
-   ((PIXEL_T)(g) & myFormat.greenMax) << myFormat.greenShift |	        \
-   ((PIXEL_T)(b) & myFormat.blueMax) << myFormat.blueShift)
-
-#define RGB24_TO_PIXEL(r,g,b)                                       \
-   ((((PIXEL_T)(r) & 0xFF) * myFormat.redMax + 127) / 255             \
-    << myFormat.redShift |                                              \
-    (((PIXEL_T)(g) & 0xFF) * myFormat.greenMax + 127) / 255           \
-    << myFormat.greenShift |                                            \
-    (((PIXEL_T)(b) & 0xFF) * myFormat.blueMax + 127) / 255            \
-    << myFormat.blueShift)
-
-#define RGB24_TO_PIXEL32(r,g,b)						\
-  (((rdr::U32)(r) & 0xFF) << myFormat.redShift |				\
-   ((rdr::U32)(g) & 0xFF) << myFormat.greenShift |			\
-   ((rdr::U32)(b) & 0xFF) << myFormat.blueShift)
-
 #define TIGHT_MAX_WIDTH 2048
 
 static void JpegSetSrcManager(j_decompress_ptr cinfo, char *compressedData,

@@ -597,6 +597,10 @@ SOURCE=.\PixelFormat.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\PixelFormat.inl
+# End Source File
+# Begin Source File
+
 SOURCE=.\RawDecoder.h
 # End Source File
 # Begin Source File
