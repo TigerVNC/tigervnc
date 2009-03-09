@@ -53,12 +53,16 @@ typedef struct {
    */
   DCTELEM * divisors[NUM_QUANT_TBLS];
 
+  /* work area for FDCT subroutine */
+  DCTELEM * workspace;
+
 #ifdef DCT_FLOAT_SUPPORTED
   /* Same as above for the floating-point case. */
   float_DCT_method_ptr float_dct;
   float_convsamp_method_ptr float_convsamp;
   float_quantize_method_ptr float_quantize;
   FAST_FLOAT * float_divisors[NUM_QUANT_TBLS];
+  FAST_FLOAT * float_workspace;
 #endif
 } my_fdct_controller;
 
@@ -403,10 +407,11 @@ forward_DCT (j_compress_ptr cinfo, jpeg_component_info * compptr,
   /* This routine is heavily used, so it's worth coding it tightly. */
   my_fdct_ptr fdct = (my_fdct_ptr) cinfo->fdct;
   DCTELEM * divisors = fdct->divisors[compptr->quant_tbl_no];
-  DCTELEM workspace[DCTSIZE2];	/* work area for FDCT subroutine */
+  DCTELEM * workspace;
   JDIMENSION bi;
 
   /* Make sure the compiler doesn't look up these every pass */
+  workspace = fdct->workspace;
   forward_DCT_method_ptr do_dct = fdct->dct;
   convsamp_method_ptr do_convsamp = fdct->convsamp;
   quantize_method_ptr do_quantize = fdct->quantize;
@@ -492,10 +497,12 @@ forward_DCT_float (j_compress_ptr cinfo, jpeg_component_info * compptr,
   /* This routine is heavily used, so it's worth coding it tightly. */
   my_fdct_ptr fdct = (my_fdct_ptr) cinfo->fdct;
   FAST_FLOAT * divisors = fdct->float_divisors[compptr->quant_tbl_no];
-  FAST_FLOAT workspace[DCTSIZE2]; /* work area for FDCT subroutine */
+  FAST_FLOAT * workspace;
   JDIMENSION bi;
 
+
   /* Make sure the compiler doesn't look up these every pass */
+  workspace = fdct->float_workspace;
   float_DCT_method_ptr do_dct = fdct->float_dct;
   float_convsamp_method_ptr do_convsamp = fdct->float_convsamp;
   float_quantize_method_ptr do_quantize = fdct->float_quantize;
@@ -602,6 +609,18 @@ jinit_forward_dct (j_compress_ptr cinfo)
     ERREXIT(cinfo, JERR_NOT_COMPILED);
     break;
   }
+
+  /* Allocate workspace memory */
+#ifdef DCT_FLOAT_SUPPORTED
+  if (cinfo->dct_method == JDCT_FLOAT)
+    fdct->float_workspace = (FAST_FLOAT *)
+      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
+				  SIZEOF(FAST_FLOAT) * DCTSIZE2);
+  else
+#endif
+    fdct->workspace = (DCTELEM *)
+      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
+				  SIZEOF(DCTELEM) * DCTSIZE2);
 
   /* Mark divisor tables unallocated */
   for (i = 0; i < NUM_QUANT_TBLS; i++) {
