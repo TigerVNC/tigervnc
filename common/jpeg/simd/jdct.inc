@@ -23,5 +23,6 @@
 
 %define DWBLOCK(m,n,b,s)	((b)+(m)*DCTSIZE*(s)+(n)*SIZEOF_DWORD)
 %define MMBLOCK(m,n,b,s)	((b)+(m)*DCTSIZE*(s)+(n)*SIZEOF_MMWORD)
+%define XMMBLOCK(m,n,b,s)	((b)+(m)*DCTSIZE*(s)+(n)*SIZEOF_XMMWORD)
 
 ; --------------------------------------------------------------------------

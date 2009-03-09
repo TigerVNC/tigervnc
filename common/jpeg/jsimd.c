@@ -18,6 +18,18 @@
 #include "jsimddct.h"
 #include "simd/jsimd.h"
 
+/*
+ * In the PIC cases, we have no guarantee that constants will keep
+ * their alignment. This macro allows us to verify it at runtime.
+ */
+#ifdef WITH_SIMD
+#define IS_ALIGNED(ptr, order) (((unsigned)ptr & ((1 << order) - 1)) == 0)
+#else
+#define IS_ALIGNED(ptr, order) (0)
+#endif
+
+#define IS_ALIGNED_SSE(ptr) (IS_ALIGNED(ptr, 4)) /* 16 byte alignment */
+
 static unsigned int simd_support = ~0;
 
 /*
@@ -374,6 +386,8 @@ jsimd_can_convsamp_float (void)
   if (sizeof(FAST_FLOAT) != 4)
     return 0;
 
+  if (simd_support & JSIMD_SSE)
+    return 1;
   if (simd_support & JSIMD_3DNOW)
     return 1;
 
@@ -395,7 +409,9 @@ jsimd_convsamp_float (JSAMPARRAY sample_data, JDIMENSION start_col,
                       FAST_FLOAT * workspace)
 {
 #ifdef WITH_SIMD
-  if (simd_support & JSIMD_3DNOW)
+  if (simd_support & JSIMD_SSE)
+    jsimd_convsamp_float_sse(sample_data, start_col, workspace);
+  else if (simd_support & JSIMD_3DNOW)
     jsimd_convsamp_float_3dnow(sample_data, start_col, workspace);
 #endif
 }
@@ -445,6 +461,8 @@ jsimd_can_fdct_float (void)
   if (sizeof(FAST_FLOAT) != 4)
     return 0;
 
+  if ((simd_support & JSIMD_SSE) && IS_ALIGNED_SSE(jconst_fdct_float_sse))
+    return 1;
   if (simd_support & JSIMD_3DNOW)
     return 1;
 
@@ -473,7 +491,9 @@ GLOBAL(void)
 jsimd_fdct_float (FAST_FLOAT * data)
 {
 #ifdef WITH_SIMD
-  if (simd_support & JSIMD_3DNOW)
+  if ((simd_support & JSIMD_SSE) && IS_ALIGNED_SSE(jconst_fdct_float_sse))
+    jsimd_fdct_float_sse(data);
+  else if (simd_support & JSIMD_3DNOW)
     jsimd_fdct_float_3dnow(data);
 #endif
 }
@@ -510,6 +530,8 @@ jsimd_can_quantize_float (void)
   if (sizeof(FAST_FLOAT) != 4)
     return 0;
 
+  if (simd_support & JSIMD_SSE)
+    return 1;
   if (simd_support & JSIMD_3DNOW)
     return 1;
 
@@ -531,7 +553,9 @@ jsimd_quantize_float (JCOEFPTR coef_block, FAST_FLOAT * divisors,
                       FAST_FLOAT * workspace)
 {
 #ifdef WITH_SIMD
-  if (simd_support & JSIMD_3DNOW)
+  if (simd_support & JSIMD_SSE)
+    jsimd_quantize_float_sse(coef_block, divisors, workspace);
+  else if (simd_support & JSIMD_3DNOW)
     jsimd_quantize_float_3dnow(coef_block, divisors, workspace);
 #endif
 }
@@ -670,6 +694,8 @@ jsimd_can_idct_float (void)
   if (sizeof(FLOAT_MULT_TYPE) != 4)
     return 0;
 
+  if ((simd_support & JSIMD_SSE) && IS_ALIGNED_SSE(jconst_idct_float_sse))
+    return 1;
   if (simd_support & JSIMD_3DNOW)
     return 1;
 
@@ -704,7 +730,10 @@ jsimd_idct_float (j_decompress_ptr cinfo, jpeg_component_info * compptr,
                 JDIMENSION output_col)
 {
 #if WITH_SIMD
-  if (simd_support & JSIMD_3DNOW)
+  if ((simd_support & JSIMD_SSE) && IS_ALIGNED_SSE(jconst_idct_float_sse))
+    jsimd_idct_float_sse(compptr->dct_table, coef_block,
+        output_buf, output_col);
+  else if (simd_support & JSIMD_3DNOW)
     jsimd_idct_float_3dnow(compptr->dct_table, coef_block,
         output_buf, output_col);
 #endif

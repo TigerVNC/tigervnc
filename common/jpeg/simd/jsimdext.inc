@@ -119,15 +119,23 @@
 %define SIZEOF_MMWORD           SIZEOF_QWORD    ; sizeof(MMWORD)
 %define MMWORD_BIT              QWORD_BIT       ; sizeof(MMWORD)*BYTE_BIT
 
+; NASM is buggy and doesn't properly handle operand sizes for SSE
+; instructions, so for now we have to define XMMWORD as blank.
+%define XMMWORD                                 ; int128 (SSE register)
+%define SIZEOF_XMMWORD          SIZEOF_OWORD    ; sizeof(XMMWORD)
+%define XMMWORD_BIT             OWORD_BIT       ; sizeof(XMMWORD)*BYTE_BIT
+
 %define SIZEOF_BYTE             1               ; sizeof(BYTE)
 %define SIZEOF_WORD             2               ; sizeof(WORD)
 %define SIZEOF_DWORD            4               ; sizeof(DWORD)
 %define SIZEOF_QWORD            8               ; sizeof(QWORD)
+%define SIZEOF_OWORD            16              ; sizeof(OWORD)
 
 %define BYTE_BIT                8               ; CHAR_BIT in C
 %define WORD_BIT                16              ; sizeof(WORD)*BYTE_BIT
 %define DWORD_BIT               32              ; sizeof(DWORD)*BYTE_BIT
 %define QWORD_BIT               64              ; sizeof(QWORD)*BYTE_BIT
+%define OWORD_BIT               128             ; sizeof(OWORD)*BYTE_BIT
 
 ; --------------------------------------------------------------------------
 ;  External Symbol Name
