@@ -2,6 +2,7 @@
  * jccolor.c
  *
  * Copyright (C) 1991-1996, Thomas G. Lane.
+ * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -11,6 +12,7 @@
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
+#include "jsimd.h"
 
 
 /* Private subobject */
@@ -420,8 +422,12 @@ jinit_color_converter (j_compress_ptr cinfo)
     if (cinfo->num_components != 3)
       ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
     if (cinfo->in_color_space == JCS_RGB) {
-      cconvert->pub.start_pass = rgb_ycc_start;
-      cconvert->pub.color_convert = rgb_ycc_convert;
+      if (jsimd_can_rgb_ycc())
+        cconvert->pub.color_convert = jsimd_rgb_ycc_convert;
+      else {
+        cconvert->pub.start_pass = rgb_ycc_start;
+        cconvert->pub.color_convert = rgb_ycc_convert;
+      }
     } else if (cinfo->in_color_space == JCS_YCbCr)
       cconvert->pub.color_convert = null_convert;
     else

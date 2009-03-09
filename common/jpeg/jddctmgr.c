@@ -2,6 +2,7 @@
  * jddctmgr.c
  *
  * Copyright (C) 1994-1996, Thomas G. Lane.
+ * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -19,6 +20,7 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdct.h"		/* Private declarations for DCT subsystem */
+#include "jsimddct.h"
 
 
 /*
@@ -105,11 +107,17 @@ start_pass (j_decompress_ptr cinfo)
       method = JDCT_ISLOW;	/* jidctred uses islow-style table */
       break;
     case 2:
-      method_ptr = jpeg_idct_2x2;
+      if (jsimd_can_idct_2x2())
+        method_ptr = jsimd_idct_2x2;
+      else
+        method_ptr = jpeg_idct_2x2;
       method = JDCT_ISLOW;	/* jidctred uses islow-style table */
       break;
     case 4:
-      method_ptr = jpeg_idct_4x4;
+      if (jsimd_can_idct_4x4())
+        method_ptr = jsimd_idct_4x4;
+      else
+        method_ptr = jpeg_idct_4x4;
       method = JDCT_ISLOW;	/* jidctred uses islow-style table */
       break;
 #endif
@@ -117,19 +125,28 @@ start_pass (j_decompress_ptr cinfo)
       switch (cinfo->dct_method) {
 #ifdef DCT_ISLOW_SUPPORTED
       case JDCT_ISLOW:
-	method_ptr = jpeg_idct_islow;
+	if (jsimd_can_idct_islow())
+	  method_ptr = jsimd_idct_islow;
+	else
+	  method_ptr = jpeg_idct_islow;
 	method = JDCT_ISLOW;
 	break;
 #endif
 #ifdef DCT_IFAST_SUPPORTED
       case JDCT_IFAST:
-	method_ptr = jpeg_idct_ifast;
+	if (jsimd_can_idct_ifast())
+	  method_ptr = jsimd_idct_ifast;
+	else
+	  method_ptr = jpeg_idct_ifast;
 	method = JDCT_IFAST;
 	break;
 #endif
 #ifdef DCT_FLOAT_SUPPORTED
       case JDCT_FLOAT:
-	method_ptr = jpeg_idct_float;
+	if (jsimd_can_idct_float())
+	  method_ptr = jsimd_idct_float;
+	else
+	  method_ptr = jpeg_idct_float;
 	method = JDCT_FLOAT;
 	break;
 #endif

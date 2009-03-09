@@ -2,6 +2,7 @@
  * jcdctmgr.c
  *
  * Copyright (C) 1994-1996, Thomas G. Lane.
+ * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -15,6 +16,7 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdct.h"		/* Private declarations for DCT subsystem */
+#include "jsimddct.h"
 
 
 /* Private subobject for this module */
@@ -424,19 +426,28 @@ jinit_forward_dct (j_compress_ptr cinfo)
 #ifdef DCT_ISLOW_SUPPORTED
   case JDCT_ISLOW:
     fdct->pub.forward_DCT = forward_DCT;
-    fdct->dct = jpeg_fdct_islow;
+    if (jsimd_can_fdct_islow())
+      fdct->dct = jsimd_fdct_islow;
+    else
+      fdct->dct = jpeg_fdct_islow;
     break;
 #endif
 #ifdef DCT_IFAST_SUPPORTED
   case JDCT_IFAST:
     fdct->pub.forward_DCT = forward_DCT;
-    fdct->dct = jpeg_fdct_ifast;
+    if (jsimd_can_fdct_ifast())
+      fdct->dct = jsimd_fdct_ifast;
+    else
+      fdct->dct = jpeg_fdct_ifast;
     break;
 #endif
 #ifdef DCT_FLOAT_SUPPORTED
   case JDCT_FLOAT:
     fdct->pub.forward_DCT = forward_DCT_float;
-    fdct->float_dct = jpeg_fdct_float;
+    if (jsimd_can_fdct_float())
+      fdct->float_dct = jsimd_fdct_float;
+    else
+      fdct->float_dct = jpeg_fdct_float;
     break;
 #endif
   default:
@@ -453,14 +464,26 @@ jinit_forward_dct (j_compress_ptr cinfo)
   case JDCT_IFAST:
 #endif
 #if defined(DCT_ISLOW_SUPPORTED) || defined(DCT_IFAST_SUPPORTED)
-    fdct->convsamp = convsamp;
-    fdct->quantize = quantize;
+    if (jsimd_can_convsamp())
+      fdct->convsamp = jsimd_convsamp;
+    else
+      fdct->convsamp = convsamp;
+    if (jsimd_can_quantize())
+      fdct->quantize = jsimd_quantize;
+    else
+      fdct->quantize = quantize;
     break;
 #endif
 #ifdef DCT_FLOAT_SUPPORTED
   case JDCT_FLOAT:
-    fdct->float_convsamp = convsamp_float;
-    fdct->float_quantize = quantize_float;
+    if (jsimd_can_convsamp_float())
+      fdct->float_convsamp = jsimd_convsamp_float;
+    else
+      fdct->float_convsamp = convsamp_float;
+    if (jsimd_can_quantize_float())
+      fdct->float_quantize = jsimd_quantize_float;
+    else
+      fdct->float_quantize = quantize_float;
     break;
 #endif
   default:

@@ -1,0 +1,359 @@
+/*
+ * jsimd.c
+ *
+ * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * 
+ * Based on the x86 SIMD extension for IJG JPEG library,
+ * Copyright (C) 1999-2006, MIYASAKA Masaru.
+ *
+ * This file contains the interface between the "normal" portions
+ * of the library and the SIMD implementations.
+ */
+
+#define JPEG_INTERNALS
+#include "jinclude.h"
+#include "jpeglib.h"
+#include "jdct.h"
+
+#define JSIMD_NONE    0x00
+
+static unsigned int simd_support = ~0;
+
+/*
+ * Check what SIMD accelerations are supported.
+ *
+ * FIXME: This code is racy under a multi-threaded environment.
+ */
+LOCAL(void)
+init_simd (void)
+{
+  if (simd_support != ~0)
+    return;
+
+  simd_support = JSIMD_NONE;
+}
+
+GLOBAL(int)
+jsimd_can_rgb_ycc (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_ycc_rgb (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_rgb_ycc_convert (j_compress_ptr cinfo,
+                       JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+                       JDIMENSION output_row, int num_rows)
+{
+}
+
+GLOBAL(void)
+jsimd_ycc_rgb_convert (j_decompress_ptr cinfo,
+                       JSAMPIMAGE input_buf, JDIMENSION input_row,
+                       JSAMPARRAY output_buf, int num_rows)
+{
+}
+
+GLOBAL(int)
+jsimd_can_h2v2_downsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_h2v1_downsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_h2v2_downsample (j_compress_ptr cinfo, jpeg_component_info * compptr,
+                       JSAMPARRAY input_data, JSAMPARRAY output_data)
+{
+}
+
+GLOBAL(void)
+jsimd_h2v1_downsample (j_compress_ptr cinfo, jpeg_component_info * compptr,
+                       JSAMPARRAY input_data, JSAMPARRAY output_data)
+{
+}
+
+GLOBAL(int)
+jsimd_can_h2v2_upsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_h2v1_upsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_h2v2_upsample (j_decompress_ptr cinfo,
+                     jpeg_component_info * compptr, 
+                     JSAMPARRAY input_data,
+                     JSAMPARRAY * output_data_ptr)
+{
+}
+
+GLOBAL(void)
+jsimd_h2v1_upsample (j_decompress_ptr cinfo,
+                     jpeg_component_info * compptr, 
+                     JSAMPARRAY input_data,
+                     JSAMPARRAY * output_data_ptr)
+{
+}
+
+GLOBAL(int)
+jsimd_can_h2v2_fancy_upsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_h2v1_fancy_upsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_h2v2_fancy_upsample (j_decompress_ptr cinfo,
+                           jpeg_component_info * compptr, 
+                           JSAMPARRAY input_data,
+                           JSAMPARRAY * output_data_ptr)
+{
+}
+
+GLOBAL(void)
+jsimd_h2v1_fancy_upsample (j_decompress_ptr cinfo,
+                           jpeg_component_info * compptr, 
+                           JSAMPARRAY input_data,
+                           JSAMPARRAY * output_data_ptr)
+{
+}
+
+GLOBAL(int)
+jsimd_can_h2v2_merged_upsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_h2v1_merged_upsample (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_h2v2_merged_upsample (j_decompress_ptr cinfo,
+                            JSAMPIMAGE input_buf,
+                            JDIMENSION in_row_group_ctr,
+                            JSAMPARRAY output_buf)
+{
+}
+
+GLOBAL(void)
+jsimd_h2v1_merged_upsample (j_decompress_ptr cinfo,
+                            JSAMPIMAGE input_buf,
+                            JDIMENSION in_row_group_ctr,
+                            JSAMPARRAY output_buf)
+{
+}
+
+GLOBAL(int)
+jsimd_can_convsamp (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_convsamp_float (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_convsamp (JSAMPARRAY sample_data, JDIMENSION start_col,
+                DCTELEM * workspace)
+{
+}
+
+GLOBAL(void)
+jsimd_convsamp_float (JSAMPARRAY sample_data, JDIMENSION start_col,
+                      FAST_FLOAT * workspace)
+{
+}
+
+GLOBAL(int)
+jsimd_can_fdct_islow (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_fdct_ifast (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_fdct_float (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_fdct_islow (DCTELEM * data)
+{
+}
+
+GLOBAL(void)
+jsimd_fdct_ifast (DCTELEM * data)
+{
+}
+
+GLOBAL(void)
+jsimd_fdct_float (FAST_FLOAT * data)
+{
+}
+
+GLOBAL(int)
+jsimd_can_quantize (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_quantize_float (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_quantize (JCOEFPTR coef_block, DCTELEM * divisors,
+                DCTELEM * workspace)
+{
+}
+
+GLOBAL(void)
+jsimd_quantize_float (JCOEFPTR coef_block, FAST_FLOAT * divisors,
+                      FAST_FLOAT * workspace)
+{
+}
+
+GLOBAL(int)
+jsimd_can_idct_2x2 (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_idct_4x4 (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_idct_2x2 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
+                JCOEFPTR coef_block, JSAMPARRAY output_buf,
+                JDIMENSION output_col)
+{
+}
+
+GLOBAL(void)
+jsimd_idct_4x4 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
+                JCOEFPTR coef_block, JSAMPARRAY output_buf,
+                JDIMENSION output_col)
+{
+}
+
+GLOBAL(int)
+jsimd_can_idct_islow (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_idct_ifast (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(int)
+jsimd_can_idct_float (void)
+{
+  init_simd();
+
+  return 0;
+}
+
+GLOBAL(void)
+jsimd_idct_islow (j_decompress_ptr cinfo, jpeg_component_info * compptr,
+                JCOEFPTR coef_block, JSAMPARRAY output_buf,
+                JDIMENSION output_col)
+{
+}
+
+GLOBAL(void)
+jsimd_idct_ifast (j_decompress_ptr cinfo, jpeg_component_info * compptr,
+                JCOEFPTR coef_block, JSAMPARRAY output_buf,
+                JDIMENSION output_col)
+{
+}
+
+GLOBAL(void)
+jsimd_idct_float (j_decompress_ptr cinfo, jpeg_component_info * compptr,
+                JCOEFPTR coef_block, JSAMPARRAY output_buf,
+                JDIMENSION output_col)
+{
+}
+

@@ -2,6 +2,7 @@
  * jdsample.c
  *
  * Copyright (C) 1991-1996, Thomas G. Lane.
+ * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -21,6 +22,7 @@
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
+#include "jsimd.h"
 
 
 /* Pointer to routine to upsample a single component */
@@ -447,18 +449,32 @@ jinit_upsampler (j_decompress_ptr cinfo)
     } else if (h_in_group * 2 == h_out_group &&
 	       v_in_group == v_out_group) {
       /* Special cases for 2h1v upsampling */
-      if (do_fancy && compptr->downsampled_width > 2)
-	upsample->methods[ci] = h2v1_fancy_upsample;
-      else
-	upsample->methods[ci] = h2v1_upsample;
+      if (do_fancy && compptr->downsampled_width > 2) {
+	if (jsimd_can_h2v1_fancy_upsample())
+	  upsample->methods[ci] = jsimd_h2v1_fancy_upsample;
+	else
+	  upsample->methods[ci] = h2v1_fancy_upsample;
+      } else {
+	if (jsimd_can_h2v1_upsample())
+	  upsample->methods[ci] = jsimd_h2v1_upsample;
+	else
+	  upsample->methods[ci] = h2v1_upsample;
+      }
     } else if (h_in_group * 2 == h_out_group &&
 	       v_in_group * 2 == v_out_group) {
       /* Special cases for 2h2v upsampling */
       if (do_fancy && compptr->downsampled_width > 2) {
-	upsample->methods[ci] = h2v2_fancy_upsample;
+	if (jsimd_can_h2v2_fancy_upsample())
+	  upsample->methods[ci] = jsimd_h2v2_fancy_upsample;
+	else
+	  upsample->methods[ci] = h2v2_fancy_upsample;
 	upsample->pub.need_context_rows = TRUE;
-      } else
-	upsample->methods[ci] = h2v2_upsample;
+      } else {
+	if (jsimd_can_h2v2_upsample())
+	  upsample->methods[ci] = jsimd_h2v2_upsample;
+	else
+	  upsample->methods[ci] = h2v2_upsample;
+      }
     } else if ((h_out_group % h_in_group) == 0 &&
 	       (v_out_group % v_in_group) == 0) {
       /* Generic integral-factors upsampling method */

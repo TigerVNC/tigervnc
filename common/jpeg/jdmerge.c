@@ -2,6 +2,7 @@
  * jdmerge.c
  *
  * Copyright (C) 1994-1996, Thomas G. Lane.
+ * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -35,6 +36,7 @@
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
+#include "jsimd.h"
 
 #ifdef UPSAMPLE_MERGING_SUPPORTED
 
@@ -382,14 +384,20 @@ jinit_merged_upsampler (j_decompress_ptr cinfo)
 
   if (cinfo->max_v_samp_factor == 2) {
     upsample->pub.upsample = merged_2v_upsample;
-    upsample->upmethod = h2v2_merged_upsample;
+    if (jsimd_can_h2v2_merged_upsample())
+      upsample->upmethod = jsimd_h2v2_merged_upsample;
+    else
+      upsample->upmethod = h2v2_merged_upsample;
     /* Allocate a spare row buffer */
     upsample->spare_row = (JSAMPROW)
       (*cinfo->mem->alloc_large) ((j_common_ptr) cinfo, JPOOL_IMAGE,
 		(size_t) (upsample->out_row_width * SIZEOF(JSAMPLE)));
   } else {
     upsample->pub.upsample = merged_1v_upsample;
-    upsample->upmethod = h2v1_merged_upsample;
+    if (jsimd_can_h2v1_merged_upsample())
+      upsample->upmethod = jsimd_h2v1_merged_upsample;
+    else
+      upsample->upmethod = h2v1_merged_upsample;
     /* No spare row needed */
     upsample->spare_row = NULL;
   }

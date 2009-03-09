@@ -72,6 +72,14 @@ AC_CHECK_FUNCS([memset memcpy], [],
 	[AC_DEFINE([NEED_BSD_STRINGS], 1,
 		   [Define if you have BSD-like bzero and bcopy])])
 
+# SIMD is optional
+# todo: detect automatically when it can be enabled
+AC_ARG_WITH([simd],
+    AC_HELP_STRING([--with-simd],[Include accelerated SIMD routines.]))
+if test "x${with_simd}" != "xno"; then
+	AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
+fi
+
 # jconfig.h is the file we use, but we have another before that to
 # fool autoheader. the reason is that we include this header in our
 # API headers, which can screw things up for users of the lib.
