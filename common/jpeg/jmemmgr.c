@@ -70,7 +70,11 @@ extern char * getenv JPP((const char * name));
  */
 
 #ifndef ALIGN_SIZE		/* so can override from jconfig.h */
+#ifndef WITH_SIMD
 #define ALIGN_SIZE  SIZEOF(double)
+#else
+#define ALIGN_SIZE  16 /* Most SIMD implementations require this */
+#endif
 #endif
 
 /*
