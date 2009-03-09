@@ -111,6 +111,10 @@
 %define SIZEOF_INT              SIZEOF_DWORD    ; sizeof(INT)
 %define INT_BIT                 DWORD_BIT       ; sizeof(INT)*BYTE_BIT
 
+%define FP32                    dword           ; IEEE754 single
+%define SIZEOF_FP32             SIZEOF_DWORD    ; sizeof(FP32)
+%define FP32_BIT                DWORD_BIT       ; sizeof(FP32)*BYTE_BIT
+
 %define MMWORD                  qword           ; int64  (MMX register)
 %define SIZEOF_MMWORD           SIZEOF_QWORD    ; sizeof(MMWORD)
 %define MMWORD_BIT              QWORD_BIT       ; sizeof(MMWORD)*BYTE_BIT

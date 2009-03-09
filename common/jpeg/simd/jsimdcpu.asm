@@ -67,6 +67,21 @@ EXTN(jpeg_simd_cpu_support):
 	or	edi, byte JSIMD_MMX
 .no_mmx:
 
+	; Check for 3DNow! instruction support
+	mov	eax, 0x80000000
+	cpuid
+	cmp	eax, 0x80000000
+	jbe	short .return
+
+	mov	eax, 0x80000001
+	cpuid
+	mov	eax,edx			; eax = Extended feature flags
+
+	test	eax, 1<<31		; bit31:3DNow!(vendor independent)
+	jz	short .no_3dnow
+	or	edi, byte JSIMD_3DNOW
+.no_3dnow:
+
 .return:
 	mov	eax,edi
 

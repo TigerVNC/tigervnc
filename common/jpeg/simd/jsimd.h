@@ -12,6 +12,7 @@
 
 #define JSIMD_NONE    0x00
 #define JSIMD_MMX     0x01
+#define JSIMD_3DNOW   0x02
 
 /* Short forms of external names for systems with brain-damaged linkers. */
 
@@ -28,13 +29,17 @@
 #define jsimd_h2v2_merged_upsample_mmx        jSMUpH2V2M
 #define jsimd_h2v1_merged_upsample_mmx        jSMUpH2V1M
 #define jsimd_convsamp_mmx                    jSConvM
+#define jsimd_convsamp_float_3dnow            jSConvF3D
 #define jsimd_fdct_islow_mmx                  jSFDMIS
 #define jsimd_fdct_ifast_mmx                  jSFDMIF
+#define jsimd_fdct_float_3dnow                jSFD3DF
 #define jsimd_quantize_mmx                    jSQuantM
+#define jsimd_quantize_float_3dnow            jSQuantF3D
 #define jsimd_idct_2x2_mmx                    jSIDM22
 #define jsimd_idct_4x4_mmx                    jSIDM44
 #define jsimd_idct_islow_mmx                  jSIDMIS
 #define jsimd_idct_ifast_mmx                  jSIDMIF
+#define jsimd_idct_float_3dnow                jSID3DF
 #endif /* NEED_SHORT_EXTERNAL_NAMES */
 
 /* SIMD Ext: retrieve SIMD/CPU information */
@@ -87,14 +92,24 @@ EXTERN(void) jsimd_convsamp_mmx JPP((JSAMPARRAY sample_data,
                                      JDIMENSION start_col,
                                      DCTELEM * workspace));
 
+EXTERN(void) jsimd_convsamp_float_3dnow JPP((JSAMPARRAY sample_data,
+                                             JDIMENSION start_col,
+                                             FAST_FLOAT * workspace));
+
 /* SIMD Forward DCT */
 EXTERN(void) jsimd_fdct_islow_mmx JPP((DCTELEM * data));
 EXTERN(void) jsimd_fdct_ifast_mmx JPP((DCTELEM * data));
+
+EXTERN(void) jsimd_fdct_float_3dnow JPP((FAST_FLOAT * data));
 
 /* SIMD Quantization */
 EXTERN(void) jsimd_quantize_mmx JPP((JCOEFPTR coef_block,
                                      DCTELEM * divisors,
                                      DCTELEM * workspace));
+
+EXTERN(void) jsimd_quantize_float_3dnow JPP((JCOEFPTR coef_block,
+                                             FAST_FLOAT * divisors,
+                                             FAST_FLOAT * workspace));
 
 /* SIMD Reduced Inverse DCT */
 EXTERN(void) jsimd_idct_2x2_mmx JPP((void * dct_table,
@@ -115,4 +130,9 @@ EXTERN(void) jsimd_idct_ifast_mmx JPP((void * dct_table,
                                        JCOEFPTR coef_block,
                                        JSAMPARRAY output_buf,
                                        JDIMENSION output_col));
+
+EXTERN(void) jsimd_idct_float_3dnow JPP((void * dct_table,
+                                         JCOEFPTR coef_block,
+                                         JSAMPARRAY output_buf,
+                                         JDIMENSION output_col));
 

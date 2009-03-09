@@ -364,6 +364,19 @@ jsimd_can_convsamp_float (void)
 {
   init_simd();
 
+  /* The code is optimised for these values only */
+  if (DCTSIZE != 8)
+    return 0;
+  if (BITS_IN_JSAMPLE != 8)
+    return 0;
+  if (sizeof(JDIMENSION) != 4)
+    return 0;
+  if (sizeof(FAST_FLOAT) != 4)
+    return 0;
+
+  if (simd_support & JSIMD_3DNOW)
+    return 1;
+
   return 0;
 }
 
@@ -381,6 +394,10 @@ GLOBAL(void)
 jsimd_convsamp_float (JSAMPARRAY sample_data, JDIMENSION start_col,
                       FAST_FLOAT * workspace)
 {
+#ifdef WITH_SIMD
+  if (simd_support & JSIMD_3DNOW)
+    jsimd_convsamp_float_3dnow(sample_data, start_col, workspace);
+#endif
 }
 
 GLOBAL(int)
@@ -422,6 +439,15 @@ jsimd_can_fdct_float (void)
 {
   init_simd();
 
+  /* The code is optimised for these values only */
+  if (DCTSIZE != 8)
+    return 0;
+  if (sizeof(FAST_FLOAT) != 4)
+    return 0;
+
+  if (simd_support & JSIMD_3DNOW)
+    return 1;
+
   return 0;
 }
 
@@ -446,6 +472,10 @@ jsimd_fdct_ifast (DCTELEM * data)
 GLOBAL(void)
 jsimd_fdct_float (FAST_FLOAT * data)
 {
+#ifdef WITH_SIMD
+  if (simd_support & JSIMD_3DNOW)
+    jsimd_fdct_float_3dnow(data);
+#endif
 }
 
 GLOBAL(int)
@@ -472,6 +502,17 @@ jsimd_can_quantize_float (void)
 {
   init_simd();
 
+  /* The code is optimised for these values only */
+  if (DCTSIZE != 8)
+    return 0;
+  if (sizeof(JCOEF) != 2)
+    return 0;
+  if (sizeof(FAST_FLOAT) != 4)
+    return 0;
+
+  if (simd_support & JSIMD_3DNOW)
+    return 1;
+
   return 0;
 }
 
@@ -489,6 +530,10 @@ GLOBAL(void)
 jsimd_quantize_float (JCOEFPTR coef_block, FAST_FLOAT * divisors,
                       FAST_FLOAT * workspace)
 {
+#ifdef WITH_SIMD
+  if (simd_support & JSIMD_3DNOW)
+    jsimd_quantize_float_3dnow(coef_block, divisors, workspace);
+#endif
 }
 
 GLOBAL(int)
@@ -612,6 +657,22 @@ jsimd_can_idct_float (void)
 {
   init_simd();
 
+  if (DCTSIZE != 8)
+    return 0;
+  if (sizeof(JCOEF) != 2)
+    return 0;
+  if (BITS_IN_JSAMPLE != 8)
+    return 0;
+  if (sizeof(JDIMENSION) != 4)
+    return 0;
+  if (sizeof(FAST_FLOAT) != 4)
+    return 0;
+  if (sizeof(FLOAT_MULT_TYPE) != 4)
+    return 0;
+
+  if (simd_support & JSIMD_3DNOW)
+    return 1;
+
   return 0;
 }
 
@@ -642,5 +703,10 @@ jsimd_idct_float (j_decompress_ptr cinfo, jpeg_component_info * compptr,
                 JCOEFPTR coef_block, JSAMPARRAY output_buf,
                 JDIMENSION output_col)
 {
+#if WITH_SIMD
+  if (simd_support & JSIMD_3DNOW)
+    jsimd_idct_float_3dnow(compptr->dct_table, coef_block,
+        output_buf, output_col);
+#endif
 }
 

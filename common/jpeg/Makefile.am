@@ -25,7 +25,8 @@ libjpeg_la_SOURCES += simd/jsimd.h simd/jsimdcfg.inc.h \
 	simd/jccolmmx.asm simd/jdcolmmx.asm \
 	simd/jcsammmx.asm simd/jdsammmx.asm simd/jdmermmx.asm \
 	simd/jcqntmmx.asm simd/jfmmxfst.asm simd/jfmmxint.asm \
-	simd/jimmxred.asm simd/jimmxint.asm simd/jimmxfst.asm
+	simd/jimmxred.asm simd/jimmxint.asm simd/jimmxfst.asm \
+	simd/jcqnt3dn.asm simd/jf3dnflt.asm simd/ji3dnflt.asm
 
 endif
 

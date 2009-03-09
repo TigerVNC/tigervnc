@@ -76,6 +76,9 @@ definev(CENTERJSAMPLE)
 %define DCTELEM                 word          ; short
 %define SIZEOF_DCTELEM          SIZEOF_WORD   ; sizeof(DCTELEM)
 
+%define FAST_FLOAT              FP32            ; float
+%define SIZEOF_FAST_FLOAT       SIZEOF_FP32     ; sizeof(FAST_FLOAT)
+
 ; To maximize parallelism, Type MULTIPLIER is changed to short.
 ;
 %define ISLOW_MULT_TYPE         word          ; must be short
@@ -85,12 +88,16 @@ definev(CENTERJSAMPLE)
 %define SIZEOF_IFAST_MULT_TYPE  SIZEOF_WORD   ; sizeof(IFAST_MULT_TYPE)
 %define IFAST_SCALE_BITS        2             ; fractional bits in scale factors
 
+%define FLOAT_MULT_TYPE         FP32          ; must be float
+%define SIZEOF_FLOAT_MULT_TYPE  SIZEOF_FP32   ; sizeof(FLOAT_MULT_TYPE)
+
 ;
 ; -- jsimd.h
 ;
 
 definev(JSIMD_NONE)
 definev(JSIMD_MMX)
+definev(JSIMD_3DNOW)
 
 ; Short forms of external names for systems with brain-damaged linkers.
 ;
@@ -107,12 +114,16 @@ definev(jsimd_h2v2_fancy_upsample_mmx)
 definev(jsimd_h2v1_merged_upsample_mmx)
 definev(jsimd_h2v2_merged_upsample_mmx)
 definev(jsimd_convsamp_mmx)
+definev(jsimd_convsamp_float_3dnow)
 definev(jsimd_fdct_islow_mmx)
 definev(jsimd_fdct_ifast_mmx)
+definev(jsimd_fdct_float_3dnow)
 definev(jsimd_quantize_mmx)
+definev(jsimd_quantize_float_3dnow)
 definev(jsimd_idct_2x2_mmx)
 definev(jsimd_idct_4x4_mmx)
 definev(jsimd_idct_islow_mmx)
 definev(jsimd_idct_ifast_mmx)
+definev(jsimd_idct_float_3dnow)
 #endif /* NEED_SHORT_EXTERNAL_NAMES */
 
