@@ -13,9 +13,10 @@
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
+#include "jsimd.h"
 #include "jdct.h"
-
-#define JSIMD_NONE    0x00
+#include "jsimddct.h"
+#include "simd/jsimd.h"
 
 static unsigned int simd_support = ~0;
 
@@ -30,7 +31,11 @@ init_simd (void)
   if (simd_support != ~0)
     return;
 
+#ifdef WITH_SIMD
+  simd_support = jpeg_simd_cpu_support();
+#else
   simd_support = JSIMD_NONE;
+#endif
 }
 
 GLOBAL(int)

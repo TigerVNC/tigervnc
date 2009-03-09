@@ -13,3 +13,20 @@ libjpeg_la_SOURCES = $(HDRS) jcapimin.c jcapistd.c jccoefct.c jccolor.c \
 	jidctred.c jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c \
 	jsimd.c
 
+if WITH_SIMD
+
+BUILT_SOURCES = simd/jsimdcfg.inc
+
+EXTRA_DIST = nasm_lt.sh
+
+libjpeg_la_SOURCES += simd/jsimd.h simd/jsimdcfg.inc.h \
+	simd/jsimdext.inc simd/jsimdcpu.asm
+
+endif
+
+.asm.lo:
+	$(LIBTOOL) --mode=compile --tag NASM ./nasm_lt.sh $(NASM) $(NAFLAGS) $< -o $@
+
+simd/jsimdcfg.inc: simd/jsimdcfg.inc.h jpeglib.h jconfig.h jmorecfg.h
+	$(CPP) $< | grep ^[\;%] | sed 's%_cpp_protection_%%' > $@
+

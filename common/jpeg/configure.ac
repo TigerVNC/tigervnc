@@ -12,6 +12,7 @@ AC_DEFINE([HAVE_PROTOTYPES], 1, [Define if your compiler supports prototypes])
 AC_DEFINE([INCOMPLETE_TYPES_BROKEN], 1, [Define if you want use complete types])
 
 # Checks for programs.
+AC_PROG_CPP
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
@@ -72,13 +73,33 @@ AC_CHECK_FUNCS([memset memcpy], [],
 	[AC_DEFINE([NEED_BSD_STRINGS], 1,
 		   [Define if you have BSD-like bzero and bcopy])])
 
+# Set flags to indicate platform
+case "$host_os" in
+  cygwin* | mingw* | pw32* | interix*)
+    is_win32=1
+  ;;
+esac
+AM_CONDITIONAL([IS_WIN32], [test "x$is_win32" = "x1"])
+
 # SIMD is optional
-# todo: detect automatically when it can be enabled
 AC_ARG_WITH([simd],
-    AC_HELP_STRING([--with-simd],[Include accelerated SIMD routines.]))
+    AC_HELP_STRING([--without-simd],[Omit accelerated SIMD routines.]))
 if test "x${with_simd}" != "xno"; then
-	AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
+  # Check if we're on a supported CPU
+  AC_MSG_CHECKING([if host cpu type is i386 or compatible])
+  case "$host_cpu" in
+    i*86 | x86 | ia32)
+      AC_MSG_RESULT(yes)
+      AC_PROG_NASM
+      AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
+    ;;
+    *)
+      AC_MSG_RESULT([no ("$host_cpu")])
+      with_simd=no
+    ;;
+  esac
 fi
+AM_CONDITIONAL([WITH_SIMD], [test "x$with_simd" != "xno"])
 
 # jconfig.h is the file we use, but we have another before that to
 # fool autoheader. the reason is that we include this header in our
