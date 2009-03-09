@@ -39,8 +39,10 @@ inline Pixel PixelFormat::pixelFromBuffer(const rdr::U8* buffer) const
     p |= buffer[0];
     if (bpp >= 16) {
       p |= ((Pixel)buffer[1]) << 8;
-      if (bpp == 32)
+      if (bpp == 32) {
         p |= ((Pixel)buffer[2]) << 16;
+        p |= ((Pixel)buffer[3]) << 24;
+      }
     }
   }
 
