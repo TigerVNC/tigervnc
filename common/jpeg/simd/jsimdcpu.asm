@@ -70,6 +70,10 @@ EXTN(jpeg_simd_cpu_support):
 	jz	short .no_sse
 	or	edi, byte JSIMD_SSE
 .no_sse:
+	test	eax, 1<<26		; bit26:SSE2
+	jz	short .no_sse2
+	or	edi, byte JSIMD_SSE2
+.no_sse2:
 
 	; Check for 3DNow! instruction support
 	mov	eax, 0x80000000

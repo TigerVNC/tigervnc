@@ -125,6 +125,10 @@
 %define SIZEOF_XMMWORD          SIZEOF_OWORD    ; sizeof(XMMWORD)
 %define XMMWORD_BIT             OWORD_BIT       ; sizeof(XMMWORD)*BYTE_BIT
 
+; Similar hacks for when we load a dword or MMWORD into an xmm# register
+%define XMM_DWORD
+%define XMM_MMWORD
+
 %define SIZEOF_BYTE             1               ; sizeof(BYTE)
 %define SIZEOF_WORD             2               ; sizeof(WORD)
 %define SIZEOF_DWORD            4               ; sizeof(DWORD)
