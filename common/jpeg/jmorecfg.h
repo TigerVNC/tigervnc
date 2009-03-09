@@ -325,7 +325,11 @@ typedef int boolean;
  */
 
 #ifndef MULTIPLIER
+#ifndef WITH_SIMD
 #define MULTIPLIER  int		/* type for fastest integer multiply */
+#else
+#define MULTIPLIER short  /* prefer 16-bit with SIMD for parellelism */
+#endif
 #endif
 
 

@@ -107,6 +107,24 @@
 %define SIZEOF_POINTER          SIZEOF_DWORD    ; sizeof(POINTER)
 %define POINTER_BIT             DWORD_BIT       ; sizeof(POINTER)*BYTE_BIT
 
+%define INT                     dword           ; signed integer type
+%define SIZEOF_INT              SIZEOF_DWORD    ; sizeof(INT)
+%define INT_BIT                 DWORD_BIT       ; sizeof(INT)*BYTE_BIT
+
+%define MMWORD                  qword           ; int64  (MMX register)
+%define SIZEOF_MMWORD           SIZEOF_QWORD    ; sizeof(MMWORD)
+%define MMWORD_BIT              QWORD_BIT       ; sizeof(MMWORD)*BYTE_BIT
+
+%define SIZEOF_BYTE             1               ; sizeof(BYTE)
+%define SIZEOF_WORD             2               ; sizeof(WORD)
+%define SIZEOF_DWORD            4               ; sizeof(DWORD)
+%define SIZEOF_QWORD            8               ; sizeof(QWORD)
+
+%define BYTE_BIT                8               ; CHAR_BIT in C
+%define WORD_BIT                16              ; sizeof(WORD)*BYTE_BIT
+%define DWORD_BIT               32              ; sizeof(DWORD)*BYTE_BIT
+%define QWORD_BIT               64              ; sizeof(QWORD)*BYTE_BIT
+
 ; --------------------------------------------------------------------------
 ;  External Symbol Name
 ;

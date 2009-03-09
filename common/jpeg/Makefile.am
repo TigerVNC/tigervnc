@@ -20,7 +20,12 @@ BUILT_SOURCES = simd/jsimdcfg.inc
 EXTRA_DIST = nasm_lt.sh
 
 libjpeg_la_SOURCES += simd/jsimd.h simd/jsimdcfg.inc.h \
-	simd/jsimdext.inc simd/jsimdcpu.asm
+	simd/jsimdext.inc simd/jcolsamp.inc simd/jdct.inc \
+	simd/jsimdcpu.asm \
+	simd/jccolmmx.asm simd/jdcolmmx.asm \
+	simd/jcsammmx.asm simd/jdsammmx.asm simd/jdmermmx.asm \
+	simd/jcqntmmx.asm simd/jfmmxfst.asm simd/jfmmxint.asm \
+	simd/jimmxred.asm simd/jimmxint.asm simd/jimmxfst.asm
 
 endif
 

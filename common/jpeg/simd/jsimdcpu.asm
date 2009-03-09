@@ -51,6 +51,22 @@ EXTN(jpeg_simd_cpu_support):
 	xor	eax,edx
 	jz	short .return		; CPUID is not supported
 
+	; Check for MMX instruction support
+	xor	eax,eax
+	cpuid
+	test	eax,eax
+	jz	short .return
+
+	xor	eax,eax
+	inc	eax
+	cpuid
+	mov	eax,edx			; eax = Standard feature flags
+
+	test	eax, 1<<23		; bit23:MMX
+	jz	short .no_mmx
+	or	edi, byte JSIMD_MMX
+.no_mmx:
+
 .return:
 	mov	eax,edi
 
