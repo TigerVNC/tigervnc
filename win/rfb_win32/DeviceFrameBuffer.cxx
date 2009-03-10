@@ -231,7 +231,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     bool doOutline = false;
     if (!iconInfo.hbmColor) {
-      Pixel xorColour = format.pixelFromRGB(0, 0, 0, cursorBm.getColourMap());
+      Pixel xorColour = format.pixelFromRGB((rdr::U16)0, (rdr::U16)0, (rdr::U16)0, cursorBm.getColourMap());
       for (int y = 0; y < cursor.height(); y++) {
         for (int x = 0; x < cursor.width(); x++) {
           int byte = y * maskInfo.bmWidthBytes + x / 8;
@@ -269,7 +269,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     if (doOutline) {
       vlog.debug("drawing cursor outline!");
       memcpy(cursor.data, cursorBm.data, cursor.dataLen());
-      cursor.drawOutline(format.pixelFromRGB(0xffff, 0xffff, 0xffff, cursorBm.getColourMap()));
+      cursor.drawOutline(format.pixelFromRGB((rdr::U16)0xffff, (rdr::U16)0xffff, (rdr::U16)0xffff, cursorBm.getColourMap()));
       memcpy(cursorBm.data, cursor.data, cursor.dataLen());
     }
 
