@@ -537,6 +537,13 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
 
   jpeg_set_defaults(&cinfo);
   jpeg_set_quality(&cinfo, s_pjconf->jpegQuality, TRUE);
+  if (s_pjconf->jpegSubSample) {
+    cinfo.comp_info[0].h_samp_factor = 2;
+    cinfo.comp_info[0].v_samp_factor = 2;
+  } else {
+    cinfo.comp_info[0].h_samp_factor = 1;
+    cinfo.comp_info[0].v_samp_factor = 1;
+  }
 
   rdr::U8 *dstBuf = new rdr::U8[2048];
   JpegSetDstManager(&cinfo, dstBuf, 2048);
