@@ -55,7 +55,7 @@ To build everything but Xvnc, do:
 This should build first some libraries - zlib, jpeg, rdr, network, Xregion, rfb
 and tx - then vncviewer, vncconfig and vncpasswd.  System zlib and jpeg are
 preferred. If you want use zlib and jpeg distributed with TigerVNC you have to
-run configure "./configure --with-tight-zlib --with-tight-jpeg".
+run configure "./configure --with-included-zlib --with-included-jpeg".
 
 Building Xvnc
 =============
