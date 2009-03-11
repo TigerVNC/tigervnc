@@ -80,7 +80,7 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
   encodings[nEncodings++] = pseudoEncodingLastRect;
   if (cp->customCompressLevel && cp->compressLevel >= 0 && cp->compressLevel <= 9)
       encodings[nEncodings++] = pseudoEncodingCompressLevel0 + cp->compressLevel;
-  if (!cp->noJpeg && cp->qualityLevel >= 1 && cp->qualityLevel <= 9)
+  if (!cp->noJpeg && cp->qualityLevel >= 0 && cp->qualityLevel <= 9)
       encodings[nEncodings++] = pseudoEncodingQualityLevel0 + cp->qualityLevel;
 
   writeSetEncodings(nEncodings, encodings);
