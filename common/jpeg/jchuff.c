@@ -14,11 +14,33 @@
  * permanent JPEG objects only upon successful completion of an MCU.
  */
 
+/* Modifications:
+ * Copyright (C)2007 Sun Microsystems, Inc.
+ * Copyright (C)2009 D. R. Commander
+ *
+ * This library is free software and may be redistributed and/or modified under
+ * the terms of the wxWindows Library License, Version 3.1 or (at your option)
+ * any later version.  The full license is in the LICENSE.txt file included
+ * with this distribution.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * wxWindows Library License for more details.
+ */
+
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jchuff.h"		/* Declarations shared with jcphuff.c */
 
+
+static unsigned char jpeg_first_bit_table[65536];
+int jpeg_first_bit_table_init=0;
+
+#define CALC_FIRST_BIT(nbits, t)                       \
+  nbits = jpeg_first_bit_table[t&255];                 \
+  if (t > 255) nbits = jpeg_first_bit_table[t>>8] + 8;
 
 /* Expanded entropy encoder object for Huffman encoding.
  *
@@ -261,6 +283,15 @@ jpeg_make_c_derived_tbl (j_compress_ptr cinfo, boolean isDC, int tblno,
     dtbl->ehufco[i] = huffcode[p];
     dtbl->ehufsi[i] = huffsize[p];
   }
+
+  if(!jpeg_first_bit_table_init) {
+    for(i = 0; i < 65536; i++) {
+      int bit = 0, val = i;
+      while (val) {val >>= 1;  bit++;}
+      jpeg_first_bit_table[i] = bit;
+    }
+    jpeg_first_bit_table_init = 1;
+  }
 }
 
 
@@ -297,55 +328,77 @@ dump_buffer (working_state * state)
  * between calls, so 24 bits are sufficient.
  */
 
-inline
-LOCAL(boolean)
-emit_bits (working_state * state, unsigned int code, int size)
-/* Emit some bits; return TRUE if successful, FALSE if must suspend */
-{
-  /* This routine is heavily used, so it's worth coding tightly. */
-  register INT32 put_buffer = (INT32) code;
-  register int put_bits = state->cur.put_bits;
+/***************************************************************/
 
-  /* if size is 0, caller used an invalid Huffman table entry */
-  if (size == 0)
-    ERREXIT(state->cinfo, JERR_HUFF_MISSING_CODE);
+#define DUMP_BITS_(code, size) {                                \
+  put_bits += size;                                             \
+  put_buffer = (put_buffer << size) | code;                     \
+  if (put_bits > 7)                                             \
+    while(put_bits > 7)                                         \
+      if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8))) \
+        *buffer++ = 0;                                          \
+ }
 
-  put_buffer &= (((INT32) 1)<<size) - 1; /* mask off any extra bits in code */
-  
-  put_bits += size;		/* new number of bits in buffer */
-  
-  put_buffer <<= 24 - put_bits; /* align incoming bits */
+/***************************************************************/
 
-  put_buffer |= state->cur.put_buffer; /* and merge with old buffer contents */
-  
-  while (put_bits >= 8) {
-    int c = (int) ((put_buffer >> 16) & 0xFF);
-    
-    emit_byte(state, c, return FALSE);
-    if (c == 0xFF) {		/* need to stuff a zero byte? */
-      emit_byte(state, 0, return FALSE);
-    }
-    put_buffer <<= 8;
-    put_bits -= 8;
-  }
+#define DUMP_BITS(code, size) {                                 \
+  put_bits += size;                                             \
+  put_buffer = (put_buffer << size) | code;                     \
+  if (put_bits > 15) {                                          \
+    if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8)))   \
+      *buffer++ = 0;                                            \
+    if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8)))   \
+      *buffer++ = 0;                                            \
+  }                                                             \
+ }
 
-  state->cur.put_buffer = put_buffer; /* update state variables */
-  state->cur.put_bits = put_bits;
+/***************************************************************/
 
-  return TRUE;
-}
+#define DUMP_SINGLE_VALUE(ht, codevalue) { \
+  size = ht->ehufsi[codevalue];            \
+  code = ht->ehufco[codevalue];            \
+                                           \
+  DUMP_BITS(code, size)                    \
+ }
+
+/***************************************************************/
+
+#define DUMP_VALUE(ht, codevalue, t, nbits) { \
+  size = ht->ehufsi[codevalue];               \
+  code = ht->ehufco[codevalue];               \
+  t &= ~(-1 << nbits);                        \
+  DUMP_BITS(code, size)                       \
+  DUMP_BITS(t, nbits)                         \
+ }
+
+/***************************************************************/
 
 
 LOCAL(boolean)
 flush_bits (working_state * state)
 {
-  if (! emit_bits(state, 0x7F, 7)) /* fill any partial byte with ones */
-    return FALSE;
+  unsigned char *buffer;
+  int put_buffer, put_bits;
+
+  if ((state)->free_in_buffer < DCTSIZE2 * 2)
+    if (! dump_buffer(state)) return FALSE;
+
+  buffer = state->next_output_byte;
+  put_buffer = state->cur.put_buffer;
+  put_bits = state->cur.put_bits;
+
+  DUMP_BITS_(0x7F, 7)
+
   state->cur.put_buffer = 0;	/* and reset bit-buffer to empty */
   state->cur.put_bits = 0;
+  state->free_in_buffer -= (buffer - state->next_output_byte);
+  state->next_output_byte = buffer;
+
+  if ((state)->free_in_buffer < DCTSIZE2 * 2) 
+    if (! dump_buffer(state)) return FALSE;
+
   return TRUE;
 }
-
 
 /* Encode a single block's worth of coefficients */
 
@@ -353,91 +406,76 @@ LOCAL(boolean)
 encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
 		  c_derived_tbl *dctbl, c_derived_tbl *actbl)
 {
-  register int temp, temp2;
-  register int nbits;
-  register int k, r, i;
-  
+  int temp, temp2;
+  int nbits;
+  int r, sflag, size, code;
+  unsigned char *buffer;
+  int put_buffer, put_bits;
+  int code_0xf0 = actbl->ehufco[0xf0], size_0xf0 = actbl->ehufsi[0xf0];
+
+  if ((state)->free_in_buffer < DCTSIZE2 * 2)
+    if (! dump_buffer(state)) return FALSE;
+
+  buffer = state->next_output_byte;
+  put_buffer = state->cur.put_buffer;
+  put_bits = state->cur.put_bits;
+
   /* Encode the DC coefficient difference per section F.1.2.1 */
   
   temp = temp2 = block[0] - last_dc_val;
 
-  if (temp < 0) {
-    temp = -temp;		/* temp is abs value of input */
-    /* For a negative input, want temp2 = bitwise complement of abs(input) */
-    /* This code assumes we are on a two's complement machine */
-    temp2--;
-  }
-  
-  /* Find the number of bits needed for the magnitude of the coefficient */
-  nbits = 0;
-  while (temp) {
-    nbits++;
-    temp >>= 1;
-  }
-  /* Check for out-of-range coefficient values.
-   * Since we're encoding a difference, the range limit is twice as much.
-   */
-  if (nbits > MAX_COEF_BITS+1)
-    ERREXIT(state->cinfo, JERR_BAD_DCT_COEF);
-  
-  /* Emit the Huffman-coded symbol for the number of bits */
-  if (! emit_bits(state, dctbl->ehufco[nbits], dctbl->ehufsi[nbits]))
-    return FALSE;
-
-  /* Emit that number of bits of the value, if positive, */
-  /* or the complement of its magnitude, if negative. */
-  if (nbits)			/* emit_bits rejects calls with size 0 */
-    if (! emit_bits(state, (unsigned int) temp2, nbits))
-      return FALSE;
+  sflag = temp >> 31;
+  temp -= ((temp + temp) & sflag);
+  temp2 += sflag;
+  CALC_FIRST_BIT(nbits, temp)
+  DUMP_VALUE(dctbl, nbits, temp2, nbits)
 
   /* Encode the AC coefficients per section F.1.2.2 */
   
   r = 0;			/* r = run length of zeros */
-  
-  for (k = 1; k < DCTSIZE2; k++) {
-    if ((temp = block[jpeg_natural_order[k]]) == 0) {
-      r++;
-    } else {
-      /* if run length > 15, must emit special run-length-16 codes (0xF0) */
-      while (r > 15) {
-	if (! emit_bits(state, actbl->ehufco[0xF0], actbl->ehufsi[0xF0]))
-	  return FALSE;
-	r -= 16;
-      }
 
-      temp2 = temp;
-      if (temp < 0) {
-	temp = -temp;		/* temp is abs value of input */
-	/* This code assumes we are on a two's complement machine */
-	temp2--;
-      }
-      
-      /* Find the number of bits needed for the magnitude of the coefficient */
-      nbits = 1;		/* there must be at least one 1 bit */
-      while ((temp >>= 1))
-	nbits++;
-      /* Check for out-of-range coefficient values */
-      if (nbits > MAX_COEF_BITS)
-	ERREXIT(state->cinfo, JERR_BAD_DCT_COEF);
-      
-      /* Emit Huffman symbol for run length / number of bits */
-      i = (r << 4) + nbits;
-      if (! emit_bits(state, actbl->ehufco[i], actbl->ehufsi[i]))
-	return FALSE;
+#define innerloop(order) {  \
+  temp2  = *(JCOEF*)((unsigned char*)block + order);  \
+  if(temp2 == 0) r++;  \
+  else {  \
+    temp = (JCOEF)temp2;  \
+    sflag = temp >> 31;  \
+    temp = (temp ^ sflag) - sflag;  \
+    temp2 += sflag;  \
+    nbits = jpeg_first_bit_table[temp];  \
+    for(; r > 15; r -= 16) DUMP_BITS(code_0xf0, size_0xf0)  \
+    sflag = (r << 4) + nbits;  \
+    DUMP_VALUE(actbl, sflag, temp2, nbits)  \
+    r = 0;  \
+  }}
 
-      /* Emit that number of bits of the value, if positive, */
-      /* or the complement of its magnitude, if negative. */
-      if (! emit_bits(state, (unsigned int) temp2, nbits))
-	return FALSE;
-      
-      r = 0;
-    }
-  }
+  innerloop(2*1);   innerloop(2*8);   innerloop(2*16);  innerloop(2*9);
+  innerloop(2*2);   innerloop(2*3);   innerloop(2*10);  innerloop(2*17);
+  innerloop(2*24);  innerloop(2*32);  innerloop(2*25);  innerloop(2*18);
+  innerloop(2*11);  innerloop(2*4);   innerloop(2*5);   innerloop(2*12);
+  innerloop(2*19);  innerloop(2*26);  innerloop(2*33);  innerloop(2*40);
+  innerloop(2*48);  innerloop(2*41);  innerloop(2*34);  innerloop(2*27);
+  innerloop(2*20);  innerloop(2*13);  innerloop(2*6);   innerloop(2*7);
+  innerloop(2*14);  innerloop(2*21);  innerloop(2*28);  innerloop(2*35);
+  innerloop(2*42);  innerloop(2*49);  innerloop(2*56);  innerloop(2*57);
+  innerloop(2*50);  innerloop(2*43);  innerloop(2*36);  innerloop(2*29);
+  innerloop(2*22);  innerloop(2*15);  innerloop(2*23);  innerloop(2*30);
+  innerloop(2*37);  innerloop(2*44);  innerloop(2*51);  innerloop(2*58);
+  innerloop(2*59);  innerloop(2*52);  innerloop(2*45);  innerloop(2*38);
+  innerloop(2*31);  innerloop(2*39);  innerloop(2*46);  innerloop(2*53);
+  innerloop(2*60);  innerloop(2*61);  innerloop(2*54);  innerloop(2*47);
+  innerloop(2*55);  innerloop(2*62);  innerloop(2*63);
 
   /* If the last coef(s) were zero, emit an end-of-block code */
-  if (r > 0)
-    if (! emit_bits(state, actbl->ehufco[0], actbl->ehufsi[0]))
-      return FALSE;
+  if (r > 0) DUMP_SINGLE_VALUE(actbl, 0x0)
+
+  state->cur.put_buffer = put_buffer;
+  state->cur.put_bits = put_bits;
+  state->free_in_buffer -= (buffer - state->next_output_byte);
+  state->next_output_byte = buffer;
+
+  if ((state)->free_in_buffer < DCTSIZE2 * 2)
+    if (! dump_buffer(state)) return FALSE;
 
   return TRUE;
 }
