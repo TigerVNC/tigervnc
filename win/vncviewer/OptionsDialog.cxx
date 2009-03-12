@@ -121,24 +121,27 @@ public:
     return true;
   }
   virtual bool onCommand(int id, int cmd) {
+    bool aut = isItemChecked(IDC_ENCODING_AUTO);
+    bool jpeg = isItemChecked(IDC_ALLOW_JPEG);
+    bool custom_comp = isItemChecked(IDC_CUSTOM_COMPRESSLEVEL);
     if (id == IDC_ENCODING_AUTO) {
-      bool ok = !isItemChecked(IDC_ENCODING_AUTO);
-      enableItem(IDC_ENCODING_TIGHT, ok);
-      enableItem(IDC_ENCODING_ZRLE, ok);
-      enableItem(IDC_ENCODING_HEXTILE, ok);
-      enableItem(IDC_ENCODING_RAW, ok);
-      enableItem(IDC_FORMAT_FULLCOLOUR, ok);
-      enableItem(IDC_FORMAT_MEDIUMCOLOUR, ok);
-      enableItem(IDC_FORMAT_LOWCOLOUR, ok);
-      enableItem(IDC_FORMAT_VERYLOWCOLOUR, ok);
+      enableItem(IDC_ENCODING_TIGHT, !aut);
+      enableItem(IDC_ENCODING_ZRLE, !aut);
+      enableItem(IDC_ENCODING_HEXTILE, !aut);
+      enableItem(IDC_ENCODING_RAW, !aut);
+      enableItem(IDC_FORMAT_FULLCOLOUR, !aut);
+      enableItem(IDC_FORMAT_MEDIUMCOLOUR, !aut);
+      enableItem(IDC_FORMAT_LOWCOLOUR, !aut);
+      enableItem(IDC_FORMAT_VERYLOWCOLOUR, !aut);
+      enableItem(IDC_QUALITYLEVEL, !aut && jpeg);
       return true;
     }
     if (id == IDC_CUSTOM_COMPRESSLEVEL) {
-      enableItem(IDC_COMPRESSLEVEL, isItemChecked(IDC_CUSTOM_COMPRESSLEVEL));
+      enableItem(IDC_COMPRESSLEVEL, custom_comp);
       return true;
     }
     if (id == IDC_ALLOW_JPEG) {
-      enableItem(IDC_QUALITYLEVEL, isItemChecked(IDC_ALLOW_JPEG));
+      enableItem(IDC_QUALITYLEVEL, !aut && jpeg);
       return true;
     }
     return false;

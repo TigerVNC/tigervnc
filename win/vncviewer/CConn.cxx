@@ -514,40 +514,51 @@ CConn::framebufferUpdateEnd() {
 }
 
 
-// Note: The method below is duplicated in vncviewer_unix/CConn.cxx!
+// Note: The method below is duplicated in win/vncviewer/CConn.cxx!
 
 // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
 // to the connection speed:
 //
-//   Above 16Mbps (timing for at least a second), switch to hextile
-//   Otherwise, switch to ZRLE
+//   First we wait for at least one second of bandwidth measurement.
 //
-//   Above 256Kbps, use full colour mode
+//   Above 16Mbps (i.e. LAN), we choose the second highest JPEG quality,
+//   which should be perceptually lossless.
 //
-void
-CConn::autoSelectFormatAndEncoding() {
+//   If the bandwidth is below that, we choose a more lossy JPEG quality.
+//
+//   If the bandwidth drops below 256 Kbps, we switch to palette mode.
+//
+//   Note: The system here is fairly arbitrary and should be replaced
+//         with something more intelligent at the server end.
+//
+void CConn::autoSelectFormatAndEncoding()
+{
   int kbitsPerSecond = sock->inStream().kbitsPerSecond();
-  unsigned int newEncoding = options.preferredEncoding;
-
-  bool newFullColour = options.fullColour;
   unsigned int timeWaited = sock->inStream().timeWaited();
+  bool newFullColour = options.fullColour;
+  int newQualityLevel = options.qualityLevel;
 
-  // Select best encoding
-  if (kbitsPerSecond > 16000 && timeWaited >= 10000) {
-    newEncoding = encodingHextile;
-  } else {
-    newEncoding = encodingZRLE;
-  }
+  // Always use Tight
+  options.preferredEncoding = encodingTight;
 
-  if (newEncoding != options.preferredEncoding) {
-    vlog.info("Throughput %d kbit/s - changing to %s encoding",
-            kbitsPerSecond, encodingName(newEncoding));
-    options.preferredEncoding = newEncoding;
-    encodingChange = true;
-  }
-
-  if (kbitsPerSecond == 0) {
+  // Check that we have a decent bandwidth measurement
+  if ((kbitsPerSecond == 0) || (timeWaited < 10000))
     return;
+
+  // Select appropriate quality level
+  if (!options.noJpeg) {
+    if (kbitsPerSecond > 16000)
+      newQualityLevel = 8;
+    else
+      newQualityLevel = 6;
+
+    if (newQualityLevel != options.qualityLevel) {
+      vlog.info("Throughput %d kbit/s - changing to quality %d ",
+                kbitsPerSecond, newQualityLevel);
+      cp.qualityLevel = newQualityLevel;
+      options.qualityLevel = newQualityLevel;
+      encodingChange = true;
+    }
   }
 
   if (cp.beforeVersion(3, 8)) {
@@ -565,11 +576,11 @@ CConn::autoSelectFormatAndEncoding() {
   newFullColour = (kbitsPerSecond > 256);
   if (newFullColour != options.fullColour) {
     vlog.info("Throughput %d kbit/s - full color is now %s", 
-              kbitsPerSecond,
-              newFullColour ? "enabled" : "disabled");
+	      kbitsPerSecond,
+	      newFullColour ? "enabled" : "disabled");
     options.fullColour = newFullColour;
     formatChange = true;
-  }
+  } 
 }
 
 void

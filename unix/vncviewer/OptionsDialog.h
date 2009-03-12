@@ -145,7 +145,7 @@ public:
     sendPrimary.disabled(!sendClipboard.checked());
     dotWhenNoCursor.disabled(!useLocalCursor.checked());
     compressLevel.disabled(!customCompressLevel.checked());
-    qualityLevel.disabled(!noJpeg.checked());
+    qualityLevel.disabled(autoSelect.checked() || !noJpeg.checked());
   }
 
   virtual void takeFocus(Time time) {
@@ -171,6 +171,7 @@ public:
       mediumColour.disabled(autoSelect.checked());
       lowColour.disabled(autoSelect.checked());
       veryLowColour.disabled(autoSelect.checked());
+      qualityLevel.disabled(autoSelect.checked() || !noJpeg.checked());
     } else if (checkbox == &fullColour || checkbox == &mediumColour ||
                checkbox == &lowColour || checkbox == &veryLowColour) {
       fullColour.checked(checkbox == &fullColour);
@@ -189,7 +190,7 @@ public:
     } else if (checkbox == &customCompressLevel) {
       compressLevel.disabled(!customCompressLevel.checked());
     } else if (checkbox == &noJpeg) {
-      qualityLevel.disabled(!noJpeg.checked());
+      qualityLevel.disabled(autoSelect.checked() || !noJpeg.checked());
     }
   }
 
