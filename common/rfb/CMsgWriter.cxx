@@ -72,11 +72,38 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
   if (useCopyRect) {
     encodings[nEncodings++] = encodingCopyRect;
   }
+
+  /*
+   * Prefer encodings in this order:
+   *
+   *   Tight, ZRLE, Hextile, *
+   */
+
+  if ((preferredEncoding != encodingTight) &&
+      Decoder::supported(encodingTight))
+    encodings[nEncodings++] = encodingTight;
+
+  if ((preferredEncoding != encodingZRLE) &&
+      Decoder::supported(encodingZRLE))
+    encodings[nEncodings++] = encodingZRLE;
+
+  if ((preferredEncoding != encodingHextile) &&
+      Decoder::supported(encodingHextile))
+    encodings[nEncodings++] = encodingHextile;
+
+  // Remaining encodings
   for (int i = encodingMax; i >= 0; i--) {
-    if (i != preferredEncoding && Decoder::supported(i)) {
-      encodings[nEncodings++] = i;
+    switch (i) {
+    case encodingTight:
+    case encodingZRLE:
+    case encodingHextile:
+      break;
+    default:
+      if ((i != preferredEncoding) && Decoder::supported(i))
+        encodings[nEncodings++] = i;
     }
   }
+
   encodings[nEncodings++] = pseudoEncodingLastRect;
   if (cp->customCompressLevel && cp->compressLevel >= 0 && cp->compressLevel <= 9)
       encodings[nEncodings++] = pseudoEncodingCompressLevel0 + cp->compressLevel;
