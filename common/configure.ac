@@ -49,19 +49,6 @@ if test "$GXX" = yes; then
   fi
 fi
 
-dnl Checks for IRIX-specific Compression Library.
-AC_SEARCH_LIBS([clQuerySchemeFromName])
-AC_CHECK_LIB(cl, clQuerySchemeFromName,
-  [AC_DEFINE([HAVE_CL], 1, [Define if you have IRIX compression library])
-  IRIX_COMPRESS=yes])
-AM_CONDITIONAL([IRIX_COMPRESS], [ test "x$IRIX_COMPRESS" = xyes ])
-
-dnl Checks for IRIX-specific Digital Media libraries.
-AC_CHECK_LIB(dmedia, dmICCreate,
-  [AC_DEFINE(HAVE_DMEDIA, 1, [Define if you have IRIX Digital Media library])
-  IRIX_MEDIA=yes])
-AM_CONDITIONAL([IRIX_MEDIA], [ test "x$IRIX_MEDIA" = xyes ])
-
 dnl Check for zlib library
 INCLUDED_ZLIB=no
 AC_ARG_WITH([included-zlib],

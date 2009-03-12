@@ -1,13 +1,7 @@
 /* common-config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define if you have IRIX compression library */
-#undef HAVE_CL
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
-
-/* Define if you have IRIX Digital Media library */
-#undef HAVE_DMEDIA
 
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
