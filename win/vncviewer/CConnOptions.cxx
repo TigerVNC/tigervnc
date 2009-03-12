@@ -115,7 +115,7 @@ static BoolParameter noJpeg("NoJPEG",
 static IntParameter qualityLevel("QualityLevel",
 				 "JPEG quality level. "
 				 "0 = Low, 9 = High",
-				 6);
+				 8);
 
 static BoolParameter autoScaling("AutoScaling",
                           "Auto rescale local copy of the remote desktop to the client window.",
@@ -130,7 +130,7 @@ useDesktopResize(::useDesktopResize),
 fullScreen(::fullScreen), 
 fullColour(::fullColour), 
 lowColourLevel(::lowColourLevel), 
-preferredEncoding(encodingZRLE), 
+preferredEncoding(encodingTight), 
 autoSelect(::autoSelect), 
 shared(::sharedConnection), 
 sendPtrEvents(::sendPtrEvents), 
@@ -154,7 +154,7 @@ qualityLevel(::qualityLevel),
 passwordFile(::passwordFile.getData())
 {
   if (autoSelect) {
-    preferredEncoding = encodingZRLE;
+    preferredEncoding = encodingTight;
   } else {
     CharArray encodingName(::preferredEncoding.getData());
     preferredEncoding = encodingNum(encodingName.buf);

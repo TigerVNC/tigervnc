@@ -121,7 +121,7 @@ BoolParameter noJpeg("NoJPEG",
 IntParameter qualityLevel("QualityLevel",
 			  "JPEG quality level. "
 			  "0 = Low, 9 = High",
-			  6);
+			  8);
 
 char aboutText[1024];
 char* programName;
