@@ -44,17 +44,35 @@ using namespace rfb;
 // FIXME: Is this comment obsolete?
 //
 
+// NOTE:  The JPEG quality and subsampling levels below were obtained
+// experimentally by the VirtualGL Project.  They represent the approximate
+// average compression ratios listed below, as measured across the set of
+// every 10th frame in the SPECviewperf 9 benchmark suite.
+//
+// 9 = JPEG quality 100, no subsampling (ratio ~= 10:1)
+//     [this should be lossless, except for round-off error]
+// 8 = JPEG quality 92,  no subsampling (ratio ~= 20:1)
+//     [this should be perceptually lossless, based on current research]
+// 7 = JPEG quality 86,  no subsampling (ratio ~= 25:1)
+// 6 = JPEG quality 79,  no subsampling (ratio ~= 30:1)
+// 5 = JPEG quality 77,  4:2:2 subsampling (ratio ~= 40:1)
+// 4 = JPEG quality 62,  4:2:2 subsampling (ratio ~= 50:1)
+// 3 = JPEG quality 42,  4:2:2 subsampling (ratio ~= 60:1)
+// 2 = JPEG quality 41,  4:2:0 subsampling (ratio ~= 70:1)
+// 1 = JPEG quality 29,  4:2:0 subsampling (ratio ~= 80:1)
+// 0 = JPEG quality 15,  4:2:0 subsampling (ratio ~= 100:1)
+
 const TIGHT_CONF TightEncoder::conf[10] = {
-  {   512,   32,   6, 0, 0, 0,   4, 10, 1 }, // 0
-  {  2048,   64,   6, 1, 1, 1,   8, 25, 1 }, // 1
-  {  4096,  128,   8, 3, 3, 2,  24, 25, 0 }, // 2
-  {  8192,  256,  12, 5, 5, 2,  32, 50, 1 }, // 3
-  { 16384,  512,  12, 6, 7, 3,  32, 50, 0 }, // 4
-  { 32768,  512,  12, 7, 8, 4,  32, 75, 1 }, // 5
-  { 65536, 1024,  16, 7, 8, 5,  32, 75, 0 }, // 6
-  { 65536, 1024,  16, 8, 9, 6,  64, 83, 0 }, // 7
-  { 65536, 2048,  24, 9, 9, 7,  64, 92, 0 }, // 8
-  { 65536, 2048,  32, 9, 9, 9,  96,100, 0 }  // 9
+  {   512,   32,   6, 0, 0, 0,   4, 15, SUBSAMP_420 }, // 0
+  {  2048,   64,   6, 1, 1, 1,   8, 29, SUBSAMP_420 }, // 1
+  {  4096,  128,   8, 3, 3, 2,  24, 41, SUBSAMP_420 }, // 2
+  {  8192,  256,  12, 5, 5, 2,  32, 42, SUBSAMP_422 }, // 3
+  { 16384,  512,  12, 6, 7, 3,  32, 62, SUBSAMP_422 }, // 4
+  { 32768,  512,  12, 7, 8, 4,  32, 77, SUBSAMP_422 }, // 5
+  { 65536, 1024,  16, 7, 8, 5,  32, 79, SUBSAMP_NONE }, // 6
+  { 65536, 1024,  16, 8, 9, 6,  64, 86, SUBSAMP_NONE }, // 7
+  { 65536, 2048,  24, 9, 9, 7,  64, 92, SUBSAMP_NONE }, // 8
+  { 65536, 2048,  32, 9, 9, 9,  96,100, SUBSAMP_NONE }  // 9
 };
 const int TightEncoder::defaultCompressLevel = 6;
 

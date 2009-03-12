@@ -537,10 +537,17 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
 
   jpeg_set_defaults(&cinfo);
   jpeg_set_quality(&cinfo, s_pjconf->jpegQuality, TRUE);
-  if (s_pjconf->jpegSubSample) {
+
+  switch (s_pjconf->jpegSubSample) {
+  case SUBSAMP_420:
     cinfo.comp_info[0].h_samp_factor = 2;
     cinfo.comp_info[0].v_samp_factor = 2;
-  } else {
+    break;
+  case SUBSAMP_422:
+    cinfo.comp_info[0].h_samp_factor = 2;
+    cinfo.comp_info[0].v_samp_factor = 1;
+    break;
+  default:
     cinfo.comp_info[0].h_samp_factor = 1;
     cinfo.comp_info[0].v_samp_factor = 1;
   }

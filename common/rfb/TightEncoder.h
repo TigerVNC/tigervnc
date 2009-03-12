@@ -30,12 +30,19 @@ extern "C" {
 
 namespace rfb {
 
+  enum subsampEnum {
+    SUBSAMP_NONE,
+    SUBSAMP_422,
+    SUBSAMP_420
+  };
+
   struct TIGHT_CONF {
     unsigned int maxRectSize, maxRectWidth;
     unsigned int monoMinRectSize;
     int idxZlibLevel, monoZlibLevel, rawZlibLevel;
     int idxMaxColorsDivisor;
-    int jpegQuality, jpegSubSample;
+    int jpegQuality;
+    subsampEnum jpegSubSample;
   };
 
   //
