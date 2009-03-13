@@ -411,10 +411,10 @@ forward_DCT (j_compress_ptr cinfo, jpeg_component_info * compptr,
   JDIMENSION bi;
 
   /* Make sure the compiler doesn't look up these every pass */
-  workspace = fdct->workspace;
   forward_DCT_method_ptr do_dct = fdct->dct;
   convsamp_method_ptr do_convsamp = fdct->convsamp;
   quantize_method_ptr do_quantize = fdct->quantize;
+  workspace = fdct->workspace;
 
   sample_data += start_row;	/* fold in the vertical offset once */
 
@@ -502,10 +502,10 @@ forward_DCT_float (j_compress_ptr cinfo, jpeg_component_info * compptr,
 
 
   /* Make sure the compiler doesn't look up these every pass */
-  workspace = fdct->float_workspace;
   float_DCT_method_ptr do_dct = fdct->float_dct;
   float_convsamp_method_ptr do_convsamp = fdct->float_convsamp;
   float_quantize_method_ptr do_quantize = fdct->float_quantize;
+  workspace = fdct->float_workspace;
 
   sample_data += start_row;	/* fold in the vertical offset once */
 
