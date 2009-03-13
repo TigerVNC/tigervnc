@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.61])
+AC_PREREQ([2.57])
 AC_INIT([libjpeg], [6.b])
 
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])

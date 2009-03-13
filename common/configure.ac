@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.61])
+AC_PREREQ([2.57])
 AC_INIT([librfb], [0.0.90], [http://www.tigervnc.org])
 
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
@@ -72,10 +72,10 @@ AC_ARG_WITH([included-jpeg],
 AM_CONDITIONAL([INCLUDED_JPEG], [ test "x$INCLUDED_JPEG" = xyes ])
 AC_CONFIG_SUBDIRS([jpeg])
 
-AC_CHECK_FUNCS_ONCE([vsnprintf snprintf strcasecmp strncasecmp])
+AC_CHECK_FUNCS([vsnprintf snprintf strcasecmp strncasecmp])
 
 # IPv6 related functions
-AC_CHECK_FUNCS_ONCE([inet_ntop getaddrinfo])
+AC_CHECK_FUNCS([inet_ntop getaddrinfo])
 
 AC_CHECK_TYPES([socklen_t])
 

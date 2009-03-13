@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.61])
+AC_PREREQ([2.57])
 AC_INIT([zlib], [1.1.4])
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
