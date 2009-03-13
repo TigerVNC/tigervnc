@@ -21,17 +21,17 @@
 //  USA.
 //
 
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
-import com.tightvnc.decoder.CoRREDecoder;
-import com.tightvnc.decoder.CopyRectDecoder;
-import com.tightvnc.decoder.HextileDecoder;
-import com.tightvnc.decoder.RREDecoder;
-import com.tightvnc.decoder.RawDecoder;
-import com.tightvnc.decoder.TightDecoder;
-import com.tightvnc.decoder.ZRLEDecoder;
-import com.tightvnc.decoder.ZlibDecoder;
-import com.tightvnc.decoder.common.Repaintable;
+import com.tigervnc.decoder.CoRREDecoder;
+import com.tigervnc.decoder.CopyRectDecoder;
+import com.tigervnc.decoder.HextileDecoder;
+import com.tigervnc.decoder.RREDecoder;
+import com.tigervnc.decoder.RawDecoder;
+import com.tigervnc.decoder.TightDecoder;
+import com.tigervnc.decoder.ZRLEDecoder;
+import com.tigervnc.decoder.ZlibDecoder;
+import com.tigervnc.decoder.common.Repaintable;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;

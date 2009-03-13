@@ -1,4 +1,4 @@
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
 import java.io.IOException;
 
@@ -6,7 +6,7 @@ import java.io.IOException;
 // This class is layer between data of private RfbProto class
 // and classes in other packages.
 //
-// For now this class is used by com.tightvnc.decoder.RawDecoder
+// For now this class is used by com.tigervnc.decoder.RawDecoder
 //
 public class RfbInputStream {
   RfbInputStream(RfbProto rfbProto) {

@@ -22,7 +22,7 @@
 // FBS (FrameBuffer Stream) files.
 //
 
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
 import java.io.*;
 import java.awt.*;

@@ -1,7 +1,7 @@
-package com.tightvnc.decoder;
+package com.tigervnc.decoder;
 
-import com.tightvnc.decoder.common.Repaintable;
-import com.tightvnc.vncviewer.RfbInputStream;
+import com.tigervnc.decoder.common.Repaintable;
+import com.tigervnc.vncviewer.RfbInputStream;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.io.IOException;

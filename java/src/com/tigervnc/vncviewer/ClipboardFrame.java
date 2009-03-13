@@ -22,7 +22,7 @@
 // Clipboard frame.
 //
 
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
 import java.awt.*;
 import java.awt.event.*;

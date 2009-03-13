@@ -24,7 +24,7 @@
 // RfbProto.java
 //
 
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
 import java.io.*;
 import java.awt.*;

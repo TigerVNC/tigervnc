@@ -22,7 +22,7 @@
 // standard Socket class by its alternative implementations.
 //
 
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
 import java.applet.*;
 import java.net.*;

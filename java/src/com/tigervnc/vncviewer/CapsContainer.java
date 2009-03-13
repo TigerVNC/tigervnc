@@ -22,7 +22,7 @@
 // protocol 3.130
 //
 
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
 import java.util.Vector;
 import java.util.Hashtable;

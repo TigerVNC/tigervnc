@@ -1,4 +1,4 @@
-package com.tightvnc.decoder.common;
+package com.tigervnc.decoder.common;
 
 public interface Repaintable {
 

@@ -27,7 +27,7 @@
 // It sets the encodings array and some booleans.
 //
 
-package com.tightvnc.vncviewer;
+package com.tigervnc.vncviewer;
 
 import java.awt.*;
 import java.awt.event.*;
