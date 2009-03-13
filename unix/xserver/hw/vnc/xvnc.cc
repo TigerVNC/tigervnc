@@ -1145,7 +1145,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 
     if (!ret) return FALSE;
 
-    /* miInitializeBackingStore(pScreen); */
+    miInitializeBackingStore(pScreen);
 
     /*
      * Circumvent the backing store that was just initialised.  This amounts
@@ -1202,11 +1202,6 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
-
-#ifndef NO_INIT_BACKING_STORE
-  miInitializeBackingStore(pScreen);
-  pScreen->backingStoreSupport = Always;
-#endif
 
   return ret;
 
