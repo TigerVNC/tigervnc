@@ -4,7 +4,7 @@
 
 CP = cp
 JC = javac
-JCFLAGS = -target 1.1
+JCFLAGS = -target 1.5 -classpath ../../../
 JAR = jar
 ARCHIVE = VncViewer.jar
 MANIFEST = MANIFEST.MF
