@@ -429,35 +429,11 @@ void SConnection::sendInteractionCaps()
 
   CapsList scaps;
 
-  // File transfer:
-  /* FIXME: File transfers are not finished yet: 
-  scaps.addTightExt(msgTypeFileListData,            "FTS_LSDT");
-  scaps.addTightExt(msgTypeFileDownloadData,        "FTS_DNDT");
-  scaps.addTightExt(msgTypeFileUploadCancel,        "FTS_UPCN");
-  scaps.addTightExt(msgTypeFileDownloadFailed,      "FTS_DNFL");
-  scaps.addTightExt(msgTypeFileDirSizeData,         "FTS_DSDT");
-  scaps.addTightExt(msgTypeFileLastRequestFailed,   "FTS_RQFL");
-  */
-
   //
   // Advertise support for non-standard client-to-server messages
   //
 
   CapsList ccaps;
-
-  // File transfer:
-  /* FIXME: File transfers are not finished yet: 
-  ccaps.addTightExt(msgTypeFileListRequest,         "FTC_LSRQ");
-  ccaps.addTightExt(msgTypeFileDownloadRequest,     "FTC_DNRQ");
-  ccaps.addTightExt(msgTypeFileUploadRequest,       "FTC_UPRQ");
-  ccaps.addTightExt(msgTypeFileUploadRequest,       "FTC_UPDT");
-  ccaps.addTightExt(msgTypeFileDownloadCancel,      "FTC_DNCN");
-  ccaps.addTightExt(msgTypeFileUploadFailed,        "FTC_UPFL");
-  ccaps.addTightExt(msgTypeFileCreateDirRequest,    "FTC_FCDR");
-  ccaps.addTightExt(msgTypeFileDirSizeRequest,      "FTC_DSRQ");
-  ccaps.addTightExt(msgTypeFileRenameRequest,       "FTC_RNRQ");
-  ccaps.addTightExt(msgTypeFileDeleteRequest,       "FTC_RMRQ");
-  */
 
   //
   // Advertise all supported encoding types (except raw encoding).

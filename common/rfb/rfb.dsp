@@ -126,14 +126,6 @@ SOURCE=.\CConnection.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\CFTMsgReader.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\CFTMsgWriter.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=.\CMsgHandler.cxx
 # End Source File
 # Begin Source File
@@ -188,22 +180,6 @@ SOURCE=.\Encoder.cxx
 # Begin Source File
 
 SOURCE=.\encodings.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileInfo.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileManager.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileReader.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileWriter.cxx
 # End Source File
 # Begin Source File
 
@@ -291,22 +267,6 @@ SOURCE=.\ServerCore.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\SFileTransfer.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFileTransferManager.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFTMsgReader.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFTMsgWriter.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=.\SMsgHandler.cxx
 # End Source File
 # Begin Source File
@@ -346,10 +306,6 @@ SOURCE=.\TightEncoder.cxx
 # Begin Source File
 
 SOURCE=.\TightPalette.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\TransferQueue.cxx
 # End Source File
 # Begin Source File
 
@@ -398,14 +354,6 @@ SOURCE=.\CapsList.h
 # Begin Source File
 
 SOURCE=.\CConnection.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CFTMsgReader.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CFTMsgWriter.h
 # End Source File
 # Begin Source File
 
@@ -473,10 +421,6 @@ SOURCE=.\Decoder.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\DirManager.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\Encoder.h
 # End Source File
 # Begin Source File
@@ -486,22 +430,6 @@ SOURCE=.\encodings.h
 # Begin Source File
 
 SOURCE=.\Exception.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileInfo.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileManager.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileReader.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileWriter.h
 # End Source File
 # Begin Source File
 
@@ -657,22 +585,6 @@ SOURCE=.\ServerCore.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\SFileTransfer.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFileTransferManager.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFTMsgReader.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFTMsgWriter.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\SMsgHandler.h
 # End Source File
 # Begin Source File
@@ -730,10 +642,6 @@ SOURCE=.\TightEncoder.h
 # Begin Source File
 
 SOURCE=.\TightPalette.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\TransferQueue.h
 # End Source File
 # Begin Source File
 

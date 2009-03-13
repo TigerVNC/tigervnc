@@ -56,8 +56,6 @@ namespace rfb {
     // specially for this purpose.
     virtual void supportsLocalCursor();
 
-    virtual bool processFTMsg(int type) = 0;
-
     ConnParams cp;
   };
 }

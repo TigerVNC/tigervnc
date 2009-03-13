@@ -26,7 +26,6 @@
 #include <rfb_win32/SDisplay.h>
 #include <rfb_win32/SocketManager.h>
 #include <rfb_win32/TCharArray.h>
-#include <rfb_win32/SFileTransferManagerWin32.h>
 #include <winvnc/QueryConnectDialog.h>
 #include <winvnc/JavaViewer.h>
 #include <winvnc/ManagedListener.h>
@@ -122,7 +121,6 @@ namespace winvnc {
     //rfb::SSecurityFactoryStandard securityFactory;
 
     QueryConnectDialog* queryConnectDialog;
-    rfb::win32::SFileTransferManagerWin32 m_FTManager;
   };
 
 };

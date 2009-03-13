@@ -158,10 +158,6 @@ SOURCE=.\EventManager.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\FolderManager.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=.\LaunchProcess.cxx
 # End Source File
 # Begin Source File
@@ -219,14 +215,6 @@ SOURCE=.\Security.cxx
 # Begin Source File
 
 SOURCE=.\Service.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFileTransferManagerWin32.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFileTransferWin32.cxx
 # End Source File
 # Begin Source File
 
@@ -346,10 +334,6 @@ SOURCE=.\EventManager.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\FolderManager.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\Handle.h
 # End Source File
 # Begin Source File
@@ -443,14 +427,6 @@ SOURCE=.\Security.h
 # Begin Source File
 
 SOURCE=.\Service.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFileTransferManagerWin32.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SFileTransferWin32.h
 # End Source File
 # Begin Source File
 

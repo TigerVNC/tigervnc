@@ -47,6 +47,8 @@
 // otherwise blacklisted connections might be "forgotten".
 
 
+#include <stdlib.h>
+
 #include <rfb/ServerCore.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/VNCSConnectionST.h>
@@ -72,7 +74,7 @@ static SSecurityFactoryStandard defaultSecurityFactory;
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
                          SSecurityFactory* sf)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false), pb(0),
-    m_pFTManager(0), name(strDup(name_)), pointerClient(0), comparer(0),
+    name(strDup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
     securityFactory(sf ? sf : &defaultSecurityFactory),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),

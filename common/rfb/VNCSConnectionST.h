@@ -31,7 +31,6 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/TransImageGetter.h>
 #include <rfb/VNCServerST.h>
-#include <rfb/SFileTransfer.h>
 
 namespace rfb {
   class VNCSConnectionST : public SConnection,
@@ -110,8 +109,6 @@ namespace rfb {
     void setStatus(int status);
     int getStatus();
 
-    bool processFTMsg(int type);
-
   private:
     // SConnection callbacks
 
@@ -170,8 +167,6 @@ namespace rfb {
 
     CharArray closeReason;
     time_t startTime;
-
-    SFileTransfer *m_pFileTransfer;
   };
 }
 #endif

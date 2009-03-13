@@ -55,10 +55,6 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON                ICON    DISCARDABLE     "vncviewer.ico"
-IDI_FTDIR               ICON    DISCARDABLE     "ftdir.ico"
-IDI_FTFILE              ICON    DISCARDABLE     "ftfile.ico"
-IDI_FTRELOAD            ICON    DISCARDABLE     "ftreload.ico"
-IDI_FTUP                ICON    DISCARDABLE     "ftup.ico"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -309,99 +305,6 @@ BEGIN
     GROUPBOX        "Defaults",IDC_STATIC,113,7,97,53
 END
 
-IDD_FILETRANSFER_DLG DIALOGEX 0, 0, 530, 282
-STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
-    WS_SYSMENU
-EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
-CAPTION "TigerVNC File Transfers"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
-BEGIN
-    CONTROL         "List1",IDC_FTLOCALLIST,"SysListView32",LVS_REPORT | 
-                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
-                    WS_TABSTOP,7,40,200,196
-    CONTROL         "List2",IDC_FTREMOTELIST,"SysListView32",LVS_REPORT | 
-                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
-                    WS_TABSTOP,323,40,200,196
-    PUSHBUTTON      "Upload Files and Folders",IDC_FTUPLOAD,218,66,94,12,
-                    WS_DISABLED
-    PUSHBUTTON      "Download Files and Folders",IDC_FTDOWNLOAD,218,85,94,12,
-                    WS_DISABLED
-    PUSHBUTTON      "Cancel File Transfer",IDC_FTCANCEL,218,167,94,12,
-                    WS_DISABLED
-    PUSHBUTTON      "Close",IDC_FTCLOSE,218,217,94,12
-    EDITTEXT        IDC_FTLOCALPATH,7,20,155,12,ES_AUTOHSCROLL | NOT 
-                    WS_TABSTOP
-    CTEXT           "Local Computer",IDC_FTLOCALLABEL,7,7,200,10
-    PUSHBUTTON      "...",IDC_FTLOCALBROWSE,165,20,14,12,NOT WS_TABSTOP
-    PUSHBUTTON      "",IDC_FTLOCALUP,179,20,14,12,BS_ICON | NOT WS_TABSTOP
-    PUSHBUTTON      "",IDC_FTLOCALRELOAD,193,20,14,12,BS_ICON | NOT 
-                    WS_TABSTOP
-    CONTROL         "Progress1",IDC_FTGENERALPROGRESS,"msctls_progress32",
-                    WS_BORDER,55,244,128,10
-    LTEXT           "File Transfer",IDC_STATIC,7,245,40,8
-    COMBOBOX        IDC_FTSTATUS,7,263,516,65,CBS_DROPDOWNLIST | 
-                    CBS_NOINTEGRALHEIGHT | WS_VSCROLL
-    CONTROL         "Progress1",IDC_FTSINGLEPROGRESS,"msctls_progress32",
-                    WS_BORDER,370,244,128,10
-    EDITTEXT        IDC_FTREMOTEPATH,323,20,155,12,ES_AUTOHSCROLL | NOT 
-                    WS_TABSTOP
-    PUSHBUTTON      "...",IDC_FTREMOTEBROWSE,481,20,14,12,NOT WS_TABSTOP
-    PUSHBUTTON      "",IDC_FTREMOTEUP,495,20,14,12,BS_ICON | NOT WS_TABSTOP
-    PUSHBUTTON      "",IDC_FTREMOTERELOAD,509,20,14,12,BS_ICON | NOT 
-                    WS_TABSTOP
-    CTEXT           "TigerVNC Server",IDC_FTREMOTELABEL,323,7,200,10
-    LTEXT           "Current File",IDC_STATIC,323,245,36,8
-    CTEXT           "0%",IDC_FTGENERALPERCENT,189,245,18,8
-    CTEXT           "0%",IDC_FTSINGLEPERCENT,505,245,18,8
-END
-
-IDD_FTBROWSE DIALOGEX 0, 0, 183, 196
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_CONTROLPARENT
-CAPTION "Browse Folders"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,38,175,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,95,175,50,14
-    EDITTEXT        IDC_FTBROWSEPATH,7,7,169,12,ES_AUTOHSCROLL | ES_READONLY | 
-                    NOT WS_TABSTOP
-    CONTROL         "Tree1",IDC_FTBROWSETREE,"SysTreeView32",TVS_HASBUTTONS | 
-                    TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
-                    TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,7,25,169,143
-END
-
-IDD_FTCANCELING DIALOG DISCARDABLE  0, 0, 193, 63
-STYLE DS_SYSMODAL | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Canceling Active File Transfer"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "Yes",IDOK,40,42,50,14
-    PUSHBUTTON      "No",IDCANCEL,102,42,50,14
-    LTEXT           "FileTransfer is active.\nAre you sure you want to cancel transfer?",
-                    IDC_STATIC,42,14,133,19
-END
-
-IDD_FTCONFIRM_DLG DIALOG DISCARDABLE  0, 0, 188, 143
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "Yes",IDOK,69,122,50,14,WS_GROUP
-    PUSHBUTTON      "No",IDCANCEL,131,122,50,14
-    PUSHBUTTON      "Yes to All",IDC_CONFIRM_YESTOALL,7,122,50,14
-    LTEXT           "Static",IDC_CONFIRM_TEXT,7,7,174,107
-END
-
-IDD_FTCREATEFOLDER DIALOG DISCARDABLE  0, 0, 193, 63
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Create a New Folder"
-FONT 8, "MS Sans Serif"
-BEGIN
-    EDITTEXT        IDC_FTFOLDERNAME,7,19,179,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,80,42,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,136,42,50,14
-    LTEXT           "New folder name:",IDC_FTTEXT,7,7,179,8
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -579,54 +482,6 @@ BEGIN
         HORZGUIDE, 60
         HORZGUIDE, 75
     END
-
-    IDD_FILETRANSFER_DLG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 523
-        VERTGUIDE, 207
-        VERTGUIDE, 265
-        VERTGUIDE, 323
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 275
-        HORZGUIDE, 12
-        HORZGUIDE, 26
-        HORZGUIDE, 40
-        HORZGUIDE, 47
-        HORZGUIDE, 249
-    END
-
-    IDD_FTBROWSE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 176
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 189
-    END
-
-    IDD_FTCANCELING, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 186
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 56
-    END
-
-    IDD_FTCONFIRM_DLG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 181
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 136
-    END
-
-    IDD_FTCREATEFOLDER, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 186
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 56
-    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -666,20 +521,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Close Daemon",               ID_CLOSE
         MENUITEM "&About...",                   ID_ABOUT
-    END
-END
-
-IDR_FTMENU MENU DISCARDABLE 
-BEGIN
-    POPUP "File Transfer"
-    BEGIN
-        MENUITEM "Copy Files and Folders",      IDM_FTCOPY
-        MENUITEM SEPARATOR
-        MENUITEM "Create a Folder",             IDM_FTCREATEFOLDER
-        MENUITEM "Rename File or Folder",       IDM_FTRENAME
-        MENUITEM "Delete Files and Folders",    IDM_FTDELETE
-        MENUITEM SEPARATOR
-        MENUITEM "Cancel File Transfer",        IDM_FTCANCEL
     END
 END
 

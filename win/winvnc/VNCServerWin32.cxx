@@ -27,7 +27,6 @@
 #include <rfb/SSecurityFactoryStandard.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
-#include <rfb_win32/SFileTransferWin32.h>
 
 using namespace rfb;
 using namespace win32;
@@ -38,9 +37,6 @@ static LogWriter vlog("VNCServerWin32");
 
 
 const TCHAR* winvnc::VNCServerWin32::RegConfigPath = _T("Software\\TigerVNC\\WinVNC4");
-
-// FIXME: Move into an .h file?
-extern const UINT VNCM_FT_DOWNLOAD;
 
 
 static IntParameter http_port("HTTPPortNumber",
@@ -75,8 +71,6 @@ VNCServerWin32::VNCServerWin32()
 
   // Register the queued command event to be handled
   sockMgr.addEvent(commandEvent, this);
-
-  vncServer.setFTManager((rfb::SFileTransferManager *)&m_FTManager);
 }
 
 VNCServerWin32::~VNCServerWin32() {
@@ -183,8 +177,6 @@ int VNCServerWin32::run() {
         throw rdr::SystemException("getMessage", GetLastError());
       if (!isServiceProcess() && (result == 0))
         break;
-      if (msg.message == VNCM_FT_DOWNLOAD)
-        m_FTManager.processDownloadMsg(msg);
       TranslateMessage(&msg);
       DispatchMessage(&msg);
     }

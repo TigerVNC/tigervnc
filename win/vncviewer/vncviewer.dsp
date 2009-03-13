@@ -158,26 +158,6 @@ SOURCE=.\DesktopWindow.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\FileTransfer.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTBrowseDlg.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTDialog.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTListView.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTProgress.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=.\InfoDialog.cxx
 # End Source File
 # Begin Source File
@@ -227,26 +207,6 @@ SOURCE=.\ConnectionDialog.h
 # Begin Source File
 
 SOURCE=.\DesktopWindow.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileTransfer.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTBrowseDlg.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTDialog.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTListView.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FTProgress.h
 # End Source File
 # Begin Source File
 

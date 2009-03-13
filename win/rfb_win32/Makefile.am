@@ -16,7 +16,6 @@ HDRS = \
   DIBSectionBuffer.h \
   DynamicFn.h \
   EventManager.h \
-  FolderManager.h \
   Handle.h \
   IconInfo.h \
   IntervalTimer.h \
@@ -41,8 +40,6 @@ HDRS = \
   SDisplay.h \
   Security.h \
   Service.h \
-  SFileTransferManagerWin32.h \
-  SFileTransferWin32.h \
   SInput.h \
   SocketManager.h \
   TCharArray.h \
@@ -73,7 +70,6 @@ librfb_win32_la_SOURCES = $(HDRS) \
   DIBSectionBuffer.cxx \
   DynamicFn.cxx \
   EventManager.cxx \
-  FolderManager.cxx \
   LaunchProcess.cxx \
   ListViewControl.cxx \
   LowLevelKeyEvents.cxx \
@@ -89,8 +85,6 @@ librfb_win32_la_SOURCES = $(HDRS) \
   SDisplay.cxx \
   Security.cxx \
   Service.cxx \
-  SFileTransferManagerWin32.cxx \
-  SFileTransferWin32.cxx \
   SInput.cxx \
   SocketManager.cxx \
   TCharArray.cxx \

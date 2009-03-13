@@ -36,7 +36,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     updates(false), image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
     pointerEventTime(0), accessRights(AccessDefault),
-    startTime(time(0)), m_pFileTransfer(0)
+    startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -45,14 +45,6 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   // Configure the socket
   setSocketTimeouts();
   lastEventTime = time(0);
-
-  // Add this client to the VNCServerST
-  if (server->m_pFTManager != NULL) {
-    SFileTransfer *pFT = server->m_pFTManager->createObject(sock);
-    if (pFT != NULL) {
-      m_pFileTransfer = pFT;
-    }
-  }
 
   server->clients.push_front(this);
 }
@@ -71,9 +63,6 @@ VNCSConnectionST::~VNCSConnectionST()
     server->desktop->keyEvent(*i, false);
   if (server->pointerClient == this)
     server->pointerClient = 0;
-
-  if (m_pFileTransfer) 
-    server->m_pFTManager->destroyObject(m_pFileTransfer);
 
   // Remove this client from the server
   server->clients.remove(this);
@@ -747,10 +736,3 @@ int VNCSConnectionST::getStatus()
   return 4;
 }
 
-bool VNCSConnectionST::processFTMsg(int type)
-{
-  if (m_pFileTransfer != NULL) 
-    return m_pFileTransfer->processMessages(type);
-  else 
-    return false;
-}

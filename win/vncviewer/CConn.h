@@ -33,7 +33,6 @@
 #include <vncviewer/OptionsDialog.h>
 #include <vncviewer/CConnOptions.h>
 #include <vncviewer/DesktopWindow.h>
-#include <vncviewer/FileTransfer.h>
 #include <list>
 
 
@@ -80,8 +79,6 @@ namespace rfb {
 
       // Global user-config registry key
       static RegKey userConfigKey;
-
-      bool processFTMsg(int type);
 
     protected:
       // InputHandler interface (via DesktopWindow::Callback)
@@ -152,8 +149,6 @@ namespace rfb {
       std::list<Rect> debugRects;
       CharArray closeReason_;
       bool isClosed_;
-
-      FileTransfer m_fileTransfer;
     };
 
   };

@@ -7,11 +7,6 @@ HDRS = \
   ConnectingDialog.h \
   ConnectionDialog.h \
   DesktopWindow.h \
-  FileTransfer.h \
-  FTBrowseDlg.h \
-  FTDialog.h \
-  FTListView.h \
-  FTProgress.h \
   InfoDialog.h \
   ListenServer.h \
   ListenTrayIcon.h \
@@ -29,11 +24,6 @@ vncviewer_SOURCES = $(HDRS) \
   ConnectingDialog.cxx \
   ConnectionDialog.cxx \
   DesktopWindow.cxx \
-  FileTransfer.cxx \
-  FTBrowseDlg.cxx \
-  FTDialog.cxx \
-  FTListView.cxx \
-  FTProgress.cxx \
   InfoDialog.cxx \
   OptionsDialog.cxx \
   UserPasswdDialog.cxx \

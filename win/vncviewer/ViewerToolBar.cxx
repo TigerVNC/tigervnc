@@ -44,7 +44,6 @@ void ViewerToolBar::create(HWND parentHwnd) {
   addButton(10, ID_CTRL_KEY);
   addButton(11, ID_ALT_KEY);
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
-  addButton(12, ID_FILE_TRANSFER);
   addButton(0, 0, TBSTATE_ENABLED, TBSTYLE_SEP);
   addButton(13, ID_NEW_CONNECTION);
   addButton(14, ID_CONN_SAVE_AS);
@@ -86,9 +85,6 @@ LRESULT ViewerToolBar::processWM_NOTIFY(WPARAM wParam, LPARAM lParam) {
         break;
       case ID_ALT_KEY:
         TTStr->lpszText = "Send Alt key press/release";
-        break;
-      case ID_FILE_TRANSFER:
-        TTStr->lpszText = "Transfer files...";
         break;
       case ID_NEW_CONNECTION:
         TTStr->lpszText = "New connection...";

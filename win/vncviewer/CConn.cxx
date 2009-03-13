@@ -51,7 +51,6 @@ const int IDM_NEWCONN = ID_NEW_CONNECTION;
 const int IDM_REQUEST_REFRESH = ID_REQUEST_REFRESH;
 const int IDM_CTRL_KEY = ID_CTRL_KEY;
 const int IDM_ALT_KEY = ID_ALT_KEY;
-const int IDM_FILE_TRANSFER = ID_FILE_TRANSFER;
 const int IDM_CONN_SAVE_AS = ID_CONN_SAVE_AS;
 const int IDM_ZOOM_IN = ID_ZOOM_IN;
 const int IDM_ZOOM_OUT = ID_ZOOM_OUT;
@@ -107,8 +106,6 @@ bool CConn::initialise(network::Socket* s, bool reverse) {
   sock = s;
   reverseConnection = reverse;
   initialiseProtocol();
-
-  m_fileTransfer.initialize(&s->inStream(), &s->outStream());
 
   return true;
 }
@@ -280,9 +277,6 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     return true;
   case IDM_ABOUT:
     AboutDialog::instance.showDialog();
-    return true;
-  case IDM_FILE_TRANSFER:
-    m_fileTransfer.show(window->getHandle());
     return true;
   case IDM_CONN_SAVE_AS:
     return true;
@@ -770,6 +764,3 @@ void CConn::getUserPasswd(char** user, char** password) {
   if (password) options.setPassword(*password);
 }
 
-bool CConn::processFTMsg(int type) {
-  return m_fileTransfer.processFTMsg(type);
-}

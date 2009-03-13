@@ -33,7 +33,6 @@
 #include <rfb/Cursor.h>
 #include <network/Socket.h>
 #include <rfb/ListConnInfo.h>
-#include <rfb/SFileTransferManager.h>
 
 namespace rfb {
 
@@ -189,8 +188,6 @@ namespace rfb {
     bool getDisable() { return disableclients;};
     void setDisable(bool disable) { disableclients = disable;};
 
-    void setFTManager(rfb::SFileTransferManager *pFTManager) { m_pFTManager = pFTManager; };
-
   protected:
 
     friend class VNCSConnectionST;
@@ -204,8 +201,6 @@ namespace rfb {
     SDesktop* desktop;
     bool desktopStarted;
     PixelBuffer* pb;
-
-    SFileTransferManager *m_pFTManager;
 
     CharArray name;
 
