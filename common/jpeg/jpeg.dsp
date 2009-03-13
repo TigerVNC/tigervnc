@@ -265,6 +265,10 @@ SOURCE=.\jquant2.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\jsimd.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\jutils.c
 # End Source File
 # End Group
@@ -310,6 +314,14 @@ SOURCE=.\jpegint.h
 # Begin Source File
 
 SOURCE=.\jpeglib.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\jsimd.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\jsimddct.h
 # End Source File
 # Begin Source File
 
