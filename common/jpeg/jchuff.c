@@ -311,6 +311,8 @@ dump_buffer (working_state * state)
 {
   struct jpeg_destination_mgr * dest = state->cinfo->dest;
 
+  dest->free_in_buffer = state->free_in_buffer;
+
   if (! (*dest->empty_output_buffer) (state->cinfo))
     return FALSE;
   /* After a successful buffer dump, must reset buffer pointers */
@@ -380,8 +382,10 @@ flush_bits (working_state * state)
   unsigned char *buffer;
   int put_buffer, put_bits;
 
-  if ((state)->free_in_buffer < DCTSIZE2 * 2)
+  if ((state)->free_in_buffer < 1)
     if (! dump_buffer(state)) return FALSE;
+  if ((state)->free_in_buffer < 1)
+    ERREXIT(state->cinfo, JERR_BUFFER_SIZE);
 
   buffer = state->next_output_byte;
   put_buffer = state->cur.put_buffer;
@@ -393,9 +397,6 @@ flush_bits (working_state * state)
   state->cur.put_bits = 0;
   state->free_in_buffer -= (buffer - state->next_output_byte);
   state->next_output_byte = buffer;
-
-  if ((state)->free_in_buffer < DCTSIZE2 * 2) 
-    if (! dump_buffer(state)) return FALSE;
 
   return TRUE;
 }
@@ -415,6 +416,8 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
 
   if ((state)->free_in_buffer < DCTSIZE2 * 2)
     if (! dump_buffer(state)) return FALSE;
+  if ((state)->free_in_buffer < DCTSIZE2 * 2)
+    ERREXIT(state->cinfo, JERR_BUFFER_SIZE);
 
   buffer = state->next_output_byte;
   put_buffer = state->cur.put_buffer;
@@ -473,9 +476,6 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
   state->cur.put_bits = put_bits;
   state->free_in_buffer -= (buffer - state->next_output_byte);
   state->next_output_byte = buffer;
-
-  if ((state)->free_in_buffer < DCTSIZE2 * 2)
-    if (! dump_buffer(state)) return FALSE;
 
   return TRUE;
 }
