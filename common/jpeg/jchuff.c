@@ -42,6 +42,10 @@ int jpeg_first_bit_table_init=0;
   nbits = jpeg_first_bit_table[t&255];                 \
   if (t > 255) nbits = jpeg_first_bit_table[t>>8] + 8;
 
+#ifndef min
+ #define min(a,b) ((a)<(b)?(a):(b))
+#endif
+
 /* Expanded entropy encoder object for Huffman encoding.
  *
  * The savable_state subrecord contains fields that change within an MCU,
@@ -375,28 +379,55 @@ dump_buffer (working_state * state)
 
 /***************************************************************/
 
+#define BUFSIZE (DCTSIZE2 * 2)
+
+#define LOAD_BUFFER() {                                           \
+  if (state->free_in_buffer < BUFSIZE) {                          \
+    localbuf = 1;                                                 \
+    buffer = _buffer;                                             \
+  }                                                               \
+  else buffer = state->next_output_byte;                          \
+ }
+
+#define STORE_BUFFER() {                                          \
+  if (localbuf) {                                                 \
+    bytes = buffer - _buffer;                                     \
+    buffer = _buffer;                                             \
+    while (bytes > 0) {                                           \
+      bytestocopy = min(bytes, state->free_in_buffer);            \
+      MEMCOPY(state->next_output_byte, buffer, bytestocopy);      \
+      state->next_output_byte += bytestocopy;                     \
+      buffer += bytestocopy;                                      \
+      state->free_in_buffer -= bytestocopy;                       \
+      if (state->free_in_buffer == 0)                             \
+        if (! dump_buffer(state)) return FALSE;                   \
+      bytes -= bytestocopy;                                       \
+    }                                                             \
+  }                                                               \
+  else {                                                          \
+    state->free_in_buffer -= (buffer - state->next_output_byte);  \
+    state->next_output_byte = buffer;                             \
+  }                                                               \
+ }
+
+/***************************************************************/
 
 LOCAL(boolean)
 flush_bits (working_state * state)
 {
-  unsigned char *buffer;
+  unsigned char _buffer[BUFSIZE], *buffer;
   int put_buffer, put_bits;
+  int bytes, bytestocopy, localbuf = 0;
 
-  if ((state)->free_in_buffer < 1)
-    if (! dump_buffer(state)) return FALSE;
-  if ((state)->free_in_buffer < 1)
-    ERREXIT(state->cinfo, JERR_BUFFER_SIZE);
-
-  buffer = state->next_output_byte;
   put_buffer = state->cur.put_buffer;
   put_bits = state->cur.put_bits;
+  LOAD_BUFFER()
 
   DUMP_BITS_(0x7F, 7)
 
   state->cur.put_buffer = 0;	/* and reset bit-buffer to empty */
   state->cur.put_bits = 0;
-  state->free_in_buffer -= (buffer - state->next_output_byte);
-  state->next_output_byte = buffer;
+  STORE_BUFFER()
 
   return TRUE;
 }
@@ -410,18 +441,14 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
   int temp, temp2;
   int nbits;
   int r, sflag, size, code;
-  unsigned char *buffer;
+  unsigned char _buffer[BUFSIZE], *buffer;
   int put_buffer, put_bits;
   int code_0xf0 = actbl->ehufco[0xf0], size_0xf0 = actbl->ehufsi[0xf0];
+  int bytes, bytestocopy, localbuf = 0;
 
-  if ((state)->free_in_buffer < DCTSIZE2 * 2)
-    if (! dump_buffer(state)) return FALSE;
-  if ((state)->free_in_buffer < DCTSIZE2 * 2)
-    ERREXIT(state->cinfo, JERR_BUFFER_SIZE);
-
-  buffer = state->next_output_byte;
   put_buffer = state->cur.put_buffer;
   put_bits = state->cur.put_bits;
+  LOAD_BUFFER()
 
   /* Encode the DC coefficient difference per section F.1.2.1 */
   
@@ -474,8 +501,7 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
 
   state->cur.put_buffer = put_buffer;
   state->cur.put_bits = put_bits;
-  state->free_in_buffer -= (buffer - state->next_output_byte);
-  state->next_output_byte = buffer;
+  STORE_BUFFER()
 
   return TRUE;
 }
