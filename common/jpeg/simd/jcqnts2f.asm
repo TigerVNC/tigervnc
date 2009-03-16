@@ -16,8 +16,8 @@
 ;
 ; [TAB8]
 
-%include "simd/jsimdext.inc"
-%include "simd/jdct.inc"
+%include "jsimdext.inc"
+%include "jdct.inc"
 
 ; --------------------------------------------------------------------------
 	SECTION	SEG_TEXT

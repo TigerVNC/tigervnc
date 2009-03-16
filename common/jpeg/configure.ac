@@ -107,5 +107,5 @@ AM_CONDITIONAL([WITH_SIMD], [test "x$with_simd" != "xno"])
 # jconfig.h is a minimal version that allows this package to be built
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_HEADERS([jconfig.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile simd/Makefile])
 AC_OUTPUT

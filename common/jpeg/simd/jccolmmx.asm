@@ -16,8 +16,8 @@
 ;
 ; [TAB8]
 
-%include "simd/jsimdext.inc"
-%include "simd/jcolsamp.inc"
+%include "jsimdext.inc"
+%include "jcolsamp.inc"
 
 ; --------------------------------------------------------------------------
 

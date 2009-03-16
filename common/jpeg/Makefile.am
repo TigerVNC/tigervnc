@@ -15,30 +15,8 @@ libjpeg_la_SOURCES = $(HDRS) jcapimin.c jcapistd.c jccoefct.c jccolor.c \
 
 if WITH_SIMD
 
-BUILT_SOURCES = simd/jsimdcfg.inc
-
-EXTRA_DIST = nasm_lt.sh
-
-libjpeg_la_SOURCES += simd/jsimd.h simd/jsimdcfg.inc.h \
-	simd/jsimdext.inc simd/jcolsamp.inc simd/jdct.inc \
-	simd/jsimdcpu.asm \
-	simd/jccolmmx.asm simd/jdcolmmx.asm \
-	simd/jcsammmx.asm simd/jdsammmx.asm simd/jdmermmx.asm \
-	simd/jcqntmmx.asm simd/jfmmxfst.asm simd/jfmmxint.asm \
-	simd/jimmxred.asm simd/jimmxint.asm simd/jimmxfst.asm \
-	simd/jcqnt3dn.asm simd/jf3dnflt.asm simd/ji3dnflt.asm \
-	simd/jcqntsse.asm simd/jfsseflt.asm simd/jisseflt.asm \
-	simd/jccolss2.asm simd/jdcolss2.asm \
-	simd/jcsamss2.asm simd/jdsamss2.asm simd/jdmerss2.asm \
-	simd/jcqnts2i.asm simd/jfss2fst.asm simd/jfss2int.asm \
-	simd/jiss2red.asm simd/jiss2int.asm simd/jiss2fst.asm \
-	simd/jcqnts2f.asm simd/jiss2flt.asm
+SUBDIRS = simd
+libjpeg_la_LIBADD = simd/libsimd.la
 
 endif
-
-.asm.lo:
-	$(LIBTOOL) --mode=compile --tag NASM ./nasm_lt.sh $(NASM) $(NAFLAGS) $< -o $@
-
-simd/jsimdcfg.inc: simd/jsimdcfg.inc.h jpeglib.h jconfig.h jmorecfg.h
-	$(CPP) $< | grep ^[\;%] | sed 's%_cpp_protection_%%' > $@
 
