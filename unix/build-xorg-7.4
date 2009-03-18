@@ -10,6 +10,7 @@ PREFIX="/tmp/xorg-7.4-${USER}"
 export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
 export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
 MAKE="make"
+CFGFLAGS=
 
 modules="dri2proto \
     libpthread-stubs \
@@ -57,6 +58,13 @@ modules="dri2proto \
     pixman"
 
 
+setcfgflags()
+{
+	shift
+	CFGFLAGS=${1+"$@"}
+}
+
+
 init()
 {
     mkdir -p xorg
@@ -85,11 +93,13 @@ build ()
 {
 
     # Build VNC
+    echo "*** Building VNC ***"
     make distclean || true
-    ./configure --prefix=${PREFIX}
+    ./configure ${CFGFLAGS} --prefix=${PREFIX}
     make
 
     # Build Xorg
+    echo "*** Building Xorg ***"
     pushd xorg
     for module in ${modules}; do
         extraoptions=""
@@ -100,7 +110,7 @@ build ()
         if [ "${module}" = "libX11" ]; then
             extraoptions="${extraoptions} --without-xcb"
         fi
-        ./configure --prefix="${PREFIX}" ${extraoptions}
+        ./configure ${CFGFLAGS} --prefix="${PREFIX}" ${extraoptions}
         echo ======================
         echo building ${module}
         echo ======================
@@ -114,8 +124,9 @@ build ()
     done
 
     # build mesa
+    echo "*** Building Mesa ***"
     pushd Mesa-*
-    ./configure --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
+    ./configure ${CFGFLAGS} --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
     if [ $? -ne 0 ]; then
 	echo "Failed to configure Mesa."
 	exit
@@ -127,8 +138,9 @@ build ()
     popd
 
     # build xserver
+    echo "*** Building xserver ***"
     cd xserver
-    ./configure --prefix=${PREFIX} --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
+    ./configure ${CFGFLAGS} --prefix=${PREFIX} --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
     if [ $? -ne 0 ]; then
 	echo "Failed to configure X server."
 	exit
@@ -138,6 +150,9 @@ build ()
     cd ..
 }
 
+if [ ! "$2" = "" ]; then
+	setcfgflags ${1+"$@"}
+fi
 
 case "$1" in
     init)
@@ -150,6 +165,6 @@ case "$1" in
 	update_modules
 	;;
     *)
-	echo "Usage: $0 init | build | update"
+	echo "Usage: $0 init | build | update [additional configure flags]"
 	exit 3
 esac
