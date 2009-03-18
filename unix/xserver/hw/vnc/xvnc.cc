@@ -1,5 +1,6 @@
 /* Copyright (c) 1993  X Consortium
    Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+   Copyright (C) 2009 Pierre Ossman for Cendio AB
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -100,28 +101,45 @@ extern int monitorResolution;
 
 typedef struct
 {
-    int scrnum;
     int width;
+    int height;
+
+    int depth;
+
+    /* Computed when allocated */
+
     int paddedBytesWidth;
     int paddedWidth;
-    int height;
-    int depth;
+
     int bitsPerPixel;
+
+    /* Private */
+
     int sizeInBytes;
+
     void *pfbMemory;
-    Pixel blackPixel;
-    Pixel whitePixel;
-    unsigned int lineBias;
-    CloseScreenProcPtr closeScreen;
 
 #ifdef HAS_SHM
     int shmid;
 #endif
+} vfbFramebufferInfo, *vfbFramebufferInfoPtr;
+
+typedef struct
+{
+    int scrnum;
+
+    Pixel blackPixel;
+    Pixel whitePixel;
+
+    unsigned int lineBias;
+
+    CloseScreenProcPtr closeScreen;
+
+    vfbFramebufferInfo fb;
 
     Bool pixelFormatDefined;
     Bool rgbNotBgr;
     int redBits, greenBits, blueBits;
-
 } vfbScreenInfo, *vfbScreenInfoPtr;
 
 static int vfbNumScreens;
@@ -154,14 +172,14 @@ vfbInitializeDefaultScreens(void)
     for (i = 0; i < MAXSCREENS; i++)
     {
 	vfbScreens[i].scrnum = i;
-	vfbScreens[i].width  = VFB_DEFAULT_WIDTH;
-	vfbScreens[i].height = VFB_DEFAULT_HEIGHT;
-	vfbScreens[i].depth  = VFB_DEFAULT_DEPTH;
 	vfbScreens[i].blackPixel = VFB_DEFAULT_BLACKPIXEL;
 	vfbScreens[i].whitePixel = VFB_DEFAULT_WHITEPIXEL;
 	vfbScreens[i].lineBias = VFB_DEFAULT_LINEBIAS;
+	vfbScreens[i].fb.width  = VFB_DEFAULT_WIDTH;
+	vfbScreens[i].fb.height = VFB_DEFAULT_HEIGHT;
+	vfbScreens[i].fb.pfbMemory = NULL;
+	vfbScreens[i].fb.depth  = VFB_DEFAULT_DEPTH;
 	vfbScreens[i].pixelFormatDefined = FALSE;
-	vfbScreens[i].pfbMemory = NULL;
     }
     vfbNumScreens = 1;
 }
@@ -175,40 +193,17 @@ vfbBitsPerPixel(int depth)
     else return 32;
 }
 
+static void vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb);
 
 extern "C" {
 
-  void ddxGiveUp()
-  {
+void ddxGiveUp()
+{
     int i;
 
     /* clean up the framebuffers */
-
-    switch (fbmemtype)
-    {
-#ifdef HAS_SHM
-    case SHARED_MEMORY_FB:
-	for (i = 0; i < vfbNumScreens; i++)
-	{
-	    if (-1 == shmdt((char *)vfbScreens[i].pfbMemory))
-	    {
-		perror("shmdt");
-		ErrorF("shmdt failed, errno %d", errno);
-	    }
-	}
-	break;
-#else /* HAS_SHM */
-    case SHARED_MEMORY_FB:
-        break;
-#endif /* HAS_SHM */
-	
-    case NORMAL_MEMORY_FB:
-	for (i = 0; i < vfbNumScreens; i++)
-	{
-	    Xfree(vfbScreens[i].pfbMemory);
-	}
-	break;
-    }
+    for (i = 0; i < vfbNumScreens; i++)
+        vfbFreeFramebufferMemory(&vfbScreens[i].fb);
 }
 
 void
@@ -343,9 +338,9 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	    UseMsg();
 	}
 	if (3 != sscanf(argv[i+2], "%dx%dx%d",
-			&vfbScreens[screenNum].width,
-			&vfbScreens[screenNum].height,
-			&vfbScreens[screenNum].depth))
+			&vfbScreens[screenNum].fb.width,
+			&vfbScreens[screenNum].fb.height,
+			&vfbScreens[screenNum].fb.depth))
 	{
 	    ErrorF("Invalid screen configuration %s\n", argv[i+2]);
 	    UseMsg();
@@ -458,8 +453,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-geometry") == 0)
     {
 	if (++i >= argc) UseMsg();
-	if (sscanf(argv[i],"%dx%d",&vfbScreens[0].width,
-		   &vfbScreens[0].height) != 2) {
+	if (sscanf(argv[i],"%dx%d",&vfbScreens[0].fb.width,
+		   &vfbScreens[0].fb.height) != 2) {
 	    ErrorF("Invalid geometry %s\n", argv[i]);
 	    UseMsg();
 	}
@@ -469,7 +464,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp(argv[i], "-depth") == 0)
     {
 	if (++i >= argc) UseMsg();
-	vfbScreens[0].depth = atoi(argv[i]);
+	vfbScreens[0].fb.depth = atoi(argv[i]);
 	return 2;
     }
 
@@ -485,7 +480,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
 #define SET_PIXEL_FORMAT(vfbScreen)                     \
     (vfbScreen).pixelFormatDefined = TRUE;              \
-    (vfbScreen).depth = bits1 + bits2 + bits3;          \
+    (vfbScreen).fb.depth = bits1 + bits2 + bits3;          \
     (vfbScreen).greenBits = bits2;                      \
     if (strcasecmp(rgbbgr, "bgr") == 0) {               \
         (vfbScreen).rgbNotBgr = FALSE;                  \
@@ -645,58 +640,85 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
 
 #ifdef HAS_SHM
 static void
-vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
+vfbAllocateSharedMemoryFramebuffer(vfbFramebufferInfoPtr pfb)
 {
     /* create the shared memory segment */
 
-    pvfb->shmid = shmget(IPC_PRIVATE, pvfb->sizeInBytes, IPC_CREAT|0777);
-    if (pvfb->shmid < 0)
-    {
-	perror("shmget");
-	ErrorF("shmget %d bytes failed, errno %d", pvfb->sizeInBytes, errno);
-	return;
+    pfb->shmid = shmget(IPC_PRIVATE, pfb->sizeInBytes, IPC_CREAT|0777);
+    if (pfb->shmid < 0) {
+        perror("shmget");
+        ErrorF("shmget %d bytes failed, errno %d", pfb->sizeInBytes, errno);
+        return;
     }
 
     /* try to attach it */
 
-    pvfb->pfbMemory = shmat(pvfb->shmid, 0, 0);
-    if (-1 == (long)pvfb->pfbMemory)
-    {
-	perror("shmat");
-	ErrorF("shmat failed, errno %d", errno);
-	pvfb->pfbMemory = NULL; 
-	return;
+    pfb->pfbMemory = shmat(pfb->shmid, 0, 0);
+    if (-1 == (long)pfb->pfbMemory) {
+        perror("shmat");
+        ErrorF("shmat failed, errno %d", errno);
+        pfb->pfbMemory = NULL; 
+        return;
     }
-
-    ErrorF("screen %d shmid %d\n", pvfb->scrnum, pvfb->shmid);
 }
 #endif /* HAS_SHM */
 
 
 static void *
-vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
+vfbAllocateFramebufferMemory(vfbFramebufferInfoPtr pfb)
 {
-    if (pvfb->pfbMemory) return pvfb->pfbMemory; /* already done */
+    if (pfb->pfbMemory != NULL)
+        return pfb->pfbMemory; /* already done */
 
-    pvfb->sizeInBytes = pvfb->paddedBytesWidth * pvfb->height;
+    /* Compute memory layout */
+    pfb->paddedBytesWidth = PixmapBytePad(pfb->width, pfb->depth);
+    pfb->bitsPerPixel = vfbBitsPerPixel(pfb->depth);
+    pfb->paddedWidth = pfb->paddedBytesWidth * 8 / pfb->bitsPerPixel;
+    pfb->sizeInBytes = pfb->paddedBytesWidth * pfb->height;
 
-    switch (fbmemtype)
-    {
+    /* And allocate buffer */
+    switch (fbmemtype) {
 #ifdef HAS_SHM
-    case SHARED_MEMORY_FB: vfbAllocateSharedMemoryFramebuffer(pvfb); break;
+    case SHARED_MEMORY_FB:
+        vfbAllocateSharedMemoryFramebuffer(pfb);
+        break;
 #else
-    case SHARED_MEMORY_FB: break;
+    case SHARED_MEMORY_FB:
+        break;
 #endif
-
     case NORMAL_MEMORY_FB:
-	pvfb->pfbMemory = Xalloc(pvfb->sizeInBytes);
-	break;
+        pfb->pfbMemory = Xalloc(pfb->sizeInBytes);
+        break;
     }
 
-    if (pvfb->pfbMemory)
-	return pvfb->pfbMemory;
-    else
-	return NULL;
+    /* This will be NULL if any of the above failed */
+    return pfb->pfbMemory;
+}
+
+static void
+vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb)
+{
+    if ((pfb == NULL) || (pfb->pfbMemory == NULL))
+        return;
+
+    switch (fbmemtype) {
+#ifdef HAS_SHM
+    case SHARED_MEMORY_FB:
+        if (-1 == shmdt(pfb->pfbMemory)) {
+            perror("shmdt");
+            ErrorF("shmdt failed, errno %d", errno);
+        }
+        break;
+#else /* HAS_SHM */
+    case SHARED_MEMORY_FB:
+        break;
+#endif /* HAS_SHM */
+    case NORMAL_MEMORY_FB:
+        Xfree(pfb->pfbMemory);
+        break;
+    }
+
+    pfb->pfbMemory = NULL;
 }
 
 static Bool
@@ -800,16 +822,13 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 
     if (monitorResolution) dpi = monitorResolution;
 
-    pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);
-    pvfb->bitsPerPixel = vfbBitsPerPixel(pvfb->depth);
-    pvfb->paddedWidth = pvfb->paddedBytesWidth * 8 / pvfb->bitsPerPixel;
-    pbits = vfbAllocateFramebufferMemory(pvfb);
+    pbits = vfbAllocateFramebufferMemory(&pvfb->fb);
     if (!pbits) return FALSE;
     vncFbptr[index] = pbits;
 
     miSetPixmapDepths();
 
-    switch (pvfb->depth) {
+    switch (pvfb->fb.depth) {
     case 8:
 	miSetVisualTypesAndMasks (8,
 				  ((1 << StaticGray) |
@@ -842,8 +861,8 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	return FALSE;
     }
 
-    ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
-		       dpi, dpi, pvfb->paddedWidth, pvfb->bitsPerPixel);
+    ret = fbScreenInit(pScreen, pbits, pvfb->fb.width, pvfb->fb.height,
+		       dpi, dpi, pvfb->fb.paddedWidth, pvfb->fb.bitsPerPixel);
   
 #ifdef RENDER
     if (ret && Render) 
@@ -871,7 +890,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->blackPixel = pvfb->blackPixel;
     pScreen->whitePixel = pvfb->whitePixel;
 
-    if (!pvfb->pixelFormatDefined && pvfb->depth == 16) {
+    if (!pvfb->pixelFormatDefined && pvfb->fb.depth == 16) {
 	pvfb->pixelFormatDefined = TRUE;
 	pvfb->rgbNotBgr = TRUE;
 	pvfb->blueBits = pvfb->redBits = 5;
@@ -930,7 +949,7 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
     /* must have a pixmap depth to match every screen depth */
     for (i = 0; i < vfbNumScreens; i++)
     {
-	vfbPixmapDepths[vfbScreens[i].depth] = TRUE;
+	vfbPixmapDepths[vfbScreens[i].fb.depth] = TRUE;
     }
 
     /* RENDER needs a good set of pixmaps. */
