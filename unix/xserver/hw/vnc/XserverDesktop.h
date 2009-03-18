@@ -62,11 +62,12 @@ public:
 
   XserverDesktop(ScreenPtr pScreen, network::TcpListener* listener,
                  network::TcpListener* httpListener_,
-                 const char* name, void* fbptr);
+                 const char* name, void* fbptr, int stride);
   virtual ~XserverDesktop();
 
   // methods called from X server code
   void serverReset(ScreenPtr pScreen);
+  void setFramebuffer(int w, int h, void* fbptr, int stride);
   void setColormap(ColormapPtr cmap);
   void setColourMapEntries(ColormapPtr pColormap, int ndef, xColorItem* pdef);
   void bell();
@@ -106,6 +107,7 @@ public:
 
   // rfb::PixelBuffer callbacks
   virtual void grabRegion(const rfb::Region& r);
+  virtual int getStride() const;
 
   // rfb::ColourMap callbacks
   virtual void lookup(int index, int* r, int* g, int* b);
@@ -130,6 +132,7 @@ private:
   network::TcpListener* listener;
   network::TcpListener* httpListener;
   ColormapPtr cmap;
+  int stride_;
   bool deferredUpdateTimerSet;
   bool grabbing;
   bool ignoreHooks_;

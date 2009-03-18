@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,12 +169,12 @@ public:
 XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
                                network::TcpListener* listener_,
                                network::TcpListener* httpListener_,
-                               const char* name, void* fbptr)
+                               const char* name, void* fbptr, int stride)
   : pScreen(pScreen_), deferredUpdateTimer(0), dummyTimer(0),
     server(0), httpServer(0),
     listener(listener_), httpListener(httpListener_),
     cmap(0), deferredUpdateTimerSet(false),
-    grabbing(false), ignoreHooks_(false), directFbptr(fbptr != 0),
+    grabbing(false), ignoreHooks_(false), directFbptr(true),
     oldButtonMask(0),
     queryConnectId(0)
 {
@@ -212,18 +213,12 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
   format.greenMax   = vis->greenMask >> format.greenShift;
   format.blueMax    = vis->blueMask  >> format.blueShift;
 
-  width_ = pScreen->width;
-  height_ = pScreen->height;
-  if (fbptr)
-    data = (rdr::U8*)fbptr;
-  else
-    data = new rdr::U8[pScreen->width * pScreen->height * (format.bpp/8)];
   colourmap = this;
 
   serverReset(pScreen);
 
   server = new VNCServerST(name, this);
-  server->setPixelBuffer(this);
+  setFramebuffer(pScreen->width, pScreen->height, fbptr, stride);
   server->setQueryConnectionHandler(this);
 
   if (httpListener)
@@ -286,6 +281,28 @@ void XserverDesktop::serverReset(ScreenPtr pScreen_)
   assert(i == Success);
 
   cmap = (ColormapPtr) retval;
+}
+
+void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride)
+{
+  width_ = w;
+  height_ = h;
+
+  if (!directFbptr) {
+    delete [] data;
+    directFbptr = true;
+  }
+
+  if (!fbptr) {
+    fbptr = new rdr::U8[w * h * (format.bpp/8)];
+    stride = w;
+    directFbptr = false;
+  }
+
+  data = (rdr::U8*)fbptr;
+  stride_ = stride;
+
+  server->setPixelBuffer(this);
 }
 
 char* XserverDesktop::substitute(const char* varName)
@@ -837,6 +854,11 @@ void XserverDesktop::grabRegion(const rfb::Region& region)
     }
   }
   grabbing = false;
+}
+
+int XserverDesktop::getStride() const
+{
+  return stride_;
 }
 
 void XserverDesktop::lookup(int index, int* r, int* g, int* b)

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,7 @@
 #include <stdio.h>
 #include "XserverDesktop.h"
 #include "vncHooks.h"
+#include "vncExtInit.h"
 
 extern "C" {
 #define class c_class
@@ -36,6 +38,9 @@ extern "C" {
 #include "colormapst.h"
 #ifdef RENDER
 #include "picturestr.h"
+#endif
+#ifdef RANDR
+#include "randrstr.h"
 #endif
 
 #undef class
@@ -73,6 +78,9 @@ typedef struct {
   ScreenBlockHandlerProcPtr    BlockHandler;
 #ifdef RENDER
   CompositeProcPtr             Composite;
+#endif
+#ifdef RANDR
+  RRSetConfigProcPtr           RandRSetConfig;
 #endif
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
@@ -121,6 +129,10 @@ static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
 			      PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
 			      INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
+#endif
+#ifdef RANDR
+static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
+                                   int rate, RRScreenSizePtr pSize);
 #endif
 
 // GC "funcs"
@@ -239,6 +251,13 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
     vncHooksScreen->Composite = ps->Composite;
   }
 #endif
+#ifdef RANDR
+  rrScrPrivPtr rp;
+  rp = rrGetScrPriv(pScreen);
+  if (rp) {
+    vncHooksScreen->RandRSetConfig = rp->rrSetConfig;
+  }
+#endif
 
   pScreen->CloseScreen = vncHooksCloseScreen;
   pScreen->CreateGC = vncHooksCreateGC;
@@ -252,6 +271,11 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 #ifdef RENDER
   if (ps) {
     ps->Composite = vncHooksComposite;
+  }
+#endif
+#ifdef RANDR
+  if (rp) {
+    rp->rrSetConfig = vncHooksRandRSetConfig;
   }
 #endif
 
@@ -294,6 +318,13 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
   pScreen->StoreColors = vncHooksScreen->StoreColors;
   pScreen->DisplayCursor = vncHooksScreen->DisplayCursor;
   pScreen->BlockHandler = vncHooksScreen->BlockHandler;
+#ifdef RANDR
+  rrScrPrivPtr rp;
+  rp = rrGetScrPriv(pScreen);
+  if (rp) {
+    rp->rrSetConfig = vncHooksScreen->RandRSetConfig;
+  }
+#endif
 
   DBGPRINT((stderr,"vncHooksCloseScreen: unwrapped screen functions\n"));
 
@@ -498,6 +529,44 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 
 #endif /* RENDER */
 
+// RandRSetConfig - follow any framebuffer changes
+
+#ifdef RANDR
+
+static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
+                                   int rate, RRScreenSizePtr pSize)
+{
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+  rrScrPrivPtr rp = rrGetScrPriv(pScreen);
+  Bool ret;
+  RegionRec reg;
+  BoxRec box;
+
+  rp->rrSetConfig = vncHooksScreen->RandRSetConfig;
+  ret = (*rp->rrSetConfig)(pScreen, rotation, rate, pSize);
+  rp->rrSetConfig = vncHooksRandRSetConfig;
+
+  if (!ret)
+    return FALSE;
+
+  // Let the RFB core know of the new dimensions and framebuffer
+  vncHooksScreen->desktop->setFramebuffer(pScreen->width, pScreen->height,
+                                          vncFbptr[pScreen->myNum],
+                                          vncFbstride[pScreen->myNum]);
+
+  // Mark entire screen as changed
+  box.x1 = 0;
+  box.y1 = 0;
+  box.x2 = pScreen->width;
+  box.y2 = pScreen->height;
+  REGION_INIT(pScreen, &reg, &box, 1);
+
+  vncHooksScreen->desktop->add_changed(&reg);
+
+  return TRUE;
+}
+
+#endif /* RANDR */
 
 /////////////////////////////////////////////////////////////////////////////
 //

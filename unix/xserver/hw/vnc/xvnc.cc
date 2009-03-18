@@ -75,6 +75,9 @@ extern "C" {
 #include "dix.h"
 #include "miline.h"
 #include "inputstr.h"
+#ifdef RANDR
+#include "randrstr.h"
+#endif /* RANDR */
 #include <X11/keysym.h>
   extern char buildtime[];
 #undef class
@@ -794,6 +797,263 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs = {
     miPointerWarpCursor
 };
 
+#ifdef RANDR
+
+static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
+{
+  vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+  Bool gotCurrent = FALSE;
+  int i;
+
+  const int widths[] =  { 1920, 1920, 1600, 1680, 1400, 1360, 1280, 1280, 1280, 1280, 1024, 800, 640 };
+  const int heights[] = { 1200, 1080, 1200, 1050, 1050,  768, 1024,  960,  800,  720,  768, 600, 480 };
+
+  for (i = 0;i < sizeof(widths)/sizeof(*widths);i++) {
+    RRScreenSizePtr pSize;
+
+    pSize = RRRegisterSize(pScreen, widths[i], heights[i],
+                           pScreen->mmWidth, pScreen->mmHeight);
+    if (!pSize)
+      return FALSE;
+
+    RRRegisterRate(pScreen, pSize, 60);
+
+    if ((widths[i] == pScreen->width) && (heights[i] == pScreen->height)) {
+      RRSetCurrentConfig(pScreen, RR_Rotate_0, 60, pSize);
+      gotCurrent = TRUE;
+    }
+  }
+
+  if (!gotCurrent) {
+    RRScreenSizePtr pSize;
+
+    pSize = RRRegisterSize(pScreen, pScreen->width, pScreen->height,
+                           pScreen->mmWidth, pScreen->mmHeight);
+    if (!pSize)
+      return FALSE;
+
+    RRRegisterRate(pScreen, pSize, 60);
+
+    RRSetCurrentConfig(pScreen, RR_Rotate_0, 60, pSize);
+  }
+
+  *rotations = RR_Rotate_0;
+
+  return TRUE;
+}
+
+/* from hw/xfree86/common/xf86Helper.c */
+
+#include "mivalidate.h"
+static void
+xf86SetRootClip (ScreenPtr pScreen, Bool enable)
+{
+    WindowPtr	pWin = WindowTable[pScreen->myNum];
+    WindowPtr	pChild;
+    Bool	WasViewable = (Bool)(pWin->viewable);
+    Bool	anyMarked = FALSE;
+    RegionPtr	pOldClip = NULL, bsExposed;
+#ifdef DO_SAVE_UNDERS
+    Bool	dosave = FALSE;
+#endif
+    WindowPtr   pLayerWin;
+    BoxRec	box;
+
+    if (WasViewable)
+    {
+	for (pChild = pWin->firstChild; pChild; pChild = pChild->nextSib)
+	{
+	    (void) (*pScreen->MarkOverlappedWindows)(pChild,
+						     pChild,
+						     &pLayerWin);
+	}
+	(*pScreen->MarkWindow) (pWin);
+	anyMarked = TRUE;
+	if (pWin->valdata)
+	{
+	    if (HasBorder (pWin))
+	    {
+		RegionPtr	borderVisible;
+
+		borderVisible = REGION_CREATE(pScreen, NullBox, 1);
+		REGION_SUBTRACT(pScreen, borderVisible,
+				&pWin->borderClip, &pWin->winSize);
+		pWin->valdata->before.borderVisible = borderVisible;
+	    }
+	    pWin->valdata->before.resized = TRUE;
+	}
+    }
+    
+    /*
+     * Use REGION_BREAK to avoid optimizations in ValidateTree
+     * that assume the root borderClip can't change well, normally
+     * it doesn't...)
+     */
+    if (enable)
+    {
+	box.x1 = 0;
+	box.y1 = 0;
+	box.x2 = pScreen->width;
+	box.y2 = pScreen->height;
+	REGION_INIT (pScreen, &pWin->winSize, &box, 1);
+	REGION_INIT (pScreen, &pWin->borderSize, &box, 1);
+	if (WasViewable)
+	    REGION_RESET(pScreen, &pWin->borderClip, &box);
+	pWin->drawable.width = pScreen->width;
+	pWin->drawable.height = pScreen->height;
+        REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+    }
+    else
+    {
+	REGION_EMPTY(pScreen, &pWin->borderClip);
+	REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+    }
+    
+    ResizeChildrenWinSize (pWin, 0, 0, 0, 0);
+    
+    if (WasViewable)
+    {
+	if (pWin->backStorage)
+	{
+	    pOldClip = REGION_CREATE(pScreen, NullBox, 1);
+	    REGION_COPY(pScreen, pOldClip, &pWin->clipList);
+	}
+
+	if (pWin->firstChild)
+	{
+	    anyMarked |= (*pScreen->MarkOverlappedWindows)(pWin->firstChild,
+							   pWin->firstChild,
+							   (WindowPtr *)NULL);
+	}
+	else
+	{
+	    (*pScreen->MarkWindow) (pWin);
+	    anyMarked = TRUE;
+	}
+
+#ifdef DO_SAVE_UNDERS
+	if (DO_SAVE_UNDERS(pWin))
+	{
+	    dosave = (*pScreen->ChangeSaveUnder)(pLayerWin, pLayerWin);
+	}
+#endif /* DO_SAVE_UNDERS */
+
+	if (anyMarked)
+	    (*pScreen->ValidateTree)(pWin, NullWindow, VTOther);
+    }
+
+    if (pWin->backStorage &&
+	((pWin->backingStore == Always) || WasViewable))
+    {
+	if (!WasViewable)
+	    pOldClip = &pWin->clipList; /* a convenient empty region */
+	bsExposed = (*pScreen->TranslateBackingStore)
+			     (pWin, 0, 0, pOldClip,
+			      pWin->drawable.x, pWin->drawable.y);
+	if (WasViewable)
+	    REGION_DESTROY(pScreen, pOldClip);
+	if (bsExposed)
+	{
+	    RegionPtr	valExposed = NullRegion;
+    
+	    if (pWin->valdata)
+		valExposed = &pWin->valdata->after.exposed;
+	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
+	    if (valExposed)
+		REGION_EMPTY(pScreen, valExposed);
+	    REGION_DESTROY(pScreen, bsExposed);
+	}
+    }
+    if (WasViewable)
+    {
+	if (anyMarked)
+	    (*pScreen->HandleExposures)(pWin);
+#ifdef DO_SAVE_UNDERS
+	if (dosave)
+	    (*pScreen->PostChangeSaveUnder)(pLayerWin, pLayerWin);
+#endif /* DO_SAVE_UNDERS */
+	if (anyMarked && pScreen->PostValidateTree)
+	    (*pScreen->PostValidateTree)(pWin, NullWindow, VTOther);
+    }
+    if (pWin->realized)
+	WindowsRestructured ();
+    FlushAllOutput ();
+}
+
+static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
+		    int	rate, RRScreenSizePtr pSize)
+{
+    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+    vfbFramebufferInfo fb;
+    PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
+    void *pbits;
+    Bool ret;
+    int oldwidth, oldheight, oldmmWidth, oldmmHeight;
+
+    /* Prevent updates while we fiddle */
+    xf86SetRootClip(pScreen, FALSE);
+
+    /* Store current state in case we fail */
+    oldwidth = pScreen->width;
+    oldheight = pScreen->height;
+    oldmmWidth = pScreen->mmWidth;
+    oldmmHeight = pScreen->mmHeight;
+
+    /* Then set the new dimensions */
+    pScreen->width = pSize->width;
+    pScreen->height = pSize->height;
+    pScreen->mmWidth = pSize->mmWidth;
+    pScreen->mmHeight = pSize->mmHeight;
+
+    /* Allocate a new framebuffer */
+    memset(&fb, 0, sizeof(vfbFramebufferInfo));
+
+    fb.width = pScreen->width;
+    fb.height = pScreen->height;
+    fb.depth = pvfb->fb.depth;
+
+    pbits = vfbAllocateFramebufferMemory(&fb);
+    if (!pbits) {
+        /* Allocation failed. Restore old state */
+        pScreen->width = oldwidth;
+        pScreen->height = oldheight;
+        pScreen->mmWidth = oldmmWidth;
+        pScreen->mmHeight = oldmmHeight;
+
+        return FALSE;
+    }
+
+    /* Update root pixmap with the new dimensions and buffer */
+    ret = pScreen->ModifyPixmapHeader(rootPixmap, fb.width, fb.height,
+                                      -1, -1, fb.paddedBytesWidth, pbits);
+    if (!ret) {
+        /* Update failed. Free the new framebuffer and restore old state */
+        vfbFreeFramebufferMemory(&fb);
+
+        pScreen->width = oldwidth;
+        pScreen->height = oldheight;
+        pScreen->mmWidth = oldmmWidth;
+        pScreen->mmHeight = oldmmHeight;
+
+        return FALSE;
+    }
+
+    /* Free the old framebuffer and keep the info about the new one */
+    vfbFreeFramebufferMemory(&pvfb->fb);
+    memcpy(&pvfb->fb, &fb, sizeof(vfbFramebufferInfo));
+
+    /* Let VNC get the new framebuffer (actual update is in vncHooks.cc) */
+    vncFbptr[pScreen->myNum] = pbits;
+    vncFbstride[pScreen->myNum] = fb.paddedWidth;
+
+    /* Restore ability to update screen, now with new dimensions */
+    xf86SetRootClip(pScreen, TRUE);
+
+    return TRUE;
+}
+
+#endif
+
 static Bool
 vfbCloseScreen(int index, ScreenPtr pScreen)
 {
@@ -825,6 +1085,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pbits = vfbAllocateFramebufferMemory(&pvfb->fb);
     if (!pbits) return FALSE;
     vncFbptr[index] = pbits;
+    vncFbstride[index] = pvfb->fb.paddedWidth;
 
     miSetPixmapDepths();
 
@@ -920,13 +1181,26 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     }
     
     ret = fbCreateDefColormap(pScreen);
+    if (!ret) return FALSE;
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
 
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
 
-  return ret;
+#ifdef RANDR
+    rrScrPrivPtr rp;
+
+    ret = RRScreenInit(pScreen);
+    if (!ret) return FALSE;
+
+    rp = rrGetScrPriv(pScreen);
+    rp->rrGetInfo = vncRandRGetInfo;
+    rp->rrSetConfig = vncRandRSetConfig;
+#endif
+
+
+  return TRUE;
 
 } /* end vfbScreenInit */
 

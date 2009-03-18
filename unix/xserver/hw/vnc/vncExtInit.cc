@@ -80,6 +80,7 @@ static unsigned long vncExtGeneration = 0;
 static bool initialised = false;
 static XserverDesktop* desktop[MAXSCREENS] = { 0, };
 void* vncFbptr[MAXSCREENS] = { 0, };
+int vncFbstride[MAXSCREENS];
 
 static char* clientCutText = 0;
 static int clientCutTextLen = 0;
@@ -188,7 +189,8 @@ void vncExtensionInit()
         desktop[scr] = new XserverDesktop(screenInfo.screens[scr], listener,
                                           httpListener,
                                           desktopNameStr.buf,
-                                          vncFbptr[scr]);
+                                          vncFbptr[scr],
+                                          vncFbstride[scr]);
         vlog.info("created VNC server for screen %d", scr);
 
         if (scr == 0 && vncInetdSock != -1 && !listener) {

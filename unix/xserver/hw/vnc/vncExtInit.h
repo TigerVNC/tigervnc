@@ -30,6 +30,7 @@ extern void vncQueryConnect(XserverDesktop* desktop, void* opaqueId);
 extern void vncClientGone(int fd);
 extern void vncBell();
 extern void* vncFbptr[];
+extern int vncFbstride[];
 extern int vncInetdSock;
 extern rfb::StringParameter httpDir;
 
