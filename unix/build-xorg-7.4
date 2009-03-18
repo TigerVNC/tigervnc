@@ -1,0 +1,155 @@
+#!/bin/bash
+# -*- mode: shell-script; coding: UTF-8 -*-
+# 
+# Build Xvnc with Xorg 7.4
+#
+
+set -e
+
+PREFIX="/tmp/xorg-7.4-${USER}"
+export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
+export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
+MAKE="make"
+
+modules="dri2proto \
+    libpthread-stubs \
+    glproto \
+    xf86vidmodeproto \
+    xextproto \
+    xproto \
+    kbproto \
+    inputproto \
+    xcmiscproto \
+    bigreqsproto \
+    fixesproto \
+    damageproto \
+    xf86driproto \
+    randrproto \
+    renderproto \
+    scrnsaverproto \
+    resourceproto \
+    fontsproto \
+    videoproto \
+    compositeproto \
+    xineramaproto \
+    fontcacheproto \
+    libdrm \
+    util-macros \
+    libXau \
+    xtrans \
+    libXdmcp \
+    libX11 \
+    libXext \
+    libXxf86vm \
+    libICE \
+    libSM \
+    libXt \
+    libXmu \
+    libXfixes \
+    libXdamage \
+    libXi \
+    evieext \
+    libxkbfile \
+    libfontenc \
+    libXfont \
+    libpciaccess \
+    xkbcomp \
+    pixman"
+
+
+init()
+{
+    mkdir -p xorg
+    update_modules
+    pushd xserver
+    patch -p1 < ../xserver15.patch
+    autoreconf -fiv
+}
+
+
+update_modules()
+{
+    pushd xorg
+    ../download-xorg
+    for module in ${modules}; do
+        tar jxf ${module}.tar.bz2
+    done
+    tar jxf Mesa.tar.bz2
+    tar jxf xorg-server.tar.bz2
+    cp -r xorg-server-1.*/* ../xserver
+    popd
+}
+
+
+build ()
+{
+
+    # Build VNC
+    make distclean || true
+    ./configure --prefix=${PREFIX}
+    make
+
+    # Build Xorg
+    pushd xorg
+    for module in ${modules}; do
+        extraoptions=""
+        cd ${module}-*
+        echo ======================
+        echo configuring ${module}
+        echo ======================
+        if [ "${module}" = "libX11" ]; then
+            extraoptions="${extraoptions} --without-xcb"
+        fi
+        ./configure --prefix="${PREFIX}" ${extraoptions}
+        echo ======================
+        echo building ${module}
+        echo ======================
+        if [ $? -ne 0 ]; then
+                echo "Failed to configure ${module}."
+                exit
+        fi
+        ($MAKE);
+        make install
+        cd ..
+    done
+
+    # build mesa
+    pushd Mesa-*
+    ./configure --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
+    if [ $? -ne 0 ]; then
+	echo "Failed to configure Mesa."
+	exit
+    fi
+    ($MAKE)
+    make install
+    popd
+
+    popd
+
+    # build xserver
+    cd xserver
+    ./configure --prefix=${PREFIX} --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
+    if [ $? -ne 0 ]; then
+	echo "Failed to configure X server."
+	exit
+    fi
+    ($MAKE)
+    make install
+    cd ..
+}
+
+
+case "$1" in
+    init)
+	init
+	;;
+    build)
+	build
+	;;
+    update)
+	update_modules
+	;;
+    *)
+	echo "Usage: $0 init | build | update"
+	exit 3
+esac
