@@ -76,7 +76,7 @@ def main():
     for pkg in packages.keys():
         loc = packages[pkg]
         fname = pkg + ".tar.bz2"
-        assert 0 == subprocess.call(["wget", "-O", fname, loc])
+        assert 0 == subprocess.call(["wget", "-N", "-c", "-O", fname, loc])
 
 
 main()
