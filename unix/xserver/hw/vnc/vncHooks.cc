@@ -318,6 +318,13 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
   pScreen->StoreColors = vncHooksScreen->StoreColors;
   pScreen->DisplayCursor = vncHooksScreen->DisplayCursor;
   pScreen->BlockHandler = vncHooksScreen->BlockHandler;
+#ifdef RENDER
+  PictureScreenPtr ps;
+  ps = GetPictureScreenIfSet(pScreen);
+  if (ps) {
+    ps->Composite = vncHooksScreen->Composite;
+  }
+#endif
 #ifdef RANDR
   rrScrPrivPtr rp;
   rp = rrGetScrPriv(pScreen);
