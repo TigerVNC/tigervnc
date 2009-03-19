@@ -35,7 +35,6 @@ modules="dri2proto \
     xineramaproto \
     fontcacheproto \
     libdrm \
-    util-macros \
     libXau \
     xtrans \
     libXdmcp \
@@ -69,6 +68,17 @@ init()
 {
     mkdir -p xorg
     update_modules
+
+    pushd xorg
+    tar jxf util-macros.tar.bz2
+    pushd util-macros-*
+    echo "Building macros"
+    ./configure --prefix=${PREFIX}
+    ($MAKE);
+    make install
+    popd
+    popd
+
     pushd xserver
     patch -p1 < ../xserver15.patch
     autoreconf -fiv
