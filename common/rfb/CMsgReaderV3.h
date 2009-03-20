@@ -28,7 +28,8 @@ namespace rfb {
     virtual void readServerInit();
     virtual void readMsg();
   private:
-    void readFramebufferUpdate();
+    virtual void readFramebufferUpdate();
+    virtual void readSetDesktopName(int x, int y, int w, int h);
     int nUpdateRectsLeft;
   };
 }

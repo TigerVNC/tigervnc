@@ -60,7 +60,6 @@ namespace rfb {
     virtual void readCopyRect(const Rect& r);
 
     virtual void readSetCursor(int width, int height, const Point& hotspot);
-    virtual void readSetDesktopName(int x, int y, int w, int h);
 
     CMsgReader(CMsgHandler* handler, rdr::InStream* is);
 

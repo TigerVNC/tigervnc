@@ -101,3 +101,17 @@ void CMsgReaderV3::readFramebufferUpdate()
   nUpdateRectsLeft = is->readU16();
   handler->framebufferUpdateStart();
 }
+
+void CMsgReaderV3::readSetDesktopName(int x, int y, int w, int h)
+{
+  char* name = is->readString();
+
+  if (x || y || w || h) {
+    fprintf(stderr, "Ignoring DesktopName rect with non-zero position/size\n");
+  } else {
+    handler->setName(name);
+  }
+
+  delete [] name;
+}
+
