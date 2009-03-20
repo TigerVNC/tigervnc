@@ -40,6 +40,6 @@ namespace rfb {
 
   const int msgTypeEnableContinuousUpdates = 150;
 
-  const int msgTypeSetDesktopSize = 251; // FIXME: Unofficial
+  const int msgTypeSetDesktopSize = 251;
 }
 #endif

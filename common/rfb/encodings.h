@@ -33,7 +33,7 @@ namespace rfb {
   const unsigned int pseudoEncodingXCursor = 0xffffff10;
   const unsigned int pseudoEncodingCursor = 0xffffff11;
   const unsigned int pseudoEncodingDesktopSize = 0xffffff21;
-  const unsigned int pseudoEncodingExtendedDesktopSize = 0xfffffecb; // FIXME: Unofficial
+  const unsigned int pseudoEncodingExtendedDesktopSize = 0xfffffecc;
   const unsigned int pseudoEncodingDesktopName = 0xfffffecdl;
 
   // TightVNC-specific
