@@ -84,6 +84,9 @@ init()
     pushd xserver
     patch -p1 < ../xserver15.patch
     autoreconf -fiv
+    popd
+
+    autoreconf -fiv
 }
 
 
