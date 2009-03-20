@@ -68,8 +68,6 @@ namespace rfb {
     virtual void imageRect(const Rect& r, void* pixels);
     virtual void copyRect(const Rect& r, int srcX, int srcY);
 
-    virtual bool processFTMsg(int type);
-
     ConnParams cp;
   };
 }

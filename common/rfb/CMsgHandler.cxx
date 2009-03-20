@@ -116,9 +116,3 @@ void CMsgHandler::imageRect(const Rect& r, void* pixels)
 void CMsgHandler::copyRect(const Rect& r, int srcX, int srcY)
 {
 }
-
-bool CMsgHandler::processFTMsg(int type)
-{
-  return false;
-}
-
