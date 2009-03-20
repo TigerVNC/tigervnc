@@ -573,6 +573,10 @@ SOURCE=.\SConnection.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\screenTypes.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SDesktop.h
 # End Source File
 # Begin Source File
