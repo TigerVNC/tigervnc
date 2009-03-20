@@ -33,6 +33,7 @@
 #include <rfb/Cursor.h>
 #include <network/Socket.h>
 #include <rfb/ListConnInfo.h>
+#include <rfb/ScreenSet.h>
 
 namespace rfb {
 
@@ -201,6 +202,7 @@ namespace rfb {
     SDesktop* desktop;
     bool desktopStarted;
     PixelBuffer* pb;
+    ScreenSet screenLayout;
 
     CharArray name;
 

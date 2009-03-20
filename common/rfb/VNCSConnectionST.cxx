@@ -169,6 +169,7 @@ void VNCSConnectionST::pixelBufferChange()
 
       cp.width = server->pb->width();
       cp.height = server->pb->height();
+      cp.screenLayout = server->screenLayout;
       if (state() == RFBSTATE_NORMAL) {
         if (!writer()->writeSetDesktopSize() &&
             !writer()->writeExtendedDesktopSize()) {
@@ -329,6 +330,7 @@ void VNCSConnectionST::authSuccess()
   // - Set the connection parameters appropriately
   cp.width = server->pb->width();
   cp.height = server->pb->height();
+  cp.screenLayout = server->screenLayout;
   cp.setName(server->getName());
   
   // - Set the default pixel format

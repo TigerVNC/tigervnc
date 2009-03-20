@@ -263,6 +263,31 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
     cursor.setPF(pb->getPF());
     renderedCursor.setPF(pb->getPF());
 
+    if (screenLayout.num_screens() == 0) {
+      // Boot strap the screen layout
+      screenLayout.add_screen(Screen(0, 0, 0, pb->width(), pb->height(), 0));
+    } else {
+      // Check that the screen layout is still valid
+      if (!screenLayout.validate(pb->width(), pb->height())) {
+        Rect fbRect;
+        ScreenSet::iterator iter, iter_next;
+
+        fbRect.setXYWH(0, 0, pb->width(), pb->height());
+
+        for (iter = screenLayout.begin();iter != screenLayout.end();iter = iter_next) {
+          iter_next = iter; ++iter_next;
+          if (iter->dimensions.enclosed_by(fbRect))
+              continue;
+          iter->dimensions = iter->dimensions.intersect(fbRect);
+          if (iter->dimensions.is_empty()) {
+            slog.info("Removing screen %d (%x) as it is completely outside the new framebuffer",
+                      (int)iter->id, (unsigned)iter->id);
+            screenLayout.remove_screen(iter->id);
+          }
+        }
+      }
+    }
+
     std::list<VNCSConnectionST*>::iterator ci, ci_next;
     for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
       ci_next = ci; ci_next++;

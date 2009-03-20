@@ -190,14 +190,20 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
     os->writeU16(cp->width);
     os->writeU16(cp->height);
     os->writeU32(pseudoEncodingExtendedDesktopSize);
-    os->writeU8(1);             // # screens
+
+    os->writeU8(cp->screenLayout.num_screens());
     os->pad(3);
-    os->writeU32(1);            // id
-    os->writeU16(0);            // x-pos
-    os->writeU16(0);            // y-pos
-    os->writeU16(cp->width);    // width
-    os->writeU16(cp->height);   // height
-    os->writeU32(0);            // flags
+
+    ScreenSet::const_iterator iter;
+    for (iter = cp->screenLayout.begin();iter != cp->screenLayout.end();++iter) {
+      os->writeU32(iter->id);
+      os->writeU16(iter->dimensions.tl.x);
+      os->writeU16(iter->dimensions.tl.y);
+      os->writeU16(iter->dimensions.width());
+      os->writeU16(iter->dimensions.height());
+      os->writeU32(iter->flags);
+    }
+
     needExtendedDesktopSize = false;
   }
 
