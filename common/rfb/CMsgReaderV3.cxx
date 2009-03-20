@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +77,9 @@ void CMsgReaderV3::readMsg()
     case pseudoEncodingDesktopSize:
       handler->setDesktopSize(w, h);
       break;
+    case pseudoEncodingExtendedDesktopSize:
+      readExtendedDesktopSize(x, y, w, h);
+      break;
     case pseudoEncodingDesktopName:
       readSetDesktopName(x, y, w, h);
       break;
@@ -113,5 +117,18 @@ void CMsgReaderV3::readSetDesktopName(int x, int y, int w, int h)
   }
 
   delete [] name;
+}
+
+void CMsgReaderV3::readExtendedDesktopSize(int x, int y, int w, int h)
+{
+  unsigned int screens;
+
+  screens = is->readU8();
+  is->skip(3);
+
+  // XXX: We just ignore screen info right now
+  is->skip(16 * screens);
+
+  handler->setExtendedDesktopSize(x, y, w, h);
 }
 

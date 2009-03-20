@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,11 +39,12 @@ namespace rfb {
 
     // The following methods are called as corresponding messages are read.  A
     // derived class should override these methods as desired.  Note that for
-    // the setDesktopSize(), setPixelFormat() and setName() methods, a derived
-    // class should call on to CMsgHandler's methods to set the members of cp
-    // appropriately.
+    // the setDesktopSize(), setExtendedDesktopSize(), setPixelFormat() and
+    // setName() methods, a derived class should call on to CMsgHandler's
+    // methods to set the members of cp appropriately.
 
     virtual void setDesktopSize(int w, int h);
+    virtual void setExtendedDesktopSize(int reason, int result, int w, int h);
     virtual void setCursor(int width, int height, const Point& hotspot,
                            void* data, void* mask);
     virtual void setPixelFormat(const PixelFormat& pf);

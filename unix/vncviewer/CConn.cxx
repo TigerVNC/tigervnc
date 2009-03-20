@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +31,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rfb/Password.h>
+#include <rfb/screenTypes.h>
 #include <network/TcpSocket.h>
 
 #include "TXViewport.h"
@@ -74,6 +76,7 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
     currentEncoding = encNum;
   }
   cp.supportsDesktopResize = true;
+  cp.supportsExtendedDesktopSize = true;
   cp.supportsDesktopRename = true;
   cp.supportsLocalCursor = useLocalCursor;
   cp.customCompressLevel = customCompressLevel;
@@ -266,10 +269,17 @@ void CConn::serverInit() {
 // it is set initially).
 void CConn::setDesktopSize(int w, int h) {
   CConnection::setDesktopSize(w,h);
-  if (desktop) {
-    desktop->resize(w, h);
-    recreateViewport();
-  }
+  resizeFramebuffer();
+}
+
+// setExtendedDesktopSize() is a more advanced version of setDesktopSize()
+void CConn::setExtendedDesktopSize(int reason, int result, int w, int h) {
+  CConnection::setExtendedDesktopSize(reason, result, w,h);
+
+  if ((reason == reasonClient) && (result != resultSuccess))
+    return;
+
+  resizeFramebuffer();
 }
 
 // setName() is called when the desktop name changes
@@ -615,6 +625,17 @@ void CConn::getOptions() {
   }
   dotWhenNoCursor.setParam(options.dotWhenNoCursor.checked());
   checkEncodings();
+}
+
+void CConn::resizeFramebuffer()
+{
+  if (!desktop)
+    return;
+  if ((desktop->width() == cp.width) && (desktop->height() == cp.height))
+    return;
+
+  desktop->resize(cp.width, cp.height);
+  recreateViewport();
 }
 
 void CConn::recreateViewport()

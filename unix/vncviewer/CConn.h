@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +75,7 @@ public:
   rfb::CSecurity* getCSecurity(int secType);
   void serverInit();
   void setDesktopSize(int w, int h);
+  void setExtendedDesktopSize(int reason, int result, int w, int h);
   void setName(const char* name);
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
   void bell();
@@ -89,6 +91,7 @@ public:
 
 private:
 
+  void resizeFramebuffer();
   void recreateViewport();
   void reconfigureViewport();
   void initMenu();

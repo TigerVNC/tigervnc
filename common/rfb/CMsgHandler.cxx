@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@
  */
 #include <rfb/Exception.h>
 #include <rfb/CMsgHandler.h>
+#include <rfb/screenTypes.h>
 
 using namespace rfb;
 
@@ -30,6 +32,15 @@ CMsgHandler::~CMsgHandler()
 
 void CMsgHandler::setDesktopSize(int width, int height)
 {
+  cp.width = width;
+  cp.height = height;
+}
+
+void CMsgHandler::setExtendedDesktopSize(int reason, int result, int width, int height)
+{
+  if ((reason == reasonClient) && (result != resultSuccess))
+    return;
+
   cp.width = width;
   cp.height = height;
 }
