@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -124,6 +125,7 @@ namespace rfb {
     virtual void keyEvent(rdr::U32 key, bool down);
     virtual void clientCutText(const char* str, int len);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
+    virtual void setDesktopSize(int fb_width, int fb_height);
     virtual void setInitialColourMap();
     virtual void supportsLocalCursor();
 

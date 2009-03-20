@@ -24,6 +24,7 @@
 
 #include <rdr/types.h>
 #include <rfb/encodings.h>
+#include <rfb/screenTypes.h>
 #include <rfb/Encoder.h>
 #include <rfb/PixelBuffer.h>
 
@@ -74,6 +75,8 @@ namespace rfb {
     // writeSetDesktopSize() on a V3 writer won't actually write immediately,
     // but will write the relevant pseudo-rectangle as part of the next update.
     virtual bool writeSetDesktopSize()=0;
+    // Same thing for the extended version
+    virtual bool writeExtendedDesktopSize(rdr::U16 error = resultUnsolicited)=0;
 
     virtual bool writeSetDesktopName()=0;
 

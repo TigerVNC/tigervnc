@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,8 @@ namespace rfb {
     virtual ~SMsgReaderV3();
     virtual void readClientInit();
     virtual void readMsg();
+  protected:
+    virtual void readSetDesktopSize();
   };
 }
 #endif

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +20,7 @@
 #include <rfb/VNCSConnectionST.h>
 #include <rfb/LogWriter.h>
 #include <rfb/secTypes.h>
+#include <rfb/screenTypes.h>
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
@@ -168,7 +170,8 @@ void VNCSConnectionST::pixelBufferChange()
       cp.width = server->pb->width();
       cp.height = server->pb->height();
       if (state() == RFBSTATE_NORMAL) {
-        if (!writer()->writeSetDesktopSize()) {
+        if (!writer()->writeSetDesktopSize() &&
+            !writer()->writeExtendedDesktopSize()) {
           close("Client does not support desktop resize");
           return;
         }
@@ -490,7 +493,16 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
     // Non-incremental update - treat as if area requested has changed
     updates.add_changed(reqRgn);
     server->comparer->add_changed(reqRgn);
+    // And update the clients view of screen layout
+    writer()->writeSetDesktopSize();
+    writer()->writeExtendedDesktopSize();
   }
+}
+
+void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height)
+{
+  vlog.info("Rejecting client request to change desktop size");
+  writer()->writeExtendedDesktopSize(resultProhibited);
 }
 
 void VNCSConnectionST::setInitialColourMap()

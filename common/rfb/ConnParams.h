@@ -73,6 +73,7 @@ namespace rfb {
     bool supportsLocalCursor;
     bool supportsLocalXCursor;
     bool supportsDesktopResize;
+    bool supportsExtendedDesktopSize;
     bool supportsDesktopRename;
     bool supportsLastRect;
 

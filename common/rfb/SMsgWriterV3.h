@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,8 @@
 #ifndef __RFB_SMSGWRITERV3_H__
 #define __RFB_SMSGWRITERV3_H__
 
+#include <list>
+
 #include <rfb/SMsgWriter.h>
 
 namespace rdr { class MemOutStream; }
@@ -32,6 +35,7 @@ namespace rfb {
     virtual void startMsg(int type);
     virtual void endMsg();
     virtual bool writeSetDesktopSize();
+    virtual bool writeExtendedDesktopSize(rdr::U16 error);
     virtual bool writeSetDesktopName();
     virtual void cursorChange(WriteSetCursorCallback* cb);
     virtual void writeSetCursor(int width, int height, const Point& hotspot,
@@ -52,6 +56,8 @@ namespace rfb {
     int nRectsInHeader;
     WriteSetCursorCallback* wsccb;
     bool needSetDesktopSize;
+    bool needExtendedDesktopSize;
+    std::list<rdr::U16> edsErrors;
     bool needSetDesktopName;
     bool needLastRect;
   };

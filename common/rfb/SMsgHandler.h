@@ -38,14 +38,15 @@ namespace rfb {
 
     // The following methods are called as corresponding messages are read.  A
     // derived class should override these methods as desired.  Note that for
-    // the setPixelFormat() and setEncodings() methods, a derived class must
-    // call on to SMsgHandler's methods.
+    // the setPixelFormat(), setEncodings() and setDesktopSize() methods, a
+    // derived class must call on to SMsgHandler's methods.
 
     virtual void clientInit(bool shared);
 
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setEncodings(int nEncodings, rdr::U32* encodings);
-    virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
+    virtual void framebufferUpdateRequest(const Rect& r, bool incremental) = 0;
+    virtual void setDesktopSize(int fb_width, int fb_height) = 0;
 
     // InputHandler interface
     // The InputHandler methods will be called for the corresponding messages.

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+/* Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,41 +15,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/Exception.h>
-#include <rfb/SMsgHandler.h>
+#ifndef __RFB_SCREENTYPES_H__
+#define __RFB_SCREENTYPES_H__
 
-using namespace rfb;
+namespace rfb {
 
-SMsgHandler::SMsgHandler()
-{
+  // Reasons
+  const unsigned int reasonServer = 0;
+  const unsigned int reasonClient = 1;
+  const unsigned int reasonOtherClient = 2;
+
+  // Result codes
+  const unsigned int resultSuccess = 0;
+  const unsigned int resultProhibited = 1;
+  const unsigned int resultNoResources = 2;
+  const unsigned int resultInvalid = 3;
+
+  const int resultUnsolicited = 0xffff; // internal code used for server changes
+
 }
-
-SMsgHandler::~SMsgHandler()
-{
-}
-
-void SMsgHandler::clientInit(bool shared)
-{
-}
-
-void SMsgHandler::setPixelFormat(const PixelFormat& pf)
-{
-  cp.setPF(pf);
-}
-
-void SMsgHandler::setEncodings(int nEncodings, rdr::U32* encodings)
-{
-  cp.setEncodings(nEncodings, encodings);
-  supportsLocalCursor();
-}
-
-void SMsgHandler::supportsLocalCursor()
-{
-}
-
-void SMsgHandler::setDesktopSize(int fb_width, int fb_height)
-{
-  cp.width = fb_width;
-  cp.height = fb_height;
-}
-
+#endif

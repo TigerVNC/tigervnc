@@ -29,8 +29,10 @@ using namespace rfb;
 ConnParams::ConnParams()
   : majorVersion(0), minorVersion(0), tightExtensionsEnabled(false),
     width(0), height(0), useCopyRect(false),
-    supportsLocalCursor(false), supportsLocalXCursor(false), supportsDesktopResize(true), supportsDesktopRename(false),
-    supportsLastRect(false), customCompressLevel(false), compressLevel(6),
+    supportsLocalCursor(false), supportsLocalXCursor(false),
+    supportsDesktopResize(false), supportsExtendedDesktopSize(false),
+    supportsDesktopRename(false), supportsLastRect(false),
+    customCompressLevel(false), compressLevel(6),
     noJpeg(false), qualityLevel(-1), 
     name_(0), nEncodings_(0), encodings_(0),
     currentEncoding_(encodingRaw), verStrPos(0)
@@ -92,6 +94,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
   useCopyRect = false;
   supportsLocalCursor = false;
   supportsDesktopResize = false;
+  supportsExtendedDesktopSize = false;
   supportsLocalXCursor = false;
   supportsLastRect = false;
   customCompressLevel = false;
@@ -111,6 +114,8 @@ void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
       supportsLocalXCursor = true;
     else if (encodings[i] == pseudoEncodingDesktopSize)
       supportsDesktopResize = true;
+    else if (encodings[i] == pseudoEncodingExtendedDesktopSize)
+      supportsExtendedDesktopSize = true;
     else if (encodings[i] == pseudoEncodingDesktopName)
       supportsDesktopRename = true;
     else if (encodings[i] == pseudoEncodingLastRect)

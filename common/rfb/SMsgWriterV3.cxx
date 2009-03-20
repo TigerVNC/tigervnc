@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,7 @@
 #include <rdr/OutStream.h>
 #include <rdr/MemOutStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/screenTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriterV3.h>
@@ -61,6 +63,15 @@ void SMsgWriterV3::endMsg()
 bool SMsgWriterV3::writeSetDesktopSize() {
   if (!cp->supportsDesktopResize) return false;
   needSetDesktopSize = true;
+  return true;
+}
+
+bool SMsgWriterV3::writeExtendedDesktopSize(rdr::U16 error) {
+  if (!cp->supportsExtendedDesktopSize) return false;
+  if (error == resultUnsolicited)
+    needExtendedDesktopSize = true;
+  else
+    edsErrors.push_back(error);
   return true;
 }
 
@@ -124,6 +135,8 @@ void SMsgWriterV3::writeFramebufferUpdateStart(int nRects)
   os->pad(1);
   if (wsccb) nRects++;
   if (needSetDesktopSize) nRects++;
+  if (needExtendedDesktopSize) nRects++;
+  if (!edsErrors.empty()) nRects += edsErrors.size();
   if (needSetDesktopName) nRects++;
   os->writeU16(nRects);
   nRectsInUpdate = 0;
@@ -144,6 +157,50 @@ void SMsgWriterV3::writeFramebufferUpdateStart()
 
 void SMsgWriterV3::writeFramebufferUpdateEnd()
 {
+  /* Start with responses to SetDesktopSize messages */
+  if (!edsErrors.empty()) {
+    std::list<rdr::U16>::const_iterator iter;
+
+    if (!cp->supportsExtendedDesktopSize)
+      throw Exception("Client does not support extended desktop resize");
+    if ((nRectsInUpdate += edsErrors.size()) > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriterV3 setExtendedDesktopSize: nRects out of sync");
+
+    for (iter = edsErrors.begin();iter != edsErrors.end();iter++) {
+      os->writeU16(1);
+      os->writeU16(*iter);
+      os->writeU16(0);
+      os->writeU16(0);
+      os->writeU32(pseudoEncodingExtendedDesktopSize);
+      os->writeU8(0);             // # screens
+      os->pad(3);
+    }
+
+    edsErrors.clear();
+  }
+
+  /* Send this before SetDesktopSize to make life easier on the clients */
+  if (needExtendedDesktopSize) {
+    if (!cp->supportsExtendedDesktopSize)
+      throw Exception("Client does not support extended desktop resize");
+    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriterV3 setExtendedDesktopSize: nRects out of sync");
+    os->writeU16(0);
+    os->writeU16(0);
+    os->writeU16(cp->width);
+    os->writeU16(cp->height);
+    os->writeU32(pseudoEncodingExtendedDesktopSize);
+    os->writeU8(1);             // # screens
+    os->pad(3);
+    os->writeU32(1);            // id
+    os->writeU16(0);            // x-pos
+    os->writeU16(0);            // y-pos
+    os->writeU16(cp->width);    // width
+    os->writeU16(cp->height);   // height
+    os->writeU32(0);            // flags
+    needExtendedDesktopSize = false;
+  }
+
   if (needSetDesktopSize) {
     if (!cp->supportsDesktopResize)
       throw Exception("Client does not support desktop resize");

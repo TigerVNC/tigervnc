@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,9 +52,30 @@ void SMsgReaderV3::readMsg()
   case msgTypeKeyEvent:                 readKeyEvent(); break;
   case msgTypePointerEvent:             readPointerEvent(); break;
   case msgTypeClientCutText:            readClientCutText(); break;
+  case msgTypeSetDesktopSize:           readSetDesktopSize(); break;
 
   default:
     fprintf(stderr, "unknown message type %d\n", msgType);
     throw Exception("unknown message type");
   }
 }
+
+void SMsgReaderV3::readSetDesktopSize()
+{
+  int width, height;
+  int screens, i;
+
+  is->skip(1);
+
+  width = is->readU16();
+  height = is->readU16();
+
+  screens = is->readU8();
+  is->skip(1);
+
+  // XXX: We don't support this command properly yet
+  is->skip(screens * 16);
+
+  handler->setDesktopSize(width, height);
+}
+
