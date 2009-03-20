@@ -32,6 +32,7 @@ ConnParams::ConnParams()
     supportsLocalCursor(false), supportsLocalXCursor(false),
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
     supportsDesktopRename(false), supportsLastRect(false),
+    supportsSetDesktopSize(false),
     customCompressLevel(false), compressLevel(6),
     noJpeg(false), qualityLevel(-1), 
     name_(0), nEncodings_(0), encodings_(0),

@@ -273,8 +273,9 @@ void CConn::setDesktopSize(int w, int h) {
 }
 
 // setExtendedDesktopSize() is a more advanced version of setDesktopSize()
-void CConn::setExtendedDesktopSize(int reason, int result, int w, int h) {
-  CConnection::setExtendedDesktopSize(reason, result, w,h);
+void CConn::setExtendedDesktopSize(int reason, int result, int w, int h,
+                                   const rfb::ScreenSet& layout) {
+  CConnection::setExtendedDesktopSize(reason, result, w, h, layout);
 
   if ((reason == reasonClient) && (result != resultSuccess))
     return;

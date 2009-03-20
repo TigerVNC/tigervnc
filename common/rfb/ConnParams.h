@@ -24,6 +24,7 @@
 
 #include <rdr/types.h>
 #include <rfb/PixelFormat.h>
+#include <rfb/ScreenSet.h>
 
 namespace rdr { class InStream; }
 
@@ -57,6 +58,7 @@ namespace rfb {
 
     int width;
     int height;
+    ScreenSet screenLayout;
 
     const PixelFormat& pf() { return pf_; }
     void setPF(const PixelFormat& pf);
@@ -76,6 +78,8 @@ namespace rfb {
     bool supportsExtendedDesktopSize;
     bool supportsDesktopRename;
     bool supportsLastRect;
+
+    bool supportsSetDesktopSize;
 
     bool customCompressLevel;
     int compressLevel;

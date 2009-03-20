@@ -577,6 +577,10 @@ SOURCE=.\screenTypes.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScreenSet.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SDesktop.h
 # End Source File
 # Begin Source File

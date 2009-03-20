@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#include <stdio.h>
+
 #include <rfb/Exception.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/screenTypes.h>
@@ -36,13 +38,21 @@ void CMsgHandler::setDesktopSize(int width, int height)
   cp.height = height;
 }
 
-void CMsgHandler::setExtendedDesktopSize(int reason, int result, int width, int height)
+void CMsgHandler::setExtendedDesktopSize(int reason, int result,
+                                         int width, int height,
+                                         const ScreenSet& layout)
 {
+  cp.supportsSetDesktopSize = true;
+
   if ((reason == reasonClient) && (result != resultSuccess))
     return;
 
+  if (!layout.validate(width, height))
+    fprintf(stderr, "Server sent us an invalid screen layout\n");
+
   cp.width = width;
   cp.height = height;
+  cp.screenLayout = layout;
 }
 
 void CMsgHandler::setCursor(int w, int h, const Point& hotspot, void* data, void* mask)

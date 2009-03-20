@@ -75,7 +75,8 @@ public:
   rfb::CSecurity* getCSecurity(int secType);
   void serverInit();
   void setDesktopSize(int w, int h);
-  void setExtendedDesktopSize(int reason, int result, int w, int h);
+  void setExtendedDesktopSize(int reason, int result, int w, int h,
+                              const rfb::ScreenSet& layout);
   void setName(const char* name);
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
   void bell();

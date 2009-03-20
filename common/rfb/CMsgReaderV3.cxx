@@ -23,6 +23,7 @@
 #include <rfb/CMsgReaderV3.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/util.h>
+#include <rfb/ScreenSet.h>
 #include <stdio.h>
 
 using namespace rfb;
@@ -121,14 +122,25 @@ void CMsgReaderV3::readSetDesktopName(int x, int y, int w, int h)
 
 void CMsgReaderV3::readExtendedDesktopSize(int x, int y, int w, int h)
 {
-  unsigned int screens;
+  unsigned int screens, i;
+  rdr::U32 id, flags;
+  int sx, sy, sw, sh;
+  ScreenSet layout;
 
   screens = is->readU8();
   is->skip(3);
 
-  // XXX: We just ignore screen info right now
-  is->skip(16 * screens);
+  for (i = 0;i < screens;i++) {
+    id = is->readU32();
+    sx = is->readU16();
+    sy = is->readU16();
+    sw = is->readU16();
+    sh = is->readU16();
+    flags = is->readU32();
 
-  handler->setExtendedDesktopSize(x, y, w, h);
+    layout.add_screen(Screen(id, sx, sy, sw, sh, flags));
+  }
+
+  handler->setExtendedDesktopSize(x, y, w, h, layout);
 }
 

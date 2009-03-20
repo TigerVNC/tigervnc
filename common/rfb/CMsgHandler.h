@@ -27,6 +27,7 @@
 #include <rfb/Pixel.h>
 #include <rfb/ConnParams.h>
 #include <rfb/Rect.h>
+#include <rfb/ScreenSet.h>
 
 namespace rdr { class InStream; }
 
@@ -44,7 +45,9 @@ namespace rfb {
     // methods to set the members of cp appropriately.
 
     virtual void setDesktopSize(int w, int h);
-    virtual void setExtendedDesktopSize(int reason, int result, int w, int h);
+    virtual void setExtendedDesktopSize(int reason, int result,
+                                        int w, int h,
+                                        const ScreenSet& layout);
     virtual void setCursor(int width, int height, const Point& hotspot,
                            void* data, void* mask);
     virtual void setPixelFormat(const PixelFormat& pf);
