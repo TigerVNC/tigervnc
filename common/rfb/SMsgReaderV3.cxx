@@ -24,6 +24,7 @@
 #include <rdr/InStream.h>
 #include <rfb/SMsgReaderV3.h>
 #include <rfb/SMsgHandler.h>
+#include <rfb/ScreenSet.h>
 
 using namespace rfb;
 
@@ -64,6 +65,9 @@ void SMsgReaderV3::readSetDesktopSize()
 {
   int width, height;
   int screens, i;
+  rdr::U32 id, flags;
+  int sx, sy, sw, sh;
+  ScreenSet layout;
 
   is->skip(1);
 
@@ -73,9 +77,17 @@ void SMsgReaderV3::readSetDesktopSize()
   screens = is->readU8();
   is->skip(1);
 
-  // XXX: We don't support this command properly yet
-  is->skip(screens * 16);
+  for (i = 0;i < screens;i++) {
+    id = is->readU32();
+    sx = is->readU16();
+    sy = is->readU16();
+    sw = is->readU16();
+    sh = is->readU16();
+    flags = is->readU32();
 
-  handler->setDesktopSize(width, height);
+    layout.add_screen(Screen(id, sx, sy, sw, sh, flags));
+  }
+
+  handler->setDesktopSize(width, height, layout);
 }
 

@@ -125,7 +125,8 @@ namespace rfb {
     virtual void keyEvent(rdr::U32 key, bool down);
     virtual void clientCutText(const char* str, int len);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
-    virtual void setDesktopSize(int fb_width, int fb_height);
+    virtual void setDesktopSize(int fb_width, int fb_height,
+                                const ScreenSet& layout);
     virtual void setInitialColourMap();
     virtual void supportsLocalCursor();
 

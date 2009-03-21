@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@
  */
 #include <rfb/Exception.h>
 #include <rfb/SMsgHandler.h>
+#include <rfb/ScreenSet.h>
 
 using namespace rfb;
 
@@ -47,9 +49,11 @@ void SMsgHandler::supportsLocalCursor()
 {
 }
 
-void SMsgHandler::setDesktopSize(int fb_width, int fb_height)
+void SMsgHandler::setDesktopSize(int fb_width, int fb_height,
+                                 const ScreenSet& layout)
 {
   cp.width = fb_width;
   cp.height = fb_height;
+  cp.screenLayout = layout;
 }
 

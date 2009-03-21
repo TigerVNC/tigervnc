@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +27,7 @@
 #include <rfb/PixelFormat.h>
 #include <rfb/ConnParams.h>
 #include <rfb/InputHandler.h>
+#include <rfb/ScreenSet.h>
 
 namespace rdr { class InStream; }
 
@@ -46,7 +48,8 @@ namespace rfb {
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setEncodings(int nEncodings, rdr::U32* encodings);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental) = 0;
-    virtual void setDesktopSize(int fb_width, int fb_height) = 0;
+    virtual void setDesktopSize(int fb_width, int fb_height,
+                                const ScreenSet& layout) = 0;
 
     // InputHandler interface
     // The InputHandler methods will be called for the corresponding messages.

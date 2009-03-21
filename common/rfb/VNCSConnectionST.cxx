@@ -509,7 +509,8 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   }
 }
 
-void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height)
+void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
+                                      const ScreenSet& layout)
 {
   vlog.info("Rejecting client request to change desktop size");
   writer()->writeExtendedDesktopSize(resultProhibited);
