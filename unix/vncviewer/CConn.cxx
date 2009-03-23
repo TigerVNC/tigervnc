@@ -62,7 +62,7 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
     encodingChange(false), sameMachine(false), fullScreen(::fullScreen),
     ctrlDown(false), altDown(false),
     menuKeysym(0), menu(dpy, this), options(dpy, this), about(dpy), info(dpy),
-    reverseConnection(reverse)
+    reverseConnection(reverse), firstUpdate(true)
 {
   CharArray menuKeyStr(menuKey.getData());
   menuKeysym = XStringToKeysym(menuKeyStr.buf);
@@ -277,8 +277,10 @@ void CConn::setExtendedDesktopSize(int reason, int result, int w, int h,
                                    const rfb::ScreenSet& layout) {
   CConnection::setExtendedDesktopSize(reason, result, w, h, layout);
 
-  if ((reason == reasonClient) && (result != resultSuccess))
+  if ((reason == reasonClient) && (result != resultSuccess)) {
+    vlog.error("SetDesktopSize failed: %d", result);
     return;
+  }
 
   resizeFramebuffer();
 }
@@ -316,6 +318,43 @@ void CConn::framebufferUpdateEnd() {
     debugRects.clear();
   }
   desktop->framebufferUpdateEnd();
+
+  if (firstUpdate) {
+    int width, height;
+
+    if (cp.supportsSetDesktopSize &&
+        sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) == 2) {
+      ScreenSet layout;
+
+      layout = cp.screenLayout;
+
+      if (layout.num_screens() == 0)
+        layout.add_screen(rfb::Screen());
+      else if (layout.num_screens() != 1) {
+        ScreenSet::iterator iter;
+
+        while (true) {
+          iter = layout.begin();
+          ++iter;
+
+          if (iter == layout.end())
+            break;
+
+          layout.remove_screen(iter->id);
+        }
+      }
+
+      layout.begin()->dimensions.tl.x = 0;
+      layout.begin()->dimensions.tl.y = 0;
+      layout.begin()->dimensions.br.x = width;
+      layout.begin()->dimensions.br.y = height;
+
+      writer()->writeSetDesktopSize(width, height, layout);
+    }
+
+    firstUpdate = false;
+  }
+
   if (autoSelect)
     autoSelectFormatAndEncoding();
   requestNewUpdate();

@@ -35,6 +35,7 @@ extern rfb::BoolParameter shared;
 extern rfb::BoolParameter acceptClipboard;
 extern rfb::BoolParameter sendClipboard;
 extern rfb::BoolParameter sendPrimary;
+extern rfb::StringParameter desktopSize;
 extern rfb::BoolParameter fullScreen;
 extern rfb::StringParameter geometry;
 extern rfb::BoolParameter customCompressLevel;

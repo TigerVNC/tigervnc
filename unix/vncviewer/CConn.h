@@ -130,6 +130,7 @@ private:
   AboutDialog about;
   InfoDialog info;
   bool reverseConnection;
+  bool firstUpdate;
 };
 
 #endif

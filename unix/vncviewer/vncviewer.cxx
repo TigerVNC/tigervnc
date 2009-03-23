@@ -98,6 +98,10 @@ BoolParameter sendPrimary("SendPrimary",
                           "server as well as the clipboard selection",
                           true);
 
+StringParameter desktopSize("DesktopSize",
+                            "Reconfigure desktop size on the server on "
+                            "connect (if possible)", "");
+
 BoolParameter listenMode("listen", "Listen for connections from VNC servers",
                          false);
 StringParameter geometry("geometry", "X geometry specification", "");
