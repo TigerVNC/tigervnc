@@ -802,7 +802,7 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs = {
 static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
   vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-  Bool gotCurrent = FALSE;
+  Bool ret, gotCurrent = FALSE;
   int i;
 
   const int widths[] =  { 1920, 1920, 1600, 1680, 1400, 1360, 1280, 1280, 1280, 1280, 1024, 800, 640 };
@@ -816,7 +816,9 @@ static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     if (!pSize)
       return FALSE;
 
-    RRRegisterRate(pScreen, pSize, 60);
+    ret = RRRegisterRate(pScreen, pSize, 60);
+    if (!ret)
+      return FALSE;
 
     if ((widths[i] == pScreen->width) && (heights[i] == pScreen->height)) {
       RRSetCurrentConfig(pScreen, RR_Rotate_0, 60, pSize);
