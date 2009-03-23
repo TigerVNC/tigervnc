@@ -1022,6 +1022,8 @@ static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
         pScreen->mmWidth = oldmmWidth;
         pScreen->mmHeight = oldmmHeight;
 
+        xf86SetRootClip(pScreen, TRUE);
+
         return FALSE;
     }
 
@@ -1036,6 +1038,8 @@ static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
         pScreen->height = oldheight;
         pScreen->mmWidth = oldmmWidth;
         pScreen->mmHeight = oldmmHeight;
+
+        xf86SetRootClip(pScreen, TRUE);
 
         return FALSE;
     }
