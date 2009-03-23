@@ -68,6 +68,9 @@ extern char *display;
 extern void
 CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
 #endif
+#ifdef RANDR
+#include "randrstr.h"
+#endif
 #undef public
 #undef class
 }
@@ -827,6 +830,77 @@ void XserverDesktop::clientCutText(const char* str, int len)
 {
   vncClientCutText(str, len);
 }
+
+#ifdef RANDR
+unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
+                                             const rfb::ScreenSet& layout)
+{
+  int               i;
+  Bool              ret;
+  RRScreenSizePtr   pSize;
+  RROutputPtr       output;
+  RRModePtr         mode;
+
+  // Make sure all RandR tables are properly populated
+  ret = RRGetInfo(pScreen);
+  if (!ret)
+    return resultNoResources;
+
+  // Register a new size, or get a reference to the existing one
+  pSize = RRRegisterSize(pScreen, fb_width, fb_height,
+                         pScreen->mmWidth, pScreen->mmHeight);
+  if (!pSize)
+    return resultNoResources;
+  ret = RRRegisterRate(pScreen, pSize, 60);
+  if (!ret)
+    return resultNoResources;
+
+  // Go via RandR to set the resolution in order for X11 notifications
+  // to be sent out properly. We currently only do RandR 1.0, but Xorg
+  // has dropped support for that API. So we have to emulate it via the
+  // same method ProcRRSetScreenConfig() uses.
+  //
+  // FIXME: This will cause setPixelBuffer() to be called, resulting in
+  //        an unnecessary ExtendedDesktopSize to be sent.
+
+  // We'll just reconfigure the first output
+  output = RRFirstOutput(pScreen);
+  if (!output) {
+    vlog.error("setScreenLayout: Could not get first output");
+    return resultNoResources;
+  }
+
+  // Find first mode with matching size
+  mode = NULL;
+  for (i = 0;i < output->numModes;i++) {
+    if ((output->modes[i]->mode.width == fb_width) &&
+        (output->modes[i]->mode.height == fb_height)) {
+      mode = output->modes[i];
+      break;
+    }
+  }
+  if (!mode)
+    return resultNoResources;
+
+  // Adjust screen size
+  ret = RRScreenSizeSet(pScreen, fb_width, fb_height,
+                        pScreen->mmWidth, pScreen->mmHeight);
+  if (!ret)
+    return resultNoResources;
+
+  // And then the CRTC
+  ret = RRCrtcSet(output->crtc, mode, 0, 0, RR_Rotate_0, 1, &output);
+  if (!ret)
+    return resultNoResources;
+
+  // RandR 1.0 doesn't carry any screen layout information, so we need
+  // to update that manually. This results in another unnecessary
+  // ExtendedDesktopSize.
+  server->setScreenLayout(layout);
+
+  return resultSuccess;
+}
+#endif // RANDR
 
 void XserverDesktop::grabRegion(const rfb::Region& region)
 {

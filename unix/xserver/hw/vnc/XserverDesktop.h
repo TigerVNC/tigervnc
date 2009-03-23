@@ -104,6 +104,10 @@ public:
   virtual void keyEvent(rdr::U32 key, bool down);
   virtual void clientCutText(const char* str, int len);
   virtual rfb::Point getFbSize() { return rfb::Point(width(), height()); }
+#ifdef RANDR
+  virtual unsigned int setScreenLayout(int fb_width, int fb_height,
+                                       const rfb::ScreenSet& layout);
+#endif
 
   // rfb::PixelBuffer callbacks
   virtual void grabRegion(const rfb::Region& r);
