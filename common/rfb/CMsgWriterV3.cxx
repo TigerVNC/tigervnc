@@ -47,3 +47,31 @@ void CMsgWriterV3::endMsg()
 {
   os->flush();
 }
+
+void CMsgWriterV3::writeSetDesktopSize(int width, int height,
+                                       const ScreenSet& layout)
+{
+  if (!cp->supportsSetDesktopSize)
+    throw Exception("Server does not support SetDesktopSize");
+
+  startMsg(msgTypeSetDesktopSize);
+  os->pad(1);
+
+  os->writeU16(width);
+  os->writeU16(height);
+
+  os->writeU8(layout.num_screens());
+  os->pad(1);
+
+  ScreenSet::const_iterator iter;
+  for (iter = layout.begin();iter != layout.end();++iter) {
+    os->writeU32(iter->id);
+    os->writeU16(iter->dimensions.tl.x);
+    os->writeU16(iter->dimensions.tl.y);
+    os->writeU16(iter->dimensions.width());
+    os->writeU16(iter->dimensions.height());
+    os->writeU32(iter->flags);
+  }
+
+  endMsg();
+}

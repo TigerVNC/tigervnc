@@ -30,6 +30,8 @@ namespace rfb {
     virtual void startMsg(int type);
     virtual void endMsg();
 
+    virtual void writeSetDesktopSize(int width, int height,
+                                     const ScreenSet& layout);
   };
 }
 #endif

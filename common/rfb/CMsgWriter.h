@@ -23,6 +23,7 @@
 #define __RFB_CMSGWRITER_H__
 
 #include <rfb/InputHandler.h>
+#include <rfb/ScreenSet.h>
 
 namespace rdr { class OutStream; }
 
@@ -40,6 +41,9 @@ namespace rfb {
     virtual void writeClientInit(bool shared)=0;
     virtual void startMsg(int type)=0;
     virtual void endMsg()=0;
+
+    virtual void writeSetDesktopSize(int width, int height,
+                                     const ScreenSet& layout)=0;
 
     // CMsgWriter implemented methods
     virtual void writeSetPixelFormat(const PixelFormat& pf);
