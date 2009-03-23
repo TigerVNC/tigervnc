@@ -20,6 +20,7 @@
 #define __RFB_SMSGWRITERV3_H__
 
 #include <list>
+#include <utility>
 
 #include <rfb/SMsgWriter.h>
 
@@ -35,7 +36,10 @@ namespace rfb {
     virtual void startMsg(int type);
     virtual void endMsg();
     virtual bool writeSetDesktopSize();
-    virtual bool writeExtendedDesktopSize(rdr::U16 error);
+    virtual bool writeExtendedDesktopSize();
+    virtual bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
+                                          int fb_width, int fb_height,
+                                          const ScreenSet& layout);
     virtual bool writeSetDesktopName();
     virtual void cursorChange(WriteSetCursorCallback* cb);
     virtual void writeSetCursor(int width, int height, const Point& hotspot,
@@ -57,9 +61,16 @@ namespace rfb {
     WriteSetCursorCallback* wsccb;
     bool needSetDesktopSize;
     bool needExtendedDesktopSize;
-    std::list<rdr::U16> edsErrors;
     bool needSetDesktopName;
     bool needLastRect;
+
+    typedef struct {
+      rdr::U16 reason, result;
+      int fb_width, fb_height;
+      ScreenSet layout;
+    } ExtendedDesktopSizeMsg;
+    std::list<ExtendedDesktopSizeMsg> extendedDesktopSizeMsgs;
+
   };
 }
 #endif

@@ -27,6 +27,7 @@
 #include <rfb/screenTypes.h>
 #include <rfb/Encoder.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/ScreenSet.h>
 
 namespace rdr { class OutStream; }
 
@@ -75,8 +76,13 @@ namespace rfb {
     // writeSetDesktopSize() on a V3 writer won't actually write immediately,
     // but will write the relevant pseudo-rectangle as part of the next update.
     virtual bool writeSetDesktopSize()=0;
-    // Same thing for the extended version
-    virtual bool writeExtendedDesktopSize(rdr::U16 error = resultUnsolicited)=0;
+    // Same thing for the extended version. The first version queues up a
+    // generic update of the current server state, but the second queues a
+    // specific message.
+    virtual bool writeExtendedDesktopSize()=0;
+    virtual bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
+                                          int fb_width, int fb_height,
+                                          const ScreenSet& layout)=0;
 
     virtual bool writeSetDesktopName()=0;
 

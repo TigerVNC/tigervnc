@@ -41,6 +41,7 @@
 #include <rfb/VNCServer.h>
 #include <rfb/InputHandler.h>
 #include <rfb/Exception.h>
+#include <rfb/screenTypes.h>
 
 namespace rfb {
 
@@ -74,6 +75,13 @@ namespace rfb {
     // This can be called even while the SDesktop is not start()ed.
 
     virtual Point getFbSize() = 0;
+
+    // setScreenLayout() requests to reconfigure the framebuffer and/or
+    // the layout of screens.
+    virtual unsigned int setScreenLayout(int fb_width, int fb_height,
+                                         const ScreenSet& layout) {
+      return resultProhibited;
+    }
 
     // InputHandler interface
     // pointerEvent(), keyEvent() and clientCutText() are called in response to

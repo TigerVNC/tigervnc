@@ -21,6 +21,8 @@
 #ifndef __RFB_SCREENSET_INCLUDED__
 #define __RFB_SCREENSET_INCLUDED__
 
+#include <stdio.h>
+
 #include <rfb/Rect.h>
 #include <list>
 #include <set>
@@ -36,6 +38,17 @@ namespace rfb {
     Screen(void) : id(0), flags(0) {};
     Screen(rdr::U32 id_, int x_, int y_, int w_, int h_, rdr::U32 flags_) :
       id(id_), dimensions(x_, y_, x_+w_, y_+h_), flags(flags_) {};
+
+    inline bool operator==(const Screen& r) const {
+      if (id != r.id)
+        return false;
+      if (!dimensions.equals(r.dimensions))
+        return false;
+      if (flags != r.flags)
+        return false;
+      return true;
+    }
+
     rdr::U32 id;
     Rect dimensions;
     rdr::U32 flags;
@@ -92,6 +105,22 @@ namespace rfb {
 
       return true;
     };
+
+    inline void debug_print(void) const {
+      std::list<Screen>::const_iterator iter;
+      fprintf(stderr, "%d screens\n", num_screens());
+      for (iter = screens.begin();iter != screens.end();++iter) {
+        fprintf(stderr, "    %10d (0x%08x): %dx%d+%d+%d (flags 0x%08x)\n",
+                (int)iter->id, (unsigned)iter->id,
+                iter->dimensions.width(), iter->dimensions.height(),
+                iter->dimensions.tl.x, iter->dimensions.tl.y,
+                (unsigned)iter->flags);
+      }
+    };
+
+    // FIXME: List order shouldn't matter
+    inline bool operator==(const ScreenSet& r) const { return screens == r.screens; }
+    inline bool operator!=(const ScreenSet& r) const { return screens != r.screens; }
 
     std::list<Screen> screens;
   };

@@ -66,12 +66,27 @@ bool SMsgWriterV3::writeSetDesktopSize() {
   return true;
 }
 
-bool SMsgWriterV3::writeExtendedDesktopSize(rdr::U16 error) {
+bool SMsgWriterV3::writeExtendedDesktopSize() {
   if (!cp->supportsExtendedDesktopSize) return false;
-  if (error == resultUnsolicited)
-    needExtendedDesktopSize = true;
-  else
-    edsErrors.push_back(error);
+  needExtendedDesktopSize = true;
+  return true;
+}
+
+bool SMsgWriterV3::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
+                                            int fb_width, int fb_height,
+                                            const ScreenSet& layout) {
+  ExtendedDesktopSizeMsg msg;
+
+  if (!cp->supportsExtendedDesktopSize) return false;
+
+  msg.reason = reason;
+  msg.result = result;
+  msg.fb_width = fb_width;
+  msg.fb_height = fb_height;
+  msg.layout = layout;
+
+  extendedDesktopSizeMsgs.push_back(msg);
+
   return true;
 }
 
@@ -136,7 +151,7 @@ void SMsgWriterV3::writeFramebufferUpdateStart(int nRects)
   if (wsccb) nRects++;
   if (needSetDesktopSize) nRects++;
   if (needExtendedDesktopSize) nRects++;
-  if (!edsErrors.empty()) nRects += edsErrors.size();
+  if (!extendedDesktopSizeMsgs.empty()) nRects += extendedDesktopSizeMsgs.size();
   if (needSetDesktopName) nRects++;
   os->writeU16(nRects);
   nRectsInUpdate = 0;
@@ -157,26 +172,37 @@ void SMsgWriterV3::writeFramebufferUpdateStart()
 
 void SMsgWriterV3::writeFramebufferUpdateEnd()
 {
-  /* Start with responses to SetDesktopSize messages */
-  if (!edsErrors.empty()) {
-    std::list<rdr::U16>::const_iterator iter;
+  /* Start with specific ExtendedDesktopSize messages */
+  if (!extendedDesktopSizeMsgs.empty()) {
+    std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
+    ScreenSet::const_iterator si;
 
     if (!cp->supportsExtendedDesktopSize)
       throw Exception("Client does not support extended desktop resize");
-    if ((nRectsInUpdate += edsErrors.size()) > nRectsInHeader && nRectsInHeader)
-      throw Exception("SMsgWriterV3 setExtendedDesktopSize: nRects out of sync");
+    if ((nRectsInUpdate += extendedDesktopSizeMsgs.size()) > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriterV3 SetDesktopSize reply: nRects out of sync");
 
-    for (iter = edsErrors.begin();iter != edsErrors.end();iter++) {
-      os->writeU16(1);
-      os->writeU16(*iter);
-      os->writeU16(0);
-      os->writeU16(0);
+    for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
+      os->writeU16(ri->reason);
+      os->writeU16(ri->result);
+      os->writeU16(ri->fb_width);
+      os->writeU16(ri->fb_height);
       os->writeU32(pseudoEncodingExtendedDesktopSize);
-      os->writeU8(0);             // # screens
+
+      os->writeU8(ri->layout.num_screens());
       os->pad(3);
+
+      for (si = ri->layout.begin();si != ri->layout.end();++si) {
+        os->writeU32(si->id);
+        os->writeU16(si->dimensions.tl.x);
+        os->writeU16(si->dimensions.tl.y);
+        os->writeU16(si->dimensions.width());
+        os->writeU16(si->dimensions.height());
+        os->writeU32(si->flags);
+      }
     }
 
-    edsErrors.clear();
+    extendedDesktopSizeMsgs.clear();
   }
 
   /* Send this before SetDesktopSize to make life easier on the clients */
@@ -250,7 +276,8 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
 
 bool SMsgWriterV3::needFakeUpdate()
 {
-  return wsccb || needSetDesktopSize || needSetDesktopName;
+  return wsccb || needSetDesktopSize || needExtendedDesktopSize ||
+         !extendedDesktopSizeMsgs.empty() || needSetDesktopName;
 }
 
 void SMsgWriterV3::startRect(const Rect& r, unsigned int encoding)

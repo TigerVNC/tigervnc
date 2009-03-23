@@ -24,16 +24,23 @@
 
 #include <rfb/UpdateTracker.h>
 #include <rfb/SSecurity.h>
+#include <rfb/ScreenSet.h>
 
 namespace rfb {
 
   class VNCServer : public UpdateTracker {
   public:
 
-    // setPixelBuffer() tells the server to use the given pixel buffer.  If
-    // this differs in size from the previous pixel buffer, this may result in
-    // protocol messages being sent, or clients being disconnected.
+    // setPixelBuffer() tells the server to use the given pixel buffer (and
+    // optionally a modified screen layout).  If this differs in size from
+    // the previous pixel buffer, this may result in protocol messages being
+    // sent, or clients being disconnected.
+    virtual void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout) = 0;
     virtual void setPixelBuffer(PixelBuffer* pb) = 0;
+
+    // setScreenLayout() modifies the current screen layout without changing
+    // the pixelbuffer. Clients will be notified of the new layout.
+    virtual void setScreenLayout(const ScreenSet& layout) = 0;
 
     // getPixelBuffer() returns a pointer to the PixelBuffer object.
     virtual PixelBuffer* getPixelBuffer() const = 0;

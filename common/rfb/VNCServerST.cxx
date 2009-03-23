@@ -252,50 +252,83 @@ int VNCServerST::checkTimeouts()
 
 // VNCServer methods
 
-void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
+void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 {
   pb = pb_;
   delete comparer;
   comparer = 0;
 
-  if (pb) {
-    comparer = new ComparingUpdateTracker(pb);
-    cursor.setPF(pb->getPF());
-    renderedCursor.setPF(pb->getPF());
+  screenLayout = layout;
 
-    // Check that the screen layout is still valid
-    if (!screenLayout.validate(pb->width(), pb->height())) {
-      Rect fbRect;
-      ScreenSet::iterator iter, iter_next;
-
-      fbRect.setXYWH(0, 0, pb->width(), pb->height());
-
-      for (iter = screenLayout.begin();iter != screenLayout.end();iter = iter_next) {
-        iter_next = iter; ++iter_next;
-        if (iter->dimensions.enclosed_by(fbRect))
-            continue;
-        iter->dimensions = iter->dimensions.intersect(fbRect);
-        if (iter->dimensions.is_empty()) {
-          slog.info("Removing screen %d (%x) as it is completely outside the new framebuffer",
-                    (int)iter->id, (unsigned)iter->id);
-          screenLayout.remove_screen(iter->id);
-        }
-      }
-    }
-
-    if (screenLayout.num_screens() == 0) {
-      // Boot strap the screen layout
-      screenLayout.add_screen(Screen(0, 0, 0, pb->width(), pb->height(), 0));
-    }
-
-    std::list<VNCSConnectionST*>::iterator ci, ci_next;
-    for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
-      ci_next = ci; ci_next++;
-      (*ci)->pixelBufferChange();
-    }
-  } else {
+  if (!pb) {
     if (desktopStarted)
       throw Exception("setPixelBuffer: null PixelBuffer when desktopStarted?");
+    return;
+  }
+
+  comparer = new ComparingUpdateTracker(pb);
+  cursor.setPF(pb->getPF());
+  renderedCursor.setPF(pb->getPF());
+
+  // Make sure that we have at least one screen
+  if (screenLayout.num_screens() == 0)
+    screenLayout.add_screen(Screen(0, 0, 0, pb->width(), pb->height(), 0));
+
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
+    ci_next = ci; ci_next++;
+    (*ci)->pixelBufferChange();
+    // Since the new pixel buffer means an ExtendedDesktopSize needs to
+    // be sent anyway, we don't need to call screenLayoutChange.
+  }
+}
+
+void VNCServerST::setPixelBuffer(PixelBuffer* pb_)
+{
+  ScreenSet layout;
+
+  if (!pb_) {
+    if (desktopStarted)
+      throw Exception("setPixelBuffer: null PixelBuffer when desktopStarted?");
+    return;
+  }
+
+  layout = screenLayout;
+
+  // Check that the screen layout is still valid
+  if (!layout.validate(pb_->width(), pb_->height())) {
+    Rect fbRect;
+    ScreenSet::iterator iter, iter_next;
+
+    fbRect.setXYWH(0, 0, pb_->width(), pb_->height());
+
+    for (iter = layout.begin();iter != layout.end();iter = iter_next) {
+      iter_next = iter; ++iter_next;
+      if (iter->dimensions.enclosed_by(fbRect))
+          continue;
+      iter->dimensions = iter->dimensions.intersect(fbRect);
+      if (iter->dimensions.is_empty()) {
+        slog.info("Removing screen %d (%x) as it is completely outside the new framebuffer",
+                  (int)iter->id, (unsigned)iter->id);
+        layout.remove_screen(iter->id);
+      }
+    }
+  }
+
+  setPixelBuffer(pb_, layout);
+}
+
+void VNCServerST::setScreenLayout(const ScreenSet& layout)
+{
+  if (!pb)
+    throw Exception("setScreenLayout: new screen layout without a PixelBuffer");
+  if (!layout.validate(pb->width(), pb->height()))
+    throw Exception("setScreenLayout: invalid screen layout");
+
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
+    ci_next = ci; ci_next++;
+    (*ci)->screenLayoutChange(reasonServer);
   }
 }
 
@@ -571,3 +604,13 @@ void VNCServerST::setConnStatus(ListConnInfo* listConn)
   }
 }
 
+void VNCServerST::notifyScreenLayoutChange(VNCSConnectionST* requester)
+{
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
+    ci_next = ci; ci_next++;
+    if ((*ci) == requester)
+      continue;
+    (*ci)->screenLayoutChange(reasonOtherClient);
+  }
+}

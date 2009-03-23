@@ -78,7 +78,9 @@ namespace rfb {
 
     // Methods overridden from VNCServer
 
+    virtual void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout);
     virtual void setPixelBuffer(PixelBuffer* pb);
+    virtual void setScreenLayout(const ScreenSet& layout);
     virtual PixelBuffer* getPixelBuffer() const { return pb; }
     virtual void setColourMapEntries(int firstColour=0, int nColours=0);
     virtual void serverCutText(const char* str, int len);
@@ -224,6 +226,8 @@ namespace rfb {
 
     bool needRenderedCursor();
     void checkUpdate();
+
+    void notifyScreenLayoutChange(VNCSConnectionST *requester);
 
     SSecurityFactory* securityFactory;
     QueryConnectionHandler* queryConnectionHandler;

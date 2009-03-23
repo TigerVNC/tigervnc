@@ -63,6 +63,7 @@ namespace rfb {
 
     void writeFramebufferUpdateOrClose();
     void pixelBufferChange();
+    void screenLayoutChange(rdr::U16 reason);
     void setColourMapEntriesOrClose(int firstColour, int nColours);
     void bell();
     void serverCutText(const char *str, int len);

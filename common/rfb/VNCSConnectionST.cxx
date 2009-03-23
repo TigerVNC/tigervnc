@@ -191,6 +191,25 @@ void VNCSConnectionST::pixelBufferChange()
   }
 }
 
+void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
+{
+  try {
+    if (!authenticated())
+      return;
+
+    cp.screenLayout = server->screenLayout;
+    if (state() == RFBSTATE_NORMAL) {
+      writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
+                                         cp.screenLayout);
+    }
+
+    if (writer()->needFakeUpdate())
+      writeFramebufferUpdate();
+  } catch(rdr::Exception &e) {
+    close(e.str());
+  }
+}
+
 void VNCSConnectionST::setColourMapEntriesOrClose(int firstColour,int nColours)
 {
   try {
@@ -512,8 +531,34 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
                                       const ScreenSet& layout)
 {
-  vlog.info("Rejecting client request to change desktop size");
-  writer()->writeExtendedDesktopSize(resultProhibited);
+  unsigned int result;
+
+  // Don't bother the desktop with an invalid configuration
+  if (!layout.validate(fb_width, fb_height)) {
+    writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
+                                       fb_width, fb_height, layout);
+    if (writer()->needFakeUpdate())
+      writeFramebufferUpdate();
+    return;
+  }
+
+  // FIXME: the desktop will call back to VNCServerST and an extra set
+  // of ExtendedDesktopSize messages will be sent. This is okay
+  // protocol-wise, but unnecessary.
+  result = server->desktop->setScreenLayout(fb_width, fb_height, layout);
+
+  // Always send back a reply to the requesting client
+  writer()->writeExtendedDesktopSize(reasonClient, result,
+                                     fb_width, fb_height, layout);
+  if (writer()->needFakeUpdate())
+    writeFramebufferUpdate();
+
+  // But only notify other clients on success
+  if (result == resultSuccess) {
+    if (server->screenLayout != layout)
+        throw Exception("Desktop configured a different screen layout than requested");
+    server->notifyScreenLayoutChange(this);
+  }
 }
 
 void VNCSConnectionST::setInitialColourMap()
