@@ -99,6 +99,8 @@ namespace rfb {
       void bell();
       void framebufferUpdateEnd();
       void setDesktopSize(int w, int h);
+      void setExtendedDesktopSize(int reason, int result, int w, int h,
+                                  const rfb::ScreenSet& layout);
       void setCursor(int w, int h, const Point& hotspot, void* data, void* mask);
       void setName(const char* name);
       void serverInit();
@@ -144,6 +146,7 @@ namespace rfb {
       Handle sockEvent;
       bool reverseConnection;
       bool requestUpdate;
+      bool firstUpdate;
 
       // Debugging/logging
       std::list<Rect> debugRects;

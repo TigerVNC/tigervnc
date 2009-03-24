@@ -56,6 +56,7 @@ namespace rfb {
       int preferredEncoding;
       bool autoSelect;
       bool shared;
+      CharArray desktopSize;
       bool sendPtrEvents;
       bool sendKeyEvents;
       bool showToolbar;

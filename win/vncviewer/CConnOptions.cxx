@@ -65,6 +65,10 @@ static BoolParameter sharedConnection("Shared",
                          "(Default is to disconnect all other clients)",
                          false);
 
+StringParameter desktopSize("DesktopSize",
+                            "Reconfigure desktop size on the server on "
+                            "connect (if possible)", "");
+
 static BoolParameter sendPtrEvents("SendPointerEvents",
                          "Send pointer (mouse) events to the server.", true);
 static BoolParameter sendKeyEvents("SendKeyEvents",
@@ -133,6 +137,7 @@ lowColourLevel(::lowColourLevel),
 preferredEncoding(encodingTight), 
 autoSelect(::autoSelect), 
 shared(::sharedConnection), 
+desktopSize(::desktopSize.getData()), 
 sendPtrEvents(::sendPtrEvents), 
 sendKeyEvents(::sendKeyEvents),
 showToolbar(::showToolbar), 

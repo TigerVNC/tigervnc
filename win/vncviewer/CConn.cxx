@@ -75,7 +75,8 @@ RegKey            CConn::userConfigKey;
 CConn::CConn() 
   : window(0), sameMachine(false), encodingChange(false), formatChange(false), 
     lastUsedEncoding_(encodingRaw), sock(0), sockEvent(CreateEvent(0, TRUE, FALSE, 0)), 
-    reverseConnection(false), requestUpdate(false), isClosed_(false) {
+    reverseConnection(false), requestUpdate(false), firstUpdate(true),
+    isClosed_(false) {
 }
 
 CConn::~CConn() {
@@ -134,6 +135,7 @@ CConn::applyOptions(CConnOptions& opt) {
   // - Set optional features in ConnParams
   cp.supportsLocalCursor = options.useLocalCursor;
   cp.supportsDesktopResize = options.useDesktopResize;
+  cp.supportsExtendedDesktopSize = options.useDesktopResize;
   cp.supportsDesktopRename = true;
   cp.customCompressLevel = options.customCompressLevel;
   cp.compressLevel = options.compressLevel;
@@ -447,6 +449,24 @@ CConn::setDesktopSize(int w, int h) {
   CConnection::setDesktopSize(w, h);
 }
 
+
+void
+CConn::setExtendedDesktopSize(int reason, int result, int w, int h,
+                              const rfb::ScreenSet& layout) {
+  if ((reason == reasonClient) && (result != resultSuccess)) {
+    vlog.error("SetDesktopSize failed: %d", result);
+    return;
+  }
+
+  // Resize the window's buffer
+  if (window)
+    window->setSize(w, h);
+
+  // Tell the underlying CConnection
+  CConnection::setExtendedDesktopSize(reason, result, w, h, layout);
+}
+
+
 void
 CConn::setCursor(int w, int h, const Point& hotspot, void* data, void* mask) {
   if (!options.useLocalCursor) return;
@@ -491,6 +511,43 @@ CConn::framebufferUpdateEnd() {
     }
     debugRects.clear();
   }
+
+  if (firstUpdate) {
+    int width, height;
+
+    if (cp.supportsSetDesktopSize &&
+        sscanf(options.desktopSize.buf, "%dx%d", &width, &height) == 2) {
+      ScreenSet layout;
+
+      layout = cp.screenLayout;
+
+      if (layout.num_screens() == 0)
+        layout.add_screen(rfb::Screen());
+      else if (layout.num_screens() != 1) {
+        ScreenSet::iterator iter;
+
+        while (true) {
+          iter = layout.begin();
+          ++iter;
+
+          if (iter == layout.end())
+            break;
+
+          layout.remove_screen(iter->id);
+        }
+      }
+
+      layout.begin()->dimensions.tl.x = 0;
+      layout.begin()->dimensions.tl.y = 0;
+      layout.begin()->dimensions.br.x = width;
+      layout.begin()->dimensions.br.y = height;
+
+      writer()->writeSetDesktopSize(width, height, layout);
+    }
+
+    firstUpdate = false;
+  }
+
   if (options.autoSelect)
     autoSelectFormatAndEncoding();
 
