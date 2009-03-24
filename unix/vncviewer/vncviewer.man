@@ -136,6 +136,12 @@ combined with
 Start in full-screen mode.
 
 .TP
+.B \-DesktopSize \fIwidth\fPx\fIheight\fP
+Instead of keeping the existing remote screen size, the client will attempt to
+switch to the specified since when connecting. If the server does not support
+the SetDesktopSize message then the screen will retain the original size.
+
+.TP
 .B \-AutoSelect
 Use automatic selection of encoding and pixel format (default is on).  Normally
 the viewer tests the speed of the connection to the server and chooses the
