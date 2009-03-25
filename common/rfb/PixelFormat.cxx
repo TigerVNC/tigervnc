@@ -209,17 +209,36 @@ void PixelFormat::rgbFromBuffer(rdr::U16* dst, const rdr::U8* src, int pixels, C
 
 void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
 {
-  Pixel p;
-  rdr::U8 r, g, b;
+  if (is888()) {
+    // Optimised common case
+    const rdr::U8 *r, *g, *b;
 
-  while (pixels--) {
-    p = pixelFromBuffer(src);
-    src += bpp/8;
+    r = src + redShift/8;
+    g = src + greenShift/8;
+    b = src + blueShift/8;
 
-    rgbFromPixel(p, cm, &r, &g, &b);
-    *(dst++) = r;
-    *(dst++) = g;
-    *(dst++) = b;
+    while (pixels--) {
+      *(dst++) = *r;
+      *(dst++) = *g;
+      *(dst++) = *b;
+      r += 4;
+      g += 4;
+      b += 4;
+    }
+  } else {
+    // Generic code
+    Pixel p;
+    rdr::U8 r, g, b;
+
+    while (pixels--) {
+      p = pixelFromBuffer(src);
+      src += bpp/8;
+
+      rgbFromPixel(p, cm, &r, &g, &b);
+      *(dst++) = r;
+      *(dst++) = g;
+      *(dst++) = b;
+    }
   }
 }
 
