@@ -65,7 +65,7 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(Display* dpy, int w, int h,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_, TXWindow* parent)
-  : TXWindow(dpy, w, h, parent), cc(cc_), im(0),
+  : TXWindow(dpy, w, h, parent), cc(cc_), im(0), updateTimer(this),
     cursorVisible(false), cursorAvailable(false), currentSelectionTime(0),
     newSelection(0), gettingInitialSelectionTime(true),
     newServerCutText(false), serverCutText_(0),
@@ -216,7 +216,6 @@ void DesktopWindow::hideLocalCursor()
   if (cursorVisible) {
     cursorVisible = false;
     im->imageRect(cursorBackingRect, cursorBacking.data);
-    im->put(win(), gc, cursorBackingRect);
   }
 }
 
@@ -238,7 +237,6 @@ void DesktopWindow::showLocalCursor()
     im->getImage(cursorBacking.data, cursorBackingRect);
 
     im->maskRect(cursorRect, cursor.data, cursor.mask.buf);
-    im->put(win(), gc, cursorBackingRect);
   }
 }
 
@@ -266,19 +264,11 @@ void DesktopWindow::serverCutText(const char* str, rdr::U32 len)
 }
 
 
-// Call XSync() at the end of an update.  We do this because we'd like to
-// ensure that the current update has actually been drawn by the X server
-// before the next update arrives - this is necessary for copyRect to
-// behave correctly.  In particular, if part of the source of a copyRect is
-// not actually displayed in the window, then XCopyArea results in
-// GraphicsExpose events, which require us to draw from the off-screen
-// image.  By the time XSync returns, the GraphicsExpose events will be in
-// Xlib's queue, so hopefully will be processed before the next update.
-// Possibly we should process the GraphicsExpose events here explicitly?
+// Update the actual window with the changed parts of the framebuffer.
 
 void DesktopWindow::framebufferUpdateEnd()
 {
-  XSync(dpy, False);
+  updateWindow();
 }
 
 
@@ -297,7 +287,7 @@ void DesktopWindow::invertRect(const Rect& r)
       }
     }
   }
-  im->put(win(), gc, r);
+  damageRect(r);
 }
 
 
@@ -311,6 +301,22 @@ void DesktopWindow::resize(int w, int h)
 }
 
 
+// Copy the areas of the framebuffer that have been changed (damaged)
+// to the displayed window.
+
+void DesktopWindow::updateWindow()
+{
+  Rect r;
+
+  updateTimer.stop();
+
+  r = damage.get_bounding_rect();
+  damage.clear();
+
+  im->put(win(), gc, r);
+}
+
+
 bool DesktopWindow::handleTimeout(rfb::Timer* timer)
 {
   if (timer == &setColourMapEntriesTimer) {
@@ -320,6 +326,8 @@ bool DesktopWindow::handleTimeout(rfb::Timer* timer)
     if (!viewOnly) {
       cc->writer()->pointerEvent(lastPointerPos, lastButtonMask);
     }
+  } else if (timer == &updateTimer) {
+    updateWindow();
   }
   return false;
 }

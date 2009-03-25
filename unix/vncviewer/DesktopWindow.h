@@ -24,6 +24,7 @@
 
 #include <rfb/Cursor.h>
 #include <rfb/Rect.h>
+#include <rfb/Region.h>
 #include <rfb/Timer.h>
 #include "TXWindow.h"
 #include "TXViewport.h"
@@ -61,13 +62,13 @@ public:
   void fillRect(const rfb::Rect& r, rfb::Pixel pix) {
     if (r.overlaps(cursorBackingRect)) hideLocalCursor();
     im->fillRect(r, pix);
-    im->put(win(), gc, r);
+    damageRect(r);
     showLocalCursor();
   }
   void imageRect(const rfb::Rect& r, void* pixels) {
     if (r.overlaps(cursorBackingRect)) hideLocalCursor();
     im->imageRect(r, pixels);
-    im->put(win(), gc, r);
+    damageRect(r);
     showLocalCursor();
   }
   void copyRect(const rfb::Rect& r, int srcX, int srcY) {
@@ -75,11 +76,8 @@ public:
         cursorBackingRect.overlaps(rfb::Rect(srcX, srcY,
                                              srcX+r.width(), srcY+r.height())))
       hideLocalCursor();
-    if (im->usingShm())
-      XSync(dpy, False);
     im->copyRect(r, rfb::Point(r.tl.x-srcX, r.tl.y-srcY));
-    XCopyArea(dpy, win(), win(), gc, srcX, srcY,
-              r.width(), r.height(), r.tl.x, r.tl.y);
+    damageRect(r);
     showLocalCursor();
   }
   void invertRect(const rfb::Rect& r);
@@ -97,12 +95,20 @@ private:
   void createXCursors();
   void hideLocalCursor();
   void showLocalCursor();
+  void damageRect(const rfb::Rect& r) {
+    damage.assign_union(rfb::Region(r));
+    if (!updateTimer.isStarted())
+      updateTimer.start(100);
+  };
+  void updateWindow();
   bool handleTimeout(rfb::Timer* timer);
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
 
   CConn* cc;
   TXImage* im;
   GC gc;
+  rfb::Region damage;
+  rfb::Timer updateTimer;
   ::Cursor dotCursor, noCursor, localXCursor;
 
   rfb::Cursor cursor;
