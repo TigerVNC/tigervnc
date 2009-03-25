@@ -119,6 +119,9 @@ namespace rfb {
       // - Set the local clipboard
       void serverCutText(const char* str, rdr::U32 len);
 
+      // - Completion of one FramebufferUpdate
+      void framebufferUpdateEnd();
+
       // - Draw into the desktop buffer & update the window
       void fillRect(const Rect& r, Pixel pix);
       void imageRect(const Rect& r, void* pixels);
@@ -197,6 +200,9 @@ namespace rfb {
       Point bumpScrollDelta;
       IntervalTimer bumpScrollTimer;
 
+      // Track modified areas of the framebuffer
+      void updateWindow();
+
       // Locally-rendered VNC cursor
       void hideLocalCursor();
       void showLocalCursor();
@@ -234,6 +240,10 @@ namespace rfb {
       DWORD fullscreenOldFlags;
       bool fullscreenActive;
       bool fullscreenRestore;
+
+      // Damage tracking
+      rfb::Region damage;
+      IntervalTimer updateTimer;
 
       // Cursor handling
       Cursor cursor;

@@ -42,6 +42,7 @@ static LogWriter vlog("DesktopWindow");
 const int TIMER_BUMPSCROLL = 1;
 const int TIMER_POINTER_INTERVAL = 2;
 const int TIMER_POINTER_3BUTTON = 3;
+const int TIMER_UPDATE = 4;
 
 
 //
@@ -221,6 +222,10 @@ DesktopWindow::DesktopWindow(Callback* cb)
   // Initialise the bumpscroll timer
   bumpScrollTimer.setHWND(handle);
   bumpScrollTimer.setId(TIMER_BUMPSCROLL);
+
+  // Initialise the update timer
+  updateTimer.setHWND(handle);
+  updateTimer.setId(TIMER_UPDATE);
 
   // Hook the clipboard
   clipboard.setNotifier(this);
@@ -542,6 +547,9 @@ DesktopWindow::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
     case TIMER_POINTER_INTERVAL:
     case TIMER_POINTER_3BUTTON:
       ptr.handleTimer(callback, wParam);
+      break;
+    case TIMER_UPDATE:
+      updateWindow();
       break;
     }
     break;
@@ -871,6 +879,19 @@ DesktopWindow::processMouseMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 #endif
 }
 
+void DesktopWindow::updateWindow()
+{
+  Rect rect;
+
+  updateTimer.stop();
+
+  rect = damage.get_bounding_rect();
+  damage.clear();
+
+  RECT invalid = {rect.tl.x, rect.tl.y, rect.br.x, rect.br.y};
+  InvalidateRect(frameHandle, &invalid, FALSE);
+}
+
 void
 DesktopWindow::hideLocalCursor() {
   // - Blit the cursor backing store over the cursor
@@ -901,6 +922,9 @@ DesktopWindow::showLocalCursor() {
     renderLocalCursor();
 
     invalidateDesktopRect(cursorBackingRect, false);
+    // Since we render the cursor onto the framebuffer, we need to update
+    // right away to get a responsive cursor.
+    updateWindow();
   }
 }
 
@@ -945,8 +969,9 @@ DesktopWindow::invalidateDesktopRect(const Rect& crect, bool scaling) {
     rect = desktopToClient(buffer->calculateScaleBoundary(crect));
   } else rect = desktopToClient(crect);
   if (rect.intersect(client_size).is_empty()) return false;
-  RECT invalid = {rect.tl.x, rect.tl.y, rect.br.x, rect.br.y};
-  InvalidateRect(frameHandle, &invalid, FALSE);
+  damage.assign_union(rfb::Region(rect));
+  if (!updateTimer.isActive())
+    updateTimer.start(100);
   return true;
 }
 
@@ -1259,6 +1284,12 @@ void DesktopWindow::resizeDesktopWindowToBuffer() {
 
   // Enable/disable scrollbars as appropriate
   calculateScrollBars();      
+}
+
+
+void DesktopWindow::framebufferUpdateEnd()
+{
+  updateWindow();
 }
 
 

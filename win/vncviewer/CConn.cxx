@@ -511,6 +511,7 @@ CConn::framebufferUpdateEnd() {
     }
     debugRects.clear();
   }
+  window->framebufferUpdateEnd();
 
   if (firstUpdate) {
     int width, height;
