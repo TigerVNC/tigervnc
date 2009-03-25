@@ -102,6 +102,8 @@ void PixelFormat::write(rdr::OutStream* os) const
 
 bool PixelFormat::is888(void) const
 {
+  if (!trueColour)
+    return false;
   if (bpp != 32)
     return false;
   if (depth != 24)
