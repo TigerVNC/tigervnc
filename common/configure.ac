@@ -77,7 +77,7 @@ AC_CHECK_FUNCS([vsnprintf snprintf strcasecmp strncasecmp])
 # IPv6 related functions
 AC_CHECK_FUNCS([inet_ntop getaddrinfo])
 
-AC_CHECK_TYPES([socklen_t])
+AC_CHECK_TYPES([socklen_t], [], [], [[#include <sys/socket.h>]])
 
 AC_CHECK_HEADERS([sys/select.h])
 
