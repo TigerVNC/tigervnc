@@ -1,4 +1,4 @@
-.TH vncserver 1 "17 Apr 2006" "TigerVNC" "Virtual Network Computing"
+.TH vncserver 1 "26 Mar 2009" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncserver \- start or stop a VNC server
 .SH SYNOPSIS
@@ -20,52 +20,53 @@ vncserver \- start or stop a VNC server
 is used to start a VNC (Virtual Network Computing) desktop.
 .B vncserver
 is a Perl script which simplifies the process of starting an Xvnc server.  It
-runs Xvnc with appropriate options and starts some X applications to be
-displayed in the VNC desktop.
+runs Xvnc with appropriate options and starts a window manager on the VNC
+desktop.
 
 .B vncserver
 can be run with no options at all. In this case it will choose the first
-available display number (usually :1), start Xvnc as that display, and run a
-couple of basic applications to get you started. You can also specify the
-display number, in which case it will use that number if it is available and
-exit if not, eg:
+available display number (usually :1), start Xvnc with that display number,
+and start the default window manager in the Xvnc session.  You can also
+specify the display number, in which case vncserver will attempt to start
+Xvnc with that display number and exit if the display number is not
+available.  For example:
 
 .RS
 vncserver :13
 .RE
 
 Editing the file $HOME/.vnc/xstartup allows you to change the applications run
-at startup (but note that this will not affect an existing desktop).
+at startup (but note that this will not affect an existing VNC session.)
 
 .SH OPTIONS
-You can get a list of options by giving \fB\-h\fP as an option to vncserver.
+You can get a list of options by passing \fB\-h\fP as an option to vncserver.
 In addition to the options listed below, any unrecognised options will be
-passed to Xvnc - see the Xvnc man page, or "Xvnc \-help" for details.
+passed to Xvnc - see the Xvnc man page, or "Xvnc \-help", for details.
 
 .TP
 .B \-name \fIdesktop-name\fP
-Each desktop has a name which may be displayed by the viewer. It defaults to
-"\fIhost\fP:\fIdisplay#\fP (\fIusername\fP)" but you can change it with this
-option.  It is passed in to the xstartup script via the $VNCDESKTOP environment
-variable, allowing you to run a different set of applications according to the
-name of the desktop.
+Each VNC desktop has a name which may be displayed by the viewer. The desktop
+name defaults to "\fIhost\fP:\fIdisplay#\fP (\fIusername\fP)", but you can
+change it with this option.  The desktop name option is passed to the xstartup
+script via the $VNCDESKTOP environment variable, which allows you to run a
+different set of applications depending on the name of the desktop.
 
 .TP
 .B \-geometry \fIwidth\fPx\fIheight\fP
-Specify the size of the desktop to be created. Default is 1024x768. 
+Specify the size of the VNC desktop to be created. Default is 1024x768. 
 
 .TP
 .B \-depth \fIdepth\fP
-Specify the pixel depth in bits of the desktop to be created. Default is 16,
-other possible values are 8, 15 and 24 - anything else is likely to cause
+Specify the pixel depth (in bits) of the VNC desktop to be created. Default is
+24.  Other possible values are 8, 15 and 16 - anything else is likely to cause
 strange behaviour by applications.
 
 .TP
 .B \-pixelformat \fIformat\fP
-Specify pixel format for server to use (BGRnnn or RGBnnn).  The default for
+Specify pixel format for Xvnc to use (BGRnnn or RGBnnn).  The default for
 depth 8 is BGR233 (meaning the most significant two bits represent blue, the
 next three green, and the least significant three represent red), the default
-for depth 16 is RGB565 and for depth 24 is RGB888.
+for depth 16 is RGB565, and the default for depth 24 is RGB888.
 
 .TP
 .B \-cc 3
@@ -74,24 +75,25 @@ Xvnc server with a PseudoColor visual (i.e. one which uses a color map or
 palette), which can be useful for running some old X applications which only
 work on such a display.  Values other than 3 (PseudoColor) and 4 (TrueColor)
 for the \-cc option may result in strange behaviour, and PseudoColor desktops
-must be 8 bits deep.
+must have an 8-bit depth.
 
 .TP
 .B \-kill :\fIdisplay#\fP
 This kills a VNC desktop previously started with vncserver.  It does this by
 killing the Xvnc process, whose process ID is stored in the file
-"$HOME/.vnc/\fIhost\fP:\fIdisplay#\fP.pid".  It actually ignores anything
-preceding a ":" in its argument.  This can be useful so you can write
-"vncserver \-kill $DISPLAY", for example at the end of your xstartup file after
-a particular application exits.
+"$HOME/.vnc/\fIhost\fP:\fIdisplay#\fP.pid".  The
+.B \-kill
+option ignores anything preceding the first colon (":") in the display
+argument.  Thus, you can invoke "vncserver \-kill $DISPLAY", for example at the
+end of your xstartup file after a particular application exits.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
 .TP
 $HOME/.vnc/xstartup
 A shell script specifying X applications to be run when a VNC desktop is
-started.  If it doesn't exist, vncserver will create a new one which runs a
-couple of basic applications.
+started.  If this file does not exist, then vncserver will create a default
+xstartup script which attempts to launch your chosen window manager.
 .TP
 $HOME/.vnc/passwd
 The VNC password file.
@@ -114,6 +116,8 @@ http://www.tigervnc.org
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd.
+.br
+D. R. Commander
 
 VNC was originally developed by the RealVNC team while at Olivetti
 Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
