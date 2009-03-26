@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 #
+#  Copyright (C) 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
+#  Copyright (C) 2002-2003 Constantin Kaplinsky.  All Rights Reserved.
 #  Copyright (C) 2002-2005 RealVNC Ltd.
 #  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 #
@@ -27,6 +29,16 @@
 # First make sure we're operating in a sane environment.
 #
 
+$exedir = "";
+$slashndx = rindex($0, "/");
+if($slashndx>=0) {
+    $exedir = substr($0, 0, $slashndx+1);
+}
+
+$vncClasses = "";
+
+$xauth = "xauth";
+
 &SanityCheck();
 
 #
@@ -36,7 +48,8 @@
 $geometry = "1024x768";
 $depth = 16;
 $vncJavaFiles = (((-d "/usr/share/vnc/classes") && "/usr/share/vnc/classes") ||
-                 ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes"));
+                 ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes") ||
+                 ((-d "$vncClasses") && "$vncClasses"));
 $vncUserDir = "$ENV{HOME}/.vnc";
 $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 
@@ -91,7 +104,7 @@ if (!(-e $vncUserDir)) {
 ($z,$z,$mode) = stat("$vncUserDir/passwd");
 if (!(-e "$vncUserDir/passwd") || ($mode & 077)) {
     warn "\nYou will require a password to access your desktops.\n\n";
-    system("vncpasswd -q $vncUserDir/passwd"); 
+    system($exedir."vncpasswd -q $vncUserDir/passwd"); 
     if (($? >> 8) != 0) {
 	exit 1;
     }
@@ -137,7 +150,7 @@ if ($opt{'-name'}) {
 
 # Now start the X VNC Server
 
-$cmd = "Xvnc :$displayNumber";
+$cmd = $exedir."Xvnc :$displayNumber";
 $cmd .= " -desktop " . &quotedString($desktopName);
 $cmd .= " -httpd $vncJavaFiles" if ($vncJavaFiles);
 $cmd .= " -auth $xauthorityFile";
@@ -518,13 +531,52 @@ sub SanityCheck
     #
 
  cmd:
-    foreach $cmd ("uname","xauth","Xvnc","vncpasswd") {
+    foreach $cmd ("uname") {
 	for (split(/:/,$ENV{PATH})) {
 	    if (-x "$_/$cmd") {
 		next cmd;
 	    }
 	}
 	die "$prog: couldn't find \"$cmd\" on your PATH.\n";
+    }
+    if (-x "/usr/X11R6/bin/xauth") {
+	$xauth = "/usr/X11R6/bin/xauth";
+    }
+    else {
+      cmd1:
+	foreach $cmd ("xauth") {
+	    for (split(/:/,$ENV{PATH})) {
+		if (-x "$_/$cmd") {
+		    next cmd1;
+		}
+	    }
+	    die "$prog: couldn't find \"$cmd\" on your PATH.\n";
+	}
+    }
+
+    if($exedir eq "") {
+      cmd2:
+	foreach $cmd ("Xvnc","vncpasswd") {
+	    for (split(/:/,$ENV{PATH})) {
+		if (-x "$_/$cmd") {
+		    $vncClasses = "$_/../vnc/classes";
+		    next cmd2;
+		}
+	    }
+	    die "$prog: couldn't find \"$cmd\" on your PATH.\n";
+	}
+    }
+    else {
+      cmd3:
+	foreach $cmd ($exedir."Xvnc",$exedir."vncpasswd") {
+	    for (split(/:/,$ENV{PATH})) {
+		if (-x "$cmd") {
+		    $vncClasses = $exedir."../vnc/classes";
+		    next cmd3;
+		}
+	    }
+	    die "$prog: couldn't find \"$cmd\".\n";
+	}
     }
 
     #
@@ -534,7 +586,7 @@ sub SanityCheck
     if (!defined($ENV{HOME})) {
 	die "$prog: The HOME environment variable is not set.\n";
     }
-    chdir($ENV{HOME});
+#    chdir($ENV{HOME});
 
     #
     # Find socket constants. 'use Socket' is a perl5-ism, so we wrap it in an
