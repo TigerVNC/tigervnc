@@ -12,6 +12,8 @@ vncserver \- start or stop a VNC server
 .IR depth ]
 .RB [ \-pixelformat
 .IR format ]
+.RB [ \-fp
+.IR font-path ]
 .RI [ Xvnc-options... ]
 .br
 .BI "vncserver \-kill :" display#
@@ -86,6 +88,27 @@ killing the Xvnc process, whose process ID is stored in the file
 option ignores anything preceding the first colon (":") in the display
 argument.  Thus, you can invoke "vncserver \-kill $DISPLAY", for example at the
 end of your xstartup file after a particular application exits.
+
+.TP
+.B \-fp \fIfont-path\fP
+The vncserver script will normally examine your system to figure out where it
+stores its X11 fonts and then generate an appropriate font path argument for
+Xvnc based on this.  If your system stores its X11 fonts in a location that
+vncserver does not know about, however, then this may fail.  In that case,
+vncserver will then try to contact the local X Font Server (xfs) on port 7100.
+Not all systems have xfs installed and running, so this may fail as well.  In
+that case, you can manually specify a font path by using the
+.B \-fp
+argument to vncserver.
+
+If you prefer to use the X Font Server by default rather than a static font
+path, then you can run
+
+.RS
+.RS
+vncserver -fp unix/:7100
+.RE
+.RE
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:

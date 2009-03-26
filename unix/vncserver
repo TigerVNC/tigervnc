@@ -113,7 +113,7 @@ $defFontPath = "unix/:7100";
 # Check command line options
 
 &ParseOptions("-geometry",1,"-depth",1,"-pixelformat",1,"-name",1,"-kill",1,
-	      "-help",0,"-h",0,"--help",0);
+	      "-help",0,"-h",0,"--help",0,"-fp",1);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
@@ -132,6 +132,9 @@ if ($opt{'-depth'}) {
 }
 if ($opt{'-pixelformat'}) {
     $pixelformat = $opt{'-pixelformat'};
+}
+if ($opt{'-fp'}) {
+    $fontPath = $opt{'-fp'};
 }
 
 &CheckGeometryAndDepth();
@@ -229,7 +232,8 @@ system("$cmd & echo \$! >$pidFile");
 sleep(3); 
 unless (kill 0, `cat $pidFile`) {
     warn "\nWARNING: The first attempt to start Xvnc failed, possibly because the vncserver\n";
-    warn "script was not able to figure out an appropriate X11 font path for this system.\n";
+    warn "script was not able to figure out an appropriate X11 font path for this system\n";
+    warn "or because the font path you specified with the -fp argument was not valid.\n";
     warn "Attempting to restart Xvnc using the X Font Server (xfs) ...\n";
     $cmd =~ s@-fp [^ ]+@@;
     $cmd .= " -fp $defFontPath" if ($defFontPath);
@@ -493,6 +497,7 @@ sub Usage
     die("\nusage: $prog [:<number>] [-name <desktop-name>] [-depth <depth>]\n".
 	"                 [-geometry <width>x<height>]\n".
 	"                 [-pixelformat rgbNNN|bgrNNN]\n".
+	"                 [-fp <font-path>]\n".
 	"                 <Xvnc-options>...\n\n".
 	"       $prog -kill <X-display>\n\n");
 }
