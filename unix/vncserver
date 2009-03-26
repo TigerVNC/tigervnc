@@ -81,6 +81,34 @@ $defaultXStartup
 
 chop($host = `uname -n`);
 
+@fontpaths = ('/usr/share/X11/fonts', '/usr/share/fonts', '/usr/share/fonts/X11/');
+if (! -l "/usr/lib/X11") {push(@fontpaths, '/usr/lib/X11/fonts');}
+if (! -l "/usr/X11") {push(@fontpaths, '/usr/X11/lib/X11/fonts');}
+if (! -l "/usr/X11R6") {push(@fontpaths, '/usr/X11R6/lib/X11/fonts');}
+push(@fontpaths, '/usr/share/fonts/default');
+
+@fonttypes = ('misc',
+             '75dpi',
+             '100dpi',
+             'Speedo',
+             'Type1');
+
+foreach $_fpath (@fontpaths) {
+    foreach $_ftype (@fonttypes) {
+        if (-f "$_fpath/$_ftype/fonts.dir") {
+            if (! -l "$_fpath/$_ftype") {
+                $fontPath .= "$_fpath/$_ftype,";
+            }
+        }
+    }
+}
+if ($fontPath) {
+    if (substr($fontPath, -1, 1) == ',') {
+        chop $fontPath;
+    }
+}
+
+$defFontPath = "unix/:7100";
 
 # Check command line options
 
@@ -178,11 +206,11 @@ $cmd .= " -pixelformat $pixelformat" if ($pixelformat);
 $cmd .= " -rfbwait 30000";
 $cmd .= " -rfbauth $vncUserDir/passwd";
 $cmd .= " -rfbport $vncPort";
+$cmd .= " -fp $fontPath" if ($fontPath);
 $cmd .= " -pn";
 
-# Add font path and color database stuff here, e.g.:
+# Add color database stuff here, e.g.:
 #
-# $cmd .= " -fp /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/75dpi/";
 # $cmd .= " -co /usr/lib/X11/rgb";
 #
 
@@ -199,6 +227,22 @@ system("$cmd & echo \$! >$pidFile");
 # Give Xvnc a chance to start up
 
 sleep(3); 
+unless (kill 0, `cat $pidFile`) {
+    warn "\nWARNING: The first attempt to start Xvnc failed, possibly because the vncserver\n";
+    warn "script was not able to figure out an appropriate X11 font path for this system.\n";
+    warn "Attempting to restart Xvnc using the X Font Server (xfs) ...\n";
+    $cmd =~ s@-fp [^ ]+@@;
+    $cmd .= " -fp $defFontPath" if ($defFontPath);
+    system("$cmd & echo \$! >$pidFile");
+    sleep(3);
+}
+unless (kill 0, `cat $pidFile`) {
+    warn "Could not start Xvnc.\n\n";
+    open(LOG, "<$desktopLog");
+    while (<LOG>) { print; }
+    close(LOG);
+    die "\n";
+}
 
 warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
 
