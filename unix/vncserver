@@ -306,7 +306,7 @@ sub CheckGeometryAndDepth
 	die "$prog: geometry $geometry is invalid\n";
     }
 
-    if (($depth < 8) || ($depth > 32)) {
+    if ($depth && (($depth < 8) || ($depth > 32))) {
 	die "Depth must be between 8 and 32\n";
     }
 }
