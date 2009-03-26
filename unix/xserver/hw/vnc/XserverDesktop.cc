@@ -842,7 +842,11 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   RRModePtr         mode;
 
   // Make sure all RandR tables are properly populated
+#ifdef XORG_15
   ret = RRGetInfo(pScreen);
+#else
+  ret = RRGetInfo(pScreen, FALSE);
+#endif
   if (!ret)
     return resultNoResources;
 
