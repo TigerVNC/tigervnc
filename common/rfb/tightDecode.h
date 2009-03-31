@@ -267,10 +267,8 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
       break;
     }
 
-    for (int dx = 0; dx < r.width(); dx++) {
-      *pixelPtr++ = 
-	myFormat.pixelFromRGB(scanline[dx*3], scanline[dx*3+1], scanline[dx*3+2]);
-    }
+    myFormat.bufferFromRGB((rdr::U8*)pixelPtr, (const rdr::U8*)scanline, r.width());
+    pixelPtr += r.width();
   }
 
   IMAGE_RECT(r, buf);

@@ -50,6 +50,31 @@ inline Pixel PixelFormat::pixelFromBuffer(const rdr::U8* buffer) const
 }
 
 
+inline void PixelFormat::bufferFromPixel(rdr::U8* buffer, Pixel p) const
+{
+  if (bigEndian) {
+    switch (bpp) {
+    case 32:
+      *(buffer++) = (p >> 24) & 0xff;
+      *(buffer++) = (p >> 16) & 0xff;
+    case 16:
+      *(buffer++) = (p >>  8) & 0xff;
+    case 8:
+      *(buffer++) = (p >>  0) & 0xff;
+    }
+  } else {
+    buffer[0] = (p >>  0) & 0xff;
+    if (bpp >= 16) {
+      buffer[1] = (p >>  8) & 0xff;
+      if (bpp == 32) {
+        buffer[2] = (p >> 16) & 0xff;
+        buffer[3] = (p >> 24) & 0xff;
+      }
+    }
+  }
+}
+
+
 inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const
 {
   if (trueColour) {

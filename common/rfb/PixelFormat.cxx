@@ -180,6 +180,44 @@ Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue,
 }
 
 
+void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
+                                int pixels, ColourMap* cm) const
+{
+  if (is888()) {
+    // Optimised common case
+    rdr::U8 *r, *g, *b;
+
+    r = dst + redShift/8;
+    g = dst + greenShift/8;
+    b = dst + blueShift/8;
+
+    while (pixels--) {
+      *r = *(src++);
+      *g = *(src++);
+      *b = *(src++);
+      r += 4;
+      g += 4;
+      b += 4;
+    }
+  } else {
+    // Generic code
+    Pixel p;
+    rdr::U8 r, g, b;
+
+    while (pixels--) {
+      r = *(src++);
+      g = *(src++);
+      b = *(src++);
+
+      p = pixelFromRGB(r, g, b, cm);
+
+      bufferFromPixel(dst, p);
+      dst += bpp/8;
+    }
+  }
+}
+
+
 void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
 {
   rdr::U16 r, g, b;
