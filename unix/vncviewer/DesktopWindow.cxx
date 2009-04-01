@@ -314,6 +314,7 @@ void DesktopWindow::updateWindow()
   damage.clear();
 
   im->put(win(), gc, r);
+  XFlush(dpy);
 }
 
 
