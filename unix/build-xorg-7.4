@@ -7,7 +7,7 @@
 set -e
 
 if [ "$PREFIX" = "" ]; then
-	PREFIX="/tmp/xorg-7.4-${USER}"
+	PREFIX=`pwd`/xorg.build
 fi
 export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
 export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
