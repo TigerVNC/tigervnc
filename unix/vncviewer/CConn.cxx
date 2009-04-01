@@ -300,6 +300,16 @@ void CConn::setName(const char* name) {
   }
 }
 
+// framebufferUpdateStart() is called at the beginning of an update.
+// Here we try to send out a new framebuffer update request so that the
+// next update can be sent out in parallel with us decoding the current
+// one. We cannot do this if we're in the middle of a format change
+// though.
+void CConn::framebufferUpdateStart() {
+  if (!formatChange)
+    requestNewUpdate();
+}
+
 // framebufferUpdateEnd() is called at the end of an update.
 // For each rectangle, the FdInStream will have timed the speed
 // of the connection, allowing us to select format and encoding
@@ -355,9 +365,19 @@ void CConn::framebufferUpdateEnd() {
     firstUpdate = false;
   }
 
+  // A format change prevented us from sending this before the update,
+  // so make sure to send it now.
+  if (formatChange)
+    requestNewUpdate();
+
+  // Compute new settings based on updated bandwidth values
   if (autoSelect)
     autoSelectFormatAndEncoding();
-  requestNewUpdate();
+
+  // Make sure that the X11 handling and the timers gets some CPU time
+  // in case of back to back framebuffer updates.
+  TXWindow::handleXEvents(dpy);
+  Timer::checkTimeouts();
 }
 
 // The rest of the callbacks are fairly self-explanatory...
