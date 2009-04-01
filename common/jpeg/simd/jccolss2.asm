@@ -242,12 +242,12 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	test	cl, SIZEOF_XMMWORD/16
 	jz	short .column_ld2
 	sub	ecx, byte SIZEOF_XMMWORD/16
-	movd	xmmA, _DWORD [esi+ecx*RGB_PIXELSIZE]
+	movd	xmmA, DWORD [esi+ecx*RGB_PIXELSIZE]
 .column_ld2:
 	test	cl, SIZEOF_XMMWORD/8
 	jz	short .column_ld4
 	sub	ecx, byte SIZEOF_XMMWORD/8
-	movq	xmmE, _MMWORD [esi+ecx*RGB_PIXELSIZE]
+	movq	xmmE, MMWORD [esi+ecx*RGB_PIXELSIZE]
 	pslldq	xmmA, SIZEOF_MMWORD
 	por	xmmA,xmmE
 .column_ld4:
