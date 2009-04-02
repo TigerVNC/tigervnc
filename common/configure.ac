@@ -61,13 +61,13 @@ AM_CONDITIONAL([INCLUDED_ZLIB], [ test "x$INCLUDED_ZLIB" = xyes ])
 AC_CONFIG_SUBDIRS([zlib])
 
 dnl Check for libjpeg library
-INCLUDED_JPEG=no
-AC_ARG_WITH([included-jpeg],
-	AS_HELP_STRING([--with-included-jpeg], 
-		       [use libjpeg which is distributed with VNC]),
-	[INCLUDED_JPEG=yes],
-	[AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg], [],
-			[INCLUDED_JPEG=yes])])
+INCLUDED_JPEG=yes
+AC_ARG_WITH([system-jpeg],
+	AS_HELP_STRING([--with-system-jpeg], 
+		       [use libjpeg which is distributed with the O/S]),
+	[AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg],
+			[INCLUDED_JPEG=no], [])],
+	[])
 
 AM_CONDITIONAL([INCLUDED_JPEG], [ test "x$INCLUDED_JPEG" = xyes ])
 AC_CONFIG_SUBDIRS([jpeg])
