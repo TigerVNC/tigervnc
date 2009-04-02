@@ -28,8 +28,8 @@ using namespace rfb;
 
 SMsgWriterV3::SMsgWriterV3(ConnParams* cp, rdr::OutStream* os)
   : SMsgWriter(cp, os), updateOS(0), realOS(os), nRectsInUpdate(0),
-    nRectsInHeader(0), wsccb(0),
-    needSetDesktopSize(false), needSetDesktopName(false)
+    nRectsInHeader(0), wsccb(0), needSetDesktopSize(false),
+    needExtendedDesktopSize(false), needSetDesktopName(false)
 {
 }
 
