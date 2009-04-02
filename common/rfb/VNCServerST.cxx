@@ -325,6 +325,8 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
   if (!layout.validate(pb->width(), pb->height()))
     throw Exception("setScreenLayout: invalid screen layout");
 
+  screenLayout = layout;
+
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
     ci_next = ci; ci_next++;
