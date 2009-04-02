@@ -863,6 +863,16 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
     return resultNoResources;
   }
 
+  // Then we have to call RRGetInfo again for it to copy the RandR
+  // 1.0 information to the 1.2 structures.
+#ifdef XORG_15
+  ret = RRGetInfo(pScreen);
+#else
+  ret = RRGetInfo(pScreen, FALSE);
+#endif
+  if (!ret)
+    return resultNoResources;
+
   // Go via RandR to set the resolution in order for X11 notifications
   // to be sent out properly. We currently only do RandR 1.0, but Xorg
   // has dropped support for that API. So we have to emulate it via the
