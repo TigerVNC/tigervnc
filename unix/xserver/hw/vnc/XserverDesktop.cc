@@ -853,11 +853,15 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   // Register a new size, or get a reference to the existing one
   pSize = RRRegisterSize(pScreen, fb_width, fb_height,
                          pScreen->mmWidth, pScreen->mmHeight);
-  if (!pSize)
+  if (!pSize) {
+    vlog.error("setScreenLayout: Could not get register new resolution");
     return resultNoResources;
+  }
   ret = RRRegisterRate(pScreen, pSize, 60);
-  if (!ret)
+  if (!ret) {
+    vlog.error("setScreenLayout: Could not register a rate for the resolution");
     return resultNoResources;
+  }
 
   // Go via RandR to set the resolution in order for X11 notifications
   // to be sent out properly. We currently only do RandR 1.0, but Xorg
@@ -883,19 +887,25 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
       break;
     }
   }
-  if (!mode)
+  if (!mode) {
+    vlog.error("setScreenLayout: Could not find a matching mode");
     return resultNoResources;
+  }
 
   // Adjust screen size
   ret = RRScreenSizeSet(pScreen, fb_width, fb_height,
                         pScreen->mmWidth, pScreen->mmHeight);
-  if (!ret)
+  if (!ret) {
+    vlog.error("setScreenLayout: Could not adjust screen size");
     return resultNoResources;
+  }
 
   // And then the CRTC
   ret = RRCrtcSet(output->crtc, mode, 0, 0, RR_Rotate_0, 1, &output);
-  if (!ret)
+  if (!ret) {
+    vlog.error("setScreenLayout: Could not adjust CRTC");
     return resultNoResources;
+  }
 
   // RandR 1.0 doesn't carry any screen layout information, so we need
   // to update that manually. This results in another unnecessary
