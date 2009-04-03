@@ -386,6 +386,9 @@ bool PixelFormat::parse(const char* str)
   } else {
     return false;
   }
+
+  updateShifts();
+
   return true;
 }
 
