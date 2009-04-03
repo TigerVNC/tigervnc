@@ -30,8 +30,6 @@
 
 using namespace rfb;
 
-const PixelFormat bgr233PF(8, 8, false, true, 7, 7, 3, 0, 3, 6);
-
 static void noTransFn(void* table_,
                       const PixelFormat& inPF, void* inPtr, int inStride,
                       const PixelFormat& outPF, void* outPtr, int outStride,
