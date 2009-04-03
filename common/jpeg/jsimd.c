@@ -40,11 +40,18 @@ static unsigned int simd_support = ~0;
 LOCAL(void)
 init_simd (void)
 {
+#ifdef WITH_SIMD
+  char *env = NULL;
+#endif
   if (simd_support != ~0)
     return;
 
 #ifdef WITH_SIMD
   simd_support = jpeg_simd_cpu_support();
+  if((env=getenv("JSIMD_FORCEMMX"))!=NULL && !strcmp(env, "1"))
+    simd_support = JSIMD_MMX;
+  else if((env=getenv("JSIMD_FORCESSE2"))!=NULL && !strcmp(env, "1"))
+    simd_support = JSIMD_SSE2;
 #else
   simd_support = JSIMD_NONE;
 #endif
