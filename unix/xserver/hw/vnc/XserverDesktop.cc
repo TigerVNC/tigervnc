@@ -172,7 +172,8 @@ public:
 XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
                                network::TcpListener* listener_,
                                network::TcpListener* httpListener_,
-                               const char* name, void* fbptr, int stride)
+                               const char* name, const rfb::PixelFormat &pf,
+                               void* fbptr, int stride)
   : pScreen(pScreen_), deferredUpdateTimer(0), dummyTimer(0),
     server(0), httpServer(0),
     listener(listener_), httpListener(httpListener_),
@@ -181,41 +182,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
     oldButtonMask(0),
     queryConnectId(0)
 {
-  int i;
-  format.depth = pScreen->rootDepth;
-  for (i = 0; i < screenInfo.numPixmapFormats; i++) {
-    if (screenInfo.formats[i].depth == format.depth) {
-      format.bpp = screenInfo.formats[i].bitsPerPixel;
-      break;
-    }
-  }
-  if (i == screenInfo.numPixmapFormats) {
-    fprintf(stderr,"no pixmap format for root depth???\n");
-    abort();
-  }
-  format.bigEndian = (screenInfo.imageByteOrder == MSBFirst);
-
-  VisualPtr vis = NULL;
-  for (i = 0; i < pScreen->numVisuals; i++) {
-    if (pScreen->visuals[i].vid == pScreen->rootVisual) {
-      vis = &pScreen->visuals[i];
-      break;
-    }
-  }
-  if (i == pScreen->numVisuals) {
-    fprintf(stderr,"no visual rec for root visual???\n");
-    abort();
-  }
-  format.trueColour = (vis->c_class == TrueColor);
-  if (!format.trueColour && format.bpp != 8)
-    throw rfb::Exception("X server uses unsupported visual");
-  format.redShift   = ffs(vis->redMask) - 1;
-  format.greenShift = ffs(vis->greenMask) - 1;
-  format.blueShift  = ffs(vis->blueMask) - 1;
-  format.redMax     = vis->redMask   >> format.redShift;
-  format.greenMax   = vis->greenMask >> format.greenShift;
-  format.blueMax    = vis->blueMask  >> format.blueShift;
-
+  format = pf;
   colourmap = this;
 
   serverReset(pScreen);

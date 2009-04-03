@@ -121,6 +121,61 @@ rfb::BoolParameter localhostOnly("localhost",
                                  "Only allow connections from localhost",
                                  false);
 
+static PixelFormat vncGetPixelFormat(ScreenPtr pScreen)
+{
+  int depth, bpp;
+  int trueColour, bigEndian;
+  int redShift, greenShift, blueShift;
+  int redMax, greenMax, blueMax;
+
+  int i;
+  VisualPtr vis = NULL;
+
+  depth = pScreen->rootDepth;
+
+  for (i = 0; i < screenInfo.numPixmapFormats; i++) {
+    if (screenInfo.formats[i].depth == depth) {
+      bpp = screenInfo.formats[i].bitsPerPixel;
+      break;
+    }
+  }
+
+  if (i == screenInfo.numPixmapFormats) {
+    fprintf(stderr,"no pixmap format for root depth???\n");
+    abort();
+  }
+
+  bigEndian = (screenInfo.imageByteOrder == MSBFirst);
+
+  for (i = 0; i < pScreen->numVisuals; i++) {
+    if (pScreen->visuals[i].vid == pScreen->rootVisual) {
+      vis = &pScreen->visuals[i];
+      break;
+    }
+  }
+
+  if (i == pScreen->numVisuals) {
+    fprintf(stderr,"no visual rec for root visual???\n");
+    abort();
+  }
+
+  trueColour = (vis->c_class == TrueColor);
+
+  if (!trueColour && bpp != 8)
+    throw rfb::Exception("X server uses unsupported visual");
+
+  redShift   = ffs(vis->redMask) - 1;
+  greenShift = ffs(vis->greenMask) - 1;
+  blueShift  = ffs(vis->blueMask) - 1;
+  redMax     = vis->redMask   >> redShift;
+  greenMax   = vis->greenMask >> greenShift;
+  blueMax    = vis->blueMask  >> blueShift;
+
+  return PixelFormat(bpp, depth, bigEndian, trueColour,
+                     redMax, greenMax, blueMax,
+                     redShift, greenShift, blueShift);
+}
+
 void vncExtensionInit()
 {
   if (vncExtGeneration == serverGeneration) {
@@ -186,9 +241,13 @@ void vncExtensionInit()
         }
 
         CharArray desktopNameStr(desktopName.getData());
-        desktop[scr] = new XserverDesktop(screenInfo.screens[scr], listener,
+        PixelFormat pf = vncGetPixelFormat(screenInfo.screens[scr]);
+
+        desktop[scr] = new XserverDesktop(screenInfo.screens[scr],
+                                          listener,
                                           httpListener,
                                           desktopNameStr.buf,
+                                          pf,
                                           vncFbptr[scr],
                                           vncFbstride[scr]);
         vlog.info("created VNC server for screen %d", scr);

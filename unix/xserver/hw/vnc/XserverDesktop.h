@@ -62,7 +62,8 @@ public:
 
   XserverDesktop(ScreenPtr pScreen, network::TcpListener* listener,
                  network::TcpListener* httpListener_,
-                 const char* name, void* fbptr, int stride);
+                 const char* name, const rfb::PixelFormat &pf,
+                 void* fbptr, int stride);
   virtual ~XserverDesktop();
 
   // methods called from X server code
