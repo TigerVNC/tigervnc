@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libjpeg.la
 
 HDRS = jchuff.h jdct.h jdhuff.h jerror.h jinclude.h jmemsys.h jmorecfg.h \
-	jpegint.h jpeglib.h jversion.h jsimd.h jsimddct.h
+	jpegint.h jpeglib.h jversion.h jsimd.h jsimddct.h turbojpeg.h
 
 libjpeg_la_SOURCES = $(HDRS) jcapimin.c jcapistd.c jccoefct.c jccolor.c \
 	jcdctmgr.c jchuff.c jcinit.c jcmainct.c jcmarker.c jcmaster.c \
@@ -20,3 +20,14 @@ libjpeg_la_LIBADD = simd/libsimd.la
 
 endif
 
+TSTHDRS = turbojpeg.h rrutil.h rrtimer.h
+
+bin_PROGRAMS = jpgtest jpegut
+
+jpgtest_SOURCES = $(TSTHDRS) jpgtest.cxx bmp.c turbojpegl.c
+
+jpgtest_LDADD = $(top_srcdir)/libjpeg.la
+
+jpegut_SOURCES = $(TSTHDRS) jpegut.c bmp.c turbojpegl.c
+
+jpegut_LDADD = $(top_srcdir)/libjpeg.la
