@@ -1,6 +1,6 @@
 diff -up xserver/configure.ac.vnc xserver/configure.ac
---- xserver/configure.ac.vnc	2009-03-03 21:08:18.000000000 +0100
-+++ xserver/configure.ac	2009-03-03 21:09:07.000000000 +0100
+--- xserver/configure.ac.vnc	2009-04-02 16:51:56.737567378 +0200
++++ xserver/configure.ac	2009-04-02 16:52:36.353568232 +0200
 @@ -29,7 +29,6 @@ AC_PREREQ(2.57)
  AC_INIT([xorg-server], 1.6.0, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
  AC_CONFIG_SRCDIR([Makefile.am])
@@ -17,7 +17,16 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  AM_PROG_AS
  AC_PROG_INSTALL
  AC_PROG_LN_S
-@@ -1195,6 +1195,9 @@ if test "x$XVFB" = xyes; then
+@@ -995,7 +995,7 @@ AC_DEFINE(SHAPE, 1, [Support SHAPE exten
+ 
+ AC_DEFINE(XKB, 1, [Build XKB])
+ AC_DEFINE(XKB_IN_SERVER, 1, [Build XKB server])
+-AC_DEFINE(XKB_DFLT_DISABLED, 0, [Disable XKB per default])
++AC_DEFINE(XKB_DFLT_DISABLED, 1, [Disable XKB per default])
+ REQUIRED_MODULES="$REQUIRED_MODULES xkbfile"
+ XKB_LIB='$(top_builddir)/xkb/libxkb.la'
+ XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
+@@ -1199,6 +1199,9 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
  
@@ -27,7 +36,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  
  dnl Xnest DDX
  
-@@ -1230,6 +1233,8 @@ xorg_bus_linuxpci=no
+@@ -1234,6 +1237,8 @@ xorg_bus_linuxpci=no
  xorg_bus_bsdpci=no
  xorg_bus_sparc=no
  
@@ -36,7 +45,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  if test "x$XORG" = xyes; then
  	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
  	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
-@@ -1417,7 +1422,6 @@ if test "x$XORG" = xyes; then
+@@ -1421,7 +1426,6 @@ if test "x$XORG" = xyes; then
  	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
  	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
  	AC_DEFINE(XFree86LOADER, 1, [Building loadable XFree86 server])
@@ -44,7 +53,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
  	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
  	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-@@ -1871,6 +1875,7 @@ hw/dmx/input/Makefile
+@@ -1875,6 +1879,7 @@ hw/dmx/input/Makefile
  hw/dmx/glxProxy/Makefile
  hw/dmx/Makefile
  hw/vfb/Makefile
@@ -53,8 +62,8 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  hw/xwin/Makefile
  hw/xquartz/Makefile
 diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
---- xserver/hw/Makefile.am.vnc	2009-03-03 21:08:18.000000000 +0100
-+++ xserver/hw/Makefile.am	2009-03-03 21:09:01.000000000 +0100
+--- xserver/hw/Makefile.am.vnc	2009-04-02 16:51:57.133567410 +0200
++++ xserver/hw/Makefile.am	2009-04-02 16:52:17.505568366 +0200
 @@ -33,7 +33,8 @@ SUBDIRS =			\
  	$(XNEST_SUBDIRS)	\
  	$(DMX_SUBDIRS)		\
@@ -66,8 +75,8 @@ diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive
  
 diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
---- xserver/mi/miinitext.c.vnc	2009-03-03 21:08:21.000000000 +0100
-+++ xserver/mi/miinitext.c	2009-03-03 21:09:01.000000000 +0100
+--- xserver/mi/miinitext.c.vnc	2009-04-02 16:51:58.785567465 +0200
++++ xserver/mi/miinitext.c	2009-04-02 16:52:17.505568366 +0200
 @@ -272,6 +272,7 @@ extern void DamageExtensionInit(INITARGS
  extern void CompositeExtensionInit(INITARGS);
  #endif

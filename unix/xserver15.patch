@@ -1,6 +1,6 @@
 diff -up xserver/configure.ac.vnc xserver/configure.ac
---- xserver/configure.ac.vnc	2009-02-25 11:29:49.000000000 +0100
-+++ xserver/configure.ac	2009-02-25 11:38:33.000000000 +0100
+--- xserver/configure.ac.vnc	2009-04-02 16:53:29.489569338 +0200
++++ xserver/configure.ac	2009-04-02 16:53:52.967782502 +0200
 @@ -31,7 +31,6 @@ RELEASE_DATE="5 November 2008"
  REMEMBER_REMEMBER="The Fifth of November"
  AC_CONFIG_SRCDIR([Makefile.am])
@@ -17,6 +17,15 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  AM_PROG_AS
  AC_PROG_INSTALL
  AC_PROG_LN_S
+@@ -1010,7 +1010,7 @@ AC_DEFINE(SHAPE, 1, [Support SHAPE exten
+ 
+ AC_DEFINE(XKB, 1, [Build XKB])
+ AC_DEFINE(XKB_IN_SERVER, 1, [Build XKB server])
+-AC_DEFINE(XKB_DFLT_DISABLED, 0, [Disable XKB per default])
++AC_DEFINE(XKB_DFLT_DISABLED, 1, [Disable XKB per default])
+ REQUIRED_MODULES="$REQUIRED_MODULES xkbfile"
+ XKB_LIB='$(top_builddir)/xkb/libxkb.la'
+ XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
 @@ -1220,6 +1220,9 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
@@ -53,8 +62,8 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  hw/xgl/egl/Makefile
  hw/xgl/egl/module/Makefile
 diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
---- xserver/hw/Makefile.am.vnc	2009-02-25 11:29:49.000000000 +0100
-+++ xserver/hw/Makefile.am	2009-02-25 11:31:25.000000000 +0100
+--- xserver/hw/Makefile.am.vnc	2009-04-02 16:54:17.365568961 +0200
++++ xserver/hw/Makefile.am	2009-04-02 16:53:45.273568020 +0200
 @@ -43,7 +43,8 @@ SUBDIRS =			\
  	$(DMX_SUBDIRS)		\
  	$(KDRIVE_SUBDIRS)	\
@@ -66,8 +75,8 @@ diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xgl xprint
  
 diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
---- xserver/mi/miinitext.c.vnc	2009-02-25 11:29:51.000000000 +0100
-+++ xserver/mi/miinitext.c	2009-02-25 11:31:25.000000000 +0100
+--- xserver/mi/miinitext.c.vnc	2009-04-02 16:53:29.657568676 +0200
++++ xserver/mi/miinitext.c	2009-04-02 16:53:45.273568020 +0200
 @@ -292,6 +292,7 @@ extern void BigReqExtensionInit(INITARGS
  #ifdef MITMISC
  extern void MITMiscExtensionInit(INITARGS);
