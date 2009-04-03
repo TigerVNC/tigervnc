@@ -55,6 +55,7 @@ $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 
 $defaultXStartup
     = ("#!/bin/sh\n\n".
+       "vncconfig -iconic &\n".
        "unset SESSION_MANAGER\n".
        "OS=`uname -s`\n".
        "if [ \$OS = 'Linux' ]; then\n".
@@ -75,7 +76,6 @@ $defaultXStartup
        "fi\n".
        "[ -r \$HOME/.Xresources ] && xrdb \$HOME/.Xresources\n".
        "xsetroot -solid grey\n".
-       "vncconfig -iconic &\n".
        "xterm -geometry 80x24+10+10 -ls -title \"\$VNCDESKTOP Desktop\" &\n".
        "twm &\n");
 
