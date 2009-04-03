@@ -22,7 +22,7 @@ endif
 
 TSTHDRS = turbojpeg.h rrutil.h rrtimer.h
 
-bin_PROGRAMS = jpgtest jpegut
+noinst_PROGRAMS = jpgtest jpegut
 
 jpgtest_SOURCES = $(TSTHDRS) jpgtest.cxx bmp.c turbojpegl.c
 
