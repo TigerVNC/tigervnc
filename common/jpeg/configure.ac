@@ -14,6 +14,7 @@ AC_DEFINE([INCOMPLETE_TYPES_BROKEN], 1, [Define if you want use complete types])
 # Checks for programs.
 AC_PROG_CPP
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
