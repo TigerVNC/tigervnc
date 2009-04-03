@@ -2,6 +2,7 @@
  * jmorecfg.h
  *
  * Copyright (C) 1991-1997, Thomas G. Lane.
+ * Copyright (C) 2009, D. R. Commander.
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -316,6 +317,23 @@ typedef int boolean;
 #define RGB_BLUE	2	/* Offset of Blue */
 #define RGB_PIXELSIZE	3	/* JSAMPLEs per RGB scanline element */
 
+#define JPEG_NUMCS 12
+
+static const int rgb_red[JPEG_NUMCS] = {
+	-1, -1, RGB_RED, -1, -1, -1, 0, 0, 2, 2, 3, 1
+};
+
+static const int rgb_green[JPEG_NUMCS] = {
+	-1, -1, RGB_GREEN, -1, -1, -1, 1, 1, 1, 1, 2, 2
+};
+
+static const int rgb_blue[JPEG_NUMCS] = {
+	-1, -1, RGB_BLUE, -1, -1, -1, 2, 2, 0, 0, 1, 3
+};
+
+static const int rgb_pixelsize[JPEG_NUMCS] = {
+	-1, -1, RGB_PIXELSIZE, -1, -1, -1, 3, 4, 3, 4, 4, 4
+};
 
 /* Definitions for speed-related optimizations. */
 

@@ -148,12 +148,12 @@ ycc_rgb_convert (j_decompress_ptr cinfo,
       cb = GETJSAMPLE(inptr1[col]);
       cr = GETJSAMPLE(inptr2[col]);
       /* Range-limiting is essential due to noise introduced by DCT losses. */
-      outptr[RGB_RED] =   range_limit[y + Crrtab[cr]];
-      outptr[RGB_GREEN] = range_limit[y +
+      outptr[rgb_red[cinfo->out_color_space]] =   range_limit[y + Crrtab[cr]];
+      outptr[rgb_green[cinfo->out_color_space]] = range_limit[y +
 			      ((int) RIGHT_SHIFT(Cbgtab[cb] + Crgtab[cr],
 						 SCALEBITS))];
-      outptr[RGB_BLUE] =  range_limit[y + Cbbtab[cb]];
-      outptr += RGB_PIXELSIZE;
+      outptr[rgb_blue[cinfo->out_color_space]] =  range_limit[y + Cbbtab[cb]];
+      outptr += rgb_pixelsize[cinfo->out_color_space];
     }
   }
 }
@@ -229,8 +229,10 @@ gray_rgb_convert (j_decompress_ptr cinfo,
     outptr = *output_buf++;
     for (col = 0; col < num_cols; col++) {
       /* We can dispense with GETJSAMPLE() here */
-      outptr[RGB_RED] = outptr[RGB_GREEN] = outptr[RGB_BLUE] = inptr[col];
-      outptr += RGB_PIXELSIZE;
+      outptr[rgb_red[cinfo->out_color_space]] =
+          outptr[rgb_green[cinfo->out_color_space]] =
+          outptr[rgb_blue[cinfo->out_color_space]] = inptr[col];
+      outptr += rgb_pixelsize[cinfo->out_color_space];
     }
   }
 }
@@ -358,7 +360,13 @@ jinit_color_deconverter (j_decompress_ptr cinfo)
     break;
 
   case JCS_RGB:
-    cinfo->out_color_components = RGB_PIXELSIZE;
+  case JCS_EXT_RGB:
+  case JCS_EXT_RGBX:
+  case JCS_EXT_BGR:
+  case JCS_EXT_BGRX:
+  case JCS_EXT_XBGR:
+  case JCS_EXT_XRGB:
+    cinfo->out_color_components = rgb_pixelsize[cinfo->out_color_space];
     if (cinfo->jpeg_color_space == JCS_YCbCr) {
       if (jsimd_can_ycc_rgb())
         cconvert->pub.color_convert = jsimd_ycc_rgb_convert;
@@ -368,7 +376,8 @@ jinit_color_deconverter (j_decompress_ptr cinfo)
       }
     } else if (cinfo->jpeg_color_space == JCS_GRAYSCALE) {
       cconvert->pub.color_convert = gray_rgb_convert;
-    } else if (cinfo->jpeg_color_space == JCS_RGB && RGB_PIXELSIZE == 3) {
+    } else if (cinfo->jpeg_color_space == cinfo->out_color_space &&
+      rgb_pixelsize[cinfo->out_color_space] == 3) {
       cconvert->pub.color_convert = null_convert;
     } else
       ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);

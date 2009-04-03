@@ -19,6 +19,11 @@ libsimd_la_SOURCES = jsimd.h jsimdcfg.inc.h \
 	jiss2red.asm jiss2int.asm jiss2fst.asm \
 	jcqnts2f.asm jiss2flt.asm
 
+jccolmmx.lo: jcclrmmx.asm
+jccolss2.lo: jcclrss2.asm
+jdcolmmx.lo: jdclrmmx.asm
+jdcolss2.lo: jdclrss2.asm
+
 .asm.lo:
 	$(LIBTOOL) --mode=compile --tag NASM ./nasm_lt.sh $(NASM) $(NAFLAGS) $< -o $@
 

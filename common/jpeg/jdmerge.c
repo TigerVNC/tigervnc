@@ -257,15 +257,15 @@ h2v1_merged_upsample (j_decompress_ptr cinfo,
     cblue = Cbbtab[cb];
     /* Fetch 2 Y values and emit 2 pixels */
     y  = GETJSAMPLE(*inptr0++);
-    outptr[RGB_RED] =   range_limit[y + cred];
-    outptr[RGB_GREEN] = range_limit[y + cgreen];
-    outptr[RGB_BLUE] =  range_limit[y + cblue];
-    outptr += RGB_PIXELSIZE;
+    outptr[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
+    outptr += rgb_pixelsize[cinfo->out_color_space];
     y  = GETJSAMPLE(*inptr0++);
-    outptr[RGB_RED] =   range_limit[y + cred];
-    outptr[RGB_GREEN] = range_limit[y + cgreen];
-    outptr[RGB_BLUE] =  range_limit[y + cblue];
-    outptr += RGB_PIXELSIZE;
+    outptr[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
+    outptr += rgb_pixelsize[cinfo->out_color_space];
   }
   /* If image width is odd, do the last output column separately */
   if (cinfo->output_width & 1) {
@@ -275,9 +275,9 @@ h2v1_merged_upsample (j_decompress_ptr cinfo,
     cgreen = (int) RIGHT_SHIFT(Cbgtab[cb] + Crgtab[cr], SCALEBITS);
     cblue = Cbbtab[cb];
     y  = GETJSAMPLE(*inptr0);
-    outptr[RGB_RED] =   range_limit[y + cred];
-    outptr[RGB_GREEN] = range_limit[y + cgreen];
-    outptr[RGB_BLUE] =  range_limit[y + cblue];
+    outptr[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
   }
 }
 
@@ -321,24 +321,24 @@ h2v2_merged_upsample (j_decompress_ptr cinfo,
     cblue = Cbbtab[cb];
     /* Fetch 4 Y values and emit 4 pixels */
     y  = GETJSAMPLE(*inptr00++);
-    outptr0[RGB_RED] =   range_limit[y + cred];
-    outptr0[RGB_GREEN] = range_limit[y + cgreen];
-    outptr0[RGB_BLUE] =  range_limit[y + cblue];
+    outptr0[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr0[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr0[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
     outptr0 += RGB_PIXELSIZE;
     y  = GETJSAMPLE(*inptr00++);
-    outptr0[RGB_RED] =   range_limit[y + cred];
-    outptr0[RGB_GREEN] = range_limit[y + cgreen];
-    outptr0[RGB_BLUE] =  range_limit[y + cblue];
+    outptr0[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr0[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr0[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
     outptr0 += RGB_PIXELSIZE;
     y  = GETJSAMPLE(*inptr01++);
-    outptr1[RGB_RED] =   range_limit[y + cred];
-    outptr1[RGB_GREEN] = range_limit[y + cgreen];
-    outptr1[RGB_BLUE] =  range_limit[y + cblue];
+    outptr1[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr1[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr1[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
     outptr1 += RGB_PIXELSIZE;
     y  = GETJSAMPLE(*inptr01++);
-    outptr1[RGB_RED] =   range_limit[y + cred];
-    outptr1[RGB_GREEN] = range_limit[y + cgreen];
-    outptr1[RGB_BLUE] =  range_limit[y + cblue];
+    outptr1[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr1[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr1[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
     outptr1 += RGB_PIXELSIZE;
   }
   /* If image width is odd, do the last output column separately */
@@ -349,13 +349,13 @@ h2v2_merged_upsample (j_decompress_ptr cinfo,
     cgreen = (int) RIGHT_SHIFT(Cbgtab[cb] + Crgtab[cr], SCALEBITS);
     cblue = Cbbtab[cb];
     y  = GETJSAMPLE(*inptr00);
-    outptr0[RGB_RED] =   range_limit[y + cred];
-    outptr0[RGB_GREEN] = range_limit[y + cgreen];
-    outptr0[RGB_BLUE] =  range_limit[y + cblue];
+    outptr0[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr0[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr0[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
     y  = GETJSAMPLE(*inptr01);
-    outptr1[RGB_RED] =   range_limit[y + cred];
-    outptr1[RGB_GREEN] = range_limit[y + cgreen];
-    outptr1[RGB_BLUE] =  range_limit[y + cblue];
+    outptr1[rgb_red[cinfo->out_color_space]] =   range_limit[y + cred];
+    outptr1[rgb_green[cinfo->out_color_space]] = range_limit[y + cgreen];
+    outptr1[rgb_blue[cinfo->out_color_space]] =  range_limit[y + cblue];
   }
 }
 

@@ -3,6 +3,7 @@
  *
  * Copyright (C) 1991-1996, Thomas G. Lane.
  * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2009 D. R. Commander
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -148,10 +149,10 @@ rgb_ycc_convert (j_compress_ptr cinfo,
     outptr2 = output_buf[2][output_row];
     output_row++;
     for (col = 0; col < num_cols; col++) {
-      r = GETJSAMPLE(inptr[RGB_RED]);
-      g = GETJSAMPLE(inptr[RGB_GREEN]);
-      b = GETJSAMPLE(inptr[RGB_BLUE]);
-      inptr += RGB_PIXELSIZE;
+      r = GETJSAMPLE(inptr[rgb_red[cinfo->in_color_space]]);
+      g = GETJSAMPLE(inptr[rgb_green[cinfo->in_color_space]]);
+      b = GETJSAMPLE(inptr[rgb_blue[cinfo->in_color_space]]);
+      inptr += rgb_pixelsize[cinfo->in_color_space];
       /* If the inputs are 0..MAXJSAMPLE, the outputs of these equations
        * must be too; we do not need an explicit range-limiting operation.
        * Hence the value being shifted is never negative, and we don't
@@ -202,10 +203,10 @@ rgb_gray_convert (j_compress_ptr cinfo,
     outptr = output_buf[0][output_row];
     output_row++;
     for (col = 0; col < num_cols; col++) {
-      r = GETJSAMPLE(inptr[RGB_RED]);
-      g = GETJSAMPLE(inptr[RGB_GREEN]);
-      b = GETJSAMPLE(inptr[RGB_BLUE]);
-      inptr += RGB_PIXELSIZE;
+      r = GETJSAMPLE(inptr[rgb_red[cinfo->in_color_space]]);
+      g = GETJSAMPLE(inptr[rgb_green[cinfo->in_color_space]]);
+      b = GETJSAMPLE(inptr[rgb_blue[cinfo->in_color_space]]);
+      inptr += rgb_pixelsize[cinfo->in_color_space];
       /* Y */
       outptr[col] = (JSAMPLE)
 		((ctab[r+R_Y_OFF] + ctab[g+G_Y_OFF] + ctab[b+B_Y_OFF])
@@ -376,6 +377,16 @@ jinit_color_converter (j_compress_ptr cinfo)
     break;
 #endif /* else share code with YCbCr */
 
+  case JCS_EXT_RGB:
+  case JCS_EXT_RGBX:
+  case JCS_EXT_BGR:
+  case JCS_EXT_BGRX:
+  case JCS_EXT_XBGR:
+  case JCS_EXT_XRGB:
+    if (cinfo->input_components != rgb_pixelsize[cinfo->in_color_space])
+      ERREXIT(cinfo, JERR_BAD_IN_COLORSPACE);
+    break;
+
   case JCS_YCbCr:
     if (cinfo->input_components != 3)
       ERREXIT(cinfo, JERR_BAD_IN_COLORSPACE);
@@ -400,7 +411,13 @@ jinit_color_converter (j_compress_ptr cinfo)
       ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
     if (cinfo->in_color_space == JCS_GRAYSCALE)
       cconvert->pub.color_convert = grayscale_convert;
-    else if (cinfo->in_color_space == JCS_RGB) {
+    else if (cinfo->in_color_space == JCS_RGB ||
+             cinfo->in_color_space == JCS_EXT_RGB ||
+             cinfo->in_color_space == JCS_EXT_RGBX ||
+             cinfo->in_color_space == JCS_EXT_BGR ||
+             cinfo->in_color_space == JCS_EXT_BGRX ||
+             cinfo->in_color_space == JCS_EXT_XBGR ||
+             cinfo->in_color_space == JCS_EXT_XRGB) {
       cconvert->pub.start_pass = rgb_ycc_start;
       cconvert->pub.color_convert = rgb_gray_convert;
     } else if (cinfo->in_color_space == JCS_YCbCr)
@@ -410,9 +427,16 @@ jinit_color_converter (j_compress_ptr cinfo)
     break;
 
   case JCS_RGB:
+  case JCS_EXT_RGB:
+  case JCS_EXT_RGBX:
+  case JCS_EXT_BGR:
+  case JCS_EXT_BGRX:
+  case JCS_EXT_XBGR:
+  case JCS_EXT_XRGB:
     if (cinfo->num_components != 3)
       ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
-    if (cinfo->in_color_space == JCS_RGB && RGB_PIXELSIZE == 3)
+    if (cinfo->in_color_space == cinfo->jpeg_color_space &&
+      rgb_pixelsize[cinfo->in_color_space] == 3)
       cconvert->pub.color_convert = null_convert;
     else
       ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
@@ -421,7 +445,13 @@ jinit_color_converter (j_compress_ptr cinfo)
   case JCS_YCbCr:
     if (cinfo->num_components != 3)
       ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
-    if (cinfo->in_color_space == JCS_RGB) {
+    if (cinfo->in_color_space == JCS_RGB ||
+        cinfo->in_color_space == JCS_EXT_RGB ||
+        cinfo->in_color_space == JCS_EXT_RGBX ||
+        cinfo->in_color_space == JCS_EXT_BGR ||
+        cinfo->in_color_space == JCS_EXT_BGRX ||
+        cinfo->in_color_space == JCS_EXT_XBGR ||
+        cinfo->in_color_space == JCS_EXT_XRGB) {
       if (jsimd_can_rgb_ycc())
         cconvert->pub.color_convert = jsimd_rgb_ycc_convert;
       else {

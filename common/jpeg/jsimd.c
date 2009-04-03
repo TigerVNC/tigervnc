@@ -2,6 +2,7 @@
  * jsimd.c
  *
  * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2009 D. R. Commander
  * 
  * Based on the x86 SIMD extension for IJG JPEG library,
  * Copyright (C) 1999-2006, MIYASAKA Masaru.
@@ -107,12 +108,45 @@ jsimd_rgb_ycc_convert (j_compress_ptr cinfo,
                        JDIMENSION output_row, int num_rows)
 {
 #ifdef WITH_SIMD
+  void (*sse2fct)(JDIMENSION, JSAMPARRAY, JSAMPIMAGE, JDIMENSION, int);
+  void (*mmxfct)(JDIMENSION, JSAMPARRAY, JSAMPIMAGE, JDIMENSION, int);
+  switch(cinfo->in_color_space)
+  {
+    case JCS_EXT_RGB:
+      sse2fct=jsimd_extrgb_ycc_convert_sse2;
+      mmxfct=jsimd_extrgb_ycc_convert_mmx;
+      break;
+    case JCS_EXT_RGBX:
+      sse2fct=jsimd_extrgbx_ycc_convert_sse2;
+      mmxfct=jsimd_extrgbx_ycc_convert_mmx;
+      break;
+    case JCS_EXT_BGR:
+      sse2fct=jsimd_extbgr_ycc_convert_sse2;
+      mmxfct=jsimd_extbgr_ycc_convert_mmx;
+      break;
+    case JCS_EXT_BGRX:
+      sse2fct=jsimd_extbgrx_ycc_convert_sse2;
+      mmxfct=jsimd_extbgrx_ycc_convert_mmx;
+      break;
+    case JCS_EXT_XBGR:
+      sse2fct=jsimd_extxbgr_ycc_convert_sse2;
+      mmxfct=jsimd_extxbgr_ycc_convert_mmx;
+      break;
+    case JCS_EXT_XRGB:
+      sse2fct=jsimd_extxrgb_ycc_convert_sse2;
+      mmxfct=jsimd_extxrgb_ycc_convert_mmx;
+      break;
+    default:
+      sse2fct=jsimd_rgb_ycc_convert_sse2;
+      mmxfct=jsimd_rgb_ycc_convert_mmx;
+      break;
+  }
   if ((simd_support & JSIMD_SSE2) &&
       IS_ALIGNED_SSE(jconst_rgb_ycc_convert_sse2))
-    jsimd_rgb_ycc_convert_sse2(cinfo->image_width, input_buf,
+    sse2fct(cinfo->image_width, input_buf,
         output_buf, output_row, num_rows);
   else if (simd_support & JSIMD_MMX)
-    jsimd_rgb_ycc_convert_mmx(cinfo->image_width, input_buf,
+    mmxfct(cinfo->image_width, input_buf,
         output_buf, output_row, num_rows);
 #endif
 }
@@ -123,12 +157,45 @@ jsimd_ycc_rgb_convert (j_decompress_ptr cinfo,
                        JSAMPARRAY output_buf, int num_rows)
 {
 #ifdef WITH_SIMD
+  void (*sse2fct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
+  void (*mmxfct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
+  switch(cinfo->out_color_space)
+  {
+    case JCS_EXT_RGB:
+      sse2fct=jsimd_ycc_extrgb_convert_sse2;
+      mmxfct=jsimd_ycc_extrgb_convert_mmx;
+      break;
+    case JCS_EXT_RGBX:
+      sse2fct=jsimd_ycc_extrgbx_convert_sse2;
+      mmxfct=jsimd_ycc_extrgbx_convert_mmx;
+      break;
+    case JCS_EXT_BGR:
+      sse2fct=jsimd_ycc_extbgr_convert_sse2;
+      mmxfct=jsimd_ycc_extbgr_convert_mmx;
+      break;
+    case JCS_EXT_BGRX:
+      sse2fct=jsimd_ycc_extbgrx_convert_sse2;
+      mmxfct=jsimd_ycc_extbgrx_convert_mmx;
+      break;
+    case JCS_EXT_XBGR:
+      sse2fct=jsimd_ycc_extxbgr_convert_sse2;
+      mmxfct=jsimd_ycc_extxbgr_convert_mmx;
+      break;
+    case JCS_EXT_XRGB:
+      sse2fct=jsimd_ycc_extxrgb_convert_sse2;
+      mmxfct=jsimd_ycc_extxrgb_convert_mmx;
+      break;
+    default:
+      sse2fct=jsimd_ycc_rgb_convert_sse2;
+      mmxfct=jsimd_ycc_rgb_convert_mmx;
+      break;
+  }
   if ((simd_support & JSIMD_SSE2) &&
       IS_ALIGNED_SSE(jconst_ycc_rgb_convert_sse2))
-    jsimd_ycc_rgb_convert_sse2(cinfo->output_width, input_buf,
+    sse2fct(cinfo->output_width, input_buf,
         input_row, output_buf, num_rows);
   else if (simd_support & JSIMD_MMX)
-    jsimd_ycc_rgb_convert_mmx(cinfo->output_width, input_buf,
+    mmxfct(cinfo->output_width, input_buf,
         input_row, output_buf, num_rows);
 #endif
 }

@@ -203,13 +203,22 @@ struct jpeg_marker_struct {
 
 /* Known color spaces. */
 
+#define JCS_EXTENSIONS 1
+
 typedef enum {
 	JCS_UNKNOWN,		/* error/unspecified */
 	JCS_GRAYSCALE,		/* monochrome */
-	JCS_RGB,		/* red/green/blue */
+	JCS_RGB,		/* red/green/blue as specified by the RGB_RED, RGB_GREEN,
+                 RGB_BLUE, and RGB_PIXELSIZE macros */
 	JCS_YCbCr,		/* Y/Cb/Cr (also known as YUV) */
 	JCS_CMYK,		/* C/M/Y/K */
-	JCS_YCCK		/* Y/Cb/Cr/K */
+	JCS_YCCK,		/* Y/Cb/Cr/K */
+	JCS_EXT_RGB,		/* red/green/blue */
+	JCS_EXT_RGBX,		/* red/green/blue/x */
+	JCS_EXT_BGR,		/* blue/green/red */
+	JCS_EXT_BGRX,		/* blue/green/red/x */
+	JCS_EXT_XBGR,		/* x/blue/green/red */
+	JCS_EXT_XRGB,		/* x/red/green/blue */
 } J_COLOR_SPACE;
 
 /* DCT/IDCT algorithm options. */

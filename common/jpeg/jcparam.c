@@ -363,6 +363,12 @@ jpeg_default_colorspace (j_compress_ptr cinfo)
     jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
     break;
   case JCS_RGB:
+  case JCS_EXT_RGB:
+  case JCS_EXT_RGBX:
+  case JCS_EXT_BGR:
+  case JCS_EXT_BGRX:
+  case JCS_EXT_XBGR:
+  case JCS_EXT_XRGB:
     jpeg_set_colorspace(cinfo, JCS_YCbCr);
     break;
   case JCS_YCbCr:

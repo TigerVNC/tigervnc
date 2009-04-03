@@ -21,11 +21,35 @@
 #ifdef NEED_SHORT_EXTERNAL_NAMES
 #define jpeg_simd_cpu_support                 jSiCpuSupport
 #define jsimd_rgb_ycc_convert_mmx             jSRGBYCCM
+#define jsimd_extrgb_ycc_convert_mmx          jSEXTRGBYCCM
+#define jsimd_extrgbx_ycc_convert_mmx         jSEXTRGBXYCCM
+#define jsimd_extbgr_ycc_convert_mmx          jSEXTBGRYCCM
+#define jsimd_extbgrx_ycc_convert_mmx         jSEXTBGRXYCCM
+#define jsimd_extxbgr_ycc_convert_mmx         jSEXTXBGRYCCM
+#define jsimd_extxrgb_ycc_convert_mmx         jSEXTXRGBYCCM
 #define jsimd_ycc_rgb_convert_mmx             jSYCCRGBM
+#define jsimd_ycc_extrgb_convert_mmx          jSYCCEXTRGBM
+#define jsimd_ycc_extrgbx_convert_mmx         jSYCCEXTRGBXM
+#define jsimd_ycc_extbgr_convert_mmx          jSYCCEXTBGRM
+#define jsimd_ycc_extbgrx_convert_mmx         jSYCCEXTBGRXM
+#define jsimd_ycc_extxbgr_convert_mmx         jSYCCEXTXBGRM
+#define jsimd_ycc_extxrgb_convert_mmx         jSYCCEXTXRGBM
 #define jconst_rgb_ycc_convert_sse2           jSCRGBYCCS2
 #define jsimd_rgb_ycc_convert_sse2            jSRGBYCCS2
+#define jsimd_extrgb_ycc_convert_sse2         jSEXTRGBYCCS2
+#define jsimd_extrgbx_ycc_convert_sse2        jSEXTRGBXYCCS2
+#define jsimd_extbgr_ycc_convert_sse2         jSEXTBGRYCCS2
+#define jsimd_extbgrx_ycc_convert_sse2        jSEXTBGRXYCCS2
+#define jsimd_extxbgr_ycc_convert_sse2        jSEXTXBGRYCCS2
+#define jsimd_extxrgb_ycc_convert_sse2        jSEXTXRGBYCCS2
 #define jconst_ycc_rgb_convert_sse2           jSCYCCRGBS2
 #define jsimd_ycc_rgb_convert_sse2            jSYCCRGBS2
+#define jsimd_ycc_extrgb_convert_sse2         jSYCCEXTRGBS2
+#define jsimd_ycc_extrgbx_convert_sse2        jSYCCEXTRGBXS2
+#define jsimd_ycc_extbgr_convert_sse2         jSYCCEXTBGRS2
+#define jsimd_ycc_extbgrx_convert_sse2        jSYCCEXTBGRXS2
+#define jsimd_ycc_extxbgr_convert_sse2        jSYCCEXTXBGRS2
+#define jsimd_ycc_extxrgb_convert_sse2        jSYCCEXTXRGBS2
 #define jsimd_h2v2_downsample_mmx             jSDnH2V2M
 #define jsimd_h2v1_downsample_mmx             jSDnH2V1M
 #define jsimd_h2v2_downsample_sse2            jSDnH2V2S2
@@ -89,7 +113,56 @@ EXTERN(void) jsimd_rgb_ycc_convert_mmx
         JPP((JDIMENSION img_width,
              JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
              JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extrgb_ycc_convert_mmx
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extrgbx_ycc_convert_mmx
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extbgr_ycc_convert_mmx
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extbgrx_ycc_convert_mmx
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extxbgr_ycc_convert_mmx
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extxrgb_ycc_convert_mmx
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+
 EXTERN(void) jsimd_ycc_rgb_convert_mmx
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extrgb_convert_mmx
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extrgbx_convert_mmx
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extbgr_convert_mmx
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extbgrx_convert_mmx
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extxbgr_convert_mmx
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extxrgb_convert_mmx
         JPP((JDIMENSION out_width,
              JSAMPIMAGE input_buf, JDIMENSION input_row,
              JSAMPARRAY output_buf, int num_rows));
@@ -99,8 +172,57 @@ EXTERN(void) jsimd_rgb_ycc_convert_sse2
         JPP((JDIMENSION img_width,
              JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
              JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extrgb_ycc_convert_sse2
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extrgbx_ycc_convert_sse2
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extbgr_ycc_convert_sse2
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extbgrx_ycc_convert_sse2
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extxbgr_ycc_convert_sse2
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+EXTERN(void) jsimd_extxrgb_ycc_convert_sse2
+        JPP((JDIMENSION img_width,
+             JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+             JDIMENSION output_row, int num_rows));
+
 extern const int jconst_ycc_rgb_convert_sse2[];
 EXTERN(void) jsimd_ycc_rgb_convert_sse2
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extrgb_convert_sse2
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extrgbx_convert_sse2
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extbgr_convert_sse2
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extbgrx_convert_sse2
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extxbgr_convert_sse2
+        JPP((JDIMENSION out_width,
+             JSAMPIMAGE input_buf, JDIMENSION input_row,
+             JSAMPARRAY output_buf, int num_rows));
+EXTERN(void) jsimd_ycc_extxrgb_convert_sse2
         JPP((JDIMENSION out_width,
              JSAMPIMAGE input_buf, JDIMENSION input_row,
              JSAMPARRAY output_buf, int num_rows));
