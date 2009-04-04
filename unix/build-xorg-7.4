@@ -59,13 +59,6 @@ modules="dri2proto \
     pixman"
 
 
-setcfgflags()
-{
-	shift
-	CFGFLAGS=${1+"$@"}
-}
-
-
 init()
 {
     mkdir -p xorg
@@ -75,7 +68,7 @@ init()
     tar jxf util-macros.tar.bz2
     pushd util-macros-*
     echo "Building macros"
-    ./configure --prefix=${PREFIX}
+    ./configure ${1+"$@"} --prefix=${PREFIX}
     ($MAKE);
     make install
     popd
@@ -110,7 +103,7 @@ build ()
     # Build VNC
     echo "*** Building VNC ***"
     make distclean || true
-    ./configure ${CFGFLAGS} --prefix=${PREFIX}
+    ./configure ${1+"$@"} --prefix=${PREFIX}
     make
 
     # Build Xorg
@@ -125,7 +118,10 @@ build ()
         if [ "${module}" = "libX11" ]; then
             extraoptions="${extraoptions} --without-xcb"
         fi
-        ./configure ${CFGFLAGS} --prefix="${PREFIX}" ${extraoptions}
+        if [ "${module}" = "libSM" ]; then
+            extraoptions="${extraoptions} --with-uuid=no"
+        fi
+        ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions}
         echo ======================
         echo building ${module}
         echo ======================
@@ -141,7 +137,7 @@ build ()
     # build mesa
     echo "*** Building Mesa ***"
     pushd Mesa-*
-    ./configure ${CFGFLAGS} --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
+    ./configure ${1+"$@"} --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
     if [ $? -ne 0 ]; then
 	echo "Failed to configure Mesa."
 	exit
@@ -155,7 +151,7 @@ build ()
     # build xserver
     echo "*** Building xserver ***"
     cd xserver
-    ./configure ${CFGFLAGS} --prefix=${PREFIX} --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
+    ./configure ${1+"$@"} --prefix=${PREFIX} --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
     if [ $? -ne 0 ]; then
 	echo "Failed to configure X server."
 	exit
@@ -165,16 +161,14 @@ build ()
     cd ..
 }
 
-if [ ! "$2" = "" ]; then
-	setcfgflags ${1+"$@"}
-fi
-
 case "$1" in
     init)
-	init
+	shift
+	init ${1+"$@"}
 	;;
     build)
-	build
+	shift
+	build ${1+"$@"}
 	;;
     update)
 	update_modules
