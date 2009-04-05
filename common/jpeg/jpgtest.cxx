@@ -23,7 +23,7 @@
 
 #define _catch(f) {if((f)==-1) {printf("Error in %s:\n%s\n", #f, tjGetErrorStr());  goto bailout;}}
 
-int forcemmx=0, forcesse=0, forcesse2=0, forcesse3=0;
+int forcemmx=0, forcesse=0, forcesse2=0, forcesse3=0, fastupsample=0;
 const int _ps[BMPPIXELFORMATS]={3, 4, 3, 4, 4, 4};
 const int _flags[BMPPIXELFORMATS]={0, 0, TJ_BGR, TJ_BGR,
 	TJ_BGR|TJ_ALPHAFIRST, TJ_ALPHAFIRST};
@@ -31,8 +31,8 @@ const int _rindex[BMPPIXELFORMATS]={0, 0, 2, 2, 3, 1};
 const int _gindex[BMPPIXELFORMATS]={1, 1, 1, 1, 2, 2};
 const int _bindex[BMPPIXELFORMATS]={2, 2, 0, 0, 1, 3};
 const char *_pfname[]={"RGB", "RGBA", "BGR", "BGRA", "ABGR", "ARGB"};
-const char *_subnamel[NUMSUBOPT]={"4:4:4", "4:2:2", "4:1:1", "GRAY"};
-const char *_subnames[NUMSUBOPT]={"444", "422", "411", "GRAY"};
+const char *_subnamel[NUMSUBOPT]={"4:4:4", "4:2:2", "4:2:0", "GRAY"};
+const char *_subnames[NUMSUBOPT]={"444", "422", "420", "GRAY"};
 
 void printsigfig(double val, int figs)
 {
@@ -62,7 +62,8 @@ void dotest(unsigned char *srcbuf, int w, int h, BMPPIXELFORMAT pf, int bu,
 	int jpgbufsize=0, i, j, tilesizex, tilesizey, numtilesx, numtilesy, ITER;
 	unsigned long *comptilesize=NULL;
 	int flags=(forcemmx?TJ_FORCEMMX:0)|(forcesse?TJ_FORCESSE:0)
-		|(forcesse2?TJ_FORCESSE2:0)|(forcesse3?TJ_FORCESSE3:0);
+		|(forcesse2?TJ_FORCESSE2:0)|(forcesse3?TJ_FORCESSE3:0)
+		|(fastupsample?TJ_FASTUPSAMPLE:0);
 	int ps=_ps[pf];
 	int pitch=w*ps;
 
@@ -294,6 +295,9 @@ int main(int argc, char *argv[])
 		printf("       Force MMX, SSE, or SSE2 code paths in Intel codec\n\n");
 		printf("       [-rgb | -bgr | -rgba | -bgra | -abgr | -argb]\n");
 		printf("       Test the specified color conversion path in the codec (default: BGR)\n\n");
+		printf("       [-fastupsample]\n");
+		printf("       Use fast, inaccurate upsampling code to perform 4:2:2 and 4:2:0\n\n");
+		printf("       YUV decoding in libjpeg decompressor\n");
 		printf("       [-quiet]\n");
 		printf("       Output in tabular rather than verbose format\n\n");
 		printf("       NOTE: If the quality is specified as a range, i.e. 90-100, a separate\n");
@@ -335,6 +339,11 @@ int main(int argc, char *argv[])
 				printf("Using MMX code in Intel compressor\n");
 				forcemmx=1;
 			}
+			if(!stricmp(argv[i], "-fastupsample"))
+			{
+				printf("Using fast upsampling code\n");
+				fastupsample=1;
+			}
 			if(!stricmp(argv[i], "-rgb")) pf=BMP_RGB;
 			if(!stricmp(argv[i], "-rgba")) pf=BMP_RGBA;
 			if(!stricmp(argv[i], "-bgr")) pf=BMP_BGR;
@@ -369,7 +378,7 @@ int main(int argc, char *argv[])
 		dotest(bmpbuf, w, h, pf, bu, TJ_GRAYSCALE, i, argv[1], dotile, useppm, quiet);
 	if(quiet) printf("\n");
 	for(i=hiqual; i>=qual; i--)
-		dotest(bmpbuf, w, h, pf, bu, TJ_411, i, argv[1], dotile, useppm, quiet);
+		dotest(bmpbuf, w, h, pf, bu, TJ_420, i, argv[1], dotile, useppm, quiet);
 	if(quiet) printf("\n");
 	for(i=hiqual; i>=qual; i--)
 		dotest(bmpbuf, w, h, pf, bu, TJ_422, i, argv[1], dotile, useppm, quiet);

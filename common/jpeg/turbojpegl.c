@@ -1,5 +1,6 @@
 /* Copyright (C)2004 Landmark Graphics Corporation
  * Copyright (C)2005 Sun Microsystems, Inc.
+ * Copyright (C)2009 D. R. Commander
  *
  * This library is free software and may be redistributed and/or modified under
  * the terms of the wxWindows Library License, Version 3.1 or (at your option)
@@ -320,6 +321,7 @@ DLLEXPORT int DLLCALL tjDecompress(tjhandle h,
 	#else
 	#error "TurboJPEG requires JPEG colorspace extensions"
 	#endif
+	if(flags&TJ_FASTUPSAMPLE) j->dinfo.do_fancy_upsampling=FALSE;
 
 	jpeg_start_decompress(&j->dinfo);
 	while(j->dinfo.output_scanline<j->dinfo.output_height)

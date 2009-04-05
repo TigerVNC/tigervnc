@@ -21,8 +21,8 @@
 
 #define _catch(f) {if((f)==-1) {printf("TJPEG: %s\n", tjGetErrorStr());  goto finally;}}
 
-const char *_subnamel[NUMSUBOPT]={"4:4:4", "4:2:2", "4:1:1", "GRAY"};
-const char *_subnames[NUMSUBOPT]={"444", "422", "411", "GRAY"};
+const char *_subnamel[NUMSUBOPT]={"4:4:4", "4:2:2", "4:2:0", "GRAY"};
+const char *_subnames[NUMSUBOPT]={"444", "422", "420", "GRAY"};
 
 int pixels[9][3]=
 {

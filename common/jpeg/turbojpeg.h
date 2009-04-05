@@ -1,5 +1,6 @@
 /* Copyright (C)2004 Landmark Graphics Corporation
  * Copyright (C)2005, 2006 Sun Microsystems, Inc.
+ * Copyright (C)2009 D. R. Commander
  *
  * This library is free software and may be redistributed and/or modified under
  * the terms of the wxWindows Library License, Version 3.1 or (at your option)
@@ -23,7 +24,7 @@
 /* Subsampling */
 #define NUMSUBOPT 4
 
-enum {TJ_444=0, TJ_422, TJ_411, TJ_GRAYSCALE};
+enum {TJ_444=0, TJ_422, TJ_420, TJ_GRAYSCALE};
 
 /* Flags */
 #define TJ_BGR       1
@@ -33,6 +34,7 @@ enum {TJ_444=0, TJ_422, TJ_411, TJ_GRAYSCALE};
 #define TJ_FORCESSE2 32  /* Force IPP to use SSE2 code (useful if auto-detect is not working properly) */
 #define TJ_ALPHAFIRST 64 /* BGR buffer is ABGR and RGB buffer is ARGB */
 #define TJ_FORCESSE3 128 /* Force IPP to use SSE3 code (useful if auto-detect is not working properly) */
+#define TJ_FASTUPSAMPLE 256 /* Use fast, inaccurate 4:2:2 and 4:2:0 YUV upsampling routines in libjpeg decompressor */
 
 typedef void* tjhandle;
 
@@ -86,14 +88,14 @@ DLLEXPORT tjhandle DLLCALL tjInitCompress(void);
      the appropriate size for this buffer based on the image width and height.
   [OUTPUT] size = pointer to unsigned long which receives the size (in bytes)
      of the compressed image
-  [INPUT] jpegsubsamp = Specifies either 4:1:1, 4:2:2, or 4:4:4 subsampling.
+  [INPUT] jpegsubsamp = Specifies either 4:2:0, 4:2:2, or 4:4:4 subsampling.
      When the image is converted from the RGB to YCbCr colorspace as part of the
      JPEG compression process, every other Cb and Cr (chrominance) pixel can be
      discarded to produce a smaller image with little perceptible loss of
      image clarity (the human eye is more sensitive to small changes in
      brightness than small changes in color.)
 
-     TJ_411: 4:1:1 subsampling.  Discards every other Cb, Cr pixel in both
+     TJ_420: 4:2:0 subsampling.  Discards every other Cb, Cr pixel in both
         horizontal and vertical directions.
      TJ_422: 4:2:2 subsampling.  Discards every other Cb, Cr pixel only in
         the horizontal direction.
