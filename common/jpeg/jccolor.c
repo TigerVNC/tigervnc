@@ -371,12 +371,6 @@ jinit_color_converter (j_compress_ptr cinfo)
     break;
 
   case JCS_RGB:
-#if RGB_PIXELSIZE != 3
-    if (cinfo->input_components != RGB_PIXELSIZE)
-      ERREXIT(cinfo, JERR_BAD_IN_COLORSPACE);
-    break;
-#endif /* else share code with YCbCr */
-
   case JCS_EXT_RGB:
   case JCS_EXT_RGBX:
   case JCS_EXT_BGR:
