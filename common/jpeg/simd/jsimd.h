@@ -59,7 +59,19 @@
 #define jsimd_h2v2_fancy_upsample_mmx         jSFUpH2V2M
 #define jsimd_h2v1_fancy_upsample_mmx         jSFUpH2V1M
 #define jsimd_h2v2_merged_upsample_mmx        jSMUpH2V2M
+#define jsimd_h2v2_extrgb_merged_upsample_mmx jSMUpH2V2EXTRGBM
+#define jsimd_h2v2_extrgbx_merged_upsample_mmx jSMUpH2V2EXTRGBXM
+#define jsimd_h2v2_extbgr_merged_upsample_mmx jSMUpH2V2EXTBGRM
+#define jsimd_h2v2_extbgrx_merged_upsample_mmx jSMUpH2V2EXTBGRXM
+#define jsimd_h2v2_extxbgr_merged_upsample_mmx jSMUpH2V2EXTXBGRM
+#define jsimd_h2v2_extxrgb_merged_upsample_mmx jSMUpH2V2EXTXRGBM
 #define jsimd_h2v1_merged_upsample_mmx        jSMUpH2V1M
+#define jsimd_h2v1_extrgb_merged_upsample_mmx jSMUpH2V1EXTRGBM
+#define jsimd_h2v1_extrgbx_merged_upsample_mmx jSMUpH2V1EXTRGBXM
+#define jsimd_h2v1_extbgr_merged_upsample_mmx jSMUpH2V1EXTBGRM
+#define jsimd_h2v1_extbgrx_merged_upsample_mmx jSMUpH2V1EXTBGRXM
+#define jsimd_h2v1_extxbgr_merged_upsample_mmx jSMUpH2V1EXTXBGRM
+#define jsimd_h2v1_extxrgb_merged_upsample_mmx jSMUpH2V1EXTXRGBM
 #define jsimd_h2v2_upsample_sse2              jSUpH2V2S2
 #define jsimd_h2v1_upsample_sse2              jSUpH2V1S2
 #define jconst_fancy_upsample_sse2            jSCFUpS2
@@ -67,7 +79,19 @@
 #define jsimd_h2v1_fancy_upsample_sse2        jSFUpH2V1S2
 #define jconst_merged_upsample_sse2           jSCMUpS2
 #define jsimd_h2v2_merged_upsample_sse2       jSMUpH2V2S2
+#define jsimd_h2v2_extrgb_merged_upsample_sse2 jSMUpH2V2EXTRGBS2
+#define jsimd_h2v2_extrgbx_merged_upsample_sse2 jSMUpH2V2EXTRGBXS2
+#define jsimd_h2v2_extbgr_merged_upsample_sse2 jSMUpH2V2EXTBGRS2
+#define jsimd_h2v2_extbgrx_merged_upsample_sse2 jSMUpH2V2EXTBGRXS2
+#define jsimd_h2v2_extxbgr_merged_upsample_sse2 jSMUpH2V2EXTXBGRS2
+#define jsimd_h2v2_extxrgb_merged_upsample_sse2 jSMUpH2V2EXTXRGBS2
 #define jsimd_h2v1_merged_upsample_sse2       jSMUpH2V1S2
+#define jsimd_h2v1_extrgb_merged_upsample_sse2 jSMUpH2V1EXTRGBS2
+#define jsimd_h2v1_extrgbx_merged_upsample_sse2 jSMUpH2V1EXTRGBXS2
+#define jsimd_h2v1_extbgr_merged_upsample_sse2 jSMUpH2V1EXTBGRS2
+#define jsimd_h2v1_extbgrx_merged_upsample_sse2 jSMUpH2V1EXTBGRXS2
+#define jsimd_h2v1_extxbgr_merged_upsample_sse2 jSMUpH2V1EXTXBGRS2
+#define jsimd_h2v1_extxrgb_merged_upsample_sse2 jSMUpH2V1EXTXRGBS2
 #define jsimd_convsamp_mmx                    jSConvM
 #define jsimd_convsamp_sse2                   jSConvS2
 #define jsimd_convsamp_float_3dnow            jSConvF3D
@@ -264,7 +288,43 @@ EXTERN(void) jsimd_h2v1_fancy_upsample_mmx
 EXTERN(void) jsimd_h2v2_merged_upsample_mmx
         JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
              JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extrgb_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extrgbx_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extbgr_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extbgrx_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extxbgr_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extxrgb_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
 EXTERN(void) jsimd_h2v1_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extrgb_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extrgbx_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extbgr_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extbgrx_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extxbgr_merged_upsample_mmx
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extxrgb_merged_upsample_mmx
         JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
              JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
 
@@ -287,7 +347,43 @@ extern const int jconst_merged_upsample_sse2[];
 EXTERN(void) jsimd_h2v2_merged_upsample_sse2
         JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
              JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extrgb_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extrgbx_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extbgr_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extbgrx_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extxbgr_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v2_extxrgb_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
 EXTERN(void) jsimd_h2v1_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extrgb_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extrgbx_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extbgr_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extbgrx_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extxbgr_merged_upsample_sse2
+        JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
+             JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
+EXTERN(void) jsimd_h2v1_extxrgb_merged_upsample_sse2
         JPP((JDIMENSION output_width, JSAMPIMAGE input_buf,
              JDIMENSION in_row_group_ctr, JSAMPARRAY output_buf));
 

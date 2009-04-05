@@ -461,12 +461,45 @@ jsimd_h2v2_merged_upsample (j_decompress_ptr cinfo,
                             JSAMPARRAY output_buf)
 {
 #ifdef WITH_SIMD
+  void (*sse2fct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY);
+  void (*mmxfct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY);
+  switch(cinfo->out_color_space)
+  {
+    case JCS_EXT_RGB:
+      sse2fct=jsimd_h2v2_extrgb_merged_upsample_sse2;
+      mmxfct=jsimd_h2v2_extrgb_merged_upsample_mmx;
+      break;
+    case JCS_EXT_RGBX:
+      sse2fct=jsimd_h2v2_extrgbx_merged_upsample_sse2;
+      mmxfct=jsimd_h2v2_extrgbx_merged_upsample_mmx;
+      break;
+    case JCS_EXT_BGR:
+      sse2fct=jsimd_h2v2_extbgr_merged_upsample_sse2;
+      mmxfct=jsimd_h2v2_extbgr_merged_upsample_mmx;
+      break;
+    case JCS_EXT_BGRX:
+      sse2fct=jsimd_h2v2_extbgrx_merged_upsample_sse2;
+      mmxfct=jsimd_h2v2_extbgrx_merged_upsample_mmx;
+      break;
+    case JCS_EXT_XBGR:
+      sse2fct=jsimd_h2v2_extxbgr_merged_upsample_sse2;
+      mmxfct=jsimd_h2v2_extxbgr_merged_upsample_mmx;
+      break;
+    case JCS_EXT_XRGB:
+      sse2fct=jsimd_h2v2_extxrgb_merged_upsample_sse2;
+      mmxfct=jsimd_h2v2_extxrgb_merged_upsample_mmx;
+      break;
+    default:
+      sse2fct=jsimd_h2v2_merged_upsample_sse2;
+      mmxfct=jsimd_h2v2_merged_upsample_mmx;
+      break;
+  }
   if ((simd_support & JSIMD_SSE2) &&
       IS_ALIGNED_SSE(jconst_merged_upsample_sse2))
-    jsimd_h2v2_merged_upsample_sse2(cinfo->output_width, input_buf,
+    sse2fct(cinfo->output_width, input_buf,
         in_row_group_ctr, output_buf);
   else if (simd_support & JSIMD_MMX)
-    jsimd_h2v2_merged_upsample_mmx(cinfo->output_width, input_buf,
+    mmxfct(cinfo->output_width, input_buf,
         in_row_group_ctr, output_buf);
 #endif
 }
@@ -478,12 +511,45 @@ jsimd_h2v1_merged_upsample (j_decompress_ptr cinfo,
                             JSAMPARRAY output_buf)
 {
 #ifdef WITH_SIMD
+  void (*sse2fct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY);
+  void (*mmxfct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY);
+  switch(cinfo->out_color_space)
+  {
+    case JCS_EXT_RGB:
+      sse2fct=jsimd_h2v1_extrgb_merged_upsample_sse2;
+      mmxfct=jsimd_h2v1_extrgb_merged_upsample_mmx;
+      break;
+    case JCS_EXT_RGBX:
+      sse2fct=jsimd_h2v1_extrgbx_merged_upsample_sse2;
+      mmxfct=jsimd_h2v1_extrgbx_merged_upsample_mmx;
+      break;
+    case JCS_EXT_BGR:
+      sse2fct=jsimd_h2v1_extbgr_merged_upsample_sse2;
+      mmxfct=jsimd_h2v1_extbgr_merged_upsample_mmx;
+      break;
+    case JCS_EXT_BGRX:
+      sse2fct=jsimd_h2v1_extbgrx_merged_upsample_sse2;
+      mmxfct=jsimd_h2v1_extbgrx_merged_upsample_mmx;
+      break;
+    case JCS_EXT_XBGR:
+      sse2fct=jsimd_h2v1_extxbgr_merged_upsample_sse2;
+      mmxfct=jsimd_h2v1_extxbgr_merged_upsample_mmx;
+      break;
+    case JCS_EXT_XRGB:
+      sse2fct=jsimd_h2v1_extxrgb_merged_upsample_sse2;
+      mmxfct=jsimd_h2v1_extxrgb_merged_upsample_mmx;
+      break;
+    default:
+      sse2fct=jsimd_h2v1_merged_upsample_sse2;
+      mmxfct=jsimd_h2v1_merged_upsample_mmx;
+      break;
+  }
   if ((simd_support & JSIMD_SSE2) &&
       IS_ALIGNED_SSE(jconst_merged_upsample_sse2))
-    jsimd_h2v1_merged_upsample_sse2(cinfo->output_width, input_buf,
+    sse2fct(cinfo->output_width, input_buf,
         in_row_group_ctr, output_buf);
   else if (simd_support & JSIMD_MMX)
-    jsimd_h2v1_merged_upsample_mmx(cinfo->output_width, input_buf,
+    mmxfct(cinfo->output_width, input_buf,
         in_row_group_ctr, output_buf);
 #endif
 }

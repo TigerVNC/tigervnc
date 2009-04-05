@@ -49,8 +49,14 @@ use_merged_upsample (j_decompress_ptr cinfo)
     return FALSE;
   /* jdmerge.c only supports YCC=>RGB color conversion */
   if (cinfo->jpeg_color_space != JCS_YCbCr || cinfo->num_components != 3 ||
-      cinfo->out_color_space != JCS_RGB ||
-      cinfo->out_color_components != RGB_PIXELSIZE)
+      (cinfo->out_color_space != JCS_RGB &&
+      cinfo->out_color_space != JCS_EXT_RGB &&
+      cinfo->out_color_space != JCS_EXT_RGBX &&
+      cinfo->out_color_space != JCS_EXT_BGR &&
+      cinfo->out_color_space != JCS_EXT_BGRX &&
+      cinfo->out_color_space != JCS_EXT_XBGR &&
+      cinfo->out_color_space != JCS_EXT_XRGB) ||
+      cinfo->out_color_components != rgb_pixelsize[cinfo->out_color_space])
     return FALSE;
   /* and it only handles 2h1v or 2h2v sampling ratios */
   if (cinfo->comp_info[0].h_samp_factor != 2 ||
@@ -175,10 +181,14 @@ jpeg_calc_output_dimensions (j_decompress_ptr cinfo)
     cinfo->out_color_components = 1;
     break;
   case JCS_RGB:
-#if RGB_PIXELSIZE != 3
-    cinfo->out_color_components = RGB_PIXELSIZE;
+  case JCS_EXT_RGB:
+  case JCS_EXT_RGBX:
+  case JCS_EXT_BGR:
+  case JCS_EXT_BGRX:
+  case JCS_EXT_XBGR:
+  case JCS_EXT_XRGB:
+    cinfo->out_color_components = rgb_pixelsize[cinfo->out_color_space];
     break;
-#endif /* else share code with YCbCr */
   case JCS_YCbCr:
     cinfo->out_color_components = 3;
     break;
