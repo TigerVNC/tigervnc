@@ -228,9 +228,12 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
 {
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;
-  PIXEL_T *pixelPtr = buf;
-  static rdr::U8 scanline_buffer[TIGHT_MAX_WIDTH*3];
-  JSAMPROW scanline = scanline_buffer;
+  int w = r.width();
+  int h = r.height();
+  int pixelsize = 3;
+  rdr::U8 *dstBuf = NULL;
+  bool dstBufIsTemp = false;
+  const rfb::PixelFormat& pf = handler->cp.pf();
 
   // Read length
   int compressedLen = is->readCompactLength();
@@ -250,11 +253,51 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
   jpeg_create_decompress(&cinfo);
   JpegSetSrcManager(&cinfo, (char*)netbuf, compressedLen);
   jpeg_read_header(&cinfo, TRUE);
-  cinfo.out_color_space = JCS_RGB;
+
+  #ifdef JCS_EXTENSIONS
+  pixelsize = pf.bpp / 8;
+  if(pf.redMax == 255 && pf.greenMax == 255 && pf.blueMax == 255) {
+    int redShift, greenShift, blueShift;
+    if(pf.bigEndian) {
+      redShift = 24 - pf.redShift;
+      greenShift = 24 - pf.greenShift;
+      blueShift = 24 - pf.blueShift;
+    }
+    else {
+      redShift = pf.redShift;
+      greenShift = pf.greenShift;
+      blueShift = pf.blueShift;
+    }
+    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 3)
+      cinfo.out_color_space = JCS_EXT_RGB;
+    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 4)
+      cinfo.out_color_space = JCS_EXT_RGBX;
+    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 3)
+      cinfo.out_color_space = JCS_EXT_BGR;
+    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 4)
+      cinfo.out_color_space = JCS_EXT_BGRX;
+    if(redShift == 24 && greenShift == 16 && blueShift == 8 && pixelsize == 4)
+      cinfo.out_color_space = JCS_EXT_XBGR;
+    if(redShift == 8 && greenShift == 16 && blueShift == 24 && pixelsize == 4)
+      cinfo.out_color_space = JCS_EXT_XRGB;
+    if(cinfo.out_color_space != JCS_RGB)
+      dstBuf = (rdr::U8 *)buf;
+  }
+  else
+  #endif
+  {
+    dstBuf = new rdr::U8[w * h * pixelsize];
+    dstBufIsTemp = true;
+    cinfo.out_color_space = JCS_RGB;
+  }
+
+  JSAMPROW *rowPointer = new JSAMPROW[h];
+  for (int dy = 0; dy < h; dy++)
+    rowPointer[dy] = (JSAMPROW)(&dstBuf[dy * w * pixelsize]);
 
   jpeg_start_decompress(&cinfo);
   if (cinfo.output_width != (unsigned)r.width() || cinfo.output_height != (unsigned)r.height() ||
-      cinfo.output_components != 3) {
+      cinfo.output_components != pixelsize) {
       jpeg_destroy_decompress(&cinfo);
       throw Exception("Tight Encoding: Wrong JPEG data received.\n");
   }
@@ -262,14 +305,15 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
   // Decompress
   const rfb::PixelFormat& myFormat = handler->cp.pf();
   while (cinfo.output_scanline < cinfo.output_height) {
-    jpeg_read_scanlines(&cinfo, &scanline, 1);
+    jpeg_read_scanlines(&cinfo, &rowPointer[cinfo.output_scanline],
+			cinfo.output_height - cinfo.output_scanline);
     if (jpegError) {
       break;
     }
-
-    myFormat.bufferFromRGB((rdr::U8*)pixelPtr, (const rdr::U8*)scanline, r.width());
-    pixelPtr += r.width();
   }
+
+  if (cinfo.out_color_space == JCS_RGB)
+    myFormat.bufferFromRGB((rdr::U8*)buf, dstBuf, w * h);
 
   IMAGE_RECT(r, buf);
 
@@ -279,6 +323,7 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
 
   jpeg_destroy_decompress(&cinfo);
 
+  if (dstBufIsTemp) delete [] dstBuf;
   delete [] netbuf;
 
   return !jpegError;
