@@ -92,7 +92,7 @@ using namespace network;
 static LogWriter vlog("XserverDesktop");
 
 rfb::IntParameter deferUpdateTime("DeferUpdate",
-                                  "Time in milliseconds to defer updates",40);
+                                  "Time in milliseconds to defer updates",1);
 
 rfb::BoolParameter alwaysSetDeferUpdateTimer("AlwaysSetDeferUpdateTimer",
                   "Always reset the defer update timer on every change",false);
