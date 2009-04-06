@@ -518,22 +518,57 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
 {
   int w = r.width();
   int h = r.height();
+  int pixelsize = 3;
+  rdr::U8 *srcBuf = NULL;
+  bool srcBufIsTemp = false;
 
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
-
-  // FIXME: Make srcBuf[] and/or dstBuf[] static?
-  rdr::U8 *srcBuf = new rdr::U8[w * 3];
-  JSAMPROW rowPointer[1];
-  rowPointer[0] = (JSAMPROW)srcBuf;
 
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_compress(&cinfo);
 
   cinfo.image_width = w;
   cinfo.image_height = h;
-  cinfo.input_components = 3;
-  cinfo.in_color_space = JCS_RGB;
+
+  #ifdef JCS_EXTENSIONS
+  pixelsize = pf.bpp / 8;
+  if(pf.redMax == 255 && pf.greenMax == 255 && pf.blueMax == 255) {
+    int redShift, greenShift, blueShift;
+    if(pf.bigEndian) {
+      redShift = 24 - pf.redShift;
+      greenShift = 24 - pf.greenShift;
+      blueShift = 24 - pf.blueShift;
+    }
+    else {
+      redShift = pf.redShift;
+      greenShift = pf.greenShift;
+      blueShift = pf.blueShift;
+    }
+    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 3)
+      cinfo.in_color_space = JCS_EXT_RGB;
+    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 4)
+      cinfo.in_color_space = JCS_EXT_RGBX;
+    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 3)
+      cinfo.in_color_space = JCS_EXT_BGR;
+    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 4)
+      cinfo.in_color_space = JCS_EXT_BGRX;
+    if(redShift == 24 && greenShift == 16 && blueShift == 8 && pixelsize == 4)
+      cinfo.in_color_space = JCS_EXT_XBGR;
+    if(redShift == 8 && greenShift == 16 && blueShift == 24 && pixelsize == 4)
+      cinfo.in_color_space = JCS_EXT_XRGB;
+    if(cinfo.in_color_space != JCS_RGB)
+      srcBuf = (rdr::U8 *)buf;
+  }
+  else
+  #endif
+  {
+    srcBuf = new rdr::U8[w * h * pixelsize];
+    srcBufIsTemp = true;
+    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w * h);
+    cinfo.in_color_space = JCS_RGB;
+  }
+  cinfo.input_components = pixelsize;
 
   jpeg_set_defaults(&cinfo);
   jpeg_set_quality(&cinfo, s_pjconf->jpegQuality, TRUE);
@@ -555,16 +590,21 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
   rdr::U8 *dstBuf = new rdr::U8[2048];
   JpegSetDstManager(&cinfo, dstBuf, 2048);
 
+  JSAMPROW *rowPointer = new JSAMPROW[h];
+  for (int dy = 0; dy < h; dy++)
+    rowPointer[dy] = (JSAMPROW)(&srcBuf[dy * w * pixelsize]);
+
   jpeg_start_compress(&cinfo, TRUE);
-  for (int dy = 0; dy < h; dy++) {
-    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)(&buf[dy * w]), w);
-    jpeg_write_scanlines(&cinfo, rowPointer, 1);
-  }
+  while (cinfo.next_scanline < cinfo.image_height)
+    jpeg_write_scanlines(&cinfo, &rowPointer[cinfo.next_scanline],
+      cinfo.image_height - cinfo.next_scanline);
+
   jpeg_finish_compress(&cinfo);
   jpeg_destroy_compress(&cinfo);
 
-  delete[] srcBuf;
+  if (srcBufIsTemp) delete[] srcBuf;
   delete[] dstBuf;
+  delete[] rowPointer;
 
   os->writeU8(0x09 << 4);
   os->writeCompactLength(s_jpeg_os.length());
