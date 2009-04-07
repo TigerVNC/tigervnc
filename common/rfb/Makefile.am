@@ -5,7 +5,7 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	CMsgWriterV3.h ColourCube.h ColourMap.h ComparingUpdateTracker.h \
 	Configuration.h ConnParams.h CSecurity.h CSecurityNone.h \
 	CSecurityVncAuth.h Cursor.h Decoder.h d3des.h Encoder.h \
-	encodings.h Exception.h fttypes.h hextileConstants.h hextileDecode.h \
+	encodings.h Exception.h hextileConstants.h hextileDecode.h \
 	HextileDecoder.h hextileEncodeBetter.h hextileEncode.h \
 	HextileEncoder.h Hostname.h HTTPServer.h ImageGetter.h InputHandler.h \
 	KeyRemapper.h keysymdef.h ListConnInfo.h Logger.h Logger_file.h \
