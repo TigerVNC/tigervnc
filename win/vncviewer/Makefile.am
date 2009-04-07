@@ -42,4 +42,4 @@ vncviewer_LDADD = $(COMMON_DIR)/rfb/librfb.la \
 vncviewer_LDFLAGS = -I$(top_srcdir)/win -mwindows
 
 resources.o: vncviewer.rc
-	i386-mingw32msvc-windres $^ -o $@
+	$(WINDRES) $^ -o $@

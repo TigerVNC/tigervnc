@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.61])
+AC_PREREQ([2.57])
 AC_INIT([tigervnc], [0.0.90], [http://www.tigervnc.org])
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
@@ -11,6 +11,7 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
+AC_CHECK_TOOL([WINDRES], windres, [AC_MSG_ERROR(windres not found)])
 AC_LANG([C++])
 
 if test "$GCC" = yes; then
