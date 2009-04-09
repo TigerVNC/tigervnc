@@ -723,21 +723,6 @@ void CConn::serverInit() {
 
   // Show the window
   window = new DesktopWindow(this);
-  window->setName(cp.name());
-  window->setShowToolbar(options.showToolbar);
-  window->setSize(cp.width, cp.height);
-  applyOptions(options);
-
-  // Save the server's current format
-  serverDefaultPF = cp.pf();
-
-  // Calculate the full-colour format to use
-  calculateFullColourPF();
-
-  // Request the initial update
-  vlog.info("requesting initial update");
-  formatChange = encodingChange = requestUpdate = true;
-  requestNewUpdate();
 
   // Update the window menu
   HMENU wndmenu = GetSystemMenu(window->getHandle(), FALSE);
@@ -758,6 +743,23 @@ void CConn::serverInit() {
   AppendMenu(wndmenu, MF_STRING, IDM_OPTIONS, _T("&Options..."));
   AppendMenu(wndmenu, MF_STRING, IDM_INFO, _T("Connection &Info..."));
   AppendMenu(wndmenu, MF_STRING, IDM_ABOUT, _T("&About..."));
+
+  // Set window attributes
+  window->setName(cp.name());
+  window->setShowToolbar(options.showToolbar);
+  window->setSize(cp.width, cp.height);
+  applyOptions(options);
+
+  // Save the server's current format
+  serverDefaultPF = cp.pf();
+
+  // Calculate the full-colour format to use
+  calculateFullColourPF();
+
+  // Request the initial update
+  vlog.info("requesting initial update");
+  formatChange = encodingChange = requestUpdate = true;
+  requestNewUpdate();
 }
 
 void
