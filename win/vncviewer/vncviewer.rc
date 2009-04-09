@@ -80,16 +80,16 @@ BEGIN
         BLOCK "080904b0"
         BEGIN
             VALUE "Comments", "\0"
-            VALUE "CompanyName", "Constantin Kaplinsky\0"
+            VALUE "CompanyName", "TigerVNC Project\0"
             VALUE "FileDescription", "TigerVNC Viewer for Win32\0"
-            VALUE "FileVersion", "4.1.1\0"
+            VALUE "FileVersion", "0.9.0\0"
             VALUE "InternalName", "free4/vncviewer/win\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2006 [many holders]\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2009 [many holders]\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "TigerVNC Viewer\0"
-            VALUE "ProductVersion", "4.1.1\0"
+            VALUE "ProductVersion", "0.9.0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
