@@ -86,25 +86,25 @@
 #define IDC_STATIC_SCALE                1097
 #define IDC_COMBO_SCALE                 1098
 #define IDC_STATIC_PERCENT              1099
-#define ID_TOOLBAR                      40002
-#define ID_CLOSE                        40003
-#define ID_OPTIONS                      40004
-#define ID_NEW_CONNECTION               40005
-#define ID_ABOUT                        40006
-#define ID_FULLSCREEN                   40007
-#define ID_SEND_CAD                     40008
-#define ID_INFO                         40009
-#define ID_REQUEST_REFRESH              40010
-#define ID_CTRL_KEY                     40011
-#define ID_ALT_KEY                      40012
-#define ID_SEND_MENU_KEY                40013
-#define ID_SEND_CTLESC                  40014
-#define ID_CONN_SAVE_AS                 40015
-#define ID_ZOOM_IN                      40017
-#define ID_ZOOM_OUT                     40018
-#define ID_ACTUAL_SIZE                  40019
-#define ID_AUTO_SIZE                    40020
-#define IDM_SHOW_TOOLBAR                40027
+#define ID_TOOLBAR                      4002
+#define ID_CLOSE                        4003
+#define ID_OPTIONS                      4004
+#define ID_NEW_CONNECTION               4005
+#define ID_ABOUT                        4006
+#define ID_FULLSCREEN                   4007
+#define ID_SEND_CAD                     4008
+#define ID_INFO                         4009
+#define ID_REQUEST_REFRESH              4010
+#define ID_CTRL_KEY                     4011
+#define ID_ALT_KEY                      4012
+#define ID_SEND_MENU_KEY                4013
+#define ID_SEND_CTLESC                  4014
+#define ID_CONN_SAVE_AS                 4015
+#define ID_ZOOM_IN                      4017
+#define ID_ZOOM_OUT                     4018
+#define ID_ACTUAL_SIZE                  4019
+#define ID_AUTO_SIZE                    4020
+#define IDM_SHOW_TOOLBAR                4027
 
 // Next default values for new objects
 // 
