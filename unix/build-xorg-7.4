@@ -119,7 +119,7 @@ build ()
             extraoptions="${extraoptions} --without-xcb"
         fi
         if [ "${module}" = "libSM" ]; then
-            extraoptions="${extraoptions} --with-uuid=no"
+            extraoptions="${extraoptions} --without-libuuid"
         fi
         ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions}
         echo ======================
