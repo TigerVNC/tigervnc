@@ -76,7 +76,6 @@ init()
 
     pushd xserver
     patch -p1 < ../xserver15.patch
-    autoreconf -fiv
     popd
 
     autoreconf -fiv
@@ -151,6 +150,7 @@ build ()
     # build xserver
     echo "*** Building xserver ***"
     cd xserver
+    autoreconf -fiv
     ./configure ${1+"$@"} --prefix=${PREFIX} --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
     if [ $? -ne 0 ]; then
 	echo "Failed to configure X server."
