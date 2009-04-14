@@ -211,7 +211,7 @@ END
 //
 
 /VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "..\\..\\java\\src\\com\\tigervnc\\vncviewer\\VncViewer.jar"
-/INDEX.VNC              HTTPFILE DISCARDABLE    "..\\..\\common\\javabin\\index.vnc"
+/INDEX.VNC              HTTPFILE DISCARDABLE    "index.vnc"
 
 /////////////////////////////////////////////////////////////////////////////
 //
