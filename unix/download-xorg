@@ -4,13 +4,6 @@
 import os
 import glob
 
-hassubprocess = 1
-
-try:
-    import subprocess
-except ImportError:
-    hassubprocess = 0
-
 #INDI = "http://ftp.sunet.se/pub/X11/ftp.x.org/individual"
 INDI = "http://ftp.x.org/pub/individual/"
 PROTO = INDI + "proto/"
@@ -82,9 +75,6 @@ def main():
     for pkg in packages.keys():
         loc = packages[pkg]
         fname = pkg + ".tar.bz2"
-        if hassubprocess == 1:
-            assert 0 == subprocess.call(["wget", "-N", "-c", "-O", fname, loc])
-        else:
-            assert 0 == os.spawnvp(os.P_WAIT, "wget", ["-N", "-c", "-O", fname, loc])
+        assert 0 == os.spawnvp(os.P_WAIT, "wget", ["-N", "-c", "-O", fname, loc])
 
 main()
