@@ -1,4 +1,4 @@
-.TH vncserver 1 "26 Mar 2009" "TigerVNC" "Virtual Network Computing"
+.TH vncserver 1 "15 Apr 2009" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncserver \- start or stop a VNC server
 .SH SYNOPSIS
@@ -91,24 +91,19 @@ end of your xstartup file after a particular application exits.
 
 .TP
 .B \-fp \fIfont-path\fP
-The vncserver script will normally examine your system to figure out where it
-stores its X11 fonts and then generate an appropriate font path argument for
-Xvnc based on this.  If your system stores its X11 fonts in a location that
-vncserver does not know about, however, then this may fail.  In that case,
-vncserver will then try to contact the local X Font Server (xfs) on port 7100.
-Not all systems have xfs installed and running, so this may fail as well.  In
-that case, you can manually specify a font path by using the
+If the vncserver script detects that the X Font Server (XFS) is running, it
+will attempt to start Xvnc and configure Xvnc to use XFS for font handling.
+Otherwise, if XFS is not running, the vncserver script will attempt to start
+Xvnc and allow Xvnc to use its own preferred method of font handling (which may
+be a hard-coded font path or, on more recent systems, a font catalog.)  In
+any case, if Xvnc fails to start, the vncserver script will then attempt to
+determine an appropriate X font path for this system and start Xvnc using
+that font path.
+
+The
 .B \-fp
-argument to vncserver.
-
-If you prefer to use the X Font Server by default rather than a static font
-path, then you can run
-
-.RS
-.RS
-vncserver -fp unix/:7100
-.RE
-.RE
+argument allows you to override the above fallback logic and specify a font
+path for Xvnc to use.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:

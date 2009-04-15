@@ -81,6 +81,14 @@ $defaultXStartup
 
 chop($host = `uname -n`);
 
+if (CheckXFS(1)) {
+    $fontPath = "unix/:7100";
+} else {
+    if (CheckXFS(0)) {
+	$fontPath = "inet/:7100";  # Some Solaris systems require this
+    }
+}
+
 @fontpaths = ('/usr/share/X11/fonts', '/usr/share/fonts', '/usr/share/fonts/X11/');
 if (! -l "/usr/lib/X11") {push(@fontpaths, '/usr/lib/X11/fonts');}
 if (! -l "/usr/X11") {push(@fontpaths, '/usr/X11/lib/X11/fonts');}
@@ -97,18 +105,16 @@ foreach $_fpath (@fontpaths) {
     foreach $_ftype (@fonttypes) {
         if (-f "$_fpath/$_ftype/fonts.dir") {
             if (! -l "$_fpath/$_ftype") {
-                $fontPath .= "$_fpath/$_ftype,";
+                $defFontPath .= "$_fpath/$_ftype,";
             }
         }
     }
 }
-if ($fontPath) {
-    if (substr($fontPath, -1, 1) == ',') {
-        chop $fontPath;
+if ($defFontPath) {
+    if (substr($defFontPath, -1, 1) == ',') {
+        chop $defFontPath;
     }
 }
-
-$defFontPath = "unix/:7100";
 
 # Check command line options
 
@@ -135,6 +141,7 @@ if ($opt{'-pixelformat'}) {
 }
 if ($opt{'-fp'}) {
     $fontPath = $opt{'-fp'};
+    $fpArgSpecified = 1;
 }
 
 &CheckGeometryAndDepth();
@@ -231,10 +238,17 @@ system("$cmd & echo \$! >$pidFile");
 
 sleep(3); 
 unless (kill 0, `cat $pidFile`) {
-    warn "\nWARNING: The first attempt to start Xvnc failed, possibly because the vncserver\n";
-    warn "script was not able to figure out an appropriate X11 font path for this system\n";
-    warn "or because the font path you specified with the -fp argument was not valid.\n";
-    warn "Attempting to restart Xvnc using the X Font Server (xfs) ...\n";
+    if ($fpArgSpecified) {
+	warn "\nWARNING: The first attempt to start Xvnc failed, probably because the font\n";
+	warn "path you specified using the -fp argument is incorrect.  Attempting to\n";
+	warn "determine an appropriate font path for this system and restart Xvnc using\n";
+	warn "that font path ...\n";
+    } else {
+	warn "\nWARNING: The first attempt to start Xvnc failed, possibly because the X Font\n";
+	warn "Server is not running and this system does not use a font catalog.  Attempting\n";
+	warn "to determine an appropriate font path for this system and restart Xvnc using\n";
+	warn "that font path ...\n";
+    }
     $cmd =~ s@-fp [^ ]+@@;
     $cmd .= " -fp $defFontPath" if ($defFontPath);
     system("$cmd & echo \$! >$pidFile");
@@ -379,6 +393,32 @@ sub CheckDisplayNumber
 	return 0;
     }
 
+    return 1;
+}
+
+
+#
+# CheckXFS checks if the X Font Server is running on the default port (7100)
+#
+
+sub CheckXFS
+{
+    if (@_ == 1) {
+	socket(S, $AF_UNIX, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+	eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
+	if (!bind(S, pack('S a108', $AF_UNIX, 7100))) {
+	    close(S);
+	    return 0;
+	}
+    } else {
+	socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
+	eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
+	if (!bind(S, pack('S n a4 x8', $AF_INET, 7100))) {
+	    close(S);
+	    return 0;
+	}
+    }
+    close(S);
     return 1;
 }
 
@@ -674,16 +714,20 @@ sub SanityCheck
 	    if (($os eq "SunOS") && ($osrev !~ /^4/)) {
 		$AF_INET = 2;
 		$SOCK_STREAM = 2;
+		$AF_UNIX = 1;
 	    } else {
 		$AF_INET = 2;
 		$SOCK_STREAM = 1;
+		$AF_UNIX = 1;
 	    }
 	} else {
 	    $AF_INET = &AF_INET;
 	    $SOCK_STREAM = &SOCK_STREAM;
+	    $AF_UNIX = &AF_UNIX;
 	}
     } else {
 	$AF_INET = &AF_INET;
 	$SOCK_STREAM = &SOCK_STREAM;
+	$AF_UNIX = &AF_UNIX;
     }
 }
