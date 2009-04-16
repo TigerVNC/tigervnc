@@ -403,23 +403,20 @@ sub CheckDisplayNumber
 
 sub CheckXFS
 {
-    if (@_ == 1) {
-	socket(S, $AF_UNIX, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
-	eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-	if (!bind(S, pack('S a108', $AF_UNIX, 7100))) {
-	    close(S);
-	    return 0;
+    if ($_[0] == 1) {
+	if (-e "/tmp/.font-unix/fs7100") {
+	    return 1;
 	}
     } else {
 	socket(S, $AF_INET, $SOCK_STREAM, 0) || die "$prog: socket failed: $!\n";
 	eval 'setsockopt(S, &SOL_SOCKET, &SO_REUSEADDR, pack("l", 1))';
-	if (!bind(S, pack('S n a4 x8', $AF_INET, 7100))) {
+	if (!bind(S, pack('S n x12', $AF_INET, 7100))) {
 	    close(S);
-	    return 0;
+	    return 1;
 	}
     }
     close(S);
-    return 1;
+    return 0;
 }
 
 
@@ -714,20 +711,16 @@ sub SanityCheck
 	    if (($os eq "SunOS") && ($osrev !~ /^4/)) {
 		$AF_INET = 2;
 		$SOCK_STREAM = 2;
-		$AF_UNIX = 1;
 	    } else {
 		$AF_INET = 2;
 		$SOCK_STREAM = 1;
-		$AF_UNIX = 1;
 	    }
 	} else {
 	    $AF_INET = &AF_INET;
 	    $SOCK_STREAM = &SOCK_STREAM;
-	    $AF_UNIX = &AF_UNIX;
 	}
     } else {
 	$AF_INET = &AF_INET;
 	$SOCK_STREAM = &SOCK_STREAM;
-	$AF_UNIX = &AF_UNIX;
     }
 }
