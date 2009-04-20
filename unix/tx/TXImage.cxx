@@ -304,28 +304,34 @@ static int depth2bpp(Display* dpy, int depth)
 
 void TXImage::getNativePixelFormat(Visual* vis, int depth)
 {
+  int bpp;
+  int trueColour, bigEndian;
+  int redShift, greenShift, blueShift;
+  int redMax, greenMax, blueMax;
+
   cube = 0;
-  nativePF.depth = depth;
-  nativePF.bpp = depth2bpp(dpy, depth);
-  nativePF.bigEndian = (ImageByteOrder(dpy) == MSBFirst);
-  nativePF.trueColour = (vis->c_class == TrueColor);
+
+  bpp = depth2bpp(dpy, depth);
+  bigEndian = (ImageByteOrder(dpy) == MSBFirst);
+  trueColour = (vis->c_class == TrueColor);
 
   vlog.info("Using default colormap and visual, %sdepth %d.",
             (vis->c_class == TrueColor) ? "TrueColor, " :
             ((vis->c_class == PseudoColor) ? "PseudoColor, " : ""),
             depth);
 
-  if (nativePF.trueColour) {
+  redShift   = ffs(vis->red_mask)   - 1;
+  greenShift = ffs(vis->green_mask) - 1;
+  blueShift  = ffs(vis->blue_mask)  - 1;
+  redMax     = vis->red_mask   >> redShift;
+  greenMax   = vis->green_mask >> greenShift;
+  blueMax    = vis->blue_mask  >> blueShift;
 
-    nativePF.redShift   = ffs(vis->red_mask)   - 1;
-    nativePF.greenShift = ffs(vis->green_mask) - 1;
-    nativePF.blueShift  = ffs(vis->blue_mask)  - 1;
-    nativePF.redMax   = vis->red_mask   >> nativePF.redShift;
-    nativePF.greenMax = vis->green_mask >> nativePF.greenShift;
-    nativePF.blueMax  = vis->blue_mask  >> nativePF.blueShift;
+  nativePF = PixelFormat(bpp, depth, bigEndian, trueColour,
+                         redMax, greenMax, blueMax,
+                         redShift, greenShift, blueShift);
 
-  } else {
-
+  if (!trueColour) {
     XColor xc[256];
     cube = new rfb::ColourCube(6,6,6);
     int r;
