@@ -42,7 +42,7 @@ PixelFormat::PixelFormat(int b, int d, bool e, bool t,
   assert((greenMax & (greenMax + 1)) == 0);
   assert((blueMax & (blueMax + 1)) == 0);
 
-  updateShifts();
+  updateState();
 }
 
 PixelFormat::PixelFormat()
@@ -50,7 +50,7 @@ PixelFormat::PixelFormat()
     redMax(7), greenMax(7), blueMax(3),
     redShift(0), greenShift(3), blueShift(6)
 {
-  updateShifts();
+  updateState();
 }
 
 bool PixelFormat::equal(const PixelFormat& other) const
@@ -81,7 +81,7 @@ void PixelFormat::read(rdr::InStream* is)
   blueShift = is->readU8();
   is->skip(3);
 
-  updateShifts();
+  updateState();
 }
 
 void PixelFormat::write(rdr::OutStream* os) const
@@ -387,7 +387,7 @@ bool PixelFormat::parse(const char* str)
     return false;
   }
 
-  updateShifts();
+  updateState();
 
   return true;
 }
@@ -419,9 +419,10 @@ static int bits(rdr::U16 value)
   return bits;
 }
 
-void PixelFormat::updateShifts(void)
+void PixelFormat::updateState(void)
 {
   int redBits, greenBits, blueBits;
+  int endianTest = 1;
 
   redBits = bits(redMax);
   greenBits = bits(greenMax);
@@ -430,4 +431,9 @@ void PixelFormat::updateShifts(void)
   redConvShift = 16 - redBits;
   greenConvShift = 16 - greenBits;
   blueConvShift = 16 - blueBits;
+
+  if (((*(char*)&endianTest) == 0) != bigEndian)
+    endianMismatch = true;
+  else
+    endianMismatch = false;
 }

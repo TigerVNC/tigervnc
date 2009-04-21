@@ -64,7 +64,7 @@ namespace rfb {
     bool parse(const char* str);
 
   protected:
-    void updateShifts(void);
+    void updateState(void);
 
   public:
     int bpp;
@@ -85,6 +85,7 @@ namespace rfb {
     int redConvShift;
     int greenConvShift;
     int blueConvShift;
+    bool endianMismatch;
   };
 }
 
