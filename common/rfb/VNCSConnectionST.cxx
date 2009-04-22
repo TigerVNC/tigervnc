@@ -522,9 +522,15 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
     // Non-incremental update - treat as if area requested has changed
     updates.add_changed(reqRgn);
     server->comparer->add_changed(reqRgn);
-    // And update the clients view of screen layout
-    writer()->writeSetDesktopSize();
+
+    // And send the screen layout to the client (which, unlike the
+    // framebuffer dimensions, the client doesn't get during init)
     writer()->writeExtendedDesktopSize();
+
+    // We do not send a DesktopSize since it only contains the
+    // framebuffer size (which the client already should know) and
+    // because some clients don't handle extra DesktopSize events
+    // very well.
   }
 }
 
