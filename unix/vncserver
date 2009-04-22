@@ -88,6 +88,9 @@ if (CheckXFS(1)) {
 	$fontPath = "inet/:7100";  # Some Solaris systems require this
     }
 }
+if (-d "/etc/X11/fontpath.d") {
+    $fontPath = "catalogue:/etc/X11/fontpath.d";
+}
 
 @fontpaths = ('/usr/share/X11/fonts', '/usr/share/fonts', '/usr/share/fonts/X11/');
 if (! -l "/usr/lib/X11") {push(@fontpaths, '/usr/lib/X11/fonts');}
