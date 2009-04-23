@@ -98,8 +98,7 @@ namespace rfb {
                                 int hotspotY, void* data, void* mask)=0;
 
     // needFakeUpdate() returns true when an immediate update is needed in
-    // order to flush out setDesktopSize or setCursor pseudo-rectangles to the
-    // client.
+    // order to flush out pseudo-rectangles to the client.
     virtual bool needFakeUpdate();
 
     // writeFramebufferUpdate() writes a framebuffer update using the given
@@ -113,6 +112,16 @@ namespace rfb {
     virtual void writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
                                         Region* updatedRegion);
     */
+
+    // needNoDataUpdate() returns true when an update without any
+    // framebuffer changes need to be sent (using writeNoDataUpdate()).
+    // Commonly this is an update that modifies the size of the framebuffer
+    // or the screen layout.
+    virtual bool needNoDataUpdate();
+
+    // writeNoDataUpdate() write a framebuffer update containing only
+    // pseudo-rectangles.
+    virtual void writeNoDataUpdate();
 
     // writeRects() accepts an UpdateInfo (changed & copied regions) and an
     // ImageGetter to fetch pixels from.  It then calls writeCopyRect() and

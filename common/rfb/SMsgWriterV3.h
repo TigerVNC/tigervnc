@@ -46,12 +46,18 @@ namespace rfb {
                                 void* data, void* mask);
     virtual void writeSetXCursor(int width, int height, int hotspotX,
 				 int hotspotY, void* data, void* mask);
+    virtual bool needFakeUpdate();
+    virtual bool needNoDataUpdate();
+    virtual void writeNoDataUpdate();
     virtual void writeFramebufferUpdateStart(int nRects);
     virtual void writeFramebufferUpdateStart();
     virtual void writeFramebufferUpdateEnd();
-    virtual bool needFakeUpdate();
     virtual void startRect(const Rect& r, unsigned int encoding);
     virtual void endRect();
+
+  protected:
+    virtual void writePseudoRects();
+    virtual void writeNoDataRects();
 
   private:
     rdr::MemOutStream* updateOS;

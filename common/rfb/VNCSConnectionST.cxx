@@ -501,16 +501,22 @@ void VNCSConnectionST::clientCutText(const char* str, int len)
 
 void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 {
+  Rect safeRect;
+
   if (!(accessRights & AccessView)) return;
 
   SConnection::framebufferUpdateRequest(r, incremental);
+
+  vlog.info("FramebufferUpdateRequest %dx%d at %d,%d %sincr",
+             r.width(), r.height(), r.tl.x, r.tl.y, incremental ? "" : "non-");
 
   // Check that the client isn't sending crappy requests
   if (!r.enclosed_by(Rect(0, 0, cp.width, cp.height))) {
     vlog.error("FramebufferUpdateRequest %dx%d at %d,%d exceeds framebuffer %dx%d",
                r.width(), r.height(), r.tl.x, r.tl.y, cp.width, cp.height);
-    // We crop the size later in writeFramebufferUpdate() so no need to
-    // do so now.
+    safeRect = r.intersect(Rect(0, 0, cp.width, cp.height));
+  } else {
+    safeRect = r;
   }
 
   // Just update the requested region.
@@ -623,12 +629,16 @@ void VNCSConnectionST::writeSetCursorCallback()
 
 void VNCSConnectionST::writeFramebufferUpdate()
 {
-  // The framebuffer might have changed size since the
-  // FramebufferUpdateRequest message was received. Clip it to the current
-  // size of the framebuffer.
-  requested = requested.intersect(Region(Rect(0, 0, cp.width, cp.height)));
+  if (state() != RFBSTATE_NORMAL || requested.is_empty())
+    return;
 
-  if (state() != RFBSTATE_NORMAL || requested.is_empty()) return;
+  // First take care of any updates that cannot contain framebuffer data
+  // changes.
+  if (writer()->needNoDataUpdate()) {
+    writer()->writeNoDataUpdate();
+    requested.clear();
+    return;
+  }
 
   updates.enable_copyrect(cp.useCopyRect);
 

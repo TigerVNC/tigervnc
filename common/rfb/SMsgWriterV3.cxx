@@ -144,35 +144,135 @@ void SMsgWriterV3::writeSetXCursor(int width, int height, int hotspotX,
   }
 }
 
+bool SMsgWriterV3::needFakeUpdate()
+{
+  return wsccb || needSetDesktopName || needNoDataUpdate();
+}
+
+bool SMsgWriterV3::needNoDataUpdate()
+{
+  return needSetDesktopSize || needExtendedDesktopSize ||
+         !extendedDesktopSizeMsgs.empty();
+}
+
+void SMsgWriterV3::writeNoDataUpdate()
+{
+  int nRects;
+
+  nRects = 0;
+
+  if (needSetDesktopSize)
+    nRects++;
+  if (needExtendedDesktopSize)
+    nRects++;
+  if (!extendedDesktopSizeMsgs.empty())
+    nRects += extendedDesktopSizeMsgs.size();
+
+  writeFramebufferUpdateStart(nRects);
+  writeNoDataRects();
+  writeFramebufferUpdateEnd();
+}
+
 void SMsgWriterV3::writeFramebufferUpdateStart(int nRects)
 {
   startMsg(msgTypeFramebufferUpdate);
   os->pad(1);
-  if (wsccb) nRects++;
-  if (needSetDesktopSize) nRects++;
-  if (needExtendedDesktopSize) nRects++;
-  if (!extendedDesktopSizeMsgs.empty()) nRects += extendedDesktopSizeMsgs.size();
-  if (needSetDesktopName) nRects++;
+
+  if (wsccb)
+    nRects++;
+  if (needSetDesktopName)
+    nRects++;
+
   os->writeU16(nRects);
+
   nRectsInUpdate = 0;
   nRectsInHeader = nRects;
-  if (wsccb) {
-    wsccb->writeSetCursorCallback();
-    wsccb = 0;
-  }
+
+  writePseudoRects();
 }
 
 void SMsgWriterV3::writeFramebufferUpdateStart()
 {
   nRectsInUpdate = nRectsInHeader = 0;
+
   if (!updateOS)
     updateOS = new rdr::MemOutStream;
   os = updateOS;
+
+  writePseudoRects();
 }
 
 void SMsgWriterV3::writeFramebufferUpdateEnd()
 {
-  /* Start with specific ExtendedDesktopSize messages */
+  if (nRectsInUpdate != nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriterV3::writeFramebufferUpdateEnd: "
+                    "nRects out of sync");
+
+  if (os == updateOS) {
+    os = realOS;
+    startMsg(msgTypeFramebufferUpdate);
+    os->pad(1);
+    os->writeU16(nRectsInUpdate);
+    os->writeBytes(updateOS->data(), updateOS->length());
+    updateOS->clear();
+  }
+
+  updatesSent++;
+  endMsg();
+}
+
+void SMsgWriterV3::startRect(const Rect& r, unsigned int encoding)
+{
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriterV3::startRect: nRects out of sync");
+
+  currentEncoding = encoding;
+  lenBeforeRect = os->length();
+  if (encoding != encodingCopyRect)
+    rawBytesEquivalent += 12 + r.width() * r.height() * (bpp()/8);
+
+  os->writeS16(r.tl.x);
+  os->writeS16(r.tl.y);
+  os->writeU16(r.width());
+  os->writeU16(r.height());
+  os->writeU32(encoding);
+}
+
+void SMsgWriterV3::endRect()
+{
+  if (currentEncoding <= encodingMax) {
+    bytesSent[currentEncoding] += os->length() - lenBeforeRect;
+    rectsSent[currentEncoding]++;
+  }
+}
+
+void SMsgWriterV3::writePseudoRects()
+{
+  if (wsccb) {
+    wsccb->writeSetCursorCallback();
+    wsccb = 0;
+  }
+
+  if (needSetDesktopName) {
+    if (!cp->supportsDesktopRename)
+      throw Exception("Client does not support desktop rename");
+    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriterV3 setDesktopName: nRects out of sync");
+
+    os->writeS16(0);
+    os->writeS16(0);
+    os->writeU16(0);
+    os->writeU16(0);
+    os->writeU32(pseudoEncodingDesktopName);
+    os->writeString(cp->name());
+
+    needSetDesktopName = false;
+  }
+}
+
+void SMsgWriterV3::writeNoDataRects()
+{
+  // Start with specific ExtendedDesktopSize messages
   if (!extendedDesktopSizeMsgs.empty()) {
     std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
     ScreenSet::const_iterator si;
@@ -205,12 +305,13 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
     extendedDesktopSizeMsgs.clear();
   }
 
-  /* Send this before SetDesktopSize to make life easier on the clients */
+  // Send this before SetDesktopSize to make life easier on the clients
   if (needExtendedDesktopSize) {
     if (!cp->supportsExtendedDesktopSize)
       throw Exception("Client does not support extended desktop resize");
     if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
       throw Exception("SMsgWriterV3 setExtendedDesktopSize: nRects out of sync");
+
     os->writeU16(0);
     os->writeU16(0);
     os->writeU16(cp->width);
@@ -233,74 +334,21 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
     needExtendedDesktopSize = false;
   }
 
+  // Some clients assume this is the last rectangle so don't send anything
+  // more after this
   if (needSetDesktopSize) {
     if (!cp->supportsDesktopResize)
       throw Exception("Client does not support desktop resize");
     if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
       throw Exception("SMsgWriterV3 setDesktopSize: nRects out of sync");
+
     os->writeS16(0);
     os->writeS16(0);
     os->writeU16(cp->width);
     os->writeU16(cp->height);
     os->writeU32(pseudoEncodingDesktopSize);
+
     needSetDesktopSize = false;
   }
-
-  if (needSetDesktopName) {
-    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
-      throw Exception("SMsgWriterV3 setDesktopName: nRects out of sync");
-    os->writeS16(0);
-    os->writeS16(0);
-    os->writeU16(0);
-    os->writeU16(0);
-    os->writeU32(pseudoEncodingDesktopName);
-    os->writeString(cp->name());
-    needSetDesktopName = false;
-  }
-
-  if (nRectsInUpdate != nRectsInHeader && nRectsInHeader)
-    throw Exception("SMsgWriterV3::writeFramebufferUpdateEnd: "
-                    "nRects out of sync");
-  if (os == updateOS) {
-    os = realOS;
-    startMsg(msgTypeFramebufferUpdate);
-    os->pad(1);
-    os->writeU16(nRectsInUpdate);
-    os->writeBytes(updateOS->data(), updateOS->length());
-    updateOS->clear();
-  }
-
-  updatesSent++;
-  endMsg();
 }
 
-bool SMsgWriterV3::needFakeUpdate()
-{
-  return wsccb || needSetDesktopSize || needExtendedDesktopSize ||
-         !extendedDesktopSizeMsgs.empty() || needSetDesktopName;
-}
-
-void SMsgWriterV3::startRect(const Rect& r, unsigned int encoding)
-{
-  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
-    throw Exception("SMsgWriterV3::startRect: nRects out of sync");
-
-  currentEncoding = encoding;
-  lenBeforeRect = os->length();
-  if (encoding != encodingCopyRect)
-    rawBytesEquivalent += 12 + r.width() * r.height() * (bpp()/8);
-
-  os->writeS16(r.tl.x);
-  os->writeS16(r.tl.y);
-  os->writeU16(r.width());
-  os->writeU16(r.height());
-  os->writeU32(encoding);
-}
-
-void SMsgWriterV3::endRect()
-{
-  if (currentEncoding <= encodingMax) {
-    bytesSent[currentEncoding] += os->length() - lenBeforeRect;
-    rectsSent[currentEncoding]++;
-  }
-}

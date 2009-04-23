@@ -114,6 +114,11 @@ int SMsgWriter::getNumRects(const Rect &r)
   return encoders[encoding]->getNumRects(r);
 }
 
+bool SMsgWriter::needFakeUpdate()
+{
+  return false;
+}
+
 // FIXME: This functions is not used because it incorrectly computes
 //        the number of rectangles if the Tight encoder is used.
 /*
@@ -125,6 +130,17 @@ void SMsgWriter::writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
   writeFramebufferUpdateEnd();
 }
 */
+
+bool SMsgWriter::needNoDataUpdate()
+{
+  return false;
+}
+
+void SMsgWriter::writeNoDataUpdate()
+{
+  // This class has no pseudo-rectangles so there is nothing to do here
+  vlog.error("writeNoDataUpdate() called");
+}
 
 void SMsgWriter::writeRects(const UpdateInfo& ui, ImageGetter* ig,
                             Region* updatedRegion)
@@ -146,12 +162,6 @@ void SMsgWriter::writeRects(const UpdateInfo& ui, ImageGetter* ig,
       updatedRegion->assign_union(actual);
     }
   }
-}
-
-
-bool SMsgWriter::needFakeUpdate()
-{
-  return false;
 }
 
 bool SMsgWriter::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
