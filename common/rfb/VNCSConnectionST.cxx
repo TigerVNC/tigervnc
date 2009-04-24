@@ -507,9 +507,6 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 
   SConnection::framebufferUpdateRequest(r, incremental);
 
-  vlog.info("FramebufferUpdateRequest %dx%d at %d,%d %sincr",
-             r.width(), r.height(), r.tl.x, r.tl.y, incremental ? "" : "non-");
-
   // Check that the client isn't sending crappy requests
   if (!r.enclosed_by(Rect(0, 0, cp.width, cp.height))) {
     vlog.error("FramebufferUpdateRequest %dx%d at %d,%d exceeds framebuffer %dx%d",
