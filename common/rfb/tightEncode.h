@@ -518,7 +518,7 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
 {
   int w = r.width();
   int h = r.height();
-  int pixelsize = 3;
+  int pixelsize;
   rdr::U8 *srcBuf = NULL;
   bool srcBufIsTemp = false;
 
@@ -530,44 +530,46 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
 
   cinfo.image_width = w;
   cinfo.image_height = h;
+  cinfo.in_color_space = JCS_RGB;
+  pixelsize = 3;
 
-  #ifdef JCS_EXTENSIONS
-  pixelsize = pf.bpp / 8;
-  if(pf.redMax == 255 && pf.greenMax == 255 && pf.blueMax == 255) {
+#ifdef JCS_EXTENSIONS
+  // Try to have libjpeg read directly from our native format
+  if(pf.is888()) {
     int redShift, greenShift, blueShift;
+
     if(pf.bigEndian) {
       redShift = 24 - pf.redShift;
       greenShift = 24 - pf.greenShift;
       blueShift = 24 - pf.blueShift;
-    }
-    else {
+    } else {
       redShift = pf.redShift;
       greenShift = pf.greenShift;
       blueShift = pf.blueShift;
     }
-    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 3)
-      cinfo.in_color_space = JCS_EXT_RGB;
-    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 4)
+
+    if(redShift == 0 && greenShift == 8 && blueShift == 16)
       cinfo.in_color_space = JCS_EXT_RGBX;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 3)
-      cinfo.in_color_space = JCS_EXT_BGR;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 4)
+    if(redShift == 16 && greenShift == 8 && blueShift == 0)
       cinfo.in_color_space = JCS_EXT_BGRX;
-    if(redShift == 24 && greenShift == 16 && blueShift == 8 && pixelsize == 4)
+    if(redShift == 24 && greenShift == 16 && blueShift == 8)
       cinfo.in_color_space = JCS_EXT_XBGR;
-    if(redShift == 8 && greenShift == 16 && blueShift == 24 && pixelsize == 4)
+    if(redShift == 8 && greenShift == 16 && blueShift == 24)
       cinfo.in_color_space = JCS_EXT_XRGB;
-    if(cinfo.in_color_space != JCS_RGB)
+
+    if (cinfo.in_color_space != JCS_RGB) {
       srcBuf = (rdr::U8 *)buf;
+      pixelsize = 4;
+    }
   }
-  else
-  #endif
-  {
+#endif
+
+  if (cinfo.in_color_space == JCS_RGB) {
     srcBuf = new rdr::U8[w * h * pixelsize];
     srcBufIsTemp = true;
     pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w * h);
-    cinfo.in_color_space = JCS_RGB;
   }
+
   cinfo.input_components = pixelsize;
 
   jpeg_set_defaults(&cinfo);

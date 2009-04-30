@@ -230,7 +230,7 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
   struct jpeg_error_mgr jerr;
   int w = r.width();
   int h = r.height();
-  int pixelsize = 3;
+  int pixelsize;
   rdr::U8 *dstBuf = NULL;
   bool dstBufIsTemp = false;
   const rfb::PixelFormat& pf = handler->cp.pf();
@@ -254,41 +254,44 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
   JpegSetSrcManager(&cinfo, (char*)netbuf, compressedLen);
   jpeg_read_header(&cinfo, TRUE);
 
-  #ifdef JCS_EXTENSIONS
-  pixelsize = pf.bpp / 8;
-  if(pf.redMax == 255 && pf.greenMax == 255 && pf.blueMax == 255) {
+  cinfo.out_color_space = JCS_RGB;
+  pixelsize = 3;
+
+#ifdef JCS_EXTENSIONS
+  // Try to have libjpeg output directly to our native format
+  if (pf.is888()) {
     int redShift, greenShift, blueShift;
+
     if(pf.bigEndian) {
       redShift = 24 - pf.redShift;
       greenShift = 24 - pf.greenShift;
       blueShift = 24 - pf.blueShift;
-    }
-    else {
+    } else {
       redShift = pf.redShift;
       greenShift = pf.greenShift;
       blueShift = pf.blueShift;
     }
-    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 3)
-      cinfo.out_color_space = JCS_EXT_RGB;
-    if(redShift == 0 && greenShift == 8 && blueShift == 16 && pixelsize == 4)
+
+    // libjpeg can only handle some "standard" formats
+    if(redShift == 0 && greenShift == 8 && blueShift == 16)
       cinfo.out_color_space = JCS_EXT_RGBX;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 3)
-      cinfo.out_color_space = JCS_EXT_BGR;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0 && pixelsize == 4)
+    if(redShift == 16 && greenShift == 8 && blueShift == 0)
       cinfo.out_color_space = JCS_EXT_BGRX;
-    if(redShift == 24 && greenShift == 16 && blueShift == 8 && pixelsize == 4)
+    if(redShift == 24 && greenShift == 16 && blueShift == 8)
       cinfo.out_color_space = JCS_EXT_XBGR;
-    if(redShift == 8 && greenShift == 16 && blueShift == 24 && pixelsize == 4)
+    if(redShift == 8 && greenShift == 16 && blueShift == 24)
       cinfo.out_color_space = JCS_EXT_XRGB;
-    if(cinfo.out_color_space != JCS_RGB)
+
+    if (cinfo.out_color_space != JCS_RGB) {
       dstBuf = (rdr::U8 *)buf;
+      pixelsize = 4;
+    }
   }
-  else
-  #endif
-  {
+#endif
+
+  if (cinfo.out_color_space == JCS_RGB) {
     dstBuf = new rdr::U8[w * h * pixelsize];
     dstBufIsTemp = true;
-    cinfo.out_color_space = JCS_RGB;
   }
 
   JSAMPROW *rowPointer = new JSAMPROW[h];
