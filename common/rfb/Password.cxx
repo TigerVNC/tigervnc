@@ -38,6 +38,9 @@ PlainPasswd::PlainPasswd() {}
 PlainPasswd::PlainPasswd(char* pwd) : CharArray(pwd) {
 }
 
+PlainPasswd::PlainPasswd(int len) : CharArray(len) {
+}
+
 PlainPasswd::PlainPasswd(const ObfuscatedPasswd& obfPwd) : CharArray(9) {
   if (obfPwd.length < 8)
     throw rdr::Exception("bad obfuscated password length");

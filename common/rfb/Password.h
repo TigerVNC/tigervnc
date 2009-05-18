@@ -28,6 +28,7 @@ namespace rfb {
   public:
     PlainPasswd();
     PlainPasswd(char* pwd);
+    PlainPasswd(int len);
     PlainPasswd(const ObfuscatedPasswd& obfPwd);
     ~PlainPasswd();
     void replaceBuf(char* b);
