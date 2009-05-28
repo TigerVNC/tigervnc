@@ -171,10 +171,12 @@ void VNCSConnectionST::pixelBufferChange()
       cp.height = server->pb->height();
       cp.screenLayout = server->screenLayout;
       if (state() == RFBSTATE_NORMAL) {
-        if (!writer()->writeSetDesktopSize() &&
-            !writer()->writeExtendedDesktopSize()) {
-          close("Client does not support desktop resize");
-          return;
+        // We should only send EDS to client asking for both
+        if (!writer()->writeExtendedDesktopSize()) {
+          if (!writer()->writeSetDesktopSize()) {
+            close("Client does not support desktop resize");
+            return;
+          }
         }
       }
     }
