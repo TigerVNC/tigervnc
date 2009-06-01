@@ -66,6 +66,7 @@ void ScaledDIBSectionBuffer::setPF(const PixelFormat &pf_) {
     }
   } else {
     DIBSectionBuffer::setPF(pf);
+    pf = format;
   }
 }
 
