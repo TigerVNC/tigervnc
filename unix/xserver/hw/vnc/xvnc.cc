@@ -991,6 +991,7 @@ static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
     void *pbits;
     Bool ret;
     int oldwidth, oldheight, oldmmWidth, oldmmHeight;
+    int dpix, dpiy;
 
     /* Prevent updates while we fiddle */
     xf86SetRootClip(pScreen, FALSE);
@@ -1001,11 +1002,17 @@ static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
     oldmmWidth = pScreen->mmWidth;
     oldmmHeight = pScreen->mmHeight;
 
+    /* Compute the current DPI (for use later) */
+    dpix = (pScreen->width * 254 + pScreen->mmWidth * 5) / (pScreen->mmWidth * 10);
+    dpiy = (pScreen->height * 254 + pScreen->mmHeight * 5) / (pScreen->mmHeight * 10);
+
     /* Then set the new dimensions */
     pScreen->width = pSize->width;
     pScreen->height = pSize->height;
-    pScreen->mmWidth = pSize->mmWidth;
-    pScreen->mmHeight = pSize->mmHeight;
+
+    /* Try to keep the same DPI as we do not have a physical screen */
+    pScreen->mmWidth = (pScreen->width * 254 + dpix * 5) / (dpix * 10);
+    pScreen->mmHeight = (pScreen->height * 254 + dpiy * 5) / (dpiy * 10);
 
     /* Allocate a new framebuffer */
     memset(&fb, 0, sizeof(vfbFramebufferInfo));
