@@ -73,7 +73,11 @@ void ComparingUpdateTracker::compare()
 void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
 {
   if (!r.enclosed_by(fb->getRect())) {
-    fprintf(stderr,"ComparingUpdateTracker: rect outside fb (%d,%d-%d,%d)\n", r.tl.x, r.tl.y, r.br.x, r.br.y);
+    Rect safe;
+    // Crop the rect and try again
+    safe = r.intersect(fb->getRect());
+    if (!safe.is_empty())
+      compareRect(safe, newChanged);
     return;
   }
 
