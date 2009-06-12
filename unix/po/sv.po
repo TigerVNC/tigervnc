@@ -1,19 +1,19 @@
-# Swedish translations for tightvnc package
-# Svenska ˆvers‰ttningar fˆr paket tightvnc.
+# Swedish translations for TigerVNC package
+# Svenska √∂vers√§ttningar f√∂r paket TigerVNC.
 # Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
 # This file is distributed under the same license as the tightvnc package.
 # Peter Astrand <astrand@cendio.se>, 2005.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tightvnc 1.5.0\n"
+"Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2009-01-26 13:27+0100\n"
+"POT-Creation-Date: 2009-06-12 12:18+0200\n"
 "PO-Revision-Date: 2009-01-26 13:31+0100\n"
 "Last-Translator: Peter Astrand <astrand@cendio.se>\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -31,7 +31,7 @@ msgid "Exit viewer"
 msgstr "Avsluta visaren"
 
 msgid "Full screen"
-msgstr "Fullsk‰rm"
+msgstr "Fullsk√§rm"
 
 msgid "Ctrl"
 msgstr "Ctrl"
@@ -47,13 +47,13 @@ msgid "Send Ctrl-Alt-Del"
 msgstr "Skicka Ctrl-Alt-Del"
 
 msgid "Refresh screen"
-msgstr "Uppdatera sk‰rm"
+msgstr "Uppdatera sk√§rm"
 
 msgid "New connection..."
 msgstr "Ny anslutning..."
 
 msgid "Options..."
-msgstr "Inst‰llningar..."
+msgstr "Inst√§llningar..."
 
 msgid "Connection info..."
 msgstr "Information om anslutningen..."
@@ -62,7 +62,7 @@ msgid "About VNCviewer..."
 msgstr "Om VNC-visaren..."
 
 msgid "Dismiss menu"
-msgstr "St‰ng meny"
+msgstr "St√§ng meny"
 
 msgid "VNC Menu"
 msgstr "VNC-meny"
@@ -81,15 +81,15 @@ msgid ""
 "Security method: %s\n"
 msgstr ""
 "Skrivbordsnamn: %.80s\n"
-"V‰rd: %.80s port: %d\n"
+"V√§rd: %.80s port: %d\n"
 "Storlek: %d x %d\n"
 "Pixelformat: %s\n"
 "(serverstandard %s)\n"
-"Beg‰rd kodning: %s\n"
-"Senast anv‰nd kodning: %s\n"
-"Uppskattad hastighet pÂ fˆrbindelsen: %d kbit/s\n"
+"Beg√§rd kodning: %s\n"
+"Senast anv√§nd kodning: %s\n"
+"Uppskattad hastighet p√• f√∂rbindelsen: %d kbit/s\n"
 "Protokollversion: %d.%d\n"
-"S‰kerhetsmetod: %s\n"
+"S√§kerhetsmetod: %s\n"
 
 msgid "VNC connection info"
 msgstr "VNC anslutningsinformation"
@@ -98,7 +98,7 @@ msgid "VNC Viewer: Connection Options"
 msgstr "VNC-visare: Anslutningsalternativ"
 
 msgid "Encoding and Color Level:"
-msgstr "Kodning och f‰rgnivÂ:"
+msgstr "Kodning och f√§rgniv√•:"
 
 msgid "Inputs:"
 msgstr "Inmatning:"
@@ -110,34 +110,34 @@ msgid "Auto select"
 msgstr "Automatiskt val"
 
 msgid "Full (all available colors)"
-msgstr "Full (alla tillg‰ngliga f‰rger)"
+msgstr "Full (alla tillg√§ngliga f√§rger)"
 
 msgid "Medium (256 colors)"
-msgstr "Medium (256 f‰rger)"
+msgstr "Medium (256 f√§rger)"
 
 msgid "Low (64 colors)"
-msgstr "LÂg (64 f‰rger)"
+msgstr "L√•g (64 f√§rger)"
 
 msgid "Very low (8 colors)"
-msgstr "Mycket lÂg (8 f‰rger)"
+msgstr "Mycket l√•g (8 f√§rger)"
 
 msgid "Custom compression level:"
-msgstr "Anpassad kompressionsnivÂ:"
+msgstr "Anpassad kompressionsniv√•:"
 
 msgid "level (1=fast, 9=best)"
-msgstr "nivÂ (1=snabb, 9=b‰st)"
+msgstr "niv√• (1=snabb, 9=b√§st)"
 
 msgid "Allow JPEG compression:"
-msgstr "TillÂt JPEG-kompression:"
+msgstr "Till√•t JPEG-kompression:"
 
 msgid "quality (1=poor, 9=best)"
-msgstr "kvalitet (0=dÂlig, 9=b‰st)"
+msgstr "kvalitet (0=d√•lig, 9=b√§st)"
 
 msgid "View only (ignore mouse & keyboard)"
 msgstr "Endast visning (ignorera mus och tangentbord)"
 
 msgid "Accept clipboard from server"
-msgstr "Acceptera urklipp frÂn server"
+msgstr "Acceptera urklipp fr√•n server"
 
 msgid "Send clipboard to server"
 msgstr "Skicka urklipp till server"
@@ -146,16 +146,16 @@ msgid "Send primary selection & cut buffer as clipboard"
 msgstr "Skicka PRIMARY och CUT_BUFFER som urklipp"
 
 msgid "Shared (don't disconnect other viewers)"
-msgstr "Delad (koppla ej frÂn andra visare)"
+msgstr "Delad (koppla ej fr√•n andra visare)"
 
 msgid "Full-screen mode"
-msgstr "Fullsk‰rmsl‰ge"
+msgstr "Fullsk√§rmsl√§ge"
 
 msgid "Render cursor locally"
 msgstr "Hantera muspekaren lokalt"
 
 msgid "Show dot when no cursor"
-msgstr "Visa punkt n‰r muspekare saknas"
+msgstr "Visa punkt n√§r muspekare saknas"
 
 msgid "OK"
 msgstr "Ok"
@@ -164,10 +164,10 @@ msgid "Cancel"
 msgstr "Avbryt"
 
 msgid "Username:"
-msgstr "Anv‰ndarnamn:"
+msgstr "Anv√§ndarnamn:"
 
 msgid "Password:"
-msgstr "Lˆsenord:"
+msgstr "L√∂senord:"
 
 msgid "VNC Viewer: Connection Details"
 msgstr "VNC-visare: Anslutningsdetaljer"
@@ -186,8 +186,8 @@ msgid ""
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC-visare fˆr X version %s - byggd %s\n"
+"TigerVNC-visare f√∂r X version %s - byggd %s\n"
 "Copyright (C) 2002-2005 RealVNC Ltd.\n"
 "Copyright (C) 2000-2006 TightVNC Group\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
-"Se http://www.tigervnc.org fˆr information om TigerVNC."
+"Se http://www.tigervnc.org f√∂r information om TigerVNC."

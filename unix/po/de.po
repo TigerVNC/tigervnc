@@ -1,5 +1,5 @@
-# German translations for tightvnc package
-# Deutsche Übersetzung für das Tightvnc Paket
+# German translations for TigerVNC
+# Deutsche Ãœbersetzung fÃ¼r das TigerVNC Paket
 # Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
 # Copyright (C) 2005 Klaus Franken, StrukturPunkt
 # This file is distributed under the same license as the tightvnc package.
@@ -7,22 +7,26 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tightvnc 1.5.0\n"
+"Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2005-03-01 20:37+0100\n"
+"POT-Creation-Date: 2009-06-12 12:18+0200\n"
 "PO-Revision-Date: 2005-03-01 20:41+0100\n"
 "Last-Translator: Klaus Franken <Klaus.Franken@StrukturPunkt.de>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "About VNC Viewer"
-msgstr "Über VNC-Viewer"
+msgstr "Ãœber VNC-Viewer"
 
 msgid "VNC authentication"
 msgstr "VNC Authentifizierung"
+
+#, c-format
+msgid "TigerVNC: %.240s"
+msgstr ""
 
 msgid "Exit viewer"
 msgstr "Viewer beenden"
@@ -56,13 +60,13 @@ msgid "Connection info..."
 msgstr "Verbindungsinformationen..."
 
 msgid "About VNCviewer..."
-msgstr "Über VNC-Viewer"
+msgstr "Ãœber VNC-Viewer"
 
 msgid "Dismiss menu"
-msgstr "Menü verlassen"
+msgstr "MenÃ¼ verlassen"
 
 msgid "VNC Menu"
-msgstr "VNC-Menü"
+msgstr "VNC-MenÃ¼"
 
 #, c-format
 msgid ""
@@ -79,12 +83,12 @@ msgid ""
 msgstr ""
 "Desktopname: %.80s\n"
 "Host: %.80s port: %d\n"
-"Größe: %d x %d\n"
+"GrÃ¶ÃŸe: %d x %d\n"
 "Pixelformat: %s\n"
 "(Server Standard %s)\n"
-"gewünschte Kodierung: %s\n"
+"gewÃ¼nschte Kodierung: %s\n"
 "letzte benutzte Kodierung: %s\n"
-"Leitungsgeschwindigkeit (geschätzt): %d kbit/s\n"
+"Leitungsgeschwindigkeit (geschÃ¤tzt): %d kbit/s\n"
 "Protokollversion: %d.%d\n"
 "Sicherheitsmethode: %s\n"
 
@@ -107,7 +111,7 @@ msgid "Auto select"
 msgstr "automatische Auswahl"
 
 msgid "Full (all available colors)"
-msgstr "Voll (alle verfügbaren Farben)"
+msgstr "Voll (alle verfÃ¼gbaren Farben)"
 
 msgid "Medium (256 colors)"
 msgstr "Mittel (256 Farben)"
@@ -128,7 +132,7 @@ msgid "Allow JPEG compression:"
 msgstr "Erlaube JPEG-Kompression:"
 
 msgid "quality (1=poor, 9=best)"
-msgstr "Qualität (0=schlechte, 9=beste)"
+msgstr "QualitÃ¤t (0=schlechte, 9=beste)"
 
 msgid "View only (ignore mouse & keyboard)"
 msgstr "nur Ansicht (ignoriere Maus und Tastatur)"
@@ -173,19 +177,19 @@ msgid "VNC server:"
 msgstr "VNC-Server:"
 
 msgid "About..."
-msgstr "Über..."
+msgstr "Ãœber..."
 
 #, c-format
 msgid ""
-"TigerVNC viewer for X version 4.0 - built %s\n"
-"Copyright (C) 2002-2004 RealVNC Ltd.\n"
-"Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+"TigerVNC Viewer for X version %s - built %s\n"
+"Copyright (C) 2002-2005 RealVNC Ltd.\n"
+"Copyright (C) 2000-2006 TightVNC Group\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC-Viewer für X version 4.0 - gebaut %s\n"
+"TigerVNC-Viewer fÃ¼r X version %s - gebaut %s\n"
 "Copyright (C) 2002-2004 RealVNC Ltd.\n"
 "Copyright (C) 2000-2004 Constantin Kaplinsky.\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 "Copyright (C) 2005 Klaus Franken, StrukturPunkt\n"
-"Siehe http://www.tigervnc.org für Informationen über TigerVNC."
+"Siehe http://www.tigervnc.org fÃ¼r Informationen Ã¼ber TigerVNC."
