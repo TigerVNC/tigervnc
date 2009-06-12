@@ -1,13 +1,13 @@
-# Translation of tightvnc.pot to Slovak
+# Translation of tigervnc.pot to Slovak
 # Copyright (C) YEAR RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
 # This file is distributed under the same license as the TigerVNC package.
 # Jozef Riha <jose1711@gmail.com>, 2008.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: TigerVNC 1.5.0\n"
+"Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2005-03-01 20:37+0100\n"
+"POT-Creation-Date: 2009-06-12 12:18+0200\n"
 "PO-Revision-Date: 2008-11-30 21:34+0100\n"
 "Last-Translator: Jozef Riha <jose1711@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
@@ -20,6 +20,10 @@ msgstr "O aplikácií VNC Viewer"
 
 msgid "VNC authentication"
 msgstr "VNC autorizácia"
+
+#, c-format
+msgid "TigerVNC: %.240s"
+msgstr ""
 
 msgid "Exit viewer"
 msgstr "Ukončiť prehliadač"
@@ -174,13 +178,13 @@ msgstr "O programe..."
 
 #, c-format
 msgid ""
-"TigerVNC viewer for X version 4.0 - built %s\n"
-"Copyright (C) 2002-2004 RealVNC Ltd.\n"
-"Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+"TigerVNC Viewer for X version %s - built %s\n"
+"Copyright (C) 2002-2005 RealVNC Ltd.\n"
+"Copyright (C) 2000-2006 TightVNC Group\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC viewer pre X verzie 4.0 - zostavené %s\n"
+"TigerVNC viewer pre X verzie %s - zostavené %s\n"
 "Copyright (C) 2002-2004 RealVNC Ltd.\n"
 "Copyright (C) 2000-2004 Constantin Kaplinsky\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"

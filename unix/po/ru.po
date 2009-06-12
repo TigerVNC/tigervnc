@@ -1,12 +1,12 @@
-# Russian translation for tightvnc package
-# Русский перевод пакета tightvnc
+# Russian translation for TigerVNC package
+# Русский перевод пакета TigerVNC
 # Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
 # This file is distributed under the same license as the tightvnc package.
 # Constantin Kaplinsky <const@tightvnc.com>, 2006.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tightvnc 1.5.0\n"
+"Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2005-03-01 20:37+0100\n"
 "PO-Revision-Date: 2006-04-13 20:13+0700\n"
@@ -175,13 +175,13 @@ msgstr "О программе..."
 
 #, c-format
 msgid ""
-"TigerVNC viewer for X version 4.0 - built %s\n"
+"TigerVNC viewer for X version %s - built %s\n"
 "Copyright (C) 2002-2004 RealVNC Ltd.\n"
 "Copyright (C) 2000-2004 Constantin Kaplinsky\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC viewer для X, версия 4.0 - время сборки %s\n"
+"TigerVNC viewer для X, версия %s - время сборки %s\n"
 "Copyright (C) 2002-2004 RealVNC Ltd.\n"
 "Copyright (C) 2000-2004 Константин Каплинский\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
