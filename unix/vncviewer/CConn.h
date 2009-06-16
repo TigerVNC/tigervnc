@@ -80,7 +80,7 @@ public:
   void setName(const char* name);
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
   void bell();
-  void serverCutText(const char* str, int len);
+  void serverCutText(const char* str, rdr::U32 len);
   void framebufferUpdateStart();
   void framebufferUpdateEnd();
   void beginRect(const rfb::Rect& r, unsigned int encoding);

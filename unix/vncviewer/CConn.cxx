@@ -389,7 +389,7 @@ void CConn::setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs)
 
 void CConn::bell() { XBell(dpy, 0); }
 
-void CConn::serverCutText(const char* str, int len) {
+void CConn::serverCutText(const char* str, rdr::U32 len) {
   desktop->serverCutText(str,len);
 }
 
