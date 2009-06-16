@@ -55,10 +55,6 @@ void CMsgHandler::setExtendedDesktopSize(int reason, int result,
   cp.screenLayout = layout;
 }
 
-void CMsgHandler::setCursor(int w, int h, const Point& hotspot, void* data, void* mask)
-{
-}
-
 void CMsgHandler::setPixelFormat(const PixelFormat& pf)
 {
   cp.setPF(pf);
@@ -69,50 +65,3 @@ void CMsgHandler::setName(const char* name)
   cp.setName(name);
 }
 
-void CMsgHandler::serverInit()
-{
-  throw Exception("CMsgHandler::serverInit called");
-}
-
-void CMsgHandler::framebufferUpdateStart()
-{
-}
-
-void CMsgHandler::framebufferUpdateEnd()
-{
-}
-
-void CMsgHandler::beginRect(const Rect& r, unsigned int encoding)
-{
-}
-
-void CMsgHandler::endRect(const Rect& r, unsigned int encoding)
-{
-}
-
-
-void CMsgHandler::setColourMapEntries(int firstColour, int nColours,
-                                      rdr::U16* rgbs)
-{
-  throw Exception("CMsgHandler::setColourMapEntries called");
-}
-
-void CMsgHandler::bell()
-{
-}
-
-void CMsgHandler::serverCutText(const char* str, rdr::U32 len)
-{
-}
-
-void CMsgHandler::fillRect(const Rect& r, Pixel pix)
-{
-}
-
-void CMsgHandler::imageRect(const Rect& r, void* pixels)
-{
-}
-
-void CMsgHandler::copyRect(const Rect& r, int srcX, int srcY)
-{
-}

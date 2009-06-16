@@ -97,6 +97,7 @@ namespace rfb {
       CSecurity* getCSecurity(int secType);
       void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
       void bell();
+      void framebufferUpdateStart() {}
       void framebufferUpdateEnd();
       void setDesktopSize(int w, int h);
       void setExtendedDesktopSize(int reason, int result, int w, int h,

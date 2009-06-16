@@ -49,24 +49,24 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           void* data, void* mask);
+                           void* data, void* mask) = 0;
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
-    virtual void serverInit();
+    virtual void serverInit() = 0;
 
-    virtual void framebufferUpdateStart();
-    virtual void framebufferUpdateEnd();
-    virtual void beginRect(const Rect& r, unsigned int encoding);
-    virtual void endRect(const Rect& r, unsigned int encoding);
+    virtual void framebufferUpdateStart() = 0;
+    virtual void framebufferUpdateEnd() = 0;
+    virtual void beginRect(const Rect& r, unsigned int encoding) = 0;
+    virtual void endRect(const Rect& r, unsigned int encoding) = 0;
 
     virtual void setColourMapEntries(int firstColour, int nColours,
-				     rdr::U16* rgbs);
-    virtual void bell();
-    virtual void serverCutText(const char* str, rdr::U32 len);
+				     rdr::U16* rgbs) = 0;
+    virtual void bell() = 0;
+    virtual void serverCutText(const char* str, rdr::U32 len) = 0;
 
-    virtual void fillRect(const Rect& r, Pixel pix);
-    virtual void imageRect(const Rect& r, void* pixels);
-    virtual void copyRect(const Rect& r, int srcX, int srcY);
+    virtual void fillRect(const Rect& r, Pixel pix) = 0;
+    virtual void imageRect(const Rect& r, void* pixels) = 0;
+    virtual void copyRect(const Rect& r, int srcX, int srcY) = 0;
 
     ConnParams cp;
   };
