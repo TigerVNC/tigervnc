@@ -6,6 +6,7 @@ rfb/configure.ac
 unix/configure.ac
 unix/xserver/hw/vnc/xvnc.cc
 win/configure.ac
+win/tigervnc.iss
 win/vncconfig/vncconfig.rc
 win/vncviewer/vncviewer.rc
 win/winvnc/winvnc.rc
