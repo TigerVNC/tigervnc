@@ -1,0 +1,189 @@
+# translation of pl.po to Polish
+# Piotr Drąg <piotrdrag@gmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: pl\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2009-06-12 12:18+0200\n"
+"PO-Revision-Date: 2009-03-25 21:26+0100\n"
+"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"Language-Team: Polish <pl@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "About VNC Viewer"
+msgstr "O Przeglądarce VNC"
+
+msgid "VNC authentication"
+msgstr "Uwierzytelnianie VNC"
+
+#, c-format
+msgid "TigerVNC: %.240s"
+msgstr "TigerVNC: %.240s"
+
+msgid "Exit viewer"
+msgstr "Zakończ przeglądarkę"
+
+msgid "Full screen"
+msgstr "Pełny ekran"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Alt"
+msgstr "Alt"
+
+#, c-format
+msgid "Send %s"
+msgstr "Wyślij %s"
+
+msgid "Send Ctrl-Alt-Del"
+msgstr "Wyślij Ctrl-Alt-Del"
+
+msgid "Refresh screen"
+msgstr "Odśwież ekran"
+
+msgid "New connection..."
+msgstr "Nowe połączenie..."
+
+msgid "Options..."
+msgstr "Opcje..."
+
+msgid "Connection info..."
+msgstr "Informacje o połączeniu..."
+
+msgid "About VNCviewer..."
+msgstr "O VNCviewer..."
+
+msgid "Dismiss menu"
+msgstr "Zwolnij menu"
+
+msgid "VNC Menu"
+msgstr "Menu VNC"
+
+#, c-format
+msgid ""
+"Desktop name: %.80s\n"
+"Host: %.80s port: %d\n"
+"Size: %d x %d\n"
+"Pixel format: %s\n"
+"(server default %s)\n"
+"Requested encoding: %s\n"
+"Last used encoding: %s\n"
+"Line speed estimate: %d kbit/s\n"
+"Protocol version: %d.%d\n"
+"Security method: %s\n"
+msgstr ""
+"Nazwa pulpitu: %.80s\n"
+"Komputer: %.80s port: %d\n"
+"Rozmiar: %d x %d\n"
+"Format pikseli: %s\n"
+"(domyślne serwera %s)\n"
+"Żądane kodowanie: %s\n"
+"Ostatnio używane kodowanie: %s\n"
+"Szacowana prędkość łącza: %d kbit/s\n"
+"Wersja protokołu: %d.%d\n"
+"Metoda bezpieczeństwa: %s\n"
+
+msgid "VNC connection info"
+msgstr "Informacje o połączeniu VNC"
+
+msgid "VNC Viewer: Connection Options"
+msgstr "Przeglądarka VNC: opcje połączenia"
+
+msgid "Encoding and Color Level:"
+msgstr "Kodowanie i poziom kolorów:"
+
+msgid "Inputs:"
+msgstr "Wejścia:"
+
+msgid "Misc:"
+msgstr "Różne:"
+
+msgid "Auto select"
+msgstr "Automatyczne wykrywanie"
+
+msgid "Full (all available colors)"
+msgstr "Pełny (wszystkie dostępne kolory)"
+
+msgid "Medium (256 colors)"
+msgstr "Średni (256 kolorów)"
+
+msgid "Low (64 colors)"
+msgstr "Niski (64 kolory)"
+
+msgid "Very low (8 colors)"
+msgstr "Bardzo niski (8 kolorów)"
+
+msgid "Custom compression level:"
+msgstr "Własny poziom kompresji:"
+
+msgid "level (1=fast, 9=best)"
+msgstr "poziom (1=szybki, 9=najlepszy)"
+
+msgid "Allow JPEG compression:"
+msgstr "Zezwolenie na kompresję JPEG:"
+
+msgid "quality (1=poor, 9=best)"
+msgstr "jakość (1=słaba, 9=najlepsza)"
+
+msgid "View only (ignore mouse & keyboard)"
+msgstr "Tylko wyświetlaj (ignoruj mysz i klawiaturę)"
+
+msgid "Accept clipboard from server"
+msgstr "Akceptuj schowek z serwera"
+
+msgid "Send clipboard to server"
+msgstr "Wyślij schowek do serwera"
+
+msgid "Send primary selection & cut buffer as clipboard"
+msgstr "Wyślij główny wybór i bufor wycinania jako schowek"
+
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Współdzielone (nie rozłączaj inne przeglądarki)"
+
+msgid "Full-screen mode"
+msgstr "Tryb pełnoekranowy"
+
+msgid "Render cursor locally"
+msgstr "Renderuj kursor lokalnie"
+
+msgid "Show dot when no cursor"
+msgstr "Wyświetl kropkę, kiedy nie ma kursora"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "Username:"
+msgstr "Nazwa użytkownika:"
+
+msgid "Password:"
+msgstr "Hasło:"
+
+msgid "VNC Viewer: Connection Details"
+msgstr "Przeglądarka VNC: szczegóły połączenia"
+
+msgid "VNC server:"
+msgstr "Serwer VNC:"
+
+msgid "About..."
+msgstr "O programie..."
+
+#, c-format
+msgid ""
+"TigerVNC Viewer for X version %s - built %s\n"
+"Copyright (C) 2002-2005 RealVNC Ltd.\n"
+"Copyright (C) 2000-2006 TightVNC Group\n"
+"Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
+"See http://www.tigervnc.org for information on TigerVNC."
+msgstr ""
+"Przeglądarka TigerVNC dla X Window, wersja %s - zbudowano %s\n"
+"Copyright (C) 2002-2005 RealVNC Ltd.\n"
+"Copyright (C) 2000-2006 Grupa TightVNC\n"
+"Copyright (C) 2004-2009 Peter Astrand dla Cendio AB\n"
+"Zobacz http://www.tigervnc.org, aby dowiedzieć się więcej o TigerVNC."
