@@ -216,6 +216,7 @@ void DesktopWindow::hideLocalCursor()
   if (cursorVisible) {
     cursorVisible = false;
     im->imageRect(cursorBackingRect, cursorBacking.data);
+    damageRect(cursorBackingRect);
   }
 }
 
@@ -237,6 +238,7 @@ void DesktopWindow::showLocalCursor()
     im->getImage(cursorBacking.data, cursorBackingRect);
 
     im->maskRect(cursorRect, cursor.data, cursor.mask.buf);
+    damageRect(cursorBackingRect);
   }
 }
 
@@ -355,6 +357,7 @@ void DesktopWindow::handlePointerEvent(const Point& pos, int buttonMask)
         cursorPos = pos;
         showLocalCursor();
       }
+      updateWindow();
     }
   }
 }
