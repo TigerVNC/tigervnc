@@ -24,7 +24,14 @@ case "$host_os" in
     objfmt='a.out'
   ;;
   linux*)
-    objfmt='ELF'
+    case "$host_cpu" in
+      x86_64)
+        objfmt='ELF64'
+        ;;
+      *)
+        objfmt='ELF'
+        ;;
+    esac
   ;;
   freebsd* | netbsd* | openbsd*)
     if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
@@ -58,6 +65,7 @@ case "$objfmt" in
   a.out)      NAFLAGS='-faout -DAOUT';;
   BSD-a.out)  NAFLAGS='-faoutb -DAOUT';;
   ELF)        NAFLAGS='-felf -DELF';;
+  ELF64)      NAFLAGS='-felf64 -DELF -D__x86_64__';;
   RDF)        NAFLAGS='-frdf -DRDF';;
   Mach-O)     NAFLAGS='-fmacho -DMACHO';;
 esac
@@ -68,7 +76,6 @@ AC_MSG_CHECKING([whether the assembler ($NASM $NAFLAGS) works])
 cat > conftest.asm <<EOF
 [%line __oline__ "configure"
         section .text
-        bits    32
         global  _main,main
 _main:
 main:   xor     eax,eax

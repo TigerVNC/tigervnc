@@ -11,7 +11,7 @@ while [ $# -gt 0 ]; do
                 pic=yes
             fi
             ;;
-        -f|-fbin|-faout|-faoutb|-fcoff|-felf|-fas86| \
+        -f|-fbin|-faout|-faoutb|-fcoff|-felf|-felf64|-fas86| \
         -fobj|-fwin32|-frdf|-fieee|-fmacho)
             # it's a file format specifier for nasm.
             command="$command $1"

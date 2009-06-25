@@ -89,10 +89,17 @@ if test "x${with_simd}" != "xno"; then
   # Check if we're on a supported CPU
   AC_MSG_CHECKING([if host cpu type is i386 or compatible])
   case "$host_cpu" in
+    x86_64)
+      AC_MSG_RESULT(yes)
+      AC_PROG_NASM
+      AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
+      AC_DEFINE([WITH_SIMD64], [1], [Use x86-64 accelerated SIMD routines.])
+    ;;
     i*86 | x86 | ia32)
       AC_MSG_RESULT(yes)
       AC_PROG_NASM
       AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
+      SIMDDIR=simd
     ;;
     *)
       AC_MSG_RESULT([no ("$host_cpu")])
@@ -100,6 +107,7 @@ if test "x${with_simd}" != "xno"; then
     ;;
   esac
 fi
+AM_CONDITIONAL([WITH_SIMD64], [test "x$with_simd64" != "xno"])
 AM_CONDITIONAL([WITH_SIMD], [test "x$with_simd" != "xno"])
 
 # jconfig.h is the file we use, but we have another before that to

@@ -48,15 +48,20 @@
 %define SEG_TEXT    .text  align=16 public use32 class=CODE
 %define SEG_CONST   .data  align=16 public use32 class=DATA
 
-%elifdef ELF	; ----(nasm -felf -DELF ...)------------
+%elifdef ELF	; ----(nasm -felf[64] -DELF ...)------------
 ; * Linux
 ; * *BSD family Unix using elf format
 ; * Unix System V, including Solaris x86, UnixWare and SCO Unix
 
 ; -- segment definition --
 ;
+%ifdef __x86_64__
+%define SEG_TEXT    .text   progbits align=16
+%define SEG_CONST   .rodata progbits align=16
+%else
 %define SEG_TEXT    .text   progbits alloc exec   nowrite align=16
 %define SEG_CONST   .rodata progbits alloc noexec nowrite align=16
+%endif
 
 ; To make the code position-independent, append -DPIC to the commandline
 ;
@@ -103,9 +108,15 @@
 ; --------------------------------------------------------------------------
 ;  Common types
 ;
+%ifdef __x86_64__
+%define POINTER                 qword           ; general pointer type
+%define SIZEOF_POINTER          SIZEOF_QWORD    ; sizeof(POINTER)
+%define POINTER_BIT             QWORD_BIT       ; sizeof(POINTER)*BYTE_BIT
+%else
 %define POINTER                 dword           ; general pointer type
 %define SIZEOF_POINTER          SIZEOF_DWORD    ; sizeof(POINTER)
 %define POINTER_BIT             DWORD_BIT       ; sizeof(POINTER)*BYTE_BIT
+%endif
 
 %define INT                     dword           ; signed integer type
 %define SIZEOF_INT              SIZEOF_DWORD    ; sizeof(INT)
@@ -268,6 +279,32 @@ const_base:
 	align %1, db 0		; filling zeros
 %endmacro
 
+%ifdef __x86_64__
+%imacro collect_args 0
+	push r10
+	push r11
+	push r12
+	push r13
+	push r14
+	push r15
+	mov r10, rdi
+	mov r11, rsi
+	mov r12, rdx
+	mov r13, rcx
+	mov r14, r8
+	mov r15, r9
+%endmacro
+
+%imacro uncollect_args 0
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+%endmacro
+
+%endif
 
 ; --------------------------------------------------------------------------
 ;  Defines picked up from the C headers

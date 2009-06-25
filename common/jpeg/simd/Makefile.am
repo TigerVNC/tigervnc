@@ -4,6 +4,23 @@ BUILT_SOURCES = jsimdcfg.inc
 
 EXTRA_DIST = nasm_lt.sh
 
+if WITH_SIMD64
+
+libsimd_la_SOURCES = jsimd.h jsimdcfg.inc.h \
+	jsimdext.inc jcolsamp.inc jdct.inc \
+	jsimdcpu-64.asm jfsseflt-64.asm \
+	jccolss2-64.asm jdcolss2-64.asm \
+	jcsamss2-64.asm jdsamss2-64.asm jdmerss2-64.asm \
+	jcqnts2i-64.asm jfss2fst-64.asm jfss2int-64.asm \
+	jiss2red-64.asm jiss2int-64.asm jiss2fst-64.asm \
+	jcqnts2f-64.asm jiss2flt-64.asm
+
+jccolss2-64.lo: jcclrss2-64.asm
+jdcolss2-64.lo: jdclrss2-64.asm
+jdmerss2-64.lo: jdmrgss2-64.asm
+
+else
+
 libsimd_la_SOURCES = jsimd.h jsimdcfg.inc.h \
 	jsimdext.inc jcolsamp.inc jdct.inc \
 	jsimdcpu.asm \
@@ -25,6 +42,8 @@ jdcolmmx.lo: jdclrmmx.asm
 jdcolss2.lo: jdclrss2.asm
 jdmermmx.lo: jdmrgmmx.asm
 jdmerss2.lo: jdmrgss2.asm
+
+endif
 
 .asm.lo:
 	$(LIBTOOL) --mode=compile --tag NASM ./nasm_lt.sh $(NASM) $(NAFLAGS) $< -o $@
