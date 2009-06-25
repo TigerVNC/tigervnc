@@ -22,7 +22,7 @@ endif
 
 TSTHDRS = turbojpeg.h rrutil.h rrtimer.h
 
-noinst_PROGRAMS = jpgtest jpegut
+noinst_PROGRAMS = jpgtest jpegut cjpeg djpeg
 
 jpgtest_SOURCES = $(TSTHDRS) jpgtest.cxx bmp.c turbojpegl.c
 
@@ -31,3 +31,19 @@ jpgtest_LDADD = $(top_srcdir)/libjpeg.la
 jpegut_SOURCES = $(TSTHDRS) jpegut.c bmp.c turbojpegl.c
 
 jpegut_LDADD = $(top_srcdir)/libjpeg.la
+
+cjpeg_SOURCES = cdjpeg.h cderror.h cdjpeg.c cjpeg.c rdbmp.c rdgif.c \
+	rdppm.c rdswitch.c rdtarga.c 
+
+cjpeg_LDADD = $(top_srcdir)/libjpeg.la
+
+cjpeg_CFLAGS = -DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED \
+	-DTARGA_SUPPORTED
+
+djpeg_SOURCES = cdjpeg.h cderror.h cdjpeg.c djpeg.c rdcolmap.c rdswitch.c \
+	wrbmp.c wrgif.c wrppm.c wrtarga.c
+
+djpeg_LDADD = $(top_srcdir)/libjpeg.la
+
+djpeg_CFLAGS = -DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED \
+	-DTARGA_SUPPORTED
