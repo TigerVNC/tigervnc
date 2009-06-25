@@ -23,6 +23,8 @@ jccolmmx.lo: jcclrmmx.asm
 jccolss2.lo: jcclrss2.asm
 jdcolmmx.lo: jdclrmmx.asm
 jdcolss2.lo: jdclrss2.asm
+jdmermmx.lo: jdmrgmmx.asm
+jdmerss2.lo: jdmrgss2.asm
 
 .asm.lo:
 	$(LIBTOOL) --mode=compile --tag NASM ./nasm_lt.sh $(NASM) $(NAFLAGS) $< -o $@
