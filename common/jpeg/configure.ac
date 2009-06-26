@@ -99,7 +99,6 @@ if test "x${with_simd}" != "xno"; then
       AC_MSG_RESULT([yes (i386)])
       AC_PROG_NASM
       AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
-      SIMDDIR=simd
     ;;
     *)
       AC_MSG_RESULT([no ("$host_cpu")])
