@@ -10,13 +10,16 @@ libjpeg_la_SOURCES = $(HDRS) jcapimin.c jcapistd.c jccoefct.c jccolor.c \
 	jddctmgr.c jdhuff.c jdinput.c jdmainct.c jdmarker.c jdmaster.c \
 	jdmerge.c jdphuff.c jdpostct.c jdsample.c jdtrans.c jerror.c \
 	jfdctflt.c jfdctfst.c jfdctint.c jidctflt.c jidctfst.c jidctint.c \
-	jidctred.c jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c \
-	jsimd.c
+	jidctred.c jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c
 
 if WITH_SIMD
 
 SUBDIRS = simd
 libjpeg_la_LIBADD = simd/libsimd.la
+
+else
+
+libjpeg_la_SOURCES += jsimd_none.c
 
 endif
 

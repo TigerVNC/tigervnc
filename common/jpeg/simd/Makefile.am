@@ -4,11 +4,12 @@ BUILT_SOURCES = jsimdcfg.inc
 
 EXTRA_DIST = nasm_lt.sh
 
-if WITH_SIMD64
+if SIMD_X86_64
 
-libsimd_la_SOURCES = jsimd.h jsimdcfg.inc.h \
+libsimd_la_SOURCES = jsimd_x86_64.c \
+	jsimd.h jsimdcfg.inc.h \
 	jsimdext.inc jcolsamp.inc jdct.inc \
-	jsimdcpu-64.asm jfsseflt-64.asm \
+	jfsseflt-64.asm \
 	jccolss2-64.asm jdcolss2-64.asm \
 	jcsamss2-64.asm jdsamss2-64.asm jdmerss2-64.asm \
 	jcqnts2i-64.asm jfss2fst-64.asm jfss2int-64.asm \
@@ -19,9 +20,12 @@ jccolss2-64.lo: jcclrss2-64.asm
 jdcolss2-64.lo: jdclrss2-64.asm
 jdmerss2-64.lo: jdmrgss2-64.asm
 
-else
+endif
 
-libsimd_la_SOURCES = jsimd.h jsimdcfg.inc.h \
+if SIMD_I386
+
+libsimd_la_SOURCES = jsimd_i386.c \
+	jsimd.h jsimdcfg.inc.h \
 	jsimdext.inc jcolsamp.inc jdct.inc \
 	jsimdcpu.asm \
 	jccolmmx.asm jdcolmmx.asm \

@@ -92,22 +92,27 @@ if test "x${with_simd}" != "xno"; then
     x86_64)
       AC_MSG_RESULT([yes (x86_64)])
       AC_PROG_NASM
-      AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
-      AC_DEFINE([WITH_SIMD64], [1], [Use x86-64 accelerated SIMD routines.])
+      simd_arch=x86_64
     ;;
     i*86 | x86 | ia32)
       AC_MSG_RESULT([yes (i386)])
       AC_PROG_NASM
-      AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
+      simd_arch=i386
     ;;
     *)
       AC_MSG_RESULT([no ("$host_cpu")])
       with_simd=no
     ;;
   esac
+
+  if test "x${with_simd}" != "xno"; then
+    AC_DEFINE([WITH_SIMD], [1], [Use accelerated SIMD routines.])
+  fi
 fi
-AM_CONDITIONAL([WITH_SIMD64], [test "x$with_simd64" != "xno"])
+
 AM_CONDITIONAL([WITH_SIMD], [test "x$with_simd" != "xno"])
+AM_CONDITIONAL([SIMD_I386], [test "x$simd_arch" = "xi386"])
+AM_CONDITIONAL([SIMD_X86_64], [test "x$simd_arch" = "xx86_64"])
 
 # jconfig.h is the file we use, but we have another before that to
 # fool autoheader. the reason is that we include this header in our
