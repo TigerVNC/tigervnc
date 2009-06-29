@@ -236,17 +236,17 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm6,xmm0
 	movdqa    xmm4,xmm7
 	movdqa    xmm0,xmm6
-	pmaddwd   xmm7,[PW_F130_F054]	; xmm7=data2L
-	pmaddwd   xmm6,[PW_F130_F054]	; xmm6=data2H
-	pmaddwd   xmm4,[PW_F054_MF130]	; xmm4=data6L
-	pmaddwd   xmm0,[PW_F054_MF130]	; xmm0=data6H
+	pmaddwd   xmm7,[rel PW_F130_F054]	; xmm7=data2L
+	pmaddwd   xmm6,[rel PW_F130_F054]	; xmm6=data2H
+	pmaddwd   xmm4,[rel PW_F054_MF130]	; xmm4=data6L
+	pmaddwd   xmm0,[rel PW_F054_MF130]	; xmm0=data6H
 
-	paddd	xmm7,[PD_DESCALE_P1]
-	paddd	xmm6,[PD_DESCALE_P1]
+	paddd	xmm7,[rel PD_DESCALE_P1]
+	paddd	xmm6,[rel PD_DESCALE_P1]
 	psrad	xmm7,DESCALE_P1
 	psrad	xmm6,DESCALE_P1
-	paddd	xmm4,[PD_DESCALE_P1]
-	paddd	xmm0,[PD_DESCALE_P1]
+	paddd	xmm4,[rel PD_DESCALE_P1]
+	paddd	xmm0,[rel PD_DESCALE_P1]
 	psrad	xmm4,DESCALE_P1
 	psrad	xmm0,DESCALE_P1
 
@@ -281,10 +281,10 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm4,xmm0
 	movdqa    xmm6,xmm7
 	movdqa    xmm0,xmm4
-	pmaddwd   xmm7,[PW_MF078_F117]	; xmm7=z3L
-	pmaddwd   xmm4,[PW_MF078_F117]	; xmm4=z3H
-	pmaddwd   xmm6,[PW_F117_F078]	; xmm6=z4L
-	pmaddwd   xmm0,[PW_F117_F078]	; xmm0=z4H
+	pmaddwd   xmm7,[rel PW_MF078_F117]	; xmm7=z3L
+	pmaddwd   xmm4,[rel PW_MF078_F117]	; xmm4=z3H
+	pmaddwd   xmm6,[rel PW_F117_F078]	; xmm6=z4L
+	pmaddwd   xmm0,[rel PW_F117_F078]	; xmm0=z4H
 
 	movdqa	XMMWORD [wk(0)], xmm7	; wk(0)=z3L
 	movdqa	XMMWORD [wk(1)], xmm4	; wk(1)=z3H
@@ -311,22 +311,22 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm4,xmm1
 	movdqa    xmm2,xmm7
 	movdqa    xmm1,xmm4
-	pmaddwd   xmm7,[PW_MF060_MF089]	; xmm7=tmp4L
-	pmaddwd   xmm4,[PW_MF060_MF089]	; xmm4=tmp4H
-	pmaddwd   xmm2,[PW_MF089_F060]	; xmm2=tmp7L
-	pmaddwd   xmm1,[PW_MF089_F060]	; xmm1=tmp7H
+	pmaddwd   xmm7,[rel PW_MF060_MF089]	; xmm7=tmp4L
+	pmaddwd   xmm4,[rel PW_MF060_MF089]	; xmm4=tmp4H
+	pmaddwd   xmm2,[rel PW_MF089_F060]	; xmm2=tmp7L
+	pmaddwd   xmm1,[rel PW_MF089_F060]	; xmm1=tmp7H
 
 	paddd	xmm7, XMMWORD [wk(0)]	; xmm7=data7L
 	paddd	xmm4, XMMWORD [wk(1)]	; xmm4=data7H
 	paddd	xmm2,xmm6		; xmm2=data1L
 	paddd	xmm1,xmm0		; xmm1=data1H
 
-	paddd	xmm7,[PD_DESCALE_P1]
-	paddd	xmm4,[PD_DESCALE_P1]
+	paddd	xmm7,[rel PD_DESCALE_P1]
+	paddd	xmm4,[rel PD_DESCALE_P1]
 	psrad	xmm7,DESCALE_P1
 	psrad	xmm4,DESCALE_P1
-	paddd	xmm2,[PD_DESCALE_P1]
-	paddd	xmm1,[PD_DESCALE_P1]
+	paddd	xmm2,[rel PD_DESCALE_P1]
+	paddd	xmm1,[rel PD_DESCALE_P1]
 	psrad	xmm2,DESCALE_P1
 	psrad	xmm1,DESCALE_P1
 
@@ -339,22 +339,22 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm1,xmm3
 	movdqa    xmm5,xmm4
 	movdqa    xmm3,xmm1
-	pmaddwd   xmm4,[PW_MF050_MF256]	; xmm4=tmp5L
-	pmaddwd   xmm1,[PW_MF050_MF256]	; xmm1=tmp5H
-	pmaddwd   xmm5,[PW_MF256_F050]	; xmm5=tmp6L
-	pmaddwd   xmm3,[PW_MF256_F050]	; xmm3=tmp6H
+	pmaddwd   xmm4,[rel PW_MF050_MF256]	; xmm4=tmp5L
+	pmaddwd   xmm1,[rel PW_MF050_MF256]	; xmm1=tmp5H
+	pmaddwd   xmm5,[rel PW_MF256_F050]	; xmm5=tmp6L
+	pmaddwd   xmm3,[rel PW_MF256_F050]	; xmm3=tmp6H
 
 	paddd	xmm4,xmm6		; xmm4=data5L
 	paddd	xmm1,xmm0		; xmm1=data5H
 	paddd	xmm5, XMMWORD [wk(0)]	; xmm5=data3L
 	paddd	xmm3, XMMWORD [wk(1)]	; xmm3=data3H
 
-	paddd	xmm4,[PD_DESCALE_P1]
-	paddd	xmm1,[PD_DESCALE_P1]
+	paddd	xmm4,[rel PD_DESCALE_P1]
+	paddd	xmm1,[rel PD_DESCALE_P1]
 	psrad	xmm4,DESCALE_P1
 	psrad	xmm1,DESCALE_P1
-	paddd	xmm5,[PD_DESCALE_P1]
-	paddd	xmm3,[PD_DESCALE_P1]
+	paddd	xmm5,[rel PD_DESCALE_P1]
+	paddd	xmm3,[rel PD_DESCALE_P1]
 	psrad	xmm5,DESCALE_P1
 	psrad	xmm3,DESCALE_P1
 
@@ -457,8 +457,8 @@ EXTN(jsimd_fdct_islow_sse2):
 	paddw	xmm7,xmm2		; xmm7=tmp10+tmp11
 	psubw	xmm5,xmm2		; xmm5=tmp10-tmp11
 
-	paddw	xmm7,[PW_DESCALE_P2X]
-	paddw	xmm5,[PW_DESCALE_P2X]
+	paddw	xmm7,[rel PW_DESCALE_P2X]
+	paddw	xmm5,[rel PW_DESCALE_P2X]
 	psraw	xmm7,PASS1_BITS		; xmm7=data0
 	psraw	xmm5,PASS1_BITS		; xmm5=data4
 
@@ -480,17 +480,17 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm2,xmm6
 	movdqa    xmm1,xmm4
 	movdqa    xmm6,xmm2
-	pmaddwd   xmm4,[PW_F130_F054]	; xmm4=data2L
-	pmaddwd   xmm2,[PW_F130_F054]	; xmm2=data2H
-	pmaddwd   xmm1,[PW_F054_MF130]	; xmm1=data6L
-	pmaddwd   xmm6,[PW_F054_MF130]	; xmm6=data6H
+	pmaddwd   xmm4,[rel PW_F130_F054]	; xmm4=data2L
+	pmaddwd   xmm2,[rel PW_F130_F054]	; xmm2=data2H
+	pmaddwd   xmm1,[rel PW_F054_MF130]	; xmm1=data6L
+	pmaddwd   xmm6,[rel PW_F054_MF130]	; xmm6=data6H
 
-	paddd	xmm4,[PD_DESCALE_P2]
-	paddd	xmm2,[PD_DESCALE_P2]
+	paddd	xmm4,[rel PD_DESCALE_P2]
+	paddd	xmm2,[rel PD_DESCALE_P2]
 	psrad	xmm4,DESCALE_P2
 	psrad	xmm2,DESCALE_P2
-	paddd	xmm1,[PD_DESCALE_P2]
-	paddd	xmm6,[PD_DESCALE_P2]
+	paddd	xmm1,[rel PD_DESCALE_P2]
+	paddd	xmm6,[rel PD_DESCALE_P2]
 	psrad	xmm1,DESCALE_P2
 	psrad	xmm6,DESCALE_P2
 
@@ -525,10 +525,10 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm1,xmm6
 	movdqa    xmm2,xmm4
 	movdqa    xmm6,xmm1
-	pmaddwd   xmm4,[PW_MF078_F117]	; xmm4=z3L
-	pmaddwd   xmm1,[PW_MF078_F117]	; xmm1=z3H
-	pmaddwd   xmm2,[PW_F117_F078]	; xmm2=z4L
-	pmaddwd   xmm6,[PW_F117_F078]	; xmm6=z4H
+	pmaddwd   xmm4,[rel PW_MF078_F117]	; xmm4=z3L
+	pmaddwd   xmm1,[rel PW_MF078_F117]	; xmm1=z3H
+	pmaddwd   xmm2,[rel PW_F117_F078]	; xmm2=z4L
+	pmaddwd   xmm6,[rel PW_F117_F078]	; xmm6=z4H
 
 	movdqa	XMMWORD [wk(0)], xmm4	; wk(0)=z3L
 	movdqa	XMMWORD [wk(1)], xmm1	; wk(1)=z3H
@@ -555,22 +555,22 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm1,xmm5
 	movdqa    xmm0,xmm4
 	movdqa    xmm5,xmm1
-	pmaddwd   xmm4,[PW_MF060_MF089]	; xmm4=tmp4L
-	pmaddwd   xmm1,[PW_MF060_MF089]	; xmm1=tmp4H
-	pmaddwd   xmm0,[PW_MF089_F060]	; xmm0=tmp7L
-	pmaddwd   xmm5,[PW_MF089_F060]	; xmm5=tmp7H
+	pmaddwd   xmm4,[rel PW_MF060_MF089]	; xmm4=tmp4L
+	pmaddwd   xmm1,[rel PW_MF060_MF089]	; xmm1=tmp4H
+	pmaddwd   xmm0,[rel PW_MF089_F060]	; xmm0=tmp7L
+	pmaddwd   xmm5,[rel PW_MF089_F060]	; xmm5=tmp7H
 
 	paddd	xmm4, XMMWORD [wk(0)]	; xmm4=data7L
 	paddd	xmm1, XMMWORD [wk(1)]	; xmm1=data7H
 	paddd	xmm0,xmm2		; xmm0=data1L
 	paddd	xmm5,xmm6		; xmm5=data1H
 
-	paddd	xmm4,[PD_DESCALE_P2]
-	paddd	xmm1,[PD_DESCALE_P2]
+	paddd	xmm4,[rel PD_DESCALE_P2]
+	paddd	xmm1,[rel PD_DESCALE_P2]
 	psrad	xmm4,DESCALE_P2
 	psrad	xmm1,DESCALE_P2
-	paddd	xmm0,[PD_DESCALE_P2]
-	paddd	xmm5,[PD_DESCALE_P2]
+	paddd	xmm0,[rel PD_DESCALE_P2]
+	paddd	xmm5,[rel PD_DESCALE_P2]
 	psrad	xmm0,DESCALE_P2
 	psrad	xmm5,DESCALE_P2
 
@@ -586,22 +586,22 @@ EXTN(jsimd_fdct_islow_sse2):
 	punpckhwd xmm5,xmm7
 	movdqa    xmm3,xmm1
 	movdqa    xmm7,xmm5
-	pmaddwd   xmm1,[PW_MF050_MF256]	; xmm1=tmp5L
-	pmaddwd   xmm5,[PW_MF050_MF256]	; xmm5=tmp5H
-	pmaddwd   xmm3,[PW_MF256_F050]	; xmm3=tmp6L
-	pmaddwd   xmm7,[PW_MF256_F050]	; xmm7=tmp6H
+	pmaddwd   xmm1,[rel PW_MF050_MF256]	; xmm1=tmp5L
+	pmaddwd   xmm5,[rel PW_MF050_MF256]	; xmm5=tmp5H
+	pmaddwd   xmm3,[rel PW_MF256_F050]	; xmm3=tmp6L
+	pmaddwd   xmm7,[rel PW_MF256_F050]	; xmm7=tmp6H
 
 	paddd	xmm1,xmm2		; xmm1=data5L
 	paddd	xmm5,xmm6		; xmm5=data5H
 	paddd	xmm3, XMMWORD [wk(0)]	; xmm3=data3L
 	paddd	xmm7, XMMWORD [wk(1)]	; xmm7=data3H
 
-	paddd	xmm1,[PD_DESCALE_P2]
-	paddd	xmm5,[PD_DESCALE_P2]
+	paddd	xmm1,[rel PD_DESCALE_P2]
+	paddd	xmm5,[rel PD_DESCALE_P2]
 	psrad	xmm1,DESCALE_P2
 	psrad	xmm5,DESCALE_P2
-	paddd	xmm3,[PD_DESCALE_P2]
-	paddd	xmm7,[PD_DESCALE_P2]
+	paddd	xmm3,[rel PD_DESCALE_P2]
+	paddd	xmm7,[rel PD_DESCALE_P2]
 	psrad	xmm3,DESCALE_P2
 	psrad	xmm7,DESCALE_P2
 

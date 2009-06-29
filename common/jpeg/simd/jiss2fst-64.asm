@@ -172,7 +172,7 @@ EXTN(jsimd_idct_ifast_sse2):
 	paddw	xmm5,xmm3		; xmm5=tmp13
 
 	psllw	xmm1,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm1,[PW_F1414]
+	pmulhw	xmm1,[rel PW_F1414]
 	psubw	xmm1,xmm5		; xmm1=tmp12
 
 	movdqa	xmm6,xmm4
@@ -212,7 +212,7 @@ EXTN(jsimd_idct_ifast_sse2):
 	paddw	xmm3,xmm0		; xmm3=tmp7
 
 	psllw	xmm4,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm4,[PW_F1414]	; xmm4=tmp11
+	pmulhw	xmm4,[rel PW_F1414]	; xmm4=tmp11
 
 	; To avoid overflow...
 	;
@@ -225,9 +225,9 @@ EXTN(jsimd_idct_ifast_sse2):
 
 	movdqa	xmm0,xmm5
 	paddw	xmm5,xmm2
-	pmulhw	xmm5,[PW_F1847]	; xmm5=z5
-	pmulhw	xmm0,[PW_MF1613]
-	pmulhw	xmm2,[PW_F1082]
+	pmulhw	xmm5,[rel PW_F1847]	; xmm5=z5
+	pmulhw	xmm0,[rel PW_MF1613]
+	pmulhw	xmm2,[rel PW_F1082]
 	psubw	xmm0,xmm1
 	psubw	xmm2,xmm5		; xmm2=tmp10
 	paddw	xmm0,xmm5		; xmm0=tmp12
@@ -337,7 +337,7 @@ EXTN(jsimd_idct_ifast_sse2):
 	paddw	xmm0,xmm3		; xmm0=tmp13
 
 	psllw	xmm5,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm5,[PW_F1414]
+	pmulhw	xmm5,[rel PW_F1414]
 	psubw	xmm5,xmm0		; xmm5=tmp12
 
 	movdqa	xmm1,xmm2
@@ -373,7 +373,7 @@ EXTN(jsimd_idct_ifast_sse2):
 	paddw	xmm5,xmm6		; xmm5=tmp7
 
 	psllw	xmm2,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm2,[PW_F1414]	; xmm2=tmp11
+	pmulhw	xmm2,[rel PW_F1414]	; xmm2=tmp11
 
 	; To avoid overflow...
 	;
@@ -386,9 +386,9 @@ EXTN(jsimd_idct_ifast_sse2):
 
 	movdqa	xmm6,xmm4
 	paddw	xmm4,xmm0
-	pmulhw	xmm4,[PW_F1847]	; xmm4=z5
-	pmulhw	xmm6,[PW_MF1613]
-	pmulhw	xmm0,[PW_F1082]
+	pmulhw	xmm4,[rel PW_F1847]	; xmm4=z5
+	pmulhw	xmm6,[rel PW_MF1613]
+	pmulhw	xmm0,[rel PW_F1082]
 	psubw	xmm6,xmm7
 	psubw	xmm0,xmm4		; xmm0=tmp10
 	paddw	xmm6,xmm4		; xmm6=tmp12
@@ -426,7 +426,7 @@ EXTN(jsimd_idct_ifast_sse2):
 	psraw	xmm4,(PASS1_BITS+3)	; descale
 	psraw	xmm7,(PASS1_BITS+3)	; descale
 
-	movdqa    xmm2,[PB_CENTERJSAMP]	; xmm2=[PB_CENTERJSAMP]
+	movdqa    xmm2,[rel PB_CENTERJSAMP]	; xmm2=[rel PB_CENTERJSAMP]
 
 	packsswb  xmm5,xmm6	; xmm5=(02 12 22 32 42 52 62 72 04 14 24 34 44 54 64 74)
 	packsswb  xmm7,xmm4	; xmm7=(03 13 23 33 43 53 63 73 05 15 25 35 45 55 65 75)

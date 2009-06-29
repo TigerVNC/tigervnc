@@ -133,12 +133,12 @@ EXTN(jsimd_h2v1_fancy_upsample_sse2):
 	punpcklbw xmm3,xmm0		; xmm3=( 1  2  3  4  5  6  7  8)
 	punpckhbw xmm6,xmm0		; xmm6=( 9 10 11 12 13 14 15 16)
 
-	pmullw	xmm1,[PW_THREE]
-	pmullw	xmm4,[PW_THREE]
-	paddw	xmm2,[PW_ONE]
-	paddw	xmm5,[PW_ONE]
-	paddw	xmm3,[PW_TWO]
-	paddw	xmm6,[PW_TWO]
+	pmullw	xmm1,[rel PW_THREE]
+	pmullw	xmm4,[rel PW_THREE]
+	paddw	xmm2,[rel PW_ONE]
+	paddw	xmm5,[rel PW_ONE]
+	paddw	xmm3,[rel PW_TWO]
+	paddw	xmm6,[rel PW_TWO]
 
 	paddw	xmm2,xmm1
 	paddw	xmm5,xmm4
@@ -264,8 +264,8 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 	punpcklbw xmm2,xmm3		; xmm2=row[+1]( 0  1  2  3  4  5  6  7)
 	punpckhbw xmm6,xmm3		; xmm6=row[+1]( 8  9 10 11 12 13 14 15)
 
-	pmullw	xmm0,[PW_THREE]
-	pmullw	xmm4,[PW_THREE]
+	pmullw	xmm0,[rel PW_THREE]
+	pmullw	xmm4,[rel PW_THREE]
 
 	pcmpeqb	xmm7,xmm7
 	psrldq	xmm7,(SIZEOF_XMMWORD-2)
@@ -324,8 +324,8 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 	punpcklbw xmm2,xmm3		; xmm2=row[+1]( 0  1  2  3  4  5  6  7)
 	punpckhbw xmm6,xmm3		; xmm6=row[+1]( 8  9 10 11 12 13 14 15)
 
-	pmullw	xmm0,[PW_THREE]
-	pmullw	xmm4,[PW_THREE]
+	pmullw	xmm0,[rel PW_THREE]
+	pmullw	xmm4,[rel PW_THREE]
 
 	paddw	xmm1,xmm0		; xmm1=Int0L=( 0  1  2  3  4  5  6  7)
 	paddw	xmm5,xmm4		; xmm5=Int0H=( 8  9 10 11 12 13 14 15)
@@ -373,12 +373,12 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 
 	movdqa	XMMWORD [wk(0)], xmm4
 
-	pmullw	xmm7,[PW_THREE]
-	pmullw	xmm3,[PW_THREE]
-	paddw	xmm1,[PW_EIGHT]
-	paddw	xmm5,[PW_EIGHT]
-	paddw	xmm0,[PW_SEVEN]
-	paddw	xmm2,[PW_SEVEN]
+	pmullw	xmm7,[rel PW_THREE]
+	pmullw	xmm3,[rel PW_THREE]
+	paddw	xmm1,[rel PW_EIGHT]
+	paddw	xmm5,[rel PW_EIGHT]
+	paddw	xmm0,[rel PW_SEVEN]
+	paddw	xmm2,[rel PW_SEVEN]
 
 	paddw	xmm1,xmm7
 	paddw	xmm5,xmm3
@@ -426,12 +426,12 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 
 	movdqa	XMMWORD [wk(1)], xmm3
 
-	pmullw	xmm6,[PW_THREE]
-	pmullw	xmm4,[PW_THREE]
-	paddw	xmm1,[PW_EIGHT]
-	paddw	xmm0,[PW_EIGHT]
-	paddw	xmm7,[PW_SEVEN]
-	paddw	xmm5,[PW_SEVEN]
+	pmullw	xmm6,[rel PW_THREE]
+	pmullw	xmm4,[rel PW_THREE]
+	paddw	xmm1,[rel PW_EIGHT]
+	paddw	xmm0,[rel PW_EIGHT]
+	paddw	xmm7,[rel PW_SEVEN]
+	paddw	xmm5,[rel PW_SEVEN]
 
 	paddw	xmm1,xmm6
 	paddw	xmm0,xmm4

@@ -192,7 +192,7 @@ EXTN(jsimd_fdct_ifast_sse2):
 
 	paddw	xmm6,xmm3
 	psllw	xmm6,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm6,[PW_F0707] ; xmm6=z1
+	pmulhw	xmm6,[rel PW_F0707] ; xmm6=z1
 
 	movdqa	xmm1,xmm4
 	movdqa	xmm7,xmm3
@@ -216,13 +216,13 @@ EXTN(jsimd_fdct_ifast_sse2):
 	psllw	xmm0,PRE_MULTIPLY_SCALE_BITS
 
 	psllw	xmm5,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm5,[PW_F0707] ; xmm5=z3
+	pmulhw	xmm5,[rel PW_F0707] ; xmm5=z3
 
 	movdqa	xmm4,xmm2		; xmm4=tmp10
 	psubw	xmm2,xmm0
-	pmulhw	xmm2,[PW_F0382] ; xmm2=z5
-	pmulhw	xmm4,[PW_F0541] ; xmm4=MULTIPLY(tmp10,FIX_0_541196)
-	pmulhw	xmm0,[PW_F1306] ; xmm0=MULTIPLY(tmp12,FIX_1_306562)
+	pmulhw	xmm2,[rel PW_F0382] ; xmm2=z5
+	pmulhw	xmm4,[rel PW_F0541] ; xmm4=MULTIPLY(tmp10,FIX_0_541196)
+	pmulhw	xmm0,[rel PW_F1306] ; xmm0=MULTIPLY(tmp12,FIX_1_306562)
 	paddw	xmm4,xmm2		; xmm4=z2
 	paddw	xmm0,xmm2		; xmm0=z4
 
@@ -328,7 +328,7 @@ EXTN(jsimd_fdct_ifast_sse2):
 
 	paddw	xmm5,xmm3
 	psllw	xmm5,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm5,[PW_F0707] ; xmm5=z1
+	pmulhw	xmm5,[rel PW_F0707] ; xmm5=z1
 
 	movdqa	xmm6,xmm4
 	movdqa	xmm2,xmm3
@@ -355,13 +355,13 @@ EXTN(jsimd_fdct_ifast_sse2):
 	psllw	xmm1,PRE_MULTIPLY_SCALE_BITS
 
 	psllw	xmm0,PRE_MULTIPLY_SCALE_BITS
-	pmulhw	xmm0,[PW_F0707] ; xmm0=z3
+	pmulhw	xmm0,[rel PW_F0707] ; xmm0=z3
 
 	movdqa	xmm4,xmm7		; xmm4=tmp10
 	psubw	xmm7,xmm1
-	pmulhw	xmm7,[PW_F0382] ; xmm7=z5
-	pmulhw	xmm4,[PW_F0541] ; xmm4=MULTIPLY(tmp10,FIX_0_541196)
-	pmulhw	xmm1,[PW_F1306] ; xmm1=MULTIPLY(tmp12,FIX_1_306562)
+	pmulhw	xmm7,[rel PW_F0382] ; xmm7=z5
+	pmulhw	xmm4,[rel PW_F0541] ; xmm4=MULTIPLY(tmp10,FIX_0_541196)
+	pmulhw	xmm1,[rel PW_F1306] ; xmm1=MULTIPLY(tmp12,FIX_1_306562)
 	paddw	xmm4,xmm7		; xmm4=z2
 	paddw	xmm1,xmm7		; xmm1=z4
 

@@ -302,10 +302,10 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	punpckhwd xmm6,xmm3
 	movdqa    xmm7,xmm1
 	movdqa    xmm4,xmm6
-	pmaddwd   xmm1,[PW_F0299_F0337] ; xmm1=ROL*FIX(0.299)+GOL*FIX(0.337)
-	pmaddwd   xmm6,[PW_F0299_F0337] ; xmm6=ROH*FIX(0.299)+GOH*FIX(0.337)
-	pmaddwd   xmm7,[PW_MF016_MF033] ; xmm7=ROL*-FIX(0.168)+GOL*-FIX(0.331)
-	pmaddwd   xmm4,[PW_MF016_MF033] ; xmm4=ROH*-FIX(0.168)+GOH*-FIX(0.331)
+	pmaddwd   xmm1,[rel PW_F0299_F0337] ; xmm1=ROL*FIX(0.299)+GOL*FIX(0.337)
+	pmaddwd   xmm6,[rel PW_F0299_F0337] ; xmm6=ROH*FIX(0.299)+GOH*FIX(0.337)
+	pmaddwd   xmm7,[rel PW_MF016_MF033] ; xmm7=ROL*-FIX(0.168)+GOL*-FIX(0.331)
+	pmaddwd   xmm4,[rel PW_MF016_MF033] ; xmm4=ROH*-FIX(0.168)+GOH*-FIX(0.331)
 
 	movdqa    XMMWORD [wk(4)], xmm1	; wk(4)=ROL*FIX(0.299)+GOL*FIX(0.337)
 	movdqa    XMMWORD [wk(5)], xmm6	; wk(5)=ROH*FIX(0.299)+GOH*FIX(0.337)
@@ -317,7 +317,7 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	psrld     xmm1,1		; xmm1=BOL*FIX(0.500)
 	psrld     xmm6,1		; xmm6=BOH*FIX(0.500)
 
-	movdqa    xmm5,[PD_ONEHALFM1_CJ] ; xmm5=[PD_ONEHALFM1_CJ]
+	movdqa    xmm5,[rel PD_ONEHALFM1_CJ] ; xmm5=[PD_ONEHALFM1_CJ]
 
 	paddd     xmm7,xmm1
 	paddd     xmm4,xmm6
@@ -334,10 +334,10 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	punpckhwd xmm6,xmm2
 	movdqa    xmm5,xmm0
 	movdqa    xmm4,xmm6
-	pmaddwd   xmm0,[PW_F0299_F0337] ; xmm0=REL*FIX(0.299)+GEL*FIX(0.337)
-	pmaddwd   xmm6,[PW_F0299_F0337] ; xmm6=REH*FIX(0.299)+GEH*FIX(0.337)
-	pmaddwd   xmm5,[PW_MF016_MF033] ; xmm5=REL*-FIX(0.168)+GEL*-FIX(0.331)
-	pmaddwd   xmm4,[PW_MF016_MF033] ; xmm4=REH*-FIX(0.168)+GEH*-FIX(0.331)
+	pmaddwd   xmm0,[rel PW_F0299_F0337] ; xmm0=REL*FIX(0.299)+GEL*FIX(0.337)
+	pmaddwd   xmm6,[rel PW_F0299_F0337] ; xmm6=REH*FIX(0.299)+GEH*FIX(0.337)
+	pmaddwd   xmm5,[rel PW_MF016_MF033] ; xmm5=REL*-FIX(0.168)+GEL*-FIX(0.331)
+	pmaddwd   xmm4,[rel PW_MF016_MF033] ; xmm4=REH*-FIX(0.168)+GEH*-FIX(0.331)
 
 	movdqa    XMMWORD [wk(6)], xmm0	; wk(6)=REL*FIX(0.299)+GEL*FIX(0.337)
 	movdqa    XMMWORD [wk(7)], xmm6	; wk(7)=REH*FIX(0.299)+GEH*FIX(0.337)
@@ -349,7 +349,7 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	psrld     xmm0,1		; xmm0=BEL*FIX(0.500)
 	psrld     xmm6,1		; xmm6=BEH*FIX(0.500)
 
-	movdqa    xmm1,[PD_ONEHALFM1_CJ] ; xmm1=[PD_ONEHALFM1_CJ]
+	movdqa    xmm1,[rel PD_ONEHALFM1_CJ] ; xmm1=[PD_ONEHALFM1_CJ]
 
 	paddd     xmm5,xmm0
 	paddd     xmm4,xmm6
@@ -372,12 +372,12 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	punpckhwd xmm4,xmm3
 	movdqa    xmm7,xmm0
 	movdqa    xmm5,xmm4
-	pmaddwd   xmm0,[PW_F0114_F0250] ; xmm0=BOL*FIX(0.114)+GOL*FIX(0.250)
-	pmaddwd   xmm4,[PW_F0114_F0250] ; xmm4=BOH*FIX(0.114)+GOH*FIX(0.250)
-	pmaddwd   xmm7,[PW_MF008_MF041] ; xmm7=BOL*-FIX(0.081)+GOL*-FIX(0.418)
-	pmaddwd   xmm5,[PW_MF008_MF041] ; xmm5=BOH*-FIX(0.081)+GOH*-FIX(0.418)
+	pmaddwd   xmm0,[rel PW_F0114_F0250] ; xmm0=BOL*FIX(0.114)+GOL*FIX(0.250)
+	pmaddwd   xmm4,[rel PW_F0114_F0250] ; xmm4=BOH*FIX(0.114)+GOH*FIX(0.250)
+	pmaddwd   xmm7,[rel PW_MF008_MF041] ; xmm7=BOL*-FIX(0.081)+GOL*-FIX(0.418)
+	pmaddwd   xmm5,[rel PW_MF008_MF041] ; xmm5=BOH*-FIX(0.081)+GOH*-FIX(0.418)
 
-	movdqa    xmm3,[PD_ONEHALF]	; xmm3=[PD_ONEHALF]
+	movdqa    xmm3,[rel PD_ONEHALF]	; xmm3=[PD_ONEHALF]
 
 	paddd     xmm0, XMMWORD [wk(4)]
 	paddd     xmm4, XMMWORD [wk(5)]
@@ -394,7 +394,7 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	psrld     xmm3,1		; xmm3=ROL*FIX(0.500)
 	psrld     xmm4,1		; xmm4=ROH*FIX(0.500)
 
-	movdqa    xmm1,[PD_ONEHALFM1_CJ] ; xmm1=[PD_ONEHALFM1_CJ]
+	movdqa    xmm1,[rel PD_ONEHALFM1_CJ] ; xmm1=[PD_ONEHALFM1_CJ]
 
 	paddd     xmm7,xmm3
 	paddd     xmm5,xmm4
@@ -411,12 +411,12 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	punpckhwd xmm4,xmm2
 	movdqa    xmm1,xmm6
 	movdqa    xmm5,xmm4
-	pmaddwd   xmm6,[PW_F0114_F0250] ; xmm6=BEL*FIX(0.114)+GEL*FIX(0.250)
-	pmaddwd   xmm4,[PW_F0114_F0250] ; xmm4=BEH*FIX(0.114)+GEH*FIX(0.250)
-	pmaddwd   xmm1,[PW_MF008_MF041] ; xmm1=BEL*-FIX(0.081)+GEL*-FIX(0.418)
-	pmaddwd   xmm5,[PW_MF008_MF041] ; xmm5=BEH*-FIX(0.081)+GEH*-FIX(0.418)
+	pmaddwd   xmm6,[rel PW_F0114_F0250] ; xmm6=BEL*FIX(0.114)+GEL*FIX(0.250)
+	pmaddwd   xmm4,[rel PW_F0114_F0250] ; xmm4=BEH*FIX(0.114)+GEH*FIX(0.250)
+	pmaddwd   xmm1,[rel PW_MF008_MF041] ; xmm1=BEL*-FIX(0.081)+GEL*-FIX(0.418)
+	pmaddwd   xmm5,[rel PW_MF008_MF041] ; xmm5=BEH*-FIX(0.081)+GEH*-FIX(0.418)
 
-	movdqa    xmm2,[PD_ONEHALF]	; xmm2=[PD_ONEHALF]
+	movdqa    xmm2,[rel PD_ONEHALF]	; xmm2=[PD_ONEHALF]
 
 	paddd     xmm6, XMMWORD [wk(6)]
 	paddd     xmm4, XMMWORD [wk(7)]
@@ -437,7 +437,7 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	psrld     xmm2,1		; xmm2=REL*FIX(0.500)
 	psrld     xmm4,1		; xmm4=REH*FIX(0.500)
 
-	movdqa    xmm0,[PD_ONEHALFM1_CJ] ; xmm0=[PD_ONEHALFM1_CJ]
+	movdqa    xmm0,[rel PD_ONEHALFM1_CJ] ; xmm0=[PD_ONEHALFM1_CJ]
 
 	paddd     xmm1,xmm2
 	paddd     xmm5,xmm4

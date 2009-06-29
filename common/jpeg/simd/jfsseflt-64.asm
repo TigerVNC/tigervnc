@@ -159,7 +159,7 @@ EXTN(jsimd_fdct_float_sse):
 	addps	xmm6,xmm4		; xmm6=tmp11
 
 	addps	xmm0,xmm5
-	mulps	xmm0,[PD_0_707] ; xmm0=z1
+	mulps	xmm0,[rel PD_0_707] ; xmm0=z1
 
 	movaps	xmm7,xmm1
 	movaps	xmm4,xmm5
@@ -182,13 +182,13 @@ EXTN(jsimd_fdct_float_sse):
 	addps	xmm3,xmm6		; xmm3=tmp11
 	addps	xmm6,xmm0		; xmm6=tmp12, xmm0=tmp7
 
-	mulps	xmm3,[PD_0_707] ; xmm3=z3
+	mulps	xmm3,[rel PD_0_707] ; xmm3=z3
 
 	movaps	xmm1,xmm2		; xmm1=tmp10
 	subps	xmm2,xmm6
-	mulps	xmm2,[PD_0_382] ; xmm2=z5
-	mulps	xmm1,[PD_0_541] ; xmm1=MULTIPLY(tmp10,FIX_0_541196)
-	mulps	xmm6,[PD_1_306] ; xmm6=MULTIPLY(tmp12,FIX_1_306562)
+	mulps	xmm2,[rel PD_0_382] ; xmm2=z5
+	mulps	xmm1,[rel PD_0_541] ; xmm1=MULTIPLY(tmp10,FIX_0_541196)
+	mulps	xmm6,[rel PD_1_306] ; xmm6=MULTIPLY(tmp12,FIX_1_306562)
 	addps	xmm1,xmm2		; xmm1=z2
 	addps	xmm6,xmm2		; xmm6=z4
 
@@ -294,7 +294,7 @@ EXTN(jsimd_fdct_float_sse):
 	addps	xmm6,xmm4		; xmm6=tmp11
 
 	addps	xmm0,xmm5
-	mulps	xmm0,[PD_0_707] ; xmm0=z1
+	mulps	xmm0,[rel PD_0_707] ; xmm0=z1
 
 	movaps	xmm7,xmm1
 	movaps	xmm4,xmm5
@@ -317,13 +317,13 @@ EXTN(jsimd_fdct_float_sse):
 	addps	xmm3,xmm6		; xmm3=tmp11
 	addps	xmm6,xmm0		; xmm6=tmp12, xmm0=tmp7
 
-	mulps	xmm3,[PD_0_707] ; xmm3=z3
+	mulps	xmm3,[rel PD_0_707] ; xmm3=z3
 
 	movaps	xmm1,xmm2		; xmm1=tmp10
 	subps	xmm2,xmm6
-	mulps	xmm2,[PD_0_382] ; xmm2=z5
-	mulps	xmm1,[PD_0_541] ; xmm1=MULTIPLY(tmp10,FIX_0_541196)
-	mulps	xmm6,[PD_1_306] ; xmm6=MULTIPLY(tmp12,FIX_1_306562)
+	mulps	xmm2,[rel PD_0_382] ; xmm2=z5
+	mulps	xmm1,[rel PD_0_541] ; xmm1=MULTIPLY(tmp10,FIX_0_541196)
+	mulps	xmm6,[rel PD_1_306] ; xmm6=MULTIPLY(tmp12,FIX_1_306562)
 	addps	xmm1,xmm2		; xmm1=z2
 	addps	xmm6,xmm2		; xmm6=z4
 

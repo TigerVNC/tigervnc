@@ -127,17 +127,17 @@ EXTN(jsimd_ycc_rgb_convert_sse2):
 	paddw	xmm0,xmm0		; xmm0=2*CrE
 	paddw	xmm1,xmm1		; xmm1=2*CrO
 
-	pmulhw	xmm4,[PW_MF0228]	; xmm4=(2*CbE * -FIX(0.22800))
-	pmulhw	xmm5,[PW_MF0228]	; xmm5=(2*CbO * -FIX(0.22800))
-	pmulhw	xmm0,[PW_F0402]	; xmm0=(2*CrE * FIX(0.40200))
-	pmulhw	xmm1,[PW_F0402]	; xmm1=(2*CrO * FIX(0.40200))
+	pmulhw	xmm4,[rel PW_MF0228]	; xmm4=(2*CbE * -FIX(0.22800))
+	pmulhw	xmm5,[rel PW_MF0228]	; xmm5=(2*CbO * -FIX(0.22800))
+	pmulhw	xmm0,[rel PW_F0402]	; xmm0=(2*CrE * FIX(0.40200))
+	pmulhw	xmm1,[rel PW_F0402]	; xmm1=(2*CrO * FIX(0.40200))
 
-	paddw	xmm4,[PW_ONE]
-	paddw	xmm5,[PW_ONE]
+	paddw	xmm4,[rel PW_ONE]
+	paddw	xmm5,[rel PW_ONE]
 	psraw	xmm4,1			; xmm4=(CbE * -FIX(0.22800))
 	psraw	xmm5,1			; xmm5=(CbO * -FIX(0.22800))
-	paddw	xmm0,[PW_ONE]
-	paddw	xmm1,[PW_ONE]
+	paddw	xmm0,[rel PW_ONE]
+	paddw	xmm1,[rel PW_ONE]
 	psraw	xmm0,1			; xmm0=(CrE * FIX(0.40200))
 	psraw	xmm1,1			; xmm1=(CrO * FIX(0.40200))
 
@@ -155,19 +155,19 @@ EXTN(jsimd_ycc_rgb_convert_sse2):
 	movdqa    xmm5,xmm3
 	punpcklwd xmm2,xmm6
 	punpckhwd xmm4,xmm6
-	pmaddwd   xmm2,[PW_MF0344_F0285]
-	pmaddwd   xmm4,[PW_MF0344_F0285]
+	pmaddwd   xmm2,[rel PW_MF0344_F0285]
+	pmaddwd   xmm4,[rel PW_MF0344_F0285]
 	punpcklwd xmm3,xmm7
 	punpckhwd xmm5,xmm7
-	pmaddwd   xmm3,[PW_MF0344_F0285]
-	pmaddwd   xmm5,[PW_MF0344_F0285]
+	pmaddwd   xmm3,[rel PW_MF0344_F0285]
+	pmaddwd   xmm5,[rel PW_MF0344_F0285]
 
-	paddd     xmm2,[PD_ONEHALF]
-	paddd     xmm4,[PD_ONEHALF]
+	paddd     xmm2,[rel PD_ONEHALF]
+	paddd     xmm4,[rel PD_ONEHALF]
 	psrad     xmm2,SCALEBITS
 	psrad     xmm4,SCALEBITS
-	paddd     xmm3,[PD_ONEHALF]
-	paddd     xmm5,[PD_ONEHALF]
+	paddd     xmm3,[rel PD_ONEHALF]
+	paddd     xmm5,[rel PD_ONEHALF]
 	psrad     xmm3,SCALEBITS
 	psrad     xmm5,SCALEBITS
 

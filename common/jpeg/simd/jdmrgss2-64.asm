@@ -113,17 +113,17 @@ EXTN(jsimd_h2v1_merged_upsample_sse2):
 	paddw	xmm7,xmm7		; xmm7=2*CrH
 	paddw	xmm0,xmm0		; xmm0=2*CrL
 
-	pmulhw	xmm6,[PW_MF0228]	; xmm6=(2*CbH * -FIX(0.22800))
-	pmulhw	xmm4,[PW_MF0228]	; xmm4=(2*CbL * -FIX(0.22800))
-	pmulhw	xmm7,[PW_F0402]	; xmm7=(2*CrH * FIX(0.40200))
-	pmulhw	xmm0,[PW_F0402]	; xmm0=(2*CrL * FIX(0.40200))
+	pmulhw	xmm6,[rel PW_MF0228]	; xmm6=(2*CbH * -FIX(0.22800))
+	pmulhw	xmm4,[rel PW_MF0228]	; xmm4=(2*CbL * -FIX(0.22800))
+	pmulhw	xmm7,[rel PW_F0402]	; xmm7=(2*CrH * FIX(0.40200))
+	pmulhw	xmm0,[rel PW_F0402]	; xmm0=(2*CrL * FIX(0.40200))
 
-	paddw	xmm6,[PW_ONE]
-	paddw	xmm4,[PW_ONE]
+	paddw	xmm6,[rel PW_ONE]
+	paddw	xmm4,[rel PW_ONE]
 	psraw	xmm6,1			; xmm6=(CbH * -FIX(0.22800))
 	psraw	xmm4,1			; xmm4=(CbL * -FIX(0.22800))
-	paddw	xmm7,[PW_ONE]
-	paddw	xmm0,[PW_ONE]
+	paddw	xmm7,[rel PW_ONE]
+	paddw	xmm0,[rel PW_ONE]
 	psraw	xmm7,1			; xmm7=(CrH * FIX(0.40200))
 	psraw	xmm0,1			; xmm0=(CrL * FIX(0.40200))
 
@@ -141,19 +141,19 @@ EXTN(jsimd_h2v1_merged_upsample_sse2):
 	movdqa    xmm7,xmm2
 	punpcklwd xmm5,xmm1
 	punpckhwd xmm6,xmm1
-	pmaddwd   xmm5,[PW_MF0344_F0285]
-	pmaddwd   xmm6,[PW_MF0344_F0285]
+	pmaddwd   xmm5,[rel PW_MF0344_F0285]
+	pmaddwd   xmm6,[rel PW_MF0344_F0285]
 	punpcklwd xmm2,xmm3
 	punpckhwd xmm7,xmm3
-	pmaddwd   xmm2,[PW_MF0344_F0285]
-	pmaddwd   xmm7,[PW_MF0344_F0285]
+	pmaddwd   xmm2,[rel PW_MF0344_F0285]
+	pmaddwd   xmm7,[rel PW_MF0344_F0285]
 
-	paddd     xmm5,[PD_ONEHALF]
-	paddd     xmm6,[PD_ONEHALF]
+	paddd     xmm5,[rel PD_ONEHALF]
+	paddd     xmm6,[rel PD_ONEHALF]
 	psrad     xmm5,SCALEBITS
 	psrad     xmm6,SCALEBITS
-	paddd     xmm2,[PD_ONEHALF]
-	paddd     xmm7,[PD_ONEHALF]
+	paddd     xmm2,[rel PD_ONEHALF]
+	paddd     xmm7,[rel PD_ONEHALF]
 	psrad     xmm2,SCALEBITS
 	psrad     xmm7,SCALEBITS
 

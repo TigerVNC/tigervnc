@@ -186,10 +186,10 @@ EXTN(jsimd_idct_4x4_sse2):
 	punpckhwd xmm5,xmm1
 	movdqa    xmm0,xmm4
 	movdqa    xmm1,xmm5
-	pmaddwd   xmm4,[PW_F256_F089]	; xmm4=(tmp2L)
-	pmaddwd   xmm5,[PW_F256_F089]	; xmm5=(tmp2H)
-	pmaddwd   xmm0,[PW_F106_MF217]	; xmm0=(tmp0L)
-	pmaddwd   xmm1,[PW_F106_MF217]	; xmm1=(tmp0H)
+	pmaddwd   xmm4,[rel PW_F256_F089]	; xmm4=(tmp2L)
+	pmaddwd   xmm5,[rel PW_F256_F089]	; xmm5=(tmp2H)
+	pmaddwd   xmm0,[rel PW_F106_MF217]	; xmm0=(tmp0L)
+	pmaddwd   xmm1,[rel PW_F106_MF217]	; xmm1=(tmp0H)
 
 	movdqa    xmm6,xmm2
 	movdqa    xmm7,xmm2
@@ -197,10 +197,10 @@ EXTN(jsimd_idct_4x4_sse2):
 	punpckhwd xmm7,xmm3
 	movdqa    xmm2,xmm6
 	movdqa    xmm3,xmm7
-	pmaddwd   xmm6,[PW_MF060_MF050]	; xmm6=(tmp2L)
-	pmaddwd   xmm7,[PW_MF060_MF050]	; xmm7=(tmp2H)
-	pmaddwd   xmm2,[PW_F145_MF021]	; xmm2=(tmp0L)
-	pmaddwd   xmm3,[PW_F145_MF021]	; xmm3=(tmp0H)
+	pmaddwd   xmm6,[rel PW_MF060_MF050]	; xmm6=(tmp2L)
+	pmaddwd   xmm7,[rel PW_MF060_MF050]	; xmm7=(tmp2H)
+	pmaddwd   xmm2,[rel PW_F145_MF021]	; xmm2=(tmp0L)
+	pmaddwd   xmm3,[rel PW_F145_MF021]	; xmm3=(tmp0H)
 
 	paddd	xmm6,xmm4		; xmm6=tmp2L
 	paddd	xmm7,xmm5		; xmm7=tmp2H
@@ -229,8 +229,8 @@ EXTN(jsimd_idct_4x4_sse2):
 	movdqa    xmm3,xmm5		; xmm5=in2=z2
 	punpcklwd xmm5,xmm0		; xmm0=in6=z3
 	punpckhwd xmm3,xmm0
-	pmaddwd   xmm5,[PW_F184_MF076]	; xmm5=tmp2L
-	pmaddwd   xmm3,[PW_F184_MF076]	; xmm3=tmp2H
+	pmaddwd   xmm5,[rel PW_F184_MF076]	; xmm5=tmp2L
+	pmaddwd   xmm3,[rel PW_F184_MF076]	; xmm3=tmp2H
 
 	movdqa	xmm4,xmm1
 	movdqa	xmm0,xmm2
@@ -248,7 +248,7 @@ EXTN(jsimd_idct_4x4_sse2):
 	psubd	xmm5,xmm6		; xmm5=data3L
 	psubd	xmm3,xmm7		; xmm3=data3H
 
-	movdqa	xmm6,[PD_DESCALE_P1_4]	; xmm6=[PD_DESCALE_P1_4]
+	movdqa	xmm6,[rel PD_DESCALE_P1_4]	; xmm6=[rel PD_DESCALE_P1_4]
 
 	paddd	xmm1,xmm6
 	paddd	xmm2,xmm6
@@ -272,7 +272,7 @@ EXTN(jsimd_idct_4x4_sse2):
 	psubd	xmm2,xmm7		; xmm2=data2L
 	psubd	xmm3,xmm6		; xmm3=data2H
 
-	movdqa	xmm7,[PD_DESCALE_P1_4]	; xmm7=[PD_DESCALE_P1_4]
+	movdqa	xmm7,[rel PD_DESCALE_P1_4]	; xmm7=[rel PD_DESCALE_P1_4]
 
 	paddd	xmm4,xmm7
 	paddd	xmm0,xmm7
@@ -326,10 +326,10 @@ EXTN(jsimd_idct_4x4_sse2):
 	punpckhwd xmm6,xmm3
 	movdqa    xmm5,xmm1
 	movdqa    xmm2,xmm6
-	pmaddwd   xmm1,[PW_F256_F089]	; xmm1=(tmp2)
-	pmaddwd   xmm6,[PW_MF060_MF050]	; xmm6=(tmp2)
-	pmaddwd   xmm5,[PW_F106_MF217]	; xmm5=(tmp0)
-	pmaddwd   xmm2,[PW_F145_MF021]	; xmm2=(tmp0)
+	pmaddwd   xmm1,[rel PW_F256_F089]	; xmm1=(tmp2)
+	pmaddwd   xmm6,[rel PW_MF060_MF050]	; xmm6=(tmp2)
+	pmaddwd   xmm5,[rel PW_F106_MF217]	; xmm5=(tmp0)
+	pmaddwd   xmm2,[rel PW_F145_MF021]	; xmm2=(tmp0)
 
 	paddd     xmm6,xmm1		; xmm6=tmp2
 	paddd     xmm2,xmm5		; xmm2=tmp0
@@ -337,7 +337,7 @@ EXTN(jsimd_idct_4x4_sse2):
 	; -- Even part
 
 	punpcklwd xmm0,xmm3
-	pmaddwd   xmm0,[PW_F184_MF076]	; xmm0=tmp2
+	pmaddwd   xmm0,[rel PW_F184_MF076]	; xmm0=tmp2
 
 	movdqa    xmm7,xmm4
 	paddd     xmm4,xmm0		; xmm4=tmp10
@@ -345,7 +345,7 @@ EXTN(jsimd_idct_4x4_sse2):
 
 	; -- Final output stage
 
-	movdqa	xmm1,[PD_DESCALE_P2_4]	; xmm1=[PD_DESCALE_P2_4]
+	movdqa	xmm1,[rel PD_DESCALE_P2_4]	; xmm1=[rel PD_DESCALE_P2_4]
 
 	movdqa	xmm5,xmm4
 	movdqa	xmm3,xmm7
@@ -375,7 +375,7 @@ EXTN(jsimd_idct_4x4_sse2):
 	punpckhdq xmm6,xmm0		; xmm6=(20 21 22 23 30 31 32 33)
 
 	packsswb  xmm4,xmm6		; xmm4=(00 01 02 03 10 11 12 13 20 ..)
-	paddb     xmm4,[PB_CENTERJSAMP]
+	paddb     xmm4,[rel PB_CENTERJSAMP]
 
 	pshufd    xmm2,xmm4,0x39	; xmm2=(10 11 12 13 20 21 22 23 30 ..)
 	pshufd    xmm1,xmm4,0x4E	; xmm1=(20 21 22 23 30 31 32 33 00 ..)
@@ -457,8 +457,8 @@ EXTN(jsimd_idct_2x2_sse2):
 	movdqa    xmm5,xmm2		; xmm5=(50 51 ** 53 ** 55 ** 57)
 	punpcklwd xmm4,xmm1		; xmm4=(10 30 11 31 ** ** 13 33)
 	punpcklwd xmm5,xmm3		; xmm5=(50 70 51 71 ** ** 53 73)
-	pmaddwd   xmm4,[PW_F362_MF127]
-	pmaddwd   xmm5,[PW_F085_MF072]
+	pmaddwd   xmm4,[rel PW_F362_MF127]
+	pmaddwd   xmm5,[rel PW_F085_MF072]
 
 	psrld	xmm0,WORD_BIT		; xmm0=(11 -- 13 -- 15 -- 17 --)
 	pand	xmm1,xmm7		; xmm1=(-- 31 -- 33 -- 35 -- 37)
@@ -466,8 +466,8 @@ EXTN(jsimd_idct_2x2_sse2):
 	pand	xmm3,xmm7		; xmm3=(-- 71 -- 73 -- 75 -- 77)
 	por	xmm0,xmm1		; xmm0=(11 31 13 33 15 35 17 37)
 	por	xmm2,xmm3		; xmm2=(51 71 53 73 55 75 57 77)
-	pmaddwd	xmm0,[PW_F362_MF127]
-	pmaddwd	xmm2,[PW_F085_MF072]
+	pmaddwd	xmm0,[rel PW_F362_MF127]
+	pmaddwd	xmm2,[rel PW_F085_MF072]
 
 	paddd	xmm4,xmm5		; xmm4=tmp0[col0 col1 **** col3]
 	paddd	xmm0,xmm2		; xmm0=tmp0[col1 col3 col5 col7]
@@ -494,7 +494,7 @@ EXTN(jsimd_idct_2x2_sse2):
 	psubd	xmm3,xmm4	; xmm3=data1[col0 **** **** ****]=(B0 ** ** **)
 	psubd	xmm5,xmm0	; xmm5=data1[col1 col3 col5 col7]=(B1 B3 B5 B7)
 
-	movdqa	xmm2,[PD_DESCALE_P1_2]	; xmm2=[PD_DESCALE_P1_2]
+	movdqa	xmm2,[rel PD_DESCALE_P1_2]	; xmm2=[rel PD_DESCALE_P1_2]
 
 	punpckldq  xmm6,xmm3		; xmm6=(A0 B0 ** **)
 
@@ -533,8 +533,8 @@ EXTN(jsimd_idct_2x2_sse2):
 
 	packssdw  xmm1,xmm1		; xmm1=(A1 A3 B1 B3 A1 A3 B1 B3)
 	packssdw  xmm7,xmm7		; xmm7=(A5 A7 B5 B7 A5 A7 B5 B7)
-	pmaddwd   xmm1,[PW_F362_MF127]
-	pmaddwd   xmm7,[PW_F085_MF072]
+	pmaddwd   xmm1,[rel PW_F362_MF127]
+	pmaddwd   xmm7,[rel PW_F085_MF072]
 
 	paddd     xmm1,xmm7		; xmm1=tmp0[row0 row1 row0 row1]
 
@@ -550,12 +550,12 @@ EXTN(jsimd_idct_2x2_sse2):
 
 	punpckldq xmm6,xmm4	; xmm6=(C0 D0 C1 D1)
 
-	paddd     xmm6,[PD_DESCALE_P2_2]
+	paddd     xmm6,[rel PD_DESCALE_P2_2]
 	psrad     xmm6,DESCALE_P2_2
 
 	packssdw  xmm6,xmm6		; xmm6=(C0 D0 C1 D1 C0 D0 C1 D1)
 	packsswb  xmm6,xmm6		; xmm6=(C0 D0 C1 D1 C0 D0 C1 D1 ..)
-	paddb     xmm6,[PB_CENTERJSAMP]
+	paddb     xmm6,[rel PB_CENTERJSAMP]
 
 	pextrw	ebx,xmm6,0x00		; ebx=(C0 D0 -- --)
 	pextrw	ecx,xmm6,0x01		; ecx=(C1 D1 -- --)

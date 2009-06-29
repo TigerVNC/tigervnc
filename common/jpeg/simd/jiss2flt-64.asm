@@ -181,7 +181,7 @@ EXTN(jsimd_idct_float_sse2):
 	addps	xmm4,xmm2		; xmm4=tmp10
 	addps	xmm5,xmm3		; xmm5=tmp13
 
-	mulps	xmm1,[PD_1_414]
+	mulps	xmm1,[rel PD_1_414]
 	subps	xmm1,xmm5		; xmm1=tmp12
 
 	movaps	xmm6,xmm4
@@ -231,13 +231,13 @@ EXTN(jsimd_idct_float_sse2):
 	subps	xmm2,xmm5
 	addps	xmm1,xmm5		; xmm1=tmp7
 
-	mulps	xmm2,[PD_1_414]	; xmm2=tmp11
+	mulps	xmm2,[rel PD_1_414]	; xmm2=tmp11
 
 	movaps	xmm3,xmm0
 	addps	xmm0,xmm4
-	mulps	xmm0,[PD_1_847]	; xmm0=z5
-	mulps	xmm3,[PD_M2_613]	; xmm3=(z10 * -2.613125930)
-	mulps	xmm4,[PD_1_082]	; xmm4=(z12 * 1.082392200)
+	mulps	xmm0,[rel PD_1_847]	; xmm0=z5
+	mulps	xmm3,[rel PD_M2_613]	; xmm3=(z10 * -2.613125930)
+	mulps	xmm4,[rel PD_1_082]	; xmm4=(z12 * 1.082392200)
 	addps	xmm3,xmm0		; xmm3=tmp12
 	subps	xmm4,xmm0		; xmm4=tmp10
 
@@ -344,7 +344,7 @@ EXTN(jsimd_idct_float_sse2):
 	addps	xmm4,xmm2		; xmm4=tmp10
 	addps	xmm5,xmm3		; xmm5=tmp13
 
-	mulps	xmm1,[PD_1_414]
+	mulps	xmm1,[rel PD_1_414]
 	subps	xmm1,xmm5		; xmm1=tmp12
 
 	movaps	xmm6,xmm4
@@ -375,13 +375,13 @@ EXTN(jsimd_idct_float_sse2):
 	subps	xmm2,xmm5
 	addps	xmm1,xmm5		; xmm1=tmp7
 
-	mulps	xmm2,[PD_1_414]	; xmm2=tmp11
+	mulps	xmm2,[rel PD_1_414]	; xmm2=tmp11
 
 	movaps	xmm3,xmm0
 	addps	xmm0,xmm4
-	mulps	xmm0,[PD_1_847]	; xmm0=z5
-	mulps	xmm3,[PD_M2_613]	; xmm3=(z10 * -2.613125930)
-	mulps	xmm4,[PD_1_082]	; xmm4=(z12 * 1.082392200)
+	mulps	xmm0,[rel PD_1_847]	; xmm0=z5
+	mulps	xmm3,[rel PD_M2_613]	; xmm3=(z10 * -2.613125930)
+	mulps	xmm4,[rel PD_1_082]	; xmm4=(z12 * 1.082392200)
 	addps	xmm3,xmm0		; xmm3=tmp12
 	subps	xmm4,xmm0		; xmm4=tmp10
 
@@ -396,7 +396,7 @@ EXTN(jsimd_idct_float_sse2):
 	subps	xmm0,xmm3		; xmm0=data6=(06 16 26 36)
 	subps	xmm2,xmm3		; xmm2=tmp5
 
-	movaps	xmm1,[PD_RNDINT_MAGIC]	; xmm1=[PD_RNDINT_MAGIC]
+	movaps	xmm1,[rel PD_RNDINT_MAGIC]	; xmm1=[rel PD_RNDINT_MAGIC]
 	pcmpeqd	xmm3,xmm3
 	psrld	xmm3,WORD_BIT		; xmm3={0xFFFF 0x0000 0xFFFF 0x0000 ..}
 
@@ -423,7 +423,7 @@ EXTN(jsimd_idct_float_sse2):
 	subps	xmm7,xmm2		; xmm7=data5=(05 15 25 35)
 	subps	xmm5,xmm4		; xmm5=data3=(03 13 23 33)
 
-	movaps	xmm2,[PD_RNDINT_MAGIC]	; xmm2=[PD_RNDINT_MAGIC]
+	movaps	xmm2,[rel PD_RNDINT_MAGIC]	; xmm2=[rel PD_RNDINT_MAGIC]
 	pcmpeqd	xmm4,xmm4
 	psrld	xmm4,WORD_BIT		; xmm4={0xFFFF 0x0000 0xFFFF 0x0000 ..}
 
@@ -439,7 +439,7 @@ EXTN(jsimd_idct_float_sse2):
 	por	xmm3,xmm7		; xmm3=(04 05 14 15 24 25 34 35)
 	por	xmm1,xmm5		; xmm1=(02 03 12 13 22 23 32 33)
 
-	movdqa    xmm2,[PB_CENTERJSAMP]	; xmm2=[PB_CENTERJSAMP]
+	movdqa    xmm2,[rel PB_CENTERJSAMP]	; xmm2=[rel PB_CENTERJSAMP]
 
 	packsswb  xmm6,xmm3	; xmm6=(00 01 10 11 20 21 30 31 04 05 14 15 24 25 34 35)
 	packsswb  xmm1,xmm0	; xmm1=(02 03 12 13 22 23 32 33 06 07 16 17 26 27 36 37)
