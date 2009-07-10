@@ -20,6 +20,8 @@ jccolss2-64.lo: jcclrss2-64.asm
 jdcolss2-64.lo: jdclrss2-64.asm
 jdmerss2-64.lo: jdmrgss2-64.asm
 
+EXTRA_DIST += jcclrss2-64.asm jdclrss2-64.asm jdmrgss2-64.asm
+
 endif
 
 if SIMD_I386
@@ -46,6 +48,11 @@ jdcolmmx.lo: jdclrmmx.asm
 jdcolss2.lo: jdclrss2.asm
 jdmermmx.lo: jdmrgmmx.asm
 jdmerss2.lo: jdmrgss2.asm
+
+EXTRA_DIST += \
+	jcclrmmx.asm jcclrss2.asm \
+	jdclrmmx.asm jdclrss2.asm \
+	jdmrgmmx.asm jdmrgss2.asm
 
 endif
 
