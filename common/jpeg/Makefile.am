@@ -27,11 +27,11 @@ TSTHDRS = turbojpeg.h rrutil.h rrtimer.h
 
 noinst_PROGRAMS = jpgtest jpegut cjpeg djpeg
 
-jpgtest_SOURCES = $(TSTHDRS) jpgtest.cxx bmp.c turbojpegl.c
+jpgtest_SOURCES = $(TSTHDRS) jpgtest.cxx bmp.h bmp.c turbojpegl.c
 
 jpgtest_LDADD = $(top_srcdir)/libjpeg.la
 
-jpegut_SOURCES = $(TSTHDRS) jpegut.c bmp.c turbojpegl.c
+jpegut_SOURCES = $(TSTHDRS) jpegut.c bmp.h bmp.c turbojpegl.c
 
 jpegut_LDADD = $(top_srcdir)/libjpeg.la
 
