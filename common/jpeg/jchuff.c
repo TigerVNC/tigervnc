@@ -33,14 +33,10 @@
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jchuff.h"		/* Declarations shared with jcphuff.c */
-
+#include <limits.h>
 
 static unsigned char jpeg_first_bit_table[65536];
 int jpeg_first_bit_table_init=0;
-
-#define CALC_FIRST_BIT(nbits, t)                       \
-  nbits = jpeg_first_bit_table[t&255];                 \
-  if (t > 255) nbits = jpeg_first_bit_table[t>>8] + 8;
 
 #ifndef min
  #define min(a,b) ((a)<(b)?(a):(b))
@@ -53,7 +49,7 @@ int jpeg_first_bit_table_init=0;
  */
 
 typedef struct {
-  INT32 put_buffer;		/* current bit-accumulation buffer */
+  long put_buffer;		/* current bit-accumulation buffer */
   int put_bits;			/* # of bits now in it */
   int last_dc_val[MAX_COMPS_IN_SCAN]; /* last DC coef for each component */
 } savable_state;
@@ -185,6 +181,7 @@ start_pass_huff (j_compress_ptr cinfo, boolean gather_statistics)
   }
 
   /* Initialize bit buffer to empty */
+
   entropy->saved.put_buffer = 0;
   entropy->saved.put_bits = 0;
 
@@ -336,27 +333,84 @@ dump_buffer (working_state * state)
 
 /***************************************************************/
 
+#define EMIT_BYTE() {                                           \
+  if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8)))     \
+    *buffer++ = 0;                                              \
+ }
+
+/***************************************************************/
+
 #define DUMP_BITS_(code, size) {                                \
   put_bits += size;                                             \
   put_buffer = (put_buffer << size) | code;                     \
   if (put_bits > 7)                                             \
     while(put_bits > 7)                                         \
-      if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8))) \
-        *buffer++ = 0;                                          \
+      EMIT_BYTE()                                               \
  }
 
 /***************************************************************/
 
+#define CHECKBUF15() {                                          \
+  if (put_bits > 15) {                                          \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+  }                                                             \
+}
+
+#define CHECKBUF15() {                                          \
+  if (put_bits > 15) {                                          \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+  }                                                             \
+}
+
+#define CHECKBUF47() {                                          \
+  if (put_bits > 47) {                                          \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+  }                                                             \
+}
+
+#define CHECKBUF55() {                                          \
+  if (put_bits > 55) {                                          \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+    EMIT_BYTE()                                                 \
+  }                                                             \
+}
+
+/***************************************************************/
+
+#define DUMP_BITS_NOCHECK(code, size) {                         \
+  put_bits += size;                                             \
+  put_buffer = (put_buffer << size) | code;                     \
+ }
+
+#if __WORDSIZE==64
+
+#define DUMP_BITS(code, size) {                                 \
+  CHECKBUF55()                                                  \
+  put_bits += size;                                             \
+  put_buffer = (put_buffer << size) | code;                     \
+ }
+
+#else
+
 #define DUMP_BITS(code, size) {                                 \
   put_bits += size;                                             \
   put_buffer = (put_buffer << size) | code;                     \
-  if (put_bits > 15) {                                          \
-    if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8)))   \
-      *buffer++ = 0;                                            \
-    if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8)))   \
-      *buffer++ = 0;                                            \
-  }                                                             \
+  CHECKBUF15()                                                  \
  }
+
+#endif
 
 /***************************************************************/
 
@@ -369,13 +423,39 @@ dump_buffer (working_state * state)
 
 /***************************************************************/
 
+#define DUMP_VALUE_SLOW(ht, codevalue, t, nbits) { \
+  size = ht->ehufsi[codevalue];               \
+  code = ht->ehufco[codevalue];               \
+  t &= ~(-1 << nbits);                        \
+  DUMP_BITS_NOCHECK(code, size)               \
+  CHECKBUF15()                                \
+  DUMP_BITS_NOCHECK(t, nbits)                 \
+  CHECKBUF15()                                \
+ }
+
+#if __WORDSIZE==64
+
 #define DUMP_VALUE(ht, codevalue, t, nbits) { \
   size = ht->ehufsi[codevalue];               \
   code = ht->ehufco[codevalue];               \
   t &= ~(-1 << nbits);                        \
-  DUMP_BITS(code, size)                       \
-  DUMP_BITS(t, nbits)                         \
+  CHECKBUF47()                                \
+  DUMP_BITS_NOCHECK(code, size)               \
+  DUMP_BITS_NOCHECK(t, nbits)                 \
  }
+
+#else
+
+#define DUMP_VALUE(ht, codevalue, t, nbits) { \
+  size = ht->ehufsi[codevalue];               \
+  code = ht->ehufco[codevalue];               \
+  t &= ~(-1 << nbits);                        \
+  DUMP_BITS_NOCHECK(code, size)               \
+  DUMP_BITS_NOCHECK(t, nbits)                 \
+  CHECKBUF15()                                \
+ }
+
+#endif
 
 /***************************************************************/
 
@@ -416,7 +496,7 @@ LOCAL(boolean)
 flush_bits (working_state * state)
 {
   unsigned char _buffer[BUFSIZE], *buffer;
-  int put_buffer, put_bits;
+  long put_buffer;  int put_bits;
   int bytes, bytestocopy, localbuf = 0;
 
   put_buffer = state->cur.put_buffer;
@@ -442,7 +522,7 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
   int nbits;
   int r, sflag, size, code;
   unsigned char _buffer[BUFSIZE], *buffer;
-  int put_buffer, put_bits;
+  long put_buffer;  int put_bits;
   int code_0xf0 = actbl->ehufco[0xf0], size_0xf0 = actbl->ehufsi[0xf0];
   int bytes, bytestocopy, localbuf = 0;
 
@@ -457,8 +537,8 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
   sflag = temp >> 31;
   temp -= ((temp + temp) & sflag);
   temp2 += sflag;
-  CALC_FIRST_BIT(nbits, temp)
-  DUMP_VALUE(dctbl, nbits, temp2, nbits)
+  nbits = jpeg_first_bit_table[temp];
+  DUMP_VALUE_SLOW(dctbl, nbits, temp2, nbits)
 
   /* Encode the AC coefficients per section F.1.2.2 */
   
@@ -472,8 +552,8 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
     sflag = temp >> 31;  \
     temp = (temp ^ sflag) - sflag;  \
     temp2 += sflag;  \
-    nbits = jpeg_first_bit_table[temp];  \
     for(; r > 15; r -= 16) DUMP_BITS(code_0xf0, size_0xf0)  \
+    nbits = jpeg_first_bit_table[temp];  \
     sflag = (r << 4) + nbits;  \
     DUMP_VALUE(actbl, sflag, temp2, nbits)  \
     r = 0;  \
