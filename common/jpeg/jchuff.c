@@ -334,7 +334,7 @@ dump_buffer (working_state * state)
 /***************************************************************/
 
 #define EMIT_BYTE() {                                           \
-  if (0xFF == (*buffer++ =  put_buffer >> (put_bits -= 8)))     \
+  if (0xFF == (*buffer++ =  (unsigned char)(put_buffer >> (put_bits -= 8))))  \
     *buffer++ = 0;                                              \
  }
 
@@ -357,13 +357,6 @@ dump_buffer (working_state * state)
   }                                                             \
 }
 
-#define CHECKBUF15() {                                          \
-  if (put_bits > 15) {                                          \
-    EMIT_BYTE()                                                 \
-    EMIT_BYTE()                                                 \
-  }                                                             \
-}
-
 #define CHECKBUF47() {                                          \
   if (put_bits > 47) {                                          \
     EMIT_BYTE()                                                 \
@@ -375,11 +368,8 @@ dump_buffer (working_state * state)
   }                                                             \
 }
 
-#define CHECKBUF55() {                                          \
-  if (put_bits > 55) {                                          \
-    EMIT_BYTE()                                                 \
-    EMIT_BYTE()                                                 \
-    EMIT_BYTE()                                                 \
+#define CHECKBUF31() {                                          \
+  if (put_bits > 31) {                                          \
     EMIT_BYTE()                                                 \
     EMIT_BYTE()                                                 \
     EMIT_BYTE()                                                 \
@@ -397,7 +387,7 @@ dump_buffer (working_state * state)
 #if __WORDSIZE==64
 
 #define DUMP_BITS(code, size) {                                 \
-  CHECKBUF55()                                                  \
+  CHECKBUF47()                                                  \
   put_bits += size;                                             \
   put_buffer = (put_buffer << size) | code;                     \
  }
@@ -433,13 +423,15 @@ dump_buffer (working_state * state)
   CHECKBUF15()                                \
  }
 
+int _max=0;
+
 #if __WORDSIZE==64
 
 #define DUMP_VALUE(ht, codevalue, t, nbits) { \
   size = ht->ehufsi[codevalue];               \
   code = ht->ehufco[codevalue];               \
   t &= ~(-1 << nbits);                        \
-  CHECKBUF47()                                \
+  CHECKBUF31()                                \
   DUMP_BITS_NOCHECK(code, size)               \
   DUMP_BITS_NOCHECK(t, nbits)                 \
  }
@@ -451,6 +443,7 @@ dump_buffer (working_state * state)
   code = ht->ehufco[codevalue];               \
   t &= ~(-1 << nbits);                        \
   DUMP_BITS_NOCHECK(code, size)               \
+  CHECKBUF15()                                \
   DUMP_BITS_NOCHECK(t, nbits)                 \
   CHECKBUF15()                                \
  }
@@ -552,8 +545,8 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
     sflag = temp >> 31;  \
     temp = (temp ^ sflag) - sflag;  \
     temp2 += sflag;  \
-    for(; r > 15; r -= 16) DUMP_BITS(code_0xf0, size_0xf0)  \
     nbits = jpeg_first_bit_table[temp];  \
+    for(; r > 15; r -= 16) DUMP_BITS(code_0xf0, size_0xf0)  \
     sflag = (r << 4) + nbits;  \
     DUMP_VALUE(actbl, sflag, temp2, nbits)  \
     r = 0;  \
