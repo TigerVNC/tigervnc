@@ -361,7 +361,7 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 
 	psllw     xmm7,BYTE_BIT
 	por       xmm5,xmm7		; xmm5=Cb
-	movdqa    XMMWORD [ebx], xmm5	; Save Cb
+	movdqa    XMMWORD [rbx], xmm5	; Save Cb
 
 	movdqa    xmm0, XMMWORD [wk(3)]	; xmm0=BO
 	movdqa    xmm6, XMMWORD [wk(2)]	; xmm6=BE

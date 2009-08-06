@@ -298,8 +298,8 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 	pslldq	xmm1,(SIZEOF_XMMWORD-2)
 	movdqa	xmm2,xmm1
 
-	pand	xmm1, XMMWORD [edx+1*SIZEOF_XMMWORD]
-	pand	xmm2, XMMWORD [edi+1*SIZEOF_XMMWORD]
+	pand	xmm1, XMMWORD [rdx+1*SIZEOF_XMMWORD]
+	pand	xmm2, XMMWORD [rdi+1*SIZEOF_XMMWORD]
 
 	movdqa	XMMWORD [wk(2)], xmm1	; xmm1=(-- -- -- -- -- -- -- 15)
 	movdqa	XMMWORD [wk(3)], xmm2	; xmm2=(-- -- -- -- -- -- -- 15)
