@@ -18,7 +18,7 @@
 #include "../jsimd.h"
 #include "../jdct.h"
 #include "../jsimddct.h"
-#include "simd/jsimd.h"
+#include "jsimd.h"
 
 /*
  * In the PIC cases, we have no guarantee that constants will keep

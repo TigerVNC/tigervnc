@@ -265,7 +265,7 @@ SOURCE=.\jquant2.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\jsimd.c
+SOURCE=.\simd\jsimd_i386.c
 # End Source File
 # Begin Source File
 
