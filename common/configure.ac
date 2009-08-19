@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
-AC_INIT([librfb], [0.0.91], [http://www.tigervnc.org])
+AC_INIT([librfb], [1.0.0], [http://www.tigervnc.org])
 
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
