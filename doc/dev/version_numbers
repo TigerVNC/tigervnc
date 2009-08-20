@@ -1,0 +1,13 @@
+Files written below contain release numbers which should be changed during
+release process.
+
+java/src/com/tigervnc/vncviewer/README
+rfb/configure.ac
+unix/configure.ac
+unix/xserver/hw/vnc/xvnc.cc
+win/configure.ac
+win/vncconfig/vncconfig.rc
+win/vncviewer/vncviewer.rc
+win/winvnc/winvnc.rc
+win/tigervnc.iss
+

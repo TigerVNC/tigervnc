@@ -1,0 +1,10 @@
+Quick overview of steps to make a release.
+
+1. tag the release
+2. go to the correct tags/<tag> directory and run `svn export . tigervnc-<version>`
+3. go to exported tree and in common/ and win/ directories run `autoreconf -fiv`
+4. find all "autom4te.cache" directories and remove them
+5. pack the exported source as ".tar.gz" archive
+6. upload the tarball, built Win installer and Xvnc to Sourceforge
+7. fill the release_announcement template
+8. send announcement to tigervnc-announce
