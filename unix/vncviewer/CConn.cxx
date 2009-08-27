@@ -454,7 +454,7 @@ void CConn::initMenu() {
   menu.addEntry(_("New connection..."), ID_NEWCONN);
   menu.addEntry(_("Options..."), ID_OPTIONS);
   menu.addEntry(_("Connection info..."), ID_INFO);
-  menu.addEntry(_("About VNCviewer..."), ID_ABOUT);
+  menu.addEntry(_("About TigerVNC viewer..."), ID_ABOUT);
   menu.addEntry(0, 0);
   menu.addEntry(_("Dismiss menu"), ID_DISMISS);
   menu.toplevel(_("VNC Menu"), this);

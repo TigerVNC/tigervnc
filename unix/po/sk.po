@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "About VNC Viewer"
+msgid "About TigerVNC Viewer"
 msgstr "O aplikácií VNC Viewer"
 
 msgid "VNC authentication"

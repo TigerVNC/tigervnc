@@ -35,7 +35,7 @@ extern char buildtime[];
 class AboutDialog : public TXMsgBox {
 public:
   AboutDialog(Display* dpy)
-    : TXMsgBox(dpy, aboutText, MB_OK, _("About VNC Viewer")) {
+    : TXMsgBox(dpy, aboutText, MB_OK, _("About TigerVNC Viewer")) {
   }
 };
 
