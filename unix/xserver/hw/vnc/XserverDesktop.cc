@@ -63,7 +63,7 @@ extern char *display;
 #ifdef XKB
 #include <xkbsrv.h>
 #endif
-#ifdef XORG_16
+#if XORG >= 16
 #include "exevents.h"
 extern void
 CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
@@ -77,7 +77,7 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
 
 static DeviceIntPtr vncKeyboardDevice = NULL;
 static DeviceIntPtr vncPointerDevice = NULL;
-#ifdef XORG_15
+#if XORG == 15
 static xEvent *eventq = NULL;
 #else
 static EventList *eventq = NULL;
@@ -194,7 +194,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
   if (httpListener)
     httpServer = new FileHTTPServer(this);
 
-#ifdef XORG_15
+#if XORG == 15
   /*
    * XXX eventq is never free()-ed because it has to exist during server life
    * */
@@ -211,7 +211,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
    */
   if (vncKeyboardDevice == NULL) {
     vncKeyboardDevice = AddInputDevice(
-#ifdef XORG_16
+#if XORG >= 16
 				       serverClient,
 #endif
 				       vfbKeybdProc, TRUE);
@@ -220,7 +220,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
 
   if (vncPointerDevice == NULL) {
     vncPointerDevice = AddInputDevice(
-#ifdef XORG_16
+#if XORG >= 16
 				      serverClient,
 #endif
 				      vfbMouseProc, TRUE);
@@ -557,7 +557,7 @@ void XserverDesktop::positionCursor()
   if (!cursorPos.equals(oldCursorPos)) {
     oldCursorPos = cursorPos;
     (*pScreen->SetCursorPosition) (
-#ifdef XORG_16
+#if XORG >= 16
 				   vncPointerDevice,
 #endif
 				   pScreen, cursorPos.x, cursorPos.y, FALSE);
@@ -569,7 +569,7 @@ void XserverDesktop::positionCursor()
 void XserverDesktop::blockHandler(fd_set* fds)
 {
   try {
-#ifdef XORG_15
+#if XORG == 15
     ScreenPtr screenWithCursor = GetCurrentRootWindow()->drawable.pScreen;
 #else
     ScreenPtr screenWithCursor =
@@ -578,7 +578,7 @@ void XserverDesktop::blockHandler(fd_set* fds)
     if (screenWithCursor == pScreen) {
       int x, y;
       GetSpritePosition(
-#ifdef XORG_16
+#if XORG >= 16
 			vncPointerDevice,
 #endif
 			&x, &y);
@@ -742,7 +742,7 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
   //(*pScreen->SetCursorPosition) (pScreen, pos.x, pos.y, FALSE);
 
   NewCurrentScreen(
-#ifdef XORG_16
+#if XORG >= 16
 		   vncPointerDevice,
 #endif
 		   pScreen, pos.x, pos.y);
@@ -751,7 +751,7 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
     valuators[0] = pos.x;
     valuators[1] = pos.y;
 
-#ifdef XORG_16
+#if XORG >= 16
     GetEventList(&eventq);
 #endif
     n = GetPointerEvents (eventq, vncPointerDevice, MotionNotify, 0,
@@ -759,7 +759,7 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 
     for (i = 0; i < n; i++) {
       mieqEnqueue (vncPointerDevice,
-#ifdef XORG_15
+#if XORG == 15
 		   eventq + i
 #else
 		   (eventq + i)->event
@@ -779,7 +779,7 @@ void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 
       for (j = 0; j < n; j++) {
 	mieqEnqueue (vncPointerDevice,
-#ifdef XORG_15
+#if XORG == 15
 		     eventq + j
 #else
 		     (eventq + j)->event
@@ -809,7 +809,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   RRModePtr         mode;
 
   // Make sure all RandR tables are properly populated
-#ifdef XORG_15
+#if XORG == 15
   ret = RRGetInfo(pScreen);
 #else
   ret = RRGetInfo(pScreen, FALSE);
@@ -832,7 +832,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
 
   // Then we have to call RRGetInfo again for it to copy the RandR
   // 1.0 information to the 1.2 structures.
-#ifdef XORG_15
+#if XORG == 15
   ret = RRGetInfo(pScreen);
 #else
   ret = RRGetInfo(pScreen, FALSE);
@@ -1008,7 +1008,7 @@ private:
 			   down ? KeyPress : KeyRelease, keycode);
     for (i = 0; i < n; i++) {
       mieqEnqueue (vncKeyboardDevice,
-#ifdef XORG_15
+#if XORG == 15
 		   eventq + i
 #else
 		   (eventq + i)->event
@@ -1161,7 +1161,7 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 
 	vlog.info("Added unknown keysym 0x%x to keycode %d",keysym,kc);
 
-#ifdef XORG_15
+#if XORG == 15
 	master = inputInfo.keyboard;
 #else
 	master = vncKeyboardDevice->u.master;
@@ -1169,7 +1169,7 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 	if (vncKeyboardDevice ==
 	    dixLookupPrivate(&master->devPrivates, CoreDevicePrivateKey)) {
 	  dixSetPrivate(&master->devPrivates, CoreDevicePrivateKey, NULL);
-#ifdef XORG_15
+#if XORG == 15
 	  SwitchCoreKeyboard(vncKeyboardDevice);
 #else
 	  CopyKeyClass(vncKeyboardDevice, master);
@@ -1213,7 +1213,7 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 			 KeyPress : KeyRelease, kc);
   for (i = 0; i < n; i++) {
     mieqEnqueue (vncKeyboardDevice,
-#ifdef XORG_15
+#if XORG == 15
 		 eventq + i
 #else
 		 (eventq + i)->event
@@ -1492,7 +1492,7 @@ static int vfbMouseProc(DeviceIntPtr pDevice, int onoff)
     map[4] = 4;
     map[5] = 5;
     InitPointerDeviceStruct(pDev, map, 5,
-#ifdef XORG_15
+#if XORG == 15
 			    GetMotionHistory,
 #endif
 			    (PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);

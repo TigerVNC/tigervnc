@@ -736,7 +736,7 @@ vfbCrossScreen (ScreenPtr pScreen, Bool entering)
 }
 
 static Bool vfbRealizeCursor(
-#ifdef XORG_16
+#if XORG >= 16
 			     DeviceIntPtr pDev,
 #endif
 			     ScreenPtr pScreen, CursorPtr pCursor) {
@@ -744,7 +744,7 @@ static Bool vfbRealizeCursor(
 }
 
 static Bool vfbUnrealizeCursor(
-#ifdef XORG_16
+#if XORG >= 16
 			       DeviceIntPtr pDev,
 #endif
 			       ScreenPtr pScreen, CursorPtr pCursor) {
@@ -752,7 +752,7 @@ static Bool vfbUnrealizeCursor(
 }
 
 static void vfbSetCursor(
-#ifdef XORG_16
+#if XORG >= 16
 			 DeviceIntPtr pDev,
 #endif
 			 ScreenPtr pScreen, CursorPtr pCursor, int x, int y) 
@@ -760,14 +760,14 @@ static void vfbSetCursor(
 }
 
 static void vfbMoveCursor(
-#ifdef XORG_16
+#if XORG >= 16
 			  DeviceIntPtr pDev,
 #endif
 			  ScreenPtr pScreen, int x, int y) 
 {
 }
 
-#ifdef XORG_16
+#if XORG >= 16
 static Bool
 vfbDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
 {   
@@ -785,7 +785,7 @@ static miPointerSpriteFuncRec vfbPointerSpriteFuncs = {
     vfbUnrealizeCursor,
     vfbSetCursor,
     vfbMoveCursor
-#ifdef XORG_16
+#if XORG >= 16
     , vfbDeviceCursorInitialize,
     vfbDeviceCursorCleanup
 #endif
@@ -1303,7 +1303,7 @@ Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 void ProcessInputEvents()
 {
   mieqProcessInputEvents();
-#ifdef XORG_15
+#if XORG == 15
   miPointerUpdate();
 #endif
 }

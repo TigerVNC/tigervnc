@@ -89,7 +89,7 @@ typedef struct {
     GCOps *wrappedOps;
 } vncHooksGCRec, *vncHooksGCPtr;
 
-#ifdef XORG_15
+#if XORG == 15
 static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKey;
 static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKey;
 #else
@@ -119,7 +119,7 @@ static void vncHooksInstallColormap(ColormapPtr pColormap);
 static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
                                 xColorItem* pdef);
 static Bool vncHooksDisplayCursor(
-#ifdef XORG_16
+#if XORG >= 16
 				  DeviceIntPtr pDev,
 #endif
 				  ScreenPtr pScreen, CursorPtr cursor);
@@ -454,7 +454,7 @@ static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
 // DisplayCursor - get the cursor shape
 
 static Bool vncHooksDisplayCursor(
-#ifdef XORG_16
+#if XORG >= 16
 				  DeviceIntPtr pDev,
 #endif
 				  ScreenPtr pScreen_, CursorPtr cursor)
@@ -462,11 +462,11 @@ static Bool vncHooksDisplayCursor(
   SCREEN_UNWRAP(pScreen_, DisplayCursor);
 
   Bool ret = (*pScreen->DisplayCursor) (
-#ifdef XORG_16
+#if XORG >= 16
 					pDev,
 #endif
 					pScreen, cursor);
-#ifdef XORG_16
+#if XORG >= 16
   /*
    * XXX DIX calls this function with NULL argument to remove cursor sprite from
    * screen. Should we handle this in setCursor as well?
@@ -474,7 +474,7 @@ static Bool vncHooksDisplayCursor(
   if (cursor != NullCursor) {
 #endif
     vncHooksScreen->desktop->setCursor(cursor);
-#ifdef XORG_16
+#if XORG >= 16
   }
 #endif
 
