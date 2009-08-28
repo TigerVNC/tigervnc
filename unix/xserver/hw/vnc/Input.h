@@ -58,4 +58,17 @@ private:
 	rfb::Point cursorPos, oldCursorPos;
 };
 
+/* Represents keyboard device. */
+class KeyboardDevice {
+public:
+	/* Create new Keyboard device instance. */
+	KeyboardDevice(void);
+
+	void Press(rdr::U32 keysym) { keyEvent(keysym, true); }
+	void Release(rdr::U32 keysym) { keyEvent(keysym, false); }
+private:
+	void keyEvent(rdr::U32 keysym, bool down);
+	DeviceIntPtr dev;
+};
+
 #endif
