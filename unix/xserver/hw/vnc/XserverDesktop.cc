@@ -203,6 +203,8 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
     eventq = (xEvent *) xcalloc(sizeof(xEvent), GetMaximumEventsNum());
   if (!eventq)
     FatalError("Couldn't allocate eventq\n");
+#else
+  GetEventList(&eventq);
 #endif
 
   /*
