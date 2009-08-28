@@ -32,6 +32,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/VNCServerST.h>
 #include <rdr/SubstitutingInStream.h>
+#include "Input.h"
 
 extern "C" {
 #define class c_class
@@ -68,7 +69,6 @@ public:
   void setCursor(CursorPtr cursor);
   void add_changed(RegionPtr reg);
   void add_copied(RegionPtr dst, int dx, int dy);
-  void positionCursor();
   void ignoreHooks(bool b) { ignoreHooks_ = b; }
   void blockHandler(fd_set* fds);
   void wakeupHandler(fd_set* fds, int nfds);
@@ -122,6 +122,7 @@ private:
                                             pointer arg);
   void deferUpdate();
   ScreenPtr pScreen;
+  PointerDevice *pointerDevice;
   OsTimerPtr deferredUpdateTimer, dummyTimer;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
@@ -133,8 +134,6 @@ private:
   bool grabbing;
   bool ignoreHooks_;
   bool directFbptr;
-  int oldButtonMask;
-  rfb::Point cursorPos, oldCursorPos;
 
   void* queryConnectId;
   rfb::CharArray queryConnectAddress;

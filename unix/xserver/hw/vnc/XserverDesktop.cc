@@ -42,6 +42,7 @@
 #include "XserverDesktop.h"
 #include "vncExtInit.h"
 #include "xorg-version.h"
+#include "Input.h"
 
 extern "C" {
 #define public c_public
@@ -77,7 +78,6 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
 }
 
 static DeviceIntPtr vncKeyboardDevice = NULL;
-static DeviceIntPtr vncPointerDevice = NULL;
 #if XORG == 15
 static xEvent *eventq = NULL;
 #else
@@ -85,7 +85,6 @@ static EventList *eventq = NULL;
 #endif
 
 static int vfbKeybdProc(DeviceIntPtr pDevice, int onoff);
-static int vfbMouseProc(DeviceIntPtr pDevice, int onoff);
 
 using namespace rfb;
 using namespace network;
@@ -180,7 +179,6 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
     listener(listener_), httpListener(httpListener_),
     cmap(0), deferredUpdateTimerSet(false),
     grabbing(false), ignoreHooks_(false), directFbptr(true),
-    oldButtonMask(0),
     queryConnectId(0)
 {
   format = pf;
@@ -221,14 +219,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
     RegisterKeyboardDevice(vncKeyboardDevice);
   }
 
-  if (vncPointerDevice == NULL) {
-    vncPointerDevice = AddInputDevice(
-#if XORG >= 16
-				      serverClient,
-#endif
-				      vfbMouseProc, TRUE);
-    RegisterPointerDevice(vncPointerDevice);
-  }
+  pointerDevice = new PointerDevice(server);
 }
 
 XserverDesktop::~XserverDesktop()
@@ -237,6 +228,7 @@ XserverDesktop::~XserverDesktop()
     delete [] data;
   TimerFree(deferredUpdateTimer);
   TimerFree(dummyTimer);
+  delete pointerDevice;
   delete httpServer;
   delete server;
 }
@@ -555,43 +547,9 @@ void XserverDesktop::add_copied(RegionPtr dst, int dx, int dy)
   }
 }
 
-void XserverDesktop::positionCursor()
-{
-  if (!cursorPos.equals(oldCursorPos)) {
-    oldCursorPos = cursorPos;
-    (*pScreen->SetCursorPosition) (
-#if XORG >= 16
-				   vncPointerDevice,
-#endif
-				   pScreen, cursorPos.x, cursorPos.y, FALSE);
-    server->setCursorPos(cursorPos);
-    server->tryUpdate();
-  }
-}
-
 void XserverDesktop::blockHandler(fd_set* fds)
 {
   try {
-#if XORG == 15
-    ScreenPtr screenWithCursor = GetCurrentRootWindow()->drawable.pScreen;
-#else
-    ScreenPtr screenWithCursor =
-	GetCurrentRootWindow(vncPointerDevice)->drawable.pScreen;
-#endif
-    if (screenWithCursor == pScreen) {
-      int x, y;
-      GetSpritePosition(
-#if XORG >= 16
-			vncPointerDevice,
-#endif
-			&x, &y);
-      if (x != cursorPos.x || y != cursorPos.y) {
-        cursorPos = oldCursorPos = Point(x, y);
-        server->setCursorPos(cursorPos);
-        server->tryUpdate();
-      }
-    }
-
     if (listener)
       FD_SET(listener->getFd(), fds);
     if (httpListener)
@@ -678,7 +636,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         }
       }
 
-      positionCursor();
+      pointerDevice->Sync();
     }
 
     int timeout = server->checkTimeouts();
@@ -737,63 +695,8 @@ void XserverDesktop::approveConnection(void* opaqueId, bool accept,
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {
-  int i, j, n, valuators[2];
-
-  // SetCursorPosition seems to be very expensive (at least on XFree86 3.3.6
-  // for S3), so we delay calling it until positionCursor() is called at the
-  // end of processing a load of RFB.
-  //(*pScreen->SetCursorPosition) (pScreen, pos.x, pos.y, FALSE);
-
-  NewCurrentScreen(
-#if XORG >= 16
-		   vncPointerDevice,
-#endif
-		   pScreen, pos.x, pos.y);
-
-  if (!pos.equals(cursorPos)) {
-    valuators[0] = pos.x;
-    valuators[1] = pos.y;
-
-#if XORG >= 16
-    GetEventList(&eventq);
-#endif
-    n = GetPointerEvents (eventq, vncPointerDevice, MotionNotify, 0,
-			  POINTER_ABSOLUTE, 0, 2, valuators);
-
-    for (i = 0; i < n; i++) {
-      mieqEnqueue (vncPointerDevice,
-#if XORG == 15
-		   eventq + i
-#else
-		   (eventq + i)->event
-#endif
-      );
-    }
-  }
-
-  for (i = 0; i < 5; i++) {
-    if ((buttonMask ^ oldButtonMask) & (1<<i)) {
-      // Do not use the pointer mapping. Treat VNC buttons as logical
-      // buttons.
-      n = GetPointerEvents (eventq, vncPointerDevice,
-			    (buttonMask & (1<<i)) ?
-			     ButtonPress : ButtonRelease,
-			    i + 1, POINTER_RELATIVE, 0, 0, NULL);
-
-      for (j = 0; j < n; j++) {
-	mieqEnqueue (vncPointerDevice,
-#if XORG == 15
-		     eventq + j
-#else
-		     (eventq + j)->event
-#endif
-	);
-      }
-    }
-  }
-
-  cursorPos = pos;
-  oldButtonMask = buttonMask;
+  pointerDevice->Move(pos);
+  pointerDevice->ButtonAction(buttonMask);
 }
 
 void XserverDesktop::clientCutText(const char* str, int len)
@@ -1481,36 +1384,3 @@ static int vfbKeybdProc(DeviceIntPtr pDevice, int onoff)
   return Success;
 }
 
-static int vfbMouseProc(DeviceIntPtr pDevice, int onoff)
-{
-  BYTE map[6];
-  DevicePtr pDev = (DevicePtr)pDevice;
-
-  switch (onoff)
-  {
-  case DEVICE_INIT:
-    map[1] = 1;
-    map[2] = 2;
-    map[3] = 3;
-    map[4] = 4;
-    map[5] = 5;
-    InitPointerDeviceStruct(pDev, map, 5,
-#if XORG == 15
-			    GetMotionHistory,
-#endif
-			    (PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
-    break;
-
-  case DEVICE_ON:
-    pDev->on = TRUE;
-    break;
-
-  case DEVICE_OFF:
-    pDev->on = FALSE;
-    break;
-
-  case DEVICE_CLOSE:
-    break;
-  }
-  return Success;
-}
