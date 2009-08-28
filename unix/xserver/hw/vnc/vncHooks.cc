@@ -25,6 +25,7 @@
 #include "XserverDesktop.h"
 #include "vncHooks.h"
 #include "vncExtInit.h"
+#include "xorg-version.h"
 
 extern "C" {
 #define class c_class

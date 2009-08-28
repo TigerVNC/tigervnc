@@ -37,6 +37,7 @@ from the X Consortium.
 #include <rfb/LogWriter.h>
 #include <network/TcpSocket.h>
 #include "vncExtInit.h"
+#include "xorg-version.h"
 
 extern "C" {
 #define class c_class

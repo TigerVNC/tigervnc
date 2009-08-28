@@ -26,15 +26,6 @@
 #include <dix-config.h>
 #endif
 
-#if XORG_VERSION_CURRENT < \
-	((1 * 10000000) + (5 * 100000) + (99 * 1000))
-/* Xorg 1.5 branch */
-#define XORG 15
-#else
-/* Xorg 1.6 branch */
-#define XORG 16
-#endif
-
 #include <rfb/SDesktop.h>
 #include <rfb/HTTPServer.h>
 #include <rfb/PixelBuffer.h>

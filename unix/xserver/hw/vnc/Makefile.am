@@ -9,7 +9,7 @@ COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
 
 noinst_LTLIBRARIES = libvnccommon.la
 
-HDRS = RegionHelper.h vncExtInit.h vncHooks.h XserverDesktop.h
+HDRS = RegionHelper.h vncExtInit.h vncHooks.h XserverDesktop.h xorg-version.h
 
 libvnccommon_la_SOURCES = $(HDRS) vncExtInit.cc vncHooks.cc XserverDesktop.cc
 

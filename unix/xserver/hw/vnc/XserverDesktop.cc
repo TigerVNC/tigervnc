@@ -41,6 +41,7 @@
 #include <rfb/Configuration.h>
 #include "XserverDesktop.h"
 #include "vncExtInit.h"
+#include "xorg-version.h"
 
 extern "C" {
 #define public c_public
