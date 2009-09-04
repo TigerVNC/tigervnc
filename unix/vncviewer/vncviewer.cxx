@@ -218,7 +218,7 @@ interpretViaParam (char **gatewayHost, char **remoteHost,
   if (**vncServerName != '\0')
     *remoteHost = *vncServerName;
 
-  *gatewayHost = safe_strdup (via.getValueStr ());
+  *gatewayHost = strDup (via.getValueStr ());
   *vncServerName = new char[50];
   sprintf (*vncServerName, "localhost::%d", localPort);
 }

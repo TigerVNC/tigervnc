@@ -89,7 +89,7 @@ void VNCSConnectionST::close(const char* reason)
 {
   // Log the reason for the close
   if (!closeReason.buf)
-    closeReason.buf = safe_strdup(reason);
+    closeReason.buf = strDup(reason);
   else
     vlog.debug("second close: %s (%s)", peerEndpoint.buf, reason);
 

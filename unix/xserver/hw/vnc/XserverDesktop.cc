@@ -219,7 +219,7 @@ void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride)
 char* XserverDesktop::substitute(const char* varName)
 {
   if (strcmp(varName, "$$") == 0) {
-    return safe_strdup("$");
+    return rfb::strDup("$");
   }
   if (strcmp(varName, "$PORT") == 0) {
     char* str = new char[10];
@@ -247,7 +247,7 @@ char* XserverDesktop::substitute(const char* varName)
     return str;
   }
   if (strcmp(varName, "$DESKTOP") == 0) {
-    return safe_strdup(server->getName());
+    return rfb::strDup(server->getName());
   }
   if (strcmp(varName, "$DISPLAY") == 0) {
     struct utsname uts;
@@ -260,7 +260,7 @@ char* XserverDesktop::substitute(const char* varName)
   }
   if (strcmp(varName, "$USER") == 0) {
     struct passwd* user = getpwuid(getuid());
-    return safe_strdup(user ? user->pw_name : "?");
+    return rfb::strDup(user ? user->pw_name : "?");
   }
   return 0;
 }
@@ -270,13 +270,13 @@ XserverDesktop::queryConnection(network::Socket* sock,
                                 const char* userName,
                                 char** reason) {
   if (queryConnectId) {
-    *reason = safe_strdup("Another connection is currently being queried.");
+    *reason = strDup("Another connection is currently being queried.");
     return rfb::VNCServerST::REJECT;
   }
   queryConnectAddress.replaceBuf(sock->getPeerAddress());
   if (!userName)
     userName = "(anonymous)";
-  queryConnectUsername.replaceBuf(safe_strdup(userName));
+  queryConnectUsername.replaceBuf(strDup(userName));
   queryConnectId = sock;
   vncQueryConnect(this, sock);
   return rfb::VNCServerST::PENDING;

@@ -67,7 +67,7 @@ Configuration* Configuration::global() {
 // -=- Configuration implementation
 
 Configuration::Configuration(const char* name_, Configuration* attachToGroup) 
-: name(safe_strdup(name_)), head(0), _next(0) {
+: name(strDup(name_)), head(0), _next(0) {
   if (attachToGroup) {
     _next = attachToGroup->_next;
     attachToGroup->_next = this;
@@ -182,7 +182,7 @@ void Configuration::list(int width, int nameWidth) {
       if (column + (int)strlen(def_str) + 11 > width)
         fprintf(stderr,"\n%*s",nameWidth+4,"");
       fprintf(stderr," (default=%s)\n",def_str);
-      free(def_str);
+      strFree(def_str);
     } else {
       fprintf(stderr,"\n");
     }
@@ -315,11 +315,11 @@ void BoolParameter::setParam(bool b) {
 
 char*
 BoolParameter::getDefaultStr() const {
-  return safe_strdup(def_value ? "1" : "0");
+  return strDup(def_value ? "1" : "0");
 }
 
 char* BoolParameter::getValueStr() const {
-  return safe_strdup(value ? "1" : "0");
+  return strDup(value ? "1" : "0");
 }
 
 bool BoolParameter::isBool() const {
@@ -381,7 +381,7 @@ IntParameter::operator int() const {
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
                                  const char* v, Configuration* conf)
-  : VoidParameter(name_, desc_, conf), value(safe_strdup(v)), def_value(v)
+  : VoidParameter(name_, desc_, conf), value(strDup(v)), def_value(v)
 {
   if (!v) {
     fprintf(stderr,"Default value <null> for %s not allowed\n",name_);
@@ -390,7 +390,7 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
 }
 
 StringParameter::~StringParameter() {
-  free(value);
+  strFree(value);
 }
 
 bool StringParameter::setParam(const char* v) {
@@ -400,17 +400,17 @@ bool StringParameter::setParam(const char* v) {
     throw rfb::Exception("setParam(<null>) not allowed");
   vlog.debug("set %s(String) to %s", getName(), v);
   CharArray oldValue(value);
-  value = safe_strdup(v);
+  value = strDup(v);
   return value != 0;
 }
 
 char* StringParameter::getDefaultStr() const {
-  return safe_strdup(def_value);
+  return strDup(def_value);
 }
 
 char* StringParameter::getValueStr() const {
   LOCK_CONFIG;
-  return safe_strdup(value);
+  return strDup(value);
 }
 
 // -=- BinaryParameter

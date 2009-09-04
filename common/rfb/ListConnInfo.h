@@ -52,8 +52,8 @@ namespace rfb {
 
     void addInfo(void* Conn, char* IP, char* Time, int Status) {
       conn.push_back(Conn);
-      IP_address.push_back(safe_strdup(IP));
-      time_conn.push_back(safe_strdup(Time));
+      IP_address.push_back(strDup(IP));
+      time_conn.push_back(strDup(Time));
       status.push_back(Status);
     }
 
@@ -62,16 +62,16 @@ namespace rfb {
       buf[1] = *ti;
       switch (*si) {
       case 0:
-        buf[2] = safe_strdup("Full control");
+        buf[2] = strDup("Full control");
         break;
       case 1:
-        buf[2] = safe_strdup("View only");
+        buf[2] = strDup("View only");
         break;
       case 2:
-        buf[2] = safe_strdup("Stop updating");
+        buf[2] = strDup("Stop updating");
         break;
       default:
-        buf[2] = safe_strdup("Unknown");
+        buf[2] = strDup("Unknown");
       }
     }
 

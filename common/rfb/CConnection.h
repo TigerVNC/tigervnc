@@ -47,7 +47,7 @@ namespace rfb {
     // which we are connected.  This might be the result of getPeerEndpoint on
     // a TcpSocket, for example, or a host specified by DNS name & port.
     // The serverName is used when verifying the Identity of a host (see RA2).
-    void setServerName(const char* name_) { serverName.replaceBuf(safe_strdup(name_)); }
+    void setServerName(const char* name_) { serverName.replaceBuf(strDup(name_)); }
 
     // setStreams() sets the streams to be used for the connection.  These must
     // be set before initialiseProtocol() and processMsg() are called.  The

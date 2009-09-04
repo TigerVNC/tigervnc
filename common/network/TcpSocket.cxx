@@ -238,9 +238,9 @@ char* TcpSocket::getMyAddress() {
 
   char* name = inet_ntoa(addr);
   if (name) {
-    return safe_strdup(name);
+    return rfb::strDup(name);
   } else {
-    return safe_strdup("");
+    return rfb::strDup("");
   }
 }
 
@@ -268,9 +268,9 @@ char* TcpSocket::getPeerAddress() {
 
   char* name = inet_ntoa(addr);
   if (name) {
-    return safe_strdup(name);
+    return rfb::strDup(name);
   } else {
-    return safe_strdup("");
+    return rfb::strDup("");
   }
 }
 
@@ -451,7 +451,7 @@ int TcpListener::getMyPort() {
 
 TcpFilter::TcpFilter(const char* spec) {
   rfb::CharArray tmp;
-  tmp.buf = safe_strdup(spec);
+  tmp.buf = rfb::strDup(spec);
   while (tmp.buf) {
     rfb::CharArray first;
     rfb::strSplit(tmp.buf, ',', &first.buf, &tmp.buf);
@@ -541,9 +541,9 @@ char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
   in_addr tmp;
   rfb::CharArray addr, mask;
   tmp.s_addr = p.address;
-  addr.buf = safe_strdup(inet_ntoa(tmp));
+  addr.buf = rfb::strDup(inet_ntoa(tmp));
   tmp.s_addr = p.mask;
-  mask.buf = safe_strdup(inet_ntoa(tmp));
+  mask.buf = rfb::strDup(inet_ntoa(tmp));
   char* result = new char[strlen(addr.buf)+1+strlen(mask.buf)+1+1];
   switch (p.action) {
   case Accept: result[0] = '+'; break;

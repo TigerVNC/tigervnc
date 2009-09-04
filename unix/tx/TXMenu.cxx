@@ -56,7 +56,7 @@ inline int TXMenu::entryHeight(int i)
 void TXMenu::addEntry(const char* text_, long id_)
 {
   assert(nEntries < maxEntries);
-  text[nEntries] = safe_strdup(text_);
+  text[nEntries] = rfb::strDup(text_);
   checked[nEntries] = false;
   id[nEntries++] = id_;
   int tw = 0;

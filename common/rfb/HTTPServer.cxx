@@ -240,7 +240,7 @@ HTTPServer::Session::processHTTP() {
           return writeResponse(501);
 
         // Store the URI to the "document"
-        uri.buf = safe_strdup(path);
+        uri.buf = strDup(path);
       }
 
       // Move on to reading the request headers

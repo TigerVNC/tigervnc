@@ -32,7 +32,7 @@ namespace rfb {
       if (!strSplit(&hi[1], ']', &hostBuf.buf, &portBuf.buf))
         throw rdr::Exception("unmatched [ in host");
     } else {
-      portBuf.buf = safe_strdup(hi);
+      portBuf.buf = strDup(hi);
     }
     if (strSplit(portBuf.buf, ':', hostBuf.buf ? 0 : &hostBuf.buf, &portBuf.buf)) {
       if (portBuf.buf[0] == ':') {
@@ -45,7 +45,7 @@ namespace rfb {
       *port = basePort;
     }
     if (strlen(hostBuf.buf) == 0)
-      *host = safe_strdup("localhost");
+      *host = strDup("localhost");
     else
       *host = hostBuf.takeBuf();
   }

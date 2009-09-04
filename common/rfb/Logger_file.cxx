@@ -97,7 +97,7 @@ void Logger_File::write(int level, const char *logname, const char *message)
 void Logger_File::setFilename(const char* filename)
 {
   closeFile();
-  m_filename = safe_strdup(filename);
+  m_filename = strDup(filename);
 }
 
 void Logger_File::setFile(FILE* file)
@@ -113,7 +113,7 @@ void Logger_File::closeFile()
       fclose(m_file);
       m_file = 0;
     }
-    free(m_filename);
+    strFree(m_filename);
     m_filename = 0;
   }
 }
