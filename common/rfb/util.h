@@ -23,8 +23,8 @@
 #ifndef __RFB_UTIL_H__
 #define __RFB_UTIL_H__
 
-#ifdef HAVE_COMMON_CONFIG_H
-#include <common-config.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
 #include <limits.h>

@@ -41,10 +41,10 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	VNCServerST.cxx ZRLEEncoder.cxx ZRLEDecoder.cxx encodings.cxx \
 	secTypes.cxx util.cxx
 
-librfb_la_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/../win
+librfb_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win
 librfb_la_LIBADD =
 
 if INCLUDED_JPEG
-librfb_la_CPPFLAGS += -I$(top_srcdir)/jpeg
-librfb_la_LIBADD += $(top_srcdir)/jpeg/libjpeg.la
+librfb_la_CPPFLAGS += -I$(top_srcdir)/common/jpeg
+librfb_la_LIBADD += $(top_srcdir)/common/jpeg/libjpeg.la
 endif
