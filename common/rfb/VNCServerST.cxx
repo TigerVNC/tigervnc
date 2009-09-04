@@ -74,7 +74,7 @@ static SSecurityFactoryStandard defaultSecurityFactory;
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
                          SSecurityFactory* sf)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false), pb(0),
-    name(strDup(name_)), pointerClient(0), comparer(0),
+    name(safe_strdup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
     securityFactory(sf ? sf : &defaultSecurityFactory),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
@@ -363,7 +363,7 @@ void VNCServerST::serverCutText(const char* str, int len)
 
 void VNCServerST::setName(const char* name_)
 {
-  name.replaceBuf(strDup(name_));
+  name.replaceBuf(safe_strdup(name_));
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;

@@ -62,7 +62,7 @@ bool rfb::secTypeEncrypts(int num)
 std::list<int> rfb::parseSecTypes(const char* types_)
 {
   std::list<int> result;
-  CharArray types(strDup(types_)), type;
+  CharArray types(safe_strdup(types_)), type;
   while (types.buf) {
     strSplit(types.buf, ',', &type.buf, &types.buf);
     int typeNum = secTypeNum(type.buf);

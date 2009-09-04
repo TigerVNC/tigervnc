@@ -30,6 +30,8 @@
 #include <limits.h>
 #include <string.h>
 
+char* safe_strdup(const char* s);
+
 namespace rfb {
 
   // -=- Class to handle cleanup of arrays of characters
@@ -51,9 +53,6 @@ namespace rfb {
     CharArray(const CharArray&);
     CharArray& operator=(const CharArray&);
   };
-
-  char* strDup(const char* s);
-  void strFree(char* s);
 
   // Returns true if split successful.  Returns false otherwise.
   // ALWAYS *copies* first part of string to out1 buffer.

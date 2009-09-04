@@ -234,7 +234,7 @@ void CConnection::processSecurityResultMsg()
   }
   CharArray reason;
   if (cp.beforeVersion(3,8))
-    reason.buf = strDup("Authentication failure");
+    reason.buf = safe_strdup("Authentication failure");
   else
     reason.buf = is->readString();
   state_ = RFBSTATE_INVALID;

@@ -17,6 +17,7 @@
  */
 #include <rfb/Blacklist.h>
 #include <rfb/Configuration.h>
+#include <stdlib.h>
 
 using namespace rfb;
 
@@ -37,7 +38,7 @@ Blacklist::~Blacklist() {
   // Free the map keys
   BlacklistMap::iterator i;
   for (i=blm.begin(); i!=blm.end(); i++) {
-    strFree((char*)(*i).first);
+    free((void *)(*i).first);
   }
 }
 
@@ -51,7 +52,7 @@ bool Blacklist::isBlackmarked(const char* name) {
     bi.marks = 1;
     bi.blockUntil = 0;
     bi.blockTimeout = initialTimeout;
-    blm[strDup(name)] = bi;
+    blm[safe_strdup(name)] = bi;
     i = blm.find(name);
   }
 
@@ -80,7 +81,7 @@ bool Blacklist::isBlackmarked(const char* name) {
 void Blacklist::clearBlackmark(const char* name) {
   BlacklistMap::iterator i = blm.find(name);
   if (i != blm.end()) {
-    strFree((char*)(*i).first);
+    free((void *)(*i).first);
     blm.erase(i);
   }
 }

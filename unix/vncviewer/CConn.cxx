@@ -221,8 +221,8 @@ void CConn::getUserPasswd(char** user, char** password)
   PasswdDialog dlg(dpy, title.buf, !user);
   if (!dlg.show()) throw rfb::Exception("Authentication cancelled");
   if (user)
-    *user = strDup(dlg.userEntry.getText());
-  *password = strDup(dlg.passwdEntry.getText());
+    *user = safe_strdup(dlg.userEntry.getText());
+  *password = safe_strdup(dlg.passwdEntry.getText());
 }
 
 

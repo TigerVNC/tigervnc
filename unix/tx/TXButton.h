@@ -59,7 +59,7 @@ public:
 
   // setText() changes the text in the button.
   void setText(const char* text_) {
-    text.buf = rfb::strDup(text_);
+    text.buf = safe_strdup(text_);
     int textWidth = XTextWidth(defaultFS, text.buf, strlen(text.buf));
     int textHeight = (defaultFS->ascent + defaultFS->descent);
     int newWidth = __rfbmax(width(), textWidth + xPad*2 + bevel*2);

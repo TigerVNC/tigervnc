@@ -47,7 +47,7 @@ public:
 
   // setText() changes the text in the label.
   void setText(const char* text_) {
-    text.buf = rfb::strDup(text_);
+    text.buf = safe_strdup(text_);
     lines = 0;
     int lineStart = 0;
     int textWidth = 0;

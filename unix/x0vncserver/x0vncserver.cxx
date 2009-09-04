@@ -101,7 +101,7 @@ public:
                                                    const char* userName,
                                                    char** reason) {
     if (queryConnectSock) {
-      *reason = strDup("Another connection is currently being queried.");
+      *reason = safe_strdup("Another connection is currently being queried.");
       return VNCServerST::REJECT;
     }
     if (!userName) userName = "(anonymous)";

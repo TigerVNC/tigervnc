@@ -35,6 +35,19 @@
 #endif
 
 #include <rfb/util.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+char* safe_strdup(const char* s) {
+  char *tmp;
+
+  tmp = strdup(s);
+  if (tmp == NULL) {
+    perror("safe_strdup failed");
+    exit(1);
+  }
+};
 
 // Provide strcasecmp() and/or strncasecmp() if absent on this system.
 
@@ -129,19 +142,6 @@ strncasecmp(const char *s1, const char *s2, size_t n)
 
 namespace rfb {
 
-  char* strDup(const char* s) {
-    if (!s) return 0;
-    int l = strlen(s);
-    char* r = new char[l+1];
-    memcpy(r, s, l+1);
-    return r;
-  };
-
-  void strFree(char* s) {
-    delete [] s;
-  }
-
-
   bool strSplit(const char* src, const char limiter, char** out1, char** out2, bool fromEnd) {
     CharArray out1old, out2old;
     if (out1) out1old.buf = *out1;
@@ -167,7 +167,7 @@ namespace rfb {
       }
       i+=increment;
     }
-    if (out1) *out1 = strDup(src);
+    if (out1) *out1 = safe_strdup(src);
     if (out2) *out2 = 0;
     return false;
   }

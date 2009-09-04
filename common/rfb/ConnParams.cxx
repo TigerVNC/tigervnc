@@ -82,7 +82,7 @@ void ConnParams::setPF(const PixelFormat& pf)
 void ConnParams::setName(const char* name)
 {
   delete [] name_;
-  name_ = strDup(name);
+  name_ = safe_strdup(name);
 }
 
 void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
