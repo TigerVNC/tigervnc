@@ -31,12 +31,15 @@ case "`(uname -sr) 2>/dev/null`" in
 	;;
 esac
 
+BUILD_WIN=
 case "$host_os" in
 mingw*)
 	CPPFLAGS="$CPPFLAGS -DWINVER=0x0500 -D_WIN32_IE=0x0500"
 	CXXFLAGS="$CXXFLAGS -mthreads"
+	BUILD_WIN=yes
 	;;
 esac
+AM_CONDITIONAL([BUILD_WIN], [test "x$BUILD_WIN" = xyes])
 
 dnl FIXME: Check for MIT-SHM properly, add a corresponding --with option.
 if test "$USE_MITSHM" = yes; then

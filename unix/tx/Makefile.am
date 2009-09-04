@@ -6,4 +6,5 @@ HDRS = TXButton.h TXCheckbox.h TXDialog.h TXEntry.h TXImage.h TXLabel.h \
 libtx_la_SOURCES = $(HDRS) TXWindow.cxx TXScrollbar.cxx TXViewport.cxx \
 	TXImage.cxx TXMenu.cxx
 
-libtx_la_CPPFLAGS = -I$(COMMON_DIR) @X_CFLAGS@ # X_CFLAGS are really CPPFLAGS
+libtx_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/common/rfb \
+	@X_CFLAGS@ # X_CFLAGS are really CPPFLAGS

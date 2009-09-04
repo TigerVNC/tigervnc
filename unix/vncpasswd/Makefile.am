@@ -4,8 +4,9 @@ man1_MANS = vncpasswd.man
 
 vncpasswd_SOURCES = vncpasswd.cxx
 
-vncpasswd_CPPFLAGS = -I$(COMMON_DIR)
+vncpasswd_CPPFLAGS = -I$(top_srcdir)/common
 
-vncpasswd_LDADD = $(COMMON_DIR)/rfb/librfb.la $(COMMON_DIR)/rdr/librdr.la
+vncpasswd_LDADD = $(top_srcdir)/common/rfb/librfb.la \
+	$(top_srcdir)/common/rdr/librdr.la
 
 EXTRA_DIST = vncpasswd.man
