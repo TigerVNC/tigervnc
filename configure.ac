@@ -37,6 +37,7 @@ mingw*)
 	CPPFLAGS="$CPPFLAGS -DWINVER=0x0500 -D_WIN32_IE=0x0500"
 	CXXFLAGS="$CXXFLAGS -mthreads"
 	BUILD_WIN=yes
+	AC_CHECK_TOOL([WINDRES], windres, [AC_MSG_ERROR(windres not found)])
 	;;
 esac
 AM_CONDITIONAL([BUILD_WIN], [test "x$BUILD_WIN" = xyes])
@@ -156,4 +157,7 @@ unix/x0vncserver/Makefile
 unix/vncviewer/Makefile
 unix/vncconfig/Makefile
 unix/vncpasswd/Makefile
+win/Makefile
+win/vncviewer/Makefile
+win/rfb_win32/Makefile
 ])

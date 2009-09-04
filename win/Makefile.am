@@ -1,2 +1,2 @@
-SUBDIRS = ../common rfb_win32 vncviewer
+SUBDIRS = rfb_win32 vncviewer
 
