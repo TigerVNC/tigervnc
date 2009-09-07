@@ -12,8 +12,8 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_LANG([C++])
-dnl AM_GNU_GETTEXT([external])
-dnl AM_GNU_GETTEXT_VERSION([0.14.1])
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.14.1])
 
 case "`(uname -sr) 2>/dev/null`" in
 "SunOS 5"*)
@@ -160,4 +160,5 @@ unix/vncpasswd/Makefile
 win/Makefile
 win/vncviewer/Makefile
 win/rfb_win32/Makefile
+po/Makefile.in
 ])
