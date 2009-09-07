@@ -2,7 +2,9 @@ noinst_LTLIBRARIES = libsimd.la
 
 BUILT_SOURCES = jsimdcfg.inc
 
-EXTRA_DIST = nasm_lt.sh
+EXTRA_DIST = nasm_lt.sh jcclrmmx.asm jcclrss2.asm jdclrmmx.asm jdclrss2.asm \
+	jdmrgmmx.asm jdmrgss2.asm jcclrss2-64.asm jdclrss2-64.asm \
+	jdmrgss2-64.asm
 
 if SIMD_X86_64
 
@@ -19,9 +21,6 @@ libsimd_la_SOURCES = jsimd_x86_64.c \
 jccolss2-64.lo: jcclrss2-64.asm
 jdcolss2-64.lo: jdclrss2-64.asm
 jdmerss2-64.lo: jdmrgss2-64.asm
-
-EXTRA_DIST += jcclrss2-64.asm jdclrss2-64.asm jdmrgss2-64.asm
-
 endif
 
 if SIMD_I386
@@ -48,12 +47,6 @@ jdcolmmx.lo: jdclrmmx.asm
 jdcolss2.lo: jdclrss2.asm
 jdmermmx.lo: jdmrgmmx.asm
 jdmerss2.lo: jdmrgss2.asm
-
-EXTRA_DIST += \
-	jcclrmmx.asm jcclrss2.asm \
-	jdclrmmx.asm jdclrss2.asm \
-	jdmrgmmx.asm jdmrgss2.asm
-
 endif
 
 .asm.lo:
