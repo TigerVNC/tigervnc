@@ -99,5 +99,5 @@ librfb_win32_la_SOURCES = $(HDRS) \
   WMShatter.cxx \
   WMWindowCopyRect.cxx
 
-librfb_win32_la_CPPFLAGS = -I$(top_srcdir) -I$(COMMON_DIR)
+librfb_win32_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win
 librfb_win32_la_LIBADD =

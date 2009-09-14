@@ -16,7 +16,7 @@ libvnccommon_la_SOURCES = $(HDRS) vncExtInit.cc vncHooks.cc XserverDesktop.cc \
 	Input.cc
 
 libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
-	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(LIB_DIR) \
+	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(LIB_DIR) -UHAVE_CONFIG_H \
 	-I$(BIN_DIR)/vncconfig $(XVNC_CPPFLAGS) -I$(includedir)/pixman-1 -I$(includedir)
 
 bin_PROGRAMS = Xvnc
@@ -29,7 +29,7 @@ Xvnc_SOURCES = xvnc.cc $(top_srcdir)/Xext/dpmsstubs.c \
 
 nodist_Xvnc_SOURCES = fbrop.h fb.h pixman.h
 
-Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS \
+Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS -UHAVE_CONFIG_H \
 	-DXFree86Server -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(LIB_DIR) \
 	-I$(top_srcdir)/include -I$(includedir)/pixman-1 -I$(includedir)
@@ -44,7 +44,7 @@ libvnc_ladir = $(moduledir)/extensions
 
 libvnc_la_SOURCES = xf86vncModule.cc
 
-libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(LIB_DIR) \
+libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(LIB_DIR) -UHAVE_CONFIG_H \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus \

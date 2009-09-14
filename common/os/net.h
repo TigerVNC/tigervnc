@@ -19,12 +19,8 @@
 #ifndef OS_NET_H
 #define OS_NET_H
 
-#ifdef HAVE_COMMON_CONFIG_H
-#include <common-config.h>
-#endif
-
-#ifdef WIN32
-#include <common-config.win.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
 #ifdef __cplusplus

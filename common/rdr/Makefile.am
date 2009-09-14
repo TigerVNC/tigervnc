@@ -9,10 +9,10 @@ librdr_la_SOURCES = $(HDRS) Exception.cxx FdInStream.cxx FdOutStream.cxx \
 	InStream.cxx RandomStream.cxx ZlibInStream.cxx ZlibOutStream.cxx \
 	HexInStream.cxx HexOutStream.cxx
 
-librdr_la_CPPFLAGS = -I$(top_srcdir)
+librdr_la_CPPFLAGS = -I$(top_srcdir)/common
 librdr_la_LIBADD =
 
 if INCLUDED_ZLIB
-librdr_la_CPPFLAGS += -I$(top_srcdir)/zlib
-librdr_la_LIBADD += $(top_srcdir)/zlib/libz.la
+librdr_la_CPPFLAGS += -I$(top_srcdir)/common/zlib
+librdr_la_LIBADD += $(top_srcdir)/common/zlib/libz.la
 endif

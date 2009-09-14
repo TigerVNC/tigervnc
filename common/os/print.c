@@ -16,8 +16,8 @@
  * USA.
  */
 
-#ifdef HAVE_COMMON_CONFIG_H
-#include <common-config.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
 #include <os/print.h>

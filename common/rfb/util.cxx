@@ -30,8 +30,8 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#ifdef HAVE_COMMON_CONFIG_H
-#include <common-config.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
 #include <rfb/util.h>
