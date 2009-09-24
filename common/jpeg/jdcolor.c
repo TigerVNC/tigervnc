@@ -222,18 +222,21 @@ gray_rgb_convert (j_decompress_ptr cinfo,
 		  JSAMPARRAY output_buf, int num_rows)
 {
   register JSAMPROW inptr, outptr;
+  JSAMPLE *maxinptr;
   register JDIMENSION col;
   JDIMENSION num_cols = cinfo->output_width;
+  int rindex = rgb_red[cinfo->out_color_space];
+  int gindex = rgb_green[cinfo->out_color_space];
+  int bindex = rgb_blue[cinfo->out_color_space];
+  int rgbstride = rgb_pixelsize[cinfo->out_color_space];
 
   while (--num_rows >= 0) {
     inptr = input_buf[0][input_row++];
+    maxinptr = &inptr[num_cols];
     outptr = *output_buf++;
-    for (col = 0; col < num_cols; col++) {
+    for (; inptr < maxinptr; inptr++, outptr += rgbstride) {
       /* We can dispense with GETJSAMPLE() here */
-      outptr[rgb_red[cinfo->out_color_space]] =
-          outptr[rgb_green[cinfo->out_color_space]] =
-          outptr[rgb_blue[cinfo->out_color_space]] = inptr[col];
-      outptr += rgb_pixelsize[cinfo->out_color_space];
+      outptr[rindex] = outptr[gindex] = outptr[bindex] = *inptr;
     }
   }
 }
