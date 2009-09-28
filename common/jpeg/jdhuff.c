@@ -14,6 +14,21 @@
  * storage only upon successful completion of an MCU.
  */
 
+/* Modifications:
+ * Copyright (C)2007 Sun Microsystems, Inc.
+ * Copyright (C)2009 D. R. Commander
+ *
+ * This library is free software and may be redistributed and/or modified under
+ * the terms of the wxWindows Library License, Version 3.1 or (at your option)
+ * any later version.  The full license is in the LICENSE.txt file included
+ * with this distribution.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * wxWindows Library License for more details.
+ */
+
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
@@ -234,7 +249,8 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
    * with that code.
    */
 
-  MEMZERO(dtbl->look_nbits, SIZEOF(dtbl->look_nbits));
+   for (i = 0; i < (1 << HUFF_LOOKAHEAD); i++)
+     dtbl->lookup[i] = (HUFF_LOOKAHEAD + 1) << HUFF_LOOKAHEAD;
 
   p = 0;
   for (l = 1; l <= HUFF_LOOKAHEAD; l++) {
@@ -243,8 +259,7 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
       /* Generate left-justified code followed by all possible bit sequences */
       lookbits = huffcode[p] << (HUFF_LOOKAHEAD-l);
       for (ctr = 1 << (HUFF_LOOKAHEAD-l); ctr > 0; ctr--) {
-	dtbl->look_nbits[lookbits] = l;
-	dtbl->look_sym[lookbits] = htbl->huffval[p];
+	dtbl->lookup[lookbits] = (l << HUFF_LOOKAHEAD) | htbl->huffval[p];
 	lookbits++;
       }
     }
@@ -438,9 +453,10 @@ jpeg_huff_decode (bitread_working_state * state,
  * On some machines, a shift and add will be faster than a table lookup.
  */
 
+#define AVOID_TABLES
 #ifdef AVOID_TABLES
 
-#define HUFF_EXTEND(x,s)  ((x) < (1<<((s)-1)) ? (x) + (((-1)<<(s)) + 1) : (x))
+#define HUFF_EXTEND(x,s)  ((x) + ((((x) - (1<<((s)-1))) >> 31) & (((-1)<<(s)) + 1)))
 
 #else
 
@@ -498,6 +514,236 @@ process_restart (j_decompress_ptr cinfo)
 }
 
 
+LOCAL(boolean)
+decode_mcu_slow (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
+{
+  huff_entropy_ptr entropy = (huff_entropy_ptr) cinfo->entropy;
+  BITREAD_STATE_VARS;
+  int blkn;
+  savable_state state;
+  /* Outer loop handles each block in the MCU */
+
+  /* Load up working state */
+  BITREAD_LOAD_STATE(cinfo,entropy->bitstate);
+  ASSIGN_STATE(state, entropy->saved);
+
+  for (blkn = 0; blkn < cinfo->blocks_in_MCU; blkn++) {
+    JBLOCKROW block = MCU_data[blkn];
+    d_derived_tbl * dctbl = entropy->dc_cur_tbls[blkn];
+    d_derived_tbl * actbl = entropy->ac_cur_tbls[blkn];
+    register int s, k, r;
+
+    /* Decode a single block's worth of coefficients */
+
+    /* Section F.2.2.1: decode the DC coefficient difference */
+    HUFF_DECODE(s, br_state, dctbl, return FALSE, label1);
+    if (s) {
+      CHECK_BIT_BUFFER(br_state, s, return FALSE);
+      r = GET_BITS(s);
+      s = HUFF_EXTEND(r, s);
+    }
+
+    if (entropy->dc_needed[blkn]) {
+      /* Convert DC difference to actual value, update last_dc_val */
+      int ci = cinfo->MCU_membership[blkn];
+      s += state.last_dc_val[ci];
+      state.last_dc_val[ci] = s;
+      /* Output the DC coefficient (assumes jpeg_natural_order[0] = 0) */
+      (*block)[0] = (JCOEF) s;
+    }
+
+    if (entropy->ac_needed[blkn]) {
+
+      /* Section F.2.2.2: decode the AC coefficients */
+      /* Since zeroes are skipped, output area must be cleared beforehand */
+      for (k = 1; k < DCTSIZE2; k++) {
+        HUFF_DECODE(s, br_state, actbl, return FALSE, label2);
+
+        r = s >> 4;
+        s &= 15;
+      
+        if (s) {
+          k += r;
+          CHECK_BIT_BUFFER(br_state, s, return FALSE);
+          r = GET_BITS(s);
+          s = HUFF_EXTEND(r, s);
+          /* Output coefficient in natural (dezigzagged) order.
+           * Note: the extra entries in jpeg_natural_order[] will save us
+           * if k >= DCTSIZE2, which could happen if the data is corrupted.
+           */
+          (*block)[jpeg_natural_order[k]] = (JCOEF) s;
+        } else {
+          if (r != 15)
+            break;
+          k += 15;
+        }
+      }
+
+    } else {
+
+      /* Section F.2.2.2: decode the AC coefficients */
+      /* In this path we just discard the values */
+      for (k = 1; k < DCTSIZE2; k++) {
+        HUFF_DECODE(s, br_state, actbl, return FALSE, label3);
+
+        r = s >> 4;
+        s &= 15;
+
+        if (s) {
+          k += r;
+          CHECK_BIT_BUFFER(br_state, s, return FALSE);
+          DROP_BITS(s);
+        } else {
+          if (r != 15)
+            break;
+          k += 15;
+        }
+      }
+    }
+  }
+
+  /* Completed MCU, so update state */
+  BITREAD_SAVE_STATE(cinfo,entropy->bitstate);
+  ASSIGN_STATE(entropy->saved, state);
+  return TRUE;
+}
+
+
+/***************************************************************/
+
+#define ADD_BYTE  {                                     \
+  int val0 = *(buffer++);                               \
+  int val1 = *(buffer);                                 \
+                                                        \
+  bits_left += 8;                                       \
+  get_buffer = (get_buffer << 8) | (val0);              \
+  if (val0 == 0xFF) {                                   \
+    buffer++;                                           \
+    if (val1 != 0) {                                    \
+      buffer   -= 2;                                    \
+      get_buffer      &= ~0xFF;                         \
+    }                                                   \
+  }                                                     \
+}
+
+/***************************************************************/
+
+#if __WORDSIZE == 64
+
+#define ENSURE_SHORT \
+  if (bits_left < 16) { \
+    ADD_BYTE ADD_BYTE ADD_BYTE ADD_BYTE ADD_BYTE ADD_BYTE \
+  }
+
+#else
+
+#define ENSURE_SHORT  if (bits_left < 16) { ADD_BYTE ADD_BYTE }
+
+#endif
+
+/***************************************************************/
+
+#define HUFF_DECODE_FAST(symbol, size, htbl) { \
+  ENSURE_SHORT \
+  symbol = PEEK_BITS(HUFF_LOOKAHEAD); \
+  symbol = htbl->lookup[symbol]; \
+  size = symbol >> 8; \
+  bits_left -= size; \
+  symbol = symbol & ((1 << HUFF_LOOKAHEAD) - 1); \
+  if (size == HUFF_LOOKAHEAD + 1) { \
+    symbol = (get_buffer >> bits_left) & ((1 << (size)) - 1); \
+    while (symbol > htbl->maxcode[size]) { \
+      symbol <<= 1; \
+      symbol |= GET_BITS(1); \
+      size++; \
+    } \
+    symbol = htbl->pub->huffval[ (int) (symbol + htbl->valoffset[size]) ]; \
+  } \
+}
+
+/***************************************************************/
+
+LOCAL(boolean)
+decode_mcu_fast (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
+{
+  huff_entropy_ptr entropy = (huff_entropy_ptr) cinfo->entropy;
+  BITREAD_STATE_VARS;
+  JOCTET *buffer;
+  int blkn;
+  savable_state state;
+  /* Outer loop handles each block in the MCU */
+
+  /* Load up working state */
+  BITREAD_LOAD_STATE(cinfo,entropy->bitstate);
+  buffer = (JOCTET *) br_state.next_input_byte;
+  ASSIGN_STATE(state, entropy->saved);
+
+  for (blkn = 0; blkn < cinfo->blocks_in_MCU; blkn++) {
+    JBLOCKROW block = MCU_data[blkn];
+    d_derived_tbl * dctbl = entropy->dc_cur_tbls[blkn];
+    d_derived_tbl * actbl = entropy->ac_cur_tbls[blkn];
+    register int s, k, r, l;
+
+    HUFF_DECODE_FAST(s, l, dctbl);
+    if (s) {
+      ENSURE_SHORT
+      r = GET_BITS(s);
+      s = HUFF_EXTEND(r, s);
+    }
+
+    if (entropy->dc_needed[blkn]) {
+      int ci = cinfo->MCU_membership[blkn];
+      s += state.last_dc_val[ci];
+      state.last_dc_val[ci] = s;
+      (*block)[0] = (JCOEF) s;
+    }
+
+    if (entropy->ac_needed[blkn]) {
+
+      for (k = 1; k < DCTSIZE2; k++) {
+        HUFF_DECODE_FAST(s, l, actbl);
+        r = s >> 4;
+        s &= 15;
+      
+        if (s) {
+          k += r;
+          ENSURE_SHORT
+          r = GET_BITS(s);
+          s = HUFF_EXTEND(r, s);
+          (*block)[jpeg_natural_order[k]] = (JCOEF) s;
+        } else {
+          if (r != 15) break;
+          k += 15;
+        }
+      }
+
+    } else {
+
+      for (k = 1; k < DCTSIZE2; k++) {
+        HUFF_DECODE_FAST(s, l, actbl);
+        r = s >> 4;
+        s &= 15;
+
+        if (s) {
+          k += r;
+          ENSURE_SHORT
+          DROP_BITS(s);
+        } else {
+          if (r != 15) break;
+          k += 15;
+        }
+      }
+    }
+  }
+
+  br_state.bytes_in_buffer -= (buffer - br_state.next_input_byte);
+  br_state.next_input_byte = buffer;
+  BITREAD_SAVE_STATE(cinfo,entropy->bitstate);
+  ASSIGN_STATE(entropy->saved, state);
+  return TRUE;
+}
+
+
 /*
  * Decode and return one MCU's worth of Huffman-compressed coefficients.
  * The coefficients are reordered from zigzag order into natural array order,
@@ -513,13 +759,12 @@ process_restart (j_decompress_ptr cinfo)
  * this module, since we'll just re-assign them on the next call.)
  */
 
+#define BUFSIZE (DCTSIZE2 * 2)
+
 METHODDEF(boolean)
 decode_mcu (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
 {
   huff_entropy_ptr entropy = (huff_entropy_ptr) cinfo->entropy;
-  int blkn;
-  BITREAD_STATE_VARS;
-  savable_state state;
 
   /* Process restart marker if needed; may have to suspend */
   if (cinfo->restart_interval) {
@@ -533,91 +778,13 @@ decode_mcu (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
    */
   if (! entropy->pub.insufficient_data) {
 
-    /* Load up working state */
-    BITREAD_LOAD_STATE(cinfo,entropy->bitstate);
-    ASSIGN_STATE(state, entropy->saved);
-
-    /* Outer loop handles each block in the MCU */
-
-    for (blkn = 0; blkn < cinfo->blocks_in_MCU; blkn++) {
-      JBLOCKROW block = MCU_data[blkn];
-      d_derived_tbl * dctbl = entropy->dc_cur_tbls[blkn];
-      d_derived_tbl * actbl = entropy->ac_cur_tbls[blkn];
-      register int s, k, r;
-
-      /* Decode a single block's worth of coefficients */
-
-      /* Section F.2.2.1: decode the DC coefficient difference */
-      HUFF_DECODE(s, br_state, dctbl, return FALSE, label1);
-      if (s) {
-	CHECK_BIT_BUFFER(br_state, s, return FALSE);
-	r = GET_BITS(s);
-	s = HUFF_EXTEND(r, s);
-      }
-
-      if (entropy->dc_needed[blkn]) {
-	/* Convert DC difference to actual value, update last_dc_val */
-	int ci = cinfo->MCU_membership[blkn];
-	s += state.last_dc_val[ci];
-	state.last_dc_val[ci] = s;
-	/* Output the DC coefficient (assumes jpeg_natural_order[0] = 0) */
-	(*block)[0] = (JCOEF) s;
-      }
-
-      if (entropy->ac_needed[blkn]) {
-
-	/* Section F.2.2.2: decode the AC coefficients */
-	/* Since zeroes are skipped, output area must be cleared beforehand */
-	for (k = 1; k < DCTSIZE2; k++) {
-	  HUFF_DECODE(s, br_state, actbl, return FALSE, label2);
-      
-	  r = s >> 4;
-	  s &= 15;
-      
-	  if (s) {
-	    k += r;
-	    CHECK_BIT_BUFFER(br_state, s, return FALSE);
-	    r = GET_BITS(s);
-	    s = HUFF_EXTEND(r, s);
-	    /* Output coefficient in natural (dezigzagged) order.
-	     * Note: the extra entries in jpeg_natural_order[] will save us
-	     * if k >= DCTSIZE2, which could happen if the data is corrupted.
-	     */
-	    (*block)[jpeg_natural_order[k]] = (JCOEF) s;
-	  } else {
-	    if (r != 15)
-	      break;
-	    k += 15;
-	  }
-	}
-
-      } else {
-
-	/* Section F.2.2.2: decode the AC coefficients */
-	/* In this path we just discard the values */
-	for (k = 1; k < DCTSIZE2; k++) {
-	  HUFF_DECODE(s, br_state, actbl, return FALSE, label3);
-      
-	  r = s >> 4;
-	  s &= 15;
-      
-	  if (s) {
-	    k += r;
-	    CHECK_BIT_BUFFER(br_state, s, return FALSE);
-	    DROP_BITS(s);
-	  } else {
-	    if (r != 15)
-	      break;
-	    k += 15;
-	  }
-	}
-
-      }
+    if (cinfo->src->bytes_in_buffer >= BUFSIZE) {
+      if (!decode_mcu_fast(cinfo, MCU_data)) return FALSE;
+    }
+    else {
+      if (!decode_mcu_slow(cinfo, MCU_data)) return FALSE;
     }
 
-    /* Completed MCU, so update state */
-    BITREAD_SAVE_STATE(cinfo,entropy->bitstate);
-    ASSIGN_STATE(entropy->saved, state);
   }
 
   /* Account for restart interval (no-op if not using restarts) */
