@@ -73,8 +73,17 @@ EXTERN(void) jpeg_make_d_derived_tbl
  * necessary.
  */
 
-typedef long bit_buf_type;		/* type of bit-extraction buffer */
-#define BIT_BUF_SIZE  __WORDSIZE	/* size of buffer in bits */
+#if __WORDSIZE == 64
+
+typedef long bit_buf_type;	/* type of bit-extraction buffer */
+#define BIT_BUF_SIZE  64		/* size of buffer in bits */
+
+#else
+
+typedef INT32 bit_buf_type;	/* type of bit-extraction buffer */
+#define BIT_BUF_SIZE  32		/* size of buffer in bits */
+
+#endif
 
 /* If long is > 32 bits on your machine, and shifting/masking longs is
  * reasonably fast, making bit_buf_type be long and setting BIT_BUF_SIZE
