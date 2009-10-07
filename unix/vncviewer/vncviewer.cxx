@@ -337,6 +337,13 @@ int main(int argc, char** argv)
 			&& !::fullColour.hasBeenSet()
 			&& !::fullColourAlias.hasBeenSet());
   }
+  if (!::fullColour.hasBeenSet() && !::fullColourAlias.hasBeenSet()) {
+    // Default to FullColor=0 if AutoSelect=0 && LowColorLevel is set
+    if (!::autoSelect && (::lowColourLevel.hasBeenSet() ||
+			  ::lowColourLevelAlias.hasBeenSet())) {
+      ::fullColour.setParam(false);
+    }
+  }
   if (!::customCompressLevel.hasBeenSet()) {
     // Default to CustomCompressLevel=1 if CompressLevel is used.
     ::customCompressLevel.setParam(::compressLevel.hasBeenSet());
