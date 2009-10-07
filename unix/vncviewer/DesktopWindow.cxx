@@ -79,7 +79,7 @@ DesktopWindow::DesktopWindow(Display* dpy, int w, int h,
                PointerMotionMask | KeyPressMask | KeyReleaseMask |
                EnterWindowMask | LeaveWindowMask);
   createXCursors();
-  XDefineCursor(dpy, win(), dotCursor);
+  setNoCursor();
   im = new TXImage(dpy, width(), height());
   if (!serverPF.trueColour)
     im->setPF(serverPF);
@@ -139,12 +139,9 @@ void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
     if (((rdr::U8*)mask)[i]) break;
 
   if (i == mask_len) {
-    if (dotWhenNoCursor) {
+    if (dotWhenNoCursor)
       vlog.debug("cursor is empty - using dot");
-      XDefineCursor(dpy, win(), dotCursor);
-    } else {
-      XDefineCursor(dpy, win(), noCursor);
-    }
+    setNoCursor();
     cursorAvailable = false;
     return;
   }
@@ -206,7 +203,7 @@ void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
 void DesktopWindow::resetLocalCursor()
 {
   hideLocalCursor();
-  XDefineCursor(dpy, win(), dotCursor);
+  setNoCursor();
   cursorAvailable = false;
 }
 
@@ -226,7 +223,7 @@ void DesktopWindow::showLocalCursor()
     if (!getPF().equal(cursor.getPF()) ||
         cursor.getRect().is_empty()) {
       vlog.error("attempting to render invalid local cursor");
-      XDefineCursor(dpy, win(), dotCursor);
+      setNoCursor();
       cursorAvailable = false;
       return;
     }

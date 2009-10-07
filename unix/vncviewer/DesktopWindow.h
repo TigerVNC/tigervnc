@@ -29,6 +29,7 @@
 #include "TXWindow.h"
 #include "TXViewport.h"
 #include "TXImage.h"
+#include "parameters.h"
 
 class CConn;
 
@@ -53,6 +54,12 @@ public:
 
   // resetLocalCursor() stops the rendering of the local cursor
   void resetLocalCursor();
+
+  // setNoCursor() sets what to display when no cursor is defined - if dot or
+  // nothing.
+  inline void setNoCursor() {
+    XDefineCursor(dpy, win(), dotWhenNoCursor ? dotCursor : noCursor);
+  }
 
   // Methods forwarded from CConn
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);

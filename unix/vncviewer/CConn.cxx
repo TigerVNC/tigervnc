@@ -684,6 +684,7 @@ void CConn::getOptions() {
       desktop->resetLocalCursor();
   }
   dotWhenNoCursor.setParam(options.dotWhenNoCursor.checked());
+  desktop->setNoCursor();
   checkEncodings();
 }
 
