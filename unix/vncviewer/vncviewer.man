@@ -156,7 +156,9 @@ display.  This is default.
 .B \-LowColorLevel, \-LowColourLevel \fIlevel\fP
 Selects the reduced color level to use on slow links.  \fIlevel\fP can range
 from 0 to 2, 0 meaning 8 colors, 1 meaning 64 colors (the default), 2 meaning
-256 colors.
+256 colors. Note that decision if reduced color level is used is made by
+vncviewer. If you would like to force vncviewer to use reduced color level
+use \fB-AutoSelect=0\fP parameter.
 
 .TP
 .B \-PreferredEncoding \fIencoding\fP
