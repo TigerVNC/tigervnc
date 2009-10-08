@@ -12,7 +12,7 @@ while [ $# -gt 0 ]; do
             fi
             ;;
         -f|-fbin|-faout|-faoutb|-fcoff|-felf|-felf64|-fas86| \
-        -fobj|-fwin32|-frdf|-fieee|-fmacho)
+        -fobj|-fwin32|-frdf|-fieee|-fmacho|-fmacho64)
             # it's a file format specifier for nasm.
             command="$command $1"
             ;;

@@ -44,7 +44,14 @@ case "$host_os" in
     objfmt='ELF'
   ;;
   darwin* | rhapsody* | nextstep* | openstep* | macos*)
-    objfmt='Mach-O'
+    case "$host_cpu" in
+      x86_64)
+        objfmt='Mach-O64'
+        ;;
+      *)
+        objfmt='Mach-O'
+        ;;
+    esac
   ;;
   *)
     objfmt='ELF ?'
@@ -68,6 +75,7 @@ case "$objfmt" in
   ELF64)      NAFLAGS='-felf64 -DELF -D__x86_64__';;
   RDF)        NAFLAGS='-frdf -DRDF';;
   Mach-O)     NAFLAGS='-fmacho -DMACHO';;
+  Mach-O64)   NAFLAGS='-fmacho64 -DMACHO -D__x86_64__';;
 esac
 AC_MSG_RESULT([$NAFLAGS])
 AC_SUBST([NAFLAGS])
