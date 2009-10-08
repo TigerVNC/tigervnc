@@ -64,7 +64,7 @@ public:
     // be a comma and a DECIMAL to be a dot. 
     if (extendedVkey == VK_DECIMAL || extendedVkey == VK_SEPARATOR) {
       char buf[4];
-      if (!GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDECIMAL, buf, sizeof(buf))) {
+      if (!GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDECIMAL, (LPSTR) buf, sizeof(buf))) {
 	vlog.debug("failed to retrieve LOCALE_SDECIMAL");
       } else {
 	switch (buf[0]) {
