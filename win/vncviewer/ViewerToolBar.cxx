@@ -63,34 +63,34 @@ LRESULT ViewerToolBar::processWM_NOTIFY(WPARAM wParam, LPARAM lParam) {
 
       switch (TTStr->hdr.idFrom) {
       case ID_OPTIONS:
-        TTStr->lpszText = "Connection options...";
+        TTStr->lpszText = (LPTSTR) "Connection options...";
         break;
       case ID_INFO:
-        TTStr->lpszText = "Connection info";
+        TTStr->lpszText = (LPTSTR) "Connection info";
         break;
       case ID_FULLSCREEN:
-        TTStr->lpszText = "Full screen";
+        TTStr->lpszText = (LPTSTR) "Full screen";
         break;
       case ID_REQUEST_REFRESH:
-        TTStr->lpszText = "Request screen refresh";
+        TTStr->lpszText = (LPTSTR) "Request screen refresh";
         break;
       case ID_SEND_CAD:
-        TTStr->lpszText = "Send Ctrl-Alt-Del";
+        TTStr->lpszText = (LPTSTR) "Send Ctrl-Alt-Del";
         break;
       case ID_SEND_CTLESC:
-        TTStr->lpszText = "Send Ctrl-Esc";
+        TTStr->lpszText = (LPTSTR) "Send Ctrl-Esc";
         break;
       case ID_CTRL_KEY:
-        TTStr->lpszText = "Send Ctrl key press/release";
+        TTStr->lpszText = (LPTSTR) "Send Ctrl key press/release";
         break;
       case ID_ALT_KEY:
-        TTStr->lpszText = "Send Alt key press/release";
+        TTStr->lpszText = (LPTSTR) "Send Alt key press/release";
         break;
       case ID_NEW_CONNECTION:
-        TTStr->lpszText = "New connection...";
+        TTStr->lpszText = (LPTSTR) "New connection...";
         break;
       case ID_CONN_SAVE_AS:
-        TTStr->lpszText = "Save connection info as...";
+        TTStr->lpszText = (LPTSTR) "Save connection info as...";
         break;
       default:
         break;

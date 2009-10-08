@@ -18,9 +18,9 @@ bool ControlPanel::showDialog()
 void ControlPanel::initDialog()
 {
   TCHAR *ColumnsStrings[] = {
-    "IP address",
-    "Time connected",
-    "Status"
+    (TCHAR *) "IP address",
+    (TCHAR *) "Time connected",
+    (TCHAR *) "Status"
   };
   InitLVColumns(IDC_LIST_CONNECTIONS, handle, 120, 3, ColumnsStrings,
                 LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
@@ -90,7 +90,7 @@ void ControlPanel::UpdateListView(rfb::ListConnInfo* LCInfo)
 
   for (ListConn.iBegin(); !ListConn.iEnd(); ListConn.iNext()) {
     ListConn.iGetCharInfo(ItemString);
-    InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, ItemString, 3);
+    InsertLVItem(IDC_LIST_CONNECTIONS, handle, i, (TCHAR **) ItemString, 3);
     for (ListSelConn.iBegin(); !ListSelConn.iEnd(); ListSelConn.iNext()) {
       if (ListSelConn.iGetConn() == ListConn.iGetConn())
         SelectLVItem(IDC_LIST_CONNECTIONS, handle, i);

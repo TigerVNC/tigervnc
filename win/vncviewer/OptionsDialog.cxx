@@ -175,7 +175,7 @@ public:
         (WPARAM)i, (LPARAM)(int FAR*)scale_values[i]);
     }
     if (dlg->options.autoScaling) {
-      SetDlgItemText(handle, IDC_COMBO_SCALE, "Auto");
+      SetDlgItemText(handle, IDC_COMBO_SCALE, (LPCTSTR) "Auto");
     } else {
       SetDlgItemInt(handle, IDC_COMBO_SCALE, dlg->options.scale, FALSE);
     }
@@ -195,8 +195,8 @@ public:
       dlg->options.autoScaling = false;
     } else {
       char scaleStr[20];
-      GetDlgItemText(handle, IDC_COMBO_SCALE, scaleStr, 20);
-      if (strcmp(scaleStr, "Auto") == 0) {
+      GetDlgItemText(handle, IDC_COMBO_SCALE, (LPTSTR) scaleStr, 20);
+      if (strcmp(scaleStr, (const char *) "Auto") == 0) {
         dlg->options.autoScaling = true;
       }
     }
@@ -212,7 +212,7 @@ public:
           int index = SendMessage(handleComboScale, CB_GETCURSEL, 0, 0);
           SendMessage(handleComboScale, CB_GETLBTEXT, (WPARAM)index, (LPARAM)scaleStr);
         } else {
-          GetDlgItemText(handle, IDC_COMBO_SCALE, scaleStr, 20);
+          GetDlgItemText(handle, IDC_COMBO_SCALE, (LPTSTR) scaleStr, 20);
         }
         return true;
       }
