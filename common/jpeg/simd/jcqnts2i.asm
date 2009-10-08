@@ -195,3 +195,6 @@ EXTN(jsimd_quantize_sse2):
 	pop	ebp
 	ret
 
+; For some reason, the OS X linker does not honor the request to align the
+; segment unless we do this.
+	align	16

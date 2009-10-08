@@ -662,3 +662,7 @@ EXTN(jsimd_h2v2_upsample_sse2):
 	pop	rbx
 	pop	rbp
 	ret
+
+; For some reason, the OS X linker does not honor the request to align the
+; segment unless we do this.
+	align	16

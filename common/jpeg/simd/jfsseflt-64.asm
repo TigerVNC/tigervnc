@@ -352,3 +352,7 @@ EXTN(jsimd_fdct_float_sse):
 	pop	rsp		; rsp <- original rbp
 	pop	rbp
 	ret
+
+; For some reason, the OS X linker does not honor the request to align the
+; segment unless we do this.
+	align	16
