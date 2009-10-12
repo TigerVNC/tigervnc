@@ -21,7 +21,7 @@
 #include <winvnc/resource.h>
 #include <rdr/MemInStream.h>
 #include <rfb/LogWriter.h>
-#include <rfb/VNCserverST.h>
+#include <rfb/VNCServerST.h>
 #include <rfb_win32/TCharArray.h>
 
 #define strcasecmp _stricmp

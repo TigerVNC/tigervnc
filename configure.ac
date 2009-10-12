@@ -160,5 +160,7 @@ unix/vncpasswd/Makefile
 win/Makefile
 win/vncviewer/Makefile
 win/rfb_win32/Makefile
+win/vncconfig/Makefile
+win/winvnc/Makefile
 po/Makefile.in
 ])

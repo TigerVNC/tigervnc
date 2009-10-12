@@ -41,5 +41,8 @@ vncviewer_LDADD = $(top_srcdir)/common/rfb/librfb.la \
 
 vncviewer_LDFLAGS = -I$(top_srcdir)/win -mwindows
 
+EXTRA_DIST = vncviewer.rc vncviewer.ico cursor1.cur vncviewer.exe.manifest \
+	vncviewer.bmp toolbar.bmp
+
 resources.o: vncviewer.rc
 	$(WINDRES) $^ -o $@

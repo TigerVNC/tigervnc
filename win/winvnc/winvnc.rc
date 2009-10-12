@@ -9,6 +9,10 @@
 //
 #include "windows.h"
 
+#ifndef IDC_STATIC
+#define IDC_STATIC -1
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -210,8 +214,8 @@ END
 // HTTPFILE
 //
 
-/VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "..\\..\\java\\src\\com\\tigervnc\\vncviewer\\VncViewer.jar"
-/INDEX.VNC              HTTPFILE DISCARDABLE    "index.vnc"
+//VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "..\\..\\java\\src\\com\\tigervnc\\vncviewer\\VncViewer.jar"
+//INDEX.VNC              HTTPFILE DISCARDABLE    "index.vnc"
 
 /////////////////////////////////////////////////////////////////////////////
 //

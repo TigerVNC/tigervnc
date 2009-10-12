@@ -32,7 +32,7 @@ namespace rfb {
       DesktopPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DESKTOP)), regKey(rk) {}
       void initDialog() {
-        CharArray action = rfb::win32::SDisplay::disconnectAction.getData();
+        CharArray action(rfb::win32::SDisplay::disconnectAction.getData());
         bool disconnectLock = stricmp(action.buf, "Lock") == 0;
         bool disconnectLogoff = stricmp(action.buf, "Logoff") == 0;
         typedef BOOL (WINAPI *_LockWorkStation_proto)();
@@ -59,7 +59,7 @@ namespace rfb {
         case IDC_REMOVE_WALLPAPER:
         case IDC_REMOVE_PATTERN:
         case IDC_DISABLE_EFFECTS:
-          CharArray action = rfb::win32::SDisplay::disconnectAction.getData();
+          CharArray action(rfb::win32::SDisplay::disconnectAction.getData());
           bool disconnectLock = stricmp(action.buf, "Lock") == 0;
           bool disconnectLogoff = stricmp(action.buf, "Logoff") == 0;
           setChanged((disconnectLogoff != isItemChecked(IDC_DISCONNECT_LOGOFF)) ||

@@ -55,12 +55,10 @@ HDRS = \
   WMShatter.h \
   WMWindowCopyRect.h
 
-
-##  CleanDesktop.cxx not built - MinGW does not provide COM
-
 librfb_win32_la_SOURCES = $(HDRS) \
   AboutDialog.cxx \
   CKeyboard.cxx \
+  CleanDesktop.cxx \
   Clipboard.cxx \
   CPointer.cxx \
   CurrentUser.cxx \

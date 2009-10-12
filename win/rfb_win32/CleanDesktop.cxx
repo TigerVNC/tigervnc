@@ -181,7 +181,7 @@ void CleanDesktop::disableWallpaper() {
     }
 
     // -=- Switch of normal wallpaper and notify apps
-    SysParamsInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
+    SysParamsInfo(SPI_SETDESKWALLPAPER, 0, (PVOID) "", SPIF_SENDCHANGE);
     restoreWallpaper = true;
 
   } catch (rdr::Exception& e) {
@@ -225,7 +225,7 @@ void CleanDesktop::disablePattern() {
     ImpersonateCurrentUser icu;
 
     vlog.debug("disable desktop pattern");
-    SysParamsInfo(SPI_SETDESKPATTERN, 0, "", SPIF_SENDCHANGE);
+    SysParamsInfo(SPI_SETDESKPATTERN, 0, (PVOID) "", SPIF_SENDCHANGE);
     restorePattern = true;
 
   } catch (rdr::Exception& e) {

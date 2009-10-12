@@ -62,7 +62,7 @@ namespace rfb {
         pattern.replaceBuf(0);
       }
       bool onOk() {
-        TCharArray host = getItemString(IDC_HOST_PATTERN);
+        TCharArray host(getItemString(IDC_HOST_PATTERN));
         TCharArray newPat(_tcslen(host.buf)+2);
         if (isItemChecked(IDC_ALLOW))
           newPat.buf[0] = _T('+');
@@ -248,8 +248,8 @@ namespace rfb {
       }
       bool isChanged() {
         try {
-          CharArray new_hosts = getHosts();
-          CharArray old_hosts = hosts.getData();
+          CharArray new_hosts(getHosts());
+          CharArray old_hosts(hosts.getData());
           return (strcmp(new_hosts.buf, old_hosts.buf) != 0) ||
               (localHost != isItemChecked(IDC_LOCALHOST)) ||
               (port_number != getItemInt(IDC_PORT)) ||

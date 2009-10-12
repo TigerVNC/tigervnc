@@ -112,7 +112,7 @@ void VNCServerWin32::processAddressChange(network::SocketListener* sock_) {
   _tcscpy(toolTip.buf, prefix);
   for (i=addrs.begin(); i!= addrs.end(); i=next_i) {
     next_i = i; next_i ++;
-    TCharArray addr = *i;    // Assumes ownership of string
+    TCharArray addr(*i);    // Assumes ownership of string
     _tcscat(toolTip.buf, addr.buf);
     if (next_i != addrs.end())
       _tcscat(toolTip.buf, _T(","));

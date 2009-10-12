@@ -59,8 +59,9 @@ const WORD rfb::win32::AboutDialog::Description = IDC_DESCRIPTION;
 
 const UINT WM_SET_TOOLTIP = WM_USER + 1;
 
+namespace winvnc {
 
-class winvnc::STrayIcon : public TrayIcon {
+class STrayIcon : public TrayIcon {
 public:
   STrayIcon(STrayIconThread& t) : thread(t),
     vncConfig(_T("vncconfig.exe"), isServiceProcess() ? _T("-noconsole -service") : _T("-noconsole")),
@@ -183,7 +184,7 @@ public:
         switch (command->dwData) {
         case 1:
           {
-            CharArray viewer = new char[command->cbData + 1];
+            CharArray viewer(command->cbData + 1);
             memcpy(viewer.buf, command->lpData, command->cbData);
             viewer.buf[command->cbData] = 0;
             return thread.server.addNewClient(viewer.buf) ? 1 : 0;
@@ -277,4 +278,5 @@ void STrayIconThread::setToolTip(const TCHAR* text) {
   PostMessage(windowHandle, WM_SET_TOOLTIP, 0, 0);
 }
 
+}
 

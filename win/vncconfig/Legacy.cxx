@@ -71,7 +71,7 @@ void LegacyPage::LoadPrefs()
 
             // Reformat AuthHosts to Hosts.  Wish I'd left the format the same. :( :( :(
             try {
-              CharArray tmp = strDup(authHosts.buf);
+              CharArray tmp(authHosts.buf);
               while (tmp.buf) {
 
                 // Split the AuthHosts string into patterns to match
