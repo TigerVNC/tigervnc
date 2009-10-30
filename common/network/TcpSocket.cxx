@@ -188,7 +188,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     }
 
   /* Attempt to connect to the remote host */
-    while ((result = connect(sock, &sa.u.sa, sizeof(sa))) == -1) {
+    while ((result = connect(sock, &sa.u.sa, salen)) == -1) {
       err = errorNumber;
 #ifndef WIN32
       if (err == EINTR)
