@@ -189,16 +189,25 @@ $vncPort = 5900 + $displayNumber;
 $desktopLog = "$vncUserDir/$host:$displayNumber.log";
 unlink($desktopLog);
 
-# Make an X server cookie - use as the seed the sum of the current time, our
-# PID and part of the encrypted form of the password.  Ideally we'd use
-# /dev/urandom, but that's only available on Linux.
+# Make an X server cookie - use /dev/urandom on systems that have it,
+# otherwise use perl's random number generator, seeded with the sum
+# of the current time, our PID and part of the encrypted form of the password.
 
-srand(time+$$+unpack("L",`cat $vncUserDir/passwd`));
-$cookie = "";
-for (1..16) {
-    $cookie .= sprintf("%02x", int(rand(256)) % 256);
+my $cookie = "";
+if (open(URANDOM, '<', '/dev/urandom')) {
+  my $randata;
+  if (sysread(URANDOM, $randata, 16) == 16) {
+    $cookie = unpack 'h*', $randata;
+  }
+  close(URANDOM);
 }
-    
+if ($cookie eq "") {
+  srand(time+$$+unpack("L",`cat $vncUserDir/passwd`));
+  for (1..16) {
+    $cookie .= sprintf("%02x", int(rand(256)) % 256);
+  }
+}
+
 system("xauth -f $xauthorityFile add $host:$displayNumber . $cookie");
 system("xauth -f $xauthorityFile add $host/unix:$displayNumber . $cookie"); 
 
