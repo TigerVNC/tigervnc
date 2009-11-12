@@ -293,13 +293,27 @@ char* TcpSocket::getPeerEndpoint() {
 }
 
 bool TcpSocket::sameMachine() {
-  struct sockaddr_in peeraddr, myaddr;
-  socklen_t addrlen = sizeof(struct sockaddr_in);
+  vnc_sockaddr_t peeraddr, myaddr;
+  socklen_t addrlen;
 
-  getpeername(getFd(), (struct sockaddr *)&peeraddr, &addrlen);
-  getsockname(getFd(), (struct sockaddr *)&myaddr, &addrlen);
+  addrlen = sizeof(peeraddr);
+  if (getpeername(getFd(), &peeraddr.u.sa, &addrlen) < 0)
+      throw SocketException ("unable to get peer address", errorNumber);
 
-  return (peeraddr.sin_addr.s_addr == myaddr.sin_addr.s_addr);
+  addrlen = sizeof(myaddr); /* need to reset, since getpeername overwrote */
+  if (getsockname(getFd(), &myaddr.u.sa, &addrlen) < 0)
+      throw SocketException ("unable to get my address", errorNumber);
+
+  if (peeraddr.u.sa.sa_family != myaddr.u.sa.sa_family)
+      return false;
+
+#ifdef HAVE_GETADDRINFO
+  if (peeraddr.u.sa.sa_family == AF_INET6)
+      return IN6_ARE_ADDR_EQUAL(&peeraddr.u.sin6.sin6_addr,
+				&myaddr.u.sin6.sin6_addr);
+#endif
+
+  return (peeraddr.u.sin.sin_addr.s_addr == myaddr.u.sin.sin_addr.s_addr);
 }
 
 void TcpSocket::shutdown()
