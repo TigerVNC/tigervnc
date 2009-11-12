@@ -67,8 +67,8 @@ List all the options and parameters
 
 .SH PARAMETERS
 VNC parameters can be set both via the command-line and through the
-\fBvncconfig\fP(1) program, and with a VNC-enabled XFree86 server via Options
-entries in the XF86Config file.
+\fBvncconfig\fP(1) program, and with a VNC-enabled Xorg server via Options
+entries in the xorg.conf file.
 
 Parameters can be turned on with -\fIparam\fP or off with
 -\fIparam\fP=0.  Parameters which take a value can be specified as
