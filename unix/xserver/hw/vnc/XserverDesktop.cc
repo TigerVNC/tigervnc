@@ -1104,6 +1104,14 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
   unsigned int i, n;
   int j, k;
 
+  /* 
+   * Since we are checking the current state to determine if we need
+   * to fake modifiers, we must make sure that everything put on the
+   * input queue is processed before we start. Otherwise, shift may be
+   * stuck down.
+   */ 
+  mieqProcessInputEvents();
+
   if (keysym == XK_Caps_Lock) {
     vlog.debug("Ignoring caps lock");
     return;
@@ -1220,6 +1228,15 @@ void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 #endif
     );
   }
+
+  /*
+   * When faking a modifier we are putting a keycode (which can
+   * currently activate the desired modifier) on the input
+   * queue. A future modmap change can change the mapping so
+   * that this keycode means something else entirely. Guard
+   * against this by processing the queue now.
+   */
+  mieqProcessInputEvents();
 }
 
 static KeySym KeyCodetoKeySym(KeySymsPtr keymap, int keycode, int col)
