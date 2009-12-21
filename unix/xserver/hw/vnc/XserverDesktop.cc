@@ -54,6 +54,10 @@ extern char *display;
 #ifdef RANDR
 #include "randrstr.h"
 #endif
+#if XORG >= 17
+#include "cursorstr.h"
+#endif
+
 #undef public
 #undef class
 }
@@ -185,6 +189,9 @@ void XserverDesktop::serverReset(ScreenPtr pScreen_)
   int i;
   pointer retval;
 
+#if XORG >= 17
+#define dixLookupResource dixLookupResourceByType
+#endif
   i = dixLookupResource(&retval, pScreen->defColormap, RT_COLORMAP, NullClient,
 			DixReadAccess);
 

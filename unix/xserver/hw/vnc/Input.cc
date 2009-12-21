@@ -43,8 +43,16 @@ extern "C" {
 #endif
 #if XORG >= 16
 #include "exevents.h"
+#endif
+#if XORG == 16
 extern void
 CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
+#endif
+#if XORG >= 17
+#include "xkbsrv.h"
+#include "xkbstr.h"
+#include "xserver-properties.h"
+extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #endif
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
@@ -99,8 +107,10 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 		mieqEnqueue(dev,
 #if XORG == 15
 			    eventq + i
-#else
+#elif XORG == 16
 			    (eventq + i)->event
+#else
+			    (InternalEvent *) (eventq + i)->event
 #endif
 			   );
 	}
@@ -169,18 +179,43 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 	BYTE map[BUTTONS + 1];
 	DevicePtr pDev = (DevicePtr)pDevice;
 	int i;
+#if XORG >= 17
+	/*
+	 * NOTE: map[] array is one element longer than btn_labels[] array. This
+	 * is not a bug.
+	 */
+	Atom btn_labels[BUTTONS];
+	Atom axes_labels[2];
+#endif
 
 	switch (onoff) {
 	case DEVICE_INIT:
 		for (i = 0; i < BUTTONS + 1; i++)
 			map[i] = i;
 
+#if XORG >= 17
+		btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+		btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+		btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+		btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+		btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+
+		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+		axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+#endif
+
 		InitPointerDeviceStruct(pDev, map, BUTTONS,
 #if XORG == 15
 					GetMotionHistory,
+#elif XORG >= 17
+					btn_labels,
 #endif
 					(PtrCtrlProcPtr)NoopDDA,
-					GetMotionHistorySize(), 2);
+					GetMotionHistorySize(), 2
+#if XORG >= 17
+					, axes_labels
+#endif
+					);
 		break;
 	case DEVICE_ON:
 		pDev->on = TRUE;
@@ -239,33 +274,84 @@ public:
 
 	void press()
 	{
+		int state, index, maxKeysPerMod, keycode;
+#if XORG >= 17
+		int ret;
+		KeyCode *modmap = NULL;
+
+		state = XkbStateFieldFromRec(&dev->u.master->key->xkbInfo->state);
+#else
 		KeyClassPtr keyc = dev->key;
-		if (!(keyc->state & (1 << modIndex))) {
-			int index = modIndex * keyc->maxKeysPerModifier;
-			tempKeyEvent(keyc->modifierKeyMap[index], true);
-			pressed = true;
+		state = keyc->state;
+#endif
+		if ((state & (1 << modIndex)) != 0)
+			return;
+
+#if XORG >= 17
+		if (generate_modkeymap(serverClient, dev, &modmap,
+				       &maxKeysPerMod) != Success) {
+			vlog.error("generate_modkeymap failed");
+			return;
 		}
+
+		keycode = modmap[modIndex * maxKeysPerMod];
+		xfree(modmap);
+#else
+		maxKeysPerMod = keyc->maxKeysPerModifier;
+		keycode = keyc->modifierKeyMap[modIndex * maxKeysPerMod];
+#endif
+		tempKeyEvent(keycode, true, maxKeysPerMod);
+		pressed = true;
 	}
 
 	void release()
 	{
-		KeyClassPtr keyc = dev->key;
-		if ((keyc->state & (1 << modIndex)) == 0)
+		int state, maxKeysPerMod;
+		KeyClassPtr keyc;
+#if XORG >= 17
+		int ret;
+		KeyCode *modmap = NULL;
+
+		keyc = dev->u.master->key;
+		state = XkbStateFieldFromRec(&keyc->xkbInfo->state);
+#else
+		keyc = dev->key;
+		state = keyc->state;
+#endif
+		if ((state & (1 << modIndex)) == 0)
 			return;
 
-		for (int k = 0; k < keyc->maxKeysPerModifier; k++) {
-			int index = modIndex * keyc->maxKeysPerModifier + k;
-			int keycode = keyc->modifierKeyMap[index];
-			if (keycode && IS_PRESSED(keyc, keycode))
-				tempKeyEvent(keycode, false);
+#if XORG >= 17
+		if (generate_modkeymap(serverClient, dev, &modmap,
+				       &maxKeysPerMod) != Success) {
+			vlog.error("generate_modkeymap failed");
+			return;
 		}
+#else
+		maxKeysPerMod = keyc->maxKeysPerModifier;
+#endif
+
+		for (int k = 0; k < maxKeysPerMod; k++) {
+			int keycode;
+			int index = modIndex * maxKeysPerMod + k;
+#if XORG >= 17
+			keycode = modmap[index];
+#else
+			keycode = keyc->modifierKeyMap[index];
+#endif
+			if (keycode && IS_PRESSED(keyc, keycode))
+				tempKeyEvent(keycode, false, maxKeysPerMod);
+		}
+#if XORG >= 17
+		xfree(modmap);
+#endif
 	}
 
 private:
-	void tempKeyEvent(int keycode, bool down)
+	void tempKeyEvent(int keycode, bool down, int maxKeysPerMod)
 	{
 		if (keycode) {
-			if (!keys) keys = new int[dev->key->maxKeysPerModifier];
+			if (!keys) keys = new int[maxKeysPerMod];
 			keys[nKeys++] = keycode;
 			generateXKeyEvent(keycode, down);
 		}
@@ -361,17 +447,28 @@ static struct altKeysym_t {
  *   synchronized with proper master device
  */
 
+#if XORG >= 17
+#define FREE_MAPS \
+	do { \
+	        xfree(modmap); \
+	        xfree(keymap->map); \
+	        xfree(keymap); \
+	} while (0);
+#else
+#define FREE_MAPS
+#endif
+
 void KeyboardDevice::keyEvent(rdr::U32 keysym, bool down)
 {
 	DeviceIntPtr master;
-	KeyClassPtr keyc = dev->key;
-	KeySymsPtr keymap = &keyc->curKeySyms;
-	KeySym *map = keymap->map;
-	KeyCode minKeyCode = keymap->minKeyCode;
-	KeyCode maxKeyCode = keymap->maxKeyCode;
-	int mapWidth = keymap->mapWidth;
+	KeyClassPtr keyc;
+	KeySymsPtr keymap = NULL;
+	KeySym *map = NULL;
+	KeyCode minKeyCode, maxKeyCode;
+	KeyCode *modmap = NULL;
+	int mapWidth;
 	unsigned int i, n;
-	int j, k, action;
+	int j, k, action, state, maxKeysPerMod;
 
 	/* 
 	 * Since we are checking the current state to determine if we need
@@ -385,13 +482,43 @@ void KeyboardDevice::keyEvent(rdr::U32 keysym, bool down)
 		vlog.debug("Ignoring caps lock");
 		return;
 	}
+vlog.debug("keysym %d", keysym);
+#if XORG >= 17
+	keyc = dev->u.master->key;
+
+	keymap = XkbGetCoreMap(dev);
+	if (!keymap) {
+		vlog.error("VNC keyboard device has no map");
+		return;
+	}
+
+	if (generate_modkeymap(serverClient, dev, &modmap, &maxKeysPerMod)
+	    != Success) {
+		vlog.error("generate_modkeymap failed");
+		xfree(keymap->map);
+		xfree(keymap);
+		return;
+	}
+
+	state = XkbStateFieldFromRec(&keyc->xkbInfo->state);
+#else
+	keyc = dev->key;
+	state = keyc->state;
+	maxKeysPerMod = keyc->maxKeysPerModifier;
+	keymap = &keyc->curKeySyms;
+	modmap = keyc->modifierKeyMap;
+#endif
+	map = keymap->map;
+	minKeyCode = keymap->minKeyCode;
+	maxKeyCode = keymap->maxKeyCode;
+	mapWidth = keymap->mapWidth;
 
 	/* find which modifier Mode_switch is on. */
 	int modeSwitchMapIndex = 0;
 	for (i = 3; i < 8; i++) {
-		for (k = 0; k < keyc->maxKeysPerModifier; k++) {
-			int index = i * keyc->maxKeysPerModifier + k;
-			int keycode = keyc->modifierKeyMap[index];
+		for (k = 0; k < maxKeysPerMod; k++) {
+			int index = i * maxKeysPerMod + k;
+			int keycode = modmap[index];
 
 			if (keycode == 0)
 				continue;
@@ -408,10 +535,10 @@ void KeyboardDevice::keyEvent(rdr::U32 keysym, bool down)
 ModeSwitchFound:
 
 	int col = 0;
-	if ((keyc->state & (1 << ShiftMapIndex)) != 0)
+	if ((state & (1 << ShiftMapIndex)) != 0)
 		col |= 1;
 	if (modeSwitchMapIndex != 0 &&
-	    ((keyc->state & (1 << modeSwitchMapIndex))) != 0)
+	    ((state & (1 << modeSwitchMapIndex))) != 0)
 		col |= 2;
 
 	int kc = KeysymToKeycode(keymap, keysym, &col);
@@ -424,7 +551,7 @@ ModeSwitchFound:
 	 * We never get ISO_Left_Tab here because it's already been translated
 	 * in VNCSConnectionST.
 	 */
-	if (keysym == XK_Tab && ((keyc->state & (1 << ShiftMapIndex))) != 0)
+	if (keysym == XK_Tab && ((state & (1 << ShiftMapIndex))) != 0)
 		col |= 1;
 
 	if (kc == 0) {
@@ -455,6 +582,8 @@ ModeSwitchFound:
 
 			vlog.info("Added unknown keysym 0x%x to keycode %d",
 				  keysym, kc);
+
+#if XORG < 17
 #if XORG == 15
 			master = inputInfo.keyboard;
 #else
@@ -471,6 +600,12 @@ ModeSwitchFound:
 				CopyKeyClass(dev, master);
 #endif
 			}
+#else /* XORG < 17 */
+			XkbApplyMappingChange(dev, keymap, minKeyCode,
+					      maxKeyCode - minKeyCode + 1,
+					      NULL, serverClient);
+			XkbCopyDeviceKeymap(dev->u.master, dev);
+#endif /* XORG < 17 */
 			break;
 		}
 	}
@@ -478,6 +613,7 @@ ModeSwitchFound:
 	if (kc < minKeyCode) {
 		vlog.info("Keyboard mapping full - ignoring unknown keysym "
 			  "0x%x",keysym);
+		FREE_MAPS;
 		return;
 	}
 
@@ -487,11 +623,12 @@ ModeSwitchFound:
 	 * followed by a press.
 	 */
 	for (i = 0; i < 8; i++) {
-		for (k = 0; k < keyc->maxKeysPerModifier; k++) {
-			int index = i * keyc->maxKeysPerModifier + k;
-			if (kc == keyc->modifierKeyMap[index] &&
-			    IS_PRESSED(keyc,kc) && down)
+		for (k = 0; k < maxKeysPerMod; k++) {
+			int index = i * maxKeysPerMod + k;
+			if (kc == modmap[index] && IS_PRESSED(keyc,kc) && down) {
+				FREE_MAPS;
 				return;
+			}	
 		}
 	}
 
@@ -761,9 +898,16 @@ static int keyboardProc(DeviceIntPtr pDevice, int onoff)
 
 	switch (onoff) {
 	case DEVICE_INIT:
+#if XORG < 17
 		GetMappings(&keySyms, modMap);
-		InitKeyboardDeviceStruct(pDev, &keySyms, modMap, keyboardBell,
-					 (KbdCtrlProcPtr)NoopDDA);
+#endif
+		InitKeyboardDeviceStruct(
+#if XORG >= 17
+					 pDevice, NULL,
+#else
+					 pDev, &keySyms, modMap,
+#endif
+					 keyboardBell, (KbdCtrlProcPtr)NoopDDA);
 		break;
 	case DEVICE_ON:
 		pDev->on = TRUE;

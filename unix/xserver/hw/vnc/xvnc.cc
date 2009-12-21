@@ -81,6 +81,12 @@ extern "C" {
 #endif /* RANDR */
 #include <X11/keysym.h>
   extern char buildtime[];
+#if XORG >= 17
+#undef VENDOR_RELEASE
+#undef VENDOR_STRING
+#include "version-config.h"
+#include "site.h"
+#endif
 #undef class
 #undef public
 }
