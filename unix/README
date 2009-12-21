@@ -97,8 +97,8 @@ Then you have to apply a patch to some files in the X source tree:
   % cd <path_to_tigervnc_source>/unix/xserver
   % patch -p1 < ../xserver15.patch
 
-- note: you can use server-1.6-branch. Simply checkout it as written above
-  and use xserver16.patch
+- note: you can use server-1.X-branch. Simply checkout it as written above
+  and use xserver1X.patch
 
 After that you have to regenerate configure script and Makefile.in:
 
