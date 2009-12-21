@@ -46,9 +46,7 @@ namespace network {
     TcpSocket(const char *name, int port);
     virtual ~TcpSocket();
 
-    virtual char* getMyAddress();
     virtual int getMyPort();
-    virtual char* getMyEndpoint();
 
     virtual char* getPeerAddress();
     virtual int getPeerPort();

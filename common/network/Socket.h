@@ -50,9 +50,7 @@ namespace network {
     bool isShutdown() const {return isShutdown_;}
 
     // information about this end of the socket
-    virtual char* getMyAddress() = 0; // a string e.g. "192.168.0.1"
     virtual int getMyPort() = 0;
-    virtual char* getMyEndpoint() = 0; // <address>::<port>
 
     // information about the remote end of the socket
     virtual char* getPeerAddress() = 0; // a string e.g. "192.168.0.1"

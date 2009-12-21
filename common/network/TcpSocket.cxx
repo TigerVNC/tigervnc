@@ -228,34 +228,8 @@ TcpSocket::~TcpSocket() {
     closesocket(getFd());
 }
 
-char* TcpSocket::getMyAddress() {
-  struct sockaddr_in  info;
-  struct in_addr    addr;
-  socklen_t info_size = sizeof(info);
-
-  getsockname(getFd(), (struct sockaddr *)&info, &info_size);
-  memcpy(&addr, &info.sin_addr, sizeof(addr));
-
-  char* name = inet_ntoa(addr);
-  if (name) {
-    return rfb::strDup(name);
-  } else {
-    return rfb::strDup("");
-  }
-}
-
 int TcpSocket::getMyPort() {
   return getSockPort(getFd());
-}
-
-char* TcpSocket::getMyEndpoint() {
-  rfb::CharArray address; address.buf = getMyAddress();
-  int port = getMyPort();
-
-  int buflen = strlen(address.buf) + 32;
-  char* buffer = new char[buflen];
-  sprintf(buffer, "%s::%d", address.buf, port);
-  return buffer;
 }
 
 char* TcpSocket::getPeerAddress() {
