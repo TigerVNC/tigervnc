@@ -52,7 +52,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(LIB_DIR) -UHAVE_CONFIG_H \
 
 libvnc_la_LDFLAGS = -module -avoid-version
 
-libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS)
+libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS) $(LIBVNC_LIBS)
 
 EXTRA_DIST = Xvnc.man
 
