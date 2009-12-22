@@ -482,7 +482,7 @@ void KeyboardDevice::keyEvent(rdr::U32 keysym, bool down)
 		vlog.debug("Ignoring caps lock");
 		return;
 	}
-vlog.debug("keysym %d", keysym);
+
 #if XORG >= 17
 	keyc = dev->u.master->key;
 
