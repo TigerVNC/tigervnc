@@ -4,7 +4,6 @@ HDRS = \
   AboutDialog.h \
   BitmapInfo.h \
   CKeyboard.h \
-  CleanDesktop.h \
   Clipboard.h \
   CompatibleBitmap.h \
   ComputerName.h \
@@ -58,7 +57,6 @@ HDRS = \
 librfb_win32_la_SOURCES = $(HDRS) \
   AboutDialog.cxx \
   CKeyboard.cxx \
-  CleanDesktop.cxx \
   Clipboard.cxx \
   CPointer.cxx \
   CurrentUser.cxx \
@@ -96,6 +94,13 @@ librfb_win32_la_SOURCES = $(HDRS) \
   WMPoller.cxx \
   WMShatter.cxx \
   WMWindowCopyRect.cxx
+
+# These files rely on features not yet in upstream mingw
+if BUILD_WINVNC
+librfb_win32_la_SOURCES += \
+  CleanDesktop.h \
+  CleanDesktop.cxx
+endif
 
 librfb_win32_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win
 librfb_win32_la_LIBADD =

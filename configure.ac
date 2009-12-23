@@ -143,6 +143,13 @@ AC_CHECK_TYPES([socklen_t], [], [], [[#include <sys/socket.h>]])
 
 AC_CHECK_HEADERS([sys/select.h])
 
+# Needed for WinVNC, but not part of mingw yet
+AC_CHECK_DECLS([CLSID_ActiveDesktop], [BUILD_WINVNC=yes], [],
+	       [[#include <windows.h>
+	         #include <shlguid.h>
+	         ]])
+AM_CONDITIONAL([BUILD_WINVNC], [ test "x$BUILD_WINVNC" = xyes ])
+
 AC_OUTPUT([
 Makefile
 common/Makefile
