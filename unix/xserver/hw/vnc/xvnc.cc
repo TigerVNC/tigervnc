@@ -1096,11 +1096,14 @@ static Bool
 vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[index];
-    int dpi = 100;
+    int dpi;
     int ret;
     void *pbits;
 
-    if (monitorResolution) dpi = monitorResolution;
+    /* 96 is the default used by most other systems */
+    dpi = 96;
+    if (monitorResolution)
+        dpi = monitorResolution;
 
     pbits = vfbAllocateFramebufferMemory(&pvfb->fb);
     if (!pbits) return FALSE;
