@@ -78,7 +78,9 @@ init()
     patch -p1 < ../xserver15.patch
     popd
 
+    cd ..
     autoreconf -fiv
+    cd unix
 }
 
 
@@ -101,9 +103,11 @@ build ()
 
     # Build VNC
     echo "*** Building VNC ***"
+    cd ..
     make distclean || true
     ./configure ${1+"$@"} --prefix=${PREFIX}
     make
+    cd unix
 
     # Build Xorg
     echo "*** Building Xorg ***"
