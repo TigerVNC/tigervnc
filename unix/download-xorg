@@ -72,9 +72,17 @@ packages = {
 
 
 def main():
+    dir = os.path.expanduser("~")+"/.tigervnc-build"
+    cwd = os.getcwd()
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    os.chdir(dir)
+
     for pkg in packages.keys():
         loc = packages[pkg]
         fname = pkg + ".tar.bz2"
-        assert 0 == os.spawnvp(os.P_WAIT, "wget", ["-N", "-c", "-O", fname, loc])
+        if not os.path.exists(fname):
+            assert 0 == os.spawnvp(os.P_WAIT, "wget", ["-N", "-c", "-O", fname, loc])
 
+    os.chdir(cwd)
 main()

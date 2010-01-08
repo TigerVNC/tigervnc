@@ -65,7 +65,7 @@ init()
     update_modules
 
     pushd xorg
-    tar jxf util-macros.tar.bz2
+    tar jxf ~/.tigervnc-build/util-macros.tar.bz2
     pushd util-macros-*
     echo "Building macros"
     ./configure ${1+"$@"} --prefix=${PREFIX}
@@ -89,10 +89,10 @@ update_modules()
     pushd xorg
     ../download-xorg
     for module in ${modules}; do
-        tar jxf ${module}.tar.bz2
+        tar jxf ~/.tigervnc-build/${module}.tar.bz2
     done
-    tar jxf Mesa.tar.bz2
-    tar jxf xorg-server.tar.bz2
+    tar jxf ~/.tigervnc-build/Mesa.tar.bz2
+    tar jxf ~/.tigervnc-build/xorg-server.tar.bz2
     cp -r xorg-server-1.*/* ../xserver
     popd
 }
