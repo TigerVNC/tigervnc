@@ -7,12 +7,12 @@
 set -e
 
 if [ "$PREFIX" = "" ]; then
-	PREFIX=`pwd`/xorg.build
+    PREFIX=`pwd`/xorg.build
 fi
 export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
 export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
 MAKE="make"
-CFGFLAGS=
+STATIC=0
 
 modules="dri2proto \
     libpthread-stubs \
@@ -55,7 +55,6 @@ modules="dri2proto \
     libfontenc \
     libXfont \
     libpciaccess \
-    xkbcomp \
     pixman"
 
 
@@ -92,6 +91,7 @@ update_modules()
         tar jxf ~/.tigervnc-build/${module}.tar.bz2
     done
     tar jxf ~/.tigervnc-build/Mesa.tar.bz2
+    tar jxf ~/.tigervnc-build/freetype.tar.bz2
     tar jxf ~/.tigervnc-build/xorg-server.tar.bz2
     cp -r xorg-server-1.*/* ../xserver
     popd
@@ -100,12 +100,15 @@ update_modules()
 
 build ()
 {
-
     # Build VNC
     echo "*** Building VNC ***"
     cd ..
+    VNCCFGFLAGS=
+    if [ $STATIC = 1 ]; then
+        VNCCFGFLAGS=--with-included-zlib
+    fi
     make distclean || true
-    ./configure ${1+"$@"} --prefix=${PREFIX}
+    ./configure ${1+"$@"} ${VNCCFGFLAGS} --prefix=${PREFIX}
     make
     cd unix
 
@@ -124,6 +127,9 @@ build ()
         if [ "${module}" = "libSM" ]; then
             extraoptions="${extraoptions} --without-libuuid"
         fi
+        if [ $STATIC = 1 ]; then
+            extraoptions="${extraoptions} --enable-static --disable-shared"
+        fi
         ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions}
         echo ======================
         echo building ${module}
@@ -140,14 +146,34 @@ build ()
     # build mesa
     echo "*** Building Mesa ***"
     pushd Mesa-*
-    ./configure ${1+"$@"} --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
+    MESACFGFLAGS='--with-driver=xlib --disable-glut --without-demos'
+    if [ $STATIC = 1 ]; then
+        MESACFGFLAGS=${MESACFGFLAGS}' --enable-static --disable-shared'
+    fi
+    ./configure ${1+"$@"} --prefix=${PREFIX} ${MESACFGFLAGS}
     if [ $? -ne 0 ]; then
 	echo "Failed to configure Mesa."
 	exit
     fi
     ($MAKE)
     make install
+    cd src/mesa/drivers/dri/
+    make install
     popd
+
+    # build freetype
+    if [ $STATIC = 1 ]; then
+        echo "*** Building freetype ***"
+        pushd freetype-*
+        ./configure ${1+"$@"} --prefix=${PREFIX} --enable-static --disable-shared
+        if [ $? -ne 0 ]; then
+	    echo "Failed to configure freetype."
+	    exit
+        fi
+        ($MAKE)
+        make install
+        popd
+    fi
 
     popd
 
@@ -155,7 +181,11 @@ build ()
     echo "*** Building xserver ***"
     cd xserver
     autoreconf -fiv
-    ./configure ${1+"$@"} --prefix=${PREFIX} --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg
+    XORGCFGFLAGS='--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg'
+    if [ $STATIC = 1 ]; then
+        XORGCFGFLAGS="${XORGCFGFLAGS} --disable-shared --enable-static"
+    fi
+    ./configure ${1+"$@"} --prefix=${PREFIX} ${XORGCFGFLAGS}
     if [ $? -ne 0 ]; then
 	echo "Failed to configure X server."
 	exit
@@ -168,16 +198,29 @@ build ()
 case "$1" in
     init)
 	shift
+	if [ "$1" = "-static" ]; then
+	    STATIC=1
+	    shift
+	fi
 	init ${1+"$@"}
 	;;
     build)
 	shift
+	if [ "$1" = "-static" ]; then
+	    STATIC=1
+	    shift
+	fi
 	build ${1+"$@"}
 	;;
     update)
+	shift
+	if [ "$1" = "-static" ]; then
+	    STATIC=1
+	    shift
+	fi
 	update_modules
 	;;
     *)
-	echo "Usage: $0 init | build | update [additional configure flags]"
+	echo "Usage: $0 init | build | update [-static] [additional configure flags]"
 	exit 3
 esac
