@@ -129,8 +129,18 @@ build ()
         fi
         if [ $STATIC = 1 ]; then
             extraoptions="${extraoptions} --enable-static --disable-shared"
+            OLD_CFLAGS=${CFLAGS}
+            OLD_CXXFLAGS=${CXXFLAGS}
+            CFLAGS=${CFLAGS}' -fPIC'
+            CXXFLAGS=${CXXFLAGS}' -fPIC'
+            export CFLAGS CXXFLAGS
         fi
         ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions}
+        if [ $STATIC = 1 ]; then
+            CFLAGS=${OLD_CFLAGS}
+            CXXFLAGS=${OLD_CXXFLAGS}
+            export CFLAGS CXXFLAGS
+        fi
         echo ======================
         echo building ${module}
         echo ======================
@@ -146,18 +156,12 @@ build ()
     # build mesa
     echo "*** Building Mesa ***"
     pushd Mesa-*
-    MESACFGFLAGS='--with-driver=xlib --disable-glut --without-demos'
-    if [ $STATIC = 1 ]; then
-        MESACFGFLAGS=${MESACFGFLAGS}' --enable-static --disable-shared'
-    fi
-    ./configure ${1+"$@"} --prefix=${PREFIX} ${MESACFGFLAGS}
+    ./configure ${1+"$@"} --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
     if [ $? -ne 0 ]; then
 	echo "Failed to configure Mesa."
 	exit
     fi
     ($MAKE)
-    make install
-    cd src/mesa/drivers/dri/
     make install
     popd
 
