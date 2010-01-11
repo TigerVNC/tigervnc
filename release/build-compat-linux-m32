@@ -29,6 +29,10 @@ ln -fs `gcc $CFLAGS -print-file-name=libstdc++.a` ./xorg.build/lib
 if [ -f ./xorg.build/lib/libcrypto.a ]; then
 	rm -f ./xorg.build/lib/libcrypto.a
 fi
+if [ -f ./xorg.build/lib/libz.a ]; then
+	rm -f ./xorg.build/lib/libz.a
+fi
 ln -fs /usr/lib/libcrypto.a ./xorg.build/lib
+ln -fs /usr/lib/libz.a ./xorg.build/lib
 . build-xorg-7.4 $1 -static --host i686-pc-linux-gnu
 popd

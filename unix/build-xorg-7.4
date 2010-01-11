@@ -103,12 +103,8 @@ build ()
     # Build VNC
     echo "*** Building VNC ***"
     cd ..
-    VNCCFGFLAGS=
-    if [ $STATIC = 1 ]; then
-        VNCCFGFLAGS=--with-included-zlib
-    fi
     make distclean || true
-    ./configure ${1+"$@"} ${VNCCFGFLAGS} --prefix=${PREFIX}
+    ./configure ${1+"$@"} --prefix=${PREFIX}
     make
     cd unix
 

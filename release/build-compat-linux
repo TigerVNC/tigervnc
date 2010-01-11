@@ -27,10 +27,15 @@ ln -fs `gcc $CFLAGS -print-file-name=libstdc++.a` ./xorg.build/lib
 if [ -f ./xorg.build/lib/libcrypto.a ]; then
 	rm -f ./xorg.build/lib/libcrypto.a
 fi
+if [ -f ./xorg.build/lib/libz.a ]; then
+	rm -f ./xorg.build/lib/libz.a
+fi
 if [ "`uname -m`" = "x86_64" ]; then
 	ln -fs /usr/lib64/libcrypto.a ./xorg.build/lib
+	ln -fs /usr/lib64/libz.a ./xorg.build/lib
 else
 	ln -fs /usr/lib/libcrypto.a ./xorg.build/lib
+	ln -fs /usr/lib/libz.a ./xorg.build/lib	
 fi
 . build-xorg-7.4 $1 -static
 popd
