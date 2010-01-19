@@ -73,7 +73,7 @@ typedef my_fdct_controller * my_fdct_ptr;
  * Find the highest bit in an integer through binary search.
  */
 LOCAL(int)
-fls (UINT16 val)
+flss (UINT16 val)
 {
   int bit;
 
@@ -167,7 +167,7 @@ compute_reciprocal (UINT16 divisor, DCTELEM * dtbl)
   UDCTELEM c;
   int b, r;
 
-  b = fls(divisor) - 1;
+  b = flss(divisor) - 1;
   r  = sizeof(DCTELEM) * 8 + b;
 
   fq = ((UDCTELEM2)1 << r) / divisor;
