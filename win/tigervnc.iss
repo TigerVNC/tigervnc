@@ -2,8 +2,8 @@
 [Setup]
 OutputDir=.
 AppName=TigerVNC
-AppVerName=TigerVNC 1.0.0
-AppVersion=1.0.0
+AppVerName=TigerVNC 1.0.1
+AppVersion=1.0.1
 AppPublisher=TigerVNC project
 AppPublisherURL=http://tigervnc.org
 DefaultDirName={pf}\TigerVNC

@@ -438,8 +438,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,0,1,0
+ PRODUCTVERSION 1,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -457,14 +457,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "TigerVNC Project\0"
             VALUE "FileDescription", "TigerVNC Server Configuration Applet for Win32\0"
-            VALUE "FileVersion", "1.0.0\0"
+            VALUE "FileVersion", "1.0.1\0"
             VALUE "InternalName", "vncconfig\0"
             VALUE "LegalCopyright", "Copyright (C) 1998-2009 [many holders]\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncconfig.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "TigerVNC Configurator\0"
-            VALUE "ProductVersion", "1.0.0\0"
+            VALUE "ProductVersion", "1.0.1\0"
             VALUE "SpecialBuild", "\0"
         END
     END
