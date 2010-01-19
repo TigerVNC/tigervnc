@@ -732,3 +732,6 @@ EXTN(jsimd_h2v2_upsample_mmx):
 	pop	ebp
 	ret
 
+; For some reason, the OS X linker does not honor the request to align the
+; segment unless we do this.
+	align	16
