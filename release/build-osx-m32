@@ -10,7 +10,9 @@ CFLAGS='-O3 -m32'
 CXXFLAGS=$CFLAGS
 LDFLAGS=$CFLAGS
 export CFLAGS CXXFLAGS LDFLAGS
-autoreconf -fiv
+if [ ! -f ./configure ]; then
+    autoreconf -fiv
+fi
 configure
 make
 popd

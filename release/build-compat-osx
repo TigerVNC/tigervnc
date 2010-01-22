@@ -15,7 +15,9 @@ CXXFLAGS=$CFLAGS
 LDFLAGS=$CFLAGS
 CPPFLAGS=$CFLAGS
 export CFLAGS CXXFLAGS LDFLAGS CPPFLAGS CC CXX CPP
-autoreconf -fiv
+if [ ! -f ./configure ]; then
+    autoreconf -fiv
+fi
 configure --x-libraries=/usr/X11R6/lib/
 make
 popd

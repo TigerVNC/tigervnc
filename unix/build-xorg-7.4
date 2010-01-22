@@ -78,7 +78,9 @@ init()
     popd
 
     cd ..
-    autoreconf -fiv
+    if [ ! -f ./configure ]; then
+        autoreconf -fiv
+    fi
     cd unix
 }
 

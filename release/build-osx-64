@@ -9,7 +9,9 @@ pushd $SCRIPTDIR/..
 CFLAGS='-O3'
 CXXFLAGS=$CFLAGS
 export CFLAGS CXXFLAGS
-autoreconf -fiv
+if [ ! -f ./configure ]; then
+    autoreconf -fiv
+fi
 configure --host=x86_64-apple-darwin10.0.0 NASM=/opt/local/bin/nasm
 make
 popd
