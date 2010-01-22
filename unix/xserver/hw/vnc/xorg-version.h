@@ -30,8 +30,10 @@
 #define XORG 16
 #elif XORG_VERSION_CURRENT < ((1 * 10000000) + (7 * 100000) + (99 * 1000))
 #define XORG 17
+#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (8 * 100000) + (99 * 1000))
+#define XORG 18
 #else
-#error "X.Org newer than 1.7 is not supported"
+#error "X.Org newer than 1.8 is not supported"
 #endif
 
 #endif
