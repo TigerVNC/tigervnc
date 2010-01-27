@@ -315,6 +315,8 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
     }
   }
 
+  delete [] rowPointer;
+
   if (cinfo.out_color_space == JCS_RGB)
     myFormat.bufferFromRGB((rdr::U8*)buf, dstBuf, w * h);
 
