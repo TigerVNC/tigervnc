@@ -53,6 +53,9 @@
 ; * *BSD family Unix using elf format
 ; * Unix System V, including Solaris x86, UnixWare and SCO Unix
 
+; mark stack as non-executable
+section .note.GNU-stack noalloc noexec nowrite progbits
+
 ; -- segment definition --
 ;
 %ifdef __x86_64__
