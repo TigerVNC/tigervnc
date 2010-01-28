@@ -1,14 +1,15 @@
 if WITH_SHARED
 
 lib_LTLIBRARIES = libjpeg.la
+libjpeg_la_LDFLAGS = -version-number 62:0:0 -no-undefined
+include_HEADERS = jconfig.h jerror.h jmorecfg.h jpeglib.h
 
 else
 
 noinst_LTLIBRARIES = libjpeg.la
+noinst_HEADERS = jconfig.h jerror.h jmorecfg.h jpeglib.h
 
 endif
-
-noinst_HEADERS = jconfig.h jerror.h jmorecfg.h jpeglib.h
 
 HDRS = jchuff.h jdct.h jdhuff.h jerror.h jinclude.h jmemsys.h jmorecfg.h \
 	jpegint.h jpeglib.h jversion.h jsimd.h jsimddct.h turbojpeg.h
