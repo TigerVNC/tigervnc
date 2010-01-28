@@ -41,7 +41,14 @@ case "$host_os" in
     fi
   ;;
   solaris* | sunos* | sysv* | sco*)
-    objfmt='ELF'
+    case "$host_cpu" in
+      x86_64)
+        objfmt='ELF64'
+        ;;
+      *)
+        objfmt='ELF'
+        ;;
+    esac
   ;;
   darwin* | rhapsody* | nextstep* | openstep* | macos*)
     case "$host_cpu" in
