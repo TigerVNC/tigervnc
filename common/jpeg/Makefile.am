@@ -1,4 +1,13 @@
+if WITH_SHARED
+
+lib_LTLIBRARIES = libjpeg.la
+
+else
+
 noinst_LTLIBRARIES = libjpeg.la
+
+endif
+
 noinst_HEADERS = jconfig.h jerror.h jmorecfg.h jpeglib.h
 
 HDRS = jchuff.h jdct.h jdhuff.h jerror.h jinclude.h jmemsys.h jmorecfg.h \

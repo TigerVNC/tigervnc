@@ -11,6 +11,8 @@ AC_DEFINE([HAVE_PROTOTYPES], 1, [Define if your compiler supports prototypes])
 # Don't use undefined types
 AC_DEFINE([INCOMPLETE_TYPES_BROKEN], 1, [Define if you want use complete types])
 
+AC_DISABLE_SHARED
+
 # Checks for programs.
 AC_PROG_CPP
 AC_PROG_CC
@@ -113,6 +115,7 @@ fi
 AM_CONDITIONAL([WITH_SIMD], [test "x$with_simd" != "xno"])
 AM_CONDITIONAL([SIMD_I386], [test "x$simd_arch" = "xi386"])
 AM_CONDITIONAL([SIMD_X86_64], [test "x$simd_arch" = "xx86_64"])
+AM_CONDITIONAL([WITH_SHARED], [test "x$enable_shared" != "xno"])
 
 # jconfig.h is the file we use, but we have another before that to
 # fool autoheader. the reason is that we include this header in our
