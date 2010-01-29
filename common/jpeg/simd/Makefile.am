@@ -53,5 +53,5 @@ endif
 	$(LIBTOOL) --mode=compile --tag NASM ./nasm_lt.sh $(NASM) $(NAFLAGS) $< -o $@
 
 jsimdcfg.inc: jsimdcfg.inc.h ../jpeglib.h ../jconfig.h ../jmorecfg.h
-	$(CPP) $< | grep ^[\;%] | sed 's%_cpp_protection_%%' > $@
+	$(CPP) jsimdcfg.inc.h | $(GREP) ^[\;%] | sed 's%_cpp_protection_%%' > $@
 
