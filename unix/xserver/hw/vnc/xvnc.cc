@@ -164,6 +164,8 @@ static bool displaySpecified = false;
 static bool wellKnownSocketsCreated = false;
 static char displayNumStr[16];
 
+char *listenaddr = NULL;
+
 
 static void
 vfbInitializePixmapDepths(void)
@@ -284,6 +286,7 @@ ddxUseMsg()
     ErrorF("-depth D               set screen 0's depth\n");
     ErrorF("-pixelformat fmt       set pixel format (rgbNNN or bgrNNN)\n");
     ErrorF("-inetd                 has been launched from inetd\n");
+    ErrorF("-interface IP_address  listen on specified interface\n");
     ErrorF("\nVNC parameters:\n");
 
     fprintf(stderr,"\n"
@@ -306,7 +309,7 @@ static
 bool displayNumFree(int num)
 {
     try {
-	network::TcpListener l(6000+num);
+	network::TcpListener l(NULL, 6000+num);
     } catch (rdr::Exception& e) {
 	return false;
     }
@@ -543,6 +546,23 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	}
 	
 	return 1;
+    }
+
+    if (strcmp(argv[i], "-interface") == 0 ||
+	strcmp(argv[i], "-i") == 0) {
+	if (++i >= argc) {
+	    UseMsg();
+	    return 2;
+	}
+
+	if (listenaddr != NULL) /* Only first -interface is valid */
+		return 2;
+
+	listenaddr = strdup(argv[i]);
+	if (listenaddr == NULL)
+	    FatalError("Not enough memory");
+
+	return 2;
     }
     
     if (rfb::Configuration::setParam(argv[i]))

@@ -370,7 +370,7 @@ int main(int argc, char** argv)
       if (vncServerName && isdigit(vncServerName[0]))
         port = atoi(vncServerName);
 
-      TcpListener listener(port);
+      TcpListener listener(NULL, port);
 
       vlog.info("Listening on port %d\n",port);
 

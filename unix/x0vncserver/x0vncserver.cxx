@@ -447,7 +447,7 @@ int main(int argc, char** argv)
     QueryConnHandler qcHandler(dpy, &server);
     server.setQueryConnectionHandler(&qcHandler);
 
-    TcpListener listener((int)rfbport);
+    TcpListener listener(NULL, (int)rfbport);
     vlog.info("Listening on port %d", (int)rfbport);
 
     const char *hostsData = hostsFile.getData();

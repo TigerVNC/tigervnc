@@ -77,7 +77,7 @@ void ManagedListener::refresh() {
     return;
   try {
     if (port)
-      sock = new network::TcpListener(port, localOnly);
+      sock = new network::TcpListener(NULL, port, localOnly);
   } catch (rdr::Exception& e) {
     vlog.error(e.str());
   }

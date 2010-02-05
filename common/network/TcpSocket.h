@@ -65,8 +65,8 @@ namespace network {
 
   class TcpListener : public SocketListener {
   public:
-    TcpListener(int port, bool localhostOnly=false, int sock=-1,
-                bool close=true);
+    TcpListener(const char *listenaddr, int port, bool localhostOnly=false,
+		int sock=-1, bool close=true);
     virtual ~TcpListener();
 
     virtual void shutdown();

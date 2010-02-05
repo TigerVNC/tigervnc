@@ -72,6 +72,7 @@ extern "C" {
 				   pointer args);
 
   extern char *display;
+  extern char *listenaddr;
 }
 
 using namespace rfb;
@@ -223,22 +224,24 @@ void vncExtensionInit()
           if (network::TcpSocket::isSocket(vncInetdSock) &&
               !network::TcpSocket::isConnected(vncInetdSock))
           {
-            listener = new network::TcpListener(0, 0, vncInetdSock, true);
+            listener = new network::TcpListener(NULL, 0, 0, vncInetdSock, true);
             vlog.info("inetd wait");
           }
         } else {
           int port = rfbport;
           if (port == 0) port = 5900 + atoi(display);
           port += 1000 * scr;
-          listener = new network::TcpListener(port, localhostOnly);
-          vlog.info("Listening for VNC connections on port %d",port);
+          listener = new network::TcpListener(listenaddr, port, localhostOnly);
+          vlog.info("Listening for VNC connections on %s interface(s), port %d",
+		    listenaddr == NULL ? "all" : listenaddr, port);
           CharArray httpDirStr(httpDir.getData());
           if (httpDirStr.buf[0]) {
             port = httpPort;
             if (port == 0) port = 5800 + atoi(display);
             port += 1000 * scr;
-            httpListener = new network::TcpListener(port, localhostOnly);
-            vlog.info("Listening for HTTP connections on port %d",port);
+            httpListener = new network::TcpListener(listenaddr, port, localhostOnly);
+            vlog.info("Listening for HTTP connections on %s interface(s), port %d",
+		      listenaddr == NULL ? "all" : listenaddr, port);
           }
         }
 

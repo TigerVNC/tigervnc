@@ -331,8 +331,8 @@ int TcpSocket::getSockPort(int sock)
 }
 
 
-TcpListener::TcpListener(int port, bool localhostOnly, int sock, bool close_)
-  : closeFd(close_)
+TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
+			 int sock, bool close_) : closeFd(close_)
 {
   if (sock != -1) {
     fd = sock;
@@ -360,11 +360,24 @@ TcpListener::TcpListener(int port, bool localhostOnly, int sock, bool close_)
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  if (localhostOnly)
+
+  if (localhostOnly) {
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-  else
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  } else if (listenaddr != NULL) {
+#ifndef WIN32
+    if (inet_aton(listenaddr, &addr.sin_addr) == 0)
+#else
+    /* Windows doesn't have inet_aton, sigh */
+    if ((addr.sin_addr.s_addr = inet_addr(listenaddr)) == INADDR_NONE)
+#endif
+    {
+      closesocket(fd);
+      throw Exception("invalid network interface address: %s", listenaddr);
+    }
+  } else
+    addr.sin_addr.s_addr = htonl(INADDR_ANY); /* Bind to 0.0.0.0 by default. */
+
+  addr.sin_port = htons(port);
   if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
     int e = errorNumber;
     closesocket(fd);

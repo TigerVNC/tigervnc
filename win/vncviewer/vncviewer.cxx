@@ -239,7 +239,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
         ListenTrayIcon tray;
 
         // Listen for reverse connections
-        network::TcpListener sock(port);
+        network::TcpListener sock(NULL, port);
         ListenServer listener(&sock);
 
         // Run the view manager

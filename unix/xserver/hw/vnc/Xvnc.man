@@ -48,6 +48,10 @@ next three green, and the least significant three represent red), the default
 for depth 16 is RGB565 and for depth 24 is RGB888.
 
 .TP
+.B \-interface \fIIP address\fP or \-i \fIIP address\fP
+Listen on interface. By default Xvnc listens on all available interfaces.
+
+.TP
 .B \-cc 3
 As an alternative to the default TrueColor visual, this allows you to run an
 Xvnc server with a PseudoColor visual (i.e. one which uses a color map or
