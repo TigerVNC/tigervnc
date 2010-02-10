@@ -68,7 +68,7 @@ namespace rfb {
 
       HANDLE events[MAXIMUM_WAIT_OBJECTS];
       EventHandler* handlers[MAXIMUM_WAIT_OBJECTS-1];
-      int eventCount;
+      unsigned int eventCount;
     };
 
   };

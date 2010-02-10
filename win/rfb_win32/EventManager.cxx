@@ -43,9 +43,9 @@ bool EventManager::addEvent(HANDLE event, EventHandler* ecb) {
 }
 
 void EventManager::removeEvent(HANDLE event) {
-  for (int i=0; i<eventCount; i++) {
+  for (unsigned int i=0; i<eventCount; i++) {
     if (events[i] == event) {
-      for (int j=i; j<eventCount-1; j++) {
+      for (unsigned int j=i; j<eventCount-1; j++) {
         events[j] = events[j+1];
         handlers[j] = handlers[j+1];
       }
