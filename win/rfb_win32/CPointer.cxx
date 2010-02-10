@@ -172,7 +172,7 @@ void CPointer::handleTimer(InputHandler* writer, int timerId) {
       intervalTimer.stop();
     }
 
-  } else if (timerId = threeTimer.getId()) {
+  } else if (timerId == threeTimer.getId()) {
     // 3-Button emulation timer has expired - send what we've got
     vlog.debug("emulate3: timeout");
     threeTimer.stop();
