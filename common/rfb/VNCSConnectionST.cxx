@@ -804,7 +804,7 @@ void VNCSConnectionST::setStatus(int status)
     accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
     break;
   case 1:
-    accessRights = accessRights & (!(AccessPtrEvents | AccessKeyEvents) | AccessView);
+    accessRights = accessRights & !(AccessPtrEvents | AccessKeyEvents) | AccessView;
     break;
   case 2:
     accessRights = accessRights & !(AccessPtrEvents | AccessKeyEvents | AccessView);
