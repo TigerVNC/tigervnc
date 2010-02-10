@@ -40,7 +40,7 @@ class CKeymapper {
 public:
   CKeymapper()
   {
-    for (int i = 0; i < sizeof(keymap) / sizeof(keymap_t); i++) {
+    for (unsigned int i = 0; i < sizeof(keymap) / sizeof(keymap_t); i++) {
       int extendedVkey = keymap[i].vk + (keymap[i].extended ? 256 : 0);
       if (keysymMap.find(extendedVkey) == keysymMap.end()) {
         keysymMap[extendedVkey] = keymap[i].keysym;
