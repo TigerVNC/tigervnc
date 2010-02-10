@@ -246,7 +246,7 @@ TCHAR* RegKey::getRepresentation(const TCHAR* valname) const {
   case REG_DWORD:
     {
       TCharArray tmp(16);
-      _stprintf(tmp.buf, _T("%u"), *((DWORD*)data.buf));
+      _stprintf(tmp.buf, _T("%lu"), *((DWORD*)data.buf));
       return tmp.takeBuf();
     }
   case REG_EXPAND_SZ:
