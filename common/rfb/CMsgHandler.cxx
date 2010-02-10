@@ -44,7 +44,7 @@ void CMsgHandler::setExtendedDesktopSize(int reason, int result,
 {
   cp.supportsSetDesktopSize = true;
 
-  if ((reason == reasonClient) && (result != resultSuccess))
+  if ((reason == (signed)reasonClient) && (result != (signed)resultSuccess))
     return;
 
   if (!layout.validate(width, height))
