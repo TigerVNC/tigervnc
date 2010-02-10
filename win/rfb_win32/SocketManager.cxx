@@ -130,7 +130,6 @@ void SocketManager::remSocket(network::Socket* sock_) {
 
 
 int SocketManager::checkTimeouts() {
-  network::SocketServer* server = 0;
   int timeout = EventManager::checkTimeouts();
 
   std::map<HANDLE,ListenInfo>::iterator i;
@@ -176,7 +175,6 @@ void SocketManager::processEvent(HANDLE event) {
       remListener(li.sock);
     } else if (network_events.lNetworkEvents & FD_ADDRESS_LIST_CHANGE) {
       li.notifier->processAddressChange(li.sock);
-      DWORD dummy = 0;
       requestAddressChangeEvents(li.sock);
     } else {
       vlog.error("unknown listener event: %lx", network_events.lNetworkEvents);
