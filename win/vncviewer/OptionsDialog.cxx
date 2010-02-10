@@ -244,7 +244,7 @@ public:
     SendMessage(menuKey, CB_ADDSTRING, 0, (LPARAM)_T("none"));
     if (!dlg->options.menuKey)
       SendMessage(menuKey, CB_SETCURSEL, 0, 0);
-    for (int i=0; i<12; i++) {
+    for (unsigned int i=0; i<12; i++) {
       TCHAR buf[4];
       _stprintf(buf, _T("F%d"), i+1);
       int index = SendMessage(menuKey, CB_ADDSTRING, 0, (LPARAM)buf);
