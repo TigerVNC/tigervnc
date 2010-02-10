@@ -321,10 +321,9 @@ void VNCSConnectionST::renderedCursorChange()
 
 bool VNCSConnectionST::needRenderedCursor()
 {
+  bool pointerpos = (!server->cursorPos.equals(pointerEventPos) && (time(0) - pointerEventTime) > 0);
   return (state() == RFBSTATE_NORMAL
-          && (!cp.supportsLocalCursor && !cp.supportsLocalXCursor
-              || (!server->cursorPos.equals(pointerEventPos) &&
-                  (time(0) - pointerEventTime) > 0)));
+          && ((!cp.supportsLocalCursor && !cp.supportsLocalXCursor) || pointerpos));
 }
 
 
@@ -805,7 +804,7 @@ void VNCSConnectionST::setStatus(int status)
     accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
     break;
   case 1:
-    accessRights = accessRights & !(AccessPtrEvents | AccessKeyEvents) | AccessView;
+    accessRights = accessRights & (!(AccessPtrEvents | AccessKeyEvents) | AccessView);
     break;
   case 2:
     accessRights = accessRights & !(AccessPtrEvents | AccessKeyEvents | AccessView);
