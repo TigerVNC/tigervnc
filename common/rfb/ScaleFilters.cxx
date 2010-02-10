@@ -82,7 +82,7 @@ void ScaleFilters::initFilters() {
   filters[scaleFilterBicubic] = create("Bicubic", 2, cubic);
 }
 
-SFilter ScaleFilters::create(char *name_, double radius_, filter_func func_) {
+SFilter ScaleFilters::create(const char *name_, double radius_, filter_func func_) {
   SFilter filter;
   strncpy(filter.name, name_, sizeof(filter.name)-1); 
   filter.name[sizeof(filter.name)-1] = '\0';

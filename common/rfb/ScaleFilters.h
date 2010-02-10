@@ -73,7 +73,7 @@ namespace rfb {
   protected:
     void initFilters();
 
-    SFilter create(char *name_, double radius_, filter_func func_);
+    SFilter create(const char *name_, double radius_, filter_func func_);
 
     SFilter filters[scaleFilterMaxNumber+1];
   };
