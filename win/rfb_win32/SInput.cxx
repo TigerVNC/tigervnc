@@ -333,7 +333,7 @@ void doKeyEventWithModifiers(BYTE vkCode, BYTE modifierState, bool down)
 win32::SKeyboard::SKeyboard()
 {
   oneShift = rfb::win32::osVersion.isPlatformWindows;
-  for (int i = 0; i < sizeof(keymap) / sizeof(keymap_t); i++) {
+  for (unsigned int i = 0; i < sizeof(keymap) / sizeof(keymap_t); i++) {
     vkMap[keymap[i].keysym] = keymap[i].vk;
     extendedMap[keymap[i].keysym] = keymap[i].extended;
   }
@@ -342,7 +342,7 @@ win32::SKeyboard::SKeyboard()
   // XXX how could we handle the keyboard layout changing?
   BYTE keystate[256];
   memset(keystate, 0, 256);
-  for (int j = 0; j < sizeof(latin1DeadChars); j++) {
+  for (unsigned int j = 0; j < sizeof(latin1DeadChars); j++) {
     SHORT s = VkKeyScan(latin1DeadChars[j]);
     if (s != -1) {
       BYTE vkCode = LOBYTE(s);
@@ -365,7 +365,7 @@ win32::SKeyboard::SKeyboard()
 
 void win32::SKeyboard::keyEvent(rdr::U32 keysym, bool down)
 {
-  for (int i = 0; i < sizeof(keysymToAscii) / sizeof(keysymToAscii_t); i++) {
+  for (unsigned int i = 0; i < sizeof(keysymToAscii) / sizeof(keysymToAscii_t); i++) {
     if (keysymToAscii[i].keysym == keysym) {
       keysym = keysymToAscii[i].ascii;
       break;
@@ -380,7 +380,7 @@ void win32::SKeyboard::keyEvent(rdr::U32 keysym, bool down)
     if (deadKeyAware) {
       // Detect dead chars and generate the dead char followed by space so
       // that we'll end up with the original char.
-      for (int i = 0; i < deadChars.size(); i++) {
+      for (unsigned int i = 0; i < deadChars.size(); i++) {
         if (keysym == deadChars[i]) {
           SHORT dc = VkKeyScan(keysym);
           if (dc != -1) {
@@ -402,11 +402,11 @@ void win32::SKeyboard::keyEvent(rdr::U32 keysym, bool down)
     if (s == -1) {
       if (down) {
         // not a single keypress - try synthesizing dead chars.
-        for (int j = 0;
+        for (unsigned int j = 0;
              j < sizeof(latin1ToDeadChars) / sizeof(latin1ToDeadChars_t);
              j++) {
           if (keysym == latin1ToDeadChars[j].latin1Char) {
-            for (int i = 0; i < deadChars.size(); i++) {
+            for (unsigned int i = 0; i < deadChars.size(); i++) {
               if (deadChars[i] == latin1ToDeadChars[j].deadChar) {
                 SHORT dc = VkKeyScan(latin1ToDeadChars[j].deadChar);
                 SHORT bc = VkKeyScan(latin1ToDeadChars[j].baseChar);
