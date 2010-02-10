@@ -41,7 +41,7 @@ namespace rfb {
       LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         if (msg == WM_USER) {
           network::Socket* newConn = sock->accept();
-          Thread* newThread = new CConnThread(newConn, true);
+          new CConnThread(newConn, true);
           return 0;
         }
         return MsgWindow::processMessage(msg, wParam, lParam);

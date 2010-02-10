@@ -253,7 +253,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
         // Read each config file in turn
         while (!configFiles.empty()) {
           char* filename = configFiles.front();
-          Thread* connThread = new CConnThread(filename, true);
+          new CConnThread(filename, true);
           strFree(filename);
           configFiles.pop_front();
         }
@@ -261,7 +261,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
         // Connect to each client in turn
         while (!hosts.empty()) {
           char* hostinfo = hosts.front();
-          Thread* connThread = new CConnThread(hostinfo);
+          new CConnThread(hostinfo);
           strFree(hostinfo);
           hosts.pop_front();
         }

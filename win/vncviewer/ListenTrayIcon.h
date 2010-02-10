@@ -65,7 +65,7 @@ namespace rfb {
           switch (LOWORD(wParam)) {
           case ID_NEW_CONNECTION:
             {
-              Thread* connThread = new CConnThread();
+              new CConnThread();
               break;
             }
           case ID_OPTIONS:
