@@ -58,8 +58,8 @@ namespace rfb {
       IntervalTimer cursorTimer;
       IntervalTimer consolePollTimer;
       bool pollConsoles;
-      static const int consolePollTimerId;
-      static const int cursorTimerId;
+      static const unsigned int consolePollTimerId;
+      static const unsigned int cursorTimerId;
     };
 
   };

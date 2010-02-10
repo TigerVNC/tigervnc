@@ -57,7 +57,7 @@ namespace rfb {
 
       // - Background full screen polling fields
       IntervalTimer pollTimer;
-      static const int pollTimerId;
+      static const unsigned int pollTimerId;
       Rect screenRect;
       int pollInterval;
       int pollNextY;

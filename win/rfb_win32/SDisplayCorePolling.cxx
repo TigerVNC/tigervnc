@@ -29,7 +29,7 @@ static LogWriter vlog("SDisplayCorePolling");
 
 const int POLLING_SEGMENTS = 16;
 
-const int SDisplayCorePolling::pollTimerId = 1;
+const unsigned int SDisplayCorePolling::pollTimerId = 1;
 
 SDisplayCorePolling::SDisplayCorePolling(SDisplay* d, UpdateTracker* ut, int pollInterval_)
   : MsgWindow(_T("rfb::win32::SDisplayCorePolling")), 

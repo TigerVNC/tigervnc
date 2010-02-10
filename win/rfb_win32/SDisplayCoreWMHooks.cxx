@@ -26,8 +26,8 @@ using namespace rfb::win32;
 
 static LogWriter vlog("SDisplayCoreWMHooks");
 
-const int SDisplayCoreWMHooks::cursorTimerId = 2;
-const int SDisplayCoreWMHooks::consolePollTimerId = 3;
+const unsigned int SDisplayCoreWMHooks::cursorTimerId = 2;
+const unsigned int SDisplayCoreWMHooks::consolePollTimerId = 3;
 
 
 SDisplayCoreWMHooks::SDisplayCoreWMHooks(SDisplay* d, UpdateTracker* ut)
