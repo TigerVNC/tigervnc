@@ -61,6 +61,16 @@ namespace rdr {
     U32* buf;
   };
 
+  class S32Array {
+  public:
+    S32Array() : buf(0) {}
+    S32Array(S32* a) : buf(a) {} // note: assumes ownership
+    S32Array(int len) : buf(new S32[len]) {}
+    ~S32Array() { delete [] buf; }
+    S32* takeBuf() { S32* tmp = buf; buf = 0; return tmp; }
+    S32* buf;
+  };
+
 } // end of namespace rdr
 
 #endif

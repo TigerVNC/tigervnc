@@ -28,14 +28,14 @@ CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
   : imageBufIdealSize(0), handler(handler_), is(is_),
     imageBuf(0), imageBufSize(0)
 {
-  for (unsigned int i = 0; i <= encodingMax; i++) {
+  for (int i = 0; i <= encodingMax; i++) {
     decoders[i] = 0;
   }
 }
 
 CMsgReader::~CMsgReader()
 {
-  for (unsigned int i = 0; i <= encodingMax; i++) {
+  for (int i = 0; i <= encodingMax; i++) {
     delete decoders[i];
   }
   delete [] imageBuf;
@@ -82,7 +82,7 @@ void CMsgReader::readFramebufferUpdateEnd()
   handler->framebufferUpdateEnd();
 }
 
-void CMsgReader::readRect(const Rect& r, unsigned int encoding)
+void CMsgReader::readRect(const Rect& r, int encoding)
 {
   if ((r.br.x > handler->cp.width) || (r.br.y > handler->cp.height)) {
     fprintf(stderr, "Rect too big: %dx%d at %d,%d exceeds %dx%d\n",

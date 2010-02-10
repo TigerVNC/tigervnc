@@ -442,7 +442,7 @@ void SConnection::sendInteractionCaps()
   CapsList ecaps;
 
   // First, add true encodings.
-  for (unsigned int i = 1; i <= encodingMax; i++) {
+  for (int i = 1; i <= encodingMax; i++) {
     if (Encoder::supported(i)) {
       // FIXME: Capability info should be provided by Encoder objects.
       switch (i) {

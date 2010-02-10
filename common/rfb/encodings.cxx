@@ -34,7 +34,7 @@ int rfb::encodingNum(const char* name)
   return -1;
 }
 
-const char* rfb::encodingName(unsigned int num)
+const char* rfb::encodingName(int num)
 {
   switch (num) {
   case encodingRaw:      return "raw";

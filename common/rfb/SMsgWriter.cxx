@@ -34,7 +34,7 @@ SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
     currentEncoding(0), updatesSent(0), rawBytesEquivalent(0),
     imageBuf(0), imageBufSize(0)
 {
-  for (unsigned int i = 0; i <= encodingMax; i++) {
+  for (int i = 0; i <= encodingMax; i++) {
     encoders[i] = 0;
     bytesSent[i] = 0;
     rectsSent[i] = 0;
@@ -45,7 +45,7 @@ SMsgWriter::~SMsgWriter()
 {
   vlog.info("framebuffer updates %d",updatesSent);
   int bytes = 0;
-  for (unsigned int i = 0; i <= encodingMax; i++) {
+  for (int i = 0; i <= encodingMax; i++) {
     delete encoders[i];
     if (i != encodingCopyRect)
       bytes += bytesSent[i];
@@ -92,7 +92,7 @@ void SMsgWriter::writeServerCutText(const char* str, int len)
 
 void SMsgWriter::setupCurrentEncoder()
 {
-  unsigned int encoding = cp->currentEncoding();
+  int encoding = cp->currentEncoding();
 
   // FIXME: Code duplication, see writeRect().
   if (!encoders[encoding]) {
@@ -106,7 +106,7 @@ void SMsgWriter::setupCurrentEncoder()
 
 int SMsgWriter::getNumRects(const Rect &r)
 {
-  unsigned int encoding = cp->currentEncoding();
+  int encoding = cp->currentEncoding();
 
   if (!encoders[encoding])
     setupCurrentEncoder();
@@ -169,7 +169,7 @@ bool SMsgWriter::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
   return writeRect(r, cp->currentEncoding(), ig, actual);
 }
 
-bool SMsgWriter::writeRect(const Rect& r, unsigned int encoding,
+bool SMsgWriter::writeRect(const Rect& r, int encoding,
                            ImageGetter* ig, Rect* actual)
 {
   if (!encoders[encoding]) {

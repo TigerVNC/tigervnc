@@ -52,7 +52,7 @@ namespace rfb {
     virtual void writeFramebufferUpdateStart(int nRects);
     virtual void writeFramebufferUpdateStart();
     virtual void writeFramebufferUpdateEnd();
-    virtual void startRect(const Rect& r, unsigned int encoding);
+    virtual void startRect(const Rect& r, int encoding);
     virtual void endRect();
 
   protected:

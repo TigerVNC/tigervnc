@@ -396,7 +396,7 @@ void CConn::serverCutText(const char* str, rdr::U32 len) {
 // We start timing on beginRect and stop timing on endRect, to
 // avoid skewing the bandwidth estimation as a result of the server
 // being slow or the network having high latency
-void CConn::beginRect(const Rect& r, unsigned int encoding)
+void CConn::beginRect(const Rect& r, int encoding)
 {
   sock->inStream().startTiming();
   if (encoding != encodingCopyRect) {
@@ -404,7 +404,7 @@ void CConn::beginRect(const Rect& r, unsigned int encoding)
   }
 }
 
-void CConn::endRect(const Rect& r, unsigned int encoding)
+void CConn::endRect(const Rect& r, int encoding)
 {
   sock->inStream().stopTiming();
   if (debugDelay != 0) {
@@ -636,7 +636,7 @@ void CConn::getOptions() {
       formatChange = true;
     }
   }
-  unsigned int newEncoding = (options.tight.checked() ? encodingTight :
+  int newEncoding = (options.tight.checked() ? encodingTight :
 			      options.zrle.checked() ? encodingZRLE :
                               options.hextile.checked() ? encodingHextile :
                               encodingRaw);

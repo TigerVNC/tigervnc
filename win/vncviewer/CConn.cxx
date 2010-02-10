@@ -769,11 +769,11 @@ CConn::serverCutText(const char* str, rdr::U32 len) {
 }
 
 
-void CConn::beginRect(const Rect& r, unsigned int encoding) {
+void CConn::beginRect(const Rect& r, int encoding) {
   sock->inStream().startTiming();
 }
 
-void CConn::endRect(const Rect& r, unsigned int encoding) {
+void CConn::endRect(const Rect& r, int encoding) {
   sock->inStream().stopTiming();
   lastUsedEncoding_ = encoding;
   if (debugDelay != 0) {

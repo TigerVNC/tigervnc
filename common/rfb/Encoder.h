@@ -40,11 +40,11 @@ namespace rfb {
     // rectangle which was updated.
     virtual bool writeRect(const Rect& r, ImageGetter* ig, Rect* actual)=0;
 
-    static bool supported(unsigned int encoding);
-    static Encoder* createEncoder(unsigned int encoding, SMsgWriter* writer);
-    static void registerEncoder(unsigned int encoding,
+    static bool supported(int encoding);
+    static Encoder* createEncoder(int encoding, SMsgWriter* writer);
+    static void registerEncoder(int encoding,
                                 EncoderCreateFnType createFn);
-    static void unregisterEncoder(unsigned int encoding);
+    static void unregisterEncoder(int encoding);
   private:
     static EncoderCreateFnType createFns[encodingMax+1];
   };

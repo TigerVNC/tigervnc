@@ -145,12 +145,12 @@ namespace rfb {
     // write the whole rectangle it returns false and sets actual to the actual
     // rectangle which was updated.
     virtual bool writeRect(const Rect& r, ImageGetter* ig, Rect* actual);
-    virtual bool writeRect(const Rect& r, unsigned int encoding,
+    virtual bool writeRect(const Rect& r, int encoding,
                            ImageGetter* ig, Rect* actual);
 
     virtual void writeCopyRect(const Rect& r, int srcX, int srcY);
 
-    virtual void startRect(const Rect& r, unsigned int enc)=0;
+    virtual void startRect(const Rect& r, int enc)=0;
     virtual void endRect()=0;
 
     ConnParams* getConnParams() { return cp; }
@@ -176,7 +176,7 @@ namespace rfb {
 
     Encoder* encoders[encodingMax+1];
     int lenBeforeRect;
-    unsigned int currentEncoding;
+    int currentEncoding;
     int updatesSent;
     int bytesSent[encodingMax+1];
     int rectsSent[encodingMax+1];

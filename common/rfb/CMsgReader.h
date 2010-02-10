@@ -55,7 +55,7 @@ namespace rfb {
 
     virtual void readFramebufferUpdateStart();
     virtual void readFramebufferUpdateEnd();
-    virtual void readRect(const Rect& r, unsigned int encoding);
+    virtual void readRect(const Rect& r, int encoding);
 
     virtual void readCopyRect(const Rect& r);
 

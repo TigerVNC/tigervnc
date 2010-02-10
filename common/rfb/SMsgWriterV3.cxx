@@ -221,7 +221,7 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
   endMsg();
 }
 
-void SMsgWriterV3::startRect(const Rect& r, unsigned int encoding)
+void SMsgWriterV3::startRect(const Rect& r, int encoding)
 {
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriterV3::startRect: nRects out of sync");

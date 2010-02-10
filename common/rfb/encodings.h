@@ -20,30 +20,30 @@
 
 namespace rfb {
 
-  const unsigned int encodingRaw = 0;
-  const unsigned int encodingCopyRect = 1;
-  const unsigned int encodingRRE = 2;
-  const unsigned int encodingCoRRE = 4;
-  const unsigned int encodingHextile = 5;
-  const unsigned int encodingTight = 7;
-  const unsigned int encodingZRLE = 16;
+  const int encodingRaw = 0;
+  const int encodingCopyRect = 1;
+  const int encodingRRE = 2;
+  const int encodingCoRRE = 4;
+  const int encodingHextile = 5;
+  const int encodingTight = 7;
+  const int encodingZRLE = 16;
 
-  const unsigned int encodingMax = 255;
+  const int encodingMax = 255;
 
-  const unsigned int pseudoEncodingXCursor = 0xffffff10;
-  const unsigned int pseudoEncodingCursor = 0xffffff11;
-  const unsigned int pseudoEncodingDesktopSize = 0xffffff21;
-  const unsigned int pseudoEncodingExtendedDesktopSize = 0xfffffecc;
-  const unsigned int pseudoEncodingDesktopName = 0xfffffecdl;
+  const int pseudoEncodingXCursor = -240;
+  const int pseudoEncodingCursor = -239;
+  const int pseudoEncodingDesktopSize = -223;
+  const int pseudoEncodingExtendedDesktopSize = -308;
+  const int pseudoEncodingDesktopName = -307;
 
   // TightVNC-specific
-  const unsigned int pseudoEncodingLastRect = 0xFFFFFF20;
-  const unsigned int pseudoEncodingQualityLevel0 = 0xFFFFFFE0;
-  const unsigned int pseudoEncodingQualityLevel9 = 0xFFFFFFE9;
-  const unsigned int pseudoEncodingCompressLevel0 = 0xFFFFFF00;
-  const unsigned int pseudoEncodingCompressLevel9 = 0xFFFFFF09;
+  const int pseudoEncodingLastRect = -224;
+  const int pseudoEncodingQualityLevel0 = -32;
+  const int pseudoEncodingQualityLevel9 = -23;
+  const int pseudoEncodingCompressLevel0 = -256;
+  const int pseudoEncodingCompressLevel9 = -247;
 
   int encodingNum(const char* name);
-  const char* encodingName(unsigned int num);
+  const char* encodingName(int num);
 }
 #endif

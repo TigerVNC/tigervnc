@@ -106,8 +106,8 @@ namespace rfb {
       void setName(const char* name);
       void serverInit();
       void serverCutText(const char* str, rdr::U32 len);
-      void beginRect(const Rect& r, unsigned int encoding);
-      void endRect(const Rect& r, unsigned int encoding);
+      void beginRect(const Rect& r, int encoding);
+      void endRect(const Rect& r, int encoding);
       void fillRect(const Rect& r, Pixel pix);
       void imageRect(const Rect& r, void* pixels);
       void copyRect(const Rect& r, int srcX, int srcY);

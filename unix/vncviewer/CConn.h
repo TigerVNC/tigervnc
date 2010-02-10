@@ -83,8 +83,8 @@ public:
   void serverCutText(const char* str, rdr::U32 len);
   void framebufferUpdateStart();
   void framebufferUpdateEnd();
-  void beginRect(const rfb::Rect& r, unsigned int encoding);
-  void endRect(const rfb::Rect& r, unsigned int encoding);
+  void beginRect(const rfb::Rect& r, int encoding);
+  void endRect(const rfb::Rect& r, int encoding);
   void fillRect(const rfb::Rect& r, rfb::Pixel p);
   void imageRect(const rfb::Rect& r, void* p);
   void copyRect(const rfb::Rect& r, int sx, int sy);
@@ -114,7 +114,7 @@ private:
   TXEventHandler* desktopEventHandler;
   rfb::PixelFormat fullColourPF;
   std::list<rfb::Rect> debugRects;
-  unsigned int currentEncoding, lastServerEncoding;
+  int currentEncoding, lastServerEncoding;
   bool fullColour;
   bool autoSelect;
   bool shared;

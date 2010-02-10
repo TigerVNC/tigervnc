@@ -32,9 +32,9 @@ namespace rfb {
     virtual ~Decoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler)=0;
 
-    static bool supported(unsigned int encoding);
-    static Decoder* createDecoder(unsigned int encoding, CMsgReader* reader);
-    static void registerDecoder(unsigned int encoding,
+    static bool supported(int encoding);
+    static Decoder* createDecoder(int encoding, CMsgReader* reader);
+    static void registerDecoder(int encoding,
                                 DecoderCreateFnType createFn);
   private:
     static DecoderCreateFnType createFns[encodingMax+1];

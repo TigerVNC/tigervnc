@@ -32,19 +32,19 @@ Encoder::~Encoder()
 
 EncoderCreateFnType Encoder::createFns[encodingMax+1] = { 0 };
 
-bool Encoder::supported(unsigned int encoding)
+bool Encoder::supported(int encoding)
 {
   return encoding <= encodingMax && createFns[encoding];
 }
 
-Encoder* Encoder::createEncoder(unsigned int encoding, SMsgWriter* writer)
+Encoder* Encoder::createEncoder(int encoding, SMsgWriter* writer)
 {
   if (encoding <= encodingMax && createFns[encoding])
     return (*createFns[encoding])(writer);
   return 0;
 }
 
-void Encoder::registerEncoder(unsigned int encoding,
+void Encoder::registerEncoder(int encoding,
                               EncoderCreateFnType createFn)
 {
   if (encoding > encodingMax)
@@ -56,7 +56,7 @@ void Encoder::registerEncoder(unsigned int encoding,
   createFns[encoding] = createFn;
 }
 
-void Encoder::unregisterEncoder(unsigned int encoding)
+void Encoder::unregisterEncoder(int encoding)
 {
   if (encoding > encodingMax)
     throw Exception("Encoder::unregisterEncoder: encoding out of range");

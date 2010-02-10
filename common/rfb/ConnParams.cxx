@@ -85,11 +85,11 @@ void ConnParams::setName(const char* name)
   name_ = strDup(name);
 }
 
-void ConnParams::setEncodings(int nEncodings, const rdr::U32* encodings)
+void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
   if (nEncodings > nEncodings_) {
     delete [] encodings_;
-    encodings_ = new rdr::U32[nEncodings];
+    encodings_ = new rdr::S32[nEncodings];
   }
   nEncodings_ = nEncodings;
   useCopyRect = false;

@@ -51,7 +51,7 @@ void SMsgReader::readSetEncodings()
 {
   is->skip(1);
   int nEncodings = is->readU16();
-  rdr::U32Array encodings(nEncodings);
+  rdr::S32Array encodings(nEncodings);
   for (int i = 0; i < nEncodings; i++)
     encodings.buf[i] = is->readU32();
   handler->setEncodings(nEncodings, encodings.buf);

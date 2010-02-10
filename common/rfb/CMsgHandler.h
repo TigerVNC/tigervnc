@@ -56,8 +56,8 @@ namespace rfb {
 
     virtual void framebufferUpdateStart() = 0;
     virtual void framebufferUpdateEnd() = 0;
-    virtual void beginRect(const Rect& r, unsigned int encoding) = 0;
-    virtual void endRect(const Rect& r, unsigned int encoding) = 0;
+    virtual void beginRect(const Rect& r, int encoding) = 0;
+    virtual void endRect(const Rect& r, int encoding) = 0;
 
     virtual void setColourMapEntries(int firstColour, int nColours,
 				     rdr::U16* rgbs) = 0;
