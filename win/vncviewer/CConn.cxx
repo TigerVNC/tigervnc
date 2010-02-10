@@ -198,7 +198,7 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
         options.autoScaling = false;
         window->setAutoScaling(false);
       }
-      if (wParam == IDM_ZOOM_IN) {
+      if (wParam == (unsigned)IDM_ZOOM_IN) {
         for (int i = 0; i < scaleCount; i++)
           if (options.scale < scaleValues[i]) { 
             options.scale = scaleValues[i];
@@ -266,7 +266,7 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     return true;
   case IDM_NEWCONN:
     {
-      Thread* newThread = new CConnThread;
+      new CConnThread;
     }
     return true;
   case IDM_OPTIONS:
@@ -453,7 +453,7 @@ CConn::setDesktopSize(int w, int h) {
 void
 CConn::setExtendedDesktopSize(int reason, int result, int w, int h,
                               const rfb::ScreenSet& layout) {
-  if ((reason == reasonClient) && (result != resultSuccess)) {
+  if ((reason == (signed)reasonClient) && (result != (signed)resultSuccess)) {
     vlog.error("SetDesktopSize failed: %d", result);
     return;
   }
