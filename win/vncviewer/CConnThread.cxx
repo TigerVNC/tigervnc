@@ -24,7 +24,6 @@
 
 #include <stdlib.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Hostname.h>
 #include <rfb_win32/MsgBox.h>
 #include <network/TcpSocket.h>
 #include <vncviewer/CConnThread.h>
