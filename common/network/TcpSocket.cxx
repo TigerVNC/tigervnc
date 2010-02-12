@@ -364,10 +364,10 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
   if (localhostOnly) {
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
   } else if (listenaddr != NULL) {
-#ifndef WIN32
+#ifdef HAVE_INET_ATON
     if (inet_aton(listenaddr, &addr.sin_addr) == 0)
 #else
-    /* Windows doesn't have inet_aton, sigh */
+    /* Some systems (e.g. Windows) do not have inet_aton, sigh */
     if ((addr.sin_addr.s_addr = inet_addr(listenaddr)) == INADDR_NONE)
 #endif
     {

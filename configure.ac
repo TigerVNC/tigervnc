@@ -138,6 +138,7 @@ AC_CHECK_FUNCS([vsnprintf snprintf strcasecmp strncasecmp])
 
 # Network functions
 AC_SEARCH_LIBS([inet_aton], [resolv])
+AC_CHECK_FUNCS([inet_aton])
 
 # IPv6 related functions
 AC_CHECK_FUNCS([inet_ntop getaddrinfo])
