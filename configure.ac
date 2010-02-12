@@ -136,6 +136,9 @@ AC_CONFIG_SUBDIRS([jpeg])
 
 AC_CHECK_FUNCS([vsnprintf snprintf strcasecmp strncasecmp])
 
+# Network functions
+AC_SEARCH_LIBS([inet_aton], [resolv])
+
 # IPv6 related functions
 AC_CHECK_FUNCS([inet_ntop getaddrinfo])
 
