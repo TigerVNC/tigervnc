@@ -12,12 +12,23 @@ AC_DEFINE([HAVE_PROTOTYPES], 1, [Define if your compiler supports prototypes])
 AC_DEFINE([INCOMPLETE_TYPES_BROKEN], 1, [Define if you want use complete types])
 
 # Checks for programs.
+SAVED_CFLAGS=${CFLAGS}
+SAVED_CXXFLAGS=${CXXFLAGS}
 AC_PROG_CPP
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
+
+if test "x${GCC}" = "xyes"; then
+  if test "x${SAVED_CFLAGS}" = "x"; then
+    CFLAGS=-O3
+  fi
+  if test "x${SAVED_CXXFLAGS}" = "x"; then
+    CXXFLAGS=-O3
+  fi
+fi
 
 # Checks for libraries.
 
