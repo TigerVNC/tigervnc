@@ -12,10 +12,10 @@ vncviewer_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/unix \
 	-I$(top_srcdir)/unix/tx -I$(top_srcdir)/intl \
 	-DLOCALEDIR=\"$(localedir)\" @X_CFLAGS@
 
-vncviewer_LDADD = $(top_srcdir)/unix/tx/libtx.la \
-	$(top_srcdir)/common/rfb/librfb.la \
-	$(top_srcdir)/common/network/libnetwork.la \
-	$(top_srcdir)/common/rdr/librdr.la \
+vncviewer_LDADD = $(top_builddir)/unix/tx/libtx.la \
+	$(top_builddir)/common/rfb/librfb.la \
+	$(top_builddir)/common/network/libnetwork.la \
+	$(top_builddir)/common/rdr/librdr.la \
 	@X_PRE_LIBS@ @X_LIBS@ -lXext -lX11 @X_EXTRA_LIBS@ # @LIBINTL@
 
 EXTRA_DIST = vncviewer.man

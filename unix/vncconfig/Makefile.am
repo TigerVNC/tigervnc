@@ -10,10 +10,10 @@ vncconfig_SOURCES = $(HDRS) vncExt.c vncconfig.cxx QueryConnectDialog.cxx \
 # X_CFLAGS are really CPPFLAGS
 vncconfig_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/unix/tx @X_CFLAGS@
 
-vncconfig_LDADD = $(top_srcdir)/unix/tx/libtx.la \
-	$(top_srcdir)/common/rfb/librfb.la \
-	$(top_srcdir)/common/network/libnetwork.la \
-	$(top_srcdir)/common/rdr/librdr.la @X_PRE_LIBS@ @X_LIBS@ -lX11 -lXext \
+vncconfig_LDADD = $(top_builddir)/unix/tx/libtx.la \
+	$(top_builddir)/common/rfb/librfb.la \
+	$(top_builddir)/common/network/libnetwork.la \
+	$(top_builddir)/common/rdr/librdr.la @X_PRE_LIBS@ @X_LIBS@ -lX11 -lXext \
 	@X_EXTRA_LIBS@
 
 EXTRA_DIST = vncconfig.man

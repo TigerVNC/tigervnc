@@ -49,9 +49,11 @@ jdmermmx.lo: jdmrgmmx.asm
 jdmerss2.lo: jdmrgss2.asm
 endif
 
-.asm.lo:
-	$(LIBTOOL) --mode=compile --tag NASM ./nasm_lt.sh $(NASM) $(NAFLAGS) $< -o $@
+AM_CPPFLAGS = -I$(top_srcdir) 
 
-jsimdcfg.inc: jsimdcfg.inc.h ../jpeglib.h ../jconfig.h ../jmorecfg.h
-	$(CPP) jsimdcfg.inc.h | $(EGREP) ^[\;%] | sed 's%_cpp_protection_%%' > $@
+.asm.lo:
+	$(LIBTOOL) --mode=compile --tag NASM $(srcdir)/nasm_lt.sh $(NASM) $(NAFLAGS) -I$(srcdir) $< -o $@
+
+jsimdcfg.inc: $(srcdir)/jsimdcfg.inc.h ../jpeglib.h ../jconfig.h ../jmorecfg.h
+	$(CPP) -I$(top_builddir) -I$(top_builddir)/simd $(srcdir)/jsimdcfg.inc.h | $(EGREP) ^[\;%] | sed 's%_cpp_protection_%%' > $@
 

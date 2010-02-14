@@ -46,5 +46,5 @@ librfb_la_LIBADD =
 
 if INCLUDED_JPEG
 librfb_la_CPPFLAGS += -I$(top_srcdir)/common/jpeg
-librfb_la_LIBADD += $(top_srcdir)/common/jpeg/libjpeg.la
+librfb_la_LIBADD += $(top_builddir)/common/jpeg/libjpeg.la
 endif
