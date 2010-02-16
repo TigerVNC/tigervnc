@@ -30,6 +30,16 @@ if test "x${GCC}" = "xyes"; then
   fi
 fi
 
+AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
+if test "x${SUNCC}" = "xyes"; then
+  if test "x${SAVED_CFLAGS}" = "x"; then
+    CFLAGS=-xO5
+  fi
+  if test "x${SAVED_CXXFLAGS}" = "x"; then
+    CXXFLAGS=-xO5
+  fi
+fi
+
 # Checks for libraries.
 
 # Checks for header files.
