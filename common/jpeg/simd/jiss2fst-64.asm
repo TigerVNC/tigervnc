@@ -100,7 +100,7 @@ EXTN(jsimd_idct_ifast_sse2):
 	mov	rax,rsp				; rax = original rbp
 	sub	rsp, byte 4
 	and	rsp, byte (-SIZEOF_XMMWORD)	; align to 128 bits
-	mov	[rsp],eax
+	mov	[rsp],rax
 	mov	rbp,rsp				; rbp = aligned rbp
 	lea	rsp, [wk(0)]
 	collect_args

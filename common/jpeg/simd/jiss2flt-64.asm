@@ -81,7 +81,7 @@ EXTN(jsimd_idct_float_sse2):
 	mov	rax,rsp				; rax = original rbp
 	sub	rsp, byte 4
 	and	rsp, byte (-SIZEOF_XMMWORD)	; align to 128 bits
-	mov	[rsp],eax
+	mov	[rsp],rax
 	mov	rbp,rsp				; rbp = aligned rbp
 	lea	rsp, [workspace]
 	push	rbx
