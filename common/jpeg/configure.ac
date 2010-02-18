@@ -112,8 +112,17 @@ if test "x${with_simd}" != "xno"; then
   case "$host_cpu" in
     x86_64)
       AC_MSG_RESULT([yes (x86_64)])
-      AC_PROG_NASM
-      simd_arch=x86_64
+
+      case "$host_os" in
+        cygwin* | mingw* | pw32* | interix*)
+          AC_MSG_WARN([Win64 not yet supported. Disabling SIMD routines.])
+          with_simd=no
+          ;;
+        *)
+          AC_PROG_NASM
+          simd_arch=x86_64
+          ;;
+      esac
     ;;
     i*86 | x86 | ia32)
       AC_MSG_RESULT([yes (i386)])
