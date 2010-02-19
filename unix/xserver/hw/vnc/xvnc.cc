@@ -1345,3 +1345,9 @@ void InitInput(int argc, char *argv[])
 {
   mieqInit ();
 }
+
+#if XORG > 17
+void CloseInput(void)
+{
+}
+#endif
