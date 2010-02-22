@@ -19,10 +19,13 @@
 #include "./rrtimer.h"
 #include "./turbojpeg.h"
 
-#define _catch(f) {if((f)==-1) {printf("TJPEG: %s\n", tjGetErrorStr());  goto finally;}}
+#define _catch(f) {if((f)==-1) {printf("TJPEG: %s\n", tjGetErrorStr());  bailout();}}
 
 const char *_subnamel[NUMSUBOPT]={"4:4:4", "4:2:2", "4:2:0", "GRAY"};
 const char *_subnames[NUMSUBOPT]={"444", "422", "420", "GRAY"};
+
+int exitstatus=0;
+#define bailout() {exitstatus=-1;  goto finally;}
 
 int pixels[9][3]=
 {
@@ -70,7 +73,7 @@ void initbuf(unsigned char *buf, int w, int h, int ps, int flags)
 	}
 }
 
-int dumpbuf(unsigned char *buf, int w, int h, int ps, int flags)
+void dumpbuf(unsigned char *buf, int w, int h, int ps, int flags)
 {
 	int roffset=(flags&TJ_BGR)?2:0, goffset=1, boffset=(flags&TJ_BGR)?0:2, i,
 		j;
@@ -177,12 +180,12 @@ void writejpeg(unsigned char *jpegbuf, unsigned long jpgbufsize, char *filename)
 	if((outfile=fopen(filename, "wb"))==NULL)
 	{
 		printf("ERROR: Could not open %s for writing.\n", filename);
-		goto finally;
+		bailout();
 	}
 	if(fwrite(jpegbuf, jpgbufsize, 1, outfile)!=1)
 	{
 		printf("ERROR: Could not write to %s.\n", filename);
-		goto finally;
+		bailout();
 	}
 
 	finally:
@@ -210,7 +213,7 @@ void gentestjpeg(tjhandle hnd, unsigned char *jpegbuf, unsigned long *size,
 
 	if((bmpbuf=(unsigned char *)malloc(w*h*ps+1))==NULL)
 	{
-		printf("ERROR: Could not allocate buffer\n");  goto finally;
+		printf("ERROR: Could not allocate buffer\n");  bailout();
 	}
 	initbuf(bmpbuf, w, h, ps, flags);
 	memset(jpegbuf, 0, TJBUFSIZE(w, h));
@@ -249,12 +252,12 @@ void gentestbmp(tjhandle hnd, unsigned char *jpegbuf, unsigned long jpegsize,
 	_catch(tjDecompressHeader(hnd, jpegbuf, jpegsize, &_w, &_h));
 	if(_w!=w || _h!=h)
 	{
-		printf("Incorrect JPEG header\n");  goto finally;
+		printf("Incorrect JPEG header\n");  bailout();
 	}
 
 	if((bmpbuf=(unsigned char *)malloc(w*h*ps+1))==NULL)
 	{
-		printf("ERROR: Could not allocate buffer\n");  goto finally;
+		printf("ERROR: Could not allocate buffer\n");  bailout();
 	}
 	memset(bmpbuf, 0, w*ps*h);
 
@@ -278,13 +281,13 @@ void dotest(int w, int h, int ps, int subsamp, char *basefilename)
 
 	if((jpegbuf=(unsigned char *)malloc(TJBUFSIZE(w, h))) == NULL)
 	{
-		puts("ERROR: Could not allocate buffer.");  goto finally;
+		puts("ERROR: Could not allocate buffer.");  bailout();
 	}
 
 	if((hnd=tjInitCompress())==NULL)
-		{printf("Error in tjInitCompress():\n%s\n", tjGetErrorStr());  goto finally;}
+		{printf("Error in tjInitCompress():\n%s\n", tjGetErrorStr());  bailout();}
 	if((dhnd=tjInitDecompress())==NULL)
-		{printf("Error in tjInitDecompress():\n%s\n", tjGetErrorStr());  goto finally;}
+		{printf("Error in tjInitDecompress():\n%s\n", tjGetErrorStr());  bailout();}
 
 	gentestjpeg(hnd, jpegbuf, &size, w, h, ps, basefilename, subsamp, 100, 0);
 	gentestbmp(dhnd, jpegbuf, size, w, h, ps, basefilename, subsamp, 100, 0);
@@ -327,7 +330,7 @@ void dotest1(void)
 	int i, j, i2;  unsigned char *bmpbuf=NULL, *jpgbuf=NULL;
 	tjhandle hnd=NULL;  unsigned long size;
 	if((hnd=tjInitCompress())==NULL)
-		{printf("Error in tjInitCompress():\n%s\n", tjGetErrorStr());  goto finally;}
+		{printf("Error in tjInitCompress():\n%s\n", tjGetErrorStr());  bailout();}
 	printf("Buffer size regression test\n");
 	for(j=1; j<48; j++)
 	{
@@ -337,7 +340,7 @@ void dotest1(void)
 			if((bmpbuf=(unsigned char *)malloc(i*j*4))==NULL
 			|| (jpgbuf=(unsigned char *)malloc(TJBUFSIZE(i, j)))==NULL)
 			{
-				printf("Memory allocation failure\n");  goto finally;
+				printf("Memory allocation failure\n");  bailout();
 			}
 			memset(bmpbuf, 0, i*j*4);
 			for(i2=0; i2<i*j; i2++)
@@ -353,7 +356,7 @@ void dotest1(void)
 			if((bmpbuf=(unsigned char *)malloc(j*i*4))==NULL
 			|| (jpgbuf=(unsigned char *)malloc(TJBUFSIZE(j, i)))==NULL)
 			{
-				printf("Memory allocation failure\n");  goto finally;
+				printf("Memory allocation failure\n");  bailout();
 			}
 			for(i2=0; i2<j*i*4; i2++)
 			{
@@ -380,5 +383,5 @@ int main(int argc, char *argv[])
 	dotest(35, 41, 4, TJ_GRAYSCALE, "test");
 	dotest1();
 
-	return 0;
+	return exitstatus;
 }
