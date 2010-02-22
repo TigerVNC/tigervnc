@@ -417,9 +417,10 @@ EXTN(jsimd_idct_4x4_sse2):
 
 EXTN(jsimd_idct_2x2_sse2):
 	push	rbp
+	mov	rax,rsp
 	mov	rbp,rsp
-	push	rbx
 	collect_args
+	push	rbx
 
 	; ---- Pass 1: process columns from input.
 
@@ -565,8 +566,8 @@ EXTN(jsimd_idct_2x2_sse2):
 	mov	WORD [rdx+rax*SIZEOF_JSAMPLE], bx
 	mov	WORD [rsi+rax*SIZEOF_JSAMPLE], cx
 
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	pop	rbp
 	ret
 

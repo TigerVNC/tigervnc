@@ -84,8 +84,8 @@ EXTN(jsimd_idct_float_sse2):
 	mov	[rsp],rax
 	mov	rbp,rsp				; rbp = aligned rbp
 	lea	rsp, [workspace]
-	push	rbx
 	collect_args
+	push	rbx
 
 	; ---- Pass 1: process columns from input, store into work array.
 
@@ -471,8 +471,8 @@ EXTN(jsimd_idct_float_sse2):
 	dec	rcx				; ctr
 	jnz	near .rowloop
 
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	mov	rsp,rbp		; rsp <- aligned rbp
 	pop	rsp		; rsp <- original rbp
 	pop	rbp

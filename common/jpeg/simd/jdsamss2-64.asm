@@ -63,6 +63,7 @@ PW_EIGHT	times 8 dw  8
 
 EXTN(jsimd_h2v1_fancy_upsample_sse2):
 	push	rbp
+	mov	rax,rsp
 	mov	rbp,rsp
 	collect_args
 
@@ -210,8 +211,8 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 	mov	[rsp],rax
 	mov	rbp,rsp				; rbp = aligned rbp
 	lea	rsp, [wk(0)]
-	push	rbx
 	collect_args
+	push	rbx
 
 	mov	rax, r11  ; colctr
 	test	rax,rax
@@ -472,8 +473,8 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 	jg	near .rowloop
 
 .return:
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	mov	rsp,rbp		; rsp <- aligned rbp
 	pop	rsp		; rsp <- original rbp
 	pop	rbp
@@ -501,6 +502,7 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
 
 EXTN(jsimd_h2v1_upsample_sse2):
 	push	rbp
+	mov	rax,rsp
 	mov	rbp,rsp
 	collect_args
 
@@ -589,9 +591,10 @@ EXTN(jsimd_h2v1_upsample_sse2):
 
 EXTN(jsimd_h2v2_upsample_sse2):
 	push	rbp
+	mov	rax,rsp
 	mov	rbp,rsp
-	push	rbx
 	collect_args
+	push	rbx
 
 	mov	rdx, r11
 	add	rdx, byte (2*SIZEOF_XMMWORD)-1
@@ -658,8 +661,8 @@ EXTN(jsimd_h2v2_upsample_sse2):
 	jg	near .rowloop
 
 .return:
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	pop	rbp
 	ret
 

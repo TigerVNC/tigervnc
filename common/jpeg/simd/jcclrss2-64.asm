@@ -49,8 +49,8 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	mov	[rsp],rax
 	mov	rbp,rsp				; rbp = aligned rbp
 	lea	rsp, [wk(0)]
-	push	rbx
 	collect_args
+	push	rbx
 
 	mov	rcx, r10
 	test	rcx,rcx
@@ -475,8 +475,8 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	jg	near .rowloop
 
 .return:
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	mov	rsp,rbp		; rsp <- aligned rbp
 	pop	rsp		; rsp <- original rbp
 	pop	rbp

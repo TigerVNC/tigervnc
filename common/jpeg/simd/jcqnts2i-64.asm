@@ -40,9 +40,10 @@
 
 EXTN(jsimd_convsamp_sse2):
 	push	rbp
+	mov	rax,rsp
 	mov	rbp,rsp
-	push	rbx
 	collect_args
+	push	rbx
 
 	pxor	xmm6,xmm6		; xmm6=(all 0's)
 	pcmpeqw	xmm7,xmm7
@@ -84,8 +85,8 @@ EXTN(jsimd_convsamp_sse2):
 	dec	rcx
 	jnz	short .convloop
 
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	pop	rbp
 	ret
 
@@ -115,6 +116,7 @@ EXTN(jsimd_convsamp_sse2):
 
 EXTN(jsimd_quantize_sse2):
 	push	rbp
+	mov	rax,rsp
 	mov	rbp,rsp
 	collect_args
 

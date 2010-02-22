@@ -12,7 +12,7 @@
 ; This file should be assembled with NASM (Netwide Assembler),
 ; can *not* be assembled with Microsoft's MASM or any compatible
 ; assembler (including Borland's Turbo Assembler).
-; NASM is available from http://nasm.sourceforge.net/ or
+; NASM is available from http://nasm.sourceforge.net/ for
 ; http://sourceforge.net/project/showfiles.php?group_id=6208
 ;
 ; [TAB8]
@@ -51,8 +51,8 @@ EXTN(jsimd_h2v1_merged_upsample_sse2):
 	mov	[rsp],rax
 	mov	rbp,rsp				; rbp = aligned rbp
 	lea	rsp, [wk(0)]
-	push	rbx
 	collect_args
+	push	rbx
 
 	mov	rcx, r10	; col
 	test	rcx,rcx
@@ -468,8 +468,8 @@ EXTN(jsimd_h2v1_merged_upsample_sse2):
 	sfence		; flush the write buffer
 
 .return:
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	mov	rsp,rbp		; rsp <- aligned rbp
 	pop	rsp		; rsp <- original rbp
 	pop	rbp
@@ -496,9 +496,10 @@ EXTN(jsimd_h2v1_merged_upsample_sse2):
 
 EXTN(jsimd_h2v2_merged_upsample_sse2):
 	push	rbp
+	mov	rax,rsp
 	mov	rbp,rsp
-	push	rbx
 	collect_args
+	push	rbx
 
 	mov	rax, r10
 
@@ -519,10 +520,17 @@ EXTN(jsimd_h2v2_merged_upsample_sse2):
 	push	rcx
 	push	rax
 
+	%ifdef WIN64
+	; rcx already parameter 1
+	mov rdx, rdi
+	mov r8, rax
+	mov r9, rbx
+	%else
 	mov rdx, rcx
 	mov rcx, rdi
 	mov	rdi, rax
 	mov rsi, rbx
+	%endif
 
 	call	EXTN(jsimd_h2v1_merged_upsample_sse2)
 
@@ -545,10 +553,17 @@ EXTN(jsimd_h2v2_merged_upsample_sse2):
 	push	rcx
 	push	rax
 
+	%ifdef WIN64
+	; rcx already parameter 1
+	mov rdx, rdi
+	mov r8, rax
+	mov r9, rbx
+	%else
 	mov rdx, rcx
 	mov rcx, rdi
 	mov	rdi, rax
 	mov rsi, rbx
+	%endif
 
 	call	EXTN(jsimd_h2v1_merged_upsample_sse2)
 
@@ -559,8 +574,8 @@ EXTN(jsimd_h2v2_merged_upsample_sse2):
 	pop rbx
 	pop rdx
 
-	uncollect_args
 	pop	rbx
+	uncollect_args
 	pop	rbp
 	ret
 
