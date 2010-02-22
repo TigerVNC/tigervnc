@@ -47,9 +47,9 @@
 static __inline int numprocs(void)
 {
 	#ifdef _WIN32
-	DWORD_PTR ProcAff, SysAff, i; int count=0;
+	DWORD_PTR ProcAff, SysAff, i;  int count=0;
 	if(!GetProcessAffinityMask(GetCurrentProcess(), &ProcAff, &SysAff)) return(1);
-	for(i=0; i<32; i++) if(ProcAff&(1<<i)) count++;
+	for(i=0; i<sizeof(long)*8; i++) if(ProcAff&(1<<i)) count++;
 	return(count);
 	#elif defined (__APPLE__)
 	return(1);
