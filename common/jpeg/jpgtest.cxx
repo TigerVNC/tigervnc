@@ -322,22 +322,22 @@ int main(int argc, char *argv[])
 			if(!stricmp(argv[i], "-tile")) dotile=1;
 			if(!stricmp(argv[i], "-forcesse3"))
 			{
-				printf("Using SSE3 code in Intel compressor\n");
+				printf("Using SSE3 code\n");
 				forcesse3=1;
 			}
 			if(!stricmp(argv[i], "-forcesse2"))
 			{
-				printf("Using SSE2 code in Intel compressor\n");
+				printf("Using SSE2 code\n");
 				forcesse2=1;
 			}
 			if(!stricmp(argv[i], "-forcesse"))
 			{
-				printf("Using SSE code in Intel compressor\n");
+				printf("Using SSE code\n");
 				forcesse=1;
 			}
 			if(!stricmp(argv[i], "-forcemmx"))
 			{
-				printf("Using MMX code in Intel compressor\n");
+				printf("Using MMX code\n");
 				forcemmx=1;
 			}
 			if(!stricmp(argv[i], "-fastupsample"))
