@@ -188,7 +188,8 @@ DLLEXPORT int DLLCALL tjCompress(tjhandle h,
 			j->cinfo.image_height-j->cinfo.next_scanline);
 	}
 	jpeg_finish_compress(&j->cinfo);
-	*size=TJBUFSIZE(j->cinfo.image_width, j->cinfo.image_height)-(j->jdms.free_in_buffer);
+	*size=TJBUFSIZE(j->cinfo.image_width, j->cinfo.image_height)
+		-(unsigned long)(j->jdms.free_in_buffer);
 
 	if(row_pointer) free(row_pointer);
 	return 0;

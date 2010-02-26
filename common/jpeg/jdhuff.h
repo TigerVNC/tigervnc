@@ -75,7 +75,7 @@ EXTERN(void) jpeg_make_d_derived_tbl
 
 #if __WORDSIZE == 64
 
-typedef long bit_buf_type;	/* type of bit-extraction buffer */
+typedef size_t bit_buf_type;	/* type of bit-extraction buffer */
 #define BIT_BUF_SIZE  64		/* size of buffer in bits */
 
 #else

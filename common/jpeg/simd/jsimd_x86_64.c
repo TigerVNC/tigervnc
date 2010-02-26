@@ -24,7 +24,7 @@
  * In the PIC cases, we have no guarantee that constants will keep
  * their alignment. This macro allows us to verify it at runtime.
  */
-#define IS_ALIGNED(ptr, order) (((unsigned long)ptr & ((1 << order) - 1)) == 0)
+#define IS_ALIGNED(ptr, order) (((size_t)ptr & ((1 << order) - 1)) == 0)
 
 #define IS_ALIGNED_SSE(ptr) (IS_ALIGNED(ptr, 4)) /* 16 byte alignment */
 

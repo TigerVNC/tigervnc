@@ -49,7 +49,7 @@ int jpeg_first_bit_table_init=0;
  */
 
 typedef struct {
-  long put_buffer;		/* current bit-accumulation buffer */
+  size_t put_buffer;		/* current bit-accumulation buffer */
   int put_bits;			/* # of bits now in it */
   int last_dc_val[MAX_COMPS_IN_SCAN]; /* last DC coef for each component */
 } savable_state;
@@ -489,8 +489,8 @@ LOCAL(boolean)
 flush_bits (working_state * state)
 {
   unsigned char _buffer[BUFSIZE], *buffer;
-  long put_buffer;  int put_bits;
-  int bytes, bytestocopy, localbuf = 0;
+  size_t put_buffer;  int put_bits;
+  size_t bytes, bytestocopy;  int localbuf = 0;
 
   put_buffer = state->cur.put_buffer;
   put_bits = state->cur.put_bits;
@@ -515,9 +515,9 @@ encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
   int nbits;
   int r, sflag, size, code;
   unsigned char _buffer[BUFSIZE], *buffer;
-  long put_buffer;  int put_bits;
+  size_t put_buffer;  int put_bits;
   int code_0xf0 = actbl->ehufco[0xf0], size_0xf0 = actbl->ehufsi[0xf0];
-  int bytes, bytestocopy, localbuf = 0;
+  size_t bytes, bytestocopy;  int localbuf = 0;
 
   put_buffer = state->cur.put_buffer;
   put_bits = state->cur.put_bits;

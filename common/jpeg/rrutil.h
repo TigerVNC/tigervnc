@@ -1,5 +1,6 @@
 /* Copyright (C)2004 Landmark Graphics Corporation
  * Copyright (C)2005 Sun Microsystems, Inc.
+ * Copyright (C)2010 D. R. Commander
  *
  * This library is free software and may be redistributed and/or modified under
  * the terms of the wxWindows Library License, Version 3.1 or (at your option)
@@ -49,7 +50,7 @@ static __inline int numprocs(void)
 	#ifdef _WIN32
 	DWORD_PTR ProcAff, SysAff, i;  int count=0;
 	if(!GetProcessAffinityMask(GetCurrentProcess(), &ProcAff, &SysAff)) return(1);
-	for(i=0; i<sizeof(long)*8; i++) if(ProcAff&(1<<i)) count++;
+	for(i=0; i<sizeof(long*)*8; i++) if(ProcAff&(1LL<<i)) count++;
 	return(count);
 	#elif defined (__APPLE__)
 	return(1);

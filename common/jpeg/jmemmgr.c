@@ -122,7 +122,7 @@ typedef struct {
   jvirt_barray_ptr virt_barray_list;
 
   /* This counts total space obtained from jpeg_get_small/large */
-  long total_space_allocated;
+  size_t total_space_allocated;
 
   /* alloc_sarray and alloc_barray set this value for use by virtual
    * array routines.
@@ -317,8 +317,8 @@ alloc_small (j_common_ptr cinfo, int pool_id, size_t sizeofobject)
   /* OK, allocate the object from the current pool */
   data_ptr = (char *) hdr_ptr; /* point to first data byte in pool... */
   data_ptr += SIZEOF(small_pool_hdr); /* ...by skipping the header... */
-  if ((unsigned long)data_ptr % ALIGN_SIZE) /* ...and adjust for alignment */
-    data_ptr += ALIGN_SIZE - (unsigned long)data_ptr % ALIGN_SIZE;
+  if ((size_t)data_ptr % ALIGN_SIZE) /* ...and adjust for alignment */
+    data_ptr += ALIGN_SIZE - (size_t)data_ptr % ALIGN_SIZE;
   data_ptr += hdr_ptr->bytes_used; /* point to place for object */
   hdr_ptr->bytes_used += sizeofobject;
   hdr_ptr->bytes_left -= sizeofobject;
@@ -382,8 +382,8 @@ alloc_large (j_common_ptr cinfo, int pool_id, size_t sizeofobject)
 
   data_ptr = (char *) hdr_ptr; /* point to first data byte in pool... */
   data_ptr += SIZEOF(small_pool_hdr); /* ...by skipping the header... */
-  if ((unsigned long)data_ptr % ALIGN_SIZE) /* ...and adjust for alignment */
-    data_ptr += ALIGN_SIZE - (unsigned long)data_ptr % ALIGN_SIZE;
+  if ((size_t)data_ptr % ALIGN_SIZE) /* ...and adjust for alignment */
+    data_ptr += ALIGN_SIZE - (size_t)data_ptr % ALIGN_SIZE;
 
   return (void FAR *) data_ptr;
 }
@@ -420,7 +420,7 @@ alloc_sarray (j_common_ptr cinfo, int pool_id,
   /* Make sure each row is properly aligned */
   if ((ALIGN_SIZE % SIZEOF(JSAMPLE)) != 0)
     out_of_memory(cinfo, 5);	/* safety check */
-  samplesperrow = jround_up(samplesperrow, (2 * ALIGN_SIZE) / SIZEOF(JSAMPLE));
+  samplesperrow = (JDIMENSION)jround_up(samplesperrow, (2 * ALIGN_SIZE) / SIZEOF(JSAMPLE));
 
   /* Calculate max # of rows allowed in one allocation chunk */
   ltemp = (MAX_ALLOC_CHUNK-SIZEOF(large_pool_hdr)) /
@@ -608,8 +608,8 @@ realize_virt_arrays (j_common_ptr cinfo)
 /* Allocate the in-memory buffers for any unrealized virtual arrays */
 {
   my_mem_ptr mem = (my_mem_ptr) cinfo->mem;
-  long space_per_minheight, maximum_space, avail_mem;
-  long minheights, max_minheights;
+  size_t space_per_minheight, maximum_space, avail_mem;
+  size_t minheights, max_minheights;
   jvirt_sarray_ptr sptr;
   jvirt_barray_ptr bptr;
 
