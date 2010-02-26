@@ -14,6 +14,10 @@
 #ifndef JPEGLIB_H
 #define JPEGLIB_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * First we include the configuration files that record how this
  * installation of the JPEG library is set up.  jconfig.h can be
@@ -219,7 +223,7 @@ typedef enum {
 	JCS_EXT_BGR,		/* blue/green/red */
 	JCS_EXT_BGRX,		/* blue/green/red/x */
 	JCS_EXT_XBGR,		/* x/blue/green/red */
-	JCS_EXT_XRGB,		/* x/red/green/blue */
+	JCS_EXT_XRGB		/* x/red/green/blue */
 } J_COLOR_SPACE;
 
 /* DCT/IDCT algorithm options. */
@@ -1101,6 +1105,10 @@ struct jpeg_color_quantizer { long dummy; };
 #ifdef JPEG_INTERNALS
 #include "jpegint.h"		/* fetch private declarations */
 #include "jerror.h"		/* fetch error codes too */
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* JPEGLIB_H */

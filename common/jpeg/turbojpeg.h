@@ -27,15 +27,30 @@
 enum {TJ_444=0, TJ_422, TJ_420, TJ_GRAYSCALE};
 
 /* Flags */
-#define TJ_BGR       1
-#define TJ_BOTTOMUP  2
-#define TJ_FORCEMMX  8   /* Force IPP to use MMX code even if SSE available */
-#define TJ_FORCESSE  16  /* Force IPP to use SSE1 code even if SSE2 available */
-#define TJ_FORCESSE2 32  /* Force IPP to use SSE2 code (useful if auto-detect is not working properly) */
-#define TJ_ALPHAFIRST 64 /* BGR buffer is ABGR and RGB buffer is ARGB */
-#define TJ_FORCESSE3 128 /* Force IPP to use SSE3 code (useful if auto-detect is not working properly) */
-#define TJ_FASTUPSAMPLE 256 /* Use fast, inaccurate 4:2:2 and 4:2:0 YUV upsampling routines in libjpeg decompressor */
-
+#define TJ_BGR             1
+  /* The components of each pixel in the source/destination bitmap are stored
+     in B,G,R order, not R,G,B */
+#define TJ_BOTTOMUP        2
+  /* The source/destination bitmap is stored in bottom-up (Windows, OpenGL)
+     order, not top-down (X11) order */
+#define TJ_FORCEMMX        8
+  /* Turn off CPU auto-detection and force TurboJPEG to use MMX code
+     (IPP and 32-bit libjpeg-turbo versions only) */
+#define TJ_FORCESSE       16
+  /* Turn off CPU auto-detection and force TurboJPEG to use SSE code
+     (32-bit IPP and 32-bit libjpeg-turbo versions only) */
+#define TJ_FORCESSE2      32
+  /* Turn off CPU auto-detection and force TurboJPEG to use SSE2 code
+     (32-bit IPP and 32-bit libjpeg-turbo versions only) */
+#define TJ_ALPHAFIRST     64
+  /* If the source/destination bitmap is 32 bpp, assume that each pixel is
+     ARGB/XRGB (or ABGR/XBGR if TJ_BGR is also specified) */
+#define TJ_FORCESSE3     128
+  /* Turn off CPU auto-detection and force TurboJPEG to use SSE3 code
+     (64-bit IPP version only) */
+#define TJ_FASTUPSAMPLE  256
+  /* Use fast, inaccurate 4:2:2 and 4:2:0 YUV upsampling routines
+     (libjpeg version only) */
 typedef void* tjhandle;
 
 #define TJPAD(p) (((p)+3)&(~3))
@@ -103,20 +118,8 @@ DLLEXPORT tjhandle DLLCALL tjInitCompress(void);
      TJ_GRAYSCALE: Generate grayscale JPEG image
 
   [INPUT] jpegqual = JPEG quality (an integer between 0 and 100 inclusive.)
-  [INPUT] flags = the bitwise OR of one or more of the following
-
-     TJ_BGR: The components of each pixel in the source image are stored in
-        B,G,R order, not R,G,B
-     TJ_BOTTOMUP: The source image is stored in bottom-up (Windows) order,
-        not top-down
-     TJ_FORCEMMX: Valid only for the Intel Performance Primitives implementation
-        of this codec-- force IPP to use MMX code (bypass CPU auto-detection)
-     TJ_FORCESSE: Valid only for the Intel Performance Primitives implementation
-        of this codec-- force IPP to use SSE code (bypass CPU auto-detection)
-     TJ_FORCESSE2: Valid only for the Intel Performance Primitives implementation
-        of this codec-- force IPP to use SSE2 code (bypass CPU auto-detection)
-     TJ_FORCESSE3: Valid only for the Intel Performance Primitives implementation
-        of this codec-- force IPP to use SSE3 code (bypass CPU auto-detection)
+  [INPUT] flags = the bitwise OR of one or more of the flags described in the
+     "Flags" section above.
 
   RETURNS: 0 on success, -1 on error
 */
@@ -185,18 +188,8 @@ DLLEXPORT int DLLCALL tjDecompressHeader(tjhandle j,
   [INPUT] height = height (in pixels) of the destination image
   [INPUT] pixelsize = size (in bytes) of each pixel in the destination image
      RGBA/RGBx and BGRA/BGRx: 4, RGB and BGR: 3
-  [INPUT] flags = the bitwise OR of one or more of the following
-
-     TJ_BGR: The components of each pixel in the destination image should be
-        written in B,G,R order, not R,G,B
-     TJ_BOTTOMUP: The destination image should be stored in bottom-up
-        (Windows) order, not top-down
-     TJ_FORCEMMX: Valid only for the Intel Performance Primitives implementation
-        of this codec-- force IPP to use MMX code (bypass CPU auto-detection)
-     TJ_FORCESSE: Valid only for the Intel Performance Primitives implementation
-        of this codec-- force IPP to use SSE code (bypass CPU auto-detection)
-     TJ_FORCESSE2: Valid only for the Intel Performance Primitives implementation
-        of this codec-- force IPP to use SSE2 code (bypass CPU auto-detection)
+  [INPUT] flags = the bitwise OR of one or more of the flags described in the
+     "Flags" section above.
 
   RETURNS: 0 on success, -1 on error
 */
