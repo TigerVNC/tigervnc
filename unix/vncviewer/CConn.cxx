@@ -778,7 +778,10 @@ void CConn::autoSelectFormatAndEncoding()
   int newQualityLevel = qualityLevel;
 
   // Always use Tight
-  currentEncoding = encodingTight;
+  if (currentEncoding != encodingTight) {
+    currentEncoding = encodingTight;
+    encodingChange = true;
+  }
 
   // Check that we have a decent bandwidth measurement
   if ((kbitsPerSecond == 0) || (timeWaited < 10000))
