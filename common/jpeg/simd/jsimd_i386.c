@@ -48,16 +48,16 @@ init_simd (void)
   /* Force different settings through environment variables */
   env = getenv("JSIMD_FORCEMMX");
   if ((env != NULL) && (strcmp(env, "1") == 0))
-    simd_support = JSIMD_MMX;
+    simd_support &= JSIMD_MMX;
   env = getenv("JSIMD_FORCE3DNOW");
   if ((env != NULL) && (strcmp(env, "1") == 0))
-    simd_support = JSIMD_3DNOW|JSIMD_MMX;
+    simd_support &= JSIMD_3DNOW|JSIMD_MMX;
   env = getenv("JSIMD_FORCESSE");
   if ((env != NULL) && (strcmp(env, "1") == 0))
-    simd_support = JSIMD_SSE|JSIMD_MMX;
+    simd_support &= JSIMD_SSE|JSIMD_MMX;
   env = getenv("JSIMD_FORCESSE2");
   if ((env != NULL) && (strcmp(env, "1") == 0))
-    simd_support = JSIMD_SSE2;
+    simd_support &= JSIMD_SSE2;
 }
 
 GLOBAL(int)
