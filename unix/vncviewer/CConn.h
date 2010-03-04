@@ -132,6 +132,7 @@ private:
   InfoDialog info;
   bool reverseConnection;
   bool firstUpdate;
+  bool pendingUpdate;
 };
 
 #endif
