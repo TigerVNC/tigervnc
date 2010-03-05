@@ -43,6 +43,8 @@ using namespace rfb;
 extern void vncExtensionInit();
 static void vncExtensionInitWithParams(INITARGS);
 
+char *listenaddr = NULL;
+
 static MODULESETUPPROTO(vncSetup);
 
 ExtensionModule vncExt =
