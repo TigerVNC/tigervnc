@@ -39,7 +39,7 @@ class OptionsDialog : public TXDialog, public TXButtonCallback,
                       public TXCheckboxCallback, public TXEntryCallback  {
 public:
   OptionsDialog(Display* dpy, OptionsDialogCallback* cb_)
-    : TXDialog(dpy, 400, 450, _("VNC Viewer: Connection Options")), cb(cb_),
+    : TXDialog(dpy, 450, 450, _("VNC Viewer: Connection Options")), cb(cb_),
       formatAndEnc(dpy, _("Encoding and Color Level:"), this),
       inputs(dpy, _("Inputs:"), this),
       misc(dpy, _("Misc:"), this),
