@@ -1,6 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
 AC_INIT([tigervnc], [1.0.90], [http://www.tigervnc.org])
+AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
 AC_CONFIG_SUBDIRS([common/jpeg common/zlib])
