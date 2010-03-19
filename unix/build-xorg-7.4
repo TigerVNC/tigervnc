@@ -78,7 +78,9 @@ init()
     patch -p1 < ../xserver15.patch
     popd
 
-    autoreconf -fiv
+    if [ ! -f ./configure ]; then
+        autoreconf -fiv
+    fi
 }
 
 
