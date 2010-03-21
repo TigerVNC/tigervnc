@@ -765,20 +765,25 @@ METHODDEF(boolean)
 decode_mcu (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
 {
   huff_entropy_ptr entropy = (huff_entropy_ptr) cinfo->entropy;
+  int usefast = 1;
 
   /* Process restart marker if needed; may have to suspend */
   if (cinfo->restart_interval) {
     if (entropy->restarts_to_go == 0)
       if (! process_restart(cinfo))
 	return FALSE;
+    usefast = 0;
   }
+
+  if (cinfo->src->bytes_in_buffer < BUFSIZE * cinfo->blocks_in_MCU)
+    usefast = 0;
 
   /* If we've run out of data, just leave the MCU set to zeroes.
    * This way, we return uniform gray for the remainder of the segment.
    */
   if (! entropy->pub.insufficient_data) {
 
-    if (cinfo->src->bytes_in_buffer >= BUFSIZE) {
+    if (usefast) {
       if (!decode_mcu_fast(cinfo, MCU_data)) return FALSE;
     }
     else {
