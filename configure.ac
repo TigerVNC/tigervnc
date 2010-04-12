@@ -1,6 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
 AC_INIT([tigervnc], [1.0.90], [http://www.tigervnc.org])
+BUILD=`date +%Y%m%d`
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
@@ -154,6 +155,11 @@ AC_CHECK_DECLS([CLSID_ActiveDesktop], [BUILD_WINVNC=yes], [],
 	         #include <shlguid.h>
 	         ]])
 AM_CONDITIONAL([BUILD_WINVNC], [ test "x$BUILD_WINVNC" = xyes ])
+
+# Packaging stuff
+AM_CONDITIONAL([X86_64], [test "x$host_cpu" = "xx86_64"])
+
+AC_SUBST(BUILD)
 
 AC_OUTPUT([
 Makefile

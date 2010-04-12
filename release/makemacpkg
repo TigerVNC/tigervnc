@@ -1,0 +1,97 @@
+#!/bin/sh
+
+set -u
+set -e
+trap onexit INT
+trap onexit TERM
+trap onexit EXIT
+
+TMPDIR=
+
+onexit()
+{
+	if [ ! "$TMPDIR" = "" ]; then
+		sudo rm -rf $TMPDIR
+	fi
+}
+
+usage()
+{
+	echo "$0 <package name> <version> <build> <source dir.> [universal]"
+	exit 1
+}
+
+UNIVERSAL=0
+
+if [ $# -lt 4 ]; then usage $0; fi
+PACKAGE_NAME=$1
+VERSION=$2
+BUILD=$3
+SRCDIR=$4
+if [ $# -gt 4 ]; then
+	if [ "$5" = "universal" ]; then UNIVERSAL=1; fi
+fi
+PACKAGEMAKER=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
+
+if [ -f $PACKAGE_NAME.dmg ]; then
+	rm -f $PACKAGE_NAME.dmg
+fi
+
+umask 022
+TMPDIR=`mktemp -d /tmp/$PACKAGE_NAME-build.XXXXXX`
+PKGROOT=$TMPDIR/pkg/Package_Root
+mkdir -p $PKGROOT
+mkdir -p $PKGROOT/opt/$PACKAGE_NAME/bin
+
+install -m 755 unix/vncviewer/vncviewer $PKGROOT/opt/$PACKAGE_NAME/bin/
+
+if [ $UNIVERSAL = 1 ]; then
+	if [ ! -d $SRCDIR/osxx86 ]; then
+		mkdir -p $SRCDIR/osxx86
+	fi
+	pushd $SRCDIR/osxx86
+	sh $SRCDIR/configure \
+		CC=gcc-4.0 CXX=g++-4.0 \
+		CFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4 -O3 -m32' \
+		CXXFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4 -O3 -m32' \
+		LDFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4 -m32'
+	make
+	popd
+	lipo -create -arch i386 $SRCDIR/osxx86/unix/vncviewer/vncviewer -arch x86_64 \
+		$PKGROOT/opt/$PACKAGE_NAME/bin/vncviewer \
+		-output $PKGROOT/opt/$PACKAGE_NAME/bin/vncviewer
+fi
+
+mkdir -p $PKGROOT/Library/Documentation/$PACKAGE_NAME
+chmod 1775 $PKGROOT/Library
+chmod 775 $PKGROOT/Library/Documentation 
+mkdir -p $TMPDIR/pkg/Resources 
+
+(cat $SRCDIR/release/Description.plist.tmpl | sed s/{__VERSION}/$VERSION/g \
+	| sed s/{__APPNAME}/$PACKAGE_NAME/g \
+	> $TMPDIR/pkg/Description.plist) 
+(cat $SRCDIR/release/Info.plist.tmpl | sed s/{__VERSION}/$VERSION/g	\
+	| sed s/{__BUILD}/$BUILD/g > $TMPDIR/pkg/Info.plist) 
+(cat $SRCDIR/release/uninstall.sh.tmpl \
+	| sed s/{__APPNAME}/$PACKAGE_NAME/g \
+	> $PKGROOT/opt/$PACKAGE_NAME/bin/uninstall) 
+chmod 755 $PKGROOT/opt/$PACKAGE_NAME/bin/uninstall
+
+install -m 644 $SRCDIR/LICENCE.txt $PKGROOT/Library/Documentation/$PACKAGE_NAME/
+
+sudo chown -R root:admin $PKGROOT 
+cp $SRCDIR/release/License.rtf $SRCDIR/release/Welcome.rtf $SRCDIR/release/ReadMe.rtf $TMPDIR/pkg/Resources/ 
+
+mkdir $TMPDIR/dmg
+$PACKAGEMAKER -build -v -p $TMPDIR/dmg/$PACKAGE_NAME.pkg \
+	-f $PKGROOT -r $TMPDIR/pkg/Resources \
+	-i $TMPDIR/pkg/Info.plist -d $TMPDIR/pkg/Description.plist 
+install -m 644 $SRCDIR/release/uninstall.applescript $TMPDIR 
+sudo osacompile -t APPL -o "$TMPDIR/dmg/Uninstall.app" $TMPDIR/uninstall.applescript 
+sudo chown -R $USER "$TMPDIR/dmg/Uninstall.app" 
+hdiutil create -fs HFS+ -volname $PACKAGE_NAME-$VERSION \
+	-srcfolder "$TMPDIR/dmg" \
+	$TMPDIR/$PACKAGE_NAME.dmg 
+cp $TMPDIR/$PACKAGE_NAME.dmg . 
+
+exit
