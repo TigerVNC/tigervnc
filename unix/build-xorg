@@ -13,6 +13,8 @@ export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
 export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
 MAKE="make"
 STATIC=0
+XORG_VERSION=
+SRCDIR=..
 
 modules="dri2proto \
     libpthread-stubs \
@@ -60,42 +62,43 @@ modules="dri2proto \
 
 init()
 {
-    mkdir -p xorg
     update_modules
 
     pushd xorg
-    tar jxf ~/.tigervnc-build/util-macros.tar.bz2
+    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/util-macros.tar.bz2
     pushd util-macros-*
     echo "Building macros"
     ./configure ${1+"$@"} --prefix=${PREFIX}
-    ($MAKE);
-    make install
-    popd
+    ($MAKE install)
     popd
 
     pushd xserver
-    patch -p1 < ../xserver15.patch
+    patch -p1 < $SRCDIR/unix/xserver15.patch
+    popd
     popd
 
-    cd ..
+    pushd $SRCDIR
     if [ ! -f ./configure ]; then
         autoreconf -fiv
     fi
-    cd unix
+    popd
 }
 
 
 update_modules()
 {
+    if [ -d xorg ]; then rm -rf xorg; fi
+    mkdir xorg
     pushd xorg
-    ../download-xorg
+    $SRCDIR/unix/download-xorg-$XORG_VERSION
     for module in ${modules}; do
-        tar jxf ~/.tigervnc-build/${module}.tar.bz2
+        tar jxf ~/.tigervnc-xorg-$XORG_VERSION/${module}.tar.bz2
     done
-    tar jxf ~/.tigervnc-build/Mesa.tar.bz2
-    tar jxf ~/.tigervnc-build/freetype.tar.bz2
-    tar jxf ~/.tigervnc-build/xorg-server.tar.bz2
-    cp -r xorg-server-1.*/* ../xserver
+    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2
+    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/freetype.tar.bz2
+    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/xorg-server.tar.bz2
+    cp -r $SRCDIR/unix/xserver xserver
+    cp -r xorg-server-1.*/* xserver
     popd
 }
 
@@ -104,11 +107,8 @@ build ()
 {
     # Build VNC
     echo "*** Building VNC ***"
-    cd ..
-    make distclean || true
-    ./configure ${1+"$@"} --prefix=${PREFIX}
-    make
-    cd unix
+    $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX}
+    ($MAKE)
 
     # Build Xorg
     echo "*** Building Xorg ***"
@@ -146,8 +146,7 @@ build ()
                 echo "Failed to configure ${module}."
                 exit
         fi
-        ($MAKE);
-        make install
+        ($MAKE install)
         cd ..
     done
 
@@ -159,8 +158,7 @@ build ()
 	echo "Failed to configure Mesa."
 	exit
     fi
-    ($MAKE)
-    make install
+    ($MAKE install)
     popd
 
     # build freetype
@@ -172,8 +170,7 @@ build ()
 	    echo "Failed to configure freetype."
 	    exit
         fi
-        ($MAKE)
-        make install
+        ($MAKE install)
         popd
     fi
 
@@ -181,7 +178,7 @@ build ()
 
     # build xserver
     echo "*** Building xserver ***"
-    cd xserver
+    pushd xorg/xserver
     autoreconf -fiv
     XORGCFGFLAGS='--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg'
     if [ $STATIC = 1 ]; then
@@ -192,37 +189,75 @@ build ()
 	echo "Failed to configure X server."
 	exit
     fi
-    ($MAKE)
-    make install
-    cd ..
+    ($MAKE TIGERVNC_SRCDIR=$SRCDIR install)
+    popd
 }
 
-case "$1" in
-    init)
-	shift
-	if [ "$1" = "-static" ]; then
-	    STATIC=1
-	    shift
-	fi
-	init ${1+"$@"}
-	;;
-    build)
-	shift
-	if [ "$1" = "-static" ]; then
-	    STATIC=1
-	    shift
-	fi
-	build ${1+"$@"}
-	;;
-    update)
-	shift
-	if [ "$1" = "-static" ]; then
-	    STATIC=1
-	    shift
-	fi
-	update_modules
-	;;
-    *)
-	echo "Usage: $0 init | build | update [-static] [additional configure flags]"
-	exit 3
+rebuild ()
+{
+    # Build VNC
+    echo "*** Building VNC ***"
+    ($MAKE ${1+"$@"})
+
+    # build xserver
+    echo "*** Building xserver ***"
+    pushd xorg/xserver
+    ($MAKE TIGERVNC_SRCDIR=$SRCDIR install ${1+"$@"})
+    popd
+}
+
+
+usage ()
+{
+    echo "Usage: $0  init -version <7.4 | 7.5>"
+    echo "       [-srcdir <source dir>]"
+    echo
+    echo "       $0  build -version <7.4 | 7.5>"
+    echo "       [-srcdir <source dir>] [-static] [additional configure flags]"
+    echo
+    echo "       $0  rebuild -version <7.4 | 7.5> "
+    echo "       [additional make options]"
+    echo
+    echo "       $0  update -version <7.4 | 7.5>"
+    echo "       [-srcdir <source dir>]"
+    echo
+    echo "-static = build a stand-alone version of Xvnc which does not depend on"
+    echo "          the shared X11 libraries"
+    echo
+    echo "-srcdir = specify the top directory of the TigerVNC source tree"
+    echo "          (default = ..)"
+    exit 1
+}
+
+
+while [ $# -gt 0 ]
+do
+    case "$1" in
+	init)       MODE=init                ;;
+	build)      MODE=build               ;;
+	rebuild)    MODE=rebuild             ;;
+	update)     MODE=update              ;;
+	-static)    STATIC=1                 ;;
+	-version)   XORG_VERSION=$2;  shift  ;;
+	-srcdir)    SRCDIR=$2;        shift  ;;
+	*)          break                    ;;
+    esac
+    shift
+done
+
+if [ "$XORG_VERSION" = "" -o "$MODE" = "" ]
+then
+    usage
+fi
+
+pushd $SRCDIR
+SRCDIR=`pwd`
+popd
+
+case "$MODE" in
+    init)       init                 ;;
+    build)      build ${1+"$@"}      ;;
+    rebuild)    rebuild ${1+"$@"}    ;;
+    update)     update               ;;
+    *)          usage                ;;
 esac
