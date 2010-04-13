@@ -44,7 +44,14 @@ case "$host_os" in
     if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
       objfmt='BSD-a.out'
     else
-      objfmt='ELF'
+      case "$host_cpu" in
+        x86_64)
+          objfmt='ELF64'
+          ;;
+        *)
+          objfmt='ELF'
+          ;;
+      esac
     fi
   ;;
   solaris* | sunos* | sysv* | sco*)
