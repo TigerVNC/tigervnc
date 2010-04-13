@@ -6,15 +6,11 @@
 
 set -e
 
-if [ "$PREFIX" = "" ]; then
-    PREFIX=`pwd`/xorg.build
-fi
-export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
-export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
+PREFIX=
 MAKE="make"
 STATIC=0
 XORG_VERSION=
-SRCDIR=..
+SRCDIR=`dirname $0`/..
 
 modules="dri2proto \
     libpthread-stubs \
@@ -210,22 +206,17 @@ rebuild ()
 usage ()
 {
     echo "Usage: $0  init -version <7.4 | 7.5>"
-    echo "       [-srcdir <source dir>]"
     echo
     echo "       $0  build -version <7.4 | 7.5>"
-    echo "       [-srcdir <source dir>] [-static] [additional configure flags]"
+    echo "       [-static] [additional configure flags]"
     echo
     echo "       $0  rebuild -version <7.4 | 7.5> "
     echo "       [additional make options]"
     echo
     echo "       $0  update -version <7.4 | 7.5>"
-    echo "       [-srcdir <source dir>]"
     echo
     echo "-static = build a stand-alone version of Xvnc which does not depend on"
     echo "          the shared X11 libraries"
-    echo
-    echo "-srcdir = specify the top directory of the TigerVNC source tree"
-    echo "          (default = ..)"
     exit 1
 }
 
@@ -252,7 +243,19 @@ fi
 
 pushd $SRCDIR
 SRCDIR=`pwd`
+echo "*** Using TigerVNC source tree at $SRCDIR ***"
 popd
+
+if [ "`pwd`" = "$SRCDIR/unix" ]; then
+    cd $SRCDIR
+fi
+
+if [ "$PREFIX" = "" ]; then
+    PREFIX=`pwd`/xorg.build
+fi
+
+export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
+export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
 
 case "$MODE" in
     init)       init                 ;;
