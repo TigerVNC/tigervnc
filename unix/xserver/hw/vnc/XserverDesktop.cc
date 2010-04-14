@@ -164,8 +164,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
   if (httpListener)
     httpServer = new FileHTTPServer(this);
 
-  pointerDevice = new PointerDevice(server);
-  keyboardDevice = new KeyboardDevice();
+  inputDevice = new InputDevice(server);
 }
 
 XserverDesktop::~XserverDesktop()
@@ -174,8 +173,7 @@ XserverDesktop::~XserverDesktop()
     delete [] data;
   TimerFree(deferredUpdateTimer);
   TimerFree(dummyTimer);
-  delete pointerDevice;
-  delete keyboardDevice;
+  delete inputDevice;
   delete httpServer;
   delete server;
 }
@@ -586,7 +584,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         }
       }
 
-      pointerDevice->Sync();
+      inputDevice->PointerSync();
     }
 
     int timeout = server->checkTimeouts();
@@ -645,8 +643,8 @@ void XserverDesktop::approveConnection(void* opaqueId, bool accept,
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {
-  pointerDevice->Move(pos);
-  pointerDevice->ButtonAction(buttonMask);
+  inputDevice->PointerMove(pos);
+  inputDevice->PointerButtonAction(buttonMask);
 }
 
 void XserverDesktop::clientCutText(const char* str, int len)
@@ -807,7 +805,7 @@ void XserverDesktop::lookup(int index, int* r, int* g, int* b)
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 {
 	if (down)
-		keyboardDevice->Press(keysym);
+		inputDevice->KeyboardPress(keysym);
 	else
-		keyboardDevice->Release(keysym);
+		inputDevice->KeyboardRelease(keysym);
 }

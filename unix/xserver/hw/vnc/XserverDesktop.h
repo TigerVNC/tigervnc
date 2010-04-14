@@ -122,8 +122,7 @@ private:
                                             pointer arg);
   void deferUpdate();
   ScreenPtr pScreen;
-  PointerDevice *pointerDevice;
-  KeyboardDevice *keyboardDevice;
+  InputDevice *inputDevice;
   OsTimerPtr deferredUpdateTimer, dummyTimer;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
