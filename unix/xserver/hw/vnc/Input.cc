@@ -119,6 +119,7 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 InputDevice::InputDevice(rfb::VNCServerST *_server)
 	: server(_server), oldButtonMask(0)
 {
+#if XORG < 17
 	pointerDev = AddInputDevice(
 #if XORG >= 16
 				    serverClient,
@@ -132,13 +133,15 @@ InputDevice::InputDevice(rfb::VNCServerST *_server)
 #endif
 				     keyboardProc, TRUE);
 	RegisterKeyboardDevice(keyboardDev);
-
+#endif
 	initEventq();
 }
 
 void InputDevice::PointerButtonAction(int buttonMask)
 {
 	int i, n;
+
+	initInputDevice();
 
 	for (i = 0; i < BUTTONS; i++) {
 		if ((buttonMask ^ oldButtonMask) & (1 << i)) {
@@ -160,6 +163,8 @@ void InputDevice::PointerMove(const rfb::Point &pos)
 
 	if (pos.equals(cursorPos))
 		return;
+
+	initInputDevice();
 
 	valuators[0] = pos.x;
 	valuators[1] = pos.y;
@@ -236,6 +241,34 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 	}
 
 	return Success;
+}
+
+void InputDevice::initInputDevice(void)
+{
+#if XORG >= 17
+	int ret;
+	static int initialized = 0;
+
+	if (initialized != 0)
+		return;
+
+	initialized = 1;
+
+	ret = AllocDevicePair(serverClient, "TigerVNC", &pointerDev,
+			      &keyboardDev, pointerProc, keyboardProc,
+			      FALSE);
+
+	if (ret != Success)
+		FatalError("Failed to initialize TigerVNC input devices\n");
+
+	if (ActivateDevice(pointerDev, TRUE) != Success ||
+	    ActivateDevice(keyboardDev, TRUE) != Success)
+		FatalError("Failed to activate TigerVNC devices\n");
+
+	if (!EnableDevice(pointerDev, TRUE) ||
+	    !EnableDevice(keyboardDev, TRUE))
+		FatalError("Failed to activate TigerVNC devices\n");
+#endif
 }
 
 #define IS_PRESSED(keyc, keycode) \
@@ -462,6 +495,8 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	int mapWidth;
 	unsigned int i, n;
 	int j, k, action, state, maxKeysPerMod;
+
+	initInputDevice();
 
 	/* 
 	 * Since we are checking the current state to determine if we need
