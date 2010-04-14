@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- mode: shell-script; coding: UTF-8 -*-
 # 
-# Build Xvnc with Xorg 7.4
+# Build Xvnc with Xorg 7.4 or 7.5
 #
 
 set -e
@@ -33,7 +33,6 @@ modules="dri2proto \
     videoproto \
     compositeproto \
     xineramaproto \
-    fontcacheproto \
     libdrm \
     libXau \
     xtrans \
@@ -48,13 +47,14 @@ modules="dri2proto \
     libXfixes \
     libXdamage \
     libXi \
-    evieext \
     libxkbfile \
     libfontenc \
     libXfont \
     libpciaccess \
     pixman"
 
+modules74="fontcacheproto \
+    evieext"
 
 init()
 {
@@ -69,7 +69,13 @@ init()
     popd
 
     pushd xserver
-    patch -p1 < $SRCDIR/unix/xserver15.patch
+
+    if [ "$XORG_VERSION" = "7.4" ]; then
+	patch -p1 < $SRCDIR/unix/xserver15.patch
+    else
+	patch -p1 < $SRCDIR/unix/xserver17.patch
+    fi
+
     popd
     popd
 
@@ -84,6 +90,7 @@ init()
 update_modules()
 {
     if [ -d xorg ]; then rm -rf xorg; fi
+    if [ -d xorg.build ]; then rm -rf xorg.build; fi
     mkdir xorg
     pushd xorg
     $SRCDIR/unix/download-xorg-$XORG_VERSION
@@ -236,10 +243,11 @@ do
     shift
 done
 
-if [ "$XORG_VERSION" = "" -o "$MODE" = "" ]
-then
-    usage
-fi
+case "$XORG_VERSION" in
+    7.4)  modules=$modules" "$modules74  ;;
+    7.5)  ;;
+    *)    usage  ;;
+esac
 
 pushd $SRCDIR
 SRCDIR=`pwd`
@@ -255,7 +263,7 @@ if [ "$PREFIX" = "" ]; then
 fi
 
 export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
-export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
+export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/share/pkgconfig"
 
 case "$MODE" in
     init)       init                 ;;
