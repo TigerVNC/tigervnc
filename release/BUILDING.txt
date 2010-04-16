@@ -1,0 +1,169 @@
+*******************************************************************************
+**     Building TigerVNC
+*******************************************************************************
+
+
+==================
+Build Requirements
+==================
+
+-- autoconf 2.57 or later
+
+-- automake 1.7 or later
+
+-- libtool 1.4 or later
+
+-- NASM
+   * 0.98 or later is required for a 32-bit build
+   * NASM 2.05 or later is required for a 64-bit build
+   * NASM 2.07 or later is required for a 64-bit build on OS/X (10.6 "Snow
+     Leopard" or later.)  This can be obtained from MacPorts
+     (http://www.macports.org/).
+
+   The NASM 2.05 RPMs do not work on older Linux systems, such as Enterprise
+   Linux 4.  On such systems, you can easily build and install NASM 2.05
+   from the source RPM by executing the following as root:
+
+     ARCH=`uname -m`
+     wget http://www.nasm.us/pub/nasm/releasebuilds/2.05.01/nasm-2.05.01-1.src.rpm
+     rpmbuild --rebuild nasm-2.05.01-1.src.rpm
+     rpm -Uvh /usr/src/redhat/RPMS/$ARCH/nasm-2.05.01-1.$ARCH.rpm
+
+   NOTE: NASM build will fail if texinfo is not installed.
+
+-- GCC v4.1 or later recommended for best performance
+
+-- X11 development kit
+
+-- If building Xvnc:
+   * Python v2.3 or later
+   * zlib v1.2 or later
+   * OpenSSL v0.9.7 or later
+
+
+=================
+Building TigerVNC
+=================
+
+The following procedure will build the TigerVNC viewer on Linux and Unix
+systems.  On 64-bit systems, this may build a 32-bit version of TigerVNC,
+depending on the default compiler configuration for your system.  See below for
+specific build instructions for 64-bit systems.
+
+  cd tigervnc
+  autoreconf -fiv
+  sh ./configure [additional configure flags]
+  make
+
+NOTE: Running autoreconf is only necessary if building TigerVNC from the SVN
+repository.
+
+Building the TigerVNC server (Xvnc) is a bit trickier.  On newer systems, such
+as Fedora, Xvnc is typically built to use the X11 shared libraries provided
+with the system.  This requires a system with Xorg 7.4 or later, however.
+Systems with older versions of Xorg must build a "legacy-friendly" version of
+the TigerVNC server.  This is accomplished by downloading and building the
+more recent Xorg modules in a local directory and then building Xvnc such that
+it links against the local build of these libraries, not the X11 libraries
+installed on the system.  The "build-xorg" script in the TigerVNC source
+distribution automates this process.
+
+The following procedure will build both the TigerVNC viewer and a
+"legacy-friendly" version of the TigerVNC server:
+
+  cd tigervnc
+  unix/build-xorg init -version 7.4
+  unix/build-xorg build -version 7.4 [-static] [additional configure flags]
+
+Passing an argument of "-static" to the build command line will generate a
+version of Xvnc that has no external dependencies on the X11 shared libraries
+or any other distribution-specific shared libraries.  This version of Xvnc
+should be transportable across multiple O/S distributions.  The legacy-friendly
+build should work on RedHat Enterprise 4, its contemporaries, and later
+systems.  It probably will not work on older systems.  It has not been tested
+on non-Linux systems (yet).
+
+build-xorg can also be used to rebuild just the TigerVNC server and viewer,
+once the X11 modules and other dependencies have been built the first time.
+This is convenient for testing changes that just apply to the TigerVNC source
+code.  To accomplish this, run:
+
+  unix/build-xorg rebuild [additional make flags]
+
+For instance,
+
+  unix/build-xorg rebuild clean
+
+will clean both the Xvnc and vncviewer builds without destroying any of the
+build configuration or module dependencies.
+
+
+==================================
+Build Recipes for Specific Systems
+==================================
+
+
+32-bit Build on 64-bit Linux
+----------------------------
+
+Add
+
+  --host i686-pc-linux-gnu CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32'
+
+to the configure and build command lines.
+
+
+64-bit Build on 64-bit OS/X
+---------------------------
+
+Add
+
+  --host x86_64-apple-darwin10.0.0 NASM=/opt/local/bin/nasm
+
+to the configure command line.  NASM 2.07 or later from MacPorts must be
+installed.
+
+
+32-bit Build on 64-bit OS/X
+---------------------------
+
+Add
+
+  CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' LDFLAGS=-m32
+
+to the configure command line.
+
+
+32-bit Backward-Compatible Build on 64-bit OS/X
+-----------------------------------------------
+
+Add
+
+  CC=gcc-4.0 CXX=g++-4.0 CFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk \
+    -mmacosx-version-min=10.4 -O3 -m32' \
+    CXXFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk \
+    -mmacosx-version-min=10.4 -O3 -m32' \
+    LDFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk \
+    -mmacosx-version-min=10.4 -m32'
+
+to the configure command line.  The OS X 10.4 SDK must be installed.
+
+
+*******************************************************************************
+**     Creating Release Packages
+*******************************************************************************
+
+The following commands can be used to create various types of release packages:
+
+make dmg
+
+  Create Macintosh package/disk image.  This requires the PackageMaker
+  application, which must be installed in /Developer/Applications/Utilities.
+
+make udmg
+
+  On 64-bit OS X (10.6 "Snow Leopard" or later), this creates a version of the
+  Macintosh package/disk image which contains universal i386/x86-64 binaries.
+  The 32-bit fork of these binaries is backward compatible with OS X 10.4 and
+  later, whereas the 64-bit fork is compatible with OS X 10.6 and later.  OS X
+  10.4 compatibility SDK required.
