@@ -221,8 +221,7 @@ usage ()
     echo "       $0  build -version <7.4 | 7.5>"
     echo "       [-static] [additional configure flags]"
     echo
-    echo "       $0  rebuild -version <7.4 | 7.5> "
-    echo "       [additional make options]"
+    echo "       $0  rebuild [additional make options]"
     echo
     echo "       $0  update -version <7.4 | 7.5>"
     echo
@@ -251,7 +250,7 @@ done
 case "$XORG_VERSION" in
     7.4)  modules=$modules" "$modules74  ;;
     7.5)  ;;
-    *)    usage  ;;
+    *)    if [ ! "$MODE" = "rebuild" ]; then usage; fi  ;;
 esac
 
 pushd $SRCDIR
