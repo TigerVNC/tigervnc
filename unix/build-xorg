@@ -110,8 +110,11 @@ build ()
 {
     # Build VNC
     echo "*** Building VNC ***"
-    $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX}
-    ($MAKE)
+    if [ $STATIC = 1 ]; then
+        VNCCFGFLAGS=--with-included-zlib
+    fi
+    $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX} ${VNCCFGFLAGS}
+    $MAKE
 
     # Build Xorg
     echo "*** Building Xorg ***"
@@ -149,7 +152,7 @@ build ()
                 echo "Failed to configure ${module}."
                 exit
         fi
-        ($MAKE install)
+        $MAKE install
         cd ..
     done
 
@@ -161,7 +164,8 @@ build ()
 	echo "Failed to configure Mesa."
 	exit
     fi
-    ($MAKE install)
+    $MAKE
+    $MAKE install
     popd
 
     # build freetype
@@ -173,7 +177,7 @@ build ()
 	    echo "Failed to configure freetype."
 	    exit
         fi
-        ($MAKE install)
+        $MAKE install
         popd
     fi
 
@@ -192,7 +196,7 @@ build ()
 	echo "Failed to configure X server."
 	exit
     fi
-    ($MAKE TIGERVNC_SRCDIR=$SRCDIR install)
+    $MAKE TIGERVNC_SRCDIR=$SRCDIR install
     popd
 }
 
@@ -200,12 +204,12 @@ rebuild ()
 {
     # Build VNC
     echo "*** Building VNC ***"
-    ($MAKE ${1+"$@"})
+    $MAKE ${1+"$@"}
 
     # build xserver
     echo "*** Building xserver ***"
     pushd xorg/xserver
-    ($MAKE TIGERVNC_SRCDIR=$SRCDIR install ${1+"$@"})
+    $MAKE TIGERVNC_SRCDIR=$SRCDIR install ${1+"$@"}
     popd
 }
 
@@ -223,7 +227,8 @@ usage ()
     echo "       $0  update -version <7.4 | 7.5>"
     echo
     echo "-static = build a stand-alone version of Xvnc which does not depend on"
-    echo "          the shared X11 libraries"
+    echo "          the shared X11 libraries or any distribution-specific shared"
+    echo "          system libraries (requires GCC)"
     exit 1
 }
 
@@ -262,12 +267,98 @@ if [ "$PREFIX" = "" ]; then
     PREFIX=`pwd`/xorg.build
 fi
 
+if [ $STATIC = 1 -a "$MODE" = "build" ]; then
+    if [ ! -d ./xorg.build/syslib ]; then
+	mkdir -p ./xorg.build/syslib
+    fi
+
+    for i in "$@"; do
+	case "$i" in
+	    CC=*)        CC=`echo $i | sed s/^CC=//g`  ;;
+	    CXX=*)       CXX=`echo $i | sed s/^CXX=//g`  ;;
+	    CFLAGS=*)    CFLAGS=`echo $i | sed s/^CFLAGS=//g`  ;;
+	    CXXFLAGS=*)  CXXFLAGS=`echo $i | sed s/^CXXFLAGS=//g`  ;;
+	    LDFLAGS=*)   LDFLAGS=`echo $i | sed s/^LDFLAGS=//g`  ;;
+	esac
+    done
+    if [ "$CC" = "" ]; then
+	CC=gcc
+    fi
+    if [ "$CXX" = "" ]; then
+	CXX=g++
+    fi
+    if [ "$CFLAGS" = "" ]; then
+	CFLAGS=-O3
+    fi
+    if [ "$CXXFLAGS" = "" ]; then
+	CXXFLAGS=-O3
+    fi
+    CFLAGS="$CFLAGS -static-libgcc -fPIC"
+    CXXFLAGS="$CXXFLAGS -static-libgcc -fPIC"
+    LDFLAGS="$LDFLAGS -static-libgcc -L`pwd`/xorg.build/syslib"
+    echo CC = $CC
+    echo CXX = $CXX
+    echo CFLAGS = $CFLAGS
+    echo CXXFLAGS = $CXXFLAGS
+    echo LDFLAGS = $LDFLAGS
+    if [ -f ./xorg.build/syslib/libstdc++.a ]; then
+	rm -f ./xorg.build/syslib/libstdc++.a
+    fi
+    LIBSTDCPLUSPLUS=`$CC $CFLAGS -print-file-name=libstdc++.a`
+    if [ ! -f $LIBSTDCPLUSPLUS ]; then
+	echo Cannot find suitable libstdc++.a.  Aborting ...
+	exit 1
+    else
+	ln -fs $LIBSTDCPLUSPLUS ./xorg.build/syslib
+    fi
+    if [ -f ./xorg.build/syslib/libcrypto.a ]; then
+	rm -f ./xorg.build/syslib/libcrypto.a
+    fi
+    if [ -f ./xorg.build/syslib/libz.a ]; then
+	rm -f ./xorg.build/syslib/libz.a
+    fi
+    IS64BIT=`echo -e "#ifdef __x86_64__\nis64bit_yes\n#else\nis64bit_no\n#endif" | $CC $CFLAGS -E - | grep is64bit`
+    STATICLIBDIR=
+    case $IS64BIT in
+	is64bit_yes)
+	    if [ -d /usr/lib64 ]; then STATICLIBDIR=/usr/lib64;
+	    else STATICLIBDIR=/usr/lib; fi
+	    ;;
+	is64bit_no)
+	    if [ -d /usr/lib32 ]; then STATICLIBDIR=/usr/lib32;
+	    else STATICLIBDIR=/usr/lib; fi
+	    ;;
+	*)
+	    echo "Cannot determine whether compiler output is 64-bit or 32-bit.  Are you using GCC?"
+	    exit 1
+	    ;;
+    esac
+    if [ ! -f $STATICLIBDIR/libcrypto.a ]; then
+	echo Cannot find suitable libcrypto.a.  Aborting ...
+	exit 1
+    else
+	ln -fs $STATICLIBDIR/libcrypto.a ./xorg.build/syslib
+    fi
+    if [ ! -f $STATICLIBDIR/libz.a ]; then
+	echo Cannot find suitable libz.a.  Aborting ...
+	exit 1
+    else
+	ln -fs $STATICLIBDIR/libz.a ./xorg.build/syslib
+    fi
+fi
+
 export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
 export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/share/pkgconfig"
 
 case "$MODE" in
     init)       init                 ;;
-    build)      build ${1+"$@"}      ;;
+    build)
+	if [ $STATIC = 1 ]; then
+	    build ${1+"$@"} CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS";
+	else
+	    build ${1+"$@"};
+	fi
+	;;
     rebuild)    rebuild ${1+"$@"}    ;;
     update)     update               ;;
     *)          usage                ;;
