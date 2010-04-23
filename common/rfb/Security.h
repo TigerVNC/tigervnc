@@ -24,7 +24,9 @@
 
 #include <rdr/types.h>
 #include <rfb/Configuration.h>
+#include <rfb/CSecurity.h>
 #include <rfb/SSecurity.h>
+#include <rfb/UserPasswdGetter.h>
 
 #include <list>
 
@@ -51,7 +53,9 @@ namespace rfb {
 
   class Security {
   public:
-    /* Create Security instance */
+    /*
+     * Create Security instance.
+     */
     Security(void);
 
     /* Enable/Disable certain security type */
@@ -68,7 +72,16 @@ namespace rfb {
     /* Create server side SSecurity class instance */
     SSecurity* GetSSecurity(rdr::U8 secType);
 
+    /* Create client side CSecurity class instance */
+    CSecurity* GetCSecurity(rdr::U8 secType);
+
     static StringParameter secTypes;
+
+    /*
+     * Use variable directly instead of dumb get/set methods. It is used
+     * only in viewer-side code and MUST be set by viewer.
+     */
+    UserPasswdGetter *upg;
   private:
     std::list<rdr::U8> enabledSecTypes;
   };

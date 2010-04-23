@@ -21,6 +21,8 @@
 #ifdef _WIN32
 #define strcasecmp _stricmp
 #endif
+#include <rfb/CSecurityNone.h>
+#include <rfb/CSecurityVncAuth.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -39,7 +41,7 @@ StringParameter Security::secTypes
  "Specify which security scheme to use (None, VncAuth)",
  "VncAuth");
 
-Security::Security(void)
+Security::Security(void) : upg(NULL)
 {
   char *secTypesStr = secTypes.getData();
 
@@ -78,9 +80,22 @@ SSecurity* Security::GetSSecurity(U8 secType)
   switch (secType) {
   case secTypeNone: return new SSecurityNone();
   case secTypeVncAuth: return new SSecurityVncAuth();
-  default:
-    vlog.error("Undefined security type %d, aborting");
-    abort();
+  }
+
+bail:
+  throw Exception("Security type not supported");
+}
+
+CSecurity* Security::GetCSecurity(rdr::U8 secType)
+{
+  assert (upg != NULL); /* (upg == NULL) means bug in the viewer */
+
+  if (!IsSupported(secType))
+    goto bail;
+
+  switch (secType) {
+  case secTypeNone: return new CSecurityNone();
+  case secTypeVncAuth: return new CSecurityVncAuth(upg);
   }
 
 bail:

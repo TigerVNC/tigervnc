@@ -22,6 +22,7 @@
 #ifndef __CSECURITYNONE_H__
 #define __CSECURITYNONE_H__
 
+#include <rfb/Security.h>
 #include <rfb/CSecurity.h>
 
 namespace rfb {
