@@ -24,10 +24,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <rfb/CConnection.h>
-#include <rfb/UserPasswdGetter.h>
 #include <rfb/Password.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/util.h>
+#include <rfb/Security.h>
 extern "C" {
 #include <rfb/d3des.h>
 }
@@ -36,16 +36,6 @@ extern "C" {
 using namespace rfb;
 
 static const int vncAuthChallengeSize = 16;
-
-
-CSecurityVncAuth::CSecurityVncAuth(UserPasswdGetter* upg_)
-  : upg(upg_)
-{
-}
-
-CSecurityVncAuth::~CSecurityVncAuth()
-{
-}
 
 bool CSecurityVncAuth::processMsg(CConnection* cc)
 {
@@ -56,7 +46,7 @@ bool CSecurityVncAuth::processMsg(CConnection* cc)
   rdr::U8 challenge[vncAuthChallengeSize];
   is->readBytes(challenge, vncAuthChallengeSize);
   PlainPasswd passwd;
-  upg->getUserPasswd(0, &passwd.buf);
+  (CSecurity::upg)->getUserPasswd(0, &passwd.buf);
 
   // Calculate the correct response
   rdr::U8 key[8];

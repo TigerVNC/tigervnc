@@ -54,7 +54,7 @@ StringParameter SSecurityVeNCrypt::secTypesStr
 ("VeNCryptTypes",
  "Specify which security scheme to use for VeNCrypt connections (TLSNone, "
  "TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain)",
- "TLSVnc,TLSPlain,X509Vnc,X509Plain", ConfServer);
+ "TLSVnc,TLSPlain,X509Vnc,X509Plain");
 
 SSecurityVeNCrypt::SSecurityVeNCrypt(void)
 {

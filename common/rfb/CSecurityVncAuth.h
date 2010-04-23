@@ -23,17 +23,13 @@
 
 namespace rfb {
 
-  class UserPasswdGetter;
-
   class CSecurityVncAuth : public CSecurity {
   public:
-    CSecurityVncAuth(UserPasswdGetter* pg);
-    virtual ~CSecurityVncAuth();
+    CSecurityVncAuth(void) {}
+    virtual ~CSecurityVncAuth() {}
     virtual bool processMsg(CConnection* cc);
     virtual int getType() const {return secTypeVncAuth;};
     virtual const char* description() const {return "No Encryption";}
-  private:
-    UserPasswdGetter* upg;
   };
 }
 #endif

@@ -22,6 +22,7 @@
 #define strcasecmp _stricmp
 #endif
 #include <rfb/CSecurityNone.h>
+#include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
@@ -37,12 +38,14 @@ using namespace std;
 
 static LogWriter vlog("Security");
 
+UserPasswdGetter *CSecurity::upg = NULL;
+
 StringParameter Security::secTypes
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
- "VncAuth", ConfServer);
+ "VncAuth");
 
-Security::Security(void) : upg(NULL)
+Security::Security(void)
 {
   char *secTypesStr = secTypes.getData();
 
@@ -88,16 +91,17 @@ bail:
   throw Exception("Security type not supported");
 }
 
-CSecurity* Security::GetCSecurity(rdr::U8 secType)
+CSecurity* Security::GetCSecurity(U8 secType)
 {
-  assert (upg != NULL); /* (upg == NULL) means bug in the viewer */
+  assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
 
   if (!IsSupported(secType))
     goto bail;
 
   switch (secType) {
   case secTypeNone: return new CSecurityNone();
-  case secTypeVncAuth: return new CSecurityVncAuth(upg);
+  case secTypeVncAuth: return new CSecurityVncAuth();
+  case secTypeVeNCrypt: return new CSecurityVeNCrypt();
   }
 
 bail:

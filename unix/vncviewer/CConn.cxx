@@ -71,7 +71,8 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   setShared(shared);
   addSecType(secTypeNone);
   addSecType(secTypeVncAuth);
-  security->upg = this; /* Security instance is created in CConnection costructor. */
+  addSecType(secTypeVeNCrypt);
+  CSecurity::upg = this; /* Security instance is created in CConnection costructor. */
 
   CharArray encStr(preferredEncoding.getData());
   int encNum = encodingNum(encStr.buf);

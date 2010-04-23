@@ -4,6 +4,8 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	CMsgHandler.h CMsgReader.h CMsgReaderV3.h CMsgWriter.h \
 	CMsgWriterV3.h ColourCube.h ColourMap.h ComparingUpdateTracker.h \
 	Configuration.h ConnParams.h CSecurity.h CSecurityNone.h \
+	CSecurityStack.h CSecurityTLS.h CSecurityTLSBase.h \
+	CSecurityVeNCrypt.h \
 	CSecurityVncAuth.h Cursor.h Decoder.h d3des.h Encoder.h \
 	encodings.h Exception.h hextileConstants.h hextileDecode.h \
 	HextileDecoder.h hextileEncodeBetter.h hextileEncode.h \
@@ -15,7 +17,7 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	ScaledPixelBuffer.h ScaleFilters.h SConnection.h ScreenSet.h \
 	screenTypes.h SDesktop.h ServerCore.h SMsgHandler.h \
 	SMsgReader.h SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h \
-	Security.h SSecurity.h SSecurityNone.h SSecurityPlain.h \
+	SSecurity.h SSecurityNone.h SSecurityPlain.h \
 	SSecurityStack.h SSecurityTLS.h SSecurityTLSBase.h SSecurityVeNCrypt.h \
 	SSecurityVncAuth.h Threading.h tightDecode.h \
 	TightDecoder.h tightEncode.h TightEncoder.h TightPalette.h Timer.h \
@@ -26,6 +28,8 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 
 librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	CMsgReader.cxx CMsgReaderV3.cxx CMsgWriter.cxx CMsgWriterV3.cxx \
+	CSecurityStack.cxx CSecurityTLS.cxx CSecurityTLSBase.cxx \
+	CSecurityVeNCrypt.cxx \
 	CSecurityVncAuth.cxx CapsContainer.cxx CapsList.cxx \
 	ComparingUpdateTracker.cxx Configuration.cxx ConnParams.cxx \
 	Cursor.cxx Decoder.cxx d3des.c Encoder.cxx \

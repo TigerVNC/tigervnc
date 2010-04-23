@@ -49,14 +49,13 @@ namespace rfb {
 
     static StringParameter X509_CertFile, X509_KeyFile, secTypesStr;
 
-  protected:
-    static SSecurityStack* getSSecurityStack(int secType);
-
     /* XXX Derive Security class and merge those functions appropriately ? */
     static void getSecTypes(std::list<rdr::U32>* secTypes);
     static rdr::U32 secTypeNum(const char *name);
     static char* secTypeName(rdr::U32 num);
     static std::list<rdr::U32> parseSecTypes(const char *types);
+  protected:
+    static SSecurityStack* getSSecurityStack(int secType);
 
     SSecurityStack *ssecurityStack;
     bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;

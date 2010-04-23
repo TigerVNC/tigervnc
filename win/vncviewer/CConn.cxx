@@ -102,7 +102,7 @@ bool CConn::initialise(network::Socket* s, bool reverse) {
   // - Set which auth schemes we support, in order of preference
   addSecType(secTypeVncAuth);
   addSecType(secTypeNone);
-  security->upg = this; /* Security instance is created in CConnection costructor. */
+  CSecurity::upg = this;
 
   // Start the RFB protocol
   sock = s;

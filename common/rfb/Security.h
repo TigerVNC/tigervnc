@@ -26,7 +26,6 @@
 #include <rfb/Configuration.h>
 #include <rfb/CSecurity.h>
 #include <rfb/SSecurity.h>
-#include <rfb/UserPasswdGetter.h>
 
 #include <list>
 
@@ -82,7 +81,6 @@ namespace rfb {
      * Use variable directly instead of dumb get/set methods. It is used
      * only in viewer-side code and MUST be set by viewer.
      */
-    UserPasswdGetter *upg;
   private:
     std::list<rdr::U8> enabledSecTypes;
   };
