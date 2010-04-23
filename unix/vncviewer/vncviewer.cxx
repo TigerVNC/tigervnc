@@ -58,7 +58,7 @@ IntParameter wmDecorationHeight("WMDecorationHeight", "Height of window "
                                 "manager decoration around a window", 24);
 StringParameter passwordFile("PasswordFile",
                              "Password file for VNC authentication", "");
-AliasParameter rfbauth("passwd", "Alias for PasswordFile", &passwordFile);
+AliasParameter passwd("passwd", "Alias for PasswordFile", &passwordFile);
 
 BoolParameter useLocalCursor("UseLocalCursor",
                              "Render the mouse cursor locally", true);

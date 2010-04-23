@@ -13,9 +13,9 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	PixelFormat.h PixelFormat.inl Pixel.h RawDecoder.h RawEncoder.h \
 	Rect.h Region.h rreDecode.h RREDecoder.h rreEncode.h RREEncoder.h \
 	ScaledPixelBuffer.h ScaleFilters.h SConnection.h ScreenSet.h \
-	screenTypes.h SDesktop.h Security.h ServerCore.h SMsgHandler.h \
+	screenTypes.h SDesktop.h ServerCore.h SMsgHandler.h \
 	SMsgReader.h SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h \
-	SSecurityFactoryStandard.h SSecurity.h SSecurityNone.h \
+	Security.h SSecurityFactoryStandard.h SSecurityNone.h \
 	SSecurityVncAuth.h Threading.h tightDecode.h TightDecoder.h \
 	tightEncode.h TightEncoder.h TightPalette.h Timer.h \
 	TransImageGetter.h transInitTempl.h transTempl.h TrueColourMap.h \
@@ -34,12 +34,12 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	RREEncoder.cxx RREDecoder.cxx RawDecoder.cxx RawEncoder.cxx \
 	Region.cxx SConnection.cxx SMsgHandler.cxx \
 	SMsgReader.cxx SMsgReaderV3.cxx SMsgWriter.cxx SMsgWriterV3.cxx \
-	ServerCore.cxx SSecurityFactoryStandard.cxx SSecurityVncAuth.cxx \
+	ServerCore.cxx Security.cxx SSecurityFactoryStandard.cxx SSecurityVncAuth.cxx \
 	ScaledPixelBuffer.cxx ScaleFilters.cxx Timer.cxx TightDecoder.cxx \
 	TightEncoder.cxx TightPalette.cxx TransImageGetter.cxx \
 	UpdateTracker.cxx VNCSConnectionST.cxx \
 	VNCServerST.cxx ZRLEEncoder.cxx ZRLEDecoder.cxx encodings.cxx \
-	Security.cxx util.cxx
+	util.cxx
 
 librfb_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win
 librfb_la_LIBADD =

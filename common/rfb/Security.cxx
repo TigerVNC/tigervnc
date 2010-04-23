@@ -15,12 +15,73 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
 #define strcasecmp _stricmp
 #endif
+#include <rdr/Exception.h>
+#include <rfb/LogWriter.h>
 #include <rfb/Security.h>
+#include <rfb/SSecurityNone.h>
+#include <rfb/SSecurityFactoryStandard.h>
+#include <rfb/SSecurityVncAuth.h>
 #include <rfb/util.h>
+
+using namespace rdr;
+using namespace rfb;
+using namespace std;
+
+static LogWriter vlog("Security");
+
+Security::Security(void)
+{
+  char *secTypesStr = SSecurityFactoryStandard::sec_types.getData();
+
+  enabledSecTypes = parseSecTypes(secTypesStr);
+
+  delete secTypesStr;
+}
+
+void Security::EnableSecType(U8 secType)
+{
+  list<U8>::iterator i;
+
+  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
+    if (*i == secType)
+      return;
+
+  enabledSecTypes.push_back(secType);
+}
+
+bool Security::IsSupported(U8 secType)
+{
+  list<U8>::iterator i;
+
+  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
+    if (*i == secType)
+      return true;
+
+  return false;
+}
+
+SSecurity* Security::GetSSecurity(U8 secType)
+{
+  if (!IsSupported(secType))
+    goto bail;
+
+  switch (secType) {
+  case secTypeNone: return new SSecurityNone();
+  case secTypeVncAuth: return new SSecurityVncAuth();
+  default:
+    vlog.error("Undefined security type %d, aborting");
+    abort();
+  }
+
+bail:
+  throw Exception("Security type not supported");
+}
 
 rdr::U8 rfb::secTypeNum(const char* name)
 {

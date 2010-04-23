@@ -23,6 +23,9 @@
 #define __RFB_SECTYPES_H__
 
 #include <rdr/types.h>
+#include <rfb/Configuration.h>
+#include <rfb/SSecurity.h>
+
 #include <list>
 
 namespace rfb {
@@ -34,7 +37,7 @@ namespace rfb {
   const rdr::U8 secTypeRA2ne   = 6;
 
   const rdr::U8 secTypeSSPI    = 7;
-  const rdr::U8 secTypeSSPIne    = 8;
+  const rdr::U8 secTypeSSPIne  = 8;
 
   const rdr::U8 secTypeTight   = 16;
   const rdr::U8 secTypeUltra   = 17;
@@ -45,6 +48,30 @@ namespace rfb {
   const rdr::U32 secResultOK = 0;
   const rdr::U32 secResultFailed = 1;
   const rdr::U32 secResultTooMany = 2; // deprecated
+
+  class Security {
+  public:
+    /* Create Security instance */
+    Security(void);
+
+    /* Enable/Disable certain security type */
+    void EnableSecType(rdr::U8 secType);
+    void DisableSecType(rdr::U8 secType) { enabledSecTypes.remove(secType); }
+
+    /* Check if certain type is supported */
+    bool IsSupported(rdr::U8 secType);
+
+    /* Get list of enabled security types */
+    const std::list<rdr::U8>& GetEnabledSecTypes(void)
+      { return enabledSecTypes; }
+
+    /* Create server side SSecurity class instance */
+    SSecurity* GetSSecurity(rdr::U8 secType);
+
+    static StringParameter secTypes;
+  private:
+    std::list<rdr::U8> enabledSecTypes;
+  };
 
   const char* secTypeName(rdr::U8 num);
   rdr::U8 secTypeNum(const char* name);
