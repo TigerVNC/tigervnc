@@ -19,7 +19,7 @@
 // SSecurityFactoryStandard
 //
 
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rfb/SSecurityNone.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>

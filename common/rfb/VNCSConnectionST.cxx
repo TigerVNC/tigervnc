@@ -19,7 +19,7 @@
 
 #include <rfb/VNCSConnectionST.h>
 #include <rfb/LogWriter.h>
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rfb/screenTypes.h>
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>

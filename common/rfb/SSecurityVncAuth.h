@@ -25,7 +25,7 @@
 #define __RFB_SSECURITYVNCAUTH_H__
 
 #include <rfb/SSecurity.h>
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rdr/types.h>
 
 namespace rfb {

@@ -24,7 +24,7 @@
 #include "CConn.h"
 #include <rfb/CMsgWriter.h>
 #include <rfb/encodings.h>
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/Hostname.h>

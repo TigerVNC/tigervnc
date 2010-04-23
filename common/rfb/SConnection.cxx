@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <rfb/Exception.h>
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rfb/msgTypes.h>
 #include <rfb/CapsList.h>
 #include <rfb/SMsgReaderV3.h>

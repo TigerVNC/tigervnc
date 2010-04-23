@@ -21,7 +21,7 @@
 #include <rfb/CMsgReaderV3.h>
 #include <rfb/CMsgWriterV3.h>
 #include <rfb/CSecurity.h>
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rfb/CConnection.h>
 #include <rfb/util.h>
 

@@ -18,7 +18,7 @@
 #include <vncviewer/InfoDialog.h>
 #include <vncviewer/resource.h>
 #include <vncviewer/CConn.h>
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rfb/encodings.h>
 #include <rfb/CSecurity.h>
 #include <rfb/LogWriter.h>
