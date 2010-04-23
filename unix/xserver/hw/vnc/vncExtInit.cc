@@ -110,8 +110,6 @@ static int vncErrorBase = 0;
 static int vncEventBase = 0;
 int vncInetdSock = -1;
 
-rfb::AliasParameter rfbauth("rfbauth", "Alias for PasswordFile",
-                            &SSecurityFactoryStandard::vncAuthPasswdFile);
 rfb::StringParameter httpDir("httpd",
                              "Directory containing files to serve via HTTP",
                              "");

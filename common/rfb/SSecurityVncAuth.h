@@ -24,6 +24,7 @@
 #ifndef __RFB_SSECURITYVNCAUTH_H__
 #define __RFB_SSECURITYVNCAUTH_H__
 
+#include <rfb/Configuration.h>
 #include <rfb/SSecurity.h>
 #include <rfb/Security.h>
 #include <rdr/types.h>
@@ -37,12 +38,22 @@ namespace rfb {
     virtual char* getVncAuthPasswd()=0;
   };
 
+  class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {
+  public:
+    VncAuthPasswdParameter(const char* name, const char* desc, StringParameter* passwdFile_);
+    virtual char* getVncAuthPasswd();
+  protected:
+    StringParameter* passwdFile;
+  };
+
   class SSecurityVncAuth : public SSecurity {
   public:
-    SSecurityVncAuth(VncAuthPasswdGetter* pg);
+    SSecurityVncAuth(void);
     virtual bool processMsg(SConnection* sc);
     virtual int getType() const {return secTypeVncAuth;}
     virtual const char* getUserName() const {return 0;}
+    static StringParameter vncAuthPasswdFile;
+    static VncAuthPasswdParameter vncAuthPasswd;
   private:
     enum {vncAuthChallengeSize = 16};
     rdr::U8 challenge[vncAuthChallengeSize];

@@ -44,22 +44,12 @@
 
 namespace rfb {
 
-  class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {
-  public:
-    VncAuthPasswdParameter(const char* name, const char* desc, StringParameter* passwdFile_);
-    virtual char* getVncAuthPasswd();
-  protected:
-    StringParameter* passwdFile;
-  };
-
   class SSecurityFactoryStandard : public SSecurityFactory {
   public:
     virtual SSecurity* getSSecurity(rdr::U8 secType, bool reverse);
     virtual void getSecTypes(std::list<rdr::U8>* secTypes, bool reverse);
     static StringParameter sec_types;
     static StringParameter rev_sec_types;
-    static StringParameter vncAuthPasswdFile;
-    static VncAuthPasswdParameter vncAuthPasswd;
   protected:
     virtual bool isSecTypeSupported(rdr::U8 secType);
   };

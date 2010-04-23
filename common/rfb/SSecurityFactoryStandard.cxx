@@ -42,18 +42,11 @@ StringParameter SSecurityFactoryStandard::rev_sec_types
  "None");
 
 
-StringParameter SSecurityFactoryStandard::vncAuthPasswdFile
-("PasswordFile", "Password file for VNC authentication", "");
-VncAuthPasswdParameter SSecurityFactoryStandard::vncAuthPasswd
-("Password", "Obfuscated binary encoding of the password which clients must supply to "
- "access the server", &SSecurityFactoryStandard::vncAuthPasswdFile);
-
-
 SSecurity* SSecurityFactoryStandard::getSSecurity(rdr::U8 secType, bool reverseConnection) {
   switch (secType) {
   case secTypeNone: return new SSecurityNone();
   case secTypeVncAuth:
-    return new SSecurityVncAuth(&vncAuthPasswd);
+    return new SSecurityVncAuth();
   default:
     throw Exception("Security type not supported");
   }
@@ -82,47 +75,4 @@ bool SSecurityFactoryStandard::isSecTypeSupported(rdr::U8 secType) {
     return false;
   }
 }
-
-
-VncAuthPasswdParameter::VncAuthPasswdParameter(const char* name,
-                                               const char* desc,
-                                               StringParameter* passwdFile_)
-: BinaryParameter(name, desc, 0, 0), passwdFile(passwdFile_) {
-}
-
-char* VncAuthPasswdParameter::getVncAuthPasswd() {
-  ObfuscatedPasswd obfuscated;
-  getData((void**)&obfuscated.buf, &obfuscated.length);
-
-  if (obfuscated.length == 0) {
-    if (passwdFile) {
-      CharArray fname(passwdFile->getData());
-      if (!fname.buf[0]) {
-        vlog.info("neither %s nor %s params set", getName(), passwdFile->getName());
-        return 0;
-      }
-
-      FILE* fp = fopen(fname.buf, "r");
-      if (!fp) {
-        vlog.error("opening password file '%s' failed",fname.buf);
-        return 0;
-      }
-
-      vlog.debug("reading password file");
-      obfuscated.buf = new char[128];
-      obfuscated.length = fread(obfuscated.buf, 1, 128, fp);
-      fclose(fp);
-    } else {
-      vlog.info("%s parameter not set", getName());
-    }
-  }
-
-  try {
-    PlainPasswd password(obfuscated);
-    return password.takeBuf();
-  } catch (...) {
-    return 0;
-  }
-}
-
 
