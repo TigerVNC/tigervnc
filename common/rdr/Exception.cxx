@@ -1,4 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2004 Red Hat Inc.
+ * Copyright (C) 2010 TigerVNC Team
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <rdr/Exception.h>
+#include <rdr/TLSException.h>
 #ifdef _WIN32
 #include <tchar.h>
 #include <winsock2.h>
@@ -25,6 +33,10 @@
 #include <os/print.h>
 
 #include <string.h>
+
+#ifdef HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+#endif
 
 using namespace rdr;
 
@@ -83,3 +95,4 @@ SystemException::SystemException(const char* s, int err_)
   strncat(str_, buf, len-1-strlen(str_));
   strncat(str_, ")", len-1-strlen(str_));
 }
+

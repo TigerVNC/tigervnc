@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+/* 
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2010 TigerVNC Team
  * 
@@ -18,34 +18,16 @@
  * USA.
  */
 
-#ifndef __RDR_EXCEPTION_H__
-#define __RDR_EXCEPTION_H__
+#ifndef __RDR_TLSEXCEPTION_H__
+#define __RDR_TLSEXCEPTION_H__
+
+#include <rdr/Exception.h>
 
 namespace rdr {
 
-  struct Exception {
-    enum { len = 256 };
-    char str_[len];
-    Exception(const char *format = 0, ...);
-    virtual ~Exception() {}
-    virtual const char* str() const { return str_; }
-  };
-
-  struct SystemException : public Exception {
+  struct TLSException : public Exception {
     int err;
-    SystemException(const char* s, int err_);
-  }; 
-
-  struct TimedOut : public Exception {
-    TimedOut(const char* s="Timed out") : Exception(s) {}
-  };
- 
-  struct EndOfStream : public Exception {
-    EndOfStream(const char* s="End of stream") : Exception(s) {}
-  };
-
-  struct FrameException : public Exception {
-    FrameException(const char* s="Frame exception") : Exception(s) {}
+    TLSException(const char* s, int err_);
   };
 
 }

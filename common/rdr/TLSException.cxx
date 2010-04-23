@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+/*
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2010 TigerVNC Team
  * 
@@ -18,36 +18,31 @@
  * USA.
  */
 
-#ifndef __RDR_EXCEPTION_H__
-#define __RDR_EXCEPTION_H__
-
-namespace rdr {
-
-  struct Exception {
-    enum { len = 256 };
-    char str_[len];
-    Exception(const char *format = 0, ...);
-    virtual ~Exception() {}
-    virtual const char* str() const { return str_; }
-  };
-
-  struct SystemException : public Exception {
-    int err;
-    SystemException(const char* s, int err_);
-  }; 
-
-  struct TimedOut : public Exception {
-    TimedOut(const char* s="Timed out") : Exception(s) {}
-  };
- 
-  struct EndOfStream : public Exception {
-    EndOfStream(const char* s="End of stream") : Exception(s) {}
-  };
-
-  struct FrameException : public Exception {
-    FrameException(const char* s="Frame exception") : Exception(s) {}
-  };
-
-}
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
+
+#include <rdr/TLSException.h>
+
+#include <string.h>
+#include <stdio.h>
+#ifdef HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+#endif
+
+using namespace rdr;
+
+#ifdef HAVE_GNUTLS
+TLSException::TLSException(const char* s, int err_)
+  : Exception(s), err(err_)
+{
+  strncat(str_, ": ", len-1-strlen(str_));
+  strncat(str_, gnutls_strerror(err), len-1-strlen(str_));
+  strncat(str_, " (", len-1-strlen(str_));
+  char buf[20];
+  sprintf(buf,"%d",err);
+  strncat(str_, buf, len-1-strlen(str_));
+  strncat(str_, ")", len-1-strlen(str_));
+}
+#endif /* HAVE_GNUTLS */
+
