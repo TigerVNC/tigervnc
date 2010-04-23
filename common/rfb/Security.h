@@ -48,7 +48,6 @@ namespace rfb {
 
   const char* secTypeName(rdr::U8 num);
   rdr::U8 secTypeNum(const char* name);
-  bool secTypeEncrypts(rdr::U8 num);
   std::list<rdr::U8> parseSecTypes(const char* types);
 }
 

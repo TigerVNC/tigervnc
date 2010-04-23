@@ -48,17 +48,6 @@ const char* rfb::secTypeName(rdr::U8 num)
   }
 }
 
-bool rfb::secTypeEncrypts(rdr::U8 num)
-{
-  switch (num) {
-  case secTypeRA2:
-  case secTypeSSPI:
-    return true;
-  default:
-    return false;
-  }
-}
-
 std::list<rdr::U8> rfb::parseSecTypes(const char* types_)
 {
   std::list<rdr::U8> result;
