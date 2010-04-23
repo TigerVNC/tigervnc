@@ -68,6 +68,20 @@ fi
 
 AC_PATH_XTRA
 
+dnl Check gnutls availability
+AC_ARG_ENABLE([gnutls],
+	AS_HELP_STRING([--enable-gnutls],
+		       [build in GNUTLS based encryption support (default yes)]),
+	[enable_gnutls="$enableval"], [enable_gnutls=yes])
+GNUTLS_CFLAGS=
+GNUTLS_LIBS=
+if test "$enable_gnutls" = yes; then
+	PKG_CHECK_MODULES([gnutls], [gnutls >= 1.0.0],
+		[AC_DEFINE(HAVE_GNUTLS, 1, [GNUTLS available])], [])
+fi
+AC_SUBST([GNUTLS_CFLAGS], ["$gnutls_CFLAGS"])
+AC_SUBST([GNUTLS_LIBS], ["$gnutls_LIBS"])
+
 VNCCONFIG_DIR='vncconfig'
 AC_ARG_ENABLE([vncconfig],
 	AS_HELP_STRING([--enable-vncconfig],
