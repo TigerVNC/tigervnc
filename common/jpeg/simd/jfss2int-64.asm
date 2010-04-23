@@ -1,5 +1,5 @@
 ;
-; jfss2int.asm - accurate integer FDCT (64-bit SSE2)
+; jfss2int-64.asm - accurate integer FDCT (64-bit SSE2)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
 ; Copyright 2009 D. R. Commander

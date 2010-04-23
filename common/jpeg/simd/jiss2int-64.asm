@@ -1,5 +1,5 @@
 ;
-; jiss2int.asm - accurate integer IDCT (64-bit SSE2)
+; jiss2int-64.asm - accurate integer IDCT (64-bit SSE2)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
 ; Copyright 2009 D. R. Commander

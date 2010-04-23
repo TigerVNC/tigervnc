@@ -1,5 +1,5 @@
 ;
-; jfsseflt.asm - floating-point FDCT (64-bit SSE)
+; jfsseflt-64.asm - floating-point FDCT (64-bit SSE)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
 ; Copyright 2009 D. R. Commander

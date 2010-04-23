@@ -1,5 +1,5 @@
 ;
-; jiss2flt.asm - floating-point IDCT (64-bit SSE & SSE2)
+; jiss2flt-64.asm - floating-point IDCT (64-bit SSE & SSE2)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
 ; Copyright 2009 D. R. Commander

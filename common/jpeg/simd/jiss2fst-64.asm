@@ -1,5 +1,5 @@
 ;
-; jiss2fst.asm - fast integer IDCT (64-bit SSE2)
+; jiss2fst-64.asm - fast integer IDCT (64-bit SSE2)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
 ; Copyright 2009 D. R. Commander

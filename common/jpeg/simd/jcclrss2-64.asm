@@ -1,5 +1,5 @@
 ;
-; jcclrss2.asm - colorspace conversion (64-bit SSE2)
+; jcclrss2-64.asm - colorspace conversion (64-bit SSE2)
 ;
 ; x86 SIMD extension for IJG JPEG library
 ; Copyright (C) 1999-2006, MIYASAKA Masaru.

@@ -1,5 +1,5 @@
 ;
-; jcqnts2f.asm - sample data conversion and quantization (64-bit SSE & SSE2)
+; jcqnts2f-64.asm - sample data conversion and quantization (64-bit SSE & SSE2)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
 ; Copyright 2009 D. R. Commander

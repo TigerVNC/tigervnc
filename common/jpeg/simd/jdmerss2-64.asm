@@ -1,5 +1,5 @@
 ;
-; jdmerss2.asm - merged upsampling/color conversion (64-bit SSE2)
+; jdmerss2-64.asm - merged upsampling/color conversion (64-bit SSE2)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
 ; Copyright 2009 D. R. Commander
