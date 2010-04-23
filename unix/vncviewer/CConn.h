@@ -72,7 +72,6 @@ public:
   virtual void handleEvent(TXWindow* w, XEvent* ev);
   
   // CConnection callback methods
-  rfb::CSecurity* getCSecurity(int secType);
   void serverInit();
   void setDesktopSize(int w, int h);
   void setExtendedDesktopSize(int reason, int result, int w, int h,

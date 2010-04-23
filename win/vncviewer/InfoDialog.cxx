@@ -59,7 +59,7 @@ void InfoDialog::initDialog() {
   sprintf(buf, "%d.%d", conn->cp.majorVersion, conn->cp.minorVersion);
   setItemString(IDC_INFO_VERSION, TStr(buf));
 
-  const CSecurity* cSec = conn->getCurrentCSecurity();
+  const CSecurity* cSec = conn->csecurity;
   setItemString(IDC_INFO_SECURITY, TStr(secTypeName(cSec->getType())));
   setItemString(IDC_INFO_ENCRYPTION, TStr(cSec->description()));
 }

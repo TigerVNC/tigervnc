@@ -71,6 +71,8 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   setShared(shared);
   addSecType(secTypeNone);
   addSecType(secTypeVncAuth);
+  security->upg = this; /* Security instance is created in CConnection costructor. */
+
   CharArray encStr(preferredEncoding.getData());
   int encNum = encodingNum(encStr.buf);
   if (encNum != -1) {
@@ -214,7 +216,7 @@ void CConn::getUserPasswd(char** user, char** password)
     return;
   }
 
-  const char* secType = secTypeName(getCurrentCSecurity()->getType());
+  const char* secType = secTypeName(csecurity->getType());
   const char* titlePrefix = _("VNC authentication");
   unsigned int titleLen = strlen(titlePrefix) + strlen(secType) + 4;
   CharArray title(titleLen);
@@ -228,19 +230,6 @@ void CConn::getUserPasswd(char** user, char** password)
 
 
 // CConnection callback methods
-
-// getCSecurity() gets the appropriate CSecurity object for the security
-// types which we support.
-CSecurity* CConn::getCSecurity(int secType) {
-  switch (secType) {
-  case secTypeNone:
-    return new CSecurityNone();
-  case secTypeVncAuth:
-    return new CSecurityVncAuth(this);
-  default:
-    throw rfb::Exception("Unsupported secType?");
-  }
-}
 
 // serverInit() is called when the serverInit message has been received.  At
 // this point we create the desktop window and display it.  We also tell the
@@ -510,7 +499,7 @@ void CConn::menuSelect(long id, TXMenu* m) {
       char spfStr[100];
       cp.pf().print(pfStr, 100);
       serverPF.print(spfStr, 100);
-      int secType = getCurrentCSecurity()->getType();
+      int secType = csecurity->getType();
       char infoText[1024];
       snprintf(infoText, sizeof(infoText),
 	       _("Desktop name: %.80s\n"

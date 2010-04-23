@@ -26,7 +26,9 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/CMsgHandler.h>
+#include <rfb/CSecurity.h>
 #include <rfb/util.h>
+#include <rfb/Security.h>
 
 namespace rfb {
 
@@ -96,15 +98,6 @@ namespace rfb {
 
     // Methods to be overridden in a derived class
 
-    // getCSecurity() gets the CSecurity object for the given type.  The type
-    // is guaranteed to be one of the secTypes passed in to addSecType().  The
-    // CSecurity object's destroy() method will be called by the CConnection
-    // from its destructor.
-    virtual CSecurity* getCSecurity(int secType)=0;
-
-    // getCurrentCSecurity() gets the CSecurity instance used for this connection.
-    const CSecurity* getCurrentCSecurity() const {return security;} 
-
     // getIdVerifier() returns the identity verifier associated with the connection.
     // Ownership of the IdentityVerifier is retained by the CConnection instance.
     virtual IdentityVerifier* getIdentityVerifier() {return 0;}
@@ -149,8 +142,10 @@ namespace rfb {
 
     stateEnum state() { return state_; }
 
+    CSecurity *csecurity; /* Windows viewer needs it exported. */
   protected:
     void setState(stateEnum s) { state_ = s; }
+    Security *security;
 
   private:
     void processVersionMsg();
@@ -168,7 +163,6 @@ namespace rfb {
     CMsgWriter* writer_;
     bool deleteStreamsWhenDone;
     bool shared;
-    CSecurity* security;
     enum { maxSecTypes = 8 };
     int nSecTypes;
     rdr::U8 secTypes[maxSecTypes];

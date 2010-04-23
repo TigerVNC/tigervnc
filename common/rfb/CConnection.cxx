@@ -32,15 +32,16 @@ using namespace rfb;
 static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
-  : is(0), os(0), reader_(0), writer_(0),
-    shared(false), security(0), nSecTypes(0), clientSecTypeOrder(false),
+  : csecurity(0), is(0), os(0), reader_(0), writer_(0),
+    shared(false), nSecTypes(0), clientSecTypeOrder(false),
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false)
 {
+  security = new Security();
 }
 
 CConnection::~CConnection()
 {
-  if (security) security->destroy();
+  if (csecurity) csecurity->destroy();
   deleteReaderAndWriter();
 }
 
@@ -196,14 +197,14 @@ void CConnection::processSecurityTypesMsg()
   }
 
   state_ = RFBSTATE_SECURITY;
-  security = getCSecurity(secType);
+  csecurity = security->GetCSecurity(secType);
   processSecurityMsg();
 }
 
 void CConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
-  if (security->processMsg(this)) {
+  if (csecurity->processMsg(this)) {
     state_ = RFBSTATE_SECURITY_RESULT;
     processSecurityResultMsg();
   }
@@ -213,7 +214,7 @@ void CConnection::processSecurityResultMsg()
 {
   vlog.debug("processing security result message");
   int result;
-  if (cp.beforeVersion(3,8) && security->getType() == secTypeNone) {
+  if (cp.beforeVersion(3,8) && csecurity->getType() == secTypeNone) {
     result = secResultOK;
   } else {
     if (!is->checkNoWait(1)) return;

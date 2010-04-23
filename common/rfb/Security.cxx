@@ -39,7 +39,7 @@ static LogWriter vlog("Security");
 StringParameter Security::secTypes
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
- "VncAuth");
+ "VncAuth", ConfServer);
 
 Security::Security(void) : upg(NULL)
 {
