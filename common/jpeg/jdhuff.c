@@ -628,7 +628,7 @@ decode_mcu_slow (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
 
 /***************************************************************/
 
-#if __WORDSIZE == 64
+#if __WORDSIZE == 64 || defined(_WIN64)
 
 #define ENSURE_SHORT \
   if (bits_left < 16) { \

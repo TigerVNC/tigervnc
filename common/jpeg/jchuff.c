@@ -384,7 +384,7 @@ dump_buffer (working_state * state)
   put_buffer = (put_buffer << size) | code;                     \
  }
 
-#if __WORDSIZE==64
+#if __WORDSIZE==64 || defined(_WIN64)
 
 #define DUMP_BITS(code, size) {                                 \
   CHECKBUF47()                                                  \
@@ -425,7 +425,7 @@ dump_buffer (working_state * state)
 
 int _max=0;
 
-#if __WORDSIZE==64
+#if __WORDSIZE==64 || defined(_WIN64)
 
 #define DUMP_VALUE(ht, codevalue, t, nbits) { \
   size = ht->ehufsi[codevalue];               \

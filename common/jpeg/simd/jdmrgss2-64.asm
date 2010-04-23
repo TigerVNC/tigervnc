@@ -521,10 +521,10 @@ EXTN(jsimd_h2v2_merged_upsample_sse2):
 	push	rax
 
 	%ifdef WIN64
-	; rcx already parameter 1
-	mov rdx, rdi
-	mov r8, rax
-	mov r9, rbx
+	mov r8, rcx
+	mov r9, rdi
+	mov rcx, rax
+	mov rdx, rbx
 	%else
 	mov rdx, rcx
 	mov rcx, rdi
@@ -554,10 +554,10 @@ EXTN(jsimd_h2v2_merged_upsample_sse2):
 	push	rax
 
 	%ifdef WIN64
-	; rcx already parameter 1
-	mov rdx, rdi
-	mov r8, rax
-	mov r9, rbx
+	mov r8, rcx
+	mov r9, rdi
+	mov rcx, rax
+	mov rdx, rbx
 	%else
 	mov rdx, rcx
 	mov rcx, rdi

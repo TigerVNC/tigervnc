@@ -70,7 +70,7 @@ EXTN(jsimd_rgb_ycc_convert_sse2):
 	pop	rcx
 
 	mov rsi, r11
-	mov	rax, r14
+	mov	eax, r14d
 	test	rax,rax
 	jle	near .return
 .rowloop:

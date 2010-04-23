@@ -2,6 +2,7 @@
 ; jsimdext.inc - common declarations
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
+; Copyright 2010 D. R. Commander
 ;
 ; Based on
 ; x86 SIMD extension for IJG JPEG library - version 1.02
@@ -310,6 +311,27 @@ const_base:
 	mov r13, r9
 	mov r14, [rax+48]
 	mov r15, [rax+56]
+	push rsi
+	push rdi
+	sub     rsp, SIZEOF_XMMWORD
+	movlpd  XMMWORD [rsp], xmm6
+	sub     rsp, SIZEOF_XMMWORD
+	movlpd  XMMWORD [rsp], xmm7
+%endmacro
+
+%imacro uncollect_args 0
+	movlpd  xmm7, XMMWORD [rsp]
+	add     rsp, SIZEOF_XMMWORD
+	movlpd  xmm6, XMMWORD [rsp]
+	add     rsp, SIZEOF_XMMWORD
+	pop rdi
+	pop rsi
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop r11
+	pop r10
 %endmacro
 
 %else
@@ -329,8 +351,6 @@ const_base:
 	mov r15, r9
 %endmacro
 
-%endif
-
 %imacro uncollect_args 0
 	pop r15
 	pop r14
@@ -339,6 +359,8 @@ const_base:
 	pop r11
 	pop r10
 %endmacro
+
+%endif
 
 %endif
 
