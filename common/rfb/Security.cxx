@@ -28,6 +28,7 @@
 #include <rfb/Security.h>
 #include <rfb/SSecurityNone.h>
 #include <rfb/SSecurityVncAuth.h>
+#include <rfb/SSecurityVeNCrypt.h>
 #include <rfb/util.h>
 
 using namespace rdr;
@@ -80,6 +81,7 @@ SSecurity* Security::GetSSecurity(U8 secType)
   switch (secType) {
   case secTypeNone: return new SSecurityNone();
   case secTypeVncAuth: return new SSecurityVncAuth();
+  case secTypeVeNCrypt: return new SSecurityVeNCrypt();
   }
 
 bail:
@@ -110,7 +112,8 @@ rdr::U8 rfb::secTypeNum(const char* name)
   if (strcasecmp(name, "RA2") == 0)        return secTypeRA2;
   if (strcasecmp(name, "RA2ne") == 0)      return secTypeRA2ne;
   if (strcasecmp(name, "SSPI") == 0)       return secTypeSSPI;
-  if (strcasecmp(name, "SSPIne") == 0)       return secTypeSSPIne;
+  if (strcasecmp(name, "SSPIne") == 0)     return secTypeSSPIne;
+  if (strcasecmp(name, "VeNCrypt") == 0)   return secTypeVeNCrypt;
   return secTypeInvalid;
 }
 
@@ -124,6 +127,7 @@ const char* rfb::secTypeName(rdr::U8 num)
   case secTypeRA2ne:      return "RA2ne";
   case secTypeSSPI:       return "SSPI";
   case secTypeSSPIne:     return "SSPIne";
+  case secTypeVeNCrypt:   return "VeNCrypt";
   default:                return "[unknown secType]";
   }
 }
