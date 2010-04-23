@@ -22,7 +22,7 @@
 #include <rfb/secTypes.h>
 #include <rfb/util.h>
 
-int rfb::secTypeNum(const char* name)
+rdr::U8 rfb::secTypeNum(const char* name)
 {
   if (strcasecmp(name, "None") == 0)       return secTypeNone;
   if (strcasecmp(name, "VncAuth") == 0)    return secTypeVncAuth;
@@ -34,7 +34,7 @@ int rfb::secTypeNum(const char* name)
   return secTypeInvalid;
 }
 
-const char* rfb::secTypeName(int num)
+const char* rfb::secTypeName(rdr::U8 num)
 {
   switch (num) {
   case secTypeNone:       return "None";
@@ -48,7 +48,7 @@ const char* rfb::secTypeName(int num)
   }
 }
 
-bool rfb::secTypeEncrypts(int num)
+bool rfb::secTypeEncrypts(rdr::U8 num)
 {
   switch (num) {
   case secTypeRA2:
@@ -59,13 +59,13 @@ bool rfb::secTypeEncrypts(int num)
   }
 }
 
-std::list<int> rfb::parseSecTypes(const char* types_)
+std::list<rdr::U8> rfb::parseSecTypes(const char* types_)
 {
-  std::list<int> result;
+  std::list<rdr::U8> result;
   CharArray types(strDup(types_)), type;
   while (types.buf) {
     strSplit(types.buf, ',', &type.buf, &types.buf);
-    int typeNum = secTypeNum(type.buf);
+    rdr::U8 typeNum = secTypeNum(type.buf);
     if (typeNum != secTypeInvalid)
       result.push_back(typeNum);
   }

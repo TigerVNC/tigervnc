@@ -65,8 +65,8 @@ void SSecurityFactoryStandard::getSecTypes(std::list<rdr::U8>* secTypes, bool re
     secTypesStr.buf = rev_sec_types.getData();
   else
     secTypesStr.buf = sec_types.getData();
-  std::list<int> configured = parseSecTypes(secTypesStr.buf);
-  std::list<int>::iterator i;
+  std::list<rdr::U8> configured = parseSecTypes(secTypesStr.buf);
+  std::list<rdr::U8>::iterator i;
   for (i=configured.begin(); i!=configured.end(); i++) {
     if (isSecTypeSupported(*i))
       secTypes->push_back(*i);

@@ -22,33 +22,34 @@
 #ifndef __RFB_SECTYPES_H__
 #define __RFB_SECTYPES_H__
 
+#include <rdr/types.h>
 #include <list>
 
 namespace rfb {
-  const int secTypeInvalid = 0;
-  const int secTypeNone    = 1;
-  const int secTypeVncAuth = 2;
+  const rdr::U8 secTypeInvalid = 0;
+  const rdr::U8 secTypeNone    = 1;
+  const rdr::U8 secTypeVncAuth = 2;
 
-  const int secTypeRA2     = 5;
-  const int secTypeRA2ne   = 6;
+  const rdr::U8 secTypeRA2     = 5;
+  const rdr::U8 secTypeRA2ne   = 6;
 
-  const int secTypeSSPI    = 7;
-  const int secTypeSSPIne    = 8;
+  const rdr::U8 secTypeSSPI    = 7;
+  const rdr::U8 secTypeSSPIne    = 8;
 
-  const int secTypeTight   = 16;
-  const int secTypeUltra   = 17;
-  const int secTypeTLS     = 18;
+  const rdr::U8 secTypeTight   = 16;
+  const rdr::U8 secTypeUltra   = 17;
+  const rdr::U8 secTypeTLS     = 18;
 
   // result types
 
-  const int secResultOK = 0;
-  const int secResultFailed = 1;
-  const int secResultTooMany = 2; // deprecated
+  const rdr::U32 secResultOK = 0;
+  const rdr::U32 secResultFailed = 1;
+  const rdr::U32 secResultTooMany = 2; // deprecated
 
-  const char* secTypeName(int num);
-  int secTypeNum(const char* name);
-  bool secTypeEncrypts(int num);
-  std::list<int> parseSecTypes(const char* types);
+  const char* secTypeName(rdr::U8 num);
+  rdr::U8 secTypeNum(const char* name);
+  bool secTypeEncrypts(rdr::U8 num);
+  std::list<rdr::U8> parseSecTypes(const char* types);
 }
 
 #endif
