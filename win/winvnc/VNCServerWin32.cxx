@@ -24,7 +24,6 @@
 #include <rfb_win32/ComputerName.h>
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
-#include <rfb/SSecurityFactoryStandard.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 

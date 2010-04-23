@@ -26,6 +26,7 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/SMsgHandler.h>
+#include <rfb/Security.h>
 #include <rfb/SSecurity.h>
 
 namespace rfb {
@@ -37,7 +38,7 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection(SSecurityFactory* sf, bool reverseConnection_);
+    SConnection(bool reverseConnection_);
     virtual ~SConnection();
 
     // Methods to initialise the connection
@@ -167,10 +168,6 @@ namespace rfb {
 
     stateEnum state() { return state_; }
 
-    // ssecurity() returns a pointer to this connection's SSecurity object, if
-    // any
-    const SSecurity* ssecurity() const { return security; }
-
   protected:
     void setState(stateEnum s) { state_ = s; }
 
@@ -194,8 +191,8 @@ namespace rfb {
     rdr::OutStream* os;
     SMsgReader* reader_;
     SMsgWriter* writer_;
-    SSecurity* security;
-    SSecurityFactory* securityFactory;
+    Security *security;
+    SSecurity* ssecurity;
     stateEnum state_;
     bool reverseConnection;
   };

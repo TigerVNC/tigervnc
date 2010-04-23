@@ -29,7 +29,6 @@
 #include <rfb/LogWriter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/Configuration.h>
-#include <rfb/SSecurityFactoryStandard.h>
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
 #include <tx/TXWindow.h>

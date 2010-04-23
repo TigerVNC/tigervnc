@@ -47,7 +47,6 @@ extern "C" {
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rfb/ServerCore.h>
-#include <rfb/SSecurityFactoryStandard.h>
 #include <rdr/HexOutStream.h>
 #include <rfb/LogWriter.h>
 #undef max

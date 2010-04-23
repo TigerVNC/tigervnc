@@ -85,10 +85,6 @@ namespace rfb {
     // setCursorPos() tells the server the current position of the cursor.
     virtual void setCursorPos(const Point& p) = 0;
 
-    // setSSecurityFactory() tells the server which factory to use when
-    // attempting to authenticate connections.
-    virtual void setSSecurityFactory(SSecurityFactory* f) = 0;
-
     // setName() tells the server what desktop title to supply to clients
     virtual void setName(const char* name) = 0;
   };

@@ -15,7 +15,7 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	ScaledPixelBuffer.h ScaleFilters.h SConnection.h ScreenSet.h \
 	screenTypes.h SDesktop.h ServerCore.h SMsgHandler.h \
 	SMsgReader.h SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h \
-	Security.h SSecurityFactoryStandard.h SSecurityNone.h \
+	Security.h SSecurity.h SSecurityNone.h \
 	SSecurityVncAuth.h Threading.h tightDecode.h TightDecoder.h \
 	tightEncode.h TightEncoder.h TightPalette.h Timer.h \
 	TransImageGetter.h transInitTempl.h transTempl.h TrueColourMap.h \
@@ -34,7 +34,7 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	RREEncoder.cxx RREDecoder.cxx RawDecoder.cxx RawEncoder.cxx \
 	Region.cxx SConnection.cxx SMsgHandler.cxx \
 	SMsgReader.cxx SMsgReaderV3.cxx SMsgWriter.cxx SMsgWriterV3.cxx \
-	ServerCore.cxx Security.cxx SSecurityFactoryStandard.cxx SSecurityVncAuth.cxx \
+	ServerCore.cxx Security.cxx SSecurityVncAuth.cxx \
 	ScaledPixelBuffer.cxx ScaleFilters.cxx Timer.cxx TightDecoder.cxx \
 	TightEncoder.cxx TightPalette.cxx TransImageGetter.cxx \
 	UpdateTracker.cxx VNCSConnectionST.cxx \

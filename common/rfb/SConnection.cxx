@@ -42,10 +42,10 @@ const SConnection::AccessRights SConnection::AccessNoQuery    = 0x0400;
 const SConnection::AccessRights SConnection::AccessFull       = 0xffff;
 
 
-SConnection::SConnection(SSecurityFactory* secFact, bool reverseConnection_)
+SConnection::SConnection(bool reverseConnection_)
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
-    security(0), securityFactory(secFact), state_(RFBSTATE_UNINITIALISED),
+    security(0), ssecurity(0), state_(RFBSTATE_UNINITIALISED),
     reverseConnection(reverseConnection_)
 {
   defaultMajorVersion = 3;
@@ -54,11 +54,13 @@ SConnection::SConnection(SSecurityFactory* secFact, bool reverseConnection_)
     defaultMinorVersion = 3;
 
   cp.setVersion(defaultMajorVersion, defaultMinorVersion);
+
+  security = new Security();
 }
 
 SConnection::~SConnection()
 {
-  if (security) security->destroy();
+  if (ssecurity) ssecurity->destroy();
   deleteReaderAndWriter();
 }
 
@@ -141,7 +143,7 @@ void SConnection::processVersionMsg()
 
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;
-  securityFactory->getSecTypes(&secTypes, reverseConnection);
+  secTypes = security->GetEnabledSecTypes();
 
   if (cp.isVersion(3,3)) {
 
@@ -160,7 +162,7 @@ void SConnection::processVersionMsg()
     os->writeU32(*i);
     if (*i == secTypeNone) os->flush();
     state_ = RFBSTATE_SECURITY;
-    security = securityFactory->getSSecurity(*i, reverseConnection);
+    ssecurity = security->GetSSecurity(*i);
     processSecurityMsg();
     return;
   }
@@ -237,7 +239,7 @@ void SConnection::offerAuthentication()
   // NOTE: In addition to standard security types, we might want to offer
   //       TightVNC-specific authentication types. But currently we support
   //       only the standard security types: secTypeNone and secTypeVncAuth.
-  securityFactory->getSecTypes(&secTypes, reverseConnection);
+  secTypes = security->GetEnabledSecTypes();
 
   CapsList caps;
   for (i = secTypes.begin(); i != secTypes.end(); i++) {
@@ -292,7 +294,8 @@ void SConnection::processSecurityType(int secType)
   // Verify that the requested security type should be offered
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;
-  securityFactory->getSecTypes(&secTypes, reverseConnection);
+
+  secTypes = security->GetEnabledSecTypes();
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
     if (*i == secType) break;
   if (i == secTypes.end())
@@ -303,7 +306,7 @@ void SConnection::processSecurityType(int secType)
 
   try {
     state_ = RFBSTATE_SECURITY;
-    security = securityFactory->getSSecurity(secType, reverseConnection);
+    ssecurity = security->GetSSecurity(secType);
   } catch (rdr::Exception& e) {
     throwConnFailedException(e.str());
   }
@@ -315,10 +318,10 @@ void SConnection::processSecurityMsg()
 {
   vlog.debug("processing security message");
   try {
-    bool done = security->processMsg(this);
+    bool done = ssecurity->processMsg(this);
     if (done) {
       state_ = RFBSTATE_QUERYING;
-      queryConnection(security->getUserName());
+      queryConnection(ssecurity->getUserName());
     }
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
@@ -383,7 +386,7 @@ void SConnection::approveConnection(bool accept, const char* reason)
 
   if (!reason) reason = "Authentication failure";
 
-  if (!cp.beforeVersion(3,8) || security->getType() != secTypeNone) {
+  if (!cp.beforeVersion(3,8) || ssecurity->getType() != secTypeNone) {
     if (accept) {
       os->writeU32(secResultOK);
     } else {

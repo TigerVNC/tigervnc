@@ -47,8 +47,7 @@ namespace rfb {
     // -=- Constructors
 
     //   Create a server exporting the supplied desktop.
-    VNCServerST(const char* name_, SDesktop* desktop_,
-                SSecurityFactory* securityFactory_=0);
+    VNCServerST(const char* name_, SDesktop* desktop_);
     virtual ~VNCServerST();
 
 
@@ -91,7 +90,6 @@ namespace rfb {
     virtual void setCursor(int width, int height, const Point& hotspot,
                            void* cursorData, void* mask);
     virtual void setCursorPos(const Point& p);
-    virtual void setSSecurityFactory(SSecurityFactory* f) {securityFactory=f;}
 
     virtual void bell();
 
@@ -229,7 +227,6 @@ namespace rfb {
 
     void notifyScreenLayoutChange(VNCSConnectionST *requester);
 
-    SSecurityFactory* securityFactory;
     QueryConnectionHandler* queryConnectionHandler;
     KeyRemapper* keyRemapper;
     bool useEconomicTranslate;

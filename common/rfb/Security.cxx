@@ -25,7 +25,6 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/SSecurityNone.h>
-#include <rfb/SSecurityFactoryStandard.h>
 #include <rfb/SSecurityVncAuth.h>
 #include <rfb/util.h>
 
@@ -35,9 +34,14 @@ using namespace std;
 
 static LogWriter vlog("Security");
 
+StringParameter Security::secTypes
+("SecurityTypes",
+ "Specify which security scheme to use (None, VncAuth)",
+ "VncAuth");
+
 Security::Security(void)
 {
-  char *secTypesStr = SSecurityFactoryStandard::sec_types.getData();
+  char *secTypesStr = secTypes.getData();
 
   enabledSecTypes = parseSecTypes(secTypesStr);
 

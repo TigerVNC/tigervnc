@@ -53,7 +53,7 @@
 #include <rfb/VNCServerST.h>
 #include <rfb/VNCSConnectionST.h>
 #include <rfb/ComparingUpdateTracker.h>
-#include <rfb/SSecurityFactoryStandard.h>
+#include <rfb/Security.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/util.h>
 
@@ -63,7 +63,6 @@ using namespace rfb;
 
 static LogWriter slog("VNCServerST");
 LogWriter VNCServerST::connectionsLog("Connections");
-static SSecurityFactoryStandard defaultSecurityFactory;
 
 //
 // -=- VNCServerST Implementation
@@ -71,12 +70,10 @@ static SSecurityFactoryStandard defaultSecurityFactory;
 
 // -=- Constructors/Destructor
 
-VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_,
-                         SSecurityFactory* sf)
+VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false), pb(0),
     name(strDup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
-    securityFactory(sf ? sf : &defaultSecurityFactory),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
     useEconomicTranslate(false),
     lastConnectionTime(0), disableclients(false)

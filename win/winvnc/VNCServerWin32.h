@@ -118,8 +118,6 @@ namespace winvnc {
     ManagedListener httpSock;
     STrayIconThread* trayIcon;
 
-    //rfb::SSecurityFactoryStandard securityFactory;
-
     QueryConnectDialog* queryConnectDialog;
   };
 

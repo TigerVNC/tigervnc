@@ -40,7 +40,7 @@ namespace rfb {
       AuthenticationPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_AUTHENTICATION)), regKey(rk) {}
       void initDialog() {
-        CharArray sec_types_str(SSecurityFactoryStandard::sec_types.getData());
+        CharArray sec_types_str(Security::secTypes.getData());
         std::list<rdr::U8> sec_types = parseSecTypes(sec_types_str.buf);
 
         useNone = useVNC = false;
@@ -114,7 +114,7 @@ namespace rfb {
 
 
       static bool haveVncPassword() {
-        PlainPasswd password(SSecurityFactoryStandard::vncAuthPasswd.getVncAuthPasswd());
+        PlainPasswd password(SSecurityVncAuth::vncAuthPasswd.getVncAuthPasswd());
         return password.buf && strlen(password.buf) != 0;
       }
 

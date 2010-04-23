@@ -65,20 +65,5 @@ namespace rfb {
     virtual const char* getUserName() const = 0;
   };
 
-  // SSecurityFactory creates new SSecurity instances for
-  // particular security types.
-  // The instances must be destroyed by calling destroy()
-  // on them when done.
-  // getSecTypes returns a list of the security types that are both configured
-  // and actually supported.  Which configuration is considered depends on the
-  // reverseConnection parameter.
-  class SSecurityFactory {
-  public:
-    virtual ~SSecurityFactory() {}
-    virtual SSecurity* getSSecurity(rdr::U8 secType, bool noAuth=false)=0;
-    virtual void getSecTypes(std::list<rdr::U8>* secTypes,
-                             bool reverseConnection) = 0;
-  };
-
 }
 #endif
