@@ -19,7 +19,7 @@
 #ifdef _WIN32
 #define strcasecmp _stricmp
 #endif
-#include <rfb/secTypes.h>
+#include <rfb/Security.h>
 #include <rfb/util.h>
 
 rdr::U8 rfb::secTypeNum(const char* name)
