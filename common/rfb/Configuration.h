@@ -49,6 +49,8 @@ namespace rfb {
   class VoidParameter;
   struct ParameterIterator;
 
+  enum ConfigurationObject { ConfGlobal, ConfServer, ConfViewer };
+
   // -=- Configuration
   //     Class used to access parameters.
 
@@ -98,6 +100,10 @@ namespace rfb {
     //       global() is called when only the main thread is running.
     static Configuration* global();
 
+    // Enable server/viewer specific parameters
+    static void enableServerParams() { global()->appendConfiguration(server()); }
+    static void enableViewerParams() { global()->appendConfiguration(viewer()); }
+
     // - Container for process-wide Global parameters
     static bool setParam(const char* param, const char* value, bool immutable=false) {
       return global()->set(param, value, immutable);
@@ -110,9 +116,11 @@ namespace rfb {
       return global()->set(name, len, val, immutable);
     }
     static VoidParameter* getParam(const char* param) { return global()->get(param); }
-    static void listParams(int width=79, int nameWidth=10) { global()->list(width, nameWidth); }
+    static void listParams(int width=79, int nameWidth=10) {
+      global()->list(width, nameWidth);
+    }
 
-  protected:
+  private:
     friend class VoidParameter;
     friend struct ParameterIterator;
 
@@ -127,6 +135,22 @@ namespace rfb {
 
     // The process-wide, Global Configuration object
     static Configuration* global_;
+
+    // The server only Configuration object
+    static Configuration* server_;
+
+    // The viewer only Configuration object
+    static Configuration* viewer_;
+
+    // Get server/viewer specific configuration object
+    static Configuration* server();
+    static Configuration* viewer();
+
+    // Append configuration object to this instance.
+    // NOTE: conf instance can be only one configuration object
+    void appendConfiguration(Configuration *conf) {
+      conf->_next = _next; _next = conf;
+    }
   };
 
   // -=- VoidParameter
@@ -134,7 +158,7 @@ namespace rfb {
 
   class VoidParameter {
   public:
-    VoidParameter(const char* name_, const char* desc_, Configuration* conf=0);
+    VoidParameter(const char* name_, const char* desc_, ConfigurationObject co=ConfGlobal);
     virtual  ~VoidParameter();
     const char* getName() const;
     const char* getDescription() const;
@@ -162,7 +186,8 @@ namespace rfb {
 
   class AliasParameter : public VoidParameter {
   public:
-    AliasParameter(const char* name_, const char* desc_,VoidParameter* param_, Configuration* conf=0);
+    AliasParameter(const char* name_, const char* desc_,VoidParameter* param_,
+		   ConfigurationObject co=ConfGlobal);
     virtual bool setParam(const char* value);
     virtual bool setParam();
     virtual char* getDefaultStr() const;
@@ -175,7 +200,8 @@ namespace rfb {
 
   class BoolParameter : public VoidParameter {
   public:
-    BoolParameter(const char* name_, const char* desc_, bool v, Configuration* conf=0);
+    BoolParameter(const char* name_, const char* desc_, bool v,
+		  ConfigurationObject co=ConfGlobal);
     virtual bool setParam(const char* value);
     virtual bool setParam();
     virtual void setParam(bool b);
@@ -191,7 +217,8 @@ namespace rfb {
   class IntParameter : public VoidParameter {
   public:
     IntParameter(const char* name_, const char* desc_, int v,
-                 int minValue=INT_MIN, int maxValue=INT_MAX, Configuration* conf=0);
+                 int minValue=INT_MIN, int maxValue=INT_MAX,
+		 ConfigurationObject co=ConfGlobal);
     virtual bool setParam(const char* value);
     virtual bool setParam(int v);
     virtual char* getDefaultStr() const;
@@ -207,7 +234,8 @@ namespace rfb {
   public:
     // StringParameter contains a null-terminated string, which CANNOT
     // be Null, and so neither can the default value!
-    StringParameter(const char* name_, const char* desc_, const char* v, Configuration* conf=0);
+    StringParameter(const char* name_, const char* desc_, const char* v,
+		    ConfigurationObject co=ConfGlobal);
     virtual ~StringParameter();
     virtual bool setParam(const char* value);
     virtual char* getDefaultStr() const;
@@ -223,7 +251,8 @@ namespace rfb {
 
   class BinaryParameter : public VoidParameter {
   public:
-    BinaryParameter(const char* name_, const char* desc_, const void* v, int l, Configuration* conf=0);
+    BinaryParameter(const char* name_, const char* desc_, const void* v, int l,
+		    ConfigurationObject co=ConfGlobal);
     virtual ~BinaryParameter();
     virtual bool setParam(const char* value);
     virtual void setParam(const void* v, int l);

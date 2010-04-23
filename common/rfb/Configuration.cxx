@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <assert.h>
 #ifdef WIN32
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
@@ -55,14 +54,28 @@ using namespace rfb;
 static LogWriter vlog("Config");
 
 
-// -=- The Global Configuration object
+// -=- The Global/server/viewer Configuration objects
 Configuration* Configuration::global_ = 0;
+Configuration* Configuration::server_ = 0;
+Configuration* Configuration::viewer_ = 0;
+
 Configuration* Configuration::global() {
   if (!global_)
     global_ = new Configuration("Global");
   return global_;
 }
 
+Configuration* Configuration::server() {
+  if (!server_)
+    server_ = new Configuration("Server");
+  return server_;
+}
+
+Configuration* Configuration::viewer() {
+  if (!viewer_)
+    viewer_ = new Configuration("Viewer");
+  return viewer_;
+}
 
 // -=- Configuration implementation
 
@@ -196,10 +209,21 @@ void Configuration::list(int width, int nameWidth) {
 
 // -=- VoidParameter
 
-VoidParameter::VoidParameter(const char* name_, const char* desc_, Configuration* conf)
-  : immutable(false), _hasBeenSet(false), name(name_), description(desc_) {
-  if (!conf)
-    conf = Configuration::global();
+VoidParameter::VoidParameter(const char* name_, const char* desc_,
+			     ConfigurationObject co)
+  : immutable(false), _hasBeenSet(false), name(name_), description(desc_)
+{
+  Configuration *conf = NULL;
+
+  switch (co) {
+  case ConfGlobal: conf = Configuration::global();
+    break;
+  case ConfServer: conf = Configuration::server();
+    break;
+  case ConfViewer: conf = Configuration::viewer();
+    break;
+  }
+
   _next = conf->head;
   conf->head = this;
 }
@@ -244,8 +268,8 @@ VoidParameter::hasBeenSet() {
 // -=- AliasParameter
 
 AliasParameter::AliasParameter(const char* name_, const char* desc_,
-                               VoidParameter* param_, Configuration* conf)
-  : VoidParameter(name_, desc_, conf), param(param_) {
+                               VoidParameter* param_, ConfigurationObject co)
+  : VoidParameter(name_, desc_, co), param(param_) {
 }
 
 bool
@@ -279,8 +303,9 @@ AliasParameter::setImmutable() {
 
 // -=- BoolParameter
 
-BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v, Configuration* conf)
-: VoidParameter(name_, desc_, conf), value(v), def_value(v) {
+BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v,
+			     ConfigurationObject co)
+: VoidParameter(name_, desc_, co), value(v), def_value(v) {
 }
 
 bool
@@ -333,8 +358,8 @@ BoolParameter::operator bool() const {
 // -=- IntParameter
 
 IntParameter::IntParameter(const char* name_, const char* desc_, int v,
-                           int minValue_, int maxValue_, Configuration* conf)
-  : VoidParameter(name_, desc_, conf), value(v), def_value(v),
+                           int minValue_, int maxValue_, ConfigurationObject co)
+  : VoidParameter(name_, desc_, co), value(v), def_value(v),
     minValue(minValue_), maxValue(maxValue_)
 {
 }
@@ -380,8 +405,8 @@ IntParameter::operator int() const {
 // -=- StringParameter
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
-                                 const char* v, Configuration* conf)
-  : VoidParameter(name_, desc_, conf), value(strDup(v)), def_value(v)
+                                 const char* v, ConfigurationObject co)
+  : VoidParameter(name_, desc_, co), value(strDup(v)), def_value(v)
 {
   if (!v) {
     fprintf(stderr,"Default value <null> for %s not allowed\n",name_);
@@ -415,8 +440,9 @@ char* StringParameter::getValueStr() const {
 
 // -=- BinaryParameter
 
-BinaryParameter::BinaryParameter(const char* name_, const char* desc_, const void* v, int l, Configuration* conf)
-: VoidParameter(name_, desc_, conf), value(0), length(0), def_value((char*)v), def_length(l) {
+BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
+				 const void* v, int l, ConfigurationObject co)
+: VoidParameter(name_, desc_, co), value(0), length(0), def_value((char*)v), def_length(l) {
   if (l) {
     value = new char[l];
     length = l;

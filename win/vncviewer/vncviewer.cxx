@@ -106,7 +106,7 @@ programUsage() {
   printf("\nLog destinations:\n");
   Logger::listLoggers();
   printf("\nParameters:\n");
-  Configuration::listParams();
+  Configuration::listParams(ConfViewer);
   printf("Press Enter/Return key to continue\n");
   getchar();
   exit(1);

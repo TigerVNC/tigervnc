@@ -335,6 +335,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	firstTime = FALSE;
 	rfb::initStdIOLoggers();
 	rfb::LogWriter::setLogParams("*:stderr:30");
+	rfb::Configuration::enableServerParams();
     }
 
     if (argv[i][0] ==  ':')

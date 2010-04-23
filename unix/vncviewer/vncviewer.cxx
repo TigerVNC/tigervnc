@@ -303,6 +303,8 @@ int main(int argc, char** argv)
   char* vncServerName = 0;
   Display* dpy = 0;
 
+  Configuration::enableViewerParams();
+
   for (int i = 1; i < argc; i++) {
     if (Configuration::setParam(argv[i]))
       continue;

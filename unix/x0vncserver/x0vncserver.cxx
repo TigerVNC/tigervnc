@@ -398,6 +398,8 @@ int main(int argc, char** argv)
   programName = argv[0];
   Display* dpy;
 
+  Configuration::enableServerParams();
+
   for (int i = 1; i < argc; i++) {
     if (Configuration::setParam(argv[i]))
       continue;

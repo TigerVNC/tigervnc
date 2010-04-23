@@ -83,6 +83,7 @@ static void vncExtensionInitWithParams(INITARGS)
 {
   rfb::initStdIOLoggers();
   rfb::LogWriter::setLogParams("*:stderr:30");
+  rfb::Configuration::enableServerParams();
 
   for (int scr = 0; scr < screenInfo.numScreens; scr++) {
     ScrnInfoPtr pScrn = xf86Screens[scr];
