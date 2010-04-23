@@ -12,4 +12,4 @@ EXTRA_DIST = vncserver.man $(XVNCDIR)/RegionHelper.h $(XVNCDIR)/vncExtInit.cc \
 	$(XVNCDIR)/XserverDesktop.cc $(XVNCDIR)/Input.h \
 	$(XVNCDIR)/xorg-version.h $(XVNCDIR)/vncHooks.h \
 	$(XVNCDIR)/Makefile.am $(XVNCDIR)/vncHooks.cc $(XVNCDIR)/vncExtInit.h \
-	xserver15.patch xserver16.patch
+	xserver15.patch xserver16.patch xserver17.patch xserver18.patch
