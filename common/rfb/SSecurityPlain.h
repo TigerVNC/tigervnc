@@ -20,6 +20,14 @@
 #ifndef __RFB_SSECURITYPLAIN_H__
 #define __RFB_SSECURITYPLAIN_H__
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifndef HAVE_GNUTLS
+#error "This header should not be included without HAVE_GNUTLS defined"
+#endif
+
 #include <rfb/SConnection.h>
 #include <rfb/SSecurity.h>
 #include <rfb/SSecurityVeNCrypt.h>

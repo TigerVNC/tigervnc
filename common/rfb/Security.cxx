@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2010 TigerVNC Team
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,7 +35,9 @@
 #include <rfb/Security.h>
 #include <rfb/SSecurityNone.h>
 #include <rfb/SSecurityVncAuth.h>
+#ifdef HAVE_GNUTLS
 #include <rfb/SSecurityVeNCrypt.h>
+#endif
 #include <rfb/util.h>
 
 using namespace rdr;
@@ -84,7 +92,9 @@ SSecurity* Security::GetSSecurity(U8 secType)
   switch (secType) {
   case secTypeNone: return new SSecurityNone();
   case secTypeVncAuth: return new SSecurityVncAuth();
+#ifdef HAVE_GNUTLS
   case secTypeVeNCrypt: return new SSecurityVeNCrypt();
+#endif
   }
 
 bail:
@@ -101,7 +111,9 @@ CSecurity* Security::GetCSecurity(U8 secType)
   switch (secType) {
   case secTypeNone: return new CSecurityNone();
   case secTypeVncAuth: return new CSecurityVncAuth();
+#ifdef HAVE_GNUTLS
   case secTypeVeNCrypt: return new CSecurityVeNCrypt();
+#endif
   }
 
 bail:

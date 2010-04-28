@@ -1,11 +1,17 @@
 noinst_LTLIBRARIES = librfb.la
 
+VENCRYPT_HDRS = CSecurityStack.h CSecurityTLS.h CSecurityTLSBase.h \
+	CSecurityVeNCrypt.h SSecurityPlain.h SSecurityStack.h SSecurityTLS.h \
+	SSecurityTLSBase.h SSecurityVeNCrypt.h
+
+VENCRYPT_SRCS = CSecurityStack.cxx CSecurityTLS.cxx CSecurityTLSBase.cxx \
+	CSecurityVeNCrypt.cxx SSecurityPlain.cxx SSecurityStack.cxx \
+	SSecurityTLS.cxx SSecurityTLSBase.cxx SSecurityVeNCrypt.cxx
+
 HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	CMsgHandler.h CMsgReader.h CMsgReaderV3.h CMsgWriter.h \
 	CMsgWriterV3.h ColourCube.h ColourMap.h ComparingUpdateTracker.h \
 	Configuration.h ConnParams.h CSecurity.h CSecurityNone.h \
-	CSecurityStack.h CSecurityTLS.h CSecurityTLSBase.h \
-	CSecurityVeNCrypt.h \
 	CSecurityVncAuth.h Cursor.h Decoder.h d3des.h Encoder.h \
 	encodings.h Exception.h hextileConstants.h hextileDecode.h \
 	HextileDecoder.h hextileEncodeBetter.h hextileEncode.h \
@@ -15,10 +21,8 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	PixelFormat.h PixelFormat.inl Pixel.h RawDecoder.h RawEncoder.h \
 	Rect.h Region.h rreDecode.h RREDecoder.h rreEncode.h RREEncoder.h \
 	ScaledPixelBuffer.h ScaleFilters.h SConnection.h ScreenSet.h \
-	screenTypes.h SDesktop.h ServerCore.h SMsgHandler.h \
-	SMsgReader.h SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h \
-	SSecurity.h SSecurityNone.h SSecurityPlain.h \
-	SSecurityStack.h SSecurityTLS.h SSecurityTLSBase.h SSecurityVeNCrypt.h \
+	screenTypes.h SDesktop.h ServerCore.h SMsgHandler.h SMsgReader.h \
+	SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h SSecurity.h SSecurityNone.h \
 	SSecurityVncAuth.h Threading.h tightDecode.h \
 	TightDecoder.h tightEncode.h TightEncoder.h TightPalette.h Timer.h \
 	TransImageGetter.h transInitTempl.h transTempl.h TrueColourMap.h \
@@ -28,8 +32,6 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 
 librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	CMsgReader.cxx CMsgReaderV3.cxx CMsgWriter.cxx CMsgWriterV3.cxx \
-	CSecurityStack.cxx CSecurityTLS.cxx CSecurityTLSBase.cxx \
-	CSecurityVeNCrypt.cxx \
 	CSecurityVncAuth.cxx CapsContainer.cxx CapsList.cxx \
 	ComparingUpdateTracker.cxx Configuration.cxx ConnParams.cxx \
 	Cursor.cxx Decoder.cxx d3des.c Encoder.cxx \
@@ -39,14 +41,16 @@ librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	RREEncoder.cxx RREDecoder.cxx RawDecoder.cxx RawEncoder.cxx \
 	Region.cxx SConnection.cxx SMsgHandler.cxx \
 	SMsgReader.cxx SMsgReaderV3.cxx SMsgWriter.cxx SMsgWriterV3.cxx \
-	ServerCore.cxx Security.cxx SSecurityPlain.cxx SSecurityStack.cxx \
-	SSecurityTLS.cxx SSecurityTLSBase.cxx SSecurityVeNCrypt.cxx \
-	SSecurityVncAuth.cxx \
+	ServerCore.cxx Security.cxx SSecurityVncAuth.cxx \
 	ScaledPixelBuffer.cxx ScaleFilters.cxx Timer.cxx TightDecoder.cxx \
 	TightEncoder.cxx TightPalette.cxx TransImageGetter.cxx \
 	UpdateTracker.cxx VNCSConnectionST.cxx \
 	VNCServerST.cxx ZRLEEncoder.cxx ZRLEDecoder.cxx encodings.cxx \
 	util.cxx
+
+if HAVE_GNUTLS
+librfb_la_SOURCES += $(VENCRYPT_HDRS) $(VENCRYPT_SRCS)
+endif
 
 librfb_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win @GNUTLS_CFLAGS@
 librfb_la_LIBADD = @GNUTLS_LIBS@

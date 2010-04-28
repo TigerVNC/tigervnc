@@ -25,6 +25,14 @@
 #ifndef __SSECURITYVENCRYPT_H__
 #define __SSECURITYVENCRYPT_H__
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifndef HAVE_GNUTLS
+#error "This header should not be included without HAVE_GNUTLS defined"
+#endif
+
 #include <rfb/SSecurityStack.h>
 #include <rfb/SConnection.h>
 

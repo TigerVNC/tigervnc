@@ -26,7 +26,9 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+#error "This header should not be included without HAVE_GNUTLS defined"
+#endif
 
 #include <rfb/SSecurityTLSBase.h>
 #include <rfb/SSecurityVeNCrypt.h>
@@ -50,6 +52,5 @@ namespace rfb {
   };
 
 }
-#endif /* HAVE_GNUTLS */
 
 #endif /* __S_SECURITY_TLS_H__ */

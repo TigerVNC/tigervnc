@@ -23,7 +23,9 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+#error "This source should not be compiled without HAVE_GNUTLS defined"
+#endif
 
 #include <rfb/SSecurityTLSBase.h>
 #include <rfb/SConnection.h>
@@ -143,4 +145,3 @@ bool SSecurityTLSBase::processMsg(SConnection *sc)
   return true;
 }
 
-#endif /* HAVE_GNUTLS */
