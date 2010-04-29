@@ -72,7 +72,7 @@ dnl Check gnutls availability
 AC_ARG_ENABLE([gnutls],
 	AS_HELP_STRING([--enable-gnutls],
 		       [build in GNUTLS based encryption support (default yes)]),
-	[enable_gnutls="$enableval"], [enable_gnutls=yes])
+	[enable_gnutls="$enableval"], [enable_gnutls=no])
 GNUTLS_CFLAGS=
 GNUTLS_LIBS=
 if test "x$enable_gnutls" = xyes; then
