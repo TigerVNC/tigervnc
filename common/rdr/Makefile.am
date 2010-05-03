@@ -11,8 +11,8 @@ librdr_la_SOURCES = $(HDRS) Exception.cxx FdInStream.cxx FdOutStream.cxx \
 	TLSException.cxx TLSInStream.cxx TLSOutStream.cxx ZlibInStream.cxx \
 	ZlibOutStream.cxx
 
-librdr_la_CPPFLAGS = -I$(top_srcdir)/common
-librdr_la_LIBADD =
+librdr_la_CPPFLAGS = -I$(top_srcdir)/common @GNUTLS_CFLAGS@
+librdr_la_LIBADD = @GNUTLS_LIBS@
 
 if INCLUDED_ZLIB
 librdr_la_CPPFLAGS += -I$(top_srcdir)/common/zlib
