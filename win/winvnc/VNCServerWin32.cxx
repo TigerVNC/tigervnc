@@ -48,6 +48,8 @@ static BoolParameter localHost("LocalHost",
   "Only accept connections from via the local loop-back network interface", false);
 static BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
   "Only prompt for a local user to accept incoming connections if there is a user logged on", false);
+static BoolParameter showTrayIcon("ShowTrayIcon",
+  "Show the configuration applet in the system tray icon", true);
 
 
 VNCServerWin32::VNCServerWin32()
@@ -149,7 +151,8 @@ int VNCServerWin32::run() {
   }
 
   // - Create the tray icon (if possible)
-  trayIcon = new STrayIconThread(*this, IDI_ICON, IDI_CONNECTED,
+  if (showTrayIcon)
+	  trayIcon = new STrayIconThread(*this, IDI_ICON, IDI_CONNECTED,
                                  IDI_ICON_DISABLE, IDI_CONNECTED_DISABLE,
                                  IDR_TRAY);
 
