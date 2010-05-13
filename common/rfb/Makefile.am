@@ -52,7 +52,7 @@ if HAVE_GNUTLS
 librfb_la_SOURCES += $(VENCRYPT_HDRS) $(VENCRYPT_SRCS)
 endif
 
-librfb_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win @GNUTLS_CFLAGS@
+librfb_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win
 librfb_la_LIBADD = @GNUTLS_LIBS@
 
 if INCLUDED_JPEG

@@ -72,18 +72,15 @@ dnl Check gnutls availability
 AC_ARG_ENABLE([gnutls],
 	AS_HELP_STRING([--enable-gnutls],
 		       [build in GNUTLS based encryption support (default yes)]),
-	[enable_gnutls="$enableval"], [enable_gnutls=no])
-GNUTLS_CFLAGS=
+	[enable_gnutls="$enableval"], [enable_gnutls=yes])
 GNUTLS_LIBS=
 if test "x$enable_gnutls" = xyes; then
-	PKG_CHECK_MODULES([gnutls], [gnutls >= 1.0.0],
-		[AC_DEFINE(HAVE_GNUTLS, 1, [GNUTLS available])], [])
+	AC_CHECK_LIB([gnutls], [gnutls_global_init],
+		     [GNUTLS_LIBS='-lgnutls'
+		      AC_DEFINE([HAVE_GNUTLS], 1, [Is gnutls present? ])])
 fi
-AC_SUBST([GNUTLS_CFLAGS], ["$gnutls_CFLAGS"])
-AC_SUBST([GNUTLS_LIBS], ["$gnutls_LIBS"])
-dnl If --enable-gnutls is passed and gnutls is not installed PKG_CHECK_MODULES
-dnl check above fails so it's safe to assume enable_gnutls == HAVE_GNUTLS
-AM_CONDITIONAL([HAVE_GNUTLS], [ test "x$enable_gnutls" = xyes ])
+AC_SUBST([GNUTLS_LIBS])
+AM_CONDITIONAL([HAVE_GNUTLS], [ ! test "x$GNUTLS_LIBS" = x ])
 
 VNCCONFIG_DIR='vncconfig'
 AC_ARG_ENABLE([vncconfig],
