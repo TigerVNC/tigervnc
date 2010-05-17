@@ -25,6 +25,8 @@
 #define NUMSUBOPT 4
 
 enum {TJ_444=0, TJ_422, TJ_420, TJ_GRAYSCALE};
+#define TJ_411 TJ_420  /* for backward compatibility with VirtualGL <= 2.1.x,
+                          TurboVNC <= 0.6, and TurboJPEG/IPP */
 
 /* Flags */
 #define TJ_BGR             1
