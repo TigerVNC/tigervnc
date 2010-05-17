@@ -45,7 +45,7 @@ case "$host_os" in
       objfmt='BSD-a.out'
     else
       case "$host_cpu" in
-        x86_64)
+        x86_64 | amd64)
           objfmt='ELF64'
           ;;
         *)

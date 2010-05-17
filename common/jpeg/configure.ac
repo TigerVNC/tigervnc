@@ -110,7 +110,7 @@ if test "x${with_simd}" != "xno"; then
   # Check if we're on a supported CPU
   AC_MSG_CHECKING([if we have SIMD optimisations for cpu type])
   case "$host_cpu" in
-    x86_64)
+    x86_64 | amd64)
       AC_MSG_RESULT([yes (x86_64)])
       AC_PROG_NASM
       simd_arch=x86_64
