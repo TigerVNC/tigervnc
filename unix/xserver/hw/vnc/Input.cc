@@ -712,7 +712,12 @@ static KeySym KeyCodetoKeySym(KeySymsPtr keymap, int keycode, int col)
 	}
 
 	if ((per <= (col|1)) || (syms[col|1] == NoSymbol)) {
-		XConvertCase(syms[col&~1], &lsym, &usym);
+#if XORG >= 18
+		XkbConvertCase
+#else
+		XConvertCase
+#endif
+			    (syms[col&~1], &lsym, &usym);
 		if (!(col & 1))
 			return lsym;
 		/*
