@@ -1,7 +1,8 @@
---- xserver/configure.ac.vnc	2009-12-16 18:53:17.208009726 +0000
-+++ xserver/configure.ac	2009-12-16 19:00:56.624009167 +0000
-@@ -30,7 +30,6 @@ AC_INIT([xorg-server], 1.7.3.901, [https
- RELEASE_DATE="2009-12-11"
+diff -up xserver/configure.ac.vnc xserver/configure.ac
+--- xserver/configure.ac.vnc	2010-05-18 15:41:05.768168838 +0200
++++ xserver/configure.ac	2010-05-18 15:41:24.398165924 +0200
+@@ -30,7 +30,6 @@ AC_INIT([xorg-server], 1.7.7, [https://b
+ RELEASE_DATE="2010-05-04"
  AC_CONFIG_SRCDIR([Makefile.am])
  AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 -AM_MAINTAINER_MODE
@@ -16,14 +17,13 @@
  AM_PROG_AS
  AC_PROG_INSTALL
  AC_PROG_LN_S
-@@ -1383,6 +1383,10 @@ if test "x$XVFB" = xyes; then
+@@ -1383,6 +1383,9 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
  
 +dnl Xvnc DDX
 +AC_SUBST([XVNC_CPPFLAGS], ["-DHAVE_DIX_CONFIG_H $XEXT_INC $FB_INC $MI_INC $RENDER_INC $RANDR_INC"])
 +AC_SUBST([XVNC_LIBS], ["$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB"])
-+AC_SUBST([LIBVNC_LIBS], ["$XI_LIB $DIX_LIB $XKB_LIB"])
  
  dnl Xnest DDX
  
@@ -36,7 +36,7 @@
  if test "x$XORG" = xyes; then
  	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
  	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
-@@ -1649,7 +1654,6 @@ if test "x$XORG" = xyes; then
+@@ -1663,7 +1668,6 @@ if test "x$XORG" = xyes; then
  	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
  	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
  	AC_DEFINE(XFree86LOADER, 1, [Building loadable XFree86 server])
@@ -44,7 +44,7 @@
  	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
  	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
  	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-@@ -2094,6 +2098,7 @@ hw/dmx/input/Makefile
+@@ -2108,6 +2112,7 @@ hw/dmx/input/Makefile
  hw/dmx/glxProxy/Makefile
  hw/dmx/Makefile
  hw/vfb/Makefile
@@ -52,8 +52,22 @@
  hw/xnest/Makefile
  hw/xwin/Makefile
  hw/xquartz/Makefile
---- xserver/mi/miinitext.c.vnc	2009-12-16 18:53:20.864010515 +0000
-+++ xserver/mi/miinitext.c	2009-12-16 19:01:23.664009203 +0000
+diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
+--- xserver/hw/Makefile.am.vnc	2010-05-18 15:41:05.860665804 +0200
++++ xserver/hw/Makefile.am	2010-05-18 15:41:16.068165053 +0200
+@@ -33,7 +33,8 @@ SUBDIRS =			\
+ 	$(XNEST_SUBDIRS)	\
+ 	$(DMX_SUBDIRS)		\
+ 	$(KDRIVE_SUBDIRS)	\
+-	$(XQUARTZ_SUBDIRS)
++	$(XQUARTZ_SUBDIRS)	\
++	vnc
+ 
+ DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive
+ 
+diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
+--- xserver/mi/miinitext.c.vnc	2010-05-18 15:41:05.870666372 +0200
++++ xserver/mi/miinitext.c	2010-05-18 15:41:16.068165053 +0200
 @@ -274,6 +274,7 @@ extern void DamageExtensionInit(INITARGS
  extern void CompositeExtensionInit(INITARGS);
  #endif
@@ -70,15 +84,3 @@
  #if !defined(NO_HW_ONLY_EXTS)
  #if defined(XF86VIDMODE)
      if (!noXFree86VidModeExtension) XFree86VidModeExtensionInit();
---- xserver/hw/Makefile.am.vnc	2009-12-16 18:53:17.816009029 +0000
-+++ xserver/hw/Makefile.am	2009-12-16 19:01:31.064009345 +0000
-@@ -33,7 +33,8 @@ SUBDIRS =			\
- 	$(XNEST_SUBDIRS)	\
- 	$(DMX_SUBDIRS)		\
- 	$(KDRIVE_SUBDIRS)	\
--	$(XQUARTZ_SUBDIRS)
-+	$(XQUARTZ_SUBDIRS)	\
-+	vnc
- 
- DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive
- 
