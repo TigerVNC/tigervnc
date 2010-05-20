@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #ifdef WIN32
-#include <windows.h>
 #ifndef _WIN32_WCE
 #include <sys/timeb.h>
 #endif

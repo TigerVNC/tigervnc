@@ -16,7 +16,6 @@
  * USA.
  */
 
-#include <windows.h>
 #include <winsock2.h>
 #include <vncviewer/UserPasswdDialog.h>
 #include <vncviewer/CConn.h>

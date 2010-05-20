@@ -21,7 +21,6 @@
 #ifndef __RFB_WIN32_LISTEN_SERVER_H__
 #define __RFB_WIN32_LISTEN_SERVER_H__
 
-#include <windows.h>
 #include <winsock2.h>
 #include <network/Socket.h>
 #include <rfb_win32/MsgWindow.h>
