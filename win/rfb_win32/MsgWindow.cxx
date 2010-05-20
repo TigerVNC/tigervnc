@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,10 +47,10 @@ LRESULT CALLBACK MsgWindowProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
   LRESULT result = 0;
 
   if (msg == WM_CREATE)
-    SetWindowLong(wnd, GWL_USERDATA, (long)((CREATESTRUCT*)lParam)->lpCreateParams);
+    SetWindowLongPtr(wnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
   else if (msg == WM_DESTROY)
-    SetWindowLong(wnd, GWL_USERDATA, 0);
-  MsgWindow* _this = (MsgWindow*) GetWindowLong(wnd, GWL_USERDATA);
+    SetWindowLongPtr(wnd, GWLP_USERDATA, 0);
+  MsgWindow* _this = (MsgWindow*) GetWindowLongPtr(wnd, GWLP_USERDATA);
   if (!_this) {
     vlog.info("null _this in %x, message %x", wnd, msg);
     return SafeDefWindowProc(wnd, msg, wParam, lParam);

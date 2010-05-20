@@ -98,7 +98,7 @@ CurrentUserToken::CurrentUserToken() : isSafe_(false) {
     // Try to find the Shell Tray Icon window and take its token
     //   NB: This will only work under NT/2K (and later, but they're dealt with above)
     //   NB: If the shell is not running then this will return an Unsafe Null token.
-    EnumDesktops(GetProcessWindowStation(), enumDesktops, (LONG)&h);
+    EnumDesktops(GetProcessWindowStation(), enumDesktops, (LPARAM)&h);
     isSafe_ = (h != 0);
   } else {
     // Try to open the security token for the User-Mode process

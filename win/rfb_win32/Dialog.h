@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,7 +88,7 @@ namespace rfb {
       void enableItem(int id, bool state);
 
     protected:
-      static BOOL CALLBACK staticDialogProc(HWND hwnd, UINT msg,
+      static INT_PTR CALLBACK staticDialogProc(HWND hwnd, UINT msg,
 			      WPARAM wParam, LPARAM lParam);
       virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
       HINSTANCE inst;
@@ -145,7 +146,7 @@ namespace rfb {
 
     protected:
       void setPropSheet(PropSheet* ps) {propSheet = ps;};
-      static BOOL CALLBACK staticPageProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+      static INT_PTR CALLBACK staticPageProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
       virtual BOOL dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
       PROPSHEETPAGE page;
       PropSheet* propSheet;

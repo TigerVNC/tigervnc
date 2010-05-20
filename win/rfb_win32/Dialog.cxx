@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,13 +107,13 @@ void Dialog::enableItem(int id, bool state) {
 
 
 
-BOOL CALLBACK Dialog::staticDialogProc(HWND hwnd, UINT msg,
+INT_PTR CALLBACK Dialog::staticDialogProc(HWND hwnd, UINT msg,
 				       WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_INITDIALOG)
-    SetWindowLong(hwnd, GWL_USERDATA, (LONG)lParam);
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, lParam);
 
-  LONG self = GetWindowLong(hwnd, GWL_USERDATA);
+  LONG_PTR self = GetWindowLongPtr(hwnd, GWLP_USERDATA);
   if (!self) return FALSE;
 
   return ((Dialog*)self)->dialogProc(hwnd, msg, wParam, lParam);
@@ -165,13 +166,13 @@ PropSheetPage::~PropSheetPage() {
 }
 
 
-BOOL CALLBACK PropSheetPage::staticPageProc(HWND hwnd, UINT msg,
+INT_PTR CALLBACK PropSheetPage::staticPageProc(HWND hwnd, UINT msg,
 				       WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_INITDIALOG)
-    SetWindowLong(hwnd, GWL_USERDATA, ((PROPSHEETPAGE*)lParam)->lParam);
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, ((PROPSHEETPAGE*)lParam)->lParam);
 
-  LONG self = GetWindowLong(hwnd, GWL_USERDATA);
+  LONG_PTR self = GetWindowLongPtr(hwnd, GWLP_USERDATA);
   if (!self) return FALSE;
 
   return ((PropSheetPage*)self)->dialogProc(hwnd, msg, wParam, lParam);

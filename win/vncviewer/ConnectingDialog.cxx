@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,11 +32,11 @@ using namespace rfb::win32;
 
 
 // ConnectingDialog callback
-static BOOL CALLBACK ConnectingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
-  bool* activePtr = (bool*)GetWindowLong(hwnd, GWL_USERDATA);
+static INT_PTR CALLBACK ConnectingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) {
+  bool* activePtr = (bool*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
   switch (uMsg) {
   case WM_INITDIALOG:
-    SetWindowLong(hwnd, GWL_USERDATA, lParam);
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, lParam);
     return TRUE;
 	case WM_COMMAND:
 	  switch (LOWORD(wParam)) {
@@ -118,7 +119,7 @@ network::Socket* ConnectingDialog::connect(const char* hostAndPort) {
     dialogId = ++nextDialogId;
     dialogs[dialogId] = this;
     dialog = CreateDialogParam(GetModuleHandle(0),
-      MAKEINTRESOURCE(IDD_CONNECTING_DLG), 0, &ConnectingDlgProc, (long)&active);
+      MAKEINTRESOURCE(IDD_CONNECTING_DLG), 0, &ConnectingDlgProc, (LONG_PTR)&active);
     ShowWindow(dialog, SW_SHOW);
     ResetEvent(readyEvent);
   }
