@@ -534,7 +534,11 @@ END
 // 24
 //
 
+#ifdef _WIN64
+IDR_MANIFEST            24      DISCARDABLE     "vncviewer.exe.manifest64"
+#else
 IDR_MANIFEST            24      DISCARDABLE     "vncviewer.exe.manifest"
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 //
