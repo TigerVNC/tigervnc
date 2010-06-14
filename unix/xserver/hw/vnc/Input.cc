@@ -833,7 +833,7 @@ KeySym keyboardMap[MAP_LEN * KEYSYMS_PER_KEY] = {
 	XK_KP_Multiply, NoSymbol,
 	XK_Alt_L, XK_Meta_L,
 	XK_space, NoSymbol,
-	/* XK_Caps_Lock */ NoSymbol, NoSymbol,
+	XK_Caps_Lock, NoSymbol,
 	XK_F1, NoSymbol,
 	XK_F2, NoSymbol,
 	XK_F3, NoSymbol,
