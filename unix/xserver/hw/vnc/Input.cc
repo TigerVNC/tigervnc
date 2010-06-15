@@ -907,6 +907,20 @@ static Bool GetMappings(KeySymsPtr pKeySyms, CARD8 *pModMap)
 		case XK_Alt_R:
 			pModMap[i + MIN_KEY] = Mod1Mask;
 			break;
+		case XK_Num_Lock:
+			pModMap[i + MIN_KEY] = Mod2Mask;
+			break;
+			/* No defaults for Mod3Mask yet */
+		case XK_Super_L:
+		case XK_Super_R:
+		case XK_Hyper_L:
+		case XK_Hyper_R:
+			pModMap[i + MIN_KEY] = Mod4Mask;
+			break;
+		case XK_ISO_Level3_Shift:
+		case XK_Mode_switch:
+			pModMap[i + MIN_KEY] = Mod5Mask;
+			break;
 		}
 	}
 
