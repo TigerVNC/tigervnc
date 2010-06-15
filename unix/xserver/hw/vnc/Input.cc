@@ -891,17 +891,23 @@ static Bool GetMappings(KeySymsPtr pKeySyms, CARD8 *pModMap)
 		pModMap[i] = NoSymbol;
 
 	for (i = 0; i < MAP_LEN; i++) {
-		if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Caps_Lock)
-			pModMap[i + MIN_KEY] = LockMask;
-		else if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Shift_L ||
-			 keyboardMap[i * KEYSYMS_PER_KEY] == XK_Shift_R)
+		switch (keyboardMap[i * KEYSYMS_PER_KEY]) {
+		case XK_Shift_L:
+		case XK_Shift_R:
 			pModMap[i + MIN_KEY] = ShiftMask;
-		else if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Control_L ||
-			 keyboardMap[i * KEYSYMS_PER_KEY] == XK_Control_R)
+			break;
+		case XK_Caps_Lock:
+			pModMap[i + MIN_KEY] = LockMask;
+			break;
+		case XK_Control_L:
+		case XK_Control_R:
 			pModMap[i + MIN_KEY] = ControlMask;
-		else if (keyboardMap[i * KEYSYMS_PER_KEY] == XK_Alt_L ||
-			 keyboardMap[i * KEYSYMS_PER_KEY] == XK_Alt_R)
+			break;
+		case XK_Alt_L:
+		case XK_Alt_R:
 			pModMap[i + MIN_KEY] = Mod1Mask;
+			break;
+		}
 	}
 
 	pKeySyms->minKeyCode = MIN_KEY;
