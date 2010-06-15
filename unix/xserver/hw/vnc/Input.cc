@@ -881,6 +881,10 @@ KeySym keyboardMap[MAP_LEN * KEYSYMS_PER_KEY] = {
 	XK_Print, XK_Execute,
 	XK_KP_Divide, NoSymbol,
 	XK_Alt_R, XK_Meta_R,
+	NoSymbol, NoSymbol,
+	XK_Super_L, NoSymbol,
+	XK_Super_R, NoSymbol,
+	XK_Menu, NoSymbol,
 };
 
 static Bool GetMappings(KeySymsPtr pKeySyms, CARD8 *pModMap)
