@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.56])
-AC_INIT([libjpeg-turbo], [0.0.93])
+AC_INIT([libjpeg-turbo], [1.0.0])
 
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
@@ -122,7 +122,8 @@ if test "x${with_simd}" != "xno"; then
     ;;
     *)
       AC_MSG_RESULT([no ("$host_cpu")])
-      with_simd=no
+      AC_MSG_WARN([SIMD support not available for this CPU.  Performance will suffer.])
+      with_simd=no;
     ;;
   esac
 
