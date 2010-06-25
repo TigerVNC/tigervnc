@@ -105,7 +105,7 @@ namespace rfb {
     //     event source information, etc.
     // *** should really accept TCHAR argv
 
-    bool registerService(const TCHAR* name, const TCHAR* desc, int argc, const char* argv[]);
+    bool registerService(const TCHAR* name, const TCHAR* desc, int argc, char** argv);
     bool unregisterService(const TCHAR* name);
 
     bool startService(const TCHAR* name);

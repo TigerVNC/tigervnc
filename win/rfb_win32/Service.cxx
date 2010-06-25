@@ -384,7 +384,7 @@ bool rfb::win32::initEventLogLogger(const TCHAR* srcname) {
 // -=- Registering and unregistering the service
 
 bool rfb::win32::registerService(const TCHAR* name, const TCHAR* desc,
-                                 int argc, const char* argv[]) {
+                                 int argc, char** argv) {
 
   // - Initialise the default service parameters
   const TCHAR* defaultcmdline;
