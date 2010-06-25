@@ -218,7 +218,7 @@ static void processParams(int argc, char** argv) {
 // -=- main
 //
 
-int main(int argc, char** argv) {
+int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdShow) {
   int result = 0;
 
   try {
@@ -234,6 +234,9 @@ int main(int argc, char** argv) {
 
     // - Print program details and process the command line
     programInfo();
+
+	int argc = __argc;
+	char **argv = __argv;
     processParams(argc, argv);
 
     // - Run the server if required
