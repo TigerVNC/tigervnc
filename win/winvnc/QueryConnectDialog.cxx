@@ -16,8 +16,8 @@
  * USA.
  */
 
-#include <winvnc/QueryConnectDialog.h>
 #include <winvnc/VNCServerWin32.h>
+#include <winvnc/QueryConnectDialog.h>
 #include <winvnc/resource.h>
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/TCharArray.h>
