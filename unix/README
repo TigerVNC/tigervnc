@@ -52,6 +52,12 @@ To build everything but Xvnc, do:
   % ./configure
   % make
 
+If you build binaries from SVN repository then you need to have installed
+autoconf, automake, libtool and gettext and run following command before
+./configure:
+
+  % autoreconf -fiv
+
 This should first build some libraries - rdr, network, Xregion, rfb and tx -
 followed by the vncviewer, vncconfig and vncpasswd applications.
 
