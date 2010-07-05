@@ -122,6 +122,9 @@ build ()
         if [ "${module}" = "libSM" ]; then
             extraoptions="${extraoptions} --without-libuuid"
         fi
+        if [ "${module}" = "pixman" ]; then
+            extraoptions="${extraoptions} --disable-gtk"
+        fi
         ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions}
         echo ======================
         echo building ${module}
