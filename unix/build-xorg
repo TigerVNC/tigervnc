@@ -131,6 +131,9 @@ build ()
         if [ "${module}" = "libSM" ]; then
             extraoptions="${extraoptions} --without-libuuid"
         fi
+        if [ "${module}" = "pixman" ]; then
+            extraoptions="${extraoptions} --disable-gtk"
+        fi
         if [ $STATIC = 1 ]; then
             extraoptions="${extraoptions} --enable-static --disable-shared"
             OLD_CFLAGS=${CFLAGS}
