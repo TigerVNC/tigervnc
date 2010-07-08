@@ -16,9 +16,8 @@ Build Requirements
 -- NASM
    * 0.98 or later is required for a 32-bit build
    * NASM 2.05 or later is required for a 64-bit build
-   * NASM 2.07 or later is required for a 64-bit build on OS/X (10.6 "Snow
-     Leopard" or later.)  This can be obtained from MacPorts
-     (http://www.macports.org/).
+   * NASM 2.07 or later is required for a 64-bit build on OS/X.  This can be
+     obtained from MacPorts (http://www.macports.org/).
 
    The NASM 2.05 RPMs do not work on older Linux systems, such as Enterprise
    Linux 4.  On such systems, you can easily build and install NASM 2.05
@@ -108,7 +107,7 @@ Build Recipes for Specific Systems
 
 Add
 
-  --host i686-pc-linux-gnu CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32'
+  --host i686-pc-linux-gnu CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' LDFLAGS=-m32
 
 to the configure and build command lines.
 
@@ -118,7 +117,7 @@ to the configure and build command lines.
 
 Add
 
-  --host x86_64-apple-darwin10.0.0 NASM=/opt/local/bin/nasm
+  --host x86_64-apple-darwin NASM=/opt/local/bin/nasm
 
 to the configure command line.  NASM 2.07 or later from MacPorts must be
 installed.
@@ -132,6 +131,23 @@ Add
   CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' LDFLAGS=-m32
 
 to the configure command line.
+
+
+64-bit Backward-Compatible Build on 64-bit OS/X
+-----------------------------------------------
+
+Add
+
+  --host x86_64-apple-darwin NASM=/opt/local/bin/nasm \
+  CFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
+    -mmacosx-version-min=10.5 -O3' \
+    CXXFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
+    -mmacosx-version-min=10.5 -O3' \
+    LDFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
+    -mmacosx-version-min=10.5'
+
+to the configure command line.  The OS X 10.5 SDK, and NASM 2.07 or later from
+MacPorts, must be installed.
 
 
 32-bit Backward-Compatible Build on 64-bit OS/X
@@ -162,8 +178,9 @@ make dmg
 
 make udmg
 
-  On 64-bit OS X (10.6 "Snow Leopard" or later), this creates a version of the
+  On 64-bit OS X (10.5 "Leopard") and later, this creates a version of the
   Macintosh package/disk image which contains universal i386/x86-64 binaries.
   The 32-bit fork of these binaries is backward compatible with OS X 10.4 and
-  later, whereas the 64-bit fork is compatible with OS X 10.6 and later.  OS X
-  10.4 compatibility SDK required.
+  later (OS X 10.4 compatibility SDK required.)  If building on OS X 10.6
+  ("Snow Leopard") or later, the 64-bit fork can be made backward compatible
+  with 10.5 by using the instructions in the "Build Recipes" section.
