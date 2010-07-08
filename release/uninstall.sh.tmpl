@@ -46,6 +46,8 @@ cd $PWD
 
 echo Removing directories ...
 rmdir /opt/$PKGNAME/bin 2>&1 || RETCODE=-1
+rmdir /opt/$PKGNAME/man/man1 2>&1 || RETCODE=-1
+rmdir /opt/$PKGNAME/man 2>&1 || RETCODE=-1
 rmdir /opt/$PKGNAME 2>&1 || RETCODE=-1
 rmdir /Library/Documentation/$PKGNAME 2>&1 || RETCODE=-1
 

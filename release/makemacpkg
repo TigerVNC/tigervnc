@@ -40,8 +40,8 @@ fi
 umask 022
 TMPDIR=`mktemp -d /tmp/$PACKAGE_NAME-build.XXXXXX`
 PKGROOT=$TMPDIR/pkg/Package_Root
-mkdir -p $PKGROOT
 mkdir -p $PKGROOT/opt/$PACKAGE_NAME/bin
+mkdir -p $PKGROOT/opt/$PACKAGE_NAME/man/man1
 
 install -m 755 unix/vncviewer/vncviewer $PKGROOT/opt/$PACKAGE_NAME/bin/
 
@@ -77,6 +77,7 @@ mkdir -p $TMPDIR/pkg/Resources
 	> $PKGROOT/opt/$PACKAGE_NAME/bin/uninstall) 
 chmod 755 $PKGROOT/opt/$PACKAGE_NAME/bin/uninstall
 
+install -m 644 $SRCDIR/unix/vncviewer/vncviewer.man $PKGROOT/opt/$PACKAGE_NAME/man/man1/vncviewer.1
 install -m 644 $SRCDIR/LICENCE.txt $PKGROOT/Library/Documentation/$PACKAGE_NAME/
 
 sudo chown -R root:admin $PKGROOT 
