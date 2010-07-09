@@ -1,4 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2010 Antoine Martin.  All Rights Reserved.
+ * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +35,8 @@ char* prog;
 
 static void usage()
 {
-  fprintf(stderr,"usage: %s [file]\n",prog);
+  fprintf(stderr,"usage: %s [file]\n", prog);
+  fprintf(stderr,"       %s -f\n", prog);
   exit(1);
 }
 
@@ -63,6 +66,18 @@ static char* getpassword(const char* prompt) {
   return 0;
 }
 
+// Reads password from stdin and prints encrypted password to stdout.
+static int encrypt_pipe() {
+  PlainPasswd buf(256);
+  fgets(buf.buf, 256, stdin);
+  ObfuscatedPasswd obfuscated(buf);
+  //fputs(prompt, stdout);
+  if (fwrite(obfuscated.buf, obfuscated.length, 1, stdout) != 1) {
+    fprintf(stderr,"Writing to stdout failed\n");
+    return 1;
+  }
+  return 0;
+}
 
 int main(int argc, char** argv)
 {
@@ -72,6 +87,8 @@ int main(int argc, char** argv)
 
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-q") == 0) { // allowed for backwards compatibility
+    } else if (strncmp(argv[i], "-f", 2) == 0) {
+      return encrypt_pipe();
     } else if (argv[i][0] == '-') {
       usage();
     } else if (!fname) {
