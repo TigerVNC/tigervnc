@@ -54,7 +54,7 @@ static void enableEcho(bool enable) {
 
 static char* getpassword(const char* prompt) {
   PlainPasswd buf(256);
-  fputs(prompt, stdout);
+  if (prompt) fputs(prompt, stdout);
   enableEcho(false);
   char* result = fgets(buf.buf, 256, stdin);
   enableEcho(true);
@@ -68,15 +68,16 @@ static char* getpassword(const char* prompt) {
 
 // Reads password from stdin and prints encrypted password to stdout.
 static int encrypt_pipe() {
-  PlainPasswd buf(256);
-  fgets(buf.buf, 256, stdin);
-  ObfuscatedPasswd obfuscated(buf);
-  //fputs(prompt, stdout);
-  if (fwrite(obfuscated.buf, obfuscated.length, 1, stdout) != 1) {
-    fprintf(stderr,"Writing to stdout failed\n");
-    return 1;
+  char *result = getpassword(NULL);
+  if (result) {
+    ObfuscatedPasswd obfuscated(result);
+    if (fwrite(obfuscated.buf, obfuscated.length, 1, stdout) != 1) {
+      fprintf(stderr,"Writing to stdout failed\n");
+      return 1;
+    }
+    return 0;
   }
-  return 0;
+  else return 1;
 }
 
 int main(int argc, char** argv)
