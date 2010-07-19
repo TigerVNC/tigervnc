@@ -94,7 +94,6 @@ namespace rfb {
       void refreshMenu(bool enableSysCommands);
 
       // CConnection interface
-      CSecurity* getCSecurity(int secType);
       void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
       void bell();
       void framebufferUpdateStart() {}
