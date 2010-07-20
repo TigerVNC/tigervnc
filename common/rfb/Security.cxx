@@ -62,9 +62,33 @@ Security::Security(void)
   delete secTypesStr;
 }
 
-void Security::EnableSecType(U8 secType)
+const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
 {
-  list<U8>::iterator i;
+  list<rdr::U8> result;
+  list<U32>::iterator i;
+
+  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
+    if (*i < 0x100)
+      result.push_back(*i);
+
+  return result;
+}
+
+const std::list<rdr::U32> Security::GetEnabledExtSecTypes(void)
+{
+  list<rdr::U32> result;
+  list<U32>::iterator i;
+
+  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
+    if (*i >= 0x100)
+      result.push_back(*i);
+
+  return result;
+}
+
+void Security::EnableSecType(U32 secType)
+{
+  list<U32>::iterator i;
 
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i == secType)
@@ -73,9 +97,9 @@ void Security::EnableSecType(U8 secType)
   enabledSecTypes.push_back(secType);
 }
 
-bool Security::IsSupported(U8 secType)
+bool Security::IsSupported(U32 secType)
 {
-  list<U8>::iterator i;
+  list<U32>::iterator i;
 
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i == secType)
@@ -84,7 +108,7 @@ bool Security::IsSupported(U8 secType)
   return false;
 }
 
-SSecurity* Security::GetSSecurity(U8 secType)
+SSecurity* Security::GetSSecurity(U32 secType)
 {
   if (!IsSupported(secType))
     goto bail;
@@ -101,7 +125,7 @@ bail:
   throw Exception("Security type not supported");
 }
 
-CSecurity* Security::GetCSecurity(U8 secType)
+CSecurity* Security::GetCSecurity(U32 secType)
 {
   assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
 
@@ -120,7 +144,7 @@ bail:
   throw Exception("Security type not supported");
 }
 
-rdr::U8 rfb::secTypeNum(const char* name)
+rdr::U32 rfb::secTypeNum(const char* name)
 {
   if (strcasecmp(name, "None") == 0)       return secTypeNone;
   if (strcasecmp(name, "VncAuth") == 0)    return secTypeVncAuth;
@@ -133,7 +157,7 @@ rdr::U8 rfb::secTypeNum(const char* name)
   return secTypeInvalid;
 }
 
-const char* rfb::secTypeName(rdr::U8 num)
+const char* rfb::secTypeName(rdr::U32 num)
 {
   switch (num) {
   case secTypeNone:       return "None";
@@ -148,13 +172,13 @@ const char* rfb::secTypeName(rdr::U8 num)
   }
 }
 
-std::list<rdr::U8> rfb::parseSecTypes(const char* types_)
+std::list<rdr::U32> rfb::parseSecTypes(const char* types_)
 {
-  std::list<rdr::U8> result;
+  std::list<rdr::U32> result;
   CharArray types(strDup(types_)), type;
   while (types.buf) {
     strSplit(types.buf, ',', &type.buf, &types.buf);
-    rdr::U8 typeNum = secTypeNum(type.buf);
+    rdr::U32 typeNum = secTypeNum(type.buf);
     if (typeNum != secTypeInvalid)
       result.push_back(typeNum);
   }
