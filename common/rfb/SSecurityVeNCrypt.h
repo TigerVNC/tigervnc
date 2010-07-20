@@ -65,7 +65,7 @@ namespace rfb {
   protected:
     static SSecurityStack* getSSecurityStack(int secType);
 
-    SSecurityStack *ssecurityStack;
+    SSecurity *ssecurity;
     bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;
     bool haveSentTypes, haveChosenType;
     rdr::U8 majorVersion, minorVersion, numTypes;

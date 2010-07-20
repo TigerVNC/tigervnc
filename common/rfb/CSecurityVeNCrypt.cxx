@@ -36,7 +36,7 @@ using namespace rfb;
 using namespace rdr;
 using namespace std;
 
-CSecurityVeNCrypt::CSecurityVeNCrypt(void) : csecurityStack(NULL)
+CSecurityVeNCrypt::CSecurityVeNCrypt(void) : csecurity(NULL)
 {
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -169,7 +169,7 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
 	case secTypeX509None:
 	case secTypeX509Vnc:
 	case secTypeX509Plain:
-	  csecurityStack = CSecurityVeNCrypt::getCSecurityStack(chosenType);
+	  csecurity = CSecurityVeNCrypt::getCSecurityStack(chosenType);
 	  break;
 
 	case secTypeInvalid:
@@ -193,7 +193,7 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
     throw AuthFailureException("The server reported 0 VeNCrypt sub-types");
   }
 
-  return csecurityStack->processMsg(cc);
+  return csecurity->processMsg(cc);
 }
 
 CSecurityStack* CSecurityVeNCrypt::getCSecurityStack(int secType)

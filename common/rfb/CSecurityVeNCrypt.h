@@ -45,7 +45,7 @@ namespace rfb {
   protected:
     static CSecurityStack* getCSecurityStack(int secType);
 
-    CSecurityStack *csecurityStack;
+    CSecurity *csecurity;
     bool haveRecvdMajorVersion;
     bool haveRecvdMinorVersion;
     bool haveSentVersion;

@@ -62,7 +62,7 @@ StringParameter SSecurityVeNCrypt::secTypesStr
 
 SSecurityVeNCrypt::SSecurityVeNCrypt(void)
 {
-  ssecurityStack = NULL;
+  ssecurity = NULL;
   haveSentVersion = false;
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -186,7 +186,7 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
     case secTypeX509None:
     case secTypeX509Vnc:
     case secTypeX509Plain:
-      ssecurityStack = SSecurityVeNCrypt::getSSecurityStack(chosenType);
+      ssecurity = SSecurityVeNCrypt::getSSecurityStack(chosenType);
 	break;  
     case secTypeInvalid:
     case secTypeVeNCrypt: /* This would cause looping */
@@ -197,7 +197,7 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
   }
 
   /* continue processing the messages */
-  return ssecurityStack->processMsg(sc);
+  return ssecurity->processMsg(sc);
 }
 
 SSecurityStack* SSecurityVeNCrypt::getSSecurityStack(int secType)
