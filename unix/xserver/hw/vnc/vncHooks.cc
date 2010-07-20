@@ -93,11 +93,16 @@ typedef struct {
 #if XORG == 15
 static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKey;
 static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKey;
-#else
+#elif XORG < 19
 static int vncHooksScreenPrivateKeyIndex;
 static int vncHooksGCPrivateKeyIndex;
 static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKeyIndex;
 static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKeyIndex;
+#else
+static DevPrivateKeyRec vncHooksScreenKeyRec;
+static DevPrivateKeyRec vncHooksGCKeyRec;
+#define vncHooksScreenPrivateKey (&vncHooksScreenKeyRec)
+#define vncHooksGCPrivateKey (&vncHooksGCKeyRec)
 #endif
 
 #define vncHooksScreenPrivate(pScreen) \
@@ -223,6 +228,7 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 {
   vncHooksScreenPtr vncHooksScreen;
 
+#if XORG < 19
   if (!dixRequestPrivate(vncHooksScreenPrivateKey, sizeof(vncHooksScreenRec))) {
     ErrorF("vncHooksInit: Allocation of vncHooksScreen failed\n");
     return FALSE;
@@ -231,6 +237,20 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
     ErrorF("vncHooksInit: Allocation of vncHooksGCRec failed\n");
     return FALSE;
   }
+
+#else
+  if (!dixRegisterPrivateKey(&vncHooksScreenKeyRec, PRIVATE_SCREEN,
+      sizeof(vncHooksScreenRec))) {
+    ErrorF("vncHooksInit: Allocation of vncHooksScreen failed\n");
+    return FALSE;
+  }
+  if (!dixRegisterPrivateKey(&vncHooksGCKeyRec, PRIVATE_GC,
+      sizeof(vncHooksGCRec))) {
+    ErrorF("vncHooksInit: Allocation of vncHooksGCRec failed\n");
+    return FALSE;
+  }
+
+#endif
 
   vncHooksScreen = vncHooksScreenPrivate(pScreen);
 
@@ -344,7 +364,7 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
 static Bool vncHooksCreateGC(GCPtr pGC)
 {
   SCREEN_UNWRAP(pGC->pScreen, CreateGC);
-    
+
   vncHooksGCPtr vncHooksGC = vncHooksGCPrivate(pGC);
 
   Bool ret = (*pScreen->CreateGC) (pGC);
