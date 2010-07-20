@@ -30,7 +30,6 @@
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/LogWriter.h>
-#include <rfb/SSecurityVeNCrypt.h>
 #include <list>
 
 using namespace rfb;
@@ -147,14 +146,14 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
 
     /* make a choice and send it to the server, meanwhile set up the stack */
     if (!haveChosenType) {
-      chosenType = 0;
+      chosenType = secTypeInvalid;
       U8 i;
       list<U32>::iterator j;
       list<U32> preferredList;
 
       /* Try preferred choice */
-      SSecurityVeNCrypt::getSecTypes(&preferredList);
-	  
+      preferredList = security->GetEnabledExtSecTypes();
+
       for (j = preferredList.begin(); j != preferredList.end(); j++) {
 	for (i = 0; i < nAvailableTypes; i++) {
 	  if (*j == availableTypes[i]) {
@@ -163,29 +162,19 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
 	  }
 	}
 
-	if (chosenType)
+	if (chosenType != secTypeInvalid)
 	  break;
       }
 
       vlog.debug("Choosing security type %s (%d)", secTypeName(chosenType),
 		 chosenType);
-      /* Set up the stack according to the chosen type: */
-      switch (chosenType) {
-	case secTypeTLSNone:
-	case secTypeTLSVnc:
-	case secTypeTLSPlain:
-	case secTypeX509None:
-	case secTypeX509Vnc:
-	case secTypeX509Plain:
-	  csecurity = CSecurityVeNCrypt::getCSecurityStack(chosenType);
-	  break;
 
-	case secTypeInvalid:
-	case secTypeVeNCrypt: /* would cause looping */
-	default:
-	  throw AuthFailureException("No valid VeNCrypt sub-type");
-      }
-      
+      /* Set up the stack according to the chosen type: */
+      if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
+	throw AuthFailureException("No valid VeNCrypt sub-type");
+
+      csecurity = CSecurityVeNCrypt::getCSecurityStack(chosenType);
+
       /* send chosen type to server */
       os->writeU32(chosenType);
       os->flush();
