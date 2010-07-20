@@ -64,12 +64,6 @@ namespace rfb {
     // first one is most preferred.
     void addSecType(rdr::U8 secType);
 
-    // setClientSecTypeOrder() determines whether the client should obey
-    // the server's security type preference, by picking the first server security
-    // type that the client supports, or whether it should pick the first type
-    // that the server supports, from the client-supported list of types.
-    void setClientSecTypeOrder(bool clientOrder);
-
     // setShared sets the value of the shared flag which will be sent to the
     // server upon initialisation.
     void setShared(bool s) { shared = s; }
@@ -166,7 +160,6 @@ namespace rfb {
     enum { maxSecTypes = 8 };
     int nSecTypes;
     rdr::U8 secTypes[maxSecTypes];
-    bool clientSecTypeOrder;
     stateEnum state_;
 
     CharArray serverName;

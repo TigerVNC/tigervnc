@@ -33,7 +33,7 @@ static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
   : csecurity(0), is(0), os(0), reader_(0), writer_(0),
-    shared(false), nSecTypes(0), clientSecTypeOrder(false),
+    shared(false), nSecTypes(0),
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false)
 {
   security = new Security();
@@ -64,10 +64,6 @@ void CConnection::addSecType(rdr::U8 secType)
   if (nSecTypes == maxSecTypes)
     throw Exception("too many security types");
   secTypes[nSecTypes++] = secType;
-}
-
-void CConnection::setClientSecTypeOrder(bool clientOrder) {
-  clientSecTypeOrder = clientOrder;
 }
 
 void CConnection::initialiseProtocol()
@@ -170,7 +166,7 @@ void CConnection::processSecurityTypesMsg()
       // If we are using the client's preference for types,
       // we keep trying types, to find the one that matches and
       // which appears first in the client's list of supported types.
-      if (secType == secTypeInvalid || clientSecTypeOrder) {
+      if (secType == secTypeInvalid) {
         for (int j = 0; j < nSecTypes; j++) {
           if (secTypes[j] == serverSecType && j < secTypePos) {
             secType = secTypes[j];
