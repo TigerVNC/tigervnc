@@ -45,6 +45,15 @@ namespace rfb {
   const rdr::U8 secTypeTLS     = 18;
   const rdr::U8 secTypeVeNCrypt= 19;
 
+  /* VeNCrypt subtypes */
+  const int secTypePlain       = 256;
+  const int secTypeTLSNone     = 257;
+  const int secTypeTLSVnc      = 258;
+  const int secTypeTLSPlain    = 259;
+  const int secTypeX509None    = 260;
+  const int secTypeX509Vnc     = 261;
+  const int secTypeX509Plain   = 262;
+
   // result types
 
   const rdr::U32 secResultOK = 0;
