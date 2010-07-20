@@ -69,9 +69,6 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   menuKeysym = XStringToKeysym(menuKeyStr.buf);
 
   setShared(shared);
-  addSecType(secTypeNone);
-  addSecType(secTypeVncAuth);
-  addSecType(secTypeVeNCrypt);
   CSecurity::upg = this; /* Security instance is created in CConnection costructor. */
 
   CharArray encStr(preferredEncoding.getData());

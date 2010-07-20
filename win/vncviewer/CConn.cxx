@@ -98,9 +98,6 @@ bool CConn::initialise(network::Socket* s, bool reverse) {
   // Initialise the viewer options
   applyOptions(options);
 
-  // - Set which auth schemes we support, in order of preference
-  addSecType(secTypeVncAuth);
-  addSecType(secTypeNone);
   CSecurity::upg = this;
 
   // Start the RFB protocol

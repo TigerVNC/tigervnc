@@ -59,11 +59,6 @@ namespace rfb {
     // (i.e. SConnection will not delete them).
     void setStreams(rdr::InStream* is, rdr::OutStream* os);
 
-    // addSecType() should be called once for each security type which the
-    // client supports.  The order in which they're added is such that the
-    // first one is most preferred.
-    void addSecType(rdr::U8 secType);
-
     // setShared sets the value of the shared flag which will be sent to the
     // server upon initialisation.
     void setShared(bool s) { shared = s; }
@@ -157,9 +152,6 @@ namespace rfb {
     CMsgWriter* writer_;
     bool deleteStreamsWhenDone;
     bool shared;
-    enum { maxSecTypes = 8 };
-    int nSecTypes;
-    rdr::U8 secTypes[maxSecTypes];
     stateEnum state_;
 
     CharArray serverName;

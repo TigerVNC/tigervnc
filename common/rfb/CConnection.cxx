@@ -33,7 +33,7 @@ static LogWriter vlog("CConnection");
 
 CConnection::CConnection()
   : csecurity(0), is(0), os(0), reader_(0), writer_(0),
-    shared(false), nSecTypes(0),
+    shared(false),
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false)
 {
   security = new Security();
@@ -57,13 +57,6 @@ void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 {
   is = is_;
   os = os_;
-}
-
-void CConnection::addSecType(rdr::U8 secType)
-{
-  if (nSecTypes == maxSecTypes)
-    throw Exception("too many security types");
-  secTypes[nSecTypes++] = secType;
 }
 
 void CConnection::initialiseProtocol()
@@ -129,6 +122,9 @@ void CConnection::processSecurityTypesMsg()
 
   int secType = secTypeInvalid;
 
+  std::list<rdr::U8> secTypes;
+  secTypes = security->GetEnabledSecTypes();
+
   if (cp.isVersion(3,3)) {
 
     // legacy 3.3 server may only offer "vnc authentication" or "none"
@@ -138,10 +134,14 @@ void CConnection::processSecurityTypesMsg()
       throwConnFailedException();
 
     } else if (secType == secTypeNone || secType == secTypeVncAuth) {
-      int j;
-      for (j = 0; j < nSecTypes; j++)
-        if (secTypes[j] == secType) break;
-      if (j == nSecTypes)
+      std::list<rdr::U8>::iterator i;
+      for (i = secTypes.begin(); i != secTypes.end(); i++)
+        if (*i == secType) {
+          secType = *i;
+          break;
+        }
+
+      if (i == secTypes.end())
         secType = secTypeInvalid;
     } else {
       vlog.error("Unknown 3.3 security type %d", secType);
@@ -156,25 +156,24 @@ void CConnection::processSecurityTypesMsg()
     if (nServerSecTypes == 0)
       throwConnFailedException();
 
-    int secTypePos = nSecTypes;
+    std::list<rdr::U8>::iterator j;
+    int secTypePos, secTypePosMin;
+
+    secTypePosMin = secTypes.size();
+
     for (int i = 0; i < nServerSecTypes; i++) {
       rdr::U8 serverSecType = is->readU8();
       vlog.debug("Server offers security type %s(%d)",
                  secTypeName(serverSecType),serverSecType);
 
-      // If we haven't already chosen a secType, try this one
-      // If we are using the client's preference for types,
-      // we keep trying types, to find the one that matches and
+      // We keep trying types, to find the one that matches and
       // which appears first in the client's list of supported types.
-      if (secType == secTypeInvalid) {
-        for (int j = 0; j < nSecTypes; j++) {
-          if (secTypes[j] == serverSecType && j < secTypePos) {
-            secType = secTypes[j];
-            secTypePos = j;
-            break;
-          }
+      for (j = secTypes.begin(), secTypePos = 0; j != secTypes.end(); j++, secTypePos++) {
+        if (*j == serverSecType && secTypePos < secTypePosMin) {
+          secType = *j;
+          secTypePosMin = secTypePos;
+          break;
         }
-        // NB: Continue reading the remaining server secTypes, but ignore them
       }
     }
 
