@@ -40,7 +40,7 @@ namespace rfb {
 
   class SSecurityVeNCrypt : public SSecurity {
   public:
-    SSecurityVeNCrypt(void);
+    SSecurityVeNCrypt(Security *sec);
     ~SSecurityVeNCrypt();
     virtual bool processMsg(SConnection* sc);// { return true; }
     virtual int getType() const { return secTypeVeNCrypt; }
@@ -57,6 +57,7 @@ namespace rfb {
     static SSecurityStack* getSSecurityStack(int secType);
 
     SSecurity *ssecurity;
+    Security *security;
     bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;
     bool haveSentTypes, haveChosenType;
     rdr::U8 majorVersion, minorVersion, numTypes;

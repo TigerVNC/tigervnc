@@ -117,7 +117,7 @@ SSecurity* Security::GetSSecurity(U32 secType)
   case secTypeNone: return new SSecurityNone();
   case secTypeVncAuth: return new SSecurityVncAuth();
 #ifdef HAVE_GNUTLS
-  case secTypeVeNCrypt: return new SSecurityVeNCrypt();
+  case secTypeVeNCrypt: return new SSecurityVeNCrypt(this);
 #endif
   }
 
@@ -136,7 +136,7 @@ CSecurity* Security::GetCSecurity(U32 secType)
   case secTypeNone: return new CSecurityNone();
   case secTypeVncAuth: return new CSecurityVncAuth();
 #ifdef HAVE_GNUTLS
-  case secTypeVeNCrypt: return new CSecurityVeNCrypt();
+  case secTypeVeNCrypt: return new CSecurityVeNCrypt(this);
 #endif
   }
 

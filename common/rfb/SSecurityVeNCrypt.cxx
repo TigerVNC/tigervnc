@@ -60,7 +60,7 @@ StringParameter SSecurityVeNCrypt::secTypesStr
  "TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain)",
  "TLSVnc,TLSPlain,X509Vnc,X509Plain");
 
-SSecurityVeNCrypt::SSecurityVeNCrypt(void)
+SSecurityVeNCrypt::SSecurityVeNCrypt(Security *sec) : security(sec)
 {
   ssecurity = NULL;
   haveSentVersion = false;

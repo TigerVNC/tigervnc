@@ -35,7 +35,7 @@ namespace rfb {
   class CSecurityVeNCrypt : public CSecurity {
   public:
 
-    CSecurityVeNCrypt(void);
+    CSecurityVeNCrypt(Security* sec);
     ~CSecurityVeNCrypt();
     virtual bool processMsg(CConnection* cc);// { return true; }
     int getType() const {return chosenType;}
@@ -46,6 +46,7 @@ namespace rfb {
     static CSecurityStack* getCSecurityStack(int secType);
 
     CSecurity *csecurity;
+    Security *security;
     bool haveRecvdMajorVersion;
     bool haveRecvdMinorVersion;
     bool haveSentVersion;
