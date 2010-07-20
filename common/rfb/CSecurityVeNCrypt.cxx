@@ -29,12 +29,15 @@
 #include <rfb/CSecurityTLS.h>
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
+#include <rfb/LogWriter.h>
 #include <rfb/SSecurityVeNCrypt.h>
 #include <list>
 
 using namespace rfb;
 using namespace rdr;
 using namespace std;
+
+static LogWriter vlog("CVeNCrypt");
 
 CSecurityVeNCrypt::CSecurityVeNCrypt(void) : csecurity(NULL)
 {
@@ -131,6 +134,9 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
       if (is->checkNoWait(4)) {
 	availableTypes[iAvailableType++] = is->readU32();
 	haveListOfTypes = (iAvailableType >= nAvailableTypes);
+	vlog.debug("Server offers security type %s (%d)",
+		   secTypeName(availableTypes[iAvailableType - 1]),
+		   availableTypes[iAvailableType - 1]);
 
 	if (!haveListOfTypes)
 	  return false;
@@ -161,6 +167,8 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
 	  break;
       }
 
+      vlog.debug("Choosing security type %s (%d)", secTypeName(chosenType),
+		 chosenType);
       /* Set up the stack according to the chosen type: */
       switch (chosenType) {
 	case secTypeTLSNone:

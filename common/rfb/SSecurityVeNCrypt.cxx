@@ -178,6 +178,8 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
     if (!haveChosenType)
       chosenType = secTypeInvalid;
 
+    vlog.debug("Choosing security type %s (%d)", secTypeName(chosenType),
+	       chosenType);
     /* Set up the stack according to the chosen type */
     switch(chosenType) {
     case secTypeTLSNone:
