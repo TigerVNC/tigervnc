@@ -28,15 +28,19 @@
 #define strcasecmp _stricmp
 #endif
 #include <rfb/CSecurityNone.h>
+#include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/SSecurityNone.h>
+#include <rfb/SSecurityStack.h>
 #include <rfb/SSecurityVncAuth.h>
-#ifdef HAVE_GNUTLS
 #include <rfb/SSecurityVeNCrypt.h>
+#ifdef HAVE_GNUTLS
+#include <rfb/CSecurityTLS.h>
+#include <rfb/SSecurityTLS.h>
 #endif
 #include <rfb/util.h>
 
@@ -116,8 +120,12 @@ SSecurity* Security::GetSSecurity(U32 secType)
   switch (secType) {
   case secTypeNone: return new SSecurityNone();
   case secTypeVncAuth: return new SSecurityVncAuth();
-#ifdef HAVE_GNUTLS
   case secTypeVeNCrypt: return new SSecurityVeNCrypt(this);
+#ifdef HAVE_GNUTLS
+  case secTypeTLSNone:
+    return new SSecurityStack(secTypeTLSNone, new SSecurityTLS());
+  case secTypeTLSVnc:
+    return new SSecurityStack(secTypeTLSVnc, new SSecurityTLS(), new SSecurityVncAuth());
 #endif
   }
 
@@ -135,8 +143,14 @@ CSecurity* Security::GetCSecurity(U32 secType)
   switch (secType) {
   case secTypeNone: return new CSecurityNone();
   case secTypeVncAuth: return new CSecurityVncAuth();
-#ifdef HAVE_GNUTLS
   case secTypeVeNCrypt: return new CSecurityVeNCrypt(this);
+#ifdef HAVE_GNUTLS
+  case secTypeTLSNone:
+    return new CSecurityStack(secTypeTLSNone, "TLS with no password",
+			      new CSecurityTLS());
+  case secTypeTLSVnc:
+    return new CSecurityStack(secTypeTLSVnc, "TLS with VNCAuth",
+			      new CSecurityTLS(), new CSecurityVncAuth());
 #endif
   }
 

@@ -24,10 +24,6 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_GNUTLS
-#error "This header should not be included without HAVE_GNUTLS defined"
-#endif
-
 #include <rfb/SConnection.h>
 #include <rfb/SSecurity.h>
 #include <rfb/SSecurityVeNCrypt.h>

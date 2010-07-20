@@ -26,9 +26,7 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/CConnection.h>
-#include <rfb/CSecurityTLS.h>
 #include <rfb/CSecurityVeNCrypt.h>
-#include <rfb/CSecurityVncAuth.h>
 #include <rfb/LogWriter.h>
 #include <list>
 
@@ -173,7 +171,7 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
       if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
 	throw AuthFailureException("No valid VeNCrypt sub-type");
 
-      csecurity = CSecurityVeNCrypt::getCSecurityStack(chosenType);
+      csecurity = security->GetCSecurity(chosenType);
 
       /* send chosen type to server */
       os->writeU32(chosenType);
@@ -193,25 +191,3 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
   return csecurity->processMsg(cc);
 }
 
-CSecurityStack* CSecurityVeNCrypt::getCSecurityStack(int secType)
-{
-  switch (secType) {
-  case secTypeTLSNone:
-    return new CSecurityStack(secTypeTLSNone, "TLS with no password",
-			      new CSecurityTLS());
-  case secTypeTLSVnc:
-    return new CSecurityStack(secTypeTLSVnc, "TLS with VNCAuth",
-			      new CSecurityTLS(), new CSecurityVncAuth());
-#if 0
-  /* Following subtypes are not implemented, yet */
-  case secTypeTLSPlain:
-  case secTypeX509None:
-  case secTypeX509Vnc:
-  case secTypeX509Plain:
-#endif
-  default:
-    throw Exception("Unsupported VeNCrypt subtype");
-  }
-
-  return NULL; /* not reached */
-}

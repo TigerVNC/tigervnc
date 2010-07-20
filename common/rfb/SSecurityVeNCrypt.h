@@ -29,10 +29,6 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_GNUTLS
-#error "This header should not be included without HAVE_GNUTLS defined"
-#endif
-
 #include <rfb/SSecurityStack.h>
 #include <rfb/SConnection.h>
 
@@ -49,8 +45,6 @@ namespace rfb {
     static StringParameter X509_CertFile, X509_KeyFile;
 
   protected:
-    static SSecurityStack* getSSecurityStack(int secType);
-
     SSecurity *ssecurity;
     Security *security;
     bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;

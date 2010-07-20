@@ -21,10 +21,6 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_GNUTLS
-#error "This source should not be compiled without HAVE_GNUTLS defined"
-#endif
-
 #include <rfb/SSecurityPlain.h>
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>

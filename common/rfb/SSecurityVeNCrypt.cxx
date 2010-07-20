@@ -26,17 +26,11 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_GNUTLS
-#error "This source should not be compiled without HAVE_GNUTLS defined"
-#endif
-
 #include <rfb/SSecurityVeNCrypt.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
-#include <rfb/SSecurityVncAuth.h>
-#include <rfb/SSecurityTLS.h>
 
 using namespace rfb;
 using namespace rdr;
@@ -180,29 +174,10 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
     if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
       throw AuthFailureException("No valid VeNCrypt sub-type");
 
-    ssecurity = SSecurityVeNCrypt::getSSecurityStack(chosenType);
+    ssecurity = security->GetSSecurity(chosenType);
   }
 
   /* continue processing the messages */
   return ssecurity->processMsg(sc);
-}
-
-SSecurityStack* SSecurityVeNCrypt::getSSecurityStack(int secType)
-{
-  switch (secType) {
-  case secTypeTLSNone:
-    return new SSecurityStack(secTypeTLSNone, new SSecurityTLS());
-  case secTypeTLSVnc:
-    return new SSecurityStack(secTypeTLSVnc, new SSecurityTLS(), new SSecurityVncAuth());
-#if 0
-  /* Following types are not implemented, yet */
-  case secTypeTLSPlain:
-  case secTypeX509None:
-  case secTypeX509Vnc:
-  case secTypeX509Plain:
-#endif
-  default:
-    throw Exception("Bug in the SSecurityVeNCrypt::getSSecurityStack");
-  }
 }
 

@@ -26,7 +26,6 @@
 #define __CSECURITYVENCRYPT_H__
 
 #include <rfb/CSecurity.h>
-#include <rfb/CSecurityStack.h>
 #include <rfb/Security.h>
 #include <rdr/types.h>
 
@@ -43,8 +42,6 @@ namespace rfb {
 
     static StringParameter secTypesStr;
   protected:
-    static CSecurityStack* getCSecurityStack(int secType);
-
     CSecurity *csecurity;
     Security *security;
     bool haveRecvdMajorVersion;
