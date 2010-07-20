@@ -156,14 +156,13 @@ rdr::U32 rfb::secTypeNum(const char* name)
   if (strcasecmp(name, "VeNCrypt") == 0)   return secTypeVeNCrypt;
 
   /* VeNCrypt subtypes */
+  if (strcasecmp(name, "Plain") == 0)      return secTypePlain;
   if (strcasecmp(name, "TLSNone") == 0)    return secTypeTLSNone;
   if (strcasecmp(name, "TLSVnc") == 0)     return secTypeTLSVnc;
-#if 0 /* Currently not implemented */
+  if (strcasecmp(name, "TLSPlain") == 0)   return secTypeTLSPlain;
   if (strcasecmp(name, "X509None") == 0)   return secTypeX509None;
   if (strcasecmp(name, "X509Vnc") == 0)    return secTypeX509Vnc;
-  if (strcasecmp(name, "TLSPlain") == 0)   return secTypeTLSPlain;
   if (strcasecmp(name, "X509Plain") == 0)  return secTypeX509Plain;
-#endif
 
   return secTypeInvalid;
 }
@@ -181,15 +180,13 @@ const char* rfb::secTypeName(rdr::U32 num)
   case secTypeVeNCrypt:   return "VeNCrypt";
 
   /* VeNCrypt subtypes */
+  case secTypePlain:      return "Plain";
   case secTypeTLSNone:    return "TLSNone";
   case secTypeTLSVnc:     return "TLSVnc";
-#if 0 /* Currently not implemented */
-  case secTypePlain:      return "Plain";
   case secTypeTLSPlain:   return "TLSPlain";
   case secTypeX509None:   return "X509None";
   case secTypeX509Vnc:    return "X509Vnc";
   case secTypeX509Plain:  return "X509Plain";
-#endif
   default:                return "[unknown secType]";
   }
 }
