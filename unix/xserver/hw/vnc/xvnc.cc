@@ -878,7 +878,11 @@ static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 static void
 xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 {
+#if XORG < 19
     WindowPtr	pWin = WindowTable[pScreen->myNum];
+#else
+    WindowPtr	pWin = pScreen->root;
+#endif
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;
