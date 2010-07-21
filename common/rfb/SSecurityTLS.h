@@ -19,8 +19,8 @@
  * USA.
  */
 
-#ifndef __S_SECURITY_TLSBASE_H__
-#define __S_SECURITY_TLSBASE_H__
+#ifndef __S_SECURITY_TLS_H__
+#define __S_SECURITY_TLS_H__
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -38,10 +38,10 @@
 
 namespace rfb {
 
-  class SSecurityTLSBase : public SSecurity {
+  class SSecurityTLS : public SSecurity {
   public:
-    SSecurityTLSBase(bool _anon);
-    virtual ~SSecurityTLSBase();
+    SSecurityTLS(bool _anon);
+    virtual ~SSecurityTLS();
     virtual bool processMsg(SConnection* sc);
     virtual const char* getUserName() const {return 0;}
     virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None;}

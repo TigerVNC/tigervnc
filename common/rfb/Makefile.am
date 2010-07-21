@@ -1,10 +1,10 @@
 noinst_LTLIBRARIES = librfb.la
 
 VENCRYPT_HDRS = CSecurityTLS.h CSecurityTLSBase.h CSecurityX509.h \
-	SSecurityTLSBase.h
+	SSecurityTLS.h
 
 VENCRYPT_SRCS = CSecurityTLS.cxx CSecurityTLSBase.cxx CSecurityX509.cxx \
-	SSecurityTLSBase.cxx
+	SSecurityTLS.cxx
 
 HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	CMsgHandler.h CMsgReader.h CMsgReaderV3.h CMsgWriter.h \

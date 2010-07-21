@@ -27,7 +27,7 @@
 #error "This source should not be compiled without HAVE_GNUTLS defined"
 #endif
 
-#include <rfb/SSecurityTLSBase.h>
+#include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
@@ -39,10 +39,10 @@
 
 using namespace rfb;
 
-StringParameter SSecurityTLSBase::X509_CertFile
+StringParameter SSecurityTLS::X509_CertFile
 ("x509cert", "specifies path to the x509 certificate in PEM format", "", ConfServer);
 
-StringParameter SSecurityTLSBase::X509_KeyFile
+StringParameter SSecurityTLS::X509_KeyFile
 ("x509key", "specifies path to the key of the x509 certificate in PEM format", "", ConfServer);
 
 static LogWriter vlog("TLS");
@@ -54,7 +54,7 @@ static void debug_log(int level, const char* str)
 }
 #endif
 
-void SSecurityTLSBase::initGlobal()
+void SSecurityTLS::initGlobal()
 {
   static bool globalInitDone = false;
 
@@ -71,7 +71,7 @@ void SSecurityTLSBase::initGlobal()
   }
 }
 
-SSecurityTLSBase::SSecurityTLSBase(bool _anon) : session(0), dh_params(0),
+SSecurityTLS::SSecurityTLS(bool _anon) : session(0), dh_params(0),
 						 anon_cred(0), cert_cred(0),
 						 anon(_anon), fis(0), fos(0)
 {
@@ -79,7 +79,7 @@ SSecurityTLSBase::SSecurityTLSBase(bool _anon) : session(0), dh_params(0),
   keyfile = X509_KeyFile.getData();
 }
 
-void SSecurityTLSBase::shutdown()
+void SSecurityTLS::shutdown()
 {
   if (session) {
     if (gnutls_bye(session, GNUTLS_SHUT_RDWR) != GNUTLS_E_SUCCESS) {
@@ -112,7 +112,7 @@ void SSecurityTLSBase::shutdown()
 }
 
 
-SSecurityTLSBase::~SSecurityTLSBase()
+SSecurityTLS::~SSecurityTLS()
 {
   shutdown();
 
@@ -125,7 +125,7 @@ SSecurityTLSBase::~SSecurityTLSBase()
   delete[] certfile;
 }
 
-bool SSecurityTLSBase::processMsg(SConnection *sc)
+bool SSecurityTLS::processMsg(SConnection *sc)
 {
   rdr::InStream* is = sc->getInStream();
   rdr::OutStream* os = sc->getOutStream();
@@ -177,7 +177,7 @@ bool SSecurityTLSBase::processMsg(SConnection *sc)
   return true;
 }
 
-void SSecurityTLSBase::setParams(gnutls_session session)
+void SSecurityTLS::setParams(gnutls_session session)
 {
   static const int kx_anon_priority[] = { GNUTLS_KX_ANON_DH, 0 };
   static const int kx_priority[] = { GNUTLS_KX_DHE_DSS, GNUTLS_KX_RSA,
