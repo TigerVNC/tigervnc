@@ -23,10 +23,11 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+#error "This source should not be compiled without HAVE_GNUTLS defined"
+#endif
 
 #include <rfb/CSecurityTLS.h>
-
 
 using namespace rfb;
 
@@ -63,4 +64,3 @@ void CSecurityTLS::checkSession(gnutls_session session)
 
 }
 
-#endif /* HAVE_GNUTLS */

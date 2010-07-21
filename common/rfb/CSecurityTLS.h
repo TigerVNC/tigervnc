@@ -26,7 +26,9 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+#error "This header should not be included without HAVE_GNUTLS defined"
+#endif
 
 #include <rfb/CSecurityTLSBase.h>
 #include <rfb/SSecurityVeNCrypt.h>
@@ -47,7 +49,5 @@ namespace rfb {
     gnutls_anon_client_credentials anon_cred;
   };
 }
-
-#endif /* HAVE_GNUTLS */
 
 #endif /* __C_SECURITY_TLS_H__ */

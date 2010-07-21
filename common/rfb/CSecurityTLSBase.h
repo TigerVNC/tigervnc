@@ -26,7 +26,9 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+#error "This header should not be compiled without HAVE_GNUTLS defined"
+#endif
 
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
@@ -56,7 +58,5 @@ namespace rfb {
     rdr::OutStream* fos;
   };
 }
-
-#endif /* HAVE_GNUTLS */
 
 #endif

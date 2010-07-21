@@ -23,7 +23,9 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+#error "This header should not be compiled without HAVE_GNUTLS defined"
+#endif
 
 #include <rfb/CSecurityTLSBase.h>
 #include <rfb/CConnection.h>
@@ -136,4 +138,3 @@ bool CSecurityTLSBase::processMsg(CConnection* cc)
   return true;
 }
 
-#endif /* HAVE_GNUTLS */
