@@ -19,8 +19,8 @@
  * USA.
  */
 
-#ifndef __C_SECURITY_TLSBASE_H__
-#define __C_SECURITY_TLSBASE_H__
+#ifndef __C_SECURITY_TLS_H__
+#define __C_SECURITY_TLS_H__
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -38,10 +38,10 @@
 #include <gnutls/gnutls.h>
 
 namespace rfb {
-  class CSecurityTLSBase : public CSecurity {
+  class CSecurityTLS : public CSecurity {
   public:
-    CSecurityTLSBase(bool _anon);
-    virtual ~CSecurityTLSBase();
+    CSecurityTLS(bool _anon);
+    virtual ~CSecurityTLS();
     virtual bool processMsg(CConnection* cc);
     virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
     virtual const char* description() const

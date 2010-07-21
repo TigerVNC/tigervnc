@@ -27,7 +27,7 @@
 #error "This header should not be compiled without HAVE_GNUTLS defined"
 #endif
 
-#include <rfb/CSecurityTLSBase.h>
+#include <rfb/CSecurityTLS.h>
 #include <rfb/SSecurityVeNCrypt.h> 
 #include <rfb/CConnection.h>
 #include <rfb/LogWriter.h>
@@ -41,8 +41,8 @@
 
 using namespace rfb;
 
-StringParameter CSecurityTLSBase::x509ca("x509ca", "X509 CA certificate", "", ConfViewer);
-StringParameter CSecurityTLSBase::x509crl("x509crl", "X509 CRL file", "", ConfViewer);
+StringParameter CSecurityTLS::x509ca("x509ca", "X509 CA certificate", "", ConfViewer);
+StringParameter CSecurityTLS::x509crl("x509crl", "X509 CRL file", "", ConfViewer);
 
 static LogWriter vlog("TLS");
 
@@ -53,7 +53,7 @@ static void debug_log(int level, const char* str)
 }
 #endif
 
-void CSecurityTLSBase::initGlobal()
+void CSecurityTLS::initGlobal()
 {
   static bool globalInitDone = false;
 
@@ -69,14 +69,14 @@ void CSecurityTLSBase::initGlobal()
   }
 }
 
-CSecurityTLSBase::CSecurityTLSBase(bool _anon) : session(0), anon_cred(0),
+CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
 						 anon(_anon), fis(0), fos(0)
 {
   cafile = x509ca.getData();
   crlfile = x509crl.getData();
 }
 
-void CSecurityTLSBase::shutdown()
+void CSecurityTLS::shutdown()
 {
   if (session)
     gnutls_bye(session, GNUTLS_SHUT_RDWR);
@@ -100,7 +100,7 @@ void CSecurityTLSBase::shutdown()
 }
 
 
-CSecurityTLSBase::~CSecurityTLSBase()
+CSecurityTLS::~CSecurityTLS()
 {
   shutdown();
 
@@ -113,7 +113,7 @@ CSecurityTLSBase::~CSecurityTLSBase()
   delete[] crlfile;
 }
 
-bool CSecurityTLSBase::processMsg(CConnection* cc)
+bool CSecurityTLS::processMsg(CConnection* cc)
 {
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();
@@ -159,7 +159,7 @@ bool CSecurityTLSBase::processMsg(CConnection* cc)
   return true;
 }
 
-void CSecurityTLSBase::setParam()
+void CSecurityTLS::setParam()
 {
   static const int kx_anon_priority[] = { GNUTLS_KX_ANON_DH, 0 };
   static const int kx_priority[] = { GNUTLS_KX_DHE_DSS, GNUTLS_KX_RSA,
@@ -187,7 +187,7 @@ void CSecurityTLSBase::setParam()
   }
 }
 
-void CSecurityTLSBase::checkSession()
+void CSecurityTLS::checkSession()
 {
   int status;
   const gnutls_datum *cert_list;
