@@ -39,8 +39,7 @@
 #include <rfb/SSecurityVncAuth.h>
 #include <rfb/SSecurityVeNCrypt.h>
 #ifdef HAVE_GNUTLS
-#include <rfb/CSecurityTLS.h>
-#include <rfb/CSecurityX509.h>
+#include <rfb/CSecurityTLSBase.h>
 #include <rfb/SSecurityTLS.h>
 #endif
 #include <rfb/util.h>
@@ -152,16 +151,16 @@ CSecurity* Security::GetCSecurity(U32 secType)
 #ifdef HAVE_GNUTLS
   case secTypeTLSNone:
     return new CSecurityStack(secTypeTLSNone, "TLS with no password",
-			      new CSecurityTLS());
+			      new CSecurityTLSBase(true));
   case secTypeTLSVnc:
     return new CSecurityStack(secTypeTLSVnc, "TLS with VNCAuth",
-			      new CSecurityTLS(), new CSecurityVncAuth());
+			      new CSecurityTLSBase(true), new CSecurityVncAuth());
   case secTypeX509None:
     return new CSecurityStack(secTypeX509None, "X509 with no password",
-			      new CSecurityX509());
+			      new CSecurityTLSBase(false));
   case secTypeX509Vnc:
     return new CSecurityStack(secTypeX509None, "X509 with VNCAuth",
-			      new CSecurityX509(), new CSecurityVncAuth());
+			      new CSecurityTLSBase(false), new CSecurityVncAuth());
 #endif
   }
 

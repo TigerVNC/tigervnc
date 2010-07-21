@@ -31,6 +31,7 @@
 #endif
 
 #include <rfb/CSecurity.h>
+#include <rfb/SSecurityVeNCrypt.h>
 #include <rfb/Security.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
@@ -39,21 +40,32 @@
 namespace rfb {
   class CSecurityTLSBase : public CSecurity {
   public:
-    CSecurityTLSBase();
+    CSecurityTLSBase(bool _anon);
     virtual ~CSecurityTLSBase();
     virtual bool processMsg(CConnection* cc);
+    virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
+    virtual const char* description() const
+      { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
+
+    static StringParameter x509ca;
+    static StringParameter x509crl;
 
   protected:
     void shutdown();
-    virtual void freeResources() = 0;
-    virtual void setParam(gnutls_session session) = 0;
-    virtual void checkSession(gnutls_session session) = 0;
+    void freeResources();
+    void setParam();
+    void checkSession();
     CConnection *client;
 
   private:
     static void initGlobal();
 
     gnutls_session session;
+    gnutls_anon_client_credentials anon_cred;
+    gnutls_certificate_credentials cert_cred;
+    bool anon;
+
+    char *cafile, *crlfile;
     rdr::InStream* fis;
     rdr::OutStream* fos;
   };
