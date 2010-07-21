@@ -679,6 +679,8 @@ ModeSwitchFound:
 	action = down ? KeyPress : KeyRelease;
 	n = GetKeyboardEvents(eventq, keyboardDev, action, kc);
 	enqueueEvents(keyboardDev, n);
+
+        FREE_MAPS;
 	
 	/*
 	 * When faking a modifier we are putting a keycode (which can
