@@ -34,9 +34,16 @@
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
 
+#define DH_BITS 1024 /* XXX This should be configurable! */
 #define TLS_DEBUG
 
 using namespace rfb;
+
+StringParameter SSecurityTLSBase::X509_CertFile
+("x509cert", "specifies path to the x509 certificate in PEM format", "", ConfServer);
+
+StringParameter SSecurityTLSBase::X509_KeyFile
+("x509key", "specifies path to the key of the x509 certificate in PEM format", "", ConfServer);
 
 static LogWriter vlog("TLS");
 
@@ -64,30 +71,58 @@ void SSecurityTLSBase::initGlobal()
   }
 }
 
-SSecurityTLSBase::SSecurityTLSBase() : session(0)
+SSecurityTLSBase::SSecurityTLSBase(bool _anon) : session(0), dh_params(0),
+						 anon_cred(0), cert_cred(0),
+						 anon(_anon), fis(0), fos(0)
 {
-  fis=0;
-  fos=0;
+  certfile = X509_CertFile.getData();
+  keyfile = X509_KeyFile.getData();
 }
 
 void SSecurityTLSBase::shutdown()
 {
-  if(session)
-    ;//gnutls_bye(session, GNUTLS_SHUT_RDWR);
+  if (session) {
+    if (gnutls_bye(session, GNUTLS_SHUT_RDWR) != GNUTLS_E_SUCCESS) {
+      /* FIXME: Treat as non-fatal error */
+      vlog.error("TLS session wasn't terminated gracefully");
+    }
+  }
+
+  if (dh_params) {
+    gnutls_dh_params_deinit(dh_params);
+    dh_params = 0;
+  }
+
+  if (anon_cred) {
+    gnutls_anon_free_server_credentials(anon_cred);
+    anon_cred = 0;
+  }
+
+  if (cert_cred) {
+    gnutls_certificate_free_credentials(cert_cred);
+    cert_cred = 0;
+  }
+
+  if (session) {
+    gnutls_deinit(session);
+    session = 0;
+
+    gnutls_global_deinit();
+  }
 }
 
 
 SSecurityTLSBase::~SSecurityTLSBase()
 {
-  if (session) {
-    //gnutls_bye(session, GNUTLS_SHUT_RDWR);
-    gnutls_deinit(session);
-  }
-  if(fis)
+  shutdown();
+
+  if (fis)
     delete fis;
-  if(fos)
+  if (fos)
     delete fos;
-  /* FIXME: should be doing gnutls_global_deinit() at some point */
+
+  delete[] keyfile;
+  delete[] certfile;
 }
 
 bool SSecurityTLSBase::processMsg(SConnection *sc)
@@ -130,10 +165,7 @@ bool SSecurityTLSBase::processMsg(SConnection *sc)
       return false;
     }
     vlog.error("TLS Handshake failed: %s", gnutls_strerror (err));
-    gnutls_bye(session, GNUTLS_SHUT_RDWR);
-    freeResources();
-    gnutls_deinit(session);
-    session = 0;
+    shutdown();
     throw AuthFailureException("TLS Handshake failed");
   }
 
@@ -145,3 +177,48 @@ bool SSecurityTLSBase::processMsg(SConnection *sc)
   return true;
 }
 
+void SSecurityTLSBase::setParams(gnutls_session session)
+{
+  static const int kx_anon_priority[] = { GNUTLS_KX_ANON_DH, 0 };
+  static const int kx_priority[] = { GNUTLS_KX_DHE_DSS, GNUTLS_KX_RSA,
+				     GNUTLS_KX_DHE_RSA, GNUTLS_KX_SRP, 0 };
+
+  gnutls_kx_set_priority(session, anon ? kx_anon_priority : kx_priority);
+
+  if (gnutls_dh_params_init(&dh_params) != GNUTLS_E_SUCCESS)
+    throw AuthFailureException("gnutls_dh_params_init failed");
+
+  if (gnutls_dh_params_generate2(dh_params, DH_BITS) != GNUTLS_E_SUCCESS)
+    throw AuthFailureException("gnutls_dh_params_generate2 failed");
+
+  if (anon) {
+    if (gnutls_anon_allocate_server_credentials(&anon_cred) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_anon_allocate_server_credentials failed");
+
+    gnutls_anon_set_server_dh_params(anon_cred, dh_params);
+
+    if (gnutls_credentials_set(session, GNUTLS_CRD_ANON, anon_cred)
+        != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_credentials_set failed");
+
+    vlog.debug("Anonymous session has been set");
+
+  } else {
+    if (gnutls_certificate_allocate_credentials(&cert_cred) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_certificate_allocate_credentials failed");
+
+    gnutls_certificate_set_dh_params(cert_cred, dh_params);
+
+    if (gnutls_certificate_set_x509_key_file(cert_cred, certfile, keyfile,
+        GNUTLS_X509_FMT_PEM) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("load of key failed");
+
+    if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred)
+        != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_credentials_set failed");
+
+    vlog.debug("X509 session has been set");
+
+  }
+
+}
