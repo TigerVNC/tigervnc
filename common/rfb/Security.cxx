@@ -41,6 +41,7 @@
 #ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
 #include <rfb/SSecurityTLS.h>
+#include <rfb/SSecurityX509.h>
 #endif
 #include <rfb/util.h>
 
@@ -126,6 +127,10 @@ SSecurity* Security::GetSSecurity(U32 secType)
     return new SSecurityStack(secTypeTLSNone, new SSecurityTLS());
   case secTypeTLSVnc:
     return new SSecurityStack(secTypeTLSVnc, new SSecurityTLS(), new SSecurityVncAuth());
+  case secTypeX509None:
+    return new SSecurityStack(secTypeX509None, new SSecurityX509());
+  case secTypeX509Vnc:
+    return new SSecurityStack(secTypeX509None, new SSecurityX509(), new SSecurityVncAuth());
 #endif
   }
 

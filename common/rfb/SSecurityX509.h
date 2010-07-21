@@ -1,8 +1,7 @@
-/*
- * Copyright (C) 2005-2006 Martin Koegler
+/* 
  * Copyright (C) 2006 OCCAM Financial Technology
  * Copyright (C) 2010 TigerVNC Team
- * 
+ *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,37 +17,45 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-//
-// SSecurityVeNCrypt
-//
 
-#ifndef __SSECURITYVENCRYPT_H__
-#define __SSECURITYVENCRYPT_H__
+#ifndef __S_SECURITY_X509_H__
+#define __S_SECURITY_X509_H__
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <rfb/SSecurityStack.h>
-#include <rfb/SConnection.h>
+#ifndef HAVE_GNUTLS
+#error "This header should not be compiled without HAVE_GNUTLS defined"
+#endif
+
+#include <rfb/SSecurityTLSBase.h>
+#include <rfb/SSecurityVeNCrypt.h>
 
 namespace rfb {
 
-  class SSecurityVeNCrypt : public SSecurity {
+  class SSecurityX509 : public SSecurityTLSBase {
   public:
-    SSecurityVeNCrypt(Security *sec);
-    ~SSecurityVeNCrypt();
-    virtual bool processMsg(SConnection* sc);// { return true; }
-    virtual int getType() const { return secTypeVeNCrypt; }
-    virtual const char* getUserName() const { return NULL; }
+    SSecurityX509();
+    virtual ~SSecurityX509();
+    virtual int getType() const { return secTypeX509None; }
+
+    static StringParameter X509_CertFile;
+    static StringParameter X509_KeyFile;
 
   protected:
-    SSecurity *ssecurity;
-    Security *security;
-    bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;
-    bool haveSentTypes, haveChosenType;
-    rdr::U8 majorVersion, minorVersion, numTypes;
-    rdr::U32 *subTypes, chosenType;
+    virtual void freeResources();
+    virtual void setParams(gnutls_session session);
+
+  private:
+    static void initGlobal();
+
+    gnutls_dh_params dh_params;
+    gnutls_certificate_credentials cert_cred;
+    char* keyfile;
+    char* certfile;
   };
+
 }
-#endif
+
+#endif /* __S_SECURITY_TLS_H__ */

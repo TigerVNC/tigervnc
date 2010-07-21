@@ -38,16 +38,6 @@ using namespace std;
 
 static LogWriter vlog("SVeNCrypt");
 
-StringParameter SSecurityVeNCrypt::X509_CertFile
-("x509cert",
- "specifies path to the x509 certificate in PEM format",
- "", ConfServer);
-
-StringParameter SSecurityVeNCrypt::X509_KeyFile
-("x509key",
- "specifies path to the key of the x509 certificate in PEM format",
- "", ConfServer);
-
 SSecurityVeNCrypt::SSecurityVeNCrypt(Security *sec) : security(sec)
 {
   ssecurity = NULL;
