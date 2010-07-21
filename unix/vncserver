@@ -176,7 +176,7 @@ if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
     if (!&CheckDisplayNumber($displayNumber)) {
 	die "A VNC server is already running as :$displayNumber\n";
     }
-} elsif ((@ARGV > 0) && ($ARGV[0] !~ /^-/)) {
+} elsif ((@ARGV > 0) && ($ARGV[0] !~ /^-/) && ($ARGV[0] !~ /^\+/)) {
     &Usage();
 } else {
     $displayNumber = &GetDisplayNumber();
