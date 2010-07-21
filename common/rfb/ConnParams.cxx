@@ -129,7 +129,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 	       encodings[i] <= pseudoEncodingQualityLevel9) {
       noJpeg = false;
       qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
-    } else if (encodings[i] <= encodingMax && Encoder::supported(encodings[i]))
+    } else if (Encoder::supported(encodings[i]))
       currentEncoding_ = encodings[i];
   }
 }

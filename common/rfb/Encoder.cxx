@@ -34,12 +34,12 @@ EncoderCreateFnType Encoder::createFns[encodingMax+1] = { 0 };
 
 bool Encoder::supported(int encoding)
 {
-  return encoding <= encodingMax && createFns[encoding];
+  return encoding >= 0 && encoding <= encodingMax && createFns[encoding];
 }
 
 Encoder* Encoder::createEncoder(int encoding, SMsgWriter* writer)
 {
-  if (encoding <= encodingMax && createFns[encoding])
+  if (supported(encoding))
     return (*createFns[encoding])(writer);
   return 0;
 }
