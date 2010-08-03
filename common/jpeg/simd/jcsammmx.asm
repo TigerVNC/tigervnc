@@ -95,7 +95,7 @@ EXTN(jsimd_h2v1_downsample_mmx):
 
 	mov	eax, JDIMENSION [v_samp(ebp)]	; rowctr
 	test	eax,eax
-	jle	short .return
+	jle	near .return
 
 	mov       edx, 0x00010000	; bias pattern
 	movd      mm7,edx
