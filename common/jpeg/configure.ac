@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.56])
-AC_INIT([libjpeg-turbo], [1.0.0])
+AC_INIT([libjpeg-turbo], [1.0.1])
 
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
