@@ -35,7 +35,12 @@ $(CLASSES): $(SOURCES)
 	$(JC) $(JCFLAGS) -O $(SOURCES)
 
 $(ARCHIVE): $(CLASSES) $(MANIFEST)
-	$(JAR) cfm $(ARCHIVE) $(MANIFEST) $(CLASSES)
+	cd ../../..; \
+	$(JAR) cfm com/tigervnc/vncviewer/$(ARCHIVE) \
+		com/tigervnc/vncviewer/$(MANIFEST) \
+		com/tigervnc/vncviewer/*.class \
+		com/tigervnc/decoder/*.class \
+		com/tigervnc/decoder/common/*.class
 
 install: $(CLASSES) $(ARCHIVE)
 	$(CP) $(CLASSES) $(ARCHIVE) $(PAGES) $(INSTALL_DIR)
@@ -44,4 +49,4 @@ export:: $(CLASSES) $(ARCHIVE) $(PAGES)
 	@$(ExportJavaClasses)
 
 clean::
-	$(RM) *.class *.jar
+	$(RM) *.class *.jar ../decoder/*.class ../decoder/common/*.class
