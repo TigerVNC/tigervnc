@@ -16,7 +16,7 @@
 
 /* Modifications:
  * Copyright (C)2007 Sun Microsystems, Inc.
- * Copyright (C)2009 D. R. Commander
+ * Copyright (C)2009-2010 D. R. Commander
  *
  * This library is free software and may be redistributed and/or modified under
  * the terms of the wxWindows Library License, Version 3.1 or (at your option)
@@ -240,6 +240,7 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
       dtbl->maxcode[l] = -1;	/* -1 if no codes of this length */
     }
   }
+  dtbl->valoffset[17] = 0;
   dtbl->maxcode[17] = 0xFFFFFL; /* ensures jpeg_huff_decode terminates */
 
   /* Compute lookahead tables to speed up decoding.
