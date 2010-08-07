@@ -382,7 +382,7 @@ jsimd_h2v2_fancy_upsample (j_decompress_ptr cinfo,
 {
   if ((simd_support & JSIMD_SSE2) &&
       IS_ALIGNED_SSE(jconst_fancy_upsample_sse2))
-    jsimd_h2v1_fancy_upsample_sse2(cinfo->max_v_samp_factor,
+    jsimd_h2v2_fancy_upsample_sse2(cinfo->max_v_samp_factor,
         compptr->downsampled_width, input_data, output_data_ptr);
   else if (simd_support & JSIMD_MMX)
     jsimd_h2v2_fancy_upsample_mmx(cinfo->max_v_samp_factor,
