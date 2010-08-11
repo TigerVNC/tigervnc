@@ -79,7 +79,8 @@ CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
 void CSecurityTLS::shutdown()
 {
   if (session)
-    gnutls_bye(session, GNUTLS_SHUT_RDWR);
+    if (gnutls_bye(session, GNUTLS_SHUT_RDWR) != GNUTLS_E_SUCCESS)
+      throw Exception("gnutls_bye failed");
 
   if (anon_cred) {
     gnutls_anon_free_client_credentials(anon_cred);
@@ -128,8 +129,11 @@ bool CSecurityTLS::processMsg(CConnection* cc)
     if (is->readU8() == 0)
       return true;
 
-    gnutls_init(&session, GNUTLS_CLIENT);
-    gnutls_set_default_priority(session);
+    if (gnutls_init(&session, GNUTLS_CLIENT) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_init failed");
+
+    if (gnutls_set_default_priority(session) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_set_default_priority failed");
 
     setParam();
     
@@ -166,14 +170,22 @@ void CSecurityTLS::setParam()
 				     GNUTLS_KX_DHE_RSA, GNUTLS_KX_SRP, 0 };
 
   if (anon) {
-    gnutls_kx_set_priority(session, kx_anon_priority);
-    gnutls_anon_allocate_client_credentials(&anon_cred);
-    gnutls_credentials_set(session, GNUTLS_CRD_ANON, anon_cred);
+    if (gnutls_kx_set_priority(session, kx_anon_priority) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_kx_set_priority failed");
+
+    if (gnutls_anon_allocate_client_credentials(&anon_cred) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_anon_allocate_client_credentials failed");
+
+    if (gnutls_credentials_set(session, GNUTLS_CRD_ANON, anon_cred) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_credentials_set failed");
 
     vlog.debug("Anonymous session has been set");
   } else {
-    gnutls_kx_set_priority(session, kx_priority);
-    gnutls_certificate_allocate_credentials(&cert_cred);
+    if (gnutls_kx_set_priority(session, kx_priority) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_kx_set_priority failed");
+
+    if (gnutls_certificate_allocate_credentials(&cert_cred) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_certificate_allocate_credentials failed");
 
     if (*cafile && gnutls_certificate_set_x509_trust_file(cert_cred,cafile,GNUTLS_X509_FMT_PEM) < 0)
       throw AuthFailureException("load of CA cert failed");
@@ -181,7 +193,8 @@ void CSecurityTLS::setParam()
     if (*crlfile && gnutls_certificate_set_x509_crl_file(cert_cred,crlfile,GNUTLS_X509_FMT_PEM) < 0)
       throw AuthFailureException("load of CRL failed");
 
-    gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
+    if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred) != GNUTLS_E_SUCCESS)
+      throw AuthFailureException("gnutls_credentials_set failed");
 
     vlog.debug("X509 session has been set");
   }

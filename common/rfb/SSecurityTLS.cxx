@@ -183,7 +183,9 @@ void SSecurityTLS::setParams(gnutls_session session)
   static const int kx_priority[] = { GNUTLS_KX_DHE_DSS, GNUTLS_KX_RSA,
 				     GNUTLS_KX_DHE_RSA, GNUTLS_KX_SRP, 0 };
 
-  gnutls_kx_set_priority(session, anon ? kx_anon_priority : kx_priority);
+  if (gnutls_kx_set_priority(session, anon ? kx_anon_priority : kx_priority)
+      != GNUTLS_E_SUCCESS)
+    throw AuthFailureException("gnutls_kx_set_priority failed");
 
   if (gnutls_dh_params_init(&dh_params) != GNUTLS_E_SUCCESS)
     throw AuthFailureException("gnutls_dh_params_init failed");
