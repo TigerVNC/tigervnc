@@ -60,12 +60,14 @@ namespace rfb {
   const rdr::U32 secResultFailed = 1;
   const rdr::U32 secResultTooMany = 2; // deprecated
 
+  enum SecurityClassType { SecurityViewer, SecurityServer };
+
   class Security {
   public:
     /*
      * Create Security instance.
      */
-    Security(void);
+    Security(SecurityClassType secClassType);
 
     /*
      * Note about security types.
@@ -94,7 +96,8 @@ namespace rfb {
     /* Create client side CSecurity class instance */
     CSecurity* GetCSecurity(rdr::U32 secType);
 
-    static StringParameter secTypes;
+    static StringParameter secTypesViewer;
+    static StringParameter secTypesServer;
 
     /*
      * Use variable directly instead of dumb get/set methods. It is used

@@ -55,7 +55,7 @@ SConnection::SConnection(bool reverseConnection_)
 
   cp.setVersion(defaultMajorVersion, defaultMinorVersion);
 
-  security = new Security();
+  security = new Security(SecurityServer);
 }
 
 SConnection::~SConnection()

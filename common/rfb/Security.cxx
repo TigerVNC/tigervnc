@@ -52,14 +52,28 @@ static LogWriter vlog("Security");
 
 UserPasswdGetter *CSecurity::upg = NULL;
 
-StringParameter Security::secTypes
+StringParameter Security::secTypesViewer
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
- "VncAuth");
+ "VncAuth", ConfViewer);
 
-Security::Security(void)
+StringParameter Security::secTypesServer
+("SecurityTypes",
+ "Specify which security scheme to use (None, VncAuth)",
+ "VncAuth", ConfServer);
+
+Security::Security(SecurityClassType secClassType)
 {
-  char *secTypesStr = secTypes.getData();
+  char *secTypesStr;
+
+  switch (secClassType) {
+  case SecurityViewer:
+    secTypesStr = secTypesViewer.getData();
+    break;
+  case SecurityServer:
+    secTypesStr = secTypesServer.getData();
+    break;
+  };
 
   enabledSecTypes = parseSecTypes(secTypesStr);
 
