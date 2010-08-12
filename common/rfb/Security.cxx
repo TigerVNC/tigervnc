@@ -84,7 +84,7 @@ const std::list<rdr::U32> Security::GetEnabledExtSecTypes(void)
   list<U32>::iterator i;
 
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
-    if (*i >= 0x100)
+    if (*i != secTypeVeNCrypt) /* Do not include VeNCrypt type to avoid loops */
       result.push_back(*i);
 
   return result;
