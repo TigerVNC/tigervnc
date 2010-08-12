@@ -55,12 +55,22 @@ UserPasswdGetter *CSecurity::upg = NULL;
 StringParameter Security::secTypesViewer
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
- "VncAuth", ConfViewer);
+#ifdef HAVE_GNUTLS
+ "VeNCrypt,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
+#else
+ "VncAuth,None",
+#endif
+ConfViewer);
 
 StringParameter Security::secTypesServer
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
- "VncAuth", ConfServer);
+#ifdef HAVE_GNUTLS
+ "VeNCrypt,TLSVnc,VncAuth",
+#else
+ "VncAuth",
+#endif
+ConfServer);
 
 Security::Security(SecurityClassType secClassType)
 {
