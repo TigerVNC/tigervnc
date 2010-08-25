@@ -25,6 +25,7 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSOutStream.h>
+#include <errno.h>
 
 #ifdef HAVE_GNUTLS
 using namespace rdr;
@@ -35,8 +36,15 @@ ssize_t rdr::gnutls_OutStream_push(gnutls_transport_ptr str, const void* data,
 				   size_t size)
 {
   OutStream* out = (OutStream*) str;
-  out->writeBytes(data, size);
-  out->flush();
+
+  try {
+    out->writeBytes(data, size);
+    out->flush();
+  } catch (Exception& e) {
+    gnutls_transport_set_global_errno(EINVAL);
+    return -1;
+  }
+
   return size;
 }
 

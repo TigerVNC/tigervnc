@@ -37,15 +37,21 @@ ssize_t rdr::gnutls_InStream_pull(gnutls_transport_ptr str, void* data,
 {
   InStream* in= (InStream*) str;
 
-  if (!in->check(1, 1, false)) {
-    errno=EAGAIN;
+  try {
+    if (!in->check(1, 1, false)) {
+      gnutls_transport_set_global_errno(EAGAIN);
+      return -1;
+    }
+
+    if (in->getend() - in->getptr() < size)
+      size = in->getend() - in->getptr();
+  
+    in->readBytes(data, size);
+
+  } catch (Exception& e) {
+    gnutls_transport_set_global_errno(EINVAL);
     return -1;
   }
-
-  if (in->getend() - in->getptr() < size)
-    size = in->getend() - in->getptr();
-  
-  in->readBytes(data, size);
 
   return size;
 }
