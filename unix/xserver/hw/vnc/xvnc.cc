@@ -1204,15 +1204,15 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->whitePixel = pvfb->whitePixel;
 
     if (!pvfb->pixelFormatDefined) {
-	pvfb->pixelFormatDefined = TRUE;
-
 	switch (pvfb->fb.depth) {
 	case 16:
+	    pvfb->pixelFormatDefined = TRUE;
 	    pvfb->rgbNotBgr = TRUE;
 	    pvfb->blueBits = pvfb->redBits = 5;
 	    pvfb->greenBits = 6;
 	    break;
 	case 32:
+	    pvfb->pixelFormatDefined = TRUE;
 	    pvfb->rgbNotBgr = TRUE;
 	    pvfb->blueBits = pvfb->redBits = pvfb->greenBits = 8;
 	    break;
