@@ -234,6 +234,10 @@ usage ()
     exit 1
 }
 
+if [ -x '/usr/bin/getconf' ]; then
+    MAKE_PARALLEL=`/usr/bin/getconf _NPROCESSORS_ONLN 2>&1`
+    [ "$MAKE_PARALLEL" -gt 1 ] && MAKE="$MAKE -j$MAKE_PARALLEL"
+fi
 
 while [ $# -gt 0 ]
 do
