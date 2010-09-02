@@ -190,7 +190,7 @@ build ()
     echo "*** Building xserver ***"
     pushd xorg/xserver
     autoreconf -fiv
-    XORGCFGFLAGS='--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg'
+    XORGCFGFLAGS='--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev'
     if [ $STATIC = 1 ]; then
         XORGCFGFLAGS="${XORGCFGFLAGS} --disable-shared --enable-static"
     fi
