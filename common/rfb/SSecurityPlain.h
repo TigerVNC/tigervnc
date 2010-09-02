@@ -34,24 +34,25 @@ namespace rfb {
 
   class PasswordValidator {
   public:
-    // validate username / password combination
-	bool validate(SConnection* sc, const char *username, const char *password) { return validUser(username) ? validateInternal(sc, username, password) : false; };
-	static StringParameter plainUsers;
+    bool validate(SConnection* sc, const char *username, const char *password)
+      { return validUser(username) ? validateInternal(sc, username, password) : false; }
+    static StringParameter plainUsers;
+
   protected:
     virtual bool validateInternal(SConnection* sc, const char *username, const char *password)=0;
-	static bool validUser(const char* username);
+    static bool validUser(const char* username);
   };
 
   class SSecurityPlain : public SSecurity {
   public:
-    SSecurityPlain(PasswordValidator* valid);
+    SSecurityPlain();
     virtual bool processMsg(SConnection* sc);
-    virtual int getType() const {return secTypePlain;};
+    virtual int getType() const { return secTypePlain; };
     virtual const char* getUserName() const { return username.buf; }
 
   private:
     PasswordValidator* valid;
-    unsigned int ulen,plen,state;
+    unsigned int ulen, plen, state;
     CharArray username;
   };
 

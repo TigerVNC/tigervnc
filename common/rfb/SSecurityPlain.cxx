@@ -25,6 +25,9 @@
 #include <rfb/SConnection.h>
 #include <rfb/Exception.h>
 #include <rdr/InStream.h>
+#ifdef HAVE_PAM
+#include <rfb/UnixPasswordValidator.h>
+#endif
 
 using namespace rfb;
 
@@ -36,27 +39,33 @@ StringParameter PasswordValidator::plainUsers
 bool PasswordValidator::validUser(const char* username)
 {
   CharArray users(strDup(plainUsers.getValueStr())), user;
+
   while (users.buf) {
     strSplit(users.buf, ',', &user.buf, &users.buf);
 #ifdef WIN32
-    if(0==stricmp(user.buf, "*"))
+    if (0 == stricmp(user.buf, "*"))
 	  return true;
-    if(0==stricmp(user.buf, username))
+    if (0 == stricmp(user.buf, username))
 	  return true;
 #else
-    if(!strcmp (user.buf, "*"))
+    if (!strcmp(user.buf, "*"))
 	  return true;
-    if(!strcmp (user.buf, username))
+    if (!strcmp(user.buf, username))
 	  return true;
 #endif
   }
   return false;
 }
 
-SSecurityPlain::SSecurityPlain(PasswordValidator* _valid)
+SSecurityPlain::SSecurityPlain()
 {
-  valid=_valid;
-  state=0;
+#ifdef HAVE_PAM
+  valid = new UnixPasswordValidator();
+#else
+  valid = NULL;
+#endif
+
+  state = 0;
 }
 
 bool SSecurityPlain::processMsg(SConnection* sc)
@@ -66,32 +75,34 @@ bool SSecurityPlain::processMsg(SConnection* sc)
   char *uname;
   CharArray password;
 
-  if(state==0)
-  {
-    if(!is->checkNoWait(8))
+  if (!valid)
+    throw AuthFailureException("No password validator configured");
+
+  if (state == 0) {
+    if (!is->checkNoWait(8))
       return false;
-    ulen=is->readU32();
-    plen=is->readU32();
-    state=1;
+    ulen = is->readU32();
+    plen = is->readU32();
+    state = 1;
   }
-  if(state==1)
-  {
-    if(is->checkNoWait(ulen+plen+2))
+
+  if (state == 1) {
+    if (is->checkNoWait(ulen + plen + 2))
       return false;
-    state=2;
-    pw=new char[plen+1];
-    uname=new char[ulen+1];
+    state = 2;
+    pw = new char[plen + 1];
+    uname = new char[ulen + 1];
     username.replaceBuf(uname);
     password.replaceBuf(pw);
-    is->readBytes(uname,ulen);
-    is->readBytes(pw,plen);
-    pw[plen]=0;
-    uname[ulen]=0;
-    plen=0;
-    if(!valid->validate(sc,uname,pw))
-	  throw AuthFailureException("invalid password or username");
-    return true;
+    is->readBytes(uname, ulen);
+    is->readBytes(pw, plen);
+    pw[plen] = 0;
+    uname[ulen] = 0;
+    plen = 0;
+    if (!valid->validate(sc, uname, pw))
+      throw AuthFailureException("invalid password or username");
   }
+
   return true;
 }
 

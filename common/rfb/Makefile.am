@@ -55,6 +55,11 @@ endif
 librfb_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win
 librfb_la_LIBADD = @GNUTLS_LIBS@
 
+if HAVE_PAM
+librfb_la_SOURCES += UnixPasswordValidator.cxx UnixPasswordValidator.h pam.c pam.h
+librfb_la_LIBADD += $(PAM_LIBS)
+endif
+
 if INCLUDED_JPEG
 librfb_la_CPPFLAGS += -I$(top_srcdir)/common/jpeg -I$(top_builddir)/common/jpeg
 librfb_la_LIBADD += $(top_builddir)/common/jpeg/libjpeg.la
