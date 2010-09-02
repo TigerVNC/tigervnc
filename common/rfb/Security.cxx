@@ -31,6 +31,7 @@
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>
 #include <rfb/CSecurityVncAuth.h>
+#include <rfb/CSecurityPlain.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -56,7 +57,7 @@ StringParameter Security::secTypesViewer
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
 #ifdef HAVE_GNUTLS
- "VeNCrypt,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
+ "VeNCrypt,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
 #else
  "VncAuth,None",
 #endif
@@ -172,6 +173,7 @@ CSecurity* Security::GetCSecurity(U32 secType)
   case secTypeNone: return new CSecurityNone();
   case secTypeVncAuth: return new CSecurityVncAuth();
   case secTypeVeNCrypt: return new CSecurityVeNCrypt(this);
+  case secTypePlain: return new CSecurityPlain();
 #ifdef HAVE_GNUTLS
   case secTypeTLSNone:
     return new CSecurityStack(secTypeTLSNone, "TLS with no password",
@@ -179,12 +181,18 @@ CSecurity* Security::GetCSecurity(U32 secType)
   case secTypeTLSVnc:
     return new CSecurityStack(secTypeTLSVnc, "TLS with VNCAuth",
 			      new CSecurityTLS(true), new CSecurityVncAuth());
+  case secTypeTLSPlain:
+    return new CSecurityStack(secTypeTLSPlain, "TLS with Username/Password",
+			      new CSecurityTLS(true), new CSecurityPlain());
   case secTypeX509None:
     return new CSecurityStack(secTypeX509None, "X509 with no password",
 			      new CSecurityTLS(false));
   case secTypeX509Vnc:
     return new CSecurityStack(secTypeX509None, "X509 with VNCAuth",
 			      new CSecurityTLS(false), new CSecurityVncAuth());
+  case secTypeX509Plain:
+    return new CSecurityStack(secTypeX509Plain, "X509 with Username/Password",
+			      new CSecurityTLS(false), new CSecurityPlain());
 #endif
   }
 
