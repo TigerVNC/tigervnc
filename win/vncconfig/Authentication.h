@@ -40,11 +40,11 @@ namespace rfb {
       AuthenticationPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_AUTHENTICATION)), regKey(rk) {}
       void initDialog() {
-        CharArray sec_types_str(Security::secTypes.getData());
-        std::list<rdr::U8> sec_types = parseSecTypes(sec_types_str.buf);
+        CharArray sec_types_str(Security::secTypesServer.getData());
+        std::list<rdr::U32> sec_types = parseSecTypes(sec_types_str.buf);
 
         useNone = useVNC = false;
-        std::list<rdr::U8>::iterator i;
+        std::list<rdr::U32>::iterator i;
         for (i=sec_types.begin(); i!=sec_types.end(); i++) {
           if ((*i) == secTypeNone) useNone = true;
           else if ((*i) == secTypeVncAuth) useVNC = true;
