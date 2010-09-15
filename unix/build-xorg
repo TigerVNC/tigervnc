@@ -97,7 +97,12 @@ update_modules()
     for module in ${modules}; do
         tar jxf ~/.tigervnc-xorg-$XORG_VERSION/${module}.tar.bz2
     done
-    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2
+
+    [ -r ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2 ] && \
+        tar jxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2
+    [ -r ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.gz ] && \
+        tar zxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.gz
+
     tar jxf ~/.tigervnc-xorg-$XORG_VERSION/freetype.tar.bz2
     tar jxf ~/.tigervnc-xorg-$XORG_VERSION/xorg-server.tar.bz2
     cp -r $SRCDIR/unix/xserver xserver
