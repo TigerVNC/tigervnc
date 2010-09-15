@@ -263,6 +263,13 @@ public:
       compressLevel.disabled(!customCompressLevel.checked());
     } else if (checkbox == &noJpeg) {
       qualityLevel.disabled(autoSelect.checked() || !noJpeg.checked());
+    } else if (checkbox == &secVeNCrypt) {
+      encTLS.checked(false);
+      encTLS.disabled(!secVeNCrypt.checked());
+      encX509.checked(false);
+      encX509.disabled(!secVeNCrypt.checked());
+      secPlain.checked(false);
+      secPlain.disabled(!secVeNCrypt.checked());
     }
   }
 

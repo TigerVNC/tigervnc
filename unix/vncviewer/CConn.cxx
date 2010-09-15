@@ -27,6 +27,7 @@
 #include <rfb/Security.h>
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityVncAuth.h>
+#include <rfb/CSecurityTLS.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
@@ -34,6 +35,7 @@
 #include <rfb/screenTypes.h>
 #include <network/TcpSocket.h>
 #include <cassert>
+#include <list>
 
 #include "TXViewport.h"
 #include "DesktopWindow.h"
@@ -41,7 +43,9 @@
 #include "PasswdDialog.h"
 #include "parameters.h"
 
+using namespace rdr;
 using namespace rfb;
+using namespace std;
 
 static rfb::LogWriter vlog("CConn");
 
@@ -608,10 +612,77 @@ void CConn::setOptions() {
   options.acceptClipboard.checked(acceptClipboard);
   options.sendClipboard.checked(sendClipboard);
   options.sendPrimary.checked(sendPrimary);
-  if (state() == RFBSTATE_NORMAL)
+  if (state() == RFBSTATE_NORMAL) {
     options.shared.disabled(true);
-  else
+    options.secVeNCrypt.disabled(true);
+    options.encNone.disabled(true);
+    options.encTLS.disabled(true);
+    options.encX509.disabled(true);
+    options.ca.disabled(true);
+    options.crl.disabled(true);
+    options.secNone.disabled(true);
+    options.secVnc.disabled(true);
+    options.secPlain.disabled(true);
+  } else {
     options.shared.checked(shared);
+
+    /* Process non-VeNCrypt sectypes */
+    list<U8> secTypes = security->GetEnabledSecTypes();
+    list<U8>::iterator i;
+    for (i = secTypes.begin(); i != secTypes.end(); i++) {
+      switch (*i) {
+      case secTypeVeNCrypt:
+        options.secVeNCrypt.checked(true);
+        break;
+      case secTypeNone:
+	options.encNone.checked(true);
+        options.secNone.checked(true);
+	break;
+      case secTypeVncAuth:
+	options.encNone.checked(true);
+        options.secVnc.checked(true);
+	break;
+      }
+   }
+
+   /* Process VeNCrypt subtypes */
+   if (options.secVeNCrypt.checked()) {
+     list<U32> secTypesExt = security->GetEnabledExtSecTypes();
+     list<U32>::iterator iext;
+     for (iext = secTypesExt.begin(); iext != secTypesExt.end(); iext++) {
+	switch (*iext) {
+	case secTypePlain:
+	  options.encNone.checked(true);
+          options.secPlain.checked(true);
+	  break;
+	case secTypeTLSNone:
+	  options.encTLS.checked(true);
+          options.secNone.checked(true);
+	  break;
+	case secTypeTLSVnc:
+	  options.encTLS.checked(true);
+          options.secVnc.checked(true);
+	  break;
+	case secTypeTLSPlain:
+	  options.encTLS.checked(true);
+          options.secPlain.checked(true);
+	  break;
+	case secTypeX509None:
+	  options.encX509.checked(true);
+          options.secNone.checked(true);
+	  break;
+	case secTypeX509Vnc:
+	  options.encX509.checked(true);
+          options.secVnc.checked(true);
+	  break;
+	case secTypeX509Plain:
+	  options.encX509.checked(true);
+          options.secPlain.checked(true);
+	  break;
+        }
+      }
+    }
+  }
   options.fullScreen.checked(fullScreen);
   options.useLocalCursor.checked(useLocalCursor);
   options.dotWhenNoCursor.checked(dotWhenNoCursor);
@@ -681,6 +752,93 @@ void CConn::getOptions() {
   if (desktop)
     desktop->setNoCursor();
   checkEncodings();
+
+  /* Process security types which don't use encryption */
+  if (options.encNone.checked()) {
+    if (options.secNone.checked())
+      security->EnableSecType(secTypeNone);
+    if (options.secVnc.checked())
+      security->EnableSecType(secTypeVncAuth);
+    if (options.secPlain.checked())
+      security->EnableSecType(secTypePlain);
+  } else {
+    security->DisableSecType(secTypeNone);
+    security->DisableSecType(secTypeVncAuth);
+    security->DisableSecType(secTypePlain);
+  }
+
+  /* Process security types which use TLS encryption */
+  if (options.encTLS.checked()) {
+    if (options.secNone.checked())
+      security->EnableSecType(secTypeTLSNone);
+    if (options.secVnc.checked())
+      security->EnableSecType(secTypeTLSVnc);
+    if (options.secPlain.checked())
+      security->EnableSecType(secTypeTLSPlain);
+  } else {
+    security->DisableSecType(secTypeTLSNone);
+    security->DisableSecType(secTypeTLSVnc);
+    security->DisableSecType(secTypeTLSPlain);
+  }
+
+  /* Process security types which use X509 encryption */
+  if (options.encX509.checked()) {
+    if (options.secNone.checked())
+      security->EnableSecType(secTypeX509None);
+    if (options.secVnc.checked())
+      security->EnableSecType(secTypeX509Vnc);
+    if (options.secPlain.checked())
+      security->EnableSecType(secTypeX509Plain);
+  } else {
+    security->DisableSecType(secTypeX509None);
+    security->DisableSecType(secTypeX509Vnc);
+    security->DisableSecType(secTypeX509Plain);
+  }
+
+  /* Process *None security types */
+  if (options.secNone.checked()) {
+    if (options.encNone.checked())
+      security->EnableSecType(secTypeNone);
+    if (options.encTLS.checked())
+      security->EnableSecType(secTypeTLSNone);
+    if (options.encX509.checked())
+      security->EnableSecType(secTypeX509None);
+  } else {
+    security->DisableSecType(secTypeNone);
+    security->DisableSecType(secTypeTLSNone);
+    security->DisableSecType(secTypeX509None);
+  }
+
+  /* Process *Vnc security types */
+  if (options.secVnc.checked()) {
+    if (options.encNone.checked())
+      security->EnableSecType(secTypeVncAuth);
+    if (options.encTLS.checked())
+      security->EnableSecType(secTypeTLSVnc);
+    if (options.encX509.checked())
+      security->EnableSecType(secTypeX509Vnc);
+  } else {
+    security->DisableSecType(secTypeVncAuth);
+    security->DisableSecType(secTypeTLSVnc);
+    security->DisableSecType(secTypeX509Vnc);
+  }
+
+  /* Process *Plain security types */
+  if (options.secPlain.checked()) {
+    if (options.encNone.checked())
+      security->EnableSecType(secTypePlain);
+    if (options.encTLS.checked())
+      security->EnableSecType(secTypeTLSPlain);
+    if (options.encX509.checked())
+      security->EnableSecType(secTypeX509Plain);
+  } else {
+    security->DisableSecType(secTypePlain);
+    security->DisableSecType(secTypeTLSPlain);
+    security->DisableSecType(secTypeX509Plain);
+  }
+
+  CSecurityTLS::x509ca.setParam(options.ca.getText());
+  CSecurityTLS::x509crl.setParam(options.crl.getText());
 }
 
 void CConn::resizeFramebuffer()
