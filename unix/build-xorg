@@ -167,7 +167,7 @@ build ()
     # build mesa
     echo "*** Building Mesa ***"
     pushd Mesa-*
-    ./configure ${1+"$@"} --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
+    ./configure ${1+"$@"} --prefix=${PREFIX} --disable-driglx-direct --with-dri-drivers=swrast --with-driver=dri --disable-glut --without-demos
     if [ $? -ne 0 ]; then
 	echo "Failed to configure Mesa."
 	exit
