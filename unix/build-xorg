@@ -74,6 +74,9 @@ init()
 	patch -p1 < $SRCDIR/unix/xserver15.patch
     else
 	patch -p1 < $SRCDIR/unix/xserver17.patch
+	for all in `find $SRCDIR/unix/xorg-7.5-patches/ -type f`; do
+	    patch -p1 < $all
+	done
     fi
 
     popd
