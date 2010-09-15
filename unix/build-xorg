@@ -73,8 +73,9 @@ init()
     if [ "$XORG_VERSION" = "7.4" ]; then
 	patch -p1 < $SRCDIR/unix/xserver15.patch
     else
-	patch -p1 < $SRCDIR/unix/xserver17.patch
-	for all in `find $SRCDIR/unix/xorg-7.5-patches/ -type f`; do
+	patch -p1 < $SRCDIR/unix/xserver18.patch
+	for all in `find $SRCDIR/unix/xorg-7.5-patches/ -type f |grep '.*\.patch$'`; do
+	    echo Applying $all
 	    patch -p1 < $all
 	done
     fi
