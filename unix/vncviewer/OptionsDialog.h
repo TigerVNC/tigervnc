@@ -29,6 +29,8 @@
 #include "TXCheckbox.h"
 #include "parameters.h"
 
+#define SECOND_COL_XPAD 350
+
 class OptionsDialogCallback {
 public:
   virtual void setOptions() = 0;
@@ -39,7 +41,9 @@ class OptionsDialog : public TXDialog, public TXButtonCallback,
                       public TXCheckboxCallback, public TXEntryCallback  {
 public:
   OptionsDialog(Display* dpy, OptionsDialogCallback* cb_)
-    : TXDialog(dpy, 450, 450, _("VNC Viewer: Connection Options")), cb(cb_),
+    : TXDialog(dpy, 750, 450, _("VNC Viewer: Connection Options")), cb(cb_),
+
+      /* Encoding and color level */
       formatAndEnc(dpy, _("Encoding and Color Level:"), this),
       inputs(dpy, _("Inputs:"), this),
       misc(dpy, _("Misc:"), this),
@@ -52,24 +56,54 @@ public:
       zrle(dpy, "ZRLE", this, true, this),
       hextile(dpy, "Hextile", this, true, this),
       raw(dpy, "Raw", this, true, this),
+
+      /* Compression */
       customCompressLevel(dpy, _("Custom compression level:"), this, false, this),
       compressLevel(dpy, this, this, false, 30),
       compressLevelLabel(dpy, _("level (1=fast, 9=best)"), this),
       noJpeg(dpy, _("Allow JPEG compression:"), this, false, this),
       qualityLevel(dpy, this, this, false, 30),
       qualityLevelLabel(dpy, _("quality (1=poor, 9=best)"), this),
+
+      /* Inputs */
       viewOnly(dpy, _("View only (ignore mouse & keyboard)"), this, false, this),
       acceptClipboard(dpy, _("Accept clipboard from server"), this, false, this),
       sendClipboard(dpy, _("Send clipboard to server"), this, false, this),
       sendPrimary(dpy, _("Send primary selection & cut buffer as clipboard"),
                   this, false, this),
+
+      /* Misc */
       shared(dpy, _("Shared (don't disconnect other viewers)"), this, false,this),
       fullScreen(dpy, _("Full-screen mode"), this, false, this),
       useLocalCursor(dpy, _("Render cursor locally"), this, false, this),
       dotWhenNoCursor(dpy, _("Show dot when no cursor"), this, false, this),
       okButton(dpy, _("OK"), this, this, 60),
-      cancelButton(dpy, _("Cancel"), this, this, 60)
+      cancelButton(dpy, _("Cancel"), this, this, 60),
+
+      /* Security */
+      security(dpy, _("Security:"), this),
+      secVeNCrypt(dpy, _("Extended encryption and authentication methods (VeNCrypt)"),
+		  this, false, this),
+
+      /* Encryption */
+      encryption(dpy, _("Session encryption:"), this),
+      encNone(dpy, _("None"), this, false, this),
+      encTLS(dpy, _("TLS with anonymous certificates"), this, false, this),
+      encX509(dpy, _("TLS with X509 certificates"), this, false, this),
+      cacert(dpy, _("Path to X509 CA certificate"), this),
+      ca(dpy, this, this, false, 350),
+      crlcert(dpy, _("Path to X509 CRL file"), this),
+      crl(dpy, this, this, false, 350),
+
+      /* Authentication */
+      authentication(dpy, _("Authentication:"), this),
+      secNone(dpy, _("None"), this, false, this),
+      secVnc(dpy, _("Standard VNC (insecure without encryption)"),
+	     this, false, this),
+      secPlain(dpy, _("Username and password (insecure without encryption)"),
+	       this, false, this)
   {
+    /* Render the first collumn */
     int y = yPad;
     formatAndEnc.move(xPad, y);
     y += formatAndEnc.height();
@@ -125,10 +159,48 @@ public:
     dotWhenNoCursor.move(xPad, y);
     y += dotWhenNoCursor.height();
 
+
+    /* Render "OK" and "Cancel" buttons */
     okButton.move(width() - xPad*12 - cancelButton.width() - okButton.width(),
                   height() - yPad*4 - okButton.height());
     cancelButton.move(width() - xPad*6 - cancelButton.width(),
                       height() - yPad*4 - cancelButton.height());
+
+    /* Render the second collumn */
+    y = yPad;
+    xPad += SECOND_COL_XPAD;
+
+    security.move(xPad, y);
+    y += security.height();
+    secVeNCrypt.move(xPad, y);
+    y += secVeNCrypt.height();
+
+    encryption.move(xPad, y);
+    y += encryption.height();
+    encNone.move(xPad, y);
+    y += encNone.height();
+    encTLS.move(xPad, y);
+    y += encTLS.height();
+    encX509.move(xPad, y);
+    y += encX509.height();
+    cacert.move(xPad, y);
+    y += cacert.height();
+    ca.move(xPad, y);
+    y += ca.height();
+    crlcert.move(xPad, y);
+    y += crlcert.height();
+    crl.move(xPad, y);
+    y += crl.height();
+
+    authentication.move(xPad, y);
+    y += authentication.height();
+    secNone.move(xPad, y);
+    y += secNone.height();
+    secVnc.move(xPad, y);
+    y += secVnc.height();
+    secPlain.move(xPad, y);
+    y += secPlain.height();
+
     setBorderWidth(1);
   }
 
@@ -209,6 +281,16 @@ public:
   TXCheckbox viewOnly, acceptClipboard, sendClipboard, sendPrimary;
   TXCheckbox shared, fullScreen, useLocalCursor, dotWhenNoCursor;
   TXButton okButton, cancelButton;
+
+  TXLabel security;
+  TXCheckbox secVeNCrypt;
+
+  TXLabel encryption;
+  TXCheckbox encNone, encTLS, encX509;
+  TXLabel cacert; TXEntry ca; TXLabel crlcert; TXEntry crl;
+
+  TXLabel authentication;
+  TXCheckbox secNone, secVnc, secPlain;
 };
 
 #endif
