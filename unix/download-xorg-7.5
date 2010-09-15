@@ -74,7 +74,10 @@ def main():
 
     for pkg in packages.keys():
         loc = packages[pkg]
-        fname = pkg + ".tar.bz2"
+        if ".tar.bz2" in loc:
+            fname = pkg + ".tar.bz2"
+        else :
+            fname = pkg + ".tar.gz"
         if not os.path.exists(fname):
             assert 0 == os.spawnvp(os.P_WAIT, "wget", ["-N", "-c", "-O", fname, loc])
 
