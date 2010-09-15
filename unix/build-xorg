@@ -131,7 +131,7 @@ build ()
         echo configuring ${module}
         echo ======================
         if [ "${module}" = "libX11" ]; then
-            extraoptions="${extraoptions} --without-xcb"
+            extraoptions="${extraoptions} --without-xcb --disable-specs"
         fi
         if [ "${module}" = "libSM" ]; then
             extraoptions="${extraoptions} --without-libuuid"
