@@ -1,0 +1,121 @@
+From 0f7f67f7aa2ff97b16d0bf34686d39d73ed19edc Mon Sep 17 00:00:00 2001
+From: Adam Tkac <atkac@redhat.com>
+Date: Wed, 15 Sep 2010 15:37:01 +0200
+Subject: [PATCH] Add -dridir parameter to specify DRI drivers directory from command line.
+
+Signed-off-by: Adam Tkac <atkac@redhat.com>
+---
+ glx/glxdri.c       |    2 --
+ glx/glxdri2.c      |    2 --
+ glx/glxdriswrast.c |    2 --
+ glx/glxext.c       |   25 +++++++++++++++++++++++++
+ glx/glxserver.h    |    3 +++
+ os/utils.c         |    8 ++++++++
+ 6 files changed, 36 insertions(+), 6 deletions(-)
+
+diff --git a/glx/glxdri.c b/glx/glxdri.c
+index 41482c9..4be6df4 100644
+--- a/glx/glxdri.c
++++ b/glx/glxdri.c
+@@ -861,8 +861,6 @@ static const __DRIextension *loader_extensions[] = {
+ 
+ 
+ 
+-static const char dri_driver_path[] = DRI_DRIVER_PATH;
+-
+ static Bool
+ glxDRIEnterVT (int index, int flags)
+ {
+diff --git a/glx/glxdri2.c b/glx/glxdri2.c
+index c2305ad..378dd9d 100644
+--- a/glx/glxdri2.c
++++ b/glx/glxdri2.c
+@@ -600,8 +600,6 @@ static const __DRIextension *loader_extensions[] = {
+     NULL
+ };
+ 
+-static const char dri_driver_path[] = DRI_DRIVER_PATH;
+-
+ static Bool
+ glxDRIEnterVT (int index, int flags)
+ {
+diff --git a/glx/glxdriswrast.c b/glx/glxdriswrast.c
+index dc12f57..ff620e5 100644
+--- a/glx/glxdriswrast.c
++++ b/glx/glxdriswrast.c
+@@ -428,8 +428,6 @@ initializeExtensions(__GLXDRIscreen *screen)
+     }
+ }
+ 
+-static const char dri_driver_path[] = DRI_DRIVER_PATH;
+-
+ static __GLXscreen *
+ __glXDRIscreenProbe(ScreenPtr pScreen)
+ {
+diff --git a/glx/glxext.c b/glx/glxext.c
+index e203156..5f4167f 100644
+--- a/glx/glxext.c
++++ b/glx/glxext.c
+@@ -608,3 +608,28 @@ static int __glXDispatch(ClientPtr client)
+ 
+     return retval;
+ }
++
++char *dri_driver_path = DRI_DRIVER_PATH;
++
++int GlxProcessArguments(int argc, char *argv[], int i)
++{
++    if (strncmp(argv[i], "-dridir", 7) == 0) {
++	if (++i < argc) {
++#if !defined(WIN32) && !defined(__CYGWIN__)
++	    if (getuid() != geteuid()) {
++		LogMessage(X_WARNING, "-dridir is not available for setuid X servers\n");
++		return -1;
++	    } else
++#endif
++	    {
++		if (strlen(argv[i]) < PATH_MAX) {
++		    dri_driver_path = argv[i];
++		    return 2;
++		} else {
++		    LogMessage(X_ERROR, "-dridir pathname too long\n");
++		    return -1;
++		}
++	    }
++        }
++    }
++}
+diff --git a/glx/glxserver.h b/glx/glxserver.h
+index 1daf977..082ff82 100644
+--- a/glx/glxserver.h
++++ b/glx/glxserver.h
+@@ -251,4 +251,7 @@ extern unsigned glxMinorVersion;
+ 
+ extern int __glXEventBase;
+ 
++extern char *dri_driver_path;
++extern int GlxProcessArguments(int argc, char *argv[], int i);
++
+ #endif /* !__GLX_server_h__ */
+diff --git a/os/utils.c b/os/utils.c
+index 8921d7c..ce5fc73 100644
+--- a/os/utils.c
++++ b/os/utils.c
+@@ -711,6 +711,14 @@ ProcessCommandLine(int argc, char *argv[])
+ 		 i+= skip-1;
+ 	    else UseMsg();
+ 	}
++#ifdef GLXEXT
++	else if ((skip = GlxProcessArguments(argc,argv,i)) != 0) {
++	    if (skip > 0)
++		i += skip - 1;
++	    else
++		UseMsg();
++	}
++#endif
+ #ifdef RLIMIT_DATA
+ 	else if ( strcmp( argv[i], "-ld") == 0)
+ 	{
+-- 
+1.7.2.3
+
