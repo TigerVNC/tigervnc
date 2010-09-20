@@ -18,9 +18,9 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 	PixelFormat.h PixelFormat.inl Pixel.h RawDecoder.h RawEncoder.h \
 	Rect.h Region.h rreDecode.h RREDecoder.h rreEncode.h RREEncoder.h \
 	ScaledPixelBuffer.h ScaleFilters.h SConnection.h ScreenSet.h \
-	screenTypes.h SDesktop.h ServerCore.h SMsgHandler.h SMsgReader.h \
-	SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h SSecurity.h SSecurityNone.h \
-	SSecurityPlain.h SSecurityStack.h SSecurityVeNCrypt.h \
+	screenTypes.h SDesktop.h Security.h ServerCore.h SMsgHandler.h \
+	SMsgReader.h SMsgReaderV3.h SMsgWriter.h SMsgWriterV3.h SSecurity.h \
+	SSecurityNone.h SSecurityPlain.h SSecurityStack.h SSecurityVeNCrypt.h \
 	SSecurityVncAuth.h Threading.h tightDecode.h \
 	TightDecoder.h tightEncode.h TightEncoder.h TightPalette.h Timer.h \
 	TransImageGetter.h transInitTempl.h transTempl.h TrueColourMap.h \
