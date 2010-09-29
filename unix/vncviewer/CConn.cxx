@@ -27,7 +27,9 @@
 #include <rfb/Security.h>
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityVncAuth.h>
+#ifdef HAVE_GNUTLS
 #include <rfb/CSecurityTLS.h>
+#endif
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
@@ -837,8 +839,10 @@ void CConn::getOptions() {
     security->DisableSecType(secTypeX509Plain);
   }
 
+#ifdef HAVE_GNUTLS
   CSecurityTLS::x509ca.setParam(options.ca.getText());
   CSecurityTLS::x509crl.setParam(options.crl.getText());
+#endif
 }
 
 void CConn::resizeFramebuffer()
