@@ -282,7 +282,7 @@ static inline unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count,
   rdr::U8 *dst = (rdr::U8 *)buf;
   for (unsigned int i = 0; i < count; i++) {
     pix = *buf++;
-    pf.rgbFromPixel(pix, NULL, &dst[0], &dst[1], &dst[2]);
+    pf.rgbFromBuffer(dst, (rdr::U8*)&pix, 1, NULL);
     dst += 3;
   }
   return count * 3;

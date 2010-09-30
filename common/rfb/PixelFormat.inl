@@ -75,16 +75,9 @@ inline void PixelFormat::bufferFromPixel(rdr::U8* buffer, Pixel p) const
 }
 
 
-#define _rfb_bswap_32(x) \
-        ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) | \
-         (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))
-
-
 inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const
 {
   if (trueColour) {
-    if (endianMismatch)
-      p = _rfb_bswap_32(p);
     /* We don't need to mask since we shift out unwanted bits */
     *r = (p >> redShift) << redConvShift;
     *g = (p >> greenShift) << greenConvShift;
@@ -107,8 +100,6 @@ inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U16 *r, rdr::
 inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const
 {
   if (trueColour) {
-    if (endianMismatch)
-      p = _rfb_bswap_32(p);
     *r = (p >> redShift) << (redConvShift - 8);
     *g = (p >> greenShift) << (greenConvShift - 8);
     *b = (p >> blueShift) << (blueConvShift - 8);
