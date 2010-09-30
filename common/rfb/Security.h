@@ -99,10 +99,6 @@ namespace rfb {
     static StringParameter secTypesViewer;
     static StringParameter secTypesServer;
 
-    /*
-     * Use variable directly instead of dumb get/set methods. It is used
-     * only in viewer-side code and MUST be set by viewer.
-     */
   private:
     std::list<rdr::U32> enabledSecTypes;
   };
