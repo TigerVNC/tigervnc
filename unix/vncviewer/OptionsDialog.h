@@ -41,7 +41,7 @@ class OptionsDialog : public TXDialog, public TXButtonCallback,
                       public TXCheckboxCallback, public TXEntryCallback  {
 public:
   OptionsDialog(Display* dpy, OptionsDialogCallback* cb_)
-    : TXDialog(dpy, 750, 450, _("VNC Viewer: Connection Options")), cb(cb_),
+    : TXDialog(dpy, 450, 450, _("VNC Viewer: Connection Options")), cb(cb_),
 
       /* Encoding and color level */
       formatAndEnc(dpy, _("Encoding and Color Level:"), this),
@@ -78,8 +78,10 @@ public:
       useLocalCursor(dpy, _("Render cursor locally"), this, false, this),
       dotWhenNoCursor(dpy, _("Show dot when no cursor"), this, false, this),
       okButton(dpy, _("OK"), this, this, 60),
-      cancelButton(dpy, _("Cancel"), this, this, 60),
+      cancelButton(dpy, _("Cancel"), this, this, 60)
 
+#ifdef HAVE_GNUTLS
+      ,
       /* Security */
       security(dpy, _("Security:"), this),
       secVeNCrypt(dpy, _("Extended encryption and authentication methods (VeNCrypt)"),
@@ -102,6 +104,7 @@ public:
 	     this, false, this),
       secPlain(dpy, _("Username and password (insecure without encryption)"),
 	       this, false, this)
+#endif
   {
     /* Render the first collumn */
     int y = yPad;
@@ -159,16 +162,11 @@ public:
     dotWhenNoCursor.move(xPad, y);
     y += dotWhenNoCursor.height();
 
-
-    /* Render "OK" and "Cancel" buttons */
-    okButton.move(width() - xPad*12 - cancelButton.width() - okButton.width(),
-                  height() - yPad*4 - okButton.height());
-    cancelButton.move(width() - xPad*6 - cancelButton.width(),
-                      height() - yPad*4 - cancelButton.height());
-
+#ifdef HAVE_GNUTLS
     /* Render the second collumn */
     y = yPad;
     xPad += SECOND_COL_XPAD;
+    resize(750, height());
 
     security.move(xPad, y);
     y += security.height();
@@ -200,6 +198,13 @@ public:
     y += secVnc.height();
     secPlain.move(xPad, y);
     y += secPlain.height();
+#endif
+
+    /* Render "OK" and "Cancel" buttons */
+    okButton.move(width() - xPad*12 - cancelButton.width() - okButton.width(),
+                  height() - yPad*4 - okButton.height());
+    cancelButton.move(width() - xPad*6 - cancelButton.width(),
+                      height() - yPad*4 - cancelButton.height());
 
     setBorderWidth(1);
   }
@@ -263,6 +268,7 @@ public:
       compressLevel.disabled(!customCompressLevel.checked());
     } else if (checkbox == &noJpeg) {
       qualityLevel.disabled(autoSelect.checked() || !noJpeg.checked());
+#ifdef HAVE_GNUTLS
     } else if (checkbox == &secVeNCrypt) {
       encTLS.checked(false);
       encTLS.disabled(!secVeNCrypt.checked());
@@ -270,6 +276,7 @@ public:
       encX509.disabled(!secVeNCrypt.checked());
       secPlain.checked(false);
       secPlain.disabled(!secVeNCrypt.checked());
+#endif
     }
   }
 
@@ -289,6 +296,7 @@ public:
   TXCheckbox shared, fullScreen, useLocalCursor, dotWhenNoCursor;
   TXButton okButton, cancelButton;
 
+#ifdef HAVE_GNUTLS
   TXLabel security;
   TXCheckbox secVeNCrypt;
 
@@ -298,6 +306,7 @@ public:
 
   TXLabel authentication;
   TXCheckbox secNone, secVnc, secPlain;
+#endif
 };
 
 #endif

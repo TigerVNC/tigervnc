@@ -616,6 +616,7 @@ void CConn::setOptions() {
   options.sendPrimary.checked(sendPrimary);
   if (state() == RFBSTATE_NORMAL) {
     options.shared.disabled(true);
+#ifdef HAVE_GNUTLS
     options.secVeNCrypt.disabled(true);
     options.encNone.disabled(true);
     options.encTLS.disabled(true);
@@ -625,9 +626,11 @@ void CConn::setOptions() {
     options.secNone.disabled(true);
     options.secVnc.disabled(true);
     options.secPlain.disabled(true);
+#endif
   } else {
     options.shared.checked(shared);
 
+#ifdef HAVE_GNUTLS
     /* Process non-VeNCrypt sectypes */
     list<U8> secTypes = security->GetEnabledSecTypes();
     list<U8>::iterator i;
@@ -684,6 +687,7 @@ void CConn::setOptions() {
         }
       }
     }
+#endif
   }
   options.fullScreen.checked(fullScreen);
   options.useLocalCursor.checked(useLocalCursor);
@@ -755,6 +759,7 @@ void CConn::getOptions() {
     desktop->setNoCursor();
   checkEncodings();
 
+#ifdef HAVE_GNUTLS
   /* Process security types which don't use encryption */
   if (options.encNone.checked()) {
     if (options.secNone.checked())
@@ -839,7 +844,6 @@ void CConn::getOptions() {
     security->DisableSecType(secTypeX509Plain);
   }
 
-#ifdef HAVE_GNUTLS
   CSecurityTLS::x509ca.setParam(options.ca.getText());
   CSecurityTLS::x509crl.setParam(options.crl.getText());
 #endif
