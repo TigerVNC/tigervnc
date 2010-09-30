@@ -87,8 +87,10 @@ AC_SUBST([GNUTLS_LIBS])
 AM_CONDITIONAL([HAVE_GNUTLS], [ ! test "x$GNUTLS_LIBS" = x ])
 
 AC_CHECK_LIB([pam], [pam_start], 
-	     [PAM_LIBS='-lpam'
-	      AC_DEFINE(HAVE_PAM, 1, [PAM available])])
+	     [AC_CHECK_HEADER([security/pam_appl.h],
+			     [PAM_LIBS='-lpam'
+			      AC_DEFINE(HAVE_PAM, 1, [PAM available])],
+			     [], [#include <stdio.h>])])
 AC_SUBST([PAM_LIBS])
 AM_CONDITIONAL([HAVE_PAM], [ ! test "x$PAM_LIBS" = x ])
 
