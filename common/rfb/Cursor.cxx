@@ -88,17 +88,13 @@ rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1)
   memset(source.buf, 0, maskLen());
 
   int maskBytesPerRow = (width() + 7) / 8;
+  const rdr::U8 *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
       int byte = y * maskBytesPerRow + x / 8;
       int bit = 7 - x % 8;
       if (mask.buf[byte] & (1 << bit)) {
-        Pixel pix=0;
-        switch (getPF().bpp) {
-        case 8:  pix = ((rdr::U8*) data)[y * width() + x]; break;
-        case 16: pix = ((rdr::U16*)data)[y * width() + x]; break;
-        case 32: pix = ((rdr::U32*)data)[y * width() + x]; break;
-        }
+        Pixel pix = getPF().pixelFromBuffer(data_ptr);
         if (!gotPix0 || pix == *pix0) {
           gotPix0 = true;
           *pix0 = pix;
@@ -111,6 +107,7 @@ rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1)
           return 0;
         }
       }
+      data_ptr += getPF().bpp/8;
     }
   }
   return source.takeBuf();
