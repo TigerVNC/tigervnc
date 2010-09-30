@@ -87,7 +87,7 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
     PIXEL_T pix;
     if (cutZeros) {
       is->readBytes(bytebuf, 3);
-      pix = myFormat.pixelFromRGB(bytebuf[0], bytebuf[1], bytebuf[2]);
+      myFormat.bufferFromRGB((rdr::U8*)&pix, bytebuf, 1, NULL);
     } else {
       pix = is->READ_PIXEL();
     }
@@ -119,12 +119,10 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
     case rfbTightFilterPalette: 
       palSize = is->readU8() + 1;
       if (cutZeros) {
-	rdr::U8 *tightPalette = (rdr::U8*) palette;
-	is->readBytes(tightPalette, palSize*3);
-	for (int i = palSize - 1; i >= 0; i--) {
-	  palette[i] = myFormat.pixelFromRGB(tightPalette[i*3],
-					tightPalette[i*3+1],
-					tightPalette[i*3+2]);
+        rdr::U8 elem[3];
+        for (int i = 0;i < palSize;i++) {
+          is->readBytes(elem, 3);
+          myFormat.bufferFromRGB((rdr::U8*)&palette[i], elem, 1, NULL);
         }
       } else {
 	for (int i = 0; i < palSize; i++)
@@ -175,13 +173,14 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
 	  FilterGradient(r, input, dataSize, buf, handler);
 	}
     } else {
-      input->readBytes(buf, dataSize); 
       if (cutZeros) {
-	for (int p = r.height() * r.width() - 1; p >= 0; p--) {
-	  buf[p] = myFormat.pixelFromRGB(bytebuf[p*3],
-				    bytebuf[p*3+1],
-				    bytebuf[p*3+2]);
-	}
+        rdr::U8 elem[3];
+        for (int i = 0;i < r.area();i++) {
+          input->readBytes(elem, 3);
+          myFormat.bufferFromRGB((rdr::U8*)&buf[i], elem, 1, NULL);
+        }
+      } else {
+        input->readBytes(buf, dataSize); 
       }
     }
   } else {
@@ -366,7 +365,7 @@ FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
       pix[c] = netbuf[y*rectWidth*3+c] + prevRow[c];
       thisRow[c] = pix[c];
     }
-    buf[y*rectWidth] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
+    myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth], pix, 1, NULL);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
@@ -380,7 +379,7 @@ FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
 	pix[c] = netbuf[(y*rectWidth+x)*3+c] + est[c];
 	thisRow[x*3+c] = pix[c];
       }
-      buf[y*rectWidth+x] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
+      myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth+x], pix, 1, NULL);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
@@ -417,14 +416,13 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
 
   for (y = 0; y < rectHeight; y++) {
     /* First pixel in a row */
-    myFormat.rgbFromPixel(netbuf[y*rectWidth], NULL,
-                          &pix[0], &pix[1], &pix[2]);
+    myFormat.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth], 1, NULL);
     for (c = 0; c < 3; c++)
       pix[c] += prevRow[c];
 
     memcpy(thisRow, pix, sizeof(pix));
 
-    buf[y*rectWidth] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
+    myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth], pix, 1, NULL);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
@@ -437,14 +435,13 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
         }
       }
 
-      myFormat.rgbFromPixel(netbuf[y*rectWidth+x], NULL,
-                            &pix[0], &pix[1], &pix[2]);
+      myFormat.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth+x], 1, NULL);
       for (c = 0; c < 3; c++)
         pix[c] += est[c];
 
       memcpy(&thisRow[x*3], pix, sizeof(pix));
 
-      buf[y*rectWidth+x] = myFormat.pixelFromRGB(pix[0], pix[1], pix[2]);
+      myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth+x], pix, 1, NULL);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
