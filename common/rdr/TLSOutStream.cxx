@@ -27,6 +27,10 @@
 #include <rdr/TLSOutStream.h>
 #include <errno.h>
 
+#ifdef HAVE_OLD_GNUTLS
+#define gnutls_transport_set_global_errno(A) do { errno = (A); } while(0)
+#endif
+
 #ifdef HAVE_GNUTLS
 using namespace rdr;
 

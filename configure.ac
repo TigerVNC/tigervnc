@@ -76,8 +76,12 @@ AC_ARG_ENABLE([gnutls],
 GNUTLS_LIBS=
 if test "x$enable_gnutls" = xyes; then
 	AC_CHECK_LIB([gnutls], [gnutls_global_init],
-		     [GNUTLS_LIBS='-lgnutls'
-		      AC_DEFINE([HAVE_GNUTLS], 1, [Is gnutls present? ])])
+		     [GNUTLS_LIBS='-lgnutls -lgcrypt -lgpg-error'
+		      AC_DEFINE([HAVE_GNUTLS], 1, [Is gnutls present? ])], [],
+		     [-lgcrypt -lgpg-error])
+	AC_CHECK_LIB([gnutls], [gnutls_transport_set_global_errno], [],
+		     [AC_DEFINE([HAVE_OLD_GNUTLS], 1, [Does gnutls lack the gnutls_transport_set_global_errno() function? ])],
+		     [-lgcrypt -lgpg-error])
 fi
 AC_SUBST([GNUTLS_LIBS])
 AM_CONDITIONAL([HAVE_GNUTLS], [ ! test "x$GNUTLS_LIBS" = x ])
