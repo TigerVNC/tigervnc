@@ -332,6 +332,12 @@ if [ $STATIC = 1 -a "$MODE" = "build" ]; then
     if [ -f ./xorg.build/syslib/libz.a ]; then
 	rm -f ./xorg.build/syslib/libz.a
     fi
+    if [ -f ./xorg.build/syslib/libgcrypt.a ]; then
+	rm -f ./xorg.build/syslib/libgcrypt.a
+    fi
+    if [ -f ./xorg.build/syslib/libgnutls.a ]; then
+	rm -f ./xorg.build/syslib/libgnutls.a
+    fi
     IS64BIT=`echo -e "#ifdef __x86_64__\nis64bit_yes\n#else\nis64bit_no\n#endif" | $CC $CFLAGS -E - | grep is64bit`
     STATICLIBDIR=
     case $IS64BIT in
@@ -359,6 +365,16 @@ if [ $STATIC = 1 -a "$MODE" = "build" ]; then
 	exit 1
     else
 	ln -fs $STATICLIBDIR/libz.a ./xorg.build/syslib
+    fi
+    if [ ! -f $STATICLIBDIR/libgcrypt.a ]; then
+	echo WARNING: Cannot find suitable libgcrypt.a.  Xvnc will depend on libgcrypt.so ...
+    else
+	ln -fs $STATICLIBDIR/libgcrypt.a ./xorg.build/syslib
+    fi
+    if [ ! -f $STATICLIBDIR/libgnutls.a ]; then
+	echo WARNING: Cannot find suitable libgnutls.a.  Xvnc will depend on libgnutls.so ...
+    else
+	ln -fs $STATICLIBDIR/libgnutls.a ./xorg.build/syslib
     fi
 fi
 
