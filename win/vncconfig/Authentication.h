@@ -40,7 +40,7 @@ namespace rfb {
       AuthenticationPage(const RegKey& rk)
         : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_AUTHENTICATION)), regKey(rk) {}
       void initDialog() {
-        CharArray sec_types_str(Security::secTypesServer.getData());
+        CharArray sec_types_str(SecurityServer::secTypes.getData());
         std::list<rdr::U32> sec_types = parseSecTypes(sec_types_str.buf);
 
         useNone = useVNC = false;

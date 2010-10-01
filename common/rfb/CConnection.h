@@ -28,7 +28,7 @@
 #include <rfb/CMsgHandler.h>
 #include <rfb/CSecurity.h>
 #include <rfb/util.h>
-#include <rfb/Security.h>
+#include <rfb/SecurityClient.h>
 
 namespace rfb {
 
@@ -134,7 +134,7 @@ namespace rfb {
     CSecurity *csecurity; /* Windows viewer needs it exported. */
   protected:
     void setState(stateEnum s) { state_ = s; }
-    Security *security;
+    SecurityClient *security;
 
   private:
     void processVersionMsg();

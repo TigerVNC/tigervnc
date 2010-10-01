@@ -36,7 +36,7 @@ namespace rfb {
 
   class SSecurityVeNCrypt : public SSecurity {
   public:
-    SSecurityVeNCrypt(Security *sec);
+    SSecurityVeNCrypt(SecurityServer *sec);
     ~SSecurityVeNCrypt();
     virtual bool processMsg(SConnection* sc);// { return true; }
     virtual int getType() const { return secTypeVeNCrypt; }
@@ -44,7 +44,7 @@ namespace rfb {
 
   protected:
     SSecurity *ssecurity;
-    Security *security;
+    SecurityServer *security;
     bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;
     bool haveSentTypes, haveChosenType;
     rdr::U8 majorVersion, minorVersion, numTypes;

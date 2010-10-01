@@ -60,14 +60,12 @@ namespace rfb {
   const rdr::U32 secResultFailed = 1;
   const rdr::U32 secResultTooMany = 2; // deprecated
 
-  enum SecurityClassType { SecurityViewer, SecurityServer };
-
   class Security {
   public:
     /*
      * Create Security instance.
      */
-    Security(SecurityClassType secClassType);
+    Security(StringParameter &secTypes);
 
     /*
      * Note about security types.
@@ -89,15 +87,6 @@ namespace rfb {
     const std::list<rdr::U8> GetEnabledSecTypes(void);
     /* Get list of enabled VeNCrypt subtypes */
     const std::list<rdr::U32> GetEnabledExtSecTypes(void);
-
-    /* Create server side SSecurity class instance */
-    SSecurity* GetSSecurity(rdr::U32 secType);
-
-    /* Create client side CSecurity class instance */
-    CSecurity* GetCSecurity(rdr::U32 secType);
-
-    static StringParameter secTypesViewer;
-    static StringParameter secTypesServer;
 
   private:
     std::list<rdr::U32> enabledSecTypes;

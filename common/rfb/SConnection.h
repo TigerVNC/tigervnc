@@ -26,7 +26,7 @@
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/SMsgHandler.h>
-#include <rfb/Security.h>
+#include <rfb/SecurityServer.h>
 #include <rfb/SSecurity.h>
 
 namespace rfb {
@@ -191,7 +191,7 @@ namespace rfb {
     rdr::OutStream* os;
     SMsgReader* reader_;
     SMsgWriter* writer_;
-    Security *security;
+    SecurityServer *security;
     SSecurity* ssecurity;
     stateEnum state_;
     bool reverseConnection;

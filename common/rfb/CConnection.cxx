@@ -36,7 +36,7 @@ CConnection::CConnection()
     shared(false),
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false)
 {
-  security = new Security(SecurityViewer);
+  security = new SecurityClient();
 }
 
 CConnection::~CConnection()

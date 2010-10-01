@@ -52,41 +52,11 @@ using namespace std;
 
 static LogWriter vlog("Security");
 
-UserPasswdGetter *CSecurity::upg = NULL;
-
-StringParameter Security::secTypesViewer
-("SecurityTypes",
- "Specify which security scheme to use (None, VncAuth)",
-#ifdef HAVE_GNUTLS
- "VeNCrypt,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
-#else
- "VncAuth,None",
-#endif
-ConfViewer);
-
-StringParameter Security::secTypesServer
-("SecurityTypes",
- "Specify which security scheme to use (None, VncAuth)",
-#ifdef HAVE_GNUTLS
- "VeNCrypt,TLSVnc,VncAuth",
-#else
- "VncAuth",
-#endif
-ConfServer);
-
-Security::Security(SecurityClassType secClassType)
+Security::Security(StringParameter &secTypes)
 {
   char *secTypesStr;
 
-  switch (secClassType) {
-  case SecurityViewer:
-    secTypesStr = secTypesViewer.getData();
-    break;
-  case SecurityServer:
-    secTypesStr = secTypesServer.getData();
-    break;
-  };
-
+  secTypesStr = secTypes.getData();
   enabledSecTypes = parseSecTypes(secTypesStr);
 
   delete secTypesStr;
@@ -136,74 +106,6 @@ bool Security::IsSupported(U32 secType)
       return true;
 
   return false;
-}
-
-SSecurity* Security::GetSSecurity(U32 secType)
-{
-  if (!IsSupported(secType))
-    goto bail;
-
-  switch (secType) {
-  case secTypeNone: return new SSecurityNone();
-  case secTypeVncAuth: return new SSecurityVncAuth();
-  case secTypeVeNCrypt: return new SSecurityVeNCrypt(this);
-  case secTypePlain: return new SSecurityPlain();
-#ifdef HAVE_GNUTLS
-  case secTypeTLSNone:
-    return new SSecurityStack(secTypeTLSNone, new SSecurityTLS(true));
-  case secTypeTLSVnc:
-    return new SSecurityStack(secTypeTLSVnc, new SSecurityTLS(true), new SSecurityVncAuth());
-  case secTypeTLSPlain:
-    return new SSecurityStack(secTypeTLSPlain, new SSecurityTLS(true), new SSecurityPlain());
-  case secTypeX509None:
-    return new SSecurityStack(secTypeX509None, new SSecurityTLS(false));
-  case secTypeX509Vnc:
-    return new SSecurityStack(secTypeX509None, new SSecurityTLS(false), new SSecurityVncAuth());
-  case secTypeX509Plain:
-    return new SSecurityStack(secTypeX509Plain, new SSecurityTLS(false), new SSecurityPlain());
-#endif
-  }
-
-bail:
-  throw Exception("Security type not supported");
-}
-
-CSecurity* Security::GetCSecurity(U32 secType)
-{
-  assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
-
-  if (!IsSupported(secType))
-    goto bail;
-
-  switch (secType) {
-  case secTypeNone: return new CSecurityNone();
-  case secTypeVncAuth: return new CSecurityVncAuth();
-  case secTypeVeNCrypt: return new CSecurityVeNCrypt(this);
-  case secTypePlain: return new CSecurityPlain();
-#ifdef HAVE_GNUTLS
-  case secTypeTLSNone:
-    return new CSecurityStack(secTypeTLSNone, "TLS with no password",
-			      new CSecurityTLS(true));
-  case secTypeTLSVnc:
-    return new CSecurityStack(secTypeTLSVnc, "TLS with VNCAuth",
-			      new CSecurityTLS(true), new CSecurityVncAuth());
-  case secTypeTLSPlain:
-    return new CSecurityStack(secTypeTLSPlain, "TLS with Username/Password",
-			      new CSecurityTLS(true), new CSecurityPlain());
-  case secTypeX509None:
-    return new CSecurityStack(secTypeX509None, "X509 with no password",
-			      new CSecurityTLS(false));
-  case secTypeX509Vnc:
-    return new CSecurityStack(secTypeX509None, "X509 with VNCAuth",
-			      new CSecurityTLS(false), new CSecurityVncAuth());
-  case secTypeX509Plain:
-    return new CSecurityStack(secTypeX509Plain, "X509 with Username/Password",
-			      new CSecurityTLS(false), new CSecurityPlain());
-#endif
-  }
-
-bail:
-  throw Exception("Security type not supported");
 }
 
 rdr::U32 rfb::secTypeNum(const char* name)

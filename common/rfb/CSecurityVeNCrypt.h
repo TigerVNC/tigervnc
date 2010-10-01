@@ -26,7 +26,7 @@
 #define __CSECURITYVENCRYPT_H__
 
 #include <rfb/CSecurity.h>
-#include <rfb/Security.h>
+#include <rfb/SecurityClient.h>
 #include <rdr/types.h>
 
 namespace rfb {
@@ -34,7 +34,7 @@ namespace rfb {
   class CSecurityVeNCrypt : public CSecurity {
   public:
 
-    CSecurityVeNCrypt(Security* sec);
+    CSecurityVeNCrypt(SecurityClient* sec);
     ~CSecurityVeNCrypt();
     virtual bool processMsg(CConnection* cc);// { return true; }
     int getType() const {return chosenType;}
@@ -43,7 +43,7 @@ namespace rfb {
     static StringParameter secTypesStr;
   protected:
     CSecurity *csecurity;
-    Security *security;
+    SecurityClient *security;
     bool haveRecvdMajorVersion;
     bool haveRecvdMinorVersion;
     bool haveSentVersion;
