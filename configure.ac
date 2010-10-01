@@ -73,15 +73,29 @@ AC_ARG_ENABLE([gnutls],
 	AS_HELP_STRING([--enable-gnutls],
 		       [build in GNUTLS based encryption support (default yes)]),
 	[enable_gnutls="$enableval"], [enable_gnutls=yes])
+AC_ARG_VAR(GNUTLS_CFLAGS, [Custom C compiler flags for using GnuTLS, e.g. -I{GnuTLS directory}/include])
+AC_ARG_VAR(GNUTLS_LDFLAGS, [Custom linker flags for using GnuTLS, e.g. -L{GnuTLS directory}/lib -lgnutls])
+
 GNUTLS_LIBS=
 if test "x$enable_gnutls" = xyes; then
-	AC_CHECK_LIB([gnutls], [gnutls_global_init],
-		     [GNUTLS_LIBS='-lgnutls -lgcrypt -lgpg-error'
-		      AC_DEFINE([HAVE_GNUTLS], 1, [Is gnutls present? ])], [],
-		     [-lgcrypt -lgpg-error])
-	AC_CHECK_LIB([gnutls], [gnutls_transport_set_global_errno], [],
-		     [AC_DEFINE([HAVE_OLD_GNUTLS], 1, [Does gnutls lack the gnutls_transport_set_global_errno() function? ])],
-		     [-lgcrypt -lgpg-error])
+	if test "x$GNUTLS_LDFLAGS" = "x"; then
+		GNUTLS_LDFLAGS='-lgnutls -lgcrypt -lgpg-error'
+	fi
+	SAVE_LIBS=${LIBS}
+	LIBS="${LIBS} ${GNUTLS_LDFLAGS}"
+	SAVE_CPPFLAGS=${CPPFLAGS}
+	CPPFLAGS="${CPPFLAGS} ${GNUTLS_CFLAGS}"
+	AC_MSG_CHECKING([for GnuTLS library])
+	AC_LINK_IFELSE(AC_LANG_CALL([], gnutls_global_init),
+		       [GNUTLS_LIBS=${GNUTLS_LDFLAGS}
+			AC_DEFINE(HAVE_GNUTLS, 1, [Is gnutls present? ])
+			AC_MSG_RESULT(yes)], AC_MSG_RESULT(no))
+	AC_MSG_CHECKING([for gnutls_transport_set_global_errno() function])
+	AC_LINK_IFELSE(AC_LANG_CALL([], gnutls_transport_set_global_errno),
+		       AC_MSG_RESULT(yes),
+		       [AC_DEFINE(HAVE_OLD_GNUTLS, 1, [Does gnutls lack the gnutls_transport_set_global_errno() function? ])
+			AC_MSG_RESULT(no)])
+	LIBS=${SAVE_LIBS}
 fi
 AC_SUBST([GNUTLS_LIBS])
 AM_CONDITIONAL([HAVE_GNUTLS], [ ! test "x$GNUTLS_LIBS" = x ])
