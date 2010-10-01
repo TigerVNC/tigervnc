@@ -16,6 +16,6 @@ vncviewer_LDADD = $(top_builddir)/unix/tx/libtx.la \
 	$(top_builddir)/common/rfb/librfb.la \
 	$(top_builddir)/common/network/libnetwork.la \
 	$(top_builddir)/common/rdr/librdr.la \
-	@X_PRE_LIBS@ @X_LIBS@ -lXext -lX11 @X_EXTRA_LIBS@ # @LIBINTL@
+	@X_PRE_LIBS@ @X_LIBS@ -lXext -lX11 @X_EXTRA_LIBS@ @GNUTLS_LIBS@ # @LIBINTL@
 
 EXTRA_DIST = vncviewer.man

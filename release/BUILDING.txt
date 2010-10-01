@@ -165,6 +165,29 @@ Add
 to the configure command line.  The OS X 10.4 SDK must be installed.
 
 
+Building VeNCrypt support on OS X
+---------------------------------
+
+VeNCrypt requires GnuTLS, which is not available on OS X systems by default.
+However, it can be obtained from MacPorts (http://www.macports.org/).  The
+easiest way to build TigerVNC using this version of GnuTLS is simply to
+modify the CPATH and LIBRARY_PATH environment variables to include /opt/local,
+i.e.:
+
+export CPATH=/opt/local/include
+export LIBRARY_PATH=/opt/local/lib
+
+and then build TigerVNC as you would normally.  However, this produces run-time
+dependencies on the .dylib files in /opt/local/lib.  To statically link with
+GnuTLS, add the following monstrosity to the configure command line:
+
+  GNUTLS_CFLAGS=-I/opt/local/include \
+    GNUTLS_LDFLAGS='/opt/local/lib/libgnutls.a /opt/local/lib/libgcrypt.a \
+    /opt/local/lib/libgpg-error.a /opt/local/lib/libz.a \
+    /opt/local/lib/libtasn1.a /opt/local/lib/libiconv.a \
+    /opt/local/lib/libintl.a -framework CoreFoundation'
+
+
 *******************************************************************************
 **     Creating Release Packages
 *******************************************************************************
