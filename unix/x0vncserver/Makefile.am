@@ -21,4 +21,8 @@ x0vncserver_LDADD = $(top_builddir)/common/rfb/librfb.la \
 	$(top_builddir)/unix/tx/libtx.la @INET_LIB@ @X_PRE_LIBS@ @X_LIBS@ \
 	@XTEST_LIB@ -lXext -lX11 @X_EXTRA_LIBS@ @GNUTLS_LIBS@
 
+if INCLUDED_ZLIB
+x0vncserver_LDADD += $(top_builddir)/common/zlib/libz.la
+endif
+
 EXTRA_DIST = x0vncserver.man
