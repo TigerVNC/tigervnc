@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2009-06-12 12:18+0200\n"
+"POT-Creation-Date: 2010-10-11 11:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "Connection info..."
 msgstr ""
 
-msgid "About VNCviewer..."
+msgid "About TigerVNC viewer..."
 msgstr ""
 
 msgid "Dismiss menu"
@@ -150,6 +150,39 @@ msgid "OK"
 msgstr ""
 
 msgid "Cancel"
+msgstr ""
+
+msgid "Security:"
+msgstr ""
+
+msgid "Extended encryption and authentication methods (VeNCrypt)"
+msgstr ""
+
+msgid "Session encryption:"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "TLS with anonymous certificates"
+msgstr ""
+
+msgid "TLS with X509 certificates"
+msgstr ""
+
+msgid "Path to X509 CA certificate"
+msgstr ""
+
+msgid "Path to X509 CRL file"
+msgstr ""
+
+msgid "Authentication:"
+msgstr ""
+
+msgid "Standard VNC (insecure without encryption)"
+msgstr ""
+
+msgid "Username and password (insecure without encryption)"
 msgstr ""
 
 msgid "Username:"
