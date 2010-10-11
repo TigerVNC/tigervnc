@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2009-06-12 12:18+0200\n"
-"PO-Revision-Date: 2009-01-26 13:31+0100\n"
+"POT-Creation-Date: 2010-10-11 11:34+0200\n"
+"PO-Revision-Date: 2010-10-11 12:11+0200\n"
 "Last-Translator: Peter Astrand <astrand@cendio.se>\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -58,8 +58,8 @@ msgstr "Inställningar..."
 msgid "Connection info..."
 msgstr "Information om anslutningen..."
 
-msgid "About VNCviewer..."
-msgstr "Om VNC-visaren..."
+msgid "About TigerVNC viewer..."
+msgstr "Om TigerVNC-visaren..."
 
 msgid "Dismiss menu"
 msgstr "Stäng meny"
@@ -162,6 +162,39 @@ msgstr "Ok"
 
 msgid "Cancel"
 msgstr "Avbryt"
+
+msgid "Security:"
+msgstr "Säkerhet:"
+
+msgid "Extended encryption and authentication methods (VeNCrypt)"
+msgstr "Utökade krypterings- och autentiseringsmetoder (VeNCrypt)"
+
+msgid "Session encryption:"
+msgstr "Sessionskryptering:"
+
+msgid "None"
+msgstr "Ingen"
+
+msgid "TLS with anonymous certificates"
+msgstr "TLS med anonyma certifikat"
+
+msgid "TLS with X509 certificates"
+msgstr "TLS med X509-certifikat"
+
+msgid "Path to X509 CA certificate"
+msgstr "Sökväg till CA-certifikat för X509"
+
+msgid "Path to X509 CRL file"
+msgstr "Sökväg till CRL-fil för X509"
+
+msgid "Authentication:"
+msgstr "Autentisering:"
+
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Standard-VNC (osäkert utan kryptering)"
+
+msgid "Username and password (insecure without encryption)"
+msgstr "Användarnamn och lösenord (osäkert utan kryptering)"
 
 msgid "Username:"
 msgstr "Användarnamn:"
