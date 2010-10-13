@@ -187,9 +187,15 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
     // Optimised common case
     rdr::U8 *r, *g, *b;
 
-    r = dst + redShift/8;
-    g = dst + greenShift/8;
-    b = dst + blueShift/8;
+    if (bigEndian) {
+      r = dst + (24 - redShift)/8;
+      g = dst + (24 - greenShift)/8;
+      b = dst + (24 - blueShift)/8;
+    } else {
+      r = dst + redShift/8;
+      g = dst + greenShift/8;
+      b = dst + blueShift/8;
+    }
 
     while (pixels--) {
       *r = *(src++);
@@ -253,9 +259,15 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, Co
     // Optimised common case
     const rdr::U8 *r, *g, *b;
 
-    r = src + redShift/8;
-    g = src + greenShift/8;
-    b = src + blueShift/8;
+    if (bigEndian) {
+      r = src + (24 - redShift)/8;
+      g = src + (24 - greenShift)/8;
+      b = src + (24 - blueShift)/8;
+    } else {
+      r = src + redShift/8;
+      g = src + greenShift/8;
+      b = src + blueShift/8;
+    }
 
     while (pixels--) {
       *(dst++) = *r;
