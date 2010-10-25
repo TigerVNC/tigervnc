@@ -26,7 +26,7 @@ endif
 
 TSTHDRS = turbojpeg.h rrutil.h rrtimer.h
 
-noinst_PROGRAMS = jpgtest jpegut cjpeg djpeg
+noinst_PROGRAMS = jpgtest jpegut cjpeg djpeg jpegtran
 
 jpgtest_SOURCES = $(TSTHDRS) jpgtest.cxx bmp.h bmp.c turbojpegl.c
 
@@ -51,3 +51,71 @@ djpeg_LDADD = libjpeg.la
 
 djpeg_CFLAGS = -DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED \
 	-DTARGA_SUPPORTED
+
+jpegtran_SOURCES = jpegtran.c rdswitch.c cdjpeg.c transupp.c transupp.h
+
+jpegtran_LDADD = libjpeg.la
+
+
+if WITH_SIMD
+
+test: testclean all
+	./jpegut
+	./cjpeg -dct int -outfile testoutint.jpg $(srcdir)/testorig.ppm
+	./cjpeg -dct fast -opt -outfile testoutfst.jpg $(srcdir)/testorig.ppm
+	./cjpeg -dct float -outfile testoutflt.jpg $(srcdir)/testorig.ppm
+	cmp $(srcdir)/testimgint.jpg testoutint.jpg
+	cmp $(srcdir)/testimgfst.jpg testoutfst.jpg
+	cmp $(srcdir)/testimgflt.jpg testoutflt.jpg
+	./djpeg -dct int -fast -ppm -outfile testoutint.ppm $(srcdir)/testorig.jpg
+	./djpeg -dct fast -ppm -outfile testoutfst.ppm $(srcdir)/testorig.jpg
+	./djpeg -dct float -ppm -outfile testoutflt.ppm $(srcdir)/testorig.jpg
+	cmp $(srcdir)/testimgint.ppm testoutint.ppm
+	cmp $(srcdir)/testimgfst.ppm testoutfst.ppm
+	cmp $(srcdir)/testimgflt.ppm testoutflt.ppm
+	./djpeg -dct int -bmp -colors 256 -outfile testout.bmp  $(srcdir)/testorig.jpg
+	cmp $(srcdir)/testimg.bmp testout.bmp
+	./cjpeg -dct int -progressive -outfile testoutp.jpg $(srcdir)/testorig.ppm
+	cmp $(srcdir)/testimgp.jpg testoutp.jpg
+	./jpegtran -outfile testoutt.jpg testoutp.jpg
+	cmp $(srcdir)/testimgint.jpg testoutt.jpg
+
+else
+
+test: testclean all
+	./jpegut
+	./cjpeg -dct int -outfile testoutint.jpg $(srcdir)/testorig.ppm
+	./cjpeg -dct fast -opt -outfile testoutfst.jpg $(srcdir)/testorig.ppm
+	./cjpeg -dct float -outfile testoutflt.jpg $(srcdir)/testorig.ppm
+	cmp $(srcdir)/testimgint.jpg testoutint.jpg
+	cmp $(srcdir)/testimgfst.jpg testoutfst.jpg
+	cmp $(srcdir)/testimgflt-nosimd.jpg testoutflt.jpg
+	./djpeg -dct int -fast -ppm -outfile testoutint.ppm $(srcdir)/testorig.jpg
+	./djpeg -dct fast -ppm -outfile testoutfst.ppm $(srcdir)/testorig.jpg
+	./djpeg -dct float -ppm -outfile testoutflt.ppm $(srcdir)/testorig.jpg
+	cmp $(srcdir)/testimgint.ppm testoutint.ppm
+	cmp $(srcdir)/testimgfst.ppm testoutfst.ppm
+	cmp $(srcdir)/testorig.ppm testoutflt.ppm
+	./djpeg -dct int -bmp -colors 256 -outfile testout.bmp  $(srcdir)/testorig.jpg
+	cmp $(srcdir)/testimg.bmp testout.bmp
+	./cjpeg -dct int -progressive -outfile testoutp.jpg $(srcdir)/testorig.ppm
+	cmp $(srcdir)/testimgp.jpg testoutp.jpg
+	./jpegtran -outfile testoutt.jpg testoutp.jpg
+	cmp $(srcdir)/testimgint.jpg testoutt.jpg
+
+endif
+
+testclean:
+	rm -f testout*
+	rm -f *_GRAYQ[0-9]*.bmp
+	rm -f *_GRAYQ[0-9]*.ppm
+	rm -f *_GRAYQ[0-9]*.jpg
+	rm -f *_420Q[0-9]*.bmp
+	rm -f *_420Q[0-9]*.ppm
+	rm -f *_420Q[0-9]*.jpg
+	rm -f *_422Q[0-9]*.bmp
+	rm -f *_422Q[0-9]*.ppm
+	rm -f *_422Q[0-9]*.jpg
+	rm -f *_444Q[0-9]*.bmp
+	rm -f *_444Q[0-9]*.ppm
+	rm -f *_444Q[0-9]*.jpg
