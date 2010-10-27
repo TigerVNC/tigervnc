@@ -6,10 +6,9 @@ man1_MANS = vncserver.man
 
 XVNCDIR = xserver/hw/vnc
 
-EXTRA_DIST = vncserver.man $(XVNCDIR)/RegionHelper.h $(XVNCDIR)/vncExtInit.cc \
-	$(XVNCDIR)/buildtime.c $(XVNCDIR)/XserverDesktop.h $(XVNCDIR)/xvnc.cc \
-	$(XVNCDIR)/Xvnc.man $(XVNCDIR)/Input.cc $(XVNCDIR)/xf86vncModule.cc \
-	$(XVNCDIR)/XserverDesktop.cc $(XVNCDIR)/Input.h \
-	$(XVNCDIR)/xorg-version.h $(XVNCDIR)/vncHooks.h \
-	$(XVNCDIR)/Makefile.am $(XVNCDIR)/vncHooks.cc $(XVNCDIR)/vncExtInit.h \
-	xserver15.patch xserver16.patch xserver17.patch xserver18.patch
+EXTRA_DIST = vncserver.man $(XVNCDIR) xserver15.patch xserver16.patch \
+	xserver17.patch xserver18.patch xserver19.patch build-xorg build-xorg-git \
+	download-xorg-7.4 download-xorg-7.5 xorg-7.5-patches
+
+dist-hook:
+	rm -rf `find $(distdir) -name .svn`

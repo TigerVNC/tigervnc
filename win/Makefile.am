@@ -4,4 +4,8 @@ if BUILD_WINVNC
 SUBDIRS += vncconfig winvnc
 endif
 
-EXTRA_DIST = logmessages/messages.h CMakeLists.txt
+EXTRA_DIST = logmessages LICENCE.TXT README.txt README_BINARY.txt \
+	resdefs.h.in tigervnc.iss.in wm_hooks CMakeLists.txt
+
+dist-hook:
+	rm -rf `find $(distdir) -name .svn`

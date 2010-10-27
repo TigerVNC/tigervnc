@@ -20,8 +20,8 @@ winvnc4_LDADD = $(top_builddir)/common/rfb/librfb.la \
 winvnc4_LDFLAGS = -mwindows
 
 EXTRA_DIST = winvnc.rc winvnc.ico connected.ico icon_dis.ico connecte.ico \
-	winvnc4.exe.manifest winvnc.bmp CMakeLists.txt
+	winvnc4.exe.manifest winvnc4.exe.manifest64 winvnc.bmp index.vnc \
+	CMakeLists.txt
 
 resources.o: winvnc.rc
 	$(WINDRES) $^ -o $@
-

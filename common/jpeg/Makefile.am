@@ -1,5 +1,6 @@
 noinst_LTLIBRARIES = libjpeg.la
-noinst_HEADERS = jconfig.h jerror.h jmorecfg.h jpeglib.h
+noinst_HEADERS = jerror.h jmorecfg.h jpeglib.h
+nodist_noinst_HEADERS = jconfig.h
 
 HDRS = jchuff.h jdct.h jdhuff.h jerror.h jinclude.h jmemsys.h jmorecfg.h \
 	jpegint.h jpeglib.h jversion.h jsimd.h jsimddct.h
@@ -57,7 +58,8 @@ jpegtran_SOURCES = jpegtran.c rdswitch.c cdjpeg.c transupp.c transupp.h
 jpegtran_LDADD = libjpeg.la
 
 
-DOCS= README README-turbo.txt LICENSE.txt LGPL.txt
+DOCS= jconfig.doc README README-turbo.txt LICENSE.txt LGPL.txt \
+	README_TigerVNC.txt
 
 TESTFILES= testorig.jpg testorig.ppm testimg.bmp testimgflt.jpg \
 	testimgfst.jpg testimgint.jpg testimgp.jpg testimgflt.ppm testimgfst.ppm \
