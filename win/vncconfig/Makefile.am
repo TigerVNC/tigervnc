@@ -14,7 +14,7 @@ vncconfig_LDADD = $(top_builddir)/win/rfb_win32/librfb_win32.la \
 	$(top_builddir)/common/rdr/librdr.la -lws2_32 -lgdi32 -lversion -lole32 \
 	-lcomctl32 resources.o
 
-EXTRA_DIST = vncconfig.ico vncconfig.rc vncconfig.exe.manifest
+EXTRA_DIST = vncconfig.ico vncconfig.rc vncconfig.exe.manifest CMakeLists.txt
 
 resources.o: vncconfig.rc
 	$(WINDRES) $^ -o $@

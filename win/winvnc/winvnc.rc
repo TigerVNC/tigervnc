@@ -1,6 +1,7 @@
 //Microsoft Developer Studio generated resource script.
 //
 #include "resource.h"
+#include "resdefs.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -58,8 +59,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,90,0
- PRODUCTVERSION 1,0,90,0
+ FILEVERSION __RCVERSION
+ PRODUCTVERSION __RCVERSION
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -76,15 +77,20 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "TigerVNC Project\0"
+            #ifdef WIN64
+            VALUE "FileDescription", "TigerVNC Server for Win64\0"
+            VALUE "ProductName", "TigerVNC Server for Win64\0"
+            #else
             VALUE "FileDescription", "TigerVNC Server for Win32\0"
-            VALUE "FileVersion", "1.0.90\0"
+            VALUE "ProductName" "TigerVNC Server for Win32\0"
+            #endif
+            VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "winvnc\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2009 [many holders]\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2010 [many holders]\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "winvnc4.exe\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "TigerVNC Server\0"
-            VALUE "ProductVersion", "1.0.90\0"
+            VALUE "ProductVersion", __VERSIONSTR
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -222,7 +228,11 @@ END
 // 24
 //
 
+#ifdef WIN64
+IDR_MANIFEST            24      DISCARDABLE     "winvnc4.exe.manifest64"
+#else
 IDR_MANIFEST            24      DISCARDABLE     "winvnc4.exe.manifest"
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 //

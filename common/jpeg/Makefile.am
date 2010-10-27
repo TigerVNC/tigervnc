@@ -57,6 +57,18 @@ jpegtran_SOURCES = jpegtran.c rdswitch.c cdjpeg.c transupp.c transupp.h
 jpegtran_LDADD = libjpeg.la
 
 
+DOCS= README README-turbo.txt LICENSE.txt LGPL.txt
+
+TESTFILES= testorig.jpg testorig.ppm testimg.bmp testimgflt.jpg \
+	testimgfst.jpg testimgint.jpg testimgp.jpg testimgflt.ppm testimgfst.ppm \
+	testimgint.ppm testimgflt-nosimd.jpg
+
+EXTRA_DIST = win $(DOCS) $(TESTFILES) CMakeLists.txt
+
+dist-hook:
+	rm -rf `find $(distdir) -name .svn`
+
+
 if WITH_SIMD
 
 test: testclean all

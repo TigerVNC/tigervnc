@@ -4,4 +4,4 @@ if BUILD_WINVNC
 SUBDIRS += vncconfig winvnc
 endif
 
-EXTRA_DIST = logmessages/messages.h
+EXTRA_DIST = logmessages/messages.h CMakeLists.txt

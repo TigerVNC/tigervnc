@@ -66,3 +66,5 @@ if INCLUDED_JPEG
 librfb_la_CPPFLAGS += -I$(top_srcdir)/common/jpeg -I$(top_builddir)/common/jpeg
 librfb_la_LIBADD += $(top_builddir)/common/jpeg/libjpeg.la
 endif
+
+EXTRA_DIST = CMakeLists.txt

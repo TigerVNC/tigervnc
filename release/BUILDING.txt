@@ -1,5 +1,5 @@
 *******************************************************************************
-**     Building TigerVNC
+**     Building on Unix Platforms (including Cygwin)
 *******************************************************************************
 
 
@@ -8,9 +8,7 @@ Build Requirements
 ==================
 
 -- autoconf 2.57 or later
-
 -- automake 1.7 or later
-
 -- libtool 1.4 or later
 
 -- NASM
@@ -19,9 +17,9 @@ Build Requirements
    * NASM 2.07 or later is required for a 64-bit build on OS X.  This can be
      obtained from MacPorts (http://www.macports.org/).
 
-   The NASM 2.05 RPMs do not work on older Linux systems, such as Enterprise
-   Linux 4.  On such systems, you can easily build and install NASM 2.05
-   from the source RPM by executing the following as root:
+   The NASM 2.05 RPMs do not work on older Linux systems, such as Red Hat
+   Enterprise Linux 4.  On such systems, you can easily build and install NASM
+   2.05 from the source RPM by executing the following as root:
 
      ARCH=`uname -m`
      wget http://www.nasm.us/pub/nasm/releasebuilds/2.05.01/nasm-2.05.01-1.src.rpm
@@ -40,6 +38,20 @@ Build Requirements
    * OpenSSL v0.9.7 or later
 
 
+==================
+Out-of-Tree Builds
+==================
+
+Binary objects, libraries, and executables are generated in the same directory
+from which configure was executed (the "binary directory"), and this directory
+need not necessarily be the same as the TigerVNC source directory.  You can
+create multiple independent binary directories, in which different versions of
+TigerVNC can be built from the same source tree using different compilers or
+settings.  In the sections below, {build_directory} refers to the binary
+directory, whereas {source_directory} refers to the TigerVNC source directory.
+For in-tree builds, these directories are the same.
+
+
 =================
 Building TigerVNC
 =================
@@ -49,13 +61,14 @@ systems.  On 64-bit systems, this may build a 32-bit version of TigerVNC,
 depending on the default compiler configuration for your system.  See below for
 specific build instructions for 64-bit systems.
 
-  cd tigervnc
+  cd {source_directory}
   autoreconf -fiv
-  sh ./configure [additional configure flags]
+  cd {build_directory}
+  sh {source_directory}/configure [additional configure flags]
   make
 
-NOTE: Running autoreconf is only necessary if building TigerVNC from the SVN
-repository.
+NOTE: Running autoreconf in the source directory is only necessary if building
+TigerVNC from the SVN repository.
 
 Building the TigerVNC server (Xvnc) is a bit trickier.  On newer systems, such
 as Fedora, Xvnc is typically built to use the X11 shared libraries provided
@@ -70,15 +83,15 @@ distribution automates this process.
 The following procedure will build both the TigerVNC viewer and a
 "legacy-friendly" version of the TigerVNC server:
 
-  cd tigervnc
-  unix/build-xorg init -version 7.4
-  unix/build-xorg build -version 7.4 [-static] [additional configure flags]
+  cd {build_directory}
+  sh {source_directory}/unix/build-xorg init -version 7.4
+  sh {source_directory}/unix/build-xorg build -version 7.4 [-static] [additional configure flags]
 
 Passing an argument of "-static" to the build command line will generate a
 version of Xvnc that has no external dependencies on the X11 shared libraries
 or any other distribution-specific shared libraries.  This version of Xvnc
 should be transportable across multiple O/S distributions.  The legacy-friendly
-build should work on RedHat Enterprise 4, its contemporaries, and later
+build should work on Red Hat Enterprise 4, its contemporaries, and later
 systems.  It probably will not work on older systems.  It has not been tested
 on non-Linux systems (yet).
 
@@ -87,11 +100,11 @@ once the X11 modules and other dependencies have been built the first time.
 This is convenient for testing changes that just apply to the TigerVNC source
 code.  To accomplish this, run:
 
-  unix/build-xorg rebuild [additional make flags]
+  sh {source_directory}/unix/build-xorg rebuild [additional make flags]
 
 For instance,
 
-  unix/build-xorg rebuild clean
+  sh {source_directory}/unix/build-xorg rebuild clean
 
 will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
@@ -109,7 +122,7 @@ Add
 
   --host i686-pc-linux-gnu CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' LDFLAGS=-m32
 
-to the configure and build command lines.
+to the configure or build command lines.
 
 
 64-bit Build on 64-bit OS X
@@ -189,10 +202,218 @@ GnuTLS, add the following monstrosity to the configure command line:
 
 
 *******************************************************************************
+**     Building on Windows (Visual C++ or MinGW)
+*******************************************************************************
+
+
+==================
+Build Requirements
+==================
+
+-- CMake (http://www.cmake.org) v2.6 or later
+
+-- Microsoft Visual C++ 2005 or later
+
+   If you don't already have Visual C++, then the easiest way to get it is by
+   installing the Windows SDK:
+
+   http://msdn.microsoft.com/en-us/windows/bb980924.aspx
+
+   The Windows SDK includes both 32-bit and 64-bit Visual C++ compilers and
+   everything necessary to build TigerVNC.
+
+   * For 32-bit builds, you can also use Microsoft Visual C++ Express
+     Edition.  Visual C++ Express Edition is a free download.
+   * If you intend to build TigerVNC from the command line, then add the
+     appropriate compiler and SDK directories to the INCLUDE, LIB, and PATH
+     environment variables.  This is generally accomplished by executing
+     vcvars32.bat or vcvars64.bat and SetEnv.cmd.  vcvars32.bat and
+     vcvars64.bat are part of Visual C++ and are located in the same directory
+     as the compiler.  SetEnv.cmd is part of the Windows SDK.  You can pass
+     optional arguments to SetEnv.cmd to specify a 32-bit or 64-bit build
+     environment.
+
+... OR ...
+
+-- MinGW
+
+   GCC v4.1 or later recommended for best performance
+
+-- NASM (http://www.nasm.us/) 0.98 or later (NASM 2.05 or later is required for
+   a 64-bit build)
+
+-- Inno Setup (needed to build the TigerVNC installer)
+   Inno Setup can be downloaded from http://www.jrsoftware.org/isinfo.php.
+   You also need the Inno Setup Preprocessor, which is available in the
+   Inno Setup QuickStart Pack.
+
+   Add the directory containing iscc.exe (for instance, 
+   C:\Program Files\Inno Setup 5) to the system or user PATH environment
+   variable prior to building TigerVNC.
+
+
+==================
+Out-of-Tree Builds
+==================
+
+Binary objects, libraries, and executables are generated in the same directory
+from which cmake was executed (the "binary directory"), and this directory need
+not necessarily be the same as the TigerVNC source directory.  You can create
+multiple independent binary directories, in which different versions of
+TigerVNC can be built from the same source tree using different compilers or
+settings.  In the sections below, {build_directory} refers to the binary
+directory, whereas {source_directory} refers to the TigerVNC source directory.
+For in-tree builds, these directories are the same.
+
+
+=================
+Building TigerVNC
+=================
+
+
+Visual C++ (Command Line)
+-------------------------
+
+  cd {build_directory}
+  cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release {source_directory}
+  nmake
+
+This will build either a 32-bit or a 64-bit version of TigerVNC, depending
+on which version of cl.exe is in the PATH.
+
+
+Visual C++ (IDE)
+----------------
+
+Choose the appropriate CMake generator option for your version of Visual Studio
+(run "cmake" with no arguments for a list of available generators.)  For
+instance:
+
+  cd {build_directory}
+  cmake -G "Visual Studio 9 2008" {source_directory}
+
+You can then open ALL_BUILD.vcproj in Visual Studio and build one of the
+configurations in that project ("Debug", "Release", etc.) to generate a full
+build of TigerVNC.
+
+
+MinGW
+-----
+
+  cd {build_directory}
+  cmake -G "MSYS Makefiles" {source_directory}
+  make
+
+This will generate only vncviewer.  Currently, Visual C++ must be used to build
+WinVNC.
+
+
+Debug Build
+-----------
+
+Add "-DCMAKE_BUILD_TYPE=Debug" to the cmake command line.  Or, if building with
+NMake, remove "-DCMAKE_BUILD_TYPE=Release" (Debug builds are the default with
+NMake.)
+
+
+===================
+Installing TigerVNC
+===================
+
+You can use the build system to install TigerVNC into a directory of your
+choosing (as opposed to creating an installer.)  To do this, add:
+
+  -DCMAKE_INSTALL_PREFIX={install_directory}
+
+to the cmake command line.
+
+For example,
+
+  cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=c:\TigerVNC {source_directory}
+  nmake install
+
+If you don't specify CMAKE_INSTALL_PREFIX, then the default is
+c:\Program Files\TigerVNC.
+
+
+=============
+Build Recipes
+=============
+
+
+64-bit MinGW Build on Cygwin
+----------------------------
+
+  cd {build_directory}
+  CC=/usr/bin/x86_64-w64-mingw32-gcc CXX=/usr/bin/x86_64-w64-mingw32-g++ \
+    RC=/usr/bin/x86_64-w64-mingw32-windres \
+    cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows \
+    -DCMAKE_AR=/usr/bin/x86_64-w64-mingw32-ar \
+    -DCMAKE_RANLIB=/usr/bin/x86_64-w64-mingw32-ranlib {source_directory}
+  make
+
+This produces a 64-bit build of TigerVNC that does not depend on cygwin1.dll or
+other Cygwin DLL's.  The mingw64-x86_64-gcc-core and mingw64-x86_64-gcc-g++
+packages (and their dependencies) must be installed.
+
+
+32-bit MinGW Build on Cygwin
+----------------------------
+
+  cd {build_directory}
+  CC=/usr/bin/i686-w64-mingw32-gcc CXX=/usr/bin/i686-w64-mingw32-g++ \
+    RC=/usr/bin/i686-w64-mingw32-windres \
+    cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows \
+    -DDCMAKE_AR=/usr/bin/i686-w64-mingw32-ar \
+    -DCMAKE_RANLIB=/usr/bin/i686-w64-mingw32-ranlib {source_directory}
+  make
+
+This produces a 32-bit build of TigerVNC that does not depend on cygwin1.dll or
+other Cygwin DLL's.  The mingw64-i686-gcc-core and mingw64-i686-gcc-g++
+packages (and their dependencies) must be installed.
+
+
+MinGW-w64 Build on Windows
+--------------------------
+
+This produces a 64-bit build of TigerVNC using the "native" MinGW-w64 toolchain
+(which is faster than the Cygwin version):
+
+  cd {build_directory}
+  CC={mingw-w64_binary_path}/x86_64-w64-mingw32-gcc \
+    CXX={mingw-w64_binary_path}/x86_64-w64-mingw32-g++ \
+    RC={mingw-w64_binary_path}/x86_64-w64-mingw32-windres \
+    cmake -G "MSYS Makefiles" \
+    -DCMAKE_AR={mingw-w64_binary_path}/x86_64-w64-mingw32-ar \
+    -DCMAKE_RANLIB={mingw-w64_binary_path}/x86_64-w64-mingw32-ranlib \
+    {source_directory}
+  make
+
+
+MinGW Build on Linux
+--------------------
+
+  cd {build_directory}
+  CC={mingw_binary_path}/i386-mingw32-gcc \
+    CXX={mingw_binary_path}/i386-mingw32-g++ \
+    RC={mingw_binary_path}/i386-mingw32-windres \
+    cmake -G "Unix Makefiles" -DCMAKE_SYSTEM_NAME=Windows \
+    -DCMAKE_AR={mingw_binary_path}/i386-mingw32-ar \
+    -DCMAKE_RANLIB={mingw_binary_path}/i386-mingw32-ranlib \
+    {source_directory}
+  make
+
+
+*******************************************************************************
 **     Creating Release Packages
 *******************************************************************************
 
 The following commands can be used to create various types of release packages:
+
+
+Unix
+----
 
 make dmg
 
@@ -207,3 +428,25 @@ make udmg
   later (OS X 10.4 compatibility SDK required.)  If building on OS X 10.6
   ("Snow Leopard") or later, the 64-bit fork can be made backward compatible
   with 10.5 by using the instructions in the "Build Recipes" section.
+
+
+Windows
+-------
+
+If using NMake:
+
+  cd {build_directory}
+  nmake installer
+
+If using MinGW:
+
+  cd {build_directory}
+  make installer
+
+If using the Visual Studio IDE, build the "installer" project.
+
+The installer package (TigerVNC[64].exe) will be located under
+{build_directory}.  If building using the Visual Studio IDE, then the installer
+package will be located in a subdirectory with the same name as the
+configuration you built (such as {build_directory}\Debug\ or
+{build_directory}\Release\).

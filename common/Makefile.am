@@ -8,3 +8,5 @@ SUBDIRS += jpeg
 endif
 
 SUBDIRS += rdr network Xregion rfb
+
+EXTRA_DIST = CMakeLists.txt

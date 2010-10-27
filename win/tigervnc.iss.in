@@ -1,0 +1,57 @@
+[Setup]
+#ifdef WIN64
+ArchitecturesInstallIn64BitMode=x64
+AppName=TigerVNC 64-bit
+AppVerName=TigerVNC 64-bit @VERSION@ (@BUILD@)
+#else
+AppName=TigerVNC
+AppVerName=TigerVNC v@VERSION@ (@BUILD@)
+#endif
+AppVersion=@VERSION@
+AppPublisher=TigerVNC project
+AppPublisherURL=http://tigervnc.org
+DefaultDirName={pf}\TigerVNC
+#ifdef WIN64
+DefaultGroupName=TigerVNC 64-bit
+#else
+DefaultGroupName=TigerVNC
+#endif
+LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.txt
+
+[Files]
+#ifdef BUILD_WINVNC
+Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\{#BUILD_DIR}winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\{#BUILD_DIR}wm_hooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_CURRENT_BINARY_DIR@\win\vncconfig\{#BUILD_DIR}vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+#endif
+Source: "@CMAKE_CURRENT_BINARY_DIR@\win\vncviewer\{#BUILD_DIR}vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_SOURCE_DIR@\win\README_BINARY.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@CMAKE_SOURCE_DIR@\LICENCE.txt"; DestDir: "{app}"; Flags: ignoreversion
+
+
+[Icons]
+Name: "{group}\TigerVNC Viewer"; FileName: "{app}\vncviewer.exe";
+Name: "{group}\Listening TigerVNC Viewer"; FileName: "{app}\vncviewer.exe"; Parameters: "-listen";
+
+#ifdef BUILD_WINVNC
+Name: "{group}\VNC Server (User-Mode)\Run VNC Server"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole";
+Name: "{group}\VNC Server (User-Mode)\Configure VNC Server"; FileName: "{app}\vncconfig.exe"; Parameters: "-user";
+
+Name: "{group}\VNC Server (Service-Mode)\Configure VNC Service"; FileName: "{app}\vncconfig.exe"; Parameters: "-noconsole -service";
+Name: "{group}\VNC Server (Service-Mode)\Register VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-register";
+Name: "{group}\VNC Server (Service-Mode)\Unregister VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-unregister";
+Name: "{group}\VNC Server (Service-Mode)\Start VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole -start";
+Name: "{group}\VNC Server (Service-Mode)\Stop VNC Service"; FileName: "{app}\winvnc4.exe"; Parameters: "-noconsole -stop";
+#endif
+Name: "{group}\License"; FileName: "{app}\LICENCE.txt";
+Name: "{group}\Uninstall TigerVNC"; FileName: "{uninstallexe}"; WorkingDir: "{app}";
+
+#ifdef BUILD_WINVNC
+[Tasks]
+Name: installservice; Description: "&Register new TigerVNC Server as a system service"; GroupDescription: "Server configuration:"; 
+Name: startservice; Description: "&Start or restart TigerVNC service"; GroupDescription: "Server configuration:";
+
+[Run]
+Filename: "{app}\winvnc4.exe"; Parameters: "-register"; Tasks: installservice
+Filename: "net"; Parameters: "start winvnc4"; Tasks: startservice
+#endif

@@ -4,7 +4,7 @@ BUILT_SOURCES = jsimdcfg.inc
 
 EXTRA_DIST = nasm_lt.sh jcclrmmx.asm jcclrss2.asm jdclrmmx.asm jdclrss2.asm \
 	jdmrgmmx.asm jdmrgss2.asm jcclrss2-64.asm jdclrss2-64.asm \
-	jdmrgss2-64.asm
+	jdmrgss2-64.asm CMakeLists.txt
 
 if SIMD_X86_64
 

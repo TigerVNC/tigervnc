@@ -104,3 +104,5 @@ endif
 
 librfb_win32_la_CPPFLAGS = -I$(top_srcdir)/common -I$(top_srcdir)/win
 librfb_win32_la_LIBADD =
+
+EXTRA_DIST = CMakeLists.txt

@@ -5,6 +5,7 @@ TigerVNC Binary Distribution for Windows platforms
 Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
 Copyright (C) 2000-2004 Constantin Kaplinsky.
 Copyright (C) 2004-2009 Peter Astrand for Cendio AB
+Copyright (C) 2009-2010 D. R. Commander
 
 This software is distributed under the GNU General Public Licence as
 published by the Free Software Foundation.  See the file LICENCE.TXT

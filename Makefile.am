@@ -18,3 +18,5 @@ endif
 
 dmg: all
 	sh $(srcdir)/release/makemacpkg ${PACKAGE_NAME} ${VERSION} ${BUILD} ${srcdir}
+
+EXTRA_DIST = CMakeLists.txt cmakescripts/getdate.bat

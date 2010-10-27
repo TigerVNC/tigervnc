@@ -18,3 +18,5 @@ if INCLUDED_ZLIB
 librdr_la_CPPFLAGS += -I$(top_srcdir)/common/zlib
 librdr_la_LIBADD += $(top_builddir)/common/zlib/libz.la
 endif
+
+EXTRA_DIST = CMakeLists.txt
