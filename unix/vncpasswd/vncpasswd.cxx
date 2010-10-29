@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <os/os.h>
 #include <rfb/Password.h>
 #include <rfb/util.h>
 
@@ -100,14 +101,16 @@ int main(int argc, char** argv)
   }
 
   if (!fname) {
-    if (!getenv("HOME")) {
-      fprintf(stderr,"HOME is not set\n");
+    char *homeDir = NULL;
+    if (gethomedir(&homeDir) == -1) {
+      fprintf(stderr, "Can't obtain home directory\n");
       exit(1);
     }
-    fname = new char[strlen(getenv("HOME")) + 20];
-    sprintf(fname, "%s/.vnc", getenv("HOME"));
+    fname = new char[strlen(homeDir) + 20];
+    sprintf(fname, "%s/.vnc", homeDir);
     mkdir(fname, 0777);
-    sprintf(fname, "%s/.vnc/passwd", getenv("HOME"));
+    sprintf(fname, "%s/.vnc/passwd", homeDir);
+    delete [] homeDir;
   }
 
   while (true) {

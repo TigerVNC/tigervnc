@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <locale.h>
+#include <os/os.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
 #include <network/TcpSocket.h>
@@ -323,15 +324,17 @@ int main(int argc, char** argv)
   }
 
   // Create .vnc in the user's home directory if it doesn't already exist
-  char* homeDir = getenv("HOME");
-  if (homeDir) {
+  char* homeDir = NULL;
+  if (gethomedir(&homeDir) == -1)
+    vlog.error("Could not create .vnc directory: can't obtain home directory path.");
+  else {
     CharArray vncDir(strlen(homeDir)+6);
     sprintf(vncDir.buf, "%s/.vnc", homeDir);
     int result =  mkdir(vncDir.buf, 0755);
     if (result == -1 && errno != EEXIST)
       vlog.error("Could not create .vnc directory: %s.", strerror(errno));
-  } else
-    vlog.error("Could not create .vnc directory: environment variable $HOME not set.");
+    delete [] homeDir;
+  }
 
   if (!::autoSelect.hasBeenSet()) {
     // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
