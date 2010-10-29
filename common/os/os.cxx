@@ -20,6 +20,7 @@
 #include <config.h>
 #endif
 
+#ifndef WIN32
 #include <os/os.h>
 
 #include <assert.h>
@@ -61,4 +62,6 @@ int gethomedir(char **dirp)
 	*dirp = dir;
 	return 0;
 }
+
+#endif
 
