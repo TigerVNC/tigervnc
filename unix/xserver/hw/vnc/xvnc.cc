@@ -1211,6 +1211,7 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 	    pvfb->blueBits = pvfb->redBits = 5;
 	    pvfb->greenBits = 6;
 	    break;
+	case 24:
 	case 32:
 	    pvfb->pixelFormatDefined = TRUE;
 	    pvfb->rgbNotBgr = TRUE;
