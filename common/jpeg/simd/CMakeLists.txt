@@ -3,10 +3,10 @@ if(NOT DEFINED NASM)
 endif()
 
 if(SIMD_X86_64)
-  set(NAFLAGS -fwin64 -DWIN64 -D__x86_64__ -I${CMAKE_SOURCE_DIR}/win/
+  set(NAFLAGS -fwin64 -DWIN64 -D__x86_64__ -I${CMAKE_CURRENT_SOURCE_DIR}/../win/
     -I${CMAKE_CURRENT_SOURCE_DIR}/)
 else()
-  set(NAFLAGS -fwin32 -DWIN32 -I${CMAKE_SOURCE_DIR}/win/
+  set(NAFLAGS -fwin32 -DWIN32 -I${CMAKE_CURRENT_SOURCE_DIR}/../win/
     -I${CMAKE_CURRENT_SOURCE_DIR}/)
 endif()
 
