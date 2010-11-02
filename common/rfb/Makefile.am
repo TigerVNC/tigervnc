@@ -67,4 +67,8 @@ librfb_la_CPPFLAGS += -I$(top_srcdir)/common/jpeg -I$(top_builddir)/common/jpeg
 librfb_la_LIBADD += $(top_builddir)/common/jpeg/libjpeg.la
 endif
 
+if BUILD_WIN
+librfb_la_SOURCES += WinPasswdValidator.h WinPasswdValidator.cxx
+endif
+
 EXTRA_DIST = CMakeLists.txt

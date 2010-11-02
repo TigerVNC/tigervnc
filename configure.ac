@@ -43,6 +43,9 @@ mingw*)
 	;;
 esac
 AM_CONDITIONAL([BUILD_WIN], [test "x$BUILD_WIN" = xyes])
+if test "x$BUILD_WIN" = xyes; then
+	AC_DEFINE([BUILD_WIN],1,[is it a windows build])
+fi
 
 dnl FIXME: Check for MIT-SHM properly, add a corresponding --with option.
 if test "$USE_MITSHM" = yes; then

@@ -28,6 +28,9 @@
 #ifdef HAVE_PAM
 #include <rfb/UnixPasswordValidator.h>
 #endif
+#ifdef BUILD_WIN
+#include <rfb/WinPasswdValidator.h>
+#endif
 
 using namespace rfb;
 
@@ -61,6 +64,8 @@ SSecurityPlain::SSecurityPlain()
 {
 #ifdef HAVE_PAM
   valid = new UnixPasswordValidator();
+#elif BUILD_WIN
+  valid = new WinPasswdValidator();
 #else
   valid = NULL;
 #endif

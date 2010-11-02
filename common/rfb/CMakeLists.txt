@@ -62,6 +62,7 @@ add_library(rfb STATIC
   UpdateTracker.cxx
   VNCSConnectionST.cxx
   VNCServerST.cxx
+  WinPasswdValidator.cxx	# Windows specific code
   ZRLEEncoder.cxx
   ZRLEDecoder.cxx
   encodings.cxx
