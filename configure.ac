@@ -82,7 +82,8 @@ AC_ARG_VAR(GNUTLS_LDFLAGS, [Custom linker flags for using GnuTLS, e.g. -L{GnuTLS
 GNUTLS_LIBS=
 if test "x$enable_gnutls" = xyes; then
 	if test "x$GNUTLS_LDFLAGS" = "x"; then
-		GNUTLS_LDFLAGS='-lgnutls -lgcrypt -lgpg-error'
+		GNUTLS_LDFLAGS='-lgnutls -lgcrypt -lgpg-error -lz'
+		AC_CHECK_LIB([tasn1], [asn1_create_element], [GNUTLS_LDFLAGS="${GNUTLS_LDFLAGS} -ltasn1"])
 	fi
 	SAVE_LIBS=${LIBS}
 	LIBS="${LIBS} ${GNUTLS_LDFLAGS}"

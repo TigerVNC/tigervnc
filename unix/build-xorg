@@ -326,56 +326,42 @@ if [ $STATIC = 1 -a "$MODE" = "build" ]; then
     else
 	ln -fs $LIBSTDCPLUSPLUS ./xorg.build/syslib
     fi
-    if [ -f ./xorg.build/syslib/libcrypto.a ]; then
-	rm -f ./xorg.build/syslib/libcrypto.a
-    fi
-    if [ -f ./xorg.build/syslib/libz.a ]; then
-	rm -f ./xorg.build/syslib/libz.a
-    fi
-    if [ -f ./xorg.build/syslib/libgcrypt.a ]; then
-	rm -f ./xorg.build/syslib/libgcrypt.a
-    fi
-    if [ -f ./xorg.build/syslib/libgnutls.a ]; then
-	rm -f ./xorg.build/syslib/libgnutls.a
-    fi
+    STATICLIBS='libcrypto.a libz.a libgcrypt.a libgpg-error.a libtasn1.a libgnutls.a'
+    for lib in $STATICLIBS; do
+	if [ -f ./xorg.build/syslib/$lib ]; then
+	    rm -f ./xorg.build/syslib/$lib
+	fi
+    done
     IS64BIT=`echo -e "#ifdef __x86_64__\nis64bit_yes\n#else\nis64bit_no\n#endif" | $CC $CFLAGS -E - | grep is64bit`
     STATICLIBDIR=
     case $IS64BIT in
 	is64bit_yes)
-	    if [ -d /usr/lib64 ]; then STATICLIBDIR=/usr/lib64;
-	    else STATICLIBDIR=/usr/lib; fi
+	    if [ -d /usr/lib64 ]; then STATICLIBDIR=lib64;
+	    else STATICLIBDIR=lib; fi
 	    ;;
 	is64bit_no)
-	    if [ -d /usr/lib32 ]; then STATICLIBDIR=/usr/lib32;
-	    else STATICLIBDIR=/usr/lib; fi
+	    if [ -d /usr/lib32 ]; then STATICLIBDIR=lib32;
+	    else STATICLIBDIR=lib; fi
 	    ;;
 	*)
 	    echo "Cannot determine whether compiler output is 64-bit or 32-bit.  Are you using GCC?"
 	    exit 1
 	    ;;
     esac
-    if [ ! -f $STATICLIBDIR/libcrypto.a ]; then
-	echo Cannot find suitable libcrypto.a.  Aborting ...
-	exit 1
-    else
-	ln -fs $STATICLIBDIR/libcrypto.a ./xorg.build/syslib
-    fi
-    if [ ! -f $STATICLIBDIR/libz.a ]; then
-	echo Cannot find suitable libz.a.  Aborting ...
-	exit 1
-    else
-	ln -fs $STATICLIBDIR/libz.a ./xorg.build/syslib
-    fi
-    if [ ! -f $STATICLIBDIR/libgcrypt.a ]; then
-	echo WARNING: Cannot find suitable libgcrypt.a.  Xvnc will depend on libgcrypt.so ...
-    else
-	ln -fs $STATICLIBDIR/libgcrypt.a ./xorg.build/syslib
-    fi
-    if [ ! -f $STATICLIBDIR/libgnutls.a ]; then
-	echo WARNING: Cannot find suitable libgnutls.a.  Xvnc will depend on libgnutls.so ...
-    else
-	ln -fs $STATICLIBDIR/libgnutls.a ./xorg.build/syslib
-    fi
+    for lib in $STATICLIBS; do
+	if [ -f /usr/$STATICLIBDIR/$lib ]; then
+	    ln -fs /usr/$STATICLIBDIR/$lib ./xorg.build/syslib
+	else
+	    if [ -f /$STATICLIBDIR/$lib ]; then
+		ln -fs /$STATICLIBDIR/$lib ./xorg.build/syslib
+	    else
+		DYLIB=`echo $lib | sed s/\\\.a/\\.so/g`
+		if [ -f /usr/$STATICLIBDIR/$DYLIB -o -f /$STATICLIBDIR/$DYLIB ]; then
+		    echo WARNING: Cannot find suitable $lib.  Xvnc will depend on $DYLIB.
+		fi
+	    fi
+	fi
+    done
 fi
 
 export ACLOCAL="aclocal -I ${PREFIX}/share/aclocal"
