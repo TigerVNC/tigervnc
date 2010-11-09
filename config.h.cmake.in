@@ -1,0 +1,6 @@
+#cmakedefine HAVE_INET_ATON
+#cmakedefine HAVE_INET_NTOP
+#cmakedefine HAVE_SNPRINTF
+#cmakedefine HAVE_STRCASECMP
+#cmakedefine HAVE_STRNCASECMP
+#cmakedefine HAVE_VSNPRINTF
