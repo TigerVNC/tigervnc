@@ -240,6 +240,7 @@ namespace rfb {
     virtual bool setParam(const char* value);
     virtual char* getDefaultStr() const;
     virtual char* getValueStr() const;
+    void setDefaultStr(const char* v);
 
     // getData() returns a copy of the data - it must be delete[]d by the
     // caller.
