@@ -31,22 +31,29 @@ class AuthPanel extends Panel implements ActionListener {
 
   TextField passwordField;
   Button okButton;
+  boolean AskPassword;
 
   //
   // Constructor.
   //
 
-  public AuthPanel(VncViewer viewer)
+  public AuthPanel(VncViewer viewer, boolean askpassword)
   {
+    AskPassword = askpassword;
     Label titleLabel = new Label("VNC Authentication", Label.CENTER);
     titleLabel.setFont(new Font("Helvetica", Font.BOLD, 18));
 
-    Label promptLabel = new Label("Password:", Label.CENTER);
+    Label promptLabel;
+    if (AskPassword)
+      promptLabel = new Label("Password:", Label.CENTER);
+    else
+      promptLabel = new Label("User:", Label.CENTER);
 
     passwordField = new TextField(10);
     passwordField.setForeground(Color.black);
     passwordField.setBackground(Color.white);
-    passwordField.setEchoChar('*');
+    if (AskPassword)
+      passwordField.setEchoChar('*');
 
     okButton = new Button("OK");
 

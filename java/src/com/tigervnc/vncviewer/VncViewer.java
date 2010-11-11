@@ -437,11 +437,40 @@ public class VncViewer extends java.applet.Applet
   // Show an authentication panel.
   //
 
+  String askUser() throws Exception
+  {
+    showConnectionStatus(null);
+
+    AuthPanel authPanel = new AuthPanel(this, false);
+
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.anchor = GridBagConstraints.NORTHWEST;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    gbc.ipadx = 100;
+    gbc.ipady = 50;
+    gridbag.setConstraints(authPanel, gbc);
+    vncContainer.add(authPanel);
+
+    if (inSeparateFrame) {
+      vncFrame.pack();
+    } else {
+      validate();
+    }
+
+    authPanel.moveFocusToDefaultField();
+    String pw = authPanel.getPassword();
+    vncContainer.remove(authPanel);
+
+    return pw;
+  }
+
   String askPassword() throws Exception
   {
     showConnectionStatus(null);
 
-    AuthPanel authPanel = new AuthPanel(this);
+    AuthPanel authPanel = new AuthPanel(this, true);
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridwidth = GridBagConstraints.REMAINDER;
