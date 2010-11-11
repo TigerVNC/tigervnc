@@ -255,7 +255,8 @@ char* XserverDesktop::substitute(const char* varName)
     struct utsname uts;
     uname(&uts);
     char* str = new char[256];
-    strncat(str, uts.nodename, 240);
+    strncpy(str, uts.nodename, 240);
+    str[239] = '\0'; /* Ensure string is zero-terminated */
     strcat(str, ":");
     strncat(str, display, 10);
     return str;
