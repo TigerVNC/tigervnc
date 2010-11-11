@@ -47,10 +47,18 @@ class RfbProto {
 
   // Security types
   final static int
-    SecTypeInvalid = 0,
-    SecTypeNone    = 1,
-    SecTypeVncAuth = 2,
-    SecTypeTight   = 16;
+    SecTypeInvalid   = 0,
+    SecTypeNone      = 1,
+    SecTypeVncAuth   = 2,
+    SecTypeTight     = 16,
+    SecTypeVeNCrypt  = 19,
+    SecTypePlain     = 256,
+    SecTypeTLSNone   = 257,
+    SecTypeTLSVnc    = 258,
+    SecTypeTLSPlain  = 259,
+    SecTypeX509None  = 260,
+    SecTypeX509Vnc   = 261,
+    SecTypeX509Plain = 262;
 
   // Supported tunneling types
   final static int
