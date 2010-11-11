@@ -229,6 +229,8 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
     initFileLogger("C:\\temp\\WinVNC4.log");
     rfb::win32::initEventLogLogger(VNCServerService::Name);
 
+	Configuration::enableServerParams();
+
     // - By default, just log errors to stderr
     logParams.setParam("*:stderr:0");
 
