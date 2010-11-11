@@ -384,6 +384,14 @@ public class VncViewer extends java.applet.Applet
 	    secType = rfb.authenticateVeNCrypt();
 	    doAuthentification(secType);
 	    break;
+	case RfbProto.SecTypePlain:
+	    showConnectionStatus("Plain authentication");
+	    {
+		String user = askUser();
+		String pw = askPassword();
+		rfb.authenticatePlain(user,pw);
+	    }
+	    break;
 	default:
 	    throw new Exception("Unknown authentication scheme " + secType);
 	}

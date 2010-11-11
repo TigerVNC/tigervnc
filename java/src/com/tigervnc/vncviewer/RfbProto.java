@@ -430,6 +430,7 @@ class RfbProto {
 		{
 		case SecTypeNone:
 		case SecTypeVncAuth:
+		case SecTypePlain:
 		    writeInt(secTypes[i]);
 		    return secTypes[i];
 		}
@@ -474,6 +475,17 @@ class RfbProto {
 
     readSecurityResult("VNC authentication");
   }
+
+    void authenticatePlain(String User, String Password) throws Exception {
+      byte[] user=User.getBytes();
+      byte[] password=Password.getBytes();
+      writeInt(user.length);
+      writeInt(password.length);
+      os.write(user);
+      os.write(password);
+
+      readSecurityResult("Plain authentication");
+    }
 
   //
   // Read security result.
