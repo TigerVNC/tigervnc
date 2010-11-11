@@ -18,7 +18,8 @@ CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
 	  RecordingFrame.class SessionRecorder.class \
 	  SocketFactory.class HTTPConnectSocketFactory.class \
 	  HTTPConnectSocket.class ReloginPanel.class \
-	  InStream.class MemInStream.class ZlibInStream.class
+	  InStream.class MemInStream.class ZlibInStream.class \
+	  Dialog.class MessageBox.class
 
 SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
 	  VncCanvas2.java \
@@ -27,7 +28,8 @@ SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
 	  RecordingFrame.java SessionRecorder.java \
 	  SocketFactory.java HTTPConnectSocketFactory.java \
 	  HTTPConnectSocket.java ReloginPanel.java \
-	  InStream.java MemInStream.java ZlibInStream.java
+	  InStream.java MemInStream.java ZlibInStream.java \
+	  Dialog.java MessageBox.java
 
 all: $(CLASSES) $(ARCHIVE)
 
