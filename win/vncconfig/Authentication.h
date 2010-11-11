@@ -101,7 +101,6 @@ namespace rfb {
           }
           regKey.setString(_T("SecurityTypes"), _T("None"));
         }
-        regKey.setString(_T("ReverseSecurityTypes"), _T("None"));
         regKey.setBool(_T("QueryConnect"), isItemChecked(IDC_QUERY_CONNECT));
         regKey.setBool(_T("QueryOnlyIfLoggedOn"), isItemChecked(IDC_QUERY_LOGGED_ON));
         return true;
