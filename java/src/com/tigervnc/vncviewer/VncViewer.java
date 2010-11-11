@@ -361,24 +361,33 @@ public class VncViewer extends java.applet.Applet
       authType = secType;
     }
 
-    switch (authType) {
-    case RfbProto.AuthNone:
-      showConnectionStatus("No authentication needed");
-      rfb.authenticateNone();
-      break;
-    case RfbProto.AuthVNC:
-      showConnectionStatus("Performing standard VNC authentication");
-      if (passwordParam != null) {
-        rfb.authenticateVNC(passwordParam);
-      } else {
-        String pw = askPassword();
-        rfb.authenticateVNC(pw);
-      }
-      break;
-    default:
-      throw new Exception("Unknown authentication scheme " + authType);
-    }
+    doAuthentification(authType);
   }
+
+    void doAuthentification(int secType) throws Exception {
+	switch (secType) {
+	case RfbProto.SecTypeNone:
+	    showConnectionStatus("No authentication needed");
+	    rfb.authenticateNone();
+	    break;
+	case RfbProto.SecTypeVncAuth:
+	    showConnectionStatus("Performing standard VNC authentication");
+	    if (passwordParam != null) {
+		rfb.authenticateVNC(passwordParam);
+	    } else {
+		String pw = askPassword();
+		rfb.authenticateVNC(pw);
+	    }
+	    break;
+	case RfbProto.SecTypeVeNCrypt:
+	    showConnectionStatus("VeNCrypt chooser");
+	    secType = rfb.authenticateVeNCrypt();
+	    doAuthentification(secType);
+	    break;
+	default:
+	    throw new Exception("Unknown authentication scheme " + secType);
+	}
+    }
 
 
   //

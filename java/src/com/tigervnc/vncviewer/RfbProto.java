@@ -391,7 +391,8 @@ class RfbProto {
 
     // Find first supported security type.
     for (int i = 0; i < nSecTypes; i++) {
-      if (secTypes[i] == SecTypeNone || secTypes[i] == SecTypeVncAuth) {
+      if (secTypes[i] == SecTypeNone || secTypes[i] == SecTypeVncAuth
+	   || secTypes[i] == SecTypeVeNCrypt) {
 	secType = secTypes[i];
 	break;
       }
@@ -405,6 +406,36 @@ class RfbProto {
 
     return secType;
   }
+
+    int authenticateVeNCrypt() throws Exception {
+	int majorVersion = readU8();
+	int minorVersion = readU8();
+	int Version = (majorVersion << 8) | minorVersion;
+	if (Version < 0x0002) {
+	    os.write(0);
+	    os.write(0);
+	    throw new Exception("Server reported an unsupported VeNCrypt version");
+	}
+	os.write(0);
+	os.write(2);
+	if (readU8() != 0)
+	    throw new Exception("Server reported it could not support the VeNCrypt version");
+	int nSecTypes = readU8();
+	int[] secTypes = new int[nSecTypes];
+	for(int i = 0; i < nSecTypes; i++)
+	    secTypes[i] = readU32();
+
+	for(int i = 0; i < nSecTypes; i++)
+	    switch(secTypes[i])
+		{
+		case SecTypeNone:
+		case SecTypeVncAuth:
+		    writeInt(secTypes[i]);
+		    return secTypes[i];
+		}
+
+	throw new Exception("No valid VeNCrypt sub-type");
+    }
 
   //
   // Perform "no authentication".
