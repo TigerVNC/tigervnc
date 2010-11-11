@@ -93,6 +93,8 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
   vlog.info("Starting vncconfig applet");
 #endif
 
+  Configuration::enableServerParams();
+
   try {
     try {
       // Process command-line args
