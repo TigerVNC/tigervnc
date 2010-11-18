@@ -380,6 +380,7 @@ class RfbProto {
     byte[] secTypes = new byte[nSecTypes];
     readFully(secTypes);
 
+/*
     // Find out if the server supports TightVNC protocol extensions
     for (int i = 0; i < nSecTypes; i++) {
       if (secTypes[i] == SecTypeTight) {
@@ -388,6 +389,7 @@ class RfbProto {
 	return SecTypeTight;
       }
     }
+*/
 
     // Find first supported security type.
     for (int i = 0; i < nSecTypes; i++) {
