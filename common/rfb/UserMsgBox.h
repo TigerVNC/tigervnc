@@ -33,6 +33,7 @@ namespace rfb {
       M_DEFBUTTON1 = 0,
       M_DEFBUTTON2 = 0x100
     };
+    /* TODO Implement as function with variable arguments */
     virtual bool showMsgBox(int flags,const char* title, const char* text)=0;
   };
 }

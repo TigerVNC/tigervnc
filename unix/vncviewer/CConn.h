@@ -26,6 +26,7 @@
 #include <rfb/CConnection.h>
 #include <rfb/Exception.h>
 #include <rfb/UserPasswdGetter.h>
+#include <rfb/UserMsgBox.h>
 #include <rdr/FdInStream.h>
 #include <list>
 
@@ -44,7 +45,7 @@ class CConn : public rfb::CConnection, public rfb::UserPasswdGetter,
               public TXDeleteWindowCallback,
               public rdr::FdInStreamBlockCallback,
               public TXMenuCallback , public OptionsDialogCallback,
-              public TXEventHandler
+              public TXEventHandler, public rfb::UserMsgBox
 {
 public:
 
@@ -60,6 +61,9 @@ public:
 
   // UserPasswdGetter methods
   virtual void getUserPasswd(char** user, char** password);
+
+  // UserMsgBox methods
+  virtual bool showMsgBox(int flags, const char* title, const char* text);
 
   // TXMenuCallback methods
   void menuSelect(long id, TXMenu* m);

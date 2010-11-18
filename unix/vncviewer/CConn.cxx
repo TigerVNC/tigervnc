@@ -75,7 +75,10 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
   menuKeysym = XStringToKeysym(menuKeyStr.buf);
 
   setShared(shared);
-  CSecurity::upg = this; /* Security instance is created in CConnection costructor. */
+  CSecurity::upg = this; /* Security instance is created in CConnection constructor. */
+#ifdef HAVE_GNUTLS
+  CSecurityTLS::msg = this;
+#endif
 
   CharArray encStr(preferredEncoding.getData());
   int encNum = encodingNum(encStr.buf);
@@ -123,6 +126,15 @@ CConn::~CConn() {
   delete desktop;
   delete viewport;
   delete sock;
+}
+
+bool CConn::showMsgBox(int flags, const char* title, const char* text)
+{
+  CharArray titleText(strlen(title) + 12);
+  sprintf(titleText.buf, "VNC Viewer: %s", title);
+
+  TXMsgBox msgBox(dpy,text,flags,titleText.buf);
+  return msgBox.show();
 }
 
 // deleteWindow() is called when the user closes the desktop or menu windows.
@@ -231,7 +243,6 @@ void CConn::getUserPasswd(char** user, char** password)
     *user = strDup(dlg.userEntry.getText());
   *password = strDup(dlg.passwdEntry.getText());
 }
-
 
 // CConnection callback methods
 

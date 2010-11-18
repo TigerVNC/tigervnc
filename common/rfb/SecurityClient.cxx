@@ -37,6 +37,9 @@ using namespace rdr;
 using namespace rfb;
 
 UserPasswdGetter *CSecurity::upg = NULL;
+#ifdef HAVE_GNUTLS
+UserMsgBox *CSecurityTLS::msg = NULL;
+#endif
 
 StringParameter SecurityClient::secTypes
 ("SecurityTypes",
@@ -51,6 +54,9 @@ ConfViewer);
 CSecurity* SecurityClient::GetCSecurity(U32 secType)
 {
   assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
+#ifdef HAVE_GNUTLS
+  assert (CSecurityTLS::msg != NULL);
+#endif
 
   if (!IsSupported(secType))
     goto bail;
@@ -86,3 +92,9 @@ bail:
   throw Exception("Security type not supported");
 }
 
+void SecurityClient::setDefaults()
+{
+#ifdef HAVE_GNUTLS
+    CSecurityTLS::setDefaults();
+#endif
+}

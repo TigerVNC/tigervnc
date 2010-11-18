@@ -33,11 +33,13 @@
 #include <rfb/CSecurity.h>
 #include <rfb/SSecurityVeNCrypt.h>
 #include <rfb/Security.h>
+#include <rfb/UserMsgBox.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <gnutls/gnutls.h>
 
 namespace rfb {
+  class UserMsgBox;
   class CSecurityTLS : public CSecurity {
   public:
     CSecurityTLS(bool _anon);
@@ -46,9 +48,11 @@ namespace rfb {
     virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
     virtual const char* description() const
       { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
+    static void setDefaults();
 
     static StringParameter x509ca;
     static StringParameter x509crl;
+    static UserMsgBox *msg;
 
   protected:
     void shutdown();

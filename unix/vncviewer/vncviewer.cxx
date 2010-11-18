@@ -33,6 +33,7 @@
 #include <locale.h>
 #include <os/os.h>
 #include <rfb/Logger_stdio.h>
+#include <rfb/SecurityClient.h>
 #include <rfb/LogWriter.h>
 #include <network/TcpSocket.h>
 #include "TXWindow.h"
@@ -277,6 +278,8 @@ int main(int argc, char** argv)
 				 "Copyright (C) 2000-2006 TightVNC Group\n"
 				 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 				 "See http://www.tigervnc.org for information on TigerVNC.");
+
+  rfb::SecurityClient::setDefaults();
 
   // Write about text to console, still using normal locale codeset
   snprintf(aboutText, sizeof(aboutText),

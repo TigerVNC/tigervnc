@@ -2,6 +2,7 @@
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
+ * Copyright (C) 2010 m-privacy GmbH
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +28,18 @@
 #error "This header should not be compiled without HAVE_GNUTLS defined"
 #endif
 
+#include <stdlib.h>
+#include <unistd.h>
+
 #include <rfb/CSecurityTLS.h>
 #include <rfb/SSecurityVeNCrypt.h> 
 #include <rfb/CConnection.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
+#include <rfb/UserMsgBox.h>
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
+#include <os/os.h>
 
 #include <gnutls/x509.h>
 
@@ -74,6 +80,26 @@ CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
 {
   cafile = x509ca.getData();
   crlfile = x509crl.getData();
+}
+
+void CSecurityTLS::setDefaults()
+{
+  char* homeDir = NULL;
+
+  if (gethomedir(&homeDir) == -1) {
+    vlog.error("Could not obtain home directory path");
+    return;
+  }
+
+  CharArray caDefault(strlen(homeDir)+17);
+  sprintf(caDefault.buf, "%s/.vnc/x509_certs", homeDir);
+  delete [] homeDir;
+
+  /* XXX Do we need access() check here? */
+  if (!access(caDefault.buf, R_OK))
+    x509ca.setDefaultStr(strdup(caDefault.buf));
+  else
+    vlog.error("Failed to open ~/.vnc/x509_certs");
 }
 
 void CSecurityTLS::shutdown()
@@ -206,6 +232,7 @@ void CSecurityTLS::checkSession()
   const gnutls_datum *cert_list;
   unsigned int cert_list_size = 0;
   unsigned int i;
+  gnutls_datum_t info;
 
   if (anon)
     return;
@@ -226,25 +253,108 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("certificate verification failed");
   }
 
-  if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
-    throw AuthFailureException("certificate issuer unknown");
+  if (status & GNUTLS_CERT_REVOKED) {
+    throw AuthFailureException("certificate has been revoked");
+  }
 
-  if (status & GNUTLS_CERT_INVALID)
-    throw AuthFailureException("certificate not trusted");
+  if (status & GNUTLS_CERT_NOT_ACTIVATED) {
+    throw AuthFailureException("certificate has not been activated");
+  }
 
   for (i = 0; i < cert_list_size; i++) {
     gnutls_x509_crt crt;
     gnutls_x509_crt_init(&crt);
 
     if (gnutls_x509_crt_import(crt, &cert_list[i],GNUTLS_X509_FMT_DER) < 0)
-      throw AuthFailureException("Decoding of certificate failed");
+      throw AuthFailureException("decoding of certificate failed");
+
+    if (gnutls_x509_crt_print(crt, GNUTLS_CRT_PRINT_ONELINE, &info)) {
+        gnutls_free(info.data);
+	throw AuthFailureException("Could not find certificate to display");
+    }
 
     if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
-#if 0
-      throw AuthFailureException("Hostname mismatch"); /* Non-fatal for now... */
-#endif
+      char buf[255];
+      sprintf(buf, "Hostname (%s) does not match any certificate, do you want to continue?", client->getServerName());
+      vlog.debug("hostname mismatch");
+      if(!msg->showMsgBox(UserMsgBox::M_YESNO, "hostname mismatch", buf))
+        throw AuthFailureException("hostname mismatch");
     }
+
+    if (status & GNUTLS_CERT_EXPIRED) {
+      vlog.debug("certificate has expired");
+      if (!msg->showMsgBox(UserMsgBox::M_YESNO, "certficate has expired", "The certificate of the server has expired, do you want to continue?"))
+        throw AuthFailureException("certificate has expired");
+    }
+
+    if (status & GNUTLS_CERT_SIGNER_NOT_FOUND) {
+      size_t out_size;
+      char *homeDir = NULL;
+      char *out_buf = NULL;
+      char *certinfo = NULL;
+      int len = 0;
+
+      vlog.debug("certificate issuer unknown");
+
+      len = snprintf(NULL, 0, "This certificate has been signed by an unknown authority:\n\n%s\n\nDo you want to save it and continue?\n ", info.data);
+      if (len < 0)
+        AuthFailureException("certificate decoding error");
+
+      vlog.debug("%s", info.data);
+
+      certinfo = new char[len];
+      if (certinfo == NULL)
+        throw AuthFailureException("Out of memory");
+
+      snprintf(certinfo, len, "This certificate has been signed by an unknown authority:\n\n%s\n\nDo you want to save it and continue? ", info.data);
+
+      for (int i = 0; i < len - 1; i++)
+        if (certinfo[i] == ',' && certinfo[i + 1] == ' ')
+		certinfo[i] = '\n';
+
+     if (!msg->showMsgBox(UserMsgBox::M_YESNO, "certificate issuer unknown",
+			  certinfo)) {
+        delete [] certinfo;
+	throw AuthFailureException("certificate issuer unknown");
+      }
+      delete [] certinfo;
+
+      if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, NULL, &out_size)
+	  == GNUTLS_E_SHORT_MEMORY_BUFFER)
+        AuthFailureException("Out of memory");
+
+      // Save cert
+      out_buf =  new char[out_size];
+      if (out_buf == NULL)
+        AuthFailureException("Out of memory");
+
+      if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, out_buf, &out_size)
+	  < 0)
+        AuthFailureException("certificate issuer unknown, and certificate "
+			     "export failed");
+      
+      if (gethomedir(&homeDir) == -1)
+        vlog.error("Could not obtain home directory path");
+      else {
+	FILE *f;
+        CharArray caSave(strlen(homeDir)+17);
+	sprintf(caSave.buf, "%s/.vnc/x509_certs", homeDir);
+	delete [] homeDir;
+       	f = fopen(caSave.buf, "a+");
+	if (!f)
+          msg->showMsgBox(UserMsgBox::M_OK, "certificate save failed",
+			  "Could not save the certificate");
+	else {
+          fprintf(f, "%s\n", out_buf);
+	  fclose(f);
+	}
+      }
+      delete [] out_buf;
+    } else if (status & GNUTLS_CERT_INVALID)
+        throw AuthFailureException("certificate not trusted");
+
     gnutls_x509_crt_deinit(crt);
+    gnutls_free(info.data);
   }
 }
 

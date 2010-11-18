@@ -35,6 +35,8 @@ namespace rfb {
     /* Create client side CSecurity class instance */
     CSecurity* GetCSecurity(rdr::U32 secType);
 
+    static void setDefaults(void);
+
     static StringParameter secTypes;
   };
 
