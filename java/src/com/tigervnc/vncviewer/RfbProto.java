@@ -434,6 +434,9 @@ class RfbProto {
 		case SecTypeTLSNone:
 		case SecTypeTLSVnc:
 		case SecTypeTLSPlain:
+		case SecTypeX509None:
+		case SecTypeX509Vnc:
+		case SecTypeX509Plain:
 		    writeInt(secTypes[i]);
 		    return secTypes[i];
 		}
@@ -481,6 +484,11 @@ class RfbProto {
 
     void authenticateTLS() throws Exception {
 	TLSTunnel tunnel = new TLSTunnel(sock);
+	tunnel.setup (this);
+    }
+
+    void authenticateX509() throws Exception {
+	X509Tunnel tunnel = new X509Tunnel(sock);
 	tunnel.setup (this);
     }
 

@@ -19,7 +19,7 @@ CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
 	  SocketFactory.class HTTPConnectSocketFactory.class \
 	  HTTPConnectSocket.class ReloginPanel.class \
 	  InStream.class MemInStream.class ZlibInStream.class \
-	  TLSTunnelBase.class TLSTunnel.class Dialog.class MessageBox.class
+	  TLSTunnelBase.class TLSTunnel.class X509Tunnel.class Dialog.class MessageBox.class
 
 SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
 	  VncCanvas2.java \
@@ -29,7 +29,7 @@ SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
 	  SocketFactory.java HTTPConnectSocketFactory.java \
 	  HTTPConnectSocket.java ReloginPanel.java \
 	  InStream.java MemInStream.java ZlibInStream.java \
-	  TLSTunnelBase.java TLSTunnel.java Dialog.java MessageBox.java
+	  TLSTunnelBase.java TLSTunnel.java X509Tunnel.java Dialog.java MessageBox.java
 
 all: $(CLASSES) $(ARCHIVE)
 
