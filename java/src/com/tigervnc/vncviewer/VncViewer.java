@@ -162,16 +162,6 @@ public class VncViewer extends java.applet.Applet
       connectAndAuthenticate();
       doProtocolInitialisation();
 
-      if (showControls &&
-          rfb.clientMsgCaps.isEnabled(RfbProto.VideoRectangleSelection)) {
-        buttonPanel.addSelectButton();
-      }
-
-      if (showControls &&
-          rfb.clientMsgCaps.isEnabled(RfbProto.VideoFreeze)) {
-        buttonPanel.addVideoFreezeButton();
-      }
-
       // FIXME: Use auto-scaling not only in a separate frame.
       if (options.autoScale && inSeparateFrame) {
 	Dimension screenSize;
@@ -352,16 +342,7 @@ public class VncViewer extends java.applet.Applet
 			 rfb.clientMajor + "." + rfb.clientMinor);
 
     int secType = rfb.negotiateSecurity();
-    int authType;
-    if (secType == RfbProto.SecTypeTight) {
-      showConnectionStatus("Enabling TightVNC protocol extensions");
-      rfb.setupTunneling();
-      authType = rfb.negotiateAuthenticationTight();
-    } else {
-      authType = secType;
-    }
-
-    doAuthentification(authType);
+    doAuthentification(secType);
   }
 
     void doAuthentification(int secType) throws Exception {

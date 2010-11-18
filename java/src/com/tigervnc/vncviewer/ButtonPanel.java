@@ -38,13 +38,6 @@ class ButtonPanel extends Panel implements ActionListener {
   Button clipboardButton;
   Button ctrlAltDelButton;
   Button refreshButton;
-  Button selectButton;
-  Button videoFreezeButton;
-
-  final String enableVideoFreezeLabel = "Ignore Video";
-  final String disableVideoFreezeLabel = "Enable Video";
-  final String selectEnterLabel = "Select Video Area";
-  final String selectLeaveLabel = "Hide Selection";
 
   ButtonPanel(VncViewer v) {
     viewer = v;
@@ -76,25 +69,6 @@ class ButtonPanel extends Panel implements ActionListener {
     refreshButton.addActionListener(this);
   }
 
-  /**
-   * Add video selection button to the ButtonPanel.
-   */
-  public void addSelectButton() {
-    selectButton = new Button(selectEnterLabel);
-    selectButton.setEnabled(false);
-    add(selectButton);
-    selectButton.addActionListener(this);
-  }
-
-  /**
-   * Add video ignore button to the ButtonPanel.
-   */
-  public void addVideoFreezeButton() {
-    videoFreezeButton = new Button(enableVideoFreezeLabel);
-    add(videoFreezeButton);
-    videoFreezeButton.addActionListener(this);
-  }
-
   //
   // Enable buttons on successful connection.
   //
@@ -103,9 +77,6 @@ class ButtonPanel extends Panel implements ActionListener {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
     refreshButton.setEnabled(true);
-    if (selectButton != null) {
-      selectButton.setEnabled(true);
-    }
   }
 
   //
@@ -123,9 +94,6 @@ class ButtonPanel extends Panel implements ActionListener {
     clipboardButton.setEnabled(false);
     ctrlAltDelButton.setEnabled(false);
     refreshButton.setEnabled(false);
-    if (selectButton != null) {
-      selectButton.setEnabled(false);
-    }
   }
 
   //
@@ -156,32 +124,7 @@ class ButtonPanel extends Panel implements ActionListener {
 
     } else if (evt.getSource() == clipboardButton) {
       viewer.clipboard.setVisible(!viewer.clipboard.isVisible());
-    } else if (evt.getSource() == videoFreezeButton) {
 
-      //
-      // Send video freeze message to server and change caption of button
-      //
-
-      //
-      // TODO: Move this code to another place.
-      //
-
-      boolean sendOk = true;
-      boolean currentFreezeState =
-              videoFreezeButton.getLabel().equals(disableVideoFreezeLabel);
-      try {
-        viewer.rfb.trySendVideoFreeze(!currentFreezeState);
-      } catch (IOException ex) {
-        sendOk = false;
-        ex.printStackTrace();
-      }
-      if (sendOk) {
-        if (!currentFreezeState) {
-            videoFreezeButton.setLabel(disableVideoFreezeLabel);
-        } else {
-            videoFreezeButton.setLabel(enableVideoFreezeLabel);
-        }
-      }
     } else if (evt.getSource() == ctrlAltDelButton) {
       try {
         final int modifiers = InputEvent.CTRL_MASK | InputEvent.ALT_MASK;
@@ -204,17 +147,6 @@ class ButtonPanel extends Panel implements ActionListener {
 					  rfb.framebufferHeight, false);
       } catch (IOException e) {
         e.printStackTrace();
-      }
-    } else if (selectButton != null && evt.getSource() == selectButton) {
-      if (viewer.vc != null) {
-        boolean isSelecting = viewer.vc.isInSelectionMode();
-        if (!isSelecting) {
-          selectButton.setLabel(selectLeaveLabel);
-          viewer.vc.enableSelection(true);
-        } else {
-          selectButton.setLabel(selectEnterLabel);
-          viewer.vc.enableSelection(false);
-        }
       }
     }
   }

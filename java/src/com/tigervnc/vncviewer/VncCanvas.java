@@ -164,7 +164,6 @@ class VncCanvas extends Canvas
     }
 
     setPixelFormat();
-    resetSelection();
 
     inputEnabled = false;
     if (!viewer.options.viewOnly)
@@ -222,17 +221,6 @@ class VncCanvas extends Canvas
       Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
       if (r.intersects(g.getClipBounds())) {
 	g.drawImage(softCursor, x0, y0, null);
-      }
-    }
-    if (isInSelectionMode()) {
-      Rectangle r = getSelection(true);
-      if (r.width > 0 && r.height > 0) {
-        // Don't forget to correct the coordinates for the right and bottom
-        // borders, so that the borders are the part of the selection.
-        r.width -= 1;
-        r.height -= 1;
-        g.setXORMode(Color.yellow);
-        g.drawRect(r.x, r.y, r.width, r.height);
       }
     }
   }
@@ -437,11 +425,6 @@ class VncCanvas extends Canvas
     rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 				      rfb.framebufferHeight, false);
 
-    if (viewer.options.continuousUpdates) {
-      rfb.tryEnableContinuousUpdates(0, 0, rfb.framebufferWidth,
-                                     rfb.framebufferHeight);
-    }
-
     resetStats();
     boolean statsRestarted = false;
 
@@ -578,36 +561,15 @@ class VncCanvas extends Canvas
 	// format should be changed.
 	if (viewer.options.eightBitColors != (bytesPixel == 1)) {
           // Pixel format should be changed.
-          if (!rfb.continuousUpdatesAreActive()) {
-            // Continuous updates are not used. In this case, we just
-            // set new pixel format and request full update.
-            setPixelFormat();
-            fullUpdateNeeded = true;
-          } else {
-            // Otherwise, disable continuous updates first. Pixel
-            // format will be set later when we are sure that there
-            // will be no unsolicited framebuffer updates.
-            rfb.tryDisableContinuousUpdates();
-            break; // skip the code below
-          }
+          setPixelFormat();
+          fullUpdateNeeded = true;
 	}
-
-        // Enable/disable continuous updates to reflect the GUI setting.
-        boolean enable = viewer.options.continuousUpdates;
-        if (enable != rfb.continuousUpdatesAreActive()) {
-          if (enable) {
-            rfb.tryEnableContinuousUpdates(0, 0, rfb.framebufferWidth,
-                                           rfb.framebufferHeight);
-          } else {
-            rfb.tryDisableContinuousUpdates();
-          }
-        }
 
         // Finally, request framebuffer update if needed.
         if (fullUpdateNeeded) {
           rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
                                             rfb.framebufferHeight, false);
-        } else if (!rfb.continuousUpdatesAreActive()) {
+        } else {
           rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
                                             rfb.framebufferHeight, true);
         }
@@ -625,25 +587,6 @@ class VncCanvas extends Canvas
 	String s = rfb.readServerCutText();
 	viewer.clipboard.setCutText(s);
 	break;
-
-      case RfbProto.EndOfContinuousUpdates:
-        if (rfb.continuousUpdatesAreActive()) {
-          rfb.endOfContinuousUpdates();
-
-          // Change pixel format if such change was pending. Note that we
-          // could not change pixel format while continuous updates were
-          // in effect.
-          boolean incremental = true;
-          if (viewer.options.eightBitColors != (bytesPixel == 1)) {
-            setPixelFormat();
-            incremental = false;
-          }
-          // From this point, we ask for updates explicitly.
-          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-                                            rfb.framebufferHeight,
-                                            incremental);
-        }
-        break;
 
       default:
 	throw new Exception("Unknown RFB message type " + msgType);
@@ -840,21 +783,17 @@ class VncCanvas extends Canvas
 
   private void processLocalMouseEvent(MouseEvent evt, boolean moved) {
     if (viewer.rfb != null && rfb.inNormalProtocol) {
-      if (!inSelectionMode) {
-        if (inputEnabled) {
-          // If mouse not moved, but it's click event then
-          // send it to server immideanlty.
-          // Else, it's mouse movement - we can send it in
-          // our thread later.
-          if (!moved) {
-            sendMouseEvent(evt, moved);
-          } else {
-            mouseEvent = evt;
-            needToSendMouseEvent = true;
-          }
+      if (inputEnabled) {
+        // If mouse not moved, but it's click event then
+        // send it to server immideanlty.
+        // Else, it's mouse movement - we can send it in
+        // our thread later.
+        if (!moved) {
+          sendMouseEvent(evt, moved);
+        } else {
+          mouseEvent = evt;
+          needToSendMouseEvent = true;
         }
-      } else {
-        handleSelectionMouseEvent(evt);
       }
     }
   }
@@ -1032,7 +971,7 @@ class VncCanvas extends Canvas
       rfb.readFully(maskBuf);
 
       // Decode pixel data into softCursorPixels[].
-      byte pixByte, maskByte;
+      byte maskByte;
       int x, y, n, result;
       int i = 0;
       for (y = 0; y < height; y++) {
@@ -1148,168 +1087,6 @@ class VncCanvas extends Canvas
 
       repaint(viewer.deferCursorUpdates,
 	      cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
-    }
-  }
-
-  //////////////////////////////////////////////////////////////////
-  //
-  // Support for selecting a rectangular video area.
-  //
-
-  /** This flag is false in normal operation, and true in the selection mode. */
-  private boolean inSelectionMode;
-
-  /** The point where the selection was started. */
-  private Point selectionStart;
-
-  /** The second point of the selection. */
-  private Point selectionEnd;
-
-  /**
-   * We change cursor when enabling the selection mode. In this variable, we
-   * save the original cursor so we can restore it on returning to the normal
-   * mode.
-   */
-  private Cursor savedCursor;
-
-  /**
-   * Initialize selection-related varibles.
-   */
-  private synchronized void resetSelection() {
-    inSelectionMode = false;
-    selectionStart = new Point(0, 0);
-    selectionEnd = new Point(0, 0);
-
-    savedCursor = getCursor();
-  }
-
-  /**
-   * Check current state of the selection mode.
-   * @return true in the selection mode, false otherwise.
-   */
-  public boolean isInSelectionMode() {
-    return inSelectionMode;
-  }
-
-  /**
-   * Get current selection.
-   * @param useScreenCoords use screen coordinates if true, or framebuffer
-   * coordinates if false. This makes difference when scaling factor is not 100.
-   * @return The selection as a {@link Rectangle}.
-   */
-  private synchronized Rectangle getSelection(boolean useScreenCoords) {
-    int x0 = selectionStart.x;
-    int x1 = selectionEnd.x;
-    int y0 = selectionStart.y;
-    int y1 = selectionEnd.y;
-    // Make x and y point to the upper left corner of the selection.
-    if (x1 < x0) {
-      int t = x0; x0 = x1; x1 = t;
-    }
-    if (y1 < y0) {
-      int t = y0; y0 = y1; y1 = t;
-    }
-    // Include the borders in the selection (unless it's empty).
-    if (x0 != x1 && y0 != y1) {
-      x1 += 1;
-      y1 += 1;
-    }
-    // Translate from screen coordinates to framebuffer coordinates.
-    if (rfb.framebufferWidth != scaledWidth) {
-      x0 = (x0 * 100 + scalingFactor/2) / scalingFactor;
-      y0 = (y0 * 100 + scalingFactor/2) / scalingFactor;
-      x1 = (x1 * 100 + scalingFactor/2) / scalingFactor;
-      y1 = (y1 * 100 + scalingFactor/2) / scalingFactor;
-    }
-    // Clip the selection to framebuffer.
-    if (x0 < 0)
-      x0 = 0;
-    if (y0 < 0)
-      y0 = 0;
-    if (x1 > rfb.framebufferWidth)
-      x1 = rfb.framebufferWidth;
-    if (y1 > rfb.framebufferHeight)
-      y1 = rfb.framebufferHeight;
-    // Make width a multiple of 16.
-    int widthBlocks = (x1 - x0 + 8) / 16;
-    if (selectionStart.x <= selectionEnd.x) {
-      x1 = x0 + widthBlocks * 16;
-      if (x1 > rfb.framebufferWidth) {
-        x1 -= 16;
-      }
-    } else {
-      x0 = x1 - widthBlocks * 16;
-      if (x0 < 0) {
-        x0 += 16;
-      }
-    }
-    // Make height a multiple of 8.
-    int heightBlocks = (y1 - y0 + 4) / 8;
-    if (selectionStart.y <= selectionEnd.y) {
-      y1 = y0 + heightBlocks * 8;
-      if (y1 > rfb.framebufferHeight) {
-        y1 -= 8;
-      }
-    } else {
-      y0 = y1 - heightBlocks * 8;
-      if (y0 < 0) {
-        y0 += 8;
-      }
-    }
-    // Translate the selection back to screen coordinates if requested.
-    if (useScreenCoords && rfb.framebufferWidth != scaledWidth) {
-      x0 = (x0 * scalingFactor + 50) / 100;
-      y0 = (y0 * scalingFactor + 50) / 100;
-      x1 = (x1 * scalingFactor + 50) / 100;
-      y1 = (y1 * scalingFactor + 50) / 100;
-    }
-    // Construct and return the result.
-    return new Rectangle(x0, y0, x1 - x0, y1 - y0);
-  }
-
-  /**
-   * Enable or disable the selection mode.
-   * @param enable enables the selection mode if true, disables if fasle.
-   */
-  public synchronized void enableSelection(boolean enable) {
-    if (enable && !inSelectionMode) {
-      // Enter the selection mode.
-      inSelectionMode = true;
-      savedCursor = getCursor();
-      setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-      repaint();
-    } else if (!enable && inSelectionMode) {
-      // Leave the selection mode.
-      inSelectionMode = false;
-      setCursor(savedCursor);
-      repaint();
-    }
-  }
-
-  /**
-   * Process mouse events in the selection mode.
-   *
-   * @param evt mouse event that was originally passed to
-   *   {@link MouseListener} or {@link MouseMotionListener}.
-   */
-  private synchronized void handleSelectionMouseEvent(MouseEvent evt) {
-    int id = evt.getID();
-    boolean button1 = (evt.getModifiers() & InputEvent.BUTTON1_MASK) != 0;
-
-    if (id == MouseEvent.MOUSE_PRESSED && button1) {
-      selectionStart = selectionEnd = evt.getPoint();
-      repaint();
-    }
-    if (id == MouseEvent.MOUSE_DRAGGED && button1) {
-      selectionEnd = evt.getPoint();
-      repaint();
-    }
-    if (id == MouseEvent.MOUSE_RELEASED && button1) {
-      try {
-        rfb.trySendVideoSelection(getSelection(false));
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
     }
   }
 }

@@ -14,7 +14,7 @@ INSTALL_DIR = /usr/local/vnc/classes
 CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
 	  VncCanvas2.class \
 	  OptionsFrame.class ClipboardFrame.class ButtonPanel.class \
-	  DesCipher.class CapabilityInfo.class CapsContainer.class \
+	  DesCipher.class \
 	  RecordingFrame.class SessionRecorder.class \
 	  SocketFactory.class HTTPConnectSocketFactory.class \
 	  HTTPConnectSocket.class ReloginPanel.class \
@@ -24,7 +24,7 @@ CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
 SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
 	  VncCanvas2.java \
 	  OptionsFrame.java ClipboardFrame.java ButtonPanel.java \
-	  DesCipher.java CapabilityInfo.java CapsContainer.java \
+	  DesCipher.java \
 	  RecordingFrame.java SessionRecorder.java \
 	  SocketFactory.java HTTPConnectSocketFactory.java \
 	  HTTPConnectSocket.java ReloginPanel.java \

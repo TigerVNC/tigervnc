@@ -39,12 +39,6 @@ class RfbProto {
     versionMsg_3_7 = "RFB 003.007\n",
     versionMsg_3_8 = "RFB 003.008\n";
 
-  // Vendor signatures: standard VNC/RealVNC, TridiaVNC, and TightVNC
-  final static String
-    StandardVendor  = "STDV",
-    TridiaVncVendor = "TRDV",
-    TightVncVendor  = "TGHT";
-
   // Security types
   final static int
     SecTypeInvalid   = 0,
@@ -60,22 +54,6 @@ class RfbProto {
     SecTypeX509Vnc   = 261,
     SecTypeX509Plain = 262;
 
-  // Supported tunneling types
-  final static int
-    NoTunneling = 0;
-  final static String
-    SigNoTunneling = "NOTUNNEL";
-
-  // Supported authentication types
-  final static int
-    AuthNone      = 1,
-    AuthVNC       = 2,
-    AuthUnixLogin = 129;
-  final static String
-    SigAuthNone      = "NOAUTH__",
-    SigAuthVNC       = "VNCAUTH_",
-    SigAuthUnixLogin = "ULGNAUTH";
-
   // VNC authentication results
   final static int
     VncAuthOK      = 0,
@@ -89,12 +67,6 @@ class RfbProto {
     Bell                = 2,
     ServerCutText       = 3;
 
-  // Non-standard server-to-client messages
-  final static int
-    EndOfContinuousUpdates = 150;
-  final static String
-    SigEndOfContinuousUpdates = "CUS_EOCU";
-
   // Standard client-to-server messages
   final static int
     SetPixelFormat           = 0,
@@ -104,14 +76,6 @@ class RfbProto {
     KeyboardEvent            = 4,
     PointerEvent             = 5,
     ClientCutText            = 6;
-
-  // Non-standard client-to-server messages
-  final static int EnableContinuousUpdates = 150;
-  final static int VideoRectangleSelection = 151;
-  final static int VideoFreeze = 152;
-  final static String SigVideoFreeze = "VD_FREEZ";
-  final static String SigEnableContinuousUpdates = "CUC_ENCU";
-  final static String SigVideoRectangleSelection = "VRECTSEL";
 
   // Supported encodings and pseudo-encodings
   final static int
@@ -130,22 +94,6 @@ class RfbProto {
     EncodingPointerPos     = 0xFFFFFF18,
     EncodingLastRect       = 0xFFFFFF20,
     EncodingNewFBSize      = 0xFFFFFF21;
-  final static String
-    SigEncodingRaw            = "RAW_____",
-    SigEncodingCopyRect       = "COPYRECT",
-    SigEncodingRRE            = "RRE_____",
-    SigEncodingCoRRE          = "CORRE___",
-    SigEncodingHextile        = "HEXTILE_",
-    SigEncodingZlib           = "ZLIB____",
-    SigEncodingTight          = "TIGHT___",
-    SigEncodingZRLE           = "ZRLE____",
-    SigEncodingCompressLevel0 = "COMPRLVL",
-    SigEncodingQualityLevel0  = "JPEGQLVL",
-    SigEncodingXCursor        = "X11CURSR",
-    SigEncodingRichCursor     = "RCHCURSR",
-    SigEncodingPointerPos     = "POINTPOS",
-    SigEncodingLastRect       = "LASTRECT",
-    SigEncodingNewFBSize      = "NEWFBSIZ";
 
   final static int MaxNormalEncoding = 255;
 
@@ -215,20 +163,6 @@ class RfbProto {
   // Protocol version and TightVNC-specific protocol options.
   int serverMajor, serverMinor;
   int clientMajor, clientMinor;
-  boolean protocolTightVNC;
-  CapsContainer tunnelCaps, authCaps;
-  CapsContainer serverMsgCaps, clientMsgCaps;
-  CapsContainer encodingCaps;
-
-  // "Continuous updates" is a TightVNC-specific feature that allows
-  // receiving framebuffer updates continuously, without sending update
-  // requests. The variables below track the state of this feature.
-  // Initially, continuous updates are disabled. They can be enabled
-  // by calling tryEnableContinuousUpdates() method, and only if this
-  // feature is supported by the server. To disable continuous updates,
-  // tryDisableContinuousUpdates() should be called.
-  private boolean continuousUpdatesActive = false;
-  private boolean continuousUpdatesEnding = false;
 
   // If true, informs that the RFB socket was closed.
   private boolean closed;
@@ -331,8 +265,6 @@ class RfbProto {
       clientMinor = 3;
       os.write(versionMsg_3_3.getBytes());
     }
-    protocolTightVNC = false;
-    initCapabilities();
   }
 
 
@@ -379,17 +311,6 @@ class RfbProto {
     }
     byte[] secTypes = new byte[nSecTypes];
     readFully(secTypes);
-
-/*
-    // Find out if the server supports TightVNC protocol extensions
-    for (int i = 0; i < nSecTypes; i++) {
-      if (secTypes[i] == SecTypeTight) {
-	protocolTightVNC = true;
-	os.write(SecTypeTight);
-	return SecTypeTight;
-      }
-    }
-*/
 
     // Find first supported security type.
     for (int i = 0; i < nSecTypes; i++) {
@@ -541,122 +462,6 @@ class RfbProto {
   }
 
   //
-  // Initialize capability lists (TightVNC protocol extensions).
-  //
-
-  void initCapabilities() {
-    tunnelCaps    = new CapsContainer();
-    authCaps      = new CapsContainer();
-    serverMsgCaps = new CapsContainer();
-    clientMsgCaps = new CapsContainer();
-    encodingCaps  = new CapsContainer();
-
-    // Supported authentication methods
-    authCaps.add(AuthNone, StandardVendor, SigAuthNone,
-		 "No authentication");
-    authCaps.add(AuthVNC, StandardVendor, SigAuthVNC,
-		 "Standard VNC password authentication");
-
-    // Supported non-standard server-to-client messages
-    serverMsgCaps.add(EndOfContinuousUpdates, TightVncVendor,
-                      SigEndOfContinuousUpdates,
-                      "End of continuous updates notification");
-
-    // Supported non-standard client-to-server messages
-    clientMsgCaps.add(EnableContinuousUpdates, TightVncVendor,
-                      SigEnableContinuousUpdates,
-                      "Enable/disable continuous updates");
-    clientMsgCaps.add(VideoRectangleSelection, TightVncVendor,
-                      SigVideoRectangleSelection,
-                      "Select a rectangle to be treated as video");
-    clientMsgCaps.add(VideoFreeze, TightVncVendor,
-                      SigVideoFreeze,
-                      "Disable/enable video rectangle");
-
-    // Supported encoding types
-    encodingCaps.add(EncodingCopyRect, StandardVendor,
-		     SigEncodingCopyRect, "Standard CopyRect encoding");
-    encodingCaps.add(EncodingRRE, StandardVendor,
-		     SigEncodingRRE, "Standard RRE encoding");
-    encodingCaps.add(EncodingCoRRE, StandardVendor,
-		     SigEncodingCoRRE, "Standard CoRRE encoding");
-    encodingCaps.add(EncodingHextile, StandardVendor,
-		     SigEncodingHextile, "Standard Hextile encoding");
-    encodingCaps.add(EncodingZRLE, StandardVendor,
-		     SigEncodingZRLE, "Standard ZRLE encoding");
-    encodingCaps.add(EncodingZlib, TridiaVncVendor,
-		     SigEncodingZlib, "Zlib encoding");
-    encodingCaps.add(EncodingTight, TightVncVendor,
-		     SigEncodingTight, "Tight encoding");
-
-    // Supported pseudo-encoding types
-    encodingCaps.add(EncodingCompressLevel0, TightVncVendor,
-		     SigEncodingCompressLevel0, "Compression level");
-    encodingCaps.add(EncodingQualityLevel0, TightVncVendor,
-		     SigEncodingQualityLevel0, "JPEG quality level");
-    encodingCaps.add(EncodingXCursor, TightVncVendor,
-		     SigEncodingXCursor, "X-style cursor shape update");
-    encodingCaps.add(EncodingRichCursor, TightVncVendor,
-		     SigEncodingRichCursor, "Rich-color cursor shape update");
-    encodingCaps.add(EncodingPointerPos, TightVncVendor,
-		     SigEncodingPointerPos, "Pointer position update");
-    encodingCaps.add(EncodingLastRect, TightVncVendor,
-		     SigEncodingLastRect, "LastRect protocol extension");
-    encodingCaps.add(EncodingNewFBSize, TightVncVendor,
-		     SigEncodingNewFBSize, "Framebuffer size change");
-  }
-
-  //
-  // Setup tunneling (TightVNC protocol extensions)
-  //
-
-  void setupTunneling() throws IOException {
-    int nTunnelTypes = readU32();
-    if (nTunnelTypes != 0) {
-      readCapabilityList(tunnelCaps, nTunnelTypes);
-
-      // We don't support tunneling yet.
-      writeInt(NoTunneling);
-    }
-  }
-
-  //
-  // Negotiate authentication scheme (TightVNC protocol extensions)
-  //
-
-  int negotiateAuthenticationTight() throws Exception {
-    int nAuthTypes = readU32();
-    if (nAuthTypes == 0)
-      return AuthNone;
-
-    readCapabilityList(authCaps, nAuthTypes);
-    for (int i = 0; i < authCaps.numEnabled(); i++) {
-      int authType = authCaps.getByOrder(i);
-      if (authType == AuthNone || authType == AuthVNC) {
-	writeInt(authType);
-	return authType;
-      }
-    }
-    throw new Exception("No suitable authentication scheme found");
-  }
-
-  //
-  // Read a capability list (TightVNC protocol extensions)
-  //
-
-  void readCapabilityList(CapsContainer caps, int count) throws IOException {
-    int code;
-    byte[] vendor = new byte[4];
-    byte[] name = new byte[8];
-    for (int i = 0; i < count; i++) {
-      code = readU32();
-      readFully(vendor);
-      readFully(name);
-      caps.enable(new CapabilityInfo(code, vendor, name));
-    }
-  }
-
-  //
   // Write a 32-bit integer into the output stream.
   //
 
@@ -712,22 +517,6 @@ class RfbProto {
     byte[] name = new byte[nameLength];
     readFully(name);
     desktopName = new String(name);
-
-    // Read interaction capabilities (TightVNC protocol extensions)
-    if (protocolTightVNC) {
-      int nServerMessageTypes = readU16();
-      int nClientMessageTypes = readU16();
-      int nEncodingTypes = readU16();
-      readU16();
-      readCapabilityList(serverMsgCaps, nServerMessageTypes);
-      readCapabilityList(clientMsgCaps, nClientMessageTypes);
-      readCapabilityList(encodingCaps, nEncodingTypes);
-    }
-
-    if (!clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
-      viewer.options.disableContUpdates();
-    }
-
     inNormalProtocol = true;
   }
 
@@ -1315,164 +1104,6 @@ class RfbProto {
     oldModifiers = newModifiers;
   }
 
-
-  //
-  // Enable continuous updates for the specified area of the screen (but
-  // only if EnableContinuousUpdates message is supported by the server).
-  //
-
-  void tryEnableContinuousUpdates(int x, int y, int w, int h)
-    throws IOException
-  {
-    if (!clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
-      System.out.println("Continuous updates not supported by the server");
-      return;
-    }
-
-    if (continuousUpdatesActive) {
-      System.out.println("Continuous updates already active");
-      return;
-    }
-
-    byte[] b = new byte[10];
-
-    b[0] = (byte) EnableContinuousUpdates;
-    b[1] = (byte) 1; // enable
-    b[2] = (byte) ((x >> 8) & 0xff);
-    b[3] = (byte) (x & 0xff);
-    b[4] = (byte) ((y >> 8) & 0xff);
-    b[5] = (byte) (y & 0xff);
-    b[6] = (byte) ((w >> 8) & 0xff);
-    b[7] = (byte) (w & 0xff);
-    b[8] = (byte) ((h >> 8) & 0xff);
-    b[9] = (byte) (h & 0xff);
-
-    os.write(b);
-
-    continuousUpdatesActive = true;
-    System.out.println("Continuous updates activated");
-  }
-
-
-  //
-  // Disable continuous updates (only if EnableContinuousUpdates message
-  // is supported by the server).
-  //
-
-  void tryDisableContinuousUpdates() throws IOException
-  {
-    if (!clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
-      System.out.println("Continuous updates not supported by the server");
-      return;
-    }
-
-    if (!continuousUpdatesActive) {
-      System.out.println("Continuous updates already disabled");
-      return;
-    }
-
-    if (continuousUpdatesEnding)
-      return;
-
-    byte[] b = { (byte)EnableContinuousUpdates, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    os.write(b);
-
-    if (!serverMsgCaps.isEnabled(EndOfContinuousUpdates)) {
-      // If the server did not advertise support for the
-      // EndOfContinuousUpdates message (should not normally happen
-      // when EnableContinuousUpdates is supported), then we clear
-      // 'continuousUpdatesActive' variable immediately. Normally,
-      // it will be reset on receiving EndOfContinuousUpdates message
-      // from the server.
-      continuousUpdatesActive = false;
-    } else {
-      // Indicate that we are waiting for EndOfContinuousUpdates.
-      continuousUpdatesEnding = true;
-    }
-  }
-
-
-  //
-  // Process EndOfContinuousUpdates message received from the server.
-  //
-
-  void endOfContinuousUpdates()
-  {
-    continuousUpdatesActive = false;
-    continuousUpdatesEnding = false;
-  }
-
-
-  //
-  // Check if continuous updates are in effect.
-  //
-
-  boolean continuousUpdatesAreActive()
-  {
-    return continuousUpdatesActive;
-  }
-
-  /**
-   * Send a rectangle selection to be treated as video by the server (but
-   * only if VideoRectangleSelection message is supported by the server).
-   * @param rect specifies coordinates and size of the rectangule.
-   * @throws java.io.IOException
-   */
-  void trySendVideoSelection(Rectangle rect) throws IOException
-  {
-    if (!clientMsgCaps.isEnabled(VideoRectangleSelection)) {
-      System.out.println("Video area selection is not supported by the server");
-      return;
-    }
-
-    // Send zero coordinates if the rectangle is empty.
-    if (rect.isEmpty()) {
-      rect = new Rectangle();
-    }
-
-    int x = rect.x;
-    int y = rect.y;
-    int w = rect.width;
-    int h = rect.height;
-
-    byte[] b = new byte[10];
-
-    b[0] = (byte) VideoRectangleSelection;
-    b[1] = (byte) 0; // reserved
-    b[2] = (byte) ((x >> 8) & 0xff);
-    b[3] = (byte) (x & 0xff);
-    b[4] = (byte) ((y >> 8) & 0xff);
-    b[5] = (byte) (y & 0xff);
-    b[6] = (byte) ((w >> 8) & 0xff);
-    b[7] = (byte) (w & 0xff);
-    b[8] = (byte) ((h >> 8) & 0xff);
-    b[9] = (byte) (h & 0xff);
-
-    os.write(b);
-
-    System.out.println("Video rectangle selection message sent");
-  }
-
-  void trySendVideoFreeze(boolean freeze) throws IOException
-  {
-    if (!clientMsgCaps.isEnabled(VideoFreeze)) {
-      System.out.println("Video freeze is not supported by the server");
-      return;
-    }
-
-    byte[] b = new byte[2];
-    byte fb = 0;
-    if (freeze) {
-      fb = 1;
-    }
-
-    b[0] = (byte) VideoFreeze;
-    b[1] = (byte) fb;
-
-    os.write(b);
-
-    System.out.println("Video freeze selection message sent");
-  }
 
   public void startTiming() {
     timing = true;
