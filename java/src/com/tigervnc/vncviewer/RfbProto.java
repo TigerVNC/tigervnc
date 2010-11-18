@@ -431,6 +431,9 @@ class RfbProto {
 		case SecTypeNone:
 		case SecTypeVncAuth:
 		case SecTypePlain:
+		case SecTypeTLSNone:
+		case SecTypeTLSVnc:
+		case SecTypeTLSPlain:
 		    writeInt(secTypes[i]);
 		    return secTypes[i];
 		}
@@ -475,6 +478,11 @@ class RfbProto {
 
     readSecurityResult("VNC authentication");
   }
+
+    void authenticateTLS() throws Exception {
+	TLSTunnel tunnel = new TLSTunnel(sock);
+	tunnel.setup (this);
+    }
 
     void authenticatePlain(String User, String Password) throws Exception {
       byte[] user=User.getBytes();
@@ -1544,5 +1552,10 @@ class RfbProto {
     int r = is.readInt();
     numBytesRead += 4;
     return r;
+  }
+
+  public void setStreams(InputStream is_, OutputStream os_) {
+    is = new DataInputStream(is_);
+    os = os_;
   }
 }

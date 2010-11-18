@@ -392,6 +392,21 @@ public class VncViewer extends java.applet.Applet
 		rfb.authenticatePlain(user,pw);
 	    }
 	    break;
+	case RfbProto.SecTypeTLSNone:
+	    showConnectionStatus("TLSNone");
+	    rfb.authenticateTLS();
+	    rfb.authenticateNone();
+	    break;
+	case RfbProto.SecTypeTLSVnc:
+	    showConnectionStatus("TLSVnc");
+	    rfb.authenticateTLS();
+	    doAuthentification(RfbProto.SecTypeVncAuth);
+	    break;
+	case RfbProto.SecTypeTLSPlain:
+	    showConnectionStatus("TLSPlain");
+	    rfb.authenticateTLS();
+	    doAuthentification(RfbProto.SecTypePlain);
+	    break;
 	default:
 	    throw new Exception("Unknown authentication scheme " + secType);
 	}
