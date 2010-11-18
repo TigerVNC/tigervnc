@@ -156,8 +156,6 @@ namespace rfb {
       RFBSTATE_UNINITIALISED,
       RFBSTATE_PROTOCOL_VERSION,
       RFBSTATE_SECURITY_TYPE,
-      RFBSTATE_TIGHT_TUNN_TYPE,
-      RFBSTATE_TIGHT_AUTH_TYPE,
       RFBSTATE_SECURITY,
       RFBSTATE_QUERYING,
       RFBSTATE_INITIALISATION,
@@ -178,13 +176,6 @@ namespace rfb {
     void processSecurityType(int secType);
     void processSecurityMsg();
     void processInitMsg();
-
-    // These functions add support for TightVNC protocol extensions.
-    void offerTunneling();
-    void processTunnelTypeMsg();
-    void offerAuthentication();
-    void processAuthTypeMsg();
-    void sendInteractionCaps();
 
     int defaultMajorVersion, defaultMinorVersion;
     rdr::InStream* is;

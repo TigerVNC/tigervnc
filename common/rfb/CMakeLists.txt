@@ -13,8 +13,6 @@ add_library(rfb STATIC
   CSecurityStack.cxx
   CSecurityVeNCrypt.cxx
   CSecurityVncAuth.cxx
-  CapsContainer.cxx
-  CapsList.cxx
   ComparingUpdateTracker.cxx
   Configuration.cxx
   ConnParams.cxx

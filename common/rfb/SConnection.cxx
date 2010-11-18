@@ -20,7 +20,6 @@
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/msgTypes.h>
-#include <rfb/CapsList.h>
 #include <rfb/SMsgReaderV3.h>
 #include <rfb/SMsgWriterV3.h>
 #include <rfb/SConnection.h>
@@ -89,8 +88,6 @@ void SConnection::processMsg()
   switch (state_) {
   case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();      break;
   case RFBSTATE_SECURITY_TYPE:    processSecurityTypeMsg(); break;
-  case RFBSTATE_TIGHT_TUNN_TYPE:  processTunnelTypeMsg();   break;
-  case RFBSTATE_TIGHT_AUTH_TYPE:  processAuthTypeMsg();     break;
   case RFBSTATE_SECURITY:         processSecurityMsg();     break;
   case RFBSTATE_INITIALISATION:   processInitMsg();         break;
   case RFBSTATE_NORMAL:           reader_->readMsg();       break;
@@ -167,9 +164,6 @@ void SConnection::processVersionMsg()
     return;
   }
 
-  // Add a special security type to advertise TightVNC protocol extensions.
-  secTypes.push_back(secTypeTight);
-
   // list supported security types for >=3.7 clients
 
   if (secTypes.empty())
@@ -188,106 +182,8 @@ void SConnection::processSecurityTypeMsg()
   vlog.debug("processing security type message");
   int secType = is->readU8();
 
-  if (secType == secTypeTight) {
-    vlog.info("Enabling TightVNC protocol extensions");
-    cp.tightExtensionsEnabled = true;
-    offerTunneling();
-  } else {
-    processSecurityType(secType);
-  }
-}
-
-//
-// TightVNC-specific protocol initialization (tunneling, authentication)
-//
-
-void SConnection::offerTunneling()
-{
-  vlog.debug("offering list of tunneling methods");
-  int nTypes = 0;
-
-  // Advertise our tunneling capabilities (currently, nothing to advertise).
-  os->writeU32(nTypes);
-  os->flush();
-
-  if (nTypes) {
-    // NOTE: Never executed in current version.
-    state_ = RFBSTATE_TIGHT_TUNN_TYPE;
-  } else {
-    offerAuthentication();
-  }
-}
-
-// NOTE: This function is never called in current version.
-void SConnection::processTunnelTypeMsg()
-{
-  vlog.debug("processing tunneling type message (TightVNC extension)");
-  int tunnelType = is->readU32();
-  vlog.error("unsupported tunneling type %d requested, ignoring", tunnelType);
-  offerAuthentication();
-}
-
-void SConnection::offerAuthentication()
-{
-  vlog.debug("offering list of authentication methods");
-
-  // See processVersionMsg(), the code below is similar.
-
-  std::list<rdr::U8> secTypes;
-  std::list<rdr::U8>::iterator i;
-
-  // NOTE: In addition to standard security types, we might want to offer
-  //       TightVNC-specific authentication types. But currently we support
-  //       only the standard security types: secTypeNone and secTypeVncAuth.
-  secTypes = security->GetEnabledSecTypes();
-
-  CapsList caps;
-  for (i = secTypes.begin(); i != secTypes.end(); i++) {
-    // FIXME: Capability info should be provided by SSecurity objects.
-    switch (*i) {
-    case secTypeNone:     caps.addStandard(*i, "NOAUTH__"); break;
-    case secTypeVncAuth:  caps.addStandard(*i, "VNCAUTH_"); break;
-    default:
-      // This should not ever happen.
-      vlog.error("not offering unknown security type %d", (int)*i);
-    }
-  }
-
-  if (caps.getSize() < 1)
-    throwConnFailedException("No supported security types");
-
-  if (caps.includesOnly(secTypeNone)) {
-    // Special case - if caps includes nothing else than secTypeNone, we send
-    // an empty capability list and do not expect security type selection from
-    // the client. Then, continue the protocol like if the client has selected
-    // secTypeNone (starting at base protocol version 3.8, "security result"
-    // will follow).
-    os->writeU32(0);
-    os->flush();
-    processSecurityType(secTypeNone);
-  } else {
-    // Normal case - sending the list of authentication capabilities.
-    os->writeU32(caps.getSize());
-    caps.write(os);
-    os->flush();
-    state_ = RFBSTATE_TIGHT_AUTH_TYPE;
-  }
-}
-
-void SConnection::processAuthTypeMsg()
-{
-  vlog.debug("processing authentication type message (TightVNC extension)");
-
-  // NOTE: Currently, we support only the standard security types, so we
-  //       just pass TightVNC authentication type for standard processing,
-  //       just as it was usual RFB security type.
-  int secType = is->readU32();
   processSecurityType(secType);
 }
-
-//
-// End of TightVNC-specific code
-//
 
 void SConnection::processSecurityType(int secType)
 {
@@ -415,75 +311,7 @@ void SConnection::setInitialColourMap()
 void SConnection::clientInit(bool shared)
 {
   writer_->writeServerInit();
-
-  // FIXME: Send interaction capabilities via writer_?
-  if (cp.tightExtensionsEnabled)
-    sendInteractionCaps();
-
   state_ = RFBSTATE_NORMAL;
-}
-
-// FIXME: Move sendInteractionCaps() to a class derived from SMsgWriterV3?
-void SConnection::sendInteractionCaps()
-{
-  //
-  // Advertise support for non-standard server-to-client messages
-  //
-
-  CapsList scaps;
-
-  //
-  // Advertise support for non-standard client-to-server messages
-  //
-
-  CapsList ccaps;
-
-  //
-  // Advertise all supported encoding types (except raw encoding).
-  //
-
-  CapsList ecaps;
-
-  // First, add true encodings.
-  for (int i = 1; i <= encodingMax; i++) {
-    if (Encoder::supported(i)) {
-      // FIXME: Capability info should be provided by Encoder objects.
-      switch (i) {
-      case encodingRRE:      ecaps.addStandard(i, "RRE_____"); break;
-      case encodingCoRRE:    ecaps.addStandard(i, "CORRE___"); break;
-      case encodingHextile:  ecaps.addStandard(i, "HEXTILE_"); break;
-      case encodingZRLE:     ecaps.addStandard(i, "ZRLE____"); break;
-      case encodingTight:    ecaps.addTightExt(i, "TIGHT___"); break;
-      default:
-        // This should not ever happen.
-        vlog.error("not advertising unknown encoding type %d", (int)i);
-      }
-    }
-  }
-
-  // CopyRect is special - Encoder::supported() returns 0 for it,
-  // that's why we add it here explicitly.
-  ecaps.addStandard(encodingCopyRect,             "COPYRECT");
-
-  // Add supported pseudo encodings as well.
-  ecaps.addTightExt(pseudoEncodingCompressLevel0, "COMPRLVL");
-  ecaps.addTightExt(pseudoEncodingQualityLevel0,  "JPEGQLVL");
-  ecaps.addTightExt(pseudoEncodingXCursor,        "X11CURSR");
-  ecaps.addTightExt(pseudoEncodingCursor,         "RCHCURSR");
-  ecaps.addTightExt(pseudoEncodingLastRect,       "LASTRECT");
-  ecaps.addStandard(pseudoEncodingDesktopSize,    "NEWFBSIZ");
-
-  os->writeU16(scaps.getSize());
-  os->writeU16(ccaps.getSize());
-  os->writeU16(ecaps.getSize());
-  os->writeU16(0);
-  if (scaps.getSize())
-    scaps.write(os);
-  if (ccaps.getSize())
-    ccaps.write(os);
-  if (ecaps.getSize())
-    ecaps.write(os);
-  os->flush();
 }
 
 void SConnection::setPixelFormat(const PixelFormat& pf)

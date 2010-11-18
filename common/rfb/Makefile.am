@@ -4,7 +4,7 @@ VENCRYPT_HDRS = CSecurityTLS.h SSecurityTLS.h
 
 VENCRYPT_SRCS = CSecurityTLS.cxx SSecurityTLS.cxx
 
-HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
+HDRS = Blacklist.h CConnection.h \
 	CMsgHandler.h CMsgReader.h CMsgReaderV3.h CMsgWriter.h \
 	CMsgWriterV3.h ColourCube.h ColourMap.h ComparingUpdateTracker.h \
 	Configuration.h ConnParams.h CSecurity.h CSecurityNone.h \
@@ -32,7 +32,7 @@ HDRS = Blacklist.h CapsContainer.h CapsList.h CConnection.h \
 librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	CMsgReader.cxx CMsgReaderV3.cxx CMsgWriter.cxx CMsgWriterV3.cxx \
 	CSecurityPlain.cxx CSecurityStack.cxx CSecurityVeNCrypt.cxx \
-	CSecurityVncAuth.cxx CapsContainer.cxx CapsList.cxx \
+	CSecurityVncAuth.cxx \
 	ComparingUpdateTracker.cxx Configuration.cxx ConnParams.cxx \
 	Cursor.cxx Decoder.cxx d3des.c Encoder.cxx \
 	HTTPServer.cxx HextileDecoder.cxx HextileEncoder.cxx \
