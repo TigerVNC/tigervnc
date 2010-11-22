@@ -74,8 +74,9 @@ namespace rfb {
 
     inline void add_screen(const Screen screen) { screens.push_back(screen); };
     inline void remove_screen(rdr::U32 id) {
-      std::list<Screen>::iterator iter;
-      for (iter = screens.begin();iter != screens.end();++iter) {
+      std::list<Screen>::iterator iter, nextiter;
+      for (iter = screens.begin();iter != screens.end();iter = nextiter) {
+        nextiter = ++iter;
         if (iter->id == id)
             screens.erase(iter);
       }
