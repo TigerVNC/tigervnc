@@ -82,7 +82,7 @@ BEGIN
             VALUE "ProductName", "TigerVNC Server for Win64\0"
             #else
             VALUE "FileDescription", "TigerVNC Server for Win32\0"
-            VALUE "ProductName" "TigerVNC Server for Win32\0"
+            VALUE "ProductName", "TigerVNC Server for Win32\0"
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "winvnc\0"
