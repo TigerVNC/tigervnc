@@ -20,30 +20,37 @@
 #include <config.h>
 #endif
 
-#ifndef WIN32
 #include <os/os.h>
 
 #include <assert.h>
+
+#ifndef WIN32
 #include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#else
+#include <windows.h>
+#include <wininet.h> /* MinGW needs it */
+#include <shlobj.h>
+#endif
 
 int gethomedir(char **dirp)
 {
+#ifndef WIN32
 	char *homedir, *dir;
 	size_t len;
 	uid_t uid;
 	struct passwd *passwd;
+#else
+	TCHAR *dir;
+	BOOL ret;
+#endif
 
 	assert(dirp != NULL && *dirp == NULL);
 
-#ifdef WIN32
-	/* Not supported, yet */
-	return -1;
-#endif
-
+#ifndef WIN32
 	homedir = getenv("HOME");
 	if (homedir == NULL) {
 		uid = getuid();
@@ -57,11 +64,25 @@ int gethomedir(char **dirp)
 
 	len = strlen(homedir) + 1;
 	dir = new char[len];
+	if (dir == NULL)
+		return -1;
+
 	memcpy(dir, homedir, len);
+#else
+	dir = new TCHAR[MAX_PATH];
+	if (dir == NULL)
+		return -1;
+
+	ret = SHGetSpecialFolderPath(NULL, dir, CSIDL_APPDATA, FALSE);
+	if (ret == FALSE) {
+		delete [] dir;
+		return -1;
+	}
+
+	
+#endif
 
 	*dirp = dir;
 	return 0;
 }
-
-#endif
 
