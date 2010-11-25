@@ -37,6 +37,7 @@ vncviewer_LDADD = $(top_builddir)/common/rfb/librfb.la \
     $(top_builddir)/common/Xregion/libXregion.la \
     $(top_builddir)/common/network/libnetwork.la \
     $(top_builddir)/common/rdr/librdr.la \
+    $(top_builddir)/common/os/libos.la \
     resources.o -lws2_32 -lgdi32 -luser32 -lcomctl32 -lversion -lcomdlg32
 
 vncviewer_LDFLAGS = -I$(top_srcdir)/win -mwindows
