@@ -45,4 +45,4 @@ EXTRA_DIST = vncviewer.rc vncviewer.ico cursor1.cur vncviewer.exe.manifest \
 	vncviewer.exe.manifest64 vncviewer.bmp toolbar.bmp CMakeLists.txt
 
 resources.o: vncviewer.rc
-	$(WINDRES) $^ -o $@
+	$(WINDRES) -I$(top_builddir)/win $^ -o $@

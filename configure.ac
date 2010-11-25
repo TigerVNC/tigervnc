@@ -1,6 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
+
+dnl Modify also RCVERSION variable when modifying release
 AC_INIT([tigervnc], [1.0.90], [http://www.tigervnc.org])
+RCVERSION="1,0,90,0"
+AC_SUBST([RCVERSION])
+
 BUILD=`date +%Y%m%d`
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
@@ -35,11 +40,14 @@ esac
 
 BUILD_WIN=
 case "$host_os" in
-mingw*)
+mingw32*)
 	CPPFLAGS="$CPPFLAGS -DWINVER=0x0500 -D_WIN32_IE=0x0500"
 	CXXFLAGS="$CXXFLAGS -mthreads"
 	BUILD_WIN=yes
 	AC_CHECK_TOOL([WINDRES], windres, [AC_MSG_ERROR(windres not found)])
+	;;
+mingw*)
+	AC_MSG_ERROR(["Only 32bit MinGW builds are supported"])
 	;;
 esac
 AM_CONDITIONAL([BUILD_WIN], [test "x$BUILD_WIN" = xyes])
@@ -224,5 +232,6 @@ win/vncviewer/Makefile
 win/rfb_win32/Makefile
 win/vncconfig/Makefile
 win/winvnc/Makefile
+win/resdefs.h
 po/Makefile.in
 ])

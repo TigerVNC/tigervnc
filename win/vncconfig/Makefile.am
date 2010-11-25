@@ -18,4 +18,4 @@ EXTRA_DIST = vncconfig.ico vncconfig.rc vncconfig.exe.manifest \
 	vncconfig.exe.manifest64 CMakeLists.txt
 
 resources.o: vncconfig.rc
-	$(WINDRES) $^ -o $@
+	$(WINDRES) -I$(top_builddir)/win $^ -o $@

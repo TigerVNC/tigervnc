@@ -24,4 +24,4 @@ EXTRA_DIST = winvnc.rc winvnc.ico connected.ico icon_dis.ico connecte.ico \
 	CMakeLists.txt
 
 resources.o: winvnc.rc
-	$(WINDRES) $^ -o $@
+	$(WINDRES) -I$(top_builddir)/win $^ -o $@
