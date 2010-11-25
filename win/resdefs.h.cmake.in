@@ -1,0 +1,4 @@
+#define __VERSIONSTR "@VERSION@\0"
+#define __RCVERSION @RCVERSION@
+#define __RCVERSIONSTR "@RCVERSION@\0"
+#cmakedefine WIN64
