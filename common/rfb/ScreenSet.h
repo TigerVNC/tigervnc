@@ -76,7 +76,7 @@ namespace rfb {
     inline void remove_screen(rdr::U32 id) {
       std::list<Screen>::iterator iter, nextiter;
       for (iter = screens.begin();iter != screens.end();iter = nextiter) {
-        nextiter = ++iter;
+        nextiter = iter; nextiter++;
         if (iter->id == id)
             screens.erase(iter);
       }
