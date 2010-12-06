@@ -1,4 +1,4 @@
-From 0f7f67f7aa2ff97b16d0bf34686d39d73ed19edc Mon Sep 17 00:00:00 2001
+From 0acffdd6f443198378012405e7f814f5abf278b3 Mon Sep 17 00:00:00 2001
 From: Adam Tkac <atkac@redhat.com>
 Date: Wed, 15 Sep 2010 15:37:01 +0200
 Subject: [PATCH] Add -dridir parameter to specify DRI drivers directory from command line.
@@ -8,16 +8,16 @@ Signed-off-by: Adam Tkac <atkac@redhat.com>
  glx/glxdri.c       |    2 --
  glx/glxdri2.c      |    2 --
  glx/glxdriswrast.c |    2 --
- glx/glxext.c       |   25 +++++++++++++++++++++++++
+ glx/glxext.c       |   27 +++++++++++++++++++++++++++
  glx/glxserver.h    |    3 +++
- os/utils.c         |    8 ++++++++
- 6 files changed, 36 insertions(+), 6 deletions(-)
+ os/utils.c         |    9 +++++++++
+ 6 files changed, 39 insertions(+), 6 deletions(-)
 
 diff --git a/glx/glxdri.c b/glx/glxdri.c
-index 41482c9..4be6df4 100644
+index 5b78cec..ce29ae2 100644
 --- a/glx/glxdri.c
 +++ b/glx/glxdri.c
-@@ -861,8 +861,6 @@ static const __DRIextension *loader_extensions[] = {
+@@ -860,8 +860,6 @@ static const __DRIextension *loader_extensions[] = {
  
  
  
@@ -27,10 +27,10 @@ index 41482c9..4be6df4 100644
  glxDRIEnterVT (int index, int flags)
  {
 diff --git a/glx/glxdri2.c b/glx/glxdri2.c
-index c2305ad..378dd9d 100644
+index 2d6090c..49265ec 100644
 --- a/glx/glxdri2.c
 +++ b/glx/glxdri2.c
-@@ -600,8 +600,6 @@ static const __DRIextension *loader_extensions[] = {
+@@ -579,8 +579,6 @@ static const __DRIextension *loader_extensions[] = {
      NULL
  };
  
@@ -40,10 +40,10 @@ index c2305ad..378dd9d 100644
  glxDRIEnterVT (int index, int flags)
  {
 diff --git a/glx/glxdriswrast.c b/glx/glxdriswrast.c
-index dc12f57..ff620e5 100644
+index 6a34393..37c1dce 100644
 --- a/glx/glxdriswrast.c
 +++ b/glx/glxdriswrast.c
-@@ -428,8 +428,6 @@ initializeExtensions(__GLXDRIscreen *screen)
+@@ -438,8 +438,6 @@ initializeExtensions(__GLXDRIscreen *screen)
      }
  }
  
@@ -53,10 +53,10 @@ index dc12f57..ff620e5 100644
  __glXDRIscreenProbe(ScreenPtr pScreen)
  {
 diff --git a/glx/glxext.c b/glx/glxext.c
-index e203156..5f4167f 100644
+index 89e58b0..5e7cf23 100644
 --- a/glx/glxext.c
 +++ b/glx/glxext.c
-@@ -608,3 +608,28 @@ static int __glXDispatch(ClientPtr client)
+@@ -608,3 +608,30 @@ static int __glXDispatch(ClientPtr client)
  
      return retval;
  }
@@ -84,6 +84,8 @@ index e203156..5f4167f 100644
 +	    }
 +        }
 +    }
++
++    return 0;
 +}
 diff --git a/glx/glxserver.h b/glx/glxserver.h
 index 1daf977..082ff82 100644
@@ -98,10 +100,18 @@ index 1daf977..082ff82 100644
 +
  #endif /* !__GLX_server_h__ */
 diff --git a/os/utils.c b/os/utils.c
-index 8921d7c..ce5fc73 100644
+index 13d3b3f..ff97c86 100644
 --- a/os/utils.c
 +++ b/os/utils.c
-@@ -711,6 +711,14 @@ ProcessCommandLine(int argc, char *argv[])
+@@ -141,6 +141,7 @@ Bool noDPMSExtension = FALSE;
+ #ifdef GLXEXT
+ Bool noGlxExtension = FALSE;
+ Bool noGlxVisualInit = FALSE;
++extern int GlxProcessArguments(int argc, char *argv[], int i);
+ #endif
+ #ifdef SCREENSAVER
+ Bool noScreenSaverExtension = FALSE;
+@@ -721,6 +722,14 @@ ProcessCommandLine(int argc, char *argv[])
  		 i+= skip-1;
  	    else UseMsg();
  	}
@@ -117,5 +127,5 @@ index 8921d7c..ce5fc73 100644
  	else if ( strcmp( argv[i], "-ld") == 0)
  	{
 -- 
-1.7.2.3
+1.7.3.2
 
