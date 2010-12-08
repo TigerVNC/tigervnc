@@ -325,9 +325,8 @@ public:
 
 	void press()
 	{
-		int state, index, maxKeysPerMod, keycode;
+		int state, maxKeysPerMod, keycode;
 #if XORG >= 17
-		int ret;
 		KeyCode *modmap = NULL;
 
 		state = XkbStateFieldFromRec(&dev->u.master->key->xkbInfo->state);
@@ -360,7 +359,6 @@ public:
 		int state, maxKeysPerMod;
 		KeyClassPtr keyc;
 #if XORG >= 17
-		int ret;
 		KeyCode *modmap = NULL;
 
 		keyc = dev->u.master->key;
@@ -511,7 +509,9 @@ static struct altKeysym_t {
 
 void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 {
+#if XORG < 17
 	DeviceIntPtr master;
+#endif
 	KeyClassPtr keyc;
 	KeySymsPtr keymap = NULL;
 	KeySym *map = NULL;
@@ -795,6 +795,7 @@ static KeyCode KeysymToKeycode(KeySymsPtr keymap, KeySym ks, int* col)
 	return 0;
 }
 
+#if XORG < 17
 /* Fairly standard US PC Keyboard */
 
 #define MIN_KEY 8
@@ -962,6 +963,7 @@ static Bool GetMappings(KeySymsPtr pKeySyms, CARD8 *pModMap)
 
 	return TRUE;
 }
+#endif
 
 static void keyboardBell(int percent, DeviceIntPtr device, pointer ctrl,
 			 int class_)
@@ -972,8 +974,10 @@ static void keyboardBell(int percent, DeviceIntPtr device, pointer ctrl,
 
 static int keyboardProc(DeviceIntPtr pDevice, int onoff)
 {
+#if XORG < 17
 	KeySymsRec keySyms;
 	CARD8 modMap[MAP_LENGTH];
+#endif
 	DevicePtr pDev = (DevicePtr)pDevice;
 
 	switch (onoff) {

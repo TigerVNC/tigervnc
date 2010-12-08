@@ -166,7 +166,6 @@ static int lastScreen = -1;
 static Bool Render = TRUE;
 
 static bool displaySpecified = false;
-static bool wellKnownSocketsCreated = false;
 static char displayNumStr[16];
 
 char *listenaddr = NULL;
@@ -838,7 +837,6 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs = {
 
 static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
-  vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
   Bool ret, gotCurrent = FALSE;
   int i;
 
