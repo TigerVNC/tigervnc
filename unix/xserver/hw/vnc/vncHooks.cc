@@ -625,7 +625,7 @@ public:
 };
 
 
-// ValidateGC - wrap the "ops" if a drawable window or pixmap
+// ValidateGC - wrap the "ops" if a viewable window
 
 static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
                                DrawablePtr pDrawable)
@@ -637,7 +637,7 @@ static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
   (*pGC->funcs->ValidateGC) (pGC, changes, pDrawable);
 
   u.vncHooksGC->wrappedOps = 0;
-  if (pDrawable->type == DRAWABLE_WINDOW || pDrawable->type == DRAWABLE_PIXMAP) {
+  if (pDrawable->type == DRAWABLE_WINDOW && ((WindowPtr) pDrawable)->viewable) {
     u.vncHooksGC->wrappedOps = pGC->ops;
     DBGPRINT((stderr,"vncHooksValidateGC: wrapped GC ops\n"));
   }    
