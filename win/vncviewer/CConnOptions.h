@@ -24,7 +24,10 @@
 #ifndef __RFB_WIN32_CCONN_OPTIONS_H__
 #define __RFB_WIN32_CCONN_OPTIONS_H__
 
+#include <rdr/types.h>
 #include <rfb/Password.h>
+
+#include <list>
 
 namespace rfb {
 
@@ -69,6 +72,7 @@ namespace rfb {
       bool acceptBell;
       bool autoScaling;
       int scale;
+      std::list<rdr::U32> secTypes;
       CharArray userName;
       void setUserName(const char* user);
       PlainPasswd password;

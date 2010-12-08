@@ -23,6 +23,7 @@
 #include <rfb/ScaleFilters.h>
 #include <rfb_win32/MsgBox.h>
 #include <rfb_win32/Registry.h>
+#include <rfb/SecurityClient.h>
 #include <rdr/HexInStream.h>
 #include <rdr/HexOutStream.h>
 #include <stdlib.h>
@@ -158,6 +159,8 @@ noJpeg(::noJpeg),
 qualityLevel(::qualityLevel),
 passwordFile(::passwordFile.getData())
 {
+  char *sectypes;
+
   if (autoSelect) {
     preferredEncoding = encodingTight;
   } else {
@@ -176,6 +179,10 @@ passwordFile(::passwordFile.getData())
     // Default to CustomCompressLevel=1 if CompressLevel is used.
     customCompressLevel = ::compressLevel.hasBeenSet();
   }
+
+  sectypes = SecurityClient::secTypes.getDefaultStr();
+  secTypes = parseSecTypes(sectypes);
+  delete [] sectypes;
 }
 
 
@@ -298,6 +305,8 @@ void CConnOptions::readFromFile(const char* filename) {
             autoScaling = atoi(value.buf);
           } else if (stricmp(name.buf, "Scale") == 0) {
             scale = atoi(value.buf);
+          } else if (stricmp(name.buf, "SecurityTypes") == 0) {
+            secTypes = parseSecTypes(value.buf);
           }
         }
       }
@@ -381,6 +390,13 @@ void CConnOptions::writeToFile(const char* filename) {
     fprintf(f, "QualityLevel=%d\n", qualityLevel);
     fprintf(f, "AutoScaling=%d\n", (int)autoScaling);
     fprintf(f, "Scale=%d\n", scale);
+
+    fprintf(f, "SecurityTypes=");
+    std::list<rdr::U32>::iterator i;
+    for (i = secTypes.begin(); i != secTypes.end(); i++)
+      fprintf(f, "%s,", secTypeName(*i));
+    fprintf(f, "\n");
+
     fclose(f); f=0;
 
     setConfigFileName(filename);

@@ -431,6 +431,13 @@ public:
     }
   }
 
+  virtual bool onOk() {
+    dlg->options.secTypes = security->GetEnabledExtSecTypes();
+    if (isItemChecked(IDC_VENCRYPT))
+      dlg->options.secTypes.push_front(secTypeVeNCrypt);
+    return true;
+  }
+
   virtual bool onCommand(int id, int cmd) {
     switch (id) {
     case IDC_VENCRYPT:
