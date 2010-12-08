@@ -120,6 +120,9 @@ std::list<char*> configFiles;
 
 void
 processParams(int argc, char* argv[]) {
+
+  Configuration::enableViewerParams();
+
   for (int i=1; i<argc; i++) {
     try {
 
