@@ -23,8 +23,6 @@
 #include <vncviewer/resource.h>
 #include <rfb/encodings.h>
 #include <rfb/Security.h>
-#include <rfb/CSecurityNone.h>
-#include <rfb/CSecurityVncAuth.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
