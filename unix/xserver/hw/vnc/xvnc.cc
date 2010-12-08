@@ -890,9 +890,11 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;
+#if XORG < 110
     RegionPtr	pOldClip = NULL, bsExposed;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
+#endif
 #endif
     WindowPtr   pLayerWin;
     BoxRec	box;
@@ -951,11 +953,13 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     
     if (WasViewable)
     {
+#if XORG < 110
 	if (pWin->backStorage)
 	{
 	    pOldClip = REGION_CREATE(pScreen, NullBox, 1);
 	    REGION_COPY(pScreen, pOldClip, &pWin->clipList);
 	}
+#endif
 
 	if (pWin->firstChild)
 	{
@@ -969,7 +973,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	    anyMarked = TRUE;
 	}
 
-#ifdef DO_SAVE_UNDERS
+#if XORG < 110 && defined(DO_SAVE_UNDERS)
 	if (DO_SAVE_UNDERS(pWin))
 	{
 	    dosave = (*pScreen->ChangeSaveUnder)(pLayerWin, pLayerWin);
@@ -980,6 +984,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	    (*pScreen->ValidateTree)(pWin, NullWindow, VTOther);
     }
 
+#if XORG < 110
     if (pWin->backStorage &&
 	((pWin->backingStore == Always) || WasViewable))
     {
@@ -1002,11 +1007,13 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	    REGION_DESTROY(pScreen, bsExposed);
 	}
     }
+#endif
     if (WasViewable)
     {
 	if (anyMarked)
 	    (*pScreen->HandleExposures)(pWin);
-#ifdef DO_SAVE_UNDERS
+
+#if XORG < 110 && defined(DO_SAVE_UNDERS)
 	if (dosave)
 	    (*pScreen->PostChangeSaveUnder)(pLayerWin, pLayerWin);
 #endif /* DO_SAVE_UNDERS */
@@ -1184,7 +1191,9 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 
     if (!ret) return FALSE;
 
+#if XORG < 110
     miInitializeBackingStore(pScreen);
+#endif
 
     /*
      * Circumvent the backing store that was just initialised.  This amounts

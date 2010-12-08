@@ -72,7 +72,9 @@ typedef struct {
   CreateGCProcPtr              CreateGC;
   CopyWindowProcPtr            CopyWindow;
   ClearToBackgroundProcPtr     ClearToBackground;
+#if XORG < 110
   RestoreAreasProcPtr          RestoreAreas;
+#endif
   InstallColormapProcPtr       InstallColormap;
   StoreColorsProcPtr           StoreColors;
   DisplayCursorProcPtr         DisplayCursor;
@@ -120,7 +122,9 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                                RegionPtr pOldRegion);
 static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
                                       int h, Bool generateExposures);
+#if XORG < 110
 static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr prgnExposed);
+#endif
 static void vncHooksInstallColormap(ColormapPtr pColormap);
 static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
                                 xColorItem* pdef);
@@ -260,7 +264,9 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   vncHooksScreen->CreateGC = pScreen->CreateGC;
   vncHooksScreen->CopyWindow = pScreen->CopyWindow;
   vncHooksScreen->ClearToBackground = pScreen->ClearToBackground;
+#if XORG < 110
   vncHooksScreen->RestoreAreas = pScreen->RestoreAreas;
+#endif
   vncHooksScreen->InstallColormap = pScreen->InstallColormap;
   vncHooksScreen->StoreColors = pScreen->StoreColors;
   vncHooksScreen->DisplayCursor = pScreen->DisplayCursor;
@@ -284,7 +290,9 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   pScreen->CreateGC = vncHooksCreateGC;
   pScreen->CopyWindow = vncHooksCopyWindow;
   pScreen->ClearToBackground = vncHooksClearToBackground;
+#if XORG < 110
   pScreen->RestoreAreas = vncHooksRestoreAreas;
+#endif
   pScreen->InstallColormap = vncHooksInstallColormap;
   pScreen->StoreColors = vncHooksStoreColors;
   pScreen->DisplayCursor = vncHooksDisplayCursor;
@@ -334,7 +342,9 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
   pScreen->CreateGC = vncHooksScreen->CreateGC;
   pScreen->CopyWindow = vncHooksScreen->CopyWindow;
   pScreen->ClearToBackground = vncHooksScreen->ClearToBackground;
+#if XORG < 110
   pScreen->RestoreAreas = vncHooksScreen->RestoreAreas;
+#endif
   pScreen->InstallColormap = vncHooksScreen->InstallColormap;
   pScreen->StoreColors = vncHooksScreen->StoreColors;
   pScreen->DisplayCursor = vncHooksScreen->DisplayCursor;
@@ -428,6 +438,7 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
   SCREEN_REWRAP(ClearToBackground);
 }
 
+#if XORG < 110
 // RestoreAreas - changed region is the given region
 
 static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr pRegion)
@@ -444,6 +455,7 @@ static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr pRegion)
 
   return result;
 }
+#endif
 
 // InstallColormap - get the new colormap
 

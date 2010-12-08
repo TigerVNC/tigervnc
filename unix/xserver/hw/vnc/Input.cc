@@ -30,6 +30,9 @@ extern "C" {
 #define public c_public
 #define class c_class
 #include "inputstr.h"
+#if XORG >= 110
+#include "inpututils.h"
+#endif
 #include "mi.h"
 #ifndef XKB_IN_SERVER
 #define XKB_IN_SERVER
@@ -140,6 +143,9 @@ InputDevice::InputDevice(rfb::VNCServerST *_server)
 void InputDevice::PointerButtonAction(int buttonMask)
 {
 	int i, n;
+#if XORG >= 110
+	ValuatorMask mask;
+#endif
 
 	initInputDevice();
 
@@ -147,8 +153,14 @@ void InputDevice::PointerButtonAction(int buttonMask)
 		if ((buttonMask ^ oldButtonMask) & (1 << i)) {
 			int action = (buttonMask & (1<<i)) ?
 				     ButtonPress : ButtonRelease;
+#if XORG < 110
 			n = GetPointerEvents(eventq, pointerDev, action, i + 1,
 					     POINTER_RELATIVE, 0, 0, NULL);
+#else
+			valuator_mask_set_range(&mask, 0, 0, NULL);
+			n = GetPointerEvents(eventq, pointerDev, action, i + 1,
+					     POINTER_RELATIVE, &mask);
+#endif
 			enqueueEvents(pointerDev, n);
 
 		}
@@ -160,6 +172,9 @@ void InputDevice::PointerButtonAction(int buttonMask)
 void InputDevice::PointerMove(const rfb::Point &pos)
 {
 	int n, valuators[2];
+#if XORG >= 110
+	ValuatorMask mask;
+#endif
 
 	if (pos.equals(cursorPos))
 		return;
@@ -168,8 +183,14 @@ void InputDevice::PointerMove(const rfb::Point &pos)
 
 	valuators[0] = pos.x;
 	valuators[1] = pos.y;
+#if XORG < 110
 	n = GetPointerEvents(eventq, pointerDev, MotionNotify, 0, POINTER_ABSOLUTE, 0,
 			     2, valuators);
+#else
+	valuator_mask_set_range(&mask, 0, 2, valuators);
+	n = GetPointerEvents(eventq, pointerDev, MotionNotify, 0, POINTER_ABSOLUTE,
+			     &mask);
+#endif
 	enqueueEvents(pointerDev, n);
 
 	cursorPos = pos;
