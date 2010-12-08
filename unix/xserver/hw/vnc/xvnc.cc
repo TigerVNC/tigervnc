@@ -91,6 +91,11 @@ extern "C" {
 #undef public
 }
 
+#if XORG >= 110
+#define Xalloc malloc
+#define Xfree free
+#endif
+
 #define XVNCVERSION "TigerVNC 1.0.90"
 #define XVNCCOPYRIGHT ("Copyright (C) 2002-2005 RealVNC Ltd.\n" \
 		       "Copyright (C) 2000-2006 Constantin Kaplinsky\n" \

@@ -63,6 +63,10 @@ extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #undef class
 }
 
+#if XORG >= 110
+#define Xfree free
+#endif
+
 using namespace rdr;
 using namespace rfb;
 
