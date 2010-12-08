@@ -26,9 +26,14 @@
 #include <rfb/CConnection.h>
 #include <commdlg.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Security.h>
 
+#include <list>
+
+using namespace rdr;
 using namespace rfb;
 using namespace rfb::win32;
+using namespace std;
 
 static LogWriter vlog("Options");
 
@@ -349,6 +354,138 @@ protected:
   OptionsInfo* dlg;
 };
 
+class SecurityPage : public PropSheetPage {
+public:
+  SecurityPage(OptionsInfo* dlg_, Security *security_)
+    : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_SECURITY)),
+      dlg(dlg_), security(security_) {
+  }
+  virtual void initDialog() {
+    enableVeNCryptFeatures(false);
+
+    /* Process non-VeNCrypt sectypes */
+    list<U8> secTypes = security->GetEnabledSecTypes();
+    list<U8>::iterator i;
+
+    for (i = secTypes.begin(); i != secTypes.end(); i++) {
+      switch (*i) {
+        case secTypeVeNCrypt:
+          enableVeNCryptFeatures(true);
+	  setItemChecked(IDC_VENCRYPT, true);
+          break;
+        case secTypeNone:
+          setItemChecked(IDC_ENC_NONE, true);
+          setItemChecked(IDC_AUTH_NONE, true);
+          break;
+        case secTypeVncAuth:
+          setItemChecked(IDC_ENC_NONE, true);
+          setItemChecked(IDC_AUTH_VNC, true);
+          break;
+      }
+    }
+
+    /* Process VeNCrypt subtypes */
+    if (isItemChecked(IDC_VENCRYPT)) {
+      list<U32> secTypesExt = security->GetEnabledExtSecTypes();
+      list<U32>::iterator iext;
+      for (iext = secTypesExt.begin(); iext != secTypesExt.end(); iext++) {
+        switch (*iext) {
+        case secTypePlain:
+          setItemChecked(IDC_ENC_NONE, true);
+          setItemChecked(IDC_AUTH_PLAIN, true);
+          break;
+        case secTypeTLSNone:
+          setItemChecked(IDC_ENC_TLS, true);
+          setItemChecked(IDC_AUTH_NONE, true);
+          break;
+        case secTypeTLSVnc:
+          setItemChecked(IDC_ENC_TLS, true);
+          setItemChecked(IDC_AUTH_VNC, true);
+          break;
+        case secTypeTLSPlain:
+          setItemChecked(IDC_ENC_TLS, true);
+          setItemChecked(IDC_AUTH_PLAIN, true);
+          break;
+        case secTypeX509None:
+          setItemChecked(IDC_ENC_X509, true);
+          setItemChecked(IDC_AUTH_NONE, true);
+          enableItem(IDC_LOAD_CACERT, true);
+          enableItem(IDC_LOAD_CRLCERT, true);
+          break;
+        case secTypeX509Vnc:
+          setItemChecked(IDC_ENC_X509, true);
+          setItemChecked(IDC_AUTH_VNC, true);
+          enableItem(IDC_LOAD_CACERT, true);
+          enableItem(IDC_LOAD_CRLCERT, true);
+          break;
+        case secTypeX509Plain:
+          setItemChecked(IDC_ENC_X509, true);
+          setItemChecked(IDC_AUTH_PLAIN, true);
+          enableItem(IDC_LOAD_CACERT, true);
+          enableItem(IDC_LOAD_CRLCERT, true);
+          break;
+        }
+      }
+    }
+  }
+  virtual bool onCommand(int id, int cmd) {
+    switch (id) {
+    case IDC_VENCRYPT:
+      enableVeNCryptFeatures(isItemChecked(IDC_VENCRYPT));
+      break;
+    case IDC_ENC_NONE:
+      break;
+    case IDC_ENC_TLS:
+      break;
+    case IDC_ENC_X509:
+      if (isItemChecked(IDC_ENC_X509)) {
+        enableItem(IDC_LOAD_CACERT, true);
+        enableItem(IDC_LOAD_CRLCERT, true);
+      } else {
+        enableItem(IDC_LOAD_CACERT, false);
+        enableItem(IDC_LOAD_CRLCERT, false);
+      }
+      break;
+    case IDC_LOAD_CACERT:
+      break;
+    case IDC_LOAD_CRLCERT:
+      break;
+    case IDC_AUTH_NONE:
+      break;
+    case IDC_AUTH_VNC:
+      break;
+    case IDC_AUTH_PLAIN:
+      break;
+    default:
+      throw rdr::Exception("Unhandled action in SecurityPage");
+    }
+    return true;
+  }
+protected:
+  OptionsInfo* dlg;
+private:
+  Security *security;
+
+  void enableVeNCryptFeatures(bool enable) {
+    if (enable) {
+      enableItem(IDC_ENC_TLS, true);
+      enableItem(IDC_ENC_X509, true);
+      enableItem(IDC_AUTH_PLAIN, true);
+    } else {
+      disableFeature(IDC_ENC_TLS);
+      disableFeature(IDC_ENC_X509);
+      disableFeature(IDC_AUTH_PLAIN);
+      enableItem(IDC_LOAD_CACERT, false);
+      enableItem(IDC_LOAD_CRLCERT, false);
+    }
+  }
+
+  void disableFeature(int id) {
+    enableItem(id, false);
+    setItemChecked(id, false);
+  }
+};
+
 
 OptionsDialog::OptionsDialog() : visible(false) {
 }
@@ -369,6 +506,7 @@ bool OptionsDialog::showDialog(CConn* view, bool capture) {
   InputsPage inputsPage(&info); pages.push_back(&inputsPage);
   MiscPage miscPage(&info); pages.push_back(&miscPage);
   DefaultsPage defPage(&info); if (view) pages.push_back(&defPage);
+  SecurityPage secPage(&info, view->security); pages.push_back(&secPage);
 
   // Show the property sheet
   ViewerOptions dialog(info, pages);

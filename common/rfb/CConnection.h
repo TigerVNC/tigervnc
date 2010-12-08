@@ -131,10 +131,10 @@ namespace rfb {
 
     stateEnum state() { return state_; }
 
-    CSecurity *csecurity; /* Windows viewer needs it exported. */
+    CSecurity *csecurity;
+    SecurityClient *security;
   protected:
     void setState(stateEnum s) { state_ = s; }
-    SecurityClient *security;
 
   private:
     void processVersionMsg();
