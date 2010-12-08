@@ -68,7 +68,6 @@
 #define IDC_MENU_KEY                    1051
 #define IDC_REQUESTED_ENCODING          1052
 #define IDC_LAST_ENCODING               1053
-#define IDC_SECURITY_LEVEL              1054
 #define IDC_INFO_ENCRYPTION             1055
 #define IDC_AUTO_RECONNECT              1056
 #define IDC_DISABLE_WINKEYS             1057

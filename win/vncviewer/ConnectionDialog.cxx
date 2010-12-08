@@ -49,13 +49,6 @@ void ConnectionDialog::initDialog() {
 
   // Select the first item in the list
   SendMessage(box, CB_SETCURSEL, 0, 0);
-
-  // Fill out the Security: drop-down and select the preferred option
-  HWND security = GetDlgItem(handle, IDC_SECURITY_LEVEL);
-  LRESULT n = SendMessage(security, CB_ADDSTRING, 0, (LPARAM)_T("Always Off"));
-  if (n != CB_ERR)
-    SendMessage(security, CB_SETCURSEL, n, 0);
-  enableItem(IDC_SECURITY_LEVEL, false);
 }
 
 
