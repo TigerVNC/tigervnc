@@ -296,6 +296,19 @@ void InputDevice::initInputDevice(void)
 #endif
 }
 
+static inline void pressKey(DeviceIntPtr dev, int kc, bool down, const char *msg)
+{
+	int action;
+	unsigned int n;
+
+	if (msg != NULL)
+		vlog.debug("%s %d %s", msg, kc, down ? "down" : "up");
+
+	action = down ? KeyPress : KeyRelease;
+	n = GetKeyboardEvents(eventq, dev, action, kc);
+	enqueueEvents(dev, n);
+}
+
 #define IS_PRESSED(keyc, keycode) \
 	((keyc)->down[(keycode) >> 3] & (1 << ((keycode) & 7)))
 
@@ -319,7 +332,7 @@ public:
 	~ModifierState()
 	{
 		for (int i = 0; i < nKeys; i++)
-			generateXKeyEvent(keys[i], !pressed);
+			pressKey(dev, keys[i], !pressed, "fake keycode");
 		delete [] keys;
 	}
 
@@ -341,6 +354,12 @@ public:
 		if (generate_modkeymap(serverClient, dev, &modmap,
 				       &maxKeysPerMod) != Success) {
 			vlog.error("generate_modkeymap failed");
+			return;
+		}
+
+		if (maxKeysPerMod == 0) {
+			vlog.debug("Keyboard has no modifiers");
+			xfree(modmap);
 			return;
 		}
 
@@ -376,6 +395,12 @@ public:
 			vlog.error("generate_modkeymap failed");
 			return;
 		}
+
+		if (maxKeysPerMod == 0) {
+			vlog.debug("Keyboard has no modifiers");
+			xfree(modmap);
+			return;
+		}
 #else
 		maxKeysPerMod = keyc->maxKeysPerModifier;
 #endif
@@ -402,20 +427,8 @@ private:
 		if (keycode) {
 			if (!keys) keys = new int[maxKeysPerMod];
 			keys[nKeys++] = keycode;
-			generateXKeyEvent(keycode, down);
+			pressKey(dev, keycode, down, "fake keycode");
 		}
-	}
-
-	void generateXKeyEvent(int keycode, bool down)
-	{
-		int n, action;
-
-		action = down ? KeyPress : KeyRelease;
-		n = GetKeyboardEvents(eventq, dev, action, keycode);
-		enqueueEvents(dev, n);
-
-		vlog.debug("fake keycode %d %s", keycode,
-			   down ? "down" : "up");
 	}
 
 	int modIndex;
@@ -518,8 +531,8 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	KeyCode minKeyCode, maxKeyCode;
 	KeyCode *modmap = NULL;
 	int mapWidth;
-	unsigned int i, n;
-	int j, k, action, state, maxKeysPerMod;
+	unsigned int i;
+	int j, k, state, maxKeysPerMod;
 
 	initInputDevice();
 
@@ -552,6 +565,9 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 		xfree(keymap);
 		return;
 	}
+
+	if (maxKeysPerMod == 0)
+		vlog.debug("Keyboard has no modifiers");
 
 	state = XkbStateFieldFromRec(&keyc->xkbInfo->state);
 #else
@@ -588,11 +604,13 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 ModeSwitchFound:
 
 	int col = 0;
-	if ((state & (1 << ShiftMapIndex)) != 0)
-		col |= 1;
-	if (modeSwitchMapIndex != 0 &&
-	    ((state & (1 << modeSwitchMapIndex))) != 0)
-		col |= 2;
+	if (maxKeysPerMod != 0) {
+		if ((state & (1 << ShiftMapIndex)) != 0)
+			col |= 1;
+		if (modeSwitchMapIndex != 0 &&
+		    ((state & (1 << modeSwitchMapIndex))) != 0)
+			col |= 2;
+	}
 
 	int kc = KeysymToKeycode(keymap, keysym, &col);
 
@@ -604,7 +622,8 @@ ModeSwitchFound:
 	 * We never get ISO_Left_Tab here because it's already been translated
 	 * in VNCSConnectionST.
 	 */
-	if (keysym == XK_Tab && ((state & (1 << ShiftMapIndex))) != 0)
+	if (maxKeysPerMod != 0 && keysym == XK_Tab &&
+	    ((state & (1 << ShiftMapIndex))) != 0)
 		col |= 1;
 
 	if (kc == 0) {
@@ -685,25 +704,29 @@ ModeSwitchFound:
 		}
 	}
 
-	ModifierState shift(keyboardDev, ShiftMapIndex);
-	ModifierState modeSwitch(keyboardDev, modeSwitchMapIndex);
-	if (down) {
-		if (col & 1)
-			shift.press();
-		else
-			shift.release();
-		if (modeSwitchMapIndex) {
-			if (col & 2)
-				modeSwitch.press();
+	if (maxKeysPerMod != 0) {
+		ModifierState shift(keyboardDev, ShiftMapIndex);
+		ModifierState modeSwitch(keyboardDev, modeSwitchMapIndex);
+		if (down) {
+			if (col & 1)
+				shift.press();
 			else
-				modeSwitch.release();
+				shift.release();
+			if (modeSwitchMapIndex) {
+				if (col & 2)
+					modeSwitch.press();
+				else
+					modeSwitch.release();
+			}
 		}
-	}
+		/*
+		 * Ensure ModifierState objects are not destroyed before
+		 * pressKey call, otherwise fake modifier keypress can be lost.
+		 */
+		pressKey(keyboardDev, kc, down, "keycode");
+	} else
+		pressKey(keyboardDev, kc, down, "keycode");
 
-	vlog.debug("keycode %d %s", kc, down ? "down" : "up");
-	action = down ? KeyPress : KeyRelease;
-	n = GetKeyboardEvents(eventq, keyboardDev, action, kc);
-	enqueueEvents(keyboardDev, n);
 
         FREE_MAPS;
 	
