@@ -130,7 +130,7 @@ CConn::~CConn() {
 
 bool CConn::showMsgBox(int flags, const char* title, const char* text)
 {
-  CharArray titleText(strlen(title) + 12);
+  CharArray titleText(12 + strlen(title) + 1);
   sprintf(titleText.buf, "VNC Viewer: %s", title);
 
   TXMsgBox msgBox(dpy,text,flags,titleText.buf);
