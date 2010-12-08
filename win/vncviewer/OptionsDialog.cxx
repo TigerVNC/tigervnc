@@ -354,6 +354,8 @@ protected:
   OptionsInfo* dlg;
 };
 
+#ifdef HAVE_GNUTLS
+/* XXX: This class contains bunch of similar code to unix/vncviewer/CConn.cxx */
 class SecurityPage : public PropSheetPage {
 public:
   SecurityPage(OptionsInfo* dlg_, Security *security_)
@@ -369,18 +371,18 @@ public:
 
     for (i = secTypes.begin(); i != secTypes.end(); i++) {
       switch (*i) {
-        case secTypeVeNCrypt:
-          enableVeNCryptFeatures(true);
-	  setItemChecked(IDC_VENCRYPT, true);
-          break;
-        case secTypeNone:
-          setItemChecked(IDC_ENC_NONE, true);
-          setItemChecked(IDC_AUTH_NONE, true);
-          break;
-        case secTypeVncAuth:
-          setItemChecked(IDC_ENC_NONE, true);
-          setItemChecked(IDC_AUTH_VNC, true);
-          break;
+      case secTypeVeNCrypt:
+        enableVeNCryptFeatures(true);
+        setItemChecked(IDC_VENCRYPT, true);
+        break;
+      case secTypeNone:
+        setItemChecked(IDC_ENC_NONE, true);
+        setItemChecked(IDC_AUTH_NONE, true);
+        break;
+      case secTypeVncAuth:
+        setItemChecked(IDC_ENC_NONE, true);
+        setItemChecked(IDC_AUTH_VNC, true);
+        break;
       }
     }
 
@@ -428,34 +430,126 @@ public:
       }
     }
   }
+
   virtual bool onCommand(int id, int cmd) {
     switch (id) {
     case IDC_VENCRYPT:
-      enableVeNCryptFeatures(isItemChecked(IDC_VENCRYPT));
+      if (isItemChecked(IDC_VENCRYPT)) {
+        enableVeNCryptFeatures(true);
+        security->EnableSecType(secTypeVeNCrypt);
+      } else {
+        enableVeNCryptFeatures(false);
+        security->DisableSecType(secTypeVeNCrypt);
+      }
       break;
+
+    /* Process types without encryption */
     case IDC_ENC_NONE:
+      if (isItemChecked(IDC_ENC_NONE)) {
+      vlog.debug("here");
+        if (isItemChecked(IDC_AUTH_NONE))
+          security->EnableSecType(secTypeNone);
+        if (isItemChecked(IDC_AUTH_VNC))
+          security->EnableSecType(secTypeVncAuth);
+        if (isItemChecked(IDC_AUTH_PLAIN))
+          security->EnableSecType(secTypePlain);
+      } else {
+        security->DisableSecType(secTypeNone);
+        security->DisableSecType(secTypeVncAuth); 
+        security->DisableSecType(secTypePlain);
+      }
       break;
+
+    /* Process security types which use TLS encryption */
     case IDC_ENC_TLS:
+      if (isItemChecked(IDC_ENC_TLS)) {
+        if (isItemChecked(IDC_AUTH_NONE))
+          security->EnableSecType(secTypeTLSNone);
+        if (isItemChecked(IDC_AUTH_VNC))
+          security->EnableSecType(secTypeTLSVnc);
+        if (isItemChecked(IDC_AUTH_PLAIN))
+          security->EnableSecType(secTypeTLSPlain);
+      } else {
+        security->DisableSecType(secTypeTLSNone);
+        security->DisableSecType(secTypeTLSVnc);
+        security->DisableSecType(secTypeTLSPlain);
+      } 
       break;
+
+    /* Process security types which use X509 encryption */
     case IDC_ENC_X509:
       if (isItemChecked(IDC_ENC_X509)) {
         enableItem(IDC_LOAD_CACERT, true);
         enableItem(IDC_LOAD_CRLCERT, true);
+        if (isItemChecked(IDC_AUTH_NONE))
+          security->EnableSecType(secTypeX509None);
+        if (isItemChecked(IDC_AUTH_VNC))
+          security->EnableSecType(secTypeX509Vnc);
+        if (isItemChecked(IDC_AUTH_PLAIN))
+          security->EnableSecType(secTypeX509Plain);
       } else {
         enableItem(IDC_LOAD_CACERT, false);
         enableItem(IDC_LOAD_CRLCERT, false);
+        security->DisableSecType(secTypeX509None);
+        security->DisableSecType(secTypeX509Vnc);
+        security->DisableSecType(secTypeX509Plain);
       }
       break;
+
     case IDC_LOAD_CACERT:
       break;
+
     case IDC_LOAD_CRLCERT:
       break;
+
+    /* Process *None security types */
     case IDC_AUTH_NONE:
+      if (isItemChecked(IDC_AUTH_NONE)) {
+        if (isItemChecked(IDC_ENC_NONE))
+          security->EnableSecType(secTypeNone);
+        if (isItemChecked(IDC_ENC_TLS))
+          security->EnableSecType(secTypeTLSNone);
+        if (isItemChecked(IDC_ENC_X509))
+          security->EnableSecType(secTypeX509None);
+      } else {
+        security->DisableSecType(secTypeNone);
+        security->DisableSecType(secTypeTLSNone);
+        security->DisableSecType(secTypeX509None);
+      }
       break;
+
+    /* Process *Vnc security types */
     case IDC_AUTH_VNC:
+      if (isItemChecked(IDC_AUTH_VNC)) {
+        if (isItemChecked(IDC_ENC_NONE))
+          security->EnableSecType(secTypeVncAuth);
+        if (isItemChecked(IDC_ENC_TLS))
+          security->EnableSecType(secTypeTLSVnc);
+        if (isItemChecked(IDC_ENC_X509))
+          security->EnableSecType(secTypeX509Vnc);
+      } else {
+        security->DisableSecType(secTypeVncAuth);
+        security->DisableSecType(secTypeTLSVnc);
+        security->DisableSecType(secTypeX509Vnc);
+      }
       break;
+
+    /* Process *Plain security types */
     case IDC_AUTH_PLAIN:
+      if (isItemChecked(IDC_AUTH_PLAIN)) {
+        if (isItemChecked(IDC_ENC_NONE))
+          security->EnableSecType(secTypePlain);
+        if (isItemChecked(IDC_ENC_TLS))
+          security->EnableSecType(secTypeTLSPlain);
+        if (isItemChecked(IDC_ENC_X509))
+          security->EnableSecType(secTypeX509Plain);
+      } else {
+        security->DisableSecType(secTypePlain);
+        security->DisableSecType(secTypeTLSPlain);
+        security->DisableSecType(secTypeX509Plain);
+      }
       break;
+
     default:
       throw rdr::Exception("Unhandled action in SecurityPage");
     }
@@ -485,7 +579,7 @@ private:
     setItemChecked(id, false);
   }
 };
-
+#endif
 
 OptionsDialog::OptionsDialog() : visible(false) {
 }
@@ -506,7 +600,9 @@ bool OptionsDialog::showDialog(CConn* view, bool capture) {
   InputsPage inputsPage(&info); pages.push_back(&inputsPage);
   MiscPage miscPage(&info); pages.push_back(&miscPage);
   DefaultsPage defPage(&info); if (view) pages.push_back(&defPage);
+#ifdef HAVE_GNUTLS
   SecurityPage secPage(&info, view->security); pages.push_back(&secPage);
+#endif
 
   // Show the property sheet
   ViewerOptions dialog(info, pages);

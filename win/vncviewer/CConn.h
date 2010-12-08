@@ -26,6 +26,7 @@
 #include <network/Socket.h>
 #include <rfb/CConnection.h>
 #include <rfb/Cursor.h>
+#include <rfb/UserMsgBox.h>
 #include <rfb/UserPasswdGetter.h>
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Handle.h>
@@ -43,7 +44,8 @@ namespace rfb {
     class CConn : public CConnection,
                   UserPasswdGetter,
                   DesktopWindow::Callback,
-                  rdr::FdInStreamBlockCallback
+                  rdr::FdInStreamBlockCallback,
+                  UserMsgBox
     {
     public:
       CConn();
@@ -76,6 +78,9 @@ namespace rfb {
 
       // - Get the server's preferred format
       const PixelFormat& getServerDefaultPF() const { return serverDefaultPF; }
+
+      // - Display message box
+      virtual bool showMsgBox(int flags, const char* title, const char* text);
 
       // Global user-config registry key
       static RegKey userConfigKey;
