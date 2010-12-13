@@ -31,6 +31,7 @@ extern void vncClientGone(int fd);
 extern void vncBell();
 extern void* vncFbptr[];
 extern int vncFbstride[];
+extern bool noclipboard;
 extern int vncInetdSock;
 extern rfb::StringParameter httpDir;
 

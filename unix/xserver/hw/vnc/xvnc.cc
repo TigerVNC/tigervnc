@@ -291,6 +291,7 @@ ddxUseMsg()
     ErrorF("-pixelformat fmt       set pixel format (rgbNNN or bgrNNN)\n");
     ErrorF("-inetd                 has been launched from inetd\n");
     ErrorF("-interface IP_address  listen on specified interface\n");
+    ErrorF("-noclipboard           disable clipboard settings modification via vncconfig utility\n");
     ErrorF("\nVNC parameters:\n");
 
     fprintf(stderr,"\n"
@@ -568,6 +569,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	    FatalError("Not enough memory");
 
 	return 2;
+    }
+
+    if (strcmp(argv[i], "-noclipboard") == 0) {
+	noclipboard = true;
+	return 1;
     }
     
     if (rfb::Configuration::setParam(argv[i]))

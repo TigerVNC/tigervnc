@@ -86,6 +86,7 @@ int vncFbstride[MAXSCREENS];
 
 static char* clientCutText = 0;
 static int clientCutTextLen = 0;
+bool noclipboard = false;
 
 static XserverDesktop* queryConnectDesktop = 0;
 static void* queryConnectId = 0;
@@ -461,6 +462,10 @@ static void SendSelectionChangeEvent(Atom selection)
 
 static int ProcVncExtSetParam(ClientPtr client)
 {
+  char* value1 = 0;
+  char* value2 = 0;
+  rfb::VoidParameter *desktop1, *desktop2;
+
   REQUEST(xVncExtSetParamReq);
   REQUEST_FIXED_SIZE(xVncExtSetParamReq, stuff->paramLen);
   CharArray param(stuff->paramLen+1);
@@ -471,19 +476,28 @@ static int ProcVncExtSetParam(ClientPtr client)
   int n;
   rep.type = X_Reply;
   rep.length = 0;
+  rep.success = 0;
   rep.sequenceNumber = client->sequence;
 
   // Retrieve desktop name before setting
-  char* value1 = 0;
-  rfb::VoidParameter* desktop1 = rfb::Configuration::getParam("desktop");
+  desktop1 = rfb::Configuration::getParam("desktop");
   if (desktop1)
     value1 = desktop1->getValueStr();
+
+  /*
+   * Allow to change only clipboard parameters and desktop name.
+   * Changing other parameters (for example PAM service name)
+   * could have negative security impact.
+   */
+  if (strcasecmp(param.buf, "desktop") != 0 &&
+      (noclipboard || strcasecmp(param.buf, "SendCutText") != 0) &&
+      (noclipboard || strcasecmp(param.buf, "AcceptCutText") != 0))
+    goto deny;
 
   rep.success = rfb::Configuration::setParam(param.buf);
 
   // Send DesktopName update if desktop name has been changed
-  char* value2 = 0;
-  rfb::VoidParameter* desktop2 = rfb::Configuration::getParam("desktop");
+  desktop2 = rfb::Configuration::getParam("desktop");
   if (desktop2)
     value2 = desktop2->getValueStr();
   if (value1 && value2 && strcmp(value1, value2)) {
@@ -498,6 +512,7 @@ static int ProcVncExtSetParam(ClientPtr client)
   if (value2)
     delete [] value2;
 
+deny:
   if (client->swapped) {
     swaps(&rep.sequenceNumber, n);
     swapl(&rep.length, n);
