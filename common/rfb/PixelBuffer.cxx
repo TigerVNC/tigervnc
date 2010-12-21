@@ -225,25 +225,48 @@ void FullFramePixelBuffer::maskRect(const Rect& r, Pixel pixel, const void* mask
 
 void FullFramePixelBuffer::copyRect(const Rect &rect, const Point &move_by_delta) {
   int stride;
-  U8* data = getPixelsRW(getRect(), &stride);
-  // We assume that the specified rectangle is pre-clipped to the buffer
+  U8* data;
   unsigned int bytesPerPixel, bytesPerRow, bytesPerMemCpy;
-  Rect srect = rect.translate(move_by_delta.negate());
+  Rect drect, srect = rect.translate(move_by_delta.negate());
+
+  drect = rect;
+  if (!drect.enclosed_by(getRect())) {
+    vlog.error("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+               drect.width(), drect.height(), drect.tl.x, drect.tl.y, width_, height_);
+    drect = drect.intersect(getRect());
+  }
+
+  if (drect.is_empty())
+    return;
+
+  srect = drect.translate(move_by_delta.negate());
+  if (!srect.enclosed_by(getRect())) {
+    vlog.error("Source rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+               srect.width(), srect.height(), srect.tl.x, srect.tl.y, width_, height_);
+    srect = srect.intersect(getRect());
+    // Need to readjust the destination now that the area has changed
+    drect = srect.translate(move_by_delta);
+  }
+
+  if (srect.is_empty())
+    return;
+
+  data = getPixelsRW(getRect(), &stride);
   bytesPerPixel = getPF().bpp/8;
   bytesPerRow = stride * bytesPerPixel;
-  bytesPerMemCpy = rect.width() * bytesPerPixel;
+  bytesPerMemCpy = drect.width() * bytesPerPixel;
   if (move_by_delta.y <= 0) {
-    U8* dest = data + rect.tl.x*bytesPerPixel + rect.tl.y*bytesPerRow;
+    U8* dest = data + drect.tl.x*bytesPerPixel + drect.tl.y*bytesPerRow;
     U8* src = data + srect.tl.x*bytesPerPixel + srect.tl.y*bytesPerRow;
-    for (int i=rect.tl.y; i<rect.br.y; i++) {
+    for (int i=drect.tl.y; i<drect.br.y; i++) {
       memmove(dest, src, bytesPerMemCpy);
       dest += bytesPerRow;
       src += bytesPerRow;
     }
   } else {
-    U8* dest = data + rect.tl.x*bytesPerPixel + (rect.br.y-1)*bytesPerRow;
+    U8* dest = data + drect.tl.x*bytesPerPixel + (drect.br.y-1)*bytesPerRow;
     U8* src = data + srect.tl.x*bytesPerPixel + (srect.br.y-1)*bytesPerRow;
-    for (int i=rect.tl.y; i<rect.br.y; i++) {
+    for (int i=drect.tl.y; i<drect.br.y; i++) {
       memmove(dest, src, bytesPerMemCpy);
       dest -= bytesPerRow;
       src -= bytesPerRow;
