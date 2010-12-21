@@ -410,7 +410,8 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 
   (*pScreen->CopyWindow) (pWin, ptOldOrg, pOldRegion);
 
-  vncHooksScreen->desktop->add_copied(copied.reg, dx, dy);
+  if (REGION_NOTEMPTY(pScreen, copied.reg))
+    vncHooksScreen->desktop->add_copied(copied.reg, dx, dy);
 
   SCREEN_REWRAP(CopyWindow);
 }
