@@ -397,12 +397,16 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 {
   SCREEN_UNWRAP(pWin->drawable.pScreen, CopyWindow);
 
+  int dx, dy;
   RegionHelper copied(pScreen, pOldRegion);
-  int dx = pWin->drawable.x - ptOldOrg.x;
-  int dy = pWin->drawable.y - ptOldOrg.y;
+
+  dx = pWin->drawable.x - ptOldOrg.x;
+  dy = pWin->drawable.y - ptOldOrg.y;
+
+  // RFB tracks copies in terms of destination rectangle, not source.
+  // We also need to copy with changes to the Window's clipping region.
   REGION_TRANSLATE(pScreen, copied.reg, dx, dy);
-  REGION_INTERSECT(pWin->drawable.pScreen, copied.reg, copied.reg,
-                   &pWin->borderClip);
+  REGION_INTERSECT(pScreen, copied.reg, copied.reg, &pWin->borderClip);
 
   (*pScreen->CopyWindow) (pWin, ptOldOrg, pOldRegion);
 
