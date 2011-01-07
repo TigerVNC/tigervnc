@@ -198,6 +198,8 @@ public:
     y += secVnc.height();
     secPlain.move(xPad, y);
     y += secPlain.height();
+
+    xPad -= SECOND_COL_XPAD;
 #endif
 
     /* Render "OK" and "Cancel" buttons */
