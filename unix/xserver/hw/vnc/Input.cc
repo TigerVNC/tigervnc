@@ -520,6 +520,49 @@ static struct altKeysym_t {
 #define FREE_MAPS
 #endif
 
+#if XORG >= 17
+/*
+ * Modifier keysyms must be handled differently. Instead of finding
+ * the right row and collumn in the keymap, directly press/release
+ * the keycode which is mapped as modifier with the same keysym.
+ *
+ * This will avoid issues when there are multiple modifier keysyms
+ * in the keymap but only some of them are mapped as modifiers in
+ * the modmap.
+ *
+ * Returns keycode of the modifier key.
+ */
+
+static inline int isModifier(KeySymsPtr keymap, KeyCode *modmap,
+			      int maxKeysPerMod, rdr::U32 keysym)
+{
+	KeySym *map = keymap->map;
+	KeyCode minKeyCode = keymap->minKeyCode;
+	int mapWidth = keymap->mapWidth;
+	int i, j, k;
+
+	/* Find modifier index in the modmap */
+	for (i = 0; i < 8; i++) {
+		for (k = 0; k < maxKeysPerMod; k++) {
+			int index = i * maxKeysPerMod + k;
+			int keycode = modmap[index];
+
+			if (keycode == 0)
+				continue;
+
+			for (j = 0; j < mapWidth; j++) {
+				if (map[(keycode - minKeyCode) * mapWidth + j]
+				    == keysym) {
+					return keycode;
+				}
+			}
+		}
+	}
+
+	return -1; /* Not a modifier */
+}
+#endif
+
 void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 {
 #if XORG < 17
@@ -618,7 +661,26 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	}
 ModeSwitchFound:
 
+	int kc;
 	int col = 0;
+
+#if XORG >= 17
+	if ((kc = isModifier(keymap, modmap, maxKeysPerMod, keysym)) != -1) {
+		/*
+		 * It is a modifier key event.
+		 *
+		 * Don't do any auto-repeat because the X server will translate
+		 * each press into a release followed by a press.
+		 */
+		if (IS_PRESSED(keyc, kc) && down) {
+			FREE_MAPS;
+			return;
+		}
+
+		goto press;
+	}
+#endif
+
 	if (maxKeysPerMod != 0) {
 		if ((state & (1 << ShiftMapIndex)) != 0)
 			col |= 1;
@@ -627,7 +689,7 @@ ModeSwitchFound:
 			col |= 2;
 	}
 
-	int kc = KeysymToKeycode(keymap, keysym, &col);
+	kc = KeysymToKeycode(keymap, keysym, &col);
 
 	/*
 	 * Sort out the "shifted Tab" mess.  If we are sent a shifted Tab,
@@ -704,6 +766,7 @@ ModeSwitchFound:
 		return;
 	}
 
+#if XORG < 17
 	/*
 	 * See if it's a modifier key.  If so, then don't do any auto-repeat,
 	 * because the X server will translate each press into a release
@@ -718,6 +781,7 @@ ModeSwitchFound:
 			}	
 		}
 	}
+#endif
 
 	if (maxKeysPerMod != 0) {
 		ModifierState shift(keyboardDev, ShiftMapIndex);
@@ -739,8 +803,10 @@ ModeSwitchFound:
 		 * pressKey call, otherwise fake modifier keypress can be lost.
 		 */
 		pressKey(keyboardDev, kc, down, "keycode");
-	} else
+	} else {
+press:
 		pressKey(keyboardDev, kc, down, "keycode");
+	}
 
 
         FREE_MAPS;
