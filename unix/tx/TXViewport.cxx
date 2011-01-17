@@ -118,10 +118,21 @@ bool TXViewport::handleTimeout(rfb::Timer* timer) {
 
 void TXViewport::resizeNotify()
 {
+  int winMaxWidth, winMaxHeight;
+
+  winMaxWidth = child->width();
+  winMaxHeight = child->height();
+
   needXScrollbar = (!bumpScroll && width() < child->width() &&
 		    height() > scrollbarSize && width() > scrollbarSize);
   needYScrollbar = (!bumpScroll && height() < child->height() &&
 		    height() > scrollbarSize && width() > scrollbarSize);
+
+  if (needXScrollbar)
+    winMaxHeight += scrollbarSize;
+  if (needYScrollbar)
+    winMaxWidth += scrollbarSize;
+  setMaxSize(winMaxWidth, winMaxHeight);
 
   if (needXScrollbar && needYScrollbar) {
     clipper->resize(width()-scrollbarSize, height()-scrollbarSize);
