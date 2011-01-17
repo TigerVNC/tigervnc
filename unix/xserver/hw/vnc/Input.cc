@@ -781,6 +781,16 @@ ModeSwitchFound:
 			}	
 		}
 	}
+#else
+	/*
+	 * If you would like to press a key which is already pressed then
+	 * viewer didn't send the "release" event. In this case release it
+	 * before the press.
+	 */
+	if (IS_PRESSED(keyc, kc) && down) {
+		vlog.debug("KeyRelease for %d wasn't sent, releasing", kc);
+		pressKey(keyboardDev, kc, false, "fixing keycode");
+	}
 #endif
 
 	if (maxKeysPerMod != 0) {
