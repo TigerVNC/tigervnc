@@ -123,10 +123,19 @@ void TXViewport::resizeNotify()
   winMaxWidth = child->width();
   winMaxHeight = child->height();
 
-  needXScrollbar = (!bumpScroll && width() < child->width() &&
-		    height() > scrollbarSize && width() > scrollbarSize);
-  needYScrollbar = (!bumpScroll && height() < child->height() &&
-		    height() > scrollbarSize && width() > scrollbarSize);
+  needXScrollbar = false;
+  needYScrollbar = false;
+  if (!bumpScroll && height() > scrollbarSize && width() > scrollbarSize) {
+    needXScrollbar = (width() < child->width());
+    needYScrollbar = (height() < child->height());
+    // Adding an horizontal scrollbar occupies space, which might cause the
+    // need to add a vertical scrollbar, and vice-versa. These additional
+    // checks should solve this problem
+    if (needXScrollbar && (height() - scrollbarSize < child->height()))
+	needYScrollbar = true;
+    if (needYScrollbar && (width() - scrollbarSize < child->width()))
+	needXScrollbar = true;
+  }
 
   if (needXScrollbar)
     winMaxHeight += scrollbarSize;
