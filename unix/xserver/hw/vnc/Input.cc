@@ -533,6 +533,9 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	int mapWidth;
 	unsigned int i;
 	int j, k, state, maxKeysPerMod;
+#if XORG >= 17
+	KeybdCtrl ctrl;
+#endif
 
 	initInputDevice();
 
@@ -581,6 +584,18 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	minKeyCode = keymap->minKeyCode;
 	maxKeyCode = keymap->maxKeyCode;
 	mapWidth = keymap->mapWidth;
+
+#if XORG >= 17
+	/*
+	 * No server-side key repeating, please. Some clients won't work well,
+	 * check https://bugzilla.redhat.com/show_bug.cgi?id=607866.
+	 */
+	ctrl = keyboardDev->kbdfeed->ctrl;
+	if (ctrl.autoRepeat != FALSE) {
+		ctrl.autoRepeat = FALSE;
+		XkbSetRepeatKeys(keyboardDev, -1, ctrl.autoRepeat);
+	}
+#endif
 
 	/* find which modifier Mode_switch is on. */
 	int modeSwitchMapIndex = 0;
