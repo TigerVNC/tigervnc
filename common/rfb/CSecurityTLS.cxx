@@ -29,7 +29,9 @@
 #endif
 
 #include <stdlib.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 #include <rfb/CSecurityTLS.h>
 #include <rfb/SSecurityVeNCrypt.h> 
@@ -95,11 +97,16 @@ void CSecurityTLS::setDefaults()
   sprintf(caDefault.buf, "%s/.vnc/x509_certs", homeDir);
   delete [] homeDir;
 
+#ifndef WIN32
   /* XXX Do we need access() check here? */
   if (!access(caDefault.buf, R_OK))
     x509ca.setDefaultStr(strdup(caDefault.buf));
   else
     vlog.error("Failed to open ~/.vnc/x509_certs");
+#else
+  /* Windows doesn't have access() function. */
+  x509ca.setDefaultStr(strdup(caDefault.buf));
+#endif
 }
 
 void CSecurityTLS::shutdown()
