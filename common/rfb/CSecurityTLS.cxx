@@ -269,7 +269,16 @@ void CSecurityTLS::checkSession()
       throw AuthFailureException("decoding of certificate failed");
 
     if (gnutls_x509_crt_print(crt, GNUTLS_CRT_PRINT_ONELINE, &info)) {
+	/*
+	 * GNUTLS doesn't correctly export gnutls_free symbol which is
+	 * a function pointer. Linking with Visual Studio 2008 Express will
+	 * fail when you call gnutls_free().
+	 */
+#if WIN32
+	free(info.data);
+#else
         gnutls_free(info.data);
+#endif
 	throw AuthFailureException("Could not find certificate to display");
     }
 
@@ -354,7 +363,16 @@ void CSecurityTLS::checkSession()
         throw AuthFailureException("certificate not trusted");
 
     gnutls_x509_crt_deinit(crt);
+    /*
+     * GNUTLS doesn't correctly export gnutls_free symbol which is
+     * a function pointer. Linking with Visual Studio 2008 Express will
+     * fail when you call gnutls_free().
+     */
+#if WIN32
+    free(info.data);
+#else
     gnutls_free(info.data);
+#endif
   }
 }
 
