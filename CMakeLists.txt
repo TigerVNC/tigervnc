@@ -85,6 +85,14 @@ if(MINGW)
     "<CMAKE_RC_COMPILER> <FLAGS> <DEFINES> -o <OBJECT> --output-format=coff <SOURCE>")
 endif()
 
+# Check for GNUTLS library
+find_package(GnuTLS)
+if(GNUTLS_FOUND)
+  include_directories(${GNUTLS_INCLUDE_DIR})
+  add_definitions("-DHAVE_GNUTLS")
+  add_definitions(${GNUTLS_DEFINITIONS})
+endif()
+
 # Generate config.h
 include(CheckIncludeFiles)
 include(CheckFunctionExists)

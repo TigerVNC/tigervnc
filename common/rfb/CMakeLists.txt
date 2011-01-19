@@ -1,7 +1,7 @@
 include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/win
   ${CMAKE_SOURCE_DIR}/common/jpeg ${CMAKE_SOURCE_DIR}/common/jpeg/win)
 
-add_library(rfb STATIC
+set(RFB_SOURCES
   Blacklist.cxx
   CConnection.cxx
   CMsgHandler.cxx
@@ -66,4 +66,20 @@ add_library(rfb STATIC
   encodings.cxx
   util.cxx)
 
-target_link_libraries(rfb jpeg os)
+set(RFB_LIBRARIES jpeg os)
+
+if(GNUTLS_FOUND)
+  set(RFB_SOURCES
+    ${RFB_SOURCES}
+    CSecurityTLS.cxx
+    SSecurityTLS.cxx
+  )
+  set(RFB_LIBRARIES
+    ${RFB_LIBRARIES}
+    ${GNUTLS_LIBRARIES}
+  )
+endif()
+
+add_library(rfb STATIC ${RFB_SOURCES})
+
+target_link_libraries(rfb ${RFB_LIBRARIES})

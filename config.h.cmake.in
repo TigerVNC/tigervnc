@@ -4,3 +4,8 @@
 #cmakedefine HAVE_STRCASECMP
 #cmakedefine HAVE_STRNCASECMP
 #cmakedefine HAVE_VSNPRINTF
+
+/* MS Visual Studio 2008 and newer doesn't know ssize_t */
+#if defined(HAVE_GNUTLS) && defined(WIN32)
+#define ssize_t long
+#endif
