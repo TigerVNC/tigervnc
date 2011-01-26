@@ -224,15 +224,25 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
   try {
     // - Initialise the available loggers
     //freopen("\\\\drupe\\tjr\\WinVNC4.log","ab",stderr);
-    //setbuf(stderr, 0);
-    initStdIOLoggers();
+#ifdef _DEBUG
+    AllocConsole();
+	freopen("CONIN$", "rb", stdin);
+	freopen("CONOUT$", "wb", stdout);
+	freopen("CONOUT$", "wb", stderr);
+    setbuf(stderr, 0);
+	initStdIOLoggers();
+	initFileLogger("C:\\temp\\WinVNC4.log");
+	logParams.setParam("*:stderr:100");
+#else
     initFileLogger("C:\\temp\\WinVNC4.log");
+	logParams.setParam("*:stderr:0");
+#endif
     rfb::win32::initEventLogLogger(VNCServerService::Name);
 
 	Configuration::enableServerParams();
 
     // - By default, just log errors to stderr
-    logParams.setParam("*:stderr:0");
+    
 
     // - Print program details and process the command line
     programInfo();
