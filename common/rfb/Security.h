@@ -80,6 +80,8 @@ namespace rfb {
     void EnableSecType(rdr::U32 secType);
     void DisableSecType(rdr::U32 secType) { enabledSecTypes.remove(secType); }
 
+    void SetSecTypes(std::list<rdr::U32> &secTypes) { enabledSecTypes = secTypes; }
+
     /* Check if certain type is supported */
     bool IsSupported(rdr::U32 secType);
 
