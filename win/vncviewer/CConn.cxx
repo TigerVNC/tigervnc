@@ -172,6 +172,8 @@ CConn::applyOptions(CConnOptions& opt) {
     if (!options.useLocalCursor)
       window->setCursor(0, 0, Point(), 0, 0);
   }
+
+  security->SetSecTypes(options.secTypes);
 }
 
 

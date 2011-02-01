@@ -501,6 +501,7 @@ CConnOptions& CConnOptions::operator=(const CConnOptions& o) {
   qualityLevel = o.qualityLevel;
   autoScaling = o.autoScaling;
   scale = o.scale;
+  secTypes = o.secTypes;
 
   return *this;
 }
