@@ -90,9 +90,10 @@ CConn::~CConn() {
 bool CConn::initialise(network::Socket* s, bool reverse) {
   // Set the server's name for MRU purposes
   CharArray endpoint(s->getPeerEndpoint());
-  setServerName(endpoint.buf);
+
   if (!options.host.buf)
     options.setHost(endpoint.buf);
+  setServerName(options.host.buf);
 
   // Initialise the underlying CConnection
   setStreams(&s->inStream(), &s->outStream());

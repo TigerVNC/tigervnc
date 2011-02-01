@@ -116,7 +116,7 @@ CConn::CConn(Display* dpy_, int argc_, char** argv_, network::Socket* sock_,
 
   sameMachine = sock->sameMachine();
   sock->inStream().setBlockCallback(this);
-  setServerName(sock->getPeerEndpoint());
+  setServerName(serverHost);
   setStreams(&sock->inStream(), &sock->outStream());
   initialiseProtocol();
 }
