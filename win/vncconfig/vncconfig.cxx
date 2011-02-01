@@ -149,7 +149,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
 
       // Build the dialog
       std::list<PropSheetPage*> pages;
-      AuthenticationPage auth(rootKey); pages.push_back(&auth);
+      SecPage auth(rootKey); pages.push_back(&auth);
       auth.setWarnPasswdInsecure(warnOnChangePassword);
       ConnectionsPage conn(rootKey); pages.push_back(&conn);
       InputsPage inputs(rootKey); pages.push_back(&inputs);

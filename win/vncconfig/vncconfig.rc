@@ -66,29 +66,40 @@ IDI_ICON                ICON    DISCARDABLE     "vncconfig.ico"
 // Dialog
 //
 
-IDD_AUTHENTICATION DIALOG DISCARDABLE  0, 0, 193, 135
+IDD_SECURITY DIALOG DISCARDABLE  0, 0, 180, 220
 STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Authentication"
+CAPTION "Security"
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "No Authentication",IDC_AUTH_NONE,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,7,10,113,15
-    CONTROL         "VNC Password Authentication",IDC_AUTH_VNC,"Button",
-                    BS_AUTORADIOBUTTON,7,30,113,15
-    PUSHBUTTON      "Configure",IDC_AUTH_VNC_PASSWD,125,30,61,15
-    CONTROL         "NT Logon Authentication",IDC_AUTH_NT,"Button",
-                    BS_AUTORADIOBUTTON,7,50,113,15
-    PUSHBUTTON      "Configure",IDC_AUTH_NT_CONF,125,50,61,15
-    LTEXT           "Encryption:",IDC_STATIC,7,70,42,15,SS_CENTERIMAGE
-    COMBOBOX        IDC_ENCRYPTION,49,70,71,50,CBS_DROPDOWN | WS_VSCROLL | 
-                    WS_TABSTOP
-    PUSHBUTTON      "Generate Keys",IDC_AUTH_RA2_CONF,125,70,61,15
-    CONTROL         "Prompt local user to accept connections",
-                    IDC_QUERY_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    7,95,181,15
-    CONTROL         "Only prompt when there is a user logged on",
-                    IDC_QUERY_LOGGED_ON,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,20,110,166,15
+    CONTROL		"Extended encryption and authentication methods (VeNCrypt)",
+			IDC_VENCRYPT, "Button", BS_AUTOCHECKBOX | WS_TABSTOP,
+			7,10,200,15
+    GROUPBOX		"Session encryption", IDC_STATIC, 7,25,120,60
+    CONTROL		"None", IDC_ENC_NONE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP,
+			10,35,50,15
+    CONTROL		"Anonymous TLS", IDC_ENC_TLS, "Button",
+			BS_AUTOCHECKBOX | WS_TABSTOP, 10,50,80,15
+    CONTROL		"TLS with X.509 certificates", IDC_ENC_X509, "Button",
+			BS_AUTOCHECKBOX | WS_TABSTOP, 10,65,110,15
+    GROUPBOX		"X.509 certificates", IDC_STATIC, 7,90,185,30
+    PUSHBUTTON		"Load X.509 Certificate", IDC_LOAD_CERT, 10,100,80,15
+    PUSHBUTTON		"Load X.509 Certificate key", IDC_LOAD_CERTKEY, 90,100,100,15
+    GROUPBOX		"Authentication", IDC_STATIC, 7,125,170,60
+    CONTROL		"None", IDC_AUTH_NONE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP,
+			10,135,50,15
+    CONTROL		"Standard VNC", IDC_AUTH_VNC, "Button",
+			BS_AUTOCHECKBOX | WS_TABSTOP, 10,150,80,15
+    PUSHBUTTON		"Configure", IDC_AUTH_VNC_PASSWD, 100,150,61,15
+/*
+    CONTROL		"Plaintext", IDC_AUTH_PLAIN, "Button",
+			BS_AUTOCHECKBOX | WS_TABSTOP, 10,165,70,15
+*/
+    CONTROL		"Prompt local user to accept connections",
+			IDC_QUERY_CONNECT, "Button", BS_AUTOCHECKBOX | WS_TABSTOP,
+			7,185,181,15
+    CONTROL		"Only prompt when there is a user logged on",
+			IDC_QUERY_LOGGED_ON, "Button", BS_AUTOCHECKBOX | 
+			WS_TABSTOP,20,200,166,15
 END
 
 IDD_CONNECTIONS DIALOG DISCARDABLE  0, 0, 218, 198
