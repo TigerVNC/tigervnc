@@ -1,7 +1,7 @@
-//{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
 // Used by vncviewer.rc
-//
+
+#include <rfb_win32/resource.h>
+
 #define IDR_MANIFEST                    1
 #define IDI_ICON                        101
 #define IDD_VNC_AUTH_DLG                102
@@ -16,7 +16,6 @@
 #define IDR_TRAY                        112
 #define IDD_CONNECTION_INFO             113
 #define IDD_DEFAULTS                    116
-#define IDD_SECURITY                    117
 #define IDB_BITMAP                      120
 #define IDB_TOOLBAR                     122
 #define IDC_PASSWORD                    1000
@@ -86,15 +85,8 @@
 #define IDC_STATIC_SCALE                1097
 #define IDC_COMBO_SCALE                 1098
 #define IDC_STATIC_PERCENT              1099
-#define IDC_VENCRYPT                    1200
-#define IDC_ENC_NONE                    1201
-#define IDC_ENC_TLS                     1202
-#define IDC_ENC_X509                    1203
-#define IDC_LOAD_CACERT                 1204
-#define IDC_LOAD_CRLCERT                1205
-#define IDC_AUTH_NONE                   1206
-#define IDC_AUTH_VNC                    1207
-#define IDC_AUTH_PLAIN                  1208
+#define IDC_LOAD_CACERT                 1100
+#define IDC_LOAD_CRLCERT                1101
 #define ID_TOOLBAR                      4002
 #define ID_CLOSE                        4003
 #define ID_OPTIONS                      4004
