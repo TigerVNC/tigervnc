@@ -90,6 +90,9 @@ namespace rfb {
     /* Get list of enabled VeNCrypt subtypes */
     const std::list<rdr::U32> GetEnabledExtSecTypes(void);
 
+    /* Output char* is stored in static array */
+    char *ToString(void);
+
   private:
     std::list<rdr::U32> enabledSecTypes;
   };

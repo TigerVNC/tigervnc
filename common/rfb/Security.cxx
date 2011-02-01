@@ -108,6 +108,30 @@ bool Security::IsSupported(U32 secType)
   return false;
 }
 
+char *Security::ToString(void)
+{
+  list<U32>::iterator i;
+  static char out[128]; /* Should be enough */
+  bool firstpass = true;
+  const char *name;
+
+  memset(out, 0, sizeof(out));
+
+  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++) {
+    name = secTypeName(*i);
+    if (name[0] == '[') /* Unknown security type */
+      continue;
+
+    if (!firstpass)
+      strncat(out, ",", sizeof(out) - 1);
+    else
+      firstpass = false;
+    strncat(out, name, sizeof(out) - 1);
+  }
+
+  return out;
+}
+
 rdr::U32 rfb::secTypeNum(const char* name)
 {
   if (strcasecmp(name, "None") == 0)       return secTypeNone;
