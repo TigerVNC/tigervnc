@@ -20,6 +20,7 @@ set(RFB_WIN32_SOURCES
   RegConfig.cxx
   Registry.cxx
   ScaledDIBSectionBuffer.cxx
+  SecurityPage.cxx
   SDisplayCorePolling.cxx
   SDisplayCoreWMHooks.cxx
   SDisplay.cxx

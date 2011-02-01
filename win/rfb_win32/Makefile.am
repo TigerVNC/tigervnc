@@ -32,7 +32,9 @@ HDRS = \
   ProgressControl.h \
   RegConfig.h \
   Registry.h \
+  resource.h \
   ScaledDIBSectionBuffer.h \
+  SecurityPage.h \
   SDisplayCoreDriver.h \
   SDisplayCorePolling.h \
   SDisplayCoreWMHooks.h \
@@ -76,6 +78,7 @@ librfb_win32_la_SOURCES = $(HDRS) \
   RegConfig.cxx \
   Registry.cxx \
   ScaledDIBSectionBuffer.cxx \
+  SecurityPage.cxx \
   SDisplayCorePolling.cxx \
   SDisplayCoreWMHooks.cxx \
   SDisplay.cxx \
