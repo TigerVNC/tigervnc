@@ -101,8 +101,10 @@ void CSecurityTLS::setDefaults()
   sprintf(crlDefault.buf, "%s509_crl.pem", homeDir);
   delete [] homeDir;
 
-  x509ca.setDefaultStr(strdup(caDefault.buf));
-  x509crl.setDefaultStr(strdup(crlDefault.buf));
+ if (!fileexists(caDefault.buf))
+   x509ca.setDefaultStr(strdup(caDefault.buf));
+ if (!fileexists(crlDefault.buf))
+   x509crl.setDefaultStr(strdup(crlDefault.buf));
 }
 
 void CSecurityTLS::shutdown()
