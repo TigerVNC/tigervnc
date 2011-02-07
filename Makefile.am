@@ -20,7 +20,7 @@ dmg: all
 	sh $(srcdir)/release/makemacpkg ${PACKAGE_NAME} ${VERSION} ${BUILD} ${srcdir}
 
 EXTRA_DIST = CMakeLists.txt cmakescripts/getdate.bat LICENCE.TXT \
-	doc java media release
+	doc java media release config.h.cmake.in
 
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`
