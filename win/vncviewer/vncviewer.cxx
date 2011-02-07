@@ -31,6 +31,7 @@
 #include <vncviewer/OptionsDialog.h>
 #include <vncviewer/ListenTrayIcon.h>
 #include <network/TcpSocket.h>
+#include <os/os.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/Logger_file.h>
 #include <rfb/LogWriter.h>
@@ -219,6 +220,17 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
       hosts.push_back(0);
 
     programInfo();
+
+    // Create vnc in the user's home directory if it doesn't already exist
+    char* homeDir = NULL;
+    if (getvnchomedir(&homeDir) == -1)
+      vlog.error("Could not create vnc directory: can't obtain home directory path");
+    else {
+      int result = CreateDirectory(homeDir, NULL);
+      if (result <= 0 && GetLastError() != ERROR_ALREADY_EXISTS)
+        vlog.error("Could not create vnc directory: %u", GetLastError());
+      delete [] homeDir;
+    }
 
     // - Connect to the clients
     if (!configFiles.empty() || !hosts.empty() || acceptIncoming) {
