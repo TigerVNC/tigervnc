@@ -89,25 +89,20 @@ void CSecurityTLS::setDefaults()
 {
   char* homeDir = NULL;
 
-  if (gethomedir(&homeDir) == -1) {
-    vlog.error("Could not obtain home directory path");
+  if (getvnchomedir(&homeDir) == -1) {
+    vlog.error("Could not obtain VNC home directory path");
     return;
   }
 
-  CharArray caDefault(strlen(homeDir)+17);
-  sprintf(caDefault.buf, "%s/.vnc/x509_certs", homeDir);
+  int len = strlen(homeDir) + 1;
+  CharArray caDefault(len + 7);
+  CharArray crlDefault(len + 8);
+  sprintf(caDefault.buf, "%sx509_ca", homeDir);
+  sprintf(crlDefault.buf, "%s509_crl", homeDir);
   delete [] homeDir;
 
-#ifndef WIN32
-  /* XXX Do we need access() check here? */
-  if (!access(caDefault.buf, R_OK))
-    x509ca.setDefaultStr(strdup(caDefault.buf));
-  else
-    vlog.error("Failed to open ~/.vnc/x509_certs");
-#else
-  /* Windows doesn't have access() function. */
   x509ca.setDefaultStr(strdup(caDefault.buf));
-#endif
+  x509crl.setDefaultStr(strdup(crlDefault.buf));
 }
 
 void CSecurityTLS::shutdown()
@@ -349,13 +344,13 @@ void CSecurityTLS::checkSession()
 	  < 0)
         AuthFailureException("certificate issuer unknown, and certificate "
 			     "export failed");
-      
-      if (gethomedir(&homeDir) == -1)
-        vlog.error("Could not obtain home directory path");
+
+      if (getvnchomedir(&homeDir) == -1)
+        vlog.error("Could not obtain VNC home directory path");
       else {
 	FILE *f;
-        CharArray caSave(strlen(homeDir)+17);
-	sprintf(caSave.buf, "%s/.vnc/x509_certs", homeDir);
+	CharArray caSave(strlen(homeDir) + 11);
+	sprintf(caSave.buf, "%sx509_certs", homeDir);
 	delete [] homeDir;
        	f = fopen(caSave.buf, "a+");
 	if (!f)

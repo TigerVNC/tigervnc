@@ -24,7 +24,8 @@
 #endif
 
 /*
- * Get home directory. If HOME environment variable is set then it is returned.
+ * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
+ * If HOME environment variable is set then it is used.
  * Otherwise home directory is obtained via getpwuid function.
  *
  * Note for Windows:
@@ -34,6 +35,6 @@
  * 0 - Success
  * -1 - Failure
  */
-int gethomedir(char **dirp);
+int getvnchomedir(char **dirp);
 
 #endif /* OS_OS_H */

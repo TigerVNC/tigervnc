@@ -102,14 +102,13 @@ int main(int argc, char** argv)
 
   if (!fname) {
     char *homeDir = NULL;
-    if (gethomedir(&homeDir) == -1) {
-      fprintf(stderr, "Can't obtain home directory\n");
+    if (getvnchomedir(&homeDir) == -1) {
+      fprintf(stderr, "Can't obtain VNC home directory\n");
       exit(1);
     }
-    fname = new char[strlen(homeDir) + 20];
-    sprintf(fname, "%s/.vnc", homeDir);
-    mkdir(fname, 0777);
-    sprintf(fname, "%s/.vnc/passwd", homeDir);
+    mkdir(homeDir, 0777);
+    fname = new char[strlen(homeDir) + 7];
+    sprintf(fname, "%spasswd", homeDir);
     delete [] homeDir;
   }
 

@@ -36,7 +36,7 @@
 #include <shlobj.h>
 #endif
 
-int gethomedir(char **dirp)
+int getvnchomedir(char **dirp)
 {
 #ifndef WIN32
 	char *homedir, *dir;
@@ -62,12 +62,13 @@ int gethomedir(char **dirp)
 		homedir = passwd->pw_dir;
 	}
 
-	len = strlen(homedir) + 1;
-	dir = new char[len];
+	len = strlen(homedir);
+	dir = new char[len+7];
 	if (dir == NULL)
 		return -1;
 
 	memcpy(dir, homedir, len);
+	memcpy(dir + len, "/.vnc/\0", 7);
 #else
 	dir = new TCHAR[MAX_PATH];
 	if (dir == NULL)
@@ -78,10 +79,8 @@ int gethomedir(char **dirp)
 		delete [] dir;
 		return -1;
 	}
-
-	
+	memcpy(dir+strlen(dir), (TCHAR *)"\\vnc\\\0", 6);
 #endif
-
 	*dirp = dir;
 	return 0;
 }
