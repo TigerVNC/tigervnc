@@ -95,10 +95,10 @@ void CSecurityTLS::setDefaults()
   }
 
   int len = strlen(homeDir) + 1;
-  CharArray caDefault(len + 7);
-  CharArray crlDefault(len + 8);
-  sprintf(caDefault.buf, "%sx509_ca", homeDir);
-  sprintf(crlDefault.buf, "%s509_crl", homeDir);
+  CharArray caDefault(len + 11);
+  CharArray crlDefault(len + 12);
+  sprintf(caDefault.buf, "%sx509_ca.pem", homeDir);
+  sprintf(crlDefault.buf, "%s509_crl.pem", homeDir);
   delete [] homeDir;
 
   x509ca.setDefaultStr(strdup(caDefault.buf));
@@ -349,8 +349,8 @@ void CSecurityTLS::checkSession()
         vlog.error("Could not obtain VNC home directory path");
       else {
 	FILE *f;
-	CharArray caSave(strlen(homeDir) + 11);
-	sprintf(caSave.buf, "%sx509_certs", homeDir);
+	CharArray caSave(strlen(homeDir) + 1 + 19);
+	sprintf(caSave.buf, "%sx509_savedcerts.pem", homeDir);
 	delete [] homeDir;
        	f = fopen(caSave.buf, "a+");
 	if (!f)
