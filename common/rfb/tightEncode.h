@@ -574,6 +574,8 @@ static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
 
   jpeg_set_defaults(&cinfo);
   jpeg_set_quality(&cinfo, s_pjconf->jpegQuality, TRUE);
+  if(s_pjconf->jpegQuality >= 96) cinfo.dct_method = JDCT_ISLOW;
+  else cinfo.dct_method = JDCT_FASTEST;
 
   switch (s_pjconf->jpegSubSample) {
   case SUBSAMP_420:
