@@ -173,6 +173,8 @@ fi
 AC_LANG_RESTORE
 AC_SUBST(INET_LIB)
 
+AC_CHECK_FUNC(setenv, AC_DEFINE([HAVE_SETENV], [1], [Is setenv() present?]))
+
 dnl Check for zlib library
 INCLUDED_ZLIB=no
 AC_ARG_WITH([included-zlib],
