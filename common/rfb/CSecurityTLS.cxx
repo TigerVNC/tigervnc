@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2004 Red Hat Inc.
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
@@ -27,6 +27,17 @@
 #ifndef HAVE_GNUTLS
 #error "This header should not be compiled without HAVE_GNUTLS defined"
 #endif
+
+#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020708)
+#define GNUTLS_CERT_NOT_ACTIVATED 512
+#define GNUTLS_CERT_EXPIRED 1024
+#endif
+
+#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020301)
+#define GNUTLS_CRT_PRINT_ONELINE 1
+#endif
+
+
 
 #include <stdlib.h>
 #ifndef WIN32
@@ -237,7 +248,7 @@ void CSecurityTLS::checkSession()
   const gnutls_datum *cert_list;
   unsigned int cert_list_size = 0;
   unsigned int i;
-  gnutls_datum_t info;
+  gnutls_datum info;
 
   if (anon)
     return;
@@ -273,6 +284,7 @@ void CSecurityTLS::checkSession()
     if (gnutls_x509_crt_import(crt, &cert_list[i],GNUTLS_X509_FMT_DER) < 0)
       throw AuthFailureException("decoding of certificate failed");
 
+    #if defined(GNUTLS_VERSION_NUMBER) && (GNUTLS_VERSION_NUMBER >= 0x010706)
     if (gnutls_x509_crt_print(crt, GNUTLS_CRT_PRINT_ONELINE, &info)) {
 	/*
 	 * GNUTLS doesn't correctly export gnutls_free symbol which is
@@ -286,6 +298,7 @@ void CSecurityTLS::checkSession()
 #endif
 	throw AuthFailureException("Could not find certificate to display");
     }
+    #endif
 
     if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
       char buf[255];
