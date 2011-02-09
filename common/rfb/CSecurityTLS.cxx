@@ -28,17 +28,6 @@
 #error "This header should not be compiled without HAVE_GNUTLS defined"
 #endif
 
-#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020708)
-#define GNUTLS_CERT_NOT_ACTIVATED 512
-#define GNUTLS_CERT_EXPIRED 1024
-#endif
-
-#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020301)
-#define GNUTLS_CRT_PRINT_ONELINE 1
-#endif
-
-
-
 #include <stdlib.h>
 #ifndef WIN32
 #include <unistd.h>
@@ -56,6 +45,16 @@
 #include <os/print.h>
 
 #include <gnutls/x509.h>
+
+#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020708)
+#error here
+#define GNUTLS_CERT_NOT_ACTIVATED 512
+#define GNUTLS_CERT_EXPIRED 1024
+#endif
+
+#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020301)
+#define GNUTLS_CRT_PRINT_ONELINE 1
+#endif
 
 #define TLS_DEBUG
 
