@@ -19,7 +19,7 @@ dmg: all
 	sh makemacpkg
 
 EXTRA_DIST = CMakeLists.txt cmakescripts/getdate.bat LICENCE.TXT \
-	doc java media release config.h.cmake.in
+	doc java media release config.h.cmake.in m4
 
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`
