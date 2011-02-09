@@ -47,7 +47,6 @@
 #include <gnutls/x509.h>
 
 #if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020708)
-#error here
 #define GNUTLS_CERT_NOT_ACTIVATED 512
 #define GNUTLS_CERT_EXPIRED 1024
 #endif
