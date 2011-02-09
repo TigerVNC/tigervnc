@@ -433,6 +433,14 @@ The following commands can be used to create various types of release packages:
 Unix
 ----
 
+make tarball
+
+  Create a binary tarball containing the TigerVNC Viewer
+
+make servertarball
+
+  Create a binary tarball containing both the TigerVNC Server and Viewer
+
 make dmg
 
   Create Macintosh package/disk image.  This requires the PackageMaker

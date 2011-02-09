@@ -18,6 +18,12 @@ endif
 dmg: all
 	sh makemacpkg
 
+tarball: all
+	sh maketarball
+
+servertarball: all
+	sh maketarball server
+
 EXTRA_DIST = CMakeLists.txt cmakescripts/getdate.bat LICENCE.TXT \
 	doc java media release config.h.cmake.in m4
 

@@ -1,0 +1,44 @@
+#!/bin/sh
+
+set -u
+set -e
+trap onexit INT
+trap onexit TERM
+trap onexit EXIT
+
+TMPDIR=
+
+onexit()
+{
+	if [ ! "$TMPDIR" = "" ]; then
+		rm -rf $TMPDIR
+	fi
+}
+
+PACKAGE_NAME=@PACKAGE_NAME@
+VERSION=@VERSION@
+BUILD=@BUILD@
+SRCDIR=@srcdir@
+PACKAGE_FILE=$PACKAGE_NAME-`uname -s`-@host_cpu@.tar.gz
+SERVER=0
+
+if [ $# -gt 0 ]; then
+	if [ "$1" = "server" ]; then
+		SERVER=1
+	fi
+fi
+
+umask 022
+TMPDIR=`mktemp -d /tmp/$PACKAGE_NAME-build.XXXXXX`
+rm -f $PACKAGE_FILE
+if [ $SERVER = 1 ]; then
+	make xserver-install prefix=/opt/TigerVNC DESTDIR=$TMPDIR
+else
+	make install prefix=/opt/TigerVNC DESTDIR=$TMPDIR
+fi
+pushd $TMPDIR
+tar cfz $PACKAGE_FILE opt
+popd
+cp $TMPDIR/$PACKAGE_FILE .
+
+exit
