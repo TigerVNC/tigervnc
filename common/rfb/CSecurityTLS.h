@@ -55,7 +55,7 @@ namespace rfb {
     static UserMsgBox *msg;
 
   protected:
-    void shutdown();
+    void shutdown(bool needbye);
     void freeResources();
     void setParam();
     void checkSession();

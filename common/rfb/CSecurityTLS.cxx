@@ -116,11 +116,11 @@ void CSecurityTLS::setDefaults()
    x509crl.setDefaultStr(strdup(crlDefault.buf));
 }
 
-void CSecurityTLS::shutdown()
+void CSecurityTLS::shutdown(bool needbye)
 {
-  if (session)
+  if (session && needbye)
     if (gnutls_bye(session, GNUTLS_SHUT_RDWR) != GNUTLS_E_SUCCESS)
-      throw Exception("gnutls_bye failed");
+      vlog.error("gnutls_bye failed");
 
   if (anon_cred) {
     gnutls_anon_free_client_credentials(anon_cred);
@@ -143,7 +143,7 @@ void CSecurityTLS::shutdown()
 
 CSecurityTLS::~CSecurityTLS()
 {
-  shutdown();
+  shutdown(true);
 
   if (fis)
     delete fis;
@@ -191,7 +191,7 @@ bool CSecurityTLS::processMsg(CConnection* cc)
 
   if (err != GNUTLS_E_SUCCESS) {
     vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
-    shutdown();
+    shutdown(false);
     throw AuthFailureException("TLS Handshake failed");
   }
 
