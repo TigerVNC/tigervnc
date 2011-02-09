@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 #
+#  Copyright (C) 2009-2010 D. R. Commander.  All Rights Reserved.
 #  Copyright (C) 2005-2006 Sun Microsystems, Inc.  All Rights Reserved.
 #  Copyright (C) 2002-2003 Constantin Kaplinsky.  All Rights Reserved.
 #  Copyright (C) 2002-2005 RealVNC Ltd.
@@ -121,11 +122,13 @@ if ($fontPath eq "") {
 # Check command line options
 
 &ParseOptions("-geometry",1,"-depth",1,"-pixelformat",1,"-name",1,"-kill",1,
-	      "-help",0,"-h",0,"--help",0,"-fp",1);
+	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
 &Kill() if ($opt{'-kill'});
+
+&List() if ($opt{'-list'});
 
 # Uncomment this line if you want default geometry, depth and pixelformat
 # to match the current X display:
@@ -525,7 +528,28 @@ sub Usage
 	"                 [-pixelformat rgbNNN|bgrNNN]\n".
 	"                 [-fp <font-path>]\n".
 	"                 <Xvnc-options>...\n\n".
-	"       $prog -kill <X-display>\n\n");
+	"       $prog -kill <X-display>\n\n".
+	"       $prog -list\n\n");
+}
+
+
+#
+# List
+#
+
+sub List
+{
+    opendir(dir, $vncUserDir);
+    my @filelist = readdir(dir);
+    closedir(dir);
+    print "\nTurboVNC server sessions:\n\n";
+    print "X DISPLAY #\tPROCESS ID\n";
+    foreach my $file (@filelist) {
+	if ($file =~ /$host:(\d+)$\.pid/) {
+	    print ":".$1."\t\t".`cat $vncUserDir/$file`;
+	}
+    }
+    exit 1;
 }
 
 
@@ -555,7 +579,33 @@ sub Kill
     $SIG{'HUP'} = 'IGNORE';
     chop($pid = `cat $pidFile`);
     warn "Killing Xvnc process ID $pid\n";
-    system("kill $pid");
+
+    if (kill 0, $pid) {
+	system("kill $pid");
+	sleep(1);
+	if (kill 0, $pid) {
+	    print "Xvnc seems to be deadlocked.  Kill the process manually and then re-run\n";
+	    print "    ".$0." -kill ".$opt{'-kill'}."\n";
+	    print "to clean up the socket files.\n";
+	    exit
+	}
+
+    } else {
+	warn "Xvnc process ID $pid already killed\n";
+	$opt{'-kill'} =~ s/://;
+    
+	if (-e "/tmp/.X11-unix/X$opt{'-kill'}") {
+	    print "Xvnc did not appear to shut down cleanly.";
+	    print " Removing /tmp/.X11-unix/X$opt{'-kill'}\n";
+	    unlink "/tmp/.X11-unix/X$opt{'-kill'}";
+	}
+	if (-e "/tmp/.X$opt{'-kill'}-lock") {
+	    print "Xvnc did not appear to shut down cleanly.";
+	    print " Removing /tmp/.X$opt{'-kill'}-lock\n";
+	    unlink "/tmp/.X$opt{'-kill'}-lock";
+	}
+    }
+
     unlink $pidFile;
     exit;
 }
