@@ -26,6 +26,19 @@
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 
+#ifndef HAVE_GNUTLS_DATUM_T
+typedef gnutls_datum gnutls_datum_t;
+#endif
+#ifndef HAVE_GNUTLS_CRT_T
+typedef gnutls_x509_crt gnutls_x509_crt_t;
+#endif
+#ifndef HAVE_GNUTLS_PK_ALGORITHM_T
+typedef gnutls_pk_algorithm gnutls_pk_algorithm_t;
+#endif
+#ifndef HAVE_GNUTLS_SIGN_ALGORITHM_T
+typedef gnutls_sign_algorithm gnutls_sign_algorithm_t;
+#endif
+
 #ifndef HAVE_GNUTLS_X509_CRT_PRINT
 #ifdef WIN32
 #error "Please install more recent GNUTLS with gnutls_x509_crt_print() function"

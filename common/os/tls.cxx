@@ -38,6 +38,11 @@ using namespace std;
 
 #ifndef HAVE_GNUTLS_X509_CRT_PRINT
 
+/* Ancient GNUTLS... */
+#if !defined(GNUTLS_VERSION_NUMBER) && !defined(LIBGNUTLS_VERSION_NUMBER)
+#define GNUTLS_DIG_SHA1 GNUTLS_DIG_SHA
+#endif
+
 #define UNKNOWN_SUBJECT(err) \
 	do { \
 		ss << "unknown subject (" << gnutls_strerror(err) << "), "; \

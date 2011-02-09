@@ -112,7 +112,9 @@ if test "x$enable_gnutls" = xyes; then
 		       [AC_DEFINE(HAVE_GNUTLS_X509_CRT_PRINT, 1, [Is the gnutls_x509_crt_print() function present? ])
 			AC_MSG_RESULT(yes)],
 			AC_MSG_RESULT(no))
-	
+	AC_CHECK_TYPES([gnutls_x509_crt_t, gnutls_datum_t,
+			gnutls_pk_algorithm_t, gnutls_sign_algorithm_t],
+			[], [], [#include <gnutls/gnutls.h>])
 	LIBS=${SAVE_LIBS}
 fi
 AC_SUBST([GNUTLS_LIBS])

@@ -57,6 +57,11 @@
 #define WITHOUT_X509_TIMES
 #endif
 
+/* Ancient GNUTLS... */
+#if !defined(GNUTLS_VERSION_NUMBER) && !defined(LIBGNUTLS_VERSION_NUMBER)
+#define WITHOUT_X509_TIMES
+#endif
+
 #define TLS_DEBUG
 
 using namespace rfb;
