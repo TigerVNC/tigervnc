@@ -8,19 +8,25 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2005-03-01 20:37+0100\n"
+"POT-Creation-Date: 2011-02-09 17:10+0100\n"
 "PO-Revision-Date: 2006-04-13 20:13+0700\n"
 "Last-Translator: Constantin Kaplinsky <const@tightvnc.com>\n"
 "Language-Team: Russian\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "About VNC Viewer"
+#, fuzzy
+msgid "About TigerVNC Viewer"
 msgstr "О VNC Viewer"
 
 msgid "VNC authentication"
 msgstr "Аутентификация VNC"
+
+#, c-format
+msgid "TigerVNC: %.240s"
+msgstr ""
 
 msgid "Exit viewer"
 msgstr "Выход"
@@ -53,7 +59,8 @@ msgstr "Параметры..."
 msgid "Connection info..."
 msgstr "Информация о соединении..."
 
-msgid "About VNCviewer..."
+#, fuzzy
+msgid "About TigerVNC viewer..."
 msgstr "О VNC Viewer..."
 
 msgid "Dismiss menu"
@@ -158,6 +165,40 @@ msgstr "OK"
 msgid "Cancel"
 msgstr "Отмена"
 
+msgid "Security:"
+msgstr ""
+
+msgid "Extended encryption and authentication methods (VeNCrypt)"
+msgstr ""
+
+msgid "Session encryption:"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "TLS with anonymous certificates"
+msgstr ""
+
+msgid "TLS with X509 certificates"
+msgstr ""
+
+msgid "Path to X509 CA certificate"
+msgstr ""
+
+msgid "Path to X509 CRL file"
+msgstr ""
+
+#, fuzzy
+msgid "Authentication:"
+msgstr "Аутентификация VNC"
+
+msgid "Standard VNC (insecure without encryption)"
+msgstr ""
+
+msgid "Username and password (insecure without encryption)"
+msgstr ""
+
 msgid "Username:"
 msgstr "Имя пользователя:"
 
@@ -173,11 +214,11 @@ msgstr "Сервер VNC:"
 msgid "About..."
 msgstr "О программе..."
 
-#, c-format
+#, fuzzy, c-format
 msgid ""
-"TigerVNC viewer for X version %s - built %s\n"
-"Copyright (C) 2002-2004 RealVNC Ltd.\n"
-"Copyright (C) 2000-2004 Constantin Kaplinsky\n"
+"TigerVNC Viewer for X version %s - built %s\n"
+"Copyright (C) 2002-2005 RealVNC Ltd.\n"
+"Copyright (C) 2000-2006 TightVNC Group\n"
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""

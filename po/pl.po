@@ -5,10 +5,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2009-06-12 12:18+0200\n"
+"POT-Creation-Date: 2011-02-09 17:10+0100\n"
 "PO-Revision-Date: 2009-03-25 21:26+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -54,8 +55,9 @@ msgstr "Opcje..."
 msgid "Connection info..."
 msgstr "Informacje o połączeniu..."
 
-msgid "About VNCviewer..."
-msgstr "O VNCviewer..."
+#, fuzzy
+msgid "About TigerVNC viewer..."
+msgstr "O Przeglądarce VNC"
 
 msgid "Dismiss menu"
 msgstr "Zwolnij menu"
@@ -159,6 +161,40 @@ msgstr "OK"
 msgid "Cancel"
 msgstr "Anuluj"
 
+msgid "Security:"
+msgstr ""
+
+msgid "Extended encryption and authentication methods (VeNCrypt)"
+msgstr ""
+
+msgid "Session encryption:"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "TLS with anonymous certificates"
+msgstr ""
+
+msgid "TLS with X509 certificates"
+msgstr ""
+
+msgid "Path to X509 CA certificate"
+msgstr ""
+
+msgid "Path to X509 CRL file"
+msgstr ""
+
+#, fuzzy
+msgid "Authentication:"
+msgstr "Uwierzytelnianie VNC"
+
+msgid "Standard VNC (insecure without encryption)"
+msgstr ""
+
+msgid "Username and password (insecure without encryption)"
+msgstr ""
+
 msgid "Username:"
 msgstr "Nazwa użytkownika:"
 
@@ -187,3 +223,6 @@ msgstr ""
 "Copyright (C) 2000-2006 Grupa TightVNC\n"
 "Copyright (C) 2004-2009 Peter Astrand dla Cendio AB\n"
 "Zobacz http://www.tigervnc.org, aby dowiedzieć się więcej o TigerVNC."
+
+#~ msgid "About VNCviewer..."
+#~ msgstr "O VNCviewer..."
