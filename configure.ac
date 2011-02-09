@@ -223,6 +223,8 @@ AM_CONDITIONAL([X86_64], [test "x$host_cpu" = "xx86_64"])
 
 AC_SUBST(BUILD)
 
+AC_CONFIG_FILES([makemacpkg:release/makemacpkg.in])
+
 AC_OUTPUT([
 Makefile
 common/Makefile

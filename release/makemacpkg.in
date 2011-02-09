@@ -17,19 +17,22 @@ onexit()
 
 usage()
 {
-	echo "$0 <package name> <version> <build> <source dir.> [universal]"
+	echo "$0 [universal [32-bit build dir]]"
 	exit 1
 }
 
 UNIVERSAL=0
 
-if [ $# -lt 4 ]; then usage $0; fi
-PACKAGE_NAME=$1
-VERSION=$2
-BUILD=$3
-SRCDIR=$4
-if [ $# -gt 4 ]; then
-	if [ "$5" = "universal" ]; then UNIVERSAL=1; fi
+PACKAGE_NAME=@PACKAGE_NAME@
+VERSION=@VERSION@
+BUILD=@BUILD@
+SRCDIR=@srcdir@
+BUILDDIR32=@srcdir@/osxx86
+if [ $# -gt 0 ]; then
+	if [ "$1" = "universal" ]; then
+		UNIVERSAL=1
+		if [ $# -gt 1 ]; then BUILDDIR32=$2; fi
+	fi
 fi
 PACKAGEMAKER=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
 
@@ -46,18 +49,18 @@ mkdir -p $PKGROOT/opt/$PACKAGE_NAME/man/man1
 install -m 755 unix/vncviewer/vncviewer $PKGROOT/opt/$PACKAGE_NAME/bin/
 
 if [ $UNIVERSAL = 1 ]; then
-	if [ ! -d $SRCDIR/osxx86 ]; then
-		mkdir -p $SRCDIR/osxx86
+	if [ ! -d $BUILDDIR32 ]; then
+		echo ERROR: 32-bit build directory $BUILDDIR32 does not exist
+		exit 1
 	fi
-	pushd $SRCDIR/osxx86
-	sh $SRCDIR/configure \
-		CC=gcc-4.0 CXX=g++-4.0 \
-		CFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4 -O3 -m32' \
-		CXXFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4 -O3 -m32' \
-		LDFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4 -m32'
+	if [ ! -f $BUILDDIR32/Makefile ]; then
+		echo ERROR: 32-bit build directory $BUILDDIR32 is not configured
+		exit 1
+	fi
+	pushd $BUILDDIR32
 	make
 	popd
-	lipo -create -arch i386 $SRCDIR/osxx86/unix/vncviewer/vncviewer -arch x86_64 \
+	lipo -create -arch i386 $BUILDDIR32/unix/vncviewer/vncviewer -arch x86_64 \
 		$PKGROOT/opt/$PACKAGE_NAME/bin/vncviewer \
 		-output $PKGROOT/opt/$PACKAGE_NAME/bin/vncviewer
 fi

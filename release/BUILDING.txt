@@ -37,6 +37,9 @@ Build Requirements
    * zlib v1.2 or later
    * OpenSSL v0.9.7 or later
 
+-- If building VeNCrypt support:
+   * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
+
 
 ==================
 Out-of-Tree Builds
@@ -58,8 +61,8 @@ Building TigerVNC
 
 The following procedure will build the TigerVNC viewer on Linux and Unix
 systems.  On 64-bit systems, this may build a 32-bit version of TigerVNC,
-depending on the default compiler configuration for your system.  See below for
-specific build instructions for 64-bit systems.
+depending on the default autotools configuration for your system.  See below
+for specific build instructions for 64-bit systems.
 
   cd {source_directory}
   autoreconf -fiv
@@ -110,9 +113,9 @@ will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
 
 
-==================================
-Build Recipes for Specific Systems
-==================================
+==================
+Unix Build Recipes
+==================
 
 
 32-bit Build on 64-bit Linux
@@ -178,27 +181,39 @@ Add
 to the configure command line.  The OS X 10.4 SDK must be installed.
 
 
-Building VeNCrypt support on OS X
----------------------------------
+Building VeNCrypt support
+-------------------------
 
-VeNCrypt requires GnuTLS, which is not available on OS X systems by default.
-However, it can be obtained from MacPorts (http://www.macports.org/).  The
-easiest way to build TigerVNC using this version of GnuTLS is simply to
-modify the CPATH and LIBRARY_PATH environment variables to include /opt/local,
-i.e.:
+Building VeNCrypt (the TigerVNC security and authentication extensions)
+requires GnuTLS, which is not pre-installed on all platforms.  In general, if
+you are building on a Unix-ish platform that has the GnuTLS libraries and
+include files installed in the standard system locations, then the TigerVNC
+build system should detect the system version of GnuTLS automatically and link
+against it.  However, this produces a version of TigerVNC that depends on the
+GnuTLS dynamic libraries, and thus the binaries are not portable.
 
-export CPATH=/opt/local/include
-export LIBRARY_PATH=/opt/local/lib
+To build a fully portable, cross-compatible version of TigerVNC with VeNCrypt
+support, it is necessary to link against the GnuTLS static library (as well
+as the static libraries of its dependencies.)  If you are lucky enough, your
+O/S distribution may include pre-packaged versions of both the static and
+dynamic libraries for GnuTLS and its dependencies.  Otherwise, it will probably
+be necessary to build GnuTLS, libgcrypt, libtasn1, and libgpg-error from
+source.
 
-and then build TigerVNC as you would normally.  However, this produces run-time
-dependencies on the .dylib files in /opt/local/lib.  To statically link with
-GnuTLS, add the following monstrosity to the configure command line:
+You can manipulate the GNUTLS_CFLAGS and GNUTLS_LDFLAGS configure variables to
+accommodate a custom build of GnuTLS that is installed in a non-system
+directory.  For instance, adding
 
-  GNUTLS_CFLAGS=-I/opt/local/include \
-    GNUTLS_LDFLAGS='/opt/local/lib/libgnutls.a /opt/local/lib/libgcrypt.a \
-    /opt/local/lib/libgpg-error.a /opt/local/lib/libz.a \
-    /opt/local/lib/libtasn1.a /opt/local/lib/libiconv.a \
-    /opt/local/lib/libintl.a -framework CoreFoundation'
+  GNUTLS_CFLAGS=-I/opt/gnutls/include \
+    GNUTLS_LDFLAGS='/opt/gnutls/lib/libgnutls.a /opt/gnutls/lib/libgcrypt.a \
+    /opt/gnutls/lib/libgpg-error.a /opt/gnutls/lib/libtasn1.a' \
+    --with-included-zlib
+
+to the configure or build-xorg command line will cause TigerVNC to be
+statically linked against a custom installation of GnuTLS that resides under
+/opt/gnutls.  GnuTLS depends on zlib, so specifying --with-included-zlib will
+satisfy that depency using TigerVNC's in-source version of zlib, which
+eliminates another dynamic library dependency.
 
 
 *******************************************************************************
@@ -250,6 +265,9 @@ Build Requirements
    Add the directory containing iscc.exe (for instance, 
    C:\Program Files\Inno Setup 5) to the system or user PATH environment
    variable prior to building TigerVNC.
+
+-- If building VeNCrypt support:
+   * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
 
 
 ==================
@@ -337,9 +355,9 @@ If you don't specify CMAKE_INSTALL_PREFIX, then the default is
 c:\Program Files\TigerVNC.
 
 
-=============
-Build Recipes
-=============
+=====================
+Windows Build Recipes
+=====================
 
 
 64-bit MinGW Build on Cygwin
@@ -420,14 +438,17 @@ make dmg
   Create Macintosh package/disk image.  This requires the PackageMaker
   application, which must be installed in /Developer/Applications/Utilities.
 
-make udmg
+make udmg [BUILDDIR32={32-bit build directory}]
 
-  On 64-bit OS X (10.5 "Leopard") and later, this creates a version of the
-  Macintosh package/disk image which contains universal i386/x86-64 binaries.
-  The 32-bit fork of these binaries is backward compatible with OS X 10.4 and
-  later (OS X 10.4 compatibility SDK required.)  If building on OS X 10.6
-  ("Snow Leopard") or later, the 64-bit fork can be made backward compatible
-  with 10.5 by using the instructions in the "Build Recipes" section.
+  On 64-bit OS X systems, this creates a version of the Macintosh package and
+  disk image which contains universal i386/x86-64 binaries.  You should first
+  configure a 32-bit out-of-tree build of TigerVNC, then configure a 64-bit
+  out-of-tree build, then run 'make udmg' from the 64-bit build directory.  The
+  build system will look for the 32-bit build under {source_directory}/osxx86
+  by default, but you can override this by setting the BUILDDIR32 variable on
+  the make command line as shown above.  Either the 64-bit or 32-bit build can
+  be configured to be backward-compatible by using the instructions in the
+  "Unix Build Recipes" section.
 
 
 Windows
