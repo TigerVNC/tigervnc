@@ -17,6 +17,10 @@ librdr_la_LIBADD = @GNUTLS_LIBS@
 if INCLUDED_ZLIB
 librdr_la_CPPFLAGS += -I$(top_srcdir)/common/zlib
 librdr_la_LIBADD += $(top_builddir)/common/zlib/libz.la
+else
+if HAVE_GNUTLS
+librdr_la_LIBADD += -lz
+endif
 endif
 
 EXTRA_DIST = CMakeLists.txt
