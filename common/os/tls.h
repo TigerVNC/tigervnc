@@ -23,7 +23,11 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+/*
+ * Windows builds are build against fairly new GNUTLS, ignore compatibility
+ * code.
+ */
+#if defined(HAVE_GNUTLS) && !defined(WIN32)
 #include <gnutls/gnutls.h>
 
 #ifndef HAVE_GNUTLS_DATUM_T
@@ -40,9 +44,6 @@ typedef gnutls_sign_algorithm gnutls_sign_algorithm_t;
 #endif
 
 #ifndef HAVE_GNUTLS_X509_CRT_PRINT
-#ifdef WIN32
-#error "Please install more recent GNUTLS with gnutls_x509_crt_print() function"
-#endif
 
 typedef enum {
 	GNUTLS_CRT_PRINT_ONELINE = 1

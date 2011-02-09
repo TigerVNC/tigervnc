@@ -32,7 +32,7 @@
 
 using namespace std;
 
-#ifdef HAVE_GNUTLS
+#if defined(HAVE_GNUTLS) && !defined(WIN32)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
