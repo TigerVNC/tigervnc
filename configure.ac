@@ -107,6 +107,12 @@ if test "x$enable_gnutls" = xyes; then
 		       AC_MSG_RESULT(yes),
 		       [AC_DEFINE(HAVE_OLD_GNUTLS, 1, [Does gnutls lack the gnutls_transport_set_global_errno() function? ])
 			AC_MSG_RESULT(no)])
+	AC_MSG_CHECKING([for gnutls_x509_crt_print() function])
+	AC_LINK_IFELSE(AC_LANG_CALL([], gnutls_x509_crt_print),
+		       [AC_DEFINE(HAVE_GNUTLS_X509_CRT_PRINT, 1, [Is the gnutls_x509_crt_print() function present? ])
+			AC_MSG_RESULT(yes)],
+			AC_MSG_RESULT(no))
+	
 	LIBS=${SAVE_LIBS}
 fi
 AC_SUBST([GNUTLS_LIBS])

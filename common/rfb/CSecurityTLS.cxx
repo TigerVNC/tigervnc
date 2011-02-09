@@ -43,16 +43,18 @@
 #include <rdr/TLSOutStream.h>
 #include <os/os.h>
 #include <os/print.h>
+#include <os/tls.h>
 
 #include <gnutls/x509.h>
 
-#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020708)
-#define GNUTLS_CERT_NOT_ACTIVATED 512
-#define GNUTLS_CERT_EXPIRED 1024
-#endif
-
-#if !defined(GNUTLS_VERSION_NUMBER) || (GNUTLS_VERSION_NUMBER < 0x020301)
-#define GNUTLS_CRT_PRINT_ONELINE 1
+/*
+ * GNUTLS 2.6.5 and older didn't have some variables defined so don't use them.
+ * GNUTLS 1.X.X defined LIBGNUTLS_VERSION_NUMBER so treat it as "old" gnutls as
+ * well
+ */
+#if (defined(GNUTLS_VERSION_NUMBER) && GNUTLS_VERSION_NUMBER < 0x020606) || \
+    defined(LIBGNUTLS_VERSION_NUMBER)
+#define WITHOUT_X509_TIMES
 #endif
 
 #define TLS_DEBUG
@@ -284,6 +286,7 @@ void CSecurityTLS::checkSession()
   if (status & GNUTLS_CERT_REVOKED)
     throw AuthFailureException("server certificate has been revoked");
 
+#ifndef WITHOUT_X509_TIMES
   if (status & GNUTLS_CERT_NOT_ACTIVATED)
     throw AuthFailureException("server certificate has not been activated");
 
@@ -294,6 +297,7 @@ void CSecurityTLS::checkSession()
 			 "do you want to continue?"))
       throw AuthFailureException("server certificate has expired");
   }
+#endif
   /* Process other errors later */
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
@@ -338,7 +342,6 @@ void CSecurityTLS::checkSession()
 
   vlog.debug("Saved server certificates don't match");
 
-  #if defined(GNUTLS_VERSION_NUMBER) && (GNUTLS_VERSION_NUMBER >= 0x010706)
   if (gnutls_x509_crt_print(crt, GNUTLS_CRT_PRINT_ONELINE, &info)) {
     /*
      * GNUTLS doesn't correctly export gnutls_free symbol which is
@@ -352,9 +355,8 @@ void CSecurityTLS::checkSession()
 #endif
     throw AuthFailureException("Could not find certificate to display");
   }
-  #endif
 
-  size_t out_size;
+  size_t out_size = 0;
   char *out_buf = NULL;
   char *certinfo = NULL;
   int len = 0;
