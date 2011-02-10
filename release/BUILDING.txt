@@ -113,6 +113,41 @@ will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
 
 
+=========================
+Building VeNCrypt support
+=========================
+
+Building VeNCrypt (the TigerVNC security and authentication extensions)
+requires GnuTLS, which is not pre-installed on all platforms.  In general, if
+you are building on a Unix-ish platform that has the GnuTLS libraries and
+include files installed in the standard system locations, then the TigerVNC
+build system should detect the system version of GnuTLS automatically and link
+against it.  However, this produces a version of TigerVNC that depends on the
+GnuTLS dynamic libraries, and thus the TigerVNC binaries are not portable.
+
+To build a fully portable, cross-compatible version of TigerVNC with VeNCrypt
+support, it is necessary to link against the GnuTLS static library (as well
+as the static libraries of its dependencies.)  If you are lucky enough, your
+O/S distribution may include pre-packaged versions of these static libraries.
+Otherwise, it will probably be necessary to build GnuTLS, libgcrypt, libtasn1,
+and libgpg-error from source.
+
+You can manipulate the GNUTLS_CFLAGS and GNUTLS_LDFLAGS configure variables to
+accommodate a custom build of GnuTLS that is installed in a non-system
+directory.  For instance, adding
+
+  GNUTLS_CFLAGS=-I/opt/gnutls/include \
+    GNUTLS_LDFLAGS='/opt/gnutls/lib/libgnutls.a /opt/gnutls/lib/libgcrypt.a \
+    /opt/gnutls/lib/libgpg-error.a /opt/gnutls/lib/libtasn1.a' \
+    --with-included-zlib
+
+to the configure or 'build-xorg build' command line will cause TigerVNC to be
+statically linked against a custom installation of GnuTLS that resides under
+/opt/gnutls.  GnuTLS depends on zlib, so specifying --with-included-zlib will
+satisfy that dependency using TigerVNC's in-tree version of zlib, which
+prevents TigerVNC from depending on the libz dynamic library.
+
+
 ==================
 Unix Build Recipes
 ==================
@@ -180,40 +215,6 @@ Add
 
 to the configure command line.  The OS X 10.4 SDK must be installed.
 
-
-Building VeNCrypt support
--------------------------
-
-Building VeNCrypt (the TigerVNC security and authentication extensions)
-requires GnuTLS, which is not pre-installed on all platforms.  In general, if
-you are building on a Unix-ish platform that has the GnuTLS libraries and
-include files installed in the standard system locations, then the TigerVNC
-build system should detect the system version of GnuTLS automatically and link
-against it.  However, this produces a version of TigerVNC that depends on the
-GnuTLS dynamic libraries, and thus the binaries are not portable.
-
-To build a fully portable, cross-compatible version of TigerVNC with VeNCrypt
-support, it is necessary to link against the GnuTLS static library (as well
-as the static libraries of its dependencies.)  If you are lucky enough, your
-O/S distribution may include pre-packaged versions of both the static and
-dynamic libraries for GnuTLS and its dependencies.  Otherwise, it will probably
-be necessary to build GnuTLS, libgcrypt, libtasn1, and libgpg-error from
-source.
-
-You can manipulate the GNUTLS_CFLAGS and GNUTLS_LDFLAGS configure variables to
-accommodate a custom build of GnuTLS that is installed in a non-system
-directory.  For instance, adding
-
-  GNUTLS_CFLAGS=-I/opt/gnutls/include \
-    GNUTLS_LDFLAGS='/opt/gnutls/lib/libgnutls.a /opt/gnutls/lib/libgcrypt.a \
-    /opt/gnutls/lib/libgpg-error.a /opt/gnutls/lib/libtasn1.a' \
-    --with-included-zlib
-
-to the configure or build-xorg command line will cause TigerVNC to be
-statically linked against a custom installation of GnuTLS that resides under
-/opt/gnutls.  GnuTLS depends on zlib, so specifying --with-included-zlib will
-satisfy that depency using TigerVNC's in-source version of zlib, which
-eliminates another dynamic library dependency.
 
 
 *******************************************************************************
@@ -332,6 +333,55 @@ Debug Build
 Add "-DCMAKE_BUILD_TYPE=Debug" to the cmake command line.  Or, if building with
 NMake, remove "-DCMAKE_BUILD_TYPE=Release" (Debug builds are the default with
 NMake.)
+
+
+Self-Contained MinGW Build
+--------------------------
+
+If TigerVNC is built using MinGW, then it may depend on the MinGW libgcc DLL.
+To eliminate this dependency, add
+
+  -DCMAKE_C_FLAGS=-static-libgcc -DCMAKE_CXX_FLAGS=-static-libgcc
+
+to the cmake command line.
+
+
+=========================
+Building VeNCrypt support
+=========================
+
+Building VeNCrypt (the TigerVNC security and authentication extensions)
+requires GnuTLS, which is not Microsoft-friendly.  There is generally no
+sane way to build GnuTLS and its dependencies using Visual C++.  Those with
+a lot of time on their hands can build the GnuTLS DLLs using MinGW (or download
+32-bit versions of these from the link below), generate Visual C++ import
+libraries from the DLLs, then link TigerVNC against the Visual C++ import
+libraries.  However, this creates a version of TigerVNC that depends on
+the GnuTLS DLLs.  The TigerVNC packaging system currently is not designed to
+handle DLL dependencies, so really the only way to build and package a
+self-contained, VeNCrypt-enabled version of TigerVNC for Windows is to use
+MinGW and the static GnuTLS libraries.  The use of MinGW means that only the
+viewer can be built, not the server.
+
+An installer containing the GnuTLS header files, as well as static and dynamic
+link libraries for 32-bit MinGW, is available from the following site:
+
+http://josefsson.org/gnutls4win/
+
+Whether you choose to use the above installer or build GnuTLS from source,
+make sure that you install the libraries and headers into a pathname that
+doesn't contain spaces (the installer will try to install under
+c:\Program Files unless you tell it otherwise.)  If the GnuTLS include path
+contains spaces, then the MinGW resource compiler will barf.
+
+You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY cmake variables to
+specify the directory under which you installed GnuTLS.  For instance, adding
+
+  -DGNUTLS_INCLUDE_DIR=/c/gnutls/include \
+    -DGNUTLS_LIBRARY='/c/gnutls/lib/libgnutls.a;/c/gnutls/lib/libgcrypt.a;/c/gnutls/lib/libtasn1.a;/c/gnutls/lib/libgpg-error.a'
+
+to the cmake command line when using MinGW will cause TigerVNC to be statically
+linked against an installation of GnuTLS that resides under c:\gnutls.
 
 
 ===================
