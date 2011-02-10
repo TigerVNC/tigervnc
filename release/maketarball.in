@@ -19,7 +19,9 @@ PACKAGE_NAME=@PACKAGE_NAME@
 VERSION=@VERSION@
 BUILD=@BUILD@
 SRCDIR=@srcdir@
-PACKAGE_FILE=$PACKAGE_NAME-`uname -s`-@host_cpu@.tar.gz
+OS=`uname -s`
+CPU=@host_cpu@
+PACKAGE_FILE=$PACKAGE_NAME-$OS-$CPU-$VERSION.tar.gz
 SERVER=0
 
 if [ $# -gt 0 ]; then

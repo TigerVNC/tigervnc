@@ -95,7 +95,7 @@ sudo osacompile -t APPL -o "$TMPDIR/dmg/Uninstall.app" $TMPDIR/uninstall.applesc
 sudo chown -R $USER "$TMPDIR/dmg/Uninstall.app" 
 hdiutil create -fs HFS+ -volname $PACKAGE_NAME-$VERSION \
 	-srcfolder "$TMPDIR/dmg" \
-	$TMPDIR/$PACKAGE_NAME.dmg 
-cp $TMPDIR/$PACKAGE_NAME.dmg . 
+	$TMPDIR/$PACKAGE_NAME-$VERSION.dmg 
+cp $TMPDIR/$PACKAGE_NAME-$VERSION.dmg . 
 
 exit

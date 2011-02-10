@@ -120,11 +120,11 @@ add_subdirectory(win)
 # Installer
 #
 
-set(INST_NAME ${CMAKE_PROJECT_NAME})
-
 if(64BIT)
-  set(INST_NAME ${INST_NAME}64)
+  set(INST_NAME ${CMAKE_PROJECT_NAME}64-${VERSION})
   set(INST_DEFS -DWIN64)
+else()
+  set(INST_NAME ${CMAKE_PROJECT_NAME}-${VERSION})
 endif()
 
 if(MSVC_IDE)
