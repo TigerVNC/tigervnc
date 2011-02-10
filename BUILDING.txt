@@ -59,7 +59,7 @@ For in-tree builds, these directories are the same.
 Building TigerVNC
 =================
 
-The following procedure will build the TigerVNC viewer on Linux and Unix
+The following procedure will build the TigerVNC Viewer on Linux and Unix
 systems.  On 64-bit systems, this may build a 32-bit version of TigerVNC,
 depending on the default autotools configuration for your system.  See below
 for specific build instructions for 64-bit systems.
@@ -73,18 +73,18 @@ for specific build instructions for 64-bit systems.
 NOTE: Running autoreconf in the source directory is only necessary if building
 TigerVNC from the SVN repository.
 
-Building the TigerVNC server (Xvnc) is a bit trickier.  On newer systems, such
+Building the TigerVNC Server (Xvnc) is a bit trickier.  On newer systems, such
 as Fedora, Xvnc is typically built to use the X11 shared libraries provided
 with the system.  This requires a system with Xorg 7.4 or later, however.
 Systems with older versions of Xorg must build a "legacy-friendly" version of
-the TigerVNC server.  This is accomplished by downloading and building the
+the TigerVNC Server.  This is accomplished by downloading and building the
 more recent Xorg modules in a local directory and then building Xvnc such that
 it links against the local build of these libraries, not the X11 libraries
 installed on the system.  The "build-xorg" script in the TigerVNC source
-distribution automates this process.
+distribution (located under unix/) automates this process.
 
-The following procedure will build both the TigerVNC viewer and a
-"legacy-friendly" version of the TigerVNC server:
+The following procedure will build both the TigerVNC Viewer and a
+"legacy-friendly" version of the TigerVNC Server:
 
   cd {build_directory}
   sh {source_directory}/unix/build-xorg init -version 7.4
@@ -98,7 +98,7 @@ build should work on Red Hat Enterprise 4, its contemporaries, and later
 systems.  It probably will not work on older systems.  It has not been tested
 on non-Linux systems (yet).
 
-build-xorg can also be used to rebuild just the TigerVNC server and viewer,
+build-xorg can also be used to rebuild just the TigerVNC Server and Viewer,
 once the X11 modules and other dependencies have been built the first time.
 This is convenient for testing changes that just apply to the TigerVNC source
 code.  To accomplish this, run:
