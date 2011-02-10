@@ -2,7 +2,7 @@ TIGERVNC_SRCDIR=${top_srcdir}/../..
 LIB_DIR=${top_builddir}/../../common
 
 RFB_LIB=$(LIB_DIR)/rfb/librfb.la
-RDR_LIB=$(LIB_DIR)/rdr/librdr.la
+RDR_LIB=$(LIB_DIR)/rdr/librdr.la $(GNUTLS_LDFLAGS)
 NETWORK_LIB=$(LIB_DIR)/network/libnetwork.la
 XREGION_LIB=$(LIB_DIR)/Xregion/libXregion.la
 COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)

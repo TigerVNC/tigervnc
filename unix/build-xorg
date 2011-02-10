@@ -239,7 +239,9 @@ usage ()
     echo
     echo "-static = build a stand-alone version of Xvnc which does not depend on"
     echo "          the shared X11 libraries or any distribution-specific shared"
-    echo "          system libraries (requires GCC)"
+    echo "          system libraries (requires GCC.)  Note that this does not enable"
+    echo "          static linking with GnuTLS.  See BUILDING.txt for instructions"
+    echo "          on how to do that."
     exit 1
 }
 
@@ -326,7 +328,7 @@ if [ $STATIC = 1 -a "$MODE" = "build" ]; then
     else
 	ln -fs $LIBSTDCPLUSPLUS ./xorg.build/syslib
     fi
-    STATICLIBS='libcrypto.a libz.a libgcrypt.a libgpg-error.a libtasn1.a libgnutls.a'
+    STATICLIBS='libcrypto.a libz.a'
     for lib in $STATICLIBS; do
 	if [ -f ./xorg.build/syslib/$lib ]; then
 	    rm -f ./xorg.build/syslib/$lib
