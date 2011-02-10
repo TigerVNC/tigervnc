@@ -20,8 +20,16 @@ add_executable(vncviewer WIN32
   vncviewer.cxx
   vncviewer.rc)
 
-target_link_libraries(vncviewer rfb rfb_win32 Xregion network rdr
-  ws2_32.lib)
+set(VNCVIEWER_LIBRARIES rfb rfb_win32 Xregion network rdr)
+
+# When building with GnuTLS, librdr depends on ws2_32, so in order to make
+# MinGW happy, we need to put ws2_32 in librdr's target_link_libraries string,
+# not here.
+if(NOT GNUTLS_FOUND)
+  set(VNCVIEWER_LIBRARIES ${VNCVIEWER_LIBRARIES} ws2_32)
+endif()
+
+target_link_libraries(vncviewer ${VNCVIEWER_LIBRARIES})
 
 install(TARGETS vncviewer
   RUNTIME DESTINATION .

@@ -16,7 +16,7 @@ add_library(rdr STATIC
 
 set(RDR_LIBRARIES zlib os)
 if(GNUTLS_FOUND)
-  set(RDR_LIBRARIES ${RDR_LIBRARIES} ${GNUTLS_LIBRARIES})
+  set(RDR_LIBRARIES ${RDR_LIBRARIES} ${GNUTLS_LIBRARIES} ws2_32)
 endif()
 
 target_link_libraries(rdr ${RDR_LIBRARIES})

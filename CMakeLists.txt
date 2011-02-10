@@ -110,6 +110,8 @@ configure_file(config.h.cmake.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
 
+add_definitions(-D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500)
+
 add_subdirectory(common)
 add_subdirectory(win)
 
