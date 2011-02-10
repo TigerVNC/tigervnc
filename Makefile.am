@@ -25,7 +25,7 @@ servertarball: all
 	sh maketarball server
 
 EXTRA_DIST = CMakeLists.txt cmakescripts/getdate.bat LICENCE.TXT \
-	doc java media release config.h.cmake.in m4
+	doc java media release config.h.cmake.in m4 BUILDING.txt
 
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`
