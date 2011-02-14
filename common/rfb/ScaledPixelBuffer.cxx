@@ -75,7 +75,7 @@ void ScaledPixelBuffer::recreateRowAccum() {
 }
 
 void ScaledPixelBuffer::setSourceBuffer(U8 **src_data_, int w, int h) {
-  if (w > 0 && h > 0 && src_data != NULL) {
+  if (w > 0 && h > 0 && src_data_ != NULL) {
     freeWeightTabs();
     src_data = src_data_;
     src_width  = w;
