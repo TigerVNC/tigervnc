@@ -42,6 +42,8 @@ xserver-install: install java-viewer
 	$(INSTALL) -m 644 $(srcdir)/java/src/com/tigervnc/vncviewer/index.vnc $(DESTDIR)/$(prefix)/vnc/classes/
 	$(INSTALL) -m 644 $(srcdir)/java/src/com/tigervnc/vncviewer/VncViewer.jar $(DESTDIR)/$(prefix)/vnc/classes/
 	$(INSTALL) -m 644 $(srcdir)/java/src/com/tigervnc/vncviewer/README $(DESTDIR)/$(prefix)/vnc/classes/
+	mkdir -p $(DESTDIR)/$(libdir)/dri/
+	$(INSTALL) -m 755 ./xorg.build/lib/dri/swrast_dri.so $(DESTDIR)/$(libdir)/dri/
 
 xserver-uninstall: uninstall
 	rm -f $(DESTDIR)/$(bindir)/Xvnc
@@ -52,3 +54,5 @@ xserver-uninstall: uninstall
 	rm -f $(DESTDIR)/$(prefix)/vnc/classes/README
 	rmdir $(DESTDIR)/$(prefix)/vnc/classes/
 	rmdir $(DESTDIR)/$(prefix)/vnc/
+	rm -f $(DESTDIR)/$(libdir)/dri/swrast_dri.so
+	rmdir $(DESTDIR)/$(libdir)/dri/
