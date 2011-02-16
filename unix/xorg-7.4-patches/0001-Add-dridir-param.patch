@@ -1,0 +1,97 @@
+*** a/glx/glxdri.c	2011-02-16 14:00:53.000000000 -0600
+--- b/glx/glxdri.c	2011-02-16 13:56:09.000000000 -0600
+***************
+*** 838,843 ****
+  
+  
+- static const char dri_driver_path[] = DRI_DRIVER_PATH;
+- 
+  static Bool
+  glxDRIEnterVT (int index, int flags)
+--- 838,841 ----
+diff -r -C2 a/glx/glxdriswrast.c b/glx/glxdriswrast.c
+*** a/glx/glxdriswrast.c	2011-02-16 14:00:53.000000000 -0600
+--- b/glx/glxdriswrast.c	2011-02-16 13:56:29.000000000 -0600
+***************
+*** 448,453 ****
+  }
+  
+- static const char dri_driver_path[] = DRI_DRIVER_PATH;
+- 
+  static __GLXscreen *
+  __glXDRIscreenProbe(ScreenPtr pScreen)
+--- 448,451 ----
+diff -r -C2 a/glx/glxext.c b/glx/glxext.c
+*** a/glx/glxext.c	2011-02-16 14:00:54.000000000 -0600
+--- b/glx/glxext.c	2011-02-16 13:58:39.000000000 -0600
+***************
+*** 520,521 ****
+--- 520,548 ----
+      return retval;
+  }
++ 
++ char *dri_driver_path = DRI_DRIVER_PATH;
++ 
++ int GlxProcessArguments(int argc, char *argv[], int i)
++ {
++     if (strncmp(argv[i], "-dridir", 7) == 0) {
++ 	if (++i < argc) {
++ #if !defined(WIN32) && !defined(__CYGWIN__)
++ 	    if (getuid() != geteuid()) {
++ 		LogMessage(X_WARNING, "-dridir is not available for setuid X servers\n");
++ 		return -1;
++ 	    } else
++ #endif
++ 	    {
++ 		if (strlen(argv[i]) < PATH_MAX) {
++ 		    dri_driver_path = argv[i];
++ 		    return 2;
++ 		} else {
++ 		    LogMessage(X_ERROR, "-dridir pathname too long\n");
++ 		    return -1;
++ 		}
++ 	    }
++         }
++     }
++ 
++     return 0;
++ }
+diff -r -C2 a/glx/glxserver.h b/glx/glxserver.h
+*** a/glx/glxserver.h	2011-02-16 14:00:54.000000000 -0600
+--- b/glx/glxserver.h	2011-02-16 14:01:44.000000000 -0600
+***************
+*** 264,266 ****
+--- 264,269 ----
+      GLint alignment);
+  
++ extern char *dri_driver_path;
++ extern int GlxProcessArguments(int argc, char *argv[], int i);
++ 
+  #endif /* !__GLX_server_h__ */
+Only in b/os: ._utils.c
+diff -r -C2 a/os/utils.c b/os/utils.c
+*** a/os/utils.c	2011-02-16 14:01:18.000000000 -0600
+--- b/os/utils.c	2011-02-16 14:04:11.000000000 -0600
+***************
+*** 159,162 ****
+--- 159,163 ----
+  _X_EXPORT Bool noGlxExtension = FALSE;
+  _X_EXPORT Bool noGlxVisualInit = FALSE;
++ extern int GlxProcessArguments(int argc, char *argv[], int i);
+  #endif
+  #ifdef SCREENSAVER
+***************
+*** 854,857 ****
+--- 855,866 ----
+  	}
+  #endif
++ #ifdef GLXEXT
++ 	else if ((skip = GlxProcessArguments(argc,argv,i)) != 0) {
++ 	    if (skip > 0)
++ 		i += skip - 1;
++ 	    else
++ 		UseMsg();
++ 	}
++ #endif
+  #ifdef RLIMIT_DATA
+  	else if ( strcmp( argv[i], "-ld") == 0)

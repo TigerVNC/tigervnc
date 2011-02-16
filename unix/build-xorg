@@ -74,11 +74,11 @@ init()
 	patch -p1 < $SRCDIR/unix/xserver15.patch
     else
 	patch -p1 < $SRCDIR/unix/xserver18.patch
-	for all in `find $SRCDIR/unix/xorg-7.5-patches/ -type f |grep '.*\.patch$'`; do
-	    echo Applying $all
-	    patch -p1 < $all
-	done
     fi
+    for all in `find $SRCDIR/unix/xorg-$XORG_VERSION-patches/ -type f |grep '.*\.patch$'`; do
+	echo Applying $all
+	patch -p1 < $all
+    done
 
     popd
     popd
