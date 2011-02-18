@@ -62,23 +62,18 @@
 #define WITHOUT_X509_TIMES
 #endif
 
-#define TLS_DEBUG
-
 using namespace rfb;
 
 StringParameter CSecurityTLS::x509ca("x509ca", "X509 CA certificate", "", ConfViewer);
 StringParameter CSecurityTLS::x509crl("x509crl", "X509 CRL file", "", ConfViewer);
 
 static LogWriter vlog("TLS");
-
-#ifdef TLS_DEBUG
-static LogWriter vlog_raw("Raw TLS");
+static LogWriter vlog_raw("RawTLS");
 
 static void debug_log(int level, const char* str)
 {
   vlog_raw.debug(str);
 }
-#endif
 
 void CSecurityTLS::initGlobal()
 {
@@ -87,10 +82,11 @@ void CSecurityTLS::initGlobal()
   if (!globalInitDone) {
     gnutls_global_init();
 
-#ifdef TLS_DEBUG
-    gnutls_global_set_log_level(10);
-    gnutls_global_set_log_function(debug_log);
-#endif
+    /* 100 means debug log */
+    if (vlog_raw.getLevel() >= 100) {
+      gnutls_global_set_log_level(10);
+      gnutls_global_set_log_function(debug_log);
+    }
 
     globalInitDone = true;
   }
