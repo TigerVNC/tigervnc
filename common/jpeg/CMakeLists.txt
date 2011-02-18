@@ -93,6 +93,8 @@ add_test(cjpeg-int cjpeg -dct int -outfile testoutint.jpg ${CMAKE_CURRENT_SOURCE
 add_test(cjpeg-int-cmp ${CMAKE_COMMAND} -E compare_files ${CMAKE_CURRENT_SOURCE_DIR}/testimgint.jpg testoutint.jpg)
 add_test(cjpeg-fast cjpeg -dct fast -opt -outfile testoutfst.jpg ${CMAKE_CURRENT_SOURCE_DIR}/testorig.ppm)
 add_test(cjpeg-fast-cmp ${CMAKE_COMMAND} -E compare_files ${CMAKE_CURRENT_SOURCE_DIR}/testimgfst.jpg testoutfst.jpg)
+add_test(cjpeg-fast-100 cjpeg -dct fast -quality 100 -opt -outfile testoutfst100.jpg ${CMAKE_CURRENT_SOURCE_DIR}/testorig.ppm)
+add_test(cjpeg-fast-100-cmp ${CMAKE_COMMAND} -E compare_files ${CMAKE_CURRENT_SOURCE_DIR}/testimgfst100.jpg testoutfst100.jpg)
 add_test(cjpeg-float cjpeg -dct float -outfile testoutflt.jpg ${CMAKE_CURRENT_SOURCE_DIR}/testorig.ppm)
 if(WITH_SIMD)
 add_test(cjpeg-float-cmp ${CMAKE_COMMAND} -E compare_files ${CMAKE_CURRENT_SOURCE_DIR}/testimgflt.jpg testoutflt.jpg)

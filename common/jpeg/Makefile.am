@@ -63,7 +63,7 @@ DOCS= jconfig.doc README README-turbo.txt LICENSE.txt LGPL.txt \
 
 TESTFILES= testorig.jpg testorig.ppm testimg.bmp testimgflt.jpg \
 	testimgfst.jpg testimgint.jpg testimgp.jpg testimgflt.ppm testimgfst.ppm \
-	testimgint.ppm testimgflt-nosimd.jpg
+	testimgint.ppm testimgflt-nosimd.jpg testimgfst100.jpg
 
 EXTRA_DIST = win $(DOCS) $(TESTFILES) CMakeLists.txt
 
@@ -77,9 +77,11 @@ test: testclean all
 	./jpegut
 	./cjpeg -dct int -outfile testoutint.jpg $(srcdir)/testorig.ppm
 	./cjpeg -dct fast -opt -outfile testoutfst.jpg $(srcdir)/testorig.ppm
+	./cjpeg -dct fast -quality 100 -opt -outfile testoutfst100.jpg $(srcdir)/testorig.ppm
 	./cjpeg -dct float -outfile testoutflt.jpg $(srcdir)/testorig.ppm
 	cmp $(srcdir)/testimgint.jpg testoutint.jpg
 	cmp $(srcdir)/testimgfst.jpg testoutfst.jpg
+	cmp $(srcdir)/testimgfst100.jpg testoutfst100.jpg
 	cmp $(srcdir)/testimgflt.jpg testoutflt.jpg
 	./djpeg -dct int -fast -ppm -outfile testoutint.ppm $(srcdir)/testorig.jpg
 	./djpeg -dct fast -ppm -outfile testoutfst.ppm $(srcdir)/testorig.jpg
@@ -100,9 +102,11 @@ test: testclean all
 	./jpegut
 	./cjpeg -dct int -outfile testoutint.jpg $(srcdir)/testorig.ppm
 	./cjpeg -dct fast -opt -outfile testoutfst.jpg $(srcdir)/testorig.ppm
+	./cjpeg -dct fast -quality 100 -opt -outfile testoutfst100.jpg $(srcdir)/testorig.ppm
 	./cjpeg -dct float -outfile testoutflt.jpg $(srcdir)/testorig.ppm
 	cmp $(srcdir)/testimgint.jpg testoutint.jpg
 	cmp $(srcdir)/testimgfst.jpg testoutfst.jpg
+	cmp $(srcdir)/testimgfst100.jpg testoutfst100.jpg
 	cmp $(srcdir)/testimgflt-nosimd.jpg testoutflt.jpg
 	./djpeg -dct int -fast -ppm -outfile testoutint.ppm $(srcdir)/testorig.jpg
 	./djpeg -dct fast -ppm -outfile testoutfst.ppm $(srcdir)/testorig.jpg

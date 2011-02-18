@@ -166,7 +166,8 @@ DLLEXPORT int DLLCALL tjCompress(tjhandle h,
 		jpeg_set_colorspace(&j->cinfo, JCS_GRAYSCALE);
 	else
 		jpeg_set_colorspace(&j->cinfo, JCS_YCbCr);
-	j->cinfo.dct_method = JDCT_FASTEST;
+	if(qual>=96) j->cinfo.dct_method=JDCT_ISLOW;
+	else j->cinfo.dct_method=JDCT_FASTEST;
 
 	j->cinfo.comp_info[0].h_samp_factor=hsampfactor[jpegsub];
 	j->cinfo.comp_info[1].h_samp_factor=1;
