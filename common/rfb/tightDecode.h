@@ -184,12 +184,11 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
       }
     }
   } else {
-    int x, y, b, w;
+    int x, y, b;
     PIXEL_T *ptr = buf;
     rdr::U8 bits;
     if (palSize <= 2) {
       // 2-color palette
-      w = (r.width() + 7) / 8;
       for (y = 0; y < r.height(); y++) {
         for (x = 0; x < r.width() / 8; x++) {
           bits = input->readU8();
