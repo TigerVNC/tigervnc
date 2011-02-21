@@ -124,7 +124,12 @@ PixelFormat DeviceContext::getPF(HDC dc) {
     vlog.info("%d-colour palettised", 1<<format.depth);
   }
 
-  return format;
+
+  // Use 10 arguments constructor to trigger PixelFormat::updateState()
+  return PixelFormat(format.bpp, format.depth,
+		     format.bigEndian, format.trueColour,
+		     format.redMax, format.greenMax, format.blueMax,
+		     format.redShift, format.greenShift, format.blueShift);
 }
 
 Rect DeviceContext::getClipBox() const {
