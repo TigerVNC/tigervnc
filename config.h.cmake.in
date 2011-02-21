@@ -7,5 +7,6 @@
 
 /* MS Visual Studio 2008 and newer doesn't know ssize_t */
 #if defined(HAVE_GNUTLS) && defined(WIN32) && !defined(__MINGW32__)
+#include <stddef.h>
 typedef size_t ssize_t;
 #endif
