@@ -39,7 +39,7 @@ StringParameter SecurityServer::secTypes
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
 #ifdef HAVE_GNUTLS
- "TLSVnc,VncAuth",
+ "VncAuth,TLSVnc",
 #else
  "VncAuth",
 #endif
