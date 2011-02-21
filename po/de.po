@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2011-02-09 17:10+0100\n"
+"POT-Creation-Date: 2011-02-21 12:26+0100\n"
 "PO-Revision-Date: 2005-03-01 20:41+0100\n"
 "Last-Translator: Klaus Franken <Klaus.Franken@StrukturPunkt.de>\n"
 "Language-Team: German\n"
@@ -28,7 +28,7 @@ msgstr "VNC Authentifizierung"
 
 #, c-format
 msgid "TigerVNC: %.240s"
-msgstr ""
+msgstr "TigerVNC: %.240s"
 
 msgid "Exit viewer"
 msgstr "Viewer beenden"
@@ -61,9 +61,8 @@ msgstr "Optionen..."
 msgid "Connection info..."
 msgstr "Verbindungsinformationen..."
 
-#, fuzzy
 msgid "About TigerVNC viewer..."
-msgstr "Über VNC-Viewer"
+msgstr "Über TigerVNC-Viewer"
 
 msgid "Dismiss menu"
 msgstr "Menü verlassen"
@@ -168,38 +167,38 @@ msgid "Cancel"
 msgstr "Abbruch"
 
 msgid "Security:"
-msgstr ""
+msgstr "Sicherheiteinstellungen:"
 
 msgid "Extended encryption and authentication methods (VeNCrypt)"
 msgstr ""
+"Erweiterte VerschlÃŒsselungs- und Authentifizierungsmethoden (VeNCrypt)"
 
 msgid "Session encryption:"
-msgstr ""
+msgstr "Sitzungs-VerschlÃŒsselung:"
 
 msgid "None"
-msgstr ""
+msgstr "Keine"
 
 msgid "TLS with anonymous certificates"
-msgstr ""
+msgstr "TLS mit anonymen Zertifikaten"
 
 msgid "TLS with X509 certificates"
-msgstr ""
+msgstr "TLS mit X509 Zertifikaten"
 
 msgid "Path to X509 CA certificate"
-msgstr ""
+msgstr "Pfad zum X509 CA Zertifikat"
 
 msgid "Path to X509 CRL file"
-msgstr ""
+msgstr "Pfad zur X509 CRL Datei"
 
-#, fuzzy
 msgid "Authentication:"
-msgstr "VNC Authentifizierung"
+msgstr "Authentifizierung:"
 
 msgid "Standard VNC (insecure without encryption)"
-msgstr ""
+msgstr "Standard VNC (unsicher ohne VerschlÃŒsserlung)"
 
 msgid "Username and password (insecure without encryption)"
-msgstr ""
+msgstr "Benutzername und Passwort (unsicher ohne VerschlÃŒsselung)"
 
 msgid "Username:"
 msgstr "Benutzername:"
@@ -230,6 +229,3 @@ msgstr ""
 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
 "Copyright (C) 2005 Klaus Franken, StrukturPunkt\n"
 "Siehe http://www.tigervnc.org für Informationen über TigerVNC."
-
-#~ msgid "About VNCviewer..."
-#~ msgstr "Über VNC-Viewer"
