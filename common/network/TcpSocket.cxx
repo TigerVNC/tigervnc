@@ -71,7 +71,7 @@ static rfb::LogWriter vlog("TcpSocket");
 /* Tunnelling support. */
 int network::findFreeTcpPort (void)
 {
-  int sock, port;
+  int sock;
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
@@ -80,15 +80,16 @@ int network::findFreeTcpPort (void)
   if ((sock = socket (AF_INET, SOCK_STREAM, 0)) < 0)
     throw SocketException ("unable to create socket", errorNumber);
 
-  for (port = TUNNEL_PORT_OFFSET + 99; port > TUNNEL_PORT_OFFSET; port--) {
-    addr.sin_port = htons ((unsigned short) port);
-    if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) == 0) {
-      closesocket (sock);
-      return port;
-    }
-  }
-  throw SocketException ("no free port in range", 0);
-  return 0;
+  addr.sin_port = 0;
+  if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) < 0)
+    throw SocketException ("unable to find free port", errorNumber);
+
+  socklen_t n = sizeof(addr);
+  if (getsockname (sock, (struct sockaddr *)&addr, &n) < 0)
+    throw SocketException ("unable to get port number", errorNumber);
+
+  closesocket (sock);
+  return ntohs(addr.sin_port);
 }
 
 
