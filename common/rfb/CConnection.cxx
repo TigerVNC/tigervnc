@@ -157,24 +157,23 @@ void CConnection::processSecurityTypesMsg()
       throwConnFailedException();
 
     std::list<rdr::U8>::iterator j;
-    int secTypePos, secTypePosMin;
-
-    secTypePosMin = secTypes.size();
 
     for (int i = 0; i < nServerSecTypes; i++) {
       rdr::U8 serverSecType = is->readU8();
       vlog.debug("Server offers security type %s(%d)",
-                 secTypeName(serverSecType),serverSecType);
+                 secTypeName(serverSecType), serverSecType);
 
-      // We keep trying types, to find the one that matches and
-      // which appears first in the client's list of supported types.
-      for (j = secTypes.begin(), secTypePos = 0; j != secTypes.end(); j++, secTypePos++) {
-        if (*j == serverSecType && secTypePos < secTypePosMin) {
-          secType = *j;
-          secTypePosMin = secTypePos;
-          break;
-        }
-      }
+      /*
+       * Use the first type sent by server which matches client's type.
+       * It means server's order specifies priority.
+       */
+      if (secType == secTypeInvalid) {
+        for (j = secTypes.begin(); j != secTypes.end(); j++)
+          if (*j == serverSecType) {
+            secType = *j;
+            break;
+          }
+       }
     }
 
     // Inform the server of our decision
