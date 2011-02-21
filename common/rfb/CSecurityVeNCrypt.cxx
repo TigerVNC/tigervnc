@@ -147,13 +147,13 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
       chosenType = secTypeInvalid;
       U8 i;
       list<U32>::iterator j;
-      list<U32> preferredList;
+      list<U32> secTypes;
 
-      /* Try preferred choice */
-      preferredList = security->GetEnabledExtSecTypes();
+      secTypes = security->GetEnabledExtSecTypes();
 
-      for (j = preferredList.begin(); j != preferredList.end(); j++) {
-	for (i = 0; i < nAvailableTypes; i++) {
+      /* Honor server's security type order */
+      for (i = 0; i < nAvailableTypes; i++) {
+        for (j = secTypes.begin(); j != secTypes.end(); j++) {
 	  if (*j == availableTypes[i]) {
 	    chosenType = *j;
 	    break;
