@@ -45,7 +45,7 @@ StringParameter SecurityClient::secTypes
 ("SecurityTypes",
  "Specify which security scheme to use (None, VncAuth)",
 #ifdef HAVE_GNUTLS
- "VeNCrypt,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
+ "X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
 #else
  "VncAuth,None",
 #endif

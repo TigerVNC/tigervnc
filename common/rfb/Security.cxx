@@ -67,6 +67,7 @@ const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
   list<rdr::U8> result;
   list<U32>::iterator i;
 
+  result.push_back(secTypeVeNCrypt);
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i < 0x100)
       result.push_back(*i);
@@ -104,6 +105,8 @@ bool Security::IsSupported(U32 secType)
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i == secType)
       return true;
+  if (secType == secTypeVeNCrypt)
+    return true;
 
   return false;
 }
