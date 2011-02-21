@@ -1,5 +1,6 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
+# Copyright (C) 2011 TigerVNC Team
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #

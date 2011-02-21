@@ -1,5 +1,6 @@
 # Translation of tigervnc.pot to Slovak
 # Copyright (C) YEAR RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
+# Copyright (C) 2011 TigerVNC Team
 # This file is distributed under the same license as the TigerVNC package.
 # Jozef Riha <jose1711@gmail.com>, 2008.
 #
