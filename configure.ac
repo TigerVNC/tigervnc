@@ -10,7 +10,7 @@ BUILD=`date +%Y%m%d`
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2])
 
-AC_CONFIG_SUBDIRS([common/jpeg common/zlib])
+AC_CONFIG_SUBDIRS([common/zlib])
 
 AC_CONFIG_HEADERS([config.h])
 
@@ -195,16 +195,7 @@ AM_CONDITIONAL([INCLUDED_ZLIB], [ test "x$INCLUDED_ZLIB" = xyes ])
 AC_CONFIG_SUBDIRS([zlib])
 
 dnl Check for libjpeg library
-INCLUDED_JPEG=yes
-AC_ARG_WITH([system-jpeg],
-	AS_HELP_STRING([--with-system-jpeg], 
-		       [use libjpeg which is distributed with the O/S]),
-	[AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg],
-			[INCLUDED_JPEG=no], [])],
-	[])
-
-AM_CONDITIONAL([INCLUDED_JPEG], [ test "x$INCLUDED_JPEG" = xyes ])
-AC_CONFIG_SUBDIRS([jpeg])
+AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg])
 
 AC_CHECK_FUNCS([vsnprintf snprintf strcasecmp strncasecmp])
 

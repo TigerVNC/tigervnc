@@ -61,11 +61,6 @@ autoconf, automake, libtool and gettext and run following command before
 This should first build some libraries - rdr, network, Xregion, rfb and tx -
 followed by the vncviewer, vncconfig and vncpasswd applications.
 
-The default is to build an optimized version of libjpeg included with the
-TigerVNC source and link these applications against it.  To instead link
-against the version of libjpeg provided by the operating system, pass an
-argument of "--with-system-jpeg" to configure.
-
 The default is to link against the version of zlib provided by the operating
 system.  If you wish instead to build a static version of zlib and link
 against it, pass an argument of "--with-included-zlib" to configure.

@@ -1,5 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/win
-  ${CMAKE_SOURCE_DIR}/common/jpeg ${CMAKE_SOURCE_DIR}/common/jpeg/win)
+include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/win)
 
 set(RFB_SOURCES
   Blacklist.cxx

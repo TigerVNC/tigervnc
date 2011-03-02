@@ -1,6 +1,5 @@
 add_subdirectory(os)
 add_subdirectory(zlib)
-add_subdirectory(jpeg)
 add_subdirectory(rdr)
 add_subdirectory(network)
 add_subdirectory(Xregion)

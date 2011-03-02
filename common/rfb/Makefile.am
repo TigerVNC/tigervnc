@@ -62,11 +62,6 @@ librfb_la_SOURCES += UnixPasswordValidator.cxx UnixPasswordValidator.h pam.c pam
 librfb_la_LIBADD += $(PAM_LIBS)
 endif
 
-if INCLUDED_JPEG
-librfb_la_CPPFLAGS += -I$(top_srcdir)/common/jpeg -I$(top_builddir)/common/jpeg
-librfb_la_LIBADD += $(top_builddir)/common/jpeg/libjpeg.la
-endif
-
 if BUILD_WIN
 librfb_la_SOURCES += WinPasswdValidator.h WinPasswdValidator.cxx
 endif
