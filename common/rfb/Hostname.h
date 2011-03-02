@@ -28,6 +28,8 @@ namespace rfb {
   static void getHostAndPort(const char* hi, char** host, int* port, int basePort=5900) {
     CharArray portBuf;
     CharArray hostBuf;
+    if (hi == NULL)
+      throw rdr::Exception("NULL host specified");
     if (hi[0] == '[') {
       if (!strSplit(&hi[1], ']', &hostBuf.buf, &portBuf.buf))
         throw rdr::Exception("unmatched [ in host");
