@@ -444,6 +444,10 @@ char* StringParameter::getValueStr() const {
   return strDup(value);
 }
 
+StringParameter::operator const char *() const {
+  return value;
+}
+
 // -=- BinaryParameter
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
