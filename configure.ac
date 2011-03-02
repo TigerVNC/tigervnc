@@ -195,7 +195,7 @@ AM_CONDITIONAL([INCLUDED_ZLIB], [ test "x$INCLUDED_ZLIB" = xyes ])
 AC_CONFIG_SUBDIRS([zlib])
 
 dnl Check for libjpeg library
-AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg])
+AC_SEARCH_LIBS([jpeg_destroy_compress], [jpeg], [], [AC_MSG_ERROR(["libjpeg is required to build TigerVNC"])])
 
 AC_CHECK_FUNCS([vsnprintf snprintf strcasecmp strncasecmp])
 
