@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +30,21 @@ namespace rfb {
   class ColourMap {
   public:
     virtual void lookup(int index, int* r, int* g, int* b)=0;
+  };
+
+  class SimpleColourMap : public ColourMap {
+  public:
+    SimpleColourMap(int size = 256) { table = new Colour[size]; };
+    ~SimpleColourMap() { delete [] table; };
+
+    void lookup(int index, int* r, int* g, int* b)
+    { *r = table[index].r; *g = table[index].g; *b = table[index].b; };
+
+    void set(int index, int r, int g, int b)
+    { table[index].r = r; table[index].g = g; table[index].b = b; };
+
+  protected:
+    Colour *table;
   };
 }
 #endif
