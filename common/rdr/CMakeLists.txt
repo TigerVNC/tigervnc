@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/common/zlib)
+include_directories(${CMAKE_SOURCE_DIR}/common ${ZLIB_INCLUDE_DIRS})
 
 add_library(rdr STATIC
   Exception.cxx
@@ -14,7 +14,7 @@ add_library(rdr STATIC
   ZlibInStream.cxx
   ZlibOutStream.cxx)
 
-set(RDR_LIBRARIES zlib os)
+set(RDR_LIBRARIES ${ZLIB_LIBRARIES} os)
 if(GNUTLS_FOUND)
   set(RDR_LIBRARIES ${RDR_LIBRARIES} ${GNUTLS_LIBRARIES} ws2_32)
 endif()

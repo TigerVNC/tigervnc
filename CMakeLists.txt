@@ -85,6 +85,14 @@ if(MINGW)
     "<CMAKE_RC_COMPILER> <FLAGS> <DEFINES> -o <OBJECT> --output-format=coff <SOURCE>")
 endif()
 
+# Check for zlib
+find_package(ZLIB)
+option(USE_INCLUDED_ZLIB "Force use of the bundled zlib")
+if(NOT ZLIB_FOUND)
+  message(STATUS "System zlib not found. Using included zlib")
+  set(USE_INCLUDED_ZLIB 1)
+endif()
+
 # Check for GNUTLS library
 find_package(GnuTLS)
 if(GNUTLS_FOUND)
