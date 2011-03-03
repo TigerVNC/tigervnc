@@ -60,13 +60,7 @@ if(MSVC)
   add_definitions(-wd4244 -wd4267 -wd4800 -wd4996)
 endif()
 
-# Detect whether compiler is 64-bit
-if((MSVC AND CMAKE_CL_64) OR (CMAKE_SIZEOF_VOID_P MATCHES 8))
-  set(64BIT 1)
-  set(WIN64 1)
-endif()
-
-if(64BIT)
+if(CMAKE_CL_64)
   message(STATUS "64-bit build")
 else()
   message(STATUS "32-bit build")

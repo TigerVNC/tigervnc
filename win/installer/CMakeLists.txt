@@ -1,4 +1,4 @@
-if(64BIT)
+if(CMAKE_CL_64)
   set(INST_NAME ${CMAKE_PROJECT_NAME}64-${VERSION})
   set(INST_DEFS -DWIN64)
 else()
