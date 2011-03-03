@@ -1,4 +1,8 @@
-add_definitions(-DNO_VIZ -DWINDOWS)
+# It seems like gcc for Win32 doesn't support the visibility attribute,
+# so disable it to make it stop complaining.
+if(WIN32)
+  add_definitions(-DNO_VIZ)
+endif()
 
 add_library(zlib STATIC 
   adler32.c
