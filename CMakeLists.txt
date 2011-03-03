@@ -10,15 +10,21 @@ set(VERSION 1.0.90)
 # The RC version must always be four comma-separated numbers
 set(RCVERSION 1,0,90,0)
 
-if(MINGW OR CYGWIN)
-  execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
-  string(REGEX REPLACE "\n" "" BUILD ${BUILD})
-elseif(WIN32)
+# Try to encode today's date into the build id. We assume that MSVC
+# means we need to use a native Windows method, otherwise we assume
+# some kind of Unix system. The id will be empty if things fail.
+set(BUILD "")
+if(MSVC)
   execute_process(COMMAND "${CMAKE_SOURCE_DIR}/cmakescripts/getdate.bat"
     OUTPUT_VARIABLE BUILD)
-  string(REGEX REPLACE "\n" "" BUILD ${BUILD})
 else()
-  message(FATAL_ERROR "Platform not supported by this build system.  Use autotools instead.")
+  execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
+endif()
+
+if(NOT BUILD)
+  set(BUILD "")
+else()
+  string(REGEX REPLACE "\n" "" BUILD ${BUILD})
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
