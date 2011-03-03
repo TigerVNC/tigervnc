@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/win)
+include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/win ${JPEG_INCLUDE_DIR})
 
 set(RFB_SOURCES
   Blacklist.cxx
@@ -65,7 +65,7 @@ set(RFB_SOURCES
   encodings.cxx
   util.cxx)
 
-set(RFB_LIBRARIES jpeg os)
+set(RFB_LIBRARIES ${JPEG_LIBRARIES} os)
 
 if(GNUTLS_FOUND)
   set(RFB_SOURCES

@@ -93,6 +93,9 @@ if(NOT ZLIB_FOUND)
   set(USE_INCLUDED_ZLIB 1)
 endif()
 
+# Check for libjpeg
+find_package(JPEG REQUIRED)
+
 # Check for GNUTLS library
 find_package(GnuTLS)
 if(GNUTLS_FOUND)
