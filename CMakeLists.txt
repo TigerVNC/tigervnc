@@ -27,6 +27,8 @@ else()
   string(REGEX REPLACE "\n" "" BUILD ${BUILD})
 endif()
 
+# Default to optimised builds instead of debug ones. Our code has no bugs ;)
+# (CMake makes it fairly easy to toggle this back to Debug if needed)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
