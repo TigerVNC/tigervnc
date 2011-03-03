@@ -14,6 +14,7 @@ vncserver \- start or stop a VNC server
 .IR format ]
 .RB [ \-fp
 .IR font-path ]
+.RB [ \-fg ]
 .RI [ Xvnc-options... ]
 .br
 .BI "vncserver \-kill :" display#
@@ -104,6 +105,14 @@ The
 .B \-fp
 argument allows you to override the above fallback logic and specify a font
 path for Xvnc to use.
+
+.TP
+.B \-fg
+This version of vncserver will always launch Xvnc in such a way that, when the
+user exits the window manager in their VNC session, Xvnc will terminate.
+Specifying this option will additionally make Xvnc run as a foreground process,
+which means that it can be aborted with CTRL-C.  This may be necessary when
+launching TigerVNC from within certain grid computing environments.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
