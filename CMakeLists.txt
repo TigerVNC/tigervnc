@@ -98,6 +98,13 @@ endif()
 # Check for libjpeg
 find_package(JPEG REQUIRED)
 
+# Warn if it doesn't seem to be the accelerated libjpeg that's found
+include(CheckCSourceCompiles)
+check_c_source_compiles("#include <stdio.h>\n#include <jpeglib.h>\nint main(int c, char** v) { return JCS_EXT_RGBX; }" FOUND_JPEG_TURBO)
+if(NOT FOUND_JPEG_TURBO)
+  message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
+endif()
+
 # Check for GNUTLS library
 find_package(GnuTLS)
 if(GNUTLS_FOUND)
