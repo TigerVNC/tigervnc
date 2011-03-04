@@ -51,6 +51,14 @@ if(NOT DEFINED BUILD_WINVNC)
   endif()
 endif()
 
+# CMake 64-bit detection leaves a bit to be desired and is sometimes
+# not properly set. Specifically we see this with mingw64. Try to
+# detect this scenario and fix things.
+if(NOT CMAKE_CL_64 AND CMAKE_SIZEOF_VOID_P MATCHES 8)
+  message(STATUS "WARNING: CMake misdetected 64-bit build. Fixing...")
+  set(CMAKE_CL_64 1)
+endif()
+
 if(MSVC)
   # Use the static C library for all build types
   foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
