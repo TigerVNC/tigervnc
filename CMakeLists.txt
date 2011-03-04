@@ -138,7 +138,14 @@ configure_file(config.h.cmake.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
 
-add_definitions(-D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500)
+# Minimum version is Windows 2000 (5.0)
+if(NOT CMAKE_CL_64)
+  add_definitions(-D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500)
+else()
+  # Win64 doesn't like us requesting a Windows version that didn't have
+  # 64-bit support. Request XP (5.1) instead.
+  add_definitions(-D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0501)
+endif()
 
 add_subdirectory(common)
 add_subdirectory(win)
