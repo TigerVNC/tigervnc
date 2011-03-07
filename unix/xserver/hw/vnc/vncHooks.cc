@@ -816,7 +816,9 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
     box.y2 = box.y1 + h;
 
     src.init(&box, 0);
-    REGION_INTERSECT(pScreen, src.reg, src.reg, &((WindowPtr)pSrc)->clipList);
+    if (REGION_NOTEMPTY(pScreen, &((WindowPtr)pSrc)->clipList)) {
+	REGION_INTERSECT(pScreen, src.reg, src.reg, &((WindowPtr)pSrc)->clipList);
+    }
     REGION_TRANSLATE(pScreen, src.reg,
                      dstx + pDst->x - srcx - pSrc->x,
                      dsty + pDst->y - srcy - pSrc->y);
