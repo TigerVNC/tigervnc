@@ -15,6 +15,11 @@ set(VERSION 1.0.90)
 # The RC version must always be four comma-separated numbers
 set(RCVERSION 1,0,90,0)
 
+# Compatibility variables for the migration from autotools
+add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")
+add_definitions(-DPACKAGE_VERSION="${VERSION}")
+add_definitions(-DLOCALEDIR="${CMAKE_INSTALL_PREFIX}/share/locale")
+
 # Try to encode today's date into the build id. We assume that MSVC
 # means we need to use a native Windows method, otherwise we assume
 # some kind of Unix system. The id will be empty if things fail.
@@ -101,6 +106,11 @@ if(MINGW)
     "<CMAKE_RC_COMPILER> <FLAGS> <DEFINES> -o <OBJECT> --output-format=coff <SOURCE>")
 endif()
 
+# X11 stuff. It's in a if() so that we can say REQUIRED
+if(UNIX)
+  find_package(X11 REQUIRED)
+endif()
+
 # Check for zlib
 find_package(ZLIB)
 option(USE_INCLUDED_ZLIB "Force use of the bundled zlib")
@@ -163,4 +173,9 @@ add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
 
 add_subdirectory(common)
-add_subdirectory(win)
+
+if(WIN32)
+  add_subdirectory(win)
+else()
+  add_subdirectory(unix)
+endif()
