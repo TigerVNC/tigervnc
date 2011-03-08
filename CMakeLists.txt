@@ -51,14 +51,6 @@ if(NOT DEFINED BUILD_WINVNC)
   endif()
 endif()
 
-# CMake 64-bit detection leaves a bit to be desired and is sometimes
-# not properly set. Specifically we see this with mingw64. Try to
-# detect this scenario and fix things.
-if(NOT CMAKE_CL_64 AND CMAKE_SIZEOF_VOID_P MATCHES 8)
-  message(STATUS "WARNING: CMake misdetected 64-bit build. Fixing...")
-  set(CMAKE_CL_64 1)
-endif()
-
 if(MSVC)
   # Use the static C library for all build types
   foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
@@ -76,7 +68,7 @@ if(MSVC)
   add_definitions(-wd4244 -wd4267 -wd4800 -wd4996)
 endif()
 
-if(CMAKE_CL_64)
+if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   message(STATUS "64-bit build")
 else()
   message(STATUS "32-bit build")
@@ -139,7 +131,7 @@ add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
 
 # Minimum version is Windows 2000 (5.0)
-if(NOT CMAKE_CL_64)
+if(NOT CMAKE_SIZEOF_VOID_P MATCHES 8)
   add_definitions(-D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500)
 else()
   # Win64 doesn't like us requesting a Windows version that didn't have

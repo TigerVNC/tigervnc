@@ -1,4 +1,5 @@
-if(CMAKE_CL_64)
+# Detect a 64-bit build and give that installer a different name
+if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   set(INST_NAME ${CMAKE_PROJECT_NAME}64-${VERSION})
   set(INST_DEFS -DWIN64)
 else()
