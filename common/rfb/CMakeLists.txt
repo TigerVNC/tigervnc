@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/win ${JPEG_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR})
 
 set(RFB_SOURCES
   Blacklist.cxx
@@ -65,6 +65,7 @@ set(RFB_SOURCES
   util.cxx)
 
 if(WIN32)
+  include_directories(${CMAKE_SOURCE_DIR}/win)
   set(RFB_SOURCES ${RFB_SOURCES} WinPasswdValidator.cxx)
 endif(WIN32)
 
