@@ -4,6 +4,11 @@
 
 cmake_minimum_required(VERSION 2.6)
 
+include(CheckIncludeFiles)
+include(CheckFunctionExists)
+include(CheckTypeSize)
+include(CheckCSourceCompiles)
+
 project(TigerVNC)
 set(VERSION 1.0.90)
 
@@ -99,7 +104,6 @@ endif()
 find_package(JPEG REQUIRED)
 
 # Warn if it doesn't seem to be the accelerated libjpeg that's found
-include(CheckCSourceCompiles)
 check_c_source_compiles("#include <stdio.h>\n#include <jpeglib.h>\nint main(int c, char** v) { return JCS_EXT_RGBX; }" FOUND_JPEG_TURBO)
 if(NOT FOUND_JPEG_TURBO)
   message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
@@ -114,9 +118,6 @@ if(GNUTLS_FOUND)
 endif()
 
 # Generate config.h
-include(CheckIncludeFiles)
-include(CheckFunctionExists)
-include(CheckTypeSize)
 if(WIN32)
   set(CMAKE_EXTRA_INCLUDE_FILES winsock2.h ws2tcpip.h)
   set(CMAKE_REQUIRED_LIBRARIES ws2_32)
