@@ -760,7 +760,7 @@ void VNCSConnectionST::setColourMapEntries(int firstColour, int nColours)
   if (!readyForSetColourMapEntries) return;
   if (server->pb->getPF().trueColour) return;
 
-  image_getter.setColourMapEntries(firstColour, nColours, writer());
+  image_getter.setColourMapEntries(firstColour, nColours);
 
   if (cp.pf().trueColour) {
     updates.add_changed(server->pb->getRect());

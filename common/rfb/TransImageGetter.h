@@ -25,21 +25,18 @@
 
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
+#include <rfb/PixelTransformer.h>
 #include <rfb/ImageGetter.h>
 
 namespace rfb {
-  typedef void (*transFnType)(void* table_,
-                              const PixelFormat& inPF, void* inPtr,
-                              int inStride,
-                              const PixelFormat& outPF, void* outPtr,
-                              int outStride, int width, int height);
 
   class SMsgWriter;
   class ColourMap;
   class PixelBuffer;
   class ColourCube;
 
-  class TransImageGetter : public ImageGetter {
+  class TransImageGetter : public ImageGetter,
+                           public PixelTransformer {
   public:
 
     TransImageGetter(bool econ=false);
@@ -65,8 +62,7 @@ namespace rfb {
     // framebuffer (the simplest thing to do is just update the whole
     // framebuffer, though it is possible to be smarter than this).
 
-    void setColourMapEntries(int firstColour, int nColours,
-                             SMsgWriter* writer=0);
+    void setColourMapEntries(int firstColour, int nColours);
 
     // getImage() gets the given rectangle of data from the PixelBuffer,
     // translates it into the client's pixel format and puts it in the buffer
@@ -74,13 +70,6 @@ namespace rfb {
     // be used where padding is required between the output scanlines (the
     // padding will be outStride-r.width() pixels).
     void getImage(void* outPtr, const Rect& r, int outStride=0);
-
-    // translatePixels() translates the given number of pixels from inPtr,
-    // putting it into the buffer pointed to by outPtr.  The pixels at inPtr
-    // should be in the same format as the PixelBuffer, and the translated
-    // pixels will be in the format previously given by the outPF argument to
-    // init().  Note that this call does not use the PixelBuffer's pixel data.
-    void translatePixels(void* inPtr, void* outPtr, int nPixels) const;
 
     // setPixelBuffer() changes the pixel buffer to be used.  The new pixel
     // buffer MUST have the same pixel format as the old one - if not you
@@ -92,9 +81,14 @@ namespace rfb {
     void setOffset(const Point& offset_) { offset = offset_; }
 
   private:
+    static void cmCallback(int firstColour, int nColours,
+                           ColourMap* cm, void* data);
+
+  private:
     bool economic;
     PixelBuffer* pb;
     PixelFormat outPF;
+    SMsgWriter* writer;
     rdr::U8* table;
     transFnType transFn;
     ColourCube* cube;

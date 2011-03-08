@@ -165,7 +165,7 @@ void TXImage::setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs)
 void TXImage::updateColourMap()
 {
   if (tig != 0)
-    tig->setColourMapEntries(0, 0, 0);
+    tig->setColourMapEntries(0, 0);
 }
 
 void TXImage::lookup(int index, int* r, int* g, int* b)

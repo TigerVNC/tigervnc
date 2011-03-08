@@ -30,6 +30,7 @@ set(RFB_SOURCES
   Password.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
+  PixelTransformer.cxx
   RREEncoder.cxx
   RREDecoder.cxx
   RawDecoder.cxx
