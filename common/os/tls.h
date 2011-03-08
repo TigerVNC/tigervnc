@@ -33,7 +33,7 @@
 #ifndef HAVE_GNUTLS_DATUM_T
 typedef gnutls_datum gnutls_datum_t;
 #endif
-#ifndef HAVE_GNUTLS_CRT_T
+#ifndef HAVE_GNUTLS_X509_CRT_T
 typedef gnutls_x509_crt gnutls_x509_crt_t;
 #endif
 #ifndef HAVE_GNUTLS_PK_ALGORITHM_T

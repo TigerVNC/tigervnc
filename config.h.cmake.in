@@ -7,7 +7,7 @@
 #cmakedefine HAVE_VSNPRINTF
 #cmakedefine HAVE_OLD_GNUTLS
 #cmakedefine HAVE_GNUTLS_X509_CRT_PRINT
-#cmakedefine HAVE_GNUTLS_CRT_T
+#cmakedefine HAVE_GNUTLS_X509_CRT_T
 #cmakedefine HAVE_GNUTLS_DATUM_T
 #cmakedefine HAVE_GNUTLS_PK_ALGORITHM_T
 #cmakedefine HAVE_GNUTLS_SIGN_ALGORITHM_T
