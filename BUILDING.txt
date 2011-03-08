@@ -117,7 +117,8 @@ build configuration or module dependencies.
 Building VeNCrypt support
 =========================
 
-Building VeNCrypt (the TigerVNC security and authentication extensions)
+VeNCrypt (the TigerVNC security and authentication extensions) can be built
+with TLS support, which provides built-in encryption for VNC sessions.  This
 requires GnuTLS, which is not pre-installed on all platforms.  In general, if
 you are building on a Unix-ish platform that has the GnuTLS libraries and
 include files installed in the standard system locations, then the TigerVNC
@@ -350,7 +351,8 @@ to the cmake command line.
 Building VeNCrypt support
 =========================
 
-Building VeNCrypt (the TigerVNC security and authentication extensions)
+VeNCrypt (the TigerVNC security and authentication extensions) can be built
+with TLS support, which provides built-in encryption for VNC sessions.  This
 requires GnuTLS, which is not Microsoft-friendly.  There is generally no
 sane way to build GnuTLS and its dependencies using Visual C++.  Those with
 a lot of time on their hands can build the GnuTLS DLLs using MinGW (or download
