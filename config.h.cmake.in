@@ -1,3 +1,4 @@
+#cmakedefine HAVE_SOCKLEN_T
 #cmakedefine HAVE_INET_ATON
 #cmakedefine HAVE_INET_NTOP
 #cmakedefine HAVE_SNPRINTF
