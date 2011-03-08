@@ -117,7 +117,7 @@ if(GNUTLS_FOUND)
   add_definitions(${GNUTLS_DEFINITIONS})
 endif()
 
-# Generate config.h
+# Check for socket functions
 if(WIN32)
   set(CMAKE_EXTRA_INCLUDE_FILES winsock2.h ws2tcpip.h)
   set(CMAKE_REQUIRED_LIBRARIES ws2_32)
@@ -127,13 +127,16 @@ endif()
 check_function_exists(inet_aton HAVE_INET_ATON)
 check_function_exists(inet_ntop HAVE_INET_NTOP)
 check_type_size(socklen_t SOCKLEN_T)
-
 set(CMAKE_EXTRA_INCLUDE_FILES) 
 set(CMAKE_REQUIRED_LIBRARIES)
+
+# Check for the newer standard string functions
 check_function_exists(snprintf HAVE_SNPRINTF)
 check_function_exists(strcasecmp HAVE_STRCASECMP)
 check_function_exists(strncasecmp HAVE_STRNCASECMP)
 check_function_exists(vsnprintf HAVE_VSNPRINTF)
+
+# Generate config.h and make sure the source finds it
 configure_file(config.h.cmake.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
