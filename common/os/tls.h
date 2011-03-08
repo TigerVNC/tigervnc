@@ -23,11 +23,7 @@
 #include <config.h>
 #endif
 
-/*
- * Windows builds are build against fairly new GNUTLS, ignore compatibility
- * code.
- */
-#if defined(HAVE_GNUTLS) && !defined(WIN32)
+#if defined(HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
 
 #ifndef HAVE_GNUTLS_DATUM_T
