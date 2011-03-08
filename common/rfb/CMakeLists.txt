@@ -59,11 +59,14 @@ set(RFB_SOURCES
   UpdateTracker.cxx
   VNCSConnectionST.cxx
   VNCServerST.cxx
-  WinPasswdValidator.cxx	# Windows specific code
   ZRLEEncoder.cxx
   ZRLEDecoder.cxx
   encodings.cxx
   util.cxx)
+
+if(WIN32)
+  set(RFB_SOURCES ${RFB_SOURCES} WinPasswdValidator.cxx)
+endif(WIN32)
 
 set(RFB_LIBRARIES ${JPEG_LIBRARIES} os)
 
