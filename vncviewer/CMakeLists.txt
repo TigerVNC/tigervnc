@@ -7,6 +7,7 @@ add_executable(vncviewer
   DesktopWindow.cxx
   UserDialog.cxx
   parameters.cxx
+  keysym2ucs.c
   vncviewer.cxx)
 
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES})

@@ -100,6 +100,8 @@ private:
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 
+  void handleKeyEvent(int keyCode, const char *keyText, bool down);
+
 private:
   CConn* cc;
 
@@ -112,6 +114,8 @@ private:
 
   rfb::Point lastPointerPos;
   int lastButtonMask;
+
+  rdr::U32 downKeySym[65536];
 };
 
 #endif

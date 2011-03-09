@@ -26,10 +26,17 @@
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 
+// FLTK can pull in the X11 headers on some systems
+#ifndef XK_VoidSymbol
+#define XK_MISCELLANY
+#include <rfb/keysymdef.h>
+#endif
+
 #include "DesktopWindow.h"
 #include "CConn.h"
 #include "i18n.h"
 #include "parameters.h"
+#include "keysym2ucs.h"
 
 using namespace rfb;
 
@@ -197,6 +204,18 @@ int DesktopWindow::handle(int event)
 
     handlePointerEvent(Point(Fl::event_x(), Fl::event_y()), buttonMask);
     return 1;
+
+  case FL_FOCUS:
+    // Yes, we would like some focus please!
+    return 1;
+
+  case FL_KEYDOWN:
+    handleKeyEvent(Fl::event_key(), Fl::event_text(), true);
+    return 1;
+
+  case FL_KEYUP:
+    handleKeyEvent(Fl::event_key(), Fl::event_text(), false);
+    return 1;
   }
 
   return Fl_Window::handle(event);
@@ -254,4 +273,145 @@ void DesktopWindow::handlePointerTimeout(void *data)
   assert(self);
 
   self->cc->writer()->pointerEvent(self->lastPointerPos, self->lastButtonMask);
+}
+
+void DesktopWindow::handleKeyEvent(int keyCode, const char *keyText, bool down)
+{
+  rdr::U32 keySym;
+
+  if (viewOnly)
+    return;
+
+  if (keyCode > 0xFFFF) {
+      vlog.error(_("Too large FLTK key code %d (0x%08x)"), keyCode, keyCode);
+      return;
+  }
+
+  // Because of the way keyboards work, we cannot expect to have the same
+  // symbol on release as when pressed. This breaks the VNC protocol however,
+  // so we need to keep track of what keysym a key _code_ generated on press
+  // and send the same on release.
+  if (!down) {
+    cc->writer()->keyEvent(downKeySym[keyCode], false);
+    return;
+  }
+
+  // Special key
+  if (keyText[0] == '\0') {
+    if ((keyCode >= FL_F) && (keyCode <= FL_F_Last))
+      keySym = XK_F1 + (keyCode - FL_F);
+#if 0
+      case FL_KP		0xff80	///< One of the keypad numbers; use FL_KP + n for number n.
+      case FL_KP_Enter	0xff8d	///< The enter key on the keypad, same as Fl_KP+'\\r'.
+      case FL_KP_Last	0xffbd	///< The last keypad key; use to range-check keypad.
+#endif
+    else {
+      switch (keyCode) {
+      case FL_BackSpace:
+        keySym = XK_BackSpace;
+        break;
+      case FL_Tab:
+        keySym = XK_Tab;
+        break;
+      case FL_Enter:
+        keySym = XK_Return;
+        break;
+      case FL_Pause:
+        keySym = XK_Pause;
+        break;
+      case FL_Scroll_Lock:
+        keySym = XK_Scroll_Lock;
+        break;
+      case FL_Escape:
+        keySym = XK_Escape;
+        break;
+      case FL_Home:
+        keySym = XK_Home;
+        break;
+      case FL_Left:
+        keySym = XK_Left;
+        break;
+      case FL_Up:
+        keySym = XK_Up;
+        break;
+      case FL_Right:
+        keySym = XK_Right;
+        break;
+      case FL_Down:
+        keySym = XK_Down;
+        break;
+      case FL_Page_Up:
+        keySym = XK_Page_Up;
+        break;
+      case FL_Page_Down:
+        keySym = XK_Page_Down;
+        break;
+      case FL_End:
+        keySym = XK_End;
+        break;
+      case FL_Print:
+        keySym = XK_Print;
+        break;
+      case FL_Insert:
+        keySym = XK_Insert;
+        break;
+      case FL_Menu:
+        keySym = XK_Menu;
+        break;
+      case FL_Help:
+        keySym = XK_Help;
+        break;
+      case FL_Num_Lock:
+        keySym = XK_Num_Lock;
+        break;
+      case FL_Shift_L:
+        keySym = XK_Shift_L;
+        break;
+      case FL_Shift_R:
+        keySym = XK_Shift_R;
+        break;
+      case FL_Control_L:
+        keySym = XK_Control_L;
+        break;
+      case FL_Control_R:
+        keySym = XK_Control_R;
+        break;
+      case FL_Caps_Lock:
+        keySym = XK_Caps_Lock;
+        break;
+      case FL_Meta_L:
+        keySym = XK_Super_L;
+        break;
+      case FL_Meta_R:
+        keySym = XK_Super_R;
+        break;
+      case FL_Alt_L:
+        keySym = XK_Alt_L;
+        break;
+      case FL_Alt_R:
+        keySym = XK_Alt_R;
+        break;
+      case FL_Delete:
+        keySym = XK_Delete;
+        break;
+      default:
+        vlog.error(_("Unknown FLTK key code %d (0x%04x)"), keyCode, keyCode);
+        return;
+      }
+    }
+  } else {
+    unsigned ucs;
+
+    if (fl_utf_nb_char((const unsigned char*)keyText, strlen(keyText)) != 1) {
+      vlog.error(_("Multiple characters given for key code %d (0x%04x): '%s'"),
+                 keyCode, keyCode, keyText);
+      return;
+    }
+
+    ucs = fl_utf8decode(keyText, NULL, NULL);
+    keySym = ucs2keysym(ucs);
+  }
+
+  downKeySym[keyCode] = keySym;
+  cc->writer()->keyEvent(keySym, down);
 }
