@@ -247,4 +247,5 @@ void DesktopWindow::handlePointerTimeout(void *data)
 
   assert(self);
 
+  self->cc->writer()->pointerEvent(self->lastPointerPos, self->lastButtonMask);
 }
