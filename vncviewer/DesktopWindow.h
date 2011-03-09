@@ -82,6 +82,7 @@ public:
 
   // Fl_Window callback methods
   void draw();
+  int handle(int event);
 
 private:
 
@@ -96,6 +97,9 @@ private:
 
   static void handleClose(Fl_Widget *wnd, void *data);
 
+  void handlePointerEvent(const rfb::Point& pos, int buttonMask);
+  static void handlePointerTimeout(void *data);
+
 private:
   CConn* cc;
 
@@ -105,6 +109,9 @@ private:
   rfb::SimpleColourMap colourMap;
 
   rfb::Region damage;
+
+  rfb::Point lastPointerPos;
+  int lastButtonMask;
 };
 
 #endif

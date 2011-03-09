@@ -40,7 +40,8 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL)
+  : Fl_Window(w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
+    lastPointerPos(0, 0), lastButtonMask(0)
 {
   callback(handleClose, this);
 
@@ -158,6 +159,44 @@ void DesktopWindow::draw()
 }
 
 
+int DesktopWindow::handle(int event)
+{
+  int buttonMask, wheelMask;
+
+  switch (event) {
+  case FL_PUSH:
+  case FL_RELEASE:
+  case FL_DRAG:
+  case FL_MOVE:
+  case FL_MOUSEWHEEL:
+    buttonMask = 0;
+    if (Fl::event_button1())
+      buttonMask |= 1;
+    if (Fl::event_button2())
+      buttonMask |= 2;
+    if (Fl::event_button3())
+      buttonMask |= 4;
+
+    if (event == FL_MOUSEWHEEL) {
+      if (Fl::event_dy() < 0)
+        wheelMask = 8;
+      else
+        wheelMask = 16;
+
+      // A quick press of the wheel "button", followed by a immediate
+      // release below
+      handlePointerEvent(Point(Fl::event_x(), Fl::event_y()),
+                         buttonMask | wheelMask);
+    } 
+
+    handlePointerEvent(Point(Fl::event_x(), Fl::event_y()), buttonMask);
+    return 1;
+  }
+
+  return Fl_Window::handle(event);
+}
+
+
 void DesktopWindow::handleUpdateTimeout(void *data)
 {
   DesktopWindow *self = (DesktopWindow *)data;
@@ -183,4 +222,29 @@ void DesktopWindow::handleColourMap(void *data)
 void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
 {
   exit_vncviewer();
+}
+
+
+void DesktopWindow::handlePointerEvent(const rfb::Point& pos, int buttonMask)
+{
+  if (!viewOnly) {
+    if (pointerEventInterval == 0 || buttonMask != lastButtonMask) {
+      cc->writer()->pointerEvent(pos, buttonMask);
+    } else {
+      if (!Fl::has_timeout(handlePointerTimeout, this))
+        Fl::add_timeout((double)pointerEventInterval/1000.0,
+                        handlePointerTimeout, this);
+    }
+    lastPointerPos = pos;
+    lastButtonMask = buttonMask;
+  }
+}
+
+
+void DesktopWindow::handlePointerTimeout(void *data)
+{
+  DesktopWindow *self = (DesktopWindow *)data;
+
+  assert(self);
+
 }
