@@ -15,6 +15,9 @@ set(VERSION 1.0.90)
 # The RC version must always be four comma-separated numbers
 set(RCVERSION 1,0,90,0)
 
+# Manual toggle until we can deprecate the old viewers
+option(BUILD_NEW_VNCVIEWER "Build the new FLTK based vncviewer instead of the old ones")
+
 # Compatibility variables for the migration from autotools
 add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")
 add_definitions(-DPACKAGE_VERSION="${VERSION}")
@@ -128,6 +131,13 @@ if(NOT FOUND_JPEG_TURBO)
   message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
+# Check for FLTK
+if(BUILD_NEW_VNCVIEWER)
+  set(FLTK_SKIP_FLUID TRUE)
+  set(FLTK_SKIP_OPENGL TRUE)
+  find_package(FLTK COMPONENTS REQUIRED)
+endif()
+
 # Check for GNUTLS library
 find_package(GnuTLS)
 if(GNUTLS_FOUND)
@@ -178,4 +188,8 @@ if(WIN32)
   add_subdirectory(win)
 else()
   add_subdirectory(unix)
+endif()
+
+if(BUILD_NEW_VNCVIEWER)
+  add_subdirectory(vncviewer)
 endif()
