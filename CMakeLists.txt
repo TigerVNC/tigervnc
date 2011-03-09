@@ -142,6 +142,10 @@ if(BUILD_WINVNC)
   set(INST_DEPS ${INST_DEPS} winvnc4 wm_hooks vncconfig)
 endif()
 
+if(GNUTLS_FOUND AND NOT GNUTLS_STATIC)
+  set(INST_DEFS ${INST_DEFS})
+endif()
+
 configure_file(win/tigervnc.iss.in tigervnc.iss)
 
 add_custom_target(installer
