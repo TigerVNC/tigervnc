@@ -167,11 +167,11 @@ $securityTypeArgSpecified = 0;
 $vncAuthEnabled = 0;
 $passwordArgSpecified = 0;
 
-for ($i=0; $i<@ARGV; ++$i) {
+for ($i = 0; $i < @ARGV; ++$i) {
     # -SecurityTypes can be followed by a space or "="
     my @splitargs = split('=', $ARGV[$i]);
     if (@splitargs <= 1 && $i < @ARGV - 1) {
-        push(@splitargs, $ARGV[++$i]);
+        push(@splitargs, $ARGV[$i + 1]);
     }
     if (lc(@splitargs[0]) eq "-securitytypes") {
         if (@splitargs > 1) {
