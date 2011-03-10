@@ -284,6 +284,10 @@ rdr::U32 DesktopWindow::translateKeyEvent(int keyCode, const char *keyText)
   if ((keyCode >= FL_F) && (keyCode <= FL_F_Last))
     return XK_F1 + (keyCode - FL_F);
 
+  // Numpad numbers
+  if ((keyCode >= (FL_KP + '0')) && (keyCode <= (FL_KP + '9')))
+    return XK_KP_0 + (keyCode - (FL_KP + '0'));
+
   // Then other special keys
   switch (keyCode) {
   case FL_BackSpace:
@@ -344,6 +348,22 @@ rdr::U32 DesktopWindow::translateKeyEvent(int keyCode, const char *keyText)
     return XK_Alt_R;
   case FL_Delete:
     return XK_Delete;
+  case FL_KP_Enter:
+    return XK_KP_Enter;
+  case FL_KP + '=':
+    return XK_KP_Equal;
+  case FL_KP + '*':
+    return XK_KP_Multiply;
+  case FL_KP + '+':
+    return XK_KP_Add;
+  case FL_KP + ',':
+    return XK_KP_Separator;
+  case FL_KP + '-':
+    return XK_KP_Subtract;
+  case FL_KP + '.':
+    return XK_KP_Decimal;
+  case FL_KP + '/':
+    return XK_KP_Divide;
   }
 
   // Unknown special key?
