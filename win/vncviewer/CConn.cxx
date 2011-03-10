@@ -519,7 +519,7 @@ CConn::showOptionsDialog() {
 void
 CConn::framebufferUpdateStart() {
   if (!formatChange) {
-    pendingUpdate = true;
+    requestUpdate = pendingUpdate = true;
     requestNewUpdate();
   } else
     pendingUpdate = false;
@@ -576,6 +576,9 @@ CConn::framebufferUpdateEnd() {
     firstUpdate = false;
   }
 
+  // Always request the next update
+  requestUpdate = true;
+
   // A format change prevented us from sending this before the update,
   // so make sure to send it now.
   if (formatChange && !pendingUpdate)
@@ -583,9 +586,6 @@ CConn::framebufferUpdateEnd() {
 
   if (options.autoSelect)
     autoSelectFormatAndEncoding();
-
-  // Always request the next update
-  requestUpdate = true;
 
   // Check that at least part of the window has changed
   if (!GetUpdateRect(window->getHandle(), 0, FALSE)) {
