@@ -93,7 +93,7 @@ namespace rfb {
 
       // DesktopWindow::Callback interface
       void displayChanged();
-      void paintCompleted();
+      void paintCompleted() {}
       bool sysCommand(WPARAM wParam, LPARAM lParam);
       void closeWindow();
       void refreshMenu(bool enableSysCommands);
@@ -101,7 +101,7 @@ namespace rfb {
       // CConnection interface
       void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
       void bell();
-      void framebufferUpdateStart() {}
+      void framebufferUpdateStart();
       void framebufferUpdateEnd();
       void setDesktopSize(int w, int h);
       void setExtendedDesktopSize(int reason, int result, int w, int h,
@@ -152,6 +152,7 @@ namespace rfb {
       bool reverseConnection;
       bool requestUpdate;
       bool firstUpdate;
+      bool pendingUpdate;
 
       // Debugging/logging
       std::list<Rect> debugRects;

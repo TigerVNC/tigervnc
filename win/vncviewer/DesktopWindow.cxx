@@ -725,9 +725,6 @@ DesktopWindow::processFrameMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       }
 
       EndPaint(frameHandle, &ps);
-
-      // - Notify the callback that a paint message has finished processing
-      callback->paintCompleted();
     }
     return 0;
 

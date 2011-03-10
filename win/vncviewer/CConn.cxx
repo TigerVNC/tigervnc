@@ -80,7 +80,7 @@ CConn::CConn()
   : window(0), sameMachine(false), encodingChange(false), formatChange(false), 
     lastUsedEncoding_(encodingRaw), sock(0), sockEvent(CreateEvent(0, TRUE, FALSE, 0)), 
     reverseConnection(false), requestUpdate(false), firstUpdate(true),
-    isClosed_(false) {
+    pendingUpdate(false), isClosed_(false) {
 }
 
 CConn::~CConn() {
@@ -184,11 +184,6 @@ CConn::displayChanged() {
   calculateFullColourPF();
 }
 
-void
-CConn::paintCompleted() {
-  // A repaint message has just completed - request next update if necessary
-  requestNewUpdate();
-}
 
 bool
 CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
@@ -522,6 +517,16 @@ CConn::showOptionsDialog() {
 
 
 void
+CConn::framebufferUpdateStart() {
+  if (!formatChange) {
+    pendingUpdate = true;
+    requestNewUpdate();
+  } else
+    pendingUpdate = false;
+}
+
+
+void
 CConn::framebufferUpdateEnd() {
   if (debugDelay != 0) {
     vlog.debug("debug delay %d",(int)debugDelay);
@@ -570,6 +575,11 @@ CConn::framebufferUpdateEnd() {
 
     firstUpdate = false;
   }
+
+  // A format change prevented us from sending this before the update,
+  // so make sure to send it now.
+  if (formatChange && !pendingUpdate)
+    requestNewUpdate();
 
   if (options.autoSelect)
     autoSelectFormatAndEncoding();
@@ -662,6 +672,10 @@ CConn::requestNewUpdate() {
   if (!requestUpdate) return;
 
   if (formatChange) {
+
+    /* Catch incorrect requestNewUpdate calls */
+    assert(pendingUpdate == false);
+
     // Select the required pixel format
     if (options.fullColour) {
       window->setPF(fullColourPF);
