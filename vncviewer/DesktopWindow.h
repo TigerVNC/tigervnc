@@ -100,6 +100,7 @@ private:
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 
+  rdr::U32 translateKeyEvent(int keyCode, const char *keyText);
   void handleKeyEvent(int keyCode, const char *keyText, bool down);
 
 private:

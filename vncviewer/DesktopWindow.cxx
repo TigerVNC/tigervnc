@@ -275,6 +275,96 @@ void DesktopWindow::handlePointerTimeout(void *data)
   self->cc->writer()->pointerEvent(self->lastPointerPos, self->lastButtonMask);
 }
 
+
+rdr::U32 DesktopWindow::translateKeyEvent(int keyCode, const char *keyText)
+{
+  unsigned ucs;
+
+  // First check for function keys
+  if ((keyCode >= FL_F) && (keyCode <= FL_F_Last))
+    return XK_F1 + (keyCode - FL_F);
+
+  // Then other special keys
+  switch (keyCode) {
+  case FL_BackSpace:
+    return XK_BackSpace;
+  case FL_Tab:
+    return XK_Tab;
+  case FL_Enter:
+    return XK_Return;
+  case FL_Pause:
+    return XK_Pause;
+  case FL_Scroll_Lock:
+    return XK_Scroll_Lock;
+  case FL_Escape:
+    return XK_Escape;
+  case FL_Home:
+    return XK_Home;
+  case FL_Left:
+    return XK_Left;
+  case FL_Up:
+    return XK_Up;
+  case FL_Right:
+    return XK_Right;
+  case FL_Down:
+    return XK_Down;
+  case FL_Page_Up:
+    return XK_Page_Up;
+  case FL_Page_Down:
+    return XK_Page_Down;
+  case FL_End:
+    return XK_End;
+  case FL_Print:
+    return XK_Print;
+  case FL_Insert:
+    return XK_Insert;
+  case FL_Menu:
+    return XK_Menu;
+  case FL_Help:
+    return XK_Help;
+  case FL_Num_Lock:
+    return XK_Num_Lock;
+  case FL_Shift_L:
+    return XK_Shift_L;
+  case FL_Shift_R:
+    return XK_Shift_R;
+  case FL_Control_L:
+    return XK_Control_L;
+  case FL_Control_R:
+    return XK_Control_R;
+  case FL_Caps_Lock:
+    return XK_Caps_Lock;
+  case FL_Meta_L:
+    return XK_Super_L;
+  case FL_Meta_R:
+    return XK_Super_R;
+  case FL_Alt_L:
+    return XK_Alt_L;
+  case FL_Alt_R:
+    return XK_Alt_R;
+  case FL_Delete:
+    return XK_Delete;
+  }
+
+  // Unknown special key?
+  if (keyText[0] == '\0') {
+    vlog.error(_("Unknown FLTK key code %d (0x%04x)"), keyCode, keyCode);
+    return XK_VoidSymbol;
+  }
+
+  // Look up the symbol the key produces and translate that from Unicode
+  // to a X11 keysym.
+  if (fl_utf_nb_char((const unsigned char*)keyText, strlen(keyText)) != 1) {
+    vlog.error(_("Multiple characters given for key code %d (0x%04x): '%s'"),
+               keyCode, keyCode, keyText);
+    return XK_VoidSymbol;
+  }
+
+  ucs = fl_utf8decode(keyText, NULL, NULL);
+  return ucs2keysym(ucs);
+}
+
+
 void DesktopWindow::handleKeyEvent(int keyCode, const char *keyText, bool down)
 {
   rdr::U32 keySym;
@@ -296,121 +386,9 @@ void DesktopWindow::handleKeyEvent(int keyCode, const char *keyText, bool down)
     return;
   }
 
-  // Special key
-  if (keyText[0] == '\0') {
-    if ((keyCode >= FL_F) && (keyCode <= FL_F_Last))
-      keySym = XK_F1 + (keyCode - FL_F);
-#if 0
-      case FL_KP		0xff80	///< One of the keypad numbers; use FL_KP + n for number n.
-      case FL_KP_Enter	0xff8d	///< The enter key on the keypad, same as Fl_KP+'\\r'.
-      case FL_KP_Last	0xffbd	///< The last keypad key; use to range-check keypad.
-#endif
-    else {
-      switch (keyCode) {
-      case FL_BackSpace:
-        keySym = XK_BackSpace;
-        break;
-      case FL_Tab:
-        keySym = XK_Tab;
-        break;
-      case FL_Enter:
-        keySym = XK_Return;
-        break;
-      case FL_Pause:
-        keySym = XK_Pause;
-        break;
-      case FL_Scroll_Lock:
-        keySym = XK_Scroll_Lock;
-        break;
-      case FL_Escape:
-        keySym = XK_Escape;
-        break;
-      case FL_Home:
-        keySym = XK_Home;
-        break;
-      case FL_Left:
-        keySym = XK_Left;
-        break;
-      case FL_Up:
-        keySym = XK_Up;
-        break;
-      case FL_Right:
-        keySym = XK_Right;
-        break;
-      case FL_Down:
-        keySym = XK_Down;
-        break;
-      case FL_Page_Up:
-        keySym = XK_Page_Up;
-        break;
-      case FL_Page_Down:
-        keySym = XK_Page_Down;
-        break;
-      case FL_End:
-        keySym = XK_End;
-        break;
-      case FL_Print:
-        keySym = XK_Print;
-        break;
-      case FL_Insert:
-        keySym = XK_Insert;
-        break;
-      case FL_Menu:
-        keySym = XK_Menu;
-        break;
-      case FL_Help:
-        keySym = XK_Help;
-        break;
-      case FL_Num_Lock:
-        keySym = XK_Num_Lock;
-        break;
-      case FL_Shift_L:
-        keySym = XK_Shift_L;
-        break;
-      case FL_Shift_R:
-        keySym = XK_Shift_R;
-        break;
-      case FL_Control_L:
-        keySym = XK_Control_L;
-        break;
-      case FL_Control_R:
-        keySym = XK_Control_R;
-        break;
-      case FL_Caps_Lock:
-        keySym = XK_Caps_Lock;
-        break;
-      case FL_Meta_L:
-        keySym = XK_Super_L;
-        break;
-      case FL_Meta_R:
-        keySym = XK_Super_R;
-        break;
-      case FL_Alt_L:
-        keySym = XK_Alt_L;
-        break;
-      case FL_Alt_R:
-        keySym = XK_Alt_R;
-        break;
-      case FL_Delete:
-        keySym = XK_Delete;
-        break;
-      default:
-        vlog.error(_("Unknown FLTK key code %d (0x%04x)"), keyCode, keyCode);
-        return;
-      }
-    }
-  } else {
-    unsigned ucs;
-
-    if (fl_utf_nb_char((const unsigned char*)keyText, strlen(keyText)) != 1) {
-      vlog.error(_("Multiple characters given for key code %d (0x%04x): '%s'"),
-                 keyCode, keyCode, keyText);
-      return;
-    }
-
-    ucs = fl_utf8decode(keyText, NULL, NULL);
-    keySym = ucs2keysym(ucs);
-  }
+  keySym = translateKeyEvent(keyCode, keyText);
+  if (keySym == XK_VoidSymbol)
+    return;
 
   downKeySym[keyCode] = keySym;
   cc->writer()->keyEvent(keySym, down);
