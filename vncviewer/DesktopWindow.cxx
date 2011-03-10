@@ -281,8 +281,8 @@ rdr::U32 DesktopWindow::translateKeyEvent(int keyCode, const char *keyText)
   unsigned ucs;
 
   // First check for function keys
-  if ((keyCode >= FL_F) && (keyCode <= FL_F_Last))
-    return XK_F1 + (keyCode - FL_F);
+  if ((keyCode > FL_F) && (keyCode <= FL_F_Last))
+    return XK_F1 + (keyCode - FL_F - 1);
 
   // Numpad numbers
   if ((keyCode >= (FL_KP + '0')) && (keyCode <= (FL_KP + '9')))
