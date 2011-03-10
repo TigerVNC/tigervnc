@@ -357,10 +357,7 @@ CConn::blockCallback() {
 
     // Wait for socket data, or a message to process
     DWORD result = MsgWaitForMultipleObjects(1, &sockEvent.h, FALSE, INFINITE, QS_ALLINPUT);
-    if (result == WAIT_OBJECT_0) {
-      // - Network event notification.  Return control to I/O routine.
-      break;
-    } else if (result == WAIT_FAILED) {
+    if (result == WAIT_FAILED) {
       // - The wait operation failed - raise an exception
       throw rdr::SystemException("blockCallback wait error", GetLastError());
     }
@@ -375,6 +372,10 @@ CConn::blockCallback() {
       // ToAscii() internally).
       DispatchMessage(&msg);
     }
+
+    if (result == WAIT_OBJECT_0)
+      // - Network event notification.  Return control to I/O routine.
+      break;
   }
 
   // Before we return control to the InStream, reset the network event
