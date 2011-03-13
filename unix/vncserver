@@ -338,13 +338,10 @@ if (-e "/tmp/.X11-unix/X$displayNumber" ||
 $ENV{VNCDESKTOP}= $desktopName;
 
 if ($opt{'-fg'}) {
-    system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1");
-    if (kill 0, `cat $pidFile`) {
-        $opt{'-kill'} = ':'.$displayNumber;
-        &Kill();
-    }
+    close(STDIN);
+    system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> " . &quotedString($desktopLog) . " 2>&1");
 } else {
-    system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> " . &quotedString($desktopLog) . " 2>&1 &");
+    system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1 &");
 }
 
 exit;
