@@ -122,7 +122,7 @@ if ($fontPath eq "") {
 # Check command line options
 
 &ParseOptions("-geometry",1,"-depth",1,"-pixelformat",1,"-name",1,"-kill",1,
-	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0);
+	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0,"-autokill",0);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
@@ -338,10 +338,19 @@ if (-e "/tmp/.X11-unix/X$displayNumber" ||
 $ENV{VNCDESKTOP}= $desktopName;
 
 if ($opt{'-fg'}) {
-    close(STDIN);
-    system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> " . &quotedString($desktopLog) . " 2>&1");
+    system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1");
+    if (kill 0, `cat $pidFile`) {
+        $opt{'-kill'} = ':'.$displayNumber;
+        &Kill();
+    }
 } else {
-    system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1 &");
+    if ($opt{'-autokill'}) {
+        system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> "
+            . &quotedString($desktopLog) . " 2>&1 &");
+    } else {
+        system("$vncUserDir/xstartup >> " . &quotedString($desktopLog)
+            . " 2>&1 &");
+    }
 }
 
 exit;
@@ -564,6 +573,7 @@ sub Usage
 	"                 [-pixelformat rgbNNN|bgrNNN]\n".
 	"                 [-fp <font-path>]\n".
 	"                 [-fg]\n".
+	"                 [-autokill]\n".
 	"                 <Xvnc-options>...\n\n".
 	"       $prog -kill <X-display>\n\n".
 	"       $prog -list\n\n");
