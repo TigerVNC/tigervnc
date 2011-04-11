@@ -38,6 +38,11 @@
 #include "parameters.h"
 #include "keysym2ucs.h"
 
+// FLTK STR #2599 must be fixed for proper dead keys support
+#ifndef HAVE_FLTK_DEAD_KEYS
+#define event_compose_symbol event_text
+#endif
+
 using namespace rfb;
 
 extern void exit_vncviewer();
@@ -210,11 +215,11 @@ int DesktopWindow::handle(int event)
     return 1;
 
   case FL_KEYDOWN:
-    handleKeyEvent(Fl::event_key(), Fl::event_text(), true);
+    handleKeyEvent(Fl::event_key(), Fl::event_compose_symbol(), true);
     return 1;
 
   case FL_KEYUP:
-    handleKeyEvent(Fl::event_key(), Fl::event_text(), false);
+    handleKeyEvent(Fl::event_key(), Fl::event_compose_symbol(), false);
     return 1;
   }
 

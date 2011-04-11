@@ -8,6 +8,7 @@ include(CheckIncludeFiles)
 include(CheckFunctionExists)
 include(CheckTypeSize)
 include(CheckCSourceCompiles)
+include(CheckCXXSourceCompiles)
 
 project(TigerVNC)
 set(VERSION 1.0.90)
@@ -136,6 +137,13 @@ if(BUILD_NEW_VNCVIEWER)
   set(FLTK_SKIP_FLUID TRUE)
   set(FLTK_SKIP_OPENGL TRUE)
   find_package(FLTK COMPONENTS REQUIRED)
+
+  # FLTK STR #2599
+  set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
+  set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::event_compose_symbol(); return 0; }" HAVE_FLTK_DEAD_KEYS)
+  set(CMAKE_REQUIRED_INCLUDES)
+  set(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 # Check for GNUTLS library

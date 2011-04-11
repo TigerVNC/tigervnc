@@ -810,6 +810,23 @@ struct codepair {
   { 0x13bd, 0x0153 }, /*                          oe œ LATIN SMALL LIGATURE OE */
   { 0x13be, 0x0178 }, /*                  Ydiaeresis Ÿ LATIN CAPITAL LETTER Y WITH DIAERESIS */
   { 0x20ac, 0x20ac }, /*                    EuroSign € EURO SIGN */
+  { 0xfe50, 0x0300 }, /*                               COMBINING GRAVE ACCENT */
+  { 0xfe51, 0x0301 }, /*                               COMBINING ACUTE ACCENT */
+  { 0xfe52, 0x0302 }, /*                               COMBINING CIRCUMFLEX ACCENT */
+  { 0xfe53, 0x0303 }, /*                               COMBINING TILDE */
+  { 0xfe54, 0x0304 }, /*                               COMBINING MACRON */
+  { 0xfe55, 0x0306 }, /*                               COMBINING BREVE */
+  { 0xfe56, 0x0307 }, /*                               COMBINING DOT ABOVE */
+  { 0xfe57, 0x0308 }, /*                               COMBINING DIAERESIS */
+  { 0xfe58, 0x030a }, /*                               COMBINING RING ABOVE */
+  { 0xfe59, 0x030b }, /*                               COMBINING DOUBLE ACUTE ACCENT */
+  { 0xfe5a, 0x030c }, /*                               COMBINING CARON */
+  { 0xfe5b, 0x0327 }, /*                               COMBINING CEDILLA */
+  { 0xfe5c, 0x0328 }, /*                               COMBINING OGONEK */
+  { 0xfe5d, 0x1da5 }, /*                               MODIFIER LETTER SMALL IOTA */
+  { 0xfe5e, 0x3099 }, /*                               COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK */
+  { 0xfe5f, 0x309a }, /*                               COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
+  { 0xfe60, 0x0323 }, /*                               COMBINING DOT BELOW */
 };
 
 unsigned keysym2ucs(unsigned keysym)
