@@ -185,6 +185,7 @@ void DesktopWindow::draw()
 int DesktopWindow::handle(int event)
 {
   int buttonMask, wheelMask;
+  DownMap::const_iterator iter;
 
   switch (event) {
   case FL_PUSH:
@@ -217,6 +218,14 @@ int DesktopWindow::handle(int event)
 
   case FL_FOCUS:
     // Yes, we would like some focus please!
+    return 1;
+
+  case FL_UNFOCUS:
+    // Release all keys that were pressed as that generally makes most
+    // sense (e.g. Alt+Tab where we only see the Alt press)
+    for (iter = downKeySym.begin();iter != downKeySym.end();++iter)
+      cc->writer()->keyEvent(iter->second, false);
+    downKeySym.clear();
     return 1;
 
   case FL_KEYDOWN:
