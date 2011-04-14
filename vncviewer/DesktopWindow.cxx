@@ -29,6 +29,7 @@
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
 #define XK_MISCELLANY
+#define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
 #endif
 
@@ -373,6 +374,9 @@ rdr::U32 DesktopWindow::translateKeyEvent(int keyCode, const char *keyText)
     return XK_KP_Decimal;
   case FL_KP + '/':
     return XK_KP_Divide;
+  case XK_ISO_Level3_Shift:
+    // FLTK tends to let this one leak through on X11...
+    return XK_ISO_Level3_Shift;
   }
 
   // Ctrl and Cmd tend to fudge input handling, so we need to cheat here
