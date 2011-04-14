@@ -20,6 +20,8 @@
 #ifndef __DESKTOPWINDOW_H__
 #define __DESKTOPWINDOW_H__
 
+#include <map>
+
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 
@@ -116,7 +118,8 @@ private:
   rfb::Point lastPointerPos;
   int lastButtonMask;
 
-  rdr::U32 downKeySym[65536];
+  typedef std::map<int, rdr::U32> DownMap;
+  DownMap downKeySym;
 };
 
 #endif

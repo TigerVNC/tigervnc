@@ -479,17 +479,23 @@ void DesktopWindow::handleKeyEvent(int keyCode, const char *keyText, bool down)
   if (viewOnly)
     return;
 
-  if (keyCode > 0xFFFF) {
-      vlog.error(_("Too large FLTK key code %d (0x%08x)"), keyCode, keyCode);
-      return;
-  }
-
   // Because of the way keyboards work, we cannot expect to have the same
   // symbol on release as when pressed. This breaks the VNC protocol however,
   // so we need to keep track of what keysym a key _code_ generated on press
   // and send the same on release.
   if (!down) {
-    cc->writer()->keyEvent(downKeySym[keyCode], false);
+    DownMap::iterator iter;
+
+    iter = downKeySym.find(keyCode);
+    if (iter == downKeySym.end()) {
+      vlog.error(_("Unexpected release of FLTK key code %d (0x%04x)"), keyCode, keyCode);
+      return;
+    }
+
+    cc->writer()->keyEvent(iter->second, false);
+
+    downKeySym.erase(iter);
+
     return;
   }
 
