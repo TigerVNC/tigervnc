@@ -45,6 +45,10 @@
 
 using namespace rfb;
 
+#ifdef __APPLE__
+extern "C" const char *osx_event_string(void);
+#endif
+
 extern void exit_vncviewer();
 
 static rfb::LogWriter vlog("DesktopWindow");
@@ -369,6 +373,80 @@ rdr::U32 DesktopWindow::translateKeyEvent(int keyCode, const char *keyText)
     return XK_KP_Decimal;
   case FL_KP + '/':
     return XK_KP_Divide;
+  }
+
+  // Ctrl and Cmd tend to fudge input handling, so we need to cheat here
+  if (Fl::event_state() & (FL_COMMAND | FL_CTRL)) {
+#ifdef WIN32
+    BYTE keystate[256];
+    WCHAR wbuf[8];
+    int ret;
+
+    static char buf[32];
+
+    switch (fl_msg.message) {
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+      // Most buttons end up here when Ctrl is pressed. Here we can pretend
+      // that Ctrl isn't pressed, and do a character lookup.
+      GetKeyboardState(keystate);
+      keystate[VK_CONTROL] = keystate[VK_LCONTROL] = keystate[VK_RCONTROL] = 0;
+
+      ret = ToUnicode(fl_msg.wParam, 0, keystate, wbuf, sizeof(wbuf)/sizeof(wbuf[0]), 0);
+      if (ret != 0) {
+        // -1 means one dead character
+        ret = abs(ret);
+        wbuf[ret] = 0x0000;
+
+        if (fl_utf8fromwc(buf, sizeof(buf), wbuf, ret) >= sizeof(buf)) {
+          vlog.error(_("Out of buffer space whilst converting key event"));
+          return XK_VoidSymbol;
+        }
+
+        keyText = buf;
+      }
+      break;
+    case WM_CHAR:
+    case WM_SYSCHAR:
+      // Windows doesn't seem to have any sanity when it comes to control
+      // characters. We assume that Ctrl-A through Ctrl-Z range maps to
+      // the VK_A through VK_Z keys, and just let the rest fall through.
+      if ((fl_msg.wParam < 0x01) || (fl_msg.wParam > 0x1a))
+        break;
+
+      // Pretend that Ctrl isn't pressed, and do a character lookup.
+      GetKeyboardState(keystate);
+      keystate[VK_CONTROL] = keystate[VK_LCONTROL] = keystate[VK_RCONTROL] = 0;
+
+      // Ctrl-A is 0x01 and VK_A is 0x41, so add 0x40 for the conversion
+      ret = ToUnicode(fl_msg.wParam + 0x40, 0, keystate, wbuf, sizeof(wbuf)/sizeof(wbuf[0]), 0);
+      if (ret != 0) {
+        // -1 means one dead character
+        ret = abs(ret);
+        wbuf[ret] = 0x0000;
+
+        if (fl_utf8fromwc(buf, sizeof(buf), wbuf, ret) >= sizeof(buf)) {
+          vlog.error(_("Out of buffer space whilst converting key event"));
+          return XK_VoidSymbol;
+        }
+
+        keyText = buf;
+      }
+      break;
+    default:
+      // Not sure how we ended up here. Do nothing...
+      break;
+    }
+#elif defined(__APPLE__)
+    keyText = osx_event_string();
+#else
+    char buf[16];
+    KeySym sym;
+
+    XLookupString((XKeyEvent*)fl_xevent, buf, sizeof(buf), &sym, NULL);
+
+    return sym;
+#endif
   }
 
   // Unknown special key?
