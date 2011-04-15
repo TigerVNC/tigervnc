@@ -127,7 +127,7 @@ void Viewport::updateWindow()
   Fl::remove_timeout(handleUpdateTimeout, this);
 
   r = damage.get_bounding_rect();
-  Fl_Widget::damage(FL_DAMAGE_USER1, r.tl.x, r.tl.y, r.width(), r.height());
+  Fl_Widget::damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
 
   damage.clear();
 }
@@ -141,15 +141,15 @@ void Viewport::draw()
   const uchar *buf_start;
 
   // Check what actually needs updating
-  fl_clip_box(0, 0, w(), h(), X, Y, W, H);
+  fl_clip_box(x(), y(), w(), h(), X, Y, W, H);
   if ((W == 0) || (H == 0))
     return;
 
   pixel_bytes = frameBuffer->getPF().bpp/8;
   stride_bytes = pixel_bytes * frameBuffer->getStride();
   buf_start = frameBuffer->data +
-              pixel_bytes * X +
-              stride_bytes * Y;
+              pixel_bytes * (X - x()) +
+              stride_bytes * (Y - y());
 
   // FIXME: Check how efficient this thing really is
   fl_draw_image(buf_start, X, Y, W, H, pixel_bytes, stride_bytes);
