@@ -40,7 +40,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   : Fl_Window(w, h)
 {
   // Allow resize
-  size_range(100, 100);
+  size_range(100, 100, w, h);
 
   Fl_Scroll *scroll = new Fl_Scroll(0, 0, w, h);
   scroll->color(FL_BLACK);
