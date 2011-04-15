@@ -57,6 +57,12 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   setName(name);
 
   show();
+
+  // The window manager might give us an initial window size that is different
+  // than the one we requested, and in those cases we need to manually adjust
+  // the scroll widget for things to behave sanely.
+  if ((w != this->w()) || (h != this->h()))
+    scroll->size(this->w(), this->h());
 }
 
 
