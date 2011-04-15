@@ -186,11 +186,11 @@ int Viewport::handle(int event)
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
-      handlePointerEvent(Point(Fl::event_x(), Fl::event_y()),
+      handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()),
                          buttonMask | wheelMask);
     } 
 
-    handlePointerEvent(Point(Fl::event_x(), Fl::event_y()), buttonMask);
+    handlePointerEvent(Point(Fl::event_x() - x(), Fl::event_y() - y()), buttonMask);
     return 1;
 
   case FL_FOCUS:
