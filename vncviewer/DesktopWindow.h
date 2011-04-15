@@ -26,10 +26,8 @@
 #include <FL/Fl_Window.H>
 
 #include <rfb/Rect.h>
-#include <rfb/Region.h>
-#include <rfb/Timer.h>
-#include <rfb/PixelBuffer.h>
-#include <rfb/PixelTransformer.h>
+
+#include "Viewport.h"
 
 class CConn;
 
@@ -58,68 +56,20 @@ public:
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
 
   void fillRect(const rfb::Rect& r, rfb::Pixel pix) {
-    if (pixelTrans) {
-      rfb::Pixel pix2;
-      pixelTrans->translatePixels(&pix, &pix2, 1);
-      pix = pix2;
-    }
-
-    frameBuffer->fillRect(r, pix);
-    damageRect(r);
+    viewport->fillRect(r, pix);
   }
   void imageRect(const rfb::Rect& r, void* pixels) {
-    if (pixelTrans)
-      pixelTrans->translateRect(pixels, r.width(),
-                                rfb::Rect(0, 0, r.width(), r.height()),
-                                frameBuffer->data, frameBuffer->getStride(),
-                                r.tl);
-    else
-      frameBuffer->imageRect(r, pixels);
-    damageRect(r);
+    viewport->imageRect(r, pixels);
   }
   void copyRect(const rfb::Rect& r, int srcX, int srcY) {
-    frameBuffer->copyRect(r, rfb::Point(r.tl.x-srcX, r.tl.y-srcY));
-    damageRect(r);
+    viewport->copyRect(r, srcX, srcY);
   }
 
-  // Fl_Window callback methods
-  void draw();
-  int handle(int event);
-
 private:
-
-  void damageRect(const rfb::Rect& r) {
-    damage.assign_union(rfb::Region(r));
-    if (!Fl::has_timeout(handleUpdateTimeout, this))
-      Fl::add_timeout(0.100, handleUpdateTimeout, this);
-  };
-
-  static void handleUpdateTimeout(void *data);
-  static void handleColourMap(void *data);
-
   static void handleClose(Fl_Widget *wnd, void *data);
 
-  void handlePointerEvent(const rfb::Point& pos, int buttonMask);
-  static void handlePointerTimeout(void *data);
-
-  rdr::U32 translateKeyEvent(int keyCode, const char *keyText);
-  void handleKeyEvent(int keyCode, const char *keyText, bool down);
-
 private:
-  CConn* cc;
-
-  rfb::ManagedPixelBuffer* frameBuffer;
-
-  rfb::PixelTransformer *pixelTrans;
-  rfb::SimpleColourMap colourMap;
-
-  rfb::Region damage;
-
-  rfb::Point lastPointerPos;
-  int lastButtonMask;
-
-  typedef std::map<int, rdr::U32> DownMap;
-  DownMap downKeySym;
+  Viewport *viewport;
 };
 
 #endif

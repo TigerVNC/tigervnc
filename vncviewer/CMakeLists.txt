@@ -5,6 +5,7 @@ set(VNCVIEWER_SOURCES
   CConn.cxx
   DesktopWindow.cxx
   UserDialog.cxx
+  Viewport.cxx
   parameters.cxx
   keysym2ucs.c
   vncviewer.cxx)
