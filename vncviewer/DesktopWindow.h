@@ -65,6 +65,9 @@ public:
     viewport->copyRect(r, srcX, srcY);
   }
 
+  // Fl_Window callback methods
+  void resize(int x, int y, int w, int h);
+
 private:
   static void handleClose(Fl_Widget *wnd, void *data);
 

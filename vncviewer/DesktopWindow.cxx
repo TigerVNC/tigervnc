@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <FL/Fl_Scroll.H>
+
 #include <rfb/LogWriter.h>
 
 #include "DesktopWindow.h"
@@ -37,7 +39,18 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              CConn* cc_)
   : Fl_Window(w, h)
 {
+  // Allow resize
+  size_range(100, 100);
+
+  Fl_Scroll *scroll = new Fl_Scroll(0, 0, w, h);
+  scroll->color(FL_BLACK);
+
+  // Automatically adjust the scroll box to the window
+  resizable(scroll);
+
   viewport = new Viewport(w, h, serverPF, cc_);
+
+  scroll->end();
 
   callback(handleClose, this);
 
@@ -98,6 +111,38 @@ void DesktopWindow::setColourMapEntries(int firstColour, int nColours,
 void DesktopWindow::updateWindow()
 {
   viewport->updateWindow();
+}
+
+
+void DesktopWindow::resize(int x, int y, int w, int h)
+{
+  // Deal with some scrolling corner cases:
+  //
+  // a) If the window is larger then the viewport, center the viewport.
+  // b) If the window is smaller than the viewport, make sure there is
+  //    no wasted space on the sides.
+  //
+  // FIXME: Doesn't compensate for scroll widget size properly.
+  if (w > viewport->w())
+    viewport->position((w - viewport->w()) / 2, viewport->y());
+  else {
+    if (viewport->x() > 0)
+      viewport->position(0, viewport->y());
+    else if (w > (viewport->x() + viewport->w()))
+      viewport->position(w - viewport->w(), viewport->y());
+  }
+
+  // Same thing for y axis
+  if (h > viewport->h())
+    viewport->position(viewport->x(), (h - viewport->h()) / 2);
+  else {
+    if (viewport->y() > 0)
+      viewport->position(viewport->x(), 0);
+    else if (h > (viewport->y() + viewport->h()))
+      viewport->position(viewport->x(), h - viewport->h());
+  }
+
+  Fl_Window::resize(x, y, w, h);
 }
 
 
