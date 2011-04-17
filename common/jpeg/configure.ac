@@ -100,14 +100,6 @@ AC_CHECK_FUNCS([memset memcpy], [],
 	[AC_DEFINE([NEED_BSD_STRINGS], 1,
 		   [Define if you have BSD-like bzero and bcopy])])
 
-# Set flags to indicate platform
-case "$host_os" in
-  cygwin* | mingw* | pw32* | interix*)
-    is_win32=1
-  ;;
-esac
-AM_CONDITIONAL([IS_WIN32], [test "x$is_win32" = "x1"])
-
 # SIMD is optional
 AC_ARG_WITH([simd],
     AC_HELP_STRING([--without-simd],[Omit accelerated SIMD routines.]))
