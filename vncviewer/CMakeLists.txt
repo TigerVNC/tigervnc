@@ -17,3 +17,5 @@ endif()
 add_executable(vncviewer ${VNCVIEWER_SOURCES})
 
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES})
+
+install (TARGETS vncviewer DESTINATION bin)
