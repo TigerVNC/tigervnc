@@ -160,17 +160,48 @@ if (!(-e $vncUserDir)) {
     }
 }
     
-# Make sure the user has a password.
+# Check whether VNC authentication is enabled, and if so, prompt the user to
+# create a VNC password if they don't already have one.
 
-($z,$z,$mode) = stat("$vncUserDir/passwd");
-if (!(-e "$vncUserDir/passwd") || ($mode & 077)) {
-    warn "\nYou will require a password to access your desktops.\n\n";
-    system($exedir."vncpasswd -q $vncUserDir/passwd"); 
-    if (($? >> 8) != 0) {
-	exit 1;
+$securityTypeArgSpecified = 0;
+$vncAuthEnabled = 0;
+$passwordArgSpecified = 0;
+
+for ($i = 0; $i < @ARGV; ++$i) {
+    # -SecurityTypes can be followed by a space or "="
+    my @splitargs = split('=', $ARGV[$i]);
+    if (@splitargs <= 1 && $i < @ARGV - 1) {
+        push(@splitargs, $ARGV[$i + 1]);
+    }
+    if (lc(@splitargs[0]) eq "-securitytypes") {
+        if (@splitargs > 1) {
+            $securityTypeArgSpecified = 1;
+        }
+        foreach $arg2 (split(',', @splitargs[1])) {
+            if (lc($arg2) eq "vncauth" || lc($arg2) eq "tlsvnc"
+             || lc($arg2) eq "x509vnc") {
+                $vncAuthEnabled = 1;
+            }
+        }
+    }
+    if ((lc(@splitargs[0]) eq "-password")
+     || (lc(@splitargs[0]) eq "-passwordfile"
+     || (lc(@splitargs[0]) eq "-rfbauth"))) {
+        $passwordArgSpecified = 1;
     }
 }
 
+if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
+    ($z,$z,$mode) = stat("$vncUserDir/passwd");
+    if (!(-e "$vncUserDir/passwd") || ($mode & 077)) {
+        warn "\nYou will require a password to access your desktops.\n\n";
+        system($exedir."vncpasswd -q $vncUserDir/passwd");
+        if (($? >> 8) != 0) {
+            exit 1;
+        }
+    }
+}
+ 
 # Find display number.
 
 if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
@@ -307,13 +338,10 @@ if (-e "/tmp/.X11-unix/X$displayNumber" ||
 $ENV{VNCDESKTOP}= $desktopName;
 
 if ($opt{'-fg'}) {
-    system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1");
-    if (kill 0, `cat $pidFile`) {
-        $opt{'-kill'} = ':'.$displayNumber;
-        &Kill();
-    }
+    close(STDIN);
+    system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> " . &quotedString($desktopLog) . " 2>&1");
 } else {
-    system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> " . &quotedString($desktopLog) . " 2>&1 &");
+    system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1 &");
 }
 
 exit;

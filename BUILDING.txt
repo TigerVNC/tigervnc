@@ -37,7 +37,7 @@ Build Requirements
    * zlib v1.2 or later
    * OpenSSL v0.9.7 or later
 
--- If building VeNCrypt support:
+-- If building TLS support:
    * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
 
 
@@ -113,9 +113,9 @@ will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
 
 
-=========================
-Building VeNCrypt support
-=========================
+====================
+Building TLS support
+====================
 
 VeNCrypt (the TigerVNC security and authentication extensions) can be built
 with TLS support, which provides built-in encryption for VNC sessions.  This
@@ -268,7 +268,7 @@ Build Requirements
    C:\Program Files\Inno Setup 5) to the system or user PATH environment
    variable prior to building TigerVNC.
 
--- If building VeNCrypt support:
+-- If building TLS support:
    * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
 
 
@@ -331,7 +331,7 @@ WinVNC.
 Debug Build
 -----------
 
-Add "-DCMAKE_BUILD_TYPE=Debug" to the cmake command line.  Or, if building with
+Add "-DCMAKE_BUILD_TYPE=Debug" to the CMake command line.  Or, if building with
 NMake, remove "-DCMAKE_BUILD_TYPE=Release" (Debug builds are the default with
 NMake.)
 
@@ -344,46 +344,81 @@ To eliminate this dependency, add
 
   -DCMAKE_C_FLAGS=-static-libgcc -DCMAKE_CXX_FLAGS=-static-libgcc
 
-to the cmake command line.
+to the CMake command line.
 
 
-=========================
-Building VeNCrypt support
-=========================
+====================
+Building TLS support
+====================
 
 VeNCrypt (the TigerVNC security and authentication extensions) can be built
 with TLS support, which provides built-in encryption for VNC sessions.  This
-requires GnuTLS, which is not Microsoft-friendly.  There is generally no
-sane way to build GnuTLS and its dependencies using Visual C++.  Those with
-a lot of time on their hands can build the GnuTLS DLLs using MinGW (or download
-32-bit versions of these from the link below), generate Visual C++ import
-libraries from the DLLs, then link TigerVNC against the Visual C++ import
-libraries.  However, this creates a version of TigerVNC that depends on
-the GnuTLS DLLs.  The TigerVNC packaging system currently is not designed to
-handle DLL dependencies, so really the only way to build and package a
-self-contained, VeNCrypt-enabled version of TigerVNC for Windows is to use
-MinGW and the static GnuTLS libraries.  The use of MinGW means that only the
-viewer can be built, not the server.
+requires GnuTLS, which is not Microsoft-friendly.  This section describes the
+issues associated with building a Windows version of TigerVNC with TLS support
+and how to work around those issues.
+
+Building with MinGW
+-------------------
 
 An installer containing the GnuTLS header files, as well as static and dynamic
-link libraries for 32-bit MinGW, is available from the following site:
+link libraries for 32-bit MinGW, can be downloaded from the following site:
 
 http://josefsson.org/gnutls4win/
 
-Whether you choose to use the above installer or build GnuTLS from source,
-make sure that you install the libraries and headers into a pathname that
-doesn't contain spaces (the installer will try to install under
-c:\Program Files unless you tell it otherwise.)  If the GnuTLS include path
-contains spaces, then the MinGW resource compiler will barf.
+As of this writing, GnuTLS cannot be built cleanly with MinGW64 due to the fact
+that portions of the code assume an LP64 data model (Windows uses LLP64.)
+Thus, it is not possible at this time to produce a Win64 version of TigerVNC
+with TLS support.
 
-You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY cmake variables to
+Whether you use the above installer or build GnuTLS from source, make sure that
+you install the libraries and headers into a pathname that doesn't contain
+spaces (the installer will try to install under c:\Program Files unless you
+tell it otherwise.)  If the GnuTLS include path contains spaces, then the MinGW
+resource compiler will barf when you try to build TigerVNC.
+
+You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY CMake variables to
 specify the directory under which you installed GnuTLS.  For instance, adding
+
+  -DGNUTLS_INCLUDE_DIR=/c/gnutls/include \
+    -DGNUTLS_LIBRARY=/c/gnutls/lib/libgnutls.dll.a
+
+to the CMake command line when using MinGW will cause TigerVNC to be linked
+against GnuTLS DLLs that are installed under c:\gnutls.
+
+Adding
 
   -DGNUTLS_INCLUDE_DIR=/c/gnutls/include \
     -DGNUTLS_LIBRARY='/c/gnutls/lib/libgnutls.a;/c/gnutls/lib/libgcrypt.a;/c/gnutls/lib/libtasn1.a;/c/gnutls/lib/libgpg-error.a'
 
-to the cmake command line when using MinGW will cause TigerVNC to be statically
-linked against an installation of GnuTLS that resides under c:\gnutls.
+to the CMake command line will cause TigerVNC to be statically linked against
+GnuTLS libraries that are installed under c:\gnutls.
+
+Note that the use of MinGW means that only the TigerVNC viewer can be built,
+not the server.
+
+Visual C++
+----------
+
+There is generally no sane way to build GnuTLS and its dependencies using
+Visual C++.  Thus, it is necessary to either build the libraries with MinGW (or
+download 32-bit versions of these from the link above), generate Visual C++
+import libraries from the DLLs, then link TigerVNC against the Visual C++
+import libraries.
+
+In the instructions below, {gnutls_path} indicates the path under which GnuTLS
+is installed (Example: c:\Program Files\GnuTLS-2.10.1).
+
+To generate Visual C++ import libraries:
+
+cd {gnutls_path}\lib
+lib /def:..\bin\libgnutls-{version}.def /out:libgnutls.lib
+
+Now, you can add the following arguments to the CMake command line:
+
+  -DGNUTLS_INCLUDE_DIR={gnutls_path}\include \
+    -DGNUTLS_LIBRARY={gnutls_path}\lib\libgnutls.lib
+
+to build TigerVNC against the GnuTLS DLLs installed under {gnutls_path}.
 
 
 ===================
@@ -395,7 +430,7 @@ choosing (as opposed to creating an installer.)  To do this, add:
 
   -DCMAKE_INSTALL_PREFIX={install_directory}
 
-to the cmake command line.
+to the CMake command line.
 
 For example,
 
@@ -531,3 +566,7 @@ The installer package (TigerVNC[64].exe) will be located under
 package will be located in a subdirectory with the same name as the
 configuration you built (such as {build_directory}\Debug\ or
 {build_directory}\Release\).
+
+NOTE:  If TigerVNC is built with TLS support, then the build system will
+attempt to package the GnuTLS DLLs into the Windows installer.  It looks for
+these DLLs in a directory called "bin" one level up from GNUTLS_INCLUDE_DIR.

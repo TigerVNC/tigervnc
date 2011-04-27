@@ -1,4 +1,4 @@
-.TH vncserver 1 "15 Apr 2009" "TigerVNC" "Virtual Network Computing"
+.TH vncserver 1 "13 Mar 2011" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncserver \- start or stop a VNC server
 .SH SYNOPSIS
@@ -108,11 +108,10 @@ path for Xvnc to use.
 
 .TP
 .B \-fg
-This version of vncserver will always launch Xvnc in such a way that, when the
-user exits the window manager in their VNC session, Xvnc will terminate.
-Specifying this option will additionally make Xvnc run as a foreground process,
-which means that it can be aborted with CTRL-C.  This may be necessary when
-launching TigerVNC from within certain grid computing environments.
+Runs Xvnc as a foreground process.  This has two effects: (1) The VNC server
+can be aborted with CTRL-C, and (2) the VNC server will exit as soon as the
+user logs out of the window manager in the VNC session.  This may be necessary
+when launching TigerVNC from within certain grid computing environments.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:

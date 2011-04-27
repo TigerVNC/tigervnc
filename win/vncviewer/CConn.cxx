@@ -80,7 +80,7 @@ CConn::CConn()
   : window(0), sameMachine(false), encodingChange(false), formatChange(false), 
     lastUsedEncoding_(encodingRaw), sock(0), sockEvent(CreateEvent(0, TRUE, FALSE, 0)), 
     reverseConnection(false), requestUpdate(false), firstUpdate(true),
-    isClosed_(false) {
+    pendingUpdate(false), isClosed_(false) {
 }
 
 CConn::~CConn() {
@@ -184,11 +184,6 @@ CConn::displayChanged() {
   calculateFullColourPF();
 }
 
-void
-CConn::paintCompleted() {
-  // A repaint message has just completed - request next update if necessary
-  requestNewUpdate();
-}
 
 bool
 CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
@@ -362,10 +357,7 @@ CConn::blockCallback() {
 
     // Wait for socket data, or a message to process
     DWORD result = MsgWaitForMultipleObjects(1, &sockEvent.h, FALSE, INFINITE, QS_ALLINPUT);
-    if (result == WAIT_OBJECT_0) {
-      // - Network event notification.  Return control to I/O routine.
-      break;
-    } else if (result == WAIT_FAILED) {
+    if (result == WAIT_FAILED) {
       // - The wait operation failed - raise an exception
       throw rdr::SystemException("blockCallback wait error", GetLastError());
     }
@@ -380,6 +372,10 @@ CConn::blockCallback() {
       // ToAscii() internally).
       DispatchMessage(&msg);
     }
+
+    if (result == WAIT_OBJECT_0)
+      // - Network event notification.  Return control to I/O routine.
+      break;
   }
 
   // Before we return control to the InStream, reset the network event
@@ -522,6 +518,16 @@ CConn::showOptionsDialog() {
 
 
 void
+CConn::framebufferUpdateStart() {
+  if (!formatChange) {
+    requestUpdate = pendingUpdate = true;
+    requestNewUpdate();
+  } else
+    pendingUpdate = false;
+}
+
+
+void
 CConn::framebufferUpdateEnd() {
   if (debugDelay != 0) {
     vlog.debug("debug delay %d",(int)debugDelay);
@@ -571,11 +577,16 @@ CConn::framebufferUpdateEnd() {
     firstUpdate = false;
   }
 
-  if (options.autoSelect)
-    autoSelectFormatAndEncoding();
-
   // Always request the next update
   requestUpdate = true;
+
+  // A format change prevented us from sending this before the update,
+  // so make sure to send it now.
+  if (formatChange && !pendingUpdate)
+    requestNewUpdate();
+
+  if (options.autoSelect)
+    autoSelectFormatAndEncoding();
 
   // Check that at least part of the window has changed
   if (!GetUpdateRect(window->getHandle(), 0, FALSE)) {
@@ -662,6 +673,10 @@ CConn::requestNewUpdate() {
   if (!requestUpdate) return;
 
   if (formatChange) {
+
+    /* Catch incorrect requestNewUpdate calls */
+    assert(pendingUpdate == false);
+
     // Select the required pixel format
     if (options.fullColour) {
       window->setPF(fullColourPF);
