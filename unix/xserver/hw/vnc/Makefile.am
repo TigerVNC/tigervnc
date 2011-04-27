@@ -35,7 +35,7 @@ Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS -UHAVE_CONFI
 	-I$(top_srcdir)/include -I$(includedir)/pixman-1 -I$(includedir)
 
 Xvnc_LDADD = $(XVNC_LIBS) libvnccommon.la $(COMMON_LIBS) \
-	$(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lX11
+	$(XSERVER_LIBS) $(XSERVER_SYS_LIBS) $(XVNC_SYS_LIBS) -lX11
 
 Xvnc_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
