@@ -15,6 +15,7 @@ vncserver \- start or stop a VNC server
 .RB [ \-fp
 .IR font-path ]
 .RB [ \-fg ]
+.RB [ \-autokill ]
 .RI [ Xvnc-options... ]
 .br
 .BI "vncserver \-kill :" display#
@@ -112,6 +113,12 @@ Runs Xvnc as a foreground process.  This has two effects: (1) The VNC server
 can be aborted with CTRL-C, and (2) the VNC server will exit as soon as the
 user logs out of the window manager in the VNC session.  This may be necessary
 when launching TigerVNC from within certain grid computing environments.
+
+.TP
+.B \-autokill
+Automatically kill Xvnc whenever the xstartup script exits.  In most cases,
+this has the effect of terminating Xvnc when the user logs out of the window
+manager.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
