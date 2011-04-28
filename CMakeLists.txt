@@ -10,7 +10,7 @@ include(CheckTypeSize)
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
 
-project(TigerVNC)
+project(tigervnc)
 set(VERSION 1.0.90)
 
 # The RC version must always be four comma-separated numbers
@@ -123,6 +123,11 @@ if(NOT ZLIB_FOUND)
   set(USE_INCLUDED_ZLIB 1)
 endif()
 
+# Check for gettext
+option(ENABLE_NLS "Enable translation of program messages" ON)
+find_package(Gettext)
+set(LOCALE_DIR "${CMAKE_INSTALL_PREFIX}/share/locale")
+
 # Check for libjpeg
 find_package(JPEG REQUIRED)
 
@@ -199,5 +204,6 @@ else()
 endif()
 
 if(BUILD_NEW_VNCVIEWER)
+  add_subdirectory(po)
   add_subdirectory(vncviewer)
 endif()

@@ -12,6 +12,7 @@
 #cmakedefine HAVE_GNUTLS_PK_ALGORITHM_T
 #cmakedefine HAVE_GNUTLS_SIGN_ALGORITHM_T
 #cmakedefine HAVE_FLTK_DEAD_KEYS
+#cmakedefine ENABLE_NLS 1
 
 /* MS Visual Studio 2008 and newer doesn't know ssize_t */
 #if defined(HAVE_GNUTLS) && defined(WIN32) && !defined(__MINGW32__)
