@@ -1,4 +1,5 @@
 include_directories(${FLTK_INCLUDE_DIR})
+include_directories(${GETTEXT_INCLUDE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/common)
 set(VNCVIEWER_SOURCES
@@ -16,6 +17,6 @@ endif()
 
 add_executable(vncviewer ${VNCVIEWER_SOURCES})
 
-target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES})
+target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
 install (TARGETS vncviewer DESTINATION bin)

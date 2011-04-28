@@ -4,8 +4,12 @@
 
 cmake_minimum_required(VERSION 2.6)
 
+# Internal cmake modules
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
+
 include(CheckIncludeFiles)
 include(CheckFunctionExists)
+include(CheckLibraryExists)
 include(CheckTypeSize)
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
@@ -29,7 +33,7 @@ add_definitions(-DLOCALEDIR="${CMAKE_INSTALL_PREFIX}/share/locale")
 # some kind of Unix system. The id will be empty if things fail.
 set(BUILD "")
 if(MSVC)
-  execute_process(COMMAND "${CMAKE_SOURCE_DIR}/cmakescripts/getdate.bat"
+  execute_process(COMMAND "${CMAKE_SOURCE_DIR}/cmake/getdate.bat"
     OUTPUT_VARIABLE BUILD)
 else()
   execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
@@ -125,8 +129,38 @@ endif()
 
 # Check for gettext
 option(ENABLE_NLS "Enable translation of program messages" ON)
-find_package(Gettext)
-set(LOCALE_DIR "${CMAKE_INSTALL_PREFIX}/share/locale")
+if(ENABLE_NLS)
+  # Tools
+  find_package(Gettext REQUIRED)
+  set(LOCALE_DIR "${CMAKE_INSTALL_PREFIX}/share/locale")
+
+  # Gettext needs iconv
+  find_package(Iconv REQUIRED)
+
+  # Headers and libraries (copied from licq)
+  set(GETTEXT_FOUND FALSE)
+
+  find_path(GETTEXT_INCLUDE_DIR libintl.h)
+  if(GETTEXT_INCLUDE_DIR)
+    set(CMAKE_REQUIRED_LIBRARIES ${ICONV_LIBRARIES})
+    check_function_exists(dgettext LIBC_HAS_DGETTEXT)
+    if(LIBC_HAS_DGETTEXT)
+      set(GETTEXT_FOUND TRUE)
+    else()
+      find_library(LIBINTL_LIBRARY NAMES intl libintl)
+      check_library_exists(${LIBINTL_LIBRARY} "dgettext" "" LIBINTL_HAS_DGETTEXT)
+      if(LIBINTL_HAS_DGETTEXT)
+        set(GETTEXT_LIBRARIES ${LIBINTL_LIBRARY})
+        set(GETTEXT_FOUND TRUE)
+      endif()
+    endif()
+    set(CMAKE_REQUIRED_LIBRARIES)
+  endif()
+
+  if(NOT GETTEXT_FOUND)
+    message(FATAL_ERROR "Gettext NOT found")
+  endif()
+endif()
 
 # Check for libjpeg
 find_package(JPEG REQUIRED)
