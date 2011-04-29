@@ -54,6 +54,10 @@ extern void exit_vncviewer();
 
 static rfb::LogWriter vlog("Viewport");
 
+// Menu constants
+
+enum { ID_EXIT, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL, ID_DISMISS };
+
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
     lastPointerPos(0, 0), lastButtonMask(0)
@@ -62,6 +66,9 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   assert(frameBuffer);
 
   setServerPF(serverPF);
+
+  contextMenu = new Fl_Menu_Button(0, 0, 0, 0);
+  initContextMenu();
 }
 
 
@@ -77,6 +84,9 @@ Viewport::~Viewport()
 
   if (pixelTrans)
     delete pixelTrans;
+
+  // FLTK automatically deletes all child widgets, so we shouldn't touch
+  // them ourselves here
 }
 
 
@@ -206,6 +216,11 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_KEYDOWN:
+    if (Fl::event_key() == (FL_F + 8)) {
+      popupContextMenu();
+      return 1;
+    }
+
     handleKeyEvent(Fl::event_key(), Fl::event_compose_symbol(), true);
     return 1;
 
@@ -486,4 +501,67 @@ void Viewport::handleKeyEvent(int keyCode, const char *keyText, bool down)
 
   downKeySym[keyCode] = keySym;
   cc->writer()->keyEvent(keySym, down);
+}
+
+
+void Viewport::initContextMenu()
+{
+  contextMenu->add(_("Exit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
+
+  contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, FL_MENU_TOGGLE);
+  contextMenu->add(_("Alt"), 0, NULL, (void*)ID_ALT, FL_MENU_TOGGLE);
+  CharArray menuKeyStr(menuKey.getData());
+  CharArray sendMenuKey(64);
+  snprintf(sendMenuKey.buf, 64, _("Send %s"), "F8"); // FIXME
+  contextMenu->add(sendMenuKey.buf, 0, NULL, (void*)ID_MENUKEY, 0);
+  contextMenu->add("Secret shortcut menu key", FL_F + 8, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE); // Broken, see STR2613
+  contextMenu->add(_("Send Ctrl-Alt-Del"), 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
+
+  contextMenu->add(_("Dismiss menu"), 0, NULL, (void*)ID_DISMISS, 0);
+}
+
+
+void Viewport::popupContextMenu()
+{
+  const Fl_Menu_Item *m;
+
+  contextMenu->position(Fl::event_x(), Fl::event_y());
+
+  m = contextMenu->popup();
+  if (m == NULL)
+    return;
+
+  switch (m->argument()) {
+  case ID_EXIT:
+    exit_vncviewer();
+    break;
+  case ID_CTRL:
+    if (!viewOnly)
+      cc->writer()->keyEvent(XK_Control_L, m->value());
+    break;
+  case ID_ALT:
+    if (!viewOnly)
+      cc->writer()->keyEvent(XK_Alt_L, m->value());
+    break;
+  case ID_MENUKEY:
+    if (!viewOnly) {
+      // FIXME
+      cc->writer()->keyEvent(XK_F8, true);
+      cc->writer()->keyEvent(XK_F8, false);
+    }
+    break;
+  case ID_CTRLALTDEL:
+    if (!viewOnly) {
+      cc->writer()->keyEvent(XK_Control_L, true);
+      cc->writer()->keyEvent(XK_Alt_L, true);
+      cc->writer()->keyEvent(XK_Delete, true);
+      cc->writer()->keyEvent(XK_Delete, false);
+      cc->writer()->keyEvent(XK_Alt_L, false);
+      cc->writer()->keyEvent(XK_Control_L, false);
+    }
+    break;
+  case ID_DISMISS:
+    // Don't need to do anything
+    break;
+  }
 }

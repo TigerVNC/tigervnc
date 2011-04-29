@@ -24,6 +24,7 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
+#include <FL/Fl_Menu_Button.H>
 
 #include <rfb/Rect.h>
 #include <rfb/Region.h>
@@ -98,6 +99,9 @@ private:
   rdr::U32 translateKeyEvent(int keyCode, const char *keyText);
   void handleKeyEvent(int keyCode, const char *keyText, bool down);
 
+  void initContextMenu();
+  void popupContextMenu();
+
 private:
   CConn* cc;
 
@@ -113,6 +117,8 @@ private:
 
   typedef std::map<int, rdr::U32> DownMap;
   DownMap downKeySym;
+
+  Fl_Menu_Button *contextMenu;
 };
 
 #endif
