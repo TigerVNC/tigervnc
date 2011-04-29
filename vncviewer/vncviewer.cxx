@@ -44,6 +44,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/fl_ask.H>
+#include <FL/x.H>
 
 #include "i18n.h"
 #include "parameters.h"
@@ -56,13 +57,24 @@ using namespace network;
 using namespace rfb;
 using namespace std;
 
-char aboutText[1024];
+static char aboutText[1024];
 
 static bool exitMainloop = false;
 
 void exit_vncviewer()
 {
   exitMainloop = true;
+}
+
+void about_vncviewer()
+{
+  fl_message_title(_("About TigerVNC Viewer"));
+  fl_message(aboutText);
+}
+
+static void about_callback(Fl_Widget *widget, void *data)
+{
+  about_vncviewer();
 }
 
 static void CleanupSignalHandler(int sig)
@@ -109,6 +121,10 @@ static void init_fltk()
   fl_ok     = _("OK");
   fl_cancel = _("Cancel");
   fl_close  = _("Close");
+
+#ifdef __APPLE__
+  fl_mac_set_about(about_callback, NULL);
+#endif
 }
 
 static void mkvnchomedir()

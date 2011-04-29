@@ -51,13 +51,14 @@ extern "C" const char *osx_event_string(void);
 #endif
 
 extern void exit_vncviewer();
+extern void about_vncviewer();
 
 static rfb::LogWriter vlog("Viewport");
 
 // Menu constants
 
 enum { ID_EXIT, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
-       ID_REFRESH, ID_DISMISS };
+       ID_REFRESH, ID_ABOUT, ID_DISMISS };
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
@@ -523,6 +524,8 @@ void Viewport::initContextMenu()
 
   contextMenu->add(_("Refresh screen"), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
 
+  contextMenu->add(_("About TigerVNC viewer..."), 0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
+
   contextMenu->add(_("Dismiss menu"), 0, NULL, (void*)ID_DISMISS, 0);
 }
 
@@ -568,6 +571,9 @@ void Viewport::popupContextMenu()
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
+    break;
+  case ID_ABOUT:
+    about_vncviewer();
     break;
   case ID_DISMISS:
     // Don't need to do anything
