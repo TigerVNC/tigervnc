@@ -373,6 +373,9 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, const char *keyText)
   case XK_ISO_Level3_Shift:
     // FLTK tends to let this one leak through on X11...
     return XK_ISO_Level3_Shift;
+  case XK_Multi_key:
+    // Same for this...
+    return XK_Multi_key;
   }
 
   // Ctrl and Cmd tend to fudge input handling, so we need to cheat here
