@@ -1,13 +1,13 @@
 diff -up xserver/configure.ac.vnc xserver/configure.ac
---- xserver/configure.ac.vnc	2009-08-14 15:25:23.879137863 +0200
-+++ xserver/configure.ac	2009-08-14 15:25:24.381142987 +0200
+--- xserver/configure.ac.vnc	2011-04-29 12:18:07.151996669 +0200
++++ xserver/configure.ac	2011-04-29 12:18:30.900810648 +0200
 @@ -29,7 +29,6 @@ AC_PREREQ(2.57)
- AC_INIT([xorg-server], 1.6.1.901, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+ AC_INIT([xorg-server], 1.6.5, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
  AC_CONFIG_SRCDIR([Makefile.am])
  AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 -AM_MAINTAINER_MODE
  
- RELEASE_DATE="2009-5-8"
+ RELEASE_DATE="2009-10-11"
  
 @@ -52,6 +51,7 @@ dnl kdrive-config.h covers the kdrive DD
  AC_CONFIG_HEADERS(include/kdrive-config.h)
@@ -17,7 +17,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  AM_PROG_AS
  AC_PROG_INSTALL
  AC_PROG_LN_S
-@@ -994,7 +994,7 @@ AC_DEFINE(SHAPE, 1, [Support SHAPE exten
+@@ -995,7 +995,7 @@ AC_DEFINE(SHAPE, 1, [Support SHAPE exten
  
  AC_DEFINE(XKB, 1, [Build XKB])
  AC_DEFINE(XKB_IN_SERVER, 1, [Build XKB server])
@@ -26,7 +26,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  REQUIRED_MODULES="$REQUIRED_MODULES xkbfile"
  XKB_LIB='$(top_builddir)/xkb/libxkb.la'
  XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
-@@ -1207,6 +1207,13 @@ if test "x$XVFB" = xyes; then
+@@ -1199,6 +1199,13 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
  
@@ -40,7 +40,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  
  dnl Xnest DDX
  
-@@ -1242,6 +1249,8 @@ xorg_bus_linuxpci=no
+@@ -1234,6 +1241,8 @@ xorg_bus_linuxpci=no
  xorg_bus_bsdpci=no
  xorg_bus_sparc=no
  
@@ -49,7 +49,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  if test "x$XORG" = xyes; then
  	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
  	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
-@@ -1427,7 +1436,6 @@ if test "x$XORG" = xyes; then
+@@ -1421,7 +1430,6 @@ if test "x$XORG" = xyes; then
  	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
  	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
  	AC_DEFINE(XFree86LOADER, 1, [Building loadable XFree86 server])
@@ -57,7 +57,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
  	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
  	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-@@ -1881,6 +1889,7 @@ hw/dmx/input/Makefile
+@@ -1875,6 +1883,7 @@ hw/dmx/input/Makefile
  hw/dmx/glxProxy/Makefile
  hw/dmx/Makefile
  hw/vfb/Makefile
@@ -66,8 +66,8 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  hw/xwin/Makefile
  hw/xquartz/Makefile
 diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
---- xserver/hw/Makefile.am.vnc	2009-08-14 15:25:23.987137653 +0200
-+++ xserver/hw/Makefile.am	2009-08-14 15:25:24.382139759 +0200
+--- xserver/hw/Makefile.am.vnc	2011-04-29 12:18:08.533275421 +0200
++++ xserver/hw/Makefile.am	2011-04-29 12:18:30.900810648 +0200
 @@ -33,7 +33,8 @@ SUBDIRS =			\
  	$(XNEST_SUBDIRS)	\
  	$(DMX_SUBDIRS)		\
@@ -79,8 +79,8 @@ diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive
  
 diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
---- xserver/mi/miinitext.c.vnc	2009-08-14 15:25:23.998137343 +0200
-+++ xserver/mi/miinitext.c	2009-08-14 15:26:19.857206094 +0200
+--- xserver/mi/miinitext.c.vnc	2011-04-29 12:18:11.004774157 +0200
++++ xserver/mi/miinitext.c	2011-04-29 12:18:30.905811656 +0200
 @@ -272,6 +272,7 @@ extern void DamageExtensionInit(INITARGS
  extern void CompositeExtensionInit(INITARGS);
  #endif
