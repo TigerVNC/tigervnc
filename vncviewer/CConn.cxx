@@ -48,7 +48,8 @@ CConn::CConn(const char* vncServerName)
   : serverHost(0), serverPort(0), sock(NULL), desktop(NULL),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
-    firstUpdate(true), pendingUpdate(false)
+    firstUpdate(true), pendingUpdate(false),
+    forceNonincremental(false)
 {
   setShared(::shared);
 
@@ -96,6 +97,14 @@ CConn::~CConn()
   if (sock)
     Fl::remove_fd(sock->getFd());
   delete sock;
+}
+
+void CConn::refreshFramebuffer()
+{
+  // FIXME: We cannot safely trigger an update request directly but must
+  //        wait for the next update to arrive.
+  if (!formatChange)
+    forceNonincremental = true;
 }
 
 // The RFB core is not properly asynchronous, so it calls this callback
@@ -442,9 +451,16 @@ void CConn::requestNewUpdate()
     desktop->setServerPF(pf);
     cp.setPF(pf);
     writer()->writeSetPixelFormat(pf);
+
+    forceNonincremental = true;
+
+    formatChange = false;
   }
+
   checkEncodings();
+
   writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
-                                          !formatChange);
-  formatChange = false;
+                                          !forceNonincremental);
+ 
+  forceNonincremental = false;
 }

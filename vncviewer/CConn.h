@@ -32,6 +32,8 @@ public:
   CConn(const char* vncServerName);
   ~CConn();
 
+  void refreshFramebuffer();
+
   // FdInStreamBlockCallback methods
   void blockCallback();
 
@@ -91,6 +93,8 @@ private:
 
   bool firstUpdate;
   bool pendingUpdate;
+
+  bool forceNonincremental;
 };
 
 #endif

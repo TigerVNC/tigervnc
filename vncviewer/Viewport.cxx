@@ -56,7 +56,8 @@ static rfb::LogWriter vlog("Viewport");
 
 // Menu constants
 
-enum { ID_EXIT, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL, ID_DISMISS };
+enum { ID_EXIT, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
+       ID_REFRESH, ID_DISMISS };
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
@@ -520,6 +521,8 @@ void Viewport::initContextMenu()
   contextMenu->add("Secret shortcut menu key", FL_F + 8, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE); // Broken, see STR2613
   contextMenu->add(_("Send Ctrl-Alt-Del"), 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
+  contextMenu->add(_("Refresh screen"), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
+
   contextMenu->add(_("Dismiss menu"), 0, NULL, (void*)ID_DISMISS, 0);
 }
 
@@ -562,6 +565,9 @@ void Viewport::popupContextMenu()
       cc->writer()->keyEvent(XK_Alt_L, false);
       cc->writer()->keyEvent(XK_Control_L, false);
     }
+    break;
+  case ID_REFRESH:
+    cc->refreshFramebuffer();
     break;
   case ID_DISMISS:
     // Don't need to do anything
