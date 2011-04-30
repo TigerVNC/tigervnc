@@ -71,7 +71,7 @@ init()
     pushd xserver
 
     if [ "$XORG_VERSION" = "7.4" ]; then
-	patch -p1 < $SRCDIR/unix/xserver15.patch
+	patch -p1 < $SRCDIR/unix/xserver16.patch
     else
 	patch -p1 < $SRCDIR/unix/xserver18.patch
     fi
@@ -201,7 +201,7 @@ build ()
     autoreconf -fiv
     XORGCFGFLAGS="--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev --with-sha1=libgcrypt ${XORGCFGFLAGS}"
     if [ $STATIC = 1 ]; then
-        XORGCFGFLAGS="${XORGCFGFLAGS} --disable-shared --enable-static"
+        XORGCFGFLAGS="${XORGCFGFLAGS} SHA1_LIB=-lcrypto --disable-shared --enable-static"
     fi
     ./configure ${1+"$@"} --prefix=${PREFIX} ${XORGCFGFLAGS}
     if [ $? -ne 0 ]; then
