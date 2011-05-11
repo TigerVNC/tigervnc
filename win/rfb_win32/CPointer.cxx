@@ -54,7 +54,7 @@ void CPointer::pointerEvent(InputHandler* writer, const Point& pos, int buttonMa
 }
 
 
-inline int _abs(int x) {return x>0 ? x : 0;}
+inline int _abs(int x) {return x>0 ? x : -x;}
 
 int emulate3Mask(int buttonMask) {
   // - Release left & right and press middle
@@ -102,7 +102,7 @@ void CPointer::threePointerEvent(InputHandler* writer, const Point& pos, int but
       if (threeTimer.isActive()) {
         // - We are timing for an emulation event
 
-        if (_abs(threePos.x - pos.x) <= 4 || _abs(threePos.y - pos.y) <= 4) {
+        if (_abs(threePos.x - pos.x) > 4 || _abs(threePos.y - pos.y) > 4) {
           //   If the mouse has moved too far since the button-change event then flush
           vlog.debug("emulate3: stop timer (moved)");
           threeTimer.stop();
