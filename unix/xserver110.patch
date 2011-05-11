@@ -1,8 +1,8 @@
 diff -up xserver/configure.ac.vnc xserver/configure.ac
---- xserver/configure.ac.vnc	2011-03-22 10:41:05.508614018 +0100
-+++ xserver/configure.ac	2011-03-22 10:47:01.592023995 +0100
-@@ -30,7 +30,6 @@ AC_INIT([xorg-server], 1.10.0, [https://
- RELEASE_DATE="2011-2-25"
+--- xserver/configure.ac.vnc	2011-05-11 11:19:24.410708163 +0200
++++ xserver/configure.ac	2011-05-11 11:19:26.409635824 +0200
+@@ -30,7 +30,6 @@ AC_INIT([xorg-server], 1.10.1.901, [http
+ RELEASE_DATE="2011-05-06"
  AC_CONFIG_SRCDIR([Makefile.am])
  AM_INIT_AUTOMAKE([foreign dist-bzip2])
 -AM_MAINTAINER_MODE
@@ -17,7 +17,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  AC_PROG_LN_S
  AC_LIBTOOL_WIN32_DLL
  AC_DISABLE_STATIC
-@@ -1510,6 +1510,14 @@ if test "x$XVFB" = xyes; then
+@@ -1513,6 +1513,14 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
  
@@ -32,7 +32,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  
  dnl Xnest DDX
  
-@@ -1548,6 +1556,8 @@ xorg_bus_linuxpci=no
+@@ -1551,6 +1559,8 @@ xorg_bus_linuxpci=no
  xorg_bus_bsdpci=no
  xorg_bus_sparc=no
  
@@ -41,7 +41,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  if test "x$XORG" = xyes; then
  	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
  	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
-@@ -1792,7 +1802,6 @@ if test "x$XORG" = xyes; then
+@@ -1797,7 +1807,6 @@ if test "x$XORG" = xyes; then
  	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
  	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
  	AC_DEFINE(XFree86LOADER, 1, [Building loadable XFree86 server])
@@ -49,7 +49,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
  	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
  	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-@@ -2254,6 +2263,7 @@ hw/dmx/Makefile
+@@ -2259,6 +2268,7 @@ hw/dmx/Makefile
  hw/dmx/man/Makefile
  hw/vfb/Makefile
  hw/vfb/man/Makefile
@@ -58,8 +58,8 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  hw/xnest/man/Makefile
  hw/xwin/Makefile
 diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
---- xserver/hw/Makefile.am.vnc	2011-03-22 10:41:05.528613984 +0100
-+++ xserver/hw/Makefile.am	2011-03-22 10:41:05.630613813 +0100
+--- xserver/hw/Makefile.am.vnc	2011-05-11 11:19:24.476705776 +0200
++++ xserver/hw/Makefile.am	2011-05-11 11:19:26.409635824 +0200
 @@ -33,7 +33,8 @@ SUBDIRS =			\
  	$(XNEST_SUBDIRS)	\
  	$(DMX_SUBDIRS)		\
@@ -71,21 +71,25 @@ diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive
  
 diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
---- xserver/mi/miinitext.c.vnc	2011-03-22 10:41:05.591613878 +0100
-+++ xserver/mi/miinitext.c	2011-03-22 10:41:05.630613813 +0100
-@@ -263,6 +263,7 @@ extern void DamageExtensionInit(INITARGS
+--- xserver/mi/miinitext.c.vnc	2011-05-11 11:19:24.549703133 +0200
++++ xserver/mi/miinitext.c	2011-05-11 11:19:42.022070885 +0200
+@@ -263,6 +263,9 @@ extern void DamageExtensionInit(INITARGS
  extern void CompositeExtensionInit(INITARGS);
  #endif
  extern void GEExtensionInit(INITARGS);
++#ifdef TIGERVNC
 +extern void vncExtensionInit(INITARGS);
++#endif
  
  /* The following is only a small first step towards run-time
   * configurable extensions.
-@@ -433,6 +434,7 @@ InitExtensions(int argc, char *argv[])
+@@ -433,6 +436,9 @@ InitExtensions(int argc, char *argv[])
  #ifdef XF86BIGFONT
      if (!noXFree86BigfontExtension) XFree86BigfontExtensionInit();
  #endif
++#ifdef TIGERVNC
 +    vncExtensionInit();
++#endif
  #if !defined(NO_HW_ONLY_EXTS)
  #if defined(XF86VIDMODE)
      if (!noXFree86VidModeExtension) XFree86VidModeExtensionInit();

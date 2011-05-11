@@ -1,6 +1,6 @@
 diff -up xserver/configure.ac.vnc xserver/configure.ac
---- xserver/configure.ac.vnc	2009-04-02 16:53:29.489569338 +0200
-+++ xserver/configure.ac	2009-04-02 16:53:52.967782502 +0200
+--- xserver/configure.ac.vnc	2011-05-11 11:02:51.229669941 +0200
++++ xserver/configure.ac	2011-05-11 11:03:07.754072695 +0200
 @@ -31,7 +31,7 @@ RELEASE_DATE="5 November 2008"
  REMEMBER_REMEMBER="The Fifth of November"
  AC_CONFIG_SRCDIR([Makefile.am])
@@ -58,7 +58,7 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
  	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
  	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-@@ -2184,6 +2293,7 @@ hw/dmx/input/Makefile
+@@ -2184,6 +2193,7 @@ hw/dmx/input/Makefile
  hw/dmx/glxProxy/Makefile
  hw/dmx/Makefile
  hw/vfb/Makefile
@@ -67,8 +67,8 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  hw/xgl/egl/Makefile
  hw/xgl/egl/module/Makefile
 diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
---- xserver/hw/Makefile.am.vnc	2009-04-02 16:54:17.365568961 +0200
-+++ xserver/hw/Makefile.am	2009-04-02 16:53:45.273568020 +0200
+--- xserver/hw/Makefile.am.vnc	2011-05-11 11:02:51.809648976 +0200
++++ xserver/hw/Makefile.am	2011-05-11 11:03:07.754072695 +0200
 @@ -43,7 +43,8 @@ SUBDIRS =			\
  	$(DMX_SUBDIRS)		\
  	$(KDRIVE_SUBDIRS)	\
@@ -80,21 +80,25 @@ diff -up xserver/hw/Makefile.am.vnc xserver/hw/Makefile.am
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xgl xprint
  
 diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
---- xserver/mi/miinitext.c.vnc	2009-04-02 16:53:29.657568676 +0200
-+++ xserver/mi/miinitext.c	2009-04-02 16:53:45.273568020 +0200
-@@ -292,6 +292,7 @@ extern void BigReqExtensionInit(INITARGS
+--- xserver/mi/miinitext.c.vnc	2011-05-11 11:02:53.156600294 +0200
++++ xserver/mi/miinitext.c	2011-05-11 11:03:31.079229673 +0200
+@@ -292,6 +292,9 @@ extern void BigReqExtensionInit(INITARGS
  #ifdef MITMISC
  extern void MITMiscExtensionInit(INITARGS);
  #endif
++#ifdef TIGERVNC
 +extern void vncExtensionInit(INITARGS);
++#endif
  #ifdef XIDLE
  extern void XIdleExtensionInit(INITARGS);
  #endif
-@@ -566,6 +567,7 @@ InitExtensions(argc, argv)
+@@ -566,6 +569,9 @@ InitExtensions(argc, argv)
  #ifdef MITMISC
      if (!noMITMiscExtension) MITMiscExtensionInit();
  #endif
++#ifdef TIGERVNC
 +    vncExtensionInit();
++#endif
  #ifdef XIDLE
      if (!noXIdleExtension) XIdleExtensionInit();
  #endif

@@ -29,7 +29,8 @@ Xvnc_SOURCES = xvnc.cc $(top_srcdir)/Xext/dpmsstubs.c \
 
 nodist_Xvnc_SOURCES = fbrop.h fb.h pixman.h
 
-Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS -UHAVE_CONFIG_H \
+Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS \
+	-UHAVE_CONFIG_H \
 	-DXFree86Server -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common \
 	-I$(top_srcdir)/include -I$(includedir)/pixman-1 -I$(includedir)
