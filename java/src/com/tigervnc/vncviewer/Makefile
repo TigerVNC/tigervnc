@@ -11,25 +11,15 @@ MANIFEST = MANIFEST.MF
 PAGES = index.vnc
 INSTALL_DIR = /usr/local/vnc/classes
 
-CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
-	  VncCanvas2.class \
-	  OptionsFrame.class ClipboardFrame.class ButtonPanel.class \
-	  DesCipher.class \
-	  RecordingFrame.class SessionRecorder.class \
-	  SocketFactory.class HTTPConnectSocketFactory.class \
-	  HTTPConnectSocket.class ReloginPanel.class \
-	  InStream.class MemInStream.class ZlibInStream.class \
-	  TLSTunnelBase.class TLSTunnel.class X509Tunnel.class Dialog.class MessageBox.class
+CLASSES = CConn.class OptionsDialogCallback.class ClipboardDialog.class \
+    PasswdDialog.class DesktopWindow.class PixelBufferImage.class \
+    Dialog.class ServerDialog.class F8Menu.class	UserPrefs.class \
+    OptionsDialog.class VncViewer.class
 
-SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
-	  VncCanvas2.java \
-	  OptionsFrame.java ClipboardFrame.java ButtonPanel.java \
-	  DesCipher.java \
-	  RecordingFrame.java SessionRecorder.java \
-	  SocketFactory.java HTTPConnectSocketFactory.java \
-	  HTTPConnectSocket.java ReloginPanel.java \
-	  InStream.java MemInStream.java ZlibInStream.java \
-	  TLSTunnelBase.java TLSTunnel.java X509Tunnel.java Dialog.java MessageBox.java
+SOURCES = CConn.java OptionsDialogCallback.java ClipboardDialog.java \
+    PasswdDialog.java DesktopWindow.java PixelBufferImage.java \
+    Dialog.java ServerDialog.java F8Menu.java	UserPrefs.java \
+    OptionsDialog.java VncViewer.java
 
 all: $(CLASSES) $(ARCHIVE)
 
@@ -41,8 +31,10 @@ $(ARCHIVE): $(CLASSES) $(MANIFEST)
 	$(JAR) cfm com/tigervnc/vncviewer/$(ARCHIVE) \
 		com/tigervnc/vncviewer/$(MANIFEST) \
 		com/tigervnc/vncviewer/*.class \
-		com/tigervnc/decoder/*.class \
-		com/tigervnc/decoder/common/*.class
+		com/tigervnc/rfb/*.class \
+		com/tigervnc/rdr/*.class \
+		com/tigervnc/vncviewer/tigervnc.png \
+		com/tigervnc/vncviewer/tigervnc.ico
 
 install: $(CLASSES) $(ARCHIVE)
 	$(CP) $(CLASSES) $(ARCHIVE) $(PAGES) $(INSTALL_DIR)
@@ -51,4 +43,4 @@ export:: $(CLASSES) $(ARCHIVE) $(PAGES)
 	@$(ExportJavaClasses)
 
 clean::
-	$(RM) *.class *.jar ../decoder/*.class ../decoder/common/*.class
+	$(RM) *.class *.jar ../rfb/*.class ../rdr/*.class
