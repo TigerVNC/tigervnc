@@ -7,29 +7,6 @@
 Build Requirements
 ==================
 
--- NASM
-   * 0.98, or 2.01 or later is required for a 32-bit build
-   * NASM 2.00 or later is required for a 64-bit build
-   * NASM 2.07 or later is required for a 64-bit build on OS X.  This can be
-     obtained from MacPorts (http://www.macports.org/).
-
-   The binary RPMs released by the NASM project do not work on older Linux
-   systems, such as Red Hat Enterprise Linux 4.  On such systems, you can
-   easily build and install NASM from a source RPM by downloading one of the
-   SRPMs from
-
-   http://www.nasm.us/pub/nasm/releasebuilds
-
-   and executing the following as root:
-
-     ARCH=`uname -m`
-     rpmbuild --rebuild nasm-{version}.src.rpm
-     rpm -Uvh /usr/src/redhat/RPMS/$ARCH/nasm-{version}.$ARCH.rpm
-
-   NOTE: the NASM build will fail if texinfo is not installed.
-
--- GCC v4.1 or later recommended for best performance
-
 -- X11 development kit
 
 -- If building TLS support:
@@ -187,10 +164,9 @@ to the configure or build command lines.
 
 Add
 
-  --host x86_64-apple-darwin NASM=/opt/local/bin/nasm
+  --host x86_64-apple-darwin
 
-to the configure command line.  NASM 2.07 or later from MacPorts must be
-installed.
+to the configure command line.
 
 
 32-bit Build on 64-bit OS X
@@ -208,7 +184,7 @@ to the configure command line.
 
 Add
 
-  --host x86_64-apple-darwin NASM=/opt/local/bin/nasm \
+  --host x86_64-apple-darwin \
   CFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
     -mmacosx-version-min=10.5 -O3' \
     CXXFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
@@ -216,8 +192,7 @@ Add
     LDFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
     -mmacosx-version-min=10.5'
 
-to the configure command line.  The OS X 10.5 SDK, and NASM 2.07 or later from
-MacPorts, must be installed.
+to the configure command line.  The OS X 10.5 SDK must be installed.
 
 
 32-bit Backward-Compatible Build on 64-bit OS X
@@ -271,11 +246,6 @@ Build Requirements
 ... OR ...
 
 -- MinGW
-
-   GCC v4.1 or later recommended for best performance
-
--- NASM (http://www.nasm.us/) 0.98 or later (NASM 2.05 or later is required for
-   a 64-bit build)
 
 -- Inno Setup (needed to build the TigerVNC installer)
    Inno Setup can be downloaded from http://www.jrsoftware.org/isinfo.php.
