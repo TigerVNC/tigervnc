@@ -7,10 +7,6 @@
 Build Requirements
 ==================
 
--- autoconf 2.57 or later
--- automake 1.7 or later
--- libtool 1.4 or later
-
 -- NASM
    * 0.98, or 2.01 or later is required for a 32-bit build
    * NASM 2.00 or later is required for a 64-bit build
@@ -36,13 +32,31 @@ Build Requirements
 
 -- X11 development kit
 
+-- If building TLS support:
+   * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
+
 -- If building Xvnc:
    * Python v2.3 or later
    * zlib v1.2 or later
    * OpenSSL v0.9.7 or later
 
--- If building TLS support:
-   * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
+   * pkgconfig 0.20 or later
+     If you are using an older RPM-based system which does not meet this
+     minimum requirement (such as Red Hat Enterprise Linux 4), then you can
+     build pkgconfig 0.20 from the Fedora 5 source RPM:
+     http://archive.fedoraproject.org/pub/archive/fedora/linux/core/5/source/SRPMS/pkgconfig-0.20-2.2.1.src.rpm
+
+-- If building Xvnc or building TigerVNC from the subversion repository:
+   * autoconf 2.57 or later
+   * automake 1.7 or later
+   * libtool 1.4 or later
+
+   * gettext 0.14.4 or later
+     If you are using an older RPM-based system which does not meet this
+     minimum requirement (such as Red Hat Enterprise Linux 4), then you can
+     build gettext 0.14.5 from the Fedora 5 source RPM:
+     http://archive.fedoraproject.org/pub/archive/fedora/linux/core/5/source/SRPMS/gettext-0.14.5-3.src.rpm
+     NOTE: gcj and libgcj are required when building the above source RPM.
 
 
 ==================
