@@ -583,14 +583,12 @@ public class CConn extends CConnection
   }
 
   void showAbout() {
-    InputStream stream = cl.getResourceAsStream("manifest");
-    String pkgVersion = "";
+    InputStream stream = cl.getResourceAsStream("com/tigervnc/vncviewer/timestamp");
     String pkgDate = "";
     String pkgTime = "";
     try {
       Manifest manifest = new Manifest(stream);
       Attributes attributes = manifest.getMainAttributes();
-      pkgVersion = attributes.getValue("Package-Version");
       pkgDate = attributes.getValue("Package-Date");
       pkgTime = attributes.getValue("Package-Time");
     } catch (IOException e) { }
