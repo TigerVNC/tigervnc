@@ -180,7 +180,7 @@ if(BUILD_NEW_VNCVIEWER)
   # FLTK STR #2599
   set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
-  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::event_compose_symbol(); return 0; }" HAVE_FLTK_DEAD_KEYS)
+  check_cxx_source_compiles("#include <FL/Fl_Widget.H>\nint main(int c, char** v) { void *foo = (void*)&Fl_Widget::set_simple_keyboard; return 0; }" HAVE_FLTK_DEAD_KEYS)
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)
 endif()
