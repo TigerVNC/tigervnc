@@ -49,6 +49,7 @@
 #include "i18n.h"
 #include "parameters.h"
 #include "CConn.h"
+#include "ServerDialog.h"
 #include "UserDialog.h"
 
 rfb::LogWriter vlog("main");
@@ -162,7 +163,7 @@ static void usage(const char *programName)
 
 int main(int argc, char** argv)
 {
-  char* vncServerName = 0;
+  const char* vncServerName = NULL;
   UserDialog dlg;
 
   const char englishAbout[] = N_("TigerVNC Viewer version %s\n"
@@ -246,6 +247,12 @@ int main(int argc, char** argv)
 #ifdef HAVE_GNUTLS
   CSecurityTLS::msg = &dlg;
 #endif
+
+  if (vncServerName == NULL) {
+    vncServerName = ServerDialog::run();
+    if ((vncServerName == NULL) || (vncServerName[0] == '\0'))
+      return 1;
+  }
 
   CConn cc(vncServerName);
 
