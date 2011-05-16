@@ -65,6 +65,7 @@ namespace rfb {
     /*
      * Create Security instance.
      */
+    Security();
     Security(StringParameter &secTypes);
 
     /*

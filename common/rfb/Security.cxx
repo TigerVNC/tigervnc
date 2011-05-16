@@ -52,6 +52,10 @@ using namespace std;
 
 static LogWriter vlog("Security");
 
+Security::Security()
+{
+}
+
 Security::Security(StringParameter &secTypes)
 {
   char *secTypesStr;
