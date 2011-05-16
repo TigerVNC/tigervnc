@@ -34,6 +34,8 @@ public:
 
   void refreshFramebuffer();
 
+  const char *connectionInfo();
+
   // FdInStreamBlockCallback methods
   void blockCallback();
 

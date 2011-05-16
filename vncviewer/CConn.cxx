@@ -107,6 +107,39 @@ void CConn::refreshFramebuffer()
     forceNonincremental = true;
 }
 
+const char *CConn::connectionInfo()
+{
+  static char infoText[1024] = "";
+
+  char pfStr[100];
+  char spfStr[100];
+
+  cp.pf().print(pfStr, 100);
+  serverPF.print(spfStr, 100);
+
+  int secType = csecurity->getType();
+
+  snprintf(infoText, sizeof(infoText),
+           _("Desktop name: %.80s\n"
+             "Host: %.80s port: %d\n"
+             "Size: %d x %d\n"
+             "Pixel format: %s\n"
+             "(server default %s)\n"
+             "Requested encoding: %s\n"
+             "Last used encoding: %s\n"
+             "Line speed estimate: %d kbit/s\n"
+             "Protocol version: %d.%d\n"
+             "Security method: %s\n"),
+           cp.name(), serverHost, serverPort, cp.width, cp.height,
+           pfStr, spfStr, encodingName(currentEncoding),
+           encodingName(lastServerEncoding),
+           sock->inStream().kbitsPerSecond(),
+           cp.majorVersion, cp.minorVersion,
+           secTypeName(secType));
+
+  return infoText;
+}
+
 // The RFB core is not properly asynchronous, so it calls this callback
 // whenever it needs to block to wait for more data. Since FLTK is
 // monitoring the socket, we just make sure FLTK gets to run.
