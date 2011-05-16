@@ -23,6 +23,8 @@
 #include <FL/fl_draw.H>
 
 #include "ServerDialog.h"
+#include "OptionsDialog.h"
+#include "fltk_layout.h"
 #include "i18n.h"
 
 extern void about_vncviewer();
@@ -33,14 +35,16 @@ ServerDialog::ServerDialog()
   int width;
   Fl_Button *button;
 
-  fl_font(FL_HELVETICA, FL_NORMAL_SIZE);
-  width = fl_width(_("VNC server:"));
+  width = gui_str_len(_("VNC server:"));
   serverName = new Fl_Input(20 + width, 20, w() - 20*2 - width, 25, _("VNC server:"));
 
   width = (w() - 20) / 4;
 
   button = new Fl_Button(20 + width*0, 20+25+20, width - 20, 27, _("About..."));
   button->callback(this->handleAbout, this);
+
+  button = new Fl_Button(20 + width*1, 20+25+20, width - 20, 27, _("Options..."));
+  button->callback(this->handleOptions, this);
 
   button = new Fl_Button(20 + width*2, 20+25+20, width - 20, 27, _("Cancel"));
   button->callback(this->handleCancel, this);
@@ -80,6 +84,12 @@ const char *ServerDialog::run()
 void ServerDialog::handleAbout(Fl_Widget *widget, void *data)
 {
   about_vncviewer();
+}
+
+
+void ServerDialog::handleOptions(Fl_Widget *widget, void *data)
+{
+  OptionsDialog::showDialog();
 }
 
 

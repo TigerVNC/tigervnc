@@ -32,6 +32,7 @@ public:
 
 protected:
   static void handleAbout(Fl_Widget *widget, void *data);
+  static void handleOptions(Fl_Widget *widget, void *data);
   static void handleCancel(Fl_Widget *widget, void *data);
   static void handleOK(Fl_Widget *widget, void *data);
 

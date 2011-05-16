@@ -7,6 +7,7 @@ set(VNCVIEWER_SOURCES
   DesktopWindow.cxx
   UserDialog.cxx
   ServerDialog.cxx
+  OptionsDialog.cxx
   Viewport.cxx
   parameters.cxx
   keysym2ucs.c

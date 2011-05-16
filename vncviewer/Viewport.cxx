@@ -35,6 +35,7 @@
 
 #include "Viewport.h"
 #include "CConn.h"
+#include "OptionsDialog.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "keysym2ucs.h"
@@ -53,7 +54,7 @@ static rfb::LogWriter vlog("Viewport");
 // Menu constants
 
 enum { ID_EXIT, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
-       ID_REFRESH, ID_ABOUT, ID_DISMISS };
+       ID_REFRESH, ID_OPTIONS, ID_ABOUT, ID_DISMISS };
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
@@ -450,6 +451,7 @@ void Viewport::initContextMenu()
 
   contextMenu->add(_("Refresh screen"), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
 
+  contextMenu->add(_("Options..."), 0, NULL, (void*)ID_OPTIONS, 0);
   contextMenu->add(_("About TigerVNC viewer..."), 0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
 
   contextMenu->add(_("Dismiss menu"), 0, NULL, (void*)ID_DISMISS, 0);
@@ -497,6 +499,9 @@ void Viewport::popupContextMenu()
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
+    break;
+  case ID_OPTIONS:
+    OptionsDialog::showDialog();
     break;
   case ID_ABOUT:
     about_vncviewer();
