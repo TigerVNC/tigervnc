@@ -40,7 +40,6 @@ namespace rfb {
     int getType() const {return chosenType;}
     virtual const char* description() const { return secTypeName(chosenType); }
 
-    static StringParameter secTypesStr;
   protected:
     CSecurity *csecurity;
     SecurityClient *security;
