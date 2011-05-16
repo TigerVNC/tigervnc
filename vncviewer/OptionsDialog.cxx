@@ -16,6 +16,8 @@
  * USA.
  */
 
+#include <stdlib.h>
+
 #include <list>
 
 #include <FL/Fl_Tabs.H>
@@ -252,6 +254,85 @@ void OptionsDialog::loadOptions(void)
 
 void OptionsDialog::storeOptions(void)
 {
+  /* Compression */
+  autoSelect.setParam(autoselectCheckbox->value());
+
+  if (tightButton->value())
+    preferredEncoding.setParam(encodingName(encodingTight));
+  else if (zrleButton->value())
+    preferredEncoding.setParam(encodingName(encodingZRLE));
+  else if (hextileButton->value())
+    preferredEncoding.setParam(encodingName(encodingHextile));
+  else if (rawButton->value())
+    preferredEncoding.setParam(encodingName(encodingRaw));
+
+  fullColour.setParam(fullcolorCheckbox->value());
+  if (mediumcolorCheckbox->value())
+    lowColourLevel.setParam(0);
+  else if (lowcolorCheckbox->value())
+    lowColourLevel.setParam(1);
+  else if (verylowcolorCheckbox->value())
+    lowColourLevel.setParam(2);
+
+  customCompressLevel.setParam(compressionCheckbox->value());
+  noJpeg.setParam(!jpegCheckbox->value());
+  compressLevel.setParam(atoi(compressionInput->value()));
+  qualityLevel.setParam(atoi(jpegInput->value()));
+
+#ifdef HAVE_GNUTLS
+  /* Security */
+  Security security;
+
+  /* Process security types which don't use encryption */
+  if (encNoneCheckbox->value()) {
+    if (authNoneCheckbox->value())
+      security.EnableSecType(secTypeNone);
+    if (authVncCheckbox->value())
+      security.EnableSecType(secTypeVncAuth);
+
+    if (vencryptCheckbox->value()) {
+      if (authPlainCheckbox->value())
+        security.EnableSecType(secTypePlain);
+    }
+  }
+
+  if (vencryptCheckbox->value()) {
+    /* Process security types which use TLS encryption */
+    if (encTLSCheckbox->value()) {
+      if (authNoneCheckbox->value())
+        security.EnableSecType(secTypeTLSNone);
+      if (authVncCheckbox->value())
+        security.EnableSecType(secTypeTLSVnc);
+      if (authPlainCheckbox->value())
+        security.EnableSecType(secTypeTLSPlain);
+    }
+
+    /* Process security types which use X509 encryption */
+    if (encX509Checkbox->value()) {
+      if (authNoneCheckbox->value())
+        security.EnableSecType(secTypeX509None);
+      if (authVncCheckbox->value())
+        security.EnableSecType(secTypeX509Vnc);
+      if (authPlainCheckbox->value())
+        security.EnableSecType(secTypeX509Plain);
+    }
+  }
+
+  CSecurityTLS::x509ca.setParam(caInput->value());
+  CSecurityTLS::x509crl.setParam(crlInput->value());
+#endif
+
+  /* Input */
+  viewOnly.setParam(viewOnlyCheckbox->value());
+  acceptClipboard.setParam(acceptClipboardCheckbox->value());
+  sendClipboard.setParam(sendClipboardCheckbox->value());
+  sendPrimary.setParam(sendPrimaryCheckbox->value());
+
+  /* Misc. */
+  shared.setParam(sharedCheckbox->value());
+  fullScreen.setParam(fullScreenCheckbox->value());
+  useLocalCursor.setParam(localCursorCheckbox->value());
+  dotWhenNoCursor.setParam(dotCursorCheckbox->value());
 }
 
 
