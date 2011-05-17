@@ -64,7 +64,13 @@ abstract public class CMsgReader {
     }
     byte[] buf = new byte[len];
     is.readBytes(buf, 0, len);
-    handler.serverCutText(new String(buf), len);
+    String str = new String();
+    try {
+      str = new String(buf,"UTF8");
+    } catch(java.io.UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+    handler.serverCutText(str, len);
   }
 
   protected void readFramebufferUpdateStart() 

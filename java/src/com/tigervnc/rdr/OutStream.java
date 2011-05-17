@@ -63,11 +63,11 @@ abstract public class OutStream {
   public final void writeString(String str) {
     int len = str.length();
     writeU32(len);
-    for (int i = 0; i < len;) {
-      int j = i + check(1, len - i);
-      while (i < j) {
-	b[ptr++] = (byte)str.charAt(i++);
-      }
+    try {
+      byte[] utf8str = str.getBytes("UTF8");
+      writeBytes(utf8str, 0, len);
+    } catch(java.io.UnsupportedEncodingException e) {
+      e.printStackTrace();
     }
   }
 

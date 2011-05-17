@@ -41,8 +41,14 @@ public class CSecurityVncAuth extends CSecurity {
     // Calculate the correct response
     byte[] key = new byte[8];
     int pwdLen = passwd.length();
+    byte[] utf8str = new byte[pwdLen];
+    try {
+      utf8str = passwd.toString().getBytes("UTF8");
+    } catch(java.io.UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     for (int i=0; i<8; i++)
-      key[i] = i<pwdLen ? (byte)passwd.charAt(i) : 0;
+      key[i] = i<pwdLen ? utf8str[i] : 0;
     DesCipher des = new DesCipher(key);
     for (int j = 0; j < vncAuthChallengeSize; j += 8)
       des.encrypt(challenge,j,challenge,j);

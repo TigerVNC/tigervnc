@@ -49,13 +49,6 @@ class ClipboardDialog extends Dialog implements ActionListener {
     pack();
   }
 
-  static Clipboard systemClipboard;
-  static {
-    try {
-      systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    } catch (Exception e) { }
-  }
-
   public void initDialog() {
     textArea.setText(current);
     textArea.selectAll();
@@ -69,10 +62,11 @@ class ClipboardDialog extends Dialog implements ActionListener {
 
   public void serverCutText(String str, int len) {
     setContents(str);    
-    if (systemClipboard != null) {
+    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+    if (cb != null) {
       StringSelection ss = new StringSelection(str);
       try {
-        systemClipboard.setContents(ss, ss);
+        cb.setContents(ss, ss);
       } catch(Exception e) {
         vlog.debug(e.toString());
       }

@@ -37,7 +37,12 @@ public class CSecurityManaged extends CSecurity {
 
     // Return the response to the server
     os.writeU8(username.length());
-	  os.writeBytes(username.toString().getBytes(), 0, username.length());
+    try {
+      byte[] utf8str = username.toString().getBytes("UTF8");
+      os.writeBytes(utf8str, 0, username.length());
+    } catch(java.io.UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     os.flush();
     int serverPort = is.readU16();
     //if (serverPort==0) { return true; };

@@ -144,7 +144,12 @@ abstract public class CMsgWriter {
     startMsg(MsgTypes.msgTypeClientCutText);
     os.pad(3);
     os.writeU32(len);
-    os.writeBytes(str.getBytes(), 0, len);
+    try {
+      byte[] utf8str = str.getBytes("UTF8");
+      os.writeBytes(utf8str, 0, len);
+    } catch(java.io.UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     endMsg();
   }
 

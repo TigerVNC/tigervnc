@@ -73,16 +73,16 @@ abstract public class InStream {
     if (len > maxStringLength)
       throw new Exception("InStream max string length exceeded");
 
-    char[] str = new char[len];
-    int i = 0;
-    while (i < len) {
-      int j = i + check(1, len - i);
-      while (i < j) {
-	str[i++] = (char)b[ptr++];
-      }
+    byte[] str = new byte[len+1];
+    readBytes(str, 0, len);
+    str[len] = 0;
+    String utf8string = new String();
+    try {
+      utf8string = new String(str,"UTF8");
+    } catch(java.io.UnsupportedEncodingException e) {
+      e.printStackTrace();
     }
-
-    return new String(str);
+    return utf8string;
   }
 
   // maxStringLength protects against allocating a huge buffer.  Set it

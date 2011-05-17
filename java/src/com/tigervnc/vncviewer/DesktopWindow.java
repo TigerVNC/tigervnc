@@ -30,6 +30,7 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.Clipboard;
 import javax.swing.*;
 
 import com.tigervnc.rfb.*;
@@ -305,12 +306,12 @@ class DesktopWindow extends JPanel implements
   String oldContents = "";
   
   synchronized public void checkClipboard() {
-    if (ClipboardDialog.systemClipboard != null &&
-        cc.viewer.sendClipboard.getValue()) {
-      Transferable t = ClipboardDialog.systemClipboard.getContents(this);
+    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+    if (cb != null && cc.viewer.sendClipboard.getValue()) {
+      Transferable t = cb.getContents(null);
       if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
         try {
-          String newContents = (String) t.getTransferData(DataFlavor.stringFlavor);
+          String newContents = (String)t.getTransferData(DataFlavor.stringFlavor);
           if (newContents != null && !newContents.equals(oldContents)) {
             cc.writeClientCutText(newContents, newContents.length());
             oldContents = newContents;

@@ -37,8 +37,15 @@ public class CSecurityPlain extends CSecurity {
     // Return the response to the server
     os.writeU32(username.length());
     os.writeU32(password.length());
-	  os.writeBytes(username.toString().getBytes(), 0, username.length());
-	  os.writeBytes(password.toString().getBytes(), 0, password.length());
+    byte[] utf8str;
+    try {
+      utf8str = username.toString().getBytes("UTF8");
+      os.writeBytes(utf8str, 0, username.length());
+      utf8str = password.toString().getBytes("UTF8");
+      os.writeBytes(utf8str, 0, password.length());
+    } catch(java.io.UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     os.flush();
     return true;
   }

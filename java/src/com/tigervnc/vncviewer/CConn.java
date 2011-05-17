@@ -416,7 +416,7 @@ public class CConn extends CConnection
     viewport = new ViewportFrame(cp.name(), this);
     viewport.setUndecorated(fullScreen);
     ClassLoader loader = this.getClass().getClassLoader();
-    URL url = loader.getResource("tigervnc.ico");
+    URL url = loader.getResource("com/tigervnc/vncviewer/tigervnc.ico");
     ImageIcon icon = null;
     if (url != null) {
       icon = new ImageIcon(url);
