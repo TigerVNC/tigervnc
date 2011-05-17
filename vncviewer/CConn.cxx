@@ -33,6 +33,7 @@
 #include <FL/fl_ask.H>
 
 #include "CConn.h"
+#include "OptionsDialog.h"
 #include "i18n.h"
 #include "parameters.h"
 
@@ -43,6 +44,10 @@ using namespace std;
 extern void exit_vncviewer();
 
 static rfb::LogWriter vlog("CConn");
+
+static const PixelFormat mediumColourPF(8,3,0,1,1,1,1,2,1,0);
+static const PixelFormat lowColourPF(8,6,0,1,3,3,3,4,2,0);
+static const PixelFormat verylowColourPF(8,8,0,0);
 
 CConn::CConn(const char* vncServerName)
   : serverHost(0), serverPort(0), sock(NULL), desktop(NULL),
@@ -89,10 +94,14 @@ CConn::CConn(const char* vncServerName)
   setStreams(&sock->inStream(), &sock->outStream());
 
   initialiseProtocol();
+
+  OptionsDialog::addCallback(handleOptions, this);
 }
 
 CConn::~CConn()
 {
+  OptionsDialog::removeCallback(handleOptions);
+
   free(serverHost);
   if (sock)
     Fl::remove_fd(sock->getFd());
@@ -472,11 +481,11 @@ void CConn::requestNewUpdate()
       pf = fullColourPF;
     } else {
       if (lowColourLevel == 0)
-        pf = PixelFormat(8,3,0,1,1,1,1,2,1,0);
+        pf = mediumColourPF;
       else if (lowColourLevel == 1)
-        pf = PixelFormat(8,6,0,1,3,3,3,4,2,0);
+        pf = lowColourPF;
       else
-        pf = PixelFormat(8,8,0,0);
+        pf = verylowColourPF;
     }
     char str[256];
     pf.print(str, 256);
@@ -496,4 +505,50 @@ void CConn::requestNewUpdate()
                                           !forceNonincremental);
  
   forceNonincremental = false;
+}
+
+void CConn::handleOptions(void *data)
+{
+  CConn *self = (CConn*)data;
+
+  // Checking all the details of the current set of encodings is just
+  // a pain. Assume something has changed, as resending the encoding
+  // list is cheap. Avoid overriding what the auto logic has selected
+  // though.
+  if (!autoSelect) {
+    int encNum = encodingNum(preferredEncoding);
+
+    if (encNum != -1)
+      self->currentEncoding = encNum;
+
+    self->cp.qualityLevel = qualityLevel;
+  }
+
+  self->cp.supportsLocalCursor = useLocalCursor;
+
+  self->cp.customCompressLevel = customCompressLevel;
+  self->cp.compressLevel = compressLevel;
+
+  self->cp.noJpeg = noJpeg;
+
+  self->encodingChange = true;
+
+  // Format changes refreshes the entire screen though and are therefore
+  // very costly. It's probably worth the effort to see if it is necessary
+  // here.
+  PixelFormat pf;
+
+  if (fullColour) {
+    pf = self->fullColourPF;
+  } else {
+    if (lowColourLevel == 0)
+      pf = mediumColourPF;
+    else if (lowColourLevel == 1)
+      pf = lowColourPF;
+    else
+      pf = verylowColourPF;
+  }
+
+  if (!pf.equal(self->cp.pf()))
+    self->formatChange = true;
 }

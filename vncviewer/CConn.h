@@ -78,6 +78,8 @@ private:
   void checkEncodings();
   void requestNewUpdate();
 
+  static void handleOptions(void *data);
+
 private:
   char* serverHost;
   int serverPort;
