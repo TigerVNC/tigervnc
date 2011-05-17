@@ -26,7 +26,7 @@ SOURCES = CConn.java OptionsDialogCallback.java ClipboardDialog.java \
 
 all: $(CLASSES) $(ARCHIVE)
 
-$(CLASSES): $(SOURCES)
+$(CLASSES): $(SOURCES) ../rfb/*.java ../rdr/*.java
 	$(JC) $(JCFLAGS) -O $(SOURCES)
 
 $(ARCHIVE): $(CLASSES) $(MANIFEST) $(TIMESTAMP)
