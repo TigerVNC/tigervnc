@@ -79,8 +79,27 @@ void UserDialog::getUserPasswd(char** user, char** password)
 
 bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
 {
+  // FLTK doesn't give us a flexible choice of the icon, so we ignore those
+  // bits for now.
+
+  // FIXME: Filter out % from input text
+
   fl_message_title(title);
-  fl_message(text);
+
+  switch (flags & 0xf) {
+  case M_OKCANCEL:
+    return fl_choice(text, NULL, fl_ok, fl_cancel) == 1;
+  case M_YESNO:
+    return fl_choice(text, NULL, fl_yes, fl_no) == 1;
+  case M_OK:
+  default:
+    if (((flags & 0xf0) == M_ICONERROR) ||
+        ((flags & 0xf0) == M_ICONWARNING))
+      fl_alert(text);
+    else
+      fl_message(text);
+    return true;
+  }
 
   return false;
 }
