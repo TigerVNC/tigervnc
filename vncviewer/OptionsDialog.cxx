@@ -42,6 +42,8 @@ using namespace std;
 using namespace rdr;
 using namespace rfb;
 
+std::map<OptionsCallback*, void*> OptionsDialog::callbacks;
+
 OptionsDialog::OptionsDialog()
   : Fl_Window(450, 450, _("VNC Viewer: Connection Options"))
 {
@@ -98,6 +100,18 @@ void OptionsDialog::showDialog(void)
     return;
 
   dialog->show();
+}
+
+
+void OptionsDialog::addCallback(OptionsCallback *cb, void *data)
+{
+  callbacks[cb] = data;
+}
+
+
+void OptionsDialog::removeCallback(OptionsCallback *cb)
+{
+  callbacks.erase(cb);
 }
 
 
@@ -333,6 +347,11 @@ void OptionsDialog::storeOptions(void)
   fullScreen.setParam(fullScreenCheckbox->value());
   useLocalCursor.setParam(localCursorCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
+
+  std::map<OptionsCallback*, void*>::const_iterator iter;
+
+  for (iter = callbacks.begin();iter != callbacks.end();++iter)
+    iter->first(iter->second);
 }
 
 

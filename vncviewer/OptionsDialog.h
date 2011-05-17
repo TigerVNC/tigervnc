@@ -19,11 +19,15 @@
 #ifndef __OPTIONSDIALOG_H__
 #define __OPTIONSDIALOG_H__
 
+#include <map>
+
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Round_Button.H>
 #include <FL/Fl_Int_Input.H>
+
+typedef void (OptionsCallback)(void*);
 
 class OptionsDialog : public Fl_Window {
 protected:
@@ -32,6 +36,9 @@ protected:
 
 public:
   static void showDialog(void);
+
+  static void addCallback(OptionsCallback *cb, void *data = NULL);
+  static void removeCallback(OptionsCallback *cb);
 
   void show(void);
 
@@ -55,6 +62,8 @@ protected:
   static void handleOK(Fl_Widget *widget, void *data);
 
 protected:
+  static std::map<OptionsCallback*, void*> callbacks;
+
   /* Compression */
   Fl_Check_Button *autoselectCheckbox;
 
