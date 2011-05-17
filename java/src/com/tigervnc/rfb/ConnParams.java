@@ -34,6 +34,7 @@ public class ConnParams {
     noJpeg = false; qualityLevel = -1; 
     name_ = null; nEncodings_ = 0; encodings_ = null;
     currentEncoding_ = Encodings.encodingRaw; verStrPos = 0;
+    screenLayout = new ScreenSet();
 
     setName("");
   }

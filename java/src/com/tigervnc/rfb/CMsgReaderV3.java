@@ -62,7 +62,7 @@ public class CMsgReaderV3 extends CMsgReader {
       int y = is.readU16();
       int w = is.readU16();
       int h = is.readU16();
-      int encoding = is.readU32();
+      int encoding = is.readS32();
 
       switch (encoding) {
       case Encodings.pseudoEncodingDesktopSize:

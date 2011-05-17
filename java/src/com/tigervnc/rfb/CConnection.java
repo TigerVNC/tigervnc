@@ -252,10 +252,6 @@ abstract public class CConnection extends CMsgHandler {
     serverPort = port;
   }
  
-  //public void setEncryptionType(String type) {
-  //  encryptionType = type;
-  //}
-
   public void initSecTypes() {
     nSecTypes = 0;
   }
@@ -311,8 +307,8 @@ abstract public class CConnection extends CMsgHandler {
 
   // Other methods
 
-  public CMsgReader reader() { return reader_; }
-  public CMsgWriter writer() { return writer_; }
+  public CMsgReaderV3 reader() { return reader_; }
+  public CMsgWriterV3 writer() { return writer_; }
 
   public InStream getInStream() { return is; }
   public OutStream getOutStream() { return os; }
@@ -348,8 +344,8 @@ abstract public class CConnection extends CMsgHandler {
 
   InStream is = null;
   OutStream os = null;
-  CMsgReader reader_ = null;
-  CMsgWriter writer_ = null;
+  CMsgReaderV3 reader_ = null;
+  CMsgWriterV3 writer_ = null;
   boolean shared = false;
   public CSecurity csecurity;
   public SecurityClient security;

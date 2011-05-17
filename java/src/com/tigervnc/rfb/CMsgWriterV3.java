@@ -19,6 +19,7 @@
 package com.tigervnc.rfb;
 
 import com.tigervnc.rdr.*;
+import java.util.*;
 
 public class CMsgWriterV3 extends CMsgWriter {
 
@@ -36,4 +37,32 @@ public class CMsgWriterV3 extends CMsgWriter {
   public void endMsg() {
     os.flush();
   }
+
+  public void writeSetDesktopSize(int width, int height,
+                                  ScreenSet layout)
+	{
+	  if (!cp.supportsSetDesktopSize)
+	    throw new Exception("Server does not support SetDesktopSize");
+	
+	  startMsg(MsgTypes.msgTypeSetDesktopSize);
+	  os.pad(1);
+	
+	  os.writeU16(width);
+	  os.writeU16(height);
+	
+	  os.writeU8(layout.num_screens());
+	  os.pad(1);
+	
+    for (Iterator iter = layout.screens.iterator(); iter.hasNext(); ) {
+      Screen refScreen = (Screen)iter.next();
+	    os.writeU32(refScreen.id);
+	    os.writeU16(refScreen.dimensions.tl.x);
+	    os.writeU16(refScreen.dimensions.tl.y);
+	    os.writeU16(refScreen.dimensions.width());
+	    os.writeU16(refScreen.dimensions.height());
+	    os.writeU32(refScreen.flags);
+	  }
+	
+	  endMsg();
+	}
 }
