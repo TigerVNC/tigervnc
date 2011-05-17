@@ -229,6 +229,10 @@ public class VncViewer extends java.applet.Applet implements Runnable
   BoolParameter sendClipboard
   = new BoolParameter("SendClipboard",
                           "Send clipboard changes to the server", true);
+  StringParameter desktopSize
+  = new StringParameter("DesktopSize",
+                        "Reconfigure desktop size on the server on "+
+                        "connect (if possible)", "");
   BoolParameter alwaysShowServerDialog
   = new BoolParameter("AlwaysShowServerDialog",
                           "Always show the server dialog even if a server "+

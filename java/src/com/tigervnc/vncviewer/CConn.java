@@ -31,7 +31,8 @@
 
 package com.tigervnc.vncviewer;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.event.*;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -86,6 +87,11 @@ class ViewportFrame extends JFrame
     child.setOpaque(true);
     sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
     getContentPane().add(sp);
+  }
+
+  public void setChild(DesktopWindow child) {
+    getContentPane().removeAll();
+    addChild(child);
   }
 
   public void setGeometry(int x, int y, int w, int h) {
@@ -272,7 +278,7 @@ public class CConn extends CConnection
       vlog.error("SetDesktopSize failed: "+result);
       return;
     }
-    
+
     resizeFramebuffer();
   }
 
@@ -306,12 +312,13 @@ public class CConn extends CConnection
     desktop.framebufferUpdateEnd();
 
     if (firstUpdate) {
-      //int width = (int)viewer.desktopSize.getValue().split("x")[0];
-      //int height = (int)viewer.desktopSize.getValue().split("x")[1];
+      int width, height;
       
-/*
       if (cp.supportsSetDesktopSize &&
-          ((width != 0) && (height != 0))) {
+          viewer.desktopSize.getValue() != null &&
+          viewer.desktopSize.getValue().split("x").length == 2) {
+        width = Integer.parseInt(viewer.desktopSize.getValue().split("x")[0]);
+        height = Integer.parseInt(viewer.desktopSize.getValue().split("x")[1]);
         ScreenSet layout;
 
         layout = cp.screenLayout;
@@ -322,23 +329,23 @@ public class CConn extends CConnection
 
           while (true) {
             Iterator iter = layout.screens.iterator(); 
-            iter.next();
+            Screen screen = (Screen)iter.next();
         
             if (!iter.hasNext())
               break;
 
-            layout.remove_screen(iter.id);
+            layout.remove_screen(screen.id);
           }
         }
 
-        layout.screens.iterator().dimensions.tl.x = 0;
-        layout.screens.iterator().dimensions.tl.y = 0;
-        layout.screens.iterator().dimensions.by.x = width;
-        layout.screens.iterator().dimensions.by.y = height;
+        Screen screen0 = (Screen)layout.screens.iterator().next();
+        screen0.dimensions.tl.x = 0;
+        screen0.dimensions.tl.y = 0;
+        screen0.dimensions.br.x = width;
+        screen0.dimensions.br.y = height;
 
         writer().writeSetDesktopSize(width, height, layout);
       }
-*/
 
       firstUpdate = false;
     }
@@ -415,6 +422,7 @@ public class CConn extends CConnection
     if (viewport != null) viewport.dispose();
     viewport = new ViewportFrame(cp.name(), this);
     viewport.setUndecorated(fullScreen);
+    desktop.setViewport(viewport);
     ClassLoader loader = this.getClass().getClassLoader();
     URL url = loader.getResource("com/tigervnc/vncviewer/tigervnc.ico");
     ImageIcon icon = null;
@@ -432,23 +440,24 @@ public class CConn extends CConnection
   private void reconfigureViewport()
   {
     //viewport->setMaxSize(cp.width, cp.height);
-    int w = cp.width;
-    int h = cp.height;
-    Dimension dpySize = viewport.getToolkit().getScreenSize();
-    int wmDecorationWidth = 0;
-    int wmDecorationHeight = 24;
-    if (w + wmDecorationWidth >= dpySize.width)
-      w = dpySize.width - wmDecorationWidth;
-    if (h + wmDecorationHeight >= dpySize.height)
-      h = dpySize.height - wmDecorationHeight;
-
-    int x = (dpySize.width - w - wmDecorationWidth) / 2;
-    int y = (dpySize.height - h - wmDecorationHeight)/2;
-
     if (fullScreen) {
+      Dimension dpySize = viewport.getToolkit().getScreenSize();
       viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
       viewport.setGeometry(0, 0, dpySize.width, dpySize.height);
     } else {
+      int w = cp.width;
+      int h = cp.height;
+      Dimension dpySize = viewport.getToolkit().getScreenSize();
+      int wmDecorationWidth = 0;
+      int wmDecorationHeight = 24;
+      if (w + wmDecorationWidth >= dpySize.width)
+        w = dpySize.width - wmDecorationWidth;
+      if (h + wmDecorationHeight >= dpySize.height)
+        h = dpySize.height - wmDecorationHeight;
+
+      int x = (dpySize.width - w - wmDecorationWidth) / 2;
+      int y = (dpySize.height - h - wmDecorationHeight)/2;
+
       viewport.setExtendedState(JFrame.NORMAL);
       viewport.setGeometry(x, y, w, h);
     }
@@ -528,6 +537,10 @@ public class CConn extends CConnection
   private void requestNewUpdate()
   {
     if (formatChange) {
+
+      /* Catch incorrect requestNewUpdate calls */
+      assert(pendingUpdate == false);
+
       if (fullColour) {
         desktop.setPF(fullColourPF);
       } else {
@@ -621,6 +634,7 @@ public class CConn extends CConnection
 
   synchronized public void refresh() {
     writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
+    pendingUpdate = true;
   }
 
 

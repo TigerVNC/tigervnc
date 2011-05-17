@@ -95,6 +95,11 @@ class DesktopWindow extends JPanel implements
     im.setPF(pf); 
   }
 
+  public void setViewport(ViewportFrame viewport)
+  {
+    viewport.setChild(this);
+  }
+
   // Methods called from the RFB thread - these need to be synchronized
   // wherever they access data shared with the GUI thread.
 
@@ -193,7 +198,6 @@ class DesktopWindow extends JPanel implements
 
   // resize() is called when the desktop has changed size
   synchronized public void resize() {
-    vlog.debug("DesktopWindow.resize() called");
     int w = cc.cp.width;
     int h = cc.cp.height;
     hideLocalCursor();
