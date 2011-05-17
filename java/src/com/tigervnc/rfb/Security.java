@@ -118,7 +118,7 @@ public class Security {
     return false;
   }
 
-  public static void DisableSecType(int secType) { enabledSecTypes.remove(secType); }
+  public static void DisableSecType(int secType) { enabledSecTypes.remove((Object)secType); }
 
   public static int secTypeNum(String name) {
     if (name.equalsIgnoreCase("None"))      return secTypeNone;
