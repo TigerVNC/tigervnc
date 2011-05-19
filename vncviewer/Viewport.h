@@ -93,6 +93,8 @@ private:
   static void handleUpdateTimeout(void *data);
   static void handleColourMap(void *data);
 
+  static void handleClipboardChange(int source, void *data);
+
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 

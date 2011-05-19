@@ -66,6 +66,11 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   set_simple_keyboard();
 #endif
 
+// FLTK STR #2636 gives us the ability to monitor clipboard changes
+#ifdef HAVE_FLTK_CLIPBOARD
+  Fl::add_clipboard_notify(handleClipboardChange, this);
+#endif
+
   frameBuffer = new ManagedPixelBuffer(getPreferredPF(), w, h);
   assert(frameBuffer);
 
@@ -83,6 +88,10 @@ Viewport::~Viewport()
   Fl::remove_timeout(handleUpdateTimeout, this);
   Fl::remove_timeout(handleColourMap, this);
   Fl::remove_timeout(handlePointerTimeout, this);
+
+#ifdef HAVE_FLTK_CLIPBOARD
+  Fl::remove_clipboard_notify(handleClipboardChange);
+#endif
 
   delete frameBuffer;
 
@@ -172,10 +181,22 @@ void Viewport::draw()
 
 int Viewport::handle(int event)
 {
+  char buffer[1024];
+  int ret;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
 
   switch (event) {
+  case FL_PASTE:
+    // This is documented as to ASCII, but actually does to 8859-1
+    ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer, sizeof(buffer));
+    if (ret >= sizeof(buffer)) {
+      vlog.error(_("Clipboard buffer overflow!"));
+      return 1;
+    }
+    vlog.debug("Sending clipboard data: '%s'", buffer);
+    cc->writer()->clientCutText(buffer, ret);
+    return 1;
   case FL_ENTER:
     // Yes, we would like some pointer events please!
     return 1;
@@ -257,6 +278,19 @@ void Viewport::handleColourMap(void *data)
     self->pixelTrans->setColourMapEntries(0, 0);
 
   self->Fl_Widget::damage(FL_DAMAGE_ALL);
+}
+
+
+void Viewport::handleClipboardChange(int source, void *data)
+{
+  Viewport *self = (Viewport *)data;
+
+  assert(self);
+
+  if (!sendPrimary && (source == 0))
+    return;
+
+  Fl::paste(*self, source);
 }
 
 

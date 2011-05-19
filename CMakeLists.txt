@@ -177,10 +177,20 @@ if(BUILD_NEW_VNCVIEWER)
   set(FLTK_SKIP_OPENGL TRUE)
   find_package(FLTK COMPONENTS REQUIRED)
 
-  # FLTK STR #2599
+  # No proper handling for extra X11 libs that FLTK might need...
+  if(X11_Xfixes_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
+  endif()
+
   set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
+
+  # FLTK STR #2599
   check_cxx_source_compiles("#include <FL/Fl_Widget.H>\nint main(int c, char** v) { void *foo = (void*)&Fl_Widget::set_simple_keyboard; return 0; }" HAVE_FLTK_DEAD_KEYS)
+
+  # FLTK STR #2636
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_clipboard_notify(NULL, NULL); return 0; }" HAVE_FLTK_CLIPBOARD)
+
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)
 endif()
