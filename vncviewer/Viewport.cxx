@@ -235,8 +235,10 @@ int Viewport::handle(int event)
   case FL_UNFOCUS:
     // Release all keys that were pressed as that generally makes most
     // sense (e.g. Alt+Tab where we only see the Alt press)
-    for (iter = downKeySym.begin();iter != downKeySym.end();++iter)
+    for (iter = downKeySym.begin();iter != downKeySym.end();++iter) {
+      vlog.debug("Key released: 0x%04x => 0x%04x", iter->first, iter->second);
       cc->writer()->keyEvent(iter->second, false);
+    }
     downKeySym.clear();
     return 1;
 
@@ -455,6 +457,8 @@ void Viewport::handleKeyEvent(int keyCode, const char *keyText, bool down)
       return;
     }
 
+    vlog.debug("Key released: 0x%04x => 0x%04x", keyCode, iter->second);
+
     cc->writer()->keyEvent(iter->second, false);
 
     downKeySym.erase(iter);
@@ -465,6 +469,8 @@ void Viewport::handleKeyEvent(int keyCode, const char *keyText, bool down)
   keySym = translateKeyEvent(keyCode, keyText);
   if (keySym == XK_VoidSymbol)
     return;
+
+  vlog.debug("Key pressed: 0x%04x '%s' => 0x%04x", keyCode, keyText, keySym);
 
   downKeySym[keyCode] = keySym;
   cc->writer()->keyEvent(keySym, down);
