@@ -102,6 +102,9 @@ CConn::~CConn()
 {
   OptionsDialog::removeCallback(handleOptions);
 
+  if (desktop)
+    delete desktop;
+
   free(serverHost);
   if (sock)
     Fl::remove_fd(sock->getFd());
