@@ -26,8 +26,8 @@ HDRS = Blacklist.h CConnection.h \
 	TightDecoder.h tightEncode.h TightEncoder.h TightPalette.h Timer.h \
 	TransImageGetter.h transInitTempl.h transTempl.h TrueColourMap.h \
 	UpdateTracker.h UserMsgBox.h UserPasswdGetter.h util.h \
-	VNCSConnectionST.h VNCServer.h VNCServerST.h zrleDecode.h \
-	ZRLEDecoder.h zrleEncode.h ZRLEEncoder.h
+	VNCSConnectionST.h VNCServer.h VNCServerST.h XF86keysym.h \
+	zrleDecode.h ZRLEDecoder.h zrleEncode.h ZRLEEncoder.h
 
 librfb_la_SOURCES = $(HDRS) Blacklist.cxx CConnection.cxx CMsgHandler.cxx \
 	CMsgReader.cxx CMsgReaderV3.cxx CMsgWriter.cxx CMsgWriterV3.cxx \
