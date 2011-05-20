@@ -43,10 +43,6 @@
 
 using namespace rfb;
 
-#ifdef __APPLE__
-extern "C" const char *osx_event_string(void);
-#endif
-
 extern void exit_vncviewer();
 extern void about_vncviewer();
 
