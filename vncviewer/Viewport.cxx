@@ -248,11 +248,13 @@ int Viewport::handle(int event)
       return 1;
     }
 
-    handleKeyEvent(Fl::event_key(), Fl::event_text(), true);
+    handleKeyEvent(Fl::event_key(), Fl::event_original_key(),
+                   Fl::event_text(), true);
     return 1;
 
   case FL_KEYUP:
-    handleKeyEvent(Fl::event_key(), Fl::event_text(), false);
+    handleKeyEvent(Fl::event_key(), Fl::event_original_key(),
+                   Fl::event_text(), false);
     return 1;
   }
 
@@ -322,7 +324,7 @@ void Viewport::handlePointerTimeout(void *data)
 }
 
 
-rdr::U32 Viewport::translateKeyEvent(int keyCode, const char *keyText)
+rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *keyText)
 {
   unsigned ucs;
 
@@ -333,6 +335,40 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, const char *keyText)
   // Numpad numbers
   if ((keyCode >= (FL_KP + '0')) && (keyCode <= (FL_KP + '9')))
     return XK_KP_0 + (keyCode - (FL_KP + '0'));
+
+  // FLTK does some special remapping of numpad keys when numlock is off
+  if ((origKeyCode >= FL_KP) && (origKeyCode <= FL_KP_Last)) {
+    switch (keyCode) {
+    case FL_F+1:
+      return XK_KP_F1;
+    case FL_F+2:
+      return XK_KP_F2;
+    case FL_F+3:
+      return XK_KP_F3;
+    case FL_F+4:
+      return XK_KP_F4;
+    case FL_Home:
+      return XK_KP_Home;
+    case FL_Left:
+      return XK_KP_Left;
+    case FL_Up:
+      return XK_KP_Up;
+    case FL_Right:
+      return XK_KP_Right;
+    case FL_Down:
+      return XK_KP_Down;
+    case FL_Page_Up:
+      return XK_KP_Page_Up;
+    case FL_Page_Down:
+      return XK_KP_Page_Down;
+    case FL_End:
+      return XK_KP_End;
+    case FL_Insert:
+      return XK_KP_Insert;
+    case FL_Delete:
+      return XK_KP_Delete;
+    }
+  }
 
   // Then other special keys
   switch (keyCode) {
@@ -437,7 +473,7 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, const char *keyText)
 }
 
 
-void Viewport::handleKeyEvent(int keyCode, const char *keyText, bool down)
+void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText, bool down)
 {
   rdr::U32 keySym;
 
@@ -451,13 +487,14 @@ void Viewport::handleKeyEvent(int keyCode, const char *keyText, bool down)
   if (!down) {
     DownMap::iterator iter;
 
-    iter = downKeySym.find(keyCode);
+    iter = downKeySym.find(origKeyCode);
     if (iter == downKeySym.end()) {
-      vlog.error(_("Unexpected release of FLTK key code %d (0x%04x)"), keyCode, keyCode);
+      vlog.error(_("Unexpected release of FLTK key code %d (0x%04x)"),
+                 origKeyCode, origKeyCode);
       return;
     }
 
-    vlog.debug("Key released: 0x%04x => 0x%04x", keyCode, iter->second);
+    vlog.debug("Key released: 0x%04x => 0x%04x", origKeyCode, iter->second);
 
     cc->writer()->keyEvent(iter->second, false);
 
@@ -466,13 +503,14 @@ void Viewport::handleKeyEvent(int keyCode, const char *keyText, bool down)
     return;
   }
 
-  keySym = translateKeyEvent(keyCode, keyText);
+  keySym = translateKeyEvent(keyCode, origKeyCode, keyText);
   if (keySym == XK_VoidSymbol)
     return;
 
-  vlog.debug("Key pressed: 0x%04x '%s' => 0x%04x", keyCode, keyText, keySym);
+  vlog.debug("Key pressed: 0x%04x (0x%04x) '%s' => 0x%04x",
+             origKeyCode, keyCode, keyText, keySym);
 
-  downKeySym[keyCode] = keySym;
+  downKeySym[origKeyCode] = keySym;
   cc->writer()->keyEvent(keySym, down);
 }
 
@@ -480,6 +518,8 @@ void Viewport::handleKeyEvent(int keyCode, const char *keyText, bool down)
 void Viewport::initContextMenu()
 {
   contextMenu->add(_("Exit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
+
+  contextMenu->add(_("Full screen"), 0, NULL, (void*)ID_FULLSCREEN, FL_MENU_TOGGLE | FL_MENU_DIVIDER);
 
   contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, FL_MENU_TOGGLE);
   contextMenu->add(_("Alt"), 0, NULL, (void*)ID_ALT, FL_MENU_TOGGLE);

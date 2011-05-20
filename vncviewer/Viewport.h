@@ -98,8 +98,8 @@ private:
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 
-  rdr::U32 translateKeyEvent(int keyCode, const char *keyText);
-  void handleKeyEvent(int keyCode, const char *keyText, bool down);
+  rdr::U32 translateKeyEvent(int keyCode, int origKeyCode, const char *keyText);
+  void handleKeyEvent(int keyCode, int origKeyCode, const char *keyText, bool down);
 
   void initContextMenu();
   void popupContextMenu();
