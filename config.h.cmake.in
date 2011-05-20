@@ -13,6 +13,7 @@
 #cmakedefine HAVE_GNUTLS_SIGN_ALGORITHM_T
 #cmakedefine HAVE_FLTK_DEAD_KEYS
 #cmakedefine HAVE_FLTK_CLIPBOARD
+#cmakedefine HAVE_FLTK_MEDIAKEYS
 #cmakedefine ENABLE_NLS 1
 
 /* MS Visual Studio 2008 and newer doesn't know ssize_t */

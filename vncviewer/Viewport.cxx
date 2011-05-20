@@ -34,6 +34,10 @@
 #include <rfb/keysymdef.h>
 #endif
 
+#ifndef XF86XK_ModeLock
+#include <rfb/XF86keysym.h>
+#endif
+
 #include "Viewport.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
@@ -442,6 +446,40 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
     return XK_KP_Decimal;
   case FL_KP + '/':
     return XK_KP_Divide;
+#ifdef HAVE_FLTK_MEDIAKEYS
+  case FL_Volume_Down:
+    return XF86XK_AudioLowerVolume;
+  case FL_Volume_Mute:
+    return XF86XK_AudioMute;
+  case FL_Volume_Up:
+    return XF86XK_AudioRaiseVolume;
+  case FL_Media_Play:
+    return XF86XK_AudioPlay;
+  case FL_Media_Stop:
+    return XF86XK_AudioStop;
+  case FL_Media_Prev:
+    return XF86XK_AudioPrev;
+  case FL_Media_Next:
+    return XF86XK_AudioNext;
+  case FL_Home_Page:
+    return XF86XK_HomePage;
+  case FL_Mail:
+    return XF86XK_Mail;
+  case FL_Search:
+    return XF86XK_Search;
+  case FL_Back:
+    return XF86XK_Back;
+  case FL_Forward:
+    return XF86XK_Forward;
+  case FL_Stop:
+    return XF86XK_Stop;
+  case FL_Refresh:
+    return XF86XK_Refresh;
+  case FL_Sleep:
+    return XF86XK_Sleep;
+  case FL_Favorites:
+    return XF86XK_Favorites;
+#endif
   case XK_ISO_Level3_Shift:
     // FLTK tends to let this one leak through on X11...
     return XK_ISO_Level3_Shift;
