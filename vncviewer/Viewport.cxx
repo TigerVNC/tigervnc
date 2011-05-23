@@ -559,7 +559,7 @@ void Viewport::initContextMenu()
   CharArray sendMenuKey(64);
   snprintf(sendMenuKey.buf, 64, _("Send %s"), "F8"); // FIXME
   contextMenu->add(sendMenuKey.buf, 0, NULL, (void*)ID_MENUKEY, 0);
-  contextMenu->add("Secret shortcut menu key", FL_F + 8, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE); // Broken, see STR2613
+  contextMenu->add("Secret shortcut menu key", FL_F + 8, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
   contextMenu->add(_("Send Ctrl-Alt-Del"), 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
   contextMenu->add(_("Refresh screen"), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
