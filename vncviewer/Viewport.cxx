@@ -42,6 +42,7 @@
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "i18n.h"
+#include "fltk_layout.h"
 #include "parameters.h"
 #include "keysym2ucs.h"
 
@@ -575,6 +576,7 @@ void Viewport::initContextMenu()
 void Viewport::popupContextMenu()
 {
   const Fl_Menu_Item *m;
+  char buffer[1024];
 
   contextMenu->position(Fl::event_x(), Fl::event_y());
 
@@ -618,8 +620,10 @@ void Viewport::popupContextMenu()
     OptionsDialog::showDialog();
     break;
   case ID_INFO:
-    fl_message_title(_("VNC connection info"));
-    fl_message(cc->connectionInfo());
+    if (fltk_escape(cc->connectionInfo(), buffer, sizeof(buffer)) < sizeof(buffer)) {
+      fl_message_title(_("VNC connection info"));
+      fl_message(buffer);
+    }
     break;
   case ID_ABOUT:
     about_vncviewer();

@@ -33,6 +33,40 @@ static inline int gui_str_len(const char *str)
     return (int)(len + 0.5f);
 }
 
+/* Escapes all @ in text as those have special meaning in labels */
+static inline int fltk_escape(const char *in, char *out, size_t maxlen)
+{
+    int len;
+
+    len = 0;
+
+    while (*in != '\0') {
+        if (*in == '@') {
+            if (maxlen >= 3) {
+                *out++ = '@';
+                *out++ = '@';
+                maxlen -= 2;
+            }
+
+            len += 2;
+        } else {
+            if (maxlen >= 2) {
+                *out++ = *in;
+                maxlen--;
+            }
+
+            len += 1;
+        }
+
+        in++;
+    }
+
+    if (maxlen)
+        *out = '\0';
+
+    return len;
+}
+
 /**** MARGINS ****/
 
 #define OUTER_MARGIN            10
