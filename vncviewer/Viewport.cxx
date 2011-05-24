@@ -215,10 +215,15 @@ int Viewport::handle(int event)
       buttonMask |= 4;
 
     if (event == FL_MOUSEWHEEL) {
+      wheelMask = 0;
       if (Fl::event_dy() < 0)
-        wheelMask = 8;
-      else
-        wheelMask = 16;
+        wheelMask |= 8;
+      if (Fl::event_dy() > 0)
+        wheelMask |= 16;
+      if (Fl::event_dx() < 0)
+        wheelMask |= 32;
+      if (Fl::event_dx() > 0)
+        wheelMask |= 64;
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
