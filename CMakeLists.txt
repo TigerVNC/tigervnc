@@ -178,6 +178,12 @@ if(BUILD_NEW_VNCVIEWER)
   find_package(FLTK COMPONENTS REQUIRED)
 
   # No proper handling for extra X11 libs that FLTK might need...
+  if(X11_Xft_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB})
+  endif()
+  if(X11_Xinerama_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xinerama_LIB})
+  endif()
   if(X11_Xfixes_FOUND)
     set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
   endif()
