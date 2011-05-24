@@ -72,7 +72,7 @@ using namespace rfb;
 
 static LogWriter vlog("Input");
 
-#define BUTTONS 5
+#define BUTTONS 7
 static int pointerProc(DeviceIntPtr pDevice, int onoff);
 
 static int keyboardProc(DeviceIntPtr pDevice, int onoff);
