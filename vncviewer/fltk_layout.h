@@ -99,6 +99,10 @@ static inline int fltk_escape(const char *in, char *out, size_t maxlen)
 #define CHECK_MIN_WIDTH         RADIO_MIN_WIDTH
 #define CHECK_HEIGHT            RADIO_HEIGHT
 
+/* Fl_Choice */
+
+#define CHOICE_HEIGHT           INPUT_HEIGHT
+
 /* Fl_Group */
 #define GROUP_LABEL_OFFSET      FL_NORMAL_SIZE
 #define GROUP_MARGIN            12

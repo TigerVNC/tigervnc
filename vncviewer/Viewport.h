@@ -104,6 +104,10 @@ private:
   void initContextMenu();
   void popupContextMenu();
 
+  void setMenuKey();
+
+  static void handleOptions(void *data);
+
 private:
   CConn* cc;
 
@@ -120,6 +124,7 @@ private:
   typedef std::map<int, rdr::U32> DownMap;
   DownMap downKeySym;
 
+  int menuKeyCode;
   Fl_Menu_Button *contextMenu;
 };
 

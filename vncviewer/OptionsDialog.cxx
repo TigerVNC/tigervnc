@@ -253,10 +253,21 @@ void OptionsDialog::loadOptions(void)
 #endif
 
   /* Input */
+  const char *menuKeyBuf;
+
   viewOnlyCheckbox->value(viewOnly);
   acceptClipboardCheckbox->value(acceptClipboard);
   sendClipboardCheckbox->value(sendClipboard);
   sendPrimaryCheckbox->value(sendPrimary);
+
+  menuKeyChoice->value(0);
+
+  menuKeyBuf = menuKey;
+  if (menuKeyBuf[0] == 'F') {
+    int num = atoi(menuKeyBuf+1);
+    if ((num >= 1) && (num <= 12))
+      menuKeyChoice->value(num);
+  }
 
   /* Misc. */
   sharedCheckbox->value(shared);
@@ -341,6 +352,14 @@ void OptionsDialog::storeOptions(void)
   acceptClipboard.setParam(acceptClipboardCheckbox->value());
   sendClipboard.setParam(sendClipboardCheckbox->value());
   sendPrimary.setParam(sendPrimaryCheckbox->value());
+
+  if (menuKeyChoice->value() == 0)
+    menuKey.setParam("");
+  else {
+    char buf[16];
+    sprintf(buf, "F%d", menuKeyChoice->value());
+    menuKey.setParam(buf);
+  }
 
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
@@ -663,6 +682,17 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                      CHECK_HEIGHT,
                                                      _("Send primary selection and cut buffer as clipboard")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+  menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
+
+  menuKeyChoice->add(_("None"), 0, NULL, (void*)0, FL_MENU_DIVIDER);
+  for (int i = 1;i <= 12;i++) {
+    char buf[16];
+    sprintf(buf, "F%d", i);
+    menuKeyChoice->add(buf, 0, NULL, (void*)i, 0);
+  }
+
+  ty += CHOICE_HEIGHT + TIGHT_MARGIN;
 
   group->end();
 }

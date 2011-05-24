@@ -26,6 +26,7 @@
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Round_Button.H>
 #include <FL/Fl_Int_Input.H>
+#include <FL/Fl_Choice.H>
 
 typedef void (OptionsCallback)(void*);
 
@@ -104,6 +105,7 @@ protected:
   Fl_Check_Button *acceptClipboardCheckbox;
   Fl_Check_Button *sendClipboardCheckbox;
   Fl_Check_Button *sendPrimaryCheckbox;
+  Fl_Choice *menuKeyChoice;
 
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;

@@ -79,6 +79,10 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 
   contextMenu = new Fl_Menu_Button(0, 0, 0, 0);
   initContextMenu();
+
+  setMenuKey();
+
+  OptionsDialog::addCallback(handleOptions, this);
 }
 
 
@@ -93,6 +97,8 @@ Viewport::~Viewport()
 #ifdef HAVE_FLTK_CLIPBOARD
   Fl::remove_clipboard_notify(handleClipboardChange);
 #endif
+
+  OptionsDialog::removeCallback(handleOptions);
 
   delete frameBuffer;
 
@@ -249,7 +255,7 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_KEYDOWN:
-    if (Fl::event_key() == (FL_F + 8)) {
+    if (menuKeyCode && (Fl::event_key() == menuKeyCode)) {
       popupContextMenu();
       return 1;
     }
@@ -259,6 +265,9 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_KEYUP:
+    if (menuKeyCode && (Fl::event_key() == menuKeyCode))
+      return 1;
+
     handleKeyEvent(Fl::event_key(), Fl::event_original_key(),
                    Fl::event_text(), false);
     return 1;
@@ -557,15 +566,20 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
 
 void Viewport::initContextMenu()
 {
+  contextMenu->clear();
+
   contextMenu->add(_("Exit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
 
   contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, FL_MENU_TOGGLE);
   contextMenu->add(_("Alt"), 0, NULL, (void*)ID_ALT, FL_MENU_TOGGLE);
-  CharArray menuKeyStr(menuKey.getData());
-  CharArray sendMenuKey(64);
-  snprintf(sendMenuKey.buf, 64, _("Send %s"), "F8"); // FIXME
-  contextMenu->add(sendMenuKey.buf, 0, NULL, (void*)ID_MENUKEY, 0);
-  contextMenu->add("Secret shortcut menu key", FL_F + 8, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
+
+  if (menuKeyCode) {
+    char sendMenuKey[64];
+    snprintf(sendMenuKey, 64, _("Send %s"), (const char *)menuKey);
+    contextMenu->add(sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
+    contextMenu->add("Secret shortcut menu key", menuKeyCode, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
+  }
+
   contextMenu->add(_("Send Ctrl-Alt-Del"), 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
   contextMenu->add(_("Refresh screen"), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
@@ -603,9 +617,8 @@ void Viewport::popupContextMenu()
     break;
   case ID_MENUKEY:
     if (!viewOnly) {
-      // FIXME
-      cc->writer()->keyEvent(XK_F8, true);
-      cc->writer()->keyEvent(XK_F8, false);
+      handleKeyEvent(menuKeyCode, menuKeyCode, "", true);
+      handleKeyEvent(menuKeyCode, menuKeyCode, "", false);
     }
     break;
   case ID_CTRLALTDEL:
@@ -637,4 +650,31 @@ void Viewport::popupContextMenu()
     // Don't need to do anything
     break;
   }
+}
+
+
+void Viewport::setMenuKey()
+{
+  const char *menuKeyStr;
+
+  menuKeyCode = 0;
+
+  menuKeyStr = menuKey;
+  if (menuKeyStr[0] == 'F') {
+    int num = atoi(menuKeyStr + 1);
+    if ((num >= 1) && (num <= 12))
+      menuKeyCode = FL_F + num;
+  }
+
+  // Need to repopulate the context menu as it contains references to
+  // the menu key
+  initContextMenu();
+}
+
+
+void Viewport::handleOptions(void *data)
+{
+  Viewport *self = (Viewport*)data;
+
+  self->setMenuKey();
 }
