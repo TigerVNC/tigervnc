@@ -658,10 +658,10 @@ public class CConn extends CConnection
     options.raw.setSelected(currentEncoding == Encodings.encodingRaw);
 
     options.customCompressLevel.setSelected(viewer.customCompressLevel.getValue());
-    digit = -1 + viewer.compressLevel.getValue();
+    digit = 0 + viewer.compressLevel.getValue();
     options.compressLevel.setSelectedIndex(digit);
     options.noJpeg.setSelected(!viewer.noJpeg.getValue());
-    digit = -1 + viewer.qualityLevel.getValue();
+    digit = 0 + viewer.qualityLevel.getValue();
     options.qualityLevel.setSelectedIndex(digit);
 
     options.viewOnly.setSelected(viewer.viewOnly.getValue());
