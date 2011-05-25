@@ -41,7 +41,7 @@ $(ARCHIVE): $(CLASSES) $(MANIFEST) $(TIMESTAMP)
 		com/tigervnc/vncviewer/tigervnc.ico
 
 $(TIMESTAMP):
-	$(shell cat $(MANIFEST) >> $(TIMESTAMP))
+	$(shell cat $(MANIFEST) > $(TIMESTAMP))
 	$(shell echo "Package-Date: $(DATE)" >> $(TIMESTAMP))
 	$(shell echo "Package-Time: $(TIME)" >> $(TIMESTAMP))
 
