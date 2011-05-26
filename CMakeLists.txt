@@ -200,6 +200,9 @@ if(BUILD_NEW_VNCVIEWER)
   # FLTK STR #2638
   check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_Volume_Down; }" HAVE_FLTK_MEDIAKEYS)
 
+  # FLTK STR #2641
+  check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_FULLSCREEN; }" HAVE_FLTK_FULLSCREEN)
+
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)
 endif()

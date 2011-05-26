@@ -55,7 +55,7 @@ static rfb::LogWriter vlog("Viewport");
 
 // Menu constants
 
-enum { ID_EXIT, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
+enum { ID_EXIT, ID_FULLSCREEN, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
@@ -570,6 +570,10 @@ void Viewport::initContextMenu()
 
   contextMenu->add(_("Exit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
 
+#ifdef HAVE_FLTK_FULLSCREEN
+  contextMenu->add(_("Full screen"), 0, NULL, (void*)ID_FULLSCREEN, FL_MENU_DIVIDER);
+#endif
+
   contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, FL_MENU_TOGGLE);
   contextMenu->add(_("Alt"), 0, NULL, (void*)ID_ALT, FL_MENU_TOGGLE);
 
@@ -607,6 +611,14 @@ void Viewport::popupContextMenu()
   case ID_EXIT:
     exit_vncviewer();
     break;
+#ifdef HAVE_FLTK_FULLSCREEN
+  case ID_FULLSCREEN:
+    if (window()->fullscreen_active())
+      window()->fullscreen_off();
+    else
+      window()->fullscreen();
+    break;
+#endif
   case ID_CTRL:
     if (!viewOnly)
       cc->writer()->keyEvent(XK_Control_L, m->value());
