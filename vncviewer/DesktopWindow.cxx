@@ -301,5 +301,10 @@ void DesktopWindow::handleOptions(void *data)
     self->grabKeyboard();
   else
     self->ungrabKeyboard();
+
+  if (fullScreen && !self->fullscreen_active())
+    self->fullscreen();
+  else if (!fullScreen && self->fullscreen_active())
+    self->fullscreen_off();
 #endif
 }
