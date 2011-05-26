@@ -69,6 +69,11 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   OptionsDialog::addCallback(handleOptions, this);
 
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (fullScreen)
+    fullscreen();
+#endif
+
   show();
 
   // The window manager might give us an initial window size that is different
