@@ -105,6 +105,7 @@ protected:
   Fl_Check_Button *acceptClipboardCheckbox;
   Fl_Check_Button *sendClipboardCheckbox;
   Fl_Check_Button *sendPrimaryCheckbox;
+  Fl_Check_Button *systemKeysCheckbox;
   Fl_Choice *menuKeyChoice;
 
   /* Misc. */

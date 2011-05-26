@@ -13,6 +13,14 @@ set(VNCVIEWER_SOURCES
   keysym2ucs.c
   vncviewer.cxx)
 
+if(WIN32)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} win32.c)
+endif()
+
+if(APPLE)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm)
+endif()
+
 add_executable(vncviewer ${VNCVIEWER_SOURCES})
 
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})

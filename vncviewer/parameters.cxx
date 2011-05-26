@@ -88,3 +88,8 @@ BoolParameter sendPrimary("SendPrimary",
 StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
                         "F8");
 
+BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
+                                   "Pass special keys (like Alt+Tab) directly "
+                                   "to the server when in full screen mode.",
+                                   true);
+

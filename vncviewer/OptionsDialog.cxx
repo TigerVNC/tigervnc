@@ -259,6 +259,7 @@ void OptionsDialog::loadOptions(void)
   acceptClipboardCheckbox->value(acceptClipboard);
   sendClipboardCheckbox->value(sendClipboard);
   sendPrimaryCheckbox->value(sendPrimary);
+  systemKeysCheckbox->value(fullscreenSystemKeys);
 
   menuKeyChoice->value(0);
 
@@ -352,6 +353,7 @@ void OptionsDialog::storeOptions(void)
   acceptClipboard.setParam(acceptClipboardCheckbox->value());
   sendClipboard.setParam(sendClipboardCheckbox->value());
   sendPrimary.setParam(sendPrimaryCheckbox->value());
+  fullscreenSystemKeys.setParam(systemKeysCheckbox->value());
 
   if (menuKeyChoice->value() == 0)
     menuKey.setParam("");
@@ -681,6 +683,12 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
                                                      _("Send primary selection and cut buffer as clipboard")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+  systemKeysCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                    CHECK_MIN_WIDTH,
+                                                    CHECK_HEIGHT,
+                                                    _("Pass system keys directly to server (full screen)")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));

@@ -68,8 +68,17 @@ public:
   // Fl_Window callback methods
   void resize(int x, int y, int w, int h);
 
+  int handle(int event);
+
 private:
+  void grabKeyboard();
+  void ungrabKeyboard();
+
+  static void handleGrab(void *data);
+
   static void handleClose(Fl_Widget *wnd, void *data);
+
+  static void handleOptions(void *data);
 
 private:
   Viewport *viewport;

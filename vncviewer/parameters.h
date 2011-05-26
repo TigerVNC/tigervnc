@@ -50,4 +50,6 @@ extern rfb::BoolParameter sendPrimary;
 
 extern rfb::StringParameter menuKey;
 
+extern rfb::BoolParameter fullscreenSystemKeys;
+
 #endif
