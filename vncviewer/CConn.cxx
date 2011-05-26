@@ -339,18 +339,25 @@ void CConn::bell()
 
 void CConn::serverCutText(const char* str, rdr::U32 len)
 {
-  char buffer[1024];
-  int ret;
+  char *buffer;
+  int size, ret;
 
-  ret = fl_utf8froma(buffer, sizeof(buffer), str, len);
-  if (ret >= sizeof(buffer)) {
-    vlog.error(_("Clipboard buffer overflow!"));
+  size = fl_utf8froma(NULL, 0, str, len);
+  if (size <= 0)
     return;
-  }
+
+  size++;
+
+  buffer = new char[size];
+
+  ret = fl_utf8froma(buffer, size, str, len);
+  assert(ret < size);
 
   vlog.debug("Got clipboard data: '%s'", buffer);
 
   Fl::copy(buffer, ret, 1);
+
+  delete [] buffer;
 }
 
 // We start timing on beginRect and stop timing on endRect, to

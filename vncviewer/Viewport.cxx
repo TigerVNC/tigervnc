@@ -192,22 +192,27 @@ void Viewport::draw()
 
 int Viewport::handle(int event)
 {
-  char buffer[1024];
+  char *buffer;
   int ret;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
 
   switch (event) {
   case FL_PASTE:
+    buffer = new char[Fl::event_length() + 1];
+
     // This is documented as to ASCII, but actually does to 8859-1
-    ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer, sizeof(buffer));
-    if (ret >= sizeof(buffer)) {
-      vlog.error(_("Clipboard buffer overflow!"));
-      return 1;
-    }
+    ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer,
+                     Fl::event_length() + 1);
+    assert(ret < (Fl::event_length() + 1));
+
     vlog.debug("Sending clipboard data: '%s'", buffer);
     cc->writer()->clientCutText(buffer, ret);
+
+    delete [] buffer;
+
     return 1;
+
   case FL_ENTER:
     // Yes, we would like some pointer events please!
     return 1;
