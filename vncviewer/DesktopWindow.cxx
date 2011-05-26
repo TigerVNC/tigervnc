@@ -179,6 +179,8 @@ int DesktopWindow::handle(int event)
     // FIXME: We reassert the keyboard grabbing on focus/unfocus as FLTK
     //        releases the grab when someone calls Fl::grab(0)
   case FL_FULLSCREEN:
+    fullScreen.setParam(fullscreen_active());
+
     if (!fullscreenSystemKeys)
       break;
 
