@@ -78,6 +78,10 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   setServerPF(serverPF);
 
   contextMenu = new Fl_Menu_Button(0, 0, 0, 0);
+  // Setting box type to FL_NO_BOX prevents it from trying to draw the
+  // button component (which we don't want)
+  contextMenu->box(FL_NO_BOX);
+
   initContextMenu();
 
   setMenuKey();
