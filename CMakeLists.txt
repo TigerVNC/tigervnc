@@ -208,8 +208,10 @@ if(BUILD_NEW_VNCVIEWER)
 endif()
 
 # Check for GNUTLS library
-find_package(GnuTLS)
-if(GNUTLS_FOUND)
+option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication")
+if(ENABLE_GNUTLS)
+  find_package(GnuTLS REQUIRED)
+
   include_directories(${GNUTLS_INCLUDE_DIR})
   add_definitions("-DHAVE_GNUTLS")
   add_definitions(${GNUTLS_DEFINITIONS})
