@@ -659,10 +659,10 @@ public class CConn extends CConnection
 
     options.customCompressLevel.setSelected(viewer.customCompressLevel.getValue());
     digit = 0 + viewer.compressLevel.getValue();
-    options.compressLevel.setSelectedIndex(digit);
+    options.compressLevel.setSelectedItem(digit);
     options.noJpeg.setSelected(!viewer.noJpeg.getValue());
     digit = 0 + viewer.qualityLevel.getValue();
-    options.qualityLevel.setSelectedIndex(digit);
+    options.qualityLevel.setSelectedItem(digit);
 
     options.viewOnly.setSelected(viewer.viewOnly.getValue());
     options.acceptClipboard.setSelected(viewer.acceptClipboard.getValue());
@@ -784,7 +784,7 @@ public class CConn extends CConnection
       cp.customCompressLevel = viewer.customCompressLevel.getValue();
       encodingChange = true;
     }
-    viewer.compressLevel.setParam(Integer.toString(options.compressLevel.getSelectedIndex()));
+    viewer.compressLevel.setParam(options.compressLevel.getSelectedItem().toString());
     if (cp.compressLevel != viewer.compressLevel.getValue()) {
       cp.compressLevel = viewer.compressLevel.getValue();
       encodingChange = true;
@@ -794,7 +794,7 @@ public class CConn extends CConnection
       cp.noJpeg = viewer.noJpeg.getValue();
       encodingChange = true;
     }
-    viewer.qualityLevel.setParam(Integer.toString(options.qualityLevel.getSelectedIndex()));
+    viewer.qualityLevel.setParam(options.qualityLevel.getSelectedItem().toString());
     if (cp.qualityLevel != viewer.qualityLevel.getValue()) {
       cp.qualityLevel = viewer.qualityLevel.getValue();
       encodingChange = true;

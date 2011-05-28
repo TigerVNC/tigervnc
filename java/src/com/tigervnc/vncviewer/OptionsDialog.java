@@ -87,12 +87,12 @@ class OptionsDialog extends Dialog implements
     JPanel tightPanel = new JPanel(new GridBagLayout());
     customCompressLevel = new JCheckBox("Custom Compression Level");
     customCompressLevel.addItemListener(this);
-    String[] compressionLevels = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+    Object[] compressionLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     compressLevel  = new JComboBox(compressionLevels);
     JLabel compressionLabel = new JLabel("Level (1=fast, 9=best)");
     noJpeg = new JCheckBox("Allow JPEG Compression");
     noJpeg.addItemListener(this);
-    String[] qualityLevels = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+    Object[] qualityLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     qualityLevel  = new JComboBox(qualityLevels);
     JLabel qualityLabel = new JLabel("Level (1=poor, 9=best)");
     addGBComponent(customCompressLevel, tightPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,2,0,0));
