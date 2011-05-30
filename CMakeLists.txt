@@ -208,25 +208,26 @@ if(BUILD_NEW_VNCVIEWER)
 endif()
 
 # Check for GNUTLS library
-option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication")
+option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
 if(ENABLE_GNUTLS)
-  find_package(GnuTLS REQUIRED)
-
-  include_directories(${GNUTLS_INCLUDE_DIR})
-  add_definitions("-DHAVE_GNUTLS")
-  add_definitions(${GNUTLS_DEFINITIONS})
-  
-  # Detect old version of GnuTLS
-  set(CMAKE_EXTRA_INCLUDE_FILES gnutls/gnutls.h)
-  set(CMAKE_REQUIRED_LIBRARIES gnutls)
-  check_function_exists(gnutls_transport_set_global_errno HAVE_OLD_GNUTLS)
-  check_function_exists(gnutls_x509_crt_print HAVE_GNUTLS_X509_CRT_PRINT)
-  check_type_size(gnutls_x509_crt_t GNUTLS_X509_CRT_T)
-  check_type_size(gnutls_datum_t GNUTLS_DATUM_T)
-  check_type_size(gnutls_pk_algorithm_t GNUTLS_PK_ALGORITHM_T)
-  check_type_size(gnutls_sign_algorithm_t GNUTLS_SIGN_ALGORITHM_T)
-  set(CMAKE_EXTRA_INCLUDE_FILES) 
-  set(CMAKE_REQUIRED_LIBRARIES)
+  find_package(GnuTLS)
+  if (GNUTLS_FOUND)
+    include_directories(${GNUTLS_INCLUDE_DIR})
+    add_definitions("-DHAVE_GNUTLS")
+    add_definitions(${GNUTLS_DEFINITIONS})
+    
+    # Detect old version of GnuTLS
+    set(CMAKE_EXTRA_INCLUDE_FILES gnutls/gnutls.h)
+    set(CMAKE_REQUIRED_LIBRARIES gnutls)
+    check_function_exists(gnutls_transport_set_global_errno HAVE_OLD_GNUTLS)
+    check_function_exists(gnutls_x509_crt_print HAVE_GNUTLS_X509_CRT_PRINT)
+    check_type_size(gnutls_x509_crt_t GNUTLS_X509_CRT_T)
+    check_type_size(gnutls_datum_t GNUTLS_DATUM_T)
+    check_type_size(gnutls_pk_algorithm_t GNUTLS_PK_ALGORITHM_T)
+    check_type_size(gnutls_sign_algorithm_t GNUTLS_SIGN_ALGORITHM_T)
+    set(CMAKE_EXTRA_INCLUDE_FILES) 
+    set(CMAKE_REQUIRED_LIBRARIES)
+  endif()
 endif()
 
 # Check for socket functions
