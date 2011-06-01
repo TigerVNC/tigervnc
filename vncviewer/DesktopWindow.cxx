@@ -144,35 +144,53 @@ void DesktopWindow::updateWindow()
 }
 
 
+void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
+{
+  if ((new_w == viewport->w()) && (new_h == viewport->h()))
+    return;
+
+  // Turn off size limitations for a bit while we juggle things around
+  size_range(100, 100, 0, 0);
+
+  // If we're letting the viewport match the window perfectly, then
+  // keep things that way for the new size, otherwise just keep things
+  // like they are.
+  if ((w() == viewport->w()) && (h() == viewport->h()))
+    size(new_w, new_h);
+  else {
+#ifdef HAVE_FLTK_FULLSCREEN
+    if (!fullscreen_active()) {
+#endif
+      // Make sure the window isn't too big
+      if ((w() > new_w) || (h() > new_h))
+        size(__rfbmin(w(), new_w), __rfbmin(h(), new_h));
+#ifdef HAVE_FLTK_FULLSCREEN
+    }
+#endif
+  }
+
+  viewport->size(new_w, new_h);
+
+  // We might not resize the main window, so we need to manually call this
+  // to make sure the viewport is centered.
+  repositionViewport();
+
+  // Update allowed resize range
+  size_range(100, 100, new_w, new_h);
+
+  // repositionViewport() makes sure the scroll widget notices any changes
+  // in position, but it might be just the size that changes so we also
+  // need a poke here as well.
+  redraw();
+}
+
+
 void DesktopWindow::resize(int x, int y, int w, int h)
 {
-  // Deal with some scrolling corner cases:
-  //
-  // a) If the window is larger then the viewport, center the viewport.
-  // b) If the window is smaller than the viewport, make sure there is
-  //    no wasted space on the sides.
-  //
-  // FIXME: Doesn't compensate for scroll widget size properly.
-  if (w > viewport->w())
-    viewport->position((w - viewport->w()) / 2, viewport->y());
-  else {
-    if (viewport->x() > 0)
-      viewport->position(0, viewport->y());
-    else if (w > (viewport->x() + viewport->w()))
-      viewport->position(w - viewport->w(), viewport->y());
-  }
-
-  // Same thing for y axis
-  if (h > viewport->h())
-    viewport->position(viewport->x(), (h - viewport->h()) / 2);
-  else {
-    if (viewport->y() > 0)
-      viewport->position(viewport->x(), 0);
-    else if (h > (viewport->y() + viewport->h()))
-      viewport->position(viewport->x(), h - viewport->h());
-  }
-
   Fl_Window::resize(x, y, w, h);
+
+  // Deal with some scrolling corner cases
+  repositionViewport();
 }
 
 
@@ -290,6 +308,49 @@ void DesktopWindow::handleGrab(void *data)
 #endif
 }
 
+
+void DesktopWindow::repositionViewport()
+{
+  int new_x, new_y;
+
+  // Deal with some scrolling corner cases:
+  //
+  // a) If the window is larger then the viewport, center the viewport.
+  // b) If the window is smaller than the viewport, make sure there is
+  //    no wasted space on the sides.
+  //
+  // FIXME: Doesn't compensate for scroll widget size properly.
+
+  new_x = viewport->x();
+  new_y = viewport->y();
+
+  if (w() > viewport->w())
+    new_x = (w() - viewport->w()) / 2;
+  else {
+    if (viewport->x() > 0)
+      new_x = 0;
+    else if (w() > (viewport->x() + viewport->w()))
+      new_x = w() - viewport->w();
+  }
+
+  // Same thing for y axis
+  if (h() > viewport->h())
+    new_y = (h() - viewport->h()) / 2;
+  else {
+    if (viewport->y() > 0)
+      new_y = 0;
+    else if (h() > (viewport->y() + viewport->h()))
+      new_y = h() - viewport->h();
+  }
+
+  if ((new_x != viewport->x()) || (new_y != viewport->y())) {
+    viewport->position(new_x, new_y);
+
+    // The scroll widget does not notice when you move around child widgets,
+    // so redraw everything to make sure things update.
+    redraw();
+  }
+}
 
 void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
 {

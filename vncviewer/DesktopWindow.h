@@ -65,6 +65,8 @@ public:
     viewport->copyRect(r, srcX, srcY);
   }
 
+  void resizeFramebuffer(int new_w, int new_h);
+
   // Fl_Window callback methods
   void resize(int x, int y, int w, int h);
 
@@ -75,6 +77,8 @@ private:
   void ungrabKeyboard();
 
   static void handleGrab(void *data);
+
+  void repositionViewport();
 
   static void handleClose(Fl_Widget *wnd, void *data);
 

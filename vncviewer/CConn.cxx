@@ -398,14 +398,10 @@ void CConn::setCursor(int width, int height, const Point& hotspot,
 
 void CConn::resizeFramebuffer()
 {
-/*
   if (!desktop)
     return;
-  if ((desktop->width() == cp.width) && (desktop->height() == cp.height))
-    return;
 
-  desktop->resize(cp.width, cp.height);
-*/
+  desktop->resizeFramebuffer(cp.width, cp.height);
 }
 
 // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
