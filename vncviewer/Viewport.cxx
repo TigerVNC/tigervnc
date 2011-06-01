@@ -196,6 +196,48 @@ void Viewport::draw()
 }
 
 
+void Viewport::resize(int x, int y, int w, int h)
+{
+  rfb::ManagedPixelBuffer* newBuffer;
+  rfb::Rect rect;
+
+  // FIXME: Resize should probably be a feature of ManagedPixelBuffer
+
+  if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
+    goto end;
+
+  newBuffer = new ManagedPixelBuffer(frameBuffer->getPF(), w, h);
+  assert(newBuffer);
+
+  rect.setXYWH(0, 0,
+               __rfbmin(newBuffer->width(), frameBuffer->width()),
+               __rfbmin(newBuffer->height(), frameBuffer->height()));
+  newBuffer->imageRect(rect, frameBuffer->data, frameBuffer->getStride());
+
+  // Black out any new areas
+
+  if (newBuffer->width() > frameBuffer->width()) {
+    rect.setXYWH(frameBuffer->width(), 0,
+                 newBuffer->width() - frameBuffer->width(),
+                 newBuffer->height());
+    newBuffer->fillRect(rect, 0);
+  }
+
+  if (newBuffer->height() > frameBuffer->height()) {
+    rect.setXYWH(0, frameBuffer->height(),
+                 newBuffer->width(),
+                 newBuffer->height() - frameBuffer->height());
+    newBuffer->fillRect(rect, 0);
+  }
+
+  delete frameBuffer;
+  frameBuffer = newBuffer;
+
+end:
+  Fl_Widget::resize(x, y, w, h);
+}
+
+
 int Viewport::handle(int event)
 {
   char *buffer;

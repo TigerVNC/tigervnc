@@ -79,7 +79,11 @@ public:
   }
 
   // Fl_Widget callback methods
+
   void draw();
+
+  void resize(int x, int y, int w, int h);
+
   int handle(int event);
 
 private:
