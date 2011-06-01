@@ -82,6 +82,12 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   // button component (which we don't want)
   contextMenu->box(FL_NO_BOX);
 
+  // The (invisible) button associated with this widget can mess with
+  // things like Fl_Scroll so we need to get rid of any parents.
+  // Unfortunately that's not possible because of STR #2654, but
+  // reparenting to the current window works for most cases.
+  window()->add(contextMenu);
+
   initContextMenu();
 
   setMenuKey();
@@ -616,8 +622,6 @@ void Viewport::popupContextMenu()
   //        See DesktopWindow::handle().
   if (window()->contains(Fl::focus()))
     Fl::focus(NULL);
-
-  contextMenu->position(Fl::event_x(), Fl::event_y());
 
   m = contextMenu->popup();
   if (m == NULL)
