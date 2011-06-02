@@ -45,8 +45,9 @@ $(TIMESTAMP):
 	$(shell echo "Package-Date: $(DATE)" >> $(TIMESTAMP))
 	$(shell echo "Package-Time: $(TIME)" >> $(TIMESTAMP))
 
-install: $(CLASSES) $(ARCHIVE)
-	$(CP) $(CLASSES) $(ARCHIVE) $(PAGES) $(INSTALL_DIR)
+install: $(PAGES) README $(ARCHIVE)
+	mkdir -p $(INSTALL_DIR)
+	$(CP) $(ARCHIVE) $(PAGES) README $(INSTALL_DIR)
 
 export:: $(CLASSES) $(ARCHIVE) $(PAGES)
 	@$(ExportJavaClasses)
