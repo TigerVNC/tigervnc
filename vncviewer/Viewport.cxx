@@ -665,6 +665,10 @@ void Viewport::popupContextMenu()
   if (window()->contains(Fl::focus()))
     Fl::focus(NULL);
 
+  // Make sure the menu is reset to its initial state between goes or
+  // it will start up highlighting the previously selected entry.
+  contextMenu->value(-1);
+
   m = contextMenu->popup();
   if (m == NULL)
     return;
