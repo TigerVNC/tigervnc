@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2010-2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -265,8 +265,11 @@ void DesktopWindow::setFullscreen(bool fs) {
     // Save the current window position
     GetWindowRect(handle, &fullscreenOldRect);
 
-    // Find the size of the display the window is on
-    MonitorInfo mi(handle);
+    // Find the size of the virtual display
+    int cx = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    int cy = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
 
     // Hide the toolbar
     if (tb.isVisible())
@@ -280,10 +283,7 @@ void DesktopWindow::setFullscreen(bool fs) {
     vlog.debug("flags=%x", flags);
 
     SetWindowLong(handle, GWL_STYLE, flags);
-    SetWindowPos(handle, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
-      mi.rcMonitor.right-mi.rcMonitor.left,
-      mi.rcMonitor.bottom-mi.rcMonitor.top,
-      SWP_FRAMECHANGED);
+    SetWindowPos(handle, HWND_TOP, x, y, cx, cy, SWP_FRAMECHANGED);
   } else if (!fs && fullscreenActive) {
     fullscreenActive = bumpScroll = false;
 
