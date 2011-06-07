@@ -224,14 +224,22 @@ if(ENABLE_GNUTLS)
     add_definitions(${GNUTLS_DEFINITIONS})
     
     # Detect old version of GnuTLS
+    set(CMAKE_REQUIRED_FLAGS -I${GNUTLS_INCLUDE_DIR})
     set(CMAKE_EXTRA_INCLUDE_FILES gnutls/gnutls.h)
-    set(CMAKE_REQUIRED_LIBRARIES gnutls)
+    set(CMAKE_REQUIRED_LIBRARIES ${GNUTLS_LIBRARIES})
+    if(ZLIB_FOUND)
+      # When we build against the static version of GnuTLS, we also use the
+      # included version of Zlib, but it isn't built yet, so we have to use the
+      # system's version (if available) to perform this test.
+      set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES};-lz)
+    endif()
     check_function_exists(gnutls_transport_set_global_errno HAVE_OLD_GNUTLS)
     check_function_exists(gnutls_x509_crt_print HAVE_GNUTLS_X509_CRT_PRINT)
     check_type_size(gnutls_x509_crt_t GNUTLS_X509_CRT_T)
     check_type_size(gnutls_datum_t GNUTLS_DATUM_T)
     check_type_size(gnutls_pk_algorithm_t GNUTLS_PK_ALGORITHM_T)
     check_type_size(gnutls_sign_algorithm_t GNUTLS_SIGN_ALGORITHM_T)
+    set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_EXTRA_INCLUDE_FILES) 
     set(CMAKE_REQUIRED_LIBRARIES)
   endif()
