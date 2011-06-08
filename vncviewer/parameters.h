@@ -21,8 +21,6 @@
 
 #include <rfb/Configuration.h>
 
-extern rfb::IntParameter pointerEventInterval;
-extern rfb::BoolParameter useLocalCursor;
 extern rfb::BoolParameter dotWhenNoCursor;
 
 extern rfb::StringParameter passwordFile;

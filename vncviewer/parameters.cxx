@@ -21,11 +21,6 @@
 
 using namespace rfb;
 
-IntParameter pointerEventInterval("PointerEventInterval",
-                                  "Time in milliseconds to rate-limit"
-                                  " successive pointer events", 0);
-BoolParameter useLocalCursor("UseLocalCursor",
-                             "Render the mouse cursor locally", true);
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", true);
