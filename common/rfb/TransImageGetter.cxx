@@ -62,7 +62,8 @@ void TransImageGetter::getImage(void* outPtr, const Rect& r, int outStride)
 
   if (!outStride) outStride = r.width();
 
-  translateRect((void*)inPtr, inStride, r, outPtr, outStride, r.tl);
+  translateRect((void*)inPtr, inStride, Rect(0, 0, r.width(), r.height()),
+                outPtr, outStride, Point(0, 0));
 }
 
 void TransImageGetter::cmCallback(int firstColour, int nColours,
