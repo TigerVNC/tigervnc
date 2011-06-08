@@ -351,61 +351,93 @@ void XserverDesktop::setCursor(CursorPtr cursor)
   try {
     int w = cursor->bits->width;
     int h = cursor->bits->height;
+
     rdr::U8* cursorData = new rdr::U8[w * h * (getPF().bpp / 8)];
-
-    xColorItem fg, bg;
-    fg.red   = cursor->foreRed;
-    fg.green = cursor->foreGreen;
-    fg.blue  = cursor->foreBlue;
-    FakeAllocColor(cmap, &fg);
-    bg.red   = cursor->backRed;
-    bg.green = cursor->backGreen;
-    bg.blue  = cursor->backBlue;
-    FakeAllocColor(cmap, &bg);
-    FakeFreeColor(cmap, fg.pixel);
-    FakeFreeColor(cmap, bg.pixel);
-
-    int xMaskBytesPerRow = BitmapBytePad(w);
-
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        int byte = y * xMaskBytesPerRow + x / 8;
-#if (BITMAP_BIT_ORDER == MSBFirst)
-        int bit = 7 - x % 8;
-#else
-        int bit = x % 8;
-#endif
-        switch (getPF().bpp) {
-        case 8:
-          ((rdr::U8*)cursorData)[y * w + x]
-            = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
-          break;
-        case 16:
-          ((rdr::U16*)cursorData)[y * w + x]
-            = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
-          break;
-        case 32:
-          ((rdr::U32*)cursorData)[y * w + x]
-            = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
-          break;
-        }
-      }
-    }
 
     int rfbMaskBytesPerRow = (w + 7) / 8;
 
     rdr::U8* cursorMask = new rdr::U8[rfbMaskBytesPerRow * h];
 
-    for (int j = 0; j < h; j++) {
-      for (int i = 0; i < rfbMaskBytesPerRow; i++)
-#if (BITMAP_BIT_ORDER == MSBFirst)
-        cursorMask[j * rfbMaskBytesPerRow + i]
-          = cursor->bits->mask[j * xMaskBytesPerRow + i];
-#else
-        cursorMask[j * rfbMaskBytesPerRow + i]
-          = reverseBits[cursor->bits->mask[j * xMaskBytesPerRow + i]];
+#ifdef ARGB_CURSOR
+    if (cursor->bits->argb) {
+      rdr::U8 *out;
+      CARD32 *in;
+
+      rdr::U8 rgb[3];
+
+      memset(cursorMask, 0, rfbMaskBytesPerRow * h);
+
+      in = cursor->bits->argb;
+      out = cursorData;
+      for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+          rgb[0] = (*in >> 16) & 0xff;
+          rgb[1] = (*in >>  8) & 0xff;
+          rgb[2] = (*in >>  0) & 0xff;
+
+          getPF().bufferFromRGB(out, rgb, 1, this);
+
+          if (((*in >> 24) & 0xff) > 127)
+            cursorMask[y * rfbMaskBytesPerRow + x/8] |= 0x80>>(x%8);
+
+          in++;
+          out += getPF().bpp/8;
+        }
+      }
+    } else {
 #endif
+      xColorItem fg, bg;
+      fg.red   = cursor->foreRed;
+      fg.green = cursor->foreGreen;
+      fg.blue  = cursor->foreBlue;
+      FakeAllocColor(cmap, &fg);
+      bg.red   = cursor->backRed;
+      bg.green = cursor->backGreen;
+      bg.blue  = cursor->backBlue;
+      FakeAllocColor(cmap, &bg);
+      FakeFreeColor(cmap, fg.pixel);
+      FakeFreeColor(cmap, bg.pixel);
+
+      int xMaskBytesPerRow = BitmapBytePad(w);
+
+      for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+          int byte = y * xMaskBytesPerRow + x / 8;
+#if (BITMAP_BIT_ORDER == MSBFirst)
+          int bit = 7 - x % 8;
+#else
+          int bit = x % 8;
+#endif
+          switch (getPF().bpp) {
+          case 8:
+            ((rdr::U8*)cursorData)[y * w + x]
+              = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
+            break;
+          case 16:
+            ((rdr::U16*)cursorData)[y * w + x]
+              = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
+            break;
+          case 32:
+            ((rdr::U32*)cursorData)[y * w + x]
+              = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
+            break;
+          }
+        }
+      }
+
+      for (int j = 0; j < h; j++) {
+        for (int i = 0; i < rfbMaskBytesPerRow; i++)
+#if (BITMAP_BIT_ORDER == MSBFirst)
+          cursorMask[j * rfbMaskBytesPerRow + i]
+            = cursor->bits->mask[j * xMaskBytesPerRow + i];
+#else
+          cursorMask[j * rfbMaskBytesPerRow + i]
+            = reverseBits[cursor->bits->mask[j * xMaskBytesPerRow + i]];
+#endif
+      }
+#ifdef ARGB_CURSOR
     }
+#endif
 
     server->setCursor(cursor->bits->width, cursor->bits->height,
                       Point(cursor->bits->xhot, cursor->bits->yhot),
