@@ -25,6 +25,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Menu_Button.H>
+#include <FL/Fl_RGB_Image.H>
 
 #include <rfb/Rect.h>
 #include <rfb/Region.h>
@@ -78,6 +79,9 @@ public:
     damageRect(r);
   }
 
+  void setCursor(int width, int height, const rfb::Point& hotspot,
+                 void* data, void* mask);
+
   // Fl_Widget callback methods
 
   void draw();
@@ -130,6 +134,9 @@ private:
 
   int menuKeyCode;
   Fl_Menu_Button *contextMenu;
+
+  Fl_RGB_Image *cursor;
+  rfb::Point cursorHotspot;
 };
 
 #endif

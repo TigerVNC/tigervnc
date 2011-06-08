@@ -47,6 +47,7 @@
 #include "keysym2ucs.h"
 
 using namespace rfb;
+using namespace rdr;
 
 extern void exit_vncviewer();
 extern void about_vncviewer();
@@ -60,7 +61,7 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
-    lastPointerPos(0, 0), lastButtonMask(0)
+    lastPointerPos(0, 0), lastButtonMask(0), cursor(NULL)
 {
 // FLTK STR #2599 must be fixed for proper dead keys support
 #ifdef HAVE_FLTK_DEAD_KEYS
@@ -114,6 +115,11 @@ Viewport::~Viewport()
 
   if (pixelTrans)
     delete pixelTrans;
+
+  if (cursor) {
+    delete [] cursor->array;
+    delete cursor;
+  }
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -170,6 +176,49 @@ void Viewport::updateWindow()
   Fl_Widget::damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
 
   damage.clear();
+}
+
+
+void Viewport::setCursor(int width, int height, const Point& hotspot,
+                              void* data, void* mask)
+{
+#ifdef HAVE_FLTK_CURSOR
+  U8 *buffer = new U8[width*height*4];
+  U8 *i, *o, *m;
+  int m_width;
+
+  const PixelFormat &pf = frameBuffer->getPF();
+
+  i = (U8*)data;
+  o = buffer;
+  m = (U8*)mask;
+  m_width = (width+7)/8;
+  for (int y = 0;y < height;y++) {
+    for (int x = 0;x < width;x++) {
+      pf.rgbFromBuffer(o, i, 1, &colourMap);
+
+      if (m[(m_width*y)+(x/8)] & 0x80>>(x%8))
+        o[3] = 255;
+      else
+        o[3] = 0;
+
+      o += 4;
+      i += pf.bpp/8;
+    }
+  }
+
+  if (cursor) {
+    delete [] cursor->array;
+    delete cursor;
+  }
+
+  cursor = new Fl_RGB_Image(buffer, width, height, 4);
+
+  cursorHotspot = hotspot;
+
+  if (Fl::belowmouse() == this)
+    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+#endif
 }
 
 
@@ -263,7 +312,17 @@ int Viewport::handle(int event)
 
   case FL_ENTER:
     // Yes, we would like some pointer events please!
+#ifdef HAVE_FLTK_CURSOR
+    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+#endif
     return 1;
+
+  case FL_LEAVE:
+#ifdef HAVE_FLTK_CURSOR
+    window()->cursor(FL_CURSOR_DEFAULT);
+#endif
+    return 1;
+
   case FL_PUSH:
   case FL_RELEASE:
   case FL_DRAG:

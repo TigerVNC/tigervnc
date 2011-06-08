@@ -194,6 +194,9 @@ if(BUILD_NEW_VNCVIEWER)
   if(X11_Xfixes_FOUND)
     set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
   endif()
+  if(X11_Xcursor_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xcursor_LIB})
+  endif()
 
   set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
@@ -209,6 +212,9 @@ if(BUILD_NEW_VNCVIEWER)
 
   # FLTK STR #2641
   check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_FULLSCREEN; }" HAVE_FLTK_FULLSCREEN)
+
+  # FLTK STR #2660
+  check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(const Fl_RGB_Image*,int,int) = &Fl_Window::cursor; return 0; }" HAVE_FLTK_CURSOR)
 
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)

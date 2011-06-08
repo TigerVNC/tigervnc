@@ -391,7 +391,7 @@ void CConn::copyRect(const rfb::Rect& r, int sx, int sy)
 void CConn::setCursor(int width, int height, const Point& hotspot,
                       void* data, void* mask)
 {
-//  desktop->setCursor(width, height, hotspot, data, mask);
+  desktop->setCursor(width, height, hotspot, data, mask);
 }
 
 ////////////////////// Internal methods //////////////////////

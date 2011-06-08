@@ -43,10 +43,6 @@ public:
   // Most efficient format (from DesktopWindow's point of view)
   const rfb::PixelFormat &getPreferredPF();
 
-  // setCursor() sets the shape of the local cursor
-  void setCursor(int width, int height, const rfb::Point& hotspot,
-                 void* data, void* mask);
-
   // Flush updates to screen
   void updateWindow();
 
@@ -66,6 +62,9 @@ public:
   }
 
   void resizeFramebuffer(int new_w, int new_h);
+
+  void setCursor(int width, int height, const rfb::Point& hotspot,
+                 void* data, void* mask);
 
   // Fl_Window callback methods
   void resize(int x, int y, int w, int h);

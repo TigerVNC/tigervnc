@@ -109,14 +109,6 @@ const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 }
 
 
-// Cursor stuff
-
-void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
-                              void* data, void* mask)
-{
-}
-
-
 void DesktopWindow::setName(const char *name)
 {
   CharArray windowNameStr;
@@ -182,6 +174,13 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   // in position, but it might be just the size that changes so we also
   // need a poke here as well.
   redraw();
+}
+
+
+void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
+                              void* data, void* mask)
+{
+  viewport->setCursor(width, height, hotspot, data, mask);
 }
 
 
