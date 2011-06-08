@@ -111,7 +111,6 @@ protected:
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
   Fl_Check_Button *fullScreenCheckbox;
-  Fl_Check_Button *localCursorCheckbox;
   Fl_Check_Button *dotCursorCheckbox;
 };
 

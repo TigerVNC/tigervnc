@@ -273,7 +273,6 @@ void OptionsDialog::loadOptions(void)
   /* Misc. */
   sharedCheckbox->value(shared);
   fullScreenCheckbox->value(fullScreen);
-  localCursorCheckbox->value(useLocalCursor);
   dotCursorCheckbox->value(dotWhenNoCursor);
 }
 
@@ -366,7 +365,6 @@ void OptionsDialog::storeOptions(void)
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
   fullScreen.setParam(fullScreenCheckbox->value());
-  useLocalCursor.setParam(localCursorCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
 
   std::map<OptionsCallback*, void*>::const_iterator iter;
@@ -723,12 +721,6 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
                                                   _("Full-screen mode")));
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
-
-  localCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                  CHECK_MIN_WIDTH,
-                                                  CHECK_HEIGHT,
-                                                  _("Render cursor locally")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   dotCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,

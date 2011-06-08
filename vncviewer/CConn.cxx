@@ -65,7 +65,6 @@ CConn::CConn(const char* vncServerName)
   cp.supportsDesktopResize = true;
   cp.supportsExtendedDesktopSize = true;
   cp.supportsDesktopRename = true;
-  cp.supportsLocalCursor = useLocalCursor;
 
   cp.customCompressLevel = customCompressLevel;
   cp.compressLevel = compressLevel;
@@ -540,8 +539,6 @@ void CConn::handleOptions(void *data)
 
     self->cp.qualityLevel = qualityLevel;
   }
-
-  self->cp.supportsLocalCursor = useLocalCursor;
 
   self->cp.customCompressLevel = customCompressLevel;
   self->cp.compressLevel = compressLevel;

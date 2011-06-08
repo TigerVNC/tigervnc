@@ -21,6 +21,9 @@
 
 using namespace rfb;
 
+IntParameter pointerEventInterval("PointerEventInterval",
+                                  "Time in milliseconds to rate-limit"
+                                  " successive pointer events", 0);
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", true);
