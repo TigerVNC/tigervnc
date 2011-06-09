@@ -214,33 +214,40 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
     cursor = new Fl_RGB_Image(&pxm);
     cursorHotspot.x = cursorHotspot.y = 2;
   } else {
-    U8 *buffer = new U8[width*height*4];
-    U8 *i, *o, *m;
-    int m_width;
+    if ((width == 0) || (height == 0)) {
+      U8 *buffer = new U8[4];
+      memset(buffer, 0, 4);
+      cursor = new Fl_RGB_Image(buffer, 1, 1, 4);
+      cursorHotspot.x = cursorHotspot.y = 0;
+    } else {
+      U8 *buffer = new U8[width*height*4];
+      U8 *i, *o, *m;
+      int m_width;
 
-    const PixelFormat &pf = frameBuffer->getPF();
+      const PixelFormat &pf = frameBuffer->getPF();
 
-    i = (U8*)data;
-    o = buffer;
-    m = (U8*)mask;
-    m_width = (width+7)/8;
-    for (int y = 0;y < height;y++) {
-      for (int x = 0;x < width;x++) {
-        pf.rgbFromBuffer(o, i, 1, &colourMap);
+      i = (U8*)data;
+      o = buffer;
+      m = (U8*)mask;
+      m_width = (width+7)/8;
+      for (int y = 0;y < height;y++) {
+        for (int x = 0;x < width;x++) {
+          pf.rgbFromBuffer(o, i, 1, &colourMap);
 
-        if (m[(m_width*y)+(x/8)] & 0x80>>(x%8))
-          o[3] = 255;
-        else
-          o[3] = 0;
+          if (m[(m_width*y)+(x/8)] & 0x80>>(x%8))
+            o[3] = 255;
+          else
+            o[3] = 0;
 
-        o += 4;
-        i += pf.bpp/8;
+          o += 4;
+          i += pf.bpp/8;
+        }
       }
+
+      cursor = new Fl_RGB_Image(buffer, width, height, 4);
+
+      cursorHotspot = hotspot;
     }
-
-    cursor = new Fl_RGB_Image(buffer, width, height, 4);
-
-    cursorHotspot = hotspot;
   }
 
   if (Fl::belowmouse() == this)
