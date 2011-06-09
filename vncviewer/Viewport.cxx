@@ -341,7 +341,8 @@ int Viewport::handle(int event)
   case FL_ENTER:
     // Yes, we would like some pointer events please!
 #ifdef HAVE_FLTK_CURSOR
-    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    if (cursor)
+      window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 #endif
     return 1;
 
