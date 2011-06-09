@@ -179,7 +179,14 @@ Add
 
   --host i686-pc-linux-gnu CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' LDFLAGS=-m32
 
-to the configure or build command lines.
+to the configure or build command lines.  You may also need to add
+
+  --x-libraries=/usr/X11R6/lib
+
+to the configure or build command line if you are building on an older Linux
+distribution that stores the 32-bit X11 libraries in /usr/X11R6/lib instead of
+/usr/lib (this is known to be necessary on Red Hat Enterprise Linux 4, for
+instance.)
 
 
 64-bit Build on 64-bit OS X
