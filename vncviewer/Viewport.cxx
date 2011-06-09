@@ -207,9 +207,8 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
   for (i = 0; i < mask_len; i++)
     if (((rdr::U8*)mask)[i]) break;
 
-  if (i == mask_len) {
-    if (dotWhenNoCursor)
-      vlog.debug("cursor is empty - using dot");
+  if ((i == mask_len) && dotWhenNoCursor) {
+    vlog.debug("cursor is empty - using dot");
 
     Fl_Pixmap pxm(dotcursor_xpm);
     cursor = new Fl_RGB_Image(&pxm);
