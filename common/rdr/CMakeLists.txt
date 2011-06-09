@@ -23,3 +23,5 @@ if(GNUTLS_FOUND)
 endif()
 
 target_link_libraries(rdr ${RDR_LIBRARIES})
+
+libtool_create_control_file(rdr)

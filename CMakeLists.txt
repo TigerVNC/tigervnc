@@ -14,6 +14,8 @@ include(CheckTypeSize)
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
 
+include(CMakeMacroLibtoolFile)
+
 project(tigervnc)
 set(VERSION 1.0.90)
 
