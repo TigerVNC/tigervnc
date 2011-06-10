@@ -282,7 +282,10 @@ add_subdirectory(common)
 if(WIN32)
   add_subdirectory(win)
 else()
-  add_subdirectory(unix)
+  # No interest in building x related parts on Apple
+  if(NOT APPLE)
+    add_subdirectory(unix)
+  endif()
 endif()
 
 if(BUILD_NEW_VNCVIEWER)
