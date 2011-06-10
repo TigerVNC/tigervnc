@@ -35,6 +35,7 @@ public class Encodings {
   public static final int pseudoEncodingDesktopSize = -223;
   public static final int pseudoEncodingExtendedDesktopSize = -308;
   public static final int pseudoEncodingDesktopName = -307;
+  public static final int pseudoEncodingClientRedirect = -311;
 
   // TightVNC-specific
   public static final int pseudoEncodingLastRect = -224;

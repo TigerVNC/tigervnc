@@ -80,6 +80,9 @@ public class CMsgReaderV3 extends CMsgReader {
       case Encodings.pseudoEncodingLastRect:
         nUpdateRectsLeft = 1;     // this rectangle is the last one
         break;
+      case Encodings.pseudoEncodingClientRedirect:
+        readClientRedirect(x, y, w, h);
+        break;
       default:
         readRect(new Rect(x, y, x+w, y+h), encoding);
         break;
@@ -131,6 +134,19 @@ public class CMsgReaderV3 extends CMsgReader {
     }
   
     handler.setExtendedDesktopSize(x, y, w, h, layout);
+  }
+
+  void readClientRedirect(int x, int y, int w, int h) 
+  {
+    int port = is.readU16();
+    String host = is.readString();
+    String x509subject = is.readString();
+
+    if (x != 0 || y != 0 || w != 0 || h != 0) {
+      vlog.error("Ignoring ClientRedirect rect with non-zero position/size");
+    } else {
+      handler.clientRedirect(port, host, x509subject);
+    }
   }
 
   int nUpdateRectsLeft;

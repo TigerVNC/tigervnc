@@ -57,6 +57,8 @@ abstract public class CMsgWriter {
       encodings[nEncodings++] = Encodings.pseudoEncodingExtendedDesktopSize;
     if (cp.supportsDesktopRename)
       encodings[nEncodings++] = Encodings.pseudoEncodingDesktopName;
+    if (cp.supportsClientRedirect)
+      encodings[nEncodings++] = Encodings.pseudoEncodingClientRedirect;
     if (Decoder.supported(preferredEncoding)) {
       encodings[nEncodings++] = preferredEncoding;
     }

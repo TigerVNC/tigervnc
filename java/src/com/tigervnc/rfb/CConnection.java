@@ -256,17 +256,6 @@ abstract public class CConnection extends CMsgHandler {
     nSecTypes = 0;
   }
 
-  // addSecType() should be called once for each security type which the
-  // client supports.  The order in which they're added is such that the
-  // first one is most preferred.
-/*
-  public void addSecType(int secType) {
-    if (nSecTypes == maxSecTypes)
-      throw new Exception("too many security types");
-    secTypes.set(nSecTypes++,secType);
-  }
-*/
-
   // setShared sets the value of the shared flag which will be sent to the
   // server upon initialisation.
   public void setShared(boolean s) { shared = s; }

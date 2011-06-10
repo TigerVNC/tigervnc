@@ -49,7 +49,7 @@ class OptionsDialog extends Dialog implements
   JCheckBox viewOnly, acceptClipboard, sendClipboard;
   JCheckBox fullScreen, shared, useLocalCursor, fastCopyRect;
   JCheckBox secVeNCrypt, encNone, encTLS, encX509;
-  JCheckBox secNone, secVnc, secPlain, secManaged, sendLocalUsername;
+  JCheckBox secNone, secVnc, secPlain, secIdent, sendLocalUsername;
   JButton okButton, cancelButton;
   JButton ca, crl;
   JButton defSaveButton;
@@ -206,7 +206,7 @@ class OptionsDialog extends Dialog implements
     secNone = addCheckbox("None", null, authPanel);
     secVnc = addCheckbox("Standard VNC", null, authPanel);
     secPlain = addJCheckBox("Plaintext", null, authPanel, new GridBagConstraints(0,2,1,1,1,1,GridBagConstraints.LINE_START,GridBagConstraints.NONE,new Insets(0,0,0,5),0,0));
-    secManaged = addJCheckBox("Managed", null, authPanel, new GridBagConstraints(0,3,1,1,1,1,GridBagConstraints.LINE_START,GridBagConstraints.NONE,new Insets(0,0,0,5),0,0));
+    secIdent = addJCheckBox("Ident", null, authPanel, new GridBagConstraints(0,3,1,1,1,1,GridBagConstraints.LINE_START,GridBagConstraints.NONE,new Insets(0,0,0,5),0,0));
     sendLocalUsername = new JCheckBox("Send Local Username");
     sendLocalUsername.addItemListener(this);
     addGBComponent(sendLocalUsername, authPanel, 1, 2, 1, 2, 0, 0, 2, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,20,0,0));
@@ -266,7 +266,7 @@ class OptionsDialog extends Dialog implements
     compressLevel.setEnabled(customCompressLevel.isSelected());
     qualityLevel.setEnabled(noJpeg.isSelected());
     sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
-      (secPlain.isSelected()||secManaged.isSelected()));
+      (secPlain.isSelected()||secIdent.isSelected()));
   }
 
   JRadioButton addRadioCheckbox(String str, ButtonGroup group, JPanel panel) {
@@ -365,15 +365,15 @@ class OptionsDialog extends Dialog implements
       encX509.setEnabled(secVeNCrypt.isSelected());
       ca.setEnabled(secVeNCrypt.isSelected());
       crl.setEnabled(secVeNCrypt.isSelected());
-      secManaged.setEnabled(secVeNCrypt.isSelected());
+      secIdent.setEnabled(secVeNCrypt.isSelected());
       secNone.setEnabled(secVeNCrypt.isSelected());
       secVnc.setEnabled(secVeNCrypt.isSelected());
       secPlain.setEnabled(secVeNCrypt.isSelected());
       sendLocalUsername.setEnabled(secVeNCrypt.isSelected());
     }
-    if (s instanceof JCheckBox && (JCheckBox)s == secManaged ||
+    if (s instanceof JCheckBox && (JCheckBox)s == secIdent ||
         s instanceof JCheckBox && (JCheckBox)s == secPlain) {
-      sendLocalUsername.setEnabled(secManaged.isSelected()||secPlain.isSelected());
+      sendLocalUsername.setEnabled(secIdent.isSelected()||secPlain.isSelected());
     }
   }
 

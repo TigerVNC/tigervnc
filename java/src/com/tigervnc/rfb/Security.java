@@ -39,7 +39,6 @@ public class Security {
   public static final int secTypeUltra     = 17;
   public static final int secTypeTLS       = 18;
   public static final int secTypeVeNCrypt  = 19;
-  public static final int secTypeManaged   = 20;
 
   /* VeNCrypt subtypes */
   public static final int secTypePlain     = 256;
@@ -49,6 +48,9 @@ public class Security {
   public static final int secTypeX509None  = 260;
   public static final int secTypeX509Vnc   = 261;
   public static final int secTypeX509Plain = 262;
+  public static final int secTypeIdent     = 265;
+  public static final int secTypeTLSIdent  = 266;
+  public static final int secTypeX509Ident = 267;
 
   // result types
 
@@ -131,16 +133,18 @@ public class Security {
     //if (name.equalsIgnoreCase("ultra"))	    return secTypeUltra;
     //if (name.equalsIgnoreCase("TLS"))	      return secTypeTLS;
     if (name.equalsIgnoreCase("VeNCrypt"))  return secTypeVeNCrypt;
-    if (name.equalsIgnoreCase("Managed"))	  return secTypeManaged;
 
     /* VeNCrypt subtypes */
     if (name.equalsIgnoreCase("Plain"))	    return secTypePlain;
+    if (name.equalsIgnoreCase("Ident"))	    return secTypeIdent;
     if (name.equalsIgnoreCase("TLSNone"))	  return secTypeTLSNone;
     if (name.equalsIgnoreCase("TLSVnc"))	  return secTypeTLSVnc;
     if (name.equalsIgnoreCase("TLSPlain"))	return secTypeTLSPlain;
+    if (name.equalsIgnoreCase("TLSIdent"))	return secTypeTLSIdent;
     if (name.equalsIgnoreCase("X509None"))	return secTypeX509None;
     if (name.equalsIgnoreCase("X509Vnc"))	  return secTypeX509Vnc;
     if (name.equalsIgnoreCase("X509Plain")) return secTypeX509Plain;
+    if (name.equalsIgnoreCase("X509Ident")) return secTypeX509Ident;
 
     return secTypeInvalid;
   }
@@ -157,16 +161,18 @@ public class Security {
     //case secTypeUltra:      return "Ultra";
     //case secTypeTLS:        return "TLS";
     case secTypeVeNCrypt:   return "VeNCrypt";
-    case secTypeManaged:    return "Managed";
 
     /* VeNCrypt subtypes */
     case secTypePlain:      return "Plain";
+    case secTypeIdent:      return "Ident";
     case secTypeTLSNone:    return "TLSNone";
     case secTypeTLSVnc:     return "TLSVnc";
     case secTypeTLSPlain:   return "TLSPlain";
+    case secTypeTLSIdent:   return "TLSIdent";
     case secTypeX509None:   return "X509None";
     case secTypeX509Vnc:    return "X509Vnc";
     case secTypeX509Plain:  return "X509Plain";
+    case secTypeX509Ident:  return "X509Ident";
     default:                return "[unknown secType]";
     }
   }

@@ -61,6 +61,9 @@ public class CMsgHandler {
     cp.setName(name);
   }
 
+  public void clientRedirect(int port, String host, 
+                             String x509subject) {}
+
   public void setCursor(int width, int height, Point hotspot,
                         int[] data, byte[] mask) {}
   public void serverInit() {}

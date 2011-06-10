@@ -19,24 +19,26 @@
 
 package com.tigervnc.rfb;
 
+import com.tigervnc.vncviewer.CConn;
+
 public class SecurityClient extends Security {
 
   public SecurityClient() { super(secTypes); }
 
   public CSecurity GetCSecurity(int secType)
   {
-    //assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
-    //assert (CSecurityTLS::msg != NULL);
+    assert (CConn.upg != null); /* (upg == null) means bug in the viewer */
+    assert (msg != null);
   
     if (!IsSupported(secType))
       throw new Exception("Security type not supported");
   
     switch (secType) {
-    case Security.secTypeManaged: return (new CSecurityManaged());
     case Security.secTypeNone: return (new CSecurityNone());
     case Security.secTypeVncAuth: return (new CSecurityVncAuth());
     case Security.secTypeVeNCrypt: return (new CSecurityVeNCrypt(this));
     case Security.secTypePlain: return (new CSecurityPlain());
+    case Security.secTypeIdent: return (new CSecurityIdent());
     case Security.secTypeTLSNone:
       return (new CSecurityStack(secTypeTLSNone, "TLS with no password",
   			      new CSecurityTLS(true), null));
@@ -46,15 +48,21 @@ public class SecurityClient extends Security {
     case Security.secTypeTLSPlain:
       return (new CSecurityStack(secTypeTLSPlain, "TLS with Username/Password",
   			      new CSecurityTLS(true), new CSecurityPlain()));
+    case Security.secTypeTLSIdent:
+      return (new CSecurityStack(secTypeTLSIdent, "TLS with username only",
+  			      new CSecurityTLS(true), new CSecurityIdent()));
     case Security.secTypeX509None:
       return (new CSecurityStack(secTypeX509None, "X509 with no password",
   			      new CSecurityTLS(false), null));
     case Security.secTypeX509Vnc:
-      return (new CSecurityStack(secTypeX509None, "X509 with VNCAuth",
+      return (new CSecurityStack(secTypeX509Vnc, "X509 with VNCAuth",
   			      new CSecurityTLS(false), new CSecurityVncAuth()));
     case Security.secTypeX509Plain:
       return (new CSecurityStack(secTypeX509Plain, "X509 with Username/Password",
   			      new CSecurityTLS(false), new CSecurityPlain()));
+    case Security.secTypeX509Ident:
+      return (new CSecurityStack(secTypeX509Ident, "X509 with username only",
+  			      new CSecurityTLS(false), new CSecurityIdent()));
     default:
       throw new Exception("Security type not supported");
     }
@@ -72,6 +80,6 @@ public class SecurityClient extends Security {
   static StringParameter secTypes 
   = new StringParameter("SecurityTypes",
                         "Specify which security scheme to use (None, VncAuth)",
-                        "Managed,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None");
+                        "Ident,TLSIdent,X509Ident,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None");
 
 }

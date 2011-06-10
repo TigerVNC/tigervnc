@@ -282,6 +282,25 @@ public class CConn extends CConnection
     resizeFramebuffer();
   }
 
+  // clientRedirect() migrates the client to another host/port
+  public void clientRedirect(int port, String host, 
+                             String x509subject) {
+    try {
+      getSocket().close();
+      setServerPort(port);
+      sock = new java.net.Socket(host, port);
+      sock.setTcpNoDelay(true);
+      sock.setTrafficClass(0x10);
+      setSocket(sock);
+      vlog.info("Redirected to "+host+":"+port);
+      setStreams(new JavaInStream(sock.getInputStream()),
+                 new JavaOutStream(sock.getOutputStream()));
+      initialiseProtocol();
+    } catch (java.io.IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   // setName() is called when the desktop name changes
   public void setName(String name) {
     super.setName(name);
@@ -404,6 +423,8 @@ public class CConn extends CConnection
 
   private void resizeFramebuffer()
   {
+    if ((cp.width == 0) && (cp.height == 0))
+      return;
     if (desktop == null)
       return;
     if ((desktop.width() == cp.width) && (desktop.height() == cp.height))
@@ -677,7 +698,7 @@ public class CConn extends CConnection
       options.encX509.setEnabled(false);
       options.ca.setEnabled(false);
       options.crl.setEnabled(false);
-      options.secManaged.setEnabled(false);
+      options.secIdent.setEnabled(false);
       options.secNone.setEnabled(false);
       options.secVnc.setEnabled(false);
       options.secPlain.setEnabled(false);
@@ -692,11 +713,6 @@ public class CConn extends CConnection
         switch ((Integer)i.next()) {
         case Security.secTypeVeNCrypt:
           options.secVeNCrypt.setSelected(true);
-          break;
-        case Security.secTypeManaged:
-          options.encNone.setSelected(true);
-          options.secManaged.setSelected(true);
-          options.sendLocalUsername.setSelected(true);
           break;
         case Security.secTypeNone:
           options.encNone.setSelected(true);
@@ -719,6 +735,10 @@ public class CConn extends CConnection
             options.secPlain.setSelected(true);
             options.sendLocalUsername.setSelected(true);
             break;
+          case Security.secTypeIdent:
+            options.secIdent.setSelected(true);
+            options.sendLocalUsername.setSelected(true);
+            break;
           case Security.secTypeTLSNone:
             options.encTLS.setSelected(true);
             options.secNone.setSelected(true);
@@ -730,6 +750,11 @@ public class CConn extends CConnection
           case Security.secTypeTLSPlain:
             options.encTLS.setSelected(true);
             options.secPlain.setSelected(true);
+            options.sendLocalUsername.setSelected(true);
+            break;
+          case Security.secTypeTLSIdent:
+            options.encTLS.setSelected(true);
+            options.secIdent.setSelected(true);
             options.sendLocalUsername.setSelected(true);
             break;
           case Security.secTypeX509None:
@@ -745,11 +770,16 @@ public class CConn extends CConnection
             options.secPlain.setSelected(true);
             options.sendLocalUsername.setSelected(true);
             break;
+          case Security.secTypeX509Ident:
+            options.encX509.setSelected(true);
+            options.secIdent.setSelected(true);
+            options.sendLocalUsername.setSelected(true);
+            break;
           }
         }
       }
       options.sendLocalUsername.setEnabled(options.secPlain.isSelected()||
-        options.secManaged.isSelected());
+        options.secIdent.isSelected());
     }
 
     options.fullScreen.setSelected(fullScreen);
@@ -823,19 +853,19 @@ public class CConn extends CConnection
     if (state() != RFBSTATE_NORMAL) {
       /* Process security types which don't use encryption */
       if (options.encNone.isSelected()) {
-        if (options.secManaged.isSelected())
-          Security.EnableSecType(Security.secTypeManaged);
         if (options.secNone.isSelected())
           Security.EnableSecType(Security.secTypeNone);
         if (options.secVnc.isSelected())
           Security.EnableSecType(Security.secTypeVncAuth);
         if (options.secPlain.isSelected())
           Security.EnableSecType(Security.secTypePlain);
+        if (options.secIdent.isSelected())
+          Security.EnableSecType(Security.secTypeIdent);
       } else {
-        Security.DisableSecType(Security.secTypeManaged);
         Security.DisableSecType(Security.secTypeNone);
         Security.DisableSecType(Security.secTypeVncAuth);
         Security.DisableSecType(Security.secTypePlain);
+        Security.DisableSecType(Security.secTypeIdent);
       }
 
       /* Process security types which use TLS encryption */
@@ -846,10 +876,13 @@ public class CConn extends CConnection
           Security.EnableSecType(Security.secTypeTLSVnc);
         if (options.secPlain.isSelected())
           Security.EnableSecType(Security.secTypeTLSPlain);
+        if (options.secIdent.isSelected())
+          Security.EnableSecType(Security.secTypeTLSIdent);
       } else {
         Security.DisableSecType(Security.secTypeTLSNone);
         Security.DisableSecType(Security.secTypeTLSVnc);
         Security.DisableSecType(Security.secTypeTLSPlain);
+        Security.DisableSecType(Security.secTypeTLSIdent);
       }
   
       /* Process security types which use X509 encryption */
@@ -860,10 +893,13 @@ public class CConn extends CConnection
           Security.EnableSecType(Security.secTypeX509Vnc);
         if (options.secPlain.isSelected())
           Security.EnableSecType(Security.secTypeX509Plain);
+        if (options.secIdent.isSelected())
+          Security.EnableSecType(Security.secTypeX509Ident);
       } else {
         Security.DisableSecType(Security.secTypeX509None);
         Security.DisableSecType(Security.secTypeX509Vnc);
         Security.DisableSecType(Security.secTypeX509Plain);
+        Security.DisableSecType(Security.secTypeX509Ident);
       }
   
       /* Process *None security types */
@@ -906,6 +942,20 @@ public class CConn extends CConnection
         Security.DisableSecType(Security.secTypePlain);
         Security.DisableSecType(Security.secTypeTLSPlain);
         Security.DisableSecType(Security.secTypeX509Plain);
+      }
+  
+      /* Process *Ident security types */
+      if (options.secIdent.isSelected()) {
+        if (options.encNone.isSelected())
+          Security.EnableSecType(Security.secTypeIdent);
+        if (options.encTLS.isSelected())
+          Security.EnableSecType(Security.secTypeTLSIdent);
+        if (options.encX509.isSelected())
+          Security.EnableSecType(Security.secTypeX509Ident);
+      } else {
+        Security.DisableSecType(Security.secTypeIdent);
+        Security.DisableSecType(Security.secTypeTLSIdent);
+        Security.DisableSecType(Security.secTypeX509Ident);
       }
   
       CSecurityTLS.x509ca.setParam(options.ca.getText());

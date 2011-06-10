@@ -29,7 +29,7 @@ public class ConnParams {
     supportsLocalCursor = false; supportsLocalXCursor = false;
     supportsDesktopResize = false; supportsExtendedDesktopSize = false;
     supportsDesktopRename = false; supportsLastRect = false;
-    supportsSetDesktopSize = false;
+    supportsSetDesktopSize = false; supportsClientRedirect = false;
     customCompressLevel = false; compressLevel = 6;
     noJpeg = false; qualityLevel = -1; 
     name_ = null; nEncodings_ = 0; encodings_ = null;
@@ -134,6 +134,8 @@ public class ConnParams {
         supportsLocalCursor = true;
       else if (encodings[i] == Encodings.pseudoEncodingDesktopSize)
         supportsDesktopResize = true;
+      else if (encodings[i] == Encodings.pseudoEncodingClientRedirect)
+        supportsClientRedirect = true;
       else if (encodings[i] >= Encodings.pseudoEncodingCompressLevel0 &&
           encodings[i] <= Encodings.pseudoEncodingCompressLevel9) {
         customCompressLevel = true;
@@ -154,6 +156,7 @@ public class ConnParams {
   public boolean supportsDesktopResize;
   public boolean supportsExtendedDesktopSize;
   public boolean supportsDesktopRename;
+  public boolean supportsClientRedirect;
   public boolean supportsLastRect;
 
   public boolean supportsSetDesktopSize;
