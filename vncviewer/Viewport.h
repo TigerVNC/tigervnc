@@ -33,6 +33,14 @@
 #include <rfb/PixelBuffer.h>
 #include <rfb/PixelTransformer.h>
 
+#if defined(WIN32)
+#include "PlatformPixelBuffer.h"
+#elif defined(__APPLE__)
+#include "PlatformPixelBuffer.h"
+#else
+#include "PlatformPixelBuffer.h"
+#endif
+
 class CConn;
 
 class Viewport : public Fl_Widget {
@@ -119,7 +127,7 @@ private:
 private:
   CConn* cc;
 
-  rfb::ManagedPixelBuffer* frameBuffer;
+  PlatformPixelBuffer* frameBuffer;
 
   rfb::PixelTransformer *pixelTrans;
   rfb::SimpleColourMap colourMap;

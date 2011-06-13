@@ -73,7 +73,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   Fl::add_clipboard_notify(handleClipboardChange, this);
 #endif
 
-  frameBuffer = new ManagedPixelBuffer(getPreferredPF(), w, h);
+  frameBuffer = new PlatformPixelBuffer(w, h);
   assert(frameBuffer);
 
   setServerPF(serverPF);
@@ -143,9 +143,7 @@ void Viewport::setServerPF(const rfb::PixelFormat& pf)
 
 const rfb::PixelFormat &Viewport::getPreferredPF()
 {
-  static PixelFormat prefPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
-
-  return prefPF;
+  return frameBuffer->getPF();
 }
 
 
@@ -260,36 +258,26 @@ void Viewport::draw()
 {
   int X, Y, W, H;
 
-  int pixel_bytes, stride_bytes;
-  const uchar *buf_start;
-
   // Check what actually needs updating
   fl_clip_box(x(), y(), w(), h(), X, Y, W, H);
   if ((W == 0) || (H == 0))
     return;
 
-  pixel_bytes = frameBuffer->getPF().bpp/8;
-  stride_bytes = pixel_bytes * frameBuffer->getStride();
-  buf_start = frameBuffer->data +
-              pixel_bytes * (X - x()) +
-              stride_bytes * (Y - y());
-
-  // FIXME: Check how efficient this thing really is
-  fl_draw_image(buf_start, X, Y, W, H, pixel_bytes, stride_bytes);
+  frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
 }
 
 
 void Viewport::resize(int x, int y, int w, int h)
 {
-  rfb::ManagedPixelBuffer* newBuffer;
+  PlatformPixelBuffer* newBuffer;
   rfb::Rect rect;
 
-  // FIXME: Resize should probably be a feature of ManagedPixelBuffer
+  // FIXME: Resize should probably be a feature of the pixel buffer itself
 
   if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
     goto end;
 
-  newBuffer = new ManagedPixelBuffer(frameBuffer->getPF(), w, h);
+  newBuffer = new PlatformPixelBuffer(w, h);
   assert(newBuffer);
 
   rect.setXYWH(0, 0,
