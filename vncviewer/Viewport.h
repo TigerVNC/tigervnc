@@ -103,7 +103,7 @@ private:
   void damageRect(const rfb::Rect& r) {
     damage.assign_union(rfb::Region(r));
     if (!Fl::has_timeout(handleUpdateTimeout, this))
-      Fl::add_timeout(0.100, handleUpdateTimeout, this);
+      Fl::add_timeout(0.500, handleUpdateTimeout, this);
   };
 
   static void handleUpdateTimeout(void *data);
