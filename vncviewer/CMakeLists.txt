@@ -21,7 +21,9 @@ if(APPLE)
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm)
 endif()
 
-if((NOT APPLE) AND (NOT WIN32))
+if(WIN32)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Win32PixelBuffer.cxx)
+elseif(NOT APPLE)
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} X11PixelBuffer.cxx)
 endif()
 

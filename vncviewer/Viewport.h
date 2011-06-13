@@ -34,7 +34,7 @@
 #include <rfb/PixelTransformer.h>
 
 #if defined(WIN32)
-#include "PlatformPixelBuffer.h"
+#include "Win32PixelBuffer.h"
 #elif defined(__APPLE__)
 #include "PlatformPixelBuffer.h"
 #else
