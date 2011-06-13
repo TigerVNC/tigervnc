@@ -38,7 +38,7 @@
 #elif defined(__APPLE__)
 #include "PlatformPixelBuffer.h"
 #else
-#include "PlatformPixelBuffer.h"
+#include "X11PixelBuffer.h"
 #endif
 
 class CConn;

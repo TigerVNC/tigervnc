@@ -21,6 +21,10 @@ if(APPLE)
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} cocoa.mm)
 endif()
 
+if((NOT APPLE) AND (NOT WIN32))
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} X11PixelBuffer.cxx)
+endif()
+
 add_executable(vncviewer ${VNCVIEWER_SOURCES})
 
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
