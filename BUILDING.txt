@@ -83,13 +83,12 @@ The following procedure will build both the TigerVNC Viewer and a
 
   cd {build_directory}
   sh {source_directory}/unix/build-xorg init -version 7.4
-  sh {source_directory}/unix/build-xorg build -version 7.4 [-static] [additional configure flags]
+  sh {source_directory}/unix/build-xorg build -version 7.4 [additional configure flags]
 
-Passing an argument of "-static" to the build command line will generate a
-version of Xvnc that has no external dependencies on the X11 shared libraries
-or any other distribution-specific shared libraries.  This version of Xvnc
-should be transportable across multiple O/S distributions.  The legacy-friendly
-build should work on Red Hat Enterprise 4, its contemporaries, and later
+build-xorg generates a version of Xvnc that has no external dependencies on the
+X11 shared libraries or any other distribution-specific shared libraries.  This
+version of Xvnc should be transportable across multiple O/S distributions.
+build-xorg should work on Red Hat Enterprise 4, its contemporaries, and later
 systems.  It probably will not work on older systems.  It has not been tested
 on non-Linux systems (yet).
 
