@@ -8,7 +8,6 @@ set -e
 
 PREFIX=
 MAKE="make"
-STATIC=0
 XORG_VERSION=
 SRCDIR=`dirname $0`/..
 
@@ -119,10 +118,7 @@ build ()
 {
     # Build VNC
     echo "*** Building VNC ***"
-    if [ $STATIC = 1 ]; then
-        VNCCFGFLAGS=--with-included-zlib
-    fi
-    $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX} ${VNCCFGFLAGS}
+    $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX} --with-included-zlib
     $MAKE
 
     # Build Xorg
@@ -143,20 +139,15 @@ build ()
         if [ "${module}" = "pixman" ]; then
             extraoptions="${extraoptions} --disable-gtk"
         fi
-        if [ $STATIC = 1 ]; then
-            extraoptions="${extraoptions} --enable-static --disable-shared"
-            OLD_CFLAGS=${CFLAGS}
-            OLD_CXXFLAGS=${CXXFLAGS}
-            CFLAGS=${CFLAGS}' -fPIC'
-            CXXFLAGS=${CXXFLAGS}' -fPIC'
-            export CFLAGS CXXFLAGS
-        fi
-        ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions}
-        if [ $STATIC = 1 ]; then
-            CFLAGS=${OLD_CFLAGS}
-            CXXFLAGS=${OLD_CXXFLAGS}
-            export CFLAGS CXXFLAGS
-        fi
+        OLD_CFLAGS=${CFLAGS}
+        OLD_CXXFLAGS=${CXXFLAGS}
+        CFLAGS=${CFLAGS}' -fPIC'
+        CXXFLAGS=${CXXFLAGS}' -fPIC'
+        export CFLAGS CXXFLAGS
+        ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions} --enable-static --disable-shared
+        CFLAGS=${OLD_CFLAGS}
+        CXXFLAGS=${OLD_CXXFLAGS}
+        export CFLAGS CXXFLAGS
         echo ======================
         echo building ${module}
         echo ======================
@@ -181,17 +172,15 @@ build ()
     popd
 
     # build freetype
-    if [ $STATIC = 1 ]; then
-        echo "*** Building freetype ***"
-        pushd freetype-*
-        ./configure ${1+"$@"} --prefix=${PREFIX} --enable-static --disable-shared
-        if [ $? -ne 0 ]; then
-	    echo "Failed to configure freetype."
-	    exit
-        fi
-        $MAKE install
-        popd
+    echo "*** Building freetype ***"
+    pushd freetype-*
+    ./configure ${1+"$@"} --prefix=${PREFIX} --enable-static --disable-shared
+    if [ $? -ne 0 ]; then
+	echo "Failed to configure freetype."
+	exit
     fi
+    $MAKE install
+    popd
 
     popd
 
@@ -199,10 +188,7 @@ build ()
     echo "*** Building xserver ***"
     pushd xorg/xserver
     autoreconf -fiv
-    XORGCFGFLAGS="--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev --with-sha1=libgcrypt ${XORGCFGFLAGS}"
-    if [ $STATIC = 1 ]; then
-        XORGCFGFLAGS="${XORGCFGFLAGS} SHA1_LIB=-lcrypto --disable-shared --enable-static"
-    fi
+    XORGCFGFLAGS="--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev --with-sha1=libgcrypt SHA1_LIB=-lcrypto --disable-shared --enable-static ${XORGCFGFLAGS}"
     ./configure ${1+"$@"} --prefix=${PREFIX} ${XORGCFGFLAGS}
     if [ $? -ne 0 ]; then
 	echo "Failed to configure X server."
@@ -231,17 +217,12 @@ usage ()
     echo "Usage: $0  init -version <7.4 | 7.5>"
     echo
     echo "       $0  build -version <7.4 | 7.5>"
-    echo "       [-static] [additional configure flags]"
+    echo "       [additional configure flags]"
     echo
     echo "       $0  rebuild [additional make options]"
     echo
     echo "       $0  update -version <7.4 | 7.5>"
     echo
-    echo "-static = build a stand-alone version of Xvnc which does not depend on"
-    echo "          the shared X11 libraries or any distribution-specific shared"
-    echo "          system libraries (requires GCC.)  Note that this does not enable"
-    echo "          static linking with GnuTLS.  See BUILDING.txt for instructions"
-    echo "          on how to do that."
     exit 1
 }
 
@@ -257,7 +238,6 @@ do
 	build)      MODE=build               ;;
 	rebuild)    MODE=rebuild             ;;
 	update)     MODE=update              ;;
-	-static)    STATIC=1                 ;;
 	-version)   XORG_VERSION=$2;  shift  ;;
 	-srcdir)    SRCDIR=$2;        shift  ;;
 	*)          break                    ;;
@@ -284,7 +264,7 @@ if [ "$PREFIX" = "" ]; then
     PREFIX=`pwd`/xorg.build
 fi
 
-if [ $STATIC = 1 -a "$MODE" = "build" ]; then
+if [ "$MODE" = "build" ]; then
     if [ ! -d ./xorg.build/syslib ]; then
 	mkdir -p ./xorg.build/syslib
     fi
@@ -372,11 +352,7 @@ export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/share/pkgconfig"
 case "$MODE" in
     init)       init                 ;;
     build)
-	if [ $STATIC = 1 ]; then
-	    build ${1+"$@"} CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS";
-	else
-	    build ${1+"$@"};
-	fi
+	build ${1+"$@"} CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS";
 	;;
     rebuild)    rebuild ${1+"$@"}    ;;
     update)     update               ;;
