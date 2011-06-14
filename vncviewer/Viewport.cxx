@@ -740,13 +740,6 @@ void Viewport::popupContextMenu()
   const Fl_Menu_Item *m;
   char buffer[1024];
 
-  // FIXME: Hacky workaround for the fact that menus grab and ungrab the
-  //        keyboard. Releasing focus here triggers some events on ungrab
-  //        that DesktopWindow can catch and trigger some voodoo.
-  //        See DesktopWindow::handle().
-  if (window()->contains(Fl::focus()))
-    Fl::focus(NULL);
-
   // Make sure the menu is reset to its initial state between goes or
   // it will start up highlighting the previously selected entry.
   contextMenu->value(-1);

@@ -72,6 +72,8 @@ public:
   int handle(int event);
 
 private:
+  static int fltkHandle(int event, Fl_Window *win);
+
   void grabKeyboard();
   void ungrabKeyboard();
 

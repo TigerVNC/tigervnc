@@ -22,18 +22,23 @@
 
 #import <Cocoa/Cocoa.h>
 
+static bool captured = false;
+
 int cocoa_capture_display(Fl_Window *win)
 {
   NSWindow *nsw;
 
   nsw = (NSWindow*)fl_xid(win);
 
-  // Already captured?
+  if (!captured) {
+    if (CGDisplayCapture(kCGDirectMainDisplay) != kCGErrorSuccess)
+      return 1;
+
+    captured = true;
+  }
+
   if ([nsw level] == CGShieldingWindowLevel())
     return 0;
-
-  if (CGDisplayCapture(kCGDirectMainDisplay) != kCGErrorSuccess)
-    return 1;
 
   [nsw setLevel:CGShieldingWindowLevel()];
 
@@ -45,7 +50,10 @@ void cocoa_release_display(Fl_Window *win)
   NSWindow *nsw;
   int newlevel;
 
-  CGDisplayRelease(kCGDirectMainDisplay);
+  if (captured)
+    CGDisplayRelease(kCGDirectMainDisplay);
+
+  captured = false;
 
   nsw = (NSWindow*)fl_xid(win);
 

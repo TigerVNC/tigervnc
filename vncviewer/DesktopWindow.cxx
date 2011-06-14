@@ -69,6 +69,9 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   OptionsDialog::addCallback(handleOptions, this);
 
+  // Hack. See below...
+  Fl::event_dispatch(&fltkHandle);
+
 #ifdef HAVE_FLTK_FULLSCREEN
   if (fullScreen)
     fullscreen();
@@ -197,9 +200,6 @@ int DesktopWindow::handle(int event)
 {
   switch (event) {
 #ifdef HAVE_FLTK_FULLSCREEN
-  case FL_FOCUS:
-    // FIXME: We reassert the keyboard grabbing on focus/unfocus as FLTK
-    //        releases the grab when someone calls Fl::grab(0)
   case FL_FULLSCREEN:
     if (event == FL_FULLSCREEN)
       fullScreen.setParam(fullscreen_active());
@@ -213,12 +213,6 @@ int DesktopWindow::handle(int event)
       ungrabKeyboard();
 
     break;
-  case FL_UNFOCUS:
-    // FIXME: We need to relinquish control when the entire window loses
-    //        focus as it seems to interfere with the WM:s ability to handle
-    //        interactions with popups' window decorations.
-    ungrabKeyboard();
-    break;
 #endif
   case FL_SHORTCUT:
     // Sometimes the focus gets out of whack and we fall through to the
@@ -231,6 +225,46 @@ int DesktopWindow::handle(int event)
   }
 
   return Fl_Window::handle(event);
+}
+
+
+int DesktopWindow::fltkHandle(int event, Fl_Window *win)
+{
+  int ret;
+
+  ret = Fl::handle_(event, win);
+
+#ifdef HAVE_FLTK_FULLSCREEN
+  // This is hackish and the result of the dodgy focus handling in FLTK.
+  // The basic problem is that FLTK's view of focus and the system's tend
+  // to differ, and as a result we do not see all the FL_FOCUS events we
+  // need. Fortunately we can grab them here...
+
+  DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
+
+  if (dw && fullscreenSystemKeys) {
+    switch (event) {
+    case FL_FOCUS:
+      // FIXME: We reassert the keyboard grabbing on focus as FLTK there are
+      //        some issues we need to work around:
+      //        a) Fl::grab(0) on X11 will release the keyboard grab for us.
+      //        b) Gaining focus on the system level causes FLTK to switch
+      //           window level on OS X.
+      if (dw->fullscreen_active())
+        dw->grabKeyboard();
+      break;
+
+      case FL_UNFOCUS:
+      // FIXME: We need to relinquish control when the entire window loses
+      //        focus as it is very tied to this specific window on some
+      //        platforms and we want to be able to open subwindows.
+      dw->ungrabKeyboard();
+      break;
+    }
+  }
+#endif
+
+  return ret;
 }
 
 
