@@ -1,14 +1,13 @@
 #!/bin/bash
 # -*- mode: shell-script; coding: UTF-8 -*-
 # 
-# Build Xvnc with Xorg 7.4 or 7.5
+# Build Xvnc with Xorg 7.4
 #
 
 set -e
 
 PREFIX=
 MAKE="make"
-XORG_VERSION=
 SRCDIR=`dirname $0`/..
 
 modules="dri2proto \
@@ -50,17 +49,17 @@ modules="dri2proto \
     libfontenc \
     libXfont \
     libpciaccess \
-    pixman"
-
-modules74="fontcacheproto \
+    pixman \
+    fontcacheproto \
     evieext"
+
 
 init()
 {
     update_modules
 
     pushd xorg
-    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/util-macros.tar.bz2
+    tar jxf ~/.tigervnc-xorg-7.4/util-macros.tar.bz2
     pushd util-macros-*
     echo "Building macros"
     ./configure ${1+"$@"} --prefix=${PREFIX}
@@ -69,12 +68,8 @@ init()
 
     pushd xserver
 
-    if [ "$XORG_VERSION" = "7.4" ]; then
-	patch -p1 < $SRCDIR/unix/xserver16.patch
-    else
-	patch -p1 < $SRCDIR/unix/xserver18.patch
-    fi
-    for all in `find $SRCDIR/unix/xorg-$XORG_VERSION-patches/ -type f |grep '.*\.patch$'`; do
+    patch -p1 < $SRCDIR/unix/xserver16.patch
+    for all in `find $SRCDIR/unix/xorg-7.4-patches/ -type f |grep '.*\.patch$'`; do
 	echo Applying $all
 	patch -p1 < $all
     done
@@ -96,18 +91,18 @@ update_modules()
     if [ -d xorg.build ]; then rm -rf xorg.build; fi
     mkdir xorg
     pushd xorg
-    $SRCDIR/unix/download-xorg-$XORG_VERSION
+    $SRCDIR/unix/download-xorg-7.4
     for module in ${modules}; do
-        tar jxf ~/.tigervnc-xorg-$XORG_VERSION/${module}.tar.bz2
+        tar jxf ~/.tigervnc-xorg-7.4/${module}.tar.bz2
     done
 
-    [ -r ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2 ] && \
-        tar jxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2
-    [ -r ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.gz ] && \
-        tar zxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.gz
+    [ -r ~/.tigervnc-xorg-7.4/Mesa.tar.bz2 ] && \
+        tar jxf ~/.tigervnc-xorg-7.4/Mesa.tar.bz2
+    [ -r ~/.tigervnc-xorg-7.4/Mesa.tar.gz ] && \
+        tar zxf ~/.tigervnc-xorg-7.4/Mesa.tar.gz
 
-    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/freetype.tar.bz2
-    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/xorg-server.tar.bz2
+    tar jxf ~/.tigervnc-xorg-7.4/freetype.tar.bz2
+    tar jxf ~/.tigervnc-xorg-7.4/xorg-server.tar.bz2
     cp -r $SRCDIR/unix/xserver xserver
     cp -r xorg-server-1.*/* xserver
     popd
@@ -214,14 +209,13 @@ rebuild ()
 
 usage ()
 {
-    echo "Usage: $0  init -version <7.4 | 7.5>"
+    echo "Usage: $0  init"
     echo
-    echo "       $0  build -version <7.4 | 7.5>"
-    echo "       [additional configure flags]"
+    echo "       $0  build [additional configure flags]"
     echo
     echo "       $0  rebuild [additional make options]"
     echo
-    echo "       $0  update -version <7.4 | 7.5>"
+    echo "       $0  update"
     echo
     exit 1
 }
@@ -238,18 +232,11 @@ do
 	build)      MODE=build               ;;
 	rebuild)    MODE=rebuild             ;;
 	update)     MODE=update              ;;
-	-version)   XORG_VERSION=$2;  shift  ;;
 	-srcdir)    SRCDIR=$2;        shift  ;;
 	*)          break                    ;;
     esac
     shift
 done
-
-case "$XORG_VERSION" in
-    7.4)  modules=$modules" "$modules74  ;;
-    7.5)  ;;
-    *)    if [ ! "$MODE" = "rebuild" ]; then usage; fi  ;;
-esac
 
 pushd $SRCDIR
 SRCDIR=`pwd`
