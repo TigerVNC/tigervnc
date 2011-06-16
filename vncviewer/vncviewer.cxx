@@ -124,6 +124,14 @@ static void init_fltk()
   fl_close  = _("Close");
 
 #ifdef __APPLE__
+  Fl_Mac_App_Menu::about = _("About ");
+  Fl_Mac_App_Menu::print = ""; // Don't want the print item
+  Fl_Mac_App_Menu::services = _("Services");
+  Fl_Mac_App_Menu::hide = _("Hide ");
+  Fl_Mac_App_Menu::hide_others = _("Hide Others");
+  Fl_Mac_App_Menu::show = _("Show All");
+  Fl_Mac_App_Menu::quit = _("Quit ");
+
   fl_mac_set_about(about_callback, NULL);
 #endif
 }
