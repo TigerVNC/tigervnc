@@ -140,11 +140,20 @@ int PlatformPixelBuffer::getStride() const
   return xim->bytes_per_line / (getPF().bpp/8);
 }
 
+static bool caughtError;
+
+static int XShmAttachErrorHandler(Display *dpy, XErrorEvent *error)
+{
+  caughtError = true;
+  return 0;
+}
 
 int PlatformPixelBuffer::setupShm()
 {
   int major, minor;
   Bool pixmaps;
+  XErrorHandler old_handler;
+  Status status;
 
   if (!XShmQueryVersion(fl_display, &major, &minor, &pixmaps))
     return 0;
@@ -167,11 +176,26 @@ int PlatformPixelBuffer::setupShm()
     goto free_shm;
 
   shminfo->readOnly = True;
+
+  // This is the only way we can detect that shared memory won't work
+  // (e.g. because we're accessing a remote X11 server)
+  caughtError = false;
+  old_handler = XSetErrorHandler(XShmAttachErrorHandler);
+
   XShmAttach(fl_display, shminfo);
+  XSync(fl_display, False);
+
+  XSetErrorHandler(old_handler);
+
+  if (caughtError)
+    goto free_shmaddr;
 
   vlog.debug("Using shared memory XImage");
 
   return 1;
+
+free_shmaddr:
+  shmdt(shminfo->shmaddr);
 
 free_shm:
   shmctl(shminfo->shmid, IPC_RMID, 0);
