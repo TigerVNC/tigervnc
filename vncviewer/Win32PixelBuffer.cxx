@@ -33,18 +33,6 @@ using namespace rfb;
 
 static rfb::LogWriter vlog("PlatformPixelBuffer");
 
-struct BitmapInfo {
-  BITMAPINFOHEADER bmiHeader;
-  union {
-    struct {
-      DWORD red;
-      DWORD green;
-      DWORD blue;
-    } mask;
-    RGBQUAD color[256];
-  };
-};
-
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                         255, 255, 255, 16, 8, 0),
