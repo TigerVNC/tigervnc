@@ -33,6 +33,7 @@ public class ZlibInStream extends InStream {
     b = new byte[bufSize];
     bytesIn = offset = 0;
     zs = new ZStream();
+    zs.next_in = null;
     zs.next_in_index = 0;
     zs.avail_in = 0;
     if (zs.inflateInit() != JZlib.Z_OK) {
@@ -112,6 +113,7 @@ public class ZlibInStream extends InStream {
     int n = underlying.check(1, 1, wait);
     if (n == 0) return false;
     zs.next_in = underlying.getbuf();
+    zs.next_in_index = underlying.getptr();
     zs.avail_in = underlying.getend() - underlying.getptr();
     if (zs.avail_in > bytesIn)
       zs.avail_in = bytesIn;
