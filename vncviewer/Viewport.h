@@ -36,10 +36,15 @@
 #if defined(WIN32)
 #include "Win32PixelBuffer.h"
 #elif defined(__APPLE__)
-#include "PlatformPixelBuffer.h"
+#include "OSXPixelBuffer.h"
 #else
 #include "X11PixelBuffer.h"
 #endif
+
+// We also have a generic version of the above, using pure FLTK:
+//
+// #include "PlatformPixelBuffer.h"
+//
 
 class CConn;
 
