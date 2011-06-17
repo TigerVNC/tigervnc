@@ -26,7 +26,7 @@ SOURCES = CConn.java OptionsDialogCallback.java ClipboardDialog.java \
 
 all: $(CLASSES) $(ARCHIVE)
 
-$(CLASSES): $(SOURCES) ../rfb/*.java ../rdr/*.java
+$(CLASSES): $(SOURCES) ../rfb/*.java ../rdr/*.java ../../jcraft/jzlib/*.java
 	$(JC) $(JCFLAGS) -O $(SOURCES)
 
 $(ARCHIVE): $(CLASSES) $(MANIFEST) $(TIMESTAMP)
@@ -37,6 +37,7 @@ $(ARCHIVE): $(CLASSES) $(MANIFEST) $(TIMESTAMP)
 		com/tigervnc/vncviewer/*.class \
 		com/tigervnc/rfb/*.class \
 		com/tigervnc/rdr/*.class \
+		com/jcraft/jzlib/*.class \
 		com/tigervnc/vncviewer/tigervnc.png \
 		com/tigervnc/vncviewer/tigervnc.ico
 
@@ -53,4 +54,4 @@ export:: $(CLASSES) $(ARCHIVE) $(PAGES)
 	@$(ExportJavaClasses)
 
 clean::
-	$(RM) *.class *.jar timestamp ../rfb/*.class ../rdr/*.class
+	$(RM) *.class *.jar timestamp ../rfb/*.class ../rdr/*.class ../../jcraft/jzlib/*.class

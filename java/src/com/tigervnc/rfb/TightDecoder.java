@@ -201,7 +201,7 @@ public class TightDecoder extends Decoder {
       } else {
         if (cutZeros) {
           byte[] elem = new byte[3];
-          for (int i = 0; i < r.width() * r.height(); i++) {
+          for (int i = 0; i < r.area(); i++) {
             input.readBytes(elem, 0, 3);
             if (bigEndian) {
               buf[i] =
@@ -212,35 +212,33 @@ public class TightDecoder extends Decoder {
             }
           }
         } else {
-          for (int i = 0; i < r.width() * r.height(); i++) {
-            buf[i] = input.readU8();
-          }
+          input.readBytes(buf, 0, dataSize);
         }
       }
     } else {
+      int x, y, b;
       int ptr = 0;
       int bits;
       if (palSize <= 2) {
         // 2-color palette
-        int dw = (r.width() + 7) / 8;
-        for (int dy = 0; dy < r.height(); dy++) {
-          for (int dx = 0; dx < r.width() / 8; dx++) {
+        for (y = 0; y < r.height(); y++) {
+          for (x = 0; x < r.width() / 8; x++) {
             bits = input.readU8();
-            for(int b = 7; b >= 0; b--) {
+            for(b = 7; b >= 0; b--) {
               buf[ptr++] = palette[bits >> b & 1];
             }
           }
           if (r.width() % 8 != 0) {
             bits = input.readU8();
-            for (int b = 7; b >= 8 - r.width() % 8; b--) {
+            for (b = 7; b >= 8 - r.width() % 8; b--) {
               buf[ptr++] = palette[bits >> b & 1];
             }
           }
         }
       } else {
         // 256-color palette
-        for (int dy = 0; dy < r.height(); dy++) {
-          for (int dx = 0; dx < r.width(); dx++) {
+        for (y = 0; y < r.height(); y++) {
+          for (x = 0; x < r.width(); x++) {
             buf[ptr++] = palette[input.readU8()];
           }
         }

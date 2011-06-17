@@ -85,7 +85,7 @@ public class JavaInStream extends InStream {
 
   public long timeWaited() { return timeWaitedIn100us; }
 
-  protected int overrun(int itemSize, int nItems) {
+  protected int overrun(int itemSize, int nItems, boolean wait) {
     if (itemSize > bufSize)
       throw new Exception("JavaInStream overrun: max itemSize exceeded");
 

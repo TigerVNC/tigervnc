@@ -1,0 +1,115 @@
+ChangeLog of JZlib
+====================================================================
+Last modified: Thu Aug 18 16:16:06 UTC 2005
+
+	
+Changes since version 1.0.6:	
+- change: memory and performance optimizations in the inflate operation.
+  Many thanks to Paul Wakefield at platx.org(http://www.platx.org), who 
+  suggested above improvements.
+- change: added the nowrap argument to Z{Input,Output}?Stream.
+
+	
+Changes since version 1.0.5:
+- ZInputStream.read(byte[], int, int) method return sometimes zero 
+  instead of -1 at the end of stream.
+- ZOutputStream.end() method should not declare IOException.
+- It should be possible to call ZOutputStream.end() method more times 
+  (because you can call	close() method and after it end() method in 
+   finally block).
+- ZOutputStream.finish() method should not ignore IOException from flush().
+Many thanks to Matej Kraus at seznam.cz , who pointed out above problems.
+
+	
+Changes since version 1.0.4:
+- a minor bug fix in ZInputStream
+
+	
+Changes since version 1.0.3:
+- fixed a bug in closing ZOutputStream.
+  The inflating and deflating processes were not finished successfully.
+- added 'finish' and 'end' methods to ZOutputStream.java
+- added 'example/test_stream_deflate_inflate.java'
+
+	
+Changes since version 1.0.2:
+- enabled pure Java implementation of adler32 and
+  commented out the dependency on J2SE in Adler32.java for J2ME users.
+
+	
+Changes since version 1.0.1:
+- fixed a bug in deflating some trivial data, for example,
+  large data chunk filled with zero.	
+- added 'version' method to JZlib class.
+
+	
+Changes since version 1.0.0:
+- added ZInputStream and ZOutputStream classes.
+- fixed a typo in LICENSE.txt.
+
+	
+Changes since version 0.0.9:
+- fixed a bug in setting a dictionary in the inflation process.
+- The license was changed to a BSD style license.
+- Z{Input,Output}Stream classes were deleted.
+	
+	
+Changes since version 0.0.8:
+- fixed a bug in handling a preset dictionary in the inflation process.
+
+	
+Changes since version 0.0.7:
+- added methods to control the window size (the size of the history
+  buffer) and to handle the no-wrap option (no zlib header or check),
+  which is the undocumented functionality of zlib.
+
+	
+Changes since version 0.0.6:
+- updated InfBlocks.java as zlib did to fix the vulnerability related to
+  the 'double free'. Of course, JZlib is free from such a vulnerability
+  like the 'double free', but JZlib had crashed with NullPointerException
+  by a specially-crafted block of invalid deflated data.	
+
+	
+Changes since version 0.0.5:
+- added 'flush()' method to com.jcraft.jzlib.ZOutputStream.
+- fixed to take care when occurring the buffer overflow in 
+  com.jcraft.jzlib.ZOutputStream.
+Many thanks to Tim Bendfelt at cs.wisc.edu , who pointed out above problems.
+	
+	
+Changes since version 0.0.4:
+............................
+- fixed a bug in Adler32 class.
+- fixed a bug in ZInputStream class
+- modified ZInputStream to be extended from InputStream
+  instead of FileInputStream.
+- modified ZOutputStream to be extended from OutputStream
+  instead of FileOutputStream.
+- modified ZStream to be changeable wbits. Give wbits value to
+  the method 'deflateInit' of ZStream.	 
+Many thanks to Bryan Keller<keller@neomar.com>, who reported bugs
+and made suggestions.
+
+	
+Changes since version 0.0.3:
+............................
+- fixed a bug in the compression level 0.
+- modified to be compatible with JIKES's bug.
+- added Z[Input,Output]Stream written by Lapo Luchini<lapo@lapo.it>.
+
+
+Changes since version 0.0.2:
+............................
+- fixed a critical bug, which had arisen in the deflating operation with
+  NO_FLUSH and DEFAULT_COMPRESSION mode.
+  Many thanks to Bryan Keller(keller@neomar.com), who reported this glitch.
+
+
+Changes since version 0.0.1:
+............................
+- fixed the bad compression ratio problem, which is reported from
+  Martin Smith(martin@spamcop.net). The compression ratio was not so good
+  compared with the compression ration of zlib. Now, this problem has been
+  fixed	and, I hope, that deflated files by JZlib and zlib are completely
+  same bit by bit.

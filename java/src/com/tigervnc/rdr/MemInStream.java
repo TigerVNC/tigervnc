@@ -28,7 +28,7 @@ public class MemInStream extends InStream {
 
   public int pos() { return ptr; }
 
-  protected int overrun(int itemSize, int nItems) {
+  protected int overrun(int itemSize, int nItems, boolean wait) {
     throw new EndOfStream();
   }
 }

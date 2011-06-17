@@ -1,0 +1,124 @@
+
+                                     JZlib
+
+                               zlib in pure Java(TM)
+                                by ymnk@jcraft.com, JCraft,Inc.
+
+                          http://www.jcraft.com/jzlib/
+
+Last modified: Fri Feb 14 13:31:26 UTC 2003
+
+Description
+===========
+JZlib is a re-implementation of zlib in pure Java.
+The first and final aim for hacking this stuff is
+to add the packet compression support to pure Java SSH systems.
+
+
+Documentation
+=============
+* README files all over the source tree have info related to the stuff
+  in the directories. 
+* ChangeLog: what changed from the previous version?
+* LICENSE.txt
+
+
+Directories & Files in the Source Tree
+======================================
+* com/ has source trees of JZlib.
+* example/ has some samples, which demonstrate the usages.
+* misc/ has some stuffs. At present, this directory includes
+  a patch file for MindTerm v.1.2.1, which adds the packet compression
+  functionality.
+
+
+Features
+========
+* Needless to say, JZlib can inflate data, which is deflated by zlib and
+  JZlib can generate deflated data, which is acceptable and inflated by zlib.
+* JZlib supports all compression level and all flushing mode in zlib. 
+* JZlib does not support gzip file handling supports.
+* The performance has not been estimated yet,  but it will be not so bad
+  in deflating/inflating data stream on the low bandwidth network.
+* JZlib is licensed under BSD style license.
+* Any invention has not been done in developing JZlib.
+  So, if zlib is patent free, JZlib is also not covered by any patents.
+
+
+Why JZlib?
+==========
+Java Platform API provides packages 'java.util.zip.*' for
+accessing to zlib, but that support is very limited 
+if you need to use the essence of zlib. For example,
+we needed to full access to zlib to add the packet compression
+support to pure Java SSH system, but they are useless for our requirements.
+The Internet draft, SSH Transport Layer Protocol, says in the section '4.2 Compression' as follows,
+
+  The following compression methods are currently defined:
+    none  REQUIRED  no compression
+    zlib  OPTIONAL  GNU ZLIB (LZ77) compression
+  The "zlib" compression is described in [RFC-1950] and in [RFC-1951]. The
+  compression context is initialized after each key exchange, and is
+  passed from one packet to the next with only a partial flush being
+  performed at the end of each packet. A partial flush means that all data
+  will be output, but the next packet will continue using compression
+  tables from the end of the previous packet.
+
+To implement this functionality, the Z_PARTIAL_FLUSH mode of zlib must be
+used, however JDK does not permit us to do so. It seems that this problem has
+been well known and some people have already reported to 
+JavaSoft's BugParade(for example, BugId:4255743), 
+but any positive response has not been returned from JavaSoft, 
+so this problem will not be solved forever. 
+This is our motivation to hack JZlib.
+
+
+A unofficial patch for MindTerm v.1.2.1
+=======================================
+A unofficial patch file for MindTerm v.1.2.1 has included in 'misc' directory.
+It adds the packet compression support to MindTerm. 
+Please refer to 'misc/README' file.
+
+
+Copyrights & Disclaimers
+========================
+JZlib is copyrighted by ymnk, JCraft,Inc. and is licensed through BSD
+style license.  Read the LICENSE.txt file for the complete license.
+ZInputStream and ZOutputStream classes were contributed by Lapo Luchini.
+
+
+Credits
+=======
+JZlib has been developed by ymnk@jcraft.com,
+but he has just re-implemented zlib in pure Java.
+So, all credit should go to authors Jean-loup Gailly and Mark Adler
+and contributors of zlib.  Here is the copyright notice of zlib version 1.1.3,
+
+  |Copyright (C) 1995-1998 Jean-loup Gailly and Mark Adler
+  |
+  |This software is provided 'as-is', without any express or implied
+  |warranty.  In no event will the authors be held liable for any damages
+  |arising from the use of this software.
+  |
+  |Permission is granted to anyone to use this software for any purpose,
+  |including commercial applications, and to alter it and redistribute it
+  |freely, subject to the following restrictions:
+  |
+  |1. The origin of this software must not be misrepresented; you must not
+  |   claim that you wrote the original software. If you use this software
+  |   in a product, an acknowledgment in the product documentation would be
+  |   appreciated but is not required.
+  |2. Altered source versions must be plainly marked as such, and must not be
+  |   misrepresented as being the original software.
+  |3. This notice may not be removed or altered from any source distribution.
+  |
+  |Jean-loup Gailly        Mark Adler
+  |jloup@gzip.org          madler@alumni.caltech.edu
+
+
+If you have any comments, suggestions and questions, write us 
+at jzlib@jcraft.com
+
+
+``SSH is a registered trademark and Secure Shell is a trademark of
+SSH Communications Security Corp (www.ssh.com)''.

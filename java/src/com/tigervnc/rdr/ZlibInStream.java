@@ -21,58 +21,79 @@
 //
 
 package com.tigervnc.rdr;
+import com.jcraft.jzlib.*;
 
 public class ZlibInStream extends InStream {
 
   static final int defaultBufSize = 16384;
 
-  public ZlibInStream(int bufSize_) {
+  public ZlibInStream(int bufSize_) 
+  {
     bufSize = bufSize_;
     b = new byte[bufSize];
-    ptr = end = ptrOffset = 0;
-    inflater = new java.util.zip.Inflater();
+    bytesIn = offset = 0;
+    zs = new ZStream();
+    zs.next_in_index = 0;
+    zs.avail_in = 0;
+    if (zs.inflateInit() != JZlib.Z_OK) {
+      zs = null;
+      throw new Exception("ZlinInStream: inflateInit failed");
+    }
+    ptr = end = start = 0;
   }
 
   public ZlibInStream() { this(defaultBufSize); }
 
-  public void setUnderlying(InStream is, int bytesIn_) {
-    underlying = is;
-    bytesIn = bytesIn_;
-    ptr = end = 0;
+  protected void finalize() throws Throwable {
+    b = null;
+    zs.inflateEnd();
   }
 
-  public void reset() {
-    ptr = end = 0;
+  public void setUnderlying(InStream is, int bytesIn_)
+  {
+    underlying = is;
+    bytesIn = bytesIn_;
+    ptr = end = start;
+  }
+
+  public int pos() 
+  {
+    return offset + ptr - start;
+  }
+
+  public void reset() 
+  {
+    ptr = end = start;
     if (underlying == null) return;
 
     while (bytesIn > 0) {
-      decompress();
-      end = 0; // throw away any data
+      decompress(true);
+      end = start; // throw away any data
     }
     underlying = null;
   }
 
-  public int pos() { return ptrOffset + ptr; }
-
-  protected int overrun(int itemSize, int nItems) {
+  protected int overrun(int itemSize, int nItems, boolean wait) 
+  {
     if (itemSize > bufSize)
       throw new Exception("ZlibInStream overrun: max itemSize exceeded");
     if (underlying == null)
       throw new Exception("ZlibInStream overrun: no underlying stream");
 
     if (end - ptr != 0)
-      System.arraycopy(b, ptr, b, 0, end - ptr);
+      System.arraycopy(b, ptr, b, start, end - ptr);
 
-    ptrOffset += ptr;
-    end -= ptr;
-    ptr = 0;
+    offset += ptr - start;
+    end -= ptr - start;
+    ptr = start;
 
-    while (end < itemSize) {
-      decompress();
+    while (end - ptr < itemSize) {
+      if (!decompress(wait))
+        return 0;
     }
 
-    if (itemSize * nItems > end)
-      nItems = end / itemSize;
+    if (itemSize * nItems > end - ptr)
+      nItems = (end - ptr) / itemSize;
 
     return nItems;
   }
@@ -82,32 +103,34 @@ public class ZlibInStream extends InStream {
   // data.  Returns false if wait is false and we would block on the underlying
   // stream.
 
-  private void decompress() {
-    try {
-      underlying.check(1);
-      int avail_in = underlying.getend() - underlying.getptr();
-      if (avail_in > bytesIn)
-        avail_in = bytesIn;
+  private boolean decompress(boolean wait) 
+  {
+    zs.next_out = b;
+    zs.next_out_index = end;
+    zs.avail_out = start + bufSize - end;
 
-      if (inflater.needsInput()) {
-        inflater.setInput(underlying.getbuf(), underlying.getptr(), avail_in);
-      }
+    int n = underlying.check(1, 1, wait);
+    if (n == 0) return false;
+    zs.next_in = underlying.getbuf();
+    zs.avail_in = underlying.getend() - underlying.getptr();
+    if (zs.avail_in > bytesIn)
+      zs.avail_in = bytesIn;
 
-      int n = inflater.inflate(b, end, bufSize - end); 
-
-      end += n;
-      if (inflater.needsInput()) {
-        bytesIn -= avail_in;
-        underlying.setptr(underlying.getptr() + avail_in);
-      }
-    } catch (java.util.zip.DataFormatException e) {
+    int rc = zs.inflate(JZlib.Z_SYNC_FLUSH);   
+    if (rc != JZlib.Z_OK) {
       throw new Exception("ZlibInStream: inflate failed");
     }
+
+    bytesIn -= zs.next_in_index - underlying.getptr();
+    end = zs.next_out_index;
+    underlying.setptr(zs.next_in_index);
+    return true;
   }
 
   private InStream underlying;
   private int bufSize;
-  private int ptrOffset;
-  private java.util.zip.Inflater inflater;
+  private int offset;
+  private com.jcraft.jzlib.ZStream zs;
   private int bytesIn;
+  private int start;
 }

@@ -29,27 +29,24 @@ abstract public class InStream {
   // itemSize bytes.  Returns the number of items in the buffer (up to a
   // maximum of nItems).
 
-  public int check(int itemSize, int nItems) {
+  public int check(int itemSize, int nItems, boolean wait) {
     if (ptr + itemSize * nItems > end) {
       if (ptr + itemSize > end)
-        return overrun(itemSize, nItems);
+        return overrun(itemSize, nItems, wait);
 
       nItems = (end - ptr) / itemSize;
     }
     return nItems;
   }
 
-  public final int check(int itemSize) {
-    if (ptr + itemSize > end)
-      return overrun(itemSize, 1);
-    return 1;
-  }
+  public int check(int itemSize, int nItems) { return check(itemSize, nItems, true); }
+  public int check(int itemSize) { return check(itemSize, 1); }
 
   // checkNoWait() tries to make sure that the given number of bytes can
   // be read without blocking.  It returns true if this is the case, false
   // otherwise.  The length must be "small" (less than the buffer size).
 
-  public final boolean checkNoWait(int length) { return check(length, 1)!=0; }
+  public final boolean checkNoWait(int length) { return check(length, 1, false)!=0; }
 
   // readU/SN() methods read unsigned and signed N-bit integers.
 
@@ -100,23 +97,23 @@ abstract public class InStream {
 
   // readBytes() reads an exact number of bytes into an array at an offset.
 
-  public void readBytes(byte[] data, int offset, int length) {
-    int offsetEnd = offset + length;
-    while (offset < offsetEnd) {
-      int n = check(1, offsetEnd - offset);
-      System.arraycopy(b, ptr, data, offset, n);
+  public void readBytes(byte[] data, int dataPtr, int length) {
+    int dataEnd = dataPtr + length;
+    while (dataPtr < dataEnd) {
+      int n = check(1, dataEnd - dataPtr);
+      System.arraycopy(b, ptr, data, dataPtr, n);
       ptr += n;
-      offset += n;
+      dataPtr += n;
     }
   }
 
-  public void readBytes(int[] data, int offset, int length) {
-    int offsetEnd = offset + length;
-    while (offset < offsetEnd) {
-      int n = check(1, offsetEnd - offset);
-      System.arraycopy(b, ptr, data, offset, n);
+  public void readBytes(int[] data, int dataPtr, int length) {
+    int dataEnd = dataPtr + length;
+    while (dataPtr < dataEnd) {
+      int n = check(1, dataEnd - dataPtr);
+      System.arraycopy(b, ptr, data, dataPtr, n);
       ptr += n;
-      offset += n;
+      dataPtr += n;
     }
   }
 
@@ -187,7 +184,7 @@ abstract public class InStream {
   // the number of items in the buffer (up to a maximum of nItems).  itemSize
   // is supposed to be "small" (a few bytes).
 
-  abstract protected int overrun(int itemSize, int nItems);
+  abstract protected int overrun(int itemSize, int nItems, boolean wait);
 
   protected InStream() {}
   protected byte[] b;
