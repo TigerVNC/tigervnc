@@ -8,7 +8,7 @@ set -e
 
 PREFIX=
 MAKE="make"
-XORG_VERSION=
+XORG_VERSION=7.4
 SRCDIR=`dirname $0`/..
 
 modules="dri2proto \
@@ -214,14 +214,14 @@ rebuild ()
 
 usage ()
 {
-    echo "Usage: $0  init -version <7.4 | 7.5>"
+    echo "Usage: $0  init [-version <7.4 | 7.5>]"
     echo
-    echo "       $0  build -version <7.4 | 7.5>"
+    echo "       $0  build [-version <7.4 | 7.5>]"
     echo "       [additional configure flags]"
     echo
     echo "       $0  rebuild [additional make options]"
     echo
-    echo "       $0  update -version <7.4 | 7.5>"
+    echo "       $0  update [-version <7.4 | 7.5>]"
     echo
     exit 1
 }
