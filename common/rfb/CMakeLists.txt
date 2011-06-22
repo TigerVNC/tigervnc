@@ -72,6 +72,12 @@ endif(WIN32)
 
 set(RFB_LIBRARIES ${JPEG_LIBRARIES} os)
 
+if(HAVE_PAM)
+  set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
+    UnixPasswordValidator.h pam.c pam.h)
+  set(RFB_LIBRARIES ${RFB_LIBRARIES} ${PAM_LIBS})
+endif()
+
 if(GNUTLS_FOUND)
   set(RFB_SOURCES
     ${RFB_SOURCES}

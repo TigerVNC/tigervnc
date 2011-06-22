@@ -253,6 +253,21 @@ if(ENABLE_GNUTLS)
   endif()
 endif()
 
+# Check for PAM library
+option(ENABLE_PAM "Enable PAM authentication support" ON)
+if(ENABLE_PAM)
+  check_include_files(security/pam_appl.h HAVE_PAM_H)
+  set(CMAKE_REQUIRED_LIBRARIES -lpam)
+  check_function_exists(pam_start HAVE_PAM_START)
+  set(CMAKE_REQUIRED_LIBRARIES)
+  if(HAVE_PAM_H AND HAVE_PAM_START)
+    set(PAM_LIBS pam)
+  else()
+    set(ENABLE_PAM 0)
+  endif()
+endif()
+set(HAVE_PAM ${ENABLE_PAM})
+
 # Check for socket functions
 if(WIN32)
   set(CMAKE_EXTRA_INCLUDE_FILES winsock2.h ws2tcpip.h)
