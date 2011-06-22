@@ -21,32 +21,32 @@ macro(libtool_create_control_file _target)
       # Check if we have shared extenstion or not
       if("${library}" MATCHES ".+\\${CMAKE_SHARED_LIBRARY_SUFFIX}$")
         # We got an shared library lets cut it down to path and library name then
-	# add to libtool dependency libs, we always assume this is a absoult path
-	# because this is how cmake does..
-	get_filename_component(_shared_lib ${library} NAME_WE)
-	get_filename_component(_shared_lib_path ${library} PATH)
-	string(REPLACE "lib" "" _shared_lib ${_shared_lib})
+        # add to libtool dependency libs, we always assume this is a absoult path
+        # because this is how cmake does..
+        get_filename_component(_shared_lib ${library} NAME_WE)
+        get_filename_component(_shared_lib_path ${library} PATH)
+        string(REPLACE "lib" "" _shared_lib ${_shared_lib})
         set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
       else()
-	# No shared library suffix found, might also be a cmake target.
-	# Dont continue if we have a target name as lib	due to we
-	# assume static linkage against out targets
-	get_target_property(_ltp ${library} TYPE)
-	if(${_ltp})
-	  # No cmake target soo let's use find_library to see if we found any useful to use
-  	  find_library(FL ${library})
-	  if(FL)
-	    # Found library, lets cut it down to make libtool happy
-    	    get_filename_component(_shared_lib ${FL} NAME_WE)
-	    get_filename_component(_shared_lib_path ${FL} PATH)
-	    string(REPLACE "lib" "" _shared_lib ${_shared_lib})
+        # No shared library suffix found, might also be a cmake target.
+        # Dont continue if we have a target name as lib due to we
+        # assume static linkage against out targets
+        get_target_property(_ltp ${library} TYPE)
+        if(${_ltp})
+          # No cmake target soo let's use find_library to see if we found any useful to use
+          find_library(FL ${library})
+          if(FL)
+            # Found library, lets cut it down to make libtool happy
+            get_filename_component(_shared_lib ${FL} NAME_WE)
+            get_filename_component(_shared_lib_path ${FL} PATH)
+            string(REPLACE "lib" "" _shared_lib ${_shared_lib})
             set(_target_dependency_libs "${_target_dependency_libs} -L${_share_lib_path} -l${_shared_lib}")
-	  else()
-	    # Nothing found, lets ignore it
-	  endif()
-	else()
-	  # taget detected lets ignore it
-	endif()
+          else()
+            # Nothing found, lets ignore it
+          endif()
+        else()
+          # taget detected lets ignore it
+        endif()
       endif()
     else()
       # Detected a static library, we want the absolute path so lets check if we have that
@@ -54,17 +54,17 @@ macro(libtool_create_control_file _target)
       get_filename_component(_name ${library} NAME)
       string(REPLACE "${_name}" "" _path ${library})
       if(NOT "${_path}" MATCHES "")
-      	# We got a full path to static library lets add as is to libtool library dependencies
+        # We got a full path to static library lets add as is to libtool library dependencies
         set(_target_dependency_libs "${_target_dependency_libs} ${library}")
       else()
         # there no path for the static library lets use find_library to find one
-	find_library(FL ${library})
-	if(FL)
-	  # got the library lets add it..
-	  set(_target_dependency_libs "${_target_dependency_libs} ${FL}")
-	else()
-	  # Nothing found, let's ignore it
-	endif()
+        find_library(FL ${library})
+        if(FL)
+          # got the library lets add it..
+          set(_target_dependency_libs "${_target_dependency_libs} ${FL}")
+        else()
+          # Nothing found, let's ignore it
+        endif()
       endif()
     endif()
   endforeach()
