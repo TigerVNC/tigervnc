@@ -1,75 +1,79 @@
 macro(libtool_create_control_file _target)
-  # Get target properties to fill into control file
   get_target_property(_target_location ${_target} LOCATION)
   get_target_property(_target_type ${_target} TYPE)
 
   message("-- Creating static libtool control file for target ${_target}")
-  # No support for shared libraries as tigervnc only needs libtool config files
-  # for static libraries
+  # No support for shared libraries, as TigerVNC only needs libtool config
+  # files for static libraries.
   if("${_target_type}" MATCHES "^[^STATIC_LIBRARY]$")
-    message(ERROR " -  trying to use libtool_create_control_file on non static library target.")
+    message(ERROR " -  trying to use libtool_create_control_file for non-static library target.")
   endif()
 
   #
-  # Parse the target_LIB_DEPENDS of libraries to put into libtool control file
-  # as library dependencies and handle a few corners...
+  # Parse the target_LIB_DEPENDS variable to determine which libraries to put
+  # into libtool control file as library dependencies, and handle a few corner
+  # cases.
   #
   foreach(library ${${_target}_LIB_DEPENDS})
-    # Assume all entries as shared if not platform specific static library
-    # extension is matched
+    # Assume all entries are shared libs if platform-specific static library
+    # extension is not matched.
     if("${library}" MATCHES "[^.+\\${CMAKE_STATIC_LIBRARY_SUFFIX}]$")
-      # Check if we have shared extenstion or not
       if("${library}" MATCHES ".+\\${CMAKE_SHARED_LIBRARY_SUFFIX}$")
-        # We got an shared library lets cut it down to path and library name then
-        # add to libtool dependency libs, we always assume this is a absoult path
-        # because this is how cmake does..
+        # Shared library extension matched, so extract the path and library
+        # name, then add the result to the libtool dependency libs.  This
+        # will always be an absolute path, because that's what CMake uses
+        # internally.
         get_filename_component(_shared_lib ${library} NAME_WE)
         get_filename_component(_shared_lib_path ${library} PATH)
         string(REPLACE "lib" "" _shared_lib ${_shared_lib})
         set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
       else()
-        # No shared library suffix found, might also be a cmake target.
-        # Dont continue if we have a target name as lib due to we
-        # assume static linkage against out targets
+        # No shared library extension matched.  Check whether target is a CMake
+        # target.
         get_target_property(_ltp ${library} TYPE)
         if(${_ltp})
-          # No cmake target soo let's use find_library to see if we found any useful to use
+          # Not a CMake target, so use find_library() to attempt to locate the
+          # library in a system directory.
           find_library(FL ${library})
           if(FL)
-            # Found library, lets cut it down to make libtool happy
+            # Found library, so extract the path and library name, then add the
+            # result to the libtool dependency libs.
             get_filename_component(_shared_lib ${FL} NAME_WE)
             get_filename_component(_shared_lib_path ${FL} PATH)
             string(REPLACE "lib" "" _shared_lib ${_shared_lib})
             set(_target_dependency_libs "${_target_dependency_libs} -L${_share_lib_path} -l${_shared_lib}")
           else()
-            # Nothing found, lets ignore it
+            # No shared library found, so ignore target.
           endif()
         else()
-          # taget detected lets ignore it
+          # Target is a CMake target, so ignore if (CMake targets are static
+          # libs in TigerVNC.)
         endif()
       endif()
     else()
-      # Detected a static library, we want the absolute path so lets check if we have that
-      # if not try use find_library to get one
+      # Detected a static library.  Check whether the library pathname is
+      # absolute and, if not, use find_library() to get the abolute path.
       get_filename_component(_name ${library} NAME)
       string(REPLACE "${_name}" "" _path ${library})
       if(NOT "${_path}" MATCHES "")
-        # We got a full path to static library lets add as is to libtool library dependencies
+      	# Pathname is absolute, so add it to the libtool library dependencies
+        # as-is.
         set(_target_dependency_libs "${_target_dependency_libs} ${library}")
       else()
-        # there no path for the static library lets use find_library to find one
+        # Pathname is not absolute, so use find_library() to get the absolute
+        # path.
         find_library(FL ${library})
         if(FL)
-          # got the library lets add it..
+          # Absolute pathname found.  Add it.
           set(_target_dependency_libs "${_target_dependency_libs} ${FL}")
         else()
-          # Nothing found, let's ignore it
+          # No absolute pathname found.  Ignore it.
         endif()
       endif()
     endif()
   endforeach()
 
-  # Write the libtool control file for static library
+  # Write the libtool control file for the static library
   get_filename_component(_lname ${_target_location} NAME_WE)
   set(_laname ${CMAKE_CURRENT_BINARY_DIR}/${_lname}.la)
  
@@ -90,8 +94,8 @@ macro(libtool_create_control_file _target)
   file(APPEND ${_laname} "libdir=''\n\n")
 
 
-  # Add custom command to symlink the static library so that autotools finds the library in .libs
-  # these are executed after the specified target build.
+  # Add custom command to symlink the static library so that autotools finds
+  # the library in .libs.  These are executed after the specified target build.
   add_custom_command(TARGET ${_target} POST_BUILD COMMAND 
     cmake -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.libs")
   add_custom_command(TARGET ${_target} POST_BUILD COMMAND
