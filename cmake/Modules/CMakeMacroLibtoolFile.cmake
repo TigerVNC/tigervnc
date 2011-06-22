@@ -31,7 +31,7 @@ macro(libtool_create_control_file _target)
         # No shared library extension matched.  Check whether target is a CMake
         # target.
         get_target_property(_ltp ${library} TYPE)
-        if(${_ltp})
+        if(NOT _ltp AND NOT ${library} STREQUAL "general")
           # Not a CMake target, so use find_library() to attempt to locate the
           # library in a system directory.
           find_library(FL ${library})
@@ -41,7 +41,7 @@ macro(libtool_create_control_file _target)
             get_filename_component(_shared_lib ${FL} NAME_WE)
             get_filename_component(_shared_lib_path ${FL} PATH)
             string(REPLACE "lib" "" _shared_lib ${_shared_lib})
-            set(_target_dependency_libs "${_target_dependency_libs} -L${_share_lib_path} -l${_shared_lib}")
+            set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
           else()
             # No shared library found, so ignore target.
           endif()
@@ -55,7 +55,7 @@ macro(libtool_create_control_file _target)
       # absolute and, if not, use find_library() to get the abolute path.
       get_filename_component(_name ${library} NAME)
       string(REPLACE "${_name}" "" _path ${library})
-      if(NOT "${_path}" MATCHES "")
+      if(NOT "${_path}" STREQUAL "")
       	# Pathname is absolute, so add it to the libtool library dependencies
         # as-is.
         set(_target_dependency_libs "${_target_dependency_libs} ${library}")
