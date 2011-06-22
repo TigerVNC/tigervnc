@@ -9,6 +9,8 @@ set -e
 PREFIX=
 MAKE="make"
 XORG_VERSION=7.4
+XONLY=0
+CFGHOST=
 SRCDIR=`dirname $0`/..
 
 modules="dri2proto \
@@ -63,7 +65,7 @@ init()
     tar jxf ~/.tigervnc-xorg-$XORG_VERSION/util-macros.tar.bz2
     pushd util-macros-*
     echo "Building macros"
-    ./configure ${1+"$@"} --prefix=${PREFIX}
+    ./configure --prefix=${PREFIX}
     ($MAKE install)
     popd
 
@@ -80,12 +82,6 @@ init()
     done
 
     popd
-    popd
-
-    pushd $SRCDIR
-    if [ ! -f ./configure ]; then
-        autoreconf -fiv
-    fi
     popd
 }
 
@@ -116,9 +112,11 @@ update_modules()
 
 build ()
 {
+    if [ $XONLY -eq 0 ]; then
+
     # Build VNC
     echo "*** Building VNC ***"
-    $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX} --with-included-zlib
+    cmake -G"Unix Makefiles" ${1+"$@"} -DUSE_INCLUDED_ZLIB=1 $SRCDIR
     $MAKE
 
     # Build Xorg
@@ -144,7 +142,7 @@ build ()
         CFLAGS=${CFLAGS}' -fPIC'
         CXXFLAGS=${CXXFLAGS}' -fPIC'
         export CFLAGS CXXFLAGS
-        ./configure ${1+"$@"} --prefix="${PREFIX}" ${extraoptions} --enable-static --disable-shared
+        ./configure ${CFGHOST} --prefix="${PREFIX}" ${extraoptions} --enable-static --disable-shared
         CFLAGS=${OLD_CFLAGS}
         CXXFLAGS=${OLD_CXXFLAGS}
         export CFLAGS CXXFLAGS
@@ -162,7 +160,7 @@ build ()
     # build mesa
     echo "*** Building Mesa ***"
     pushd Mesa-*
-    ./configure ${1+"$@"} --prefix=${PREFIX} --disable-driglx-direct --with-dri-drivers=swrast --with-driver=dri --disable-glut --without-demos
+    ./configure ${CFGHOST} --prefix=${PREFIX} --disable-driglx-direct --with-dri-drivers=swrast --with-driver=dri --disable-glut --without-demos
     if [ $? -ne 0 ]; then
 	echo "Failed to configure Mesa."
 	exit
@@ -174,7 +172,7 @@ build ()
     # build freetype
     echo "*** Building freetype ***"
     pushd freetype-*
-    ./configure ${1+"$@"} --prefix=${PREFIX} --enable-static --disable-shared
+    ./configure ${CFGHOST} --prefix=${PREFIX} --enable-static --disable-shared
     if [ $? -ne 0 ]; then
 	echo "Failed to configure freetype."
 	exit
@@ -184,12 +182,14 @@ build ()
 
     popd
 
+    fi # XONLY
+
     # build xserver
     echo "*** Building xserver ***"
     pushd xorg/xserver
     autoreconf -fiv
     XORGCFGFLAGS="--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev --with-sha1=libgcrypt SHA1_LIB=-lcrypto --disable-shared --enable-static ${XORGCFGFLAGS}"
-    ./configure ${1+"$@"} --prefix=${PREFIX} ${XORGCFGFLAGS}
+    ./configure ${CFGHOST} --prefix=${PREFIX} ${XORGCFGFLAGS}
     if [ $? -ne 0 ]; then
 	echo "Failed to configure X server."
 	exit
@@ -217,7 +217,7 @@ usage ()
     echo "Usage: $0  init [-version <7.4 | 7.5>]"
     echo
     echo "       $0  build [-version <7.4 | 7.5>]"
-    echo "       [additional configure flags]"
+    echo "       [additional CMake flags]"
     echo
     echo "       $0  rebuild [additional make options]"
     echo
@@ -236,6 +236,7 @@ do
     case "$1" in
 	init)       MODE=init                ;;
 	build)      MODE=build               ;;
+	xbuild)     MODE=build;  XONLY=1     ;;
 	rebuild)    MODE=rebuild             ;;
 	update)     MODE=update              ;;
 	-version)   XORG_VERSION=$2;  shift  ;;
@@ -298,6 +299,9 @@ if [ "$MODE" = "build" ]; then
     echo CFLAGS = $CFLAGS
     echo CXXFLAGS = $CXXFLAGS
     echo LDFLAGS = $LDFLAGS
+    if [[ $CFLAGS = *-m32* ]]; then
+	CFGHOST="--host i686-pc-linux-gnu"
+    fi
     if [ -f ./xorg.build/syslib/libstdc++.a ]; then
 	rm -f ./xorg.build/syslib/libstdc++.a
     fi
@@ -352,7 +356,8 @@ export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/share/pkgconfig"
 case "$MODE" in
     init)       init                 ;;
     build)
-	build ${1+"$@"} CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS";
+	export CFLAGS CXXFLAGS LDFLAGS
+	build ${1+"$@"};
 	;;
     rebuild)    rebuild ${1+"$@"}    ;;
     update)     update               ;;
