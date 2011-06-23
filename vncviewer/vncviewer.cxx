@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright (C) 2011 D. R. Commander
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -214,22 +215,24 @@ int main(int argc, char** argv)
 
   Configuration::enableViewerParams();
 
-  for (int i = 1; i < argc; i++) {
-    if (Configuration::setParam(argv[i]))
-      continue;
+  int i = 1;
+  if (!Fl::args(argc, argv, i) || i < argc)
+    for (; i < argc; i++) {
+      if (Configuration::setParam(argv[i]))
+        continue;
 
-    if (argv[i][0] == '-') {
-      if (i+1 < argc) {
-        if (Configuration::setParam(&argv[i][1], argv[i+1])) {
-          i++;
-          continue;
+      if (argv[i][0] == '-') {
+        if (i+1 < argc) {
+          if (Configuration::setParam(&argv[i][1], argv[i+1])) {
+            i++;
+            continue;
+          }
         }
+        usage(argv[0]);
       }
-      usage(argv[0]);
-    }
 
-    vncServerName = argv[i];
-  }
+      vncServerName = argv[i];
+    }
 
   if (!::autoSelect.hasBeenSet()) {
     // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
