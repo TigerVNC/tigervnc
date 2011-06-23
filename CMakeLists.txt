@@ -186,6 +186,8 @@ endif()
 if(BUILD_NEW_VNCVIEWER)
   set(FLTK_SKIP_FLUID TRUE)
   set(FLTK_SKIP_OPENGL TRUE)
+  set(FLTK_SKIP_IMAGES TRUE)
+  set(FLTK_SKIP_FORMS TRUE)
   find_package(FLTK COMPONENTS REQUIRED)
 
   # No proper handling for extra X11 libs that FLTK might need...
