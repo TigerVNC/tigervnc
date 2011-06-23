@@ -1,32 +1,46 @@
 *******************************************************************************
-**     Building on Unix Platforms (including Cygwin)
+**     Building TigerVNC
 *******************************************************************************
 
 
-==================
-Build Requirements
-==================
+================================
+Build Requirements (All Systems)
+================================
 
--- X11 development kit
+-- CMake (http://www.cmake.org) v2.8 or later
+
+-- FLTK 1.3.0
+   * Must be patched using fltk/extensions.patch to get full functionality
+   * See "Building FLTK" below.
 
 -- If building TLS support:
    * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
 
+-- libjpeg-turbo SDK
+   * If your system does not include libjpeg-turbo, you can download the SDK
+     from http://sourceforge.net/projects/libjpeg-turbo/files/
+
+
+=========================
+Build Requirements (Unix)
+=========================
+
+-- Non-Mac platforms:
+   * X11 development kit
+
 -- If building Xvnc:
+   * autoconf 2.57 or later
+   * automake 1.7 or later
+   * libtool 1.4 or later
+   * OpenSSL v0.9.7 or later
    * Python v2.3 or later
    * zlib v1.2 or later
-   * OpenSSL v0.9.7 or later
 
    * pkgconfig 0.20 or later
      If you are using an older RPM-based system which does not meet this
      minimum requirement (such as Red Hat Enterprise Linux 4), then you can
      build pkgconfig 0.20 from the Fedora 5 source RPM:
      http://archive.fedoraproject.org/pub/archive/fedora/linux/core/5/source/SRPMS/pkgconfig-0.20-2.2.1.src.rpm
-
--- If building Xvnc or building TigerVNC from the subversion repository:
-   * autoconf 2.57 or later
-   * automake 1.7 or later
-   * libtool 1.4 or later
 
    * gettext 0.14.4 or later
      If you are using an older RPM-based system which does not meet this
@@ -36,190 +50,9 @@ Build Requirements
      NOTE: gcj and libgcj are required when building the above source RPM.
 
 
-==================
-Out-of-Tree Builds
-==================
-
-Binary objects, libraries, and executables are generated in the same directory
-from which configure was executed (the "binary directory"), and this directory
-need not necessarily be the same as the TigerVNC source directory.  You can
-create multiple independent binary directories, in which different versions of
-TigerVNC can be built from the same source tree using different compilers or
-settings.  In the sections below, {build_directory} refers to the binary
-directory, whereas {source_directory} refers to the TigerVNC source directory.
-For in-tree builds, these directories are the same.
-
-
-=================
-Building TigerVNC
-=================
-
-The following procedure will build the TigerVNC Viewer on Linux and Unix
-systems.  On 64-bit systems, this may build a 32-bit version of TigerVNC,
-depending on the default autotools configuration for your system.  See below
-for specific build instructions for 64-bit systems.
-
-  cd {source_directory}
-  autoreconf -fiv
-  cd {build_directory}
-  sh {source_directory}/configure [additional configure flags]
-  make
-
-NOTE: Running autoreconf in the source directory is only necessary if building
-TigerVNC from the SVN repository.
-
-Building the TigerVNC Server (Xvnc) is a bit trickier.  On newer systems, such
-as Fedora, Xvnc is typically built to use the X11 shared libraries provided
-with the system.  This requires a system with Xorg 7.4 or later, however.
-Systems with older versions of Xorg must build a "legacy-friendly" version of
-the TigerVNC Server.  This is accomplished by downloading and building the
-more recent Xorg modules in a local directory and then building Xvnc such that
-it links against the local build of these libraries, not the X11 libraries
-installed on the system.  The "build-xorg" script in the TigerVNC source
-distribution (located under unix/) automates this process.
-
-The following procedure will build both the TigerVNC Viewer and a
-"legacy-friendly" version of the TigerVNC Server:
-
-  cd {build_directory}
-  sh {source_directory}/unix/build-xorg init -version 7.4
-  sh {source_directory}/unix/build-xorg build -version 7.4 [additional configure flags]
-
-build-xorg generates a version of Xvnc that has no external dependencies on the
-X11 shared libraries or any other distribution-specific shared libraries.  This
-version of Xvnc should be transportable across multiple O/S distributions.
-build-xorg should work on Red Hat Enterprise 4, its contemporaries, and later
-systems.  It probably will not work on older systems.  It has not been tested
-on non-Linux systems (yet).
-
-build-xorg can also be used to rebuild just the TigerVNC Server and Viewer,
-once the X11 modules and other dependencies have been built the first time.
-This is convenient for testing changes that just apply to the TigerVNC source
-code.  To accomplish this, run:
-
-  sh {source_directory}/unix/build-xorg rebuild [additional make flags]
-
-For instance,
-
-  sh {source_directory}/unix/build-xorg rebuild clean
-
-will clean both the Xvnc and vncviewer builds without destroying any of the
-build configuration or module dependencies.
-
-
-====================
-Building TLS support
-====================
-
-VeNCrypt (the TigerVNC security and authentication extensions) can be built
-with TLS support, which provides built-in encryption for VNC sessions.  This
-requires GnuTLS, which is not pre-installed on all platforms.  In general, if
-you are building on a Unix-ish platform that has the GnuTLS libraries and
-include files installed in the standard system locations, then the TigerVNC
-build system should detect the system version of GnuTLS automatically and link
-against it.  However, this produces a version of TigerVNC that depends on the
-GnuTLS dynamic libraries, and thus the TigerVNC binaries are not portable.
-
-To build a fully portable, cross-compatible version of TigerVNC with VeNCrypt
-support, it is necessary to link against the GnuTLS static library (as well
-as the static libraries of its dependencies.)  If you are lucky enough, your
-O/S distribution may include pre-packaged versions of these static libraries.
-Otherwise, it will probably be necessary to build GnuTLS, libgcrypt, libtasn1,
-and libgpg-error from source.
-
-You can manipulate the GNUTLS_CFLAGS and GNUTLS_LDFLAGS configure variables to
-accommodate a custom build of GnuTLS that is installed in a non-system
-directory.  For instance, adding
-
-  GNUTLS_CFLAGS=-I/opt/gnutls/include \
-    GNUTLS_LDFLAGS='/opt/gnutls/lib/libgnutls.a /opt/gnutls/lib/libgcrypt.a \
-    /opt/gnutls/lib/libgpg-error.a /opt/gnutls/lib/libtasn1.a' \
-    --with-included-zlib
-
-to the configure or 'build-xorg build' command line will cause TigerVNC to be
-statically linked against a custom installation of GnuTLS that resides under
-/opt/gnutls.  GnuTLS depends on zlib, so specifying --with-included-zlib will
-satisfy that dependency using TigerVNC's in-tree version of zlib, which
-prevents TigerVNC from depending on the libz dynamic library.
-
-
-==================
-Unix Build Recipes
-==================
-
-
-32-bit Build on 64-bit Linux
-----------------------------
-
-Add
-
-  --host i686-pc-linux-gnu CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' LDFLAGS=-m32
-
-to the configure or build command lines.
-
-
-64-bit Build on 64-bit OS X
----------------------------
-
-Add
-
-  --host x86_64-apple-darwin
-
-to the configure command line.
-
-
-32-bit Build on 64-bit OS X
----------------------------
-
-Add
-
-  CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' LDFLAGS=-m32
-
-to the configure command line.
-
-
-64-bit Backward-Compatible Build on 64-bit OS X
------------------------------------------------
-
-Add
-
-  --host x86_64-apple-darwin \
-  CFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
-    -mmacosx-version-min=10.5 -O3' \
-    CXXFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
-    -mmacosx-version-min=10.5 -O3' \
-    LDFLAGS='-isysroot /Developer/SDKs/MacOSX10.5.sdk \
-    -mmacosx-version-min=10.5'
-
-to the configure command line.  The OS X 10.5 SDK must be installed.
-
-
-32-bit Backward-Compatible Build on 64-bit OS X
------------------------------------------------
-
-Add
-
-  CC=gcc-4.0 CXX=g++-4.0 CFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk \
-    -mmacosx-version-min=10.4 -O3 -m32' \
-    CXXFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk \
-    -mmacosx-version-min=10.4 -O3 -m32' \
-    LDFLAGS='-isysroot /Developer/SDKs/MacOSX10.4u.sdk \
-    -mmacosx-version-min=10.4 -m32'
-
-to the configure command line.  The OS X 10.4 SDK must be installed.
-
-
-
-*******************************************************************************
-**     Building on Windows (Visual C++ or MinGW)
-*******************************************************************************
-
-
-==================
-Build Requirements
-==================
-
--- CMake (http://www.cmake.org) v2.6 or later
+============================
+Build Requirements (Windows)
+============================
 
 -- Microsoft Visual C++ 2005 or later
 
@@ -255,8 +88,28 @@ Build Requirements
    C:\Program Files\Inno Setup 5) to the system or user PATH environment
    variable prior to building TigerVNC.
 
--- If building TLS support:
-   * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
+
+=============
+Building FLTK
+=============
+
+Currently, TigerVNC requires functionality that is not yet included in the
+upstream version of FLTK.  Thus, it will be necessary to build FLTK from
+source.  To do this:
+
+1. Download the FLTK 1.3.0 source tarball from http://www.fltk.org/
+2. Extract the source tarball
+3. cd fltk-1.3.0
+4. patch -p1 < {tigervnc_source_directory}/fltk/extensions.patch
+5. Use CMake to build FLTK using the same procedures described below for
+   building TigerVNC.  The recipes in the "Build Recipes" section also apply.
+6. (optional) Use 'make install' to install FLTK into a directory of your
+   choosing.
+7. When building TigerVNC, set the FLTK_FLUID_EXECUTABLE CMake variable to the
+   location of the fluid executable that was built in Step 5 or installed in
+   Step 6.  This gives CMake a hint as to where to find the FLTK library.
+8. If you did not install FLTK, then set the FLTK_INCLUDE_DIR CMake variable to
+   the location of the FLTK source directory.
 
 
 ==================
@@ -276,6 +129,61 @@ For in-tree builds, these directories are the same.
 =================
 Building TigerVNC
 =================
+
+
+Unix/Mac
+--------
+
+The following procedure will build the TigerVNC Viewer on Linux and Unix
+systems.  On 64-bit systems, this will build a 64-bit version of TigerVNC.  See
+"Build Recipes" for specific build instructions for building a 32-bit version
+of TigerVNC on 64-bit systems.
+
+  cd {build_directory}
+  cmake -G "Unix Makefiles" {source_directory} [additional CMake flags]
+  make
+
+Building the TigerVNC Server (Xvnc) is a bit trickier.  On newer systems
+containing Xorg 7.4 or later (such as Fedora), Xvnc is typically built to use
+the X11 shared libraries provided with the system.  The procedure for this is
+very system-specific, since it requires specifying such things as font and X
+resource directories.  Thus, it cannot be described in terms general enough for
+this document.
+
+Those using systems with older versions of Xorg must build a "legacy-friendly"
+version of the TigerVNC Server.  This is accomplished by downloading and
+building the more recent Xorg modules in a local directory and then building
+Xvnc such that it links against the local build of these libraries, not the X11
+libraries installed on the system.  The "build-xorg" script in the TigerVNC
+source distribution (located under unix/) automates this process.
+
+The following procedure will build both the TigerVNC Viewer and a
+"legacy-friendly" version of the TigerVNC Server:
+
+  cd {build_directory}
+  sh {source_directory}/unix/build-xorg init
+  sh {source_directory}/unix/build-xorg build [additional CMake flags]
+
+build-xorg generates a version of Xvnc that has no external dependencies on the
+X11 shared libraries or any other distribution-specific shared libraries.  This
+version of Xvnc should be transportable across multiple O/S distributions.
+build-xorg should work on Red Hat Enterprise 4, its contemporaries, and later
+systems.  It probably will not work on older systems.  It has not been tested
+on non-Linux systems (yet).
+
+build-xorg can also be used to rebuild just the TigerVNC Server and Viewer,
+once the X11 modules and other dependencies have been built for the first time.
+This is convenient for testing changes that just apply to the TigerVNC source
+code.  To accomplish this, run:
+
+  sh {source_directory}/unix/build-xorg rebuild [additional make flags]
+
+For instance,
+
+  sh {source_directory}/unix/build-xorg rebuild clean
+
+will clean both the Xvnc and vncviewer builds without destroying any of the
+build configuration or module dependencies.
 
 
 Visual C++ (Command Line)
@@ -340,12 +248,45 @@ Building TLS support
 
 VeNCrypt (the TigerVNC security and authentication extensions) can be built
 with TLS support, which provides built-in encryption for VNC sessions.  This
-requires GnuTLS, which is not Microsoft-friendly.  This section describes the
-issues associated with building a Windows version of TigerVNC with TLS support
-and how to work around those issues.
+requires GnuTLS, which is not pre-installed on all platforms.  This section
+describes the issues associated with building a version of TigerVNC with TLS
+support and how to work around those issues.
 
-Building with MinGW
--------------------
+
+Unix/Mac
+--------
+
+In general, if you are building on a Unix-ish platform that has the GnuTLS
+libraries and include files installed in the standard system locations, then
+the TigerVNC build system should detect the system version of GnuTLS
+automatically and link against it.  However, this produces a version of
+TigerVNC that depends on the GnuTLS dynamic libraries, and thus the TigerVNC
+binaries are not portable.
+
+To build a fully portable, cross-compatible version of TigerVNC with VeNCrypt
+support, it is necessary to link against the GnuTLS static library (as well
+as the static libraries of its dependencies.)  If you are lucky enough, then
+your O/S distribution may include pre-packaged versions of these static
+libraries.  Otherwise, it will be necessary to build GnuTLS, libgcrypt,
+libtasn1, and libgpg-error from source.
+
+You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY CMake variables to
+accommodate a custom build of GnuTLS that is installed in a non-system
+directory.  For instance, adding
+
+  -DGNUTLS_INCLUDE_DIR=/opt/gnutls/include \
+    -DGNUTLS_LIBRARY='/opt/gnutls/lib/libgnutls.a;/opt/gnutls/lib/libgcrypt.a;/opt/gnutls/lib/libgpg-error.a;/opt/gnutls/lib/libtasn1.a' \
+    -DUSE_INCLUDED_ZLIB=1
+
+to the CMake or 'build-xorg build' command line will cause TigerVNC to be
+statically linked against a custom installation of GnuTLS that resides under
+/opt/gnutls.  GnuTLS depends on zlib, so specifying --with-included-zlib will
+satisfy that dependency using TigerVNC's in-tree version of zlib, which
+prevents TigerVNC from depending on the libz dynamic library.
+
+
+MinGW
+-----
 
 An installer containing the GnuTLS header files, as well as static and dynamic
 link libraries for 32-bit MinGW, can be downloaded from the following site:
@@ -383,6 +324,7 @@ GnuTLS libraries that are installed under c:\gnutls.
 Note that the use of MinGW means that only the TigerVNC viewer can be built,
 not the server.
 
+
 Visual C++
 ----------
 
@@ -413,25 +355,127 @@ Installing TigerVNC
 ===================
 
 You can use the build system to install TigerVNC into a directory of your
-choosing (as opposed to creating an installer.)  To do this, add:
+choosing.  To do this, add:
 
   -DCMAKE_INSTALL_PREFIX={install_directory}
 
-to the CMake command line.
-
-For example,
-
-  cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=c:\TigerVNC {source_directory}
-  nmake install
+to the CMake command line.  Then, after building TigerVNC, you can run
+'make install' or 'nmake install' (or build the "install" target in the Visual
+Studio IDE) to install it.
 
 If you don't specify CMAKE_INSTALL_PREFIX, then the default is
-c:\Program Files\TigerVNC.
+c:\Program Files\TigerVNC on Windows and /usr/local on Unix.
 
 
-=====================
-Windows Build Recipes
-=====================
+=========================
+Creating Release Packages
+=========================
+
+The following commands can be used to create various types of release packages:
+
+
+Unix
+----
+
+(TODO: implement these in CMake.  OS X viewer also needs to be packaged into
+an app instead of a package, since it can run stand-alone now.)
+
+make tarball
+
+  Create a binary tarball containing the TigerVNC Viewer
+
+make servertarball
+
+  Create a binary tarball containing both the TigerVNC Server and Viewer
+
+make dmg
+
+  Create Macintosh package/disk image.  This requires the PackageMaker
+  application, which must be installed in /Developer/Applications/Utilities.
+
+make udmg [BUILDDIR32={32-bit build directory}]
+
+  On 64-bit OS X systems, this creates a version of the Macintosh package and
+  disk image which contains universal i386/x86-64 binaries.  You should first
+  configure a 32-bit out-of-tree build of TigerVNC, then configure a 64-bit
+  out-of-tree build, then run 'make udmg' from the 64-bit build directory.  The
+  build system will look for the 32-bit build under {source_directory}/osxx86
+  by default, but you can override this by setting the BUILDDIR32 variable on
+  the make command line as shown above.  Either the 64-bit or 32-bit build can
+  be configured to be backward-compatible by using the instructions in the
+  "Unix Build Recipes" section.
+
+
+Windows
+-------
+
+If using NMake:
+
+  cd {build_directory}
+  nmake installer
+
+If using MinGW:
+
+  cd {build_directory}
+  make installer
+
+If using the Visual Studio IDE, build the "installer" project.
+
+The installer package (TigerVNC[64].exe) will be located under
+{build_directory}.  If building using the Visual Studio IDE, then the installer
+package will be located in a subdirectory with the same name as the
+configuration you built (such as {build_directory}\Debug\ or
+{build_directory}\Release\).
+
+NOTE:  If TigerVNC is built with TLS support, then the build system will
+attempt to package the GnuTLS DLLs into the Windows installer.  It looks for
+these DLLs in a directory called "bin" one level up from GNUTLS_INCLUDE_DIR.
+
+
+=============
+Build Recipes
+=============
+
+
+32-bit Build on 64-bit Linux/Unix (including OS X)
+--------------------------------------------------
+
+Set the following environment variables before running CMake or
+'build-xorg build':
+
+  CFLAGS='-O3 -m32'
+  CXXFLAGS='-O3 -m32'
+  LDFLAGS=-m32
+
+
+64-bit Backward-Compatible Build on 64-bit OS X
+-----------------------------------------------
+
+Add
+
+  -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.5.sdk \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.5 
+
+to the CMake command line.  The OS X 10.5 SDK must be installed.
+
+
+32-bit Backward-Compatible Build on 64-bit OS X
+-----------------------------------------------
+
+Set the following environment variables:
+
+  CC=gcc-4.0
+  CXX=g++-4.0
+  CFLAGS='-O3 -m32'
+  CXXFLAGS='-O3 -m32'
+  LDFLAGS=-m32
+
+and add
+
+  -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.4u.sdk \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.4
+
+to the CMake command line.  The OS X 10.4 SDK must be installed.
 
 
 64-bit MinGW Build on Cygwin
@@ -495,65 +539,3 @@ MinGW Build on Linux
     -DCMAKE_RANLIB={mingw_binary_path}/i386-mingw32-ranlib \
     {source_directory}
   make
-
-
-*******************************************************************************
-**     Creating Release Packages
-*******************************************************************************
-
-The following commands can be used to create various types of release packages:
-
-
-Unix
-----
-
-make tarball
-
-  Create a binary tarball containing the TigerVNC Viewer
-
-make servertarball
-
-  Create a binary tarball containing both the TigerVNC Server and Viewer
-
-make dmg
-
-  Create Macintosh package/disk image.  This requires the PackageMaker
-  application, which must be installed in /Developer/Applications/Utilities.
-
-make udmg [BUILDDIR32={32-bit build directory}]
-
-  On 64-bit OS X systems, this creates a version of the Macintosh package and
-  disk image which contains universal i386/x86-64 binaries.  You should first
-  configure a 32-bit out-of-tree build of TigerVNC, then configure a 64-bit
-  out-of-tree build, then run 'make udmg' from the 64-bit build directory.  The
-  build system will look for the 32-bit build under {source_directory}/osxx86
-  by default, but you can override this by setting the BUILDDIR32 variable on
-  the make command line as shown above.  Either the 64-bit or 32-bit build can
-  be configured to be backward-compatible by using the instructions in the
-  "Unix Build Recipes" section.
-
-
-Windows
--------
-
-If using NMake:
-
-  cd {build_directory}
-  nmake installer
-
-If using MinGW:
-
-  cd {build_directory}
-  make installer
-
-If using the Visual Studio IDE, build the "installer" project.
-
-The installer package (TigerVNC[64].exe) will be located under
-{build_directory}.  If building using the Visual Studio IDE, then the installer
-package will be located in a subdirectory with the same name as the
-configuration you built (such as {build_directory}\Debug\ or
-{build_directory}\Release\).
-
-NOTE:  If TigerVNC is built with TLS support, then the build system will
-attempt to package the GnuTLS DLLs into the Windows installer.  It looks for
-these DLLs in a directory called "bin" one level up from GNUTLS_INCLUDE_DIR.
