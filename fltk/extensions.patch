@@ -1723,7 +1723,7 @@ diff -bur fltk-1.3.x-r8732.org/FL/Fl_Widget.H fltk-1.3.x-r8732/FL/Fl_Widget.H
          GROUP_RELATIVE  = 1<<16,  ///< position this widget relative to the parent group, not to the window
          COPIED_TOOLTIP  = 1<<17,  ///< the widget tooltip is internally copied, its destruction is handled by the widget
          SIMPLE_KEYBOARD = 1<<18,  ///< the widget wants simple, consistent keypresses and not advanced input (like character composition and CJK input)
-+        FULLSCREEN      = 1<<18,  ///< a fullscreen window (Fl_Window)
++        FULLSCREEN      = 1<<19,  ///< a fullscreen window (Fl_Window)
          // (space for more flags)
          USERFLAG3       = 1<<29,  ///< reserved for 3rd party extensions
          USERFLAG2       = 1<<30,  ///< reserved for 3rd party extensions
