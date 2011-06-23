@@ -89,9 +89,8 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   // reparenting to the current window works for most cases.
   window()->add(contextMenu);
 
-  initContextMenu();
-
   setMenuKey();
+  initContextMenu();
 
   OptionsDialog::addCallback(handleOptions, this);
 }
