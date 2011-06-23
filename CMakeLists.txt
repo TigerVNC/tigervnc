@@ -23,7 +23,7 @@ set(VERSION 1.0.90)
 set(RCVERSION 1,0,90,0)
 
 # Manual toggle until we can deprecate the old viewers
-option(BUILD_NEW_VNCVIEWER "Build the new FLTK based vncviewer instead of the old ones")
+option(BUILD_NEW_VNCVIEWER "Build the new FLTK based vncviewer instead of the old ones" ON)
 
 # Compatibility variables for the migration from autotools
 add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")
