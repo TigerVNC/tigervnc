@@ -176,12 +176,12 @@ find_package(JPEG REQUIRED)
 set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARIES})
 set(CMAKE_REQUIRED_FLAGS -I${JPEG_INCLUDE_DIR})
 
-check_c_source_compiles("#include <stdio.h>\n#include <jpeglib.h>\nint main(int c, char** v) { return JCS_EXT_RGBX; }" FOUND_JPEG_TURBO)
+check_c_source_compiles("#include <stdio.h>\n#include <jpeglib.h>\nint main(int c, char** v) { return JCS_EXT_RGBX; }" FOUND_LIBJPEG_TURBO)
 
 set(CMAKE_REQUIRED_LIBRARIES)
 set(CMAKE_REQUIRED_FLAGS)
 
-if(NOT FOUND_JPEG_TURBO)
+if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
