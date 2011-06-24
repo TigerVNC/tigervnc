@@ -241,6 +241,10 @@ if(ENABLE_GNUTLS)
     set(CMAKE_REQUIRED_FLAGS -I${GNUTLS_INCLUDE_DIR})
     set(CMAKE_EXTRA_INCLUDE_FILES gnutls/gnutls.h)
     set(CMAKE_REQUIRED_LIBRARIES ${GNUTLS_LIBRARIES})
+    if(WIN32)
+      set(CMAKE_EXTRA_INCLUDE_FILES gcrypt.h ${CMAKE_EXTRA_INCLUDE_FILES})
+      set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ws2_32 user32)
+    endif()
     if(ZLIB_FOUND)
       # When we build against the static version of GnuTLS, we also use the
       # included version of Zlib, but it isn't built yet, so we have to use the
