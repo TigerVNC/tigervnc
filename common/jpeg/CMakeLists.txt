@@ -5,7 +5,6 @@
 cmake_minimum_required(VERSION 2.6)
 
 project(libjpeg-turbo)
-set(VERSION 1.0.90)
 
 if(NOT DEFINED WITH_SIMD)
   set(WITH_SIMD 1)
