@@ -1,3 +1,6 @@
+# This file is included from the top-level CMakeLists.txt.  We just store it
+# here to avoid cluttering up that file.
+
 # Detect a 64-bit build and give that installer a different name
 if(CMAKE_SIZEOF_VOID_P MATCHES 8)
   set(INST_NAME ${CMAKE_PROJECT_NAME}64-${VERSION})
@@ -25,7 +28,7 @@ if(GNUTLS_FOUND)
   set(INST_DEFS ${INST_DEFS} -DHAVE_GNUTLS)
 endif()
 
-configure_file(tigervnc.iss.in tigervnc.iss)
+configure_file(win/installer/tigervnc.iss.in tigervnc.iss)
 
 add_custom_target(installer
   iscc -o${INSTALLERDIR} ${INST_DEFS} ${BUILDDIRDEF} -F${INST_NAME} tigervnc.iss

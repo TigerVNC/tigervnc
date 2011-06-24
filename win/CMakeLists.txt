@@ -12,5 +12,3 @@ if(BUILD_WINVNC)
 add_subdirectory(vncconfig)
 add_subdirectory(winvnc)
 endif()
-
-add_subdirectory(installer)
