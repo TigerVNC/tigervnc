@@ -18,7 +18,9 @@
  */
 
 #include <assert.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/encodings.h>
@@ -36,6 +38,10 @@
 #include "OptionsDialog.h"
 #include "i18n.h"
 #include "parameters.h"
+
+#ifdef WIN32
+#include "win32.h"
+#endif
 
 using namespace rdr;
 using namespace rfb;

@@ -22,12 +22,12 @@
 
 #include <map>
 
-#include <FL/Fl.H>
-#include <FL/Fl_Window.H>
-
 #include <rfb/Rect.h>
 
 #include "Viewport.h"
+
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
 
 class CConn;
 

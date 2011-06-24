@@ -20,10 +20,6 @@
 
 #include <list>
 
-#include <FL/Fl_Tabs.H>
-#include <FL/Fl_Button.H>
-#include <FL/Fl_Return_Button.H>
-
 #include <rdr/types.h>
 #include <rfb/encodings.h>
 
@@ -37,6 +33,10 @@
 #include "fltk_layout.h"
 #include "i18n.h"
 #include "parameters.h"
+
+#include <FL/Fl_Tabs.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Return_Button.H>
 
 using namespace std;
 using namespace rdr;

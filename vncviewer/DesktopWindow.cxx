@@ -21,15 +21,15 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <FL/Fl_Scroll.H>
-#include <FL/x.H>
-
 #include <rfb/LogWriter.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
 #include "i18n.h"
 #include "parameters.h"
+
+#include <FL/Fl_Scroll.H>
+#include <FL/x.H>
 
 #ifdef WIN32
 #include "win32.h"

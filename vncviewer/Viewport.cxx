@@ -21,9 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <FL/fl_draw.H>
-#include <FL/fl_ask.H>
-
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 
@@ -45,6 +42,13 @@
 #include "fltk_layout.h"
 #include "parameters.h"
 #include "keysym2ucs.h"
+
+#include <FL/fl_draw.H>
+#include <FL/fl_ask.H>
+
+#ifdef WIN32
+#include "win32.h"
+#endif
 
 using namespace rfb;
 using namespace rdr;
