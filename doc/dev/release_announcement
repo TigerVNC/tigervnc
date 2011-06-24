@@ -11,13 +11,7 @@ Changes since <previous version>:
 [Enhancement] Enhancement has been added.
 [Documentation] Yes, we really updated documentation.
 
-TigerVNC <version> source can be downloaded from
-	<link>
-
-Prebuild binaries for 32bit Windows can be downloaded from
-	<link>
-
-Prebuild Xvnc for 32bit Linux can be downloaded from
+TigerVNC <version> binaries and source can be downloaded from
 	<link>
 
 Please report bugs to https://sourceforge.net/tracker/?group_id=254363&atid=1126848.
