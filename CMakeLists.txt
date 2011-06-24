@@ -309,7 +309,6 @@ add_subdirectory(common)
 
 if(WIN32)
   add_subdirectory(win)
-  include(win/installer/BuildInstaller.cmake)
 else()
   # No interest in building x related parts on Apple
   if(NOT APPLE)
@@ -323,3 +322,5 @@ if(BUILD_NEW_VNCVIEWER)
   endif()
   add_subdirectory(vncviewer)
 endif()
+
+include(cmake/BuildPackages.cmake)

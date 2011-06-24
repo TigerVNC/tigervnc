@@ -1,0 +1,75 @@
+#!/bin/sh
+
+set -u
+set -e
+trap onexit INT
+trap onexit TERM
+trap onexit EXIT
+
+TMPDIR=
+
+onexit()
+{
+	if [ ! "$TMPDIR" = "" ]; then
+		rm -rf $TMPDIR
+	fi
+}
+
+usage()
+{
+	echo "$0 [universal]"
+	exit 1
+}
+
+UNIVERSAL=0
+
+PACKAGE_NAME=TigerVNC
+VERSION=@VERSION@
+BUILD=@BUILD@
+SRCDIR=@CMAKE_SOURCE_DIR@
+BUILDDIR32=@OSX_X86_BUILD@
+if [ $# -gt 0 ]; then
+	if [ "$1" = "universal" ]; then
+		UNIVERSAL=1
+	fi
+fi
+
+if [ -f $PACKAGE_NAME.dmg ]; then
+	rm -f $PACKAGE_NAME.dmg
+fi
+
+umask 022
+TMPDIR=`mktemp -d /tmp/$PACKAGE_NAME-build.XXXXXX`
+APPROOT="$TMPDIR/dmg/TigerVNC Viewer $VERSION.app"
+mkdir -p "$APPROOT/Contents/MacOS"
+mkdir -p "$APPROOT/Contents/Resources"
+
+install -m 755 vncviewer/vncviewer "$APPROOT/Contents/MacOS/TigerVNC Viewer"
+if [ $UNIVERSAL = 1 ]; then
+	if [ ! -d $BUILDDIR32 ]; then
+		echo ERROR: 32-bit build directory $BUILDDIR32 does not exist
+		exit 1
+	fi
+	if [ ! -f $BUILDDIR32/Makefile ]; then
+		echo ERROR: 32-bit build directory $BUILDDIR32 is not configured
+		exit 1
+	fi
+	pushd $BUILDDIR32
+	make
+	popd
+	lipo -create -arch i386 $BUILDDIR32/vncviewer/vncviewer -arch x86_64 \
+		"$APPROOT/Contents/MacOS/TigerVNC Viewer" \
+		-output "$APPROOT/Contents/MacOS/TigerVNC Viewer"
+fi
+install -m 644 $SRCDIR/release/tigervnc.icns "$APPROOT/Contents/Resources/"
+install -m 644 release/Info.plist "$APPROOT/Contents/"
+
+install -m 644 $SRCDIR/LICENCE.txt $TMPDIR/dmg/
+install -m 644 $SRCDIR/release/README.txt $TMPDIR/dmg/
+
+hdiutil create -fs HFS+ -volname $PACKAGE_NAME-$VERSION \
+	-srcfolder "$TMPDIR/dmg" \
+	$TMPDIR/$PACKAGE_NAME-$VERSION.dmg 
+cp $TMPDIR/$PACKAGE_NAME-$VERSION.dmg . 
+
+exit
