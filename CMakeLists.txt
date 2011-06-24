@@ -301,7 +301,7 @@ check_function_exists(strncasecmp HAVE_STRNCASECMP)
 check_function_exists(vsnprintf HAVE_VSNPRINTF)
 
 # Generate config.h and make sure the source finds it
-configure_file(config.h.cmake.in config.h)
+configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
 

@@ -1,6 +1,6 @@
 include_directories(${CMAKE_SOURCE_DIR}/common ${CMAKE_SOURCE_DIR}/win)
 
-configure_file(resdefs.h.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/resdefs.h)
+configure_file(resdefs.h.in ${CMAKE_CURRENT_BINARY_DIR}/resdefs.h)
 
 add_subdirectory(rfb_win32)
 
