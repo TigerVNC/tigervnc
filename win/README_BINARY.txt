@@ -5,7 +5,7 @@ TigerVNC Binary Distribution for Windows platforms
 Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
 Copyright (C) 2000-2004 Constantin Kaplinsky.
 Copyright (C) 2004-2009 Peter Astrand for Cendio AB
-Copyright (C) 2009-2010 D. R. Commander
+Copyright (C) 2009-2011 D. R. Commander
 
 This software is distributed under the GNU General Public Licence as
 published by the Free Software Foundation.  See the file LICENCE.TXT
@@ -18,19 +18,17 @@ The installer package contains two VNC components:
 
 	VNC Viewer - this is the VNC Viewer, or client, program for
 		     Win32.
-			[Win9x, WinME, NT4, Win2000, WinXP,
-			 Windows 2003 Server]
+			[Win2000, WinXP, and later]
 
 	VNC Server - this is the VNC Server for Win32. It allows a
 		     Windows desktop to be accessed remotely using a
 		     VNC Viewer.
-			[Win9x, WinME, NT4, Win2000, WinXP(*),
-			 Windows 2003 Server]
+			[Win2000, WinXP(*), and later]
 
 (*)  May not work if the in-built Fast User Switching or Remote
      Administration features are in use.
 
-Both components were built using Microsoft Visual C++ 6.0, and are
+Both components were built using Microsoft Visual C++ 2008 and are
 designed to operate upon the Win32 platforms listed above.
 
 ACKNOWLEDGEMENTS
