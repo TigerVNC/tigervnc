@@ -42,7 +42,7 @@ import com.tigervnc.rfb.Exception;
 
 public class VncViewer extends java.applet.Applet implements Runnable
 {
-  public static final String version = "1.0.90";
+  public static final String version = "1.1.80";
   public static final String about1 = "TigerVNC Viewer for Java "+version;
   public static final String about2 = "Copyright (C) 1998-2010 "+
                                       "[many holders]";

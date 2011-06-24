@@ -17,10 +17,10 @@ include(CheckCXXSourceCompiles)
 include(CMakeMacroLibtoolFile)
 
 project(tigervnc)
-set(VERSION 1.0.90)
+set(VERSION 1.1.80)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,0,90,0)
+set(RCVERSION 1,1,80,0)
 
 # Manual toggle until we can deprecate the old viewers
 option(BUILD_NEW_VNCVIEWER "Build the new FLTK based vncviewer instead of the old ones" ON)
