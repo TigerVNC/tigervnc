@@ -94,4 +94,6 @@ add_library(rfb STATIC ${RFB_SOURCES})
 
 target_link_libraries(rfb ${RFB_LIBRARIES})
 
-libtool_create_control_file(rfb)
+if(UNIX)
+  libtool_create_control_file(rfb)
+endif()

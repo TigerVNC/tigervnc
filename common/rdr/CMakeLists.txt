@@ -24,4 +24,6 @@ endif()
 
 target_link_libraries(rdr ${RDR_LIBRARIES})
 
-libtool_create_control_file(rdr)
+if(UNIX)
+  libtool_create_control_file(rdr)
+endif()
