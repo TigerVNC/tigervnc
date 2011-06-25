@@ -70,7 +70,25 @@ endif() # APPLE
 
 
 #
+# Binary tarball
+#
+
+if(UNIX)
+
+configure_file(release/maketarball.in release/maketarball)
+
+add_custom_target(tarball sh release/maketarball
+  DEPENDS vncviewer vncpasswd vncconfig
+  SOURCES release/maketarball)
+
+add_custom_target(servertarball sh release/maketarball server
+  DEPENDS vncviewer vncpasswd vncconfig
+  SOURCES release/maketarball)
+
+endif() #UNIX
+
+#
 # Common
 #
 
-install(FILES ${CMAKE_SOURCE_DIR}/LICENCE.txt DESTINATION .)
+install(FILES ${CMAKE_SOURCE_DIR}/LICENCE.TXT DESTINATION doc)

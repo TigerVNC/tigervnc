@@ -15,12 +15,13 @@ onexit()
 	fi
 }
 
-PACKAGE_NAME=@PACKAGE_NAME@
+PACKAGE_NAME=@CMAKE_PROJECT_NAME@
 VERSION=@VERSION@
 BUILD=@BUILD@
-SRCDIR=@srcdir@
-OS=`uname -s`
-CPU=@host_cpu@
+SRCDIR=@CMAKE_SOURCE_DIR@
+OS=@CMAKE_SYSTEM_NAME@
+CPU=@CMAKE_SYSTEM_PROCESSOR@
+PREFIX=@CMAKE_INSTALL_PREFIX@
 PACKAGE_FILE=$PACKAGE_NAME-$OS-$CPU-$VERSION.tar.gz
 SERVER=0
 
@@ -33,13 +34,29 @@ fi
 umask 022
 TMPDIR=`mktemp -d /tmp/$PACKAGE_NAME-build.XXXXXX`
 rm -f $PACKAGE_FILE
+OUTDIR=$TMPDIR/inst/$PREFIX
+
+mkdir -p $OUTDIR/bin
+mkdir -p $OUTDIR/man/man1
+
+make DESTDIR=$TMPDIR/inst install
 if [ $SERVER = 1 ]; then
-	make xserver-install prefix=/opt/TigerVNC DESTDIR=$TMPDIR
-else
-	make install prefix=/opt/TigerVNC DESTDIR=$TMPDIR
+	pushd $SRCDIR/java/src/com/tigervnc/vncviewer
+	make
+	popd
+	install -m 755 ./xorg.build/bin/Xvnc $OUTDIR/bin/
+	install -m 644 ./xorg.build/man/man1/Xvnc.1 $OUTDIR/man/man1/Xvnc.1
+	install -m 644 ./xorg.build/man/man1/Xserver.1 $OUTDIR/man/man1/Xserver.1
+	mkdir -p $OUTDIR/vnc/classes/
+	install -m 644 $SRCDIR/java/src/com/tigervnc/vncviewer/index.vnc $OUTDIR/vnc/classes/
+	install -m 644 $SRCDIR/java/src/com/tigervnc/vncviewer/VncViewer.jar $OUTDIR/vnc/classes/
+	install -m 644 $SRCDIR/java/src/com/tigervnc/vncviewer/README $OUTDIR/vnc/classes/
+	mkdir -p $OUTDIR/lib/dri/
+	install -m 755 ./xorg.build/lib/dri/swrast_dri.so $OUTDIR/lib/dri/
 fi
-pushd $TMPDIR
-tar cfz $PACKAGE_FILE opt
+
+pushd $TMPDIR/inst
+tar cfz ../$PACKAGE_FILE .
 popd
 cp $TMPDIR/$PACKAGE_FILE .
 
