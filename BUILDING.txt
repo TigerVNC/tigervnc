@@ -411,9 +411,6 @@ The following commands can be used to create various types of release packages:
 Unix
 ----
 
-(TODO: implement these in CMake.  OS X viewer also needs to be packaged into
-an app instead of a package, since it can run stand-alone now.)
-
 make tarball
 
   Create a binary tarball containing the TigerVNC Viewer
@@ -424,20 +421,20 @@ make servertarball
 
 make dmg
 
-  Create Macintosh package/disk image.  This requires the PackageMaker
-  application, which must be installed in /Developer/Applications/Utilities.
+  Create Macintosh disk image file that contains an application bundle of the
+  TigerVNC Viewer
 
-make udmg [BUILDDIR32={32-bit build directory}]
+make udmg
 
   On 64-bit OS X systems, this creates a version of the Macintosh package and
   disk image which contains universal i386/x86-64 binaries.  You should first
   configure a 32-bit out-of-tree build of TigerVNC, then configure a 64-bit
   out-of-tree build, then run 'make udmg' from the 64-bit build directory.  The
   build system will look for the 32-bit build under {source_directory}/osxx86
-  by default, but you can override this by setting the BUILDDIR32 variable on
-  the make command line as shown above.  Either the 64-bit or 32-bit build can
-  be configured to be backward-compatible by using the instructions in the
-  "Unix Build Recipes" section.
+  by default, but you can override this by setting the OSX_X86_BUILD CMake
+  variable to the directory containing your configured 32-bit build.  Either
+  the 64-bit or 32-bit build can be configured to be backward compatible by
+  using the instructions in the "Build Recipes" section.
 
 
 Windows
