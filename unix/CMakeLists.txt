@@ -8,4 +8,4 @@ add_subdirectory(vncviewer)
 endif()
 
 install(PROGRAMS vncserver DESTINATION bin)
-install(FILES vncserver.man DESTINATION man/man1)
+install(FILES vncserver.man DESTINATION man/man1 RENAME vncserver.1)

@@ -35,5 +35,5 @@ target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${G
 
 install(TARGETS vncviewer DESTINATION bin)
 if(UNIX)
-  install(FILES vncviewer.man DESTINATION man/man1)
+  install(FILES vncviewer.man DESTINATION man/man1 RENAME vncviewer.1)
 endif()

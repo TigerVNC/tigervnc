@@ -12,4 +12,4 @@ add_executable(vncconfig
 target_link_libraries(vncconfig tx rfb network rdr ${X11_LIBRARIES})
 
 install(TARGETS vncconfig DESTINATION bin)
-install(FILES vncconfig.man DESTINATION man/man1)
+install(FILES vncconfig.man DESTINATION man/man1 RENAME vncconfig.1)
