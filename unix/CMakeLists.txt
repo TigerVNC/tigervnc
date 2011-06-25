@@ -6,3 +6,6 @@ add_subdirectory(vncpasswd)
 if(NOT BUILD_NEW_VNCVIEWER)
 add_subdirectory(vncviewer)
 endif()
+
+install(PROGRAMS vncserver DESTINATION bin)
+install(FILES vncserver.man DESTINATION man/man1)

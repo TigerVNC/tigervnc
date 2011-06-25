@@ -33,4 +33,7 @@ add_executable(vncviewer ${VNCVIEWER_SOURCES})
 
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
-install (TARGETS vncviewer DESTINATION bin)
+install(TARGETS vncviewer DESTINATION bin)
+if(UNIX)
+  install(FILES vncviewer.man DESTINATION man/man1)
+endif()
