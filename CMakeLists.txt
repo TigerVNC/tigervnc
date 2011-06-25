@@ -324,3 +324,9 @@ if(BUILD_NEW_VNCVIEWER)
 endif()
 
 include(cmake/BuildPackages.cmake)
+
+# uninstall
+configure_file("${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+  "cmake_uninstall.cmake" IMMEDIATE @ONLY)
+
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P cmake_uninstall.cmake)
