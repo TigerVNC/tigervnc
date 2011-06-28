@@ -8,6 +8,7 @@ set -e
 
 PREFIX=
 MAKE="make"
+XONLY=0
 SRCDIR=`dirname $0`/..
 
 modules="dri2proto \
@@ -111,6 +112,8 @@ update_modules()
 
 build ()
 {
+    if [ $XONLY -eq 0 ]; then
+
     # Build VNC
     echo "*** Building VNC ***"
     $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX} --with-included-zlib
@@ -179,6 +182,8 @@ build ()
 
     popd
 
+    fi # XONLY
+
     # build xserver
     echo "*** Building xserver ***"
     pushd xorg/xserver
@@ -230,6 +235,7 @@ do
     case "$1" in
 	init)       MODE=init                ;;
 	build)      MODE=build               ;;
+	xbuild)     MODE=build;  XONLY=1     ;;
 	rebuild)    MODE=rebuild             ;;
 	update)     MODE=update              ;;
 	-srcdir)    SRCDIR=$2;        shift  ;;
