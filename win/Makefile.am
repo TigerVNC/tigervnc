@@ -4,7 +4,7 @@ if BUILD_WINVNC
 SUBDIRS += vncconfig winvnc
 endif
 
-EXTRA_DIST = logmessages LICENCE.TXT README.txt README_BINARY.txt \
+EXTRA_DIST = logmessages \
 	resdefs.h.in tigervnc.iss.in wm_hooks CMakeLists.txt resdefs.h.cmake.in
 
 dist-hook:
