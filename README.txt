@@ -50,10 +50,10 @@ All Platforms
 
 All versions of TigerVNC contain the following programs:
 
-  vncviewer - this is the cross-platform TigerVNC Viewer, written using FLTK.
-              It connects to a VNC server and allows you to interact with the
-              remote desktop being displayed by the VNC server.  The VNC server
-              can be running on a Windows or a Unix/Linux machine.
+  vncviewer - the cross-platform TigerVNC Viewer, written using FLTK.
+              vncviewer connects to a VNC server and allows you to interact
+              with the remote desktop being displayed by the VNC server.  The
+              VNC server can be running on a Windows or a Unix/Linux machine.
 
 
 Windows-Specific
@@ -61,8 +61,8 @@ Windows-Specific
 
 The Windows version of TigerVNC contains the following programs:
 
-  winvnc - the TigerVNC Server for Windows.  It allows a Windows desktop to be
-           accessed remotely using a VNC viewer.
+  winvnc - the TigerVNC Server for Windows.  winvnc allows a Windows desktop to
+           be accessed remotely using a VNC viewer.
 
 The Windows version of TigerVNC should work on Windows 2000 and later.  On
 Windows XP and later, winvnc may not work if the Fast User Switching or Remote
