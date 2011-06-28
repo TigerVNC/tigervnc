@@ -1,6 +1,25 @@
+About TigerVNC
+==============
 
-TigerVNC Source Distribution
-============================
+Virtual Network Computing (VNC) is a remote display system which allows you to
+view and interact with a virtual desktop environment that is running on another
+computer on the network.  Using VNC, you can run graphical applications on a
+remote machine and send only the display from these applications to your local
+machine.  VNC is platform-independent and supports a wide variety of operating
+systems and architectures as both servers and clients.
+
+TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code
+bases.  TigerVNC started as a next-generation development effort for TightVNC
+on Unix and Linux platforms, but it split from its parent project in early 2009
+so that TightVNC could focus on Windows platforms.  TigerVNC supports a variant
+of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo
+JPEG codec.
+
+
+Legal
+=====
+
+TigerVNC is
 
         Copyright (C) 1999 AT&T Laboratories Cambridge
         Copyright (C) 2002-2005 RealVNC Ltd.
@@ -18,15 +37,64 @@ TigerVNC Source Distribution
         Copyright (C) 2009-2011 TigerVNC Team
         All Rights Reserved.
 
-This software is distributed under the GNU General Public Licence as
-published by the Free Software Foundation.  See the file LICENCE.TXT
-for the conditions under which this software is made available.
-TigerVNC also contains code from other sources.  See the
-Acknowledgements section below, and the individual files for details
-of the conditions under which they are made available.
+This software is distributed under the GNU General Public Licence as published
+by the Free Software Foundation.  See the file LICENCE.TXT for the conditions
+under which this software is made available.  TigerVNC also contains code from
+other sources.  See the Acknowledgements section below, and the individual
+source files, for details of the conditions under which they are made
+available.
 
-For instructions on how to build this software on various platforms, see
-BUILDING.txt.
+
+Windows-Specific
+================
+
+The Windows version of TigerVNC contains the following programs:
+
+  vncviewer - the TigerVNC Viewer for Windows.  vncviewer connects to a VNC
+              server and allows you to interact with the remote desktop being
+              displayed by the VNC server.  The VNC server can be running on a
+              Windows or a Unix/Linux machine.
+
+  winvnc - the TigerVNC Server for Windows.  winvnc allows a Windows desktop to
+           be accessed remotely using a VNC viewer.
+
+The Windows version of TigerVNC should work on Windows 2000 and later.  On
+Windows XP and later, winvnc may not work if the Fast User Switching or Remote
+Desktop features are in use.
+
+
+Unix/Linux-Specific
+===================
+
+The Unix/Linux version of TigerVNC contains the following programs:
+
+  vncviewer - the TigerVNC Viewer for Unix, an X Windows application that
+              connects to a VNC server and allows you to interact with the
+              remote desktop being displayed by the VNC server.  The VNC server
+              can be running on a Windows or a Unix/Linux machine.
+
+  Xvnc - the TigerVNC Server for Unix.  Xvnc is both a VNC server and an X
+         server with a "virtual" framebuffer.  You should normally use the
+         vncserver script to start Xvnc.
+
+  vncserver - a wrapper script which makes starting Xvnc more convenient.
+              vncserver requires Perl.
+
+  vncpasswd - a program which allows you to change the VNC password used to
+              access your VNC server sessions (assuming that VNC authentication
+              is being used.)  The vncserver script will automatically launch
+              this program if it detects that VNC authentication is in use and
+              a VNC password has not yet been configured.
+
+  vncconfig - a program which is used to configure and control a running
+              instance of Xvnc.
+
+  x0vncserver - an inefficient VNC server which continuously polls any X
+                display, allowing it to be controlled via VNC.  It is intended
+                mainly as a demonstration of a simple VNC server.
+
+Only vncviewer is available on Macintosh platforms.  It requires the Macintosh
+X11 application.
 
 
 ACKNOWLEDGEMENTS

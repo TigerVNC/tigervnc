@@ -81,7 +81,8 @@ mkdir -p $TMPDIR/pkg/Resources
 chmod 755 $PKGROOT/opt/$PACKAGE_NAME/bin/uninstall
 
 install -m 644 $SRCDIR/unix/vncviewer/vncviewer.man $PKGROOT/opt/$PACKAGE_NAME/man/man1/vncviewer.1
-install -m 644 $SRCDIR/LICENCE.txt $PKGROOT/Library/Documentation/$PACKAGE_NAME/
+install -m 644 $SRCDIR/LICENCE.TXT $PKGROOT/Library/Documentation/$PACKAGE_NAME/
+install -m 644 $SRCDIR/README.txt $PKGROOT/Library/Documentation/$PACKAGE_NAME/
 
 sudo chown -R root:admin $PKGROOT 
 cp $SRCDIR/release/License.rtf $SRCDIR/release/Welcome.rtf $SRCDIR/release/ReadMe.rtf $TMPDIR/pkg/Resources/ 

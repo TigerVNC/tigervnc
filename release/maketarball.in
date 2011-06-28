@@ -38,6 +38,10 @@ if [ $SERVER = 1 ]; then
 else
 	make install prefix=/opt/TigerVNC DESTDIR=$TMPDIR
 fi
+mkdir -p $TMPDIR/opt/TigerVNC/doc
+install -m 644 $SRCDIR/LICENCE.TXT $TMPDIR/opt/TigerVNC/doc/
+install -m 644 $SRCDIR/README.txt $TMPDIR/opt/TigerVNC/doc/
+
 pushd $TMPDIR
 tar cfz $PACKAGE_FILE opt
 popd
