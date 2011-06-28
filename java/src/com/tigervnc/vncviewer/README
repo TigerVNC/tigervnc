@@ -7,15 +7,14 @@ This distribution is based on the standard VNC source and includes new
 TightVNC-specific features and fixes, such as additional low-bandwidth
 optimizations, major GUI improvements, and more.
 
+        Copyright (C) 2000-2003 Constantin Kaplinsky
         Copyright (C) 2003 Sun Microsystems, Inc.
-	Copyright (C) 2002-2005 RealVNC Ltd.
+        Copyright (C) 2002-2005 RealVNC Ltd.
         Copyright (C) 2004-2005 Cendio AB
         Copyright (C) 2005 Martin Koegler
-	Copyright (C) 2000-2007 Constantin Kaplinsky
-	Copyright (C) 2000-2007 TightVNC Group
         Copyright (C) 2009 Pierre Ossman for Cendio AB
         Copyright (C) 2009-2011 TigerVNC Team
-	All rights reserved.
+        All rights reserved.
 
 This software is distributed under the GNU General Public Licence as
 published by the Free Software Foundation. See the file LICENCE.TXT for the
