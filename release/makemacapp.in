@@ -64,8 +64,8 @@ fi
 install -m 644 $SRCDIR/release/tigervnc.icns "$APPROOT/Contents/Resources/"
 install -m 644 release/Info.plist "$APPROOT/Contents/"
 
-install -m 644 $SRCDIR/LICENCE.txt $TMPDIR/dmg/
-install -m 644 $SRCDIR/release/README.txt $TMPDIR/dmg/
+install -m 644 $SRCDIR/LICENCE.TXT $TMPDIR/dmg/
+install -m 644 $SRCDIR/README.txt $TMPDIR/dmg/
 
 hdiutil create -fs HFS+ -volname $PACKAGE_NAME-$VERSION \
 	-srcfolder "$TMPDIR/dmg" \
