@@ -1,10 +1,9 @@
 
-  TigerVNC Java Viewer version 1.1.80
-
-======================================================================
+TigerVNC Java Viewer
+====================
 
 This distribution is based on the standard VNC source and includes new
-TightVNC-specific features and fixes, such as additional low-bandwidth
+TigerVNC-specific features and fixes, such as additional low-bandwidth
 optimizations, major GUI improvements, and more.
 
         Copyright (C) 2000-2003 Constantin Kaplinsky
