@@ -86,7 +86,7 @@ BEGIN
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "winvnc\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2010 [many holders]\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "winvnc4.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -142,18 +142,18 @@ END
 // Dialog
 //
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 300, 92
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "About TigerVNC Server for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,195,70,47,15
+    DEFPUSHBUTTON   "OK",IDOK,245,70,47,15
     CONTROL         109,IDC_STATIC,"Static",SS_BITMAP,5,10,33,31
     LTEXT           ">appname<",IDC_DESCRIPTION,45,10,125,15
     LTEXT           ">version<",IDC_VERSION,170,10,72,15
     LTEXT           ">buildtime<",IDC_BUILDTIME,45,25,202,15
-    LTEXT           ">copyright<",IDC_COPYRIGHT,45,40,202,15
+    LTEXT           ">copyright<",IDC_COPYRIGHT,45,40,256,15
     LTEXT           "See http://www.tigervnc.org for more information on VNC.",
                     IDC_STATIC,45,55,202,15
 END

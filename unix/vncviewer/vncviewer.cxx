@@ -274,9 +274,7 @@ int main(int argc, char** argv)
   textdomain(PACKAGE_NAME);
 
   const char englishAbout[] = N_("TigerVNC Viewer for X version %s - built %s\n"
-				 "Copyright (C) 2002-2005 RealVNC Ltd.\n"
-				 "Copyright (C) 2000-2006 TightVNC Group\n"
-				 "Copyright (C) 2004-2009 Peter Astrand for Cendio AB\n"
+				 "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
 				 "See http://www.tigervnc.org for information on TigerVNC.");
 
   rfb::SecurityClient::setDefaults();
