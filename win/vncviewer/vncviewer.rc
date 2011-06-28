@@ -95,7 +95,7 @@ BEGIN
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "free4/vncviewer/win\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2010 [many holders]\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -159,19 +159,19 @@ BEGIN
     RTEXT           "Server:",IDC_STATIC,43,15,37,13,SS_CENTERIMAGE
 END
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 300, 92
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "About TigerVNC Viewer for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,195,70,47,15
+    DEFPUSHBUTTON   "OK",IDOK,245,70,47,15
     CONTROL         120,IDC_STATIC,"Static",SS_BITMAP | SS_REALSIZEIMAGE,7,
                     10,33,31
     LTEXT           ">appname<",IDC_DESCRIPTION,46,10,119,15
     LTEXT           ">version<",IDC_VERSION,165,10,77,15
     LTEXT           ">buildtime<",IDC_BUILDTIME,46,25,196,15
-    LTEXT           ">copyright<",IDC_COPYRIGHT,46,40,196,15
+    LTEXT           ">copyright<",IDC_COPYRIGHT,46,40,250,15
     LTEXT           "Visit www.tigervnc.org for more information on TigerVNC.",
                     IDC_STATIC,46,55,196,15
 END

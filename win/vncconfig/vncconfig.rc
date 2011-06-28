@@ -224,18 +224,18 @@ BEGIN
                     WS_TABSTOP,7,95,172,15
 END
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 300, 92
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "About TigerVNC Config for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,195,70,47,15
+    DEFPUSHBUTTON   "OK",IDOK,245,70,47,15
     ICON            IDI_ICON,IDC_STATIC,7,7,20,20
     LTEXT           ">appname<",IDC_DESCRIPTION,40,7,125,18
     LTEXT           ">version<",IDC_VERSION,165,7,77,18
     LTEXT           ">buildtime<",IDC_BUILDTIME,40,25,202,15
-    LTEXT           ">copyright<",IDC_COPYRIGHT,40,40,202,15
+    LTEXT           ">copyright<",IDC_COPYRIGHT,40,40,256,15
     LTEXT           "See http://www.tigervnc.org for more information on TigerVNC.",
                     IDC_STATIC,40,55,202,15
 END
@@ -477,7 +477,7 @@ BEGIN
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "vncconfig\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2010 [many holders]\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncconfig.exe\0"
             VALUE "PrivateBuild", "\0"

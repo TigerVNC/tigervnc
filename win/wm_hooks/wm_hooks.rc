@@ -82,7 +82,7 @@ BEGIN
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998-2005 [many holders]\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2005 [many holders]\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "wm_hooks.dll\0"
             VALUE "PrivateBuild", "\0"

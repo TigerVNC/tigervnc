@@ -24,7 +24,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       --default-domain=tigervnc
       --keyword=_
       --keyword=N_
-      --copyright-holder='RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB'
+      --copyright-holder='TigerVNC Team and many others (see README.txt)'
       --msgid-bugs-address="tigervnc-devel@lists.sourceforge.net"
       --sort-output
       --no-location
