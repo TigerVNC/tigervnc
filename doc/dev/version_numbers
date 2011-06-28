@@ -3,5 +3,4 @@ release process.
 
 CMakeLists.txt
 configure.ac
-java/src/com/tigervnc/vncviewer/README
 unix/xserver/hw/vnc/xvnc.cc
