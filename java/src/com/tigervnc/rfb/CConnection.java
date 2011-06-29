@@ -66,12 +66,12 @@ abstract public class CConnection extends CMsgHandler {
 
   private void processVersionMsg() {
     vlog.debug("reading protocol version");
-    boolean done = true;
+    Boolean done = new Boolean(true);
     if (!cp.readVersion(is, done)) {
       state_ = RFBSTATE_INVALID;
       throw new Exception("reading version failed: not an RFB server?");
     }
-    if (!done) return;
+    if (!done.booleanValue()) return;
 
     vlog.info("Server supports RFB protocol version "+cp.majorVersion+"."+
               cp.minorVersion);

@@ -39,37 +39,32 @@ public class ConnParams {
     setName("");
   }
 
-  public boolean readVersion(InStream is, boolean done) {
+  public boolean readVersion(InStream is, Boolean done) 
+  {
     if (verStrPos >= 12) return false;
-    byte[] verStr = new byte[13];
-    while (verStrPos < 12) {
-      verStr[verStrPos++] = (byte)is.readU8();
+    verStr = new StringBuilder(13);
+    while (verStrPos < 12 && is.checkNoWait(1)) {
+      verStr.insert(verStrPos++,(char)is.readU8());
     }
 
     if (verStrPos < 12) {
-      done = false;
+      done = Boolean.valueOf(false);
       return true;
     }
-    done = true;
-    verStr[12] = 0;
-    majorVersion = (verStr[4] - '0') * 100 + (verStr[5] - '0') * 10 + (verStr[6] - '0');
-    minorVersion = (verStr[8] - '0') * 100 + (verStr[9] - '0') * 10 + (verStr[10] - '0');
+    done = Boolean.valueOf(true);
+    verStr.insert(12,'0');
     verStrPos = 0;
-    return true;
+    if (verStr.toString().matches("RFB \\d{3}\\.\\d{3}\\n0")) {
+      majorVersion = Integer.parseInt(verStr.substring(4,7));
+      minorVersion = Integer.parseInt(verStr.substring(8,11));
+      return true;
+    }
+    return false;
   }
 
   public void writeVersion(OutStream os) {
-    byte[] b = new byte[12];
-    b[0] = (byte)'R'; b[1] = (byte)'F'; b[2] = (byte)'B'; b[3] = (byte)' ';
-    b[4] = (byte)('0' + (majorVersion / 100) % 10);
-    b[5] = (byte)('0' + (majorVersion / 10) % 10);
-    b[6] = (byte)('0' + majorVersion % 10);
-    b[7] = (byte)'.';
-    b[8] = (byte)('0' + (minorVersion / 100) % 10);
-    b[9] = (byte)('0' + (minorVersion / 10) % 10);
-    b[10] = (byte)('0' + minorVersion % 10);
-    b[11] = (byte)'\n';
-    os.writeBytes(b, 0, 12);
+    String str = String.format("RFB %03d.%03d\n", majorVersion, minorVersion);
+    os.writeBytes(str.getBytes(), 0, 12);
     os.flush();
   }
 
@@ -171,6 +166,6 @@ public class ConnParams {
   private int nEncodings_;
   private int[] encodings_;
   private int currentEncoding_;
-  private String verStr;
+  private StringBuilder verStr;
   private int verStrPos;
 }
