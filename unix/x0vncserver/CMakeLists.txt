@@ -18,4 +18,4 @@ add_executable(x0vncserver
 target_link_libraries(x0vncserver tx rfb network rdr ${X11_LIBRARIES})
 
 install(TARGETS x0vncserver DESTINATION bin)
-install(FILES x0vncserver.man DESTINATION man/man1 RENAME xvnc0server.1)
+install(FILES x0vncserver.man DESTINATION man/man1 RENAME x0vncserver.1)
