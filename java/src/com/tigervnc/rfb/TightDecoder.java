@@ -212,7 +212,8 @@ public class TightDecoder extends Decoder {
             }
           }
         } else {
-          input.readBytes(buf, 0, dataSize);
+          for (int ptr=0; ptr < dataSize; ptr++)
+            buf[ptr] = input.readU8();
         }
       }
     } else {
