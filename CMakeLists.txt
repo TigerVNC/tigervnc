@@ -309,9 +309,6 @@ add_subdirectory(common)
 
 if(WIN32)
   add_subdirectory(win)
- if(CMAKE_C_COMPILER_ID STREQUAL GNU)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-subsystem,windows")
- endif(CMAKE_C_COMPILER_ID STREQUAL GNU)
 else()
   # No interest in building x related parts on Apple
   if(NOT APPLE)

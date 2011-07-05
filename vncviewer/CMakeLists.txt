@@ -29,7 +29,11 @@ else()
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} X11PixelBuffer.cxx)
 endif()
 
-add_executable(vncviewer ${VNCVIEWER_SOURCES})
+if(WIN32)
+  add_executable(vncviewer WIN32 ${VNCVIEWER_SOURCES})
+else()
+  add_executable(vncviewer ${VNCVIEWER_SOURCES})
+endif()
 
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
