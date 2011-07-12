@@ -42,6 +42,7 @@
 #include "fltk_layout.h"
 #include "parameters.h"
 #include "keysym2ucs.h"
+#include "vncviewer.h"
 
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
@@ -52,9 +53,6 @@
 
 using namespace rfb;
 using namespace rdr;
-
-extern void exit_vncviewer();
-extern void about_vncviewer();
 
 static rfb::LogWriter vlog("Viewport");
 

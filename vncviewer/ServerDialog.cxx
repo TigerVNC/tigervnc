@@ -26,8 +26,7 @@
 #include "OptionsDialog.h"
 #include "fltk_layout.h"
 #include "i18n.h"
-
-extern void about_vncviewer();
+#include "vncviewer.h"
 
 ServerDialog::ServerDialog()
   : Fl_Window(400, 112, _("VNC Viewer: Connection Details"))

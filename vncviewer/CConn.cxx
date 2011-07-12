@@ -38,6 +38,7 @@
 #include "OptionsDialog.h"
 #include "i18n.h"
 #include "parameters.h"
+#include "vncviewer.h"
 
 #ifdef WIN32
 #include "win32.h"
@@ -46,8 +47,6 @@
 using namespace rdr;
 using namespace rfb;
 using namespace std;
-
-extern void exit_vncviewer();
 
 static rfb::LogWriter vlog("CConn");
 

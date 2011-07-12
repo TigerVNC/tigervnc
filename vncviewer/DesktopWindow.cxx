@@ -27,6 +27,7 @@
 #include "OptionsDialog.h"
 #include "i18n.h"
 #include "parameters.h"
+#include "vncviewer.h"
 
 #include <FL/Fl_Scroll.H>
 #include <FL/x.H>
@@ -40,8 +41,6 @@
 #endif
 
 using namespace rfb;
-
-extern void exit_vncviewer();
 
 static rfb::LogWriter vlog("DesktopWindow");
 
