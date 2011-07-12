@@ -387,11 +387,9 @@ int Viewport::handle(int event)
   case FL_UNFOCUS:
     // Release all keys that were pressed as that generally makes most
     // sense (e.g. Alt+Tab where we only see the Alt press)
-    for (iter = downKeySym.begin();iter != downKeySym.end();++iter) {
-      vlog.debug("Key released: 0x%04x => 0x%04x", iter->first, iter->second);
-      cc->writer()->keyEvent(iter->second, false);
-    }
-    downKeySym.clear();
+    while (!downKeySym.empty())
+      handleKeyEvent(downKeySym.begin()->first, downKeySym.begin()->first,
+                     "", false);
     return 1;
 
   case FL_KEYDOWN:
