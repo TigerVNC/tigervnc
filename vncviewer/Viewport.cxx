@@ -327,7 +327,13 @@ int Viewport::handle(int event)
     assert(ret < (Fl::event_length() + 1));
 
     vlog.debug("Sending clipboard data: '%s'", buffer);
-    cc->writer()->clientCutText(buffer, ret);
+
+    try {
+      cc->writer()->clientCutText(buffer, ret);
+    } catch (rdr::Exception& e) {
+      vlog.error(e.str());
+      exit_vncviewer(e.str());
+    }
 
     delete [] buffer;
 
@@ -455,7 +461,12 @@ void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
 {
   if (!viewOnly) {
     if (pointerEventInterval == 0 || buttonMask != lastButtonMask) {
-      cc->writer()->pointerEvent(pos, buttonMask);
+      try {
+        cc->writer()->pointerEvent(pos, buttonMask);
+      } catch (rdr::Exception& e) {
+        vlog.error(e.str());
+        exit_vncviewer(e.str());
+      }
     } else {
       if (!Fl::has_timeout(handlePointerTimeout, this))
         Fl::add_timeout((double)pointerEventInterval/1000.0,
@@ -473,7 +484,12 @@ void Viewport::handlePointerTimeout(void *data)
 
   assert(self);
 
-  self->cc->writer()->pointerEvent(self->lastPointerPos, self->lastButtonMask);
+  try {
+    self->cc->writer()->pointerEvent(self->lastPointerPos, self->lastButtonMask);
+  } catch (rdr::Exception& e) {
+    vlog.error(e.str());
+    exit_vncviewer(e.str());
+  }
 }
 
 
@@ -683,7 +699,12 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
 
     vlog.debug("Key released: 0x%04x => 0x%04x", origKeyCode, iter->second);
 
-    cc->writer()->keyEvent(iter->second, false);
+    try {
+      cc->writer()->keyEvent(iter->second, false);
+    } catch (rdr::Exception& e) {
+      vlog.error(e.str());
+      exit_vncviewer(e.str());
+    }
 
     downKeySym.erase(iter);
 
@@ -698,7 +719,13 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
              origKeyCode, keyCode, keyText, keySym);
 
   downKeySym[origKeyCode] = keySym;
-  cc->writer()->keyEvent(keySym, down);
+
+  try {
+    cc->writer()->keyEvent(keySym, down);
+  } catch (rdr::Exception& e) {
+    vlog.error(e.str());
+    exit_vncviewer(e.str());
+  }
 }
 
 
