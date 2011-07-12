@@ -19,7 +19,7 @@
 #ifndef __VNCVIEWER_H__
 #define __VNCVIEWER_H__
 
-void exit_vncviewer();
+void exit_vncviewer(const char *error = NULL);
 void about_vncviewer();
 
 #endif

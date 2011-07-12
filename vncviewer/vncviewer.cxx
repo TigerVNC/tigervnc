@@ -66,9 +66,15 @@ using namespace std;
 static char aboutText[1024];
 
 static bool exitMainloop = false;
+static const char *exitError = NULL;
 
-void exit_vncviewer()
+void exit_vncviewer(const char *error)
 {
+  // Prioritise the first error we get as that is probably the most
+  // relevant one.
+  if ((error != NULL) && (exitError == NULL))
+    exitError = strdup(error);
+
   exitMainloop = true;
 }
 
@@ -267,7 +273,7 @@ int main(int argc, char** argv)
       return 1;
   }
 
-  CConn cc(vncServerName);
+  CConn *cc = new CConn(vncServerName);
 
   while (!exitMainloop) {
     int next_timer;
@@ -281,6 +287,11 @@ int main(int argc, char** argv)
       break;
     }
   }
+
+  delete cc;
+
+  if (exitError != NULL)
+    fl_alert(exitError);
 
   return 0;
 }

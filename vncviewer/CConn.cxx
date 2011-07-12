@@ -198,8 +198,7 @@ void CConn::socketEvent(int fd, void *data)
     exit_vncviewer();
   } catch (rdr::Exception& e) {
     vlog.error(e.str());
-    fl_alert(e.str());
-    exit_vncviewer();
+    exit_vncviewer(e.str());
   }
 
   recursing = false;
