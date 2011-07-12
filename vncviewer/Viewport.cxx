@@ -762,28 +762,23 @@ void Viewport::popupContextMenu()
     break;
 #endif
   case ID_CTRL:
-    if (!viewOnly)
-      cc->writer()->keyEvent(XK_Control_L, m->value());
+    handleKeyEvent(FL_Control_L, FL_Control_L, "", m->value());
     break;
   case ID_ALT:
-    if (!viewOnly)
-      cc->writer()->keyEvent(XK_Alt_L, m->value());
+    handleKeyEvent(FL_Alt_L, FL_Alt_L, "", m->value());
     break;
   case ID_MENUKEY:
-    if (!viewOnly) {
-      handleKeyEvent(menuKeyCode, menuKeyCode, "", true);
-      handleKeyEvent(menuKeyCode, menuKeyCode, "", false);
-    }
+    handleKeyEvent(menuKeyCode, menuKeyCode, "", true);
+    handleKeyEvent(menuKeyCode, menuKeyCode, "", false);
     break;
   case ID_CTRLALTDEL:
-    if (!viewOnly) {
-      cc->writer()->keyEvent(XK_Control_L, true);
-      cc->writer()->keyEvent(XK_Alt_L, true);
-      cc->writer()->keyEvent(XK_Delete, true);
-      cc->writer()->keyEvent(XK_Delete, false);
-      cc->writer()->keyEvent(XK_Alt_L, false);
-      cc->writer()->keyEvent(XK_Control_L, false);
-    }
+    handleKeyEvent(FL_Control_L, FL_Control_L, "", true);
+    handleKeyEvent(FL_Alt_L, FL_Alt_L, "", true);
+    handleKeyEvent(FL_Delete, FL_Delete, "", true);
+
+    handleKeyEvent(FL_Delete, FL_Delete, "", false);
+    handleKeyEvent(FL_Alt_L, FL_Alt_L, "", false);
+    handleKeyEvent(FL_Control_L, FL_Control_L, "", false);
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
