@@ -715,6 +715,43 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
   if (keySym == XK_VoidSymbol)
     return;
 
+#ifdef WIN32
+  // Ugly hack alert!
+  //
+  // Windows doesn't have a proper AltGr, but handles it using fake
+  // Ctrl+Alt. Unfortunately X11 doesn't generally like the combination
+  // Ctrl+Alt+AltGr, which we usually end up with when Xvnc tries to
+  // get everything in the correct state. Cheat and temporarily release
+  // Ctrl and Alt whenever we get a key with a symbol.
+  bool need_cheat = true;
+
+  if (keyText[0] == '\0')
+    need_cheat = false;
+  else if ((downKeySym.find(FL_Control_L) == downKeySym.end()) &&
+           (downKeySym.find(FL_Control_R) == downKeySym.end()))
+    need_cheat = false;
+  else if ((downKeySym.find(FL_Alt_L) == downKeySym.end()) &&
+           (downKeySym.find(FL_Alt_R) == downKeySym.end()))
+    need_cheat = false;
+
+  if (need_cheat) {
+    vlog.debug("Faking release of AltGr (Ctrl+Alt)");
+    try {
+      if (downKeySym.find(FL_Control_L) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Control_L, false);
+      if (downKeySym.find(FL_Control_R) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Control_R, false);
+      if (downKeySym.find(FL_Alt_L) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Alt_L, false);
+      if (downKeySym.find(FL_Alt_R) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Alt_R, false);
+    } catch (rdr::Exception& e) {
+      vlog.error(e.str());
+      exit_vncviewer(e.str());
+    }
+  }
+#endif
+
   vlog.debug("Key pressed: 0x%04x (0x%04x) '%s' => 0x%04x",
              origKeyCode, keyCode, keyText, keySym);
 
@@ -726,6 +763,26 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
     vlog.error(e.str());
     exit_vncviewer(e.str());
   }
+
+#ifdef WIN32
+  // Ugly hack continued...
+  if (need_cheat) {
+    vlog.debug("Restoring AltGr state");
+    try {
+      if (downKeySym.find(FL_Control_L) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Control_L, true);
+      if (downKeySym.find(FL_Control_R) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Control_R, true);
+      if (downKeySym.find(FL_Alt_L) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Alt_L, true);
+      if (downKeySym.find(FL_Alt_R) != downKeySym.end())
+        cc->writer()->keyEvent(XK_Alt_R, true);
+    } catch (rdr::Exception& e) {
+      vlog.error(e.str());
+      exit_vncviewer(e.str());
+    }
+  }
+#endif
 }
 
 
