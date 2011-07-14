@@ -65,7 +65,7 @@ void UserDialog::getUserPasswd(char** user, char** password)
     ObfuscatedPasswd obfPwd(256);
     FILE* fp;
 
-    fp = fopen(passwordFileStr.buf, "r");
+    fp = fopen(passwordFileStr.buf, "rb");
     if (!fp)
       throw rfb::Exception(_("Opening password file failed"));
 
