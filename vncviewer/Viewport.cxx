@@ -539,6 +539,23 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
     }
   }
 
+#ifdef __APPLE__
+  // Alt on OS X behaves more like AltGr on other systems, and to get
+  // sane behaviour we should translate things in that manner for the
+  // remote VNC server. However that means we lose the ability to use
+  // Alt as a shortcut modifier. Do what RealVNC does and hijack the
+  // left command key as an Alt replacement.
+  switch (keyCode) {
+  case FL_Meta_L:
+    return XK_Alt_L;
+  case FL_Meta_R:
+    return XK_Super_L;
+  case FL_Alt_L:
+  case FL_Alt_R:
+    return XK_ISO_Level3_Shift;
+  }
+#endif
+
   // Then other special keys
   switch (keyCode) {
   case FL_BackSpace:
