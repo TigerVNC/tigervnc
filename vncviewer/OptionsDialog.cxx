@@ -150,13 +150,13 @@ void OptionsDialog::loadOptions(void)
   else {
     switch (lowColourLevel) {
     case 0:
-      mediumcolorCheckbox->setonly();
+      verylowcolorCheckbox->setonly();
       break;
     case 1:
       lowcolorCheckbox->setonly();
       break;
     case 2:
-      verylowcolorCheckbox->setonly();
+      mediumcolorCheckbox->setonly();
       break;
     }
   }
@@ -292,11 +292,11 @@ void OptionsDialog::storeOptions(void)
     preferredEncoding.setParam(encodingName(encodingRaw));
 
   fullColour.setParam(fullcolorCheckbox->value());
-  if (mediumcolorCheckbox->value())
+  if (verylowcolorCheckbox->value())
     lowColourLevel.setParam(0);
   else if (lowcolorCheckbox->value())
     lowColourLevel.setParam(1);
-  else if (verylowcolorCheckbox->value())
+  else if (mediumcolorCheckbox->value())
     lowColourLevel.setParam(2);
 
   customCompressLevel.setParam(compressionCheckbox->value());

@@ -50,9 +50,14 @@ using namespace std;
 
 static rfb::LogWriter vlog("CConn");
 
-static const PixelFormat mediumColourPF(8,3,0,1,1,1,1,2,1,0);
-static const PixelFormat lowColourPF(8,6,0,1,3,3,3,4,2,0);
-static const PixelFormat verylowColourPF(8,8,0,0);
+// 8 colours (1 bit per component)
+static const PixelFormat verylowColourPF(8, 3,false, true,
+                                         1, 1, 1, 2, 1, 0);
+// 64 colours (2 bits per component)
+static const PixelFormat lowColourPF(8, 6, false, true,
+                                     3, 3, 3, 4, 2, 0);
+// 256 colours (palette)
+static const PixelFormat mediumColourPF(8, 8, false, false);
 
 CConn::CConn(const char* vncServerName)
   : serverHost(0), serverPort(0), sock(NULL), desktop(NULL),
@@ -503,11 +508,11 @@ void CConn::requestNewUpdate()
       pf = fullColourPF;
     } else {
       if (lowColourLevel == 0)
-        pf = mediumColourPF;
+        pf = verylowColourPF;
       else if (lowColourLevel == 1)
         pf = lowColourPF;
       else
-        pf = verylowColourPF;
+        pf = mediumColourPF;
     }
     char str[256];
     pf.print(str, 256);
@@ -564,11 +569,11 @@ void CConn::handleOptions(void *data)
     pf = self->fullColourPF;
   } else {
     if (lowColourLevel == 0)
-      pf = mediumColourPF;
+      pf = verylowColourPF;
     else if (lowColourLevel == 1)
       pf = lowColourPF;
     else
-      pf = verylowColourPF;
+      pf = mediumColourPF;
   }
 
   if (!pf.equal(self->cp.pf()))
