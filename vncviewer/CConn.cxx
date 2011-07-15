@@ -64,7 +64,7 @@ CConn::CConn(const char* vncServerName)
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false),
-    forceNonincremental(false)
+    forceNonincremental(true)
 {
   setShared(::shared);
 
@@ -525,9 +525,6 @@ void CConn::requestNewUpdate()
   }
 
   checkEncodings();
-
-  if (firstUpdate)
-    forceNonincremental = true;
 
   writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
                                           !forceNonincremental);
