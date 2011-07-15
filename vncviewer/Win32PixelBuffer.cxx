@@ -77,8 +77,15 @@ void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
   if (!SelectObject(dc, bitmap))
     throw rdr::SystemException("SelectObject failed", GetLastError());
 
-  if (!BitBlt(fl_gc, x, y, w, h, dc, src_x, src_y, SRCCOPY))
-    throw rdr::SystemException("BitBlt failed", GetLastError());
+  if (!BitBlt(fl_gc, x, y, w, h, dc, src_x, src_y, SRCCOPY)) {
+    // If the desktop we're rendering to is inactive (like when the screen
+    // is locked or the UAC is active), then GDI calls will randomly fail.
+    // This is completely undocumented so we have no idea how best to deal
+    // with it. For now, we've only seen this error and for this function
+    // so only ignore this combination.
+    if (GetLastError() != ERROR_INVALID_HANDLE)
+      throw rdr::SystemException("BitBlt failed", GetLastError());
+  }
 
   DeleteDC(dc);
 }
