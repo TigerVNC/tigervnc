@@ -526,6 +526,9 @@ void CConn::requestNewUpdate()
 
   checkEncodings();
 
+  if (firstUpdate)
+    forceNonincremental = true;
+
   writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
                                           !forceNonincremental);
  
