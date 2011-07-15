@@ -521,8 +521,6 @@ void CConn::requestNewUpdate()
     cp.setPF(pf);
     writer()->writeSetPixelFormat(pf);
 
-    forceNonincremental = true;
-
     formatChange = false;
   }
 
