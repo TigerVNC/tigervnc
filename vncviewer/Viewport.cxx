@@ -138,6 +138,26 @@ void Viewport::setServerPF(const rfb::PixelFormat& pf)
     return;
 
   pixelTrans = new PixelTransformer();
+
+  // FIXME: This is an ugly (temporary) hack to get around a corner
+  //        case during startup. The conversion routines cannot handle
+  //        non-native source formats, and we can sometimes get that
+  //        as the initial format. We will switch to a better format
+  //        before getting any updates, but we need something for now.
+  //        Our old client used something completely bogus and just
+  //        hoped nothing would ever go wrong. We try to at least match
+  //        the pixel size so that we don't get any memory access issues
+  //        should a stray update appear.
+  static rdr::U32 endianTest = 1;
+  static bool nativeBigEndian = *(rdr::U8*)(&endianTest) != 1;
+  if ((pf.bpp > 8) && (pf.bigEndian != nativeBigEndian)) {
+    PixelFormat fake_pf(pf.bpp, pf.depth, nativeBigEndian, pf.trueColour,
+                        pf.redMax, pf.greenMax, pf.blueMax,
+                        pf.redShift, pf.greenShift, pf.blueShift);
+    pixelTrans->init(fake_pf, &colourMap, getPreferredPF());
+    return;
+  }
+
   pixelTrans->init(pf, &colourMap, getPreferredPF());
 }
 
