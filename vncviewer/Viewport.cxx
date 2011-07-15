@@ -223,7 +223,12 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
       U8 *i, *o, *m;
       int m_width;
 
-      const PixelFormat &pf = frameBuffer->getPF();
+      const PixelFormat *pf;
+      
+      if (pixelTrans)
+        pf = &pixelTrans->getInPF();
+      else
+        pf = &frameBuffer->getPF();
 
       i = (U8*)data;
       o = buffer;
@@ -231,7 +236,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
       m_width = (width+7)/8;
       for (int y = 0;y < height;y++) {
         for (int x = 0;x < width;x++) {
-          pf.rgbFromBuffer(o, i, 1, &colourMap);
+          pf->rgbFromBuffer(o, i, 1, &colourMap);
 
           if (m[(m_width*y)+(x/8)] & 0x80>>(x%8))
             o[3] = 255;
@@ -239,7 +244,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
             o[3] = 0;
 
           o += 4;
-          i += pf.bpp/8;
+          i += pf->bpp/8;
         }
       }
 
