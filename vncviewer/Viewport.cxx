@@ -63,7 +63,8 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
-    lastPointerPos(0, 0), lastButtonMask(0), cursor(NULL)
+    colourMapChange(false), lastPointerPos(0, 0), lastButtonMask(0),
+    cursor(NULL)
 {
 // FLTK STR #2599 must be fixed for proper dead keys support
 #ifdef HAVE_FLTK_DEAD_KEYS
@@ -103,7 +104,6 @@ Viewport::~Viewport()
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
   Fl::remove_timeout(handleUpdateTimeout, this);
-  Fl::remove_timeout(handleColourMap, this);
   Fl::remove_timeout(handlePointerTimeout, this);
 
 #ifdef HAVE_FLTK_CLIPBOARD
@@ -149,17 +149,17 @@ const rfb::PixelFormat &Viewport::getPreferredPF()
 
 
 // setColourMapEntries() changes some of the entries in the colourmap.
-// Unfortunately these messages are often sent one at a time, so we delay the
-// settings taking effect by 100ms.  This is because recalculating the internal
-// translation table can be expensive.
+// We don't actually act on these changes until we need to. This is
+// because recalculating the internal translation table can be expensive.
+// This also solves the issue of silly servers sending colour maps in
+// multiple pieces.
 void Viewport::setColourMapEntries(int firstColour, int nColours,
                                    rdr::U16* rgbs)
 {
   for (int i = 0; i < nColours; i++)
     colourMap.set(firstColour+i, rgbs[i*3], rgbs[i*3+1], rgbs[i*3+2]);
 
-  if (!Fl::has_timeout(handleColourMap, this))
-    Fl::add_timeout(0.100, handleColourMap, this);
+  colourMapChange = true;
 }
 
 
@@ -431,16 +431,16 @@ void Viewport::handleUpdateTimeout(void *data)
 }
 
 
-void Viewport::handleColourMap(void *data)
+void Viewport::commitColourMap()
 {
-  Viewport *self = (Viewport *)data;
+  if (pixelTrans == NULL)
+    return;
+  if (!colourMapChange)
+    return;
 
-  assert(self);
+  colourMapChange = false;
 
-  if (self->pixelTrans != NULL)
-    self->pixelTrans->setColourMapEntries(0, 0);
-
-  self->Fl_Widget::damage(FL_DAMAGE_ALL);
+  pixelTrans->setColourMapEntries(0, 0);
 }
 
 

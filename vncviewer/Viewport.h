@@ -70,6 +70,8 @@ public:
   void fillRect(const rfb::Rect& r, rfb::Pixel pix) {
     if (pixelTrans) {
       rfb::Pixel pix2;
+      if (colourMapChange)
+        commitColourMap();
       pixelTrans->translatePixels(&pix, &pix2, 1);
       pix = pix2;
     }
@@ -78,13 +80,16 @@ public:
     damageRect(r);
   }
   void imageRect(const rfb::Rect& r, void* pixels) {
-    if (pixelTrans)
+    if (pixelTrans) {
+      if (colourMapChange)
+        commitColourMap();
       pixelTrans->translateRect(pixels, r.width(),
                                 rfb::Rect(0, 0, r.width(), r.height()),
                                 frameBuffer->data, frameBuffer->getStride(),
                                 r.tl);
-    else
+    } else {
       frameBuffer->imageRect(r, pixels);
+    }
     damageRect(r);
   }
   void copyRect(const rfb::Rect& r, int srcX, int srcY) {
@@ -112,7 +117,8 @@ private:
   };
 
   static void handleUpdateTimeout(void *data);
-  static void handleColourMap(void *data);
+
+  void commitColourMap();
 
   static void handleClipboardChange(int source, void *data);
 
@@ -136,6 +142,7 @@ private:
 
   rfb::PixelTransformer *pixelTrans;
   rfb::SimpleColourMap colourMap;
+  bool colourMapChange;
 
   rfb::Region damage;
 
