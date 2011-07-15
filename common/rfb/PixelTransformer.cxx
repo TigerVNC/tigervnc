@@ -250,6 +250,26 @@ void PixelTransformer::init(const PixelFormat& inPF_, ColourMap* inCM_,
   }
 }
 
+const PixelFormat &PixelTransformer::getInPF() const
+{
+  return inPF;
+}
+
+const ColourMap *PixelTransformer::getInColourMap() const
+{
+  return inCM;
+}
+
+const PixelFormat &PixelTransformer::getOutPF() const
+{
+  return outPF;
+}
+
+const ColourCube *PixelTransformer::getOutColourCube() const
+{
+  return cube;
+}
+
 void PixelTransformer::setColourMapEntries(int firstCol, int nCols)
 {
   if (nCols == 0)

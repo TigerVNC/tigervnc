@@ -54,6 +54,12 @@ namespace rfb {
               const PixelFormat& outPF, ColourCube* cube = NULL,
               setCMFnType cmCallback = NULL, void *cbData = NULL);
 
+    const PixelFormat &getInPF() const;
+    const ColourMap *getInColourMap() const;
+
+    const PixelFormat &getOutPF() const;
+    const ColourCube *getOutColourCube() const;
+
     // setColourMapEntries() is called when the colour map specified to init()
     // has changed.  firstColour and nColours specify which part of the
     // colour map has changed.  If nColours is 0, this means the rest of the
