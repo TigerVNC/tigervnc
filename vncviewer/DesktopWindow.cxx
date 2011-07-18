@@ -291,7 +291,7 @@ void DesktopWindow::grabKeyboard()
   int ret;
 
   ret = XGrabKeyboard(fl_display, fl_xid(this), True,
-                      GrabModeAsync, GrabModeAsync, fl_event_time);
+                      GrabModeAsync, GrabModeAsync, CurrentTime);
   if (ret) {
     if (ret == AlreadyGrabbed) {
       // It seems like we can race with the WM in some cases.
