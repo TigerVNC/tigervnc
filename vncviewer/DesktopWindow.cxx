@@ -72,8 +72,11 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   Fl::event_dispatch(&fltkHandle);
 
 #ifdef HAVE_FLTK_FULLSCREEN
-  if (fullScreen)
+  if (fullScreen) {
+    // See comment in DesktopWindow::handleOptions
+    size_range(100, 100, 0, 0);
     fullscreen();
+  }
 #endif
 
   show();
@@ -200,8 +203,19 @@ int DesktopWindow::handle(int event)
   switch (event) {
 #ifdef HAVE_FLTK_FULLSCREEN
   case FL_FULLSCREEN:
-    if (event == FL_FULLSCREEN)
+    if (event == FL_FULLSCREEN) {
       fullScreen.setParam(fullscreen_active());
+      if (!fullscreen_active()) {      
+	size_range(100, 100, viewport->w(), viewport->h());
+      } else {
+	// We need to turn off the size limitations for proper
+	// fullscreen support, but in case fullscreen is activated via
+	// the WM, this is a bit of a problem. In practice, it seems to
+	// work to change the size limits after we have recieved the
+	// FL_FULLSCREEN event, at least with my Metacity. 
+	size_range(100, 100, 0, 0);
+      }
+    }
 
     if (!fullscreenSystemKeys)
       break;
@@ -400,9 +414,12 @@ void DesktopWindow::handleOptions(void *data)
   else
     self->ungrabKeyboard();
 
-  if (fullScreen && !self->fullscreen_active())
+  if (fullScreen && !self->fullscreen_active()) {
+    // Some WMs (Metacity) apparently requires that the size limits
+    // are removed before fullscreen
+    self->size_range(100, 100, 0, 0);
     self->fullscreen();
-  else if (!fullScreen && self->fullscreen_active())
+  } else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
 #endif
 }

@@ -884,8 +884,11 @@ void Viewport::popupContextMenu()
   case ID_FULLSCREEN:
     if (window()->fullscreen_active())
       window()->fullscreen_off();
-    else
+    else {
+      // See comment in DesktopWindow::handleOptions
+      window()->size_range(100, 100, 0, 0);
       window()->fullscreen();
+    }
     break;
 #endif
   case ID_CTRL:
