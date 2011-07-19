@@ -173,6 +173,9 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   repositionViewport();
 
   // Update allowed resize range
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (!fullscreen_active())
+#endif
   size_range(100, 100, new_w, new_h);
 
   // repositionViewport() makes sure the scroll widget notices any changes
