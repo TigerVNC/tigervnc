@@ -449,9 +449,9 @@ choosing.  To do this, add:
 
   -DCMAKE_INSTALL_PREFIX={install_directory}
 
-to the CMake command line.  Then, after building TigerVNC, you can run
-'make install' or 'nmake install' (or build the "install" target in the Visual
-Studio IDE) to install it.
+to the CMake command line.  Then, you can run 'make install' or 'nmake install'
+(or build the "install" target in the Visual Studio IDE) to build and install
+it.
 
 If you don't specify CMAKE_INSTALL_PREFIX, then the default is
 c:\Program Files\TigerVNC on Windows and /usr/local on Unix.
