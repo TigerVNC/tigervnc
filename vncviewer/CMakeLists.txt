@@ -40,6 +40,13 @@ if(USE_INCLUDED_FLTK)
 endif()
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
+# When building with GnuTLS, librdr depends on ws2_32, so in order to make
+# MinGW happy, we need to put ws2_32 in librdr's target_link_libraries string,
+# not here.
+if(NOT GNUTLS_FOUND AND WIN32)
+  target_link_libraries(vncviewer ws2_32)
+endif()
+
 install(TARGETS vncviewer DESTINATION bin)
 if(UNIX)
   install(FILES vncviewer.man DESTINATION man/man1 RENAME vncviewer.1)
