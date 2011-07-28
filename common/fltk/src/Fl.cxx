@@ -79,6 +79,8 @@ void fl_cleanup_dc_list(void);
 extern double fl_mac_flush_and_wait(double time_to_wait, char in_idle);
 #endif // WIN32
 
+extern void fl_update_focus(void);
+
 //
 // Globals...
 //
@@ -442,6 +444,69 @@ static void run_checks()
 #ifndef WIN32
 static char in_idle;
 #endif
+
+////////////////////////////////////////////////////////////////
+// Clipboard notifications
+
+struct Clipboard_Notify {
+  Fl_Clipboard_Notify_Handler handler;
+  void *data;
+  struct Clipboard_Notify *next;
+};
+
+static struct Clipboard_Notify *clip_notify_list = NULL;
+
+extern void fl_clipboard_notify_change(); // in Fl_<platform>.cxx
+
+void Fl::add_clipboard_notify(Fl_Clipboard_Notify_Handler h, void *data) {
+  struct Clipboard_Notify *node;
+
+  remove_clipboard_notify(h);
+
+  node = new Clipboard_Notify;
+
+  node->handler = h;
+  node->data = data;
+  node->next = clip_notify_list;
+
+  clip_notify_list = node;
+
+  fl_clipboard_notify_change();
+}
+
+void Fl::remove_clipboard_notify(Fl_Clipboard_Notify_Handler h) {
+  struct Clipboard_Notify *node, **prev;
+
+  node = clip_notify_list;
+  prev = &clip_notify_list;
+  while (node != NULL) {
+    if (node->handler == h) {
+      *prev = node->next;
+      delete node;
+
+      fl_clipboard_notify_change();
+
+      return;
+    }
+
+    prev = &node->next;
+    node = node->next;
+  }
+}
+
+bool fl_clipboard_notify_empty(void) {
+  return clip_notify_list == NULL;
+}
+
+void fl_trigger_clipboard_notify(int source) {
+  struct Clipboard_Notify *node;
+
+  node = clip_notify_list;
+  while (node != NULL) {
+    node->handler(source, node->data);
+    node = node->next;
+  }
+}
 
 ////////////////////////////////////////////////////////////////
 // wait/run/check/ready:
@@ -880,6 +945,8 @@ void Fl::focus(Fl_Widget *o) {
       fl_oldfocus = p;
     }
     e_number = old_event;
+    // let the platform code do what it needs
+    fl_update_focus();
   }
 }
 
@@ -1361,7 +1428,10 @@ int Fl::handle_(int e, Fl_Window* window)
 ////////////////////////////////////////////////////////////////
 // hide() destroys the X window, it does not do unmap!
 
-#if !defined(WIN32) && USE_XFT
+#if defined(WIN32)
+extern void fl_clipboard_notify_untarget(HWND wnd);
+extern void fl_update_clipboard(void);
+#elif USE_XFT
 extern void fl_destroy_xft_draw(Window);
 #endif
 
@@ -1408,14 +1478,10 @@ void Fl_Window::hide() {
 #if defined(WIN32)
   // this little trick keeps the current clipboard alive, even if we are about
   // to destroy the window that owns the selection.
-  if (GetClipboardOwner()==ip->xid) {
-    Fl_Window *w1 = Fl::first_window();
-    if (w1 && OpenClipboard(fl_xid(w1))) {
-      EmptyClipboard();
-      SetClipboardData(CF_TEXT, NULL);
-      CloseClipboard();
-    }
-  }
+  if (GetClipboardOwner()==ip->xid)
+    fl_update_clipboard();
+  // Make sure we unlink this window from the clipboard chain
+  fl_clipboard_notify_untarget(ip->xid);
   // Send a message to myself so that I'll get out of the event loop...
   PostMessage(ip->xid, WM_APP, 0, 0);
   if (ip->private_dc) fl_release_dc(ip->xid, ip->private_dc);

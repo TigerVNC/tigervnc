@@ -757,7 +757,8 @@ FL_EXPORT const char* fl_shortcut_label(unsigned int shortcut, const char **eom)
 FL_EXPORT unsigned int fl_old_shortcut(const char* s);
 FL_EXPORT void fl_overlay_rect(int x,int y,int w,int h);
 FL_EXPORT void fl_overlay_clear();
-FL_EXPORT void fl_cursor(Fl_Cursor, Fl_Color fg=FL_BLACK, Fl_Color bg=FL_WHITE);
+FL_EXPORT void fl_cursor(Fl_Cursor);
+FL_EXPORT void fl_cursor(Fl_Cursor, Fl_Color fg, Fl_Color bg=FL_WHITE);
 FL_EXPORT const char* fl_expand_text(const char* from, char* buf, int maxbuf,
                                      double maxw, int& n, double &width,
                                      int wrap, int draw_symbols = 0);

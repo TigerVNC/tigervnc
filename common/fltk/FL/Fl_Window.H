@@ -37,6 +37,7 @@
 #define FL_DOUBLE_WINDOW 0xF1   ///< double window type id
 
 class Fl_X;
+class Fl_RGB_Image;
 
 /**
   This widget produces an actual window.  This can either be a main
@@ -69,9 +70,9 @@ class FL_EXPORT Fl_Window : public Fl_Group {
   int minw, minh, maxw, maxh;
   int dw, dh, aspect;
   uchar size_range_set;
+  int no_fullscreen_x, no_fullscreen_y, no_fullscreen_w, no_fullscreen_h;
   // cursor stuff
   Fl_Cursor cursor_default;
-  Fl_Color cursor_fg, cursor_bg;
   void size_range_();
   void _Fl_Window(); // constructor innards
 
@@ -384,14 +385,26 @@ public:
   /**
     Makes the window completely fill the screen, without any window
     manager border visible.  You must use fullscreen_off() to undo
-    this. This may not work with all window managers.
+    this. 
+
+    \note On some platforms, this can result in the keyboard being
+    grabbed. The window may also be recreated, meaning hide() and
+    show() will be called.
   */
   void fullscreen();
+  /**
+    Turns off any side effects of fullscreen()
+  */
+  void fullscreen_off();
   /**
     Turns off any side effects of fullscreen() and does 
     resize(x,y,w,h).
   */
   void fullscreen_off(int,int,int,int);
+  /**
+    Returns non zero if FULLSCREEN flag is set, 0 otherwise. 
+  */
+  unsigned int fullscreen_active() const { return flags() & FULLSCREEN; }
   /**
     Iconifies the window.  If you call this when shown() is false
     it will show() it as an icon.  If the window is already
@@ -434,14 +447,17 @@ public:
     is different.
 
     The type Fl_Cursor is an enumeration defined in <FL/Enumerations.H>.
-    (Under X you can get any XC_cursor value by passing 
-    Fl_Cursor((XC_foo/2)+1)).  The colors only work on X, they are
-    not implemented on WIN32.
 
-    For back compatibility only.
+    \see cursor(const Fl_RGB_Image*, int, int), default_cursor()
   */
-  void cursor(Fl_Cursor, Fl_Color=FL_BLACK, Fl_Color=FL_WHITE); // platform dependent
-  void default_cursor(Fl_Cursor, Fl_Color=FL_BLACK, Fl_Color=FL_WHITE);
+  void cursor(Fl_Cursor);
+  void cursor(const Fl_RGB_Image*, int, int);
+  void default_cursor(Fl_Cursor);
+
+  /* for legacy compatibility */
+  void cursor(Fl_Cursor c, Fl_Color, Fl_Color=FL_WHITE) { cursor(c); };
+  void default_cursor(Fl_Cursor c, Fl_Color, Fl_Color=FL_WHITE) { default_cursor(c); };
+
   static void default_callback(Fl_Window*, void* v);
   
   /** Returns the window width including any frame added by the window manager.

@@ -163,6 +163,8 @@ public:
   static Fl_X* i(const Fl_Window* wi) {return wi->i;}
   void setwindow(Fl_Window* wi) {w=wi; wi->i=this;}
   void sendxjunk();
+  int set_cursor(Fl_Cursor);
+  int set_cursor(const Fl_RGB_Image*, int, int);
   static void make_xid(Fl_Window*,XVisualInfo* =fl_visual, Colormap=fl_colormap);
   static Fl_X* set_xid(Fl_Window*, Window);
   // kludges to get around protection:

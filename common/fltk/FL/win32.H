@@ -92,6 +92,8 @@ public:
   void flush() {w->flush();}
   void set_minmax(LPMINMAXINFO minmax);
   void mapraise();
+  int set_cursor(Fl_Cursor);
+  int set_cursor(const Fl_RGB_Image*, int, int);
   static Fl_X* make(Fl_Window*);
 };
 extern FL_EXPORT HCURSOR fl_default_cursor;

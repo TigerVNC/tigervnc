@@ -34,6 +34,7 @@
 #  include "Enumerations.H"
 
 class Fl_Widget;
+class Fl_Pixmap;
 struct Fl_Menu_Item;
 struct Fl_Label;
 
@@ -196,6 +197,7 @@ public:
 /**  The constructor creates a new image from the specified data. */
   Fl_RGB_Image(const uchar *bits, int W, int H, int D=3, int LD=0) :
     Fl_Image(W,H,D), array(bits), alloc_array(0), id_(0), mask_(0) {data((const char **)&array, 1); ld(LD);}
+  Fl_RGB_Image(const Fl_Pixmap *pxm, Fl_Color bg=FL_GRAY);
   virtual ~Fl_RGB_Image();
   virtual Fl_Image *copy(int W, int H);
   Fl_Image *copy() { return copy(w(), h()); }

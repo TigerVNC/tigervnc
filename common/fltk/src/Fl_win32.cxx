@@ -98,6 +98,8 @@ FL_EXPORT Fl_Graphics_Driver *fl_graphics_driver = (Fl_Graphics_Driver*)&fl_gdi_
 Fl_Surface_Device* Fl_Surface_Device::_surface = (Fl_Surface_Device*)&fl_gdi_display; // the current target surface of graphics operations
 Fl_Display_Device *Fl_Display_Device::_display = &fl_gdi_display; // the platform display
 
+bool use_simple_keyboard = false;
+
 // dynamic wsock dll handling api:
 #if defined(__CYGWIN__) && !defined(SOCKET)
 # define SOCKET int
@@ -131,6 +133,8 @@ static HMODULE get_wsock_mod() {
  * size and link dependencies.
  */
 static HMODULE s_imm_module = 0;
+typedef BOOL (WINAPI* flTypeImmAssociateContextEx)(HWND, HIMC, DWORD);
+static flTypeImmAssociateContextEx flImmAssociateContextEx = 0;
 typedef HIMC (WINAPI* flTypeImmGetContext)(HWND);
 static flTypeImmGetContext flImmGetContext = 0;
 typedef BOOL (WINAPI* flTypeImmSetCompositionWindow)(HIMC, LPCOMPOSITIONFORM);
@@ -146,6 +150,7 @@ static HMODULE get_imm_module() {
     if (!s_imm_module)
       Fl::fatal("FLTK Lib Error: IMM32.DLL file not found!\n\n"
         "Please check your input method manager library accessibility.");
+    flImmAssociateContextEx = (flTypeImmAssociateContextEx)GetProcAddress(s_imm_module, "ImmAssociateContextEx");
     flImmGetContext = (flTypeImmGetContext)GetProcAddress(s_imm_module, "ImmGetContext");
     flImmSetCompositionWindow = (flTypeImmSetCompositionWindow)GetProcAddress(s_imm_module, "ImmSetCompositionWindow");
     flImmReleaseContext = (flTypeImmReleaseContext)GetProcAddress(s_imm_module, "ImmReleaseContext");
@@ -424,7 +429,12 @@ int fl_wait(double time_to_wait) {
         }
       }
 
-      TranslateMessage(&fl_msg);
+      // Don't bother with key to character translation as we do
+      // it manually for simpley keyboard widgets. In fact, calling
+      // TranslateMessage() just makes it more difficult as it sets
+      // a bunch of internal state.
+      if (!use_simple_keyboard)
+        TranslateMessage(&fl_msg);
       DispatchMessageW(&fl_msg);
       have_message = PeekMessageW(&fl_msg, NULL, 0, 0, PM_REMOVE);
     }
@@ -542,6 +552,36 @@ public:
   const char* GetValue() const { return(out); }
 };
 
+void fl_update_clipboard(void) {
+  HWND hwnd = fl_xid(Fl::first_window());
+
+  if (!hwnd)
+    return;
+
+  if (!OpenClipboard(hwnd))
+    return;
+
+  EmptyClipboard();
+
+  int utf16_len = fl_utf8toUtf16(fl_selection_buffer[1],
+                                 fl_selection_length[1], 0, 0);
+
+  HGLOBAL hMem = GlobalAlloc(GHND, utf16_len * 2 + 2); // moveable and zero'ed mem alloc.
+  LPVOID memLock = GlobalLock(hMem);
+
+  fl_utf8toUtf16(fl_selection_buffer[1], fl_selection_length[1],
+                 (unsigned short*) memLock, utf16_len + 1);
+
+  GlobalUnlock(hMem);
+  SetClipboardData(CF_UNICODETEXT, hMem);
+
+  CloseClipboard();
+
+  // In case Windows managed to lob of a WM_DESTROYCLIPBOARD during
+  // the above.
+  fl_i_own_selection[1] = 1;
+}
+
 // call this when you create a selection:
 void Fl::copy(const char *stuff, int len, int clipboard) {
   if (!stuff || len<0) return;
@@ -559,25 +599,9 @@ void Fl::copy(const char *stuff, int len, int clipboard) {
   memcpy(fl_selection_buffer[clipboard], stuff, len);
   fl_selection_buffer[clipboard][len] = 0; // needed for direct paste
   fl_selection_length[clipboard] = len;
-  if (clipboard) {
-    // set up for "delayed rendering":
-    if (OpenClipboard(NULL)) {
-      // if the system clipboard works, use it
-      int utf16_len = fl_utf8toUtf16(fl_selection_buffer[clipboard], fl_selection_length[clipboard], 0, 0);
-      EmptyClipboard();
-      HGLOBAL hMem = GlobalAlloc(GHND, utf16_len * 2 + 2); // moveable and zero'ed mem alloc.
-      LPVOID memLock = GlobalLock(hMem);
-      fl_utf8toUtf16(fl_selection_buffer[clipboard], fl_selection_length[clipboard], (unsigned short*) memLock, utf16_len + 1);
-      GlobalUnlock(hMem);
-      SetClipboardData(CF_UNICODETEXT, hMem);
-      CloseClipboard();
-      GlobalFree(hMem);
-      fl_i_own_selection[clipboard] = 0;
-    } else {
-      // only if it fails, instruct paste() to use the internal buffers
-      fl_i_own_selection[clipboard] = 1;
-    }
-  }
+  fl_i_own_selection[clipboard] = 1;
+  if (clipboard)
+    fl_update_clipboard();
 }
 
 // Call this when a "paste" operation happens:
@@ -630,6 +654,38 @@ void Fl::paste(Fl_Widget &receiver, int clipboard) {
   }
 }
 
+static HWND clipboard_wnd = 0;
+static HWND next_clipboard_wnd = 0;
+
+static bool initial_clipboard = true;
+
+void fl_clipboard_notify_change() {
+  // No need to do anything here...
+}
+
+void fl_clipboard_notify_target(HWND wnd) {
+  if (clipboard_wnd)
+    return;
+
+  // We get one fake WM_DRAWCLIPBOARD immediately, which we therefore
+  // need to ignore.
+  initial_clipboard = true;
+
+  clipboard_wnd = wnd;
+  next_clipboard_wnd = SetClipboardViewer(wnd);
+}
+
+void fl_clipboard_notify_untarget(HWND wnd) {
+  if (wnd != clipboard_wnd)
+    return;
+
+  ChangeClipboardChain(wnd, next_clipboard_wnd);
+  clipboard_wnd = next_clipboard_wnd = 0;
+
+  if (Fl::first_window())
+    fl_clipboard_notify_target(fl_xid(Fl::first_window()));
+}
+
 ////////////////////////////////////////////////////////////////
 char fl_is_ime = 0;
 void fl_get_codepage()
@@ -646,6 +702,49 @@ void fl_get_codepage()
     fl_aimm->GetCodePageA(GetKeyboardLayout(0), &fl_codepage);
   } else if (get_imm_module() && flImmIsIME(hkl)) {
     fl_is_ime = 1;
+  }
+}
+
+void fl_update_focus(void)
+{
+  Fl_Widget *focus;
+  Fl_Window *win;
+
+  get_imm_module();
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+  if (!focus)
+    return;
+
+  // Grabs are special in that events are sent to the first
+  // available window
+  if (focus == Fl::grab())
+    win = Fl::first_window();
+  else {
+    win = focus->as_window();
+    if (!win)
+      win = focus->window();
+  }
+
+  if (!win) {
+    Fl::warning("Cannot find window for widget receiving focus");
+    return;
+  }
+
+  // No Win32 window created yet
+  if (!Fl_X::i(win) || !fl_xid(win))
+    return;
+
+  if (focus->simple_keyboard()) {
+    use_simple_keyboard = true;
+    if (flImmGetContext(fl_xid(win)) != 0)
+      flImmAssociateContextEx(fl_xid(win), 0, 0);
+  } else {
+    use_simple_keyboard = false;
+    if (flImmGetContext(fl_xid(win)) == 0)
+      flImmAssociateContextEx(fl_xid(win), 0, IACE_DEFAULT);
   }
 }
 
@@ -796,6 +895,27 @@ static int ms2fltk(int vk, int extended) {
   return extended ? extendedlut[vk] : vklut[vk];
 }
 
+static xchar msdead2fltk(xchar in)
+{
+  switch (in) {
+  case 0x0060:      // GRAVE ACCENT
+    return 0x0300;  // COMBINING GRAVE ACCENT
+  case 0x00b4:      // ACUTE ACCENT
+    return 0x0301;  // COMBINING ACUTE ACCENT
+  case 0x005e:      // CIRCUMFLEX ACCENT
+    return 0x0302;  // COMBINING CIRCUMFLEX ACCENT
+  case 0x007e:      // TILDE
+    return 0x0303;  // COMBINING TILDE
+  case 0x00a8:      // DIAERESIS
+    return 0x0308;  // COMBINING DIAERESIS
+  // FIXME: Windows dead key behaviour isn't documented and I don't have
+  //        any more keyboards to test with...
+  }
+
+  // hope that Windows gave us something proper to begin with
+  return in;
+}
+
 #if USE_COLORMAP
 extern HPALETTE fl_select_palette(void); // in fl_color_win32.cxx
 #endif
@@ -856,6 +976,8 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
   //fl_msg.time = ???
   //fl_msg.pt = ???
   //fl_msg.lPrivate = ???
+
+  MSG fl_orig_msg = fl_msg;
 
   Fl_Window *window = fl_find(hWnd);
 
@@ -1036,23 +1158,82 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (GetKeyState(VK_SCROLL)) state |= FL_SCROLL_LOCK;
     Fl::e_state = state;
     static char buffer[1024];
-    if (uMsg == WM_CHAR || uMsg == WM_SYSCHAR) {
 
+    if (use_simple_keyboard) {
+      BYTE keystate[256];
+      WCHAR wbuf[8];
+      int ret;
+
+      // I'm not sure if we ever get WM_CHAR (& friends) without an initial
+      // WM_KEYDOWN (& friends), but if we do then we should not send such
+      // side band events to simple keyboard widgets.
+      if ((fl_orig_msg.message != WM_KEYDOWN) &&
+          (fl_orig_msg.message != WM_SYSKEYDOWN) &&
+          (fl_orig_msg.message != WM_KEYUP) &&
+          (fl_orig_msg.message != WM_SYSKEYUP))
+        break;
+
+      GetKeyboardState(keystate);
+
+      // Pressing Ctrl wreaks havoc with the symbol lookup, so turn that off.
+      // But AltGr shows up as Ctrl+Alt in Windows, so keep Ctrl if Alt is
+      // active.
+      if (!(keystate[VK_MENU] & (1<<31)))
+        keystate[VK_CONTROL] = keystate[VK_LCONTROL] = keystate[VK_RCONTROL] = 0;
+
+      // We cannot inspect or modify Windows' internal state of the keyboard
+      // so we have to try to infer information from ToUnicode() and wedge
+      // things into a known state.
+      for (int i = 0;i < 2;i++) {
+        ret = ToUnicode(fl_orig_msg.wParam, 0, keystate, wbuf,
+                        sizeof(wbuf)/sizeof(wbuf[0]), 0);
+
+        // No symbol for this key (or unexpected length)
+        if ((ret == 0) || (ret < -1)) {
+          buffer[0] = 0;
+          Fl::e_length = 0;
+          break;
+        }
+
+        // A dead key. Convert this to a Unicode combining character so
+        // that the application can tell the difference between dead and
+        // normal keys.
+        if (ret == -1) {
+          xchar u = (xchar) msdead2fltk(wbuf[0]);
+          Fl::e_length = fl_utf8fromwc(buffer, 1024, &u, 1);
+          buffer[Fl::e_length] = 0;
+          break;
+        }
+
+        // If we have two characters (or more) from ToUnicode(), that's
+        // an invalid sequence. One character chould mean a proper symbol,
+        // or it could mean a composed one. In both cases we need to call
+        // ToUnicode() again to get something sane.
+        if (i == 0)
+          continue;
+
+        // We should now have something sane. Give whatever we have to the
+        // application.
+        Fl::e_length = fl_utf8fromwc(buffer, 1024, wbuf, ret);
+        buffer[Fl::e_length] = 0;
+      }
+    } else if (uMsg == WM_CHAR || uMsg == WM_SYSCHAR) {
       xchar u = (xchar) wParam;
 //    Fl::e_length = fl_unicode2utf(&u, 1, buffer);
       Fl::e_length = fl_utf8fromwc(buffer, 1024, &u, 1);
       buffer[Fl::e_length] = 0;
+    } else {
+      buffer[0] = 0;
+      Fl::e_length = 0;
+    }
 
-
-    } else if (Fl::e_keysym >= FL_KP && Fl::e_keysym <= FL_KP_Last) {
-      if (state & FL_NUM_LOCK) {
-        // Convert to regular keypress...
-	buffer[0] = Fl::e_keysym-FL_KP;
-	Fl::e_length = 1;
-      } else {
-        // Convert to special keypress...
-	buffer[0] = 0;
-	Fl::e_length = 0;
+    // The keypad area is a bit odd in that we need to change the keysym
+    // to properly indicate what the user meant, unlike other keys where
+    // we normally change the text and keep keysym stable.
+    if (Fl::e_keysym >= FL_KP && Fl::e_keysym <= FL_KP_Last) {
+      // The initial mapping tables give us a keysym that corresponds to
+      // numlock being on, so we only do something when it is off.
+      if (!(state & FL_NUM_LOCK)) {
 	switch (Fl::e_keysym) {
 	  case FL_KP + '0' :
 	    Fl::e_keysym = FL_Insert;
@@ -1084,30 +1265,10 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	  case FL_KP + '.' :
 	    Fl::e_keysym = FL_Delete;
 	    break;
-	  case FL_KP + '/' :
-	  case FL_KP + '*' :
-	  case FL_KP + '-' :
-	  case FL_KP + '+' :
-	    buffer[0] = Fl::e_keysym-FL_KP;
-	    Fl::e_length = 1;
-	    break;
 	}
       }
-    } else if ((lParam & (1<<31))==0) {
-#ifdef FLTK_PREVIEW_DEAD_KEYS
-      if ((lParam & (1<<24))==0) { // clear if dead key (always?)
-        xchar u = (xchar) wParam;
-        Fl::e_length = fl_utf8fromwc(buffer, 1024, &u, 1);
-        buffer[Fl::e_length] = 0;
-      } else { // set if "extended key" (never printable?)
-        buffer[0] = 0;
-        Fl::e_length = 0;
-      }
-#else
-      buffer[0] = 0;
-      Fl::e_length = 0;
-#endif
     }
+
     Fl::e_text = buffer;
     if (lParam & (1<<31)) { // key up events.
       if (Fl::handle(FL_KEYUP, window)) return 0;
@@ -1125,9 +1286,25 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
   case WM_MOUSEWHEEL: {
     static int delta = 0; // running total of all motion
     delta += (SHORT)(HIWORD(wParam));
+    Fl::e_dx = 0;
     Fl::e_dy = -delta / WHEEL_DELTA;
     delta += Fl::e_dy * WHEEL_DELTA;
     if (Fl::e_dy) Fl::handle(FL_MOUSEWHEEL, window);
+    return 0;
+  }
+
+// This is only defined on Vista and upwards...
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL 0x020E
+#endif
+
+  case WM_MOUSEHWHEEL: {
+    static int delta = 0; // running total of all motion
+    delta += (SHORT)(HIWORD(wParam));
+    Fl::e_dy = 0;
+    Fl::e_dx = delta / WHEEL_DELTA;
+    delta -= Fl::e_dx * WHEEL_DELTA;
+    if (Fl::e_dx) Fl::handle(FL_MOUSEWHEEL, window);
     return 0;
   }
 
@@ -1185,33 +1362,26 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     fl_i_own_selection[1] = 0;
     return 1;
 
-  case WM_RENDERALLFORMATS:
-    fl_i_own_selection[1] = 0;
-    // Windoze seems unhappy unless I do these two steps. Documentation
-    // seems to vary on whether opening the clipboard is necessary or
-    // is in fact wrong:
-    CloseClipboard();
-    OpenClipboard(NULL);
-    // fall through...
-  case WM_RENDERFORMAT: {
-    HANDLE h;
-
-//  int l = fl_utf_nb_char((unsigned char*)fl_selection_buffer[1], fl_selection_length[1]);
-    int l = fl_utf8toUtf16(fl_selection_buffer[1], fl_selection_length[1], NULL, 0); // Pass NULL buffer to query length required
-    h = GlobalAlloc(GHND, (l+1) * sizeof(unsigned short));
-    if (h) {
-      unsigned short *g = (unsigned short*) GlobalLock(h);
-//    fl_utf2unicode((unsigned char *)fl_selection_buffer[1], fl_selection_length[1], (xchar*)g);
-      l = fl_utf8toUtf16(fl_selection_buffer[1], fl_selection_length[1], g, (l+1));
-      g[l] = 0;
-      GlobalUnlock(h);
-      SetClipboardData(CF_UNICODETEXT, h);
+  case WM_CHANGECBCHAIN:
+    if ((hWnd == clipboard_wnd) &&
+        (next_clipboard_wnd == (HWND)wParam)) {
+      next_clipboard_wnd = (HWND)lParam;
+      return 0;
     }
+    break;
 
-    // Windoze also seems unhappy if I don't do this. Documentation very
-    // unclear on what is correct:
-    if (fl_msg.message == WM_RENDERALLFORMATS) CloseClipboard();
-    return 1;}
+  case WM_DRAWCLIPBOARD:
+    // When the clipboard moves between two FLTK windows,
+    // fl_i_own_selection will temporarily be false as we are
+    // processing this message. Hence the need to use fl_find().
+    if (!initial_clipboard && !fl_find(GetClipboardOwner()))
+      fl_trigger_clipboard_notify(1);
+    initial_clipboard = false;
+
+    if (next_clipboard_wnd)
+      SendMessage(next_clipboard_wnd, WM_DRAWCLIPBOARD, wParam, lParam);
+
+    return 0;
 
   default:
     if (Fl::handle(0,0)) return 0;
@@ -1320,6 +1490,11 @@ int Fl_X::fake_X_wm(const Fl_Window* w,int &X,int &Y, int &bt,int &bx, int &by) 
   X+=xoff;
   Y+=yoff;
 
+  if (w->flags() & Fl_Widget::FULLSCREEN) {
+    X = Y = 0;
+    bx = by = bt = 0;
+  }
+
   return ret;
 }
 
@@ -1370,6 +1545,58 @@ void Fl_Window::resize(int X,int Y,int W,int H) {
   }
 }
 
+static void make_fullscreen(Fl_Window *w, Window xid, int X, int Y, int W, int H) {
+  int sx, sy, sw, sh;
+  Fl::screen_xywh(sx, sy, sw, sh, X, Y, W, H);
+  DWORD flags = GetWindowLong(xid, GWL_STYLE);
+  flags = flags & ~(WS_THICKFRAME|WS_CAPTION);
+  SetWindowLong(xid, GWL_STYLE, flags);
+  // SWP_NOSENDCHANGING is so that we can override size limits
+  SetWindowPos(xid, HWND_TOP, sx, sy, sw, sh, SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
+}
+
+void fullscreen_x(Fl_Window *w) {
+  w->_set_fullscreen();
+  make_fullscreen(w, fl_xid(w), w->x(), w->y(), w->w(), w->h());
+  Fl::handle(FL_FULLSCREEN, w);
+}
+
+void fullscreen_off_x(Fl_Window *w, int X, int Y, int W, int H) {
+  w->_clear_fullscreen();
+  DWORD style = GetWindowLong(fl_xid(w), GWL_STYLE);
+  // Remove the xid temporarily so that Fl_X::fake_X_wm() behaves like it
+  // does in Fl_X::make().
+  HWND xid = fl_xid(w);
+  Fl_X::i(w)->xid = NULL;
+  int x, y, bt, bx, by;
+  switch (Fl_X::fake_X_wm(w, x, y, bt, bx, by)) {
+  case 0: 
+    break;
+  case 1: 
+    style |= WS_CAPTION; 
+    break;
+  case 2: 
+    if (w->border()) {
+      style |= WS_THICKFRAME | WS_CAPTION; 
+    }
+    break;
+  }
+  Fl_X::i(w)->xid = xid;
+  // Adjust for decorations (but not if that puts the decorations
+  // outside the screen)
+  if ((X != w->x()) || (Y != w->y())) {
+    X -= bx;
+    Y -= by+bt;
+  }
+  W += bx*2;
+  H += by*2+bt;
+  SetWindowLong(fl_xid(w), GWL_STYLE, style);
+  SetWindowPos(fl_xid(w), 0, X, Y, W, H,
+               SWP_NOACTIVATE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  Fl::handle(FL_FULLSCREEN, w);
+}
+
+
 ////////////////////////////////////////////////////////////////
 
 /*
@@ -1408,7 +1635,6 @@ void fl_fix_focus(); // in Fl.cxx
 
 char fl_show_iconic;	// hack for Fl_Window::iconic()
 // int fl_background_pixel = -1; // color to use for background
-HCURSOR fl_default_cursor;
 UINT fl_wake_msg = 0;
 int fl_disable_transient_for; // secret method of removing TRANSIENT_FOR
 
@@ -1456,7 +1682,7 @@ Fl_X* Fl_X::make(Fl_Window* w) {
     if (!w->icon())
       w->icon((void *)LoadIcon(NULL, IDI_APPLICATION));
     wcw.hIcon = wcw.hIconSm = (HICON)w->icon();
-    wcw.hCursor = fl_default_cursor = LoadCursor(NULL, IDC_ARROW);
+    wcw.hCursor = LoadCursor(NULL, IDC_ARROW);
     //uchar r,g,b; Fl::get_color(FL_GRAY,r,g,b);
     //wc.hbrBackground = (HBRUSH)CreateSolidBrush(RGB(r,g,b));
     wcw.hbrBackground = NULL;
@@ -1499,18 +1725,26 @@ Fl_X* Fl_X::make(Fl_Window* w) {
     int xwm = xp , ywm = yp , bt, bx, by;
     switch (fake_X_wm(w, xwm, ywm, bt, bx, by)) {
       // No border (used for menus)
-      case 0: style |= WS_POPUP;
-              styleEx |= WS_EX_TOOLWINDOW;
+      case 0:
+        style |= WS_POPUP;
+        styleEx |= WS_EX_TOOLWINDOW;
 	      break;
 
       // Thin border and title bar
-      case 1: style |= WS_DLGFRAME | WS_CAPTION; break;
+      case 1:
+        style |= WS_DLGFRAME | WS_CAPTION;
+        if (!w->modal())
+          style |= WS_SYSMENU | WS_MINIMIZEBOX;
+        break;
 
       // Thick, resizable border and title bar, with maximize button
-      case 2: style |= WS_THICKFRAME | WS_MAXIMIZEBOX | WS_CAPTION ; break;
+      case 2:
+        style |= WS_THICKFRAME | WS_SYSMENU | WS_MAXIMIZEBOX | WS_CAPTION;
+        if (!w->modal())
+          style |= WS_MINIMIZEBOX;
+        break;
     }
     if (by+bt) {
-      if (!w->modal()) style |= WS_SYSMENU | WS_MINIMIZEBOX;
       wp += 2*bx;
       hp += 2*by+bt;
     }
@@ -1540,7 +1774,7 @@ Fl_X* Fl_X::make(Fl_Window* w) {
   x->setwindow(w);
   x->region = 0;
   x->private_dc = 0;
-  x->cursor = fl_default_cursor;
+  x->cursor = LoadCursor(NULL, IDC_ARROW);
   if (!fl_codepage) fl_get_codepage();
 
   WCHAR *lab = NULL;
@@ -1566,8 +1800,22 @@ Fl_X* Fl_X::make(Fl_Window* w) {
   );
   if (lab) free(lab);
 
+  if (w->flags() & Fl_Widget::FULLSCREEN) {
+  /* We need to make sure that the fullscreen is created on the
+     default monitor, ie the desktop where the shortcut is located
+     etc. This requires that CreateWindow is called with CW_USEDEFAULT
+     for x and y. We can then use GetWindowRect to determine which
+     monitor the window was placed on. */
+    RECT rect;
+    GetWindowRect(x->xid, &rect);
+    make_fullscreen(w, x->xid, rect.left, rect.top, 
+                    rect.right - rect.left, rect.bottom - rect.top);
+  }
+
   x->next = Fl_X::first;
   Fl_X::first = x;
+
+  fl_clipboard_notify_target(x->xid);
 
   x->wait_for_expose = 1;
   if (fl_show_iconic) {showit = 0; fl_show_iconic = 0;}
@@ -1581,7 +1829,7 @@ Fl_X* Fl_X::make(Fl_Window* w) {
   // If we've captured the mouse, we dont want to activate any
   // other windows from the code, or we lose the capture.
   ShowWindow(x->xid, !showit ? SW_SHOWMINNOACTIVE :
-	     (Fl::grab() || (style & WS_POPUP)) ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);
+	     (Fl::grab() || (styleEx & WS_EX_TOOLWINDOW)) ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);
 
   // Register all windows for potential drag'n'drop operations
   fl_OleInitialize();
@@ -1774,6 +2022,129 @@ void Fl_Window::label(const char *name,const char *iname) {
     SetWindowTextW(i->xid, (WCHAR *)lab);
     free(lab);
   }
+}
+
+////////////////////////////////////////////////////////////////
+
+#ifndef IDC_HAND
+#  define IDC_HAND  MAKEINTRESOURCE(32649)
+#endif // !IDC_HAND
+
+int Fl_X::set_cursor(Fl_Cursor c) {
+  LPSTR n;
+
+  if (c == FL_CURSOR_NONE)
+    cursor = NULL;
+  else {
+    switch (c) {
+    case FL_CURSOR_ARROW:   n = IDC_ARROW; break;
+    case FL_CURSOR_CROSS:   n = IDC_CROSS; break;
+    case FL_CURSOR_WAIT:    n = IDC_WAIT; break;
+    case FL_CURSOR_INSERT:  n = IDC_IBEAM; break;
+    case FL_CURSOR_HAND:    n = IDC_HAND; break;
+    case FL_CURSOR_HELP:    n = IDC_HELP; break;
+    case FL_CURSOR_MOVE:    n = IDC_SIZEALL; break;
+    case FL_CURSOR_N:
+    case FL_CURSOR_S:
+      // FIXME: Should probably have fallbacks for these instead
+    case FL_CURSOR_NS:      n = IDC_SIZENS; break;
+    case FL_CURSOR_NE:
+    case FL_CURSOR_SW:
+      // FIXME: Dito.
+    case FL_CURSOR_NESW:    n = IDC_SIZENESW; break;
+    case FL_CURSOR_E:
+    case FL_CURSOR_W:
+      // FIXME: Dito.
+    case FL_CURSOR_WE:      n = IDC_SIZEWE; break;
+    case FL_CURSOR_SE:
+    case FL_CURSOR_NW:
+      // FIXME: Dito.
+    case FL_CURSOR_NWSE:    n = IDC_SIZENWSE; break;
+    default:
+      return 0;
+    }
+
+    cursor = LoadCursor(NULL, n);
+    if (cursor == NULL)
+      return 0;
+  }
+
+  SetCursor(cursor);
+
+  return 1;
+}
+
+int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
+  BITMAPV5HEADER bi;
+  HBITMAP bitmap, mask;
+  DWORD *bits;
+
+  if ((hotx < 0) || (hotx >= image->w()))
+    return 0;
+  if ((hoty < 0) || (hoty >= image->h()))
+    return 0;
+
+  memset(&bi, 0, sizeof(BITMAPV5HEADER));
+
+  bi.bV5Size        = sizeof(BITMAPV5HEADER);
+  bi.bV5Width       = image->w();
+  bi.bV5Height      = image->h();
+  bi.bV5Planes      = 1;
+  bi.bV5BitCount    = 32;
+  bi.bV5Compression = BI_BITFIELDS;
+  bi.bV5RedMask     = 0x00FF0000;
+  bi.bV5GreenMask   = 0x0000FF00;
+  bi.bV5BlueMask    = 0x000000FF;
+  bi.bV5AlphaMask   = 0xFF000000;
+
+  HDC hdc;
+
+  hdc = GetDC(NULL);
+  bitmap = CreateDIBSection(hdc, (BITMAPINFO*)&bi, DIB_RGB_COLORS, (void**)&bits, NULL, 0);
+  ReleaseDC(NULL, hdc);
+
+  const uchar *i = (const uchar*)*image->data();
+  for (int y = 0;y < image->h();y++) {
+    for (int x = 0;x < image->w();x++) {
+      switch (image->d()) {
+      case 1:
+        *bits = (0xff<<24) | (i[0]<<16) | (i[0]<<8) | i[0];
+        break;
+      case 2:
+        *bits = (i[1]<<24) | (i[0]<<16) | (i[0]<<8) | i[0];
+        break;
+      case 3:
+        *bits = (0xff<<24) | (i[0]<<16) | (i[1]<<8) | i[2];
+        break;
+      case 4:
+        *bits = (i[3]<<24) | (i[0]<<16) | (i[1]<<8) | i[2];
+        break;
+      }
+      i += image->d();
+      bits++;
+    }
+    i += image->ld();
+  }
+
+  // A mask bitmap is still needed even though it isn't used
+  mask = CreateBitmap(image->w(),image->h(),1,1,NULL);
+
+  ICONINFO ii;
+
+  ii.fIcon    = FALSE;
+  ii.xHotspot = hotx;
+  ii.yHotspot = hoty;
+  ii.hbmMask  = mask;
+  ii.hbmColor = bitmap;
+
+  cursor = CreateIconIndirect(&ii);
+
+  DeleteObject(bitmap);
+  DeleteObject(mask);
+
+  SetCursor(cursor);
+
+  return 1;
 }
 
 ////////////////////////////////////////////////////////////////

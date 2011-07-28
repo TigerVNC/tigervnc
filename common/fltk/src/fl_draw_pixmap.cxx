@@ -67,99 +67,6 @@ int fl_measure_pixmap(const char * const *cdata, int &w, int &h) {
   return 1;
 }
 
-#ifdef U64
-
-// The callback from fl_draw_image to get a row of data passes this:
-struct pixmap_data {
-  int w, h;
-  const uchar*const* data;
-  union {
-    U64 colors[256];
-    U64* byte1[256];
-  };
-};
-
-// callback for 1 byte per pixel:
-static void cb1(void*v, int x, int y, int w, uchar* buf) {
-  pixmap_data& d = *(pixmap_data*)v;
-  const uchar* p = d.data[y]+x;
-  U64* q = (U64*)buf;
-  for (int X=w; X>0; X-=2, p += 2) {
-    if (X>1) {
-#  if WORDS_BIGENDIAN
-      *q++ = (d.colors[p[0]]<<32) | d.colors[p[1]];
-#  else
-      *q++ = (d.colors[p[1]]<<32) | d.colors[p[0]];
-#  endif
-    } else {
-#  if WORDS_BIGENDIAN
-      *q++ = d.colors[p[0]]<<32;
-#  else
-      *q++ = d.colors[p[0]];
-#  endif
-    }
-  }
-}
-
-// callback for 2 bytes per pixel:
-static void cb2(void*v, int x, int y, int w, uchar* buf) {
-  pixmap_data& d = *(pixmap_data*)v;
-  const uchar* p = d.data[y]+2*x;
-  U64* q = (U64*)buf;
-  for (int X=w; X>0; X-=2) {
-    U64* colors = d.byte1[*p++];
-    int index = *p++;
-    if (X>1) {
-      U64* colors1 = d.byte1[*p++];
-      int index1 = *p++;
-#  if WORDS_BIGENDIAN
-      *q++ = (colors[index]<<32) | colors1[index1];
-#  else
-      *q++ = (colors1[index1]<<32) | colors[index];
-#  endif
-    } else {
-#  if WORDS_BIGENDIAN
-      *q++ = colors[index]<<32;
-#  else
-      *q++ = colors[index];
-#  endif
-    }
-  }
-}
-
-#else // U32
-
-// The callback from fl_draw_image to get a row of data passes this:
-struct pixmap_data {
-  int w, h;
-  const uchar*const* data;
-  union {
-    U32 colors[256];
-    U32* byte1[256];
-  };
-};
-
-// callback for 1 byte per pixel:
-static void cb1(void*v, int x, int y, int w, uchar* buf) {
-  pixmap_data& d = *(pixmap_data*)v;
-  const uchar* p = d.data[y]+x;
-  U32* q = (U32*)buf;
-  for (int X=w; X--;) *q++ = d.colors[*p++];
-}
-
-// callback for 2 bytes per pixel:
-static void cb2(void*v, int x, int y, int w, uchar* buf) {
-  pixmap_data& d = *(pixmap_data*)v;
-  const uchar* p = d.data[y]+2*x;
-  U32* q = (U32*)buf;
-  for (int X=w; X--;) {
-    U32* colors = d.byte1[*p++];
-    *q++ = colors[*p++];
-  }
-}
-
-#endif // U64 else U32
-
 uchar **fl_mask_bitmap; // if non-zero, create bitmap and store pointer here
 
 /**
@@ -209,34 +116,33 @@ static void make_unused_color(uchar &r, uchar &g, uchar &b)
 }
 #endif
 
-/**
-  Draw XPM image data, with the top-left corner at the given position.
-  \see fl_draw_pixmap(char* const* data, int x, int y, Fl_Color bg)
-  */
-int fl_draw_pixmap(const char*const* cdata, int x, int y, Fl_Color bg) {
-  pixmap_data d;
-  if (!fl_measure_pixmap(cdata, d.w, d.h)) return 0;
+int fl_convert_pixmap(const char*const* cdata, uchar* out, Fl_Color bg) {
+  int w, h;
   const uchar*const* data = (const uchar*const*)(cdata+1);
   int transparent_index = -1;
   uchar *transparent_c = (uchar *)0; // such that transparent_c[0,1,2] are the RGB of the transparent color
+
+  if (!fl_measure_pixmap(cdata, w, h))
+    return 0;
+
+  if ((chars_per_pixel < 1) || (chars_per_pixel > 2))
+    return 0;
+
+  uchar (*colors)[4] = new uchar [1<<(chars_per_pixel*8)][4];
+
 #ifdef WIN32
   color_count = 0;
   used_colors = (uchar *)malloc(abs(ncolors)*3*sizeof(uchar));
 #endif
 
-  if (ncolors < 0) {	// FLTK (non standard) compressed colormap
+  if (ncolors < 0) {
+    // FLTK (non standard) compressed colormap
     ncolors = -ncolors;
     const uchar *p = *data++;
     // if first color is ' ' it is transparent (put it later to make
     // it not be transparent):
     if (*p == ' ') {
-      uchar* c = (uchar*)&d.colors[(int)' '];
-#ifdef U64
-      *(U64*)c = 0;
-#  if WORDS_BIGENDIAN
-      c += 4;
-#  endif
-#endif
+      uchar* c = colors[(int)' '];
       transparent_index = ' ';
       Fl::get_color(bg, c[0], c[1], c[2]); c[3] = 0;
       transparent_c = c;
@@ -245,13 +151,7 @@ int fl_draw_pixmap(const char*const* cdata, int x, int y, Fl_Color bg) {
     }
     // read all the rest of the colors:
     for (int i=0; i < ncolors; i++) {
-      uchar* c = (uchar*)&d.colors[*p++];
-#ifdef U64
-      *(U64*)c = 0;
-#  if WORDS_BIGENDIAN
-      c += 4;
-#  endif
-#endif
+      uchar* c = colors[*p++];
 #ifdef WIN32
       used_colors[3*color_count] = *p;
       used_colors[3*color_count+1] = *(p+1);
@@ -261,75 +161,49 @@ int fl_draw_pixmap(const char*const* cdata, int x, int y, Fl_Color bg) {
       *c++ = *p++;
       *c++ = *p++;
       *c++ = *p++;
-#ifdef __APPLE_QUARTZ__
       *c = 255;
-#else
-      *c = 0;
-#endif
     }
-  } else {	// normal XPM colormap with names
-    if (chars_per_pixel>1) memset(d.byte1, 0, sizeof(d.byte1));
+  } else {
+    // normal XPM colormap with names
     for (int i=0; i<ncolors; i++) {
       const uchar *p = *data++;
       // the first 1 or 2 characters are the color index:
       int ind = *p++;
       uchar* c;
-      if (chars_per_pixel>1) {
-#ifdef U64
-	U64* colors = d.byte1[ind];
-	if (!colors) colors = d.byte1[ind] = new U64[256];
-#else
-	U32* colors = d.byte1[ind];
-	if (!colors) colors = d.byte1[ind] = new U32[256];
-#endif
-	c = (uchar*)&colors[*p];
-	ind = (ind<<8)|*p++;
-      } else {
-	c = (uchar *)&d.colors[ind];
-      }
+      if (chars_per_pixel>1)
+        ind = (ind<<8)|*p++;
+      c = colors[ind];
       // look for "c word", or last word if none:
       const uchar *previous_word = p;
       for (;;) {
-	while (*p && isspace(*p)) p++;
-	uchar what = *p++;
-	while (*p && !isspace(*p)) p++;
-	while (*p && isspace(*p)) p++;
-	if (!*p) {p = previous_word; break;}
-	if (what == 'c') break;
-	previous_word = p;
-	while (*p && !isspace(*p)) p++;
+        while (*p && isspace(*p)) p++;
+        uchar what = *p++;
+        while (*p && !isspace(*p)) p++;
+        while (*p && isspace(*p)) p++;
+        if (!*p) {p = previous_word; break;}
+        if (what == 'c') break;
+        previous_word = p;
+        while (*p && !isspace(*p)) p++;
       }
-#ifdef U64
-      *(U64*)c = 0;
-#  if WORDS_BIGENDIAN
-      c += 4;
-#  endif
-#endif
-#ifdef __APPLE_QUARTZ__
-      c[3] = 255;
-#endif
       int parse = fl_parse_color((const char*)p, c[0], c[1], c[2]);
+      c[3] = 255;
       if (parse) {
 #ifdef WIN32
-	used_colors[3*color_count] = c[0];
-	used_colors[3*color_count+1] = c[1];
-	used_colors[3*color_count+2] = c[2];
-	color_count++;
+        used_colors[3*color_count] = c[0];
+        used_colors[3*color_count+1] = c[1];
+        used_colors[3*color_count+2] = c[2];
+        color_count++;
 #endif
-	}
-      else {
+      } else {
         // assume "None" or "#transparent" for any errors
-	// "bg" should be transparent...
-	Fl::get_color(bg, c[0], c[1], c[2]);
-#ifdef __APPLE_QUARTZ__
+        // "bg" should be transparent...
+        Fl::get_color(bg, c[0], c[1], c[2]);
         c[3] = 0;
-#endif
-	transparent_index = ind;
-	transparent_c = c;
+        transparent_index = ind;
+        transparent_c = c;
       }
     }
   }
-  d.data = data;
 #ifdef WIN32
   if (transparent_c) {
     make_unused_color(transparent_c[0], transparent_c[1], transparent_c[2]);
@@ -339,88 +213,89 @@ int fl_draw_pixmap(const char*const* cdata, int x, int y, Fl_Color bg) {
     make_unused_color(r, g, b);
   }
 #endif
-  
-#ifdef  __APPLE_QUARTZ__
-  if (fl_graphics_driver->class_name() == Fl_Quartz_Graphics_Driver::class_id ) {
-    bool transparent = (transparent_index>=0);
-    transparent = true;
-    U32 *array = new U32[d.w * d.h], *q = array;
-    for (int Y = 0; Y < d.h; Y++) {
-      const uchar* p = data[Y];
-      if (chars_per_pixel <= 1) {
-	for (int X = 0; X < d.w; X++) {
-	  *q++ = d.colors[*p++];
-	}
-      } else {
-	for (int X = 0; X < d.w; X++) {
-	  U32* colors = (U32*)d.byte1[*p++];
-	  *q++ = colors[*p++];
-	}
+
+  U32 *q = (U32*)out;
+  for (int Y = 0; Y < h; Y++) {
+    const uchar* p = data[Y];
+    if (chars_per_pixel <= 1) {
+      for (int X = 0; X < w; X++)
+        memcpy(q++, colors[*p++], 4);
+    } else {
+      for (int X = 0; X < w; X++) {
+        int ind = (*p++)<<8;
+        ind |= *p++;
+        memcpy(q++, colors[ind], 4);
       }
     }
+  }
+  
+  delete [] colors;
+  return 1;
+}
+
+/**
+  Draw XPM image data, with the top-left corner at the given position.
+  \see fl_draw_pixmap(char* const* data, int x, int y, Fl_Color bg)
+  */
+int fl_draw_pixmap(const char*const* cdata, int x, int y, Fl_Color bg) {
+  int w, h;
+
+  if (!fl_measure_pixmap(cdata, w, h))
+    return 0;
+
+  uchar *buffer = new uchar[w*h*4];
+
+  if (!fl_convert_pixmap(cdata, buffer, bg)) {
+    delete buffer;
+    return 0;
+  }
+
+  // FIXME: Hack until fl_draw_image() supports alpha properly
+#ifdef  __APPLE_QUARTZ__
+  if (fl_graphics_driver->class_name() == Fl_Quartz_Graphics_Driver::class_id ) {
     CGColorSpaceRef lut = CGColorSpaceCreateDeviceRGB();
-    CGDataProviderRef src = CGDataProviderCreateWithData( 0L, array, d.w * d.h * 4, 0L);
-    CGImageRef img = CGImageCreate(d.w, d.h, 8, 4*8, 4*d.w,
-				   lut, transparent?kCGImageAlphaLast:kCGImageAlphaNoneSkipLast,
-				   src, 0L, false, kCGRenderingIntentDefault);
+    CGDataProviderRef src = CGDataProviderCreateWithData( 0L, buffer, w * h * 4, 0L);
+    CGImageRef img = CGImageCreate(w, h, 8, 4*8, 4*w,
+                                   lut, kCGImageAlphaLast,
+                                   src, 0L, false, kCGRenderingIntentDefault);
     CGColorSpaceRelease(lut);
     CGDataProviderRelease(src);
-    CGRect rect = { { x, y} , { d.w, d.h } };
-    Fl_X::q_begin_image(rect, 0, 0, d.w, d.h);
+    CGRect rect = { { x, y }, { w, h } };
+    Fl_X::q_begin_image(rect, 0, 0, w, h);
     CGContextDrawImage(fl_gc, rect, img);
     Fl_X::q_end_image();
     CGImageRelease(img);
-    delete[] array;
-    }
-  else {
+  } else {
 #endif // __APPLE_QUARTZ__
-
   // build the mask bitmap used by Fl_Pixmap:
-  if (fl_mask_bitmap && transparent_index >= 0) {
-    int W = (d.w+7)/8;
-    uchar* bitmap = new uchar[W * d.h];
+  if (fl_mask_bitmap) {
+    int W = (w+7)/8;
+    uchar* bitmap = new uchar[W * h];
     *fl_mask_bitmap = bitmap;
-    for (int Y = 0; Y < d.h; Y++) {
-      const uchar* p = data[Y];
-      if (chars_per_pixel <= 1) {
-	int dw = d.w;
-	for (int X = 0; X < W; X++) {
-	  uchar b = (dw-->0 && *p++ != transparent_index);
-	  if (dw-->0 && *p++ != transparent_index) b |= 2;
-	  if (dw-->0 && *p++ != transparent_index) b |= 4;
-	  if (dw-->0 && *p++ != transparent_index) b |= 8;
-	  if (dw-->0 && *p++ != transparent_index) b |= 16;
-	  if (dw-->0 && *p++ != transparent_index) b |= 32;
-	  if (dw-->0 && *p++ != transparent_index) b |= 64;
-	  if (dw-->0 && *p++ != transparent_index) b |= 128;
-	  *bitmap++ = b;
-	}
-      } else {
-        uchar b = 0, bit = 1;
-	for (int X = 0; X < d.w; X++) {
-	  int ind = *p++;
-	  ind = (ind<<8) | (*p++);
-	  if (ind != transparent_index) b |= bit;
-
-          if (bit < 128) bit <<= 1;
-	  else {
-	    *bitmap++ = b;
-	    b = 0;
-	    bit = 1;
-	  }
-	}
-
-        if (bit > 1) *bitmap++ = b;
+    const uchar *p = &buffer[3];
+    for (int Y = 0; Y < h; Y++) {
+      int dw = w;
+      for (int X = 0; X < W; X++) {
+        uchar b = 0;
+        for (int bit = 0x01;bit <= 0x80;bit<<=1) {
+          if (dw-- < 0)
+            break;
+          if (*p > 127)
+            b |= bit;
+          p += 4;
+        }
+        *bitmap++ = b;
       }
     }
   }
 
-  fl_draw_image(chars_per_pixel==1 ? cb1 : cb2, &d, x, y, d.w, d.h, 4);
+  fl_draw_image(buffer, x, y, w, h, 4);
+
 #ifdef __APPLE_QUARTZ__
     }
 #endif
 
-  if (chars_per_pixel > 1) for (int i = 0; i < 256; i++) delete[] d.byte1[i];
+  delete buffer;
   return 1;
 }
 

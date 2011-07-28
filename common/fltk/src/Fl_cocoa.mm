@@ -61,6 +61,7 @@ extern "C" {
 #include <stdarg.h>
 
 #import <Cocoa/Cocoa.h>
+#import <Carbon/Carbon.h>
 
 #ifndef NSINTEGER_DEFINED // appears with 10.5 in NSObjCRuntime.h
 #if defined(__LP64__) && __LP64__
@@ -107,7 +108,6 @@ int fl_screen;
 CGContextRef fl_gc = 0;
 void *fl_system_menu;                   // this is really a NSMenu*
 Fl_Sys_Menu_Bar *fl_sys_menu_bar = 0;
-void *fl_default_cursor;		// this is really a NSCursor*
 void *fl_capture = 0;			// (NSWindow*) we need this to compensate for a missing(?) mouse capture
 bool fl_show_iconic;                    // true if called from iconize() - shows the next created window in collapsed state
 //int fl_disable_transient_for;           // secret method of removing TRANSIENT_FOR
@@ -124,6 +124,8 @@ static Fl_Window* send_motion;
 extern Fl_Window* fl_xmousewin;
 #endif
 
+bool use_simple_keyboard = false;
+
 enum { FLTKTimerEvent = 1, FLTKDataReadyEvent };
 
 
@@ -138,6 +140,39 @@ void fl_set_spot(int font, int size, int X, int Y, int W, int H, Fl_Window *win)
 
 void fl_set_status(int x, int y, int w, int h)
 {
+}
+
+// Undocumented voodoo. Taken from Mozilla.
+#define ENABLE_ROMAN_KYBDS_ONLY -23
+
+void fl_update_focus(void)
+{
+  Fl_Widget *focus;
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+  if (!focus)
+    return;
+
+  if (focus->simple_keyboard())
+    use_simple_keyboard = true;
+  else
+    use_simple_keyboard = false;
+
+  // Force a "Roman" or "ASCII" keyboard, which both the Mozilla and
+  // Safari people seem to think implies turning off advanced IME stuff
+  // (see nsTSMManager::SyncKeyScript in Mozilla and enableSecureTextInput
+  // in Safari/Webcore). Should be good enough for us then...
+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
+  CFArrayRef inputSources = TISCreateASCIICapableInputSourceList();
+  TSMSetDocumentProperty(TSMGetActiveDocument(),
+                         kTSMDocumentEnabledInputSourcesPropertyTag,
+                         sizeof(CFArrayRef), &inputSources);
+  CFRelease(inputSources);
+#else
+  KeyScript(use_simple_keyboard ? ENABLE_ROMAN_KYBDS_ONLY : smKeyEnableKybds);
+#endif  
 }
 
 /*
@@ -614,6 +649,10 @@ static void do_timer(CFRunLoopTimerRef timer, void* data)
 {
   containsGLsubwindow = contains;
 }
+- (BOOL)canBecomeKeyWindow
+{
+  return YES;
+}
 @end
 
 @interface FLApplication : NSObject
@@ -843,6 +882,25 @@ static void cocoaMouseHandler(NSEvent *theEvent)
 }
 @end
 
+static const char* cocoaDead2FLTK(const char *in)
+{
+  if (strcmp(in, "\140") == 0)      // GRAVE ACCENT
+    return "\314\200";              // COMBINING GRAVE ACCENT
+  if (strcmp(in, "\302\264") == 0)  // ACUTE ACCENT
+    return "\314\201";              // COMBINING ACUTE ACCENT
+  if (strcmp(in, "\136") == 0)      // CIRCUMFLEX ACCENT
+    return "\314\202";              // COMBINING CIRCUMFLEX ACCENT
+  if (strcmp(in, "\176") == 0)      // TILDE
+    return "\314\203";              // COMBINING TILDE
+  if (strcmp(in, "\302\250") == 0)  // DIAERESIS
+    return "\314\210";              // COMBINING DIAERESIS
+  // FIXME: OS X dead key behaviour isn't documented and I don't have
+  //        any more keyboards to test with...
+
+  // hope that OS X gave us something proper to begin with
+  return in;
+}
+
 /*
 Handle cocoa keyboard events
 Events during a character composition sequence:
@@ -1033,6 +1091,10 @@ extern "C" {
   fl_lock_function();
   FLWindow *nsw = (FLWindow*)[notif object];
   Fl_Window *window = [nsw getFl_Window];
+  /* Fullscreen windows obscure all other windows so we need to return
+     to a "normal" level when the user switches to another window */
+  if (window->fullscreen_active())
+    [nsw setLevel:NSNormalWindowLevel];
   Fl::handle( FL_UNFOCUS, window);
   fl_unlock_function();
 }
@@ -1041,6 +1103,9 @@ extern "C" {
   fl_lock_function();
   FLWindow *nsw = (FLWindow*)[notif object];
   Fl_Window *w = [nsw getFl_Window];
+  /* Restore previous fullscreen level */
+  if (w->fullscreen_active())
+    [nsw setLevel:NSStatusWindowLevel];
   if ( w->border() || (!w->modal() && !w->tooltip_window()) ) Fl::handle( FL_FOCUS, w);
   fl_unlock_function();
 }
@@ -1228,9 +1293,13 @@ extern "C" {
 }
 @end
 
+static void clipboard_check(void);
+
 @implementation FLApplication
 + (void)sendEvent:(NSEvent *)theEvent
 {
+  // update clipboard status
+  clipboard_check();
   NSEventType type = [theEvent type];  
   if (type == NSLeftMouseDown) {
     fl_lock_function();
@@ -1285,8 +1354,6 @@ void fl_open_display() {
 					  dequeue:YES];
     while (ign_event);
     
-    fl_default_cursor = [NSCursor arrowCursor];
-
     // bring the application into foreground without a 'CARB' resource
     Boolean same_psn;
     ProcessSerialNumber cur_psn, front_psn;
@@ -1586,6 +1653,7 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
 - (void)drawRect:(NSRect)rect;
 - (BOOL)acceptsFirstResponder;
 - (BOOL)acceptsFirstMouse:(NSEvent*)theEvent;
+- (void)resetCursorRects;
 - (BOOL)performKeyEquivalent:(NSEvent*)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
 - (void)rightMouseUp:(NSEvent *)theEvent;
@@ -1642,6 +1710,16 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
   Fl_Window *w = [(FLWindow*)[theEvent window] getFl_Window];
   Fl_Window *first = Fl::first_window();
   return (first == w || !first->modal());
+}
+- (void)resetCursorRects {
+  Fl_Window *w = [(FLWindow*)[self window] getFl_Window];
+  Fl_X *i = Fl_X::i(w);
+  // We have to have at least one cursor rect for invalidateCursorRectsForView
+  // to work, hence the "else" clause.
+  if (i->cursor)
+    [self addCursorRect:[self visibleRect] cursor:(NSCursor*)i->cursor];
+  else
+    [self addCursorRect:[self visibleRect] cursor:[NSCursor arrowCursor]];
 }
 - (void)mouseUp:(NSEvent *)theEvent {
   cocoaMouseHandler(theEvent);
@@ -1702,8 +1780,13 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
       break;
     }
   }
+  // Don't send cmd-<key> to interpretKeyEvents because it beeps.
   if (!no_text_key && !(Fl::e_state & FL_META) ) {
-    // Don't send cmd-<key> to interpretKeyEvents because it beeps.
+    // The simple keyboard model will ignore insertText, so we need to grab
+    // the symbol directly from the event. Note that we still use setMarkedText.
+    if (use_simple_keyboard)
+      [FLView prepareEtext:[theEvent charactersIgnoringModifiers]];
+
     // Then we can let the OS have a stab at it and see if it thinks it
     // should result in some text
     NSText *edit = [[theEvent window]  fieldEditor:YES forObject:nil];
@@ -1882,21 +1965,30 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
   //NSLog(@"insertText: received=%@",received);
 
   if (!in_key_event) fl_lock_function();
+
+  // Simple keyboard widgets do not want these side channel inputs.
+  if (use_simple_keyboard)
+    goto end;
+
   [FLView prepareEtext:received];
+
   // We can get called outside of key events (e.g. from the character
-  // palette). Transform such actions to FL_PASTE events.
+  // palette). We need to fake our own key event at that point.
   if (!in_key_event) {
     Fl_Window *target = [(FLWindow*)[self window] getFl_Window];
-    Fl::handle(FL_PASTE, target);
+    Fl::e_keysym = Fl::e_original_keysym = 0;
+    Fl::handle(FL_KEYDOWN, target);
     // for some reason, the window does not redraw until the next mouse move or button push
     // sending a 'redraw()' or 'awake()' does not solve the issue!
     Fl::flush();
   }
+
+end:
   if (!in_key_event) fl_unlock_function();
 }
 
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)newSelection  {
-  NSString *received;
+  NSString *received, *current, *aggregate;
   if (newSelection.location == 0) {
     [self unmarkText];
     return;
@@ -1907,11 +1999,47 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
     received = (NSString*)aString;
   }
   //NSLog(@"setMarkedText: %@ %d %d",received,newSelection.location,newSelection.length);
+
+  fl_lock_function();
+
+  // Simple keyboard widgets generally do not want these side channel
+  // inputs, but we have no other way of getting dead keys so we make
+  // an exception in that case.
+  if (use_simple_keyboard) {
+    if (in_key_event && (Fl::e_length == 0)) {
+      [FLView prepareEtext:received];
+
+      Fl::e_text = (char*)cocoaDead2FLTK(Fl::e_text);
+      Fl::e_length = strlen(Fl::e_text);
+    }
+    goto end;
+  }
+
   // This code creates the OS X behaviour of seeing dead keys as things
   // are being composed.
+  //
+  // Note: The concatenation thing is because of how OS X deals with
+  //       invalid sequences. At that point it will spit out one call
+  //       to insertText with the now aborted sequence, and one new
+  //       call to setMarkedText with the new sequence. Since we want
+  //       both to be visible, we need to concatenate.
   next_compose_length = newSelection.location;
-  [FLView prepareEtext:received];
-  //NSLog(@"Fl::e_text=%@ Fl::e_length=%d next_compose_length=%d", received, Fl::e_length, next_compose_length);
+  current = [NSString stringWithUTF8String:Fl::e_text];
+  aggregate = [current stringByAppendingString:received];
+
+  [FLView prepareEtext:aggregate];
+  //NSLog(@"Fl::e_text=%@ Fl::e_length=%d next_compose_length=%d", aggregate, Fl::e_length, next_compose_length);
+
+  // We can get called outside of key events (e.g. from the character
+  // palette). We need to fake our own key event at that point.
+  if (!in_key_event) {
+    Fl_Window *target = [(FLWindow*)[self window] getFl_Window];
+    Fl::e_keysym = Fl::e_original_keysym = 0;
+    Fl::handle(FL_KEYDOWN, target);
+  }
+
+end:
+  fl_unlock_function();
 }
 
 - (void)unmarkText {
@@ -1981,6 +2109,22 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
 
 @end
 
+void fullscreen_x(Fl_Window *w) {
+  w->_set_fullscreen();
+  /* On OS X < 10.6, it is necessary to recreate the window. This is done
+     with hide+show. */
+  w->hide();
+  w->show();
+  Fl::handle(FL_FULLSCREEN, w);
+}
+
+void fullscreen_off_x(Fl_Window *w, int X, int Y, int W, int H) {
+  w->_clear_fullscreen();
+  w->hide();
+  w->resize(X, Y, W, H);
+  w->show();
+  Fl::handle(FL_FULLSCREEN, w);
+}
 
 /*
  * go ahead, create that (sub)window
@@ -1996,7 +2140,7 @@ void Fl_X::make(Fl_Window* w)
     x->other_xid = 0;
     x->region = 0;
     x->subRegion = 0;
-    x->cursor = fl_default_cursor;
+    x->cursor = NULL;
     x->gc = 0;			// stay 0 for Quickdraw; fill with CGContext for Quartz
     Fl_Window *win = w->window();
     Fl_X *xo = Fl_X::i(win);
@@ -2098,12 +2242,19 @@ void Fl_X::make(Fl_Window* w)
     x->other_xid = 0; // room for doublebuffering image map. On OS X this is only used by overlay windows
     x->region = 0;
     x->subRegion = 0;
-    x->cursor = fl_default_cursor;
+    x->cursor = NULL;
     x->xidChildren = 0;
     x->xidNext = 0;
     x->gc = 0;
 	  
     NSRect srect = [[NSScreen mainScreen] frame];
+    if (w->flags() & Fl_Widget::FULLSCREEN) {
+      int sx, sy, sw, sh;
+      Fl::screen_xywh(sx, sy, sw, sh, w->x(), w->y(), w->w(), w->h());
+      w->resize(sx, sy, sw, sh);
+      winstyle = NSBorderlessWindowMask;
+      winlevel = NSStatusWindowLevel;
+    }
     NSRect crect;
     crect.origin.x = w->x(); 
     crect.origin.y = srect.size.height - (w->y() + w->h());
@@ -2552,6 +2703,27 @@ void Fl::paste(Fl_Widget &receiver, int clipboard) {
   receiver.handle(FL_PASTE);
 }
 
+extern void fl_trigger_clipboard_notify(int source);
+
+void fl_clipboard_notify_change() {
+  // No need to do anything here...
+}
+
+static void clipboard_check(void)
+{
+  PasteboardSyncFlags flags;
+
+  allocatePasteboard();
+  flags = PasteboardSynchronize(myPasteboard);
+
+  if (!(flags & kPasteboardModified))
+    return;
+  if (flags & kPasteboardClientIsOwner)
+    return;
+
+  fl_trigger_clipboard_notify(1);
+}
+
 void Fl::add_timeout(double time, Fl_Timeout_Handler cb, void* data)
 {
   // check, if this timer slot exists already
@@ -2676,6 +2848,10 @@ void Fl_X::destroy() {
     [[(NSWindow *)xid contentView] release];
     [(NSWindow *)xid close];
   }
+  if (cursor) {
+    [(NSCursor*)cursor release];
+    cursor = NULL;
+  }
 }
 
 void Fl_X::map() {
@@ -2791,68 +2967,106 @@ static NSImage *CGBitmapContextToNSImage(CGContextRef c)
   return [image autorelease];
 }
 
-static NSCursor *PrepareCursor(NSCursor *cursor, CGContextRef (*f)() )
+int Fl_X::set_cursor(Fl_Cursor c)
 {
-  if (cursor == nil) {
-    CGContextRef c = f();
-    NSImage *image = CGBitmapContextToNSImage(c);
-    fl_delete_offscreen( (Fl_Offscreen)c ); 
-    NSPoint pt = {[image size].width/2, [image size].height/2};
-    cursor = [[NSCursor alloc] initWithImage:image hotSpot:pt];
+  if (cursor) {
+    [(NSCursor*)cursor release];
+    cursor = NULL;
   }
-  return cursor;
+
+  switch (c) {
+  case FL_CURSOR_ARROW:   cursor = [NSCursor arrowCursor]; break;
+  case FL_CURSOR_CROSS:   cursor = [NSCursor crosshairCursor]; break;
+  case FL_CURSOR_INSERT:  cursor = [NSCursor IBeamCursor]; break;
+  case FL_CURSOR_HAND:    cursor = [NSCursor pointingHandCursor]; break;
+  case FL_CURSOR_MOVE:    cursor = [NSCursor openHandCursor]; break;
+  case FL_CURSOR_NS:      cursor = [NSCursor resizeUpDownCursor]; break;
+  case FL_CURSOR_WE:      cursor = [NSCursor resizeLeftRightCursor]; break;
+  case FL_CURSOR_N:       cursor = [NSCursor resizeUpCursor]; break;
+  case FL_CURSOR_E:       cursor = [NSCursor resizeRightCursor]; break;
+  case FL_CURSOR_W:       cursor = [NSCursor resizeLeftCursor]; break;
+  case FL_CURSOR_S:       cursor = [NSCursor resizeDownCursor]; break;
+  default:
+    return 0;
+  }
+
+  [(NSCursor*)cursor retain];
+
+  [(NSWindow*)xid invalidateCursorRectsForView:[(NSWindow*)xid contentView]];
+
+  return 1;
 }
 
-void Fl_X::set_cursor(Fl_Cursor c)
-{
-  NSCursor *icrsr;
-  switch (c) {
-    case FL_CURSOR_CROSS:  icrsr = [NSCursor crosshairCursor]; break;
-    case FL_CURSOR_WAIT:
-      static NSCursor *watch = nil;
-      watch = PrepareCursor(watch,  &Fl_X::watch_cursor_image);
-      icrsr = watch;
-      break;
-    case FL_CURSOR_INSERT: icrsr = [NSCursor IBeamCursor]; break;
-    case FL_CURSOR_N:      icrsr = [NSCursor resizeUpCursor]; break;
-    case FL_CURSOR_S:      icrsr = [NSCursor resizeDownCursor]; break;
-    case FL_CURSOR_NS:     icrsr = [NSCursor resizeUpDownCursor]; break;
-    case FL_CURSOR_HELP:   
-      static NSCursor *help = nil;
-      help = PrepareCursor(help,  &Fl_X::help_cursor_image);
-      icrsr = help;
-      break;
-    case FL_CURSOR_HAND:   icrsr = [NSCursor pointingHandCursor]; break;
-    case FL_CURSOR_MOVE:   icrsr = [NSCursor openHandCursor]; break;
-    case FL_CURSOR_NE:
-    case FL_CURSOR_SW:
-    case FL_CURSOR_NESW:   
-      static NSCursor *nesw = nil;
-      nesw = PrepareCursor(nesw,  &Fl_X::nesw_cursor_image);
-      icrsr = nesw;
-      break;
-    case FL_CURSOR_E:      icrsr = [NSCursor resizeRightCursor]; break;
-    case FL_CURSOR_W:      icrsr = [NSCursor resizeLeftCursor]; break;
-    case FL_CURSOR_WE:     icrsr = [NSCursor resizeLeftRightCursor]; break;
-    case FL_CURSOR_SE:
-    case FL_CURSOR_NW:
-    case FL_CURSOR_NWSE:   
-      static NSCursor *nwse = nil;
-      nwse = PrepareCursor(nwse,  &Fl_X::nwse_cursor_image);
-      icrsr = nwse;
-      break;
-    case FL_CURSOR_NONE:   
-      static NSCursor *none = nil;
-      none = PrepareCursor(none,  &Fl_X::none_cursor_image);
-      icrsr = none; 
-      break;
-    case FL_CURSOR_ARROW:
-    case FL_CURSOR_DEFAULT:
-    default:			   icrsr = [NSCursor arrowCursor];
-      break;
+int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
+  if (cursor) {
+    [(NSCursor*)cursor release];
+    cursor = NULL;
   }
-  [icrsr set];
-  cursor = icrsr;
+
+  if ((hotx < 0) || (hotx >= image->w()))
+    return 0;
+  if ((hoty < 0) || (hoty >= image->h()))
+    return 0;
+
+  // OS X >= 10.6 can create a NSImage from a CGImage, but we need to
+  // support older versions, hence this pesky handling.
+
+  NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc]
+                              initWithBitmapDataPlanes:NULL
+                              pixelsWide:image->w()
+                              pixelsHigh:image->h()
+                              bitsPerSample:8
+                              samplesPerPixel:image->d()
+                              hasAlpha:!(image->d() & 1)
+                              isPlanar:NO
+                              colorSpaceName:(image->d()<=2) ? NSDeviceWhiteColorSpace : NSDeviceRGBColorSpace
+                              bytesPerRow:(image->w() * image->d())
+                              bitsPerPixel:(image->d()*8)];
+
+  // Alpha needs to be premultiplied for this format
+
+  const uchar *i = (const uchar*)*image->data();
+  unsigned char *o = [bitmap bitmapData];
+  for (int y = 0;y < image->h();y++) {
+    if (image->d() & 1) {
+      for (int x = 0;x < image->w();x++) {
+        unsigned int alpha;
+        if (image->d() == 4) {
+          alpha = i[3];
+          *o++ = (unsigned char)((unsigned int)*i++ * alpha / 255);
+          *o++ = (unsigned char)((unsigned int)*i++ * alpha / 255);
+        }
+
+        alpha = i[1];
+        *o++ = (unsigned char)((unsigned int)*i++ * alpha / 255);
+        *o++ = alpha;
+        i++;
+      }
+    } else {
+      // No alpha, so we can just copy everything directly.
+      int len = image->w() * image->d();
+      memcpy(o, i, len);
+      o += len;
+      i += len;
+    }
+    i += image->ld();
+  }
+
+  NSImage *nsimage = [[NSImage alloc]
+                      initWithSize:NSMakeSize(image->w(), image->h())];
+
+  [nsimage addRepresentation:bitmap];
+
+  cursor = [[NSCursor alloc]
+            initWithImage:nsimage
+            hotSpot:NSMakePoint(hotx, hoty)];
+
+  [(NSWindow*)xid invalidateCursorRectsForView:[(NSWindow*)xid contentView]];
+
+  [bitmap release];
+  [nsimage release];
+
+  return 1;
 }
 
 @interface FLaboutItemTarget : NSObject 

@@ -75,6 +75,7 @@ const char * const fl_eventnames[] =
   "FL_DND_DRAG",
   "FL_DND_LEAVE",
   "FL_DND_RELEASE",
+  "FL_FULLSCREEN"
 };
 
 /**

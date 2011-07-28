@@ -108,6 +108,9 @@ typedef int (*Fl_Args_Handler)(int argc, char **argv, int &i);
     \see Fl::event_dispatch(Fl_Event_Dispatch) */
 typedef int (*Fl_Event_Dispatch)(int event, Fl_Window *w);
 
+/** Signature of add_clipboard_notify functions passed as parameters */
+typedef void (*Fl_Clipboard_Notify_Handler)(int source, void *data);
+
 /** @} */ /* group callback_functions */
 
 
@@ -743,6 +746,19 @@ public:
   copy/cut/paste operations.
   */
   static void paste(Fl_Widget &receiver, int source /*=0*/); // platform dependent
+  /**
+  FLTK will call the registered callback whenever there is a change to the
+  selection buffer or the clipboard. The source argument indicates which
+  of the two has changed. Only changes by other applications are reported.
+  \note Some systems require polling to monitor the clipboard and may
+  therefore have some delay in detecting changes.
+  */
+  static void add_clipboard_notify(Fl_Clipboard_Notify_Handler h, void *data);
+  /**
+  Stop calling the specified callback when there are changes to the selection
+  buffer or the clipboard.
+  */
+  static void remove_clipboard_notify(Fl_Clipboard_Notify_Handler h);
   /**
     Initiate a Drag And Drop operation. The selection buffer should be
     filled with relevant data before calling this method. FLTK will

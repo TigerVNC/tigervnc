@@ -108,6 +108,7 @@ struct FL_EXPORT Fl_Label {
  */
 class FL_EXPORT Fl_Widget {
   friend class Fl_Group;
+  friend class Fl_X;
 
   Fl_Group* parent_;
   Fl_Callback* callback_;
@@ -179,6 +180,8 @@ protected:
         NO_OVERLAY      = 1<<15,  ///< window not using a hardware overlay plane (Fl_Menu_Window)
         GROUP_RELATIVE  = 1<<16,  ///< position this widget relative to the parent group, not to the window
         COPIED_TOOLTIP  = 1<<17,  ///< the widget tooltip is internally copied, its destruction is handled by the widget
+        SIMPLE_KEYBOARD = 1<<18,  ///< the widget wants simple, consistent keypresses and not advanced input (like character composition and CJK input)
+        FULLSCREEN      = 1<<19,  ///< a fullscreen window (Fl_Window)
         // (space for more flags)
         USERFLAG3       = 1<<29,  ///< reserved for 3rd party extensions
         USERFLAG2       = 1<<30,  ///< reserved for 3rd party extensions
@@ -784,6 +787,35 @@ public:
    */
   void clear_changed() {flags_ &= ~CHANGED;}
 
+  /** 
+      Returns if the widget sees a simplified keyboard model or not.
+
+      Normally widgets get a full-featured keyboard model that is geared
+      towards text input. This includes support for compose sequences and
+      advanced input methods, commonly used for asian writing system. This
+      system however has downsides in that extra graphic can be presented
+      to the user and that a physical key press doesn't correspond directly
+      to a FLTK event.
+
+      Widgets that need a direct correspondence between actual key events
+      and those seen by the widget can swith to the simplified keyboard
+      model.
+
+     \retval 0 if the widget uses the normal keyboard model
+     \see set_changed(), clear_changed()
+   */
+  unsigned int simple_keyboard() const {return flags_&SIMPLE_KEYBOARD;}
+
+  /** Marks a widget to use the simple keyboard model.
+      \see changed(), clear_changed()
+   */
+  void set_simple_keyboard() {flags_ |= SIMPLE_KEYBOARD;}
+
+  /** Marks a widget to use the normal keyboard model.
+      \see changed(), set_changed()
+   */
+  void set_normal_keyboard() {flags_ &= ~SIMPLE_KEYBOARD;}
+
   /** Gives the widget the keyboard focus.
       Tries to make this widget be the Fl::focus() widget, by first sending 
       it an FL_FOCUS event, and if it returns non-zero, setting 
@@ -852,6 +884,9 @@ public:
   static unsigned int label_shortcut(const char *t);
   /* Internal use only. */
   static int test_shortcut(const char*, const bool require_alt = false);
+  /* Internal use only. */
+  void _set_fullscreen() {flags_ |= FULLSCREEN;}
+  void _clear_fullscreen() {flags_ &= ~FULLSCREEN;}
 
   /** Checks if w is a child of this widget.
       \param[in] w potential child widget

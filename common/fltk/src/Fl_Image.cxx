@@ -172,6 +172,19 @@ Fl_Image::measure(const Fl_Label *lo,		// I - Label
 //
 // RGB image class...
 //
+
+int fl_convert_pixmap(const char*const* cdata, uchar* out, Fl_Color bg);
+
+/** The constructor creates a new RGBA image from the specified Fl_Pixmap. */
+Fl_RGB_Image::Fl_RGB_Image(const Fl_Pixmap *pxm, Fl_Color bg):
+  Fl_Image(pxm->w(), pxm->h(), 4), id_(0), mask_(0)
+{
+  array = new uchar[w() * h() * d()];
+  alloc_array = 1;
+  fl_convert_pixmap(pxm->data(), (uchar*)array, bg);
+  data((const char **)&array, 1);
+}
+
 /**  The destructor free all memory and server resources that are used by  the image. */
 Fl_RGB_Image::~Fl_RGB_Image() {
   uncache();
