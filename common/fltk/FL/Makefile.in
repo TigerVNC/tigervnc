@@ -1,0 +1,63 @@
+#
+# "$Id: Makefile.in 7913 2010-11-29 18:18:27Z greg.ercolano $"
+#
+# Header makefile for the Fast Light Tool Kit (FLTK).
+#
+# Copyright 1998-2010 by Bill Spitzak and others.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems on the following page:
+#
+#      http://www.fltk.org/str.php
+#
+
+include ../makeinclude
+
+all:
+
+clean:
+
+depend:
+
+install:
+	echo "Installing include files in $(DESTDIR)$(includedir)..."
+	$(RMDIR) $(DESTDIR)$(includedir)/FL
+	$(INSTALL_DIR) $(DESTDIR)$(includedir)/FL
+	for file in *.[hH]; do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(includedir)/FL; \
+	done
+@HLINKS@	cd $(DESTDIR)$(includedir)/FL;\
+@HLINKS@	for file in *.H; do\
+@HLINKS@		$(RM) "`basename $$file H`h";\
+@HLINKS@		$(LN) $$file "`basename $$file H`h";\
+@HLINKS@	done
+@HLINKS@	$(RM) $(DESTDIR)$(includedir)/FL/fl_file_chooser.H
+@HLINKS@	$(LN) Fl_File_Chooser.H $(DESTDIR)$(includedir)/FL/fl_file_chooser.H
+@HLINKS@	$(RM) $(DESTDIR)$(includedir)/FL/fl_file_chooser.h
+@HLINKS@	$(LN) Fl_File_Chooser.H $(DESTDIR)$(includedir)/FL/fl_file_chooser.h
+@HLINKS@	$(RM) $(DESTDIR)$(includedir)/Fl
+@HLINKS@	$(LN) FL $(DESTDIR)$(includedir)/Fl
+
+uninstall:
+	echo "Uninstalling include files..."
+	$(RMDIR) $(DESTDIR)$(includedir)/FL
+@HLINKS@	$(RM) $(DESTDIR)$(includedir)/Fl
+
+
+#
+# End of "$Id: Makefile.in 7913 2010-11-29 18:18:27Z greg.ercolano $".
+#
