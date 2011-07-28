@@ -13,6 +13,7 @@ include(CheckLibraryExists)
 include(CheckTypeSize)
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
+include(CheckCSourceRuns)
 
 include(CMakeMacroLibtoolFile)
 
@@ -176,11 +177,28 @@ find_package(JPEG REQUIRED)
 # Warn if it doesn't seem to be the accelerated libjpeg that's found
 set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARIES})
 set(CMAKE_REQUIRED_FLAGS -I${JPEG_INCLUDE_DIR})
+if(MSVC)
+  set(CMAKE_REQUIRED_DEFINITIONS -MT)
+endif()
 
-check_c_source_compiles("#include <stdio.h>\n#include <jpeglib.h>\nint main(int c, char** v) { return JCS_EXT_RGBX; }" FOUND_LIBJPEG_TURBO)
+check_c_source_runs("\n
+  #include <stdio.h>\n
+  #include <jpeglib.h>\n
+  int main(void) {\n
+    struct jpeg_compress_struct cinfo;\n
+    struct jpeg_error_mgr jerr;\n
+    cinfo.err=jpeg_std_error(&jerr);\n
+    jpeg_create_compress(&cinfo);\n
+    cinfo.input_components = 3;\n
+    jpeg_set_defaults(&cinfo);\n
+    cinfo.in_color_space = JCS_EXT_RGB;\n
+    jpeg_default_colorspace(&cinfo);\n
+    return 0;\n
+  }" FOUND_LIBJPEG_TURBO)
 
 set(CMAKE_REQUIRED_LIBRARIES)
 set(CMAKE_REQUIRED_FLAGS)
+set(CMAKE_REQUIRED_DEFINITIONS)
 
 if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
