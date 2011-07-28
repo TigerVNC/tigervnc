@@ -64,6 +64,7 @@ using namespace rfb;
 using namespace std;
 
 static char aboutText[1024];
+extern const char* buildTime;
 
 static bool exitMainloop = false;
 static const char *exitError = NULL;
@@ -185,7 +186,8 @@ int main(int argc, char** argv)
   const char* vncServerName = NULL;
   UserDialog dlg;
 
-  const char englishAbout[] = N_("TigerVNC Viewer version %s\n"
+  const char englishAbout[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
+                                 "%s\n"
                                  "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
                                  "See http://www.tigervnc.org for information on TigerVNC.");
 
@@ -197,7 +199,8 @@ int main(int argc, char** argv)
 
   // Write about text to console, still using normal locale codeset
   snprintf(aboutText, sizeof(aboutText),
-           gettext(englishAbout), PACKAGE_VERSION);
+           gettext(englishAbout), (int)sizeof(size_t)*8, PACKAGE_VERSION,
+           __BUILD__, buildTime);
   fprintf(stderr,"\n%s\n", aboutText);
 
   // Set gettext codeset to what our GUI toolkit uses. Since we are
@@ -208,7 +211,8 @@ int main(int argc, char** argv)
 
   // Re-create the aboutText for the GUI, now using GUI codeset
   snprintf(aboutText, sizeof(aboutText),
-           gettext(englishAbout), PACKAGE_VERSION);
+           gettext(englishAbout), (int)sizeof(size_t)*8, PACKAGE_VERSION,
+           __BUILD__, buildTime);
 
   rfb::initStdIOLoggers();
   rfb::LogWriter::setLogParams("*:stderr:30");

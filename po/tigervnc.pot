@@ -203,7 +203,8 @@ msgstr ""
 
 #, c-format
 msgid ""
-"TigerVNC Viewer for X version %s - built %s\n"
+"TigerVNC Viewer %d-bit v%s (%s)\n"
+"%s\n"
 "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""

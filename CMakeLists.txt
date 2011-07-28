@@ -63,6 +63,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 message(STATUS "VERSION = ${VERSION}, BUILD = ${BUILD}")
+add_definitions(-D__BUILD__="${BUILD}")
 
 if(NOT DEFINED BUILD_WINVNC)
   if(MSVC)
