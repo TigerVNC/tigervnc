@@ -116,7 +116,7 @@ build ()
 
     # Build VNC
     echo "*** Building VNC ***"
-    cmake -G"Unix Makefiles" ${1+"$@"} -DUSE_INCLUDED_ZLIB=1 $SRCDIR
+    cmake -G"Unix Makefiles" ${1+"$@"} -DUSE_INCLUDED_ZLIB=1 -DUSE_INCLUDED_FLTK=1 -DBUILD_STATIC=1 $SRCDIR
     $MAKE
 
     # Build Xorg
@@ -291,9 +291,9 @@ if [ "$MODE" = "build" ]; then
     if [ "$CXXFLAGS" = "" ]; then
 	CXXFLAGS=-O3
     fi
-    CFLAGS="$CFLAGS -static-libgcc -fPIC"
-    CXXFLAGS="$CXXFLAGS -static-libgcc -fPIC"
-    LDFLAGS="$LDFLAGS -static-libgcc -L`pwd`/xorg.build/syslib"
+    CFLAGS="$CFLAGS -fPIC"
+    CXXFLAGS="$CXXFLAGS -fPIC"
+    LDFLAGS="$LDFLAGS -L`pwd`/xorg.build/syslib"
     echo CC = $CC
     echo CXX = $CXX
     echo CFLAGS = $CFLAGS
@@ -301,16 +301,6 @@ if [ "$MODE" = "build" ]; then
     echo LDFLAGS = $LDFLAGS
     if [[ $CFLAGS = *-m32* ]]; then
 	CFGHOST="--host i686-pc-linux-gnu"
-    fi
-    if [ -f ./xorg.build/syslib/libstdc++.a ]; then
-	rm -f ./xorg.build/syslib/libstdc++.a
-    fi
-    LIBSTDCPLUSPLUS=`$CC $CFLAGS -print-file-name=libstdc++.a`
-    if [ ! -f $LIBSTDCPLUSPLUS ]; then
-	echo Cannot find suitable libstdc++.a.  Aborting ...
-	exit 1
-    else
-	ln -fs $LIBSTDCPLUSPLUS ./xorg.build/syslib
     fi
     STATICLIBS='libcrypto.a libz.a'
     for lib in $STATICLIBS; do
