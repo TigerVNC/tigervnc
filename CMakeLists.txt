@@ -220,7 +220,7 @@ if(MSVC)
   set(CMAKE_REQUIRED_DEFINITIONS -MT)
 endif()
 
-check_c_source_runs("\n
+set(JPEG_TEST_SOURCE "\n
   #include <stdio.h>\n
   #include <jpeglib.h>\n
   int main(void) {\n
@@ -233,7 +233,13 @@ check_c_source_runs("\n
     cinfo.in_color_space = JCS_EXT_RGB;\n
     jpeg_default_colorspace(&cinfo);\n
     return 0;\n
-  }" FOUND_LIBJPEG_TURBO)
+  }")
+
+if(CMAKE_CROSSCOMPILING)
+  check_c_source_compiles("${JPEG_TEST_SOURCE}" FOUND_LIBJPEG_TURBO)
+else()
+  check_c_source_runs("${JPEG_TEST_SOURCE}" FOUND_LIBJPEG_TURBO)
+endif()
 
 set(CMAKE_REQUIRED_LIBRARIES)
 set(CMAKE_REQUIRED_FLAGS)
