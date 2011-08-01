@@ -152,19 +152,19 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
   // like they are.
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (!fullscreen_active()) {
+#endif
   if ((w() == viewport->w()) && (h() == viewport->h()))
     size(new_w, new_h);
   else {
-#ifdef HAVE_FLTK_FULLSCREEN
-    if (!fullscreen_active()) {
-#endif
       // Make sure the window isn't too big
       if ((w() > new_w) || (h() > new_h))
         size(__rfbmin(w(), new_w), __rfbmin(h(), new_h));
-#ifdef HAVE_FLTK_FULLSCREEN
-    }
-#endif
   }
+#ifdef HAVE_FLTK_FULLSCREEN
+  }
+#endif
 
   viewport->size(new_w, new_h);
 
@@ -210,6 +210,7 @@ int DesktopWindow::handle(int event)
       fullScreen.setParam(fullscreen_active());
       if (!fullscreen_active()) {      
 	size_range(100, 100, viewport->w(), viewport->h());
+	size(viewport->w(), viewport->h());
       } else {
 	// We need to turn off the size limitations for proper
 	// fullscreen support, but in case fullscreen is activated via
