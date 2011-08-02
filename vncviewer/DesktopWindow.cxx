@@ -76,8 +76,16 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     // See comment in DesktopWindow::handleOptions
     size_range(100, 100, 0, 0);
     fullscreen();
-  }
+  } else
 #endif
+  {
+    // If we are creating a window which is equal to the size on the
+    // screen on X11, many WMs will treat this as a legacy fullscreen
+    // request. This is not what we want. Besides, it doesn't really
+    // make sense to try to create a window which is larger than the
+    // available work space. 
+    size(__rfbmin(w, Fl::w()), __rfbmin(h, Fl::h()));
+  }
 
   show();
 
