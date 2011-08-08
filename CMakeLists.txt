@@ -115,7 +115,7 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE AND NOT CYGWIN)
   if(BUILD_STATIC)
     # For some reason, simply passing ${CMAKE_CXX_FLAGS} to the compiler in
     # execute_process() doesn't work.  Grrr...
-    if(64BIT)
+    if(CMAKE_SIZEOF_VOID_P MATCHES 8)
       execute_process(COMMAND ${CMAKE_CXX_COMPILER} -m64
         --print-file-name=libstdc++.a OUTPUT_VARIABLE LIBSTDCPLUSPLUS
         RESULT_VARIABLE RESULT)
