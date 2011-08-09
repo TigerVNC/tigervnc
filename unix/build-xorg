@@ -116,7 +116,7 @@ build ()
 
     # Build VNC
     echo "*** Building VNC ***"
-    $SRCDIR/configure ${1+"$@"} --prefix=${PREFIX} --with-included-zlib
+    $SRCDIR/configure ${1+"$@"} --with-included-zlib
     $MAKE
 
     # Build Xorg

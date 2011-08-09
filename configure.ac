@@ -231,6 +231,12 @@ AM_CONDITIONAL([X86_64], [test "x$host_cpu" = "xx86_64"])
 
 AC_SUBST(BUILD)
 
+# Necessary because autoconf < 2.60 doesn't set localedir
+if test "x$localedir" = "x"; then
+	localedir='${datadir}/locale'
+	AC_SUBST(localedir)
+fi
+
 AC_CONFIG_FILES([makemacpkg:release/makemacpkg.in])
 AC_CONFIG_FILES([maketarball:release/maketarball.in])
 
