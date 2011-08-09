@@ -1,4 +1,5 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,7 +189,9 @@ static void compressData(rdr::OutStream *os, rdr::ZlibOutStream *zos,
   } else {
     // FIXME: Using a temporary MemOutStream may be not efficient.
     //        Maybe use the same static object used in the JPEG coder?
-    rdr::MemOutStream mem_os;
+    int maxBeforeSize = s_pconf->maxRectSize * (BPP / 8);
+    int maxAfterSize = maxBeforeSize + (maxBeforeSize + 99) / 100 + 12;
+    rdr::MemOutStream mem_os(maxAfterSize);
     zos->setUnderlying(&mem_os);
     zos->setCompressionLevel(zlibLevel);
     zos->writeBytes(buf, length);

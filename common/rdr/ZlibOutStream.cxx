@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,6 +89,10 @@ void ZlibOutStream::flush()
 //        fprintf(stderr,"zos flush: calling deflate, avail_in %d, avail_out %d\n",
 //                zs->avail_in,zs->avail_out);
       checkCompressionLevel();
+      if (zs->avail_in != 0) {
+        int rc = deflate(zs, Z_SYNC_FLUSH);
+        if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
+      }
 
 //        fprintf(stderr,"zos flush: after deflate: %d bytes\n",
 //                zs->next_out-underlying->getptr());
@@ -119,7 +124,11 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
 //        fprintf(stderr,"zos overrun: calling deflate, avail_in %d, avail_out %d\n",
 //                zs->avail_in,zs->avail_out);
 
-      checkCompressionLevel();
+     checkCompressionLevel();
+     if (zs->avail_in != 0) {
+       int rc = deflate(zs, 0);
+       if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
+     }
 
 //        fprintf(stderr,"zos overrun: after deflate: %d bytes\n",
 //                zs->next_out-underlying->getptr());
@@ -151,15 +160,9 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
 void ZlibOutStream::checkCompressionLevel()
 {
   if (newLevel != compressionLevel) {
-    int rc = deflate(zs, Z_SYNC_FLUSH);
-    if (rc != Z_OK) 
-      throw Exception("ZlibOutStream: deflate failed");
-    if (deflateParams (zs, newLevel, Z_DEFAULT_STRATEGY) != Z_OK)
+    if (deflateParams (zs, newLevel, Z_DEFAULT_STRATEGY) != Z_OK) {
       throw Exception("ZlibOutStream: deflateParams failed");
+    }
     compressionLevel = newLevel;
-  } else {
-    int rc = deflate(zs, Z_SYNC_FLUSH);
-    if (rc != Z_OK) 
-      throw Exception("ZlibOutStream: deflate failed");
   }
 }
