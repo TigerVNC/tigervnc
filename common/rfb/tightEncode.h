@@ -182,14 +182,15 @@ static int paletteInsert(rdr::U32 rgb, int numPixels, int bpp)
 //
 
 static void compressData(rdr::OutStream *os, rdr::ZlibOutStream *zos,
-                         const void *buf, unsigned int length, int zlibLevel)
+                         const void *buf, const PixelFormat& pf,
+                         unsigned int length, int zlibLevel)
 {
   if (length < TIGHT_MIN_TO_COMPRESS) {
     os->writeBytes(buf, length);
   } else {
     // FIXME: Using a temporary MemOutStream may be not efficient.
     //        Maybe use the same static object used in the JPEG coder?
-    int maxBeforeSize = s_pconf->maxRectSize * (BPP / 8);
+    int maxBeforeSize = s_pconf->maxRectSize * (pf.bpp / 8);
     int maxAfterSize = maxBeforeSize + (maxBeforeSize + 99) / 100 + 12;
     rdr::MemOutStream mem_os(maxAfterSize);
     zos->setUnderlying(&mem_os);
@@ -394,7 +395,7 @@ static void ENCODE_FULLCOLOR_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4]
   os->writeU8(streamId << 4);
 
   int length = PACK_PIXELS(buf, r.area(), pf);
-  compressData(os, &zos[streamId], buf, length, s_pconf->rawZlibLevel);
+  compressData(os, &zos[streamId], buf, pf, length, s_pconf->rawZlibLevel);
 }
 
 static void ENCODE_MONO_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
@@ -460,7 +461,7 @@ static void ENCODE_MONO_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
   // Write the data
   int length = (w + 7) / 8;
   length *= h;
-  compressData(os, &zos[streamId], buf, length, s_pconf->monoZlibLevel);
+  compressData(os, &zos[streamId], buf, pf, length, s_pconf->monoZlibLevel);
 }
 
 #if (BPP != 8)
@@ -508,7 +509,7 @@ static void ENCODE_INDEXED_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
   }
 
   // Write the data
-  compressData(os, &zos[streamId], buf, r.area(), s_pconf->idxZlibLevel);
+  compressData(os, &zos[streamId], buf, pf, r.area(), s_pconf->idxZlibLevel);
 }
 #endif  // #if (BPP != 8)
 
