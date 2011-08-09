@@ -5,10 +5,10 @@
 cmake_minimum_required(VERSION 2.6)
 
 project(TigerVNC)
-set(VERSION 1.0.90)
+set(VERSION 1.1.0)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,0,90,0)
+set(RCVERSION 1,1,0,0)
 
 if(MINGW OR CYGWIN)
   execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)

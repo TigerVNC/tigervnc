@@ -2,8 +2,8 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
 
 dnl Modify also RCVERSION variable when modifying release
-AC_INIT([tigervnc], [1.0.90], [http://www.tigervnc.org])
-RCVERSION="1,0,90,0"
+AC_INIT([tigervnc], [1.1.0], [http://www.tigervnc.org])
+RCVERSION="1,1,0,0"
 AC_SUBST([RCVERSION])
 
 BUILD=`date +%Y%m%d`
