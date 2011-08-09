@@ -133,11 +133,11 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
 //        fprintf(stderr,"zos overrun: calling deflate, avail_in %d, avail_out %d\n",
 //                zs->avail_in,zs->avail_out);
 
-     checkCompressionLevel();
-     if (zs->avail_in != 0) {
-       int rc = deflate(zs, 0);
-       if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
-     }
+      checkCompressionLevel();
+      if (zs->avail_in != 0) {
+        int rc = deflate(zs, 0);
+        if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
+      }
 
 //        fprintf(stderr,"zos overrun: after deflate: %d bytes\n",
 //                zs->next_out-underlying->getptr());
