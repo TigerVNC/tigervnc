@@ -79,6 +79,9 @@ void ZlibOutStream::flush()
 
 //    fprintf(stderr,"zos flush: avail_in %d\n",zs->avail_in);
 
+  if (!underlying)
+    throw Exception("ZlibOutStream: underlying OutStream has not been set");
+
   while (zs->avail_in != 0) {
 
     do {
@@ -111,6 +114,9 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
 
   if (itemSize > bufSize)
     throw Exception("ZlibOutStream overrun: max itemSize exceeded");
+
+  if (!underlying)
+    throw Exception("ZlibOutStream: underlying OutStream has not been set");
 
   while (end - ptr < itemSize) {
     zs->next_in = start;

@@ -196,6 +196,7 @@ static void compressData(rdr::OutStream *os, rdr::ZlibOutStream *zos,
     zos->setCompressionLevel(zlibLevel);
     zos->writeBytes(buf, length);
     zos->flush();
+    zos->setUnderlying(NULL);
     os->writeCompactLength(mem_os.length());
     os->writeBytes(mem_os.data(), mem_os.length());
   }
