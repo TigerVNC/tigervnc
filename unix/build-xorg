@@ -293,7 +293,7 @@ if [ "$MODE" = "build" ]; then
     fi
     CFLAGS="$CFLAGS -fPIC"
     CXXFLAGS="$CXXFLAGS -fPIC"
-    LDFLAGS="$LDFLAGS -L`pwd`/xorg.build/syslib"
+    LDFLAGS="$LDFLAGS -static-libgcc -L`pwd`/xorg.build/syslib"
     echo CC = $CC
     echo CXX = $CXX
     echo CFLAGS = $CFLAGS
