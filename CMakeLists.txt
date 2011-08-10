@@ -88,6 +88,10 @@ if(MSVC)
   # it is not a good idea to disable them, but we do this to duplicate the
   # behavior of GCC, which is less strict.
   add_definitions(-wd4244 -wd4267 -wd4800 -wd4996)
+
+  # Avoid linker warning when doing Debug build if dependent libraries are
+  # linked with the Release version of the static C library.
+  set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:LIBCMT")
 endif()
 
 # Minimum version is Windows 2000 (5.0)
