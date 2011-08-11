@@ -45,14 +45,13 @@ namespace rfb {
 #define SWAP_PIXEL CONCAT2E(SWAP,BPP)
 #define HASH_FUNCTION CONCAT2E(HASH_FUNC,BPP)
 #define PACK_PIXELS CONCAT2E(packPixels,BPP)
-#define DETECT_SMOOTH_IMAGE CONCAT2E(detectSmoothImage,BPP)
 #define ENCODE_SOLID_RECT CONCAT2E(encodeSolidRect,BPP)
 #define ENCODE_FULLCOLOR_RECT CONCAT2E(encodeFullColorRect,BPP)
 #define ENCODE_MONO_RECT CONCAT2E(encodeMonoRect,BPP)
 #define ENCODE_INDEXED_RECT CONCAT2E(encodeIndexedRect,BPP)
-#define PREPARE_JPEG_ROW CONCAT2E(prepareJpegRow,BPP)
 #define ENCODE_JPEG_RECT CONCAT2E(encodeJpegRect,BPP)
 #define FILL_PALETTE CONCAT2E(fillPalette,BPP)
+#define CHECK_SOLID_TILE CONCAT2E(checkSolidTile,BPP)
 
 #ifndef TIGHT_ONCE
 #define TIGHT_ONCE
@@ -203,54 +202,6 @@ static void compressData(rdr::OutStream *os, rdr::ZlibOutStream *zos,
   }
 }
 
-//
-// Destination manager implementation for the JPEG library.
-// FIXME: Implement JPEG compression in new rdr::JpegOutStream class.
-//
-
-// FIXME: Keeping a MemOutStream instance may consume too much space.
-rdr::MemOutStream s_jpeg_os;
-
-static struct jpeg_destination_mgr s_jpegDstManager;
-static JOCTET *s_jpegDstBuffer;
-static size_t s_jpegDstBufferLen;
-
-static void
-JpegInitDestination(j_compress_ptr cinfo)
-{
-  s_jpeg_os.clear();
-  s_jpegDstManager.next_output_byte = s_jpegDstBuffer;
-  s_jpegDstManager.free_in_buffer = s_jpegDstBufferLen;
-}
-
-static boolean
-JpegEmptyOutputBuffer(j_compress_ptr cinfo)
-{
-  s_jpeg_os.writeBytes(s_jpegDstBuffer, s_jpegDstBufferLen);
-  s_jpegDstManager.next_output_byte = s_jpegDstBuffer;
-  s_jpegDstManager.free_in_buffer = s_jpegDstBufferLen;
-
-  return TRUE;
-}
-
-static void
-JpegTermDestination(j_compress_ptr cinfo)
-{
-  int dataLen = s_jpegDstBufferLen - s_jpegDstManager.free_in_buffer;
-  s_jpeg_os.writeBytes(s_jpegDstBuffer, dataLen);
-}
-
-static void
-JpegSetDstManager(j_compress_ptr cinfo, JOCTET *buf, size_t buflen)
-{
-  s_jpegDstBuffer = buf;
-  s_jpegDstBufferLen = buflen;
-  s_jpegDstManager.init_destination = JpegInitDestination;
-  s_jpegDstManager.empty_output_buffer = JpegEmptyOutputBuffer;
-  s_jpegDstManager.term_destination = JpegTermDestination;
-  cinfo->dest = &s_jpegDstManager;
-}
-
 #endif  // #ifndef TIGHT_ONCE
 
 static void ENCODE_SOLID_RECT     (rdr::OutStream *os,
@@ -262,7 +213,7 @@ static void ENCODE_MONO_RECT      (rdr::OutStream *os, rdr::ZlibOutStream zos[4]
 #if (BPP != 8)
 static void ENCODE_INDEXED_RECT   (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
                                    PIXEL_T *buf, const PixelFormat& pf, const Rect& r);
-static void ENCODE_JPEG_RECT      (rdr::OutStream *os,
+static void ENCODE_JPEG_RECT      (rdr::OutStream *os, JpegCompressor& jc,
                                    PIXEL_T *buf, const PixelFormat& pf, const Rect& r);
 #endif
 
@@ -295,41 +246,24 @@ static inline unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count,
 }
 
 //
-// Function to guess if a given rectangle is suitable for JPEG compression.
-// Returns true is it looks like a good data for JPEG, false otherwise.
-//
-// FIXME: Scan the image and determine is it really good for JPEG.
-//
-
-#if (BPP != 8)
-static bool DETECT_SMOOTH_IMAGE (PIXEL_T *buf, const Rect& r)
-{
-  if (r.width() < TIGHT_DETECT_MIN_WIDTH ||
-      r.height() < TIGHT_DETECT_MIN_HEIGHT ||
-      r.area() < TIGHT_JPEG_MIN_RECT_SIZE ||
-      s_pjconf == NULL)
-    return 0;
-
-  return 1;
-}
-#endif
-
-// FIXME: Split rectangles into smaller ones!
-// FIXME: Compare encoder code with 1.3 before the final version.
-
-//
 // Main function of the Tight encoder
 //
 
 void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
-                  rdr::ZlibOutStream zos[4], void* buf, ConnParams* cp
+                  rdr::ZlibOutStream zos[4], JpegCompressor &jc, void* buf,
+                  ConnParams* cp
 #ifdef EXTRA_ARGS
-                  , EXTRA_ARGS
+                  , EXTRA_ARGS,
 #endif
-                  )
+                  bool forceSolid)
 {
   const PixelFormat& pf = cp->pf();
-  GET_IMAGE_INTO_BUF(r, buf);
+  if(forceSolid) {
+    GET_IMAGE_INTO_BUF(Rect(r.tl.x, r.tl.y, r.tl.x + 1, r.tl.y + 1), buf);
+  }
+  else {
+    GET_IMAGE_INTO_BUF(r, buf);
+  }
   PIXEL_T* pixels = (PIXEL_T*)buf;
 
 #if (BPP == 32)
@@ -338,23 +272,24 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os,
   s_pack24 = pf.is888();
 #endif
 
-  s_palMaxColors = r.area() / s_pconf->idxMaxColorsDivisor;
-  if (s_palMaxColors < 2 && r.area() >= s_pconf->monoMinRectSize) {
-    s_palMaxColors = 2;
-  }
-  // FIXME: Temporary limitation for switching to JPEG earlier.
-  if (s_palMaxColors > 96 && s_pjconf != NULL) {
-    s_palMaxColors = 96;
-  }
+  if (forceSolid)
+    s_palNumColors = 1;
+  else {
+    s_palMaxColors = r.area() / s_pconf->idxMaxColorsDivisor;
+    if (s_pjconf != NULL) s_palMaxColors = s_pconf->palMaxColorsWithJPEG;
+    if (s_palMaxColors < 2 && r.area() >= s_pconf->monoMinRectSize) {
+      s_palMaxColors = 2;
+    }
 
-  FILL_PALETTE(pixels, r.area());
+    FILL_PALETTE(pixels, r.area());
+  }
 
   switch (s_palNumColors) {
   case 0:
     // Truecolor image
 #if (BPP != 8)
-    if (s_pjconf != NULL && DETECT_SMOOTH_IMAGE(pixels, r)) {
-      ENCODE_JPEG_RECT(os, pixels, pf, r);
+    if (s_pjconf != NULL) {
+      ENCODE_JPEG_RECT(os, jc, pixels, pf, r);
       break;
     }
 #endif
@@ -518,106 +453,16 @@ static void ENCODE_INDEXED_RECT (rdr::OutStream *os, rdr::ZlibOutStream zos[4],
 //
 
 #if (BPP != 8)
-static void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf,
-                              const PixelFormat& pf, const Rect& r)
+static void ENCODE_JPEG_RECT (rdr::OutStream *os, JpegCompressor& jc,
+                              PIXEL_T *buf, const PixelFormat& pf,
+                              const Rect& r)
 {
-  int w = r.width();
-  int h = r.height();
-  int pixelsize;
-  rdr::U8 *srcBuf = NULL;
-  bool srcBufIsTemp = false;
-
-  struct jpeg_compress_struct cinfo;
-  struct jpeg_error_mgr jerr;
-
-  cinfo.err = jpeg_std_error(&jerr);
-  jpeg_create_compress(&cinfo);
-
-  cinfo.image_width = w;
-  cinfo.image_height = h;
-  cinfo.in_color_space = JCS_RGB;
-  pixelsize = 3;
-
-#ifdef JCS_EXTENSIONS
-  // Try to have libjpeg read directly from our native format
-  if(pf.is888()) {
-    int redShift, greenShift, blueShift;
-
-    if(pf.bigEndian) {
-      redShift = 24 - pf.redShift;
-      greenShift = 24 - pf.greenShift;
-      blueShift = 24 - pf.blueShift;
-    } else {
-      redShift = pf.redShift;
-      greenShift = pf.greenShift;
-      blueShift = pf.blueShift;
-    }
-
-    if(redShift == 0 && greenShift == 8 && blueShift == 16)
-      cinfo.in_color_space = JCS_EXT_RGBX;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0)
-      cinfo.in_color_space = JCS_EXT_BGRX;
-    if(redShift == 24 && greenShift == 16 && blueShift == 8)
-      cinfo.in_color_space = JCS_EXT_XBGR;
-    if(redShift == 8 && greenShift == 16 && blueShift == 24)
-      cinfo.in_color_space = JCS_EXT_XRGB;
-
-    if (cinfo.in_color_space != JCS_RGB) {
-      srcBuf = (rdr::U8 *)buf;
-      pixelsize = 4;
-    }
-  }
-#endif
-
-  if (cinfo.in_color_space == JCS_RGB) {
-    srcBuf = new rdr::U8[w * h * pixelsize];
-    srcBufIsTemp = true;
-    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w * h);
-  }
-
-  cinfo.input_components = pixelsize;
-
-  jpeg_set_defaults(&cinfo);
-  jpeg_set_quality(&cinfo, s_pjconf->jpegQuality, TRUE);
-  if(s_pjconf->jpegQuality >= 96) cinfo.dct_method = JDCT_ISLOW;
-  else cinfo.dct_method = JDCT_FASTEST;
-
-  switch (s_pjconf->jpegSubSample) {
-  case SUBSAMP_420:
-    cinfo.comp_info[0].h_samp_factor = 2;
-    cinfo.comp_info[0].v_samp_factor = 2;
-    break;
-  case SUBSAMP_422:
-    cinfo.comp_info[0].h_samp_factor = 2;
-    cinfo.comp_info[0].v_samp_factor = 1;
-    break;
-  default:
-    cinfo.comp_info[0].h_samp_factor = 1;
-    cinfo.comp_info[0].v_samp_factor = 1;
-  }
-
-  rdr::U8 *dstBuf = new rdr::U8[2048];
-  JpegSetDstManager(&cinfo, dstBuf, 2048);
-
-  JSAMPROW *rowPointer = new JSAMPROW[h];
-  for (int dy = 0; dy < h; dy++)
-    rowPointer[dy] = (JSAMPROW)(&srcBuf[dy * w * pixelsize]);
-
-  jpeg_start_compress(&cinfo, TRUE);
-  while (cinfo.next_scanline < cinfo.image_height)
-    jpeg_write_scanlines(&cinfo, &rowPointer[cinfo.next_scanline],
-      cinfo.image_height - cinfo.next_scanline);
-
-  jpeg_finish_compress(&cinfo);
-  jpeg_destroy_compress(&cinfo);
-
-  if (srcBufIsTemp) delete[] srcBuf;
-  delete[] dstBuf;
-  delete[] rowPointer;
-
+  jc.clear();
+  jc.compress((rdr::U8 *)buf, r, pf, s_pjconf->jpegQuality,
+    s_pjconf->jpegSubSample);
   os->writeU8(0x09 << 4);
-  os->writeCompactLength(s_jpeg_os.length());
-  os->writeBytes(s_jpeg_os.data(), s_jpeg_os.length());
+  os->writeCompactLength(jc.length());
+  os->writeBytes(jc.data(), jc.length());
 }
 #endif  // #if (BPP != 8)
 
@@ -726,18 +571,47 @@ static void FILL_PALETTE (PIXEL_T *data, int count)
 }
 #endif  // #if (BPP == 8)
 
+bool CHECK_SOLID_TILE(Rect& r, ImageGetter* ig, SMsgWriter* writer,
+                      rdr::U32 *colorPtr, bool needSameColor)
+{
+  PIXEL_T *buf;
+  PIXEL_T colorValue;
+  int dx, dy;
+  Rect sr;
+
+  buf = (PIXEL_T *)writer->getImageBuf(r.area());
+  sr.setXYWH(r.tl.x, r.tl.y, 1, 1);
+  GET_IMAGE_INTO_BUF(sr, buf);
+
+  colorValue = *buf;
+  if (needSameColor && (rdr::U32)colorValue != *colorPtr)
+    return false;
+
+  for (dy = 0; dy < r.height(); dy++) {
+    Rect sr;
+    sr.setXYWH(r.tl.x, r.tl.y + dy, r.width(), 1);
+    GET_IMAGE_INTO_BUF(sr, buf);
+    for (dx = 0; dx < r.width(); dx++) {
+      if (colorValue != buf[dx])
+        return false;
+    }
+  }
+
+  *colorPtr = (rdr::U32)colorValue;
+  return true;
+}
+
 #undef PIXEL_T
 #undef WRITE_PIXEL
 #undef TIGHT_ENCODE
 #undef SWAP_PIXEL
 #undef HASH_FUNCTION
 #undef PACK_PIXELS
-#undef DETECT_SMOOTH_IMAGE
 #undef ENCODE_SOLID_RECT
 #undef ENCODE_FULLCOLOR_RECT
 #undef ENCODE_MONO_RECT
 #undef ENCODE_INDEXED_RECT
-#undef PREPARE_JPEG_ROW
 #undef ENCODE_JPEG_RECT
 #undef FILL_PALETTE
+#undef CHECK_SOLID_TILE
 }

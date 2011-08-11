@@ -22,6 +22,7 @@ set(RFB_SOURCES
   HTTPServer.cxx
   HextileDecoder.cxx
   HextileEncoder.cxx
+  JpegCompressor.cxx
   KeyRemapper.cxx
   LogWriter.cxx
   Logger.cxx

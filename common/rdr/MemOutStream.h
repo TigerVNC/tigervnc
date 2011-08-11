@@ -55,7 +55,7 @@ namespace rdr {
 
     const void* data() { return (const void*)start; }
 
-  private:
+  protected:
 
     // overrun() either doubles the buffer or adds enough space for nItems of
     // size itemSize bytes.

@@ -722,8 +722,14 @@ void VNCSConnectionST::writeFramebufferUpdate()
     std::vector<Rect>::const_iterator i;
     ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++) {
-      if (i->width() && i->height())
-        nRects += writer()->getNumRects(*i);
+      if (i->width() && i->height()) {
+        int nUpdateRects = writer()->getNumRects(*i);
+        if (nUpdateRects == 0 && cp.currentEncoding() == encodingTight) {
+          nRects = 0xFFFF;  break;
+        }
+        else
+          nRects += nUpdateRects;
+      }
     }
     
     writer()->writeFramebufferUpdateStart(nRects);

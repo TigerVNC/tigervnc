@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -178,15 +179,20 @@ void SMsgWriterV3::writeFramebufferUpdateStart(int nRects)
   startMsg(msgTypeFramebufferUpdate);
   os->pad(1);
 
-  if (wsccb)
-    nRects++;
-  if (needSetDesktopName)
-    nRects++;
+  if (nRects != 0xFFFF) {
+    if (wsccb)
+      nRects++;
+    if (needSetDesktopName)
+      nRects++;
+  }
 
   os->writeU16(nRects);
 
   nRectsInUpdate = 0;
-  nRectsInHeader = nRects;
+  if (nRects == 0xFFFF)
+    nRectsInHeader = 0;
+  else
+    nRectsInHeader = nRects;
 
   writePseudoRects();
 }
@@ -207,6 +213,15 @@ void SMsgWriterV3::writeFramebufferUpdateEnd()
   if (nRectsInUpdate != nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriterV3::writeFramebufferUpdateEnd: "
                     "nRects out of sync");
+
+  if (nRectsInHeader == 0) {
+    // Send last rect. marker
+    os->writeS16(0);
+    os->writeS16(0);
+    os->writeU16(0);
+    os->writeU16(0);
+    os->writeU32(pseudoEncodingLastRect);
+  }
 
   if (os == updateOS) {
     os = realOS;

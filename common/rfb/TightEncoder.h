@@ -1,4 +1,5 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
 
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
+#include <rfb/JpegCompressor.h>
 #include <rfb/Encoder.h>
 
 // FIXME: Check if specifying extern "C" is really necessary.
@@ -30,19 +32,14 @@ extern "C" {
 
 namespace rfb {
 
-  enum subsampEnum {
-    SUBSAMP_NONE,
-    SUBSAMP_422,
-    SUBSAMP_420
-  };
-
   struct TIGHT_CONF {
     unsigned int maxRectSize, maxRectWidth;
     unsigned int monoMinRectSize;
     int idxZlibLevel, monoZlibLevel, rawZlibLevel;
     int idxMaxColorsDivisor;
+    int palMaxColorsWithJPEG;
     int jpegQuality;
-    subsampEnum jpegSubSample;
+    JPEG_SUBSAMP jpegSubSample;
   };
 
   //
@@ -67,11 +64,19 @@ namespace rfb {
 
   private:
     TightEncoder(SMsgWriter* writer);
-    void writeSubrect(const Rect& r, ImageGetter* ig);
+    bool checkSolidTile(Rect& r, ImageGetter *ig, rdr::U32* colorPtr,
+                        bool needSameColor);
+    void extendSolidArea(const Rect& r, ImageGetter *ig,
+                         rdr::U32 colorValue, Rect& er);
+    void findBestSolidArea(Rect& r, ImageGetter* ig, rdr::U32 colorValue,
+                           Rect& bestr);
+    void sendRectSimple(const Rect& r, ImageGetter* ig);
+    void writeSubrect(const Rect& r, ImageGetter* ig, bool forceSolid = false);
 
     SMsgWriter* writer;
     rdr::MemOutStream mos;
     rdr::ZlibOutStream zos[4];
+    JpegCompressor jc;
 
     static const int defaultCompressLevel;
     static const TIGHT_CONF conf[];

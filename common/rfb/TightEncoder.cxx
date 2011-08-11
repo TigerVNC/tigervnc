@@ -1,4 +1,5 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,19 +31,19 @@ using namespace rfb;
 
 // Adjustable parameters.
 // FIXME: Get rid of #defines
-#define TIGHT_JPEG_MIN_RECT_SIZE 1024
-#define TIGHT_DETECT_MIN_WIDTH      8
-#define TIGHT_DETECT_MIN_HEIGHT     8
+#define TIGHT_MAX_SPLIT_TILE_SIZE      16
+#define TIGHT_MIN_SPLIT_RECT_SIZE    4096
+#define TIGHT_MIN_SOLID_SUBRECT_SIZE 2048
 
 //
 // Compression level stuff. The following array contains various
 // encoder parameters for each of 10 compression levels (0..9).
 // Last three parameters correspond to JPEG quality levels (0..9).
 //
-// NOTE: s_conf[9].maxRectSize should be >= s_conf[i].maxRectSize,
-// where i in [0..8]. RequiredBuffSize() method depends on this.
-// FIXME: Is this comment obsolete?
-//
+// NOTE: The parameters used in this encoder are the result of painstaking
+// research by The VirtualGL Project using RFB session captures from a variety
+// of both 2D and 3D applications.  See http://www.VirtualGL.org for the full
+// reports.
 
 // NOTE:  The JPEG quality and subsampling levels below were obtained
 // experimentally by the VirtualGL Project.  They represent the approximate
@@ -63,18 +64,18 @@ using namespace rfb;
 // 0 = JPEG quality 15,  4:2:0 subsampling (ratio ~= 100:1)
 
 const TIGHT_CONF TightEncoder::conf[10] = {
-  {   512,   32,   6, 0, 0, 0,   4, 15, SUBSAMP_420 }, // 0
-  {  2048,   64,   6, 1, 1, 1,   8, 29, SUBSAMP_420 }, // 1
-  {  4096,  128,   8, 3, 3, 2,  24, 41, SUBSAMP_420 }, // 2
-  {  8192,  256,  12, 5, 5, 2,  32, 42, SUBSAMP_422 }, // 3
-  { 16384,  512,  12, 6, 7, 3,  32, 62, SUBSAMP_422 }, // 4
-  { 32768,  512,  12, 7, 8, 4,  32, 77, SUBSAMP_422 }, // 5
-  { 65536, 1024,  16, 7, 8, 5,  32, 79, SUBSAMP_NONE }, // 6
-  { 65536, 1024,  16, 8, 9, 6,  64, 86, SUBSAMP_NONE }, // 7
-  { 65536, 2048,  24, 9, 9, 7,  64, 92, SUBSAMP_NONE }, // 8
-  { 65536, 2048,  32, 9, 9, 9,  96,100, SUBSAMP_NONE }  // 9
+  { 65536, 2048,   6, 0, 0, 0,   4, 24, 15, SUBSAMP_420 }, // 0
+  { 65536, 2048,   6, 1, 1, 1,   8, 24, 29, SUBSAMP_420 }, // 1
+  { 65536, 2048,   8, 3, 3, 2,  24, 96, 41, SUBSAMP_420 }, // 2
+  { 65536, 2048,  12, 5, 5, 2,  32, 96, 42, SUBSAMP_422 }, // 3
+  { 65536, 2048,  12, 6, 7, 3,  32, 96, 62, SUBSAMP_422 }, // 4
+  { 65536, 2048,  12, 7, 8, 4,  32, 96, 77, SUBSAMP_422 }, // 5
+  { 65536, 2048,  16, 7, 8, 5,  32, 96, 79, SUBSAMP_NONE }, // 6
+  { 65536, 2048,  16, 8, 9, 6,  64, 96, 86, SUBSAMP_NONE }, // 7
+  { 65536, 2048,  24, 9, 9, 7,  64, 96, 92, SUBSAMP_NONE }, // 8
+  { 65536, 2048,  32, 9, 9, 9,  96, 96,100, SUBSAMP_NONE }  // 9
 };
-const int TightEncoder::defaultCompressLevel = 6;
+const int TightEncoder::defaultCompressLevel = 1;
 
 // FIXME: Not good to mirror TightEncoder's members here.
 static const TIGHT_CONF* s_pconf;
@@ -129,10 +130,113 @@ void TightEncoder::setQualityLevel(int level)
   }
 }
 
+bool TightEncoder::checkSolidTile(Rect& r, ImageGetter *ig, rdr::U32* colorPtr,
+                                  bool needSameColor)
+{
+  switch (writer->bpp()) {
+  case 32:
+    return checkSolidTile32(r, ig, writer, colorPtr, needSameColor);
+  case 16:
+    return checkSolidTile16(r, ig, writer, colorPtr, needSameColor);
+  default:
+    return checkSolidTile8(r, ig, writer, colorPtr, needSameColor);
+  }
+}
+
+void TightEncoder::findBestSolidArea(Rect& r, ImageGetter *ig,
+                                     rdr::U32 colorValue, Rect& bestr)
+{
+  int dx, dy, dw, dh;
+  int w_prev;
+  Rect sr;
+  int w_best = 0, h_best = 0;
+
+  bestr.tl.x = bestr.br.x = r.tl.x;
+  bestr.tl.y = bestr.br.y = r.tl.y;
+
+  w_prev = r.width();
+
+  for (dy = r.tl.y; dy < r.br.y; dy += TIGHT_MAX_SPLIT_TILE_SIZE) {
+
+    dh = (dy + TIGHT_MAX_SPLIT_TILE_SIZE <= r.br.y) ?
+      TIGHT_MAX_SPLIT_TILE_SIZE : (r.br.y - dy);
+    dw = (w_prev > TIGHT_MAX_SPLIT_TILE_SIZE) ?
+      TIGHT_MAX_SPLIT_TILE_SIZE : w_prev;
+
+    sr.setXYWH(r.tl.x, dy, dw, dh);
+    if (!checkSolidTile(sr, ig, &colorValue, true))
+      break;
+
+    for (dx = r.tl.x + dw; dx < r.tl.x + w_prev;) {
+      dw = (dx + TIGHT_MAX_SPLIT_TILE_SIZE <= r.tl.x + w_prev) ?
+        TIGHT_MAX_SPLIT_TILE_SIZE : (r.tl.x + w_prev - dx);
+      sr.setXYWH(dx, dy, dw, dh);
+      if (!checkSolidTile(sr, ig, &colorValue, true))
+        break;
+	    dx += dw;
+    }
+
+    w_prev = dx - r.tl.x;
+    if (w_prev * (dy + dh - r.tl.y) > w_best * h_best) {
+      w_best = w_prev;
+      h_best = dy + dh - r.tl.y;
+    }
+  }
+
+  bestr.br.x = bestr.tl.x + w_best;
+  bestr.br.y = bestr.tl.y + h_best;
+}
+
+void TightEncoder::extendSolidArea(const Rect& r, ImageGetter *ig,
+                                   rdr::U32 colorValue, Rect& er)
+{
+  int cx, cy;
+  Rect sr;
+
+  // Try to extend the area upwards.
+  for (cy = er.tl.y - 1; ; cy--) {
+    sr.setXYWH(er.tl.x, cy, er.width(), 1);
+    if (cy < r.tl.y || !checkSolidTile(sr, ig, &colorValue, true))
+      break;
+  }
+  er.tl.y = cy + 1;
+
+  // ... downwards.
+  for (cy = er.br.y; ; cy++) {
+    sr.setXYWH(er.tl.x, cy, er.width(), 1);
+    if (cy >= r.br.y || !checkSolidTile(sr, ig, &colorValue, true))
+      break;
+  }
+  er.br.y = cy;
+
+  // ... to the left.
+  for (cx = er.tl.x - 1; ; cx--) {
+    sr.setXYWH(cx, er.tl.y, 1, er.height());
+    if (cx < r.tl.x || !checkSolidTile(sr, ig, &colorValue, true))
+      break;
+  }
+  er.tl.x = cx + 1;
+
+  // ... to the right.
+  for (cx = er.br.x; ; cx++) {
+    sr.setXYWH(cx, er.tl.y, 1, er.height());
+    if (cx >= r.br.x || !checkSolidTile(sr, ig, &colorValue, true))
+      break;
+  }
+  er.br.x = cx;
+}
+
 int TightEncoder::getNumRects(const Rect &r)
 {
+  ConnParams* cp = writer->getConnParams();
   const unsigned int w = r.width();
   const unsigned int h = r.height();
+
+  // If last rect. encoding is enabled, we can use the higher-performance
+  // code that pre-computes solid rectangles.  In that case, we don't care
+  // about the rectangle count.
+  if (cp->supportsLastRect && w * h >= TIGHT_MIN_SPLIT_RECT_SIZE)
+    return 0;
 
   // Will this rectangle split into subrects?
   bool rectTooBig = w > pconf->maxRectWidth || w * h > pconf->maxRectSize;
@@ -150,7 +254,7 @@ int TightEncoder::getNumRects(const Rect &r)
           ((h - 1) / subrectMaxHeight + 1));
 }
 
-bool TightEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
+void TightEncoder::sendRectSimple(const Rect& r, ImageGetter* ig)
 {
   // Shortcuts to rectangle coordinates and dimensions.
   const int x = r.tl.x;
@@ -158,15 +262,11 @@ bool TightEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
   const unsigned int w = r.width();
   const unsigned int h = r.height();
 
-  // Copy members of current TightEncoder instance to static variables.
-  s_pconf = pconf;
-  s_pjconf = pjconf;
-
   // Encode small rects as is.
   bool rectTooBig = w > pconf->maxRectWidth || w * h > pconf->maxRectSize;
   if (!rectTooBig) {
     writeSubrect(r, ig);
-    return true;
+    return;
   }
 
   // Compute max sub-rectangle size.
@@ -186,10 +286,110 @@ bool TightEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
       writeSubrect(sr, ig);
     }
   }
+}
+
+bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
+{
+  ConnParams* cp = writer->getConnParams();
+
+  // Shortcuts to rectangle coordinates and dimensions.
+  Rect r = _r;
+  int x = r.tl.x;
+  int y = r.tl.y;
+  unsigned int w = r.width();
+  unsigned int h = r.height();
+
+  // Copy members of current TightEncoder instance to static variables.
+  s_pconf = pconf;
+  s_pjconf = pjconf;
+
+  // Encode small rects as is.
+  if (!cp->supportsLastRect || w * h < TIGHT_MIN_SPLIT_RECT_SIZE) {
+    sendRectSimple(r, ig);
+    return true;
+  }
+
+  // Split big rects into separately encoded subrects.
+  Rect sr, bestr;
+  unsigned int dx, dy, dw, dh;
+  rdr::U32 colorValue;
+  int maxRectSize = s_pconf->maxRectSize;
+  int maxRectWidth = s_pconf->maxRectWidth;
+  int nMaxWidth = (w > maxRectWidth) ? maxRectWidth : w;
+  int nMaxRows = s_pconf->maxRectSize / nMaxWidth;
+
+  // Try to find large solid-color areas and send them separately.
+  for (dy = y; dy < y + h; dy += TIGHT_MAX_SPLIT_TILE_SIZE) {
+
+    // If a rectangle becomes too large, send its upper part now.
+    if (dy - y >= nMaxRows) {
+      sr.setXYWH(x, y, w, nMaxRows);
+      sendRectSimple(sr, ig);
+      r.tl.y += nMaxRows;
+      y = r.tl.y;
+      h = r.height();
+    }
+
+    dh = (dy + TIGHT_MAX_SPLIT_TILE_SIZE <= y + h) ?
+      TIGHT_MAX_SPLIT_TILE_SIZE : (y + h - dy);
+
+    for (dx = x; dx < x + w; dx += TIGHT_MAX_SPLIT_TILE_SIZE) {
+
+      dw = (dx + TIGHT_MAX_SPLIT_TILE_SIZE <= x + w) ?
+        TIGHT_MAX_SPLIT_TILE_SIZE : (x + w - dx);
+ 
+      sr.setXYWH(dx, dy, dw, dh);
+      if (checkSolidTile(sr, ig, &colorValue, false)) {
+
+        // Get dimensions of solid-color area.
+        sr.setXYWH(dx, dy, r.br.x - dx, r.br.y - dy);
+        findBestSolidArea(sr, ig, colorValue, bestr);
+
+        // Make sure a solid rectangle is large enough
+        // (or the whole rectangle is of the same color).
+        if (bestr.area() != r.area()
+          && bestr.area() < TIGHT_MIN_SOLID_SUBRECT_SIZE)
+          continue;
+
+        // Try to extend solid rectangle to maximum size.
+        extendSolidArea(r, ig, colorValue, bestr);
+ 
+        // Send rectangles at top and left to solid-color area.
+        if (bestr.tl.y != y) {
+          sr.setXYWH(x, y, w, bestr.tl.y - y);
+          sendRectSimple(sr, ig);
+        }
+        if (bestr.tl.x != x) {
+          sr.setXYWH(x, bestr.tl.y, bestr.tl.x - x, bestr.height());
+          writeRect(sr, ig, NULL);
+        }
+
+        // Send solid-color rectangle.
+        writeSubrect(bestr, ig, true);
+
+        // Send remaining rectangles (at right and bottom).
+        if (bestr.br.x != r.br.x) {
+          sr.setXYWH(bestr.br.x, bestr.tl.y, r.br.x - bestr.br.x,
+            bestr.height());
+          writeRect(sr, ig, NULL);
+        }
+        if (bestr.br.y != r.br.y) {
+          sr.setXYWH(x, bestr.br.y, w, r.br.y - bestr.br.y);
+          writeRect(sr, ig, NULL);
+        }
+
+        return true;
+      }
+    }
+  }
+
+  // No suitable solid-color rectangles found.
+  sendRectSimple(r, ig);
   return true;
 }
 
-void TightEncoder::writeSubrect(const Rect& r, ImageGetter* ig)
+void TightEncoder::writeSubrect(const Rect& r, ImageGetter* ig,
+  bool forceSolid)
 {
   rdr::U8* imageBuf = writer->getImageBuf(r.area());
   ConnParams* cp = writer->getConnParams();
@@ -197,11 +397,11 @@ void TightEncoder::writeSubrect(const Rect& r, ImageGetter* ig)
 
   switch (writer->bpp()) {
   case 8:
-    tightEncode8(r, &mos, zos, imageBuf, cp, ig);  break;
+    tightEncode8(r, &mos, zos, jc, imageBuf, cp, ig, forceSolid);  break;
   case 16:
-    tightEncode16(r, &mos, zos, imageBuf, cp, ig); break;
+    tightEncode16(r, &mos, zos, jc, imageBuf, cp, ig, forceSolid); break;
   case 32:
-    tightEncode32(r, &mos, zos, imageBuf, cp, ig); break;
+    tightEncode32(r, &mos, zos, jc, imageBuf, cp, ig, forceSolid); break;
   }
 
   writer->startRect(r, encodingTight);
