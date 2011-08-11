@@ -553,10 +553,11 @@ public:
 };
 
 void fl_update_clipboard(void) {
-  HWND hwnd = fl_xid(Fl::first_window());
-
-  if (!hwnd)
+  Fl_Window *w1 = Fl::first_window();
+  if (!w1)
     return;
+
+  HWND hwnd = fl_xid(w1);
 
   if (!OpenClipboard(hwnd))
     return;
