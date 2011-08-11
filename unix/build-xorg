@@ -8,6 +8,7 @@ set -e
 
 PREFIX=
 MAKE="make"
+PARALLEL_MAKE=0
 XORG_VERSION=7.4
 XONLY=0
 CFGHOST=
@@ -226,7 +227,7 @@ usage ()
     exit 1
 }
 
-if [ -x '/usr/bin/getconf' ]; then
+if [ -x '/usr/bin/getconf' -a "$PARALLEL_MAKE" = "1" ]; then
     MAKE_PARALLEL=`/usr/bin/getconf _NPROCESSORS_ONLN 2>&1`
     [ "$MAKE_PARALLEL" -gt 1 ] && MAKE="$MAKE -j$MAKE_PARALLEL"
 fi
@@ -240,6 +241,7 @@ do
 	rebuild)    MODE=rebuild             ;;
 	update)     MODE=update              ;;
 	-version)   XORG_VERSION=$2;  shift  ;;
+	-parallel)  PARALLEL_MAKE=1;         ;;
 	-srcdir)    SRCDIR=$2;        shift  ;;
 	*)          break                    ;;
     esac
