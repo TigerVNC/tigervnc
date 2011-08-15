@@ -417,28 +417,28 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
     tightButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                RADIO_MIN_WIDTH,
                                                RADIO_HEIGHT,
-                                               _("Tight")));
+                                               "Tight"));
     tightButton->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     zrleButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                               RADIO_MIN_WIDTH,
                                               RADIO_HEIGHT,
-                                              _("ZRLE")));
+                                              "ZRLE"));
     zrleButton->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     hextileButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                  RADIO_MIN_WIDTH,
                                                  RADIO_HEIGHT,
-                                                 _("Hextile")));
+                                                 "Hextile"));
     hextileButton->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
 
     rawButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                              RADIO_MIN_WIDTH,
                                              RADIO_HEIGHT,
-                                             _("Raw")));
+                                             "Raw"));
     rawButton->type(FL_RADIO_BUTTON);
     ty += RADIO_HEIGHT + TIGHT_MARGIN;
   }
