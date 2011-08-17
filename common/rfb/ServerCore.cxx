@@ -50,7 +50,7 @@ rfb::IntParameter rfb::Server::clientWaitTimeMillis
 rfb::BoolParameter rfb::Server::compareFB
 ("CompareFB",
  "Perform pixel comparison on framebuffer to reduce unnecessary updates",
- true);
+ false);
 rfb::BoolParameter rfb::Server::protocol3_3
 ("Protocol3.3",
  "Always use protocol version 3.3 for backwards compatibility with "
