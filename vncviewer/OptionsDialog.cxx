@@ -511,7 +511,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   compressionInput = new Fl_Int_Input(tx + INDENT, ty,
                                       INPUT_HEIGHT, INPUT_HEIGHT,
-                                      _("level (1=fast, 9=best)"));
+                                      _("level (1=fast, 6=best [4-6 are rarely useful])"));
   compressionInput->align(FL_ALIGN_RIGHT);
   ty += INPUT_HEIGHT + INNER_MARGIN;
 

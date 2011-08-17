@@ -51,8 +51,8 @@ BoolParameter customCompressLevel("CustomCompressLevel",
                                   "Use custom compression level. "
                                   "Default if CompressLevel is specified.", false);
 IntParameter compressLevel("CompressLevel",
-                           "Use specified compression level 0 = Low, 9 = High",
-                           6);
+                           "Use specified compression level 0 = Low, 6 = High",
+                           1);
 BoolParameter noJpeg("NoJPEG",
                      "Disable lossy JPEG compression in Tight encoding.",
                      false);
