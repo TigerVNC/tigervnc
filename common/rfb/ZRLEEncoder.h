@@ -27,7 +27,7 @@ namespace rfb {
   class ZRLEEncoder : public Encoder {
   public:
     static Encoder* create(SMsgWriter* writer);
-    virtual bool writeRect(const Rect& r, ImageGetter* ig, Rect* actual);
+    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
     virtual ~ZRLEEncoder();
 
     // setMaxLen() sets the maximum size in bytes of any ZRLE rectangle.  This

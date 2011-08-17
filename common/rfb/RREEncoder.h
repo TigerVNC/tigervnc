@@ -26,7 +26,7 @@ namespace rfb {
   class RREEncoder : public Encoder {
   public:
     static Encoder* create(SMsgWriter* writer);
-    virtual bool writeRect(const Rect& r, ImageGetter* ig, Rect* actual);
+    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
     virtual ~RREEncoder();
   private:
     RREEncoder(SMsgWriter* writer);

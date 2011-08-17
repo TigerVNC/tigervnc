@@ -20,6 +20,7 @@
 
 #include <rfb/Rect.h>
 #include <rfb/encodings.h>
+#include <rfb/TransImageGetter.h>
 
 namespace rfb {
   class SMsgWriter;
@@ -38,7 +39,8 @@ namespace rfb {
     // writeRect() tries to write the given rectangle.  If it is unable to
     // write the whole rectangle it returns false and sets actual to the actual
     // rectangle which was updated.
-    virtual bool writeRect(const Rect& r, ImageGetter* ig, Rect* actual)=0;
+    virtual bool writeRect(const Rect& r, TransImageGetter* ig,
+                           Rect* actual)=0;
 
     static bool supported(int encoding);
     static Encoder* createEncoder(int encoding, SMsgWriter* writer);

@@ -58,7 +58,8 @@ HextileEncoder::~HextileEncoder()
 {
 }
 
-bool HextileEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
+bool HextileEncoder::writeRect(const Rect& r, TransImageGetter* ig,
+                               Rect* actual)
 {
   writer->startRect(r, encodingHextile);
   rdr::OutStream* os = writer->getOutStream();

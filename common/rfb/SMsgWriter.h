@@ -129,7 +129,7 @@ namespace rfb {
     // before the first writeRects() call and writeFrameBufferUpdateEnd() after
     // the last one.  It returns the actual region sent to the client, which
     // may be smaller than the update passed in.
-    virtual void writeRects(const UpdateInfo& update, ImageGetter* ig,
+    virtual void writeRects(const UpdateInfo& update, TransImageGetter* ig,
                             Region* updatedRegion);
 
     // To construct a framebuffer update you can call
@@ -144,9 +144,9 @@ namespace rfb {
     // writeRect() tries to write the given rectangle.  If it is unable to
     // write the whole rectangle it returns false and sets actual to the actual
     // rectangle which was updated.
-    virtual bool writeRect(const Rect& r, ImageGetter* ig, Rect* actual);
+    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
     virtual bool writeRect(const Rect& r, int encoding,
-                           ImageGetter* ig, Rect* actual);
+                           TransImageGetter* ig, Rect* actual);
 
     virtual void writeCopyRect(const Rect& r, int srcX, int srcY);
 

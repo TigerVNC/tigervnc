@@ -69,7 +69,7 @@ ZRLEEncoder::~ZRLEEncoder()
     delete mos;
 }
 
-bool ZRLEEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
+bool ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
 {
   rdr::U8* imageBuf = writer->getImageBuf(64 * 64 * 4 + 4);
   mos->clear();

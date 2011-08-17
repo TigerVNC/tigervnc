@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
 #ifndef __RFB_PIXELTRANSFORMER_H__
 #define __RFB_PIXELTRANSFORMER_H__
 
+#include <stdlib.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 
@@ -82,6 +84,8 @@ namespace rfb {
     // two pixel buffers.
     void translateRect(void* inPtr, int inStride, Rect inRect,
                        void* outPtr, int outStride, Point outCoord) const;
+
+    bool willTransform(void);
 
   private:
     bool economic;

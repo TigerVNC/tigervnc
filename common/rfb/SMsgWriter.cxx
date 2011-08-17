@@ -142,7 +142,7 @@ void SMsgWriter::writeNoDataUpdate()
   vlog.error("writeNoDataUpdate() called");
 }
 
-void SMsgWriter::writeRects(const UpdateInfo& ui, ImageGetter* ig,
+void SMsgWriter::writeRects(const UpdateInfo& ui, TransImageGetter* ig,
                             Region* updatedRegion)
 {
   std::vector<Rect> rects;
@@ -164,13 +164,13 @@ void SMsgWriter::writeRects(const UpdateInfo& ui, ImageGetter* ig,
   }
 }
 
-bool SMsgWriter::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
+bool SMsgWriter::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
 {
   return writeRect(r, cp->currentEncoding(), ig, actual);
 }
 
 bool SMsgWriter::writeRect(const Rect& r, int encoding,
-                           ImageGetter* ig, Rect* actual)
+                           TransImageGetter* ig, Rect* actual)
 {
   if (!encoders[encoding]) {
     encoders[encoding] = Encoder::createEncoder(encoding, this);

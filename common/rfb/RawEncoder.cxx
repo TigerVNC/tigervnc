@@ -36,7 +36,7 @@ RawEncoder::~RawEncoder()
 {
 }
 
-bool RawEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
+bool RawEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
 {
   int x = r.tl.x;
   int y = r.tl.y;

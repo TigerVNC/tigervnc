@@ -46,7 +46,7 @@ RREEncoder::~RREEncoder()
 {
 }
 
-bool RREEncoder::writeRect(const Rect& r, ImageGetter* ig, Rect* actual)
+bool RREEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
 {
   int w = r.width();
   int h = r.height();

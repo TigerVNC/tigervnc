@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +56,14 @@ void TransImageGetter::setColourMapEntries(int firstCol, int nCols)
   PixelTransformer::setColourMapEntries(firstCol, nCols);
 }
 
+rdr::U8 *TransImageGetter::getPixelsRW(const Rect &r, int *stride)
+{
+  if (!offset.equals(Point(0, 0)))
+    return pb->getPixelsRW(r.translate(offset.negate()), stride);
+  else
+    return pb->getPixelsRW(r, stride);
+}
+
 void TransImageGetter::getImage(void* outPtr, const Rect& r, int outStride)
 {
   int inStride;
@@ -77,4 +86,3 @@ void TransImageGetter::cmCallback(int firstColour, int nColours,
   if (self->writer)
     self->writer->writeSetColourMapEntries(firstColour, nColours, cm);
 }
-

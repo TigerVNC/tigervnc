@@ -17,7 +17,6 @@
  * USA.
  */
 #include <rdr/OutStream.h>
-#include <rfb/ImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
@@ -77,16 +76,10 @@ const TIGHT_CONF TightEncoder::conf[10] = {
 };
 const int TightEncoder::defaultCompressLevel = 1;
 
-// FIXME: Not good to mirror TightEncoder's members here.
-static const TIGHT_CONF* s_pconf;
-static const TIGHT_CONF* s_pjconf;
-
 //
 // Including BPP-dependent implementation of the encoder.
 //
 
-#define EXTRA_ARGS ImageGetter* ig
-#define GET_IMAGE_INTO_BUF(r,buf) ig->getImage(buf, r);
 #define BPP 8
 #include <rfb/tightEncode.h>
 #undef BPP
@@ -130,21 +123,20 @@ void TightEncoder::setQualityLevel(int level)
   }
 }
 
-bool TightEncoder::checkSolidTile(Rect& r, ImageGetter *ig, rdr::U32* colorPtr,
+bool TightEncoder::checkSolidTile(Rect& r, rdr::U32* colorPtr,
                                   bool needSameColor)
 {
-  switch (writer->bpp()) {
+  switch (serverpf.bpp) {
   case 32:
-    return checkSolidTile32(r, ig, writer, colorPtr, needSameColor);
+    return checkSolidTile32(r, colorPtr, needSameColor);
   case 16:
-    return checkSolidTile16(r, ig, writer, colorPtr, needSameColor);
+    return checkSolidTile16(r, colorPtr, needSameColor);
   default:
-    return checkSolidTile8(r, ig, writer, colorPtr, needSameColor);
+    return checkSolidTile8(r, colorPtr, needSameColor);
   }
 }
 
-void TightEncoder::findBestSolidArea(Rect& r, ImageGetter *ig,
-                                     rdr::U32 colorValue, Rect& bestr)
+void TightEncoder::findBestSolidArea(Rect& r, rdr::U32 colorValue, Rect& bestr)
 {
   int dx, dy, dw, dh;
   int w_prev;
@@ -164,16 +156,16 @@ void TightEncoder::findBestSolidArea(Rect& r, ImageGetter *ig,
       TIGHT_MAX_SPLIT_TILE_SIZE : w_prev;
 
     sr.setXYWH(r.tl.x, dy, dw, dh);
-    if (!checkSolidTile(sr, ig, &colorValue, true))
+    if (!checkSolidTile(sr, &colorValue, true))
       break;
 
     for (dx = r.tl.x + dw; dx < r.tl.x + w_prev;) {
       dw = (dx + TIGHT_MAX_SPLIT_TILE_SIZE <= r.tl.x + w_prev) ?
         TIGHT_MAX_SPLIT_TILE_SIZE : (r.tl.x + w_prev - dx);
       sr.setXYWH(dx, dy, dw, dh);
-      if (!checkSolidTile(sr, ig, &colorValue, true))
+      if (!checkSolidTile(sr, &colorValue, true))
         break;
-	    dx += dw;
+      dx += dw;
     }
 
     w_prev = dx - r.tl.x;
@@ -187,8 +179,8 @@ void TightEncoder::findBestSolidArea(Rect& r, ImageGetter *ig,
   bestr.br.y = bestr.tl.y + h_best;
 }
 
-void TightEncoder::extendSolidArea(const Rect& r, ImageGetter *ig,
-                                   rdr::U32 colorValue, Rect& er)
+void TightEncoder::extendSolidArea(const Rect& r, rdr::U32 colorValue,
+                                   Rect& er)
 {
   int cx, cy;
   Rect sr;
@@ -196,7 +188,7 @@ void TightEncoder::extendSolidArea(const Rect& r, ImageGetter *ig,
   // Try to extend the area upwards.
   for (cy = er.tl.y - 1; ; cy--) {
     sr.setXYWH(er.tl.x, cy, er.width(), 1);
-    if (cy < r.tl.y || !checkSolidTile(sr, ig, &colorValue, true))
+    if (cy < r.tl.y || !checkSolidTile(sr, &colorValue, true))
       break;
   }
   er.tl.y = cy + 1;
@@ -204,7 +196,7 @@ void TightEncoder::extendSolidArea(const Rect& r, ImageGetter *ig,
   // ... downwards.
   for (cy = er.br.y; ; cy++) {
     sr.setXYWH(er.tl.x, cy, er.width(), 1);
-    if (cy >= r.br.y || !checkSolidTile(sr, ig, &colorValue, true))
+    if (cy >= r.br.y || !checkSolidTile(sr, &colorValue, true))
       break;
   }
   er.br.y = cy;
@@ -212,7 +204,7 @@ void TightEncoder::extendSolidArea(const Rect& r, ImageGetter *ig,
   // ... to the left.
   for (cx = er.tl.x - 1; ; cx--) {
     sr.setXYWH(cx, er.tl.y, 1, er.height());
-    if (cx < r.tl.x || !checkSolidTile(sr, ig, &colorValue, true))
+    if (cx < r.tl.x || !checkSolidTile(sr, &colorValue, true))
       break;
   }
   er.tl.x = cx + 1;
@@ -220,7 +212,7 @@ void TightEncoder::extendSolidArea(const Rect& r, ImageGetter *ig,
   // ... to the right.
   for (cx = er.br.x; ; cx++) {
     sr.setXYWH(cx, er.tl.y, 1, er.height());
-    if (cx >= r.br.x || !checkSolidTile(sr, ig, &colorValue, true))
+    if (cx >= r.br.x || !checkSolidTile(sr, &colorValue, true))
       break;
   }
   er.br.x = cx;
@@ -254,7 +246,7 @@ int TightEncoder::getNumRects(const Rect &r)
           ((h - 1) / subrectMaxHeight + 1));
 }
 
-void TightEncoder::sendRectSimple(const Rect& r, ImageGetter* ig)
+void TightEncoder::sendRectSimple(const Rect& r)
 {
   // Shortcuts to rectangle coordinates and dimensions.
   const int x = r.tl.x;
@@ -265,7 +257,7 @@ void TightEncoder::sendRectSimple(const Rect& r, ImageGetter* ig)
   // Encode small rects as is.
   bool rectTooBig = w > pconf->maxRectWidth || w * h > pconf->maxRectSize;
   if (!rectTooBig) {
-    writeSubrect(r, ig);
+    writeSubrect(r);
     return;
   }
 
@@ -283,14 +275,18 @@ void TightEncoder::sendRectSimple(const Rect& r, ImageGetter* ig)
       sw = (dx + pconf->maxRectWidth < w) ? pconf->maxRectWidth : w - dx;
       sh = (dy + subrectMaxHeight < h) ? subrectMaxHeight : h - dy;
       sr.setXYWH(x + dx, y + dy, sw, sh);
-      writeSubrect(sr, ig);
+      writeSubrect(sr);
     }
   }
 }
 
-bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
+bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
+                             Rect* actual)
 {
+  ig = _ig;
+  serverpf = ig->getPixelBuffer()->getPF();
   ConnParams* cp = writer->getConnParams();
+  clientpf = cp->pf();
 
   // Shortcuts to rectangle coordinates and dimensions.
   Rect r = _r;
@@ -299,13 +295,9 @@ bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
   unsigned int w = r.width();
   unsigned int h = r.height();
 
-  // Copy members of current TightEncoder instance to static variables.
-  s_pconf = pconf;
-  s_pjconf = pjconf;
-
   // Encode small rects as is.
   if (!cp->supportsLastRect || w * h < TIGHT_MIN_SPLIT_RECT_SIZE) {
-    sendRectSimple(r, ig);
+    sendRectSimple(r);
     return true;
   }
 
@@ -313,10 +305,10 @@ bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
   Rect sr, bestr;
   unsigned int dx, dy, dw, dh;
   rdr::U32 colorValue;
-  int maxRectSize = s_pconf->maxRectSize;
-  int maxRectWidth = s_pconf->maxRectWidth;
+  int maxRectSize = pconf->maxRectSize;
+  int maxRectWidth = pconf->maxRectWidth;
   int nMaxWidth = (w > maxRectWidth) ? maxRectWidth : w;
-  int nMaxRows = s_pconf->maxRectSize / nMaxWidth;
+  int nMaxRows = pconf->maxRectSize / nMaxWidth;
 
   // Try to find large solid-color areas and send them separately.
   for (dy = y; dy < y + h; dy += TIGHT_MAX_SPLIT_TILE_SIZE) {
@@ -324,7 +316,7 @@ bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
     // If a rectangle becomes too large, send its upper part now.
     if (dy - y >= nMaxRows) {
       sr.setXYWH(x, y, w, nMaxRows);
-      sendRectSimple(sr, ig);
+      sendRectSimple(sr);
       r.tl.y += nMaxRows;
       y = r.tl.y;
       h = r.height();
@@ -339,11 +331,11 @@ bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
         TIGHT_MAX_SPLIT_TILE_SIZE : (x + w - dx);
  
       sr.setXYWH(dx, dy, dw, dh);
-      if (checkSolidTile(sr, ig, &colorValue, false)) {
+      if (checkSolidTile(sr, &colorValue, false)) {
 
         // Get dimensions of solid-color area.
         sr.setXYWH(dx, dy, r.br.x - dx, r.br.y - dy);
-        findBestSolidArea(sr, ig, colorValue, bestr);
+        findBestSolidArea(sr, colorValue, bestr);
 
         // Make sure a solid rectangle is large enough
         // (or the whole rectangle is of the same color).
@@ -352,30 +344,30 @@ bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
           continue;
 
         // Try to extend solid rectangle to maximum size.
-        extendSolidArea(r, ig, colorValue, bestr);
+        extendSolidArea(r, colorValue, bestr);
  
         // Send rectangles at top and left to solid-color area.
         if (bestr.tl.y != y) {
           sr.setXYWH(x, y, w, bestr.tl.y - y);
-          sendRectSimple(sr, ig);
+          sendRectSimple(sr);
         }
         if (bestr.tl.x != x) {
           sr.setXYWH(x, bestr.tl.y, bestr.tl.x - x, bestr.height());
-          writeRect(sr, ig, NULL);
+          writeRect(sr, _ig, NULL);
         }
 
         // Send solid-color rectangle.
-        writeSubrect(bestr, ig, true);
+        writeSubrect(bestr, true);
 
         // Send remaining rectangles (at right and bottom).
         if (bestr.br.x != r.br.x) {
           sr.setXYWH(bestr.br.x, bestr.tl.y, r.br.x - bestr.br.x,
             bestr.height());
-          writeRect(sr, ig, NULL);
+          writeRect(sr, _ig, NULL);
         }
         if (bestr.br.y != r.br.y) {
           sr.setXYWH(x, bestr.br.y, w, r.br.y - bestr.br.y);
-          writeRect(sr, ig, NULL);
+          writeRect(sr, _ig, NULL);
         }
 
         return true;
@@ -384,24 +376,21 @@ bool TightEncoder::writeRect(const Rect& _r, ImageGetter* ig, Rect* actual)
   }
 
   // No suitable solid-color rectangles found.
-  sendRectSimple(r, ig);
+  sendRectSimple(r);
   return true;
 }
 
-void TightEncoder::writeSubrect(const Rect& r, ImageGetter* ig,
-  bool forceSolid)
+void TightEncoder::writeSubrect(const Rect& r, bool forceSolid)
 {
-  rdr::U8* imageBuf = writer->getImageBuf(r.area());
-  ConnParams* cp = writer->getConnParams();
   mos.clear();
 
-  switch (writer->bpp()) {
+  switch (clientpf.bpp) {
   case 8:
-    tightEncode8(r, &mos, zos, jc, imageBuf, cp, ig, forceSolid);  break;
+    tightEncode8(r, &mos, forceSolid);  break;
   case 16:
-    tightEncode16(r, &mos, zos, jc, imageBuf, cp, ig, forceSolid); break;
+    tightEncode16(r, &mos, forceSolid); break;
   case 32:
-    tightEncode32(r, &mos, zos, jc, imageBuf, cp, ig, forceSolid); break;
+    tightEncode32(r, &mos, forceSolid); break;
   }
 
   writer->startRect(r, encodingTight);

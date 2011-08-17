@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -290,6 +291,51 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, Co
       *(dst++) = r;
       *(dst++) = g;
       *(dst++) = b;
+    }
+  }
+}
+
+
+void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
+                                int w, int pitch, int h, ColourMap* cm) const
+{
+  rdr::U8 *rowptr, *colptr;
+
+  if (is888()) {
+    // Optimised common case
+    int rindex, gindex, bindex;
+
+    if (bigEndian) {
+      rindex = (24 - redShift)/8;
+      gindex = (24 - greenShift)/8;
+      bindex = (24 - blueShift)/8;
+    } else {
+      rindex = redShift/8;
+      gindex = greenShift/8;
+      bindex = blueShift/8;
+    }
+
+    for(rowptr = (rdr::U8 *)src; rowptr < &src[pitch * h]; rowptr += pitch) {
+      for(colptr = rowptr; colptr < &rowptr[w * 4]; colptr += 4) {
+        *(dst++) = colptr[rindex];
+        *(dst++) = colptr[gindex];
+        *(dst++) = colptr[bindex];
+      }
+    }
+  } else {
+    // Generic code
+    Pixel p;
+    rdr::U8 r, g, b;
+
+    for(rowptr = (rdr::U8 *)src; rowptr < &src[pitch * h]; rowptr += pitch) {
+      for(colptr = rowptr; colptr < &rowptr[w * bpp/8]; colptr += bpp/8) {
+        p = pixelFromBuffer(colptr);
+
+        rgbFromPixel(p, cm, &r, &g, &b);
+        *(dst++) = r;
+        *(dst++) = g;
+        *(dst++) = b;
+      }
     }
   }
 }
