@@ -253,8 +253,8 @@ public class VncViewer extends java.applet.Applet implements Runnable
   IntParameter compressLevel
   = new IntParameter("CompressLevel",
 			                    "Use specified compression level "+
-			                    "0 = Low, 9 = High",
-			                    6);
+			                    "0 = Low, 6 = High",
+			                    1);
   BoolParameter noJpeg
   = new BoolParameter("NoJPEG",
                           "Disable lossy JPEG compression in Tight encoding.", false);
