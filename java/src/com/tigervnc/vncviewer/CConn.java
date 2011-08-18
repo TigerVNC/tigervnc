@@ -386,7 +386,10 @@ public class CConn extends CConnection
     desktop.setColourMapEntries(firstColour, nColours, rgbs);
   }
 
-  public void bell() { desktop.getToolkit().beep(); }
+  public void bell() { 
+    if (viewer.acceptBell.getValue())
+      desktop.getToolkit().beep(); 
+  }
 
   public void serverCutText(String str, int len) {
     if (viewer.acceptClipboard.getValue())
@@ -790,6 +793,7 @@ public class CConn extends CConnection
     options.fullScreen.setSelected(fullScreen);
     options.useLocalCursor.setSelected(viewer.useLocalCursor.getValue());
     options.fastCopyRect.setSelected(viewer.fastCopyRect.getValue());
+    options.acceptBell.setSelected(viewer.acceptBell.getValue());
   }
 
   public void getOptions() {
@@ -844,6 +848,8 @@ public class CConn extends CConnection
     viewer.viewOnly.setParam(options.viewOnly.isSelected());
     viewer.acceptClipboard.setParam(options.acceptClipboard.isSelected());
     viewer.sendClipboard.setParam(options.sendClipboard.isSelected());
+    viewer.fastCopyRect.setParam(options.fastCopyRect.isSelected());
+    viewer.acceptBell.setParam(options.acceptBell.isSelected());
     clipboardDialog.setSendingEnabled(viewer.sendClipboard.getValue());
     menuKey = (int)(options.menuKey.getSelectedIndex()+0xFFBE);
     F8Menu.f8.setLabel("Send F"+(menuKey-Keysyms.F1+1));

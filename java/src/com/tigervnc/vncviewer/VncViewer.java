@@ -246,6 +246,10 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new IntParameter("Port",
                          "The VNC server's port number, assuming it is on "+
                          "the host from which the applet was downloaded", 0);
+  BoolParameter acceptBell
+  = new BoolParameter("AcceptBell",
+                      "Produce a system beep when requested to by the server.", 
+                      true);
   BoolParameter customCompressLevel
   = new BoolParameter("CustomCompressLevel",
                           "Use custom compression level. "+

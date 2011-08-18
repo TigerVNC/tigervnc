@@ -46,7 +46,7 @@ class OptionsDialog extends Dialog implements
   ButtonGroup encodingGroup, colourGroup;
   JRadioButton zrle, hextile, tight, raw;
   JRadioButton fullColour, mediumColour, lowColour, veryLowColour;
-  JCheckBox viewOnly, acceptClipboard, sendClipboard;
+  JCheckBox viewOnly, acceptClipboard, sendClipboard, acceptBell;
   JCheckBox fullScreen, shared, useLocalCursor, fastCopyRect;
   JCheckBox secVeNCrypt, encNone, encTLS, encX509;
   JCheckBox secNone, secVnc, secPlain, secIdent, sendLocalUsername;
@@ -158,10 +158,13 @@ class OptionsDialog extends Dialog implements
     useLocalCursor.addItemListener(this);
     fastCopyRect = new JCheckBox("Fast CopyRect");
     fastCopyRect.addItemListener(this);
+    acceptBell = new JCheckBox("Beep when requested by the server");
+    acceptBell.addItemListener(this);
     addGBComponent(fullScreen,MiscPanel,     0, 0, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
     addGBComponent(shared,MiscPanel,         0, 1, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
     addGBComponent(useLocalCursor,MiscPanel, 0, 2, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(fastCopyRect,MiscPanel,   0, 3, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
+    addGBComponent(fastCopyRect,MiscPanel,   0, 3, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
+    addGBComponent(acceptBell,MiscPanel,     0, 4, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
 
     // load/save tab
     DefaultsPanel=new JPanel(new GridBagLayout());
