@@ -681,7 +681,11 @@ public class CConn extends CConnection
 
     options.customCompressLevel.setSelected(viewer.customCompressLevel.getValue());
     digit = 0 + viewer.compressLevel.getValue();
-    options.compressLevel.setSelectedItem(digit);
+    if (digit >= 0 && digit <= 9) {
+      options.compressLevel.setSelectedItem(digit);
+    } else {
+      options.compressLevel.setSelectedItem(Integer.parseInt(viewer.compressLevel.getDefaultStr()));
+    }
     options.noJpeg.setSelected(!viewer.noJpeg.getValue());
     digit = 0 + viewer.qualityLevel.getValue();
     options.qualityLevel.setSelectedItem(digit);
@@ -815,7 +819,12 @@ public class CConn extends CConnection
       cp.customCompressLevel = viewer.customCompressLevel.getValue();
       encodingChange = true;
     }
-    viewer.compressLevel.setParam(options.compressLevel.getSelectedItem().toString());
+    if (Integer.parseInt(options.compressLevel.getSelectedItem().toString()) >= 0 && 
+        Integer.parseInt(options.compressLevel.getSelectedItem().toString()) <= 9) {
+      viewer.compressLevel.setParam(options.compressLevel.getSelectedItem().toString());
+    } else {
+      viewer.compressLevel.setParam(viewer.compressLevel.getDefaultStr());
+    }
     if (cp.compressLevel != viewer.compressLevel.getValue()) {
       cp.compressLevel = viewer.compressLevel.getValue();
       encodingChange = true;

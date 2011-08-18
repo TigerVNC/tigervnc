@@ -89,12 +89,23 @@ class OptionsDialog extends Dialog implements
     customCompressLevel.addItemListener(this);
     Object[] compressionLevels = { 1, 2, 3, 4, 5, 6 };
     compressLevel  = new JComboBox(compressionLevels);
+    compressLevel.setEditable(true);
     JLabel compressionLabel = new JLabel("Level (1=fast, 6=best [4-6 are rarely useful])");
     noJpeg = new JCheckBox("Allow JPEG Compression");
     noJpeg.addItemListener(this);
     Object[] qualityLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     qualityLevel  = new JComboBox(qualityLevels);
     JLabel qualityLabel = new JLabel("Level (1=poor, 9=best)");
+    compressLevel.setPreferredSize(qualityLevel.getPreferredSize());
+    // Hack to set the left inset on editable JComboBox
+    if (UIManager.getLookAndFeel().getID() == "Windows") {
+      compressLevel.setBorder(BorderFactory.createCompoundBorder(compressLevel.getBorder(),
+        BorderFactory.createEmptyBorder(0,1,0,0)));
+    } else {
+      ComboBoxEditor editor = compressLevel.getEditor();
+      JTextField jtf = (JTextField)editor.getEditorComponent();
+      jtf.setBorder(new CompoundBorder(jtf.getBorder(), new EmptyBorder(0,1,0,0)));
+    }
     addGBComponent(customCompressLevel, tightPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,2,0,0));
     addGBComponent(compressLevel, tightPanel,       0, 1, 1, 1, 2, 2, 0, 0, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(0,20,0,0));
     addGBComponent(compressionLabel, tightPanel,    1, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,0));
