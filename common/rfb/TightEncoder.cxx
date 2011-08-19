@@ -292,8 +292,8 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
   Rect r = _r;
   int x = r.tl.x;
   int y = r.tl.y;
-  unsigned int w = r.width();
-  unsigned int h = r.height();
+  int w = r.width();
+  int h = r.height();
 
   // Encode small rects as is.
   if (!cp->supportsLastRect || w * h < TIGHT_MIN_SPLIT_RECT_SIZE) {
@@ -303,7 +303,7 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
 
   // Split big rects into separately encoded subrects.
   Rect sr, bestr;
-  unsigned int dx, dy, dw, dh;
+  int dx, dy, dw, dh;
   rdr::U32 colorValue;
   int maxRectSize = pconf->maxRectSize;
   int maxRectWidth = pconf->maxRectWidth;
