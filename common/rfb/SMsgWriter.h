@@ -161,7 +161,7 @@ namespace rfb {
     int getUpdatesSent()           { return updatesSent; }
     int getRectsSent(int encoding) { return rectsSent[encoding]; }
     int getBytesSent(int encoding) { return bytesSent[encoding]; }
-    int getRawBytesEquivalent()    { return rawBytesEquivalent; }
+    rdr::U64 getRawBytesEquivalent()    { return rawBytesEquivalent; }
 
     int imageBufIdealSize;
 
@@ -180,7 +180,7 @@ namespace rfb {
     int updatesSent;
     int bytesSent[encodingMax+1];
     int rectsSent[encodingMax+1];
-    int rawBytesEquivalent;
+    rdr::U64 rawBytesEquivalent;
 
     rdr::U8* imageBuf;
     int imageBufSize;
