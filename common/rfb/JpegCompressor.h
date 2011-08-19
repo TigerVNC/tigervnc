@@ -51,9 +51,11 @@ namespace rfb {
   } JPEG_DEST_MGR;
 
   enum JPEG_SUBSAMP {
-    SUBSAMP_NONE,
+    SUBSAMP_UNDEFINED = -1,
+    SUBSAMP_NONE = 0,
+    SUBSAMP_420,
     SUBSAMP_422,
-    SUBSAMP_420
+    SUBSAMP_GRAY
   };
 
   class JpegCompressor : public rdr::MemOutStream {

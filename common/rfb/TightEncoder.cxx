@@ -117,9 +117,21 @@ void TightEncoder::setCompressLevel(int level)
 void TightEncoder::setQualityLevel(int level)
 {
   if (level >= 0 && level <= 9) {
-    pjconf = &conf[level];
+    jpegQuality = conf[level].jpegQuality;
+    jpegSubsampling = conf[level].jpegSubsampling;
   } else {
-    pjconf = NULL;
+    jpegQuality = -1;
+    jpegSubsampling = SUBSAMP_UNDEFINED;
+  }
+}
+
+void TightEncoder::setFineQualityLevel(int quality, JPEG_SUBSAMP subsampling)
+{
+  if (quality >= 1 && quality <= 100) {
+    jpegQuality = quality;
+  }
+  if (subsampling >= SUBSAMP_NONE && subsampling <= SUBSAMP_GRAY) {
+    jpegSubsampling = subsampling;
   }
 }
 
@@ -332,6 +344,14 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
  
       sr.setXYWH(dx, dy, dw, dh);
       if (checkSolidTile(sr, &colorValue, false)) {
+
+         if (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1) {
+           Colour rgb;
+           serverpf.rgbFromPixel(colorValue, NULL, &rgb);
+           rdr::U32 lum = ((257 * rgb.r) + (504 * rgb.g) + (98 * rgb.b)
+                           + 16500) / 1000;
+           colorValue = lum + (lum << 8) + (lum << 16);
+         }
 
         // Get dimensions of solid-color area.
         sr.setXYWH(dx, dy, r.br.x - dx, r.br.y - dy);

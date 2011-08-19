@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyeight (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +43,16 @@ namespace rfb {
   const int pseudoEncodingQualityLevel9 = -23;
   const int pseudoEncodingCompressLevel0 = -256;
   const int pseudoEncodingCompressLevel9 = -247;
+
+  // TurboVNC-specific
+  const int pseudoEncodingFineQualityLevel0 = -512;
+  const int pseudoEncodingFineQualityLevel100 = -412;
+  const int pseudoEncodingSubsamp1X = -768;
+  const int pseudoEncodingSubsamp4X = -767;
+  const int pseudoEncodingSubsamp2X = -766;
+  const int pseudoEncodingSubsampGray = -765;
+  const int pseudoEncodingSubsamp8X = -764;
+  const int pseudoEncodingSubsamp16X = -763;
 
   int encodingNum(const char* name);
   const char* encodingName(int num);

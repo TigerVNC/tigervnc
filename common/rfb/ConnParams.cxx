@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +35,8 @@ ConnParams::ConnParams()
     supportsDesktopRename(false), supportsLastRect(false),
     supportsSetDesktopSize(false),
     customCompressLevel(false), compressLevel(6),
-    noJpeg(false), qualityLevel(-1), 
+    noJpeg(false), qualityLevel(-1), fineQualityLevel(-1),
+    subsampling(SUBSAMP_UNDEFINED),
     name_(0), nEncodings_(0), encodings_(0),
     currentEncoding_(encodingRaw), verStrPos(0)
 {
@@ -102,6 +104,8 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   compressLevel = -1;
   noJpeg = true;
   qualityLevel = -1;
+  fineQualityLevel = -1;
+  subsampling = SUBSAMP_UNDEFINED;
   currentEncoding_ = encodingRaw;
 
   for (int i = nEncodings-1; i >= 0; i--) {
@@ -131,5 +135,19 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
     } else if (Encoder::supported(encodings[i]))
       currentEncoding_ = encodings[i];
+  }
+
+  // If the TurboVNC fine quality/subsampling encodings exist, let them
+  // override the coarse TightVNC quality level
+  for (int i = nEncodings-1; i >= 0; i--) {
+    if (encodings[i] >= pseudoEncodingFineQualityLevel0 + 1 &&
+        encodings[i] <= pseudoEncodingFineQualityLevel100) {
+      noJpeg = false;
+      fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
+    } else if (encodings[i] >= pseudoEncodingSubsamp1X &&
+               encodings[i] <= pseudoEncodingSubsampGray) {
+      noJpeg = false;
+      subsampling = (JPEG_SUBSAMP)(encodings[i] - pseudoEncodingSubsamp1X);
+    }
   }
 }

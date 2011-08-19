@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +22,7 @@
 #include <rfb/Rect.h>
 #include <rfb/encodings.h>
 #include <rfb/TransImageGetter.h>
+#include <rfb/JpegCompressor.h>
 
 namespace rfb {
   class SMsgWriter;
@@ -34,6 +36,7 @@ namespace rfb {
 
     virtual void setCompressLevel(int level) {};
     virtual void setQualityLevel(int level) {};
+    virtual void setFineQualityLevel(int quality, JPEG_SUBSAMP subsampling) {};
     virtual int getNumRects(const Rect &r) { return 1; }
 
     // writeRect() tries to write the given rectangle.  If it is unable to

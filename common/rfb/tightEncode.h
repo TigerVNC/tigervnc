@@ -200,9 +200,11 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 
   if (forceSolid)
     palNumColors = 1;
+  else if (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1)
+    palNumColors = 0;
   else {
     palMaxColors = r.area() / pconf->idxMaxColorsDivisor;
-    if (pjconf != NULL) palMaxColors = pconf->palMaxColorsWithJPEG;
+    if (jpegQuality != -1) palMaxColors = pconf->palMaxColorsWithJPEG;
     if (palMaxColors < 2 && r.area() >= pconf->monoMinRectSize) {
       palMaxColors = 2;
     }
@@ -211,7 +213,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
       // This is so we can avoid translating the pixels when compressing
       // with JPEG, since it is unnecessary
       FAST_FILL_PALETTE(r, pixels, stride);
-      if(palNumColors != 0 || pjconf == NULL) {
+      if(palNumColors != 0 || jpegQuality == -1) {
         pixels = (PIXEL_T *)writer->getImageBuf(r.area());
         stride = r.width();
         ig->getImage(pixels, r);
@@ -229,7 +231,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
   case 0:
     // Truecolor image
 #if (BPP != 8)
-    if (pjconf != NULL) {
+    if (jpegQuality != -1) {
       ENCODE_JPEG_RECT(os, pixels, stride, r);
       break;
     }
@@ -396,7 +398,7 @@ void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf, int stride,
 {
   jc.clear();
   jc.compress((rdr::U8 *)buf, stride * serverpf.bpp / 8, r, serverpf,
-    pjconf->jpegQuality, pjconf->jpegSubSample);
+    jpegQuality, jpegSubsampling);
   os->writeU8(0x09 << 4);
   os->writeCompactLength(jc.length());
   os->writeBytes(jc.data(), jc.length());

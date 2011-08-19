@@ -194,6 +194,8 @@ void JpegCompressor::compress(rdr::U8 *buf, int pitch, const Rect& r,
     cinfo.comp_info[0].h_samp_factor = 2;
     cinfo.comp_info[0].v_samp_factor = 1;
     break;
+  case SUBSAMP_GRAY:
+    jpeg_set_colorspace(&cinfo, JCS_GRAYSCALE);
   default:
     cinfo.comp_info[0].h_samp_factor = 1;
     cinfo.comp_info[0].v_samp_factor = 1;

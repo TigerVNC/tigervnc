@@ -25,6 +25,7 @@
 #include <rdr/types.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ScreenSet.h>
+#include <rfb/JpegCompressor.h>
 
 namespace rdr { class InStream; }
 
@@ -84,6 +85,8 @@ namespace rfb {
     int compressLevel;
     bool noJpeg;
     int qualityLevel;
+    int fineQualityLevel;
+    JPEG_SUBSAMP subsampling;
 
   private:
 
