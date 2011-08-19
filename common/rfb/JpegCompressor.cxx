@@ -169,7 +169,7 @@ void JpegCompressor::compress(rdr::U8 *buf, int pitch, const Rect& r,
   }
 #endif
 
-  if (pitch == 0) pitch = w * pixelsize;
+  if (pitch == 0) pitch = w * pf.bpp / 8;
 
   if (cinfo.in_color_space == JCS_RGB) {
     srcBuf = new rdr::U8[w * h * pixelsize];

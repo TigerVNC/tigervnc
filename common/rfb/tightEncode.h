@@ -190,7 +190,9 @@ unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count)
 void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 {
   int stride = r.width();
+  rdr::U32 solidColor;
   PIXEL_T *pixels = (PIXEL_T *)ig->getPixelsRW(r, &stride);
+  bool grayScaleJPEG = (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1);
 
 #if (BPP == 32)
   // Check if it's necessary to pack 24-bit pixels, and
@@ -198,10 +200,13 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
   pack24 = clientpf.is888();
 #endif
 
-  if (forceSolid)
+  if (forceSolid) {
     palNumColors = 1;
-  else if (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1)
-    palNumColors = 0;
+    if (ig->willTransform()) {
+      ig->translatePixels(pixels, &solidColor, 1);
+      pixels = (PIXEL_T *)&solidColor;
+    }
+  }
   else {
     palMaxColors = r.area() / pconf->idxMaxColorsDivisor;
     if (jpegQuality != -1) palMaxColors = pconf->palMaxColorsWithJPEG;
@@ -212,7 +217,8 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
     if (clientpf.equal(serverpf) && clientpf.bpp >= 16) {
       // This is so we can avoid translating the pixels when compressing
       // with JPEG, since it is unnecessary
-      FAST_FILL_PALETTE(r, pixels, stride);
+      if (grayScaleJPEG) palNumColors = 0;
+      else FAST_FILL_PALETTE(r, pixels, stride);
       if(palNumColors != 0 || jpegQuality == -1) {
         pixels = (PIXEL_T *)writer->getImageBuf(r.area());
         stride = r.width();
@@ -223,7 +229,8 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
       pixels = (PIXEL_T *)writer->getImageBuf(r.area());
       stride = r.width();
       ig->getImage(pixels, r);
-      FILL_PALETTE(pixels, r.area());
+      if (grayScaleJPEG) palNumColors = 0;
+      else FILL_PALETTE(pixels, r.area());
     }
   }
 
@@ -397,7 +404,7 @@ void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf, int stride,
                        const Rect& r)
 {
   jc.clear();
-  jc.compress((rdr::U8 *)buf, stride * serverpf.bpp / 8, r, serverpf,
+  jc.compress((rdr::U8 *)buf, stride * clientpf.bpp / 8, r, clientpf,
     jpegQuality, jpegSubsampling);
   os->writeU8(0x09 << 4);
   os->writeCompactLength(jc.length());
@@ -574,8 +581,8 @@ void FAST_FILL_PALETTE (const Rect& r, PIXEL_T *data, int stride)
 
   monodone:
   if (willTransform) {
-    ig->translateRect(&c0, 1, Rect(0, 0, 1, 1), &c0t, 1, Point(0, 0));
-    ig->translateRect(&c1, 1, Rect(0, 0, 1, 1), &c1t, 1, Point(0, 0));
+    ig->translatePixels(&c0, &c0t, 1);
+    ig->translatePixels(&c1, &c1t, 1);
   }
   else {
     c0t = c0;  c1t = c1;
@@ -609,7 +616,7 @@ void FAST_FILL_PALETTE (const Rect& r, PIXEL_T *data, int stride)
         ni++;
       } else {
         if (willTransform)
-          ig->translateRect(&ci, 1, Rect(0, 0, 1, 1), &cit, 1, Point(0, 0));
+          ig->translatePixels(&ci, &cit, 1);
         else
           cit = ci;
         if (!paletteInsert (cit, (rdr::U32)ni, BPP))
@@ -621,7 +628,7 @@ void FAST_FILL_PALETTE (const Rect& r, PIXEL_T *data, int stride)
     rowptr += stride;
     colptr = rowptr;
   }
-  ig->translateRect(&ci, 1, Rect(0, 0, 1, 1), &cit, 1, Point(0, 0));
+  ig->translatePixels(&ci, &cit, 1);
   paletteInsert (cit, (rdr::U32)ni, BPP);
 }
 
