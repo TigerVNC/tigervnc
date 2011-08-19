@@ -16,6 +16,12 @@ add_executable(x0vncserver
 )
 
 target_link_libraries(x0vncserver tx rfb network rdr ${X11_LIBRARIES})
+if(X11_FOUND AND X11_XTest_LIB)
+  add_definitions(-DHAVE_XTEST)
+  target_link_libraries(x0vncserver ${X11_XTest_LIB})
+else()
+  message(WARNING "No XTest extension.  x0vncserver will be view-only.")
+endif()
 
 install(TARGETS x0vncserver DESTINATION bin)
 install(FILES x0vncserver.man DESTINATION man/man1 RENAME x0vncserver.1)
