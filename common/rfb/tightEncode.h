@@ -647,12 +647,15 @@ bool CHECK_SOLID_TILE(Rect& r, rdr::U32 *colorPtr, bool needSameColor)
   if (needSameColor && (rdr::U32)colorValue != *colorPtr)
     return false;
 
-  for (dy = 0; dy < h; dy++) {
-    for (dx = 0; dx < w; dx++) {
-      if (colorValue != buf[dx])
+  int bufPad = stride - w;
+  while (h > 0) {
+    PIXEL_T *bufEndOfRow = buf + w;
+    while (buf < bufEndOfRow) {
+      if (colorValue != *(buf++))
         return false;
     }
-    buf += stride;
+    buf += bufPad;
+    h--;
   }
 
   *colorPtr = (rdr::U32)colorValue;

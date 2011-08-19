@@ -315,27 +315,38 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
       bindex = blueShift/8;
     }
 
-    for(rowptr = (rdr::U8 *)src; rowptr < &src[pitch * h]; rowptr += pitch) {
-      for(colptr = rowptr; colptr < &rowptr[w * 4]; colptr += 4) {
-        *(dst++) = colptr[rindex];
-        *(dst++) = colptr[gindex];
-        *(dst++) = colptr[bindex];
+    int srcPad = pitch - w * 4;
+    while (h > 0) {
+      rdr::U8 *srcEndOfRow = (rdr::U8 *)src + w * 4;
+      while (src < srcEndOfRow) {
+        *(dst++) = src[rindex];
+        *(dst++) = src[gindex];
+        *(dst++) = src[bindex];
+        src += 4;
       }
+      src += srcPad;
+      h--;      
     }
   } else {
     // Generic code
     Pixel p;
     rdr::U8 r, g, b;
+    int pixelSize = bpp/8;
 
-    for(rowptr = (rdr::U8 *)src; rowptr < &src[pitch * h]; rowptr += pitch) {
-      for(colptr = rowptr; colptr < &rowptr[w * bpp/8]; colptr += bpp/8) {
-        p = pixelFromBuffer(colptr);
+    int srcPad = pitch - w * pixelSize;
+    while (h > 0) {
+      rdr::U8 *srcEndOfRow = (rdr::U8 *)src + w * pixelSize;
+      while (src < srcEndOfRow) {
+        p = pixelFromBuffer(src);
 
         rgbFromPixel(p, cm, &r, &g, &b);
         *(dst++) = r;
         *(dst++) = g;
         *(dst++) = b;
+        src += pixelSize;
       }
+      src += srcPad;
+      h--;
     }
   }
 }
