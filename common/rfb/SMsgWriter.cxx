@@ -53,7 +53,7 @@ SMsgWriter::~SMsgWriter()
       vlog.info("  %s rects %d, bytes %d",
                 encodingName(i), rectsSent[i], bytesSent[i]);
   }
-  vlog.info("  raw bytes equivalent %d, compression ratio %f",
+  vlog.info("  raw bytes equivalent %llu, compression ratio %f",
           rawBytesEquivalent, (double)rawBytesEquivalent / bytes);
   delete [] imageBuf;
 }
