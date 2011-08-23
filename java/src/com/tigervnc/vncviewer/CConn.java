@@ -691,7 +691,11 @@ public class CConn extends CConnection
     }
     options.noJpeg.setSelected(!viewer.noJpeg.getValue());
     digit = 0 + viewer.qualityLevel.getValue();
-    options.qualityLevel.setSelectedItem(digit);
+    if (digit >= 0 && digit <= 9) {
+      options.qualityLevel.setSelectedItem(digit);
+    } else {
+      options.qualityLevel.setSelectedItem(Integer.parseInt(viewer.qualityLevel.getDefaultStr()));
+    }
 
     options.viewOnly.setSelected(viewer.viewOnly.getValue());
     options.acceptClipboard.setSelected(viewer.acceptClipboard.getValue());
