@@ -17,7 +17,7 @@ libvnccommon_la_SOURCES = $(HDRS) vncExtInit.cc vncHooks.cc XserverDesktop.cc \
 
 libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
-	-I$(TIGERVNC_SRCDIR)/unix/vncconfig $(XVNC_CPPFLAGS) -I$(includedir)/pixman-1 -I$(includedir)
+	-I$(TIGERVNC_SRCDIR)/unix/vncconfig $(XVNC_CPPFLAGS) ${XSERVERLIBS_CFLAGS} -I$(includedir)
 
 bin_PROGRAMS = Xvnc
 
@@ -33,7 +33,7 @@ Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS \
 	-UHAVE_CONFIG_H \
 	-DXFree86Server -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common \
-	-I$(top_srcdir)/include -I$(includedir)/pixman-1 -I$(includedir)
+	-I$(top_srcdir)/include ${XSERVERLIBS_CFLAGS} -I$(includedir)
 
 Xvnc_LDADD = $(XVNC_LIBS) libvnccommon.la $(COMMON_LIBS) \
 	$(XSERVER_LIBS) $(XSERVER_SYS_LIBS) $(XVNC_SYS_LIBS) -lX11
@@ -49,7 +49,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus \
-	-I$(includedir)/pixman-1 -I$(includedir)
+	${XSERVERLIBS_CFLAGS} -I$(includedir)
 
 libvnc_la_LDFLAGS = -module -avoid-version
 
@@ -63,8 +63,17 @@ BUILT_SOURCES = $(nodist_Xvnc_SOURCES)
 fb.h: $(top_srcdir)/fb/fb.h
 	cat $(top_srcdir)/fb/fb.h | sed -e 's,and,c_and,' -e 's,xor,c_xor,' > $(srcdir)/fb.h
 
-pixman.h: $(includedir)/pixman-1/pixman.h
-	cat $(includedir)/pixman-1/pixman.h | sed 's/xor/c_xor/' > $(srcdir)/pixman.h
+pixman.h:
+	for i in ${XSERVERLIBS_CFLAGS}; do \
+		if [[ "$$i" =~ "pixman" ]]; then \
+			PIXMANINCDIR=`echo $$i | sed s/-I//g`; \
+		fi; \
+	done; \
+	if [ ! "$$PIXMANINCDIR" = "" ]; then \
+		cat $$PIXMANINCDIR/pixman.h | sed 's/xor/c_xor/' > $(srcdir)/pixman.h; \
+	else \
+		echo Pixman include directory not set in XSERVERLIBS_CFLAGS (perhaps Pixman was not found by configure?); \
+	fi
 
 fbrop.h: $(top_srcdir)/fb/fbrop.h
 	cat $(top_srcdir)/fb/fbrop.h | sed -e 's,and,c_and,' -e 's,xor,c_xor,' > $(srcdir)/fbrop.h
