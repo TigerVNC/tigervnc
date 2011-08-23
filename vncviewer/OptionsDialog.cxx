@@ -528,7 +528,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   jpegInput = new Fl_Int_Input(tx + INDENT, ty,
                                INPUT_HEIGHT, INPUT_HEIGHT,
-                               _("quality (1=poor, 9=best)"));
+                               _("quality (0=poor, 9=best)"));
   jpegInput->align(FL_ALIGN_RIGHT);
   ty += INPUT_HEIGHT + INNER_MARGIN;
 
