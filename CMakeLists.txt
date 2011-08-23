@@ -172,8 +172,10 @@ endif()
 find_package(ZLIB)
 option(USE_INCLUDED_ZLIB "Force use of the bundled zlib")
 if(NOT ZLIB_FOUND)
-  message(STATUS "System zlib not found. Using included zlib")
   set(USE_INCLUDED_ZLIB 1)
+endif()
+if(USE_INCLUDED_ZLIB)
+  message(STATUS "Using included zlib library")
 endif()
 
 # Check for gettext
