@@ -93,9 +93,9 @@ class OptionsDialog extends Dialog implements
     JLabel compressionLabel = new JLabel("Level (1=fast, 6=best [4-6 are rarely useful])");
     noJpeg = new JCheckBox("Allow JPEG Compression");
     noJpeg.addItemListener(this);
-    Object[] qualityLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    Object[] qualityLevels = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     qualityLevel  = new JComboBox(qualityLevels);
-    JLabel qualityLabel = new JLabel("Level (1=poor, 9=best)");
+    JLabel qualityLabel = new JLabel("Level (0=poor, 9=best)");
     compressLevel.setPreferredSize(qualityLevel.getPreferredSize());
     // Hack to set the left inset on editable JComboBox
     if (UIManager.getLookAndFeel().getID() == "Windows") {
