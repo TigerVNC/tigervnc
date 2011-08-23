@@ -457,7 +457,8 @@ public class CConn extends CConnection
     }
     viewport.addChild(desktop);
     reconfigureViewport();
-    viewport.setVisible(true);
+    if ((cp.width > 0) && (cp.height > 0))
+      viewport.setVisible(true);
     desktop.initGraphics();
     desktop.requestFocusInWindow();
   }
