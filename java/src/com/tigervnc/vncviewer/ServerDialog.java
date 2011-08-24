@@ -112,9 +112,6 @@ class ServerDialog extends Dialog implements
 
   public void itemStateChanged(ItemEvent e) {
     Object s = e.getSource();
-    if (s instanceof JComboBox && (JComboBox)s == encryption) {
-      options.encryption=(encryption.getSelectedIndex()==1) ? false : true;
-    }
   }
 
   public void actionPerformed(ActionEvent e) {

@@ -53,7 +53,6 @@ class OptionsDialog extends Dialog implements
   JButton okButton, cancelButton;
   JButton ca, crl;
   JButton defSaveButton;
-  boolean encryption = true; 
   UserPrefs defaults;
 
   public OptionsDialog(OptionsDialogCallback cb_) { 
