@@ -546,12 +546,15 @@ Build Recipes
 32-bit Build on 64-bit Linux/Unix (including OS X)
 --------------------------------------------------
 
-Set the following environment variables before running CMake or
-'build-xorg build':
+Set the following environment variables before building TigerVNC.
 
   CFLAGS='-O3 -m32'
   CXXFLAGS='-O3 -m32'
   LDFLAGS=-m32
+
+If you are building the TigerVNC Server on a modern Unix/Linux system, then
+you will also need to pass the appropriate --host argument when configuring the
+X server source (for instance, --host=i686-pc-linux-gnu).
 
 
 64-bit Backward-Compatible Build on 64-bit OS X
