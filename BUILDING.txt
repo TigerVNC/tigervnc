@@ -160,7 +160,7 @@ has already been built, per above.)
       --with-fontdir=/usr/share/X11/fonts \
       --with-xkb-path=/usr/share/X11/xkb \
       --with-xkb-output=/var/lib/xkb \
-      --with-xkb-bin-dir=/usr/bin \
+      --with-xkb-bin-directory=/usr/bin \
       --with-serverconfig-path=/usr/lib[64]/xorg \
       --with-dri-driver-path=/usr/lib[64]/dri \
       {additional configure options}
