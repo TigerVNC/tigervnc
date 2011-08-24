@@ -637,7 +637,6 @@ void FAST_FILL_PALETTE (const Rect& r, PIXEL_T *data, int stride)
 bool CHECK_SOLID_TILE(Rect& r, rdr::U32 *colorPtr, bool needSameColor)
 {
   PIXEL_T *buf, colorValue;
-  int dx, dy;
   int w = r.width(), h = r.height();
 
   int stride = w;
