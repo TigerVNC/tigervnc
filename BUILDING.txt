@@ -109,8 +109,8 @@ Building TigerVNC
 =================
 
 
-Unix/Mac
---------
+Building the TigerVNC Viewer on Unix/Mac Systems
+------------------------------------------------
 
 The following procedure will build the TigerVNC Viewer on Linux and Unix
 systems.  On 64-bit systems, this will build a 64-bit version of TigerVNC.  See
@@ -121,12 +121,59 @@ of TigerVNC on 64-bit systems.
   cmake -G "Unix Makefiles" [additional CMake flags] {source_directory}
   make
 
+
+Building the TigerVNC Server on Modern Unix/Linux Systems
+---------------------------------------------------------
+
 Building the TigerVNC Server (Xvnc) is a bit trickier.  On newer systems
 containing Xorg 7.4 or later (such as Fedora), Xvnc is typically built to use
 the X11 shared libraries provided with the system.  The procedure for this is
-very system-specific, since it requires specifying such things as font and X
-resource directories.  Thus, it cannot be described in terms general enough for
-this document.
+system-specific, since it requires specifying such things as font directories,
+but the general outline is as follows (this procedure assumes that the viewer
+has already been built, per above.)
+
+  > cd {build_directory}
+
+    If performing an out-of-tree build:
+  > mkdir unix
+  > cp -R {source_directory}/unix/xserver unix/
+
+  > cp -R {xorg_source}/* unix/xserver/
+    (NOTE: {xorg_source} is the directory containing the Xorg source for the
+    machine on which you are building TigerVNC.  The most recent versions of
+    Red Hat/CentOS/Fedora, for instance, provide an RPM called
+    "xorg-x11-server-source", which installs the Xorg source under
+    /usr/share/xorg-x11-server-source.)
+
+  > cd unix/xserver/
+  > patch -p1 < {source_directory}/unix/xserver{version}.patch
+    (where {version} matches the X server version you are building, such as
+    "17" for version 1.7.x.)
+  > autoreconf -fiv
+
+  > ./configure --with-pic --without-dtrace --disable-static \
+      --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg \
+      --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive \
+      --disable-config-dbus --disable-config-hal --disable-config-udev \
+      --disable-dri2 --enable-install-libxf86config --enable-glx \
+      --with-default-font-path="catalogue:/etc/X11/fontpath.d,built-ins" \
+      --with-fontdir=/usr/share/X11/fonts \
+      --with-xkb-path=/usr/share/X11/xkb \
+      --with-xkb-output=/var/lib/xkb \
+      --with-xkb-bin-dir=/usr/bin \
+      --with-serverconfig-path=/usr/lib[64]/xorg \
+      --with-dri-driver-path=/usr/lib[64]/dri \
+      {additional configure options}
+    (NOTE: This is merely an example that works with Red Hat Enterprise/CentOS
+    6 and recent Fedora releases.  You should customize it for your particular
+    system.  In particular, it will be necessary to customize the font, XKB,
+    and DRI directories.)
+
+  > make TIGERVNC_SRCDIR={source_directory}
+
+
+Building the TigerVNC Server on Legacy Unix/Linux Systems
+---------------------------------------------------------
 
 Those using systems with older versions of Xorg must build a "legacy-friendly"
 version of the TigerVNC Server.  This is accomplished by downloading and
@@ -164,8 +211,8 @@ will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
 
 
-Visual C++ (Command Line)
--------------------------
+Building the TigerVNC Viewer/Server with Visual C++ (Command Line)
+------------------------------------------------------------------
 
   cd {build_directory}
   cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release [additional CMake flags] {source_directory}
@@ -175,8 +222,8 @@ This will build either a 32-bit or a 64-bit version of TigerVNC, depending
 on which version of cl.exe is in the PATH.
 
 
-Visual C++ (IDE)
-----------------
+Building the TigerVNC Viewer/Server with Visual C++ (IDE)
+---------------------------------------------------------
 
 Choose the appropriate CMake generator option for your version of Visual Studio
 (run "cmake" with no arguments for a list of available generators.)  For
@@ -190,8 +237,8 @@ configurations in that project ("Debug", "Release", etc.) to generate a full
 build of TigerVNC.
 
 
-MinGW
------
+Building the TigerVNC Viewer with MinGW
+---------------------------------------
 
   cd {build_directory}
   cmake -G "MSYS Makefiles" [additional CMake flags] {source_directory}
