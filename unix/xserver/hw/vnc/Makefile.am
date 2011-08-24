@@ -72,7 +72,7 @@ pixman.h:
 	if [ ! "$$PIXMANINCDIR" = "" ]; then \
 		cat $$PIXMANINCDIR/pixman.h | sed 's/xor/c_xor/' > $(srcdir)/pixman.h; \
 	else \
-		echo Pixman include directory not set in XSERVERLIBS_CFLAGS (perhaps Pixman was not found by configure?); \
+		echo Pixman include directory not set in XSERVERLIBS_CFLAGS \(perhaps Pixman was not found by configure?\); \
 	fi
 
 fbrop.h: $(top_srcdir)/fb/fbrop.h
