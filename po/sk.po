@@ -8,65 +8,77 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2011-02-09 17:10+0100\n"
+"POT-Creation-Date: 2011-08-29 15:49+0200\n"
 "PO-Revision-Date: 2008-11-30 21:34+0100\n"
 "Last-Translator: Jozef Riha <jose1711@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
+"Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: sk\n"
+
+#, fuzzy
+msgid "About"
+msgstr "O programe..."
 
 msgid "About TigerVNC Viewer"
 msgstr "O aplikácií VNC Viewer"
-
-msgid "VNC authentication"
-msgstr "VNC autorizácia"
-
-#, c-format
-msgid "TigerVNC: %.240s"
-msgstr ""
-
-msgid "Exit viewer"
-msgstr "Ukončiť prehliadač"
-
-msgid "Full screen"
-msgstr "Režim celej obrazovky"
-
-msgid "Ctrl"
-msgstr "Ctrl"
-
-msgid "Alt"
-msgstr "Alt"
-
-#, c-format
-msgid "Send %s"
-msgstr "Poslať %s"
-
-msgid "Send Ctrl-Alt-Del"
-msgstr "Poslať Ctrl-Alt-Del"
-
-msgid "Refresh screen"
-msgstr "Obnoviť obrazovku"
-
-msgid "New connection..."
-msgstr "Nové pripojenie..."
-
-msgid "Options..."
-msgstr "Voľby..."
-
-msgid "Connection info..."
-msgstr "Informácie o pripojení..."
 
 #, fuzzy
 msgid "About TigerVNC viewer..."
 msgstr "O aplikácií VNC Viewer"
 
-msgid "Dismiss menu"
-msgstr "Zrušiť menu"
+msgid "About..."
+msgstr "O programe..."
 
-msgid "VNC Menu"
-msgstr "VNC Menu"
+msgid "Accept clipboard from server"
+msgstr "Akceptovať schránku zo servera"
+
+msgid "Allow JPEG compression:"
+msgstr "Povoliť kompresiu JPEG:"
+
+msgid "Alt"
+msgstr "Alt"
+
+#, fuzzy
+msgid "Authentication"
+msgstr "VNC autorizácia"
+
+#, fuzzy
+msgid "Authentication cancelled"
+msgstr "VNC autorizácia"
+
+msgid "Auto select"
+msgstr "Automatický výber"
+
+msgid "Cancel"
+msgstr "Zrušiť"
+
+msgid "Close"
+msgstr ""
+
+msgid "Color level"
+msgstr ""
+
+#, fuzzy
+msgid "Compression"
+msgstr "Vlastný stupeň kompresie:"
+
+msgid "Connection info..."
+msgstr "Informácie o pripojení..."
+
+#, c-format
+msgid "Could not create VNC home directory: %s."
+msgstr ""
+
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr ""
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Custom compression level:"
+msgstr "Vlastný stupeň kompresie:"
 
 #, c-format
 msgid ""
@@ -92,95 +104,80 @@ msgstr ""
 "Verzia protokolu: %d.%d\n"
 "Metóda bezpečnosti: %s\n"
 
-msgid "VNC connection info"
-msgstr "Informácie o VNC pripojení"
+msgid "Dismiss menu"
+msgstr "Zrušiť menu"
 
-msgid "VNC Viewer: Connection Options"
-msgstr "VNC Viewer: Voľby pripojenia"
-
-msgid "Encoding and Color Level:"
-msgstr "Kódovanie a úroveň farieb:"
-
-msgid "Inputs:"
-msgstr "Vstupy:"
-
-msgid "Misc:"
-msgstr "Iné:"
-
-msgid "Auto select"
-msgstr "Automatický výber"
-
-msgid "Full (all available colors)"
-msgstr "Plná (všetky dostupné farby)"
-
-msgid "Medium (256 colors)"
-msgstr "Stredná (256 farieb)"
-
-msgid "Low (64 colors)"
-msgstr "Nízka (64 farieb)"
-
-msgid "Very low (8 colors)"
-msgstr "Veľmi nízka (8 farieb)"
-
-msgid "Custom compression level:"
-msgstr "Vlastný stupeň kompresie:"
-
-msgid "level (1=fast, 9=best)"
-msgstr "stupeň (1=rýchla, 9=najlepšia)"
-
-msgid "Allow JPEG compression:"
-msgstr "Povoliť kompresiu JPEG:"
-
-msgid "quality (1=poor, 9=best)"
-msgstr "kvalita (1=nízka, 9=najlepšia)"
-
-msgid "View only (ignore mouse & keyboard)"
-msgstr "Iba prezerať (ignorovať myš a klávesnicu)"
-
-msgid "Accept clipboard from server"
-msgstr "Akceptovať schránku zo servera"
-
-msgid "Send clipboard to server"
-msgstr "Posielať schránku serveru"
-
-msgid "Send primary selection & cut buffer as clipboard"
-msgstr "Posielať primárnu selekciu a zásobník pre vymazanie ako schránku"
-
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Zdieľané (neodpojiť iných klientov)"
-
-msgid "Full-screen mode"
-msgstr "Režim celej obrazovky"
-
-msgid "Render cursor locally"
-msgstr "Vykresľovať kurzor lokálne"
-
-msgid "Show dot when no cursor"
-msgstr "Zobraziť bodku, ak kurzor nie je zobrazený"
-
-msgid "OK"
-msgstr "OK"
-
-msgid "Cancel"
-msgstr "Zrušiť"
-
-msgid "Security:"
+msgid "Encryption"
 msgstr ""
+
+msgid "Exit viewer"
+msgstr "Ukončiť prehliadač"
 
 msgid "Extended encryption and authentication methods (VeNCrypt)"
 msgstr ""
 
-msgid "Session encryption:"
+msgid "Failure grabbing keyboard"
+msgstr ""
+
+msgid "Full (all available colors)"
+msgstr "Plná (všetky dostupné farby)"
+
+msgid "Full screen"
+msgstr "Režim celej obrazovky"
+
+msgid "Full-screen mode"
+msgstr "Režim celej obrazovky"
+
+msgid "Hide"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+#, fuzzy
+msgid "Input"
+msgstr "Vstupy:"
+
+msgid "Internal FLTK error. Exiting."
+msgstr ""
+
+msgid "Low (64 colors)"
+msgstr "Nízka (64 farieb)"
+
+msgid "Medium (256 colors)"
+msgstr "Stredná (256 farieb)"
+
+msgid "Menu key"
+msgstr ""
+
+#, fuzzy
+msgid "Misc."
+msgstr "Iné:"
+
+#, c-format
+msgid "Multiple characters given for key code %d (0x%04x): '%s'"
+msgstr ""
+
+msgid "No"
 msgstr ""
 
 msgid "None"
 msgstr ""
 
-msgid "TLS with anonymous certificates"
+msgid "OK"
+msgstr "OK"
+
+msgid "Opening password file failed"
 msgstr ""
 
-msgid "TLS with X509 certificates"
+msgid "Options..."
+msgstr "Voľby..."
+
+msgid "Pass system keys directly to server (full screen)"
 msgstr ""
+
+msgid "Password:"
+msgstr "Heslo:"
 
 msgid "Path to X509 CA certificate"
 msgstr ""
@@ -188,30 +185,68 @@ msgstr ""
 msgid "Path to X509 CRL file"
 msgstr ""
 
+msgid "Preferred encoding"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
+
+msgid "Refresh screen"
+msgstr "Obnoviť obrazovku"
+
+msgid "Security"
+msgstr ""
+
+#, c-format
+msgid "Send %s"
+msgstr "Poslať %s"
+
+msgid "Send Ctrl-Alt-Del"
+msgstr "Poslať Ctrl-Alt-Del"
+
+msgid "Send clipboard to server"
+msgstr "Posielať schránku serveru"
+
 #, fuzzy
-msgid "Authentication:"
-msgstr "VNC autorizácia"
+msgid "Send primary selection and cut buffer as clipboard"
+msgstr "Posielať primárnu selekciu a zásobník pre vymazanie ako schránku"
+
+msgid "Services"
+msgstr ""
+
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr ""
+
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Zdieľané (neodpojiť iných klientov)"
+
+msgid "Show All"
+msgstr ""
+
+msgid "Show dot when no cursor"
+msgstr "Zobraziť bodku, ak kurzor nie je zobrazený"
 
 msgid "Standard VNC (insecure without encryption)"
 msgstr ""
 
-msgid "Username and password (insecure without encryption)"
+msgid "TLS with X509 certificates"
 msgstr ""
 
-msgid "Username:"
-msgstr "Názov užívateľa:"
+msgid "TLS with anonymous certificates"
+msgstr ""
 
-msgid "Password:"
-msgstr "Heslo:"
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr ""
 
-msgid "VNC Viewer: Connection Details"
-msgstr "VNC Viewer: Detaily o pripojení"
+#, c-format
+msgid "Throughput %d kbit/s - full color is now %s"
+msgstr ""
 
-msgid "VNC server:"
-msgstr "VNC server:"
-
-msgid "About..."
-msgstr "O programe..."
+#, fuzzy
+msgid "TigerVNC Viewer"
+msgstr "O aplikácií VNC Viewer"
 
 #, fuzzy, c-format
 msgid ""
@@ -225,5 +260,86 @@ msgstr ""
 "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
 "Pre informácie o TigerVNC navštívte http://www.tigervnc.org."
 
+#, c-format
+msgid "TigerVNC: %.240s"
+msgstr ""
+
+#, c-format
+msgid "Unexpected release of FLTK key code %d (0x%04x)"
+msgstr ""
+
+#, c-format
+msgid "Unknown FLTK key code %d (0x%04x)"
+msgstr ""
+
+msgid "Username and password (insecure without encryption)"
+msgstr ""
+
+msgid "Username:"
+msgstr "Názov užívateľa:"
+
+#, c-format
+msgid "Using %s encoding"
+msgstr ""
+
+#, c-format
+msgid "Using pixel format %s"
+msgstr ""
+
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC Viewer: Detaily o pripojení"
+
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC Viewer: Voľby pripojenia"
+
+msgid "VNC authentication"
+msgstr "VNC autorizácia"
+
+msgid "VNC connection info"
+msgstr "Informácie o VNC pripojení"
+
+msgid "VNC server:"
+msgstr "VNC server:"
+
+msgid "Very low (8 colors)"
+msgstr "Veľmi nízka (8 farieb)"
+
+#, fuzzy
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Iba prezerať (ignorovať myš a klávesnicu)"
+
+msgid "Yes"
+msgstr ""
+
+#, c-format
+msgid "connected to host %s port %d"
+msgstr ""
+
+msgid "disabled"
+msgstr ""
+
+msgid "enabled"
+msgstr ""
+
+#, fuzzy
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "stupeň (1=rýchla, 9=najlepšia)"
+
+#, fuzzy
+msgid "quality (0=poor, 9=best)"
+msgstr "kvalita (1=nízka, 9=najlepšia)"
+
 #~ msgid "About VNCviewer..."
 #~ msgstr "O VNCviewer..."
+
+#~ msgid "Encoding and Color Level:"
+#~ msgstr "Kódovanie a úroveň farieb:"
+
+#~ msgid "New connection..."
+#~ msgstr "Nové pripojenie..."
+
+#~ msgid "Render cursor locally"
+#~ msgstr "Vykresľovať kurzor lokálne"
+
+#~ msgid "VNC Menu"
+#~ msgstr "VNC Menu"
