@@ -100,6 +100,7 @@ abstract public class CConnection extends CMsgHandler {
     vlog.info("processing security types message");
 
     int secType = Security.secTypeInvalid;
+
     List<Integer> secTypes = new ArrayList<Integer>();
     secTypes = security.GetEnabledSecTypes();
     //for (Iterator i = secTypes.iterator(); i.hasNext(); )
@@ -121,10 +122,10 @@ abstract public class CConnection extends CMsgHandler {
             secType = refType;
             break;
           }
+          if (!i.hasNext())
+            secType = Security.secTypeInvalid;
         }
       
-        if (!i.hasNext())
-          secType = Security.secTypeInvalid;
       } else {
         vlog.error("Unknown 3.3 security type "+secType);
         throw new Exception("Unknown 3.3 security type");
