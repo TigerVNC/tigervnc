@@ -46,6 +46,7 @@
 #include "fltk_layout.h"
 #include "parameters.h"
 #include "keysym2ucs.h"
+#include "menukey.h"
 #include "vncviewer.h"
 
 #include <FL/fl_draw.H>
@@ -938,16 +939,7 @@ void Viewport::popupContextMenu()
 
 void Viewport::setMenuKey()
 {
-  const char *menuKeyStr;
-
-  menuKeyCode = 0;
-
-  menuKeyStr = menuKey;
-  if (menuKeyStr[0] == 'F') {
-    int num = atoi(menuKeyStr + 1);
-    if ((num >= 1) && (num <= 12))
-      menuKeyCode = FL_F + num;
-  }
+  menuKeyCode = getMenuKeyCode();
 
   // Need to repopulate the context menu as it contains references to
   // the menu key

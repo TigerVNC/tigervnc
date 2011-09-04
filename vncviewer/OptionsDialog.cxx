@@ -36,6 +36,7 @@
 #include "OptionsDialog.h"
 #include "fltk_layout.h"
 #include "i18n.h"
+#include "menukey.h"
 #include "parameters.h"
 
 #include <FL/Fl_Tabs.H>
@@ -268,11 +269,9 @@ void OptionsDialog::loadOptions(void)
   menuKeyChoice->value(0);
 
   menuKeyBuf = menuKey;
-  if (menuKeyBuf[0] == 'F') {
-    int num = atoi(menuKeyBuf+1);
-    if ((num >= 1) && (num <= 12))
-      menuKeyChoice->value(num);
-  }
+  for (int i = 0; i < getMenuKeySymbolCount(); i++)
+    if (!strcmp(getMenuKeySymbols()[i].name, menuKeyBuf))
+      menuKeyChoice->value(i + 1);
 
   /* Misc. */
   sharedCheckbox->value(shared);
@@ -361,9 +360,7 @@ void OptionsDialog::storeOptions(void)
   if (menuKeyChoice->value() == 0)
     menuKey.setParam("");
   else {
-    char buf[16];
-    sprintf(buf, "F%d", menuKeyChoice->value());
-    menuKey.setParam(buf);
+    menuKey.setParam(menuKeyChoice->text());
   }
 
   /* Misc. */
@@ -696,11 +693,8 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
 
   menuKeyChoice->add(_("None"), 0, NULL, (void*)0, FL_MENU_DIVIDER);
-  for (int i = 1;i <= 12;i++) {
-    char buf[16];
-    sprintf(buf, "F%d", i);
-    menuKeyChoice->add(buf, 0, NULL, (void*)i, 0);
-  }
+  for (int i = 0; i < getMenuKeySymbolCount(); i++)
+    menuKeyChoice->add(getMenuKeySymbols()[i].name, 0, NULL, 0, 0);
 
   ty += CHOICE_HEIGHT + TIGHT_MARGIN;
 
