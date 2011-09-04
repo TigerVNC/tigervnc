@@ -188,7 +188,10 @@ specific source file if you know the name of its "LogWriter".  Default is
 .B \-MenuKey \fIkeysym-name\fP
 This option specifies the key which brings up the popup menu.  The key is
 specified as an X11 keysym name (these can be obtained by removing the XK_
-prefix from the entries in "/usr/include/X11/keysymdef.h").  Default is F8.
+prefix from the entries in "/usr/include/X11/keysymdef.h" - the currently 
+implemented list is: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Pause, 
+Print, Scroll_Lock, Escape, Insert, Delete, Home, Page_Up, Page_Down).
+Default is F8.
 
 .TP
 \fB\-via\fR \fIgateway\fR
