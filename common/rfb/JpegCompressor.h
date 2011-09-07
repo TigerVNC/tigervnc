@@ -29,26 +29,12 @@
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 
-#include <stdio.h>
-extern "C" {
-#include <jpeglib.h>
-}
-#include <setjmp.h>
+struct jpeg_compress_struct;
+
+struct JPEG_ERROR_MGR;
+struct JPEG_DEST_MGR;
 
 namespace rfb {
-
-  typedef struct {
-    struct jpeg_error_mgr pub;
-    jmp_buf jmpBuffer;
-    char lastError[JMSG_LENGTH_MAX];
-  } JPEG_ERROR_MGR;
-
-  class JpegCompressor;
-
-  typedef struct {
-    struct jpeg_destination_mgr pub;
-    JpegCompressor *instance;
-  } JPEG_DEST_MGR;
 
   enum JPEG_SUBSAMP {
     SUBSAMP_UNDEFINED = -1,
@@ -78,9 +64,10 @@ namespace rfb {
 
   private:
 
-    struct jpeg_compress_struct cinfo;
-    JPEG_ERROR_MGR err;
-    JPEG_DEST_MGR dest;
+    struct jpeg_compress_struct *cinfo;
+
+    struct JPEG_ERROR_MGR *err;
+    struct JPEG_DEST_MGR *dest;
 
   };
 

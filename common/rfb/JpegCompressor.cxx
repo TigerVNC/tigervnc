@@ -23,11 +23,23 @@
 #include <rfb/PixelFormat.h>
 #include <os/print.h>
 
+#include <stdio.h>
+extern "C" {
+#include <jpeglib.h>
+}
+#include <setjmp.h>
+
 using namespace rfb;
 
 //
 // Error manager implmentation for the JPEG library
 //
+
+struct JPEG_ERROR_MGR {
+  struct jpeg_error_mgr pub;
+  jmp_buf jmpBuffer;
+  char lastError[JMSG_LENGTH_MAX];
+};
 
 static void
 JpegErrorExit(j_common_ptr cinfo)
@@ -49,6 +61,11 @@ JpegOutputMessage(j_common_ptr cinfo)
 //
 // Destination manager implementation for the JPEG library.
 //
+
+struct JPEG_DEST_MGR {
+  struct jpeg_destination_mgr pub;
+  JpegCompressor *instance;
+};
 
 static void
 JpegInitDestination(j_compress_ptr cinfo)
@@ -86,33 +103,42 @@ JpegTermDestination(j_compress_ptr cinfo)
 
 JpegCompressor::JpegCompressor(int bufferLen) : MemOutStream(bufferLen)
 {
-  cinfo.err = jpeg_std_error(&err.pub);
-  snprintf(err.lastError, JMSG_LENGTH_MAX, "No error");
-  err.pub.error_exit = JpegErrorExit;
-  err.pub.output_message = JpegOutputMessage;
+  cinfo = new jpeg_compress_struct;
 
-  if(setjmp(err.jmpBuffer)) {
+  err = new struct JPEG_ERROR_MGR;
+  cinfo->err = jpeg_std_error(&err->pub);
+  snprintf(err->lastError, JMSG_LENGTH_MAX, "No error");
+  err->pub.error_exit = JpegErrorExit;
+  err->pub.output_message = JpegOutputMessage;
+
+  if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
-    throw rdr::Exception(err.lastError);
+    throw rdr::Exception(err->lastError);
   }
 
-  jpeg_create_compress(&cinfo);
+  jpeg_create_compress(cinfo);
 
-  dest.pub.init_destination = JpegInitDestination;
-  dest.pub.empty_output_buffer = JpegEmptyOutputBuffer;
-  dest.pub.term_destination = JpegTermDestination;
-  dest.instance = this;
-  cinfo.dest = (struct jpeg_destination_mgr *)&dest;
+  dest = new struct JPEG_DEST_MGR;
+  dest->pub.init_destination = JpegInitDestination;
+  dest->pub.empty_output_buffer = JpegEmptyOutputBuffer;
+  dest->pub.term_destination = JpegTermDestination;
+  dest->instance = this;
+  cinfo->dest = (struct jpeg_destination_mgr *)dest;
 }
 
 JpegCompressor::~JpegCompressor(void)
 {
-  if(setjmp(err.jmpBuffer)) {
+  if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
     return;
   }
 
-  jpeg_destroy_compress(&cinfo);
+  jpeg_destroy_compress(cinfo);
+
+  delete err;
+  delete dest;
+
+  delete cinfo;
 }
 
 void JpegCompressor::compress(rdr::U8 *buf, int pitch, const Rect& r,
@@ -125,17 +151,17 @@ void JpegCompressor::compress(rdr::U8 *buf, int pitch, const Rect& r,
   bool srcBufIsTemp = false;
   JSAMPROW *rowPointer = NULL;
 
-  if(setjmp(err.jmpBuffer)) {
+  if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
-    jpeg_abort_compress(&cinfo);
+    jpeg_abort_compress(cinfo);
     if (srcBufIsTemp && srcBuf) delete[] srcBuf;
     if (rowPointer) delete[] rowPointer;
-    throw rdr::Exception(err.lastError);
+    throw rdr::Exception(err->lastError);
   }
 
-  cinfo.image_width = w;
-  cinfo.image_height = h;
-  cinfo.in_color_space = JCS_RGB;
+  cinfo->image_width = w;
+  cinfo->image_height = h;
+  cinfo->in_color_space = JCS_RGB;
   pixelsize = 3;
 
 #ifdef JCS_EXTENSIONS
@@ -154,15 +180,15 @@ void JpegCompressor::compress(rdr::U8 *buf, int pitch, const Rect& r,
     }
 
     if(redShift == 0 && greenShift == 8 && blueShift == 16)
-      cinfo.in_color_space = JCS_EXT_RGBX;
+      cinfo->in_color_space = JCS_EXT_RGBX;
     if(redShift == 16 && greenShift == 8 && blueShift == 0)
-      cinfo.in_color_space = JCS_EXT_BGRX;
+      cinfo->in_color_space = JCS_EXT_BGRX;
     if(redShift == 24 && greenShift == 16 && blueShift == 8)
-      cinfo.in_color_space = JCS_EXT_XBGR;
+      cinfo->in_color_space = JCS_EXT_XBGR;
     if(redShift == 8 && greenShift == 16 && blueShift == 24)
-      cinfo.in_color_space = JCS_EXT_XRGB;
+      cinfo->in_color_space = JCS_EXT_XRGB;
 
-    if (cinfo.in_color_space != JCS_RGB) {
+    if (cinfo->in_color_space != JCS_RGB) {
       srcBuf = (rdr::U8 *)buf;
       pixelsize = 4;
     }
@@ -171,46 +197,46 @@ void JpegCompressor::compress(rdr::U8 *buf, int pitch, const Rect& r,
 
   if (pitch == 0) pitch = w * pf.bpp / 8;
 
-  if (cinfo.in_color_space == JCS_RGB) {
+  if (cinfo->in_color_space == JCS_RGB) {
     srcBuf = new rdr::U8[w * h * pixelsize];
     srcBufIsTemp = true;
     pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w, pitch, h);
     pitch = w * pixelsize;
   }
 
-  cinfo.input_components = pixelsize;
+  cinfo->input_components = pixelsize;
 
-  jpeg_set_defaults(&cinfo);
-  jpeg_set_quality(&cinfo, quality, TRUE);
-  if(quality >= 96) cinfo.dct_method = JDCT_ISLOW;
-  else cinfo.dct_method = JDCT_FASTEST;
+  jpeg_set_defaults(cinfo);
+  jpeg_set_quality(cinfo, quality, TRUE);
+  if(quality >= 96) cinfo->dct_method = JDCT_ISLOW;
+  else cinfo->dct_method = JDCT_FASTEST;
 
   switch (subsamp) {
   case SUBSAMP_420:
-    cinfo.comp_info[0].h_samp_factor = 2;
-    cinfo.comp_info[0].v_samp_factor = 2;
+    cinfo->comp_info[0].h_samp_factor = 2;
+    cinfo->comp_info[0].v_samp_factor = 2;
     break;
   case SUBSAMP_422:
-    cinfo.comp_info[0].h_samp_factor = 2;
-    cinfo.comp_info[0].v_samp_factor = 1;
+    cinfo->comp_info[0].h_samp_factor = 2;
+    cinfo->comp_info[0].v_samp_factor = 1;
     break;
   case SUBSAMP_GRAY:
-    jpeg_set_colorspace(&cinfo, JCS_GRAYSCALE);
+    jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
   default:
-    cinfo.comp_info[0].h_samp_factor = 1;
-    cinfo.comp_info[0].v_samp_factor = 1;
+    cinfo->comp_info[0].h_samp_factor = 1;
+    cinfo->comp_info[0].v_samp_factor = 1;
   }
 
   rowPointer = new JSAMPROW[h];
   for (int dy = 0; dy < h; dy++)
     rowPointer[dy] = (JSAMPROW)(&srcBuf[dy * pitch]);
 
-  jpeg_start_compress(&cinfo, TRUE);
-  while (cinfo.next_scanline < cinfo.image_height)
-    jpeg_write_scanlines(&cinfo, &rowPointer[cinfo.next_scanline],
-      cinfo.image_height - cinfo.next_scanline);
+  jpeg_start_compress(cinfo, TRUE);
+  while (cinfo->next_scanline < cinfo->image_height)
+    jpeg_write_scanlines(cinfo, &rowPointer[cinfo->next_scanline],
+      cinfo->image_height - cinfo->next_scanline);
 
-  jpeg_finish_compress(&cinfo);
+  jpeg_finish_compress(cinfo);
 
   if (srcBufIsTemp) delete[] srcBuf;
   delete[] rowPointer;
