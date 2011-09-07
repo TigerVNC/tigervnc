@@ -369,6 +369,9 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
 
   vlog.debug("Got clipboard data: '%s'", buffer);
 
+  // RFB doesn't have separate selection and clipboard concepts, so we
+  // dump the data into both variants.
+  Fl::copy(buffer, ret, 0);
   Fl::copy(buffer, ret, 1);
 
   delete [] buffer;
