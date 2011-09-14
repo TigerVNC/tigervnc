@@ -69,7 +69,7 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
     colourMapChange(false), lastPointerPos(0, 0), lastButtonMask(0),
-    cursor(NULL)
+    cursor(NULL), menuCtrlKey(false), menuAltKey(false)
 {
 // FLTK STR #2599 must be fixed for proper dead keys support
 #ifdef HAVE_FLTK_DEAD_KEYS
