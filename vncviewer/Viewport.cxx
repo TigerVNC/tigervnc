@@ -98,7 +98,6 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   window()->add(contextMenu);
 
   setMenuKey();
-  initContextMenu();
 
   OptionsDialog::addCallback(handleOptions, this);
 }
@@ -843,11 +842,14 @@ void Viewport::initContextMenu()
   contextMenu->add(_("Exit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
 
 #ifdef HAVE_FLTK_FULLSCREEN
-  contextMenu->add(_("Full screen"), 0, NULL, (void*)ID_FULLSCREEN, FL_MENU_DIVIDER);
+  contextMenu->add(_("Full screen"), 0, NULL, (void*)ID_FULLSCREEN, 
+		   FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
 #endif
 
-  contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, FL_MENU_TOGGLE);
-  contextMenu->add(_("Alt"), 0, NULL, (void*)ID_ALT, FL_MENU_TOGGLE);
+  contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, 
+		   FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
+  contextMenu->add(_("Alt"), 0, NULL, (void*)ID_ALT,
+		   FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
 
   if (menuKeyCode) {
     char sendMenuKey[64];
@@ -877,6 +879,9 @@ void Viewport::popupContextMenu()
   // it will start up highlighting the previously selected entry.
   contextMenu->value(-1);
 
+  // initialize context menu before display
+  initContextMenu();
+
   m = contextMenu->popup();
   if (m == NULL)
     return;
@@ -898,9 +903,11 @@ void Viewport::popupContextMenu()
 #endif
   case ID_CTRL:
     handleKeyEvent(FL_Control_L, FL_Control_L, "", m->value());
+    menuCtrlKey = !menuCtrlKey;
     break;
   case ID_ALT:
     handleKeyEvent(FL_Alt_L, FL_Alt_L, "", m->value());
+    menuAltKey = !menuAltKey;
     break;
   case ID_MENUKEY:
     handleKeyEvent(menuKeyCode, menuKeyCode, "", true);
@@ -940,10 +947,6 @@ void Viewport::popupContextMenu()
 void Viewport::setMenuKey()
 {
   menuKeyCode = getMenuKeyCode();
-
-  // Need to repopulate the context menu as it contains references to
-  // the menu key
-  initContextMenu();
 }
 
 

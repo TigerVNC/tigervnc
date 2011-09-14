@@ -155,6 +155,9 @@ private:
   int menuKeyCode;
   Fl_Menu_Button *contextMenu;
 
+  bool menuCtrlKey;
+  bool menuAltKey;
+
   Fl_RGB_Image *cursor;
   rfb::Point cursorHotspot;
 };
