@@ -108,7 +108,6 @@ struct FL_EXPORT Fl_Label {
  */
 class FL_EXPORT Fl_Widget {
   friend class Fl_Group;
-  friend class Fl_X;
 
   Fl_Group* parent_;
   Fl_Callback* callback_;

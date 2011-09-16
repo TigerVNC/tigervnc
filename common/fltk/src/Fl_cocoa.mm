@@ -1666,6 +1666,7 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
 - (void)rightMouseDragged:(NSEvent *)theEvent;
 - (void)otherMouseDragged:(NSEvent *)theEvent;
 - (void)scrollWheel:(NSEvent *)theEvent;
++ (NSString *)keyTranslate:(UInt16)keyCode withModifierFlags:(UInt32)modifierFlags;
 - (BOOL)handleKeyDown:(NSEvent *)theEvent;
 - (void)keyDown:(NSEvent *)theEvent;
 - (void)keyUp:(NSEvent *)theEvent;
@@ -1754,6 +1755,130 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
 - (void)scrollWheel:(NSEvent *)theEvent {
   cocoaMouseWheelHandler(theEvent);
 }
++ (NSString *)keyTranslate:(UInt16)keyCode withModifierFlags:(UInt32)modifierFlags {
+  const UCKeyboardLayout *layout;
+  OSStatus err;
+
+  layout = NULL;
+
+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
+  TISInputSourceRef keyboard;
+  CFDataRef uchr;
+
+  keyboard = TISCopyCurrentKeyboardInputSource();
+  uchr = (CFDataRef)TISGetInputSourceProperty(keyboard,
+                                              kTISPropertyUnicodeKeyLayoutData);
+  if (uchr == NULL)
+    return nil;
+
+  layout = (const UCKeyboardLayout*)CFDataGetBytePtr(uchr);
+#else
+  KeyboardLayoutRef old_layout;
+  int kind;
+
+  err = KLGetCurrentKeyboardLayout(&old_layout);
+  if (err != noErr)
+    return nil;
+
+  err = KLGetKeyboardLayoutProperty(old_layout, kKLKind,
+                                    (const void**)&kind);
+  if (err != noErr)
+    return nil;
+
+  // Old, crufty layout format?
+  if (kind == kKLKCHRKind) {
+    void *kchr_layout;
+
+    UInt32 chars, state;
+    char buf[3];
+
+    unichar result[16];
+    ByteCount in_len, out_len;
+
+    err = KLGetKeyboardLayoutProperty(old_layout, kKLKCHRData,
+                                      (const void**)&kchr_layout);
+    if (err != noErr)
+      return nil;
+
+    state = 0;
+
+    keyCode &= 0x7f;
+    modifierFlags &= 0xff00;
+
+    chars = KeyTranslate(kchr_layout, keyCode | modifierFlags, &state);
+
+    buf[0] = (chars >> 16) & 0xff;
+    buf[1] = chars & 0xff;
+    buf[2] = '\0';
+
+    if (buf[0] == '\0') {
+      buf[0] = buf[1];
+      buf[1] = '\0';
+    }
+
+    // The data is now in some layout specific encoding. Need to convert
+    // this to unicode.
+
+    ScriptCode script;
+    TextEncoding encoding;
+    TECObjectRef converter;
+
+    script = (ScriptCode)GetScriptManagerVariable(smKeyScript);
+
+    err = UpgradeScriptInfoToTextEncoding(script, kTextLanguageDontCare,
+                                          kTextRegionDontCare, NULL,
+                                          &encoding);
+    if (err != noErr)
+      return nil;
+
+    err = TECCreateConverter(&converter, encoding, kTextEncodingUnicodeV4_0);
+    if (err != noErr)
+      return nil;
+
+    in_len = strlen(buf);
+    out_len = sizeof(result);
+
+    err = TECConvertText(converter, (ConstTextPtr)buf, in_len, &in_len,
+                         (TextPtr)result, out_len, &out_len);
+
+    TECDisposeConverter(converter);
+
+    if (err != noErr)
+      return nil;
+
+    return [NSString stringWithCharacters:result
+                     length:(out_len / sizeof(unichar))];
+  }
+
+  if ((kind != kKLKCHRuchrKind) && (kind != kKLuchrKind))
+    return nil;
+
+  err = KLGetKeyboardLayoutProperty(old_layout, kKLuchrData,
+                                    (const void**)&layout);
+  if (err != noErr)
+    return nil;
+#endif
+ 
+  if (layout == NULL)
+    return nil;
+
+  UInt32 dead_state;
+  UniCharCount max_len, actual_len;
+  UniChar string[255];
+
+  dead_state = 0;
+  max_len = sizeof(string)/sizeof(*string);
+
+  modifierFlags = (modifierFlags >> 8) & 0xff;
+
+  err = UCKeyTranslate(layout, keyCode, kUCKeyActionDown, modifierFlags,
+                       LMGetKbdType(), 0, &dead_state, max_len, &actual_len,
+                       string);
+  if (err != noErr)
+    return nil;
+
+  return [NSString stringWithCharacters:string length:actual_len];
+}
 - (BOOL)handleKeyDown:(NSEvent *)theEvent {
   //NSLog(@"handleKeyDown");
   fl_lock_function();
@@ -1780,19 +1905,47 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
       break;
     }
   }
-  // Don't send cmd-<key> to interpretKeyEvents because it beeps.
-  if (!no_text_key && !(Fl::e_state & FL_META) ) {
+  if (!no_text_key) {
     // The simple keyboard model will ignore insertText, so we need to grab
     // the symbol directly from the event. Note that we still use setMarkedText.
-    if (use_simple_keyboard)
-      [FLView prepareEtext:[theEvent charactersIgnoringModifiers]];
+    if (use_simple_keyboard) {
+      NSString *simple_chars;
+      UInt32 modifiers;
+
+      // We want a "normal" symbol out of the event, which basically means
+      // we only respect the shift and alt/altgr modifiers. Cocoa can help
+      // us if we only wanted shift, but as we also want alt/altgr, we'll
+      // have to do some lookup ourselves. This matches our behaviour on
+      // other platforms.
+
+      modifiers = 0;
+      if ([theEvent modifierFlags] & NSAlphaShiftKeyMask)
+        modifiers |= alphaLock;
+      if ([theEvent modifierFlags] & NSShiftKeyMask)
+        modifiers |= shiftKey;
+      if ([theEvent modifierFlags] & NSAlternateKeyMask)
+        modifiers |= optionKey;
+
+      simple_chars = [FLView keyTranslate:[theEvent keyCode]
+                             withModifierFlags:modifiers];
+      if (simple_chars == nil) {
+        // Something went wrong. Fall back to what Cocoa gave us...
+        simple_chars = [theEvent charactersIgnoringModifiers];
+      }
+
+      [FLView prepareEtext:simple_chars];
+    }
 
     // Then we can let the OS have a stab at it and see if it thinks it
     // should result in some text
-    NSText *edit = [[theEvent window]  fieldEditor:YES forObject:nil];
-    in_key_event = true;
-    [edit interpretKeyEvents:[NSArray arrayWithObject:theEvent]];
-    in_key_event = false;
+
+    // Don't send cmd-<key> to interpretKeyEvents because it beeps.
+    if (!(Fl::e_state & FL_META)) {
+      NSText *edit = [[theEvent window]  fieldEditor:YES forObject:nil];
+      in_key_event = true;
+      [edit interpretKeyEvents:[NSArray arrayWithObject:theEvent]];
+      in_key_event = false;
+    }
   }
   //NSLog(@"to text=%@ l=%d", [NSString stringWithUTF8String:Fl::e_text], Fl::e_length);
   int handled = Fl::handle(FL_KEYDOWN, window);
@@ -3078,12 +3231,25 @@ int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
 @implementation FLaboutItemTarget
 - (void)showPanel
 {
-    NSDictionary *options;
-    options = [NSDictionary dictionaryWithObjectsAndKeys:
-                	     [NSString stringWithFormat:@" GUI with FLTK %d.%d", FL_MAJOR_VERSION,
-                              FL_MINOR_VERSION ], @"Copyright",
-                	     nil];
-    [NSApp  orderFrontStandardAboutPanelWithOptions:options];
+    if ((Fl_Mac_App_Menu::copyright == NULL) ||
+        (strlen(Fl_Mac_App_Menu::copyright) > 0)) {
+      NSString *copyright;
+
+      if (Fl_Mac_App_Menu::copyright == NULL)
+        copyright = [NSString stringWithFormat:@" GUI with FLTK %d.%d",
+                              FL_MAJOR_VERSION, FL_MINOR_VERSION ];
+      else
+        copyright = [NSString stringWithUTF8String:Fl_Mac_App_Menu::copyright];
+
+      NSDictionary *options;
+      options = [NSDictionary dictionaryWithObjectsAndKeys:
+                              copyright, @"Copyright",
+                              nil];
+
+      [NSApp orderFrontStandardAboutPanelWithOptions:options];
+    } else {
+      [NSApp orderFrontStandardAboutPanelWithOptions:nil];
+    }
   }
 //#include <FL/Fl_PostScript.H>
 - (void)printPanel

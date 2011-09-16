@@ -86,6 +86,7 @@ extern void fl_update_focus(void);
 //
 #if defined(__APPLE__) || defined(FL_DOXYGEN)
 const char *Fl_Mac_App_Menu::about = "About ";
+const char *Fl_Mac_App_Menu::copyright = NULL;
 const char *Fl_Mac_App_Menu::print = "Print Front Window";
 const char *Fl_Mac_App_Menu::services = "Services";
 const char *Fl_Mac_App_Menu::hide = "Hide ";

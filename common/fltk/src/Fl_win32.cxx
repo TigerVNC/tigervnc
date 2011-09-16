@@ -1179,7 +1179,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       // Pressing Ctrl wreaks havoc with the symbol lookup, so turn that off.
       // But AltGr shows up as Ctrl+Alt in Windows, so keep Ctrl if Alt is
       // active.
-      if (!(keystate[VK_MENU] & (1<<31)))
+      if (!(keystate[VK_MENU] & 0x80))
         keystate[VK_CONTROL] = keystate[VK_LCONTROL] = keystate[VK_RCONTROL] = 0;
 
       // We cannot inspect or modify Windows' internal state of the keyboard
@@ -1776,6 +1776,7 @@ Fl_X* Fl_X::make(Fl_Window* w) {
   x->region = 0;
   x->private_dc = 0;
   x->cursor = LoadCursor(NULL, IDC_ARROW);
+  x->custom_cursor = 0;
   if (!fl_codepage) fl_get_codepage();
 
   WCHAR *lab = NULL;
@@ -2033,9 +2034,10 @@ void Fl_Window::label(const char *name,const char *iname) {
 
 int Fl_X::set_cursor(Fl_Cursor c) {
   LPSTR n;
+  HCURSOR new_cursor;
 
   if (c == FL_CURSOR_NONE)
-    cursor = NULL;
+    new_cursor = NULL;
   else {
     switch (c) {
     case FL_CURSOR_ARROW:   n = IDC_ARROW; break;
@@ -2065,10 +2067,16 @@ int Fl_X::set_cursor(Fl_Cursor c) {
       return 0;
     }
 
-    cursor = LoadCursor(NULL, n);
-    if (cursor == NULL)
+    new_cursor = LoadCursor(NULL, n);
+    if (new_cursor == NULL)
       return 0;
   }
+
+  if ((cursor != NULL) && custom_cursor)
+    DestroyIcon(cursor);
+
+  cursor = new_cursor;
+  custom_cursor = 0;
 
   SetCursor(cursor);
 
@@ -2079,6 +2087,7 @@ int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
   BITMAPV5HEADER bi;
   HBITMAP bitmap, mask;
   DWORD *bits;
+  HCURSOR new_cursor;
 
   if ((hotx < 0) || (hotx >= image->w()))
     return 0;
@@ -2089,7 +2098,7 @@ int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
 
   bi.bV5Size        = sizeof(BITMAPV5HEADER);
   bi.bV5Width       = image->w();
-  bi.bV5Height      = image->h();
+  bi.bV5Height      = -image->h(); // Negative for top-down
   bi.bV5Planes      = 1;
   bi.bV5BitCount    = 32;
   bi.bV5Compression = BI_BITFIELDS;
@@ -2103,6 +2112,9 @@ int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
   hdc = GetDC(NULL);
   bitmap = CreateDIBSection(hdc, (BITMAPINFO*)&bi, DIB_RGB_COLORS, (void**)&bits, NULL, 0);
   ReleaseDC(NULL, hdc);
+
+  if (bits == NULL)
+    return 0;
 
   const uchar *i = (const uchar*)*image->data();
   for (int y = 0;y < image->h();y++) {
@@ -2129,6 +2141,10 @@ int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
 
   // A mask bitmap is still needed even though it isn't used
   mask = CreateBitmap(image->w(),image->h(),1,1,NULL);
+  if (mask == NULL) {
+    DeleteObject(bitmap);
+    return 0;
+  }
 
   ICONINFO ii;
 
@@ -2138,10 +2154,19 @@ int Fl_X::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
   ii.hbmMask  = mask;
   ii.hbmColor = bitmap;
 
-  cursor = CreateIconIndirect(&ii);
+  new_cursor = CreateIconIndirect(&ii);
 
   DeleteObject(bitmap);
   DeleteObject(mask);
+
+  if (new_cursor == NULL)
+    return 0;
+
+  if ((cursor != NULL) && custom_cursor)
+    DestroyIcon(cursor);
+
+  cursor = new_cursor;
+  custom_cursor = 1;
 
   SetCursor(cursor);
 

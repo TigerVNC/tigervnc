@@ -213,6 +213,9 @@ class Fl_Mac_App_Menu {
 public:
   /** Localizable text for the "About xxx" application menu item */
   static const char *about;
+  /** Copyright notice for the default about dialog. Will use the information
+   from the bundle if set to an empty string. */
+  static const char *copyright;
   /** Localizable text for the "Print Front Window" application menu item.
    This menu item won't be displayed if Fl_Mac_App_Menu::print 
    is set to an empty string.
