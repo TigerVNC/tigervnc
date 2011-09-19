@@ -117,6 +117,10 @@ static void init_fltk()
   Fl::scheme("plastic");
 #endif
 
+  // Proper Gnome Shell integration requires that we set a sensible
+  // WM_CLASS for the window.
+  Fl_Window::default_xclass("vncviewer");
+
   // This makes the "icon" in dialogs rounded, which fits better
   // with the above schemes.
   fl_message_icon()->box(FL_UP_BOX);
