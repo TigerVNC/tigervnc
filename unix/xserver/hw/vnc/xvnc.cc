@@ -1,6 +1,6 @@
 /* Copyright (c) 1993  X Consortium
    Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
-   Copyright (C) 2009 Pierre Ossman for Cendio AB
+   Copyright 2009 Pierre Ossman for Cendio AB
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
