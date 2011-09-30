@@ -122,7 +122,9 @@ void OptionsDialog::removeCallback(OptionsCallback *cb)
 
 void OptionsDialog::show(void)
 {
-  loadOptions();
+  /* show() gets called for raise events as well */
+  if (!shown())
+    loadOptions();
 
   Fl_Window::show();
 }
