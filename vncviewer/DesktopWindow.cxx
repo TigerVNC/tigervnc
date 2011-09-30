@@ -131,7 +131,7 @@ void DesktopWindow::setName(const char *name)
   CharArray windowNameStr;
   windowNameStr.replaceBuf(new char[256]);
 
-  snprintf(windowNameStr.buf, 256, _("TigerVNC: %.240s"), name);
+  snprintf(windowNameStr.buf, 256, "%.240s - TigerVNC", name);
 
   copy_label(windowNameStr.buf);
 }
