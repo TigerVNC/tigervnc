@@ -86,7 +86,7 @@ class DesktopWindow extends JPanel implements
   public void initGraphics() { 
     cc.viewport.g = cc.viewport.getGraphics(); 
     graphics = getComponentGraphics(cc.viewport.g);
-    prepareImage(im.image, -1, -1, this);
+    prepareImage(im.image, scaledWidth, scaledHeight, this);
   }
 
   final public PixelFormat getPF() { return im.getPF(); }
@@ -289,21 +289,46 @@ class DesktopWindow extends JPanel implements
     cursorAvailable = false;
   }
 
-  synchronized public Dimension getPreferredSize() {
-    return new Dimension(im.width(), im.height());
+  //
+  // Callback methods to determine geometry of our Component.
+  //
+
+  public Dimension getPreferredSize() {
+    return new Dimension(scaledWidth, scaledHeight);
   }
 
-  synchronized public Dimension getMinimumSize() {
-    return new Dimension(im.width(), im.height());
+  public Dimension getMinimumSize() {
+    return new Dimension(scaledWidth, scaledHeight);
+  }
+
+  public Dimension getMaximumSize() {
+    return new Dimension(scaledWidth, scaledHeight);
   }
 
   public void update(Graphics g) {
     //repaint();
   }
 
+  public void setScaledSize() {
+    int w = (int)java.lang.Math.floor(cc.cp.width*cc.scaleFactor/100);
+    int h = (int)java.lang.Math.floor(cc.cp.height*cc.scaleFactor/100);
+    scaledWidth = w;
+    scaledHeight = h;
+    scaleWidthRatio = ((float)w/(float)cc.cp.width);
+    scaleHeightRatio = ((float)h/(float)cc.cp.height);
+  }
+
   synchronized public void paintComponent(Graphics g) {
     Graphics2D g2 = (Graphics2D) g;
-    g2.drawImage(im.image, 0, 0, this);
+    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);  
+    g2.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                        RenderingHints.VALUE_RENDER_QUALITY);
+    if (cc.cp.width == scaledWidth && cc.cp.height == scaledHeight) {
+      g2.drawImage(im.image, 0, 0, null);
+    } else {
+      g2.drawImage(im.image, 0, 0, scaledWidth, scaledHeight, null);  
+    }
   }
 
 
@@ -473,6 +498,9 @@ class DesktopWindow extends JPanel implements
   int cursorBackingX, cursorBackingY;
   java.awt.Cursor softCursor;
   static Toolkit tk = Toolkit.getDefaultToolkit();
+
+  public int scaledWidth = 0, scaledHeight = 0;
+  float scaleWidthRatio, scaleHeightRatio;
 
   // the following are only ever accessed by the RFB thread:
   boolean invalidRect;

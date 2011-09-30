@@ -233,6 +233,18 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new StringParameter("DesktopSize",
                         "Reconfigure desktop size on the server on "+
                         "connect (if possible)", "");
+  StringParameter scalingFactor
+  = new StringParameter("ScalingFactor",
+                        "Reduce or enlarge the remote desktop image. "+
+                        "The value is interpreted as a scaling factor "+
+                        "in percent.  If the parameter is set to "+
+                        "\"Auto\", then automatic scaling is "+
+                        "performed.  Auto-scaling tries to choose a "+
+                        "scaling factor in such a way that the whole "+
+                        "remote desktop will fit on the local screen.  "+
+                        "If the parameter is set to \"FixedRatio\", "+
+                        "then automatic scaling is performed, but the "+
+                        "original aspect ratio is preserved.", "100");
   BoolParameter alwaysShowServerDialog
   = new BoolParameter("AlwaysShowServerDialog",
                           "Always show the server dialog even if a server "+

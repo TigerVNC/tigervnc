@@ -94,9 +94,12 @@ class ViewportFrame extends JFrame
     addChild(child);
   }
 
-  public void setGeometry(int x, int y, int w, int h) {
-    pack();
-    if (cc.fullScreen) setSize(w, h);
+  public void setGeometry(int x, int y, int w, int h, boolean pack) {
+    if (pack) {
+      pack();
+    } else {
+      setSize(w, h);
+    }
     setLocation(x, y);
     setBackground(Color.BLACK);
   }
@@ -127,6 +130,7 @@ public class CConn extends CConnection
     fullScreen = viewer.fullScreen.getValue();
     menuKey = Keysyms.F8;
     options = new OptionsDialog(this);
+    options.initDialog();
     clipboardDialog = new ClipboardDialog(this);
     firstUpdate = true; pendingUpdate = false;
 
@@ -465,27 +469,39 @@ public class CConn extends CConnection
 
   private void reconfigureViewport()
   {
-    //viewport->setMaxSize(cp.width, cp.height);
+    //viewport.setMaxSize(cp.width, cp.height);
+    boolean pack = true;
+    int w = cp.width;
+    int h = cp.height;
+    Dimension dpySize = viewport.getToolkit().getScreenSize();
+    desktop.setScaledSize();
+    if (!options.autoScale && !options.fixedRatioScale) {
+      w = (int)java.lang.Math.floor(cp.width*scaleFactor/100);
+      h = (int)java.lang.Math.floor(cp.height*scaleFactor/100);
+    }
     if (fullScreen) {
-      Dimension dpySize = viewport.getToolkit().getScreenSize();
       viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
-      viewport.setGeometry(0, 0, dpySize.width, dpySize.height);
+      viewport.setGeometry(0, 0, dpySize.width, dpySize.height, false);
     } else {
-      int w = cp.width;
-      int h = cp.height;
-      Dimension dpySize = viewport.getToolkit().getScreenSize();
       int wmDecorationWidth = 0;
       int wmDecorationHeight = 24;
-      if (w + wmDecorationWidth >= dpySize.width)
+      if (w + wmDecorationWidth >= dpySize.width) {
         w = dpySize.width - wmDecorationWidth;
-      if (h + wmDecorationHeight >= dpySize.height)
+        pack = false;
+      }
+      if (h + wmDecorationHeight >= dpySize.height) {
         h = dpySize.height - wmDecorationHeight;
+        pack = false;
+      }
+
+      if (!pack)
+        viewport.setPreferredSize(new Dimension(w,h));
 
       int x = (dpySize.width - w - wmDecorationWidth) / 2;
       int y = (dpySize.height - h - wmDecorationHeight)/2;
 
       viewport.setExtendedState(JFrame.NORMAL);
-      viewport.setGeometry(x, y, w, h);
+      viewport.setGeometry(x, y, w, h, pack);
     }
   }
 
@@ -799,6 +815,25 @@ public class CConn extends CConnection
     options.useLocalCursor.setSelected(viewer.useLocalCursor.getValue());
     options.fastCopyRect.setSelected(viewer.fastCopyRect.getValue());
     options.acceptBell.setSelected(viewer.acceptBell.getValue());
+    options.autoScale = false;
+    options.fixedRatioScale = false;
+    String scaleString = viewer.scalingFactor.getValue();
+    if (scaleString.equals("Auto")) {
+      options.autoScale = true;
+    } else if( scaleString.equals("FixedRatio")) {
+      options.fixedRatioScale = true;
+    } else { 
+      digit = Integer.parseInt(scaleString);
+      if (digit >= 1 && digit <= 1000) {
+        options.scalingFactor.setSelectedItem(digit+"%");
+      } else {
+        options.scalingFactor.setSelectedItem(Integer.parseInt(viewer.scalingFactor.getDefaultStr())+"%");
+      }
+      scaleFactor = 
+        Integer.parseInt(scaleString.substring(0, scaleString.length()));
+      if (desktop != null)
+        desktop.setScaledSize();
+    }
   }
 
   public void getOptions() {
@@ -855,6 +890,24 @@ public class CConn extends CConnection
     viewer.sendClipboard.setParam(options.sendClipboard.isSelected());
     viewer.fastCopyRect.setParam(options.fastCopyRect.isSelected());
     viewer.acceptBell.setParam(options.acceptBell.isSelected());
+    if (options.autoScale) {
+      viewer.scalingFactor.setParam("Auto");
+    } else if(options.fixedRatioScale) {
+      viewer.scalingFactor.setParam("FixedRatio");
+    } else { 
+      String scaleString =
+        options.scalingFactor.getSelectedItem().toString();
+      viewer.scalingFactor.setParam(scaleString.substring(0, scaleString.length()-1));
+      int oldScaleFactor = scaleFactor;
+      scaleFactor = 
+        Integer.parseInt(scaleString.substring(0, scaleString.length()-1));
+      if (oldScaleFactor != scaleFactor && desktop != null) {
+        //desktop.setScaledSize();
+        reconfigureViewport();
+        viewport.update(viewport.g);
+      }
+    }
+
     clipboardDialog.setSendingEnabled(viewer.sendClipboard.getValue());
     menuKey = (int)(options.menuKey.getSelectedIndex()+0xFFBE);
     F8Menu.f8.setLabel("Send F"+(menuKey-Keysyms.F1+1));
@@ -1096,14 +1149,17 @@ public class CConn extends CConnection
 
     writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
 
-    x = ev.getX();
-    y = ev.getY();
-    if (x < 0) x = 0;
-    if (x > cp.width-1) x = cp.width-1;
-    if (y < 0) y = 0;
-    if (y > cp.height-1) y = cp.height-1;
-
-    writer().writePointerEvent(new Point(x, y), buttonMask);
+    if (cp.width != desktop.scaledWidth || 
+        cp.height != desktop.scaledHeight) {
+      int sx = (desktop.scaleWidthRatio == -1) 
+        ? ev.getX() : (int)java.lang.Math.floor(ev.getX()/desktop.scaleWidthRatio);
+      int sy = (desktop.scaleHeightRatio == -1) 
+        ? ev.getY() : (int)java.lang.Math.floor(ev.getY()/desktop.scaleWidthRatio);
+      ev.translatePoint(sx - ev.getX(), sy - ev.getY());
+      writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
+    } else {
+      writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
+    }
 
     if (buttonMask == 0) writeModifiers(0);
   }
@@ -1215,6 +1271,8 @@ public class CConn extends CConnection
   boolean reverseConnection;
   boolean firstUpdate;
   boolean pendingUpdate;
+  
+  int scaleFactor;
   
   static LogWriter vlog = new LogWriter("CConn");
 }

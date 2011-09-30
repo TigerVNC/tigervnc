@@ -42,7 +42,7 @@ class OptionsDialog extends Dialog implements
   OptionsDialogCallback cb;
   JPanel FormatPanel, InputsPanel, MiscPanel, DefaultsPanel, SecPanel;
   JCheckBox autoSelect, customCompressLevel, noJpeg;
-  JComboBox menuKey, compressLevel, qualityLevel ;
+  JComboBox menuKey, compressLevel, qualityLevel, scalingFactor;
   ButtonGroup encodingGroup, colourGroup;
   JRadioButton zrle, hextile, tight, raw;
   JRadioButton fullColour, mediumColour, lowColour, veryLowColour;
@@ -54,6 +54,9 @@ class OptionsDialog extends Dialog implements
   JButton ca, crl;
   JButton defSaveButton;
   UserPrefs defaults;
+
+  boolean autoScale = false;
+  boolean fixedRatioScale = false;
 
   public OptionsDialog(OptionsDialogCallback cb_) { 
     super(false);
@@ -142,9 +145,8 @@ class OptionsDialog extends Dialog implements
     addGBComponent(viewOnly,InputsPanel,        0, 0, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
     addGBComponent(acceptClipboard,InputsPanel, 0, 1, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
     addGBComponent(sendClipboard,InputsPanel,   0, 2, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(menuKeyLabel,InputsPanel,    0, 3, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(8,10,0,4));
-    addGBComponent(menuKey,InputsPanel,         1, 3, 1, GridBagConstraints.REMAINDER, 0, 0, 2, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,125));
-    //((javax.swing.plaf.basic.BasicComboBoxRenderer)menuKey.getRenderer()).setBorder(new EmptyBorder(0,3,0,3));
+    addGBComponent(menuKeyLabel,InputsPanel,    0, 3, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,4));
+    addGBComponent(menuKey,InputsPanel,         1, 3, 1, GridBagConstraints.REMAINDER, 0, 0, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
 
     // Misc tab
     MiscPanel=new JPanel(new GridBagLayout());
@@ -159,11 +161,21 @@ class OptionsDialog extends Dialog implements
     fastCopyRect.addItemListener(this);
     acceptBell = new JCheckBox("Beep when requested by the server");
     acceptBell.addItemListener(this);
-    addGBComponent(fullScreen,MiscPanel,     0, 0, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(shared,MiscPanel,         0, 1, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(useLocalCursor,MiscPanel, 0, 2, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(fastCopyRect,MiscPanel,   0, 3, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(acceptBell,MiscPanel,     0, 4, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
+    JLabel scalingFactorLabel = new JLabel("Scaling Factor");
+    Object[] scalingFactors = { 
+      //"50%", "75%", "95%", "100%", "105%", 
+      "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%", 
+      "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
+    scalingFactor  = new JComboBox(scalingFactors);
+    scalingFactor.setEditable(true);
+    scalingFactor.addItemListener(this);
+    addGBComponent(fullScreen,MiscPanel,     0, 0, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
+    addGBComponent(shared,MiscPanel,         0, 1, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
+    addGBComponent(useLocalCursor,MiscPanel, 0, 2, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
+    addGBComponent(fastCopyRect,MiscPanel,   0, 3, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
+    addGBComponent(acceptBell,MiscPanel,     0, 4, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
+    addGBComponent(scalingFactorLabel,MiscPanel, 0, 5, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,4));
+    addGBComponent(scalingFactor,MiscPanel, 1, 5, 1, GridBagConstraints.REMAINDER, 0, 0, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
 
     // load/save tab
     DefaultsPanel=new JPanel(new GridBagLayout());
