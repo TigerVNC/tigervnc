@@ -191,8 +191,6 @@ void OptionsDialog::loadOptions(void)
    list<U32> secTypesExt;
    list<U32>::iterator iterExt;
 
-  vencryptCheckbox->value(false);
-
   encNoneCheckbox->value(false);
   encTLSCheckbox->value(false);
   encX509Checkbox->value(false);
@@ -204,9 +202,6 @@ void OptionsDialog::loadOptions(void)
   secTypes = security.GetEnabledSecTypes();
   for (iter = secTypes.begin(); iter != secTypes.end(); ++iter) {
     switch (*iter) {
-    case secTypeVeNCrypt:
-      vencryptCheckbox->value(true);
-      break;
     case secTypeNone:
       encNoneCheckbox->value(true);
       authNoneCheckbox->value(true);
@@ -255,7 +250,6 @@ void OptionsDialog::loadOptions(void)
   caInput->value(CSecurityTLS::x509ca);
   crlInput->value(CSecurityTLS::x509crl);
 
-  handleVencrypt(vencryptCheckbox, this);
   handleX509(encX509Checkbox, this);
 #endif
 
@@ -319,33 +313,28 @@ void OptionsDialog::storeOptions(void)
       security.EnableSecType(secTypeNone);
     if (authVncCheckbox->value())
       security.EnableSecType(secTypeVncAuth);
-
-    if (vencryptCheckbox->value()) {
-      if (authPlainCheckbox->value())
-        security.EnableSecType(secTypePlain);
-    }
+    if (authPlainCheckbox->value())
+      security.EnableSecType(secTypePlain);
   }
 
-  if (vencryptCheckbox->value()) {
-    /* Process security types which use TLS encryption */
-    if (encTLSCheckbox->value()) {
-      if (authNoneCheckbox->value())
-        security.EnableSecType(secTypeTLSNone);
-      if (authVncCheckbox->value())
-        security.EnableSecType(secTypeTLSVnc);
-      if (authPlainCheckbox->value())
-        security.EnableSecType(secTypeTLSPlain);
-    }
+  /* Process security types which use TLS encryption */
+  if (encTLSCheckbox->value()) {
+    if (authNoneCheckbox->value())
+      security.EnableSecType(secTypeTLSNone);
+    if (authVncCheckbox->value())
+      security.EnableSecType(secTypeTLSVnc);
+    if (authPlainCheckbox->value())
+      security.EnableSecType(secTypeTLSPlain);
+  }
 
-    /* Process security types which use X509 encryption */
-    if (encX509Checkbox->value()) {
-      if (authNoneCheckbox->value())
-        security.EnableSecType(secTypeX509None);
-      if (authVncCheckbox->value())
-        security.EnableSecType(secTypeX509Vnc);
-      if (authPlainCheckbox->value())
-        security.EnableSecType(secTypeX509Plain);
-    }
+  /* Process security types which use X509 encryption */
+  if (encX509Checkbox->value()) {
+    if (authNoneCheckbox->value())
+      security.EnableSecType(secTypeX509None);
+    if (authVncCheckbox->value())
+      security.EnableSecType(secTypeX509Vnc);
+    if (authPlainCheckbox->value())
+      security.EnableSecType(secTypeX509Plain);
   }
 
   SecurityClient::secTypes.setParam(security.ToString());
@@ -552,14 +541,6 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
 
   orig_tx = tx;
 
-  /* Security */
-  vencryptCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                  CHECK_MIN_WIDTH,
-                                                  CHECK_HEIGHT,
-                                                  _("Extended encryption and authentication methods (VeNCrypt)")));
-  vencryptCheckbox->callback(handleVencrypt, this);
-  ty += CHECK_HEIGHT + INNER_MARGIN;
-
   /* Encryption */
   ty += GROUP_LABEL_OFFSET;
   height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 4 + CHECK_HEIGHT * 3 + (INPUT_LABEL_OFFSET + INPUT_HEIGHT) * 2;
@@ -614,7 +595,6 @@ void OptionsDialog::createSecurityPage(int tx, int ty, int tw, int th)
   ty += INNER_MARGIN;
 
   /* Authentication */
-  /* Encryption */
   ty += GROUP_LABEL_OFFSET;
   height = GROUP_MARGIN * 2 + TIGHT_MARGIN * 2 + CHECK_HEIGHT * 3;
   authenticationGroup = new Fl_Group(tx, ty, width, height, _("Authentication"));
@@ -772,20 +752,6 @@ void OptionsDialog::handleJpeg(Fl_Widget *widget, void *data)
     dialog->jpegInput->activate();
   else
     dialog->jpegInput->deactivate();
-}
-
-
-void OptionsDialog::handleVencrypt(Fl_Widget *widget, void *data)
-{
-  OptionsDialog *dialog = (OptionsDialog*)data;
-
-  if (dialog->vencryptCheckbox->value()) {
-    dialog->encryptionGroup->activate();
-    dialog->authPlainCheckbox->activate();
-  } else {
-    dialog->encryptionGroup->deactivate();
-    dialog->authPlainCheckbox->deactivate();
-  }
 }
 
 

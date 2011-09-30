@@ -56,7 +56,6 @@ protected:
   static void handleCompression(Fl_Widget *widget, void *data);
   static void handleJpeg(Fl_Widget *widget, void *data);
 
-  static void handleVencrypt(Fl_Widget *widget, void *data);
   static void handleX509(Fl_Widget *widget, void *data);
 
   static void handleCancel(Fl_Widget *widget, void *data);
@@ -86,8 +85,6 @@ protected:
   Fl_Int_Input *jpegInput;
 
   /* Security */
-  Fl_Check_Button *vencryptCheckbox;
-
   Fl_Group *encryptionGroup;
   Fl_Check_Button *encNoneCheckbox;
   Fl_Check_Button *encTLSCheckbox;
