@@ -346,6 +346,8 @@ void OptionsDialog::storeOptions(void)
     }
   }
 
+  SecurityClient::secTypes.setParam(security.ToString());
+
   CSecurityTLS::x509ca.setParam(caInput->value());
   CSecurityTLS::x509crl.setParam(crlInput->value());
 #endif
