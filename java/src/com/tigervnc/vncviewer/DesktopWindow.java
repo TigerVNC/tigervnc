@@ -1,4 +1,7 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+/* Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
+ * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,8 +154,13 @@ class DesktopWindow extends JPanel implements
     MemoryImageSource bitmap = 
       new MemoryImageSource(cursor.width(), cursor.height(), cursor.cm,
                             cursor.data, 0, cursor.width());
-    softCursor = 
-      tk.createCustomCursor(tk.createImage(bitmap), new java.awt.Point(hotspot.x,hotspot.y), "Cursor");
+    int cw = (int)Math.floor((float)cursor.width() * scaleWidthRatio);
+    int ch = (int)Math.floor((float)cursor.height() * scaleHeightRatio);
+    int hint = java.awt.Image.SCALE_DEFAULT;
+    Image cursorImage = (cw <= 0 || ch <= 0) ? tk.createImage(bitmap) :
+      tk.createImage(bitmap).getScaledInstance(cw,ch,hint);
+    softCursor = (tk.createCustomCursor(cursorImage,
+        new java.awt.Point(hotspot.x,hotspot.y), "Cursor"));
     }
 
     if (softCursor != null) {
@@ -310,12 +318,31 @@ class DesktopWindow extends JPanel implements
   }
 
   public void setScaledSize() {
-    int w = (int)java.lang.Math.floor(cc.cp.width*cc.scaleFactor/100);
-    int h = (int)java.lang.Math.floor(cc.cp.height*cc.scaleFactor/100);
-    scaledWidth = w;
-    scaledHeight = h;
-    scaleWidthRatio = ((float)w/(float)cc.cp.width);
-    scaleHeightRatio = ((float)h/(float)cc.cp.height);
+    if (!cc.options.autoScale && !cc.options.fixedRatioScale) {
+      scaledWidth = (int)Math.floor((float)cc.cp.width * (float)cc.scaleFactor/100.0);
+      scaledHeight = (int)Math.floor((float)cc.cp.height * (float)cc.scaleFactor/100.0);
+    } else {
+      if (cc.viewport == null) {
+        scaledWidth = cc.cp.width;
+        scaledHeight = cc.cp.height;
+      } else {
+        Dimension availableSize = cc.viewport.sp.getSize();
+        if (availableSize.width == 0 || availableSize.height == 0)
+          availableSize = new Dimension(cc.cp.width, cc.cp.height);
+        if (cc.options.fixedRatioScale) {
+          float widthRatio = (float)availableSize.width / (float)cc.cp.width;
+          float heightRatio = (float)availableSize.height / (float)cc.cp.height;
+          float ratio = Math.min(widthRatio, heightRatio);
+          scaledWidth = (int)Math.floor(cc.cp.width * ratio);
+          scaledHeight = (int)Math.floor(cc.cp.height * ratio);
+        } else {
+          scaledWidth = availableSize.width;
+          scaledHeight = availableSize.height;
+        }
+      }
+    }
+    scaleWidthRatio = (float)((float)scaledWidth / (float)cc.cp.width);
+    scaleHeightRatio = (float)((float)scaledHeight / (float)cc.cp.height);
   }
 
   synchronized public void paintComponent(Graphics g) {

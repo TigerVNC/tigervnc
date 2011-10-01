@@ -62,7 +62,7 @@ import com.tigervnc.rfb.Exception;
 import com.tigervnc.rfb.Point;
 import com.tigervnc.rfb.Rect;
 
-class ViewportFrame extends JFrame 
+class ViewportFrame extends JFrame implements ComponentListener 
 {
   public ViewportFrame(String name, CConn cc_) {
     cc = cc_;
@@ -79,6 +79,32 @@ class ViewportFrame extends JFrame
         cc.close();
       }
     });
+    addComponentListener(this);
+  }
+
+  public void componentResized(ComponentEvent e) {
+    if (cc.options.autoScale || cc.options.fixedRatioScale) {
+      if (sp.getSize().width != cc.desktop.scaledWidth ||
+          sp.getSize().height != cc.desktop.scaledHeight) {
+        cc.reconfigureViewport();
+        if (cc.desktop.cursor != null) {
+          cc.setCursor(cc.desktop.cursor.width(), 
+                       cc.desktop.cursor.height(), 
+                       cc.desktop.cursor.hotspot, 
+                       cc.desktop.cursor.data, 
+                       cc.desktop.cursor.mask);
+        }
+      }
+    }      
+  }
+
+  public void componentHidden(ComponentEvent e) {
+  }
+
+  public void componentShown(ComponentEvent e) {
+  }
+
+  public void componentMoved(ComponentEvent e) {
   }
 
   public void addChild(DesktopWindow child) {
@@ -100,7 +126,8 @@ class ViewportFrame extends JFrame
     } else {
       setSize(w, h);
     }
-    setLocation(x, y);
+    if (!cc.options.autoScale && !cc.options.fixedRatioScale)
+      setLocation(x, y);
     setBackground(Color.BLACK);
   }
 
@@ -467,18 +494,14 @@ public class CConn extends CConnection
     desktop.requestFocusInWindow();
   }
 
-  private void reconfigureViewport()
+  public void reconfigureViewport()
   {
     //viewport.setMaxSize(cp.width, cp.height);
     boolean pack = true;
-    int w = cp.width;
-    int h = cp.height;
     Dimension dpySize = viewport.getToolkit().getScreenSize();
     desktop.setScaledSize();
-    if (!options.autoScale && !options.fixedRatioScale) {
-      w = (int)java.lang.Math.floor(cp.width*scaleFactor/100);
-      h = (int)java.lang.Math.floor(cp.height*scaleFactor/100);
-    }
+    int w = desktop.scaledWidth;
+    int h = desktop.scaledHeight;
     if (fullScreen) {
       viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
       viewport.setGeometry(0, 0, dpySize.width, dpySize.height, false);
@@ -503,6 +526,7 @@ public class CConn extends CConnection
       viewport.setExtendedState(JFrame.NORMAL);
       viewport.setGeometry(x, y, w, h, pack);
     }
+    viewport.update(viewport.g);
   }
 
   // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
@@ -820,8 +844,10 @@ public class CConn extends CConnection
     String scaleString = viewer.scalingFactor.getValue();
     if (scaleString.equals("Auto")) {
       options.autoScale = true;
+      // FIXME: set scaleFactor?
     } else if( scaleString.equals("FixedRatio")) {
       options.fixedRatioScale = true;
+      // FIXME: set scaleFactor?
     } else { 
       digit = Integer.parseInt(scaleString);
       if (digit >= 1 && digit <= 1000) {
@@ -892,8 +918,22 @@ public class CConn extends CConnection
     viewer.acceptBell.setParam(options.acceptBell.isSelected());
     if (options.autoScale) {
       viewer.scalingFactor.setParam("Auto");
+      scaleFactor = -1;
+      if (desktop != null) {
+        reconfigureViewport();
+        viewport.update(viewport.g);
+        if (desktop.cursor != null)
+          setCursor(desktop.cursor.width(), desktop.cursor.height(), desktop.cursor.hotspot, desktop.cursor.data, desktop.cursor.mask);
+      }
     } else if(options.fixedRatioScale) {
       viewer.scalingFactor.setParam("FixedRatio");
+      scaleFactor = -1;
+      if (desktop != null) {
+        reconfigureViewport();
+        viewport.update(viewport.g);
+        if (desktop.cursor != null)
+          setCursor(desktop.cursor.width(), desktop.cursor.height(), desktop.cursor.hotspot, desktop.cursor.data, desktop.cursor.mask);
+      }
     } else { 
       String scaleString =
         options.scalingFactor.getSelectedItem().toString();
@@ -902,9 +942,10 @@ public class CConn extends CConnection
       scaleFactor = 
         Integer.parseInt(scaleString.substring(0, scaleString.length()-1));
       if (oldScaleFactor != scaleFactor && desktop != null) {
-        //desktop.setScaledSize();
         reconfigureViewport();
         viewport.update(viewport.g);
+        if (desktop.cursor != null)
+          setCursor(desktop.cursor.width(), desktop.cursor.height(), desktop.cursor.hotspot, desktop.cursor.data, desktop.cursor.mask);
       }
     }
 
@@ -1151,10 +1192,10 @@ public class CConn extends CConnection
 
     if (cp.width != desktop.scaledWidth || 
         cp.height != desktop.scaledHeight) {
-      int sx = (desktop.scaleWidthRatio == -1) 
-        ? ev.getX() : (int)java.lang.Math.floor(ev.getX()/desktop.scaleWidthRatio);
-      int sy = (desktop.scaleHeightRatio == -1) 
-        ? ev.getY() : (int)java.lang.Math.floor(ev.getY()/desktop.scaleWidthRatio);
+      int sx = (desktop.scaleWidthRatio == 1.00) 
+        ? ev.getX() : (int)Math.floor(ev.getX()/(float)desktop.scaleWidthRatio);
+      int sy = (desktop.scaleHeightRatio == 1.00) 
+        ? ev.getY() : (int)Math.floor(ev.getY()/(float)desktop.scaleHeightRatio);
       ev.translatePoint(sx - ev.getX(), sy - ev.getY());
       writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
     } else {
@@ -1175,7 +1216,7 @@ public class CConn extends CConnection
       buttonMask = 16;
     }
     writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
-    for (int i=0;i<java.lang.Math.abs(clicks);i++) {
+    for (int i=0;i<Math.abs(clicks);i++) {
       x = ev.getX();
       y = ev.getY();
       writer().writePointerEvent(new Point(x, y), buttonMask);
@@ -1272,7 +1313,7 @@ public class CConn extends CConnection
   boolean firstUpdate;
   boolean pendingUpdate;
   
-  int scaleFactor;
+  int scaleFactor = 100;
   
   static LogWriter vlog = new LogWriter("CConn");
 }

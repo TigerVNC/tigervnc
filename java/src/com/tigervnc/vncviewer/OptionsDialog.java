@@ -163,10 +163,9 @@ class OptionsDialog extends Dialog implements
     acceptBell.addItemListener(this);
     JLabel scalingFactorLabel = new JLabel("Scaling Factor");
     Object[] scalingFactors = { 
-      //"50%", "75%", "95%", "100%", "105%", 
       "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%", 
       "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
-    scalingFactor  = new JComboBox(scalingFactors);
+    scalingFactor = new JComboBox(scalingFactors);
     scalingFactor.setEditable(true);
     scalingFactor.addItemListener(this);
     addGBComponent(fullScreen,MiscPanel,     0, 0, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
@@ -380,6 +379,14 @@ class OptionsDialog extends Dialog implements
     if (s instanceof JCheckBox && (JCheckBox)s == noJpeg) {
       qualityLevel.setEnabled(noJpeg.isSelected());
       defaults.setPref("noJpeg",(noJpeg.isSelected()) ? "on" : "off");
+    }
+    if (s instanceof JComboBox && (JComboBox)s == scalingFactor) {
+      autoScale = fixedRatioScale = false;
+      if (scalingFactor.getSelectedItem().equals("Auto")) {
+        autoScale = true;
+      } else if (scalingFactor.getSelectedItem().equals("Fixed Aspect Ratio")) {
+        fixedRatioScale = true;
+      }
     }
     if (s instanceof JCheckBox && (JCheckBox)s == sendLocalUsername) {
       defaults.setPref("sendLocalUsername",(sendLocalUsername.isSelected()) ? "on" : "off");
