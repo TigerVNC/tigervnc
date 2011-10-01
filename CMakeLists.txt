@@ -134,14 +134,19 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE AND NOT CYGWIN)
       file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/staticlib)
       execute_process(COMMAND ${CMAKE_COMMAND} -E remove
         ${CMAKE_BINARY_DIR}/staticlib/libstdc++.a)
-      execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${LIBSTDCPLUSPLUS} ${CMAKE_BINARY_DIR}/staticlib/libstdc++.a)
+      if(MINGW)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E copy
+          ${LIBSTDCPLUSPLUS} ${CMAKE_BINARY_DIR}/staticlib/libstdc++.a)
+      else()
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${LIBSTDCPLUSPLUS} ${CMAKE_BINARY_DIR}/staticlib/libstdc++.a)
+      endif()
       set(CMAKE_EXE_LINKER_FLAGS
         "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_BINARY_DIR}/staticlib")
       set(CMAKE_SHARED_LINKER_FLAGS
         "${CMAKE_SHARED_LINKER_FLAGS} -L${CMAKE_BINARY_DIR}/staticlib")
     else()
-      message(WARNING Cannot find static libstdc++.  VirtualGL will depend on dynamic libstdc++.)
+      message(WARNING Cannot find static libstdc++.  TigerVNC will depend on dynamic libstdc++.)
     endif()
     add_definitions(-static-libgcc)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc")
