@@ -31,52 +31,47 @@ public class JavaOutStream extends OutStream {
     jos = jos_;
     bufSize = bufSize_;
     b = new byte[bufSize];
-    ptr = 0;
-    end = bufSize;
+    ptr = offset = start = 0;
+    end = start + bufSize;
   }
 
   public JavaOutStream(java.io.OutputStream jos) { this(jos, defaultBufSize); }
 
-  public void writeBytes(byte[] data, int offset, int length) {
-    if (length < minBulkSize) {
-      super.writeBytes(data, offset, length);
-      return;
-    }
-
-    flush();
-    try {
-      jos.write(data, offset, length);
-    } catch (java.io.IOException e) {
-      throw new IOException(e);
-    }
-    ptrOffset += length;
+  public int length() 
+  { 
+    return offset + ptr - start; 
   }
 
-  public void flush() {
-    try {
-      jos.write(b, 0, ptr);
-    } catch (java.io.IOException e) {
-      throw new IOException(e);
+  public void flush() 
+  {
+    int sentUpTo = start;
+    while (sentUpTo < ptr) {
+      try {
+        jos.write(b, sentUpTo, ptr - sentUpTo);
+        sentUpTo += ptr - sentUpTo;
+        offset += ptr - sentUpTo;
+      } catch (java.io.IOException e) {
+        throw new IOException(e);
+      }
     }
-    ptrOffset += ptr;
-    ptr = 0;
+    ptr = start;
   }
 
-  public int length() { return ptrOffset + ptr; }
-
-  protected int overrun(int itemSize, int nItems) {
+  protected int overrun(int itemSize, int nItems) 
+  {
     if (itemSize > bufSize)
       throw new Exception("JavaOutStream overrun: max itemSize exceeded");
 
     flush();
 
-    if (itemSize * nItems > end)
-      nItems = end / itemSize;
+    if (itemSize * nItems > end - ptr)
+      nItems = (end - ptr) / itemSize;
 
     return nItems;
   }
 
   private java.io.OutputStream jos;
-  private int ptrOffset;
+  private int start;
+  private int offset;
   private int bufSize;
 }

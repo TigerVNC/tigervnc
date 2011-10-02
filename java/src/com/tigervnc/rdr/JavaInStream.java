@@ -31,36 +31,36 @@ public class JavaInStream extends InStream {
     jis = jis_;
     bufSize = bufSize_;
     b = new byte[bufSize];
-    ptr = end = ptrOffset = 0;
+    ptr = end = offset = 0;
     timeWaitedIn100us = 5;
     timedKbits = 0;
   }
 
   public JavaInStream(java.io.InputStream jis_) { this(jis_, defaultBufSize); }
 
-  public void readBytes(byte[] data, int offset, int length) {
+  public void readBytes(byte[] data, int dataPtr, int length) {
     if (length < minBulkSize) {
-      super.readBytes(data, offset, length);
+      super.readBytes(data, dataPtr, length);
       return;
     }
 
     int n = end - ptr;
     if (n > length) n = length;
 
-    System.arraycopy(b, ptr, data, offset, n);
-    offset += n;
+    System.arraycopy(b, ptr, data, dataPtr, n);
+    dataPtr += n;
     length -= n;
     ptr += n;
 
     while (length > 0) {
-      n = read(data, offset, length);
-      offset += n;
+      n = read(data, dataPtr, length);
+      dataPtr += n;
       length -= n;
-      ptrOffset += n;
+      offset += n;
     }
   }
 
-  public int pos() { return ptrOffset + ptr; }
+  public int pos() { return offset + ptr; }
 
   public void startTiming() {
     timing = true;
@@ -92,12 +92,12 @@ public class JavaInStream extends InStream {
     if (end - ptr != 0)
       System.arraycopy(b, ptr, b, 0, end - ptr);
 
-    ptrOffset += ptr;
+    offset += ptr;
     end -= ptr;
     ptr = 0;
 
     while (end < itemSize) {
-      int n = read(b, end, bufSize - end);
+      int n = read(b, end, bufSize - end, wait);
       end += n;
     }
 
@@ -107,13 +107,13 @@ public class JavaInStream extends InStream {
     return nItems;
   }
 
-  private int read(byte[] buf, int offset, int len) {
+  private int read(byte[] buf, int bufPtr, int len, boolean wait) {
     try {
       long before = 0;
       if (timing)
         before = System.currentTimeMillis();
 
-      int n = jis.read(buf, offset, len);
+      int n = jis.read(buf, bufPtr, len);
       if (n < 0) throw new EndOfStream();
 
       if (timing) {
@@ -136,9 +136,10 @@ public class JavaInStream extends InStream {
       throw new IOException(e);
     }
   }
+  private int read(byte[] buf, int bufPtr, int len) { return read(buf, bufPtr, len, true); }
 
   private java.io.InputStream jis;
-  private int ptrOffset;
+  private int offset;
   private int bufSize;
 
   boolean timing;

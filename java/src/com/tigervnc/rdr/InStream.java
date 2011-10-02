@@ -70,9 +70,8 @@ abstract public class InStream {
     if (len > maxStringLength)
       throw new Exception("InStream max string length exceeded");
 
-    byte[] str = new byte[len+1];
+    byte[] str = new byte[len];
     readBytes(str, 0, len);
-    str[len] = 0;
     String utf8string = new String();
     try {
       utf8string = new String(str,"UTF8");
