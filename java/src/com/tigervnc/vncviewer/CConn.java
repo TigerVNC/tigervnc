@@ -88,11 +88,9 @@ class ViewportFrame extends JFrame implements ComponentListener
           sp.getSize().height != cc.desktop.scaledHeight) {
         cc.reconfigureViewport();
         if (cc.desktop.cursor != null) {
-          cc.setCursor(cc.desktop.cursor.width(), 
-                       cc.desktop.cursor.height(), 
-                       cc.desktop.cursor.hotspot, 
-                       cc.desktop.cursor.data, 
-                       cc.desktop.cursor.mask);
+          Cursor cursor = cc.desktop.cursor;
+          cc.setCursor(cursor.width(),cursor.height(),cursor.hotspot, 
+                       cursor.data, cursor.mask);
         }
       }
     }      
@@ -922,8 +920,6 @@ public class CConn extends CConnection
       if (desktop != null) {
         reconfigureViewport();
         viewport.update(viewport.g);
-        if (desktop.cursor != null)
-          setCursor(desktop.cursor.width(), desktop.cursor.height(), desktop.cursor.hotspot, desktop.cursor.data, desktop.cursor.mask);
       }
     } else if(options.fixedRatioScale) {
       viewer.scalingFactor.setParam("FixedRatio");
@@ -931,8 +927,6 @@ public class CConn extends CConnection
       if (desktop != null) {
         reconfigureViewport();
         viewport.update(viewport.g);
-        if (desktop.cursor != null)
-          setCursor(desktop.cursor.width(), desktop.cursor.height(), desktop.cursor.hotspot, desktop.cursor.data, desktop.cursor.mask);
       }
     } else { 
       String scaleString =
@@ -944,8 +938,6 @@ public class CConn extends CConnection
       if (oldScaleFactor != scaleFactor && desktop != null) {
         reconfigureViewport();
         viewport.update(viewport.g);
-        if (desktop.cursor != null)
-          setCursor(desktop.cursor.width(), desktop.cursor.height(), desktop.cursor.hotspot, desktop.cursor.data, desktop.cursor.mask);
       }
     }
 

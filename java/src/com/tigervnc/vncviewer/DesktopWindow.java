@@ -157,10 +157,12 @@ class DesktopWindow extends JPanel implements
     int cw = (int)Math.floor((float)cursor.width() * scaleWidthRatio);
     int ch = (int)Math.floor((float)cursor.height() * scaleHeightRatio);
     int hint = java.awt.Image.SCALE_DEFAULT;
+    hotspot = new Point((int)Math.floor((float)hotspot.x * scaleWidthRatio),
+                        (int)Math.floor((float)hotspot.y * scaleHeightRatio));
     Image cursorImage = (cw <= 0 || ch <= 0) ? tk.createImage(bitmap) :
       tk.createImage(bitmap).getScaledInstance(cw,ch,hint);
-    softCursor = (tk.createCustomCursor(cursorImage,
-        new java.awt.Point(hotspot.x,hotspot.y), "Cursor"));
+    softCursor = tk.createCustomCursor(cursorImage,
+                  new java.awt.Point(hotspot.x,hotspot.y), "Cursor");
     }
 
     if (softCursor != null) {
@@ -313,10 +315,6 @@ class DesktopWindow extends JPanel implements
     return new Dimension(scaledWidth, scaledHeight);
   }
 
-  public void update(Graphics g) {
-    //repaint();
-  }
-
   public void setScaledSize() {
     if (!cc.options.autoScale && !cc.options.fixedRatioScale) {
       scaledWidth = (int)Math.floor((float)cc.cp.width * (float)cc.scaleFactor/100.0);
@@ -358,6 +356,10 @@ class DesktopWindow extends JPanel implements
     }
   }
 
+  public void repaint() {
+    if (graphics != null)
+      super.update(graphics);
+  }
 
   String oldContents = "";
   
