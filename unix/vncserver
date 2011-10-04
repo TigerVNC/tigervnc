@@ -48,9 +48,10 @@ $xauth = "xauth";
 
 $geometry = "1024x768";
 #$depth = 16;
-$vncJavaFiles = (((-d "/usr/share/vnc/classes") && "/usr/share/vnc/classes") ||
-                 ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes") ||
-                 ((-d "$vncClasses") && "$vncClasses"));
+$vncJavaFiles = (((-d "$vncClasses") && "$vncClasses") ||
+                 ((-d "/usr/share/vnc/classes") && "/usr/share/vnc/classes") ||
+                 ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes"));
+                 
 $vncUserDir = "$ENV{HOME}/.vnc";
 $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 
