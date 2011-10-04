@@ -339,8 +339,8 @@ class DesktopWindow extends JPanel implements
         }
       }
     }
-    scaleWidthRatio = (float)((float)scaledWidth / (float)cc.cp.width);
-    scaleHeightRatio = (float)((float)scaledHeight / (float)cc.cp.height);
+    scaleWidthRatio = (float)scaledWidth / (float)cc.cp.width;
+    scaleHeightRatio = (float)scaledHeight / (float)cc.cp.height;
   }
 
   synchronized public void paintComponent(Graphics g) {
@@ -475,8 +475,8 @@ class DesktopWindow extends JPanel implements
       cursorVisible = true;
       if (softCursor != null) return;
 
-      int cursorLeft = (int)cursor.hotspot.x;
-      int cursorTop = (int)cursor.hotspot.y;
+      int cursorLeft = cursor.hotspot.x;
+      int cursorTop = cursor.hotspot.y;
       int cursorRight = cursorLeft + cursor.width();
       int cursorBottom = cursorTop + cursor.height();
 

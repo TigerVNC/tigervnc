@@ -271,7 +271,7 @@ public class TightDecoder extends Decoder {
   }
   private static int[] convertByteArrayToIntArray(byte[] bytes) {
     vlog.info("convertByteArrayToIntArray");
-    ArrayList integers = new ArrayList();
+    ArrayList<Integer> integers = new ArrayList<Integer>();
     for (int index = 0; index < bytes.length; index += 4) {
       byte[] fourBytes = new byte[4];
       fourBytes[0] = bytes[index];
@@ -283,7 +283,7 @@ public class TightDecoder extends Decoder {
     }
     int[] ints = new int[bytes.length/4];
     for (int index = 0; index < integers.size() ; index++) {
-      ints[index] = ((Integer)integers.get(index)).intValue();
+      ints[index] = (integers.get(index)).intValue();
     }
     return ints;
   }

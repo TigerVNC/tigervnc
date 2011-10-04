@@ -66,7 +66,7 @@ public class CSecurityTLS extends CSecurity {
 
       if (anon) {
         String[] supported;
-        ArrayList enabled = new ArrayList();
+        ArrayList<String> enabled = new ArrayList<String>();
 
         supported = ssl.getSupportedCipherSuites();
 
@@ -74,7 +74,7 @@ public class CSecurityTLS extends CSecurity {
           if (supported[i].matches("TLS_DH_anon.*"))
 	          enabled.add(supported[i]);
 
-        ssl.setEnabledCipherSuites((String[])enabled.toArray(new String[0]));
+        ssl.setEnabledCipherSuites(enabled.toArray(new String[0]));
       } else {
         ssl.setEnabledCipherSuites(ssl.getSupportedCipherSuites());
       }

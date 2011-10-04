@@ -942,8 +942,8 @@ public class CConn extends CConnection
     }
 
     clipboardDialog.setSendingEnabled(viewer.sendClipboard.getValue());
-    menuKey = (int)(options.menuKey.getSelectedIndex()+0xFFBE);
-    F8Menu.f8.setLabel("Send F"+(menuKey-Keysyms.F1+1));
+    menuKey = (options.menuKey.getSelectedIndex()+0xFFBE);
+    F8Menu.f8.setText("Send F"+(menuKey-Keysyms.F1+1));
 
     shared = options.shared.isSelected();
     setShared(shared);
@@ -1185,9 +1185,9 @@ public class CConn extends CConnection
     if (cp.width != desktop.scaledWidth || 
         cp.height != desktop.scaledHeight) {
       int sx = (desktop.scaleWidthRatio == 1.00) 
-        ? ev.getX() : (int)Math.floor(ev.getX()/(float)desktop.scaleWidthRatio);
+        ? ev.getX() : (int)Math.floor(ev.getX()/desktop.scaleWidthRatio);
       int sy = (desktop.scaleHeightRatio == 1.00) 
-        ? ev.getY() : (int)Math.floor(ev.getY()/(float)desktop.scaleHeightRatio);
+        ? ev.getY() : (int)Math.floor(ev.getY()/desktop.scaleHeightRatio);
       ev.translatePoint(sx - ev.getX(), sy - ev.getY());
       writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
     } else {
