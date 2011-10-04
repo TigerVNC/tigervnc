@@ -364,7 +364,9 @@ class DesktopWindow extends JPanel implements
   String oldContents = "";
   
   synchronized public void checkClipboard() {
-    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+    Clipboard cb = null;
+    if (!cc.viewer.applet)
+      cb = Toolkit.getDefaultToolkit().getSystemClipboard();
     if (cb != null && cc.viewer.sendClipboard.getValue()) {
       Transferable t = cb.getContents(null);
       if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {

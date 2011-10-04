@@ -154,7 +154,7 @@ public class CConn extends CConnection
     encodingChange = false; sameMachine = false;
     fullScreen = viewer.fullScreen.getValue();
     menuKey = Keysyms.F8;
-    options = new OptionsDialog(this);
+    options = new OptionsDialog(this, this);
     options.initDialog();
     clipboardDialog = new ClipboardDialog(this);
     firstUpdate = true; pendingUpdate = false;

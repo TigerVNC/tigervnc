@@ -44,7 +44,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
 {
   public static final String version = "1.1.80";
   public static final String about1 = "TigerVNC Viewer for Java "+version;
-  public static final String about2 = "Copyright (C) 1998-2010 "+
+  public static final String about2 = "Copyright (C) 1998-2011 "+
                                       "[many holders]";
   public static final String about3 = "Visit www.tigervnc.org "+
                                       "for information on TigerVNC.";
@@ -143,7 +143,9 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public void init() {
     vlog.debug("init called");
     setBackground(Color.white);
-    logo = getImage(getDocumentBase(), "logo150x150.gif");
+    ClassLoader cl = this.getClass().getClassLoader();
+    ImageIcon icon = new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.png"));
+    logo = icon.getImage();
   }
 
   public void start() {
@@ -162,6 +164,16 @@ public class VncViewer extends java.applet.Applet implements Runnable
     }
     thread = new Thread(this);
     thread.start();
+  }
+
+  public void paint(Graphics g) {
+    g.drawImage(logo, 0, 0, this);
+    int h = logo.getHeight(this)+20;
+    g.drawString(about1, 0, h);
+    h += g.getFontMetrics().getHeight();
+    g.drawString(about2, 0, h);
+    h += g.getFontMetrics().getHeight();
+    g.drawString(about3, 0, h);
   }
 
   public void run() {

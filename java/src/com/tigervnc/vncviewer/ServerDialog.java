@@ -137,7 +137,7 @@ class ServerDialog extends Dialog implements
   }
   
   public void endDialog() {
-    if (ok) {
+    if (ok && !cc.viewer.applet) {
       options.defaults.setPref("encryption",(encryption.getSelectedIndex()==1) ? "off" : "on");
       if (!server.getSelectedItem().toString().equals("")) {
         String t = (options.defaults.getString("server")==null) ? "" : options.defaults.getString("server");

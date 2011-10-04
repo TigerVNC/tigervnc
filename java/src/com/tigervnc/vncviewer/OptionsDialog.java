@@ -57,13 +57,17 @@ class OptionsDialog extends Dialog implements
 
   boolean autoScale = false;
   boolean fixedRatioScale = false;
+  boolean applet = false;
 
-  public OptionsDialog(OptionsDialogCallback cb_) { 
+  public OptionsDialog(OptionsDialogCallback cb_, CConn cc_) { 
     super(false);
     cb = cb_;
+    CConn cc = cc_;
+    applet = cc.viewer.applet;
     setResizable(false);
     setTitle("VNC Viewer Options");
-    defaults = new UserPrefs("vncviewer");
+    if (!applet)
+      defaults = new UserPrefs("vncviewer");
 
     getContentPane().setLayout(
       new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
@@ -192,6 +196,7 @@ class OptionsDialog extends Dialog implements
     addGBComponent(cfSaveAsButton,configPanel, 0, 2, 1, 1, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
     cfReloadButton.setEnabled(false);
     cfSaveButton.setEnabled(false);
+    cfSaveAsButton.setEnabled(!applet);
 
     JPanel defaultsPanel = new JPanel(new GridBagLayout());
     defaultsPanel.setBorder(BorderFactory.createTitledBorder("Defaults"));
@@ -204,6 +209,8 @@ class OptionsDialog extends Dialog implements
 
     addGBComponent(configPanel,DefaultsPanel, 0, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,4,4,4));
     addGBComponent(defaultsPanel,DefaultsPanel, 1, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,4,4,4));
+    defReloadButton.setEnabled(!applet);
+    defSaveButton.setEnabled(!applet);
 
     // security tab
     SecPanel=new JPanel(new GridBagLayout());
@@ -342,7 +349,8 @@ class OptionsDialog extends Dialog implements
       endDialog();
     } else if (s instanceof JButton && (JButton)s == defSaveButton) {
       try {
-        defaults.Save();
+        if (!applet)
+          defaults.Save();
       } catch (java.lang.Exception x) { }
     } else if (s instanceof JButton && (JButton)s == ca) {
       JFileChooser fc = new JFileChooser();
@@ -370,15 +378,18 @@ class OptionsDialog extends Dialog implements
       mediumColour.setEnabled(!autoSelect.isSelected());
       lowColour.setEnabled(!autoSelect.isSelected());
       veryLowColour.setEnabled(!autoSelect.isSelected());
-      defaults.setPref("autoSelect",(autoSelect.isSelected()) ? "on" : "off");
+      if (!applet)
+        defaults.setPref("autoSelect",(autoSelect.isSelected()) ? "on" : "off");
     } 
     if (s instanceof JCheckBox && (JCheckBox)s == customCompressLevel) {
       compressLevel.setEnabled(customCompressLevel.isSelected());
-      defaults.setPref("customCompressLevel",(customCompressLevel.isSelected()) ? "on" : "off");
+      if (!applet)
+        defaults.setPref("customCompressLevel",(customCompressLevel.isSelected()) ? "on" : "off");
     }
     if (s instanceof JCheckBox && (JCheckBox)s == noJpeg) {
       qualityLevel.setEnabled(noJpeg.isSelected());
-      defaults.setPref("noJpeg",(noJpeg.isSelected()) ? "on" : "off");
+      if (!applet)
+        defaults.setPref("noJpeg",(noJpeg.isSelected()) ? "on" : "off");
     }
     if (s instanceof JComboBox && (JComboBox)s == scalingFactor) {
       autoScale = fixedRatioScale = false;
@@ -389,7 +400,8 @@ class OptionsDialog extends Dialog implements
       }
     }
     if (s instanceof JCheckBox && (JCheckBox)s == sendLocalUsername) {
-      defaults.setPref("sendLocalUsername",(sendLocalUsername.isSelected()) ? "on" : "off");
+      if (!applet)
+        defaults.setPref("sendLocalUsername",(sendLocalUsername.isSelected()) ? "on" : "off");
     }
     if (s instanceof JCheckBox && (JCheckBox)s == secVeNCrypt) {
       encNone.setEnabled(secVeNCrypt.isSelected());

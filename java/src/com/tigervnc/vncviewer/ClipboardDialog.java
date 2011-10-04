@@ -62,7 +62,9 @@ class ClipboardDialog extends Dialog implements ActionListener {
 
   public void serverCutText(String str, int len) {
     setContents(str);    
-    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+    Clipboard cb = null;
+    if (!cc.viewer.applet)
+      cb = Toolkit.getDefaultToolkit().getSystemClipboard();
     if (cb != null) {
       StringSelection ss = new StringSelection(str);
       try {
