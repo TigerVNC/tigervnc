@@ -260,6 +260,11 @@ if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
+option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
+if(BUILD_JAVA)
+  add_subdirectory(java/src)
+endif()
+
 # Check for FLTK
 if(BUILD_NEW_VNCVIEWER)
   set(FLTK_SKIP_FLUID TRUE)

@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: com.tigervnc.vncviewer.VncViewer
+Package-Date: @JAVA_DATE@
+Package-Time: @JAVA_TIME@

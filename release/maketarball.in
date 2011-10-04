@@ -45,16 +45,9 @@ mkdir -p $OUTDIR/man/man1
 
 make DESTDIR=$TMPDIR/inst install
 if [ $SERVER = 1 ]; then
-	pushd $SRCDIR/java/src/com/tigervnc/vncviewer
-	make
-	popd
 	install -m 755 ./xorg.build/bin/Xvnc $OUTDIR/bin/
 	install -m 644 ./xorg.build/man/man1/Xvnc.1 $OUTDIR/man/man1/Xvnc.1
 	install -m 644 ./xorg.build/man/man1/Xserver.1 $OUTDIR/man/man1/Xserver.1
-	mkdir -p $OUTDIR/vnc/classes/
-	install -m 644 $SRCDIR/java/src/com/tigervnc/vncviewer/index.vnc $OUTDIR/vnc/classes/
-	install -m 644 $SRCDIR/java/src/com/tigervnc/vncviewer/VncViewer.jar $OUTDIR/vnc/classes/
-	install -m 644 $SRCDIR/java/src/com/tigervnc/vncviewer/README $OUTDIR/vnc/classes/
 	mkdir -p $OUTDIR/lib/dri/
 	install -m 755 ./xorg.build/lib/dri/swrast_dri.so $OUTDIR/lib/dri/
 fi

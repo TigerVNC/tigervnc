@@ -77,12 +77,17 @@ if(UNIX)
 
 configure_file(release/maketarball.in release/maketarball)
 
+set(TARBALL_DEPENDS vncviewer vncpasswd vncconfig)
+if(BUILD_JAVA)
+  set(TARBALL_DEPENDS ${TARBALL_DEPENDS} java)
+endif()
+
 add_custom_target(tarball sh release/maketarball
-  DEPENDS vncviewer vncpasswd vncconfig
+  DEPENDS ${TARBALL_DEPENDS}
   SOURCES release/maketarball)
 
 add_custom_target(servertarball sh release/maketarball server
-  DEPENDS vncviewer vncpasswd vncconfig
+  DEPENDS ${TARBALL_DEPENDS}
   SOURCES release/maketarball)
 
 endif() #UNIX
