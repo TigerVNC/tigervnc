@@ -94,5 +94,10 @@ char* JavaViewerServer::substitute(const char* varName)
   if (strcmp(varName, "$DESKTOP") == 0) {
     return rfb::strDup(server->getName());
   }
+  if (strcmp(varName, "$USER") == 0) {
+    char tempStr[256];  DWORD tempStrLen = 256;
+    GetUserName(tempStr, &tempStrLen);
+    return rfb::strDup(tempStr);
+  }
   return 0;
 }

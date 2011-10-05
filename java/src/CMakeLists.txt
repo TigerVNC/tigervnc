@@ -73,6 +73,7 @@ add_custom_command(OUTPUT ${JAVA_BINDIR}/tigervnc.ico
   DEPENDS ${JAVA_SRCDIR}/tigervnc.ico)
 
 string(REGEX REPLACE "jar" "" Java_PATH ${Java_JAR_EXECUTABLE})
+string(REGEX REPLACE ".exe" "" Java_PATH ${Java_PATH})
 
 add_custom_command(OUTPUT VncViewer.jar
   DEPENDS ${JAVA_CLASSES_FULL}
@@ -98,8 +99,10 @@ add_custom_command(OUTPUT VncViewer.jar
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)
 
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
-  ${JAVA_SRCDIR}/README
-  ${JAVA_SRCDIR}/index.vnc
-  DESTINATION vnc/classes)
+if(NOT WIN32)
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
+    ${JAVA_SRCDIR}/README
+    ${JAVA_SRCDIR}/index.vnc
+    DESTINATION vnc/classes)
+endif()

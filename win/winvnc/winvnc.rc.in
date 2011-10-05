@@ -220,8 +220,8 @@ END
 // HTTPFILE
 //
 
-//VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "..\\..\\java\\src\\com\\tigervnc\\vncviewer\\VncViewer.jar"
-//INDEX.VNC              HTTPFILE DISCARDABLE    "index.vnc"
+/VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "@CMAKE_WIN_BINARY_DIR@\\java\\src\\VncViewer.jar"
+/INDEX.VNC              HTTPFILE DISCARDABLE    "@CMAKE_WIN_SOURCE_DIR@\\win\\winvnc\\index.vnc"
 
 /////////////////////////////////////////////////////////////////////////////
 //

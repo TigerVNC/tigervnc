@@ -1,4 +1,4 @@
-include_directories(${CMAKE_BINARY_DIR}/win)
+include_directories(${CMAKE_BINARY_DIR}/win ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Disable auto-generated manifests, since we have our own
 if(MSVC)
@@ -10,6 +10,11 @@ add_library(wm_hooks SHARED
 	../wm_hooks/wm_hooks.def
 	../wm_hooks/wm_hooks.rc)
 
+string(REGEX REPLACE "/" "\\\\\\\\" CMAKE_WIN_BINARY_DIR ${CMAKE_BINARY_DIR})
+string(REGEX REPLACE "/" "\\\\\\\\" CMAKE_WIN_SOURCE_DIR ${CMAKE_SOURCE_DIR})
+
+configure_file(winvnc.rc.in winvnc.rc)
+
 add_executable(winvnc4 WIN32
   buildTime.cxx
   ControlPanel.cxx
@@ -20,9 +25,14 @@ add_executable(winvnc4 WIN32
   VNCServerService.cxx
   VNCServerWin32.cxx
   winvnc.cxx
-  winvnc.rc)
+  ${CMAKE_CURRENT_BINARY_DIR}/winvnc.rc)
 
 target_link_libraries(winvnc4 rfb rfb_win32 Xregion network rdr ws2_32.lib)
+
+if(BUILD_JAVA)
+  set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/winvnc.rc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/java/src/VncViewer.jar)
+endif()
 
 install(TARGETS winvnc4
   RUNTIME DESTINATION .
