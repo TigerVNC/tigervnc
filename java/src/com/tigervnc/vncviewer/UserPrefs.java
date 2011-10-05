@@ -160,7 +160,7 @@ public class UserPrefs extends Properties {
   final public static String getFileSeperator() {
     String seperator = null;
 		try {
-			seperator = System.getProperties().get("file.separator").toString();
+			seperator = (String)System.getProperties().get("file.separator");
 		} catch(java.security.AccessControlException e) {
 			System.out.println("Cannot access file.separator system property");
 		}
