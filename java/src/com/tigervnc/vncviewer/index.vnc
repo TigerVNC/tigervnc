@@ -3,12 +3,8 @@
      used with Xvnc. On any file ending in .vnc, the HTTP server embedded in
      Xvnc will substitute the following variables when preceded by a dollar:
      USER, DESKTOP, DISPLAY, APPLETWIDTH, APPLETHEIGHT, WIDTH, HEIGHT, PORT,
-     PARAMS. Use two dollar signs ($$) to get a dollar sign in the generated
+     Use two dollar signs ($$) to get a dollar sign in the generated
      HTML page.
-
-     NOTE: the $PARAMS variable is not supported by the standard VNC, so
-     make sure you have TigerVNC on the server side, if you're using this
-     variable.
 -->
 
 <HTML>
