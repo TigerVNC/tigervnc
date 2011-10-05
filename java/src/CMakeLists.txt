@@ -92,6 +92,13 @@ add_custom_command(OUTPUT VncViewer.jar
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)
 
+string(REGEX REPLACE "jar" "" Java_PATH ${Java_JAR_EXECUTABLE})
+
+add_custom_command(TARGET java POST_BUILD COMMAND
+  ${CMAKE_COMMAND} -DJava_PATH=${Java_PATH}
+    -DJAR_FILE=${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
+    -P ${CMAKE_SOURCE_DIR}/cmake/SignJar.cmake)
+
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
   ${JAVA_SRCDIR}/README
