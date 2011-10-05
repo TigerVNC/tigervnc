@@ -22,7 +22,7 @@ execute_process(COMMAND
   ${JARSIGNER} -keystore tigervnc.keystore
     -storepass tigervnc -keypass tigervnc ${JAR_FILE} TigerVNC
   RESULT_VARIABLE RESULT OUTPUT_VARIABLE OUTPUT ERROR_VARIABLE ERROR)
-if(NOT RESULT_VARIABLE EQUAL 0)
+if(NOT RESULT EQUAL 0)
   message(FATAL_ERROR "${JARSIGNER} failed:\n${ERROR}")
 endif()
 file(REMOVE tigervnc.keystore)
