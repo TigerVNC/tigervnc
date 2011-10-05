@@ -6,6 +6,8 @@ if(NOT JAR_FILE)
   message(FATAL_ERROR "JAR_FILE must be defined")
 endif()
 
+message(STATUS "Signing ${JAR_FILE}")
+
 set(KEYTOOL "${Java_PATH}/keytool")
 set(JARSIGNER "${Java_PATH}/jarsigner")
 

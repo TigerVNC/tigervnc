@@ -72,6 +72,8 @@ add_custom_command(OUTPUT ${JAVA_BINDIR}/tigervnc.ico
     ${JAVA_SRCDIR}/tigervnc.ico ${JAVA_BINDIR}/tigervnc.ico
   DEPENDS ${JAVA_SRCDIR}/tigervnc.ico)
 
+string(REGEX REPLACE "jar" "" Java_PATH ${Java_JAR_EXECUTABLE})
+
 add_custom_command(OUTPUT VncViewer.jar
   DEPENDS ${JAVA_CLASSES_FULL}
     ${JAVA_SRCDIR}/MANIFEST.MF
@@ -88,16 +90,13 @@ add_custom_command(OUTPUT VncViewer.jar
     com/jcraft/jzlib/*.class
     com/tigervnc/vncviewer/tigervnc.png
     com/tigervnc/vncviewer/tigervnc.ico
+  COMMAND ${CMAKE_COMMAND}
+  ARGS -DJava_PATH=${Java_PATH}
+    -DJAR_FILE=${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
+    -P ${CMAKE_SOURCE_DIR}/cmake/SignJar.cmake
   WORKING_DIRECTORY ${OBJDIR})
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)
-
-string(REGEX REPLACE "jar" "" Java_PATH ${Java_JAR_EXECUTABLE})
-
-add_custom_command(TARGET java POST_BUILD COMMAND
-  ${CMAKE_COMMAND} -DJava_PATH=${Java_PATH}
-    -DJAR_FILE=${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
-    -P ${CMAKE_SOURCE_DIR}/cmake/SignJar.cmake)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
