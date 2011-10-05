@@ -106,8 +106,8 @@ public class CSecurityTLS extends CSecurity {
       return;
     }
 
-    String vnchomedir = homeDir+UserPrefs.getFileSeperator()+".vnc"+
-                        UserPrefs.getFileSeperator();
+    String vnchomedir = homeDir+UserPrefs.getFileSeparator()+".vnc"+
+                        UserPrefs.getFileSeparator();
     String caDefault = new String(vnchomedir+"x509_ca.pem");
     String crlDefault = new String(vnchomedir+"x509_crl.pem");
 

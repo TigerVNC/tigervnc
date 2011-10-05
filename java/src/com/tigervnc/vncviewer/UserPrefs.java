@@ -39,7 +39,7 @@ import javax.swing.filechooser.*;
  */
 
 public class UserPrefs extends Properties {
-	String userhome=null; //This will have fileseperator on end if it
+	String userhome=null; //This will have fileseparator on end if it
 	String prefFile;
 	String appName;
 	
@@ -65,7 +65,7 @@ public class UserPrefs extends Properties {
 		}
 		// This is guaranteed as always being some valid directory,
 		// according to spec.
-		prefFile= getHomeDir()+getFileSeperator()+
+		prefFile= getHomeDir()+getFileSeparator()+
                 "."+appName;
 		try {
 			load(new java.io.FileInputStream(prefFile));
@@ -157,14 +157,14 @@ public class UserPrefs extends Properties {
     return userName;
   }
 
-  final public static String getFileSeperator() {
-    String seperator = null;
+  final public static String getFileSeparator() {
+    String separator = null;
 		try {
-			seperator = (String)System.getProperties().get("file.separator");
+			separator = Character.toString(java.io.File.separatorChar);
 		} catch(java.security.AccessControlException e) {
 			System.out.println("Cannot access file.separator system property");
 		}
-    return seperator;
+    return separator;
   }
 
 	/**
