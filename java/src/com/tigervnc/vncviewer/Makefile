@@ -40,6 +40,14 @@ $(ARCHIVE): $(CLASSES) $(MANIFEST) $(TIMESTAMP)
 		com/jcraft/jzlib/*.class \
 		com/tigervnc/vncviewer/tigervnc.png \
 		com/tigervnc/vncviewer/tigervnc.ico
+	rm -f tigervnc.keystore
+	keytool -genkey -alias TigerVNC -keystore tigervnc.keystore -keyalg RSA \
+		-storepass tigervnc -keypass tigervnc -validity 7300 \
+		-dname "CN=TigerVNC, OU=Software Development, O=The TigerVNC Project, L=Austin, S=Texas, C=US"
+	jarsigner -keystore tigervnc.keystore -storepass tigervnc -keypass tigervnc \
+		$(ARCHIVE) TigerVNC
+	rm -f tigervnc.keystore
+
 
 $(TIMESTAMP):
 	$(shell cat $(MANIFEST) > $(TIMESTAMP))

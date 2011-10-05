@@ -364,23 +364,27 @@ class DesktopWindow extends JPanel implements
   String oldContents = "";
   
   synchronized public void checkClipboard() {
-    Clipboard cb = null;
-    if (!cc.viewer.applet)
-      cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-    if (cb != null && cc.viewer.sendClipboard.getValue()) {
-      Transferable t = cb.getContents(null);
-      if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-        try {
-          String newContents = (String)t.getTransferData(DataFlavor.stringFlavor);
-          if (newContents != null && !newContents.equals(oldContents)) {
-            cc.writeClientCutText(newContents, newContents.length());
-            oldContents = newContents;
-            cc.clipboardDialog.setContents(newContents);
+    SecurityManager sm = System.getSecurityManager();
+    try {
+      if (sm != null) sm.checkSystemClipboardAccess();
+      Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+      if (cb != null && cc.viewer.sendClipboard.getValue()) {
+        Transferable t = cb.getContents(null);
+        if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+          try {
+            String newContents = (String)t.getTransferData(DataFlavor.stringFlavor);
+            if (newContents != null && !newContents.equals(oldContents)) {
+              cc.writeClientCutText(newContents, newContents.length());
+              oldContents = newContents;
+              cc.clipboardDialog.setContents(newContents);
+            }
+          } catch (java.lang.Exception e) {
+            System.out.println("Exception getting clipboard data: " + e.getMessage());
           }
-        } catch (java.lang.Exception e) {
-          System.out.println("Exception getting clipboard data: " + e.getMessage());
         }
       }
+    } catch(SecurityException e) {
+      System.err.println("Cannot access the system clipboard");
     }
   }
 

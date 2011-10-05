@@ -62,16 +62,20 @@ class ClipboardDialog extends Dialog implements ActionListener {
 
   public void serverCutText(String str, int len) {
     setContents(str);    
-    Clipboard cb = null;
-    if (!cc.viewer.applet)
-      cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-    if (cb != null) {
-      StringSelection ss = new StringSelection(str);
-      try {
-        cb.setContents(ss, ss);
-      } catch(Exception e) {
-        vlog.debug(e.toString());
+    SecurityManager sm = System.getSecurityManager();
+    try {
+      if (sm != null) sm.checkSystemClipboardAccess();
+      Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+      if (cb != null) {
+        StringSelection ss = new StringSelection(str);
+        try {
+          cb.setContents(ss, ss);
+        } catch(Exception e) {
+          vlog.debug(e.toString());
+        }
       }
+    } catch(SecurityException e) {
+      System.err.println("Cannot access the system clipboard");
     }
   }
 

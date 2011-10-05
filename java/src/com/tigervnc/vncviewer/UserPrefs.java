@@ -58,13 +58,19 @@ public class UserPrefs extends Properties {
 	public UserPrefs(String appName_) {
 		appName = appName_;
 		
-		systemprops=System.getProperties();
+		try {
+			systemprops=System.getProperties();
+		} catch(java.security.AccessControlException e) {
+			System.out.println("Cannot access system properties");
+		}
 		// This is guaranteed as always being some valid directory,
 		// according to spec.
 		prefFile= getHomeDir()+getFileSeperator()+
                 "."+appName;
 		try {
 			load(new java.io.FileInputStream(prefFile));
+		} catch(java.security.AccessControlException e)	{
+			System.out.println("Cannot access system properties");
 		} catch (Exception err)	{
 			if(err instanceof java.io.FileNotFoundException) {
         try {
@@ -109,33 +115,55 @@ public class UserPrefs extends Properties {
 	 */
   final public static String getHomeDir() {
     String homeDir = null;
-    String os = System.getProperty("os.name");
-    try {
-      if (os.startsWith("Windows")) {
-        // JRE prior to 1.5 cannot reliably determine USERPROFILE
-        // return user.home and hope it's right...
-        if (Integer.parseInt(System.getProperty("java.version").split("\\.")[1]) < 5) {
-          homeDir = System.getProperty("user.home");
+		try {
+    	String os = System.getProperty("os.name");
+      try {
+        if (os.startsWith("Windows")) {
+          // JRE prior to 1.5 cannot reliably determine USERPROFILE
+          // return user.home and hope it's right...
+          if (Integer.parseInt(System.getProperty("java.version").split("\\.")[1]) < 5) {
+						try {
+            	homeDir = System.getProperty("user.home");
+						} catch(java.security.AccessControlException e) {
+							System.out.println("Cannot access user.home system property");
+						}
+          } else {
+            homeDir = System.getenv("USERPROFILE");
+          }
         } else {
-          homeDir = System.getenv("USERPROFILE");
+					try {
+          homeDir = FileSystemView.getFileSystemView().
+            getDefaultDirectory().getCanonicalPath();
+					} catch(java.security.AccessControlException e) {
+						System.out.println("Cannot access system property");
+					}
         }
-      } else {
-        homeDir = FileSystemView.getFileSystemView().
-          getDefaultDirectory().getCanonicalPath();
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+		} catch(java.security.AccessControlException e) {
+			System.out.println("Cannot access os.name system property");
+		}
     return homeDir;
   }
 
   final private String getUserName() {
-    String userName = (String) System.getProperties().get("user.name");
+    String userName = null;
+		try {
+			userName = (String) System.getProperties().get("user.name");
+		} catch(java.security.AccessControlException e) {
+			System.out.println("Cannot access user.name system property");
+		}
     return userName;
   }
 
   final public static String getFileSeperator() {
-    String seperator = System.getProperties().get("file.separator").toString();
+    String seperator = null;
+		try {
+			seperator = System.getProperties().get("file.separator").toString();
+		} catch(java.security.AccessControlException e) {
+			System.out.println("Cannot access file.separator system property");
+		}
     return seperator;
   }
 

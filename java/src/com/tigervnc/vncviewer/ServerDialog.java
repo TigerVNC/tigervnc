@@ -137,24 +137,28 @@ class ServerDialog extends Dialog implements
   }
   
   public void endDialog() {
-    if (ok && !cc.viewer.applet) {
-      options.defaults.setPref("encryption",(encryption.getSelectedIndex()==1) ? "off" : "on");
-      if (!server.getSelectedItem().toString().equals("")) {
-        String t = (options.defaults.getString("server")==null) ? "" : options.defaults.getString("server");
-        StringTokenizer st = new StringTokenizer(t, ",");
-        StringBuffer sb = new StringBuffer().append((String)server.getSelectedItem());
-        while (st.hasMoreTokens()) {
-          String s = st.nextToken();
-          if (!s.equals((String)server.getSelectedItem()) && !s.equals("")) {
-            sb.append(',');
-            sb.append(s);
-          }
-        }
-        options.defaults.setPref("server", sb.toString());
-      }
+    if (ok) {
       try {
+        options.defaults.setPref("encryption",(encryption.getSelectedIndex()==1) ? "off" : "on");
+        if (!server.getSelectedItem().toString().equals("")) {
+          String t = (options.defaults.getString("server")==null) ? "" : options.defaults.getString("server");
+          StringTokenizer st = new StringTokenizer(t, ",");
+          StringBuffer sb = new StringBuffer().append((String)server.getSelectedItem());
+          while (st.hasMoreTokens()) {
+            String s = st.nextToken();
+            if (!s.equals((String)server.getSelectedItem()) && !s.equals("")) {
+              sb.append(',');
+              sb.append(s);
+            }
+          }
+          options.defaults.setPref("server", sb.toString());
+        }
         options.defaults.Save();
-      } catch (java.lang.Exception x) { }
+      } catch (java.io.IOException e) {
+        System.out.println(e.toString());
+      } catch(java.security.AccessControlException e) {
+        System.out.println(e.toString());
+		  }
     }
     done = true;
     if (modal) {
