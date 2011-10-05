@@ -57,7 +57,6 @@ $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 
 $defaultXStartup
     = ("#!/bin/sh\n\n".
-       "vncconfig -iconic &\n".
        "unset SESSION_MANAGER\n".
        "unset DBUS_SESSION_BUS_ADDRESS\n".
        "OS=`uname -s`\n".
@@ -337,6 +336,8 @@ if (-e "/tmp/.X11-unix/X$displayNumber" ||
     $ENV{DISPLAY}= "$host:$displayNumber";
 }
 $ENV{VNCDESKTOP}= $desktopName;
+
+system($exedir."vncconfig -iconic >> " . &quotedString($desktopLog) . " 2>&1 &");
 
 if ($opt{'-fg'}) {
     system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1");
