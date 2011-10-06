@@ -2,5 +2,4 @@ Files written below contain release numbers which should be changed during
 release process.
 
 CMakeLists.txt
-java/src/com/tigervnc/vncviewer/VncViewer.java
 unix/xserver/hw/vnc/xvnc.cc

@@ -33,6 +33,9 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.*;
 import java.awt.Label;
+import java.io.InputStream;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import javax.swing.*;
 import java.net.URL;
 
@@ -42,12 +45,13 @@ import com.tigervnc.rfb.Exception;
 
 public class VncViewer extends java.applet.Applet implements Runnable
 {
-  public static final String version = "1.1.80";
-  public static final String about1 = "TigerVNC Viewer for Java "+version;
+  public static final String about1 = "TigerVNC Viewer for Java";
   public static final String about2 = "Copyright (C) 1998-2011 "+
-                                      "[many holders]";
-  public static final String about3 = "Visit www.tigervnc.org "+
+                                      "TigerVNC Team and many others (see README)";
+  public static final String about3 = "Visit http://www.tigervnc.org "+
                                       "for information on TigerVNC.";
+  public static String version = null;
+  public static String build = null;
 
   public static void main(String[] argv) {
     try {
@@ -150,6 +154,16 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   public void start() {
     vlog.debug("start called");
+    if (version == null || build == null) {
+      ClassLoader cl = this.getClass().getClassLoader();
+      InputStream stream = cl.getResourceAsStream("com/tigervnc/vncviewer/timestamp");
+      try {
+        Manifest manifest = new Manifest(stream);
+        Attributes attributes = manifest.getMainAttributes();
+        version = attributes.getValue("Version");
+        build = attributes.getValue("Build");
+      } catch (java.io.IOException e) { }
+    }
     nViewers++;
     if (firstApplet) {
       alwaysShowServerDialog.setParam(true);
@@ -169,7 +183,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public void paint(Graphics g) {
     g.drawImage(logo, 0, 0, this);
     int h = logo.getHeight(this)+20;
-    g.drawString(about1, 0, h);
+    g.drawString(about1+" v"+version+" ("+build+")", 0, h);
     h += g.getFontMetrics().getHeight();
     g.drawString(about2, 0, h);
     h += g.getFontMetrics().getHeight();
