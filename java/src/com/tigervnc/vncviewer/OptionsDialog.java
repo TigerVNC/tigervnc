@@ -292,6 +292,9 @@ class OptionsDialog extends Dialog implements
     veryLowColour.setEnabled(!autoSelect.isSelected());
     compressLevel.setEnabled(customCompressLevel.isSelected());
     qualityLevel.setEnabled(noJpeg.isSelected());
+    autoScale = (scalingFactor.getSelectedItem().equals("Auto"));
+    fixedRatioScale = 
+      (scalingFactor.getSelectedItem().equals("Fixed Aspect Ratio"));
     sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
       (secPlain.isSelected()||secIdent.isSelected()));
   }
@@ -337,6 +340,9 @@ class OptionsDialog extends Dialog implements
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
+      autoScale = (scalingFactor.getSelectedItem().equals("Auto"));
+      fixedRatioScale = 
+        (scalingFactor.getSelectedItem().equals("Fixed Aspect Ratio"));
       ok = true;
       if (cb != null) cb.getOptions();
       endDialog();
@@ -382,14 +388,6 @@ class OptionsDialog extends Dialog implements
     if (s instanceof JCheckBox && (JCheckBox)s == noJpeg) {
       qualityLevel.setEnabled(noJpeg.isSelected());
       defaults.setPref("noJpeg",(noJpeg.isSelected()) ? "on" : "off");
-    }
-    if (s instanceof JComboBox && (JComboBox)s == scalingFactor) {
-      autoScale = fixedRatioScale = false;
-      if (scalingFactor.getSelectedItem().equals("Auto")) {
-        autoScale = true;
-      } else if (scalingFactor.getSelectedItem().equals("Fixed Aspect Ratio")) {
-        fixedRatioScale = true;
-      }
     }
     if (s instanceof JCheckBox && (JCheckBox)s == sendLocalUsername) {
       defaults.setPref("sendLocalUsername",(sendLocalUsername.isSelected()) ? "on" : "off");

@@ -360,11 +360,6 @@ class DesktopWindow extends JPanel implements
     }
   }
 
-  public void repaint() {
-    if (graphics != null)
-      super.update(graphics);
-  }
-
   String oldContents = "";
   
   synchronized public void checkClipboard() {
