@@ -90,6 +90,15 @@ Build Requirements (Windows)
    variable prior to building TigerVNC.
 
 
+=========================
+Build Requirements (Java)
+=========================
+
+-- Sun/Oracle JDK v5 or later or OpenJDK
+
+-- See "Building Java Support" below.
+
+
 ==================
 Out-of-Tree Builds
 ==================
@@ -320,6 +329,37 @@ CMake will report:
   Performing Test FOUND_LIBJPEG_TURBO - Success
 
 if it successfully finds libjpeg-turbo.
+
+
+=====================
+Building Java Support
+=====================
+
+TigerVNC includes a Java version of the TigerVNC Viewer, which can be used on
+any platform that has a Java Runtime Environment (JRE) installed.  The Java
+viewer works similarly to the native viewer, but with lower performance.
+
+To build the Java TigerVNC Viewer, add
+
+  -DBUILD_JAVA=1
+
+to the CMake or build-xorg command line.  The build system will attempt to find
+an installed Java Development Kit (JDK) and determine the appropriate paths for
+the Java compiler (javac) and the JAR creation utility (jar).  You can override
+these paths by setting the Java_JAVAC_EXECUTABLE and Java_JAR_EXECUTABLE CMake
+variables.  You can also override the default flags that are passed to javac
+by setting the JAVACFLAGS CMake variable.  The build system will look for
+keytool and jarsigner in the same directory as Java_JAR_EXECUTABLE.  These
+tools are needed to sign the JAR file, which is necessary to enable certain
+functionality (such as clipboard transfers) when the Java viewer is used as an
+applet.
+
+If the Java viewer is built along with the Windows TigerVNC Server (WinVNC),
+then the build system will embed the Java viewer into WinVNC4.exe so that it
+will automatically be served up using WinVNC's built-in HTTP server.
+Similarly, if the Java viewer is built along with the Unix TigerVNC Server
+(Xvnc), then the build system will include the Java viewer in the server
+tarball.
 
 
 ======================================

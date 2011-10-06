@@ -1,19 +1,11 @@
 <!-- 
-     index.html - an example HTML page for TigerVNC Java viewer applet, to be
-     used with a standalone Web server running on the same machine where the
-     TigerVNC server is running. Before using this example, please MAKE SURE
-     to check the following:
-
-     * the value of the PORT parameter should be set correctly (normally, the
-       port number is 5900 + display number);
+     index.html - an example HTML page for the TigerVNC Java Viewer applet, to
+     be used with a standalone web server.  Before using this example, please
+     MAKE SURE to check the following:
 
      * the CODE and ARCHIVE attributes of the <APPLET> tag should point to
        the correct directory (this example assumes that this page is in the
-       same directory with .jar and .class files);
-
-     * the WIDTH and HEIGHT attributes of the <APPLET> tag correspond to the
-       actual desktop size on the server (height should be increased to leave
-       enough space for the button panel).
+       same directory as VncViewer.jar);
 -->
 
 <HTML>
@@ -21,8 +13,7 @@
 TigerVNC desktop
 </TITLE>
 <APPLET CODE="com.tigervnc.vncviewer.VncViewer" ARCHIVE="VncViewer.jar"
-        WIDTH="800" HEIGHT="632">
-<PARAM NAME="PORT" VALUE="5901">
+        WIDTH=500>
 </APPLET>
 <BR>
 <A href="http://www.tigervnc.org/">TigerVNC site</A>
