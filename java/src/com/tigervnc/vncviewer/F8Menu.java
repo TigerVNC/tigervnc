@@ -58,7 +58,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     newConn    = addMenuItem("New connection...", KeyEvent.VK_W);
     options    = addMenuItem("Options...", KeyEvent.VK_O);
     info       = addMenuItem("Connection info...", KeyEvent.VK_I);
-    about      = addMenuItem("About VNCviewer...", KeyEvent.VK_A);
+    about      = addMenuItem("About VncViewer...", KeyEvent.VK_A);
     addSeparator();
     dismiss    = addMenuItem("Dismiss menu");
     setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));

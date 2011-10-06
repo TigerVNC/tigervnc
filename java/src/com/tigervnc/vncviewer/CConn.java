@@ -62,7 +62,7 @@ import com.tigervnc.rfb.Exception;
 import com.tigervnc.rfb.Point;
 import com.tigervnc.rfb.Rect;
 
-class ViewportFrame extends JFrame implements ComponentListener 
+class ViewportFrame extends JFrame
 {
   public ViewportFrame(String name, CConn cc_) {
     cc = cc_;
@@ -79,30 +79,26 @@ class ViewportFrame extends JFrame implements ComponentListener
         cc.close();
       }
     });
-    addComponentListener(this);
-  }
-
-  public void componentResized(ComponentEvent e) {
-    if (cc.options.autoScale || cc.options.fixedRatioScale) {
-      if (sp.getSize().width != cc.desktop.scaledWidth ||
-          sp.getSize().height != cc.desktop.scaledHeight) {
-        cc.reconfigureViewport();
-        if (cc.desktop.cursor != null) {
-          Cursor cursor = cc.desktop.cursor;
-          cc.setCursor(cursor.width(),cursor.height(),cursor.hotspot, 
-                       cursor.data, cursor.mask);
-        }
+    addComponentListener(new ComponentAdapter() {
+      public void componentResized(ComponentEvent e) {
+        if (cc.options.autoScale || cc.options.fixedRatioScale) {
+          if (sp.getSize().width != cc.desktop.scaledWidth ||
+              sp.getSize().height != cc.desktop.scaledHeight) {
+            cc.desktop.setScaledSize();
+            sp.setSize(new Dimension(cc.desktop.scaledWidth,
+                                     cc.desktop.scaledHeight));
+            sp.validate();
+            pack();
+            update(g);
+            if (cc.desktop.cursor != null) {
+              Cursor cursor = cc.desktop.cursor;
+              cc.setCursor(cursor.width(),cursor.height(),cursor.hotspot, 
+                          cursor.data, cursor.mask);
+            }
+          }
+        }      
       }
-    }      
-  }
-
-  public void componentHidden(ComponentEvent e) {
-  }
-
-  public void componentShown(ComponentEvent e) {
-  }
-
-  public void componentMoved(ComponentEvent e) {
+    });
   }
 
   public void addChild(DesktopWindow child) {
@@ -492,7 +488,7 @@ public class CConn extends CConnection
     desktop.requestFocusInWindow();
   }
 
-  public void reconfigureViewport()
+  private void reconfigureViewport()
   {
     //viewport.setMaxSize(cp.width, cp.height);
     boolean pack = true;
@@ -504,8 +500,8 @@ public class CConn extends CConnection
       viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
       viewport.setGeometry(0, 0, dpySize.width, dpySize.height, false);
     } else {
-      int wmDecorationWidth = 0;
-      int wmDecorationHeight = 24;
+      int wmDecorationWidth = viewport.getInsets().left + viewport.getInsets().right;
+      int wmDecorationHeight = viewport.getInsets().top + viewport.getInsets().bottom;
       if (w + wmDecorationWidth >= dpySize.width) {
         w = dpySize.width - wmDecorationWidth;
         pack = false;
@@ -842,9 +838,11 @@ public class CConn extends CConnection
     String scaleString = viewer.scalingFactor.getValue();
     if (scaleString.equals("Auto")) {
       options.autoScale = true;
+      options.scalingFactor.setSelectedItem("Auto");
       // FIXME: set scaleFactor?
-    } else if( scaleString.equals("FixedRatio")) {
+    } else if(scaleString.equals("FixedRatio")) {
       options.fixedRatioScale = true;
+      options.scalingFactor.setSelectedItem("Fixed Aspect Ratio");
       // FIXME: set scaleFactor?
     } else { 
       digit = Integer.parseInt(scaleString);
