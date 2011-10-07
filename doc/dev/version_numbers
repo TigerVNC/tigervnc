@@ -2,4 +2,5 @@ Files written below contain release numbers which should be changed during
 release process.
 
 CMakeLists.txt
+java/CMakeLists.txt
 unix/xserver/hw/vnc/xvnc.cc

@@ -262,7 +262,7 @@ endif()
 
 option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
 if(BUILD_JAVA)
-  add_subdirectory(java/src)
+  add_subdirectory(java)
 endif()
 
 # Check for FLTK

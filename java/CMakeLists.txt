@@ -1,3 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(tigervnc-java Java)
+set(VERSION 1.1.80)
+
 find_package(Java)
 
 set(DEFAULT_JAVACFLAGS "-source 1.5 -target 1.5 -Xlint:all,-serial,-cast")
@@ -94,7 +99,7 @@ add_custom_command(OUTPUT VncViewer.jar
   COMMAND ${CMAKE_COMMAND}
   ARGS -DJava_PATH=${Java_PATH}
     -DJAR_FILE=${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
-    -P ${CMAKE_SOURCE_DIR}/cmake/SignJar.cmake
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/SignJar.cmake
   WORKING_DIRECTORY ${OBJDIR})
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)

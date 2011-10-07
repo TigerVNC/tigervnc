@@ -31,7 +31,7 @@ target_link_libraries(winvnc4 rfb rfb_win32 Xregion network rdr ws2_32.lib)
 
 if(BUILD_JAVA)
   set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/winvnc.rc
-    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/java/src/VncViewer.jar)
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/java/VncViewer.jar)
 endif()
 
 install(TARGETS winvnc4

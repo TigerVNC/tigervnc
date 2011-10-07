@@ -223,7 +223,7 @@ END
 #cmakedefine BUILD_JAVA
 
 #ifdef BUILD_JAVA
-/VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "@CMAKE_WIN_BINARY_DIR@\\java\\src\\VncViewer.jar"
+/VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "@CMAKE_WIN_BINARY_DIR@\\java\\VncViewer.jar"
 /INDEX.VNC              HTTPFILE DISCARDABLE    "@CMAKE_WIN_SOURCE_DIR@\\win\\winvnc\\index.vnc"
 #endif
 
