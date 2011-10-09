@@ -19,16 +19,12 @@
 package com.tigervnc.vncviewer;
 
 import java.awt.*;
-import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import java.net.URL;
-import java.io.File;
 import java.util.*;
 
 import com.tigervnc.rfb.*;
-import com.tigervnc.rfb.Exception;
 
 class ServerDialog extends Dialog implements
                            ActionListener,

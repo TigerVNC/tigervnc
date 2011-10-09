@@ -18,8 +18,6 @@
 
 package com.tigervnc.rfb;
 
-import java.awt.*;
-
 public class Cursor extends ManagedPixelBuffer {
 
   public void setSize(int w, int h) {

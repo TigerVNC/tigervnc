@@ -31,10 +31,10 @@ public class ScreenSet {
     screens = new ArrayList<Screen>();
   }
 
-  public static final int num_screens() { return screens.size(); }
+  public final int num_screens() { return screens.size(); }
 
-  public static final void add_screen(Screen screen) { screens.add(screen); }
-  public static final void remove_screen(int id) { 
+  public final void add_screen(Screen screen) { screens.add(screen); }
+  public final void remove_screen(int id) { 
     for (Iterator iter = screens.iterator(); iter.hasNext(); ) {
       Screen refScreen = (Screen)iter.next();
       if (refScreen.id == id)
@@ -42,7 +42,7 @@ public class ScreenSet {
     }
   }
 
-  public static final boolean validate(int fb_width, int fb_height) {
+  public final boolean validate(int fb_width, int fb_height) {
       List<Integer> seen_ids = new ArrayList<Integer>();
       Rect fb_rect = new Rect();
 
@@ -81,7 +81,7 @@ public class ScreenSet {
   //inline bool operator(const ScreenSet& r) const { return screens == r.screens; }
   //inline bool operator(const ScreenSet& r) const { return screens != r.screens; }
 
-  public static List<Screen> screens;
+  public ArrayList<Screen> screens;
 
   static LogWriter vlog = new LogWriter("ScreenSet");
 

@@ -18,8 +18,6 @@
 
 package com.tigervnc.rfb;
 
-import java.io.IOException;
-
 import com.tigervnc.rdr.*;
 import com.tigervnc.vncviewer.*;
 
@@ -28,7 +26,6 @@ public class CSecurityIdent extends CSecurity {
   public CSecurityIdent() { }
 
   public boolean processMsg(CConnection cc) {
-    InStream is = cc.getInStream();
     OutStream os = cc.getOutStream();
 
     StringBuffer username = new StringBuffer();

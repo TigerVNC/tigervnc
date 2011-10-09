@@ -22,7 +22,6 @@ import java.awt.Cursor;
 import java.awt.event.*;
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JCheckBoxMenuItem;
 

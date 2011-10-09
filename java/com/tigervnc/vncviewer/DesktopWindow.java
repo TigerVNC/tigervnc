@@ -38,7 +38,6 @@ import javax.swing.*;
 
 import com.tigervnc.rfb.*;
 import com.tigervnc.rfb.Cursor;
-import com.tigervnc.rfb.Exception;
 import com.tigervnc.rfb.Point;
 
 class DesktopWindow extends JPanel implements

@@ -31,7 +31,7 @@ public class Screen {
       flags = flags_;
     }
 
-    public final static boolean operator(Screen r) {
+    public final boolean operator(Screen r) {
       if (id != r.id)
         return false;
       if (!dimensions.equals(r.dimensions))
@@ -41,8 +41,8 @@ public class Screen {
       return true;
     }
 
-    public static int id;
-    public static Rect dimensions;
-    public static int flags;
+    public int id;
+    public Rect dimensions;
+    public int flags;
 
 }

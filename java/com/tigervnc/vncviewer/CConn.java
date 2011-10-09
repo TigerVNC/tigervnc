@@ -34,26 +34,16 @@ package com.tigervnc.vncviewer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.*;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
-import java.awt.Frame;
-import java.awt.ScrollPane;
 
-import java.io.*;
-import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.File;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.*;
-import javax.swing.filechooser.*;
 import javax.swing.ImageIcon;
 import java.net.URL;
-import java.net.ServerSocket;
-import javax.swing.border.*;
 import java.util.*;
 
 import com.tigervnc.rdr.*;
@@ -219,7 +209,6 @@ public class CConn extends CConnection
   public boolean showMsgBox(int flags, String title, String text)
   {
     StringBuffer titleText = new StringBuffer("VNC Viewer: "+title);
-
     return true;
   }
 
@@ -1165,7 +1154,6 @@ public class CConn extends CConnection
 
   synchronized public void writePointerEvent(MouseEvent ev) {
     if (state() != RFBSTATE_NORMAL) return;
-    int x, y;
 
     switch (ev.getID()) {
     case MouseEvent.MOUSE_PRESSED:

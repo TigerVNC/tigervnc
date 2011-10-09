@@ -20,7 +20,6 @@
 package com.tigervnc.rfb;
 
 import javax.net.ssl.*;
-import java.security.*;
 import java.security.cert.*;
 import java.security.KeyStore;
 import java.io.File;
@@ -119,7 +118,6 @@ public class CSecurityTLS extends CSecurity {
 
   public boolean processMsg(CConnection cc) {
     is = cc.getInStream();
-    os = cc.getOutStream();
 
     initGlobal();
 

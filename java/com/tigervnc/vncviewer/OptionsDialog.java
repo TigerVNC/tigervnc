@@ -22,13 +22,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.filechooser.*;
-import javax.swing.ImageIcon;
-import java.net.URL;
-import java.io.IOException;
 
 import com.tigervnc.rfb.*;
-import com.tigervnc.rfb.Exception;
 
 class OptionsDialog extends Dialog implements
                             ActionListener,

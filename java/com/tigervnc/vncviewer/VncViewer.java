@@ -31,17 +31,13 @@ import java.awt.*;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.image.*;
-import java.awt.Label;
 import java.io.InputStream;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.*;
-import java.net.URL;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
-import com.tigervnc.rfb.Exception;
 
 public class VncViewer extends java.applet.Applet implements Runnable
 {

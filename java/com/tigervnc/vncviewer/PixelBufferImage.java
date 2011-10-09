@@ -26,7 +26,6 @@ package com.tigervnc.vncviewer;
 import java.awt.*;
 import java.awt.image.*;
 import java.nio.ByteOrder;
-import javax.swing.JScrollPane;
 
 import com.tigervnc.rfb.*;
 
@@ -59,7 +58,6 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
 
     int rowsToCopy = h < height() ? h : height();
     int copyWidth = w < width() ? w : width();
-    int oldWidth = width();
     int[] oldData = data;
 
     width_ = w;
