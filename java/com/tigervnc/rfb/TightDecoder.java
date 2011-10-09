@@ -63,7 +63,6 @@ public class TightDecoder extends Decoder {
 
     int comp_ctl = is.readU8();
 
-    int bytesPerPixel = handler.cp.pf().bpp / 8;
     boolean bigEndian = handler.cp.pf().bigEndian;
 
     // Flush zlib streams if we are told by the server to do so.

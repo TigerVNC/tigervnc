@@ -102,7 +102,7 @@ abstract public class CConnection extends CMsgHandler {
     int secType = Security.secTypeInvalid;
 
     List<Integer> secTypes = new ArrayList<Integer>();
-    secTypes = security.GetEnabledSecTypes();
+    secTypes = Security.GetEnabledSecTypes();
     //for (Iterator i = secTypes.iterator(); i.hasNext(); )
     //  vlog.info(((Integer)i.next()).toString());
 

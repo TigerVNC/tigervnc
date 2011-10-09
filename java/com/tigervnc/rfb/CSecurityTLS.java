@@ -56,9 +56,9 @@ public class CSecurityTLS extends CSecurity {
       }
       sslfactory = ctx.getSocketFactory();
       try {
-        ssl = (SSLSocket)sslfactory.createSocket(cc.sock,
-						  cc.sock.getInetAddress().getHostName(),
-						  cc.sock.getPort(), true);
+        ssl = (SSLSocket)sslfactory.createSocket(CConnection.sock,
+						  CConnection.sock.getInetAddress().getHostName(),
+						  CConnection.sock.getPort(), true);
       } catch (java.io.IOException e) { 
         throw new Exception(e.toString());
       }
@@ -242,7 +242,6 @@ public class CSecurityTLS extends CSecurity {
   private SSLSession session;
   private String cafile, crlfile;
   private InStream is;
-  private OutStream os;
   private SSLSocket ssl;
 
   static LogWriter vlog = new LogWriter("CSecurityTLS");

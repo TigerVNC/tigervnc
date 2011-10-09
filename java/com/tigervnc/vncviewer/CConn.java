@@ -208,7 +208,7 @@ public class CConn extends CConnection
 
   public boolean showMsgBox(int flags, String title, String text)
   {
-    StringBuffer titleText = new StringBuffer("VNC Viewer: "+title);
+    //StringBuffer titleText = new StringBuffer("VNC Viewer: "+title);
     return true;
   }
 
@@ -744,7 +744,7 @@ public class CConn extends CConnection
 
       /* Process non-VeNCrypt sectypes */
       java.util.List<Integer> secTypes = new ArrayList<Integer>();
-      secTypes = security.GetEnabledSecTypes();
+      secTypes = Security.GetEnabledSecTypes();
       for (Iterator i = secTypes.iterator(); i.hasNext();) {
         switch ((Integer)i.next()) {
         case Security.secTypeVeNCrypt:
@@ -764,7 +764,7 @@ public class CConn extends CConnection
       /* Process VeNCrypt subtypes */
       if (options.secVeNCrypt.isSelected()) {
         java.util.List<Integer> secTypesExt = new ArrayList<Integer>();
-        secTypesExt = security.GetEnabledExtSecTypes();
+        secTypesExt = Security.GetEnabledExtSecTypes();
         for (Iterator iext = secTypesExt.iterator(); iext.hasNext();) {
           switch ((Integer)iext.next()) {
           case Security.secTypePlain:

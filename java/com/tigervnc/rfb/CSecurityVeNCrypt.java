@@ -131,7 +131,7 @@ public class CSecurityVeNCrypt extends CSecurity {
           Iterator j;
           List<Integer> secTypes = new ArrayList<Integer>();
 
-          secTypes = security.GetEnabledExtSecTypes();
+          secTypes = Security.GetEnabledExtSecTypes();
 
           /* Honor server's security type order */
           for (i = 0; i < nAvailableTypes; i++) {

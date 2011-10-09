@@ -107,7 +107,7 @@ class ServerDialog extends Dialog implements
   }
 
   public void itemStateChanged(ItemEvent e) {
-    Object s = e.getSource();
+    //Object s = e.getSource();
   }
 
   public void actionPerformed(ActionEvent e) {
