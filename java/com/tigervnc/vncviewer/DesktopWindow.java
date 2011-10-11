@@ -315,9 +315,13 @@ class DesktopWindow extends JPanel implements
   }
 
   public void setScaledSize() {
-    if (!cc.options.autoScale && !cc.options.fixedRatioScale) {
-      scaledWidth = (int)Math.floor((float)cc.cp.width * (float)cc.scaleFactor/100.0);
-      scaledHeight = (int)Math.floor((float)cc.cp.height * (float)cc.scaleFactor/100.0);
+    String scaleString = cc.viewer.scalingFactor.getValue();
+    if (!scaleString.equals("Auto") && !scaleString.equals("FixedRatio")) {
+      int scalingFactor = Integer.parseInt(scaleString);
+      scaledWidth = 
+        (int)Math.floor((float)cc.cp.width * (float)scalingFactor/100.0);
+      scaledHeight = 
+        (int)Math.floor((float)cc.cp.height * (float)scalingFactor/100.0);
     } else {
       if (cc.viewport == null) {
         scaledWidth = cc.cp.width;
@@ -330,7 +334,7 @@ class DesktopWindow extends JPanel implements
                         vpSize.height - vpInsets.top - vpInsets.bottom);
         if (availableSize.width == 0 || availableSize.height == 0)
           availableSize = new Dimension(cc.cp.width, cc.cp.height);
-        if (cc.options.fixedRatioScale) {
+        if (scaleString.equals("FixedRatio")) {
           float widthRatio = (float)availableSize.width / (float)cc.cp.width;
           float heightRatio = (float)availableSize.height / (float)cc.cp.height;
           float ratio = Math.min(widthRatio, heightRatio);

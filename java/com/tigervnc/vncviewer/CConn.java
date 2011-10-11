@@ -71,22 +71,33 @@ class ViewportFrame extends JFrame
     });
     addComponentListener(new ComponentAdapter() {
       public void componentResized(ComponentEvent e) {
-        if (cc.options.autoScale || cc.options.fixedRatioScale) {
-          if (sp.getSize().width != cc.desktop.scaledWidth ||
-              sp.getSize().height != cc.desktop.scaledHeight) {
+        if ((getExtendedState() != JFrame.MAXIMIZED_BOTH) &&
+            cc.fullScreen) {
+          cc.toggleFullScreen();
+        }
+        String scaleString = cc.viewer.scalingFactor.getValue();
+        if (scaleString.equals("Auto") || scaleString.equals("FixedRatio")) {
+          if ((sp.getSize().width != cc.desktop.scaledWidth) ||
+              (sp.getSize().height != cc.desktop.scaledHeight)) {
+            int policy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+            sp.setHorizontalScrollBarPolicy(policy);
             cc.desktop.setScaledSize();
             sp.setSize(new Dimension(cc.desktop.scaledWidth,
                                      cc.desktop.scaledHeight));
             sp.validate();
-            pack();
-            update(g);
+            if (getExtendedState() != JFrame.MAXIMIZED_BOTH)
+              pack();
             if (cc.desktop.cursor != null) {
               Cursor cursor = cc.desktop.cursor;
               cc.setCursor(cursor.width(),cursor.height(),cursor.hotspot, 
-                          cursor.data, cursor.mask);
+                           cursor.data, cursor.mask);
             }
           }
-        }      
+        } else {
+          int policy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+          sp.setHorizontalScrollBarPolicy(policy);
+          sp.validate();
+        }
       }
     });
   }
@@ -110,7 +121,7 @@ class ViewportFrame extends JFrame
     } else {
       setSize(w, h);
     }
-    if (!cc.options.autoScale && !cc.options.fixedRatioScale)
+    if (!cc.fullScreen)
       setLocation(x, y);
     setBackground(Color.BLACK);
   }
@@ -503,11 +514,18 @@ public class CConn extends CConnection
       if (!pack)
         viewport.setPreferredSize(new Dimension(w,h));
 
-      int x = (dpySize.width - w - wmDecorationWidth) / 2;
-      int y = (dpySize.height - h - wmDecorationHeight)/2;
-
-      viewport.setExtendedState(JFrame.NORMAL);
-      viewport.setGeometry(x, y, w, h, pack);
+      if (viewport.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
+        w = viewport.getSize().width;
+        h = viewport.getSize().height;
+        int x = viewport.getLocation().x;
+        int y = viewport.getLocation().y;
+        viewport.setGeometry(x, y, w, h, pack);
+      } else {
+        int x = (dpySize.width - w - wmDecorationWidth) / 2;
+        int y = (dpySize.height - h - wmDecorationHeight)/2;
+        viewport.setExtendedState(JFrame.NORMAL);
+        viewport.setGeometry(x, y, w, h, pack);
+      }
     }
     viewport.update(viewport.g);
   }
@@ -822,25 +840,20 @@ public class CConn extends CConnection
     options.useLocalCursor.setSelected(viewer.useLocalCursor.getValue());
     options.fastCopyRect.setSelected(viewer.fastCopyRect.getValue());
     options.acceptBell.setSelected(viewer.acceptBell.getValue());
-    options.autoScale = false;
-    options.fixedRatioScale = false;
     String scaleString = viewer.scalingFactor.getValue();
     if (scaleString.equals("Auto")) {
-      options.autoScale = true;
       options.scalingFactor.setSelectedItem("Auto");
-      // FIXME: set scaleFactor?
     } else if(scaleString.equals("FixedRatio")) {
-      options.fixedRatioScale = true;
       options.scalingFactor.setSelectedItem("Fixed Aspect Ratio");
-      // FIXME: set scaleFactor?
     } else { 
       digit = Integer.parseInt(scaleString);
       if (digit >= 1 && digit <= 1000) {
         options.scalingFactor.setSelectedItem(digit+"%");
       } else {
-        options.scalingFactor.setSelectedItem(Integer.parseInt(viewer.scalingFactor.getDefaultStr())+"%");
+        digit = Integer.parseInt(viewer.scalingFactor.getDefaultStr());
+        options.scalingFactor.setSelectedItem(digit+"%");
       }
-      scaleFactor = 
+      int scaleFactor = 
         Integer.parseInt(scaleString.substring(0, scaleString.length()));
       if (desktop != null)
         desktop.setScaledSize();
@@ -901,30 +914,23 @@ public class CConn extends CConnection
     viewer.sendClipboard.setParam(options.sendClipboard.isSelected());
     viewer.fastCopyRect.setParam(options.fastCopyRect.isSelected());
     viewer.acceptBell.setParam(options.acceptBell.isSelected());
-    if (options.autoScale) {
+    String scaleString =
+      options.scalingFactor.getSelectedItem().toString();
+    if (scaleString.equals("Auto")) {
       viewer.scalingFactor.setParam("Auto");
-      scaleFactor = -1;
-      if (desktop != null) {
+      if (desktop != null)
         reconfigureViewport();
-        viewport.update(viewport.g);
-      }
-    } else if(options.fixedRatioScale) {
+    } else if(scaleString.equals("Fixed Aspect Ratio")) {
       viewer.scalingFactor.setParam("FixedRatio");
-      scaleFactor = -1;
-      if (desktop != null) {
+      if (desktop != null)
         reconfigureViewport();
-        viewport.update(viewport.g);
-      }
     } else { 
-      String scaleString =
-        options.scalingFactor.getSelectedItem().toString();
-      viewer.scalingFactor.setParam(scaleString.substring(0, scaleString.length()-1));
-      int oldScaleFactor = scaleFactor;
-      scaleFactor = 
-        Integer.parseInt(scaleString.substring(0, scaleString.length()-1));
-      if (oldScaleFactor != scaleFactor && desktop != null) {
+      scaleString=scaleString.substring(0, scaleString.length()-1);
+      String oldScaleFactor = viewer.scalingFactor.getValue();
+      viewer.scalingFactor.setParam(scaleString);
+      if ((desktop != null) && (!oldScaleFactor.equals("Auto") ||
+           !oldScaleFactor.equals("FixedRatio"))) {
         reconfigureViewport();
-        viewport.update(viewport.g);
       }
     }
 
@@ -1290,8 +1296,6 @@ public class CConn extends CConnection
   boolean reverseConnection;
   boolean firstUpdate;
   boolean pendingUpdate;
-  
-  int scaleFactor = 100;
   
   static LogWriter vlog = new LogWriter("CConn");
 }

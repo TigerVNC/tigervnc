@@ -50,9 +50,6 @@ class OptionsDialog extends Dialog implements
   JButton defSaveButton;
   UserPrefs defaults;
 
-  boolean autoScale = false;
-  boolean fixedRatioScale = false;
-
   public OptionsDialog(OptionsDialogCallback cb_) { 
     super(false);
     cb = cb_;
@@ -287,9 +284,6 @@ class OptionsDialog extends Dialog implements
     veryLowColour.setEnabled(!autoSelect.isSelected());
     compressLevel.setEnabled(customCompressLevel.isSelected());
     qualityLevel.setEnabled(noJpeg.isSelected());
-    autoScale = (scalingFactor.getSelectedItem().equals("Auto"));
-    fixedRatioScale = 
-      (scalingFactor.getSelectedItem().equals("Fixed Aspect Ratio"));
     sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
       (secPlain.isSelected()||secIdent.isSelected()));
   }
@@ -335,9 +329,6 @@ class OptionsDialog extends Dialog implements
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
-      autoScale = (scalingFactor.getSelectedItem().equals("Auto"));
-      fixedRatioScale = 
-        (scalingFactor.getSelectedItem().equals("Fixed Aspect Ratio"));
       ok = true;
       if (cb != null) cb.getOptions();
       endDialog();
