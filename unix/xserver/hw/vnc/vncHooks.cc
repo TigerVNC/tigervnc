@@ -554,23 +554,27 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 {
   ScreenPtr pScreen = pDst->pDrawable->pScreen;
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
-  BoxRec box;
   PictureScreenPtr ps = GetPictureScreen(pScreen);
-  rfb::Rect rect1, rect2;
 
-  rect1.setXYWH(pDst->pDrawable->x + xDst,
-		pDst->pDrawable->y + yDst,
-		width,
-		height);
-      
-  rect2 = rect1.intersect(vncHooksScreen->desktop->getRect());
-  if (!rect2.is_empty()) {
-    box.x1 = rect2.tl.x;
-    box.y1 = rect2.tl.y;
-    box.x2 = rect2.br.x;
-    box.y2 = rect2.br.y;
-    RegionHelper changed(pScreen, &box, 0);
-    vncHooksScreen->desktop->add_changed(changed.reg);
+  if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
+      ((WindowPtr) pDst->pDrawable)->viewable) {
+    BoxRec box;
+    rfb::Rect rect1, rect2;
+
+    rect1.setXYWH(pDst->pDrawable->x + xDst,
+		  pDst->pDrawable->y + yDst,
+		  width,
+		  height);
+        
+    rect2 = rect1.intersect(vncHooksScreen->desktop->getRect());
+    if (!rect2.is_empty()) {
+      box.x1 = rect2.tl.x;
+      box.y1 = rect2.tl.y;
+      box.x2 = rect2.br.x;
+      box.y2 = rect2.br.y;
+      RegionHelper changed(pScreen, &box, 0);
+      vncHooksScreen->desktop->add_changed(changed.reg);
+    }
   }
 
   ps->Composite = vncHooksScreen->Composite;
