@@ -55,6 +55,7 @@ class DesktopWindow extends JPanel implements
     cc = cc_;
     setSize(width, height);
     im = new PixelBufferImage(width, height, cc, this);
+    im.image.setAccelerationPriority(1);
 
     cursor = new Cursor();
     cursorBacking = new ManagedPixelBuffer();
@@ -69,7 +70,6 @@ class DesktopWindow extends JPanel implements
     });
     setFocusTraversalKeysEnabled(false);
     setFocusable(true);
-    setDoubleBuffered(true);
   }
   
   public int width() {
@@ -113,6 +113,7 @@ class DesktopWindow extends JPanel implements
 
     synchronized(this) {
     if (!cc.viewer.useLocalCursor.getValue()) return;
+    }
 
     hideLocalCursor();
 
@@ -162,7 +163,6 @@ class DesktopWindow extends JPanel implements
       tk.createImage(bitmap).getScaledInstance(cw,ch,hint);
     softCursor = tk.createCustomCursor(cursorImage,
                   new java.awt.Point(hotspot.x,hotspot.y), "Cursor");
-    }
 
     if (softCursor != null) {
       setCursor(softCursor); 
@@ -206,12 +206,14 @@ class DesktopWindow extends JPanel implements
   }
 
   // resize() is called when the desktop has changed size
-  synchronized public void resize() {
+  public void resize() {
     int w = cc.cp.width;
     int h = cc.cp.height;
     hideLocalCursor();
     setSize(w, h);
-    im.resize(w, h);
+    synchronized (this) { 
+      im.resize(w, h);
+    }
   }
 
   final void drawInvalidRect() {
@@ -253,29 +255,35 @@ class DesktopWindow extends JPanel implements
     drawInvalidRect();
   }
 
-  synchronized final public void fillRect(int x, int y, int w, int h, int pix)
+  final public void fillRect(int x, int y, int w, int h, int pix)
   {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    im.fillRect(x, y, w, h, pix);
+    synchronized (this) { 
+      im.fillRect(x, y, w, h, pix);
+    }
     invalidate(x, y, w, h);
     if (softCursor == null)
       showLocalCursor();
   }
 
-  synchronized final public void imageRect(int x, int y, int w, int h,
+  final public void imageRect(int x, int y, int w, int h,
                                            int[] pix) {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    im.imageRect(x, y, w, h, pix);
+    synchronized (this) {
+      im.imageRect(x, y, w, h, pix);
+    }
     invalidate(x, y, w, h);
     if (softCursor == null)
       showLocalCursor();
   }
 
-  synchronized final public void copyRect(int x, int y, int w, int h,
+  final public void copyRect(int x, int y, int w, int h,
                                           int srcX, int srcY) {
     if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))
       hideLocalCursor();
-    im.copyRect(x, y, w, h, srcX, srcY);
+    synchronized (this) {
+      im.copyRect(x, y, w, h, srcX, srcY);
+    }
     if (!cc.viewer.fastCopyRect.getValue()) {
       invalidate(x, y, w, h);
     }
@@ -293,7 +301,7 @@ class DesktopWindow extends JPanel implements
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the GUI thread
 
-  synchronized void resetLocalCursor() {
+  void resetLocalCursor() {
     hideLocalCursor();
     cursorAvailable = false;
   }
@@ -350,7 +358,7 @@ class DesktopWindow extends JPanel implements
     scaleHeightRatio = (float)scaledHeight / (float)cc.cp.height;
   }
 
-  synchronized public void paintComponent(Graphics g) {
+  public void paintComponent(Graphics g) {
     Graphics2D g2 = (Graphics2D) g;
     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);  
@@ -362,7 +370,7 @@ class DesktopWindow extends JPanel implements
       g2.drawImage(im.image, 0, 0, scaledWidth, scaledHeight, null);  
     }
   }
-
+  
   String oldContents = "";
   
   synchronized public void checkClipboard() {
@@ -395,11 +403,11 @@ class DesktopWindow extends JPanel implements
     if (!cc.viewer.viewOnly.getValue())
       cc.writePointerEvent(e);
     // - If local cursor rendering is enabled then use it
-    synchronized(this) {
-      if (cursorAvailable) {
-        // - Render the cursor!
-        if (e.getX() != cursorPosX || e.getY() != cursorPosY) {
-          hideLocalCursor();
+    if (cursorAvailable) {
+      // - Render the cursor!
+      if (e.getX() != cursorPosX || e.getY() != cursorPosY) {
+        hideLocalCursor();
+        synchronized(this) {
           if (e.getX() >= 0 && e.getX() < im.width() &&
               e.getY() >= 0 && e.getY() < im.height()) {
             cursorPosX = e.getX();

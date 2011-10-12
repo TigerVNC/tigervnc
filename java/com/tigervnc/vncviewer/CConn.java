@@ -104,6 +104,7 @@ class ViewportFrame extends JFrame
 
   public void addChild(DesktopWindow child) {
     sp = new JScrollPane(child);
+    sp.setDoubleBuffered(true);
     child.setBackground(Color.BLACK);
     child.setOpaque(true);
     sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
@@ -699,8 +700,10 @@ public class CConn extends CConnection
       JOptionPane.PLAIN_MESSAGE);
   }
 
-  synchronized public void refresh() {
-    writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
+  public void refresh() {
+    synchronized (this) {
+      writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
+    }
     pendingUpdate = true;
   }
 
@@ -1158,7 +1161,7 @@ public class CConn extends CConnection
   }
 
 
-  synchronized public void writePointerEvent(MouseEvent ev) {
+  public void writePointerEvent(MouseEvent ev) {
     if (state() != RFBSTATE_NORMAL) return;
 
     switch (ev.getID()) {
@@ -1172,7 +1175,9 @@ public class CConn extends CConnection
       break;
     }
 
-    writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
+    synchronized (this) {
+      writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
+    }
 
     if (cp.width != desktop.scaledWidth || 
         cp.height != desktop.scaledHeight) {
@@ -1181,8 +1186,9 @@ public class CConn extends CConnection
       int sy = (desktop.scaleHeightRatio == 1.00) 
         ? ev.getY() : (int)Math.floor(ev.getY()/desktop.scaleHeightRatio);
       ev.translatePoint(sx - ev.getX(), sy - ev.getY());
-      writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
-    } else {
+    }
+    
+    synchronized (this) {
       writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
     }
 
@@ -1212,7 +1218,7 @@ public class CConn extends CConnection
   }
 
 
-  void writeModifiers(int m) {
+  synchronized void writeModifiers(int m) {
     if ((m & Event.SHIFT_MASK) != (pressedModifiers & Event.SHIFT_MASK))
       writeKeyEvent(Keysyms.Shift_L, (m & Event.SHIFT_MASK) != 0);
     if ((m & Event.CTRL_MASK) != (pressedModifiers & Event.CTRL_MASK))

@@ -103,6 +103,7 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
   public void put(int x, int y, int w, int h, Graphics g) {
     if (ic != null) {
       ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
+      g.setClip(x, y, w, h);
       ic.imageComplete(ImageConsumer.SINGLEFRAMEDONE);
     }
   }
