@@ -63,7 +63,7 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
     width_ = w;
     height_ = h;
     image = desktop.createImage(this);
-    //image.setAccelerationPriority(1);
+    image.setAccelerationPriority(1);
 
     data = new int[width() * height()];
 

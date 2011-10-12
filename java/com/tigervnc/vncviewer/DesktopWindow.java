@@ -55,7 +55,6 @@ class DesktopWindow extends JPanel implements
     cc = cc_;
     setSize(width, height);
     im = new PixelBufferImage(width, height, cc, this);
-    im.image.setAccelerationPriority(1);
 
     cursor = new Cursor();
     cursorBacking = new ManagedPixelBuffer();
@@ -85,7 +84,7 @@ class DesktopWindow extends JPanel implements
   // DesktopWindow has actually been made visible so that getGraphics() ought
   // to work.
 
-  public void initGraphics() { 
+  synchronized public void initGraphics() { 
     cc.viewport.g = cc.viewport.getGraphics(); 
     graphics = getComponentGraphics(cc.viewport.g);
     prepareImage(im.image, scaledWidth, scaledHeight, this);
@@ -111,8 +110,9 @@ class DesktopWindow extends JPanel implements
     // might be being altered by the GUI thread.  However it's only a single
     // boolean and it doesn't matter if we get the wrong value anyway.
 
-    synchronized(this) {
-    if (!cc.viewer.useLocalCursor.getValue()) return;
+    synchronized(cc.viewer.useLocalCursor) {
+      if (!cc.viewer.useLocalCursor.getValue())
+        return;
     }
 
     hideLocalCursor();
@@ -211,7 +211,7 @@ class DesktopWindow extends JPanel implements
     int h = cc.cp.height;
     hideLocalCursor();
     setSize(w, h);
-    synchronized (this) { 
+    synchronized (im) { 
       im.resize(w, h);
     }
   }
@@ -224,7 +224,7 @@ class DesktopWindow extends JPanel implements
     int h = invalidBottom - y;
     invalidRect = false;
 
-    synchronized (this) {
+    synchronized (im) {
       im.put(x, y, w, h, graphics);
     }
   }
@@ -258,7 +258,7 @@ class DesktopWindow extends JPanel implements
   final public void fillRect(int x, int y, int w, int h, int pix)
   {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    synchronized (this) { 
+    synchronized (im) { 
       im.fillRect(x, y, w, h, pix);
     }
     invalidate(x, y, w, h);
@@ -269,7 +269,7 @@ class DesktopWindow extends JPanel implements
   final public void imageRect(int x, int y, int w, int h,
                                            int[] pix) {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    synchronized (this) {
+    synchronized (im) {
       im.imageRect(x, y, w, h, pix);
     }
     invalidate(x, y, w, h);
@@ -281,7 +281,7 @@ class DesktopWindow extends JPanel implements
                                           int srcX, int srcY) {
     if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))
       hideLocalCursor();
-    synchronized (this) {
+    synchronized (im) {
       im.copyRect(x, y, w, h, srcX, srcY);
     }
     if (!cc.viewer.fastCopyRect.getValue()) {
@@ -407,7 +407,7 @@ class DesktopWindow extends JPanel implements
       // - Render the cursor!
       if (e.getX() != cursorPosX || e.getY() != cursorPosY) {
         hideLocalCursor();
-        synchronized(this) {
+        synchronized(im) {
           if (e.getX() >= 0 && e.getX() < im.width() &&
               e.getY() >= 0 && e.getY() < im.height()) {
             cursorPosX = e.getX();
@@ -473,7 +473,7 @@ class DesktopWindow extends JPanel implements
   // Note that mutex MUST be held when hideLocalCursor() and showLocalCursor()
   // are called.
 
-  private void hideLocalCursor() {
+  synchronized private void hideLocalCursor() {
     // - Blit the cursor backing store over the cursor
     if (cursorVisible) {
       cursorVisible = false;
@@ -484,7 +484,7 @@ class DesktopWindow extends JPanel implements
     }
   }
 
-  private void showLocalCursor() {
+  synchronized private void showLocalCursor() {
     if (cursorAvailable && !cursorVisible) {
       if (!im.getPF().equal(cursor.getPF()) ||
           cursor.width() == 0 || cursor.height() == 0) {
@@ -522,15 +522,13 @@ class DesktopWindow extends JPanel implements
 
   // run() is executed by the setColourMapEntriesTimerThread - it sleeps for
   // 100ms before actually updating the colourmap.
-  public void run() {
+  synchronized public void run() {
     try {
       Thread.sleep(100);
     } catch (InterruptedException e) {}
-    synchronized (this) {
-      im.updateColourMap();
-      im.put(0, 0, im.width(), im.height(), graphics);
-      setColourMapEntriesTimerThread = null;
-    }
+    im.updateColourMap();
+    im.put(0, 0, im.width(), im.height(), graphics);
+    setColourMapEntriesTimerThread = null;
   }
 
   // access to cc by different threads is specified in CConn

@@ -85,8 +85,12 @@ class ViewportFrame extends JFrame
             sp.setSize(new Dimension(cc.desktop.scaledWidth,
                                      cc.desktop.scaledHeight));
             sp.validate();
-            if (getExtendedState() != JFrame.MAXIMIZED_BOTH)
-              pack();
+            if (getExtendedState() != JFrame.MAXIMIZED_BOTH &&
+                scaleString.equals("FixedRatio")) {
+              int w = cc.desktop.scaledWidth + getInsets().left + getInsets().right;
+              int h = cc.desktop.scaledHeight + getInsets().top + getInsets().bottom;
+              setSize(w, h);
+            }
             if (cc.desktop.cursor != null) {
               Cursor cursor = cc.desktop.cursor;
               cc.setCursor(cursor.width(),cursor.height(),cursor.hotspot, 
@@ -512,7 +516,7 @@ public class CConn extends CConnection
         pack = false;
       }
 
-      if (!pack)
+      if (pack)
         viewport.setPreferredSize(new Dimension(w,h));
 
       if (viewport.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
