@@ -144,7 +144,7 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE AND NOT CYGWIN)
     else()
       message(WARNING Cannot find static libstdc++.  TigerVNC will depend on dynamic libstdc++.)
     endif()
-    add_definitions(-static-libgcc)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc")
     set(CMAKE_SHARED_LINKER_FLAGS
       "${CMAKE_SHARED_LINKER_FLAGS} -static-libgcc")
