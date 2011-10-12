@@ -7,11 +7,11 @@ endif()
 
 add_library(wm_hooks SHARED
   ../wm_hooks/wm_hooks.cxx
-	../wm_hooks/wm_hooks.def
-	../wm_hooks/wm_hooks.rc)
+  ../wm_hooks/wm_hooks.def
+  ../wm_hooks/wm_hooks.rc)
 
-string(REGEX REPLACE "/" "\\\\\\\\" CMAKE_WIN_BINARY_DIR ${CMAKE_BINARY_DIR})
-string(REGEX REPLACE "/" "\\\\\\\\" CMAKE_WIN_SOURCE_DIR ${CMAKE_SOURCE_DIR})
+set(VNCVIEWER_JAR_PATH ${CMAKE_BINARY_DIR}/java/VncViewer.jar)
+set(INDEX_VNC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/index.vnc)
 
 configure_file(winvnc.rc.in winvnc.rc)
 

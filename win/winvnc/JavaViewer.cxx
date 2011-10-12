@@ -45,6 +45,10 @@ rdr::InStream* JavaViewerServer::getFile(const char* name,
 {
   if (strcmp(name, "/") == 0)
     name = "/index.vnc";
+  if (strcmp(name, "/VncViewer.jar") == 0)
+    name = "VncViewer.jar";
+  if (strcmp(name, "/index.vnc") == 0)
+    name = "index.vnc";
 
   HRSRC resource = FindResource(0, TStr(name), _T("HTTPFILE"));
   if (!resource) return 0;
