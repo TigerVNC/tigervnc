@@ -35,7 +35,6 @@
 #define mkdir(path, mode) _mkdir(path)
 #endif
 
-#include <os/os.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/Security.h>
@@ -45,6 +44,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
 #include <network/TcpSocket.h>
+#include <os/os.h>
 
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
