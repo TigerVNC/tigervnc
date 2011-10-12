@@ -23,6 +23,7 @@
 #include <tchar.h>
 
 #include <wm_hooks/wm_hooks.h>
+#include <os/os.h>
 
 UINT WM_HK_PingThread = RegisterWindowMessage(_T("RFB.WM_Hooks.PingThread"));
 

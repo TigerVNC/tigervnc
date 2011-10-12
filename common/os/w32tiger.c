@@ -1,4 +1,4 @@
-/* Copyright (C) 2010 TightVNC Team.  All Rights Reserved.
+/* Copyright (C) 2011 TigerVNC Team.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,36 +16,18 @@
  * USA.
  */
 
-#ifndef OS_OS_H
-#define OS_OS_H
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <os/w32tiger.h>
+#ifdef WIN32 
 
-/*
- * Get VNC home directory ($HOME/.vnc or %APPDATA%/vnc/).
- * If HOME environment variable is set then it is used.
- * Otherwise home directory is obtained via getpwuid function.
- *
- * Note for Windows:
- * This functions returns array of TCHARs, not array of chars.
- *
- * Returns:
- * 0 - Success
- * -1 - Failure
- */
-int getvnchomedir(char **dirp);
+#define INITGUID
+#include <basetyps.h>
 
-/*
- * Check if the file exists
- *
- * Returns:
- * 0 - Success
- * -1 - Failure
- */
-int fileexists(char *file);
+#ifndef HAVE_ACTIVE_DESKTOP_L
+DEFINE_GUID(CLSID_ActiveDesktop,0x75048700L,0xEF1F,0x11D0,0x98,0x88,0x00,0x60,0x97,0xDE,0xAC,0xF9);
+DEFINE_GUID(IID_IActiveDesktop,0xF490EB00L,0x1240,0x11D1,0x98,0x88,0x00,0x60,0x97,0xDE,0xAC,0xF9);
+#endif
 
-#endif /* OS_OS_H */
+#endif /* WIN32 */

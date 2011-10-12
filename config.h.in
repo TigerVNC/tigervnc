@@ -16,6 +16,8 @@
 #cmakedefine HAVE_FLTK_MEDIAKEYS
 #cmakedefine HAVE_FLTK_FULLSCREEN
 #cmakedefine HAVE_FLTK_CURSOR
+#cmakedefine HAVE_ACTIVE_DESKTOP_H
+#cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1
 #cmakedefine HAVE_PAM
 

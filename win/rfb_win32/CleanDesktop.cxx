@@ -27,6 +27,7 @@
 #include <rfb_win32/OSVersion.h>
 #include <rfb/LogWriter.h>
 #include <rdr/Exception.h>
+#include <os/os.h>
 #include <set>
 
 #ifdef SPI_GETUIEFFECTS
