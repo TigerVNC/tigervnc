@@ -516,9 +516,6 @@ public class CConn extends CConnection
         pack = false;
       }
 
-      if (pack)
-        viewport.setPreferredSize(new Dimension(w,h));
-
       if (viewport.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
         w = viewport.getSize().width;
         h = viewport.getSize().height;
