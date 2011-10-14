@@ -109,5 +109,6 @@ if(NOT WIN32)
     ${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
     ${JAVA_SRCDIR}/README
     ${JAVA_SRCDIR}/index.vnc
+    ${JAVA_SRCDIR}/favicon.ico
     DESTINATION vnc/classes)
 endif()
