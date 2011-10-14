@@ -46,8 +46,12 @@ public class ZlibInStream extends InStream {
   public ZlibInStream() { this(defaultBufSize); }
 
   protected void finalize() throws Throwable {
-    b = null;
-    zs.inflateEnd();
+    try {
+      b = null;
+      zs.inflateEnd();
+    } finally {
+      super.finalize();
+    }
   }
 
   public void setUnderlying(InStream is, int bytesIn_)

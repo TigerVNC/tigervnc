@@ -21,9 +21,10 @@ package com.tigervnc.rfb;
 
 import com.tigervnc.rdr.InStream;
 import com.tigervnc.rdr.ZlibInStream;
-import java.awt.image.PixelGrabber;
-import java.awt.Image;
 import java.util.ArrayList;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
 
 public class TightDecoder extends Decoder {
 
@@ -105,18 +106,14 @@ public class TightDecoder extends Decoder {
       is.readBytes(netbuf, 0, compressedLen);
 
       // Create an Image object from the JPEG data.
-      Image jpeg = java.awt.Toolkit.getDefaultToolkit().createImage(netbuf);
-      PixelGrabber pg = new PixelGrabber(jpeg, 0, 0, r.width(), r.height(), true);
+      BufferedImage jpeg = new BufferedImage(r.width(), r.height(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
+      jpeg.setAccelerationPriority(1);
       try {
-        boolean ret = pg.grabPixels();
-        if (!ret)
-          vlog.info("failed to grab pixels");
-      } catch (InterruptedException e) {
+        jpeg = ImageIO.read(new ByteArrayInputStream(netbuf));
+      } catch (java.io.IOException e) {
         e.printStackTrace();
       }
-      Object pixels = pg.getPixels();
-      buf = (pixels instanceof byte[]) ? 
-        convertByteArrayToIntArray((byte[])pixels) : (int[])pixels;
+      jpeg.getRGB(0, 0, r.width(), r.height(), buf, 0, r.width());
       handler.imageRect(r, buf);
       return;
     }
@@ -256,49 +253,6 @@ public class TightDecoder extends Decoder {
   private ZlibInStream[] zis;
   static LogWriter vlog = new LogWriter("TightDecoder");
 
-  private static int convertByteArrayToInt(byte[] bytes) {
-    return (bytes[0] << 32) | (bytes[1] << 24) | (bytes[2] << 16) | (bytes[3] << 8) | bytes[4];
-  }
-
-  private static byte[] convertIntToByteArray(int integer) {
-    byte[] bytes = new byte[4];
-    bytes[0] =(byte)( integer >> 24 );
-    bytes[1] =(byte)( (integer << 8) >> 24 );
-    bytes[2] =(byte)( (integer << 16) >> 24 );
-    bytes[3] =(byte)( (integer << 24) >> 24 );
-    return bytes;
-  }
-  private static int[] convertByteArrayToIntArray(byte[] bytes) {
-    vlog.info("convertByteArrayToIntArray");
-    ArrayList<Integer> integers = new ArrayList<Integer>();
-    for (int index = 0; index < bytes.length; index += 4) {
-      byte[] fourBytes = new byte[4];
-      fourBytes[0] = bytes[index];
-      fourBytes[1] = bytes[index+1];
-      fourBytes[2] = bytes[index+2];
-      fourBytes[3] = bytes[index+3];
-      int integer = convertByteArrayToInt(fourBytes);
-      integers.add(new Integer(integer));
-    }
-    int[] ints = new int[bytes.length/4];
-    for (int index = 0; index < integers.size() ; index++) {
-      ints[index] = (integers.get(index)).intValue();
-    }
-    return ints;
-  }
-
-  private static byte[] convertIntArrayToByteArray(int[] integers) {
-    byte[] bytes = new byte[integers.length*4];
-    for (int index = 0; index < integers.length; index++) {
-      byte[] integerBytes = convertIntToByteArray(integers[index]);
-      bytes[index*4] = integerBytes[0];
-      bytes[1 + (index*4)] = integerBytes[1];
-      bytes[2 + (index*4)] = integerBytes[2];
-      bytes[3 + (index*4)] = integerBytes[3];
-    }
-    return bytes;
-  }
- 
   //
   // Decode data processed with the "Gradient" filter.
   //
