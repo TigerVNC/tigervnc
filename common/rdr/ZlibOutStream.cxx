@@ -23,27 +23,28 @@
 
 #include <zlib.h>
 
+#undef ZLIBOUT_DEBUG
+
 using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
 ZlibOutStream::ZlibOutStream(OutStream* os, int bufSize_, int compressLevel)
   : underlying(os), compressionLevel(compressLevel), newLevel(compressLevel),
-    bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0),
-    newBehavior(false)
+    bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0)
 {
   zs = new z_stream;
   zs->zalloc    = Z_NULL;
   zs->zfree     = Z_NULL;
   zs->opaque    = Z_NULL;
+  zs->next_in   = Z_NULL;
+  zs->avail_in  = 0;
   if (deflateInit(zs, compressLevel) != Z_OK) {
     delete zs;
     throw Exception("ZlibOutStream: deflateInit failed");
   }
   ptr = start = new U8[bufSize];
   end = start + bufSize;
-  const char *version = zlibVersion();
-  if (strcmp(version, "1.2.3") > 0) newBehavior = true;
 }
 
 ZlibOutStream::~ZlibOutStream()
@@ -77,35 +78,17 @@ int ZlibOutStream::length()
 
 void ZlibOutStream::flush()
 {
+  checkCompressionLevel();
+
   zs->next_in = start;
   zs->avail_in = ptr - start;
 
-//    fprintf(stderr,"zos flush: avail_in %d\n",zs->avail_in);
+#ifdef ZLIBOUT_DEBUG
+  fprintf(stderr,"zos flush: avail_in %d\n",zs->avail_in);
+#endif
 
-  if (!underlying)
-    throw Exception("ZlibOutStream: underlying OutStream has not been set");
-
-  while (zs->avail_in != 0) {
-
-    do {
-      underlying->check(1);
-      zs->next_out = underlying->getptr();
-      zs->avail_out = underlying->getend() - underlying->getptr();
-
-//        fprintf(stderr,"zos flush: calling deflate, avail_in %d, avail_out %d\n",
-//                zs->avail_in,zs->avail_out);
-      checkCompressionLevel();
-      if (zs->avail_in != 0) {
-        int rc = deflate(zs, Z_SYNC_FLUSH);
-        if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
-      }
-
-//        fprintf(stderr,"zos flush: after deflate: %d bytes\n",
-//                zs->next_out-underlying->getptr());
-
-      underlying->setptr(zs->next_out);
-    } while (zs->avail_out == 0);
-  }
+  // Force out everything from the zlib encoder
+  deflate(Z_SYNC_FLUSH);
 
   offset += ptr - start;
   ptr = start;
@@ -113,37 +96,20 @@ void ZlibOutStream::flush()
 
 int ZlibOutStream::overrun(int itemSize, int nItems)
 {
-//    fprintf(stderr,"ZlibOutStream overrun\n");
+#ifdef ZLIBOUT_DEBUG
+  fprintf(stderr,"zos overrun\n");
+#endif
 
   if (itemSize > bufSize)
     throw Exception("ZlibOutStream overrun: max itemSize exceeded");
 
-  if (!underlying)
-    throw Exception("ZlibOutStream: underlying OutStream has not been set");
+  checkCompressionLevel();
 
   while (end - ptr < itemSize) {
     zs->next_in = start;
     zs->avail_in = ptr - start;
 
-    do {
-      underlying->check(1);
-      zs->next_out = underlying->getptr();
-      zs->avail_out = underlying->getend() - underlying->getptr();
-
-//        fprintf(stderr,"zos overrun: calling deflate, avail_in %d, avail_out %d\n",
-//                zs->avail_in,zs->avail_out);
-
-      checkCompressionLevel();
-      if (zs->avail_in != 0) {
-        int rc = deflate(zs, 0);
-        if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
-      }
-
-//        fprintf(stderr,"zos overrun: after deflate: %d bytes\n",
-//                zs->next_out-underlying->getptr());
-
-      underlying->setptr(zs->next_out);
-    } while (zs->avail_out == 0);
+    deflate(Z_NO_FLUSH);
 
     // output buffer not full
 
@@ -166,23 +132,69 @@ int ZlibOutStream::overrun(int itemSize, int nItems)
   return nItems;
 }
 
+void ZlibOutStream::deflate(int flush)
+{
+  int rc;
+
+  if (!underlying)
+    throw Exception("ZlibOutStream: underlying OutStream has not been set");
+
+  if ((flush == Z_NO_FLUSH) && (zs->avail_in == 0))
+    return;
+
+  do {
+    underlying->check(1);
+    zs->next_out = underlying->getptr();
+    zs->avail_out = underlying->getend() - underlying->getptr();
+
+#ifdef ZLIBOUT_DEBUG
+    fprintf(stderr,"zos: calling deflate, avail_in %d, avail_out %d\n",
+            zs->avail_in,zs->avail_out);
+#endif
+
+    rc = ::deflate(zs, flush);
+    if (rc != Z_OK) {
+      // Silly zlib returns an error if you try to flush something twice
+      if ((rc == Z_BUF_ERROR) && (flush != Z_NO_FLUSH))
+        break;
+
+      throw Exception("ZlibOutStream: deflate failed");
+    }
+
+#ifdef ZLIBOUT_DEBUG
+    fprintf(stderr,"zos: after deflate: %d bytes\n",
+            zs->next_out-underlying->getptr());
+#endif
+
+    underlying->setptr(zs->next_out);
+  } while (zs->avail_out == 0);
+}
+
 void ZlibOutStream::checkCompressionLevel()
 {
+  int rc;
+
   if (newLevel != compressionLevel) {
+#ifdef ZLIBOUT_DEBUG
+    fprintf(stderr,"zos change: avail_in %d\n",zs->avail_in);
+#endif
 
-    // This is a horrible hack, but after many hours of trying, I couldn't find
-    // a better way to make this class work properly with both Zlib 1.2.3 and
-    // 1.2.5.  1.2.3 does a Z_PARTIAL_FLUSH in the body of deflateParams() if
-    // the compression level has changed, and 1.2.5 does a Z_BLOCK flush.
+    // zlib is just horribly stupid. It does an implicit flush on
+    // parameter changes, but the flush it does is not one that forces
+    // out all the data. And since you cannot flush things again, we
+    // cannot force out our data after the parameter change. Hence we
+    // need to do a more proper flush here first.
+    deflate(Z_SYNC_FLUSH);
 
-    if (newBehavior) {
-      int rc = deflate(zs, Z_SYNC_FLUSH);
-      if (rc != Z_OK) throw Exception("ZlibOutStream: deflate failed");
+    rc = deflateParams (zs, newLevel, Z_DEFAULT_STRATEGY);
+    if (rc != Z_OK) {
+      // The implicit flush can result in this error, caused by the
+      // explicit flush we did above. It should be safe to ignore though
+      // as the first flush should have left things in a stable state...
+      if (rc != Z_BUF_ERROR)
+        throw Exception("ZlibOutStream: deflateParams failed");
     }
 
-    if (deflateParams (zs, newLevel, Z_DEFAULT_STRATEGY) != Z_OK) {
-      throw Exception("ZlibOutStream: deflateParams failed");
-    }
     compressionLevel = newLevel;
   }
 }
