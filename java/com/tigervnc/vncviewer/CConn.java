@@ -56,7 +56,7 @@ class ViewportFrame extends JFrame
 {
   public ViewportFrame(String name, CConn cc_) {
     cc = cc_;
-    setTitle("TigerVNC: "+name);
+    setTitle(name+" - TigerVNC");
     setFocusable(false);
     setFocusTraversalKeysEnabled(false);
     addWindowFocusListener(new WindowAdapter() {
@@ -337,7 +337,7 @@ public class CConn extends CConnection
     super.setName(name);
   
     if (viewport != null) {
-      viewport.setTitle("TigerVNC: "+name);
+      viewport.setTitle(name+" - TigerVNC");
     }
   }
 
