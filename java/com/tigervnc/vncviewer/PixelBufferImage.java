@@ -112,10 +112,11 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
   // copyRect() we also need to tell the ImageConsumer that the pixels have
   // changed (this is done in the put() call for the others).
 
-  public void copyRect(int x, int y, int w, int h, int srcX, int srcY) {
+  public void copyRect(int x, int y, int w, int h, int srcX, int srcY, Graphics g) {
     super.copyRect(x, y, w, h, srcX, srcY);
     if (ic == null) return;
     ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
+    g.setClip(x, y, w, h);
     ic.imageComplete(ImageConsumer.SINGLEFRAMEDONE);
   }
 

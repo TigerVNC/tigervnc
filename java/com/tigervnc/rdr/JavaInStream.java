@@ -111,14 +111,14 @@ public class JavaInStream extends InStream {
     try {
       long before = 0;
       if (timing)
-        before = System.currentTimeMillis();
+        before = System.nanoTime();
 
       int n = jis.read(buf, bufPtr, len);
       if (n < 0) throw new EndOfStream();
 
       if (timing) {
-        long after = System.currentTimeMillis();
-        long newTimeWaited = (after - before) * 10;
+        long after = System.nanoTime();
+        long newTimeWaited = (after - before) / 100000;
         int newKbits = n * 8 / 1000;
 
         // limit rate to between 10kbit/s and 40Mbit/s

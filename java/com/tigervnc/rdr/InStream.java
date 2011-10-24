@@ -30,11 +30,12 @@ abstract public class InStream {
   // maximum of nItems).
 
   public int check(int itemSize, int nItems, boolean wait) {
-    if (ptr + itemSize * nItems > end) {
-      if (ptr + itemSize > end)
+    int available = end - ptr;
+    if (itemSize * nItems > available) {
+      if (itemSize > available)
         return overrun(itemSize, nItems, wait);
 
-      nItems = (end - ptr) / itemSize;
+      nItems = available / itemSize;
     }
     return nItems;
   }
@@ -50,10 +51,10 @@ abstract public class InStream {
 
   // readU/SN() methods read unsigned and signed N-bit integers.
 
-  public final int readS8()  { check(1); return b[ptr++]; }
-  public final int readS16() { check(2); int b0 = b[ptr++];
+  public final int readS8()  { check(1,1,true); return b[ptr++]; }
+  public final int readS16() { check(2,1,true); int b0 = b[ptr++];
                                int b1 = b[ptr++] & 0xff; return b0 << 8 | b1; }
-  public final int readS32() { check(4); int b0 = b[ptr++];
+  public final int readS32() { check(4,1,true); int b0 = b[ptr++];
                                int b1 = b[ptr++] & 0xff;
                                int b2 = b[ptr++] & 0xff;
                                int b3 = b[ptr++] & 0xff;
@@ -88,7 +89,7 @@ abstract public class InStream {
 
   public final void skip(int bytes) {
     while (bytes > 0) {
-      int n = check(1, bytes);
+      int n = check(1, bytes, true);
       ptr += n;
       bytes -= n;
     }
@@ -99,7 +100,7 @@ abstract public class InStream {
   public void readBytes(byte[] data, int dataPtr, int length) {
     int dataEnd = dataPtr + length;
     while (dataPtr < dataEnd) {
-      int n = check(1, dataEnd - dataPtr);
+      int n = check(1, dataEnd - dataPtr, true);
       System.arraycopy(b, ptr, data, dataPtr, n);
       ptr += n;
       dataPtr += n;
@@ -109,7 +110,7 @@ abstract public class InStream {
   public void readBytes(int[] data, int dataPtr, int length) {
     int dataEnd = dataPtr + length;
     while (dataPtr < dataEnd) {
-      int n = check(1, dataEnd - dataPtr);
+      int n = check(1, dataEnd - dataPtr, true);
       System.arraycopy(b, ptr, data, dataPtr, n);
       ptr += n;
       dataPtr += n;
@@ -122,10 +123,10 @@ abstract public class InStream {
   public final int readOpaque8()  { return readU8(); }
   public final int readOpaque16() { return readU16(); }
   public final int readOpaque32() { return readU32(); }
-  public final int readOpaque24A() { check(3); int b0 = b[ptr++];
+  public final int readOpaque24A() { check(3, 1, true); int b0 = b[ptr++];
                                      int b1 = b[ptr++]; int b2 = b[ptr++];
                                      return b0 << 24 | b1 << 16 | b2 << 8; }
-  public final int readOpaque24B() { check(3); int b0 = b[ptr++];
+  public final int readOpaque24B() { check(3, 1, true); int b0 = b[ptr++];
                                      int b1 = b[ptr++]; int b2 = b[ptr++];
                                      return b0 << 16 | b1 << 8 | b2; }
 

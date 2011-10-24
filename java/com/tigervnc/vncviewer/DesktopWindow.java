@@ -163,6 +163,7 @@ class DesktopWindow extends JPanel implements
       tk.createImage(bitmap).getScaledInstance(cw,ch,hint);
     softCursor = tk.createCustomCursor(cursorImage,
                   new java.awt.Point(hotspot.x,hotspot.y), "Cursor");
+    cursorImage.flush();
 
     if (softCursor != null) {
       setCursor(softCursor); 
@@ -282,7 +283,7 @@ class DesktopWindow extends JPanel implements
     if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))
       hideLocalCursor();
     synchronized (im) {
-      im.copyRect(x, y, w, h, srcX, srcY);
+      im.copyRect(x, y, w, h, srcX, srcY, graphics);
     }
     if (!cc.viewer.fastCopyRect.getValue()) {
       invalidate(x, y, w, h);
