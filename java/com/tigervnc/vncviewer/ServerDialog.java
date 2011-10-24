@@ -119,7 +119,7 @@ class ServerDialog extends Dialog implements
       ok = false;
       endDialog();
     } else if (s instanceof JButton && (JButton)s == optionsButton) {
-      options.showDialog();
+      options.showDialog(this);
     } else if (s instanceof JButton && (JButton)s == aboutButton) {
       cc.showAbout();
     } else if (s instanceof JComboBox && (JComboBox)s == server) {

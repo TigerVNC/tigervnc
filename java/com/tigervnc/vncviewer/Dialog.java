@@ -41,15 +41,19 @@ class Dialog extends JFrame {
     //addWindowListener(this);
   }
 
-  public boolean showDialog() {
+  public boolean showDialog(Component c) {
     ok = false;
     done = false;
     initDialog();
-    Dimension dpySize = getToolkit().getScreenSize();
-    Dimension mySize = getSize();
-    int x = (dpySize.width - mySize.width) / 2;
-    int y = (dpySize.height - mySize.height) / 2;
-    setLocation(x, y);
+    if (c != null) {
+      setLocationRelativeTo(c);
+    } else {
+      Dimension dpySize = getToolkit().getScreenSize();
+      Dimension mySize = getSize();
+      int x = (dpySize.width - mySize.width) / 2;
+      int y = (dpySize.height - mySize.height) / 2;
+      setLocation(x, y);
+    }
     ClassLoader cl = this.getClass().getClassLoader();
     ImageIcon icon = new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.ico"));
     setIconImage(icon.getImage());
@@ -67,6 +71,10 @@ class Dialog extends JFrame {
       }
     }
     return ok;
+  }
+
+  public boolean showDialog() {
+    return showDialog(null);
   }
 
   public void endDialog() {

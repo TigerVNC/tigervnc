@@ -96,7 +96,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
       if (cc.fullScreen) cc.toggleFullScreen();
       cc.viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
     } else if (actionMatch(ev, clipboard)) {
-      cc.clipboardDialog.showDialog();
+      cc.clipboardDialog.showDialog(cc.viewport);
     } else if (actionMatch(ev, f8)) {
       cc.writeKeyEvent(cc.menuKey, true);
       cc.writeKeyEvent(cc.menuKey, false);
@@ -112,7 +112,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     } else if (actionMatch(ev, newConn)) {
       VncViewer.newViewer(cc.viewer);
     } else if (actionMatch(ev, options)) {
-      cc.options.showDialog();
+      cc.options.showDialog(cc.viewport);
     } else if (actionMatch(ev, info)) {
       cc.showInfo();
     } else if (actionMatch(ev, about)) {
