@@ -31,23 +31,28 @@ namespace rdr {
 
   public:
 
-    FdOutStream(int fd, int timeoutms=-1, int bufSize=0);
+    FdOutStream(int fd, bool blocking=true, int timeoutms=-1, int bufSize=0);
     virtual ~FdOutStream();
 
     void setTimeout(int timeoutms);
+    void setBlocking(bool blocking);
     int getFd() { return fd; }
 
     void flush();
     int length();
 
+    int bufferUsage();
+
   private:
     int overrun(int itemSize, int nItems);
-    int writeWithTimeout(const void* data, int length);
+    int writeWithTimeout(const void* data, int length, int timeoutms);
     int fd;
+    bool blocking;
     int timeoutms;
     int bufSize;
     int offset;
     U8* start;
+    U8* sentUpTo;
   };
 
 }

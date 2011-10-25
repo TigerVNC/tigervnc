@@ -98,3 +98,61 @@ diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
  #ifdef XIDLE
      if (!noXIdleExtension) XIdleExtensionInit();
  #endif
+--- xserver/os/WaitFor.c.orig	2011-10-07 12:57:57.000000000 +0200
++++ xserver/os/WaitFor.c	2011-10-07 13:21:11.000000000 +0200
+@@ -125,6 +125,9 @@
+ static void CheckAllTimers(void);
+ static OsTimerPtr timers = NULL;
+ 
++extern void vncWriteBlockHandler(fd_set *fds);
++extern void vncWriteWakeupHandler(int nfds, fd_set *fds);
++
+ /*****************
+  * WaitForSomething:
+  *     Make the server suspend until there is
+@@ -150,6 +153,7 @@
+     INT32 timeout = 0;
+     fd_set clientsReadable;
+     fd_set clientsWritable;
++    fd_set socketsWritable;
+     int curclient;
+     int selecterr;
+     int nready;
+@@ -220,23 +224,29 @@
+ 	SmartScheduleStopTimer ();
+ 
+ #endif
++	FD_ZERO(&socketsWritable);
++	vncWriteBlockHandler(&socketsWritable);
+ 	BlockHandler((pointer)&wt, (pointer)&LastSelectMask);
+ 	if (NewOutputPending)
+ 	    FlushAllOutput();
+ 	/* keep this check close to select() call to minimize race */
+ 	if (dispatchException)
+ 	    i = -1;
+-	else if (AnyClientsWriteBlocked)
+-	{
+-	    XFD_COPYSET(&ClientsWriteBlocked, &clientsWritable);
+-	    i = Select (MaxClients, &LastSelectMask, &clientsWritable, NULL, wt);
+-	}
+-	else 
+-	{
+-	    i = Select (MaxClients, &LastSelectMask, NULL, NULL, wt);
++	else {
++	    if (AnyClientsWriteBlocked)
++		XFD_ORSET(&socketsWritable, &ClientsWriteBlocked, &socketsWritable);
++
++	    if (XFD_ANYSET(&socketsWritable)) {
++		i = Select (MaxClients, &LastSelectMask, &socketsWritable, NULL, wt);
++		if (AnyClientsWriteBlocked)
++		    XFD_ANDSET(&clientsWritable, &socketsWritable, &ClientsWriteBlocked);
++	    } else {
++		i = Select (MaxClients, &LastSelectMask, NULL, NULL, wt);
++	    }
+ 	}
+ 	selecterr = GetErrno();
+ 	WakeupHandler(i, (pointer)&LastSelectMask);
++	vncWriteWakeupHandler(i, &socketsWritable);
+ #ifdef SMART_SCHEDULE
+ 	SmartScheduleStartTimer ();
+ #endif

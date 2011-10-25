@@ -581,6 +581,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         if (FD_ISSET(listener->getFd(), fds)) {
           FD_CLR(listener->getFd(), fds);
           Socket* sock = listener->accept();
+          sock->outStream().setBlocking(false);
           server->addSocket(sock);
           vlog.debug("new client, sock %d",sock->getFd());
         }
@@ -590,6 +591,7 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         if (FD_ISSET(httpListener->getFd(), fds)) {
           FD_CLR(httpListener->getFd(), fds);
           Socket* sock = httpListener->accept();
+          sock->outStream().setBlocking(false);
           httpServer->addSocket(sock);
           vlog.debug("new http client, sock %d",sock->getFd());
         }
@@ -629,6 +631,78 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
 
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::wakeupHandler: %s",e.str());
+  }
+}
+
+void XserverDesktop::writeBlockHandler(fd_set* fds)
+{
+  try {
+    std::list<Socket*> sockets;
+    std::list<Socket*>::iterator i;
+
+    server->getSockets(&sockets);
+    for (i = sockets.begin(); i != sockets.end(); i++) {
+      int fd = (*i)->getFd();
+      if ((*i)->isShutdown()) {
+        vlog.debug("client gone, sock %d",fd);
+        server->removeSocket(*i);
+        vncClientGone(fd);
+        delete (*i);
+      } else {
+        if ((*i)->outStream().bufferUsage() > 0)
+          FD_SET(fd, fds);
+      }
+    }
+
+    if (httpServer) {
+      httpServer->getSockets(&sockets);
+      for (i = sockets.begin(); i != sockets.end(); i++) {
+        int fd = (*i)->getFd();
+        if ((*i)->isShutdown()) {
+          vlog.debug("http client gone, sock %d",fd);
+          httpServer->removeSocket(*i);
+          delete (*i);
+        } else {
+          if ((*i)->outStream().bufferUsage() > 0)
+            FD_SET(fd, fds);
+        }
+      }
+    }
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::writeBlockHandler: %s",e.str());
+  }
+}
+
+void XserverDesktop::writeWakeupHandler(fd_set* fds, int nfds)
+{
+  if (nfds < 1)
+    return;
+
+  try {
+    std::list<Socket*> sockets;
+    std::list<Socket*>::iterator i;
+
+    server->getSockets(&sockets);
+    for (i = sockets.begin(); i != sockets.end(); i++) {
+      int fd = (*i)->getFd();
+      if (FD_ISSET(fd, fds)) {
+        FD_CLR(fd, fds);
+        (*i)->outStream().flush();
+      }
+    }
+
+    if (httpServer) {
+      httpServer->getSockets(&sockets);
+      for (i = sockets.begin(); i != sockets.end(); i++) {
+        int fd = (*i)->getFd();
+        if (FD_ISSET(fd, fds)) {
+          FD_CLR(fd, fds);
+          (*i)->outStream().flush();
+        }
+      }
+    }
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::writeWakeupHandler: %s",e.str());
   }
 }
 

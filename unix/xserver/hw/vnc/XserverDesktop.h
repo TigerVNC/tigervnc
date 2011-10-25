@@ -72,6 +72,8 @@ public:
   void ignoreHooks(bool b) { ignoreHooks_ = b; }
   void blockHandler(fd_set* fds);
   void wakeupHandler(fd_set* fds, int nfds);
+  void writeBlockHandler(fd_set* fds);
+  void writeWakeupHandler(fd_set* fds, int nfds);
   void addClient(network::Socket* sock, bool reverse);
   void disconnectClients();
 

@@ -21,6 +21,7 @@
 #endif
 
 #include <stdio.h>
+#include <errno.h>
 
 extern "C" {
 #define class c_class
@@ -28,6 +29,7 @@ extern "C" {
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include <X11/Xpoll.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
@@ -63,6 +65,8 @@ extern "C" {
   static void vncResetProc(ExtensionEntry* extEntry);
   static void vncBlockHandler(pointer data, OSTimePtr t, pointer readmask);
   static void vncWakeupHandler(pointer data, int nfds, pointer readmask);
+  void vncWriteBlockHandler(fd_set *fds);
+  void vncWriteWakeupHandler(int nfds, fd_set *fds);
   static void vncClientStateChange(CallbackListPtr*, pointer, pointer);
   static void SendSelectionChangeEvent(Atom selection);
   static int ProcVncExtDispatch(ClientPtr client);
@@ -287,6 +291,9 @@ static void vncSelectionCallback(CallbackListPtr *callbacks, pointer data, point
   SendSelectionChangeEvent(selection->selection);
 }
 
+static void vncWriteBlockHandlerFallback(OSTimePtr timeout);
+static void vncWriteWakeupHandlerFallback();
+
 //
 // vncBlockHandler - called just before the X server goes into select().  Call
 // on to the block handler for each desktop.  Then check whether any of the
@@ -296,6 +303,8 @@ static void vncSelectionCallback(CallbackListPtr *callbacks, pointer data, point
 static void vncBlockHandler(pointer data, OSTimePtr timeout, pointer readmask)
 {
   fd_set* fds = (fd_set*)readmask;
+
+  vncWriteBlockHandlerFallback(timeout);
 
   for (int scr = 0; scr < screenInfo.numScreens; scr++)
     if (desktop[scr])
@@ -311,6 +320,85 @@ static void vncWakeupHandler(pointer data, int nfds, pointer readmask)
       desktop[scr]->wakeupHandler(fds, nfds);
     }
   }
+
+  vncWriteWakeupHandlerFallback();
+}
+
+//
+// vncWriteBlockHandler - extra hack to be able to get the main select loop
+// to monitor writeable fds and not just readable. This requirers a modified
+// Xorg and might therefore not be called. When it is called though, it will
+// do so before vncBlockHandler (and vncWriteWakeupHandler called after
+// vncWakeupHandler).
+//
+
+static bool needFallback = true;
+static fd_set fallbackFds;
+static struct timeval tw;
+
+void vncWriteBlockHandler(fd_set *fds)
+{
+  needFallback = false;
+
+  for (int scr = 0; scr < screenInfo.numScreens; scr++)
+    if (desktop[scr])
+      desktop[scr]->writeBlockHandler(fds);
+}
+
+void vncWriteWakeupHandler(int nfds, fd_set *fds)
+{
+  for (int scr = 0; scr < screenInfo.numScreens; scr++) {
+    if (desktop[scr]) {
+      desktop[scr]->writeWakeupHandler(fds, nfds);
+    }
+  }
+}
+
+static void vncWriteBlockHandlerFallback(OSTimePtr timeout)
+{
+  if (!needFallback)
+    return;
+
+  FD_ZERO(&fallbackFds);
+  vncWriteBlockHandler(&fallbackFds);
+  needFallback = true;
+
+  if (!XFD_ANYSET(&fallbackFds))
+    return;
+
+  if ((*timeout == NULL) ||
+      ((*timeout)->tv_sec > 0) || ((*timeout)->tv_usec > 10000)) {
+    tw.tv_sec = 0;
+    tw.tv_usec = 10000;
+    *timeout = &tw;
+  }
+}
+
+static void vncWriteWakeupHandlerFallback()
+{
+  int ret;
+  struct timeval timeout;
+
+  if (!needFallback)
+    return;
+
+  if (!XFD_ANYSET(&fallbackFds))
+    return;
+
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
+
+  ret = select(XFD_SETSIZE, NULL, &fallbackFds, NULL, &timeout);
+  if (ret < 0) {
+    ErrorF("vncWriteWakeupHandlerFallback(): select: %s\n",
+           strerror(errno));
+    return;
+  }
+
+  if (ret == 0)
+    return;
+
+  vncWriteWakeupHandler(ret, &fallbackFds);
 }
 
 static void vncClientStateChange(CallbackListPtr*, pointer, pointer p)
