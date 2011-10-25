@@ -32,10 +32,12 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/TransImageGetter.h>
 #include <rfb/VNCServerST.h>
+#include <rfb/Timer.h>
 
 namespace rfb {
   class VNCSConnectionST : public SConnection,
-                           public WriteSetCursorCallback {
+                           public WriteSetCursorCallback,
+                           public Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
     virtual ~VNCSConnectionST();
@@ -140,7 +142,12 @@ namespace rfb {
     // WriteSetCursorCallback
     virtual void writeSetCursorCallback();
 
+    // Timer callbacks
+    virtual bool handleTimeout(Timer* t);
+
     // Internal methods
+
+    bool isCongested();
 
     // writeFramebufferUpdate() attempts to write a framebuffer update to the
     // client.
@@ -160,6 +167,8 @@ namespace rfb {
     Region requested;
     bool drawRenderedCursor, removeRenderedCursor;
     Rect renderedCursorRect;
+
+    Timer updateTimer;
 
     std::set<rdr::U32> pressedKeys;
 

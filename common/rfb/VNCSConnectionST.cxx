@@ -37,8 +37,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   : SConnection(reverse), sock(s), server(server_),
     updates(false), image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
-    pointerEventTime(0), accessRights(AccessDefault),
-    startTime(time(0))
+    updateTimer(this), pointerEventTime(0),
+    accessRights(AccessDefault), startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
@@ -625,10 +625,39 @@ void VNCSConnectionST::writeSetCursorCallback()
 }
 
 
+bool VNCSConnectionST::handleTimeout(Timer* t)
+{
+  if (t == &updateTimer)
+    writeFramebufferUpdateOrClose();
+
+  return false;
+}
+
+
+bool VNCSConnectionST::isCongested()
+{
+  int offset, space;
+
+  if (sock->outStream().bufferUsage() > 0)
+    return true;
+
+  return false;
+}
+
+
 void VNCSConnectionST::writeFramebufferUpdate()
 {
+  updateTimer.stop();
+
   if (state() != RFBSTATE_NORMAL || requested.is_empty())
     return;
+
+  // Check that we actually have some space on the link and retry in a
+  // bit if things are congested.
+  if (isCongested()) {
+    updateTimer.start(50);
+    return;
+  }
 
   // First take care of any updates that cannot contain framebuffer data
   // changes.
