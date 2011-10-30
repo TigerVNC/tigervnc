@@ -38,7 +38,7 @@ public class RREDecoder extends Decoder {
       int y = is.readU16();
       int w = is.readU16();
       int h = is.readU16();
-      handler.fillRect(new Rect(r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h), pix);
+      handler.fillRect(new Rect(x, y, w, h), pix);
     }
   }
 

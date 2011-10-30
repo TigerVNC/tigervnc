@@ -32,6 +32,7 @@ public class JavaInStream extends InStream {
     bufSize = bufSize_;
     b = new byte[bufSize];
     ptr = end = offset = 0;
+    timing = false;
     timeWaitedIn100us = 5;
     timedKbits = 0;
   }
@@ -108,12 +109,17 @@ public class JavaInStream extends InStream {
   }
 
   private int read(byte[] buf, int bufPtr, int len, boolean wait) {
-    try {
       long before = 0;
       if (timing)
         before = System.nanoTime();
 
-      int n = jis.read(buf, bufPtr, len);
+      int n = -1;
+      try {
+        n = jis.read(buf, bufPtr, len);
+      } catch (java.io.IOException e) {
+        throw new IOException(e);
+      }
+
       if (n < 0) throw new EndOfStream();
 
       if (timing) {
@@ -123,8 +129,11 @@ public class JavaInStream extends InStream {
 
         // limit rate to between 10kbit/s and 40Mbit/s
 
-        if (newTimeWaited > newKbits*1000) newTimeWaited = newKbits*1000;
-        if (newTimeWaited < newKbits/4)    newTimeWaited = newKbits/4;
+        if (newTimeWaited > newKbits*1000) {
+          newTimeWaited = newKbits*1000;
+        } else if (newTimeWaited < newKbits/4) {
+          newTimeWaited = newKbits/4;
+        }
 
         timeWaitedIn100us += newTimeWaited;
         timedKbits += newKbits;
@@ -132,9 +141,6 @@ public class JavaInStream extends InStream {
 
       return n;
 
-    } catch (java.io.IOException e) {
-      throw new IOException(e);
-    }
   }
   private int read(byte[] buf, int bufPtr, int len) { return read(buf, bufPtr, len, true); }
 

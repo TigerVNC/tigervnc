@@ -76,7 +76,12 @@ public class Rect {
   public final boolean overlaps(Rect r) {
     return tl.x < r.br.x && tl.y < r.br.y && br.x > r.tl.x && br.y > r.tl.y;
   }
-  public final int area() {return is_empty() ? 0 : (br.x-tl.x)*(br.y-tl.y);}
+  public final int area() {
+    int area = (br.x-tl.x)*(br.y-tl.y);
+    if (area > 0)
+      return area;
+    return 0;
+  }
   public final Point dimensions() {return new Point(width(), height());}
   public final int width() {return br.x-tl.x;}
   public final int height() {return br.y-tl.y;}

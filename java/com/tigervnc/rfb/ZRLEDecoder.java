@@ -30,7 +30,8 @@ public class ZRLEDecoder extends Decoder {
   public void readRect(Rect r, CMsgHandler handler) {
     InStream is = reader.getInStream();
     int[] buf = reader.getImageBuf(64 * 64 * 4);
-    int bytesPerPixel = handler.cp.pf().bpp / 8;
+    int bpp = handler.cp.pf().bpp;
+    int bytesPerPixel = (bpp > 24 ? 3 : bpp / 8);
     boolean bigEndian = handler.cp.pf().bigEndian;
 
     int length = is.readU32();
@@ -50,13 +51,7 @@ public class ZRLEDecoder extends Decoder {
         int palSize = mode & 127;
         int[] palette = new int[128];
 
-        if (bytesPerPixel > 1) {
-          zis.readPixels(palette, palSize, 3, bigEndian);
-        } else {
-          for (int i = 0; i < palSize; i++) {
-            palette[i] = zis.readPixel(bytesPerPixel, bigEndian);
-          }
-        }
+        zis.readPixels(palette, palSize, bytesPerPixel, bigEndian);
         
         if (palSize == 1) {
           int pix = palette[0];
@@ -69,11 +64,7 @@ public class ZRLEDecoder extends Decoder {
 
             // raw
 
-            if (bytesPerPixel > 1) {
-              zis.readPixels(buf, t.area(), 3, bigEndian);
-            } else {
-              zis.readPixels(buf, t.area(), bytesPerPixel, bigEndian);
-            }
+            zis.readPixels(buf, t.area(), bytesPerPixel, bigEndian);
 
           } else {
 
@@ -109,8 +100,7 @@ public class ZRLEDecoder extends Decoder {
             int ptr = 0;
             int end = ptr + t.area();
             while (ptr < end) {
-              int pix = (bytesPerPixel > 1 ? zis.readPixel(3, bigEndian) : 
-                zis.readPixel(bytesPerPixel, bigEndian));
+              int pix = zis.readPixel(bytesPerPixel, bigEndian);
               int len = 1;
               int b;
               do {

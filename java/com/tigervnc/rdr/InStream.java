@@ -130,20 +130,30 @@ abstract public class InStream {
                                      int b1 = b[ptr++]; int b2 = b[ptr++];
                                      return b0 << 16 | b1 << 8 | b2; }
 
-  public final int readPixel(int bytesPerPixel, boolean e) {
-    int[] pix = new int[4];
-    for (int i=0; i < bytesPerPixel; i++)
-      pix[i] = readU8();
-    if (e) {
-      return pix[0] << 16 | pix[1] << 8 | pix[2] | (0xff << 24);
+  public final int readPixel(int bytesPerPixel, boolean bigEndian) {
+    byte[] pix = new byte[4];
+    readBytes(pix, 0, bytesPerPixel);
+
+    if (bigEndian) {
+      return 0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
     } else {
-      return pix[2] << 16 | pix[1] << 8 | pix[0] | (0xff << 24);
+      return 0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
     }
   }
 
-  public final void readPixels(int[] buf, int length, int bytesPerPixel, boolean e) {
-    for (int i = 0; i < length; i++)
-      buf[i] = readPixel(bytesPerPixel, e);
+  public final void readPixels(int[] buf, int length, int bytesPerPixel, boolean bigEndian) {
+    int npixels = length*bytesPerPixel;
+    byte[] pixels = new byte[npixels];
+    readBytes(pixels, 0, npixels);
+    for (int i = 0; i < length; i++) {
+      byte[] pix = new byte[4];
+      System.arraycopy(pixels, i*bytesPerPixel, pix, 0, bytesPerPixel);
+      if (bigEndian) {
+        buf[i] = 0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
+      } else {
+        buf[i] = 0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
+      }
+    }
   }
 
   public final int readCompactLength() {

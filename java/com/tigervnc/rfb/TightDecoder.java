@@ -78,15 +78,7 @@ public class TightDecoder extends Decoder {
     if (comp_ctl == rfbTightFill) {
       int pix;
       if (cutZeros) {
-        byte[] elem = new byte[3];
-        is.readBytes(elem, 0, 3);
-        if (bigEndian) {
-          pix =
-            (elem[2] & 0xFF) << 16 | (elem[1] & 0xFF) << 8 | (elem[0] & 0xFF) | 0xFF << 24;
-        } else {
-          pix =
-            (elem[0] & 0xFF) << 16 | (elem[1] & 0xFF) << 8 | (elem[2] & 0xFF) | 0xFF << 24;
-        }
+        pix = is.readPixel(3, false);
       } else {
         pix = (bpp == 8) ? is.readOpaque8() : is.readOpaque24B();
       }
@@ -135,17 +127,7 @@ public class TightDecoder extends Decoder {
       case rfbTightFilterPalette:
         palSize = is.readU8() + 1;
         if (cutZeros) {
-          byte[] elem = new byte[3];
-          for (int i = 0; i < palSize; i++) {
-            is.readBytes(elem, 0, 3);
-            if (bigEndian) {
-              palette[i] =
-                (elem[2] & 0xFF) << 16 | (elem[1] & 0xFF) << 8 | (elem[0] & 0xFF) | 0xFF << 24;
-            } else {
-              palette[i] =
-                (elem[0] & 0xFF) << 16 | (elem[1] & 0xFF) << 8 | (elem[2] & 0xFF) | 0xFF << 24;
-            }
-          }
+          is.readPixels(palette, palSize, 3, false);
         } else {
           for (int i = 0; i < palSize; i++) {
             palette[i] = (bpp == 8) ? is.readOpaque8() : is.readOpaque24B();
@@ -196,17 +178,7 @@ public class TightDecoder extends Decoder {
         }
       } else {
         if (cutZeros) {
-          byte[] elem = new byte[3];
-          for (int i = 0; i < r.area(); i++) {
-            input.readBytes(elem, 0, 3);
-            if (bigEndian) {
-              buf[i] =
-                (elem[2] & 0xFF) << 16 | (elem[1] & 0xFF) << 8 | (elem[0] & 0xFF) | 0xFF << 24;
-            } else {
-              buf[i] =
-                (elem[0] & 0xFF) << 16 | (elem[1] & 0xFF) << 8 | (elem[2] & 0xFF) | 0xFF << 24;
-            }
-          }
+          input.readPixels(buf, r.area(), 3, false);
         } else {
           for (int ptr=0; ptr < dataSize; ptr++)
             buf[ptr] = input.readU8();
@@ -264,14 +236,12 @@ public class TightDecoder extends Decoder {
     int[] thisRow = new int[TIGHT_MAX_WIDTH * 3];
     int[] pix = new int[3];
     int[] est = new int[3];
+    PixelFormat myFormat = handler.cp.pf();
 
     // Allocate netbuf and read in data
     int[] netbuf = new int[dataSize];
-    for (int i = 0; i < dataSize; i++)
-      netbuf[i] = is.readU8();
-    //is.readBytes(netbuf, 0, dataSize);
+    is.readBytes(netbuf, 0, dataSize);
 
-    PixelFormat myFormat = handler.cp.pf();
     int rectHeight = r.height();
     int rectWidth = r.width();
 
@@ -282,11 +252,9 @@ public class TightDecoder extends Decoder {
         thisRow[c] = pix[c];
       }
       if (myFormat.bigEndian) {
-        buf[y*rectWidth] =
-          (pix[0] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[2] & 0xFF) | 0xFF << 24;
+        buf[y*rectWidth] =  0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
       } else {
-        buf[y*rectWidth] =
-          (pix[2] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[0] & 0xFF) | 0xFF << 24;
+        buf[y*rectWidth] =  0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
       }
 
       /* Remaining pixels of a row */
@@ -302,11 +270,9 @@ public class TightDecoder extends Decoder {
           thisRow[x*3+c] = pix[c];
         }
         if (myFormat.bigEndian) {
-          buf[y*rectWidth] =
-            (pix[2] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[0] & 0xFF) | 0xFF << 24;
+          buf[y*rectWidth+x] =  0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
         } else {
-          buf[y*rectWidth] =
-            (pix[0] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[2] & 0xFF) | 0xFF << 24;
+          buf[y*rectWidth+x] =  0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
         }
       }
 
@@ -321,25 +287,21 @@ public class TightDecoder extends Decoder {
     int[] thisRow = new int[TIGHT_MAX_WIDTH];
     int[] pix = new int[3];
     int[] est = new int[3];
+    PixelFormat myFormat = handler.cp.pf();
 
     // Allocate netbuf and read in data
     int[] netbuf = new int[dataSize];
-    for (int i = 0; i < dataSize; i++)
-      netbuf[i] = is.readU8();
-    //is.readBytes(netbuf, 0, dataSize);
+    is.readBytes(netbuf, 0, dataSize);
 
-    PixelFormat myFormat = handler.cp.pf();
     int rectHeight = r.height();
     int rectWidth = r.width();
 
     for (y = 0; y < rectHeight; y++) {
       /* First pixel in a row */
       if (myFormat.bigEndian) {
-        buf[y*rectWidth] =
-          (pix[2] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[0] & 0xFF) | 0xFF << 24;
+        buf[y*rectWidth] =  0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
       } else {
-        buf[y*rectWidth] =
-          (pix[0] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[2] & 0xFF) | 0xFF << 24;
+        buf[y*rectWidth] =  0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
       }
       for (c = 0; c < 3; c++)
         pix[c] += prevRow[c];
@@ -363,13 +325,10 @@ public class TightDecoder extends Decoder {
         System.arraycopy(thisRow, x*3, pix, 0, pix.length);
 
         if (myFormat.bigEndian) {
-          buf[y*rectWidth+x] =
-            (pix[2] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[0] & 0xFF) | 0xFF << 24;
+          buf[y*rectWidth+x] =  0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
         } else {
-          buf[y*rectWidth+x] =
-            (pix[0] & 0xFF) << 16 | (pix[1] & 0xFF) << 8 | (pix[2] & 0xFF) | 0xFF << 24;
+          buf[y*rectWidth+x] =  0xff000000 | (pix[0] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[2] & 0xff);
         }
-
       }
 
       System.arraycopy(thisRow, 0, prevRow, 0, prevRow.length);
