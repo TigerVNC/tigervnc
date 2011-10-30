@@ -32,6 +32,10 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.io.InputStream;
+import java.io.IOException;
+import java.lang.Character;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.*;
@@ -108,8 +112,8 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public static void usage() {
     String usage = ("\nusage: vncviewer [options/parameters] "+
                     "[host:displayNum] [options/parameters]\n"+
-                    //"       vncviewer [options/parameters] -listen [port] "+
-                    //"[options/parameters]\n"+
+                    "       vncviewer [options/parameters] -listen [port] "+
+                    "[options/parameters]\n"+
                     "\n"+
                     "Options:\n"+
                     "  -log <level>    configure logging level\n"+
@@ -188,8 +192,34 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   public void run() {
     CConn cc = null;
+    Socket sock = null;
+    if (listenMode.getValue()) {
+      int port = 5500;
+      ServerSocket listener = null;
+      if (vncServerName.getValue() != null && 
+          Character.isDigit(vncServerName.getValue().charAt(0)))
+        port = Integer.parseInt(vncServerName.getValue());
+
+      try {
+        listener = new ServerSocket(port);
+      } catch (IOException e) {
+        System.out.println("Could not listen on port: "+port);
+        System.exit(-1);
+      }
+
+      vlog.info("Listening on port "+port);
+
+      try {
+        sock = listener.accept();
+        listener.close();
+      } catch (IOException e) {
+        System.out.println("Accept failed: "+port);
+        System.exit(-1);
+      }
+      
+    }
     try {
-      cc = new CConn(this, null, vncServerName.getValue(), false);
+      cc = new CConn(this, sock, vncServerName.getValue(), false);
       while (true)
         cc.processMsg();
     } catch (EndOfStream e) {
@@ -255,6 +285,9 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new StringParameter("DesktopSize",
                         "Reconfigure desktop size on the server on "+
                         "connect (if possible)", "");
+  BoolParameter listenMode
+  = new BoolParameter("listen", "Listen for connections from VNC servers", 
+                      false);
   StringParameter scalingFactor
   = new StringParameter("ScalingFactor",
                         "Reduce or enlarge the remote desktop image. "+
