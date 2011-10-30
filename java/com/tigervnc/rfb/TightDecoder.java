@@ -78,7 +78,7 @@ public class TightDecoder extends Decoder {
     if (comp_ctl == rfbTightFill) {
       int pix;
       if (cutZeros) {
-        pix = is.readPixel(3, false);
+        pix = is.readPixel(3, !bigEndian);
       } else {
         pix = (bpp == 8) ? is.readOpaque8() : is.readOpaque24B();
       }
@@ -127,7 +127,7 @@ public class TightDecoder extends Decoder {
       case rfbTightFilterPalette:
         palSize = is.readU8() + 1;
         if (cutZeros) {
-          is.readPixels(palette, palSize, 3, false);
+          is.readPixels(palette, palSize, 3, !bigEndian);
         } else {
           for (int i = 0; i < palSize; i++) {
             palette[i] = (bpp == 8) ? is.readOpaque8() : is.readOpaque24B();
@@ -178,7 +178,7 @@ public class TightDecoder extends Decoder {
         }
       } else {
         if (cutZeros) {
-          input.readPixels(buf, r.area(), 3, false);
+          input.readPixels(buf, r.area(), 3, !bigEndian);
         } else {
           for (int ptr=0; ptr < dataSize; ptr++)
             buf[ptr] = input.readU8();
