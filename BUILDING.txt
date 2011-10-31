@@ -160,7 +160,7 @@ has already been built, per above.)
     "17" for version 1.7.x.)
   > autoreconf -fiv
 
-  > ./configure --with-pic --without-dtrace --disable-static \
+  > ./configure --with-pic --without-dtrace --disable-static --disable-dri \
       --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg \
       --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive \
       --disable-config-dbus --disable-config-hal --disable-config-udev \

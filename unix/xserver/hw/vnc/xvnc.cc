@@ -211,6 +211,24 @@ static void vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb);
 
 extern "C" {
 
+#ifdef DPMSExtension
+    /* Why support DPMS? Because stupid modern desktop environments
+       such as Unity 2D on Ubuntu 11.10 crashes if DPMS is not
+       available. (DPMSSet is called by dpms.c, but the return value
+       is ignored.) */
+int DPMSSet(ClientPtr client, int level)
+{
+    return Success;
+}
+
+Bool DPMSSupported()
+{
+    /* Causes DPMSCapable to return false, meaning no devices are DPMS
+       capable */
+    return FALSE;
+}
+#endif
+
 void ddxGiveUp()
 {
     int i;

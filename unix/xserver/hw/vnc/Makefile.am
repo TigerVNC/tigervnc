@@ -24,13 +24,13 @@ bin_PROGRAMS = Xvnc
 
 man1_MANS = Xvnc.man
 
-Xvnc_SOURCES = xvnc.cc $(top_srcdir)/Xext/dpmsstubs.c \
+Xvnc_SOURCES = xvnc.cc \
 	$(top_srcdir)/Xi/stubs.c $(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/fb/fbcmap_mi.c buildtime.c
 
 nodist_Xvnc_SOURCES = fbrop.h fb.h pixman.h
 
-Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_HW_ONLY_EXTS -DNO_MODULE_EXTS \
+Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_MODULE_EXTS \
 	-UHAVE_CONFIG_H \
 	-DXFree86Server -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common \
