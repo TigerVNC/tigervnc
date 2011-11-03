@@ -191,7 +191,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 {
   int stride = r.width();
   rdr::U32 solidColor;
-  PIXEL_T *pixels = (PIXEL_T *)ig->getPixelsRW(r, &stride);
+  PIXEL_T *pixels = (PIXEL_T *)ig->getRawPixelsRW(r, &stride);
   bool grayScaleJPEG = (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1);
 
 #if (BPP == 32)
@@ -640,7 +640,7 @@ bool CHECK_SOLID_TILE(Rect& r, rdr::U32 *colorPtr, bool needSameColor)
   int w = r.width(), h = r.height();
 
   int stride = w;
-  buf = (PIXEL_T *)ig->getPixelsRW(r, &stride);
+  buf = (PIXEL_T *)ig->getRawPixelsRW(r, &stride);
 
   colorValue = *buf;
   if (needSameColor && (rdr::U32)colorValue != *colorPtr)
