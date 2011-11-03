@@ -93,15 +93,16 @@ namespace rfb {
     void sendRectSimple(const Rect& r);
     void writeSubrect(const Rect& r, bool forceSolid = false);
 
-    void compressData(rdr::OutStream *os, rdr::ZlibOutStream *zos,
-                      const void *buf, unsigned int length, int zlibLevel);
+    void compressData(const void *buf, unsigned int length,
+                      rdr::ZlibOutStream *zos, int zlibLevel,
+                      rdr::OutStream *os);
 
     int paletteInsert(rdr::U32 rgb, int numPixels, int bpp);
     void paletteReset(void);
 
-    void fastFillPalette8(const Rect &r, rdr::U8 *data, int stride);
-    void fastFillPalette16(const Rect &r, rdr::U16 *data, int stride);
-    void fastFillPalette32(const Rect &r, rdr::U32 *data, int stride);
+    void fastFillPalette8(rdr::U8 *data, int stride, const Rect &r);
+    void fastFillPalette16(rdr::U16 *data, int stride, const Rect &r);
+    void fastFillPalette32(rdr::U32 *data, int stride, const Rect &r);
 
     void fillPalette8(rdr::U8 *data, int count);
     void fillPalette16(rdr::U16 *data, int count);
@@ -119,23 +120,25 @@ namespace rfb {
     bool checkSolidTile16(Rect& r, rdr::U32 *colorPtr, bool needSameColor);
     bool checkSolidTile32(Rect& r, rdr::U32 *colorPtr, bool needSameColor);
 
-    void encodeSolidRect8(rdr::OutStream *os, rdr::U8 *buf);
-    void encodeSolidRect16(rdr::OutStream *os, rdr::U16 *buf);
-    void encodeSolidRect32(rdr::OutStream *os, rdr::U32 *buf);
+    void encodeSolidRect8(rdr::U8 *buf, rdr::OutStream *os);
+    void encodeSolidRect16(rdr::U16 *buf, rdr::OutStream *os);
+    void encodeSolidRect32(rdr::U32 *buf, rdr::OutStream *os);
 
-    void encodeFullColorRect8(rdr::OutStream *os, rdr::U8 *buf, const Rect& r);
-    void encodeFullColorRect16(rdr::OutStream *os, rdr::U16 *buf, const Rect& r);
-    void encodeFullColorRect32(rdr::OutStream *os, rdr::U32 *buf, const Rect& r);
+    void encodeFullColorRect8(rdr::U8 *buf, const Rect& r, rdr::OutStream *os);
+    void encodeFullColorRect16(rdr::U16 *buf, const Rect& r, rdr::OutStream *os);
+    void encodeFullColorRect32(rdr::U32 *buf, const Rect& r, rdr::OutStream *os);
 
-    void encodeMonoRect8(rdr::OutStream *os, rdr::U8 *buf, const Rect& r);
-    void encodeMonoRect16(rdr::OutStream *os, rdr::U16 *buf, const Rect& r);
-    void encodeMonoRect32(rdr::OutStream *os, rdr::U32 *buf, const Rect& r);
+    void encodeMonoRect8(rdr::U8 *buf, const Rect& r, rdr::OutStream *os);
+    void encodeMonoRect16(rdr::U16 *buf, const Rect& r, rdr::OutStream *os);
+    void encodeMonoRect32(rdr::U32 *buf, const Rect& r, rdr::OutStream *os);
 
-    void encodeIndexedRect16(rdr::OutStream *os, rdr::U16 *buf, const Rect& r);
-    void encodeIndexedRect32(rdr::OutStream *os, rdr::U32 *buf, const Rect& r);
+    void encodeIndexedRect16(rdr::U16 *buf, const Rect& r, rdr::OutStream *os);
+    void encodeIndexedRect32(rdr::U32 *buf, const Rect& r, rdr::OutStream *os);
 
-    void encodeJpegRect16(rdr::OutStream *os, rdr::U16 *buf, int, const Rect& r);
-    void encodeJpegRect32(rdr::OutStream *os, rdr::U32 *buf, int, const Rect& r);
+    void encodeJpegRect16(rdr::U16 *buf, int stride, const Rect& r,
+                          rdr::OutStream *os);
+    void encodeJpegRect32(rdr::U32 *buf, int stride, const Rect& r,
+                          rdr::OutStream *os);
 
     SMsgWriter* writer;
     rdr::MemOutStream mos;

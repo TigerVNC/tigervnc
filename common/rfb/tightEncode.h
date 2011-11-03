@@ -134,9 +134,9 @@ int TightEncoder::paletteInsert(rdr::U32 rgb, int numPixels, int bpp)
 // size is less than TIGHT_MIN_TO_COMPRESS bytes.
 //
 
-void TightEncoder::compressData(rdr::OutStream *os, rdr::ZlibOutStream *zos,
-                                const void *buf, unsigned int length,
-                                int zlibLevel)
+void TightEncoder::compressData(const void *buf, unsigned int length,
+                                rdr::ZlibOutStream *zos, int zlibLevel,
+                                rdr::OutStream *os)
 {
   if (length < TIGHT_MIN_TO_COMPRESS) {
     os->writeBytes(buf, length);
@@ -218,7 +218,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
       // This is so we can avoid translating the pixels when compressing
       // with JPEG, since it is unnecessary
       if (grayScaleJPEG) palNumColors = 0;
-      else FAST_FILL_PALETTE(r, pixels, stride);
+      else FAST_FILL_PALETTE(pixels, stride, r);
       if(palNumColors != 0 || jpegQuality == -1) {
         pixels = (PIXEL_T *)writer->getImageBuf(r.area());
         stride = r.width();
@@ -239,24 +239,24 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
     // Truecolor image
 #if (BPP != 8)
     if (jpegQuality != -1) {
-      ENCODE_JPEG_RECT(os, pixels, stride, r);
+      ENCODE_JPEG_RECT(pixels, stride, r, os);
       break;
     }
 #endif
-    ENCODE_FULLCOLOR_RECT(os, pixels, r);
+    ENCODE_FULLCOLOR_RECT(pixels, r, os);
     break;
   case 1:
     // Solid rectangle
-    ENCODE_SOLID_RECT(os, pixels);
+    ENCODE_SOLID_RECT(pixels, os);
     break;
   case 2:
     // Two-color rectangle
-    ENCODE_MONO_RECT(os, pixels, r);
+    ENCODE_MONO_RECT(pixels, r, os);
     break;
 #if (BPP != 8)
   default:
     // Up to 256 different colors
-    ENCODE_INDEXED_RECT(os, pixels, r);
+    ENCODE_INDEXED_RECT(pixels, r, os);
 #endif
   }
 }
@@ -265,7 +265,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 // Subencoding implementations.
 //
 
-void ENCODE_SOLID_RECT (rdr::OutStream *os, PIXEL_T *buf)
+void ENCODE_SOLID_RECT (PIXEL_T *buf, rdr::OutStream *os)
 {
   os->writeU8(0x08 << 4);
 
@@ -273,16 +273,16 @@ void ENCODE_SOLID_RECT (rdr::OutStream *os, PIXEL_T *buf)
   os->writeBytes(buf, length);
 }
 
-void ENCODE_FULLCOLOR_RECT (rdr::OutStream *os, PIXEL_T *buf, const Rect& r)
+void ENCODE_FULLCOLOR_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
 {
   const int streamId = 0;
   os->writeU8(streamId << 4);
 
   int length = PACK_PIXELS(buf, r.area());
-  compressData(os, &zos[streamId], buf, length, pconf->rawZlibLevel);
+  compressData(buf, length, &zos[streamId], pconf->rawZlibLevel, os);
 }
 
-void ENCODE_MONO_RECT (rdr::OutStream *os, PIXEL_T *buf, const Rect& r)
+void ENCODE_MONO_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
 {
   const int streamId = 1;
   os->writeU8((streamId | 0x04) << 4);
@@ -344,11 +344,11 @@ void ENCODE_MONO_RECT (rdr::OutStream *os, PIXEL_T *buf, const Rect& r)
   // Write the data
   int length = (w + 7) / 8;
   length *= h;
-  compressData(os, &zos[streamId], buf, length, pconf->monoZlibLevel);
+  compressData(buf, length, &zos[streamId], pconf->monoZlibLevel, os);
 }
 
 #if (BPP != 8)
-void ENCODE_INDEXED_RECT (rdr::OutStream *os, PIXEL_T *buf, const Rect& r)
+void ENCODE_INDEXED_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
 {
   const int streamId = 2;
   os->writeU8((streamId | 0x04) << 4);
@@ -391,7 +391,7 @@ void ENCODE_INDEXED_RECT (rdr::OutStream *os, PIXEL_T *buf, const Rect& r)
   }
 
   // Write the data
-  compressData(os, &zos[streamId], buf, r.area(), pconf->idxZlibLevel);
+  compressData(buf, r.area(), &zos[streamId], pconf->idxZlibLevel, os);
 }
 #endif  // #if (BPP != 8)
 
@@ -400,8 +400,8 @@ void ENCODE_INDEXED_RECT (rdr::OutStream *os, PIXEL_T *buf, const Rect& r)
 //
 
 #if (BPP != 8)
-void ENCODE_JPEG_RECT (rdr::OutStream *os, PIXEL_T *buf, int stride,
-                       const Rect& r)
+void ENCODE_JPEG_RECT (PIXEL_T *buf, int stride, const Rect& r,
+                       rdr::OutStream *os)
 {
   jc.clear();
   jc.compress((rdr::U8 *)buf, stride * clientpf.bpp / 8, r, clientpf,
@@ -458,7 +458,7 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   }
 }
 
-void FAST_FILL_PALETTE (const Rect& r, PIXEL_T *data, int stride)
+void FAST_FILL_PALETTE (PIXEL_T *data, int stride, const Rect& r)
 {
 }
 
@@ -523,7 +523,7 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   paletteInsert (ci, (rdr::U32)ni, BPP);
 }
 
-void FAST_FILL_PALETTE (const Rect& r, PIXEL_T *data, int stride)
+void FAST_FILL_PALETTE (PIXEL_T *data, int stride, const Rect& r)
 {
   PIXEL_T c0, c1, ci = 0, mask, c0t, c1t, cit;
   int n0, n1, ni;
