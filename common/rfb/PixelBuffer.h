@@ -141,6 +141,7 @@ namespace rfb {
 
   protected:
     FullFramePixelBuffer();
+    void (*fillRectFn)(rdr::U8 *, int, const Rect&, Pixel);
   };
 
   // -=- Managed pixel buffer class

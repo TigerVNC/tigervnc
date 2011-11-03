@@ -78,10 +78,74 @@ Pixel PixelBuffer::getPixel(const Point& p) {
 */
 
 
+static void fillRect8(U8 *buf, int stride, const Rect& r, Pixel pix)
+{
+  U8* ptr = buf;
+  int w = r.width(), h = r.height();
+
+  while (h > 0) {
+    memset(ptr, pix, w);
+    ptr += stride;
+    h--;
+  }
+}
+
+static void fillRect16(U8 *buf, int stride, const Rect& r, Pixel pix)
+{
+  U16* ptr = (U16 *)buf;
+  int w = r.width(), h = r.height(), wBytes = w * 2;
+
+  while (w > 0) {
+    *ptr++ = pix;  w--;
+  }
+  h--;
+
+  ptr = (U16 *)buf;
+
+  while (h > 0) {
+    U16 *oldptr = ptr;
+    memcpy(ptr += stride, oldptr, wBytes);
+    h--;
+  }
+}
+
+static void fillRect32(U8 *buf, int stride, const Rect& r, Pixel pix)
+{
+  U32* ptr = (U32 *)buf;
+  int w = r.width(), h = r.height(), wBytes = w * 4;
+
+  while (w > 0) {
+    *ptr++ = pix;  w--;
+  }
+  h--;
+
+  ptr = (U32 *)buf;
+
+  while (h > 0) {
+    U32 *oldptr = ptr;
+    memcpy(ptr += stride, oldptr, wBytes);
+    h--;
+  }
+}
+
+
 FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
                                            rdr::U8* data_, ColourMap* cm)
   : PixelBuffer(pf, w, h, cm), data(data_)
 {
+  switch(pf.bpp) {
+  case 8:
+    fillRectFn = fillRect8;
+    break;
+  case 16:
+    fillRectFn = fillRect16;
+    break;
+  case 32:
+    fillRectFn = fillRect32;
+    break;
+  default:
+    throw Exception("rfb::FullFramePixelBuffer - Unsupported pixel format");
+  }
 }
 
 FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
@@ -100,36 +164,8 @@ rdr::U8* FullFramePixelBuffer::getPixelsRW(const Rect& r, int* stride)
 
 void FullFramePixelBuffer::fillRect(const Rect& r, Pixel pix) {
   int stride;
-  U8* data = getPixelsRW(r, &stride);
-  int bytesPerPixel = getPF().bpp/8;
-  int bytesPerRow = bytesPerPixel * stride;
-  int bytesPerFill = bytesPerPixel * r.width();
-
-  U8* end = data + (bytesPerRow * r.height());
-  while (data < end) {
-    switch (bytesPerPixel) {
-    case 1:
-      memset(data, pix, bytesPerFill);
-      break;
-    case 2:
-      {
-        U16* optr = (U16*)data;
-        U16* eol = optr + r.width();
-        while (optr < eol)
-          *optr++ = pix;
-      }
-      break;
-    case 4:
-      {
-        U32* optr = (U32*)data;
-        U32* eol = optr + r.width();
-        while (optr < eol)
-          *optr++ = pix;
-      }
-      break;
-    }
-    data += bytesPerRow;
-  }
+  U8 *buf = getPixelsRW(r, &stride);
+  fillRectFn(buf, stride, r, pix);
 }
 
 void FullFramePixelBuffer::imageRect(const Rect& r, const void* pixels, int srcStride) {

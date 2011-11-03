@@ -46,7 +46,6 @@ namespace rfb {
 #define TIGHT_DECODE TightDecoder::CONCAT2E(tightDecode,BPP)
 #define DECOMPRESS_JPEG_RECT TightDecoder::CONCAT2E(DecompressJpegRect,BPP)
 #define FILTER_GRADIENT TightDecoder::CONCAT2E(FilterGradient,BPP)
-#define DIRECT_FILL_RECT TightDecoder::CONCAT2E(directFillRect,BPP)
 
 #define TIGHT_MIN_TO_COMPRESS 12
 
@@ -81,8 +80,7 @@ void TIGHT_DECODE (const Rect& r)
     } else {
       pix = is->READ_PIXEL();
     }
-    if (directDecode) DIRECT_FILL_RECT(r, pix);
-    else FILL_RECT(r, pix);
+    FILL_RECT(r, pix);
     return;
   }
 
@@ -377,37 +375,7 @@ FILTER_GRADIENT(rdr::InStream* is, PIXEL_T* buf, int stride, const Rect& r,
   delete [] netbuf;
 }
 
-void
-DIRECT_FILL_RECT(const Rect& r, Pixel pix) {
-
-  int stride;
-  PIXEL_T *buf = (PIXEL_T *)handler->getRawPixelsRW(r, &stride);
-
-  int w = r.width(), h = r.height();
-  PIXEL_T *ptr = buf;
-#if BPP != 8
-  int pad = stride - w;
-#endif
-
-  while (h > 0) {
-#if BPP == 8
-    memset(ptr, pix, w);
-    ptr += stride;
-#else
-    PIXEL_T *endOfRow = ptr + w;
-    while (ptr < endOfRow) {
-      *ptr++ = pix;
-    }
-    ptr += pad;
-#endif
-    h--;
-  }
-
-  handler->releaseRawPixels(r);
-}
-
 #undef TIGHT_MIN_TO_COMPRESS
-#undef DIRECT_FILL_RECT
 #undef FILTER_GRADIENT
 #undef DECOMPRESS_JPEG_RECT
 #undef TIGHT_DECODE
