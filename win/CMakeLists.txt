@@ -4,10 +4,6 @@ configure_file(resdefs.h.in ${CMAKE_CURRENT_BINARY_DIR}/resdefs.h)
 
 add_subdirectory(rfb_win32)
 
-if(NOT BUILD_NEW_VNCVIEWER)
-add_subdirectory(vncviewer)
-endif()
-
 if(BUILD_WINVNC)
 add_subdirectory(vncconfig)
 add_subdirectory(winvnc)

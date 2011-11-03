@@ -23,9 +23,6 @@ set(VERSION 1.1.80)
 # The RC version must always be four comma-separated numbers
 set(RCVERSION 1,1,80,0)
 
-# Manual toggle until we can deprecate the old viewers
-option(BUILD_NEW_VNCVIEWER "Build the new FLTK based vncviewer instead of the old ones" ON)
-
 # Compatibility variables for the migration from autotools
 add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")
 add_definitions(-DPACKAGE_VERSION="${VERSION}")
@@ -270,72 +267,69 @@ if(BUILD_JAVA)
 endif()
 
 # Check for FLTK
-if(BUILD_NEW_VNCVIEWER)
-  set(FLTK_SKIP_FLUID TRUE)
-  set(FLTK_SKIP_OPENGL TRUE)
-  set(FLTK_SKIP_IMAGES TRUE)
-  set(FLTK_SKIP_FORMS TRUE)
-  find_package(FLTK)
+set(FLTK_SKIP_FLUID TRUE)
+set(FLTK_SKIP_OPENGL TRUE)
+set(FLTK_SKIP_IMAGES TRUE)
+set(FLTK_SKIP_FORMS TRUE)
+find_package(FLTK)
 
-  if(NOT APPLE)
-    # No proper handling for extra X11 libs that FLTK might need...
-    if(X11_Xft_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB})
-    endif()
-    if(X11_Xinerama_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xinerama_LIB})
-    endif()
-    if(X11_Xfixes_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
-    endif()
-    if(X11_Xcursor_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xcursor_LIB})
-    endif()
+if(NOT APPLE)
+  # No proper handling for extra X11 libs that FLTK might need...
+  if(X11_Xft_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB})
   endif()
-
-  if(FLTK_FOUND)
-    set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
-    set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
-
-    # FLTK STR #2599
-    check_cxx_source_compiles("#include <FL/Fl_Widget.H>\nint main(int c, char** v) { void (Fl_Widget::*foo)() = &Fl_Widget::set_simple_keyboard; return 0; }" HAVE_FLTK_DEAD_KEYS)
-
-    # FLTK STR #2636
-    check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_clipboard_notify(NULL, NULL); return 0; }" HAVE_FLTK_CLIPBOARD)
-
-    # FLTK STR #2638
-    check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_Volume_Down; }" HAVE_FLTK_MEDIAKEYS)
-
-    # FLTK STR #2641
-    check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_FULLSCREEN; }" HAVE_FLTK_FULLSCREEN)
-
-    # FLTK STR #2660
-    check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(const Fl_RGB_Image*,int,int) = &Fl_Window::cursor; return 0; }" HAVE_FLTK_CURSOR)
-
-    set(CMAKE_REQUIRED_INCLUDES)
-    set(CMAKE_REQUIRED_LIBRARIES)
+  if(X11_Xinerama_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xinerama_LIB})
   endif()
-
-  option(USE_INCLUDED_FLTK
-    "Force the use of the FLTK library bundled with the TigerVNC source")
-  if(NOT FLTK_FOUND OR NOT HAVE_FLTK_DEAD_KEYS OR NOT HAVE_FLTK_CLIPBOARD
-    OR NOT HAVE_FLTK_MEDIAKEYS OR NOT HAVE_FLTK_FULLSCREEN
-    OR NOT HAVE_FLTK_CURSOR)
-    set(USE_INCLUDED_FLTK 1)
+  if(X11_Xfixes_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
   endif()
-  if(USE_INCLUDED_FLTK)
-    set(FLTK_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/common/fltk)
-    set(FLTK_LIBRARIES)
-    if(APPLE)
-      set(FLTK_LIBRARIES "-framework Carbon -framework Cocoa -framework ApplicationServices")
-    elseif(NOT WIN32)
-      set(FLTK_LIBRARIES "-ldl")
-    endif()
-    message(STATUS "Using included FLTK library")
+  if(X11_Xcursor_FOUND)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xcursor_LIB})
   endif()
- 
 endif()
 
+if(FLTK_FOUND)
+  set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
+  set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
+
+  # FLTK STR #2599
+  check_cxx_source_compiles("#include <FL/Fl_Widget.H>\nint main(int c, char** v) { void (Fl_Widget::*foo)() = &Fl_Widget::set_simple_keyboard; return 0; }" HAVE_FLTK_DEAD_KEYS)
+
+  # FLTK STR #2636
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_clipboard_notify(NULL, NULL); return 0; }" HAVE_FLTK_CLIPBOARD)
+
+  # FLTK STR #2638
+  check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_Volume_Down; }" HAVE_FLTK_MEDIAKEYS)
+
+  # FLTK STR #2641
+  check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_FULLSCREEN; }" HAVE_FLTK_FULLSCREEN)
+
+  # FLTK STR #2660
+  check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(const Fl_RGB_Image*,int,int) = &Fl_Window::cursor; return 0; }" HAVE_FLTK_CURSOR)
+
+  set(CMAKE_REQUIRED_INCLUDES)
+  set(CMAKE_REQUIRED_LIBRARIES)
+endif()
+
+option(USE_INCLUDED_FLTK
+  "Force the use of the FLTK library bundled with the TigerVNC source")
+if(NOT FLTK_FOUND OR NOT HAVE_FLTK_DEAD_KEYS OR NOT HAVE_FLTK_CLIPBOARD
+  OR NOT HAVE_FLTK_MEDIAKEYS OR NOT HAVE_FLTK_FULLSCREEN
+  OR NOT HAVE_FLTK_CURSOR)
+  set(USE_INCLUDED_FLTK 1)
+endif()
+if(USE_INCLUDED_FLTK)
+  set(FLTK_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/common/fltk)
+  set(FLTK_LIBRARIES)
+  if(APPLE)
+    set(FLTK_LIBRARIES "-framework Carbon -framework Cocoa -framework ApplicationServices")
+  elseif(NOT WIN32)
+    set(FLTK_LIBRARIES "-ldl")
+  endif()
+  message(STATUS "Using included FLTK library")
+endif()
+ 
 # Check for GNUTLS library
 option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
 if(ENABLE_GNUTLS)
@@ -421,12 +415,10 @@ else()
   endif()
 endif()
 
-if(BUILD_NEW_VNCVIEWER)
-  if(ENABLE_NLS)
-    add_subdirectory(po)
-  endif()
-  add_subdirectory(vncviewer)
+if(ENABLE_NLS)
+  add_subdirectory(po)
 endif()
+add_subdirectory(vncviewer)
 
 include(cmake/BuildPackages.cmake)
 
