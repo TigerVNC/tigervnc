@@ -317,7 +317,6 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
   Rect sr, bestr;
   int dx, dy, dw, dh;
   rdr::U32 colorValue;
-  int maxRectSize = pconf->maxRectSize;
   int maxRectWidth = pconf->maxRectWidth;
   int nMaxWidth = (w > maxRectWidth) ? maxRectWidth : w;
   int nMaxRows = pconf->maxRectSize / nMaxWidth;

@@ -299,8 +299,6 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, Co
 void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
                                 int w, int pitch, int h, ColourMap* cm) const
 {
-  rdr::U8 *rowptr, *colptr;
-
   if (is888()) {
     // Optimised common case
     int rindex, gindex, bindex;

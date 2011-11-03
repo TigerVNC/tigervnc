@@ -30,12 +30,13 @@ namespace rfb {
   class ColourMap {
   public:
     virtual void lookup(int index, int* r, int* g, int* b)=0;
+    virtual ~ColourMap() {}
   };
 
   class SimpleColourMap : public ColourMap {
   public:
     SimpleColourMap(int size = 256) { table = new Colour[size]; };
-    ~SimpleColourMap() { delete [] table; };
+    virtual ~SimpleColourMap() { delete [] table; };
 
     void lookup(int index, int* r, int* g, int* b)
     { *r = table[index].r; *g = table[index].g; *b = table[index].b; };

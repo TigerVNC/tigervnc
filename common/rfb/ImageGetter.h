@@ -25,6 +25,7 @@ namespace rfb {
   public:
     virtual void getImage(void* imageBuf,
                           const Rect& r, int stride=0) = 0;
+    virtual ~ImageGetter() {}
   };
 }
 #endif
