@@ -69,7 +69,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
       GET_IMAGE_INTO_BUF(t,buf);
 
-      PIXEL_T bg, fg;
+      PIXEL_T bg = 0, fg = 0;
       int tileType = TEST_TILE_TYPE(buf, t.width(), t.height(), &bg, &fg);
 
       if (!oldBgValid || oldBg != bg) {

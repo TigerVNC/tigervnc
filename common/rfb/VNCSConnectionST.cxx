@@ -636,8 +636,6 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
 
 bool VNCSConnectionST::isCongested()
 {
-  int offset, space;
-
   if (sock->outStream().bufferUsage() > 0)
     return true;
 

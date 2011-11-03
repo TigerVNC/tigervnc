@@ -143,7 +143,7 @@ static initTCtoCubeFnType initRGBTCtoCubeFns[] = {
 
 
 PixelTransformer::PixelTransformer(bool econ)
-  : economic(econ), cmCallback(0), table(0), transFn(0), cube(0)
+  : economic(econ), cmCallback(0), cube(0), table(0), transFn(0)
 {
 }
 
