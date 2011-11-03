@@ -67,6 +67,11 @@ public:
   void imageRect(const rfb::Rect& r, void* p);
   void copyRect(const rfb::Rect& r, int sx, int sy);
 
+  rdr::U8* getRawPixelsRW(const rfb::Rect& r, int* stride);
+  void releaseRawPixels(const rfb::Rect& r);
+
+  const rfb::PixelFormat &getPreferredPF() { return fullColourPF; }
+
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
 

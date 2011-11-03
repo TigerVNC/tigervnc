@@ -61,6 +61,13 @@ public:
     viewport->copyRect(r, srcX, srcY);
   }
 
+  rdr::U8* getPixelsRW(const rfb::Rect& r, int* stride) {
+    return viewport->getPixelsRW(r, stride);
+  }
+  void damageRect(const rfb::Rect& r) {
+    viewport->damageRect(r);
+  }
+
   void resizeFramebuffer(int new_w, int new_h);
 
   void setCursor(int width, int height, const rfb::Point& hotspot,

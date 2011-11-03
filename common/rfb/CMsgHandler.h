@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +68,11 @@ namespace rfb {
     virtual void fillRect(const Rect& r, Pixel pix) = 0;
     virtual void imageRect(const Rect& r, void* pixels) = 0;
     virtual void copyRect(const Rect& r, int srcX, int srcY) = 0;
+
+    virtual rdr::U8* getRawPixelsRW(const Rect& r, int* stride) = 0;
+    virtual void releaseRawPixels(const Rect& r) = 0;
+
+    virtual const PixelFormat &getPreferredPF(void) = 0;
 
     ConnParams cp;
   };

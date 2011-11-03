@@ -23,6 +23,7 @@ set(RFB_SOURCES
   HextileDecoder.cxx
   HextileEncoder.cxx
   JpegCompressor.cxx
+  JpegDecompressor.cxx
   KeyRemapper.cxx
   LogWriter.cxx
   Logger.cxx

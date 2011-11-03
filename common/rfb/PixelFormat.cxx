@@ -225,6 +225,61 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
 }
 
 
+void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
+                                int w, int pitch, int h, ColourMap* cm) const
+{
+  if (is888()) {
+    // Optimised common case
+    int rindex, gindex, bindex;
+
+    if (bigEndian) {
+      rindex = (24 - redShift)/8;
+      gindex = (24 - greenShift)/8;
+      bindex = (24 - blueShift)/8;
+    } else {
+      rindex = redShift/8;
+      gindex = greenShift/8;
+      bindex = blueShift/8;
+    }
+
+    int dstPad = pitch - w * 4;
+    while (h > 0) {
+      rdr::U8 *dstEndOfRow = (rdr::U8 *)dst + w * 4;
+      while (dst < dstEndOfRow) {
+        dst[rindex] = *(src++);
+        dst[gindex] = *(src++);
+        dst[bindex] = *(src++);
+        dst += 4;
+      }
+      dst += dstPad;
+      h--;
+    }
+  } else {
+    // Generic code
+    Pixel p;
+    rdr::U8 r, g, b;
+    int pixelSize = bpp/8;
+
+    int dstPad = pitch - w * pixelSize;
+    while (h > 0) {
+      rdr::U8 *dstEndOfRow = (rdr::U8 *)dst + w * pixelSize;
+      while (dst < dstEndOfRow) {
+        r = *(src++);
+        g = *(src++);
+        b = *(src++);
+
+        p = pixelFromRGB(r, g, b, cm);
+
+        bufferFromPixel(dst, p);
+        dst += pixelSize;
+      }
+      dst += dstPad;
+      h--;
+    }
+  }
+}
+
+
 void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
 {
   rdr::U16 r, g, b;

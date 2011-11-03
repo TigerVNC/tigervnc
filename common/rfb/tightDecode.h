@@ -1,5 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,32 +43,20 @@ namespace rfb {
 
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
 #define READ_PIXEL CONCAT2E(readOpaque,BPP)
-#define TIGHT_DECODE CONCAT2E(tightDecode,BPP)
+#define TIGHT_DECODE TightDecoder::CONCAT2E(tightDecode,BPP)
+#define DECOMPRESS_JPEG_RECT TightDecoder::CONCAT2E(DecompressJpegRect,BPP)
+#define FILTER_GRADIENT TightDecoder::CONCAT2E(FilterGradient,BPP)
+#define DIRECT_FILL_RECT TightDecoder::CONCAT2E(directFillRect,BPP)
 
 #define TIGHT_MIN_TO_COMPRESS 12
-static bool DecompressJpegRect(const Rect& r, rdr::InStream* is,
-			       PIXEL_T* buf, CMsgHandler* handler);
-static void FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
-			   PIXEL_T* buf, CMsgHandler* handler);
-#if BPP == 32
-static void FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
-			     PIXEL_T* buf, CMsgHandler* handler);
-#endif
 
 // Main function implementing Tight decoder
 
-void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
-                   rdr::ZlibInStream zis[], PIXEL_T* buf
-#ifdef EXTRA_ARGS
-                      , EXTRA_ARGS
-#endif
-                      )
+void TIGHT_DECODE (const Rect& r)
 {
-  rdr::U8 *bytebuf = (rdr::U8*) buf;
   bool cutZeros = false;
-  const rfb::PixelFormat& myFormat = handler->cp.pf();
 #if BPP == 32
-  if (myFormat.is888()) {
+  if (serverpf.is888()) {
     cutZeros = true;
   } 
 #endif
@@ -86,18 +75,20 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
   if (comp_ctl == rfbTightFill) {
     PIXEL_T pix;
     if (cutZeros) {
+      rdr::U8 bytebuf[3];
       is->readBytes(bytebuf, 3);
-      myFormat.bufferFromRGB((rdr::U8*)&pix, bytebuf, 1, NULL);
+      serverpf.bufferFromRGB((rdr::U8*)&pix, bytebuf, 1, NULL);
     } else {
       pix = is->READ_PIXEL();
     }
-    FILL_RECT(r, pix);
+    if (directDecode) DIRECT_FILL_RECT(r, pix);
+    else FILL_RECT(r, pix);
     return;
   }
 
   // "JPEG" compression type.
   if (comp_ctl == rfbTightJpeg) {
-    DecompressJpegRect(r, is, buf, handler);
+    DECOMPRESS_JPEG_RECT(r);
     return;
   }
 
@@ -122,11 +113,11 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
         rdr::U8 elem[3];
         for (int i = 0;i < palSize;i++) {
           is->readBytes(elem, 3);
-          myFormat.bufferFromRGB((rdr::U8*)&palette[i], elem, 1, NULL);
+          serverpf.bufferFromRGB((rdr::U8*)&palette[i], elem, 1, NULL);
         }
       } else {
-	for (int i = 0; i < palSize; i++)
-	  palette[i] = is->READ_PIXEL();
+        for (int i = 0; i < palSize; i++)
+          palette[i] = is->READ_PIXEL();
       }
       break;
     case rfbTightFilterGradient: 
@@ -161,78 +152,93 @@ void TIGHT_DECODE (const Rect& r, rdr::InStream* is,
     input = &zis[streamId];
   }
 
+  PIXEL_T *buf;
+  int stride = r.width();
+  if (directDecode) buf = (PIXEL_T *)handler->getRawPixelsRW(r, &stride);
+  else buf = (PIXEL_T *)reader->getImageBuf(r.area());
+
   if (palSize == 0) {
     // Truecolor data
     if (useGradient) {
 #if BPP == 32
       if (cutZeros) {
-	FilterGradient24(r, input, dataSize, buf, handler);
+        FilterGradient24(input, buf, stride, r, dataSize);
       } else 
 #endif
-	{
-	  FilterGradient(r, input, dataSize, buf, handler);
-	}
+      {
+        FILTER_GRADIENT(input, buf, stride, r, dataSize);
+      }
     } else {
+      // Copy
+      int h = r.height();
+      PIXEL_T *ptr = buf;
       if (cutZeros) {
+        int w = r.width(), pad = stride - w;
         rdr::U8 elem[3];
-        for (int i = 0;i < r.area();i++) {
-          input->readBytes(elem, 3);
-          myFormat.bufferFromRGB((rdr::U8*)&buf[i], elem, 1, NULL);
+        while (h > 0) {
+          PIXEL_T *endOfRow = ptr + w;
+          while (ptr < endOfRow) {
+            input->readBytes(elem, 3);
+            serverpf.bufferFromRGB((rdr::U8*)ptr++, elem, 1, NULL);
+          }
+          ptr += pad;
+          h--;
         }
       } else {
-        input->readBytes(buf, dataSize); 
+        while (h > 0) {
+          input->readBytes(ptr, rowSize);
+          ptr += stride;
+          h--;
+        }
       }
     }
   } else {
-    int x, y, b;
+    // Indexed color
+    int x, h = r.height(), w = r.width(), b, pad = stride - w;
     PIXEL_T *ptr = buf;
     rdr::U8 bits;
     if (palSize <= 2) {
       // 2-color palette
-      for (y = 0; y < r.height(); y++) {
-        for (x = 0; x < r.width() / 8; x++) {
+      while (h > 0) {
+        for (x = 0; x < w / 8; x++) {
           bits = input->readU8();
           for (b = 7; b >= 0; b--) {
             *ptr++ = palette[bits >> b & 1];
-	  }
+          }
         }
-        if (r.width() % 8 != 0) {
+        if (w % 8 != 0) {
           bits = input->readU8();
-          for (b = 7; b >= 8 - r.width() % 8; b--) {
+          for (b = 7; b >= 8 - w % 8; b--) {
             *ptr++ = palette[bits >> b & 1];
           }
         }
+        ptr += pad;
+        h--;
       }
     } else {
       // 256-color palette
-      for (y = 0; y < r.height(); y++) {
-        for (x = 0; x < r.width(); x++) {
+      while (h > 0) {
+        PIXEL_T *endOfRow = ptr + w;
+        while (ptr < endOfRow) {
           *ptr++ = palette[input->readU8()];
-	}
+        }
+        ptr += pad;
+        h--;
       }
     }
   }
 
-  IMAGE_RECT(r, buf);
+  if (directDecode) handler->releaseRawPixels(r);
+  else IMAGE_RECT(r, buf);
 
   if (streamId != -1) {
     zis[streamId].reset();
   }
 }
 
-static bool
-DecompressJpegRect(const Rect& r, rdr::InStream* is,
-		   PIXEL_T* buf, CMsgHandler* handler)
+void
+DECOMPRESS_JPEG_RECT(const Rect& r)
 {
-  struct jpeg_decompress_struct cinfo;
-  struct jpeg_error_mgr jerr;
-  int w = r.width();
-  int h = r.height();
-  int pixelsize;
-  rdr::U8 *dstBuf = NULL;
-  bool dstBufIsTemp = false;
-  const rfb::PixelFormat& pf = handler->cp.pf();
-
   // Read length
   int compressedLen = is->readCompactLength();
   if (compressedLen <= 0) {
@@ -246,97 +252,21 @@ DecompressJpegRect(const Rect& r, rdr::InStream* is,
   }
   is->readBytes(netbuf, compressedLen);
 
-  // Set up JPEG decompression
-  cinfo.err = jpeg_std_error(&jerr);
-  jpeg_create_decompress(&cinfo);
-  JpegSetSrcManager(&cinfo, (char*)netbuf, compressedLen);
-  jpeg_read_header(&cinfo, TRUE);
+  // We always use direct decoding with JPEG images
+  int stride;
+  rdr::U8 *buf = handler->getRawPixelsRW(r, &stride);
+  jd.decompress(netbuf, compressedLen, buf, stride * clientpf.bpp / 8, r,
+                clientpf);
+  handler->releaseRawPixels(r);
 
-  cinfo.out_color_space = JCS_RGB;
-  pixelsize = 3;
-
-#ifdef JCS_EXTENSIONS
-  // Try to have libjpeg output directly to our native format
-  if (pf.is888()) {
-    int redShift, greenShift, blueShift;
-
-    if(pf.bigEndian) {
-      redShift = 24 - pf.redShift;
-      greenShift = 24 - pf.greenShift;
-      blueShift = 24 - pf.blueShift;
-    } else {
-      redShift = pf.redShift;
-      greenShift = pf.greenShift;
-      blueShift = pf.blueShift;
-    }
-
-    // libjpeg can only handle some "standard" formats
-    if(redShift == 0 && greenShift == 8 && blueShift == 16)
-      cinfo.out_color_space = JCS_EXT_RGBX;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0)
-      cinfo.out_color_space = JCS_EXT_BGRX;
-    if(redShift == 24 && greenShift == 16 && blueShift == 8)
-      cinfo.out_color_space = JCS_EXT_XBGR;
-    if(redShift == 8 && greenShift == 16 && blueShift == 24)
-      cinfo.out_color_space = JCS_EXT_XRGB;
-
-    if (cinfo.out_color_space != JCS_RGB) {
-      dstBuf = (rdr::U8 *)buf;
-      pixelsize = 4;
-    }
-  }
-#endif
-
-  if (cinfo.out_color_space == JCS_RGB) {
-    dstBuf = new rdr::U8[w * h * pixelsize];
-    dstBufIsTemp = true;
-  }
-
-  JSAMPROW *rowPointer = new JSAMPROW[h];
-  for (int dy = 0; dy < h; dy++)
-    rowPointer[dy] = (JSAMPROW)(&dstBuf[dy * w * pixelsize]);
-
-  jpeg_start_decompress(&cinfo);
-  if (cinfo.output_width != (unsigned)r.width() || cinfo.output_height != (unsigned)r.height() ||
-      cinfo.output_components != pixelsize) {
-      jpeg_destroy_decompress(&cinfo);
-      throw Exception("Tight Encoding: Wrong JPEG data received.\n");
-  }
-
-  // Decompress
-  const rfb::PixelFormat& myFormat = handler->cp.pf();
-  while (cinfo.output_scanline < cinfo.output_height) {
-    jpeg_read_scanlines(&cinfo, &rowPointer[cinfo.output_scanline],
-			cinfo.output_height - cinfo.output_scanline);
-    if (jpegError) {
-      break;
-    }
-  }
-
-  delete [] rowPointer;
-
-  if (cinfo.out_color_space == JCS_RGB)
-    myFormat.bufferFromRGB((rdr::U8*)buf, dstBuf, w * h);
-
-  IMAGE_RECT(r, buf);
-
-  if (!jpegError) {
-    jpeg_finish_decompress(&cinfo);
-  }
-
-  jpeg_destroy_decompress(&cinfo);
-
-  if (dstBufIsTemp) delete [] dstBuf;
   delete [] netbuf;
-
-  return !jpegError;
 }
 
 #if BPP == 32
 
-static void
-FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
-		 PIXEL_T* buf, CMsgHandler* handler)
+void
+TightDecoder::FilterGradient24(rdr::InStream* is, PIXEL_T* buf, int stride,
+                               const Rect& r, int dataSize)
 {
   int x, y, c;
   static rdr::U8 prevRow[TIGHT_MAX_WIDTH*3];
@@ -354,7 +284,6 @@ FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
   is->readBytes(netbuf, dataSize);
 
   // Set up shortcut variables
-  const rfb::PixelFormat& myFormat = handler->cp.pf();
   int rectHeight = r.height();
   int rectWidth = r.width();
 
@@ -364,21 +293,21 @@ FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
       pix[c] = netbuf[y*rectWidth*3+c] + prevRow[c];
       thisRow[c] = pix[c];
     }
-    myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth], pix, 1, NULL);
+    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1, NULL);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
       for (c = 0; c < 3; c++) {
-	est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
-	if (est[c] > 0xff) {
-	  est[c] = 0xff;
-	} else if (est[c] < 0) {
-	  est[c] = 0;
-	}
-	pix[c] = netbuf[(y*rectWidth+x)*3+c] + est[c];
-	thisRow[x*3+c] = pix[c];
+        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+        if (est[c] > 0xff) {
+          est[c] = 0xff;
+        } else if (est[c] < 0) {
+          est[c] = 0;
+        }
+        pix[c] = netbuf[(y*rectWidth+x)*3+c] + est[c];
+        thisRow[x*3+c] = pix[c];
       }
-      myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth+x], pix, 1, NULL);
+      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1, NULL);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
@@ -389,9 +318,9 @@ FilterGradient24(const Rect& r, rdr::InStream* is, int dataSize,
 
 #endif
 
-static void
-FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
-	       PIXEL_T* buf, CMsgHandler* handler)
+void
+FILTER_GRADIENT(rdr::InStream* is, PIXEL_T* buf, int stride, const Rect& r,
+                int dataSize)
 {
   int x, y, c;
   static rdr::U8 prevRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
@@ -409,19 +338,18 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
   is->readBytes(netbuf, dataSize);
 
   // Set up shortcut variables
-  const rfb::PixelFormat& myFormat = handler->cp.pf();
   int rectHeight = r.height();
   int rectWidth = r.width();
 
   for (y = 0; y < rectHeight; y++) {
     /* First pixel in a row */
-    myFormat.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth], 1, NULL);
+    serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth], 1, NULL);
     for (c = 0; c < 3; c++)
       pix[c] += prevRow[c];
 
     memcpy(thisRow, pix, sizeof(pix));
 
-    myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth], pix, 1, NULL);
+    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1, NULL);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
@@ -434,13 +362,13 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
         }
       }
 
-      myFormat.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth+x], 1, NULL);
+      serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth+x], 1, NULL);
       for (c = 0; c < 3; c++)
         pix[c] += est[c];
 
       memcpy(&thisRow[x*3], pix, sizeof(pix));
 
-      myFormat.bufferFromRGB((rdr::U8*)&buf[y*rectWidth+x], pix, 1, NULL);
+      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1, NULL);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
@@ -449,7 +377,39 @@ FilterGradient(const Rect& r, rdr::InStream* is, int dataSize,
   delete [] netbuf;
 }
 
+void
+DIRECT_FILL_RECT(const Rect& r, Pixel pix) {
+
+  int stride;
+  PIXEL_T *buf = (PIXEL_T *)handler->getRawPixelsRW(r, &stride);
+
+  int w = r.width(), h = r.height();
+  PIXEL_T *ptr = buf;
+#if BPP != 8
+  int pad = stride - w;
+#endif
+
+  while (h > 0) {
+#if BPP == 8
+    memset(ptr, pix, w);
+    ptr += stride;
+#else
+    PIXEL_T *endOfRow = ptr + w;
+    while (ptr < endOfRow) {
+      *ptr++ = pix;
+    }
+    ptr += pad;
+#endif
+    h--;
+  }
+
+  handler->releaseRawPixels(r);
+}
+
 #undef TIGHT_MIN_TO_COMPRESS
+#undef DIRECT_FILL_RECT
+#undef FILTER_GRADIENT
+#undef DECOMPRESS_JPEG_RECT
 #undef TIGHT_DECODE
 #undef READ_PIXEL
 #undef PIXEL_T

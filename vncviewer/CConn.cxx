@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -410,6 +411,14 @@ void CConn::setCursor(int width, int height, const Point& hotspot,
 {
   desktop->setCursor(width, height, hotspot, data, mask);
 }
+
+rdr::U8* CConn::getRawPixelsRW(const rfb::Rect& r, int* stride) {
+  return desktop->getPixelsRW(r, stride);
+}
+void CConn::releaseRawPixels(const rfb::Rect& r) {
+  desktop->damageRect(r);
+}
+
 
 ////////////////////// Internal methods //////////////////////
 

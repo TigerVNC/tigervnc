@@ -97,6 +97,16 @@ public:
     damageRect(r);
   }
 
+  rdr::U8* getPixelsRW(const rfb::Rect& r, int* stride) {
+    return frameBuffer->getPixelsRW(r, stride);
+  }
+
+  void damageRect(const rfb::Rect& r) {
+    damage.assign_union(rfb::Region(r));
+    if (!Fl::has_timeout(handleUpdateTimeout, this))
+      Fl::add_timeout(0.500, handleUpdateTimeout, this);
+  };
+
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
 
@@ -109,12 +119,6 @@ public:
   int handle(int event);
 
 private:
-
-  void damageRect(const rfb::Rect& r) {
-    damage.assign_union(rfb::Region(r));
-    if (!Fl::has_timeout(handleUpdateTimeout, this))
-      Fl::add_timeout(0.500, handleUpdateTimeout, this);
-  };
 
   static void handleUpdateTimeout(void *data);
 
