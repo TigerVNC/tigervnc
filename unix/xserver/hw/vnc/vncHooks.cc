@@ -556,6 +556,8 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
   PictureScreenPtr ps = GetPictureScreen(pScreen);
 
+  RegionHelper changed(pScreen);
+
   if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
       ((WindowPtr) pDst->pDrawable)->viewable) {
     BoxRec box;
@@ -567,20 +569,25 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 		  height);
         
     rect2 = rect1.intersect(vncHooksScreen->desktop->getRect());
-    if (!rect2.is_empty()) {
-      box.x1 = rect2.tl.x;
-      box.y1 = rect2.tl.y;
-      box.x2 = rect2.br.x;
-      box.y2 = rect2.br.y;
-      RegionHelper changed(pScreen, &box, 0);
-      vncHooksScreen->desktop->add_changed(changed.reg);
-    }
+
+    box.x1 = rect2.tl.x;
+    box.y1 = rect2.tl.y;
+    box.x2 = rect2.br.x;
+    box.y2 = rect2.br.y;
+
+    changed.init(&box, 0);
+  } else {
+    changed.init(NullBox, 0);
   }
+
 
   ps->Composite = vncHooksScreen->Composite;
   (*ps->Composite)(op, pSrc, pMask, pDst, xSrc, ySrc,
 		   xMask, yMask, xDst, yDst, width, height);
   ps->Composite = vncHooksComposite;
+
+  if (REGION_NOTEMPTY(pScreen, changed.reg))
+    vncHooksScreen->desktop->add_changed(changed.reg);
 }
 
 #endif /* RENDER */
