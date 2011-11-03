@@ -22,6 +22,7 @@
 #include <rdr/Exception.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
+#include <os/print.h>
 
 #include <stdio.h>
 extern "C" {
