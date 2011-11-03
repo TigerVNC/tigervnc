@@ -25,7 +25,6 @@ using namespace rfb;
 
 #define TIGHT_MAX_WIDTH 2048
 
-#define EXTRA_ARGS CMsgHandler* handler
 #define FILL_RECT(r, p) handler->fillRect(r, p)
 #define IMAGE_RECT(r, p) handler->imageRect(r, p)
 #define BPP 8
