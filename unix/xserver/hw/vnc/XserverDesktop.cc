@@ -450,25 +450,6 @@ void XserverDesktop::setCursor(CursorPtr cursor)
   }
 }
 
-static void printRegion(RegionPtr reg)
-{
-  int nrects = REGION_NUM_RECTS(reg);
-
-  fprintf(stderr,"Region num rects %2d extents %3d,%3d %3dx%3d\n",nrects,
-          (REGION_EXTENTS(pScreen,reg))->x1,
-          (REGION_EXTENTS(pScreen,reg))->y1,
-          (REGION_EXTENTS(pScreen,reg))->x2-(REGION_EXTENTS(pScreen,reg))->x1,
-          (REGION_EXTENTS(pScreen,reg))->y2-(REGION_EXTENTS(pScreen,reg))->y1);
-
-  for (int i = 0; i < nrects; i++) {
-    fprintf(stderr,"    rect %3d,%3d %3dx%3d\n",
-            REGION_RECTS(reg)[i].x1,
-            REGION_RECTS(reg)[i].y1,
-            REGION_RECTS(reg)[i].x2-REGION_RECTS(reg)[i].x1,
-            REGION_RECTS(reg)[i].y2-REGION_RECTS(reg)[i].y1);
-  }
-}
-
 CARD32 XserverDesktop::deferredUpdateTimerCallback(OsTimerPtr timer,
                                                    CARD32 now, pointer arg)
 {
