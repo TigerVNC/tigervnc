@@ -224,6 +224,24 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
   }
 }
 
+#define trueColorBufferFromRGB(BPP) {  \
+  rdr::U8 r, g, b;  \
+  int dstPad = pitch - w * BPP / 8;  \
+  while (h > 0) {  \
+    rdr::U8 *dstEndOfRow = (rdr::U8 *)dst + w * BPP / 8;  \
+    while (dst < dstEndOfRow) {  \
+      r = *(src++);  \
+      g = *(src++);  \
+      b = *(src++);  \
+      *(rdr::U##BPP *)dst = (((r * redMax + 127) / 255) << redShift)  \
+                          | (((g * greenMax + 127) / 255) << greenShift)  \
+                          | (((b * blueMax + 127) / 255) << blueShift);  \
+      dst += BPP / 8;  \
+    }  \
+    dst += dstPad;  \
+    h--;  \
+  }  \
+}
 
 void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
                                 int w, int pitch, int h, ColourMap* cm) const
@@ -254,6 +272,10 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
       dst += dstPad;
       h--;
     }
+  } else if (!cm && bpp == 16) {
+    trueColorBufferFromRGB(16);
+  } else if (!cm && bpp == 8) {
+    trueColorBufferFromRGB(8);
   } else {
     // Generic code
     Pixel p;
