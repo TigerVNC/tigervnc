@@ -41,14 +41,14 @@ namespace rfb {
     void DecompressJpegRect16(const Rect& r);
     void DecompressJpegRect32(const Rect& r);
 
-    void FilterGradient8(rdr::InStream* is, rdr::U8* buf, int stride, 
-                         const Rect& r, int dataSize);
-    void FilterGradient16(rdr::InStream* is, rdr::U16* buf, int stride, 
-                          const Rect& r, int dataSize);
-    void FilterGradient24(rdr::InStream* is, rdr::U32* buf, int stride, 
-                          const Rect& r, int dataSize);
-    void FilterGradient32(rdr::InStream* is, rdr::U32* buf, int stride, 
-                          const Rect& r, int dataSize);
+    void FilterGradient8(rdr::U8 *netbuf, rdr::U8* buf, int stride, 
+                         const Rect& r);
+    void FilterGradient16(rdr::U8 *netbuf, rdr::U16* buf, int stride, 
+                          const Rect& r);
+    void FilterGradient24(rdr::U8 *netbuf, rdr::U32* buf, int stride, 
+                          const Rect& r);
+    void FilterGradient32(rdr::U8 *netbuf, rdr::U32* buf, int stride, 
+                          const Rect& r);
 
     void directFillRect8(const Rect& r, Pixel pix);
     void directFillRect16(const Rect& r, Pixel pix);

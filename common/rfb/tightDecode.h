@@ -108,14 +108,11 @@ void TIGHT_DECODE (const Rect& r)
     case rfbTightFilterPalette: 
       palSize = is->readU8() + 1;
       if (cutZeros) {
-        rdr::U8 elem[3];
-        for (int i = 0;i < palSize;i++) {
-          is->readBytes(elem, 3);
-          serverpf.bufferFromRGB((rdr::U8*)&palette[i], elem, 1, NULL);
-        }
+        rdr::U8 tightPalette[256 * 3];
+        is->readBytes(tightPalette, palSize * 3);
+        serverpf.bufferFromRGB((rdr::U8*)palette, tightPalette, palSize, NULL);
       } else {
-        for (int i = 0; i < palSize; i++)
-          palette[i] = is->READ_PIXEL();
+        is->readBytes(palette, palSize * sizeof(PIXEL_T));
       }
       break;
     case rfbTightFilterGradient: 
@@ -141,14 +138,23 @@ void TIGHT_DECODE (const Rect& r)
   int dataSize = r.height() * rowSize;
   int streamId = -1;
   rdr::InStream *input;
+  bool useZlib = false;
   if (dataSize < TIGHT_MIN_TO_COMPRESS) {
     input = is;
   } else {
+    useZlib = true;
     int length = is->readCompactLength();
     streamId = comp_ctl & 0x03;
     zis[streamId].setUnderlying(is, length);
     input = &zis[streamId];
   }
+
+  // Allocate netbuf and read in data
+  rdr::U8 *netbuf = new rdr::U8[dataSize];
+  if (!netbuf) {
+    throw Exception("rfb::TightDecoder::tightDecode unable to allocate buffer");
+  }
+  input->readBytes(netbuf, dataSize);
 
   PIXEL_T *buf;
   int stride = r.width();
@@ -160,32 +166,30 @@ void TIGHT_DECODE (const Rect& r)
     if (useGradient) {
 #if BPP == 32
       if (cutZeros) {
-        FilterGradient24(input, buf, stride, r, dataSize);
+        FilterGradient24(netbuf, buf, stride, r);
       } else 
 #endif
       {
-        FILTER_GRADIENT(input, buf, stride, r, dataSize);
+        FILTER_GRADIENT(netbuf, buf, stride, r);
       }
     } else {
       // Copy
       int h = r.height();
       PIXEL_T *ptr = buf;
+      rdr::U8 *srcPtr = netbuf;
+      int w = r.width();
       if (cutZeros) {
-        int w = r.width(), pad = stride - w;
-        rdr::U8 elem[3];
         while (h > 0) {
-          PIXEL_T *endOfRow = ptr + w;
-          while (ptr < endOfRow) {
-            input->readBytes(elem, 3);
-            serverpf.bufferFromRGB((rdr::U8*)ptr++, elem, 1, NULL);
-          }
-          ptr += pad;
+          serverpf.bufferFromRGB((rdr::U8*)ptr, srcPtr, w, NULL);
+          ptr += stride;
+          srcPtr += w * sizeof(PIXEL_T);
           h--;
         }
       } else {
         while (h > 0) {
-          input->readBytes(ptr, rowSize);
+          memcpy(ptr, srcPtr, rowSize * sizeof(PIXEL_T));
           ptr += stride;
+          srcPtr += w * sizeof(PIXEL_T);
           h--;
         }
       }
@@ -194,18 +198,18 @@ void TIGHT_DECODE (const Rect& r)
     // Indexed color
     int x, h = r.height(), w = r.width(), b, pad = stride - w;
     PIXEL_T *ptr = buf;
-    rdr::U8 bits;
+    rdr::U8 bits, *srcPtr = netbuf;
     if (palSize <= 2) {
       // 2-color palette
       while (h > 0) {
         for (x = 0; x < w / 8; x++) {
-          bits = input->readU8();
+          bits = *srcPtr++;
           for (b = 7; b >= 0; b--) {
             *ptr++ = palette[bits >> b & 1];
           }
         }
         if (w % 8 != 0) {
-          bits = input->readU8();
+          bits = *srcPtr++;
           for (b = 7; b >= 8 - w % 8; b--) {
             *ptr++ = palette[bits >> b & 1];
           }
@@ -218,7 +222,7 @@ void TIGHT_DECODE (const Rect& r)
       while (h > 0) {
         PIXEL_T *endOfRow = ptr + w;
         while (ptr < endOfRow) {
-          *ptr++ = palette[input->readU8()];
+          *ptr++ = palette[*srcPtr++];
         }
         ptr += pad;
         h--;
@@ -228,6 +232,8 @@ void TIGHT_DECODE (const Rect& r)
 
   if (directDecode) handler->releaseRawPixels(r);
   else IMAGE_RECT(r, buf);
+
+  delete [] netbuf;
 
   if (streamId != -1) {
     zis[streamId].reset();
@@ -246,7 +252,7 @@ DECOMPRESS_JPEG_RECT(const Rect& r)
   // Allocate netbuf and read in data
   rdr::U8* netbuf = new rdr::U8[compressedLen];
   if (!netbuf) {
-    throw Exception("rfb::tightDecode unable to allocate buffer");
+    throw Exception("rfb::TightDecoder::DecompressJpegRect unable to allocate buffer");
   }
   is->readBytes(netbuf, compressedLen);
 
@@ -263,8 +269,8 @@ DECOMPRESS_JPEG_RECT(const Rect& r)
 #if BPP == 32
 
 void
-TightDecoder::FilterGradient24(rdr::InStream* is, PIXEL_T* buf, int stride,
-                               const Rect& r, int dataSize)
+TightDecoder::FilterGradient24(rdr::U8 *netbuf, PIXEL_T* buf, int stride,
+                               const Rect& r)
 {
   int x, y, c;
   static rdr::U8 prevRow[TIGHT_MAX_WIDTH*3];
@@ -273,13 +279,6 @@ TightDecoder::FilterGradient24(rdr::InStream* is, PIXEL_T* buf, int stride,
   int est[3]; 
 
   memset(prevRow, 0, sizeof(prevRow));
-
-  // Allocate netbuf and read in data
-  rdr::U8 *netbuf = new rdr::U8[dataSize];
-  if (!netbuf) {
-    throw Exception("rfb::tightDecode unable to allocate buffer");
-  }
-  is->readBytes(netbuf, dataSize);
 
   // Set up shortcut variables
   int rectHeight = r.height();
@@ -310,15 +309,12 @@ TightDecoder::FilterGradient24(rdr::InStream* is, PIXEL_T* buf, int stride,
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
   }
-
-  delete [] netbuf;
 }
 
 #endif
 
 void
-FILTER_GRADIENT(rdr::InStream* is, PIXEL_T* buf, int stride, const Rect& r,
-                int dataSize)
+FILTER_GRADIENT(rdr::U8 *netbuf, PIXEL_T* buf, int stride, const Rect& r)
 {
   int x, y, c;
   static rdr::U8 prevRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
@@ -327,13 +323,6 @@ FILTER_GRADIENT(rdr::InStream* is, PIXEL_T* buf, int stride, const Rect& r,
   int est[3]; 
 
   memset(prevRow, 0, sizeof(prevRow));
-
-  // Allocate netbuf and read in data
-  PIXEL_T *netbuf = (PIXEL_T*)new rdr::U8[dataSize];
-  if (!netbuf) {
-    throw Exception("rfb::tightDecode unable to allocate buffer");
-  }
-  is->readBytes(netbuf, dataSize);
 
   // Set up shortcut variables
   int rectHeight = r.height();
@@ -371,8 +360,6 @@ FILTER_GRADIENT(rdr::InStream* is, PIXEL_T* buf, int stride, const Rect& r,
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
   }
-
-  delete [] netbuf;
 }
 
 #undef TIGHT_MIN_TO_COMPRESS
