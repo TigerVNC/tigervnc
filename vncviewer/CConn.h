@@ -95,6 +95,9 @@ private:
   rfb::PixelFormat serverPF;
   rfb::PixelFormat fullColourPF;
 
+  bool pendingPFChange;
+  rfb::PixelFormat pendingPF;
+
   int currentEncoding, lastServerEncoding;
 
   bool formatChange;

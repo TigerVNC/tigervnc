@@ -66,6 +66,7 @@ static const PixelFormat mediumColourPF(8, 8, false, false);
 
 CConn::CConn(const char* vncServerName)
   : serverHost(0), serverPort(0), sock(NULL), desktop(NULL),
+    pendingPFChange(false),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false),
@@ -233,8 +234,18 @@ void CConn::serverInit()
   desktop = new DesktopWindow(cp.width, cp.height, cp.name(), serverPF, this);
   fullColourPF = desktop->getPreferredPF();
 
+  // Force a switch to the format and encoding we'd like
   formatChange = encodingChange = true;
+
+  // And kick off the update cycle
   requestNewUpdate();
+
+  // This initial update request is a bit of a corner case, so we need
+  // to help out setting the correct format here.
+  assert(pendingPFChange);
+  desktop->setServerPF(pendingPF);
+  cp.setPF(pendingPF);
+  pendingPFChange = false;
 }
 
 // setDesktopSize() is called when the desktop size changes (including when
@@ -270,15 +281,12 @@ void CConn::setName(const char* name)
 // framebufferUpdateStart() is called at the beginning of an update.
 // Here we try to send out a new framebuffer update request so that the
 // next update can be sent out in parallel with us decoding the current
-// one. We cannot do this if we're in the middle of a format change
-// though.
+// one.
 void CConn::framebufferUpdateStart()
 {
-  if (!formatChange) {
-    pendingUpdate = true;
-    requestNewUpdate();
-  } else
-    pendingUpdate = false;
+  pendingUpdate = false;
+
+  requestNewUpdate();
 }
 
 // framebufferUpdateEnd() is called at the end of an update.
@@ -325,10 +333,13 @@ void CConn::framebufferUpdateEnd()
     firstUpdate = false;
   }
 
-  // A format change prevented us from sending this before the update,
-  // so make sure to send it now.
-  if (formatChange && !pendingUpdate)
-    requestNewUpdate();
+  // A format change has been scheduled and we are now past the update
+  // with the old format. Time to active the new one.
+  if (pendingPFChange) {
+    desktop->setServerPF(pendingPF);
+    cp.setPF(pendingPF);
+    pendingPFChange = false;
+  }
 
   // Compute new settings based on updated bandwidth values
   if (autoSelect)
@@ -530,11 +541,16 @@ void CConn::requestNewUpdate()
       else
         pf = mediumColourPF;
     }
+
+    // New requests are sent out at the start of processing the last
+    // one, so we cannot switch our internal format right now (doing so
+    // would mean misdecoding the current update).
+    pendingPFChange = true;
+    pendingPF = pf;
+
     char str[256];
     pf.print(str, 256);
     vlog.info(_("Using pixel format %s"),str);
-    desktop->setServerPF(pf);
-    cp.setPF(pf);
     writer()->writeSetPixelFormat(pf);
 
     formatChange = false;
@@ -542,6 +558,7 @@ void CConn::requestNewUpdate()
 
   checkEncodings();
 
+  pendingUpdate = true;
   writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
                                           !forceNonincremental);
  
