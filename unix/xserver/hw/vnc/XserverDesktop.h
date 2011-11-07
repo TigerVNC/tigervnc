@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +71,7 @@ public:
   void add_changed(RegionPtr reg);
   void add_copied(RegionPtr dst, int dx, int dy);
   void ignoreHooks(bool b) { ignoreHooks_ = b; }
-  void blockHandler(fd_set* fds);
+  void blockHandler(fd_set* fds, OSTimePtr timeout);
   void wakeupHandler(fd_set* fds, int nfds);
   void writeBlockHandler(fd_set* fds);
   void writeWakeupHandler(fd_set* fds, int nfds);

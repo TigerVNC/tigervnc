@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -509,9 +509,15 @@ void XserverDesktop::add_copied(RegionPtr dst, int dx, int dy)
   }
 }
 
-void XserverDesktop::blockHandler(fd_set* fds)
+static struct timeval XserverDesktopTimeout;
+
+void XserverDesktop::blockHandler(fd_set* fds, OSTimePtr timeout)
 {
   try {
+    int nextTimeout;
+
+    // Add all sockets we want read events for, after purging
+    // any closed sockets.
     if (listener)
       FD_SET(listener->getFd(), fds);
     if (httpListener)
@@ -544,18 +550,31 @@ void XserverDesktop::blockHandler(fd_set* fds)
         }
       }
     }
+
+    // Then check when the next timer will expire.
+    // (this unfortunately also triggers any already expired timers)
+    nextTimeout = server->checkTimeouts();
+    if (nextTimeout > 0) {
+      // No timeout specified? Or later timeout than we need?
+      if ((*timeout == NULL) ||
+          ((*timeout)->tv_sec > (nextTimeout/1000)) ||
+          (((*timeout)->tv_sec == (nextTimeout/1000)) &&
+           ((*timeout)->tv_usec > ((nextTimeout%1000)*1000)))) {
+        XserverDesktopTimeout.tv_sec = nextTimeout/1000;
+        XserverDesktopTimeout.tv_usec = (nextTimeout%1000)*1000;
+        *timeout = &XserverDesktopTimeout;
+      }
+    }
+
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::blockHandler: %s",e.str());
   }
 }
 
-static CARD32 dummyTimerCallback(OsTimerPtr timer, CARD32 now, pointer arg) {
-  return 0;
-}
-
 void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
 {
   try {
+    // First check for file descriptors with something to do
     if (nfds >= 1) {
 
       if (listener) {
@@ -603,13 +622,9 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
       inputDevice->PointerSync();
     }
 
-    int timeout = server->checkTimeouts();
-    if (timeout > 0) {
-      // set a dummy timer just so we are guaranteed be called again next time.
-      dummyTimer = TimerSet(dummyTimer, 0, timeout,
-                            dummyTimerCallback, 0);
-    }
-
+    // Then let the timers do some processing. Rescheduling is done in
+    // blockHandler().
+    server->checkTimeouts();
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::wakeupHandler: %s",e.str());
   }
