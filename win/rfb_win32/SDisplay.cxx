@@ -316,11 +316,6 @@ void SDisplay::clientCutText(const char* text, int len) {
 }
 
 
-void SDisplay::framebufferUpdateRequest()
-{
-  SetEvent(updateEvent);
-}
-
 Point SDisplay::getFbSize() {
   bool startAndStop = !core;
 
@@ -382,7 +377,7 @@ SDisplay::processEvent(HANDLE event) {
     inputs->blockInputs(disableLocalInputs);
 
     // - Only process updates if the server is ready
-    if (server && server->clientsReadyForUpdate()) {
+    if (server) {
       bool try_update = false;
 
       // - Check that the SDesktop doesn't need restarting

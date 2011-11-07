@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,14 +63,17 @@ namespace rfb {
     // Socket if an error occurs, via the close() call.
     void processMessages();
 
-    void writeFramebufferUpdateOrClose();
+    // Called when the underlying pixelbuffer is resized or replaced.
     void pixelBufferChange();
-    void screenLayoutChange(rdr::U16 reason);
+
+    // Wrappers to make these methods "safe" for VNCServerST.
+    void writeFramebufferUpdateOrClose();
+    void screenLayoutChangeOrClose(rdr::U16 reason);
     void setColourMapEntriesOrClose(int firstColour, int nColours);
-    void bell();
-    void serverCutText(const char *str, int len);
-    void setDesktopName(const char *name);
     void setCursorOrClose();
+    void bellOrClose();
+    void serverCutTextOrClose(const char *str, int len);
+    void setDesktopNameOrClose(const char *name);
 
     // checkIdleTimeout() returns the number of milliseconds left until the
     // idle timeout expires.  If it has expired, the connection is closed and
@@ -92,7 +95,6 @@ namespace rfb {
     bool needRenderedCursor();
 
     network::Socket* getSock() { return sock; }
-    bool readyForUpdate() { return !requested.is_empty(); }
     void add_changed(const Region& region) { updates.add_changed(region); }
     void add_copied(const Region& dest, const Point& delta) {
       updates.add_copied(dest, delta);
@@ -155,12 +157,17 @@ namespace rfb {
     void writeFramebufferUpdate();
 
     void writeRenderedCursorRect();
+    void screenLayoutChange(rdr::U16 reason);
     void setColourMapEntries(int firstColour, int nColours);
     void setCursor();
+    void setDesktopName(const char *name);
     void setSocketTimeouts();
 
     network::Socket* sock;
     CharArray peerEndpoint;
+
+    bool inProcessMessages;
+
     VNCServerST* server;
     SimpleUpdateTracker updates;
     TransImageGetter image_getter;

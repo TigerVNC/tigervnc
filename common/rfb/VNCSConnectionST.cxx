@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ static LogWriter vlog("VNCSConnST");
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
-  : SConnection(reverse), sock(s), server(server_),
+  : SConnection(reverse), sock(s), inProcessMessages(false), server(server_),
     updates(false), image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
     updateTimer(this), pointerEventTime(0),
@@ -111,34 +111,22 @@ void VNCSConnectionST::processMessages()
   try {
     // - Now set appropriate socket timeouts and process data
     setSocketTimeouts();
-    bool clientsReadyBefore = server->clientsReadyForUpdate();
+
+    inProcessMessages = true;
 
     while (getInStream()->checkNoWait(1)) {
       processMsg();
     }
 
-    // If there were update requests, try to send a framebuffer update.
-    // We don't send updates immediately on requests as this way, we
-    // give higher priority to user actions such as keyboard and
-    // pointer events.
-    if (!requested.is_empty()) {
-      writeFramebufferUpdate();
-    }
+    inProcessMessages = false;
 
-    if (!clientsReadyBefore && !requested.is_empty())
-      server->desktop->framebufferUpdateRequest();
+    // If there were anything requiring an update, try to send it here.
+    // We wait until now with this to aggregate responses and to give 
+    // higher priority to user actions such as keyboard and pointer events.
+    writeFramebufferUpdate();
   } catch (rdr::EndOfStream&) {
     close("Clean disconnection");
   } catch (rdr::Exception &e) {
-    close(e.str());
-  }
-}
-
-void VNCSConnectionST::writeFramebufferUpdateOrClose()
-{
-  try {
-    writeFramebufferUpdate();
-  } catch(rdr::Exception &e) {
     close(e.str());
   }
 }
@@ -186,27 +174,25 @@ void VNCSConnectionST::pixelBufferChange()
     updates.add_changed(server->pb->getRect());
     vlog.debug("pixel buffer changed - re-initialising image getter");
     image_getter.init(server->pb, cp.pf(), writer());
-    if (writer()->needFakeUpdate())
-      writeFramebufferUpdate();
+    writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
   }
 }
 
-void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
+void VNCSConnectionST::writeFramebufferUpdateOrClose()
 {
   try {
-    if (!authenticated())
-      return;
+    writeFramebufferUpdate();
+  } catch(rdr::Exception &e) {
+    close(e.str());
+  }
+}
 
-    cp.screenLayout = server->screenLayout;
-    if (state() == RFBSTATE_NORMAL) {
-      writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
-                                         cp.screenLayout);
-    }
-
-    if (writer()->needFakeUpdate())
-      writeFramebufferUpdate();
+void VNCSConnectionST::screenLayoutChangeOrClose(rdr::U16 reason)
+{
+  try {
+    screenLayoutChange(reason);
   } catch(rdr::Exception &e) {
     close(e.str());
   }
@@ -221,7 +207,7 @@ void VNCSConnectionST::setColourMapEntriesOrClose(int firstColour,int nColours)
   }
 }
 
-void VNCSConnectionST::bell()
+void VNCSConnectionST::bellOrClose()
 {
   try {
     if (state() == RFBSTATE_NORMAL) writer()->writeBell();
@@ -230,7 +216,7 @@ void VNCSConnectionST::bell()
   }
 }
 
-void VNCSConnectionST::serverCutText(const char *str, int len)
+void VNCSConnectionST::serverCutTextOrClose(const char *str, int len)
 {
   try {
     if (!(accessRights & AccessCutText)) return;
@@ -243,15 +229,10 @@ void VNCSConnectionST::serverCutText(const char *str, int len)
 }
 
 
-void VNCSConnectionST::setDesktopName(const char *name)
+void VNCSConnectionST::setDesktopNameOrClose(const char *name)
 {
-  cp.setName(name);
   try {
-    if (state() == RFBSTATE_NORMAL) {
-      if (!writer()->writeSetDesktopName()) {
-	fprintf(stderr, "Client does not support desktop rename\n");
-      }
-    }
+    setDesktopName(name);
   } catch(rdr::Exception& e) {
     close(e.str());
   }
@@ -547,8 +528,7 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   if (!layout.validate(fb_width, fb_height)) {
     writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,
                                        fb_width, fb_height, layout);
-    if (writer()->needFakeUpdate())
-      writeFramebufferUpdate();
+    writeFramebufferUpdate();
     return;
   }
 
@@ -557,18 +537,19 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   // protocol-wise, but unnecessary.
   result = server->desktop->setScreenLayout(fb_width, fb_height, layout);
 
-  // Always send back a reply to the requesting client
   writer()->writeExtendedDesktopSize(reasonClient, result,
                                      fb_width, fb_height, layout);
-  if (writer()->needFakeUpdate())
-    writeFramebufferUpdate();
 
-  // But only notify other clients on success
+  // Only notify other clients on success
   if (result == resultSuccess) {
     if (server->screenLayout != layout)
         throw Exception("Desktop configured a different screen layout than requested");
     server->notifyScreenLayoutChange(this);
   }
+
+  // but always send back a reply to the requesting client
+  // (do this last as it might throw an exception on socket errors)
+  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::setInitialColourMap()
@@ -627,8 +608,12 @@ void VNCSConnectionST::writeSetCursorCallback()
 
 bool VNCSConnectionST::handleTimeout(Timer* t)
 {
-  if (t == &updateTimer)
-    writeFramebufferUpdateOrClose();
+  try {
+    if (t == &updateTimer)
+      writeFramebufferUpdate();
+  } catch (rdr::Exception& e) {
+    close(e.str());
+  }
 
   return false;
 }
@@ -646,6 +631,12 @@ bool VNCSConnectionST::isCongested()
 void VNCSConnectionST::writeFramebufferUpdate()
 {
   updateTimer.stop();
+
+  // We try to aggregate responses, so don't send out anything whilst we
+  // still have incoming messages. processMessages() will give us another
+  // chance to run once things are idle.
+  if (inProcessMessages)
+    return;
 
   if (state() != RFBSTATE_NORMAL || requested.is_empty())
     return;
@@ -788,15 +779,33 @@ void VNCSConnectionST::writeRenderedCursorRect()
   drawRenderedCursor = false;
 }
 
+void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
+{
+  if (!authenticated())
+    return;
+
+  cp.screenLayout = server->screenLayout;
+
+  if (state() != RFBSTATE_NORMAL)
+    return;
+
+  writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
+                                     cp.screenLayout);
+  writeFramebufferUpdate();
+}
+
 void VNCSConnectionST::setColourMapEntries(int firstColour, int nColours)
 {
-  if (!readyForSetColourMapEntries) return;
-  if (server->pb->getPF().trueColour) return;
+  if (!readyForSetColourMapEntries)
+    return;
+  if (server->pb->getPF().trueColour)
+    return;
 
   image_getter.setColourMapEntries(firstColour, nColours);
 
   if (cp.pf().trueColour) {
     updates.add_changed(server->pb->getRect());
+    writeFramebufferUpdate();
   }
 }
 
@@ -807,10 +816,28 @@ void VNCSConnectionST::setColourMapEntries(int firstColour, int nColours)
 
 void VNCSConnectionST::setCursor()
 {
-  if (state() != RFBSTATE_NORMAL || !cp.supportsLocalCursor) return;
+  if (state() != RFBSTATE_NORMAL)
+    return;
+  if (!cp.supportsLocalCursor)
+    return;
+
   writer()->cursorChange(this);
-  if (writer()->needFakeUpdate())
-    writeFramebufferUpdate();
+  writeFramebufferUpdate();
+}
+
+void VNCSConnectionST::setDesktopName(const char *name)
+{
+  cp.setName(name);
+
+  if (state() != RFBSTATE_NORMAL)
+    return;
+
+  if (!writer()->writeSetDesktopName()) {
+    fprintf(stderr, "Client does not support desktop rename\n");
+    return;
+  }
+
+  writeFramebufferUpdate();
 }
 
 void VNCSConnectionST::setSocketTimeouts()

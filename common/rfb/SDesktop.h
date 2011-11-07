@@ -64,13 +64,6 @@ namespace rfb {
 
     virtual void stop() {}
 
-    // framebufferUpdateRequest() is called to let the desktop know that at
-    // least one client has become ready for an update.  Desktops can check
-    // whether there are clients ready at any time by calling the VNCServer's
-    // clientsReadyForUpdate() method.
-
-    virtual void framebufferUpdateRequest() {}
-
     // getFbSize() returns the current dimensions of the framebuffer.
     // This can be called even while the SDesktop is not start()ed.
 

@@ -68,7 +68,6 @@ namespace rfb {
       virtual void pointerEvent(const Point& pos, int buttonmask);
       virtual void keyEvent(rdr::U32 key, bool down);
       virtual void clientCutText(const char* str, int len);
-      virtual void framebufferUpdateRequest();
       virtual Point getFbSize();
 
       // -=- Clipboard

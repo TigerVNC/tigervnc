@@ -330,7 +330,7 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
     ci_next = ci; ci_next++;
-    (*ci)->screenLayoutChange(reasonServer);
+    (*ci)->screenLayoutChangeOrClose(reasonServer);
   }
 }
 
@@ -348,7 +348,7 @@ void VNCServerST::bell()
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
-    (*ci)->bell();
+    (*ci)->bellOrClose();
   }
 }
 
@@ -357,7 +357,7 @@ void VNCServerST::serverCutText(const char* str, int len)
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
-    (*ci)->serverCutText(str, len);
+    (*ci)->serverCutTextOrClose(str, len);
   }
 }
 
@@ -367,7 +367,7 @@ void VNCServerST::setName(const char* name_)
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
-    (*ci)->setDesktopName(name_);
+    (*ci)->setDesktopNameOrClose(name_);
   }
 }
 
@@ -383,16 +383,6 @@ void VNCServerST::add_copied(const Region& dest, const Point& delta)
   if (comparer != 0) {
     comparer->add_copied(dest, delta);
   }
-}
-
-bool VNCServerST::clientsReadyForUpdate()
-{
-  std::list<VNCSConnectionST*>::iterator ci;
-  for (ci = clients.begin(); ci != clients.end(); ci++) {
-    if ((*ci)->readyForUpdate())
-      return true;
-  }
-  return false;
 }
 
 void VNCServerST::tryUpdate()
@@ -613,6 +603,6 @@ void VNCServerST::notifyScreenLayoutChange(VNCSConnectionST* requester)
     ci_next = ci; ci_next++;
     if ((*ci) == requester)
       continue;
-    (*ci)->screenLayoutChange(reasonOtherClient);
+    (*ci)->screenLayoutChangeOrClose(reasonOtherClient);
   }
 }

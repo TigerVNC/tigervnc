@@ -58,10 +58,6 @@ namespace rfb {
     // bell() tells the server that it should make all clients make a bell sound.
     virtual void bell() = 0;
 
-    // clientsReadyForUpdate() returns true if there is at least one client
-    // waiting for an update, false if no clients are ready.
-    virtual bool clientsReadyForUpdate() = 0;
-
     // - Close all currently-connected clients, by calling
     //   their close() method with the supplied reason.
     virtual void closeClients(const char* reason) = 0;
