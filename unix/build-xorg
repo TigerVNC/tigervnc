@@ -123,6 +123,18 @@ build ()
     # Build Xorg
     echo "*** Building Xorg ***"
     pushd xorg
+
+    # build freetype
+    echo "*** Building freetype ***"
+    pushd freetype-*
+    ./configure ${CFGHOST} --prefix=${PREFIX} --enable-static --disable-shared
+    if [ $? -ne 0 ]; then
+	echo "Failed to configure freetype."
+	exit
+    fi
+    $MAKE install
+    popd
+
     for module in ${modules}; do
         extraoptions=""
         cd ${module}-*
@@ -138,6 +150,9 @@ build ()
         if [ "${module}" = "pixman" ]; then
             extraoptions="${extraoptions} --disable-gtk"
         fi
+	if [ "${module}" = "libXfont"; then
+	    extraoptions="${extraoptions} --with-freetype-config=${PREFIX}/bin/freetype-config"
+	fi
         OLD_CFLAGS=${CFLAGS}
         OLD_CXXFLAGS=${CXXFLAGS}
         CFLAGS=${CFLAGS}' -fPIC'
@@ -167,17 +182,6 @@ build ()
 	exit
     fi
     $MAKE
-    $MAKE install
-    popd
-
-    # build freetype
-    echo "*** Building freetype ***"
-    pushd freetype-*
-    ./configure ${CFGHOST} --prefix=${PREFIX} --enable-static --disable-shared
-    if [ $? -ne 0 ]; then
-	echo "Failed to configure freetype."
-	exit
-    fi
     $MAKE install
     popd
 
