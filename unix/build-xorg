@@ -189,7 +189,7 @@ build ()
     echo "*** Building xserver ***"
     pushd xorg/xserver
     autoreconf -fiv
-    XORGCFGFLAGS="--disable-dri --disable-composite --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev --with-sha1=libgcrypt SHA1_LIB=-lcrypto --disable-shared --enable-static ${XORGCFGFLAGS}"
+    XORGCFGFLAGS="--disable-dri --enable-dri2 --disable-composite --disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev --with-sha1=libgcrypt SHA1_LIB=-lcrypto --disable-shared --enable-static ${XORGCFGFLAGS}"
     ./configure ${CFGHOST} --prefix=${PREFIX} ${XORGCFGFLAGS}
     if [ $? -ne 0 ]; then
 	echo "Failed to configure X server."
