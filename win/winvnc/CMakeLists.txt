@@ -10,6 +10,11 @@ add_library(wm_hooks SHARED
   ../wm_hooks/wm_hooks.def
   ../wm_hooks/wm_hooks.rc)
 
+# We want the DLL to be named wm_hooks.dll rather than libwm_hooks.dll
+if(MINGW)
+  set_target_properties(wm_hooks PROPERTIES PREFIX "")
+endif()
+
 set(VNCVIEWER_JAR_PATH ${CMAKE_BINARY_DIR}/java/VncViewer.jar)
 set(INDEX_VNC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/index.vnc)
 
