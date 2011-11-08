@@ -121,12 +121,8 @@ public:
 
 private:
   void setColourMapEntries(int firstColour, int nColours);
-  static CARD32 deferredUpdateTimerCallback(OsTimerPtr timer, CARD32 now,
-                                            pointer arg);
-  void deferUpdate();
   ScreenPtr pScreen;
   InputDevice *inputDevice;
-  OsTimerPtr deferredUpdateTimer;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
   network::TcpListener* listener;

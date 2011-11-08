@@ -123,9 +123,7 @@ void PollingManager::poll(VNCServer *server)
   debugBeforePoll();
 #endif
 
-  // Perform polling and try update clients if changes were detected.
-  if (pollScreen(server))
-    server->tryUpdate();
+  pollScreen(server);
 
 #ifdef DEBUG
   debugAfterPoll();

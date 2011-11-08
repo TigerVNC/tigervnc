@@ -64,12 +64,6 @@ using namespace network;
 
 static LogWriter vlog("XserverDesktop");
 
-rfb::IntParameter deferUpdateTime("DeferUpdate",
-                                  "Time in milliseconds to defer updates",1);
-
-rfb::BoolParameter alwaysSetDeferUpdateTimer("AlwaysSetDeferUpdateTimer",
-                  "Always reset the defer update timer on every change",false);
-
 IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "Number of seconds to show the Accept Connection dialog before "
                                  "rejecting the connection",
@@ -145,7 +139,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
                                network::TcpListener* httpListener_,
                                const char* name, const rfb::PixelFormat &pf,
                                void* fbptr, int stride)
-  : pScreen(pScreen_), deferredUpdateTimer(0),
+  : pScreen(pScreen_),
     server(0), httpServer(0),
     listener(listener_), httpListener(httpListener_),
     cmap(0), deferredUpdateTimerSet(false),
@@ -171,7 +165,6 @@ XserverDesktop::~XserverDesktop()
 {
   if (!directFbptr)
     delete [] data;
-  TimerFree(deferredUpdateTimer);
   delete inputDevice;
   delete httpServer;
   delete server;
@@ -441,38 +434,10 @@ void XserverDesktop::setCursor(CursorPtr cursor)
     server->setCursor(cursor->bits->width, cursor->bits->height,
                       Point(cursor->bits->xhot, cursor->bits->yhot),
                       cursorData, cursorMask);
-    server->tryUpdate();
     delete [] cursorData;
     delete [] cursorMask;
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::setCursor: %s",e.str());
-  }
-}
-
-CARD32 XserverDesktop::deferredUpdateTimerCallback(OsTimerPtr timer,
-                                                   CARD32 now, pointer arg)
-{
-  XserverDesktop* desktop = (XserverDesktop*)arg;
-  desktop->deferredUpdateTimerSet = false;
-  try {
-    desktop->server->tryUpdate();
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::deferredUpdateTimerCallback: %s",e.str());
-  }
-  return 0;
-}
-
-void XserverDesktop::deferUpdate()
-{
-  if (deferUpdateTime != 0) {
-    if (!deferredUpdateTimerSet || alwaysSetDeferUpdateTimer) {
-      deferredUpdateTimerSet = true;
-      deferredUpdateTimer = TimerSet(deferredUpdateTimer, 0,
-                                     deferUpdateTime,
-                                     deferredUpdateTimerCallback, this);
-    }
-  } else {
-    server->tryUpdate();
   }
 }
 
@@ -486,7 +451,6 @@ void XserverDesktop::add_changed(RegionPtr reg)
                                      REGION_NUM_RECTS(reg),
                                      (ShortRect*)REGION_RECTS(reg));
     server->add_changed(rfbReg);
-    deferUpdate();
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::add_changed: %s",e.str());
   }
@@ -502,7 +466,6 @@ void XserverDesktop::add_copied(RegionPtr dst, int dx, int dy)
                                      REGION_NUM_RECTS(dst),
                                      (ShortRect*)REGION_RECTS(dst));
     server->add_copied(rfbReg, rfb::Point(dx, dy));
-    deferUpdate();
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::add_copied: %s",e.str());
   }

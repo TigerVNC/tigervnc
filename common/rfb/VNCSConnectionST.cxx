@@ -668,7 +668,11 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   updates.enable_copyrect(cp.useCopyRect);
 
-  server->checkUpdate();
+  // Fetch updates from server object, and see if we are allowed to send
+  // anything right now (the framebuffer might have changed in ways we
+  // haven't yet been informed of).
+  if (!server->checkUpdate())
+    return;
 
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its

@@ -378,8 +378,6 @@ SDisplay::processEvent(HANDLE event) {
 
     // - Only process updates if the server is ready
     if (server) {
-      bool try_update = false;
-
       // - Check that the SDesktop doesn't need restarting
       if (isRestartRequired()) {
         restartCore();
@@ -411,16 +409,12 @@ SDisplay::processEvent(HANDLE event) {
         // NB: First translate from Screen coordinates to Desktop
         Point desktopPos = info.position.translate(screenRect.tl.negate());
         server->setCursorPos(desktopPos);
-        try_update = true;
 
         old_cursor = info;
       }
 
       // Flush any changes to the server
-      try_update = flushChangeTracker() || try_update;
-      if (try_update) {
-        server->tryUpdate();
-      }
+      flushChangeTracker();
     }
     return;
   }

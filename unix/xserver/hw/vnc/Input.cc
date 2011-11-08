@@ -207,7 +207,6 @@ void InputDevice::PointerSync(void)
 
 	oldCursorPos = cursorPos;
 	server->setCursorPos(cursorPos);
-	server->tryUpdate();
 }
 
 static int pointerProc(DeviceIntPtr pDevice, int onoff)

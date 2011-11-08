@@ -64,6 +64,12 @@ using namespace rfb;
 static LogWriter slog("VNCServerST");
 LogWriter VNCServerST::connectionsLog("Connections");
 
+rfb::IntParameter deferUpdateTime("DeferUpdate",
+                                  "Time in milliseconds to defer updates",10);
+
+rfb::BoolParameter alwaysSetDeferUpdateTimer("AlwaysSetDeferUpdateTimer",
+                  "Always reset the defer update timer on every change",false);
+
 //
 // -=- VNCServerST Implementation
 //
@@ -76,7 +82,8 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     renderedCursorInvalid(false),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
     useEconomicTranslate(false),
-    lastConnectionTime(0), disableclients(false)
+    lastConnectionTime(0), disableclients(false),
+    deferTimer(this), deferPending(false)
 {
   lastUserInputTime = lastDisconnectTime = time(0);
   slog.debug("creating single-threaded server %s", name.buf);
@@ -373,25 +380,22 @@ void VNCServerST::setName(const char* name_)
 
 void VNCServerST::add_changed(const Region& region)
 {
-  if (comparer != 0) {
-    comparer->add_changed(region);
-  }
+  if (comparer == NULL)
+    return;
+
+  comparer->add_changed(region);
+  startDefer();
+  tryUpdate();
 }
 
 void VNCServerST::add_copied(const Region& dest, const Point& delta)
 {
-  if (comparer != 0) {
-    comparer->add_copied(dest, delta);
-  }
-}
+  if (comparer == NULL)
+    return;
 
-void VNCServerST::tryUpdate()
-{
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
-    (*ci)->writeFramebufferUpdateOrClose();
-  }
+  comparer->add_copied(dest, delta);
+  startDefer();
+  tryUpdate();
 }
 
 void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
@@ -471,6 +475,15 @@ SConnection* VNCServerST::getSConnection(network::Socket* sock) {
   return 0;
 }
 
+bool VNCServerST::handleTimeout(Timer* t)
+{
+  if (t != &deferTimer)
+    return false;
+
+  tryUpdate();
+
+  return false;
+}
 
 // -=- Internal methods
 
@@ -503,6 +516,44 @@ inline bool VNCServerST::needRenderedCursor()
   return false;
 }
 
+inline void VNCServerST::startDefer()
+{
+  if (deferUpdateTime == 0)
+    return;
+
+  if (deferPending && !alwaysSetDeferUpdateTimer)
+    return;
+
+  gettimeofday(&deferStart, NULL);
+  deferTimer.start(deferUpdateTime);
+
+  deferPending = true;
+}
+
+inline bool VNCServerST::checkDefer()
+{
+  if (!deferPending)
+    return true;
+
+  if (msSince(&deferStart) >= deferUpdateTime)
+    return true;
+
+  return false;
+}
+
+void VNCServerST::tryUpdate()
+{
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+
+  if (!checkDefer())
+    return;
+
+  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
+    ci_next = ci; ci_next++;
+    (*ci)->writeFramebufferUpdateOrClose();
+  }
+}
+
 // checkUpdate() is called just before sending an update.  It checks to see
 // what updates are pending and propagates them to the update tracker for each
 // client.  It uses the ComparingUpdateTracker's compare() method to filter out
@@ -510,7 +561,7 @@ inline bool VNCServerST::needRenderedCursor()
 // state of the (server-side) rendered cursor, if necessary rendering it again
 // with the correct background.
 
-void VNCServerST::checkUpdate()
+bool VNCServerST::checkUpdate()
 {
   UpdateInfo ui;
   comparer->getUpdateInfo(&ui, pb->getRect());
@@ -518,7 +569,13 @@ void VNCServerST::checkUpdate()
   bool renderCursor = needRenderedCursor();
 
   if (ui.is_empty() && !(renderCursor && renderedCursorInvalid))
-    return;
+    return true;
+
+  // Block client from updating if we are currently deferring updates
+  if (!checkDefer())
+    return false;
+
+  deferPending = false;
 
   Region toCheck = ui.changed.union_(ui.copied);
 
@@ -561,6 +618,8 @@ void VNCServerST::checkUpdate()
   }
 
   comparer->clear();
+
+  return true;
 }
 
 void VNCServerST::getConnInfo(ListConnInfo * listConn)

@@ -62,10 +62,6 @@ namespace rfb {
     //   their close() method with the supplied reason.
     virtual void closeClients(const char* reason) = 0;
 
-    // tryUpdate() causes the server to attempt to send updates to any waiting
-    // clients.
-    virtual void tryUpdate() = 0;
-
     // setCursor() tells the server that the cursor has changed.  The
     // cursorData argument contains width*height pixel values in the pixel
     // buffer's format.  The mask argument is a bitmask with a 1-bit meaning

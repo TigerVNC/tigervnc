@@ -23,6 +23,8 @@
 #ifndef __RFB_VNCSERVERST_H__
 #define __RFB_VNCSERVERST_H__
 
+#include <sys/time.h>
+
 #include <list>
 
 #include <rfb/SDesktop.h>
@@ -31,6 +33,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
+#include <rfb/Timer.h>
 #include <network/Socket.h>
 #include <rfb/ListConnInfo.h>
 #include <rfb/ScreenSet.h>
@@ -42,7 +45,9 @@ namespace rfb {
   class PixelBuffer;
   class KeyRemapper;
 
-  class VNCServerST : public VNCServer, public network::SocketServer {
+  class VNCServerST : public VNCServer,
+                      public Timer::Callback,
+                      public network::SocketServer {
   public:
     // -=- Constructors
 
@@ -85,7 +90,6 @@ namespace rfb {
     virtual void serverCutText(const char* str, int len);
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
-    virtual void tryUpdate();
     virtual void setCursor(int width, int height, const Point& hotspot,
                            void* cursorData, void* mask);
     virtual void setCursorPos(const Point& p);
@@ -192,6 +196,11 @@ namespace rfb {
 
     friend class VNCSConnectionST;
 
+    // Timer callbacks
+    virtual bool handleTimeout(Timer* t);
+
+    // - Internal methods
+
     void startDesktop();
 
     static LogWriter connectionsLog;
@@ -222,7 +231,10 @@ namespace rfb {
     int authClientCount();
 
     bool needRenderedCursor();
-    void checkUpdate();
+    void startDefer();
+    bool checkDefer();
+    void tryUpdate();
+    bool checkUpdate();
 
     void notifyScreenLayoutChange(VNCSConnectionST *requester);
 
@@ -235,6 +247,10 @@ namespace rfb {
     time_t lastConnectionTime;
 
     bool disableclients;
+
+    Timer deferTimer;
+    bool deferPending;
+    struct timeval deferStart;
   };
 
 };
