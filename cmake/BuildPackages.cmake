@@ -29,7 +29,7 @@ endif()
 configure_file(release/tigervnc.iss.in release/tigervnc.iss)
 
 add_custom_target(installer
-  iscc -o. ${INST_DEFS} -DBUILD_DIR= -F${INST_NAME} release/tigervnc.iss
+  iscc -o. ${INST_DEFS} -F${INST_NAME} release/tigervnc.iss
   DEPENDS ${INST_DEPS}
   SOURCES release/tigervnc.iss)
 

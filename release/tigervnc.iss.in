@@ -20,11 +20,11 @@ LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.txt
 
 [Files]
 #ifdef BUILD_WINVNC
-Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\{#BUILD_DIR}winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
-Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\{#BUILD_DIR}wm_hooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
-Source: "@CMAKE_CURRENT_BINARY_DIR@\win\vncconfig\{#BUILD_DIR}vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\wm_hooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_CURRENT_BINARY_DIR@\win\vncconfig\vncconfig.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 #endif
-Source: "@CMAKE_CURRENT_BINARY_DIR@\vncviewer\{#BUILD_DIR}vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
+Source: "@CMAKE_CURRENT_BINARY_DIR@\vncviewer\vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 Source: "@CMAKE_SOURCE_DIR@\README.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 
