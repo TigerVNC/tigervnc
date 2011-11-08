@@ -17,6 +17,7 @@
  * USA.
  */
 
+#include <network/TcpSocket.h>
 #include <rfb/VNCSConnectionST.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -114,9 +115,16 @@ void VNCSConnectionST::processMessages()
 
     inProcessMessages = true;
 
+    // Get the underlying TCP layer to build large packets if we send
+    // multiple small responses.
+    network::TcpSocket::cork(sock->getFd(), true);
+
     while (getInStream()->checkNoWait(1)) {
       processMsg();
     }
+
+    // Flush out everything in case we go idle after this.
+    network::TcpSocket::cork(sock->getFd(), false);
 
     inProcessMessages = false;
 
