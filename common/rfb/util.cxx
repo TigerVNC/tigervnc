@@ -34,6 +34,8 @@
 #include <config.h>
 #endif
 
+#include <sys/time.h>
+
 #include <rfb/util.h>
 
 // Provide strcasecmp() and/or strncasecmp() if absent on this system.
@@ -185,4 +187,18 @@ namespace rfb {
     dest[src ? destlen-1 : 0] = 0;
   }
 
+  unsigned msSince(const struct timeval *then)
+  {
+    struct timeval now;
+    unsigned diff;
+
+    gettimeofday(&now, NULL);
+
+    diff = (now.tv_sec - then->tv_sec) * 1000;
+
+    diff += now.tv_usec / 1000;
+    diff -= then->tv_usec / 1000;
+
+    return diff;
+  }
 };

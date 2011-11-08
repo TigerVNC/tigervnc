@@ -30,6 +30,8 @@
 #include <limits.h>
 #include <string.h>
 
+struct timeval;
+
 namespace rfb {
 
   // -=- Class to handle cleanup of arrays of characters
@@ -85,6 +87,9 @@ namespace rfb {
   inline int secsToMillis(int secs) {
     return (secs < 0 || secs > (INT_MAX/1000) ? INT_MAX : secs * 1000);
   }
+
+  // Returns time elapsed since given moment in milliseconds.
+  unsigned msSince(const struct timeval *then);
 }
 
 // Some platforms (e.g. Windows) include max() and min() macros in their
