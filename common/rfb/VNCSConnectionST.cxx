@@ -285,7 +285,8 @@ int VNCSConnectionST::checkIdleTimeout()
 void VNCSConnectionST::renderedCursorChange()
 {
   if (state() != RFBSTATE_NORMAL) return;
-  removeRenderedCursor = true;
+  if (!renderedCursorRect.is_empty())
+    removeRenderedCursor = true;
   if (needRenderedCursor())
     drawRenderedCursor = true;
 }
@@ -565,7 +566,8 @@ void VNCSConnectionST::setInitialColourMap()
 void VNCSConnectionST::supportsLocalCursor()
 {
   if (cp.supportsLocalCursor || cp.supportsLocalXCursor) {
-    removeRenderedCursor = true;
+    if (!renderedCursorRect.is_empty())
+      removeRenderedCursor = true;
     drawRenderedCursor = false;
     setCursor();
   }
