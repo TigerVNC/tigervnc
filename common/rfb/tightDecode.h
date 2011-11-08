@@ -138,11 +138,9 @@ void TIGHT_DECODE (const Rect& r)
   int dataSize = r.height() * rowSize;
   int streamId = -1;
   rdr::InStream *input;
-  bool useZlib = false;
   if (dataSize < TIGHT_MIN_TO_COMPRESS) {
     input = is;
   } else {
-    useZlib = true;
     int length = is->readCompactLength();
     streamId = comp_ctl & 0x03;
     zis[streamId].setUnderlying(is, length);
@@ -182,7 +180,7 @@ void TIGHT_DECODE (const Rect& r)
         while (h > 0) {
           serverpf.bufferFromRGB((rdr::U8*)ptr, srcPtr, w, NULL);
           ptr += stride;
-          srcPtr += w * sizeof(PIXEL_T);
+          srcPtr += w * 3;
           h--;
         }
       } else {
