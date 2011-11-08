@@ -19,6 +19,9 @@ set(INST_DEPS vncviewer)
 
 if(BUILD_WINVNC)
   set(INST_DEFS ${INST_DEFS} -DBUILD_WINVNC)
+  if(BUILD_JAVA)
+    set(INST_DEPS ${INST_DEPS} java)
+  endif()
   set(INST_DEPS ${INST_DEPS} winvnc4 wm_hooks vncconfig)
 endif()
 
