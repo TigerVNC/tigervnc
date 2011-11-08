@@ -14,15 +14,8 @@ set(CLASSPATH com/tigervnc/vncviewer)
 set(JAVA_SRCDIR ${CMAKE_CURRENT_SOURCE_DIR}/${CLASSPATH})
 set(JAVA_BINDIR ${CMAKE_CURRENT_BINARY_DIR}/${CLASSPATH})
 
-if(MSVC)
-  execute_process(COMMAND "${CMAKE_SOURCE_DIR}/cmake/getdate.bat" "javadate"
-    OUTPUT_VARIABLE JAVA_DATE)
-  execute_process(COMMAND "${CMAKE_SOURCE_DIR}/cmake/getdate.bat" "javatime"
-    OUTPUT_VARIABLE JAVA_TIME)
-else()
-  execute_process(COMMAND "date" "+%b %d %Y" OUTPUT_VARIABLE JAVA_DATE)
-  execute_process(COMMAND "date" "+%H:%M:%S" OUTPUT_VARIABLE JAVA_TIME)
-endif()
+execute_process(COMMAND "date" "+%b %d %Y" OUTPUT_VARIABLE JAVA_DATE)
+execute_process(COMMAND "date" "+%H:%M:%S" OUTPUT_VARIABLE JAVA_TIME)
 string(REGEX REPLACE "\n" "" JAVA_DATE ${JAVA_DATE})
 string(REGEX REPLACE "\n" "" JAVA_TIME ${JAVA_TIME})
 
@@ -40,18 +33,12 @@ set(JAVA_CLASSNAMES
   UserPrefs
   VncViewer)
 
-if(MSVC_IDE)
-  set(OBJDIR "${CMAKE_CURRENT_BINARY_DIR}/$(OutDir)")
-else()
-  set(OBJDIR ${CMAKE_CURRENT_BINARY_DIR})
-endif()
-
 set(JAVA_SOURCES "")
 set(JAVA_CLASSES_FULL "")
 foreach(class ${JAVA_CLASSNAMES})
   set(JAVA_SOURCES ${JAVA_SOURCES} ${JAVA_SRCDIR}/${class}.java)
   set(JAVA_CLASSES_FULL ${JAVA_CLASSES_FULL}
-    ${OBJDIR}/${CLASSPATH}/${class}.class)
+    ${CMAKE_CURRENT_BINARY_DIR}/${CLASSPATH}/${class}.class)
 endforeach()
 
 file(GLOB DEPEND_SOURCES
@@ -63,7 +50,8 @@ string(REGEX REPLACE " " ";" JAVACFLAGS "${JAVACFLAGS}")
 add_custom_command(OUTPUT ${JAVA_CLASSES_FULL}
   DEPENDS ${JAVA_SOURCES} ${DEPEND_SOURCES}
   COMMAND ${JAVA_COMPILE}
-  ARGS ${JAVACFLAGS} -cp ${CMAKE_CURRENT_SOURCE_DIR} -d ${OBJDIR} ${JAVA_SOURCES})
+  ARGS ${JAVACFLAGS} -cp ${CMAKE_CURRENT_SOURCE_DIR}
+    -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_SOURCES})
 
 configure_file(${CLASSPATH}/timestamp.in ${CLASSPATH}/timestamp)
 
@@ -99,8 +87,7 @@ add_custom_command(OUTPUT VncViewer.jar
   COMMAND ${CMAKE_COMMAND}
   ARGS -DJava_PATH=${Java_PATH}
     -DJAR_FILE=${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/SignJar.cmake
-  WORKING_DIRECTORY ${OBJDIR})
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/SignJar.cmake)
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)
 

@@ -55,30 +55,7 @@ Build Requirements (Unix)
 Build Requirements (Windows)
 ============================
 
--- Microsoft Visual C++ 2005 or later
-
-   If you don't already have Visual C++, then the easiest way to get it is by
-   installing the Windows SDK:
-
-   http://msdn.microsoft.com/en-us/windows/bb980924.aspx
-
-   The Windows SDK includes both 32-bit and 64-bit Visual C++ compilers and
-   everything necessary to build TigerVNC.
-
-   * For 32-bit builds, you can also use Microsoft Visual C++ Express
-     Edition.  Visual C++ Express Edition is a free download.
-   * If you intend to build TigerVNC from the command line, then add the
-     appropriate compiler and SDK directories to the INCLUDE, LIB, and PATH
-     environment variables.  This is generally accomplished by executing
-     vcvars32.bat or vcvars64.bat and SetEnv.cmd.  vcvars32.bat and
-     vcvars64.bat are part of Visual C++ and are located in the same directory
-     as the compiler.  SetEnv.cmd is part of the Windows SDK.  You can pass
-     optional arguments to SetEnv.cmd to specify a 32-bit or 64-bit build
-     environment.
-
-... OR ...
-
--- MinGW
+-- MinGW or MinGW-w64
 
 -- Inno Setup (needed to build the TigerVNC installer)
    Inno Setup can be downloaded from http://www.jrsoftware.org/isinfo.php.
@@ -220,49 +197,24 @@ will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
 
 
-Building the Windows TigerVNC Viewer/Server with Visual C++ (Command Line)
---------------------------------------------------------------------------
-
-  cd {build_directory}
-  cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release [additional CMake flags] {source_directory}
-  nmake
-
-This will build either a 32-bit or a 64-bit version of TigerVNC, depending
-on which version of cl.exe is in the PATH.
-
-
-Building the Windows TigerVNC Viewer/Server with Visual C++ (IDE)
------------------------------------------------------------------
-
-Choose the appropriate CMake generator option for your version of Visual Studio
-(run "cmake" with no arguments for a list of available generators.)  For
-instance:
-
-  cd {build_directory}
-  cmake -G "Visual Studio 9 2008" [additional CMake flags] {source_directory}
-
-You can then open ALL_BUILD.vcproj in Visual Studio and build one of the
-configurations in that project ("Debug", "Release", etc.) to generate a full
-build of TigerVNC.
-
-
 Building the Windows TigerVNC Viewer with MinGW
 -----------------------------------------------
+
+If building the Windows version of TigerVNC on a Windows build system, use
+the following procedure.
 
   cd {build_directory}
   cmake -G "MSYS Makefiles" [additional CMake flags] {source_directory}
   make
 
-This will generate only vncviewer.  Currently, Visual C++ must be used to build
-WinVNC.
+If cross-compiling on a Unix/Linux system, then see the "Build Recipes" section
+below.
 
 
 Debug Build
 -----------
 
-Add "-DCMAKE_BUILD_TYPE=Debug" to the CMake command line.  Or, if building with
-NMake, remove "-DCMAKE_BUILD_TYPE=Release" (Debug builds are the default with
-NMake.)
+Add "-DCMAKE_BUILD_TYPE=Debug" to the CMake command line.
 
 
 Self-Contained GCC Build
@@ -292,9 +244,9 @@ thus the TigerVNC binaries are not portable.
 
 To build a fully portable, cross-compatible version of TigerVNC with
 high-performance JPEG support, it is necessary to link against the
-libjpeg-turbo static library.  This is also necessary when building TigerVNC on
-Windows or OS X.  To link against the libjpeg-turbo static library, first
-install the libjpeg-turbo SDK, which is available from
+libjpeg-turbo static library.  This is also necessary when building the
+Windows or OS X versions of TigerVNC.  To link against the libjpeg-turbo static
+library, first install the libjpeg-turbo SDK, which is available from
 https://sourceforge.net/projects/libjpeg-turbo/files/.  Next, use the
 JPEG_INCLUDE_DIR and JPEG_LIBRARY CMake variables to specify the location of
 libjpeg-turbo.  For example, adding
@@ -308,15 +260,7 @@ location for the libjpeg-turbo SDK on Unix and Linux platforms.)  Replace "lib"
 with "lib32" or "lib64" to use the 32-bit or 64-bit version of the library on
 64-bit Linux platforms.
 
-Adding
-
-  -DJPEG_INCLUDE_DIR=c:\libjpeg-turbo[64]\include \
-    -DJPEG_LIBRARY=c:\libjpeg-turbo[64]\lib\jpeg-static.lib
-
-to the CMake command line will link TigerVNC against the static version of
-libjpeg-turbo provided by the libjpeg-turbo SDK for Visual C++.
-
-Adding
+When building on Windows systems, adding
 
   -DJPEG_INCLUDE_DIR=/c/libjpeg-turbo-gcc[64]/include \
     -DJPEG_LIBRARY=/c/libjpeg-turbo-gcc[64]/lib/libjpeg.a
@@ -366,11 +310,9 @@ tarball.
 Building Native Language Support (NLS)
 ======================================
 
-NLS requires gettext, which is supplied with most Linux distributions but not
-with most other operating systems.  Building gettext from source is
-straightforward on Mac and other Unix variants, but on Windows it requires
-MinGW.  Thus, it is not possible to enable NLS when building TigerVNC with
-Visual C++.
+NLS requires gettext, which is supplied with most Linux distributions and
+with MinGW for Windows and which can easily be built from source on OS X and
+other Unix variants.
 
 You can override the ICONV_LIBRARIES and LIBINTL_LIBRARY CMake variables to
 specify the locations of libiconv and libintl, respectively.  For instance,
@@ -470,34 +412,6 @@ Adding
 to the CMake command line will cause TigerVNC to be statically linked against
 GnuTLS libraries that are installed under c:\gnutls.
 
-Note that the use of MinGW means that only the TigerVNC viewer can be built,
-not the server.
-
-
-Visual C++
-----------
-
-There is generally no sane way to build GnuTLS and its dependencies using
-Visual C++.  Thus, it is necessary to either build the libraries with MinGW (or
-download 32-bit versions of these from the link above), generate Visual C++
-import libraries from the DLLs, then link TigerVNC against the Visual C++
-import libraries.
-
-In the instructions below, {gnutls_path} indicates the path under which GnuTLS
-is installed (Example: c:\Program Files\GnuTLS-2.10.1).
-
-To generate Visual C++ import libraries:
-
-cd {gnutls_path}\lib
-lib /def:..\bin\libgnutls-{version}.def /out:libgnutls.lib
-
-Now, you can add the following arguments to the CMake command line:
-
-  -DGNUTLS_INCLUDE_DIR={gnutls_path}\include \
-    -DGNUTLS_LIBRARY={gnutls_path}\lib\libgnutls.lib
-
-to build TigerVNC against the GnuTLS DLLs installed under {gnutls_path}.
-
 
 ===================
 Installing TigerVNC
@@ -508,9 +422,8 @@ choosing.  To do this, add:
 
   -DCMAKE_INSTALL_PREFIX={install_directory}
 
-to the CMake command line.  Then, you can run 'make install' or 'nmake install'
-(or build the "install" target in the Visual Studio IDE) to build and install
-it.
+to the CMake command line.  Then, you can run 'make install' to build and
+install it.
 
 If you don't specify CMAKE_INSTALL_PREFIX, then the default is
 c:\Program Files\TigerVNC on Windows and /usr/local on Unix.
@@ -555,27 +468,10 @@ make udmg
 Windows
 -------
 
-If using NMake:
+make installer
 
-  cd {build_directory}
-  nmake installer
-
-If using MinGW:
-
-  cd {build_directory}
-  make installer
-
-If using the Visual Studio IDE, build the "installer" project.
-
-The installer package (TigerVNC[64].exe) will be located under
-{build_directory}.  If building using the Visual Studio IDE, then the installer
-package will be located in a subdirectory with the same name as the
-configuration you built (such as {build_directory}\Debug\ or
-{build_directory}\Release\).
-
-NOTE:  If TigerVNC is built with TLS support, then the build system will
-attempt to package the GnuTLS DLLs into the Windows installer.  It looks for
-these DLLs in a directory called "bin" one level up from GNUTLS_INCLUDE_DIR.
+  Create a Windows installer using Inno Setup.  The installer package
+  (TigerVNC[64].exe) will be located under {build_directory}.
 
 
 =============

@@ -1,19 +1,12 @@
 include_directories(${CMAKE_BINARY_DIR}/win ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Disable auto-generated manifests, since we have our own
-if(MSVC)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
-endif()
-
 add_library(wm_hooks SHARED
   ../wm_hooks/wm_hooks.cxx
   ../wm_hooks/wm_hooks.def
   ../wm_hooks/wm_hooks.rc)
 
 # We want the DLL to be named wm_hooks.dll rather than libwm_hooks.dll
-if(MINGW)
-  set_target_properties(wm_hooks PROPERTIES PREFIX "")
-endif()
+set_target_properties(wm_hooks PROPERTIES PREFIX "")
 
 set(VNCVIEWER_JAR_PATH ${CMAKE_BINARY_DIR}/java/VncViewer.jar)
 set(INDEX_VNC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/index.vnc)

@@ -27,12 +27,6 @@ Source: "@CMAKE_CURRENT_BINARY_DIR@\win\vncconfig\{#BUILD_DIR}vncconfig.exe"; De
 Source: "@CMAKE_CURRENT_BINARY_DIR@\vncviewer\{#BUILD_DIR}vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
 Source: "@CMAKE_SOURCE_DIR@\README.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
-#ifdef HAVE_GNUTLS
-Source: "@GNUTLS_INCLUDE_DIRS@\..\bin\libgnutls-*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "@GNUTLS_INCLUDE_DIRS@\..\bin\libgcrypt-*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "@GNUTLS_INCLUDE_DIRS@\..\bin\libtasn1-*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "@GNUTLS_INCLUDE_DIRS@\..\bin\libgpg-error-*.dll"; DestDir: "{app}"; Flags: ignoreversion
-#endif
 
 
 [Icons]

@@ -28,16 +28,12 @@ add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")
 add_definitions(-DPACKAGE_VERSION="${VERSION}")
 add_definitions(-DLOCALEDIR="${CMAKE_INSTALL_PREFIX}/share/locale")
 
-# Try to encode today's date into the build id. We assume that MSVC
-# means we need to use a native Windows method, otherwise we assume
-# some kind of Unix system. The id will be empty if things fail.
-set(BUILD "")
 if(MSVC)
-  execute_process(COMMAND "${CMAKE_SOURCE_DIR}/cmake/getdate.bat"
-    OUTPUT_VARIABLE BUILD)
-else()
-  execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
+  message(FATAL "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
 endif()
+
+set(BUILD "")
+execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
 
 if(NOT BUILD)
   set(BUILD "")
@@ -53,8 +49,6 @@ endif()
 
 message(STATUS "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
 
-# This only works if building from the command line.  There is currently no way
-# to set a variable's value based on the build type when using the MSVC IDE.
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(BUILD "${BUILD}d")
 endif()
@@ -64,27 +58,6 @@ add_definitions(-D__BUILD__="${BUILD}")
 
 if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
-endif()
-
-if(MSVC)
-  # Use the static C library for all build types
-  foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-    CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
-    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-    CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-    if(${var} MATCHES "/MD")
-      string(REGEX REPLACE "/MD" "/MT" ${var} "${${var}}")
-    endif()
-  endforeach()
-
-  # NOTE: 4244 and 4267 are 64-bit to 32-bit conversion warnings, so normally
-  # it is not a good idea to disable them, but we do this to duplicate the
-  # behavior of GCC, which is less strict.
-  add_definitions(-wd4244 -wd4267 -wd4800 -wd4996)
-
-  # Avoid linker warning when doing Debug build if dependent libraries are
-  # linked with the Release version of the static C library.
-  set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:LIBCMT")
 endif()
 
 # Minimum version is Windows 2000 (5.0)
@@ -163,7 +136,7 @@ endif()
 
 # MinGW64 has header support but no library support for IActiveDesktop, so we
 # need to check for both the header and library and use our own implementation
-# in common/os if either doesn't exist.  MSVC should have both.
+# in common/os if either doesn't exist.
 if(WIN32)
   check_c_source_compiles("#include <windows.h>\n#include <wininet.h>\n#include <shlobj.h>\nint main(int c, char** v) {IActiveDesktop iad; return 0;}" HAVE_ACTIVE_DESKTOP_H)
   check_c_source_compiles("#include <windows.h>\n#include <wininet.h>\n#include <shlobj.h>\nint main(int c, char** v) {GUID i = CLSID_ActiveDesktop; return 0;}" HAVE_ACTIVE_DESKTOP_L)
@@ -228,9 +201,6 @@ find_package(JPEG REQUIRED)
 # Warn if it doesn't seem to be the accelerated libjpeg that's found
 set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARIES})
 set(CMAKE_REQUIRED_FLAGS -I${JPEG_INCLUDE_DIR})
-if(MSVC)
-  set(CMAKE_REQUIRED_DEFINITIONS -MT)
-endif()
 
 set(JPEG_TEST_SOURCE "\n
   #include <stdio.h>\n

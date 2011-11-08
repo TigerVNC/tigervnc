@@ -15,14 +15,6 @@ else()
   set(INST_NAME ${CMAKE_PROJECT_NAME}-${VERSION})
 endif()
 
-if(MSVC_IDE)
-  set(INSTALLERDIR "$(OutDir)")
-  set(BUILDDIRDEF "-DBUILD_DIR=${INSTALLERDIR}\\")
-else()
-  set(INSTALLERDIR .)
-  set(BUILDDIRDEF "-DBUILD_DIR=")
-endif()
-
 set(INST_DEPS vncviewer)
 
 if(BUILD_WINVNC)
@@ -37,8 +29,7 @@ endif()
 configure_file(release/tigervnc.iss.in release/tigervnc.iss)
 
 add_custom_target(installer
-  iscc -o${INSTALLERDIR} ${INST_DEFS} ${BUILDDIRDEF} -F${INST_NAME}
-    release/tigervnc.iss
+  iscc -o. ${INST_DEFS} -DBUILD_DIR= -F${INST_NAME} release/tigervnc.iss
   DEPENDS ${INST_DEPS}
   SOURCES release/tigervnc.iss)
 
