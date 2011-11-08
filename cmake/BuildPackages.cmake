@@ -25,10 +25,6 @@ if(BUILD_WINVNC)
   set(INST_DEPS ${INST_DEPS} winvnc4 wm_hooks vncconfig)
 endif()
 
-if(GNUTLS_FOUND)
-  set(INST_DEFS ${INST_DEFS} -DHAVE_GNUTLS)
-endif()
-
 configure_file(release/tigervnc.iss.in release/tigervnc.iss)
 
 add_custom_target(installer
