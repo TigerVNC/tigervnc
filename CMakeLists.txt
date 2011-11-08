@@ -189,7 +189,7 @@ if(ENABLE_NLS)
     endif()
   endif()
 
-  if(NOT GETTEXT_FOUND)
+  if(NOT GETTEXT_FOUND OR NOT ICONV_FOUND)
     message(WARNING "Gettext NOT found.  Native Language Support disabled.")
     set(ENABLE_NLS 0)
   endif()
