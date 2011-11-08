@@ -145,7 +145,7 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
                                network::TcpListener* httpListener_,
                                const char* name, const rfb::PixelFormat &pf,
                                void* fbptr, int stride)
-  : pScreen(pScreen_), deferredUpdateTimer(0), dummyTimer(0),
+  : pScreen(pScreen_), deferredUpdateTimer(0),
     server(0), httpServer(0),
     listener(listener_), httpListener(httpListener_),
     cmap(0), deferredUpdateTimerSet(false),
@@ -172,7 +172,6 @@ XserverDesktop::~XserverDesktop()
   if (!directFbptr)
     delete [] data;
   TimerFree(deferredUpdateTimer);
-  TimerFree(dummyTimer);
   delete inputDevice;
   delete httpServer;
   delete server;

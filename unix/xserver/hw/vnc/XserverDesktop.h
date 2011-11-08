@@ -126,7 +126,7 @@ private:
   void deferUpdate();
   ScreenPtr pScreen;
   InputDevice *inputDevice;
-  OsTimerPtr deferredUpdateTimer, dummyTimer;
+  OsTimerPtr deferredUpdateTimer;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
   network::TcpListener* listener;
