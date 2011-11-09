@@ -185,7 +185,7 @@ void TIGHT_DECODE (const Rect& r)
         }
       } else {
         while (h > 0) {
-          memcpy(ptr, srcPtr, rowSize * sizeof(PIXEL_T));
+          memcpy(ptr, srcPtr, w * sizeof(PIXEL_T));
           ptr += stride;
           srcPtr += w * sizeof(PIXEL_T);
           h--;
