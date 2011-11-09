@@ -122,7 +122,7 @@ CConn::~CConn()
   if (desktop)
     delete desktop;
 
-  free(serverHost);
+  delete [] serverHost;
   if (sock)
     Fl::remove_fd(sock->getFd());
   delete sock;
