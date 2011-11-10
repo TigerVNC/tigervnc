@@ -100,6 +100,12 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   setMenuKey();
 
   OptionsDialog::addCallback(handleOptions, this);
+
+  // Send a fake pointer event so that the server will stop rendering
+  // a server-side cursor. Ideally we'd like to send the actual pointer
+  // position, but we can't really tell when the window manager is done
+  // placing us so we don't have a good time for that.
+  handlePointerEvent(Point(w/2, h/2), 0);
 }
 
 
