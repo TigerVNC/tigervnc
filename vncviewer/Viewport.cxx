@@ -383,8 +383,7 @@ int Viewport::handle(int event)
 #ifdef HAVE_FLTK_CURSOR
     window()->cursor(FL_CURSOR_DEFAULT);
 #endif
-    return 1;
-
+    // Fall through as we want a last move event to help trigger edge stuff
   case FL_PUSH:
   case FL_RELEASE:
   case FL_DRAG:
