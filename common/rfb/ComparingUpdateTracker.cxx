@@ -58,14 +58,12 @@ void ComparingUpdateTracker::compare()
     for (i = rects.begin(); i != rects.end(); i++)
       oldFb.copyRect(*i, copy_delta);
 
-    Region to_check = changed.union_(copied);
-    to_check.get_rects(&rects);
+    changed.get_rects(&rects);
 
     Region newChanged;
     for (i = rects.begin(); i != rects.end(); i++)
       compareRect(*i, &newChanged);
 
-    copied.assign_subtract(newChanged);
     changed = newChanged;
   }
 }
