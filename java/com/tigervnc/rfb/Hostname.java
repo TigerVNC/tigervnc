@@ -36,6 +36,9 @@ public class Hostname {
     if (vncServerName.charAt(colonPos+1) == ':') {
       return Integer.parseInt(vncServerName.substring(colonPos+2));
     }
-    return Integer.parseInt(vncServerName.substring(colonPos+1)) + 5900;
+    int port = Integer.parseInt(vncServerName.substring(colonPos+1));
+    if (port < 100)
+      port += 5900;
+    return port;
   }
 }
