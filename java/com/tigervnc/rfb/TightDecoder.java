@@ -106,6 +106,7 @@ public class TightDecoder extends Decoder {
         e.printStackTrace();
       }
       jpeg.getRGB(0, 0, r.width(), r.height(), buf, 0, r.width());
+      jpeg = null;
       handler.imageRect(r, buf);
       return;
     }
