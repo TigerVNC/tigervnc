@@ -22,6 +22,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
 #include <rfb/screenTypes.h>
+#include <rfb/fenceTypes.h>
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
@@ -35,7 +36,9 @@ static LogWriter vlog("VNCSConnST");
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
-  : SConnection(reverse), sock(s), inProcessMessages(false), server(server_),
+  : SConnection(reverse), sock(s), inProcessMessages(false),
+    syncFence(false), fenceFlags(0), fenceDataLen(0), fenceData(NULL),
+    server(server_),
     updates(false), image_getter(server->useEconomicTranslate),
     drawRenderedCursor(false), removeRenderedCursor(false),
     updateTimer(this), pointerEventTime(0),
@@ -70,6 +73,7 @@ VNCSConnectionST::~VNCSConnectionST()
   // Remove this client from the server
   server->clients.remove(this);
 
+  delete [] fenceData;
 }
 
 
@@ -121,6 +125,10 @@ void VNCSConnectionST::processMessages()
 
     while (getInStream()->checkNoWait(1)) {
       processMsg();
+      if (syncFence) {
+        writer()->writeFence(fenceFlags, fenceDataLen, fenceData);
+        syncFence = false;
+      }
     }
 
     // Flush out everything in case we go idle after this.
@@ -566,6 +574,42 @@ void VNCSConnectionST::setInitialColourMap()
   setColourMapEntries(0, 0);
 }
 
+void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
+{
+  if (flags & fenceFlagRequest) {
+    if (flags & fenceFlagSyncNext) {
+      if (syncFence)
+        vlog.error("Fence trying to synchronise another fence");
+
+      syncFence = true;
+
+      fenceFlags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter | fenceFlagSyncNext);
+      fenceDataLen = len;
+      delete [] fenceData;
+      if (len > 0) {
+        fenceData = new char[len];
+        memcpy(fenceData, data, len);
+      }
+
+      return;
+    }
+
+    // We handle everything synchronously so we trivially honor these modes
+    flags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter);
+
+    writer()->writeFence(flags, len, data);
+    return;
+  }
+
+  switch (len) {
+  case 0:
+    // Initial dummy fence;
+    break;
+  default:
+    vlog.error("Fence response of unexpected size received");
+  }
+}
+
 // supportsLocalCursor() is called whenever the status of
 // cp.supportsLocalCursor has changed.  If the client does now support local
 // cursor, we make sure that the old server-side rendered cursor is cleaned up
@@ -579,6 +623,11 @@ void VNCSConnectionST::supportsLocalCursor()
     drawRenderedCursor = false;
     setCursor();
   }
+}
+
+void VNCSConnectionST::supportsFence()
+{
+  writer()->writeFence(fenceFlagRequest, 0, NULL);
 }
 
 void VNCSConnectionST::writeSetCursorCallback()
@@ -641,6 +690,12 @@ bool VNCSConnectionST::isCongested()
 void VNCSConnectionST::writeFramebufferUpdate()
 {
   updateTimer.stop();
+
+  // We're in the middle of processing a command that's supposed to be
+  // synchronised. Allowing an update to slip out right now might violate
+  // that synchronisation.
+  if (syncFence)
+    return;
 
   // We try to aggregate responses, so don't send out anything whilst we
   // still have incoming messages. processMessages() will give us another

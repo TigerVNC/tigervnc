@@ -133,7 +133,9 @@ namespace rfb {
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout);
     virtual void setInitialColourMap();
+    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void supportsLocalCursor();
+    virtual void supportsFence();
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
@@ -167,6 +169,11 @@ namespace rfb {
     CharArray peerEndpoint;
 
     bool inProcessMessages;
+
+    bool syncFence;
+    rdr::U32 fenceFlags;
+    unsigned fenceDataLen;
+    char *fenceData;
 
     VNCServerST* server;
     SimpleUpdateTracker updates;
