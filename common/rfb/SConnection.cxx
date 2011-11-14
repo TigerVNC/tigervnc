@@ -342,3 +342,8 @@ void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
 
   writer()->writeFence(flags, len, data);
 }
+
+void SConnection::enableContinuousUpdates(bool enable,
+                                          int x, int y, int w, int h)
+{
+}

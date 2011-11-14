@@ -31,6 +31,7 @@ namespace rfb {
   protected:
     virtual void readSetDesktopSize();
     virtual void readFence();
+    virtual void readEnableContinuousUpdates();
   };
 }
 #endif

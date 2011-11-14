@@ -51,6 +51,8 @@ namespace rfb {
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout) = 0;
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]) = 0;
+    virtual void enableContinuousUpdates(bool enable,
+                                         int x, int y, int w, int h) = 0;
 
     // InputHandler interface
     // The InputHandler methods will be called for the corresponding messages.
@@ -65,6 +67,12 @@ namespace rfb {
     // in the client. A fence message should be sent at this point to notify
     // the client of server support.
     virtual void supportsFence();
+
+    // supportsContinuousUpdates() is called the first time we detect that
+    // the client wants the continuous updates extension. A
+    // EndOfContinuousUpdates message should be sent back to the client at
+    // this point if it is supported.
+    virtual void supportsContinuousUpdates();
 
     ConnParams cp;
   };

@@ -46,6 +46,8 @@ namespace rfb {
     virtual void writeSetDesktopSize(int width, int height,
                                      const ScreenSet& layout)=0;
     virtual void writeFence(rdr::U32 flags, unsigned len, const char data[])=0;
+    virtual void writeEnableContinuousUpdates(bool enable,
+                                              int x, int y, int w, int h)=0;
 
     // CMsgWriter implemented methods
     virtual void writeSetPixelFormat(const PixelFormat& pf);

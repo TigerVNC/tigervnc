@@ -113,6 +113,11 @@ namespace rfb {
     // support.
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
 
+    // enableContinuousUpdates() is called when the client wants to enable
+    // or disable continuous updates, or change the active area.
+    virtual void enableContinuousUpdates(bool enable,
+                                         int x, int y, int w, int h);
+
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectionST to the server.  How the access rights are treated
     // is up to the derived class.

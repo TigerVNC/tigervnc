@@ -97,3 +97,21 @@ void CMsgWriterV3::writeFence(rdr::U32 flags, unsigned len, const char data[])
 
   endMsg();
 }
+
+void CMsgWriterV3::writeEnableContinuousUpdates(bool enable,
+                                                int x, int y, int w, int h)
+{
+  if (!cp->supportsContinuousUpdates)
+    throw Exception("Server does not support continuous updates");
+
+  startMsg(msgTypeEnableContinuousUpdates);
+
+  os->writeU8(!!enable);
+
+  os->writeU16(x);
+  os->writeU16(y);
+  os->writeU16(w);
+  os->writeU16(h);
+
+  endMsg();
+}

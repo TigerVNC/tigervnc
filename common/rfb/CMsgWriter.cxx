@@ -71,6 +71,7 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     encodings[nEncodings++] = pseudoEncodingDesktopName;
 
   encodings[nEncodings++] = pseudoEncodingLastRect;
+  encodings[nEncodings++] = pseudoEncodingContinuousUpdates;
   encodings[nEncodings++] = pseudoEncodingFence;
 
   if (Decoder::supported(preferredEncoding)) {

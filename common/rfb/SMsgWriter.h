@@ -69,6 +69,10 @@ namespace rfb {
     // writeFence() sends a new fence request or response to the client.
     virtual void writeFence(rdr::U32 flags, unsigned len, const char data[])=0;
 
+    // writeEndOfContinuousUpdates() indicates that we have left continuous
+    // updates mode.
+    virtual void writeEndOfContinuousUpdates()=0;
+
     // setupCurrentEncoder() should be called before each framebuffer update,
     // prior to calling getNumRects() or writeFramebufferUpdateStart().
     void setupCurrentEncoder();

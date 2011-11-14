@@ -69,3 +69,8 @@ void CMsgHandler::fence(rdr::U32 flags, unsigned len, const char data[])
 {
   cp.supportsFence = true;
 }
+
+void CMsgHandler::endOfContinuousUpdates()
+{
+  cp.supportsContinuousUpdates = true;
+}

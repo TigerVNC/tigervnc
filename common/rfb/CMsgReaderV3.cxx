@@ -61,6 +61,7 @@ void CMsgReaderV3::readMsg()
     case msgTypeBell:                readBell(); break;
     case msgTypeServerCutText:       readServerCutText(); break;
     case msgTypeServerFence:         readFence(); break;
+    case msgTypeEndOfContinuousUpdates: readEndOfContinuousUpdates(); break;
 
     default:
       fprintf(stderr, "unknown message type %d\n", type);
@@ -165,4 +166,9 @@ void CMsgReaderV3::readFence()
   is->readBytes(data, len);
   
   handler->fence(flags, len, data);
+}
+
+void CMsgReaderV3::readEndOfContinuousUpdates()
+{
+  handler->endOfContinuousUpdates();
 }

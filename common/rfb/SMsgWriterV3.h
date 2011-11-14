@@ -36,6 +36,7 @@ namespace rfb {
     virtual void startMsg(int type);
     virtual void endMsg();
     virtual void writeFence(rdr::U32 flags, unsigned len, const char data[]);
+    virtual void writeEndOfContinuousUpdates();
     virtual bool writeSetDesktopSize();
     virtual bool writeExtendedDesktopSize();
     virtual bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,

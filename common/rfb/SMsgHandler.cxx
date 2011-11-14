@@ -41,9 +41,10 @@ void SMsgHandler::setPixelFormat(const PixelFormat& pf)
 
 void SMsgHandler::setEncodings(int nEncodings, rdr::S32* encodings)
 {
-  bool firstFence;
+  bool firstFence, firstContinuousUpdates;
 
   firstFence = !cp.supportsFence;
+  firstContinuousUpdates = !cp.supportsContinuousUpdates;
 
   cp.setEncodings(nEncodings, encodings);
 
@@ -51,6 +52,8 @@ void SMsgHandler::setEncodings(int nEncodings, rdr::S32* encodings)
 
   if (cp.supportsFence && firstFence)
     supportsFence();
+  if (cp.supportsContinuousUpdates && firstContinuousUpdates)
+    supportsContinuousUpdates();
 }
 
 void SMsgHandler::supportsLocalCursor()
@@ -58,6 +61,10 @@ void SMsgHandler::supportsLocalCursor()
 }
 
 void SMsgHandler::supportsFence()
+{
+}
+
+void SMsgHandler::supportsContinuousUpdates()
 {
 }
 

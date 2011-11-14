@@ -33,6 +33,7 @@ namespace rfb {
     virtual void readSetDesktopName(int x, int y, int w, int h);
     virtual void readExtendedDesktopSize(int x, int y, int w, int h);
     virtual void readFence();
+    virtual void readEndOfContinuousUpdates();
     int nUpdateRectsLeft;
   };
 }

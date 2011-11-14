@@ -81,6 +81,7 @@ namespace rfb {
 
     bool supportsSetDesktopSize;
     bool supportsFence;
+    bool supportsContinuousUpdates;
 
     bool customCompressLevel;
     int compressLevel;

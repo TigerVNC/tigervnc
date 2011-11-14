@@ -55,6 +55,7 @@ void SMsgReaderV3::readMsg()
   case msgTypeClientCutText:            readClientCutText(); break;
   case msgTypeSetDesktopSize:           readSetDesktopSize(); break;
   case msgTypeClientFence:              readFence(); break;
+  case msgTypeEnableContinuousUpdates:  readEnableContinuousUpdates(); break;
 
   default:
     fprintf(stderr, "unknown message type %d\n", msgType);
@@ -112,4 +113,19 @@ void SMsgReaderV3::readFence()
   is->readBytes(data, len);
   
   handler->fence(flags, len, data);
+}
+
+void SMsgReaderV3::readEnableContinuousUpdates()
+{
+  bool enable;
+  int x, y, w, h;
+
+  enable = is->readU8();
+
+  x = is->readU16();
+  y = is->readU16();
+  w = is->readU16();
+  h = is->readU16();
+
+  handler->enableContinuousUpdates(enable, x, y, w, h);
 }

@@ -34,6 +34,8 @@ namespace rfb {
     virtual void writeSetDesktopSize(int width, int height,
                                      const ScreenSet& layout);
     virtual void writeFence(rdr::U32 flags, unsigned len, const char data[]);
+    virtual void writeEnableContinuousUpdates(bool enable,
+                                              int x, int y, int w, int h);
   };
 }
 #endif

@@ -26,6 +26,8 @@ namespace rfb {
   const int msgTypeBell = 2;
   const int msgTypeServerCutText = 3;
 
+  const int msgTypeEndOfContinuousUpdates = 150;
+
   const int msgTypeServerFence = 248;
 
   // client to server
@@ -37,6 +39,8 @@ namespace rfb {
   const int msgTypeKeyEvent = 4;
   const int msgTypePointerEvent = 5;
   const int msgTypeClientCutText = 6;
+
+  const int msgTypeEnableContinuousUpdates = 150;
 
   const int msgTypeClientFence = 248;
 

@@ -82,6 +82,15 @@ void SMsgWriterV3::writeFence(rdr::U32 flags, unsigned len, const char data[])
   endMsg();
 }
 
+void SMsgWriterV3::writeEndOfContinuousUpdates()
+{
+  if (!cp->supportsContinuousUpdates)
+    throw Exception("Client does not support continuous updates");
+
+  startMsg(msgTypeEndOfContinuousUpdates);
+  endMsg();
+}
+
 bool SMsgWriterV3::writeSetDesktopSize() {
   if (!cp->supportsDesktopResize) return false;
   needSetDesktopSize = true;

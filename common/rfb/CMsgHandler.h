@@ -54,6 +54,7 @@ namespace rfb {
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
+    virtual void endOfContinuousUpdates();
     virtual void serverInit() = 0;
 
     virtual void framebufferUpdateStart() = 0;
