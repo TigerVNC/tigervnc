@@ -60,6 +60,7 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
 {
   int nEncodings = 0;
   rdr::U32 encodings[encodingMax+3];
+
   if (cp->supportsLocalCursor)
     encodings[nEncodings++] = pseudoEncodingCursor;
   if (cp->supportsDesktopResize)
@@ -68,9 +69,14 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     encodings[nEncodings++] = pseudoEncodingExtendedDesktopSize;
   if (cp->supportsDesktopRename)
     encodings[nEncodings++] = pseudoEncodingDesktopName;
+
+  encodings[nEncodings++] = pseudoEncodingLastRect;
+  encodings[nEncodings++] = pseudoEncodingFence;
+
   if (Decoder::supported(preferredEncoding)) {
     encodings[nEncodings++] = preferredEncoding;
   }
+
   if (useCopyRect) {
     encodings[nEncodings++] = encodingCopyRect;
   }
@@ -106,7 +112,6 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     }
   }
 
-  encodings[nEncodings++] = pseudoEncodingLastRect;
   if (cp->customCompressLevel && cp->compressLevel >= 0 && cp->compressLevel <= 9)
       encodings[nEncodings++] = pseudoEncodingCompressLevel0 + cp->compressLevel;
   if (!cp->noJpeg && cp->qualityLevel >= 0 && cp->qualityLevel <= 9)

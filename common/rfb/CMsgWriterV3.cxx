@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@
  */
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/fenceTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/ConnParams.h>
 #include <rfb/CMsgWriterV3.h>
@@ -72,6 +74,26 @@ void CMsgWriterV3::writeSetDesktopSize(int width, int height,
     os->writeU16(iter->dimensions.height());
     os->writeU32(iter->flags);
   }
+
+  endMsg();
+}
+
+void CMsgWriterV3::writeFence(rdr::U32 flags, unsigned len, const char data[])
+{
+  if (!cp->supportsFence)
+    throw Exception("Server does not support fences");
+  if (len > 64)
+    throw Exception("Too large fence payload");
+  if ((flags & ~fenceFlagsSupported) != 0)
+    throw Exception("Unknown fence flags");
+
+  startMsg(msgTypeClientFence);
+  os->pad(3);
+
+  os->writeU32(flags);
+
+  os->writeU8(len);
+  os->writeBytes(data, len);
 
   endMsg();
 }

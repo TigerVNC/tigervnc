@@ -80,6 +80,7 @@ namespace rfb {
     bool supportsLastRect;
 
     bool supportsSetDesktopSize;
+    bool supportsFence;
 
     bool customCompressLevel;
     int compressLevel;

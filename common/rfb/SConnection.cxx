@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
 #include <rfb/Exception.h>
 #include <rfb/Security.h>
 #include <rfb/msgTypes.h>
+#include <rfb/fenceTypes.h>
 #include <rfb/SMsgReaderV3.h>
 #include <rfb/SMsgWriterV3.h>
 #include <rfb/SConnection.h>
@@ -328,4 +330,15 @@ void SConnection::framebufferUpdateRequest(const Rect& r, bool incremental)
       setInitialColourMap();
     }
   }
+}
+
+void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
+{
+  if (!(flags & fenceFlagRequest))
+    return;
+
+  // We cannot guarantee any synchronisation at this level
+  flags = 0;
+
+  writer()->writeFence(flags, len, data);
 }

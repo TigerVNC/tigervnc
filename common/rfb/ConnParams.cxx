@@ -33,7 +33,7 @@ ConnParams::ConnParams()
     supportsLocalCursor(false), supportsLocalXCursor(false),
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
     supportsDesktopRename(false), supportsLastRect(false),
-    supportsSetDesktopSize(false),
+    supportsSetDesktopSize(false), supportsFence(false),
     customCompressLevel(false), compressLevel(6),
     noJpeg(false), qualityLevel(-1), fineQualityLevel(-1),
     subsampling(SUBSAMP_UNDEFINED),
@@ -125,6 +125,8 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       supportsDesktopRename = true;
     else if (encodings[i] == pseudoEncodingLastRect)
       supportsLastRect = true;
+    else if (encodings[i] == pseudoEncodingFence)
+      supportsFence = true;
     else if (encodings[i] >= pseudoEncodingCompressLevel0 &&
 	     encodings[i] <= pseudoEncodingCompressLevel9) {
       customCompressLevel = true;

@@ -137,6 +137,13 @@ namespace rfb {
     void setState(stateEnum s) { state_ = s; }
 
   private:
+    // This is a default implementation of fences that automatically
+    // responds to requests, stating no support for synchronisation.
+    // When overriding, call CMsgHandler::fence() directly in order to
+    // state correct support for fence flags.
+    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
+
+  private:
     void processVersionMsg();
     void processSecurityTypesMsg();
     void processSecurityMsg();

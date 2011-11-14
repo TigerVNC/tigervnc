@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,6 +106,12 @@ namespace rfb {
     // SetColourMapEntries message.  In fact this only happens when the client
     // accepts the server's default pixel format and it uses a colour map.
     virtual void setInitialColourMap();
+
+    // fence() is called when we get a fence request or response. By default
+    // it responds directly to requests (stating it doesn't support any
+    // synchronisation) and drops responses. Override to implement more proper
+    // support.
+    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectionST to the server.  How the access rights are treated

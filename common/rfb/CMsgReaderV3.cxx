@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,7 @@ void CMsgReaderV3::readMsg()
     case msgTypeSetColourMapEntries: readSetColourMapEntries(); break;
     case msgTypeBell:                readBell(); break;
     case msgTypeServerCutText:       readServerCutText(); break;
+    case msgTypeServerFence:         readFence(); break;
 
     default:
       fprintf(stderr, "unknown message type %d\n", type);
@@ -144,3 +145,24 @@ void CMsgReaderV3::readExtendedDesktopSize(int x, int y, int w, int h)
   handler->setExtendedDesktopSize(x, y, w, h, layout);
 }
 
+void CMsgReaderV3::readFence()
+{
+  rdr::U32 flags;
+  rdr::U8 len;
+  char data[64];
+
+  is->skip(3);
+
+  flags = is->readU32();
+
+  len = is->readU8();
+  if (len > sizeof(data)) {
+    fprintf(stderr, "Ignoring fence with too large payload\n");
+    is->skip(len);
+    return;
+  }
+
+  is->readBytes(data, len);
+  
+  handler->fence(flags, len, data);
+}

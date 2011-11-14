@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +33,7 @@ namespace rfb {
 
     virtual void writeSetDesktopSize(int width, int height,
                                      const ScreenSet& layout);
+    virtual void writeFence(rdr::U32 flags, unsigned len, const char data[]);
   };
 }
 #endif

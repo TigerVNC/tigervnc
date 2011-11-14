@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +65,9 @@ namespace rfb {
     // writeBell() and writeServerCutText() do the obvious thing.
     virtual void writeBell();
     virtual void writeServerCutText(const char* str, int len);
+
+    // writeFence() sends a new fence request or response to the client.
+    virtual void writeFence(rdr::U32 flags, unsigned len, const char data[])=0;
 
     // setupCurrentEncoder() should be called before each framebuffer update,
     // prior to calling getNumRects() or writeFramebufferUpdateStart().

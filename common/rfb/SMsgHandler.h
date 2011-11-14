@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ namespace rfb {
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental) = 0;
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout) = 0;
+    virtual void fence(rdr::U32 flags, unsigned len, const char data[]) = 0;
 
     // InputHandler interface
     // The InputHandler methods will be called for the corresponding messages.
@@ -59,6 +60,11 @@ namespace rfb {
     // setEncodings message, but in the future this may be due to a message
     // specially for this purpose.
     virtual void supportsLocalCursor();
+
+    // supportsFence() is called the first time we detect support for fences
+    // in the client. A fence message should be sent at this point to notify
+    // the client of server support.
+    virtual void supportsFence();
 
     ConnParams cp;
   };

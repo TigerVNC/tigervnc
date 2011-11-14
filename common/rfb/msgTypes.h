@@ -26,6 +26,8 @@ namespace rfb {
   const int msgTypeBell = 2;
   const int msgTypeServerCutText = 3;
 
+  const int msgTypeServerFence = 248;
+
   // client to server
 
   const int msgTypeSetPixelFormat = 0;
@@ -35,6 +37,8 @@ namespace rfb {
   const int msgTypeKeyEvent = 4;
   const int msgTypePointerEvent = 5;
   const int msgTypeClientCutText = 6;
+
+  const int msgTypeClientFence = 248;
 
   const int msgTypeSetDesktopSize = 251;
 }

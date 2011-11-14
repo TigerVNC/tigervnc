@@ -36,6 +36,7 @@ namespace rfb {
   const int pseudoEncodingDesktopSize = -223;
   const int pseudoEncodingExtendedDesktopSize = -308;
   const int pseudoEncodingDesktopName = -307;
+  const int pseudoEncodingFence = -312;
 
   // TightVNC-specific
   const int pseudoEncodingLastRect = -224;

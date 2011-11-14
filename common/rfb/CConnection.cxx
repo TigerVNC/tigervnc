@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <rfb/Exception.h>
+#include <rfb/fenceTypes.h>
 #include <rfb/CMsgReaderV3.h>
 #include <rfb/CMsgWriterV3.h>
 #include <rfb/CSecurity.h>
@@ -268,4 +269,17 @@ void CConnection::serverInit()
 {
   state_ = RFBSTATE_NORMAL;
   vlog.debug("initialisation done");
+}
+
+void CConnection::fence(rdr::U32 flags, unsigned len, const char data[])
+{
+  CMsgHandler::fence(flags, len, data);
+
+  if (!(flags & fenceFlagRequest))
+    return;
+
+  // We cannot guarantee any synchronisation at this level
+  flags = 0;
+
+  writer()->writeFence(flags, len, data);
 }

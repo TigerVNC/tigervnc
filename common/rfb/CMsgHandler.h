@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
@@ -53,6 +53,7 @@ namespace rfb {
                            void* data, void* mask) = 0;
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
+    virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void serverInit() = 0;
 
     virtual void framebufferUpdateStart() = 0;
