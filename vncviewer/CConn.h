@@ -75,6 +75,8 @@ public:
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
 
+  void fence(rdr::U32 flags, unsigned len, const char data[]);
+
 private:
 
   void resizeFramebuffer();
@@ -107,6 +109,8 @@ private:
   bool pendingUpdate;
 
   bool forceNonincremental;
+
+  bool supportsSyncFence;
 };
 
 #endif

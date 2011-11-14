@@ -33,7 +33,10 @@
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rfb/screenTypes.h>
+#include <rfb/fenceTypes.h>
 #include <rfb/Timer.h>
+#include <rdr/MemInStream.h>
+#include <rdr/MemOutStream.h>
 #include <network/TcpSocket.h>
 
 #include <FL/Fl.H>
@@ -70,7 +73,7 @@ CConn::CConn(const char* vncServerName)
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false),
-    forceNonincremental(true)
+    forceNonincremental(true), supportsSyncFence(false)
 {
   setShared(::shared);
 
@@ -130,10 +133,12 @@ CConn::~CConn()
 
 void CConn::refreshFramebuffer()
 {
-  // FIXME: We cannot safely trigger an update request directly but must
-  //        wait for the next update to arrive.
-  if (!formatChange)
-    forceNonincremental = true;
+  forceNonincremental = true;
+
+  // Without fences, we cannot safely trigger an update request directly
+  // but must wait for the next update to arrive.
+  if (supportsSyncFence)
+    requestNewUpdate();
 }
 
 const char *CConn::connectionInfo()
@@ -284,6 +289,7 @@ void CConn::setName(const char* name)
 // one.
 void CConn::framebufferUpdateStart()
 {
+  // Note: This might not be true if sync fences are supported
   pendingUpdate = false;
 
   requestNewUpdate();
@@ -299,6 +305,11 @@ void CConn::framebufferUpdateEnd()
 
   if (firstUpdate) {
     int width, height;
+
+    // We need fences to make extra update requests "safe".
+    // See fence() for the next step.
+    if (cp.supportsFence)
+      writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext, 0, NULL);
 
     if (cp.supportsSetDesktopSize &&
         sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) == 2) {
@@ -423,6 +434,34 @@ void CConn::setCursor(int width, int height, const Point& hotspot,
   desktop->setCursor(width, height, hotspot, data, mask);
 }
 
+void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
+{
+  CMsgHandler::fence(flags, len, data);
+
+  if (flags & fenceFlagRequest) {
+    // We handle everything synchronously so we trivially honor these modes
+    flags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter);
+
+    writer()->writeFence(flags, len, data);
+    return;
+  }
+
+  if (len == 0) {
+    // Initial probe
+    if (flags & fenceFlagSyncNext)
+      supportsSyncFence = true;
+  } else {
+    // Pixel format change
+    rdr::MemInStream memStream(data, len);
+    PixelFormat pf;
+
+    pf.read(&memStream);
+
+    desktop->setServerPF(pf);
+    cp.setPF(pf);
+  }
+}
+
 rdr::U8* CConn::getRawPixelsRW(const rfb::Rect& r, int* stride) {
   return desktop->getPixelsRW(r, stride);
 }
@@ -529,7 +568,7 @@ void CConn::requestNewUpdate()
     PixelFormat pf;
 
     /* Catch incorrect requestNewUpdate calls */
-    assert(pendingUpdate == false);
+    assert(!pendingUpdate || supportsSyncFence);
 
     if (fullColour) {
       pf = fullColourPF;
@@ -542,11 +581,23 @@ void CConn::requestNewUpdate()
         pf = mediumColourPF;
     }
 
-    // New requests are sent out at the start of processing the last
-    // one, so we cannot switch our internal format right now (doing so
-    // would mean misdecoding the current update).
-    pendingPFChange = true;
-    pendingPF = pf;
+    if (supportsSyncFence) {
+      // We let the fence carry the pixel format and switch once we
+      // get the response back. That way we will be synchronised with
+      // when the server switches.
+      rdr::MemOutStream memStream;
+
+      pf.write(&memStream);
+
+      writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext,
+                           memStream.length(), (const char*)memStream.data());
+    } else {
+      // New requests are sent out at the start of processing the last
+      // one, so we cannot switch our internal format right now (doing so
+      // would mean misdecoding the current update).
+      pendingPFChange = true;
+      pendingPF = pf;
+    }
 
     char str[256];
     pf.print(str, 256);
@@ -607,6 +658,12 @@ void CConn::handleOptions(void *data)
       pf = mediumColourPF;
   }
 
-  if (!pf.equal(self->cp.pf()))
+  if (!pf.equal(self->cp.pf())) {
     self->formatChange = true;
+
+    // Without fences, we cannot safely trigger an update request directly
+    // but must wait for the next update to arrive.
+    if (self->supportsSyncFence)
+      self->requestNewUpdate();
+  }
 }
