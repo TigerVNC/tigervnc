@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,8 @@
 #ifndef __RDR_FDOUTSTREAM_H__
 #define __RDR_FDOUTSTREAM_H__
 
+#include <sys/time.h>
+
 #include <rdr/OutStream.h>
 
 namespace rdr {
@@ -43,6 +46,8 @@ namespace rdr {
 
     int bufferUsage();
 
+    unsigned getIdleTime();
+
   private:
     int overrun(int itemSize, int nItems);
     int writeWithTimeout(const void* data, int length, int timeoutms);
@@ -53,6 +58,7 @@ namespace rdr {
     int offset;
     U8* start;
     U8* sentUpTo;
+    struct timeval lastWrite;
   };
 
 }

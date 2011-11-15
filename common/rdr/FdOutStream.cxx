@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +45,7 @@
 
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>
+#include <rfb/util.h>
 
 
 using namespace rdr;
@@ -56,6 +58,8 @@ FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_, int bufSize_)
 {
   ptr = start = sentUpTo = new U8[bufSize];
   end = start + bufSize;
+
+  gettimeofday(&lastWrite, NULL);
 }
 
 FdOutStream::~FdOutStream()
@@ -84,6 +88,11 @@ int FdOutStream::length()
 int FdOutStream::bufferUsage()
 {
   return ptr - sentUpTo;
+}
+
+unsigned FdOutStream::getIdleTime()
+{
+  return rfb::msSince(&lastWrite);
 }
 
 void FdOutStream::flush()
@@ -217,6 +226,8 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
   } while (n < 0 && (errno == EWOULDBLOCK));
 
   if (n < 0) throw SystemException("write",errno);
+
+  gettimeofday(&lastWrite, NULL);
 
   return n;
 }
