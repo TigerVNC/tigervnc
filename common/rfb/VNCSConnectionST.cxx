@@ -962,13 +962,18 @@ void VNCSConnectionST::writeFramebufferUpdate()
     return;
   }
 
+  // In continuous mode, we will be outputting at least three distinct
+  // messages. We need to aggregate these in order to not clog up TCP's
+  // congestion window.
+  network::TcpSocket::cork(sock->getFd(), true);
+
   // First take care of any updates that cannot contain framebuffer data
   // changes.
   if (writer()->needNoDataUpdate()) {
     writer()->writeNoDataUpdate();
     requested.clear();
     if (!continuousUpdates)
-      return;
+      goto out;
   }
 
   updates.enable_copyrect(cp.useCopyRect);
@@ -977,7 +982,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // anything right now (the framebuffer might have changed in ways we
   // haven't yet been informed of).
   if (!server->checkUpdate())
-    return;
+    goto out;
 
   // Get the lists of updates. Prior to exporting the data to the `ui' object,
   // getUpdateInfo() will normalize the `updates' object such way that its
@@ -1017,7 +1022,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // Return if there is nothing to send the client.
 
   if (updates.is_empty() && !writer()->needFakeUpdate() && !drawRenderedCursor)
-    return;
+    goto out;
 
   // The `updates' object could change, make sure we have valid update info.
 
@@ -1090,6 +1095,9 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
     requested.clear();
   }
+
+out:
+  network::TcpSocket::cork(sock->getFd(), false);
 }
 
 
