@@ -34,6 +34,8 @@
 #include <rfb/VNCServerST.h>
 #include <rfb/Timer.h>
 
+struct RTTInfo;
+
 namespace rfb {
   class VNCSConnectionST : public SConnection,
                            public WriteSetCursorCallback,
@@ -134,8 +136,11 @@ namespace rfb {
                                 const ScreenSet& layout);
     virtual void setInitialColourMap();
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
+    virtual void enableContinuousUpdates(bool enable,
+                                         int x, int y, int w, int h);
     virtual void supportsLocalCursor();
     virtual void supportsFence();
+    virtual void supportsContinuousUpdates();
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
@@ -151,7 +156,11 @@ namespace rfb {
 
     // Internal methods
 
+    // Congestion control
+    void writeRTTPing();
+    void handleRTTPong(const struct RTTInfo &rttInfo);
     bool isCongested();
+    void updateCongestion();
 
     // writeFramebufferUpdate() attempts to write a framebuffer update to the
     // client.
@@ -175,12 +184,23 @@ namespace rfb {
     unsigned fenceDataLen;
     char *fenceData;
 
+    unsigned baseRTT;
+    unsigned congWindow;
+    int ackedOffset, sentOffset;
+
+    unsigned minRTT;
+    bool seenCongestion;
+    unsigned pingCounter;
+    Timer congestionTimer;
+
     VNCServerST* server;
     SimpleUpdateTracker updates;
     TransImageGetter image_getter;
     Region requested;
     bool drawRenderedCursor, removeRenderedCursor;
     Rect renderedCursorRect;
+    bool continuousUpdates;
+    Region cuRegion;
 
     Timer updateTimer;
 
