@@ -72,7 +72,7 @@ CConn::CConn(const char* vncServerName)
     pendingPFChange(false),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
-    firstUpdate(true), pendingUpdate(false),
+    firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true), supportsSyncFence(false)
 {
   setShared(::shared);
@@ -306,8 +306,8 @@ void CConn::framebufferUpdateEnd()
   if (firstUpdate) {
     int width, height;
 
-    // We need fences to make extra update requests "safe".
-    // See fence() for the next step.
+    // We need fences to make extra update requests and continuous
+    // updates "safe". See fence() for the next step.
     if (cp.supportsFence)
       writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext, 0, NULL);
 
@@ -448,8 +448,15 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
 
   if (len == 0) {
     // Initial probe
-    if (flags & fenceFlagSyncNext)
+    if (flags & fenceFlagSyncNext) {
       supportsSyncFence = true;
+
+      if (cp.supportsContinuousUpdates) {
+        vlog.info(_("Enabling continuous updates"));
+        continuousUpdates = true;
+        writer()->writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
+      }
+    }
   } else {
     // Pixel format change
     rdr::MemInStream memStream(data, len);
@@ -476,6 +483,9 @@ void CConn::resizeFramebuffer()
 {
   if (!desktop)
     return;
+
+  if (continuousUpdates)
+    writer()->writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
 
   desktop->resizeFramebuffer(cp.width, cp.height);
 }
@@ -609,9 +619,11 @@ void CConn::requestNewUpdate()
 
   checkEncodings();
 
-  pendingUpdate = true;
-  writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
-                                          !forceNonincremental);
+  if (forceNonincremental || !continuousUpdates) {
+    pendingUpdate = true;
+    writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
+                                            !forceNonincremental);
+  }
  
   forceNonincremental = false;
 }

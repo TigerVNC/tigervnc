@@ -107,6 +107,7 @@ private:
 
   bool firstUpdate;
   bool pendingUpdate;
+  bool continuousUpdates;
 
   bool forceNonincremental;
 
