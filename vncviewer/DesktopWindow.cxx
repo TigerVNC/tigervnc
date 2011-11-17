@@ -332,6 +332,16 @@ void DesktopWindow::grabKeyboard()
       vlog.error(_("Failure grabbing keyboard"));
     }
   }
+
+  // We also need to grab the pointer as some WMs like to grab buttons
+  // combined with modifies (e.g. Alt+Button0 in metacity).
+  ret = XGrabPointer(fl_display, fl_xid(this), True,
+                     ButtonPressMask|ButtonReleaseMask|
+                     ButtonMotionMask|PointerMotionMask,
+                     GrabModeAsync, GrabModeAsync,
+                     None, None, CurrentTime);
+  if (ret)
+    vlog.error(_("Failure grabbing mouse"));
 #endif
 }
 
@@ -349,6 +359,7 @@ void DesktopWindow::ungrabKeyboard()
   if (Fl::grab())
     return;
 
+  XUngrabPointer(fl_display, fl_event_time);
   XUngrabKeyboard(fl_display, fl_event_time);
 #endif
 }
