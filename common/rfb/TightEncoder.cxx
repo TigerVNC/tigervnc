@@ -74,7 +74,8 @@ const TIGHT_CONF TightEncoder::conf[10] = {
   { 65536, 2048,  24, 9, 9, 7,  64, 96, 92, SUBSAMP_NONE }, // 8
   { 65536, 2048,  32, 9, 9, 9,  96, 96,100, SUBSAMP_NONE }  // 9
 };
-const int TightEncoder::defaultCompressLevel = 1;
+
+const int TightEncoder::defaultCompressLevel = 2;
 
 //
 // Including BPP-dependent implementation of the encoder.
