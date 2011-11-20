@@ -35,7 +35,7 @@ ComparingUpdateTracker::~ComparingUpdateTracker()
 }
 
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 64
 
 bool ComparingUpdateTracker::compare()
 {
