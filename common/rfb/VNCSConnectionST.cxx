@@ -326,6 +326,16 @@ int VNCSConnectionST::checkIdleTimeout()
   return secsToMillis(timeLeft);
 }
 
+
+bool VNCSConnectionST::getComparerState()
+{
+  // We interpret a low compression level as an indication that the client
+  // wants to prioritise CPU usage over bandwidth, and hence disable the
+  // comparing update tracker.
+  return (cp.compressLevel == -1) || (cp.compressLevel > 1);
+}
+
+
 // renderedCursorChange() is called whenever the server-side rendered cursor
 // changes shape or position.  It ensures that the next update will clean up
 // the old rendered cursor and if necessary draw the new rendered cursor.

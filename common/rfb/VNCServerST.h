@@ -238,6 +238,8 @@ namespace rfb {
 
     void notifyScreenLayoutChange(VNCSConnectionST *requester);
 
+    bool getComparerState();
+
     QueryConnectionHandler* queryConnectionHandler;
     KeyRemapper* keyRemapper;
     bool useEconomicTranslate;

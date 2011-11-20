@@ -37,7 +37,7 @@ namespace rfb {
     static IntParameter maxConnectionTime;
     static IntParameter maxIdleTime;
     static IntParameter clientWaitTimeMillis;
-    static BoolParameter compareFB;
+    static IntParameter compareFB;
     static BoolParameter protocol3_3;
     static BoolParameter alwaysShared;
     static BoolParameter neverShared;

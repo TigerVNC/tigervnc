@@ -25,7 +25,7 @@
 using namespace rfb;
 
 ComparingUpdateTracker::ComparingUpdateTracker(PixelBuffer* buffer)
-  : fb(buffer), oldFb(fb->getPF(), 0, 0), firstCompare(true)
+  : fb(buffer), oldFb(fb->getPF(), 0, 0), firstCompare(true), enabled(true)
 {
     changed.assign_union(fb->getRect());
 }
@@ -37,35 +37,60 @@ ComparingUpdateTracker::~ComparingUpdateTracker()
 
 #define BLOCK_SIZE 16
 
-void ComparingUpdateTracker::compare()
+bool ComparingUpdateTracker::compare()
 {
   std::vector<Rect> rects;
   std::vector<Rect>::iterator i;
+
+  if (!enabled)
+    return false;
 
   if (firstCompare) {
     // NB: We leave the change region untouched on this iteration,
     // since in effect the entire framebuffer has changed.
     oldFb.setSize(fb->width(), fb->height());
+
     for (int y=0; y<fb->height(); y+=BLOCK_SIZE) {
       Rect pos(0, y, fb->width(), __rfbmin(fb->height(), y+BLOCK_SIZE));
       int srcStride;
       const rdr::U8* srcData = fb->getPixelsR(pos, &srcStride);
       oldFb.imageRect(pos, srcData, srcStride);
     }
+
     firstCompare = false;
-  } else {
-    copied.get_rects(&rects, copy_delta.x<=0, copy_delta.y<=0);
-    for (i = rects.begin(); i != rects.end(); i++)
-      oldFb.copyRect(*i, copy_delta);
 
-    changed.get_rects(&rects);
-
-    Region newChanged;
-    for (i = rects.begin(); i != rects.end(); i++)
-      compareRect(*i, &newChanged);
-
-    changed = newChanged;
+    return false;
   }
+
+  copied.get_rects(&rects, copy_delta.x<=0, copy_delta.y<=0);
+  for (i = rects.begin(); i != rects.end(); i++)
+    oldFb.copyRect(*i, copy_delta);
+
+  changed.get_rects(&rects);
+
+  Region newChanged;
+  for (i = rects.begin(); i != rects.end(); i++)
+    compareRect(*i, &newChanged);
+
+  if (changed.equals(newChanged))
+    return false;
+
+  changed = newChanged;
+
+  return true;
+}
+
+void ComparingUpdateTracker::enable()
+{
+  enabled = true;
+}
+
+void ComparingUpdateTracker::disable()
+{
+  enabled = false;
+
+  // Make sure we update the framebuffer next time we get enabled
+  firstCompare = true;
 }
 
 void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)

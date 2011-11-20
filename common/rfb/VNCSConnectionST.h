@@ -85,6 +85,10 @@ namespace rfb {
     // The following methods never throw exceptions nor do they ever delete the
     // SConnectionST object.
 
+    // getComparerState() returns if this client would like the framebuffer
+    // comparer to be enabled.
+    bool getComparerState();
+
     // renderedCursorChange() is called whenever the server-side rendered
     // cursor changes shape or position.  It ensures that the next update will
     // clean up the old rendered cursor and if necessary draw the new rendered

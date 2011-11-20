@@ -596,10 +596,13 @@ bool VNCServerST::checkUpdate()
 
   pb->grabRegion(toCheck);
 
-  if (rfb::Server::compareFB) {
-    comparer->compare();
+  if (getComparerState())
+    comparer->enable();
+  else
+    comparer->disable();
+
+  if (comparer->compare())
     comparer->getUpdateInfo(&ui, pb->getRect());
-  }
 
   if (renderCursor) {
     pb->getImage(renderedCursor.data,
@@ -664,4 +667,20 @@ void VNCServerST::notifyScreenLayoutChange(VNCSConnectionST* requester)
       continue;
     (*ci)->screenLayoutChangeOrClose(reasonOtherClient);
   }
+}
+
+bool VNCServerST::getComparerState()
+{
+  if (rfb::Server::compareFB == 0)
+    return false;
+  if (rfb::Server::compareFB != 2)
+    return true;
+
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+  for (ci=clients.begin();ci!=clients.end();ci=ci_next) {
+    ci_next = ci; ci_next++;
+    if ((*ci)->getComparerState())
+      return true;
+  }
+  return false;
 }

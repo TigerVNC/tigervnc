@@ -47,10 +47,11 @@ rfb::IntParameter rfb::Server::clientWaitTimeMillis
  "The number of milliseconds to wait for a client which is no longer "
  "responding",
  20000, 0);
-rfb::BoolParameter rfb::Server::compareFB
+rfb::IntParameter rfb::Server::compareFB
 ("CompareFB",
- "Perform pixel comparison on framebuffer to reduce unnecessary updates",
- false);
+ "Perform pixel comparison on framebuffer to reduce unnecessary updates "
+ "(0: never, 1: always, 2: auto)",
+ 2);
 rfb::BoolParameter rfb::Server::protocol3_3
 ("Protocol3.3",
  "Always use protocol version 3.3 for backwards compatibility with "

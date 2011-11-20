@@ -29,14 +29,23 @@ namespace rfb {
     ~ComparingUpdateTracker();
 
     // compare() does the comparison and reduces its changed and copied regions
-    // as appropriate.
+    // as appropriate. Returns true if the regions were altered.
 
-    virtual void compare();
+    virtual bool compare();
+
+    // enable()/disable() turns the comparing functionality on/off. With it
+    // disabled, the object will behave like a dumb update tracker (i.e.
+    // compare() will be a no-op). It is harmless to repeatedly call these
+    // methods.
+
+    virtual void enable();
+    virtual void disable();
   private:
     void compareRect(const Rect& r, Region* newchanged);
     PixelBuffer* fb;
     ManagedPixelBuffer oldFb;
     bool firstCompare;
+    bool enabled;
   };
 
 }
