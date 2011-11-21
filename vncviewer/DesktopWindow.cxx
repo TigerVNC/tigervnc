@@ -167,13 +167,15 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 #ifdef HAVE_FLTK_FULLSCREEN
   if (!fullscreen_active()) {
 #endif
-  if ((w() == viewport->w()) && (h() == viewport->h()))
-    size(new_w, new_h);
-  else {
-      // Make sure the window isn't too big
+    if ((w() == viewport->w()) && (h() == viewport->h()))
+      size(new_w, new_h);
+    else {
+      // Make sure the window isn't too big. We do this manually because
+      // we have to disable the window size restriction (and it isn't
+      // entirely trustworthy to begin with).
       if ((w() > new_w) || (h() > new_h))
         size(__rfbmin(w(), new_w), __rfbmin(h(), new_h));
-  }
+    }
 #ifdef HAVE_FLTK_FULLSCREEN
   }
 #endif
@@ -218,19 +220,18 @@ int DesktopWindow::handle(int event)
   switch (event) {
 #ifdef HAVE_FLTK_FULLSCREEN
   case FL_FULLSCREEN:
-    if (event == FL_FULLSCREEN) {
-      fullScreen.setParam(fullscreen_active());
-      if (!fullscreen_active()) {      
-	size_range(100, 100, viewport->w(), viewport->h());
-	size(viewport->w(), viewport->h());
-      } else {
-	// We need to turn off the size limitations for proper
-	// fullscreen support, but in case fullscreen is activated via
-	// the WM, this is a bit of a problem. In practice, it seems to
-	// work to change the size limits after we have recieved the
-	// FL_FULLSCREEN event, at least with my Metacity. 
-	size_range(100, 100, 0, 0);
-      }
+    fullScreen.setParam(fullscreen_active());
+
+    if (!fullscreen_active()) {      
+      size_range(100, 100, viewport->w(), viewport->h());
+      size(viewport->w(), viewport->h());
+    } else {
+      // We need to turn off the size limitations for proper
+      // fullscreen support, but in case fullscreen is activated via
+      // the WM, this is a bit of a problem. In practice, it seems to
+      // work to change the size limits after we have recieved the
+      // FL_FULLSCREEN event, at least with my Metacity. 
+      size_range(100, 100, 0, 0);
     }
 
     if (!fullscreenSystemKeys)
