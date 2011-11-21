@@ -2598,6 +2598,12 @@ void Fl_Window::resize(int X,int Y,int W,int H) {
       pt.y = [[(NSWindow*)i->xid screen] frame].size.height - (Y + h());
       [(NSWindow*)i->xid setFrameOrigin:pt];
     }
+    // setFrame and setFrameOrigin are only requests to the system to
+    // do a resize or move. We will get callbacks later if the system allowed
+    // this, and possibly with adjusted values. We avoid processing until
+    // that happens (which usually happens directly as setFrame[Origin] is
+    // called).
+    return;
   }
   resize_from_system = 0;
   if (is_a_resize) {
