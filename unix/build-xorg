@@ -150,7 +150,7 @@ build ()
         if [ "${module}" = "pixman" ]; then
             extraoptions="${extraoptions} --disable-gtk"
         fi
-	if [ "${module}" = "libXfont"; then
+	if [ "${module}" = "libXfont" ]; then
 	    extraoptions="${extraoptions} --with-freetype-config=${PREFIX}/bin/freetype-config"
 	fi
         OLD_CFLAGS=${CFLAGS}
