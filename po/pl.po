@@ -1,7 +1,4 @@
-# translation of pl.po to Polish
 # Copyright (C) 2011 TigerVNC Team
-# Piotr Drąg <piotrdrag@gmail.com>, 2009.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"

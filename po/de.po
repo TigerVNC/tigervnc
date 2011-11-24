@@ -1,11 +1,4 @@
-# German translations for TigerVNC
-# Deutsche Übersetzung für das TigerVNC Paket
-# Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
-# Copyright (C) 2005 Klaus Franken, StrukturPunkt
 # Copyright (C) 2011 TigerVNC Team
-# This file is distributed under the same license as the tightvnc package.
-# Klaus Franken <Klaus.Franken@StrukturPunkt.de>, 2005.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
