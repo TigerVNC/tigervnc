@@ -1062,6 +1062,7 @@ extern "C" {
   pt.y = [[nsw contentView] frame].size.height;
   pt2 = [nsw convertBaseToScreen:pt];
   update_e_xy_and_e_xy_root(nsw);
+  resize_from_system = window;
   window->position((int)pt2.x, (int)([[nsw screen] frame].size.height - pt2.y));
   if ([nsw containsGLsubwindow] ) {
     [nsw display];// redraw window after moving if it contains OpenGL subwindows
@@ -2591,18 +2592,13 @@ void Fl_Window::resize(int X,int Y,int W,int H) {
       dim.origin.y = [[(NSWindow*)i->xid screen] frame].size.height - (Y + H);
       dim.size.width = W;
       dim.size.height = H + bt;
-      [(NSWindow*)i->xid setFrame:dim display:YES];
+      [(NSWindow*)i->xid setFrame:dim display:YES]; // calls windowDidResize
     } else {
       NSPoint pt; 
       pt.x = X; 
       pt.y = [[(NSWindow*)i->xid screen] frame].size.height - (Y + h());
-      [(NSWindow*)i->xid setFrameOrigin:pt];
+      [(NSWindow*)i->xid setFrameOrigin:pt]; // calls windowDidMove
     }
-    // setFrame and setFrameOrigin are only requests to the system to
-    // do a resize or move. We will get callbacks later if the system allowed
-    // this, and possibly with adjusted values. We avoid processing until
-    // that happens (which usually happens directly as setFrame[Origin] is
-    // called).
     return;
   }
   resize_from_system = 0;
