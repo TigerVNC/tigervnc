@@ -253,6 +253,11 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new BoolParameter("SendLocalUsername",
                           "Send the local username for SecurityTypes "+
                           "such as Plain rather than prompting", true);
+  StringParameter passwordFile
+  = new StringParameter("PasswordFile",
+                          "Password file for VNC authentication", "");
+  AliasParameter passwd
+  = new AliasParameter("passwd", "Alias for PasswordFile", passwordFile);
   BoolParameter autoSelect
   = new BoolParameter("AutoSelect",
                           "Auto select pixel format and encoding", true);

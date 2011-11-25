@@ -49,7 +49,7 @@ public class VncAuth {
     des.encrypt(obfuscated,0,obfuscated,0);
   }
 
-  String unobfuscatePasswd(byte[] obfuscated) {
+  public static String unobfuscatePasswd(byte[] obfuscated) {
     DesCipher des = new DesCipher(obfuscationKey);
     des.decrypt(obfuscated,0,obfuscated,0);
     int len;

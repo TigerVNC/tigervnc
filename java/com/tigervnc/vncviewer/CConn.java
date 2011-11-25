@@ -39,6 +39,8 @@ import java.awt.Event;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.*;
@@ -242,7 +244,30 @@ public class CConn extends CConnection
   public final boolean getUserPasswd(StringBuffer user, StringBuffer passwd) {
     String title = ("VNC Authentication ["
                     +csecurity.description() + "]");
+    String passwordFileStr = viewer.passwordFile.getValue();
     PasswdDialog dlg;    
+
+    if (user == null && passwordFileStr != "") {
+      InputStream fp = null;
+      try {
+        fp = new FileInputStream(passwordFileStr);
+      } catch(FileNotFoundException e) {
+        throw new Exception("Opening password file failed");
+      }
+      byte[] obfPwd = new byte[256];
+      try {
+        fp.read(obfPwd);
+        fp.close();
+      } catch(IOException e) {
+        throw new Exception("Failed to read VncPasswd file");
+      }
+      String PlainPasswd =
+        VncAuth.unobfuscatePasswd(obfPwd);
+      passwd.append(PlainPasswd);
+      passwd.setLength(PlainPasswd.length());
+      return true;
+    }
+
     if (user == null) {
       dlg = new PasswdDialog(title, (user == null), (passwd == null));
     } else {
