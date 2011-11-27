@@ -22,7 +22,7 @@
 
 package com.tigervnc.rfb;
 
-public class CMsgHandler {
+abstract public class CMsgHandler {
 
   public CMsgHandler() {
     cp = new ConnParams();
@@ -81,6 +81,8 @@ public class CMsgHandler {
   public void fillRect(Rect r, int pix) {}
   public void imageRect(Rect r, int[] pixels) {}
   public void copyRect(Rect r, int srcX, int srcY) {}
+
+  abstract public PixelFormat getPreferredPF();
 
   public ConnParams cp;
 

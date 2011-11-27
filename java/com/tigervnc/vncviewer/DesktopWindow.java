@@ -179,6 +179,10 @@ class DesktopWindow extends JPanel implements
     return;
   }
 
+  public PixelFormat getPreferredPF() {
+    return im.getNativePF();
+  }
+
   // setColourMapEntries() changes some of the entries in the colourmap.
   // Unfortunately these messages are often sent one at a time, so we delay the
   // settings taking effect unless the whole colourmap has changed.  This is

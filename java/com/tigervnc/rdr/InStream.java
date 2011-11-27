@@ -107,16 +107,6 @@ abstract public class InStream {
     }
   }
 
-  public void readBytes(int[] data, int dataPtr, int length) {
-    int dataEnd = dataPtr + length;
-    while (dataPtr < dataEnd) {
-      int n = check(1, dataEnd - dataPtr, true);
-      System.arraycopy(b, ptr, data, dataPtr, n);
-      ptr += n;
-      dataPtr += n;
-    }
-  }
-
   // readOpaqueN() reads a quantity "without byte-swapping".  Because java has
   // no byte-ordering, we just use big-endian.
 

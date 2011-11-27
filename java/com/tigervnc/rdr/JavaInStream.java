@@ -98,7 +98,14 @@ public class JavaInStream extends InStream {
     ptr = 0;
 
     while (end < itemSize) {
-      int n = read(b, end, bufSize - end, wait);
+      int bytes_to_read = bufSize - end;
+
+      if (!timing) {
+        bytes_to_read = Math.min(bytes_to_read, Math.max(itemSize*nItems, 8));
+      }
+
+      int n = read(b, end, bytes_to_read, wait);
+
       end += n;
     }
 
@@ -121,6 +128,7 @@ public class JavaInStream extends InStream {
       }
 
       if (n < 0) throw new EndOfStream();
+      if (n == 0) return 0;
 
       if (timing) {
         long after = System.nanoTime();

@@ -72,7 +72,7 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
                        data, width() * i, copyWidth);
   }
 
-  private PixelFormat getNativePF() {
+  public PixelFormat getNativePF() {
     PixelFormat pf;
     cm = java.awt.Toolkit.getDefaultToolkit().getColorModel();
     if (cm.getColorSpace().getType() == java.awt.color.ColorSpace.TYPE_RGB) {

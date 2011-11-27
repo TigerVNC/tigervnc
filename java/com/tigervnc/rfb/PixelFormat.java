@@ -23,6 +23,7 @@
 package com.tigervnc.rfb;
 
 import com.tigervnc.rdr.*;
+import java.awt.image.ColorModel;
 
 public class PixelFormat {
 
@@ -102,14 +103,123 @@ public class PixelFormat {
     return true;
   }
 
-  public void bufferFromRGB(int dst, byte[] src) {
-    if (bigEndian) {
-      dst =
-        (src[0] & 0xFF) << 16 | (src[1] & 0xFF) << 8 | (src[2] & 0xFF) | 0xFF << 24;
-    } else {
-      dst =
-        (src[2] & 0xFF) << 16 | (src[1] & 0xFF) << 8 | (src[0] & 0xFF) | 0xFF << 24;
+  public int pixelFromRGB(int red, int green, int blue, ColorModel cm) 
+  {
+    if (trueColour) {
+      int r = (red   * redMax     + 32767) / 65535;
+      int g = (green * greenMax   + 32767) / 65535;
+      int b = (blue  * blueMax    + 32767) / 65535;
+
+      return (r << redShift) | (g << greenShift) | (b << blueShift);
+    } else if (cm != null) {
+      // Try to find the closest pixel by Cartesian distance
+      int colours = 1 << depth;
+      int diff = 256 * 256 * 4;
+      int col = 0;
+      for (int i=0; i<colours; i++) {
+        int r, g, b;
+        r = cm.getRed(i);
+        g = cm.getGreen(i);
+        b = cm.getBlue(i);
+        int rd = (r-red) >> 8;
+        int gd = (g-green) >> 8;
+        int bd = (b-blue) >> 8;
+        int d = rd*rd + gd*gd + bd*bd;
+        if (d < diff) {
+          col = i;
+          diff = d;
+        }
+      }
+      return col;
     }
+    // XXX just return 0 for colour map?
+    return 0;
+  }
+
+  public void bufferFromRGB(int[] dst, int dstPtr, byte[] src, 
+                            int srcPtr, int pixels) {
+    if (is888()) {
+      // Optimised common case
+      int r, g, b;
+
+      for (int i=srcPtr; i < pixels; i++) {
+        if (bigEndian) {
+          r = (src[3*i+0] & 0xff) << (24 - redShift);
+          g = (src[3*i+1] & 0xff) << (24 - greenShift);
+          b = (src[3*i+2] & 0xff) << (24 - blueShift);
+          dst[dstPtr+i] = r | g | b | 0xff;
+        } else {
+          r = (src[3*i+0] & 0xff) << redShift;
+          g = (src[3*i+1] & 0xff) << greenShift;
+          b = (src[3*i+2] & 0xff) << blueShift;
+          dst[dstPtr+i] = (0xff << 24) | r | g | b;
+        }
+      }
+    } else {
+      // Generic code
+      int p, r, g, b;
+      int[] rgb = new int[4];
+      
+      int i = srcPtr; int j = dstPtr;
+      while (i < pixels) {
+        r = src[i++] & 0xff;
+        g = src[i++] & 0xff;
+        b = src[i++] & 0xff;
+
+        //p = pixelFromRGB(r, g, b, cm);
+        p = ColorModel.getRGBdefault().getDataElement(new int[] {0xff, r, g, b}, 0);
+
+        bufferFromPixel(dst, j, p);
+        j += bpp/8;
+      }
+    }
+  }
+
+  public void rgbFromBuffer(byte[] dst, int dstPtr, byte[] src, int srcPtr, int pixels, ColorModel cm)
+  {
+    int p;
+    byte r, g, b;
+  
+    for (int i=0; i < pixels; i++) {
+      p = pixelFromBuffer(src, srcPtr); 
+      srcPtr += bpp/8;
+  
+      dst[dstPtr++] = (byte)cm.getRed(p);
+      dst[dstPtr++] = (byte)cm.getGreen(p);
+      dst[dstPtr++] = (byte)cm.getBlue(p);
+    }
+  }
+
+  public int pixelFromBuffer(byte[] buffer, int bufferPtr)
+  {
+    int p;
+  
+    p = 0;
+  
+    if (bigEndian) {
+      switch (bpp) {
+      case 32:
+        p = (buffer[0] & 0xff) << 24 | (buffer[1] & 0xff) << 16 | (buffer[2] & 0xff) << 8 | 0xff;
+        break;
+      case 16:
+        p = (buffer[0] & 0xff) << 8 | (buffer[1] & 0xff);
+        break;
+      case 8:
+        p = (buffer[0] & 0xff);
+        break;
+      }
+    } else {
+      p = (buffer[0] & 0xff);
+      if (bpp >= 16) {
+        p |= (buffer[1] & 0xff) << 8;
+        if (bpp == 32) {
+          p |= (buffer[2] & 0xff) << 16;
+          p |= (buffer[3] & 0xff) << 24;
+        }
+      }
+    }
+  
+    return p;
   }
 
   public String print() {
@@ -149,6 +259,34 @@ public class PixelFormat {
              ","+greenShift+","+blueShift);
     return s.toString();
   }
+
+  public void bufferFromPixel(int[] buffer, int bufPtr, int p)
+  {
+    if (bigEndian) {
+      switch (bpp) {
+        case 32:
+          buffer[bufPtr++] = (p >> 24) & 0xff;
+          buffer[bufPtr++] = (p >> 16) & 0xff;
+          break;
+        case 16:
+          buffer[bufPtr++] = (p >> 8) & 0xff;
+          break;
+        case 8:
+          buffer[bufPtr++] = (p >> 0) & 0xff;
+          break;
+      }
+    } else {
+      buffer[0] = (p >> 0) & 0xff;
+      if (bpp >= 16) {
+        buffer[1] = (p >> 8) & 0xff;
+        if (bpp == 32) {
+          buffer[2] = (p >> 16) & 0xff;
+          buffer[3] = (p >> 24) & 0xff;
+        }
+      }
+    }
+  }
+          
 
   public int bpp;
   public int depth;

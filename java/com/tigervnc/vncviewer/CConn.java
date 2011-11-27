@@ -309,7 +309,7 @@ public class CConn extends CConnection
     desktop = new DesktopWindow(cp.width, cp.height, serverPF, this);
     //desktopEventHandler = desktop.setEventHandler(this);
     //desktop.addEventMask(KeyPressMask | KeyReleaseMask);
-    fullColourPF = desktop.getPF();
+    fullColourPF = desktop.getPreferredPF();
     if (!serverPF.trueColour)
       fullColour = true;
     recreateViewport();
@@ -468,11 +468,17 @@ public class CConn extends CConnection
   public void fillRect(Rect r, int p) {
     desktop.fillRect(r.tl.x, r.tl.y, r.width(), r.height(), p);
   }
+
   public void imageRect(Rect r, int[] p) {
     desktop.imageRect(r.tl.x, r.tl.y, r.width(), r.height(), p);
   }
+
   public void copyRect(Rect r, int sx, int sy) {
     desktop.copyRect(r.tl.x, r.tl.y, r.width(), r.height(), sx, sy);
+  }
+
+  public PixelFormat getPreferredPF() {
+    return fullColourPF;
   }
 
   public void setCursor(int width, int height, Point hotspot,
