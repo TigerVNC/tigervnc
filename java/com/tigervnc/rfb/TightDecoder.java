@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
+import com.sun.image.codec.jpeg.*;
+import java.io.InputStream;
 
 public class TightDecoder extends Decoder {
 
@@ -157,7 +159,6 @@ public class TightDecoder extends Decoder {
 
     int stride = r.width();
     int[] buf = reader.getImageBuf(r.area());
-    
 
     if (palSize == 0) {
       // Truecolor data.
@@ -170,12 +171,26 @@ public class TightDecoder extends Decoder {
       } else {
         // Copy
         int h = r.height();
+        int ptr = 0;
+        int srcPtr = 0;
         int w = r.width();
         if (cutZeros) {
-          serverpf.bufferFromRGB(buf, 0, netbuf, 0, w*h);
+          serverpf.bufferFromRGB(buf, ptr, netbuf, srcPtr, w*h);
         } else {
-          for (int i = 0; i < dataSize; i++)
-            buf[i] = netbuf[i] & 0xff;
+          int pixelSize = (bpp >= 24) ? 3 : bpp/8;
+          while (h > 0) {
+            for (int i = 0; i < w; i++) {
+              if (bpp == 8) {
+                buf[ptr+i] = netbuf[srcPtr+i] & 0xff;
+              } else {
+                for (int j = pixelSize-1; j >= 0; j--)
+                  buf[ptr+i] |= ((netbuf[srcPtr+i+j] & 0xff) << j*8);
+              }
+            }
+            ptr += stride;
+            srcPtr += w * pixelSize;
+            h--;
+          }
         }
       }
     } else {
@@ -235,16 +250,18 @@ public class TightDecoder extends Decoder {
     // Create an Image object from the JPEG data.
     int imageType = BufferedImage.TYPE_4BYTE_ABGR_PRE;
         
+    int w = r.width();
+    int h = r.height();
     BufferedImage jpeg = 
-      new BufferedImage(r.width(), r.height(), imageType);
+      new BufferedImage(w, h, imageType);
     jpeg.setAccelerationPriority(1);
     try {
       jpeg = ImageIO.read(new ByteArrayInputStream(netbuf));
     } catch (java.io.IOException e) {
       e.printStackTrace();
     }
-    int[] buf = reader.getImageBuf(r.area());
-    jpeg.getRGB(0, 0, r.width(), r.height(), buf, 0, r.width());
+    int[] buf = reader.getImageBuf(w*h);
+    jpeg.getRGB(0, 0, w, h, buf, 0, w);
     jpeg = null;
     handler.imageRect(r, buf);
   }

@@ -138,8 +138,8 @@ abstract public class CMsgReader {
 
   public int[] getImageBuf(int required, int requested, int nPixels) 
   {
-    int requiredBytes = required * (handler.cp.pf().bpp / 8);
-    int requestedBytes = requested * (handler.cp.pf().bpp / 8);
+    int requiredBytes = required;
+    int requestedBytes = requested;
     int size = requestedBytes;
     if (size > imageBufIdealSize) size = imageBufIdealSize;
 
