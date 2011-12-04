@@ -258,6 +258,12 @@ public class VncViewer extends java.applet.Applet implements Runnable
                           "Password file for VNC authentication", "");
   AliasParameter passwd
   = new AliasParameter("passwd", "Alias for PasswordFile", passwordFile);
+  StringParameter x509crl
+  = new StringParameter("X509crl",
+                          "Path to X509 CRL certificate file", "");
+  StringParameter x509ca
+  = new StringParameter("X509ca",
+                          "Path to X509 CA certificate file", "");
   BoolParameter autoSelect
   = new BoolParameter("AutoSelect",
                           "Auto select pixel format and encoding", true);

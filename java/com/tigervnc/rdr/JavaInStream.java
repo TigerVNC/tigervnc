@@ -21,25 +21,37 @@
 //
 
 package com.tigervnc.rdr;
+import java.io.InputStream;
+import java.io.DataInputStream;
 
 public class JavaInStream extends InStream {
 
   static final int defaultBufSize = 8192;
   static final int minBulkSize = 1024;
 
-  public JavaInStream(java.io.InputStream jis_, int bufSize_) {
-    jis = jis_;
+  public JavaInStream(InputStream jis_, int bufSize_) 
+  {
+    jis = new DataInputStream(jis_);
     bufSize = bufSize_;
     b = new byte[bufSize];
-    ptr = end = offset = 0;
+    ptr = end = offset = start = 0;
     timing = false;
     timeWaitedIn100us = 5;
     timedKbits = 0;
   }
 
-  public JavaInStream(java.io.InputStream jis_) { this(jis_, defaultBufSize); }
+  public JavaInStream(InputStream jis_) 
+  {
+    this(jis_, defaultBufSize);
+  }
 
-  public void readBytes(byte[] data, int dataPtr, int length) {
+  public int pos() 
+  {
+    return offset + ptr - start;
+  }
+
+  public void readBytes(byte[] data, int dataPtr, int length) 
+  {
     if (length < minBulkSize) {
       super.readBytes(data, dataPtr, length);
       return;
@@ -61,56 +73,32 @@ public class JavaInStream extends InStream {
     }
   }
 
-  public int pos() { return offset + ptr; }
-
-  public void startTiming() {
-    timing = true;
-
-    // Carry over up to 1s worth of previous rate for smoothing.
-
-    if (timeWaitedIn100us > 10000) {
-      timedKbits = timedKbits * 10000 / timeWaitedIn100us;
-      timeWaitedIn100us = 10000;
-    }
-  }
-
-  public void stopTiming() {
-    timing = false; 
-    if (timeWaitedIn100us < timedKbits/2)
-      timeWaitedIn100us = timedKbits/2; // upper limit 20Mbit/s
-  }
-
-  public long kbitsPerSecond() {
-    return timedKbits * 10000 / timeWaitedIn100us;
-  }
-
-  public long timeWaited() { return timeWaitedIn100us; }
-
   protected int overrun(int itemSize, int nItems, boolean wait) {
     if (itemSize > bufSize)
       throw new Exception("JavaInStream overrun: max itemSize exceeded");
 
     if (end - ptr != 0)
-      System.arraycopy(b, ptr, b, 0, end - ptr);
+      System.arraycopy(b, ptr, b, start, end - ptr);
 
-    offset += ptr;
-    end -= ptr;
-    ptr = 0;
+    offset += ptr - start;
+    end -= ptr - start;
+    ptr = start;
 
-    while (end < itemSize) {
-      int bytes_to_read = bufSize - end;
+    int bytes_to_read;
+    while (end < start + itemSize) {
+      bytes_to_read = start + bufSize - end;
 
       if (!timing) {
         bytes_to_read = Math.min(bytes_to_read, Math.max(itemSize*nItems, 8));
       }
 
       int n = read(b, end, bytes_to_read, wait);
-
+      if (n == 0) return 0;
       end += n;
     }
 
-    if (itemSize * nItems > end)
-      nItems = end / itemSize;
+    if (itemSize * nItems > end - ptr)
+      nItems = (end - ptr) / itemSize;
 
     return nItems;
   }
@@ -122,7 +110,17 @@ public class JavaInStream extends InStream {
 
       int n = -1;
       try {
-        n = jis.read(buf, bufPtr, len);
+        //System.out.println("available: "+jis.available());
+        //int available = jis.available();
+        //if (!wait && (available == 0))
+        //  return 0;
+        //if (available > 0 && available < len) {
+        //  n = jis.read(buf, bufPtr, available);
+        //} else {  
+          n = jis.read(buf, bufPtr, len);
+        //}
+      } catch (java.net.SocketTimeoutException e) {
+        return Math.max(n,0);
       } catch (java.io.IOException e) {
         throw new IOException(e);
       }
@@ -150,9 +148,34 @@ public class JavaInStream extends InStream {
       return n;
 
   }
-  private int read(byte[] buf, int bufPtr, int len) { return read(buf, bufPtr, len, true); }
+  private int read(byte[] buf, int bufPtr, int len) { 
+    return read(buf, bufPtr, len, true); 
+  }
 
-  private java.io.InputStream jis;
+  public void startTiming() {
+    timing = true;
+
+    // Carry over up to 1s worth of previous rate for smoothing.
+
+    if (timeWaitedIn100us > 10000) {
+      timedKbits = timedKbits * 10000 / timeWaitedIn100us;
+      timeWaitedIn100us = 10000;
+    }
+  }
+
+  public void stopTiming() {
+    timing = false; 
+    if (timeWaitedIn100us < timedKbits/2)
+      timeWaitedIn100us = timedKbits/2; // upper limit 20Mbit/s
+  }
+
+  public long kbitsPerSecond() {
+    return timedKbits * 10000 / timeWaitedIn100us;
+  }
+
+  public long timeWaited() { return timeWaitedIn100us; }
+
+  private DataInputStream jis;
   private int offset;
   private int bufSize;
 

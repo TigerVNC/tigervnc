@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
-import com.sun.image.codec.jpeg.*;
 import java.io.InputStream;
 
 public class TightDecoder extends Decoder {
@@ -261,8 +260,14 @@ public class TightDecoder extends Decoder {
       e.printStackTrace();
     }
     int[] buf = reader.getImageBuf(w*h);
-    jpeg.getRGB(0, 0, w, h, buf, 0, w);
-    jpeg = null;
+    int[] pix = new int[3];
+    for (int y=0; y < h; y++) {
+      for (int x=0; x < w; x++) {
+        jpeg.getRaster().getPixel(x, y, pix);
+        buf[y*w+x] = (0xff << 24) | (pix[0] & 0xff) << 16 | (pix[1] & 0xff) << 8 | pix[2];
+      }
+    }
+    jpeg.flush();
     handler.imageRect(r, buf);
   }
 

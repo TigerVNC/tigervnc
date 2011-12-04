@@ -181,6 +181,10 @@ public class CConn extends CConnection
     cp.compressLevel = viewer.compressLevel.getValue();
     cp.noJpeg = viewer.noJpeg.getValue();
     cp.qualityLevel = viewer.qualityLevel.getValue();
+    if (viewer.x509ca.getValue() != viewer.x509ca.getDefaultStr())
+      CSecurityTLS.x509ca.setParam(viewer.x509ca.getValue());
+    if (viewer.x509crl.getValue() != viewer.x509crl.getDefaultStr())
+      CSecurityTLS.x509crl.setParam(viewer.x509crl.getValue());
     initMenu();
 
     if (sock != null) {
