@@ -62,8 +62,6 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
 
     width_ = w;
     height_ = h;
-    //source = new MemoryImageSource(w,h,cm,data,0,w);
-    //source.setAnimated(true);
     image = desktop.createImage(this);
     image.setAccelerationPriority(1);
 
@@ -72,9 +70,6 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
     for (int i = 0; i < rowsToCopy; i++)
       System.arraycopy(oldData, copyWidth * i,
                        data, width() * i, copyWidth);
-    //source.newPixels(data, cm, 0, w);
-    //source.newPixels(0, 0, w, h, true);
-    //source.setFullBufferUpdates(true);
   }
 
   public PixelFormat getNativePF() {
@@ -108,7 +103,6 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
   public void put(int x, int y, int w, int h, Graphics g) {
     if (ic != null) {
       ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
-      //source.newPixels(x, y, w, h, true);
       g.setClip(x, y, w, h);
       ic.imageComplete(ImageConsumer.SINGLEFRAMEDONE);
     }
@@ -122,7 +116,6 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
     super.copyRect(x, y, w, h, srcX, srcY);
     if (ic == null) return;
     ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
-    //source.newPixels(x, y, w, h, true);
     g.setClip(x, y, w, h);
     ic.imageComplete(ImageConsumer.SINGLEFRAMEDONE);
   }
@@ -178,7 +171,6 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
   public void requestTopDownLeftRightResend(ImageConsumer c) {}
   public void startProduction(ImageConsumer c) { addConsumer(c); }
 
-  MemoryImageSource source;
   Image image;
   ImageConsumer ic;
 

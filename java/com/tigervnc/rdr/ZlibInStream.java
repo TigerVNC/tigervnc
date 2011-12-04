@@ -138,4 +138,5 @@ public class ZlibInStream extends InStream {
   private int offset;
   private com.jcraft.jzlib.ZStream zs;
   private int bytesIn;
+  private int start;
 }

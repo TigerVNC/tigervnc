@@ -65,11 +65,6 @@ public class PixelBuffer {
       System.arraycopy(pix, (w * j), data, width_ * (y + j) + x, w);
   }
 
-  public void imageRect(int x, int y, int w, int h, byte[] pix) {
-    for (int j = 0; j < h; j++)
-      System.arraycopy(pix, (w * j), data, width_ * (y + j) + x, w);
-  }
-
   public void copyRect(int x, int y, int w, int h, int srcX, int srcY) {
     int dest = (width_ * y) + x;
     int src = (width_ * srcY) + srcX;

@@ -282,17 +282,6 @@ class DesktopWindow extends JPanel implements
       showLocalCursor();
   }
 
-  final public void imageRect(int x, int y, int w, int h,
-                                           byte[] pix) {
-    if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    synchronized (im) {
-      im.imageRect(x, y, w, h, pix);
-    }
-    invalidate(x, y, w, h);
-    if (softCursor == null)
-      showLocalCursor();
-  }
-
   final public void copyRect(int x, int y, int w, int h,
                                           int srcX, int srcY) {
     if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))

@@ -30,21 +30,12 @@ abstract public class InStream {
   // maximum of nItems).
 
   public int check(int itemSize, int nItems, boolean wait) {
-/*
     int available = end - ptr;
     if (itemSize * nItems > available) {
       if (itemSize > available)
         return overrun(itemSize, nItems, wait);
 
       nItems = available / itemSize;
-    }
-    return nItems;
-*/
-    if (ptr + itemSize * nItems > end) {
-      if (ptr + itemSize > end)
-        return overrun(itemSize, nItems, wait);
-
-      nItems = (end - ptr) / itemSize;
     }
     return nItems;
   }
@@ -120,17 +111,14 @@ abstract public class InStream {
   // no byte-ordering, we just use big-endian.
 
   public final int readOpaque8()  { return readU8(); }
-  public final int readOpaque16() { check(2); int r0 = b[ptr++];
-                                    int r1 = b[ptr++]; return r0 << 8 | r1; }
-  public final int readOpaque32() { check(4); int r0 = b[ptr++]; int r1 = b[ptr++]; 
-                                    int r2 = b[ptr++]; int r3 = b[ptr++]; 
-                                    return r0 << 24 | r1 << 16 | r2 << 8 | r3; }
-  public final int readOpaque24A() { check(3, 1, true); int r0 = b[ptr++];
-                                     int r1 = b[ptr++]; int r2 = b[ptr++];
-                                     return r0 << 24 | r1 << 16 | r2 << 8; }
-  public final int readOpaque24B() { check(3, 1, true); int r0 = b[ptr++];
-                                     int r1 = b[ptr++]; int r2 = b[ptr++];
-                                     return r0 << 16 | r1 << 8 | r2; }
+  public final int readOpaque16() { return readU16(); }
+  public final int readOpaque32() { return readU32(); }
+  public final int readOpaque24A() { check(3, 1, true); int b0 = b[ptr++];
+                                     int b1 = b[ptr++]; int b2 = b[ptr++];
+                                     return b0 << 24 | b1 << 16 | b2 << 8; }
+  public final int readOpaque24B() { check(3, 1, true); int b0 = b[ptr++];
+                                     int b1 = b[ptr++]; int b2 = b[ptr++];
+                                     return b0 << 16 | b1 << 8 | b2; }
 
   public final int readPixel(int bytesPerPixel, boolean bigEndian) {
     byte[] pix = new byte[4];
@@ -202,5 +190,4 @@ abstract public class InStream {
   protected byte[] b;
   protected int ptr;
   protected int end;
-  protected int start;
 }
