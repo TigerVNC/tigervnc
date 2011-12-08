@@ -46,6 +46,12 @@ public class PixelBuffer {
     case 24: 
       cm = new DirectColorModel(32, (0xff << 16), (0xff << 8), 0xff, (0xff << 24));
       break;
+    case 32: 
+      cm = new DirectColorModel(32, (0xff << pf.redShift), 
+        (0xff << pf.greenShift), (0xff << pf.blueShift), (0xff << 24));
+      break;
+    default:
+      throw new Exception("Unsupported color depth ("+pf.depth+")");
     }
   }
   public PixelFormat getPF() { return format; }
