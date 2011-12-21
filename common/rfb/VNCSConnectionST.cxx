@@ -345,8 +345,10 @@ void VNCSConnectionST::renderedCursorChange()
   if (state() != RFBSTATE_NORMAL) return;
   if (!renderedCursorRect.is_empty())
     removeRenderedCursor = true;
-  if (needRenderedCursor())
+  if (needRenderedCursor()) {
     drawRenderedCursor = true;
+    writeFramebufferUpdateOrClose();
+  }
 }
 
 // needRenderedCursor() returns true if this client needs the server-side
