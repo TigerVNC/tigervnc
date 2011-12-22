@@ -65,7 +65,7 @@ static LogWriter slog("VNCServerST");
 LogWriter VNCServerST::connectionsLog("Connections");
 
 rfb::IntParameter deferUpdateTime("DeferUpdate",
-                                  "Time in milliseconds to defer updates",10);
+                                  "Time in milliseconds to defer updates",1);
 
 rfb::BoolParameter alwaysSetDeferUpdateTimer("AlwaysSetDeferUpdateTimer",
                   "Always reset the defer update timer on every change",false);
