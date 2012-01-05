@@ -887,7 +887,18 @@ void Viewport::popupContextMenu()
   // initialize context menu before display
   initContextMenu();
 
+#ifdef HAVE_FLTK_CURSOR
+  if (Fl::belowmouse() == this)
+    window()->cursor(FL_CURSOR_DEFAULT);
+#endif
+
   m = contextMenu->popup();
+
+#ifdef HAVE_FLTK_CURSOR
+  if (Fl::belowmouse() == this)
+    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+#endif
+
   if (m == NULL)
     return;
 
