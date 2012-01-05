@@ -887,6 +887,8 @@ void Viewport::popupContextMenu()
   // initialize context menu before display
   initContextMenu();
 
+  // Unfortunately FLTK doesn't reliably restore the mouse pointer for
+  // menus, so we have to help it out.
 #ifdef HAVE_FLTK_CURSOR
   if (Fl::belowmouse() == this)
     window()->cursor(FL_CURSOR_DEFAULT);
@@ -894,6 +896,7 @@ void Viewport::popupContextMenu()
 
   m = contextMenu->popup();
 
+  // Back to our proper mouse pointer.
 #ifdef HAVE_FLTK_CURSOR
   if (Fl::belowmouse() == this)
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
