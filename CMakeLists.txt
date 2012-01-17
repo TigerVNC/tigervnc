@@ -243,7 +243,7 @@ set(FLTK_SKIP_IMAGES TRUE)
 set(FLTK_SKIP_FORMS TRUE)
 find_package(FLTK)
 
-if(NOT APPLE)
+if(UNIX AND NOT APPLE)
   # No proper handling for extra X11 libs that FLTK might need...
   if(X11_Xft_FOUND)
     set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB})
