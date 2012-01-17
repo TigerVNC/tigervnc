@@ -229,6 +229,24 @@ else()
 endif(OPTION_USE_XFT)
 
 #######################################################################
+if(X11_Xfixes_FOUND)
+   option(OPTION_USE_XFIXES "use lib Xfixes" ON)
+endif(X11_Xfixes_FOUND)
+
+if(OPTION_USE_XFIXES)
+   set(HAVE_XFIXES ${X11_Xfixes_FOUND})
+endif(OPTION_USE_XFIXES)
+
+#######################################################################
+if(X11_Xcursor_FOUND)
+   option(OPTION_USE_XCURSOR "use lib Xcursor" ON)
+endif(X11_Xcursor_FOUND)
+
+if(OPTION_USE_XCURSOR)
+   set(HAVE_XCURSOR ${X11_Xcursor_FOUND})
+endif(OPTION_USE_XCURSOR)
+
+#######################################################################
 
 add_subdirectory(src)
 
