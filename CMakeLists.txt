@@ -29,7 +29,7 @@ add_definitions(-DPACKAGE_VERSION="${VERSION}")
 add_definitions(-DLOCALEDIR="${CMAKE_INSTALL_PREFIX}/share/locale")
 
 if(MSVC)
-  message(FATAL "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
+  message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
 endif()
 
 set(BUILD "")
