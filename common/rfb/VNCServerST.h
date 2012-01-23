@@ -82,6 +82,8 @@ namespace rfb {
 
     // Methods overridden from VNCServer
 
+    virtual void blockUpdates();
+    virtual void unblockUpdates();
     virtual void setPixelBuffer(PixelBuffer* pb, const ScreenSet& layout);
     virtual void setPixelBuffer(PixelBuffer* pb);
     virtual void setScreenLayout(const ScreenSet& layout);
@@ -209,6 +211,7 @@ namespace rfb {
 
     SDesktop* desktop;
     bool desktopStarted;
+    int blockCounter;
     PixelBuffer* pb;
     ScreenSet screenLayout;
 

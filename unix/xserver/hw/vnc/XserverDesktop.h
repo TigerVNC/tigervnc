@@ -61,6 +61,8 @@ public:
 
   // methods called from X server code
   void serverReset(ScreenPtr pScreen);
+  void blockUpdates();
+  void unblockUpdates();
   void setFramebuffer(int w, int h, void* fbptr, int stride);
   void setColormap(ColormapPtr cmap);
   void setColourMapEntries(ColormapPtr pColormap, int ndef, xColorItem* pdef);

@@ -605,6 +605,11 @@ static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
   RegionRec reg;
   BoxRec box;
 
+  // We need to prevent the RFB core from accessing the framebuffer
+  // for a while as there might be updates thrown our way inside
+  // rrSetConfig (i.e. before we have a pointer to the new framebuffer).
+  vncHooksScreen->desktop->blockUpdates();
+
   rp->rrSetConfig = vncHooksScreen->RandRSetConfig;
   ret = (*rp->rrSetConfig)(pScreen, rotation, rate, pSize);
   rp->rrSetConfig = vncHooksRandRSetConfig;
@@ -616,6 +621,8 @@ static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
   vncHooksScreen->desktop->setFramebuffer(pScreen->width, pScreen->height,
                                           vncFbptr[pScreen->myNum],
                                           vncFbstride[pScreen->myNum]);
+
+  vncHooksScreen->desktop->unblockUpdates();
 
   // Mark entire screen as changed
   box.x1 = 0;

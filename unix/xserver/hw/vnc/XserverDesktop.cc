@@ -188,6 +188,16 @@ void XserverDesktop::serverReset(ScreenPtr pScreen_)
   cmap = (ColormapPtr) retval;
 }
 
+void XserverDesktop::blockUpdates()
+{
+  server->blockUpdates();
+}
+
+void XserverDesktop::unblockUpdates()
+{
+  server->unblockUpdates();
+}
+
 void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride)
 {
   width_ = w;

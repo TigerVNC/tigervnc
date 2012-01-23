@@ -47,6 +47,7 @@
 // otherwise blacklisted connections might be "forgotten".
 
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include <rfb/ServerCore.h>
@@ -77,7 +78,8 @@ rfb::BoolParameter alwaysSetDeferUpdateTimer("AlwaysSetDeferUpdateTimer",
 // -=- Constructors/Destructor
 
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
-  : blHosts(&blacklist), desktop(desktop_), desktopStarted(false), pb(0),
+  : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
+    blockCounter(0), pb(0),
     name(strDup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
@@ -258,6 +260,22 @@ int VNCServerST::checkTimeouts()
 
 
 // VNCServer methods
+
+void VNCServerST::blockUpdates()
+{
+  blockCounter++;
+}
+
+void VNCServerST::unblockUpdates()
+{
+  assert(blockCounter > 0);
+
+  blockCounter--;
+
+  // Flush out any updates we might have blocked
+  if (blockCounter == 0)
+    tryUpdate();
+}
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 {
@@ -545,6 +563,9 @@ void VNCServerST::tryUpdate()
 {
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
 
+  if (blockCounter > 0)
+    return;
+
   if (!checkDefer())
     return;
 
@@ -570,6 +591,10 @@ bool VNCServerST::checkUpdate()
 
   if (ui.is_empty() && !(renderCursor && renderedCursorInvalid))
     return true;
+
+  // Block clients as the frame buffer cannot be safely accessed
+  if (blockCounter > 0)
+    return false;
 
   // Block client from updating if we are currently deferring updates
   if (!checkDefer())

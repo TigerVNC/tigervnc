@@ -30,6 +30,13 @@ namespace rfb {
 
   class VNCServer : public UpdateTracker {
   public:
+    // blockUpdates()/unblockUpdates() tells the server that the pixel buffer
+    // is currently in flux and may not be accessed. The attributes of the
+    // pixel buffer may still be accessed, but not the frame buffer itself.
+    // Note that access must be unblocked the exact same number of times it
+    // was blocked.
+    virtual void blockUpdates() = 0;
+    virtual void unblockUpdates() = 0;
 
     // setPixelBuffer() tells the server to use the given pixel buffer (and
     // optionally a modified screen layout).  If this differs in size from
