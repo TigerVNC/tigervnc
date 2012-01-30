@@ -56,12 +56,12 @@ void TransImageGetter::setColourMapEntries(int firstCol, int nCols)
   PixelTransformer::setColourMapEntries(firstCol, nCols);
 }
 
-rdr::U8 *TransImageGetter::getRawPixelsRW(const Rect &r, int *stride)
+const rdr::U8 *TransImageGetter::getRawPixelsR(const Rect &r, int *stride)
 {
   if (!offset.equals(Point(0, 0)))
-    return pb->getPixelsRW(r.translate(offset.negate()), stride);
+    return pb->getPixelsR(r.translate(offset.negate()), stride);
   else
-    return pb->getPixelsRW(r, stride);
+    return pb->getPixelsR(r, stride);
 }
 
 void TransImageGetter::getImage(void* outPtr, const Rect& r, int outStride)

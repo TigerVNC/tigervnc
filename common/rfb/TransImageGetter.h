@@ -72,11 +72,11 @@ namespace rfb {
     // padding will be outStride-r.width() pixels).
     void getImage(void* outPtr, const Rect& r, int outStride=0);
 
-    // getRawPixelsRW() gets the given rectangle of data directly from the
+    // getRawPixelsR() gets the given rectangle of data directly from the
     // underlying PixelBuffer, bypassing the translation logic. Only use
     // this when doing something that's independent of the client's pixel
     // format.
-    rdr::U8 *getRawPixelsRW(const Rect &r, int *stride);
+    const rdr::U8 *getRawPixelsR(const Rect &r, int *stride);
 
     // setPixelBuffer() changes the pixel buffer to be used.  The new pixel
     // buffer MUST have the same pixel format as the old one - if not you

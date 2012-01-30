@@ -189,10 +189,10 @@ unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count)
 
 void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 {
-  int stride = r.width();
+  int stride;
   rdr::U32 solidColor;
-  PIXEL_T *pixels = (PIXEL_T *)ig->getRawPixelsRW(r, &stride);
-  bool grayScaleJPEG = (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1);
+  const rdr::U8 *rawPixels;
+  PIXEL_T *pixels;
 
 #if (BPP == 32)
   // Check if it's necessary to pack 24-bit pixels, and
@@ -200,37 +200,45 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
   pack24 = clientpf.is888();
 #endif
 
+  rawPixels = ig->getRawPixelsR(r, &stride);
+  pixels = NULL;
+
   if (forceSolid) {
+    // Forced solid block
     palNumColors = 1;
-    if (ig->willTransform()) {
-      ig->translatePixels(pixels, &solidColor, 1);
-      pixels = (PIXEL_T *)&solidColor;
-    }
-  }
-  else {
+    ig->translatePixels(rawPixels, &solidColor, 1);
+    pixels = (PIXEL_T *)&solidColor;
+  } else if (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1) {
+    // Forced gray scale (JPEG)
+    palNumColors = 0;
+  } else {
+    // Normal analysis
     palMaxColors = r.area() / pconf->idxMaxColorsDivisor;
-    if (jpegQuality != -1) palMaxColors = pconf->palMaxColorsWithJPEG;
-    if (palMaxColors < 2 && r.area() >= pconf->monoMinRectSize) {
+
+    if (jpegQuality != -1)
+      palMaxColors = pconf->palMaxColorsWithJPEG;
+
+    if (palMaxColors < 2 && r.area() >= pconf->monoMinRectSize)
       palMaxColors = 2;
-    }
 
     if (clientpf.equal(serverpf) && clientpf.bpp >= 16) {
-      // This is so we can avoid translating the pixels when compressing
-      // with JPEG, since it is unnecessary
-      if (grayScaleJPEG) palNumColors = 0;
-      else FAST_FILL_PALETTE(pixels, stride, r);
+      // No conversion, so just analyse the raw buffer
+      FAST_FILL_PALETTE(rawPixels, stride, r);
+
+      // JPEG reads from the raw buffer and has its own output buffer,
+      // but the other encodings need some help.
       if(palNumColors != 0 || jpegQuality == -1) {
         pixels = (PIXEL_T *)writer->getImageBuf(r.area());
         stride = r.width();
         ig->getImage(pixels, r);
       }
-    }
-    else {
+    } else {
+      // Need to do the conversion first so we have something to analyse
       pixels = (PIXEL_T *)writer->getImageBuf(r.area());
       stride = r.width();
       ig->getImage(pixels, r);
-      if (grayScaleJPEG) palNumColors = 0;
-      else FILL_PALETTE(pixels, r.area());
+
+      FILL_PALETTE(pixels, r.area());
     }
   }
 
@@ -239,7 +247,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
     // Truecolor image
 #if (BPP != 8)
     if (jpegQuality != -1) {
-      ENCODE_JPEG_RECT(pixels, stride, r, os);
+      encodeJpegRect(r, os);
       break;
     }
 #endif
@@ -396,23 +404,6 @@ void ENCODE_INDEXED_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
 #endif  // #if (BPP != 8)
 
 //
-// JPEG compression.
-//
-
-#if (BPP != 8)
-void ENCODE_JPEG_RECT (PIXEL_T *buf, int stride, const Rect& r,
-                       rdr::OutStream *os)
-{
-  jc.clear();
-  jc.compress((rdr::U8 *)buf, stride * clientpf.bpp / 8, r, clientpf,
-    jpegQuality, jpegSubsampling);
-  os->writeU8(0x09 << 4);
-  os->writeCompactLength(jc.length());
-  os->writeBytes(jc.data(), jc.length());
-}
-#endif  // #if (BPP != 8)
-
-//
 // Determine the number of colors in the rectangle, and fill in the palette.
 //
 
@@ -458,7 +449,7 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   }
 }
 
-void FAST_FILL_PALETTE (PIXEL_T *data, int stride, const Rect& r)
+void FAST_FILL_PALETTE (const rdr::U8 *buffer, int stride, const Rect& r)
 {
 }
 
@@ -523,13 +514,16 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   paletteInsert (ci, (rdr::U32)ni, BPP);
 }
 
-void FAST_FILL_PALETTE (PIXEL_T *data, int stride, const Rect& r)
+void FAST_FILL_PALETTE (const rdr::U8 *buffer, int stride, const Rect& r)
 {
   PIXEL_T c0, c1, ci = 0, mask, c0t, c1t, cit;
   int n0, n1, ni;
   int w = r.width(), h = r.height();
-  PIXEL_T *rowptr, *colptr, *rowptr2, *colptr2, *dataend = &data[stride * h];
+  const PIXEL_T *data, *rowptr, *colptr, *rowptr2, *colptr2, *dataend;
   bool willTransform = ig->willTransform();
+
+  data = (const PIXEL_T*)buffer;
+  dataend = &data[stride * h];
 
   if (willTransform) {
     mask = serverpf.redMax << serverpf.redShift;
@@ -636,11 +630,12 @@ void FAST_FILL_PALETTE (PIXEL_T *data, int stride, const Rect& r)
 
 bool CHECK_SOLID_TILE(Rect& r, rdr::U32 *colorPtr, bool needSameColor)
 {
-  PIXEL_T *buf, colorValue;
+  const PIXEL_T *buf;
+  PIXEL_T colorValue;
   int w = r.width(), h = r.height();
 
   int stride = w;
-  buf = (PIXEL_T *)ig->getRawPixelsRW(r, &stride);
+  buf = (const PIXEL_T *)ig->getRawPixelsR(r, &stride);
 
   colorValue = *buf;
   if (needSameColor && (rdr::U32)colorValue != *colorPtr)
@@ -648,7 +643,7 @@ bool CHECK_SOLID_TILE(Rect& r, rdr::U32 *colorPtr, bool needSameColor)
 
   int bufPad = stride - w;
   while (h > 0) {
-    PIXEL_T *bufEndOfRow = buf + w;
+    const PIXEL_T *bufEndOfRow = buf + w;
     while (buf < bufEndOfRow) {
       if (colorValue != *(buf++))
         return false;

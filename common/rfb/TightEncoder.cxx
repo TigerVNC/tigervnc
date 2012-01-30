@@ -418,3 +418,19 @@ void TightEncoder::writeSubrect(const Rect& r, bool forceSolid)
   os->writeBytes(mos.data(), mos.length());
   writer->endRect();
 }
+
+void TightEncoder::encodeJpegRect(const Rect& r, rdr::OutStream *os)
+{
+  const rdr::U8 *buf;
+  int stride;
+
+  buf = ig->getRawPixelsR(r, &stride);
+
+  jc.clear();
+  jc.compress(buf, stride * serverpf.bpp / 8, r, serverpf,
+              jpegQuality, jpegSubsampling);
+
+  os->writeU8(0x09 << 4);
+  os->writeCompactLength(jc.length());
+  os->writeBytes(jc.data(), jc.length());
+}
