@@ -51,7 +51,7 @@
 // large (for 16bpp, the table needs 64K entries).
 
 void transSimpleINtoOUT (void* table_,
-                         const PixelFormat& inPF, void* inPtr, int inStride,
+                         const PixelFormat& inPF, const void* inPtr, int inStride,
                          const PixelFormat& outPF, void* outPtr, int outStride,
                          int width, int height)
 {
@@ -85,7 +85,7 @@ void transSimpleINtoOUT (void* table_,
 // into two different functions for efficiency.
 
 void transRGBINtoOUT (void* table,
-                      const PixelFormat& inPF, void* inPtr, int inStride,
+                      const PixelFormat& inPF, const void* inPtr, int inStride,
                       const PixelFormat& outPF, void* outPtr, int outStride,
                       int width, int height)
 {
@@ -115,7 +115,7 @@ void transRGBINtoOUT (void* table,
 // colour cube index in a fourth table to yield a pixel value.
 
 void transRGBCubeINtoOUT (void* table,
-                          const PixelFormat& inPF, void* inPtr, int inStride,
+                          const PixelFormat& inPF, const void* inPtr, int inStride,
                           const PixelFormat& outPF, void* outPtr,
                           int outStride, int width, int height)
 {

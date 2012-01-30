@@ -141,7 +141,7 @@ JpegCompressor::~JpegCompressor(void)
   delete cinfo;
 }
 
-void JpegCompressor::compress(rdr::U8 *buf, int pitch, const Rect& r,
+void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
   const PixelFormat& pf, int quality, JPEG_SUBSAMP subsamp)
 {
   int w = r.width();

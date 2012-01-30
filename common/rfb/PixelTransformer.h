@@ -27,7 +27,7 @@
 
 namespace rfb {
   typedef void (*transFnType)(void* table_,
-                              const PixelFormat& inPF, void* inPtr,
+                              const PixelFormat& inPF, const void* inPtr,
                               int inStride,
                               const PixelFormat& outPF, void* outPtr,
                               int outStride, int width, int height);
@@ -78,11 +78,11 @@ namespace rfb {
     // putting it into the buffer pointed to by outPtr.  The pixels at inPtr
     // should be in the format given by inPF to init(), and the translated
     // pixels will be in the format given by the outPF argument to init().
-    void translatePixels(void* inPtr, void* outPtr, int nPixels) const;
+    void translatePixels(const void* inPtr, void* outPtr, int nPixels) const;
 
     // Similar to translatePixels() but handles an arbitrary region of
     // two pixel buffers.
-    void translateRect(void* inPtr, int inStride, Rect inRect,
+    void translateRect(const void* inPtr, int inStride, Rect inRect,
                        void* outPtr, int outStride, Point outCoord) const;
 
     bool willTransform(void);

@@ -31,7 +31,7 @@
 using namespace rfb;
 
 static void noTransFn(void* table_,
-                      const PixelFormat& inPF, void* inPtr, int inStride,
+                      const PixelFormat& inPF, const void* inPtr, int inStride,
                       const PixelFormat& outPF, void* outPtr, int outStride,
                       int width, int height)
 {
@@ -289,7 +289,7 @@ void PixelTransformer::setColourMapEntries(int firstCol, int nCols)
   }
 }
 
-void PixelTransformer::translatePixels(void* inPtr, void* outPtr,
+void PixelTransformer::translatePixels(const void* inPtr, void* outPtr,
                                        int nPixels) const
 {
   if (!transFn)
@@ -299,7 +299,7 @@ void PixelTransformer::translatePixels(void* inPtr, void* outPtr,
              outPF, outPtr, nPixels, nPixels, 1);
 }
 
-void PixelTransformer::translateRect(void* inPtr, int inStride,
+void PixelTransformer::translateRect(const void* inPtr, int inStride,
                                      Rect inRect,
                                      void* outPtr, int outStride,
                                      Point outCoord) const
