@@ -1,4 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2005 Martin Koegler
+ * Copyright (C) 2010-2012 TigerVNC Team
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,26 +18,27 @@
  * USA.
  */
 
-//
-// A JavaOutStream writes to a java.io.OutputStream
-//
-
 package com.tigervnc.rdr;
 
-public class JavaOutStream extends OutStream {
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
+import javax.net.ssl.*;
+
+import com.tigervnc.network.*;
+
+public class TLSOutStream extends OutStream {
 
   static final int defaultBufSize = 16384;
-  static final int minBulkSize = 1024;
 
-  public JavaOutStream(java.io.OutputStream jos_, int bufSize_) {
-    jos = jos_;
-    bufSize = bufSize_;
+  public TLSOutStream(OutStream _out, SSLEngineManager _manager) {
+    manager = _manager;
+    out = (FdOutStream)_out;
+    SSLSession session = manager.getSession();
+    bufSize = session.getApplicationBufferSize();
     b = new byte[bufSize];
     ptr = offset = start = 0;
     end = start + bufSize;
   }
-
-  public JavaOutStream(java.io.OutputStream jos) { this(jos, defaultBufSize); }
 
   public int length() 
   { 
@@ -46,21 +49,19 @@ public class JavaOutStream extends OutStream {
   {
     int sentUpTo = start;
     while (sentUpTo < ptr) {
-      try {
-        jos.write(b, sentUpTo, ptr - sentUpTo);
-        sentUpTo += ptr - sentUpTo;
-        offset += ptr - sentUpTo;
-      } catch (java.io.IOException e) {
-        throw new IOException(e);
-      }
+      int n = writeTLS(b, sentUpTo, ptr - sentUpTo);
+      sentUpTo += n;
+      offset += n;
     }
+
     ptr = start;
+    //out.flush();
   }
 
   protected int overrun(int itemSize, int nItems) 
   {
     if (itemSize > bufSize)
-      throw new Exception("JavaOutStream overrun: max itemSize exceeded");
+      throw new Exception("TLSOutStream overrun: max itemSize exceeded");
 
     flush();
 
@@ -70,7 +71,26 @@ public class JavaOutStream extends OutStream {
     return nItems;
   }
 
-  private java.io.OutputStream jos;
+  protected int writeTLS(byte[] data, int dataPtr, int length)
+  {
+    int n = 0;
+
+    try {
+      n = manager.write(data, dataPtr, length);
+    } catch (java.io.IOException e) {
+      throw new Exception(e.toString());
+    }
+    //if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
+    //  return 0;
+
+    //if (n < 0)
+    //  throw new TLSException("writeTLS", n);
+  
+    return n;
+  }
+
+  private SSLEngineManager manager;
+  private FdOutStream out;
   private int start;
   private int offset;
   private int bufSize;

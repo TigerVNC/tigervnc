@@ -20,6 +20,7 @@ package com.tigervnc.rfb;
 
 import java.util.*;
 
+import com.tigervnc.network.*;
 import com.tigervnc.rdr.*;
 
 abstract public class CConnection extends CMsgHandler {
@@ -347,10 +348,6 @@ abstract public class CConnection extends CMsgHandler {
   int serverPort;
   boolean useProtocol3_3 = false;
   boolean clientSecTypeOrder;
-  public static java.net.Socket sock;
-
-  public static java.net.Socket getSocket() { return sock; }
-  public static void setSocket(java.net.Socket sock_) { sock = sock_; }
 
   static LogWriter vlog = new LogWriter("CConnection");
 }

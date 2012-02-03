@@ -23,6 +23,8 @@
 
 package com.tigervnc.rdr;
 
+import com.tigervnc.network.*;
+
 abstract public class OutStream {
 
   // check() ensures there is buffer space for at least one item of size

@@ -23,6 +23,8 @@
 
 package com.tigervnc.rdr;
 
+import com.tigervnc.network.*;
+
 abstract public class InStream {
 
   // check() ensures there is buffer data for at least one item of size

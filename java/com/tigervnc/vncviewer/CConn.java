@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2012 TigerVNC Team
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +46,9 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.*;
 import javax.swing.ImageIcon;
+import java.net.InetSocketAddress;
 import java.net.URL;
+import java.net.SocketException;
 import java.util.*;
 
 import com.tigervnc.rdr.*;
@@ -53,6 +56,8 @@ import com.tigervnc.rfb.*;
 import com.tigervnc.rfb.Exception;
 import com.tigervnc.rfb.Point;
 import com.tigervnc.rfb.Rect;
+import com.tigervnc.network.Socket;
+import com.tigervnc.network.TcpSocket;
 
 class ViewportFrame extends JFrame
 {
@@ -68,7 +73,7 @@ class ViewportFrame extends JFrame
     });
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        cc.close();
+        cc.deleteWindow();
       }
     });
     addComponentListener(new ComponentAdapter() {
@@ -141,12 +146,12 @@ class ViewportFrame extends JFrame
 }
 
 public class CConn extends CConnection
-  implements UserPasswdGetter, UserMsgBox, OptionsDialogCallback
+  implements UserPasswdGetter, UserMsgBox, OptionsDialogCallback, FdInStreamBlockCallback
 {
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the RFB thread
 
-  public CConn(VncViewer viewer_, java.net.Socket sock_, 
+  public CConn(VncViewer viewer_, Socket sock_, 
                String vncServerName, boolean reverse) 
   {
     serverHost = null; serverPort = 0; sock = sock_; viewer = viewer_; 
@@ -184,7 +189,7 @@ public class CConn extends CConnection
     initMenu();
 
     if (sock != null) {
-      String name = sock.getRemoteSocketAddress()+"::"+sock.getPort();
+      String name = sock.getPeerEndpoint();
       vlog.info("Accepted connection from "+name);
     } else {
       if (vncServerName != null) {
@@ -201,26 +206,17 @@ public class CConn extends CConnection
       }
 
       try {
-        sock = new java.net.Socket(serverHost, serverPort);
-      } catch (java.io.IOException e) { 
+        sock = new TcpSocket(serverHost, serverPort);
+      } catch (java.lang.Exception e) {
         throw new Exception(e.toString());
       }
       vlog.info("connected to host "+serverHost+" port "+serverPort);
     }
 
-    sameMachine = (sock.getLocalSocketAddress() == sock.getRemoteSocketAddress());
-    try {
-      sock.setTcpNoDelay(true);
-      sock.setTrafficClass(0x10);
-      setServerName(serverHost);
-      jis = new JavaInStream(sock.getInputStream());
-      jos = new JavaOutStream(sock.getOutputStream());
-    } catch (java.net.SocketException e) {
-      throw new Exception(e.toString());
-    } catch (java.io.IOException e) { 
-      throw new Exception(e.toString());
-    }
-    setStreams(jis, jos);
+    sameMachine = sock.sameMachine();
+    sock.inStream().setBlockCallback(this);
+    setServerName(serverHost);
+    setStreams(sock.inStream(), sock.outStream());
     initialiseProtocol();
   }
 
@@ -236,7 +232,19 @@ public class CConn extends CConnection
     if (viewport != null)
       viewport.dispose();
     viewport = null;
+    System.exit(1);
   } 
+
+  // blockCallback() is called when reading from the socket would block.
+  public void blockCallback() {
+    try {
+      synchronized(this) {
+        wait(1);
+      }
+    } catch (java.lang.InterruptedException e) {
+      throw new Exception(e.toString());
+    }
+  }  
 
   // getUserPasswd() is called by the CSecurity object when it needs us to read
   // a password from the user.
@@ -342,18 +350,14 @@ public class CConn extends CConnection
   public void clientRedirect(int port, String host, 
                              String x509subject) {
     try {
-      getSocket().close();
+      sock.close();
       setServerPort(port);
-      sock = new java.net.Socket(host, port);
-      sock.setTcpNoDelay(true);
-      sock.setTrafficClass(0x10);
-      setSocket(sock);
+      sock = new TcpSocket(host, port);
       vlog.info("Redirected to "+host+":"+port);
-      setStreams(new JavaInStream(sock.getInputStream()),
-                 new JavaOutStream(sock.getOutputStream()));
+      setStreams(sock.inStream(), sock.outStream());
       initialiseProtocol();
-    } catch (java.io.IOException e) {
-      e.printStackTrace();
+    } catch (java.lang.Exception e) {
+      throw new Exception(e.toString());
     }
   }
 
@@ -455,14 +459,14 @@ public class CConn extends CConnection
   // avoid skewing the bandwidth estimation as a result of the server
   // being slow or the network having high latency
   public void beginRect(Rect r, int encoding) {
-    ((JavaInStream)getInStream()).startTiming();
+    sock.inStream().startTiming();
     if (encoding != Encodings.encodingCopyRect) {
       lastServerEncoding = encoding;
     }
   }
 
   public void endRect(Rect r, int encoding) {
-    ((JavaInStream)getInStream()).stopTiming();
+    sock.inStream().stopTiming();
   }
 
   public void fillRect(Rect r, int p) {
@@ -579,8 +583,8 @@ public class CConn extends CConnection
   //         with something more intelligent at the server end.
   //
   private void autoSelectFormatAndEncoding() {
-    long kbitsPerSecond = ((JavaInStream)getInStream()).kbitsPerSecond();
-    long timeWaited = ((JavaInStream)getInStream()).timeWaited();
+    long kbitsPerSecond = sock.inStream().kbitsPerSecond();
+    long timeWaited = sock.inStream().timeWaited();
     boolean newFullColour = fullColour;
     int newQualityLevel = cp.qualityLevel;
 
@@ -673,12 +677,8 @@ public class CConn extends CConnection
 
   // close() closes the socket, thus waking up the RFB thread.
   public void close() {
-    try {
-      shuttingDown = true;
-      sock.close();
-    } catch (java.io.IOException e) {
-      e.printStackTrace();
-    }
+    shuttingDown = true;
+    sock.shutdown();
   }
 
   // Menu callbacks.  These are guaranteed only to be called after serverInit()
@@ -718,13 +718,13 @@ public class CConn extends CConnection
   void showInfo() {
     JOptionPane.showMessageDialog(viewport,
       "Desktop name: "+cp.name()+"\n"
-      +"Host: "+serverHost+":"+sock.getPort()+"\n"
+      +"Host: "+serverHost+":"+serverPort+"\n"
       +"Size: "+cp.width+"x"+cp.height+"\n"
       +"Pixel format: "+desktop.getPF().print()+"\n"
       +"(server default "+serverPF.print()+")\n"
       +"Requested encoding: "+Encodings.encodingName(currentEncoding)+"\n"
       +"Last used encoding: "+Encodings.encodingName(lastServerEncoding)+"\n"
-      +"Line speed estimate: "+((JavaInStream)getInStream()).kbitsPerSecond()+" kbit/s"+"\n"
+      +"Line speed estimate: "+sock.inStream().kbitsPerSecond()+" kbit/s"+"\n"
       +"Protocol version: "+cp.majorVersion+"."+cp.minorVersion+"\n"
       +"Security method: "+Security.secTypeName(csecurity.getType())
        +" ["+csecurity.description()+"]",
@@ -1276,8 +1276,6 @@ public class CConn extends CConnection
   }
 
   // the following never change so need no synchronization:
-  JavaInStream jis;
-  JavaOutStream jos;
 
 
   // viewer object is only ever accessed by the GUI thread so needs no
@@ -1319,6 +1317,7 @@ public class CConn extends CConnection
 
   public String serverHost;
   public int serverPort;
+  public Socket sock;
   public int menuKey;
   PixelFormat serverPF;
   ViewportFrame viewport;

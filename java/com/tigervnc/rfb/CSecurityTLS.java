@@ -1,5 +1,8 @@
 /*
- * Copyright (C) 2003 Sun Microsystems, Inc.
+ * Copyright (C) 2004 Red Hat Inc.
+ * Copyright (C) 2005 Martin Koegler
+ * Copyright (C) 2010 m-privacy GmbH
+ * Copyright (C) 2010-2012 TigerVNC Team
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +23,7 @@
 package com.tigervnc.rfb;
 
 import javax.net.ssl.*;
+import java.security.*;
 import java.security.cert.*;
 import java.security.KeyStore;
 import java.io.File;
@@ -31,6 +35,9 @@ import javax.swing.JOptionPane;
 
 import com.tigervnc.vncviewer.UserPrefs;
 import com.tigervnc.rdr.*;
+import com.tigervnc.network.*;
+import java.util.concurrent.Executors;
+import java.nio.channels.SelectionKey;
 
 public class CSecurityTLS extends CSecurity {
 
@@ -43,54 +50,24 @@ public class CSecurityTLS extends CSecurity {
 
   private void initGlobal() 
   {
-    try {
-      SSLSocketFactory sslfactory;
-      SSLContext ctx = SSLContext.getInstance("TLS");
-      if (anon) {
-        ctx.init(null, null, null);
-      } else {
-        TrustManager[] myTM = new TrustManager[] { 
-          new MyX509TrustManager() 
-        };
-        ctx.init (null, myTM, null);
-      }
-      sslfactory = ctx.getSocketFactory();
+    boolean globalInitDone = false;
+
+    if (!globalInitDone) {
       try {
-        ssl = (SSLSocket)sslfactory.createSocket(CConnection.sock,
-						  CConnection.sock.getInetAddress().getHostName(),
-						  CConnection.sock.getPort(), true);
-      } catch (java.io.IOException e) { 
+        ctx = SSLContext.getInstance("TLS");
+      } catch(NoSuchAlgorithmException e) {
         throw new Exception(e.toString());
       }
 
-      if (anon) {
-        String[] supported;
-        ArrayList<String> enabled = new ArrayList<String>();
-
-        supported = ssl.getSupportedCipherSuites();
-
-        for (int i = 0; i < supported.length; i++)
-          if (supported[i].matches("TLS_DH_anon.*"))
-	          enabled.add(supported[i]);
-
-        ssl.setEnabledCipherSuites(enabled.toArray(new String[0]));
-      } else {
-        ssl.setEnabledCipherSuites(ssl.getSupportedCipherSuites());
-      }
-
-      ssl.setEnabledProtocols(new String[]{"SSLv3","TLSv1"});
-      ssl.addHandshakeCompletedListener(new MyHandshakeListener());
-    }
-    catch (java.security.GeneralSecurityException e)
-    {
-      vlog.error ("TLS handshake failed " + e.toString ());
-      return;
+      globalInitDone = true;
     }
   }
 
   public CSecurityTLS(boolean _anon) 
   {
     anon = _anon;
+    session = null;
+    
     setDefaults();
     cafile = x509ca.getData(); 
     crlfile = x509crl.getData(); 
@@ -116,38 +93,96 @@ public class CSecurityTLS extends CSecurity {
       x509crl.setDefaultStr(crlDefault);
   }
 
+// FIXME:
+// Need to shutdown the connection cleanly
+
+// FIXME?
+// add a finalizer method that calls shutdown
+
   public boolean processMsg(CConnection cc) {
-    is = cc.getInStream();
+    is = (FdInStream)cc.getInStream();
+    os = (FdOutStream)cc.getOutStream();
+    client = cc;
 
     initGlobal();
 
-    if (!is.checkNoWait(1))
-      return false;
+    if (session == null) {
+      if (!is.checkNoWait(1))
+        return false;
 
-    if (is.readU8() == 0) {
-      int result = is.readU32();
-      String reason;
-      if (result == Security.secResultFailed ||
-          result == Security.secResultTooMany)
-        reason = is.readString();
-      else
-        reason = new String("Authentication failure (protocol error)");
-      throw new AuthFailureException(reason);
+      if (is.readU8() == 0) {
+        int result = is.readU32();
+        String reason;
+        if (result == Security.secResultFailed ||
+            result == Security.secResultTooMany)
+          reason = is.readString();
+        else
+          reason = new String("Authentication failure (protocol error)");
+        throw new AuthFailureException(reason);
+      }
+      
+      setParam();
+
     }
-
-    // SSLSocket.getSession blocks until the handshake is complete
-    session = ssl.getSession();
-    if (!session.isValid())
-      throw new Exception("TLS Handshake failed!");
 
     try {
-      cc.setStreams(new JavaInStream(ssl.getInputStream()),
-		                new JavaOutStream(ssl.getOutputStream()));
-    } catch (java.io.IOException e) { 
-      throw new Exception("Failed to set streams");
+      manager = new SSLEngineManager(engine, is, os);
+    } catch(java.lang.Exception e) {
+      System.out.println(e.toString());
     }
 
+    try {
+      manager.doHandshake();
+    } catch (java.lang.Exception e) {
+      throw new Exception(e.toString());
+    }
+
+    //checkSession();
+
+    cc.setStreams(new TLSInStream(is, manager),
+		              new TLSOutStream(os, manager));
     return true;
+  }
+
+  private void setParam() {
+
+    if (anon) {
+      try {
+        ctx.init(null, null, null);
+      } catch(KeyManagementException e) {
+        throw new AuthFailureException(e.toString());
+      }
+    } else {
+      try {
+        TrustManager[] myTM = new TrustManager[] { 
+          new MyX509TrustManager() 
+        };
+        ctx.init (null, myTM, null);
+      } catch (java.security.GeneralSecurityException e) {
+        throw new AuthFailureException(e.toString());
+      }
+    }
+    SSLSocketFactory sslfactory = ctx.getSocketFactory();
+    engine = ctx.createSSLEngine(client.getServerName(),
+                                 client.getServerPort());
+    engine.setUseClientMode(true);
+
+    if (anon) {
+      String[] supported;
+      ArrayList<String> enabled = new ArrayList<String>();
+
+      supported = engine.getSupportedCipherSuites();
+
+      for (int i = 0; i < supported.length; i++)
+        if (supported[i].matches("TLS_DH_anon.*"))
+	          enabled.add(supported[i]);
+
+      engine.setEnabledCipherSuites(enabled.toArray(new String[0]));
+    } else {
+      engine.setEnabledCipherSuites(engine.getSupportedCipherSuites());
+    }
+
+    engine.setEnabledProtocols(new String[]{"SSLv3","TLSv1"});
   }
 
   class MyHandshakeListener implements HandshakeCompletedListener {
@@ -233,16 +268,20 @@ public class CSecurityTLS extends CSecurity {
   public final String description() 
     { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
 
-
-  //protected void setParam();
   //protected void checkSession();
-  protected CConnection cc;
+  protected CConnection client;
 
-  private boolean anon;
+
+
+  private SSLContext ctx;
   private SSLSession session;
+  private SSLEngine engine;
+  private SSLEngineManager manager;
+  private boolean anon;
+
   private String cafile, crlfile;
-  private InStream is;
-  private SSLSocket ssl;
+  private FdInStream is;
+  private FdOutStream os;
 
   static LogWriter vlog = new LogWriter("CSecurityTLS");
 }

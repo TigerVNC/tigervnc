@@ -44,6 +44,7 @@ endforeach()
 file(GLOB DEPEND_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/com/tigervnc/rfb/*.java
   ${CMAKE_CURRENT_SOURCE_DIR}/com/tigervnc/rdr/*.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/com/tigervnc/network/*.java
   ${CMAKE_CURRENT_SOURCE_DIR}/com/jcraft/jzlib/*.java)
 
 string(REGEX REPLACE " " ";" JAVACFLAGS "${JAVACFLAGS}")
@@ -81,6 +82,7 @@ add_custom_command(OUTPUT VncViewer.jar
     com/tigervnc/vncviewer/*.class
     com/tigervnc/rfb/*.class
     com/tigervnc/rdr/*.class
+    com/tigervnc/network/*.class
     com/jcraft/jzlib/*.class
     com/tigervnc/vncviewer/tigervnc.png
     com/tigervnc/vncviewer/tigervnc.ico

@@ -34,14 +34,13 @@ import java.awt.Image;
 import java.io.InputStream;
 import java.io.IOException;
 import java.lang.Character;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.swing.*;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
+import com.tigervnc.network.*;
 
 public class VncViewer extends java.applet.Applet implements Runnable
 {
@@ -193,31 +192,32 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public void run() {
     CConn cc = null;
     Socket sock = null;
+
     if (listenMode.getValue()) {
       int port = 5500;
-      ServerSocket listener = null;
+
       if (vncServerName.getValue() != null && 
           Character.isDigit(vncServerName.getValue().charAt(0)))
         port = Integer.parseInt(vncServerName.getValue());
 
+      TcpListener listener = null;
       try {
-        listener = new ServerSocket(port);
-      } catch (IOException e) {
-        System.out.println("Could not listen on port: "+port);
-        System.exit(-1);
+        listener = new TcpListener(null, port);
+      } catch (java.lang.Exception e) {
+        System.out.println(e.toString());
+        System.exit(1);
       }
 
       vlog.info("Listening on port "+port);
 
-      try {
+      while (true) {
         sock = listener.accept();
-        listener.close();
-      } catch (IOException e) {
-        System.out.println("Accept failed: "+port);
-        System.exit(-1);
+        if (sock != null)
+          break;
+        //listener.close();
       }
-      
     }
+
     try {
       cc = new CConn(this, sock, vncServerName.getValue(), false);
       while (true)
