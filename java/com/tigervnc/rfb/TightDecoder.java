@@ -22,10 +22,9 @@ package com.tigervnc.rfb;
 import com.tigervnc.rdr.InStream;
 import com.tigervnc.rdr.ZlibInStream;
 import java.util.ArrayList;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import javax.imageio.ImageIO;
 import java.io.InputStream;
+import java.awt.image.PixelGrabber;
+import java.awt.*;
 
 public class TightDecoder extends Decoder {
 
@@ -42,6 +41,8 @@ public class TightDecoder extends Decoder {
   final static int rfbTightFilterPalette = 0x01;
   final static int rfbTightFilterGradient = 0x02;
   final static int rfbTightMinToCompress = 12;
+
+  final static Toolkit tk = Toolkit.getDefaultToolkit();
 
   public TightDecoder(CMsgReader reader_) { 
     reader = reader_; 
@@ -247,26 +248,19 @@ public class TightDecoder extends Decoder {
     is.readBytes(netbuf, 0, compressedLen);
 
     // Create an Image object from the JPEG data.
-    int imageType = BufferedImage.TYPE_4BYTE_ABGR_PRE;
+    Image jpeg = tk.createImage(netbuf);
         
     int w = r.width();
     int h = r.height();
-    BufferedImage jpeg = 
-      new BufferedImage(w, h, imageType);
-    jpeg.setAccelerationPriority(1);
-    try {
-      jpeg = ImageIO.read(new ByteArrayInputStream(netbuf));
-    } catch (java.io.IOException e) {
-      e.printStackTrace();
-    }
+
     int[] buf = reader.getImageBuf(w*h);
-    int[] pix = new int[3];
-    for (int y=0; y < h; y++) {
-      for (int x=0; x < w; x++) {
-        jpeg.getRaster().getPixel(x, y, pix);
-        buf[y*w+x] = (0xff << 24) | (pix[0] & 0xff) << 16 | (pix[1] & 0xff) << 8 | pix[2];
-      }
-    }
+    PixelGrabber pg = new PixelGrabber(jpeg, 0, 0, w, h, buf, 0, w);
+	  try {
+	    pg.grabPixels(0);
+	  } catch (InterruptedException e) {
+	    System.out.println("Tight Decoding: Wrong JPEG data received.");
+	  }
+
     jpeg.flush();
     handler.imageRect(r, buf);
   }
