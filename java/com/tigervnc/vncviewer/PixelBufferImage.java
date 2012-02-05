@@ -103,8 +103,7 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
   public void put(int x, int y, int w, int h, Graphics g) {
     if (ic != null) {
       ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
-      g.setClip(x, y, w, h);
-      ic.imageComplete(ImageConsumer.SINGLEFRAMEDONE);
+      desktop.repaint(x, y, w, h);
     }
   }
 
@@ -116,8 +115,7 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
     super.copyRect(x, y, w, h, srcX, srcY);
     if (ic == null) return;
     ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
-    g.setClip(x, y, w, h);
-    ic.imageComplete(ImageConsumer.SINGLEFRAMEDONE);
+    desktop.repaint(x, y, w, h);
   }
 
   // setColourMapEntries() changes some of the entries in the colourmap.
