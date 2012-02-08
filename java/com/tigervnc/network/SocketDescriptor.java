@@ -19,7 +19,6 @@
 package com.tigervnc.network;
 
 import java.io.IOException;
-import java.lang.Exception;
 
 import java.net.SocketAddress;
 import java.nio.*;
@@ -28,6 +27,8 @@ import java.nio.channels.spi.SelectorProvider;
 
 import java.util.Set;
 import java.util.Iterator;
+
+import com.tigervnc.rdr.Exception;
 
 public class SocketDescriptor extends SocketChannel 
                               implements FileDescriptor {
@@ -38,7 +39,7 @@ public class SocketDescriptor extends SocketChannel
       channel = SocketChannel.open();
       channel.configureBlocking(false);
       selector = Selector.open();
-    } catch (java.io.IOException e) {
+    } catch (IOException e) {
       throw new Exception(e.toString());
     }
     try {
@@ -54,11 +55,10 @@ public class SocketDescriptor extends SocketChannel
     try {
       n = channel.read(b);
     } catch (java.io.IOException e) {
-      System.out.println(e.toString());
       throw new Exception(e.toString());
     }
-    //if (n == 0)
-    //  throw new Exception;
+    if (n <= 0)
+      return (n == 0) ? -1 : 0;
     b.flip();
     b.get(buf, bufPtr, n);
     b.clear();
@@ -74,7 +74,6 @@ public class SocketDescriptor extends SocketChannel
     try {
       n = channel.write(b);
     } catch (java.io.IOException e) {
-      System.out.println(e.toString());
       throw new Exception(e.toString());
     }
     b.clear();
@@ -85,8 +84,7 @@ public class SocketDescriptor extends SocketChannel
     int n;
     try {
       n = selector.select(timeout);
-    } catch (Exception e) {
-      System.out.println(e.toString());
+    } catch (java.io.IOException e) {
       throw new Exception(e.toString());
     }
     Set keys = selector.selectedKeys();
@@ -104,13 +102,12 @@ public class SocketDescriptor extends SocketChannel
     return n;
   }
 
-  public int write(ByteBuffer buf) throws IOException {
+  public int write(ByteBuffer buf) throws Exception {
     int n = 0;
     try {
       n = channel.write(buf);
     } catch (java.io.IOException e) {
-      System.out.println(e.toString());
-      throw e;
+      throw new Exception(e.toString());
     }
     return n;
   }
@@ -122,7 +119,7 @@ public class SocketDescriptor extends SocketChannel
     try {
       n = channel.write(buf, offset, length);
     } catch (java.io.IOException e) {
-      System.out.println(e.toString());
+      throw new Exception(e.toString());
     }
     return n;
   }
@@ -132,8 +129,7 @@ public class SocketDescriptor extends SocketChannel
     try {
       n = channel.read(buf);
     } catch (java.io.IOException e) {
-      System.out.println(e.toString());
-      throw e;
+      throw new Exception(e.toString());
     }
     return n;
   }
@@ -145,7 +141,7 @@ public class SocketDescriptor extends SocketChannel
     try {
       n = channel.read(buf, offset, length);
     } catch (java.io.IOException e) {
-      System.out.println(e.toString());
+      throw new Exception(e.toString());
     }
     return n;
   }

@@ -21,13 +21,13 @@ package com.tigervnc.network;
 
 import com.tigervnc.rdr.FdInStream;
 import com.tigervnc.rdr.FdOutStream;
+import com.tigervnc.rdr.Exception;
 import com.tigervnc.rfb.LogWriter;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.*;
 import java.nio.channels.*;
@@ -46,7 +46,6 @@ public class TcpSocket extends Socket {
 
   public TcpSocket(SocketDescriptor sock, boolean close) {
     super(new FdInStream(sock), new FdOutStream(sock), true);
-    //this.sock = sock;
     closeFd = close;
   }
 
@@ -71,30 +70,29 @@ public class TcpSocket extends Socket {
 
     try {
       sock = new SocketDescriptor();
-    } catch(UnknownHostException e) {
-      throw new Exception("unable to create socket: "+e.toString());
+    } catch(Exception e) {
+      throw new SocketException("unable to create socket: "+e.toString());
     }
 
     /* Attempt to connect to the remote host */
     try {
       result = sock.connect(new InetSocketAddress(addr, port));
     } catch(java.io.IOException e) {
-      //throw new java.lang.Exception(e.getMessage());
-      System.out.println("connect failed: "+e.getMessage());
+      throw new SocketException("unable to connect:"+e.getMessage());
     }
 
     if (!result && sock.isConnectionPending()) {
       while (!result) {
         try {
           result = sock.finishConnect();
-        } catch(java.nio.channels.ClosedChannelException e) {
+        } catch(java.io.IOException e) {
           throw new Exception(e.getMessage());
         }
       }
     }
 
     if (!result)
-      throw new Exception("unable connect to socket");
+      throw new SocketException("unable connect to socket");
 
     // Disable Nagle's algorithm, to reduce latency
     enableNagles(sock, false);
@@ -154,8 +152,8 @@ public class TcpSocket extends Socket {
   public static boolean enableNagles(SocketChannel sock, boolean enable) {
     try {
       sock.socket().setTcpNoDelay(!enable);
-    } catch(SocketException e) {
-      vlog.error(e.getMessage());
+    } catch(java.net.SocketException e) {
+      vlog.error("unable to setsockopt TCP_NODELAY: "+e.getMessage());
       return false;
     }
     return true;

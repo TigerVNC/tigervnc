@@ -153,24 +153,22 @@ public class FdInStream extends InStream {
 
       try {
         n = fd.select(SelectionKey.OP_READ, timeoutms);
-      } catch (java.lang.Exception e) {
-        System.out.println(e.toString());
-        throw new Exception(e.toString());
+      } catch (Exception e) {
+        throw new SystemException("select:"+e.toString());
       }
         
           
       if (n > 0) break;
       if (!wait) return 0;
-      //if (blockCallback == null) throw TimedOut();
+      if (blockCallback == null) throw new TimedOut();
     
       blockCallback.blockCallback();
     }
 
     try {
       n = fd.read(buf, bufPtr, len);
-    } catch (java.lang.Exception e) {
-      System.out.println("read:"+e.toString());
-      throw new Exception(e.toString());
+    } catch (Exception e) {
+      throw new SystemException("read:"+e.toString());
     }
 
     if (n == 0) throw new EndOfStream();

@@ -1,5 +1,4 @@
-/* 
- * Copyright (C) 2012 TigerVNC Team.
+/* Copyright (C) 2012 TigerVNC Team
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +15,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
 package com.tigervnc.network;
 
-import java.io.IOException;
-import com.tigervnc.rdr.Exception;
+import com.tigervnc.rdr.SystemException;
 
-public interface FileDescriptor {
-    
-  public int read(byte[] buf, int bufPtr, int length) throws Exception;
-  public int write(byte[] buf, int bufPtr, int length) throws Exception;
-  public int select(int interestOps, int timeout) throws Exception;
-  public void close() throws IOException;
-
+public class SocketException extends SystemException {
+  public SocketException(String s) {
+    super(s);
+  }
 }
+

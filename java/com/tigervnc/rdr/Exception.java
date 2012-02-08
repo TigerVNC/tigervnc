@@ -23,3 +23,15 @@ public class Exception extends RuntimeException {
     super(s);
   }
 }
+
+class TimedOut extends Exception {
+  public TimedOut() {
+    super("Timed out");
+  }
+}
+
+class FrameException extends Exception {
+  public FrameException() {
+    super("Frame Exception");
+  }
+}
