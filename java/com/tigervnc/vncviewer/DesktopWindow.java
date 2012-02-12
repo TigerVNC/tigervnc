@@ -85,8 +85,7 @@ class DesktopWindow extends JPanel implements
   // to work.
 
   synchronized public void initGraphics() { 
-    cc.viewport.g = cc.viewport.getGraphics(); 
-    graphics = getComponentGraphics(cc.viewport.g);
+    graphics = this.getGraphics();
     prepareImage(im.image, scaledWidth, scaledHeight, this);
   }
 
