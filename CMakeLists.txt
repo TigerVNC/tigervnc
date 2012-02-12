@@ -18,10 +18,10 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tigervnc)
-set(VERSION 1.1.91)
+set(VERSION 1.2.80)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,1,91,0)
+set(RCVERSION 1,2,80,0)
 
 # Compatibility variables for the migration from autotools
 add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")

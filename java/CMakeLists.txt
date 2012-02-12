@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(tigervnc-java Java)
-set(VERSION 1.1.91)
+set(VERSION 1.2.80)
 
 find_package(Java)
 
