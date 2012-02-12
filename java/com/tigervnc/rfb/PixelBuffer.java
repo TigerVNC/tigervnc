@@ -36,9 +36,17 @@ public class PixelBuffer {
       throw new Exception("Internal error: bpp must be 8, 16, or 32 in PixelBuffer ("+pf.bpp+")");
     format = pf;
     switch (pf.depth) {
+    case  3: 
+      // Fall-through to depth 8
+    case  6: 
+      // Fall-through to depth 8
     case  8: 
-      //cm = new IndexColorModel(8, 256, new byte[256], new byte[256], new byte[256]);
-      cm = new DirectColorModel(8, 7, (7 << 3), (3 << 6));
+      int rmask = pf.redMax << pf.redShift;
+      int gmask = pf.greenMax << pf.greenShift;
+      int bmask = pf.blueMax << pf.blueShift;
+      cm = new DirectColorModel(8, rmask, gmask, bmask);
+      if (pf.depth == 8 && !pf.trueColour)
+        cm = new IndexColorModel(8, 256, new byte[256], new byte[256], new byte[256]);
       break;
     case 16: 
       cm = new DirectColorModel(32, 0xF800, 0x07C0, 0x003E, (0xff << 24));

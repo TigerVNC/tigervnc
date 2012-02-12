@@ -35,6 +35,10 @@ public class MemOutStream extends OutStream {
   public void clear() { ptr = 0; };
   public void reposition(int pos) { ptr = pos; }
 
+  // data() returns a pointer to the buffer.
+
+  public final byte[] data() { return b; }
+
   // overrun() either doubles the buffer or adds enough space for nItems of
   // size itemSize bytes.
 

@@ -61,6 +61,16 @@ abstract public class CMsgHandler {
     cp.setName(name);
   }
 
+  public void fence(int flags, int len, byte[] data) 
+  {
+    cp.supportsFence = true;
+  }
+
+  public void endOfContinuousUpdates() 
+  {
+    cp.supportsContinuousUpdates = true;
+  }
+
   public void clientRedirect(int port, String host, 
                              String x509subject) {}
 

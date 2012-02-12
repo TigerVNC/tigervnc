@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,4 +66,42 @@ public class CMsgWriterV3 extends CMsgWriter {
 	
 	  endMsg();
 	}
+
+  public void writeFence(int flags, int len, byte[] data)
+  {
+    if (!cp.supportsFence)
+      throw new Exception("Server does not support fences");
+    if (len > 64)
+      throw new Exception("Too large fence payload");
+    if ((flags & ~fenceTypes.fenceFlagsSupported) != 0)
+      throw new Exception("Unknown fence flags");
+  
+    startMsg(MsgTypes.msgTypeClientFence);
+    os.pad(3);
+  
+    os.writeU32(flags);
+  
+    os.writeU8(len);
+    os.writeBytes(data, 0, len);
+  
+    endMsg();
+  }
+  
+  public void writeEnableContinuousUpdates(boolean enable,
+                                           int x, int y, int w, int h)
+  {
+    if (!cp.supportsContinuousUpdates)
+      throw new Exception("Server does not support continuous updates");
+  
+    startMsg(MsgTypes.msgTypeEnableContinuousUpdates);
+  
+    os.writeU8((enable?1:0));
+  
+    os.writeU16(x);
+    os.writeU16(y);
+    os.writeU16(w);
+    os.writeU16(h);
+  
+    endMsg();
+  }
 }

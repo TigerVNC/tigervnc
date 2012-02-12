@@ -51,6 +51,8 @@ public class CMsgReaderV3 extends CMsgReader {
       case MsgTypes.msgTypeSetColourMapEntries: readSetColourMapEntries(); break;
       case MsgTypes.msgTypeBell:                readBell(); break;
       case MsgTypes.msgTypeServerCutText:       readServerCutText(); break;
+      case MsgTypes.msgTypeServerFence:         readFence(); break;
+      case MsgTypes.msgTypeEndOfContinuousUpdates:  readEndOfContinuousUpdates(); break;
       default:
         vlog.error("unknown message type "+type);
         throw new Exception("unknown message type");
@@ -134,6 +136,33 @@ public class CMsgReaderV3 extends CMsgReader {
     }
   
     handler.setExtendedDesktopSize(x, y, w, h, layout);
+  }
+
+  void readFence()
+  {
+    int flags;
+    int len;
+    byte[] data = new byte[64];
+  
+    is.skip(3);
+  
+    flags = is.readU32();
+  
+    len = is.readU8();
+    if (len > data.length) {
+      System.out.println("Ignoring fence with too large payload\n");
+      is.skip(len);
+      return;
+    }
+  
+    is.readBytes(data, 0, len);
+    
+    handler.fence(flags, len, data);
+  }
+  
+  void readEndOfContinuousUpdates()
+  {
+    handler.endOfContinuousUpdates();
   }
 
   void readClientRedirect(int x, int y, int w, int h) 

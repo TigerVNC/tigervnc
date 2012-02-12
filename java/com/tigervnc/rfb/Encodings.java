@@ -1,4 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2012 TigerVNC Team.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +38,8 @@ public class Encodings {
   public static final int pseudoEncodingExtendedDesktopSize = -308;
   public static final int pseudoEncodingDesktopName = -307;
   public static final int pseudoEncodingClientRedirect = -311;
+  public static final int pseudoEncodingFence = -312;
+  public static final int pseudoEncodingContinuousUpdates = -313;
 
   // TightVNC-specific
   public static final int pseudoEncodingLastRect = -224;
@@ -43,6 +47,16 @@ public class Encodings {
   public static final int pseudoEncodingQualityLevel9 = -23;
   public static final int pseudoEncodingCompressLevel0 = -256;
   public static final int pseudoEncodingCompressLevel9 = -247;
+
+  // TurboVNC-specific
+  public static final int pseudoEncodingFineQualityLevel0 = -512;
+  public static final int pseudoEncodingFineQualityLevel100 = -412;
+  public static final int pseudoEncodingSubsamp1X = -768;
+  public static final int pseudoEncodingSubsamp4X = -767;
+  public static final int pseudoEncodingSubsamp2X = -766;
+  public static final int pseudoEncodingSubsampGray = -765;
+  public static final int pseudoEncodingSubsamp8X = -764;
+  public static final int pseudoEncodingSubsamp16X = -763;
 
   public static int encodingNum(String name) {
     if (name.equalsIgnoreCase("raw"))      return encodingRaw;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+/* Copyright 2011 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,24 +15,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+package com.tigervnc.rfb;
 
-package com.tigervnc.rdr;
+public class fenceTypes {
+  public static final int fenceFlagBlockBefore = 1<<0;
+  public static final int fenceFlagBlockAfter  = 1<<1;
+  public static final int fenceFlagSyncNext    = 1<<2;
 
-public class Exception extends RuntimeException {
-  public Exception(String s) {
-    super(s);
-    System.out.println(s);
-  }
-}
+  public static final int fenceFlagRequest     = 1<<31;
 
-class TimedOut extends Exception {
-  public TimedOut() {
-    super("Timed out");
-  }
-}
-
-class FrameException extends Exception {
-  public FrameException() {
-    super("Frame Exception");
-  }
+  public static final int fenceFlagsSupported  = (fenceFlagBlockBefore |
+                                                  fenceFlagBlockAfter |
+                                                  fenceFlagSyncNext |
+                                                  fenceFlagRequest);
 }

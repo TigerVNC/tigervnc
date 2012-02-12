@@ -59,9 +59,16 @@ abstract public class CMsgWriter {
       encodings[nEncodings++] = Encodings.pseudoEncodingDesktopName;
     if (cp.supportsClientRedirect)
       encodings[nEncodings++] = Encodings.pseudoEncodingClientRedirect;
+
+    encodings[nEncodings++] = Encodings.pseudoEncodingLastRect;
+    encodings[nEncodings++] = Encodings.pseudoEncodingContinuousUpdates;
+    encodings[nEncodings++] = Encodings.pseudoEncodingFence;
+    
+
     if (Decoder.supported(preferredEncoding)) {
       encodings[nEncodings++] = preferredEncoding;
     }
+
     if (useCopyRect) {
       encodings[nEncodings++] = Encodings.encodingCopyRect;
     }

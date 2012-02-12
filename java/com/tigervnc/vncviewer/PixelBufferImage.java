@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011-2012 TigerVNC Team.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,19 +36,10 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
     cc = cc_;
     desktop = desktop_;
     PixelFormat nativePF = getNativePF();
-    switch ((nativePF.depth > cc.serverPF.depth) ? cc.serverPF.depth : nativePF.depth) {
-    case  8: 
-      setPF(new PixelFormat(8,8,false,true,7,7,3,0,3,6));
-      break;
-    case 16: 
-      setPF(new PixelFormat(16,16,false,true,0xF800,0x07C0,0x003E,0,0,0));
-      break;
-    case 24: 
-      setPF(new PixelFormat(32,24,false,true,0xff,0xff,0xff,16,8,0));
-      break;
-    default:
-      setPF(new PixelFormat(8,8,false,true,7,7,3,0,3,6));
-      vlog.debug("Unsupported native PF, defaulting to depth 8");
+    if (nativePF.depth > cc.serverPF.depth) {
+      setPF(cc.serverPF);
+    } else {
+      setPF(nativePF);
     }
     resize(w, h);
   }

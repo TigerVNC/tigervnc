@@ -49,7 +49,7 @@ public class SocketDescriptor extends SocketChannel
     }
   }
 
-  public int read(byte[] buf, int bufPtr, int length) throws Exception {
+  synchronized public int read(byte[] buf, int bufPtr, int length) throws Exception {
     int n;
     ByteBuffer b = ByteBuffer.allocate(length);
     try {
@@ -66,7 +66,7 @@ public class SocketDescriptor extends SocketChannel
 
   }
 
-  public int write(byte[] buf, int bufPtr, int length) throws Exception {
+  synchronized public int write(byte[] buf, int bufPtr, int length) throws Exception {
     int n;
     ByteBuffer b = ByteBuffer.allocate(length);
     b.put(buf, bufPtr, length);
@@ -80,7 +80,7 @@ public class SocketDescriptor extends SocketChannel
     return n;
   }
 
-  public int select(int interestOps, int timeout) throws Exception {
+  synchronized public int select(int interestOps, int timeout) throws Exception {
     int n;
     try {
       n = selector.select(timeout);

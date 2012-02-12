@@ -1,4 +1,5 @@
-/* Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
+/* Copyright (C) 2011-2012 TigerVNC Team.
+ * Copyright (C) 2010 D. R. Commander.  All Rights Reserved.
  * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
  * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
@@ -178,6 +179,10 @@ class DesktopWindow extends JPanel implements
     return;
   }
 
+  public void setServerPF(PixelFormat pf) {
+    im.setPF(pf);
+  }
+
   public PixelFormat getPreferredPF() {
     return im.getNativePF();
   }
@@ -202,9 +207,8 @@ class DesktopWindow extends JPanel implements
     }
   }
 
-// Update the actual window with the changed parts of the framebuffer.
-
-  public void framebufferUpdateEnd()
+  // Update the actual window with the changed parts of the framebuffer.
+  public void updateWindow()
   {
     drawInvalidRect();
   }
@@ -246,17 +250,10 @@ class DesktopWindow extends JPanel implements
       invalidBottom = y + h;
       invalidRect = true;
     }
-
-    if ((invalidRight - invalidLeft) * (invalidBottom - invalidTop) > 100000)
-      drawInvalidRect();
   }
 
   public void beginRect(int x, int y, int w, int h, int encoding) {
     invalidRect = false;
-  }
-
-  public void endRect(int x, int y, int w, int h, int encoding) {
-    drawInvalidRect();
   }
 
   final public void fillRect(int x, int y, int w, int h, int pix)

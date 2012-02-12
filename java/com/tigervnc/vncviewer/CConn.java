@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2012 TigerVNC Team
+ * Copyright (C) 2011-2012 TigerVNC Team
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,27 +147,38 @@ class ViewportFrame extends JFrame
 public class CConn extends CConnection
   implements UserPasswdGetter, UserMsgBox, OptionsDialogCallback, FdInStreamBlockCallback
 {
+
+  public final PixelFormat getPreferredPF() { return fullColourPF; }
+  static final PixelFormat verylowColourPF = 
+    new PixelFormat(8, 3, false, true, 1, 1, 1, 2, 1, 0);
+  static final PixelFormat lowColourPF = 
+    new PixelFormat(8, 6, false, true, 3, 3, 3, 4, 2, 0);
+  static final PixelFormat mediumColourPF = 
+    new PixelFormat(8, 8, false, false, 7, 7, 3, 0, 3, 6);
+
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the RFB thread
 
   public CConn(VncViewer viewer_, Socket sock_, 
-               String vncServerName, boolean reverse) 
+               String vncServerName) 
   {
     serverHost = null; serverPort = 0; sock = sock_; viewer = viewer_; 
+    pendingPFChange = false;
     currentEncoding = Encodings.encodingTight; lastServerEncoding = -1;
     fullColour = viewer.fullColour.getValue();
     lowColourLevel = 2;
     autoSelect = viewer.autoSelect.getValue();
-    shared = viewer.shared.getValue(); formatChange = false;
-    encodingChange = false; sameMachine = false;
+    formatChange = false; encodingChange = false;
     fullScreen = viewer.fullScreen.getValue();
     menuKey = Keysyms.F8;
     options = new OptionsDialog(this);
     options.initDialog();
     clipboardDialog = new ClipboardDialog(this);
-    firstUpdate = true; pendingUpdate = false;
+    firstUpdate = true; pendingUpdate = false; continuousUpdates = false; 
+    forceNonincremental = true; supportsSyncFence = false;
+    
 
-    setShared(shared);
+    setShared(viewer.shared.getValue());
     upg = this;
     msg = this;
 
@@ -212,12 +223,22 @@ public class CConn extends CConnection
       vlog.info("connected to host "+serverHost+" port "+serverPort);
     }
 
-    sameMachine = sock.sameMachine();
     sock.inStream().setBlockCallback(this);
     setServerName(serverHost);
     setStreams(sock.inStream(), sock.outStream());
     initialiseProtocol();
   }
+
+  public void refreshFramebuffer()
+  {
+    forceNonincremental = true;
+
+    // Without fences, we cannot safely trigger an update request directly
+    // but must wait for the next update to arrive.
+    if (supportsSyncFence)
+      requestNewUpdate();
+  }
+  
 
   public boolean showMsgBox(int flags, String title, String text)
   {
@@ -308,20 +329,28 @@ public class CConn extends CConnection
 
     // If using AutoSelect with old servers, start in FullColor
     // mode. See comment in autoSelectFormatAndEncoding. 
-    if (cp.beforeVersion(3, 8) && autoSelect) {
+    if (cp.beforeVersion(3, 8) && autoSelect)
       fullColour = true;
-    }
 
     serverPF = cp.pf();
+
     desktop = new DesktopWindow(cp.width, cp.height, serverPF, this);
-    //desktopEventHandler = desktop.setEventHandler(this);
-    //desktop.addEventMask(KeyPressMask | KeyReleaseMask);
     fullColourPF = desktop.getPreferredPF();
-    if (!serverPF.trueColour)
-      fullColour = true;
-    recreateViewport();
+
+    // Force a switch to the format and encoding we'd like
     formatChange = true; encodingChange = true;
+
+    // And kick off the update cycle
     requestNewUpdate();
+
+    // This initial update request is a bit of a corner case, so we need
+    // to help out setting the correct format here.
+    assert(pendingPFChange);
+    desktop.setServerPF(pendingPF);
+    cp.setPF(pendingPF);
+    pendingPFChange = false;
+
+    recreateViewport();
   }
 
   // setDesktopSize() is called when the desktop size changes (including when
@@ -372,26 +401,34 @@ public class CConn extends CConnection
   // framebufferUpdateStart() is called at the beginning of an update.
   // Here we try to send out a new framebuffer update request so that the
   // next update can be sent out in parallel with us decoding the current
-  // one. We cannot do this if we're in the middle of a format change
-  // though.
-  public void framebufferUpdateStart() {
-    if (!formatChange) {
-      pendingUpdate = true;
-      requestNewUpdate();
-    } else 
-      pendingUpdate = false;
+  // one. 
+  public void framebufferUpdateStart() 
+  {
+    // Note: This might not be true if sync fences are supported
+    pendingUpdate = false;
+
+    requestNewUpdate();
   }
 
   // framebufferUpdateEnd() is called at the end of an update.
   // For each rectangle, the FdInStream will have timed the speed
   // of the connection, allowing us to select format and encoding
   // appropriately, and then request another incremental update.
-  public void framebufferUpdateEnd() {
-    desktop.framebufferUpdateEnd();
+  public void framebufferUpdateEnd() 
+  {
+
+    desktop.updateWindow();
 
     if (firstUpdate) {
       int width, height;
       
+      // We need fences to make extra update requests and continuous
+      // updates "safe". See fence() for the next step.
+      if (cp.supportsFence)
+        synchronized(this) {
+          writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext, 0, null);
+        }
+
       if (cp.supportsSetDesktopSize &&
           viewer.desktopSize.getValue() != null &&
           viewer.desktopSize.getValue().split("x").length == 2) {
@@ -422,16 +459,21 @@ public class CConn extends CConnection
         screen0.dimensions.br.x = width;
         screen0.dimensions.br.y = height;
 
-        writer().writeSetDesktopSize(width, height, layout);
+        synchronized(this) {
+          writer().writeSetDesktopSize(width, height, layout);
+        }
       }
 
       firstUpdate = false;
     }
 
-    // A format change prevented us from sending this before the update,
-    // so make sure to send it now.
-    if (formatChange && !pendingUpdate)
-      requestNewUpdate();
+    // A format change has been scheduled and we are now past the update
+    // with the old format. Time to active the new one.
+    if (pendingPFChange) {
+      desktop.setServerPF(pendingPF);
+      cp.setPF(pendingPF);
+      pendingPFChange = false;
+    }
 
     // Compute new settings based on updated bandwidth values
     if (autoSelect)
@@ -480,20 +522,61 @@ public class CConn extends CConnection
     desktop.copyRect(r.tl.x, r.tl.y, r.width(), r.height(), sx, sy);
   }
 
-  public PixelFormat getPreferredPF() {
-    return fullColourPF;
-  }
-
   public void setCursor(int width, int height, Point hotspot,
                         int[] data, byte[] mask) {
     desktop.setCursor(width, height, hotspot, data, mask);
   }
 
+  public void fence(int flags, int len, byte[] data)
+  {
+    super.fence(flags, len, data);
+  
+    if ((flags & fenceTypes.fenceFlagRequest) != 0) {
+      // We handle everything synchronously so we trivially honor these modes
+      flags = flags & (fenceTypes.fenceFlagBlockBefore | fenceTypes.fenceFlagBlockAfter);
+  
+      synchronized(this) {
+        writer().writeFence(flags, len, data);
+      }
+      return;
+    }
+  
+    if (len == 0) {
+      // Initial probe
+      if ((flags & fenceTypes.fenceFlagSyncNext) != 0) {
+        supportsSyncFence = true;
+  
+        if (cp.supportsContinuousUpdates) {
+          vlog.info("Enabling continuous updates");
+          continuousUpdates = true;
+          synchronized(this) {
+            writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
+          }
+        }
+      }
+    } else {
+      // Pixel format change
+      MemInStream memStream = new MemInStream(data, 0, len);
+      PixelFormat pf = new PixelFormat();
+  
+      pf.read(memStream);
+  
+      desktop.setServerPF(pf);
+      cp.setPF(pf);
+    }
+  }
+
   private void resizeFramebuffer()
   {
-    if ((cp.width == 0) && (cp.height == 0))
-      return;
     if (desktop == null)
+      return;
+
+    if (continuousUpdates)
+      synchronized(this) {
+        writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
+      }
+
+    if ((cp.width == 0) && (cp.height == 0))
       return;
     if ((desktop.width() == cp.width) && (desktop.height() == cp.height))
       return;
@@ -639,34 +722,63 @@ public class CConn extends CConnection
   private void requestNewUpdate()
   {
     if (formatChange) {
+      PixelFormat pf;
 
       /* Catch incorrect requestNewUpdate calls */
-      assert(pendingUpdate == false);
+      assert(!pendingUpdate || supportsSyncFence);
 
       if (fullColour) {
-        desktop.setPF(fullColourPF);
+        pf = fullColourPF;
       } else {
         if (lowColourLevel == 0) {
-          desktop.setPF(new PixelFormat(8,3,false,true,1,1,1,2,1,0));
+          pf = verylowColourPF;
         } else if (lowColourLevel == 1) {
-          desktop.setPF(new PixelFormat(8,6,false,true,3,3,3,4,2,0));
+          pf = lowColourPF;
         } else {
-          desktop.setPF(new PixelFormat(8,8,false,true,7,7,3,0,3,6));
+          pf = mediumColourPF;
         }
       }
-      String str = desktop.getPF().print();
+
+      if (supportsSyncFence) {
+        // We let the fence carry the pixel format and switch once we
+        // get the response back. That way we will be synchronised with
+        // when the server switches.
+        MemOutStream memStream = new MemOutStream();
+  
+        pf.write(memStream);
+  
+        synchronized(this) {
+          writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext,
+                              memStream.length(), (byte[])memStream.data());
+        }
+      } else {
+        // New requests are sent out at the start of processing the last
+        // one, so we cannot switch our internal format right now (doing so
+        // would mean misdecoding the current update).
+        pendingPFChange = true;
+        pendingPF = pf;
+      }
+
+      String str = pf.print();
       vlog.info("Using pixel format "+str);
-      cp.setPF(desktop.getPF());
       synchronized (this) {
-        writer().writeSetPixelFormat(cp.pf());
+        writer().writeSetPixelFormat(pf);
+      }
+
+      formatChange = false;
+    }
+
+    checkEncodings();
+
+    if (forceNonincremental || !continuousUpdates) {
+      pendingUpdate = true;
+      synchronized (this) {
+        writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height),
+                                                   !formatChange);
       }
     }
-    checkEncodings();
-    synchronized (this) {
-      writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height),
-                                             !formatChange);
-    }
-    formatChange = false;
+
+    forceNonincremental = false;
   }
 
 
@@ -791,7 +903,7 @@ public class CConn extends CConnection
       options.secPlain.setEnabled(false);
       options.sendLocalUsername.setEnabled(false);
     } else {
-      options.shared.setSelected(shared);
+      options.shared.setSelected(viewer.shared.getValue());
 
       /* Process non-VeNCrypt sectypes */
       java.util.List<Integer> secTypes = new ArrayList<Integer>();
@@ -971,8 +1083,7 @@ public class CConn extends CConnection
     menuKey = (options.menuKey.getSelectedIndex()+0xFFBE);
     F8Menu.f8.setText("Send F"+(menuKey-Keysyms.F1+1));
 
-    shared = options.shared.isSelected();
-    setShared(shared);
+    setShared(options.shared.isSelected());
     viewer.useLocalCursor.setParam(options.useLocalCursor.isSelected());
     if (cp.supportsLocalCursor != viewer.useLocalCursor.getValue()) {
       cp.supportsLocalCursor = viewer.useLocalCursor.getValue();
@@ -1226,7 +1337,7 @@ public class CConn extends CConnection
   }
 
 
-  synchronized public void writeWheelEvent(MouseWheelEvent ev) {
+  public void writeWheelEvent(MouseWheelEvent ev) {
     if (state() != RFBSTATE_NORMAL) return;
     int x, y;
     int clicks = ev.getWheelRotation();
@@ -1239,9 +1350,11 @@ public class CConn extends CConnection
     for (int i=0;i<Math.abs(clicks);i++) {
       x = ev.getX();
       y = ev.getY();
-      writer().writePointerEvent(new Point(x, y), buttonMask);
-      buttonMask = 0;
-      writer().writePointerEvent(new Point(x, y), buttonMask);
+      synchronized(this) {
+        writer().writePointerEvent(new Point(x, y), buttonMask);
+        buttonMask = 0;
+        writer().writePointerEvent(new Point(x, y), buttonMask);
+      }
     }
     writeModifiers(0);
 
@@ -1265,10 +1378,12 @@ public class CConn extends CConnection
   // The following methods are called from both RFB and GUI threads
 
   // checkEncodings() sends a setEncodings message if one is needed.
-  synchronized private void checkEncodings() {
-    if (encodingChange && state() == RFBSTATE_NORMAL) {
+  private void checkEncodings() {
+    if (encodingChange && (writer() != null)) {
       vlog.info("Using "+Encodings.encodingName(currentEncoding)+" encoding");
-      writer().writeSetEncodings(currentEncoding, true);
+      synchronized(this) {
+        writer().writeSetEncodings(currentEncoding, true);
+      }
       encodingChange = false;
     }
   }
@@ -1296,7 +1411,6 @@ public class CConn extends CConnection
 
   // reading and writing int and boolean is atomic in java, so no
   // synchronization of the following flags is needed:
-  int currentEncoding, lastServerEncoding;
   
   int lowColourLevel;
 
@@ -1313,24 +1427,37 @@ public class CConn extends CConnection
   int buttonMask;
   int pressedModifiers;
 
-  public String serverHost;
-  public int serverPort;
-  public Socket sock;
+  private String serverHost;
+  private int serverPort;
+  private Socket sock;
+
+  protected DesktopWindow desktop;
+
+  // FIXME: should be private
+  public PixelFormat serverPF;
+  private PixelFormat fullColourPF;
+
+  private boolean pendingPFChange;
+  private PixelFormat pendingPF;
+
+  private int currentEncoding, lastServerEncoding;
+
+  private boolean formatChange;
+  private boolean encodingChange;
+
+  private boolean firstUpdate;
+  private boolean pendingUpdate;
+  private boolean continuousUpdates;
+
+  private boolean forceNonincremental;
+
+  private boolean supportsSyncFence;
+
   public int menuKey;
-  PixelFormat serverPF;
   ViewportFrame viewport;
-  DesktopWindow desktop;
-  PixelFormat fullColourPF;
-  boolean fullColour;
-  boolean autoSelect;
-  boolean shared;
-  boolean formatChange;
-  boolean encodingChange;
-  boolean sameMachine;
+  private boolean fullColour;
+  private boolean autoSelect;
   boolean fullScreen;
-  boolean reverseConnection;
-  boolean firstUpdate;
-  boolean pendingUpdate;
   
   static LogWriter vlog = new LogWriter("CConn");
 }

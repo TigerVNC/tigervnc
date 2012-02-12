@@ -219,7 +219,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
     }
 
     try {
-      cc = new CConn(this, sock, vncServerName.getValue(), false);
+      cc = new CConn(this, sock, vncServerName.getValue());
       while (true)
         cc.processMsg();
     } catch (EndOfStream e) {
