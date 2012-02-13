@@ -191,8 +191,9 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 {
   int stride;
   rdr::U32 solidColor;
-  const rdr::U8 *rawPixels;
-  PIXEL_T *pixels;
+  const PIXEL_T *rawPixels = (const PIXEL_T *)ig->getRawPixelsR(r, &stride);
+  PIXEL_T *pixels = NULL;
+  bool grayScaleJPEG = (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1);
 
 #if (BPP == 32)
   // Check if it's necessary to pack 24-bit pixels, and
@@ -200,45 +201,41 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
   pack24 = clientpf.is888();
 #endif
 
-  rawPixels = ig->getRawPixelsR(r, &stride);
-  pixels = NULL;
-
   if (forceSolid) {
-    // Forced solid block
+    // Subrectangle has already been determined to be solid.
     palNumColors = 1;
     ig->translatePixels(rawPixels, &solidColor, 1);
     pixels = (PIXEL_T *)&solidColor;
-  } else if (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1) {
-    // Forced gray scale (JPEG)
-    palNumColors = 0;
   } else {
-    // Normal analysis
+    // Analyze subrectangle's colors to determine best encoding method.
     palMaxColors = r.area() / pconf->idxMaxColorsDivisor;
-
     if (jpegQuality != -1)
       palMaxColors = pconf->palMaxColorsWithJPEG;
-
     if (palMaxColors < 2 && r.area() >= pconf->monoMinRectSize)
       palMaxColors = 2;
 
     if (clientpf.equal(serverpf) && clientpf.bpp >= 16) {
-      // No conversion, so just analyse the raw buffer
-      FAST_FILL_PALETTE(rawPixels, stride, r);
+      // Count the colors in the raw buffer, so we can avoid unnecessary pixel
+      // translation when encoding with JPEG.
+      if (grayScaleJPEG) palNumColors = 0;
+      else FAST_FILL_PALETTE(rawPixels, stride, r);
 
-      // JPEG reads from the raw buffer and has its own output buffer,
-      // but the other encodings need some help.
+      // JPEG can read from the raw buffer, but for the other methods, we need
+      // to translate the raw pixels into an intermediate buffer.
       if(palNumColors != 0 || jpegQuality == -1) {
         pixels = (PIXEL_T *)writer->getImageBuf(r.area());
         stride = r.width();
         ig->getImage(pixels, r);
       }
     } else {
-      // Need to do the conversion first so we have something to analyse
+      // Pixel translation will be required, so create an intermediate buffer,
+      // translate the raw pixels into it, and count its colors.
       pixels = (PIXEL_T *)writer->getImageBuf(r.area());
       stride = r.width();
       ig->getImage(pixels, r);
 
-      FILL_PALETTE(pixels, r.area());
+      if (grayScaleJPEG) palNumColors = 0;
+      else FILL_PALETTE(pixels, r.area());
     }
   }
 
@@ -247,7 +244,10 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
     // Truecolor image
 #if (BPP != 8)
     if (jpegQuality != -1) {
-      encodeJpegRect(r, os);
+      if (pixels)
+        ENCODE_JPEG_RECT(pixels, stride, r, os);
+      else
+        ENCODE_JPEG_RECT((PIXEL_T *)rawPixels, stride, r, os);
       break;
     }
 #endif
@@ -404,6 +404,23 @@ void ENCODE_INDEXED_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
 #endif  // #if (BPP != 8)
 
 //
+// JPEG compression.
+//
+
+#if (BPP != 8)
+void ENCODE_JPEG_RECT (PIXEL_T *buf, int stride, const Rect& r,
+                       rdr::OutStream *os)
+{
+  jc.clear();
+  jc.compress((rdr::U8 *)buf, stride * clientpf.bpp / 8, r, clientpf,
+    jpegQuality, jpegSubsampling);
+  os->writeU8(0x09 << 4);
+  os->writeCompactLength(jc.length());
+  os->writeBytes(jc.data(), jc.length());
+}
+#endif  // #if (BPP != 8)
+
+//
 // Determine the number of colors in the rectangle, and fill in the palette.
 //
 
@@ -449,7 +466,7 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   }
 }
 
-void FAST_FILL_PALETTE (const rdr::U8 *buffer, int stride, const Rect& r)
+void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
 {
 }
 
@@ -514,16 +531,14 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   paletteInsert (ci, (rdr::U32)ni, BPP);
 }
 
-void FAST_FILL_PALETTE (const rdr::U8 *buffer, int stride, const Rect& r)
+void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
 {
   PIXEL_T c0, c1, ci = 0, mask, c0t, c1t, cit;
   int n0, n1, ni;
   int w = r.width(), h = r.height();
-  const PIXEL_T *data, *rowptr, *colptr, *rowptr2, *colptr2, *dataend;
+  const PIXEL_T *rowptr, *colptr, *rowptr2, *colptr2,
+    *dataend = &data[stride * h];
   bool willTransform = ig->willTransform();
-
-  data = (const PIXEL_T*)buffer;
-  dataend = &data[stride * h];
 
   if (willTransform) {
     mask = serverpf.redMax << serverpf.redShift;
