@@ -100,9 +100,9 @@ namespace rfb {
     int paletteInsert(rdr::U32 rgb, int numPixels, int bpp);
     void paletteReset(void);
 
-    void fastFillPalette8(rdr::U8 *data, int stride, const Rect &r);
-    void fastFillPalette16(rdr::U16 *data, int stride, const Rect &r);
-    void fastFillPalette32(rdr::U32 *data, int stride, const Rect &r);
+    void fastFillPalette8(const rdr::U8 *data, int stride, const Rect &r);
+    void fastFillPalette16(const rdr::U16 *data, int stride, const Rect &r);
+    void fastFillPalette32(const rdr::U32 *data, int stride, const Rect &r);
 
     void fillPalette8(rdr::U8 *data, int count);
     void fillPalette16(rdr::U16 *data, int count);
