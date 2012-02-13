@@ -135,7 +135,6 @@ class ViewportFrame extends JFrame
 
 
   CConn cc;
-  Graphics g;
   JScrollPane sp;
   static LogWriter vlog = new LogWriter("ViewportFrame");
 }
@@ -560,7 +559,6 @@ public class CConn extends CConnection
         viewport.setGeometry(x, y, w, h, pack);
       }
     }
-    viewport.update(viewport.g);
   }
 
   // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
