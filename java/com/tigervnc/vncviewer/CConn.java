@@ -1228,7 +1228,10 @@ public class CConn extends CConnection
     if (ev.getID() != KeyEvent.KEY_PRESSED && !ev.isActionKey())
       return;
 
-    int keysym;
+    int keysym, keycode, currentModifiers;
+
+    currentModifiers = ev.getModifiers();
+    keycode = ev.getKeyCode();
 
     if (!ev.isActionKey()) {
       vlog.debug("key press "+ev.getKeyChar());
@@ -1236,8 +1239,8 @@ public class CConn extends CConnection
         // if the ctrl modifier key is down, send the equivalent ASCII since we
         // will send the ctrl modifier anyway
 
-        if ((ev.getModifiers() & KeyEvent.CTRL_MASK) != 0) {
-          if ((ev.getModifiers() & KeyEvent.SHIFT_MASK) != 0) {
+        if ((currentModifiers & KeyEvent.CTRL_MASK) != 0) {
+          if ((currentModifiers & KeyEvent.SHIFT_MASK) != 0) {
             keysym = ev.getKeyChar() + 64;
             if (keysym == -1)
               return;
@@ -1246,7 +1249,7 @@ public class CConn extends CConnection
             if (keysym == 127) keysym = 95;
           }
         } else {
-          switch (ev.getKeyCode()) {
+          switch (keycode) {
           case KeyEvent.VK_BACK_SPACE: keysym = Keysyms.BackSpace; break;
           case KeyEvent.VK_TAB:        keysym = Keysyms.Tab; break;
           case KeyEvent.VK_ENTER:      keysym = Keysyms.Return; break;
@@ -1262,12 +1265,26 @@ public class CConn extends CConnection
         keysym = UnicodeToKeysym.translate(ev.getKeyChar());
         if (keysym == -1)
           return;
+
+        // Windows 7 or some Java version send key events that require the
+        // following special treatment with the German Alt-Gr Key. They send
+        // ALT + CTRL before the normal key event. They should be suppressed
+        if ((currentModifiers & KeyEvent.CTRL_MASK) != 0
+		&& (currentModifiers & KeyEvent.ALT_MASK) != 0
+		&& ((keysym == 0x5c) || (keysym == 0x7c)	// backslash bar
+		 || (keysym == 0x5b) || (keysym == 0x5d)	// [ ]
+		 || (keysym == 0x7b) || (keysym == 0x7d)	// { }
+		 || (keysym == 0x7e) || (keysym == 0x40)	// ~ @
+		 || (keysym == 0x20ac) || (keysym == 0xb5)	// Euro Micro
+		 || (keysym == 0xb2) || (keysym == 0xb3))	// ^2 ^3
+	           )
+          currentModifiers &= (~ KeyEvent.CTRL_MASK) & (~ KeyEvent.ALT_MASK);
       }
 
     } else {
       // KEY_ACTION
-      vlog.debug("key action "+ev.getKeyCode());
-      switch (ev.getKeyCode()) {
+      vlog.debug("key action " + keycode);
+      switch (keycode) {
       case KeyEvent.VK_HOME:         keysym = Keysyms.Home; break;
       case KeyEvent.VK_END:          keysym = Keysyms.End; break;
       case KeyEvent.VK_PAGE_UP:      keysym = Keysyms.Page_Up; break;
@@ -1295,7 +1312,7 @@ public class CConn extends CConnection
       }
     }
 
-    writeModifiers(ev.getModifiers());
+    writeModifiers(currentModifiers);
     writeKeyEvent(keysym, true);
     writeKeyEvent(keysym, false);
     writeModifiers(0);
