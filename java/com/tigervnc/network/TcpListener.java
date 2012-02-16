@@ -116,8 +116,7 @@ public class TcpListener extends SocketListener  {
           return null;
       }
     } catch (IOException e) {
-      //throw SocketException("unable to accept new connection", errorNumber);
-      System.out.println(e.toString());
+      throw new SocketException("unable to accept new connection: "+e.toString());
     }
 
     // Disable Nagle's algorithm, to reduce latency

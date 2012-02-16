@@ -185,7 +185,7 @@ public class SocketDescriptor extends SocketChannel
       channel.configureBlocking(false);
       selector = Selector.open();
     } catch (java.io.IOException e) {
-      System.out.println(e.toString());
+      throw new Exception(e.toString());
     }
     try {
       channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE );

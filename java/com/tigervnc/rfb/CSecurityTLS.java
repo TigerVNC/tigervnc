@@ -128,7 +128,7 @@ public class CSecurityTLS extends CSecurity {
     try {
       manager = new SSLEngineManager(engine, is, os);
     } catch(java.lang.Exception e) {
-      System.out.println(e.toString());
+      throw new Exception(e.toString());
     }
 
     try {
