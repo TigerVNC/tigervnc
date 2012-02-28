@@ -1083,6 +1083,10 @@ void VNCSConnectionST::writeFramebufferUpdate()
       if (i->width() && i->height()) {
         int nUpdateRects = writer()->getNumRects(*i);
         if (nUpdateRects == 0 && cp.currentEncoding() == encodingTight) {
+          // With Tight encoding and LastRect support, the client does not
+          // care about the number of rectangles in the update - it will
+          // stop parsing when it encounters a LastRect "rectangle".
+          // In this case, pretend to send 65535 rectangles.
           nRects = 0xFFFF;  break;
         }
         else
