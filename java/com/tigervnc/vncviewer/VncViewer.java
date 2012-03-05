@@ -331,14 +331,6 @@ public class VncViewer extends java.applet.Applet implements Runnable
 			                    "Use specified compression level "+
 			                    "0 = Low, 6 = High",
 			                    1);
-  IntParameter keepAliveTimeout
-  = new IntParameter("KeepAliveTimeout",
-			               "Send dummy framebuffer update requests if no "+
-                     "network activity has occurred for more than "+
-                     "the specified number of seconds. This is to "+
-                     "prevent VPNs or other applications from "+
-                     "disconnecting due to inactivity. A value of "+
-                     "0 disables this feature.", 0);
   BoolParameter noJpeg
   = new BoolParameter("NoJPEG",
                           "Disable lossy JPEG compression in Tight encoding.", false);

@@ -49,8 +49,7 @@ import javax.swing.ImageIcon;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
@@ -228,18 +227,6 @@ public class CConn extends CConnection
     setServerName(serverHost);
     setStreams(sock.inStream(), sock.outStream());
     initialiseProtocol();
-    int delay = viewer.keepAliveTimeout.getValue();
-    if (delay > 0) {
-      ActionListener keepAliveListener = new ActionListener() {
-        public void actionPerformed(ActionEvent evt) {
-          synchronized (writer()) {
-            writer().writeFramebufferUpdateRequest(new Rect(0,0,0,0), true);
-          }
-        }
-      };
-      keepAliveTimer = new Timer(1000*delay, keepAliveListener);
-      keepAliveTimer.start();
-    }
   }
 
   public void refreshFramebuffer()
@@ -262,8 +249,6 @@ public class CConn extends CConnection
   // deleteWindow() is called when the user closes the desktop or menu windows.
 
   void deleteWindow() {
-    if (keepAliveTimer != null)
-      keepAliveTimer.stop();
     if (viewport != null)
       viewport.dispose();
     viewport = null;
@@ -480,8 +465,6 @@ public class CConn extends CConnection
       }
 
       firstUpdate = false;
-      if (keepAliveTimer != null)
-        keepAliveTimer.restart();
     }
 
     // A format change has been scheduled and we are now past the update
@@ -796,8 +779,6 @@ public class CConn extends CConnection
     }
 
     forceNonincremental = false;
-    if (keepAliveTimer != null)
-      keepAliveTimer.restart();
   }
 
 
@@ -1236,8 +1217,6 @@ public class CConn extends CConnection
   synchronized public void writeClientCutText(String str, int len) {
     if (state() != RFBSTATE_NORMAL) return;
     writer().writeClientCutText(str,len);
-    if (keepAliveTimer != null)
-      keepAliveTimer.restart();
   }
 
   synchronized public void writeKeyEvent(int keysym, boolean down) {
@@ -1409,8 +1388,6 @@ public class CConn extends CConnection
     if ((m & Event.META_MASK) != (pressedModifiers & Event.META_MASK))
       writeKeyEvent(Keysyms.Meta_L, (m & Event.META_MASK) != 0);
     pressedModifiers = m;
-    if (keepAliveTimer != null)
-      keepAliveTimer.restart();
   }
 
 
@@ -1444,7 +1421,6 @@ public class CConn extends CConnection
   ImageIcon logo = new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.png"));
   public static UserPasswdGetter upg;
   public UserMsgBox msg;
-  Timer keepAliveTimer;
 
   // shuttingDown is set by the GUI thread and only ever tested by the RFB
   // thread after the window has been destroyed.
