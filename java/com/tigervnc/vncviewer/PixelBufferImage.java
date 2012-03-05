@@ -30,7 +30,7 @@ import java.nio.ByteOrder;
 
 import com.tigervnc.rfb.*;
 
-public class PixelBufferImage extends PixelBuffer implements ImageProducer
+public class PixelBufferImage extends PixelBuffer
 {
   public PixelBufferImage(int w, int h, CConn cc_, DesktopWindow desktop_) {
     cc = cc_;
@@ -48,25 +48,31 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
   public void resize(int w, int h) {
     if (w == width() && h == height()) return;
 
-    int rowsToCopy = h < height() ? h : height();
-    int copyWidth = w < width() ? w : width();
-    int[] oldData = data;
-
     width_ = w;
     height_ = h;
-    image = desktop.createImage(this);
+    switch (format.depth) {
+    case  3: 
+      // Fall-through to depth 8
+    case  6: 
+      // Fall-through to depth 8
+    case 8:
+      image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_INDEXED);
+      break;
+    default:
+      GraphicsEnvironment ge =
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
+      GraphicsDevice gd = ge.getDefaultScreenDevice();
+      GraphicsConfiguration gc = gd.getDefaultConfiguration();
+      image = gc.createCompatibleImage(w, h, Transparency.OPAQUE);
+      break;
+    }
     image.setAccelerationPriority(1);
-
-    data = new int[width() * height()];
-
-    for (int i = 0; i < rowsToCopy; i++)
-      System.arraycopy(oldData, copyWidth * i,
-                       data, width() * i, copyWidth);
+    graphics = image.createGraphics();
   }
 
   public PixelFormat getNativePF() {
     PixelFormat pf;
-    cm = java.awt.Toolkit.getDefaultToolkit().getColorModel();
+    cm = tk.getColorModel();
     if (cm.getColorSpace().getType() == java.awt.color.ColorSpace.TYPE_RGB) {
       int depth = cm.getPixelSize();
       int bpp = (depth > 16 ? 32 : (depth > 8 ? 16 : 8));
@@ -90,24 +96,33 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
     return pf;
   }
 
-  // put() causes the given rectangle to be drawn using the given graphics
-  // context.
-  public void put(int x, int y, int w, int h, Graphics g) {
-    if (ic != null) {
-      ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
-      desktop.repaint(x, y, w, h);
+  public void fillRect(int x, int y, int w, int h, int pix) {
+    switch (format.depth) {
+    case 24:
+      graphics.setColor(new Color(pix)); 
+      graphics.fillRect(x, y, w, h); 
+      break;
+    default:
+      Color color = new Color((0xff << 24) | (cm.getRed(pix) << 16) |
+                              (cm.getGreen(pix) << 8) | (cm.getBlue(pix)));
+      graphics.setColor(color); 
+      graphics.fillRect(x, y, w, h); 
+      break;
     }
   }
 
-  // fillRect(), imageRect(), maskRect() are inherited from PixelBuffer.  For
-  // copyRect() we also need to tell the ImageConsumer that the pixels have
-  // changed (this is done in the put() call for the others).
+  public void imageRect(int x, int y, int w, int h, Object pix) {
+    if (pix instanceof java.awt.Image) {
+      graphics.drawImage((Image)pix, x, y, w, h, null); 
+    } else {
+      Image img = tk.createImage(new MemoryImageSource(w, h, cm, (int[])pix, 0, w));
+      graphics.drawImage(img, x, y, w, h, null); 
+      img.flush();
+    }
+  }
 
-  public void copyRect(int x, int y, int w, int h, int srcX, int srcY, Graphics g) {
-    super.copyRect(x, y, w, h, srcX, srcY);
-    if (ic == null) return;
-    ic.setPixels(x, y, w, h, cm, data, width() * y + x, width());
-    desktop.repaint(x, y, w, h);
+  public void copyRect(int x, int y, int w, int h, int srcX, int srcY) {
+    graphics.copyArea(srcX, srcY, w, h, x - srcX, y - srcY);
   }
 
   // setColourMapEntries() changes some of the entries in the colourmap.
@@ -128,40 +143,14 @@ public class PixelBufferImage extends PixelBuffer implements ImageProducer
     }
   }
 
-  // ImageProducer methods
-
   public void updateColourMap() {
     cm = new IndexColorModel(8, nColours, reds, greens, blues);
   }
 
-  public void addConsumer(ImageConsumer c) {
-    if (ic == c) return;
-    
-    vlog.debug("adding consumer "+c);
-    
-    if (ic != null)
-      vlog.error("Only one ImageConsumer allowed - discarding old one");
-    
-    ic = c;
-    ic.setDimensions(width(), height());
-    ic.setHints(ImageConsumer.RANDOMPIXELORDER);
-    // Calling ic.setColorModel(cm) seemed to help in some earlier versions of
-    // the JDK, but it shouldn't be necessary because we pass the ColorModel
-    // with each setPixels() call.
-    ic.setPixels(0, 0, width(), height(), cm, data, 0, width());
-    ic.imageComplete(ImageConsumer.SINGLEFRAMEDONE);
-  }
+  private static Toolkit tk = java.awt.Toolkit.getDefaultToolkit();
 
-  public void removeConsumer(ImageConsumer c) {
-    System.err.println("removeConsumer "+c);
-    if (ic == c) ic = null;
-  }
-
-  public boolean isConsumer(ImageConsumer c) { return ic == c; }
-  public void requestTopDownLeftRightResend(ImageConsumer c) {}
-  public void startProduction(ImageConsumer c) { addConsumer(c); }
-
-  Image image;
+  Graphics2D graphics;
+  BufferedImage image;
   ImageConsumer ic;
 
   int nColours;

@@ -89,7 +89,7 @@ abstract public class CMsgHandler {
   public void serverCutText(String str, int len) {}
 
   public void fillRect(Rect r, int pix) {}
-  public void imageRect(Rect r, int[] pixels) {}
+  public void imageRect(Rect r, Object pixels) {}
   public void copyRect(Rect r, int srcX, int srcY) {}
 
   abstract public PixelFormat getPreferredPF();

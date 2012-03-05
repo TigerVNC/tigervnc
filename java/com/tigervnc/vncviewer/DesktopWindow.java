@@ -86,7 +86,7 @@ class DesktopWindow extends JPanel implements
   // to work.
 
   synchronized public void initGraphics() { 
-    graphics = this.getGraphics();
+    graphics = im.image.getGraphics();
     prepareImage(im.image, scaledWidth, scaledHeight, this);
   }
 
@@ -131,20 +131,16 @@ class DesktopWindow extends JPanel implements
     cursor.data = new int[cursor.width() * cursor.height()];
     cursor.mask = new byte[cursor.maskLen()];
 
-    // set the masked pixels of the cursor transparent by using an extra bit in
-    // the colormap.  We'll OR this into the data based on the values in the mask.
-    if (cursor.getPF().bpp == 8) {
-      cursor.cm = new DirectColorModel(9, 7, (7 << 3), (3 << 6), (1 << 8));
-    }
-
     int maskBytesPerRow = (w + 7) / 8;
     for (int y = 0; y < h; y++) {
       for (int x = 0; x < w; x++) {
         int byte_ = y * maskBytesPerRow + x / 8;
         int bit = 7 - x % 8;
         if ((mask[byte_] & (1 << bit)) > 0) {
-          cursor.data[y * cursor.width() + x] = (cursor.getPF().bpp == 8) ?
-            data[y * w + x] | (1 << 8) : data[y * w + x];
+          cursor.data[y * cursor.width() + x] = (0xff << 24) |
+            (im.cm.getRed(data[y * w + x]) << 16) |
+            (im.cm.getGreen(data[y * w + x]) << 8) |
+            (im.cm.getBlue(data[y * w + x]));
         }
       }
       System.arraycopy(mask, y * maskBytesPerRow, cursor.mask, 
@@ -152,7 +148,7 @@ class DesktopWindow extends JPanel implements
     }
 
     MemoryImageSource bitmap = 
-      new MemoryImageSource(cursor.width(), cursor.height(), cursor.cm,
+      new MemoryImageSource(cursor.width(), cursor.height(), ColorModel.getRGBdefault(),
                             cursor.data, 0, cursor.width());
     int cw = (int)Math.floor((float)cursor.width() * scaleWidthRatio);
     int ch = (int)Math.floor((float)cursor.height() * scaleHeightRatio);
@@ -198,7 +194,6 @@ class DesktopWindow extends JPanel implements
     im.setColourMapEntries(firstColour, nColours, rgbs);
     if (nColours <= 256) {
       im.updateColourMap();
-      im.put(0, 0, im.width(), im.height(), graphics);
     } else {
       if (setColourMapEntriesTimerThread == null) {
         setColourMapEntriesTimerThread = new Thread(this);
@@ -233,7 +228,9 @@ class DesktopWindow extends JPanel implements
     invalidRect = false;
 
     synchronized (im) {
-      im.put(x, y, w, h, graphics);
+      graphics.setClip(x, y, w, h);
+      repaint(x, y, w, h);
+      graphics.setClip(0, 0, im.width(), im.height());
     }
   }
 
@@ -268,7 +265,7 @@ class DesktopWindow extends JPanel implements
   }
 
   final public void imageRect(int x, int y, int w, int h,
-                                           int[] pix) {
+                                           Object pix) {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
     synchronized (im) {
       im.imageRect(x, y, w, h, pix);
@@ -283,11 +280,9 @@ class DesktopWindow extends JPanel implements
     if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))
       hideLocalCursor();
     synchronized (im) {
-      im.copyRect(x, y, w, h, srcX, srcY, graphics);
+      im.copyRect(x, y, w, h, srcX, srcY);
     }
-    if (!cc.viewer.fastCopyRect.getValue()) {
-      invalidate(x, y, w, h);
-    }
+    invalidate(x, y, w, h);
   }
 
 
@@ -480,8 +475,6 @@ class DesktopWindow extends JPanel implements
       cursorVisible = false;
       im.imageRect(cursorBackingX, cursorBackingY, cursorBacking.width(),
                    cursorBacking.height(), cursorBacking.data);
-      im.put(cursorBackingX, cursorBackingY, cursorBacking.width(),
-             cursorBacking.height(), graphics);
     }
   }
 
@@ -516,7 +509,6 @@ class DesktopWindow extends JPanel implements
 
       im.maskRect(cursorLeft, cursorTop, cursor.width(), cursor.height(),
                   cursor.data, cursor.mask);
-      im.put(x, y, w, h, graphics);
     }
   }
 
@@ -528,7 +520,6 @@ class DesktopWindow extends JPanel implements
       Thread.sleep(100);
     } catch (InterruptedException e) {}
     im.updateColourMap();
-    im.put(0, 0, im.width(), im.height(), graphics);
     setColourMapEntriesTimerThread = null;
   }
 

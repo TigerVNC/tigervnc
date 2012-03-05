@@ -23,7 +23,7 @@ import com.tigervnc.rdr.InStream;
 import com.tigervnc.rdr.ZlibInStream;
 import java.util.ArrayList;
 import java.io.InputStream;
-import java.awt.image.PixelGrabber;
+import java.awt.image.*;
 import java.awt.*;
 
 public class TightDecoder extends Decoder {
@@ -249,20 +249,18 @@ public class TightDecoder extends Decoder {
 
     // Create an Image object from the JPEG data.
     Image jpeg = tk.createImage(netbuf);
-        
-    int w = r.width();
-    int h = r.height();
-
-    int[] buf = reader.getImageBuf(w*h);
-    PixelGrabber pg = new PixelGrabber(jpeg, 0, 0, w, h, buf, 0, w);
-	  try {
-	    pg.grabPixels(0);
-	  } catch (InterruptedException e) {
-	    System.out.println("Tight Decoding: Wrong JPEG data received.");
-	  }
-
+    tk.prepareImage(jpeg, -1, -1, null); 
+    synchronized(this) { 
+      while ((tk.checkImage(jpeg, -1, -1, null) & ImageObserver.ALLBITS) == 0) {
+        try {
+          this.wait(1);
+        } catch (InterruptedException e) {
+          throw new Exception("Error decoding JPEG data");
+        }
+      }
+    }
+    handler.imageRect(r, jpeg);
     jpeg.flush();
-    handler.imageRect(r, buf);
   }
 
   final private void FilterGradient24(byte[] netbuf, int[] buf, int stride, 

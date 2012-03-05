@@ -514,7 +514,7 @@ public class CConn extends CConnection
     desktop.fillRect(r.tl.x, r.tl.y, r.width(), r.height(), p);
   }
 
-  public void imageRect(Rect r, int[] p) {
+  public void imageRect(Rect r, Object p) {
     desktop.imageRect(r.tl.x, r.tl.y, r.width(), r.height(), p);
   }
 
