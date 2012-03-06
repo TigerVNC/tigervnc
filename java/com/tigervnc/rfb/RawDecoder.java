@@ -27,12 +27,13 @@ public class RawDecoder extends Decoder {
     int y = r.tl.y;
     int w = r.width();
     int h = r.height();
-    int[] imageBuf = reader.getImageBuf(w * h);
-    int nPixels = imageBuf.length / (reader.bpp() / 8);
+    int[] imageBuf = new int[w*h];
+    int nPixels = imageBuf.length;
+    int bytesPerRow = w * (reader.bpp() / 8);
     while (h > 0) {
       int nRows = nPixels / w;
       if (nRows > h) nRows = h;
-      reader.is.readPixels(imageBuf, w * h, (reader.bpp() / 8), handler.cp.pf().bigEndian);
+      reader.getInStream().readPixels(imageBuf, nPixels, (reader.bpp() / 8), handler.cp.pf().bigEndian);
       handler.imageRect(new Rect(x, y, x+w, y+nRows), imageBuf);
       h -= nRows;
       y += nRows;
