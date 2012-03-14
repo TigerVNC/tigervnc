@@ -136,7 +136,7 @@ public class FdInStream extends InStream {
 
   protected int readWithTimeoutOrCallback(byte[] buf, int bufPtr, int len, boolean wait) {
     long before = 0;
-    long timeout;
+    int timeout;
     if (timing)
       before = System.nanoTime();
 
@@ -146,13 +146,13 @@ public class FdInStream extends InStream {
       if (!wait) {
         timeout = 0;
       } else if (timeoutms != -1) {
-        timeout = (long)timeoutms;
+        timeout = timeoutms;
       } else {
         timeout = 0;
       }
 
       try {
-        n = fd.select(SelectionKey.OP_READ, timeoutms);
+        n = fd.select(SelectionKey.OP_READ, timeout);
       } catch (Exception e) {
         throw new SystemException("select:"+e.toString());
       }

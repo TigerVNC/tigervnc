@@ -74,7 +74,7 @@ public class PixelBufferImage extends PixelBuffer
     PixelFormat pf;
     cm = tk.getColorModel();
     if (cm.getColorSpace().getType() == java.awt.color.ColorSpace.TYPE_RGB) {
-      int depth = cm.getPixelSize();
+      int depth = ((cm.getPixelSize() > 24) ? 24 : cm.getPixelSize());
       int bpp = (depth > 16 ? 32 : (depth > 8 ? 16 : 8));
       ByteOrder byteOrder = ByteOrder.nativeOrder();
       boolean bigEndian = (byteOrder == ByteOrder.BIG_ENDIAN ? true : false);

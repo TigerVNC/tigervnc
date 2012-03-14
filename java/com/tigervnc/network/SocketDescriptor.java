@@ -83,10 +83,16 @@ public class SocketDescriptor extends SocketChannel
   synchronized public int select(int interestOps, int timeout) throws Exception {
     int n;
     try {
-      n = selector.select(timeout);
+      if (timeout == 0) {
+        n = selector.selectNow();
+      } else {
+        n = selector.select(timeout);
+      }
     } catch (java.io.IOException e) {
       throw new Exception(e.toString());
     }
+    if (n == 0)
+      return -1;
     Set keys = selector.selectedKeys();
     Iterator iter = keys.iterator();
     while (iter.hasNext()) {
