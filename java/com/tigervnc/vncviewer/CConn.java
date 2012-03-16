@@ -383,6 +383,7 @@ public class CConn extends CConnection
       sock = new TcpSocket(host, port);
       vlog.info("Redirected to "+host+":"+port);
       setStreams(sock.inStream(), sock.outStream());
+      sock.inStream().setBlockCallback(this);
       initialiseProtocol();
     } catch (java.lang.Exception e) {
       throw new Exception(e.toString());
