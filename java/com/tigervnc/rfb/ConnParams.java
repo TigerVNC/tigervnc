@@ -47,7 +47,7 @@ public class ConnParams {
   {
     if (verStrPos >= 12) return false;
     verStr = new StringBuilder(13);
-    while (verStrPos < 12 && is.checkNoWait(1)) {
+    while (verStrPos < 12) {
       verStr.insert(verStrPos++,(char)is.readU8());
     }
 
