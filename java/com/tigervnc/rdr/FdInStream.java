@@ -27,21 +27,36 @@ import java.util.Iterator;
 
 public class FdInStream extends InStream {
 
-  static final int defaultBufSize = 8192;
+  static final int DEFAULT_BUF_SIZE = 8192;
   static final int minBulkSize = 1024;
 
-  public FdInStream(FileDescriptor fd_, int bufSize_) {
-    fd = fd_;
-    bufSize = bufSize_;
+  public FdInStream(FileDescriptor fd_, int timeoutms_, int bufSize_,
+                    boolean closeWhenDone_) 
+  {
+    fd = fd_; closeWhenDone = closeWhenDone_;
+    timeoutms = timeoutms_; blockCallback = null;
+    timing = false; timeWaitedIn100us = 5; timedKbits = 0;
+    bufSize = ((bufSize_ > 0) ? bufSize_ : DEFAULT_BUF_SIZE);
     b = new byte[bufSize];
     ptr = end = offset = 0;
-    timeoutms = 0;
-    timing = false;
-    timeWaitedIn100us = 5;
-    timedKbits = 0;
   }
 
-  public FdInStream(FileDescriptor fd_) { this(fd_, defaultBufSize); }
+  public FdInStream(FileDescriptor fd_) { this(fd_, -1, 0, false); }
+
+  public FdInStream(FileDescriptor fd_, FdInStreamBlockCallback blockCallback_, 
+                    int bufSize_)
+  {
+    fd = fd_; timeoutms = 0; blockCallback = blockCallback_;
+    timing = false; timeWaitedIn100us = 5; timedKbits = 0;
+    bufSize = ((bufSize_ > 0) ? bufSize_ : DEFAULT_BUF_SIZE);
+    b = new byte[bufSize];
+    ptr = end = offset = 0;
+  }
+
+  public FdInStream(FileDescriptor fd_, 
+                    FdInStreamBlockCallback blockCallback_) {
+    this(fd_, blockCallback_, 0);
+  }
 
   public final void readBytes(byte[] data, int dataPtr, int length) {
     if (length < minBulkSize) {
@@ -100,7 +115,8 @@ public class FdInStream extends InStream {
 
   public final long timeWaited() { return timeWaitedIn100us; }
 
-  protected int overrun(int itemSize, int nItems, boolean wait) {
+  protected int overrun(int itemSize, int nItems, boolean wait) 
+  {
     if (itemSize > bufSize)
       throw new Exception("FdInStream overrun: max itemSize exceeded");
 
@@ -136,26 +152,28 @@ public class FdInStream extends InStream {
 
   protected int readWithTimeoutOrCallback(byte[] buf, int bufPtr, int len, boolean wait) {
     long before = 0;
-    int timeout;
     if (timing)
       before = System.nanoTime();
 
     int n;
     while (true) {
+      do {
+        Integer tv;
     
-      if (!wait) {
-        timeout = 0;
-      } else if (timeoutms != -1) {
-        timeout = timeoutms;
-      } else {
-        timeout = 0;
-      }
+        if (!wait) {
+          tv = new Integer(0);
+        } else if (timeoutms != -1) {
+          tv = new Integer(timeoutms);
+        } else {
+          tv = null;
+        }
 
-      try {
-        n = fd.select(SelectionKey.OP_READ, timeout);
-      } catch (Exception e) {
-        throw new SystemException("select:"+e.toString());
-      }
+        try {
+          n = fd.select(SelectionKey.OP_READ, tv);
+        } catch (Exception e) {
+          throw new SystemException("select:"+e.toString());
+        }
+      } while (n < 0);
         
           
       if (n > 0) break;
@@ -205,11 +223,12 @@ public class FdInStream extends InStream {
     fd = fd_;
   }
 
+  private FileDescriptor fd;
+  boolean closeWhenDone;
+  protected int timeoutms;
+  private FdInStreamBlockCallback blockCallback;
   private int offset;
   private int bufSize;
-  private FileDescriptor fd;
-  private FdInStreamBlockCallback blockCallback;
-  protected int timeoutms;
 
   protected boolean timing;
   protected long timeWaitedIn100us;

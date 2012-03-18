@@ -88,32 +88,37 @@ public class SocketDescriptor extends SocketChannel
     return n;
   }
 
-  synchronized public int select(int interestOps, int timeout) throws Exception {
+  synchronized public int select(int interestOps, Integer timeout) throws Exception {
     int n;
+    selector.selectedKeys().clear();
     try {
-      if (timeout == 0) {
-        n = selector.selectNow();
+      if (timeout == null) {
+        n = selector.select();
       } else {
-        n = selector.select(timeout);
+        int tv = timeout.intValue();
+        switch(tv) {
+        case 0:
+          n = selector.selectNow();
+          break;
+        default:
+          n = selector.select((long)tv);
+          break;
+        }
       }
+      if (n == 0)
+        return -1;
     } catch (java.io.IOException e) {
       throw new Exception(e.toString());
     }
-    if (n == 0)
-      return -1;
     Set keys = selector.selectedKeys();
     Iterator iter = keys.iterator();
     while (iter.hasNext()) {
       SelectionKey key = (SelectionKey)iter.next();
-      if ((key.readyOps() & interestOps) != 0) { 
-        n = 1;
-        break;
-      } else {
-        n = -1;
+      if ((key.readyOps() & interestOps) != 0) {
+        return n;
       }
     }
-    keys.clear();
-    return n;
+    return 0;
   }
 
   public int write(ByteBuffer buf) throws Exception {

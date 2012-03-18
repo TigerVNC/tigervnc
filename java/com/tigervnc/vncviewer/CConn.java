@@ -530,7 +530,8 @@ public class CConn extends CConnection
 
   public void fence(int flags, int len, byte[] data)
   {
-    super.fence(flags, len, data);
+    // can't call super.super.fence(flags, len, data);
+    cp.supportsFence = true;
   
     if ((flags & fenceTypes.fenceFlagRequest) != 0) {
       // We handle everything synchronously so we trivially honor these modes

@@ -25,7 +25,7 @@ public interface FileDescriptor {
     
   public int read(byte[] buf, int bufPtr, int length) throws Exception;
   public int write(byte[] buf, int bufPtr, int length) throws Exception;
-  public int select(int interestOps, int timeout) throws Exception;
+  public int select(int interestOps, Integer timeout) throws Exception;
   public void close() throws IOException;
 
 }
