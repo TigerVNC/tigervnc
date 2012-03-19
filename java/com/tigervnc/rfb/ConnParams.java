@@ -43,20 +43,20 @@ public class ConnParams {
     setName("");
   }
 
-  public boolean readVersion(InStream is, Boolean done) 
+  public boolean readVersion(InStream is) 
   {
+    done = false;
     if (verStrPos >= 12) return false;
     verStr = new StringBuilder(13);
-    is.check(12);
-    while (verStrPos < 12) {
+    while (is.checkNoWait(1) && verStrPos < 12) {
       verStr.insert(verStrPos++,(char)is.readU8());
     }
 
     if (verStrPos < 12) {
-      done = Boolean.valueOf(false);
+      done = false;
       return true;
     }
-    done = Boolean.valueOf(true);
+    done = true;
     verStr.insert(12,'0');
     verStrPos = 0;
     if (verStr.toString().matches("RFB \\d{3}\\.\\d{3}\\n0")) {
@@ -181,6 +181,7 @@ public class ConnParams {
       }
     }
   }
+  public boolean done;
   public boolean useCopyRect;
 
   public boolean supportsLocalCursor;
