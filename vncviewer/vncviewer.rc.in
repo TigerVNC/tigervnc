@@ -1,0 +1,82 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "windows.h"
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION @RCVERSION@
+ PRODUCTVERSION @RCVERSION@
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "TigerVNC Project\0"
+            #ifdef WIN64
+            VALUE "FileDescription", "TigerVNC Client for Win64\0"
+            VALUE "ProductName", "TigerVNC Client for Win64\0"
+            #else
+            VALUE "FileDescription", "TigerVNC Client for Win32\0"
+            VALUE "ProductName", "TigerVNC Client for Win32\0"
+            #endif
+            VALUE "FileVersion", "@RCVERSION@\0"
+            VALUE "InternalName", "vncviewer\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\0"
+            VALUE "LegalTrademarks", "TigerVNC\0"
+            VALUE "OriginalFilename", "vncviewer.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductVersion", "@VERSION@\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+#endif    // !_MAC
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON    DISCARDABLE     "@CMAKE_SOURCE_DIR@/media/tigervnc.ico"
+
+#endif    // English (U.K.) resources
+/////////////////////////////////////////////////////////////////////////////
+
