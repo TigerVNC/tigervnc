@@ -99,5 +99,5 @@ if(NOT WIN32)
     ${JAVA_SRCDIR}/README
     ${JAVA_SRCDIR}/index.vnc
     ${JAVA_SRCDIR}/favicon.ico
-    DESTINATION vnc/classes)
+    DESTINATION ${DATA_DIR}/vnc/classes)
 endif()

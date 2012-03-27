@@ -9,5 +9,5 @@ add_executable(vncconfig WIN32
 target_link_libraries(vncconfig rfb_win32 rfb Xregion network rdr ws2_32.lib)
 
 install(TARGETS vncconfig
-  RUNTIME DESTINATION .
+  RUNTIME DESTINATION ${BIN_DIR}
 )

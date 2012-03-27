@@ -23,10 +23,22 @@ set(VERSION 1.2.80)
 # The RC version must always be four comma-separated numbers
 set(RCVERSION 1,2,80,0)
 
+# Installation paths
+set(BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")
+set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share")
+set(MAN_DIR "${DATA_DIR}/man")
+set(LOCALE_DIR "${DATA_DIR}/locale")
+set(DOC_DIR "${CMAKE_INSTALL_PREFIX}/share/doc/${CMAKE_PROJECT_NAME}-${VERSION}")
+
+if(WIN32)
+set(BIN_DIR "${CMAKE_INSTALL_PREFIX}")
+set(DOC_DIR "${CMAKE_INSTALL_PREFIX}")
+endif()
+
 # Compatibility variables for the migration from autotools
 add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")
 add_definitions(-DPACKAGE_VERSION="${VERSION}")
-add_definitions(-DLOCALEDIR="${CMAKE_INSTALL_PREFIX}/share/locale")
+add_definitions(-DLOCALEDIR="${LOCALE_DIR}")
 
 if(MSVC)
   message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
@@ -162,7 +174,6 @@ option(ENABLE_NLS "Enable translation of program messages" ON)
 if(ENABLE_NLS)
   # Tools
   find_package(Gettext)
-  set(LOCALE_DIR "${CMAKE_INSTALL_PREFIX}/share/locale")
 
   # Gettext needs iconv
   find_package(Iconv)

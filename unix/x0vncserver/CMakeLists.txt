@@ -23,5 +23,5 @@ else()
   message(WARNING "No XTest extension.  x0vncserver will be view-only.")
 endif()
 
-install(TARGETS x0vncserver DESTINATION bin)
-install(FILES x0vncserver.man DESTINATION man/man1 RENAME x0vncserver.1)
+install(TARGETS x0vncserver DESTINATION ${BIN_DIR})
+install(FILES x0vncserver.man DESTINATION ${MAN_DIR}/man1 RENAME x0vncserver.1)
