@@ -423,7 +423,10 @@ endif()
 if(ENABLE_NLS)
   add_subdirectory(po)
 endif()
+
 add_subdirectory(vncviewer)
+
+add_subdirectory(media)
 
 include(cmake/BuildPackages.cmake)
 
