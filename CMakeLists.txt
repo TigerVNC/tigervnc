@@ -257,7 +257,10 @@ find_package(FLTK)
 if(UNIX AND NOT APPLE)
   # No proper handling for extra X11 libs that FLTK might need...
   if(X11_Xft_FOUND)
-    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB})
+    # Xft headers include references to fontconfig, so we need
+    # to link to that as well
+    find_library(FONTCONFIG_LIB fontconfig)
+    set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB} ${FONTCONFIG_LIB})
   endif()
   if(X11_Xinerama_FOUND)
     set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xinerama_LIB})
