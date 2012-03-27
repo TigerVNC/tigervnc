@@ -1,3 +1,6 @@
+#define PACKAGE_NAME "@CMAKE_PROJECT_NAME@"
+#define PACKAGE_VERSION "@VERSION@"
+
 #cmakedefine HAVE_SOCKLEN_T
 #cmakedefine HAVE_INET_ATON
 #cmakedefine HAVE_INET_NTOP
@@ -23,6 +26,7 @@
 #cmakedefine HAVE_PAM
 
 #cmakedefine DATA_DIR "@DATA_DIR@"
+#cmakedefine LOCALE_DIR "@LOCALE_DIR@"
 
 /* MS Visual Studio 2008 and newer doesn't know ssize_t */
 #if defined(HAVE_GNUTLS) && defined(WIN32) && !defined(__MINGW32__)

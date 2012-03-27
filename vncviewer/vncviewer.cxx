@@ -273,7 +273,7 @@ int main(int argc, char** argv)
                                  "See http://www.tigervnc.org for information on TigerVNC.");
 
   setlocale(LC_ALL, "");
-  bindtextdomain(PACKAGE_NAME, LOCALEDIR);
+  bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
   textdomain(PACKAGE_NAME);
 
   rfb::SecurityClient::setDefaults();

@@ -35,11 +35,6 @@ set(BIN_DIR "${CMAKE_INSTALL_PREFIX}")
 set(DOC_DIR "${CMAKE_INSTALL_PREFIX}")
 endif()
 
-# Compatibility variables for the migration from autotools
-add_definitions(-DPACKAGE_NAME="${CMAKE_PROJECT_NAME}")
-add_definitions(-DPACKAGE_VERSION="${VERSION}")
-add_definitions(-DLOCALEDIR="${LOCALE_DIR}")
-
 if(MSVC)
   message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
 endif()
