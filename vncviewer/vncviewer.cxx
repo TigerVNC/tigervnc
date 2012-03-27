@@ -48,6 +48,7 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
+#include <FL/Fl_PNG_Image.H>
 #include <FL/fl_ask.H>
 #include <FL/x.H>
 
@@ -58,6 +59,7 @@
 #include "UserDialog.h"
 
 #ifdef WIN32
+#include "resource.h"
 #include "win32.h"
 #endif
 
@@ -120,6 +122,69 @@ static void init_fltk()
   // Proper Gnome Shell integration requires that we set a sensible
   // WM_CLASS for the window.
   Fl_Window::default_xclass("vncviewer");
+
+  // Set the default icon for all windows.
+#ifdef HAVE_FLTK_ICONS
+#ifdef WIN32
+  HICON lg, sm;
+
+  lg = (HICON)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON),
+                        IMAGE_ICON, GetSystemMetrics(SM_CXICON),
+                        GetSystemMetrics(SM_CYICON),
+                        LR_DEFAULTCOLOR | LR_SHARED);
+  sm = (HICON)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON),
+                        IMAGE_ICON, GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON),
+                        LR_DEFAULTCOLOR | LR_SHARED);
+
+  Fl_Window::default_icons(lg, sm);
+#elif ! defined(__APPLE__)
+  const int icon_sizes[] = {48, 32, 24, 16};
+
+  Fl_PNG_Image *icons[4];
+  int count;
+
+  count = 0;
+
+  // FIXME: Follow icon theme specification
+  for (size_t i = 0;i < sizeof(icon_sizes)/sizeof(icon_sizes[0]);i++) {
+      char icon_path[PATH_MAX];
+      bool exists;
+
+      sprintf(icon_path, "%s/icons/hicolor/%dx%d/tigervnc.png",
+              DATA_DIR, icon_sizes[i], icon_sizes[i]);
+
+#ifndef WIN32
+      struct stat st;
+      if (stat(icon_path, &st) != 0)
+#else
+      struct _stat st;
+      if (_stat(icon_path, &st) != 0)
+          return(false);
+#endif
+        exists = false;
+      else
+        exists = true;
+
+      if (exists) {
+          icons[count] = new Fl_PNG_Image(icon_path);
+          if (icons[count]->w() == 0 ||
+              icons[count]->h() == 0 ||
+              icons[count]->d() != 4) {
+              delete icons[count];
+              continue;
+          }
+
+          count++;
+      }
+  }
+
+  Fl_Window::default_icons((const Fl_RGB_Image**)icons, count);
+
+  for (int i = 0;i < count;i++)
+      delete icons[i];
+#endif
+#endif // FLTK_HAVE_ICONS
 
   // This makes the "icon" in dialogs rounded, which fits better
   // with the above schemes.

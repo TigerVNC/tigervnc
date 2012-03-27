@@ -250,7 +250,6 @@ endif()
 # Check for FLTK
 set(FLTK_SKIP_FLUID TRUE)
 set(FLTK_SKIP_OPENGL TRUE)
-set(FLTK_SKIP_IMAGES TRUE)
 set(FLTK_SKIP_FORMS TRUE)
 find_package(FLTK)
 
@@ -292,6 +291,9 @@ if(FLTK_FOUND)
   # FLTK STR #2660
   check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(const Fl_RGB_Image*,int,int) = &Fl_Window::cursor; return 0; }" HAVE_FLTK_CURSOR)
 
+  # FLTK STR #2816
+  check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { Fl_Window::default_icons(0, 0); return 0; }" HAVE_FLTK_ICONS)
+
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)
 endif()
@@ -300,7 +302,7 @@ option(USE_INCLUDED_FLTK
   "Force the use of the FLTK library bundled with the TigerVNC source")
 if(NOT FLTK_FOUND OR NOT HAVE_FLTK_DEAD_KEYS OR NOT HAVE_FLTK_CLIPBOARD
   OR NOT HAVE_FLTK_MEDIAKEYS OR NOT HAVE_FLTK_FULLSCREEN
-  OR NOT HAVE_FLTK_CURSOR)
+  OR NOT HAVE_FLTK_CURSOR OR NOT HAVE_FLTK_ICONS)
   set(USE_INCLUDED_FLTK 1)
 endif()
 if(USE_INCLUDED_FLTK)
@@ -325,6 +327,7 @@ if(USE_INCLUDED_FLTK)
   set(HAVE_FLTK_MEDIAKEYS 1)
   set(HAVE_FLTK_FULLSCREEN 1)
   set(HAVE_FLTK_CURSOR 1)
+  set(HAVE_FLTK_ICONS 1)
   set(FLTK_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/common/fltk)
   set(FLTK_LIBRARIES)
   if(APPLE)
