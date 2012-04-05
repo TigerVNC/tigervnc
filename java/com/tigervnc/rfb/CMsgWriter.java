@@ -24,7 +24,7 @@ abstract public class CMsgWriter {
 
   abstract public void writeClientInit(boolean shared);
 
-  public void writeSetPixelFormat(PixelFormat pf) 
+  synchronized public void writeSetPixelFormat(PixelFormat pf) 
   {
     startMsg(MsgTypes.msgTypeSetPixelFormat);                                 
     os.pad(3);
@@ -32,7 +32,7 @@ abstract public class CMsgWriter {
     endMsg();
   }
 
-  public void writeSetEncodings(int nEncodings, int[] encodings) 
+  synchronized public void writeSetEncodings(int nEncodings, int[] encodings) 
   {
     startMsg(MsgTypes.msgTypeSetEncodings);
     os.skip(1);
@@ -45,7 +45,7 @@ abstract public class CMsgWriter {
   // Ask for encodings based on which decoders are supported.  Assumes higher
   // encoding numbers are more desirable.
 
-  public void writeSetEncodings(int preferredEncoding, boolean useCopyRect) 
+  synchronized public void writeSetEncodings(int preferredEncoding, boolean useCopyRect) 
   {
     int nEncodings = 0;
     int[] encodings = new int[Encodings.encodingMax+3];
@@ -113,7 +113,7 @@ abstract public class CMsgWriter {
     writeSetEncodings(nEncodings, encodings);
   }
 
-  public void writeFramebufferUpdateRequest(Rect r, boolean incremental) 
+  synchronized public void writeFramebufferUpdateRequest(Rect r, boolean incremental) 
   {
     startMsg(MsgTypes.msgTypeFramebufferUpdateRequest);
     os.writeU8(incremental?1:0);
@@ -124,7 +124,7 @@ abstract public class CMsgWriter {
     endMsg();
   }
 
-  public void writeKeyEvent(int key, boolean down) 
+  synchronized public void writeKeyEvent(int key, boolean down) 
   {
     startMsg(MsgTypes.msgTypeKeyEvent);
     os.writeU8(down?1:0);
@@ -133,7 +133,7 @@ abstract public class CMsgWriter {
     endMsg();
   }
 
-  public void writePointerEvent(Point pos, int buttonMask) 
+  synchronized public void writePointerEvent(Point pos, int buttonMask) 
   {
     Point p = new Point(pos.x,pos.y);
     if (p.x < 0) p.x = 0;
@@ -148,7 +148,7 @@ abstract public class CMsgWriter {
     endMsg();
   }
 
-  public void writeClientCutText(String str, int len) 
+  synchronized public void writeClientCutText(String str, int len) 
   {
     startMsg(MsgTypes.msgTypeClientCutText);
     os.pad(3);
@@ -165,7 +165,7 @@ abstract public class CMsgWriter {
   abstract public void startMsg(int type);
   abstract public void endMsg();
 
-  public void setOutStream(OutStream os_) { os = os_; }
+  synchronized public void setOutStream(OutStream os_) { os = os_; }
 
   ConnParams getConnParams() { return cp; }
   OutStream getOutStream() { return os; }

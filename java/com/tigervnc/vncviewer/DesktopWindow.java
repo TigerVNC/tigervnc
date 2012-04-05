@@ -55,7 +55,21 @@ class DesktopWindow extends JPanel implements
   public DesktopWindow(int width, int height, PixelFormat serverPF, CConn cc_) {
     cc = cc_;
     setSize(width, height);
-    im = new PixelBufferImage(width, height, cc, this);
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gd = ge.getDefaultScreenDevice();
+    GraphicsConfiguration gc = gd.getDefaultConfiguration();
+    BufferCapabilities bufCaps = gc.getBufferCapabilities();
+    ImageCapabilities imgCaps = gc.getImageCapabilities();
+    if (bufCaps.isPageFlipping() || bufCaps.isMultiBufferAvailable() ||
+        imgCaps.isAccelerated()) {
+      vlog.debug("GraphicsDevice supports HW acceleration.");
+      setDoubleBuffered(false);
+      im = new BIPixelBuffer(width, height, cc, this);
+    } else {
+      vlog.debug("GraphicsDevice does not support HW acceleration.");
+      im = new AWTPixelBuffer(width, height, cc, this);
+    }
 
     cursor = new Cursor();
     cursorBacking = new ManagedPixelBuffer();
@@ -85,16 +99,13 @@ class DesktopWindow extends JPanel implements
   // DesktopWindow has actually been made visible so that getGraphics() ought
   // to work.
 
-  synchronized public void initGraphics() { 
-    graphics = im.image.getGraphics();
-    prepareImage(im.image, scaledWidth, scaledHeight, this);
+  public void initGraphics() { 
+    synchronized(im) {
+      prepareImage(im.getImage(), scaledWidth, scaledHeight, null);
+    }
   }
 
   final public PixelFormat getPF() { return im.getPF(); }
-
-  synchronized public void setPF(PixelFormat pf) { 
-    im.setPF(pf); 
-  }
 
   public void setViewport(ViewportFrame viewport)
   {
@@ -214,9 +225,7 @@ class DesktopWindow extends JPanel implements
     int h = cc.cp.height;
     hideLocalCursor();
     setSize(w, h);
-    synchronized (im) { 
-      im.resize(w, h);
-    }
+    im.resize(w, h);
   }
 
   final void drawInvalidRect() {
@@ -227,11 +236,7 @@ class DesktopWindow extends JPanel implements
     int h = invalidBottom - y;
     invalidRect = false;
 
-    synchronized (im) {
-      graphics.setClip(x, y, w, h);
-      repaint(x, y, w, h);
-      graphics.setClip(0, 0, im.width(), im.height());
-    }
+    repaint(x, y, w, h);
   }
 
   final void invalidate(int x, int y, int w, int h) {
@@ -256,9 +261,7 @@ class DesktopWindow extends JPanel implements
   final public void fillRect(int x, int y, int w, int h, int pix)
   {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    synchronized (im) { 
-      im.fillRect(x, y, w, h, pix);
-    }
+    im.fillRect(x, y, w, h, pix);
     invalidate(x, y, w, h);
     if (softCursor == null)
       showLocalCursor();
@@ -267,9 +270,7 @@ class DesktopWindow extends JPanel implements
   final public void imageRect(int x, int y, int w, int h,
                                            Object pix) {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    synchronized (im) {
-      im.imageRect(x, y, w, h, pix);
-    }
+    im.imageRect(x, y, w, h, pix);
     invalidate(x, y, w, h);
     if (softCursor == null)
       showLocalCursor();
@@ -279,9 +280,7 @@ class DesktopWindow extends JPanel implements
                                           int srcX, int srcY) {
     if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))
       hideLocalCursor();
-    synchronized (im) {
-      im.copyRect(x, y, w, h, srcX, srcY);
-    }
+    im.copyRect(x, y, w, h, srcX, srcY);
     invalidate(x, y, w, h);
   }
 
@@ -361,9 +360,9 @@ class DesktopWindow extends JPanel implements
     g2.setRenderingHint(RenderingHints.KEY_RENDERING, 
                         RenderingHints.VALUE_RENDER_QUALITY);
     if (cc.cp.width == scaledWidth && cc.cp.height == scaledHeight) {
-      g2.drawImage(im.image, 0, 0, null);
+      g2.drawImage(im.getImage(), 0, 0, null);
     } else {
-      g2.drawImage(im.image, 0, 0, scaledWidth, scaledHeight, null);  
+      g2.drawImage(im.getImage(), 0, 0, scaledWidth, scaledHeight, null);  
     }
   }
   
@@ -403,14 +402,12 @@ class DesktopWindow extends JPanel implements
       // - Render the cursor!
       if (e.getX() != cursorPosX || e.getY() != cursorPosY) {
         hideLocalCursor();
-        synchronized(im) {
-          if (e.getX() >= 0 && e.getX() < im.width() &&
-              e.getY() >= 0 && e.getY() < im.height()) {
-            cursorPosX = e.getX();
-            cursorPosY = e.getY();
-            if (softCursor == null)
-              showLocalCursor();
-          }
+        if (e.getX() >= 0 && e.getX() < im.width() &&
+            e.getY() >= 0 && e.getY() < im.height()) {
+          cursorPosX = e.getX();
+          cursorPosY = e.getY();
+          if (softCursor == null)
+            showLocalCursor();
         }
       }
     }
@@ -527,8 +524,7 @@ class DesktopWindow extends JPanel implements
   CConn cc;
 
   // access to the following must be synchronized:
-  PixelBufferImage im;
-  Graphics graphics;
+  PlatformPixelBuffer im;
   Thread setColourMapEntriesTimerThread;
 
   Cursor cursor;

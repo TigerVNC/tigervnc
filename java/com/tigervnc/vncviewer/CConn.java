@@ -115,7 +115,6 @@ class ViewportFrame extends JFrame
 
   public void addChild(DesktopWindow child) {
     sp = new JScrollPane(child);
-    sp.setDoubleBuffered(true);
     child.setBackground(Color.BLACK);
     child.setOpaque(true);
     sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
@@ -426,9 +425,7 @@ public class CConn extends CConnection
       // We need fences to make extra update requests and continuous
       // updates "safe". See fence() for the next step.
       if (cp.supportsFence)
-        synchronized(this) {
-          writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext, 0, null);
-        }
+        writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext, 0, null);
 
       if (cp.supportsSetDesktopSize &&
           viewer.desktopSize.getValue() != null &&
@@ -460,9 +457,7 @@ public class CConn extends CConnection
         screen0.dimensions.br.x = width;
         screen0.dimensions.br.y = height;
 
-        synchronized(this) {
-          writer().writeSetDesktopSize(width, height, layout);
-        }
+        writer().writeSetDesktopSize(width, height, layout);
       }
 
       firstUpdate = false;
@@ -537,9 +532,7 @@ public class CConn extends CConnection
       // We handle everything synchronously so we trivially honor these modes
       flags = flags & (fenceTypes.fenceFlagBlockBefore | fenceTypes.fenceFlagBlockAfter);
   
-      synchronized(this) {
-        writer().writeFence(flags, len, data);
-      }
+      writer().writeFence(flags, len, data);
       return;
     }
   
@@ -551,9 +544,7 @@ public class CConn extends CConnection
         if (cp.supportsContinuousUpdates) {
           vlog.info("Enabling continuous updates");
           continuousUpdates = true;
-          synchronized(this) {
-            writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
-          }
+          writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
         }
       }
     } else {
@@ -574,9 +565,7 @@ public class CConn extends CConnection
       return;
 
     if (continuousUpdates)
-      synchronized(this) {
-        writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
-      }
+      writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
 
     if ((cp.width == 0) && (cp.height == 0))
       return;
@@ -749,10 +738,8 @@ public class CConn extends CConnection
   
         pf.write(memStream);
   
-        synchronized(this) {
-          writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext,
-                              memStream.length(), (byte[])memStream.data());
-        }
+        writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext,
+                            memStream.length(), (byte[])memStream.data());
       } else {
         // New requests are sent out at the start of processing the last
         // one, so we cannot switch our internal format right now (doing so
@@ -763,9 +750,7 @@ public class CConn extends CConnection
 
       String str = pf.print();
       vlog.info("Using pixel format "+str);
-      synchronized (this) {
-        writer().writeSetPixelFormat(pf);
-      }
+      writer().writeSetPixelFormat(pf);
 
       formatChange = false;
     }
@@ -774,10 +759,8 @@ public class CConn extends CConnection
 
     if (forceNonincremental || !continuousUpdates) {
       pendingUpdate = true;
-      synchronized (this) {
-        writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height),
-                                                   !formatChange);
-      }
+      writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height),
+                                                 !formatChange);
     }
 
     forceNonincremental = false;
@@ -845,9 +828,7 @@ public class CConn extends CConnection
   }
 
   public void refresh() {
-    synchronized (this) {
-      writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
-    }
+    writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
     pendingUpdate = true;
   }
 
@@ -1216,17 +1197,17 @@ public class CConn extends CConnection
   }
 
   // writeClientCutText() is called from the clipboard dialog
-  synchronized public void writeClientCutText(String str, int len) {
+  public void writeClientCutText(String str, int len) {
     if (state() != RFBSTATE_NORMAL) return;
     writer().writeClientCutText(str,len);
   }
 
-  synchronized public void writeKeyEvent(int keysym, boolean down) {
+  public void writeKeyEvent(int keysym, boolean down) {
     if (state() != RFBSTATE_NORMAL) return;
     writer().writeKeyEvent(keysym, down);
   }
 
-  synchronized public void writeKeyEvent(KeyEvent ev) {
+  public void writeKeyEvent(KeyEvent ev) {
     if (ev.getID() != KeyEvent.KEY_PRESSED && !ev.isActionKey())
       return;
 
@@ -1335,9 +1316,7 @@ public class CConn extends CConnection
       break;
     }
 
-    synchronized (this) {
-      writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
-    }
+    writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
 
     if (cp.width != desktop.scaledWidth || 
         cp.height != desktop.scaledHeight) {
@@ -1348,9 +1327,7 @@ public class CConn extends CConnection
       ev.translatePoint(sx - ev.getX(), sy - ev.getY());
     }
     
-    synchronized (this) {
-      writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
-    }
+    writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
 
     if (buttonMask == 0) writeModifiers(0);
   }
@@ -1369,11 +1346,9 @@ public class CConn extends CConnection
     for (int i=0;i<Math.abs(clicks);i++) {
       x = ev.getX();
       y = ev.getY();
-      synchronized(this) {
-        writer().writePointerEvent(new Point(x, y), buttonMask);
-        buttonMask = 0;
-        writer().writePointerEvent(new Point(x, y), buttonMask);
-      }
+      writer().writePointerEvent(new Point(x, y), buttonMask);
+      buttonMask = 0;
+      writer().writePointerEvent(new Point(x, y), buttonMask);
     }
     writeModifiers(0);
 
@@ -1400,9 +1375,7 @@ public class CConn extends CConnection
   private void checkEncodings() {
     if (encodingChange && (writer() != null)) {
       vlog.info("Using "+Encodings.encodingName(currentEncoding)+" encoding");
-      synchronized(this) {
-        writer().writeSetEncodings(currentEncoding, true);
-      }
+      writer().writeSetEncodings(currentEncoding, true);
       encodingChange = false;
     }
   }

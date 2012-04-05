@@ -38,12 +38,14 @@ public class SocketDescriptor extends SocketChannel
     try {
       channel = SocketChannel.open();
       channel.configureBlocking(false);
-      selector = Selector.open();
+      writeSelector = Selector.open();
+      readSelector = Selector.open();
     } catch (IOException e) {
       throw new Exception(e.toString());
     }
     try {
-      channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE );
+      channel.register(writeSelector, SelectionKey.OP_WRITE);
+      channel.register(readSelector, SelectionKey.OP_READ);
     } catch (java.nio.channels.ClosedChannelException e) {
       throw new Exception(e.toString());
     }
@@ -90,6 +92,12 @@ public class SocketDescriptor extends SocketChannel
 
   synchronized public int select(int interestOps, Integer timeout) throws Exception {
     int n;
+    Selector selector;
+    if ((interestOps & SelectionKey.OP_READ) != 0) {
+      selector = readSelector;
+    } else {
+      selector = writeSelector;
+    }
     selector.selectedKeys().clear();
     try {
       if (timeout == null) {
@@ -105,20 +113,10 @@ public class SocketDescriptor extends SocketChannel
           break;
         }
       }
-      if (n == 0)
-        return -1;
     } catch (java.io.IOException e) {
       throw new Exception(e.toString());
     }
-    Set keys = selector.selectedKeys();
-    Iterator iter = keys.iterator();
-    while (iter.hasNext()) {
-      SelectionKey key = (SelectionKey)iter.next();
-      if ((key.readyOps() & interestOps) != 0) {
-        return n;
-      }
-    }
-    return 0;
+    return n;
   }
 
   public int write(ByteBuffer buf) throws Exception {
@@ -198,22 +196,27 @@ public class SocketDescriptor extends SocketChannel
     try {
       if (channel != null)
         channel.close();
-      if (selector != null)
-        selector.close();
+      if (readSelector != null)
+        readSelector.close();
+      if (writeSelector != null)
+        writeSelector.close();
       channel = channel_;
       channel.configureBlocking(false);
-      selector = Selector.open();
+      writeSelector = Selector.open();
+      readSelector = Selector.open();
     } catch (java.io.IOException e) {
       throw new Exception(e.toString());
     }
     try {
-      channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE );
+      channel.register(writeSelector, SelectionKey.OP_WRITE);
+      channel.register(readSelector, SelectionKey.OP_READ);
     } catch (java.nio.channels.ClosedChannelException e) {
       System.out.println(e.toString());
     }
   }
   
   protected SocketChannel channel;
-  protected Selector selector;
+  protected Selector writeSelector;
+  protected Selector readSelector;
 
 }

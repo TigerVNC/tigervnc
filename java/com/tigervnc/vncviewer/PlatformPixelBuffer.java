@@ -17,11 +17,6 @@
  * USA.
  */
 
-//
-// PixelBufferImage is an PixelBuffer which also acts as an ImageProducer.
-// Currently it only supports 8-bit colourmapped pixel format.
-//
-
 package com.tigervnc.vncviewer;
 
 import java.awt.*;
@@ -30,9 +25,9 @@ import java.nio.ByteOrder;
 
 import com.tigervnc.rfb.*;
 
-public class PixelBufferImage extends PixelBuffer
+abstract public class PlatformPixelBuffer extends PixelBuffer
 {
-  public PixelBufferImage(int w, int h, CConn cc_, DesktopWindow desktop_) {
+  public PlatformPixelBuffer(int w, int h, CConn cc_, DesktopWindow desktop_) {
     cc = cc_;
     desktop = desktop_;
     PixelFormat nativePF = getNativePF();
@@ -45,30 +40,7 @@ public class PixelBufferImage extends PixelBuffer
   }
 
   // resize() resizes the image, preserving the image data where possible.
-  public void resize(int w, int h) {
-    if (w == width() && h == height()) return;
-
-    width_ = w;
-    height_ = h;
-    switch (format.depth) {
-    case  3: 
-      // Fall-through to depth 8
-    case  6: 
-      // Fall-through to depth 8
-    case 8:
-      image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_INDEXED);
-      break;
-    default:
-      GraphicsEnvironment ge =
-        GraphicsEnvironment.getLocalGraphicsEnvironment();
-      GraphicsDevice gd = ge.getDefaultScreenDevice();
-      GraphicsConfiguration gc = gd.getDefaultConfiguration();
-      image = gc.createCompatibleImage(w, h, Transparency.OPAQUE);
-      break;
-    }
-    image.setAccelerationPriority(1);
-    graphics = image.createGraphics();
-  }
+  abstract public void resize(int w, int h);
 
   public PixelFormat getNativePF() {
     PixelFormat pf;
@@ -96,34 +68,7 @@ public class PixelBufferImage extends PixelBuffer
     return pf;
   }
 
-  public void fillRect(int x, int y, int w, int h, int pix) {
-    switch (format.depth) {
-    case 24:
-      graphics.setColor(new Color(pix)); 
-      graphics.fillRect(x, y, w, h); 
-      break;
-    default:
-      Color color = new Color((0xff << 24) | (cm.getRed(pix) << 16) |
-                              (cm.getGreen(pix) << 8) | (cm.getBlue(pix)));
-      graphics.setColor(color); 
-      graphics.fillRect(x, y, w, h); 
-      break;
-    }
-  }
-
-  public void imageRect(int x, int y, int w, int h, Object pix) {
-    if (pix instanceof java.awt.Image) {
-      graphics.drawImage((Image)pix, x, y, w, h, null); 
-    } else {
-      Image img = tk.createImage(new MemoryImageSource(w, h, cm, (int[])pix, 0, w));
-      graphics.drawImage(img, x, y, w, h, null); 
-      img.flush();
-    }
-  }
-
-  public void copyRect(int x, int y, int w, int h, int srcX, int srcY) {
-    graphics.copyArea(srcX, srcY, w, h, x - srcX, y - srcY);
-  }
+  abstract public void imageRect(int x, int y, int w, int h, Object pix);
 
   // setColourMapEntries() changes some of the entries in the colourmap.
   // However these settings won't take effect until updateColourMap() is
@@ -147,11 +92,11 @@ public class PixelBufferImage extends PixelBuffer
     cm = new IndexColorModel(8, nColours, reds, greens, blues);
   }
 
-  private static Toolkit tk = java.awt.Toolkit.getDefaultToolkit();
+  protected static Toolkit tk = Toolkit.getDefaultToolkit();
 
-  Graphics2D graphics;
-  BufferedImage image;
-  ImageConsumer ic;
+  abstract public Image getImage();
+
+  protected Image image;
 
   int nColours;
   byte[] reds;
@@ -160,5 +105,5 @@ public class PixelBufferImage extends PixelBuffer
 
   CConn cc;
   DesktopWindow desktop;
-  static LogWriter vlog = new LogWriter("PixelBufferImage");
+  static LogWriter vlog = new LogWriter("PlatformPixelBuffer");
 }

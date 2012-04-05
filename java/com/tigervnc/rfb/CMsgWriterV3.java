@@ -26,20 +26,20 @@ public class CMsgWriterV3 extends CMsgWriter {
 
   public CMsgWriterV3(ConnParams cp_, OutStream os_) { super(cp_, os_); }
 
-  public void writeClientInit(boolean shared) {
+  synchronized public void writeClientInit(boolean shared) {
     os.writeU8(shared?1:0);
     endMsg();
   }
 
-  public void startMsg(int type) {
+  synchronized public void startMsg(int type) {
     os.writeU8(type);
   }
 
-  public void endMsg() {
+  synchronized public void endMsg() {
     os.flush();
   }
 
-  public void writeSetDesktopSize(int width, int height,
+  synchronized public void writeSetDesktopSize(int width, int height,
                                   ScreenSet layout)
 	{
 	  if (!cp.supportsSetDesktopSize)
@@ -67,7 +67,7 @@ public class CMsgWriterV3 extends CMsgWriter {
 	  endMsg();
 	}
 
-  public void writeFence(int flags, int len, byte[] data)
+  synchronized public void writeFence(int flags, int len, byte[] data)
   {
     if (!cp.supportsFence)
       throw new Exception("Server does not support fences");
@@ -87,7 +87,7 @@ public class CMsgWriterV3 extends CMsgWriter {
     endMsg();
   }
   
-  public void writeEnableContinuousUpdates(boolean enable,
+  synchronized public void writeEnableContinuousUpdates(boolean enable,
                                            int x, int y, int w, int h)
   {
     if (!cp.supportsContinuousUpdates)

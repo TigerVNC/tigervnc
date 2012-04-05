@@ -249,16 +249,7 @@ public class TightDecoder extends Decoder {
 
     // Create an Image object from the JPEG data.
     Image jpeg = tk.createImage(netbuf);
-    tk.prepareImage(jpeg, -1, -1, null); 
-    synchronized(this) { 
-      while ((tk.checkImage(jpeg, -1, -1, null) & ImageObserver.ALLBITS) == 0) {
-        try {
-          this.wait(1);
-        } catch (InterruptedException e) {
-          throw new Exception("Error decoding JPEG data");
-        }
-      }
-    }
+    jpeg.setAccelerationPriority(1);
     handler.imageRect(r, jpeg);
     jpeg.flush();
   }
