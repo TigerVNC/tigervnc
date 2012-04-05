@@ -100,7 +100,7 @@ public class TcpListener extends SocketListener  {
 
     // Accept an incoming connection
     try {
-      if (selector.select() > 0) {
+      if (selector.select(0) > 0) {
         Set keys = selector.selectedKeys();
         Iterator iter = keys.iterator();
         while (iter.hasNext()) {

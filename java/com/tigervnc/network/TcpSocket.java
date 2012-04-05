@@ -171,29 +171,23 @@ public class TcpSocket extends Socket {
     return ((InetSocketAddress)((SocketDescriptor)getFd()).socket().getRemoteSocketAddress()).getPort();
   }
 
+  /* Tunnelling support. */
+  public static int findFreeTcpPort() {
+    java.net.ServerSocket sock;
+    int port;
+    try {
+      sock = new java.net.ServerSocket(0);
+      port = sock.getLocalPort();
+      sock.close();
+    } catch (java.io.IOException e) {
+      throw new SocketException("unable to create socket: "+e.toString());
+    }
+    return port;
+  }
+
   private boolean closeFd;
   static LogWriter vlog = new LogWriter("TcpSocket");
 
 }
 
-/* Tunnelling support. */
-/*
-public int findFreeTcpPort() {
-  int sock;
-
-  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    throw SocketException("unable to create socket", errorNumber);
-
-  int port = 0;
-  if (bind (sock, (struct sockaddr *)&addr, sizeof (addr)) < 0)
-    throw SocketException("unable to find free port", errorNumber);
-
-  socklen_t n = sizeof(addr);
-  if (getsockname (sock, (struct sockaddr *)&addr, &n) < 0)
-    throw SocketException("unable to get port number", errorNumber);
-
-  closesocket(sock);
-  return ntohs(addr.sin_port);
-}
-*/
 

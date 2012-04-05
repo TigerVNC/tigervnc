@@ -33,14 +33,20 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.File;
 import java.lang.Character;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.*;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
 import com.tigervnc.network.*;
+
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 
 public class VncViewer extends java.applet.Applet implements Runnable
 {
@@ -130,6 +136,82 @@ public class VncViewer extends java.applet.Applet implements Runnable
     System.exit(1);
   }
 
+  /* Tunnelling support. */
+  private void interpretViaParam(StringParameter gatewayHost,
+    StringParameter remoteHost, IntParameter remotePort, 
+    StringParameter vncServerName, IntParameter localPort)
+  {
+    final int SERVER_PORT_OFFSET = 5900;;
+    int pos = vncServerName.getValueStr().indexOf(":");
+    if (pos == -1)
+      remotePort.setParam(""+SERVER_PORT_OFFSET+"");
+    else {
+      int portOffset = SERVER_PORT_OFFSET;
+      int len;
+      pos++;
+      len =  vncServerName.getValueStr().substring(pos).length();
+      if (vncServerName.getValueStr().substring(pos, pos).equals(":")) {
+        /* Two colons is an absolute port number, not an offset. */
+        pos++;
+        len--;
+        portOffset = 0;
+      }
+      try {
+        if (len <= 0 || !vncServerName.getValueStr().substring(pos).matches("[0-9]+"))
+          usage();
+        portOffset += Integer.parseInt(vncServerName.getValueStr().substring(pos));
+        remotePort.setParam(""+portOffset+"");
+      } catch (java.lang.NumberFormatException e) {
+        usage();
+      }
+    }
+  
+    if (vncServerName != null)
+      remoteHost.setParam(vncServerName.getValueStr().split(":")[0]);
+  
+    gatewayHost.setParam(via.getValueStr());
+    vncServerName.setParam("localhost::"+localPort.getValue());
+  }
+
+  private void
+  createTunnel(String gatewayHost, String remoteHost,
+          int remotePort, int localPort)
+  {
+    try{
+      JSch jsch=new JSch();
+      String homeDir = new String("");
+      try {
+        homeDir = System.getProperty("user.home");
+      } catch(java.security.AccessControlException e) {
+        System.out.println("Cannot access user.home system property");
+      }
+      // NOTE: jsch does not support all ciphers.  User may be
+      //       prompted to accept host key authenticy even if
+      //       the key is in the known_hosts file.
+      File knownHosts = new File(homeDir+"/.ssh/known_hosts");
+      if (knownHosts.exists() && knownHosts.canRead())
+	      jsch.setKnownHosts(knownHosts.getAbsolutePath());
+      ArrayList<File> privateKeys = new ArrayList<File>();
+      privateKeys.add(new File(homeDir+"/.ssh/id_rsa"));
+      privateKeys.add(new File(homeDir+"/.ssh/id_dsa"));
+      for (Iterator i = privateKeys.iterator(); i.hasNext();) {
+        File privateKey = (File)i.next();
+        if (privateKey.exists() && privateKey.canRead())
+	        jsch.addIdentity(privateKey.getAbsolutePath());
+      }
+      // username and passphrase will be given via UserInfo interface.
+      PasswdDialog dlg = new PasswdDialog(new String("SSH Authentication"), false, false);
+      dlg.userEntry.setText((String)System.getProperties().get("user.name"));
+      Session session=jsch.getSession(dlg.userEntry.getText(), gatewayHost, 22);
+      session.setUserInfo(dlg);
+      session.connect();
+
+      session.setPortForwardingL(localPort, remoteHost, remotePort);
+    } catch (java.lang.Exception e) {
+      System.out.println(e);
+    }
+  }
+
   public VncViewer() {
     applet = true;
     firstApplet = true;
@@ -192,6 +274,21 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public void run() {
     CConn cc = null;
     Socket sock = null;
+
+    /* Tunnelling support. */
+    if (via.getValueStr() != null) {
+      StringParameter gatewayHost = new StringParameter("", "", "");
+      StringParameter remoteHost = new StringParameter("", "", "localhost");
+      IntParameter localPort = 
+        new IntParameter("", "", TcpSocket.findFreeTcpPort());
+      IntParameter remotePort = new IntParameter("", "", 5900);
+      if (vncServerName.getValueStr() == null)
+        usage();
+      interpretViaParam(gatewayHost, remoteHost, remotePort, 
+        vncServerName, localPort);
+      createTunnel(gatewayHost.getValueStr(), remoteHost.getValueStr(), 
+        remotePort.getValue(), localPort.getValue());
+    }
 
     if (listenMode.getValue()) {
       int port = 5500;
@@ -322,6 +419,9 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new BoolParameter("AcceptBell",
                       "Produce a system beep when requested to by the server.", 
                       true);
+  StringParameter via
+  = new StringParameter("via", "Gateway to tunnel via", null);
+
   BoolParameter customCompressLevel
   = new BoolParameter("CustomCompressLevel",
                           "Use custom compression level. "+

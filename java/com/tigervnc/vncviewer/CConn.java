@@ -314,7 +314,7 @@ public class CConn extends CConnection
       }
     }
     if (passwd != null)
-      passwd.append(dlg.passwdEntry.getText());
+      passwd.append(new String(dlg.passwdEntry.getPassword()));
     return true;
   }
 
