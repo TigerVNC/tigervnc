@@ -1044,21 +1044,27 @@ public class CConn extends CConnection
     viewer.acceptBell.setParam(options.acceptBell.isSelected());
     String scaleString =
       options.scalingFactor.getSelectedItem().toString();
+    String oldScaleFactor = viewer.scalingFactor.getValue();
     if (scaleString.equals("Auto")) {
+      if (!oldScaleFactor.equals(scaleString)) {
       viewer.scalingFactor.setParam("Auto");
-      if (desktop != null)
-        reconfigureViewport();
+        if (desktop != null)
+          reconfigureViewport();
+      }
     } else if(scaleString.equals("Fixed Aspect Ratio")) {
-      viewer.scalingFactor.setParam("FixedRatio");
-      if (desktop != null)
-        reconfigureViewport();
+      if (!oldScaleFactor.equals("FixedRatio")) {
+        viewer.scalingFactor.setParam("FixedRatio");
+        if (desktop != null)
+          reconfigureViewport();
+      }
     } else { 
       scaleString=scaleString.substring(0, scaleString.length()-1);
-      String oldScaleFactor = viewer.scalingFactor.getValue();
-      viewer.scalingFactor.setParam(scaleString);
-      if ((desktop != null) && (!oldScaleFactor.equals("Auto") ||
-           !oldScaleFactor.equals("FixedRatio"))) {
-        reconfigureViewport();
+      if (!oldScaleFactor.equals(scaleString)) {
+        viewer.scalingFactor.setParam(scaleString);
+        if ((desktop != null) && (!oldScaleFactor.equals("Auto") ||
+            !oldScaleFactor.equals("FixedRatio"))) {
+          reconfigureViewport();
+        }
       }
     }
 
