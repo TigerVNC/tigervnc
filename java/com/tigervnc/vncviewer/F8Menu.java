@@ -44,6 +44,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     addSeparator();
     fullScreen = new JCheckBoxMenuItem("Full Screen");
     fullScreen.setMnemonic(KeyEvent.VK_F);
+    fullScreen.setSelected(cc.fullScreen);
     fullScreen.addActionListener(this);
     add(fullScreen);
     addSeparator();
