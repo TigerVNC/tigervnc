@@ -188,6 +188,7 @@ public class CConn extends CConnection
     }
     cp.supportsDesktopResize = true;
     cp.supportsExtendedDesktopSize = true;
+    cp.supportsSetDesktopSize = true;
     cp.supportsClientRedirect = true;
     cp.supportsDesktopRename = true;
     cp.supportsLocalCursor = viewer.useLocalCursor.getValue();
