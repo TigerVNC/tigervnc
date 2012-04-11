@@ -1,7 +1,6 @@
-/*
- * Copyright (c) 2004, 2006, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2004, 2006, Oracle and/or its affiliates. All rights reserved.
  * Copyright (C) 2008  Trustin Heuiseung Lee
- * Copyright (C) 2012  TigerVNC Team
+ * Copyright (C) 2012  Brian P. Hinz
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
