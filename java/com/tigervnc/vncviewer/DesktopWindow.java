@@ -55,6 +55,8 @@ class DesktopWindow extends JPanel implements
   public DesktopWindow(int width, int height, PixelFormat serverPF, CConn cc_) {
     cc = cc_;
     setSize(width, height);
+    setBackground(Color.BLACK);
+    setOpaque(true);
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice gd = ge.getDefaultScreenDevice();
@@ -64,7 +66,6 @@ class DesktopWindow extends JPanel implements
     if (bufCaps.isPageFlipping() || bufCaps.isMultiBufferAvailable() ||
         imgCaps.isAccelerated()) {
       vlog.debug("GraphicsDevice supports HW acceleration.");
-      setDoubleBuffered(false);
       im = new BIPixelBuffer(width, height, cc, this);
     } else {
       vlog.debug("GraphicsDevice does not support HW acceleration.");
@@ -92,17 +93,6 @@ class DesktopWindow extends JPanel implements
 
   public int height() {
     return getHeight();
-  }
-
-  // initGraphics() is needed because for some reason you can't call
-  // getGraphics() on a newly-created awt Component.  It is called when the
-  // DesktopWindow has actually been made visible so that getGraphics() ought
-  // to work.
-
-  public void initGraphics() { 
-    synchronized(im) {
-      prepareImage(im.getImage(), scaledWidth, scaledHeight, null);
-    }
   }
 
   final public PixelFormat getPF() { return im.getPF(); }
@@ -219,7 +209,11 @@ class DesktopWindow extends JPanel implements
   // Update the actual window with the changed parts of the framebuffer.
   public void updateWindow()
   {
-    drawInvalidRect();
+    Rect r = damage;
+    if (!r.is_empty()) {
+      paintImmediately(r.tl.x, r.tl.y, r.width(), r.height());
+      damage.clear();
+    }
   }
 
   // resize() is called when the desktop has changed size
@@ -231,41 +225,11 @@ class DesktopWindow extends JPanel implements
     im.resize(w, h);
   }
 
-  final void drawInvalidRect() {
-    if (!invalidRect) return;
-    int x = invalidLeft;
-    int w = invalidRight - x;
-    int y = invalidTop;
-    int h = invalidBottom - y;
-    invalidRect = false;
-
-    repaint(x, y, w, h);
-  }
-
-  final void invalidate(int x, int y, int w, int h) {
-    if (invalidRect) {
-      if (x < invalidLeft) invalidLeft = x;
-      if (x + w > invalidRight) invalidRight = x + w;
-      if (y < invalidTop) invalidTop = y;
-      if (y + h > invalidBottom) invalidBottom = y + h;
-    } else {
-      invalidLeft = x;
-      invalidRight = x + w;
-      invalidTop = y;
-      invalidBottom = y + h;
-      invalidRect = true;
-    }
-  }
-
-  public void beginRect(int x, int y, int w, int h, int encoding) {
-    invalidRect = false;
-  }
-
   final public void fillRect(int x, int y, int w, int h, int pix)
   {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
     im.fillRect(x, y, w, h, pix);
-    invalidate(x, y, w, h);
+    damageRect(new Rect(x, y, x+w, y+h));
     if (softCursor == null)
       showLocalCursor();
   }
@@ -274,7 +238,7 @@ class DesktopWindow extends JPanel implements
                                            Object pix) {
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
     im.imageRect(x, y, w, h, pix);
-    invalidate(x, y, w, h);
+    damageRect(new Rect(x, y, x+w, y+h));
     if (softCursor == null)
       showLocalCursor();
   }
@@ -284,7 +248,7 @@ class DesktopWindow extends JPanel implements
     if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))
       hideLocalCursor();
     im.copyRect(x, y, w, h, srcX, srcY);
-    invalidate(x, y, w, h);
+    damageRect(new Rect(x, y, x+w, y+h));
   }
 
 
@@ -358,14 +322,10 @@ class DesktopWindow extends JPanel implements
 
   public void paintComponent(Graphics g) {
     Graphics2D g2 = (Graphics2D) g;
-    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
-                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);  
-    g2.setRenderingHint(RenderingHints.KEY_RENDERING, 
-                        RenderingHints.VALUE_RENDER_QUALITY);
-    if (cc.cp.width == scaledWidth && cc.cp.height == scaledHeight) {
-      g2.drawImage(im.getImage(), 0, 0, null);
-    } else {
+    if (cc.cp.width != scaledWidth || cc.cp.height != scaledHeight) {
       g2.drawImage(im.getImage(), 0, 0, scaledWidth, scaledHeight, null);  
+    } else {
+      g2.drawImage(im.getImage(), 0, 0, null);
     }
   }
   
@@ -512,6 +472,14 @@ class DesktopWindow extends JPanel implements
     }
   }
 
+  void damageRect(Rect r) {
+    if (damage.is_empty()) {
+      damage.setXYWH(r.tl.x, r.tl.y, r.width(), r.height());
+    } else {
+      r = damage.union_boundary(r);
+      damage.setXYWH(r.tl.x, r.tl.y, r.width(), r.height());
+    }
+  }
 
   // run() is executed by the setColourMapEntriesTimerThread - it sleeps for
   // 100ms before actually updating the colourmap.
@@ -542,12 +510,9 @@ class DesktopWindow extends JPanel implements
   public int scaledWidth = 0, scaledHeight = 0;
   float scaleWidthRatio, scaleHeightRatio;
 
-  // the following are only ever accessed by the RFB thread:
-  boolean invalidRect;
-  int invalidLeft, invalidRight, invalidTop, invalidBottom;
-
   // the following are only ever accessed by the GUI thread:
   int lastX, lastY;
+  Rect damage = new Rect();
 
   static LogWriter vlog = new LogWriter("DesktopWindow");
 }

@@ -66,6 +66,9 @@ class ViewportFrame extends JFrame
     setTitle(name+" - TigerVNC");
     setFocusable(false);
     setFocusTraversalKeysEnabled(false);
+    sp = new JScrollPane();
+    sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+    getContentPane().add(sp);
     addWindowFocusListener(new WindowAdapter() {
       public void windowGainedFocus(WindowEvent e) {
         sp.getViewport().getView().requestFocusInWindow();
@@ -113,17 +116,8 @@ class ViewportFrame extends JFrame
     });
   }
 
-  public void addChild(DesktopWindow child) {
-    sp = new JScrollPane(child);
-    child.setBackground(Color.BLACK);
-    child.setOpaque(true);
-    sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-    getContentPane().add(sp);
-  }
-
   public void setChild(DesktopWindow child) {
-    getContentPane().removeAll();
-    addChild(child);
+    sp.getViewport().setView(child);
   }
 
   public void setGeometry(int x, int y, int w, int h, boolean pack) {
@@ -594,11 +588,9 @@ public class CConn extends CConnection
       icon = new ImageIcon(url);
       viewport.setIconImage(icon.getImage());
     }
-    viewport.addChild(desktop);
     reconfigureViewport();
     if ((cp.width > 0) && (cp.height > 0))
       viewport.setVisible(true);
-    desktop.initGraphics();
     desktop.requestFocusInWindow();
   }
 
