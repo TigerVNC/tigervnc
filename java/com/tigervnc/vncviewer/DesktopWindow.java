@@ -128,6 +128,9 @@ class DesktopWindow extends JPanel implements
 
     hideLocalCursor();
 
+    if (hotspot == null)
+      hotspot = new Point(0, 0);
+
     cursor.hotspot = hotspot;
 
     Dimension bsc = tk.getBestCursorSize(w, h);
