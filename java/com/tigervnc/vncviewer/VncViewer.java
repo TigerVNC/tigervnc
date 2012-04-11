@@ -338,11 +338,6 @@ public class VncViewer extends java.applet.Applet implements Runnable
     }
   }
 
-  BoolParameter fastCopyRect
-  = new BoolParameter("FastCopyRect",
-                          "Use fast CopyRect - turn this off if you get "+
-                          "screen corruption when copying from off-screen",
-                          true);
   BoolParameter useLocalCursor
   = new BoolParameter("UseLocalCursor",
                           "Render the mouse cursor locally", true);

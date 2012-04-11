@@ -63,9 +63,6 @@ class ServerDialog extends Dialog implements
 
     server.setEditable(true);
     editor = server.getEditor();
-    JLabel encryptionLabel = new JLabel("Encryption:");
-    encryption = new JComboBox();
-    serverLabel.setPreferredSize(encryptionLabel.getPreferredSize());
 
     JPanel topPanel = new JPanel(new GridBagLayout());
 
@@ -135,7 +132,6 @@ class ServerDialog extends Dialog implements
   public void endDialog() {
     if (ok) {
       try {
-        options.defaults.setPref("encryption",(encryption.getSelectedIndex()==1) ? "off" : "on");
         if (!server.getSelectedItem().toString().equals("")) {
           String t = (options.defaults.getString("server")==null) ? "" : options.defaults.getString("server");
           StringTokenizer st = new StringTokenizer(t, ",");
@@ -166,7 +162,7 @@ class ServerDialog extends Dialog implements
   }
 
   CConn cc;
-  JComboBox encryption, server;
+  JComboBox server;
   ComboBoxEditor editor;
   JButton aboutButton, optionsButton, okButton, cancelButton;
   OptionsDialog options;
