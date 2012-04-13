@@ -61,7 +61,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public static String version = null;
   public static String build = null;
 
-  public static void main(String[] argv) {
+  public static void setLookAndFeel() {
     try {
       String os = System.getProperty("os.name");
       if (os.startsWith("Windows")) {
@@ -80,7 +80,13 @@ public class VncViewer extends java.applet.Applet implements Runnable
         }
       }
       UIManager.put("TitledBorder.titleColor",Color.blue);
-    } catch (java.lang.Exception exc) { }
+    } catch (java.lang.Exception e) { 
+      vlog.info(e.toString());
+    }
+  }
+
+  public static void main(String[] argv) {
+    setLookAndFeel();
     VncViewer viewer = new VncViewer(argv);
     viewer.firstApplet = true;
     viewer.stop = false;
@@ -232,6 +238,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   public void init() {
     vlog.debug("init called");
+    setLookAndFeel();
     setBackground(Color.white);
     ClassLoader cl = this.getClass().getClassLoader();
     ImageIcon icon = new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.png"));
