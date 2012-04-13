@@ -204,7 +204,12 @@ public class CConn extends CConnection
       } else {
         ServerDialog dlg = new ServerDialog(options, vncServerName, this);
         if (!dlg.showDialog() || dlg.server.getSelectedItem().equals("")) {
-          System.exit(1);
+          if (viewer.firstApplet) {
+            System.exit(1);
+          } else {
+            viewer.stop();
+            return;
+          }
         }
         vncServerName = (String)dlg.server.getSelectedItem();
         serverHost = Hostname.getHost(vncServerName);
@@ -248,7 +253,12 @@ public class CConn extends CConnection
     if (viewport != null)
       viewport.dispose();
     viewport = null;
-    System.exit(1);
+    if (viewer.firstApplet) {
+      System.exit(1);
+    } else {
+      close();
+      viewer.stop();
+    }
   } 
 
   // blockCallback() is called when reading from the socket would block.
@@ -769,6 +779,11 @@ public class CConn extends CConnection
   public void close() {
     shuttingDown = true;
     sock.shutdown();
+    try {
+      sock.close();
+    } catch (java.lang.Exception e) {
+      throw new Exception(e.toString());
+    }
   }
 
   // Menu callbacks.  These are guaranteed only to be called after serverInit()

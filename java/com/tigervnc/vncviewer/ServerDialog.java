@@ -23,6 +23,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.WindowConstants.*;
 import java.util.*;
 
 import com.tigervnc.rfb.*;
@@ -37,10 +38,20 @@ class ServerDialog extends Dialog implements
     
     super(true);
     cc = cc_;
-    setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setResizable(false);
     setSize(new Dimension(340, 135));
     setTitle("VNC Viewer : Connection Details");
+    addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        if (cc.viewer.firstApplet && cc.viewport == null) {
+          System.exit(1);
+        } else {
+          ok = false;
+          endDialog();
+        }
+      }
+    });
 
     options = options_;
     getContentPane().setLayout(new GridBagLayout());
