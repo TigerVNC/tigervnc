@@ -228,13 +228,17 @@ public class VncViewer extends java.applet.Applet implements Runnable
     firstApplet = true;
   }
 
-  public static void newViewer(VncViewer oldViewer) {
+  public static void newViewer(VncViewer oldViewer, Socket sock) {
     VncViewer viewer = new VncViewer();
     viewer.applet = oldViewer.applet;
     viewer.firstApplet = false;
+    viewer.sock = sock;
     viewer.start();
   }
 
+  public static void newViewer(VncViewer oldViewer) {
+    newViewer(oldViewer, null);
+  }
 
   public void init() {
     vlog.debug("init called");
@@ -289,7 +293,6 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   public void run() {
     CConn cc = null;
-    Socket sock = null;
 
     /* Tunnelling support. */
     if (via.getValueStr() != null) {
@@ -324,10 +327,9 @@ public class VncViewer extends java.applet.Applet implements Runnable
       vlog.info("Listening on port "+port);
 
       while (true) {
-        sock = listener.accept();
-        if (sock != null)
-          break;
-        //listener.close();
+        Socket new_sock = listener.accept();
+        if (new_sock != null)
+          newViewer(this, new_sock);
       }
     }
 
@@ -456,6 +458,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
 			                    8);
 
   Thread thread;
+  Socket sock;
   boolean applet, firstApplet, stop;
   Image logo;
   static int nViewers;
