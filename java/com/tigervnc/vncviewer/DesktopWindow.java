@@ -327,6 +327,7 @@ class DesktopWindow extends JPanel implements
     } else {
       g2.drawImage(im.getImage(), 0, 0, null);
     }
+    g2.dispose();
   }
   
   String oldContents = "";
