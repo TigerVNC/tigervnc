@@ -388,9 +388,7 @@ public class CConn extends CConnection
       setServerPort(port);
       sock = new TcpSocket(host, port);
       vlog.info("Redirected to "+host+":"+port);
-      setStreams(sock.inStream(), sock.outStream());
-      sock.inStream().setBlockCallback(this);
-      initialiseProtocol();
+      viewer.newViewer(viewer, sock, true);
     } catch (java.lang.Exception e) {
       throw new Exception(e.toString());
     }

@@ -247,12 +247,18 @@ public class VncViewer extends java.applet.Applet implements Runnable
     firstApplet = true;
   }
 
-  public static void newViewer(VncViewer oldViewer, Socket sock) {
+  public static void newViewer(VncViewer oldViewer, Socket sock, boolean close) {
     VncViewer viewer = new VncViewer();
     viewer.applet = oldViewer.applet;
-    viewer.firstApplet = false;
+    viewer.firstApplet = (close) ? true : false;
     viewer.sock = sock;
     viewer.start();
+    if (close)
+      oldViewer.stop();
+  }
+
+  public static void newViewer(VncViewer oldViewer, Socket sock) {
+    newViewer(oldViewer, sock, false);
   }
 
   public static void newViewer(VncViewer oldViewer) {
