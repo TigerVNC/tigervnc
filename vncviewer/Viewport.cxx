@@ -950,7 +950,7 @@ void Viewport::popupContextMenu()
   case ID_INFO:
     if (fltk_escape(cc->connectionInfo(), buffer, sizeof(buffer)) < sizeof(buffer)) {
       fl_message_title(_("VNC connection info"));
-      fl_message(buffer);
+      fl_message("%s", buffer);
     }
     break;
   case ID_ABOUT:

@@ -150,22 +150,20 @@ bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
   // FLTK doesn't give us a flexible choice of the icon, so we ignore those
   // bits for now.
 
-  // FIXME: Filter out % from input text
-
   fl_message_title(title);
 
   switch (flags & 0xf) {
   case M_OKCANCEL:
-    return fl_choice(buffer, NULL, fl_ok, fl_cancel) == 1;
+    return fl_choice("%s", NULL, fl_ok, fl_cancel, buffer) == 1;
   case M_YESNO:
-    return fl_choice(buffer, NULL, fl_yes, fl_no) == 1;
+    return fl_choice("%s", NULL, fl_yes, fl_no, buffer) == 1;
   case M_OK:
   default:
     if (((flags & 0xf0) == M_ICONERROR) ||
         ((flags & 0xf0) == M_ICONWARNING))
-      fl_alert(buffer);
+      fl_alert("%s", buffer);
     else
-      fl_message(buffer);
+      fl_message("%s", buffer);
     return true;
   }
 

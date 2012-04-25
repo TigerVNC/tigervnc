@@ -69,7 +69,10 @@ using namespace network;
 using namespace rfb;
 using namespace std;
 
-static char aboutText[1024];
+static const char aboutText[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
+                                   "%s\n"
+                                   "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
+                                   "See http://www.tigervnc.org for information on TigerVNC.");
 extern const char* buildTime;
 
 static bool exitMainloop = false;
@@ -88,7 +91,8 @@ void exit_vncviewer(const char *error)
 void about_vncviewer()
 {
   fl_message_title(_("About TigerVNC Viewer"));
-  fl_message(aboutText);
+  fl_message(gettext(aboutText), (int)sizeof(size_t)*8,
+             PACKAGE_VERSION, __BUILD__, buildTime);
 }
 
 static void about_callback(Fl_Widget *widget, void *data)
@@ -267,11 +271,6 @@ int main(int argc, char** argv)
   const char* vncServerName = NULL;
   UserDialog dlg;
 
-  const char englishAbout[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
-                                 "%s\n"
-                                 "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
-                                 "See http://www.tigervnc.org for information on TigerVNC.");
-
   setlocale(LC_ALL, "");
   bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
   textdomain(PACKAGE_NAME);
@@ -279,21 +278,16 @@ int main(int argc, char** argv)
   rfb::SecurityClient::setDefaults();
 
   // Write about text to console, still using normal locale codeset
-  snprintf(aboutText, sizeof(aboutText),
-           gettext(englishAbout), (int)sizeof(size_t)*8, PACKAGE_VERSION,
-           __BUILD__, buildTime);
-  fprintf(stderr,"\n%s\n", aboutText);
+  fprintf(stderr,"\n");
+  fprintf(stderr, gettext(aboutText), (int)sizeof(size_t)*8,
+          PACKAGE_VERSION, __BUILD__, buildTime);
+  fprintf(stderr,"\n");
 
   // Set gettext codeset to what our GUI toolkit uses. Since we are
   // passing strings from strerror/gai_strerror to the GUI, these must
   // be in GUI codeset as well.
   bind_textdomain_codeset(PACKAGE_NAME, "UTF-8");
   bind_textdomain_codeset("libc", "UTF-8");
-
-  // Re-create the aboutText for the GUI, now using GUI codeset
-  snprintf(aboutText, sizeof(aboutText),
-           gettext(englishAbout), (int)sizeof(size_t)*8, PACKAGE_VERSION,
-           __BUILD__, buildTime);
 
   rfb::initStdIOLoggers();
   rfb::LogWriter::setLogParams("*:stderr:30");
@@ -376,7 +370,7 @@ int main(int argc, char** argv)
   delete cc;
 
   if (exitError != NULL)
-    fl_alert(exitError);
+    fl_alert("%s", exitError);
 
   return 0;
 }
