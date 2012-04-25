@@ -43,6 +43,7 @@ import java.util.jar.Manifest;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
@@ -63,23 +64,33 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   public static void setLookAndFeel() {
     try {
-      String os = System.getProperty("os.name");
-      if (os.startsWith("Windows")) {
-        String laf = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-        UIManager.setLookAndFeel(laf);
-      } else {
+      String nativeLaf = UIManager.getSystemLookAndFeelClassName();
+      if (nativeLaf.endsWith("WindowsLookAndFeel"))
+        UIManager.setLookAndFeel(nativeLaf);
+      UIManager.put("TitledBorder.titleColor",Color.blue);
+      LookAndFeel laf = UIManager.getLookAndFeel();
+      if (laf == null)
+        return;
+      if (laf.getName().equals("Metal")) {
         UIManager.put("swing.boldMetal", Boolean.FALSE);
-        javax.swing.plaf.FontUIResource f = new
-          javax.swing.plaf.FontUIResource("SansSerif", Font.PLAIN, 11);
+        FontUIResource f = new FontUIResource("SansSerif", Font.PLAIN, 11);
         java.util.Enumeration keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
           Object key = keys.nextElement();
-          Object value = UIManager.get (key);
+          Object value = UIManager.get(key);
           if (value instanceof javax.swing.plaf.FontUIResource)
             UIManager.put(key, f);
         }
+      } else if (laf.getName().equals("Nimbus")) {
+        FontUIResource f;
+        String os = System.getProperty("os.name");
+        if (os.startsWith("Windows")) {
+          f = new FontUIResource("Verdana", 0, 11);
+        } else {
+          f = new FontUIResource("DejaVu Sans", 0, 11);
+        }
+      	UIManager.put("TitledBorder.font", f);
       }
-      UIManager.put("TitledBorder.titleColor",Color.blue);
     } catch (java.lang.Exception e) { 
       vlog.info(e.toString());
     }

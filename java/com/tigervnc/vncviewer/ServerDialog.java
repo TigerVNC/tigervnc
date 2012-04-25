@@ -67,7 +67,7 @@ class ServerDialog extends Dialog implements
     if (UIManager.getLookAndFeel().getID() == "Windows") {
       server.setBorder(BorderFactory.createCompoundBorder(server.getBorder(),
         BorderFactory.createEmptyBorder(0,2,0,0)));
-    } else {
+    } else if (UIManager.getLookAndFeel().getID() == "Metal") {
       ComboBoxEditor editor = server.getEditor();
       JTextField jtf = (JTextField)editor.getEditorComponent();
       jtf.setBorder(new CompoundBorder(jtf.getBorder(), new EmptyBorder(0,2,0,0)));

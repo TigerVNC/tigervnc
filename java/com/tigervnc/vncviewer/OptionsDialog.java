@@ -84,27 +84,28 @@ class OptionsDialog extends Dialog implements
     customCompressLevel.addItemListener(this);
     Object[] compressionLevels = { 1, 2, 3, 4, 5, 6 };
     compressLevel  = new JComboBox(compressionLevels);
-    compressLevel.setEditable(true);
     JLabel compressionLabel = new JLabel("Level (1=fast, 6=best [4-6 are rarely useful])");
     noJpeg = new JCheckBox("Allow JPEG Compression");
     noJpeg.addItemListener(this);
     Object[] qualityLevels = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     qualityLevel  = new JComboBox(qualityLevels);
     JLabel qualityLabel = new JLabel("Level (0=poor, 9=best)");
-    compressLevel.setPreferredSize(qualityLevel.getPreferredSize());
     // Hack to set the left inset on editable JComboBox
     if (UIManager.getLookAndFeel().getID() == "Windows") {
       compressLevel.setBorder(BorderFactory.createCompoundBorder(compressLevel.getBorder(),
         BorderFactory.createEmptyBorder(0,1,0,0)));
-    } else {
+    } else if (UIManager.getLookAndFeel().getID() == "Metal") {
       ComboBoxEditor editor = compressLevel.getEditor();
       JTextField jtf = (JTextField)editor.getEditorComponent();
-      jtf.setBorder(new CompoundBorder(jtf.getBorder(), new EmptyBorder(0,1,0,0)));
+      jtf.setBorder(new CompoundBorder(jtf.getBorder(), new EmptyBorder(0,2,0,0)));
     }
-    addGBComponent(customCompressLevel, tightPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,2,0,0));
+    Dimension size = compressLevel.getPreferredSize();
+    compressLevel.setEditable(true);
+    compressLevel.setPreferredSize(size);
+    addGBComponent(customCompressLevel, tightPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,0,0,0));
     addGBComponent(compressLevel, tightPanel,       0, 1, 1, 1, 2, 2, 0, 0, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(0,20,0,0));
     addGBComponent(compressionLabel, tightPanel,    1, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,0));
-    addGBComponent(noJpeg, tightPanel,              0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,2,0,0));
+    addGBComponent(noJpeg, tightPanel,              0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,0,0,0));
     addGBComponent(qualityLevel, tightPanel,        0, 3, 1, 1, 2, 2, 0, 0, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(0,20,0,0));
     addGBComponent(qualityLabel, tightPanel,        1, 3, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,0));
 
@@ -116,10 +117,10 @@ class OptionsDialog extends Dialog implements
     lowColour = addRadioCheckbox("Low (64 colours)", colourGroup, colourPanel);
     veryLowColour = addRadioCheckbox("Very low(8 colours)", colourGroup, colourPanel);
 
-    addGBComponent(autoSelect,FormatPanel,    0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,2,0,0));
-    addGBComponent(encodingPanel,FormatPanel, 0, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,2,0,0));
-    addGBComponent(colourPanel,FormatPanel,   1, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_END, new Insets(0,2,0,0));
-    addGBComponent(tightPanel,FormatPanel,    0, 2, 2, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,2,0,0));
+    addGBComponent(autoSelect,FormatPanel,    0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
+    addGBComponent(encodingPanel,FormatPanel, 0, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,10,0,5));
+    addGBComponent(colourPanel,FormatPanel,   1, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_END, new Insets(0,0,0,5));
+    addGBComponent(tightPanel,FormatPanel,    0, 2, 2, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,5,0,5));
 
     // Inputs tab
     InputsPanel=new JPanel(new GridBagLayout());
@@ -135,11 +136,11 @@ class OptionsDialog extends Dialog implements
       { "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12" };
     menuKey  = new JComboBox(menuKeys);
     menuKey.addItemListener(this);
-    addGBComponent(viewOnly,InputsPanel,        0, 0, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(acceptClipboard,InputsPanel, 0, 1, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(sendClipboard,InputsPanel,   0, 2, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(menuKeyLabel,InputsPanel,    0, 3, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,4));
-    addGBComponent(menuKey,InputsPanel,         1, 3, 1, GridBagConstraints.REMAINDER, 0, 0, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
+    addGBComponent(viewOnly,InputsPanel,        0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(acceptClipboard,InputsPanel, 0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(sendClipboard,InputsPanel,   0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(menuKeyLabel,InputsPanel,    0, 3, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
+    addGBComponent(menuKey,InputsPanel,         1, 3, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
 
     // Misc tab
     MiscPanel=new JPanel(new GridBagLayout());
@@ -157,14 +158,24 @@ class OptionsDialog extends Dialog implements
       "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%", 
       "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
     scalingFactor = new JComboBox(scalingFactors);
+    // Hack to set the left inset on editable JComboBox
+    if (UIManager.getLookAndFeel().getID() == "Windows") {
+      scalingFactor.setBorder(BorderFactory.createCompoundBorder(compressLevel.getBorder(),
+        BorderFactory.createEmptyBorder(0,1,0,0)));
+    } else if (UIManager.getLookAndFeel().getID() == "Metal") {
+      ComboBoxEditor sfe = scalingFactor.getEditor();
+      JTextField sfeTextField = (JTextField)sfe.getEditorComponent();
+      sfeTextField.setBorder(new CompoundBorder(sfeTextField.getBorder(), 
+                                                new EmptyBorder(0,2,0,0)));
+    }
     scalingFactor.setEditable(true);
     scalingFactor.addItemListener(this);
-    addGBComponent(fullScreen,MiscPanel,     0, 0, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(shared,MiscPanel,         0, 1, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(useLocalCursor,MiscPanel, 0, 2, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,4,0,4));
-    addGBComponent(acceptBell,MiscPanel,     0, 3, 2, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
-    addGBComponent(scalingFactorLabel,MiscPanel, 0, 4, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,4));
-    addGBComponent(scalingFactor,MiscPanel, 1, 4, 1, GridBagConstraints.REMAINDER, 0, 0, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,4,0,4));
+    addGBComponent(fullScreen,MiscPanel,     0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(shared,MiscPanel,         0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(useLocalCursor,MiscPanel, 0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(acceptBell,MiscPanel,     0, 3, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
+    addGBComponent(scalingFactorLabel,MiscPanel, 0, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
+    addGBComponent(scalingFactor,MiscPanel, 1, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
 
     // load/save tab
     DefaultsPanel=new JPanel(new GridBagLayout());
@@ -193,8 +204,8 @@ class OptionsDialog extends Dialog implements
     defSaveButton.addActionListener(this);
     addGBComponent(defSaveButton,defaultsPanel, 0, 1, 1, 1, 0, 0, 0, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
 
-    addGBComponent(configPanel,DefaultsPanel, 0, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,4,4,4));
-    addGBComponent(defaultsPanel,DefaultsPanel, 1, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,4,4,4));
+    addGBComponent(configPanel,DefaultsPanel, 0, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,5,4,5));
+    addGBComponent(defaultsPanel,DefaultsPanel, 1, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,0,4,5));
     //defReloadButton.setEnabled(!applet);
     //defSaveButton.setEnabled(!applet);
 
@@ -210,13 +221,11 @@ class OptionsDialog extends Dialog implements
     JPanel x509Panel = new JPanel(new GridBagLayout());
     x509Panel.setBorder(BorderFactory.createTitledBorder("X.509 certificates"));
     ca = new JButton("Load CA certificate");
-    ca.setPreferredSize(new Dimension(145,25));
     ca.addActionListener(this);
     crl = new JButton("Load CRL certificate");
-    crl.setPreferredSize(new Dimension(145,25));
     crl.addActionListener(this);
-    addGBComponent(ca, x509Panel,  0, 0, 1, 1, 2, 2, 0, 1, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(2,2,2,2));
-    addGBComponent(crl, x509Panel, 1, 0, 1, 1, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(2,2,2,2));
+    addGBComponent(ca, x509Panel,  0, 0, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(2,2,2,2));
+    addGBComponent(crl, x509Panel, 1, 0, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(2,2,2,2));
 
     JPanel authPanel = new JPanel(new GridBagLayout());
     authPanel.setBorder(BorderFactory.createTitledBorder("Authentication"));
@@ -230,10 +239,10 @@ class OptionsDialog extends Dialog implements
 
     secVeNCrypt = new JCheckBox("Extended encryption and authentication methods (VeNCrypt)");
     secVeNCrypt.addItemListener(this);
-    addGBComponent(secVeNCrypt,SecPanel,        0, 0, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,2,0,20));
-    addGBComponent(encryptionPanel,SecPanel, 0, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(0,4,2,4));
-    addGBComponent(x509Panel,SecPanel,       0, 2, 1, 1, 2, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(2,4,2,4));
-    addGBComponent(authPanel,SecPanel,       0, 3, 1, 1, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(2,4,2,4));
+    addGBComponent(secVeNCrypt,SecPanel,     0, 0, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,30));
+    addGBComponent(encryptionPanel,SecPanel, 0, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(0,10,2,5));
+    addGBComponent(x509Panel,SecPanel,       0, 2, 1, 1, 2, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(2,10,2,5));
+    addGBComponent(authPanel,SecPanel,       0, 3, 1, 1, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(2,10,2,5));
 
     tabPane.add(FormatPanel);
     tabPane.add(InputsPanel);
@@ -245,7 +254,7 @@ class OptionsDialog extends Dialog implements
     tabPane.addTab("Misc", MiscPanel);
     tabPane.addTab("Load / Save", DefaultsPanel);
     tabPane.addTab("Security", SecPanel);
-    tabPane.setBorder(BorderFactory.createEmptyBorder(4,4,0,4));
+    tabPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
 
     okButton = new JButton("OK");
     okButton.setPreferredSize(new Dimension(90,30));
@@ -256,12 +265,12 @@ class OptionsDialog extends Dialog implements
 
     JPanel buttonPane = new JPanel();
     buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
-    buttonPane.setBorder(BorderFactory.createEmptyBorder(4,0,0,0));
+    buttonPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
     buttonPane.add(Box.createHorizontalGlue());
     buttonPane.add(okButton);
-    buttonPane.add(Box.createRigidArea(new Dimension(4,0)));
+    buttonPane.add(Box.createRigidArea(new Dimension(5,0)));
     buttonPane.add(cancelButton);
-    buttonPane.add(Box.createRigidArea(new Dimension(4,0)));
+    buttonPane.add(Box.createRigidArea(new Dimension(5,0)));
 
     this.getContentPane().add(tabPane);
     this.getContentPane().add(buttonPane);
