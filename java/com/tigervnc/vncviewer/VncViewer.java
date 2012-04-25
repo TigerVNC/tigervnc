@@ -81,23 +81,25 @@ public class VncViewer extends java.applet.Applet implements Runnable
       UIManager.put("TitledBorder.titleColor",Color.blue);
       if (UIManager.getLookAndFeel().getName().equals("Metal")) {
         UIManager.put("swing.boldMetal", Boolean.FALSE);
-        FontUIResource f = new FontUIResource("SansSerif", Font.PLAIN, 11);
         java.util.Enumeration keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
           Object key = keys.nextElement();
           Object value = UIManager.get(key);
-          if (value instanceof javax.swing.plaf.FontUIResource)
+          if (value instanceof FontUIResource) {
+            String name = ((FontUIResource)value).getName();
+            int style = ((FontUIResource)value).getStyle();
+            int size = ((FontUIResource)value).getSize()-1;
+            FontUIResource f = new FontUIResource(name, style, size);
             UIManager.put(key, f);
+          }
         }
       } else if (UIManager.getLookAndFeel().getName().equals("Nimbus")) {
-        FontUIResource f;
-        String os = System.getProperty("os.name");
-        if (os.startsWith("Windows")) {
-          f = new FontUIResource("Verdana", 0, 11);
-        } else {
-          f = new FontUIResource("DejaVu Sans", 0, 11);
-        }
-      	UIManager.put("TitledBorder.font", f);
+        Font f = UIManager.getFont("TitledBorder.font");
+        String name = f.getName();
+        int style = f.getStyle();
+        int size = f.getSize()-2;
+        FontUIResource r = new FontUIResource(name, style, size);
+      	UIManager.put("TitledBorder.font", r);
       }
     } catch (java.lang.Exception e) { 
       vlog.info(e.toString());
