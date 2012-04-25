@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.UIManager.*;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
@@ -64,14 +65,21 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   public static void setLookAndFeel() {
     try {
-      String nativeLaf = UIManager.getSystemLookAndFeelClassName();
-      if (nativeLaf.endsWith("WindowsLookAndFeel"))
-        UIManager.setLookAndFeel(nativeLaf);
+      // Use Nimbus LookAndFeel if it's available, otherwise fallback
+      // to the native laf, or Metal if no native laf is available.
+      String laf = System.getProperty("swing.defaultlaf");
+      if (laf == null) {
+        LookAndFeelInfo[] installedLafs = UIManager.getInstalledLookAndFeels();
+        for (int i = 0; i < installedLafs.length; i++) {
+          if (installedLafs[i].getName().equals("Nimbus"))
+            laf = installedLafs[i].getClassName();
+        }
+        if (laf == null)
+          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+      }
+      UIManager.setLookAndFeel(laf);
       UIManager.put("TitledBorder.titleColor",Color.blue);
-      LookAndFeel laf = UIManager.getLookAndFeel();
-      if (laf == null)
-        return;
-      if (laf.getName().equals("Metal")) {
+      if (UIManager.getLookAndFeel().getName().equals("Metal")) {
         UIManager.put("swing.boldMetal", Boolean.FALSE);
         FontUIResource f = new FontUIResource("SansSerif", Font.PLAIN, 11);
         java.util.Enumeration keys = UIManager.getDefaults().keys();
@@ -81,7 +89,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
           if (value instanceof javax.swing.plaf.FontUIResource)
             UIManager.put(key, f);
         }
-      } else if (laf.getName().equals("Nimbus")) {
+      } else if (UIManager.getLookAndFeel().getName().equals("Nimbus")) {
         FontUIResource f;
         String os = System.getProperty("os.name");
         if (os.startsWith("Windows")) {
