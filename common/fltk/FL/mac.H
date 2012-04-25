@@ -141,6 +141,9 @@ public:
   void collapse(void);
   WindowRef window_ref(void);
   void set_key_window(void);
+  // OS X doesn't have per window icons
+  static void set_default_icons(const Fl_RGB_Image*[], int) {};
+  void set_icons() {};
   int set_cursor(Fl_Cursor);
   int set_cursor(const Fl_RGB_Image*, int, int);
   static CGImageRef CGImage_from_window_rect(Fl_Window *win, int x, int y, int w, int h);

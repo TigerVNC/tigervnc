@@ -1535,6 +1535,8 @@ Fl_Window::~Fl_Window() {
   if (xclass_) {
     free(xclass_);
   }
+  free_icons();
+  delete icon_;
 }
 
 // FL_SHOW and FL_HIDE are called whenever the visibility of this widget

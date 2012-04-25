@@ -163,6 +163,8 @@ public:
   static Fl_X* i(const Fl_Window* wi) {return wi->i;}
   void setwindow(Fl_Window* wi) {w=wi; wi->i=this;}
   void sendxjunk();
+  static void set_default_icons(const Fl_RGB_Image*[], int);
+  void set_icons();
   int set_cursor(Fl_Cursor);
   int set_cursor(const Fl_RGB_Image*, int, int);
   static void make_xid(Fl_Window*,XVisualInfo* =fl_visual, Colormap=fl_colormap);

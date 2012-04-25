@@ -346,6 +346,7 @@ Atom fl_NET_WM_ICON_NAME;		// utf8 aware window icon name
 Atom fl_NET_SUPPORTING_WM_CHECK;
 Atom fl_NET_WM_STATE;
 Atom fl_NET_WM_STATE_FULLSCREEN;
+Atom fl_NET_WM_ICON;
 
 /*
   X defines 32-bit-entities to have a format value of max. 32,
@@ -708,6 +709,7 @@ void fl_open_display(Display* d) {
   fl_NET_SUPPORTING_WM_CHECK = XInternAtom(d, "_NET_SUPPORTING_WM_CHECK", 0);
   fl_NET_WM_STATE       = XInternAtom(d, "_NET_WM_STATE",       0);
   fl_NET_WM_STATE_FULLSCREEN = XInternAtom(d, "_NET_WM_STATE_FULLSCREEN", 0);
+  fl_NET_WM_ICON        = XInternAtom(d, "_NET_WM_ICON",        0);
 
   if (sizeof(Atom) < 4)
     atom_bits = sizeof(Atom) * 8;
@@ -2095,12 +2097,14 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
       fl_show_iconic = 0;
       showit = 0;
     }
-    if (win->icon()) {
-      hints->icon_pixmap = (Pixmap)win->icon();
+    if (win->icon_->legacy_icon) {
+      hints->icon_pixmap = (Pixmap)win->icon_->legacy_icon;
       hints->flags       |= IconPixmapHint;
     }
     XSetWMHints(fl_display, xp->xid, hints);
     XFree(hints);
+
+    xp->set_icons();
   }
 
   // set the window type for menu and tooltip windows to avoid animations (compiz)
@@ -2216,6 +2220,93 @@ void Fl_X::sendxjunk() {
 void Fl_Window::size_range_() {
   size_range_set = 1;
   if (shown()) i->sendxjunk();
+}
+
+////////////////////////////////////////////////////////////////
+
+static unsigned long *default_net_wm_icons = 0L;
+static size_t default_net_wm_icons_size = 0;
+
+void icons_to_property(const Fl_RGB_Image *icons[], int count,
+                       unsigned long **property, size_t *len) {
+  size_t sz;
+  unsigned long *data;
+
+  sz = 0;
+  for (int i = 0;i < count;i++)
+    sz += 2 + icons[i]->w() * icons[i]->h();
+
+  // FIXME: Might want to sort the icons
+
+  *property = data = new unsigned long[sz];
+  *len = sz;
+
+  for (int i = 0;i < count;i++) {
+    const Fl_RGB_Image *image;
+
+    image = icons[i];
+
+    data[0] = image->w();
+    data[1] = image->h();
+    data += 2;
+
+    const uchar *in = (const uchar*)*image->data();
+    for (int y = 0;y < image->h();y++) {
+      for (int x = 0;x < image->w();x++) {
+        switch (image->d()) {
+        case 1:
+          *data = ( 0xff<<24) | (in[0]<<16) | (in[0]<<8) | in[0];
+          break;
+        case 2:
+          *data = (in[1]<<24) | (in[0]<<16) | (in[0]<<8) | in[0];
+          break;
+        case 3:
+          *data = ( 0xff<<24) | (in[0]<<16) | (in[1]<<8) | in[2];
+          break;
+        case 4:
+          *data = (in[3]<<24) | (in[0]<<16) | (in[1]<<8) | in[2];
+          break;
+        }
+        in += image->d();
+        data++;
+      }
+      in += image->ld();
+    }
+  }
+}
+
+void Fl_X::set_default_icons(const Fl_RGB_Image *icons[], int count) {
+  if (default_net_wm_icons) {
+    delete [] default_net_wm_icons;
+    default_net_wm_icons = 0L;
+    default_net_wm_icons_size = 0;
+  }
+
+  if (count > 0)
+    icons_to_property(icons, count,
+                      &default_net_wm_icons, &default_net_wm_icons_size);
+}
+
+void Fl_X::set_icons() {
+  unsigned long *net_wm_icons;
+  size_t net_wm_icons_size;
+
+  if (w->icon_->count) {
+    icons_to_property((const Fl_RGB_Image **)w->icon_->icons, w->icon_->count,
+                      &net_wm_icons, &net_wm_icons_size);
+  } else {
+    net_wm_icons = default_net_wm_icons;
+    net_wm_icons_size = default_net_wm_icons_size;
+  }
+
+  XChangeProperty (fl_display, xid, fl_NET_WM_ICON, XA_CARDINAL, 32,
+      PropModeReplace, (unsigned char*) net_wm_icons, net_wm_icons_size);
+
+  if (w->icon_->count) {
+    delete [] net_wm_icons;
+    net_wm_icons = 0L;
+    net_wm_icons_size = 0;
+  }
 }
 
 ////////////////////////////////////////////////////////////////

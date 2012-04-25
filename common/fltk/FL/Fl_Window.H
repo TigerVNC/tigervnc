@@ -31,6 +31,10 @@
 #ifndef Fl_Window_H
 #define Fl_Window_H
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #include "Fl_Group.H"
 
 #define FL_WINDOW 0xF0		///< window type id all subclasses have type() >= this
@@ -63,9 +67,19 @@ class FL_EXPORT Fl_Window : public Fl_Group {
   friend class Fl_X;
   Fl_X *i; // points at the system-specific stuff
 
+  struct icon_data {
+    const void *legacy_icon;
+    Fl_RGB_Image **icons;
+    int count;
+#ifdef WIN32
+    HICON big_icon;
+    HICON small_icon;
+#endif
+  };
+
   const char* iconlabel_;
   char* xclass_;
-  const void* icon_;
+  struct icon_data *icon_;
   // size_range stuff:
   int minw, minh, maxw, maxh;
   int dw, dh, aspect;
@@ -109,6 +123,8 @@ protected:
     \see force_position(int)
   */
   int force_position() const { return ((flags() & FORCE_POSITION)?1:0); }
+
+  void free_icons();
 
 public:
 
@@ -331,6 +347,18 @@ public:
   static const char *default_xclass();
   const char* xclass() const;
   void xclass(const char* c);
+
+  static void default_icon(const Fl_RGB_Image*);
+  static void default_icons(const Fl_RGB_Image*[], int);
+  void icon(const Fl_RGB_Image*);
+  void icons(const Fl_RGB_Image*[], int);
+
+#ifdef WIN32
+  static void default_icons(HICON big_icon, HICON small_icon);
+  void icons(HICON big_icon, HICON small_icon);
+#endif
+
+  /* for legacy compatibility */
   const void* icon() const;
   void icon(const void * ic);
 
