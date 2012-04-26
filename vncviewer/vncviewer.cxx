@@ -290,6 +290,11 @@ int main(int argc, char** argv)
   bind_textdomain_codeset("libc", "UTF-8");
 
   rfb::initStdIOLoggers();
+#ifdef WIN32
+  rfb::initFileLogger("C:\\temp\\vncviewer.log");
+#else
+  rfb::initFileLogger("/tmp/vncviewer.log");
+#endif
   rfb::LogWriter::setLogParams("*:stderr:30");
 
 #ifdef SIGHUP
