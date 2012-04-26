@@ -16,13 +16,14 @@
  * USA.
  */
 
-#include <windows.h>
 #include <winvnc/JavaViewer.h>
 #include <winvnc/resource.h>
 #include <rdr/MemInStream.h>
 #include <rfb/LogWriter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb_win32/TCharArray.h>
+
+#include <windows.h>
 
 #define strcasecmp _stricmp
 
