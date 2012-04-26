@@ -25,12 +25,18 @@
 #include <rfb/Logger.h>
 #include <rfb/Configuration.h>
 
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
+
 // Each log writer instance has a unique textual name,
 // and is attached to a particular Log instance and
 // is assigned a particular log level.
 
 #define DEF_LOGFUNCTION(name, level) \
-  inline void name(const char* fmt, ...) { \
+  inline void name(const char* fmt, ...) __printf_attr(2, 3) { \
     if (m_log && (level <= m_level)) {     \
       va_list ap; va_start(ap, fmt);       \
       m_log->write(level, m_name, fmt, ap);\
@@ -53,7 +59,7 @@ namespace rfb {
     void setLevel(int level);
     int getLevel(void) { return m_level; }
 
-    inline void write(int level, const char* format, ...) {
+    inline void write(int level, const char* format, ...) __printf_attr(3, 4) {
       if (m_log && (level <= m_level)) {
         va_list ap;
         va_start(ap, format);
