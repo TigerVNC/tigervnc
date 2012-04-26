@@ -43,7 +43,7 @@ static void requestAddressChangeEvents(network::SocketListener* sock_) {
   if (WSAIoctl(sock_->getFd(), SIO_ADDRESS_LIST_CHANGE, 0, 0, 0, 0, &dummy, 0, 0) == SOCKET_ERROR) {
     DWORD err = WSAGetLastError();
     if (err != WSAEWOULDBLOCK)
-      vlog.error("Unable to track address changes", err);
+      vlog.error("Unable to track address changes: 0x%08x", (unsigned)err);
   }
 }
 
@@ -70,7 +70,7 @@ void SocketManager::addListener(network::SocketListener* sock_,
     if (event)
       WSACloseEvent(event);
     delete sock_;
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
     throw;
   }
 
@@ -204,7 +204,7 @@ void SocketManager::processEvent(HANDLE event) {
       if (WSAEventSelect(ci.sock->getFd(), event, FD_READ | FD_CLOSE) == SOCKET_ERROR)
         throw rdr::SystemException("unable to re-enable WSAEventSelect:%u", WSAGetLastError());
     } catch (rdr::Exception& e) {
-      vlog.error(e.str());
+      vlog.error("%s", e.str());
       remSocket(ci.sock);
     }
   }

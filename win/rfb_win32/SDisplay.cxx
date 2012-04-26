@@ -185,7 +185,7 @@ void SDisplay::startCore() {
       if (tryMethod == 0)
         throw rdr::Exception("unable to access desktop");
       tryMethod--;
-      vlog.error(e.str());
+      vlog.error("%s", e.str());
     }
   }
   vlog.info("Started %s", core->methodName());
@@ -388,7 +388,7 @@ SDisplay::processEvent(HANDLE event) {
       try {
         core->flushUpdates();
       } catch (rdr::Exception& e) {
-        vlog.error(e.str());
+        vlog.error("%s", e.str());
         restartCore();
         return;
       }

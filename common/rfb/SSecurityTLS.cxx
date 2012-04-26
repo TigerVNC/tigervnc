@@ -49,7 +49,7 @@ static LogWriter vlog_raw("RawTLS");
 
 static void debug_log(int level, const char* str)
 {
-  vlog.debug(str);
+  vlog.debug("[%d]: %s", level, str);
 }
 
 void SSecurityTLS::initGlobal()

@@ -178,7 +178,7 @@ void CleanDesktop::disableWallpaper() {
       if (ad.enable(false))
         restoreActiveDesktop = true;
     } catch (rdr::Exception& e) {
-      vlog.error(e.str());
+      vlog.error("%s", e.str());
     }
 
     // -=- Switch of normal wallpaper and notify apps
@@ -186,7 +186,7 @@ void CleanDesktop::disableWallpaper() {
     restoreWallpaper = true;
 
   } catch (rdr::Exception& e) {
-    vlog.info(e.str());
+    vlog.info("%s", e.str());
   }
 }
 
@@ -203,7 +203,7 @@ void CleanDesktop::enableWallpaper() {
         ad.enable(true);
         restoreActiveDesktop = false;
       } catch (rdr::Exception& e) {
-        vlog.error(e.str());
+        vlog.error("%s", e.str());
       }
     }
 
@@ -216,7 +216,7 @@ void CleanDesktop::enableWallpaper() {
     }
 
   } catch (rdr::Exception& e) {
-    vlog.info(e.str());
+    vlog.info("%s", e.str());
   }
 }
 
@@ -230,7 +230,7 @@ void CleanDesktop::disablePattern() {
     restorePattern = true;
 
   } catch (rdr::Exception& e) {
-    vlog.info(e.str());
+    vlog.info("%s", e.str());
   }
 }
 
@@ -252,7 +252,7 @@ void CleanDesktop::enablePattern() {
     }
 
   } catch (rdr::Exception& e) {
-    vlog.info(e.str());
+    vlog.info("%s", e.str());
   }
 }
 
@@ -288,7 +288,7 @@ void CleanDesktop::disableEffects() {
     restoreEffects = true;
 
   } catch (rdr::Exception& e) {
-    vlog.info(e.str());
+    vlog.info("%s", e.str());
   }
 }
 
@@ -317,6 +317,6 @@ void CleanDesktop::enableEffects() {
     }
 
   } catch (rdr::Exception& e) {
-    vlog.info(e.str());
+    vlog.info("%s", e.str());
   }
 }

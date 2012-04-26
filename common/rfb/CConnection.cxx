@@ -100,7 +100,7 @@ void CConnection::processVersionMsg()
     char msg[256];
     sprintf(msg,"Server gave unsupported RFB protocol version %d.%d",
             cp.majorVersion, cp.minorVersion);
-    vlog.error(msg);
+    vlog.error("%s", msg);
     state_ = RFBSTATE_INVALID;
     throw Exception(msg);
   } else if (useProtocol3_3 || cp.beforeVersion(3,7)) {

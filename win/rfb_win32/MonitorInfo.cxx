@@ -80,7 +80,7 @@ MonitorInfo::MonitorInfo(HWND window) {
       return;
     }
   } catch (rdr::Exception& e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
   }
 #endif
 
@@ -106,7 +106,7 @@ MonitorInfo::MonitorInfo(const RECT& r) {
       return;
     }
   } catch (rdr::Exception& e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
   }
 #endif
 

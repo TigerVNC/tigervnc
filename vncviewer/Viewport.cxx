@@ -369,7 +369,7 @@ int Viewport::handle(int event)
     try {
       cc->writer()->clientCutText(buffer, ret);
     } catch (rdr::Exception& e) {
-      vlog.error(e.str());
+      vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
 
@@ -501,7 +501,7 @@ void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
       try {
         cc->writer()->pointerEvent(pos, buttonMask);
       } catch (rdr::Exception& e) {
-        vlog.error(e.str());
+        vlog.error("%s", e.str());
         exit_vncviewer(e.str());
       }
     } else {
@@ -524,7 +524,7 @@ void Viewport::handlePointerTimeout(void *data)
   try {
     self->cc->writer()->pointerEvent(self->lastPointerPos, self->lastButtonMask);
   } catch (rdr::Exception& e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
     exit_vncviewer(e.str());
   }
 }
@@ -756,7 +756,7 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
     try {
       cc->writer()->keyEvent(iter->second, false);
     } catch (rdr::Exception& e) {
-      vlog.error(e.str());
+      vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
 
@@ -800,7 +800,7 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
       if (downKeySym.find(FL_Alt_R) != downKeySym.end())
         cc->writer()->keyEvent(XK_Alt_R, false);
     } catch (rdr::Exception& e) {
-      vlog.error(e.str());
+      vlog.error("%s", e.str());
       exit_vncviewer(e.str());
     }
   }
@@ -814,7 +814,7 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
   try {
     cc->writer()->keyEvent(keySym, down);
   } catch (rdr::Exception& e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
     exit_vncviewer(e.str());
   }
 

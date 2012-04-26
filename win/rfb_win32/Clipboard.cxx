@@ -185,7 +185,7 @@ Clipboard::setClipText(const char* text) {
 
     vlog.debug("set clipboard");
   } catch (rdr::Exception& e) {
-    vlog.debug(e.str());
+    vlog.debug("%s", e.str());
   }
 
   // - Close the clipboard

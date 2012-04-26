@@ -239,7 +239,7 @@ void SConnection::processInitMsg()
 
 void SConnection::throwConnFailedException(const char* msg)
 {
-  vlog.info(msg);
+  vlog.info("%s", msg);
   if (state_ == RFBSTATE_PROTOCOL_VERSION) {
     if (cp.majorVersion == 3 && cp.minorVersion == 3) {
       os->writeU32(0);

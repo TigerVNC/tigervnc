@@ -99,7 +99,7 @@ CConn::CConn(const char* vncServerName)
     sock = new network::TcpSocket(serverHost, serverPort);
     vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
   } catch (rdr::Exception& e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
     fl_alert("%s", e.str());
     exit_vncviewer();
     return;
@@ -210,10 +210,10 @@ void CConn::socketEvent(int fd, void *data)
       cc->processMsg();
     } while (cc->sock->inStream().checkNoWait(1));
   } catch (rdr::EndOfStream& e) {
-    vlog.info(e.str());
+    vlog.info("%s", e.str());
     exit_vncviewer();
   } catch (rdr::Exception& e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
     exit_vncviewer(e.str());
   }
 

@@ -276,7 +276,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     server->setCursor(cursor.width(), cursor.height(), cursor.hotspot,
                       cursorBm.data, cursor.mask.buf);
   } catch (rdr::Exception& e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
   }
 }
 

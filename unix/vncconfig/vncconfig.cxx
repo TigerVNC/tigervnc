@@ -431,7 +431,7 @@ int main(int argc, char** argv)
     XCloseDisplay(dpy);
 
   } catch (rdr::Exception &e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
   }
 
   return 0;
