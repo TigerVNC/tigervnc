@@ -160,7 +160,7 @@ class OptionsDialog extends Dialog implements
     scalingFactor = new JComboBox(scalingFactors);
     // Hack to set the left inset on editable JComboBox
     if (UIManager.getLookAndFeel().getID() == "Windows") {
-      scalingFactor.setBorder(BorderFactory.createCompoundBorder(compressLevel.getBorder(),
+      scalingFactor.setBorder(BorderFactory.createCompoundBorder(scalingFactor.getBorder(),
         BorderFactory.createEmptyBorder(0,1,0,0)));
     } else if (UIManager.getLookAndFeel().getID() == "Metal") {
       ComboBoxEditor sfe = scalingFactor.getEditor();
