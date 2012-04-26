@@ -51,6 +51,7 @@ abstract public class Socket {
 
   // information about the remote end of the socket
   abstract public String getPeerAddress(); // a string e.g. "192.168.0.1"
+  abstract public String getPeerName(); 
   abstract public int getPeerPort();
   abstract public String getPeerEndpoint(); // <address>::<port>
 

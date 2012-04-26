@@ -821,7 +821,7 @@ public class CConn extends CConnection
   void showInfo() {
     JOptionPane.showMessageDialog(viewport,
       "Desktop name: "+cp.name()+"\n"
-      +"Host: "+serverHost+":"+serverPort+"\n"
+      +"Host: "+sock.getPeerName()+":"+sock.getPeerPort()+"\n"
       +"Size: "+cp.width+"x"+cp.height+"\n"
       +"Pixel format: "+desktop.getPF().print()+"\n"
       +"(server default "+serverPF.print()+")\n"

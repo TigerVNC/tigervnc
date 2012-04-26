@@ -118,15 +118,22 @@ public class TcpSocket extends Socket {
   }
 
   public String getPeerAddress() {
-    SocketAddress peer = ((SocketDescriptor)getFd()).socket().getRemoteSocketAddress();
+    InetAddress peer = ((SocketDescriptor)getFd()).socket().getInetAddress();
     if (peer != null)
-      return peer.toString();
+      return peer.getHostAddress();
+    return "";
+  }
+
+  public String getPeerName() {
+    InetAddress peer = ((SocketDescriptor)getFd()).socket().getInetAddress();
+    if (peer != null)
+      return peer.getHostName();
     return "";
   }
 
   public int getPeerPort() {
-    SocketAddress address = ((SocketDescriptor)getFd()).socket().getRemoteSocketAddress();
-    return ((InetSocketAddress)address).getPort();
+    int port = ((SocketDescriptor)getFd()).socket().getPort();
+    return port;
   }
 
   public String getPeerEndpoint() {
