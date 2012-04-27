@@ -59,9 +59,7 @@ public class TcpListener extends SocketListener  {
       } else if (listenaddr != null) {
           addr = java.net.InetAddress.getByName(listenaddr);
       } else {
-        // FIXME: need to be sure we get the wildcard address?
-        addr = InetAddress.getByName(null);
-        //addr = InetAddress.getLocalHost();
+        addr = InetAddress.getByName("0.0.0.0");
       }
     } catch (UnknownHostException e) {
       System.out.println(e.toString());
