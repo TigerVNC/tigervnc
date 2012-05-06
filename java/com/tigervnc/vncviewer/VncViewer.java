@@ -162,9 +162,21 @@ public class VncViewer extends java.applet.Applet implements Runnable
                     "Other valid forms are <param>=<value> -<param>=<value> "+
                     "--<param>=<value>\n"+
                     "Parameter names are case-insensitive.  The parameters "+
-                    "are:\n\n"+
-                    Configuration.listParams());
+                    "are:");
     System.err.print(usage);
+    VoidParameter current = Configuration.head;
+    while (current != null) {
+      System.err.format("%n%-7s%-64s%n", " ", "\u001B[1m"+"-"+current.getName()+"\u001B[0m");
+      String[] desc = current.getDescription().split("(?<=\\G.{60})");
+      for (int i = 0; i < desc.length; i++) {
+        String line = desc[i];
+        if (!line.endsWith(" ") && i < desc.length-1)
+          line = line+"-";
+        System.err.format("%-14s%-64s%n"," ", line.trim());
+      }
+      System.err.format("%-14s%-64s%n"," ", "[default="+current.getDefaultStr()+"]");
+      current = current.next;
+    }
     System.exit(1);
   }
 
@@ -389,50 +401,69 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   BoolParameter useLocalCursor
   = new BoolParameter("UseLocalCursor",
-                          "Render the mouse cursor locally", true);
+                      "Render the mouse cursor locally",
+                      true);
   BoolParameter sendLocalUsername
   = new BoolParameter("SendLocalUsername",
-                          "Send the local username for SecurityTypes "+
-                          "such as Plain rather than prompting", true);
+                      "Send the local username for SecurityTypes "+
+                      "such as Plain rather than prompting",
+                      true);
   StringParameter passwordFile
   = new StringParameter("PasswordFile",
-                          "Password file for VNC authentication", "");
+                        "Password file for VNC authentication",
+                        null);
   AliasParameter passwd
-  = new AliasParameter("passwd", "Alias for PasswordFile", passwordFile);
+  = new AliasParameter("passwd",
+                       "Alias for PasswordFile",
+                       passwordFile);
   BoolParameter autoSelect
   = new BoolParameter("AutoSelect",
-                          "Auto select pixel format and encoding", true);
+                      "Auto select pixel format and encoding",
+                      true);
   BoolParameter fullColour
   = new BoolParameter("FullColour",
-                          "Use full colour - otherwise 6-bit colour is used "+
-                          "until AutoSelect decides the link is fast enough",
-                          true);
+                      "Use full colour - otherwise 6-bit colour is "+
+                      "used until AutoSelect decides the link is "+
+                      "fast enough",
+                      true);
   AliasParameter fullColor
-  = new AliasParameter("FullColor", "Alias for FullColour", fullColour);
+  = new AliasParameter("FullColor",
+                       "Alias for FullColour",
+                       fullColour);
   StringParameter preferredEncoding
   = new StringParameter("PreferredEncoding",
-                            "Preferred encoding to use (Tight, ZRLE, hextile or"+
-                            " raw) - implies AutoSelect=0", "Tight");
+                        "Preferred encoding to use (Tight, ZRLE, "+
+                        "hextile or raw) - implies AutoSelect=0",
+                        "Tight");
   BoolParameter viewOnly
-  = new BoolParameter("ViewOnly", "Don't send any mouse or keyboard "+
-                          "events to the server", false);
+  = new BoolParameter("ViewOnly",
+                      "Don't send any mouse or keyboard events to "+
+                      "the server",
+                      false);
   BoolParameter shared
-  = new BoolParameter("Shared", "Don't disconnect other viewers upon "+
-                          "connection - share the desktop instead", false);
+  = new BoolParameter("Shared",
+                      "Don't disconnect other viewers upon "+
+                      "connection - share the desktop instead",
+                      false);
   BoolParameter fullScreen
-  = new BoolParameter("FullScreen", "Full Screen Mode", false);
+  = new BoolParameter("FullScreen",
+                      "Full Screen Mode",
+                      false);
   BoolParameter acceptClipboard
   = new BoolParameter("AcceptClipboard",
-                          "Accept clipboard changes from the server", true);
+                      "Accept clipboard changes from the server",
+                      true);
   BoolParameter sendClipboard
   = new BoolParameter("SendClipboard",
-                          "Send clipboard changes to the server", true);
+                      "Send clipboard changes to the server",
+                      true);
   StringParameter desktopSize
   = new StringParameter("DesktopSize",
                         "Reconfigure desktop size on the server on "+
                         "connect (if possible)", "");
   BoolParameter listenMode
-  = new BoolParameter("listen", "Listen for connections from VNC servers", 
+  = new BoolParameter("listen",
+                      "Listen for connections from VNC servers", 
                       false);
   StringParameter scalingFactor
   = new StringParameter("ScalingFactor",
@@ -445,20 +476,24 @@ public class VncViewer extends java.applet.Applet implements Runnable
                         "remote desktop will fit on the local screen.  "+
                         "If the parameter is set to \"FixedRatio\", "+
                         "then automatic scaling is performed, but the "+
-                        "original aspect ratio is preserved.", "100");
+                        "original aspect ratio is preserved.",
+                        "100");
   BoolParameter alwaysShowServerDialog
   = new BoolParameter("AlwaysShowServerDialog",
-                          "Always show the server dialog even if a server "+
-                          "has been specified in an applet parameter or on "+
-                          "the command line", false);
+                      "Always show the server dialog even if a server "+
+                      "has been specified in an applet parameter or on "+
+                      "the command line",
+                      false);
   StringParameter vncServerName
   = new StringParameter("Server",
-                            "The VNC server <host>[:<dpyNum>] or "+
-                            "<host>::<port>", null);
+                        "The VNC server <host>[:<dpyNum>] or "+
+                        "<host>::<port>",
+                        null);
   IntParameter vncServerPort
   = new IntParameter("Port",
-                         "The VNC server's port number, assuming it is on "+
-                         "the host from which the applet was downloaded", 0);
+                     "The VNC server's port number, assuming it is on "+
+                     "the host from which the applet was downloaded",
+                     0);
   BoolParameter acceptBell
   = new BoolParameter("AcceptBell",
                       "Produce a system beep when requested to by the server.", 
@@ -468,21 +503,23 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   BoolParameter customCompressLevel
   = new BoolParameter("CustomCompressLevel",
-                          "Use custom compression level. "+
-                          "Default if CompressLevel is specified.", false);
+                      "Use custom compression level. "+
+                      "Default if CompressLevel is specified.",
+                      false);
   IntParameter compressLevel
   = new IntParameter("CompressLevel",
-			                    "Use specified compression level "+
-			                    "0 = Low, 6 = High",
-			                    1);
+                     "Use specified compression level "+
+                     "0 = Low, 6 = High",
+                     1);
   BoolParameter noJpeg
   = new BoolParameter("NoJPEG",
-                          "Disable lossy JPEG compression in Tight encoding.", false);
+                      "Disable lossy JPEG compression in Tight encoding.",
+                      false);
   IntParameter qualityLevel
   = new IntParameter("QualityLevel",
-			                    "JPEG quality level. "+
-			                    "0 = Low, 9 = High",
-			                    8);
+                     "JPEG quality level. "+
+                     "0 = Low, 9 = High",
+                     8);
 
   Thread thread;
   Socket sock;

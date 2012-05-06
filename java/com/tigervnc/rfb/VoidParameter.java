@@ -35,7 +35,7 @@ abstract public class VoidParameter {
   abstract public String getValueStr();
   public boolean isBool() { return false; }
 
-  VoidParameter next;
+  public VoidParameter next;
   protected String name;
   protected String description;
 }
