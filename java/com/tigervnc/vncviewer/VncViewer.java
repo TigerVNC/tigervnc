@@ -50,9 +50,6 @@ import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
 import com.tigervnc.network.*;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
-
 public class VncViewer extends java.applet.Applet implements Runnable
 {
   public static final String about1 = "TigerVNC Viewer for Java";
@@ -127,6 +124,12 @@ public class VncViewer extends java.applet.Applet implements Runnable
         continue;
       }
 
+      if (argv[i].equalsIgnoreCase("-tunnel") || argv[i].equalsIgnoreCase("-via")) {
+        if (!tunnel.createTunnel(argv.length, argv, i))
+          System.exit(1);
+        continue;
+      }
+
       if (Configuration.setParam(argv[i]))
         continue;
 
@@ -140,15 +143,15 @@ public class VncViewer extends java.applet.Applet implements Runnable
         usage();
       }
 
-      if (vncServerName.getValue() != null)
-        usage();
-      vncServerName.setParam(argv[i]);
+      if (vncServerName.getValue() == null)
+        vncServerName.setParam(argv[i]);
     }
+
   }
 
   public static void usage() {
     String usage = ("\nusage: vncviewer [options/parameters] "+
-                    "[host:displayNum] [options/parameters]\n"+
+                    "[host:displayNum]\n"+
                     "       vncviewer [options/parameters] -listen [port] "+
                     "[options/parameters]\n"+
                     "\n"+
@@ -177,83 +180,50 @@ public class VncViewer extends java.applet.Applet implements Runnable
       System.err.format("%-14s%-64s%n"," ", "[default="+current.getDefaultStr()+"]");
       current = current.next;
     }
+    String propertiesString = ("\n"+
+"\u001B[1mSystem Properties\u001B[0m (adapted from the TurboVNC vncviewer man page)\n"+
+"\tWhen started with the -via option, vncviewer reads the\n"+
+"\t\u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m System property, expands\n"+
+"\tpatterns beginning with the \"%\" character, and uses the resulting\n"+
+"\tcommand line to establish the secure tunnel to the VNC gateway.\n"+
+"\tIf \u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m is not set, this \n"+
+"\tcommand line defaults to \"/usr/bin/ssh -f -L %L:%H:%R %G sleep 20\".\n"+
+"\n"+
+"\tThe following patterns are recognized in the VNC_VIA_CMD property\n"+
+"\t(note that all of the patterns %G, %H, %L and %R must be present in \n"+
+"\tthe command template):\n"+
+"\n"+
+"\t\t%%     A literal \"%\";\n"+
+"\n"+
+"\t\t%G     gateway machine name;\n"+
+"\n"+
+"\t\t%H     remote VNC machine name, (as known to the gateway);\n"+
+"\n"+
+"\t\t%L     local TCP port number;\n"+
+"\n"+
+"\t\t%R     remote TCP port number.\n"+
+"\n"+
+"\tWhen started with the -tunnel option, vncviewer reads the\n"+
+"\t\u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m System property, expands\n"+
+"\tpatterns beginning with the \"%\" character, and uses the resulting\n"+
+"\tcommand line to establish the secure tunnel to the VNC server.\n"+
+"\tIf \u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m is not set, this command \n"+
+"\tline defaults to \"/usr/bin/ssh -f -L %L:localhost:%R %H sleep 20\".\n"+
+"\n"+
+"\tThe following patterns are recognized in the VNC_TUNNEL_CMD property\n"+
+"\t(note that all of the patterns %H, %L and %R must be present in \n"+
+"\tthe command template):\n"+
+"\n"+
+"\t\t%%     A literal \"%\";\n"+
+"\n"+
+"\t\t%H     remote VNC machine name (as known to the client);\n"+
+"\n"+
+"\t\t%L     local TCP port number;\n"+
+"\n"+
+"\t\t%R     remote TCP port number.\n"+
+"\n");
+    System.err.print(propertiesString);
     System.exit(1);
-  }
-
-  /* Tunnelling support. */
-  private void interpretViaParam(StringParameter gatewayHost,
-    StringParameter remoteHost, IntParameter remotePort, 
-    StringParameter vncServerName, IntParameter localPort)
-  {
-    final int SERVER_PORT_OFFSET = 5900;;
-    int pos = vncServerName.getValueStr().indexOf(":");
-    if (pos == -1)
-      remotePort.setParam(""+SERVER_PORT_OFFSET+"");
-    else {
-      int portOffset = SERVER_PORT_OFFSET;
-      int len;
-      pos++;
-      len =  vncServerName.getValueStr().substring(pos).length();
-      if (vncServerName.getValueStr().substring(pos, pos).equals(":")) {
-        /* Two colons is an absolute port number, not an offset. */
-        pos++;
-        len--;
-        portOffset = 0;
-      }
-      try {
-        if (len <= 0 || !vncServerName.getValueStr().substring(pos).matches("[0-9]+"))
-          usage();
-        portOffset += Integer.parseInt(vncServerName.getValueStr().substring(pos));
-        remotePort.setParam(""+portOffset+"");
-      } catch (java.lang.NumberFormatException e) {
-        usage();
-      }
-    }
-  
-    if (vncServerName != null)
-      remoteHost.setParam(vncServerName.getValueStr().split(":")[0]);
-  
-    gatewayHost.setParam(via.getValueStr());
-    vncServerName.setParam("localhost::"+localPort.getValue());
-  }
-
-  private void
-  createTunnel(String gatewayHost, String remoteHost,
-          int remotePort, int localPort)
-  {
-    try{
-      JSch jsch=new JSch();
-      String homeDir = new String("");
-      try {
-        homeDir = System.getProperty("user.home");
-      } catch(java.security.AccessControlException e) {
-        System.out.println("Cannot access user.home system property");
-      }
-      // NOTE: jsch does not support all ciphers.  User may be
-      //       prompted to accept host key authenticy even if
-      //       the key is in the known_hosts file.
-      File knownHosts = new File(homeDir+"/.ssh/known_hosts");
-      if (knownHosts.exists() && knownHosts.canRead())
-	      jsch.setKnownHosts(knownHosts.getAbsolutePath());
-      ArrayList<File> privateKeys = new ArrayList<File>();
-      privateKeys.add(new File(homeDir+"/.ssh/id_rsa"));
-      privateKeys.add(new File(homeDir+"/.ssh/id_dsa"));
-      for (Iterator i = privateKeys.iterator(); i.hasNext();) {
-        File privateKey = (File)i.next();
-        if (privateKey.exists() && privateKey.canRead())
-	        jsch.addIdentity(privateKey.getAbsolutePath());
-      }
-      // username and passphrase will be given via UserInfo interface.
-      PasswdDialog dlg = new PasswdDialog(new String("SSH Authentication"), false, false);
-      dlg.userEntry.setText((String)System.getProperties().get("user.name"));
-      Session session=jsch.getSession(dlg.userEntry.getText(), gatewayHost, 22);
-      session.setUserInfo(dlg);
-      session.connect();
-
-      session.setPortForwardingL(localPort, remoteHost, remotePort);
-    } catch (java.lang.Exception e) {
-      System.out.println(e);
-    }
   }
 
   public VncViewer() {
@@ -332,21 +302,6 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   public void run() {
     CConn cc = null;
-
-    /* Tunnelling support. */
-    if (via.getValueStr() != null) {
-      StringParameter gatewayHost = new StringParameter("", "", "");
-      StringParameter remoteHost = new StringParameter("", "", "localhost");
-      IntParameter localPort = 
-        new IntParameter("", "", TcpSocket.findFreeTcpPort());
-      IntParameter remotePort = new IntParameter("", "", 5900);
-      if (vncServerName.getValueStr() == null)
-        usage();
-      interpretViaParam(gatewayHost, remoteHost, remotePort, 
-        vncServerName, localPort);
-      createTunnel(gatewayHost.getValueStr(), remoteHost.getValueStr(), 
-        remotePort.getValue(), localPort.getValue());
-    }
 
     if (listenMode.getValue()) {
       int port = 5500;
@@ -469,11 +424,11 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new StringParameter("ScalingFactor",
                         "Reduce or enlarge the remote desktop image. "+
                         "The value is interpreted as a scaling factor "+
-                        "in percent.  If the parameter is set to "+
+                        "in percent. If the parameter is set to "+
                         "\"Auto\", then automatic scaling is "+
-                        "performed.  Auto-scaling tries to choose a "+
+                        "performed. Auto-scaling tries to choose a "+
                         "scaling factor in such a way that the whole "+
-                        "remote desktop will fit on the local screen.  "+
+                        "remote desktop will fit on the local screen. "+
                         "If the parameter is set to \"FixedRatio\", "+
                         "then automatic scaling is performed, but the "+
                         "original aspect ratio is preserved.",
@@ -499,7 +454,29 @@ public class VncViewer extends java.applet.Applet implements Runnable
                       "Produce a system beep when requested to by the server.", 
                       true);
   StringParameter via
-  = new StringParameter("via", "Gateway to tunnel via", null);
+  = new StringParameter("via",
+    "Automatically create an encrypted TCP tunnel to "+
+    "machine gateway, then use that tunnel to connect "+
+    "to a VNC server running on host. By default, "+
+    "this option invokes SSH local port forwarding and "+
+    "assumes that the SSH client binary is located at "+
+    "/usr/bin/ssh. Note that when using the -via "+
+    "option, the host machine name should be specified "+
+    "from the point of view of the gateway machine. "+
+    "For example, \"localhost\" denotes the gateway, "+
+    "not the machine on which vncviewer was launched. "+
+    "See the System Properties section below for "+
+    "information on configuring the -via option.",
+    null);
+
+  StringParameter tunnelMode
+  = new StringParameter("tunnel",
+    "Automatically create an encrypted TCP tunnel to "+
+    "remote gateway, then use that tunnel to connect "+
+    "to the specified VNC server port on the remote "+
+    "host. See the System Properties section below "+
+    "for information on configuring the -tunnel option.",
+    null);
 
   BoolParameter customCompressLevel
   = new BoolParameter("CustomCompressLevel",
