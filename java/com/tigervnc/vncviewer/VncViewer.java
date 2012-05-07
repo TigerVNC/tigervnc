@@ -143,8 +143,9 @@ public class VncViewer extends java.applet.Applet implements Runnable
         usage();
       }
 
-      if (vncServerName.getValue() == "")
-        vncServerName.setParam(argv[i]);
+      if (vncServerName.getValue() != null)
+        usage();
+      vncServerName.setParam(argv[i]);
     }
 
   }
