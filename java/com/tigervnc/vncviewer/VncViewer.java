@@ -143,7 +143,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
         usage();
       }
 
-      if (vncServerName.getValue() == null)
+      if (vncServerName.getValue() == "")
         vncServerName.setParam(argv[i]);
     }
 
@@ -366,7 +366,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
   StringParameter passwordFile
   = new StringParameter("PasswordFile",
                         "Password file for VNC authentication",
-                        null);
+                        "");
   AliasParameter passwd
   = new AliasParameter("passwd",
                        "Alias for PasswordFile",
