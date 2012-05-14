@@ -44,10 +44,10 @@ public class CSecurityTLS extends CSecurity {
 
   public static StringParameter x509ca
   = new StringParameter("x509ca",
-                        "X509 CA certificate", "");
+                        "X509 CA certificate", "", Configuration.ConfigurationObject.ConfViewer);
   public static StringParameter x509crl
   = new StringParameter("x509crl",
-                        "X509 CRL file", "");
+                        "X509 CRL file", "", Configuration.ConfigurationObject.ConfViewer);
 
   private void initGlobal() 
   {

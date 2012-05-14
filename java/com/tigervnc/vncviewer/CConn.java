@@ -809,10 +809,8 @@ public class CConn extends CConnection
       pkgTime = attributes.getValue("Package-Time");
     } catch (IOException e) { }
     JOptionPane.showMessageDialog((viewport != null ? viewport : null),
-      VncViewer.about1+" v"+VncViewer.version+" ("+VncViewer.build+")\n"
-      +"Built on "+pkgDate+" at "+pkgTime+"\n"
-      +VncViewer.about2+"\n"
-      +VncViewer.about3,
+      String.format(VncViewer.aboutText, VncViewer.version, VncViewer.build,
+                    VncViewer.buildDate, VncViewer.buildTime), 
       "About TigerVNC Viewer for Java",
       JOptionPane.INFORMATION_MESSAGE,
       logo);

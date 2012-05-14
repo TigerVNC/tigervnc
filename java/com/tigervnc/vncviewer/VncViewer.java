@@ -52,13 +52,15 @@ import com.tigervnc.network.*;
 
 public class VncViewer extends java.applet.Applet implements Runnable
 {
-  public static final String about1 = "TigerVNC Viewer for Java";
-  public static final String about2 = "Copyright (C) 1998-2011 "+
-                                      "TigerVNC Team and many others (see README)";
-  public static final String about3 = "Visit http://www.tigervnc.org "+
-                                      "for information on TigerVNC.";
+  public static final String aboutText = new String("TigerVNC Java Viewer v%s (%s)%n"+
+                                                    "Built on %s at %s%n"+
+                                                    "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)%n"+
+                                                    "See http://www.tigervnc.org for information on TigerVNC.");
+                                           
   public static String version = null;
   public static String build = null;
+  public static String buildDate = null;
+  public static String buildTime = null;
 
   public static void setLookAndFeel() {
     try {
@@ -114,7 +116,17 @@ public class VncViewer extends java.applet.Applet implements Runnable
   
   public VncViewer(String[] argv) {
     applet = false;
+
+    SecurityClient.setDefaults();
     
+    // Write about text to console, still using normal locale codeset
+    getTimestamp();
+    System.err.format("%n");
+    System.err.format(aboutText, version, build, buildDate, buildTime); 
+    System.err.format("%n");
+
+    Configuration.enableViewerParams();
+
     // Override defaults with command-line options
     for (int i = 0; i < argv.length; i++) {
       if (argv[i].equalsIgnoreCase("-log")) {
@@ -148,6 +160,23 @@ public class VncViewer extends java.applet.Applet implements Runnable
       vncServerName.setParam(argv[i]);
     }
 
+    if (!autoSelect.hasBeenSet()) {
+      // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
+      autoSelect.setParam(!preferredEncoding.hasBeenSet() &&
+                          !fullColour.hasBeenSet() &&
+                          !fullColourAlias.hasBeenSet());
+    }
+    if (!fullColour.hasBeenSet() && !fullColourAlias.hasBeenSet()) {
+      // Default to FullColor=0 if AutoSelect=0 && LowColorLevel is set
+      if (!autoSelect.getValue() && (lowColourLevel.hasBeenSet() ||
+                          lowColourLevelAlias.hasBeenSet())) {
+        fullColour.setParam(false);
+      }
+    }
+    if (!customCompressLevel.hasBeenSet()) {
+      // Default to CustomCompressLevel=1 if CompressLevel is used.
+      customCompressLevel.setParam(compressLevel.hasBeenSet());
+    }
   }
 
   public static void usage() {
@@ -166,62 +195,52 @@ public class VncViewer extends java.applet.Applet implements Runnable
                     "Other valid forms are <param>=<value> -<param>=<value> "+
                     "--<param>=<value>\n"+
                     "Parameter names are case-insensitive.  The parameters "+
-                    "are:");
+                    "are:\n"+
+                    "\n");
     System.err.print(usage);
-    VoidParameter current = Configuration.head;
-    while (current != null) {
-      System.err.format("%n%-7s%-64s%n", " ", "\u001B[1m"+"-"+current.getName()+"\u001B[0m");
-      String[] desc = current.getDescription().split("(?<=\\G.{60})");
-      for (int i = 0; i < desc.length; i++) {
-        String line = desc[i];
-        if (!line.endsWith(" ") && i < desc.length-1)
-          line = line+"-";
-        System.err.format("%-14s%-64s%n"," ", line.trim());
-      }
-      System.err.format("%-14s%-64s%n"," ", "[default="+current.getDefaultStr()+"]");
-      current = current.next;
-    }
+
+    Configuration.listParams(79, 14);
     String propertiesString = ("\n"+
 "\u001B[1mSystem Properties\u001B[0m (adapted from the TurboVNC vncviewer man page)\n"+
-"\tWhen started with the -via option, vncviewer reads the\n"+
-"\t\u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m System property, expands\n"+
-"\tpatterns beginning with the \"%\" character, and uses the resulting\n"+
-"\tcommand line to establish the secure tunnel to the VNC gateway.\n"+
-"\tIf \u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m is not set, this \n"+
-"\tcommand line defaults to \"/usr/bin/ssh -f -L %L:%H:%R %G sleep 20\".\n"+
+"  When started with the -via option, vncviewer reads the\n"+
+"  \u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m System property, expands\n"+
+"  patterns beginning with the \"%\" character, and uses the resulting\n"+
+"  command line to establish the secure tunnel to the VNC gateway.\n"+
+"  If \u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m is not set, this \n"+
+"  command line defaults to \"/usr/bin/ssh -f -L %L:%H:%R %G sleep 20\".\n"+
 "\n"+
-"\tThe following patterns are recognized in the VNC_VIA_CMD property\n"+
-"\t(note that all of the patterns %G, %H, %L and %R must be present in \n"+
-"\tthe command template):\n"+
+"  The following patterns are recognized in the VNC_VIA_CMD property\n"+
+"  (note that all of the patterns %G, %H, %L and %R must be present in \n"+
+"  the command template):\n"+
 "\n"+
-"\t\t%%     A literal \"%\";\n"+
+"  \t%%     A literal \"%\";\n"+
 "\n"+
-"\t\t%G     gateway machine name;\n"+
+"  \t%G     gateway machine name;\n"+
 "\n"+
-"\t\t%H     remote VNC machine name, (as known to the gateway);\n"+
+"  \t%H     remote VNC machine name, (as known to the gateway);\n"+
 "\n"+
-"\t\t%L     local TCP port number;\n"+
+"  \t%L     local TCP port number;\n"+
 "\n"+
-"\t\t%R     remote TCP port number.\n"+
+"  \t%R     remote TCP port number.\n"+
 "\n"+
-"\tWhen started with the -tunnel option, vncviewer reads the\n"+
-"\t\u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m System property, expands\n"+
-"\tpatterns beginning with the \"%\" character, and uses the resulting\n"+
-"\tcommand line to establish the secure tunnel to the VNC server.\n"+
-"\tIf \u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m is not set, this command \n"+
-"\tline defaults to \"/usr/bin/ssh -f -L %L:localhost:%R %H sleep 20\".\n"+
+"  When started with the -tunnel option, vncviewer reads the\n"+
+"  \u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m System property, expands\n"+
+"  patterns beginning with the \"%\" character, and uses the resulting\n"+
+"  command line to establish the secure tunnel to the VNC server.\n"+
+"  If \u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m is not set, this command \n"+
+"  line defaults to \"/usr/bin/ssh -f -L %L:localhost:%R %H sleep 20\".\n"+
 "\n"+
-"\tThe following patterns are recognized in the VNC_TUNNEL_CMD property\n"+
-"\t(note that all of the patterns %H, %L and %R must be present in \n"+
-"\tthe command template):\n"+
+"  The following patterns are recognized in the VNC_TUNNEL_CMD property\n"+
+"  (note that all of the patterns %H, %L and %R must be present in \n"+
+"  the command template):\n"+
 "\n"+
-"\t\t%%     A literal \"%\";\n"+
+"  \t%%     A literal \"%\";\n"+
 "\n"+
-"\t\t%H     remote VNC machine name (as known to the client);\n"+
+"  \t%H     remote VNC machine name (as known to the client);\n"+
 "\n"+
-"\t\t%L     local TCP port number;\n"+
+"  \t%L     local TCP port number;\n"+
 "\n"+
-"\t\t%R     remote TCP port number.\n"+
+"  \t%R     remote TCP port number.\n"+
 "\n");
     System.err.print(propertiesString);
     System.exit(1);
@@ -259,8 +278,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
     logo = icon.getImage();
   }
 
-  public void start() {
-    vlog.debug("start called");
+  private void getTimestamp() {
     if (version == null || build == null) {
       ClassLoader cl = this.getClass().getClassLoader();
       InputStream stream = cl.getResourceAsStream("com/tigervnc/vncviewer/timestamp");
@@ -269,12 +287,19 @@ public class VncViewer extends java.applet.Applet implements Runnable
         Attributes attributes = manifest.getMainAttributes();
         version = attributes.getValue("Version");
         build = attributes.getValue("Build");
+        buildDate = attributes.getValue("Package-Date");
+        buildTime = attributes.getValue("Package-Time");
       } catch (java.io.IOException e) { }
     }
+  }
+
+  public void start() {
+    vlog.debug("start called");
+    getTimestamp();
     nViewers++;
     if (applet && firstApplet) {
       alwaysShowServerDialog.setParam(true);
-      Configuration.readAppletParams(this);
+      Configuration.global().readAppletParams(this);
       String host = getCodeBase().getHost();
       if (vncServerName.getValue() == null && vncServerPort.getValue() != 0) {
         int port = vncServerPort.getValue();
@@ -294,11 +319,8 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public void paint(Graphics g) {
     g.drawImage(logo, 0, 0, this);
     int h = logo.getHeight(this)+20;
-    g.drawString(about1+" v"+version+" ("+build+")", 0, h);
-    h += g.getFontMetrics().getHeight();
-    g.drawString(about2, 0, h);
-    h += g.getFontMetrics().getHeight();
-    g.drawString(about3, 0, h);
+    g.drawString(String.format(aboutText, version, build, 
+                               buildDate, buildTime), 0, h);
   }
 
   public void run() {
@@ -382,10 +404,20 @@ public class VncViewer extends java.applet.Applet implements Runnable
                       "used until AutoSelect decides the link is "+
                       "fast enough",
                       true);
-  AliasParameter fullColor
+  AliasParameter fullColourAlias
   = new AliasParameter("FullColor",
                        "Alias for FullColour",
                        fullColour);
+  IntParameter lowColourLevel
+  = new IntParameter("LowColorLevel",
+                     "Color level to use on slow connections. "+
+                     "0 = Very Low (8 colors), 1 = Low (64 colors), "+
+                     "2 = Medium (256 colors)", 
+                     2);
+  AliasParameter lowColourLevelAlias
+  = new AliasParameter("LowColourLevel",
+                       "Alias for LowColorLevel",
+                       lowColourLevel);
   StringParameter preferredEncoding
   = new StringParameter("PreferredEncoding",
                         "Preferred encoding to use (Tight, ZRLE, "+
@@ -413,6 +445,11 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new BoolParameter("SendClipboard",
                       "Send clipboard changes to the server",
                       true);
+  // FIXME
+  //StringParameter menuKey
+  //= new StringParameter("MenuKey",
+  //                      "The key which brings up the popup menu",
+  //                      "F8");
   StringParameter desktopSize
   = new StringParameter("DesktopSize",
                         "Reconfigure desktop size on the server on "+

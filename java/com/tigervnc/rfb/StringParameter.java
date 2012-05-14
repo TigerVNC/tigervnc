@@ -1,4 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2004-2005 Cendio AB.
+ * Copyright 2012 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,20 +21,29 @@
 package com.tigervnc.rfb;
 
 public class StringParameter extends VoidParameter {
-  public StringParameter(String name_, String desc_, String v) {
-    super(name_, desc_);
+  public StringParameter(String name_, String desc_, String v, 
+                         Configuration.ConfigurationObject co) 
+  {
+    super(name_, desc_, co);
     value = v;
     defValue = v;
   }
 
-  public boolean setParam(String v) {
-    value = v;
-    return value != null;
+  public StringParameter(String name_, String desc_, String v) 
+  {
+    this(name_, desc_, v, Configuration.ConfigurationObject.ConfGlobal);
   }
 
-  public boolean setDefaultStr(String v) {
+  public void setDefaultStr(String v) {
     value = defValue = v;
-    return defValue != null;
+  }
+
+  public boolean setParam(String v) {
+    if (immutable) return true;
+    if (v == null)
+      throw new Exception("setParam(<null>) not allowed");
+    value = v;
+    return value != null;
   }
 
   public String getDefaultStr() { return defValue; }
