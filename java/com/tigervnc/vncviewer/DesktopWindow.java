@@ -409,8 +409,7 @@ class DesktopWindow extends JPanel implements
   public void keyReleased(KeyEvent e) {}
   /** Handle the key-pressed event. */
   public void keyPressed(KeyEvent e) {
-    if (e.getKeyCode() == 
-        (KeyEvent.VK_F1+cc.menuKey-Keysyms.F1)) {
+    if (e.getKeyCode() == menukey.getMenuKeyCode()) {
       int sx = (scaleWidthRatio == 1.00) 
         ? lastX : (int)Math.floor(lastX*scaleWidthRatio);
       int sy = (scaleHeightRatio == 1.00) 

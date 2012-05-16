@@ -51,7 +51,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     addSeparator();
     clipboard  = addMenuItem("Clipboard...");
     addSeparator();
-    f8 = addMenuItem("Send F"+(cc.menuKey-Keysyms.F1+1));
+    f8 = addMenuItem("Send "+KeyEvent.getKeyText(menukey.getMenuKeyCode()), menukey.getMenuKeyCode());
     ctrlAltDel = addMenuItem("Send Ctrl-Alt-Del");
     addSeparator();
     refresh    = addMenuItem("Refresh Screen", KeyEvent.VK_H);
@@ -100,8 +100,8 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     } else if (actionMatch(ev, clipboard)) {
       cc.clipboardDialog.showDialog(cc.viewport);
     } else if (actionMatch(ev, f8)) {
-      cc.writeKeyEvent(cc.menuKey, true);
-      cc.writeKeyEvent(cc.menuKey, false);
+      cc.writeKeyEvent(cc.menuKeyCode, true);
+      cc.writeKeyEvent(cc.menuKeyCode, false);
     } else if (actionMatch(ev, ctrlAltDel)) {
       cc.writeKeyEvent(Keysyms.Control_L, true);
       cc.writeKeyEvent(Keysyms.Alt_L, true);

@@ -445,11 +445,10 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new BoolParameter("SendClipboard",
                       "Send clipboard changes to the server",
                       true);
-  // FIXME
-  //StringParameter menuKey
-  //= new StringParameter("MenuKey",
-  //                      "The key which brings up the popup menu",
-  //                      "F8");
+  StringParameter menuKey
+  = new StringParameter("MenuKey",
+                        "The key which brings up the popup menu",
+                        "F8");
   StringParameter desktopSize
   = new StringParameter("DesktopSize",
                         "Reconfigure desktop size on the server on "+
