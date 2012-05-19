@@ -40,7 +40,7 @@ public class BIPixelBuffer extends PlatformPixelBuffer
       GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice gd = ge.getDefaultScreenDevice();
     GraphicsConfiguration gc = gd.getDefaultConfiguration();
-    image = gc.createCompatibleImage(w, h, Transparency.OPAQUE);
+    image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
     image.setAccelerationPriority(1);
     image.createGraphics();
   }
