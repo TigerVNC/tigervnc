@@ -202,13 +202,12 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
     Configuration.listParams(79, 14);
     String propertiesString = ("\n"+
-"\u001B[1mSystem Properties\u001B[0m (adapted from the TurboVNC vncviewer man page)\n"+
-"  When started with the -via option, vncviewer reads the\n"+
-"  \u001B[1mVNC_VIA_CMD\u001B[0m System property, expands\n"+
-"  patterns beginning with the \"%\" character, and uses the resulting\n"+
-"  command line to establish the secure tunnel to the VNC gateway.\n"+
-"  If \u001B[1mVNC_VIA_CMD\u001B[0m is not set, this \n"+
-"  command line defaults to \"/usr/bin/ssh -f -L %L:%H:%R %G sleep 20\".\n"+
+"System Properties (adapted from the TurboVNC vncviewer man page)\n"+
+"  When started with the -via option, vncviewer reads the VNC_VIA_CMD\n"+
+"  System property, expands patterns beginning with the \"%\" character,\n"+
+"  and uses the resulting command line to establish the secure tunnel\n"+
+"  to the VNC gateway.  If VNC_VIA_CMD is not set, this command line\n"+
+"  defaults to \"/usr/bin/ssh -f -L %L:%H:%R %G sleep 20\".\n"+
 "\n"+
 "  The following patterns are recognized in the VNC_VIA_CMD property\n"+
 "  (note that all of the patterns %G, %H, %L and %R must be present in \n"+
@@ -224,12 +223,11 @@ public class VncViewer extends java.applet.Applet implements Runnable
 "\n"+
 "  \t%R     remote TCP port number.\n"+
 "\n"+
-"  When started with the -tunnel option, vncviewer reads the\n"+
-"  \u001B[1mVNC_TUNNEL_CMD\u001B[0m System property, expands\n"+
-"  patterns beginning with the \"%\" character, and uses the resulting\n"+
-"  command line to establish the secure tunnel to the VNC server.\n"+
-"  If \u001B[1mVNC_TUNNEL_CMD\u001B[0m is not set, this command \n"+
-"  line defaults to \"/usr/bin/ssh -f -L %L:localhost:%R %H sleep 20\".\n"+
+"  When started with the -tunnel option, vncviewer reads the VNC_TUNNEL_CMD\n"+
+"  System property, expands patterns beginning with the \"%\" character, and\n"+
+"  uses the resulting command line to establish the secure tunnel to the\n"+
+"  VNC server.  If VNC_TUNNEL_CMD is not set, this command line defaults\n"+
+"  to \"/usr/bin/ssh -f -L %L:localhost:%R %H sleep 20\".\n"+
 "\n"+
 "  The following patterns are recognized in the VNC_TUNNEL_CMD property\n"+
 "  (note that all of the patterns %H, %L and %R must be present in \n"+
