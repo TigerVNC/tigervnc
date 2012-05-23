@@ -194,9 +194,9 @@ public class tunnel
   
     try {
       if (tunnelOption) {
-        pattern = System.getProperty("com.tigervnc.VNC_TUNNEL_CMD");
+        pattern = System.getProperty("VNC_TUNNEL_CMD");
       } else {
-        pattern = System.getProperty("com.tigervnc.VNC_VIA_CMD");
+        pattern = System.getProperty("VNC_VIA_CMD");
       }
     } catch (java.lang.Exception e) { 
       vlog.info(e.toString());
@@ -294,10 +294,10 @@ public class tunnel
       }
       // username and passphrase will be given via UserInfo interface.
       PasswdDialog dlg = new PasswdDialog(new String("SSH Authentication"), false, false);
-      dlg.userEntry.setText((String)System.getProperties().get("user.name"));
+      dlg.promptPassword(new String("SSH Authentication"));
 
       Session session=jsch.getSession(dlg.userEntry.getText(), tunnelEndpoint, 22);
-      session.setUserInfo(dlg);
+      session.setPassword(new String(dlg.passwdEntry.getPassword()));
       session.connect();
 
       String[] tokens = cmd.split("\\s");

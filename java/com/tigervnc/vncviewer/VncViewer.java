@@ -139,6 +139,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
       if (argv[i].equalsIgnoreCase("-tunnel") || argv[i].equalsIgnoreCase("-via")) {
         if (!tunnel.createTunnel(argv.length, argv, i))
           System.exit(1);
+        if (argv[i].equalsIgnoreCase("-via")) i++;
         continue;
       }
 
@@ -203,10 +204,10 @@ public class VncViewer extends java.applet.Applet implements Runnable
     String propertiesString = ("\n"+
 "\u001B[1mSystem Properties\u001B[0m (adapted from the TurboVNC vncviewer man page)\n"+
 "  When started with the -via option, vncviewer reads the\n"+
-"  \u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m System property, expands\n"+
+"  \u001B[1mVNC_VIA_CMD\u001B[0m System property, expands\n"+
 "  patterns beginning with the \"%\" character, and uses the resulting\n"+
 "  command line to establish the secure tunnel to the VNC gateway.\n"+
-"  If \u001B[1mcom.tigervnc.VNC_VIA_CMD\u001B[0m is not set, this \n"+
+"  If \u001B[1mVNC_VIA_CMD\u001B[0m is not set, this \n"+
 "  command line defaults to \"/usr/bin/ssh -f -L %L:%H:%R %G sleep 20\".\n"+
 "\n"+
 "  The following patterns are recognized in the VNC_VIA_CMD property\n"+
@@ -224,10 +225,10 @@ public class VncViewer extends java.applet.Applet implements Runnable
 "  \t%R     remote TCP port number.\n"+
 "\n"+
 "  When started with the -tunnel option, vncviewer reads the\n"+
-"  \u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m System property, expands\n"+
+"  \u001B[1mVNC_TUNNEL_CMD\u001B[0m System property, expands\n"+
 "  patterns beginning with the \"%\" character, and uses the resulting\n"+
 "  command line to establish the secure tunnel to the VNC server.\n"+
-"  If \u001B[1mcom.tigervnc.VNC_TUNNEL_CMD\u001B[0m is not set, this command \n"+
+"  If \u001B[1mVNC_TUNNEL_CMD\u001B[0m is not set, this command \n"+
 "  line defaults to \"/usr/bin/ssh -f -L %L:localhost:%R %H sleep 20\".\n"+
 "\n"+
 "  The following patterns are recognized in the VNC_TUNNEL_CMD property\n"+
