@@ -877,6 +877,7 @@ public class CConn extends CConnection
     options.acceptClipboard.setSelected(viewer.acceptClipboard.getValue());
     options.sendClipboard.setSelected(viewer.sendClipboard.getValue());
     options.menuKey.setSelectedItem(KeyEvent.getKeyText(menukey.getMenuKeyCode()));
+    options.sendLocalUsername.setSelected(viewer.sendLocalUsername.getValue());
 
     if (state() == RFBSTATE_NORMAL) {
       options.shared.setEnabled(false);
@@ -921,11 +922,9 @@ public class CConn extends CConnection
           switch ((Integer)iext.next()) {
           case Security.secTypePlain:
             options.secPlain.setSelected(true);
-            options.sendLocalUsername.setSelected(true);
             break;
           case Security.secTypeIdent:
             options.secIdent.setSelected(true);
-            options.sendLocalUsername.setSelected(true);
             break;
           case Security.secTypeTLSNone:
             options.encTLS.setSelected(true);
@@ -938,12 +937,10 @@ public class CConn extends CConnection
           case Security.secTypeTLSPlain:
             options.encTLS.setSelected(true);
             options.secPlain.setSelected(true);
-            options.sendLocalUsername.setSelected(true);
             break;
           case Security.secTypeTLSIdent:
             options.encTLS.setSelected(true);
             options.secIdent.setSelected(true);
-            options.sendLocalUsername.setSelected(true);
             break;
           case Security.secTypeX509None:
             options.encX509.setSelected(true);
@@ -956,12 +953,10 @@ public class CConn extends CConnection
           case Security.secTypeX509Plain:
             options.encX509.setSelected(true);
             options.secPlain.setSelected(true);
-            options.sendLocalUsername.setSelected(true);
             break;
           case Security.secTypeX509Ident:
             options.encX509.setSelected(true);
             options.secIdent.setSelected(true);
-            options.sendLocalUsername.setSelected(true);
             break;
           }
         }
