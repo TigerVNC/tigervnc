@@ -44,6 +44,7 @@ set(CPPFILES
   Fl_Pack.cxx
   Fl_Paged_Device.cxx
   Fl_Pixmap.cxx
+  Fl_PNG_Image.cxx
   Fl_Positioner.cxx
   Fl_Printer.cxx
   Fl_Preferences.cxx
