@@ -41,6 +41,7 @@ namespace rdr {
   private:
     int overrun(int itemSize, int nItems, bool wait);
     int readTLS(U8* buf, int len, bool wait);
+    static ssize_t pull(gnutls_transport_ptr str, void* data, size_t size);
 
     gnutls_session session;
     InStream* in;
@@ -48,9 +49,6 @@ namespace rdr {
     int offset;
     U8* start;
   };
-
-  ssize_t gnutls_InStream_pull(gnutls_transport_ptr,void*, size_t);
-
 };
 
 #endif

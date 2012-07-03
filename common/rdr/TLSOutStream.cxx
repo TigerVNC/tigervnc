@@ -36,10 +36,11 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
-ssize_t rdr::gnutls_OutStream_push(gnutls_transport_ptr str, const void* data,
+ssize_t TLSOutStream::push(gnutls_transport_ptr str, const void* data,
 				   size_t size)
 {
-  OutStream* out = (OutStream*) str;
+  TLSOutStream* self= (TLSOutStream*) str;
+  OutStream *out = self->out;
 
   try {
     out->writeBytes(data, size);
@@ -55,8 +56,14 @@ ssize_t rdr::gnutls_OutStream_push(gnutls_transport_ptr str, const void* data,
 TLSOutStream::TLSOutStream(OutStream* _out, gnutls_session _session)
   : session(_session), out(_out), bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
+  gnutls_transport_ptr recv, send;
+
   ptr = start = new U8[bufSize];
   end = start + bufSize;
+
+  gnutls_transport_set_push_function(session, push);
+  gnutls_transport_get_ptr2(session, &recv, &send);
+  gnutls_transport_set_ptr2(session, recv, this);
 }
 
 TLSOutStream::~TLSOutStream()
@@ -67,6 +74,8 @@ TLSOutStream::~TLSOutStream()
   } catch (Exception&) {
   }
 #endif
+  gnutls_transport_set_push_function(session, NULL);
+
   delete [] start;
 }
 

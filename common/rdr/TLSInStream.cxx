@@ -36,10 +36,10 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
-ssize_t rdr::gnutls_InStream_pull(gnutls_transport_ptr str, void* data,
-				  size_t size)
+ssize_t TLSInStream::pull(gnutls_transport_ptr str, void* data, size_t size)
 {
-  InStream* in= (InStream*) str;
+  TLSInStream* self= (TLSInStream*) str;
+  InStream *in = self->in;
 
   try {
     if (!in->check(1, 1, false)) {
@@ -63,11 +63,19 @@ ssize_t rdr::gnutls_InStream_pull(gnutls_transport_ptr str, void* data,
 TLSInStream::TLSInStream(InStream* _in, gnutls_session _session)
   : session(_session), in(_in), bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
+  gnutls_transport_ptr recv, send;
+
   ptr = end = start = new U8[bufSize];
+
+  gnutls_transport_set_pull_function(session, pull);
+  gnutls_transport_get_ptr2(session, &recv, &send);
+  gnutls_transport_set_ptr2(session, this, send);
 }
 
 TLSInStream::~TLSInStream()
 {
+  gnutls_transport_set_pull_function(session, NULL);
+
   delete[] start;
 }
 

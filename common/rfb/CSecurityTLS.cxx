@@ -188,20 +188,20 @@ bool CSecurityTLS::processMsg(CConnection* cc)
       throw AuthFailureException("gnutls_set_default_priority failed");
 
     setParam();
-    
-    gnutls_transport_set_pull_function(session, rdr::gnutls_InStream_pull);
-    gnutls_transport_set_push_function(session, rdr::gnutls_OutStream_push);
-    gnutls_transport_set_ptr2(session,
-			      (gnutls_transport_ptr) is,
-			      (gnutls_transport_ptr) os);
   }
+
+  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
+  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
 
   int err;
   err = gnutls_handshake(session);
-  if (err != GNUTLS_E_SUCCESS && !gnutls_error_is_fatal(err))
-    return false;
-
   if (err != GNUTLS_E_SUCCESS) {
+    delete tlsis;
+    delete tlsos;
+
+    if (!gnutls_error_is_fatal(err))
+      return false;
+
     vlog.error("TLS Handshake failed: %s\n", gnutls_strerror (err));
     shutdown(false);
     throw AuthFailureException("TLS Handshake failed");
@@ -209,8 +209,7 @@ bool CSecurityTLS::processMsg(CConnection* cc)
 
   checkSession();
 
-  cc->setStreams(fis = new rdr::TLSInStream(is, session),
-		 fos = new rdr::TLSOutStream(os, session));
+  cc->setStreams(fis = tlsis, fos = tlsos);
 
   return true;
 }

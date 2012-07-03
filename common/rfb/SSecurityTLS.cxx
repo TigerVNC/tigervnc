@@ -148,17 +148,19 @@ bool SSecurityTLS::processMsg(SConnection *sc)
       throw;
     }
 
-    gnutls_transport_set_pull_function(session,rdr::gnutls_InStream_pull);
-    gnutls_transport_set_push_function(session,rdr::gnutls_OutStream_push);
-    gnutls_transport_set_ptr2(session,
-			      (gnutls_transport_ptr)is,
-			      (gnutls_transport_ptr)os);
     os->writeU8(1);
     os->flush();
   }
 
+  rdr::TLSInStream *tlsis = new rdr::TLSInStream(is, session);
+  rdr::TLSOutStream *tlsos = new rdr::TLSOutStream(os, session);
+
   int err;
-  if ((err = gnutls_handshake(session)) != GNUTLS_E_SUCCESS) {
+  err = gnutls_handshake(session);
+  if (err != GNUTLS_E_SUCCESS) {
+    delete tlsis;
+    delete tlsos;
+
     if (!gnutls_error_is_fatal(err)) {
       vlog.debug("Deferring completion of TLS handshake: %s", gnutls_strerror(err));
       return false;
@@ -170,8 +172,7 @@ bool SSecurityTLS::processMsg(SConnection *sc)
 
   vlog.debug("Handshake completed");
 
-  sc->setStreams(fis=new rdr::TLSInStream(is,session),
-		 fos=new rdr::TLSOutStream(os,session));
+  sc->setStreams(fis = tlsis, fos = tlsos);
 
   return true;
 }

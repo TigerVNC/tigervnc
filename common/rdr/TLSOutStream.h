@@ -43,6 +43,7 @@ namespace rdr {
 
   private:
     int writeTLS(const U8* data, int length);
+    static ssize_t push(gnutls_transport_ptr str, const void* data, size_t size);
 
     gnutls_session session;
     OutStream* out;
@@ -50,8 +51,6 @@ namespace rdr {
     U8* start;
     int offset;
   };
-
-  ssize_t gnutls_OutStream_push(gnutls_transport_ptr, const void*, size_t);
 };
 
 #endif
