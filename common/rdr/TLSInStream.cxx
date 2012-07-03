@@ -25,11 +25,8 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSInStream.h>
+#include <rdr/TLSErrno.h>
 #include <errno.h>
-
-#ifdef HAVE_OLD_GNUTLS
-#define gnutls_transport_set_global_errno(A) do { errno = (A); } while(0)
-#endif
 
 #ifdef HAVE_GNUTLS 
 using namespace rdr;
@@ -43,7 +40,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr str, void* data, size_t size)
 
   try {
     if (!in->check(1, 1, false)) {
-      gnutls_transport_set_global_errno(EAGAIN);
+      gnutls_errno_helper(self->session, EAGAIN);
       return -1;
     }
 
@@ -53,7 +50,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr str, void* data, size_t size)
     in->readBytes(data, size);
 
   } catch (Exception& e) {
-    gnutls_transport_set_global_errno(EINVAL);
+    gnutls_errno_helper(self->session, EINVAL);
     return -1;
   }
 

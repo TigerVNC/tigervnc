@@ -25,11 +25,8 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSOutStream.h>
+#include <rdr/TLSErrno.h>
 #include <errno.h>
-
-#ifdef HAVE_OLD_GNUTLS
-#define gnutls_transport_set_global_errno(A) do { errno = (A); } while(0)
-#endif
 
 #ifdef HAVE_GNUTLS
 using namespace rdr;
@@ -46,7 +43,7 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr str, const void* data,
     out->writeBytes(data, size);
     out->flush();
   } catch (Exception& e) {
-    gnutls_transport_set_global_errno(EINVAL);
+    gnutls_errno_helper(self->session, EINVAL);
     return -1;
   }
 
