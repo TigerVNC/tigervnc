@@ -63,7 +63,8 @@ static rfb::LogWriter vlog("Viewport");
 
 // Menu constants
 
-enum { ID_EXIT, ID_FULLSCREEN, ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
+enum { ID_EXIT, ID_FULLSCREEN, ID_RESIZE,
+       ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
@@ -850,6 +851,11 @@ void Viewport::initContextMenu()
   contextMenu->add(_("Full screen"), 0, NULL, (void*)ID_FULLSCREEN, 
 		   FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
 #endif
+  contextMenu->add(_("Resize window to session"), 0, NULL, (void*)ID_RESIZE, 
+#ifdef HAVE_FLTK_FULLSCREEN
+       (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
+#endif
+		   FL_MENU_DIVIDER);
 
   contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, 
 		   FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
@@ -920,6 +926,13 @@ void Viewport::popupContextMenu()
     }
     break;
 #endif
+  case ID_RESIZE:
+#ifdef HAVE_FLTK_FULLSCREEN
+    if (window()->fullscreen_active())
+      break;
+#endif
+    window()->size(w(), h());
+    break;
   case ID_CTRL:
     handleKeyEvent(FL_Control_L, FL_Control_L, "", m->value());
     menuCtrlKey = !menuCtrlKey;
