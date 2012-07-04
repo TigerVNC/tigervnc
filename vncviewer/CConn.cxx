@@ -304,42 +304,10 @@ void CConn::framebufferUpdateEnd()
   desktop->updateWindow();
 
   if (firstUpdate) {
-    int width, height;
-
     // We need fences to make extra update requests and continuous
     // updates "safe". See fence() for the next step.
     if (cp.supportsFence)
       writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext, 0, NULL);
-
-    if (cp.supportsSetDesktopSize &&
-        sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) == 2) {
-      ScreenSet layout;
-
-      layout = cp.screenLayout;
-
-      if (layout.num_screens() == 0)
-        layout.add_screen(rfb::Screen());
-      else if (layout.num_screens() != 1) {
-        ScreenSet::iterator iter;
-
-        while (true) {
-          iter = layout.begin();
-          ++iter;
-
-          if (iter == layout.end())
-            break;
-
-          layout.remove_screen(iter->id);
-        }
-      }
-
-      layout.begin()->dimensions.tl.x = 0;
-      layout.begin()->dimensions.tl.y = 0;
-      layout.begin()->dimensions.br.x = width;
-      layout.begin()->dimensions.br.y = height;
-
-      writer()->writeSetDesktopSize(width, height, layout);
-    }
 
     firstUpdate = false;
   }

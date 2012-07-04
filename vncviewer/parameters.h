@@ -39,6 +39,7 @@ extern rfb::IntParameter qualityLevel;
 
 extern rfb::BoolParameter fullScreen;
 extern rfb::StringParameter desktopSize;
+extern rfb::BoolParameter remoteResize;
 
 extern rfb::BoolParameter viewOnly;
 extern rfb::BoolParameter shared;

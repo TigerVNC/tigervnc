@@ -26,12 +26,14 @@
 #include <string.h>
 
 #include <rfb/LogWriter.h>
+#include <rfb/CMsgWriter.h>
 
 #include "DesktopWindow.h"
 #include "OptionsDialog.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
+#include "CConn.h"
 
 #include <FL/Fl_Scroll.H>
 #include <FL/x.H>
@@ -51,18 +53,15 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h)
+  : Fl_Window(w, h), cc(cc_), firstUpdate(true)
 {
-  // Allow resize
-  size_range(100, 100, w, h);
-
   Fl_Scroll *scroll = new Fl_Scroll(0, 0, w, h);
   scroll->color(FL_BLACK);
 
   // Automatically adjust the scroll box to the window
   resizable(scroll);
 
-  viewport = new Viewport(w, h, serverPF, cc_);
+  viewport = new Viewport(w, h, serverPF, cc);
 
   scroll->end();
 
@@ -76,11 +75,9 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   Fl::event_dispatch(&fltkHandle);
 
 #ifdef HAVE_FLTK_FULLSCREEN
-  if (fullScreen) {
-    // See comment in DesktopWindow::handleOptions
-    size_range(100, 100, 0, 0);
+  if (fullScreen)
     fullscreen();
-  } else
+  else
 #endif
   {
     // If we are creating a window which is equal to the size on the
@@ -106,6 +103,7 @@ DesktopWindow::~DesktopWindow()
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
   Fl::remove_timeout(handleGrab, this);
+  Fl::remove_timeout(handleResizeTimeout, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -149,6 +147,12 @@ void DesktopWindow::setColourMapEntries(int firstColour, int nColours,
 
 void DesktopWindow::updateWindow()
 {
+  if (firstUpdate) {
+    if (cc->cp.supportsSetDesktopSize)
+      remoteResize();
+    firstUpdate = false;
+  }
+
   viewport->updateWindow();
 }
 
@@ -157,9 +161,6 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 {
   if ((new_w == viewport->w()) && (new_h == viewport->h()))
     return;
-
-  // Turn off size limitations for a bit while we juggle things around
-  size_range(100, 100, 0, 0);
 
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
@@ -186,12 +187,6 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   // to make sure the viewport is centered.
   repositionViewport();
 
-  // Update allowed resize range
-#ifdef HAVE_FLTK_FULLSCREEN
-  if (!fullscreen_active())
-#endif
-  size_range(100, 100, new_w, new_h);
-
   // repositionViewport() makes sure the scroll widget notices any changes
   // in position, but it might be just the size that changes so we also
   // need a poke here as well.
@@ -210,6 +205,20 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 {
   Fl_Window::resize(x, y, w, h);
 
+  // Try to get the remote size to match our window size, provided
+  // the following conditions are true:
+  //
+  // a) The user has this feature turned on
+  // b) The server supports it
+  // c) We're not still waiting for a chance to handle DesktopSize
+  //
+  if (not firstUpdate and ::remoteResize and cc->cp.supportsSetDesktopSize) {
+    // We delay updating the remote desktop as we tend to get a flood
+    // of resize events as the user is dragging the window.
+    Fl::remove_timeout(handleResizeTimeout, this);
+    Fl::add_timeout(0.5, handleResizeTimeout, this);
+  }
+
   // Deal with some scrolling corner cases
   repositionViewport();
 }
@@ -221,18 +230,6 @@ int DesktopWindow::handle(int event)
 #ifdef HAVE_FLTK_FULLSCREEN
   case FL_FULLSCREEN:
     fullScreen.setParam(fullscreen_active());
-
-    if (!fullscreen_active()) {      
-      size_range(100, 100, viewport->w(), viewport->h());
-      size(viewport->w(), viewport->h());
-    } else {
-      // We need to turn off the size limitations for proper
-      // fullscreen support, but in case fullscreen is activated via
-      // the WM, this is a bit of a problem. In practice, it seems to
-      // work to change the size limits after we have recieved the
-      // FL_FULLSCREEN event, at least with my Metacity. 
-      size_range(100, 100, 0, 0);
-    }
 
     if (!fullscreenSystemKeys)
       break;
@@ -383,6 +380,65 @@ void DesktopWindow::handleGrab(void *data)
 }
 
 
+void DesktopWindow::handleResizeTimeout(void *data)
+{
+  DesktopWindow *self = (DesktopWindow *)data;
+
+  assert(self);
+
+  self->remoteResize();
+}
+
+
+void DesktopWindow::remoteResize()
+{
+  int width, height;
+  ScreenSet layout;
+
+  if (firstUpdate) {
+    if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2)
+      return;
+  } else {
+    width = w();
+    height = h();
+  }
+
+  layout = cc->cp.screenLayout;
+
+  if (layout.num_screens() == 0)
+    layout.add_screen(rfb::Screen());
+  else if (layout.num_screens() != 1) {
+    ScreenSet::iterator iter;
+
+    while (true) {
+      iter = layout.begin();
+      ++iter;
+
+      if (iter == layout.end())
+        break;
+
+      layout.remove_screen(iter->id);
+    }
+  }
+
+  layout.begin()->dimensions.tl.x = 0;
+  layout.begin()->dimensions.tl.y = 0;
+  layout.begin()->dimensions.br.x = width;
+  layout.begin()->dimensions.br.y = height;
+
+  // Do we actually change anything?
+  if ((width == cc->cp.width) &&
+      (height == cc->cp.height) &&
+      (layout == cc->cp.screenLayout))
+    return;
+
+  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
+             cc->cp.width, cc->cp.height, width, height);
+
+  cc->writer()->writeSetDesktopSize(width, height, layout);
+}
+
+
 void DesktopWindow::repositionViewport()
 {
   int new_x, new_y;
@@ -442,12 +498,9 @@ void DesktopWindow::handleOptions(void *data)
   else
     self->ungrabKeyboard();
 
-  if (fullScreen && !self->fullscreen_active()) {
-    // Some WMs (Metacity) apparently requires that the size limits
-    // are removed before fullscreen
-    self->size_range(100, 100, 0, 0);
+  if (fullScreen && !self->fullscreen_active())
     self->fullscreen();
-  } else if (!fullScreen && self->fullscreen_active())
+  else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
 #endif
 }

@@ -86,6 +86,9 @@ private:
 
   static void handleGrab(void *data);
 
+  static void handleResizeTimeout(void *data);
+  void remoteResize();
+
   void repositionViewport();
 
   static void handleClose(Fl_Widget *wnd, void *data);
@@ -93,7 +96,10 @@ private:
   static void handleOptions(void *data);
 
 private:
+  CConn* cc;
   Viewport *viewport;
+
+  bool firstUpdate;
 };
 
 #endif

@@ -68,6 +68,10 @@ BoolParameter fullScreen("FullScreen", "Full screen mode", false);
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
+BoolParameter remoteResize("RemoteResize",
+                           "Dynamically resize the remote desktop size as "
+                           "the size of the local client window changes. "
+                           "(Does not work with all servers)", true);
 
 BoolParameter viewOnly("ViewOnly",
                        "Don't send any mouse or keyboard events to the server",
