@@ -313,7 +313,7 @@ void Viewport::resize(int x, int y, int w, int h)
   if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
     goto end;
 
-  vlog.debug("Resing framebuffer from %dx%d to %dx%d",
+  vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
              frameBuffer->width(), frameBuffer->height(), w, h);
 
   newBuffer = new PlatformPixelBuffer(w, h);
