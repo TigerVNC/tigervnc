@@ -59,6 +59,8 @@ protected:
 
   static void handleX509(Fl_Widget *widget, void *data);
 
+  static void handleDesktopSize(Fl_Widget *widget, void *data);
+
   static void handleCancel(Fl_Widget *widget, void *data);
   static void handleOK(Fl_Widget *widget, void *data);
 
@@ -107,6 +109,9 @@ protected:
   Fl_Choice *menuKeyChoice;
 
   /* Screen */
+  Fl_Check_Button *desktopSizeCheckbox;
+  Fl_Int_Input *desktopWidthInput;
+  Fl_Int_Input *desktopHeightInput;
   Fl_Check_Button *fullScreenCheckbox;
 
   /* Misc. */
