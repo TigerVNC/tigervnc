@@ -285,6 +285,7 @@ void OptionsDialog::loadOptions(void)
     snprintf(buf, sizeof(buf), "%d", height);
     desktopHeightInput->value(buf);
   }
+  remoteResizeCheckbox->value(remoteResize);
   fullScreenCheckbox->value(fullScreen);
 
   handleDesktopSize(desktopSizeCheckbox, this);
@@ -387,6 +388,7 @@ void OptionsDialog::storeOptions(void)
   } else {
     desktopSize.setParam("");
   }
+  remoteResize.setParam(remoteResizeCheckbox->value());
   fullScreen.setParam(fullScreenCheckbox->value());
 
   /* Misc. */
@@ -739,6 +741,12 @@ void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
       gui_str_len("x") + 3 * 2;
   desktopHeightInput = new Fl_Int_Input(x, ty, 50, INPUT_HEIGHT, "x");
   ty += INPUT_HEIGHT + TIGHT_MARGIN;
+
+  remoteResizeCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                      CHECK_MIN_WIDTH,
+                                                      CHECK_HEIGHT,
+                                                      _("Resize remote session to the local window")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   fullScreenCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                   CHECK_MIN_WIDTH,

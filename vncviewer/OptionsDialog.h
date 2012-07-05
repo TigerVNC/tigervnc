@@ -112,6 +112,7 @@ protected:
   Fl_Check_Button *desktopSizeCheckbox;
   Fl_Int_Input *desktopWidthInput;
   Fl_Int_Input *desktopHeightInput;
+  Fl_Check_Button *remoteResizeCheckbox;
   Fl_Check_Button *fullScreenCheckbox;
 
   /* Misc. */
