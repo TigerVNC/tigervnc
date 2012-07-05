@@ -67,6 +67,7 @@ OptionsDialog::OptionsDialog()
     createCompressionPage(tx, ty, tw, th);
     createSecurityPage(tx, ty, tw, th);
     createInputPage(tx, ty, tw, th);
+    createScreenPage(tx, ty, tw, th);
     createMiscPage(tx, ty, tw, th);
   }
 
@@ -269,9 +270,11 @@ void OptionsDialog::loadOptions(void)
     if (!strcmp(getMenuKeySymbols()[i].name, menuKeyBuf))
       menuKeyChoice->value(i + 1);
 
+  /* Screen */
+  fullScreenCheckbox->value(fullScreen);
+
   /* Misc. */
   sharedCheckbox->value(shared);
-  fullScreenCheckbox->value(fullScreen);
   dotCursorCheckbox->value(dotWhenNoCursor);
 }
 
@@ -356,9 +359,11 @@ void OptionsDialog::storeOptions(void)
     menuKey.setParam(menuKeyChoice->text());
   }
 
+  /* Screen */
+  fullScreen.setParam(fullScreenCheckbox->value());
+
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
-  fullScreen.setParam(fullScreenCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
 
   std::map<OptionsCallback*, void*>::const_iterator iter;
@@ -686,6 +691,23 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 }
 
 
+void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
+{
+  Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Screen"));
+
+  tx += OUTER_MARGIN;
+  ty += OUTER_MARGIN;
+
+  fullScreenCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                  CHECK_MIN_WIDTH,
+                                                  CHECK_HEIGHT,
+                                                  _("Full-screen mode")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+  group->end();
+}
+
+
 void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
 {
   Fl_Group *group = new Fl_Group(tx, ty, tw, th, _("Misc."));
@@ -697,12 +719,6 @@ void OptionsDialog::createMiscPage(int tx, int ty, int tw, int th)
                                                   CHECK_MIN_WIDTH,
                                                   CHECK_HEIGHT,
                                                   _("Shared (don't disconnect other viewers)")));
-  ty += CHECK_HEIGHT + TIGHT_MARGIN;
-
-  fullScreenCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
-                                                  CHECK_MIN_WIDTH,
-                                                  CHECK_HEIGHT,
-                                                  _("Full-screen mode")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
   dotCursorCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
