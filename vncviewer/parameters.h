@@ -37,7 +37,9 @@ extern rfb::IntParameter compressLevel;
 extern rfb::BoolParameter noJpeg;
 extern rfb::IntParameter qualityLevel;
 
+#ifdef HAVE_FLTK_FULLSCREEN
 extern rfb::BoolParameter fullScreen;
+#endif // HAVE_FLTK_FULLSCREEN
 extern rfb::StringParameter desktopSize;
 extern rfb::BoolParameter remoteResize;
 

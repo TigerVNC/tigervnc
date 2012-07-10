@@ -64,7 +64,9 @@ IntParameter qualityLevel("QualityLevel",
                           "JPEG quality level. 0 = Low, 9 = High",
                           8);
 
+#ifdef HAVE_FLTK_FULLSCREEN
 BoolParameter fullScreen("FullScreen", "Full screen mode", false);
+#endif // HAVE_FLTK_FULLSCREEN
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
