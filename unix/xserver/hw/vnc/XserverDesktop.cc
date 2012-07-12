@@ -237,45 +237,47 @@ ScreenSet XserverDesktop::computeScreenLayout()
   layout.add_screen(Screen(0, 0, 0, pScreen->width, pScreen->height, 0));
 #else
   rrScrPrivPtr rp = rrGetScrPriv(pScreen);
-  CrtcIdMap newIdMap;
+  OutputIdMap newIdMap;
 
-  for (int i = 0;i < rp->numCrtcs;i++) {
+  for (int i = 0;i < rp->numOutputs;i++) {
+      RROutputPtr output;
       RRCrtcPtr crtc;
 
-      crtc = rp->crtcs[i];
+      output = rp->outputs[i];
+      crtc = output->crtc;
 
       /* Disabled? */
-      if (crtc->mode == NULL)
+      if ((crtc == NULL) || (crtc->mode == NULL))
           continue;
 
-      /* Known CRTC? */
-      if (crtcIdMap.count(crtc) == 1)
-        newIdMap[crtc] = crtcIdMap[crtc];
+      /* Known output? */
+      if (outputIdMap.count(output) == 1)
+        newIdMap[output] = outputIdMap[output];
       else {
         rdr::U32 id;
-        CrtcIdMap::const_iterator iter;
+        OutputIdMap::const_iterator iter;
 
         while (true) {
           id = rand();
-          for (iter = crtcIdMap.begin();iter != crtcIdMap.end();++iter) {
+          for (iter = outputIdMap.begin();iter != outputIdMap.end();++iter) {
             if (iter->second == id)
               break;
           }
-          if (iter == crtcIdMap.end())
+          if (iter == outputIdMap.end())
             break;
         }
 
-        newIdMap[crtc] = id;
+        newIdMap[output] = id;
       }
 
-      layout.add_screen(Screen(newIdMap[crtc], crtc->x, crtc->y,
+      layout.add_screen(Screen(newIdMap[output], crtc->x, crtc->y,
                                crtc->mode->mode.width,
                                crtc->mode->mode.height,
                                0));
   }
 
   /* Only keep the entries that are currently active */
-  crtcIdMap = newIdMap;
+  outputIdMap = newIdMap;
 #endif
 
   return layout;

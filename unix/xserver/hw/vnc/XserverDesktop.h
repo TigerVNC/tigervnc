@@ -146,8 +146,8 @@ private:
   rfb::CharArray queryConnectUsername;
 
 #ifdef RANDR
-  typedef std::map<RRCrtcPtr, rdr::U32> CrtcIdMap;
-  CrtcIdMap crtcIdMap;
+  typedef std::map<RROutputPtr, rdr::U32> OutputIdMap;
+  OutputIdMap outputIdMap;
 #endif
 };
 #endif
