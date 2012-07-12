@@ -859,45 +859,8 @@ static miPointerScreenFuncRec vfbPointerCursorFuncs = {
 
 static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
-  Bool ret, gotCurrent = FALSE;
-  int i;
-
-  const int widths[] =  { 1920, 1920, 1600, 1680, 1400, 1360, 1280, 1280, 1280, 1280, 1024, 800, 640 };
-  const int heights[] = { 1200, 1080, 1200, 1050, 1050,  768, 1024,  960,  800,  720,  768, 600, 480 };
-
-  for (i = 0;i < sizeof(widths)/sizeof(*widths);i++) {
-    RRScreenSizePtr pSize;
-
-    pSize = RRRegisterSize(pScreen, widths[i], heights[i],
-                           pScreen->mmWidth, pScreen->mmHeight);
-    if (!pSize)
-      return FALSE;
-
-    ret = RRRegisterRate(pScreen, pSize, 60);
-    if (!ret)
-      return FALSE;
-
-    if ((widths[i] == pScreen->width) && (heights[i] == pScreen->height)) {
-      RRSetCurrentConfig(pScreen, RR_Rotate_0, 60, pSize);
-      gotCurrent = TRUE;
-    }
-  }
-
-  if (!gotCurrent) {
-    RRScreenSizePtr pSize;
-
-    pSize = RRRegisterSize(pScreen, pScreen->width, pScreen->height,
-                           pScreen->mmWidth, pScreen->mmHeight);
-    if (!pSize)
-      return FALSE;
-
-    RRRegisterRate(pScreen, pSize, 60);
-
-    RRSetCurrentConfig(pScreen, RR_Rotate_0, 60, pSize);
-  }
-
-  *rotations = RR_Rotate_0;
-
+  // We update all information right away, so there is nothing to
+  // do here.
   return TRUE;
 }
 
@@ -1050,16 +1013,19 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     FlushAllOutput ();
 }
 
-static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
-		    int	rate, RRScreenSizePtr pSize)
+static RRModePtr vncRandRModeGet(int width, int height);
+
+static Bool vncRandRScreenSetSize(ScreenPtr pScreen,
+                                  CARD16 width, CARD16 height,
+                                  CARD32 mmWidth, CARD32 mmHeight)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
     vfbFramebufferInfo fb;
+    rrScrPrivPtr rp = rrGetScrPriv(pScreen);
     PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
     void *pbits;
     Bool ret;
     int oldwidth, oldheight, oldmmWidth, oldmmHeight;
-    int dpix, dpiy;
 
     /* Prevent updates while we fiddle */
     xf86SetRootClip(pScreen, FALSE);
@@ -1070,17 +1036,11 @@ static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
     oldmmWidth = pScreen->mmWidth;
     oldmmHeight = pScreen->mmHeight;
 
-    /* Compute the current DPI (for use later) */
-    dpix = (pScreen->width * 254 + pScreen->mmWidth * 5) / (pScreen->mmWidth * 10);
-    dpiy = (pScreen->height * 254 + pScreen->mmHeight * 5) / (pScreen->mmHeight * 10);
-
     /* Then set the new dimensions */
-    pScreen->width = pSize->width;
-    pScreen->height = pSize->height;
-
-    /* Try to keep the same DPI as we do not have a physical screen */
-    pScreen->mmWidth = (pScreen->width * 254 + dpix * 5) / (dpix * 10);
-    pScreen->mmHeight = (pScreen->height * 254 + dpiy * 5) / (dpiy * 10);
+    pScreen->width = width;
+    pScreen->height = height;
+    pScreen->mmWidth = mmWidth;
+    pScreen->mmHeight = mmHeight;
 
     /* Allocate a new framebuffer */
     memset(&fb, 0, sizeof(vfbFramebufferInfo));
@@ -1130,7 +1090,162 @@ static Bool vncRandRSetConfig (ScreenPtr pScreen, Rotation rotation,
     /* Restore ability to update screen, now with new dimensions */
     xf86SetRootClip(pScreen, TRUE);
 
+    /*
+     * Let RandR know we changed something (it doesn't assume that
+     * TRUE means something changed for some reason...).
+     */
+    RRScreenSizeNotify(pScreen);
+
+    /* Crop all CRTCs to the new screen */
+    for (int i = 0;i < rp->numCrtcs;i++) {
+        RRCrtcPtr crtc;
+        RRModePtr mode;
+
+        crtc = rp->crtcs[i];
+
+        /* Disabled? */
+        if (crtc->mode == NULL)
+            continue;
+
+        /* Fully inside? */
+        if ((crtc->x + crtc->mode->mode.width <= width) &&
+            (crtc->y + crtc->mode->mode.height <= height))
+            continue;
+
+        /* Fully outside? */
+        if ((crtc->x >= width) || (crtc->y >= height)) {
+            /* Disable it */
+            ret = RRCrtcNotify(crtc, NULL, crtc->x, crtc->y, crtc->rotation,
+                               crtc->numOutputs, crtc->outputs);
+            if (!ret)
+                ErrorF("Warning: Unable to disable CRTC that is outside of new screen dimensions");
+            continue;
+        }
+
+        /* Just needs to be resized */
+        mode = vncRandRModeGet(width - crtc->x, height - crtc->y);
+        if (mode == NULL) {
+            ErrorF("Warning: Unable to create custom mode for %dx%d",
+                   width - crtc->x, height - crtc->y);
+            continue;
+        }
+
+        ret = RRCrtcNotify(crtc, mode, crtc->x, crtc->y, crtc->rotation,
+                           crtc->numOutputs, crtc->outputs);
+        RRModeDestroy(mode);
+        if (!ret)
+            ErrorF("Warning: Unable to crop CRTC to new screen dimensions");
+    }
+
     return TRUE;
+}
+
+static Bool vncRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc, RRModePtr mode,
+                            int x, int y, Rotation rotation, int num_outputs,
+                            RROutputPtr *outputs)
+{
+    Bool ret;
+
+    /* Let RandR know we approve, and let it update its internal state */
+    ret = RRCrtcNotify(crtc, mode, x, y, rotation, num_outputs, outputs);
+    if (!ret)
+        return FALSE;
+
+    return TRUE;
+}
+
+static Bool vncRandROutputValidateMode(ScreenPtr pScreen,
+                                       RROutputPtr output, RRModePtr mode)
+{
+    /* We have no hardware so any mode works */
+    return TRUE;
+}
+
+static void vncRandRModeDestroy(ScreenPtr pScreen, RRModePtr mode)
+{
+    /* We haven't allocated anything so nothing to destroy */
+}
+
+static const char vncRandROutputName[] = "VNC";
+
+static const int vncRandRWidths[] =  { 1920, 1920, 1600, 1680, 1400, 1360, 1280, 1280, 1280, 1280, 1024, 800, 640 };
+static const int vncRandRHeights[] = { 1200, 1080, 1200, 1050, 1050,  768, 1024,  960,  800,  720,  768, 600, 480 };
+
+static RRModePtr vncRandRModeGet(int width, int height)
+{
+    xRRModeInfo	modeInfo;
+    char name[100];
+    RRModePtr mode;
+
+    memset(&modeInfo, 0, sizeof(modeInfo));
+    sprintf(name, "%dx%d", width, height);
+    
+    modeInfo.width = width;
+    modeInfo.height = height;
+    modeInfo.hTotal = width;
+    modeInfo.vTotal = height;
+    modeInfo.dotClock = ((CARD32)width * (CARD32)height * 60);
+    modeInfo.nameLength = strlen(name);
+    mode = RRModeGet(&modeInfo, name);
+    if (mode == NULL)
+        return NULL;
+
+    return mode;
+}
+
+static Bool vncRandRInit(ScreenPtr pScreen)
+{
+    RRCrtcPtr crtc;
+    RROutputPtr output;
+    RRModePtr mode;
+
+    if (!RRInit())
+        return FALSE;
+
+    /* These are completely arbitrary */
+    RRScreenSetSizeRange(pScreen, 32, 32, 32768, 32768);
+
+    /* Start with a single CRTC with a single output */
+    crtc = RRCrtcCreate(pScreen, 0 /* id */);
+
+    /* We don't actually support gamma, but xrandr complains when it is missing */
+    RRCrtcGammaSetSize (crtc, 256);
+
+    output = RROutputCreate(pScreen, vncRandROutputName,
+                            sizeof(vncRandROutputName), NULL);
+    RROutputSetCrtcs(output, &crtc, 1);
+    RROutputSetConnection(output, RR_Connected);
+
+    /* Populate a list of default modes */
+    RRModePtr modes[sizeof(vncRandRWidths)/sizeof(*vncRandRWidths)];
+    int num_modes;
+
+    num_modes = 0;
+    for (int i = 0;i < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);i++) {
+        mode = vncRandRModeGet(vncRandRWidths[i], vncRandRHeights[i]);
+        if (mode != NULL) {
+            modes[num_modes] = mode;
+            num_modes++;
+        }
+    }
+
+    RROutputSetModes(output, modes, num_modes, 0);
+
+    /* Make sure the current screen size is the active mode */
+    mode = vncRandRModeGet(pScreen->width, pScreen->height);
+    if (mode == NULL)
+        return FALSE;
+
+    RRCrtcNotify(crtc, mode, 0, 0, RR_Rotate_0, 1, &output);
+
+    return TRUE;
+}
+
+unsigned int vncSetScreenLayout(ScreenPtr pScreen,
+                                int fb_width, int fb_height,
+                                const rfb::ScreenSet& layout)
+{
+    return rfb::resultProhibited;
 }
 
 #endif
@@ -1291,8 +1406,16 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!ret) return FALSE;
 
     rp = rrGetScrPriv(pScreen);
+
     rp->rrGetInfo = vncRandRGetInfo;
-    rp->rrSetConfig = vncRandRSetConfig;
+    rp->rrSetConfig = NULL;
+    rp->rrScreenSetSize = vncRandRScreenSetSize;
+    rp->rrCrtcSet = vncRandRCrtcSet;
+    rp->rrOutputValidateMode = vncRandROutputValidateMode;
+    rp->rrModeDestroy = vncRandRModeDestroy;
+
+    ret = vncRandRInit(pScreen);
+    if (!ret) return FALSE;
 #endif
 
 

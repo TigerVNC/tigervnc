@@ -27,6 +27,8 @@
 #include <dix-config.h>
 #endif
 
+#include <map>
+
 #include <rfb/SDesktop.h>
 #include <rfb/HTTPServer.h>
 #include <rfb/PixelBuffer.h>
@@ -39,6 +41,9 @@ extern "C" {
 #define class c_class
 #include <scrnintstr.h>
 #include <os.h>
+#ifdef RANDR
+#include <randrstr.h>
+#endif
 #undef class
 }
 
@@ -64,6 +69,7 @@ public:
   void blockUpdates();
   void unblockUpdates();
   void setFramebuffer(int w, int h, void* fbptr, int stride);
+  void refreshScreenLayout();
   void setColormap(ColormapPtr cmap);
   void setColourMapEntries(ColormapPtr pColormap, int ndef, xColorItem* pdef);
   void bell();
@@ -101,10 +107,8 @@ public:
   virtual void keyEvent(rdr::U32 key, bool down);
   virtual void clientCutText(const char* str, int len);
   virtual rfb::Point getFbSize() { return rfb::Point(width(), height()); }
-#ifdef RANDR
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
                                        const rfb::ScreenSet& layout);
-#endif
 
   // rfb::PixelBuffer callbacks
   virtual void grabRegion(const rfb::Region& r);
@@ -123,6 +127,7 @@ public:
 
 private:
   void setColourMapEntries(int firstColour, int nColours);
+  rfb::ScreenSet computeScreenLayout();
   ScreenPtr pScreen;
   InputDevice *inputDevice;
   rfb::VNCServerST* server;
@@ -139,5 +144,10 @@ private:
   void* queryConnectId;
   rfb::CharArray queryConnectAddress;
   rfb::CharArray queryConnectUsername;
+
+#ifdef RANDR
+  typedef std::map<RRCrtcPtr, rdr::U32> CrtcIdMap;
+  CrtcIdMap crtcIdMap;
+#endif
 };
 #endif

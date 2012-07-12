@@ -25,6 +25,8 @@
 #include <rfb/Configuration.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
+#include <rfb/ScreenSet.h>
+#include <rfb/screenTypes.h>
 
 extern "C" {
 #define class c_class
@@ -97,4 +99,11 @@ static void vncExtensionInitWithParams(INITARGS)
 
   vncExtensionInit();
 }
+}
+
+unsigned int vncSetScreenLayout(ScreenPtr pScreen,
+                                int fb_width, int fb_height,
+                                const rfb::ScreenSet& layout)
+{
+    return rfb::resultProhibited;
 }

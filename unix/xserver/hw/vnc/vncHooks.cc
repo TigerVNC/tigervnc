@@ -84,6 +84,8 @@ typedef struct {
 #endif
 #ifdef RANDR
   RRSetConfigProcPtr           RandRSetConfig;
+  RRScreenSetSizeProcPtr       RandRScreenSetSize;
+  RRCrtcSetProcPtr             RandRCrtcSet;
 #endif
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
@@ -143,6 +145,13 @@ static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 #ifdef RANDR
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
                                    int rate, RRScreenSizePtr pSize);
+static Bool vncHooksRandRScreenSetSize(ScreenPtr pScreen,
+                                       CARD16 width, CARD16 height,
+                                       CARD32 mmWidth, CARD32 mmHeight);
+static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
+                                 RRModePtr mode, int x, int y,
+                                 Rotation rotation, int numOutputs,
+                                 RROutputPtr *outputs);
 #endif
 
 // GC "funcs"
@@ -283,6 +292,8 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     vncHooksScreen->RandRSetConfig = rp->rrSetConfig;
+    vncHooksScreen->RandRScreenSetSize = rp->rrScreenSetSize;
+    vncHooksScreen->RandRCrtcSet = rp->rrCrtcSet;
   }
 #endif
 
@@ -304,7 +315,13 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 #endif
 #ifdef RANDR
   if (rp) {
-    rp->rrSetConfig = vncHooksRandRSetConfig;
+    /* Some RandR callbacks are optional */
+    if (rp->rrSetConfig)
+      rp->rrSetConfig = vncHooksRandRSetConfig;
+    if (rp->rrScreenSetSize)
+      rp->rrScreenSetSize = vncHooksRandRScreenSetSize;
+    if (rp->rrCrtcSet)
+      rp->rrCrtcSet = vncHooksRandRCrtcSet;
   }
 #endif
 
@@ -361,6 +378,8 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     rp->rrSetConfig = vncHooksScreen->RandRSetConfig;
+    rp->rrScreenSetSize = vncHooksScreen->RandRScreenSetSize;
+    rp->rrCrtcSet = vncHooksScreen->RandRCrtcSet;
   }
 #endif
 
@@ -596,42 +615,106 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 
 #ifdef RANDR
 
+static void vncPreScreenResize(ScreenPtr pScreen)
+{
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+
+  // We need to prevent the RFB core from accessing the framebuffer
+  // for a while as there might be updates thrown our way inside
+  // the routines that change the screen (i.e. before we have a
+  // pointer to the new framebuffer).
+  vncHooksScreen->desktop->blockUpdates();
+}
+
+static void vncPostScreenResize(ScreenPtr pScreen, Bool success)
+{
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+
+  RegionRec reg;
+  BoxRec box;
+
+  if (success) {
+    // Let the RFB core know of the new dimensions and framebuffer
+    vncHooksScreen->desktop->setFramebuffer(pScreen->width, pScreen->height,
+                                            vncFbptr[pScreen->myNum],
+                                            vncFbstride[pScreen->myNum]);
+  }
+
+  vncHooksScreen->desktop->unblockUpdates();
+
+  if (success) {
+    // Mark entire screen as changed
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = pScreen->width;
+    box.y2 = pScreen->height;
+    REGION_INIT(pScreen, &reg, &box, 1);
+
+    vncHooksScreen->desktop->add_changed(&reg);
+  }
+}
+
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
                                    int rate, RRScreenSizePtr pSize)
 {
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
   rrScrPrivPtr rp = rrGetScrPriv(pScreen);
   Bool ret;
-  RegionRec reg;
-  BoxRec box;
 
-  // We need to prevent the RFB core from accessing the framebuffer
-  // for a while as there might be updates thrown our way inside
-  // rrSetConfig (i.e. before we have a pointer to the new framebuffer).
-  vncHooksScreen->desktop->blockUpdates();
+  vncPreScreenResize(pScreen);
 
   rp->rrSetConfig = vncHooksScreen->RandRSetConfig;
   ret = (*rp->rrSetConfig)(pScreen, rotation, rate, pSize);
   rp->rrSetConfig = vncHooksRandRSetConfig;
 
+  vncPostScreenResize(pScreen, ret);
+
   if (!ret)
     return FALSE;
 
-  // Let the RFB core know of the new dimensions and framebuffer
-  vncHooksScreen->desktop->setFramebuffer(pScreen->width, pScreen->height,
-                                          vncFbptr[pScreen->myNum],
-                                          vncFbstride[pScreen->myNum]);
+  return TRUE;
+}
 
-  vncHooksScreen->desktop->unblockUpdates();
+static Bool vncHooksRandRScreenSetSize(ScreenPtr pScreen,
+                                       CARD16 width, CARD16 height,
+                                       CARD32 mmWidth, CARD32 mmHeight)
+{
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+  rrScrPrivPtr rp = rrGetScrPriv(pScreen);
+  Bool ret;
 
-  // Mark entire screen as changed
-  box.x1 = 0;
-  box.y1 = 0;
-  box.x2 = pScreen->width;
-  box.y2 = pScreen->height;
-  REGION_INIT(pScreen, &reg, &box, 1);
+  vncPreScreenResize(pScreen);
 
-  vncHooksScreen->desktop->add_changed(&reg);
+  rp->rrScreenSetSize = vncHooksScreen->RandRScreenSetSize;
+  ret = (*rp->rrScreenSetSize)(pScreen, width, height, mmWidth, mmHeight);
+  rp->rrScreenSetSize = vncHooksRandRScreenSetSize;
+
+  vncPostScreenResize(pScreen, ret);
+
+  if (!ret)
+    return FALSE;
+
+  return TRUE;
+}
+
+static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
+                                 RRModePtr mode, int x, int y,
+                                 Rotation rotation, int num_outputs,
+                                 RROutputPtr *outputs)
+{
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+  rrScrPrivPtr rp = rrGetScrPriv(pScreen);
+  Bool ret;
+
+  rp->rrCrtcSet = vncHooksScreen->RandRCrtcSet;
+  ret = (*rp->rrCrtcSet)(pScreen, crtc, mode, x, y, rotation,
+                         num_outputs, outputs);
+  rp->rrCrtcSet = vncHooksRandRCrtcSet;
+
+  if (!ret)
+    return FALSE;
+
+  vncHooksScreen->desktop->refreshScreenLayout();
 
   return TRUE;
 }
