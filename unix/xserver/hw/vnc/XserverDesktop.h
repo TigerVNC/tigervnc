@@ -128,6 +128,10 @@ public:
 private:
   void setColourMapEntries(int firstColour, int nColours);
   rfb::ScreenSet computeScreenLayout();
+#ifdef RANDR
+  RRModePtr findRandRMode(RROutputPtr output, int width, int height);
+#endif
+
   ScreenPtr pScreen;
   InputDevice *inputDevice;
   rfb::VNCServerST* server;

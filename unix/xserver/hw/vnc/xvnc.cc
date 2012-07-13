@@ -1013,7 +1013,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     FlushAllOutput ();
 }
 
-static RRModePtr vncRandRModeGet(int width, int height);
+RRModePtr vncRandRModeGet(int width, int height);
 
 static Bool vncRandRScreenSetSize(ScreenPtr pScreen,
                                   CARD16 width, CARD16 height,
@@ -1166,12 +1166,13 @@ static void vncRandRModeDestroy(ScreenPtr pScreen, RRModePtr mode)
     /* We haven't allocated anything so nothing to destroy */
 }
 
-static const char vncRandROutputName[] = "VNC";
-
 static const int vncRandRWidths[] =  { 1920, 1920, 1600, 1680, 1400, 1360, 1280, 1280, 1280, 1280, 1024, 800, 640 };
 static const int vncRandRHeights[] = { 1200, 1080, 1200, 1050, 1050,  768, 1024,  960,  800,  720,  768, 600, 480 };
 
-static RRModePtr vncRandRModeGet(int width, int height)
+static int vncRandRIndex = 0;
+
+/* This is a global symbol since XserverDesktop also uses it */
+RRModePtr vncRandRModeGet(int width, int height)
 {
     xRRModeInfo	modeInfo;
     char name[100];
@@ -1193,28 +1194,30 @@ static RRModePtr vncRandRModeGet(int width, int height)
     return mode;
 }
 
-static Bool vncRandRInit(ScreenPtr pScreen)
+static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
 {
     RRCrtcPtr crtc;
     RROutputPtr output;
     RRModePtr mode;
+    char name[100];
 
-    if (!RRInit())
-        return FALSE;
-
-    /* These are completely arbitrary */
-    RRScreenSetSizeRange(pScreen, 32, 32, 32768, 32768);
-
-    /* Start with a single CRTC with a single output */
-    crtc = RRCrtcCreate(pScreen, 0 /* id */);
+    /* First we create the CRTC... */
+    crtc = RRCrtcCreate(pScreen, NULL);
 
     /* We don't actually support gamma, but xrandr complains when it is missing */
     RRCrtcGammaSetSize (crtc, 256);
 
-    output = RROutputCreate(pScreen, vncRandROutputName,
-                            sizeof(vncRandROutputName), NULL);
+    /* Then we create a dummy output for it... */
+    sprintf(name, "VNC-%d", vncRandRIndex);
+    vncRandRIndex++;
+
+    output = RROutputCreate(pScreen, name, strlen(name), NULL);
+
     RROutputSetCrtcs(output, &crtc, 1);
     RROutputSetConnection(output, RR_Connected);
+
+    /* Make sure the CRTC has this output set */
+    RRCrtcNotify(crtc, NULL, 0, 0, RR_Rotate_0, 1, &output);
 
     /* Populate a list of default modes */
     RRModePtr modes[sizeof(vncRandRWidths)/sizeof(*vncRandRWidths)];
@@ -1231,21 +1234,47 @@ static Bool vncRandRInit(ScreenPtr pScreen)
 
     RROutputSetModes(output, modes, num_modes, 0);
 
+    return crtc;
+}
+
+/* Used from XserverDesktop when it needs more outputs... */
+RROutputPtr vncRandROutputCreate(ScreenPtr pScreen)
+{
+    RRCrtcPtr crtc;
+
+    crtc = vncRandRCrtcCreate(pScreen);
+    if (crtc == NULL)
+        return NULL;
+
+    return crtc->outputs[0];
+}
+
+static Bool vncRandRInit(ScreenPtr pScreen)
+{
+    RRCrtcPtr crtc;
+    RRModePtr mode;
+
+    if (!RRInit())
+        return FALSE;
+
+    /* These are completely arbitrary */
+    RRScreenSetSizeRange(pScreen, 32, 32, 32768, 32768);
+
+    /*
+     * Start with a single CRTC with a single output. More will be
+     * allocated as needed...
+     */
+    crtc = vncRandRCrtcCreate(pScreen);
+
     /* Make sure the current screen size is the active mode */
     mode = vncRandRModeGet(pScreen->width, pScreen->height);
     if (mode == NULL)
         return FALSE;
 
-    RRCrtcNotify(crtc, mode, 0, 0, RR_Rotate_0, 1, &output);
+    RRCrtcNotify(crtc, mode, 0, 0, RR_Rotate_0,
+                 crtc->numOutputs, crtc->outputs);
 
     return TRUE;
-}
-
-unsigned int vncSetScreenLayout(ScreenPtr pScreen,
-                                int fb_width, int fb_height,
-                                const rfb::ScreenSet& layout)
-{
-    return rfb::resultProhibited;
 }
 
 #endif

@@ -35,6 +35,9 @@ extern "C" {
 #define new c_new
 #include "xf86.h"
 #include "xf86Module.h"
+#ifdef RANDR
+#include "randrstr.h"
+#endif /* RANDR */
 #undef class
 #undef private
 #undef bool
@@ -101,9 +104,12 @@ static void vncExtensionInitWithParams(INITARGS)
 }
 }
 
-unsigned int vncSetScreenLayout(ScreenPtr pScreen,
-                                int fb_width, int fb_height,
-                                const rfb::ScreenSet& layout)
+RRModePtr vncRandRModeGet(int width, int height)
 {
-    return rfb::resultProhibited;
+    return NULL;
+}
+
+RROutputPtr vncRandROutputCreate(ScreenPtr pScreen)
+{
+    return NULL;
 }
