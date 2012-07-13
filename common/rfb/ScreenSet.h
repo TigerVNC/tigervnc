@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 
+#include <rdr/types.h>
 #include <rfb/Rect.h>
 #include <list>
 #include <set>
