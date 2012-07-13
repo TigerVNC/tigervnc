@@ -920,7 +920,7 @@ void Viewport::popupContextMenu()
     if (window()->fullscreen_active())
       window()->fullscreen_off();
     else
-      window()->fullscreen();
+      ((DesktopWindow*)window())->fullscreen_on();
     break;
 #endif
   case ID_RESIZE:

@@ -78,6 +78,8 @@ public:
 
   int handle(int event);
 
+  void fullscreen_on();
+
 private:
   static int fltkHandle(int event, Fl_Window *win);
 

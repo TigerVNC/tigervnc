@@ -66,6 +66,11 @@ IntParameter qualityLevel("QualityLevel",
 
 #ifdef HAVE_FLTK_FULLSCREEN
 BoolParameter fullScreen("FullScreen", "Full screen mode", false);
+#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
+BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
+                                    "Enable full screen over all monitors",
+                                    true);
+#endif // HAVE_FLTK_FULLSCREEN_SCREENS
 #endif // HAVE_FLTK_FULLSCREEN
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "

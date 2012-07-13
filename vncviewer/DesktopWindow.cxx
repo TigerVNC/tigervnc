@@ -76,7 +76,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
 #ifdef HAVE_FLTK_FULLSCREEN
   if (fullScreen)
-    fullscreen();
+    fullscreen_on();
   else
 #endif
   {
@@ -295,6 +295,54 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 }
 
 
+void DesktopWindow::fullscreen_on()
+{
+#ifdef HAVE_FLTK_FULLSCREEN
+#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
+  if (not fullScreenAllMonitors)
+    fullscreen_screens(-1, -1, -1, -1);
+  else {
+    int top, bottom, left, right;
+    int top_y, bottom_y, left_x, right_x;
+
+    int sx, sy, sw, sh;
+
+    top = bottom = left = right = 0;
+
+    Fl::screen_xywh(sx, sy, sw, sh, 0);
+    top_y = sy;
+    bottom_y = sy + sh;
+    left_x = sx;
+    right_x = sx + sw;
+
+    for (int i = 1;i < Fl::screen_count();i++) {
+      Fl::screen_xywh(sx, sy, sw, sh, i);
+      if (sy < top_y) {
+        top = i;
+        top_y = sy;
+      }
+      if ((sy + sh) > bottom_y) {
+        bottom = i;
+        bottom_y = sy + sh;
+      }
+      if (sx < left_x) {
+        left = i;
+        left_x = sx;
+      }
+      if ((sx + sw) > right_x) {
+        right = i;
+        right_x = sx + sw;
+      }
+    }
+
+    fullscreen_screens(top, bottom, left, right);
+  }
+#endif // HAVE_FLTK_FULLSCREEN_SCREENS
+
+  fullscreen();
+#endif // HAVE_FLTK_FULLSCREEN
+}
+
 void DesktopWindow::grabKeyboard()
 {
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
@@ -394,6 +442,7 @@ void DesktopWindow::remoteResize()
 {
   int width, height;
   ScreenSet layout;
+  ScreenSet::iterator iter;
 
   if (firstUpdate) {
     if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2)
@@ -403,28 +452,88 @@ void DesktopWindow::remoteResize()
     height = h();
   }
 
-  layout = cc->cp.screenLayout;
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (!fullscreen_active()) {
+#endif
+    // In windowed mode we just report a single virtual screen that
+    // covers the entire framebuffer.
 
-  if (layout.num_screens() == 0)
-    layout.add_screen(rfb::Screen());
-  else if (layout.num_screens() != 1) {
-    ScreenSet::iterator iter;
+    layout = cc->cp.screenLayout;
 
-    while (true) {
-      iter = layout.begin();
-      ++iter;
+    // Not sure why we have no screens, but adding a new one should be
+    // safe as there is nothing to conflict with...
+    if (layout.num_screens() == 0)
+      layout.add_screen(rfb::Screen());
+    else if (layout.num_screens() != 1) {
+      // More than one screen. Remove all but the first (which we
+      // assume is the "primary").
 
-      if (iter == layout.end())
-        break;
+      while (true) {
+        iter = layout.begin();
+        ++iter;
 
-      layout.remove_screen(iter->id);
+        if (iter == layout.end())
+          break;
+
+        layout.remove_screen(iter->id);
+      }
+    }
+
+    // Resize the remaining single screen to the complete framebuffer
+    layout.begin()->dimensions.tl.x = 0;
+    layout.begin()->dimensions.tl.y = 0;
+    layout.begin()->dimensions.br.x = width;
+    layout.begin()->dimensions.br.y = height;
+#ifdef HAVE_FLTK_FULLSCREEN
+  } else {
+    int i;
+    rdr::U32 id;
+    int sx, sy, sw, sh;
+
+    // In full screen we report all screens that are fully covered.
+
+    // If we can find a matching screen in the existing set, we use
+    // that, otherwise we create a brand new screen.
+    //
+    // FIXME: We should really track screens better so we can handle
+    //        a resized one.
+    //
+    for (i = 0;i < Fl::screen_count();i++) {
+      Fl::screen_xywh(sx, sy, sw, sh, i);
+
+      // Look for perfectly matching existing screen...
+      for (iter = cc->cp.screenLayout.begin();
+           iter != cc->cp.screenLayout.end(); ++iter) {
+        if ((iter->dimensions.tl.x == sx) &&
+            (iter->dimensions.tl.y == sy) &&
+            (iter->dimensions.width() == sw) &&
+            (iter->dimensions.height() == sh))
+          break;
+      }
+
+      // Found it?
+      if (iter != cc->cp.screenLayout.end()) {
+        layout.add_screen(*iter);
+        continue;
+      }
+
+      // Need to add a new one, which means we need to find an unused id
+      while (true) {
+        id = rand();
+        for (iter = cc->cp.screenLayout.begin();
+             iter != cc->cp.screenLayout.end(); ++iter) {
+          if (iter->id == id)
+            break;
+        }
+
+        if (iter == cc->cp.screenLayout.end())
+          break;
+      }
+
+      layout.add_screen(rfb::Screen(id, sx, sy, sw, sh, 0));
     }
   }
-
-  layout.begin()->dimensions.tl.x = 0;
-  layout.begin()->dimensions.tl.y = 0;
-  layout.begin()->dimensions.br.x = width;
-  layout.begin()->dimensions.br.y = height;
+#endif
 
   // Do we actually change anything?
   if ((width == cc->cp.width) &&
@@ -432,8 +541,14 @@ void DesktopWindow::remoteResize()
       (layout == cc->cp.screenLayout))
     return;
 
-  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
-             cc->cp.width, cc->cp.height, width, height);
+  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d (%d screens)",
+             cc->cp.width, cc->cp.height, width, height, layout.num_screens());
+
+  if (!layout.validate(width, height)) {
+    vlog.error("Invalid screen layout computed for resize request!");
+    layout.debug_print();
+    return;
+  }
 
   cc->writer()->writeSetDesktopSize(width, height, layout);
 }
@@ -499,7 +614,7 @@ void DesktopWindow::handleOptions(void *data)
     self->ungrabKeyboard();
 
   if (fullScreen && !self->fullscreen_active())
-    self->fullscreen();
+    self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
 #endif

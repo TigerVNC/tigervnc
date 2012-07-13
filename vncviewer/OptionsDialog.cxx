@@ -288,6 +288,9 @@ void OptionsDialog::loadOptions(void)
   remoteResizeCheckbox->value(remoteResize);
 #ifdef HAVE_FLTK_FULLSCREEN
   fullScreenCheckbox->value(fullScreen);
+#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
+  fullScreenAllMonitorsCheckbox->value(fullScreenAllMonitors);
+#endif // HAVE_FLTK_FULLSCREEN_SCREENS
 #endif // HAVE_FLTK_FULLSCREEN
 
   handleDesktopSize(desktopSizeCheckbox, this);
@@ -393,6 +396,9 @@ void OptionsDialog::storeOptions(void)
   remoteResize.setParam(remoteResizeCheckbox->value());
 #ifdef HAVE_FLTK_FULLSCREEN
   fullScreen.setParam(fullScreenCheckbox->value());
+#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
+  fullScreenAllMonitors.setParam(fullScreenAllMonitorsCheckbox->value());
+#endif // HAVE_FLTK_FULLSCREEN_SCREENS
 #endif // HAVE_FLTK_FULLSCREEN
 
   /* Misc. */
@@ -759,6 +765,16 @@ void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
                                                   CHECK_HEIGHT,
                                                   _("Full-screen mode")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
+
+  fullScreenAllMonitorsCheckbox = new Fl_Check_Button(LBLRIGHT(tx + INDENT, ty,
+                                                      CHECK_MIN_WIDTH,
+                                                      CHECK_HEIGHT,
+                                                      _("Enable full-screen mode over all monitors")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+#endif // HAVE_FLTK_FULLSCREEN_SCREENS
 
 #endif // HAVE_FLTK_FULLSCREEN
 

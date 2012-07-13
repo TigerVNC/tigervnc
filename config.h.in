@@ -19,6 +19,7 @@
 #cmakedefine HAVE_FLTK_CLIPBOARD
 #cmakedefine HAVE_FLTK_MEDIAKEYS
 #cmakedefine HAVE_FLTK_FULLSCREEN
+#cmakedefine HAVE_FLTK_FULLSCREEN_SCREENS
 #cmakedefine HAVE_FLTK_CURSOR
 #cmakedefine HAVE_FLTK_ICONS
 #cmakedefine HAVE_ACTIVE_DESKTOP_H
