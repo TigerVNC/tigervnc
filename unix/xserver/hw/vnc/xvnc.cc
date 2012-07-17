@@ -1116,6 +1116,9 @@ static Bool vncRandRScreenSetSize(ScreenPtr pScreen,
         if ((crtc->x >= width) || (crtc->y >= height)) {
             /* Disable it */
             ret = RRCrtcNotify(crtc, NULL, crtc->x, crtc->y, crtc->rotation,
+#if XORG >= 16
+                               NULL,
+#endif
                                crtc->numOutputs, crtc->outputs);
             if (!ret)
                 ErrorF("Warning: Unable to disable CRTC that is outside of new screen dimensions");
@@ -1131,6 +1134,9 @@ static Bool vncRandRScreenSetSize(ScreenPtr pScreen,
         }
 
         ret = RRCrtcNotify(crtc, mode, crtc->x, crtc->y, crtc->rotation,
+#if XORG >= 16
+                           NULL,
+#endif
                            crtc->numOutputs, crtc->outputs);
         RRModeDestroy(mode);
         if (!ret)
@@ -1147,7 +1153,11 @@ static Bool vncRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc, RRModePtr mode,
     Bool ret;
 
     /* Let RandR know we approve, and let it update its internal state */
-    ret = RRCrtcNotify(crtc, mode, x, y, rotation, num_outputs, outputs);
+    ret = RRCrtcNotify(crtc, mode, x, y, rotation,
+#if XORG >= 16
+                       NULL,
+#endif
+                       num_outputs, outputs);
     if (!ret)
         return FALSE;
 
@@ -1217,7 +1227,11 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
     RROutputSetConnection(output, RR_Connected);
 
     /* Make sure the CRTC has this output set */
-    RRCrtcNotify(crtc, NULL, 0, 0, RR_Rotate_0, 1, &output);
+    RRCrtcNotify(crtc, NULL, 0, 0, RR_Rotate_0,
+#if XORG >= 16
+                 NULL,
+#endif
+                 1, &output);
 
     /* Populate a list of default modes */
     RRModePtr modes[sizeof(vncRandRWidths)/sizeof(*vncRandRWidths)];
@@ -1272,6 +1286,9 @@ static Bool vncRandRInit(ScreenPtr pScreen)
         return FALSE;
 
     RRCrtcNotify(crtc, mode, 0, 0, RR_Rotate_0,
+#if XORG >= 16
+                 NULL,
+#endif
                  crtc->numOutputs, crtc->outputs);
 
     return TRUE;
