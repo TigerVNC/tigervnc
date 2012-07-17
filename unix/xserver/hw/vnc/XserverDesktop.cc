@@ -1007,6 +1007,13 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
     }
   }
 
+  /*
+   * Update timestamp for when screen layout was last changed.
+   * This is normally done in the X11 request handlers, which is
+   * why we have to deal with it manually here.
+   */
+  rp->lastSetTime = currentTime;
+
   return rfb::resultSuccess;
 #endif
 }
