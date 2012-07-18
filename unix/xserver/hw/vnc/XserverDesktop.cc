@@ -842,11 +842,35 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
     }
   }
 
-  /* Next count how many useful outputs we have...  */
+  /*
+   * Next count how many useful outputs we have...
+   *
+   * This gets slightly complicated because we might need to hook a CRTC
+   * up to the output, but also check that we don't try to use the same
+   * CRTC for multiple outputs.
+   */
+  std::set<RRCrtcPtr> usedCrtcs;
   availableOutputs = 0;
   for (int i = 0;i < rp->numOutputs;i++) {
-    if (rp->outputs[i]->crtc != NULL)
+    RROutputPtr output;
+
+    output = rp->outputs[i];
+
+    if (output->crtc != NULL)
       availableOutputs++;
+    else {
+      for (int j = 0;j < output->numCrtcs;j++) {
+        if (output->crtcs[j]->numOutputs != 0)
+          continue;
+        if (usedCrtcs.count(output->crtcs[j]) != 0)
+          continue;
+
+        availableOutputs++;
+        usedCrtcs.insert(output->crtcs[j]);
+
+        break;
+      }
+    }
   }
 
   /* Try to create more outputs if needed... (only works on Xvnc) */
@@ -884,13 +908,16 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
     output = rp->outputs[i];
     crtc = output->crtc;
 
-    /* Useful output? */
-    if (crtc == NULL)
-      continue;
-
     /* Known? */
     if (outputIdMap.count(output) == 0)
       continue;
+
+    /* A known output should have a CRTC, but double check... */
+    if (crtc == NULL) {
+      vlog.error("Existing output '%s' has unexpectedly been disabled",
+                 output->name);
+      continue;
+    }
 
     /* Find the corresponding screen... */
     for (iter = layout.begin();iter != layout.end();++iter) {
@@ -964,13 +991,32 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
       output = rp->outputs[i];
       crtc = output->crtc;
 
-      /* Useful output? */
-      if (crtc == NULL)
-        continue;
-
       /* In use? */
       if (outputIdMap.count(output) == 1)
         continue;
+
+      /* Need a CRTC? */
+      if (crtc == NULL) {
+        for (int j = 0;j < output->numCrtcs;j++) {
+          if (output->crtcs[j]->numOutputs != 0)
+            continue;
+
+          crtc = output->crtcs[j];
+          break;
+        }
+
+        /* Couldn't find one... */
+        if (crtc == NULL)
+          continue;
+
+        ret = RRCrtcSet(crtc, NULL, 0, 0, RR_Rotate_0,
+                        1, &output);
+        if (!ret) {
+          vlog.error("Failed to associate a CRTC with output '%s'",
+                     output->name);
+          return rfb::resultInvalid;
+        }
+      }
 
       break;
     }
