@@ -296,7 +296,7 @@ RRModePtr XserverDesktop::findRandRMode(RROutputPtr output, int width, int heigh
 {
   RRModePtr mode;
 
-  for (int i;i < output->numModes;i++) {
+  for (int i = 0;i < output->numModes;i++) {
     if ((output->modes[i]->mode.width == width) &&
         (output->modes[i]->mode.height == height))
       return output->modes[i];
