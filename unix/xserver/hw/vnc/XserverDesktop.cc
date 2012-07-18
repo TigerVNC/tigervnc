@@ -946,7 +946,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
     else {
       mode = findRandRMode(output, iter->dimensions.width(),
                            iter->dimensions.height());
-      if (!ret) {
+      if (mode == NULL) {
         vlog.error("Failed to find a suitable mode for %dx%d for output '%s'",
                    iter->dimensions.width(), iter->dimensions.height(),
                    output->name);
@@ -1027,7 +1027,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
 
     mode = findRandRMode(output, iter->dimensions.width(),
                          iter->dimensions.height());
-    if (!ret) {
+    if (mode == NULL) {
       vlog.error("Failed to find a suitable mode for %dx%d for output '%s'",
                  iter->dimensions.width(), iter->dimensions.height(),
                  output->name);
