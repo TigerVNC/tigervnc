@@ -34,12 +34,12 @@ DecoderCreateFnType Decoder::createFns[encodingMax+1] = { 0 };
 
 bool Decoder::supported(int encoding)
 {
-  return encoding <= encodingMax && createFns[encoding];
+  return encoding >= 0 && encoding <= encodingMax && createFns[encoding];
 }
 
 Decoder* Decoder::createDecoder(int encoding, CMsgReader* reader)
 {
-  if (encoding <= encodingMax && createFns[encoding])
+  if (supported(encoding))
     return (*createFns[encoding])(reader);
   return 0;
 }
