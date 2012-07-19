@@ -750,7 +750,7 @@ public:
 };
 
 
-// ValidateGC - wrap the "ops" if a viewable window
+// ValidateGC - wrap the "ops" if a viewable window OR the screen pixmap
 
 static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
                                DrawablePtr pDrawable)
@@ -762,7 +762,9 @@ static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
   (*pGC->funcs->ValidateGC) (pGC, changes, pDrawable);
 
   u.vncHooksGC->wrappedOps = 0;
-  if (pDrawable->type == DRAWABLE_WINDOW && ((WindowPtr) pDrawable)->viewable) {
+  if ((pDrawable->type == DRAWABLE_WINDOW &&
+       ((WindowPtr) pDrawable)->viewable) ||
+      (pDrawable == &pGC->pScreen->GetScreenPixmap(pGC->pScreen)->drawable)) {
     u.vncHooksGC->wrappedOps = pGC->ops;
     DBGPRINT((stderr,"vncHooksValidateGC: wrapped GC ops\n"));
   }    
@@ -833,7 +835,7 @@ public:
   DBGPRINT((stderr,"vncHooks" #name " called\n"));
 
 
-// FillSpans - changed region is the whole of borderClip.  This is pessimistic,
+// FillSpans - assume the entire clip region is damaged. This is pessimistic,
 // but I believe this function is rarely used so it doesn't matter.
 
 static void vncHooksFillSpans(DrawablePtr pDrawable, GCPtr pGC, int nInit,
@@ -842,14 +844,18 @@ static void vncHooksFillSpans(DrawablePtr pDrawable, GCPtr pGC, int nInit,
 {
   GC_OP_UNWRAPPER(pDrawable, pGC, FillSpans);
 
-  RegionHelper changed(pScreen, &((WindowPtr)pDrawable)->borderClip);
+  RegionHelper changed(pScreen, pGC->pCompositeClip);
+
+  if (pDrawable->type == DRAWABLE_WINDOW)
+    REGION_INTERSECT(pScreen, changed.reg, changed.reg,
+                     &((WindowPtr)pDrawable)->borderClip);
 
   (*pGC->ops->FillSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted);
 
   vncHooksScreen->desktop->add_changed(changed.reg);
 }
 
-// SetSpans - changed region is the whole of borderClip.  This is pessimistic,
+// SetSpans - assume the entire clip region is damaged.  This is pessimistic,
 // but I believe this function is rarely used so it doesn't matter.
 
 static void vncHooksSetSpans(DrawablePtr pDrawable, GCPtr pGC, char *psrc,
@@ -858,7 +864,11 @@ static void vncHooksSetSpans(DrawablePtr pDrawable, GCPtr pGC, char *psrc,
 {
   GC_OP_UNWRAPPER(pDrawable, pGC, SetSpans);
 
-  RegionHelper changed(pScreen, &((WindowPtr)pDrawable)->borderClip);
+  RegionHelper changed(pScreen, pGC->pCompositeClip);
+
+  if (pDrawable->type == DRAWABLE_WINDOW)
+    REGION_INTERSECT(pScreen, changed.reg, changed.reg,
+                     &((WindowPtr)pDrawable)->borderClip);
 
   (*pGC->ops->SetSpans) (pDrawable, pGC, psrc, ppt, pwidth, nspans, fSorted);
 
@@ -910,16 +920,23 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
 
   RegionHelper src(pScreen);
 
-  if ((pSrc->type == DRAWABLE_WINDOW) && (pSrc->pScreen == pScreen)) {
+  // The source of the data has to be something that's on screen.
+  // This means either a window, or the screen pixmap.
+  if ((pSrc->pScreen == pScreen) &&
+      ((pSrc->type == DRAWABLE_WINDOW) ||
+       (pSrc == &pScreen->GetScreenPixmap(pScreen)->drawable))) {
     box.x1 = srcx + pSrc->x;
     box.y1 = srcy + pSrc->y;
     box.x2 = box.x1 + w;
     box.y2 = box.y1 + h;
 
     src.init(&box, 0);
-    if (REGION_NOTEMPTY(pScreen, &((WindowPtr)pSrc)->clipList)) {
-	REGION_INTERSECT(pScreen, src.reg, src.reg, &((WindowPtr)pSrc)->clipList);
+
+    if ((pSrc->type == DRAWABLE_WINDOW) &&
+        REGION_NOTEMPTY(pScreen, &((WindowPtr)pSrc)->clipList)) {
+      REGION_INTERSECT(pScreen, src.reg, src.reg, &((WindowPtr)pSrc)->clipList);
     }
+
     REGION_TRANSLATE(pScreen, src.reg,
                      dstx + pDst->x - srcx - pSrc->x,
                      dsty + pDst->y - srcy - pSrc->y);
