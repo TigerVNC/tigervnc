@@ -546,6 +546,11 @@ void DesktopWindow::remoteResize()
 
       layout.add_screen(rfb::Screen(id, sx, sy, sw, sh, 0));
     }
+
+    // If the viewport doesn't match a physical screen, then we might
+    // end up with no screens in the layout. Add a fake one...
+    if (layout.num_screens() == 0)
+      layout.add_screen(rfb::Screen(0, 0, 0, width, height, 0));
   }
 #endif
 
