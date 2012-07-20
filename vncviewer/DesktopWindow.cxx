@@ -546,7 +546,6 @@ void DesktopWindow::remoteResize()
 
   if (!layout.validate(width, height)) {
     vlog.error("Invalid screen layout computed for resize request!");
-    layout.debug_print();
     return;
   }
 
