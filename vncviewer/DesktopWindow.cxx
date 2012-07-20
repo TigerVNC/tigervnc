@@ -453,10 +453,11 @@ void DesktopWindow::remoteResize()
   }
 
 #ifdef HAVE_FLTK_FULLSCREEN
-  if (!fullscreen_active()) {
+  if (!fullscreen_active() || (width > w()) || (height > h())) {
 #endif
-    // In windowed mode we just report a single virtual screen that
-    // covers the entire framebuffer.
+    // In windowed mode (or the framebuffer is so large that we need
+    // to scroll) we just report a single virtual screen that covers
+    // the entire framebuffer.
 
     layout = cc->cp.screenLayout;
 
@@ -489,11 +490,12 @@ void DesktopWindow::remoteResize()
     int i;
     rdr::U32 id;
     int sx, sy, sw, sh;
-    Rect fb_rect, screen_rect;
+    Rect viewport_rect, screen_rect;
 
     // In full screen we report all screens that are fully covered.
 
-    fb_rect.setXYWH(x + , 0, width, height);
+    viewport_rect.setXYWH(x() + (w() - width)/2, y() + (h() - height)/2,
+                          width, height);
 
     // If we can find a matching screen in the existing set, we use
     // that, otherwise we create a brand new screen.
@@ -506,8 +508,12 @@ void DesktopWindow::remoteResize()
 
       // Check that the screen is fully inside the framebuffer
       screen_rect.setXYWH(sx, sy, sw, sh);
-      if (!screen_rect.enclosed_by(fb_rect))
+      if (!screen_rect.enclosed_by(viewport_rect))
         continue;
+
+      // Adjust the coordinates so they are relative to our viewport
+      sx -= viewport_rect.tl.x;
+      sy -= viewport_rect.tl.y;
 
       // Look for perfectly matching existing screen...
       for (iter = cc->cp.screenLayout.begin();
