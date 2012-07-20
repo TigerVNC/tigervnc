@@ -489,8 +489,11 @@ void DesktopWindow::remoteResize()
     int i;
     rdr::U32 id;
     int sx, sy, sw, sh;
+    Rect fb_rect, screen_rect;
 
     // In full screen we report all screens that are fully covered.
+
+    fb_rect.setXYWH(x + , 0, width, height);
 
     // If we can find a matching screen in the existing set, we use
     // that, otherwise we create a brand new screen.
@@ -500,6 +503,11 @@ void DesktopWindow::remoteResize()
     //
     for (i = 0;i < Fl::screen_count();i++) {
       Fl::screen_xywh(sx, sy, sw, sh, i);
+
+      // Check that the screen is fully inside the framebuffer
+      screen_rect.setXYWH(sx, sy, sw, sh);
+      if (!screen_rect.enclosed_by(fb_rect))
+        continue;
 
       // Look for perfectly matching existing screen...
       for (iter = cc->cp.screenLayout.begin();
