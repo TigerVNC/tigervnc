@@ -183,7 +183,7 @@ namespace rfb {
 
     bool inProcessMessages;
 
-    bool syncFence;
+    bool pendingSyncFence, syncFence;
     rdr::U32 fenceFlags;
     unsigned fenceDataLen;
     char *fenceData;

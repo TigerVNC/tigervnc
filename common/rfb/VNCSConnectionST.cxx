@@ -66,7 +66,8 @@ struct RTTInfo {
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
   : SConnection(reverse), sock(s), inProcessMessages(false),
-    syncFence(false), fenceFlags(0), fenceDataLen(0), fenceData(NULL),
+    pendingSyncFence(false), syncFence(false), fenceFlags(0),
+    fenceDataLen(0), fenceData(NULL),
     baseRTT(-1), minRTT(-1), seenCongestion(false), pingCounter(0),
     ackedOffset(0), sentOffset(0), congWindow(0), congestionTimer(this),
     server(server_),
@@ -156,7 +157,13 @@ void VNCSConnectionST::processMessages()
     network::TcpSocket::cork(sock->getFd(), true);
 
     while (getInStream()->checkNoWait(1)) {
+      if (pendingSyncFence) {
+        syncFence = true;
+        pendingSyncFence = false;
+      }
+
       processMsg();
+
       if (syncFence) {
         writer()->writeFence(fenceFlags, fenceDataLen, fenceData);
         syncFence = false;
@@ -627,10 +634,7 @@ void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
 {
   if (flags & fenceFlagRequest) {
     if (flags & fenceFlagSyncNext) {
-      if (syncFence)
-        vlog.error("Fence trying to synchronise another fence");
-
-      syncFence = true;
+      pendingSyncFence = true;
 
       fenceFlags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter | fenceFlagSyncNext);
       fenceDataLen = len;
