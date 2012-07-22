@@ -776,9 +776,8 @@ public class CConn extends CConnection
   // close() closes the socket, thus waking up the RFB thread.
   public void close() {
     shuttingDown = true;
-    sock.shutdown();
     try {
-      sock.close();
+      sock.shutdown();
     } catch (java.lang.Exception e) {
       throw new Exception(e.toString());
     }

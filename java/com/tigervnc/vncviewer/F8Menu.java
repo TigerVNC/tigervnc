@@ -85,7 +85,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
 
   public void actionPerformed(ActionEvent ev) {
     if (actionMatch(ev, exit)) {
-      cc.close();
+      cc.deleteWindow();
     } else if (actionMatch(ev, fullScreen)) {
       cc.toggleFullScreen();
     } else if (actionMatch(ev, restore)) {

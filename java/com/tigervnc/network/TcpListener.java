@@ -118,7 +118,11 @@ public class TcpListener extends SocketListener  {
     }
 
     // Disable Nagle's algorithm, to reduce latency
-    TcpSocket.enableNagles(new_sock, false);
+    try {
+      new_sock.socket().setTcpNoDelay(true);
+    } catch (java.net.SocketException e) {
+      throw new SocketException(e.toString());
+    }
 
     // Create the socket object & check connection is allowed
     SocketDescriptor fd = null;

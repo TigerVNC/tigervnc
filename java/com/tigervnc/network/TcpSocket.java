@@ -142,23 +142,32 @@ public class TcpSocket extends Socket {
     return address+"::"+port;
   }
 
-  public boolean sameMachine() {
-    SocketAddress peeraddr = ((SocketDescriptor)getFd()).socket().getRemoteSocketAddress();
-    SocketAddress myaddr = ((SocketDescriptor)getFd()).socket().getLocalSocketAddress();
-    return myaddr.equals(peeraddr);
+  public boolean sameMachine() throws Exception {
+    try {
+      SocketAddress peeraddr = ((SocketDescriptor)getFd()).getRemoteAddress();
+      SocketAddress myaddr = ((SocketDescriptor)getFd()).getLocalAddress();
+      return myaddr.equals(peeraddr);
+    } catch (IOException e) {
+      throw new Exception(e.toString());
+    }
   }
 
-  public void shutdown() {
-    super.shutdown();
+  public void shutdown() throws Exception {
+    try {
+      close();
+      super.shutdown();
+    } catch (IOException e) {
+      throw new Exception(e.toString());
+    }
   }
   
   public void close() throws IOException {
     ((SocketDescriptor)getFd()).close();
   }
   
-  public static boolean enableNagles(SocketChannel sock, boolean enable) {
+  public static boolean enableNagles(SocketDescriptor sock, boolean enable) {
     try {
-      sock.socket().setTcpNoDelay(!enable);
+      sock.channel.socket().setTcpNoDelay(!enable);
     } catch(java.net.SocketException e) {
       vlog.error("unable to setsockopt TCP_NODELAY: "+e.getMessage());
       return false;
