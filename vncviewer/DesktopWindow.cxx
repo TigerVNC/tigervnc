@@ -90,6 +90,13 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   show();
 
+  // Unfortunately, current FLTK does not allow us to set the
+  // maximized property before showing the window. See STR #2083 and
+  // STR #2178
+  if (maximize) {
+    maximizeWindow();
+  }
+
   // The window manager might give us an initial window size that is different
   // than the one we requested, and in those cases we need to manually adjust
   // the scroll widget for things to behave sanely.
@@ -424,6 +431,43 @@ void DesktopWindow::handleGrab(void *data)
     return;
 
   self->grabKeyboard();
+#endif
+}
+
+
+#define _NET_WM_STATE_ADD           1  /* add/set property */
+void DesktopWindow::maximizeWindow()
+{
+#if defined(WIN32)
+  WINDOWPLACEMENT wp;
+  wp.length = sizeof(WINDOWPLACEMENT);
+  GetWindowPlacement(fl_xid(this), &wp);
+  wp.showCmd = SW_MAXIMIZE;
+  SetWindowPlacement(fl_xid(this), &wp);
+#elif defined(__APPLE__)
+  /* OS X is somewhat strange and does not really have a concept of a
+     maximized window, so we can simply resize the window to the workarea */
+  int X, Y, W, H;
+  Fl::screen_work_area(X, Y, W, H, this->x(), this->y());
+  size(W, H);
+#else
+  // X11
+  fl_open_display();
+  Atom net_wm_state = XInternAtom (fl_display, "_NET_WM_STATE", 0);
+  Atom net_wm_state_maximized_vert = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_VERT", 0);
+  Atom net_wm_state_maximized_horz = XInternAtom (fl_display, "_NET_WM_STATE_MAXIMIZED_HORZ", 0);
+
+  XEvent e;
+  e.xany.type = ClientMessage;
+  e.xany.window = fl_xid(this);
+  e.xclient.message_type = net_wm_state;
+  e.xclient.format = 32;
+  e.xclient.data.l[0] = _NET_WM_STATE_ADD;
+  e.xclient.data.l[1] = net_wm_state_maximized_vert;
+  e.xclient.data.l[2] = net_wm_state_maximized_horz;
+  e.xclient.data.l[3] = 0;
+  e.xclient.data.l[4] = 0;
+  XSendEvent(fl_display, RootWindow(fl_display, fl_screen), 0, SubstructureNotifyMask | SubstructureRedirectMask, &e);
 #endif
 }
 

@@ -39,6 +39,7 @@ extern rfb::IntParameter qualityLevel;
 
 #ifdef HAVE_FLTK_FULLSCREEN
 extern rfb::BoolParameter fullScreen;
+extern rfb::BoolParameter maximize;
 #ifdef HAVE_FLTK_FULLSCREEN_SCREENS
 extern rfb::BoolParameter fullScreenAllMonitors;
 #endif // HAVE_FLTK_FULLSCREEN_SCREENS

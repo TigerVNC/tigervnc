@@ -88,6 +88,8 @@ private:
 
   static void handleGrab(void *data);
 
+  void maximizeWindow();
+
   static void handleResizeTimeout(void *data);
   void remoteResize();
 

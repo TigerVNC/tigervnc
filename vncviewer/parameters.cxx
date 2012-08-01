@@ -64,6 +64,7 @@ IntParameter qualityLevel("QualityLevel",
                           "JPEG quality level. 0 = Low, 9 = High",
                           8);
 
+BoolParameter maximize("Maximize", "Maximize viewer window", false);
 #ifdef HAVE_FLTK_FULLSCREEN
 BoolParameter fullScreen("FullScreen", "Full screen mode", false);
 #ifdef HAVE_FLTK_FULLSCREEN_SCREENS

@@ -132,6 +132,10 @@ combined with
 .B \-Shared.
 
 .TP
+.B \-Maximize
+Maximize viewer window. 
+
+.TP
 .B \-FullScreen
 Start in full-screen mode.
 
