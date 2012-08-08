@@ -43,6 +43,7 @@
 #endif
 #include <rfb/LogWriter.h>
 #include <rfb/Timer.h>
+#include <rfb/Exception.h>
 #include <network/TcpSocket.h>
 #include <os/os.h>
 
@@ -307,6 +308,14 @@ int main(int argc, char** argv)
 
   Configuration::enableViewerParams();
 
+  /* Load the default parameter settings */
+  const char* defaultServerName;
+  try {
+    defaultServerName = loadViewerParameters(NULL);
+  } catch (rfb::Exception& e) {
+    fl_alert("%s", e.str());
+  }
+  
   int i = 1;
   if (!Fl::args(argc, argv, i) || i < argc)
     for (; i < argc; i++) {
@@ -328,9 +337,10 @@ int main(int argc, char** argv)
 
   if (!::autoSelect.hasBeenSet()) {
     // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
-    ::autoSelect.setParam(!::preferredEncoding.hasBeenSet() &&
-                          !::fullColour.hasBeenSet() &&
-                          !::fullColourAlias.hasBeenSet());
+    if (::preferredEncoding.hasBeenSet() || ::fullColour.hasBeenSet() ||
+	::fullColourAlias.hasBeenSet()) {
+      ::autoSelect.setParam(false);
+    }
   }
   if (!::fullColour.hasBeenSet() && !::fullColourAlias.hasBeenSet()) {
     // Default to FullColor=0 if AutoSelect=0 && LowColorLevel is set
@@ -341,7 +351,9 @@ int main(int argc, char** argv)
   }
   if (!::customCompressLevel.hasBeenSet()) {
     // Default to CustomCompressLevel=1 if CompressLevel is used.
-    ::customCompressLevel.setParam(::compressLevel.hasBeenSet());
+    if(::compressLevel.hasBeenSet()) {
+      ::customCompressLevel.setParam(true);
+    }
   }
 
   mkvnchomedir();
@@ -352,7 +364,7 @@ int main(int argc, char** argv)
 #endif
 
   if (vncServerName == NULL) {
-    vncServerName = ServerDialog::run();
+    vncServerName = ServerDialog::run(defaultServerName);
     if ((vncServerName == NULL) || (vncServerName[0] == '\0'))
       return 1;
   }

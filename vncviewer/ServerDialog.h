@@ -21,6 +21,7 @@
 
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Input.H>
+#include <FL/Fl_File_Chooser.H>
 
 class ServerDialog : public Fl_Window {
 protected:
@@ -28,13 +29,15 @@ protected:
   ~ServerDialog();
 
 public:
-  static const char *run();
+  static const char *run(const char* servername);
 
 protected:
-  static void handleAbout(Fl_Widget *widget, void *data);
   static void handleOptions(Fl_Widget *widget, void *data);
+  static void handleLoad(Fl_Widget *widget, void *data);
+  static void handleSaveAs(Fl_Widget *widget, void *data);
+  static void handleAbout(Fl_Widget *widget, void *data);
   static void handleCancel(Fl_Widget *widget, void *data);
-  static void handleOK(Fl_Widget *widget, void *data);
+  static void handleConnect(Fl_Widget *widget, void *data);
 
 protected:
   Fl_Input *serverName;

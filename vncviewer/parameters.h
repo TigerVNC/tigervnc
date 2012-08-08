@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2012 Samuel Mannehed <samuel@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,5 +58,8 @@ extern rfb::BoolParameter sendPrimary;
 extern rfb::StringParameter menuKey;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
+
+void saveViewerParameters(const char *filename, const char *servername=NULL);
+char* loadViewerParameters(const char *filename);
 
 #endif
