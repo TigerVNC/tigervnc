@@ -117,7 +117,7 @@ build ()
 
     # Build VNC
     echo "*** Building VNC ***"
-    cmake -G"Unix Makefiles" ${1+"$@"} -DUSE_INCLUDED_ZLIB=1 -DUSE_INCLUDED_FLTK=1 -DBUILD_STATIC=1 $SRCDIR
+    cmake -G"Unix Makefiles" ${1+"$@"} -DUSE_INCLUDED_ZLIB=1 -DBUILD_STATIC=1 $SRCDIR
     $MAKE
 
     # Build Xorg

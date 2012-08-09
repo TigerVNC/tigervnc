@@ -5,10 +5,6 @@ if(USE_INCLUDED_ZLIB)
   set(ZLIB_LIBRARIES zlib)
 endif()
 
-if(USE_INCLUDED_FLTK)
-  add_subdirectory(fltk)
-endif()
-
 add_subdirectory(os)
 add_subdirectory(rdr)
 add_subdirectory(network)

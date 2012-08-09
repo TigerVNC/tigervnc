@@ -9,6 +9,10 @@ Build Requirements (All Systems)
 
 -- CMake (http://www.cmake.org) v2.8 or later
 
+-- FLTK 1.3.0 snapshot
+   * Must be patched to get full functionality
+   * See "Building FLTK" below.
+
 -- If building TLS support:
    * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
 
@@ -74,6 +78,60 @@ Build Requirements (Java)
 -- Sun/Oracle JDK v5 or later or OpenJDK
 
 -- See "Building Java Support" below.
+
+
+=============
+Building FLTK
+=============
+
+Currently, TigerVNC requires functionality that is not yet included in the
+upstream version of FLTK.  Thus, it will be necessary to build FLTK from
+source.  To do this:
+
+1. Check out FLTK 1.3.0r9619 using Subversion:
+$ svn co http://svn.easysw.com/public/fltk/fltk/branches/branch-1.3 -r 9619 fltk-1.3.0r9619
+
+2. For full functionality, apply these patches:
+
+Support horizontal mouse wheel
+http://www.fltk.org/str.php?L2644
+
+Incorrect resize handling
+http://fltk.org/str.php?L2859
+
+Export dead key information from FLTK to the apps
+http://www.fltk.org/str.php?L2599
+
+Notify applications of changes to the clipboard
+http://www.fltk.org/str.php?L2636
+
+Ability to convert a Fl_Pixmap to a Fl_RGB_Image
+http://www.fltk.org/str.php?L2659
+
+Support for custom cursors
+http://www.fltk.org/str.php?L2660
+
+Improve modality interaction with WM
+http://www.fltk.org/str.php?L2802
+
+Window icons
+http://www.fltk.org/str.php?L2816
+
+Multihead
+http://fltk.org/str.php?L2860
+
+
+3. Use CMake to build FLTK using the same procedures described below for
+   building TigerVNC.  The recipes in the "Build Recipes" section also apply.
+
+4. (optional) Use 'make install' to install FLTK into a directory of your
+   choosing.
+
+5. When building TigerVNC, set the FLTK_FLUID_EXECUTABLE CMake variable to the
+   location of the fluid executable that was built in Step 3 or installed in
+   Step 4.  This gives CMake a hint as to where to find the FLTK library.
+6. If you did not install FLTK, then set the FLTK_INCLUDE_DIR CMake variable to
+   the location of the FLTK source directory.
 
 
 ==================

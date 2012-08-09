@@ -45,9 +45,6 @@ else()
   add_executable(vncviewer ${VNCVIEWER_SOURCES})
 endif()
 
-if(USE_INCLUDED_FLTK)
-  target_link_libraries(vncviewer fltk_static)
-endif()
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
 # When building with GnuTLS, librdr depends on ws2_32, so in order to make
