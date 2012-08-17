@@ -9,8 +9,8 @@ Build Requirements (All Systems)
 
 -- CMake (http://www.cmake.org) v2.8 or later
 
--- FLTK 1.3.0 snapshot
-   * Must be patched to get full functionality
+-- FLTK 1.3.0
+   * Must be a patched snapshot to get full functionality
    * See "Building FLTK" below.
 
 -- If building TLS support:
@@ -84,9 +84,9 @@ Build Requirements (Java)
 Building FLTK
 =============
 
-Currently, TigerVNC requires functionality that is not yet included in the
-upstream version of FLTK.  Thus, it will be necessary to build FLTK from
-source.  To do this:
+TigerVNC requires FLTK 1.3.0 (or later). Although it will build and work
+with plain 1.3.0, to get full functionality and the best behaviour you
+need to build a patched version:
 
 1. Check out FLTK 1.3.0r9619 using Subversion:
 $ svn co http://svn.easysw.com/public/fltk/fltk/branches/branch-1.3 -r 9619 fltk-1.3.0r9619
