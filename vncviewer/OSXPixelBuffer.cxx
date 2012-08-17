@@ -40,29 +40,24 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   ManagedPixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                       255, 255, 255, 16, 8, 0),
                      width, height),
-  image(NULL)
+  bitmap(NULL)
 {
   CGColorSpaceRef lut;
-  CGDataProviderRef provider;
 
   lut = CGColorSpaceCreateDeviceRGB();
   assert(lut);
-  provider = CGDataProviderCreateWithData(NULL, data, datasize, NULL);
-  assert(provider);
 
-  image = CGImageCreate(width, height, 8, 32, width*4, lut,
-                        kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little,
-                        provider, NULL, false, kCGRenderingIntentDefault);
-  assert(image);
+  bitmap = CGBitmapContextCreate(data, width, height, 8, width*4, lut,
+                                 kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little);
+  assert(bitmap);
 
-  CGDataProviderRelease(provider);
   CGColorSpaceRelease(lut);
 }
 
 
 PlatformPixelBuffer::~PlatformPixelBuffer()
 {
-  CGImageRelease((CGImageRef)image);
+  CFRelease((CGContextRef)bitmap);
 }
 
 
@@ -71,6 +66,7 @@ void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
   CGRect rect;
   CGContextRef gc;
   CGAffineTransform at;
+  CGImageRef image;
 
   gc = (CGContextRef)fl_gc;
 
@@ -102,7 +98,9 @@ void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
   rect.size.width = width();
   rect.size.height = -height(); // Negative height does _not_ flip the image
 
-  CGContextDrawImage(gc, rect, (CGImageRef)image);
+  image = CGBitmapContextCreateImage((CGContextRef)bitmap);
+  CGContextDrawImage(gc, rect, image);
+  CGImageRelease(image);
 
   CGContextRestoreGState(gc);
 }
