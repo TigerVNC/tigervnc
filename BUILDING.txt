@@ -130,6 +130,7 @@ http://fltk.org/str.php?L2860
 5. When building TigerVNC, set the FLTK_FLUID_EXECUTABLE CMake variable to the
    location of the fluid executable that was built in Step 3 or installed in
    Step 4.  This gives CMake a hint as to where to find the FLTK library.
+
 6. If you did not install FLTK, then set the FLTK_INCLUDE_DIR CMake variable to
    the location of the FLTK source directory.
 
