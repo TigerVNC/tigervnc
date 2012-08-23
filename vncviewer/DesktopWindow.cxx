@@ -210,24 +210,33 @@ void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
 
 void DesktopWindow::resize(int x, int y, int w, int h)
 {
+  bool resizing;
+
+  if ((this->w() != w) || (this->h() != h))
+    resizing = true;
+  else
+    resizing = false;
+
   Fl_Window::resize(x, y, w, h);
 
-  // Try to get the remote size to match our window size, provided
-  // the following conditions are true:
-  //
-  // a) The user has this feature turned on
-  // b) The server supports it
-  // c) We're not still waiting for a chance to handle DesktopSize
-  //
-  if (not firstUpdate and ::remoteResize and cc->cp.supportsSetDesktopSize) {
-    // We delay updating the remote desktop as we tend to get a flood
-    // of resize events as the user is dragging the window.
-    Fl::remove_timeout(handleResizeTimeout, this);
-    Fl::add_timeout(0.5, handleResizeTimeout, this);
-  }
+  if (resizing) {
+    // Try to get the remote size to match our window size, provided
+    // the following conditions are true:
+    //
+    // a) The user has this feature turned on
+    // b) The server supports it
+    // c) We're not still waiting for a chance to handle DesktopSize
+    //
+    if (not firstUpdate and ::remoteResize and cc->cp.supportsSetDesktopSize) {
+      // We delay updating the remote desktop as we tend to get a flood
+      // of resize events as the user is dragging the window.
+      Fl::remove_timeout(handleResizeTimeout, this);
+      Fl::add_timeout(0.5, handleResizeTimeout, this);
+    }
 
-  // Deal with some scrolling corner cases
-  repositionViewport();
+    // Deal with some scrolling corner cases
+    repositionViewport();
+  }
 }
 
 
