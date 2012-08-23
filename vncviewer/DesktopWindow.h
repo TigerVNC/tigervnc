@@ -90,8 +90,9 @@ private:
 
   void maximizeWindow();
 
+  void handleDesktopSize();
   static void handleResizeTimeout(void *data);
-  void remoteResize();
+  void remoteResize(int width, int height);
 
   void repositionViewport();
 
@@ -99,11 +100,15 @@ private:
 
   static void handleOptions(void *data);
 
+  static void handleFullscreenTimeout(void *data);
+
 private:
   CConn* cc;
   Viewport *viewport;
 
   bool firstUpdate;
+  bool delayedFullscreen;
+  bool delayedDesktopSize;
 };
 
 #endif

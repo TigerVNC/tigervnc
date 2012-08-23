@@ -53,7 +53,8 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), firstUpdate(true)
+  : Fl_Window(w, h), cc(cc_), firstUpdate(true),
+    delayedFullscreen(false), delayedDesktopSize(false)
 {
   Fl_Scroll *scroll = new Fl_Scroll(0, 0, w, h);
   scroll->color(FL_BLACK);
@@ -75,9 +76,16 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   Fl::event_dispatch(&fltkHandle);
 
 #ifdef HAVE_FLTK_FULLSCREEN
-  if (fullScreen)
+  if (fullScreen) {
+    // Hack: Window managers seem to be rather crappy at respecting
+    // fullscreen hints on initial windows. So on X11 we'll have to
+    // wait until after we've been mapped.
+#if defined(WIN32) || defined(__APPLE__)
     fullscreen_on();
-  else
+#else
+    delayedFullscreen = true;
+#endif
+  } else
 #endif
   {
     // If we are creating a window which is equal to the size on the
@@ -102,6 +110,16 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   // the scroll widget for things to behave sanely.
   if ((w != this->w()) || (h != this->h()))
     scroll->size(this->w(), this->h());
+
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (delayedFullscreen) {
+    // Hack: Fullscreen requests may be ignored, so we need a timeout for
+    // when we should stop waiting. We also really need to wait for the
+    // resize, which can come after the fullscreen event.
+    Fl::add_timeout(0.5, handleFullscreenTimeout, this);
+    fullscreen_on();
+  }
+#endif
 }
 
 
@@ -111,6 +129,7 @@ DesktopWindow::~DesktopWindow()
   // again later when this object is already gone.
   Fl::remove_timeout(handleGrab, this);
   Fl::remove_timeout(handleResizeTimeout, this);
+  Fl::remove_timeout(handleFullscreenTimeout, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -155,8 +174,14 @@ void DesktopWindow::setColourMapEntries(int firstColour, int nColours,
 void DesktopWindow::updateWindow()
 {
   if (firstUpdate) {
-    if (cc->cp.supportsSetDesktopSize)
-      remoteResize();
+    if (cc->cp.supportsSetDesktopSize) {
+      // Hack: Wait until we're in the proper mode and position until
+      // resizing things, otherwise we might send the wrong thing.
+      if (delayedFullscreen)
+        delayedDesktopSize = true;
+      else
+        handleDesktopSize();
+    }
     firstUpdate = false;
   }
 
@@ -226,8 +251,10 @@ void DesktopWindow::resize(int x, int y, int w, int h)
     // a) The user has this feature turned on
     // b) The server supports it
     // c) We're not still waiting for a chance to handle DesktopSize
+    // d) We're not still waiting for startup fullscreen to kick in
     //
-    if (not firstUpdate and ::remoteResize and cc->cp.supportsSetDesktopSize) {
+    if (not firstUpdate and not delayedFullscreen and
+        ::remoteResize and cc->cp.supportsSetDesktopSize) {
       // We delay updating the remote desktop as we tend to get a flood
       // of resize events as the user is dragging the window.
       Fl::remove_timeout(handleResizeTimeout, this);
@@ -481,29 +508,31 @@ void DesktopWindow::maximizeWindow()
 }
 
 
+void DesktopWindow::handleDesktopSize()
+{
+  int width, height;
+
+  if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2)
+    return;
+
+  remoteResize(width, height);
+}
+
+
 void DesktopWindow::handleResizeTimeout(void *data)
 {
   DesktopWindow *self = (DesktopWindow *)data;
 
   assert(self);
 
-  self->remoteResize();
+  self->remoteResize(self->w(), self->h());
 }
 
 
-void DesktopWindow::remoteResize()
+void DesktopWindow::remoteResize(int width, int height)
 {
-  int width, height;
   ScreenSet layout;
   ScreenSet::iterator iter;
-
-  if (firstUpdate) {
-    if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2)
-      return;
-  } else {
-    width = w();
-    height = h();
-  }
 
 #ifdef HAVE_FLTK_FULLSCREEN
   if (!fullscreen_active() || (width > w()) || (height > h())) {
@@ -689,4 +718,18 @@ void DesktopWindow::handleOptions(void *data)
   else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
 #endif
+}
+
+void DesktopWindow::handleFullscreenTimeout(void *data)
+{
+  DesktopWindow *self = (DesktopWindow *)data;
+
+  assert(self);
+
+  self->delayedFullscreen = false;
+
+  if (self->delayedDesktopSize) {
+    self->handleDesktopSize();
+    self->delayedDesktopSize = false;
+  }
 }
