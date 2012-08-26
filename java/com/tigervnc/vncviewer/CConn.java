@@ -1108,9 +1108,6 @@ public class CConn extends CConnection
         Security.DisableSecType(Security.secTypeTLSIdent);
         Security.DisableSecType(Security.secTypeX509Ident);
       }
-  
-      CSecurityTLS.x509ca.setParam(options.ca.getText());
-      CSecurityTLS.x509crl.setParam(options.crl.getText());
     }
     if (options.fullScreen.isSelected() ^ fullScreen)
       toggleFullScreen();
