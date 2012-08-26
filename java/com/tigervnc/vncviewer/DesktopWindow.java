@@ -96,7 +96,7 @@ class DesktopWindow extends JPanel implements
 
   final public PixelFormat getPF() { return im.getPF(); }
 
-  public void setViewport(ViewportFrame viewport)
+  public void setViewport(Viewport viewport)
   {
     viewport.setChild(this);
   }
