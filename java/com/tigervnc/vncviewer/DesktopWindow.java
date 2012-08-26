@@ -66,11 +66,10 @@ class DesktopWindow extends JPanel implements
     if (bufCaps.isPageFlipping() || bufCaps.isMultiBufferAvailable() ||
         imgCaps.isAccelerated()) {
       vlog.debug("GraphicsDevice supports HW acceleration.");
-      im = new BIPixelBuffer(width, height, cc, this);
     } else {
       vlog.debug("GraphicsDevice does not support HW acceleration.");
-      im = new AWTPixelBuffer(width, height, cc, this);
     }
+    im = new BIPixelBuffer(width, height, cc, this);
 
     cursor = new Cursor();
     cursorBacking = new ManagedPixelBuffer();
