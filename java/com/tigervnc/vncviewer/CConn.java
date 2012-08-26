@@ -1290,7 +1290,7 @@ public class CConn extends CConnection
   // checkEncodings() sends a setEncodings message if one is needed.
   private void checkEncodings() {
     if (encodingChange && (writer() != null)) {
-      vlog.info("Using "+Encodings.encodingName(currentEncoding)+" encoding");
+      vlog.info("Requesting "+Encodings.encodingName(currentEncoding)+" encoding");
       writer().writeSetEncodings(currentEncoding, true);
       encodingChange = false;
     }
