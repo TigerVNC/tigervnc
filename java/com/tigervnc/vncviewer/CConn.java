@@ -880,9 +880,9 @@ public class CConn extends CConnection
     options.useLocalCursor.setSelected(viewer.useLocalCursor.getValue());
     options.acceptBell.setSelected(viewer.acceptBell.getValue());
     String scaleString = viewer.scalingFactor.getValue();
-    if (scaleString.equals("Auto")) {
+    if (scaleString.equalsIgnoreCase("Auto")) {
       options.scalingFactor.setSelectedItem("Auto");
-    } else if(scaleString.equals("FixedRatio")) {
+    } else if(scaleString.equalsIgnoreCase("FixedRatio")) {
       options.scalingFactor.setSelectedItem("Fixed Aspect Ratio");
     } else { 
       digit = Integer.parseInt(scaleString);
@@ -955,14 +955,14 @@ public class CConn extends CConnection
     String scaleString =
       options.scalingFactor.getSelectedItem().toString();
     String oldScaleFactor = viewer.scalingFactor.getValue();
-    if (scaleString.equals("Auto")) {
+    if (scaleString.equalsIgnoreCase("Auto")) {
       if (!oldScaleFactor.equals(scaleString)) {
       viewer.scalingFactor.setParam("Auto");
         if (desktop != null)
           reconfigureViewport();
       }
-    } else if(scaleString.equals("Fixed Aspect Ratio")) {
-      if (!oldScaleFactor.equals("FixedRatio")) {
+    } else if(scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
+      if (!oldScaleFactor.equalsIgnoreCase("FixedRatio")) {
         viewer.scalingFactor.setParam("FixedRatio");
         if (desktop != null)
           reconfigureViewport();
@@ -971,8 +971,8 @@ public class CConn extends CConnection
       scaleString=scaleString.substring(0, scaleString.length()-1);
       if (!oldScaleFactor.equals(scaleString)) {
         viewer.scalingFactor.setParam(scaleString);
-        if ((desktop != null) && (!oldScaleFactor.equals("Auto") ||
-            !oldScaleFactor.equals("FixedRatio"))) {
+        if ((desktop != null) && (!oldScaleFactor.equalsIgnoreCase("Auto") ||
+            !oldScaleFactor.equalsIgnoreCase("FixedRatio"))) {
           reconfigureViewport();
         }
       }
