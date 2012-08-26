@@ -24,7 +24,7 @@ import java.awt.event.KeyEvent;
 
 import com.tigervnc.rfb.*;
 
-public class menukey 
+public class MenuKey 
 {
   static class MenuKeySymbol {
     public MenuKeySymbol(String name_, int keycode_) {
@@ -59,28 +59,35 @@ public class menukey
     new MenuKeySymbol("Page_Down", KeyEvent.VK_PAGE_DOWN)
   };
   
-  static int getMenuKeySymbolCount()
-  {
+  static int getMenuKeySymbolCount() {
     return menuSymbols.length;
   }
   
-  public static MenuKeySymbol[] getMenuKeySymbols()
-  {
+  public static MenuKeySymbol[] getMenuKeySymbols() {
     return menuSymbols;
   }
+
+  public static String getMenuKeyValueStr() {
+    String s = "";
+    for (int i = 0; i < getMenuKeySymbolCount(); i++) {
+      s += menuSymbols[i].name;
+      if (i < getMenuKeySymbolCount() - 1)
+        s += ", ";
+    }
+    return s;
+  }
   
-  static int getMenuKeyCode()
-  {
-      String menuKeyStr;
-      int menuKeyCode = KeyEvent.VK_F8;
+  static int getMenuKeyCode() {
+    String menuKeyStr;
+    int menuKeyCode = KeyEvent.VK_F8;
   
-      menuKeyStr = 
-        Configuration.global().getParam("menuKey").getValueStr();
-      for(int i = 0; i < getMenuKeySymbolCount(); i++)
-        if (menuSymbols[i].name.equals(menuKeyStr))
-          menuKeyCode = menuSymbols[i].keycode;
+    menuKeyStr = 
+      Configuration.global().getParam("menuKey").getValueStr();
+    for(int i = 0; i < getMenuKeySymbolCount(); i++)
+      if (menuSymbols[i].name.equals(menuKeyStr))
+        menuKeyCode = menuSymbols[i].keycode;
   
-      return menuKeyCode;
+    return menuKeyCode;
   }
 
 }

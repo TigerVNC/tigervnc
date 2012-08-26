@@ -51,7 +51,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     addSeparator();
     clipboard  = addMenuItem("Clipboard...");
     addSeparator();
-    f8 = addMenuItem("Send "+KeyEvent.getKeyText(menukey.getMenuKeyCode()), menukey.getMenuKeyCode());
+    f8 = addMenuItem("Send "+KeyEvent.getKeyText(MenuKey.getMenuKeyCode()), MenuKey.getMenuKeyCode());
     ctrlAltDel = addMenuItem("Send Ctrl-Alt-Del");
     addSeparator();
     refresh    = addMenuItem("Refresh Screen", KeyEvent.VK_H);

@@ -165,7 +165,7 @@ public class CConn extends CConnection
     autoSelect = viewer.autoSelect.getValue();
     formatChange = false; encodingChange = false;
     fullScreen = viewer.fullScreen.getValue();
-    menuKeyCode = menukey.getMenuKeyCode();
+    menuKeyCode = MenuKey.getMenuKeyCode();
     options = new OptionsDialog(this);
     options.initDialog();
     clipboardDialog = new ClipboardDialog(this);
@@ -875,7 +875,7 @@ public class CConn extends CConnection
     options.viewOnly.setSelected(viewer.viewOnly.getValue());
     options.acceptClipboard.setSelected(viewer.acceptClipboard.getValue());
     options.sendClipboard.setSelected(viewer.sendClipboard.getValue());
-    options.menuKey.setSelectedItem(KeyEvent.getKeyText(menukey.getMenuKeyCode()));
+    options.menuKey.setSelectedItem(KeyEvent.getKeyText(MenuKey.getMenuKeyCode()));
     options.sendLocalUsername.setSelected(viewer.sendLocalUsername.getValue());
 
     if (state() == RFBSTATE_NORMAL) {
@@ -1067,8 +1067,8 @@ public class CConn extends CConnection
     }
 
     clipboardDialog.setSendingEnabled(viewer.sendClipboard.getValue());
-    viewer.menuKey.setParam(menukey.getMenuKeySymbols()[options.menuKey.getSelectedIndex()].name);
-    F8Menu.f8.setText("Send "+KeyEvent.getKeyText(menukey.getMenuKeyCode()));
+    viewer.menuKey.setParam(MenuKey.getMenuKeySymbols()[options.menuKey.getSelectedIndex()].name);
+    F8Menu.f8.setText("Send "+KeyEvent.getKeyText(MenuKey.getMenuKeyCode()));
 
     setShared(options.shared.isSelected());
     viewer.useLocalCursor.setParam(options.useLocalCursor.isSelected());
