@@ -127,6 +127,9 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
     // Override defaults with command-line options
     for (int i = 0; i < argv.length; i++) {
+      if (argv[i].length() == 0)
+        continue;
+
       if (argv[i].equalsIgnoreCase("-log")) {
         if (++i >= argv.length) usage();
         System.err.println("Log setting: "+argv[i]);
