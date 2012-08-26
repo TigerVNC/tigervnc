@@ -673,7 +673,7 @@ public class CConn extends CConnection
     if (forceNonincremental || !continuousUpdates) {
       pendingUpdate = true;
       writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height),
-                                                 !formatChange);
+                                                 !formatChange && !forceNonincremental);
     }
 
     forceNonincremental = false;
