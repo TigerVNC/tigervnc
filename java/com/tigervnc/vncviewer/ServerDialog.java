@@ -44,8 +44,8 @@ class ServerDialog extends Dialog implements
     setTitle("VNC Viewer : Connection Details");
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        if (cc.viewer.firstApplet && cc.viewport == null) {
-          System.exit(1);
+        if (cc.viewer.nViewers == 1) {
+          cc.viewer.exit(1);
         } else {
           ok = false;
           endDialog();

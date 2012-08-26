@@ -153,9 +153,9 @@ public class TcpSocket extends Socket {
   }
 
   public void shutdown() throws Exception {
+    super.shutdown();
     try {
-      close();
-      super.shutdown();
+      ((SocketDescriptor)getFd()).shutdown();
     } catch (IOException e) {
       throw new Exception(e.toString());
     }

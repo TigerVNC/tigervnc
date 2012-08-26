@@ -49,7 +49,7 @@ public class Viewport extends JFrame
     });
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        cc.deleteWindow();
+        cc.close();
       }
     });
     addComponentListener(new ComponentAdapter() {

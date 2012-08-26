@@ -62,8 +62,7 @@ public class TcpListener extends SocketListener  {
         addr = InetAddress.getByName("0.0.0.0");
       }
     } catch (UnknownHostException e) {
-      System.out.println(e.toString());
-      System.exit(-1);
+      throw new Exception(e.toString());
     }
   
     try {
@@ -129,8 +128,7 @@ public class TcpListener extends SocketListener  {
     try {
       fd = new SocketDescriptor();
     } catch (java.lang.Exception e) {
-      System.out.println(e.toString());
-      System.exit(-1);
+      throw new SocketException(e.toString());
     }
     fd.setChannel(new_sock);
     TcpSocket s = new TcpSocket(fd);

@@ -49,6 +49,15 @@ public class SocketDescriptor implements FileDescriptor {
     }
   }
 
+  public void shutdown() throws IOException {
+    try {
+      channel.socket().shutdownInput();
+      channel.socket().shutdownOutput();
+    } catch(IOException e) {
+      throw new IOException(e.toString());
+    }
+  }
+
   public void close() throws IOException {
     try {
       channel.close();

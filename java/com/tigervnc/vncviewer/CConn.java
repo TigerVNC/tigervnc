@@ -116,18 +116,16 @@ public class CConn extends CConnection
       String name = sock.getPeerEndpoint();
       vlog.info("Accepted connection from "+name);
     } else {
-      if (vncServerName != null) {
+      if (vncServerName != null &&
+          !viewer.alwaysShowServerDialog.getValue()) {
         serverHost = Hostname.getHost(vncServerName);
         serverPort = Hostname.getPort(vncServerName);
       } else {
         ServerDialog dlg = new ServerDialog(options, vncServerName, this);
         if (!dlg.showDialog() || dlg.server.getSelectedItem().equals("")) {
-          if (viewer.firstApplet) {
-            System.exit(1);
-          } else {
-            viewer.stop();
-            return;
-          }
+          vlog.info("No server name specified!");
+          close();
+          return;
         }
         vncServerName = (String)dlg.server.getSelectedItem();
         serverHost = Hostname.getHost(vncServerName);
@@ -171,12 +169,6 @@ public class CConn extends CConnection
     if (viewport != null)
       viewport.dispose();
     viewport = null;
-    if (viewer.firstApplet) {
-      System.exit(1);
-    } else {
-      close();
-      viewer.stop();
-    }
   } 
 
   // blockCallback() is called when reading from the socket would block.
@@ -691,11 +683,13 @@ public class CConn extends CConnection
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the GUI thread
 
-  // close() closes the socket, thus waking up the RFB thread.
+  // close() shuts down the socket, thus waking up the RFB thread.
   public void close() {
+    deleteWindow();
     shuttingDown = true;
     try {
-      sock.shutdown();
+      if (sock != null)
+        sock.shutdown();
     } catch (java.lang.Exception e) {
       throw new Exception(e.toString());
     }
@@ -1321,7 +1315,7 @@ public class CConn extends CConnection
 
   // shuttingDown is set by the GUI thread and only ever tested by the RFB
   // thread after the window has been destroyed.
-  boolean shuttingDown;
+  boolean shuttingDown = false;
 
   // reading and writing int and boolean is atomic in java, so no
   // synchronization of the following flags is needed:

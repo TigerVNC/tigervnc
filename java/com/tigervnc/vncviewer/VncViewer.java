@@ -108,8 +108,6 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public static void main(String[] argv) {
     setLookAndFeel();
     VncViewer viewer = new VncViewer(argv);
-    viewer.firstApplet = true;
-    viewer.stop = false;
     viewer.start();
   }
 
@@ -138,7 +136,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
       if (argv[i].equalsIgnoreCase("-tunnel") || argv[i].equalsIgnoreCase("-via")) {
         if (!tunnel.createTunnel(argv.length, argv, i))
-          System.exit(1);
+          exit(1);
         if (argv[i].equalsIgnoreCase("-via")) i++;
         continue;
       }
@@ -242,22 +240,22 @@ public class VncViewer extends java.applet.Applet implements Runnable
 "  \t%R     remote TCP port number.\n"+
 "\n");
     System.err.print(propertiesString);
+    // Technically, we shouldn't use System.exit here but if there is a parameter
+    // error then the problem is in the index/html file anyway.
     System.exit(1);
   }
 
   public VncViewer() {
     applet = true;
-    firstApplet = true;
   }
 
   public static void newViewer(VncViewer oldViewer, Socket sock, boolean close) {
     VncViewer viewer = new VncViewer();
     viewer.applet = oldViewer.applet;
-    viewer.firstApplet = (close) ? true : false;
     viewer.sock = sock;
     viewer.start();
     if (close)
-      oldViewer.stop();
+      oldViewer.exit(0);
   }
 
   public static void newViewer(VncViewer oldViewer, Socket sock) {
@@ -295,8 +293,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public void start() {
     vlog.debug("start called");
     getTimestamp();
-    nViewers++;
-    if (applet && firstApplet) {
+    if (applet && nViewers == 0) {
       alwaysShowServerDialog.setParam(true);
       Configuration.global().readAppletParams(this);
       String host = getCodeBase().getHost();
@@ -307,12 +304,20 @@ public class VncViewer extends java.applet.Applet implements Runnable
                                        : ("::"+port)));
       }
     }
+    nViewers++;
     thread = new Thread(this);
     thread.start();
   }
 
-  public void stop() {
-    stop = true;
+  public void exit(int n) {
+    nViewers--;
+    if (nViewers > 0)
+      return;
+    if (applet) {
+      destroy();
+    } else {
+      System.exit(n);
+    }
   }
 
   public void paint(Graphics g) {
@@ -337,7 +342,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
         listener = new TcpListener(null, port);
       } catch (java.lang.Exception e) {
         System.out.println(e.toString());
-        System.exit(1);
+        exit(1);
       }
 
       vlog.info("Listening on port "+port);
@@ -351,29 +356,22 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
     try {
       cc = new CConn(this, sock, vncServerName.getValue());
-      while (!stop)
+      while (!cc.shuttingDown)
         cc.processMsg();
-      if (nViewers > 1) {
-        cc = null;
-        return;
-      }
-    } catch (EndOfStream e) {
-      vlog.info(e.toString());
     } catch (java.lang.Exception e) {
-      if (cc != null) cc.deleteWindow();
       if (cc == null || !cc.shuttingDown) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null,
           e.toString(),
           "VNC Viewer : Error",
           JOptionPane.ERROR_MESSAGE);
+      } else {
+        if (!cc.shuttingDown)
+          vlog.info(e.toString());
+        cc = null;
       }
     }
-    if (cc != null) cc.deleteWindow();
-    nViewers--;
-    if (!applet && nViewers == 0) {
-      System.exit(0);
-    }
+    exit(0);
   }
 
   BoolParameter useLocalCursor
@@ -536,7 +534,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
 
   Thread thread;
   Socket sock;
-  boolean applet, firstApplet, stop;
+  boolean applet;
   Image logo;
   static int nViewers;
   static LogWriter vlog = new LogWriter("main");
