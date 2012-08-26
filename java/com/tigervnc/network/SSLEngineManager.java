@@ -1,6 +1,5 @@
-/* Copyright (c) 2004, 2006, Oracle and/or its affiliates. All rights reserved.
- * Copyright (C) 2008  Trustin Heuiseung Lee
- * Copyright (C) 2012  Brian P. Hinz
+/* Copyright (C) 2012 Brian P. Hinz
+ * Copyright (C) 2012 D. R. Commander.  All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -213,7 +212,6 @@ public class SSLEngineManager {
   }
 
   private int pull(ByteBuffer dst) throws IOException {
-    int packetLength = 0;
     inStream.checkNoWait(5);
     //if (!inStream.checkNoWait(5)) {
     //  return 0;
@@ -222,65 +220,42 @@ public class SSLEngineManager {
     byte[] header = new byte[5];
     inStream.readBytes(header, 0, 5);
 
-    boolean tls;
-    int h = header[0] & 0xFF;
-    switch (header[0] & 0xFF) {
-    case 20:  // change_cipher_spec
-    case 21:  // alert
-    case 22:  // handshake
-    case 23:  // application_data
-      tls = true;
-      break;
-    default:
-      //  SSLv2 bad data
-      tls = false;
-    }
+    // Reference: http://publib.boulder.ibm.com/infocenter/tpfhelp/current/index.jsp?topic=%2Fcom.ibm.ztpf-ztpfdf.doc_put.cur%2Fgtps5%2Fs5rcd.html
+    int sslRecordType = header[0] & 0xFF;
+    int sslVersion = header[1] & 0xFF;
+    int sslDataLength = (int)((header[3] << 8) | (header[4] & 0xFF));
 
-    if (tls) {
-      int majorVersion = (int)(header[1] & 0xFF);
-      if (majorVersion >= 3 && majorVersion < 10) {
-        // SSLv3 or TLS
-        packetLength = (int)(((header[3] << 8) | (header[4] & 0xFF)) & 0xFFFF) + 5;
-        if (packetLength <= 5) {
-          // Neither SSLv2 or TLSv1
-          tls = false;
-        }
-      } else {
-        // Neither SSLv2 or TLSv1
-        tls = false;
-      }
-    }
+    if (sslRecordType < 20 || sslRecordType > 23 || sslVersion != 3 ||
+        sslDataLength == 0) {
+      // Not SSL v3 or TLS.  Could be SSL v2 or bad data
 
-    if (!tls) {
-      boolean sslv2 = true;
-      int headerLength = (int)((header[0] & 0xFF) & 0x80) != 0 ? 2 : 3;
-      int majorVersion = (int)(header[headerLength + 1] & 0xFF);
-      if (majorVersion >= 2 && majorVersion < 10) {
-        // SSLv2
-        if (headerLength == 2) {
-          packetLength = (int)(((header[0] << 8) | (header[1] & 0xFF)) & 0x7FFF) + 2;
-        } else {
-          packetLength = (int)(((header[0] << 8) | (header[1] & 0xFF)) & 0x3FFF) + 3;
-        }
-        if (packetLength <= headerLength) {
-          sslv2 = false;
-        }
+      // Reference: http://www.homeport.org/~adam/ssl.html
+      // and the SSL v2 protocol specification
+      int headerBytes;
+      if ((header[0] & 0x80) != 0x80) {
+        headerBytes = 2;
+        sslDataLength = (int)(((header[0] & 0x7f) << 8) | header[1]);
       } else {
-        sslv2 = false;
+        headerBytes = 3;
+        sslDataLength = (int)(((header[0] & 0x3f) << 8) | header[1]);
       }
 
-      if (!sslv2) {
+      // In SSL v2, the version is part of the handshake
+      sslVersion = header[headerBytes + 1] & 0xFF;
+      if (sslVersion < 2 || sslVersion > 3 || sslDataLength == 0)
         throw new IOException("not an SSL/TLS record");
-      }
+
+      // The number of bytes left to read
+      sslDataLength -= (5 - headerBytes);
     }
 
-    assert packetLength > 0;
+    assert sslDataLength > 0;
 
-    byte[] buf = new byte[packetLength - 5];
-    inStream.readBytes(buf, 0, packetLength - 5);
+    byte[] buf = new byte[sslDataLength];
+    inStream.readBytes(buf, 0, sslDataLength);
     dst.put(header);
     dst.put(buf);
-    return packetLength;
+    return sslDataLength;
   }
 
   public SSLSession getSession() {
