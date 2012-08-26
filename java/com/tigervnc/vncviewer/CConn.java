@@ -522,9 +522,14 @@ public class CConn extends CConnection
     desktop.setScaledSize();
     int w = desktop.scaledWidth;
     int h = desktop.scaledHeight;
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gd = ge.getDefaultScreenDevice();
     if (fullScreen) {
       viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
       viewport.setGeometry(0, 0, dpySize.width, dpySize.height, false);
+      if (gd.isFullScreenSupported())
+        gd.setFullScreenWindow(viewport);
     } else {
       int wmDecorationWidth = viewport.getInsets().left + viewport.getInsets().right;
       int wmDecorationHeight = viewport.getInsets().top + viewport.getInsets().bottom;
@@ -549,6 +554,8 @@ public class CConn extends CConnection
         viewport.setExtendedState(JFrame.NORMAL);
         viewport.setGeometry(x, y, w, h, pack);
       }
+      if (gd.isFullScreenSupported())
+        gd.setFullScreenWindow(null);
     }
   }
 
@@ -958,13 +965,13 @@ public class CConn extends CConnection
     if (scaleString.equalsIgnoreCase("Auto")) {
       if (!oldScaleFactor.equals(scaleString)) {
       viewer.scalingFactor.setParam("Auto");
-        if (desktop != null)
+        if (desktop != null && !(options.fullScreen.isSelected() && fullScreen))
           reconfigureViewport();
       }
     } else if(scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
       if (!oldScaleFactor.equalsIgnoreCase("FixedRatio")) {
         viewer.scalingFactor.setParam("FixedRatio");
-        if (desktop != null)
+        if (desktop != null && !(options.fullScreen.isSelected() && fullScreen))
           reconfigureViewport();
       }
     } else { 
@@ -973,7 +980,8 @@ public class CConn extends CConnection
         viewer.scalingFactor.setParam(scaleString);
         if ((desktop != null) && (!oldScaleFactor.equalsIgnoreCase("Auto") ||
             !oldScaleFactor.equalsIgnoreCase("FixedRatio"))) {
-          reconfigureViewport();
+          if (!(options.fullScreen.isSelected() && fullScreen))
+            reconfigureViewport();
         }
       }
     }
@@ -1104,12 +1112,15 @@ public class CConn extends CConnection
       CSecurityTLS.x509ca.setParam(options.ca.getText());
       CSecurityTLS.x509crl.setParam(options.crl.getText());
     }
+    if (options.fullScreen.isSelected() ^ fullScreen)
+      toggleFullScreen();
   }
 
   public void toggleFullScreen() {
     fullScreen = !fullScreen;
     if (!fullScreen) menu.fullScreen.setSelected(false);
-    recreateViewport();
+    if (viewport != null)
+      recreateViewport();
   }
 
   // writeClientCutText() is called from the clipboard dialog
