@@ -886,7 +886,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   }
 
   /* First we might need to resize the screen */
-  if ((fb_width != pScreen->width) || (fb_height == pScreen->height)) {
+  if ((fb_width != pScreen->width) || (fb_height != pScreen->height)) {
     /* Try to retain DPI when we resize */
     ret = RRScreenSizeSet(pScreen, fb_width, fb_height,
                           pScreen->mmWidth * fb_width / pScreen->width,
