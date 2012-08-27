@@ -19,7 +19,7 @@
 #ifndef __VNCVIEWER_COCOA_H__
 #define __VNCVIEWER_COCOA_H__
 
-int cocoa_capture_display(Fl_Window *win);
+int cocoa_capture_display(Fl_Window *win, bool all_displays);
 void cocoa_release_display(Fl_Window *win);
 
 #endif

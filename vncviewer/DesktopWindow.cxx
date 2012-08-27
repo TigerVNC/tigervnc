@@ -439,7 +439,13 @@ void DesktopWindow::grabKeyboard()
 #elif defined(__APPLE__)
   int ret;
   
-  ret = cocoa_capture_display(this);
+  ret = cocoa_capture_display(this,
+#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
+                              fullScreenAllMonitors
+#else
+                              false
+#endif
+                              );
   if (ret != 0)
     vlog.error(_("Failure grabbing keyboard"));
 #else
