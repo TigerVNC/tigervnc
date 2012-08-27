@@ -105,7 +105,9 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 	case 2:
 	  w = geom_w;
 	  h = geom_h;
+	  break;
 	default:
+	  geom_x = geom_y = 0;
 	  vlog.error("Invalid geometry specified!");	
 	}
       }
