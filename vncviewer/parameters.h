@@ -46,6 +46,7 @@ extern rfb::BoolParameter fullScreenAllMonitors;
 #endif // HAVE_FLTK_FULLSCREEN_SCREENS
 #endif // HAVE_FLTK_FULLSCREEN
 extern rfb::StringParameter desktopSize;
+extern rfb::StringParameter geometry;
 extern rfb::BoolParameter remoteResize;
 
 extern rfb::BoolParameter viewOnly;

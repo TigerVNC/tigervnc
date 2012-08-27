@@ -100,6 +100,8 @@ BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
+StringParameter geometry("geometry",
+			 "Specify size and position of viewer window", "");
 BoolParameter remoteResize("RemoteResize",
                            "Dynamically resize the remote desktop size as "
                            "the size of the local client window changes. "
@@ -155,6 +157,7 @@ VoidParameter* parameterArray[] = {
 #endif // HAVE_FLTK_FULLSCREEN_SCREENS
 #endif // HAVE_FLTK_FULLSCREEN
   &desktopSize,
+  &geometry,
   &remoteResize,
   &viewOnly,
   &shared,

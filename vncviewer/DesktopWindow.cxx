@@ -88,12 +88,42 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   } else
 #endif
   {
+
+    int geom_x = 0, geom_y = 0;
+    if (geometry.hasBeenSet()) {
+      int matched;
+      matched = sscanf(geometry.getValueStr(), "+%d+%d", &geom_x, &geom_y);
+      if (matched == 2) {
+	force_position(1);
+      } else {
+	int geom_w, geom_h;
+	matched = sscanf(geometry.getValueStr(), "%dx%d+%d+%d", &geom_w, &geom_h, &geom_x, &geom_y);
+	switch (matched) {
+	case 4:
+	  force_position(1);
+	  /* fall through */
+	case 2:
+	  w = geom_w;
+	  h = geom_h;
+	default:
+	  vlog.error("Invalid geometry specified!");	
+	}
+      }
+    }
+    
     // If we are creating a window which is equal to the size on the
     // screen on X11, many WMs will treat this as a legacy fullscreen
     // request. This is not what we want. Besides, it doesn't really
     // make sense to try to create a window which is larger than the
     // available work space. 
-    size(__rfbmin(w, Fl::w()), __rfbmin(h, Fl::h()));
+    w = __rfbmin(w, Fl::w());
+    h = __rfbmin(h, Fl::h());
+
+    if (force_position()) {
+      resize(geom_x, geom_y, w, h);
+    } else {
+      size(w, h);
+    }
   }
 
   show();
