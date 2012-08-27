@@ -89,6 +89,10 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 #endif
   {
 
+    // Support for -geometry option. Note that although we do support
+    // negative coordinates, we do not support -XOFF-YOFF (ie
+    // coordinates relative to the right edge / bottom edge) at this
+    // time.
     int geom_x = 0, geom_y = 0;
     if (geometry.hasBeenSet()) {
       int matched;
