@@ -28,6 +28,8 @@
 #include <rfb/ScreenSet.h>
 #include <rfb/screenTypes.h>
 
+#include "xorg-version.h"
+
 extern "C" {
 #define class c_class
 #define private c_private
@@ -94,7 +96,12 @@ static void vncExtensionInitWithParams(INITARGS)
     ScrnInfoPtr pScrn = xf86Screens[scr];
 
     for (ParameterIterator i(Configuration::global()); i.param; i.next()) {
-      char* val = xf86FindOptionValue(pScrn->options, i.param->getName());
+      const char *val;
+#if XORG < 112
+      val = xf86FindOptionValue(pScrn->options, i.param->getName());
+#else
+      val = xf86FindOptionValue((XF86OptionPtr)pScrn->options, i.param->getName());
+#endif
       if (val)
         i.param->setParam(val);
     }
