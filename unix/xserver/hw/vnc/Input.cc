@@ -82,10 +82,11 @@ static KeyCode KeysymToKeycode(KeySymsPtr keymap, KeySym ks, int* col);
 /* Event queue is shared between all devices. */
 #if XORG == 15
 static xEvent *eventq = NULL;
-#else
+#elif XORG < 111
 static EventList *eventq = NULL;
 #endif
 
+#if XORG < 111
 static void initEventq(void)
 {
 	/* eventq is never free()-ed because it exists during server life. */
@@ -100,7 +101,9 @@ static void initEventq(void)
 #endif
 	}
 }
+#endif /* XORG < 111 */
 
+#if XORG < 111
 static void enqueueEvents(DeviceIntPtr dev, int n)
 {
 	int i;
@@ -122,6 +125,7 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 			   );
 	}
 }
+#endif /* XORG < 111 */
 
 InputDevice::InputDevice(rfb::VNCServerST *_server)
 	: server(_server), oldButtonMask(0)
@@ -141,12 +145,17 @@ InputDevice::InputDevice(rfb::VNCServerST *_server)
 				     keyboardProc, TRUE);
 	RegisterKeyboardDevice(keyboardDev);
 #endif
+#if XORG < 111
 	initEventq();
+#endif
 }
 
 void InputDevice::PointerButtonAction(int buttonMask)
 {
-	int i, n;
+	int i;
+#if XORG < 111
+	int n;
+#endif
 #if XORG >= 110
 	ValuatorMask mask;
 #endif
@@ -160,13 +169,17 @@ void InputDevice::PointerButtonAction(int buttonMask)
 #if XORG < 110
 			n = GetPointerEvents(eventq, pointerDev, action, i + 1,
 					     POINTER_RELATIVE, 0, 0, NULL);
-#else
+			enqueueEvents(pointerDev, n);
+#elif XORG < 111
 			valuator_mask_set_range(&mask, 0, 0, NULL);
 			n = GetPointerEvents(eventq, pointerDev, action, i + 1,
 					     POINTER_RELATIVE, &mask);
-#endif
 			enqueueEvents(pointerDev, n);
-
+#else
+			valuator_mask_set_range(&mask, 0, 0, NULL);
+			QueuePointerEvents(pointerDev, action, i + 1,
+					   POINTER_RELATIVE, &mask);
+#endif
 		}
 	}
 
@@ -175,7 +188,10 @@ void InputDevice::PointerButtonAction(int buttonMask)
 
 void InputDevice::PointerMove(const rfb::Point &pos)
 {
-	int n, valuators[2];
+	int valuators[2];
+#if XORG < 111
+	int n;
+#endif
 #if XORG >= 110
 	ValuatorMask mask;
 #endif
@@ -190,12 +206,16 @@ void InputDevice::PointerMove(const rfb::Point &pos)
 #if XORG < 110
 	n = GetPointerEvents(eventq, pointerDev, MotionNotify, 0, POINTER_ABSOLUTE, 0,
 			     2, valuators);
-#else
+	enqueueEvents(pointerDev, n);
+#elif XORG < 111
 	valuator_mask_set_range(&mask, 0, 2, valuators);
 	n = GetPointerEvents(eventq, pointerDev, MotionNotify, 0, POINTER_ABSOLUTE,
 			     &mask);
-#endif
 	enqueueEvents(pointerDev, n);
+#else
+	valuator_mask_set_range(&mask, 0, 2, valuators);
+	QueuePointerEvents(pointerDev, MotionNotify, 0, POINTER_ABSOLUTE, &mask);
+#endif
 
 	cursorPos = pos;
 }
@@ -298,14 +318,20 @@ void InputDevice::initInputDevice(void)
 static inline void pressKey(DeviceIntPtr dev, int kc, bool down, const char *msg)
 {
 	int action;
+#if XORG < 111
 	unsigned int n;
+#endif
 
 	if (msg != NULL)
 		vlog.debug("%s %d %s", msg, kc, down ? "down" : "up");
 
 	action = down ? KeyPress : KeyRelease;
-	n = GetKeyboardEvents(eventq, dev, action, kc);
+#if XORG < 111
+	n = GetKeyboardEvents(eventq, dev, action, kc, NULL);
 	enqueueEvents(dev, n);
+#else
+	QueueKeyboardEvents(dev, action, kc, NULL);
+#endif
 }
 
 #define IS_PRESSED(keyc, keycode) \
@@ -340,8 +366,11 @@ public:
 		int state, maxKeysPerMod, keycode;
 #if XORG >= 17
 		KeyCode *modmap = NULL;
-
+#if XORG >= 111
+		state = XkbStateFieldFromRec(&dev->master->key->xkbInfo->state);
+#else /* XORG >= 111 */
 		state = XkbStateFieldFromRec(&dev->u.master->key->xkbInfo->state);
+#endif /* XORG >= 111 */
 #else
 		KeyClassPtr keyc = dev->key;
 		state = keyc->state;
@@ -379,7 +408,11 @@ public:
 #if XORG >= 17
 		KeyCode *modmap = NULL;
 
+#if XORG >= 111
+		keyc = dev->master->key;
+#else /* XORG >= 111 */
 		keyc = dev->u.master->key;
+#endif /* XORG >= 111 */
 		state = XkbStateFieldFromRec(&keyc->xkbInfo->state);
 #else
 		keyc = dev->key;
@@ -595,7 +628,11 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	}
 
 #if XORG >= 17
+#if XORG >= 111
+	keyc = keyboardDev->master->key;
+#else /* XORG >= 111 */
 	keyc = keyboardDev->u.master->key;
+#endif /* XORG >= 111 */
 
 	keymap = XkbGetCoreMap(keyboardDev);
 	if (!keymap) {
@@ -752,7 +789,11 @@ ModeSwitchFound:
 			XkbApplyMappingChange(keyboardDev, keymap, minKeyCode,
 					      maxKeyCode - minKeyCode + 1,
 					      NULL, serverClient);
+#if XORG >= 111
+			XkbCopyDeviceKeymap(keyboardDev->master, keyboardDev);
+#else
 			XkbCopyDeviceKeymap(keyboardDev->u.master, keyboardDev);
+#endif
 #endif /* XORG < 17 */
 			break;
 		}

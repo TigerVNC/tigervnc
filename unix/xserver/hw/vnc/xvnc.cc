@@ -229,7 +229,11 @@ Bool DPMSSupported()
 }
 #endif
 
+#if XORG < 111
 void ddxGiveUp()
+#else
+void ddxGiveUp(enum ExitCode error)
+#endif
 {
     int i;
 
@@ -239,9 +243,17 @@ void ddxGiveUp()
 }
 
 void
+#if XORG < 111
 AbortDDX()
+#else
+AbortDDX(enum ExitCode error)
+#endif
 {
+#if XORG < 111
     ddxGiveUp();
+#else
+    ddxGiveUp(error);
+#endif
 }
 
 #ifdef __DARWIN__
@@ -686,8 +698,13 @@ vfbUninstallColormap(ColormapPtr pmap)
     {
 	if (pmap->mid != pmap->pScreen->defColormap)
 	{
+#if XORG < 111
 	    curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
 						   RT_COLORMAP);
+#else
+	    dixLookupResourceByType((pointer *) &curpmap, pmap->pScreen->defColormap,
+				    RT_COLORMAP, serverClient, DixUnknownAccess);
+#endif
 	    (*pmap->pScreen->InstallColormap)(curpmap);
 	}
     }
