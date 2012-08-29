@@ -766,8 +766,8 @@ public class CConn extends CConnection
 
   public void setOptions() {
     int digit;
-    options.autoSelect.setSelected(autoSelect);
-    options.fullColour.setSelected(fullColour);
+    options.autoSelect.setSelected(viewer.autoSelect.getValue());
+    options.fullColour.setSelected(viewer.fullColour.getValue());
     options.veryLowColour.setSelected(!fullColour && lowColourLevel == 0);
     options.lowColour.setSelected(!fullColour && lowColourLevel == 1);
     options.mediumColour.setSelected(!fullColour && lowColourLevel == 2);
@@ -810,8 +810,12 @@ public class CConn extends CConnection
       options.secVnc.setEnabled(false);
       options.secPlain.setEnabled(false);
       options.sendLocalUsername.setEnabled(false);
+      options.cfLoadButton.setEnabled(false);
+      options.cfSaveAsButton.setEnabled(true);
     } else {
       options.shared.setSelected(viewer.shared.getValue());
+      options.sendLocalUsername.setSelected(viewer.sendLocalUsername.getValue());
+      options.cfSaveAsButton.setEnabled(false);
 
       /* Process non-VeNCrypt sectypes */
       java.util.List<Integer> secTypes = new ArrayList<Integer>();
@@ -819,15 +823,15 @@ public class CConn extends CConnection
       for (Iterator i = secTypes.iterator(); i.hasNext();) {
         switch ((Integer)i.next()) {
         case Security.secTypeVeNCrypt:
-          options.secVeNCrypt.setSelected(true);
+          options.secVeNCrypt.setSelected(UserPreferences.getBool("viewer", "secVeNCrypt", true));
           break;
         case Security.secTypeNone:
           options.encNone.setSelected(true);
-          options.secNone.setSelected(true);
+          options.secNone.setSelected(UserPreferences.getBool("viewer", "secTypeNone", true));
           break;
         case Security.secTypeVncAuth:
           options.encNone.setSelected(true);
-          options.secVnc.setSelected(true);
+          options.secVnc.setSelected(UserPreferences.getBool("viewer", "secTypeVncAuth", true));
           break;
         }
       }
@@ -839,46 +843,55 @@ public class CConn extends CConnection
         for (Iterator iext = secTypesExt.iterator(); iext.hasNext();) {
           switch ((Integer)iext.next()) {
           case Security.secTypePlain:
-            options.secPlain.setSelected(true);
+            options.encNone.setSelected(UserPreferences.getBool("viewer", "encNone", true));
+            options.secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
             break;
           case Security.secTypeIdent:
-            options.secIdent.setSelected(true);
+            options.encNone.setSelected(UserPreferences.getBool("viewer", "encNone", true));
+            options.secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
             break;
           case Security.secTypeTLSNone:
-            options.encTLS.setSelected(true);
-            options.secNone.setSelected(true);
+            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
+            options.secNone.setSelected(UserPreferences.getBool("viewer", "secNone", true));
             break;
           case Security.secTypeTLSVnc:
-            options.encTLS.setSelected(true);
-            options.secVnc.setSelected(true);
+            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
+            options.secVnc.setSelected(UserPreferences.getBool("viewer", "secVnc", true));
             break;
           case Security.secTypeTLSPlain:
-            options.encTLS.setSelected(true);
-            options.secPlain.setSelected(true);
+            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
+            options.secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
             break;
           case Security.secTypeTLSIdent:
-            options.encTLS.setSelected(true);
-            options.secIdent.setSelected(true);
+            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
+            options.secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
             break;
           case Security.secTypeX509None:
-            options.encX509.setSelected(true);
-            options.secNone.setSelected(true);
+            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
+            options.secNone.setSelected(UserPreferences.getBool("viewer", "secNone", true));
             break;
           case Security.secTypeX509Vnc:
-            options.encX509.setSelected(true);
-            options.secVnc.setSelected(true);
+            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
+            options.secVnc.setSelected(UserPreferences.getBool("viewer", "secVnc", true));
             break;
           case Security.secTypeX509Plain:
-            options.encX509.setSelected(true);
-            options.secPlain.setSelected(true);
+            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
+            options.secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
             break;
           case Security.secTypeX509Ident:
-            options.encX509.setSelected(true);
-            options.secIdent.setSelected(true);
+            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
+            options.secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
             break;
           }
         }
       }
+      options.encNone.setEnabled(options.secVeNCrypt.isSelected());
+      options.encTLS.setEnabled(options.secVeNCrypt.isSelected());
+      options.encX509.setEnabled(options.secVeNCrypt.isSelected());
+      options.ca.setEnabled(options.secVeNCrypt.isSelected());
+      options.crl.setEnabled(options.secVeNCrypt.isSelected());
+      options.secIdent.setEnabled(options.secVeNCrypt.isSelected());
+      options.secPlain.setEnabled(options.secVeNCrypt.isSelected());
       options.sendLocalUsername.setEnabled(options.secPlain.isSelected()||
         options.secIdent.isSelected());
     }

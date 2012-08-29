@@ -34,11 +34,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.JOptionPane;
 
-import com.tigervnc.vncviewer.UserPrefs;
 import com.tigervnc.rdr.*;
 import com.tigervnc.network.*;
-import java.util.concurrent.Executors;
-import java.nio.channels.SelectionKey;
+import com.tigervnc.vncviewer.*;
 
 public class CSecurityTLS extends CSecurity {
 
@@ -74,24 +72,24 @@ public class CSecurityTLS extends CSecurity {
     crlfile = x509crl.getData(); 
   }
 
+  public static String getDefaultCA() {
+    if (UserPreferences.get("viewer", "x509ca") != null)
+      return UserPreferences.get("viewer", "x509ca");
+    return FileUtils.getVncHomeDir()+"x509_ca.pem";
+  }
+
+  public static String getDefaultCRL() {
+    if (UserPreferences.get("viewer", "x509crl") != null)
+      return UserPreferences.get("viewer", "x509crl");
+    return FileUtils.getVncHomeDir()+"x509_crl.pem";
+  }
+
   public static void setDefaults()
   {
-    String homeDir = null;
-    
-    if ((homeDir=UserPrefs.getHomeDir()) == null) {
-      vlog.error("Could not obtain VNC home directory path");
-      return;
-    }
-
-    String vnchomedir = homeDir+UserPrefs.getFileSeparator()+".vnc"+
-                        UserPrefs.getFileSeparator();
-    String caDefault = new String(vnchomedir+"x509_ca.pem");
-    String crlDefault = new String(vnchomedir+"x509_crl.pem");
-
-    if (new File(caDefault).exists())
-      x509ca.setDefaultStr(caDefault);
-    if (new File(crlDefault).exists())
-      x509crl.setDefaultStr(crlDefault);
+    if (new File(getDefaultCA()).exists())
+      x509ca.setDefaultStr(getDefaultCA());
+    if (new File(getDefaultCRL()).exists())
+      x509crl.setDefaultStr(getDefaultCRL());
   }
 
 // FIXME:

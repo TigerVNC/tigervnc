@@ -57,8 +57,9 @@ class ServerDialog extends Dialog implements
     getContentPane().setLayout(new GridBagLayout());
 
     JLabel serverLabel = new JLabel("Server:", JLabel.RIGHT);
-    if (options.defaults.getString("server") != null) {
-      server = new JComboBox(options.defaults.getString("server").split(","));
+    if (UserPreferences.get("ServerDialog", "history") != null) {
+      String valueStr = UserPreferences.get("ServerDialog", "history");
+      server = new JComboBox(valueStr.split(","));
     } else {
       server = new JComboBox();
     }
@@ -123,6 +124,11 @@ class ServerDialog extends Dialog implements
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
       ok = true;
+      String serverName = (String)server.getSelectedItem();
+      if (serverName != null) {
+        Configuration.setParam("Server", Hostname.getHost(serverName));
+        Configuration.setParam("Port", Integer.toString(Hostname.getPort(serverName)));
+      }
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
       ok = false;
@@ -143,27 +149,23 @@ class ServerDialog extends Dialog implements
   
   public void endDialog() {
     if (ok) {
-      try {
-        if (!server.getSelectedItem().toString().equals("")) {
-          String t = (options.defaults.getString("server")==null) ? "" : options.defaults.getString("server");
-          StringTokenizer st = new StringTokenizer(t, ",");
-          StringBuffer sb = new StringBuffer().append((String)server.getSelectedItem());
-          while (st.hasMoreTokens()) {
-            String s = st.nextToken();
-            if (!s.equals((String)server.getSelectedItem()) && !s.equals("")) {
-              sb.append(',');
-              sb.append(s);
-            }
+      if (!server.getSelectedItem().toString().equals("")) {
+        String valueStr = UserPreferences.get("ServerDialog", "history");
+        String t = (valueStr == null) ? "" : valueStr;
+        StringTokenizer st = new StringTokenizer(t, ",");
+        StringBuffer sb = new StringBuffer().append((String)server.getSelectedItem());
+        while (st.hasMoreTokens()) {
+          String s = st.nextToken();
+          if (!s.equals((String)server.getSelectedItem()) && !s.equals("")) {
+            sb.append(',');
+            sb.append(s);
           }
-          options.defaults.setPref("server", sb.toString());
         }
-        options.defaults.Save();
-      } catch (java.io.IOException e) {
-        System.out.println(e.toString());
-      } catch(java.security.AccessControlException e) {
-        System.out.println(e.toString());
-		  }
+        UserPreferences.set("ServerDialog", "history", sb.toString());
+        UserPreferences.save("ServerDialog");
+      }
     }
+
     done = true;
     if (modal) {
       synchronized (this) {

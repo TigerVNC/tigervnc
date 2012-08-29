@@ -30,7 +30,6 @@ set(JAVA_CLASSNAMES
   PlatformPixelBuffer
   OptionsDialog
   ServerDialog
-  UserPrefs
   VncViewer)
 
 set(JAVA_SOURCES "")

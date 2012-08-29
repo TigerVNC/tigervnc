@@ -21,6 +21,7 @@ package com.tigervnc.vncviewer;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -48,15 +49,13 @@ class OptionsDialog extends Dialog implements
   JCheckBox secNone, secVnc, secPlain, secIdent, sendLocalUsername;
   JButton okButton, cancelButton;
   JButton ca, crl;
-  JButton defSaveButton;
-  UserPrefs defaults;
+  JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
 
   public OptionsDialog(OptionsDialogCallback cb_) { 
     super(false);
     cb = cb_;
     setResizable(false);
     setTitle("VNC Viewer Options");
-    defaults = new UserPrefs("vncviewer");
 
     getContentPane().setLayout(
       new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
@@ -118,7 +117,7 @@ class OptionsDialog extends Dialog implements
     veryLowColour = addRadioCheckbox("Very low(8 colours)", colourGroup, colourPanel);
 
     addGBComponent(autoSelect,FormatPanel,    0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
-    addGBComponent(encodingPanel,FormatPanel, 0, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,10,0,5));
+    addGBComponent(encodingPanel,FormatPanel, 0, 1, 1, 1, 2, 2, 3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,5));
     addGBComponent(colourPanel,FormatPanel,   1, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_END, new Insets(0,0,0,5));
     addGBComponent(tightPanel,FormatPanel,    0, 2, 2, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,5,0,5));
 
@@ -183,32 +182,28 @@ class OptionsDialog extends Dialog implements
 
     JPanel configPanel = new JPanel(new GridBagLayout());
     configPanel.setBorder(BorderFactory.createTitledBorder("Configuration File"));
-    JButton cfReloadButton = new JButton("Reload");
-    cfReloadButton.addActionListener(this);
-    addGBComponent(cfReloadButton,configPanel, 0, 0, 1, 1, 0, 0, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-    JButton cfSaveButton = new JButton("Save");
-    cfSaveButton.addActionListener(this);
-    addGBComponent(cfSaveButton,configPanel, 0, 1, 1, 1, 0, 0, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-    JButton cfSaveAsButton = new JButton("Save As...");
+    cfLoadButton = new JButton("Load");
+    cfLoadButton.addActionListener(this);
+    addGBComponent(cfLoadButton,configPanel, 0, 0, 1, 1, 0, 0, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
+    cfSaveAsButton = new JButton("Save As...");
     cfSaveAsButton.addActionListener(this);
-    addGBComponent(cfSaveAsButton,configPanel, 0, 2, 1, 1, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-    cfReloadButton.setEnabled(false);
-    cfSaveButton.setEnabled(false);
-    //cfSaveAsButton.setEnabled(!applet);
+    addGBComponent(cfSaveAsButton,configPanel, 0, 1, 1, 1, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
 
     JPanel defaultsPanel = new JPanel(new GridBagLayout());
     defaultsPanel.setBorder(BorderFactory.createTitledBorder("Defaults"));
-    JButton defReloadButton = new JButton("Reload");
+    defClearButton = new JButton("Clear");
+    defClearButton.addActionListener(this);
+    addGBComponent(defClearButton,defaultsPanel, 0, 0, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
+    defReloadButton = new JButton("Reload");
     defReloadButton.addActionListener(this);
-    addGBComponent(defReloadButton,defaultsPanel, 0, 0, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
+    addGBComponent(defReloadButton,defaultsPanel, 0, 1, 1, 1, 0, 0, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
     defSaveButton = new JButton("Save");
     defSaveButton.addActionListener(this);
-    addGBComponent(defSaveButton,defaultsPanel, 0, 1, 1, 1, 0, 0, 0, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
+    addGBComponent(defSaveButton,defaultsPanel, 0, 2, 1, 1, 0, 0, 0, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
 
     addGBComponent(configPanel,DefaultsPanel, 0, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,5,4,5));
     addGBComponent(defaultsPanel,DefaultsPanel, 1, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,0,4,5));
     //defReloadButton.setEnabled(!applet);
-    //defSaveButton.setEnabled(!applet);
 
     // security tab
     SecPanel=new JPanel(new GridBagLayout());
@@ -295,6 +290,146 @@ class OptionsDialog extends Dialog implements
     sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
       (secPlain.isSelected()||secIdent.isSelected()));
   }
+  
+  private void updatePreferences() {
+    //UserPreferences.clear("global");
+    if (autoSelect.isSelected()) {
+      UserPreferences.set("global", "AutoSelect", true);
+    } else {
+      UserPreferences.set("global", "AutoSelect", false);
+      if (zrle.isSelected()) {
+        UserPreferences.set("global", "PreferredEncoding", "ZRLE");
+      } else if (hextile.isSelected()) {
+        UserPreferences.set("global", "PreferredEncoding", "hextile");
+      } else if (tight.isSelected()) {
+        UserPreferences.set("global", "PreferredEncoding", "Tight");
+      } else if (raw.isSelected()) {
+        UserPreferences.set("global", "PreferredEncoding", "raw");
+      }
+    }
+    if (fullColour.isSelected()) {
+      UserPreferences.set("global", "FullColour", true);
+    } else {
+      UserPreferences.set("global", "FullColour", false);
+      if (mediumColour.isSelected()) {
+        UserPreferences.set("global", "LowColorLevel", 2);
+      } else if (lowColour.isSelected()) {
+        UserPreferences.set("global", "LowColorLevel", 1);
+      } else if (veryLowColour.isSelected()) {
+        UserPreferences.set("global", "LowColorLevel", 0);
+      }
+    }
+    UserPreferences.set("global", "NoJPEG", !noJpeg.isSelected());
+    UserPreferences.set("global", "QualityLevel", (Integer)qualityLevel.getSelectedItem());
+    UserPreferences.set("global", "CustomCompressLevel", customCompressLevel.isSelected());
+    UserPreferences.set("global", "CompressLevel", (Integer)compressLevel.getSelectedItem());
+    UserPreferences.set("global", "ViewOnly", viewOnly.isSelected());
+    UserPreferences.set("global", "AcceptClipboard", acceptClipboard.isSelected());
+    UserPreferences.set("global", "SendClipboard", sendClipboard.isSelected());
+    String menuKeyStr = MenuKey.getMenuKeySymbols()[menuKey.getSelectedIndex()].name;
+    UserPreferences.set("global", "MenuKey", menuKeyStr);
+    UserPreferences.set("global", "FullScreen", fullScreen.isSelected());
+    UserPreferences.set("global", "Shared", shared.isSelected());
+    UserPreferences.set("global", "UseLocalCursor", useLocalCursor.isSelected());
+    UserPreferences.set("global", "AcceptBell", acceptBell.isSelected());
+    String scaleString = scalingFactor.getSelectedItem().toString();
+    if (scaleString.equalsIgnoreCase("Auto")) {
+      UserPreferences.set("global", "ScalingFactor", "Auto");
+    } else if(scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
+      UserPreferences.set("global", "ScalingFactor", "FixedRatio");
+    } else { 
+      scaleString=scaleString.substring(0, scaleString.length()-1);
+      UserPreferences.set("global", "ScalingFactor", scaleString);
+    }
+    UserPreferences.set("viewer", "secVeNCrypt", secVeNCrypt.isSelected());
+    UserPreferences.set("viewer", "encNone", encNone.isSelected());
+    UserPreferences.set("viewer", "encTLS", encTLS.isSelected());
+    UserPreferences.set("viewer", "encX509", encX509.isSelected());
+    UserPreferences.set("viewer", "secNone", secNone.isSelected());
+    UserPreferences.set("viewer", "secVnc", secVnc.isSelected());
+    UserPreferences.set("viewer", "secPlain", secPlain.isSelected());
+    UserPreferences.set("viewer", "secIdent", secIdent.isSelected());
+    UserPreferences.set("global", "SendLocalUsername", sendLocalUsername.isSelected());
+    if (CSecurityTLS.x509ca.getValueStr() != "")
+      UserPreferences.set("viewer", "x509ca", CSecurityTLS.x509ca.getValueStr());
+    if (CSecurityTLS.x509crl.getValueStr() != "")
+      UserPreferences.set("viewer", "x509crl", CSecurityTLS.x509crl.getValueStr());
+  }
+
+  private void restorePreferences() {
+    autoSelect.setSelected(UserPreferences.getBool("global", "AutoSelect"));
+    if (!autoSelect.isSelected()) {
+      if (UserPreferences.getBool("global", "FullColour")) {
+        fullColour.setSelected(true);
+      } else {
+        switch (UserPreferences.getInt("global", "LowColorLevel")) {
+        case 2:
+          mediumColour.setSelected(true);
+          break;
+        case 1:
+          lowColour.setSelected(true);
+          break;
+        case 0:
+          veryLowColour.setSelected(true);
+          break;
+        }
+      }
+      String encoding = UserPreferences.get("global", "PreferredEncoding");
+      if (encoding != null) {
+        switch (Encodings.encodingNum(encoding)) {
+        case Encodings.encodingZRLE:
+          zrle.setSelected(true);
+          break;
+        case Encodings.encodingHextile:
+          hextile.setSelected(true);
+          break;
+        case Encodings.encodingRaw:
+          raw.setSelected(true);
+          break;
+        default:
+          tight.setSelected(true);
+        }
+      }
+    }
+    noJpeg.setSelected(!UserPreferences.getBool("global", "NoJPEG"));
+    qualityLevel.setSelectedItem(UserPreferences.getInt("global", "QualityLevel"));
+    customCompressLevel.setSelected(UserPreferences.getBool("global", "CustomCompressLevel"));
+    compressLevel.setSelectedItem(UserPreferences.getInt("global", "CompressLevel"));
+    viewOnly.setSelected(UserPreferences.getBool("global", "ViewOnly"));
+    acceptClipboard.setSelected(UserPreferences.getBool("global", "AcceptClipboard"));
+    sendClipboard.setSelected(UserPreferences.getBool("global", "SendClipboard"));
+    menuKey.setSelectedItem(UserPreferences.get("global", "MenuKey"));
+    fullScreen.setSelected(UserPreferences.getBool("global", "FullScreen"));
+    if (shared.isEnabled())
+      shared.setSelected(UserPreferences.getBool("global", "Shared"));
+    useLocalCursor.setSelected(UserPreferences.getBool("global", "UseLocalCursor"));
+    acceptBell.setSelected(UserPreferences.getBool("global", "AcceptBell"));
+    String scaleString = UserPreferences.get("global", "ScalingFactor");
+    if (scaleString != null) {
+      if (scaleString.equalsIgnoreCase("Auto")) {
+        scalingFactor.setSelectedItem("Auto");
+      } else if (scaleString.equalsIgnoreCase("FixedRatio")) {
+        scalingFactor.setSelectedItem("Fixed Aspect Ratio");
+      } else { 
+        scalingFactor.setSelectedItem(scaleString+"%");
+      }
+    }
+    if (secVeNCrypt.isEnabled()) {
+      secVeNCrypt.setSelected(UserPreferences.getBool("viewer", "secVeNCrypt", true));
+      if (secVeNCrypt.isSelected()) {
+        encNone.setSelected(UserPreferences.getBool("viewer", "encNone", true));
+        encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
+        encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
+        secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
+        secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
+        sendLocalUsername.setSelected(UserPreferences.getBool("global", "SendLocalUsername"));
+      }
+    }
+    if (secNone.isEnabled())
+      secNone.setSelected(UserPreferences.getBool("viewer", "secNone", true));
+    if (secVnc.isEnabled())
+      secVnc.setSelected(UserPreferences.getBool("viewer", "secVnc", true));
+  }
 
   JRadioButton addRadioCheckbox(String str, ButtonGroup group, JPanel panel) {
     JRadioButton c = new JRadioButton(str);
@@ -343,19 +478,50 @@ class OptionsDialog extends Dialog implements
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
       ok = false;
       endDialog();
-    } else if (s instanceof JButton && (JButton)s == defSaveButton) {
-      try {
-        defaults.Save();
-      } catch (java.lang.Exception x) { }
-    } else if (s instanceof JButton && (JButton)s == ca) {
+    } else if (s instanceof JButton && (JButton)s == cfLoadButton) {
       JFileChooser fc = new JFileChooser();
+      fc.setDialogTitle("Path to configuration file");
+      fc.setApproveButtonText("OK");
+      fc.setFileHidingEnabled(false);
+      int ret = fc.showOpenDialog(this);
+      if (ret == JFileChooser.APPROVE_OPTION) {
+        String filename = fc.getSelectedFile().toString();
+        if (filename != null)
+          Configuration.load(filename);
+        cb.setOptions();
+      }
+    } else if (s instanceof JButton && (JButton)s == cfSaveAsButton) {
+      JFileChooser fc = new JFileChooser();
+      fc.setDialogTitle("Save current configuration as:");
+      fc.setApproveButtonText("OK");
+      fc.setFileHidingEnabled(false);
+      int ret = fc.showOpenDialog(this);
+      if (ret == JFileChooser.APPROVE_OPTION) {
+        String filename = fc.getSelectedFile().toString();
+        if (filename != null)
+          Configuration.save(filename);
+      }
+    } else if (s instanceof JButton && (JButton)s == defSaveButton) {
+      updatePreferences();
+      UserPreferences.save();
+    } else if (s instanceof JButton && (JButton)s == defReloadButton) {
+      restorePreferences();
+    } else if (s instanceof JButton && (JButton)s == defClearButton) {
+      UserPreferences.clear();
+      cb.setOptions();
+    } else if (s instanceof JButton && (JButton)s == ca) {
+      JFileChooser fc = new JFileChooser(new File(CSecurityTLS.getDefaultCA()));
       fc.setDialogTitle("Path to X509 CA certificate");
+      fc.setApproveButtonText("OK");
+      fc.setFileHidingEnabled(false);
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION)
         CSecurityTLS.x509ca.setParam(fc.getSelectedFile().toString());
     } else if (s instanceof JButton && (JButton)s == crl) {
-      JFileChooser fc = new JFileChooser();
+      JFileChooser fc = new JFileChooser(new File(CSecurityTLS.getDefaultCRL()));
       fc.setDialogTitle("Path to X509 CRL file");
+      fc.setApproveButtonText("OK");
+      fc.setFileHidingEnabled(false);
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION)
         CSecurityTLS.x509crl.setParam(fc.getSelectedFile().toString());
@@ -373,18 +539,12 @@ class OptionsDialog extends Dialog implements
       mediumColour.setEnabled(!autoSelect.isSelected());
       lowColour.setEnabled(!autoSelect.isSelected());
       veryLowColour.setEnabled(!autoSelect.isSelected());
-      defaults.setPref("autoSelect",(autoSelect.isSelected()) ? "on" : "off");
     } 
     if (s instanceof JCheckBox && (JCheckBox)s == customCompressLevel) {
       compressLevel.setEnabled(customCompressLevel.isSelected());
-      defaults.setPref("customCompressLevel",(customCompressLevel.isSelected()) ? "on" : "off");
     }
     if (s instanceof JCheckBox && (JCheckBox)s == noJpeg) {
       qualityLevel.setEnabled(noJpeg.isSelected());
-      defaults.setPref("noJpeg",(noJpeg.isSelected()) ? "on" : "off");
-    }
-    if (s instanceof JCheckBox && (JCheckBox)s == sendLocalUsername) {
-      defaults.setPref("sendLocalUsername",(sendLocalUsername.isSelected()) ? "on" : "off");
     }
     if (s instanceof JCheckBox && (JCheckBox)s == secVeNCrypt) {
       encNone.setEnabled(secVeNCrypt.isSelected());
@@ -393,10 +553,14 @@ class OptionsDialog extends Dialog implements
       ca.setEnabled(secVeNCrypt.isSelected());
       crl.setEnabled(secVeNCrypt.isSelected());
       secIdent.setEnabled(secVeNCrypt.isSelected());
-      secNone.setEnabled(secVeNCrypt.isSelected());
-      secVnc.setEnabled(secVeNCrypt.isSelected());
       secPlain.setEnabled(secVeNCrypt.isSelected());
       sendLocalUsername.setEnabled(secVeNCrypt.isSelected());
+    }
+    if (s instanceof JCheckBox && (JCheckBox)s == encNone) {
+      secNone.setSelected(encNone.isSelected() &&
+        UserPreferences.getBool("viewer", "secNone", true));
+      secVnc.setSelected(encNone.isSelected() &&
+        UserPreferences.getBool("viewer", "secVnc", true));
     }
     if (s instanceof JCheckBox && (JCheckBox)s == secIdent ||
         s instanceof JCheckBox && (JCheckBox)s == secPlain) {

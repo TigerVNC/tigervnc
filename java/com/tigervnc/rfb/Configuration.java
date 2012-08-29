@@ -24,9 +24,15 @@
 
 package com.tigervnc.rfb;
 
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 public class Configuration {
 
-  static LogWriter vlog = new LogWriter("Config");
+  static LogWriter vlog = new LogWriter("Configuration");
 
   public enum ConfigurationObject { ConfGlobal, ConfServer, ConfViewer };
 
@@ -261,6 +267,67 @@ public class Configuration {
         current.setParam(str);
       current = current._next;
     }
+  }
+
+  public static void load(String filename) {
+    if (filename == null)
+      return;
+
+    /* Read parameters from file */
+    Properties props = new Properties();
+    try {
+      props.load(new FileInputStream(filename));
+    } catch(java.security.AccessControlException e)	{
+      vlog.error("Cannot access system properties:"+e.getMessage());
+      return;
+    } catch (java.lang.Exception e)	{
+      vlog.error("Error opening config file:"+e.getMessage());
+      return;
+    }
+
+    for (Iterator i = props.stringPropertyNames().iterator(); i.hasNext();) {
+      String name = (String)i.next();
+      if (name.startsWith("[")) {
+        // skip the section delimiters
+        continue;
+      } else if (name.equals("host")) {
+        setParam("Server", props.getProperty(name));
+      } else if (name.equals("disableclipboard")) {
+        setParam("RecvClipboard", props.getProperty(name));
+        setParam("SendClipboard", props.getProperty(name));
+      } else if (name.equals("localcursor")) {
+        setParam("UseLocalCursor", props.getProperty(name));
+      } else {
+        if (!setParam(name, props.getProperty(name)))
+          vlog.debug("Cannot set parameter: "+name);
+      }
+    }
+  }
+
+  public static void save(String filename) {
+    PrintWriter pw = null;
+    try {
+      pw = new PrintWriter(filename, "UTF-8");
+    } catch (java.lang.Exception e)	{
+      vlog.error("Error opening config file:"+e.getMessage());
+      return;
+    }
+
+    pw.println("# TigerVNC viewer configuration");
+    DateFormat dateFormat = new SimpleDateFormat("E MMM d k:m:s z yyyy");
+    Date date = new Date();
+    pw.println("# "+dateFormat.format(date));
+    VoidParameter current = Configuration.global().head;
+    while (current != null) {
+      String name = current.getName();
+      String value = current.getValueStr();
+      if (!name.equals("Server") && !name.equals("Port") &&
+          value != null && value != current.getDefaultStr())
+        pw.println(name+"="+current.getValueStr());
+      current = current._next;
+    }
+    pw.flush();
+    pw.close();
   }
 
   // Name for this Configuration

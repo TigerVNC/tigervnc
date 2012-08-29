@@ -115,6 +115,9 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public VncViewer(String[] argv) {
     applet = false;
 
+    // load user preferences
+    UserPreferences.load("global");
+
     SecurityClient.setDefaults();
     
     // Write about text to console, still using normal locale codeset
@@ -129,6 +132,12 @@ public class VncViewer extends java.applet.Applet implements Runnable
     for (int i = 0; i < argv.length; i++) {
       if (argv[i].length() == 0)
         continue;
+
+      if (argv[i].equalsIgnoreCase("-config")) {
+        if (++i >= argv.length) usage();
+          Configuration.load(argv[i]);
+        continue;
+      }
 
       if (argv[i].equalsIgnoreCase("-log")) {
         if (++i >= argv.length) usage();
@@ -534,6 +543,10 @@ public class VncViewer extends java.applet.Applet implements Runnable
                      "JPEG quality level. "+
                      "0 = Low, 9 = High",
                      8);
+
+  StringParameter config
+  = new StringParameter("config",
+  "Specifies a configuration file to load.", null);
 
   Thread thread;
   Socket sock;

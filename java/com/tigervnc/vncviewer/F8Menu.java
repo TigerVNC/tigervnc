@@ -22,6 +22,7 @@ package com.tigervnc.vncviewer;
 import java.awt.Cursor;
 import java.awt.event.*;
 import javax.swing.JFrame;
+import javax.swing.JFileChooser;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JCheckBoxMenuItem;
@@ -58,6 +59,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     addSeparator();
     newConn    = addMenuItem("New connection...", KeyEvent.VK_W);
     options    = addMenuItem("Options...", KeyEvent.VK_O);
+    save       = addMenuItem("Save connection info as...", KeyEvent.VK_S);
     info       = addMenuItem("Connection info...", KeyEvent.VK_I);
     about      = addMenuItem("About VncViewer...", KeyEvent.VK_A);
     addSeparator();
@@ -115,6 +117,17 @@ public class F8Menu extends JPopupMenu implements ActionListener {
       VncViewer.newViewer(cc.viewer);
     } else if (actionMatch(ev, options)) {
       cc.options.showDialog(cc.viewport);
+    } else if (actionMatch(ev, save)) {
+      JFileChooser fc = new JFileChooser();
+      fc.setDialogTitle("Save current configuration as:");
+      fc.setApproveButtonText("OK");
+      fc.setFileHidingEnabled(false);
+      int ret = fc.showOpenDialog(this);
+      if (ret == JFileChooser.APPROVE_OPTION) {
+        String filename = fc.getSelectedFile().toString();
+        if (filename != null)
+          Configuration.save(filename);
+      }
     } else if (actionMatch(ev, info)) {
       cc.showInfo();
     } else if (actionMatch(ev, about)) {
@@ -127,7 +140,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
   CConn cc;
   JMenuItem restore, move, size, minimize, maximize;
   JMenuItem exit, clipboard, ctrlAltDel, refresh;
-  JMenuItem newConn, options, info, about, dismiss;
+  JMenuItem newConn, options, save, info, about, dismiss;
   static JMenuItem f8;
   JCheckBoxMenuItem fullScreen;
   static LogWriter vlog = new LogWriter("F8Menu");
