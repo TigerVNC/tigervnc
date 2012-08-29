@@ -327,7 +327,7 @@ static inline void pressKey(DeviceIntPtr dev, int kc, bool down, const char *msg
 
 	action = down ? KeyPress : KeyRelease;
 #if XORG < 111
-	n = GetKeyboardEvents(eventq, dev, action, kc, NULL);
+	n = GetKeyboardEvents(eventq, dev, action, kc);
 	enqueueEvents(dev, n);
 #else
 	QueueKeyboardEvents(dev, action, kc, NULL);
