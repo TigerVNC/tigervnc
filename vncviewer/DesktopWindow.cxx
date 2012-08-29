@@ -75,6 +75,48 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   // Hack. See below...
   Fl::event_dispatch(&fltkHandle);
 
+  // Support for -geometry option. Note that although we do support
+  // negative coordinates, we do not support -XOFF-YOFF (ie
+  // coordinates relative to the right edge / bottom edge) at this
+  // time.
+  int geom_x = 0, geom_y = 0;
+  if (geometry.hasBeenSet()) {
+    int matched;
+    matched = sscanf(geometry.getValueStr(), "+%d+%d", &geom_x, &geom_y);
+    if (matched == 2) {
+      force_position(1);
+    } else {
+      int geom_w, geom_h;
+      matched = sscanf(geometry.getValueStr(), "%dx%d+%d+%d", &geom_w, &geom_h, &geom_x, &geom_y);
+      switch (matched) {
+      case 4:
+	force_position(1);
+	/* fall through */
+      case 2:
+	w = geom_w;
+	h = geom_h;
+	break;
+      default:
+	geom_x = geom_y = 0;
+	vlog.error("Invalid geometry specified!");	
+      }
+    }
+  }
+
+  // If we are creating a window which is equal to the size on the
+  // screen on X11, many WMs will treat this as a legacy fullscreen
+  // request. This is not what we want. Besides, it doesn't really
+  // make sense to try to create a window which is larger than the
+  // available work space. 
+  w = __rfbmin(w, Fl::w());
+  h = __rfbmin(h, Fl::h());
+  
+  if (force_position()) {
+    resize(geom_x, geom_y, w, h);
+  } else {
+    size(w, h);
+  }
+
 #ifdef HAVE_FLTK_FULLSCREEN
   if (fullScreen) {
     // Hack: Window managers seem to be rather crappy at respecting
@@ -85,52 +127,8 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 #else
     delayedFullscreen = true;
 #endif
-  } else
-#endif
-  {
-
-    // Support for -geometry option. Note that although we do support
-    // negative coordinates, we do not support -XOFF-YOFF (ie
-    // coordinates relative to the right edge / bottom edge) at this
-    // time.
-    int geom_x = 0, geom_y = 0;
-    if (geometry.hasBeenSet()) {
-      int matched;
-      matched = sscanf(geometry.getValueStr(), "+%d+%d", &geom_x, &geom_y);
-      if (matched == 2) {
-	force_position(1);
-      } else {
-	int geom_w, geom_h;
-	matched = sscanf(geometry.getValueStr(), "%dx%d+%d+%d", &geom_w, &geom_h, &geom_x, &geom_y);
-	switch (matched) {
-	case 4:
-	  force_position(1);
-	  /* fall through */
-	case 2:
-	  w = geom_w;
-	  h = geom_h;
-	  break;
-	default:
-	  geom_x = geom_y = 0;
-	  vlog.error("Invalid geometry specified!");	
-	}
-      }
-    }
-    
-    // If we are creating a window which is equal to the size on the
-    // screen on X11, many WMs will treat this as a legacy fullscreen
-    // request. This is not what we want. Besides, it doesn't really
-    // make sense to try to create a window which is larger than the
-    // available work space. 
-    w = __rfbmin(w, Fl::w());
-    h = __rfbmin(h, Fl::h());
-
-    if (force_position()) {
-      resize(geom_x, geom_y, w, h);
-    } else {
-      size(w, h);
-    }
   }
+#endif
 
   show();
 
