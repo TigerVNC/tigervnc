@@ -258,6 +258,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
   }
 
   public VncViewer() {
+    UserPreferences.load("global");
     applet = true;
   }
 
