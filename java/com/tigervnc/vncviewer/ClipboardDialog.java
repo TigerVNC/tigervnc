@@ -24,6 +24,7 @@ import java.awt.event.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import javax.swing.*;
+import javax.swing.border.*;
 import com.tigervnc.rfb.LogWriter;
 
 class ClipboardDialog extends Dialog implements ActionListener {
@@ -32,8 +33,14 @@ class ClipboardDialog extends Dialog implements ActionListener {
     super(false);
     cc = cc_;
     setTitle("VNC clipboard");
+    JPanel pt = new JPanel();
     textArea = new JTextArea(5,50);
-    getContentPane().add("Center", textArea);
+    textArea.setBorder(BorderFactory.createLineBorder(Color.gray));
+    textArea.setLineWrap(true);
+    textArea.setWrapStyleWord(true);
+    JScrollPane sp = new JScrollPane(textArea);
+    pt.add(sp, BorderLayout.CENTER);
+    getContentPane().add("North", pt);
 
     JPanel pb = new JPanel();
     clearButton = new JButton("Clear");
