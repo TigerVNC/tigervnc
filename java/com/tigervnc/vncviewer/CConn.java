@@ -79,7 +79,7 @@ public class CConn extends CConnection
     pendingPFChange = false;
     currentEncoding = Encodings.encodingTight; lastServerEncoding = -1;
     fullColour = viewer.fullColour.getValue();
-    lowColourLevel = 2;
+    lowColourLevel = viewer.lowColourLevel.getValue();
     autoSelect = viewer.autoSelect.getValue();
     formatChange = false; encodingChange = false;
     fullScreen = viewer.fullScreen.getValue();
@@ -766,8 +766,8 @@ public class CConn extends CConnection
 
   public void setOptions() {
     int digit;
-    options.autoSelect.setSelected(viewer.autoSelect.getValue());
-    options.fullColour.setSelected(viewer.fullColour.getValue());
+    options.autoSelect.setSelected(autoSelect);
+    options.fullColour.setSelected(fullColour);
     options.veryLowColour.setSelected(!fullColour && lowColourLevel == 0);
     options.lowColour.setSelected(!fullColour && lowColourLevel == 1);
     options.mediumColour.setSelected(!fullColour && lowColourLevel == 2);
