@@ -19,6 +19,7 @@
 
 package com.tigervnc.vncviewer;
 
+import java.awt.*;
 import java.awt.Cursor;
 import java.awt.event.*;
 import javax.swing.JFrame;
@@ -122,7 +123,12 @@ public class F8Menu extends JPopupMenu implements ActionListener {
       fc.setDialogTitle("Save current configuration as:");
       fc.setApproveButtonText("OK");
       fc.setFileHidingEnabled(false);
+      Window fullScreenWindow = Viewport.getFullScreenWindow();
+      if (fullScreenWindow != null)
+        Viewport.setFullScreenWindow(null);
       int ret = fc.showOpenDialog(this);
+      if (fullScreenWindow != null)
+        Viewport.setFullScreenWindow(fullScreenWindow);
       if (ret == JFileChooser.APPROVE_OPTION) {
         String filename = fc.getSelectedFile().toString();
         if (filename != null)

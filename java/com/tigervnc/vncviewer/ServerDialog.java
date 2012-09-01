@@ -47,7 +47,7 @@ class ServerDialog extends Dialog implements
         if (cc.viewer.nViewers == 1) {
           cc.viewer.exit(1);
         } else {
-          ok = false;
+          ret = false;
           endDialog();
         }
       }
@@ -117,21 +117,18 @@ class ServerDialog extends Dialog implements
   }
 
   public void itemStateChanged(ItemEvent e) {
-    //Object s = e.getSource();
+    return;
   }
 
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
-      ok = true;
-      String serverName = (String)server.getSelectedItem();
-      if (serverName != null) {
-        Configuration.setParam("Server", Hostname.getHost(serverName));
-        Configuration.setParam("Port", Integer.toString(Hostname.getPort(serverName)));
-      }
+      commit();
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
-      ok = false;
+      if (cc.viewer.nViewers == 1)
+        cc.viewer.exit(1);
+      ret = false;
       endDialog();
     } else if (s instanceof JButton && (JButton)s == optionsButton) {
       options.showDialog(this);
@@ -141,38 +138,42 @@ class ServerDialog extends Dialog implements
       if (e.getActionCommand().equals("comboBoxEdited")) {
         server.insertItemAt(editor.getItem(), 0);
         server.setSelectedIndex(0);
-        ok = true;
+        commit();
         endDialog();
       }
     }
   }
+
+  private void commit() {
+    String serverName = (String)server.getSelectedItem();
+    if (serverName == null || serverName.equals("")) {
+      vlog.error("Invalid servername specified");
+      if (cc.viewer.nViewers == 1)
+        cc.viewer.exit(1);
+      ret = false;
+      endDialog();
+    }
+    // set params
+    Configuration.setParam("Server", Hostname.getHost(serverName));
+    Configuration.setParam("Port", Integer.toString(Hostname.getPort(serverName)));
+    // Update the history list
+    String valueStr = UserPreferences.get("ServerDialog", "history");
+    String t = (valueStr == null) ? "" : valueStr;
+    StringTokenizer st = new StringTokenizer(t, ",");
+    StringBuffer sb = new StringBuffer().append((String)server.getSelectedItem());
+    while (st.hasMoreTokens()) {
+      String str = st.nextToken();
+      if (!str.equals((String)server.getSelectedItem()) && !str.equals("")) {
+        sb.append(',');
+        sb.append(str);
+      }
+    }
+    UserPreferences.set("ServerDialog", "history", sb.toString());
+    UserPreferences.save("ServerDialog");
+  }
   
   public void endDialog() {
-    if (ok) {
-      if (!server.getSelectedItem().toString().equals("")) {
-        String valueStr = UserPreferences.get("ServerDialog", "history");
-        String t = (valueStr == null) ? "" : valueStr;
-        StringTokenizer st = new StringTokenizer(t, ",");
-        StringBuffer sb = new StringBuffer().append((String)server.getSelectedItem());
-        while (st.hasMoreTokens()) {
-          String s = st.nextToken();
-          if (!s.equals((String)server.getSelectedItem()) && !s.equals("")) {
-            sb.append(',');
-            sb.append(s);
-          }
-        }
-        UserPreferences.set("ServerDialog", "history", sb.toString());
-        UserPreferences.save("ServerDialog");
-      }
-    }
-
-    done = true;
-    if (modal) {
-      synchronized (this) {
-        notify();
-      }
-    }
-    this.dispose();
+    super.endDialog();
   }
 
   CConn cc;

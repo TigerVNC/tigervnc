@@ -24,6 +24,10 @@ import java.awt.Color;
 import java.awt.event.*;
 import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Window;
 import javax.swing.*;
 
 import com.tigervnc.rdr.*;
@@ -49,7 +53,11 @@ public class Viewport extends JFrame
     });
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        cc.close();
+        if (cc.viewer.nViewers == 1) {
+          cc.viewer.exit(1);
+        } else {
+          cc.close();
+        }
       }
     });
     addComponentListener(new ComponentAdapter() {
@@ -105,6 +113,20 @@ public class Viewport extends JFrame
     setBackground(Color.BLACK);
   }
 
+  public static Window getFullScreenWindow() {
+      GraphicsEnvironment ge =
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
+      GraphicsDevice gd = ge.getDefaultScreenDevice();
+      Window fullScreenWindow = gd.getFullScreenWindow();
+      return fullScreenWindow;
+  }
+
+  public static void setFullScreenWindow(Window fullScreenWindow) {
+      GraphicsEnvironment ge =
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
+      GraphicsDevice gd = ge.getDefaultScreenDevice();
+      gd.setFullScreenWindow(fullScreenWindow);
+  }
 
   CConn cc;
   JScrollPane sp;

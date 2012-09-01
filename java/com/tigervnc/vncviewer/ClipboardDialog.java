@@ -97,12 +97,10 @@ class ClipboardDialog extends Dialog implements ActionListener {
       current = "";
       textArea.setText(current);
     } else if (s instanceof JButton && (JButton)s == sendButton) {
-      ok = true;
       current = textArea.getText();
       cc.writeClientCutText(current, current.length());
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
-      ok = false;
       endDialog();
     }
   }

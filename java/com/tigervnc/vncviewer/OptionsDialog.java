@@ -52,7 +52,7 @@ class OptionsDialog extends Dialog implements
   JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
 
   public OptionsDialog(OptionsDialogCallback cb_) { 
-    super(false);
+    super(true);
     cb = cb_;
     setResizable(false);
     setTitle("VNC Viewer Options");
@@ -292,7 +292,6 @@ class OptionsDialog extends Dialog implements
   }
   
   private void updatePreferences() {
-    //UserPreferences.clear("global");
     if (autoSelect.isSelected()) {
       UserPreferences.set("global", "AutoSelect", true);
     } else {
@@ -472,11 +471,9 @@ class OptionsDialog extends Dialog implements
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
-      ok = true;
       if (cb != null) cb.getOptions();
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
-      ok = false;
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cfLoadButton) {
       JFileChooser fc = new JFileChooser();

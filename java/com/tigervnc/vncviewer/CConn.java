@@ -122,14 +122,13 @@ public class CConn extends CConnection
         serverPort = Hostname.getPort(vncServerName);
       } else {
         ServerDialog dlg = new ServerDialog(options, vncServerName, this);
-        if (!dlg.showDialog() || dlg.server.getSelectedItem().equals("")) {
-          vlog.info("No server name specified!");
+        boolean ret = dlg.showDialog();
+        if (!ret) {
           close();
           return;
         }
-        vncServerName = (String)dlg.server.getSelectedItem();
-        serverHost = Hostname.getHost(vncServerName);
-        serverPort = Hostname.getPort(vncServerName);
+        serverHost = viewer.vncServerName.getValueStr();
+        serverPort = viewer.vncServerPort.getValue();
       }
 
       try {
@@ -727,15 +726,24 @@ public class CConn extends CConnection
       pkgDate = attributes.getValue("Package-Date");
       pkgTime = attributes.getValue("Package-Time");
     } catch (IOException e) { }
+
+    Window fullScreenWindow = Viewport.getFullScreenWindow();
+    if (fullScreenWindow != null)
+      Viewport.setFullScreenWindow(null);
     JOptionPane.showMessageDialog((viewport != null ? viewport : null),
       String.format(VncViewer.aboutText, VncViewer.version, VncViewer.build,
                     VncViewer.buildDate, VncViewer.buildTime), 
       "About TigerVNC Viewer for Java",
       JOptionPane.INFORMATION_MESSAGE,
       logo);
+    if (fullScreenWindow != null)
+      Viewport.setFullScreenWindow(fullScreenWindow);
   }
 
   void showInfo() {
+    Window fullScreenWindow = Viewport.getFullScreenWindow();
+    if (fullScreenWindow != null)
+      Viewport.setFullScreenWindow(null);
     JOptionPane.showMessageDialog(viewport,
       "Desktop name: "+cp.name()+"\n"
       +"Host: "+sock.getPeerName()+":"+sock.getPeerPort()+"\n"
@@ -750,6 +758,8 @@ public class CConn extends CConnection
        +" ["+csecurity.description()+"]",
       "VNC connection info",
       JOptionPane.PLAIN_MESSAGE);
+    if (fullScreenWindow != null)
+      Viewport.setFullScreenWindow(fullScreenWindow);
   }
 
   public void refresh() {
