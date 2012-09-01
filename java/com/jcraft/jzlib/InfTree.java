@@ -512,9 +512,7 @@ final class InfTree{
     for(int i=0; i<vsize; i++){v[i]=0;}
     for(int i=0; i<BMAX+1; i++){c[i]=0;}
     for(int i=0; i<3; i++){r[i]=0;}
-//  for(int i=0; i<BMAX; i++){u[i]=0;}
     System.arraycopy(c, 0, u, 0, BMAX);
-//  for(int i=0; i<BMAX+1; i++){x[i]=0;}
     System.arraycopy(c, 0, x, 0, BMAX+1);
   }
 }

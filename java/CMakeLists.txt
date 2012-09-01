@@ -7,7 +7,7 @@ endif()
 
 find_package(Java)
 
-set(DEFAULT_JAVACFLAGS "-source 1.5 -target 1.5 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann")
+set(DEFAULT_JAVACFLAGS "-source 1.5 -target 1.5 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation")
 set(JAVACFLAGS ${DEFAULT_JAVACFLAGS} CACHE STRING
   "Java compiler flags (Default: ${DEFAULT_JAVACFLAGS})")
 message(STATUS "Java compiler flags = ${JAVACFLAGS}")

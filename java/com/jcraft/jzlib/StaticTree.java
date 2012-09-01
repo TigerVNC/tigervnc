@@ -134,12 +134,11 @@ final class StaticTree{
   int elems;               // max number of elements in the tree
   int max_length;          // max bit length for the codes
 
-  StaticTree(short[] static_tree,
-	     int[] extra_bits,
-	     int extra_base,
-	     int elems,
-	     int max_length
-	     ){
+  private StaticTree(short[] static_tree,
+                     int[] extra_bits,
+                     int extra_base,
+                     int elems,
+                     int max_length){
     this.static_tree=static_tree;
     this.extra_bits=extra_bits;
     this.extra_base=extra_base;

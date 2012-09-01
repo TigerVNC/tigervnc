@@ -6,7 +6,7 @@
 
                           http://www.jcraft.com/jzlib/
 
-Last modified: Fri Feb 14 13:31:26 UTC 2003
+Last modified: Mon Sep 19 15:28:43 UTC 2011
 
 Description
 ===========
@@ -25,7 +25,7 @@ Documentation
 
 Directories & Files in the Source Tree
 ======================================
-* com/ has source trees of JZlib.
+* src/main/java has source trees of JZlib.
 * example/ has some samples, which demonstrate the usages.
 * misc/ has some stuffs. At present, this directory includes
   a patch file for MindTerm v.1.2.1, which adds the packet compression
@@ -40,7 +40,7 @@ Features
 * JZlib does not support gzip file handling supports.
 * The performance has not been estimated yet,  but it will be not so bad
   in deflating/inflating data stream on the low bandwidth network.
-* JZlib is licensed under BSD style license.
+* JZlib is under BSD style license.
 * Any invention has not been done in developing JZlib.
   So, if zlib is patent free, JZlib is also not covered by any patents.
 
@@ -73,6 +73,18 @@ so this problem will not be solved forever.
 This is our motivation to hack JZlib.
 
 
+Building Jar File
+=================
+Use 'sbt'(https://github.com/harrah/xsbt/wiki),
+  % sbt package
+or
+  % mvn package
+or
+  % cd src/main/java
+  % javac -target 1.5 com/jcraft/jzlib/*.java
+  % jar -cvf jzlib.jar com/jcraft/jzlib/*.class
+
+
 A unofficial patch for MindTerm v.1.2.1
 =======================================
 A unofficial patch file for MindTerm v.1.2.1 has included in 'misc' directory.
@@ -84,7 +96,6 @@ Copyrights & Disclaimers
 ========================
 JZlib is copyrighted by ymnk, JCraft,Inc. and is licensed through BSD
 style license.  Read the LICENSE.txt file for the complete license.
-ZInputStream and ZOutputStream classes were contributed by Lapo Luchini.
 
 
 Credits

@@ -89,11 +89,16 @@ final class InfCodes{
   int[] dtree;          // distance tree
   int dtree_index;      // distance tree
 
-  InfCodes(){
+  private final ZStream z;
+  private final InfBlocks s;
+  InfCodes(ZStream z, InfBlocks s){
+    this.z=z; 
+    this.s=s; 
   }
+
   void init(int bl, int bd,
 	   int[] tl, int tl_index,
-	   int[] td, int td_index, ZStream z){
+	   int[] td, int td_index){
     mode=START;
     lbits=(byte)bl;
     dbits=(byte)bd;
@@ -104,7 +109,7 @@ final class InfCodes{
     tree=null;
   }
 
-  int proc(InfBlocks s, ZStream z, int r){ 
+  int proc(int r){ 
     int j;              // temporary storage
     int[] t;            // temporary pointer
     int tindex;         // temporary pointer
@@ -159,7 +164,7 @@ final class InfCodes{
 	    s.bitb=b;s.bitk=k;
 	    z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	    s.write=q;
-	    return s.inflate_flush(z,r);
+	    return s.inflate_flush(r);
 	  }
 	  n--;
 	  b|=(z.next_in[p++]&0xff)<<k;
@@ -200,7 +205,7 @@ final class InfCodes{
 	s.bitb=b;s.bitk=k;
 	z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	s.write=q;
-	return s.inflate_flush(z,r);
+	return s.inflate_flush(r);
 
       case LENEXT:        // i: getting length extra (have base)
 	j = get;
@@ -212,7 +217,7 @@ final class InfCodes{
 	    s.bitb=b;s.bitk=k;
 	    z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	    s.write=q;
-	    return s.inflate_flush(z,r);
+	    return s.inflate_flush(r);
 	  }
 	  n--; b|=(z.next_in[p++]&0xff)<<k;
 	  k+=8;
@@ -237,7 +242,7 @@ final class InfCodes{
 	    s.bitb=b;s.bitk=k;
 	    z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	    s.write=q;
-	    return s.inflate_flush(z,r);
+	    return s.inflate_flush(r);
 	  }
 	  n--; b|=(z.next_in[p++]&0xff)<<k;
 	  k+=8;
@@ -267,7 +272,7 @@ final class InfCodes{
 	s.bitb=b;s.bitk=k;
 	z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	s.write=q;
-	return s.inflate_flush(z,r);
+	return s.inflate_flush(r);
 
       case DISTEXT:       // i: getting distance extra
 	j = get;
@@ -279,7 +284,7 @@ final class InfCodes{
 	    s.bitb=b;s.bitk=k;
 	    z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	    s.write=q;
-	    return s.inflate_flush(z,r);
+	    return s.inflate_flush(r);
 	  }
 	  n--; b|=(z.next_in[p++]&0xff)<<k;
 	  k+=8;
@@ -301,7 +306,7 @@ final class InfCodes{
 	  if(m==0){
 	    if(q==s.end&&s.read!=0){q=0;m=q<s.read?s.read-q-1:s.end-q;}
 	    if(m==0){
-	      s.write=q; r=s.inflate_flush(z,r);
+	      s.write=q; r=s.inflate_flush(r);
 	      q=s.write;m=q<s.read?s.read-q-1:s.end-q;
 
 	      if(q==s.end&&s.read!=0){q=0;m=q<s.read?s.read-q-1:s.end-q;}
@@ -310,7 +315,7 @@ final class InfCodes{
 		s.bitb=b;s.bitk=k;
 		z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 		s.write=q;
-		return s.inflate_flush(z,r);
+		return s.inflate_flush(r);
 	      }  
 	    }
 	  }
@@ -327,7 +332,7 @@ final class InfCodes{
 	if(m==0){
 	  if(q==s.end&&s.read!=0){q=0;m=q<s.read?s.read-q-1:s.end-q;}
 	  if(m==0){
-	    s.write=q; r=s.inflate_flush(z,r);
+	    s.write=q; r=s.inflate_flush(r);
 	    q=s.write;m=q<s.read?s.read-q-1:s.end-q;
 
 	    if(q==s.end&&s.read!=0){q=0;m=q<s.read?s.read-q-1:s.end-q;}
@@ -335,7 +340,7 @@ final class InfCodes{
 	      s.bitb=b;s.bitk=k;
 	      z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	      s.write=q;
-	      return s.inflate_flush(z,r);
+	      return s.inflate_flush(r);
 	    }
 	  }
 	}
@@ -352,14 +357,14 @@ final class InfCodes{
 	  p--;             // can always return one
 	}
 
-	s.write=q; r=s.inflate_flush(z,r);
+	s.write=q; r=s.inflate_flush(r);
 	q=s.write;m=q<s.read?s.read-q-1:s.end-q;
 
 	if (s.read != s.write){
 	  s.bitb=b;s.bitk=k;
 	  z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	  s.write=q;
-	  return s.inflate_flush(z,r);
+	  return s.inflate_flush(r);
 	}
 	mode = END;
       case END:
@@ -367,7 +372,7 @@ final class InfCodes{
 	s.bitb=b;s.bitk=k;
 	z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	s.write=q;
-	return s.inflate_flush(z,r);
+	return s.inflate_flush(r);
 
       case BADCODE:       // x: got error
 
@@ -376,7 +381,7 @@ final class InfCodes{
 	s.bitb=b;s.bitk=k;
 	z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	s.write=q;
-	return s.inflate_flush(z,r);
+	return s.inflate_flush(r);
 
       default:
 	r = Z_STREAM_ERROR;
@@ -384,7 +389,7 @@ final class InfCodes{
 	s.bitb=b;s.bitk=k;
 	z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	s.write=q;
-	return s.inflate_flush(z,r);
+	return s.inflate_flush(r);
       }
     }
   }

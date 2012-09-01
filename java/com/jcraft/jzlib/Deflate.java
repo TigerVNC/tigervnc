@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; -*- */
 /*
-Copyright (c) 2000,2001,2002,2003 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2000-2011 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jcraft.jzlib;
 
 public 
-final class Deflate{
+final class Deflate implements Cloneable {
 
   static final private int MAX_MEM_LEVEL=9;
 
@@ -169,13 +169,13 @@ final class Deflate{
 
   static final private int END_BLOCK=256;
 
-  ZStream strm;         // pointer back to this zlib stream
+  ZStream strm;        // pointer back to this zlib stream
   int status;           // as the name implies
   byte[] pending_buf;   // output still pending
   int pending_buf_size; // size of pending_buf
   int pending_out;      // next pending byte to output to the stream
   int pending;          // nb of bytes in the pending buffer
-  int noheader;         // suppress zlib header and adler32
+  int wrap = 1;
   byte data_type;       // UNKNOWN, BINARY or ASCII
   byte method;          // STORED (for zip only) or DEFLATED
   int last_flush;       // value of flush param for previous deflate call
@@ -317,7 +317,10 @@ final class Deflate{
   // are always zero.
   int bi_valid;
 
-  Deflate(){
+  GZIPHeader gheader = null;
+
+  Deflate(ZStream strm){
+    this.strm=strm;
     dyn_ltree=new short[HEAP_SIZE*2];
     dyn_dtree=new short[(2*D_CODES+1)*2]; // distance tree
     bl_tree=new short[(2*BL_CODES+1)*2];  // Huffman tree for bit lengths
@@ -1311,17 +1314,22 @@ final class Deflate{
     if (best_len <= lookahead) return best_len;
     return lookahead;
   }
-    
-  int deflateInit(ZStream strm, int level, int bits){
-    return deflateInit2(strm, level, Z_DEFLATED, bits, DEF_MEM_LEVEL,
+
+  int deflateInit(int level, int bits, int memlevel){
+    return deflateInit(level, Z_DEFLATED, bits, memlevel,
 			Z_DEFAULT_STRATEGY);
   }
-  int deflateInit(ZStream strm, int level){
-    return deflateInit(strm, level, MAX_WBITS);
+    
+  int deflateInit(int level, int bits){
+    return deflateInit(level, Z_DEFLATED, bits, DEF_MEM_LEVEL,
+			Z_DEFAULT_STRATEGY);
   }
-  int deflateInit2(ZStream strm, int level, int method,  int windowBits,
-		   int memLevel, int strategy){
-    int noheader = 0;
+  int deflateInit(int level){
+    return deflateInit(level, MAX_WBITS);
+  }
+  private int deflateInit(int level, int method,  int windowBits,
+			  int memLevel, int strategy){
+    int wrap = 1;
     //    byte[] my_version=ZLIB_VERSION;
 
     //
@@ -1335,8 +1343,13 @@ final class Deflate{
     if (level == Z_DEFAULT_COMPRESSION) level = 6;
 
     if (windowBits < 0) { // undocumented feature: suppress zlib header
-      noheader = 1;
+      wrap = 0;
       windowBits = -windowBits;
+    }
+    else if(windowBits > 15){
+      wrap = 2;
+      windowBits -= 16;
+      strm.adler=new CRC32();
     }
 
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || 
@@ -1348,7 +1361,7 @@ final class Deflate{
 
     strm.dstate = (Deflate)this;
 
-    this.noheader = noheader;
+    this.wrap = wrap;
     w_bits = windowBits;
     w_size = 1 << w_bits;
     w_mask = w_size - 1;
@@ -1374,15 +1387,13 @@ final class Deflate{
 
     this.level = level;
 
-//System.out.println("level="+level);
-
     this.strategy = strategy;
     this.method = (byte)method;
 
-    return deflateReset(strm);
+    return deflateReset();
   }
 
-  int deflateReset(ZStream strm){
+  int deflateReset(){
     strm.total_in = strm.total_out = 0;
     strm.msg = null; //
     strm.data_type = Z_UNKNOWN;
@@ -1390,11 +1401,11 @@ final class Deflate{
     pending = 0;
     pending_out = 0;
 
-    if(noheader < 0) {
-      noheader = 0; // was set to -1 by deflate(..., Z_FINISH);
+    if(wrap < 0){
+      wrap = -wrap;
     }
-    status = (noheader!=0) ? BUSY_STATE : INIT_STATE;
-    strm.adler=strm._adler.adler32(0, null, 0, 0);
+    status = (wrap==0) ? BUSY_STATE : INIT_STATE;
+    strm.adler.reset();
 
     last_flush = Z_NO_FLUSH;
 
@@ -1417,7 +1428,7 @@ final class Deflate{
     return status == BUSY_STATE ? Z_DATA_ERROR : Z_OK;
   }
 
-  int deflateParams(ZStream strm, int _level, int _strategy){
+  int deflateParams(int _level, int _strategy){
     int err=Z_OK;
 
     if(_level == Z_DEFAULT_COMPRESSION){
@@ -1445,14 +1456,14 @@ final class Deflate{
     return err;
   }
 
-  int deflateSetDictionary (ZStream strm, byte[] dictionary, int dictLength){
+  int deflateSetDictionary (byte[] dictionary, int dictLength){
     int length = dictLength;
     int index=0;
 
     if(dictionary == null || status != INIT_STATE)
       return Z_STREAM_ERROR;
 
-    strm.adler=strm._adler.adler32(strm.adler, dictionary, 0, dictLength);
+    strm.adler.update(dictionary, 0, dictLength);
 
     if(length < MIN_MATCH) return Z_OK;
     if(length > w_size-MIN_LOOKAHEAD){
@@ -1478,7 +1489,7 @@ final class Deflate{
     return Z_OK;
   }
 
-  int deflate(ZStream strm, int flush){
+  int deflate(int flush){
     int old_flush;
 
     if(flush>Z_FINISH || flush<0){
@@ -1496,12 +1507,17 @@ final class Deflate{
       return Z_BUF_ERROR;
     }
 
-    this.strm = strm; // just in case
     old_flush = last_flush;
     last_flush = flush;
 
     // Write the zlib header
     if(status == INIT_STATE) {
+      if(wrap == 2){
+        getGZIPHeader().put(this);
+        status=BUSY_STATE;
+        strm.adler.reset();
+      }
+      else{
       int header = (Z_DEFLATED+((w_bits-8)<<4))<<8;
       int level_flags=((level-1)&0xff)>>1;
 
@@ -1516,17 +1532,18 @@ final class Deflate{
 
       // Save the adler32 of the preset dictionary:
       if(strstart!=0){
-        putShortMSB((int)(strm.adler>>>16));
-        putShortMSB((int)(strm.adler&0xffff));
+        long adler=strm.adler.getValue();
+        putShortMSB((int)(adler>>>16));
+        putShortMSB((int)(adler&0xffff));
       }
-      strm.adler=strm._adler.adler32(0, null, 0, 0);
+      strm.adler.reset();
+      }
     }
 
     // Flush as much pending output as possible
     if(pending != 0) {
       strm.flush_pending();
       if(strm.avail_out == 0) {
-	//System.out.println("  avail_out==0");
 	// Since avail_out is 0, deflate will be called again with
 	// more output space, but possibly with both pending and
 	// avail_in equal to zero. There won't be anything to do,
@@ -1608,16 +1625,127 @@ final class Deflate{
     }
 
     if(flush!=Z_FINISH) return Z_OK;
-    if(noheader!=0) return Z_STREAM_END;
+    if(wrap<=0) return Z_STREAM_END;
 
-    // Write the zlib trailer (adler32)
-    putShortMSB((int)(strm.adler>>>16));
-    putShortMSB((int)(strm.adler&0xffff));
+    if(wrap==2){
+      long adler=strm.adler.getValue();
+      put_byte((byte)(adler&0xff));
+      put_byte((byte)((adler>>8)&0xff));
+      put_byte((byte)((adler>>16)&0xff));
+      put_byte((byte)((adler>>24)&0xff));
+      put_byte((byte)(strm.total_in&0xff));
+      put_byte((byte)((strm.total_in>>8)&0xff));
+      put_byte((byte)((strm.total_in>>16)&0xff));
+      put_byte((byte)((strm.total_in>>24)&0xff));
+
+      getGZIPHeader().setCRC(adler);
+    } 
+    else{
+      // Write the zlib trailer (adler32)
+      long adler=strm.adler.getValue();
+      putShortMSB((int)(adler>>>16));
+      putShortMSB((int)(adler&0xffff));
+    }
+
     strm.flush_pending();
 
     // If avail_out is zero, the application will call deflate again
     // to flush the rest.
-    noheader = -1; // write the trailer only once!
+
+    if(wrap > 0) wrap = -wrap; // write the trailer only once!
     return pending != 0 ? Z_OK : Z_STREAM_END;
+  }
+
+  static int deflateCopy(ZStream dest, ZStream src){
+
+    if(src.dstate == null){
+      return Z_STREAM_ERROR;
+    }
+
+    if(src.next_in!=null){
+      dest.next_in = new byte[src.next_in.length];
+      System.arraycopy(src.next_in, 0, dest.next_in, 0, src.next_in.length);
+    }
+    dest.next_in_index = src.next_in_index;
+    dest.avail_in = src.avail_in;
+    dest.total_in = src.total_in;
+
+    if(src.next_out!=null){
+      dest.next_out = new byte[src.next_out.length];
+      System.arraycopy(src.next_out, 0, dest.next_out ,0 , src.next_out.length);
+    }
+
+    dest.next_out_index = src.next_out_index;
+    dest.avail_out = src.avail_out;
+    dest.total_out = src.total_out;
+
+    dest.msg = src.msg;
+    dest.data_type = src.data_type;
+    dest.adler = src.adler.copy();
+
+    try{
+      dest.dstate = (Deflate)src.dstate.clone();
+      dest.dstate.strm = dest;
+    }
+    catch(CloneNotSupportedException e){
+      //
+    }
+    return Z_OK;
+  }
+
+  public Object clone() throws CloneNotSupportedException {
+    Deflate dest = (Deflate)super.clone();
+
+    dest.pending_buf = dup(dest.pending_buf);
+    dest.window = dup(dest.window);
+
+    dest.prev = dup(dest.prev);
+    dest.head = dup(dest.head);
+    dest.dyn_ltree = dup(dest.dyn_ltree);
+    dest.dyn_dtree = dup(dest.dyn_dtree);
+    dest.bl_tree = dup(dest.bl_tree);
+
+    dest.bl_count = dup(dest.bl_count);
+    dest.heap = dup(dest.heap);
+    dest.depth = dup(dest.depth);
+
+    dest.l_desc.dyn_tree = dest.dyn_ltree;
+    dest.d_desc.dyn_tree = dest.dyn_dtree;
+    dest.bl_desc.dyn_tree = dest.bl_tree;
+
+    /*
+    dest.l_desc.stat_desc = StaticTree.static_l_desc;
+    dest.d_desc.stat_desc = StaticTree.static_d_desc;
+    dest.bl_desc.stat_desc = StaticTree.static_bl_desc;
+    */
+
+    if(dest.gheader!=null){
+      dest.gheader = (GZIPHeader)dest.gheader.clone();
+    }
+
+    return dest;
+  }
+
+  private byte[] dup(byte[] buf){
+    byte[] foo = new byte[buf.length];
+    System.arraycopy(buf, 0, foo, 0, foo.length);
+    return foo;
+  }
+  private short[] dup(short[] buf){
+    short[] foo = new short[buf.length];
+    System.arraycopy(buf, 0, foo, 0, foo.length);
+    return foo;
+  }
+  private int[] dup(int[] buf){
+    int[] foo = new int[buf.length];
+    System.arraycopy(buf, 0, foo, 0, foo.length);
+    return foo;
+  }
+
+  synchronized GZIPHeader getGZIPHeader(){
+    if(gheader==null){
+      gheader = new GZIPHeader();
+    }
+    return gheader;
   }
 }
