@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(tigervnc-java Java)
-set(VERSION 1.2.80)
+if(NOT VERSION)
+  set(VERSION 1.2.80)
+endif()
 
 find_package(Java)
 
@@ -14,10 +16,14 @@ set(CLASSPATH com/tigervnc/vncviewer)
 set(JAVA_SRCDIR ${CMAKE_CURRENT_SOURCE_DIR}/${CLASSPATH})
 set(JAVA_BINDIR ${CMAKE_CURRENT_BINARY_DIR}/${CLASSPATH})
 
+if(NOT BUILD)
+	execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
+endif()
 execute_process(COMMAND "date" "+%b %d %Y" OUTPUT_VARIABLE JAVA_DATE)
 execute_process(COMMAND "date" "+%H:%M:%S" OUTPUT_VARIABLE JAVA_TIME)
 string(REGEX REPLACE "\n" "" JAVA_DATE ${JAVA_DATE})
 string(REGEX REPLACE "\n" "" JAVA_TIME ${JAVA_TIME})
+string(REGEX REPLACE "\n" "" BUILD ${BUILD})
 
 set(JAVA_CLASSNAMES
   CConn

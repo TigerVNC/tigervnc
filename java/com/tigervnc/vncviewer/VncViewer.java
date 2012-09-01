@@ -54,7 +54,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
 {
   public static final String aboutText = new String("TigerVNC Java Viewer v%s (%s)%n"+
                                                     "Built on %s at %s%n"+
-                                                    "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)%n"+
+                                                    "Copyright (C) 1999-2012 TigerVNC Team and many others (see README.txt)%n"+
                                                     "See http://www.tigervnc.org for information on TigerVNC.");
                                            
   public static String version = null;
