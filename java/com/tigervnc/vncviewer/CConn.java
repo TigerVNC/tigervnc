@@ -625,6 +625,7 @@ public class CConn extends CConnection
   	            (newFullColour ? "enabled" : "disabled"));
       fullColour = newFullColour;
       formatChange = true;
+      forceNonincremental = true;
     } 
   }
 
@@ -680,7 +681,7 @@ public class CConn extends CConnection
     if (forceNonincremental || !continuousUpdates) {
       pendingUpdate = true;
       writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height),
-                                                 !formatChange && !forceNonincremental);
+                                                 !forceNonincremental);
     }
 
     forceNonincremental = false;
@@ -921,8 +922,10 @@ public class CConn extends CConnection
 
   public void getOptions() {
     autoSelect = options.autoSelect.isSelected();
-    if (fullColour != options.fullColour.isSelected())
+    if (fullColour != options.fullColour.isSelected()) {
       formatChange = true;
+      forceNonincremental = true;
+    }
     fullColour = options.fullColour.isSelected();
     if (!fullColour) {
       int newLowColourLevel = (options.veryLowColour.isSelected() ? 0 :
@@ -930,6 +933,7 @@ public class CConn extends CConnection
       if (newLowColourLevel != lowColourLevel) {
         lowColourLevel = newLowColourLevel;
         formatChange = true;
+        forceNonincremental = true;
       }
     }
     int newEncoding = (options.zrle.isSelected() ?  Encodings.encodingZRLE :

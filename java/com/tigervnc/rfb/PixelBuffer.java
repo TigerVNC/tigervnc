@@ -44,8 +44,9 @@ public class PixelBuffer {
       int rmask = pf.redMax << pf.redShift;
       int gmask = pf.greenMax << pf.greenShift;
       int bmask = pf.blueMax << pf.blueShift;
-      cm = new DirectColorModel(8, rmask, gmask, bmask);
-      if (!pf.trueColour)
+      if (pf.trueColour)
+        cm = new DirectColorModel(8, rmask, gmask, bmask);
+      else
         cm = new IndexColorModel(8, 256, new byte[256], new byte[256], new byte[256]);
       break;
     case 16: 

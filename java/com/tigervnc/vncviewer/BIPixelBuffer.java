@@ -34,30 +34,33 @@ public class BIPixelBuffer extends PlatformPixelBuffer implements ImageObserver
 
   public void setPF(PixelFormat pf) {
     super.setPF(pf);
+    createImage(width(), height());
   }
 
   public void updateColourMap() {
     cm = new IndexColorModel(8, nColours, reds, greens, blues);
+    createImage(width_, height_);
   }
   
   // resize() resizes the image, preserving the image data where possible.
   public void resize(int w, int h) {
-    if (w == width() && h == height()) return;
+    if (w == width() && h == height())
+      return;
 
     width_ = w;
     height_ = h;
-    GraphicsEnvironment ge =
-      GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice gd = ge.getDefaultScreenDevice();
-    GraphicsConfiguration gc = gd.getDefaultConfiguration();
-    image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
-    image.setAccelerationPriority(1);
-    image.createGraphics();
-    WritableRaster wr = image.getRaster();
-    SinglePixelPackedSampleModel sm =
-      (SinglePixelPackedSampleModel)image.getSampleModel();
-    DataBufferInt db = (DataBufferInt)wr.getDataBuffer();
-    data = db.getData();
+    createImage(w, h);
+  }
+
+  private void createImage(int w, int h) {
+    if (w == 0 || h == 0) return;
+    WritableRaster wr;
+    if (cm instanceof IndexColorModel)
+      wr = ((IndexColorModel)cm).createCompatibleWritableRaster(w, h);
+    else
+      wr = ((DirectColorModel)cm).createCompatibleWritableRaster(w, h);
+    image = new BufferedImage(cm, wr, true, null);
+    db = wr.getDataBuffer();
   }
 
   public void fillRect(int x, int y, int w, int h, int pix) {
@@ -92,8 +95,13 @@ public class BIPixelBuffer extends PlatformPixelBuffer implements ImageObserver
       clip = null;
       img.flush();
     } else {
-      for (int j = 0; j < h; j++)
-        System.arraycopy(pix, (w*j), data, width_ * (y + j) + x, w);
+      if (image.getSampleModel().getTransferType() == DataBuffer.TYPE_BYTE) {
+        byte[] bytes = new byte[((int[])pix).length];
+        for (int i = 0; i < bytes.length; i++)
+          bytes[i] = (byte)((int[])pix)[i];
+        pix = bytes;
+      }
+      image.getSampleModel().setDataElements(x, y, w, h, pix, db); 
     }
   }
 
@@ -126,6 +134,7 @@ public class BIPixelBuffer extends PlatformPixelBuffer implements ImageObserver
   }
 
   BufferedImage image;
+  DataBuffer db;
   Rectangle clip;
 
   static LogWriter vlog = new LogWriter("BIPixelBuffer");
