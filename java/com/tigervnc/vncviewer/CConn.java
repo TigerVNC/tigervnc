@@ -587,7 +587,7 @@ public class CConn extends CConnection
     }
 
     // Check that we have a decent bandwidth measurement
-    if ((kbitsPerSecond == 0) || (timeWaited < 10000))
+    if ((kbitsPerSecond == 0) || (timeWaited < 100))
       return;
   
     // Select appropriate quality level
