@@ -106,14 +106,6 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     }
   }
 
-  // If we are creating a window which is equal to the size on the
-  // screen on X11, many WMs will treat this as a legacy fullscreen
-  // request. This is not what we want. Besides, it doesn't really
-  // make sense to try to create a window which is larger than the
-  // available work space. 
-  w = __rfbmin(w, Fl::w());
-  h = __rfbmin(h, Fl::h());
-  
   if (force_position()) {
     resize(geom_x, geom_y, w, h);
   } else {
@@ -274,6 +266,34 @@ void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
 void DesktopWindow::resize(int x, int y, int w, int h)
 {
   bool resizing;
+
+#if ! (defined(WIN32) || defined(__APPLE__))
+  // X11 window managers will treat a resize to cover the entire
+  // monitor as a request to go full screen. Make sure we avoid this.
+  //
+  // FIXME: If this is an external event then this code will get
+  //        FLTK into a confused state about the window's position/size.
+  //        Unfortunately FLTK doesn't offer an easy way to tell
+  //        what kind of resize it is. Let's hope this corner case
+  //        isn't too common...
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (!fullscreen_active())
+#endif
+  {
+    for (int i = 0;i < Fl::screen_count();i++) {
+      int sx, sy, sw, sh;
+
+      Fl::screen_xywh(sx, sy, sw, sh, i);
+
+      if ((sx == x) && (sy == y) && (sw == w) && (sh == h)) {
+        vlog.info("Adjusting window size to avoid accidental full screen request");
+        // Assume a panel of some form and adjust the height
+        y += 20;
+        h -= 40;
+      }
+    }
+  }
+#endif
 
   if ((this->w() != w) || (this->h() != h))
     resizing = true;
