@@ -848,13 +848,19 @@ void DesktopWindow::handleEdgeScroll(void *data)
     my = self->h();
 
   if ((self->viewport->x() < 0) && (mx < EDGE_SCROLL_SIZE))
-    dx = EDGE_SCROLL_SPEED - EDGE_SCROLL_SPEED * mx / EDGE_SCROLL_SIZE;
-  if ((self->viewport->x() + self->viewport->w() > self->w()) && (mx > self->w() - EDGE_SCROLL_SIZE))
-    dx = EDGE_SCROLL_SPEED * (self->w() - mx) / EDGE_SCROLL_SIZE - EDGE_SCROLL_SPEED;
+    dx = EDGE_SCROLL_SPEED -
+         EDGE_SCROLL_SPEED * mx / EDGE_SCROLL_SIZE;
+  if ((self->viewport->x() + self->viewport->w() > self->w()) &&
+      (mx > self->w() - EDGE_SCROLL_SIZE))
+    dx = EDGE_SCROLL_SPEED * (self->w() - mx) / EDGE_SCROLL_SIZE -
+         EDGE_SCROLL_SPEED;
   if ((self->viewport->y() < 0) && (my < EDGE_SCROLL_SIZE))
-    dy = EDGE_SCROLL_SPEED - EDGE_SCROLL_SPEED * my / EDGE_SCROLL_SIZE;
-  if ((self->viewport->y() + self->viewport->h() > self->h()) && (my > self->h() - EDGE_SCROLL_SIZE))
-    dy = EDGE_SCROLL_SPEED * (self->h() - my) / EDGE_SCROLL_SIZE - EDGE_SCROLL_SPEED;
+    dy = EDGE_SCROLL_SPEED -
+         EDGE_SCROLL_SPEED * my / EDGE_SCROLL_SIZE;
+  if ((self->viewport->y() + self->viewport->h() > self->h()) &&
+      (my > self->h() - EDGE_SCROLL_SIZE))
+    dy = EDGE_SCROLL_SPEED * (self->h() - my) / EDGE_SCROLL_SIZE -
+         EDGE_SCROLL_SPEED;
 
   if ((dx == 0) && (dy == 0))
     return;
