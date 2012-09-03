@@ -46,6 +46,9 @@
 #include "cocoa.h"
 #endif
 
+#define EDGE_SCROLL_SIZE 32
+#define EDGE_SCROLL_SPEED 20
+
 using namespace rfb;
 
 static rfb::LogWriter vlog("DesktopWindow");
@@ -56,7 +59,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   : Fl_Window(w, h), cc(cc_), firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false)
 {
-  Fl_Scroll *scroll = new Fl_Scroll(0, 0, w, h);
+  scroll = new Fl_Scroll(0, 0, w, h);
   scroll->color(FL_BLACK);
 
   // Automatically adjust the scroll box to the window
@@ -164,6 +167,7 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleGrab, this);
   Fl::remove_timeout(handleResizeTimeout, this);
   Fl::remove_timeout(handleFullscreenTimeout, this);
+  Fl::remove_timeout(handleEdgeScroll, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -308,6 +312,11 @@ int DesktopWindow::handle(int event)
   case FL_FULLSCREEN:
     fullScreen.setParam(fullscreen_active());
 
+    if (fullscreen_active())
+      scroll->type(0);
+    else
+      scroll->type(Fl_Scroll::BOTH);
+
     if (!fullscreenSystemKeys)
       break;
 
@@ -317,7 +326,23 @@ int DesktopWindow::handle(int event)
       ungrabKeyboard();
 
     break;
+
+  case FL_ENTER:
+  case FL_LEAVE:
+  case FL_DRAG:
+  case FL_MOVE:
+    if (fullscreen_active()) {
+      if (((viewport->x() < 0) && (Fl::event_x() < EDGE_SCROLL_SIZE)) ||
+          ((viewport->x() + viewport->w() > w()) && (Fl::event_x() > w() - EDGE_SCROLL_SIZE)) ||
+          ((viewport->y() < 0) && (Fl::event_y() < EDGE_SCROLL_SIZE)) ||
+          ((viewport->y() + viewport->h() > h()) && (Fl::event_y() > h() - EDGE_SCROLL_SIZE))) {
+        if (!Fl::has_timeout(handleEdgeScroll, this))
+          Fl::add_timeout(0.1, handleEdgeScroll, this);
+      }
+    }
+    return 1;
 #endif
+
   case FL_SHORTCUT:
     // Sometimes the focus gets out of whack and we fall through to the
     // shortcut dispatching. Try to make things sane again...
@@ -772,4 +797,60 @@ void DesktopWindow::handleFullscreenTimeout(void *data)
     self->handleDesktopSize();
     self->delayedDesktopSize = false;
   }
+}
+
+void DesktopWindow::handleEdgeScroll(void *data)
+{
+#ifdef HAVE_FLTK_FULLSCREEN
+  DesktopWindow *self = (DesktopWindow *)data;
+
+  int mx, my;
+  int dx, dy;
+
+  assert(self);
+
+  if (!self->fullscreen_active())
+    return;
+
+  mx = Fl::event_x();
+  my = Fl::event_y();
+
+  dx = dy = 0;
+
+  // Clamp mouse position in case it is outside the window
+  if (mx < 0)
+    mx = 0;
+  if (mx > self->w())
+    mx = self->w();
+  if (my < 0)
+    my = 0;
+  if (my > self->h())
+    my = self->h();
+
+  if ((self->viewport->x() < 0) && (mx < EDGE_SCROLL_SIZE))
+    dx = EDGE_SCROLL_SPEED - EDGE_SCROLL_SPEED * mx / EDGE_SCROLL_SIZE;
+  if ((self->viewport->x() + self->viewport->w() > self->w()) && (mx > self->w() - EDGE_SCROLL_SIZE))
+    dx = EDGE_SCROLL_SPEED * (self->w() - mx) / EDGE_SCROLL_SIZE - EDGE_SCROLL_SPEED;
+  if ((self->viewport->y() < 0) && (my < EDGE_SCROLL_SIZE))
+    dy = EDGE_SCROLL_SPEED - EDGE_SCROLL_SPEED * my / EDGE_SCROLL_SIZE;
+  if ((self->viewport->y() + self->viewport->h() > self->h()) && (my > self->h() - EDGE_SCROLL_SIZE))
+    dy = EDGE_SCROLL_SPEED * (self->h() - my) / EDGE_SCROLL_SIZE - EDGE_SCROLL_SPEED;
+
+  if ((dx == 0) && (dy == 0))
+    return;
+
+  // Make sure we don't move the viewport too much
+  if (self->viewport->x() + dx > 0)
+    dx = -self->viewport->x();
+  if (self->viewport->x() + dx + self->viewport->w() < self->w())
+    dx = self->w() - (self->viewport->x() + self->viewport->w());
+  if (self->viewport->y() + dy > 0)
+    dy = -self->viewport->y();
+  if (self->viewport->y() + dy + self->viewport->h() < self->h())
+    dy = self->h() - (self->viewport->y() + self->viewport->h());
+
+  self->scroll->scroll_to(self->scroll->xposition() - dx, self->scroll->yposition() - dy);
+
+  Fl::repeat_timeout(0.1, handleEdgeScroll, data);
+#endif
 }

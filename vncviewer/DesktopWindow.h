@@ -30,6 +30,7 @@
 #include <FL/Fl_Window.H>
 
 class CConn;
+class Fl_Scroll;
 
 class DesktopWindow : public Fl_Window {
 public:
@@ -102,8 +103,11 @@ private:
 
   static void handleFullscreenTimeout(void *data);
 
+  static void handleEdgeScroll(void *data);
+
 private:
   CConn* cc;
+  Fl_Scroll *scroll;
   Viewport *viewport;
 
   bool firstUpdate;
