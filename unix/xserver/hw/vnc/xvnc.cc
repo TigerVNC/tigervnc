@@ -285,7 +285,11 @@ OsVendorInit()
 }
 
 void
+#if XORG < 113
 OsVendorFatalError()
+#else
+OsVendorFatalError(const char *f, va_list args)
+#endif
 {
 }
 
@@ -626,14 +630,25 @@ GetTimeInMillis()
 }
 #endif
 
+#if XORG < 113
 static ColormapPtr InstalledMaps[MAXSCREENS];
+#else
+static DevPrivateKeyRec cmapScrPrivateKeyRec;
+#define cmapScrPrivateKey (&cmapScrPrivateKeyRec)
+#define GetInstalledColormap(s) ((ColormapPtr) dixLookupPrivate(&(s)->devPrivates, cmapScrPrivateKey))
+#define SetInstalledColormap(s,c) (dixSetPrivate(&(s)->devPrivates, cmapScrPrivateKey, c))
+#endif
 
 static int 
 vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     /* By the time we are processing requests, we can guarantee that there
      * is always a colormap installed */
+#if XORG < 113
     *pmaps = InstalledMaps[pScreen->myNum]->mid;
+#else
+    *pmaps = GetInstalledColormap(pScreen)->mid;
+#endif
     return (1);
 }
 
@@ -641,8 +656,16 @@ vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 static void 
 vfbInstallColormap(ColormapPtr pmap)
 {
+#if XORG < 113
     int index = pmap->pScreen->myNum;
-    ColormapPtr oldpmap = InstalledMaps[index];
+#endif
+    ColormapPtr oldpmap;
+
+#if XORG < 113
+    oldpmap = InstalledMaps[index];
+#else
+    oldpmap = GetInstalledColormap(pmap->pScreen);
+#endif
 
     if (pmap != oldpmap)
     {
@@ -656,7 +679,11 @@ vfbInstallColormap(ColormapPtr pmap)
 	if(oldpmap != (ColormapPtr)None)
 	    WalkTree(pmap->pScreen, TellLostMap, (char *)&oldpmap->mid);
 	/* Install pmap */
+#if XORG < 113
 	InstalledMaps[index] = pmap;
+#else
+	SetInstalledColormap(pmap->pScreen, pmap);
+#endif
 	WalkTree(pmap->pScreen, TellGainedMap, (char *)&pmap->mid);
 
 	entries = pmap->pVisual->ColormapEntries;
@@ -692,7 +719,11 @@ vfbInstallColormap(ColormapPtr pmap)
 static void
 vfbUninstallColormap(ColormapPtr pmap)
 {
+#if XORG < 113
     ColormapPtr curpmap = InstalledMaps[pmap->pScreen->myNum];
+#else
+    ColormapPtr curpmap = GetInstalledColormap(pmap->pScreen);
+#endif
 
     if(pmap == curpmap)
     {
@@ -1314,30 +1345,65 @@ static Bool vncRandRInit(ScreenPtr pScreen)
 #endif
 
 static Bool
+#if XORG < 113
 vfbCloseScreen(int index, ScreenPtr pScreen)
+#else
+vfbCloseScreen(ScreenPtr pScreen)
+#endif
 {
+#if XORG < 113
     vfbScreenInfoPtr pvfb = &vfbScreens[index];
+#else
+    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+#endif
     int i;
  
     pScreen->CloseScreen = pvfb->closeScreen;
 
     /*
      * XXX probably lots of stuff to clean.  For now,
-     * clear InstalledMaps[] so that server reset works correctly.
+     * clear installed colormaps so that server reset works correctly.
      */
+#if XORG < 113
     for (i = 0; i < MAXSCREENS; i++)
 	InstalledMaps[i] = NULL;
 
     return pScreen->CloseScreen(index, pScreen);
+#else
+    for (i = 0; i < screenInfo.numScreens; i++)
+	SetInstalledColormap(screenInfo.screens[i], NULL);
+
+    /*
+     * fb overwrites miCloseScreen, so do this here
+     */
+    if (pScreen->devPrivate)
+        (*pScreen->DestroyPixmap) ((PixmapPtr) pScreen->devPrivate);
+    pScreen->devPrivate = NULL;
+
+    return pScreen->CloseScreen(pScreen);
+#endif
 }
 
 static Bool
+#if XORG < 113
 vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
+#else
+vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
+#endif
 {
+#if XORG < 113
     vfbScreenInfoPtr pvfb = &vfbScreens[index];
+#else
+    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+#endif
     int dpi;
     int ret;
     void *pbits;
+
+#if XORG >= 113
+    if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+#endif
 
     /* 96 is the default used by most other systems */
     dpi = 96;
@@ -1346,8 +1412,13 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 
     pbits = vfbAllocateFramebufferMemory(&pvfb->fb);
     if (!pbits) return FALSE;
+#if XORG < 113
     vncFbptr[index] = pbits;
     vncFbstride[index] = pvfb->fb.paddedWidth;
+#else
+    vncFbptr[pScreen->myNum] = pbits;
+    vncFbstride[pScreen->myNum] = pvfb->fb.paddedWidth;
+#endif
 
     miSetPixmapDepths();
 

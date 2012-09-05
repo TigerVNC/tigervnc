@@ -118,7 +118,11 @@ static DevPrivateKeyRec vncHooksGCKeyRec;
 
 // screen functions
 
+#if XORG < 112
 static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen);
+#else
+static Bool vncHooksCloseScreen(ScreenPtr pScreen);
+#endif
 static Bool vncHooksCreateGC(GCPtr pGC);
 static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                                RegionPtr pOldRegion);
@@ -135,8 +139,13 @@ static Bool vncHooksDisplayCursor(
 				  DeviceIntPtr pDev,
 #endif
 				  ScreenPtr pScreen, CursorPtr cursor);
+#if XORG < 112
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask);
+#else
+static void vncHooksBlockHandler(ScreenPtr pScreen, pointer pTimeout,
+                                 pointer pReadmask);
+#endif
 #ifdef RENDER
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
 			      PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
@@ -352,7 +361,11 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 // CloseScreen - unwrap the screen functions and call the original CloseScreen
 // function
 
+#if XORG < 112
 static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
+#else
+static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
+#endif
 {
   SCREEN_UNWRAP(pScreen_, CloseScreen);
 
@@ -385,7 +398,11 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
 
   DBGPRINT((stderr,"vncHooksCloseScreen: unwrapped screen functions\n"));
 
+#if XORG < 112
   return (*pScreen->CloseScreen)(i, pScreen);
+#else
+  return (*pScreen->CloseScreen)(pScreen);
+#endif
 }
 
 // CreateGC - wrap the "GC funcs"
@@ -550,14 +567,27 @@ static Bool vncHooksDisplayCursor(
 // BlockHandler - ignore any changes during the block handler - it's likely
 // these are just drawing the cursor.
 
+#if XORG < 112
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask)
+#else
+static void vncHooksBlockHandler(ScreenPtr pScreen_, pointer pTimeout,
+                                 pointer pReadmask)
+#endif
 {
+#if XORG < 112
   SCREEN_UNWRAP(screenInfo.screens[i], BlockHandler);
+#else
+  SCREEN_UNWRAP(pScreen_, BlockHandler);
+#endif
 
   vncHooksScreen->desktop->ignoreHooks(true);
 
+#if XORG < 112
   (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
+#else
+  (*pScreen->BlockHandler) (pScreen, pTimeout, pReadmask);
+#endif
 
   vncHooksScreen->desktop->ignoreHooks(false);
 

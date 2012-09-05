@@ -58,8 +58,10 @@ ExtensionModule vncExt =
 {
     vncExtensionInitWithParams,
     "VNC",
+#if XORG < 112
     NULL,
     NULL,
+#endif
     NULL
 };
 
