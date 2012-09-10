@@ -360,7 +360,8 @@ int DesktopWindow::handle(int event)
           Fl::add_timeout(0.1, handleEdgeScroll, this);
       }
     }
-    return 1;
+    // Continue processing so that the viewport also gets mouse events
+    break;
 #endif
 
   case FL_SHORTCUT:
