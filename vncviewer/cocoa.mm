@@ -16,6 +16,10 @@
  * USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
