@@ -156,7 +156,7 @@ static void init_fltk()
       char icon_path[PATH_MAX];
       bool exists;
 
-      sprintf(icon_path, "%s/icons/hicolor/%dx%d/tigervnc.png",
+      sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tigervnc.png",
               DATA_DIR, icon_sizes[i], icon_sizes[i]);
 
 #ifndef WIN32
