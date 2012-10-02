@@ -106,6 +106,15 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     }
   }
 
+#ifdef __APPLE__
+  // On OS X we can do the maximize thing properly before the
+  // window is showned. Other platforms handled further down...
+  if (maximize) {
+    int dummy;
+    Fl::screen_work_area(dummy, dummy, w, h, geom_x, geom_y);
+  }
+#endif
+
   if (force_position()) {
     resize(geom_x, geom_y, w, h);
   } else {
@@ -128,11 +137,13 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   show();
 
   // Unfortunately, current FLTK does not allow us to set the
-  // maximized property before showing the window. See STR #2083 and
-  // STR #2178
+  // maximized property on Windows and X11 before showing the window.
+  // See STR #2083 and STR #2178
+#ifndef __APPLE__
   if (maximize) {
     maximizeWindow();
   }
+#endif
 
   // The window manager might give us an initial window size that is different
   // than the one we requested, and in those cases we need to manually adjust
@@ -567,8 +578,14 @@ void DesktopWindow::maximizeWindow()
   wp.showCmd = SW_MAXIMIZE;
   SetWindowPlacement(fl_xid(this), &wp);
 #elif defined(__APPLE__)
-  /* OS X is somewhat strange and does not really have a concept of a
-     maximized window, so we can simply resize the window to the workarea */
+  // OS X is somewhat strange and does not really have a concept of a
+  // maximized window, so we can simply resize the window to the workarea.
+  // Note that we shouldn't do this whilst in full screen as that will
+  // incorrectly adjust things.
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (fullscreen_active())
+    return;
+#endif
   int X, Y, W, H;
   Fl::screen_work_area(X, Y, W, H, this->x(), this->y());
   size(W, H);
