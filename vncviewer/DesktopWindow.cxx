@@ -93,15 +93,15 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
       matched = sscanf(geometry.getValueStr(), "%dx%d+%d+%d", &geom_w, &geom_h, &geom_x, &geom_y);
       switch (matched) {
       case 4:
-	force_position(1);
-	/* fall through */
+        force_position(1);
+        /* fall through */
       case 2:
-	w = geom_w;
-	h = geom_h;
-	break;
+        w = geom_w;
+        h = geom_h;
+        break;
       default:
-	geom_x = geom_y = 0;
-	vlog.error("Invalid geometry specified!");	
+        geom_x = geom_y = 0;
+        vlog.error("Invalid geometry specified!");
       }
     }
   }
