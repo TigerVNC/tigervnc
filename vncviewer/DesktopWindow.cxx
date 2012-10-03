@@ -281,26 +281,35 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 #if ! (defined(WIN32) || defined(__APPLE__))
   // X11 window managers will treat a resize to cover the entire
   // monitor as a request to go full screen. Make sure we avoid this.
-  //
-  // FIXME: If this is an external event then this code will get
-  //        FLTK into a confused state about the window's position/size.
-  //        Unfortunately FLTK doesn't offer an easy way to tell
-  //        what kind of resize it is. Let's hope this corner case
-  //        isn't too common...
 #ifdef HAVE_FLTK_FULLSCREEN
   if (!fullscreen_active())
 #endif
   {
-    for (int i = 0;i < Fl::screen_count();i++) {
-      int sx, sy, sw, sh;
+    // Get the real window coordinates, so we can determine if
+    // this is a request to resize, or a notification of a resize
+    // from the X server.
+    XWindowAttributes actual;
+    Window cr;
+    int wx, wy;
 
-      Fl::screen_xywh(sx, sy, sw, sh, i);
+    XGetWindowAttributes(fl_display, fl_xid(this), &actual);
+    XTranslateCoordinates(fl_display, fl_xid(this), actual.root,
+                          0, 0, &wx, &wy, &cr);
 
-      if ((sx == x) && (sy == y) && (sw == w) && (sh == h)) {
-        vlog.info("Adjusting window size to avoid accidental full screen request");
-        // Assume a panel of some form and adjust the height
-        y += 20;
-        h -= 40;
+    // Actual resize request?
+    if ((wx != x) || (wy != y) ||
+        (actual.width != w) || (actual.height != h)) {
+      for (int i = 0;i < Fl::screen_count();i++) {
+        int sx, sy, sw, sh;
+
+        Fl::screen_xywh(sx, sy, sw, sh, i);
+
+        if ((sx == x) && (sy == y) && (sw == w) && (sh == h)) {
+          vlog.info("Adjusting window size to avoid accidental full screen request");
+          // Assume a panel of some form and adjust the height
+          y += 20;
+          h -= 40;
+        }
       }
     }
   }
