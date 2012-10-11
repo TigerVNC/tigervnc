@@ -581,11 +581,18 @@ void DesktopWindow::handleGrab(void *data)
 void DesktopWindow::maximizeWindow()
 {
 #if defined(WIN32)
-  WINDOWPLACEMENT wp;
-  wp.length = sizeof(WINDOWPLACEMENT);
-  GetWindowPlacement(fl_xid(this), &wp);
-  wp.showCmd = SW_MAXIMIZE;
-  SetWindowPlacement(fl_xid(this), &wp);
+  // We cannot use ShowWindow() in full screen mode as it will
+  // resize things implicitly. Fortunately modifying the style
+  // directly results in a maximized state once we leave full screen.
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (fullscreen_active()) {
+    WINDOWINFO wi;
+    wi.cbSize = sizeof(WINDOWINFO);
+    GetWindowInfo(fl_xid(this), &wi);
+    SetWindowLongPtr(fl_xid(this), GWL_STYLE, wi.dwStyle | WS_MAXIMIZE);
+  } else
+#endif
+    ShowWindow(fl_xid(this), SW_MAXIMIZE);
 #elif defined(__APPLE__)
   // OS X is somewhat strange and does not really have a concept of a
   // maximized window, so we can simply resize the window to the workarea.
