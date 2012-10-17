@@ -136,6 +136,13 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
 
   show();
 
+  // Full screen events are not sent out for a hidden window,
+  // so send a fake one here to set up things properly.
+#ifdef HAVE_FLTK_FULLSCREEN
+  if (fullscreen_active())
+    handle(FL_FULLSCREEN);
+#endif
+
   // Unfortunately, current FLTK does not allow us to set the
   // maximized property on Windows and X11 before showing the window.
   // See STR #2083 and STR #2178
