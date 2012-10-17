@@ -431,7 +431,7 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
         dw->grabKeyboard();
       break;
 
-      case FL_UNFOCUS:
+    case FL_UNFOCUS:
       // FIXME: We need to relinquish control when the entire window loses
       //        focus as it is very tied to this specific window on some
       //        platforms and we want to be able to open subwindows.
