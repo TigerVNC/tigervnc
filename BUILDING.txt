@@ -115,6 +115,7 @@ $ patch -p1 < fltk-1.3.x-clipboard-xfixes.patch
 $ patch -p1 < fltk-1.3.x-clipboard-win32-fix.patch
 $ patch -p1 < fltk-1.3.x-clipboard-win32.patch
 $ patch -p1 < fltk-1.3.x-clipboard-osx.patch
+$ patch -p1 < fltk-xfixes-xcursor-cmake.patch
 
 Ability to convert a Fl_Pixmap to a Fl_RGB_Image
 http://www.fltk.org/str.php?L2659
