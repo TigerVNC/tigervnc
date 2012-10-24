@@ -369,6 +369,11 @@ int DesktopWindow::handle(int event)
     else
       scroll->type(Fl_Scroll::BOTH);
 
+    // The scroll widget isn't clever enough to actually redraw the
+    // scroll bars when they are added/removed, so we need to give
+    // it a push.
+    scroll->redraw();
+
     if (!fullscreenSystemKeys)
       break;
 
