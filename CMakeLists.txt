@@ -286,6 +286,9 @@ if(FLTK_FOUND)
   # FLTK STR #2660
   check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(const Fl_RGB_Image*,int,int) = &Fl_Window::cursor; return 0; }" HAVE_FLTK_CURSOR)
 
+  # FLTK STR #2697
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { int X, Y, W, H; Fl::screen_work_area(X, Y, W, H); return 0; }" HAVE_FLTK_WORK_AREA)
+
   # FLTK STR #2816
   check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { Fl_Window::default_icons(0, 0); return 0; }" HAVE_FLTK_ICONS)
 

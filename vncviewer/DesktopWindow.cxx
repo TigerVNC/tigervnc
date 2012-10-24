@@ -110,8 +110,13 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   // On OS X we can do the maximize thing properly before the
   // window is showned. Other platforms handled further down...
   if (maximize) {
+#ifdef HAVE_FLTK_WORK_AREA
     int dummy;
     Fl::screen_work_area(dummy, dummy, w, h, geom_x, geom_y);
+#else
+    w = Fl::w();
+    h = Fl::h();
+#endif
   }
 #endif
 
@@ -610,7 +615,12 @@ void DesktopWindow::maximizeWindow()
     return;
 #endif
   int X, Y, W, H;
+#ifdef HAVE_FLTK_WORK_AREA
   Fl::screen_work_area(X, Y, W, H, this->x(), this->y());
+#else
+  W = Fl::w();
+  H = Fl::h();
+#endif
   size(W, H);
 #else
   // X11
