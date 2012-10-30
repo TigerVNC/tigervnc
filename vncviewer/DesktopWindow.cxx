@@ -297,20 +297,32 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   if (!fullscreen_active())
 #endif
   {
-    // Get the real window coordinates, so we can determine if
-    // this is a request to resize, or a notification of a resize
-    // from the X server.
-    XWindowAttributes actual;
-    Window cr;
-    int wx, wy;
+    bool resize_req;
 
-    XGetWindowAttributes(fl_display, fl_xid(this), &actual);
-    XTranslateCoordinates(fl_display, fl_xid(this), actual.root,
-                          0, 0, &wx, &wy, &cr);
+    // If there is no X11 window, then this must be a resize request,
+    // not a notification from the X server.
+    if (!shown())
+      resize_req = true;
+    else {
+      // Otherwise we need to get the real window coordinates to tell
+      // the difference
+      XWindowAttributes actual;
+      Window cr;
+      int wx, wy;
 
-    // Actual resize request?
-    if ((wx != x) || (wy != y) ||
-        (actual.width != w) || (actual.height != h)) {
+      XGetWindowAttributes(fl_display, fl_xid(this), &actual);
+      XTranslateCoordinates(fl_display, fl_xid(this), actual.root,
+                            0, 0, &wx, &wy, &cr);
+
+      // Actual resize request?
+      if ((wx != x) || (wy != y) ||
+          (actual.width != w) || (actual.height != h))
+        resize_req = true;
+      else
+        resize_req = false;
+    }
+
+    if (resize_req) {
       for (int i = 0;i < Fl::screen_count();i++) {
         int sx, sy, sw, sh;
 
