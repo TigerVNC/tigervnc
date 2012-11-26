@@ -591,11 +591,12 @@ static int ProcVncExtSetParam(ClientPtr client)
     value1 = desktop1->getValueStr();
 
   /*
-   * Allow to change only clipboard parameters and desktop name.
+   * Allow to change only certain parameters.
    * Changing other parameters (for example PAM service name)
    * could have negative security impact.
    */
   if (strncasecmp(param.buf, "desktop", 7) != 0 &&
+      strncasecmp(param.buf, "AcceptPointerEvents", 19) != 0 &&
       (noclipboard || strncasecmp(param.buf, "SendCutText", 11) != 0) &&
       (noclipboard || strncasecmp(param.buf, "AcceptCutText", 13) != 0))
     goto deny;
