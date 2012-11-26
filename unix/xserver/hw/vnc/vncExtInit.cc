@@ -595,9 +595,9 @@ static int ProcVncExtSetParam(ClientPtr client)
    * Changing other parameters (for example PAM service name)
    * could have negative security impact.
    */
-  if (strcasecmp(param.buf, "desktop") != 0 &&
-      (noclipboard || strcasecmp(param.buf, "SendCutText") != 0) &&
-      (noclipboard || strcasecmp(param.buf, "AcceptCutText") != 0))
+  if (strncasecmp(param.buf, "desktop", 7) != 0 &&
+      (noclipboard || strncasecmp(param.buf, "SendCutText", 11) != 0) &&
+      (noclipboard || strncasecmp(param.buf, "AcceptCutText", 13) != 0))
     goto deny;
 
   rep.success = rfb::Configuration::setParam(param.buf);
