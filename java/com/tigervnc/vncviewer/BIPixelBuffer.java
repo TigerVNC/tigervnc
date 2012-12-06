@@ -38,7 +38,7 @@ public class BIPixelBuffer extends PlatformPixelBuffer implements ImageObserver
   }
 
   public void updateColourMap() {
-    cm = new IndexColorModel(8, nColours, reds, greens, blues);
+    super.updateColourMap();
     createImage(width_, height_);
   }
   
