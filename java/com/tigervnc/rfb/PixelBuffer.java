@@ -41,8 +41,11 @@ public class PixelBuffer {
     case  6: 
       // Fall-through to depth 8
     case  8: 
-      if (cm != null && cm instanceof IndexColorModel)
+      if (!pf.trueColour) {
+        if (cm == null)
+          cm = new IndexColorModel(8, 256, new byte[256], new byte[256], new byte[256]);
         break;
+      }
       int rmask = pf.redMax << pf.redShift;
       int gmask = pf.greenMax << pf.greenShift;
       int bmask = pf.blueMax << pf.blueShift;
