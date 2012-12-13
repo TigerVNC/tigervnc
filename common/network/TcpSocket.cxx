@@ -54,6 +54,11 @@
 #define INADDR_LOOPBACK ((unsigned long)0x7F000001)
 #endif
 
+#if defined(HAVE_GETADDRINFO) && !defined(IN6_ARE_ADDR_EQUAL)
+#define IN6_ARE_ADDR_EQUAL(a,b) \
+  (memcmp ((const void*)(a), (const void*)(b), sizeof (struct in6_addr)) == 0)
+#endif
+
 using namespace network;
 using namespace rdr;
 
