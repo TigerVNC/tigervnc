@@ -285,7 +285,7 @@ public class Configuration {
       return;
     }
 
-    for (Iterator i = props.stringPropertyNames().iterator(); i.hasNext();) {
+    for (Iterator<String> i = props.stringPropertyNames().iterator(); i.hasNext();) {
       String name = (String)i.next();
       if (name.startsWith("[")) {
         // skip the section delimiters

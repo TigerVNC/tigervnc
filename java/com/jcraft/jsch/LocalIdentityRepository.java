@@ -31,6 +31,7 @@ package com.jcraft.jsch;
 
 import java.util.Vector;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 class LocalIdentityRepository implements IdentityRepository {
 
   private Vector identities = new Vector();

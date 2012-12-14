@@ -78,10 +78,10 @@ public class MenuKey
   }
   
   static int getMenuKeyCode() {
-    String menuKeyStr;
     int menuKeyCode = KeyEvent.VK_F8;
   
-    menuKeyStr = 
+    @SuppressWarnings({"static"})
+    String menuKeyStr = 
       Configuration.global().getParam("menuKey").getValueStr();
     for(int i = 0; i < getMenuKeySymbolCount(); i++)
       if (menuSymbols[i].name.equals(menuKeyStr))

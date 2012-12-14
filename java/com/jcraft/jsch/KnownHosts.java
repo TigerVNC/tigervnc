@@ -31,6 +31,7 @@ package com.jcraft.jsch;
 
 import java.io.*;
 
+@SuppressWarnings({"rawtypes","unchecked","static"})
 public
 class KnownHosts implements HostKeyRepository{
   private static final String _known_hosts="known_hosts";

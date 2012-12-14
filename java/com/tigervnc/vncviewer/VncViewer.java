@@ -40,8 +40,7 @@ import java.io.File;
 import java.lang.Character;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.UIManager.*;
@@ -80,7 +79,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
       UIManager.put("TitledBorder.titleColor",Color.blue);
       if (UIManager.getLookAndFeel().getName().equals("Metal")) {
         UIManager.put("swing.boldMetal", Boolean.FALSE);
-        java.util.Enumeration keys = UIManager.getDefaults().keys();
+        Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
           Object key = keys.nextElement();
           Object value = UIManager.get(key);

@@ -31,6 +31,7 @@ package com.jcraft.jsch;
 
 import java.util.Vector;
 
+@SuppressWarnings({"rawtypes"})
 class UserAuthPublicKey extends UserAuth{
 
   public boolean start(Session session) throws Exception{

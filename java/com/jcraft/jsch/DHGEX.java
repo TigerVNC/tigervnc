@@ -29,6 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+@SuppressWarnings({"rawtypes"})
 public class DHGEX extends KeyExchange{
 
   private static final int SSH_MSG_KEX_DH_GEX_GROUP=               31;

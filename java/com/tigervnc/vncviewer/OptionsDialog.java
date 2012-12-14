@@ -39,6 +39,7 @@ class OptionsDialog extends Dialog implements
   OptionsDialogCallback cb;
   JPanel FormatPanel, InputsPanel, MiscPanel, DefaultsPanel, SecPanel;
   JCheckBox autoSelect, customCompressLevel, noJpeg;
+  @SuppressWarnings({"rawtypes"})
   JComboBox menuKey, compressLevel, qualityLevel, scalingFactor;
   ButtonGroup encodingGroup, colourGroup;
   JRadioButton zrle, hextile, tight, raw;
@@ -51,6 +52,7 @@ class OptionsDialog extends Dialog implements
   JButton ca, crl;
   JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
 
+  @SuppressWarnings({"rawtypes","unchecked"})
   public OptionsDialog(OptionsDialogCallback cb_) { 
     super(true);
     cb = cb_;

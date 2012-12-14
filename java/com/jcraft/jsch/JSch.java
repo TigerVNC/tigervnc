@@ -32,6 +32,7 @@ package com.jcraft.jsch;
 import java.io.InputStream;
 import java.util.Vector;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 public class JSch{
   public static final String VERSION  = "0.1.46";
 

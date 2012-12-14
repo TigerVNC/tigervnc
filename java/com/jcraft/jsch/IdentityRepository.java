@@ -31,6 +31,7 @@ package com.jcraft.jsch;
 
 import java.util.Vector;
 
+@SuppressWarnings({"rawtypes"})
 public interface IdentityRepository {
   public Vector getIdentities();
   public boolean add(byte[] identity);

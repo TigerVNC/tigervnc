@@ -122,7 +122,7 @@ abstract public class CConnection extends CMsgHandler {
         throwConnFailedException();
 
       } else if (secType == Security.secTypeNone || secType == Security.secTypeVncAuth) {
-        Iterator i;
+        Iterator<Integer> i;
         for (i = secTypes.iterator(); i.hasNext(); ) {
           int refType = (Integer)i.next();
           if (refType == secType) {
@@ -146,7 +146,7 @@ abstract public class CConnection extends CMsgHandler {
       if (nServerSecTypes == 0)
         throwConnFailedException();
 
-      Iterator j;
+      Iterator<Integer> j;
 
       for (int i = 0; i < nServerSecTypes; i++) {
         int serverSecType = is.readU8();

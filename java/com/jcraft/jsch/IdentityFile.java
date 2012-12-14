@@ -31,6 +31,7 @@ package com.jcraft.jsch;
 
 import java.io.*;
 
+@SuppressWarnings({"rawtypes","static"})
 class IdentityFile implements Identity{
   String identity;
   byte[] key;

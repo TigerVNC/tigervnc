@@ -131,7 +131,7 @@ public class CSecurityVeNCrypt extends CSecurity {
         if (!haveChosenType) {
           chosenType = Security.secTypeInvalid;
           int i;
-          Iterator j;
+          Iterator<Integer> j;
           List<Integer> secTypes = new ArrayList<Integer>();
 
           secTypes = Security.GetEnabledExtSecTypes();

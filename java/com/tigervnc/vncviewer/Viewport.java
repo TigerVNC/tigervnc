@@ -53,7 +53,7 @@ public class Viewport extends JFrame
     });
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        if (cc.viewer.nViewers == 1) {
+        if (VncViewer.nViewers == 1) {
           cc.viewer.exit(1);
         } else {
           cc.close();

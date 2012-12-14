@@ -33,6 +33,7 @@ import java.io.*;
 
 import java.util.Vector;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 public class ChannelSftp extends ChannelSession{
 
   static private final int LOCAL_MAXIMUM_PACKET_SIZE=32*1024;

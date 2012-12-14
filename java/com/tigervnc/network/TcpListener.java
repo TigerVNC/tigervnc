@@ -98,8 +98,8 @@ public class TcpListener extends SocketListener  {
     // Accept an incoming connection
     try {
       if (selector.select(0) > 0) {
-        Set keys = selector.selectedKeys();
-        Iterator iter = keys.iterator();
+        Set<SelectionKey> keys = selector.selectedKeys();
+        Iterator<SelectionKey> iter = keys.iterator();
         while (iter.hasNext()) {
           SelectionKey key = (SelectionKey)iter.next();
           iter.remove();

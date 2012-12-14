@@ -287,7 +287,7 @@ public class tunnel
       ArrayList<File> privateKeys = new ArrayList<File>();
       privateKeys.add(new File(homeDir+"/.ssh/id_rsa"));
       privateKeys.add(new File(homeDir+"/.ssh/id_dsa"));
-      for (Iterator i = privateKeys.iterator(); i.hasNext();) {
+      for (Iterator<File> i = privateKeys.iterator(); i.hasNext();) {
         File privateKey = (File)i.next();
         if (privateKey.exists() && privateKey.canRead())
 	        jsch.addIdentity(privateKey.getAbsolutePath());

@@ -32,6 +32,7 @@ package com.jcraft.jsch;
 import java.net.*;
 import java.io.*;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 public class ChannelForwardedTCPIP extends Channel{
 
   static java.util.Vector pool=new java.util.Vector();

@@ -31,6 +31,7 @@ package com.jcraft.jsch;
 
 import java.net.*;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 class ChannelX11 extends Channel{
 
   static private final int LOCAL_WINDOW_SIZE_MAX=0x20000;

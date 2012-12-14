@@ -35,7 +35,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 
-
+@SuppressWarnings({"rawtypes","unchecked"})
 public abstract class Channel implements Runnable{
 
   static final int SSH_MSG_CHANNEL_OPEN_CONFIRMATION=      91;

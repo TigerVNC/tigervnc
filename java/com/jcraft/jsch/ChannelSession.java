@@ -31,6 +31,7 @@ package com.jcraft.jsch;
 
 import java.util.*;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 class ChannelSession extends Channel{
   private static byte[] _session=Util.str2byte("session");
 

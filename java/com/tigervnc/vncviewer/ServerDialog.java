@@ -33,6 +33,7 @@ class ServerDialog extends Dialog implements
                            ItemListener
 {
 
+  @SuppressWarnings({"unchecked","rawtypes"})
   public ServerDialog(OptionsDialog options_,
                       String defaultServerName, CConn cc_) {
     
@@ -41,10 +42,10 @@ class ServerDialog extends Dialog implements
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setResizable(false);
     setSize(new Dimension(340, 135));
-    setTitle("VNC Viewer : Connection Details");
+    setTitle("VNC Viewer: Connection Details");
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        if (cc.viewer.nViewers == 1) {
+        if (VncViewer.nViewers == 1) {
           cc.viewer.exit(1);
         } else {
           ret = false;
@@ -120,13 +121,14 @@ class ServerDialog extends Dialog implements
     return;
   }
 
+  @SuppressWarnings({"unchecked","rawtypes"})
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
       commit();
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
-      if (cc.viewer.nViewers == 1)
+      if (VncViewer.nViewers == 1)
         cc.viewer.exit(1);
       ret = false;
       endDialog();
@@ -148,7 +150,7 @@ class ServerDialog extends Dialog implements
     String serverName = (String)server.getSelectedItem();
     if (serverName == null || serverName.equals("")) {
       vlog.error("Invalid servername specified");
-      if (cc.viewer.nViewers == 1)
+      if (VncViewer.nViewers == 1)
         cc.viewer.exit(1);
       ret = false;
       endDialog();
@@ -177,6 +179,7 @@ class ServerDialog extends Dialog implements
   }
 
   CConn cc;
+  @SuppressWarnings("rawtypes")
   JComboBox server;
   ComboBoxEditor editor;
   JButton aboutButton, optionsButton, okButton, cancelButton;

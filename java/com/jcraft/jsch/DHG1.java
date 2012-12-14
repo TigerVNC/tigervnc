@@ -29,6 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+@SuppressWarnings({"rawtypes"})
 public class DHG1 extends KeyExchange{
 
   static final byte[] g={ 2 };

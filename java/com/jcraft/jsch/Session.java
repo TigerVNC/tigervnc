@@ -32,6 +32,7 @@ package com.jcraft.jsch;
 import java.io.*;
 import java.net.*;
 
+@SuppressWarnings({"rawtypes","static","unchecked"})
 public class Session implements Runnable{
 
   // http://ietf.org/internet-drafts/draft-ietf-secsh-assignednumbers-01.txt

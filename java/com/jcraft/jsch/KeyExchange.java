@@ -29,6 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+@SuppressWarnings({"rawtypes"})
 public abstract class KeyExchange{
 
   static final int PROPOSAL_KEX_ALGS=0;

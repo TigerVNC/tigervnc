@@ -297,7 +297,7 @@ public class CConn extends CConnection
       setServerPort(port);
       sock = new TcpSocket(host, port);
       vlog.info("Redirected to "+host+":"+port);
-      viewer.newViewer(viewer, sock, true);
+      VncViewer.newViewer(viewer, sock, true);
     } catch (java.lang.Exception e) {
       throw new Exception(e.toString());
     }
@@ -355,7 +355,7 @@ public class CConn extends CConnection
         else if (layout.num_screens() != 1) {
 
           while (true) {
-            Iterator iter = layout.screens.iterator(); 
+            Iterator<Screen> iter = layout.screens.iterator(); 
             Screen screen = (Screen)iter.next();
         
             if (!iter.hasNext())
@@ -831,7 +831,7 @@ public class CConn extends CConnection
       /* Process non-VeNCrypt sectypes */
       java.util.List<Integer> secTypes = new ArrayList<Integer>();
       secTypes = Security.GetEnabledSecTypes();
-      for (Iterator i = secTypes.iterator(); i.hasNext();) {
+      for (Iterator<Integer> i = secTypes.iterator(); i.hasNext();) {
         switch ((Integer)i.next()) {
         case Security.secTypeVeNCrypt:
           options.secVeNCrypt.setSelected(UserPreferences.getBool("viewer", "secVeNCrypt", true));
@@ -851,7 +851,7 @@ public class CConn extends CConnection
       if (options.secVeNCrypt.isSelected()) {
         java.util.List<Integer> secTypesExt = new ArrayList<Integer>();
         secTypesExt = Security.GetEnabledExtSecTypes();
-        for (Iterator iext = secTypesExt.iterator(); iext.hasNext();) {
+        for (Iterator<Integer> iext = secTypesExt.iterator(); iext.hasNext();) {
           switch ((Integer)iext.next()) {
           case Security.secTypePlain:
             options.encNone.setSelected(UserPreferences.getBool("viewer", "encNone", true));

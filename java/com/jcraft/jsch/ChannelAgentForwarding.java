@@ -32,6 +32,7 @@ package com.jcraft.jsch;
 import java.net.*;
 import java.util.Vector;
 
+@SuppressWarnings({"rawtypes"})
 class ChannelAgentForwarding extends Channel{
 
   static private final int LOCAL_WINDOW_SIZE_MAX=0x20000;

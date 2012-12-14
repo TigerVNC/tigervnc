@@ -29,6 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+@SuppressWarnings({"rawtypes","static"})
 public class HostKey{
   private static final byte[] sshdss=Util.str2byte("ssh-dss");
   private static final byte[] sshrsa=Util.str2byte("ssh-rsa");
