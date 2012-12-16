@@ -108,7 +108,7 @@ public class TcpSocket extends Socket {
       try {
         ((SocketDescriptor)getFd()).close();
       } catch (IOException e) {
-        throw new Exception(e.toString());
+        throw new Exception(e.getMessage());
       }
   }
 
@@ -148,7 +148,7 @@ public class TcpSocket extends Socket {
       SocketAddress myaddr = ((SocketDescriptor)getFd()).getLocalAddress();
       return myaddr.equals(peeraddr);
     } catch (IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
   }
 
@@ -157,7 +157,7 @@ public class TcpSocket extends Socket {
     try {
       ((SocketDescriptor)getFd()).shutdown();
     } catch (IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
   }
   

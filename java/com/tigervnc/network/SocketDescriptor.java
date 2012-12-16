@@ -39,13 +39,13 @@ public class SocketDescriptor implements FileDescriptor {
       writeSelector = Selector.open();
       readSelector = Selector.open();
     } catch (IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     try {
       channel.register(writeSelector, SelectionKey.OP_WRITE);
       channel.register(readSelector, SelectionKey.OP_READ);
     } catch (java.nio.channels.ClosedChannelException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
   }
 
@@ -54,7 +54,7 @@ public class SocketDescriptor implements FileDescriptor {
       channel.socket().shutdownInput();
       channel.socket().shutdownOutput();
     } catch(IOException e) {
-      throw new IOException(e.toString());
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -62,7 +62,7 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       channel.close();
     } catch(IOException e) {
-      throw new IOException(e.toString());
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -80,7 +80,7 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       n = channel.read(b);
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     if (n <= 0)
       return (n == 0) ? -1 : 0;
@@ -99,7 +99,7 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       n = channel.write(b);
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     b.clear();
     return n;
@@ -129,7 +129,7 @@ public class SocketDescriptor implements FileDescriptor {
         }
       }
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     return n;
   }
@@ -139,7 +139,7 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       n = channel.write(buf);
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     return n;
   }
@@ -151,7 +151,7 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       n = channel.write(buf, offset, length);
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     return n;
   }
@@ -161,7 +161,7 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       n = channel.read(buf);
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     return n;
   }
@@ -173,7 +173,7 @@ public class SocketDescriptor implements FileDescriptor {
     try {
       n = channel.read(buf, offset, length);
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     return n;
   }
@@ -232,7 +232,7 @@ public class SocketDescriptor implements FileDescriptor {
       writeSelector = Selector.open();
       readSelector = Selector.open();
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     try {
       channel.register(writeSelector, SelectionKey.OP_WRITE);

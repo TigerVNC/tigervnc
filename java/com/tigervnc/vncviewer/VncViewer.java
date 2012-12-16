@@ -371,12 +371,18 @@ public class VncViewer extends java.applet.Applet implements Runnable
       while (!cc.shuttingDown)
         cc.processMsg();
     } catch (java.lang.Exception e) {
-      if (cc == null || !cc.shuttingDown) {
+      if (e instanceof EndOfStream) {
+        vlog.info(e.getMessage());
+      } else if (cc == null || !cc.shuttingDown) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(null,
-          e.toString(),
-          "VNC Viewer : Error",
-          JOptionPane.ERROR_MESSAGE);
+        JOptionPane op = 
+          new JOptionPane(e.getMessage(), JOptionPane.WARNING_MESSAGE);
+        JDialog dlg = op.createDialog("TigerVNC Viewer");
+        ClassLoader cl = this.getClass().getClassLoader();
+        ImageIcon icon = 
+          new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.ico"));
+        dlg.setIconImage(icon.getImage());
+        dlg.setVisible(true);
       } else {
         if (!cc.shuttingDown)
           vlog.info(e.toString());

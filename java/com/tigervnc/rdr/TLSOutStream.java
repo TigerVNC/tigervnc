@@ -79,7 +79,7 @@ public class TLSOutStream extends OutStream {
     try {
       n = manager.write(data, dataPtr, length);
     } catch (java.io.IOException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     //if (n == GNUTLS_E_INTERRUPTED || n == GNUTLS_E_AGAIN)
     //  return 0;

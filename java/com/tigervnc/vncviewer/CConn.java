@@ -134,7 +134,7 @@ public class CConn extends CConnection
       try {
         sock = new TcpSocket(serverHost, serverPort);
       } catch (java.lang.Exception e) {
-        throw new Exception(e.toString());
+        throw new Exception(e.getMessage());
       }
       vlog.info("connected to host "+serverHost+" port "+serverPort);
     }
@@ -177,7 +177,7 @@ public class CConn extends CConnection
         wait(1);
       }
     } catch (java.lang.InterruptedException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
   }  
 
@@ -299,7 +299,7 @@ public class CConn extends CConnection
       vlog.info("Redirected to "+host+":"+port);
       VncViewer.newViewer(viewer, sock, true);
     } catch (java.lang.Exception e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
   }
 
@@ -698,7 +698,7 @@ public class CConn extends CConnection
       if (sock != null)
         sock.shutdown();
     } catch (java.lang.Exception e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
   }
 

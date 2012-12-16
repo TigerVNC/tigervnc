@@ -107,7 +107,7 @@ public class FdOutStream extends OutStream {
         n = fd.select(SelectionKey.OP_WRITE, tv);
       } catch (java.lang.Exception e) {
         System.out.println(e.toString());
-        throw new Exception(e.toString());
+        throw new Exception(e.getMessage());
       }
           
     } while (n < 0);
@@ -117,7 +117,7 @@ public class FdOutStream extends OutStream {
     try {
       n = fd.write(data, dataPtr, length);
     } catch (java.lang.Exception e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
     
     return n;

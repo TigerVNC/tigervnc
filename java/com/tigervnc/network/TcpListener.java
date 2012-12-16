@@ -62,7 +62,7 @@ public class TcpListener extends SocketListener  {
         addr = InetAddress.getByName("0.0.0.0");
       }
     } catch (UnknownHostException e) {
-      throw new Exception(e.toString());
+      throw new Exception(e.getMessage());
     }
   
     try {
@@ -120,7 +120,7 @@ public class TcpListener extends SocketListener  {
     try {
       new_sock.socket().setTcpNoDelay(true);
     } catch (java.net.SocketException e) {
-      throw new SocketException(e.toString());
+      throw new SocketException(e.getMessage());
     }
 
     // Create the socket object & check connection is allowed
@@ -128,7 +128,7 @@ public class TcpListener extends SocketListener  {
     try {
       fd = new SocketDescriptor();
     } catch (java.lang.Exception e) {
-      throw new SocketException(e.toString());
+      throw new SocketException(e.getMessage());
     }
     fd.setChannel(new_sock);
     TcpSocket s = new TcpSocket(fd);
