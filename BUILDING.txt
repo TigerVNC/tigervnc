@@ -140,6 +140,8 @@ $ patch -p1 < fltk-1_v2.3.x-multihead.patch
 
 3. Use CMake to build FLTK using the same procedures described below for
    building TigerVNC.  The recipes in the "Build Recipes" section also apply.
+   If you want optimized code, make sure to build with
+   -DCMAKE_BUILD_TYPE=Release. 
 
 4. (optional) Use 'make install' to install FLTK into a directory of your
    choosing.
