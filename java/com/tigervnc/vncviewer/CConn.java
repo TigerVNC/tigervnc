@@ -730,12 +730,18 @@ public class CConn extends CConnection
     Window fullScreenWindow = Viewport.getFullScreenWindow();
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(null);
-    JOptionPane.showMessageDialog((viewport != null ? viewport : null),
+    String msg = 
       String.format(VncViewer.aboutText, VncViewer.version, VncViewer.build,
-                    VncViewer.buildDate, VncViewer.buildTime), 
-      "About TigerVNC Viewer for Java",
-      JOptionPane.INFORMATION_MESSAGE,
-      logo);
+                    VncViewer.buildDate, VncViewer.buildTime);
+    JOptionPane op = 
+      new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
+                      JOptionPane.DEFAULT_OPTION, logo);
+    JDialog dlg = op.createDialog("About TigerVNC Viewer for Java");
+    ClassLoader cl = this.getClass().getClassLoader();
+    ImageIcon icon = 
+      new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.ico"));
+    dlg.setIconImage(icon.getImage());
+    dlg.setVisible(true);
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(fullScreenWindow);
   }
