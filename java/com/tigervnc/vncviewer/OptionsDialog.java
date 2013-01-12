@@ -470,6 +470,15 @@ class OptionsDialog extends Dialog implements
     return c;
   }
 
+  public void endDialog() {
+    super.endDialog();
+    CConn cc = (CConn)cb;
+    if (cc.viewport != null && cc.viewport.isVisible()) {
+      cc.viewport.toFront();
+      cc.viewport.requestFocus();
+    }
+  }
+
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
