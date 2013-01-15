@@ -182,7 +182,7 @@ class DesktopWindow extends JPanel implements
 
     if (softCursor != null) {
       setCursor(softCursor); 
-      cursorAvailable = true;
+      cursorAvailable = false;
       return;
     }
 
@@ -191,7 +191,6 @@ class DesktopWindow extends JPanel implements
     }
 
     showLocalCursor();
-    return;
   }
 
   public void setServerPF(PixelFormat pf) {
@@ -254,8 +253,7 @@ class DesktopWindow extends JPanel implements
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
     im.fillRect(x, y, w, h, pix);
     damageRect(new Rect(x, y, x+w, y+h));
-    if (!cc.cp.supportsLocalCursor)
-      showLocalCursor();
+    showLocalCursor();
   }
 
   final public void imageRect(int x, int y, int w, int h,
@@ -263,8 +261,7 @@ class DesktopWindow extends JPanel implements
     if (overlapsCursor(x, y, w, h)) hideLocalCursor();
     im.imageRect(x, y, w, h, pix);
     damageRect(new Rect(x, y, x+w, y+h));
-    if (!cc.cp.supportsLocalCursor)
-      showLocalCursor();
+    showLocalCursor();
   }
 
   final public void copyRect(int x, int y, int w, int h,
@@ -273,6 +270,7 @@ class DesktopWindow extends JPanel implements
       hideLocalCursor();
     im.copyRect(x, y, w, h, srcX, srcY);
     damageRect(new Rect(x, y, x+w, y+h));
+    showLocalCursor();
   }
 
 
@@ -392,8 +390,11 @@ class DesktopWindow extends JPanel implements
 
   /** Mouse-Motion callback function */
   private void mouseMotionCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue())
+    if (!cc.viewer.viewOnly.getValue()) {
       cc.writePointerEvent(e);
+      lastX = e.getX();
+      lastY = e.getY();      
+    }
     // - If local cursor rendering is enabled then use it
     if (cursorAvailable) {
       // - Render the cursor!
@@ -403,13 +404,10 @@ class DesktopWindow extends JPanel implements
             e.getY() >= 0 && e.getY() < im.height()) {
           cursorPosX = e.getX();
           cursorPosY = e.getY();
-          if (!cc.cp.supportsLocalCursor)
-            showLocalCursor();
+          showLocalCursor();
         }
       }
     }
-    lastX = e.getX();
-    lastY = e.getY();      
   }
   public void mouseDragged(MouseEvent e) { mouseMotionCB(e);}
   public void mouseMoved(MouseEvent e) { mouseMotionCB(e);}
@@ -468,6 +466,9 @@ class DesktopWindow extends JPanel implements
       cursorVisible = false;
       im.imageRect(cursorBackingX, cursorBackingY, cursorBacking.width(),
                    cursorBacking.height(), cursorBacking.data);
+      damageRect(new Rect(cursorBackingX, cursorBackingY,
+                          cursorBackingX+cursorBacking.width(),
+                          cursorBackingY+cursorBacking.height()));
     }
   }
 
@@ -480,7 +481,6 @@ class DesktopWindow extends JPanel implements
         return;
       }
       cursorVisible = true;
-      if (cc.cp.supportsLocalCursor) return;
 
       int cursorLeft = cursor.hotspot.x;
       int cursorTop = cursor.hotspot.y;
@@ -502,6 +502,7 @@ class DesktopWindow extends JPanel implements
 
       im.maskRect(cursorLeft, cursorTop, cursor.width(), cursor.height(),
                   cursor.data, cursor.mask);
+      damageRect(new Rect(x, y, x+w, y+h));
     }
   }
 
@@ -532,8 +533,8 @@ class DesktopWindow extends JPanel implements
   Thread setColourMapEntriesTimerThread;
 
   Cursor cursor;
-  boolean cursorVisible;     // Is cursor currently rendered?
-  boolean cursorAvailable;   // Is cursor available for rendering?
+  boolean cursorVisible = false;     // Is cursor currently rendered?
+  boolean cursorAvailable = false;   // Is cursor available for rendering?
   int cursorPosX, cursorPosY;
   ManagedPixelBuffer cursorBacking;
   int cursorBackingX, cursorBackingY;
