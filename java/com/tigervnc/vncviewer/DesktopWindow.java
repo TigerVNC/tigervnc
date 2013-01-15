@@ -167,7 +167,7 @@ class DesktopWindow extends JPanel implements
                         RenderingHints.VALUE_RENDER_SPEED);
     g2.drawImage(srcImage, 0, 0, (int)Math.min(cw, bestSize.width),
                  (int)Math.min(ch, bestSize.height), 0, 0, cursor.width(),
-                 cursor.height(), this) ;
+                 cursor.height(), null) ;
     g2.dispose();
     srcImage.flush();
 
