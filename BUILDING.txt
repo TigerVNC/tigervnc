@@ -9,7 +9,7 @@ Build Requirements (All Systems)
 
 -- CMake (http://www.cmake.org) v2.8 or later
 
--- FLTK 1.3.0
+-- FLTK 1.3.2
    * Must be a patched snapshot to get full functionality
    * See "Building FLTK" below.
 
@@ -88,55 +88,55 @@ TigerVNC requires FLTK 1.3.0 (or later). Although it will build and work
 with plain 1.3.0, to get full functionality and the best behaviour you
 need to build a patched version:
 
-1. Check out FLTK 1.3.0r9619 using Subversion:
-$ svn co http://svn.easysw.com/public/fltk/fltk/branches/branch-1.3 -r 9619 fltk-1.3.0r9619
+1. Check out FLTK 1.3.2 using Subversion:
+$ svn co http://svn.easysw.com/public/fltk/fltk/tags/release-1.3.2 fltk-1.3.2
 
-2. For full functionality, apply these patches:
+2. For full functionality, apply patches. Here's a shell script to do
+that:
 
-# Support horizontal mouse wheel
-# http://www.fltk.org/str.php?L2644
-$ patch -p1 < fltk-1.3.x-hwheel.patch
-
-# Incorrect resize handling
-# http://fltk.org/str.php?L2859
-$ patch -p1 < fltk-1.3.x-resize-expose.patch
+#!/bin/bash
+set -e
+apply_patch()
+{
+    rm -f $2
+    wget http://www.fltk.org/strfiles/$1/$2
+    patch -p1 < $2
+}
 
 # Export dead key information from FLTK to the apps
 # http://www.fltk.org/str.php?L2599
-$ patch -p1 < fltk-1_v4.3.x-keyboard-x11.patch
-$ patch -p1 < fltk-1_v4.3.x-keyboard-win32.patch
-$ patch -p1 < fltk-1_v6.3.x-keyboard-osx.patch
+apply_patch 2599 fltk-1_v4.3.x-keyboard-x11.patch
+apply_patch 2599 fltk-1_v4.3.x-keyboard-win32.patch
+apply_patch 2599 fltk-1_v6.3.x-keyboard-osx.patch
 
 # Notify applications of changes to the clipboard
 # http://www.fltk.org/str.php?L2636
-$ patch -p1 < fltk-1_v2.3.x-clipboard.patch
-$ patch -p1 < fltk-1_v2.3.x-clipboard-x11.patch
-$ patch -p1 < fltk-1_v4.3.x-clipboard-xfixes.patch
-$ patch -p1 < fltk-1_v3.3.x-clipboard-win32-fix.patch
-$ patch -p1 < fltk-1_v2.3.x-clipboard-win32.patch
-$ patch -p1 < fltk-1_v2.3.x-clipboard-osx.patch
-$ patch -p0 < fltk-xfixes-xcursor-cmake.2.patch
+apply_patch 2636 fltk-1.3.x-clipboard.patch
+apply_patch 2636 fltk-1_v4.3.x-clipboard-x11.patch
+apply_patch 2636 fltk-1_v3.3.x-clipboard-win32-fix.patch
+apply_patch 2636 fltk-1_v2.3.x-clipboard-win32.patch
+apply_patch 2636 fltk-1_v2.3.x-clipboard-osx.patch
 
 # Ability to convert a Fl_Pixmap to a Fl_RGB_Image
 # http://www.fltk.org/str.php?L2659
-$ patch -p1 < fltk-1_v2.3.x-pixmap.patch
+apply_patch 2659 pixmap_v2.patch
 
 # Support for custom cursors
 # http://www.fltk.org/str.php?L2660
-$ patch -p1 < fltk-1_v4.3.x-cursor.patch
+apply_patch 2660 fltk-1_v4.3.x-cursor.patch
 
 # Improve modality interaction with WM
 # http://www.fltk.org/str.php?L2802
-$ patch -p1 < fltk-1_v2.3.0-modal.patch
+apply_patch 2802 fltk-1_v2.3.0-modal.patch
 
 # Window icons
 # http://www.fltk.org/str.php?L2816
-$ patch -p1 < fltk-1_v2.3.0-icons.patch
+apply_patch 2816 fltk-1_v3.3.0-icons.patch
 
 # Multihead
 # http://fltk.org/str.php?L2860
-$ patch -p1 < fltk-1.3.x-screen_num.patch
-$ patch -p1 < fltk-1_v2.3.x-multihead.patch
+apply_patch 2860 fltk-1.3.x-screen_num.patch
+apply_patch 2860 fltk-1_v3.3.x-multihead.patch
 
 3. Use CMake to build FLTK using the same procedures described below for
    building TigerVNC.  The recipes in the "Build Recipes" section also apply.
