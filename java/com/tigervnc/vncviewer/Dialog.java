@@ -74,6 +74,7 @@ class Dialog extends JDialog {
     setVisible(false);
     setFocusable(false);
     setAlwaysOnTop(false);
+    fullScreenWindow = Viewport.getFullScreenWindow();
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(fullScreenWindow);
   }

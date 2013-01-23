@@ -995,28 +995,18 @@ public class CConn extends CConnection
     String scaleString =
       options.scalingFactor.getSelectedItem().toString();
     String oldScaleFactor = viewer.scalingFactor.getValue();
-    if (scaleString.equalsIgnoreCase("Auto")) {
-      if (!oldScaleFactor.equals(scaleString)) {
-      viewer.scalingFactor.setParam("Auto");
-        if (desktop != null && !(options.fullScreen.isSelected() && fullScreen))
-          reconfigureViewport();
-      }
-    } else if(scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
-      if (!oldScaleFactor.equalsIgnoreCase("FixedRatio")) {
-        viewer.scalingFactor.setParam("FixedRatio");
-        if (desktop != null && !(options.fullScreen.isSelected() && fullScreen))
-          reconfigureViewport();
-      }
-    } else { 
+    if (scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
+      scaleString = new String("FixedRatio");
+    } else if (scaleString.equalsIgnoreCase("Auto")) {
+      scaleString = new String("Auto");
+    } else {
       scaleString=scaleString.substring(0, scaleString.length()-1);
-      if (!oldScaleFactor.equals(scaleString)) {
-        viewer.scalingFactor.setParam(scaleString);
-        if ((desktop != null) && (!oldScaleFactor.equalsIgnoreCase("Auto") ||
-            !oldScaleFactor.equalsIgnoreCase("FixedRatio"))) {
-          if (!(options.fullScreen.isSelected() && fullScreen))
-            reconfigureViewport();
-        }
-      }
+    }
+    if (oldScaleFactor != scaleString) {
+      viewer.scalingFactor.setParam(scaleString);
+      if ((options.fullScreen.isSelected() == fullScreen) &&
+          (desktop != null))
+        recreateViewport();
     }
 
     clipboardDialog.setSendingEnabled(viewer.sendClipboard.getValue());
@@ -1148,7 +1138,7 @@ public class CConn extends CConnection
 
   public void toggleFullScreen() {
     fullScreen = !fullScreen;
-    if (!fullScreen) menu.fullScreen.setSelected(false);
+    menu.fullScreen.setSelected(fullScreen);
     if (viewport != null)
       recreateViewport();
   }

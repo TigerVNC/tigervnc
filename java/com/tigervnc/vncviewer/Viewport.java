@@ -62,10 +62,6 @@ public class Viewport extends JFrame
     });
     addComponentListener(new ComponentAdapter() {
       public void componentResized(ComponentEvent e) {
-        if ((getExtendedState() != JFrame.MAXIMIZED_BOTH) &&
-            cc.fullScreen) {
-          cc.toggleFullScreen();
-        }
         String scaleString = cc.viewer.scalingFactor.getValue();
         if (scaleString.equalsIgnoreCase("Auto") ||
             scaleString.equalsIgnoreCase("FixedRatio")) {
@@ -78,21 +74,22 @@ public class Viewport extends JFrame
                                      cc.desktop.scaledHeight));
             sp.validate();
             if (getExtendedState() != JFrame.MAXIMIZED_BOTH &&
-                scaleString.equalsIgnoreCase("FixedRatio")) {
+                scaleString.equalsIgnoreCase("FixedRatio") &&
+                !cc.fullScreen) {
               int w = cc.desktop.scaledWidth + getInsets().left + getInsets().right;
               int h = cc.desktop.scaledHeight + getInsets().top + getInsets().bottom;
               setSize(w, h);
-            }
-            if (cc.desktop.cursor != null) {
-              Cursor cursor = cc.desktop.cursor;
-              cc.setCursor(cursor.width(),cursor.height(),cursor.hotspot, 
-                           cursor.data, cursor.mask);
             }
           }
         } else {
           int policy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
           sp.setHorizontalScrollBarPolicy(policy);
           sp.validate();
+        }
+        if (cc.desktop.cursor != null) {
+          Cursor cursor = cc.desktop.cursor;
+          cc.setCursor(cursor.width(),cursor.height(),cursor.hotspot, 
+                       cursor.data, cursor.mask);
         }
       }
     });

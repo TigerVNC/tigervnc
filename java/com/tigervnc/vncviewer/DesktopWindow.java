@@ -125,7 +125,7 @@ class DesktopWindow extends JPanel implements
 
     hideLocalCursor();
 
-    cursor.hotspot = hotspot;
+    cursor.hotspot = (hotspot != null) ? hotspot : new Point(0, 0);
     cursor.setSize(w, h);
     cursor.setPF(getPF());
 
@@ -171,8 +171,8 @@ class DesktopWindow extends JPanel implements
     g2.dispose();
     srcImage.flush();
 
-    int x = (int)Math.floor((float)hotspot.x * scaleWidthRatio);
-    int y = (int)Math.floor((float)hotspot.y * scaleHeightRatio);
+    int x = (int)Math.floor((float)cursor.hotspot.x * scaleWidthRatio);
+    int y = (int)Math.floor((float)cursor.hotspot.y * scaleHeightRatio);
     x = (int)Math.min(x, Math.max(bestSize.width-1, 0));
     y = (int)Math.min(y, Math.max(bestSize.height-1, 0));
     java.awt.Point hs = new java.awt.Point(x, y);
