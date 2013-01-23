@@ -390,11 +390,10 @@ class DesktopWindow extends JPanel implements
 
   /** Mouse-Motion callback function */
   private void mouseMotionCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue()) {
+    if (!cc.viewer.viewOnly.getValue() &&
+        e.getX() >= 0 && e.getX() <= scaledWidth &&
+        e.getY() >= 0 && e.getY() <= scaledHeight)
       cc.writePointerEvent(e);
-      lastX = e.getX();
-      lastY = e.getY();      
-    }
     // - If local cursor rendering is enabled then use it
     if (cursorAvailable) {
       // - Render the cursor!
@@ -408,13 +407,17 @@ class DesktopWindow extends JPanel implements
         }
       }
     }
+    lastX = e.getX();
+    lastY = e.getY();      
   }
   public void mouseDragged(MouseEvent e) { mouseMotionCB(e);}
   public void mouseMoved(MouseEvent e) { mouseMotionCB(e);}
 
   /** Mouse callback function */
   private void mouseCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue())
+    if (!cc.viewer.viewOnly.getValue() &&
+        e.getX() >= 0 && e.getX() <= scaledWidth &&
+        e.getY() >= 0 && e.getY() <= scaledHeight)
       cc.writePointerEvent(e);
     lastX = e.getX();
     lastY = e.getY();
