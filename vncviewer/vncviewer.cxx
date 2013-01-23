@@ -321,7 +321,6 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
   setenv("H", remoteHost, 1);
   setenv("R", rport, 1);
   setenv("L", lport, 1);
-  vlog.error("%s, %s, %d, %d", gatewayHost, remoteHost, rport, lport);
   if (!cmd)
     cmd = "/usr/bin/ssh -f -L \"$L\":\"$H\":\"$R\" \"$G\" sleep 20";
   /* Compatibility with TigerVNC's method. */
