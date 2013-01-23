@@ -133,6 +133,10 @@ BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
                                    "to the server when in full screen mode.",
                                    true);
 
+#ifndef WIN32
+StringParameter via("via", "Gateway to tunnel via", "");
+#endif
+
 const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
 
 VoidParameter* parameterArray[] = {

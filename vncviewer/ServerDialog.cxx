@@ -107,23 +107,22 @@ ServerDialog::~ServerDialog()
 }
 
 
-const char *ServerDialog::run(const char* servername)
+void ServerDialog::run(const char* servername, char *newservername)
 {
   ServerDialog dialog;
-  static char buffer[256];
 
   dialog.serverName->value(servername);
   
   dialog.show();
   while (dialog.shown()) Fl::wait();
 
-  if (dialog.serverName->value() == NULL)
-    return NULL;
+  if (dialog.serverName->value() == NULL) {
+    newservername[0] = '\0';
+    return;
+  }
 
-  strncpy(buffer, dialog.serverName->value(), sizeof(buffer));
-  buffer[sizeof(buffer)-1] = '\0';
-
-  return buffer;
+  strncpy(newservername, dialog.serverName->value(), VNCSERVERNAMELEN);
+  newservername[VNCSERVERNAMELEN - 1] = '\0';
 }
 
 void ServerDialog::handleOptions(Fl_Widget *widget, void *data)

@@ -29,7 +29,7 @@ protected:
   ~ServerDialog();
 
 public:
-  static const char *run(const char* servername);
+  static void run(const char* servername, char *newservername);
 
 protected:
   static void handleOptions(Fl_Widget *widget, void *data);

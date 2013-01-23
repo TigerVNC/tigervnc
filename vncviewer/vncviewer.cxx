@@ -58,6 +58,7 @@
 #include "CConn.h"
 #include "ServerDialog.h"
 #include "UserDialog.h"
+#include "vncviewer.h"
 
 #ifdef WIN32
 #include "resource.h"
@@ -75,6 +76,8 @@ static const char aboutText[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
                                    "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
                                    "See http://www.tigervnc.org for information on TigerVNC.");
 extern const char* buildTime;
+
+char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
 static bool exitMainloop = false;
 static const char *exitError = NULL;
@@ -267,9 +270,84 @@ static void usage(const char *programName)
   exit(1);
 }
 
+#ifndef WIN32
+static int
+interpretViaParam(char *remoteHost, int *remotePort, int localPort)
+{
+  const int SERVER_PORT_OFFSET = 5900;
+  char *pos = strchr(vncServerName, ':');
+  if (pos == NULL)
+    *remotePort = SERVER_PORT_OFFSET;
+  else {
+    int portOffset = SERVER_PORT_OFFSET;
+    size_t len;
+    *pos++ = '\0';
+    len = strlen(pos);
+    if (*pos == ':') {
+      /* Two colons is an absolute port number, not an offset. */
+      pos++;
+      len--;
+      portOffset = 0;
+    }
+    if (!len || strspn (pos, "-0123456789") != len )
+      return 1;
+    *remotePort = atoi(pos) + portOffset;
+  }
+
+  if (*vncServerName != '\0')
+    strncpy(remoteHost, vncServerName, VNCSERVERNAMELEN);
+  else
+    strncpy(remoteHost, "localhost", VNCSERVERNAMELEN);
+
+  remoteHost[VNCSERVERNAMELEN - 1] = '\0';
+
+  snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
+  vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+  vlog.error(vncServerName);
+
+  return 0;
+}
+
+static void
+createTunnel(const char *gatewayHost, const char *remoteHost,
+             int remotePort, int localPort)
+{
+  char *cmd = getenv("VNC_VIA_CMD");
+  char *percent;
+  char lport[10], rport[10];
+  sprintf(lport, "%d", localPort);
+  sprintf(rport, "%d", remotePort);
+  setenv("G", gatewayHost, 1);
+  setenv("H", remoteHost, 1);
+  setenv("R", rport, 1);
+  setenv("L", lport, 1);
+  vlog.error("%s, %s, %d, %d", gatewayHost, remoteHost, rport, lport);
+  if (!cmd)
+    cmd = "/usr/bin/ssh -f -L \"$L\":\"$H\":\"$R\" \"$G\" sleep 20";
+  /* Compatibility with TigerVNC's method. */
+  while ((percent = strchr(cmd, '%')) != NULL)
+    *percent = '$';
+  system(cmd);
+}
+
+static int mktunnel()
+{
+  const char *gatewayHost;
+  char remoteHost[VNCSERVERNAMELEN];
+  int localPort = findFreeTcpPort();
+  int remotePort;
+
+  gatewayHost = strDup(via.getValueStr());
+  if (interpretViaParam(remoteHost, &remotePort, localPort) != 0)
+    return 1;
+  createTunnel(gatewayHost, remoteHost, remotePort, localPort);
+
+  return 0;
+}
+#endif /* !WIN32 */
+
 int main(int argc, char** argv)
 {
-  const char* vncServerName = NULL;
   UserDialog dlg;
 
   setlocale(LC_ALL, "");
@@ -332,7 +410,8 @@ int main(int argc, char** argv)
         usage(argv[0]);
       }
 
-      vncServerName = argv[i];
+      strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
+      vncServerName[VNCSERVERNAMELEN - 1] = '\0';
     }
 
   if (!::autoSelect.hasBeenSet()) {
@@ -363,11 +442,16 @@ int main(int argc, char** argv)
   CSecurityTLS::msg = &dlg;
 #endif
 
-  if (vncServerName == NULL) {
-    vncServerName = ServerDialog::run(defaultServerName);
-    if ((vncServerName == NULL) || (vncServerName[0] == '\0'))
+  if (vncServerName[0] == '\0') {
+    ServerDialog::run(defaultServerName, vncServerName);
+    if (vncServerName[0] == '\0')
       return 1;
   }
+
+#ifndef WIN32
+  if (strlen (via.getValueStr()) > 0 && mktunnel() != 0)
+    usage(argv[0]);
+#endif
 
   CConn *cc = new CConn(vncServerName);
 

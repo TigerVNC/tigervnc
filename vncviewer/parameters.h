@@ -60,6 +60,10 @@ extern rfb::StringParameter menuKey;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
 
+#ifndef WIN32
+extern rfb::StringParameter via;
+#endif
+
 void saveViewerParameters(const char *filename, const char *servername=NULL);
 char* loadViewerParameters(const char *filename);
 

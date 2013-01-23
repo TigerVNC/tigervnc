@@ -19,6 +19,8 @@
 #ifndef __VNCVIEWER_H__
 #define __VNCVIEWER_H__
 
+#define VNCSERVERNAMELEN 64
+
 void exit_vncviewer(const char *error = NULL);
 void about_vncviewer();
 
