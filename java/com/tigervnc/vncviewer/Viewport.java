@@ -107,7 +107,7 @@ public class Viewport extends JFrame
     }
     if (!cc.fullScreen)
       setLocation(x, y);
-    setBackground(Color.BLACK);
+    getContentPane().setBackground(Color.BLACK);
   }
 
   public static Window getFullScreenWindow() {
