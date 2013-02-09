@@ -103,8 +103,8 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     } else if (actionMatch(ev, clipboard)) {
       cc.clipboardDialog.showDialog(cc.viewport);
     } else if (actionMatch(ev, f8)) {
-      cc.writeKeyEvent(cc.menuKeyCode, true);
-      cc.writeKeyEvent(cc.menuKeyCode, false);
+      cc.writeKeyEvent(MenuKey.getMenuKeySym(), true);
+      cc.writeKeyEvent(MenuKey.getMenuKeySym(), false);
     } else if (actionMatch(ev, ctrlAltDel)) {
       cc.writeKeyEvent(Keysyms.Control_L, true);
       cc.writeKeyEvent(Keysyms.Alt_L, true);
