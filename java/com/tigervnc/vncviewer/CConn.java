@@ -1002,7 +1002,7 @@ public class CConn extends CConnection
     } else {
       scaleString=scaleString.substring(0, scaleString.length()-1);
     }
-    if (oldScaleFactor != scaleString) {
+    if (!oldScaleFactor.equals(scaleString)) {
       viewer.scalingFactor.setParam(scaleString);
       if ((options.fullScreen.isSelected() == fullScreen) &&
           (desktop != null))
