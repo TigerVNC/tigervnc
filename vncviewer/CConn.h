@@ -29,7 +29,7 @@ class CConn : public rfb::CConnection,
               public rdr::FdInStreamBlockCallback
 {
 public:
-  CConn(const char* vncServerName);
+  CConn(const char* vncServerName, network::Socket* sock);
   ~CConn();
 
   void refreshFramebuffer();

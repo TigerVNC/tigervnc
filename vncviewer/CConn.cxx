@@ -67,8 +67,8 @@ static const PixelFormat lowColourPF(8, 6, false, true,
 // 256 colours (palette)
 static const PixelFormat mediumColourPF(8, 8, false, false);
 
-CConn::CConn(const char* vncServerName)
-  : serverHost(0), serverPort(0), sock(NULL), desktop(NULL),
+CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
+  : serverHost(0), serverPort(0), desktop(NULL),
     pendingPFChange(false),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
@@ -76,6 +76,7 @@ CConn::CConn(const char* vncServerName)
     forceNonincremental(true), supportsSyncFence(false)
 {
   setShared(::shared);
+  sock = socket;
 
   int encNum = encodingNum(preferredEncoding);
   if (encNum != -1)
@@ -93,16 +94,18 @@ CConn::CConn(const char* vncServerName)
   cp.noJpeg = noJpeg;
   cp.qualityLevel = qualityLevel;
 
-  try {
-    getHostAndPort(vncServerName, &serverHost, &serverPort);
+  if(sock == NULL) {
+    try {
+      getHostAndPort(vncServerName, &serverHost, &serverPort);
 
-    sock = new network::TcpSocket(serverHost, serverPort);
-    vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
-    fl_alert("%s", e.str());
-    exit_vncviewer();
-    return;
+      sock = new network::TcpSocket(serverHost, serverPort);
+      vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      fl_alert("%s", e.str());
+      exit_vncviewer();
+      return;
+    }
   }
 
   Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);

@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <signal.h>
@@ -441,18 +442,39 @@ int main(int argc, char** argv)
   CSecurityTLS::msg = &dlg;
 #endif
 
-  if (vncServerName[0] == '\0') {
-    ServerDialog::run(defaultServerName, vncServerName);
-    if (vncServerName[0] == '\0')
-      return 1;
-  }
+  Socket *sock = NULL;
+
+  if(listenMode) {
+    try {
+      int port = 5500;
+      if (isdigit(vncServerName[0]))
+        port = atoi(vncServerName);
+
+      TcpListener listener(NULL, port);
+
+      vlog.info("Listening on port %d\n", port);
+      sock = listener.accept();   
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      fl_alert("%s", e.str());
+      exit_vncviewer();
+      return 1; 
+    }
+
+  } else {
+    if (vncServerName[0] == '\0') {
+      ServerDialog::run(defaultServerName, vncServerName);
+      if (vncServerName[0] == '\0')
+        return 1;
+    }
 
 #ifndef WIN32
-  if (strlen (via.getValueStr()) > 0 && mktunnel() != 0)
-    usage(argv[0]);
+    if (strlen (via.getValueStr()) > 0 && mktunnel() != 0)
+      usage(argv[0]);
 #endif
+  }
 
-  CConn *cc = new CConn(vncServerName);
+  CConn *cc = new CConn(vncServerName, sock);
 
   while (!exitMainloop) {
     int next_timer;
