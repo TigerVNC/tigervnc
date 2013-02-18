@@ -414,10 +414,12 @@ class DesktopWindow extends JPanel implements
 
   /** Mouse callback function */
   private void mouseCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue() &&
-        e.getX() >= 0 && e.getX() <= scaledWidth &&
-        e.getY() >= 0 && e.getY() <= scaledHeight)
-      cc.writePointerEvent(e);
+    if (!cc.viewer.viewOnly.getValue()) {
+      if ((e.getID() == MouseEvent.MOUSE_RELEASED) ||
+          (e.getX() >= 0 && e.getX() <= scaledWidth &&
+           e.getY() >= 0 && e.getY() <= scaledHeight))
+        cc.writePointerEvent(e);
+    }
     lastX = e.getX();
     lastY = e.getY();
   }
