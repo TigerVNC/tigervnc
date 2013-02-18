@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2012 Brian P. Hinz
+ * Copyright (C) 2011-2013 Brian P. Hinz
  * Copyright (C) 2012 D. R. Commander.  All Rights Reserved.
  * 
  * This is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@ public class Viewport extends JFrame
     UIManager.getDefaults().put("ScrollPane.ancestorInputMap", 
       new UIDefaults.LazyInputMap(new Object[]{}));
     sp = new JScrollPane();
+    sp.getViewport().setBackground(Color.BLACK);
     sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
     getContentPane().add(sp);
     addWindowFocusListener(new WindowAdapter() {
@@ -107,7 +108,6 @@ public class Viewport extends JFrame
     }
     if (!cc.fullScreen)
       setLocation(x, y);
-    getContentPane().setBackground(Color.BLACK);
   }
 
   public static Window getFullScreenWindow() {
