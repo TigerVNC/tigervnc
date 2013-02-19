@@ -444,7 +444,15 @@ int main(int argc, char** argv)
 
   Socket *sock = NULL;
 
-  if(listenMode) {
+  /* Specifying -via and -listen together is nonsense */
+  if (listenMode && strlen(via.getValueStr()) > 0) {
+    vlog.error("Parameters -listen and -via are incompatible");
+    fl_alert("Parameters -listen and -via are incompatible");
+    exit_vncviewer();
+    return 1;
+  }
+
+  if (listenMode) {
     try {
       int port = 5500;
       if (isdigit(vncServerName[0]))
