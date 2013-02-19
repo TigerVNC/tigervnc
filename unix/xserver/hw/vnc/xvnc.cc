@@ -54,7 +54,9 @@ extern "C" {
 #include "servermd.h"
 #include "fb.h"
 #include "mi.h"
+#if XORG < 114
 #include "mibstore.h"
+#endif
 #include "colormapst.h"
 #include "gcstruct.h"
 #include "input.h"
