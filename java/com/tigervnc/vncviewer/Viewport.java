@@ -68,23 +68,23 @@ public class Viewport extends JFrame
             scaleString.equalsIgnoreCase("FixedRatio")) {
           if ((sp.getSize().width != cc.desktop.scaledWidth) ||
               (sp.getSize().height != cc.desktop.scaledHeight)) {
-            int policy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-            sp.setHorizontalScrollBarPolicy(policy);
             cc.desktop.setScaledSize();
-            sp.setSize(new Dimension(cc.desktop.scaledWidth,
-                                     cc.desktop.scaledHeight));
+            sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
             sp.validate();
             if (getExtendedState() != JFrame.MAXIMIZED_BOTH &&
-                scaleString.equalsIgnoreCase("FixedRatio") &&
                 !cc.fullScreen) {
+              sp.setSize(new Dimension(cc.desktop.scaledWidth,
+                                       cc.desktop.scaledHeight));
               int w = cc.desktop.scaledWidth + getInsets().left + getInsets().right;
               int h = cc.desktop.scaledHeight + getInsets().top + getInsets().bottom;
-              setSize(w, h);
+              if (scaleString.equalsIgnoreCase("FixedRatio"))
+                setSize(w, h);
             }
           }
         } else {
-          int policy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
-          sp.setHorizontalScrollBarPolicy(policy);
+          sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+          sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
           sp.validate();
         }
         if (cc.desktop.cursor != null) {
