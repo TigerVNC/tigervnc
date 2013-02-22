@@ -29,8 +29,7 @@ import java.util.*;
 import com.tigervnc.rfb.*;
 
 class ServerDialog extends Dialog implements
-                           ActionListener,
-                           ItemListener
+                           ActionListener
 {
 
   @SuppressWarnings({"unchecked","rawtypes"})
@@ -77,6 +76,17 @@ class ServerDialog extends Dialog implements
 
     server.setEditable(true);
     editor = server.getEditor();
+    editor.getEditorComponent().addKeyListener(new KeyListener() {
+      public void keyTyped(KeyEvent e) {}
+      public void keyReleased(KeyEvent e) {}
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+          server.insertItemAt(editor.getItem(), 0);
+          server.setSelectedIndex(0);
+          commit();
+        }
+      }
+    });
 
     JPanel topPanel = new JPanel(new GridBagLayout());
 
@@ -117,16 +127,11 @@ class ServerDialog extends Dialog implements
     pack();
   }
 
-  public void itemStateChanged(ItemEvent e) {
-    return;
-  }
-
   @SuppressWarnings({"unchecked","rawtypes"})
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
       commit();
-      endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
       if (VncViewer.nViewers == 1)
         cc.viewer.exit(1);
@@ -140,8 +145,6 @@ class ServerDialog extends Dialog implements
       if (e.getActionCommand().equals("comboBoxEdited")) {
         server.insertItemAt(editor.getItem(), 0);
         server.setSelectedIndex(0);
-        commit();
-        endDialog();
       }
     }
   }
@@ -172,12 +175,9 @@ class ServerDialog extends Dialog implements
     }
     UserPreferences.set("ServerDialog", "history", sb.toString());
     UserPreferences.save("ServerDialog");
+    endDialog();
   }
   
-  public void endDialog() {
-    super.endDialog();
-  }
-
   CConn cc;
   @SuppressWarnings("rawtypes")
   JComboBox server;
