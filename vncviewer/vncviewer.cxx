@@ -444,6 +444,7 @@ int main(int argc, char** argv)
 
   Socket *sock = NULL;
 
+#ifndef WIN32
   /* Specifying -via and -listen together is nonsense */
   if (listenMode && strlen(via.getValueStr()) > 0) {
     vlog.error("Parameters -listen and -via are incompatible");
@@ -451,6 +452,7 @@ int main(int argc, char** argv)
     exit_vncviewer();
     return 1;
   }
+#endif
 
   if (listenMode) {
     try {

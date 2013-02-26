@@ -40,7 +40,7 @@ public:
   void blockCallback();
 
   // Callback when socket is ready (or broken)
-  static void socketEvent(int fd, void *data);
+  static void socketEvent(FL_SOCKET fd, void *data);
 
   // CConnection callback methods
   void serverInit();

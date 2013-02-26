@@ -192,7 +192,7 @@ void CConn::blockCallback()
   Fl::wait((double)next_timer / 1000.0);
 }
 
-void CConn::socketEvent(int fd, void *data)
+void CConn::socketEvent(FL_SOCKET fd, void *data)
 {
   CConn *cc;
   static bool recursing = false;
