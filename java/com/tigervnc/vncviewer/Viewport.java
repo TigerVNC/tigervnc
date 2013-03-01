@@ -40,6 +40,7 @@ public class Viewport extends JFrame
     setTitle(name+" - TigerVNC");
     setFocusable(false);
     setFocusTraversalKeysEnabled(false);
+    setIconImage(VncViewer.frameIcon);
     UIManager.getDefaults().put("ScrollPane.ancestorInputMap", 
       new UIDefaults.LazyInputMap(new Object[]{}));
     sp = new JScrollPane();

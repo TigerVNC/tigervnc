@@ -35,6 +35,7 @@ import javax.swing.*;
 class Dialog extends JDialog {
 
   public Dialog(boolean modal) {
+    setIconImage(VncViewer.frameIcon);
     if (modal) {
       setModalityType(ModalityType.APPLICATION_MODAL);
     } else {
@@ -53,9 +54,6 @@ class Dialog extends JDialog {
       int y = (dpySize.height - mySize.height) / 2;
       setLocation(x, y);
     }
-    ClassLoader cl = this.getClass().getClassLoader();
-    ImageIcon icon = new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.ico"));
-    setIconImage(icon.getImage());
     fullScreenWindow = Viewport.getFullScreenWindow();
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(null);

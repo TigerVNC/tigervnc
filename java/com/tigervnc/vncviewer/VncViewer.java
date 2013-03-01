@@ -60,6 +60,14 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public static String build = null;
   public static String buildDate = null;
   public static String buildTime = null;
+  static ImageIcon frameIconSrc = 
+    new ImageIcon(VncViewer.class.getResource("tigervnc.ico"));
+  public static final Image frameIcon = frameIconSrc.getImage();
+  public static final ImageIcon logoIcon = 
+    new ImageIcon(VncViewer.class.getResource("tigervnc.png"));
+  public static final Image logoImage = logoIcon.getImage();
+  public static final InputStream timestamp = 
+    VncViewer.class.getResourceAsStream("timestamp");
 
   public static void setLookAndFeel() {
     try {
@@ -282,17 +290,12 @@ public class VncViewer extends java.applet.Applet implements Runnable
     vlog.debug("init called");
     setLookAndFeel();
     setBackground(Color.white);
-    ClassLoader cl = this.getClass().getClassLoader();
-    ImageIcon icon = new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.png"));
-    logo = icon.getImage();
   }
 
   private void getTimestamp() {
     if (version == null || build == null) {
-      ClassLoader cl = this.getClass().getClassLoader();
-      InputStream stream = cl.getResourceAsStream("com/tigervnc/vncviewer/timestamp");
       try {
-        Manifest manifest = new Manifest(stream);
+        Manifest manifest = new Manifest(timestamp);
         Attributes attributes = manifest.getMainAttributes();
         version = attributes.getValue("Version");
         build = attributes.getValue("Build");
@@ -333,8 +336,8 @@ public class VncViewer extends java.applet.Applet implements Runnable
   }
 
   public void paint(Graphics g) {
-    g.drawImage(logo, 0, 0, this);
-    int h = logo.getHeight(this)+20;
+    g.drawImage(logoImage, 0, 0, this);
+    int h = logoImage.getHeight(this)+20;
     g.drawString(String.format(aboutText, version, build, 
                                buildDate, buildTime), 0, h);
   }
@@ -378,10 +381,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
         JOptionPane op = 
           new JOptionPane(e.getMessage(), JOptionPane.WARNING_MESSAGE);
         JDialog dlg = op.createDialog("TigerVNC Viewer");
-        ClassLoader cl = this.getClass().getClassLoader();
-        ImageIcon icon = 
-          new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.ico"));
-        dlg.setIconImage(icon.getImage());
+        dlg.setIconImage(frameIcon);
         dlg.setVisible(true);
       } else {
         if (!cc.shuttingDown)
@@ -557,7 +557,6 @@ public class VncViewer extends java.applet.Applet implements Runnable
   Thread thread;
   Socket sock;
   boolean applet;
-  Image logo;
   static int nViewers;
   static LogWriter vlog = new LogWriter("main");
 }

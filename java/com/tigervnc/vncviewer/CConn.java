@@ -46,7 +46,6 @@ import java.util.jar.Manifest;
 import javax.swing.*;
 import javax.swing.ImageIcon;
 import java.net.InetSocketAddress;
-import java.net.URL;
 import java.net.SocketException;
 import java.util.*;
 
@@ -500,13 +499,6 @@ public class CConn extends CConnection
     viewport = new Viewport(cp.name(), this);
     viewport.setUndecorated(fullScreen);
     desktop.setViewport(viewport);
-    ClassLoader loader = this.getClass().getClassLoader();
-    URL url = loader.getResource("com/tigervnc/vncviewer/tigervnc.ico");
-    ImageIcon icon = null;
-    if (url != null) {
-      icon = new ImageIcon(url);
-      viewport.setIconImage(icon.getImage());
-    }
     reconfigureViewport();
     if ((cp.width > 0) && (cp.height > 0))
       viewport.setVisible(true);
@@ -717,11 +709,10 @@ public class CConn extends CConnection
   }
 
   void showAbout() {
-    InputStream stream = cl.getResourceAsStream("com/tigervnc/vncviewer/timestamp");
     String pkgDate = "";
     String pkgTime = "";
     try {
-      Manifest manifest = new Manifest(stream);
+      Manifest manifest = new Manifest(VncViewer.timestamp);
       Attributes attributes = manifest.getMainAttributes();
       pkgDate = attributes.getValue("Package-Date");
       pkgTime = attributes.getValue("Package-Time");
@@ -735,12 +726,9 @@ public class CConn extends CConnection
                     VncViewer.buildDate, VncViewer.buildTime);
     JOptionPane op = 
       new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
-                      JOptionPane.DEFAULT_OPTION, logo);
+                      JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon);
     JDialog dlg = op.createDialog("About TigerVNC Viewer for Java");
-    ClassLoader cl = this.getClass().getClassLoader();
-    ImageIcon icon = 
-      new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.ico"));
-    dlg.setIconImage(icon.getImage());
+    dlg.setIconImage(VncViewer.frameIcon);
     dlg.setVisible(true);
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(fullScreenWindow);
@@ -1339,8 +1327,6 @@ public class CConn extends CConnection
 
   // the following need no synchronization:
 
-  ClassLoader cl = this.getClass().getClassLoader();
-  ImageIcon logo = new ImageIcon(cl.getResource("com/tigervnc/vncviewer/tigervnc.png"));
   public static UserPasswdGetter upg;
   public UserMsgBox msg;
 
