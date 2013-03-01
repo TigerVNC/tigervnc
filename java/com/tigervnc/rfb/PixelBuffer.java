@@ -52,14 +52,14 @@ public class PixelBuffer {
       cm = new DirectColorModel(8, rmask, gmask, bmask);
       break;
     case 16: 
-      cm = new DirectColorModel(32, 0xF800, 0x07C0, 0x003E, (0xff << 24));
+      cm = new DirectColorModel(32, 0xF800, 0x07C0, 0x003E);
       break;
     case 24: 
-      cm = new DirectColorModel(32, (0xff << 16), (0xff << 8), 0xff, (0xff << 24));
+      cm = new DirectColorModel(32, (0xff << 16), (0xff << 8), 0xff);
       break;
     case 32: 
       cm = new DirectColorModel(32, (0xff << pf.redShift), 
-        (0xff << pf.greenShift), (0xff << pf.blueShift), (0xff << 24));
+        (0xff << pf.greenShift), (0xff << pf.blueShift));
       break;
     default:
       throw new Exception("Unsupported color depth ("+pf.depth+")");
