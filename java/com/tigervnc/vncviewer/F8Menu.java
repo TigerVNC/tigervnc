@@ -126,7 +126,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
       Window fullScreenWindow = Viewport.getFullScreenWindow();
       if (fullScreenWindow != null)
         Viewport.setFullScreenWindow(null);
-      int ret = fc.showOpenDialog(this);
+      int ret = fc.showOpenDialog(cc.viewport);
       if (fullScreenWindow != null)
         Viewport.setFullScreenWindow(fullScreenWindow);
       if (ret == JFileChooser.APPROVE_OPTION) {
