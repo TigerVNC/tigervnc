@@ -1,15 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * 
+ * Copyright (C) 2012-2013 D. R. Commander.  All Rights Reserved.
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -76,6 +77,7 @@ public class Keysyms {
   public static final int F10 = 0xFFC7;
   public static final int F11 = 0xFFC8;
   public static final int F12 = 0xFFC9;
+  public static final int F13 = 0xFFCA;
 
   public static final int Shift_L = 0xFFE1;
   public static final int Shift_R = 0xFFE2;
@@ -85,4 +87,35 @@ public class Keysyms {
   public static final int Meta_R = 0xFFE8;
   public static final int Alt_L = 0xFFE9;
   public static final int Alt_R = 0xFFEA;
+
+  public static final int Super_L = 0xFFEB;
+  public static final int Caps_Lock = 0xFFE5;
+
+  public static final int KP_Enter = 0xFF8D;
+  public static final int KP_Home = 0xFF95;
+  public static final int KP_Left = 0xFF96;
+  public static final int KP_Up = 0xFF97;
+  public static final int KP_Right = 0xFF98;
+  public static final int KP_Down = 0xFF99;
+  public static final int KP_Page_Up = 0xFF9A;
+  public static final int KP_Page_Down = 0xFF9B;
+  public static final int KP_End = 0xFF9C;
+  public static final int KP_Begin = 0xFF9D;
+  public static final int KP_Insert = 0xFF9E;
+  public static final int KP_Delete = 0xFF9F;
+  public static final int KP_0 = 0xFFB0;
+  public static final int KP_1 = 0xFFB1;
+  public static final int KP_2 = 0xFFB2;
+  public static final int KP_3 = 0xFFB3;
+  public static final int KP_4 = 0xFFB4;
+  public static final int KP_5 = 0xFFB5;
+  public static final int KP_6 = 0xFFB6;
+  public static final int KP_7 = 0xFFB7;
+  public static final int KP_8 = 0xFFB8;
+  public static final int KP_9 = 0xFFB9;
+  public static final int KP_Decimal = 0xFFAE;
+  public static final int KP_Add = 0xFFAB;
+  public static final int KP_Subtract = 0xFFAD;
+  public static final int KP_Multiply = 0xFFAA;
+  public static final int KP_Divide = 0xFFAF;
 }

@@ -1,18 +1,18 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
- * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
  * Copyright (C) 2011-2013 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -71,7 +71,7 @@ public class CConn extends CConnection
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the RFB thread
 
-  public CConn(VncViewer viewer_, Socket sock_, 
+  public CConn(VncViewer viewer_, Socket sock_,
                String vncServerName) 
   {
     serverHost = null; serverPort = 0; sock = sock_; viewer = viewer_; 
@@ -86,9 +86,8 @@ public class CConn extends CConnection
     options = new OptionsDialog(this);
     options.initDialog();
     clipboardDialog = new ClipboardDialog(this);
-    firstUpdate = true; pendingUpdate = false; continuousUpdates = false; 
+    firstUpdate = true; pendingUpdate = false; continuousUpdates = false;
     forceNonincremental = true; supportsSyncFence = false;
-    
 
     setShared(viewer.shared.getValue());
     upg = this;
@@ -113,7 +112,7 @@ public class CConn extends CConnection
 
     if (sock != null) {
       String name = sock.getPeerEndpoint();
-      vlog.info("Accepted connection from "+name);
+      vlog.info("Accepted connection from " + name);
     } else {
       if (vncServerName != null &&
           !viewer.alwaysShowServerDialog.getValue()) {
@@ -153,7 +152,6 @@ public class CConn extends CConnection
     if (supportsSyncFence)
       requestNewUpdate();
   }
-  
 
   public boolean showMsgBox(int flags, String title, String text)
   {
@@ -167,7 +165,7 @@ public class CConn extends CConnection
     if (viewport != null)
       viewport.dispose();
     viewport = null;
-  } 
+  }
 
   // blockCallback() is called when reading from the socket would block.
   public void blockCallback() {
@@ -178,7 +176,7 @@ public class CConn extends CConnection
     } catch (java.lang.InterruptedException e) {
       throw new Exception(e.getMessage());
     }
-  }  
+  }
 
   // getUserPasswd() is called by the CSecurity object when it needs us to read
   // a password from the user.
@@ -203,8 +201,7 @@ public class CConn extends CConnection
       } catch(IOException e) {
         throw new Exception("Failed to read VncPasswd file");
       }
-      String PlainPasswd =
-        VncAuth.unobfuscatePasswd(obfPwd);
+      String PlainPasswd = VncAuth.unobfuscatePasswd(obfPwd);
       passwd.append(PlainPasswd);
       passwd.setLength(PlainPasswd.length());
       return true;
@@ -270,7 +267,7 @@ public class CConn extends CConnection
   // setDesktopSize() is called when the desktop size changes (including when
   // it is set initially).
   public void setDesktopSize(int w, int h) {
-    super.setDesktopSize(w,h);
+    super.setDesktopSize(w, h);
     resizeFramebuffer();
   }
 
@@ -281,7 +278,7 @@ public class CConn extends CConnection
 
     if ((reason == screenTypes.reasonClient) &&
         (result != screenTypes.resultSuccess)) {
-      vlog.error("SetDesktopSize failed: "+result);
+      vlog.error("SetDesktopSize failed: " + result);
       return;
     }
 
@@ -289,7 +286,7 @@ public class CConn extends CConnection
   }
 
   // clientRedirect() migrates the client to another host/port
-  public void clientRedirect(int port, String host, 
+  public void clientRedirect(int port, String host,
                              String x509subject) {
     try {
       sock.close();
@@ -440,20 +437,20 @@ public class CConn extends CConnection
   {
     // can't call super.super.fence(flags, len, data);
     cp.supportsFence = true;
-  
+
     if ((flags & fenceTypes.fenceFlagRequest) != 0) {
       // We handle everything synchronously so we trivially honor these modes
       flags = flags & (fenceTypes.fenceFlagBlockBefore | fenceTypes.fenceFlagBlockAfter);
-  
+
       writer().writeFence(flags, len, data);
       return;
     }
-  
+
     if (len == 0) {
       // Initial probe
       if ((flags & fenceTypes.fenceFlagSyncNext) != 0) {
         supportsSyncFence = true;
-  
+
         if (cp.supportsContinuousUpdates) {
           vlog.info("Enabling continuous updates");
           continuousUpdates = true;
@@ -464,9 +461,9 @@ public class CConn extends CConnection
       // Pixel format change
       MemInStream memStream = new MemInStream(data, 0, len);
       PixelFormat pf = new PixelFormat();
-  
+
       pf.read(memStream);
-  
+
       desktop.setServerPF(pf);
       cp.setPF(pf);
     }
@@ -647,9 +644,9 @@ public class CConn extends CConnection
         // get the response back. That way we will be synchronised with
         // when the server switches.
         MemOutStream memStream = new MemOutStream();
-  
+
         pf.write(memStream);
-  
+
         writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext,
                             memStream.length(), (byte[])memStream.data());
       } else {
@@ -661,7 +658,7 @@ public class CConn extends CConnection
       }
 
       String str = pf.print();
-      vlog.info("Using pixel format "+str);
+      vlog.info("Using pixel format " + str);
       writer().writeSetPixelFormat(pf);
 
       formatChange = false;
@@ -671,7 +668,7 @@ public class CConn extends CConnection
 
     if (forceNonincremental || !continuousUpdates) {
       pendingUpdate = true;
-      writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height),
+      writer().writeFramebufferUpdateRequest(new Rect(0, 0, cp.width, cp.height),
                                                  !forceNonincremental);
     }
 
@@ -1009,9 +1006,9 @@ public class CConn extends CConnection
       if (desktop != null)
         desktop.resetLocalCursor();
     }
-    
+
     checkEncodings();
-  
+
     if (state() != RFBSTATE_NORMAL) {
       /* Process security types which don't use encryption */
       if (options.encNone.isSelected()) {
@@ -1133,84 +1130,180 @@ public class CConn extends CConnection
 
   // writeClientCutText() is called from the clipboard dialog
   public void writeClientCutText(String str, int len) {
-    if (state() != RFBSTATE_NORMAL) return;
-    writer().writeClientCutText(str,len);
+    if (state() != RFBSTATE_NORMAL || shuttingDown)
+      return;
+    writer().writeClientCutText(str, len);
   }
 
   public void writeKeyEvent(int keysym, boolean down) {
-    if (state() != RFBSTATE_NORMAL) return;
+    if (state() != RFBSTATE_NORMAL || shuttingDown)
+      return;
     writer().writeKeyEvent(keysym, down);
   }
 
   public void writeKeyEvent(KeyEvent ev) {
-    if (ev.getID() != KeyEvent.KEY_PRESSED && !ev.isActionKey())
+    int keysym = 0, keycode, key, location, fakeModifiers = 0;
+
+    if (shuttingDown)
       return;
 
-    int keysym, keycode, currentModifiers;
+    boolean down = (ev.getID() == KeyEvent.KEY_PRESSED);
 
-    currentModifiers = ev.getModifiers();
     keycode = ev.getKeyCode();
+    key = ev.getKeyChar();
+    location = ev.getKeyLocation();
+
+    vlog.debug((ev.isActionKey() ? "action " : "") + "key " +
+               (down ? "PRESS" : "release") + " code " + keycode +
+                " location " + location + " ASCII " + key);
 
     if (!ev.isActionKey()) {
-      vlog.debug("key press "+ev.getKeyChar());
-      if (ev.getKeyChar() < 32) {
-        // if the ctrl modifier key is down, send the equivalent ASCII since we
-        // will send the ctrl modifier anyway
+      if (keycode >= KeyEvent.VK_0 && keycode <= KeyEvent.VK_9 &&
+        location == KeyEvent.KEY_LOCATION_NUMPAD)
+        keysym = Keysyms.KP_0 + keycode - KeyEvent.VK_0;
 
-        if ((currentModifiers & KeyEvent.CTRL_MASK) != 0) {
-          if ((currentModifiers & KeyEvent.SHIFT_MASK) != 0) {
-            keysym = ev.getKeyChar() + 64;
-            if (keysym == -1)
-              return;
-          } else { 
-            keysym = ev.getKeyChar() + 96;
-            if (keysym == 127) keysym = 95;
-          }
-        } else {
-          switch (keycode) {
-          case KeyEvent.VK_BACK_SPACE: keysym = Keysyms.BackSpace; break;
-          case KeyEvent.VK_TAB:        keysym = Keysyms.Tab; break;
-          case KeyEvent.VK_ENTER:      keysym = Keysyms.Return; break;
-          case KeyEvent.VK_ESCAPE:     keysym = Keysyms.Escape; break;
-          default: return;
-          }
+      switch (keycode) {
+      case KeyEvent.VK_BACK_SPACE: keysym = Keysyms.BackSpace; break;
+      case KeyEvent.VK_TAB:        keysym = Keysyms.Tab; break;
+      case KeyEvent.VK_ENTER:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Enter;
+        else
+          keysym = Keysyms.Return;  break;
+      case KeyEvent.VK_ESCAPE:     keysym = Keysyms.Escape; break;
+      case KeyEvent.VK_NUMPAD0:    keysym = Keysyms.KP_0; break;
+      case KeyEvent.VK_NUMPAD1:    keysym = Keysyms.KP_1; break;
+      case KeyEvent.VK_NUMPAD2:    keysym = Keysyms.KP_2; break;
+      case KeyEvent.VK_NUMPAD3:    keysym = Keysyms.KP_3; break;
+      case KeyEvent.VK_NUMPAD4:    keysym = Keysyms.KP_4; break;
+      case KeyEvent.VK_NUMPAD5:    keysym = Keysyms.KP_5; break;
+      case KeyEvent.VK_NUMPAD6:    keysym = Keysyms.KP_6; break;
+      case KeyEvent.VK_NUMPAD7:    keysym = Keysyms.KP_7; break;
+      case KeyEvent.VK_NUMPAD8:    keysym = Keysyms.KP_8; break;
+      case KeyEvent.VK_NUMPAD9:    keysym = Keysyms.KP_9; break;
+      case KeyEvent.VK_DECIMAL:    keysym = Keysyms.KP_Decimal; break;
+      case KeyEvent.VK_ADD:        keysym = Keysyms.KP_Add; break;
+      case KeyEvent.VK_SUBTRACT:   keysym = Keysyms.KP_Subtract; break;
+      case KeyEvent.VK_MULTIPLY:   keysym = Keysyms.KP_Multiply; break;
+      case KeyEvent.VK_DIVIDE:     keysym = Keysyms.KP_Divide; break;
+      case KeyEvent.VK_DELETE:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Delete;
+        else
+          keysym = Keysyms.Delete;  break;
+      case KeyEvent.VK_CLEAR:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Begin;
+        else
+          keysym = Keysyms.Clear;  break;
+      case KeyEvent.VK_CONTROL:
+        if (down)
+          modifiers |= Event.CTRL_MASK;
+        else
+          modifiers &= ~Event.CTRL_MASK;
+        if (location == KeyEvent.KEY_LOCATION_RIGHT)
+          keysym = Keysyms.Control_R;
+        else
+          keysym = Keysyms.Control_L;  break;
+      case KeyEvent.VK_ALT:
+        if (down)
+          modifiers |= Event.ALT_MASK;
+        else
+          modifiers &= ~Event.ALT_MASK;
+        if (location == KeyEvent.KEY_LOCATION_RIGHT)
+          keysym = Keysyms.Alt_R;
+        else
+          keysym = Keysyms.Alt_L;  break;
+      case KeyEvent.VK_SHIFT:
+        if (down)
+          modifiers |= Event.SHIFT_MASK;
+        else
+          modifiers &= ~Event.SHIFT_MASK;
+        if (location == KeyEvent.KEY_LOCATION_RIGHT)
+          keysym = Keysyms.Shift_R;
+        else
+          keysym = Keysyms.Shift_L;  break;
+      case KeyEvent.VK_META:
+        if (down)
+          modifiers |= Event.META_MASK;
+        else
+          modifiers &= ~Event.META_MASK;
+        if (location == KeyEvent.KEY_LOCATION_RIGHT)
+          keysym = Keysyms.Meta_R;
+        else
+          keysym = Keysyms.Meta_L;  break;
+      default:
+        if (ev.isControlDown() && ev.isAltDown()) {
+          // Handle AltGr key on international keyboards
+          if ((keycode >= 32 && keycode <= 126) ||
+              (keycode >= 160 && keycode <= 255))
+            key = keycode;
+            fakeModifiers |= Event.ALT_MASK | Event.CTRL_MASK;
+        } else if (ev.isControlDown()) {
+          // For CTRL-<letter>, CTRL is sent separately, so just send <letter>.
+          if ((key >= 1 && key <= 26 && !ev.isShiftDown()) ||
+              // CTRL-{, CTRL-|, CTRL-} also map to ASCII 96-127
+              (key >= 27 && key <= 29 && ev.isShiftDown()))
+            key += 96;
+          // For CTRL-SHIFT-<letter>, send capital <letter> to emulate behavior
+          // of Linux.  For CTRL-@, send @.  For CTRL-_, send _.  For CTRL-^,
+          // send ^.
+          else if (key < 32)
+            key += 64;
+          // Windows and Mac sometimes return CHAR_UNDEFINED with CTRL-SHIFT
+          // combinations, so best we can do is send the key code if it is
+          // a valid ASCII symbol.
+          else if (key == KeyEvent.CHAR_UNDEFINED && keycode >= 0 &&
+                   keycode <= 127)
+            key = keycode;
         }
-
-      } else if (ev.getKeyChar() == 127) {
-        keysym = Keysyms.Delete;
-
-      } else {
-        keysym = UnicodeToKeysym.translate(ev.getKeyChar());
+        keysym = UnicodeToKeysym.translate(key);
         if (keysym == -1)
           return;
-
-        // Windows 7 or some Java version send key events that require the
-        // following special treatment with the German Alt-Gr Key. They send
-        // ALT + CTRL before the normal key event. They should be suppressed
-        if ((currentModifiers & KeyEvent.CTRL_MASK) != 0
-		&& (currentModifiers & KeyEvent.ALT_MASK) != 0
-		&& ((keysym == 0x5c) || (keysym == 0x7c)	// backslash bar
-		 || (keysym == 0x5b) || (keysym == 0x5d)	// [ ]
-		 || (keysym == 0x7b) || (keysym == 0x7d)	// { }
-		 || (keysym == 0x7e) || (keysym == 0x40)	// ~ @
-		 || (keysym == 0x20ac) || (keysym == 0xb5)	// Euro Micro
-		 || (keysym == 0xb2) || (keysym == 0xb3))	// ^2 ^3
-	           )
-          currentModifiers &= (~ KeyEvent.CTRL_MASK) & (~ KeyEvent.ALT_MASK);
       }
-
     } else {
       // KEY_ACTION
-      vlog.debug("key action " + keycode);
       switch (keycode) {
-      case KeyEvent.VK_HOME:         keysym = Keysyms.Home; break;
-      case KeyEvent.VK_END:          keysym = Keysyms.End; break;
-      case KeyEvent.VK_PAGE_UP:      keysym = Keysyms.Page_Up; break;
-      case KeyEvent.VK_PAGE_DOWN:    keysym = Keysyms.Page_Down; break;
-      case KeyEvent.VK_UP:           keysym = Keysyms.Up; break;
-      case KeyEvent.VK_DOWN:         keysym = Keysyms.Down; break;
-      case KeyEvent.VK_LEFT:         keysym = Keysyms.Left; break;
-      case KeyEvent.VK_RIGHT:        keysym = Keysyms.Right; break;
+      case KeyEvent.VK_HOME:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Home;
+        else
+          keysym = Keysyms.Home;  break;
+      case KeyEvent.VK_END:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_End;
+        else
+          keysym = Keysyms.End;  break;
+      case KeyEvent.VK_PAGE_UP:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Page_Up;
+        else
+          keysym = Keysyms.Page_Up;  break;
+      case KeyEvent.VK_PAGE_DOWN:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Page_Down;
+        else
+          keysym = Keysyms.Page_Down;  break;
+      case KeyEvent.VK_UP:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Up;
+        else
+          keysym = Keysyms.Up;  break;
+      case KeyEvent.VK_DOWN:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Down;
+        else
+         keysym = Keysyms.Down;  break;
+      case KeyEvent.VK_LEFT:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Left;
+        else
+         keysym = Keysyms.Left;  break;
+      case KeyEvent.VK_RIGHT:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Right;
+        else
+          keysym = Keysyms.Right;  break;
       case KeyEvent.VK_F1:           keysym = Keysyms.F1; break;
       case KeyEvent.VK_F2:           keysym = Keysyms.F2; break;
       case KeyEvent.VK_F3:           keysym = Keysyms.F3; break;
@@ -1223,22 +1316,65 @@ public class CConn extends CConnection
       case KeyEvent.VK_F10:          keysym = Keysyms.F10; break;
       case KeyEvent.VK_F11:          keysym = Keysyms.F11; break;
       case KeyEvent.VK_F12:          keysym = Keysyms.F12; break;
+      case KeyEvent.VK_F13:          keysym = Keysyms.F13; break;
       case KeyEvent.VK_PRINTSCREEN:  keysym = Keysyms.Print; break;
-      case KeyEvent.VK_PAUSE:        keysym = Keysyms.Pause; break;
-      case KeyEvent.VK_INSERT:       keysym = Keysyms.Insert; break;
+      case KeyEvent.VK_PAUSE:
+        if (ev.isControlDown())
+          keysym = Keysyms.Break;
+        else
+          keysym = Keysyms.Pause;
+        break;
+      case KeyEvent.VK_INSERT:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Insert;
+        else
+          keysym = Keysyms.Insert;  break;
+      case KeyEvent.VK_KP_DOWN:      keysym = Keysyms.KP_Down; break;
+      case KeyEvent.VK_KP_LEFT:      keysym = Keysyms.KP_Left; break;
+      case KeyEvent.VK_KP_RIGHT:     keysym = Keysyms.KP_Right; break;
+      case KeyEvent.VK_KP_UP:        keysym = Keysyms.KP_Up; break;
+      case KeyEvent.VK_NUM_LOCK:     keysym = Keysyms.Num_Lock; break;
+      case KeyEvent.VK_WINDOWS:      keysym = Keysyms.Super_L; break;
+      case KeyEvent.VK_CONTEXT_MENU: keysym = Keysyms.Menu; break;
+      case KeyEvent.VK_SCROLL_LOCK:  keysym = Keysyms.Scroll_Lock; break;
+      case KeyEvent.VK_CAPS_LOCK:    keysym = Keysyms.Caps_Lock; break;
+      case KeyEvent.VK_BEGIN:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Begin;
+        else
+          keysym = Keysyms.Begin;  break;
       default: return;
       }
     }
 
-    writeModifiers(currentModifiers);
-    writeKeyEvent(keysym, true);
-    writeKeyEvent(keysym, false);
-    writeModifiers(0);
+    if (fakeModifiers != 0) {
+      if ((fakeModifiers & Event.CTRL_MASK) != 0) {
+        vlog.debug("Fake L Ctrl raised");
+        writeKeyEvent(Keysyms.Control_L, false);
+      }
+      if ((modifiers & Event.ALT_MASK) != 0) {
+        vlog.debug("Fake R Alt raised");
+        writeKeyEvent(Keysyms.Alt_R, false);
+      }
+    }
+    writeKeyEvent(keysym, down);
+    if (fakeModifiers != 0) {
+      if ((fakeModifiers & Event.CTRL_MASK) != 0) {
+        vlog.debug("Fake L Ctrl pressed");
+        writeKeyEvent(Keysyms.Control_L, true);
+      }
+      if ((modifiers & Event.ALT_MASK) != 0) {
+        vlog.debug("Fake R Alt pressed");
+        writeKeyEvent(Keysyms.Alt_R, true);
+      }
+      fakeModifiers = 0;
+    }
   }
 
 
   public void writePointerEvent(MouseEvent ev) {
-    if (state() != RFBSTATE_NORMAL) return;
+    if (state() != RFBSTATE_NORMAL || shuttingDown)
+      return;
 
     switch (ev.getID()) {
     case MouseEvent.MOUSE_PRESSED:
@@ -1251,25 +1387,22 @@ public class CConn extends CConnection
       break;
     }
 
-    writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
-
-    if (cp.width != desktop.scaledWidth || 
+    if (cp.width != desktop.scaledWidth ||
         cp.height != desktop.scaledHeight) {
-      int sx = (desktop.scaleWidthRatio == 1.00) 
-        ? ev.getX() : (int)Math.floor(ev.getX()/desktop.scaleWidthRatio);
-      int sy = (desktop.scaleHeightRatio == 1.00) 
-        ? ev.getY() : (int)Math.floor(ev.getY()/desktop.scaleHeightRatio);
+      int sx = (desktop.scaleWidthRatio == 1.00) ?
+        ev.getX() : (int)Math.floor(ev.getX() / desktop.scaleWidthRatio);
+      int sy = (desktop.scaleHeightRatio == 1.00) ?
+        ev.getY() : (int)Math.floor(ev.getY() / desktop.scaleHeightRatio);
       ev.translatePoint(sx - ev.getX(), sy - ev.getY());
     }
-    
-    writer().writePointerEvent(new Point(ev.getX(),ev.getY()), buttonMask);
 
-    if (buttonMask == 0) writeModifiers(0);
+    writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
   }
 
 
   public void writeWheelEvent(MouseWheelEvent ev) {
-    if (state() != RFBSTATE_NORMAL) return;
+    if (state() != RFBSTATE_NORMAL || shuttingDown)
+      return;
     int x, y;
     int clicks = ev.getWheelRotation();
     if (clicks < 0) {
@@ -1277,29 +1410,27 @@ public class CConn extends CConnection
     } else {
       buttonMask = 16;
     }
-    writeModifiers(ev.getModifiers() & ~KeyEvent.ALT_MASK & ~KeyEvent.META_MASK);
-    for (int i=0;i<Math.abs(clicks);i++) {
+    for (int i = 0; i < Math.abs(clicks); i++) {
       x = ev.getX();
       y = ev.getY();
       writer().writePointerEvent(new Point(x, y), buttonMask);
       buttonMask = 0;
       writer().writePointerEvent(new Point(x, y), buttonMask);
     }
-    writeModifiers(0);
 
   }
 
 
-  synchronized void writeModifiers(int m) {
-    if ((m & Event.SHIFT_MASK) != (pressedModifiers & Event.SHIFT_MASK))
-      writeKeyEvent(Keysyms.Shift_L, (m & Event.SHIFT_MASK) != 0);
-    if ((m & Event.CTRL_MASK) != (pressedModifiers & Event.CTRL_MASK))
-      writeKeyEvent(Keysyms.Control_L, (m & Event.CTRL_MASK) != 0);
-    if ((m & Event.ALT_MASK) != (pressedModifiers & Event.ALT_MASK))
-      writeKeyEvent(Keysyms.Alt_L, (m & Event.ALT_MASK) != 0);
-    if ((m & Event.META_MASK) != (pressedModifiers & Event.META_MASK))
-      writeKeyEvent(Keysyms.Meta_L, (m & Event.META_MASK) != 0);
-    pressedModifiers = m;
+  synchronized void releaseModifiers() {
+    if ((modifiers & Event.SHIFT_MASK) != 0)
+      writeKeyEvent(Keysyms.Shift_L, false);
+    if ((modifiers & Event.CTRL_MASK) != 0)
+      writeKeyEvent(Keysyms.Control_L, false);
+    if ((modifiers & Event.ALT_MASK) != 0)
+      writeKeyEvent(Keysyms.Alt_L, false);
+    if ((modifiers & Event.META_MASK) != 0)
+      writeKeyEvent(Keysyms.Meta_L, false);
+    modifiers = 0;
   }
 
 
@@ -1309,7 +1440,8 @@ public class CConn extends CConnection
   // checkEncodings() sends a setEncodings message if one is needed.
   private void checkEncodings() {
     if (encodingChange && (writer() != null)) {
-      vlog.info("Requesting "+Encodings.encodingName(currentEncoding)+" encoding");
+      vlog.info("Requesting " + Encodings.encodingName(currentEncoding) +
+        " encoding");
       writer().writeSetEncodings(currentEncoding, true);
       encodingChange = false;
     }
@@ -1350,7 +1482,6 @@ public class CConn extends CConnection
 
   // the following are only ever accessed by the GUI thread:
   int buttonMask;
-  int pressedModifiers;
 
   private String serverHost;
   private int serverPort;
@@ -1378,6 +1509,7 @@ public class CConn extends CConnection
 
   private boolean supportsSyncFence;
 
+  int modifiers;
   public int menuKeyCode;
   Viewport viewport;
   private boolean fullColour;
