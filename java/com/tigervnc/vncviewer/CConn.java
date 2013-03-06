@@ -1166,8 +1166,8 @@ public class CConn extends CConnection
     key = ev.getKeyChar();
     location = ev.getKeyLocation();
 
-    String fmt = ev.paramString().replaceAll(",","%n       ");
-    vlog.debug(String.format(fmt));
+    String fmt = ev.paramString().replaceAll("%","%%");
+    vlog.debug(String.format(fmt.replaceAll(",","%n       ")));
 
     if (!ev.isActionKey()) {
       if (keycode >= KeyEvent.VK_0 && keycode <= KeyEvent.VK_9 &&
