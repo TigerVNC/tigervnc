@@ -735,20 +735,33 @@ public class CConn extends CConnection
     Window fullScreenWindow = Viewport.getFullScreenWindow();
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(null);
-    JOptionPane.showMessageDialog(viewport,
-      "Desktop name: "+cp.name()+"\n"
-      +"Host: "+sock.getPeerName()+":"+sock.getPeerPort()+"\n"
-      +"Size: "+cp.width+"x"+cp.height+"\n"
-      +"Pixel format: "+desktop.getPF().print()+"\n"
-      +"(server default "+serverPF.print()+")\n"
-      +"Requested encoding: "+Encodings.encodingName(currentEncoding)+"\n"
-      +"Last used encoding: "+Encodings.encodingName(lastServerEncoding)+"\n"
-      +"Line speed estimate: "+sock.inStream().kbitsPerSecond()+" kbit/s"+"\n"
-      +"Protocol version: "+cp.majorVersion+"."+cp.minorVersion+"\n"
-      +"Security method: "+Security.secTypeName(csecurity.getType())
-       +" ["+csecurity.description()+"]",
-      "VNC connection info",
-      JOptionPane.PLAIN_MESSAGE);
+    String info = new String("Desktop name: %s%n"+
+                             "Host: %s:%d%n"+
+                             "Size: %dx%d%n"+
+                             "Pixel format: %s%n"+
+                             "  (server default: %s)%n"+
+                             "Requested encoding: %s%n"+
+                             "Last used encoding: %s%n"+
+                             "Line speed estimate: %d kbit/s%n"+
+                             "Protocol version: %d.%d%n"+
+                             "Security method: %s [%s]%n");
+    String msg = 
+      String.format(info, cp.name(),
+                    sock.getPeerName(), sock.getPeerPort(),
+                    cp.width, cp.height,
+                    desktop.getPF().print(),
+                    serverPF.print(),
+                    Encodings.encodingName(currentEncoding),
+                    Encodings.encodingName(lastServerEncoding),
+                    sock.inStream().kbitsPerSecond(),
+                    cp.majorVersion, cp.minorVersion,
+                    Security.secTypeName(csecurity.getType()),
+                    csecurity.description());
+    JOptionPane op = new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE,
+                                     JOptionPane.DEFAULT_OPTION);
+    JDialog dlg = op.createDialog("VNC connection info");
+    dlg.setIconImage(VncViewer.frameIcon);
+    dlg.setVisible(true);
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(fullScreenWindow);
   }
