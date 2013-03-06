@@ -1155,7 +1155,7 @@ public class CConn extends CConnection
   }
 
   public void writeKeyEvent(KeyEvent ev) {
-    int keysym = 0, keycode, key, location = 0;
+    int keysym = 0, keycode, key, location;
 
     if (shuttingDown)
       return;
@@ -1166,9 +1166,8 @@ public class CConn extends CConnection
     key = ev.getKeyChar();
     location = ev.getKeyLocation();
 
-    vlog.debug((ev.isActionKey() ? "action " : "") + "key " +
-               (down ? "press" : "release") + " code " + keycode +
-                " location " + location + " ASCII " + key);
+    String fmt = ev.paramString().replaceAll(",","%n       ");
+    vlog.debug(String.format(fmt));
 
     if (!ev.isActionKey()) {
       if (keycode >= KeyEvent.VK_0 && keycode <= KeyEvent.VK_9 &&
