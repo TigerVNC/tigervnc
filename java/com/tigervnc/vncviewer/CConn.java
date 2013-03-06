@@ -1155,7 +1155,7 @@ public class CConn extends CConnection
   }
 
   public void writeKeyEvent(KeyEvent ev) {
-    int keysym = 0, keycode, key, location, fakeModifiers = 0;
+    int keysym = 0, keycode, key, location = 0;
 
     if (shuttingDown)
       return;
@@ -1167,7 +1167,7 @@ public class CConn extends CConnection
     location = ev.getKeyLocation();
 
     vlog.debug((ev.isActionKey() ? "action " : "") + "key " +
-               (down ? "PRESS" : "release") + " code " + keycode +
+               (down ? "press" : "release") + " code " + keycode +
                 " location " + location + " ASCII " + key);
 
     if (!ev.isActionKey()) {
@@ -1210,6 +1210,9 @@ public class CConn extends CConnection
         else
           keysym = Keysyms.Clear;  break;
       case KeyEvent.VK_CONTROL:
+        // Suppress CTRL+ALT when AltGr is pressed
+        if (ev.isAltGraphDown())
+          return;
         if (down)
           modifiers |= Event.CTRL_MASK;
         else
@@ -1219,6 +1222,9 @@ public class CConn extends CConnection
         else
           keysym = Keysyms.Control_L;  break;
       case KeyEvent.VK_ALT:
+        // Suppress CTRL+ALT when AltGr is pressed
+        if (ev.isAltGraphDown())
+          return;
         if (down)
           modifiers |= Event.ALT_MASK;
         else
@@ -1246,13 +1252,7 @@ public class CConn extends CConnection
         else
           keysym = Keysyms.Meta_L;  break;
       default:
-        if (ev.isControlDown() && ev.isAltDown()) {
-          // Handle AltGr key on international keyboards
-          if ((keycode >= 32 && keycode <= 126) ||
-              (keycode >= 160 && keycode <= 255))
-            key = keycode;
-            fakeModifiers |= Event.ALT_MASK | Event.CTRL_MASK;
-        } else if (ev.isControlDown()) {
+        if (ev.isControlDown()) {
           // For CTRL-<letter>, CTRL is sent separately, so just send <letter>.
           if ((key >= 1 && key <= 26 && !ev.isShiftDown()) ||
               // CTRL-{, CTRL-|, CTRL-} also map to ASCII 96-127
@@ -1360,28 +1360,7 @@ public class CConn extends CConnection
       }
     }
 
-    if (fakeModifiers != 0) {
-      if ((fakeModifiers & Event.CTRL_MASK) != 0) {
-        vlog.debug("Fake L Ctrl raised");
-        writeKeyEvent(Keysyms.Control_L, false);
-      }
-      if ((modifiers & Event.ALT_MASK) != 0) {
-        vlog.debug("Fake R Alt raised");
-        writeKeyEvent(Keysyms.Alt_R, false);
-      }
-    }
     writeKeyEvent(keysym, down);
-    if (fakeModifiers != 0) {
-      if ((fakeModifiers & Event.CTRL_MASK) != 0) {
-        vlog.debug("Fake L Ctrl pressed");
-        writeKeyEvent(Keysyms.Control_L, true);
-      }
-      if ((modifiers & Event.ALT_MASK) != 0) {
-        vlog.debug("Fake R Alt pressed");
-        writeKeyEvent(Keysyms.Alt_R, true);
-      }
-      fakeModifiers = 0;
-    }
   }
 
 

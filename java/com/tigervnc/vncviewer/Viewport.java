@@ -52,6 +52,9 @@ public class Viewport extends JFrame
         if (isVisible())
           sp.getViewport().getView().requestFocusInWindow();
       }
+      public void windowLostFocus(WindowEvent e) {
+        cc.releaseModifiers();
+      }
     });
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {

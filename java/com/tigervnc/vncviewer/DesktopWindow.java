@@ -460,20 +460,23 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
     if ((e.getModifiers() & ctrlAltShiftMask) == ctrlAltShiftMask) {
       switch (e.getKeyCode()) {
+        case KeyEvent.VK_A:
+          cc.showAbout();
+          return;
         case KeyEvent.VK_F:
           cc.toggleFullScreen();
+          return;
+        case KeyEvent.VK_H:
+          cc.refresh();
           return;
         case KeyEvent.VK_I:
           cc.showInfo();
           return;
-        case KeyEvent.VK_N:
-          VncViewer.newViewer(cc.viewer);
-          return;
         case KeyEvent.VK_O:
           cc.options.showDialog(cc.viewport);
           return;
-        case KeyEvent.VK_R:
-          cc.refresh();
+        case KeyEvent.VK_W:
+          VncViewer.newViewer(cc.viewer);
           return;
         case KeyEvent.VK_LEFT:
         case KeyEvent.VK_RIGHT:
