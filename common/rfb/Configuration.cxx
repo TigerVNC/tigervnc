@@ -79,14 +79,6 @@ Configuration* Configuration::viewer() {
 
 // -=- Configuration implementation
 
-Configuration::Configuration(const char* name_, Configuration* attachToGroup) 
-: name(strDup(name_)), head(0), _next(0) {
-  if (attachToGroup) {
-    _next = attachToGroup->_next;
-    attachToGroup->_next = this;
-  }
-}
-
 Configuration& Configuration::operator=(const Configuration& src) {
   VoidParameter* current = head;
   while (current) {

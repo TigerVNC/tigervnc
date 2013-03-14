@@ -57,7 +57,7 @@ namespace rfb {
   class Configuration {
   public:
     // - Create a new Configuration object
-    Configuration(const char* name, Configuration* attachToGroup=0);
+    Configuration(const char* name_) : name(strDup(name_)), head(0), _next(0) {}
 
     // - Return the buffer containing the Configuration's name
     const char* getName() const { return name.buf; }
