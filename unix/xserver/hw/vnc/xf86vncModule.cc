@@ -90,26 +90,31 @@ vncSetup(pointer module, pointer opts, int *errmaj, int *errmin) {
 
 static void vncExtensionInitWithParams(INITARGS)
 {
-  rfb::initStdIOLoggers();
-  rfb::LogWriter::setLogParams("*:stderr:30");
-  rfb::Configuration::enableServerParams();
+  static char once = 0;
 
-  for (int scr = 0; scr < screenInfo.numScreens; scr++) {
-    ScrnInfoPtr pScrn = xf86Screens[scr];
+  if (!once) {
+    once++;
+    rfb::initStdIOLoggers();
+    rfb::LogWriter::setLogParams("*:stderr:30");
+    rfb::Configuration::enableServerParams();
 
-    for (ParameterIterator i; i.param; i.next()) {
-      const char *val;
+    for (int scr = 0; scr < screenInfo.numScreens; scr++) {
+      ScrnInfoPtr pScrn = xf86Screens[scr];
+
+      for (ParameterIterator i; i.param; i.next()) {
+        const char *val;
 #if XORG < 112
-      val = xf86FindOptionValue(pScrn->options, i.param->getName());
+        val = xf86FindOptionValue(pScrn->options, i.param->getName());
 #else
-      val = xf86FindOptionValue((XF86OptionPtr)pScrn->options, i.param->getName());
+        val = xf86FindOptionValue((XF86OptionPtr)pScrn->options, i.param->getName());
 #endif
-      if (val)
-        i.param->setParam(val);
+        if (val)
+          i.param->setParam(val);
+      }
     }
-  }
 
-  vncExtensionInit();
+    vncExtensionInit();
+  }
 }
 }
 
