@@ -373,14 +373,6 @@ sub CheckGeometryAndDepth
 	    die "$prog: geometry $geometry is invalid\n";
 	}
 
-	while (($width % 4)!=0) {
-	    $width = $width + 1;
-	}
-
-	while (($height % 2)!=0) {
-	    $height = $height + 1;
-	}
-
 	$geometry = "${width}x$height";
     } else {
 	die "$prog: geometry $geometry is invalid\n";
