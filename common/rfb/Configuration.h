@@ -62,11 +62,6 @@ namespace rfb {
     // - Return the buffer containing the Configuration's name
     const char* getName() const { return name.buf; }
 
-    // - Assignment operator.  For every Parameter in this Configuration's
-    //   group, get()s the corresponding source parameter and copies its
-    //   content.
-    Configuration& operator=(const Configuration& src);
-
     // - Set named parameter to value
     bool set(const char* param, const char* value, bool immutable=false);
 

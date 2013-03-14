@@ -79,23 +79,6 @@ Configuration* Configuration::viewer() {
 
 // -=- Configuration implementation
 
-Configuration& Configuration::operator=(const Configuration& src) {
-  VoidParameter* current = head;
-  while (current) {
-    VoidParameter* srcParam = ((Configuration&)src).get(current->getName());
-    if (srcParam) {
-      current->immutable = false;
-      CharArray value(srcParam->getValueStr());
-      vlog.debug("operator=(%s, %s)", current->getName(), value.buf);
-      current->setParam(value.buf);
-    }
-    current = current->_next;
-  }
-  if (_next)
-    *_next=src;
-  return *this;
-}
-
 bool Configuration::set(const char* n, const char* v, bool immutable) {
   return set(n, strlen(n), v, immutable);
 }
