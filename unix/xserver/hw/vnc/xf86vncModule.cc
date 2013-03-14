@@ -97,7 +97,7 @@ static void vncExtensionInitWithParams(INITARGS)
   for (int scr = 0; scr < screenInfo.numScreens; scr++) {
     ScrnInfoPtr pScrn = xf86Screens[scr];
 
-    for (ParameterIterator i(Configuration::global()); i.param; i.next()) {
+    for (ParameterIterator i; i.param; i.next()) {
       const char *val;
 #if XORG < 112
       val = xf86FindOptionValue(pScrn->options, i.param->getName());

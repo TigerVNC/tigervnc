@@ -268,12 +268,12 @@ namespace rfb {
   };
 
   // -=- ParameterIterator
-  //     Iterates over all the Parameters in a Configuration group.  The
-  //     current Parameter is accessed via param, the current Configuration
-  //     via config.  The next() method moves on to the next Parameter.
+  //     Iterates over all enabled parameters (global + server/viewer).
+  //     Current Parameter is accessed via param, the current Configuration
+  //     via config. The next() method moves on to the next Parameter.
 
   struct ParameterIterator {
-    ParameterIterator(Configuration* c) : config(c), param(c ? c->head : 0) {}
+    ParameterIterator() : config(Configuration::global()), param(config->head) {}
     void next() {
       param = param->_next;
       while (!param) {

@@ -768,7 +768,7 @@ static int ProcVncExtListParams(ClientPtr client)
 
   int nParams = 0;
   int len = 0;
-  for (ParameterIterator i(Configuration::global()); i.param; i.next()) {
+  for (ParameterIterator i; i.param; i.next()) {
     int l = strlen(i.param->getName());
     if (l <= 255) {
       nParams++;
@@ -792,7 +792,7 @@ static int ProcVncExtListParams(ClientPtr client)
   WriteToClient(client, sizeof(xVncExtListParamsReply), (char *)&rep);
   rdr::U8* data = new rdr::U8[len];
   rdr::U8* ptr = data;
-  for (ParameterIterator i(Configuration::global()); i.param; i.next()) {
+  for (ParameterIterator i; i.param; i.next()) {
     int l = strlen(i.param->getName());
     if (l <= 255) {
       *ptr++ = l;
