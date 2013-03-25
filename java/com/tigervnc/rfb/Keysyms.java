@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2012-2013 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2013 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,7 @@ package com.tigervnc.rfb;
 
 public class Keysyms {
 
+  public static final int ISO_Level3_Shift = 0xFE03;
   public static final int BackSpace = 0xFF08;
   public static final int Tab = 0xFF09;
   public static final int Linefeed = 0xFF0A;
@@ -37,6 +39,33 @@ public class Keysyms {
   public static final int Sys_Req = 0xFF15;
   public static final int Escape = 0xFF1B;
   public static final int Delete = 0xFFFF;
+
+  public static final int Multi_key = 0xFF20;  /* Multi-key character compose */
+  public static final int Codeinput = 0xFF37;
+  public static final int SingleCandidate = 0xFF3C;
+  public static final int MultipleCandidate = 0xFF3D;
+  public static final int PreviousCandidate = 0xFF3E;
+
+  public static final int Kanji = 0xFF21;  /* Kanji, Kanji convert */
+  public static final int Muhenkan = 0xFF22;  /* Cancel Conversion */
+  public static final int Henkan_Mode = 0xFF23;  /* Start/Stop Conversion */
+  public static final int Henkan = 0xFF23;  /* Alias for Henkan_Mode */
+  public static final int Romaji = 0xFF24;  /* to Romaji */
+  public static final int Hiragana = 0xFF25;  /* to Hiragana */
+  public static final int Katakana = 0xFF26;  /* to Katakana */
+  public static final int Hiragana_Katakana = 0xFF27;  /* Hiragana/Katakana toggle */
+  public static final int Zenkaku = 0xFF28;  /* to Zenkaku */
+  public static final int Hankaku = 0xFF29;  /* to Hankaku */
+  public static final int Zenkaku_Hankaku = 0xFF2A;  /* Zenkaku/Hankaku toggle */
+  public static final int Touroku = 0xFF2B;  /* Add to Dictionary */
+  public static final int Massyo = 0xFF2C;  /* Delete from Dictionary */
+  public static final int Kana_Lock = 0xFF2D;  /* Kana Lock */
+  public static final int Kana_Shift = 0xFF2E;  /* Kana Shift */
+  public static final int Eisu_Shift = 0xFF2F;  /* Alphanumeric Shift */
+  public static final int Eisu_toggle = 0xFF30;  /* Alphanumeric toggle */
+  public static final int Kanji_Bangou = 0xFF37;  /* Codeinput */
+  public static final int Zen_Koho = 0xFF3D;  /* Multiple/All Candidate(s) */
+  public static final int Mae_Koho = 0xFF3E;  /* Previous Candidate */
 
   public static final int Home = 0xFF50;
   public static final int Left = 0xFF51;
@@ -78,6 +107,17 @@ public class Keysyms {
   public static final int F11 = 0xFFC8;
   public static final int F12 = 0xFFC9;
   public static final int F13 = 0xFFCA;
+  public static final int F14 = 0xFFCB;
+  public static final int F15 = 0xFFCC;
+  public static final int F16 = 0xFFCD;
+  public static final int F17 = 0xFFCE;
+  public static final int F18 = 0xFFCF;
+  public static final int F19 = 0xFFD0;
+  public static final int F20 = 0xFFD1;
+  public static final int F21 = 0xFFD2;
+  public static final int F22 = 0xFFD3;
+  public static final int F23 = 0xFFD4;
+  public static final int F24 = 0xFFD5;
 
   public static final int Shift_L = 0xFFE1;
   public static final int Shift_R = 0xFFE2;

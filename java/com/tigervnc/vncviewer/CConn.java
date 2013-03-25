@@ -67,6 +67,9 @@ public class CConn extends CConnection
     new PixelFormat(8, 6, false, true, 3, 3, 3, 4, 2, 0);
   static final PixelFormat mediumColourPF = 
     new PixelFormat(8, 8, false, false, 7, 7, 3, 0, 3, 6);
+  static final int KEY_LOC_SHIFT_R = 0;
+  static final int KEY_LOC_SHIFT_L = 16;
+  static final int SUPER_MASK = 1<<15;
 
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the RFB thread
@@ -1154,8 +1157,31 @@ public class CConn extends CConnection
     writer().writeKeyEvent(keysym, down);
   }
 
+  public void writeKeyEvent(KeyEvent ev, int keysym) {
+    if (keysym < 0)
+      return;
+    String fmt = ev.paramString().replaceAll("%","%%");
+    vlog.debug(String.format(fmt.replaceAll(",","%n       ")));
+    // Windows sends an extra CTRL_L + ALT_R when AltGr is down that need to
+    // be suppressed for keyTyped events. In Java 6 KeyEvent.isAltGraphDown()
+    // is broken for keyPressed/keyReleased events.
+    int ALTGR_MASK = ((Event.CTRL_MASK<<KEY_LOC_SHIFT_L) | Event.ALT_MASK);
+    String os = System.getProperty("os.name");
+    if (os.startsWith("Windows") && ((modifiers & ALTGR_MASK) != 0)) {
+      writeKeyEvent(Keysyms.Control_L, false);
+      writeKeyEvent(Keysyms.Alt_R, false);
+      writeKeyEvent(keysym, true);
+      writeKeyEvent(keysym, false);
+      writeKeyEvent(Keysyms.Control_L, true);
+      writeKeyEvent(Keysyms.Alt_R, true);
+    } else {
+      writeKeyEvent(keysym, true);
+      writeKeyEvent(keysym, false);
+    }
+  }
+
   public void writeKeyEvent(KeyEvent ev) {
-    int keysym = 0, keycode, key, location;
+    int keysym = 0, keycode, key, location, locationShift;
 
     if (shuttingDown)
       return;
@@ -1163,11 +1189,14 @@ public class CConn extends CConnection
     boolean down = (ev.getID() == KeyEvent.KEY_PRESSED);
 
     keycode = ev.getKeyCode();
+    if (keycode == KeyEvent.VK_UNDEFINED)
+      return;
     key = ev.getKeyChar();
     location = ev.getKeyLocation();
-
-    String fmt = ev.paramString().replaceAll("%","%%");
-    vlog.debug(String.format(fmt.replaceAll(",","%n       ")));
+    if (location == KeyEvent.KEY_LOCATION_RIGHT)
+      locationShift = KEY_LOC_SHIFT_R;
+    else
+      locationShift = KEY_LOC_SHIFT_L;
 
     if (!ev.isActionKey()) {
       if (keycode >= KeyEvent.VK_0 && keycode <= KeyEvent.VK_9 &&
@@ -1209,43 +1238,37 @@ public class CConn extends CConnection
         else
           keysym = Keysyms.Clear;  break;
       case KeyEvent.VK_CONTROL:
-        // Suppress CTRL+ALT when AltGr is pressed
-        if (ev.isAltGraphDown())
-          return;
         if (down)
-          modifiers |= Event.CTRL_MASK;
+          modifiers |= (Event.CTRL_MASK<<locationShift);
         else
-          modifiers &= ~Event.CTRL_MASK;
+          modifiers &= ~(Event.CTRL_MASK<<locationShift);
         if (location == KeyEvent.KEY_LOCATION_RIGHT)
           keysym = Keysyms.Control_R;
         else
           keysym = Keysyms.Control_L;  break;
       case KeyEvent.VK_ALT:
-        // Suppress CTRL+ALT when AltGr is pressed
-        if (ev.isAltGraphDown())
-          return;
         if (down)
-          modifiers |= Event.ALT_MASK;
+          modifiers |= (Event.ALT_MASK<<locationShift);
         else
-          modifiers &= ~Event.ALT_MASK;
+          modifiers &= ~(Event.ALT_MASK<<locationShift);
         if (location == KeyEvent.KEY_LOCATION_RIGHT)
           keysym = Keysyms.Alt_R;
         else
           keysym = Keysyms.Alt_L;  break;
       case KeyEvent.VK_SHIFT:
         if (down)
-          modifiers |= Event.SHIFT_MASK;
+          modifiers |= (Event.SHIFT_MASK<<locationShift);
         else
-          modifiers &= ~Event.SHIFT_MASK;
+          modifiers &= ~(Event.SHIFT_MASK<<locationShift);
         if (location == KeyEvent.KEY_LOCATION_RIGHT)
           keysym = Keysyms.Shift_R;
         else
           keysym = Keysyms.Shift_L;  break;
       case KeyEvent.VK_META:
         if (down)
-          modifiers |= Event.META_MASK;
+          modifiers |= (Event.META_MASK<<locationShift);
         else
-          modifiers &= ~Event.META_MASK;
+          modifiers &= ~(Event.META_MASK<<locationShift);
         if (location == KeyEvent.KEY_LOCATION_RIGHT)
           keysym = Keysyms.Meta_R;
         else
@@ -1269,6 +1292,7 @@ public class CConn extends CConnection
                    keycode <= 127)
             key = keycode;
         }
+
         keysym = UnicodeToKeysym.translate(key);
         if (keysym == -1)
           return;
@@ -1316,6 +1340,15 @@ public class CConn extends CConnection
           keysym = Keysyms.KP_Right;
         else
           keysym = Keysyms.Right;  break;
+      case KeyEvent.VK_BEGIN:
+        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
+          keysym = Keysyms.KP_Begin;
+        else
+          keysym = Keysyms.Begin;  break;
+      case KeyEvent.VK_KP_LEFT:      keysym = Keysyms.KP_Left; break;
+      case KeyEvent.VK_KP_UP:        keysym = Keysyms.KP_Up; break;
+      case KeyEvent.VK_KP_RIGHT:     keysym = Keysyms.KP_Right; break;
+      case KeyEvent.VK_KP_DOWN:      keysym = Keysyms.KP_Down; break;
       case KeyEvent.VK_F1:           keysym = Keysyms.F1; break;
       case KeyEvent.VK_F2:           keysym = Keysyms.F2; break;
       case KeyEvent.VK_F3:           keysym = Keysyms.F3; break;
@@ -1329,7 +1362,21 @@ public class CConn extends CConnection
       case KeyEvent.VK_F11:          keysym = Keysyms.F11; break;
       case KeyEvent.VK_F12:          keysym = Keysyms.F12; break;
       case KeyEvent.VK_F13:          keysym = Keysyms.F13; break;
+      case KeyEvent.VK_F14:          keysym = Keysyms.F14; break;
+      case KeyEvent.VK_F15:          keysym = Keysyms.F15; break;
+      case KeyEvent.VK_F16:          keysym = Keysyms.F16; break;
+      case KeyEvent.VK_F17:          keysym = Keysyms.F17; break;
+      case KeyEvent.VK_F18:          keysym = Keysyms.F18; break;
+      case KeyEvent.VK_F19:          keysym = Keysyms.F19; break;
+      case KeyEvent.VK_F20:          keysym = Keysyms.F20; break;
+      case KeyEvent.VK_F21:          keysym = Keysyms.F21; break;
+      case KeyEvent.VK_F22:          keysym = Keysyms.F22; break;
+      case KeyEvent.VK_F23:          keysym = Keysyms.F23; break;
+      case KeyEvent.VK_F24:          keysym = Keysyms.F24; break;
       case KeyEvent.VK_PRINTSCREEN:  keysym = Keysyms.Print; break;
+      case KeyEvent.VK_SCROLL_LOCK:  keysym = Keysyms.Scroll_Lock; break;
+      case KeyEvent.VK_CAPS_LOCK:    keysym = Keysyms.Caps_Lock; break;
+      case KeyEvent.VK_NUM_LOCK:     keysym = Keysyms.Num_Lock; break;
       case KeyEvent.VK_PAUSE:
         if (ev.isControlDown())
           keysym = Keysyms.Break;
@@ -1341,27 +1388,55 @@ public class CConn extends CConnection
           keysym = Keysyms.KP_Insert;
         else
           keysym = Keysyms.Insert;  break;
-      case KeyEvent.VK_KP_DOWN:      keysym = Keysyms.KP_Down; break;
-      case KeyEvent.VK_KP_LEFT:      keysym = Keysyms.KP_Left; break;
-      case KeyEvent.VK_KP_RIGHT:     keysym = Keysyms.KP_Right; break;
-      case KeyEvent.VK_KP_UP:        keysym = Keysyms.KP_Up; break;
-      case KeyEvent.VK_NUM_LOCK:     keysym = Keysyms.Num_Lock; break;
-      case KeyEvent.VK_WINDOWS:      keysym = Keysyms.Super_L; break;
-      case KeyEvent.VK_CONTEXT_MENU: keysym = Keysyms.Menu; break;
-      case KeyEvent.VK_SCROLL_LOCK:  keysym = Keysyms.Scroll_Lock; break;
-      case KeyEvent.VK_CAPS_LOCK:    keysym = Keysyms.Caps_Lock; break;
-      case KeyEvent.VK_BEGIN:
-        if (location == KeyEvent.KEY_LOCATION_NUMPAD)
-          keysym = Keysyms.KP_Begin;
+      // case KeyEvent.VK_FINAL:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_CONVERT:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_NONCONVERT:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_ACCEPT:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_MODECHANGE:     keysym = Keysyms.Mode_switch?; break;
+      // case KeyEvent.VK_KANA:     keysym = Keysyms.Kana_shift?; break;
+      case KeyEvent.VK_KANJI:     keysym = Keysyms.Kanji; break;
+      // case KeyEvent.VK_ALPHANUMERIC:     keysym = Keysyms.Eisu_Shift?; break;
+      case KeyEvent.VK_KATAKANA:     keysym = Keysyms.Katakana; break;
+      case KeyEvent.VK_HIRAGANA:     keysym = Keysyms.Hiragana; break;
+      // case KeyEvent.VK_FULL_WIDTH:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_HALF_WIDTH:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_ROMAN_CHARACTERS:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_ALL_CANDIDATES:     keysym = Keysyms.MultipleCandidate?; break;
+      case KeyEvent.VK_PREVIOUS_CANDIDATE:     keysym = Keysyms.PreviousCandidate; break;
+      case KeyEvent.VK_CODE_INPUT:     keysym = Keysyms.Codeinput; break;
+      // case KeyEvent.VK_JAPANESE_KATAKANA:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_JAPANESE_HIRAGANA:     keysym = Keysyms.?; break;
+      case KeyEvent.VK_JAPANESE_ROMAN:     keysym = Keysyms.Romaji; break;
+      case KeyEvent.VK_KANA_LOCK:     keysym = Keysyms.Kana_Lock; break;
+      // case KeyEvent.VK_INPUT_METHOD_ON_OFF:     keysym = Keysyms.?; break;
+
+      case KeyEvent.VK_AGAIN:     keysym = Keysyms.Redo; break;
+      case KeyEvent.VK_UNDO:     keysym = Keysyms.Undo; break;
+      // case KeyEvent.VK_COPY:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_PASTE:     keysym = Keysyms.?; break;
+      // case KeyEvent.VK_CUT:     keysym = Keysyms.?; break;
+      case KeyEvent.VK_FIND:     keysym = Keysyms.Find; break;
+      // case KeyEvent.VK_PROPS:     keysym = Keysyms.?; break;
+      case KeyEvent.VK_STOP:     keysym = Keysyms.Cancel; break;
+      case KeyEvent.VK_HELP:         keysym = Keysyms.Help; break;
+      case KeyEvent.VK_WINDOWS:
+        if (down)
+          modifiers |= SUPER_MASK;
         else
-          keysym = Keysyms.Begin;  break;
+          modifiers &= ~SUPER_MASK;
+        keysym = Keysyms.Super_L; break;
+      case KeyEvent.VK_CONTEXT_MENU: keysym = Keysyms.Menu; break;
       default: return;
       }
     }
 
-    writeKeyEvent(keysym, down);
-  }
+    if (keysym > 0) {
+      String fmt = ev.paramString().replaceAll("%","%%");
+      vlog.debug(String.format(fmt.replaceAll(",","%n       ")));
 
+      writeKeyEvent(keysym, down);
+    }
+  }
 
   public void writePointerEvent(MouseEvent ev) {
     if (state() != RFBSTATE_NORMAL || shuttingDown)
@@ -1390,7 +1465,6 @@ public class CConn extends CConnection
     writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
   }
 
-
   public void writeWheelEvent(MouseWheelEvent ev) {
     if (state() != RFBSTATE_NORMAL || shuttingDown)
       return;
@@ -1411,16 +1485,25 @@ public class CConn extends CConnection
 
   }
 
-
   synchronized void releaseModifiers() {
-    if ((modifiers & Event.SHIFT_MASK) != 0)
+    if ((modifiers & Event.SHIFT_MASK) == Event.SHIFT_MASK)
+      writeKeyEvent(Keysyms.Shift_R, false);
+    if (((modifiers>>KEY_LOC_SHIFT_L) & Event.SHIFT_MASK) == Event.SHIFT_MASK)
       writeKeyEvent(Keysyms.Shift_L, false);
-    if ((modifiers & Event.CTRL_MASK) != 0)
+    if ((modifiers & Event.CTRL_MASK) == Event.CTRL_MASK)
+      writeKeyEvent(Keysyms.Control_R, false);
+    if (((modifiers>>KEY_LOC_SHIFT_L) & Event.CTRL_MASK) == Event.CTRL_MASK)
       writeKeyEvent(Keysyms.Control_L, false);
-    if ((modifiers & Event.ALT_MASK) != 0)
+    if ((modifiers & Event.ALT_MASK) == Event.ALT_MASK)
+      writeKeyEvent(Keysyms.Alt_R, false);
+    if (((modifiers>>KEY_LOC_SHIFT_L) & Event.ALT_MASK) == Event.ALT_MASK)
       writeKeyEvent(Keysyms.Alt_L, false);
-    if ((modifiers & Event.META_MASK) != 0)
+    if ((modifiers & Event.META_MASK) == Event.META_MASK)
+      writeKeyEvent(Keysyms.Meta_R, false);
+    if (((modifiers>>KEY_LOC_SHIFT_L) & Event.META_MASK) == Event.META_MASK)
       writeKeyEvent(Keysyms.Meta_L, false);
+    if ((modifiers & SUPER_MASK) == SUPER_MASK)
+      writeKeyEvent(Keysyms.Super_L, false);
     modifiers = 0;
   }
 
