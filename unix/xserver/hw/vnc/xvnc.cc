@@ -1563,6 +1563,18 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 static void vfbClientStateChange(CallbackListPtr*, pointer, pointer) {
   dispatchException &= ~DE_RESET;
 }
+ 
+#if XORG >= 113
+#ifdef GLXEXT
+extern "C" void GlxExtensionInit(void);
+
+static ExtensionModule glxExt = {
+    GlxExtensionInit,
+    "GLX",
+    &noGlxExtension
+};
+#endif
+#endif
 
 void
 InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
@@ -1572,6 +1584,13 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
          VENDOR_STRING);
     int i;
     int NumFormats = 0;
+
+#if XORG >= 113
+#ifdef GLXEXT
+    if (serverGeneration == 1)
+        LoadExtension(&glxExt, TRUE);
+#endif
+#endif
 
     /* initialize pixmap formats */
 
