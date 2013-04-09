@@ -524,7 +524,7 @@ static struct altKeysym_t {
 	{ XK_KP_7,		XK_7 },
 	{ XK_KP_8,		XK_8 },
 	{ XK_KP_9,		XK_9 },
-	{ XK_ISO_Level3_Shift,  XK_Mode_switch },
+	{ XK_ISO_Level3_Shift,	XK_Mode_switch },
 };
 
 /*
