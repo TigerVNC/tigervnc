@@ -64,9 +64,6 @@ using namespace rfb;
 static LogWriter vlog("Input");
 
 #define BUTTONS 7
-static int pointerProc(DeviceIntPtr pDevice, int onoff);
-
-static int keyboardProc(DeviceIntPtr pDevice, int onoff);
 
 /* Event queue is shared between all devices. */
 #if XORG == 15
@@ -257,6 +254,47 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 	case DEVICE_CLOSE:
 		break;
 #endif
+	}
+
+	return Success;
+}
+
+static void keyboardBell(int percent, DeviceIntPtr device, pointer ctrl,
+			 int class_)
+{
+	if (percent > 0)
+		vncBell();
+}
+
+extern void GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
+
+static int keyboardProc(DeviceIntPtr pDevice, int onoff)
+{
+#if XORG < 17
+	KeySymsRec keySyms;
+	CARD8 modMap[MAP_LENGTH];
+#endif
+	DevicePtr pDev = (DevicePtr)pDevice;
+
+	switch (onoff) {
+	case DEVICE_INIT:
+#if XORG < 17
+		GetInitKeyboardMap(&keySyms, modMap);
+#endif
+		InitKeyboardDeviceStruct(
+#if XORG >= 17
+					 pDevice, NULL,
+#else
+					 pDev, &keySyms, modMap,
+#endif
+					 keyboardBell, (KbdCtrlProcPtr)NoopDDA);
+		break;
+	case DEVICE_ON:
+		pDev->on = TRUE;
+		break;
+	case DEVICE_OFF:
+		pDev->on = FALSE;
+		break;
 	}
 
 	return Success;
@@ -568,47 +606,3 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	 */
 	mieqProcessInputEvents();
 }
-
-static void keyboardBell(int percent, DeviceIntPtr device, pointer ctrl,
-			 int class_)
-{
-	if (percent > 0)
-		vncBell();
-}
-
-static int keyboardProc(DeviceIntPtr pDevice, int onoff)
-{
-#if XORG < 17
-	KeySymsRec keySyms;
-	CARD8 modMap[MAP_LENGTH];
-#endif
-	DevicePtr pDev = (DevicePtr)pDevice;
-
-	switch (onoff) {
-	case DEVICE_INIT:
-#if XORG < 17
-		GetMappings(&keySyms, modMap);
-#endif
-		InitKeyboardDeviceStruct(
-#if XORG >= 17
-					 pDevice, NULL,
-#else
-					 pDev, &keySyms, modMap,
-#endif
-					 keyboardBell, (KbdCtrlProcPtr)NoopDDA);
-		break;
-	case DEVICE_ON:
-		pDev->on = TRUE;
-		break;
-	case DEVICE_OFF:
-		pDev->on = FALSE;
-		break;
-#if 0
-	case DEVICE_CLOSE:
-		break;
-#endif
-	}
-
-	return Success;
-}
-
