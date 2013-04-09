@@ -576,6 +576,12 @@ static struct timeval XserverDesktopTimeout;
 
 void XserverDesktop::blockHandler(fd_set* fds, OSTimePtr timeout)
 {
+  // We don't have a good callback for when we can init input devices[1],
+  // so we abuse the fact that this routine will be called first thing
+  // once the dix is done initialising.
+  // [1] Technically Xvnc has InitInput(), but libvnc.so has nothing.
+  inputDevice->InitInputDevice();
+
   try {
     int nextTimeout;
 

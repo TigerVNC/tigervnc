@@ -55,17 +55,19 @@ public:
 
 	void KeyboardPress(rdr::U32 keysym) { keyEvent(keysym, true); }
 	void KeyboardRelease(rdr::U32 keysym) { keyEvent(keysym, false); }
-private:
+
 	/*
 	 * Init input device. This cannot be done in the constructor
 	 * because constructor is called during X server extensions
 	 * initialization. Devices must be initialized after core
 	 * pointer/keyboard initialization which is actually after extesions
 	 * initialization. Check InitExtensions(), InitCoreDevices() and
-	 * InitInput() calls in dix/main.c
+         * InitInput() calls in dix/main.c. Instead it is called from
+         * XserverDesktop at an appropriate time.
 	 */
-	void initInputDevice(void);
+	void InitInputDevice(void);
 
+private:
 	void keyEvent(rdr::U32 keysym, bool down);
 
 	rfb::VNCServerST *server;

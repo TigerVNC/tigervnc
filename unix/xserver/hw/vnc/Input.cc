@@ -160,8 +160,6 @@ void InputDevice::PointerButtonAction(int buttonMask)
 	ValuatorMask mask;
 #endif
 
-	initInputDevice();
-
 	for (i = 0; i < BUTTONS; i++) {
 		if ((buttonMask ^ oldButtonMask) & (1 << i)) {
 			int action = (buttonMask & (1<<i)) ?
@@ -198,8 +196,6 @@ void InputDevice::PointerMove(const rfb::Point &pos)
 
 	if (pos.equals(cursorPos))
 		return;
-
-	initInputDevice();
 
 	valuators[0] = pos.x;
 	valuators[1] = pos.y;
@@ -287,7 +283,7 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 	return Success;
 }
 
-void InputDevice::initInputDevice(void)
+void InputDevice::InitInputDevice(void)
 {
 #if XORG >= 17
 	int ret;
@@ -611,8 +607,6 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 #if XORG >= 17
 	KeybdCtrl ctrl;
 #endif
-
-	initInputDevice();
 
 	/* 
 	 * Since we are checking the current state to determine if we need
