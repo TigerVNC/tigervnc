@@ -74,8 +74,11 @@ private:
 	bool initialized;
 	DeviceIntPtr keyboardDev;
 	DeviceIntPtr pointerDev;
+
 	int oldButtonMask;
 	rfb::Point cursorPos, oldCursorPos;
+
+	KeySym pressedKeys[256];
 };
 
 #endif
