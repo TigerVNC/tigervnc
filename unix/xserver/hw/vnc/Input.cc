@@ -130,21 +130,6 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 InputDevice::InputDevice(rfb::VNCServerST *_server)
 	: server(_server), initialized(false), oldButtonMask(0)
 {
-#if XORG < 17
-	pointerDev = AddInputDevice(
-#if XORG >= 16
-				    serverClient,
-#endif
-				    pointerProc, TRUE);
-	RegisterPointerDevice(pointerDev);
-
-	keyboardDev = AddInputDevice(
-#if XORG >= 16
-				     serverClient,
-#endif
-				     keyboardProc, TRUE);
-	RegisterKeyboardDevice(keyboardDev);
-#endif
 #if XORG < 111
 	initEventq();
 #endif
@@ -285,13 +270,35 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 
 void InputDevice::InitInputDevice(void)
 {
-#if XORG >= 17
-	int ret;
-
-	if (!initialized)
+	if (initialized)
 		return;
 
 	initialized = true;
+
+#if XORG < 17
+	pointerDev = AddInputDevice(
+#if XORG >= 16
+				    serverClient,
+#endif
+				    pointerProc, TRUE);
+	RegisterPointerDevice(pointerDev);
+
+	keyboardDev = AddInputDevice(
+#if XORG >= 16
+				     serverClient,
+#endif
+				     keyboardProc, TRUE);
+	RegisterKeyboardDevice(keyboardDev);
+
+	if (ActivateDevice(pointerDev) != Success ||
+	    ActivateDevice(keyboardDev) != Success)
+		FatalError("Failed to activate TigerVNC devices\n");
+
+	if (!EnableDevice(pointerDev) ||
+	    !EnableDevice(keyboardDev))
+		FatalError("Failed to enable TigerVNC devices\n");
+#else /* < 17 */
+	int ret;
 
 	ret = AllocDevicePair(serverClient, "TigerVNC", &pointerDev,
 			      &keyboardDev, pointerProc, keyboardProc,
@@ -307,7 +314,7 @@ void InputDevice::InitInputDevice(void)
 	if (!EnableDevice(pointerDev, TRUE) ||
 	    !EnableDevice(keyboardDev, TRUE))
 		FatalError("Failed to activate TigerVNC devices\n");
-#endif
+#endif /* 17 */
 }
 
 static inline void pressKey(DeviceIntPtr dev, int kc, bool down, const char *msg)
