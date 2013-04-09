@@ -1,6 +1,7 @@
 /* Copyright (C) 2009 TightVNC Team
  * Copyright (C) 2009, 2010 Red Hat, Inc.
  * Copyright (C) 2009, 2010 TigerVNC Team
+ * Copyright 2013 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +27,15 @@
 #include <dix-config.h>
 #endif
 
+#include <list>
+
 #include <rfb/VNCServerST.h>
 
 extern "C" {
 #include "input.h"
 };
+
+#include "xorg-version.h"
 
 /* Represents input device (keyboard + pointer) */
 class InputDevice {
@@ -62,14 +67,40 @@ public:
 	 * initialization. Devices must be initialized after core
 	 * pointer/keyboard initialization which is actually after extesions
 	 * initialization. Check InitExtensions(), InitCoreDevices() and
-         * InitInput() calls in dix/main.c. Instead it is called from
-         * XserverDesktop at an appropriate time.
+	 * InitInput() calls in dix/main.c. Instead it is called from
+	 * XserverDesktop at an appropriate time.
 	 */
 	void InitInputDevice(void);
 
 private:
 	void keyEvent(rdr::U32 keysym, bool down);
 
+	/* Backend dependent functions below here */
+	void PrepareInputDevices(void);
+
+	unsigned getKeyboardState(void);
+	unsigned getLevelThreeMask(void);
+
+	KeyCode pressShift(void);
+	std::list<KeyCode> releaseShift(void);
+
+	KeyCode pressLevelThree(void);
+	std::list<KeyCode> releaseLevelThree(void);
+
+	KeyCode keysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state);
+
+	bool isLockModifier(KeyCode keycode, unsigned state);
+
+	KeyCode addKeysym(KeySym keysym, unsigned state);
+
+private:
+#if XORG >= 17
+	static void vncXkbProcessDeviceEvent(int screenNum,
+	                                     InternalEvent *event,
+	                                     DeviceIntPtr dev);
+#endif
+
+private:
 	rfb::VNCServerST *server;
 	bool initialized;
 	DeviceIntPtr keyboardDev;
