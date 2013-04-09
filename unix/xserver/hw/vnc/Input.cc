@@ -128,7 +128,7 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 #endif /* XORG < 111 */
 
 InputDevice::InputDevice(rfb::VNCServerST *_server)
-	: server(_server), oldButtonMask(0)
+	: server(_server), initialized(false), oldButtonMask(0)
 {
 #if XORG < 17
 	pointerDev = AddInputDevice(
@@ -287,12 +287,11 @@ void InputDevice::InitInputDevice(void)
 {
 #if XORG >= 17
 	int ret;
-	static int initialized = 0;
 
-	if (initialized != 0)
+	if (!initialized)
 		return;
 
-	initialized = 1;
+	initialized = true;
 
 	ret = AllocDevicePair(serverClient, "TigerVNC", &pointerDev,
 			      &keyboardDev, pointerProc, keyboardProc,

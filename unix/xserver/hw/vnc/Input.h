@@ -71,6 +71,7 @@ private:
 	void keyEvent(rdr::U32 keysym, bool down);
 
 	rfb::VNCServerST *server;
+	bool initialized;
 	DeviceIntPtr keyboardDev;
 	DeviceIntPtr pointerDev;
 	int oldButtonMask;
