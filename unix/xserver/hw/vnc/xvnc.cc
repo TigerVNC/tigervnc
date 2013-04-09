@@ -87,8 +87,8 @@ extern "C" {
 #undef VENDOR_RELEASE
 #undef VENDOR_STRING
 #include "version-config.h"
-#include "site.h"
 #endif
+#include "site.h"
 #undef class
 #undef public
 }
@@ -169,6 +169,8 @@ static bool displaySpecified = false;
 static char displayNumStr[16];
 
 char *listenaddr = NULL;
+
+static int vncVerbose = DEFAULT_LOG_VERBOSITY;
 
 
 static void
@@ -326,6 +328,8 @@ ddxUseMsg()
     ErrorF("-inetd                 has been launched from inetd\n");
     ErrorF("-interface IP_address  listen on specified interface\n");
     ErrorF("-noclipboard           disable clipboard settings modification via vncconfig utility\n");
+    ErrorF("-verbose [n]           verbose startup messages\n");
+    ErrorF("-quiet                 minimal startup messages\n");
     ErrorF("\nVNC parameters:\n");
 
     fprintf(stderr,"\n"
@@ -609,7 +613,30 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	noclipboard = true;
 	return 1;
     }
-    
+
+    if (!strcmp(argv[i], "-verbose")) {
+        if (++i < argc && argv[i]) {
+            char *end;
+            long val;
+
+            val = strtol(argv[i], &end, 0);
+            if (*end == '\0') {
+                vncVerbose = val;
+                LogSetParameter(XLOG_VERBOSITY, vncVerbose);
+                return 2;
+            }
+        }
+        vncVerbose++;
+        LogSetParameter(XLOG_VERBOSITY, vncVerbose);
+        return 1;
+    }
+
+    if (!strcmp(argv[i], "-quiet")) {
+        vncVerbose = -1;
+        LogSetParameter(XLOG_VERBOSITY, vncVerbose);
+        return 1;
+    }
+
     if (rfb::Configuration::setParam(argv[i]))
 	return 1;
     
