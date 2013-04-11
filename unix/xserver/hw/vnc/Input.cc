@@ -49,6 +49,7 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
 extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #endif
 #include <X11/keysym.h>
+#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #undef public
 #undef class

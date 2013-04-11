@@ -44,6 +44,7 @@ extern "C" {
 #define XK_TECHNICAL
 #include <X11/keysym.h>
 #include <X11/XF86keysym.h>
+#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #undef public
 #undef class

@@ -35,6 +35,8 @@ extern "C" {
 #include "eventstr.h"
 #include "scrnintstr.h"
 #include "mi.h"
+#include <X11/keysym.h>
+#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #undef public
 #undef class
