@@ -42,11 +42,20 @@ extern "C" {
 #undef class
 }
 
+#if XORG < 19
+static DevPrivateKey vncXkbScreenPrivateKey = &vncXkbScreenPrivateKey;
+#else
 static DevPrivateKeyRec vncXkbPrivateKeyRec;
 #define vncXkbScreenPrivateKey (&vncXkbPrivateKeyRec)
+#endif
+
 #define vncXkbScreenPrivate(pScreen) \
 	(*(InputDevice**) dixLookupPrivate(&(pScreen)->devPrivates, \
 	                                   vncXkbScreenPrivateKey))
+
+#ifndef KEYBOARD_OR_FLOAT
+#define KEYBOARD_OR_FLOAT MASTER_KEYBOARD
+#endif
 
 /* Stolen from libX11 */
 static Bool
