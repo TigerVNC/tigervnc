@@ -43,7 +43,8 @@ extern "C" {
 }
 
 #if XORG < 19
-static DevPrivateKey vncXkbScreenPrivateKey = &vncXkbScreenPrivateKey;
+static int vncXkbScreenPrivateKeyIndex;
+static DevPrivateKey vncXkbScreenPrivateKey = &vncXkbScreenPrivateKeyIndex;
 #else
 static DevPrivateKeyRec vncXkbPrivateKeyRec;
 #define vncXkbScreenPrivateKey (&vncXkbPrivateKeyRec)
