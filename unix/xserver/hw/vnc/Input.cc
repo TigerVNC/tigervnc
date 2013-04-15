@@ -545,7 +545,7 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 
 	/* Need a fake press or release of level three shift? */
 	if (!(state & level_three_mask) && (new_state & level_three_mask)) {
-		level_three_press = pressShift();
+		level_three_press = pressLevelThree();
 		if (level_three_press == 0) {
 			vlog.error("Unable to find a modifier key for ISO_Level3_Shift/Mode_Switch");
 			return;
