@@ -511,6 +511,22 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	}
 
 	/*
+	 * "Shifted Tab" is a bit of a mess. Some systems have varying,
+	 * special keysyms for this symbol. VNC mandates that clients
+	 * should always send the plain XK_Tab keysym and the server
+	 * should deduce the meaning based on current Shift state.
+	 * To comply with this, we will find the keycode that sends
+	 * XK_Tab, and make sure that Shift isn't cleared. This can
+	 * possibly result in a different keysym than XK_Tab, but that
+	 * is the desired behaviour.
+	 *
+	 * Note: We never get ISO_Left_Tab here because it's already
+	 *       been translated in VNCSConnectionST.
+	 */
+	if (keysym == XK_Tab && (state & ShiftMask))
+		new_state |= ShiftMask;
+
+	/*
 	 * We need a bigger state change than just shift,
 	 * so we need to know what the mask is for level 3 shifts.
 	 */

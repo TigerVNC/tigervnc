@@ -441,22 +441,6 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state, unsigned *ne
 				if (j & 0x2)
 					*new_state |= mask;
 
-				/*
-				 * Sort out the "shifted Tab" mess.  If
-				 * we are sent a shifted Tab, generate
-				 * a local shifted Tab regardless of
-				 * what the "shifted Tab" keysym is on
-				 * the local keyboard (it might be Tab,
-				 * ISO_Left_Tab or HP's private BackTab
-				 * keysym, and quite possibly some
-				 * others too). We never get
-				 * ISO_Left_Tab here because it's
-				 * already been translated in
-				 * VNCSConnectionST.
-				 */
-				if (keysym == XK_Tab && (state & ShiftMask))
-					*new_state |= ShiftMask;
-
 				return i;
 			}
 		}
