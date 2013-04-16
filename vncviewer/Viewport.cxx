@@ -594,6 +594,26 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
   }
 #endif
 
+#ifdef WIN32
+  // X11 fairly consistently uses XK_KP_Separator for comma and
+  // XK_KP_Decimal for period. Windows unfortunately is terribly
+  // inconcistent, and is not something that's likely to change:
+  // http://blogs.msdn.com/michkap/archive/2006/09/13/752377.aspx
+  // To work around this we look at what character the key generates
+  // and try to follow X11 behaviour.
+  if ((keyCode == (FL_KP + ',')) || (keyCode == (FL_KP + '.'))) {
+    switch (keyText[0]) {
+    case ',':
+      return XK_KP_Separator;
+    case '.':
+      return XK_KP_Decimal;
+    default:
+      vlog.error(_("Unknown decimal separator: '%s'"), keyText);
+      return XK_KP_Decimal;
+    }
+  }
+#endif
+
   // Then other special keys
   switch (keyCode) {
   case FL_BackSpace:
