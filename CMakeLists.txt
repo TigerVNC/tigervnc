@@ -18,10 +18,10 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tigervnc)
-set(VERSION 1.2.80)
+set(VERSION 1.3.80)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,2,80,0)
+set(RCVERSION 1,3,80,0)
 
 # Installation paths
 set(BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")
