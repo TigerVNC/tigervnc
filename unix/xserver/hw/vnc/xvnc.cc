@@ -98,7 +98,7 @@ extern "C" {
 #define Xfree free
 #endif
 
-#define XVNCVERSION "TigerVNC 1.2.80"
+#define XVNCVERSION "TigerVNC 1.2.90"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
