@@ -101,8 +101,8 @@ macro(libtool_create_control_file _target)
   # Add custom command to symlink the static library so that autotools finds
   # the library in .libs.  These are executed after the specified target build.
   add_custom_command(TARGET ${_target} POST_BUILD COMMAND 
-    cmake -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.libs")
+    "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.libs")
   add_custom_command(TARGET ${_target} POST_BUILD COMMAND
-    cmake -E create_symlink ${_target_location} "${CMAKE_CURRENT_BINARY_DIR}/.libs/${_lname}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    "${CMAKE_COMMAND}" -E create_symlink ${_target_location} "${CMAKE_CURRENT_BINARY_DIR}/.libs/${_lname}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 endmacro()
