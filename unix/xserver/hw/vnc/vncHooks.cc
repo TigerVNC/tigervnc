@@ -81,6 +81,7 @@ typedef struct {
   ScreenBlockHandlerProcPtr    BlockHandler;
 #ifdef RENDER
   CompositeProcPtr             Composite;
+  GlyphsProcPtr                Glyphs;
 #endif
 #ifdef RANDR
   RRSetConfigProcPtr           RandRSetConfig;
@@ -150,6 +151,9 @@ static void vncHooksBlockHandler(ScreenPtr pScreen, pointer pTimeout,
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
 			      PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
 			      INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
+static void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst, 
+			      PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc, int nlists, 
+			      GlyphListPtr lists, GlyphPtr * glyphs);
 #endif
 #ifdef RANDR
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
@@ -294,6 +298,7 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     vncHooksScreen->Composite = ps->Composite;
+    vncHooksScreen->Glyphs = ps->Glyphs;
   }
 #endif
 #ifdef RANDR
@@ -320,6 +325,7 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 #ifdef RENDER
   if (ps) {
     ps->Composite = vncHooksComposite;
+    ps->Glyphs = vncHooksGlyphs;
   }
 #endif
 #ifdef RANDR
@@ -384,6 +390,7 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     ps->Composite = vncHooksScreen->Composite;
+    ps->Glyphs = vncHooksScreen->Glyphs;
   }
 #endif
 #ifdef RANDR
@@ -594,9 +601,10 @@ static void vncHooksBlockHandler(ScreenPtr pScreen_, pointer pTimeout,
   SCREEN_REWRAP(BlockHandler);
 }
 
-// Composite - needed for RENDER
-
 #ifdef RENDER
+
+// Composite - The core of XRENDER
+
 void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
 		       PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
 		       INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height)
@@ -634,6 +642,101 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   (*ps->Composite)(op, pSrc, pMask, pDst, xSrc, ySrc,
 		   xMask, yMask, xDst, yDst, width, height);
   ps->Composite = vncHooksComposite;
+
+  if (REGION_NOTEMPTY(pScreen, changed.reg))
+    vncHooksScreen->desktop->add_changed(changed.reg);
+}
+
+static int
+GlyphCount(int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+{
+  int count;
+
+  count = 0;
+  while (nlist--) {
+    count += list->len;
+    list++;
+  }
+
+  return count;
+}
+
+static void
+GlyphRegion(int nlist, GlyphListPtr list, GlyphPtr * glyphs, RegionPtr region)
+{
+  int n;
+  GlyphPtr glyph;
+  int x, y;
+
+  int nboxes = GlyphCount(nlist, list, glyphs);
+  BoxRec boxes[nboxes];
+  BoxPtr box;
+
+  RegionUninit(region);
+
+  x = 0;
+  y = 0;
+  box = &boxes[0];
+  while (nlist--) {
+    x += list->xOff;
+    y += list->yOff;
+    n = list->len;
+    list++;
+    while (n--) {
+      glyph = *glyphs++;
+      box->x1 = x - glyph->info.x;
+      box->y1 = y - glyph->info.y;
+      box->x2 = box->x1 + glyph->info.width;
+      box->y2 = box->y1 + glyph->info.height;
+      x += glyph->info.xOff;
+      y += glyph->info.yOff;
+      box++;
+    }
+  }
+
+  RegionInitBoxes(region, boxes, nboxes);
+}
+
+// Glyphs - Glyph specific version of Composite (caches and whatnot)
+
+void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst, 
+           PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc, int nlists, 
+           GlyphListPtr lists, GlyphPtr * glyphs)
+{
+  ScreenPtr pScreen = pDst->pDrawable->pScreen;
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+  PictureScreenPtr ps = GetPictureScreen(pScreen);
+
+  RegionHelper changed(pScreen);
+
+  if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
+      ((WindowPtr) pDst->pDrawable)->viewable) {
+    rfb::Rect fbrect;
+    BoxRec fbbox;
+    RegionRec fbreg;
+
+    changed.init(NULL, 0);
+
+    GlyphRegion(nlists, lists, glyphs, changed.reg);
+    RegionTranslate(changed.reg, pDst->pDrawable->x, pDst->pDrawable->y);
+
+    fbrect = vncHooksScreen->desktop->getRect();
+    fbbox.x1 = fbrect.tl.x;
+    fbbox.y1 = fbrect.tl.y;
+    fbbox.x2 = fbrect.br.x;
+    fbbox.y2 = fbrect.br.y;
+    RegionInit(&fbreg, &fbbox, 0);
+
+    RegionIntersect(changed.reg, changed.reg, &fbreg);
+
+    RegionUninit(&fbreg);
+  } else {
+    changed.init(NullBox, 0);
+  }
+
+  ps->Glyphs = vncHooksScreen->Glyphs;
+  (*ps->Glyphs)(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlists, lists, glyphs);
+  ps->Glyphs = vncHooksGlyphs;
 
   if (REGION_NOTEMPTY(pScreen, changed.reg))
     vncHooksScreen->desktop->add_changed(changed.reg);
