@@ -80,13 +80,13 @@ diff -up xserver/mi/miinitext.c.vnc xserver/mi/miinitext.c
  /* The following is only a small first step towards run-time
   * configurable extensions.
   */
-@@ -299,6 +303,9 @@ static ExtensionModule staticExtensions[
- #ifdef XSELINUX
-     {SELinuxExtensionInit, SELINUX_EXTENSION_NAME, &noSELinuxExtension},
- #endif
+@@ -238,6 +242,9 @@ EnableDisableExtensionError(const char *
+ 
+ /* List of built-in (statically linked) extensions */
+ static ExtensionModule staticExtensions[] = {
 +#ifdef TIGERVNC
 +    {vncExtensionInit, "VNC-EXTENSION", NULL},
 +#endif
- };
- 
- static ExtensionModule *ExtensionModuleList = NULL;
+     {GEExtensionInit, "Generic Event Extension", &noGEExtension},
+     {ShapeExtensionInit, "SHAPE", NULL},
+ #ifdef MITSHM
