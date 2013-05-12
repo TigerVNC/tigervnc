@@ -1,15 +1,15 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -27,7 +27,7 @@ import com.tigervnc.rdr.*;
 
 abstract public class CMsgReader {
 
-  protected CMsgReader(CMsgHandler handler_, InStream is_) 
+  protected CMsgReader(CMsgHandler handler_, InStream is_)
   {
     imageBufIdealSize = 0;
     handler = handler_;
@@ -37,7 +37,7 @@ abstract public class CMsgReader {
     decoders = new Decoder[Encodings.encodingMax+1];
   }
 
-  protected void readSetColourMapEntries() 
+  protected void readSetColourMapEntries()
   {
     is.skip(1);
     int firstColour = is.readU16();
@@ -48,12 +48,12 @@ abstract public class CMsgReader {
     handler.setColourMapEntries(firstColour, nColours, rgbs);
   }
 
-  protected void readBell() 
+  protected void readBell()
   {
     handler.bell();
   }
 
-  protected void readServerCutText() 
+  protected void readServerCutText()
   {
     is.skip(3);
     int len = is.readU32();
@@ -73,17 +73,17 @@ abstract public class CMsgReader {
     handler.serverCutText(str, len);
   }
 
-  protected void readFramebufferUpdateStart() 
+  protected void readFramebufferUpdateStart()
   {
     handler.framebufferUpdateStart();
   }
 
-  protected void readFramebufferUpdateEnd() 
+  protected void readFramebufferUpdateEnd()
   {
     handler.framebufferUpdateEnd();
   }
 
-  protected void readRect(Rect r, int encoding) 
+  protected void readRect(Rect r, int encoding)
   {
     if ((r.br.x > handler.cp.width) || (r.br.y > handler.cp.height)) {
       vlog.error("Rect too big: "+r.width()+"x"+r.height()+" at "+
@@ -114,14 +114,14 @@ abstract public class CMsgReader {
     handler.endRect(r, encoding);
   }
 
-  protected void readCopyRect(Rect r) 
+  protected void readCopyRect(Rect r)
   {
     int srcX = is.readU16();
     int srcY = is.readU16();
     handler.copyRect(r, srcX, srcY);
   }
 
-  protected void readSetCursor(int width, int height, Point hotspot) 
+  protected void readSetCursor(int width, int height, Point hotspot)
   {
     int data_len = width * height;
     int mask_len = ((width+7)/8) * height;
@@ -134,9 +134,9 @@ abstract public class CMsgReader {
     handler.setCursor(width, height, hotspot, data, mask);
   }
 
-  public int[] getImageBuf(int required) { return getImageBuf(required, 0, 0); } 
+  public int[] getImageBuf(int required) { return getImageBuf(required, 0, 0); }
 
-  public int[] getImageBuf(int required, int requested, int nPixels) 
+  public int[] getImageBuf(int required, int requested, int nPixels)
   {
     int requiredBytes = required;
     int requestedBytes = requested;
@@ -155,9 +155,9 @@ abstract public class CMsgReader {
     return imageBuf;
   }
 
-  public final int bpp() 
+  public final int bpp()
   {
-    return handler.cp.pf().bpp; 
+    return handler.cp.pf().bpp;
   }
 
   abstract public void readServerInit();

@@ -47,7 +47,7 @@ public class CSecurityTLS extends CSecurity {
   = new StringParameter("x509crl",
                         "X509 CRL file", "", Configuration.ConfigurationObject.ConfViewer);
 
-  private void initGlobal() 
+  private void initGlobal()
   {
     boolean globalInitDone = false;
 
@@ -62,14 +62,14 @@ public class CSecurityTLS extends CSecurity {
     }
   }
 
-  public CSecurityTLS(boolean _anon) 
+  public CSecurityTLS(boolean _anon)
   {
     anon = _anon;
     session = null;
-    
+
     setDefaults();
-    cafile = x509ca.getData(); 
-    crlfile = x509crl.getData(); 
+    cafile = x509ca.getData();
+    crlfile = x509crl.getData();
   }
 
   public static String getDefaultCA() {
@@ -119,7 +119,7 @@ public class CSecurityTLS extends CSecurity {
           reason = new String("Authentication failure (protocol error)");
         throw new AuthFailureException(reason);
       }
-      
+
       setParam();
 
     }
@@ -153,8 +153,8 @@ public class CSecurityTLS extends CSecurity {
       }
     } else {
       try {
-        TrustManager[] myTM = new TrustManager[] { 
-          new MyX509TrustManager() 
+        TrustManager[] myTM = new TrustManager[] {
+          new MyX509TrustManager()
         };
         ctx.init (null, myTM, null);
       } catch (java.security.GeneralSecurityException e) {
@@ -223,7 +223,7 @@ public class CSecurityTLS extends CSecurity {
           params.setRevocationEnabled(true);
         }
         tmf.init(new CertPathTrustManagerParameters(params));
-      } catch (java.io.FileNotFoundException e) { 
+      } catch (java.io.FileNotFoundException e) {
         vlog.error(e.toString());
       } catch (java.io.IOException e) {
         vlog.error(e.toString());
@@ -231,7 +231,7 @@ public class CSecurityTLS extends CSecurity {
       tm = (X509TrustManager)tmf.getTrustManagers()[0];
     }
 
-    public void checkClientTrusted(X509Certificate[] chain, String authType) 
+    public void checkClientTrusted(X509Certificate[] chain, String authType)
       throws CertificateException
     {
       tm.checkClientTrusted(chain, authType);
@@ -264,7 +264,7 @@ public class CSecurityTLS extends CSecurity {
   }
 
   public final int getType() { return anon ? Security.secTypeTLSNone : Security.secTypeX509None; }
-  public final String description() 
+  public final String description()
     { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
 
   //protected void checkSession();

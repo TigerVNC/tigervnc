@@ -28,7 +28,7 @@ import com.tigervnc.rdr.*;
 
 public class CSecurityVeNCrypt extends CSecurity {
 
-  public CSecurityVeNCrypt(SecurityClient sec) 
+  public CSecurityVeNCrypt(SecurityClient sec)
   {
     haveRecvdMajorVersion = false;
     haveRecvdMinorVersion = false;
@@ -54,7 +54,7 @@ public class CSecurityVeNCrypt extends CSecurity {
     if (!haveRecvdMinorVersion) {
       minorVersion = is.readU8();
       haveRecvdMinorVersion = true;
-      
+
       return false;
     }
 
@@ -83,7 +83,7 @@ public class CSecurityVeNCrypt extends CSecurity {
         os.flush();
 	      throw new Exception("Server reported an unsupported VeNCrypt version");
       }
-    
+
       haveSentVersion = true;
       return false;
     }
@@ -101,7 +101,7 @@ public class CSecurityVeNCrypt extends CSecurity {
     if (!haveNumberOfTypes) {
       nAvailableTypes = is.readU8();
       iAvailableType = 0;
-  
+
       if (nAvailableTypes <= 0)
 	      throw new Exception("The server reported no VeNCrypt sub-types");
 

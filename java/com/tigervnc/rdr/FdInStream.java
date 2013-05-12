@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2012 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -31,7 +31,7 @@ public class FdInStream extends InStream {
   static final int minBulkSize = 1024;
 
   public FdInStream(FileDescriptor fd_, int timeoutms_, int bufSize_,
-                    boolean closeWhenDone_) 
+                    boolean closeWhenDone_)
   {
     fd = fd_; closeWhenDone = closeWhenDone_;
     timeoutms = timeoutms_; blockCallback = null;
@@ -43,7 +43,7 @@ public class FdInStream extends InStream {
 
   public FdInStream(FileDescriptor fd_) { this(fd_, -1, 0, false); }
 
-  public FdInStream(FileDescriptor fd_, FdInStreamBlockCallback blockCallback_, 
+  public FdInStream(FileDescriptor fd_, FdInStreamBlockCallback blockCallback_,
                     int bufSize_)
   {
     fd = fd_; timeoutms = 0; blockCallback = blockCallback_;
@@ -53,7 +53,7 @@ public class FdInStream extends InStream {
     ptr = end = offset = 0;
   }
 
-  public FdInStream(FileDescriptor fd_, 
+  public FdInStream(FileDescriptor fd_,
                     FdInStreamBlockCallback blockCallback_) {
     this(fd_, blockCallback_, 0);
   }
@@ -104,7 +104,7 @@ public class FdInStream extends InStream {
   }
 
   public final void stopTiming() {
-    timing = false; 
+    timing = false;
     if (timeWaitedIn100us < timedKbits/2)
       timeWaitedIn100us = timedKbits/2; // upper limit 20Mbit/s
   }
@@ -115,7 +115,7 @@ public class FdInStream extends InStream {
 
   public final long timeWaited() { return timeWaitedIn100us; }
 
-  protected int overrun(int itemSize, int nItems, boolean wait) 
+  protected int overrun(int itemSize, int nItems, boolean wait)
   {
     if (itemSize > bufSize)
       throw new Exception("FdInStream overrun: max itemSize exceeded");
@@ -159,7 +159,7 @@ public class FdInStream extends InStream {
     while (true) {
       do {
         Integer tv;
-    
+
         if (!wait) {
           tv = new Integer(0);
         } else if (timeoutms != -1) {
@@ -174,12 +174,12 @@ public class FdInStream extends InStream {
           throw new SystemException("select:"+e.toString());
         }
       } while (n < 0);
-        
-          
+
+
       if (n > 0) break;
       if (!wait) return 0;
       if (blockCallback == null) throw new TimedOut();
-    
+
       blockCallback.blockCallback();
     }
 
@@ -211,7 +211,7 @@ public class FdInStream extends InStream {
     return n;
   }
 
-  private int readWithTimeoutOrCallback(byte[] buf, int bufPtr, int len) { 
+  private int readWithTimeoutOrCallback(byte[] buf, int bufPtr, int len) {
     return readWithTimeoutOrCallback(buf, bufPtr, len, true);
   }
 

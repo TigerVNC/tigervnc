@@ -1,15 +1,15 @@
 /* Copyright 2009 Pierre Ossman for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -34,7 +34,7 @@ public class ScreenSet {
   public final int num_screens() { return screens.size(); }
 
   public final void add_screen(Screen screen) { screens.add(screen); }
-  public final void remove_screen(int id) { 
+  public final void remove_screen(int id) {
     for (Iterator<Screen> iter = screens.iterator(); iter.hasNext(); ) {
       Screen refScreen = (Screen)iter.next();
       if (refScreen.id == id)

@@ -1,17 +1,17 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2011 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -24,13 +24,13 @@ import com.tigervnc.rdr.*;
 
 public class CMsgReaderV3 extends CMsgReader {
 
-  public CMsgReaderV3(CMsgHandler handler_, InStream is_) 
+  public CMsgReaderV3(CMsgHandler handler_, InStream is_)
   {
     super(handler_, is_);
     nUpdateRectsLeft = 0;
   }
 
-  public void readServerInit() 
+  public void readServerInit()
   {
     int width = is.readU16();
     int height = is.readU16();
@@ -43,7 +43,7 @@ public class CMsgReaderV3 extends CMsgReader {
     handler.serverInit();
   }
 
-  public void readMsg() 
+  public void readMsg()
   {
     if (nUpdateRectsLeft == 0) {
 
@@ -97,7 +97,7 @@ public class CMsgReaderV3 extends CMsgReader {
     }
   }
 
-  void readFramebufferUpdate() 
+  void readFramebufferUpdate()
   {
     is.skip(1);
     nUpdateRectsLeft = is.readU16();
@@ -107,25 +107,25 @@ public class CMsgReaderV3 extends CMsgReader {
   void readSetDesktopName(int x, int y, int w, int h)
   {
     String name = is.readString();
-  
+
     if (x != 0 || y != 0 || w != 0 || h != 0) {
       vlog.error("Ignoring DesktopName rect with non-zero position/size");
     } else {
       handler.setName(name);
     }
-  
+
   }
-  
+
   void readExtendedDesktopSize(int x, int y, int w, int h)
   {
     int screens, i;
     int id, flags;
     int sx, sy, sw, sh;
     ScreenSet layout = new ScreenSet();
-  
+
     screens = is.readU8();
     is.skip(3);
-  
+
     for (i = 0;i < screens;i++) {
       id = is.readU32();
       sx = is.readU16();
@@ -133,10 +133,10 @@ public class CMsgReaderV3 extends CMsgReader {
       sw = is.readU16();
       sh = is.readU16();
       flags = is.readU32();
-  
+
       layout.add_screen(new Screen(id, sx, sy, sw, sh, flags));
     }
-  
+
     handler.setExtendedDesktopSize(x, y, w, h, layout);
   }
 
@@ -145,29 +145,29 @@ public class CMsgReaderV3 extends CMsgReader {
     int flags;
     int len;
     byte[] data = new byte[64];
-  
+
     is.skip(3);
-  
+
     flags = is.readU32();
-  
+
     len = is.readU8();
     if (len > data.length) {
       System.out.println("Ignoring fence with too large payload\n");
       is.skip(len);
       return;
     }
-  
+
     is.readBytes(data, 0, len);
-    
+
     handler.fence(flags, len, data);
   }
-  
+
   void readEndOfContinuousUpdates()
   {
     handler.endOfContinuousUpdates();
   }
 
-  void readClientRedirect(int x, int y, int w, int h) 
+  void readClientRedirect(int x, int y, int w, int h)
   {
     int port = is.readU16();
     String host = is.readString();

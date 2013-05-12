@@ -61,11 +61,11 @@ public class CConn extends CConnection
 {
 
   public final PixelFormat getPreferredPF() { return fullColourPF; }
-  static final PixelFormat verylowColourPF = 
+  static final PixelFormat verylowColourPF =
     new PixelFormat(8, 3, false, true, 1, 1, 1, 2, 1, 0);
-  static final PixelFormat lowColourPF = 
+  static final PixelFormat lowColourPF =
     new PixelFormat(8, 6, false, true, 3, 3, 3, 4, 2, 0);
-  static final PixelFormat mediumColourPF = 
+  static final PixelFormat mediumColourPF =
     new PixelFormat(8, 8, false, false, 7, 7, 3, 0, 3, 6);
   static final int KEY_LOC_SHIFT_R = 0;
   static final int KEY_LOC_SHIFT_L = 16;
@@ -75,9 +75,9 @@ public class CConn extends CConnection
   // The following methods are all called from the RFB thread
 
   public CConn(VncViewer viewer_, Socket sock_,
-               String vncServerName) 
+               String vncServerName)
   {
-    serverHost = null; serverPort = 0; sock = sock_; viewer = viewer_; 
+    serverHost = null; serverPort = 0; sock = sock_; viewer = viewer_;
     pendingPFChange = false;
     currentEncoding = Encodings.encodingTight; lastServerEncoding = -1;
     fullColour = viewer.fullColour.getValue();
@@ -188,7 +188,7 @@ public class CConn extends CConnection
     String title = ("VNC Authentication ["
                     +csecurity.description() + "]");
     String passwordFileStr = viewer.passwordFile.getValue();
-    PasswdDialog dlg;    
+    PasswdDialog dlg;
 
     if (user == null && passwordFileStr != "") {
       InputStream fp = null;
@@ -217,7 +217,7 @@ public class CConn extends CConnection
          user.append((String)System.getProperties().get("user.name"));
          return true;
       }
-      dlg = new PasswdDialog(title, viewer.sendLocalUsername.getValue(), 
+      dlg = new PasswdDialog(title, viewer.sendLocalUsername.getValue(),
          (passwd == null));
     }
     if (!dlg.showDialog()) return false;
@@ -242,7 +242,7 @@ public class CConn extends CConnection
     super.serverInit();
 
     // If using AutoSelect with old servers, start in FullColor
-    // mode. See comment in autoSelectFormatAndEncoding. 
+    // mode. See comment in autoSelectFormatAndEncoding.
     if (cp.beforeVersion(3, 8) && autoSelect)
       fullColour = true;
 
@@ -305,7 +305,7 @@ public class CConn extends CConnection
   // setName() is called when the desktop name changes
   public void setName(String name) {
     super.setName(name);
-  
+
     if (viewport != null) {
       viewport.setTitle(name+" - TigerVNC");
     }
@@ -314,8 +314,8 @@ public class CConn extends CConnection
   // framebufferUpdateStart() is called at the beginning of an update.
   // Here we try to send out a new framebuffer update request so that the
   // next update can be sent out in parallel with us decoding the current
-  // one. 
-  public void framebufferUpdateStart() 
+  // one.
+  public void framebufferUpdateStart()
   {
     // Note: This might not be true if sync fences are supported
     pendingUpdate = false;
@@ -327,14 +327,14 @@ public class CConn extends CConnection
   // For each rectangle, the FdInStream will have timed the speed
   // of the connection, allowing us to select format and encoding
   // appropriately, and then request another incremental update.
-  public void framebufferUpdateEnd() 
+  public void framebufferUpdateEnd()
   {
 
     desktop.updateWindow();
 
     if (firstUpdate) {
       int width, height;
-      
+
       // We need fences to make extra update requests and continuous
       // updates "safe". See fence() for the next step.
       if (cp.supportsFence)
@@ -354,9 +354,9 @@ public class CConn extends CConnection
         else if (layout.num_screens() != 1) {
 
           while (true) {
-            Iterator<Screen> iter = layout.screens.iterator(); 
+            Iterator<Screen> iter = layout.screens.iterator();
             Screen screen = (Screen)iter.next();
-        
+
             if (!iter.hasNext())
               break;
 
@@ -395,9 +395,9 @@ public class CConn extends CConnection
     desktop.setColourMapEntries(firstColour, nColours, rgbs);
   }
 
-  public void bell() { 
+  public void bell() {
     if (viewer.acceptBell.getValue())
-      desktop.getToolkit().beep(); 
+      desktop.getToolkit().beep();
   }
 
   public void serverCutText(String str, int len) {
@@ -484,7 +484,7 @@ public class CConn extends CConnection
       return;
     if ((desktop.width() == cp.width) && (desktop.height() == cp.height))
       return;
-    
+
     desktop.resize();
     recreateViewport();
   }
@@ -580,14 +580,14 @@ public class CConn extends CConnection
     // Check that we have a decent bandwidth measurement
     if ((kbitsPerSecond == 0) || (timeWaited < 100))
       return;
-  
+
     // Select appropriate quality level
     if (!cp.noJpeg) {
       if (kbitsPerSecond > 16000)
         newQualityLevel = 8;
       else
         newQualityLevel = 6;
-  
+
       if (newQualityLevel != cp.qualityLevel) {
         vlog.info("Throughput "+kbitsPerSecond+
                   " kbit/s - changing to quality "+newQualityLevel);
@@ -607,17 +607,17 @@ public class CConn extends CConnection
       // old servers.
       return;
     }
-    
+
     // Select best color level
     newFullColour = (kbitsPerSecond > 256);
     if (newFullColour != fullColour) {
       vlog.info("Throughput "+kbitsPerSecond+
-                " kbit/s - full color is now "+ 
+                " kbit/s - full color is now "+
   	            (newFullColour ? "enabled" : "disabled"));
       fullColour = newFullColour;
       formatChange = true;
       forceNonincremental = true;
-    } 
+    }
   }
 
   // requestNewUpdate() requests an update from the server, having set the
@@ -721,10 +721,10 @@ public class CConn extends CConnection
     Window fullScreenWindow = Viewport.getFullScreenWindow();
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(null);
-    String msg = 
+    String msg =
       String.format(VncViewer.aboutText, VncViewer.version, VncViewer.build,
                     VncViewer.buildDate, VncViewer.buildTime);
-    JOptionPane op = 
+    JOptionPane op =
       new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
                       JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon);
     JDialog dlg = op.createDialog("About TigerVNC Viewer for Java");
@@ -748,7 +748,7 @@ public class CConn extends CConnection
                              "Line speed estimate: %d kbit/s%n"+
                              "Protocol version: %d.%d%n"+
                              "Security method: %s [%s]%n");
-    String msg = 
+    String msg =
       String.format(info, cp.name(),
                     sock.getPeerName(), sock.getPeerPort(),
                     cp.width, cp.height,
@@ -922,7 +922,7 @@ public class CConn extends CConnection
       options.scalingFactor.setSelectedItem("Auto");
     } else if(scaleString.equalsIgnoreCase("FixedRatio")) {
       options.scalingFactor.setSelectedItem("Fixed Aspect Ratio");
-    } else { 
+    } else {
       digit = Integer.parseInt(scaleString);
       if (digit >= 1 && digit <= 1000) {
         options.scalingFactor.setSelectedItem(digit+"%");
@@ -930,7 +930,7 @@ public class CConn extends CConnection
         digit = Integer.parseInt(viewer.scalingFactor.getDefaultStr());
         options.scalingFactor.setSelectedItem(digit+"%");
       }
-      int scaleFactor = 
+      int scaleFactor =
         Integer.parseInt(scaleString.substring(0, scaleString.length()));
       if (desktop != null)
         desktop.setScaledSize();
@@ -967,7 +967,7 @@ public class CConn extends CConnection
       cp.customCompressLevel = viewer.customCompressLevel.getValue();
       encodingChange = true;
     }
-    if (Integer.parseInt(options.compressLevel.getSelectedItem().toString()) >= 0 && 
+    if (Integer.parseInt(options.compressLevel.getSelectedItem().toString()) >= 0 &&
         Integer.parseInt(options.compressLevel.getSelectedItem().toString()) <= 9) {
       viewer.compressLevel.setParam(options.compressLevel.getSelectedItem().toString());
     } else {
@@ -1059,7 +1059,7 @@ public class CConn extends CConnection
         Security.DisableSecType(Security.secTypeTLSPlain);
         Security.DisableSecType(Security.secTypeTLSIdent);
       }
-  
+
       /* Process security types which use X509 encryption */
       if (options.encX509.isSelected()) {
         if (options.secNone.isSelected())
@@ -1076,7 +1076,7 @@ public class CConn extends CConnection
         Security.DisableSecType(Security.secTypeX509Plain);
         Security.DisableSecType(Security.secTypeX509Ident);
       }
-  
+
       /* Process *None security types */
       if (options.secNone.isSelected()) {
         if (options.encNone.isSelected())
@@ -1090,7 +1090,7 @@ public class CConn extends CConnection
         Security.DisableSecType(Security.secTypeTLSNone);
         Security.DisableSecType(Security.secTypeX509None);
       }
-  
+
       /* Process *Vnc security types */
       if (options.secVnc.isSelected()) {
         if (options.encNone.isSelected())
@@ -1104,7 +1104,7 @@ public class CConn extends CConnection
         Security.DisableSecType(Security.secTypeTLSVnc);
         Security.DisableSecType(Security.secTypeX509Vnc);
       }
-  
+
       /* Process *Plain security types */
       if (options.secPlain.isSelected()) {
         if (options.encNone.isSelected())
@@ -1118,7 +1118,7 @@ public class CConn extends CConnection
         Security.DisableSecType(Security.secTypeTLSPlain);
         Security.DisableSecType(Security.secTypeX509Plain);
       }
-  
+
       /* Process *Ident security types */
       if (options.secIdent.isSelected()) {
         if (options.encNone.isSelected())
@@ -1542,7 +1542,7 @@ public class CConn extends CConnection
 
   // reading and writing int and boolean is atomic in java, so no
   // synchronization of the following flags is needed:
-  
+
   int lowColourLevel;
 
 
@@ -1589,6 +1589,6 @@ public class CConn extends CConnection
   private boolean fullColour;
   private boolean autoSelect;
   boolean fullScreen;
-  
+
   static LogWriter vlog = new LogWriter("CConn");
 }

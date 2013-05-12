@@ -2,17 +2,17 @@
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * Copyright (C) 2011-2013 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -55,18 +55,18 @@ public class VncViewer extends java.applet.Applet implements Runnable
                                                     "Built on %s at %s%n"+
                                                     "Copyright (C) 1999-2012 TigerVNC Team and many others (see README.txt)%n"+
                                                     "See http://www.tigervnc.org for information on TigerVNC.");
-                                           
+
   public static String version = null;
   public static String build = null;
   public static String buildDate = null;
   public static String buildTime = null;
-  static ImageIcon frameIconSrc = 
+  static ImageIcon frameIconSrc =
     new ImageIcon(VncViewer.class.getResource("tigervnc.ico"));
   public static final Image frameIcon = frameIconSrc.getImage();
-  public static final ImageIcon logoIcon = 
+  public static final ImageIcon logoIcon =
     new ImageIcon(VncViewer.class.getResource("tigervnc.png"));
   public static final Image logoImage = logoIcon.getImage();
-  public static final InputStream timestamp = 
+  public static final InputStream timestamp =
     VncViewer.class.getResourceAsStream("timestamp");
 
   public static void setLookAndFeel() {
@@ -107,7 +107,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
         FontUIResource r = new FontUIResource(name, style, size);
       	UIManager.put("TitledBorder.font", r);
       }
-    } catch (java.lang.Exception e) { 
+    } catch (java.lang.Exception e) {
       vlog.info(e.toString());
     }
   }
@@ -118,7 +118,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
     viewer.start();
   }
 
-  
+
   public VncViewer(String[] argv) {
     applet = false;
 
@@ -126,11 +126,11 @@ public class VncViewer extends java.applet.Applet implements Runnable
     UserPreferences.load("global");
 
     SecurityClient.setDefaults();
-    
+
     // Write about text to console, still using normal locale codeset
     getTimestamp();
     System.err.format("%n");
-    System.err.format(aboutText, version, build, buildDate, buildTime); 
+    System.err.format(aboutText, version, build, buildDate, buildTime);
     System.err.format("%n");
 
     Configuration.enableViewerParams();
@@ -338,7 +338,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public void paint(Graphics g) {
     g.drawImage(logoImage, 0, 0, this);
     int h = logoImage.getHeight(this)+20;
-    g.drawString(String.format(aboutText, version, build, 
+    g.drawString(String.format(aboutText, version, build,
                                buildDate, buildTime), 0, h);
   }
 
@@ -348,7 +348,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
     if (listenMode.getValue()) {
       int port = 5500;
 
-      if (vncServerName.getValue() != null && 
+      if (vncServerName.getValue() != null &&
           Character.isDigit(vncServerName.getValue().charAt(0)))
         port = Integer.parseInt(vncServerName.getValue());
 
@@ -378,7 +378,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
         vlog.info(e.getMessage());
       } else if (cc == null || !cc.shuttingDown) {
         e.printStackTrace();
-        JOptionPane op = 
+        JOptionPane op =
           new JOptionPane(e.getMessage(), JOptionPane.WARNING_MESSAGE);
         JDialog dlg = op.createDialog("TigerVNC Viewer");
         dlg.setIconImage(frameIcon);
@@ -427,7 +427,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new IntParameter("LowColorLevel",
                      "Color level to use on slow connections. "+
                      "0 = Very Low (8 colors), 1 = Low (64 colors), "+
-                     "2 = Medium (256 colors)", 
+                     "2 = Medium (256 colors)",
                      2);
   AliasParameter lowColourLevelAlias
   = new AliasParameter("LowColourLevel",
@@ -470,7 +470,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
                         "connect (if possible)", "");
   BoolParameter listenMode
   = new BoolParameter("listen",
-                      "Listen for connections from VNC servers", 
+                      "Listen for connections from VNC servers",
                       false);
   StringParameter scalingFactor
   = new StringParameter("ScalingFactor",
@@ -503,7 +503,7 @@ public class VncViewer extends java.applet.Applet implements Runnable
                      0);
   BoolParameter acceptBell
   = new BoolParameter("AcceptBell",
-                      "Produce a system beep when requested to by the server.", 
+                      "Produce a system beep when requested to by the server.",
                       true);
   StringParameter via
   = new StringParameter("via",

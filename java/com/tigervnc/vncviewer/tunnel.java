@@ -37,32 +37,32 @@ import com.tigervnc.network.*;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-public class tunnel 
+public class tunnel
 {
   private final static Integer SERVER_PORT_OFFSET = 5900;;
   private final static String DEFAULT_SSH_CMD = "/usr/bin/ssh";
-  private final static String DEFAULT_TUNNEL_CMD  
+  private final static String DEFAULT_TUNNEL_CMD
     = DEFAULT_SSH_CMD+" -f -L %L:localhost:%R %H sleep 20";
-  private final static String DEFAULT_VIA_CMD  
+  private final static String DEFAULT_VIA_CMD
     = DEFAULT_SSH_CMD+" -f -L %L:%H:%R %G sleep 20";
 
   private final static int H = 17;
   private final static int G = 16;
   private final static int R = 27;
   private final static int L = 21;
-  
+
   /* True if there was -tunnel or -via option in the command line. */
   private static boolean tunnelSpecified = false;
-  
+
   /* True if it was -tunnel, not -via option. */
   private static boolean tunnelOption = false;
-  
+
   /* "Hostname:display" pair in the command line will be substituted
      by this fake argument when tunneling is used. */
   private static String lastArgv;
 
   private static String tunnelEndpoint;
-  
+
   public static Boolean
   createTunnel(int pargc, String[] argv, int tunnelArgIndex)
   {
@@ -74,19 +74,19 @@ public class tunnel
     char[] remotePortStr = new char[8];
     StringBuilder gatewayHost = new StringBuilder("");
     StringBuilder remoteHost = new StringBuilder("localhost");
-  
+
     tunnelSpecified = true;
     if (argv[tunnelArgIndex].equalsIgnoreCase("-tunnel"))
       tunnelOption = true;
-  
+
     pattern = getCmdPattern();
     if (pattern == null)
       return false;
-  
+
     localPort[0] = TcpSocket.findFreeTcpPort();
     if (localPort[0] == 0)
       return false;
-  
+
     if (tunnelOption) {
       processTunnelArgs(remoteHost, remotePort, localPort,
   		      pargc, argv, tunnelArgIndex);
@@ -94,50 +94,50 @@ public class tunnel
       processViaArgs(gatewayHost, remoteHost, remotePort, localPort,
   		   pargc, argv, tunnelArgIndex);
     }
-  
+
     localPortStr = Integer.toString(localPort[0]).toCharArray();
     remotePortStr = Integer.toString(remotePort[0]).toCharArray();
-  
-    if (!fillCmdPattern(cmd, pattern, gatewayHost.toString().toCharArray(), 
+
+    if (!fillCmdPattern(cmd, pattern, gatewayHost.toString().toCharArray(),
 		remoteHost.toString().toCharArray(), remotePortStr, localPortStr))
       return false;
-  
+
     if (!runCommand(new String(cmd)))
       return false;
-  
+
     return true;
   }
-  
+
   private static void
-  processTunnelArgs(StringBuilder remoteHost, int[] remotePort, 
-                    int[] localPort, int pargc, String[] argv, 
+  processTunnelArgs(StringBuilder remoteHost, int[] remotePort,
+                    int[] localPort, int pargc, String[] argv,
                     int tunnelArgIndex)
   {
     String pdisplay;
-  
+
     if (tunnelArgIndex >= pargc - 1)
       VncViewer.usage();
-  
+
     pdisplay = argv[pargc - 1].split(":")[1];
     if (pdisplay == null || pdisplay == argv[pargc - 1])
       VncViewer.usage();
-  
+
     if (pdisplay.matches("/[^0-9]/"))
       VncViewer.usage();
-  
+
     remotePort[0] = Integer.parseInt(pdisplay);
     if (remotePort[0] < 100)
       remotePort[0] = remotePort[0] + SERVER_PORT_OFFSET;
-  
+
     lastArgv = new String("localhost::"+localPort[0]);
-  
+
     remoteHost.setLength(0);
     remoteHost.insert(0, argv[pargc - 1].split(":")[0]);
     argv[pargc - 1] = lastArgv;
-  
+
     //removeArgs(pargc, argv, tunnelArgIndex, 1);
   }
-  
+
   private static void
   processViaArgs(StringBuilder gatewayHost, StringBuilder remoteHost,
   	       int[] remotePort, int[] localPort,
@@ -146,10 +146,10 @@ public class tunnel
     String colonPos;
     int len, portOffset;
     int disp;
-  
+
     if (tunnelArgIndex >= pargc - 2)
       VncViewer.usage();
-  
+
     colonPos = argv[pargc - 1].split(":", 2)[1];
     if (colonPos == null) {
       /* No colon -- use default port number */
@@ -171,44 +171,44 @@ public class tunnel
         portOffset = 0;
       remotePort[0] = disp + portOffset;
     }
-  
+
     lastArgv = "localhost::"+localPort[0];
-  
+
     gatewayHost.setLength(0);
     gatewayHost.insert(0, argv[tunnelArgIndex + 1]);
-  
+
     if (!argv[pargc - 1].split(":", 2)[0].equals("")) {
       remoteHost.setLength(0);
       remoteHost.insert(0, argv[pargc - 1].split(":", 2)[0]);
     }
-  
+
     argv[pargc - 1] = lastArgv;
-  
+
     //removeArgs(pargc, argv, tunnelArgIndex, 2);
   }
-  
+
   private static char[]
   getCmdPattern()
   {
     String pattern = "";
-  
+
     try {
       if (tunnelOption) {
         pattern = System.getProperty("VNC_TUNNEL_CMD");
       } else {
         pattern = System.getProperty("VNC_VIA_CMD");
       }
-    } catch (java.lang.Exception e) { 
+    } catch (java.lang.Exception e) {
       vlog.info(e.toString());
     }
     if (pattern == null || pattern.equals(""))
       pattern = (tunnelOption) ? DEFAULT_TUNNEL_CMD : DEFAULT_VIA_CMD;
-  
+
     return pattern.toCharArray();
   }
-  
+
   /* Note: in fillCmdPattern() result points to a 1024-byte buffer */
-  
+
   private static boolean
   fillCmdPattern(char[] result, char[] pattern,
   	       char[] gatewayHost, char[] remoteHost,
@@ -249,12 +249,12 @@ public class tunnel
       }
       result[j] = pattern[i];
     }
-  
+
     if (pattern.length > 1024) {
       vlog.error("Tunneling command is too long.");
       return false;
     }
-  
+
     if (!H_found || !R_found || !L_found) {
       vlog.error("%H, %R or %L absent in tunneling command.");
       return false;
@@ -263,10 +263,10 @@ public class tunnel
       vlog.error("%G pattern absent in tunneling command.");
       return false;
     }
-  
+
     return true;
   }
-  
+
   private static Boolean
   runCommand(String cmd)
   {
@@ -322,6 +322,6 @@ public class tunnel
     }
     return true;
   }
-  
+
   static LogWriter vlog = new LogWriter("tunnel");
 }

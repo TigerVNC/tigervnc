@@ -70,7 +70,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     cursorBacking = new ManagedPixelBuffer();
     Dimension bestSize = tk.getBestCursorSize(16, 16);
     BufferedImage cursorImage;
-    cursorImage = new BufferedImage(bestSize.width, bestSize.height, 
+    cursorImage = new BufferedImage(bestSize.width, bestSize.height,
                                     BufferedImage.TYPE_INT_ARGB);
     java.awt.Point hotspot = new java.awt.Point(0,0);
     nullCursor = tk.createCustomCursor(cursorImage, hotspot, "nullCursor");
@@ -153,12 +153,12 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     int ch = (int)Math.floor((float)cursor.height() * scaleHeightRatio);
     Dimension bestSize = tk.getBestCursorSize(cw, ch);
     MemoryImageSource cursorSrc;
-    cursorSrc = new MemoryImageSource(cursor.width(), cursor.height(), 
+    cursorSrc = new MemoryImageSource(cursor.width(), cursor.height(),
                                       ColorModel.getRGBdefault(),
                                       cursor.data, 0, cursor.width());
     Image srcImage = tk.createImage(cursorSrc);
     BufferedImage cursorImage;
-    cursorImage = new BufferedImage(bestSize.width, bestSize.height, 
+    cursorImage = new BufferedImage(bestSize.width, bestSize.height,
                                     BufferedImage.TYPE_INT_ARGB);
     Graphics2D g2 = cursorImage.createGraphics();
     g2.setRenderingHint(RenderingHints.KEY_RENDERING,
@@ -313,9 +313,9 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     if (!scaleString.equalsIgnoreCase("Auto") &&
         !scaleString.equalsIgnoreCase("FixedRatio")) {
       int scalingFactor = Integer.parseInt(scaleString);
-      scaledWidth = 
+      scaledWidth =
         (int)Math.floor((float)cc.cp.width * (float)scalingFactor/100.0);
-      scaledHeight = 
+      scaledHeight =
         (int)Math.floor((float)cc.cp.height * (float)scalingFactor/100.0);
     } else {
       if (cc.viewport == null) {
@@ -324,7 +324,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
       } else {
         Dimension vpSize = cc.viewport.getSize();
         Insets vpInsets = cc.viewport.getInsets();
-        Dimension availableSize = 
+        Dimension availableSize =
           new Dimension(vpSize.width - vpInsets.left - vpInsets.right,
                         vpSize.height - vpInsets.top - vpInsets.bottom);
         if (availableSize.width == 0 || availableSize.height == 0)

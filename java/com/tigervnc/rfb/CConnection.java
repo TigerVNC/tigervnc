@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011-2012 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -26,9 +26,9 @@ import com.tigervnc.rdr.*;
 
 abstract public class CConnection extends CMsgHandler {
 
-  public CConnection() 
+  public CConnection()
   {
-    csecurity = null; is = null; os = null; reader_ = null; 
+    csecurity = null; is = null; os = null; reader_ = null;
     writer_ = null; shared = false;
     state_ = RFBSTATE_UNINITIALISED; useProtocol3_3 = false;
     security = new SecurityClient();
@@ -48,14 +48,14 @@ abstract public class CConnection extends CMsgHandler {
   // initialiseProtocol() should be called once the streams and security
   // types are set.  Subsequently, processMsg() should be called whenever
   // there is data to read on the InStream.
-  public final void initialiseProtocol() 
+  public final void initialiseProtocol()
   {
     state_ = RFBSTATE_PROTOCOL_VERSION;
   }
 
   // processMsg() should be called whenever there is data to read on the
   // InStream.  You must have called initialiseProtocol() first.
-  public void processMsg() 
+  public void processMsg()
   {
     switch (state_) {
 
@@ -72,7 +72,7 @@ abstract public class CConnection extends CMsgHandler {
     }
   }
 
-  private void processVersionMsg() 
+  private void processVersionMsg()
   {
     vlog.debug("reading protocol version");
     if (!cp.readVersion(is)) {
@@ -104,7 +104,7 @@ abstract public class CConnection extends CMsgHandler {
               cp.majorVersion+"."+cp.minorVersion);
   }
 
-  private void processSecurityTypesMsg() 
+  private void processSecurityTypesMsg()
   {
     vlog.debug("processing security types message");
 
@@ -130,7 +130,7 @@ abstract public class CConnection extends CMsgHandler {
             break;
           }
         }
-      
+
         if (!secTypes.contains(secType))
           secType = Security.secTypeInvalid;
       } else {
@@ -264,7 +264,7 @@ abstract public class CConnection extends CMsgHandler {
   // streams over which the RFB protocol is sent (i.e. encrypting/decrypting
   // streams).  Ownership of the streams remains with the caller
   // (i.e. SConnection will not delete them).
-  public final void setStreams(InStream is_, OutStream os_) 
+  public final void setStreams(InStream is_, OutStream os_)
   {
     is = is_;
     os = os_;
@@ -281,7 +281,7 @@ abstract public class CConnection extends CMsgHandler {
   public void setServerPort(int port) {
     serverPort = port;
   }
- 
+
   public void initSecTypes() {
     nSecTypes = 0;
   }
@@ -312,7 +312,7 @@ abstract public class CConnection extends CMsgHandler {
   // getCurrentCSecurity() gets the CSecurity instance used for this
   // connection.
   //public CSecurity getCurrentCSecurity() { return security; }
-  
+
   // setClientSecTypeOrder() determines whether the client should obey the
   // server's security type preference, by picking the first server security
   // type that the client supports, or whether it should pick the first type
@@ -344,7 +344,7 @@ abstract public class CConnection extends CMsgHandler {
   public int state() { return state_; }
 
   protected final void setState(int s) { state_ = s; }
-  
+
   public void fence(int flags, int len, byte[] data)
   {
     super.fence(flags, len, data);

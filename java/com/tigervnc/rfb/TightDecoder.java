@@ -2,17 +2,17 @@
  * Copyright 2004-2005 Cendio AB.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * Copyright (C) 2011-2012 Brian P. Hinz
- *    
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -46,14 +46,14 @@ public class TightDecoder extends Decoder {
 
   final static Toolkit tk = Toolkit.getDefaultToolkit();
 
-  public TightDecoder(CMsgReader reader_) { 
-    reader = reader_; 
+  public TightDecoder(CMsgReader reader_) {
+    reader = reader_;
     zis = new ZlibInStream[4];
     for (int i = 0; i < 4; i++)
       zis[i] = new ZlibInStream();
   }
 
-  public void readRect(Rect r, CMsgHandler handler) 
+  public void readRect(Rect r, CMsgHandler handler)
   {
     InStream is = reader.getInStream();
     boolean cutZeros = false;
@@ -198,7 +198,7 @@ public class TightDecoder extends Decoder {
     } else {
       // Indexed color
       int x, h = r.height(), w = r.width(), b, pad = stride - w;
-      int ptr = 0; 
+      int ptr = 0;
       int srcPtr = 0, bits;
       if (palSize <= 2) {
         // 2-color palette
@@ -229,7 +229,7 @@ public class TightDecoder extends Decoder {
           h--;
         }
       }
-    } 
+    }
 
     handler.imageRect(r, buf);
 
@@ -238,7 +238,7 @@ public class TightDecoder extends Decoder {
     }
   }
 
-  final private void DECOMPRESS_JPEG_RECT(Rect r, InStream is, CMsgHandler handler) 
+  final private void DECOMPRESS_JPEG_RECT(Rect r, InStream is, CMsgHandler handler)
   {
     // Read length
     int compressedLen = is.readCompactLength();
@@ -256,7 +256,7 @@ public class TightDecoder extends Decoder {
     jpeg.flush();
   }
 
-  final private void FilterGradient24(byte[] netbuf, int[] buf, int stride, 
+  final private void FilterGradient24(byte[] netbuf, int[] buf, int stride,
                                       Rect r)
   {
 
@@ -297,7 +297,7 @@ public class TightDecoder extends Decoder {
     }
   }
 
-  final private void FilterGradient(byte[] netbuf, int[] buf, int stride, 
+  final private void FilterGradient(byte[] netbuf, int[] buf, int stride,
                                     Rect r)
   {
 
@@ -321,7 +321,7 @@ public class TightDecoder extends Decoder {
       System.arraycopy(pix, 0, thisRow, 0, pix.length);
 
       serverpf.bufferFromRGB(buf, y*stride, pix, 0, 1);
-      
+
       /* Remaining pixels of a row */
       for (x = 1; x < rectWidth; x++) {
         for (c = 0; c < 3; c++) {

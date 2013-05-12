@@ -45,7 +45,7 @@ public class SSLEngineManager {
   private FdInStream inStream;
   private FdOutStream outStream;
 
-  public SSLEngineManager(SSLEngine sslEngine, FdInStream is, 
+  public SSLEngineManager(SSLEngine sslEngine, FdInStream is,
                           FdOutStream os) throws IOException {
 
     inStream = is;

@@ -1,17 +1,17 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
  * Copyright 2012 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -45,19 +45,19 @@ public class Configuration {
     if (global_ == null)
       global_ = new Configuration("Global");
     return global_;
-  } 
+  }
 
   public static Configuration server() {
     if (server_ == null)
       server_ = new Configuration("Server");
     return server_;
-  } 
+  }
 
   public static Configuration viewer() {
     if (viewer_ == null)
       viewer_ = new Configuration("Viewer");
     return viewer_;
-  } 
+  }
 
   // Enable server/viewer specific parameters
   public static void enableServerParams() { global().appendConfiguration(server()); }
@@ -124,8 +124,8 @@ public class Configuration {
           current.getName().equalsIgnoreCase(name.substring(0, len)))
       {
         boolean b = current.setParam(val);
-        current.setHasBeenSet(); 
-        if (b && immutable) 
+        current.setHasBeenSet();
+        if (b && immutable)
   	  current.setImmutable();
         return b;
       }
@@ -150,14 +150,14 @@ public class Configuration {
       while (current != null) {
         if (current.getName().equalsIgnoreCase(config)) {
           boolean b = current.setParam();
-  	  current.setHasBeenSet(); 
-          if (b && immutable) 
+  	  current.setHasBeenSet();
+          if (b && immutable)
   	    current.setImmutable();
           return b;
         }
         current = current._next;
       }
-    }    
+    }
     return (_next != null) ? _next.set(config, immutable) : false;
   }
 
@@ -174,11 +174,11 @@ public class Configuration {
     return setParam(param, value, false);
   }
 
-  public static boolean setParam(String config, boolean immutable) { 
+  public static boolean setParam(String config, boolean immutable) {
     return global().set(config, immutable);
   }
 
-  public static boolean setParam(String config) { 
+  public static boolean setParam(String config) {
     return setParam(config, false);
   }
 
@@ -199,7 +199,7 @@ public class Configuration {
     }
     return (_next != null) ? _next.get(param) : null;
   }
-  
+
   public static VoidParameter getParam(String param) { return global().get(param); }
 
   public static void listParams(int width, int nameWidth) {
@@ -211,7 +211,7 @@ public class Configuration {
 
   public void list(int width, int nameWidth) {
     VoidParameter current = head;
-  
+
     System.err.format("%s Parameters:%n", name);
     while (current != null) {
       String def_str = current.getDefaultStr();
@@ -226,7 +226,7 @@ public class Configuration {
         int wordLen;
         if (s > -1) wordLen = s;
         else wordLen = desc.length();
-  
+
         if (column + wordLen + 1 > width) {
           format = "%n%"+(nameWidth+4)+"s";
           System.err.format(format, "");
@@ -239,7 +239,7 @@ public class Configuration {
         if (s == -1) break;
         desc = desc.substring(wordLen+1);
       }
-  
+
       if (def_str != null) {
         if (column + def_str.length() + 11 > width)
           System.err.format("%n%"+(nameWidth+4)+"s","");
@@ -250,7 +250,7 @@ public class Configuration {
       }
       current = current._next;
     }
-  
+
     if (_next != null)
       _next.list(width, nameWidth);
   }

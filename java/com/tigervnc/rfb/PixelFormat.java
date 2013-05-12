@@ -2,17 +2,17 @@
  * Copyright 2009 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  * Copyright (C) 2011 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -106,7 +106,7 @@ public class PixelFormat {
     return true;
   }
 
-  public int pixelFromRGB(int red, int green, int blue, ColorModel cm) 
+  public int pixelFromRGB(int red, int green, int blue, ColorModel cm)
   {
     if (trueColour) {
       int r = (red   * redMax     + 32767) / 65535;
@@ -139,7 +139,7 @@ public class PixelFormat {
     return 0;
   }
 
-  public void bufferFromRGB(int[] dst, int dstPtr, byte[] src, 
+  public void bufferFromRGB(int[] dst, int dstPtr, byte[] src,
                             int srcPtr, int pixels) {
     if (is888()) {
       // Optimised common case
@@ -162,7 +162,7 @@ public class PixelFormat {
       // Generic code
       int p, r, g, b;
       int[] rgb = new int[4];
-      
+
       int i = srcPtr; int j = dstPtr;
       while (i < pixels) {
         r = src[i++] & 0xff;
@@ -182,11 +182,11 @@ public class PixelFormat {
   {
     int p;
     byte r, g, b;
-  
+
     for (int i=0; i < pixels; i++) {
-      p = pixelFromBuffer(src, srcPtr); 
+      p = pixelFromBuffer(src, srcPtr);
       srcPtr += bpp/8;
-  
+
       dst[dstPtr++] = (byte)cm.getRed(p);
       dst[dstPtr++] = (byte)cm.getGreen(p);
       dst[dstPtr++] = (byte)cm.getBlue(p);
@@ -196,9 +196,9 @@ public class PixelFormat {
   public int pixelFromBuffer(byte[] buffer, int bufferPtr)
   {
     int p;
-  
+
     p = 0;
-  
+
     if (bigEndian) {
       switch (bpp) {
       case 32:
@@ -221,7 +221,7 @@ public class PixelFormat {
         }
       }
     }
-  
+
     return p;
   }
 
@@ -289,7 +289,7 @@ public class PixelFormat {
       }
     }
   }
-          
+
 
   public int bpp;
   public int depth;

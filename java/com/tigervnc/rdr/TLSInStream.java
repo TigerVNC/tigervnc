@@ -2,17 +2,17 @@
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
  * Copyright (C) 2011 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -33,7 +33,7 @@ public class TLSInStream extends InStream {
 
   public TLSInStream(InStream _in, SSLEngineManager _manager) {
     in = (FdInStream)_in;
-    manager = _manager; 
+    manager = _manager;
     offset = 0;
     SSLSession session = manager.getSession();
     bufSize = session.getApplicationBufferSize();
@@ -41,23 +41,23 @@ public class TLSInStream extends InStream {
     ptr = end = start = 0;
   }
 
-  public final int pos() { 
+  public final int pos() {
     return offset + ptr - start;
   }
 
   public final void startTiming() {
-    in.startTiming();  
+    in.startTiming();
   }
 
   public final void stopTiming() {
-    in.stopTiming();  
+    in.stopTiming();
   }
 
   public final long kbitsPerSecond() {
     return in.kbitsPerSecond();
   }
 
-  public final long timeWaited() { 
+  public final long timeWaited() {
     return in.timeWaited();
   }
 
@@ -74,7 +74,7 @@ public class TLSInStream extends InStream {
 
     while (end < start + itemSize) {
       int n = readTLS(b, end, start + bufSize - end, wait);
-      if (!wait && n == 0) 
+      if (!wait && n == 0)
         return 0;
       end += n;
     }
@@ -85,7 +85,7 @@ public class TLSInStream extends InStream {
     return nItems;
   }
 
-  protected int readTLS(byte[] buf, int bufPtr, int len, boolean wait) 
+  protected int readTLS(byte[] buf, int bufPtr, int len, boolean wait)
   {
     int n = -1;
 
@@ -103,7 +103,7 @@ public class TLSInStream extends InStream {
 
     return n;
   }
-    
+
   private SSLEngineManager manager;
   private int offset;
   private int start;

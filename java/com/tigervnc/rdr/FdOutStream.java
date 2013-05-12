@@ -1,17 +1,17 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman for Cendio AB
  * Copyright (C) 2012 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -48,12 +48,12 @@ public class FdOutStream extends OutStream {
     blocking = blocking_;
   }
 
-  public int length() 
-  { 
-    return offset + ptr - sentUpTo; 
+  public int length()
+  {
+    return offset + ptr - sentUpTo;
   }
 
-  public void flush() 
+  public void flush()
   {
     int timeoutms_;
 
@@ -95,7 +95,7 @@ public class FdOutStream extends OutStream {
     int n;
 
     do {
-    
+
       Integer tv;
       if (timeoutms != -1) {
         tv = new Integer(timeoutms);
@@ -109,7 +109,7 @@ public class FdOutStream extends OutStream {
         System.out.println(e.toString());
         throw new Exception(e.getMessage());
       }
-          
+
     } while (n < 0);
 
     if (n == 0) return 0;
@@ -119,11 +119,11 @@ public class FdOutStream extends OutStream {
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }
-    
+
     return n;
   }
 
-  protected int overrun(int itemSize, int nItems) 
+  protected int overrun(int itemSize, int nItems)
   {
     if (itemSize > bufSize)
       throw new Exception("FdOutStream overrun: max itemSize exceeded");

@@ -20,16 +20,16 @@
 //
 // Permission to use, copy, modify, and distribute this software
 // and its documentation for NON-COMMERCIAL or COMMERCIAL purposes and
-// without fee is hereby granted, provided that this copyright notice is kept 
-// intact. 
-// 
+// without fee is hereby granted, provided that this copyright notice is kept
+// intact.
+//
 // WIDGET WORKSHOP MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY
 // OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
 // TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
 // PARTICULAR PURPOSE, OR NON-INFRINGEMENT. WIDGET WORKSHOP SHALL NOT BE LIABLE
 // FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
 // DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
-// 
+//
 // THIS SOFTWARE IS NOT DESIGNED OR INTENDED FOR USE OR RESALE AS ON-LINE
 // CONTROL EQUIPMENT IN HAZARDOUS ENVIRONMENTS REQUIRING FAIL-SAFE
 // PERFORMANCE, SUCH AS IN THE OPERATION OF NUCLEAR FACILITIES, AIRCRAFT
@@ -475,7 +475,7 @@ public class DesCipher
     public static void squashBytesToInts( byte[] inBytes, int inOff, int[] outInts, int outOff, int intLen )
         {
 	for ( int i = 0; i < intLen; ++i )
-	    outInts[outOff + i] = 
+	    outInts[outOff + i] =
 		( ( inBytes[inOff + i * 4    ] & 0xff ) << 24 ) |
 		( ( inBytes[inOff + i * 4 + 1] & 0xff ) << 16 ) |
 		( ( inBytes[inOff + i * 4 + 2] & 0xff ) <<  8 ) |

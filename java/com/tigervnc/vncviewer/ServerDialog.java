@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011-2013 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -35,7 +35,7 @@ class ServerDialog extends Dialog implements
   @SuppressWarnings({"unchecked","rawtypes"})
   public ServerDialog(OptionsDialog options_,
                       String defaultServerName, CConn cc_) {
-    
+
     super(true);
     cc = cc_;
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -123,7 +123,7 @@ class ServerDialog extends Dialog implements
     aboutButton.addActionListener(this);
     okButton.addActionListener(this);
     cancelButton.addActionListener(this);
-    
+
     pack();
   }
 
@@ -177,7 +177,7 @@ class ServerDialog extends Dialog implements
     UserPreferences.save("ServerDialog");
     endDialog();
   }
-  
+
   CConn cc;
   @SuppressWarnings("rawtypes")
   JComboBox server;

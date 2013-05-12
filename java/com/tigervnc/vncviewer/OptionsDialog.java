@@ -1,16 +1,16 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011-2012 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -53,7 +53,7 @@ class OptionsDialog extends Dialog implements
   JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
 
   @SuppressWarnings({"rawtypes","unchecked"})
-  public OptionsDialog(OptionsDialogCallback cb_) { 
+  public OptionsDialog(OptionsDialogCallback cb_) {
     super(true);
     cb = cb_;
     setResizable(false);
@@ -61,7 +61,7 @@ class OptionsDialog extends Dialog implements
 
     getContentPane().setLayout(
       new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
-	
+
     JTabbedPane tabPane = new JTabbedPane();
 
     ButtonGroup encodingGroup = new ButtonGroup();
@@ -133,7 +133,7 @@ class OptionsDialog extends Dialog implements
     sendClipboard = new JCheckBox("Send clipboard to server");
     sendClipboard.addItemListener(this);
     JLabel menuKeyLabel = new JLabel("Menu Key");
-    String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()]; 
+    String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()];
     for (int i = 0; i < MenuKey.getMenuKeySymbolCount(); i++)
       menuKeys[i] = KeyEvent.getKeyText(MenuKey.getMenuKeySymbols()[i].keycode);
     menuKey  = new JComboBox(menuKeys);
@@ -156,8 +156,8 @@ class OptionsDialog extends Dialog implements
     acceptBell = new JCheckBox("Beep when requested by the server");
     acceptBell.addItemListener(this);
     JLabel scalingFactorLabel = new JLabel("Scaling Factor");
-    Object[] scalingFactors = { 
-      "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%", 
+    Object[] scalingFactors = {
+      "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%",
       "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
     scalingFactor = new JComboBox(scalingFactors);
     // Hack to set the left inset on editable JComboBox
@@ -167,7 +167,7 @@ class OptionsDialog extends Dialog implements
     } else if (UIManager.getLookAndFeel().getID() == "Metal") {
       ComboBoxEditor sfe = scalingFactor.getEditor();
       JTextField sfeTextField = (JTextField)sfe.getEditorComponent();
-      sfeTextField.setBorder(new CompoundBorder(sfeTextField.getBorder(), 
+      sfeTextField.setBorder(new CompoundBorder(sfeTextField.getBorder(),
                                                 new EmptyBorder(0,2,0,0)));
     }
     scalingFactor.setEditable(true);
@@ -274,7 +274,7 @@ class OptionsDialog extends Dialog implements
     this.getContentPane().add(buttonPane);
 
     pack();
-	
+
   }
 
   public void initDialog() {
@@ -292,7 +292,7 @@ class OptionsDialog extends Dialog implements
     sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
       (secPlain.isSelected()||secIdent.isSelected()));
   }
-  
+
   private void updatePreferences() {
     if (autoSelect.isSelected()) {
       UserPreferences.set("global", "AutoSelect", true);
@@ -338,7 +338,7 @@ class OptionsDialog extends Dialog implements
       UserPreferences.set("global", "ScalingFactor", "Auto");
     } else if(scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
       UserPreferences.set("global", "ScalingFactor", "FixedRatio");
-    } else { 
+    } else {
       scaleString=scaleString.substring(0, scaleString.length()-1);
       UserPreferences.set("global", "ScalingFactor", scaleString);
     }
@@ -411,7 +411,7 @@ class OptionsDialog extends Dialog implements
         scalingFactor.setSelectedItem("Auto");
       } else if (scaleString.equalsIgnoreCase("FixedRatio")) {
         scalingFactor.setSelectedItem("Fixed Aspect Ratio");
-      } else { 
+      } else {
         scalingFactor.setSelectedItem(scaleString+"%");
       }
     }
@@ -466,7 +466,7 @@ class OptionsDialog extends Dialog implements
     if (group != null)
       group.add(c);
     c.addItemListener(this);
-    
+
     return c;
   }
 
@@ -547,7 +547,7 @@ class OptionsDialog extends Dialog implements
       mediumColour.setEnabled(!autoSelect.isSelected());
       lowColour.setEnabled(!autoSelect.isSelected());
       veryLowColour.setEnabled(!autoSelect.isSelected());
-    } 
+    }
     if (s instanceof JCheckBox && (JCheckBox)s == customCompressLevel) {
       compressLevel.setEnabled(customCompressLevel.isSelected());
     }

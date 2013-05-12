@@ -1,17 +1,17 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2010 TigerVNC Team
  * Copyright (C) 2011-2012 Brian P. Hinz
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
@@ -30,10 +30,10 @@ public class SecurityClient extends Security {
   {
     assert (CConn.upg != null); /* (upg == null) means bug in the viewer */
     assert (msg != null);
-  
+
     if (!IsSupported(secType))
       throw new Exception("Security type not supported");
-  
+
     switch (secType) {
     case Security.secTypeNone: return (new CSecurityNone());
     case Security.secTypeVncAuth: return (new CSecurityVncAuth());
@@ -67,7 +67,7 @@ public class SecurityClient extends Security {
     default:
       throw new Exception("Security type not supported");
     }
-  
+
   }
 
   public static void setDefaults()
@@ -78,7 +78,7 @@ public class SecurityClient extends Security {
   //UserPasswdGetter upg = null;
   String msg = null;
 
-  static StringParameter secTypes 
+  static StringParameter secTypes
   = new StringParameter("SecurityTypes",
                         "Specify which security scheme to use (None, VncAuth)",
                         "Ident,TLSIdent,X509Ident,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None", Configuration.ConfigurationObject.ConfViewer);
