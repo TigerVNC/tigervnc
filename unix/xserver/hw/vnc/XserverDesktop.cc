@@ -934,8 +934,7 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
     /* Missing? */
     if (iter == layout.end()) {
       /* Disable and move on... */
-      ret = RRCrtcSet(crtc, NULL, crtc->x, crtc->y, crtc->rotation,
-                      crtc->numOutputs, crtc->outputs);
+      ret = RRCrtcSet(crtc, NULL, crtc->x, crtc->y, crtc->rotation, 0, NULL);
       if (!ret) {
         vlog.error("Failed to disable unused CRTC for output '%s'",
                    output->name);
