@@ -661,22 +661,20 @@ GlyphCount(int nlist, GlyphListPtr list, GlyphPtr * glyphs)
   return count;
 }
 
-static void
-GlyphRegion(int nlist, GlyphListPtr list, GlyphPtr * glyphs, RegionPtr region)
+static RegionPtr
+GlyphsToRegion(ScreenPtr pScreen, int nlist, GlyphListPtr list, GlyphPtr *glyphs)
 {
   int n;
   GlyphPtr glyph;
   int x, y;
 
-  int nboxes = GlyphCount(nlist, list, glyphs);
-  BoxRec boxes[nboxes];
-  BoxPtr box;
-
-  RegionUninit(region);
+  int nrects = GlyphCount(nlist, list, glyphs);
+  xRectangle rects[nrects];
+  xRectanglePtr rect;
 
   x = 0;
   y = 0;
-  box = &boxes[0];
+  rect = &rects[0];
   while (nlist--) {
     x += list->xOff;
     y += list->yOff;
@@ -684,17 +682,17 @@ GlyphRegion(int nlist, GlyphListPtr list, GlyphPtr * glyphs, RegionPtr region)
     list++;
     while (n--) {
       glyph = *glyphs++;
-      box->x1 = x - glyph->info.x;
-      box->y1 = y - glyph->info.y;
-      box->x2 = box->x1 + glyph->info.width;
-      box->y2 = box->y1 + glyph->info.height;
+      rect->x = x - glyph->info.x;
+      rect->y = y - glyph->info.y;
+      rect->width = glyph->info.width;
+      rect->height = glyph->info.height;
       x += glyph->info.xOff;
       y += glyph->info.yOff;
-      box++;
+      rect++;
     }
   }
 
-  RegionInitBoxes(region, boxes, nboxes);
+  return RECTS_TO_REGION(pScreen, nrects, rects, CT_NONE);
 }
 
 // Glyphs - Glyph specific version of Composite (caches and whatnot)
@@ -715,21 +713,20 @@ void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
     BoxRec fbbox;
     RegionRec fbreg;
 
-    changed.init(NULL, 0);
-
-    GlyphRegion(nlists, lists, glyphs, changed.reg);
-    RegionTranslate(changed.reg, pDst->pDrawable->x, pDst->pDrawable->y);
+    changed.reg = GlyphsToRegion(pScreen, nlists, lists, glyphs);
+    REGION_TRANSLATE(pScreen, changed.reg,
+                     pDst->pDrawable->x, pDst->pDrawable->y);
 
     fbrect = vncHooksScreen->desktop->getRect();
     fbbox.x1 = fbrect.tl.x;
     fbbox.y1 = fbrect.tl.y;
     fbbox.x2 = fbrect.br.x;
     fbbox.y2 = fbrect.br.y;
-    RegionInit(&fbreg, &fbbox, 0);
+    REGION_INIT(pScreen, &fbreg, &fbbox, 0);
 
-    RegionIntersect(changed.reg, changed.reg, &fbreg);
+    REGION_INTERSECT(pScreen, changed.reg, changed.reg, &fbreg);
 
-    RegionUninit(&fbreg);
+    REGION_UNINIT(pScreen, &fbreg);
   } else {
     changed.init(NullBox, 0);
   }
