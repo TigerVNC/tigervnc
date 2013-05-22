@@ -1196,8 +1196,7 @@ static Bool vncRandRScreenSetSize(ScreenPtr pScreen,
         if ((crtc->x >= width) || (crtc->y >= height)) {
             /* Disable it */
             ret = vncRandRCrtcSet(pScreen, crtc, NULL,
-                                  crtc->x, crtc->y, crtc->rotation,
-                                  crtc->numOutputs, crtc->outputs);
+                                  crtc->x, crtc->y, crtc->rotation, 0, NULL);
             if (!ret)
                 ErrorF("Warning: Unable to disable CRTC that is outside of new screen dimensions");
             continue;
