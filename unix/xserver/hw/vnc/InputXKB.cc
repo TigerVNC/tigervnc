@@ -485,6 +485,7 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 
 	int types[1];
 	KeySym *syms;
+	KeySym upper, lower;
 
 	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
 	xkb = master->key->xkbInfo->desc;
@@ -517,13 +518,28 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 		changes.names.num_keys = 1;
 	}
 
-	/* FIXME: Verify that ONE_LEVEL isn't screwed up */
+	/* FIXME: Verify that ONE_LEVEL/ALPHABETIC isn't screwed up */
 
-	types[XkbGroup1Index] = XkbOneLevelIndex;
+	/*
+	 * For keysyms that are affected by Lock, we are better off
+	 * using ALPHABETIC rather than ONE_LEVEL as the latter
+	 * generally cannot produce lower case when Lock is active.
+	 */
+	XkbConvertCase(keysym, &lower, &upper);
+	if (upper == lower)
+		types[XkbGroup1Index] = XkbOneLevelIndex;
+	else
+		types[XkbGroup1Index] = XkbAlphabeticIndex;
+
 	XkbChangeTypesOfKey(xkb, key, 1, XkbGroup1Mask, types, &changes.map);
 
 	syms = XkbKeySymsPtr(xkb,key);
-	syms[0] = keysym;
+	if (upper == lower)
+		syms[0] = keysym;
+	else {
+		syms[0] = lower;
+		syms[1] = upper;
+	}
 
 	changes.map.changed |= XkbKeySymsMask;
 	changes.map.first_key_sym = key;
