@@ -408,13 +408,21 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state,
 	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		unsigned int state_out;
+		KeySym dummy;
 
 		XkbTranslateKeyCode(xkb, key, state, &state_out, &ks);
 		if (ks == NoSymbol)
 			continue;
 
-		if (state_out & state & LockMask)
-			XkbConvertCase(ks, NULL, &ks);
+		/*
+		 * Despite every known piece of documentation on
+		 * XkbTranslateKeyCode() stating that mods_rtrn returns
+		 * the unconsumed modifiers, in reality it always
+		 * returns the _potentially consumed_ modifiers.
+		 */
+		state_out = state & ~state_out;
+		if (state_out & LockMask)
+			XkbConvertCase(ks, &dummy, &ks);
 
 		if (ks == keysym)
 			return key;
@@ -477,6 +485,7 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 
 	int types[1];
 	KeySym *syms;
+	KeySym upper, lower;
 
 	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
 	xkb = master->key->xkbInfo->desc;
@@ -491,15 +500,46 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 	memset(&changes, 0, sizeof(changes));
 	memset(&cause, 0, sizeof(cause));
 
-	XkbSetCauseCoreReq(&cause, X_ChangeKeyboardMapping, NULL);
+	XkbSetCauseUnknown(&cause);
 
-	/* FIXME: Verify that ONE_LEVEL isn't screwed up */
+	/*
+	 * Tools like xkbcomp get confused if there isn't a name
+	 * assigned to the keycode we're trying to use.
+	 */
+	if (xkb->names && xkb->names->keys &&
+	    (xkb->names->keys[key].name[0] == '\0')) {
+		xkb->names->keys[key].name[0] = 'I';
+		xkb->names->keys[key].name[1] = '0' + (key / 100) % 10;
+		xkb->names->keys[key].name[2] = '0' + (key /  10) % 10;
+		xkb->names->keys[key].name[3] = '0' + (key /   1) % 10;
 
-	types[XkbGroup1Index] = XkbOneLevelIndex;
+		changes.names.changed |= XkbKeyNamesMask;
+		changes.names.first_key = key;
+		changes.names.num_keys = 1;
+	}
+
+	/* FIXME: Verify that ONE_LEVEL/ALPHABETIC isn't screwed up */
+
+	/*
+	 * For keysyms that are affected by Lock, we are better off
+	 * using ALPHABETIC rather than ONE_LEVEL as the latter
+	 * generally cannot produce lower case when Lock is active.
+	 */
+	XkbConvertCase(keysym, &lower, &upper);
+	if (upper == lower)
+		types[XkbGroup1Index] = XkbOneLevelIndex;
+	else
+		types[XkbGroup1Index] = XkbAlphabeticIndex;
+
 	XkbChangeTypesOfKey(xkb, key, 1, XkbGroup1Mask, types, &changes.map);
 
 	syms = XkbKeySymsPtr(xkb,key);
-	syms[0] = keysym;
+	if (upper == lower)
+		syms[0] = keysym;
+	else {
+		syms[0] = lower;
+		syms[1] = upper;
+	}
 
 	changes.map.changed |= XkbKeySymsMask;
 	changes.map.first_key_sym = key;

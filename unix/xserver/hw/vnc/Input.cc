@@ -507,7 +507,16 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 		vlog.info("Added unknown keysym 0x%x to keycode %d",
 			  keysym, keycode);
 
-		new_state = state;
+		/*
+		 * The state given to addKeysym() is just a hint and
+		 * the actual result might still require some state
+		 * changes.
+		 */
+		keycode = keysymToKeycode(keysym, state, &new_state);
+		if (keycode == 0) {
+			vlog.error("Newly added keysym 0x%x cannot be generated", keysym);
+			return;
+		}
 	}
 
 	/*
