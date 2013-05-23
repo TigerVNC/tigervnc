@@ -408,13 +408,14 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state,
 	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		unsigned int state_out;
+		KeySym dummy;
 
 		XkbTranslateKeyCode(xkb, key, state, &state_out, &ks);
 		if (ks == NoSymbol)
 			continue;
 
 		if (state_out & state & LockMask)
-			XkbConvertCase(ks, NULL, &ks);
+			XkbConvertCase(ks, &dummy, &ks);
 
 		if (ks == keysym)
 			return key;
