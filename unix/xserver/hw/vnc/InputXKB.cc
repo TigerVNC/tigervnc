@@ -501,6 +501,22 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 
 	XkbSetCauseUnknown(&cause);
 
+	/*
+	 * Tools like xkbcomp get confused if there isn't a name
+	 * assigned to the keycode we're trying to use.
+	 */
+	if (xkb->names && xkb->names->keys &&
+	    (xkb->names->keys[key].name[0] == '\0')) {
+		xkb->names->keys[key].name[0] = 'I';
+		xkb->names->keys[key].name[1] = '0' + (key / 100) % 10;
+		xkb->names->keys[key].name[2] = '0' + (key /  10) % 10;
+		xkb->names->keys[key].name[3] = '0' + (key /   1) % 10;
+
+		changes.names.changed |= XkbKeyNamesMask;
+		changes.names.first_key = key;
+		changes.names.num_keys = 1;
+	}
+
 	/* FIXME: Verify that ONE_LEVEL isn't screwed up */
 
 	types[XkbGroup1Index] = XkbOneLevelIndex;
