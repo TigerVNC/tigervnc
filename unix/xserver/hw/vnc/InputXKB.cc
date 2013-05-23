@@ -414,7 +414,14 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state,
 		if (ks == NoSymbol)
 			continue;
 
-		if (state_out & state & LockMask)
+		/*
+		 * Despite every known piece of documentation on
+		 * XkbTranslateKeyCode() stating that mods_rtrn returns
+		 * the unconsumed modifiers, in reality it always
+		 * returns the _potentially consumed_ modifiers.
+		 */
+		state_out = state & ~state_out;
+		if (state_out & LockMask)
 			XkbConvertCase(ks, &dummy, &ks);
 
 		if (ks == keysym)
