@@ -499,7 +499,7 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 	memset(&changes, 0, sizeof(changes));
 	memset(&cause, 0, sizeof(cause));
 
-	XkbSetCauseCoreReq(&cause, X_ChangeKeyboardMapping, NULL);
+	XkbSetCauseUnknown(&cause);
 
 	/* FIXME: Verify that ONE_LEVEL isn't screwed up */
 
