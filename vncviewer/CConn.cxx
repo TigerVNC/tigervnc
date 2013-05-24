@@ -350,6 +350,9 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
   char *buffer;
   int size, ret;
 
+  if (!acceptClipboard)
+    return;
+
   size = fl_utf8froma(NULL, 0, str, len);
   if (size <= 0)
     return;
