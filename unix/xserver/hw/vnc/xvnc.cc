@@ -1353,6 +1353,7 @@ static Bool vncRandRInit(ScreenPtr pScreen)
 {
     RRCrtcPtr crtc;
     RRModePtr mode;
+    Bool ret;
 
     if (!RRInit())
         return FALSE;
@@ -1371,8 +1372,11 @@ static Bool vncRandRInit(ScreenPtr pScreen)
     if (mode == NULL)
         return FALSE;
 
-    vncRandRCrtcSet(pScreen, crtc, mode, 0, 0, RR_Rotate_0,
-                    crtc->numOutputs, crtc->outputs);
+    ret = vncRandRCrtcSet(pScreen, crtc, mode, 0, 0, RR_Rotate_0,
+                          crtc->numOutputs, crtc->outputs);
+    RRModeDestroy(mode);
+    if (!ret)
+        return FALSE;
 
     return TRUE;
 }
