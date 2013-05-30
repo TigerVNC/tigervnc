@@ -91,6 +91,8 @@ private:
 
 	bool isLockModifier(KeyCode keycode, unsigned state);
 
+	bool isAffectedByNumLock(KeyCode keycode);
+
 	KeyCode addKeysym(KeySym keysym, unsigned state);
 
 private:

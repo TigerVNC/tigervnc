@@ -64,6 +64,8 @@ using namespace rfb;
 
 static LogWriter vlog("Input");
 
+rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock", "Avoid fake Shift presses for keys affected by NumLock.", true);
+
 #define BUTTONS 7
 
 /* Event queue is shared between all devices. */
@@ -516,6 +518,53 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 		if (keycode == 0) {
 			vlog.error("Newly added keysym 0x%x cannot be generated", keysym);
 			return;
+		}
+	}
+
+	/*
+	 * X11 generally lets shift toggle the keys on the numeric pad
+	 * the same way NumLock does. This is however not the case on
+	 * other systems like Windows. As a result, some applications
+	 * get confused when we do a fake shift to get the same effect
+	 * that having NumLock active would produce.
+	 *
+	 * Until we have proper NumLock synchronisation (so we can
+	 * avoid faking shift), we try to avoid the fake shifts if we
+	 * can use an alternative keysym.
+	 */
+	if (((state & ShiftMask) != (new_state & ShiftMask)) &&
+	    avoidShiftNumLock && isAffectedByNumLock(keycode)) {
+	    	KeyCode keycode2;
+	    	unsigned new_state2;
+
+		vlog.debug("Finding alternative to keysym 0x%x to avoid fake shift for numpad", keysym);
+
+		for (i = 0;i < sizeof(altKeysym)/sizeof(altKeysym[0]);i++) {
+			KeySym altsym;
+
+			if (altKeysym[i].a == keysym)
+				altsym = altKeysym[i].b;
+			else if (altKeysym[i].b == keysym)
+				altsym = altKeysym[i].a;
+			else
+				continue;
+
+			keycode2 = keysymToKeycode(altsym, state, &new_state2);
+			if (keycode2 == 0)
+				continue;
+
+			if (((state & ShiftMask) != (new_state2 & ShiftMask)) &&
+			    isAffectedByNumLock(keycode2))
+				continue;
+
+			break;
+		}
+
+		if (i == sizeof(altKeysym)/sizeof(altKeysym[0]))
+			vlog.debug("No alternative keysym found");
+		else {
+			keycode = keycode2;
+			new_state = new_state2;
 		}
 	}
 
