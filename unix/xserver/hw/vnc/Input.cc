@@ -475,18 +475,18 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	/* Try some equivalent keysyms if we couldn't find a perfect match */
 	if (keycode == 0) {
 		for (i = 0;i < sizeof(altKeysym)/sizeof(altKeysym[0]);i++) {
-			if (altKeysym[i].a == keysym) {
-				keycode = keysymToKeycode(altKeysym[i].b,
-				                          state, &new_state);
-				if (keycode != 0)
-					break;
-			}
-			if (altKeysym[i].b == keysym) {
-				keycode = keysymToKeycode(altKeysym[i].a,
-				                          state, &new_state);
-				if (keycode != 0)
-					break;
-			}
+			KeySym altsym;
+
+			if (altKeysym[i].a == keysym)
+				altsym = altKeysym[i].b;
+			else if (altKeysym[i].b == keysym)
+				altsym = altKeysym[i].a;
+			else
+				continue;
+
+			keycode = keysymToKeycode(altsym, state, &new_state);
+			if (keycode != 0)
+				break;
 		}
 	}
 
