@@ -514,6 +514,26 @@ done:
 	return false;
 }
 
+bool InputDevice::isAffectedByNumLock(KeyCode keycode)
+{
+	KeySymsPtr keymap;
+	int i, per;
+	KeySym *syms;
+
+	keymap = &keyboardDev->key->curKeySyms;
+	per = keymap->mapWidth;
+	syms = &keymap->map[(keycode - keymap->minKeyCode) * per];
+
+	for (i = 0;i < per;i++) {
+		if (IsKeypadKey(syms[i]))
+			return true;
+		if (IsPrivateKeypadKey(syms[i]))
+			return true;
+	}
+
+	return false;
+}
+
 KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 {
 	KeyCode kc;

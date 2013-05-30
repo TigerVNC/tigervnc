@@ -177,6 +177,36 @@ static XkbAction *XkbKeyActionPtr(XkbDescPtr xkb, KeyCode key, unsigned int mods
 	return &acts[col];
 }
 
+static unsigned XkbKeyEffectiveGroup(XkbDescPtr xkb, KeyCode key, unsigned int mods)
+{
+	int nKeyGroups;
+	unsigned effectiveGroup;
+
+	nKeyGroups= XkbKeyNumGroups(xkb,key);
+	if ((!XkbKeycodeInRange(xkb,key))||(nKeyGroups==0))
+		return 0;
+
+	effectiveGroup= XkbGroupForCoreState(mods);
+	if ( effectiveGroup>=nKeyGroups ) {
+		unsigned groupInfo= XkbKeyGroupInfo(xkb,key);
+		switch (XkbOutOfRangeGroupAction(groupInfo)) {
+		default:
+			effectiveGroup %= nKeyGroups;
+			break;
+		case XkbClampIntoRange:
+			effectiveGroup = nKeyGroups-1;
+			break;
+		case XkbRedirectIntoRange:
+			effectiveGroup = XkbOutOfRangeGroupNumber(groupInfo);
+			if (effectiveGroup>=nKeyGroups)
+				effectiveGroup= 0;
+			break;
+		}
+	}
+
+	return effectiveGroup;
+}
+
 void InputDevice::PrepareInputDevices(void)
 {
 #if XORG < 19
@@ -210,20 +240,25 @@ unsigned InputDevice::getKeyboardState(void)
 
 unsigned InputDevice::getLevelThreeMask(void)
 {
+	unsigned state;
 	KeyCode keycode;
 	XkbDescPtr xkb;
 	XkbAction *act;
 
-	keycode = keysymToKeycode(XK_ISO_Level3_Shift, 0, NULL);
+	/* Group state is still important */
+	state = getKeyboardState();
+	state &= ~0xff;
+
+	keycode = keysymToKeycode(XK_ISO_Level3_Shift, state, NULL);
 	if (keycode == 0) {
-		keycode = keysymToKeycode(XK_Mode_switch, 0, NULL);
+		keycode = keysymToKeycode(XK_Mode_switch, state, NULL);
 		if (keycode == 0)
 			return 0;
 	}
 
 	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
-	act = XkbKeyActionPtr(xkb, keycode, 0);
+	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
 		return 0;
 	if (act->type != XkbSA_SetMods)
@@ -338,7 +373,7 @@ KeyCode InputDevice::pressLevelThree(void)
 
 	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
-	act = XkbKeyActionPtr(xkb, keycode, 0);
+	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
 		return 0;
 	if (act->type != XkbSA_SetMods)
@@ -469,6 +504,53 @@ bool InputDevice::isLockModifier(KeyCode keycode, unsigned state)
 		return false;
 
 	if (act->type != XkbSA_LockMods)
+		return false;
+
+	return true;
+}
+
+bool InputDevice::isAffectedByNumLock(KeyCode keycode)
+{
+	unsigned state;
+
+	KeyCode numlock_keycode;
+	unsigned numlock_mask;
+
+	XkbDescPtr xkb;
+	XkbAction *act;
+
+	unsigned group;
+	XkbKeyTypeRec *type;
+
+	/* Group state is still important */
+	state = getKeyboardState();
+	state &= ~0xff;
+
+	/*
+	 * Not sure if hunting for a virtual modifier called "NumLock",
+	 * or following the keysym Num_Lock is the best approach. We
+	 * try the latter.
+	 */
+	numlock_keycode = keysymToKeycode(XK_Num_Lock, state, NULL);
+	if (numlock_keycode == 0)
+		return false;
+
+	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+
+	act = XkbKeyActionPtr(xkb, numlock_keycode, state);
+	if (act == NULL)
+		return false;
+	if (act->type != XkbSA_LockMods)
+		return false;
+
+	if (act->mods.flags & XkbSA_UseModMapMods)
+		numlock_mask = xkb->map->modmap[keycode];
+	else
+		numlock_mask = act->mods.mask;
+
+	group = XkbKeyEffectiveGroup(xkb, keycode, state);
+	type = XkbKeyKeyType(xkb, keycode, group);
+	if ((type->mods.mask & numlock_mask) == 0)
 		return false;
 
 	return true;
