@@ -210,20 +210,25 @@ unsigned InputDevice::getKeyboardState(void)
 
 unsigned InputDevice::getLevelThreeMask(void)
 {
+	unsigned state;
 	KeyCode keycode;
 	XkbDescPtr xkb;
 	XkbAction *act;
 
-	keycode = keysymToKeycode(XK_ISO_Level3_Shift, 0, NULL);
+	/* Group state is still important */
+	state = getKeyboardState();
+	state &= ~0xff;
+
+	keycode = keysymToKeycode(XK_ISO_Level3_Shift, state, NULL);
 	if (keycode == 0) {
-		keycode = keysymToKeycode(XK_Mode_switch, 0, NULL);
+		keycode = keysymToKeycode(XK_Mode_switch, state, NULL);
 		if (keycode == 0)
 			return 0;
 	}
 
 	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
-	act = XkbKeyActionPtr(xkb, keycode, 0);
+	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
 		return 0;
 	if (act->type != XkbSA_SetMods)
@@ -338,7 +343,7 @@ KeyCode InputDevice::pressLevelThree(void)
 
 	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
-	act = XkbKeyActionPtr(xkb, keycode, 0);
+	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
 		return 0;
 	if (act->type != XkbSA_SetMods)
