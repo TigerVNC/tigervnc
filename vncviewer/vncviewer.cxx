@@ -74,7 +74,7 @@ using namespace std;
 
 static const char aboutText[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
                                    "%s\n"
-                                   "Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
+                                   "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
                                    "See http://www.tigervnc.org for information on TigerVNC.");
 extern const char* buildTime;
 
