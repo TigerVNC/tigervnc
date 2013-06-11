@@ -99,7 +99,7 @@ extern "C" {
 #endif
 
 #define XVNCVERSION "TigerVNC 1.3.80"
-#define XVNCCOPYRIGHT ("Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n" \
+#define XVNCCOPYRIGHT ("Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
 
