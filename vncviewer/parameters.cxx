@@ -523,8 +523,8 @@ void saveViewerParameters(const char *filename, const char *servername) {
   /* Write parameters to file */
   FILE* f = fopen(filepath, "w+");
   if (!f) {
-    snprintf(write_error, sizeof(filepath), "Failed to write configuration file, "
-	     "can't open %s", filepath);
+    snprintf(write_error, sizeof(write_error),
+             "Failed to write configuration file, can't open %s", filepath);
     throw Exception(write_error);
   }
   
