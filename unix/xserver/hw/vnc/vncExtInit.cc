@@ -1025,21 +1025,23 @@ static int ProcVncExtGetQueryConnect(ClientPtr client)
   rep.addrLen = qcTimeout ? strlen(qcAddress) : 0;
   rep.userLen = qcTimeout ? strlen(qcUsername) : 0;
   rep.opaqueId = (CARD32)(long)queryConnectId;
-  rep.length = (rep.userLen + rep.addrLen + 3) >> 2;
+  rep.length = ((rep.userLen + 3) >> 2) + ((rep.addrLen + 3) >> 2);
   if (client->swapped) {
 #if XORG < 112
     int n;
     swaps(&rep.sequenceNumber, n);
-    swapl(&rep.userLen, n);
     swapl(&rep.addrLen, n);
+    swapl(&rep.userLen, n);
     swapl(&rep.timeout, n);
     swapl(&rep.opaqueId, n);
+    swapl(&rep.length, n);
 #else
     swaps(&rep.sequenceNumber);
-    swapl(&rep.userLen);
     swapl(&rep.addrLen);
+    swapl(&rep.userLen);
     swapl(&rep.timeout);
     swapl(&rep.opaqueId);
+    swapl(&rep.length);
 #endif
   }
   WriteToClient(client, sizeof(xVncExtGetQueryConnectReply), (char *)&rep);
