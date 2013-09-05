@@ -365,7 +365,7 @@ int Viewport::handle(int event)
                      Fl::event_length() + 1);
     assert(ret < (Fl::event_length() + 1));
 
-    vlog.debug("Sending clipboard data: '%s'", buffer);
+    vlog.debug("Sending clipboard data (%d bytes)", strlen(buffer));
 
     try {
       cc->writer()->clientCutText(buffer, ret);
