@@ -1070,7 +1070,7 @@ static int ProcVncExtApproveConnect(ClientPtr client)
 {
   REQUEST(xVncExtApproveConnectReq);
   REQUEST_SIZE_MATCH(xVncExtApproveConnectReq);
-  if (queryConnectId == (void*)stuff->opaqueId) {
+  if ((CARD32)(long)queryConnectId == stuff->opaqueId) {
     for (int scr = 0; scr < screenInfo.numScreens; scr++) {
       if (desktop[scr]) {
         desktop[scr]->approveConnection(queryConnectId, stuff->approve,
