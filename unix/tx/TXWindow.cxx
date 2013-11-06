@@ -454,6 +454,8 @@ void TXWindow::handleXEvent(XEvent* ev)
         } else if (se.target == XA_STRING) {
           if (!selectionRequest(se.requestor, se.selection, se.property))
             se.property = None;
+        } else {
+          se.property = None;
         }
       }
       XSendEvent(dpy, se.requestor, False, 0, (XEvent*)&se);
