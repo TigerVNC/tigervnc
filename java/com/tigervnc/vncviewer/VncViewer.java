@@ -460,6 +460,10 @@ public class VncViewer extends java.applet.Applet implements Runnable
   = new BoolParameter("SendClipboard",
                       "Send clipboard changes to the server",
                       true);
+  IntParameter maxCutText
+  = new IntParameter("MaxCutText",
+                     "Maximum permitted length of an outgoing clipboard update",
+                     262144);
   StringParameter menuKey
   = new StringParameter("MenuKey",
                         "The key which brings up the popup menu",

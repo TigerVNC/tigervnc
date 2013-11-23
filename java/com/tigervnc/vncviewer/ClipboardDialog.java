@@ -57,15 +57,12 @@ class ClipboardDialog extends Dialog implements ActionListener {
     pack();
   }
 
-  public void initDialog() {
-    textArea.setText(current);
-    textArea.selectAll();
+  public void setContents(String str) {
+    textArea.setText(str);
   }
 
-  public void setContents(String str) {
-    current = str;
-    textArea.setText(str);
-    textArea.selectAll();
+  public String getContents() {
+    return textArea.getText();
   }
 
   public void serverCutText(String str, int len) {
@@ -77,13 +74,13 @@ class ClipboardDialog extends Dialog implements ActionListener {
       if (cb != null) {
         StringSelection ss = new StringSelection(str);
         try {
-          cb.setContents(ss, ss);
+          cb.setContents(ss, null);
         } catch(Exception e) {
-          vlog.debug(e.toString());
+          vlog.debug(e.getMessage());
         }
       }
     } catch(SecurityException e) {
-      System.err.println("Cannot access the system clipboard");
+      vlog.debug("Cannot access the system clipboard: "+e.getMessage());
     }
   }
 
@@ -94,11 +91,9 @@ class ClipboardDialog extends Dialog implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == clearButton) {
-      current = "";
-      textArea.setText(current);
+      serverCutText(new String(""), 0);
     } else if (s instanceof JButton && (JButton)s == sendButton) {
-      current = textArea.getText();
-      cc.writeClientCutText(current, current.length());
+      cc.writeClientCutText(textArea.getText(), textArea.getText().length());
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
       endDialog();
@@ -106,7 +101,6 @@ class ClipboardDialog extends Dialog implements ActionListener {
   }
 
   CConn cc;
-  String current;
   JTextArea textArea;
   JButton clearButton, sendButton, cancelButton;
   static LogWriter vlog = new LogWriter("ClipboardDialog");

@@ -357,30 +357,33 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     g2.dispose();
   }
 
-  String oldContents = "";
-
   public synchronized void checkClipboard() {
     SecurityManager sm = System.getSecurityManager();
     try {
       if (sm != null) sm.checkSystemClipboardAccess();
       Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-      if (cb != null && cc.viewer.sendClipboard.getValue()) {
-        Transferable t = cb.getContents(null);
-        if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-          try {
-            String newContents = (String)t.getTransferData(DataFlavor.stringFlavor);
-            if (newContents != null && !newContents.equals(oldContents)) {
-              cc.writeClientCutText(newContents, newContents.length());
-              oldContents = newContents;
-              cc.clipboardDialog.setContents(newContents);
-            }
-          } catch(java.lang.Exception e) {
-            System.out.println("Exception getting clipboard data: " + e.getMessage());
+      if (cb == null) return;
+      Transferable t = cb.getContents(null);
+      if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        try {
+          String newContents = new String("");
+          if (t.getTransferData(DataFlavor.stringFlavor) != null) {
+            int len = Math.min(cc.viewer.maxCutText.getValue(),
+                               ((String)t.getTransferData(DataFlavor.stringFlavor)).length());
+            newContents = 
+              ((String)t.getTransferData(DataFlavor.stringFlavor)).substring(0, len);
           }
+          if (!newContents.equals(cc.clipboardDialog.getContents())) {
+            if (cc.viewer.sendClipboard.getValue())
+              cc.writeClientCutText(newContents, newContents.length());
+            cc.clipboardDialog.setContents(newContents);
+          }
+        } catch(java.lang.Exception e) {
+          vlog.debug("Exception getting clipboard data: " + e.getMessage());
         }
       }
     } catch(SecurityException e) {
-      System.err.println("Cannot access the system clipboard");
+      vlog.debug("Cannot access the system clipboard");
     }
   }
 
