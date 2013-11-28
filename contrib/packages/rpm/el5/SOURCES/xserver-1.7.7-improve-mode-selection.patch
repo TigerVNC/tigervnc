@@ -1,0 +1,114 @@
+From 6a18acbe113c5ce0108fb07bcd6cc5aeefcc5f6f Mon Sep 17 00:00:00 2001
+From: Olivier Fourdan <ofourdan@redhat.com>
+Date: Wed, 23 Jun 2010 15:01:08 -0400
+Subject: [PATCH] modes: improve aspect ratio match for classic drivers
+
+The X server tries to infer the aspect ratio of the screen, and estimates the
+virtual size of the screen as the largest mode in the combined list of modes
+given then runs through the mode list checking it against the sync ranges from
+the monitor and the driver's ValidMode hook.
+In doing so it might filter away all modes that exactly match the earlier
+aspect ratio guess in which case the server picks the mode with the next most
+area by pixel count.
+
+The following patch changes the logic, and instead of picking the largest
+area, it looks first in the builtin modes, the driver modes and at last the
+rest of modes which includes the default modes.
+
+This way, if there is no mode matching the initial mode, we do not end up
+picking a random mode and prefer instead a user defined or a monitor mode.
+
+As the virtual size is changed, the line pitch also needs to be recalculated.
+---
+ hw/xfree86/common/xf86Mode.c |   64 ++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 59 insertions(+), 5 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86Mode.c b/hw/xfree86/common/xf86Mode.c
+index 4a948d7..da50b27 100644
+--- a/hw/xfree86/common/xf86Mode.c
++++ b/hw/xfree86/common/xf86Mode.c
+@@ -1665,8 +1665,6 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
+ 	numModes++;
+     }
+ 
+-#undef _VIRTUALX
+-
+     /*
+      * If we estimated the virtual size above, we may have filtered away all
+      * the modes that maximally match that size; scan again to find out and
+@@ -1681,13 +1679,69 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
+ 	    }
+ 	}
+ 	if (vx < virtX || vy < virtY) {
++	    const int types[] = {
++		M_T_BUILTIN | M_T_PREFERRED,
++		M_T_BUILTIN,
++		M_T_DRIVER | M_T_PREFERRED,
++		M_T_DRIVER,
++		0
++	    };
++	    const int ntypes = sizeof(types) / sizeof(int);
++	    int n;
++
++	    /*
++	     * We did not find the estimated virtual size. So now we want to
++	     * find the largest mode available, but we want to search in the
++	     * modes in the order of "types" listed above.
++	     */
++	    for (n = 0; n < ntypes; n++) {
++		int type = types[n];
++
++		vx = 0; vy = 0;
++		for (p = scrp->modes; p; p = p->next) {
++		    /* scan through the modes in the sort order above */
++		    if ((p->type & type) != type)
++			continue;
++		    if (p->HDisplay > vx && p->VDisplay > vy) {
++			vx = p->HDisplay;
++			vy = p->VDisplay;
++		    }
++		}
++		if (vx && vy)
++		    /* Found one */
++		    break;
++	    }
+ 	    xf86DrvMsg(scrp->scrnIndex, X_WARNING,
+ 		       "Shrinking virtual size estimate from %dx%d to %dx%d\n",
+ 		       virtX, virtY, vx, vy);
+-	    virtX = vx;
++	    virtX = _VIRTUALX(vx);
+ 	    virtY = vy;
+-	    linePitch = miScanLineWidth(vx, vy, minPitch, apertureSize,
+-					BankFormat, pitchInc);
++	    for (p = scrp->modes; p; p = p->next) {
++		if (numModes > 0) {
++		    if (p->HDisplay > virtX)
++			p->status = MODE_VIRTUAL_X;
++		    if (p->VDisplay > virtY)
++			p->status = MODE_VIRTUAL_Y;
++		    if (p->status != MODE_OK) {
++			numModes--;
++			printModeRejectMessage(scrp->scrnIndex, p, p->status);
++		    }
++		}
++	    }
++	    if (linePitches != NULL) {
++		for (i = 0; linePitches[i] != 0; i++) {
++		    if ((linePitches[i] >= virtX) &&
++			(linePitches[i] ==
++			miScanLineWidth(virtX, virtY, linePitches[i],
++					apertureSize, BankFormat, pitchInc))) {
++			linePitch = linePitches[i];
++			break;
++		    }
++		}
++	    } else {
++		linePitch = miScanLineWidth(virtX, virtY, minPitch,
++					    apertureSize, BankFormat, pitchInc);
++	    }
+ 	}
+     }
+ 
+-- 
+1.7.0.1
+

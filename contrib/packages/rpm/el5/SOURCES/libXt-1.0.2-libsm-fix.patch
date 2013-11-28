@@ -1,0 +1,11 @@
+--- libXt-1.0.2/xt.pc.in.libsm-fix	2006-06-28 14:56:37.000000000 -0400
++++ libXt-1.0.2/xt.pc.in	2006-06-28 14:56:51.000000000 -0400
+@@ -7,7 +7,7 @@
+ Name: Xt
+ Description: X Toolkit Library
+ Version: @VERSION@
+-Requires: xproto x11 sm
++Requires: xproto x11
+ Requires.private: x11 sm
+ Cflags: -I${includedir}
+ Libs: -L${libdir} -lXt

@@ -1,0 +1,35 @@
+From 50552b0ee81b23b997bebd798b19b4a7e234a55f Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Fri, 21 Aug 2009 13:51:45 -0400
+Subject: [PATCH] tweak default mode list yet again
+
+---
+ hw/xfree86/modes/xf86Crtc.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/hw/xfree86/modes/xf86Crtc.c b/hw/xfree86/modes/xf86Crtc.c
+index 4f14a75..c6fd910 100644
+--- a/hw/xfree86/modes/xf86Crtc.c
++++ b/hw/xfree86/modes/xf86Crtc.c
+@@ -1567,7 +1567,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
+ 	int		    min_clock = 0;
+ 	int		    max_clock = 0;
+ 	double		    clock;
+-	Bool                add_default_modes = TRUE;
++	Bool                add_default_modes;
+ 	enum { sync_config, sync_edid, sync_default } sync_source = sync_default;
+ 	
+ 	while (output->probed_modes != NULL)
+@@ -1610,6 +1610,9 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
+ 	}
+ 	
+ 	output_modes = (*output->funcs->get_modes) (output);
++
++	/* if the driver found modes, don't second-guess it */
++	add_default_modes = (output_modes == NULL);
+ 	
+ 	edid_monitor = output->MonInfo;
+ 	
+-- 
+1.6.4
+

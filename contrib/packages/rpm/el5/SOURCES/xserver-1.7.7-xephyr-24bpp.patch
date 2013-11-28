@@ -1,0 +1,83 @@
+From bb0c8f36cca4027be3f70cfea63516508170e1f8 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 12 Jul 2010 10:01:53 -0400
+Subject: [PATCH] kdrive/ephyr: Fix crash on 24bpp host framebuffer
+
+bytes_per_line in the XImage will (more or less) reflect the pixmap
+format of the server.  On 24bpp servers it will be approximately 3*width
+(plus scanline padding); we were assuming depth 24 always meant 32bpp,
+so the exposure painting in root window map would walk off the end of
+the image and crash.
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+---
+ hw/kdrive/ephyr/ephyr.c |    9 ++++++---
+ hw/kdrive/ephyr/hostx.c |    4 +++-
+ hw/kdrive/ephyr/hostx.h |    2 +-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/hw/kdrive/ephyr/ephyr.c b/hw/kdrive/ephyr/ephyr.c
+index 14ab591..a6057db 100644
+--- a/hw/kdrive/ephyr/ephyr.c
++++ b/hw/kdrive/ephyr/ephyr.c
+@@ -234,8 +234,6 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
+   KdComputePointerMatrix (&m, scrpriv->randr, screen->width, screen->height);
+   KdSetPointerMatrix (&m);
+   
+-  priv->bytes_per_line = ((screen->width * screen->fb[0].bitsPerPixel + 31) >> 5) << 2;
+-  
+   /* point the framebuffer to the data in an XImage */
+   /* If fakexa is enabled, allocate a larger buffer so that fakexa has space to
+    * put offscreen pixmaps.
+@@ -245,7 +243,12 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
+   else
+     buffer_height = 3 * screen->height;
+ 
+-  priv->base = hostx_screen_init (screen, screen->width, screen->height, buffer_height);
++  priv->base = hostx_screen_init (screen, screen->width, screen->height, buffer_height, &priv->bytes_per_line);
++
++  /* laaaaaame */
++  if (screen->fb[0].depth == 24)
++    if (priv->bytes_per_line < (screen->width * 4))
++      screen->fb[0].bitsPerPixel = 24;
+ 
+   screen->memory_base  = (CARD8 *) (priv->base);
+   screen->memory_size  = priv->bytes_per_line * buffer_height;
+diff --git a/hw/kdrive/ephyr/hostx.c b/hw/kdrive/ephyr/hostx.c
+index cdb019d..874c754 100644
+--- a/hw/kdrive/ephyr/hostx.c
++++ b/hw/kdrive/ephyr/hostx.c
+@@ -639,7 +639,7 @@ hostx_set_cmap_entry(unsigned char idx,
+ void*
+ hostx_screen_init (EphyrScreenInfo screen,
+                    int width, int height,
+-                   int buffer_height)
++                   int buffer_height, int *bytes_per_line)
+ {
+   int         bitmap_pad;
+   Bool        shm_success = False;
+@@ -727,6 +727,8 @@ hostx_screen_init (EphyrScreenInfo screen,
+               malloc (host_screen->ximg->bytes_per_line * buffer_height);
+     }
+ 
++  *bytes_per_line = host_screen->ximg->bytes_per_line;
++
+   XResizeWindow (HostX.dpy, host_screen->win, width, height);
+ 
+   XMapWindow(HostX.dpy, host_screen->win);
+diff --git a/hw/kdrive/ephyr/hostx.h b/hw/kdrive/ephyr/hostx.h
+index 69e3ceb..b0627da 100644
+--- a/hw/kdrive/ephyr/hostx.h
++++ b/hw/kdrive/ephyr/hostx.h
+@@ -203,7 +203,7 @@ hostx_set_cmap_entry(unsigned char idx,
+ void*
+ hostx_screen_init (EphyrScreenInfo screen,
+                    int width, int height,
+-                   int buffer_height);
++                   int buffer_height, int *bytes_per_line);
+ 
+ void
+ hostx_paint_rect(EphyrScreenInfo screen,
+-- 
+1.7.1
+

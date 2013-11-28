@@ -1,0 +1,103 @@
+diff --git a/libdrm/nouveau/nouveau_private.h b/libdrm/nouveau/nouveau_private.h
+index 67144e3..9ce87fb 100644
+--- a/libdrm/nouveau/nouveau_private.h
++++ b/libdrm/nouveau/nouveau_private.h
+@@ -41,6 +41,7 @@
+ struct nouveau_pushbuf_priv {
+ 	struct nouveau_pushbuf base;
+ 
++	int no_aper_update;
+ 	int use_cal;
+ 	uint32_t cal_suffix0;
+ 	uint32_t cal_suffix1;
+diff --git a/libdrm/nouveau/nouveau_pushbuf.c b/libdrm/nouveau/nouveau_pushbuf.c
+index fbcddd7..d434a5f 100644
+--- a/libdrm/nouveau/nouveau_pushbuf.c
++++ b/libdrm/nouveau/nouveau_pushbuf.c
+@@ -202,10 +202,17 @@ nouveau_pushbuf_init_call(struct nouveau_channel *chan)
+ 	req.channel = chan->id;
+ 	req.handle = 0;
+ 	ret = drmCommandWriteRead(nouveau_device(dev)->fd,
+-				  DRM_NOUVEAU_GEM_PUSHBUF_CALL,
++				  DRM_NOUVEAU_GEM_PUSHBUF_CALL2,
+ 				  &req, sizeof(req));
+-	if (ret)
+-		return;
++	if (ret) {
++		ret = drmCommandWriteRead(nouveau_device(dev)->fd,
++					  DRM_NOUVEAU_GEM_PUSHBUF_CALL2,
++					  &req, sizeof(req));
++		if (ret)
++			return;
++
++		nvpb->no_aper_update = 1;
++	}
+ 
+ 	for (i = 0; i < CALPB_BUFFERS; i++) {
+ 		ret = nouveau_bo_new(dev, NOUVEAU_BO_GART | NOUVEAU_BO_MAP,
+@@ -282,14 +289,18 @@ restart_cal:
+ 				nvpb->current_offset;
+ 		req.suffix0 = nvpb->cal_suffix0;
+ 		req.suffix1 = nvpb->cal_suffix1;
+-		ret = drmCommandWriteRead(nvdev->fd,
+-					  DRM_NOUVEAU_GEM_PUSHBUF_CALL,
++		ret = drmCommandWriteRead(nvdev->fd, nvpb->no_aper_update ?
++					  DRM_NOUVEAU_GEM_PUSHBUF_CALL :
++					  DRM_NOUVEAU_GEM_PUSHBUF_CALL2,
+ 					  &req, sizeof(req));
+ 		if (ret == -EAGAIN)
+ 			goto restart_cal;
+ 		nvpb->cal_suffix0 = req.suffix0;
+ 		nvpb->cal_suffix1 = req.suffix1;
+-		assert(ret == 0);
++		if (!nvpb->no_aper_update) {
++			nvdev->base.vm_vram_size = req.vram_available;
++			nvdev->base.vm_gart_size = req.gart_available;
++		}
+ 	} else {
+ 		struct drm_nouveau_gem_pushbuf req;
+ 
+@@ -305,7 +316,6 @@ restart_push:
+ 				      &req, sizeof(req));
+ 		if (ret == -EAGAIN)
+ 			goto restart_push;
+-		assert(ret == 0);
+ 	}
+ 
+ 
+@@ -328,12 +338,11 @@ restart_push:
+ 	nvpb->nr_relocs = 0;
+ 
+ 	/* Allocate space for next push buffer */
+-	ret = nouveau_pushbuf_space(chan, min);
+-	assert(!ret);
++	assert(!nouveau_pushbuf_space(chan, min));
+ 
+ 	if (chan->flush_notify)
+ 		chan->flush_notify(chan);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+diff --git a/shared-core/nouveau_drm.h b/shared-core/nouveau_drm.h
+index 2050357..1e67c44 100644
+--- a/shared-core/nouveau_drm.h
++++ b/shared-core/nouveau_drm.h
+@@ -155,6 +155,9 @@ struct drm_nouveau_gem_pushbuf_call {
+ 	uint64_t relocs;
+ 	uint32_t suffix0;
+ 	uint32_t suffix1;
++	/* below only accessed for CALL2 */
++	uint64_t vram_available;
++	uint64_t gart_available;
+ };
+ 
+ struct drm_nouveau_gem_pin {
+@@ -212,5 +215,6 @@ struct drm_nouveau_sarea {
+ #define DRM_NOUVEAU_GEM_CPU_PREP       0x45
+ #define DRM_NOUVEAU_GEM_CPU_FINI       0x46
+ #define DRM_NOUVEAU_GEM_INFO           0x47
++#define DRM_NOUVEAU_GEM_PUSHBUF_CALL2  0x48
+ 
+ #endif /* __NOUVEAU_DRM_H__ */

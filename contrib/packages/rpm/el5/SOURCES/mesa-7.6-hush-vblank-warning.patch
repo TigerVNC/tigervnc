@@ -1,0 +1,12 @@
+diff -up mesa-20090813/src/mesa/drivers/dri/common/vblank.c.jx mesa-20090813/src/mesa/drivers/dri/common/vblank.c
+--- mesa-20090813/src/mesa/drivers/dri/common/vblank.c.jx	2009-08-13 09:28:01.000000000 -0400
++++ mesa-20090813/src/mesa/drivers/dri/common/vblank.c	2009-09-08 14:07:51.000000000 -0400
+@@ -256,7 +256,7 @@ static int do_wait( drmVBlank * vbl, GLu
+    if ( ret != 0 ) {
+       static GLboolean first_time = GL_TRUE;
+ 
+-      if ( first_time ) {
++      if (0) {
+ 	 fprintf(stderr, 
+ 		 "%s: drmWaitVBlank returned %d, IRQs don't seem to be"
+ 		 " working correctly.\nTry adjusting the vblank_mode"

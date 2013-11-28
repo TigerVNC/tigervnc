@@ -1,0 +1,32 @@
+From dc5cedd61e00afec33cbfaa7fdfbb6c357074dbd Mon Sep 17 00:00:00 2001
+From: =?utf-8?q?S=C3=B8ren=20Sandmann=20Pedersen?= <sandmann@redhat.com>
+Date: Thu, 11 Sep 2008 12:51:31 -0400
+Subject: [PATCH] Make room for an external monitor if we have enough video RAM
+
+---
+ hw/xfree86/modes/xf86Crtc.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/hw/xfree86/modes/xf86Crtc.c b/hw/xfree86/modes/xf86Crtc.c
+index 4de7e05..9bcf81b 100644
+--- a/hw/xfree86/modes/xf86Crtc.c
++++ b/hw/xfree86/modes/xf86Crtc.c
+@@ -987,6 +987,15 @@ xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp,
+ 	if (crtc_height > height)
+ 	    height = crtc_height;
+     }
++
++    /* Make room for an external monitor if we have enough video ram */
++    if (scrn->videoRam >= 65536)
++        width += 1920;
++    else if (scrn->videoRam >= 32768)
++        width += 1280;
++    else if (scrn->videoRam >= 16384)
++        width += 1024;
++
+     if (config->maxWidth && width > config->maxWidth) width = config->maxWidth;
+     if (config->maxHeight && height > config->maxHeight) height = config->maxHeight;
+     if (config->minWidth && width < config->minWidth) width = config->minWidth;
+-- 
+1.6.0.1
+

@@ -1,0 +1,33 @@
+--- a/dix/dixutils.c	2012-06-28 11:06:25.676773000 -0400
++++ b/dix/dixutils.c	2012-06-28 11:07:05.224177000 -0400
+@@ -165,16 +165,6 @@
+ }
+ 
+ 
+-void
+-CopyISOLatin1Lowered(unsigned char *dest, unsigned char *source, int length)
+-{
+-    int i;
+-
+-    for (i = 0; i < length; i++, source++, dest++)
+-	*dest = ISOLatin1ToLower (*source);
+-    *dest = '\0';
+-}
+-
+ int
+ CompareISOLatin1Lowered(unsigned char *s1, int s1len, 
+ 			unsigned char *s2, int s2len)
+--- a/include/dix.h	2012-06-28 11:07:38.135955000 -0400
++++ b/include/dix.h	2012-06-28 11:07:45.120547000 -0400
+@@ -173,11 +173,6 @@
+ extern _X_HIDDEN Bool CreateConnectionBlock(void);
+ /* dixutils.c */
+ 
+-extern _X_EXPORT void CopyISOLatin1Lowered(
+-    unsigned char * /*dest*/,
+-    unsigned char * /*source*/,
+-    int /*length*/);
+-
+ extern _X_EXPORT int CompareISOLatin1Lowered(
+     unsigned char * /*a*/,
+     int alen,

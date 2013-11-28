@@ -1,0 +1,58 @@
+From dab76a0ce7d784133313f743d2bf876c1bd7f5e5 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Thu, 10 Jun 2010 12:21:36 +1000
+Subject: [PATCH] Xi: don't copy the modifier key count when copying device classes (#25480)
+
+The modifier key count is maintained by the XKB layer and
+increased/decreased for all modifiers that set state.
+
+Test case, MD/SD modifier key count in comment:
+1. keyboard 1: press and hold Shift_L    # SD:1     MD:1
+2. keyboard 2: press and release Shift_L # SD:1,0   MD:1,0
+<class copy happens>                     # SD:1     MD:1
+3. keyboard 1: release Shift_L           # SD:0     MD:1
+4. keyboard 1: press and release Shift_L # SD:1,0   MD:2,1
+
+The modifier is now logically down on the MD but not on keyboard 1 or
+keyboard 2.
+
+XKB is layered in before the DIX, it increases/decreases the modifier key
+count accordingly. In the above example, during (2), the MD gets the key
+release and thus clears the modifier bit. (3) doesn't forward the release to
+the MD because it is already cleared. The copy of modifierKeysDown when the
+lastSlave changes however increases the counter for the held key. On (4),
+the press and release are both forwarded to the MD, causing a offset by 1
+and thus do not clear the logical modifier state.
+
+X.Org Bug 25480 <http://bugs.freedesktop.org/show_bug.cgi?id=25480>
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Acked-by: Daniel Stone <daniel@fooishbar.org>
+---
+ Xi/exevents.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/Xi/exevents.c b/Xi/exevents.c
+index e680f6f..566b0ef 100644
+--- a/Xi/exevents.c
++++ b/Xi/exevents.c
+@@ -196,16 +196,12 @@ void
+ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
+ {
+     KeyClassPtr mk = master->key;
+-    KeyClassPtr dk = device->key;
+-    int i;
+ 
+     if (device == master)
+         return;
+ 
+     mk->sourceid = device->id;
+ 
+-    for (i = 0; i < 8; i++)
+-        mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
+ 
+     if (!XkbCopyDeviceKeymap(master, device))
+         FatalError("Couldn't pivot keymap from device to core!\n");
+-- 
+1.6.5.2
+

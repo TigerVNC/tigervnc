@@ -1,0 +1,160 @@
+From 2ee9103f13e0ed3729aed93cdedc723067335e68 Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <x@fedoraproject.org>
+Date: Wed, 30 Jun 2010 09:21:22 +1000
+Subject: [PATCH 4/4] xkb: merge lockedPtrButtons state from all attached SDs.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Problem:
+lockedPtrButtons keeps the state of the buttons locked by a PointerKeys button
+press. Unconditionally clearing the bits may cause stuck buttons in this
+sequence of events:
+
+1. type Shift + NumLock to enable PointerKeys
+2. type 0/Ins on keypad to emulate Button 1 press
+        → button1 press event to client
+3. press and release button 1 on physical mouse
+        → button1 release event to client
+
+Button 1 on the MD is now stuck and cannot be released.
+
+Cause:
+XKB PointerKeys button events are posted through the XTEST pointer device.
+Once a press is generated, the XTEST device's button is down. The DIX merges
+the button state of all attached SDs, hence the MD will have a button down
+while the XTEST device has a button down.
+
+PointerKey button events are only generated on the master device to avoid
+duplicate events (see XkbFakeDeviceButton()). If the MD has the
+lockedPtrButtons bit cleared by a release event on a physical device, no
+such event is generated when a keyboard device triggers the PointerKey
+ButtonRelease trigger. Since the event - if generated - is posted through
+the XTEST pointer device, lack of a generated ButtonRelease event on the
+XTEST pointer device means the button is never released, resulting in the
+stuck button observed above.
+
+Solution:
+This patch merges the MD's lockedPtrButtons with the one of all attached
+slave devices on release events. Thus, as long as one attached keyboard has
+a lockedPtrButtons bit set, this bit is kept in the MD. Once a PointerKey
+button is released on all keyboards, the matching release event is emulated
+from the MD through the XTEST pointer device, thus also releasing the button
+in the DIX.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+Conflicts:
+
+	xkb/xkbActions.c
+
+Signed-off-by: Fedora X Ninjas <x@fedoraproject.org>
+---
+ include/xkbsrv.h |    3 +++
+ xkb/xkbAccessX.c |   18 +++++++++++++++++-
+ xkb/xkbActions.c |   10 ++++++++++
+ xkb/xkbUtils.c   |   26 ++++++++++++++++++++++++++
+ 4 files changed, 56 insertions(+), 1 deletions(-)
+
+diff --git a/include/xkbsrv.h b/include/xkbsrv.h
+index c2da3f3..aab833f 100644
+--- a/include/xkbsrv.h
++++ b/include/xkbsrv.h
+@@ -938,6 +938,9 @@ extern int XkbGetEffectiveGroup(
+         XkbStatePtr             /* xkbstate */,
+         CARD8                   /* keycode */);
+ 
++extern void XkbMergeLockedPtrBtns(
++        DeviceIntPtr            /* master */);
++
+ #include "xkbfile.h"
+ #include "xkbrules.h"
+ 
+diff --git a/xkb/xkbAccessX.c b/xkb/xkbAccessX.c
+index 0d8e4eb..670f368 100644
+--- a/xkb/xkbAccessX.c
++++ b/xkb/xkbAccessX.c
+@@ -707,8 +707,24 @@ DeviceEvent     *event = &ev->device_event;
+ 	    changed |= XkbPointerButtonMask;
+     }
+     else if (event->type == ET_ButtonRelease) {
+-	if (xkbi)
++	if (xkbi) {
+ 	    xkbi->lockedPtrButtons&= ~(1 << (event->detail.key & 0x7));
++
++            /* Merge this MD's lockedPtrButtons with the one of all
++             * attached slave devices.
++             * The DIX uses a merged button state for MDs, not
++             * releasing buttons until the last SD has released
++             * thenm. If we unconditionally clear the
++             * lockedPtrButtons bit on the MD, a PointerKeys button
++             * release on the SD keyboard won't generate the required fake button
++             * event on the XTEST pointer, thus never processing the
++             * button event in the DIX and the XTEST pointer's
++             * buttons stay down - result is a stuck button.
++             */
++	    if (IsMaster(dev))
++                XkbMergeLockedPtrBtns(dev);
++	}
++
+ 	changed |= XkbPointerButtonMask;
+     }
+ 
+diff --git a/xkb/xkbActions.c b/xkb/xkbActions.c
+index 3f57202..e68b782 100644
+--- a/xkb/xkbActions.c
++++ b/xkb/xkbActions.c
+@@ -626,6 +626,16 @@ _XkbFilterPointerBtn(	XkbSrvInfoPtr	xkbi,
+ 		    break;
+ 		}
+ 		xkbi->lockedPtrButtons&= ~(1<<button);
++
++		if (IsMaster(xkbi->device))
++		{
++		    XkbMergeLockedPtrBtns(xkbi->device);
++                    /* One SD still has lock set, don't post event */
++		    if ((xkbi->lockedPtrButtons & (1 << button)) != 0)
++			break;
++		}
++
++		/* fallthrough */
+ 	    case XkbSA_PtrBtn:
+ 		XkbFakeDeviceButton(xkbi->device, 0, button);
+ 		break;
+diff --git a/xkb/xkbUtils.c b/xkb/xkbUtils.c
+index fe093a4..6294858 100644
+--- a/xkb/xkbUtils.c
++++ b/xkb/xkbUtils.c
+@@ -2190,3 +2190,29 @@ XkbGetEffectiveGroup(XkbSrvInfoPtr xkbi, XkbStatePtr xkbState, CARD8 keycode)
+ 
+     return effectiveGroup;
+ }
++
++/* Merge the lockedPtrButtons from all attached SDs for the given master
++ * device into the MD's state.
++ */
++void
++XkbMergeLockedPtrBtns(DeviceIntPtr master)
++{
++    DeviceIntPtr d = inputInfo.devices;
++    XkbSrvInfoPtr xkbi = NULL;
++
++    if (!IsMaster(master))
++        return;
++
++    if (!master->key)
++        return;
++
++    xkbi = master->key->xkbInfo;
++    xkbi->lockedPtrButtons = 0;
++
++    for (; d; d = d->next) {
++        if (IsMaster(d) || GetMaster(d, MASTER_KEYBOARD) != master || !d->key)
++            continue;
++
++        xkbi->lockedPtrButtons |= d->key->xkbInfo->lockedPtrButtons;
++    }
++}
+-- 
+1.7.1
+

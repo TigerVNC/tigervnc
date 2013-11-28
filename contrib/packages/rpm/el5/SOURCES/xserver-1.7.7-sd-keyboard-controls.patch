@@ -1,0 +1,40 @@
+From 03d384b3f37bb6213d52589955eb658985998c5e Mon Sep 17 00:00:00 2001
+From: Nicolas George <nicolas.george@normalesup.org>
+Date: Wed, 2 Jun 2010 13:40:51 +0200
+Subject: [PATCH] Change keyboard controls on slave keyboards (#27926)
+
+Makes the use of IsMaster in ProcChangeKeyboardControl consistent with other
+similar loops.
+
+Signed-off-by: Nicolas George <nicolas.george@normalesup.org>
+Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ dix/devices.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dix/devices.c b/dix/devices.c
+index 87b6dc7..1037e42 100644
+--- a/dix/devices.c
++++ b/dix/devices.c
+@@ -1956,7 +1956,7 @@ ProcChangeKeyboardControl (ClientPtr client)
+     keyboard = PickKeyboard(client);
+ 
+     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
+-        if ((pDev == keyboard || (!IsMaster(keyboard) && pDev->u.master == keyboard)) &&
++        if ((pDev == keyboard || (!IsMaster(pDev) && pDev->u.master == keyboard)) &&
+             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
+             ret = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
+ 	    if (ret != Success)
+@@ -1965,7 +1965,7 @@ ProcChangeKeyboardControl (ClientPtr client)
+     }
+ 
+     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
+-        if ((pDev == keyboard || (!IsMaster(keyboard) && pDev->u.master == keyboard)) &&
++        if ((pDev == keyboard || (!IsMaster(pDev) && pDev->u.master == keyboard)) &&
+             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
+             ret = DoChangeKeyboardControl(client, pDev, vlist, vmask);
+             if (ret != Success)
+-- 
+1.7.1
+

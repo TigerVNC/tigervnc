@@ -1,0 +1,166 @@
+From 4a315630356aa7f4d99ded9d2e61f134dcde61d1 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Tue, 13 Jul 2010 12:06:40 -0400
+Subject: [PATCH] int10: Map up to one e820 reserved area if it looks like we need it
+
+Apparently some sandybridge machines put the int10 vector into code
+that's below 0xa0000.  Nice work guys.
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+---
+ hw/xfree86/int10/generic.c    |   11 ++++-
+ hw/xfree86/int10/helper_mem.c |   98 ++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 100 insertions(+), 9 deletions(-)
+
+diff --git a/hw/xfree86/int10/generic.c b/hw/xfree86/int10/generic.c
+index 9d39e99..7ca2100 100644
+--- a/hw/xfree86/int10/generic.c
++++ b/hw/xfree86/int10/generic.c
+@@ -394,9 +394,16 @@ xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
+ # define HIGH_BASE   SYS_BIOS
+ #endif
+ # define SYS(addr) ((addr) >= HIGH_OFFSET)
++
++extern void *rht_reserved_range;
++extern CARD32 rht_reserved_low, rht_reserved_high;
++
+ #define V_ADDR(addr) \
+-	  (SYS(addr) ? ((char*)INTPriv(pInt)->sysMem) + (addr - HIGH_BASE) \
+-	   : (((char*)(INTPriv(pInt)->base) + addr)))
++	  (SYS(addr) ? \
++	      ((char*)INTPriv(pInt)->sysMem) + (addr - HIGH_BASE) : \
++	       ((rht_reserved_range && addr >= rht_reserved_low && addr <= rht_reserved_high) ? \
++		((char *)rht_reserved_range + (addr - rht_reserved_low)) : \
++		((char*)(INTPriv(pInt)->base) + addr)))
+ #define VRAM_ADDR(addr) (addr - V_RAM)
+ #define VRAM_BASE (INTPriv(pInt)->vRam)
+ 
+diff --git a/hw/xfree86/int10/helper_mem.c b/hw/xfree86/int10/helper_mem.c
+index 6f6ecc2..c4f20d8 100644
+--- a/hw/xfree86/int10/helper_mem.c
++++ b/hw/xfree86/int10/helper_mem.c
+@@ -9,6 +9,12 @@
+ 
+ #include <string.h>
+ #include <stdlib.h>
++#include <stdio.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#include <fcntl.h>
+ 
+ #include "xf86.h"
+ #include "xf86_OSproc.h"
+@@ -281,15 +287,92 @@ xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt)
+     return location_type;
+ }
+ 
++/*
++ * This should be in the Int10Priv, but we can't get there from here.
++ * And it's a horrible layering violation to be setting up maps _here_
++ * instead of from the xf86ExtendedInitInt10 top level, but it's a
++ * rather large refactor to do that.
++ *
++ * Namespaced to avoid collisions with drivers, not that that's likely.
++ */
++_X_EXPORT void *rht_reserved_range;
++_X_EXPORT CARD32 rht_reserved_low, rht_reserved_high;
++
++#define rht_align(x) ((x) & ~4095)
++
++static Bool
++check_segment(xf86Int10InfoPtr pInt, CARD32 x)
++{
++    int fd, low, high;
++    char *b, buf[1024];
+ 
+-#define CHECK_V_SEGMENT_RANGE(x)   \
+-    if (((x) << 4) < V_BIOS) { \
+-	xf86DrvMsg(pInt->scrnIndex, X_ERROR, \
+-		   "V_BIOS address 0x%lx out of range\n", \
+-		   (unsigned long)(x) << 4); \
+-	return FALSE; \
++    x <<= 4;
++
++    if (x >= V_BIOS)
++	return TRUE;
++
++    fd = open("/proc/iomem", O_RDONLY);
++    if (fd == -1)
++	goto out;
++
++    read(fd, buf, sizeof(buf));
++    close(fd);
++    buf[1023] = '\0';
++
++    b = buf;
++    while (1) {
++	char junk[80];
++	if (sscanf(b, " %x-%x : %s", &low, &high, junk) != 3)
++	    break;
++
++	if (low >= (1 << 20))
++	    break;
++
++	if (low && x >= low && x <= high && !strncmp(junk, "reserved", 8)) {
++	    /* oh god, here we go */
++	    int mem;
++
++	    if (rht_reserved_range) {
++		if (rht_reserved_low == rht_align(low) && rht_reserved_high == high)
++		    /* re-map, probably server regen, no problem */
++		    return TRUE;
++		xf86DrvMsg(pInt->scrnIndex, X_ERROR,
++			   "Multiple reserved ranges. Please file a bug\n");
++		return FALSE;
++	    }
++
++	    mem = open("/dev/mem", O_RDWR);
++	    if (mem == -1)
++		return FALSE;
++
++	    rht_reserved_range = mmap(NULL, high + 1 - rht_align(low),
++				      PROT_READ | PROT_WRITE,
++				      MAP_SHARED, mem, rht_align(low));
++	    close(mem);
++	    if (rht_reserved_range == MAP_FAILED) {
++		xf86DrvMsg(pInt->scrnIndex, X_ERROR,
++			   "Failed to map reserved region at 0x%x\n", low);
++		return FALSE;
++	    }
++
++	    rht_reserved_low = rht_align(low);
++	    rht_reserved_high = high;
++
++	    return TRUE;
++	}
++
++	b = strchr(b + 1, '\n');
++	if (!b)
++	    break;
+     }
+ 
++out:
++    xf86DrvMsg(pInt->scrnIndex, X_ERROR, "V_BIOS address 0x%lx out of range\n",
++	       (unsigned long)(x));
++
++    return FALSE;
++}
++
+ Bool
+ xf86int10GetBiosSegment(xf86Int10InfoPtr pInt, void *base)
+ {
+@@ -310,7 +393,8 @@ xf86int10GetBiosSegment(xf86Int10InfoPtr pInt, void *base)
+ 
+ 	cs = segments[i];
+ 
+-	CHECK_V_SEGMENT_RANGE(cs);
++	if (!check_segment(pInt, cs))
++	    return FALSE;
+ 	vbiosMem = (unsigned char *)base + (cs << 4);
+ 	if (int10_check_bios(pInt->scrnIndex, cs, vbiosMem)) {
+ 	    break;
+-- 
+1.6.5.2
+

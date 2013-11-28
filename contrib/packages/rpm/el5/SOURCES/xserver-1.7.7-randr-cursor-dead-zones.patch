@@ -1,0 +1,381 @@
+From ca589bdc757401aebd7daa0dafaa860b5c8ec15a Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Thu, 5 Aug 2010 13:45:22 -0400
+Subject: [PATCH 1/2] randr: Add additional cursor constraint logic
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+---
+ include/scrnintstr.h |   11 +++-
+ mi/mibstore.c        |    1 -
+ mi/mipointer.c       |    3 +
+ mi/mipointrst.h      |    4 +-
+ mi/miscrinit.c       |    1 -
+ randr/randr.c        |    2 +
+ randr/randrstr.h     |    4 +
+ randr/rrcrtc.c       |  186 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 207 insertions(+), 5 deletions(-)
+
+diff --git a/include/scrnintstr.h b/include/scrnintstr.h
+index ab50e7a..1e2d645 100644
+--- a/include/scrnintstr.h
++++ b/include/scrnintstr.h
+@@ -446,6 +446,11 @@ typedef    void (* DeviceCursorCleanupProcPtr)(
+         DeviceIntPtr /* pDev */,
+         ScreenPtr    /* pScreen */);
+ 
++typedef struct _miPointer *miPointerPtr;
++
++typedef void (*ConstrainCursorHarderProcPtr)(
++	miPointerPtr, ScreenPtr, int *, int *);
++
+ typedef struct _Screen {
+     int			myNum;	/* index of this instance in Screens[] */
+     ATOM		id;
+@@ -506,9 +511,13 @@ typedef struct _Screen {
+     CreatePixmapProcPtr		CreatePixmap;
+     DestroyPixmapProcPtr	DestroyPixmap;
+ 
+-    /* Backing store procedures */
++    /* Reuse the SDA slot for CCH for minimal ABI hassle */
++    ConstrainCursorHarderProcPtr ConstrainCursorHarder;
+ 
++    /* Backing store procedures */
++#if 0
+     SaveDoomedAreasProcPtr	SaveDoomedAreas;
++#endif
+     RestoreAreasProcPtr		RestoreAreas;
+     ExposeCopyProcPtr		ExposeCopy;
+     TranslateBackingStoreProcPtr TranslateBackingStore;
+diff --git a/mi/mibstore.c b/mi/mibstore.c
+index 262b494..1388189 100644
+--- a/mi/mibstore.c
++++ b/mi/mibstore.c
+@@ -40,7 +40,6 @@
+ void
+ miInitializeBackingStore (ScreenPtr pScreen)
+ {
+-    pScreen->SaveDoomedAreas = NULL;
+     pScreen->RestoreAreas = NULL;
+     pScreen->ExposeCopy = NULL;
+     pScreen->TranslateBackingStore = NULL;
+diff --git a/mi/mipointer.c b/mi/mipointer.c
+index e1f63be..3c4552a 100644
+--- a/mi/mipointer.c
++++ b/mi/mipointer.c
+@@ -534,6 +534,9 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y)
+     if (*y >= pPointer->limits.y2)
+ 	*y = pPointer->limits.y2 - 1;
+ 
++    if (pScreen->ConstrainCursorHarder)
++	pScreen->ConstrainCursorHarder(pPointer, pScreen, x, y);
++
+     if (pPointer->x == *x && pPointer->y == *y && 
+             pPointer->pScreen == pScreen) 
+         return;
+diff --git a/mi/mipointrst.h b/mi/mipointrst.h
+index bd9c24a..f643c01 100644
+--- a/mi/mipointrst.h
++++ b/mi/mipointrst.h
+@@ -35,7 +35,7 @@ in this Software without prior written authorization from The Open Group.
+ #include "mipointer.h"
+ #include "scrnintstr.h"
+ 
+-typedef struct {
++typedef struct _miPointer {
+     ScreenPtr		    pScreen;    /* current screen */
+     ScreenPtr		    pSpriteScreen;/* screen containing current sprite */
+     CursorPtr		    pCursor;    /* current cursor */
+@@ -44,7 +44,7 @@ typedef struct {
+     Bool		    confined;	/* pointer can't change screens */
+     int			    x, y;	/* hot spot location */
+     int			    devx, devy;	/* sprite position */
+-} miPointerRec, *miPointerPtr;
++} miPointerRec /* , *miPointerPtr */;
+ 
+ typedef struct {
+     miPointerSpriteFuncPtr  spriteFuncs;	/* sprite-specific methods */
+diff --git a/mi/miscrinit.c b/mi/miscrinit.c
+index 96113d6..71a3e07 100644
+--- a/mi/miscrinit.c
++++ b/mi/miscrinit.c
+@@ -281,7 +281,6 @@ miScreenInit(
+     pScreen->SetShape = miSetShape;
+     pScreen->MarkUnrealizedWindow = miMarkUnrealizedWindow;
+ 
+-    pScreen->SaveDoomedAreas = 0;
+     pScreen->RestoreAreas = 0;
+     pScreen->ExposeCopy = 0;
+     pScreen->TranslateBackingStore = 0;
+diff --git a/randr/randr.c b/randr/randr.c
+index a21753f..3489d7e 100644
+--- a/randr/randr.c
++++ b/randr/randr.c
+@@ -269,6 +269,8 @@ Bool RRScreenInit(ScreenPtr pScreen)
+     
+     wrap (pScrPriv, pScreen, CloseScreen, RRCloseScreen);
+ 
++    pScreen->ConstrainCursorHarder = RRConstrainCursorHarder;
++
+     pScrPriv->numOutputs = 0;
+     pScrPriv->outputs = NULL;
+     pScrPriv->numCrtcs = 0;
+diff --git a/randr/randrstr.h b/randr/randrstr.h
+index 975fe33..e30dfd0 100644
+--- a/randr/randrstr.h
++++ b/randr/randrstr.h
+@@ -299,6 +299,7 @@ typedef struct _rrScrPriv {
+     int			    rate;
+     int			    size;
+ #endif
++    Bool		    discontiguous;
+ } rrScrPrivRec, *rrScrPrivPtr;
+ 
+ extern _X_EXPORT DevPrivateKey rrPrivKey;
+@@ -731,6 +732,9 @@ ProcRRGetPanning (ClientPtr client);
+ int
+ ProcRRSetPanning (ClientPtr client);
+ 
++void
++RRConstrainCursorHarder (miPointerPtr, ScreenPtr, int *, int *);
++
+ /* rrdispatch.c */
+ extern _X_EXPORT Bool
+ RRClientKnowsRates (ClientPtr	pClient);
+diff --git a/randr/rrcrtc.c b/randr/rrcrtc.c
+index 0e14b36..2a4f884 100644
+--- a/randr/rrcrtc.c
++++ b/randr/rrcrtc.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright © 2006 Keith Packard
++ * Copyright 2010 Red Hat, Inc
+  *
+  * Permission to use, copy, modify, distribute, and sell this software and its
+  * documentation for any purpose is hereby granted without fee, provided that
+@@ -23,6 +24,7 @@
+ #include "randrstr.h"
+ #include "swaprep.h"
+ #include "registry.h"
++#include "mipointrst.h"
+ 
+ RESTYPE	RRCrtcType;
+ 
+@@ -295,6 +297,102 @@ RRCrtcPendingProperties (RRCrtcPtr crtc)
+     return FALSE;
+ }
+ 
++/* overlapping counts as adjacent */
++static Bool
++crtcs_adjacent(const RRCrtcPtr a, const RRCrtcPtr b)
++{
++    int al = a->x, ar = a->x + a->mode->mode.width;
++    int bl = b->x, br = b->x + b->mode->mode.width;
++    int at = a->y, ab = a->y + a->mode->mode.height;
++    int bt = b->y, bb = b->y + b->mode->mode.height;
++
++    int cl = max(al, bl);
++    int cr = min(ar, br);
++    int ct = max(at, ct);
++    int cb = min(ab, bb);
++
++    return (cl <= cr) && (ct <= cb);
++}
++
++/*
++ * This isn't really multiplication, but we don't need it to be.  All
++ * we need is a boolean for connectivity, not an integer for number of
++ * paths.  As a result we can scale to gratuitously large n without
++ * worrying about integer overflow.
++ */
++static Bool
++matrix_pseudomultiply(char *left, const char *right, int n)
++{
++    int i, j, k;
++    char *res = calloc(1, n * n);
++
++    if (!res)
++	return FALSE;
++
++    for (i = 0; i < n; i++)
++	for (j = 0; j < n; j++)
++	    for (k = 0; k < n; k++)
++		res[i*n + j] |= left[i*n + k] && right[k*n + j];
++
++    memcpy(left, res, n * n);
++
++    free(res);
++
++    return TRUE;
++}
++
++static void
++RRComputeContiguity (ScreenPtr pScreen)
++{
++    rrScrPriv(pScreen);
++    Bool discontiguous = TRUE;
++    int i, j, n = pScrPriv->numCrtcs;
++    RRCrtcPtr a, b;
++    char *matrix = NULL, *m = NULL;
++
++    matrix = calloc(1, n*n);
++    m = calloc(1, n*n);
++    if (!matrix || !m)
++	goto out;
++
++    /* compute adjacency matrix; everything is adjacent with itself */
++    for (i = 0; i < n; i++) {
++	a = pScrPriv->crtcs[i];
++
++	if (!a->mode)
++	    continue;
++
++	for (j = 0; j < n; j++) {
++	    b = pScrPriv->crtcs[j];
++
++	    if (!b->mode)
++		continue;
++
++	    if (a == b || crtcs_adjacent(a, b))
++		matrix[i*n + j] = 1;
++	}
++    }
++
++    memcpy(m, matrix, n*n);
++
++    /* raise it to the n-1th; finds connected paths */
++    for (i = 0; i < n-1; i++)
++	if (!matrix_pseudomultiply(m, matrix, n))
++	    goto out;
++
++    /* check for connectivity */
++    for (i = 0; i < n; i++)
++	if (pScrPriv->crtcs[i]->mode && !m[i])
++	    goto out;
++
++    discontiguous = FALSE;
++
++out:
++    free(matrix);
++    free(m);
++    pScrPriv->discontiguous = discontiguous;
++}
++
+ /*
+  * Request that the Crtc be reconfigured
+  */
+@@ -309,6 +407,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
+ {
+     ScreenPtr	pScreen = crtc->pScreen;
+     Bool	ret = FALSE;
++    Bool	recompute = TRUE;
+     rrScrPriv(pScreen);
+ 
+     /* See if nothing changed */
+@@ -322,6 +421,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
+ 	!RRCrtcPendingTransform (crtc))
+     {
+ 	ret = TRUE;
++	recompute = FALSE;
+     }
+     else
+     {
+@@ -384,6 +484,10 @@ RRCrtcSet (RRCrtcPtr    crtc,
+ 		RRPostPendingProperties (outputs[o]);
+ 	}
+     }
++
++    if (recompute)
++	RRComputeContiguity(pScreen);
++
+     return ret;
+ }
+ 
+@@ -1387,3 +1491,85 @@ ProcRRGetCrtcTransform (ClientPtr client)
+     xfree(reply);
+     return client->noClientException;
+ }
++
++static void
++crtc_bounds(RRCrtcPtr crtc, int *left, int *right, int *top, int *bottom)
++{
++    *left = crtc->x;
++    *top = crtc->y;
++
++    switch (crtc->rotation) {
++    case RR_Rotate_0:
++    case RR_Rotate_180:
++	*right = crtc->x + crtc->mode->mode.width;
++	*bottom = crtc->y + crtc->mode->mode.height;
++	return;
++    case RR_Rotate_90:
++    case RR_Rotate_270:
++	*right = crtc->x + crtc->mode->mode.height;
++	*bottom = crtc->y + crtc->mode->mode.width;
++    default:
++	return;
++    }
++}
++
++void
++RRConstrainCursorHarder(miPointerPtr pDev, ScreenPtr pScreen, int *x, int *y)
++{
++    rrScrPriv (pScreen);
++    int i;
++
++    /* intentional dead space -> let it float */
++    if (pScrPriv->discontiguous)
++	return;
++
++    /* if we're moving inside a crtc, we're fine */
++    for (i = 0; i < pScrPriv->numCrtcs; i++) {
++	RRCrtcPtr crtc = pScrPriv->crtcs[i];
++
++	int left, right, top, bottom;
++
++	if (!crtc->mode)
++	    continue;
++
++	crtc_bounds(crtc, &left, &right, &top, &bottom);
++
++	if ((*x >= left) && (*x <= right) && (*y >= top) && (*y <= bottom))
++	    return;
++    }
++
++    /* if we're trying to escape, clamp to the CRTC we're coming from */
++    for (i = 0; i < pScrPriv->numCrtcs; i++) {
++	RRCrtcPtr crtc = pScrPriv->crtcs[i];
++	int nx = pDev->x;
++	int ny = pDev->y;
++	int left, right, top, bottom;
++
++	if (!crtc->mode)
++	    continue;
++
++	crtc_bounds(crtc, &left, &right, &top, &bottom);
++
++	if ((nx >= left) && (nx <= right) && (ny >= top) && (ny <= bottom)) {
++	    if ((*x <= left) || (*x >= right)) {
++		int dx = *x - nx;
++
++		if (dx > 0)
++		    *x = right;
++		else if (dx < 0)
++		    *x = left;
++	    }
++
++	    if ((*y <= top) || (*y >= bottom)) {
++		int dy = *y - ny;
++
++		if (dy > 0)
++		    *y = bottom;
++		else if (dy < 0)
++		    *y = top;
++	    }
++
++	    return;
++	}
++    }
++}
+-- 
+1.7.2
+

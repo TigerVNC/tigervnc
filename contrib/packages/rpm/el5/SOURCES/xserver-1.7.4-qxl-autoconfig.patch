@@ -1,0 +1,26 @@
+From 4b24f52e58824442e534ea97a137ecac819a9c6f Mon Sep 17 00:00:00 2001
+From: Soren Sandmann <ssp@redhat.com>
+Date: Tue, 9 Feb 2010 11:25:29 -0500
+Subject: [PATCH] Add Red Hat's PCI ID and make it point to the QXL driver.
+
+---
+ hw/xfree86/common/xf86AutoConfig.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86AutoConfig.c b/hw/xfree86/common/xf86AutoConfig.c
+index d7c0399..e3e605e 100644
+--- a/hw/xfree86/common/xf86AutoConfig.c
++++ b/hw/xfree86/common/xf86AutoConfig.c
+@@ -210,7 +210,8 @@ videoPtrToDriverList(struct pci_device *dev,
+ 	    }
+ 	    break;
+ 	case 0x1106:		    driverList[0] = "openchrome"; break;
+-	case 0x1163:		    driverList[0] = "rendition"; break;
++        case 0x1b36:                driverList[0] = "qxl"; break;
++        case 0x1163:		    driverList[0] = "rendition"; break;
+ 	case 0x5333:
+ 	    switch (dev->device_id)
+ 	    {
+-- 
+1.6.6
+

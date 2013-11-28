@@ -1,0 +1,55 @@
+From 6d9585ba6a5784328de479c6b648d7b7d6cec64c Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Thu, 29 Oct 2009 19:04:10 -0400
+Subject: [PATCH] multilib fix for -devel subpackage
+
+---
+ include/colormapst.h     |    4 ++--
+ include/xorg-server.h.in |    7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/include/colormapst.h b/include/colormapst.h
+index f1fc8eb..274cd65 100644
+--- a/include/colormapst.h
++++ b/include/colormapst.h
+@@ -103,12 +103,12 @@ typedef struct _ColormapRec
+ {
+     VisualPtr	pVisual;
+     short	class;		/* PseudoColor or DirectColor */
+-#if defined(_XSERVER64)
++#ifdef __LP64__
+     short	pad0;
+     XID		pad1;
+ #endif
+     XID		mid;		/* client's name for colormap */
+-#if defined(_XSERVER64) && (X_BYTE_ORDER == X_LITTLE_ENDIAN)
++#if defined(__LP64__) && (X_BYTE_ORDER == X_LITTLE_ENDIAN)
+     XID		pad2;
+ #endif
+     ScreenPtr	pScreen;	/* screen map is associated with */
+diff --git a/include/xorg-server.h.in b/include/xorg-server.h.in
+index 76cab16..081b8f3 100644
+--- a/include/xorg-server.h.in
++++ b/include/xorg-server.h.in
+@@ -157,9 +157,6 @@
+ /* Name of X server */
+ #undef __XSERVERNAME__
+ 
+-/* Define to 1 if unsigned long is 64 bits. */
+-#undef _XSERVER64
+-
+ /* Building vgahw module */
+ #undef WITH_VGAHW
+ 
+@@ -187,4 +184,8 @@
+ /* X Access Control Extension */
+ #undef XACE
+ 
++#ifdef __LP64__
++#define _XSERVER64 1
++#endif
++
+ #endif /* _XORG_SERVER_H_ */
+-- 
+1.6.5.2
+

@@ -1,0 +1,155 @@
+#!/bin/bash
+#
+# chkconfig: - 91 35
+# description: Starts and stops vncserver. \
+#	       used to provide remote X administration services.
+
+### BEGIN INIT INFO
+# Provides: vncserver
+# Required-Start: $network $named
+# Required-Stop: $network $named
+# Default-Start:
+# Default-Stop: 0 1 2 3 4 5 6
+# Short-Description: start|stop|restart|try-restart|status|force-reload vncserver
+# Description: control vncserver which exports your desktop
+### END INIT INFO
+
+# Source function library.
+. /etc/init.d/functions
+
+[ -r /etc/sysconfig/vncservers ] && . /etc/sysconfig/vncservers
+
+prog=$"VNC server"
+
+RETVAL=0
+
+start() {
+    [ "$EUID" != "0" ] && exit 4
+    
+    # Source networking configuration.
+    . /etc/sysconfig/network
+
+    # Check that networking is up.
+    [ ${NETWORKING} = "no" ] && exit 1
+
+    [ -x /usr/bin/vncserver ] || exit 5
+    [ -x /usr/bin/Xvnc ] || exit 5
+
+    echo -n $"Starting $prog: "
+    RETVAL=0
+    if [ ! -d /tmp/.X11-unix ]
+    then
+        mkdir -m 1777 /tmp/.X11-unix || :
+        restorecon /tmp/.X11-unix 2>/dev/null || :
+    fi
+
+    for display in ${VNCSERVERS}
+    do
+        SERVS=1
+        echo -n "${display} "
+	DISP="${display%%:*}"
+	USER="${display##*:}"
+	VNCUSERARGS="${VNCSERVERARGS[${DISP}]}"
+        runuser -l ${USER} -c \
+		"cd ~${USER} &&
+		 if [ -r .vnc/passwd ]; then
+			 vncserver :${DISP} ${VNCUSERARGS}
+		 else
+			 echo
+			 echo VNC password for user ${USER} is not configured
+			 exit 1;
+		 fi;"
+        RETVAL=$?
+        [ "$RETVAL" -eq 0 ] || break
+    done
+    if [ -z "$SERVS" ]; then
+        echo -n "no displays configured "
+        failure
+        RETVAL=6
+    else
+        if [ "$RETVAL" -eq 0 ]; then
+	    success $"vncserver startup"
+	    touch /var/lock/subsys/Xvnc
+        else 
+            failure $"vncserver start"
+        fi
+    fi
+    echo
+
+# As written in https://bugzilla.redhat.com/show_bug.cgi?id=523974 (LSB
+# compliance) start of already running service is OK.
+    [ "$RETVAL" -eq 98 ] && RETVAL=0
+
+    return "$RETVAL"
+}
+
+stop() {
+    [ "$EUID" != "0" ] && exit 4
+
+    echo -n $"Shutting down $prog: "
+
+    status Xvnc > /dev/null 2>&1
+    RETVAL=$?
+
+    # 3 means service is already stopped
+    if ! [ "$RETVAL" -eq 3 ]; then
+	for display in ${VNCSERVERS}; do
+	    echo -n "${display} "
+	    export USER="${display##*:}"
+	    runuser ${USER} -c "vncserver -kill :${display%%:*}" >/dev/null 2>&1
+	done
+	RETVAL=$?
+    else
+	let RETVAL=0
+    fi
+
+    [ "$RETVAL" -eq 0 ] && success $"vncserver shutdown" || \
+	failure $"vncserver shutdown"
+    echo
+    [ "$RETVAL" -eq 0 ] && rm -f /var/lock/subsys/Xvnc
+    return "$RETVAL"
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart|force-reload)
+	stop
+	sleep 3
+	start
+	;;
+  condrestart)
+#	https://bugzilla.redhat.com/show_bug.cgi?id=508367
+#	echo "condrestart is obsolete, use try-restart instead"
+	if [ -e /var/lock/subsys/Xvnc ]; then
+	    stop
+	    sleep 3
+	    start
+	fi
+	;;
+  try-restart)
+        if [ -e /var/lock/subsys/Xvnc ]; then
+            stop
+            sleep 3
+            start
+        fi
+        ;;
+  status)
+	status Xvnc
+	RETVAL=$?
+	;;
+  reload)
+	exit 3
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart|try-restart|status|force-reload}"
+	exit 2
+esac
+
+exit "$RETVAL"
+

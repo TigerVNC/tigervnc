@@ -1,0 +1,25 @@
+From 4de049b00ebb12864dc59764afd907fc7d28ba01 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Wed, 13 Jan 2010 11:19:12 -0500
+Subject: [PATCH] Link Xorg with -z now
+
+---
+ hw/xfree86/Makefile.am |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/hw/xfree86/Makefile.am b/hw/xfree86/Makefile.am
+index 914e11f..20da8c4 100644
+--- a/hw/xfree86/Makefile.am
++++ b/hw/xfree86/Makefile.am
+@@ -74,7 +74,7 @@ DISTCLEANFILES = libxorg.c xorg.c
+ Xorg_DEPENDENCIES = libxorg.la
+ Xorg_LDADD = $(MAIN_LIB) libxorg.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
+ 
+-Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
++Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,-z,now
+ 
+ BUILT_SOURCES = xorg.conf.example
+ DISTCLEANFILES += xorg.conf.example xorg.conf.example.pre
+-- 
+1.6.5.2
+

@@ -1,0 +1,176 @@
+From 4822319b9d771f54bc26cec7a9941c6e60202d63 Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <airlied@redhat.com>
+Date: Wed, 23 Jun 2010 15:55:00 +1000
+Subject: [PATCH] make ephyr resizeable (600505)
+
+Author is Vic Lee
+taken from
+https://bugs.freedesktop.org/show_bug.cgi?id=25804
+
+---
+ hw/kdrive/ephyr/ephyr.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++
+ hw/kdrive/ephyr/hostx.c |   24 +++++++++++++---------
+ hw/kdrive/ephyr/hostx.h |   10 ++++++++-
+ 3 files changed, 72 insertions(+), 11 deletions(-)
+
+diff --git a/hw/kdrive/ephyr/ephyr.c b/hw/kdrive/ephyr/ephyr.c
+index 254fcbc..14ab591 100644
+--- a/hw/kdrive/ephyr/ephyr.c
++++ b/hw/kdrive/ephyr/ephyr.c
+@@ -578,6 +578,8 @@ ephyrRandRSetConfig (ScreenPtr		pScreen,
+   if (wasEnabled)
+     KdEnableScreen (pScreen);
+   
++  RRScreenSizeNotify(pScreen);
++
+   return TRUE;
+   
+  bail4:
+@@ -610,6 +612,45 @@ ephyrRandRInit (ScreenPtr pScreen)
+   pScrPriv->rrSetConfig = ephyrRandRSetConfig;
+   return TRUE;
+ }
++
++static Bool
++ephyrResizeScreen (ScreenPtr		pScreen,
++		   int			newwidth,
++		   int			newheight)
++{
++  KdScreenPriv(pScreen);
++  KdScreenInfo	*screen    = pScreenPriv->screen;
++  RRScreenSize	size	   = {0};
++  Bool		ret;
++  int		t;
++
++  if (screen->randr & (RR_Rotate_90|RR_Rotate_270))
++    {
++      t = newwidth;
++      newwidth = newheight;
++      newheight = t;
++    }
++
++  if (newwidth == screen->width && newheight == screen->height)
++    {
++      return FALSE;
++    }
++
++  size.width = newwidth;
++  size.height = newheight;
++
++  ret = ephyrRandRSetConfig (pScreen, screen->randr, 0, &size);
++  if (ret)
++    {
++      RROutputPtr output;
++
++      output = RRFirstOutput(pScreen);
++      if (!output) return FALSE;
++      RROutputSetModes(output, NULL, 0, 0);
++    }
++
++  return ret;
++}
+ #endif
+ 
+ Bool
+@@ -1008,6 +1049,14 @@ ephyrPoll(void)
+ 	  break;
+ #endif /* XF86DRI */
+ 
++#ifdef RANDR
++	case EPHYR_EV_CONFIGURE:
++	  ephyrResizeScreen (screenInfo.screens[ev.data.configure.screen],
++			     ev.data.configure.width,
++			     ev.data.configure.height);
++	  break;
++#endif /* RANDR */
++
+ 	default:
+ 	  break;
+ 	}
+diff --git a/hw/kdrive/ephyr/hostx.c b/hw/kdrive/ephyr/hostx.c
+index d546370..cdb019d 100644
+--- a/hw/kdrive/ephyr/hostx.c
++++ b/hw/kdrive/ephyr/hostx.c
+@@ -348,7 +348,8 @@ hostx_init (void)
+     |PointerMotionMask
+     |KeyPressMask
+     |KeyReleaseMask
+-    |ExposureMask;
++    |ExposureMask
++    |StructureNotifyMask;
+ 
+   EPHYR_DBG("mark");
+ 
+@@ -642,7 +643,6 @@ hostx_screen_init (EphyrScreenInfo screen,
+ {
+   int         bitmap_pad;
+   Bool        shm_success = False;
+-  XSizeHints *size_hints;
+ 
+   struct EphyrHostScreen *host_screen = host_screen_from_screen_info (screen);
+   if (!host_screen)
+@@ -729,14 +729,6 @@ hostx_screen_init (EphyrScreenInfo screen,
+ 
+   XResizeWindow (HostX.dpy, host_screen->win, width, height);
+ 
+-  /* Ask the WM to keep our size static */
+-  size_hints = XAllocSizeHints();
+-  size_hints->max_width = size_hints->min_width = width;
+-  size_hints->max_height = size_hints->min_height = height;
+-  size_hints->flags = PMinSize|PMaxSize;
+-  XSetWMNormalHints(HostX.dpy, host_screen->win, size_hints);
+-  XFree(size_hints);
+-
+   XMapWindow(HostX.dpy, host_screen->win);
+ 
+   XSync(HostX.dpy, False);
+@@ -1054,6 +1046,18 @@ hostx_get_event(EphyrHostXEvent *ev)
+ 	  ev->data.key_up.scancode = xev.xkey.keycode;
+ 	  return 1;
+ 
++	case ConfigureNotify:
++	  {
++	    struct EphyrHostScreen *host_screen =
++                host_screen_from_window (xev.xconfigure.window);
++		ev->type = EPHYR_EV_CONFIGURE;
++		ev->data.configure.width = xev.xconfigure.width;
++		ev->data.configure.height = xev.xconfigure.height;
++		ev->data.configure.window = xev.xconfigure.window;
++		ev->data.configure.screen = host_screen->mynum;
++		return 1;
++	  }
++
+ 	default:
+ 	  break;
+ 
+diff --git a/hw/kdrive/ephyr/hostx.h b/hw/kdrive/ephyr/hostx.h
+index e65e0c9..69e3ceb 100644
+--- a/hw/kdrive/ephyr/hostx.h
++++ b/hw/kdrive/ephyr/hostx.h
+@@ -48,7 +48,8 @@ typedef enum EphyrHostXEventType
+   EPHYR_EV_MOUSE_RELEASE,
+   EPHYR_EV_KEY_PRESS,
+   EPHYR_EV_KEY_RELEASE,
+-  EPHYR_EV_EXPOSE
++  EPHYR_EV_EXPOSE,
++  EPHYR_EV_CONFIGURE
+ } 
+ EphyrHostXEventType;
+ 
+@@ -93,6 +94,13 @@ struct EphyrHostXEvent
+       int window;
+     } expose;
+ 
++    struct configure {
++      int width;
++      int height;
++      int screen;
++      int window;
++    } configure;
++
+   } data;
+ 
+   int key_state;
+-- 
+1.7.1
+

@@ -1,0 +1,12 @@
+diff -up tigervnc-1.2.0/unix/xserver/hw/vnc/Makefile.am.ldnow tigervnc-1.2.0/unix/xserver/hw/vnc/Makefile.am
+--- tigervnc-1.2.0/unix/xserver/hw/vnc/Makefile.am.ldnow	2011-10-31 09:14:40.000000000 +0100
++++ tigervnc-1.2.0/unix/xserver/hw/vnc/Makefile.am	2012-08-22 15:51:47.013241342 +0200
+@@ -53,7 +53,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I
+ 	-I$(top_srcdir)/include \
+ 	${XSERVERLIBS_CFLAGS} -I$(includedir)
+ 
+-libvnc_la_LDFLAGS = -module -avoid-version
++libvnc_la_LDFLAGS = -module -avoid-version -Wl,-z,now
+ 
+ libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS)
+ 

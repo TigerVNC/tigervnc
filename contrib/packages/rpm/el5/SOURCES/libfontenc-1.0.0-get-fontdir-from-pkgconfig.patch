@@ -1,0 +1,13 @@
+diff --git ./configure.ac ./configure.ac
+index fc28ef9..63ef0c8 100644
+--- ./configure.ac
++++ ./configure.ac
+@@ -37,7 +37,7 @@ AC_PROG_CC
+ AC_PROG_LIBTOOL
+ XORG_CWARNFLAGS
+ 
+-encodingsdir=${libdir}/X11/fonts/encodings
++encodingsdir=$(pkg-config --variable=fontdir fontutil)/encodings
+ AC_ARG_WITH(encodingsdir, AC_HELP_STRING([--with-encodingsdir=<pathname>],
+ 	[Path to font encodings]), [encodingsdir="$withval"])
+ ENCODINGSDIR="$encodingsdir"

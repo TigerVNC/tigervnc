@@ -1,0 +1,34 @@
+From acc64ce5be7383c09e88a23aab06ebc2403f2ca3 Mon Sep 17 00:00:00 2001
+From: Bill Nottingham <notting@redhat.com>
+Date: Fri, 6 Nov 2009 10:32:27 +1000
+Subject: [PATCH] fix KDM gamma issue on vt switch
+
+---
+ hw/xfree86/modes/xf86RandR12.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/hw/xfree86/modes/xf86RandR12.c b/hw/xfree86/modes/xf86RandR12.c
+index 6ea9d26..ece12b9 100644
+--- a/hw/xfree86/modes/xf86RandR12.c
++++ b/hw/xfree86/modes/xf86RandR12.c
+@@ -1761,6 +1761,7 @@ xf86RandR12Init12 (ScreenPtr pScreen)
+     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
+     rrScrPrivPtr	rp = rrGetScrPriv(pScreen);
+     XF86RandRInfoPtr	randrp  = XF86RANDRINFO(pScreen);
++    int i;
+ 
+     rp->rrGetInfo = xf86RandR12GetInfo12;
+     rp->rrScreenSetSize = xf86RandR12ScreenSetSize;
+@@ -1790,6 +1791,9 @@ xf86RandR12Init12 (ScreenPtr pScreen)
+      */
+     if (!xf86RandR12SetInfo12 (pScreen))
+ 	return FALSE;
++    for (i = 0; i < rp->numCrtcs; i++) {
++	xf86RandR12CrtcGetGamma(pScreen, rp->crtcs[i]);
++    }
+     return TRUE;
+ }
+ 
+-- 
+1.6.5.1
+

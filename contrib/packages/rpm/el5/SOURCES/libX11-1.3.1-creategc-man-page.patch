@@ -1,0 +1,14 @@
+diff -up libX11-1.3.1/man/XCreateGC.man.fix-XCreateGC_manpage libX11-1.3.1/man/XCreateGC.man
+--- libX11-1.3.1/man/XCreateGC.man.fix-XCreateGC_manpage	2010-04-12 19:19:13.860497216 +0200
++++ libX11-1.3.1/man/XCreateGC.man	2010-04-12 19:23:16.872621817 +0200
+@@ -151,8 +151,8 @@ XCreateGC, XCopyGC, XChangeGC, XGetGCVal
+ GC XCreateGC\^(\^Display *\fIdisplay\fP\^, Drawable \fId\fP\^, unsigned long
+ \fIvaluemask\fP\^, XGCValues *\^\fIvalues\fP\^); 
+ .HP
+-int XCopyGC\^(\^Display *\fIdisplay\fP\^, GC \fIsrc\fP\^, GC \fIdest\fP\^,
+-unsigned long \fIvaluemask\fP\^); 
++int XCopyGC\^(\^Display *\fIdisplay\fP\^, GC \fIsrc\fP\^,
++unsigned long \fIvaluemask\fP\^, GC \fIdest\fP\^); 
+ .HP
+ int XChangeGC\^(\^Display *\fIdisplay\fP\^, GC \fIgc\fP\^, unsigned long
+ \fIvaluemask\fP\^, XGCValues *\^\fIvalues\fP\^); 

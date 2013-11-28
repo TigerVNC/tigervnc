@@ -1,0 +1,2183 @@
+From 9f493b930ef99253ba7e37dc280daff6738b6401 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Wed, 26 May 2010 11:15:00 -0500
+Subject: exa master
+
+produced with git diff xorg-server-1.7.6..master exa/
+
+Future diffs of this form will probably have to be careful about the
+devPrivates rework.
+
+diff --git a/exa/exa.c b/exa/exa.c
+index b8f0419..46a850f 100644
+--- a/exa/exa.c
++++ b/exa/exa.c
+@@ -233,19 +233,19 @@ exaPixmapIsPinned (PixmapPtr pPix)
+ }
+ 
+ /**
+- * exaPixmapIsOffscreen() is used to determine if a pixmap is in offscreen
++ * exaPixmapHasGpuCopy() is used to determine if a pixmap is in offscreen
+  * memory, meaning that acceleration could probably be done to it, and that it
+  * will need to be wrapped by PrepareAccess()/FinishAccess() when accessing it
+  * with the CPU.
+  *
+  * Note that except for UploadToScreen()/DownloadFromScreen() (which explicitly
+  * deal with moving pixmaps in and out of system memory), EXA will give drivers
+- * pixmaps as arguments for which exaPixmapIsOffscreen() is TRUE.
++ * pixmaps as arguments for which exaPixmapHasGpuCopy() is TRUE.
+  *
+  * @return TRUE if the given drawable is in framebuffer memory.
+  */
+ Bool
+-exaPixmapIsOffscreen(PixmapPtr pPixmap)
++exaPixmapHasGpuCopy(PixmapPtr pPixmap)
+ {
+     ScreenPtr	pScreen = pPixmap->drawable.pScreen;
+     ExaScreenPriv(pScreen);
+@@ -253,16 +253,16 @@ exaPixmapIsOffscreen(PixmapPtr pPixmap)
+     if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+ 	return FALSE;
+ 
+-    return (*pExaScr->pixmap_is_offscreen)(pPixmap);
++    return (*pExaScr->pixmap_has_gpu_copy)(pPixmap);
+ }
+ 
+ /**
+- * exaDrawableIsOffscreen() is a convenience wrapper for exaPixmapIsOffscreen().
++ * exaDrawableIsOffscreen() is a convenience wrapper for exaPixmapHasGpuCopy().
+  */
+ Bool
+ exaDrawableIsOffscreen (DrawablePtr pDrawable)
+ {
+-    return exaPixmapIsOffscreen (exaGetDrawablePixmap (pDrawable));
++    return exaPixmapHasGpuCopy (exaGetDrawablePixmap (pDrawable));
+ }
+ 
+ /**
+@@ -276,14 +276,14 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
+ 
+     exaGetDrawableDeltas (pDrawable, pPixmap, xp, yp);
+ 
+-    if (exaPixmapIsOffscreen (pPixmap))
++    if (exaPixmapHasGpuCopy (pPixmap))
+ 	return pPixmap;
+     else
+ 	return NULL;
+ }
+ 
+ /**
+- * Returns TRUE if pixmap can be accessed offscreen.
++ * Returns TRUE if the pixmap GPU copy is being accessed.
+  */
+ Bool
+ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
+@@ -291,7 +291,7 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
+     ScreenPtr pScreen = pPixmap->drawable.pScreen;
+     ExaScreenPriv (pScreen);
+     ExaPixmapPriv(pPixmap);
+-    Bool offscreen;
++    Bool has_gpu_copy, ret;
+     int i;
+ 
+     if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+@@ -304,7 +304,7 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
+     for (i = 0; i < EXA_NUM_PREPARE_INDICES; i++) {
+ 	if (pExaScr->access[i].pixmap == pPixmap) {
+ 	    pExaScr->access[i].count++;
+-	    return TRUE;
++	    return pExaScr->access[i].retval;
+ 	}
+     }
+ 
+@@ -321,31 +321,35 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
+ 			     pPixmap->devPrivate.ptr));
+     }
+ 
+-    offscreen = exaPixmapIsOffscreen(pPixmap);
++    has_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
+ 
+-    if (offscreen && pExaPixmap->fb_ptr)
++    if (has_gpu_copy && pExaPixmap->fb_ptr) {
+ 	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+-    else
++	ret = TRUE;
++    } else {
+ 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
++	ret = FALSE;
++    }
+ 
+     /* Store so we can handle repeated / nested calls. */
+     pExaScr->access[index].pixmap = pPixmap;
+     pExaScr->access[index].count = 1;
+ 
+-    if (!offscreen)
+-	return FALSE;
++    if (!has_gpu_copy)
++	goto out;
+ 
+     exaWaitSync (pScreen);
+ 
+     if (pExaScr->info->PrepareAccess == NULL)
+-	return TRUE;
++	goto out;
+ 
+     if (index >= EXA_PREPARE_AUX_DEST &&
+ 	!(pExaScr->info->flags & EXA_SUPPORTS_PREPARE_AUX)) {
+ 	if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
+ 	    FatalError("Unsupported AUX indices used on a pinned pixmap.\n");
+ 	exaMoveOutPixmap (pPixmap);
+-	return FALSE;
++	ret = FALSE;
++	goto out;
+     }
+ 
+     if (!(*pExaScr->info->PrepareAccess) (pPixmap, index)) {
+@@ -353,11 +357,15 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
+ 	    !(pExaScr->info->flags & EXA_MIXED_PIXMAPS))
+ 	    FatalError("Driver failed PrepareAccess on a pinned pixmap.\n");
+ 	exaMoveOutPixmap (pPixmap);
+-
+-	return FALSE;
++	ret = FALSE;
++	goto out;
+     }
+ 
+-    return TRUE;
++    ret = TRUE;
++
++out:
++    pExaScr->access[index].retval = ret;
++    return ret;
+ }
+ 
+ /**
+@@ -409,18 +417,15 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
+ 
+     /* Catch unbalanced Prepare/FinishAccess calls. */
+     if (i == EXA_NUM_PREPARE_INDICES)
+-	EXA_FatalErrorDebug(("EXA bug: FinishAccess called without PrepareAccess for pixmap 0x%p.\n",
+-			     pPixmap));
++      EXA_FatalErrorDebugWithRet(("EXA bug: FinishAccess called without PrepareAccess for pixmap 0x%p.\n",
++				  pPixmap),);
+ 
+     pExaScr->access[i].pixmap = NULL;
+ 
+     /* We always hide the devPrivate.ptr. */
+     pPixmap->devPrivate.ptr = NULL;
+ 
+-    if (pExaScr->finish_access)
+-	pExaScr->finish_access(pPixmap, index);
+-
+-    if (!pExaScr->info->FinishAccess || !exaPixmapIsOffscreen(pPixmap))
++    if (!pExaScr->info->FinishAccess || !exaPixmapHasGpuCopy(pPixmap))
+ 	return;
+ 
+     if (i >= EXA_PREPARE_AUX_DEST &&
+@@ -695,10 +700,18 @@ ExaBlockHandler(int screenNum, pointer blockData, pointer pTimeout,
+     ScreenPtr pScreen = screenInfo.screens[screenNum];
+     ExaScreenPriv(pScreen);
+ 
++    /* Move any deferred results from a software fallback to the driver pixmap */
++    if (pExaScr->deferred_mixed_pixmap)
++	exaMoveInPixmap_mixed(pExaScr->deferred_mixed_pixmap);
++
+     unwrap(pExaScr, pScreen, BlockHandler);
+     (*pScreen->BlockHandler) (screenNum, blockData, pTimeout, pReadmask);
+     wrap(pExaScr, pScreen, BlockHandler, ExaBlockHandler);
+ 
++    /* The rest only applies to classic EXA */
++    if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS)
++	return;
++
+     /* Try and keep the offscreen memory area tidy every now and then (at most 
+      * once per second) when the server has been idle for at least 100ms.
+      */
+@@ -740,9 +753,7 @@ static Bool
+ exaCloseScreen(int i, ScreenPtr pScreen)
+ {
+     ExaScreenPriv(pScreen);
+-#ifdef RENDER
+     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
+-#endif
+ 
+     if (ps->Glyphs == exaGlyphs)
+ 	exaGlyphsFini(pScreen);
+@@ -765,18 +776,14 @@ exaCloseScreen(int i, ScreenPtr pScreen)
+     unwrap(pExaScr, pScreen, ChangeWindowAttributes);
+     unwrap(pExaScr, pScreen, BitmapToRegion);
+     unwrap(pExaScr, pScreen, CreateScreenResources);
+-#ifdef RENDER
+-    if (ps) {
+-	unwrap(pExaScr, ps, Composite);
+-	if (pExaScr->SavedGlyphs)
+-	    unwrap(pExaScr, ps, Glyphs);
+-	unwrap(pExaScr, ps, Trapezoids);
+-	unwrap(pExaScr, ps, Triangles);
+-	unwrap(pExaScr, ps, AddTraps);
+-    }
+-#endif
++    unwrap(pExaScr, ps, Composite);
++    if (pExaScr->SavedGlyphs)
++	unwrap(pExaScr, ps, Glyphs);
++    unwrap(pExaScr, ps, Trapezoids);
++    unwrap(pExaScr, ps, Triangles);
++    unwrap(pExaScr, ps, AddTraps);
+ 
+-    xfree (pExaScr);
++    free(pExaScr);
+ 
+     return (*pScreen->CloseScreen) (i, pScreen);
+ }
+@@ -787,14 +794,14 @@ exaCloseScreen(int i, ScreenPtr pScreen)
+  * without breaking ABI between EXA and the drivers.  The driver's
+  * responsibility is to check beforehand that the EXA module has a matching
+  * major number and sufficient minor.  Drivers are responsible for freeing the
+- * driver structure using xfree().
++ * driver structure using free().
+  *
+  * @return a newly allocated, zero-filled driver structure
+  */
+ ExaDriverPtr
+ exaDriverAlloc(void)
+ {
+-    return xcalloc(1, sizeof(ExaDriverRec));
++    return calloc(1, sizeof(ExaDriverRec));
+ }
+ 
+ /**
+@@ -812,9 +819,7 @@ exaDriverInit (ScreenPtr		pScreen,
+                ExaDriverPtr	pScreenInfo)
+ {
+     ExaScreenPrivPtr pExaScr;
+-#ifdef RENDER
+     PictureScreenPtr ps;
+-#endif
+ 
+     if (!pScreenInfo)
+ 	return FALSE;
+@@ -882,11 +887,9 @@ exaDriverInit (ScreenPtr		pScreen,
+         pScreenInfo->maxPitchPixels = pScreenInfo->maxX;
+     }
+ 
+-#ifdef RENDER
+     ps = GetPictureScreenIfSet(pScreen);
+-#endif
+ 
+-    pExaScr = xcalloc (sizeof (ExaScreenPrivRec), 1);
++    pExaScr = calloc(sizeof (ExaScreenPrivRec), 1);
+     if (!pExaScr) {
+         LogMessage(X_WARNING, "EXA(%d): Failed to allocate screen private\n",
+ 		   pScreen->myNum);
+@@ -912,10 +915,12 @@ exaDriverInit (ScreenPtr		pScreen,
+      * Replace various fb screen functions
+      */
+     if ((pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS) &&
+-	!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
++	(!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS) ||
++	 (pExaScr->info->flags & EXA_MIXED_PIXMAPS)))
+ 	wrap(pExaScr, pScreen, BlockHandler, ExaBlockHandler);
++    if ((pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS) &&
++	!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS))
+ 	wrap(pExaScr, pScreen, WakeupHandler, ExaWakeupHandler);
+-    }
+     wrap(pExaScr, pScreen, CreateGC, exaCreateGC);
+     wrap(pExaScr, pScreen, CloseScreen, exaCloseScreen);
+     wrap(pExaScr, pScreen, GetImage, exaGetImage);
+@@ -925,16 +930,17 @@ exaDriverInit (ScreenPtr		pScreen,
+     wrap(pExaScr, pScreen, BitmapToRegion, exaBitmapToRegion);
+     wrap(pExaScr, pScreen, CreateScreenResources, exaCreateScreenResources);
+ 
+-#ifdef RENDER
+     if (ps) {
+ 	wrap(pExaScr, ps, Composite, exaComposite);
+-	if (pScreenInfo->PrepareComposite)
++	if (pScreenInfo->PrepareComposite) {
+ 	    wrap(pExaScr, ps, Glyphs, exaGlyphs);
++	} else {
++	    wrap(pExaScr, ps, Glyphs, ExaCheckGlyphs);
++	}
+ 	wrap(pExaScr, ps, Trapezoids, exaTrapezoids);
+ 	wrap(pExaScr, ps, Triangles, exaTriangles);
+ 	wrap(pExaScr, ps, AddTraps, ExaCheckAddTraps);
+     }
+-#endif
+ 
+ #ifdef MITSHM
+     /*
+@@ -959,32 +965,29 @@ exaDriverInit (ScreenPtr		pScreen,
+ 		wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_mixed);
+ 		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_mixed);
+ 		pExaScr->do_migration = exaDoMigration_mixed;
+-		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_mixed;
++		pExaScr->pixmap_has_gpu_copy = exaPixmapHasGpuCopy_mixed;
+ 		pExaScr->do_move_in_pixmap = exaMoveInPixmap_mixed;
+ 		pExaScr->do_move_out_pixmap = NULL;
+ 		pExaScr->prepare_access_reg = exaPrepareAccessReg_mixed;
+-		pExaScr->finish_access = exaFinishAccess_mixed;
+ 	    } else {
+ 		wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_driver);
+ 		wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_driver);
+ 		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_driver);
+ 		pExaScr->do_migration = NULL;
+-		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_driver;
++		pExaScr->pixmap_has_gpu_copy = exaPixmapHasGpuCopy_driver;
+ 		pExaScr->do_move_in_pixmap = NULL;
+ 		pExaScr->do_move_out_pixmap = NULL;
+ 		pExaScr->prepare_access_reg = NULL;
+-		pExaScr->finish_access = NULL;
+ 	    }
+ 	} else {
+ 	    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_classic);
+ 	    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_classic);
+ 	    wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_classic);
+ 	    pExaScr->do_migration = exaDoMigration_classic;
+-	    pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_classic;
++	    pExaScr->pixmap_has_gpu_copy = exaPixmapHasGpuCopy_classic;
+ 	    pExaScr->do_move_in_pixmap = exaMoveInPixmap_classic;
+ 	    pExaScr->do_move_out_pixmap = exaMoveOutPixmap_classic;
+ 	    pExaScr->prepare_access_reg = exaPrepareAccessReg_classic;
+-	    pExaScr->finish_access = NULL;
+ 	}
+ 	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
+ 	    LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %lu bytes\n",
+diff --git a/exa/exa.h b/exa/exa.h
+index 4b39473..8c93d15 100644
+--- a/exa/exa.h
++++ b/exa/exa.h
+@@ -624,13 +624,13 @@ typedef struct _ExaDriver {
+ 
+     /**
+      * PixmapIsOffscreen() is an optional driver replacement to
+-     * exaPixmapIsOffscreen(). Set to NULL if you want the standard behaviour
+-     * of exaPixmapIsOffscreen().
++     * exaPixmapHasGpuCopy(). Set to NULL if you want the standard behaviour
++     * of exaPixmapHasGpuCopy().
+      *
+      * @param pPix the pixmap
+      * @return TRUE if the given drawable is in framebuffer memory.
+      *
+-     * exaPixmapIsOffscreen() is used to determine if a pixmap is in offscreen
++     * exaPixmapHasGpuCopy() is used to determine if a pixmap is in offscreen
+      * memory, meaning that acceleration could probably be done to it, and that it
+      * will need to be wrapped by PrepareAccess()/FinishAccess() when accessing it
+      * with the CPU.
+diff --git a/exa/exa_accel.c b/exa/exa_accel.c
+index d4eae89..4164ff7 100644
+--- a/exa/exa_accel.c
++++ b/exa/exa_accel.c
+@@ -157,6 +157,10 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
+     if (pExaScr->fallback_counter || pExaPixmap->accel_blocked || !pExaScr->info->UploadToScreen)
+ 	return FALSE;
+ 
++    /* If there's a system copy, we want to save the result there */
++    if (pExaPixmap->pDamage)
++	return FALSE;
++
+     /* Don't bother with under 8bpp, XYPixmaps. */
+     if (format != ZPixmap || bpp < 8)
+ 	return FALSE;
+@@ -390,7 +394,7 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
+     exaGetDrawableDeltas (pSrcDrawable, pSrcPixmap, &src_off_x, &src_off_y);
+     exaGetDrawableDeltas (pDstDrawable, pDstPixmap, &dst_off_x, &dst_off_y);
+ 
+-    rects = xalloc(nbox * sizeof(xRectangle));
++    rects = malloc(nbox * sizeof(xRectangle));
+ 
+     if (rects) {
+ 	int i;
+@@ -413,7 +417,7 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
+ 	    ordering = CT_UNSORTED;
+ 
+ 	srcregion  = RECTS_TO_REGION(pScreen, nbox, rects, ordering);
+-	xfree(rects);
++	free(rects);
+ 
+ 	if (!pGC || !exaGCReadsDestination(pDstDrawable, pGC->planemask,
+ 					   pGC->fillStyle, pGC->alu,
+@@ -482,9 +486,9 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
+ 	goto fallback;
+     }
+ 
+-    if (exaPixmapIsOffscreen(pDstPixmap)) {
++    if (exaPixmapHasGpuCopy(pDstPixmap)) {
+ 	/* Normal blitting. */
+-	if (exaPixmapIsOffscreen(pSrcPixmap)) {
++	if (exaPixmapHasGpuCopy(pSrcPixmap)) {
+ 	    if (!(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap, reverse ? -1 : 1,
+ 						upsidedown ? -1 : 1,
+ 						pGC ? pGC->alu : GXcopy,
+@@ -504,8 +508,11 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
+ 
+ 	    (*pExaScr->info->DoneCopy) (pDstPixmap);
+ 	    exaMarkSync (pDstDrawable->pScreen);
+-	/* UTS: mainly for SHM PutImage's secondary path. */
+-	} else if (pSrcExaPixmap->sys_ptr) {
++	/* UTS: mainly for SHM PutImage's secondary path.
++	 *
++	 * Only taking this path for directly accessible pixmaps.
++	 */
++	} else if (!pDstExaPixmap->pDamage && pSrcExaPixmap->sys_ptr) {
+ 	    int bpp = pSrcDrawable->bitsPerPixel;
+ 	    int src_stride = exaGetPixmapPitch(pSrcPixmap);
+ 	    CARD8 *src = NULL;
+@@ -619,7 +626,7 @@ exaPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+ 	return;
+     }
+ 
+-    prect = xalloc(sizeof(xRectangle) * npt);
++    prect = malloc(sizeof(xRectangle) * npt);
+     for (i = 0; i < npt; i++) {
+ 	prect[i].x = ppt[i].x;
+ 	prect[i].y = ppt[i].y;
+@@ -631,7 +638,7 @@ exaPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+ 	prect[i].height = 1;
+     }
+     pGC->ops->PolyFillRect(pDrawable, pGC, npt, prect);
+-    xfree(prect);
++    free(prect);
+ }
+ 
+ /**
+@@ -660,7 +667,7 @@ exaPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+ 	return;
+     }
+ 
+-    prect = xalloc(sizeof(xRectangle) * (npt - 1));
++    prect = malloc(sizeof(xRectangle) * (npt - 1));
+     x1 = ppt[0].x;
+     y1 = ppt[0].y;
+     /* If we have any non-horizontal/vertical, fall back. */
+@@ -674,7 +681,7 @@ exaPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+ 	}
+ 
+ 	if (x1 != x2 && y1 != y2) {
+-	    xfree(prect);
++	    free(prect);
+ 	    ExaCheckPolylines(pDrawable, pGC, mode, npt, ppt);
+ 	    return;
+ 	}
+@@ -698,7 +705,7 @@ exaPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+ 	y1 = y2;
+     }
+     pGC->ops->PolyFillRect(pDrawable, pGC, npt - 1, prect);
+-    xfree(prect);
++    free(prect);
+ }
+ 
+ /**
+@@ -730,7 +737,7 @@ exaPolySegment (DrawablePtr pDrawable, GCPtr pGC, int nseg,
+ 	}
+     }
+ 
+-    prect = xalloc(sizeof(xRectangle) * nseg);
++    prect = malloc(sizeof(xRectangle) * nseg);
+     for (i = 0; i < nseg; i++) {
+ 	if (pSeg[i].x1 < pSeg[i].x2) {
+ 	    prect[i].x = pSeg[i].x1;
+@@ -756,7 +763,7 @@ exaPolySegment (DrawablePtr pDrawable, GCPtr pGC, int nseg,
+ 	}
+     }
+     pGC->ops->PolyFillRect(pDrawable, pGC, nseg, prect);
+-    xfree(prect);
++    free(prect);
+ }
+ 
+ static Bool exaFillRegionSolid (DrawablePtr pDrawable, RegionPtr pRegion,
+@@ -835,7 +842,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
+ 	exaDoMigration (pixmaps, 1, TRUE);
+     }
+ 
+-    if (!exaPixmapIsOffscreen (pPixmap) ||
++    if (!exaPixmapHasGpuCopy (pPixmap) ||
+ 	!(*pExaScr->info->PrepareSolid) (pPixmap,
+ 					 pGC->alu,
+ 					 pGC->planemask,
+@@ -1017,7 +1024,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
+ 	exaDoMigration (pixmaps, 1, TRUE);
+     }
+ 
+-    if (exaPixmapIsOffscreen (pPixmap) &&
++    if (exaPixmapHasGpuCopy (pPixmap) &&
+ 	(*pExaScr->info->PrepareSolid) (pPixmap, alu, planemask, pixel))
+     {
+ 	int nbox;
+@@ -1040,6 +1047,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
+ 	    pDrawable->width == 1 && pDrawable->height == 1 &&
+ 	    pDrawable->bitsPerPixel != 24) {
+ 	    ExaPixmapPriv(pPixmap);
++	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+ 
+ 	    switch (pDrawable->bitsPerPixel) {
+ 	    case 32:
+@@ -1054,6 +1062,9 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
+ 
+ 	    REGION_UNION(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
+ 			 pRegion);
++	    REGION_UNION(pScreen, &pExaPixmap->validFB, &pExaPixmap->validFB,
++			 pRegion);
++	    REGION_SUBTRACT(pScreen, pending_damage, pending_damage, pRegion);
+ 	}
+ 
+ 	ret = TRUE;
+@@ -1120,7 +1131,7 @@ exaFillRegionTiled (DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile,
+ 
+     pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+ 
+-    if (!pPixmap || !exaPixmapIsOffscreen(pTile))
++    if (!pPixmap || !exaPixmapHasGpuCopy(pTile))
+ 	return FALSE;
+ 
+     if ((*pExaScr->info->PrepareCopy) (pTile, pPixmap, 1, 1, alu, planemask))
+@@ -1254,35 +1265,16 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
+ {
+     ExaScreenPriv (pDrawable->pScreen);
+     PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
++    ExaPixmapPriv(pPix);
+     int xoff, yoff;
+     Bool ok;
+ 
+     if (pExaScr->fallback_counter || pExaScr->swappedOut)
+ 	goto fallback;
+ 
+-    exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);
+-
+-    if (pExaScr->do_migration) {
+-	BoxRec Box;
+-	RegionRec Reg;
+-	ExaMigrationRec pixmaps[1];
+-
+-	Box.x1 = pDrawable->y + x + xoff;
+-	Box.y1 = pDrawable->y + y + yoff;
+-	Box.x2 = Box.x1 + w;
+-	Box.y2 = Box.y1 + h;
+-
+-	REGION_INIT(pScreen, &Reg, &Box, 1);
+-
+-	pixmaps[0].as_dst = FALSE;
+-	pixmaps[0].as_src = TRUE;
+-	pixmaps[0].pPix = pPix;
+-	pixmaps[0].pReg = &Reg;
+-
+-	exaDoMigration(pixmaps, 1, FALSE);
+-
+-	REGION_UNINIT(pScreen, &Reg);
+-    }
++    /* If there's a system copy, we want to save the result there */
++    if (pExaPixmap->pDamage)
++	goto fallback;
+ 
+     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+ 
+diff --git a/exa/exa_classic.c b/exa/exa_classic.c
+index 12f3987..e1ead6c 100644
+--- a/exa/exa_classic.c
++++ b/exa/exa_classic.c
+@@ -38,7 +38,7 @@ ExaGetPixmapAddress(PixmapPtr p)
+ {
+     ExaPixmapPriv(p);
+ 
+-    if (pExaPixmap->offscreen && pExaPixmap->fb_ptr)
++    if (pExaPixmap->use_gpu_copy && pExaPixmap->fb_ptr)
+ 	return pExaPixmap->fb_ptr;
+     else
+ 	return pExaPixmap->sys_ptr;
+@@ -90,7 +90,7 @@ exaCreatePixmap_classic(ScreenPtr pScreen, int w, int h, int depth,
+     pExaPixmap->sys_pitch = pPixmap->devKind;
+ 
+     pPixmap->devPrivate.ptr = NULL;
+-    pExaPixmap->offscreen = FALSE;
++    pExaPixmap->use_gpu_copy = FALSE;
+ 
+     pExaPixmap->fb_ptr = NULL;
+     exaSetFbPitch(pExaScr, pExaPixmap, w, h, bpp);
+@@ -148,7 +148,7 @@ Bool
+ exaModifyPixmapHeader_classic(PixmapPtr pPixmap, int width, int height, int depth,
+ 		      int bitsPerPixel, int devKind, pointer pPixData)
+ {
+-    ScreenPtr pScreen = pPixmap->drawable.pScreen;
++    ScreenPtr pScreen;
+     ExaScreenPrivPtr pExaScr;
+     ExaPixmapPrivPtr pExaPixmap;
+     Bool ret;
+@@ -156,6 +156,7 @@ exaModifyPixmapHeader_classic(PixmapPtr pPixmap, int width, int height, int dept
+     if (!pPixmap)
+         return FALSE;
+ 
++    pScreen = pPixmap->drawable.pScreen;
+     pExaScr = ExaGetScreenPriv(pScreen);
+     pExaPixmap = ExaGetPixmapPriv(pPixmap);
+ 
+@@ -168,7 +169,7 @@ exaModifyPixmapHeader_classic(PixmapPtr pPixmap, int width, int height, int dept
+ 
+ 	/* Classic EXA:
+ 	 * - Framebuffer.
+-	 * - Scratch pixmap with offscreen memory.
++	 * - Scratch pixmap with gpu memory.
+ 	 */
+ 	if (pExaScr->info->memoryBase && pPixData) {
+ 	    if ((CARD8 *)pPixData >= pExaScr->info->memoryBase &&
+@@ -176,7 +177,7 @@ exaModifyPixmapHeader_classic(PixmapPtr pPixmap, int width, int height, int dept
+ 				pExaScr->info->memorySize) {
+ 		pExaPixmap->fb_ptr = pPixData;
+ 		pExaPixmap->fb_pitch = devKind;
+-		pExaPixmap->offscreen = TRUE;
++		pExaPixmap->use_gpu_copy = TRUE;
+ 	    }
+ 	}
+ 
+@@ -189,7 +190,7 @@ exaModifyPixmapHeader_classic(PixmapPtr pPixmap, int width, int height, int dept
+         }
+ 
+ 	/* Pixmaps subject to ModifyPixmapHeader will be pinned to system or
+-	 * offscreen memory, so there's no need to track damage.
++	 * gpu memory, so there's no need to track damage.
+ 	 */
+ 	if (pExaPixmap->pDamage) {
+ 	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
+@@ -248,7 +249,7 @@ exaDestroyPixmap_classic (PixmapPtr pPixmap)
+ }
+ 
+ Bool
+-exaPixmapIsOffscreen_classic(PixmapPtr pPixmap)
++exaPixmapHasGpuCopy_classic(PixmapPtr pPixmap)
+ {
+     ScreenPtr pScreen = pPixmap->drawable.pScreen;
+     ExaScreenPriv(pScreen);
+@@ -260,7 +261,7 @@ exaPixmapIsOffscreen_classic(PixmapPtr pPixmap)
+ 	ret = pExaScr->info->PixmapIsOffscreen(pPixmap);
+ 	pPixmap->devPrivate.ptr = NULL;
+     } else
+-	ret = (pExaPixmap->offscreen && pExaPixmap->fb_ptr);
++	ret = (pExaPixmap->use_gpu_copy && pExaPixmap->fb_ptr);
+ 
+     return ret;
+ }
+diff --git a/exa/exa_driver.c b/exa/exa_driver.c
+index f55c300..abe79ba 100644
+--- a/exa/exa_driver.c
++++ b/exa/exa_driver.c
+@@ -71,8 +71,8 @@ exaCreatePixmap_driver(ScreenPtr pScreen, int w, int h, int depth,
+ 
+     bpp = pPixmap->drawable.bitsPerPixel;
+ 
+-    /* Set this before driver hooks, to allow for !offscreen pixmaps.
+-     * !offscreen pixmaps have a valid pointer at all times.
++    /* Set this before driver hooks, to allow for driver pixmaps without gpu
++     * memory to back it. These pixmaps have a valid pointer at all times.
+      */
+     pPixmap->devPrivate.ptr = NULL;
+ 
+@@ -126,7 +126,7 @@ Bool
+ exaModifyPixmapHeader_driver(PixmapPtr pPixmap, int width, int height, int depth,
+ 		      int bitsPerPixel, int devKind, pointer pPixData)
+ {
+-    ScreenPtr pScreen = pPixmap->drawable.pScreen;
++    ScreenPtr pScreen;
+     ExaScreenPrivPtr pExaScr;
+     ExaPixmapPrivPtr pExaPixmap;
+     Bool ret;
+@@ -134,6 +134,7 @@ exaModifyPixmapHeader_driver(PixmapPtr pPixmap, int width, int height, int depth
+     if (!pPixmap)
+         return FALSE;
+ 
++    pScreen = pPixmap->drawable.pScreen;
+     pExaScr = ExaGetScreenPriv(pScreen);
+     pExaPixmap = ExaGetPixmapPriv(pPixmap);
+ 
+@@ -157,8 +158,9 @@ exaModifyPixmapHeader_driver(PixmapPtr pPixmap, int width, int height, int depth
+ 	ret = pExaScr->info->ModifyPixmapHeader(pPixmap, width, height, depth,
+ 						bitsPerPixel, devKind, pPixData);
+ 	/* For EXA_HANDLES_PIXMAPS, we set pPixData to NULL.
+-	 * If pPixmap->devPrivate.ptr is non-NULL, then we've got a non-offscreen pixmap.
+-	 * We need to store the pointer, because PrepareAccess won't be called.
++	 * If pPixmap->devPrivate.ptr is non-NULL, then we've got a
++	 * !has_gpu_copy pixmap. We need to store the pointer,
++	 * because PrepareAccess won't be called.
+ 	 */
+ 	if (!pPixData && pPixmap->devPrivate.ptr && pPixmap->devKind) {
+ 	    pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
+@@ -208,7 +210,7 @@ exaDestroyPixmap_driver (PixmapPtr pPixmap)
+ }
+ 
+ Bool
+-exaPixmapIsOffscreen_driver(PixmapPtr pPixmap)
++exaPixmapHasGpuCopy_driver(PixmapPtr pPixmap)
+ {
+     ScreenPtr pScreen = pPixmap->drawable.pScreen;
+     ExaScreenPriv(pScreen);
+diff --git a/exa/exa_glyphs.c b/exa/exa_glyphs.c
+index bf097c3..b09db46 100644
+--- a/exa/exa_glyphs.c
++++ b/exa/exa_glyphs.c
+@@ -128,12 +128,12 @@ exaUnrealizeGlyphCaches(ScreenPtr    pScreen,
+ 	}
+ 
+ 	if (cache->hashEntries) {
+-	    xfree(cache->hashEntries);
++	    free(cache->hashEntries);
+ 	    cache->hashEntries = NULL;
+ 	}
+ 	
+ 	if (cache->glyphs) {
+-	    xfree(cache->glyphs);
++	    free(cache->glyphs);
+ 	    cache->glyphs = NULL;
+ 	}
+ 	cache->glyphCount = 0;
+@@ -213,8 +213,8 @@ exaRealizeGlyphCaches(ScreenPtr    pScreen,
+ 
+ 	cache->picture = pPicture;
+ 	cache->picture->refcnt++;
+-	cache->hashEntries = xalloc(sizeof(int) * cache->hashSize);
+-	cache->glyphs = xalloc(sizeof(ExaCachedGlyphRec) * cache->size);
++	cache->hashEntries = malloc(sizeof(int) * cache->hashSize);
++	cache->glyphs = malloc(sizeof(ExaCachedGlyphRec) * cache->size);
+ 	cache->glyphCount = 0;
+ 
+ 	if (!cache->hashEntries || !cache->glyphs)
+@@ -352,11 +352,11 @@ exaGlyphCacheHashRemove(ExaGlyphCachePtr cache,
+ 
+ /* The most efficient thing to way to upload the glyph to the screen
+  * is to use the UploadToScreen() driver hook; this allows us to
+- * pipeline glyph uploads and to avoid creating offscreen pixmaps for
++ * pipeline glyph uploads and to avoid creating gpu backed pixmaps for
+  * glyphs that we'll never use again.
+  *
+- * If we can't do it with UploadToScreen (because the glyph is offscreen, etc),
+- * we fall back to CompositePicture.
++ * If we can't do it with UploadToScreen (because the glyph has a gpu copy,
++ * etc), we fall back to CompositePicture.
+  *
+  * We need to damage the cache pixmap manually in either case because the damage
+  * layer unwrapped the picture screen before calling exaGlyphs.
+@@ -364,7 +364,8 @@ exaGlyphCacheHashRemove(ExaGlyphCachePtr cache,
+ static void
+ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
+ 			 ExaGlyphCachePtr  cache,
+-			 int               pos,
++			 int               x,
++			 int               y,
+ 			 GlyphPtr          pGlyph)
+ {
+     ExaScreenPriv(pScreen);
+@@ -378,7 +379,7 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
+ 
+     /* If the glyph pixmap is already uploaded, no point in doing
+      * things this way */
+-    if (exaPixmapIsOffscreen(pGlyphPixmap))
++    if (exaPixmapHasGpuCopy(pGlyphPixmap))
+ 	goto composite;
+ 
+     /* UploadToScreen only works if bpp match */
+@@ -388,7 +389,7 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
+     if (pExaScr->do_migration) {
+ 	ExaMigrationRec pixmaps[1];
+ 
+-	/* cache pixmap must be offscreen. */
++	/* cache pixmap must have a gpu copy. */
+ 	pixmaps[0].as_dst = TRUE;
+ 	pixmaps[0].as_src = FALSE;
+ 	pixmaps[0].pPix = pCachePixmap;
+@@ -396,13 +397,13 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
+ 	exaDoMigration (pixmaps, 1, TRUE);
+     }
+ 
+-    if (!exaPixmapIsOffscreen(pCachePixmap))
++    if (!exaPixmapHasGpuCopy(pCachePixmap))
+ 	goto composite;
+ 
+-    /* CACHE_{X,Y} are in pixmap coordinates, no need for cache{X,Y}off */
++    /* x,y are in pixmap coordinates, no need for cache{X,Y}off */
+     if (pExaScr->info->UploadToScreen(pCachePixmap,
+-				      CACHE_X(pos),
+-				      CACHE_Y(pos),
++				      x,
++				      y,
+ 				      pGlyph->info.width,
+ 				      pGlyph->info.height,
+ 				      (char *)pExaPixmap->sys_ptr,
+@@ -416,18 +417,18 @@ composite:
+ 		      cache->picture,
+ 		      0, 0,
+ 		      0, 0,
+-		      CACHE_X(pos),
+-		      CACHE_Y(pos),
++		      x,
++		      y,
+ 		      pGlyph->info.width,
+ 		      pGlyph->info.height);
+ 
+ damage:
+     /* The cache pixmap isn't a window, so no need to offset coordinates. */
+     exaPixmapDirty (pCachePixmap,
+-		    CACHE_X(pos),
+-		    CACHE_Y(pos),
+-		    CACHE_X(pos) + cache->glyphWidth,
+-		    CACHE_Y(pos) + cache->glyphHeight);
++		    x,
++		    y,
++		    x + cache->glyphWidth,
++		    y + cache->glyphHeight);
+ }
+ 
+ static ExaGlyphCacheResult
+@@ -446,6 +447,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
+ {
+     ExaCompositeRectPtr rect;
+     int pos;
++    int x, y;
+     
+     if (buffer->mask && buffer->mask != cache->picture)
+ 	return ExaGlyphNeedFlush;
+@@ -462,10 +464,14 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
+     pos = exaGlyphCacheHashLookup(cache, pGlyph);
+     if (pos != -1) {
+ 	DBG_GLYPH_CACHE(("  found existing glyph at %d\n", pos));
++	x = CACHE_X(pos);
++	y = CACHE_Y(pos);
+     } else {
+ 	if (cache->glyphCount < cache->size) {
+ 	    /* Space remaining; we fill from the start */
+ 	    pos = cache->glyphCount;
++	    x = CACHE_X(pos);
++	    y = CACHE_Y(pos);
+ 	    cache->glyphCount++;
+ 	    DBG_GLYPH_CACHE(("  storing glyph in free space at %d\n", pos));
+ 
+@@ -477,14 +483,12 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
+ 	     * the cache
+ 	     */
+ 	    pos = cache->evictionPosition;
++	    x = CACHE_X(pos);
++	    y = CACHE_Y(pos);
+ 	    DBG_GLYPH_CACHE(("  evicting glyph at %d\n", pos));
+ 	    if (buffer->count) {
+-		int x, y;
+ 		int i;
+ 
+-		x = CACHE_X(pos);
+-		y = CACHE_Y(pos);
+-
+ 		for (i = 0; i < buffer->count; i++) {
+ 		    if (pSrc ?
+ 			(buffer->rects[i].xMask == x && buffer->rects[i].yMask == y) :
+@@ -503,7 +507,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
+ 	    cache->evictionPosition = rand() % cache->size;
+ 	}
+ 
+-	exaGlyphCacheUploadGlyph(pScreen, cache, pos, pGlyph);
++	exaGlyphCacheUploadGlyph(pScreen, cache, x, y, pGlyph);
+     }
+ 
+     buffer->mask = cache->picture;
+@@ -514,13 +518,13 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
+     {
+ 	rect->xSrc = xSrc;
+ 	rect->ySrc = ySrc;
+-	rect->xMask = CACHE_X(pos);
+-	rect->yMask = CACHE_Y(pos);
++	rect->xMask = x;
++	rect->yMask = y;
+     }
+     else
+     {
+-	rect->xSrc = CACHE_X(pos);
+-	rect->ySrc = CACHE_Y(pos);
++	rect->xSrc = x;
++	rect->ySrc = y;
+ 	rect->xMask = 0;
+ 	rect->yMask = 0;
+     }
+diff --git a/exa/exa_migration_classic.c b/exa/exa_migration_classic.c
+index 6d7b9f5..871679f 100644
+--- a/exa/exa_migration_classic.c
++++ b/exa/exa_migration_classic.c
+@@ -75,6 +75,9 @@ exaPixmapIsDirty (PixmapPtr pPix)
+     if (pExaPixmap == NULL)
+ 	EXA_FatalErrorDebugWithRet(("EXA bug: exaPixmapIsDirty was called on a non-exa pixmap.\n"), TRUE);
+ 
++    if (!pExaPixmap->pDamage)
++	return FALSE;
++
+     return REGION_NOTEMPTY (pScreen, DamageRegion(pExaPixmap->pDamage)) ||
+ 	!REGION_EQUAL(pScreen, &pExaPixmap->validSys, &pExaPixmap->validFB);
+ }
+@@ -111,7 +114,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
+     ExaPixmapPriv (pPixmap);
+     RegionPtr damage = DamageRegion (pExaPixmap->pDamage);
+     RegionRec CopyReg;
+-    Bool save_offscreen;
++    Bool save_use_gpu_copy;
+     int save_pitch;
+     BoxPtr pBox;
+     int nbox;
+@@ -119,7 +122,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
+     Bool need_sync = FALSE;
+ 
+     /* Damaged bits are valid in current copy but invalid in other one */
+-    if (pExaPixmap->offscreen) {
++    if (pExaPixmap->use_gpu_copy) {
+ 	REGION_UNION(pScreen, &pExaPixmap->validFB, &pExaPixmap->validFB,
+ 		     damage);
+ 	REGION_SUBTRACT(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
+@@ -200,9 +203,9 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
+     pBox = REGION_RECTS(&CopyReg);
+     nbox = REGION_NUM_RECTS(&CopyReg);
+ 
+-    save_offscreen = pExaPixmap->offscreen;
++    save_use_gpu_copy = pExaPixmap->use_gpu_copy;
+     save_pitch = pPixmap->devKind;
+-    pExaPixmap->offscreen = TRUE;
++    pExaPixmap->use_gpu_copy = TRUE;
+     pPixmap->devKind = pExaPixmap->fb_pitch;
+ 
+     while (nbox--) {
+@@ -242,7 +245,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
+ 	pBox++;
+     }
+ 
+-    pExaPixmap->offscreen = save_offscreen;
++    pExaPixmap->use_gpu_copy = save_use_gpu_copy;
+     pPixmap->devKind = save_pitch;
+ 
+     /* Try to prevent source valid region from growing too many rects by
+@@ -351,7 +354,7 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
+ 
+     exaCopyDirtyToFb (migrate);
+ 
+-    if (exaPixmapIsOffscreen(pPixmap))
++    if (exaPixmapHasGpuCopy(pPixmap))
+ 	return;
+ 
+     DBG_MIGRATE (("-> %p (0x%x) (%dx%d) (%c)\n", pPixmap,
+@@ -361,7 +364,7 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
+ 		  pPixmap->drawable.height,
+ 		  exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
+ 
+-    pExaPixmap->offscreen = TRUE;
++    pExaPixmap->use_gpu_copy = TRUE;
+ 
+     pPixmap->devKind = pExaPixmap->fb_pitch;
+     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
+@@ -392,7 +395,7 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
+ 
+     exaCopyDirtyToSys (migrate);
+ 
+-    if (exaPixmapIsOffscreen(pPixmap)) {
++    if (exaPixmapHasGpuCopy(pPixmap)) {
+ 
+ 	DBG_MIGRATE (("<- %p (%p) (%dx%d) (%c)\n", pPixmap,
+ 		      (void*)(ExaGetPixmapPriv(pPixmap)->area ?
+@@ -401,7 +404,7 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
+ 		      pPixmap->drawable.height,
+ 		      exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
+ 
+-	pExaPixmap->offscreen = FALSE;
++	pExaPixmap->use_gpu_copy = FALSE;
+ 
+ 	pPixmap->devKind = pExaPixmap->sys_pitch;
+ 	pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
+@@ -468,12 +471,12 @@ exaMigrateTowardFb (ExaMigrationPtr migrate)
+ 	pExaPixmap->score++;
+ 
+     if (pExaPixmap->score >= EXA_PIXMAP_SCORE_MOVE_IN &&
+-	!exaPixmapIsOffscreen(pPixmap))
++	!exaPixmapHasGpuCopy(pPixmap))
+     {
+ 	exaDoMoveInPixmap(migrate);
+     }
+ 
+-    if (exaPixmapIsOffscreen(pPixmap)) {
++    if (exaPixmapHasGpuCopy(pPixmap)) {
+ 	exaCopyDirtyToFb (migrate);
+ 	ExaOffscreenMarkUsed (pPixmap);
+     } else
+@@ -504,7 +507,7 @@ exaMigrateTowardSys (ExaMigrationPtr migrate)
+     if (pExaPixmap->score <= EXA_PIXMAP_SCORE_MOVE_OUT && pExaPixmap->area)
+ 	exaDoMoveOutPixmap(migrate);
+ 
+-    if (exaPixmapIsOffscreen(pPixmap)) {
++    if (exaPixmapHasGpuCopy(pPixmap)) {
+ 	exaCopyDirtyToFb (migrate);
+ 	ExaOffscreenMarkUsed (pPixmap);
+     } else
+@@ -523,7 +526,7 @@ exaAssertNotDirty (PixmapPtr pPixmap)
+     RegionRec ValidReg;
+     int dst_pitch, src_pitch, cpp, y, nbox, save_pitch;
+     BoxPtr pBox;
+-    Bool ret = TRUE, save_offscreen;
++    Bool ret = TRUE, save_use_gpu_copy;
+ 
+     if (exaPixmapIsPinned(pPixmap) || pExaPixmap->area == NULL)
+ 	return ret;
+@@ -542,9 +545,9 @@ exaAssertNotDirty (PixmapPtr pPixmap)
+     src_pitch = pExaPixmap->fb_pitch;
+     cpp = pPixmap->drawable.bitsPerPixel / 8;
+ 
+-    save_offscreen = pExaPixmap->offscreen;
++    save_use_gpu_copy = pExaPixmap->use_gpu_copy;
+     save_pitch = pPixmap->devKind;
+-    pExaPixmap->offscreen = TRUE;
++    pExaPixmap->use_gpu_copy = TRUE;
+     pPixmap->devKind = pExaPixmap->fb_pitch;
+ 
+     if (!ExaDoPrepareAccess(pPixmap, EXA_PREPARE_SRC))
+@@ -579,7 +582,7 @@ exaAssertNotDirty (PixmapPtr pPixmap)
+ skip:
+     exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+ 
+-    pExaPixmap->offscreen = save_offscreen;
++    pExaPixmap->use_gpu_copy = save_use_gpu_copy;
+     pPixmap->devKind = save_pitch;
+ 
+ out:
+@@ -618,7 +621,7 @@ exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+      */
+     for (i = 0; i < npixmaps; i++) {
+ 	if (exaPixmapIsPinned (pixmaps[i].pPix) &&
+-	    !exaPixmapIsOffscreen (pixmaps[i].pPix))
++	    !exaPixmapHasGpuCopy (pixmaps[i].pPix))
+ 	{
+ 	    EXA_FALLBACK(("Pixmap %p (%dx%d) pinned in sys\n", pixmaps[i].pPix,
+ 		      pixmaps[i].pPix->drawable.width,
+@@ -680,7 +683,7 @@ exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+ 	}
+ 
+ 	for (i = 0; i < npixmaps; i++) {
+-	    if (exaPixmapIsOffscreen(pixmaps[i].pPix)) {
++	    if (exaPixmapHasGpuCopy(pixmaps[i].pPix)) {
+ 		/* Found one in FB, so move all to FB. */
+ 		for (j = 0; j < npixmaps; j++)
+ 		    exaMigrateTowardFb(pixmaps + i);
+@@ -709,12 +712,12 @@ exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+ 
+ 	/* If we couldn't fit everything in, abort */
+ 	for (i = 0; i < npixmaps; i++) {
+-	    if (!exaPixmapIsOffscreen(pixmaps[i].pPix)) {
++	    if (!exaPixmapHasGpuCopy(pixmaps[i].pPix)) {
+ 		return;
+ 	    }
+ 	}
+ 
+-	/* Yay, everything's offscreen, mark memory as used */
++	/* Yay, everything has a gpu copy, mark memory as used */
+ 	for (i = 0; i < npixmaps; i++) {
+ 	    ExaOffscreenMarkUsed (pixmaps[i].pPix);
+ 	}
+diff --git a/exa/exa_migration_mixed.c b/exa/exa_migration_mixed.c
+index 52b18b4..fb47151 100644
+--- a/exa/exa_migration_mixed.c
++++ b/exa/exa_migration_mixed.c
+@@ -80,7 +80,7 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+      */
+     for (i = 0; i < npixmaps; i++) {
+ 	if (exaPixmapIsPinned (pixmaps[i].pPix) &&
+-	    !exaPixmapIsOffscreen (pixmaps[i].pPix))
++	    !exaPixmapHasGpuCopy (pixmaps[i].pPix))
+ 	{
+ 	    can_accel = FALSE;
+ 	    break;
+@@ -98,12 +98,26 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+ 	if (!pExaPixmap->driverPriv)
+ 	    exaCreateDriverPixmap_mixed(pPixmap);
+ 
+-	if (pExaPixmap->pDamage && exaPixmapIsOffscreen(pPixmap)) {
++	if (pExaPixmap->pDamage && exaPixmapHasGpuCopy(pPixmap)) {
++	    ExaScreenPriv(pPixmap->drawable.pScreen);
++
++	    /* This pitch is needed for proper acceleration. For some reason
++	     * there are pixmaps without pDamage and a bad fb_pitch value.
++	     * So setting devKind when only exaPixmapHasGpuCopy() is true
++	     * causes corruption. Pixmaps without pDamage are not migrated
++	     * and should have a valid devKind at all times, so that's why this
++	     * isn't causing problems. Pixmaps have their gpu pitch set the
++	     * first time in the MPH call from exaCreateDriverPixmap_mixed().
++	     */
+ 	    pPixmap->devKind = pExaPixmap->fb_pitch;
+ 	    exaCopyDirtyToFb(pixmaps + i);
++
++	    if (pExaScr->deferred_mixed_pixmap == pPixmap &&
++		!pixmaps[i].as_dst && !pixmaps[i].pReg)
++		pExaScr->deferred_mixed_pixmap = NULL;
+ 	}
+ 
+-	pExaPixmap->offscreen = exaPixmapIsOffscreen(pPixmap);
++	pExaPixmap->use_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
+     }
+ }
+ 
+@@ -120,17 +134,68 @@ exaMoveInPixmap_mixed(PixmapPtr pPixmap)
+     exaDoMigration(pixmaps, 1, TRUE);
+ }
+ 
++void
++exaDamageReport_mixed(DamagePtr pDamage, RegionPtr pRegion, void *closure)
++{
++    PixmapPtr pPixmap = closure;
++    ExaPixmapPriv(pPixmap);
++
++    /* Move back results of software rendering on system memory copy of mixed driver
++     * pixmap (see exaPrepareAccessReg_mixed).
++     *
++     * Defer moving the destination back into the driver pixmap, to try and save
++     * overhead on multiple subsequent software fallbacks.
++     */
++    if (!pExaPixmap->use_gpu_copy && exaPixmapHasGpuCopy(pPixmap)) {
++	ExaScreenPriv(pPixmap->drawable.pScreen);
++
++	if (pExaScr->deferred_mixed_pixmap &&
++	    pExaScr->deferred_mixed_pixmap != pPixmap)
++	    exaMoveInPixmap_mixed(pExaScr->deferred_mixed_pixmap);
++	pExaScr->deferred_mixed_pixmap = pPixmap;
++    }
++}
++
+ /* With mixed pixmaps, if we fail to get direct access to the driver pixmap, we
+  * use the DownloadFromScreen hook to retrieve contents to a copy in system
+  * memory, perform software rendering on that and move back the results with the
+- * UploadToScreen hook (see exaFinishAccess_mixed).
++ * UploadToScreen hook (see exaDamageReport_mixed).
+  */
+ void
+ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
+ {
+-    if (!ExaDoPrepareAccess(pPixmap, index)) {
+-	ExaPixmapPriv(pPixmap);
+-	Bool is_offscreen = exaPixmapIsOffscreen(pPixmap);
++    ExaPixmapPriv(pPixmap);
++    Bool has_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
++    Bool success;
++
++    success = ExaDoPrepareAccess(pPixmap, index);
++
++    if (success && has_gpu_copy && pExaPixmap->pDamage) {
++	/* You cannot do accelerated operations while a buffer is mapped. */
++	exaFinishAccess(&pPixmap->drawable, index);
++	/* Update the gpu view of both deferred destination pixmaps and of
++	 * source pixmaps that were migrated with a bounding region.
++	 */
++	exaMoveInPixmap_mixed(pPixmap);
++	success = ExaDoPrepareAccess(pPixmap, index);
++
++	if (success) {
++	    /* We have a gpu pixmap that can be accessed, we don't need the cpu
++	     * copy anymore. Drivers that prefer DFS, should fail prepare
++	     * access.
++	     */
++	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
++	    DamageDestroy(pExaPixmap->pDamage);
++	    pExaPixmap->pDamage = NULL;
++
++	    free(pExaPixmap->sys_ptr);
++	    pExaPixmap->sys_ptr = NULL;
++
++	    return;
++	}
++    }
++
++    if (!success) {
+ 	ExaMigrationRec pixmaps[1];
+ 
+ 	/* Do we need to allocate our system buffer? */
+@@ -152,12 +217,14 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
+ 	pixmaps[0].pPix = pPixmap;
+ 	pixmaps[0].pReg = pReg;
+ 
+-	if (!pExaPixmap->pDamage && (is_offscreen || !exaPixmapIsPinned(pPixmap))) {
++	if (!pExaPixmap->pDamage &&
++		(has_gpu_copy || !exaPixmapIsPinned(pPixmap))) {
+ 	    Bool as_dst = pixmaps[0].as_dst;
+ 
+ 	    /* Set up damage tracking */
+-	    pExaPixmap->pDamage = DamageCreate(NULL, NULL, DamageReportNone,
+-					       TRUE, pPixmap->drawable.pScreen,
++	    pExaPixmap->pDamage = DamageCreate(exaDamageReport_mixed, NULL,
++					       DamageReportNonEmpty, TRUE,
++					       pPixmap->drawable.pScreen,
+ 					       pPixmap);
+ 
+ 	    DamageRegister(&pPixmap->drawable, pExaPixmap->pDamage);
+@@ -165,7 +232,7 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
+ 	    /* This is used by exa to optimize migration. */
+ 	    DamageSetReportAfterOp(pExaPixmap->pDamage, TRUE);
+ 
+-	    if (is_offscreen) {
++	    if (has_gpu_copy) {
+ 		exaPixmapDirty(pPixmap, 0, 0, pPixmap->drawable.width,
+ 			       pPixmap->drawable.height);
+ 
+@@ -177,34 +244,18 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
+ 		    pixmaps[0].as_src = TRUE;
+ 		    pixmaps[0].pReg = NULL;
+ 		}
+-		pPixmap->devKind = pExaPixmap->fb_pitch;
+ 		exaCopyDirtyToSys(pixmaps);
+ 	    }
+ 
+ 	    if (as_dst)
+ 		exaPixmapDirty(pPixmap, 0, 0, pPixmap->drawable.width,
+ 			       pPixmap->drawable.height);
+-	} else if (is_offscreen) {
+-	    pPixmap->devKind = pExaPixmap->fb_pitch;
++	} else if (has_gpu_copy)
+ 	    exaCopyDirtyToSys(pixmaps);
+-	}
+ 
+ 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+ 	pPixmap->devKind = pExaPixmap->sys_pitch;
+-	pExaPixmap->offscreen = FALSE;
++	pExaPixmap->use_gpu_copy = FALSE;
+     }
+ }
+ 
+-/* Move back results of software rendering on system memory copy of mixed driver
+- * pixmap (see exaPrepareAccessReg_mixed).
+- */
+-void exaFinishAccess_mixed(PixmapPtr pPixmap, int index)
+-{
+-    ExaPixmapPriv(pPixmap);
+-
+-    if (pExaPixmap->pDamage && exaPixmapIsOffscreen(pPixmap) &&
+-	!pExaPixmap->offscreen) {
+-	DamageRegionProcessPending(&pPixmap->drawable);
+-	exaMoveInPixmap_mixed(pPixmap);
+-    }
+-}
+diff --git a/exa/exa_mixed.c b/exa/exa_mixed.c
+index 47adad7..49e04f2 100644
+--- a/exa/exa_mixed.c
++++ b/exa/exa_mixed.c
+@@ -93,9 +93,25 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
+     /* A scratch pixmap will become a driver pixmap right away. */
+     if (!w || !h) {
+ 	exaCreateDriverPixmap_mixed(pPixmap);
+-	pExaPixmap->offscreen = exaPixmapIsOffscreen(pPixmap);
+-    } else
+-	pExaPixmap->offscreen = FALSE;
++	pExaPixmap->use_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
++    } else {
++	pExaPixmap->use_gpu_copy = FALSE;
++
++	if (w == 1 && h == 1) {
++	    pExaPixmap->sys_ptr = malloc((pPixmap->drawable.bitsPerPixel + 7) / 8);
++
++	    /* Set up damage tracking */
++	    pExaPixmap->pDamage = DamageCreate(exaDamageReport_mixed, NULL,
++					       DamageReportNonEmpty, TRUE,
++					       pPixmap->drawable.pScreen,
++					       pPixmap);
++
++	    DamageRegister(&pPixmap->drawable, pExaPixmap->pDamage);
++	    /* This ensures that pending damage reflects the current operation. */
++	    /* This is used by exa to optimize migration. */
++	    DamageSetReportAfterOp(pExaPixmap->pDamage, TRUE);
++	}
++    }
+ 
+     /* During a fallback we must prepare access. */
+     if (pExaScr->fallback_counter)
+@@ -108,14 +124,15 @@ Bool
+ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
+ 		      int bitsPerPixel, int devKind, pointer pPixData)
+ {
+-    ScreenPtr pScreen = pPixmap->drawable.pScreen;
++    ScreenPtr pScreen;
+     ExaScreenPrivPtr pExaScr;
+     ExaPixmapPrivPtr pExaPixmap;
+-    Bool ret, is_offscreen;
++    Bool ret, has_gpu_copy;
+ 
+     if (!pPixmap)
+         return FALSE;
+ 
++    pScreen = pPixmap->drawable.pScreen;
+     pExaScr = ExaGetScreenPriv(pScreen);
+     pExaPixmap = ExaGetPixmapPriv(pPixmap);
+ 
+@@ -131,22 +148,58 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
+ 	    pExaPixmap->driverPriv = NULL;
+ 	}
+ 
+-	pExaPixmap->offscreen = FALSE;
++	pExaPixmap->use_gpu_copy = FALSE;
+ 	pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+     }
+ 
+-    if (pExaPixmap->driverPriv) {
+-        if (width > 0 && height > 0 && bitsPerPixel > 0) {
++    has_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
++
++    if (width <= 0)
++	width = pPixmap->drawable.width;
++
++    if (height <= 0)
++	height = pPixmap->drawable.height;
++
++    if (bitsPerPixel <= 0) {
++	if (depth <= 0)
++	    bitsPerPixel = pPixmap->drawable.bitsPerPixel;
++	else
++	    bitsPerPixel = BitsPerPixel(depth);
++    }
++
++    if (depth <= 0)
++	depth = pPixmap->drawable.depth;
++
++    if (width != pPixmap->drawable.width ||
++	height != pPixmap->drawable.height ||
++	depth != pPixmap->drawable.depth ||
++	bitsPerPixel != pPixmap->drawable.bitsPerPixel) {
++	if (pExaPixmap->driverPriv) {
+             exaSetFbPitch(pExaScr, pExaPixmap,
+                           width, height, bitsPerPixel);
+ 
+             exaSetAccelBlock(pExaScr, pExaPixmap,
+                              width, height, bitsPerPixel);
++            REGION_EMPTY(pScreen, &pExaPixmap->validFB);
+         }
++
++	/* Need to re-create system copy if there's also a GPU copy */
++	if (has_gpu_copy && pExaPixmap->sys_ptr) {
++	    free(pExaPixmap->sys_ptr);
++	    pExaPixmap->sys_ptr = NULL;
++	    pExaPixmap->sys_pitch = devKind > 0 ? devKind :
++	        PixmapBytePad(width, depth);
++	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
++	    DamageDestroy(pExaPixmap->pDamage);
++	    pExaPixmap->pDamage = NULL;
++	    REGION_EMPTY(pScreen, &pExaPixmap->validSys);
++
++	    if (pExaScr->deferred_mixed_pixmap == pPixmap)
++		pExaScr->deferred_mixed_pixmap = NULL;
++	}
+     }
+ 
+-    is_offscreen = exaPixmapIsOffscreen(pPixmap);
+-    if (is_offscreen) {
++    if (has_gpu_copy) {
+ 	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+ 	pPixmap->devKind = pExaPixmap->fb_pitch;
+     } else {
+@@ -168,7 +221,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
+     swap(pExaScr, pScreen, ModifyPixmapHeader);
+ 
+ out:
+-    if (is_offscreen) {
++    if (has_gpu_copy) {
+ 	pExaPixmap->fb_ptr = pPixmap->devPrivate.ptr;
+ 	pExaPixmap->fb_pitch = pPixmap->devKind;
+     } else {
+@@ -196,6 +249,9 @@ exaDestroyPixmap_mixed(PixmapPtr pPixmap)
+ 	if (pExaScr->fallback_counter)
+ 	    exaFinishAccess(&pPixmap->drawable, -1);
+ 
++	if (pExaScr->deferred_mixed_pixmap == pPixmap)
++	    pExaScr->deferred_mixed_pixmap = NULL;
++
+ 	if (pExaPixmap->driverPriv)
+ 	    pExaScr->info->DestroyPixmap(pScreen, pExaPixmap->driverPriv);
+ 	pExaPixmap->driverPriv = NULL;
+@@ -216,7 +272,7 @@ exaDestroyPixmap_mixed(PixmapPtr pPixmap)
+ }
+ 
+ Bool
+-exaPixmapIsOffscreen_mixed(PixmapPtr pPixmap)
++exaPixmapHasGpuCopy_mixed(PixmapPtr pPixmap)
+ {
+     ScreenPtr pScreen = pPixmap->drawable.pScreen;
+     ExaScreenPriv(pScreen);
+diff --git a/exa/exa_offscreen.c b/exa/exa_offscreen.c
+index 2ec4174..5abe3b8 100644
+--- a/exa/exa_offscreen.c
++++ b/exa/exa_offscreen.c
+@@ -245,7 +245,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
+     /* save extra space in new area */
+     if (real_size < area->size)
+     {
+-	ExaOffscreenArea   *new_area = xalloc (sizeof (ExaOffscreenArea));
++	ExaOffscreenArea   *new_area = malloc(sizeof (ExaOffscreenArea));
+ 	if (!new_area)
+ 	    return NULL;
+ 	new_area->base_offset = area->base_offset;
+@@ -408,7 +408,7 @@ ExaOffscreenMerge (ExaScreenPrivPtr pExaScr, ExaOffscreenArea *area)
+ 	area->next->prev = area;
+     else
+ 	pExaScr->info->offScreenAreas->prev = area;
+-    xfree (next);
++    free(next);
+ 
+     pExaScr->numOffscreenAvailable--;
+ }
+@@ -499,7 +499,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
+ 	return NULL;
+ 
+     pExaDstPix = ExaGetPixmapPriv (pDstPix);
+-    pExaDstPix->offscreen = TRUE;
++    pExaDstPix->use_gpu_copy = TRUE;
+ 
+     for (area = pExaScr->info->offScreenAreas->prev;
+ 	 area != pExaScr->info->offScreenAreas;
+@@ -508,7 +508,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
+ 	ExaOffscreenArea *prev = area->prev;
+ 	PixmapPtr pSrcPix;
+ 	ExaPixmapPrivPtr pExaSrcPix;
+-	Bool save_offscreen;
++	Bool save_use_gpu_copy;
+ 	int save_pitch;
+ 
+ 	if (area->state != ExaOffscreenAvail ||
+@@ -553,10 +553,10 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
+ 	    continue;
+ 	}
+ 
+-	save_offscreen = pExaSrcPix->offscreen;
++	save_use_gpu_copy = pExaSrcPix->use_gpu_copy;
+ 	save_pitch = pSrcPix->devKind;
+ 
+-	pExaSrcPix->offscreen = TRUE;
++	pExaSrcPix->use_gpu_copy = TRUE;
+ 	pSrcPix->devKind = pExaSrcPix->fb_pitch;
+ 
+ 	pDstPix->drawable.width = pSrcPix->drawable.width;
+@@ -566,7 +566,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
+ 	pDstPix->drawable.bitsPerPixel = pSrcPix->drawable.bitsPerPixel;
+ 
+ 	if (!pExaScr->info->PrepareCopy (pSrcPix, pDstPix, -1, -1, GXcopy, ~0)) {
+-	    pExaSrcPix->offscreen = save_offscreen;
++	    pExaSrcPix->use_gpu_copy = save_use_gpu_copy;
+ 	    pSrcPix->devKind = save_pitch;
+ 	    area = prev;
+ 	    continue;
+@@ -623,7 +623,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
+ #endif
+ 
+ 	pExaSrcPix->fb_ptr = pExaDstPix->fb_ptr;
+-	pExaSrcPix->offscreen = save_offscreen;
++	pExaSrcPix->use_gpu_copy = save_use_gpu_copy;
+ 	pSrcPix->devKind = save_pitch;
+     }
+ 
+@@ -655,7 +655,7 @@ exaOffscreenInit (ScreenPtr pScreen)
+     ExaOffscreenArea *area;
+ 
+     /* Allocate a big free area */
+-    area = xalloc (sizeof (ExaOffscreenArea));
++    area = malloc(sizeof (ExaOffscreenArea));
+ 
+     if (!area)
+ 	return FALSE;
+@@ -691,6 +691,6 @@ ExaOffscreenFini (ScreenPtr pScreen)
+     while ((area = pExaScr->info->offScreenAreas))
+     {
+ 	pExaScr->info->offScreenAreas = area->next;
+-	xfree (area);
++	free(area);
+     }
+ }
+diff --git a/exa/exa_priv.h b/exa/exa_priv.h
+index 7d035d4..14c99e9 100644
+--- a/exa/exa_priv.h
++++ b/exa/exa_priv.h
+@@ -50,10 +50,8 @@
+ #include "dix.h"
+ #include "fb.h"
+ #include "fboverlay.h"
+-#ifdef RENDER
+ #include "fbpict.h"
+ #include "glyphstr.h"
+-#endif
+ #include "damage.h"
+ 
+ #define DEBUG_TRACE_FALL	0
+@@ -165,19 +163,17 @@ typedef struct {
+     BitmapToRegionProcPtr        SavedBitmapToRegion;
+     CreateScreenResourcesProcPtr SavedCreateScreenResources;
+     ModifyPixmapHeaderProcPtr    SavedModifyPixmapHeader;
+-#ifdef RENDER
++    SourceValidateProcPtr        SavedSourceValidate;
+     CompositeProcPtr             SavedComposite;
+     TrianglesProcPtr		 SavedTriangles;
+     GlyphsProcPtr                SavedGlyphs;
+     TrapezoidsProcPtr            SavedTrapezoids;
+     AddTrapsProcPtr		 SavedAddTraps;
+-#endif
+     void (*do_migration) (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
+-    Bool (*pixmap_is_offscreen) (PixmapPtr pPixmap);
++    Bool (*pixmap_has_gpu_copy) (PixmapPtr pPixmap);
+     void (*do_move_in_pixmap) (PixmapPtr pPixmap);
+     void (*do_move_out_pixmap) (PixmapPtr pPixmap);
+     void (*prepare_access_reg)(PixmapPtr pPixmap, int index, RegionPtr pReg);
+-    void (*finish_access)(PixmapPtr pPixmap, int index);
+ 
+     Bool			 swappedOut;
+     enum ExaMigrationHeuristic	 migration;
+@@ -188,11 +184,13 @@ typedef struct {
+     unsigned			 numOffscreenAvailable;
+     CARD32			 lastDefragment;
+     CARD32			 nextDefragment;
++    PixmapPtr			 deferred_mixed_pixmap;
+ 
+     /* Reference counting for accessed pixmaps */
+     struct {
+ 	PixmapPtr pixmap;
+ 	int count;
++	Bool retval;
+     } access[EXA_NUM_PREPARE_INDICES];
+ 
+     /* Holds information on fallbacks that cannot be relayed otherwise. */
+@@ -200,6 +198,15 @@ typedef struct {
+     unsigned int fallback_counter;
+ 
+     ExaGlyphCacheRec             glyphCaches[EXA_NUM_GLYPH_CACHES];
++
++    /**
++     * Regions affected by fallback composite source / mask operations.
++     */
++
++    RegionRec srcReg;
++    RegionRec maskReg;
++    PixmapPtr srcPix;
++
+ } ExaScreenPrivRec, *ExaScreenPrivPtr;
+ 
+ /*
+@@ -282,7 +289,7 @@ extern DevPrivateKey exaGCPrivateKey;
+ typedef struct {
+     ExaOffscreenArea *area;
+     int		    score;	/**< score for the move-in vs move-out heuristic */
+-    Bool	    offscreen;
++    Bool	    use_gpu_copy;
+ 
+     CARD8	    *sys_ptr;	/**< pointer to pixmap data in system memory */
+     int		    sys_pitch;	/**< pitch of pixmap in system memory */
+@@ -488,7 +495,6 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
+ 
+ extern const GCOps exaOps;
+ 
+-#ifdef RENDER
+ void
+ ExaCheckComposite (CARD8      op,
+ 		  PicturePtr pSrc,
+@@ -502,7 +508,17 @@ ExaCheckComposite (CARD8      op,
+ 		  INT16      yDst,
+ 		  CARD16     width,
+ 		  CARD16     height);
+-#endif
++
++void
++ExaCheckGlyphs (CARD8	      op,
++		PicturePtr    pSrc,
++		PicturePtr    pDst,
++		PictFormatPtr maskFormat,
++		INT16	      xSrc,
++		INT16	      ySrc,
++		int	      nlist,
++		GlyphListPtr  list,
++		GlyphPtr      *glyphs);
+ 
+ /* exa_offscreen.c */
+ void
+@@ -538,7 +554,7 @@ exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
+ 		      int *xp, int *yp);
+ 
+ Bool
+-exaPixmapIsOffscreen(PixmapPtr p);
++exaPixmapHasGpuCopy(PixmapPtr p);
+ 
+ PixmapPtr
+ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
+@@ -575,7 +591,7 @@ Bool
+ exaDestroyPixmap_classic (PixmapPtr pPixmap);
+ 
+ Bool
+-exaPixmapIsOffscreen_classic(PixmapPtr pPixmap);
++exaPixmapHasGpuCopy_classic(PixmapPtr pPixmap);
+ 
+ /* exa_driver.c */
+ PixmapPtr
+@@ -590,7 +606,7 @@ Bool
+ exaDestroyPixmap_driver (PixmapPtr pPixmap);
+ 
+ Bool
+-exaPixmapIsOffscreen_driver(PixmapPtr pPixmap);
++exaPixmapHasGpuCopy_driver(PixmapPtr pPixmap);
+ 
+ /* exa_mixed.c */
+ PixmapPtr
+@@ -605,7 +621,7 @@ Bool
+ exaDestroyPixmap_mixed(PixmapPtr pPixmap);
+ 
+ Bool
+-exaPixmapIsOffscreen_mixed(PixmapPtr pPixmap);
++exaPixmapHasGpuCopy_mixed(PixmapPtr pPixmap);
+ 
+ /* exa_migration_mixed.c */
+ void
+@@ -618,10 +634,10 @@ void
+ exaMoveInPixmap_mixed(PixmapPtr pPixmap);
+ 
+ void
+-exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg);
++exaDamageReport_mixed(DamagePtr pDamage, RegionPtr pRegion, void *closure);
+ 
+ void
+-exaFinishAccess_mixed(PixmapPtr pPixmap, int index);
++exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg);
+ 
+ /* exa_render.c */
+ Bool
+diff --git a/exa/exa_render.c b/exa/exa_render.c
+index db355d6..b7f383f 100644
+--- a/exa/exa_render.c
++++ b/exa/exa_render.c
+@@ -30,7 +30,6 @@
+ 
+ #include "exa_priv.h"
+ 
+-#ifdef RENDER
+ #include "mipict.h"
+ 
+ #if DEBUG_TRACE_FALL
+@@ -320,7 +319,7 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
+ 	exaDoMigration(pixmaps, 1, TRUE);
+     }
+ 
+-    if (!exaPixmapIsOffscreen(pDstPix)) {
++    if (!exaPixmapHasGpuCopy(pDstPix)) {
+ 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+ 	return 0;
+     }
+@@ -540,7 +539,7 @@ exaCompositeRects(CARD8	              op,
+ 	/* We have to manage the damage ourselves, since CompositeRects isn't
+ 	 * something in the screen that can be managed by the damage extension,
+ 	 * and EXA depends on damage to track what needs to be migrated between
+-	 * offscreen and onscreen.
++	 * the gpu and the cpu.
+ 	 */
+ 
+ 	/* Compute the overall extents of the composited region - we're making
+@@ -752,7 +751,7 @@ exaTryDriverComposite(CARD8		op,
+ 	}
+     }
+ 
+-    if (!exaPixmapIsOffscreen(pDstPix)) {
++    if (!exaPixmapHasGpuCopy(pDstPix)) {
+ 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+ 	return 0;
+     }
+@@ -1072,7 +1071,6 @@ done:
+     if (pMask)
+ 	pMask->repeat = saveMaskRepeat;
+ }
+-#endif
+ 
+ /**
+  * Same as miCreateAlphaPicture, except it uses ExaCheckPolyFillRect instead
+diff --git a/exa/exa_unaccel.c b/exa/exa_unaccel.c
+index 9bc765a..402d76d 100644
+--- a/exa/exa_unaccel.c
++++ b/exa/exa_unaccel.c
+@@ -23,9 +23,7 @@
+ 
+ #include "exa_priv.h"
+ 
+-#ifdef RENDER
+ #include "mipict.h"
+-#endif
+ 
+ /*
+  * These functions wrap the low-level fb rendering functions and
+@@ -123,11 +121,36 @@ ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
+ 	     BoxPtr	pbox, int nbox, int dx, int dy, Bool	reverse, 
+ 	     Bool upsidedown, Pixel bitplane, void *closure)
+ {
++    RegionRec reg;
++    int xoff, yoff;
+     EXA_PRE_FALLBACK_GC(pGC);
+     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrc, pDst,
+ 		  exaDrawableLocation(pSrc), exaDrawableLocation(pDst)));
+-    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
+-    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
++
++    if (pExaScr->prepare_access_reg) {
++	PixmapPtr pPixmap = exaGetDrawablePixmap(pSrc);
++
++	exaGetDrawableDeltas(pSrc, pPixmap, &xoff, &yoff);
++	REGION_INIT(pScreen, &reg, pbox, nbox);
++	REGION_TRANSLATE(pScreen, &reg, xoff + dx, yoff + dy);
++	pExaScr->prepare_access_reg(pPixmap, EXA_PREPARE_SRC, &reg);
++	REGION_UNINIT(pScreen, &reg);
++    } else
++	exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
++
++    if (pExaScr->prepare_access_reg &&
++	!exaGCReadsDestination(pDst, pGC->planemask, pGC->fillStyle,
++			       pGC->alu, pGC->clientClipType)) {
++	PixmapPtr pPixmap = exaGetDrawablePixmap(pDst);
++
++	exaGetDrawableDeltas(pSrc, pPixmap, &xoff, &yoff);
++	REGION_INIT(pScreen, &reg, pbox, nbox);
++	REGION_TRANSLATE(pScreen, &reg, xoff, yoff);
++	pExaScr->prepare_access_reg(pPixmap, EXA_PREPARE_DEST, &reg);
++	REGION_UNINIT(pScreen, &reg);
++    } else
++	exaPrepareAccess (pDst, EXA_PREPARE_DEST);
++
+     /* This will eventually call fbCopyNtoN, with some calculation overhead. */
+     while (nbox--) {
+ 	pGC->ops->CopyArea (pSrc, pDst, pGC, pbox->x1 - pSrc->x + dx, pbox->y1 - pSrc->y + dy, 
+@@ -139,6 +162,40 @@ ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
+     EXA_POST_FALLBACK_GC(pGC);
+ }
+ 
++static void
++ExaFallbackPrepareReg(DrawablePtr pDrawable,
++		      GCPtr pGC,
++		      int x, int y, int width, int height,
++		      int index, Bool checkReads)
++{
++    ScreenPtr pScreen = pDrawable->pScreen;
++    ExaScreenPriv(pScreen);
++
++    if (pExaScr->prepare_access_reg &&
++	!(checkReads && exaGCReadsDestination(pDrawable,
++					      pGC->planemask,
++					      pGC->fillStyle,
++					      pGC->alu,
++					      pGC->clientClipType))) {
++	BoxRec box;
++	RegionRec reg;
++	int xoff, yoff;
++	PixmapPtr pPixmap = exaGetDrawablePixmap(pDrawable);
++
++	exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
++	box.x1 = pDrawable->x + x + xoff;
++	box.y1 = pDrawable->y + y + yoff;
++	box.x2 = box.x1 + width;
++	box.y2 = box.y1 + height;
++
++	REGION_INIT(pScreen, &reg, &box, 1);
++	pExaScr->prepare_access_reg(pPixmap, index, &reg);
++	REGION_UNINIT(pScreen, &reg);
++    } else
++	exaPrepareAccess(pDrawable, index);
++}
++
++
+ RegionPtr
+ ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
+ 		 int srcx, int srcy, int w, int h, int dstx, int dsty)
+@@ -148,8 +205,10 @@ ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
+     EXA_PRE_FALLBACK_GC(pGC);
+     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrc, pDst,
+ 		  exaDrawableLocation(pSrc), exaDrawableLocation(pDst)));
+-    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
+-    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
++    ExaFallbackPrepareReg(pSrc, pGC, srcx, srcy, w, h,
++			  EXA_PREPARE_SRC, FALSE);
++    ExaFallbackPrepareReg(pDst, pGC, dstx, dsty, w, h,
++			  EXA_PREPARE_DEST, TRUE);
+     ret = pGC->ops->CopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
+     exaFinishAccess (pSrc, EXA_PREPARE_SRC);
+     exaFinishAccess (pDst, EXA_PREPARE_DEST);
+@@ -168,8 +227,10 @@ ExaCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
+     EXA_PRE_FALLBACK_GC(pGC);
+     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrc, pDst,
+ 		  exaDrawableLocation(pSrc), exaDrawableLocation(pDst)));
+-    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
+-    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
++    ExaFallbackPrepareReg(pSrc, pGC, srcx, srcy, w, h,
++			  EXA_PREPARE_SRC, FALSE);
++    ExaFallbackPrepareReg(pDst, pGC, dstx, dsty, w, h,
++			  EXA_PREPARE_DEST, TRUE);
+     ret = pGC->ops->CopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
+ 		       bitPlane);
+     exaFinishAccess (pSrc, EXA_PREPARE_SRC);
+@@ -295,8 +356,10 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
+     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pBitmap, pDrawable,
+ 		  exaDrawableLocation(&pBitmap->drawable),
+ 		  exaDrawableLocation(pDrawable)));
+-    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+-    exaPrepareAccess (&pBitmap->drawable, EXA_PREPARE_SRC);
++    ExaFallbackPrepareReg(pDrawable, pGC, x, y, w, h,
++			  EXA_PREPARE_DEST, TRUE);
++    ExaFallbackPrepareReg(&pBitmap->drawable, pGC, 0, 0, w, h,
++			  EXA_PREPARE_SRC, FALSE);
+     exaPrepareAccessGC (pGC);
+     pGC->ops->PushPixels (pGC, pBitmap, pDrawable, w, h, x, y);
+     exaFinishAccessGC (pGC);
+@@ -313,8 +376,18 @@ ExaCheckCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
+     EXA_PRE_FALLBACK(pScreen);
+     EXA_FALLBACK(("from %p\n", pWin));
+ 
+-    /* being both src and dest, src is safest. */
+-    exaPrepareAccess(pDrawable, EXA_PREPARE_SRC);
++    /* Only need the source bits, the destination region will be overwritten */
++    if (pExaScr->prepare_access_reg) {
++	PixmapPtr pPixmap = pScreen->GetWindowPixmap(pWin);
++	int xoff, yoff;
++
++	exaGetDrawableDeltas(&pWin->drawable, pPixmap, &xoff, &yoff);
++	REGION_TRANSLATE(pScreen, prgnSrc, xoff, yoff);
++	pExaScr->prepare_access_reg(pPixmap, EXA_PREPARE_SRC, prgnSrc);
++	REGION_TRANSLATE(pScreen, prgnSrc, -xoff, -yoff);
++    } else
++	exaPrepareAccess(pDrawable, EXA_PREPARE_SRC);
++
+     swap(pExaScr, pScreen, CopyWindow);
+     pScreen->CopyWindow (pWin, ptOldOrg, prgnSrc);
+     swap(pExaScr, pScreen, CopyWindow);
+@@ -327,29 +400,12 @@ ExaCheckGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
+ 		unsigned int format, unsigned long planeMask, char *d)
+ {
+     ScreenPtr pScreen = pDrawable->pScreen;
+-    PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
+     EXA_PRE_FALLBACK(pScreen);
+     EXA_FALLBACK(("from %p (%c)\n", pDrawable,
+ 		  exaDrawableLocation(pDrawable)));
+ 
+-    if (pExaScr->prepare_access_reg) {
+-	int xoff, yoff;
+-	BoxRec Box;
+-	RegionRec Reg;
+-
+-	exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
+-
+-	Box.x1 = pDrawable->y + x + xoff;
+-	Box.y1 = pDrawable->y + y + yoff;
+-	Box.x2 = Box.x1 + w;
+-	Box.y2 = Box.y1 + h;
+-
+-	REGION_INIT(pScreen, &Reg, &Box, 1);
+-
+-	pExaScr->prepare_access_reg(pPix, EXA_PREPARE_SRC, &Reg);
+-    } else
+-	exaPrepareAccess(pDrawable, EXA_PREPARE_SRC);
+-
++    ExaFallbackPrepareReg(pDrawable, NULL, x, y, w, h,
++			  EXA_PREPARE_SRC, FALSE);
+     swap(pExaScr, pScreen, GetImage);
+     pScreen->GetImage (pDrawable, x, y, w, h, format, planeMask, d);
+     swap(pExaScr, pScreen, GetImage);
+@@ -377,6 +433,175 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
+     EXA_POST_FALLBACK(pScreen);
+ }
+ 
++static void
++ExaSrcValidate(DrawablePtr pDrawable,
++	       int x,
++	       int y,
++	       int width,
++	       int height)
++{
++    ScreenPtr pScreen = pDrawable->pScreen;
++    ExaScreenPriv(pScreen);
++    PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
++    BoxRec box;
++    RegionRec reg;
++    RegionPtr dst;
++    int xoff, yoff;
++
++    exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
++
++    box.x1 = x + xoff;
++    box.y1 = y + yoff;
++    box.x2 = box.x1 + width;
++    box.y2 = box.y1 + height;
++
++    dst = (pExaScr->srcPix == pPix) ? &pExaScr->srcReg :
++	&pExaScr->maskReg;
++
++    REGION_INIT(pScreen, &reg, &box, 1);
++    REGION_UNION(pScreen, dst, dst, &reg);
++    REGION_UNINIT(pScreen, &reg);
++
++    if (pExaScr->SavedSourceValidate) {
++        swap(pExaScr, pScreen, SourceValidate);
++        pScreen->SourceValidate(pDrawable, x, y, width, height);
++        swap(pExaScr, pScreen, SourceValidate);
++    }
++}
++
++static Bool
++ExaPrepareCompositeReg(ScreenPtr  pScreen,
++		       CARD8      op,
++		       PicturePtr pSrc,
++		       PicturePtr pMask,
++		       PicturePtr pDst,
++		       INT16      xSrc,
++		       INT16      ySrc,
++		       INT16      xMask,
++		       INT16      yMask,
++		       INT16      xDst,
++		       INT16      yDst,
++		       CARD16     width,
++		       CARD16     height)
++{
++    RegionRec region;
++    RegionPtr dstReg = NULL;
++    RegionPtr srcReg = NULL;
++    RegionPtr maskReg = NULL;
++    PixmapPtr pSrcPix = NULL;
++    PixmapPtr pMaskPix = NULL;
++    PixmapPtr pDstPix;
++    ExaScreenPriv(pScreen);
++    Bool ret;
++
++
++    REGION_NULL(pScreen, &region);
++
++    if (pSrc->pDrawable) {
++	pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
++	REGION_NULL(pScreen, &pExaScr->srcReg);
++	srcReg = &pExaScr->srcReg;
++	pExaScr->srcPix = pSrcPix;
++	if (pSrc != pDst)
++	    REGION_TRANSLATE(pScreen, pSrc->pCompositeClip,
++			     -pSrc->pDrawable->x,
++			     -pSrc->pDrawable->y);
++    }
++
++    if (pMask && pMask->pDrawable) {
++	pMaskPix = exaGetDrawablePixmap(pMask->pDrawable);
++	REGION_NULL(pScreen, &pExaScr->maskReg);
++	maskReg = &pExaScr->maskReg;
++	if (pMask != pDst && pMask != pSrc)
++	    REGION_TRANSLATE(pScreen, pMask->pCompositeClip,
++			     -pMask->pDrawable->x,
++			     -pMask->pDrawable->y);
++    }
++
++    REGION_TRANSLATE(pScreen, pDst->pCompositeClip,
++		     -pDst->pDrawable->x,
++		     -pDst->pDrawable->y);
++
++    pExaScr->SavedSourceValidate = ExaSrcValidate;
++    swap(pExaScr, pScreen, SourceValidate);
++    ret = miComputeCompositeRegion (&region, pSrc, pMask, pDst,
++				    xSrc, ySrc, xMask, yMask,
++				    xDst,
++				    yDst,
++				    width, height);
++    swap(pExaScr, pScreen, SourceValidate);
++
++    REGION_TRANSLATE(pScreen, pDst->pCompositeClip,
++		     pDst->pDrawable->x,
++		     pDst->pDrawable->y);
++    if (pSrc->pDrawable && pSrc != pDst)
++	REGION_TRANSLATE(pScreen, pSrc->pCompositeClip,
++			 pSrc->pDrawable->x,
++			 pSrc->pDrawable->y);
++    if (pMask && pMask->pDrawable && pMask != pDst && pMask != pSrc)
++	REGION_TRANSLATE(pScreen, pMask->pCompositeClip,
++			 pMask->pDrawable->x,
++			 pMask->pDrawable->y);
++
++    if (!ret) {
++	if (srcReg)
++	    REGION_UNINIT(pScreen, srcReg);
++	if (maskReg)
++	    REGION_UNINIT(pScreen, maskReg);
++
++	return FALSE;
++    }
++
++    /**
++     * Don't limit alphamaps readbacks for now until we've figured out how that
++     * should be done.
++     */
++
++    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
++	pExaScr->prepare_access_reg(exaGetDrawablePixmap(pSrc->alphaMap->pDrawable),
++				    EXA_PREPARE_AUX_SRC,
++				    NULL);
++    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
++	pExaScr->prepare_access_reg(exaGetDrawablePixmap(pMask->alphaMap->pDrawable),
++				    EXA_PREPARE_AUX_MASK,
++				    NULL);
++
++    if (pSrcPix)
++	pExaScr->prepare_access_reg(pSrcPix,
++				    EXA_PREPARE_SRC,
++				    srcReg);
++
++    if (pMaskPix)
++	pExaScr->prepare_access_reg(pMaskPix,
++				    EXA_PREPARE_MASK,
++				    maskReg);
++
++    if (srcReg)
++	REGION_UNINIT(pScreen, srcReg);
++    if (maskReg)
++	REGION_UNINIT(pScreen, maskReg);
++
++    pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
++    if (!exaOpReadsDestination(op)) {
++	int xoff;
++	int yoff;
++
++	exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &xoff, &yoff);
++	REGION_TRANSLATE(pScreen, &region, pDst->pDrawable->x + xoff,
++			 pDst->pDrawable->y + yoff);
++	dstReg = &region;
++    }
++
++    if (pDst->alphaMap && pDst->alphaMap->pDrawable)
++	pExaScr->prepare_access_reg(exaGetDrawablePixmap(pDst->alphaMap->pDrawable),
++				    EXA_PREPARE_AUX_DEST,
++				    dstReg);
++    pExaScr->prepare_access_reg(pDstPix, EXA_PREPARE_DEST, dstReg);
++
++    REGION_UNINIT(pScreen, &region);
++    return TRUE;
++}
++
+ void
+ ExaCheckComposite (CARD8      op,
+                    PicturePtr pSrc,
+@@ -392,56 +617,39 @@ ExaCheckComposite (CARD8      op,
+                    CARD16     height)
+ {
+     ScreenPtr pScreen = pDst->pDrawable->pScreen;
+-#ifdef RENDER
+     PictureScreenPtr	ps = GetPictureScreen(pScreen);
+-#endif /* RENDER */
+-    RegionRec region;
+-    int xoff, yoff;
+     EXA_PRE_FALLBACK(pScreen);
+ 
+-    REGION_NULL(pScreen, &region);
+-
+-    /* We need to prepare access to any separate alpha maps first, in case the
+-     * driver doesn't support EXA_PREPARE_AUX*, in which case EXA_PREPARE_SRC
+-     * may be used for moving them out.
+-     */
+-    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
+-	exaPrepareAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
+-    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
+-	exaPrepareAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
+-
+-    if (!exaOpReadsDestination(op) && pExaScr->prepare_access_reg) {
+-	PixmapPtr pDstPix;
+-
+-	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
+-				       xSrc, ySrc, xMask, yMask, xDst, yDst,
+-				       width, height))
+-	    goto skip;
+-
+-	pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
+-	exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &xoff, &yoff);
+-	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
++    if (pExaScr->prepare_access_reg) {
++	if (!ExaPrepareCompositeReg(pScreen, op, pSrc, pMask, pDst, xSrc,
++				   ySrc, xMask, yMask, xDst, yDst, width,
++				   height))
++	    goto out_no_clip;
++    } else {
+ 
+-	if (pDst->alphaMap && pDst->alphaMap->pDrawable)
+-	    pExaScr->prepare_access_reg(exaGetDrawablePixmap(pDst->alphaMap->pDrawable),
+-					EXA_PREPARE_AUX_DEST, &region);
++	/* We need to prepare access to any separate alpha maps first,
++	 * in case the driver doesn't support EXA_PREPARE_AUX*,
++	 * in which case EXA_PREPARE_SRC may be used for moving them out.
++	 */
+ 
+-	pExaScr->prepare_access_reg(pDstPix, EXA_PREPARE_DEST, &region);
+-    } else {
++	if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
++	    exaPrepareAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
++	if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
++	    exaPrepareAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
+ 	if (pDst->alphaMap && pDst->alphaMap->pDrawable)
+ 	    exaPrepareAccess(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX_DEST);
+ 
+ 	exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+-    }
+ 
+-    EXA_FALLBACK(("from picts %p/%p to pict %p\n",
+-		 pSrc, pMask, pDst));
++	EXA_FALLBACK(("from picts %p/%p to pict %p\n",
++		      pSrc, pMask, pDst));
++
++	if (pSrc->pDrawable != NULL)
++	    exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
++	if (pMask && pMask->pDrawable != NULL)
++	    exaPrepareAccess (pMask->pDrawable, EXA_PREPARE_MASK);
++    }
+ 
+-    if (pSrc->pDrawable != NULL)
+-	exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
+-    if (pMask && pMask->pDrawable != NULL)
+-	exaPrepareAccess (pMask->pDrawable, EXA_PREPARE_MASK);
+-#ifdef RENDER
+     swap(pExaScr, ps, Composite);
+     ps->Composite (op,
+                  pSrc,
+@@ -456,7 +664,6 @@ ExaCheckComposite (CARD8      op,
+                  width,
+                  height);
+     swap(pExaScr, ps, Composite);
+-#endif /* RENDER */
+     if (pMask && pMask->pDrawable != NULL)
+ 	exaFinishAccess (pMask->pDrawable, EXA_PREPARE_MASK);
+     if (pSrc->pDrawable != NULL)
+@@ -464,14 +671,34 @@ ExaCheckComposite (CARD8      op,
+     exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+     if (pDst->alphaMap && pDst->alphaMap->pDrawable)
+ 	exaFinishAccess(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX_DEST);
+-
+-skip:
+     if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
+ 	exaFinishAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
+     if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
+ 	exaFinishAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
+ 
+-    REGION_UNINIT(pScreen, &region);
++out_no_clip:
++    EXA_POST_FALLBACK(pScreen);
++}
++
++/**
++ * Avoid migration ping-pong when using a mask.
++ */
++void
++ExaCheckGlyphs (CARD8	      op,
++		PicturePtr    pSrc,
++		PicturePtr    pDst,
++		PictFormatPtr maskFormat,
++		INT16	      xSrc,
++		INT16	      ySrc,
++		int	      nlist,
++		GlyphListPtr  list,
++		GlyphPtr      *glyphs)
++{
++    ScreenPtr pScreen = pDst->pDrawable->pScreen;
++    EXA_PRE_FALLBACK(pScreen);
++
++    miGlyphs(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
++
+     EXA_POST_FALLBACK(pScreen);
+ }
+ 
+@@ -483,19 +710,15 @@ ExaCheckAddTraps (PicturePtr	pPicture,
+ 		  xTrap		*traps)
+ {
+     ScreenPtr pScreen = pPicture->pDrawable->pScreen;
+-#ifdef RENDER
+     PictureScreenPtr	ps = GetPictureScreen(pScreen);
+-#endif /* RENDER */
+     EXA_PRE_FALLBACK(pScreen);
+ 
+     EXA_FALLBACK(("to pict %p (%c)\n",
+ 		  exaDrawableLocation(pPicture->pDrawable)));
+     exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+-#ifdef RENDER
+     swap(pExaScr, ps, AddTraps);
+     ps->AddTraps (pPicture, x_off, y_off, ntrap, traps);
+     swap(pExaScr, ps, AddTraps);
+-#endif /* RENDER */
+     exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+     EXA_POST_FALLBACK(pScreen);
+ }

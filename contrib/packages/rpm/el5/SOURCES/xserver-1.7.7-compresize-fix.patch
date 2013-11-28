@@ -1,0 +1,319 @@
+From 08bc76d60fdd39cf6d09e28070f37a0ad620adab Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <airlied@redhat.com>
+Date: Fri, 4 Jun 2010 11:02:58 +1000
+Subject: [PATCH 2/8] composite fixes backported
+
+squashes three upstream patches
+composite: use config notify hook to do pixmap resize. (v3) - backported to avoid ABI breakage
+composite: initialise pOldPixmap to NullPixmap at alloc time.
+composite: fix freeing of old pixmap until after move/resize/cbw
+
+misapplied - fixup
+---
+ composite/compalloc.c  |    1 +
+ composite/compinit.c   |    3 +-
+ composite/compint.h    |   11 ++--
+ composite/compwindow.c |  124 +++++++++++++++--------------------------------
+ dix/window.c           |   18 +++++++-
+ include/window.h       |   11 ++++
+ 6 files changed, 77 insertions(+), 91 deletions(-)
+
+diff --git a/composite/compalloc.c b/composite/compalloc.c
+index 73adc72..8a6beb9 100644
+--- a/composite/compalloc.c
++++ b/composite/compalloc.c
+@@ -143,6 +143,7 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
+ 	cw->oldy = COMP_ORIGIN_INVALID;
+ 	cw->damageRegistered = FALSE;
+ 	cw->damaged = FALSE;
++	cw->pOldPixmap = NullPixmap;
+ 	dixSetPrivate(&pWin->devPrivates, CompWindowPrivateKey, cw);
+     }
+     ccw->next = cw->clients;
+diff --git a/composite/compinit.c b/composite/compinit.c
+index e8b563d..2ee9332 100644
+--- a/composite/compinit.c
++++ b/composite/compinit.c
+@@ -69,6 +69,7 @@ compCloseScreen (int index, ScreenPtr pScreen)
+     pScreen->InstallColormap = cs->InstallColormap;
+     pScreen->ChangeWindowAttributes = cs->ChangeWindowAttributes;
+     pScreen->ReparentWindow = cs->ReparentWindow;
++
+     pScreen->MoveWindow = cs->MoveWindow;
+     pScreen->ResizeWindow = cs->ResizeWindow;
+     pScreen->ChangeBorderWidth = cs->ChangeBorderWidth;
+@@ -389,6 +390,6 @@ compScreenInit (ScreenPtr pScreen)
+     dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, cs);
+ 
+     RegisterRealChildHeadProc(CompositeRealChildHead);
+-
++    RegisterCompositeConfigNotifyProc(compConfigNotify);
+     return TRUE;
+ }
+diff --git a/composite/compint.h b/composite/compint.h
+index 845a196..a959ad5 100644
+--- a/composite/compint.h
++++ b/composite/compint.h
+@@ -126,14 +126,11 @@ typedef struct _CompScreen {
+     RealizeWindowProcPtr	RealizeWindow;
+     UnrealizeWindowProcPtr	UnrealizeWindow;
+     ClipNotifyProcPtr		ClipNotify;
+-    /*
+-     * Called from ConfigureWindow, these
+-     * three track changes to the offscreen storage
+-     * geometry
+-     */
++
+     MoveWindowProcPtr		MoveWindow;
+     ResizeWindowProcPtr		ResizeWindow;
+     ChangeBorderWidthProcPtr	ChangeBorderWidth;
++
+     /*
+      * Reparenting has an effect on Subwindows redirect
+      */
+@@ -316,4 +313,8 @@ CompositeRealChildHead (WindowPtr pWin);
+ int
+ DeleteWindowNoInputDevices(pointer value, XID wid);
+ 
++int
++compConfigNotify(WindowPtr pWin, int x, int y, int w, int h,
++		 int bw, WindowPtr pSib);
++
+ #endif /* _COMPINT_H_ */
+diff --git a/composite/compwindow.c b/composite/compwindow.c
+index 2f5a717..550df39 100644
+--- a/composite/compwindow.c
++++ b/composite/compwindow.c
+@@ -334,37 +334,9 @@ compImplicitRedirect (WindowPtr pWin, WindowPtr pParent)
+     return FALSE;
+ }
+ 
+-void
+-compMoveWindow (WindowPtr pWin, int x, int y, WindowPtr pSib, VTKind kind)
++static void compFreeOldPixmap(WindowPtr pWin)
+ {
+     ScreenPtr		pScreen = pWin->drawable.pScreen;
+-    CompScreenPtr	cs = GetCompScreen (pScreen);
+-
+-    compCheckTree (pScreen);
+-    if (pWin->redirectDraw != RedirectDrawNone)
+-    {
+-	WindowPtr		pParent;
+-	int			draw_x, draw_y;
+-	unsigned int		w, h, bw;
+-
+-	/* if this is a root window, can't be moved */
+-	if (!(pParent = pWin->parent))
+-	   return;
+-
+-	bw = wBorderWidth (pWin);
+-	draw_x = pParent->drawable.x + x + (int)bw;
+-	draw_y = pParent->drawable.y + y + (int)bw;
+-	w = pWin->drawable.width;
+-	h = pWin->drawable.height;
+-	compReallocPixmap (pWin, draw_x, draw_y, w, h, bw);
+-    }
+-    compCheckTree (pScreen);
+-
+-    pScreen->MoveWindow = cs->MoveWindow;
+-    (*pScreen->MoveWindow) (pWin, x, y, pSib, kind);
+-    cs->MoveWindow = pScreen->MoveWindow;
+-    pScreen->MoveWindow = compMoveWindow;
+-
+     if (pWin->redirectDraw != RedirectDrawNone)
+     {
+ 	CompWindowPtr	cw = GetCompWindow (pWin);
+@@ -374,7 +346,19 @@ compMoveWindow (WindowPtr pWin, int x, int y, WindowPtr pSib, VTKind kind)
+ 	    cw->pOldPixmap = NullPixmap;
+ 	}
+     }
++}
++void
++compMoveWindow (WindowPtr pWin, int x, int y, WindowPtr pSib, VTKind kind)
++{
++    ScreenPtr		pScreen = pWin->drawable.pScreen;
++    CompScreenPtr	cs = GetCompScreen (pScreen);
++
++    pScreen->MoveWindow = cs->MoveWindow;
++    (*pScreen->MoveWindow) (pWin, x, y, pSib, kind);
++    cs->MoveWindow = pScreen->MoveWindow;
++    pScreen->MoveWindow = compMoveWindow;
+ 
++    compFreeOldPixmap(pWin);
+     compCheckTree (pScreen);
+ }
+ 
+@@ -385,37 +369,12 @@ compResizeWindow (WindowPtr pWin, int x, int y,
+     ScreenPtr		pScreen = pWin->drawable.pScreen;
+     CompScreenPtr	cs = GetCompScreen (pScreen);
+ 
+-    compCheckTree (pScreen);
+-    if (pWin->redirectDraw != RedirectDrawNone)
+-    {
+-	WindowPtr		pParent;
+-	int			draw_x, draw_y;
+-	unsigned int		bw;
+-
+-	/* if this is a root window, can't be moved */
+-	if (!(pParent = pWin->parent))
+-	   return;
+-
+-	bw = wBorderWidth (pWin);
+-	draw_x = pParent->drawable.x + x + (int)bw;
+-	draw_y = pParent->drawable.y + y + (int)bw;
+-	compReallocPixmap (pWin, draw_x, draw_y, w, h, bw);
+-    }
+-    compCheckTree (pScreen);
+-
+     pScreen->ResizeWindow = cs->ResizeWindow;
+     (*pScreen->ResizeWindow) (pWin, x, y, w, h, pSib);
+     cs->ResizeWindow = pScreen->ResizeWindow;
+     pScreen->ResizeWindow = compResizeWindow;
+-    if (pWin->redirectDraw != RedirectDrawNone)
+-    {
+-	CompWindowPtr	cw = GetCompWindow (pWin);
+-	if (cw->pOldPixmap)
+-	{
+-	    (*pScreen->DestroyPixmap) (cw->pOldPixmap);
+-	    cw->pOldPixmap = NullPixmap;
+-	}
+-    }
++
++    compFreeOldPixmap(pWin);
+     compCheckTree (pWin->drawable.pScreen);
+ }
+ 
+@@ -425,38 +384,12 @@ compChangeBorderWidth (WindowPtr pWin, unsigned int bw)
+     ScreenPtr		pScreen = pWin->drawable.pScreen;
+     CompScreenPtr	cs = GetCompScreen (pScreen);
+ 
+-    compCheckTree (pScreen);
+-    if (pWin->redirectDraw != RedirectDrawNone)
+-    {
+-	WindowPtr		pParent;
+-	int			draw_x, draw_y;
+-	unsigned int		w, h;
+-
+-	/* if this is a root window, can't be moved */
+-	if (!(pParent = pWin->parent))
+-	   return;
+-
+-	draw_x = pWin->drawable.x;
+-	draw_y = pWin->drawable.y;
+-	w = pWin->drawable.width;
+-	h = pWin->drawable.height;
+-	compReallocPixmap (pWin, draw_x, draw_y, w, h, bw);
+-    }
+-    compCheckTree (pScreen);
+-
+     pScreen->ChangeBorderWidth = cs->ChangeBorderWidth;
+     (*pScreen->ChangeBorderWidth) (pWin, bw);
+     cs->ChangeBorderWidth = pScreen->ChangeBorderWidth;
+     pScreen->ChangeBorderWidth = compChangeBorderWidth;
+-    if (pWin->redirectDraw != RedirectDrawNone)
+-    {
+-	CompWindowPtr	cw = GetCompWindow (pWin);
+-	if (cw->pOldPixmap)
+-	{
+-	    (*pScreen->DestroyPixmap) (cw->pOldPixmap);
+-	    cw->pOldPixmap = NullPixmap;
+-	}
+-    }
++
++    compFreeOldPixmap(pWin);
+     compCheckTree (pWin->drawable.pScreen);
+ }
+ 
+@@ -822,3 +755,26 @@ CompositeRealChildHead (WindowPtr pWin)
+ 	return pChildBefore;
+     }
+ }
++
++int
++compConfigNotify(WindowPtr pWin, int x, int y, int w, int h,
++		 int bw, WindowPtr pSib)
++{
++    ScreenPtr		pScreen = pWin->drawable.pScreen;
++    WindowPtr		pParent = pWin->parent;
++    int			draw_x, draw_y;
++    Bool alloc_ret;
++
++    if (pWin->redirectDraw == RedirectDrawNone)
++	return Success;
++
++    compCheckTree (pScreen);
++
++    draw_x = pParent->drawable.x + x + bw;
++    draw_y = pParent->drawable.y + y + bw;
++    alloc_ret = compReallocPixmap (pWin, draw_x, draw_y, w, h, bw);
++
++    if (alloc_ret == FALSE)
++	return BadAlloc;
++    return Success;
++}
+diff --git a/dix/window.c b/dix/window.c
+index e191f09..e4c850f 100644
+--- a/dix/window.c
++++ b/dix/window.c
+@@ -2104,6 +2104,13 @@ ReflectStackChange(
+ 	WindowsRestructured ();
+ }
+ 
++static compositeConfigNotifyProcPtr compositeConfigNotify;
++void
++RegisterCompositeConfigNotifyProc(compositeConfigNotifyProcPtr proc)
++{
++    compositeConfigNotify = proc;
++}
++
+ /*****
+  * ConfigureWindow
+  *****/
+@@ -2220,7 +2227,6 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
+     else
+ 	pSib = pWin->nextSib;
+ 
+-
+     if ((!pWin->overrideRedirect) && 
+ 	(RedirectSend(pParent)
+ 	))
+@@ -2305,6 +2311,16 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
+     return(Success);
+ 
+ ActuallyDoSomething:
++    if (compositeConfigNotify)
++    {
++	int ret;
++	ret = compositeConfigNotify(pWin, x, y, w, h, bw, pSib);
++	if (ret) {
++	    client->errorValue = 0;
++	    return ret;
++	}
++    }
++
+     if (SubStrSend(pWin, pParent))
+     {
+ 	memset(&event, 0, sizeof(xEvent));
+diff --git a/include/window.h b/include/window.h
+index 6fb2f8c..ea2edab 100644
+--- a/include/window.h
++++ b/include/window.h
+@@ -266,4 +266,15 @@ extern _X_EXPORT void DisableMapUnmapEvents(
+ extern _X_EXPORT void EnableMapUnmapEvents(
+     WindowPtr /* pWin */ );
+ 
++typedef int (* compositeConfigNotifyProcPtr)(
++    WindowPtr /* pWin */,
++    int /* x */,
++    int /* y */,
++    int /* w */,
++    int /* h */,
++    int /* bw */,
++    WindowPtr /*pSib*/);
++
++_X_EXPORT void RegisterCompositeConfigNotifyProc(compositeConfigNotifyProcPtr proc);
++
+ #endif /* WINDOW_H */
+-- 
+1.7.1
+

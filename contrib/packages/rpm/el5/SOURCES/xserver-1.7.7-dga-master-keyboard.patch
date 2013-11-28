@@ -1,0 +1,43 @@
+From 374fca17a231d6ea39154e8dfb881d4c7f3f5c4d Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Fri, 16 Apr 2010 16:35:22 +1000
+Subject: [PATCH] xfree86: dga needs to use the master keyboard state (#27573)
+
+GetPairedDevice() may not always return the keyboard, resulting in a
+null-pointer dereference when accessing the XKB state.
+For floating devices, the GetMaster() returns the device itself.
+
+X.Org Bug 27573 <http://bugs.freedesktop.org/show_bug.cgi?id=27573>
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+Tested-by: Ben Hutchings <ben@decadent.org.uk>
+(cherry picked from commit 10de9e8ee37265a35ceeceb2007d711da70d4f2d)
+---
+ hw/xfree86/common/xf86DGA.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86DGA.c b/hw/xfree86/common/xf86DGA.c
+index 804fd37..5d8addb 100644
+--- a/hw/xfree86/common/xf86DGA.c
++++ b/hw/xfree86/common/xf86DGA.c
+@@ -1088,13 +1088,15 @@ DGAProcessPointerEvent (ScreenPtr pScreen, DGAEvent *event, DeviceIntPtr mouse)
+     ButtonClassPtr  butc = mouse->button;
+     DGAScreenPtr    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
+     DeviceEvent     ev;
++    DeviceIntPtr    master = GetMaster(mouse, MASTER_KEYBOARD);
+ 
+     memset(&ev, 0, sizeof(ev));
+     ev.header = ET_Internal;
+     ev.length = sizeof(ev);
+     ev.type = event->subtype;
+     ev.corestate  = butc->state;
+-    ev.corestate |= XkbStateFieldFromRec(&GetPairedDevice(mouse)->key->xkbInfo->state);
++    if (master && master->key)
++        ev.corestate |= XkbStateFieldFromRec(&master->key->xkbInfo->state);
+ 
+     UpdateDeviceState(mouse, &ev);
+ 
+-- 
+1.7.1
+

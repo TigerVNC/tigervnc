@@ -1,0 +1,18 @@
+From 4306b434038de7e2b17d3c4a6cfd87db469d3bda Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 10 Dec 2007 11:26:57 -0500
+Subject: [PATCH] Build libxf86config with -fPIC.
+
+diff --git a/hw/xfree86/parser/Makefile.am b/hw/xfree86/parser/Makefile.am
+index b8fab28..ed831c9 100644
+--- a/hw/xfree86/parser/Makefile.am
++++ b/hw/xfree86/parser/Makefile.am
+@@ -33,7 +33,7 @@ libxf86config_a_SOURCES = \
+ 	$(INTERNAL_SOURCES)
+ libxf86config_a_CFLAGS = $(AM_CFLAGS)
+ 
+-AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
++AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS) -fPIC -fvisibility=hidden
+ 
+ EXTRA_DIST = \
+ 	Configint.h \

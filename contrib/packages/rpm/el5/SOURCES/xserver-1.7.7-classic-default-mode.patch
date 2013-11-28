@@ -1,0 +1,74 @@
+From 5f34853d6f936e8a1a317a59972b07e3f191d1ab Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 15 Nov 2010 11:25:13 +1000
+Subject: [PATCH] xfree86: Bump classic driver default to 1024x768
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by: Keith Packard <keithp@keithp.com>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+---
+ hw/xfree86/common/xf86Mode.c |   21 ++++++++++++++++-----
+ 1 files changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86Mode.c b/hw/xfree86/common/xf86Mode.c
+index d03310e..54fe021 100644
+--- a/hw/xfree86/common/xf86Mode.c
++++ b/hw/xfree86/common/xf86Mode.c
+@@ -1402,6 +1402,7 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
+ 	strategy &= ~LOOKUP_OPTIONAL_TOLERANCES;
+     } else {
+ 	const char *type = "";
++        Bool specified = FALSE;
+ 
+ 	if (scrp->monitor->nHsync <= 0) {
+ 	    if (numTimings > 0) {
+@@ -1412,11 +1413,13 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
+ 		}
+ 	    } else {
+ 		scrp->monitor->hsync[0].lo = 31.5;
+-		scrp->monitor->hsync[0].hi = 37.9;
++		scrp->monitor->hsync[0].hi = 48.0;
+ 		scrp->monitor->nHsync = 1;
+ 	    }
+ 	    type = "default ";
+-	}
++	} else {
++            specified = TRUE;
++        }
+ 	for (i = 0; i < scrp->monitor->nHsync; i++) {
+ 	    if (scrp->monitor->hsync[i].lo == scrp->monitor->hsync[i].hi)
+ 	      xf86DrvMsg(scrp->scrnIndex, X_INFO,
+@@ -1445,7 +1448,9 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
+ 		scrp->monitor->nVrefresh = 1;
+ 	    }
+ 	    type = "default ";
+-	}
++	} else {
++            specified = TRUE;
++        }
+ 	for (i = 0; i < scrp->monitor->nVrefresh; i++) {
+ 	    if (scrp->monitor->vrefresh[i].lo == scrp->monitor->vrefresh[i].hi)
+ 	      xf86DrvMsg(scrp->scrnIndex, X_INFO,
+@@ -1459,10 +1464,16 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
+ 			 scrp->monitor->vrefresh[i].lo,
+ 			 scrp->monitor->vrefresh[i].hi);
+ 	}
++
++        type = "";
++	if (!scrp->monitor->maxPixClock && !specified) {
++            type = "default ";
++            scrp->monitor->maxPixClock = 65000.0;
++        }
+ 	if (scrp->monitor->maxPixClock) {
+ 	    xf86DrvMsg(scrp->scrnIndex, X_INFO,
+-		       "%s: Using maximum pixel clock of %.2f MHz\n",
+-		       scrp->monitor->id,
++		       "%s: Using %smaximum pixel clock of %.2f MHz\n",
++		       scrp->monitor->id, type,
+ 		       (float)scrp->monitor->maxPixClock / 1000.0);
+ 	}
+     }
+-- 
+1.7.3.4
+
