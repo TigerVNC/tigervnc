@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011-2013 Brian P. Hinz
- * Copyright (C) 2012 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2012-2013 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,11 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
+import java.lang.reflect.*;
 import javax.swing.*;
 
-import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
+import java.lang.Exception;
 
 public class Viewport extends JFrame
 {
@@ -47,6 +48,10 @@ public class Viewport extends JFrame
     sp.getViewport().setBackground(Color.BLACK);
     sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
     getContentPane().add(sp);
+    if (VncViewer.os.startsWith("mac os x")) {
+      if (!VncViewer.noLionFS.getValue())
+        enableLionFS();
+    }
     addWindowFocusListener(new WindowAdapter() {
       public void windowGainedFocus(WindowEvent e) {
         if (isVisible())
@@ -100,6 +105,49 @@ public class Viewport extends JFrame
     });
   }
 
+  boolean lionFSSupported() { return canDoLionFS; }
+
+  void enableLionFS() {
+    try {
+      String version = System.getProperty("os.version");
+      int firstDot = version.indexOf('.');
+      int lastDot = version.lastIndexOf('.');
+      if (lastDot > firstDot && lastDot >= 0) {
+        version = version.substring(0, version.indexOf('.', firstDot + 1));
+      }
+      double v = Double.parseDouble(version);
+      if (v < 10.7)
+        throw new Exception("Operating system version is " + v);
+
+      Class fsuClass = Class.forName("com.apple.eawt.FullScreenUtilities");
+      Class argClasses[] = new Class[]{Window.class, Boolean.TYPE};
+      Method setWindowCanFullScreen =
+        fsuClass.getMethod("setWindowCanFullScreen", argClasses);
+      setWindowCanFullScreen.invoke(fsuClass, this, true);
+
+      canDoLionFS = true;
+    } catch (Exception e) {
+      vlog.debug("Could not enable OS X 10.7+ full-screen mode: " +
+                 e.getMessage());
+      
+    }
+  }
+
+  public void toggleLionFS() {
+    try {
+      Class appClass = Class.forName("com.apple.eawt.Application");
+      Method getApplication = appClass.getMethod("getApplication",
+                                                 (Class[])null);
+      Object app = getApplication.invoke(appClass);
+      Method requestToggleFullScreen =
+        appClass.getMethod("requestToggleFullScreen", Window.class);
+      requestToggleFullScreen.invoke(app, this);
+    } catch (Exception e) {
+      vlog.debug("Could not toggle OS X 10.7+ full-screen mode: " +
+                 e.getMessage());
+    }
+  }
+
   public void setChild(DesktopWindow child) {
     sp.getViewport().setView(child);
   }
@@ -126,11 +174,13 @@ public class Viewport extends JFrame
       GraphicsEnvironment ge =
         GraphicsEnvironment.getLocalGraphicsEnvironment();
       GraphicsDevice gd = ge.getDefaultScreenDevice();
-      gd.setFullScreenWindow(fullScreenWindow);
+      if (gd.isFullScreenSupported())
+        gd.setFullScreenWindow(fullScreenWindow);
   }
 
   CConn cc;
   JScrollPane sp;
+  boolean canDoLionFS;
   static LogWriter vlog = new LogWriter("Viewport");
 }
 

@@ -513,14 +513,10 @@ public class CConn extends CConnection
     desktop.setScaledSize();
     int w = desktop.scaledWidth;
     int h = desktop.scaledHeight;
-    GraphicsEnvironment ge =
-      GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice gd = ge.getDefaultScreenDevice();
     if (fullScreen) {
       viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
       viewport.setGeometry(0, 0, dpySize.width, dpySize.height, false);
-      if (gd.isFullScreenSupported())
-        gd.setFullScreenWindow(viewport);
+      Viewport.setFullScreenWindow(viewport);
     } else {
       int wmDecorationWidth = viewport.getInsets().left + viewport.getInsets().right;
       int wmDecorationHeight = viewport.getInsets().top + viewport.getInsets().bottom;
@@ -545,8 +541,7 @@ public class CConn extends CConnection
         viewport.setExtendedState(JFrame.NORMAL);
         viewport.setGeometry(x, y, w, h, pack);
       }
-      if (gd.isFullScreenSupported())
-        gd.setFullScreenWindow(null);
+      Viewport.setFullScreenWindow(null);
     }
   }
 
@@ -1140,8 +1135,13 @@ public class CConn extends CConnection
   public void toggleFullScreen() {
     fullScreen = !fullScreen;
     menu.fullScreen.setSelected(fullScreen);
-    if (viewport != null)
-      recreateViewport();
+    if (viewport != null) {
+      if (!viewport.lionFSSupported()) {
+        recreateViewport();
+      } else {
+        viewport.toggleLionFS();
+      }
+    }
   }
 
   // writeClientCutText() is called from the clipboard dialog

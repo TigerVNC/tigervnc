@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
- * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
  * Copyright (C) 2011-2013 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
@@ -68,6 +68,8 @@ public class VncViewer extends java.applet.Applet implements Runnable
   public static final Image logoImage = logoIcon.getImage();
   public static final InputStream timestamp =
     VncViewer.class.getResourceAsStream("timestamp");
+  public static final String os = 
+    System.getProperty("os.name").toLowerCase();
 
   public static void setLookAndFeel() {
     try {
@@ -391,6 +393,12 @@ public class VncViewer extends java.applet.Applet implements Runnable
     }
     exit(0);
   }
+
+  // On Mac systems, setting this parameter will force the use of the old
+  // (pre-Lion) full-screen mode, even if the viewer is running on OS X 10.7
+  // "Lion" or later.
+  static BoolParameter noLionFS
+  = new BoolParameter("NoLionFS", null, false);
 
   BoolParameter useLocalCursor
   = new BoolParameter("UseLocalCursor",
