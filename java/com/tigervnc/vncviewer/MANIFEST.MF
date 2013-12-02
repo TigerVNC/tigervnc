@@ -1,2 +1,5 @@
 Manifest-Version: 1.0
 Main-Class: com.tigervnc.vncviewer.VncViewer
+Application-Name: TigerVNC Viewer
+Permissions: all-permissions
+Codebase: *

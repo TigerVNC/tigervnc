@@ -15,6 +15,12 @@ message(STATUS "Java compiler flags = ${JAVACFLAGS}")
 set(CLASSPATH com/tigervnc/vncviewer)
 set(SRCDIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BINDIR ${CMAKE_CURRENT_BINARY_DIR})
+set(JAVA_KEYSTORE NOTFOUND CACHE STRING "URL of keystore location")
+set(JAVA_KEYSTORE_TYPE "jks" CACHE STRING "Type of keystore (Default: \"jks\")")
+set(JAVA_KEY_ALIAS NOTFOUND CACHE STRING "Alias for the keystore entry used to generate the signature")
+set(JAVA_STOREPASS NOTFOUND CACHE STRING "Password required to access the keystore")
+set(JAVA_KEYPASS NOTFOUND CACHE STRING "Password used to protect the private key of the specified keystore entry")
+set(JAVA_TSA_URL NOTFOUND CACHE STRING "URL of Time Stamping Authority (TSA)")
 
 if(NOT BUILD)
 	execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
@@ -136,6 +142,12 @@ add_custom_command(OUTPUT VncViewer.jar
     com/tigervnc/vncviewer/tigervnc.ico
   COMMAND ${CMAKE_COMMAND}
   ARGS -DJava_PATH=${Java_PATH} -DJAR_FILE=${BINDIR}/VncViewer.jar
+    -DJAVA_KEYSTORE=${JAVA_KEYSTORE}
+    -DJAVA_KEYSTORE_TYPE=${JAVA_KEYSTORE_TYPE}
+    -DJAVA_STOREPASS=${JAVA_STOREPASS}
+    -DJAVA_KEYPASS=${JAVA_KEYPASS}
+    -DJAVA_KEY_ALIAS=${JAVA_KEY_ALIAS}
+    -DJAVA_TSA_URL=${JAVA_TSA_URL}
     -P ${SRCDIR}/cmake/SignJar.cmake)
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)

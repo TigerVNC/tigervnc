@@ -385,6 +385,28 @@ Similarly, if the Java viewer is built along with the Unix TigerVNC Server
 (Xvnc), then the build system will include the Java viewer in the server
 tarball.
 
+By default, a self-signed certificate will be generated and used to sign the
+jar file.  By specifying the following command line arguments to the CMake
+command line, an alternate certificate may be used for signing.
+
+  -DJAVA_KEYSTORE=${keystore_location_or_url}
+  -DJAVA_KEYSTORE_TYPE=${keystore_type} (Default: "jks")
+  -DJAVA_KEY_ALIAS=${keytore_key_alias}
+  -DJAVA_STOREPASS=${keystore_password}
+  -DJAVA_KEYPASS=${keystore_entry_password}
+  -DJAVA_TSA_URL=${url_of_timestamping_authority}
+
+The values of the JAVA_STOREPASS and JAVA_KEYPASS arguments may optionally be
+read from file or environment variables by prefixing the value with ":env " 
+or ":file " (see the jarsigner documentation for more info): 
+
+  export StorePass=tigervnc
+  export KeyPass=tigervnc
+  cmake \
+    ...
+    -DJAVA_STOREPASS=":env StorePass"
+    -DJAVA_KEYPASS=":env KeyPass"
+
 
 ======================================
 Building Native Language Support (NLS)
