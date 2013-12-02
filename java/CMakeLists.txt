@@ -142,9 +142,9 @@ add_custom_target(java ALL DEPENDS VncViewer.jar)
 
 if(NOT WIN32)
   install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/VncViewer.jar
-    ${SRCDIR}/README
-    ${SRCDIR}/index.vnc
-    ${SRCDIR}/favicon.ico
+    ${BINDIR}/VncViewer.jar
+    ${SRCDIR}/${CLASSPATH}/README
+    ${SRCDIR}/${CLASSPATH}/index.vnc
+    ${SRCDIR}/${CLASSPATH}/favicon.ico
     DESTINATION ${DATA_DIR}/vnc/classes)
 endif()
