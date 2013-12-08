@@ -1,0 +1,25 @@
+Index: xorg-server-1.6.3.901/hw/xfree86/loader/dlloader.c
+================================================================================
+--- xorg-server-1.7.99/hw/xfree86/loader/dlloader.c
++++ xorg-server-1.7.99/hw/xfree86/loader/dlloader.c
+@@ -120,7 +120,7 @@
+     }
+ 
+     if (!global_scope)
+-	global_scope = dlopen(NULL, DLOPEN_LAZY | DLOPEN_GLOBAL);
++	global_scope = dlopen(NULL, DLOPEN_LAZY | DLOPEN_GLOBAL | RTLD_DEEPBIND);
+ 
+     if (global_scope)
+ 	return DLFindSymbolLocal(global_scope, name);
+@@ -136,9 +136,9 @@
+     int dlopen_flags;
+ 
+     if (flags & LD_FLAG_GLOBAL)
+-	dlopen_flags = DLOPEN_LAZY | DLOPEN_GLOBAL;
++	dlopen_flags = DLOPEN_LAZY | DLOPEN_GLOBAL | RTLD_DEEPBIND;
+     else
+-	dlopen_flags = DLOPEN_LAZY;
++	dlopen_flags = DLOPEN_LAZY | RTLD_DEEPBIND;
+     dlfile = dlopen(modrec->name, dlopen_flags);
+     if (dlfile == NULL) {
+ 	ErrorF("dlopen: %s\n", dlerror());

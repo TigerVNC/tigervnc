@@ -1,0 +1,90 @@
+# default: off
+# description: This serves out a VNC connection which starts at a KDM login \
+#	prompt. This VNC connection has a resolution of 1024x768, 16bit depth.
+service vnc1
+{
+	type		= UNLISTED
+	port		= 5901
+	socket_type	= stream
+	protocol	= tcp
+	wait		= no
+	user		= nobody
+	server		= /usr/bin/Xvnc
+	server_args	= -noreset -inetd -once -query localhost -geometry 1024x768 -depth 16 -securitytypes none
+	disable		= yes
+}
+# default: off
+# description: This serves out a VNC connection which starts at a KDM login \
+#	prompt. This VNC connection has a resolution of 1280x1024, 16bit depth.
+service vnc2
+{
+	type		= UNLISTED
+	port		= 5902
+	socket_type	= stream
+	protocol	= tcp
+	wait		= no
+	user		= nobody
+	server		= /usr/bin/Xvnc
+	server_args	= -noreset -inetd -once -query localhost -geometry 1280x1024 -depth 16 -securitytypes none
+	disable		= yes
+}
+# default: off
+# description: This serves out a VNC connection which starts at a KDM login \
+#	prompt. This VNC connection has a resolution of 1600x1200, 16bit depth.
+service vnc3
+{
+	type		= UNLISTED
+	port		= 5903
+	socket_type	= stream
+	protocol	= tcp
+	wait		= no
+	user		= nobody
+	server		= /usr/bin/Xvnc
+	server_args	= -noreset -inetd -once -query localhost -geometry 1600x1200 -depth 16 -securitytypes none
+	disable		= yes
+}
+# default: off
+# description: This serves out the vncviewer Java applet for the VNC \
+#	server running on port 5901, (vnc port 1).
+service vnchttpd1
+{
+	type		= UNLISTED
+	port		= 5801
+	socket_type	= stream
+	protocol	= tcp
+	wait		= no
+	user		= nobody
+	server		= /usr/bin/vnc_inetd_httpd
+	server_args	= 1024 768 5901
+	disable		= yes
+}
+# default: off
+# description: This serves out the vncviewer Java applet for the VNC \
+#	server running on port 5902, (vnc port 2).
+service vnchttpd2
+{
+	type		= UNLISTED
+	port		= 5802
+	socket_type	= stream
+	protocol	= tcp
+	wait		= no
+	user		= nobody
+	server		= /usr/bin/vnc_inetd_httpd
+	server_args	= 1280 1024 5902
+	disable		= yes
+}
+# default: off
+# description: This serves out the vncviewer Java applet for the VNC \
+#	server running on port 5902, (vnc port 3).
+service vnchttpd3
+{
+	type		= UNLISTED
+	port		= 5803
+	socket_type	= stream
+	protocol	= tcp
+	wait		= no
+	user		= nobody
+	server		= /usr/bin/vnc_inetd_httpd
+	server_args	= 1600 1200 5903
+	disable		= yes
+}

@@ -1,0 +1,32 @@
+Index: build-GucBkyZ/xorg-server-1.6.3.901/hw/xnest/GCOps.c
+================================================================================
+--- BUILD/xorg-server-1.7.99/hw/xnest/GCOps.c
++++ BUILD/xorg-server-1.7.99/hw/xnest/GCOps.c
+@@ -94,6 +94,13 @@
+   }
+ }
+ 
++static int
++xnestIgnoreErrorHandler (Display     *display,
++		      XErrorEvent *event)
++{
++  return False; /* return value is ignored */
++}
++
+ void
+ xnestGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
+ 	      unsigned int format, unsigned long planeMask,
+@@ -101,9 +108,13 @@
+ {
+   XImage *ximage;
+   int length;
++  int (*old_handler)(Display*, XErrorEvent*);
+ 
++  /* we may get BadMatch error when xnest window is minimized */
++  old_handler = XSetErrorHandler (xnestIgnoreErrorHandler);
+   ximage = XGetImage(xnestDisplay, xnestDrawable(pDrawable),
+                      x, y, w, h, planeMask, format);
++  XSetErrorHandler (old_handler);
+ 
+   if (ximage) {
+       length = ximage->bytes_per_line * ximage->height;

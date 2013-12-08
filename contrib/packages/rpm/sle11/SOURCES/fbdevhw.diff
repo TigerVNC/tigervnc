@@ -1,0 +1,30 @@
+Index: hw/xfree86/fbdevhw/fbdevhw.c
+================================================================================
+--- hw/xfree86/fbdevhw/fbdevhw.c
++++ hw/xfree86/fbdevhw/fbdevhw.c
+@@ -957,9 +957,10 @@
+ 			return;
+ 	}
+ 
++	/* Novell Bug #146462 */
+ 	if (-1 == ioctl(fPtr->fd, FBIOBLANK, (void *)fbmode))
+-		xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+-			   "FBIOBLANK: %s\n", strerror(errno));
++		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
++			   "FBIOBLANK: %s (Screen blanking not supported by vesafb of Linux Kernel)\n", strerror(errno));
+ }
+ 
+ Bool
+@@ -975,9 +976,10 @@
+ 
+ 	unblank = xf86IsUnblank(mode);
+ 
++	/* Novell Bug #146462 */
+ 	if (-1 == ioctl(fPtr->fd, FBIOBLANK, (void *)(1-unblank))) {
+-		xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+-			   "FBIOBLANK: %s\n", strerror(errno));
++		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
++			   "FBIOBLANK: %s (Screen blanking not supported by vesafb of Linux Kernel)\n", strerror(errno));
+ 		return FALSE;
+ 	}
+ 

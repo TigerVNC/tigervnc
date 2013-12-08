@@ -1,0 +1,42 @@
+>From 829037395f8b93e69a30852a95e378f78c3ccd6b Mon Sep 17 00:00:00 2001
+From: Luc Verhaegen <libv@skynet.be>
+Date: Wed, 12 Nov 2008 17:09:33 +0100
+Subject: [PATCH] Xinput: Catch missing configlayout when deleting device.
+
+In DeleteInputDeviceRequest (xf86Xinput.c), we access idev members
+even if idev is null. This takes down the xserver hard in some cases
+(kernel SIGABRT), and segfaults on other cases.
+================================================================================
+--- xorg-server-1.7.99/hw/xfree86/common/xf86Xinput.c
++++ xorg-server-1.7.99/hw/xfree86/common/xf86Xinput.c
+@@ -870,17 +870,20 @@
+         else
+             xf86DeleteInput(pInfo, 0);
+ 
+-        /* devices added through HAL aren't in the config layout */
+-        it = xf86ConfigLayout.inputs;
+-        while(*it && *it != idev)
+-            it++;
+-
+-        if (!(*it)) /* end of list, not in the layout */
++	if (idev)
+         {
+-            free(idev->driver);
+-            free(idev->identifier);
+-            xf86optionListFree(idev->commonOptions);
+-            free(idev);
++	    /* devices added through HAL aren't in the config layout */
++	    it = xf86ConfigLayout.inputs;
++	    while(*it && *it != idev)
++		it++;
++
++	    if (!(*it)) /* end of list, not in the layout */
++	    {
++		free(idev->driver);
++		free(idev->identifier);
++		xf86optionListFree(idev->commonOptions);
++		free(idev);
++	    }
+         }
+     }
+     OsReleaseSignals();

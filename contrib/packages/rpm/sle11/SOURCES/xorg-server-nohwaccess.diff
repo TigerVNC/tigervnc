@@ -1,0 +1,52 @@
+Index: xorg-server-1.6.3/hw/xfree86/os-support/linux/lnx_init.c
+===================================================================
+Index: xorg-server-1.6.3/hw/xfree86/os-support/linux/lnx_video.c
+===================================================================
+--- xorg-server-1.6.3.orig/hw/xfree86/os-support/linux/lnx_video.c
++++ xorg-server-1.6.3/hw/xfree86/os-support/linux/lnx_video.c
+@@ -51,6 +51,7 @@
+ #define MAP_FAILED ((void *)-1)
+ #endif
+ 
++extern Bool NoHwAccess;
+ static Bool ExtendedEnabled = FALSE;
+ 
+ #ifdef __ia64__
+@@ -509,6 +510,9 @@ xf86EnableIO(void)
+ 	int fd;
+ 	unsigned int ioBase_phys;
+ #endif
++	/* Fake it... */
++	if (NoHwAccess)
++		return TRUE;
+ 
+ 	if (ExtendedEnabled)
+ 		return TRUE;
+--- xorg-server-1.9.0/hw/xfree86/os-support/linux/lnx_init.c.orig	2010-06-10 16:07:55.000000000 +0200
++++ xorg-server-1.9.0/hw/xfree86/os-support/linux/lnx_init.c	2010-08-23 15:38:45.000000000 +0200
+@@ -42,6 +42,7 @@ static Bool KeepTty = FALSE;
+ static int VTnum = -1;
+ static Bool VTSwitch = TRUE;
+ static Bool ShareVTs = FALSE;
++Bool NoHwAccess = FALSE;
+ static int activeVT = -1;
+ 
+ static int vtPermSave[4];
+@@ -377,6 +378,11 @@ xf86ProcessArgument(int argc, char *argv
+                 ShareVTs = TRUE;
+                 return 1;
+         }
++	if (!strcmp(argv[i], "-nohwaccess"))
++	{
++		NoHwAccess = TRUE;
++		return(1);
++	}
+ 	if ((argv[i][0] == 'v') && (argv[i][1] == 't'))
+ 	{
+ 		if (sscanf(argv[i], "vt%2d", &VTnum) == 0)
+@@ -398,4 +404,5 @@ xf86UseMsg(void)
+ 	ErrorF("don't detach controlling tty (for debugging only)\n");
+ 	ErrorF("-novtswitch            don't immediately switch to new VT\n");
+ 	ErrorF("-sharevts              share VTs with another X server\n");
++	ErrorF("-nohwaccess            don't access hardware ports directly\n");
+ }

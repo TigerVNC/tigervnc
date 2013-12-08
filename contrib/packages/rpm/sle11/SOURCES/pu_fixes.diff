@@ -1,0 +1,21 @@
+Index: hw/xfree86/xaa/xaaImage.c
+================================================================================
+--- hw/xfree86/xaa/xaaImage.c
++++ hw/xfree86/xaa/xaaImage.c
+@@ -238,12 +238,16 @@
+     (*infoRec->SetupForImageWrite)(pScrn, rop, planemask, trans, bpp, depth);
+     (*infoRec->SubsequentImageWriteRect)(pScrn, x, y, w, h, skipleft);
+ 
++#if 0
+     if(beCareful) {
+ 	/* in cases with bad alignment we have to be careful not
+ 	   to read beyond the end of the source */
+ 	if(((x * Bpp) + (dwords << 2)) > srcwidth) h--;
+ 	else beCareful = FALSE;
+     }
++#endif
++    if (beCareful)
++	h--;
+ 
+     if(dwords > infoRec->ImageWriteRange) {
+ 	while(h--) {

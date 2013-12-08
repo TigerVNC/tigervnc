@@ -1,0 +1,27 @@
+From: Julien Cristau <jcristau@debian.org>
+Date: Sat Jul 3 19:42:26 2010 +0100
+Subject: [PATCH] glx: make sure screen is non-negative in validGlxScreen
+Patch-Mainline: Upstream
+Git-commit: 3f0d3f4d97bce75c1828635c322b6560a45a037f
+References: bnc #648278, CVE-2010-4818
+Signed-off-by: Egbert Eich <eich@suse.de>
+
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+Reviewed-by: Kristian Høgsberg <krh@bitplanet.net>
+Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+Signed-off-by: Julien Cristau <jcristau@debian.org>
+---
+ glx/glxcmds.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- xorg-server-1.6.5.orig/glx/glxcmds.c
++++ xorg-server-1.6.5/glx/glxcmds.c
+@@ -65,7 +65,7 @@ validGlxScreen(ClientPtr client, int scr
+     /*
+     ** Check if screen exists.
+     */
+-    if (screen >= screenInfo.numScreens) {
++    if (screen < 0 || screen >= screenInfo.numScreens) {
+ 	client->errorValue = screen;
+ 	*err = BadValue;
+ 	return FALSE;

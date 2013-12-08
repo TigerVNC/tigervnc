@@ -1,0 +1,155 @@
+From a3e15680da24cb8259f6a83dee0c930dab024290 Mon Sep 17 00:00:00 2001
+From: Kristian <krh@redhat.com>
+Date: Fri, 15 Aug 2008 15:15:14 +1000
+Subject: [PATCH] Add nr for background=none root
+
+---
+ dix/globals.c                |    1 +
+ dix/window.c                 |   22 ++++++++++++----------
+ hw/xfree86/common/xf86Init.c |   11 +++++++++++
+ hw/xfree86/common/xf86str.h  |    5 ++++-
+ include/opaque.h             |    1 +
+ os/utils.c                   |    3 +++
+ 6 files changed, 32 insertions(+), 11 deletions(-)
+
+Index: xorg-server-1.8.0/dix/globals.c
+===================================================================
+Index: xorg-server-1.8.0/dix/window.c
+===================================================================
+--- xorg-server-1.8.0.orig/dix/window.c
++++ xorg-server-1.8.0/dix/window.c
+@@ -465,23 +465,24 @@ InitRootWindow(WindowPtr pWin)
+     pWin->cursorIsNone = FALSE;
+     pWin->optional->cursor = rootCursor;
+     rootCursor->refcnt++;
+-
++    pWin->backingStore = defaultBackingStore;
++    pWin->forcedBS = (defaultBackingStore != NotUseful);
+ 
+     if (party_like_its_1989) {
+         MakeRootTile(pWin);
+         backFlag |= CWBackPixmap;
++        pScreen->ChangeWindowAttributes(pWin, backFlag);
++    } else if (bgNoneRoot) {
++	/* nothing, handled in xf86CreateRootWindow */
+     } else {
+ 	if (whiteRoot)
+             pWin->background.pixel = pScreen->whitePixel;
+         else
+             pWin->background.pixel = pScreen->blackPixel;
+         backFlag |= CWBackPixel;
+-    } 
+ 
+-    pWin->backingStore = defaultBackingStore;
+-    pWin->forcedBS = (defaultBackingStore != NotUseful);
+-    /* We SHOULD check for an error value here XXX */
+-    (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
++        pScreen->ChangeWindowAttributes(pWin, backFlag);
++    }
+ 
+     MapWindow(pWin, serverClient);
+ }
+Index: xorg-server-1.8.0/hw/xfree86/common/xf86Init.c
+===================================================================
+Index: xorg-server-1.8.0/hw/xfree86/common/xf86str.h
+===================================================================
+--- xorg-server-1.8.0.orig/hw/xfree86/common/xf86str.h
++++ xorg-server-1.8.0/hw/xfree86/common/xf86str.h
+@@ -503,7 +503,7 @@ typedef struct _confdrirec {
+ } confDRIRec, *confDRIPtr;
+ 
+ /* These values should be adjusted when new fields are added to ScrnInfoRec */
+-#define NUM_RESERVED_INTS		16
++#define NUM_RESERVED_INTS		15
+ #define NUM_RESERVED_POINTERS		14
+ #define NUM_RESERVED_FUNCS		11
+ 
+@@ -775,6 +775,9 @@ typedef struct _ScrnInfoRec {
+     ClockRangePtr	clockRanges;
+     int			adjustFlags;
+ 
++    /* -nr support */
++    int			canDoBGNoneRoot;
++
+     /*
+      * These can be used when the minor ABI version is incremented.
+      * The NUM_* parameters must be reduced appropriately to keep the
+Index: xorg-server-1.8.0/include/opaque.h
+===================================================================
+--- xorg-server-1.8.0.orig/include/opaque.h
++++ xorg-server-1.8.0/include/opaque.h
+@@ -71,6 +71,7 @@ extern _X_EXPORT Bool defeatAccessContro
+ extern _X_EXPORT long maxBigRequestSize;
+ extern _X_EXPORT Bool party_like_its_1989;
+ extern _X_EXPORT Bool whiteRoot;
++extern _X_EXPORT Bool bgNoneRoot;
+ 
+ extern _X_EXPORT Bool CoreDump;
+ 
+Index: xorg-server-1.8.0/os/utils.c
+===================================================================
+--- xorg-server-1.8.0.orig/os/utils.c
++++ xorg-server-1.8.0/os/utils.c
+@@ -511,6 +511,7 @@ void UseMsg(void)
+ #endif
+     ErrorF("-nolisten string       don't listen on protocol\n");
+     ErrorF("-noreset               don't reset after last client exists\n");
++    ErrorF("-nr                    create root window with no background\n");
+     ErrorF("-reset                 reset after last client exists\n");
+     ErrorF("-p #                   screen-saver pattern duration (minutes)\n");
+     ErrorF("-pn                    accept failure to listen on all ports\n");
+@@ -852,6 +853,8 @@ ProcessCommandLine(int argc, char *argv[
+ 	    defaultBackingStore = WhenMapped;
+         else if ( strcmp( argv[i], "-wr") == 0)
+             whiteRoot = TRUE;
++        else if ( strcmp( argv[i], "-nr") == 0)
++            bgNoneRoot = TRUE;
+         else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
+              if(++i < argc) {
+                  long reqSizeArg = atol(argv[i]);
+--- xorg-server-1.9.0/dix/globals.c.orig	2010-06-06 19:53:51.000000000 +0200
++++ xorg-server-1.9.0/dix/globals.c	2010-08-23 15:27:52.000000000 +0200
+@@ -122,6 +122,7 @@ FontPtr defaultFont;   /* not declared i
+ CursorPtr rootCursor;
+ Bool party_like_its_1989 = FALSE;
+ Bool whiteRoot = FALSE;
++Bool bgNoneRoot = FALSE;
+ 
+ TimeStamp currentTime;
+ TimeStamp lastDeviceEventTime;
+--- xorg-server-1.9.0/hw/xfree86/common/xf86Init.c.orig	2010-06-10 16:07:55.000000000 +0200
++++ xorg-server-1.9.0/hw/xfree86/common/xf86Init.c	2010-08-23 15:32:56.000000000 +0200
+@@ -76,6 +76,7 @@
+ #include "xf86Xinput.h"
+ #include "xf86InPriv.h"
+ #include "picturestr.h"
++#include "xace.h"
+ 
+ #include "xf86Bus.h"
+ #include "xf86VGAarbiter.h"
+@@ -242,6 +243,7 @@ xf86CreateRootWindow(WindowPtr pWin)
+   int ret = TRUE;
+   int err = Success;
+   ScreenPtr pScreen = pWin->drawable.pScreen;
++  ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+   RootWinPropPtr pProp;
+   CreateWindowProcPtr CreateWindow = (CreateWindowProcPtr)
+       dixLookupPrivate(&pScreen->devPrivates, xf86CreateRootWindowKey);
+@@ -293,6 +295,17 @@ xf86CreateRootWindow(WindowPtr pWin)
+     }
+   }
+ 
++  if (bgNoneRoot) {
++	if (pScrn->canDoBGNoneRoot) {
++	    pWin->backgroundState = XaceBackgroundNoneState(pWin);
++	    pWin->background.pixel = pScreen->whitePixel;
++	    pScreen->ChangeWindowAttributes(pWin, CWBackPixmap | CWBorderPixel | CWCursor | CWBackingStore);
++	} else {
++	    pWin->background.pixel = pScreen->blackPixel;
++	    pScreen->ChangeWindowAttributes(pWin, CWBackPixel | CWBorderPixel | CWCursor | CWBackingStore);
++	}
++  }
++
+   DebugF("xf86CreateRootWindow() returns %d\n", ret);
+   return ret;
+ }

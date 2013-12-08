@@ -1,0 +1,31 @@
+From 107688407c7ebc71323dc1203ed5b92276026e1e Mon Sep 17 00:00:00 2001
+From: Luc Verhaegen <libv@skynet.be>
+Date: Wed, 2 Apr 2008 20:09:26 +0200
+Subject: [PATCH] Default bitmap fonts should typically be set as unscaled.
+
+It is generally not desired to have bitmap fonts scale. Even so
+DEFAULT_FONT_PATH had the misc, 100dpi and 75dpi paths without the
+:unscaled specifier.
+
+Now the default font path has this per default, xorgconfig and
+--configure will only use these as :unscaled too.
+
+Since SUSE has been specifying :unscaled for its bitmap fonts for
+about a decade or so, and since adding the default font path to the
+.conf fontpath was only introduced a year ago, this lack of scaled
+bitmap fonts will not have any new side-effects.
+
+Reported by Mike Fabian, debugged and fixed with the help of Mike
+Fabian and Stefan Dirsch.
+================================================================================
+--- xorg-server-1.7.99/configure.ac
++++ xorg-server-1.7.99/configure.ac
+@@ -509,7 +509,7 @@
+ dnl Uses --default-font-path if set, otherwise checks for /etc/X11/fontpath.d,
+ dnl otherwise uses standard subdirectories of FONTROOTDIR. When cross
+ dnl compiling, assume default font path uses standard FONTROOTDIR directories.
+-DEFAULT_FONT_PATH="${FONTMISCDIR}/,${FONTTTFDIR}/,${FONTOTFDIR}/,${FONTTYPE1DIR}/,${FONT100DPIDIR}/,${FONT75DPIDIR}/"
++DEFAULT_FONT_PATH="${FONTMISCDIR}:unscaled,${FONTTTFDIR}/,${FONTOTFDIR}/,${FONTTYPE1DIR}/,${FONT100DPIDIR}/,${FONT75DPIDIR}/"
+ if test "$cross_compiling" != yes; then
+ 	AC_CHECK_FILE([${sysconfdir}/X11/fontpath.d],
+ 		[DEFAULT_FONT_PATH='catalogue:${sysconfdir}/X11/fontpath.d'],

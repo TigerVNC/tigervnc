@@ -1,0 +1,13 @@
+Index: include/miscstruct.h
+================================================================================
+--- include/miscstruct.h
++++ include/miscstruct.h
+@@ -50,7 +50,7 @@
+ 
+ #include "misc.h"
+ #include <X11/Xprotostr.h>
+-#include <pixman.h>
++#include <pixman-1/pixman.h>
+ 
+ typedef xPoint DDXPointRec;
+ 

@@ -1,0 +1,57 @@
+--- xorg-server-1.9.1/Xext/sync.c	2010-11-16 23:11:56.751124639 -0500
++++ xorg-server-1.9.1/Xext/sync.c	2010-11-16 23:13:16.327862535 -0500
+@@ -2264,8 +2264,44 @@ 
+ static void
+ IdleTimeQueryValue (pointer pCounter, CARD64 *pValue_return)
+ {
+-    CARD32 idle = GetTimeInMillis() - lastDeviceEventTime.milliseconds;
++    static CARD32 previousLastDeviceEventTimeMilliseconds = 0;
++    CARD32        now              = GetTimeInMillis();
++    CARD32        idle             = now - lastDeviceEventTime.milliseconds;
++    CARD32        previousIdle     = now - previousLastDeviceEventTimeMilliseconds;
++    SyncCounter  *pIdleTimeCounter = (SyncCounter*)pCounter;
++
+     XSyncIntsToValue (pValue_return, idle, 0);
++
++    if (pCounter == NULL)
++    {
++        return;
++    }
++    if (previousLastDeviceEventTimeMilliseconds == 0)
++    {
++        /* initialize static var when this function is invoked the first time. */
++        previousLastDeviceEventTimeMilliseconds = lastDeviceEventTime.milliseconds;
++        return;
++    }
++
++    if (previousLastDeviceEventTimeMilliseconds == lastDeviceEventTime.milliseconds)
++    {
++        /* no new user event, no need to change idle counter. */
++        return;
++    }
++    previousLastDeviceEventTimeMilliseconds = lastDeviceEventTime.milliseconds;
++
++    /*
++     * Some user event occured; now update idle counter with previous
++     * event time, so idle counter has the most up-to-date value with
++     * respect to previous user event (we need old and new counter
++     * value to compute if a transition occured).  Recompute bracket
++     * values if this is system counter.
++     */
++
++    XSyncIntsToValue  (&pIdleTimeCounter->value, previousIdle, 0);
++    if (IsSystemCounter(pIdleTimeCounter)) {
++        SyncComputeBracketValues(pIdleTimeCounter);
++    }
+ }
+ 
+ static void
+@@ -2342,7 +2378,7 @@ 
+     if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
+ 	return;
+ 
+-    IdleTimeQueryValue (NULL, &idle);
++    IdleTimeQueryValue (IdleTimeCounter, &idle);
+ 
+     if ((pIdleTimeValueGreater &&
+          XSyncValueGreaterOrEqual (idle, *pIdleTimeValueGreater)) ||

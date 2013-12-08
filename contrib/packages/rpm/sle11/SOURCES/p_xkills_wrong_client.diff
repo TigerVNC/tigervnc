@@ -1,0 +1,13 @@
+Index: os/connection.c
+================================================================================
+--- os/connection.c
++++ os/connection.c
+@@ -999,7 +999,7 @@
+             do {
+                 r = Select (curclient + 1, &tmask, NULL, NULL, &notime);
+             } while (r < 0 && (errno == EINTR || errno == EAGAIN));
+-            if (r < 0)
++            if (r < 0 && (errno == EBADF))
+                 if (ConnectionTranslation[curclient] > 0)
+                     CloseDownClient(clients[ConnectionTranslation[curclient]]);
+ 	    mask &= ~((fd_mask)1 << curoff);

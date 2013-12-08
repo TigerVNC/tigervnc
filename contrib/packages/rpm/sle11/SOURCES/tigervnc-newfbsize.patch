@@ -1,0 +1,12 @@
+diff -up a/vncviewer/CConn.cxx.newfbsize b/vncviewer/CConn.cxx
+--- a/vncviewer/CConn.cxx.newfbsize	2008-10-23 13:00:59.000000000 +0200
++++ b/vncviewer/CConn.cxx	2008-10-23 13:01:11.000000000 +0200
+@@ -327,6 +327,8 @@ void CConn::beginRect(const Rect& r, uns
+   if (encoding != encodingCopyRect) {
+     lastServerEncoding = encoding;
+   }
++  if (encoding == pseudoEncodingDesktopSize)
++    setDesktopSize( r.width(), r.height() );
+ }
+ 
+ void CConn::endRect(const Rect& r, int encoding)

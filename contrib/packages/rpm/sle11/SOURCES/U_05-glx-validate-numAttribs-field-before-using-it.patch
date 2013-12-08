@@ -1,0 +1,131 @@
+From: Julien Cristau <jcristau@debian.org>
+Date: Wed Nov 10 22:39:54 2010 +0100
+Subject: [PATCH] glx: validate numAttribs field before using it
+Patch-Mainline: Upstream
+Git-commit: d9225b9602c85603ae616a7381c784f5cf5e811c
+References: bnc #648278, CVE-2010-4818
+Signed-off-by: Egbert Eich <eich@suse.de>
+
+Reviewed-by: Kristian Høgsberg <krh@bitplanet.net>
+Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+Signed-off-by: Julien Cristau <jcristau@debian.org>
+
+--- xorg-server-1.6.5.orig/glx/glxcmdsswap.c
++++ xorg-server-1.6.5/glx/glxcmdsswap.c
+@@ -322,6 +322,10 @@ int __glXDispSwap_CreatePixmap(__GLXclie
+     __GLX_SWAP_INT(&req->glxpixmap);
+     __GLX_SWAP_INT(&req->numAttribs);
+ 
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXCreatePixmapReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+     __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+@@ -403,6 +407,10 @@ int __glXDispSwap_CreatePbuffer(__GLXcli
+     __GLX_SWAP_INT(&req->pbuffer);
+     __GLX_SWAP_INT(&req->numAttribs);
+ 
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXCreatePbufferReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+     __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+@@ -468,6 +476,10 @@ int __glXDispSwap_ChangeDrawableAttribut
+     __GLX_SWAP_INT(&req->drawable);
+     __GLX_SWAP_INT(&req->numAttribs);
+ 
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXChangeDrawableAttributesReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+     __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+@@ -490,6 +502,10 @@ int __glXDispSwap_ChangeDrawableAttribut
+     __GLX_SWAP_INT(&req->drawable);
+     __GLX_SWAP_INT(&req->numAttribs);
+ 
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXChangeDrawableAttributesSGIXReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+     __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+@@ -513,6 +529,10 @@ int __glXDispSwap_CreateWindow(__GLXclie
+     __GLX_SWAP_INT(&req->glxwindow);
+     __GLX_SWAP_INT(&req->numAttribs);
+ 
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXCreateWindowReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+     __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+--- xorg-server-1.9.3/glx/glxcmds.c.orig	2012-02-06 15:24:13.000000000 +0100
++++ xorg-server-1.9.3/glx/glxcmds.c	2012-02-06 15:26:23.000000000 +0100
+@@ -1285,6 +1285,11 @@ int __glXDisp_CreatePixmap(__GLXclientSt
+     __GLXscreen *pGlxScreen;
+     int err;
+ 
++    REQUEST_AT_LEAST_SIZE(xGLXCreatePixmapReq);
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXCreatePixmapReq, req->numAttribs << 3);
+ 
+     if (!validGlxScreen(cl->client, req->screen, &pGlxScreen, &err))
+@@ -1398,6 +1403,11 @@ int __glXDisp_CreatePbuffer(__GLXclientS
+     CARD32			*attrs;
+     int				 width, height, i;
+ 
++    REQUEST_AT_LEAST_SIZE(xGLXCreatePbufferReq);
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXCreatePbufferReq, req->numAttribs << 3);
+ 
+     attrs = (CARD32 *) (req + 1);
+@@ -1485,6 +1495,11 @@ int __glXDisp_ChangeDrawableAttributes(_
+     xGLXChangeDrawableAttributesReq *req =
+ 	(xGLXChangeDrawableAttributesReq *) pc;
+ 
++    REQUEST_AT_LEAST_SIZE(xGLXChangeDrawableAttributesReq);
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXChangeDrawableAttributesReq, req->numAttribs << 3);
+ 
+     return DoChangeDrawableAttributes(cl->client, req->drawable,
+@@ -1497,6 +1512,11 @@ int __glXDisp_ChangeDrawableAttributesSG
+     xGLXChangeDrawableAttributesSGIXReq *req =
+ 	(xGLXChangeDrawableAttributesSGIXReq *)pc;
+ 
++    REQUEST_AT_LEAST_SIZE(xGLXChangeDrawableAttributesSGIXReq);
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXChangeDrawableAttributesSGIXReq, req->numAttribs << 3);
+ 
+     return DoChangeDrawableAttributes(cl->client, req->drawable,
+@@ -1512,6 +1532,11 @@ int __glXDisp_CreateWindow(__GLXclientSt
+     DrawablePtr		 pDraw;
+     int			 err;
+ 
++    REQUEST_AT_LEAST_SIZE(xGLXCreateWindowReq);
++    if (req->numAttribs > (UINT32_MAX >> 3)) {
++	client->errorValue = req->numAttribs;
++	return BadValue;
++    }
+     REQUEST_FIXED_SIZE(xGLXCreateWindowReq, req->numAttribs << 3);
+ 
+     LEGAL_NEW_RESOURCE(req->glxwindow, client);

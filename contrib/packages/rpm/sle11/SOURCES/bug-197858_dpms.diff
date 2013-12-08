@@ -1,0 +1,105 @@
+Index: hw/xfree86/common/xf86Events.c
+================================================================================
+--- hw/xfree86/common/xf86Events.c
++++ hw/xfree86/common/xf86Events.c
+@@ -115,6 +115,7 @@
+     InputHandlerProc	ihproc;
+     pointer		data;
+     Bool		enabled;
++    Bool		is_input;
+     struct x_IHRec *	next;
+ } IHRec, *IHPtr;
+ 
+@@ -449,8 +450,12 @@
+      * Keep the order: Disable Device > LeaveVT
+      *                        EnterVT > EnableDevice
+      */
+-    for (ih = InputHandlers; ih; ih = ih->next)
+-      xf86DisableInputHandler(ih);
++    for (ih = InputHandlers; ih; ih = ih->next) {
++      if (ih->is_input)
++          xf86DisableInputHandler(ih);
++      else
++          xf86DisableGeneralHandler(ih);
++    }
+     for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next) {
+       if (pInfo->dev) {
+           xf86ReleaseKeys(pInfo->dev);
+@@ -492,8 +497,12 @@
+             EnableDevice(pInfo->dev, TRUE);
+ 	pInfo = pInfo->next;
+       }
+-      for (ih = InputHandlers; ih; ih = ih->next)
+-        xf86EnableInputHandler(ih);
++      for (ih = InputHandlers; ih; ih = ih->next) {
++        if (ih->is_input)
++            xf86EnableInputHandler(ih);
++        else
++            xf86EnableGeneralHandler(ih);
++      }
+ 
+       xf86UnblockSIGIO(prevSIGIO);
+ 
+@@ -549,8 +558,12 @@
+       pInfo = pInfo->next;
+     }
+ 
+-    for (ih = InputHandlers; ih; ih = ih->next)
+-      xf86EnableInputHandler(ih);
++    for (ih = InputHandlers; ih; ih = ih->next) {
++      if (ih->is_input)
++          xf86EnableInputHandler(ih);
++      else
++           xf86EnableGeneralHandler(ih);
++    }
+ 
+     xf86UnblockSIGIO(prevSIGIO);
+   }
+@@ -587,8 +600,10 @@
+ {
+     IHPtr ih = addInputHandler(fd, proc, data);
+ 
+-    if (ih)
++    if (ih) {
+         AddEnabledDevice(fd);
++	ih->is_input = TRUE;
++    }
+     return ih;
+ }
+ 
+--- os/WaitFor.c
++++ os/WaitFor.c
+@@ -142,6 +142,7 @@
+  *     For more info on ClientsWithInput, see ReadRequestFromClient().
+  *     pClientsReady is an array to store ready client->index values into.
+  *****************/
++volatile fd_set tmp_set;
+ 
+ int
+ WaitForSomething(int *pClientsReady)
+@@ -279,10 +280,9 @@
+                 if (expired)
+                     return 0;
+ 	    }
+-	}
++	} 
+ 	else
+-	{
+-	    fd_set tmp_set;
++	 {
+ 
+ 	    if (*checkForInput[0] == *checkForInput[1]) {
+ 	        if (timers)
+@@ -317,6 +317,12 @@
+ 		QueueWorkProc(EstablishNewConnections, NULL,
+ 			      (pointer)&LastSelectMask);
+ 
++#ifdef DPMSExtension
++	    XFD_ANDSET(&tmp_set, &devicesReadable, &EnabledDevices);
++	    if (XFD_ANYSET (&tmp_set) && (DPMSPowerLevel != DPMSModeOn))
++		DPMSSet(serverClient, DPMSModeOn);
++#endif
++
+ 	    if (XFD_ANYSET (&devicesReadable) || XFD_ANYSET (&clientsReadable))
+ 		break;
+ 	    /* check here for DDXes that queue events during Block/Wakeup */

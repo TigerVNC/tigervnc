@@ -1,0 +1,52 @@
+Index: hw/xfree86/common/xf86Configure.c
+================================================================================
+--- hw/xfree86/common/xf86Configure.c
++++ hw/xfree86/common/xf86Configure.c
+@@ -250,23 +250,35 @@
+ 
+     /* Crude mechanism to auto-detect mouse (os dependent) */
+     { 
+-	int fd;
++	int fd = -1;
+ #ifdef WSCONS_SUPPORT
+-	fd = open("/dev/wsmouse", 0);
+-	if (fd >= 0) {
+-	    DFLT_MOUSE_DEV = "/dev/wsmouse";
+-	    DFLT_MOUSE_PROTO = "wsmouse";
+-	    close(fd);
+-	} else {
+-	    ErrorF("cannot open /dev/wsmouse\n");
++	if (fd == -1) {
++	    fd = open("/dev/wsmouse", 0);
++	    if (fd != -1) {
++		DFLT_MOUSE_DEV = "/dev/wsmouse";
++		DFLT_MOUSE_PROTO = "wsmouse";
++		close(fd);
++	    } else {
++		ErrorF("cannot open /dev/wsmouse\n");
++	    }
+ 	}
+ #endif
+ 
+ #ifndef __SCO__
+-	fd = open(DFLT_MOUSE_DEV, 0);
+-	if (fd != -1) {
+-	    foundMouse = TRUE;
+-	    close(fd);
++	if (fd == -1) {
++	    fd = open(DFLT_MOUSE_DEV, 0);
++# ifdef  linux
++	    if (fd == -1) {
++		char *name = "/dev/input/mice";
++		fd = open(name, 0);
++		if (fd != -1)
++		    DFLT_MOUSE_DEV = name;
++	    }
++# endif
++	    if (fd != -1) {
++		foundMouse = TRUE;
++		close(fd);
++	    }
+ 	}
+ #else
+ 	foundMouse = TRUE;
