@@ -439,20 +439,16 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     mouseWheelCB(e);
   }
 
+  private static final Integer keyEventLock = 0; 
+
   // Handle the key-typed event.
-  public void keyTyped(KeyEvent e) {
-    int keysym = UnicodeToKeysym.translate(e.getKeyChar());
-    if (!cc.viewer.viewOnly.getValue())
-      if (!e.isActionKey() && keysym > 0)
-        cc.writeKeyEvent(e, keysym);
-  }
+  public void keyTyped(KeyEvent e) { }
 
   // Handle the key-released event.
   public void keyReleased(KeyEvent e) {
-    int keysym = UnicodeToKeysym.translate(e.getKeyChar());
-    if (!cc.viewer.viewOnly.getValue())
-      if (e.isActionKey() || keysym < 0)
-        cc.writeKeyEvent(e);
+    synchronized(keyEventLock) {
+      cc.writeKeyEvent(e);
+    }
   }
 
   // Handle the key-pressed event.
@@ -509,10 +505,9 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
           return;
       }
     }
-    int keysym = UnicodeToKeysym.translate(e.getKeyChar());
-    if (!cc.viewer.viewOnly.getValue())
-      if (e.isActionKey() || keysym < 0)
-        cc.writeKeyEvent(e);
+    synchronized(keyEventLock) {
+      cc.writeKeyEvent(e);
+    }
   }
 
   ////////////////////////////////////////////////////////////////////
