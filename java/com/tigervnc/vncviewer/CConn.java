@@ -310,7 +310,7 @@ public class CConn extends CConnection implements
           desktop.requestFocus();
       }
       public void focusLost(FocusEvent e) {
-        releaseModifiers();
+        releaseDownKeys();
       }
     });
     viewer.validate();
@@ -1367,27 +1367,10 @@ public class CConn extends CConnection implements
 
   }
 
-  synchronized void releaseModifiers() {
-    if (downKeySym.containsValue(Keysyms.Shift_L))
-      writeKeyEvent(Keysyms.Shift_L, true);
-    if (downKeySym.containsValue(Keysyms.Shift_R))
-      writeKeyEvent(Keysyms.Shift_R, true);
-    if (downKeySym.containsValue(Keysyms.Control_L))
-      writeKeyEvent(Keysyms.Control_L, true);
-    if (downKeySym.containsValue(Keysyms.Control_R))
-      writeKeyEvent(Keysyms.Control_R, true);
-    if (downKeySym.containsValue(Keysyms.Alt_L))
-      writeKeyEvent(Keysyms.Alt_L, true);
-    if (downKeySym.containsValue(Keysyms.Alt_R))
-      writeKeyEvent(Keysyms.Alt_R, true);
-    if (downKeySym.containsValue(Keysyms.Meta_L))
-      writeKeyEvent(Keysyms.Meta_L, true);
-    if (downKeySym.containsValue(Keysyms.Meta_R))
-      writeKeyEvent(Keysyms.Meta_R, true);
-    if (downKeySym.containsValue(Keysyms.Super_L))
-      writeKeyEvent(Keysyms.Super_L, true);
-    if (downKeySym.containsValue(Keysyms.Super_R))
-      writeKeyEvent(Keysyms.Super_R, true);
+  synchronized void releaseDownKeys() {
+    for (Map.Entry<Integer, Integer> entry : downKeySym.entrySet())
+      writeKeyEvent(entry.getValue(), false);
+    downKeySym.clear();
   }
 
   // this is a special ActionListener passed in by the

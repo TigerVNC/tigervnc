@@ -86,7 +86,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
         checkClipboard();
       }
       public void focusLost(FocusEvent e) {
-        cc.releaseModifiers();
+        cc.releaseDownKeys();
       }
     });
     setFocusTraversalKeysEnabled(false);
