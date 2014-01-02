@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2012 Brian P. Hinz
+ * Copyright (C) 2011-2014 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ class OptionsDialog extends Dialog implements
   // Static variables
   static LogWriter vlog = new LogWriter("OptionsDialog");
 
-  OptionsDialogCallback cb;
+  CConn cc;
   JPanel FormatPanel, InputsPanel, MiscPanel, DefaultsPanel, SecPanel;
   JCheckBox autoSelect, customCompressLevel, noJpeg;
   @SuppressWarnings({"rawtypes"})
@@ -53,9 +53,9 @@ class OptionsDialog extends Dialog implements
   JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
 
   @SuppressWarnings({"rawtypes","unchecked"})
-  public OptionsDialog(OptionsDialogCallback cb_) {
+  public OptionsDialog(CConn cc_) {
     super(true);
-    cb = cb_;
+    cc = cc_;
     setResizable(false);
     setTitle("VNC Viewer Options");
 
@@ -149,6 +149,7 @@ class OptionsDialog extends Dialog implements
 
     fullScreen = new JCheckBox("Full-screen mode");
     fullScreen.addItemListener(this);
+    fullScreen.setEnabled(!cc.viewer.embed.getValue());
     shared = new JCheckBox("Shared connection (do not disconnect other viewers)");
     shared.addItemListener(this);
     useLocalCursor = new JCheckBox("Render cursor locally");
@@ -172,6 +173,7 @@ class OptionsDialog extends Dialog implements
     }
     scalingFactor.setEditable(true);
     scalingFactor.addItemListener(this);
+    scalingFactor.setEnabled(!cc.viewer.embed.getValue());
     addGBComponent(fullScreen,MiscPanel,     0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
     addGBComponent(shared,MiscPanel,         0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
     addGBComponent(useLocalCursor,MiscPanel, 0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
@@ -205,7 +207,6 @@ class OptionsDialog extends Dialog implements
 
     addGBComponent(configPanel,DefaultsPanel, 0, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,5,4,5));
     addGBComponent(defaultsPanel,DefaultsPanel, 1, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,0,4,5));
-    //defReloadButton.setEnabled(!applet);
 
     // security tab
     SecPanel=new JPanel(new GridBagLayout());
@@ -278,7 +279,7 @@ class OptionsDialog extends Dialog implements
   }
 
   public void initDialog() {
-    if (cb != null) cb.setOptions();
+    if (cc != null) cc.setOptions();
     zrle.setEnabled(!autoSelect.isSelected());
     hextile.setEnabled(!autoSelect.isSelected());
     tight.setEnabled(!autoSelect.isSelected());
@@ -472,7 +473,6 @@ class OptionsDialog extends Dialog implements
 
   public void endDialog() {
     super.endDialog();
-    CConn cc = (CConn)cb;
     if (cc.viewport != null && cc.viewport.isVisible()) {
       cc.viewport.toFront();
       cc.viewport.requestFocus();
@@ -482,7 +482,7 @@ class OptionsDialog extends Dialog implements
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == okButton) {
-      if (cb != null) cb.getOptions();
+      if (cc != null) cc.getOptions();
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
       endDialog();
@@ -496,7 +496,7 @@ class OptionsDialog extends Dialog implements
         String filename = fc.getSelectedFile().toString();
         if (filename != null)
           Configuration.load(filename);
-        cb.setOptions();
+        cc.setOptions();
       }
     } else if (s instanceof JButton && (JButton)s == cfSaveAsButton) {
       JFileChooser fc = new JFileChooser();
@@ -516,7 +516,7 @@ class OptionsDialog extends Dialog implements
       restorePreferences();
     } else if (s instanceof JButton && (JButton)s == defClearButton) {
       UserPreferences.clear();
-      cb.setOptions();
+      cc.setOptions();
     } else if (s instanceof JButton && (JButton)s == ca) {
       JFileChooser fc = new JFileChooser(new File(CSecurityTLS.getDefaultCA()));
       fc.setDialogTitle("Path to X509 CA certificate");

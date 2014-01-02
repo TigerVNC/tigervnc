@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2013 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2013 Brian P. Hinz
+ * Copyright (C) 2011-2014 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,9 +56,9 @@ import com.tigervnc.rfb.Exception;
 import com.tigervnc.network.Socket;
 import com.tigervnc.network.TcpSocket;
 
-public class CConn extends CConnection
-  implements UserPasswdGetter, UserMsgBox, OptionsDialogCallback, FdInStreamBlockCallback
-{
+public class CConn extends CConnection implements 
+  UserPasswdGetter, UserMsgBox, OptionsDialogCallback, 
+  FdInStreamBlockCallback, ActionListener {
 
   public final PixelFormat getPreferredPF() { return fullColourPF; }
   static final PixelFormat verylowColourPF =
@@ -265,7 +265,56 @@ public class CConn extends CConnection
     cp.setPF(pendingPF);
     pendingPFChange = false;
 
-    recreateViewport();
+    if (viewer.embed.getValue()) {
+      desktop.setScaledSize();
+      setupEmbeddedFrame();
+    } else {
+      recreateViewport();
+    }
+  }
+
+  void setupEmbeddedFrame() {
+    UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
+      new UIDefaults.LazyInputMap(new Object[]{}));
+    JScrollPane sp = new JScrollPane();
+    sp.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+    sp.getViewport().setBackground(Color.BLACK);
+    InputMap im = sp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
+    if (im != null) {
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlAltShiftMask),
+             "unitScrollUp");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlAltShiftMask),
+             "unitScrollDown");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlAltShiftMask),
+             "unitScrollLeft");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlAltShiftMask),
+             "unitScrollRight");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlAltShiftMask),
+             "scrollUp");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlAltShiftMask),
+             "scrollDown");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, ctrlAltShiftMask),
+             "scrollLeft");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, ctrlAltShiftMask),
+             "scrollRight");
+    }
+    sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+    sp.getViewport().setView(desktop);
+    viewer.getContentPane().removeAll();
+    viewer.add(sp);
+    viewer.addFocusListener(new FocusAdapter() {
+      public void focusGained(FocusEvent e) {
+        if (desktop.isAncestorOf(viewer))
+          desktop.requestFocus();
+      }
+      public void focusLost(FocusEvent e) {
+        releaseModifiers();
+      }
+    });
+    viewer.validate();
+    desktop.requestFocus();
   }
 
   // setDesktopSize() is called when the desktop size changes (including when
@@ -487,15 +536,28 @@ public class CConn extends CConnection
       return;
 
     desktop.resize();
-    recreateViewport();
+    if (viewer.embed.getValue()) {
+      desktop.setScaledSize();
+      setupEmbeddedFrame();
+    } else {
+      recreateViewport();
+    }
+  }
+  
+  public void setEmbeddedFeatures(boolean s) {
+    menu.fullScreen.setEnabled(s);
+    menu.newConn.setEnabled(s);
+    options.fullScreen.setEnabled(s);
+    options.scalingFactor.setEnabled(s);
   }
 
   // recreateViewport() recreates our top-level window.  This seems to be
   // better than attempting to resize the existing window, at least with
   // various X window managers.
 
-  private void recreateViewport()
-  {
+  public void recreateViewport() {
+    if (viewer.embed.getValue())
+      return;
     if (viewport != null) viewport.dispose();
     viewport = new Viewport(cp.name(), this);
     viewport.setUndecorated(fullScreen);
@@ -506,8 +568,7 @@ public class CConn extends CConnection
     desktop.requestFocusInWindow();
   }
 
-  private void reconfigureViewport()
-  {
+  private void reconfigureViewport() {
     //viewport.setMaxSize(cp.width, cp.height);
     boolean pack = true;
     Dimension dpySize = viewport.getToolkit().getScreenSize();
@@ -680,6 +741,14 @@ public class CConn extends CConnection
 
   // close() shuts down the socket, thus waking up the RFB thread.
   public void close() {
+    if (closeListener != null) {
+      viewer.embed.setParam(true);
+      if (VncViewer.nViewers == 1) {
+        JFrame f = (JFrame)JOptionPane.getFrameForComponent(viewer);
+        if (f != null)
+          f.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
+      }
+    }
     deleteWindow();
     shuttingDown = true;
     try {
@@ -723,7 +792,7 @@ public class CConn extends CConnection
     JOptionPane op =
       new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
                       JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon);
-    JDialog dlg = op.createDialog("About TigerVNC Viewer for Java");
+    JDialog dlg = op.createDialog(desktop, "About TigerVNC Viewer for Java");
     dlg.setIconImage(VncViewer.frameIcon);
     dlg.setVisible(true);
     if (fullScreenWindow != null)
@@ -758,7 +827,7 @@ public class CConn extends CConnection
                     csecurity.description());
     JOptionPane op = new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE,
                                      JOptionPane.DEFAULT_OPTION);
-    JDialog dlg = op.createDialog("VNC connection info");
+    JDialog dlg = op.createDialog(desktop, "VNC connection info");
     dlg.setIconImage(VncViewer.frameIcon);
     dlg.setVisible(true);
     if (fullScreenWindow != null)
@@ -1134,6 +1203,8 @@ public class CConn extends CConnection
   }
 
   public void toggleFullScreen() {
+    if (viewer.embed.getValue())
+      return;
     fullScreen = !fullScreen;
     menu.fullScreen.setSelected(fullScreen);
     if (viewport != null) {
@@ -1319,6 +1390,13 @@ public class CConn extends CConnection
       writeKeyEvent(Keysyms.Super_R, true);
   }
 
+  // this is a special ActionListener passed in by the
+  // Java Plug-in software to control applet's close behavior
+  public void setCloseListener(ActionListener cl) {
+    closeListener = cl;
+  }
+
+  public void actionPerformed(ActionEvent e) {}
 
   ////////////////////////////////////////////////////////////////////
   // The following methods are called from both RFB and GUI threads
@@ -1401,6 +1479,7 @@ public class CConn extends CConnection
   private boolean autoSelect;
   boolean fullScreen;
   private HashMap<Integer, Integer> downKeySym;
+  public ActionListener closeListener = null;
 
   static LogWriter vlog = new LogWriter("CConn");
 }

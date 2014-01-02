@@ -13,6 +13,7 @@ optimizations, major GUI improvements, and more.
         Copyright (C) 2005 Martin Koegler
         Copyright (C) 2009 Pierre Ossman for Cendio AB
         Copyright (C) 2009-2013 TigerVNC Team
+        Copyright (C) 2011-2014 Brian P. Hinz
         All rights reserved.
 
 This software is distributed under the GNU General Public Licence as
@@ -45,6 +46,10 @@ There are three basic ways to use the TigerVNC Java Viewer:
      it finds.  Thus, one can easily deploy a modified version of the TigerVNC
      Java Viewer by simply copying a new version of VncViewer.jar and/or
      index.vnc into the VNC classes directory.
+
+     On Windows and Linux, the embedded applet can be drag-undocked from the 
+     browser window and converted to a standalone application. The drag
+     gesture ALT+drag on Windows, and SHIFT+drag on Linux.
 
      In the case of the Windows TigerVNC Server, VncViewer.jar and index.vnc
      are embedded as resources in the WinVNC executable, so deploying a

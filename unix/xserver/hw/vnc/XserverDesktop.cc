@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2014 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -338,7 +339,7 @@ char* XserverDesktop::substitute(const char* varName)
   }
   if (strcmp(varName, "$APPLETHEIGHT") == 0) {
     char* str = new char[10];
-    sprintf(str, "%d", height() + 32);
+    sprintf(str, "%d", height());
     return str;
   }
   if (strcmp(varName, "$DESKTOP") == 0) {

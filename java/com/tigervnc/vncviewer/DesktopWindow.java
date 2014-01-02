@@ -2,7 +2,7 @@
  * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
  * Copyright (C) 2010, 2012-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2013 Brian P. Hinz
+ * Copyright (C) 2011-2014 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -426,7 +426,10 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
   public void mouseReleased(MouseEvent e) { mouseCB(e); }
   public void mousePressed(MouseEvent e) { mouseCB(e); }
   public void mouseClicked(MouseEvent e) {}
-  public void mouseEntered(MouseEvent e) {}
+  public void mouseEntered(MouseEvent e) {
+    if (cc.viewer.embed.getValue())
+      requestFocus();
+  }
   public void mouseExited(MouseEvent e) {}
 
   // MouseWheel callback function

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2013 Brian P. Hinz
+ * Copyright (C) 2011-2014 Brian P. Hinz
  * Copyright (C) 2012-2013 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
@@ -64,7 +64,11 @@ public class Viewport extends JFrame
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         if (VncViewer.nViewers == 1) {
-          cc.viewer.exit(1);
+          if (cc.closeListener != null) {
+            cc.close();
+          } else {
+            cc.viewer.exit(1);
+          }
         } else {
           cc.close();
         }
@@ -163,19 +167,19 @@ public class Viewport extends JFrame
   }
 
   public static Window getFullScreenWindow() {
-      GraphicsEnvironment ge =
-        GraphicsEnvironment.getLocalGraphicsEnvironment();
-      GraphicsDevice gd = ge.getDefaultScreenDevice();
-      Window fullScreenWindow = gd.getFullScreenWindow();
-      return fullScreenWindow;
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gd = ge.getDefaultScreenDevice();
+    Window fullScreenWindow = gd.getFullScreenWindow();
+    return fullScreenWindow;
   }
 
   public static void setFullScreenWindow(Window fullScreenWindow) {
-      GraphicsEnvironment ge =
-        GraphicsEnvironment.getLocalGraphicsEnvironment();
-      GraphicsDevice gd = ge.getDefaultScreenDevice();
-      if (gd.isFullScreenSupported())
-        gd.setFullScreenWindow(fullScreenWindow);
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gd = ge.getDefaultScreenDevice();
+    if (gd.isFullScreenSupported())
+      gd.setFullScreenWindow(fullScreenWindow);
   }
 
   CConn cc;
