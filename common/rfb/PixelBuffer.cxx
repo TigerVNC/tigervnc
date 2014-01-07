@@ -133,6 +133,22 @@ FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
                                            rdr::U8* data_, ColourMap* cm)
   : PixelBuffer(pf, w, h, cm), data(data_)
 {
+  // Called again to configure the fill function
+  setPF(pf);
+}
+
+FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
+
+FullFramePixelBuffer::~FullFramePixelBuffer() {}
+
+
+void FullFramePixelBuffer::setPF(const PixelFormat &pf) {
+  // We have this as a separate method for ManagedPixelBuffer's
+  // sake. Direct users of FullFramePixelBuffer aren't allowed
+  // to call it.
+
+  PixelBuffer::setPF(pf);
+
   switch(pf.bpp) {
   case 8:
     fillRectFn = fillRect8;
@@ -147,10 +163,6 @@ FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
     throw Exception("rfb::FullFramePixelBuffer - Unsupported pixel format");
   }
 }
-
-FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
-
-FullFramePixelBuffer::~FullFramePixelBuffer() {}
 
 
 int FullFramePixelBuffer::getStride() const { return width(); }
@@ -334,7 +346,7 @@ ManagedPixelBuffer::~ManagedPixelBuffer() {
 
 void
 ManagedPixelBuffer::setPF(const PixelFormat &pf) {
-  format = pf; checkDataSize();
+  FullFramePixelBuffer::setPF(pf); checkDataSize();
 };
 void
 ManagedPixelBuffer::setSize(int w, int h) {

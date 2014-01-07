@@ -44,7 +44,10 @@ namespace rfb {
     //
 
     // Set/get pixel format & colourmap
+  protected:
+    // Only for subclasses that support changing parameters
     virtual void setPF(const PixelFormat &pf);
+  public:
     virtual const PixelFormat &getPF() const;
     virtual ColourMap* getColourMap() const;
 
@@ -103,6 +106,10 @@ namespace rfb {
                          rdr::U8* data_, ColourMap* cm);
     virtual ~FullFramePixelBuffer();
 
+  protected:
+    virtual void setPF(const PixelFormat &pf);
+
+  public:
     // - Get the number of pixels per row in the actual pixel buffer data area
     //   This may in some cases NOT be the same as width().
     virtual int getStride() const;
