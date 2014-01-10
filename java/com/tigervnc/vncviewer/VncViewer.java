@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
 import java.lang.Character;
+import java.lang.reflect.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.*;
@@ -75,6 +76,17 @@ public class VncViewer extends javax.swing.JApplet
 
   public static void setLookAndFeel() {
     try {
+      if (os.startsWith("mac os x")) {
+        Class appClass = Class.forName("com.apple.eawt.Application");
+        Method getApplication = 
+          appClass.getMethod("getApplication", (Class[])null);
+        Object app = getApplication.invoke(appClass);
+        Class paramTypes[] = new Class[1];
+        paramTypes[0] = Image.class;
+        Method setDockIconImage = 
+          appClass.getMethod("setDockIconImage", paramTypes);
+        setDockIconImage.invoke(app, VncViewer.logoImage);
+      }
       // Use Nimbus LookAndFeel if it's available, otherwise fallback
       // to the native laf, or Metal if no native laf is available.
       String laf = System.getProperty("swing.defaultlaf");

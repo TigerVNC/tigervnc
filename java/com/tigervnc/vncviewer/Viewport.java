@@ -42,23 +42,8 @@ public class Viewport extends JFrame
     setTitle(name+" - TigerVNC");
     setFocusable(false);
     setFocusTraversalKeysEnabled(false);
-    if (VncViewer.os.startsWith("mac os x")) {
-      try {
-        Class appClass = Class.forName("com.apple.eawt.Application");
-        Method getApplication = 
-          appClass.getMethod("getApplication", (Class[])null);
-        Object app = getApplication.invoke(appClass);
-        Class paramTypes[] = new Class[1];
-        paramTypes[0] = Image.class;
-        Method setDockIconImage = 
-          appClass.getMethod("setDockIconImage", paramTypes);
-        setDockIconImage.invoke(app, VncViewer.logoImage);
-      } catch (Exception e) {
-        vlog.debug("Could not set OS X dock icon: " + e.getMessage());
-      }
-    } else {
+    if (!VncViewer.os.startsWith("mac os x"))
       setIconImage(VncViewer.frameIcon);
-    }
     UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
       new UIDefaults.LazyInputMap(new Object[]{}));
     sp = new JScrollPane();
