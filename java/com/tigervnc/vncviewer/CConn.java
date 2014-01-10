@@ -794,6 +794,7 @@ public class CConn extends CConnection implements
                       JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon);
     JDialog dlg = op.createDialog(desktop, "About TigerVNC Viewer for Java");
     dlg.setIconImage(VncViewer.frameIcon);
+    dlg.setAlwaysOnTop(true);
     dlg.setVisible(true);
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(fullScreenWindow);
@@ -829,6 +830,7 @@ public class CConn extends CConnection implements
                                      JOptionPane.DEFAULT_OPTION);
     JDialog dlg = op.createDialog(desktop, "VNC connection info");
     dlg.setIconImage(VncViewer.frameIcon);
+    dlg.setAlwaysOnTop(true);
     dlg.setVisible(true);
     if (fullScreenWindow != null)
       Viewport.setFullScreenWindow(fullScreenWindow);
