@@ -35,6 +35,8 @@ import java.awt.image.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.Clipboard;
+import java.io.BufferedReader;
+import java.nio.CharBuffer;
 import javax.swing.*;
 
 import com.tigervnc.rfb.*;
@@ -362,28 +364,28 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     try {
       if (sm != null) sm.checkSystemClipboardAccess();
       Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-      if (cb == null) return;
-      Transferable t = cb.getContents(null);
-      if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-        try {
-          String newContents = new String("");
-          if (t.getTransferData(DataFlavor.stringFlavor) != null) {
-            int len = Math.min(cc.viewer.maxCutText.getValue(),
-                               ((String)t.getTransferData(DataFlavor.stringFlavor)).length());
-            newContents = 
-              ((String)t.getTransferData(DataFlavor.stringFlavor)).substring(0, len);
-          }
-          if (!newContents.equals(cc.clipboardDialog.getContents())) {
-            if (cc.viewer.sendClipboard.getValue())
-              cc.writeClientCutText(newContents, newContents.length());
-            cc.clipboardDialog.setContents(newContents);
-          }
-        } catch(java.lang.Exception e) {
-          vlog.debug("Exception getting clipboard data: " + e.getMessage());
+      if (cb != null) {
+        Transferable t = cb.getContents(null);
+        if (t == null) return;
+        DataFlavor flavor = 
+          DataFlavor.selectBestTextFlavor(t.getTransferDataFlavors());
+        if (flavor == null) return;
+        BufferedReader br = new BufferedReader(flavor.getReaderForText(t));
+        CharBuffer cbuf =
+          CharBuffer.allocate(VncViewer.maxCutText.getValue());
+        br.read(cbuf);
+        cbuf.flip();
+        String newContents = cbuf.toString();
+        if (!cc.clipboardDialog.compareContentsTo(newContents)) {
+          cc.clipboardDialog.setContents(newContents);
+          if (cc.viewer.sendClipboard.getValue())
+            cc.writeClientCutText(newContents, newContents.length());
         }
+        br.close();
+        System.gc();
       }
-    } catch(SecurityException e) {
-      vlog.debug("Cannot access the system clipboard");
+    } catch(java.lang.Exception e) {
+      vlog.debug("Exception getting clipboard data: " + e.getMessage());
     }
   }
 

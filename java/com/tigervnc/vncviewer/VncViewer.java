@@ -561,7 +561,7 @@ public class VncViewer extends javax.swing.JApplet
   = new BoolParameter("SendClipboard",
                       "Send clipboard changes to the server",
                       true);
-  IntParameter maxCutText
+  static IntParameter maxCutText
   = new IntParameter("MaxCutText",
                      "Maximum permitted length of an outgoing clipboard update",
                      262144);

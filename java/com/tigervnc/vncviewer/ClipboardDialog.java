@@ -57,6 +57,11 @@ class ClipboardDialog extends Dialog implements ActionListener {
     pack();
   }
 
+  public boolean compareContentsTo(String str) {
+    return str.equals(textArea.getText());
+
+  }
+
   public void setContents(String str) {
     textArea.setText(str);
   }
