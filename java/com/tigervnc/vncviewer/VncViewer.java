@@ -480,17 +480,18 @@ public class VncViewer extends javax.swing.JApplet
     exit(0);
   }
 
-  // On Mac systems, setting this parameter will force the use of the old
-  // (pre-Lion) full-screen mode, even if the viewer is running on OS X 10.7
-  // "Lion" or later.
   static BoolParameter noLionFS
-  = new BoolParameter("NoLionFS", null, false);
+  = new BoolParameter("NoLionFS",
+  "On Mac systems, setting this parameter will force the use of the old "+
+  "(pre-Lion) full-screen mode, even if the viewer is running on OS X 10.7 "+
+  "Lion or later.",
+  false);
 
   BoolParameter embed
   = new BoolParameter("Embed",
   "If the viewer is being run as an applet, display its output to " +
   "an embedded frame in the browser window rather than to a dedicated " +
-  "window.  This also has the effect of setting FullScreen=0, and Scale=100.",
+  "window. Embed=1 implies FullScreen=0 and Scale=100.",
   false);
 
   BoolParameter useLocalCursor
