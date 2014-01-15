@@ -193,7 +193,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
   rdr::U32 solidColor;
   const PIXEL_T *rawPixels = (const PIXEL_T *)ig->getRawBufferR(r, &stride);
   PIXEL_T *pixels = NULL;
-  bool grayScaleJPEG = (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1);
+  bool grayScaleJPEG = (jpegSubsampling == subsampleGray && jpegQuality != -1);
 
 #if (BPP == 32)
   // Check if it's necessary to pack 24-bit pixels, and

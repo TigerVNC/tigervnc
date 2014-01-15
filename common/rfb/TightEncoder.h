@@ -22,6 +22,7 @@
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
 #include <rfb/Encoder.h>
+#include <rfb/JpegCompressor.h>
 
 // FIXME: Check if specifying extern "C" is really necessary.
 #include <stdio.h>
@@ -40,7 +41,7 @@ namespace rfb {
     int idxMaxColorsDivisor;
     int palMaxColorsWithJPEG;
     int jpegQuality;
-    JPEG_SUBSAMP jpegSubsampling;
+    int jpegSubsampling;
   };
 
   //
@@ -83,7 +84,7 @@ namespace rfb {
 
     virtual void setCompressLevel(int level);
     virtual void setQualityLevel(int level);
-    virtual void setFineQualityLevel(int quality, JPEG_SUBSAMP subsampling);
+    virtual void setFineQualityLevel(int quality, int subsampling);
     virtual int getNumRects(const Rect &r);
     virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
 
@@ -158,7 +159,7 @@ namespace rfb {
 
     const TIGHT_CONF* pconf;
     int jpegQuality;
-    JPEG_SUBSAMP jpegSubsampling;
+    int jpegSubsampling;
   };
 
 }

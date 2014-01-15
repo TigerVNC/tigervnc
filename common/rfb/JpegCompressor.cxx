@@ -21,6 +21,7 @@
 #include <rdr/Exception.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
+#include <rfb/ConnParams.h>
 #include <os/print.h>
 
 #include <stdio.h>
@@ -142,7 +143,7 @@ JpegCompressor::~JpegCompressor(void)
 }
 
 void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
-  const PixelFormat& pf, int quality, JPEG_SUBSAMP subsamp)
+  const PixelFormat& pf, int quality, int subsamp)
 {
   int w = r.width();
   int h = r.height();
@@ -217,15 +218,18 @@ void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
   }
 
   switch (subsamp) {
-  case SUBSAMP_420:
+  case subsample16X:
+  case subsample8X:
+    // FIXME (fall through)
+  case subsample4X:
     cinfo->comp_info[0].h_samp_factor = 2;
     cinfo->comp_info[0].v_samp_factor = 2;
     break;
-  case SUBSAMP_422:
+  case subsample2X:
     cinfo->comp_info[0].h_samp_factor = 2;
     cinfo->comp_info[0].v_samp_factor = 1;
     break;
-  case SUBSAMP_GRAY:
+  case subsampleGray:
     jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
   default:
     cinfo->comp_info[0].h_samp_factor = 1;

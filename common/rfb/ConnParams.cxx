@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +38,7 @@ ConnParams::ConnParams()
     supportsContinuousUpdates(false),
     customCompressLevel(false), compressLevel(2),
     noJpeg(false), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(SUBSAMP_UNDEFINED), name_(0),
+    subsampling(subsampleUndefined), name_(0),
     currentEncoding_(encodingRaw), verStrPos(0)
 {
   setName("");
@@ -99,7 +100,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   noJpeg = true;
   qualityLevel = -1;
   fineQualityLevel = -1;
-  subsampling = SUBSAMP_UNDEFINED;
+  subsampling = subsampleUndefined;
   currentEncoding_ = encodingRaw;
 
   for (int i = nEncodings-1; i >= 0; i--) {
@@ -141,9 +142,28 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       noJpeg = false;
       fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
     } else if (encodings[i] >= pseudoEncodingSubsamp1X &&
-               encodings[i] <= pseudoEncodingSubsampGray) {
+               encodings[i] <= pseudoEncodingSubsamp16X) {
       noJpeg = false;
-      subsampling = (JPEG_SUBSAMP)(encodings[i] - pseudoEncodingSubsamp1X);
+      switch (encodings[i]) {
+      case pseudoEncodingSubsamp1X:
+        subsampling = subsampleNone;
+        break;
+      case pseudoEncodingSubsampGray:
+        subsampling = subsampleGray;
+        break;
+      case pseudoEncodingSubsamp2X:
+        subsampling = subsample2X;
+        break;
+      case pseudoEncodingSubsamp4X:
+        subsampling = subsample4X;
+        break;
+      case pseudoEncodingSubsamp8X:
+        subsampling = subsample8X;
+        break;
+      case pseudoEncodingSubsamp16X:
+        subsampling = subsample16X;
+        break;
+      }
     }
   }
 }

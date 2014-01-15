@@ -22,7 +22,6 @@
 
 #include <rfb/Rect.h>
 #include <rfb/TransImageGetter.h>
-#include <rfb/JpegCompressor.h>
 
 namespace rfb {
   class SMsgWriter;
@@ -34,7 +33,7 @@ namespace rfb {
 
     virtual void setCompressLevel(int level) {};
     virtual void setQualityLevel(int level) {};
-    virtual void setFineQualityLevel(int quality, JPEG_SUBSAMP subsampling) {};
+    virtual void setFineQualityLevel(int quality, int subsampling) {};
     virtual int getNumRects(const Rect &r) { return 1; }
 
     // writeRect() tries to write the given rectangle.  If it is unable to
