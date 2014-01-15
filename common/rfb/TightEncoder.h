@@ -21,7 +21,6 @@
 
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/Encoder.h>
 
 // FIXME: Check if specifying extern "C" is really necessary.
@@ -31,6 +30,8 @@ extern "C" {
 }
 
 namespace rfb {
+
+  class TransImageGetter;
 
   struct TIGHT_CONF {
     unsigned int maxRectSize, maxRectWidth;

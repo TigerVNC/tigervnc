@@ -21,13 +21,12 @@
 
 #include <rfb/Rect.h>
 #include <rfb/encodings.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/JpegCompressor.h>
 
 namespace rfb {
   class SMsgWriter;
   class Encoder;
-  class ImageGetter;
+  class TransImageGetter;
   typedef Encoder* (*EncoderCreateFnType)(SMsgWriter*);
 
   class Encoder {

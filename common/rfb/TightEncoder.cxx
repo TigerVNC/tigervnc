@@ -17,6 +17,7 @@
  * USA.
  */
 #include <rdr/OutStream.h>
+#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
