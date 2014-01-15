@@ -104,66 +104,73 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   currentEncoding_ = encodingRaw;
 
   for (int i = nEncodings-1; i >= 0; i--) {
-    if (encodings[i] == encodingCopyRect)
+    switch (encodings[i]) {
+    case encodingCopyRect:
       useCopyRect = true;
-    else if (encodings[i] == pseudoEncodingCursor)
+      break;
+    case pseudoEncodingCursor:
       supportsLocalCursor = true;
-    else if (encodings[i] == pseudoEncodingXCursor)
+      break;
+    case pseudoEncodingXCursor:
       supportsLocalXCursor = true;
-    else if (encodings[i] == pseudoEncodingDesktopSize)
+      break;
+    case pseudoEncodingDesktopSize:
       supportsDesktopResize = true;
-    else if (encodings[i] == pseudoEncodingExtendedDesktopSize)
+      break;
+    case pseudoEncodingExtendedDesktopSize:
       supportsExtendedDesktopSize = true;
-    else if (encodings[i] == pseudoEncodingDesktopName)
+      break;
+    case pseudoEncodingDesktopName:
       supportsDesktopRename = true;
-    else if (encodings[i] == pseudoEncodingLastRect)
+      break;
+    case pseudoEncodingLastRect:
       supportsLastRect = true;
-    else if (encodings[i] == pseudoEncodingFence)
+      break;
+    case pseudoEncodingFence:
       supportsFence = true;
-    else if (encodings[i] == pseudoEncodingContinuousUpdates)
+      break;
+    case pseudoEncodingContinuousUpdates:
       supportsContinuousUpdates = true;
-    else if (encodings[i] >= pseudoEncodingCompressLevel0 &&
-	     encodings[i] <= pseudoEncodingCompressLevel9) {
-      customCompressLevel = true;
+      break;
+    case pseudoEncodingSubsamp1X:
+      subsampling = subsampleNone;
+      break;
+    case pseudoEncodingSubsampGray:
+      subsampling = subsampleGray;
+      break;
+    case pseudoEncodingSubsamp2X:
+      subsampling = subsample2X;
+      break;
+    case pseudoEncodingSubsamp4X:
+      subsampling = subsample4X;
+      break;
+    case pseudoEncodingSubsamp8X:
+      subsampling = subsample8X;
+      break;
+    case pseudoEncodingSubsamp16X:
+      subsampling = subsample16X;
+      break;
+    }
+
+    if (encodings[i] >= pseudoEncodingCompressLevel0 &&
+        encodings[i] <= pseudoEncodingCompressLevel9)
       compressLevel = encodings[i] - pseudoEncodingCompressLevel0;
-    } else if (encodings[i] >= pseudoEncodingQualityLevel0 &&
-	       encodings[i] <= pseudoEncodingQualityLevel9) {
-      noJpeg = false;
+
+    if (encodings[i] >= pseudoEncodingQualityLevel0 &&
+        encodings[i] <= pseudoEncodingQualityLevel9)
       qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
-    } else if (Encoder::supported(encodings[i]))
+
+    if (encodings[i] >= pseudoEncodingFineQualityLevel0 &&
+        encodings[i] <= pseudoEncodingFineQualityLevel100)
+      fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
+
+    if (Encoder::supported(encodings[i]))
       currentEncoding_ = encodings[i];
   }
 
-  // If the TurboVNC fine quality/subsampling encodings exist, let them
-  // override the coarse TightVNC quality level
-  for (int i = nEncodings-1; i >= 0; i--) {
-    if (encodings[i] >= pseudoEncodingFineQualityLevel0 + 1 &&
-        encodings[i] <= pseudoEncodingFineQualityLevel100) {
-      noJpeg = false;
-      fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
-    } else if (encodings[i] >= pseudoEncodingSubsamp1X &&
-               encodings[i] <= pseudoEncodingSubsamp16X) {
-      noJpeg = false;
-      switch (encodings[i]) {
-      case pseudoEncodingSubsamp1X:
-        subsampling = subsampleNone;
-        break;
-      case pseudoEncodingSubsampGray:
-        subsampling = subsampleGray;
-        break;
-      case pseudoEncodingSubsamp2X:
-        subsampling = subsample2X;
-        break;
-      case pseudoEncodingSubsamp4X:
-        subsampling = subsample4X;
-        break;
-      case pseudoEncodingSubsamp8X:
-        subsampling = subsample8X;
-        break;
-      case pseudoEncodingSubsamp16X:
-        subsampling = subsample16X;
-        break;
-      }
-    }
-  }
+  if (compressLevel != -1)
+    customCompressLevel = true;
+  if ((qualityLevel != -1) || (fineQualityLevel != -1) ||
+      (subsampling != subsampleUndefined))
+    noJpeg = false;
 }
