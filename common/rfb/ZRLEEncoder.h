@@ -26,12 +26,10 @@ namespace rfb {
 
   class ZRLEEncoder : public Encoder {
   public:
-    static Encoder* create(SMsgWriter* writer);
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
-    virtual ~ZRLEEncoder();
-
-  private:
     ZRLEEncoder(SMsgWriter* writer);
+    virtual ~ZRLEEncoder();
+    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
+  private:
     SMsgWriter* writer;
     rdr::ZlibOutStream zos;
     rdr::MemOutStream mos;

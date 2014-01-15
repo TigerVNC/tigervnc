@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,14 +21,12 @@
 #define __RFB_ENCODER_H__
 
 #include <rfb/Rect.h>
-#include <rfb/encodings.h>
+#include <rfb/TransImageGetter.h>
 #include <rfb/JpegCompressor.h>
 
 namespace rfb {
   class SMsgWriter;
-  class Encoder;
   class TransImageGetter;
-  typedef Encoder* (*EncoderCreateFnType)(SMsgWriter*);
 
   class Encoder {
   public:
@@ -46,20 +45,7 @@ namespace rfb {
 
     static bool supported(int encoding);
     static Encoder* createEncoder(int encoding, SMsgWriter* writer);
-    static void registerEncoder(int encoding,
-                                EncoderCreateFnType createFn);
-    static void unregisterEncoder(int encoding);
-  private:
-    static EncoderCreateFnType createFns[encodingMax+1];
   };
-
-  class EncoderInit {
-    static int count;
-  public:
-    EncoderInit();
-  };
-
-  static EncoderInit encoderInitObj;
 }
 
 #endif

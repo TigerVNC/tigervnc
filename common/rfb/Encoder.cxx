@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +17,7 @@
  * USA.
  */
 #include <stdio.h>
+#include <rfb/encodings.h>
 #include <rfb/Exception.h>
 #include <rfb/Encoder.h>
 #include <rfb/RawEncoder.h>
@@ -30,48 +32,34 @@ Encoder::~Encoder()
 {
 }
 
-EncoderCreateFnType Encoder::createFns[encodingMax+1] = { 0 };
-
 bool Encoder::supported(int encoding)
 {
-  return encoding >= 0 && encoding <= encodingMax && createFns[encoding];
+  switch (encoding) {
+  case encodingRaw:
+  case encodingRRE:
+  case encodingHextile:
+  case encodingZRLE:
+  case encodingTight:
+    return true;
+  default:
+    return false;
+  }
 }
 
 Encoder* Encoder::createEncoder(int encoding, SMsgWriter* writer)
 {
-  if (supported(encoding))
-    return (*createFns[encoding])(writer);
-  return 0;
-}
-
-void Encoder::registerEncoder(int encoding,
-                              EncoderCreateFnType createFn)
-{
-  if (encoding > encodingMax)
-    throw Exception("Encoder::registerEncoder: encoding out of range");
-
-  if (createFns[encoding])
-    fprintf(stderr,"Replacing existing encoder for encoding %s (%d)\n",
-            encodingName(encoding), encoding);
-  createFns[encoding] = createFn;
-}
-
-void Encoder::unregisterEncoder(int encoding)
-{
-  if (encoding > encodingMax)
-    throw Exception("Encoder::unregisterEncoder: encoding out of range");
-  createFns[encoding] = 0;
-}
-
-int EncoderInit::count = 0;
-
-EncoderInit::EncoderInit()
-{
-  if (count++ != 0) return;
-
-  Encoder::registerEncoder(encodingRaw, RawEncoder::create);
-  Encoder::registerEncoder(encodingRRE, RREEncoder::create);
-  Encoder::registerEncoder(encodingHextile, HextileEncoder::create);
-  Encoder::registerEncoder(encodingZRLE, ZRLEEncoder::create);
-  Encoder::registerEncoder(encodingTight, TightEncoder::create);
+  switch (encoding) {
+  case encodingRaw:
+    return new RawEncoder(writer);
+  case encodingRRE:
+    return new RREEncoder(writer);
+  case encodingHextile:
+    return new HextileEncoder(writer);
+  case encodingZRLE:
+    return new ZRLEEncoder(writer);
+  case encodingTight:
+    return new TightEncoder(writer);
+  default:
+    return NULL;
+  }
 }

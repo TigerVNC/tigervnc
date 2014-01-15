@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/encodings.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb/ConnParams.h>

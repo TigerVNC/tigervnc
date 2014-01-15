@@ -34,11 +34,6 @@ using namespace rfb;
 #include <rfb/hextileDecode.h>
 #undef BPP
 
-Decoder* HextileDecoder::create(CMsgReader* reader)
-{
-  return new HextileDecoder(reader);
-}
-
 HextileDecoder::HextileDecoder(CMsgReader* reader_) : reader(reader_)
 {
 }

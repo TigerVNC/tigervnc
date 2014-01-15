@@ -33,11 +33,6 @@ using namespace rfb;
 #include <rfb/rreEncode.h>
 #undef BPP
 
-Encoder* RREEncoder::create(SMsgWriter* writer)
-{
-  return new RREEncoder(writer);
-}
-
 RREEncoder::RREEncoder(SMsgWriter* writer_) : writer(writer_)
 {
 }

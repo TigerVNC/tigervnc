@@ -37,11 +37,6 @@ using namespace rfb;
 #include <rfb/tightDecode.h>
 #undef BPP
 
-Decoder* TightDecoder::create(CMsgReader* reader)
-{
-  return new TightDecoder(reader);
-}
-
 TightDecoder::TightDecoder(CMsgReader* reader_) : reader(reader_)
 {
 }

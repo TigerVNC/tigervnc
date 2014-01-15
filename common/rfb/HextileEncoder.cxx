@@ -45,11 +45,6 @@ BoolParameter improvedHextile("ImprovedHextile",
 #include <rfb/hextileEncodeBetter.h>
 #undef BPP
 
-Encoder* HextileEncoder::create(SMsgWriter* writer)
-{
-  return new HextileEncoder(writer);
-}
-
 HextileEncoder::HextileEncoder(SMsgWriter* writer_) : writer(writer_)
 {
 }

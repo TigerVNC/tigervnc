@@ -92,11 +92,6 @@ const int TightEncoder::defaultCompressLevel = 2;
 #include <rfb/tightEncode.h>
 #undef BPP
 
-Encoder* TightEncoder::create(SMsgWriter* writer)
-{
-  return new TightEncoder(writer);
-} 
-
 TightEncoder::TightEncoder(SMsgWriter* writer_) : writer(writer_)
 {
   setCompressLevel(defaultCompressLevel);

@@ -78,16 +78,16 @@ namespace rfb {
   
   class TightEncoder : public Encoder {
   public:
-    static Encoder* create(SMsgWriter* writer);
+    TightEncoder(SMsgWriter* writer);
+    virtual ~TightEncoder();
+
     virtual void setCompressLevel(int level);
     virtual void setQualityLevel(int level);
     virtual void setFineQualityLevel(int quality, JPEG_SUBSAMP subsampling);
     virtual int getNumRects(const Rect &r);
     virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
-    virtual ~TightEncoder();
 
   private:
-    TightEncoder(SMsgWriter* writer);
     bool checkSolidTile(Rect& r, rdr::U32* colorPtr, bool needSameColor);
     void extendSolidArea(const Rect& r, rdr::U32 colorValue, Rect& er);
     void findBestSolidArea(Rect& r, rdr::U32 colorValue, Rect& bestr);

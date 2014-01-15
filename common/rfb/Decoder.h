@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +20,10 @@
 #define __RFB_DECODER_H__
 
 #include <rfb/Rect.h>
-#include <rfb/encodings.h>
 
 namespace rfb {
   class CMsgReader;
   class CMsgHandler;
-  class Decoder;
-  typedef Decoder* (*DecoderCreateFnType)(CMsgReader*);
 
   class Decoder {
   public:
@@ -34,19 +32,7 @@ namespace rfb {
 
     static bool supported(int encoding);
     static Decoder* createDecoder(int encoding, CMsgReader* reader);
-    static void registerDecoder(int encoding,
-                                DecoderCreateFnType createFn);
-  private:
-    static DecoderCreateFnType createFns[encodingMax+1];
   };
-
-  class DecoderInit {
-    static int count;
-  public:
-    DecoderInit();
-  };
-
-  static DecoderInit decoderInitObj;
 }
 
 #endif
