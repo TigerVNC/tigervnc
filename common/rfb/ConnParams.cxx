@@ -37,8 +37,7 @@ ConnParams::ConnParams()
     supportsContinuousUpdates(false),
     customCompressLevel(false), compressLevel(2),
     noJpeg(false), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(SUBSAMP_UNDEFINED),
-    name_(0), nEncodings_(0), encodings_(0),
+    subsampling(SUBSAMP_UNDEFINED), name_(0),
     currentEncoding_(encodingRaw), verStrPos(0)
 {
   setName("");
@@ -47,7 +46,6 @@ ConnParams::ConnParams()
 ConnParams::~ConnParams()
 {
   delete [] name_;
-  delete [] encodings_;
 }
 
 bool ConnParams::readVersion(rdr::InStream* is, bool* done)
@@ -90,11 +88,6 @@ void ConnParams::setName(const char* name)
 
 void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
-  if (nEncodings > nEncodings_) {
-    delete [] encodings_;
-    encodings_ = new rdr::S32[nEncodings];
-  }
-  nEncodings_ = nEncodings;
   useCopyRect = false;
   supportsLocalCursor = false;
   supportsDesktopResize = false;
@@ -110,8 +103,6 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   currentEncoding_ = encodingRaw;
 
   for (int i = nEncodings-1; i >= 0; i--) {
-    encodings_[i] = encodings[i];
-
     if (encodings[i] == encodingCopyRect)
       useCopyRect = true;
     else if (encodings[i] == pseudoEncodingCursor)

@@ -67,9 +67,9 @@ namespace rfb {
     void setName(const char* name);
 
     rdr::S32 currentEncoding() { return currentEncoding_; }
-    int nEncodings() { return nEncodings_; }
-    const rdr::S32* encodings() { return encodings_; }
+
     void setEncodings(int nEncodings, const rdr::S32* encodings);
+
     bool useCopyRect;
 
     bool supportsLocalCursor;
@@ -94,8 +94,6 @@ namespace rfb {
 
     PixelFormat pf_;
     char* name_;
-    int nEncodings_;
-    rdr::S32* encodings_;
     int currentEncoding_;
     char verStr[13];
     int verStrPos;
