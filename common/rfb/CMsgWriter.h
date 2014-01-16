@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,9 @@
 #ifndef __RFB_CMSGWRITER_H__
 #define __RFB_CMSGWRITER_H__
 
+#include <rdr/types.h>
+
 #include <rfb/InputHandler.h>
-#include <rfb/ScreenSet.h>
 
 namespace rdr { class OutStream; }
 
@@ -32,39 +33,38 @@ namespace rfb {
 
   class PixelFormat;
   class ConnParams;
+  class ScreenSet;
   struct Rect;
 
   class CMsgWriter : public InputHandler {
   public:
+    CMsgWriter(ConnParams* cp, rdr::OutStream* os);
     virtual ~CMsgWriter();
 
-    // CMsgWriter abstract interface methods
-    virtual void writeClientInit(bool shared)=0;
-    virtual void startMsg(int type)=0;
-    virtual void endMsg()=0;
+    void writeClientInit(bool shared);
 
-    virtual void writeSetDesktopSize(int width, int height,
-                                     const ScreenSet& layout)=0;
-    virtual void writeFence(rdr::U32 flags, unsigned len, const char data[])=0;
-    virtual void writeEnableContinuousUpdates(bool enable,
-                                              int x, int y, int w, int h)=0;
+    void writeSetPixelFormat(const PixelFormat& pf);
+    void writeSetEncodings(int nEncodings, rdr::U32* encodings);
+    void writeSetEncodings(int preferredEncoding, bool useCopyRect);
+    void writeSetDesktopSize(int width, int height, const ScreenSet& layout);
 
-    // CMsgWriter implemented methods
-    virtual void writeSetPixelFormat(const PixelFormat& pf);
-    virtual void writeSetEncodings(int nEncodings, rdr::U32* encodings);
-    virtual void writeSetEncodings(int preferredEncoding, bool useCopyRect);
-    virtual void writeFramebufferUpdateRequest(const Rect& r,bool incremental);
+    void writeFramebufferUpdateRequest(const Rect& r,bool incremental);
+    void writeEnableContinuousUpdates(bool enable, int x, int y, int w, int h);
 
-    // InputHandler implementation
-    virtual void keyEvent(rdr::U32 key, bool down);
-    virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void clientCutText(const char* str, rdr::U32 len);
+    void writeFence(rdr::U32 flags, unsigned len, const char data[]);
 
     ConnParams* getConnParams() { return cp; }
     rdr::OutStream* getOutStream() { return os; }
 
+    // InputHandler implementation
+
+    virtual void keyEvent(rdr::U32 key, bool down);
+    virtual void pointerEvent(const Point& pos, int buttonMask);
+    virtual void clientCutText(const char* str, rdr::U32 len);
+
   protected:
-    CMsgWriter(ConnParams* cp, rdr::OutStream* os);
+    void startMsg(int type);
+    void endMsg();
 
     ConnParams* cp;
     rdr::OutStream* os;

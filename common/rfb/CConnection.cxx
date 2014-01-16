@@ -19,8 +19,8 @@
 #include <string.h>
 #include <rfb/Exception.h>
 #include <rfb/fenceTypes.h>
-#include <rfb/CMsgReaderV3.h>
-#include <rfb/CMsgWriterV3.h>
+#include <rfb/CMsgReader.h>
+#include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
 #include <rfb/CConnection.h>
@@ -254,8 +254,8 @@ void CConnection::throwConnFailedException()
 void CConnection::securityCompleted()
 {
   state_ = RFBSTATE_INITIALISATION;
-  reader_ = new CMsgReaderV3(this, is);
-  writer_ = new CMsgWriterV3(&cp, os);
+  reader_ = new CMsgReader(this, is);
+  writer_ = new CMsgWriter(&cp, os);
   vlog.debug("Authentication success!");
   authSuccess();
   writer_->writeClientInit(shared);

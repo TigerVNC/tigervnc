@@ -5,9 +5,7 @@ set(RFB_SOURCES
   CConnection.cxx
   CMsgHandler.cxx
   CMsgReader.cxx
-  CMsgReaderV3.cxx
   CMsgWriter.cxx
-  CMsgWriterV3.cxx
   CSecurityPlain.cxx
   CSecurityStack.cxx
   CSecurityVeNCrypt.cxx
@@ -41,9 +39,7 @@ set(RFB_SOURCES
   SConnection.cxx
   SMsgHandler.cxx
   SMsgReader.cxx
-  SMsgReaderV3.cxx
   SMsgWriter.cxx
-  SMsgWriterV3.cxx
   ServerCore.cxx
   Security.cxx
   SecurityServer.cxx

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@
  */
 #include <stdio.h>
 #include <rdr/InStream.h>
+#include <rfb/msgTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/util.h>
 #include <rfb/SMsgHandler.h>
@@ -39,6 +41,49 @@ SMsgReader::~SMsgReader()
 {
 }
 
+void SMsgReader::readClientInit()
+{
+  bool shared = is->readU8();
+  handler->clientInit(shared);
+}
+
+void SMsgReader::readMsg()
+{
+  int msgType = is->readU8();
+  switch (msgType) {
+  case msgTypeSetPixelFormat:
+    readSetPixelFormat();
+    break;
+  case msgTypeSetEncodings:
+    readSetEncodings();
+    break;
+  case msgTypeSetDesktopSize:
+    readSetDesktopSize();
+    break;
+  case msgTypeFramebufferUpdateRequest:
+    readFramebufferUpdateRequest();
+    break;
+  case msgTypeEnableContinuousUpdates:
+    readEnableContinuousUpdates();
+    break;
+  case msgTypeClientFence:
+    readFence();
+    break;
+  case msgTypeKeyEvent:
+    readKeyEvent();
+    break;
+  case msgTypePointerEvent:
+    readPointerEvent();
+    break;
+  case msgTypeClientCutText:
+    readClientCutText();
+    break;
+  default:
+    fprintf(stderr, "unknown message type %d\n", msgType);
+    throw Exception("unknown message type");
+  }
+}
+
 void SMsgReader::readSetPixelFormat()
 {
   is->skip(3);
@@ -57,6 +102,36 @@ void SMsgReader::readSetEncodings()
   handler->setEncodings(nEncodings, encodings.buf);
 }
 
+void SMsgReader::readSetDesktopSize()
+{
+  int width, height;
+  int screens, i;
+  rdr::U32 id, flags;
+  int sx, sy, sw, sh;
+  ScreenSet layout;
+
+  is->skip(1);
+
+  width = is->readU16();
+  height = is->readU16();
+
+  screens = is->readU8();
+  is->skip(1);
+
+  for (i = 0;i < screens;i++) {
+    id = is->readU32();
+    sx = is->readU16();
+    sy = is->readU16();
+    sw = is->readU16();
+    sh = is->readU16();
+    flags = is->readU32();
+
+    layout.add_screen(Screen(id, sx, sy, sw, sh, flags));
+  }
+
+  handler->setDesktopSize(width, height, layout);
+}
+
 void SMsgReader::readFramebufferUpdateRequest()
 {
   bool inc = is->readU8();
@@ -65,6 +140,43 @@ void SMsgReader::readFramebufferUpdateRequest()
   int w = is->readU16();
   int h = is->readU16();
   handler->framebufferUpdateRequest(Rect(x, y, x+w, y+h), inc);
+}
+
+void SMsgReader::readEnableContinuousUpdates()
+{
+  bool enable;
+  int x, y, w, h;
+
+  enable = is->readU8();
+
+  x = is->readU16();
+  y = is->readU16();
+  w = is->readU16();
+  h = is->readU16();
+
+  handler->enableContinuousUpdates(enable, x, y, w, h);
+}
+
+void SMsgReader::readFence()
+{
+  rdr::U32 flags;
+  rdr::U8 len;
+  char data[64];
+
+  is->skip(3);
+
+  flags = is->readU32();
+
+  len = is->readU8();
+  if (len > sizeof(data)) {
+    fprintf(stderr, "Ignoring fence with too large payload\n");
+    is->skip(len);
+    return;
+  }
+
+  is->readBytes(data, len);
+  
+  handler->fence(flags, len, data);
 }
 
 void SMsgReader::readKeyEvent()

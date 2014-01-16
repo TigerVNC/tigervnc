@@ -22,8 +22,8 @@
 #include <rfb/Security.h>
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>
-#include <rfb/SMsgReaderV3.h>
-#include <rfb/SMsgWriterV3.h>
+#include <rfb/SMsgReader.h>
+#include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
 #include <rfb/ServerCore.h>
 
@@ -297,8 +297,8 @@ void SConnection::approveConnection(bool accept, const char* reason)
 
   if (accept) {
     state_ = RFBSTATE_INITIALISATION;
-    reader_ = new SMsgReaderV3(this, is);
-    writer_ = new SMsgWriterV3(&cp, os);
+    reader_ = new SMsgReader(this, is);
+    writer_ = new SMsgWriter(&cp, os);
     authSuccess();
   } else {
     state_ = RFBSTATE_INVALID;

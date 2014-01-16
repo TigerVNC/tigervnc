@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,21 +25,19 @@
 
 #include <rdr/types.h>
 #include <rfb/encodings.h>
-#include <rfb/screenTypes.h>
-#include <rfb/Encoder.h>
-#include <rfb/PixelBuffer.h>
 #include <rfb/ScreenSet.h>
 
 namespace rdr { class OutStream; }
 
 namespace rfb {
 
-  class PixelFormat;
   class ConnParams;
-  class ImageGetter;
+  class TransImageGetter;
   class ColourMap;
   class Region;
   class UpdateInfo;
+  class Encoder;
+  class ScreenSet;
 
   class WriteSetCursorCallback {
   public:
@@ -48,30 +46,31 @@ namespace rfb {
 
   class SMsgWriter {
   public:
+    SMsgWriter(ConnParams* cp, rdr::OutStream* os);
     virtual ~SMsgWriter();
 
     // writeServerInit() must only be called at the appropriate time in the
     // protocol initialisation.
-    virtual void writeServerInit()=0;
+    void writeServerInit();
 
     // Methods to write normal protocol messages
 
     // writeSetColourMapEntries() writes a setColourMapEntries message, using
     // the given ColourMap object to lookup the RGB values of the given range
     // of colours.
-    virtual void writeSetColourMapEntries(int firstColour, int nColours,
-                                          ColourMap* cm);
+    void writeSetColourMapEntries(int firstColour, int nColours,
+                                  ColourMap* cm);
 
     // writeBell() and writeServerCutText() do the obvious thing.
-    virtual void writeBell();
-    virtual void writeServerCutText(const char* str, int len);
+    void writeBell();
+    void writeServerCutText(const char* str, int len);
 
     // writeFence() sends a new fence request or response to the client.
-    virtual void writeFence(rdr::U32 flags, unsigned len, const char data[])=0;
+    void writeFence(rdr::U32 flags, unsigned len, const char data[]);
 
     // writeEndOfContinuousUpdates() indicates that we have left continuous
     // updates mode.
-    virtual void writeEndOfContinuousUpdates()=0;
+    void writeEndOfContinuousUpdates();
 
     // setupCurrentEncoder() should be called before each framebuffer update,
     // prior to calling getNumRects() or writeFramebufferUpdateStart().
@@ -81,43 +80,43 @@ namespace rfb {
     // given rectangle, for current encoder.
     int getNumRects(const Rect &r);
 
-    // writeSetDesktopSize() on a V3 writer won't actually write immediately,
-    // but will write the relevant pseudo-rectangle as part of the next update.
-    virtual bool writeSetDesktopSize()=0;
+    // writeSetDesktopSize() won't actually write immediately, but will
+    // write the relevant pseudo-rectangle as part of the next update.
+    bool writeSetDesktopSize();
     // Same thing for the extended version. The first version queues up a
     // generic update of the current server state, but the second queues a
     // specific message.
-    virtual bool writeExtendedDesktopSize()=0;
-    virtual bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
-                                          int fb_width, int fb_height,
-                                          const ScreenSet& layout)=0;
+    bool writeExtendedDesktopSize();
+    bool writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
+                                  int fb_width, int fb_height,
+                                  const ScreenSet& layout);
 
-    virtual bool writeSetDesktopName()=0;
+    bool writeSetDesktopName();
 
     // Like setDesktopSize, we can't just write out a setCursor message
-    // immediately on a V3 writer.  Instead of calling writeSetCursor()
-    // directly, you must call cursorChange(), and then invoke writeSetCursor()
-    // in response to the writeSetCursorCallback() callback.  For a V3 writer
-    // this will happen when the next update is sent.
-    virtual void cursorChange(WriteSetCursorCallback* cb)=0;
-    virtual void writeSetCursor(int width, int height, const Point& hotspot,
-                                void* data, void* mask)=0;
-    virtual void writeSetXCursor(int width, int height, int hotspotX,
-                                int hotspotY, void* data, void* mask)=0;
+    // immediately. Instead of calling writeSetCursor() directly,
+    // you must call cursorChange(), and then invoke writeSetCursor()
+    // in response to the writeSetCursorCallback() callback. This will
+    // happen when the next update is sent.
+    void cursorChange(WriteSetCursorCallback* cb);
+    void writeSetCursor(int width, int height, const Point& hotspot,
+                        void* data, void* mask);
+    void writeSetXCursor(int width, int height, int hotspotX, int hotspotY,
+                         void* data, void* mask);
 
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out pseudo-rectangles to the client.
-    virtual bool needFakeUpdate();
+    bool needFakeUpdate();
 
     // needNoDataUpdate() returns true when an update without any
     // framebuffer changes need to be sent (using writeNoDataUpdate()).
     // Commonly this is an update that modifies the size of the framebuffer
     // or the screen layout.
-    virtual bool needNoDataUpdate();
+    bool needNoDataUpdate();
 
     // writeNoDataUpdate() write a framebuffer update containing only
     // pseudo-rectangles.
-    virtual void writeNoDataUpdate();
+    void writeNoDataUpdate();
 
     // writeRects() accepts an UpdateInfo (changed & copied regions) and an
     // ImageGetter to fetch pixels from.  It then calls writeCopyRect() and
@@ -125,29 +124,26 @@ namespace rfb {
     // before the first writeRects() call and writeFrameBufferUpdateEnd() after
     // the last one.  It returns the actual region sent to the client, which
     // may be smaller than the update passed in.
-    virtual void writeRects(const UpdateInfo& update, TransImageGetter* ig,
-                            Region* updatedRegion);
+    void writeRects(const UpdateInfo& update, TransImageGetter* ig,
+                    Region* updatedRegion);
 
     // To construct a framebuffer update you can call
     // writeFramebufferUpdateStart(), followed by a number of writeCopyRect()s
-    // and writeRect()s, finishing with writeFramebufferUpdateEnd().  If you
-    // know the exact number of rectangles ahead of time you can specify it to
-    // writeFramebufferUpdateStart() which can be more efficient.
-    virtual void writeFramebufferUpdateStart(int nRects)=0;
-    virtual void writeFramebufferUpdateStart()=0;
-    virtual void writeFramebufferUpdateEnd()=0;
+    // and writeRect()s, finishing with writeFramebufferUpdateEnd().
+    void writeFramebufferUpdateStart(int nRects);
+    void writeFramebufferUpdateEnd();
 
     // writeRect() tries to write the given rectangle.  If it is unable to
     // write the whole rectangle it returns false and sets actual to the actual
     // rectangle which was updated.
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
-    virtual bool writeRect(const Rect& r, int encoding,
-                           TransImageGetter* ig, Rect* actual);
+    bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
+    bool writeRect(const Rect& r, int encoding,
+                   TransImageGetter* ig, Rect* actual);
 
-    virtual void writeCopyRect(const Rect& r, int srcX, int srcY);
+    void writeCopyRect(const Rect& r, int srcX, int srcY);
 
-    virtual void startRect(const Rect& r, int enc)=0;
-    virtual void endRect()=0;
+    void startRect(const Rect& r, int enc);
+    void endRect();
 
     ConnParams* getConnParams() { return cp; }
     rdr::OutStream* getOutStream() { return os; }
@@ -162,17 +158,29 @@ namespace rfb {
     int imageBufIdealSize;
 
   protected:
-    SMsgWriter(ConnParams* cp, rdr::OutStream* os);
+    void startMsg(int type);
+    void endMsg();
 
-    virtual void startMsg(int type)=0;
-    virtual void endMsg()=0;
+    void writePseudoRects();
+    void writeNoDataRects();
 
     ConnParams* cp;
     rdr::OutStream* os;
 
     Encoder* encoders[encodingMax+1];
-    int lenBeforeRect;
     int currentEncoding;
+
+    int nRectsInUpdate;
+    int nRectsInHeader;
+
+    WriteSetCursorCallback* wsccb;
+
+    bool needSetDesktopSize;
+    bool needExtendedDesktopSize;
+    bool needSetDesktopName;
+    bool needLastRect;
+
+    int lenBeforeRect;
     int updatesSent;
     int bytesSent[encodingMax+1];
     int rectsSent[encodingMax+1];
@@ -180,6 +188,14 @@ namespace rfb {
 
     rdr::U8* imageBuf;
     int imageBufSize;
+
+    typedef struct {
+      rdr::U16 reason, result;
+      int fb_width, fb_height;
+      ScreenSet layout;
+    } ExtendedDesktopSizeMsg;
+
+    std::list<ExtendedDesktopSizeMsg> extendedDesktopSizeMsgs;
   };
 }
 #endif

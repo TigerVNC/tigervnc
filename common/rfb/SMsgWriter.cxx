@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +21,12 @@
 #include <assert.h>
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/fenceTypes.h>
+#include <rfb/Exception.h>
 #include <rfb/ColourMap.h>
 #include <rfb/ConnParams.h>
 #include <rfb/UpdateTracker.h>
+#include <rfb/Encoder.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/LogWriter.h>
 
@@ -31,8 +35,11 @@ using namespace rfb;
 static LogWriter vlog("SMsgWriter");
 
 SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
-  : imageBufIdealSize(0), cp(cp_), os(os_), lenBeforeRect(0),
-    currentEncoding(0), updatesSent(0), rawBytesEquivalent(0),
+  : imageBufIdealSize(0), cp(cp_), os(os_), currentEncoding(0),
+    nRectsInUpdate(0), nRectsInHeader(0),
+    wsccb(0), needSetDesktopSize(false),
+    needExtendedDesktopSize(false), needSetDesktopName(false),
+    lenBeforeRect(0), updatesSent(0), rawBytesEquivalent(0),
     imageBuf(0), imageBufSize(0)
 {
   for (int i = 0; i <= encodingMax; i++) {
@@ -57,6 +64,15 @@ SMsgWriter::~SMsgWriter()
   vlog.info("  raw bytes equivalent %llu, compression ratio %f",
           rawBytesEquivalent, (double)rawBytesEquivalent / bytes);
   delete [] imageBuf;
+}
+
+void SMsgWriter::writeServerInit()
+{
+  os->writeU16(cp->width);
+  os->writeU16(cp->height);
+  cp->pf().write(os);
+  os->writeString(cp->name());
+  endMsg();
 }
 
 void SMsgWriter::writeSetColourMapEntries(int firstColour, int nColours,
@@ -91,6 +107,35 @@ void SMsgWriter::writeServerCutText(const char* str, int len)
   endMsg();
 }
 
+void SMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
+{
+  if (!cp->supportsFence)
+    throw Exception("Client does not support fences");
+  if (len > 64)
+    throw Exception("Too large fence payload");
+  if ((flags & ~fenceFlagsSupported) != 0)
+    throw Exception("Unknown fence flags");
+
+  startMsg(msgTypeServerFence);
+  os->pad(3);
+
+  os->writeU32(flags);
+
+  os->writeU8(len);
+  os->writeBytes(data, len);
+
+  endMsg();
+}
+
+void SMsgWriter::writeEndOfContinuousUpdates()
+{
+  if (!cp->supportsContinuousUpdates)
+    throw Exception("Client does not support continuous updates");
+
+  startMsg(msgTypeEndOfContinuousUpdates);
+  endMsg();
+}
+
 void SMsgWriter::setupCurrentEncoder()
 {
   int encoding = cp->currentEncoding();
@@ -117,20 +162,133 @@ int SMsgWriter::getNumRects(const Rect &r)
   return encoders[encoding]->getNumRects(r);
 }
 
+bool SMsgWriter::writeSetDesktopSize() {
+  if (!cp->supportsDesktopResize)
+    return false;
+
+  needSetDesktopSize = true;
+
+  return true;
+}
+
+bool SMsgWriter::writeExtendedDesktopSize() {
+  if (!cp->supportsExtendedDesktopSize)
+    return false;
+
+  needExtendedDesktopSize = true;
+
+  return true;
+}
+
+bool SMsgWriter::writeExtendedDesktopSize(rdr::U16 reason, rdr::U16 result,
+                                          int fb_width, int fb_height,
+                                          const ScreenSet& layout) {
+  ExtendedDesktopSizeMsg msg;
+
+  if (!cp->supportsExtendedDesktopSize)
+    return false;
+
+  msg.reason = reason;
+  msg.result = result;
+  msg.fb_width = fb_width;
+  msg.fb_height = fb_height;
+  msg.layout = layout;
+
+  extendedDesktopSizeMsgs.push_back(msg);
+
+  return true;
+}
+
+bool SMsgWriter::writeSetDesktopName() {
+  if (!cp->supportsDesktopRename)
+    return false;
+
+  needSetDesktopName = true;
+
+  return true;
+}
+
+void SMsgWriter::cursorChange(WriteSetCursorCallback* cb)
+{
+  wsccb = cb;
+}
+
+void SMsgWriter::writeSetCursor(int width, int height, const Point& hotspot,
+                                void* data, void* mask)
+{
+  if (!wsccb)
+    return;
+
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetCursor: nRects out of sync");
+
+  os->writeS16(hotspot.x);
+  os->writeS16(hotspot.y);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingCursor);
+  os->writeBytes(data, width * height * (cp->pf().bpp/8));
+  os->writeBytes(mask, (width+7)/8 * height);
+}
+
+void SMsgWriter::writeSetXCursor(int width, int height, int hotspotX,
+                                 int hotspotY, void* data, void* mask)
+{
+  if (!wsccb)
+    return;
+
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetXCursor: nRects out of sync");
+
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingXCursor);
+  // FIXME: We only support black and white cursors, currently. We
+  // could pass the correct color by using the pix0/pix1 values
+  // returned from getBitmap, in writeSetCursorCallback. However, we
+  // would then need to undo the conversion from rgb to Pixel that is
+  // done by FakeAllocColor.
+  if (width * height) {
+    os->writeU8(0);
+    os->writeU8(0);
+    os->writeU8(0);
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeBytes(data, (width+7)/8 * height);
+    os->writeBytes(mask, (width+7)/8 * height);
+  }
+}
+
 bool SMsgWriter::needFakeUpdate()
 {
-  return false;
+  return wsccb || needSetDesktopName || needNoDataUpdate();
 }
 
 bool SMsgWriter::needNoDataUpdate()
 {
-  return false;
+  return needSetDesktopSize || needExtendedDesktopSize ||
+         !extendedDesktopSizeMsgs.empty();
 }
 
 void SMsgWriter::writeNoDataUpdate()
 {
-  // This class has no pseudo-rectangles so there is nothing to do here
-  vlog.error("writeNoDataUpdate() called");
+  int nRects;
+
+  nRects = 0;
+
+  if (needSetDesktopSize)
+    nRects++;
+  if (needExtendedDesktopSize)
+    nRects++;
+  if (!extendedDesktopSizeMsgs.empty())
+    nRects += extendedDesktopSizeMsgs.size();
+
+  writeFramebufferUpdateStart(nRects);
+  writeNoDataRects();
+  writeFramebufferUpdateEnd();
 }
 
 void SMsgWriter::writeRects(const UpdateInfo& ui, TransImageGetter* ig,
@@ -153,6 +311,48 @@ void SMsgWriter::writeRects(const UpdateInfo& ui, TransImageGetter* ig,
       updatedRegion->assign_union(actual);
     }
   }
+}
+
+void SMsgWriter::writeFramebufferUpdateStart(int nRects)
+{
+  startMsg(msgTypeFramebufferUpdate);
+  os->pad(1);
+
+  if (nRects != 0xFFFF) {
+    if (wsccb)
+      nRects++;
+    if (needSetDesktopName)
+      nRects++;
+  }
+
+  os->writeU16(nRects);
+
+  nRectsInUpdate = 0;
+  if (nRects == 0xFFFF)
+    nRectsInHeader = 0;
+  else
+    nRectsInHeader = nRects;
+
+  writePseudoRects();
+}
+
+void SMsgWriter::writeFramebufferUpdateEnd()
+{
+  if (nRectsInUpdate != nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeFramebufferUpdateEnd: "
+                    "nRects out of sync");
+
+  if (nRectsInHeader == 0) {
+    // Send last rect. marker
+    os->writeS16(0);
+    os->writeS16(0);
+    os->writeU16(0);
+    os->writeU16(0);
+    os->writeU32(pseudoEncodingLastRect);
+  }
+
+  updatesSent++;
+  endMsg();
 }
 
 bool SMsgWriter::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
@@ -178,6 +378,31 @@ void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)
   endRect();
 }
 
+void SMsgWriter::startRect(const Rect& r, int encoding)
+{
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::startRect: nRects out of sync");
+
+  currentEncoding = encoding;
+  lenBeforeRect = os->length();
+  if (encoding != encodingCopyRect)
+    rawBytesEquivalent += 12 + r.width() * r.height() * (bpp()/8);
+
+  os->writeS16(r.tl.x);
+  os->writeS16(r.tl.y);
+  os->writeU16(r.width());
+  os->writeU16(r.height());
+  os->writeU32(encoding);
+}
+
+void SMsgWriter::endRect()
+{
+  if (currentEncoding <= encodingMax) {
+    bytesSent[currentEncoding] += os->length() - lenBeforeRect;
+    rectsSent[currentEncoding]++;
+  }
+}
+
 rdr::U8* SMsgWriter::getImageBuf(int required, int requested, int* nPixels)
 {
   int requiredBytes = required * (cp->pf().bpp / 8);
@@ -201,4 +426,120 @@ rdr::U8* SMsgWriter::getImageBuf(int required, int requested, int* nPixels)
 int SMsgWriter::bpp()
 {
   return cp->pf().bpp;
+}
+
+void SMsgWriter::startMsg(int type)
+{
+  os->writeU8(type);
+}
+
+void SMsgWriter::endMsg()
+{
+  os->flush();
+}
+
+void SMsgWriter::writePseudoRects()
+{
+  if (wsccb) {
+    wsccb->writeSetCursorCallback();
+    wsccb = 0;
+  }
+
+  if (needSetDesktopName) {
+    if (!cp->supportsDesktopRename)
+      throw Exception("Client does not support desktop rename");
+    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriter::setDesktopName: nRects out of sync");
+
+    os->writeS16(0);
+    os->writeS16(0);
+    os->writeU16(0);
+    os->writeU16(0);
+    os->writeU32(pseudoEncodingDesktopName);
+    os->writeString(cp->name());
+
+    needSetDesktopName = false;
+  }
+}
+
+void SMsgWriter::writeNoDataRects()
+{
+  // Start with specific ExtendedDesktopSize messages
+  if (!extendedDesktopSizeMsgs.empty()) {
+    std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
+    ScreenSet::const_iterator si;
+
+    if (!cp->supportsExtendedDesktopSize)
+      throw Exception("Client does not support extended desktop resize");
+    if ((nRectsInUpdate += extendedDesktopSizeMsgs.size()) > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriter::SetDesktopSize reply: nRects out of sync");
+
+    for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
+      os->writeU16(ri->reason);
+      os->writeU16(ri->result);
+      os->writeU16(ri->fb_width);
+      os->writeU16(ri->fb_height);
+      os->writeU32(pseudoEncodingExtendedDesktopSize);
+
+      os->writeU8(ri->layout.num_screens());
+      os->pad(3);
+
+      for (si = ri->layout.begin();si != ri->layout.end();++si) {
+        os->writeU32(si->id);
+        os->writeU16(si->dimensions.tl.x);
+        os->writeU16(si->dimensions.tl.y);
+        os->writeU16(si->dimensions.width());
+        os->writeU16(si->dimensions.height());
+        os->writeU32(si->flags);
+      }
+    }
+
+    extendedDesktopSizeMsgs.clear();
+  }
+
+  // Send this before SetDesktopSize to make life easier on the clients
+  if (needExtendedDesktopSize) {
+    if (!cp->supportsExtendedDesktopSize)
+      throw Exception("Client does not support extended desktop resize");
+    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriter::setExtendedDesktopSize: nRects out of sync");
+
+    os->writeU16(0);
+    os->writeU16(0);
+    os->writeU16(cp->width);
+    os->writeU16(cp->height);
+    os->writeU32(pseudoEncodingExtendedDesktopSize);
+
+    os->writeU8(cp->screenLayout.num_screens());
+    os->pad(3);
+
+    ScreenSet::const_iterator iter;
+    for (iter = cp->screenLayout.begin();iter != cp->screenLayout.end();++iter) {
+      os->writeU32(iter->id);
+      os->writeU16(iter->dimensions.tl.x);
+      os->writeU16(iter->dimensions.tl.y);
+      os->writeU16(iter->dimensions.width());
+      os->writeU16(iter->dimensions.height());
+      os->writeU32(iter->flags);
+    }
+
+    needExtendedDesktopSize = false;
+  }
+
+  // Some clients assume this is the last rectangle so don't send anything
+  // more after this
+  if (needSetDesktopSize) {
+    if (!cp->supportsDesktopResize)
+      throw Exception("Client does not support desktop resize");
+    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+      throw Exception("SMsgWriter::setDesktopSize: nRects out of sync");
+
+    os->writeS16(0);
+    os->writeS16(0);
+    os->writeU16(cp->width);
+    os->writeU16(cp->height);
+    os->writeU32(pseudoEncodingDesktopSize);
+
+    needSetDesktopSize = false;
+  }
 }

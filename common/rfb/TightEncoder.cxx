@@ -18,6 +18,7 @@
  */
 #include <rdr/OutStream.h>
 #include <rfb/TransImageGetter.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
