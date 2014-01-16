@@ -164,6 +164,12 @@ namespace rfb {
     void writePseudoRects();
     void writeNoDataRects();
 
+    void writeSetDesktopSizeRect(int width, int height);
+    void writeExtendedDesktopSizeRect(rdr::U16 reason, rdr::U16 result,
+                                      int fb_width, int fb_height,
+                                      const ScreenSet& layout);
+    void writeSetDesktopNameRect(const char *name);
+
     ConnParams* cp;
     rdr::OutStream* os;
 

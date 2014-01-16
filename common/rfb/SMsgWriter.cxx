@@ -446,18 +446,7 @@ void SMsgWriter::writePseudoRects()
   }
 
   if (needSetDesktopName) {
-    if (!cp->supportsDesktopRename)
-      throw Exception("Client does not support desktop rename");
-    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
-      throw Exception("SMsgWriter::setDesktopName: nRects out of sync");
-
-    os->writeS16(0);
-    os->writeS16(0);
-    os->writeU16(0);
-    os->writeU16(0);
-    os->writeU32(pseudoEncodingDesktopName);
-    os->writeString(cp->name());
-
+    writeSetDesktopNameRect(cp->name());
     needSetDesktopName = false;
   }
 }
@@ -467,31 +456,10 @@ void SMsgWriter::writeNoDataRects()
   // Start with specific ExtendedDesktopSize messages
   if (!extendedDesktopSizeMsgs.empty()) {
     std::list<ExtendedDesktopSizeMsg>::const_iterator ri;
-    ScreenSet::const_iterator si;
-
-    if (!cp->supportsExtendedDesktopSize)
-      throw Exception("Client does not support extended desktop resize");
-    if ((nRectsInUpdate += extendedDesktopSizeMsgs.size()) > nRectsInHeader && nRectsInHeader)
-      throw Exception("SMsgWriter::SetDesktopSize reply: nRects out of sync");
 
     for (ri = extendedDesktopSizeMsgs.begin();ri != extendedDesktopSizeMsgs.end();++ri) {
-      os->writeU16(ri->reason);
-      os->writeU16(ri->result);
-      os->writeU16(ri->fb_width);
-      os->writeU16(ri->fb_height);
-      os->writeU32(pseudoEncodingExtendedDesktopSize);
-
-      os->writeU8(ri->layout.num_screens());
-      os->pad(3);
-
-      for (si = ri->layout.begin();si != ri->layout.end();++si) {
-        os->writeU32(si->id);
-        os->writeU16(si->dimensions.tl.x);
-        os->writeU16(si->dimensions.tl.y);
-        os->writeU16(si->dimensions.width());
-        os->writeU16(si->dimensions.height());
-        os->writeU32(si->flags);
-      }
+      writeExtendedDesktopSizeRect(ri->reason, ri->result,
+                                   ri->fb_width, ri->fb_height, ri->layout);
     }
 
     extendedDesktopSizeMsgs.clear();
@@ -499,47 +467,76 @@ void SMsgWriter::writeNoDataRects()
 
   // Send this before SetDesktopSize to make life easier on the clients
   if (needExtendedDesktopSize) {
-    if (!cp->supportsExtendedDesktopSize)
-      throw Exception("Client does not support extended desktop resize");
-    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
-      throw Exception("SMsgWriter::setExtendedDesktopSize: nRects out of sync");
-
-    os->writeU16(0);
-    os->writeU16(0);
-    os->writeU16(cp->width);
-    os->writeU16(cp->height);
-    os->writeU32(pseudoEncodingExtendedDesktopSize);
-
-    os->writeU8(cp->screenLayout.num_screens());
-    os->pad(3);
-
-    ScreenSet::const_iterator iter;
-    for (iter = cp->screenLayout.begin();iter != cp->screenLayout.end();++iter) {
-      os->writeU32(iter->id);
-      os->writeU16(iter->dimensions.tl.x);
-      os->writeU16(iter->dimensions.tl.y);
-      os->writeU16(iter->dimensions.width());
-      os->writeU16(iter->dimensions.height());
-      os->writeU32(iter->flags);
-    }
-
+    writeExtendedDesktopSizeRect(0, 0, cp->width, cp->height,
+                                 cp->screenLayout);
     needExtendedDesktopSize = false;
   }
 
   // Some clients assume this is the last rectangle so don't send anything
   // more after this
   if (needSetDesktopSize) {
-    if (!cp->supportsDesktopResize)
-      throw Exception("Client does not support desktop resize");
-    if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
-      throw Exception("SMsgWriter::setDesktopSize: nRects out of sync");
-
-    os->writeS16(0);
-    os->writeS16(0);
-    os->writeU16(cp->width);
-    os->writeU16(cp->height);
-    os->writeU32(pseudoEncodingDesktopSize);
-
+    writeSetDesktopSizeRect(cp->width, cp->height);
     needSetDesktopSize = false;
   }
+}
+
+void SMsgWriter::writeSetDesktopSizeRect(int width, int height)
+{
+  if (!cp->supportsDesktopResize)
+    throw Exception("Client does not support desktop resize");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetDesktopSizeRect: nRects out of sync");
+
+  os->writeS16(0);
+  os->writeS16(0);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingDesktopSize);
+}
+
+void SMsgWriter::writeExtendedDesktopSizeRect(rdr::U16 reason,
+                                              rdr::U16 result,
+                                              int fb_width,
+                                              int fb_height,
+                                              const ScreenSet& layout)
+{
+  ScreenSet::const_iterator si;
+
+  if (!cp->supportsExtendedDesktopSize)
+    throw Exception("Client does not support extended desktop resize");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeExtendedDesktopSizeRect: nRects out of sync");
+
+  os->writeU16(reason);
+  os->writeU16(result);
+  os->writeU16(fb_width);
+  os->writeU16(fb_height);
+  os->writeU32(pseudoEncodingExtendedDesktopSize);
+
+  os->writeU8(layout.num_screens());
+  os->pad(3);
+
+  for (si = layout.begin();si != layout.end();++si) {
+    os->writeU32(si->id);
+    os->writeU16(si->dimensions.tl.x);
+    os->writeU16(si->dimensions.tl.y);
+    os->writeU16(si->dimensions.width());
+    os->writeU16(si->dimensions.height());
+    os->writeU32(si->flags);
+  }
+}
+
+void SMsgWriter::writeSetDesktopNameRect(const char *name)
+{
+  if (!cp->supportsDesktopRename)
+    throw Exception("Client does not support desktop rename");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetDesktopNameRect: nRects out of sync");
+
+  os->writeS16(0);
+  os->writeS16(0);
+  os->writeU16(0);
+  os->writeU16(0);
+  os->writeU32(pseudoEncodingDesktopName);
+  os->writeString(name);
 }
