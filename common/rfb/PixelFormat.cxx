@@ -137,25 +137,29 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
 {
   if (is888()) {
     // Optimised common case
-    rdr::U8 *r, *g, *b;
+    rdr::U8 *r, *g, *b, *x;
 
     if (bigEndian) {
       r = dst + (24 - redShift)/8;
       g = dst + (24 - greenShift)/8;
       b = dst + (24 - blueShift)/8;
+      x = dst + (24 - (48 - redShift - greenShift - blueShift))/8;
     } else {
       r = dst + redShift/8;
       g = dst + greenShift/8;
       b = dst + blueShift/8;
+      x = dst + (48 - redShift - greenShift - blueShift)/8;
     }
 
     while (pixels--) {
       *r = *(src++);
       *g = *(src++);
       *b = *(src++);
+      *x = 0;
       r += 4;
       g += 4;
       b += 4;
+      x += 4;
     }
   } else {
     // Generic code
@@ -180,16 +184,18 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
 {
   if (is888()) {
     // Optimised common case
-    rdr::U8 *r, *g, *b;
+    rdr::U8 *r, *g, *b, *x;
 
     if (bigEndian) {
       r = dst + (24 - redShift)/8;
       g = dst + (24 - greenShift)/8;
       b = dst + (24 - blueShift)/8;
+      x = dst + (24 - (48 - redShift - greenShift - blueShift))/8;
     } else {
       r = dst + redShift/8;
       g = dst + greenShift/8;
       b = dst + blueShift/8;
+      x = dst + (48 - redShift - greenShift - blueShift)/8;
     }
 
     int dstPad = pitch - w * 4;
@@ -199,13 +205,16 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
         *r = *(src++);
         *g = *(src++);
         *b = *(src++);
+        *x = 0;
         r += 4;
         g += 4;
         b += 4;
+        x += 4;
       }
       r += dstPad;
       g += dstPad;
       b += dstPad;
+      x += dstPad;
     }
   } else {
     // Generic code
