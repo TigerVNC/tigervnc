@@ -29,7 +29,7 @@
 using namespace rfb;
 
 XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
-                           const Rect &rect, ColourMap* cm)
+                           const Rect &rect)
   : FullFramePixelBuffer(),
     m_poller(0),
     m_dpy(dpy),
@@ -54,7 +54,6 @@ XPixelBuffer::XPixelBuffer(Display *dpy, ImageFactory &factory,
   width_ = rect.width();
   height_ = rect.height();
   data = (rdr::U8 *)m_image->xim->data;
-  colourmap = cm;
 
   // Calculate the distance in pixels between two subsequent scan
   // lines of the framebuffer. This may differ from image width.

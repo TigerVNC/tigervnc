@@ -216,12 +216,6 @@ void DesktopWindow::setName(const char *name)
 }
 
 
-void DesktopWindow::setColourMapEntries(int firstColour, int nColours,
-                                        rdr::U16* rgbs)
-{
-  viewport->setColourMapEntries(firstColour, nColours, rgbs);
-}
-
 void DesktopWindow::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
   viewport->fillRect(r, pix);
 }

@@ -33,16 +33,15 @@ static LogWriter vlog("PixelBuffer");
 
 // -=- Generic pixel buffer class
 
-PixelBuffer::PixelBuffer(const PixelFormat& pf, int w, int h, ColourMap* cm)
-  : format(pf), width_(w), height_(h), colourmap(cm) {}
-PixelBuffer::PixelBuffer() : width_(0), height_(0), colourmap(0) {}
+PixelBuffer::PixelBuffer(const PixelFormat& pf, int w, int h)
+  : format(pf), width_(w), height_(h) {}
+PixelBuffer::PixelBuffer() : width_(0), height_(0) {}
 
 PixelBuffer::~PixelBuffer() {}
 
 
 void PixelBuffer::setPF(const PixelFormat &pf) {format = pf;}
 const PixelFormat& PixelBuffer::getPF() const {return format;}
-ColourMap* PixelBuffer::getColourMap() const {return colourmap;}
 
 
 void
@@ -117,8 +116,8 @@ static void fillRect32(U8 *buf, int stride, const Rect& r, Pixel pix)
 
 
 FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
-                                           rdr::U8* data_, ColourMap* cm)
-  : PixelBuffer(pf, w, h, cm), data(data_)
+                                           rdr::U8* data_)
+  : PixelBuffer(pf, w, h), data(data_)
 {
   // Called again to configure the fill function
   setPF(pf);
@@ -314,20 +313,19 @@ void FullFramePixelBuffer::copyRect(const Rect &rect, const Point &move_by_delta
 // Automatically allocates enough space for the specified format & area
 
 ManagedPixelBuffer::ManagedPixelBuffer()
-  : datasize(0), own_colourmap(false)
+  : datasize(0)
 {
   checkDataSize();
 };
 
 ManagedPixelBuffer::ManagedPixelBuffer(const PixelFormat& pf, int w, int h)
-  : FullFramePixelBuffer(pf, w, h, 0, 0), datasize(0), own_colourmap(false)
+  : FullFramePixelBuffer(pf, w, h, 0), datasize(0)
 {
   checkDataSize();
 };
 
 ManagedPixelBuffer::~ManagedPixelBuffer() {
   if (data) delete [] data;
-  if (colourmap && own_colourmap) delete colourmap;
 };
 
 
@@ -340,13 +338,6 @@ ManagedPixelBuffer::setSize(int w, int h) {
   width_ = w; height_ = h; checkDataSize();
 };
 
-
-void
-ManagedPixelBuffer::setColourMap(ColourMap* cm, bool own_cm) {
-  if (colourmap && own_colourmap) delete colourmap;
-  colourmap = cm;
-  own_colourmap = own_cm;
-}
 
 inline void
 ManagedPixelBuffer::checkDataSize() {

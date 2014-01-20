@@ -33,11 +33,7 @@ namespace rfb {
                               int outStride, int width, int height);
 
   class SMsgWriter;
-  class ColourMap;
   class PixelBuffer;
-  class ColourCube;
-
-  typedef void (*setCMFnType)(int firstColour, int nColours, ColourMap* cm, void* data);
 
   class PixelTransformer {
   public:
@@ -47,32 +43,12 @@ namespace rfb {
 
     // init() is called to initialise the translation tables.  The inPF and
     // inCM arguments give the source format details, outPF gives the
-    // target pixel format.  If the target has a colour map, then the you
-    // must specify either a colour map callback or a colour cube to indicate
-    // how the target colour map should be handled. If both are specified
-    // then the cube will be used.
+    // target pixel format.
 
-    void init(const PixelFormat& inPF, ColourMap* inCM,
-              const PixelFormat& outPF, ColourCube* cube = NULL,
-              setCMFnType cmCallback = NULL, void *cbData = NULL);
+    void init(const PixelFormat& inPF, const PixelFormat& outPF);
 
     const PixelFormat &getInPF() const;
-    const ColourMap *getInColourMap() const;
-
     const PixelFormat &getOutPF() const;
-    const ColourCube *getOutColourCube() const;
-
-    // setColourMapEntries() is called when the colour map specified to init()
-    // has changed.  firstColour and nColours specify which part of the
-    // colour map has changed.  If nColours is 0, this means the rest of the
-    // colour map. If the target also has a colour map, then the callback or
-    // cube specified to init() will be used. If the target is true colour
-    // then instead we update the internal translation table - in this case
-    // the caller should also make sure that the target surface receives an
-    // update of the relevant parts (the simplest thing to do is just update
-    // the whole framebuffer, though it is possible to be smarter than this).
-
-    void setColourMapEntries(int firstColour, int nColours);
 
     // translatePixels() translates the given number of pixels from inPtr,
     // putting it into the buffer pointed to by outPtr.  The pixels at inPtr
@@ -91,12 +67,7 @@ namespace rfb {
     bool economic;
 
     PixelFormat inPF;
-    ColourMap* inCM;
-
     PixelFormat outPF;
-    setCMFnType cmCallback;
-    void *cbData;
-    ColourCube* cube;
 
     rdr::U8* table;
     transFnType transFn;

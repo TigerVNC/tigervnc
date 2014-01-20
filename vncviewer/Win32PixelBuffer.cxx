@@ -40,7 +40,7 @@ static rfb::LogWriter vlog("PlatformPixelBuffer");
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
   FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                         255, 255, 255, 16, 8, 0),
-                       width, height, NULL, NULL),
+                       width, height, NULL),
   bitmap(NULL)
 {
   BITMAPINFOHEADER bih;

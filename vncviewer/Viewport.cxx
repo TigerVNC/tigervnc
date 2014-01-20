@@ -87,7 +87,7 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_RESIZE,
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
-    colourMapChange(false), lastPointerPos(0, 0), lastButtonMask(0),
+    lastPointerPos(0, 0), lastButtonMask(0),
     cursor(NULL), menuCtrlKey(false), menuAltKey(false)
 {
 // FLTK STR #2599 must be fixed for proper dead keys support
@@ -183,32 +183,17 @@ void Viewport::setServerPF(const rfb::PixelFormat& pf)
     PixelFormat fake_pf(pf.bpp, pf.depth, nativeBigEndian, pf.trueColour,
                         pf.redMax, pf.greenMax, pf.blueMax,
                         pf.redShift, pf.greenShift, pf.blueShift);
-    pixelTrans->init(fake_pf, &colourMap, getPreferredPF());
+    pixelTrans->init(fake_pf, getPreferredPF());
     return;
   }
 
-  pixelTrans->init(pf, &colourMap, getPreferredPF());
+  pixelTrans->init(pf, getPreferredPF());
 }
 
 
 const rfb::PixelFormat &Viewport::getPreferredPF()
 {
   return frameBuffer->getPF();
-}
-
-
-// setColourMapEntries() changes some of the entries in the colourmap.
-// We don't actually act on these changes until we need to. This is
-// because recalculating the internal translation table can be expensive.
-// This also solves the issue of silly servers sending colour maps in
-// multiple pieces.
-void Viewport::setColourMapEntries(int firstColour, int nColours,
-                                   rdr::U16* rgbs)
-{
-  for (int i = 0; i < nColours; i++)
-    colourMap.set(firstColour+i, rgbs[i*3], rgbs[i*3+1], rgbs[i*3+2]);
-
-  colourMapChange = true;
 }
 
 
@@ -230,8 +215,6 @@ void Viewport::updateWindow()
 void Viewport::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
   if (pixelTrans) {
     rfb::Pixel pix2;
-    if (colourMapChange)
-      commitColourMap();
     pixelTrans->translatePixels(&pix, &pix2, 1);
     pix = pix2;
   }
@@ -242,8 +225,6 @@ void Viewport::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
 
 void Viewport::imageRect(const rfb::Rect& r, void* pixels) {
   if (pixelTrans) {
-    if (colourMapChange)
-      commitColourMap();
     pixelTrans->translateRect(pixels, r.width(),
                               rfb::Rect(0, 0, r.width(), r.height()),
                               frameBuffer->data, frameBuffer->getStride(),
@@ -327,7 +308,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
       m_width = (width+7)/8;
       for (int y = 0;y < height;y++) {
         for (int x = 0;x < width;x++) {
-          pf->rgbFromBuffer(o, i, 1, &colourMap);
+          pf->rgbFromBuffer(o, i, 1);
 
           if (m[(m_width*y)+(x/8)] & 0x80>>(x%8))
             o[3] = 255;
@@ -526,19 +507,6 @@ void Viewport::handleUpdateTimeout(void *data)
   assert(self);
 
   self->updateWindow();
-}
-
-
-void Viewport::commitColourMap()
-{
-  if (pixelTrans == NULL)
-    return;
-  if (!colourMapChange)
-    return;
-
-  colourMapChange = false;
-
-  pixelTrans->setColourMapEntries(0, 0);
 }
 
 

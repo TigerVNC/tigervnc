@@ -31,13 +31,11 @@ static LogWriter vlog("DIBSectionBuffer");
 DIBSectionBuffer::DIBSectionBuffer(HWND window_)
   : bitmap(0), window(window_), device(0) {
   memset(&format, 0, sizeof(format));
-  memset(palette, 0, sizeof(palette));
 }
 
 DIBSectionBuffer::DIBSectionBuffer(HDC device_)
   : bitmap(0), window(0), device(device_) {
   memset(&format, 0, sizeof(format));
-  memset(palette, 0, sizeof(palette));
 }
 
 DIBSectionBuffer::~DIBSectionBuffer() {
@@ -51,19 +49,10 @@ void DIBSectionBuffer::setPF(const PixelFormat& pf) {
     vlog.debug("pixel format unchanged by setPF()");
     return;
   }
+  if (!pf.trueColour)
+    throw rfb::Exception("palette format not supported");
   format = pf;
   recreateBuffer();
-  if ((pf.bpp <= 8) && pf.trueColour) {
-    vlog.info("creating %d-bit TrueColour palette", pf.depth);
-    for (int i=0; i < (1<<(pf.depth)); i++) {
-      rdr::U16 r, g, b;
-      pf.rgbFromPixel(i, NULL, &r, &g, &b);
-      palette[i].r = r;
-      palette[i].g = g;
-      palette[i].b = b;
-    }
-    refreshPalette();
-  }
 }
 
 void DIBSectionBuffer::setSize(int w, int h) {
@@ -77,20 +66,6 @@ void DIBSectionBuffer::setSize(int w, int h) {
 }
 
 
-// * copyPaletteToDIB MUST NEVER be called on a truecolour DIB! *
-
-void copyPaletteToDIB(Colour palette[256], HDC wndDC, HBITMAP dib) {
-  BitmapDC dibDC(wndDC, dib);
-  RGBQUAD rgb[256];
-  for (unsigned int i=0;i<256;i++) {
-    rgb[i].rgbRed = palette[i].r >> 8;
-    rgb[i].rgbGreen = palette[i].g >> 8;
-    rgb[i].rgbBlue = palette[i].b >> 8;
-  }
-  if (!SetDIBColorTable(dibDC, 0, 256, (RGBQUAD*) rgb))
-    throw rdr::SystemException("unable to SetDIBColorTable", GetLastError());
-}
-
 inline void initMaxAndShift(DWORD mask, int* max, int* shift) {
   for ((*shift) = 0; (mask & 1) == 0; (*shift)++) mask >>= 1;
   (*max) = (rdr::U16)mask;
@@ -103,9 +78,7 @@ void DIBSectionBuffer::recreateBuffer() {
   if (width_ && height_ && (format.depth != 0)) {
     BitmapInfo bi;
     memset(&bi, 0, sizeof(bi));
-    // *** wrong?
-    UINT iUsage = format.trueColour ? DIB_RGB_COLORS : DIB_PAL_COLORS;
-    // ***
+    UINT iUsage = DIB_RGB_COLORS;
     bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bi.bmiHeader.biBitCount = format.bpp;
     bi.bmiHeader.biSizeImage = (format.bpp / 8) * width_ * height_;
@@ -140,15 +113,11 @@ void DIBSectionBuffer::recreateBuffer() {
 
     // Copy the contents across
     if (device) {
-      if (format.bpp <= 8)
-        copyPaletteToDIB(palette, device, new_bitmap);
       BitmapDC src_dev(device, bitmap);
       BitmapDC dest_dev(device, new_bitmap);
       BitBlt(dest_dev, 0, 0, width_, height_, src_dev, 0, 0, SRCCOPY);
     } else {
       WindowDC wndDC(window);
-      if (format.bpp <= 8)
-        copyPaletteToDIB(palette, wndDC, new_bitmap);
       BitmapDC src_dev(wndDC, bitmap);
       BitmapDC dest_dev(wndDC, new_bitmap);
       BitBlt(dest_dev, 0, 0, width_, height_, src_dev, 0, 0, SRCCOPY);
@@ -164,7 +133,6 @@ void DIBSectionBuffer::recreateBuffer() {
 
   if (new_bitmap) {
     int bpp, depth;
-    bool trueColour;
     int redMax, greenMax, blueMax;
     int redShift, greenShift, blueShift;
 
@@ -189,46 +157,24 @@ void DIBSectionBuffer::recreateBuffer() {
 
     // Calculate the PixelFormat for the DIB
     bpp = depth = ds.dsBm.bmBitsPixel;
-    trueColour = format.trueColour || format.bpp > 8;
 
-    if (trueColour) {
-      // Get the truecolour format used by the DIBSection
-      initMaxAndShift(ds.dsBitfields[0], &redMax, &redShift);
-      initMaxAndShift(ds.dsBitfields[1], &greenMax, &greenShift);
-      initMaxAndShift(ds.dsBitfields[2], &blueMax, &blueShift);
+    // Get the truecolour format used by the DIBSection
+    initMaxAndShift(ds.dsBitfields[0], &redMax, &redShift);
+    initMaxAndShift(ds.dsBitfields[1], &greenMax, &greenShift);
+    initMaxAndShift(ds.dsBitfields[2], &blueMax, &blueShift);
 
-      // Calculate the effective depth
-      depth = 0;
-      Pixel bits = ds.dsBitfields[0] | ds.dsBitfields[1] | ds.dsBitfields[2];
-      while (bits) {
-        depth++;
-        bits = bits >> 1;
-      }
-      if (depth > bpp)
-        throw Exception("Bad DIBSection format (depth exceeds bpp)");
+    // Calculate the effective depth
+    depth = 0;
+    Pixel bits = ds.dsBitfields[0] | ds.dsBitfields[1] | ds.dsBitfields[2];
+    while (bits) {
+      depth++;
+      bits = bits >> 1;
     }
+    if (depth > bpp)
+      throw Exception("Bad DIBSection format (depth exceeds bpp)");
 
-    format = PixelFormat(bpp, depth, false, trueColour,
+    format = PixelFormat(bpp, depth, false, true,
                          redMax, greenMax, blueMax,
                          redShift, greenShift, blueShift);
-
-    if (!trueColour) {
-      // Set the DIBSection's palette
-      refreshPalette();
-    }
   }
 }
-
-void DIBSectionBuffer::refreshPalette() {
-  if (format.bpp > 8) {
-    vlog.error("refresh palette called for truecolor DIB");
-    return;
-  }
-  vlog.debug("refreshing palette");
-  if (device)
-    copyPaletteToDIB(palette, device, bitmap);
-  else
-    copyPaletteToDIB(palette, WindowDC(window), bitmap);
-}
-
-

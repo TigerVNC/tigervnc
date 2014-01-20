@@ -23,7 +23,6 @@
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/Exception.h>
-#include <rfb/ColourMap.h>
 #include <rfb/ConnParams.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/Encoder.h>
@@ -76,18 +75,18 @@ void SMsgWriter::writeServerInit()
 }
 
 void SMsgWriter::writeSetColourMapEntries(int firstColour, int nColours,
-                                          ColourMap* cm)
+                                          const rdr::U16 red[],
+                                          const rdr::U16 green[],
+                                          const rdr::U16 blue[])
 {
   startMsg(msgTypeSetColourMapEntries);
   os->pad(1);
   os->writeU16(firstColour);
   os->writeU16(nColours);
   for (int i = firstColour; i < firstColour+nColours; i++) {
-    int r, g, b;
-    cm->lookup(i, &r, &g, &b);
-    os->writeU16(r);
-    os->writeU16(g);
-    os->writeU16(b);
+    os->writeU16(red[i]);
+    os->writeU16(green[i]);
+    os->writeU16(blue[i]);
   }
   endMsg();
 }

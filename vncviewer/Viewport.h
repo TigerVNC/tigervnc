@@ -26,7 +26,6 @@
 
 #include <rfb/Region.h>
 #include <rfb/Pixel.h>
-#include <rfb/ColourMap.h>
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;
@@ -52,8 +51,6 @@ public:
 
   // Methods forwarded from CConn
 
-  void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
-
   void fillRect(const rfb::Rect& r, rfb::Pixel pix);
   void imageRect(const rfb::Rect& r, void* pixels);
   void copyRect(const rfb::Rect& r, int srcX, int srcY);
@@ -77,8 +74,6 @@ private:
 
   static void handleUpdateTimeout(void *data);
 
-  void commitColourMap();
-
   static void handleClipboardChange(int source, void *data);
 
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
@@ -98,11 +93,7 @@ private:
   CConn* cc;
 
   PlatformPixelBuffer* frameBuffer;
-
   rfb::PixelTransformer *pixelTrans;
-  rfb::SimpleColourMap colourMap;
-  bool colourMapChange;
-
   rfb::Region damage;
 
   rfb::Point lastPointerPos;

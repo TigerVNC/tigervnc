@@ -102,11 +102,6 @@ namespace rfb {
     // SConnection::framebufferUpdateRequest().
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
 
-    // setInitialColourMap() is called when the client needs an initial
-    // SetColourMapEntries message.  In fact this only happens when the client
-    // accepts the server's default pixel format and it uses a colour map.
-    virtual void setInitialColourMap();
-
     // fence() is called when we get a fence request or response. By default
     // it responds directly to requests (stating it doesn't support any
     // synchronisation) and drops responses. Override to implement more proper
@@ -180,6 +175,7 @@ namespace rfb {
 
   protected:
     void setState(stateEnum s) { state_ = s; }
+    void writeFakeColourMap(void);
 
     bool readyForSetColourMapEntries;
 

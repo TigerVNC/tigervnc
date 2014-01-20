@@ -306,10 +306,6 @@ void SConnection::approveConnection(bool accept, const char* reason)
   }
 }
 
-void SConnection::setInitialColourMap()
-{
-}
-
 void SConnection::clientInit(bool shared)
 {
   writer_->writeServerInit();
@@ -320,6 +316,8 @@ void SConnection::setPixelFormat(const PixelFormat& pf)
 {
   SMsgHandler::setPixelFormat(pf);
   readyForSetColourMapEntries = true;
+  if (!pf.trueColour)
+    writeFakeColourMap();
 }
 
 void SConnection::framebufferUpdateRequest(const Rect& r, bool incremental)
@@ -327,7 +325,7 @@ void SConnection::framebufferUpdateRequest(const Rect& r, bool incremental)
   if (!readyForSetColourMapEntries) {
     readyForSetColourMapEntries = true;
     if (!cp.pf().trueColour) {
-      setInitialColourMap();
+      writeFakeColourMap();
     }
   }
 }
@@ -346,4 +344,15 @@ void SConnection::fence(rdr::U32 flags, unsigned len, const char data[])
 void SConnection::enableContinuousUpdates(bool enable,
                                           int x, int y, int w, int h)
 {
+}
+
+void SConnection::writeFakeColourMap(void)
+{
+  int i;
+  rdr::U16 red[256], green[256], blue[256];
+
+  for (i = 0;i < 256;i++)
+    cp.pf().rgbFromPixel(i, &red[i], &green[i], &blue[i]);
+
+  writer()->writeSetColourMapEntries(0, 256, red, green, blue);
 }

@@ -359,15 +359,6 @@ void VNCServerST::setScreenLayout(const ScreenSet& layout)
   }
 }
 
-void VNCServerST::setColourMapEntries(int firstColour, int nColours)
-{
-  std::list<VNCSConnectionST*>::iterator ci, ci_next;
-  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
-    ci_next = ci; ci_next++;
-    (*ci)->setColourMapEntriesOrClose(firstColour, nColours);
-  }
-}
-
 void VNCServerST::bell()
 {
   std::list<VNCSConnectionST*>::iterator ci, ci_next;

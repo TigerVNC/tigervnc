@@ -253,15 +253,6 @@ void VNCSConnectionST::screenLayoutChangeOrClose(rdr::U16 reason)
   }
 }
 
-void VNCSConnectionST::setColourMapEntriesOrClose(int firstColour,int nColours)
-{
-  try {
-    setColourMapEntries(firstColour, nColours);
-  } catch(rdr::Exception& e) {
-    close(e.str());
-  }
-}
-
 void VNCSConnectionST::bellOrClose()
 {
   try {
@@ -623,11 +614,6 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   // but always send back a reply to the requesting client
   // (do this last as it might throw an exception on socket errors)
   writeFramebufferUpdate();
-}
-
-void VNCSConnectionST::setInitialColourMap()
-{
-  setColourMapEntries(0, 0);
 }
 
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
@@ -1149,21 +1135,6 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
                                      cp.screenLayout);
   writeFramebufferUpdate();
-}
-
-void VNCSConnectionST::setColourMapEntries(int firstColour, int nColours)
-{
-  if (!readyForSetColourMapEntries)
-    return;
-  if (server->pb->getPF().trueColour)
-    return;
-
-  image_getter.setColourMapEntries(firstColour, nColours);
-
-  if (cp.pf().trueColour) {
-    updates.add_changed(server->pb->getRect());
-    writeFramebufferUpdate();
-  }
 }
 
 

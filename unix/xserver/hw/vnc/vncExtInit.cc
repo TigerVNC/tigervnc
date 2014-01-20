@@ -168,8 +168,10 @@ static PixelFormat vncGetPixelFormat(ScreenPtr pScreen)
 
   trueColour = (vis->c_class == TrueColor);
 
-  if (!trueColour && bpp != 8)
-    throw rfb::Exception("X server uses unsupported visual");
+  if (!trueColour) {
+    fprintf(stderr,"pseudocolour not supported");
+    abort();
+  }
 
   redShift   = ffs(vis->redMask) - 1;
   greenShift = ffs(vis->greenMask) - 1;
@@ -266,9 +268,6 @@ void vncExtensionInit()
           desktop[scr]->addClient(sock, false);
           vlog.info("added inetd sock");
         }
-
-      } else {
-        desktop[scr]->serverReset(screenInfo.screens[scr]);
       }
 
       vncHooksInit(screenInfo.screens[scr], desktop[scr]);

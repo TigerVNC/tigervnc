@@ -33,7 +33,6 @@ namespace rfb {
 
   class ConnParams;
   class TransImageGetter;
-  class ColourMap;
   class Region;
   class UpdateInfo;
   class Encoder;
@@ -56,10 +55,11 @@ namespace rfb {
     // Methods to write normal protocol messages
 
     // writeSetColourMapEntries() writes a setColourMapEntries message, using
-    // the given ColourMap object to lookup the RGB values of the given range
-    // of colours.
+    // the given colour entries.
     void writeSetColourMapEntries(int firstColour, int nColours,
-                                  ColourMap* cm);
+                                  const rdr::U16 red[],
+                                  const rdr::U16 green[],
+                                  const rdr::U16 blue[]);
 
     // writeBell() and writeServerCutText() do the obvious thing.
     void writeBell();

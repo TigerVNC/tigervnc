@@ -24,10 +24,7 @@
 #include <rfb/Exception.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
-#include <rfb/ColourMap.h>
-#include <rfb/TrueColourMap.h>
 #include <rfb/PixelBuffer.h>
-#include <rfb/ColourCube.h>
 #include <rfb/TransImageGetter.h>
 
 using namespace rfb;
@@ -42,18 +39,12 @@ TransImageGetter::~TransImageGetter()
 }
 
 void TransImageGetter::init(PixelBuffer* pb_, const PixelFormat& out,
-                            SMsgWriter* writer_, ColourCube* cube_)
+                            SMsgWriter* writer_)
 {
   pb = pb_;
   writer = writer_;
 
-  PixelTransformer::init(pb->getPF(), pb->getColourMap(), out, cube_,
-                         cmCallback, this);
-}
-
-void TransImageGetter::setColourMapEntries(int firstCol, int nCols)
-{
-  PixelTransformer::setColourMapEntries(firstCol, nCols);
+  PixelTransformer::init(pb->getPF(), out);
 }
 
 const rdr::U8 *TransImageGetter::getRawBufferR(const Rect &r, int *stride)
@@ -73,16 +64,4 @@ void TransImageGetter::getImage(void* outPtr, const Rect& r, int outStride)
 
   translateRect((void*)inPtr, inStride, Rect(0, 0, r.width(), r.height()),
                 outPtr, outStride, Point(0, 0));
-}
-
-void TransImageGetter::cmCallback(int firstColour, int nColours,
-                                  ColourMap* cm, void* data)
-{
-  TransImageGetter *self;
-
-  assert(data);
-  self = (TransImageGetter*)data;
-
-  if (self->writer)
-    self->writer->writeSetColourMapEntries(firstColour, nColours, cm);
 }

@@ -65,8 +65,9 @@ static const PixelFormat verylowColourPF(8, 3,false, true,
 // 64 colours (2 bits per component)
 static const PixelFormat lowColourPF(8, 6, false, true,
                                      3, 3, 3, 4, 2, 0);
-// 256 colours (palette)
-static const PixelFormat mediumColourPF(8, 8, false, false);
+// 256 colours (2-3 bits per component)
+static const PixelFormat mediumColourPF(8, 8, false, true,
+                                        7, 7, 3, 5, 2, 0);
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
@@ -342,7 +343,7 @@ void CConn::framebufferUpdateEnd()
 
 void CConn::setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs)
 {
-  desktop->setColourMapEntries(firstColour, nColours, rgbs);
+  vlog.error("Invalid SetColourMapEntries from server!");
 }
 
 void CConn::bell()

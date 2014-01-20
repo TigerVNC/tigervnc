@@ -79,7 +79,6 @@ namespace rfb {
       // - DeviceFrameBuffer specific methods
 
       void setCursor(HCURSOR c, VNCServer* server);
-      void updateColourMap();
 
       // Set whether grabRect should ignore errors or throw exceptions
       // Only set this if you are sure you'll capture the errors some other way!

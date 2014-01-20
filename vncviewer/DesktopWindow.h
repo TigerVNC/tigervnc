@@ -50,8 +50,6 @@ public:
   // Methods forwarded from CConn
   void setName(const char *name);
 
-  void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
-
   void fillRect(const rfb::Rect& r, rfb::Pixel pix);
   void imageRect(const rfb::Rect& r, void* pixels);
   void copyRect(const rfb::Rect& r, int srcX, int srcY);

@@ -338,9 +338,9 @@ void TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig)
       if (checkSolidTile(sr, &colorValue, false)) {
 
          if (jpegSubsampling == subsampleGray && jpegQuality != -1) {
-           Colour rgb;
-           serverpf.rgbFromPixel(colorValue, NULL, &rgb);
-           rdr::U32 lum = ((257 * rgb.r) + (504 * rgb.g) + (98 * rgb.b)
+           rdr::U16 r, g, b;
+           serverpf.rgbFromPixel(colorValue, &r, &g, &b);
+           rdr::U32 lum = ((257 * r) + (504 * g) + (98 * b)
                            + 16500) / 1000;
            colorValue = lum + (lum << 8) + (lum << 16);
          }

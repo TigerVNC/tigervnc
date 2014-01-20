@@ -73,7 +73,7 @@ void TIGHT_DECODE (const Rect& r)
     if (cutZeros) {
       rdr::U8 bytebuf[3];
       is->readBytes(bytebuf, 3);
-      serverpf.bufferFromRGB((rdr::U8*)&pix, bytebuf, 1, NULL);
+      serverpf.bufferFromRGB((rdr::U8*)&pix, bytebuf, 1);
     } else {
       pix = is->READ_PIXEL();
     }
@@ -107,7 +107,7 @@ void TIGHT_DECODE (const Rect& r)
       if (cutZeros) {
         rdr::U8 tightPalette[256 * 3];
         is->readBytes(tightPalette, palSize * 3);
-        serverpf.bufferFromRGB((rdr::U8*)palette, tightPalette, palSize, NULL);
+        serverpf.bufferFromRGB((rdr::U8*)palette, tightPalette, palSize);
       } else {
         is->readBytes(palette, palSize * sizeof(PIXEL_T));
       }
@@ -175,7 +175,7 @@ void TIGHT_DECODE (const Rect& r)
       int w = r.width();
       if (cutZeros) {
         while (h > 0) {
-          serverpf.bufferFromRGB((rdr::U8*)ptr, srcPtr, w, NULL);
+          serverpf.bufferFromRGB((rdr::U8*)ptr, srcPtr, w);
           ptr += stride;
           srcPtr += w * 3;
           h--;
@@ -284,7 +284,7 @@ TightDecoder::FilterGradient24(rdr::U8 *netbuf, PIXEL_T* buf, int stride,
       pix[c] = netbuf[y*rectWidth*3+c] + prevRow[c];
       thisRow[c] = pix[c];
     }
-    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1, NULL);
+    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
@@ -298,7 +298,7 @@ TightDecoder::FilterGradient24(rdr::U8 *netbuf, PIXEL_T* buf, int stride,
         pix[c] = netbuf[(y*rectWidth+x)*3+c] + est[c];
         thisRow[x*3+c] = pix[c];
       }
-      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1, NULL);
+      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
@@ -324,13 +324,13 @@ FILTER_GRADIENT(rdr::U8 *netbuf, PIXEL_T* buf, int stride, const Rect& r)
 
   for (y = 0; y < rectHeight; y++) {
     /* First pixel in a row */
-    serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth], 1, NULL);
+    serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth], 1);
     for (c = 0; c < 3; c++)
       pix[c] += prevRow[c];
 
     memcpy(thisRow, pix, sizeof(pix));
 
-    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1, NULL);
+    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
@@ -343,13 +343,13 @@ FILTER_GRADIENT(rdr::U8 *netbuf, PIXEL_T* buf, int stride, const Rect& r)
         }
       }
 
-      serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth+x], 1, NULL);
+      serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth+x], 1);
       for (c = 0; c < 3; c++)
         pix[c] += est[c];
 
       memcpy(&thisRow[x*3], pix, sizeof(pix));
 
-      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1, NULL);
+      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));

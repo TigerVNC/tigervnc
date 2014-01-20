@@ -94,7 +94,7 @@ static PixelFormat display_pf()
 }
 
 PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
-  FullFramePixelBuffer(display_pf(), width, height, NULL, NULL),
+  FullFramePixelBuffer(display_pf(), width, height, NULL),
   shminfo(NULL), xim(NULL)
 {
   // Might not be open at this point

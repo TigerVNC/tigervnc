@@ -101,7 +101,7 @@ static void doTests(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf)
   if (srcpf.isLittleEndian()) {
     delete pt;
     pt = new rfb::PixelTransformer;
-    pt->init(srcpf, NULL, dstpf);
+    pt->init(srcpf, dstpf);
   }
 
   printf("%s,%s", srcb, dstb);

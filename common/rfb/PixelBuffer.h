@@ -26,7 +26,6 @@
 
 #include <rfb/ImageGetter.h>
 #include <rfb/PixelFormat.h>
-#include <rfb/ColourMap.h>
 #include <rfb/Rect.h>
 #include <rfb/Pixel.h>
 
@@ -36,7 +35,7 @@ namespace rfb {
 
   class PixelBuffer : public ImageGetter {
   public:
-    PixelBuffer(const PixelFormat& pf, int width, int height, ColourMap* cm);
+    PixelBuffer(const PixelFormat& pf, int width, int height);
     virtual ~PixelBuffer();
 
     ///////////////////////////////////////////////
@@ -49,7 +48,6 @@ namespace rfb {
     virtual void setPF(const PixelFormat &pf);
   public:
     virtual const PixelFormat &getPF() const;
-    virtual ColourMap* getColourMap() const;
 
     // Get width, height and number of pixels
     int width()  const { return width_; }
@@ -91,7 +89,6 @@ namespace rfb {
     PixelBuffer();
     PixelFormat format;
     int width_, height_;
-    ColourMap* colourmap;
   };
 
   // FullFramePixelBuffer
@@ -99,7 +96,7 @@ namespace rfb {
   class FullFramePixelBuffer : public PixelBuffer {
   public:
     FullFramePixelBuffer(const PixelFormat& pf, int width, int height,
-                         rdr::U8* data_, ColourMap* cm);
+                         rdr::U8* data_);
     virtual ~FullFramePixelBuffer();
 
   protected:
@@ -160,15 +157,11 @@ namespace rfb {
     virtual void setPF(const PixelFormat &pf);
     virtual void setSize(int w, int h);
 
-    // Assign a colour map to the buffer
-    virtual void setColourMap(ColourMap* cm, bool own_cm);
-
     // Return the total number of bytes of pixel data in the buffer
     int dataLen() const { return width_ * height_ * (format.bpp/8); }
 
   protected:
     unsigned long datasize;
-    bool own_colourmap;
     void checkDataSize();
   };
 

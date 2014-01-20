@@ -79,10 +79,6 @@ DeviceFrameBuffer::DeviceFrameBuffer(HDC deviceContext, const Rect& wRect)
 
   // Configure the cursor buffer
   cursorBm.setPF(format);
-
-  // Set up a palette if required
-  if (!format.trueColour)
-    updateColourMap();
 }
 
 DeviceFrameBuffer::~DeviceFrameBuffer() {
@@ -134,37 +130,6 @@ DeviceFrameBuffer::grabRegion(const Region &rgn) {
 }
 
 
-void copyDevicePaletteToDIB(HDC dc, DIBSectionBuffer* dib) {
-  // - Fetch the system palette for the framebuffer
-  PALETTEENTRY syspalette[256];
-  UINT entries = ::GetSystemPaletteEntries(dc, 0, 256, syspalette);
-
-  if (entries == 0) {
-    vlog.info("resorting to standard 16 color palette");
-    for (unsigned int i=0;i<256;i++) {
-      int v = (i%16) >= 8 ? 127 : 255;
-      syspalette[i].peRed = i & 1 ? v : 0;
-      syspalette[i].peGreen = i & 2 ? v : 0;
-      syspalette[i].peBlue = i & 4 ? v : 0;
-    }
-  } else {
-    vlog.info("framebuffer has %u palette entries", entries);
-  }
-
-  // - Update the bitmap's stored copy of the palette
-  for (unsigned int i=0;i<256;i++) {
-    int r, g, b;
-    r = (syspalette[i].peRed << 8) + 0x80;
-    g = (syspalette[i].peGreen << 8) + 0x80;
-    b = (syspalette[i].peBlue << 8) + 0x80;
-    dib->setColour(i, r, g, b);
-  }
-
-  // - Update the DIB section to use the palette
-  dib->refreshPalette();
-}
-
-
 void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 {
   // - If hCursor is null then there is no cursor - clear the old one
@@ -211,10 +176,6 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     // Configure the cursor bitmap
     cursorBm.setSize(cursor.width(), cursor.height());
 
-    // Copy the palette into it if required
-    if (format.bpp <= 8)
-      copyDevicePaletteToDIB(device, &cursorBm);
-
     // Draw the cursor into the bitmap
     BitmapDC dc(device, cursorBm.bitmap);
     if (!DrawIconEx(dc, 0, 0, hCursor, 0, 0, 0, NULL, DI_NORMAL | DI_COMPAT))
@@ -231,7 +192,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     bool doOutline = false;
     if (!iconInfo.hbmColor) {
-      Pixel xorColour = format.pixelFromRGB((rdr::U16)0, (rdr::U16)0, (rdr::U16)0, cursorBm.getColourMap());
+      Pixel xorColour = format.pixelFromRGB((rdr::U16)0, (rdr::U16)0, (rdr::U16)0);
       for (int y = 0; y < cursor.height(); y++) {
         for (int x = 0; x < cursor.width(); x++) {
           int byte = y * maskInfo.bmWidthBytes + x / 8;
@@ -269,7 +230,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
     if (doOutline) {
       vlog.debug("drawing cursor outline!");
       memcpy(cursor.data, cursorBm.data, cursor.dataLen());
-      cursor.drawOutline(format.pixelFromRGB((rdr::U16)0xffff, (rdr::U16)0xffff, (rdr::U16)0xffff, cursorBm.getColourMap()));
+      cursor.drawOutline(format.pixelFromRGB((rdr::U16)0xffff, (rdr::U16)0xffff, (rdr::U16)0xffff));
       memcpy(cursorBm.data, cursor.data, cursor.dataLen());
     }
 
@@ -278,11 +239,4 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
   }
-}
-
-
-void
-DeviceFrameBuffer::updateColourMap() {
-  if (!format.trueColour)
-    copyDevicePaletteToDIB(device, this);
 }

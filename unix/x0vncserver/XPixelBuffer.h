@@ -37,8 +37,7 @@ using namespace rfb;
 class XPixelBuffer : public FullFramePixelBuffer
 {
 public:
-  XPixelBuffer(Display *dpy, ImageFactory &factory,
-               const Rect &rect, ColourMap* cm);
+  XPixelBuffer(Display *dpy, ImageFactory &factory, const Rect &rect);
   virtual ~XPixelBuffer();
 
   // Provide access to the underlying Image object.

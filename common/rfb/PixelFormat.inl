@@ -75,131 +75,81 @@ inline void PixelFormat::bufferFromPixel(rdr::U8* buffer, Pixel p) const
 }
 
 
-inline Pixel PixelFormat::pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue, ColourMap* cm) const
+inline Pixel PixelFormat::pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue) const
 {
-  if (trueColour) {
-    Pixel p;
+  Pixel p;
 
-    /* We don't need to mask since we shift out unwanted bits */
-    p = ((Pixel)red >> (16 - redBits)) << redShift;
-    p |= ((Pixel)green >> (16 - greenBits)) << greenShift;
-    p |= ((Pixel)blue >> (16 - blueBits)) << blueShift;
-  } else if (cm) {
-    // Try to find the closest pixel by Cartesian distance
-    int colours = 1 << depth;
-    int diff = 256 * 256 * 4;
-    int col = 0;
-    for (int i=0; i<colours; i++) {
-      int r, g, b;
-      cm->lookup(i, &r, &g, &b);
-      int rd = (r-red) >> 8;
-      int gd = (g-green) >> 8;
-      int bd = (b-blue) >> 8;
-      int d = rd*rd + gd*gd + bd*bd;
-      if (d < diff) {
-        col = i;
-        diff = d;
-      }
-    }
-    return col;
-  } else {
-    // XXX just return 0 for colour map?
-    return 0;
+  /* We don't need to mask since we shift out unwanted bits */
+  p = ((Pixel)red >> (16 - redBits)) << redShift;
+  p |= ((Pixel)green >> (16 - greenBits)) << greenShift;
+  p |= ((Pixel)blue >> (16 - blueBits)) << blueShift;
+
+  return p;
+}
+
+
+inline Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue) const
+{
+  Pixel p;
+
+  p = ((Pixel)red >> (8 - redBits)) << redShift;
+  p |= ((Pixel)green >> (8 - greenBits)) << greenShift;
+  p |= ((Pixel)blue >> (8 - blueBits)) << blueShift;
+
+  return p;
+}
+
+
+inline void PixelFormat::rgbFromPixel(Pixel p, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const
+{
+  int mb, rb, gb, bb;
+
+  /* Bit replication is much cheaper than multiplication and division */
+
+  mb = minBits;
+  rb = redBits;
+  gb = greenBits;
+  bb = blueBits;
+
+  *r = (p >> redShift) << (16 - rb);
+  *g = (p >> greenShift) << (16 - gb);
+  *b = (p >> blueShift) << (16 - bb);
+
+  while (mb < 16) {
+    *r = *r | (*r >> rb);
+    *g = *g | (*g >> gb);
+    *b = *b | (*b >> bb);
+    mb <<= 1;
+    rb <<= 1;
+    gb <<= 1;
+    bb <<= 1;
   }
 }
 
 
-inline Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue, ColourMap* cm) const
+inline void PixelFormat::rgbFromPixel(Pixel p, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const
 {
-  if (trueColour) {
-    Pixel p;
+  int mb, rb, gb, bb;
 
-    p = ((Pixel)red >> (8 - redBits)) << redShift;
-    p |= ((Pixel)green >> (8 - greenBits)) << greenShift;
-    p |= ((Pixel)blue >> (8 - blueBits)) << blueShift;
+  /* Bit replication is much cheaper than multiplication and division */
 
-    return p;
-  } else {
-    return pixelFromRGB((rdr::U16)(red << 8 | red),
-                        (rdr::U16)(green << 8 | green),
-                        (rdr::U16)(blue << 8 | blue), cm);
-  }
-}
+  mb = minBits;
+  rb = redBits;
+  gb = greenBits;
+  bb = blueBits;
 
+  *r = (p >> redShift) << (8 - rb);
+  *g = (p >> greenShift) << (8 - gb);
+  *b = (p >> blueShift) << (8 - bb);
 
-inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const
-{
-  if (trueColour) {
-    int mb, rb, gb, bb;
-
-    /* Bit replication is much cheaper than multiplication and division */
-
-    mb = minBits;
-    rb = redBits;
-    gb = greenBits;
-    bb = blueBits;
-
-    *r = (p >> redShift) << (16 - rb);
-    *g = (p >> greenShift) << (16 - gb);
-    *b = (p >> blueShift) << (16 - bb);
-
-    while (mb < 16) {
-      *r = *r | (*r >> rb);
-      *g = *g | (*g >> gb);
-      *b = *b | (*b >> bb);
-      mb <<= 1;
-      rb <<= 1;
-      gb <<= 1;
-      bb <<= 1;
-    }
-  } else if (cm) {
-    int ir, ig, ib;
-    cm->lookup(p, &ir, &ig, &ib);
-    *r = ir;
-    *g = ig;
-    *b = ib;
-  } else {
-    // XXX just return 0 for colour map?
-    *r = 0;
-    *g = 0;
-    *b = 0;
-  }
-}
-
-
-inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const
-{
-  if (trueColour) {
-    int mb, rb, gb, bb;
-
-    /* Bit replication is much cheaper than multiplication and division */
-
-    mb = minBits;
-    rb = redBits;
-    gb = greenBits;
-    bb = blueBits;
-
-    *r = (p >> redShift) << (8 - rb);
-    *g = (p >> greenShift) << (8 - gb);
-    *b = (p >> blueShift) << (8 - bb);
-
-    while (mb < 8) {
-      *r = *r | (*r >> rb);
-      *g = *g | (*g >> gb);
-      *b = *b | (*b >> bb);
-      mb <<= 1;
-      rb <<= 1;
-      gb <<= 1;
-      bb <<= 1;
-    }
-  } else {
-    rdr::U16 r2, g2, b2;
-
-    rgbFromPixel(p, cm, &r2, &g2, &b2);
-
-    *r = r2 >> 8;
-    *g = g2 >> 8;
-    *b = b2 >> 8;
+  while (mb < 8) {
+    *r = *r | (*r >> rb);
+    *g = *g | (*g >> gb);
+    *b = *b | (*b >> bb);
+    mb <<= 1;
+    rb <<= 1;
+    gb <<= 1;
+    bb <<= 1;
   }
 }
 

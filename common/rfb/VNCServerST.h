@@ -88,7 +88,6 @@ namespace rfb {
     virtual void setPixelBuffer(PixelBuffer* pb);
     virtual void setScreenLayout(const ScreenSet& layout);
     virtual PixelBuffer* getPixelBuffer() const { return pb; }
-    virtual void setColourMapEntries(int firstColour=0, int nColours=0);
     virtual void serverCutText(const char* str, int len);
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);

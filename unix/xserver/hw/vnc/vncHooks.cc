@@ -75,8 +75,6 @@ typedef struct {
 #if XORG < 110
   RestoreAreasProcPtr          RestoreAreas;
 #endif
-  InstallColormapProcPtr       InstallColormap;
-  StoreColorsProcPtr           StoreColors;
   DisplayCursorProcPtr         DisplayCursor;
   ScreenBlockHandlerProcPtr    BlockHandler;
 #ifdef RENDER
@@ -132,9 +130,6 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
 #if XORG < 110
 static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr prgnExposed);
 #endif
-static void vncHooksInstallColormap(ColormapPtr pColormap);
-static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
-                                xColorItem* pdef);
 static Bool vncHooksDisplayCursor(
 #if XORG >= 16
 				  DeviceIntPtr pDev,
@@ -289,8 +284,6 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 #if XORG < 110
   vncHooksScreen->RestoreAreas = pScreen->RestoreAreas;
 #endif
-  vncHooksScreen->InstallColormap = pScreen->InstallColormap;
-  vncHooksScreen->StoreColors = pScreen->StoreColors;
   vncHooksScreen->DisplayCursor = pScreen->DisplayCursor;
   vncHooksScreen->BlockHandler = pScreen->BlockHandler;
 #ifdef RENDER
@@ -318,8 +311,6 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 #if XORG < 110
   pScreen->RestoreAreas = vncHooksRestoreAreas;
 #endif
-  pScreen->InstallColormap = vncHooksInstallColormap;
-  pScreen->StoreColors = vncHooksStoreColors;
   pScreen->DisplayCursor = vncHooksDisplayCursor;
   pScreen->BlockHandler = vncHooksBlockHandler;
 #ifdef RENDER
@@ -381,8 +372,6 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 #if XORG < 110
   pScreen->RestoreAreas = vncHooksScreen->RestoreAreas;
 #endif
-  pScreen->InstallColormap = vncHooksScreen->InstallColormap;
-  pScreen->StoreColors = vncHooksScreen->StoreColors;
   pScreen->DisplayCursor = vncHooksScreen->DisplayCursor;
   pScreen->BlockHandler = vncHooksScreen->BlockHandler;
 #ifdef RENDER
@@ -511,33 +500,6 @@ static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr pRegion)
   return result;
 }
 #endif
-
-// InstallColormap - get the new colormap
-
-static void vncHooksInstallColormap(ColormapPtr pColormap)
-{
-  SCREEN_UNWRAP(pColormap->pScreen, InstallColormap);
-
-  (*pScreen->InstallColormap) (pColormap);
-
-  vncHooksScreen->desktop->setColormap(pColormap);
-
-  SCREEN_REWRAP(InstallColormap);
-}
-
-// StoreColors - get the colormap changes
-
-static void vncHooksStoreColors(ColormapPtr pColormap, int ndef,
-                                xColorItem* pdef)
-{
-  SCREEN_UNWRAP(pColormap->pScreen, StoreColors);
-
-  (*pScreen->StoreColors) (pColormap, ndef, pdef);
-
-  vncHooksScreen->desktop->setColourMapEntries(pColormap, ndef, pdef);
-
-  SCREEN_REWRAP(StoreColors);
-}
 
 // DisplayCursor - get the cursor shape
 

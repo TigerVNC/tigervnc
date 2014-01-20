@@ -32,9 +32,7 @@
 namespace rfb {
 
   class SMsgWriter;
-  class ColourMap;
   class PixelBuffer;
-  class ColourCube;
 
   class TransImageGetter : public ImageGetter,
                            public PixelTransformer {
@@ -45,25 +43,9 @@ namespace rfb {
 
     // init() is called to initialise the translation tables.  The PixelBuffer
     // argument gives the source data and format details, outPF gives the
-    // client's pixel format.  If the client has a colour map, then the writer
-    // argument is used to send a SetColourMapEntries message to the client.
+    // client's pixel format.
 
-    void init(PixelBuffer* pb, const PixelFormat& outPF, SMsgWriter* writer=0,
-              ColourCube* cube=0);
-
-    // setColourMapEntries() is called when the PixelBuffer has a colour map
-    // which has changed.  firstColour and nColours specify which part of the
-    // colour map has changed.  If nColours is 0, this means the rest of the
-    // colour map.  The PixelBuffer previously passed to init() must have a
-    // valid ColourMap object.  If the client also has a colour map, then the
-    // writer argument is used to send a SetColourMapEntries message to the
-    // client.  If the client is true colour then instead we update the
-    // internal translation table - in this case the caller should also make
-    // sure that the client receives an update of the relevant parts of the
-    // framebuffer (the simplest thing to do is just update the whole
-    // framebuffer, though it is possible to be smarter than this).
-
-    void setColourMapEntries(int firstColour, int nColours);
+    void init(PixelBuffer* pb, const PixelFormat& outPF, SMsgWriter* writer=0);
 
     // getImage() gets the given rectangle of data from the PixelBuffer,
     // translates it into the client's pixel format and puts it in the buffer
@@ -90,17 +72,12 @@ namespace rfb {
     void setOffset(const Point& offset_) { offset = offset_; }
 
   private:
-    static void cmCallback(int firstColour, int nColours,
-                           ColourMap* cm, void* data);
-
-  private:
     bool economic;
     PixelBuffer* pb;
     PixelFormat outPF;
     SMsgWriter* writer;
     rdr::U8* table;
     transFnType transFn;
-    ColourCube* cube;
     Point offset;
   };
 }

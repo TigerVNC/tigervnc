@@ -99,7 +99,7 @@ unsigned int PACK_PIXELS (PIXEL_T *buf, unsigned int count)
   rdr::U8 *dst = (rdr::U8 *)buf;
   for (unsigned int i = 0; i < count; i++) {
     pix = *buf++;
-    clientpf.rgbFromBuffer(dst, (rdr::U8*)&pix, 1, NULL);
+    clientpf.rgbFromBuffer(dst, (rdr::U8*)&pix, 1);
     dst += 3;
   }
   return count * 3;
