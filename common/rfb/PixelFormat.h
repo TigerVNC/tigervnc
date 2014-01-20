@@ -19,7 +19,16 @@
  */
 //
 // PixelFormat - structure to represent a pixel format.  Also has useful
-// methods for reading & writing to streams, etc.
+// methods for reading & writing to streams, etc. Conversion to and from
+// other formats are also handled by this class. We have three different
+// representations that we refer to:
+//
+// a) Pixels - Unsigned native integers in the format specified by this
+//             PixelFormat object.
+// b) Buffer - Same thing as pixels, but in the appropriate byte stream
+//             format. This involves endian conversion and padding.
+// c) RGB - A byte stream of 8 bit red, green and blue elements, in that
+//          order.
 //
 
 #ifndef __RFB_PIXELFORMAT_H__
