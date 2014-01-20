@@ -75,6 +75,58 @@ inline void PixelFormat::bufferFromPixel(rdr::U8* buffer, Pixel p) const
 }
 
 
+inline Pixel PixelFormat::pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue, ColourMap* cm) const
+{
+  if (trueColour) {
+    Pixel p;
+
+    /* We don't need to mask since we shift out unwanted bits */
+    p = ((Pixel)red >> (16 - redBits)) << redShift;
+    p |= ((Pixel)green >> (16 - greenBits)) << greenShift;
+    p |= ((Pixel)blue >> (16 - blueBits)) << blueShift;
+  } else if (cm) {
+    // Try to find the closest pixel by Cartesian distance
+    int colours = 1 << depth;
+    int diff = 256 * 256 * 4;
+    int col = 0;
+    for (int i=0; i<colours; i++) {
+      int r, g, b;
+      cm->lookup(i, &r, &g, &b);
+      int rd = (r-red) >> 8;
+      int gd = (g-green) >> 8;
+      int bd = (b-blue) >> 8;
+      int d = rd*rd + gd*gd + bd*bd;
+      if (d < diff) {
+        col = i;
+        diff = d;
+      }
+    }
+    return col;
+  } else {
+    // XXX just return 0 for colour map?
+    return 0;
+  }
+}
+
+
+inline Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue, ColourMap* cm) const
+{
+  if (trueColour) {
+    Pixel p;
+
+    p = ((Pixel)red >> (8 - redBits)) << redShift;
+    p |= ((Pixel)green >> (8 - greenBits)) << greenShift;
+    p |= ((Pixel)blue >> (8 - blueBits)) << blueShift;
+
+    return p;
+  } else {
+    return pixelFromRGB((rdr::U16)(red << 8 | red),
+                        (rdr::U16)(green << 8 | green),
+                        (rdr::U16)(blue << 8 | blue), cm);
+  }
+}
+
+
 inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const
 {
   if (trueColour) {

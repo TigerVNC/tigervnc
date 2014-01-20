@@ -59,8 +59,8 @@ namespace rfb {
     inline Pixel pixelFromBuffer(const rdr::U8* buffer) const;
     inline void bufferFromPixel(rdr::U8* buffer, Pixel pixel) const;
 
-    Pixel pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue, ColourMap* cm=0) const;
-    Pixel pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue, ColourMap* cm=0) const;
+    inline Pixel pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue, ColourMap* cm=0) const;
+    inline Pixel pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue, ColourMap* cm=0) const;
 
     void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int pixels, ColourMap* cm=0) const;
     void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int w, int pitch,
