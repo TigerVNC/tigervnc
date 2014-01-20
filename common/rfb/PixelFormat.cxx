@@ -314,23 +314,6 @@ void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
 }
 
 
-void PixelFormat::rgbFromBuffer(rdr::U16* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
-{
-  Pixel p;
-  rdr::U16 r, g, b;
-
-  while (pixels--) {
-    p = pixelFromBuffer(src);
-    src += bpp/8;
-
-    rgbFromPixel(p, cm, &r, &g, &b);
-    *(dst++) = r;
-    *(dst++) = g;
-    *(dst++) = b;
-  }
-}
-
-
 void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
 {
   if (is888()) {
