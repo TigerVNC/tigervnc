@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <string.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
+#include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/util.h>
 
@@ -37,11 +38,7 @@ PixelFormat::PixelFormat(int b, int d, bool e, bool t,
     redMax(rm), greenMax(gm), blueMax(bm),
     redShift(rs), greenShift(gs), blueShift(bs)
 {
-  assert((bpp == 8) || (bpp == 16) || (bpp == 32));
-  assert(depth <= bpp);
-  assert((redMax & (redMax + 1)) == 0);
-  assert((greenMax & (greenMax + 1)) == 0);
-  assert((blueMax & (blueMax + 1)) == 0);
+  assert(isSane());
 
   updateState();
 }
@@ -81,6 +78,9 @@ void PixelFormat::read(rdr::InStream* is)
   greenShift = is->readU8();
   blueShift = is->readU8();
   is->skip(3);
+
+  if (!isSane())
+    throw Exception("invalid pixel format");
 
   updateState();
 }
@@ -531,6 +531,8 @@ bool PixelFormat::parse(const char* str)
     return false;
   }
 
+  assert(isSane());
+
   updateState();
 
   return true;
@@ -580,4 +582,39 @@ void PixelFormat::updateState(void)
     endianMismatch = true;
   else
     endianMismatch = false;
+}
+
+bool PixelFormat::isSane(void)
+{
+  int totalBits;
+
+  if ((bpp != 8) && (bpp != 16) && (bpp != 32))
+    return false;
+  if (depth > bpp)
+    return false;
+
+  if (!trueColour && (depth != 8))
+    return false;
+
+  if (trueColour) {
+    if ((redMax & (redMax + 1)) != 0)
+      return false;
+    if ((greenMax & (greenMax + 1)) != 0)
+      return false;
+    if ((blueMax & (blueMax + 1)) != 0)
+      return false;
+
+    totalBits = bits(redMax) + bits(greenMax) + bits(blueMax);
+    if (totalBits > bpp)
+      return false;
+
+    if (((redMax << redShift) & (greenMax << greenShift)) != 0)
+      return false;
+    if (((redMax << redShift) & (blueMax << blueShift)) != 0)
+      return false;
+    if (((greenMax << greenShift) & (blueMax << blueShift)) != 0)
+      return false;
+  }
+
+  return true;
 }
