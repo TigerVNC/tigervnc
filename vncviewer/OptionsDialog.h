@@ -22,11 +22,14 @@
 #include <map>
 
 #include <FL/Fl_Window.H>
-#include <FL/Fl_Group.H>
-#include <FL/Fl_Check_Button.H>
-#include <FL/Fl_Round_Button.H>
-#include <FL/Fl_Int_Input.H>
-#include <FL/Fl_Choice.H>
+
+class Fl_Widget;
+class Fl_Group;
+class Fl_Check_Button;
+class Fl_Round_Button;
+class Fl_Input;
+class Fl_Int_Input;
+class Fl_Choice;
 
 typedef void (OptionsCallback)(void*);
 

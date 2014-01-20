@@ -52,6 +52,9 @@
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
 
+#include <FL/Fl_Menu.H>
+#include <FL/Fl_Menu_Button.H>
+
 #ifdef WIN32
 #include "win32.h"
 #endif

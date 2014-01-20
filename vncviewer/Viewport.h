@@ -24,13 +24,8 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
-#include <FL/Fl_Menu_Button.H>
-#include <FL/Fl_RGB_Image.H>
 
-#include <rfb/Rect.h>
 #include <rfb/Region.h>
-#include <rfb/Timer.h>
-#include <rfb/PixelBuffer.h>
 #include <rfb/PixelTransformer.h>
 
 #if defined(WIN32)
@@ -45,6 +40,9 @@
 //
 // #include "PlatformPixelBuffer.h"
 //
+
+class Fl_Menu_Button;
+class Fl_RGB_Image;
 
 class CConn;
 
