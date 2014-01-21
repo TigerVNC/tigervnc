@@ -1102,9 +1102,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
     
     writer()->writeFramebufferUpdateStart(nRects);
 
-    Region updatedRegion;
-    writer()->writeRects(ui, &image_getter, &updatedRegion);
-    updates.subtract(updatedRegion);
+    writer()->writeRects(ui, &image_getter);
+    updates.clear();
 
     if (drawRenderedCursor)
       writeRenderedCursorRect();
@@ -1129,8 +1128,7 @@ void VNCSConnectionST::writeRenderedCursorRect()
   image_getter.setPixelBuffer(&server->renderedCursor);
   image_getter.setOffset(server->renderedCursorTL);
 
-  Rect actual;
-  writer()->writeRect(renderedCursorRect, &image_getter, &actual);
+  writer()->writeRect(renderedCursorRect, &image_getter);
 
   image_getter.setPixelBuffer(server->pb);
   image_getter.setOffset(Point(0,0));

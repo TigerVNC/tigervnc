@@ -291,26 +291,18 @@ void SMsgWriter::writeNoDataUpdate()
   writeFramebufferUpdateEnd();
 }
 
-void SMsgWriter::writeRects(const UpdateInfo& ui, TransImageGetter* ig,
-                            Region* updatedRegion)
+void SMsgWriter::writeRects(const UpdateInfo& ui, TransImageGetter* ig)
 {
   std::vector<Rect> rects;
   std::vector<Rect>::const_iterator i;
-  updatedRegion->copyFrom(ui.changed);
-  updatedRegion->assign_union(ui.copied);
 
   ui.copied.get_rects(&rects, ui.copy_delta.x <= 0, ui.copy_delta.y <= 0);
   for (i = rects.begin(); i != rects.end(); i++)
     writeCopyRect(*i, i->tl.x - ui.copy_delta.x, i->tl.y - ui.copy_delta.y);
 
   ui.changed.get_rects(&rects);
-  for (i = rects.begin(); i != rects.end(); i++) {
-    Rect actual;
-    if (!writeRect(*i, ig, &actual)) {
-      updatedRegion->assign_subtract(*i);
-      updatedRegion->assign_union(actual);
-    }
-  }
+  for (i = rects.begin(); i != rects.end(); i++)
+    writeRect(*i, ig);
 }
 
 void SMsgWriter::writeFramebufferUpdateStart(int nRects)
@@ -355,19 +347,18 @@ void SMsgWriter::writeFramebufferUpdateEnd()
   endMsg();
 }
 
-bool SMsgWriter::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
+void SMsgWriter::writeRect(const Rect& r, TransImageGetter* ig)
 {
-  return writeRect(r, cp->currentEncoding(), ig, actual);
+  writeRect(r, cp->currentEncoding(), ig);
 }
 
-bool SMsgWriter::writeRect(const Rect& r, int encoding,
-                           TransImageGetter* ig, Rect* actual)
+void SMsgWriter::writeRect(const Rect& r, int encoding, TransImageGetter* ig)
 {
   if (!encoders[encoding]) {
     encoders[encoding] = Encoder::createEncoder(encoding, this);
     assert(encoders[encoding]);
   }
-  return encoders[encoding]->writeRect(r, ig, actual);
+  encoders[encoding]->writeRect(r, ig);
 }
 
 void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)

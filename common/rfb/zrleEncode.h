@@ -114,8 +114,8 @@ public:
 
 void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os);
 
-bool ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
-                  rdr::ZlibOutStream* zos, void* buf, Rect* actual
+void ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
+                  rdr::ZlibOutStream* zos, void* buf
 #ifdef EXTRA_ARGS
                   , EXTRA_ARGS
 #endif
@@ -132,16 +132,6 @@ bool ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
 
     t.br.y = __rfbmin(r.br.y, t.tl.y + 64);
 
-    // enough for width 16384 32-bit pixels
-    if (os->length() + worstCaseLine > 4097 * 1024) {
-      if (t.tl.y == r.tl.y)
-        throw Exception("ZRLE: not enough space for first line?");
-      actual->tl = r.tl;
-      actual->br.x = r.br.x;
-      actual->br.y = t.tl.y;
-      return false;
-    }
-
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 64) {
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
@@ -153,7 +143,6 @@ bool ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
 
     zos->flush();
   }
-  return true;
 }
 
 

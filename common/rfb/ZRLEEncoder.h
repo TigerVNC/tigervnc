@@ -28,7 +28,7 @@ namespace rfb {
   public:
     ZRLEEncoder(SMsgWriter* writer);
     virtual ~ZRLEEncoder();
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
+    virtual void writeRect(const Rect& r, TransImageGetter* ig);
   private:
     SMsgWriter* writer;
     rdr::ZlibOutStream zos;

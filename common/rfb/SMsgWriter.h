@@ -122,10 +122,8 @@ namespace rfb {
     // ImageGetter to fetch pixels from.  It then calls writeCopyRect() and
     // writeRect() as appropriate.  writeFramebufferUpdateStart() must be used
     // before the first writeRects() call and writeFrameBufferUpdateEnd() after
-    // the last one.  It returns the actual region sent to the client, which
-    // may be smaller than the update passed in.
-    void writeRects(const UpdateInfo& update, TransImageGetter* ig,
-                    Region* updatedRegion);
+    // the last one.
+    void writeRects(const UpdateInfo& update, TransImageGetter* ig);
 
     // To construct a framebuffer update you can call
     // writeFramebufferUpdateStart(), followed by a number of writeCopyRect()s
@@ -133,12 +131,10 @@ namespace rfb {
     void writeFramebufferUpdateStart(int nRects);
     void writeFramebufferUpdateEnd();
 
-    // writeRect() tries to write the given rectangle.  If it is unable to
-    // write the whole rectangle it returns false and sets actual to the actual
-    // rectangle which was updated.
-    bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
-    bool writeRect(const Rect& r, int encoding,
-                   TransImageGetter* ig, Rect* actual);
+    // writeRect() writers the given rectangle using either the preferred
+    // encoder, or the one explicitly given.
+    void writeRect(const Rect& r, TransImageGetter* ig);
+    void writeRect(const Rect& r, int encoding, TransImageGetter* ig);
 
     void writeCopyRect(const Rect& r, int srcX, int srcY);
 

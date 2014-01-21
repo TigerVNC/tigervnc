@@ -55,19 +55,17 @@ ZRLEEncoder::~ZRLEEncoder()
 {
 }
 
-bool ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
+void ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig)
 {
   rdr::U8* imageBuf = writer->getImageBuf(64 * 64 * 4 + 4);
   mos.clear();
-  bool wroteAll = true;
-  *actual = r;
 
   switch (writer->bpp()) {
   case 8:
-    wroteAll = zrleEncode8(r, &mos, &zos, imageBuf, actual, ig);
+    zrleEncode8(r, &mos, &zos, imageBuf, ig);
     break;
   case 16:
-    wroteAll = zrleEncode16(r, &mos, &zos, imageBuf, actual, ig);
+    zrleEncode16(r, &mos, &zos, imageBuf, ig);
     break;
   case 32:
     {
@@ -80,25 +78,24 @@ bool ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
       if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
           (fitsInMS3Bytes && pf.isBigEndian()))
       {
-        wroteAll = zrleEncode24A(r, &mos, &zos, imageBuf, actual, ig);
+        zrleEncode24A(r, &mos, &zos, imageBuf, ig);
       }
       else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
                (fitsInMS3Bytes && pf.isLittleEndian()))
       {
-        wroteAll = zrleEncode24B(r, &mos, &zos, imageBuf, actual, ig);
+        zrleEncode24B(r, &mos, &zos, imageBuf, ig);
       }
       else
       {
-        wroteAll = zrleEncode32(r, &mos, &zos, imageBuf, actual, ig);
+        zrleEncode32(r, &mos, &zos, imageBuf, ig);
       }
       break;
     }
   }
 
-  writer->startRect(*actual, encodingZRLE);
+  writer->startRect(r, encodingZRLE);
   rdr::OutStream* os = writer->getOutStream();
   os->writeU32(mos.length());
   os->writeBytes(mos.data(), mos.length());
   writer->endRect();
-  return wroteAll;
 }

@@ -286,8 +286,7 @@ void TightEncoder::sendRectSimple(const Rect& r)
   }
 }
 
-bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
-                             Rect* actual)
+void TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig)
 {
   ig = _ig;
   serverpf = ig->getPixelBuffer()->getPF();
@@ -304,7 +303,7 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
   // Encode small rects as is.
   if (!cp->supportsLastRect || w * h < TIGHT_MIN_SPLIT_RECT_SIZE) {
     sendRectSimple(r);
-    return true;
+    return;
   }
 
   // Split big rects into separately encoded subrects.
@@ -366,7 +365,7 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
         }
         if (bestr.tl.x != x) {
           sr.setXYWH(x, bestr.tl.y, bestr.tl.x - x, bestr.height());
-          writeRect(sr, _ig, NULL);
+          writeRect(sr, _ig);
         }
 
         // Send solid-color rectangle.
@@ -376,21 +375,21 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
         if (bestr.br.x != r.br.x) {
           sr.setXYWH(bestr.br.x, bestr.tl.y, r.br.x - bestr.br.x,
             bestr.height());
-          writeRect(sr, _ig, NULL);
+          writeRect(sr, _ig);
         }
         if (bestr.br.y != r.br.y) {
           sr.setXYWH(x, bestr.br.y, w, r.br.y - bestr.br.y);
-          writeRect(sr, _ig, NULL);
+          writeRect(sr, _ig);
         }
 
-        return true;
+        return;
       }
     }
   }
 
   // No suitable solid-color rectangles found.
   sendRectSimple(r);
-  return true;
+  return;
 }
 
 void TightEncoder::writeSubrect(const Rect& r, bool forceSolid)

@@ -27,7 +27,7 @@ namespace rfb {
   public:
     RREEncoder(SMsgWriter* writer);
     virtual ~RREEncoder();
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
+    virtual void writeRect(const Rect& r, TransImageGetter* ig);
   private:
     SMsgWriter* writer;
     rdr::MemOutStream mos;

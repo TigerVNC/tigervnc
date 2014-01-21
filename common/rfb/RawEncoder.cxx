@@ -31,7 +31,7 @@ RawEncoder::~RawEncoder()
 {
 }
 
-bool RawEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
+void RawEncoder::writeRect(const Rect& r, TransImageGetter* ig)
 {
   int x = r.tl.x;
   int y = r.tl.y;
@@ -50,5 +50,4 @@ bool RawEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
     y += nRows;
   }
   writer->endRect();
-  return true;
 }

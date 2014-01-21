@@ -86,7 +86,7 @@ namespace rfb {
     virtual void setQualityLevel(int level);
     virtual void setFineQualityLevel(int quality, int subsampling);
     virtual int getNumRects(const Rect &r);
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
+    virtual void writeRect(const Rect& r, TransImageGetter* ig);
 
   private:
     bool checkSolidTile(Rect& r, rdr::U32* colorPtr, bool needSameColor);

@@ -41,7 +41,7 @@ RREEncoder::~RREEncoder()
 {
 }
 
-bool RREEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
+void RREEncoder::writeRect(const Rect& r, TransImageGetter* ig)
 {
   int w = r.width();
   int h = r.height();
@@ -58,7 +58,8 @@ bool RREEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
   }
   
   if (nSubrects < 0) {
-    return writer->writeRect(r, encodingRaw, ig, actual);
+    writer->writeRect(r, encodingRaw, ig);
+    return;
   }
 
   writer->startRect(r, encodingRRE);
@@ -66,5 +67,4 @@ bool RREEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
   os->writeU32(nSubrects);
   os->writeBytes(mos.data(), mos.length());
   writer->endRect();
-  return true;
 }
