@@ -257,8 +257,7 @@ DECOMPRESS_JPEG_RECT(const Rect& r)
   // We always use direct decoding with JPEG images
   int stride;
   rdr::U8 *buf = handler->getRawBufferRW(r, &stride);
-  jd.decompress(netbuf, compressedLen, buf, stride * clientpf.bpp / 8, r,
-                clientpf);
+  jd.decompress(netbuf, compressedLen, buf, stride, r, clientpf);
   handler->releaseRawBuffer(r);
 
   delete [] netbuf;

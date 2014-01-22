@@ -180,7 +180,7 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
 }
 
 void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
-                                int w, int pitch, int h, ColourMap* cm) const
+                                int w, int stride, int h, ColourMap* cm) const
 {
   if (is888()) {
     // Optimised common case
@@ -198,7 +198,7 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
       x = dst + (48 - redShift - greenShift - blueShift)/8;
     }
 
-    int dstPad = pitch - w * 4;
+    int dstPad = (stride - w) * 4;
     while (h--) {
       int w_ = w;
       while (w_--) {
@@ -218,7 +218,7 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
     }
   } else {
     // Generic code
-    int dstPad = pitch - w * 4;
+    int dstPad = (stride - w) * 4;
     while (h--) {
       int w_ = w;
       while (w_--) {
@@ -295,7 +295,7 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, Co
 
 
 void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
-                                int w, int pitch, int h, ColourMap* cm) const
+                                int w, int stride, int h, ColourMap* cm) const
 {
   if (is888()) {
     // Optimised common case
@@ -311,7 +311,7 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
       b = src + blueShift/8;
     }
 
-    int srcPad = pitch - w * 4;
+    int srcPad = (stride - w) * 4;
     while (h--) {
       int w_ = w;
       while (w_--) {
@@ -328,7 +328,7 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
     }
   } else {
     // Generic code
-    int srcPad = pitch - w * bpp/8;
+    int srcPad = (stride - w) * bpp/8;
     while (h--) {
       int w_ = w;
       while (w_--) {

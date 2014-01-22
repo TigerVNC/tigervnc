@@ -142,7 +142,7 @@ JpegCompressor::~JpegCompressor(void)
   delete cinfo;
 }
 
-void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
+void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
   const PixelFormat& pf, int quality, int subsamp)
 {
   int w = r.width();
@@ -196,13 +196,14 @@ void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
   }
 #endif
 
-  if (pitch == 0) pitch = w * pf.bpp / 8;
+  if (stride == 0)
+    stride = w;
 
   if (cinfo->in_color_space == JCS_RGB) {
     srcBuf = new rdr::U8[w * h * pixelsize];
     srcBufIsTemp = true;
-    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w, pitch, h);
-    pitch = w * pixelsize;
+    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w, stride, h);
+    stride = w;
   }
 
   cinfo->input_components = pixelsize;
@@ -238,7 +239,7 @@ void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
 
   rowPointer = new JSAMPROW[h];
   for (int dy = 0; dy < h; dy++)
-    rowPointer[dy] = (JSAMPROW)(&srcBuf[dy * pitch]);
+    rowPointer[dy] = (JSAMPROW)(&srcBuf[dy * stride * pixelsize]);
 
   jpeg_start_compress(cinfo, TRUE);
   while (cinfo->next_scanline < cinfo->image_height)

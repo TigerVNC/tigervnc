@@ -412,7 +412,7 @@ void ENCODE_JPEG_RECT (PIXEL_T *buf, int stride, const Rect& r,
                        rdr::OutStream *os)
 {
   jc.clear();
-  jc.compress((rdr::U8 *)buf, stride * clientpf.bpp / 8, r, clientpf,
+  jc.compress((rdr::U8 *)buf, stride, r, clientpf,
     jpegQuality, jpegSubsampling);
   os->writeU8(0x09 << 4);
   os->writeCompactLength(jc.length());
