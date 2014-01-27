@@ -394,14 +394,17 @@ void CConn::fillRect(const rfb::Rect& r, rfb::Pixel p)
 {
   desktop->fillRect(r,p);
 }
+
 void CConn::imageRect(const rfb::Rect& r, void* p)
 {
   desktop->imageRect(r,p);
 }
+
 void CConn::copyRect(const rfb::Rect& r, int sx, int sy)
 {
   desktop->copyRect(r,sx,sy);
 }
+
 void CConn::setCursor(int width, int height, const Point& hotspot,
                       void* data, void* mask)
 {
