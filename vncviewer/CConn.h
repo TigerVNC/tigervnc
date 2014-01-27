@@ -20,10 +20,12 @@
 #ifndef __CCONN_H__
 #define __CCONN_H__
 
+#include <FL/Fl.H>
+
 #include <rfb/CConnection.h>
 #include <network/Socket.h>
 
-#include "DesktopWindow.h"
+class DesktopWindow;
 
 class CConn : public rfb::CConnection,
               public rdr::FdInStreamBlockCallback

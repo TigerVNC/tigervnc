@@ -22,29 +22,19 @@
 
 #include <map>
 
-#include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 
 #include <rfb/Region.h>
-#include <rfb/PixelTransformer.h>
-
-#if defined(WIN32)
-#include "Win32PixelBuffer.h"
-#elif defined(__APPLE__)
-#include "OSXPixelBuffer.h"
-#else
-#include "X11PixelBuffer.h"
-#endif
-
-// We also have a generic version of the above, using pure FLTK:
-//
-// #include "PlatformPixelBuffer.h"
-//
+#include <rfb/Pixel.h>
+#include <rfb/ColourMap.h>
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;
 
+namespace rfb { class PixelTransformer; }
+
 class CConn;
+class PlatformPixelBuffer;
 
 class Viewport : public Fl_Widget {
 public:
@@ -64,45 +54,13 @@ public:
 
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
 
-  void fillRect(const rfb::Rect& r, rfb::Pixel pix) {
-    if (pixelTrans) {
-      rfb::Pixel pix2;
-      if (colourMapChange)
-        commitColourMap();
-      pixelTrans->translatePixels(&pix, &pix2, 1);
-      pix = pix2;
-    }
+  void fillRect(const rfb::Rect& r, rfb::Pixel pix);
+  void imageRect(const rfb::Rect& r, void* pixels);
+  void copyRect(const rfb::Rect& r, int srcX, int srcY);
 
-    frameBuffer->fillRect(r, pix);
-    damageRect(r);
-  }
-  void imageRect(const rfb::Rect& r, void* pixels) {
-    if (pixelTrans) {
-      if (colourMapChange)
-        commitColourMap();
-      pixelTrans->translateRect(pixels, r.width(),
-                                rfb::Rect(0, 0, r.width(), r.height()),
-                                frameBuffer->data, frameBuffer->getStride(),
-                                r.tl);
-    } else {
-      frameBuffer->imageRect(r, pixels);
-    }
-    damageRect(r);
-  }
-  void copyRect(const rfb::Rect& r, int srcX, int srcY) {
-    frameBuffer->copyRect(r, rfb::Point(r.tl.x-srcX, r.tl.y-srcY));
-    damageRect(r);
-  }
+  rdr::U8* getBufferRW(const rfb::Rect& r, int* stride);
 
-  rdr::U8* getBufferRW(const rfb::Rect& r, int* stride) {
-    return frameBuffer->getBufferRW(r, stride);
-  }
-
-  void damageRect(const rfb::Rect& r) {
-    damage.assign_union(rfb::Region(r));
-    if (!Fl::has_timeout(handleUpdateTimeout, this))
-      Fl::add_timeout(0.500, handleUpdateTimeout, this);
-  };
+  void damageRect(const rfb::Rect& r);
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);

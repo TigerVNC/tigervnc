@@ -44,6 +44,7 @@
 
 #include "CConn.h"
 #include "OptionsDialog.h"
+#include "DesktopWindow.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"

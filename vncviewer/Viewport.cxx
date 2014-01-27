@@ -27,6 +27,7 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
+#include <rfb/PixelTransformer.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
@@ -42,12 +43,26 @@
 #include "Viewport.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
+#include "DesktopWindow.h"
 #include "i18n.h"
 #include "fltk_layout.h"
 #include "parameters.h"
 #include "keysym2ucs.h"
 #include "menukey.h"
 #include "vncviewer.h"
+
+#if defined(WIN32)
+#include "Win32PixelBuffer.h"
+#elif defined(__APPLE__)
+#include "OSXPixelBuffer.h"
+#else
+#include "X11PixelBuffer.h"
+#endif
+
+// We also have a generic version of the above, using pure FLTK:
+//
+// #include "PlatformPixelBuffer.h"
+//
 
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
@@ -211,6 +226,48 @@ void Viewport::updateWindow()
 
   damage.clear();
 }
+
+void Viewport::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
+  if (pixelTrans) {
+    rfb::Pixel pix2;
+    if (colourMapChange)
+      commitColourMap();
+    pixelTrans->translatePixels(&pix, &pix2, 1);
+    pix = pix2;
+  }
+
+  frameBuffer->fillRect(r, pix);
+  damageRect(r);
+}
+
+void Viewport::imageRect(const rfb::Rect& r, void* pixels) {
+  if (pixelTrans) {
+    if (colourMapChange)
+      commitColourMap();
+    pixelTrans->translateRect(pixels, r.width(),
+                              rfb::Rect(0, 0, r.width(), r.height()),
+                              frameBuffer->data, frameBuffer->getStride(),
+                              r.tl);
+  } else {
+    frameBuffer->imageRect(r, pixels);
+  }
+  damageRect(r);
+}
+
+void Viewport::copyRect(const rfb::Rect& r, int srcX, int srcY) {
+  frameBuffer->copyRect(r, rfb::Point(r.tl.x-srcX, r.tl.y-srcY));
+  damageRect(r);
+}
+
+rdr::U8* Viewport::getBufferRW(const rfb::Rect& r, int* stride) {
+  return frameBuffer->getBufferRW(r, stride);
+}
+
+void Viewport::damageRect(const rfb::Rect& r) {
+  damage.assign_union(rfb::Region(r));
+  if (!Fl::has_timeout(handleUpdateTimeout, this))
+    Fl::add_timeout(0.500, handleUpdateTimeout, this);
+};
 
 #ifdef HAVE_FLTK_CURSOR
 static const char * dotcursor_xpm[] = {
