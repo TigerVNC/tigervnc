@@ -70,8 +70,8 @@ namespace rfb {
     // Get a pointer into the buffer
     //   The pointer is to the top-left pixel of the specified Rect.
     //   The buffer stride (in pixels) is returned.
-    virtual const rdr::U8* getPixelsR(const Rect& r, int* stride) = 0;
-    virtual rdr::U8* getPixelsRW(const Rect& r, int* stride) = 0;
+    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) = 0;
+    virtual rdr::U8* getBufferRW(const Rect& r, int* stride) = 0;
 
     // Get pixel data for a given part of the buffer
     //   Data is copied into the supplied buffer, with the specified
@@ -111,10 +111,10 @@ namespace rfb {
     virtual int getStride() const;
 
     // Get a pointer to specified pixel data
-    rdr::U8* getPixelsRW(const Rect& r, int* stride);
-    virtual const rdr::U8* getPixelsR(const Rect& r, int* stride) {
-      return getPixelsRW(r, stride);
+    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) {
+      return getBufferRW(r, stride);
     }
+    virtual rdr::U8* getBufferRW(const Rect& r, int* stride);
 
     ///////////////////////////////////////////////
     // Basic rendering operations

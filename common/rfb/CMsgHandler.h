@@ -71,8 +71,8 @@ namespace rfb {
     virtual void imageRect(const Rect& r, void* pixels) = 0;
     virtual void copyRect(const Rect& r, int srcX, int srcY) = 0;
 
-    virtual rdr::U8* getRawPixelsRW(const Rect& r, int* stride) = 0;
-    virtual void releaseRawPixels(const Rect& r) = 0;
+    virtual rdr::U8* getRawBufferRW(const Rect& r, int* stride) = 0;
+    virtual void releaseRawBuffer(const Rect& r) = 0;
 
     virtual const PixelFormat &getPreferredPF(void) = 0;
 

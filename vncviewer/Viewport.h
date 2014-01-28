@@ -94,8 +94,8 @@ public:
     damageRect(r);
   }
 
-  rdr::U8* getPixelsRW(const rfb::Rect& r, int* stride) {
-    return frameBuffer->getPixelsRW(r, stride);
+  rdr::U8* getBufferRW(const rfb::Rect& r, int* stride) {
+    return frameBuffer->getBufferRW(r, stride);
   }
 
   void damageRect(const rfb::Rect& r) {

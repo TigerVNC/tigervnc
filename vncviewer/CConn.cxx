@@ -443,10 +443,10 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
   }
 }
 
-rdr::U8* CConn::getRawPixelsRW(const rfb::Rect& r, int* stride) {
-  return desktop->getPixelsRW(r, stride);
+rdr::U8* CConn::getRawBufferRW(const rfb::Rect& r, int* stride) {
+  return desktop->getBufferRW(r, stride);
 }
-void CConn::releaseRawPixels(const rfb::Rect& r) {
+void CConn::releaseRawBuffer(const rfb::Rect& r) {
   desktop->damageRect(r);
 }
 

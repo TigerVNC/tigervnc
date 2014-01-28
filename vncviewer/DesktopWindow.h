@@ -62,8 +62,8 @@ public:
     viewport->copyRect(r, srcX, srcY);
   }
 
-  rdr::U8* getPixelsRW(const rfb::Rect& r, int* stride) {
-    return viewport->getPixelsRW(r, stride);
+  rdr::U8* getBufferRW(const rfb::Rect& r, int* stride) {
+    return viewport->getBufferRW(r, stride);
   }
   void damageRect(const rfb::Rect& r) {
     viewport->damageRect(r);
