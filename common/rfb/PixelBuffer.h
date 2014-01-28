@@ -41,12 +41,9 @@ namespace rfb {
     // Format / Layout
     //
 
-    // Set/get pixel format & colourmap
-  protected:
-    // Only for subclasses that support changing parameters
-    virtual void setPF(const PixelFormat &pf);
   public:
-    virtual const PixelFormat &getPF() const;
+    // Get pixel format
+    const PixelFormat &getPF() const { return format; }
 
     // Get width, height and number of pixels
     int width()  const { return width_; }
@@ -86,6 +83,8 @@ namespace rfb {
     virtual void grabRegion(const Region& region) {}
 
   protected:
+    // Only for subclasses that support changing parameters
+    void setPF(const PixelFormat &pf) { format = pf; }
     PixelBuffer();
     PixelFormat format;
     int width_, height_;
@@ -98,9 +97,6 @@ namespace rfb {
     FullFramePixelBuffer(const PixelFormat& pf, int width, int height,
                          rdr::U8* data_);
     virtual ~FullFramePixelBuffer();
-
-  protected:
-    virtual void setPF(const PixelFormat &pf);
 
   public:
     // - Get the number of pixels per row in the actual pixel buffer data area
@@ -118,28 +114,29 @@ namespace rfb {
     // These operations DO NOT clip to the pixelbuffer area, or trap overruns.
 
     // Fill a rectangle
-    virtual void fillRect(const Rect &dest, Pixel pix);
+    void fillRect(const Rect &dest, Pixel pix);
 
     // Copy pixel data to the buffer
-    virtual void imageRect(const Rect &dest, const void* pixels, int stride=0);
+    void imageRect(const Rect &dest, const void* pixels, int stride=0);
 
     // Copy pixel data from one PixelBuffer location to another
-    virtual void copyRect(const Rect &dest, const Point &move_by_delta);
+    void copyRect(const Rect &dest, const Point& move_by_delta);
 
     // Copy pixel data to the buffer through a mask
     //   pixels is a pointer to the pixel to be copied to r.tl.
     //   maskPos specifies the pixel offset in the mask to start from.
     //   mask_ is a pointer to the mask bits at (0,0).
     //   pStride and mStride are the strides of the pixel and mask buffers.
-    virtual void maskRect(const Rect& r, const void* pixels, const void* mask_);
+    void maskRect(const Rect& r, const void* pixels, const void* mask_);
 
     //   pixel is the Pixel value to be used where mask_ is set
-    virtual void maskRect(const Rect& r, Pixel pixel, const void* mask_);
+    void maskRect(const Rect& r, Pixel pixel, const void* mask_);
 
     // *** Should this be visible?
     rdr::U8* data;
 
   protected:
+    void setPF(const PixelFormat &pf);
     FullFramePixelBuffer();
     void (*fillRectFn)(rdr::U8 *, int, const Rect&, Pixel);
   };

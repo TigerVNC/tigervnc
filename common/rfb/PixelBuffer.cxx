@@ -40,10 +40,6 @@ PixelBuffer::PixelBuffer() : width_(0), height_(0) {}
 PixelBuffer::~PixelBuffer() {}
 
 
-void PixelBuffer::setPF(const PixelFormat &pf) {format = pf;}
-const PixelFormat& PixelBuffer::getPF() const {return format;}
-
-
 void
 PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
   int inStride;
