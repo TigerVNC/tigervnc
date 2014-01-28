@@ -78,10 +78,6 @@ namespace rfb {
     //   stride.
     virtual void getImage(void* imageBuf, const Rect& r, int stride=0);
 
-    // Get the data at (x,y) as a Pixel.
-    //   VERY INEFFICIENT!!!
-    // *** Pixel getPixel(const Point& p);
-
     ///////////////////////////////////////////////
     // Framebuffer update methods
     //

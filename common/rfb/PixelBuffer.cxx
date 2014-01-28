@@ -64,19 +64,6 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
   }
 }
 
-/* ***
-Pixel PixelBuffer::getPixel(const Point& p) {
-  int stride;
-  Rect r = Rect(p.x, p.y, p.x+1, p.y+1);
-  switch(format.bpp) {
-  case 8: return *((rdr::U8*)getDataAt(r, &stride));
-  case 16: return *((rdr::U16*)getDataAt(r, &stride));
-  case 32: return *((rdr::U32*)getDataAt(r, &stride));
-  default: return 0;
-  };
-}
-*/
-
 
 static void fillRect8(U8 *buf, int stride, const Rect& r, Pixel pix)
 {
