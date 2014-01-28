@@ -121,12 +121,6 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
           }
         }
 
-#ifdef FAVOUR_FILL_RECT
-       //fprintf(stderr,"copying data to screen %dx%d at %d,%d\n",
-        //t.width(),t.height(),t.tl.x,t.tl.y);
-        IMAGE_RECT(t,buf);
-#endif
-
       } else {
 
         if (palSize == 0) {
@@ -149,36 +143,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
               throw Exception ("ZRLE decode error");
             }
 
-#ifdef FAVOUR_FILL_RECT
-            int i = ptr - buf;
-            ptr += len;
-
-            int runX = i % t.width();
-            int runY = i / t.width();
-
-            if (runX + len > t.width()) {
-              if (runX != 0) {
-                FILL_RECT(Rect(t.tl.x+runX, t.tl.y+runY, t.width()-runX, 1),
-                          pix);
-                len -= t.width()-runX;
-                runX = 0;
-                runY++;
-              }
-
-              if (len > t.width()) {
-                FILL_RECT(Rect(t.tl.x, t.tl.y+runY, t.width(), len/t.width()),
-                          pix);
-                runY += len / t.width();
-                len = len % t.width();
-              }
-            }
-
-            if (len != 0) {
-              FILL_RECT(Rect(t.tl.x+runX, t.tl.y+runY, len, 1), pix);
-            }
-#else
             while (len-- > 0) *ptr++ = pix;
-#endif
 
           }
         } else {
@@ -207,45 +172,14 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
             PIXEL_T pix = palette[index];
 
-#ifdef FAVOUR_FILL_RECT
-            int i = ptr - buf;
-            ptr += len;
-
-            int runX = i % t.width();
-            int runY = i / t.width();
-
-            if (runX + len > t.width()) {
-              if (runX != 0) {
-                FILL_RECT(Rect(t.tl.x+runX, t.tl.y+runY, t.width()-runX, 1),
-                          pix);
-                len -= t.width()-runX;
-                runX = 0;
-                runY++;
-              }
-
-              if (len > t.width()) {
-                FILL_RECT(Rect(t.tl.x, t.tl.y+runY, t.width(), len/t.width()),
-                          pix);
-                runY += len / t.width();
-                len = len % t.width();
-              }
-            }
-
-            if (len != 0) {
-              FILL_RECT(Rect(t.tl.x+runX, t.tl.y+runY, len, 1), pix);
-            }
-#else
             while (len-- > 0) *ptr++ = pix;
-#endif
           }
         }
       }
 
-#ifndef FAVOUR_FILL_RECT
       //fprintf(stderr,"copying data to screen %dx%d at %d,%d\n",
       //t.width(),t.height(),t.tl.x,t.tl.y);
       IMAGE_RECT(t,buf);
-#endif
     }
   }
 
