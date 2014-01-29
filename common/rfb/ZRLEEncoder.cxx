@@ -46,8 +46,8 @@ IntParameter zlibLevel("ZlibLevel","Zlib compression level",-1);
 #undef CPIXEL
 #undef BPP
 
-ZRLEEncoder::ZRLEEncoder(SMsgWriter* writer_)
-  : writer(writer_), zos(0,0,zlibLevel), mos(129*1024)
+ZRLEEncoder::ZRLEEncoder(SMsgWriter* writer)
+  : Encoder(writer), zos(0,0,zlibLevel), mos(129*1024)
 {
 }
 

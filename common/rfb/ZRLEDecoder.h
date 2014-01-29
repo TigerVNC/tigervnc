@@ -29,7 +29,6 @@ namespace rfb {
     virtual ~ZRLEDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
   private:
-    CMsgReader* reader;
     rdr::ZlibInStream zis;
   };
 }

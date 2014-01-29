@@ -27,8 +27,6 @@ namespace rfb {
     HextileDecoder(CMsgReader* reader);
     virtual ~HextileDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
-  private:
-    CMsgReader* reader;
   };
 }
 #endif

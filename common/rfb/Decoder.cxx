@@ -27,6 +27,10 @@
 
 using namespace rfb;
 
+Decoder::Decoder(CMsgReader* reader_) : reader(reader_)
+{
+}
+
 Decoder::~Decoder()
 {
 }

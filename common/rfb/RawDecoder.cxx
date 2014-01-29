@@ -22,7 +22,7 @@
 
 using namespace rfb;
 
-RawDecoder::RawDecoder(CMsgReader* reader_) : reader(reader_)
+RawDecoder::RawDecoder(CMsgReader* reader) : Decoder(reader)
 {
 }
 

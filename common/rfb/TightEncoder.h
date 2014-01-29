@@ -142,7 +142,6 @@ namespace rfb {
     void encodeJpegRect32(rdr::U32 *buf, int stride, const Rect& r,
                           rdr::OutStream *os);
 
-    SMsgWriter* writer;
     rdr::MemOutStream mos;
     rdr::ZlibOutStream zos[4];
     JpegCompressor jc;

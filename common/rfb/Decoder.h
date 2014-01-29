@@ -27,11 +27,14 @@ namespace rfb {
 
   class Decoder {
   public:
+    Decoder(CMsgReader* reader);
     virtual ~Decoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler)=0;
 
     static bool supported(int encoding);
     static Decoder* createDecoder(int encoding, CMsgReader* reader);
+  protected:
+    CMsgReader* reader;
   };
 }
 

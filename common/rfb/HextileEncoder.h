@@ -27,8 +27,6 @@ namespace rfb {
     HextileEncoder(SMsgWriter* writer);
     virtual ~HextileEncoder();
     virtual void writeRect(const Rect& r, TransImageGetter* ig);
-  private:
-    SMsgWriter* writer;
   };
 }
 #endif

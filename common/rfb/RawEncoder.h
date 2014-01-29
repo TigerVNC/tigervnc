@@ -27,8 +27,6 @@ namespace rfb {
     RawEncoder(SMsgWriter* writer);
     virtual ~RawEncoder();
     virtual void writeRect(const Rect& r, TransImageGetter* ig);
-  private:
-    SMsgWriter* writer;
   };
 }
 #endif

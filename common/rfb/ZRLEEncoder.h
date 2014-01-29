@@ -30,7 +30,6 @@ namespace rfb {
     virtual ~ZRLEEncoder();
     virtual void writeRect(const Rect& r, TransImageGetter* ig);
   private:
-    SMsgWriter* writer;
     rdr::ZlibOutStream zos;
     rdr::MemOutStream mos;
   };

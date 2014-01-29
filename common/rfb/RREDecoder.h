@@ -27,8 +27,6 @@ namespace rfb {
     RREDecoder(CMsgReader* reader);
     virtual ~RREDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
-  private:
-    CMsgReader* reader;
   };
 }
 #endif

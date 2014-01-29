@@ -40,7 +40,7 @@ using namespace rfb;
 #undef CPIXEL
 #undef BPP
 
-ZRLEDecoder::ZRLEDecoder(CMsgReader* reader_) : reader(reader_)
+ZRLEDecoder::ZRLEDecoder(CMsgReader* reader) : Decoder(reader)
 {
 }
 

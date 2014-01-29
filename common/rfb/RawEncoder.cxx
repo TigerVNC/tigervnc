@@ -23,7 +23,7 @@
 
 using namespace rfb;
 
-RawEncoder::RawEncoder(SMsgWriter* writer_) : writer(writer_)
+RawEncoder::RawEncoder(SMsgWriter* writer) : Encoder(writer)
 {
 }
 

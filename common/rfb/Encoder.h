@@ -29,6 +29,7 @@ namespace rfb {
 
   class Encoder {
   public:
+    Encoder(SMsgWriter* writer);
     virtual ~Encoder();
 
     virtual void setCompressLevel(int level) {};
@@ -43,6 +44,9 @@ namespace rfb {
 
     static bool supported(int encoding);
     static Encoder* createEncoder(int encoding, SMsgWriter* writer);
+
+  protected:
+    SMsgWriter* writer;
   };
 }
 

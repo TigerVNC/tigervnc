@@ -54,7 +54,6 @@ namespace rfb {
     void directFillRect16(const Rect& r, Pixel pix);
     void directFillRect32(const Rect& r, Pixel pix);
 
-    CMsgReader* reader;
     CMsgHandler* handler;
     rdr::InStream* is;
     rdr::ZlibInStream zis[4];

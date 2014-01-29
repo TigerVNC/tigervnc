@@ -29,7 +29,6 @@ namespace rfb {
     virtual ~RREEncoder();
     virtual void writeRect(const Rect& r, TransImageGetter* ig);
   private:
-    SMsgWriter* writer;
     rdr::MemOutStream mos;
   };
 }

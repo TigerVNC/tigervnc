@@ -25,8 +25,13 @@
 #include <rfb/HextileEncoder.h>
 #include <rfb/ZRLEEncoder.h>
 #include <rfb/TightEncoder.h>
+#include <rfb/SMsgWriter.h>
 
 using namespace rfb;
+
+Encoder::Encoder(SMsgWriter* writer_) : writer(writer_)
+{
+}
 
 Encoder::~Encoder()
 {
