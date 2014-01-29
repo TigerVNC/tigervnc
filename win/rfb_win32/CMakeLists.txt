@@ -19,7 +19,6 @@ set(RFB_WIN32_SOURCES
   ProgressControl.cxx
   RegConfig.cxx
   Registry.cxx
-  ScaledDIBSectionBuffer.cxx
   SecurityPage.cxx
   SDisplayCorePolling.cxx
   SDisplayCoreWMHooks.cxx

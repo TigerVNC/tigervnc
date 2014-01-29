@@ -52,7 +52,6 @@ set(RFB_SOURCES
   SSecurityStack.cxx
   SSecurityVncAuth.cxx
   SSecurityVeNCrypt.cxx
-  ScaledPixelBuffer.cxx
   ScaleFilters.cxx
   Timer.cxx
   TightDecoder.cxx
