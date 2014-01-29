@@ -343,6 +343,56 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
 }
 
 
+Pixel PixelFormat::pixelFromPixel(const PixelFormat &srcPF, Pixel src) const
+{
+  rdr::U16 r, g, b;
+  srcPF.rgbFromPixel(src, &r, &g, &b);
+  return pixelFromRGB(r, g, b);
+}
+
+
+void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                                   const rdr::U8* src, int pixels) const
+{
+  bufferFromBuffer(dst, srcPF, src, pixels, 1, pixels, pixels);
+}
+
+void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                                   const rdr::U8* src, int w, int h,
+                                   int dstStride, int srcStride) const
+{
+  if (equal(srcPF)) {
+    // Trivial case
+    while (h--) {
+      memcpy(dst, src, w * bpp/8);
+      dst += dstStride * bpp/8;
+      src += srcStride * srcPF.bpp/8;
+    }
+  } else {
+    // Generic code
+    int dstPad = (dstStride - w) * bpp/8;
+    int srcPad = (srcStride - w) * srcPF.bpp/8;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        Pixel p;
+        rdr::U8 r, g, b;
+
+        p = srcPF.pixelFromBuffer(src);
+        srcPF.rgbFromPixel(p, &r, &g, &b);
+        p = pixelFromRGB(r, g, b);
+        bufferFromPixel(dst, p);
+
+        dst += bpp/8;
+        src += srcPF.bpp/8;
+      }
+      dst += dstPad;
+      src += srcPad;
+    }
+  }
+}
+
+
 void PixelFormat::print(char* str, int len) const
 {
   // Unfortunately snprintf is not widely available so we build the string up

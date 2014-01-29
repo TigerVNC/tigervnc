@@ -42,6 +42,12 @@ static void testPixelTransformer(rfb::PixelFormat &dstpf,
                     dst, fbsize, rfb::Point(0, 0));
 }
 
+static void testBuffer(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
+                       rdr::U8 *dst, rdr::U8 *src)
+{
+  dstpf.bufferFromBuffer(dst, srcpf, src, tile, tile, fbsize, fbsize);
+}
+
 static void testToRGB(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
                       rdr::U8 *dst, rdr::U8 *src)
 {
@@ -86,6 +92,7 @@ static void doTest(testfn fn, rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf)
 struct TestEntry tests[] = {
   {"memcpy", testMemcpy},
   {"PixelTransformer", testPixelTransformer},
+  {"bufferFromBuffer", testBuffer},
   {"rgbFromBuffer", testToRGB},
   {"bufferFromRGB", testFromRGB},
 };

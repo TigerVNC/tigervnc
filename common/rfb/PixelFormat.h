@@ -75,6 +75,14 @@ namespace rfb {
     void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
                        int w, int stride, int h) const;
 
+    Pixel pixelFromPixel(const PixelFormat &srcPF, Pixel src) const;
+
+    void bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                          const rdr::U8* src, int pixels) const;
+    void bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                          const rdr::U8* src, int w, int h,
+                          int dstStride, int srcStride) const;
+
     void print(char* str, int len) const;
     bool parse(const char* str);
 
