@@ -93,11 +93,11 @@ namespace rfb {
     SStaticDesktop(const Point& size) : server(0), buffer(0) {
       PixelFormat pf;
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
-      if (buffer) memset(buffer->data, 0, (pf.bpp/8) * (size.x*size.y));
+      if (buffer) buffer->fillRect(buffer->getRect(), 0);
     }
     SStaticDesktop(const Point& size, const PixelFormat& pf) : buffer(0) {
       buffer = new ManagedPixelBuffer(pf, size.x, size.y);
-      if (buffer) memset(buffer->data, 0, (pf.bpp/8) * (size.x*size.y));
+      if (buffer) buffer->fillRect(buffer->getRect(), 0);
     }
     virtual ~SStaticDesktop() {
       if (buffer) delete buffer;

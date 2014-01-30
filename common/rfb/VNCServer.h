@@ -73,7 +73,7 @@ namespace rfb {
     // in left-to-right order.  The server takes its own copy of the data in
     // cursorData and mask.
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           void* cursorData, void* mask) = 0;
+                           const void* cursorData, const void* mask) = 0;
 
     // setCursorPos() tells the server the current position of the cursor.
     virtual void setCursorPos(const Point& p) = 0;

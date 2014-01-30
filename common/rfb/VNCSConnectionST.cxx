@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -737,13 +737,19 @@ void VNCSConnectionST::writeSetCursorCallback()
   }
 
   // Use RichCursor
-  rdr::U8* transData = writer()->getImageBuf(server->cursor.area());
-  image_getter.translatePixels(server->cursor.data, transData,
-			       server->cursor.area());
+  rdr::U8* transBuffer;
+  int stride;
+  const rdr::U8* buffer;
+
+  transBuffer = writer()->getImageBuf(server->cursor.area());
+
+  buffer = server->cursor.getBuffer(server->cursor.getRect(), &stride);
+  image_getter.translatePixels(buffer, transBuffer, server->cursor.area());
+
   writer()->writeSetCursor(server->cursor.width(),
                            server->cursor.height(),
                            server->cursor.hotspot,
-                           transData, server->cursor.mask.buf);
+                           transBuffer, server->cursor.mask.buf);
 }
 
 

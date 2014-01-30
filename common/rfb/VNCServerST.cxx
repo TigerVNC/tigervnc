@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -408,11 +409,11 @@ void VNCServerST::add_copied(const Region& dest, const Point& delta)
 }
 
 void VNCServerST::setCursor(int width, int height, const Point& newHotspot,
-                            void* data, void* mask)
+                            const void* data, const void* mask)
 {
   cursor.hotspot = newHotspot;
   cursor.setSize(width, height);
-  memcpy(cursor.data, data, cursor.dataLen());
+  cursor.imageRect(cursor.getRect(), data);
   memcpy(cursor.mask.buf, mask, cursor.maskLen());
 
   cursor.crop();
@@ -621,11 +622,17 @@ bool VNCServerST::checkUpdate()
     comparer->getUpdateInfo(&ui, pb->getRect());
 
   if (renderCursor) {
-    pb->getImage(renderedCursor.data,
-                 renderedCursor.getRect(renderedCursorTL));
+    const rdr::U8* buffer;
+    int stride;
+
+    buffer = pb->getBuffer(renderedCursor.getRect(renderedCursorTL), &stride);
+    renderedCursor.imageRect(renderedCursor.getRect(), buffer, stride);
+
+    buffer = cursor.getBuffer(cursor.getRect(), &stride);
     renderedCursor.maskRect(cursor.getRect(cursorTL()
                                            .subtract(renderedCursorTL)),
-                            cursor.data, cursor.mask.buf);
+                            buffer, cursor.mask.buf);
+
     renderedCursorInvalid = false;
   }
 

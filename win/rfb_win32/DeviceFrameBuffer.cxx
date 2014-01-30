@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -141,6 +142,10 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
   try {
 
+    const rdr::U8* buffer;
+    rdr::U8* rwbuffer;
+    int stride;
+
     // - Get the size and other details about the cursor.
 
     IconInfo iconInfo((HICON)hCursor);
@@ -192,6 +197,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     bool doOutline = false;
     if (!iconInfo.hbmColor) {
+      rwbuffer = cursorBm.getBufferRW(cursorBm.getRect(), &stride);
       Pixel xorColour = format.pixelFromRGB((rdr::U16)0, (rdr::U16)0, (rdr::U16)0);
       for (int y = 0; y < cursor.height(); y++) {
         for (int x = 0; x < cursor.width(); x++) {
@@ -203,11 +209,11 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
             switch (format.bpp) {
             case 8:
-              ((rdr::U8*)cursorBm.data)[y * cursor.width() + x] = xorColour;  break;
+              rwbuffer[y * cursor.width() + x] = xorColour;  break;
             case 16:
-              ((rdr::U16*)cursorBm.data)[y * cursor.width() + x] = xorColour; break;
+              rwbuffer[y * cursor.width() + x] = xorColour; break;
             case 32:
-              ((rdr::U32*)cursorBm.data)[y * cursor.width() + x] = xorColour; break;
+              rwbuffer[y * cursor.width() + x] = xorColour; break;
             }
 
             doOutline = true;
@@ -229,13 +235,20 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     if (doOutline) {
       vlog.debug("drawing cursor outline!");
-      memcpy(cursor.data, cursorBm.data, cursor.dataLen());
+
+      buffer = cursorBm.getBuffer(cursorBm.getRect(), &stride);
+      cursor.imageRect(cursorBm.getRect(), buffer, stride);
+
       cursor.drawOutline(format.pixelFromRGB((rdr::U16)0xffff, (rdr::U16)0xffff, (rdr::U16)0xffff));
-      memcpy(cursorBm.data, cursor.data, cursor.dataLen());
+
+      buffer = cursor.getBuffer(cursor.getRect(), &stride);
+      cursorBm.imageRect(cursor.getRect(), buffer, stride);
     }
 
+    buffer = cursorBm.getBuffer(cursorBm.getRect(), &stride);
     server->setCursor(cursor.width(), cursor.height(), cursor.hotspot,
-                      cursorBm.data, cursor.mask.buf);
+                      buffer, cursor.mask.buf);
+
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
   }

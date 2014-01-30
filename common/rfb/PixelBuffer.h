@@ -130,11 +130,10 @@ namespace rfb {
     //   pixel is the Pixel value to be used where mask_ is set
     void maskRect(const Rect& r, Pixel pixel, const void* mask_);
 
-    // *** Should this be visible?
-    rdr::U8* data;
-
   protected:
     FullFramePixelBuffer();
+
+    rdr::U8* data;
   };
 
   // -=- Managed pixel buffer class

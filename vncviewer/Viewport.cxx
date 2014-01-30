@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -223,10 +223,12 @@ void Viewport::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
 
 void Viewport::imageRect(const rfb::Rect& r, void* pixels) {
   if (pixelTrans) {
+    rdr::U8* buffer;
+    int stride;
+    buffer = frameBuffer->getBufferRW(r, &stride);
     pixelTrans->translateRect(pixels, r.width(),
                               rfb::Rect(0, 0, r.width(), r.height()),
-                              frameBuffer->data, frameBuffer->getStride(),
-                              r.tl);
+                              buffer, stride, rfb::Point(0, 0));
   } else {
     frameBuffer->imageRect(r, pixels);
   }
@@ -348,6 +350,9 @@ void Viewport::resize(int x, int y, int w, int h)
   PlatformPixelBuffer* newBuffer;
   rfb::Rect rect;
 
+  const rdr::U8* data;
+  int stride;
+
   // FIXME: Resize should probably be a feature of the pixel buffer itself
 
   if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
@@ -362,7 +367,8 @@ void Viewport::resize(int x, int y, int w, int h)
   rect.setXYWH(0, 0,
                __rfbmin(newBuffer->width(), frameBuffer->width()),
                __rfbmin(newBuffer->height(), frameBuffer->height()));
-  newBuffer->imageRect(rect, frameBuffer->data, frameBuffer->getStride());
+  data = frameBuffer->getBuffer(frameBuffer->getRect(), &stride);
+  newBuffer->imageRect(rect, data, stride);
 
   // Black out any new areas
 
