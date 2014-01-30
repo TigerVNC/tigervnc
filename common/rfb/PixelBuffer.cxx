@@ -60,91 +60,15 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
 }
 
 
-static void fillRect8(U8 *buf, int stride, const Rect& r, Pixel pix)
-{
-  U8* ptr = buf;
-  int w = r.width(), h = r.height();
-
-  while (h > 0) {
-    memset(ptr, pix, w);
-    ptr += stride;
-    h--;
-  }
-}
-
-static void fillRect16(U8 *buf, int stride, const Rect& r, Pixel pix)
-{
-  U16* ptr = (U16 *)buf;
-  int w = r.width(), h = r.height(), wBytes = w * 2;
-
-  while (w > 0) {
-    *ptr++ = pix;  w--;
-  }
-  h--;
-
-  ptr = (U16 *)buf;
-
-  while (h > 0) {
-    U16 *oldptr = ptr;
-    memcpy(ptr += stride, oldptr, wBytes);
-    h--;
-  }
-}
-
-static void fillRect32(U8 *buf, int stride, const Rect& r, Pixel pix)
-{
-  U32* ptr = (U32 *)buf;
-  int w = r.width(), h = r.height(), wBytes = w * 4;
-
-  while (w > 0) {
-    *ptr++ = pix;  w--;
-  }
-  h--;
-
-  ptr = (U32 *)buf;
-
-  while (h > 0) {
-    U32 *oldptr = ptr;
-    memcpy(ptr += stride, oldptr, wBytes);
-    h--;
-  }
-}
-
-
 FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
                                            rdr::U8* data_)
   : PixelBuffer(pf, w, h), data(data_)
 {
-  // Called again to configure the fill function
-  setPF(pf);
 }
 
 FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
 
 FullFramePixelBuffer::~FullFramePixelBuffer() {}
-
-
-void FullFramePixelBuffer::setPF(const PixelFormat &pf) {
-  // We have this as a separate method for ManagedPixelBuffer's
-  // sake. Direct users of FullFramePixelBuffer aren't allowed
-  // to call it.
-
-  PixelBuffer::setPF(pf);
-
-  switch(pf.bpp) {
-  case 8:
-    fillRectFn = fillRect8;
-    break;
-  case 16:
-    fillRectFn = fillRect16;
-    break;
-  case 32:
-    fillRectFn = fillRect32;
-    break;
-  default:
-    throw Exception("rfb::FullFramePixelBuffer - Unsupported pixel format");
-  }
-}
 
 
 int FullFramePixelBuffer::getStride() const { return width(); }
@@ -158,8 +82,24 @@ rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride)
 
 void FullFramePixelBuffer::fillRect(const Rect& r, Pixel pix) {
   int stride;
-  U8 *buf = getBufferRW(r, &stride);
-  fillRectFn(buf, stride, r, pix);
+  U8 *buf, pixbuf[4];
+  int w, h, b;
+
+  buf = getBufferRW(r, &stride);
+  w = r.width();
+  h = r.height();
+  b = format.bpp/8;
+
+  format.bufferFromPixel(pixbuf, pix);
+
+  while (h--) {
+    int w_ = w;
+    while (w_--) {
+      memcpy(buf, pixbuf, b);
+      buf += b;
+    }
+    buf += (stride - w) * b;
+  }
 }
 
 void FullFramePixelBuffer::imageRect(const Rect& r, const void* pixels, int srcStride) {
@@ -327,7 +267,7 @@ ManagedPixelBuffer::~ManagedPixelBuffer() {
 
 void
 ManagedPixelBuffer::setPF(const PixelFormat &pf) {
-  FullFramePixelBuffer::setPF(pf); checkDataSize();
+  format = pf; checkDataSize();
 };
 void
 ManagedPixelBuffer::setSize(int w, int h) {

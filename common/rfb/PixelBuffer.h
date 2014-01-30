@@ -83,8 +83,6 @@ namespace rfb {
     virtual void grabRegion(const Region& region) {}
 
   protected:
-    // Only for subclasses that support changing parameters
-    void setPF(const PixelFormat &pf) { format = pf; }
     PixelBuffer();
     PixelFormat format;
     int width_, height_;
@@ -136,9 +134,7 @@ namespace rfb {
     rdr::U8* data;
 
   protected:
-    void setPF(const PixelFormat &pf);
     FullFramePixelBuffer();
-    void (*fillRectFn)(rdr::U8 *, int, const Rect&, Pixel);
   };
 
   // -=- Managed pixel buffer class
