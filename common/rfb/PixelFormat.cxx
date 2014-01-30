@@ -19,6 +19,7 @@
  */
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
@@ -357,6 +358,8 @@ void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
   bufferFromBuffer(dst, srcPF, src, pixels, 1, pixels, pixels);
 }
 
+#define IS_ALIGNED(v, a) (((intptr_t)v & (a-1)) == 0)
+
 void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
                                    const rdr::U8* src, int w, int h,
                                    int dstStride, int srcStride) const
@@ -367,6 +370,77 @@ void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
       memcpy(dst, src, w * bpp/8);
       dst += dstStride * bpp/8;
       src += srcStride * srcPF.bpp/8;
+    }
+  } else if (is888() && srcPF.is888()) {
+    // Optimised common case A: byte shuffling (e.g. endian conversion)
+    rdr::U8 *d[4];
+    int dstPad, srcPad;
+
+    if (bigEndian != srcPF.bigEndian) {
+      d[(24 - srcPF.redShift)/8] = dst + (24 - redShift)/8;
+      d[(24 - srcPF.greenShift)/8] = dst + (24 - greenShift)/8;
+      d[(24 - srcPF.blueShift)/8] = dst + (24 - blueShift)/8;
+      d[(24 - (48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift))/8] =
+        dst + (24 - (48 - redShift - greenShift - blueShift))/8;
+    } else {
+      d[srcPF.redShift/8] = dst + redShift/8;
+      d[srcPF.greenShift/8] = dst + greenShift/8;
+      d[srcPF.blueShift/8] = dst + blueShift/8;
+      d[(48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift)/8] =
+        dst + (48 - redShift - greenShift - blueShift)/8;
+    }
+
+    dstPad = (dstStride - w) * 4;
+    srcPad = (srcStride - w) * 4;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        *d[0] = *(src++);
+        *d[1] = *(src++);
+        *d[2] = *(src++);
+        *d[3] = *(src++);
+        d[0] += 4;
+        d[1] += 4;
+        d[2] += 4;
+        d[3] += 4;
+      }
+      d[0] += dstPad;
+      d[1] += dstPad;
+      d[2] += dstPad;
+      d[3] += dstPad;
+      src += srcPad;
+    }
+  } else if (IS_ALIGNED(dst, bpp/8) && srcPF.is888()) {
+    // Optimised common case B: 888 source
+    switch (bpp) {
+    case 8:
+      directBufferFromBufferFrom888((rdr::U8*)dst, srcPF, src,
+                                    w, h, dstStride, srcStride);
+      break;
+    case 16:
+      directBufferFromBufferFrom888((rdr::U16*)dst, srcPF, src,
+                                    w, h, dstStride, srcStride);
+      break;
+    case 32:
+      directBufferFromBufferFrom888((rdr::U32*)dst, srcPF, src,
+                                    w, h, dstStride, srcStride);
+      break;
+    }
+  } else if (IS_ALIGNED(src, srcPF.bpp/8) && is888()) {
+    // Optimised common case C: 888 destination
+    switch (srcPF.bpp) {
+    case 8:
+      directBufferFromBufferTo888(dst, srcPF, (rdr::U8*)src,
+                                  w, h, dstStride, srcStride);
+      break;
+    case 16:
+      directBufferFromBufferTo888(dst, srcPF, (rdr::U16*)src,
+                                  w, h, dstStride, srcStride);
+      break;
+    case 32:
+      directBufferFromBufferTo888(dst, srcPF, (rdr::U32*)src,
+                                  w, h, dstStride, srcStride);
+      break;
     }
   } else {
     // Generic code
@@ -600,3 +674,42 @@ bool PixelFormat::isSane(void)
 
   return true;
 }
+
+// Preprocessor generated, optimised methods
+
+#define INBPP 8
+#define OUTBPP 8
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 16
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 32
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#undef INBPP
+
+#define INBPP 16
+#define OUTBPP 8
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 16
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 32
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#undef INBPP
+
+#define INBPP 32
+#define OUTBPP 8
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 16
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 32
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#undef INBPP
+
