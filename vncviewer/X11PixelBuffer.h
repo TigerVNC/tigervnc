@@ -33,8 +33,6 @@ public:
 
   virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
 
-  int getStride() const;
-
 protected:
   int setupShm();
 

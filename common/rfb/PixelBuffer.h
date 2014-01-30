@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,14 +94,10 @@ namespace rfb {
   class FullFramePixelBuffer : public PixelBuffer {
   public:
     FullFramePixelBuffer(const PixelFormat& pf, int width, int height,
-                         rdr::U8* data_);
+                         rdr::U8* data, int stride);
     virtual ~FullFramePixelBuffer();
 
   public:
-    // - Get the number of pixels per row in the actual pixel buffer data area
-    //   This may in some cases NOT be the same as width().
-    virtual int getStride() const;
-
     // Get a pointer to specified pixel data
     virtual const rdr::U8* getBuffer(const Rect& r, int* stride) {
       return getBufferRW(r, stride);
@@ -134,6 +131,7 @@ namespace rfb {
     FullFramePixelBuffer();
 
     rdr::U8* data;
+    int stride;
   };
 
   // -=- Managed pixel buffer class

@@ -47,14 +47,11 @@ namespace rfb {
       virtual void setPF(const PixelFormat &pf);
       virtual void setSize(int w, int h);
 
-      virtual int getStride() const {return stride;}
-
       // *** virtual void copyRect(const Rect &dest, const Point &move_by_delta);
     public:
       HBITMAP bitmap;
     protected:
       void recreateBuffer();
-      int stride;
       HWND window;
       HDC device;
     };

@@ -94,7 +94,7 @@ static PixelFormat display_pf()
 }
 
 X11PixelBuffer::X11PixelBuffer(int width, int height) :
-  PlatformPixelBuffer(display_pf(), width, height, NULL),
+  PlatformPixelBuffer(display_pf(), width, height, NULL, 0),
   shminfo(NULL), xim(NULL)
 {
   // Might not be open at this point
@@ -110,6 +110,7 @@ X11PixelBuffer::X11PixelBuffer(int width, int height) :
   }
 
   data = (rdr::U8*)xim->data;
+  stride = xim->bytes_per_line / (getPF().bpp/8);
 }
 
 
@@ -138,11 +139,6 @@ void X11PixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
     XPutImage(fl_display, fl_window, fl_gc, xim, src_x, src_y, x, y, w, h);
 }
 
-
-int X11PixelBuffer::getStride() const
-{
-  return xim->bytes_per_line / (getPF().bpp/8);
-}
 
 static bool caughtError;
 

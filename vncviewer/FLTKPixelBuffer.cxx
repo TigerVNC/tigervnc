@@ -25,7 +25,7 @@
 FLTKPixelBuffer::FLTKPixelBuffer(int width, int height) :
   PlatformPixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                        255, 255, 255, 0, 8, 16),
-                      width, height, NULL)
+                      width, height, NULL, width)
 {
   data = new rdr::U8[width * height * format.bpp/8];
   if (data == NULL)
@@ -43,7 +43,7 @@ void FLTKPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
   const uchar *buf_start;
 
   pixel_bytes = format.bpp/8;
-  stride_bytes = pixel_bytes * getStride();
+  stride_bytes = pixel_bytes * stride;
   buf_start = data +
               pixel_bytes * src_x +
               stride_bytes * src_y;

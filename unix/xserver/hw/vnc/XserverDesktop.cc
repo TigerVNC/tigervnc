@@ -177,7 +177,7 @@ void XserverDesktop::unblockUpdates()
   server->unblockUpdates();
 }
 
-void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride)
+void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride_)
 {
   ScreenSet layout;
 
@@ -191,12 +191,12 @@ void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride)
 
   if (!fbptr) {
     fbptr = new rdr::U8[w * h * (format.bpp/8)];
-    stride = w;
+    stride_ = w;
     directFbptr = false;
   }
 
   data = (rdr::U8*)fbptr;
-  stride_ = stride;
+  stride = stride_;
 
   layout = computeScreenLayout();
 
@@ -1042,11 +1042,6 @@ void XserverDesktop::grabRegion(const rfb::Region& region)
     }
   }
   grabbing = false;
-}
-
-int XserverDesktop::getStride() const
-{
-  return stride_;
 }
 
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)

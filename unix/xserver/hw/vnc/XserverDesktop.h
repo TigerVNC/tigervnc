@@ -109,7 +109,6 @@ public:
 
   // rfb::PixelBuffer callbacks
   virtual void grabRegion(const rfb::Region& r);
-  virtual int getStride() const;
 
   // rdr::Substitutor callback
   virtual char* substitute(const char* varName);
@@ -131,7 +130,6 @@ private:
   rfb::HTTPServer* httpServer;
   network::TcpListener* listener;
   network::TcpListener* httpListener;
-  int stride_;
   bool deferredUpdateTimerSet;
   bool grabbing;
   bool ignoreHooks_;

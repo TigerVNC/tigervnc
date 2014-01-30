@@ -24,12 +24,10 @@
 class PlatformPixelBuffer: public rfb::FullFramePixelBuffer {
 public:
   PlatformPixelBuffer(const rfb::PixelFormat& pf, int width, int height,
-                      rdr::U8* data);
+                      rdr::U8* data, int stride);
 
   virtual void draw(int src_x, int src_y, int x, int y, int w, int h) = 0;
 
-protected:
-  int stride;
 };
 
 #endif

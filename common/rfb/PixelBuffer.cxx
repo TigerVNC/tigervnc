@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,8 +62,8 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
 
 
 FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
-                                           rdr::U8* data_)
-  : PixelBuffer(pf, w, h), data(data_)
+                                           rdr::U8* data_, int stride_)
+  : PixelBuffer(pf, w, h), data(data_), stride(stride_)
 {
 }
 
@@ -71,12 +72,10 @@ FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
 FullFramePixelBuffer::~FullFramePixelBuffer() {}
 
 
-int FullFramePixelBuffer::getStride() const { return width(); }
-
-rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride)
+rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
 {
-  *stride = getStride();
-  return &data[(r.tl.x + (r.tl.y * *stride)) * format.bpp/8];
+  *stride_ = stride;
+  return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
 }
 
 
@@ -255,7 +254,7 @@ ManagedPixelBuffer::ManagedPixelBuffer()
 };
 
 ManagedPixelBuffer::ManagedPixelBuffer(const PixelFormat& pf, int w, int h)
-  : FullFramePixelBuffer(pf, w, h, 0), datasize(0)
+  : FullFramePixelBuffer(pf, w, h, NULL, w), datasize(0)
 {
   checkDataSize();
 };
@@ -271,7 +270,7 @@ ManagedPixelBuffer::setPF(const PixelFormat &pf) {
 };
 void
 ManagedPixelBuffer::setSize(int w, int h) {
-  width_ = w; height_ = h; checkDataSize();
+  width_ = w; height_ = h; stride = w; checkDataSize();
 };
 
 

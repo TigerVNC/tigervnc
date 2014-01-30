@@ -20,7 +20,7 @@
 
 PlatformPixelBuffer::PlatformPixelBuffer(const rfb::PixelFormat& pf,
                                          int width, int height,
-                                         rdr::U8* data) :
-  FullFramePixelBuffer(pf, width, height, data)
+                                         rdr::U8* data, int stride) :
+  FullFramePixelBuffer(pf, width, height, data, stride)
 {
 }

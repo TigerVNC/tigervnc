@@ -39,7 +39,7 @@ static rfb::LogWriter vlog("OSXPixelBuffer");
 OSXPixelBuffer::OSXPixelBuffer(int width, int height) :
   PlatformPixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                        255, 255, 255, 16, 8, 0),
-                      width, height, NULL),
+                      width, height, NULL, width),
   bitmap(NULL)
 {
   CGColorSpaceRef lut;
