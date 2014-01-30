@@ -135,48 +135,7 @@ bool PixelFormat::isLittleEndian(void) const
 void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
                                 int pixels, ColourMap* cm) const
 {
-  if (is888()) {
-    // Optimised common case
-    rdr::U8 *r, *g, *b, *x;
-
-    if (bigEndian) {
-      r = dst + (24 - redShift)/8;
-      g = dst + (24 - greenShift)/8;
-      b = dst + (24 - blueShift)/8;
-      x = dst + (24 - (48 - redShift - greenShift - blueShift))/8;
-    } else {
-      r = dst + redShift/8;
-      g = dst + greenShift/8;
-      b = dst + blueShift/8;
-      x = dst + (48 - redShift - greenShift - blueShift)/8;
-    }
-
-    while (pixels--) {
-      *r = *(src++);
-      *g = *(src++);
-      *b = *(src++);
-      *x = 0;
-      r += 4;
-      g += 4;
-      b += 4;
-      x += 4;
-    }
-  } else {
-    // Generic code
-    Pixel p;
-    rdr::U8 r, g, b;
-
-    while (pixels--) {
-      r = *(src++);
-      g = *(src++);
-      b = *(src++);
-
-      p = pixelFromRGB(r, g, b, cm);
-
-      bufferFromPixel(dst, p);
-      dst += bpp/8;
-    }
-  }
+  bufferFromRGB(dst, src, pixels, pixels, 1, cm);
 }
 
 void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
@@ -254,43 +213,7 @@ void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
 
 void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
 {
-  if (is888()) {
-    // Optimised common case
-    const rdr::U8 *r, *g, *b;
-
-    if (bigEndian) {
-      r = src + (24 - redShift)/8;
-      g = src + (24 - greenShift)/8;
-      b = src + (24 - blueShift)/8;
-    } else {
-      r = src + redShift/8;
-      g = src + greenShift/8;
-      b = src + blueShift/8;
-    }
-
-    while (pixels--) {
-      *(dst++) = *r;
-      *(dst++) = *g;
-      *(dst++) = *b;
-      r += 4;
-      g += 4;
-      b += 4;
-    }
-  } else {
-    // Generic code
-    Pixel p;
-    rdr::U8 r, g, b;
-
-    while (pixels--) {
-      p = pixelFromBuffer(src);
-      src += bpp/8;
-
-      rgbFromPixel(p, cm, &r, &g, &b);
-      *(dst++) = r;
-      *(dst++) = g;
-      *(dst++) = b;
-    }
-  }
+  rgbFromBuffer(dst, src, pixels, pixels, 1, cm);
 }
 
 
