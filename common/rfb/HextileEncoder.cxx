@@ -19,6 +19,7 @@
 #include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 #include <rfb/HextileEncoder.h>
 #include <rfb/Configuration.h>
 
@@ -43,7 +44,7 @@ BoolParameter improvedHextile("ImprovedHextile",
 #include <rfb/hextileEncodeBetter.h>
 #undef BPP
 
-HextileEncoder::HextileEncoder(SMsgWriter* writer_) : Encoder(writer_)
+HextileEncoder::HextileEncoder(SConnection* conn) : Encoder(conn)
 {
 }
 
@@ -53,9 +54,9 @@ HextileEncoder::~HextileEncoder()
 
 void HextileEncoder::writeRect(const Rect& r, TransImageGetter* ig)
 {
-  writer->startRect(r, encodingHextile);
-  rdr::OutStream* os = writer->getOutStream();
-  switch (writer->bpp()) {
+  conn->writer()->startRect(r, encodingHextile);
+  rdr::OutStream* os = conn->getOutStream();
+  switch (conn->cp.pf().bpp) {
   case 8:
     if (improvedHextile) {
       hextileEncodeBetter8(r, os, ig);
@@ -78,5 +79,5 @@ void HextileEncoder::writeRect(const Rect& r, TransImageGetter* ig)
     }
     break;
   }
-  writer->endRect();
+  conn->writer()->endRect();
 }

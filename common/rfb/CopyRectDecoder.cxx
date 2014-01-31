@@ -16,14 +16,14 @@
  * USA.
  */
 #include <rdr/InStream.h>
-#include <rfb/CMsgReader.h>
+#include <rfb/CConnection.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/CopyRectDecoder.h>
 
 using namespace rfb;
 
-CopyRectDecoder::CopyRectDecoder(CMsgReader* reader) : Decoder(reader)
+CopyRectDecoder::CopyRectDecoder(CConnection* conn) : Decoder(conn)
 {
 }
 
@@ -33,7 +33,7 @@ CopyRectDecoder::~CopyRectDecoder()
 
 void CopyRectDecoder::readRect(const Rect& r, CMsgHandler* handler)
 {
-  int srcX = reader->getInStream()->readU16();
-  int srcY = reader->getInStream()->readU16();
+  int srcX = conn->getInStream()->readU16();
+  int srcY = conn->getInStream()->readU16();
   handler->copyRect(r, srcX, srcY);
 }

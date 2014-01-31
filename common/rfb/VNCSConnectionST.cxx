@@ -1074,7 +1074,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
     encoding = cp.currentEncoding();
 
     if (!encoders[encoding])
-      encoders[encoding] = Encoder::createEncoder(encoding, writer());
+      encoders[encoding] = Encoder::createEncoder(encoding, this);
 
     encoders[encoding]->setCompressLevel(cp.compressLevel);
     encoders[encoding]->setQualityLevel(cp.qualityLevel);

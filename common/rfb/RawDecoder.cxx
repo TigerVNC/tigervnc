@@ -17,12 +17,13 @@
  */
 #include <rdr/InStream.h>
 #include <rfb/CMsgReader.h>
+#include <rfb/CConnection.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/RawDecoder.h>
 
 using namespace rfb;
 
-RawDecoder::RawDecoder(CMsgReader* reader) : Decoder(reader)
+RawDecoder::RawDecoder(CConnection* conn) : Decoder(conn)
 {
 }
 
@@ -37,12 +38,12 @@ void RawDecoder::readRect(const Rect& r, CMsgHandler* handler)
   int w = r.width();
   int h = r.height();
   int nPixels;
-  rdr::U8* imageBuf = reader->getImageBuf(w, w*h, &nPixels);
-  int bytesPerRow = w * (reader->bpp() / 8);
+  rdr::U8* imageBuf = conn->reader()->getImageBuf(w, w*h, &nPixels);
+  int bytesPerRow = w * (conn->cp.pf().bpp / 8);
   while (h > 0) {
     int nRows = nPixels / w;
     if (nRows > h) nRows = h;
-    reader->getInStream()->readBytes(imageBuf, nRows * bytesPerRow);
+    conn->getInStream()->readBytes(imageBuf, nRows * bytesPerRow);
     handler->imageRect(Rect(x, y, x+w, y+nRows), imageBuf);
     h -= nRows;
     y += nRows;

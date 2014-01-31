@@ -53,9 +53,6 @@ namespace rfb {
 
     void writeFence(rdr::U32 flags, unsigned len, const char data[]);
 
-    ConnParams* getConnParams() { return cp; }
-    rdr::OutStream* getOutStream() { return os; }
-
     // InputHandler implementation
 
     virtual void keyEvent(rdr::U32 key, bool down);

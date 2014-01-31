@@ -262,8 +262,3 @@ rdr::U8* CMsgReader::getImageBuf(int required, int requested, int* nPixels)
     *nPixels = imageBufSize / (handler->cp.pf().bpp / 8);
   return imageBuf;
 }
-
-int CMsgReader::bpp()
-{
-  return handler->cp.pf().bpp;
-}

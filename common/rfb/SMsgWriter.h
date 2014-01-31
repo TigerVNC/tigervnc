@@ -120,10 +120,7 @@ namespace rfb {
     void startRect(const Rect& r, int enc);
     void endRect();
 
-    ConnParams* getConnParams() { return cp; }
-    rdr::OutStream* getOutStream() { return os; }
     rdr::U8* getImageBuf(int required, int requested=0, int* nPixels=0);
-    int bpp();
 
     int getUpdatesSent()           { return updatesSent; }
     int getRectsSent(int encoding) { return rectsSent[encoding]; }

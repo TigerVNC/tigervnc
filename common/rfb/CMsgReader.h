@@ -47,7 +47,6 @@ namespace rfb {
 
     rdr::InStream* getInStream() { return is; }
     rdr::U8* getImageBuf(int required, int requested=0, int* nPixels=0);
-    int bpp();
 
     int imageBufIdealSize;
 

@@ -320,7 +320,7 @@ void SMsgWriter::startRect(const Rect& r, int encoding)
   currentEncoding = encoding;
   lenBeforeRect = os->length();
   if (encoding != encodingCopyRect)
-    rawBytesEquivalent += 12 + r.width() * r.height() * (bpp()/8);
+    rawBytesEquivalent += 12 + r.width() * r.height() * (cp->pf().bpp/8);
 
   os->writeS16(r.tl.x);
   os->writeS16(r.tl.y);
@@ -355,11 +355,6 @@ rdr::U8* SMsgWriter::getImageBuf(int required, int requested, int* nPixels)
   if (nPixels)
     *nPixels = imageBufSize / (cp->pf().bpp / 8);
   return imageBuf;
-}
-
-int SMsgWriter::bpp()
-{
-  return cp->pf().bpp;
 }
 
 void SMsgWriter::startMsg(int type)

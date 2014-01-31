@@ -22,6 +22,7 @@
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 #include <rfb/TightEncoder.h>
 
 using namespace rfb;
@@ -93,7 +94,7 @@ const int TightEncoder::defaultCompressLevel = 2;
 #include <rfb/tightEncode.h>
 #undef BPP
 
-TightEncoder::TightEncoder(SMsgWriter* writer) : Encoder(writer)
+TightEncoder::TightEncoder(SConnection* conn) : Encoder(conn)
 {
   setCompressLevel(defaultCompressLevel);
   setQualityLevel(-1);
@@ -226,7 +227,7 @@ void TightEncoder::extendSolidArea(const Rect& r, rdr::U32 colorValue,
 
 int TightEncoder::getNumRects(const Rect &r)
 {
-  ConnParams* cp = writer->getConnParams();
+  ConnParams* cp = &conn->cp;
   const unsigned int w = r.width();
   const unsigned int h = r.height();
 
@@ -290,7 +291,7 @@ void TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig)
 {
   ig = _ig;
   serverpf = ig->getPixelBuffer()->getPF();
-  ConnParams* cp = writer->getConnParams();
+  ConnParams* cp = &conn->cp;
   clientpf = cp->pf();
 
   // Shortcuts to rectangle coordinates and dimensions.
@@ -405,10 +406,10 @@ void TightEncoder::writeSubrect(const Rect& r, bool forceSolid)
     tightEncode32(r, &mos, forceSolid); break;
   }
 
-  writer->startRect(r, encodingTight);
-  rdr::OutStream* os = writer->getOutStream();
+  conn->writer()->startRect(r, encodingTight);
+  rdr::OutStream* os = conn->getOutStream();
   os->writeBytes(mos.data(), mos.length());
-  writer->endRect();
+  conn->writer()->endRect();
 }
 
 void TightEncoder::writeCompact(rdr::OutStream* os, rdr::U32 value)

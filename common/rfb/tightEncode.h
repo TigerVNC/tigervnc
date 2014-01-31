@@ -147,14 +147,14 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
       // JPEG can read from the raw buffer, but for the other methods, we need
       // to translate the raw pixels into an intermediate buffer.
       if(palette.size() != 0 || jpegQuality == -1) {
-        pixels = (PIXEL_T *)writer->getImageBuf(r.area());
+        pixels = (PIXEL_T *)conn->writer()->getImageBuf(r.area());
         stride = r.width();
         ig->getImage(pixels, r);
       }
     } else {
       // Pixel translation will be required, so create an intermediate buffer,
       // translate the raw pixels into it, and count its colors.
-      pixels = (PIXEL_T *)writer->getImageBuf(r.area());
+      pixels = (PIXEL_T *)conn->writer()->getImageBuf(r.area());
       stride = r.width();
       ig->getImage(pixels, r);
 

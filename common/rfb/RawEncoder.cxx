@@ -19,11 +19,12 @@
 #include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 #include <rfb/RawEncoder.h>
 
 using namespace rfb;
 
-RawEncoder::RawEncoder(SMsgWriter* writer) : Encoder(writer)
+RawEncoder::RawEncoder(SConnection* conn) : Encoder(conn)
 {
 }
 
@@ -38,16 +39,16 @@ void RawEncoder::writeRect(const Rect& r, TransImageGetter* ig)
   int w = r.width();
   int h = r.height();
   int nPixels;
-  rdr::U8* imageBuf = writer->getImageBuf(w, w*h, &nPixels);
-  int bytesPerRow = w * (writer->bpp() / 8);
-  writer->startRect(r, encodingRaw);
+  rdr::U8* imageBuf = conn->writer()->getImageBuf(w, w*h, &nPixels);
+  int bytesPerRow = w * (conn->cp.pf().bpp / 8);
+  conn->writer()->startRect(r, encodingRaw);
   while (h > 0) {
     int nRows = nPixels / w;
     if (nRows > h) nRows = h;
     ig->getImage(imageBuf, Rect(x, y, x+w, y+nRows));
-    writer->getOutStream()->writeBytes(imageBuf, nRows * bytesPerRow);
+    conn->getOutStream()->writeBytes(imageBuf, nRows * bytesPerRow);
     h -= nRows;
     y += nRows;
   }
-  writer->endRect();
+  conn->writer()->endRect();
 }

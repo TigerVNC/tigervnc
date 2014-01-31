@@ -24,12 +24,12 @@
 #include <rfb/TransImageGetter.h>
 
 namespace rfb {
-  class SMsgWriter;
+  class SConnection;
   class TransImageGetter;
 
   class Encoder {
   public:
-    Encoder(SMsgWriter* writer);
+    Encoder(SConnection* conn);
     virtual ~Encoder();
 
     virtual void setCompressLevel(int level) {};
@@ -43,10 +43,10 @@ namespace rfb {
     virtual void writeRect(const Rect& r, TransImageGetter* ig)=0;
 
     static bool supported(int encoding);
-    static Encoder* createEncoder(int encoding, SMsgWriter* writer);
+    static Encoder* createEncoder(int encoding, SConnection* conn);
 
   protected:
-    SMsgWriter* writer;
+    SConnection* conn;
   };
 }
 

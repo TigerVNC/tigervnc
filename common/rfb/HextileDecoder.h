@@ -24,7 +24,7 @@ namespace rfb {
 
   class HextileDecoder : public Decoder {
   public:
-    HextileDecoder(CMsgReader* reader);
+    HextileDecoder(CConnection* conn);
     virtual ~HextileDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
   };

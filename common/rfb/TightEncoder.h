@@ -58,7 +58,7 @@ namespace rfb {
   
   class TightEncoder : public Encoder {
   public:
-    TightEncoder(SMsgWriter* writer);
+    TightEncoder(SConnection* conn);
     virtual ~TightEncoder();
 
     virtual void setCompressLevel(int level);

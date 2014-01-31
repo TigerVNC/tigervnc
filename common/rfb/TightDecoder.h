@@ -28,7 +28,7 @@ namespace rfb {
   class TightDecoder : public Decoder {
 
   public:
-    TightDecoder(CMsgReader* reader);
+    TightDecoder(CConnection* conn);
     virtual ~TightDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
 

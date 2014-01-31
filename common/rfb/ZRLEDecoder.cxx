@@ -16,6 +16,7 @@
  * USA.
  */
 #include <rfb/CMsgReader.h>
+#include <rfb/CConnection.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/ZRLEDecoder.h>
 
@@ -57,7 +58,7 @@ static inline rdr::U32 readOpaque24B(rdr::InStream* is)
 #undef CPIXEL
 #undef BPP
 
-ZRLEDecoder::ZRLEDecoder(CMsgReader* reader) : Decoder(reader)
+ZRLEDecoder::ZRLEDecoder(CConnection* conn) : Decoder(conn)
 {
 }
 
@@ -67,9 +68,9 @@ ZRLEDecoder::~ZRLEDecoder()
 
 void ZRLEDecoder::readRect(const Rect& r, CMsgHandler* handler)
 {
-  rdr::InStream* is = reader->getInStream();
-  rdr::U8* buf = reader->getImageBuf(64 * 64 * 4);
-  switch (reader->bpp()) {
+  rdr::InStream* is = conn->getInStream();
+  rdr::U8* buf = conn->reader()->getImageBuf(64 * 64 * 4);
+  switch (conn->cp.pf().bpp) {
   case 8:  zrleDecode8 (r, is, &zis, (rdr::U8*) buf, handler); break;
   case 16: zrleDecode16(r, is, &zis, (rdr::U16*)buf, handler); break;
   case 32:

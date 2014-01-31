@@ -26,7 +26,7 @@ namespace rfb {
 
   class ZRLEEncoder : public Encoder {
   public:
-    ZRLEEncoder(SMsgWriter* writer);
+    ZRLEEncoder(SConnection* conn);
     virtual ~ZRLEEncoder();
     virtual void writeRect(const Rect& r, TransImageGetter* ig);
   private:

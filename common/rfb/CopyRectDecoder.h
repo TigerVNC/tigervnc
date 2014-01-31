@@ -24,7 +24,7 @@ namespace rfb {
 
   class CopyRectDecoder : public Decoder {
   public:
-    CopyRectDecoder(CMsgReader* reader);
+    CopyRectDecoder(CConnection* conn);
     virtual ~CopyRectDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
   };

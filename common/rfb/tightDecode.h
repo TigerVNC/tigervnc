@@ -154,7 +154,7 @@ void TIGHT_DECODE (const Rect& r)
   PIXEL_T *buf;
   int stride = r.width();
   if (directDecode) buf = (PIXEL_T *)handler->getRawBufferRW(r, &stride);
-  else buf = (PIXEL_T *)reader->getImageBuf(r.area());
+  else buf = (PIXEL_T *)conn->reader()->getImageBuf(r.area());
 
   if (palSize == 0) {
     // Truecolor data

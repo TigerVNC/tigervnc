@@ -25,11 +25,11 @@
 #include <rfb/HextileEncoder.h>
 #include <rfb/ZRLEEncoder.h>
 #include <rfb/TightEncoder.h>
-#include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 
 using namespace rfb;
 
-Encoder::Encoder(SMsgWriter* writer_) : writer(writer_)
+Encoder::Encoder(SConnection *conn_) : conn(conn_)
 {
 }
 
@@ -51,19 +51,19 @@ bool Encoder::supported(int encoding)
   }
 }
 
-Encoder* Encoder::createEncoder(int encoding, SMsgWriter* writer)
+Encoder* Encoder::createEncoder(int encoding, SConnection* conn)
 {
   switch (encoding) {
   case encodingRaw:
-    return new RawEncoder(writer);
+    return new RawEncoder(conn);
   case encodingRRE:
-    return new RREEncoder(writer);
+    return new RREEncoder(conn);
   case encodingHextile:
-    return new HextileEncoder(writer);
+    return new HextileEncoder(conn);
   case encodingZRLE:
-    return new ZRLEEncoder(writer);
+    return new ZRLEEncoder(conn);
   case encodingTight:
-    return new TightEncoder(writer);
+    return new TightEncoder(conn);
   default:
     return NULL;
   }

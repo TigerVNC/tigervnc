@@ -21,6 +21,7 @@
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 #include <rfb/ZRLEEncoder.h>
 #include <rfb/Configuration.h>
 
@@ -59,8 +60,8 @@ static inline void writeOpaque24B(rdr::OutStream* os, rdr::U32 u)
 #undef CPIXEL
 #undef BPP
 
-ZRLEEncoder::ZRLEEncoder(SMsgWriter* writer)
-  : Encoder(writer), zos(0,0,zlibLevel), mos(129*1024)
+ZRLEEncoder::ZRLEEncoder(SConnection* conn)
+  : Encoder(conn), zos(0,0,zlibLevel), mos(129*1024)
 {
 }
 
@@ -70,10 +71,10 @@ ZRLEEncoder::~ZRLEEncoder()
 
 void ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig)
 {
-  rdr::U8* imageBuf = writer->getImageBuf(64 * 64 * 4 + 4);
+  rdr::U8* imageBuf = conn->writer()->getImageBuf(64 * 64 * 4 + 4);
   mos.clear();
 
-  switch (writer->bpp()) {
+  switch (conn->cp.pf().bpp) {
   case 8:
     zrleEncode8(r, &mos, &zos, imageBuf, ig);
     break;
@@ -82,7 +83,7 @@ void ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig)
     break;
   case 32:
     {
-      const PixelFormat& pf = writer->getConnParams()->pf();
+      const PixelFormat& pf = conn->cp.pf();
 
       Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
       bool fitsInLS3Bytes = maxPixel < (1<<24);
@@ -106,9 +107,9 @@ void ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig)
     }
   }
 
-  writer->startRect(r, encodingZRLE);
-  rdr::OutStream* os = writer->getOutStream();
+  conn->writer()->startRect(r, encodingZRLE);
+  rdr::OutStream* os = conn->getOutStream();
   os->writeU32(mos.length());
   os->writeBytes(mos.data(), mos.length());
-  writer->endRect();
+  conn->writer()->endRect();
 }

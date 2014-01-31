@@ -25,7 +25,7 @@ namespace rfb {
 
   class RREEncoder : public RawEncoder {
   public:
-    RREEncoder(SMsgWriter* writer);
+    RREEncoder(SConnection* conn);
     virtual ~RREEncoder();
     virtual void writeRect(const Rect& r, TransImageGetter* ig);
   private:

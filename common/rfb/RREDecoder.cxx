@@ -16,6 +16,7 @@
  * USA.
  */
 #include <rfb/CMsgReader.h>
+#include <rfb/CConnection.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/RREDecoder.h>
 
@@ -31,7 +32,7 @@ using namespace rfb;
 #include <rfb/rreDecode.h>
 #undef BPP
 
-RREDecoder::RREDecoder(CMsgReader* reader) : Decoder(reader)
+RREDecoder::RREDecoder(CConnection* conn) : Decoder(conn)
 {
 }
 
@@ -41,8 +42,8 @@ RREDecoder::~RREDecoder()
 
 void RREDecoder::readRect(const Rect& r, CMsgHandler* handler)
 {
-  rdr::InStream* is = reader->getInStream();
-  switch (reader->bpp()) {
+  rdr::InStream* is = conn->getInStream();
+  switch (conn->cp.pf().bpp) {
   case 8:  rreDecode8 (r, is, handler); break;
   case 16: rreDecode16(r, is, handler); break;
   case 32: rreDecode32(r, is, handler); break;

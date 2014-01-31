@@ -399,7 +399,7 @@ void CConn::dataRect(const Rect& r, int encoding)
   }
 
   if (!decoders[encoding]) {
-    decoders[encoding] = Decoder::createDecoder(encoding, reader());
+    decoders[encoding] = Decoder::createDecoder(encoding, this);
     if (!decoders[encoding]) {
       fprintf(stderr, "Unknown rect encoding %d\n", encoding);
       throw Exception("Unknown rect encoding");

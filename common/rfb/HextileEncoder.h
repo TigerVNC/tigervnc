@@ -24,7 +24,7 @@ namespace rfb {
 
   class HextileEncoder : public Encoder {
   public:
-    HextileEncoder(SMsgWriter* writer);
+    HextileEncoder(SConnection* conn);
     virtual ~HextileEncoder();
     virtual void writeRect(const Rect& r, TransImageGetter* ig);
   };

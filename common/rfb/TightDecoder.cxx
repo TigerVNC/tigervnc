@@ -18,6 +18,7 @@
  * USA.
  */
 #include <rfb/CMsgReader.h>
+#include <rfb/CConnection.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/TightDecoder.h>
 
@@ -35,7 +36,7 @@ using namespace rfb;
 #include <rfb/tightDecode.h>
 #undef BPP
 
-TightDecoder::TightDecoder(CMsgReader* reader) : Decoder(reader)
+TightDecoder::TightDecoder(CConnection* conn) : Decoder(conn)
 {
 }
 
@@ -45,7 +46,7 @@ TightDecoder::~TightDecoder()
 
 void TightDecoder::readRect(const Rect& r, CMsgHandler* handler)
 {
-  is = reader->getInStream();
+  is = conn->getInStream();
   this->handler = handler;
   clientpf = handler->getPreferredPF();
   serverpf = handler->cp.pf();
