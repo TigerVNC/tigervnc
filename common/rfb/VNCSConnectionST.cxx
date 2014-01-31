@@ -37,6 +37,7 @@
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
+#include <rfb/Encoder.h>
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -81,6 +82,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   peerEndpoint.buf = sock->getPeerEndpoint();
   VNCServerST::connectionsLog.write(1,"accepted: %s", peerEndpoint.buf);
 
+  memset(encoders, 0, sizeof(encoders));
+
   // Configure the socket
   setSocketTimeouts();
   lastEventTime = time(0);
@@ -105,6 +108,9 @@ VNCSConnectionST::~VNCSConnectionST()
 
   // Remove this client from the server
   server->clients.remove(this);
+
+  for (int i = 0; i <= encodingMax; i++)
+    delete encoders[i];
 
   delete [] fenceData;
 }
@@ -1060,18 +1066,30 @@ void VNCSConnectionST::writeFramebufferUpdate()
   }
 
   if (!ui.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
+    std::vector<Rect> rects;
+    std::vector<Rect>::const_iterator i;
+    int encoding;
+
+    // Make sure the encoder has the latest settings
+    encoding = cp.currentEncoding();
+
+    if (!encoders[encoding])
+      encoders[encoding] = Encoder::createEncoder(encoding, writer());
+
+    encoders[encoding]->setCompressLevel(cp.compressLevel);
+    encoders[encoding]->setQualityLevel(cp.qualityLevel);
+    encoders[encoding]->setFineQualityLevel(cp.fineQualityLevel,
+                                            cp.subsampling);
+
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original VNC4.
-    writer()->setupCurrentEncoder();
     int nRects = (ui.copied.numRects() +
                   (drawRenderedCursor ? 1 : 0));
 
-    std::vector<Rect> rects;
-    std::vector<Rect>::const_iterator i;
     ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++) {
       if (i->width() && i->height()) {
-        int nUpdateRects = writer()->getNumRects(*i);
+        int nUpdateRects = encoders[encoding]->getNumRects(*i);
         if (nUpdateRects == 0 && cp.currentEncoding() == encodingTight) {
           // With Tight encoding and LastRect support, the client does not
           // care about the number of rectangles in the update - it will
@@ -1088,39 +1106,39 @@ void VNCSConnectionST::writeFramebufferUpdate()
     
     writer()->writeFramebufferUpdateStart(nRects);
 
-    writer()->writeRects(ui, &image_getter);
-    updates.clear();
+    ui.copied.get_rects(&rects);
+    for (i = rects.begin(); i != rects.end(); i++)
+      writer()->writeCopyRect(*i, i->tl.x - ui.copy_delta.x,
+                              i->tl.y - ui.copy_delta.y);
 
-    if (drawRenderedCursor)
-      writeRenderedCursorRect();
+    ui.changed.get_rects(&rects);
+    for (i = rects.begin(); i != rects.end(); i++)
+      encoders[encoding]->writeRect(*i, &image_getter);
+
+    if (drawRenderedCursor) {
+      image_getter.setPixelBuffer(&server->renderedCursor);
+      image_getter.setOffset(server->renderedCursorTL);
+
+      encoders[encoding]->writeRect(renderedCursorRect, &image_getter);
+
+      image_getter.setPixelBuffer(server->pb);
+      image_getter.setOffset(Point(0,0));
+
+      drawRenderedCursor = false;
+    }
 
     writer()->writeFramebufferUpdateEnd();
 
     writeRTTPing();
 
     requested.clear();
+    updates.clear();
   }
 
 out:
   network::TcpSocket::cork(sock->getFd(), false);
 }
 
-
-// writeRenderedCursorRect() writes a single rectangle drawing the rendered
-// cursor on the client.
-
-void VNCSConnectionST::writeRenderedCursorRect()
-{
-  image_getter.setPixelBuffer(&server->renderedCursor);
-  image_getter.setOffset(server->renderedCursorTL);
-
-  writer()->writeRect(renderedCursorRect, &image_getter);
-
-  image_getter.setPixelBuffer(server->pb);
-  image_getter.setOffset(Point(0,0));
-
-  drawRenderedCursor = false;
-}
 
 void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
 {

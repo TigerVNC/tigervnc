@@ -37,6 +37,8 @@
 struct RTTInfo;
 
 namespace rfb {
+  class Encoder;
+
   class VNCSConnectionST : public SConnection,
                            public WriteSetCursorCallback,
                            public Timer::Callback {
@@ -169,7 +171,6 @@ namespace rfb {
 
     void writeFramebufferUpdate();
 
-    void writeRenderedCursorRect();
     void screenLayoutChange(rdr::U16 reason);
     void setCursor();
     void setDesktopName(const char *name);
@@ -202,6 +203,7 @@ namespace rfb {
     Rect renderedCursorRect;
     bool continuousUpdates;
     Region cuRegion;
+    Encoder* encoders[encodingMax+1];
 
     Timer updateTimer;
 

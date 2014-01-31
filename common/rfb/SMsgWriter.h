@@ -32,10 +32,6 @@ namespace rdr { class OutStream; }
 namespace rfb {
 
   class ConnParams;
-  class TransImageGetter;
-  class Region;
-  class UpdateInfo;
-  class Encoder;
   class ScreenSet;
 
   class WriteSetCursorCallback {
@@ -71,14 +67,6 @@ namespace rfb {
     // writeEndOfContinuousUpdates() indicates that we have left continuous
     // updates mode.
     void writeEndOfContinuousUpdates();
-
-    // setupCurrentEncoder() should be called before each framebuffer update,
-    // prior to calling getNumRects() or writeFramebufferUpdateStart().
-    void setupCurrentEncoder();
-
-    // getNumRects() computes the number of sub-rectangles that will compose a
-    // given rectangle, for current encoder.
-    int getNumRects(const Rect &r);
 
     // writeSetDesktopSize() won't actually write immediately, but will
     // write the relevant pseudo-rectangle as part of the next update.
@@ -118,26 +106,17 @@ namespace rfb {
     // pseudo-rectangles.
     void writeNoDataUpdate();
 
-    // writeRects() accepts an UpdateInfo (changed & copied regions) and an
-    // ImageGetter to fetch pixels from.  It then calls writeCopyRect() and
-    // writeRect() as appropriate.  writeFramebufferUpdateStart() must be used
-    // before the first writeRects() call and writeFrameBufferUpdateEnd() after
-    // the last one.
-    void writeRects(const UpdateInfo& update, TransImageGetter* ig);
-
-    // To construct a framebuffer update you can call
-    // writeFramebufferUpdateStart(), followed by a number of writeCopyRect()s
-    // and writeRect()s, finishing with writeFramebufferUpdateEnd().
+    // writeFramebufferUpdateStart() initiates an update which you can fill
+    // in using writeCopyRect() and encoders. Finishing the update by calling
+    // writeFramebufferUpdateEnd().
     void writeFramebufferUpdateStart(int nRects);
     void writeFramebufferUpdateEnd();
 
-    // writeRect() writers the given rectangle using either the preferred
-    // encoder, or the one explicitly given.
-    void writeRect(const Rect& r, TransImageGetter* ig);
-    void writeRect(const Rect& r, int encoding, TransImageGetter* ig);
-
+    // There is no explicit encoder for CopyRect rects.
     void writeCopyRect(const Rect& r, int srcX, int srcY);
 
+    // Encoders should call these to mark the start and stop of individual
+    // rects.
     void startRect(const Rect& r, int enc);
     void endRect();
 
@@ -169,7 +148,6 @@ namespace rfb {
     ConnParams* cp;
     rdr::OutStream* os;
 
-    Encoder* encoders[encodingMax+1];
     int currentEncoding;
 
     int nRectsInUpdate;

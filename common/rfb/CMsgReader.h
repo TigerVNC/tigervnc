@@ -33,7 +33,6 @@ namespace rdr { class InStream; }
 
 namespace rfb {
   class CMsgHandler;
-  class Decoder;
   struct Rect;
 
   class CMsgReader {
@@ -69,7 +68,6 @@ namespace rfb {
 
     CMsgHandler* handler;
     rdr::InStream* is;
-    Decoder* decoders[encodingMax+1];
     rdr::U8* imageBuf;
     int imageBufSize;
     int nUpdateRectsLeft;

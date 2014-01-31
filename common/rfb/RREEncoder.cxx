@@ -33,7 +33,7 @@ using namespace rfb;
 #include <rfb/rreEncode.h>
 #undef BPP
 
-RREEncoder::RREEncoder(SMsgWriter* writer) : Encoder(writer)
+RREEncoder::RREEncoder(SMsgWriter* writer) : RawEncoder(writer)
 {
 }
 
@@ -58,7 +58,7 @@ void RREEncoder::writeRect(const Rect& r, TransImageGetter* ig)
   }
   
   if (nSubrects < 0) {
-    writer->writeRect(r, encodingRaw, ig);
+    RawEncoder::writeRect(r, ig);
     return;
   }
 

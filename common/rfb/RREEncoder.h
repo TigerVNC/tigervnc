@@ -19,11 +19,11 @@
 #define __RFB_RREENCODER_H__
 
 #include <rdr/MemOutStream.h>
-#include <rfb/Encoder.h>
+#include <rfb/RawEncoder.h>
 
 namespace rfb {
 
-  class RREEncoder : public Encoder {
+  class RREEncoder : public RawEncoder {
   public:
     RREEncoder(SMsgWriter* writer);
     virtual ~RREEncoder();

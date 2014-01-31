@@ -42,7 +42,6 @@ SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
     imageBuf(0), imageBufSize(0)
 {
   for (int i = 0; i <= encodingMax; i++) {
-    encoders[i] = 0;
     bytesSent[i] = 0;
     rectsSent[i] = 0;
   }
@@ -53,7 +52,6 @@ SMsgWriter::~SMsgWriter()
   vlog.info("framebuffer updates %d",updatesSent);
   int bytes = 0;
   for (int i = 0; i <= encodingMax; i++) {
-    delete encoders[i];
     if (i != encodingCopyRect)
       bytes += bytesSent[i];
     if (rectsSent[i])
@@ -133,32 +131,6 @@ void SMsgWriter::writeEndOfContinuousUpdates()
 
   startMsg(msgTypeEndOfContinuousUpdates);
   endMsg();
-}
-
-void SMsgWriter::setupCurrentEncoder()
-{
-  int encoding = cp->currentEncoding();
-
-  // FIXME: Code duplication, see writeRect().
-  if (!encoders[encoding]) {
-    encoders[encoding] = Encoder::createEncoder(encoding, this);
-    assert(encoders[encoding]);
-  }
-
-  encoders[encoding]->setCompressLevel(cp->compressLevel);
-  encoders[encoding]->setQualityLevel(cp->qualityLevel);
-  encoders[encoding]->setFineQualityLevel(cp->fineQualityLevel,
-                                          cp->subsampling);
-}
-
-int SMsgWriter::getNumRects(const Rect &r)
-{
-  int encoding = cp->currentEncoding();
-
-  if (!encoders[encoding])
-    setupCurrentEncoder();
-
-  return encoders[encoding]->getNumRects(r);
 }
 
 bool SMsgWriter::writeSetDesktopSize() {
@@ -290,20 +262,6 @@ void SMsgWriter::writeNoDataUpdate()
   writeFramebufferUpdateEnd();
 }
 
-void SMsgWriter::writeRects(const UpdateInfo& ui, TransImageGetter* ig)
-{
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator i;
-
-  ui.copied.get_rects(&rects, ui.copy_delta.x <= 0, ui.copy_delta.y <= 0);
-  for (i = rects.begin(); i != rects.end(); i++)
-    writeCopyRect(*i, i->tl.x - ui.copy_delta.x, i->tl.y - ui.copy_delta.y);
-
-  ui.changed.get_rects(&rects);
-  for (i = rects.begin(); i != rects.end(); i++)
-    writeRect(*i, ig);
-}
-
 void SMsgWriter::writeFramebufferUpdateStart(int nRects)
 {
   startMsg(msgTypeFramebufferUpdate);
@@ -344,20 +302,6 @@ void SMsgWriter::writeFramebufferUpdateEnd()
 
   updatesSent++;
   endMsg();
-}
-
-void SMsgWriter::writeRect(const Rect& r, TransImageGetter* ig)
-{
-  writeRect(r, cp->currentEncoding(), ig);
-}
-
-void SMsgWriter::writeRect(const Rect& r, int encoding, TransImageGetter* ig)
-{
-  if (!encoders[encoding]) {
-    encoders[encoding] = Encoder::createEncoder(encoding, this);
-    assert(encoders[encoding]);
-  }
-  encoders[encoding]->writeRect(r, ig);
 }
 
 void SMsgWriter::writeCopyRect(const Rect& r, int srcX, int srcY)

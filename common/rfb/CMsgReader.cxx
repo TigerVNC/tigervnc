@@ -31,16 +31,10 @@ CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
   : imageBufIdealSize(0), handler(handler_), is(is_),
     imageBuf(0), imageBufSize(0), nUpdateRectsLeft(0)
 {
-  for (int i = 0; i <= encodingMax; i++) {
-    decoders[i] = 0;
-  }
 }
 
 CMsgReader::~CMsgReader()
 {
-  for (int i = 0; i <= encodingMax; i++) {
-    delete decoders[i];
-  }
   delete [] imageBuf;
 }
 
@@ -196,23 +190,7 @@ void CMsgReader::readRect(const Rect& r, int encoding)
   if (r.is_empty())
     fprintf(stderr, "Warning: zero size rect\n");
 
-  handler->beginRect(r, encoding);
-
-  if (!Decoder::supported(encoding)) {
-    fprintf(stderr, "Unknown rect encoding %d\n", encoding);
-    throw Exception("Unknown rect encoding");
-  }
-
-  if (!decoders[encoding]) {
-    decoders[encoding] = Decoder::createDecoder(encoding, this);
-    if (!decoders[encoding]) {
-      fprintf(stderr, "Unknown rect encoding %d\n", encoding);
-      throw Exception("Unknown rect encoding");
-    }
-  }
-  decoders[encoding]->readRect(r, handler);
-
-  handler->endRect(r, encoding);
+  handler->dataRect(r, encoding);
 }
 
 void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
