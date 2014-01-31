@@ -198,33 +198,21 @@ void CMsgReader::readRect(const Rect& r, int encoding)
 
   handler->beginRect(r, encoding);
 
-  if (encoding == encodingCopyRect) {
-    readCopyRect(r);
-  } else {
+  if (!Decoder::supported(encoding)) {
+    fprintf(stderr, "Unknown rect encoding %d\n", encoding);
+    throw Exception("Unknown rect encoding");
+  }
 
-    if (!Decoder::supported(encoding)) {
+  if (!decoders[encoding]) {
+    decoders[encoding] = Decoder::createDecoder(encoding, this);
+    if (!decoders[encoding]) {
       fprintf(stderr, "Unknown rect encoding %d\n", encoding);
       throw Exception("Unknown rect encoding");
     }
-
-    if (!decoders[encoding]) {
-      decoders[encoding] = Decoder::createDecoder(encoding, this);
-      if (!decoders[encoding]) {
-        fprintf(stderr, "Unknown rect encoding %d\n", encoding);
-        throw Exception("Unknown rect encoding");
-      }
-    }
-    decoders[encoding]->readRect(r, handler);
   }
+  decoders[encoding]->readRect(r, handler);
 
   handler->endRect(r, encoding);
-}
-
-void CMsgReader::readCopyRect(const Rect& r)
-{
-  int srcX = is->readU16();
-  int srcY = is->readU16();
-  handler->copyRect(r, srcX, srcY);
 }
 
 void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)

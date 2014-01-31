@@ -62,7 +62,6 @@ namespace rfb {
     void readFramebufferUpdate();
 
     void readRect(const Rect& r, int encoding);
-    void readCopyRect(const Rect& r);
 
     void readSetCursor(int width, int height, const Point& hotspot);
     void readSetDesktopName(int x, int y, int w, int h);

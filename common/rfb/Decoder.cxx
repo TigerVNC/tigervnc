@@ -20,6 +20,7 @@
 #include <rfb/encodings.h>
 #include <rfb/Decoder.h>
 #include <rfb/RawDecoder.h>
+#include <rfb/CopyRectDecoder.h>
 #include <rfb/RREDecoder.h>
 #include <rfb/HextileDecoder.h>
 #include <rfb/ZRLEDecoder.h>
@@ -39,6 +40,7 @@ bool Decoder::supported(int encoding)
 {
   switch (encoding) {
   case encodingRaw:
+  case encodingCopyRect:
   case encodingRRE:
   case encodingHextile:
   case encodingZRLE:
@@ -54,6 +56,8 @@ Decoder* Decoder::createDecoder(int encoding, CMsgReader* reader)
   switch (encoding) {
   case encodingRaw:
     return new RawDecoder(reader);
+  case encodingCopyRect:
+    return new CopyRectDecoder(reader);
   case encodingRRE:
     return new RREDecoder(reader);
   case encodingHextile:

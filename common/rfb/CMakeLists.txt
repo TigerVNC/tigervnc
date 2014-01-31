@@ -13,6 +13,7 @@ set(RFB_SOURCES
   ComparingUpdateTracker.cxx
   Configuration.cxx
   ConnParams.cxx
+  CopyRectDecoder.cxx
   Cursor.cxx
   Decoder.cxx
   d3des.c

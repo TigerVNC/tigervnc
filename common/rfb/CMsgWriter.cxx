@@ -113,9 +113,11 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
   // Remaining encodings
   for (int i = encodingMax; i >= 0; i--) {
     switch (i) {
+    case encodingCopyRect:
     case encodingTight:
     case encodingZRLE:
     case encodingHextile:
+      /* These have already been sent earlier */
       break;
     default:
       if ((i != preferredEncoding) && Decoder::supported(i))
