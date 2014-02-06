@@ -55,7 +55,7 @@ public:
   void copyRect(const rfb::Rect& r, int srcX, int srcY);
 
   rdr::U8* getBufferRW(const rfb::Rect& r, int* stride);
-  void damageRect(const rfb::Rect& r);
+  void commitBufferRW(const rfb::Rect& r);
 
   void resizeFramebuffer(int new_w, int new_h);
 

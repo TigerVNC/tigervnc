@@ -232,8 +232,8 @@ rdr::U8* DesktopWindow::getBufferRW(const rfb::Rect& r, int* stride) {
   return viewport->getBufferRW(r, stride);
 }
 
-void DesktopWindow::damageRect(const rfb::Rect& r) {
-  viewport->damageRect(r);
+void DesktopWindow::commitBufferRW(const rfb::Rect& r) {
+  viewport->commitBufferRW(r);
 }
 
 

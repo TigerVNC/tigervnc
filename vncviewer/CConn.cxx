@@ -470,7 +470,7 @@ rdr::U8* CConn::getRawBufferRW(const rfb::Rect& r, int* stride) {
   return desktop->getBufferRW(r, stride);
 }
 void CConn::releaseRawBuffer(const rfb::Rect& r) {
-  desktop->damageRect(r);
+  desktop->commitBufferRW(r);
 }
 
 

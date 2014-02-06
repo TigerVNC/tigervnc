@@ -56,8 +56,7 @@ public:
   void copyRect(const rfb::Rect& r, int srcX, int srcY);
 
   rdr::U8* getBufferRW(const rfb::Rect& r, int* stride);
-
-  void damageRect(const rfb::Rect& r);
+  void commitBufferRW(const rfb::Rect& r);
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
@@ -71,6 +70,8 @@ public:
   int handle(int event);
 
 private:
+
+  void damageRect(const rfb::Rect& r);
 
   PlatformPixelBuffer* createFramebuffer(int w, int h);
 

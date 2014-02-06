@@ -60,26 +60,24 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
   }
 }
 
+// -=- Modifiable generic pixel buffer class
 
-FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
-                                           rdr::U8* data_, int stride_)
-  : PixelBuffer(pf, w, h), data(data_), stride(stride_)
+ModifiablePixelBuffer::ModifiablePixelBuffer(const PixelFormat& pf,
+                                             int w, int h)
+  : PixelBuffer(pf, w, h)
 {
 }
 
-FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
-
-FullFramePixelBuffer::~FullFramePixelBuffer() {}
-
-
-rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
+ModifiablePixelBuffer::ModifiablePixelBuffer()
 {
-  *stride_ = stride;
-  return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
 }
 
+ModifiablePixelBuffer::~ModifiablePixelBuffer()
+{
+}
 
-void FullFramePixelBuffer::fillRect(const Rect& r, Pixel pix) {
+void ModifiablePixelBuffer::fillRect(const Rect& r, Pixel pix)
+{
   int stride;
   U8 *buf, pixbuf[4];
   int w, h, b;
@@ -99,9 +97,13 @@ void FullFramePixelBuffer::fillRect(const Rect& r, Pixel pix) {
     }
     buf += (stride - w) * b;
   }
+
+  commitBufferRW(r);
 }
 
-void FullFramePixelBuffer::imageRect(const Rect& r, const void* pixels, int srcStride) {
+void ModifiablePixelBuffer::imageRect(const Rect& r,
+                                      const void* pixels, int srcStride)
+{
   int bytesPerPixel = getPF().bpp/8;
   int destStride;
   U8* dest = getBufferRW(r, &destStride);
@@ -116,9 +118,12 @@ void FullFramePixelBuffer::imageRect(const Rect& r, const void* pixels, int srcS
     dest += bytesPerDestRow;
     src += bytesPerSrcRow;
   }
+  commitBufferRW(r);
 }
 
-void FullFramePixelBuffer::maskRect(const Rect& r, const void* pixels, const void* mask_) {
+void ModifiablePixelBuffer::maskRect(const Rect& r,
+                                     const void* pixels, const void* mask_)
+{
   Rect cr = getRect().intersect(r);
   if (cr.is_empty()) return;
   int stride;
@@ -154,9 +159,13 @@ void FullFramePixelBuffer::maskRect(const Rect& r, const void* pixels, const voi
     }
     mask += maskStride;
   }
+
+  commitBufferRW(cr);
 }
 
-void FullFramePixelBuffer::maskRect(const Rect& r, Pixel pixel, const void* mask_) {
+void ModifiablePixelBuffer::maskRect(const Rect& r,
+                                     Pixel pixel, const void* mask_)
+{
   Rect cr = getRect().intersect(r);
   if (cr.is_empty()) return;
   int stride;
@@ -190,9 +199,13 @@ void FullFramePixelBuffer::maskRect(const Rect& r, Pixel pixel, const void* mask
     }
     mask += maskStride;
   }
+
+  commitBufferRW(cr);
 }
 
-void FullFramePixelBuffer::copyRect(const Rect &rect, const Point &move_by_delta) {
+void ModifiablePixelBuffer::copyRect(const Rect &rect,
+                                     const Point &move_by_delta)
+{
   int stride;
   U8* data;
   unsigned int bytesPerPixel, bytesPerRow, bytesPerMemCpy;
@@ -241,8 +254,30 @@ void FullFramePixelBuffer::copyRect(const Rect &rect, const Point &move_by_delta
       src -= bytesPerRow;
     }
   }
+  commitBufferRW(getRect());
 }
 
+// -=- Simple pixel buffer with a continuous block of memory
+
+FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
+                                           rdr::U8* data_, int stride_)
+  : ModifiablePixelBuffer(pf, w, h), data(data_), stride(stride_)
+{
+}
+
+FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
+
+FullFramePixelBuffer::~FullFramePixelBuffer() {}
+
+rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
+{
+  *stride_ = stride;
+  return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
+}
+
+void FullFramePixelBuffer::commitBufferRW(const Rect& r)
+{
+}
 
 // -=- Managed pixel buffer class
 // Automatically allocates enough space for the specified format & area

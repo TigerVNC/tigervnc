@@ -229,6 +229,7 @@ void Viewport::imageRect(const rfb::Rect& r, void* pixels) {
     pixelTrans->translateRect(pixels, r.width(),
                               rfb::Rect(0, 0, r.width(), r.height()),
                               buffer, stride, rfb::Point(0, 0));
+    frameBuffer->commitBufferRW(r);
   } else {
     frameBuffer->imageRect(r, pixels);
   }
@@ -242,6 +243,11 @@ void Viewport::copyRect(const rfb::Rect& r, int srcX, int srcY) {
 
 rdr::U8* Viewport::getBufferRW(const rfb::Rect& r, int* stride) {
   return frameBuffer->getBufferRW(r, stride);
+}
+
+void Viewport::commitBufferRW(const rfb::Rect& r) {
+  frameBuffer->commitBufferRW(r);
+  damageRect(r);
 }
 
 void Viewport::damageRect(const rfb::Rect& r) {
