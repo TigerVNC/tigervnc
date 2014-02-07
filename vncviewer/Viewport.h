@@ -61,7 +61,6 @@ public:
   void updateWindow();
 
   // Methods forwarded from CConn
-  void setName(const char *name);
 
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
 
