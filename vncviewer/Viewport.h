@@ -72,6 +72,8 @@ public:
 
 private:
 
+  PlatformPixelBuffer* createFramebuffer(int w, int h);
+
   static void handleUpdateTimeout(void *data);
 
   static void handleClipboardChange(int source, void *data);

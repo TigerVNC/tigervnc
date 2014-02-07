@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 using namespace rfb;
 
-static rfb::LogWriter vlog("PlatformPixelBuffer");
+static rfb::LogWriter vlog("X11PixelBuffer");
 
 static PixelFormat display_pf()
 {
@@ -93,8 +93,8 @@ static PixelFormat display_pf()
                      redShift, greenShift, blueShift);
 }
 
-PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
-  FullFramePixelBuffer(display_pf(), width, height, NULL),
+X11PixelBuffer::X11PixelBuffer(int width, int height) :
+  PlatformPixelBuffer(display_pf(), width, height, NULL),
   shminfo(NULL), xim(NULL)
 {
   // Might not be open at this point
@@ -113,7 +113,7 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
 }
 
 
-PlatformPixelBuffer::~PlatformPixelBuffer()
+X11PixelBuffer::~X11PixelBuffer()
 {
   if (shminfo) {
     vlog.debug("Freeing shared memory XImage");
@@ -130,7 +130,7 @@ PlatformPixelBuffer::~PlatformPixelBuffer()
 }
 
 
-void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
+void X11PixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
 {
   if (shminfo)
     XShmPutImage(fl_display, fl_window, fl_gc, xim, src_x, src_y, x, y, w, h, False);
@@ -139,7 +139,7 @@ void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
 }
 
 
-int PlatformPixelBuffer::getStride() const
+int X11PixelBuffer::getStride() const
 {
   return xim->bytes_per_line / (getPF().bpp/8);
 }
@@ -152,7 +152,7 @@ static int XShmAttachErrorHandler(Display *dpy, XErrorEvent *error)
   return 0;
 }
 
-int PlatformPixelBuffer::setupShm()
+int X11PixelBuffer::setupShm()
 {
   int major, minor;
   Bool pixmaps;

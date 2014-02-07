@@ -7,9 +7,11 @@ set(VNCVIEWER_SOURCES
   menukey.cxx
   CConn.cxx
   DesktopWindow.cxx
+  FLTKPixelBuffer.cxx
   UserDialog.cxx
   ServerDialog.cxx
   OptionsDialog.cxx
+  PlatformPixelBuffer.cxx
   Viewport.cxx
   parameters.cxx
   keysym2ucs.c

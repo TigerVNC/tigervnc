@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,15 +34,19 @@
 
 using namespace rfb;
 
-static rfb::LogWriter vlog("PlatformPixelBuffer");
+static rfb::LogWriter vlog("OSXPixelBuffer");
 
-PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
-  ManagedPixelBuffer(rfb::PixelFormat(32, 24, false, true,
-                                      255, 255, 255, 16, 8, 0),
-                     width, height),
+OSXPixelBuffer::OSXPixelBuffer(int width, int height) :
+  PlatformPixelBuffer(rfb::PixelFormat(32, 24, false, true,
+                                       255, 255, 255, 16, 8, 0),
+                      width, height, NULL),
   bitmap(NULL)
 {
   CGColorSpaceRef lut;
+
+  data = new rdr::U8[width * height * format.bpp/8];
+  if (data == NULL)
+    throw rfb::Exception("Error: Not enough memory for framebuffer");
 
   lut = CGColorSpaceCreateDeviceRGB();
   assert(lut);
@@ -55,13 +59,14 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
 }
 
 
-PlatformPixelBuffer::~PlatformPixelBuffer()
+OSXPixelBuffer::~OSXPixelBuffer()
 {
   CFRelease((CGContextRef)bitmap);
+  delete [] data;
 }
 
 
-void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
+void OSXPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
 {
   CGRect rect;
   CGContextRef gc;

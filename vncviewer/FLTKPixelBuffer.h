@@ -16,20 +16,18 @@
  * USA.
  */
 
-#ifndef __PLATFORMPIXELBUFFER_H__
-#define __PLATFORMPIXELBUFFER_H__
+#ifndef __FLTKPIXELBUFFER_H__
+#define __FLTKPIXELBUFFER_H__
 
-#include <rfb/PixelBuffer.h>
+#include "PlatformPixelBuffer.h"
 
-class PlatformPixelBuffer: public rfb::FullFramePixelBuffer {
+class FLTKPixelBuffer: public PlatformPixelBuffer {
 public:
-  PlatformPixelBuffer(const rfb::PixelFormat& pf, int width, int height,
-                      rdr::U8* data);
+  FLTKPixelBuffer(int width, int height);
+  ~FLTKPixelBuffer();
 
-  virtual void draw(int src_x, int src_y, int x, int y, int w, int h) = 0;
-
-protected:
-  int stride;
+  virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
 };
+
 
 #endif

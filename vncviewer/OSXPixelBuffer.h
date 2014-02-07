@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,14 @@
 #ifndef __OSXPIXELBUFFER_H__
 #define __OSXPIXELBUFFER_H__
 
-#include <rfb/PixelBuffer.h>
+#include "PlatformPixelBuffer.h"
 
-class PlatformPixelBuffer: public rfb::ManagedPixelBuffer {
+class OSXPixelBuffer: public PlatformPixelBuffer {
 public:
-  PlatformPixelBuffer(int width, int height);
-  ~PlatformPixelBuffer();
+  OSXPixelBuffer(int width, int height);
+  ~OSXPixelBuffer();
 
-  void draw(int src_x, int src_y, int x, int y, int w, int h);
+  virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
 
 protected:
   // This is really a CGContextRef, but Apple headers conflict with FLTK

@@ -51,6 +51,9 @@
 #include "menukey.h"
 #include "vncviewer.h"
 
+#include "PlatformPixelBuffer.h"
+#include "FLTKPixelBuffer.h"
+
 #if defined(WIN32)
 #include "Win32PixelBuffer.h"
 #elif defined(__APPLE__)
@@ -58,11 +61,6 @@
 #else
 #include "X11PixelBuffer.h"
 #endif
-
-// We also have a generic version of the above, using pure FLTK:
-//
-// #include "PlatformPixelBuffer.h"
-//
 
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
@@ -100,7 +98,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   Fl::add_clipboard_notify(handleClipboardChange, this);
 #endif
 
-  frameBuffer = new PlatformPixelBuffer(w, h);
+  frameBuffer = createFramebuffer(w, h);
   assert(frameBuffer);
 
   setServerPF(serverPF);
@@ -358,7 +356,7 @@ void Viewport::resize(int x, int y, int w, int h)
   vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
              frameBuffer->width(), frameBuffer->height(), w, h);
 
-  newBuffer = new PlatformPixelBuffer(w, h);
+  newBuffer = createFramebuffer(w, h);
   assert(newBuffer);
 
   rect.setXYWH(0, 0,
@@ -497,6 +495,26 @@ int Viewport::handle(int event)
   }
 
   return Fl_Widget::handle(event);
+}
+
+
+PlatformPixelBuffer* Viewport::createFramebuffer(int w, int h)
+{
+  PlatformPixelBuffer *fb;
+
+  try {
+#if defined(WIN32)
+    fb = new Win32PixelBuffer(w, h);
+#elif defined(__APPLE__)
+    fb = new OSXPixelBuffer(w, h);
+#else
+    fb = new X11PixelBuffer(w, h);
+#endif
+  } catch (rdr::Exception& e) {
+    fb = new FLTKPixelBuffer(w, h);
+  }
+
+  return fb;
 }
 
 
