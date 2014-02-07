@@ -43,7 +43,7 @@ static LogWriter vlog("main");
 TStr rfb::win32::AppName("VNC Server");
 
 
-static bool runAsService = false;
+extern bool runAsService;
 static bool runServer = true;
 static bool close_console = false;
 
@@ -159,6 +159,11 @@ static void processParams(int argc, char** argv) {
         MsgBoxOrLog(result.buf);
       } else if (strcasecmp(argv[i], "-service") == 0) {
         printf("Run in service mode\n");
+        runServer = false;
+        runAsService = true;
+
+      } else if (strcasecmp(argv[i], "-service_run") == 0) {
+        printf("Run in service mode\n");
         runAsService = true;
 
       } else if (strcasecmp(argv[i], "-register") == 0) {
@@ -255,16 +260,11 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
     if (runServer) {
       // Start the network subsystem and run the server
       VNCServerWin32 server;
-
-      if (runAsService) {
-        printf("Starting Service-Mode VNC Server.\n");
-        VNCServerService service(server);
-        service.start();
-        result = service.getStatus().dwWin32ExitCode;
-      } else {
-        printf("Starting User-Mode VNC Server.\n");
-        result = server.run();
-      }
+      result = server.run();
+    } else if (runAsService) {
+      VNCServerService service;
+      service.start();
+      result = service.getStatus().dwWin32ExitCode;
     }
 
     vlog.debug("WinVNC service destroyed");

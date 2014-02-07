@@ -55,6 +55,8 @@ static BoolParameter showTrayIcon("ShowTrayIcon",
 VNCServerWin32::VNCServerWin32()
   : command(NoCommand), commandSig(commandLock),
     commandEvent(CreateEvent(0, TRUE, FALSE, 0)),
+    sessionEvent(isServiceProcess() ?
+      CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
     vncServer(CStr(ComputerName().buf), &desktop),
     hostThread(0), runServer(false), isDesktopStarted(false),
     httpServer(&vncServer), config(&sockMgr), trayIcon(0),
@@ -72,6 +74,8 @@ VNCServerWin32::VNCServerWin32()
 
   // Register the queued command event to be handled
   sockMgr.addEvent(commandEvent, this);
+  if (sessionEvent)
+    sockMgr.addEvent(sessionEvent, this);
 }
 
 VNCServerWin32::~VNCServerWin32() {
@@ -322,6 +326,8 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       command = NoCommand;
       commandSig.signal();
     }
+  } else if (event_ == sessionEvent.h) {
+    stop();
   }
 }
 

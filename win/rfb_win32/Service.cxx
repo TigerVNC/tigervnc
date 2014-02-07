@@ -40,6 +40,7 @@ static LogWriter vlog("Service");
 // - Internal service implementation functions
 
 Service* service = 0;
+bool runAsService = false;
 
 VOID WINAPI serviceHandler(DWORD control) {
   switch (control) {
@@ -322,6 +323,13 @@ bool
 rfb::win32::emulateCtrlAltDel() {
   if (!osVersion.isPlatformNT)
     return false;
+
+  if (osVersion.dwMajorVersion >= 6) {
+    rfb::win32::Handle sessionEventCad = 
+      CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNCCad");
+    SetEvent(sessionEventCad);
+    return true;
+  }
 
   CADThread* cad_thread = new CADThread();
   vlog.debug("emulate Ctrl-Alt-Del");
@@ -641,5 +649,5 @@ char* rfb::win32::serviceStateName(DWORD state) {
 
 
 bool rfb::win32::isServiceProcess() {
-  return service != 0;
+  return runAsService;
 }

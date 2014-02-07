@@ -102,6 +102,7 @@ namespace winvnc {
     rfb::Mutex commandLock;
     rfb::Condition commandSig;
     rfb::win32::Handle commandEvent;
+    rfb::win32::Handle sessionEvent;
 
     // VNCServerWin32 Server-internal state
     rfb::win32::SDisplay desktop;

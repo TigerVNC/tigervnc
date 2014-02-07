@@ -44,10 +44,20 @@ void LaunchProcess::start(HANDLE userToken, bool createConsole) {
   await();
   returnCode = STILL_ACTIVE;
 
+  DWORD size;
+  char desktopName[256];
+  char buf[256];
+  HDESK desktop = GetThreadDesktop(GetCurrentThreadId());
+  if (!GetUserObjectInformation(desktop, UOI_NAME, buf, 256, &size))
+    throw rdr::SystemException("unable to launch process", GetLastError());
+
+  snprintf(desktopName, 256, "WinSta0\\%s", buf);
+
   // - Create storage for the process startup information
   STARTUPINFO sinfo;
   memset(&sinfo, 0, sizeof(sinfo));
   sinfo.cb = sizeof(sinfo);
+  sinfo.lpDesktop = desktopName;
 
   // - Concoct a suitable command-line
   TCharArray exePath;

@@ -136,22 +136,10 @@ public:
         }
         break;
       case ID_OPTIONS:
-        {
-          CurrentUserToken token;
-          if (token.canImpersonate())
-            vncConfig.start(isServiceProcess() ? (HANDLE)token : INVALID_HANDLE_VALUE);
-          else
-            vlog.error("Options: unknown current user");
-        }
+        vncConfig.start(INVALID_HANDLE_VALUE);
         break;
       case ID_CONNECT:
-        {
-          CurrentUserToken token;
-          if (token.canImpersonate())
-            vncConnect.start(isServiceProcess() ? (HANDLE)token : INVALID_HANDLE_VALUE);
-          else
-            vlog.error("Options: unknown current user");
-        }
+        vncConnect.start(INVALID_HANDLE_VALUE);
         break;
       case ID_DISCONNECT:
         thread.server.disconnectClients("tray menu disconnect");
@@ -160,7 +148,6 @@ public:
         if (MsgBox(0, _T("Are you sure you want to close the server?"),
                    MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2) == IDYES) {
           if (isServiceProcess()) {
-            ImpersonateCurrentUser icu;
             try {
               rfb::win32::stopService(VNCServerService::Name);
             } catch (rdr::Exception& e) {
