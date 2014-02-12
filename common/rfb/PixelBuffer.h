@@ -24,7 +24,6 @@
 #ifndef __RFB_PIXEL_BUFFER_H__
 #define __RFB_PIXEL_BUFFER_H__
 
-#include <rfb/ImageGetter.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb/Pixel.h>
@@ -33,7 +32,7 @@ namespace rfb {
 
   class Region;
 
-  class PixelBuffer : public ImageGetter {
+  class PixelBuffer {
   public:
     PixelBuffer(const PixelFormat& pf, int width, int height);
     virtual ~PixelBuffer();
@@ -73,8 +72,9 @@ namespace rfb {
 
     // Get pixel data for a given part of the buffer
     //   Data is copied into the supplied buffer, with the specified
-    //   stride.
-    virtual void getImage(void* imageBuf, const Rect& r, int stride=0);
+    //   stride. Try to avoid using this though as getBuffer() will in
+    //   most cases avoid the extra memory copy.
+    void getImage(void* imageBuf, const Rect& r, int stride=0);
 
     ///////////////////////////////////////////////
     // Framebuffer update methods

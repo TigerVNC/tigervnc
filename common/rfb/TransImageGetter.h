@@ -27,15 +27,13 @@
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/PixelTransformer.h>
-#include <rfb/ImageGetter.h>
 
 namespace rfb {
 
   class SMsgWriter;
   class PixelBuffer;
 
-  class TransImageGetter : public ImageGetter,
-                           public PixelTransformer {
+  class TransImageGetter : public PixelTransformer {
   public:
 
     TransImageGetter(bool econ=false);
