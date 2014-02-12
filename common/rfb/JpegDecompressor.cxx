@@ -1,6 +1,7 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2004-2005 Cendio AB. All rights reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +34,14 @@ extern "C" {
 
 using namespace rfb;
 
+//
+// Special formats that libjpeg can have optimised code paths for
+//
+
+static const PixelFormat pfRGBX(32, 24, false, true, 255, 255, 255, 0, 8, 16);
+static const PixelFormat pfBGRX(32, 24, false, true, 255, 255, 255, 16, 8, 0);
+static const PixelFormat pfXRGB(32, 24, false, true, 255, 255, 255, 8, 16, 24);
+static const PixelFormat pfXBGR(32, 24, false, true, 255, 255, 255, 24, 16, 8);
 
 //
 // Error manager implmentation for the JPEG library
@@ -169,33 +178,19 @@ void JpegDecompressor::decompress(const rdr::U8 *jpegBuf, int jpegBufLen,
 
 #ifdef JCS_EXTENSIONS
   // Try to have libjpeg output directly to our native format
-  if (pf.is888()) {
-    int redShift, greenShift, blueShift;
+  // libjpeg can only handle some "standard" formats
+  if (pfRGBX.equal(pf))
+    dinfo->out_color_space = JCS_EXT_RGBX;
+  else if (pfBGRX.equal(pf))
+    dinfo->out_color_space = JCS_EXT_BGRX;
+  else if (pfXRGB.equal(pf))
+    dinfo->out_color_space = JCS_EXT_XRGB;
+  else if (pfXBGR.equal(pf))
+    dinfo->out_color_space = JCS_EXT_XBGR;
 
-    if(pf.bigEndian) {
-      redShift = 24 - pf.redShift;
-      greenShift = 24 - pf.greenShift;
-      blueShift = 24 - pf.blueShift;
-    } else {
-      redShift = pf.redShift;
-      greenShift = pf.greenShift;
-      blueShift = pf.blueShift;
-    }
-
-    // libjpeg can only handle some "standard" formats
-    if(redShift == 0 && greenShift == 8 && blueShift == 16)
-      dinfo->out_color_space = JCS_EXT_RGBX;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0)
-      dinfo->out_color_space = JCS_EXT_BGRX;
-    if(redShift == 24 && greenShift == 16 && blueShift == 8)
-      dinfo->out_color_space = JCS_EXT_XBGR;
-    if(redShift == 8 && greenShift == 16 && blueShift == 24)
-      dinfo->out_color_space = JCS_EXT_XRGB;
-
-    if (dinfo->out_color_space != JCS_RGB) {
-      dstBuf = (rdr::U8 *)buf;
-      pixelsize = 4;
-    }
+  if (dinfo->out_color_space != JCS_RGB) {
+    dstBuf = (rdr::U8 *)buf;
+    pixelsize = 4;
   }
 #endif
 

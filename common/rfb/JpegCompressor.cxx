@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,15 @@ extern "C" {
 #include <setjmp.h>
 
 using namespace rfb;
+
+//
+// Special formats that libjpeg can have optimised code paths for
+//
+
+static const PixelFormat pfRGBX(32, 24, false, true, 255, 255, 255, 0, 8, 16);
+static const PixelFormat pfBGRX(32, 24, false, true, 255, 255, 255, 16, 8, 0);
+static const PixelFormat pfXRGB(32, 24, false, true, 255, 255, 255, 8, 16, 24);
+static const PixelFormat pfXBGR(32, 24, false, true, 255, 255, 255, 24, 16, 8);
 
 //
 // Error manager implmentation for the JPEG library
@@ -166,33 +176,20 @@ void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
   pixelsize = 3;
 
 #ifdef JCS_EXTENSIONS
-  // Try to have libjpeg read directly from our native format
-  if(pf.is888()) {
-    int redShift, greenShift, blueShift;
+  // Try to have libjpeg output directly to our native format
+  // libjpeg can only handle some "standard" formats
+  if (pfRGBX.equal(pf))
+    cinfo->in_color_space = JCS_EXT_RGBX;
+  else if (pfBGRX.equal(pf))
+    cinfo->in_color_space = JCS_EXT_BGRX;
+  else if (pfXRGB.equal(pf))
+    cinfo->in_color_space = JCS_EXT_XRGB;
+  else if (pfXBGR.equal(pf))
+    cinfo->in_color_space = JCS_EXT_XBGR;
 
-    if(pf.bigEndian) {
-      redShift = 24 - pf.redShift;
-      greenShift = 24 - pf.greenShift;
-      blueShift = 24 - pf.blueShift;
-    } else {
-      redShift = pf.redShift;
-      greenShift = pf.greenShift;
-      blueShift = pf.blueShift;
-    }
-
-    if(redShift == 0 && greenShift == 8 && blueShift == 16)
-      cinfo->in_color_space = JCS_EXT_RGBX;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0)
-      cinfo->in_color_space = JCS_EXT_BGRX;
-    if(redShift == 24 && greenShift == 16 && blueShift == 8)
-      cinfo->in_color_space = JCS_EXT_XBGR;
-    if(redShift == 8 && greenShift == 16 && blueShift == 24)
-      cinfo->in_color_space = JCS_EXT_XRGB;
-
-    if (cinfo->in_color_space != JCS_RGB) {
-      srcBuf = (rdr::U8 *)buf;
-      pixelsize = 4;
-    }
+  if (cinfo->in_color_space != JCS_RGB) {
+    srcBuf = (rdr::U8 *)buf;
+    pixelsize = 4;
   }
 #endif
 

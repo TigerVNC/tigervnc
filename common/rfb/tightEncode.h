@@ -540,12 +540,7 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
     *dataend = &data[stride * h];
   bool willTransform = ig->willTransform();
 
-  if (willTransform) {
-    mask = serverpf.redMax << serverpf.redShift;
-    mask |= serverpf.greenMax << serverpf.greenShift;
-    mask |= serverpf.blueMax << serverpf.blueShift;
-  }
-  else mask = ~0;
+  serverpf.bufferFromPixel((rdr::U8*)&mask, ~0);
 
   c0 = data[0] & mask;
   n0 = 0;
