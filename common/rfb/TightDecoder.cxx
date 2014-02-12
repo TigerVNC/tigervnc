@@ -25,8 +25,6 @@ using namespace rfb;
 
 #define TIGHT_MAX_WIDTH 2048
 
-#define FILL_RECT(r, p) handler->fillRect(r, p)
-#define IMAGE_RECT(r, p) handler->imageRect(r, p)
 #define BPP 8
 #include <rfb/tightDecode.h>
 #undef BPP

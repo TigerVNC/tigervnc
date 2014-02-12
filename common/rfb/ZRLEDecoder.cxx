@@ -41,9 +41,6 @@ static inline rdr::U32 readOpaque24B(rdr::InStream* is)
   return r;
 }
 
-#define EXTRA_ARGS CMsgHandler* handler
-#define FILL_RECT(r, p) handler->fillRect(r, p)
-#define IMAGE_RECT(r, p) handler->imageRect(r, p)
 #define BPP 8
 #include <rfb/zrleDecode.h>
 #undef BPP

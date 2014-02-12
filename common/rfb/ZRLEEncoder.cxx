@@ -43,8 +43,6 @@ static inline void writeOpaque24B(rdr::OutStream* os, rdr::U32 u)
   os->writeU8(((rdr::U8*)&u)[3]);
 }
 
-#define EXTRA_ARGS ImageGetter* ig
-#define GET_IMAGE_INTO_BUF(r,buf) ig->getImage(buf, r);
 #define BPP 8
 #include <rfb/zrleEncode.h>
 #undef BPP

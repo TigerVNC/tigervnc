@@ -30,8 +30,6 @@ BoolParameter improvedHextile("ImprovedHextile",
                               "ratios by the cost of using more CPU time",
                               true);
 
-#define EXTRA_ARGS ImageGetter* ig
-#define GET_IMAGE_INTO_BUF(r,buf) ig->getImage(buf, r);
 #define BPP 8
 #include <rfb/hextileEncode.h>
 #include <rfb/hextileEncodeBetter.h>

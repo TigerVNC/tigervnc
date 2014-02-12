@@ -19,10 +19,8 @@
 //
 // Hextile encoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// GET_IMAGE_INTO_BUF - gets a rectangle of pixel data into a buffer
 
 #include <rdr/OutStream.h>
 #include <rfb/hextileConstants.h>
@@ -277,11 +275,7 @@ void HEXTILE_TILE::encode(rdr::U8 *dst) const
 // Main encoding function.
 //
 
-void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
-#ifdef EXTRA_ARGS
-                    , EXTRA_ARGS
-#endif
-                    )
+void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os, TransImageGetter *ig)
 {
   Rect t;
   PIXEL_T buf[256];
@@ -300,7 +294,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
 
-      GET_IMAGE_INTO_BUF(t,buf);
+      ig->getImage(buf, t);
 
       tile.newTile(buf, t.width(), t.height());
       int tileType = tile.getFlags();

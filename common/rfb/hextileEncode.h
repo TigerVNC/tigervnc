@@ -19,10 +19,8 @@
 //
 // Hextile encoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// GET_IMAGE_INTO_BUF - gets a rectangle of pixel data into a buffer
 
 #include <rdr/OutStream.h>
 #include <rfb/hextileConstants.h>
@@ -46,11 +44,7 @@ int TEST_TILE_TYPE (PIXEL_T* data, int w, int h, PIXEL_T* bg, PIXEL_T* fg);
 int HEXTILE_ENCODE_TILE (PIXEL_T* data, int w, int h, int tileType,
                          rdr::U8* encoded, PIXEL_T bg);
 
-void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
-#ifdef EXTRA_ARGS
-                    , EXTRA_ARGS
-#endif
-                    )
+void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os, TransImageGetter *ig)
 {
   Rect t;
   PIXEL_T buf[256];
@@ -67,7 +61,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
 
-      GET_IMAGE_INTO_BUF(t,buf);
+      ig->getImage(buf, t);
 
       PIXEL_T bg = 0, fg = 0;
       int tileType = TEST_TILE_TYPE(buf, t.width(), t.height(), &bg, &fg);
@@ -96,7 +90,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
                                          encoded, bg);
 
         if (encodedLen < 0) {
-          GET_IMAGE_INTO_BUF(t,buf);
+          ig->getImage(buf, t);
           os->writeU8(hextileRaw);
           os->writeBytes(buf, t.width() * t.height() * (BPP/8));
           oldBgValid = oldFgValid = false;

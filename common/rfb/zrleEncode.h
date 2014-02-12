@@ -19,10 +19,8 @@
 //
 // zrleEncode.h - zrle encoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// GET_IMAGE_INTO_BUF - gets a rectangle of pixel data into a buffer
 //
 // Note that the buf argument to ZRLE_ENCODE needs to be at least one pixel
 // bigger than the largest tile of pixel data, since the ZRLE encoding
@@ -67,11 +65,8 @@ static const int bitsPerPackedPixel[] = {
 void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os);
 
 void ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
-                  rdr::ZlibOutStream* zos, void* buf
-#ifdef EXTRA_ARGS
-                  , EXTRA_ARGS
-#endif
-                  )
+                  rdr::ZlibOutStream* zos, void* buf,
+                  TransImageGetter *ig)
 {
   zos->setUnderlying(os);
   // RLE overhead is at worst 1 byte per 64x64 (4Kpixel) block
@@ -88,7 +83,7 @@ void ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
 
-      GET_IMAGE_INTO_BUF(t,buf);
+      ig->getImage(buf, t);
 
       ZRLE_ENCODE_TILE((PIXEL_T*)buf, t.width(), t.height(), zos);
     }

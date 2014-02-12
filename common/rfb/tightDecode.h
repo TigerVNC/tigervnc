@@ -21,11 +21,8 @@
 //
 // Tight decoding functions.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// FILL_RECT          - fill a rectangle with a single color
-// IMAGE_RECT         - draw a rectangle of pixel data from a buffer
 
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
@@ -80,7 +77,7 @@ void TIGHT_DECODE (const Rect& r)
     } else {
       pix = is->READ_PIXEL();
     }
-    FILL_RECT(r, pix);
+    handler->fillRect(r, pix);
     return;
   }
 
@@ -229,7 +226,7 @@ void TIGHT_DECODE (const Rect& r)
   }
 
   if (directDecode) handler->releaseRawBuffer(r);
-  else IMAGE_RECT(r, buf);
+  else handler->imageRect(r, buf);
 
   delete [] netbuf;
 

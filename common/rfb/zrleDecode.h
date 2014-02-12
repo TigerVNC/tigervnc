@@ -19,11 +19,8 @@
 //
 // ZRLE decoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// FILL_RECT          - fill a rectangle with a single colour
-// IMAGE_RECT         - draw a rectangle of pixel data from a buffer
 
 #include <stdio.h>
 #include <rdr/InStream.h>
@@ -50,11 +47,8 @@ namespace rfb {
 #endif
 
 void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
-                      rdr::ZlibInStream* zis, PIXEL_T* buf
-#ifdef EXTRA_ARGS
-                      , EXTRA_ARGS
-#endif
-                      )
+                  rdr::ZlibInStream* zis, PIXEL_T* buf,
+                  CMsgHandler* handler)
 {
   int length = is->readU32();
   zis->setUnderlying(is, length);
@@ -79,7 +73,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
       if (palSize == 1) {
         PIXEL_T pix = palette[0];
-        FILL_RECT(t,pix);
+        handler->fillRect(t, pix);
         continue;
       }
 
@@ -179,7 +173,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
       //fprintf(stderr,"copying data to screen %dx%d at %d,%d\n",
       //t.width(),t.height(),t.tl.x,t.tl.y);
-      IMAGE_RECT(t,buf);
+      handler->imageRect(t, buf);
     }
   }
 
