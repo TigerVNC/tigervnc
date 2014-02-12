@@ -72,6 +72,11 @@ namespace rfb {
     //   stride. Try to avoid using this though as getBuffer() will in
     //   most cases avoid the extra memory copy.
     void getImage(void* imageBuf, const Rect& r, int stride=0);
+    // Get pixel data in a given format
+    //   Works just the same as getImage(), but guaranteed to be in a
+    //   specific format.
+    void getImage(const PixelFormat& pf, void* imageBuf,
+                  const Rect& r, int stride=0);
 
     ///////////////////////////////////////////////
     // Framebuffer update methods

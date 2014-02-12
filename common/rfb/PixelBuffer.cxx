@@ -60,6 +60,26 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
   }
 }
 
+void PixelBuffer::getImage(const PixelFormat& pf, void* imageBuf,
+                           const Rect& r, int stride)
+{
+  const rdr::U8* srcBuffer;
+  int srcStride;
+
+  if (format.equal(pf)) {
+    getImage(imageBuf, r, stride);
+    return;
+  }
+
+  if (stride == 0)
+    stride = r.width();
+
+  srcBuffer = getBuffer(r, &srcStride);
+
+  pf.bufferFromBuffer((U8*)imageBuf, format, srcBuffer, r.width(), r.height(),
+                      stride, srcStride);
+}
+
 // -=- Modifiable generic pixel buffer class
 
 ModifiablePixelBuffer::ModifiablePixelBuffer(const PixelFormat& pf,
