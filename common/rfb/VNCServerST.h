@@ -224,9 +224,7 @@ namespace rfb {
 
     Point cursorPos;
     Cursor cursor;
-    Point cursorTL() { return cursorPos.subtract(cursor.hotspot); }
-    Point renderedCursorTL;
-    ManagedPixelBuffer renderedCursor;
+    RenderedCursor renderedCursor;
     bool renderedCursorInvalid;
 
     // - Check how many of the clients are authenticated.

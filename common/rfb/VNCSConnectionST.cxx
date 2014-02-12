@@ -1050,8 +1050,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   if (needRenderedCursor()) {
     renderedCursorRect
-      = (server->renderedCursor.getRect(server->renderedCursorTL)
-         .intersect(req.get_bounding_rect()));
+      = server->renderedCursor.getEffectiveRect()
+         .intersect(req.get_bounding_rect());
 
     if (renderedCursorRect.is_empty()) {
       drawRenderedCursor = false;
@@ -1123,12 +1123,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
     if (drawRenderedCursor) {
       image_getter.setPixelBuffer(&server->renderedCursor);
-      image_getter.setOffset(server->renderedCursorTL);
-
       encoders[encoding]->writeRect(renderedCursorRect, &image_getter);
-
       image_getter.setPixelBuffer(server->pb);
-      image_getter.setOffset(Point(0,0));
 
       drawRenderedCursor = false;
     }

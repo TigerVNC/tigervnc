@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +51,21 @@ namespace rfb {
     // crop() crops the cursor down to the smallest possible size, based on the
     // mask.
     void crop();
+  };
+
+  class RenderedCursor : public PixelBuffer {
+  public:
+    RenderedCursor();
+
+    Rect getEffectiveRect() const { return buffer.getRect(offset); }
+
+    virtual const rdr::U8* getBuffer(const Rect& r, int* stride);
+
+    void update(PixelBuffer* framebuffer, Cursor* cursor, const Point& pos);
+
+  protected:
+    ManagedPixelBuffer buffer;
+    Point offset;
   };
 
 }
