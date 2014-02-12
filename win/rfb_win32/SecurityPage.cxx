@@ -50,17 +50,16 @@ SecurityPage::initDialog()
   list<U8> secTypes;
   list<U8>::iterator i;
 
-  enableVeNCryptFeatures(false);
+  if (isItemChecked(IDC_ENC_X509))
+    enableX509Dialogs();
+  else
+    disableX509Dialogs();
 
   secTypes = security->GetEnabledSecTypes();
 
   /* Process non-VeNCrypt sectypes */
   for (i = secTypes.begin(); i != secTypes.end(); i++) {
     switch (*i) {
-    case secTypeVeNCrypt:
-      enableVeNCryptFeatures(true);
-      setItemChecked(IDC_VENCRYPT, true);
-      break;
     case secTypeNone:
       enableAuthMethod(IDC_ENC_NONE, IDC_AUTH_NONE);
       break;
@@ -76,34 +75,32 @@ SecurityPage::initDialog()
   secTypesExt = security->GetEnabledExtSecTypes();
 
   /* Process VeNCrypt subtypes */
-  if (isItemChecked(IDC_VENCRYPT)) {
-    for (iext = secTypesExt.begin(); iext != secTypesExt.end(); iext++) {
-      switch (*iext) {
-      case secTypePlain:
-	enableAuthMethod(IDC_ENC_NONE, IDC_AUTH_PLAIN);
-	break;
-      case secTypeTLSNone:
-	enableAuthMethod(IDC_ENC_TLS, IDC_AUTH_NONE);
-	break;
-      case secTypeTLSVnc:
-	enableAuthMethod(IDC_ENC_TLS, IDC_AUTH_VNC);
-	break;
-      case secTypeTLSPlain:
-	enableAuthMethod(IDC_ENC_TLS, IDC_AUTH_PLAIN);
-	break;
-      case secTypeX509None:
-	enableAuthMethod(IDC_ENC_X509, IDC_AUTH_NONE);
-        enableX509Dialogs();
-	break;
-      case secTypeX509Vnc:
-	enableAuthMethod(IDC_ENC_X509, IDC_AUTH_VNC);
-        enableX509Dialogs();
-	break;
-      case secTypeX509Plain:
-	enableAuthMethod(IDC_ENC_X509, IDC_AUTH_PLAIN);
-        enableX509Dialogs();
-	break;
-      }
+  for (iext = secTypesExt.begin(); iext != secTypesExt.end(); iext++) {
+    switch (*iext) {
+    case secTypePlain:
+      enableAuthMethod(IDC_ENC_NONE, IDC_AUTH_PLAIN);
+      break;
+    case secTypeTLSNone:
+      enableAuthMethod(IDC_ENC_TLS, IDC_AUTH_NONE);
+      break;
+    case secTypeTLSVnc:
+      enableAuthMethod(IDC_ENC_TLS, IDC_AUTH_VNC);
+      break;
+    case secTypeTLSPlain:
+      enableAuthMethod(IDC_ENC_TLS, IDC_AUTH_PLAIN);
+      break;
+    case secTypeX509None:
+      enableAuthMethod(IDC_ENC_X509, IDC_AUTH_NONE);
+      enableX509Dialogs();
+      break;
+    case secTypeX509Vnc:
+      enableAuthMethod(IDC_ENC_X509, IDC_AUTH_VNC);
+      enableX509Dialogs();
+      break;
+    case secTypeX509Plain:
+      enableAuthMethod(IDC_ENC_X509, IDC_AUTH_PLAIN);
+      enableX509Dialogs();
+      break;
     }
   }
 }
@@ -111,9 +108,7 @@ SecurityPage::initDialog()
 bool
 SecurityPage::onCommand(int id, int cmd)
 {
-  if (id == IDC_VENCRYPT) {
-    enableVeNCryptFeatures(isItemChecked(IDC_VENCRYPT));
-  } else if (id == IDC_ENC_X509) {
+  if (id == IDC_ENC_X509) {
     if (isItemChecked(IDC_ENC_X509))
       enableX509Dialogs();
     else
@@ -130,44 +125,42 @@ SecurityPage::onOk() {
   list<U32> secTypes;
 
   /* Keep same priorities as in common/rfb/SecurityClient::secTypes */
-  if (isItemChecked(IDC_VENCRYPT)) {
-    secTypes.push_back(secTypeVeNCrypt);
+  secTypes.push_back(secTypeVeNCrypt);
 
 #ifdef HAVE_GNUTLS
-    /* X509Plain */
-    if (authMethodEnabled(IDC_ENC_X509, IDC_AUTH_PLAIN)) {
-      loadX509Certs(x509_loaded);
-      secTypes.push_back(secTypeX509Plain);
-    }
-
-    /* TLSPlain */
-    if (authMethodEnabled(IDC_ENC_TLS, IDC_AUTH_PLAIN))
-      secTypes.push_back(secTypeTLSPlain);
-
-    /* X509Vnc */
-    if (authMethodEnabled(IDC_ENC_X509, IDC_AUTH_VNC)) {
-      loadX509Certs(x509_loaded);
-      loadVncPasswd(vnc_loaded);
-      secTypes.push_back(secTypeX509Vnc);
-    }
-
-    /* TLSVnc */
-    if (authMethodEnabled(IDC_ENC_TLS, IDC_AUTH_VNC)) {
-      loadVncPasswd(vnc_loaded);
-      secTypes.push_back(secTypeTLSVnc);
-    }
-
-    /* X509None */
-    if (authMethodEnabled(IDC_ENC_X509, IDC_AUTH_NONE)) {
-      loadX509Certs(x509_loaded);
-      secTypes.push_back(secTypeX509None);
-    }
-
-    /* TLSNone */
-    if (authMethodEnabled(IDC_ENC_TLS, IDC_AUTH_NONE))
-      secTypes.push_back(secTypeTLSNone);
-#endif
+  /* X509Plain */
+  if (authMethodEnabled(IDC_ENC_X509, IDC_AUTH_PLAIN)) {
+    loadX509Certs(x509_loaded);
+    secTypes.push_back(secTypeX509Plain);
   }
+
+  /* TLSPlain */
+  if (authMethodEnabled(IDC_ENC_TLS, IDC_AUTH_PLAIN))
+    secTypes.push_back(secTypeTLSPlain);
+
+  /* X509Vnc */
+  if (authMethodEnabled(IDC_ENC_X509, IDC_AUTH_VNC)) {
+    loadX509Certs(x509_loaded);
+    loadVncPasswd(vnc_loaded);
+    secTypes.push_back(secTypeX509Vnc);
+  }
+
+  /* TLSVnc */
+  if (authMethodEnabled(IDC_ENC_TLS, IDC_AUTH_VNC)) {
+    loadVncPasswd(vnc_loaded);
+    secTypes.push_back(secTypeTLSVnc);
+  }
+
+  /* X509None */
+  if (authMethodEnabled(IDC_ENC_X509, IDC_AUTH_NONE)) {
+    loadX509Certs(x509_loaded);
+    secTypes.push_back(secTypeX509None);
+  }
+
+  /* TLSNone */
+  if (authMethodEnabled(IDC_ENC_TLS, IDC_AUTH_NONE))
+    secTypes.push_back(secTypeTLSNone);
+#endif
 
   /* VncAuth */
   if (authMethodEnabled(IDC_ENC_NONE, IDC_AUTH_VNC)) {
@@ -182,21 +175,6 @@ SecurityPage::onOk() {
   security->SetSecTypes(secTypes);
 
   return true;
-}
-
-inline void
-SecurityPage::enableVeNCryptFeatures(bool enable)
-{
-  if (enable) {
-    enableItem(IDC_ENC_TLS, true);
-    enableItem(IDC_ENC_X509, true);
-    enableItem(IDC_AUTH_PLAIN, true);
-  } else {
-    disableFeature(IDC_ENC_TLS);
-    disableFeature(IDC_ENC_X509);
-    disableFeature(IDC_AUTH_PLAIN);
-    disableX509Dialogs();
-  }
 }
 
 inline void

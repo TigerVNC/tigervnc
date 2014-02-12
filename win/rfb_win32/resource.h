@@ -27,7 +27,6 @@
 
 #define IDD_SECURITY		117
 
-#define IDC_VENCRYPT		1200
 #define IDC_ENC_NONE		1201
 #define IDC_ENC_TLS		1202
 #define IDC_ENC_X509		1203
