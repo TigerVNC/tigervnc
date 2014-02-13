@@ -42,7 +42,7 @@ PixelBuffer::~PixelBuffer() {}
 
 
 void
-PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
+PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) const {
   int inStride;
   const U8* data = getBuffer(r, &inStride);
   // We assume that the specified rectangle is pre-clipped to the buffer
@@ -61,7 +61,7 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
 }
 
 void PixelBuffer::getImage(const PixelFormat& pf, void* imageBuf,
-                           const Rect& r, int stride)
+                           const Rect& r, int stride) const
 {
   const rdr::U8* srcBuffer;
   int srcStride;
@@ -330,6 +330,12 @@ rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
 
 void FullFramePixelBuffer::commitBufferRW(const Rect& r)
 {
+}
+
+const rdr::U8* FullFramePixelBuffer::getBuffer(const Rect& r, int* stride_) const
+{
+  *stride_ = stride;
+  return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
 }
 
 // -=- Managed pixel buffer class

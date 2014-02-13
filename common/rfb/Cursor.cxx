@@ -82,7 +82,7 @@ void Cursor::drawOutline(const Pixel& c)
   mask.buf = outlined.mask.buf; outlined.mask.buf = 0;
 }
 
-rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1)
+rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1) const
 {
   bool gotPix0 = false;
   bool gotPix1 = false;
@@ -182,7 +182,7 @@ RenderedCursor::RenderedCursor()
 {
 }
 
-const rdr::U8* RenderedCursor::getBuffer(const Rect& _r, int* stride)
+const rdr::U8* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
 {
   Rect r;
 

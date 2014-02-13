@@ -65,18 +65,18 @@ namespace rfb {
     // Get a pointer into the buffer
     //   The pointer is to the top-left pixel of the specified Rect.
     //   The buffer stride (in pixels) is returned.
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) = 0;
+    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const = 0;
 
     // Get pixel data for a given part of the buffer
     //   Data is copied into the supplied buffer, with the specified
     //   stride. Try to avoid using this though as getBuffer() will in
     //   most cases avoid the extra memory copy.
-    void getImage(void* imageBuf, const Rect& r, int stride=0);
+    void getImage(void* imageBuf, const Rect& r, int stride=0) const;
     // Get pixel data in a given format
     //   Works just the same as getImage(), but guaranteed to be in a
     //   specific format.
     void getImage(const PixelFormat& pf, void* imageBuf,
-                  const Rect& r, int stride=0);
+                  const Rect& r, int stride=0) const;
 
     ///////////////////////////////////////////////
     // Framebuffer update methods
@@ -113,11 +113,6 @@ namespace rfb {
     //   here needs to match the Rect given to the earlier call to
     //   getBufferRW().
     virtual void commitBufferRW(const Rect& r) = 0;
-
-    // Default trivial handling of read-only access
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) {
-      return getBufferRW(r, stride);
-    }
 
     ///////////////////////////////////////////////
     // Basic rendering operations
@@ -162,6 +157,7 @@ namespace rfb {
     virtual ~FullFramePixelBuffer();
 
   public:
+    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const;
     virtual rdr::U8* getBufferRW(const Rect& r, int* stride);
     virtual void commitBufferRW(const Rect& r);
 
