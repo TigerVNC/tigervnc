@@ -36,8 +36,8 @@ static LogWriter vlog("SMsgWriter");
 SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
   : imageBufIdealSize(0), cp(cp_), os(os_), currentEncoding(0),
     nRectsInUpdate(0), nRectsInHeader(0),
-    wsccb(0), needSetDesktopSize(false),
-    needExtendedDesktopSize(false), needSetDesktopName(false),
+    needSetDesktopSize(false), needExtendedDesktopSize(false),
+    needSetDesktopName(false), needSetCursor(false), needSetXCursor(false),
     lenBeforeRect(0), updatesSent(0), rawBytesEquivalent(0),
     imageBuf(0), imageBufSize(0)
 {
@@ -179,69 +179,46 @@ bool SMsgWriter::writeSetDesktopName() {
   return true;
 }
 
-void SMsgWriter::cursorChange(WriteSetCursorCallback* cb)
+bool SMsgWriter::writeSetCursor()
 {
-  wsccb = cb;
+  if (!cp->supportsLocalCursor)
+    return false;
+
+  needSetCursor = true;
+
+  return true;
 }
 
-void SMsgWriter::writeSetCursor(int width, int height, const Point& hotspot,
-                                void* data, void* mask)
+bool SMsgWriter::writeSetXCursor()
 {
-  if (!wsccb)
-    return;
+  if (!cp->supportsLocalXCursor)
+    return false;
 
-  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
-    throw Exception("SMsgWriter::writeSetCursor: nRects out of sync");
+  needSetXCursor = true;
 
-  os->writeS16(hotspot.x);
-  os->writeS16(hotspot.y);
-  os->writeU16(width);
-  os->writeU16(height);
-  os->writeU32(pseudoEncodingCursor);
-  os->writeBytes(data, width * height * (cp->pf().bpp/8));
-  os->writeBytes(mask, (width+7)/8 * height);
-}
-
-void SMsgWriter::writeSetXCursor(int width, int height, int hotspotX,
-                                 int hotspotY, void* data, void* mask)
-{
-  if (!wsccb)
-    return;
-
-  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
-    throw Exception("SMsgWriter::writeSetXCursor: nRects out of sync");
-
-  os->writeS16(hotspotX);
-  os->writeS16(hotspotY);
-  os->writeU16(width);
-  os->writeU16(height);
-  os->writeU32(pseudoEncodingXCursor);
-  // FIXME: We only support black and white cursors, currently. We
-  // could pass the correct color by using the pix0/pix1 values
-  // returned from getBitmap, in writeSetCursorCallback. However, we
-  // would then need to undo the conversion from rgb to Pixel that is
-  // done by FakeAllocColor.
-  if (width * height) {
-    os->writeU8(0);
-    os->writeU8(0);
-    os->writeU8(0);
-    os->writeU8(255);
-    os->writeU8(255);
-    os->writeU8(255);
-    os->writeBytes(data, (width+7)/8 * height);
-    os->writeBytes(mask, (width+7)/8 * height);
-  }
+  return true;
 }
 
 bool SMsgWriter::needFakeUpdate()
 {
-  return wsccb || needSetDesktopName || needNoDataUpdate();
+  if (needSetDesktopName)
+    return true;
+  if (needSetCursor || needSetXCursor)
+    return true;
+  if (needNoDataUpdate())
+    return true;
+
+  return false;
 }
 
 bool SMsgWriter::needNoDataUpdate()
 {
-  return needSetDesktopSize || needExtendedDesktopSize ||
-         !extendedDesktopSizeMsgs.empty();
+  if (needSetDesktopSize)
+    return true;
+  if (needExtendedDesktopSize || !extendedDesktopSizeMsgs.empty())
+    return true;
+
+  return false;
 }
 
 void SMsgWriter::writeNoDataUpdate()
@@ -268,9 +245,11 @@ void SMsgWriter::writeFramebufferUpdateStart(int nRects)
   os->pad(1);
 
   if (nRects != 0xFFFF) {
-    if (wsccb)
-      nRects++;
     if (needSetDesktopName)
+      nRects++;
+    if (needSetCursor)
+      nRects++;
+    if (needSetXCursor)
       nRects++;
   }
 
@@ -369,9 +348,41 @@ void SMsgWriter::endMsg()
 
 void SMsgWriter::writePseudoRects()
 {
-  if (wsccb) {
-    wsccb->writeSetCursorCallback();
-    wsccb = 0;
+  if (needSetCursor) {
+    rdr::U8* data;
+    int stride;
+
+    const Cursor& cursor = cp->cursor();
+
+    data = new rdr::U8[cursor.area() * cp->pf().bpp/8];
+    cursor.getImage(cp->pf(), data, cursor.getRect());
+
+    writeSetCursorRect(cursor.width(), cursor.height(),
+                       cursor.hotspot.x, cursor.hotspot.y,
+                       data, cursor.mask.buf);
+    needSetCursor = false;
+
+    delete [] data;
+  }
+
+  if (needSetXCursor) {
+    const Cursor& cursor = cp->cursor();
+    Pixel pix0, pix1;
+    rdr::U8 rgb0[3], rgb1[3];
+    rdr::U8Array bitmap(cursor.getBitmap(&pix0, &pix1));
+
+    if (!bitmap.buf) {
+      // FIXME: We could reduce to two colors.
+      throw Exception("SMsgWriter::writePseudoRects: Unable to send multicolor cursor: RichCursor not supported by client");
+    }
+
+    cp->pf().rgbFromPixel(pix0, &rgb0[0], &rgb0[1], &rgb0[2]);
+    cp->pf().rgbFromPixel(pix1, &rgb1[0], &rgb1[1], &rgb1[2]);
+
+    writeSetXCursorRect(cursor.width(), cursor.height(),
+                        cursor.hotspot.x, cursor.hotspot.y,
+                        rgb0, rgb1, bitmap.buf, cursor.mask.buf);
+    needSetXCursor = false;
   }
 
   if (needSetDesktopName) {
@@ -468,4 +479,50 @@ void SMsgWriter::writeSetDesktopNameRect(const char *name)
   os->writeU16(0);
   os->writeU32(pseudoEncodingDesktopName);
   os->writeString(name);
+}
+
+void SMsgWriter::writeSetCursorRect(int width, int height,
+                                    int hotspotX, int hotspotY,
+                                    const void* data, const void* mask)
+{
+  if (!cp->supportsLocalCursor)
+    throw Exception("Client does not support local cursors");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetCursorRect: nRects out of sync");
+
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingCursor);
+  os->writeBytes(data, width * height * (cp->pf().bpp/8));
+  os->writeBytes(mask, (width+7)/8 * height);
+}
+
+void SMsgWriter::writeSetXCursorRect(int width, int height,
+                                     int hotspotX, int hotspotY,
+                                     const rdr::U8 pix0[],
+                                     const rdr::U8 pix1[],
+                                     const void* data, const void* mask)
+{
+  if (!cp->supportsLocalXCursor)
+    throw Exception("Client does not support local cursors");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetXCursorRect: nRects out of sync");
+
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingXCursor);
+  if (width * height) {
+    os->writeU8(pix0[0]);
+    os->writeU8(pix0[1]);
+    os->writeU8(pix0[2]);
+    os->writeU8(pix1[0]);
+    os->writeU8(pix1[1]);
+    os->writeU8(pix1[2]);
+    os->writeBytes(data, (width+7)/8 * height);
+    os->writeBytes(mask, (width+7)/8 * height);
+  }
 }

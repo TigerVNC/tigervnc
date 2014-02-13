@@ -712,46 +712,6 @@ void VNCSConnectionST::supportsContinuousUpdates()
   writer()->writeEndOfContinuousUpdates();
 }
 
-void VNCSConnectionST::writeSetCursorCallback()
-{
-  if (cp.supportsLocalXCursor) {
-    Pixel pix0, pix1;
-    rdr::U8Array bitmap(server->cursor.getBitmap(&pix0, &pix1));
-    if (bitmap.buf) {
-      // The client supports XCursor and the cursor only has two
-      // colors. Use the XCursor encoding.
-      writer()->writeSetXCursor(server->cursor.width(),
-				server->cursor.height(),
-				server->cursor.hotspot.x,
-				server->cursor.hotspot.y,
-				bitmap.buf, server->cursor.mask.buf);
-      return;
-    } else {
-      // More than two colors
-      if (!cp.supportsLocalCursor) {
-	// FIXME: We could reduce to two colors. 
-	vlog.info("Unable to send multicolor cursor: RichCursor not supported by client");
-	return;
-      }
-    }
-  }
-
-  // Use RichCursor
-  rdr::U8* transBuffer;
-  int stride;
-  const rdr::U8* buffer;
-
-  transBuffer = writer()->getImageBuf(server->cursor.area());
-
-  buffer = server->cursor.getBuffer(server->cursor.getRect(), &stride);
-  image_getter.translatePixels(buffer, transBuffer, server->cursor.area());
-
-  writer()->writeSetCursor(server->cursor.width(),
-                           server->cursor.height(),
-                           server->cursor.hotspot,
-                           transBuffer, server->cursor.mask.buf);
-}
-
 
 bool VNCSConnectionST::handleTimeout(Timer* t)
 {
@@ -1166,10 +1126,16 @@ void VNCSConnectionST::setCursor()
 {
   if (state() != RFBSTATE_NORMAL)
     return;
-  if (!cp.supportsLocalCursor)
-    return;
 
-  writer()->cursorChange(this);
+  cp.setCursor(server->cursor);
+
+  if (!writer()->writeSetCursor()) {
+    if (!writer()->writeSetXCursor()) {
+      // No client support
+      return;
+    }
+  }
+
   writeFramebufferUpdate();
 }
 

@@ -40,7 +40,6 @@ namespace rfb {
   class Encoder;
 
   class VNCSConnectionST : public SConnection,
-                           public WriteSetCursorCallback,
                            public Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
@@ -151,9 +150,6 @@ namespace rfb {
     // such that the actual rights granted are the minimum of the server's
     // default access settings and the connection's access settings.
     virtual void setAccessRights(AccessRights ar) {accessRights=ar;}
-
-    // WriteSetCursorCallback
-    virtual void writeSetCursorCallback();
 
     // Timer callbacks
     virtual bool handleTimeout(Timer* t);
