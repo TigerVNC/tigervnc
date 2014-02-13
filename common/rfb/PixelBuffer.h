@@ -137,6 +137,13 @@ namespace rfb {
     //   pixel is the Pixel value to be used where mask_ is set
     void maskRect(const Rect& r, Pixel pixel, const void* mask_);
 
+    // Render in a specific format
+    //   Does the exact same thing as the above methods, but the given
+    //   pixel values are defined by the given PixelFormat.
+    void fillRect(const PixelFormat& pf, const Rect &dest, Pixel pix);
+    void imageRect(const PixelFormat& pf, const Rect &dest,
+                   const void* pixels, int stride=0);
+
   protected:
     ModifiablePixelBuffer();
   };

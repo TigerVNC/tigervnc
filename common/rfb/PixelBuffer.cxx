@@ -268,6 +268,28 @@ void ModifiablePixelBuffer::copyRect(const Rect &rect,
   commitBufferRW(drect);
 }
 
+void ModifiablePixelBuffer::fillRect(const PixelFormat& pf, const Rect &dest,
+                                     Pixel pix)
+{
+  fillRect(dest, format.pixelFromPixel(pf, pix));
+}
+
+void ModifiablePixelBuffer::imageRect(const PixelFormat& pf, const Rect &dest,
+                                      const void* pixels, int stride)
+{
+  rdr::U8* dstBuffer;
+  int dstStride;
+
+  if (stride == 0)
+    stride = dest.width();
+
+  dstBuffer = getBufferRW(dest, &dstStride);
+  format.bufferFromBuffer(dstBuffer, pf, (const rdr::U8*)pixels,
+                          dest.width(), dest.height(),
+                          dstStride, stride);
+  commitBufferRW(dest);
+}
+
 // -=- Simple pixel buffer with a continuous block of memory
 
 FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
