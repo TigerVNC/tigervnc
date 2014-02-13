@@ -206,10 +206,11 @@ void ModifiablePixelBuffer::maskRect(const Rect& r,
 void ModifiablePixelBuffer::copyRect(const Rect &rect,
                                      const Point &move_by_delta)
 {
-  int stride;
-  U8* data;
-  unsigned int bytesPerPixel, bytesPerRow, bytesPerMemCpy;
-  Rect drect, srect = rect.translate(move_by_delta.negate());
+  int srcStride, dstStride;
+  const U8* srcData;
+  U8* dstData;
+
+  Rect drect, srect;
 
   drect = rect;
   if (!drect.enclosed_by(getRect())) {
@@ -233,28 +234,38 @@ void ModifiablePixelBuffer::copyRect(const Rect &rect,
   if (srect.is_empty())
     return;
 
-  data = getBufferRW(getRect(), &stride);
-  bytesPerPixel = getPF().bpp/8;
-  bytesPerRow = stride * bytesPerPixel;
-  bytesPerMemCpy = drect.width() * bytesPerPixel;
-  if (move_by_delta.y <= 0) {
-    U8* dest = data + drect.tl.x*bytesPerPixel + drect.tl.y*bytesPerRow;
-    U8* src = data + srect.tl.x*bytesPerPixel + srect.tl.y*bytesPerRow;
-    for (int i=drect.tl.y; i<drect.br.y; i++) {
-      memmove(dest, src, bytesPerMemCpy);
-      dest += bytesPerRow;
-      src += bytesPerRow;
+  srcData = getBuffer(srect, &srcStride);
+  dstData = getBufferRW(drect, &dstStride);
+
+  if (move_by_delta.y == 0) {
+    // Possible overlap. Be careful and use memmove().
+    int h = drect.height();
+    while (h--) {
+      memmove(dstData, srcData, drect.width() * format.bpp/8);
+      dstData += dstStride * format.bpp/8;
+      srcData += srcStride * format.bpp/8;
+    }
+  } else if (move_by_delta.y < 0) {
+    // The data shifted upwards. Copy from top to bottom.
+    int h = drect.height();
+    while (h--) {
+      memcpy(dstData, srcData, drect.width() * format.bpp/8);
+      dstData += dstStride * format.bpp/8;
+      srcData += srcStride * format.bpp/8;
     }
   } else {
-    U8* dest = data + drect.tl.x*bytesPerPixel + (drect.br.y-1)*bytesPerRow;
-    U8* src = data + srect.tl.x*bytesPerPixel + (srect.br.y-1)*bytesPerRow;
-    for (int i=drect.tl.y; i<drect.br.y; i++) {
-      memmove(dest, src, bytesPerMemCpy);
-      dest -= bytesPerRow;
-      src -= bytesPerRow;
+    // The data shifted downwards. Copy from bottom to top.
+    int h = drect.height();
+    dstData += (h-1) * dstStride * format.bpp/8;
+    srcData += (h-1) * srcStride * format.bpp/8;
+    while (h--) {
+      memcpy(dstData, srcData, drect.width() * format.bpp/8);
+      dstData -= dstStride * format.bpp/8;
+      srcData -= srcStride * format.bpp/8;
     }
   }
-  commitBufferRW(getRect());
+
+  commitBufferRW(drect);
 }
 
 // -=- Simple pixel buffer with a continuous block of memory
