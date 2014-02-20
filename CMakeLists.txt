@@ -402,9 +402,12 @@ if(ENABLE_NLS)
   add_subdirectory(po)
 endif()
 
-add_subdirectory(vncviewer)
+option(BUILD_VIEWER "Build TigerVNC viewer" ON)
+if(BUILD_VIEWER)
+  add_subdirectory(vncviewer)
+  add_subdirectory(media)
+endif()
 
-add_subdirectory(media)
 
 include(cmake/BuildPackages.cmake)
 
