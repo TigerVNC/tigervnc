@@ -1,4 +1,4 @@
-/* Copyright 2009 Pierre Ossman for Cendio AB
+/* Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,10 +78,28 @@ inline void PixelFormat::bufferFromPixel(rdr::U8* buffer, Pixel p) const
 inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const
 {
   if (trueColour) {
-    /* We don't need to mask since we shift out unwanted bits */
-    *r = (p >> redShift) << redConvShift;
-    *g = (p >> greenShift) << greenConvShift;
-    *b = (p >> blueShift) << blueConvShift;
+    int mb, rb, gb, bb;
+
+    /* Bit replication is much cheaper than multiplication and division */
+
+    mb = minBits;
+    rb = redBits;
+    gb = greenBits;
+    bb = blueBits;
+
+    *r = (p >> redShift) << (16 - rb);
+    *g = (p >> greenShift) << (16 - gb);
+    *b = (p >> blueShift) << (16 - bb);
+
+    while (mb < 16) {
+      *r = *r | (*r >> rb);
+      *g = *g | (*g >> gb);
+      *b = *b | (*b >> bb);
+      mb <<= 1;
+      rb <<= 1;
+      gb <<= 1;
+      bb <<= 1;
+    }
   } else if (cm) {
     int ir, ig, ib;
     cm->lookup(p, &ir, &ig, &ib);
@@ -100,9 +118,28 @@ inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U16 *r, rdr::
 inline void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const
 {
   if (trueColour) {
-    *r = (p >> redShift) << (redConvShift - 8);
-    *g = (p >> greenShift) << (greenConvShift - 8);
-    *b = (p >> blueShift) << (blueConvShift - 8);
+    int mb, rb, gb, bb;
+
+    /* Bit replication is much cheaper than multiplication and division */
+
+    mb = minBits;
+    rb = redBits;
+    gb = greenBits;
+    bb = blueBits;
+
+    *r = (p >> redShift) << (8 - rb);
+    *g = (p >> greenShift) << (8 - gb);
+    *b = (p >> blueShift) << (8 - bb);
+
+    while (mb < 8) {
+      *r = *r | (*r >> rb);
+      *g = *g | (*g >> gb);
+      *b = *b | (*b >> bb);
+      mb <<= 1;
+      rb <<= 1;
+      gb <<= 1;
+      bb <<= 1;
+    }
   } else {
     rdr::U16 r2, g2, b2;
 

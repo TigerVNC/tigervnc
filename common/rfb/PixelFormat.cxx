@@ -567,16 +567,23 @@ static int bits(rdr::U16 value)
 
 void PixelFormat::updateState(void)
 {
-  int redBits, greenBits, blueBits;
   int endianTest = 1;
 
   redBits = bits(redMax);
   greenBits = bits(greenMax);
   blueBits = bits(blueMax);
 
-  redConvShift = 16 - redBits;
-  greenConvShift = 16 - greenBits;
-  blueConvShift = 16 - blueBits;
+  maxBits = redBits;
+  if (greenBits > maxBits)
+    maxBits = greenBits;
+  if (blueBits > maxBits)
+    maxBits = blueBits;
+
+  minBits = redBits;
+  if (greenBits < minBits)
+    minBits = greenBits;
+  if (blueBits < minBits)
+    minBits = blueBits;
 
   if (((*(char*)&endianTest) == 0) != bigEndian)
     endianMismatch = true;

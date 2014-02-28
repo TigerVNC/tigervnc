@@ -89,9 +89,9 @@ namespace rfb {
     int blueShift;
 
   protected:
-    int redConvShift;
-    int greenConvShift;
-    int blueConvShift;
+    /* Pre-computed values to keep algorithms simple */
+    int redBits, greenBits, blueBits;
+    int maxBits, minBits;
     bool endianMismatch;
   };
 }
