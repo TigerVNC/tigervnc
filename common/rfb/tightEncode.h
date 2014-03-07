@@ -1,5 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB.
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,82 +53,6 @@ namespace rfb {
 
 #ifndef TIGHT_ONCE
 #define TIGHT_ONCE
-
-//
-// Functions to operate on palette structures.
-//
-
-#define HASH_FUNC16(rgb) ((int)(((rgb >> 8) + rgb) & 0xFF))
-#define HASH_FUNC32(rgb) ((int)(((rgb >> 16) + (rgb >> 8)) & 0xFF))
-
-void TightEncoder::paletteReset(void)
-{
-  palNumColors = 0;
-  memset(palette.hash, 0, 256 * sizeof(TIGHT_COLOR_LIST *));
-}
-
-int TightEncoder::paletteInsert(rdr::U32 rgb, int numPixels, int bpp)
-{
-  TIGHT_COLOR_LIST *pnode;
-  TIGHT_COLOR_LIST *prev_pnode = NULL;
-  int hash_key, idx, new_idx, count;
-
-  hash_key = (bpp == 16) ? HASH_FUNC16(rgb) : HASH_FUNC32(rgb);
-
-  pnode = palette.hash[hash_key];
-
-  while (pnode != NULL) {
-    if (pnode->rgb == rgb) {
-      // Such palette entry already exists.
-      new_idx = idx = pnode->idx;
-      count = palette.entry[idx].numPixels + numPixels;
-      if (new_idx && palette.entry[new_idx-1].numPixels < count) {
-        do {
-          palette.entry[new_idx] = palette.entry[new_idx-1];
-          palette.entry[new_idx].listNode->idx = new_idx;
-          new_idx--;
-        }
-        while (new_idx &&
-          palette.entry[new_idx-1].numPixels < count);
-        palette.entry[new_idx].listNode = pnode;
-        pnode->idx = new_idx;
-      }
-      palette.entry[new_idx].numPixels = count;
-      return palNumColors;
-    }
-    prev_pnode = pnode;
-    pnode = pnode->next;
-  }
-
-  // Check if palette is full.
-  if ( palNumColors == 256 || palNumColors == palMaxColors ) {
-    palNumColors = 0;
-    return 0;
-  }
-
-  // Move palette entries with lesser pixel counts.
-  for ( idx = palNumColors;
-  idx > 0 && palette.entry[idx-1].numPixels < numPixels;
-  idx-- ) {
-    palette.entry[idx] = palette.entry[idx-1];
-    palette.entry[idx].listNode->idx = idx;
-  }
-
-  // Add new palette entry into the freed slot.
-  pnode = &palette.list[palNumColors];
-  if (prev_pnode != NULL) {
-    prev_pnode->next = pnode;
-  } else {
-    palette.hash[hash_key] = pnode;
-  }
-  pnode->next = NULL;
-  pnode->idx = idx;
-  pnode->rgb = rgb;
-  palette.entry[idx].listNode = pnode;
-  palette.entry[idx].numPixels = numPixels;
-
-  return (++palNumColors);
-}
 
 //
 // Compress the data (but do not perform actual compression if the data
@@ -203,9 +128,10 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 
   if (forceSolid) {
     // Subrectangle has already been determined to be solid.
-    palNumColors = 1;
     ig->translatePixels(rawPixels, &solidColor, 1);
     pixels = (PIXEL_T *)&solidColor;
+    palette.clear();
+    palette.insert(solidColor, 1);
   } else {
     // Analyze subrectangle's colors to determine best encoding method.
     palMaxColors = r.area() / pconf->idxMaxColorsDivisor;
@@ -217,12 +143,12 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
     if (clientpf.equal(serverpf) && clientpf.bpp >= 16) {
       // Count the colors in the raw buffer, so we can avoid unnecessary pixel
       // translation when encoding with JPEG.
-      if (grayScaleJPEG) palNumColors = 0;
+      if (grayScaleJPEG) palette.clear();
       else FAST_FILL_PALETTE(rawPixels, stride, r);
 
       // JPEG can read from the raw buffer, but for the other methods, we need
       // to translate the raw pixels into an intermediate buffer.
-      if(palNumColors != 0 || jpegQuality == -1) {
+      if(palette.size() != 0 || jpegQuality == -1) {
         pixels = (PIXEL_T *)writer->getImageBuf(r.area());
         stride = r.width();
         ig->getImage(pixels, r);
@@ -234,12 +160,12 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
       stride = r.width();
       ig->getImage(pixels, r);
 
-      if (grayScaleJPEG) palNumColors = 0;
+      if (grayScaleJPEG) palette.clear();
       else FILL_PALETTE(pixels, r.area());
     }
   }
 
-  switch (palNumColors) {
+  switch (palette.size()) {
   case 0:
     // Truecolor image
 #if (BPP != 8)
@@ -297,7 +223,8 @@ void ENCODE_MONO_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
   os->writeU8(0x01);
 
   // Write the palette
-  PIXEL_T pal[2] = { (PIXEL_T)monoBackground, (PIXEL_T)monoForeground };
+  PIXEL_T pal[2] = { (PIXEL_T)palette.getColour(0),
+                     (PIXEL_T)palette.getColour(1) };
   os->writeU8(1);
   os->writeBytes(pal, PACK_PIXELS(pal, 2));
 
@@ -311,7 +238,7 @@ void ENCODE_MONO_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
   int aligned_width;
   int x, y, bg_bits;
 
-  bg = (PIXEL_T) monoBackground;
+  bg = (PIXEL_T) pal[0];
   aligned_width = w - w % 8;
 
   for (y = 0; y < h; y++) {
@@ -365,10 +292,10 @@ void ENCODE_INDEXED_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
   // Write the palette
   {
     PIXEL_T pal[256];
-    for (int i = 0; i < palNumColors; i++)
-      pal[i] = (PIXEL_T)palette.entry[i].listNode->rgb;
-    os->writeU8((rdr::U8)(palNumColors - 1));
-    os->writeBytes(pal, PACK_PIXELS(pal, palNumColors));
+    for (int i = 0; i < palette.size(); i++)
+      pal[i] = (PIXEL_T)palette.getColour(i);
+    os->writeU8((rdr::U8)(palette.size() - 1));
+    os->writeBytes(pal, PACK_PIXELS(pal, palette.size()));
   }
 
   // Encode data in-place
@@ -376,25 +303,19 @@ void ENCODE_INDEXED_RECT (PIXEL_T *buf, const Rect& r, rdr::OutStream *os)
   rdr::U8 *dst = (rdr::U8 *)buf;
   int count = r.area();
   PIXEL_T rgb;
-  TIGHT_COLOR_LIST *pnode;
   int rep = 0;
+  unsigned char idx;
 
   while (count--) {
     rgb = *src++;
     while (count && *src == rgb) {
       rep++, src++, count--;
     }
-    pnode = palette.hash[HASH_FUNCTION(rgb)];
-    while (pnode != NULL) {
-      if ((PIXEL_T)pnode->rgb == rgb) {
-        *dst++ = (rdr::U8)pnode->idx;
-        while (rep) {
-          *dst++ = (rdr::U8)pnode->idx;
-          rep--;
-        }
-        break;
-      }
-      pnode = pnode->next;
+    idx = palette.lookup(rgb);
+    *dst++ = idx;
+    while (rep) {
+      *dst++ = idx;
+      rep--;
     }
   }
 
@@ -431,12 +352,12 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   PIXEL_T c0, c1;
   int i, n0, n1;
 
-  palNumColors = 0;
+  palette.clear();
 
   c0 = data[0];
   for (i = 1; i < count && data[i] == c0; i++);
   if (i == count) {
-    palNumColors = 1;
+    palette.insert(c0, i);
     return;                       // Solid rectangle
   }
 
@@ -455,14 +376,8 @@ void FILL_PALETTE (PIXEL_T *data, int count)
       break;
   }
   if (i == count) {
-    if (n0 > n1) {
-      monoBackground = (rdr::U32)c0;
-      monoForeground = (rdr::U32)c1;
-    } else {
-      monoBackground = (rdr::U32)c1;
-      monoForeground = (rdr::U32)c0;
-    }
-    palNumColors = 2;           // Two colors
+    palette.insert(c0, n0);     // Two colors
+    palette.insert(c1, n1);
   }
 }
 
@@ -477,17 +392,17 @@ void FILL_PALETTE (PIXEL_T *data, int count)
   PIXEL_T c0, c1, ci = 0;
   int i, n0, n1, ni;
 
+  palette.clear();
+
   c0 = data[0];
   for (i = 1; i < count && data[i] == c0; i++);
   if (i >= count) {
-    palNumColors = 1;           // Solid rectangle
+    palette.insert(c0, i);      // Solid rectangle
     return;
   }
 
-  if (palMaxColors < 2) {
-    palNumColors = 0;           // Full-color format preferred
-    return;
-  }
+  if (palMaxColors < 2)
+    return;                     // Full-color format preferred
 
   n0 = i;
   c1 = data[i];
@@ -501,34 +416,26 @@ void FILL_PALETTE (PIXEL_T *data, int count)
     } else
       break;
   }
-  if (i >= count) {
-    if (n0 > n1) {
-      monoBackground = (rdr::U32)c0;
-      monoForeground = (rdr::U32)c1;
-    } else {
-      monoBackground = (rdr::U32)c1;
-      monoForeground = (rdr::U32)c0;
-    }
-    palNumColors = 2;           // Two colors
-    return;
-  }
-
-  paletteReset();
-  paletteInsert (c0, (rdr::U32)n0, BPP);
-  paletteInsert (c1, (rdr::U32)n1, BPP);
+  palette.insert(c0, n0);
+  palette.insert(c1, n1);
+  if (i >= count)
+    return;                     // Two colors
 
   ni = 1;
   for (i++; i < count; i++) {
     if (data[i] == ci) {
       ni++;
     } else {
-      if (!paletteInsert (ci, (rdr::U32)ni, BPP))
+      if (!palette.insert (ci, ni) || (palette.size() > palMaxColors)) {
+        palette.clear();
         return;
+      }
       ci = data[i];
       ni = 1;
     }
   }
-  paletteInsert (ci, (rdr::U32)ni, BPP);
+  if (!palette.insert (ci, ni) || (palette.size() > palMaxColors))
+    palette.clear();
 }
 
 void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
@@ -542,6 +449,8 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
 
   serverpf.bufferFromPixel((rdr::U8*)&mask, ~0);
 
+  palette.clear();
+
   c0 = data[0] & mask;
   n0 = 0;
   for (rowptr = data; rowptr < dataend; rowptr += stride) {
@@ -554,13 +463,11 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
 
   soliddone:
   if (rowptr >= dataend) {
-    palNumColors = 1;           // Solid rectangle
+    palette.insert(c0, 1);      // Solid rectangle
     return;
   }
-  if (palMaxColors < 2) {
-    palNumColors = 0;           // Full-color format preferred
-    return;
-  }
+  if (palMaxColors < 2)
+    return;                     // Full-color format preferred
 
   c1 = *colptr & mask;
   n1 = 0;
@@ -592,21 +499,11 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
     c0t = c0;  c1t = c1;
   }
 
-  if (colptr2 >= dataend) {
-    if (n0 > n1) {
-      monoBackground = (rdr::U32)c0t;
-      monoForeground = (rdr::U32)c1t;
-    } else {
-      monoBackground = (rdr::U32)c1t;
-      monoForeground = (rdr::U32)c0t;
-    }
-    palNumColors = 2;           // Two colors
-    return;
-  }
+  palette.insert(c0t, n0);
+  palette.insert(c1t, n1);
 
-  paletteReset();
-  paletteInsert (c0t, (rdr::U32)n0, BPP);
-  paletteInsert (c1t, (rdr::U32)n1, BPP);
+  if (colptr2 >= dataend)
+    return;                      // Two colors
 
   ni = 1;
   colptr2++;
@@ -623,8 +520,10 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
           ig->translatePixels(&ci, &cit, 1);
         else
           cit = ci;
-        if (!paletteInsert (cit, (rdr::U32)ni, BPP))
+        if (!palette.insert (cit, ni) || (palette.size() > palMaxColors)) {
+          palette.clear();
           return;
+        }
         ci = (*colptr) & mask;
         ni = 1;
       }
@@ -633,7 +532,8 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
     colptr = rowptr;
   }
   ig->translatePixels(&ci, &cit, 1);
-  paletteInsert (cit, (rdr::U32)ni, BPP);
+  if (!palette.insert (cit, ni) || (palette.size() > palMaxColors))
+    palette.clear();
 }
 
 #endif  // #if (BPP == 8)

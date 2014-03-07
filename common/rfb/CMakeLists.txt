@@ -53,7 +53,6 @@ set(RFB_SOURCES
   Timer.cxx
   TightDecoder.cxx
   TightEncoder.cxx
-  TightPalette.cxx
   TransImageGetter.cxx
   UpdateTracker.cxx
   VNCSConnectionST.cxx

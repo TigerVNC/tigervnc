@@ -23,6 +23,7 @@
 #include <rdr/ZlibOutStream.h>
 #include <rfb/Encoder.h>
 #include <rfb/JpegCompressor.h>
+#include <rfb/Palette.h>
 
 // FIXME: Check if specifying extern "C" is really necessary.
 #include <stdio.h>
@@ -42,28 +43,6 @@ namespace rfb {
     int palMaxColorsWithJPEG;
     int jpegQuality;
     int jpegSubsampling;
-  };
-
-  //
-  // C-style structures to store palette entries and compression paramentes.
-  // Such code probably should be converted into C++ classes.
-  //
-
-  struct TIGHT_COLOR_LIST {
-    TIGHT_COLOR_LIST *next;
-    int idx;
-    rdr::U32 rgb;
-  };
-
-  struct TIGHT_PALETTE_ENTRY {
-    TIGHT_COLOR_LIST *listNode;
-    int numPixels;
-  };
-
-  struct TIGHT_PALETTE {
-    TIGHT_PALETTE_ENTRY entry[256];
-    TIGHT_COLOR_LIST *hash[256];
-    TIGHT_COLOR_LIST list[256];
   };
 
   //
@@ -98,9 +77,6 @@ namespace rfb {
     void compressData(const void *buf, unsigned int length,
                       rdr::ZlibOutStream *zos, int zlibLevel,
                       rdr::OutStream *os);
-
-    int paletteInsert(rdr::U32 rgb, int numPixels, int bpp);
-    void paletteReset(void);
 
     void fastFillPalette8(const rdr::U8 *data, int stride, const Rect &r);
     void fastFillPalette16(const rdr::U16 *data, int stride, const Rect &r);
@@ -149,9 +125,8 @@ namespace rfb {
     PixelFormat serverpf, clientpf;
 
     bool pack24;
-    int palMaxColors, palNumColors;
-    rdr::U32 monoBackground, monoForeground;
-    TIGHT_PALETTE palette;
+    int palMaxColors;
+    Palette palette;
 
     static const int defaultCompressLevel;
     static const TIGHT_CONF conf[];
