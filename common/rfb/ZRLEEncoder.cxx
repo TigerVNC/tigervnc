@@ -26,9 +26,6 @@
 
 using namespace rfb;
 
-rdr::MemOutStream* ZRLEEncoder::sharedMos = 0;
-int ZRLEEncoder::maxLen = 4097 * 1024; // enough for width 16384 32-bit pixels
-
 IntParameter zlibLevel("ZlibLevel","Zlib compression level",-1);
 
 #define EXTRA_ARGS ImageGetter* ig
@@ -55,33 +52,27 @@ Encoder* ZRLEEncoder::create(SMsgWriter* writer)
 }
 
 ZRLEEncoder::ZRLEEncoder(SMsgWriter* writer_)
-  : writer(writer_), zos(0,0,zlibLevel)
+  : writer(writer_), zos(0,0,zlibLevel), mos(129*1024)
 {
-  if (sharedMos)
-    mos = sharedMos;
-  else
-    mos = new rdr::MemOutStream(129*1024);
 }
 
 ZRLEEncoder::~ZRLEEncoder()
 {
-  if (!sharedMos)
-    delete mos;
 }
 
 bool ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
 {
   rdr::U8* imageBuf = writer->getImageBuf(64 * 64 * 4 + 4);
-  mos->clear();
+  mos.clear();
   bool wroteAll = true;
   *actual = r;
 
   switch (writer->bpp()) {
   case 8:
-    wroteAll = zrleEncode8(r, mos, &zos, imageBuf, maxLen, actual, ig);
+    wroteAll = zrleEncode8(r, &mos, &zos, imageBuf, actual, ig);
     break;
   case 16:
-    wroteAll = zrleEncode16(r, mos, &zos, imageBuf, maxLen, actual, ig);
+    wroteAll = zrleEncode16(r, &mos, &zos, imageBuf, actual, ig);
     break;
   case 32:
     {
@@ -94,16 +85,16 @@ bool ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
       if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
           (fitsInMS3Bytes && pf.isBigEndian()))
       {
-        wroteAll = zrleEncode24A(r, mos, &zos, imageBuf, maxLen, actual, ig);
+        wroteAll = zrleEncode24A(r, &mos, &zos, imageBuf, actual, ig);
       }
       else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
                (fitsInMS3Bytes && pf.isLittleEndian()))
       {
-        wroteAll = zrleEncode24B(r, mos, &zos, imageBuf, maxLen, actual, ig);
+        wroteAll = zrleEncode24B(r, &mos, &zos, imageBuf, actual, ig);
       }
       else
       {
-        wroteAll = zrleEncode32(r, mos, &zos, imageBuf, maxLen, actual, ig);
+        wroteAll = zrleEncode32(r, &mos, &zos, imageBuf, actual, ig);
       }
       break;
     }
@@ -111,8 +102,8 @@ bool ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
 
   writer->startRect(*actual, encodingZRLE);
   rdr::OutStream* os = writer->getOutStream();
-  os->writeU32(mos->length());
-  os->writeBytes(mos->data(), mos->length());
+  os->writeU32(mos.length());
+  os->writeBytes(mos.data(), mos.length());
   writer->endRect();
   return wroteAll;
 }

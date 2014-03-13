@@ -30,25 +30,11 @@ namespace rfb {
     virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
     virtual ~ZRLEEncoder();
 
-    // setMaxLen() sets the maximum size in bytes of any ZRLE rectangle.  This
-    // can be used to stop the MemOutStream from growing too large.  The value
-    // must be large enough to allow for at least one row of ZRLE tiles.  So
-    // for example for a screen width of 2048 32-bit pixels this is 2K*4*64 =
-    // 512Kbytes plus a bit of overhead (the overhead is about 1/16 of the
-    // width, in this example about 128 bytes).
-    static void setMaxLen(int m) { maxLen = m; }
-
-    // setSharedMos() sets a MemOutStream to be shared amongst all
-    // ZRLEEncoders.  Should be called before any ZRLEEncoders are created.
-    static void setSharedMos(rdr::MemOutStream* mos_) { sharedMos = mos_; }
-
   private:
     ZRLEEncoder(SMsgWriter* writer);
     SMsgWriter* writer;
     rdr::ZlibOutStream zos;
-    rdr::MemOutStream* mos;
-    static rdr::MemOutStream* sharedMos;
-    static int maxLen;
+    rdr::MemOutStream mos;
   };
 }
 #endif
