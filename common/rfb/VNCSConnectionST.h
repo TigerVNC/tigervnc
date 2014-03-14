@@ -32,11 +32,11 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/Timer.h>
+#include <rfb/EncodeManager.h>
 
 struct RTTInfo;
 
 namespace rfb {
-  class Encoder;
 
   class VNCSConnectionST : public SConnection,
                            public Timer::Callback {
@@ -197,7 +197,7 @@ namespace rfb {
     Rect renderedCursorRect;
     bool continuousUpdates;
     Region cuRegion;
-    Encoder* encoders[encodingMax+1];
+    EncodeManager encodeManager;
 
     Timer updateTimer;
 

@@ -1,5 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,399 +17,202 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#include <assert.h>
+
 #include <rdr/OutStream.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/Palette.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
-#include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
 #include <rfb/TightEncoder.h>
+#include <rfb/TightConstants.h>
 
 using namespace rfb;
 
-// Minimum amount of data to be compressed. This value should not be
-// changed, doing so will break compatibility with existing clients.
-#define TIGHT_MIN_TO_COMPRESS 12
-
-// Adjustable parameters.
-// FIXME: Get rid of #defines
-#define TIGHT_MAX_SPLIT_TILE_SIZE      16
-#define TIGHT_MIN_SPLIT_RECT_SIZE    4096
-#define TIGHT_MIN_SOLID_SUBRECT_SIZE 2048
+struct TightConf {
+  int idxZlibLevel, monoZlibLevel, rawZlibLevel;
+};
 
 //
-// Compression level stuff. The following array contains various
-// encoder parameters for each of 10 compression levels (0..9).
-// Last three parameters correspond to JPEG quality levels (0..9).
+// Compression level stuff. The following array contains zlib
+// settings for each of 10 compression levels (0..9).
 //
 // NOTE: The parameters used in this encoder are the result of painstaking
 // research by The VirtualGL Project using RFB session captures from a variety
 // of both 2D and 3D applications.  See http://www.VirtualGL.org for the full
 // reports.
 
-// NOTE:  The JPEG quality and subsampling levels below were obtained
-// experimentally by the VirtualGL Project.  They represent the approximate
-// average compression ratios listed below, as measured across the set of
-// every 10th frame in the SPECviewperf 9 benchmark suite.
-//
-// 9 = JPEG quality 100, no subsampling (ratio ~= 10:1)
-//     [this should be lossless, except for round-off error]
-// 8 = JPEG quality 92,  no subsampling (ratio ~= 20:1)
-//     [this should be perceptually lossless, based on current research]
-// 7 = JPEG quality 86,  no subsampling (ratio ~= 25:1)
-// 6 = JPEG quality 79,  no subsampling (ratio ~= 30:1)
-// 5 = JPEG quality 77,  4:2:2 subsampling (ratio ~= 40:1)
-// 4 = JPEG quality 62,  4:2:2 subsampling (ratio ~= 50:1)
-// 3 = JPEG quality 42,  4:2:2 subsampling (ratio ~= 60:1)
-// 2 = JPEG quality 41,  4:2:0 subsampling (ratio ~= 70:1)
-// 1 = JPEG quality 29,  4:2:0 subsampling (ratio ~= 80:1)
-// 0 = JPEG quality 15,  4:2:0 subsampling (ratio ~= 100:1)
-
-const TIGHT_CONF TightEncoder::conf[10] = {
-  { 65536, 2048,   6, 0, 0, 0,   4, 24, 15, subsample4X }, // 0
-  { 65536, 2048,   6, 1, 1, 1,   8, 24, 29, subsample4X }, // 1
-  { 65536, 2048,   8, 3, 3, 2,  24, 96, 41, subsample4X }, // 2
-  { 65536, 2048,  12, 5, 5, 2,  32, 96, 42, subsample2X }, // 3
-  { 65536, 2048,  12, 6, 7, 3,  32, 96, 62, subsample2X }, // 4
-  { 65536, 2048,  12, 7, 8, 4,  32, 96, 77, subsample2X }, // 5
-  { 65536, 2048,  16, 7, 8, 5,  32, 96, 79, subsampleNone }, // 6
-  { 65536, 2048,  16, 8, 9, 6,  64, 96, 86, subsampleNone }, // 7
-  { 65536, 2048,  24, 9, 9, 7,  64, 96, 92, subsampleNone }, // 8
-  { 65536, 2048,  32, 9, 9, 9,  96, 96,100, subsampleNone }  // 9
+static const TightConf conf[10] = {
+  { 0, 0, 0 }, // 0
+  { 1, 1, 1 }, // 1
+  { 3, 3, 2 }, // 2
+  { 5, 5, 2 }, // 3
+  { 6, 7, 3 }, // 4
+  { 7, 8, 4 }, // 5
+  { 7, 8, 5 }, // 6
+  { 8, 9, 6 }, // 7
+  { 9, 9, 7 }, // 8
+  { 9, 9, 9 }  // 9
 };
 
-const int TightEncoder::defaultCompressLevel = 2;
-
-//
-// Including BPP-dependent implementation of the encoder.
-//
-
-#define BPP 8
-#include <rfb/tightEncode.h>
-#undef BPP
-#define BPP 16
-#include <rfb/tightEncode.h>
-#undef BPP
-#define BPP 32
-#include <rfb/tightEncode.h>
-#undef BPP
-
-TightEncoder::TightEncoder(SConnection* conn) : Encoder(conn)
+TightEncoder::TightEncoder(SConnection* conn) :
+  Encoder(conn, encodingTight, EncoderPlain, 256)
 {
-  setCompressLevel(defaultCompressLevel);
-  setQualityLevel(-1);
+  setCompressLevel(-1);
 }
 
 TightEncoder::~TightEncoder()
 {
 }
 
+bool TightEncoder::isSupported()
+{
+  return conn->cp.supportsEncoding(encodingTight);
+}
+
 void TightEncoder::setCompressLevel(int level)
 {
-  if (level >= 0 && level <= 9) {
-    pconf = &conf[level];
-  } else {
-    pconf = &conf[defaultCompressLevel];
-  }
+  if (level < 0 || level > 9)
+    level = 2;
+
+  idxZlibLevel = conf[level].idxZlibLevel;
+  monoZlibLevel = conf[level].idxZlibLevel;
+  rawZlibLevel = conf[level].rawZlibLevel;
 }
 
-void TightEncoder::setQualityLevel(int level)
+void TightEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
 {
-  if (level >= 0 && level <= 9) {
-    jpegQuality = conf[level].jpegQuality;
-    jpegSubsampling = conf[level].jpegSubsampling;
-  } else {
-    jpegQuality = -1;
-    jpegSubsampling = subsampleUndefined;
-  }
-}
-
-void TightEncoder::setFineQualityLevel(int quality, int subsampling)
-{
-  jpegQuality = quality;
-  jpegSubsampling = subsampling;
-}
-
-bool TightEncoder::checkSolidTile(Rect& r, rdr::U32* colorPtr,
-                                  bool needSameColor)
-{
-  switch (serverpf.bpp) {
-  case 32:
-    return checkSolidTile32(r, colorPtr, needSameColor);
-  case 16:
-    return checkSolidTile16(r, colorPtr, needSameColor);
+  switch (palette.size()) {
+  case 0:
+    writeFullColourRect(pb, palette);
+    break;
+  case 1:
+    Encoder::writeSolidRect(pb, palette);
+    break;
+  case 2:
+    writeMonoRect(pb, palette);
+    break;
   default:
-    return checkSolidTile8(r, colorPtr, needSameColor);
+    writeIndexedRect(pb, palette);
   }
 }
 
-void TightEncoder::findBestSolidArea(Rect& r, rdr::U32 colorValue, Rect& bestr)
+void TightEncoder::writeSolidRect(int width, int height,
+                                  const PixelFormat& pf,
+                                  const rdr::U8* colour)
 {
-  int dx, dy, dw, dh;
-  int w_prev;
-  Rect sr;
-  int w_best = 0, h_best = 0;
+  rdr::OutStream* os;
 
-  bestr.tl.x = bestr.br.x = r.tl.x;
-  bestr.tl.y = bestr.br.y = r.tl.y;
+  os = conn->getOutStream();
 
-  w_prev = r.width();
-
-  for (dy = r.tl.y; dy < r.br.y; dy += TIGHT_MAX_SPLIT_TILE_SIZE) {
-
-    dh = (dy + TIGHT_MAX_SPLIT_TILE_SIZE <= r.br.y) ?
-      TIGHT_MAX_SPLIT_TILE_SIZE : (r.br.y - dy);
-    dw = (w_prev > TIGHT_MAX_SPLIT_TILE_SIZE) ?
-      TIGHT_MAX_SPLIT_TILE_SIZE : w_prev;
-
-    sr.setXYWH(r.tl.x, dy, dw, dh);
-    if (!checkSolidTile(sr, &colorValue, true))
-      break;
-
-    for (dx = r.tl.x + dw; dx < r.tl.x + w_prev;) {
-      dw = (dx + TIGHT_MAX_SPLIT_TILE_SIZE <= r.tl.x + w_prev) ?
-        TIGHT_MAX_SPLIT_TILE_SIZE : (r.tl.x + w_prev - dx);
-      sr.setXYWH(dx, dy, dw, dh);
-      if (!checkSolidTile(sr, &colorValue, true))
-        break;
-      dx += dw;
-    }
-
-    w_prev = dx - r.tl.x;
-    if (w_prev * (dy + dh - r.tl.y) > w_best * h_best) {
-      w_best = w_prev;
-      h_best = dy + dh - r.tl.y;
-    }
-  }
-
-  bestr.br.x = bestr.tl.x + w_best;
-  bestr.br.y = bestr.tl.y + h_best;
+  os->writeU8(tightFill << 4);
+  writePixels(colour, pf, 1, os);
 }
 
-void TightEncoder::extendSolidArea(const Rect& r, rdr::U32 colorValue,
-                                   Rect& er)
+void TightEncoder::writeMonoRect(const PixelBuffer* pb, const Palette& palette)
 {
-  int cx, cy;
-  Rect sr;
+  const rdr::U8* buffer;
+  int stride;
 
-  // Try to extend the area upwards.
-  for (cy = er.tl.y - 1; ; cy--) {
-    sr.setXYWH(er.tl.x, cy, er.width(), 1);
-    if (cy < r.tl.y || !checkSolidTile(sr, &colorValue, true))
-      break;
-  }
-  er.tl.y = cy + 1;
+  buffer = pb->getBuffer(pb->getRect(), &stride);
 
-  // ... downwards.
-  for (cy = er.br.y; ; cy++) {
-    sr.setXYWH(er.tl.x, cy, er.width(), 1);
-    if (cy >= r.br.y || !checkSolidTile(sr, &colorValue, true))
-      break;
-  }
-  er.br.y = cy;
-
-  // ... to the left.
-  for (cx = er.tl.x - 1; ; cx--) {
-    sr.setXYWH(cx, er.tl.y, 1, er.height());
-    if (cx < r.tl.x || !checkSolidTile(sr, &colorValue, true))
-      break;
-  }
-  er.tl.x = cx + 1;
-
-  // ... to the right.
-  for (cx = er.br.x; ; cx++) {
-    sr.setXYWH(cx, er.tl.y, 1, er.height());
-    if (cx >= r.br.x || !checkSolidTile(sr, &colorValue, true))
-      break;
-  }
-  er.br.x = cx;
-}
-
-int TightEncoder::getNumRects(const Rect &r)
-{
-  ConnParams* cp = &conn->cp;
-  const unsigned int w = r.width();
-  const unsigned int h = r.height();
-
-  // If last rect. encoding is enabled, we can use the higher-performance
-  // code that pre-computes solid rectangles.  In that case, we don't care
-  // about the rectangle count.
-  if (cp->supportsLastRect && w * h >= TIGHT_MIN_SPLIT_RECT_SIZE)
-    return 0;
-
-  // Will this rectangle split into subrects?
-  bool rectTooBig = w > pconf->maxRectWidth || w * h > pconf->maxRectSize;
-  if (!rectTooBig)
-    return 1;
-
-  // Compute max sub-rectangle size.
-  const unsigned int subrectMaxWidth =
-    (w > pconf->maxRectWidth) ? pconf->maxRectWidth : w;
-  const unsigned int subrectMaxHeight =
-    pconf->maxRectSize / subrectMaxWidth;
-
-  // Return the number of subrects.
-  return (((w - 1) / pconf->maxRectWidth + 1) *
-          ((h - 1) / subrectMaxHeight + 1));
-}
-
-void TightEncoder::sendRectSimple(const Rect& r)
-{
-  // Shortcuts to rectangle coordinates and dimensions.
-  const int x = r.tl.x;
-  const int y = r.tl.y;
-  const unsigned int w = r.width();
-  const unsigned int h = r.height();
-
-  // Encode small rects as is.
-  bool rectTooBig = w > pconf->maxRectWidth || w * h > pconf->maxRectSize;
-  if (!rectTooBig) {
-    writeSubrect(r);
-    return;
-  }
-
-  // Compute max sub-rectangle size.
-  const unsigned int subrectMaxWidth =
-    (w > pconf->maxRectWidth) ? pconf->maxRectWidth : w;
-  const unsigned int subrectMaxHeight =
-    pconf->maxRectSize / subrectMaxWidth;
-
-  // Split big rects into separately encoded subrects.
-  Rect sr;
-  unsigned int dx, dy, sw, sh;
-  for (dy = 0; dy < h; dy += subrectMaxHeight) {
-    for (dx = 0; dx < w; dx += pconf->maxRectWidth) {
-      sw = (dx + pconf->maxRectWidth < w) ? pconf->maxRectWidth : w - dx;
-      sh = (dy + subrectMaxHeight < h) ? subrectMaxHeight : h - dy;
-      sr.setXYWH(x + dx, y + dy, sw, sh);
-      writeSubrect(sr);
-    }
-  }
-}
-
-void TightEncoder::writeRect(const Rect& _r, PixelBuffer* _pb)
-{
-  pb = _pb;
-  serverpf = pb->getPF();
-  ConnParams* cp = &conn->cp;
-  clientpf = cp->pf();
-
-  // Shortcuts to rectangle coordinates and dimensions.
-  Rect r = _r;
-  int x = r.tl.x;
-  int y = r.tl.y;
-  int w = r.width();
-  int h = r.height();
-
-  // Encode small rects as is.
-  if (!cp->supportsLastRect || w * h < TIGHT_MIN_SPLIT_RECT_SIZE) {
-    sendRectSimple(r);
-    return;
-  }
-
-  // Split big rects into separately encoded subrects.
-  Rect sr, bestr;
-  int dx, dy, dw, dh;
-  rdr::U32 colorValue;
-  int maxRectWidth = pconf->maxRectWidth;
-  int nMaxWidth = (w > maxRectWidth) ? maxRectWidth : w;
-  int nMaxRows = pconf->maxRectSize / nMaxWidth;
-
-  // Try to find large solid-color areas and send them separately.
-  for (dy = y; dy < y + h; dy += TIGHT_MAX_SPLIT_TILE_SIZE) {
-
-    // If a rectangle becomes too large, send its upper part now.
-    if (dy - y >= nMaxRows) {
-      sr.setXYWH(x, y, w, nMaxRows);
-      sendRectSimple(sr);
-      r.tl.y += nMaxRows;
-      y = r.tl.y;
-      h = r.height();
-    }
-
-    dh = (dy + TIGHT_MAX_SPLIT_TILE_SIZE <= y + h) ?
-      TIGHT_MAX_SPLIT_TILE_SIZE : (y + h - dy);
-
-    for (dx = x; dx < x + w; dx += TIGHT_MAX_SPLIT_TILE_SIZE) {
-
-      dw = (dx + TIGHT_MAX_SPLIT_TILE_SIZE <= x + w) ?
-        TIGHT_MAX_SPLIT_TILE_SIZE : (x + w - dx);
- 
-      sr.setXYWH(dx, dy, dw, dh);
-      if (checkSolidTile(sr, &colorValue, false)) {
-
-         if (jpegSubsampling == subsampleGray && jpegQuality != -1) {
-           rdr::U16 r, g, b;
-           serverpf.rgbFromPixel(colorValue, &r, &g, &b);
-           rdr::U32 lum = ((257 * r) + (504 * g) + (98 * b)
-                           + 16500) / 1000;
-           colorValue = lum + (lum << 8) + (lum << 16);
-         }
-
-        // Get dimensions of solid-color area.
-        sr.setXYWH(dx, dy, r.br.x - dx, r.br.y - dy);
-        findBestSolidArea(sr, colorValue, bestr);
-
-        // Make sure a solid rectangle is large enough
-        // (or the whole rectangle is of the same color).
-        if (bestr.area() != r.area()
-          && bestr.area() < TIGHT_MIN_SOLID_SUBRECT_SIZE)
-          continue;
-
-        // Try to extend solid rectangle to maximum size.
-        extendSolidArea(r, colorValue, bestr);
- 
-        // Send rectangles at top and left to solid-color area.
-        if (bestr.tl.y != y) {
-          sr.setXYWH(x, y, w, bestr.tl.y - y);
-          sendRectSimple(sr);
-        }
-        if (bestr.tl.x != x) {
-          sr.setXYWH(x, bestr.tl.y, bestr.tl.x - x, bestr.height());
-          writeRect(sr, _pb);
-        }
-
-        // Send solid-color rectangle.
-        writeSubrect(bestr, true);
-
-        // Send remaining rectangles (at right and bottom).
-        if (bestr.br.x != r.br.x) {
-          sr.setXYWH(bestr.br.x, bestr.tl.y, r.br.x - bestr.br.x,
-            bestr.height());
-          writeRect(sr, _pb);
-        }
-        if (bestr.br.y != r.br.y) {
-          sr.setXYWH(x, bestr.br.y, w, r.br.y - bestr.br.y);
-          writeRect(sr, _pb);
-        }
-
-        return;
-      }
-    }
-  }
-
-  // No suitable solid-color rectangles found.
-  sendRectSimple(r);
-  return;
-}
-
-void TightEncoder::writeSubrect(const Rect& r, bool forceSolid)
-{
-  mos.clear();
-
-  switch (clientpf.bpp) {
-  case 8:
-    tightEncode8(r, &mos, forceSolid);  break;
-  case 16:
-    tightEncode16(r, &mos, forceSolid); break;
+  switch (pb->getPF().bpp) {
   case 32:
-    tightEncode32(r, &mos, forceSolid); break;
+    writeMonoRect(pb->width(), pb->height(), (rdr::U32*)buffer, stride,
+                  pb->getPF(), palette);
+    break;
+  case 16:
+    writeMonoRect(pb->width(), pb->height(), (rdr::U16*)buffer, stride,
+                  pb->getPF(), palette);
+    break;
+  default:
+    writeMonoRect(pb->width(), pb->height(), (rdr::U8*)buffer, stride,
+                  pb->getPF(), palette);
+  }
+}
+
+void TightEncoder::writeIndexedRect(const PixelBuffer* pb, const Palette& palette)
+{
+  const rdr::U8* buffer;
+  int stride;
+
+  buffer = pb->getBuffer(pb->getRect(), &stride);
+
+  switch (pb->getPF().bpp) {
+  case 32:
+    writeIndexedRect(pb->width(), pb->height(), (rdr::U32*)buffer, stride,
+                     pb->getPF(), palette);
+    break;
+  case 16:
+    writeIndexedRect(pb->width(), pb->height(), (rdr::U16*)buffer, stride,
+                     pb->getPF(), palette);
+    break;
+  default:
+    // It's more efficient to just do raw pixels
+    writeFullColourRect(pb, palette);
+  }
+}
+
+void TightEncoder::writeFullColourRect(const PixelBuffer* pb, const Palette& palette)
+{
+  const int streamId = 0;
+
+  rdr::OutStream* os;
+  rdr::OutStream* zos;
+  int length;
+
+  const rdr::U8* buffer;
+  int stride, w, h;
+
+  os = conn->getOutStream();
+
+  os->writeU8(streamId << 4);
+
+  // Set up compression
+  if ((pb->getPF().bpp != 32) || !pb->getPF().is888())
+    length = pb->getRect().area() * pb->getPF().bpp/8;
+  else
+    length = pb->getRect().area() * 3;
+
+  zos = getZlibOutStream(streamId, rawZlibLevel, length);
+
+  // And then just dump all the raw pixels
+  buffer = pb->getBuffer(pb->getRect(), &stride);
+  h = pb->height();
+
+  while (h--) {
+    writePixels(buffer, pb->getPF(), pb->width(), zos);
+    buffer += stride * pb->getPF().bpp/8;
   }
 
-  conn->writer()->startRect(r, encodingTight);
-  rdr::OutStream* os = conn->getOutStream();
-  os->writeBytes(mos.data(), mos.length());
-  conn->writer()->endRect();
+  // Finish the zlib stream
+  flushZlibOutStream(zos);
+}
+
+void TightEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+                               unsigned int count, rdr::OutStream* os)
+{
+  rdr::U8 rgb[2048];
+
+  if ((pf.bpp != 32) || !pf.is888()) {
+    os->writeBytes(buffer, count * pf.bpp/8);
+    return;
+  }
+
+  while (count) {
+    int iter_count;
+
+    iter_count = sizeof(rgb)/3;
+    if (iter_count > count)
+      iter_count = count;
+
+    pf.rgbFromBuffer(rgb, buffer, iter_count);
+    os->writeBytes(rgb, iter_count * 3);
+
+    buffer += iter_count * pf.bpp/8;
+    count -= iter_count;
+  }
 }
 
 void TightEncoder::writeCompact(rdr::OutStream* os, rdr::U32 value)
@@ -428,3 +232,52 @@ void TightEncoder::writeCompact(rdr::OutStream* os, rdr::U32 value)
     }
   }
 }
+
+rdr::OutStream* TightEncoder::getZlibOutStream(int streamId, int level, size_t length)
+{
+  // Minimum amount of data to be compressed. This value should not be
+  // changed, doing so will break compatibility with existing clients.
+  if (length < 12)
+    return conn->getOutStream();
+
+  assert(streamId >= 0);
+  assert(streamId < 4);
+
+  zlibStreams[streamId].setUnderlying(&memStream);
+  zlibStreams[streamId].setCompressionLevel(level);
+
+  return &zlibStreams[streamId];
+}
+
+void TightEncoder::flushZlibOutStream(rdr::OutStream* os_)
+{
+  rdr::OutStream* os;
+  rdr::ZlibOutStream* zos;
+
+  zos = dynamic_cast<rdr::ZlibOutStream*>(os_);
+  if (zos == NULL)
+    return;
+
+  zos->flush();
+  zos->setUnderlying(NULL);
+
+  os = conn->getOutStream();
+
+  writeCompact(os, memStream.length());
+  os->writeBytes(memStream.data(), memStream.length());
+  memStream.clear();
+}
+
+//
+// Including BPP-dependent implementation of the encoder.
+//
+
+#define BPP 8
+#include <rfb/TightEncoderBPP.cxx>
+#undef BPP
+#define BPP 16
+#include <rfb/TightEncoderBPP.cxx>
+#undef BPP
+#define BPP 32
+#include <rfb/TightEncoderBPP.cxx>
+#undef BPP

@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
- * 
+/* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
+ *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,22 +15,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_HEXTILEENCODER_H__
-#define __RFB_HEXTILEENCODER_H__
-
-#include <rfb/Encoder.h>
-
+#ifndef __RFB_TIGHTCONSTANTS_H__
+#define __RFB_TIGHTCONSTANTS_H__
 namespace rfb {
+  // Compression control 
+  const unsigned int tightExplicitFilter = 0x04;
+  const unsigned int tightFill = 0x08;
+  const unsigned int tightJpeg = 0x09;
+  const unsigned int tightMaxSubencoding = 0x09;
 
-  class HextileEncoder : public Encoder {
-  public:
-    HextileEncoder(SConnection* conn);
-    virtual ~HextileEncoder();
-    virtual bool isSupported();
-    virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
-    virtual void writeSolidRect(int width, int height,
-                                const PixelFormat& pf,
-                                const rdr::U8* colour);
-  };
+  // Filters to improve compression efficiency
+  const unsigned int tightFilterCopy = 0x00;
+  const unsigned int tightFilterPalette = 0x01;
+  const unsigned int tightFilterGradient = 0x02;
 }
 #endif

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +29,51 @@ namespace rfb {
   public:
     ZRLEEncoder(SConnection* conn);
     virtual ~ZRLEEncoder();
-    virtual void writeRect(const Rect& r, PixelBuffer* pb);
-  private:
+
+    virtual bool isSupported();
+
+    virtual void writeRect(const PixelBuffer* pb, const Palette& palette);
+    virtual void writeSolidRect(int width, int height,
+                                const PixelFormat& pf,
+                                const rdr::U8* colour);
+
+  protected:
+    void writePaletteTile(const Rect& tile, const PixelBuffer* pb,
+                          const Palette& palette);
+    void writePaletteRLETile(const Rect& tile, const PixelBuffer* pb,
+                             const Palette& palette);
+    void writeRawTile(const Rect& tile, const PixelBuffer* pb,
+                      const Palette& palette);
+
+    void writePalette(const PixelFormat& pf, const Palette& palette);
+
+    void writePixels(const rdr::U8* buffer, const PixelFormat& pf,
+                     unsigned int count);
+
+  protected:
+    // Preprocessor generated, optimised methods
+
+    void writePaletteTile(int width, int height,
+                          const rdr::U8* buffer, int stride,
+                          const PixelFormat& pf, const Palette& palette);
+    void writePaletteTile(int width, int height,
+                          const rdr::U16* buffer, int stride,
+                          const PixelFormat& pf, const Palette& palette);
+    void writePaletteTile(int width, int height,
+                          const rdr::U32* buffer, int stride,
+                          const PixelFormat& pf, const Palette& palette);
+
+    void writePaletteRLETile(int width, int height,
+                             const rdr::U8* buffer, int stride,
+                             const PixelFormat& pf, const Palette& palette);
+    void writePaletteRLETile(int width, int height,
+                             const rdr::U16* buffer, int stride,
+                             const PixelFormat& pf, const Palette& palette);
+    void writePaletteRLETile(int width, int height,
+                             const rdr::U32* buffer, int stride,
+                             const PixelFormat& pf, const Palette& palette);
+
+  protected:
     rdr::ZlibOutStream zos;
     rdr::MemOutStream mos;
   };

@@ -275,8 +275,7 @@ void HEXTILE_TILE::encode(rdr::U8 *dst) const
 // Main encoding function.
 //
 
-void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os,
-                    const PixelFormat& pf, PixelBuffer* pb)
+void HEXTILE_ENCODE(rdr::OutStream* os, const PixelBuffer* pb)
 {
   Rect t;
   PIXEL_T buf[256];
@@ -287,15 +286,15 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os,
 
   HEXTILE_TILE tile;
 
-  for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
+  for (t.tl.y = 0; t.tl.y < pb->height(); t.tl.y += 16) {
 
-    t.br.y = __rfbmin(r.br.y, t.tl.y + 16);
+    t.br.y = __rfbmin(pb->height(), t.tl.y + 16);
 
-    for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 16) {
+    for (t.tl.x = 0; t.tl.x < pb->width(); t.tl.x += 16) {
 
-      t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
+      t.br.x = __rfbmin(pb->width(), t.tl.x + 16);
 
-      pb->getImage(pf, buf, t);
+      pb->getImage(buf, t);
 
       tile.newTile(buf, t.width(), t.height());
       int tileType = tile.getFlags();

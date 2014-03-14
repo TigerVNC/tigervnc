@@ -27,6 +27,7 @@
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
 #include <rfb/Exception.h>
+#include <rfb/TightConstants.h>
 #include <assert.h>
 
 namespace rfb {
@@ -68,7 +69,7 @@ void TIGHT_DECODE (const Rect& r)
   }
 
   // "Fill" compression type.
-  if (comp_ctl == rfbTightFill) {
+  if (comp_ctl == tightFill) {
     PIXEL_T pix;
     if (cutZeros) {
       rdr::U8 bytebuf[3];
@@ -82,13 +83,13 @@ void TIGHT_DECODE (const Rect& r)
   }
 
   // "JPEG" compression type.
-  if (comp_ctl == rfbTightJpeg) {
+  if (comp_ctl == tightJpeg) {
     DECOMPRESS_JPEG_RECT(r);
     return;
   }
 
   // Quit on unsupported compression type.
-  if (comp_ctl > rfbTightMaxSubencoding) {
+  if (comp_ctl > tightMaxSubencoding) {
     throw Exception("TightDecoder: bad subencoding value received");
     return;
   }
@@ -98,11 +99,11 @@ void TIGHT_DECODE (const Rect& r)
   static PIXEL_T palette[256];
   bool useGradient = false;
 
-  if ((comp_ctl & rfbTightExplicitFilter) != 0) {
+  if ((comp_ctl & tightExplicitFilter) != 0) {
     rdr::U8 filterId = is->readU8();
 
     switch (filterId) {
-    case rfbTightFilterPalette: 
+    case tightFilterPalette:
       palSize = is->readU8() + 1;
       if (cutZeros) {
         rdr::U8 tightPalette[256 * 3];
@@ -112,10 +113,10 @@ void TIGHT_DECODE (const Rect& r)
         is->readBytes(palette, palSize * sizeof(PIXEL_T));
       }
       break;
-    case rfbTightFilterGradient: 
+    case tightFilterGradient:
       useGradient = true;
       break;
-    case rfbTightFilterCopy:
+    case tightFilterCopy:
       break;
     default:
       throw Exception("TightDecoder: unknown filter code received");

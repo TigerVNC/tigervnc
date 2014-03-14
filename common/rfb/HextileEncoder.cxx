@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2005 Constantin Kaplinsky.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +18,8 @@
  * USA.
  */
 #include <rfb/encodings.h>
-#include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
 #include <rfb/HextileEncoder.h>
-#include <rfb/PixelFormat.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Configuration.h>
 
@@ -45,7 +44,8 @@ BoolParameter improvedHextile("ImprovedHextile",
 #include <rfb/hextileEncodeBetter.h>
 #undef BPP
 
-HextileEncoder::HextileEncoder(SConnection* conn) : Encoder(conn)
+HextileEncoder::HextileEncoder(SConnection* conn) :
+  Encoder(conn, encodingHextile, EncoderPlain, -1)
 {
 }
 
@@ -53,33 +53,54 @@ HextileEncoder::~HextileEncoder()
 {
 }
 
-void HextileEncoder::writeRect(const Rect& r, PixelBuffer* pb)
+bool HextileEncoder::isSupported()
 {
-  conn->writer()->startRect(r, encodingHextile);
+  return conn->cp.supportsEncoding(encodingHextile);
+}
+
+void HextileEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
+{
   rdr::OutStream* os = conn->getOutStream();
-  const PixelFormat& pf = conn->cp.pf();
-  switch (pf.bpp) {
+  switch (pb->getPF().bpp) {
   case 8:
     if (improvedHextile) {
-      hextileEncodeBetter8(r, os, pf, pb);
+      hextileEncodeBetter8(os, pb);
     } else {
-      hextileEncode8(r, os, pf, pb);
+      hextileEncode8(os, pb);
     }
     break;
   case 16:
     if (improvedHextile) {
-      hextileEncodeBetter16(r, os, pf, pb);
+      hextileEncodeBetter16(os, pb);
     } else {
-      hextileEncode16(r, os, pf, pb);
+      hextileEncode16(os, pb);
     }
     break;
   case 32:
     if (improvedHextile) {
-      hextileEncodeBetter32(r, os, pf, pb);
+      hextileEncodeBetter32(os, pb);
     } else {
-      hextileEncode32(r, os, pf, pb);
+      hextileEncode32(os, pb);
     }
     break;
   }
-  conn->writer()->endRect();
+}
+
+void HextileEncoder::writeSolidRect(int width, int height,
+                                    const PixelFormat& pf,
+                                    const rdr::U8* colour)
+{
+  rdr::OutStream* os;
+  int tiles;
+
+  os = conn->getOutStream();
+
+  tiles = ((width + 15)/16) * ((height + 15)/16);
+
+  os->writeU8(hextileBgSpecified);
+  os->writeBytes(colour, pf.bpp/8);
+  tiles--;
+
+  while (tiles--)
+      os->writeU8(0);
 }

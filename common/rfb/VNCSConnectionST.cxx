@@ -73,15 +73,13 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     ackedOffset(0), sentOffset(0), congWindow(0), congestionTimer(this),
     server(server_), updates(false),
     drawRenderedCursor(false), removeRenderedCursor(false),
-    continuousUpdates(false),
+    continuousUpdates(false), encodeManager(this),
     updateTimer(this), pointerEventTime(0),
     accessRights(AccessDefault), startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint.buf = sock->getPeerEndpoint();
   VNCServerST::connectionsLog.write(1,"accepted: %s", peerEndpoint.buf);
-
-  memset(encoders, 0, sizeof(encoders));
 
   // Configure the socket
   setSocketTimeouts();
@@ -107,9 +105,6 @@ VNCSConnectionST::~VNCSConnectionST()
 
   // Remove this client from the server
   server->clients.remove(this);
-
-  for (int i = 0; i <= encodingMax; i++)
-    delete encoders[i];
 
   delete [] fenceData;
 }
@@ -1027,72 +1022,19 @@ void VNCSConnectionST::writeFramebufferUpdate()
   }
 
   if (!ui.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
-    std::vector<Rect> rects;
-    std::vector<Rect>::const_iterator i;
-    int encoding;
+    RenderedCursor *cursor;
 
-    Encoder* encoder;
-    PixelBuffer* pb;
-
-    // Make sure the encoder has the latest settings
-    encoding = cp.currentEncoding();
-
-    if (!encoders[encoding])
-      encoders[encoding] = Encoder::createEncoder(encoding, this);
-
-    encoder = encoders[encoding];
-
-    encoder->setCompressLevel(cp.compressLevel);
-    encoder->setQualityLevel(cp.qualityLevel);
-    encoder->setFineQualityLevel(cp.fineQualityLevel, cp.subsampling);
-
-    // Compute the number of rectangles. Tight encoder makes the things more
-    // complicated as compared to the original VNC4.
-    int nRects = (ui.copied.numRects() +
-                  (drawRenderedCursor ? 1 : 0));
-
-    ui.changed.get_rects(&rects);
-    for (i = rects.begin(); i != rects.end(); i++) {
-      if (i->width() && i->height()) {
-        int nUpdateRects = encoder->getNumRects(*i);
-        if (nUpdateRects == 0 && cp.currentEncoding() == encodingTight) {
-          // With Tight encoding and LastRect support, the client does not
-          // care about the number of rectangles in the update - it will
-          // stop parsing when it encounters a LastRect "rectangle".
-          // In this case, pretend to send 65535 rectangles.
-          nRects = 0xFFFF;  break;
-        }
-        else
-          nRects += nUpdateRects;
-      }
-    }
-
-    writeRTTPing();
-    
-    writer()->writeFramebufferUpdateStart(nRects);
-
-    ui.copied.get_rects(&rects);
-    for (i = rects.begin(); i != rects.end(); i++)
-      writer()->writeCopyRect(*i, i->tl.x - ui.copy_delta.x,
-                              i->tl.y - ui.copy_delta.y);
-
-    pb = server->getPixelBuffer();
-
-    ui.changed.get_rects(&rects);
-    for (i = rects.begin(); i != rects.end(); i++)
-      encoder->writeRect(*i, pb);
-
-    if (drawRenderedCursor) {
-      renderedCursorRect = server->renderedCursor.getEffectiveRect();
-      encoder->writeRect(renderedCursorRect, &server->renderedCursor);
-
-      drawRenderedCursor = false;
-    }
-
-    writer()->writeFramebufferUpdateEnd();
+    cursor = NULL;
+    if (drawRenderedCursor)
+      cursor = &server->renderedCursor;
 
     writeRTTPing();
 
+    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+
+    writeRTTPing();
+
+    drawRenderedCursor = false;
     requested.clear();
     updates.clear();
   }

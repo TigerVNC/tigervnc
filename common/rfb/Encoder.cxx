@@ -16,20 +16,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <stdio.h>
-#include <rfb/encodings.h>
-#include <rfb/Exception.h>
+
 #include <rfb/Encoder.h>
-#include <rfb/RawEncoder.h>
-#include <rfb/RREEncoder.h>
-#include <rfb/HextileEncoder.h>
-#include <rfb/ZRLEEncoder.h>
-#include <rfb/TightEncoder.h>
-#include <rfb/SConnection.h>
+#include <rfb/PixelBuffer.h>
+#include <rfb/Palette.h>
 
 using namespace rfb;
 
-Encoder::Encoder(SConnection *conn_) : conn(conn_)
+Encoder::Encoder(SConnection *conn_, int encoding_,
+                 enum EncoderFlags flags_, unsigned int maxPaletteSize_) :
+  conn(conn_), encoding(encoding_), flags(flags_),
+  maxPaletteSize(maxPaletteSize_)
 {
 }
 
@@ -37,34 +34,50 @@ Encoder::~Encoder()
 {
 }
 
-bool Encoder::supported(int encoding)
+void Encoder::writeSolidRect(int width, int height,
+                             const PixelFormat& pf, const rdr::U8* colour)
 {
-  switch (encoding) {
-  case encodingRaw:
-  case encodingRRE:
-  case encodingHextile:
-  case encodingZRLE:
-  case encodingTight:
-    return true;
-  default:
-    return false;
-  }
+  ManagedPixelBuffer buffer(pf, width, height);
+  Pixel pixel;
+
+  Palette palette;
+  rdr::U32 palcol;
+
+  pixel = pf.pixelFromBuffer(colour);
+  buffer.fillRect(buffer.getRect(), pixel);
+
+  palcol = 0;
+  memcpy(&palcol, colour, pf.bpp/8);
+  palette.insert(palcol, 1);
+
+  writeRect(&buffer, palette);
 }
 
-Encoder* Encoder::createEncoder(int encoding, SConnection* conn)
+void Encoder::writeSolidRect(const PixelBuffer* pb, const Palette& palette)
 {
-  switch (encoding) {
-  case encodingRaw:
-    return new RawEncoder(conn);
-  case encodingRRE:
-    return new RREEncoder(conn);
-  case encodingHextile:
-    return new HextileEncoder(conn);
-  case encodingZRLE:
-    return new ZRLEEncoder(conn);
-  case encodingTight:
-    return new TightEncoder(conn);
+  rdr::U32 col32;
+  rdr::U16 col16;
+  rdr::U8 col8;
+
+  rdr::U8* buffer;
+
+  assert(palette.size() == 1);
+
+  // The Palette relies on implicit up and down conversion
+  switch (pb->getPF().bpp) {
+  case 32:
+    col32 = (rdr::U32)palette.getColour(0);
+    buffer = (rdr::U8*)&col32;
+    break;
+  case 16:
+    col16 = (rdr::U16)palette.getColour(0);
+    buffer = (rdr::U8*)&col16;
+    break;
   default:
-    return NULL;
+    col8 = (rdr::U8)palette.getColour(0);
+    buffer = (rdr::U8*)&col8;
+    break;
   }
+
+  writeSolidRect(pb->width(), pb->height(), pb->getPF(), buffer);
 }

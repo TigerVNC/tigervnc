@@ -23,6 +23,8 @@
 #ifndef __RFB_CONNPARAMS_H__
 #define __RFB_CONNPARAMS_H__
 
+#include <set>
+
 #include <rdr/types.h>
 #include <rfb/Cursor.h>
 #include <rfb/PixelFormat.h>
@@ -78,7 +80,8 @@ namespace rfb {
     const Cursor& cursor() { return cursor_; }
     void setCursor(const Cursor& cursor);
 
-    rdr::S32 currentEncoding() { return currentEncoding_; }
+    rdr::S32 preferredEncoding() { return preferredEncoding_; }
+    bool supportsEncoding(rdr::S32 encoding);
 
     void setEncodings(int nEncodings, const rdr::S32* encodings);
 
@@ -105,7 +108,8 @@ namespace rfb {
     PixelFormat pf_;
     char* name_;
     Cursor cursor_;
-    int currentEncoding_;
+    rdr::S32 preferredEncoding_;
+    std::set<rdr::S32> encodings_;
     char verStr[13];
     int verStrPos;
   };
