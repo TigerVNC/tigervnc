@@ -931,7 +931,7 @@ void Viewport::popupContextMenu()
 
   // Back to our proper mouse pointer.
 #ifdef HAVE_FLTK_CURSOR
-  if (Fl::belowmouse() == this)
+  if ((Fl::belowmouse() == this) && cursor)
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
 #endif
 
