@@ -21,6 +21,26 @@
 
 using namespace rfb;
 
+static inline rdr::U32 readOpaque24A(rdr::InStream* is)
+{
+  is->check(3);
+  rdr::U32 r=0;
+  ((rdr::U8*)&r)[0] = is->readU8();
+  ((rdr::U8*)&r)[1] = is->readU8();
+  ((rdr::U8*)&r)[2] = is->readU8();
+  return r;
+
+}
+static inline rdr::U32 readOpaque24B(rdr::InStream* is)
+{
+  is->check(3);
+  rdr::U32 r=0;
+  ((rdr::U8*)&r)[1] = is->readU8();
+  ((rdr::U8*)&r)[2] = is->readU8();
+  ((rdr::U8*)&r)[3] = is->readU8();
+  return r;
+}
+
 #define EXTRA_ARGS CMsgHandler* handler
 #define FILL_RECT(r, p) handler->fillRect(r, p)
 #define IMAGE_RECT(r, p) handler->imageRect(r, p)

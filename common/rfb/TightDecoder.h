@@ -33,6 +33,8 @@ namespace rfb {
     virtual void readRect(const Rect& r, CMsgHandler* handler);
 
   private:
+    rdr::U32 readCompact(rdr::InStream* is);
+
     void tightDecode8(const Rect& r);
     void tightDecode16(const Rect& r);
     void tightDecode32(const Rect& r);

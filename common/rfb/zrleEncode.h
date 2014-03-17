@@ -45,13 +45,13 @@ namespace rfb {
 
 #ifdef CPIXEL
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
-#define WRITE_PIXEL CONCAT2E(writeOpaque,CPIXEL)
+#define WRITE_PIXEL(os, u) CONCAT2E(writeOpaque,CPIXEL)(os, u)
 #define ZRLE_ENCODE CONCAT2E(zrleEncode,CPIXEL)
 #define ZRLE_ENCODE_TILE CONCAT2E(zrleEncodeTile,CPIXEL)
 #define BPPOUT 24
 #else
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
-#define WRITE_PIXEL CONCAT2E(writeOpaque,BPP)
+#define WRITE_PIXEL(os, u) os->CONCAT2E(writeOpaque,BPP)(u)
 #define ZRLE_ENCODE CONCAT2E(zrleEncode,BPP)
 #define ZRLE_ENCODE_TILE CONCAT2E(zrleEncodeTile,BPP)
 #define BPPOUT BPP
@@ -129,7 +129,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
 
   if (palette.size() == 1) {
     os->writeU8(1);
-    os->WRITE_PIXEL(palette.getColour(0));
+    WRITE_PIXEL(os, palette.getColour(0));
     return;
   }
 
@@ -176,7 +176,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
   os->writeU8((useRle ? 128 : 0) | palette.size());
 
   for (int i = 0; i < palette.size(); i++) {
-    os->WRITE_PIXEL(palette.getColour(i));
+    WRITE_PIXEL(os, palette.getColour(i));
   }
 
   if (useRle) {
@@ -202,7 +202,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
         int index = palette.lookup(pix);
         os->writeU8(index | 128);
       } else {
-        os->WRITE_PIXEL(pix);
+        WRITE_PIXEL(os, pix);
       }
       len -= 1;
       while (len >= 255) {
@@ -253,7 +253,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
 
 #ifdef CPIXEL
       for (PIXEL_T* ptr = data; ptr < data+w*h; ptr++) {
-        os->WRITE_PIXEL(*ptr);
+        WRITE_PIXEL(os, *ptr);
       }
 #else
       os->writeBytes(data, w*h*(BPP/8));

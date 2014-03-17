@@ -28,6 +28,21 @@ using namespace rfb;
 
 IntParameter zlibLevel("ZlibLevel","Zlib compression level",-1);
 
+static inline void writeOpaque24A(rdr::OutStream* os, rdr::U32 u)
+{
+  os->check(3);
+  os->writeU8(((rdr::U8*)&u)[0]);
+  os->writeU8(((rdr::U8*)&u)[1]);
+  os->writeU8(((rdr::U8*)&u)[2]);
+}
+static inline void writeOpaque24B(rdr::OutStream* os, rdr::U32 u)
+{
+  os->check(3);
+  os->writeU8(((rdr::U8*)&u)[1]);
+  os->writeU8(((rdr::U8*)&u)[2]);
+  os->writeU8(((rdr::U8*)&u)[3]);
+}
+
 #define EXTRA_ARGS ImageGetter* ig
 #define GET_IMAGE_INTO_BUF(r,buf) ig->getImage(buf, r);
 #define BPP 8

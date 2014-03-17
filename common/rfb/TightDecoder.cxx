@@ -69,3 +69,22 @@ void TightDecoder::readRect(const Rect& r, CMsgHandler* handler)
     tightDecode32(r); break;
   }
 }
+
+rdr::U32 TightDecoder::readCompact(rdr::InStream* is)
+{
+  rdr::U8 b;
+  rdr::U32 result;
+
+  b = is->readU8();
+  result = (int)b & 0x7F;
+  if (b & 0x80) {
+    b = is->readU8();
+    result |= ((int)b & 0x7F) << 7;
+    if (b & 0x80) {
+      b = is->readU8();
+      result |= ((int)b & 0xFF) << 14;
+    }
+  }
+
+  return result;
+}

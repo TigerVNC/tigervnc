@@ -76,7 +76,7 @@ void TightEncoder::compressData(const void *buf, unsigned int length,
     zos->writeBytes(buf, length);
     zos->flush();
     zos->setUnderlying(NULL);
-    os->writeCompactLength(mem_os.length());
+    writeCompact(os, mem_os.length());
     os->writeBytes(mem_os.data(), mem_os.length());
   }
 }
@@ -336,7 +336,7 @@ void ENCODE_JPEG_RECT (PIXEL_T *buf, int stride, const Rect& r,
   jc.compress((rdr::U8 *)buf, stride, r, clientpf,
     jpegQuality, jpegSubsampling);
   os->writeU8(0x09 << 4);
-  os->writeCompactLength(jc.length());
+  writeCompact(os, jc.length());
   os->writeBytes(jc.data(), jc.length());
 }
 #endif  // #if (BPP != 8)

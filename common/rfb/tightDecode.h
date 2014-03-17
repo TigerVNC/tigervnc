@@ -141,7 +141,7 @@ void TIGHT_DECODE (const Rect& r)
   if (dataSize < TIGHT_MIN_TO_COMPRESS) {
     input = is;
   } else {
-    int length = is->readCompactLength();
+    int length = readCompact(is);
     streamId = comp_ctl & 0x03;
     zis[streamId].setUnderlying(is, length);
     input = &zis[streamId];
@@ -242,7 +242,7 @@ void
 DECOMPRESS_JPEG_RECT(const Rect& r)
 {
   // Read length
-  int compressedLen = is->readCompactLength();
+  int compressedLen = readCompact(is);
   if (compressedLen <= 0) {
       throw Exception("Incorrect data received from the server.\n");
   }

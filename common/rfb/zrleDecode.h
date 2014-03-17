@@ -41,11 +41,11 @@ namespace rfb {
 
 #ifdef CPIXEL
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
-#define READ_PIXEL CONCAT2E(readOpaque,CPIXEL)
+#define READ_PIXEL(is) CONCAT2E(readOpaque,CPIXEL)(is)
 #define ZRLE_DECODE CONCAT2E(zrleDecode,CPIXEL)
 #else
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
-#define READ_PIXEL CONCAT2E(readOpaque,BPP)
+#define READ_PIXEL(is) is->CONCAT2E(readOpaque,BPP)()
 #define ZRLE_DECODE CONCAT2E(zrleDecode,BPP)
 #endif
 
@@ -74,7 +74,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
       PIXEL_T palette[128];
 
       for (int i = 0; i < palSize; i++) {
-        palette[i] = zis->READ_PIXEL();
+        palette[i] = READ_PIXEL(zis);
       }
 
       if (palSize == 1) {
@@ -90,7 +90,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
 #ifdef CPIXEL
           for (PIXEL_T* ptr = buf; ptr < buf+t.area(); ptr++) {
-            *ptr = zis->READ_PIXEL();
+            *ptr = READ_PIXEL(zis);
           }
 #else
           zis->readBytes(buf, t.area() * (BPP / 8));
@@ -130,7 +130,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
           PIXEL_T* ptr = buf;
           PIXEL_T* end = ptr + t.area();
           while (ptr < end) {
-            PIXEL_T pix = zis->READ_PIXEL();
+            PIXEL_T pix = READ_PIXEL(zis);
             int len = 1;
             int b;
             do {

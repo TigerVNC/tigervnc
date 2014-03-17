@@ -74,6 +74,8 @@ namespace rfb {
     void sendRectSimple(const Rect& r);
     void writeSubrect(const Rect& r, bool forceSolid = false);
 
+    void writeCompact(rdr::OutStream* os, rdr::U32 value);
+
     void compressData(const void *buf, unsigned int length,
                       rdr::ZlibOutStream *zos, int zlibLevel,
                       rdr::OutStream *os);
