@@ -36,8 +36,7 @@ ConnParams::ConnParams()
     supportsDesktopRename(false), supportsLastRect(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
-    customCompressLevel(false), compressLevel(2),
-    noJpeg(false), qualityLevel(-1), fineQualityLevel(-1),
+    compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
     subsampling(subsampleUndefined), name_(0),
     currentEncoding_(encodingRaw), verStrPos(0)
 {
@@ -95,9 +94,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   supportsExtendedDesktopSize = false;
   supportsLocalXCursor = false;
   supportsLastRect = false;
-  customCompressLevel = false;
   compressLevel = -1;
-  noJpeg = true;
   qualityLevel = -1;
   fineQualityLevel = -1;
   subsampling = subsampleUndefined;
@@ -167,10 +164,4 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
     if (Encoder::supported(encodings[i]))
       currentEncoding_ = encodings[i];
   }
-
-  if (compressLevel != -1)
-    customCompressLevel = true;
-  if ((qualityLevel != -1) || (fineQualityLevel != -1) ||
-      (subsampling != subsampleUndefined))
-    noJpeg = false;
 }

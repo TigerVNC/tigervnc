@@ -89,11 +89,15 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   cp.supportsExtendedDesktopSize = true;
   cp.supportsDesktopRename = true;
 
-  cp.customCompressLevel = customCompressLevel;
-  cp.compressLevel = compressLevel;
+  if (customCompressLevel)
+    cp.compressLevel = compressLevel;
+  else
+    cp.compressLevel = -1;
 
-  cp.noJpeg = noJpeg;
-  cp.qualityLevel = qualityLevel;
+  if (!noJpeg)
+    cp.qualityLevel = qualityLevel;
+  else
+    cp.qualityLevel = -1;
 
   if(sock == NULL) {
     try {
@@ -619,16 +623,19 @@ void CConn::handleOptions(void *data)
 
     if (encNum != -1)
       self->currentEncoding = encNum;
-
-    self->cp.qualityLevel = qualityLevel;
   }
 
   self->cp.supportsLocalCursor = true;
 
-  self->cp.customCompressLevel = customCompressLevel;
-  self->cp.compressLevel = compressLevel;
+  if (customCompressLevel)
+    self->cp.compressLevel = compressLevel;
+  else
+    self->cp.compressLevel = -1;
 
-  self->cp.noJpeg = noJpeg;
+  if (!noJpeg && !autoSelect)
+    self->cp.qualityLevel = qualityLevel;
+  else
+    self->cp.qualityLevel = -1;
 
   self->encodingChange = true;
 

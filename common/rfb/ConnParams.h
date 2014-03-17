@@ -91,9 +91,7 @@ namespace rfb {
     bool supportsFence;
     bool supportsContinuousUpdates;
 
-    bool customCompressLevel;
     int compressLevel;
-    bool noJpeg;
     int qualityLevel;
     int fineQualityLevel;
     int subsampling;
