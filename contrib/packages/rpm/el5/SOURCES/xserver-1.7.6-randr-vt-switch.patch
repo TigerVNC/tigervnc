@@ -1,0 +1,41 @@
+From 41bdb6c003cca3ef0ff88d9c7de318115bab1ba2 Mon Sep 17 00:00:00 2001
+From: Pierre-Loup A. Griffais <pgriffais@nvidia.com>
+Date: Wed, 21 Apr 2010 18:11:05 -0700
+Subject: [PATCH] xf86: Don't crash when switching modes through RandR without owning the VT.
+
+While VT-switched, FB access is disabled and should remain so. Trying to switch
+modes in that state would re-enable it, potentially causing crashes if trying
+to access it before the driver has recovered from the mode switch.
+
+Signed-off-by: Pierre-Loup A. Griffais <pgriffais@nvidia.com>
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+---
+ hw/xfree86/common/xf86RandR.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86RandR.c b/hw/xfree86/common/xf86RandR.c
+index 02dcc34..d4beb2c 100644
+--- a/hw/xfree86/common/xf86RandR.c
++++ b/hw/xfree86/common/xf86RandR.c
+@@ -163,7 +163,7 @@ xf86RandRSetMode (ScreenPtr	    pScreen,
+     WindowPtr		pRoot = WindowTable[pScreen->myNum];
+     Bool		ret = TRUE;
+ 
+-    if (pRoot)
++    if (pRoot && scrp->vtSema)
+ 	(*scrp->EnableDisableFBAccess) (pScreen->myNum, FALSE);
+     if (useVirtual)
+     {
+@@ -229,7 +229,7 @@ xf86RandRSetMode (ScreenPtr	    pScreen,
+      */
+     xf86SetViewport (pScreen, pScreen->width, pScreen->height);
+     xf86SetViewport (pScreen, 0, 0);
+-    if (pRoot)
++    if (pRoot && scrp->vtSema)
+ 	(*scrp->EnableDisableFBAccess) (pScreen->myNum, TRUE);
+     return ret;
+ }
+-- 
+1.7.0.1
+

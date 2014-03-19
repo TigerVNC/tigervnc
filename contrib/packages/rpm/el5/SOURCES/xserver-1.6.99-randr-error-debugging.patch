@@ -1,0 +1,42 @@
+From 16be69ef1e2ea9f19cd596b99b5ede7567d374b8 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 27 Jul 2009 16:52:42 -0400
+Subject: [PATCH 11/16] additional randr debugging
+
+---
+ randr/randr.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
+
+diff --git a/randr/randr.c b/randr/randr.c
+index 1c1d0c4..accf614 100644
+--- a/randr/randr.c
++++ b/randr/randr.c
+@@ -477,10 +477,24 @@ RRVerticalRefresh (xRRModeInfo *mode)
+ static int
+ ProcRRDispatch (ClientPtr client)
+ {
++    int ret;
+     REQUEST(xReq);
+     if (stuff->data >= RRNumberRequests || !ProcRandrVector[stuff->data])
+ 	return BadRequest;
+-    return (*ProcRandrVector[stuff->data]) (client);
++    ret = ProcRandrVector[stuff->data](client);
++
++    if (ret) {
++        int i;
++        ErrorF("RANDR failure: %d (extension base %d)\n", ret, RRErrorBase);
++        for (i = 0; i < stuff->length; i++) {
++            ErrorF("%08x ", *(((unsigned int *)stuff) + i));
++            if ((i+1) % 4 == 0)
++               ErrorF("\n");
++        }
++        ErrorF("\n");
++    }
++
++    return ret;
+ }
+ 
+ static int
+-- 
+1.6.4.2
+

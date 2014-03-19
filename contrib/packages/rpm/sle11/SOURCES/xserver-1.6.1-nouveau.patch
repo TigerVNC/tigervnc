@@ -1,0 +1,67 @@
+Also, don't treat DRI setup failure as an error for nouveau.
+---
+
+diff --git a/glx/glxdri.c b/glx/glxdri.c
+index 21e44d1..30b820c 100644
+--- a/glx/glxdri.c
++++ b/glx/glxdri.c
+@@ -968,6 +968,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
+     const __DRIconfig **driConfigs;
+     const __DRIextension **extensions;
+     int i;
++    int from = X_ERROR;
+ 
+     if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable") ||
+ 	!DRIQueryDirectRenderingCapable(pScreen, &isCapable) ||
+@@ -1047,7 +1048,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
+ 
+     screen->driver = dlopen(filename, RTLD_LAZY | RTLD_LOCAL);
+     if (screen->driver == NULL) {
+-	LogMessage(X_ERROR, "AIGLX error: dlopen of %s failed (%s)\n",
++	if (!strcmp(driverName, "nouveau"))
++	    from = X_INFO;
++	LogMessage(from, "AIGLX error: dlopen of %s failed (%s)\n",
+ 		   filename, dlerror());
+         goto handle_error;
+     }
+@@ -1184,7 +1187,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
+ 
+     free(screen);
+ 
+-    LogMessage(X_ERROR, "AIGLX: reverting to software rendering\n");
++    LogMessage(from, "AIGLX: reverting to software rendering\n");
+ 
+     return NULL;
+ }
+diff --git a/glx/glxdri2.c b/glx/glxdri2.c
+index 0f998de..a244809 100644
+--- a/glx/glxdri2.c
++++ b/glx/glxdri2.c
+@@ -676,6 +676,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
+     const __DRIextension **extensions;
+     const __DRIconfig **driConfigs;
+     int i;
++    int from = X_ERROR;
+ 
+     screen = calloc(1, sizeof *screen);
+     if (screen == NULL)
+@@ -702,7 +703,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
+ 
+     screen->driver = dlopen(filename, RTLD_LAZY | RTLD_LOCAL);
+     if (screen->driver == NULL) {
+-	LogMessage(X_ERROR, "AIGLX error: dlopen of %s failed (%s)\n",
++	if (!strcmp(driverName, "nouveau"))
++	    from = X_INFO;
++	LogMessage(from, "AIGLX error: dlopen of %s failed (%s)\n",
+ 		   filename, dlerror());
+         goto handle_error;
+     }
+@@ -793,7 +796,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
+ 
+     free(screen);
+ 
+-    LogMessage(X_ERROR, "AIGLX: reverting to software rendering\n");
++    LogMessage(from, "AIGLX: reverting to software rendering\n");
+ 
+     return NULL;
+ }

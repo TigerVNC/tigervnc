@@ -1,0 +1,14 @@
+Index: xorg-server-1.6.3.901/hw/xfree86/common/xf86DPMS.c
+================================================================================
+--- xorg-server-1.7.99/hw/xfree86/common/xf86DPMS.c
++++ xorg-server-1.7.99/hw/xfree86/common/xf86DPMS.c
+@@ -156,7 +156,8 @@
+ 	rc = dixSaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverActive);
+ 	if (rc != Success)
+ 	    return rc;
+-    }
++    } else
++	dixSaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverReset);
+ 
+     /* For each screen, set the DPMS level */
+     for (i = 0; i < xf86NumScreens; i++) {

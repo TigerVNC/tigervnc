@@ -1,0 +1,15 @@
+diff -up Mesa-7.1/src/mesa/drivers/dri/intel/intel_fbo.c.intel-glthread Mesa-7.1/src/mesa/drivers/dri/intel/intel_fbo.c
+--- Mesa-7.1/src/mesa/drivers/dri/intel/intel_fbo.c.intel-glthread	2008-08-25 10:49:40.000000000 -0400
++++ Mesa-7.1/src/mesa/drivers/dri/intel/intel_fbo.c	2008-08-28 14:26:17.000000000 -0400
+@@ -633,11 +633,6 @@ intel_render_texture(GLcontext * ctx,
+        return;
+    }
+ 
+-   DBG("Begin render texture tid %x tex=%u w=%d h=%d refcount=%d\n",
+-       _glthread_GetID(),
+-       att->Texture->Name, newImage->Width, newImage->Height,
+-       irb->Base.RefCount);
+-
+    /* point the renderbufer's region to the texture image region */
+    intel_image = intel_texture_image(newImage);
+    if (irb->region != intel_image->mt->region) {

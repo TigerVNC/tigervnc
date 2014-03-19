@@ -1,0 +1,34 @@
+From a6b9e8f1e5d5d0b3b0f121a6f677eeca7aab1950 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Wed, 25 Aug 2010 15:06:38 +0000
+Subject: linux: Fix CPU usage bug in console fd flushing
+
+If the vt gets a vhangup from under us, then the tty will appear ready
+in select(), but trying to tcflush() it will return -EIO, so we'll spin
+around at 100% CPU for no reason.  Notice this condition and unregister
+the handler if it happens.
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+Reviewed-by: Mikhail Gusarov <dottedmag@dottedmag.net>
+Reviewed-by: Julien Cristau <jcristau@debian.org>
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+diff --git a/hw/xfree86/os-support/linux/lnx_init.c b/hw/xfree86/os-support/linux/lnx_init.c
+index bf61ceb..7ee9046 100644
+--- a/hw/xfree86/os-support/linux/lnx_init.c
++++ b/hw/xfree86/os-support/linux/lnx_init.c
+@@ -85,7 +85,11 @@ static void *console_handler;
+ static void
+ drain_console(int fd, void *closure)
+ {
+-    tcflush(fd, TCIOFLUSH);
++    errno = 0;
++    if (tcflush(fd, TCIOFLUSH) == -1 && errno == EIO) {
++	xf86RemoveGeneralHandler(console_handler);
++	console_handler = NULL;
++    }
+ }
+ 
+ void
+--
+cgit v0.8.3-6-g21f6

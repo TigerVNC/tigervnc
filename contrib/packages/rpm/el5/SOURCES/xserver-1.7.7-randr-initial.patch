@@ -1,0 +1,37 @@
+From 96cf3862b5807857dd39e55fa4b2d95ab7978708 Mon Sep 17 00:00:00 2001
+From: Ben Skeggs <bskeggs@redhat.com>
+Date: Mon, 7 Jun 2010 10:10:10 +1000
+Subject: [PATCH] randr: prevent an unnecessary screen resize with multiple displays
+
+crtc->{x,y} is always 0 when xf86DefaultScreenLimits() is called, so we
+calculate too small an area for the initial framebuffer and force a resize
+to happen.
+
+This commit fixes the code to use desired{X,Y} instead, which contains the
+initial output positions.
+
+Signed-off-by: Ben Skeggs <bskeggs@redhat.com>
+Reviewed-by: Dave Airlie <airlied@redhat.com>
+Reviewed-by: Keith Packard <keithp@keithp.com>
+---
+ hw/xfree86/modes/xf86Crtc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/hw/xfree86/modes/xf86Crtc.c b/hw/xfree86/modes/xf86Crtc.c
+index 304d503..cd978ae 100644
+--- a/hw/xfree86/modes/xf86Crtc.c
++++ b/hw/xfree86/modes/xf86Crtc.c
+@@ -1038,8 +1038,8 @@ xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp,
+ 
+ 	if (crtc->enabled)
+ 	{
+-	    crtc_width = crtc->x + xf86ModeWidth (&crtc->desiredMode, crtc->desiredRotation);
+-	    crtc_height = crtc->y + xf86ModeHeight (&crtc->desiredMode, crtc->desiredRotation);
++	    crtc_width = crtc->desiredX + xf86ModeWidth (&crtc->desiredMode, crtc->desiredRotation);
++	    crtc_height = crtc->desiredY + xf86ModeHeight (&crtc->desiredMode, crtc->desiredRotation);
+ 	}
+ 	if (!canGrow) {
+ 	    for (o = 0; o < config->num_output; o++)
+-- 
+1.7.0.1
+

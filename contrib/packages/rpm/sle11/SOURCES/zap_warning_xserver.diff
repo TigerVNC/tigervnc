@@ -1,0 +1,109 @@
+Index: xorg-server-1.6.3.901/hw/xfree86/common/xf86Config.c
+================================================================================
+--- xorg-server-1.7.99/hw/xfree86/common/xf86Config.c
++++ xorg-server-1.7.99/hw/xfree86/common/xf86Config.c
+@@ -696,6 +696,7 @@
+     FLAG_NOTRAPSIGNALS,
+     FLAG_DONTVTSWITCH,
+     FLAG_DONTZAP,
++    FLAG_ZAPWARNING,
+     FLAG_DONTZOOM,
+     FLAG_DISABLEVIDMODE,
+     FLAG_ALLOWNONLOCAL,
+@@ -734,6 +735,8 @@
+ 	{0}, FALSE },
+   { FLAG_DONTZAP,		"DontZap",			OPTV_BOOLEAN,
+ 	{0}, FALSE },
++  { FLAG_ZAPWARNING,		"ZapWarning",			OPTV_BOOLEAN,
++	{0}, FALSE },
+   { FLAG_DONTZOOM,		"DontZoom",			OPTV_BOOLEAN,
+ 	{0}, FALSE },
+   { FLAG_DISABLEVIDMODE,	"DisableVidModeExtension",	OPTV_BOOLEAN,
+@@ -840,6 +843,7 @@
+     xf86GetOptValBool(FlagOptions, FLAG_NOTRAPSIGNALS, &xf86Info.notrapSignals);
+     xf86GetOptValBool(FlagOptions, FLAG_DONTVTSWITCH, &xf86Info.dontVTSwitch);
+     xf86GetOptValBool(FlagOptions, FLAG_DONTZAP, &xf86Info.dontZap);
++    xf86GetOptValBool(FlagOptions, FLAG_ZAPWARNING, &xf86Info.ZapWarning);
+     xf86GetOptValBool(FlagOptions, FLAG_DONTZOOM, &xf86Info.dontZoom);
+ 
+     xf86GetOptValBool(FlagOptions, FLAG_IGNORE_ABI, &xf86Info.ignoreABI);
+--- xorg-server-1.7.99/hw/xfree86/common/xf86Events.c
++++ xorg-server-1.7.99/hw/xfree86/common/xf86Events.c
+@@ -180,12 +180,26 @@
+     DebugF("ProcessActionEvent(%d,%x)\n", (int) action, arg);
+     switch (action) {
+     case ACTION_TERMINATE:
+-	if (!xf86Info.dontZap) {
++	if (xf86Info.dontZap)
++	    break;
++
++ 	if (xf86Info.ZapWarning) {
++	    static struct timeval LastZap = { 0, 0};
++	    struct timeval NewZap;
++
++	    gettimeofday(&NewZap, NULL);
++
++	    if ((NewZap.tv_sec - LastZap.tv_sec) >= 2) {
++		xf86OSRingBell(100, 1000, 500);
++		LastZap = NewZap;
++		break;
++	    }
++	}
++
+ #ifdef XFreeXDGA
+-	    DGAShutdown();
++	DGAShutdown();
+ #endif
+-	    GiveUp(0);
+-	}
++	GiveUp(0);
+ 	break;
+     case ACTION_NEXT_MODE:
+ 	if (!xf86Info.dontZoom)
+--- xorg-server-1.7.99/hw/xfree86/common/xf86Globals.c
++++ xorg-server-1.7.99/hw/xfree86/common/xf86Globals.c
+@@ -109,6 +109,7 @@
+ #endif
+     .dontVTSwitch               = FALSE,
+     .dontZap                    = FALSE,
++    .ZapWarning                 = TRUE,
+     .dontZoom                   = FALSE,
+     .notrapSignals              = FALSE,
+     .caughtSignal               = FALSE,
+--- xorg-server-1.7.99/hw/xfree86/common/xf86Privstr.h
++++ xorg-server-1.7.99/hw/xfree86/common/xf86Privstr.h
+@@ -67,6 +67,7 @@
+ #endif
+     Bool		dontVTSwitch;
+     Bool		dontZap;
++    Bool                ZapWarning;
+     Bool		dontZoom;
+     Bool		notrapSignals;	/* don't exit cleanly - die at fault */
+     Bool		caughtSignal;
+--- xorg-server-1.7.99/hw/xfree86/doc/man/Xorg.man.pre
++++ xorg-server-1.7.99/hw/xfree86/doc/man/Xorg.man.pre
+@@ -438,7 +438,7 @@
+ .B Ctrl+Alt+Backspace
+ Immediately kills the server -- no questions asked. It can be disabled by
+ setting the
+-.B DontZap
++.B DontZap/ZapWarning
+ __xconfigfile__(__filemansuffix__) file option to a TRUE value.
+ .PP
+ .RS 8
+--- xorg-server-1.7.99/hw/xfree86/doc/man/xorg.conf.man.pre
++++ xorg-server-1.7.99/hw/xfree86/doc/man/xorg.conf.man.pre
+@@ -507,6 +507,13 @@
+ When this option is enabled, the action has no effect.
+ Default: off.
+ .TP 7
++.BI "Option \*qZapWarning\*q  \*q" boolean \*q
++This warns the user loudly when the
++.B Ctrl+Alt+Backspace
++sequence is pressed for the first time but still terminates the __xservername__
++server when this key-sequence is pressed again shortly after.
++Default: on.
++.TP 7
+ .BI "Option \*qDontZoom\*q  \*q" boolean \*q
+ This disallows the use of the
+ .B Ctrl+Alt+Keypad\-Plus

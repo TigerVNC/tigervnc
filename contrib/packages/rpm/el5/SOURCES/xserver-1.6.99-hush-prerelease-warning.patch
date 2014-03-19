@@ -1,0 +1,25 @@
+From e9a81cb99315cf4c5325b276b802c659b9f04045 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Tue, 15 Sep 2009 10:33:40 -0400
+Subject: [PATCH] Hush prerelease warning.
+
+---
+ hw/xfree86/common/xf86Init.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86Init.c b/hw/xfree86/common/xf86Init.c
+index 056e46d..3cdbdf4 100644
+--- a/hw/xfree86/common/xf86Init.c
++++ b/hw/xfree86/common/xf86Init.c
+@@ -132,7 +132,7 @@ static Bool formatsDone = FALSE;
+ static void
+ xf86PrintBanner(void)
+ {
+-#if PRE_RELEASE
++#if 0
+   ErrorF("\n"
+     "This is a pre-release version of the X server from " XVENDORNAME ".\n"
+     "It is not supported in any way.\n"
+-- 
+1.6.4.2
+

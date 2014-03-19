@@ -1,0 +1,108 @@
+From d66172eb30398176ee64eaf5841887c76cbac06f Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <x@fedoraproject.org>
+Date: Mon, 21 Jun 2010 09:55:39 +1000
+Subject: [PATCH] rotation: fix cursor and overlap of one pixel.
+
+Commit 77c7a64e8885696665556c9fbcb3cffb552e367a was introduced to fix a cursor off by one on Intel hw, however it also move the whole crtc into an off by one
+position and you could see gnom-eshell overlapping.
+
+This commit reverts that and instead fixes the cursor hotspot translation to
+work like pixman does. We add 0.5 to the cursor vector before translating,
+and floor the value afterwards.
+
+Thanks to Soeren (ssp) for pointing out where the real problem was after explaning how pixman translates points.
+
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ hw/xfree86/modes/xf86Cursors.c |    9 ++++++---
+ randr/rrtransform.c            |   28 ++++++++++++++--------------
+ 2 files changed, 20 insertions(+), 17 deletions(-)
+
+diff --git a/hw/xfree86/modes/xf86Cursors.c b/hw/xfree86/modes/xf86Cursors.c
+index 385848b..483f62d 100644
+--- a/hw/xfree86/modes/xf86Cursors.c
++++ b/hw/xfree86/modes/xf86Cursors.c
+@@ -327,10 +327,13 @@ xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
+ 						  xf86CursorScreenKey);
+ 	struct pict_f_vector   v;
+ 
+-	v.v[0] = x + ScreenPriv->HotX; v.v[1] = y + ScreenPriv->HotY; v.v[2] = 1;
++	v.v[0] = (x + ScreenPriv->HotX) + 0.5;
++	v.v[1] = (y + ScreenPriv->HotY) + 0.5;
++	v.v[2] = 1;
+ 	pixman_f_transform_point (&crtc->f_framebuffer_to_crtc, &v);
+-	x = floor (v.v[0] + 0.5);
+-	y = floor (v.v[1] + 0.5);
++	/* cursor will have 0.5 added to it already so floor is sufficent */
++	x = floor (v.v[0]);
++	y = floor (v.v[1]);
+ 	/*
+ 	 * Transform position of cursor upper left corner
+ 	 */
+diff --git a/randr/rrtransform.c b/randr/rrtransform.c
+index 06f6298..53de3b8 100644
+--- a/randr/rrtransform.c
++++ b/randr/rrtransform.c
+@@ -185,21 +185,21 @@ RRTransformCompute (int			    x,
+ 	    break;
+ 	case RR_Rotate_90:
+ 	    f_rot_cos = 0;	    f_rot_sin = 1;
+-	    f_rot_dx  = height-1;   f_rot_dy  = 0;
++	    f_rot_dx  = height;	    f_rot_dy  = 0;
+ 	    rot_cos = F ( 0);	    rot_sin = F ( 1);
+-	    rot_dx =  F (height-1); rot_dy  = F (0);
++	    rot_dx =  F ( height);  rot_dy  = F (0);
+ 	    break;
+ 	case RR_Rotate_180:
+ 	    f_rot_cos = -1;	    f_rot_sin = 0;
+-	    f_rot_dx  = width - 1;  f_rot_dy  = height - 1;
++	    f_rot_dx  = width;	    f_rot_dy  = height;
+ 	    rot_cos = F (-1);	    rot_sin = F ( 0);
+-	    rot_dx  = F (width-1);  rot_dy  = F ( height-1);
++	    rot_dx  = F (width);   rot_dy  = F ( height);
+ 	    break;
+ 	case RR_Rotate_270:
+ 	    f_rot_cos = 0;	    f_rot_sin = -1;
+-	    f_rot_dx  = 0;	    f_rot_dy  = width-1;
++	    f_rot_dx  = 0;	    f_rot_dy  = width;
+ 	    rot_cos = F ( 0);	    rot_sin = F (-1);
+-	    rot_dx  = F ( 0);	    rot_dy  = F ( width-1);
++	    rot_dx  = F ( 0);	    rot_dy  = F ( width);
+ 	    break;
+ 	}
+ 	
+@@ -222,11 +222,11 @@ RRTransformCompute (int			    x,
+ 	    f_scale_x = -1;
+ 	    scale_x = F(-1);
+ 	    if (rotation & (RR_Rotate_0|RR_Rotate_180)) {
+-		f_scale_dx = width-1;
+-		scale_dx = F(width-1);
++		f_scale_dx = width;
++		scale_dx = F(width);
+ 	    } else {
+-		f_scale_dx = height-1;
+-		scale_dx = F(height-1);
++		f_scale_dx = height;
++		scale_dx = F(height);
+ 	    }
+ 	}
+ 	if (rotation & RR_Reflect_Y)
+@@ -234,11 +234,11 @@ RRTransformCompute (int			    x,
+ 	    f_scale_y = -1;
+ 	    scale_y = F(-1);
+ 	    if (rotation & (RR_Rotate_0|RR_Rotate_180)) {
+-		f_scale_dy = height-1;
+-		scale_dy = F(height-1);
++		f_scale_dy = height;
++		scale_dy = F(height);
+ 	    } else {
+-		f_scale_dy = width-1;
+-		scale_dy = F(width-1);
++		f_scale_dy = width;
++		scale_dy = F(width);
+ 	    }
+ 	}
+ 	
+-- 
+1.6.5.2
+

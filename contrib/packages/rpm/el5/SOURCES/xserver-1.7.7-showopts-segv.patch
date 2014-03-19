@@ -1,0 +1,37 @@
+From 657d9ece7d8198a5ee9cef3cbbef2c1b81766e77 Mon Sep 17 00:00:00 2001
+From: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date: Sat, 12 Jun 2010 08:19:16 -0700
+Subject: [PATCH] Don't coredump on "X -showopts" (bug 25874)
+
+Don't try walking the xf86ConfigLayout.screens table if it's empty
+https://bugs.freedesktop.org/show_bug.cgi?id=25874
+
+Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+Reviewed-by: Tiago Vignatti <tiago.vignatti@nokia.com>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+(cherry picked from commit b8615d592700b7be319c04cc0563fdeb5a266534)
+---
+ hw/xfree86/common/xf86Helper.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86Helper.c b/hw/xfree86/common/xf86Helper.c
+index 1cc1526..512b39e 100644
+--- a/hw/xfree86/common/xf86Helper.c
++++ b/hw/xfree86/common/xf86Helper.c
+@@ -1447,6 +1447,13 @@ xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
+     if (xf86DoConfigure && xf86DoConfigurePass1) return 1;
+ 
+     /*
++     * This can happen when running Xorg -showopts and a module like ati
++     * or vmware tries to load its submodules when xf86ConfigLayout is empty
++     */
++    if (!xf86ConfigLayout.screens)
++	return 0;
++
++    /*
+      * This is a very important function that matches the device sections
+      * as they show up in the config file with the drivers that the server
+      * loads at run time.
+-- 
+1.7.1
+

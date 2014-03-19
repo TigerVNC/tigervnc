@@ -1,0 +1,57 @@
+From 7b3b7efe78dec87c8059ea0d0985f08a97f0633d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Michel=20D=C3=A4nzer?= <daenzer@vmware.com>
+Date: Thu, 24 Feb 2011 12:17:57 +0100
+Subject: [PATCH] EXA/mixed: ModifyPixmapHeader pitch fixes. (bug #33929)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+If there's a GPU copy and a non-zero devKind was passed in, set the GPU copy
+pitch to that instead of to a possibly bogus value derived from the new width.
+This is e.g. used by the radeon driver's drmmode_xf86crtc_resize hook, fixes
+https://bugs.freedesktop.org/show_bug.cgi?id=33929 .
+
+On the other hand, the system memory copy doesn't need the pitch to be aligned
+beyond the PixmapBytePad of the width.
+
+Signed-off-by: Michel Dänzer <daenzer@vmware.com>
+Acked-by: Cyril Brulebois <kibi@debian.org>
+Tested-by: Cyril Brulebois <kibi@debian.org>
+Reported-by: Thierry Vignaud <thierry.vignaud@gmail.com>
+Tested-by: Thierry Vignaud <thierry.vignaud@gmail.com>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+(cherry picked from commit 31704510f448706524b7b7085cc4ff0ada7bfe7e)
+---
+ exa/exa_mixed.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/exa/exa_mixed.c b/exa/exa_mixed.c
+index 606f1e1..fd1afb2 100644
+--- a/exa/exa_mixed.c
++++ b/exa/exa_mixed.c
+@@ -175,8 +175,10 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
+ 	depth != pPixmap->drawable.depth ||
+ 	bitsPerPixel != pPixmap->drawable.bitsPerPixel) {
+ 	if (pExaPixmap->driverPriv) {
+-            exaSetFbPitch(pExaScr, pExaPixmap,
+-                          width, height, bitsPerPixel);
++	    if (devKind > 0)
++		pExaPixmap->fb_pitch = devKind;
++	    else
++		exaSetFbPitch(pExaScr, pExaPixmap, width, height, bitsPerPixel);
+ 
+             exaSetAccelBlock(pExaScr, pExaPixmap,
+                              width, height, bitsPerPixel);
+@@ -187,8 +189,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
+ 	if (has_gpu_copy && pExaPixmap->sys_ptr) {
+ 	    free(pExaPixmap->sys_ptr);
+ 	    pExaPixmap->sys_ptr = NULL;
+-	    pExaPixmap->sys_pitch = devKind > 0 ? devKind :
+-	        PixmapBytePad(width, depth);
++	    pExaPixmap->sys_pitch = PixmapBytePad(width, depth);
+ 	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
+ 	    DamageDestroy(pExaPixmap->pDamage);
+ 	    pExaPixmap->pDamage = NULL;
+-- 
+1.7.4.1
+

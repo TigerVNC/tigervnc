@@ -1,0 +1,31 @@
+From 532529ced48ff4338cfd7317fa795e9bbf0a2d80 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Wed, 9 Jun 2010 15:41:09 +1000
+Subject: [PATCH] Xi: only list the device mode in XIQueryDevice, not the proximity bit.
+
+The mode is either Absolute or Relative, the mode field in the
+ValuatorClassRec also stores the proximity bit on the second bit for XI 1.x
+clients, returning bad data to clients that just check for (mode ==
+Absolute) or for (mode == Relative).
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ Xi/xiquerydevice.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/Xi/xiquerydevice.c b/Xi/xiquerydevice.c
+index 435868d..4849286 100644
+--- a/Xi/xiquerydevice.c
++++ b/Xi/xiquerydevice.c
+@@ -346,7 +346,7 @@ ListValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info, int axisnumber,
+     info->value.frac = (int)(v->axisVal[axisnumber] * (1 << 16) * (1 << 16));
+     info->resolution = v->axes[axisnumber].resolution;
+     info->number = axisnumber;
+-    info->mode = v->mode; /* Server doesn't have per-axis mode yet */
++    info->mode = v->mode & DeviceMode; /* Server doesn't have per-axis mode yet */
+     info->sourceid = v->sourceid;
+ 
+     if (!reportState)
+-- 
+1.6.5.2
+

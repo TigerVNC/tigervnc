@@ -1,0 +1,130 @@
+From a7083389e14221c0ed6bff00e4006b9a0b1f7e4d Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Tue, 27 Jul 2010 14:56:29 -0400
+Subject: [PATCH] modes: Account for lid status, sometimes, if the devil chicken says so
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+---
+ hw/xfree86/modes/xf86Crtc.c |   80 ++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 72 insertions(+), 8 deletions(-)
+
+diff --git a/hw/xfree86/modes/xf86Crtc.c b/hw/xfree86/modes/xf86Crtc.c
+index 06d1fc2..7a849e1 100644
+--- a/hw/xfree86/modes/xf86Crtc.c
++++ b/hw/xfree86/modes/xf86Crtc.c
+@@ -32,6 +32,11 @@
+ #include <stddef.h>
+ #include <string.h>
+ #include <stdio.h>
++#include <glob.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
+ 
+ #include "xf86.h"
+ #include "xf86DDC.h"
+@@ -1515,11 +1520,44 @@ GuessRangeFromModes(MonPtr mon, DisplayModePtr mode)
+        mon->vrefresh[0].lo = 58.0;
+ }
+ 
++static int
++lvds_lid_status(void)
++{
++    glob_t g = {0, };
++    int ret = XF86OutputStatusConnected;
++#ifdef linux
++    int fd;
++    char buf[80];
++
++    memset(buf, '\0', sizeof(buf));
++
++    if (glob("/proc/acpi/button/lid/*/state", GLOB_NOSORT, NULL, &g) != 0)
++	goto out;
++
++    if (g.gl_pathc != 1)
++	goto out;
++
++    fd = open(g.gl_pathv[0], O_RDONLY);
++    if (fd == -1)
++	goto out;
++
++    read(fd, buf, sizeof(buf)-1);
++    close(fd);
++    if (strstr(buf, "closed"))
++	ret = XF86OutputStatusDisconnected;
++#endif
++
++out:
++    globfree(&g);
++    return ret;
++}
++
+ void
+ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
+ {
+     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+     int			o;
++    int			num_connected = 0;
+ 
+     /* When canGrow was TRUE in the initial configuration we have to
+      * compare against the maximum values so that we don't drop modes.
+@@ -1531,6 +1569,40 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
+ 	maxY = config->maxHeight;
+     }
+ 
++    /* clean the mode list */
++    for (o = 0; o < config->num_output; o++)
++    {
++	xf86OutputPtr output = config->output[o];
++	while (output->probed_modes != NULL)
++	    xf86DeleteMode(&output->probed_modes, output->probed_modes);
++    }
++
++    /* scan for connectivity */
++    for (o = 0; o < config->num_output; o++)
++    {
++	xf86OutputPtr output = config->output[o];
++	output->status = output->funcs->detect(output);
++
++	if (output->status == XF86OutputStatusConnected)
++	    num_connected++;
++    }
++
++    /*
++     * Hack for LVDS/eDP.  We want to consider these disconnected if the
++     * lid is closed, but only if more than one output is connected (lest
++     * we darken the only available output, since lid status is unreliable)
++     */
++    if (num_connected > 1)
++    {
++	for (o = 0; o < config->num_output; o++)
++	{
++	    xf86OutputPtr output = config->output[o];
++	    if (strstr(output->name, "LVDS") || strstr(output->name, "eDP"))
++		if (output->status == XF86OutputStatusConnected)
++		    output->status = lvds_lid_status();
++	}
++    }
++
+     /* Probe the list of modes for each output. */
+     for (o = 0; o < config->num_output; o++) 
+     {
+@@ -1547,14 +1619,6 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
+ 	Bool                add_default_modes;
+ 	enum { sync_config, sync_edid, sync_default } sync_source = sync_default;
+ 	
+-	while (output->probed_modes != NULL)
+-	    xf86DeleteMode(&output->probed_modes, output->probed_modes);
+-
+-	/*
+-	 * Check connection status
+-	 */
+-	output->status = (*output->funcs->detect)(output);
+-
+ 	if (output->status == XF86OutputStatusDisconnected)
+ 	{
+ 	    xf86OutputSetEDID (output, NULL);
+-- 
+1.7.1.1
+

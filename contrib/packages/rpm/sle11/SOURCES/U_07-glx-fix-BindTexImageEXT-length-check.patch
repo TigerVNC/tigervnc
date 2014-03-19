@@ -1,0 +1,72 @@
+From: Julien Cristau <jcristau@debian.org>
+Date: Wed Jan 26 13:06:53 2011 +0100
+Subject: [PATCH] glx: fix BindTexImageEXT length check
+Patch-Mainline: Upstream
+Git-commit: 1137c11be0f82049d28024eaf963c6f76e0d4334
+References: bnc #648278, CVE-2010-4818
+Signed-off-by: Egbert Eich <eich@suse.de>
+
+The request is followed by a list of attributes.
+
+X.Org bug#33449
+
+Reported-and-tested-by: meng <mengmeng.meng@intel.com>
+Signed-off-by: Julien Cristau <jcristau@debian.org>
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+---
+ glx/glxcmds.c     |   10 +++++++++-
+ glx/glxcmdsswap.c |    6 +++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
+
+--- xorg-server-1.6.5.orig/glx/glxcmds.c
++++ xorg-server-1.6.5/glx/glxcmds.c
+@@ -1668,13 +1668,21 @@ int __glXDisp_BindTexImageEXT(__GLXclien
+     GLXDrawable		 drawId;
+     int			 buffer;
+     int			 error;
++    CARD32		 num_attribs;
+ 
+-    REQUEST_FIXED_SIZE(xGLXVendorPrivateReq, 8);
++    if ((sizeof(xGLXVendorPrivateReq) + 12) >> 2 > client->req_len)
++	return BadLength;
+ 
+     pc += __GLX_VENDPRIV_HDR_SIZE;
+ 
+     drawId = *((CARD32 *) (pc));
+     buffer = *((INT32 *)  (pc + 4));
++    num_attribs = *((CARD32 *) (pc + 8));
++    if (num_attribs > (UINT32_MAX >> 3)) {
++	client->errorValue = num_attribs;
++	return BadValue;
++    }
++    REQUEST_FIXED_SIZE(xGLXVendorPrivateReq, 12 + (num_attribs << 3));
+ 
+     if (buffer != GLX_FRONT_LEFT_EXT)
+ 	return __glXError(GLXBadPixmap);
+--- xorg-server-1.6.5.orig/glx/glxcmdsswap.c
++++ xorg-server-1.6.5/glx/glxcmdsswap.c
+@@ -652,19 +652,23 @@ int __glXDispSwap_BindTexImageEXT(__GLXc
+     xGLXVendorPrivateReq *req = (xGLXVendorPrivateReq *) pc;
+     GLXDrawable		 *drawId;
+     int			 *buffer;
++    CARD32		 *num_attribs;
+     __GLX_DECLARE_SWAP_VARIABLES;
+ 
+-    REQUEST_FIXED_SIZE(xGLXVendorPrivateReq, 8);
++    if ((sizeof(xGLXVendorPrivateReq) + 12) >> 2 > client->req_len)
++	return BadLength;
+ 
+     pc += __GLX_VENDPRIV_HDR_SIZE;
+ 
+     drawId = ((GLXDrawable *) (pc));
+     buffer = ((int *)	      (pc + 4));
++    num_attribs = ((CARD32 *) (pc + 8));
+     
+     __GLX_SWAP_SHORT(&req->length);
+     __GLX_SWAP_INT(&req->contextTag);
+     __GLX_SWAP_INT(drawId);
+     __GLX_SWAP_INT(buffer);
++    __GLX_SWAP_INT(num_attribs);
+ 
+     return __glXDisp_BindTexImageEXT(cl, (GLbyte *)pc);
+ }

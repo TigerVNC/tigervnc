@@ -1,0 +1,92 @@
+From d1d9d4e5f8f9ac1d22e1258759d6ee9e49c7fe90 Mon Sep 17 00:00:00 2001
+From: Egbert Eich <eich@freedesktop.org>
+Date: Fri, 9 Apr 2010 15:10:32 +0200
+Subject: [PATCH] Prevent XSync Alarms from senslessly calling CheckTrigger() when inactive.
+
+If an XSync Alarm is set to inactive there is no need to check if a trigger
+needs to fire. Doing so if the counter is the IdleCounter will put the
+server on 100 percent CPU load since the select timeout is set to 0.
+---
+ xorg-server-1.8.0/Xext/sync.c    |   11 +++++++++--
+ xorg-server-1.8.0/Xext/syncsrv.h |    1 +
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+Index: xorg-server-1.8.0/Xext/sync.c
+===================================================================
+--- xorg-server-1.8.0.orig/Xext/sync.c
++++ xorg-server-1.8.0/Xext/sync.c
+@@ -518,6 +518,10 @@ SyncAlarmTriggerFired(SyncTrigger *pTrig
+ 	    pAlarm->state = XSyncAlarmInactive;
+ 	}
+     }
++    /* Stop server from looping! */
++    if (pAlarm->state == XSyncAlarmInactive)
++	SyncDeleteTriggerFromCounter(&pAlarm->trigger);
++
+     /*  The AlarmNotify event has to have the "new state of the alarm"
+      *  which we can't be sure of until this point.  However, it has
+      *  to have the "old" trigger test value.  That's the reason for
+@@ -730,7 +734,7 @@ SyncChangeAlarmAttributes(ClientPtr clie
+     XSyncCounter   counter;
+     Mask	   origmask = mask;
+ 
+-    counter = pAlarm->trigger.pCounter ? pAlarm->trigger.pCounter->id : None;
++    counter = pAlarm->counter_id;
+ 
+     while (mask)
+     {
+@@ -741,7 +745,7 @@ SyncChangeAlarmAttributes(ClientPtr clie
+ 	  case XSyncCACounter:
+ 	    mask &= ~XSyncCACounter;
+ 	    /* sanity check in SyncInitTrigger */
+-	    counter = *values++;
++	    counter = pAlarm->counter_id = *values++;
+ 	    break;
+ 
+ 	  case XSyncCAValueType:
+@@ -808,6 +812,14 @@ SyncChangeAlarmAttributes(ClientPtr clie
+ 	    return BadMatch;
+ 	}
+     }
++    if (pAlarm->state == XSyncAlarmInactive) {
++	/*
++	 * If we are inactive the trigger has been deleted from the counter.
++	 * Persuade SyncInitTrigger() to readd it.
++	 */
++	origmask |= XSyncCACounter;
++	pAlarm->trigger.pCounter = NULL;
++    }
+ 
+     /* postpone this until now, when we're sure nothing else can go wrong */
+     if ((status = SyncInitTrigger(client, &pAlarm->trigger, counter,
+@@ -815,6 +827,7 @@ SyncChangeAlarmAttributes(ClientPtr clie
+ 	return status;
+ 
+     /* XXX spec does not really say to do this - needs clarification */
++    /* It's the only place where it is set to XSyncAlarmActive! */
+     pAlarm->state = XSyncAlarmActive;
+     return Success;
+ }
+@@ -1617,8 +1630,10 @@ ProcSyncCreateAlarm(ClientPtr client)
+ 
+     pAlarm->client = client;
+     pAlarm->alarm_id = stuff->id;
++    pAlarm->counter_id = None;
+     XSyncIntToValue(&pAlarm->delta, 1L);
+     pAlarm->events = TRUE;
++    /* SyncChangeAlarmAttributes() changes this - no need to set this here! */
+     pAlarm->state = XSyncAlarmInactive;
+     pAlarm->pEventClients = NULL;
+     status = SyncChangeAlarmAttributes(client, pAlarm, vmask,
+Index: xorg-server-1.8.0/Xext/syncsrv.h
+===================================================================
+--- xorg-server-1.8.0.orig/Xext/syncsrv.h
++++ xorg-server-1.8.0/Xext/syncsrv.h
+@@ -129,6 +129,7 @@ typedef struct _SyncAlarm {
+     int		events;
+     int		state;
+     SyncAlarmClientList *pEventClients;
++    XSyncCounter counter_id;
+ } SyncAlarm;
+ 
+ typedef struct {

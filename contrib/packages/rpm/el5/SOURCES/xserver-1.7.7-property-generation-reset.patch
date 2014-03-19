@@ -1,0 +1,83 @@
+From 3743ce98a24b3e3767b2a278af8d888e4e8bd335 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Fri, 7 May 2010 16:22:12 +1000
+Subject: [PATCH] Xi: reset the known properties at the end of the server generation.
+
+NOTE: this has a second patch squashed in, see
+http://lists.freedesktop.org/archives/xorg-devel/2010-June/009838.html
+
+
+Properties allocated through XIGetKnownProperty() aren't reset on the second
+server generation but keep the old value. As a result, wrong Atoms are
+supplied to the driver, resulting in potential data corruption or weird
+error message.
+
+Reproducible by running "xlsatom | grep FLOAT" twice on a plain X server.
+The second X server generation won't have the FLOAT atom defined anymore,
+despite the users of this atom not noticing any errors.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by: Julien Cristau <jcristau@debian.org>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+---
+ Xi/extinit.c    |    3 ++-
+ Xi/xiproperty.c |    9 +++++++++
+ Xi/xiproperty.h |    3 +++
+ 3 files changed, 14 insertions(+), 1 deletions(-)
+
+diff --git a/Xi/extinit.c b/Xi/extinit.c
+index 0c12919..daa79f6 100644
+--- a/Xi/extinit.c
++++ b/Xi/extinit.c
+@@ -1123,7 +1123,6 @@ RestoreExtensionEvents(void)
+ static void
+ IResetProc(ExtensionEntry * unused)
+ {
+-
+     ReplySwapVector[IReqCode] = ReplyNotSwappd;
+     EventSwapVector[DeviceValuator] = NotImplemented;
+     EventSwapVector[DeviceKeyPress] = NotImplemented;
+@@ -1302,6 +1301,8 @@ XInputExtensionInit(void)
+ 
+ 	inputInfo.all_devices = &xi_all_devices;
+ 	inputInfo.all_master_devices = &xi_all_master_devices;
++
++	XIResetProperties();
+     } else {
+ 	FatalError("IExtensionInit: AddExtensions failed\n");
+     }
+diff --git a/Xi/xiproperty.c b/Xi/xiproperty.c
+index ea66c54..2482171 100644
+--- a/Xi/xiproperty.c
++++ b/Xi/xiproperty.c
+@@ -392,6 +392,15 @@ XIGetKnownProperty(char *name)
+     return 0;
+ }
+ 
++void
++XIResetProperties(void)
++{
++    int i;
++
++    for (i = 0; i < (sizeof(dev_properties)/sizeof(struct dev_properties)); i++)
++        dev_properties[i].type = None;
++}
++
+ /**
+  * Convert the given property's value(s) into @nelem_return integer values and
+  * store them in @buf_return. If @nelem_return is larger than the number of
+diff --git a/Xi/xiproperty.h b/Xi/xiproperty.h
+index 69b41fa..d8b8863 100644
+--- a/Xi/xiproperty.h
++++ b/Xi/xiproperty.h
+@@ -62,4 +62,7 @@ void SRepXIListProperties(ClientPtr client, int size,
+                           xXIListPropertiesReply *rep);
+ void SRepXIGetProperty(ClientPtr client, int size,
+                        xXIGetPropertyReply *rep);
++
++void XIResetProperties(void);
++
+ #endif /* XIPROPERTY_H */
+-- 
+1.6.5.2
+

@@ -1,0 +1,44 @@
+diff -up tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityClient.cxx.rh690245 tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityClient.cxx
+--- tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityClient.cxx.rh690245	2011-02-21 14:14:16.000000000 +0100
++++ tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityClient.cxx	2011-03-31 09:47:34.519099718 +0200
+@@ -45,7 +45,7 @@ StringParameter SecurityClient::secTypes
+ ("SecurityTypes",
+  "Specify which security scheme to use (None, VncAuth)",
+ #ifdef HAVE_GNUTLS
+- "X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
++ "VeNCrypt,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
+ #else
+  "VncAuth,None",
+ #endif
+diff -up tigervnc-1.0.90-20110314svn4359/common/rfb/Security.cxx.rh690245 tigervnc-1.0.90-20110314svn4359/common/rfb/Security.cxx
+--- tigervnc-1.0.90-20110314svn4359/common/rfb/Security.cxx.rh690245	2011-02-21 14:14:16.000000000 +0100
++++ tigervnc-1.0.90-20110314svn4359/common/rfb/Security.cxx	2011-03-31 09:47:34.519099718 +0200
+@@ -67,7 +67,6 @@ const std::list<rdr::U8> Security::GetEn
+   list<rdr::U8> result;
+   list<U32>::iterator i;
+ 
+-  result.push_back(secTypeVeNCrypt);
+   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
+     if (*i < 0x100)
+       result.push_back(*i);
+@@ -105,8 +104,6 @@ bool Security::IsSupported(U32 secType)
+   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
+     if (*i == secType)
+       return true;
+-  if (secType == secTypeVeNCrypt)
+-    return true;
+ 
+   return false;
+ }
+diff -up tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityServer.cxx.rh690245 tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityServer.cxx
+--- tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityServer.cxx.rh690245	2011-02-21 14:50:17.000000000 +0100
++++ tigervnc-1.0.90-20110314svn4359/common/rfb/SecurityServer.cxx	2011-03-31 10:06:43.595362302 +0200
+@@ -39,7 +39,7 @@ StringParameter SecurityServer::secTypes
+ ("SecurityTypes",
+  "Specify which security scheme to use (None, VncAuth)",
+ #ifdef HAVE_GNUTLS
+- "VncAuth,TLSVnc",
++ "VncAuth",
+ #else
+  "VncAuth",
+ #endif

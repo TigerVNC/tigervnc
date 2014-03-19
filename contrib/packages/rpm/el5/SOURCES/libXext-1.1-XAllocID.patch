@@ -1,0 +1,35 @@
+From 956fd30e1046e5779ac0b6c07ec4f0e87250869a Mon Sep 17 00:00:00 2001
+From: Jamey Sharp <jamey@minilop.net>
+Date: Wed, 7 Oct 2009 19:31:21 -0700
+Subject: [PATCH] XAllocID must only be called with the Display lock held.
+
+This patch makes XShmAttach follow the same XID allocation pattern used in
+other stubs, such as XShmCreatePixmap.
+
+Reported-by: <fdsteve@ihug.co.nz>
+Signed-off-by: Jamey Sharp <jamey@minilop.net>
+---
+ src/XShm.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/src/XShm.c b/src/XShm.c
+index 922b4cb..38efa9f 100644
+--- a/src/XShm.c
++++ b/src/XShm.c
+@@ -235,12 +235,11 @@ Status XShmAttach(Display *dpy, XShmSegmentInfo *shminfo)
+ 
+     ShmCheckExtension (dpy, info, 0);
+ 
+-    shminfo->shmseg = XAllocID(dpy);
+     LockDisplay(dpy);
+     GetReq(ShmAttach, req);
+     req->reqType = info->codes->major_opcode;
+     req->shmReqType = X_ShmAttach;
+-    req->shmseg = shminfo->shmseg;
++    req->shmseg = shminfo->shmseg = XAllocID(dpy);
+     req->shmid = shminfo->shmid;
+     req->readOnly = shminfo->readOnly ? xTrue : xFalse;
+     UnlockDisplay(dpy);
+-- 
+1.6.5.2
+

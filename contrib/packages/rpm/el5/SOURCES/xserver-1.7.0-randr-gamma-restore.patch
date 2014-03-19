@@ -1,0 +1,65 @@
+From 18d2bd8cb513a0436739916620532247f13dbf03 Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <x@fedoraproject.org>
+Date: Thu, 8 Oct 2009 15:25:24 -0400
+Subject: [PATCH] randr gamma reload hack
+
+---
+ hw/xfree86/loader/sdksyms.c    |    4 ++++
+ hw/xfree86/modes/xf86RandR12.c |    6 ++++++
+ 2 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/hw/xfree86/loader/sdksyms.c b/hw/xfree86/loader/sdksyms.c
+index 12af6b7..656d07b 100644
+--- a/hw/xfree86/loader/sdksyms.c
++++ b/hw/xfree86/loader/sdksyms.c
+@@ -1056,6 +1056,8 @@ _X_HIDDEN void *xorg_symbols[] = {
+     (void *) &noXFree86VidModeExtension,
+     (void *) &noXFixesExtension,
+     (void *) &noPanoramiXExtension,
++    (void *) &noSELinuxExtension,
++    (void *) &selinuxEnforcingState,
+     (void *) &noXvExtension,
+     (void *) &noDRI2Extension,
+     (void *) &defaultTextFont,
+@@ -1069,6 +1071,7 @@ _X_HIDDEN void *xorg_symbols[] = {
+     (void *) &defaultScreenSaverBlanking,
+     (void *) &defaultScreenSaverAllowExposures,
+     (void *) &display,
++    (void *) &displayfd,
+     (void *) &defaultBackingStore,
+     (void *) &disableBackingStore,
+     (void *) &enableBackingStore,
+@@ -1078,6 +1081,7 @@ _X_HIDDEN void *xorg_symbols[] = {
+     (void *) &maxBigRequestSize,
+     (void *) &party_like_its_1989,
+     (void *) &whiteRoot,
++    (void *) &bgNoneRoot,
+     (void *) &CoreDump,
+     (void *) &DontPropagateMasks,
+     (void *) &screenIsSaved,
+diff --git a/hw/xfree86/modes/xf86RandR12.c b/hw/xfree86/modes/xf86RandR12.c
+index 6ea9d26..41bac11 100644
+--- a/hw/xfree86/modes/xf86RandR12.c
++++ b/hw/xfree86/modes/xf86RandR12.c
+@@ -1746,12 +1746,18 @@ xf86RandR12EnterVT (int screen_index, int flags)
+ {
+     ScreenPtr        pScreen = screenInfo.screens[screen_index];
+     XF86RandRInfoPtr randrp  = XF86RANDRINFO(pScreen);
++    rrScrPrivPtr     rp = rrGetScrPriv(pScreen);
+ 
+     if (randrp->orig_EnterVT) {
+ 	if (!randrp->orig_EnterVT (screen_index, flags))
+ 	    return FALSE;
+     }
+ 
++    /* reload gamma */
++    int i;
++    for (i = 0; i < rp->numCrtcs; i++)
++	xf86RandR12CrtcSetGamma(pScreen, rp->crtcs[i]);
++
+     return RRGetInfo (pScreen, TRUE); /* force a re-probe of outputs and notify clients about changes */
+ }
+ 
+-- 
+1.6.5.rc2
+

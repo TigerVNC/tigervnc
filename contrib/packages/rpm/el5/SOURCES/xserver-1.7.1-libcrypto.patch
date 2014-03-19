@@ -1,0 +1,35 @@
+From 8875112f5c57ec5d575e717c5638fbc919145efb Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 16 Nov 2009 18:01:26 -0500
+Subject: [PATCH] configure: Only link against libcrypto
+
+openssl.pc will link you against libssl, which we don't need, and which
+brings in another seven libraries we also don't need.  This is still
+bogus, we're really only trying to get a SHA1 routine, we could link it
+statically and be even better off.
+---
+ configure.ac |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index f69f97e..254d33d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1297,14 +1297,8 @@ if test "x$SHA1_LIB" = "x" ; then
+ fi
+ 
+ if test "x$SHA1_LIB" = "x" ; then
+-  PKG_CHECK_EXISTS([OPENSSL], [openssl], [HAVE_OPENSSL_PKC=yes],
+-                    [HAVE_OPENSSL_PKC=no])
+-  if test "x$HAVE_OPENSSL_PKC" = xyes; then
+-    REQUIRED_LIBS="$REQUIRED_LIBS openssl"
+-  else
+     AC_CHECK_LIB([crypto], [SHA1_Init], [SHA1_LIB="-lcrypto"],
+                  [AC_MSG_ERROR([OpenSSL must be installed in order to build the X server.])])
+-  fi
+ fi
+ 
+ PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
+-- 
+1.6.5.2
+

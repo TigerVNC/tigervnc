@@ -1,0 +1,51 @@
+--- libX11-1.0.3/modules/im/ximcp/imDefLkup.c.dont-forward-keycode-0	2006-06-22 17:22:22.000000000 -0400
++++ libX11-1.0.3/modules/im/ximcp/imDefLkup.c	2006-09-20 17:57:49.000000000 -0400
+@@ -332,6 +332,17 @@
+     XEvent	*ev,
+     Bool	 sync)
+ {
++    /*
++     * Don't forward a key event which has keycode=0.
++     * keycode=0 is reserved for special purpose to let Xmb/wcLookupString()
++     * functions know that there is a commited string available from IM.
++     */
++    if (((ev->type == KeyPress) || (ev->type == KeyRelease))) {
++        if (((XKeyEvent *)ev)->keycode == 0) {
++            return True;
++        }
++    }
++
+ #ifdef EXT_FORWARD
+     if (((ev->type == KeyPress) || (ev->type == KeyRelease)))
+ 	if (_XimExtForwardKeyEvent(ic, (XKeyEvent *)ev, sync))
+@@ -605,6 +616,19 @@
+ 	Xfree(info->keysym);
+     ic->private.proto.commit_info = info->next;
+     Xfree(info);
++
++    /*
++     * "Commit" uses fabricated flag to process a commited string
++     * from IM engine.  
++     * Turn off the fabricated flag here (unregister the commited
++     * information function). Otherwise, next regular key press
++     * event will be ignored at _XimProtoKeypressFilter() and it
++     * will not be passed to IM engine.
++     */
++    if (IS_FABLICATED(ic)) {
++        UNMARK_FABLICATED(ic);
++    }
++
+     return;
+ }
+ 
+--- libX11-1.0.3/modules/im/ximcp/imDefFlt.c.dont-forward-keycode-0	2006-06-22 17:22:22.000000000 -0400
++++ libX11-1.0.3/modules/im/ximcp/imDefFlt.c	2006-09-20 17:57:49.000000000 -0400
+@@ -147,7 +147,7 @@
+     Xim		im = (Xim)ic->core.im;
+ #endif
+ 
+-    if (IS_FABLICATED(ic)) {
++    if ((ev->keycode == 0) || IS_FABLICATED(ic)) {
+ 	_XimPendingFilter(ic);
+ 	UNMARK_FABLICATED(ic);
+ 	return NOTFILTERD;

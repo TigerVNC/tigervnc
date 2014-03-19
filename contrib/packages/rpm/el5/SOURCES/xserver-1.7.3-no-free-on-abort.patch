@@ -1,0 +1,65 @@
+From 3bf24ed9e1c81116c851ba2408b9c37a51a5dc62 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Thu, 7 Jan 2010 11:33:43 -0500
+Subject: [PATCH] hack to make abnormal exit not call free()
+
+---
+ dix/globals.c  |    2 ++
+ include/misc.h |    2 ++
+ os/log.c       |    1 +
+ os/utils.c     |    3 +++
+ 4 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/dix/globals.c b/dix/globals.c
+index c1e64d3..a1eac08 100644
+--- a/dix/globals.c
++++ b/dix/globals.c
+@@ -61,6 +61,8 @@ SOFTWARE.
+ #include "dixstruct.h"
+ #include "os.h"
+ 
++Bool omg_wtf_aborting = FALSE;
++
+ ScreenInfo screenInfo;
+ KeybdCtrl defaultKeyboardControl = {
+ 	DEFAULT_KEYBOARD_CLICK,
+diff --git a/include/misc.h b/include/misc.h
+index 877c682..2b3cf2e 100644
+--- a/include/misc.h
++++ b/include/misc.h
+@@ -286,4 +286,6 @@ typedef struct _CharInfo *CharInfoPtr; /* also in fonts/include/font.h */
+ extern _X_EXPORT unsigned long globalSerialNumber;
+ extern _X_EXPORT unsigned long serverGeneration;
+ 
++extern _X_EXPORT Bool omg_wtf_aborting;
++
+ #endif /* MISC_H */
+diff --git a/os/log.c b/os/log.c
+index 8108890..79b86f3 100644
+--- a/os/log.c
++++ b/os/log.c
+@@ -395,6 +395,7 @@ void AbortServer(void) __attribute__((noreturn));
+ void
+ AbortServer(void)
+ {
++    omg_wtf_aborting = 1;
+ #ifdef XF86BIGFONT
+     XF86BigfontCleanup();
+ #endif
+diff --git a/os/utils.c b/os/utils.c
+index 1d1712d..04177aa 100644
+--- a/os/utils.c
++++ b/os/utils.c
+@@ -1164,6 +1164,9 @@ XNFrealloc(pointer ptr, unsigned long amount)
+ void
+ Xfree(pointer ptr)
+ {
++    if (omg_wtf_aborting)
++	return;
++
+     if (ptr)
+ 	free(ptr); 
+ }
+-- 
+1.6.5.2
+

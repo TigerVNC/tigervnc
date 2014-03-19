@@ -1,0 +1,65 @@
+From: Julien Cristau <jcristau@debian.org>
+Date: Sun Aug 22 16:20:45 2010 +0100
+Subject: [PATCH] glx: swap the request arrays entirely, not just half of them
+Patch-Mainline: Upstream
+Git-commit: 62319e8381ebd645ae36b25e5fc3c0e9b098387b
+References: bnc #648278, CVE-2010-4818
+Signed-off-by: Egbert Eich <eich@suse.de>
+
+Various glx requests include a list of pairs of attributes.  We were
+only swapping the first half.
+
+Reviewed-by: Kristian Høgsberg <krh@bitplanet.net>
+Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+Signed-off-by: Julien Cristau <jcristau@debian.org>
+---
+ glx/glxcmdsswap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+--- xorg-server-1.6.5.orig/glx/glxcmdsswap.c
++++ xorg-server-1.6.5/glx/glxcmdsswap.c
+@@ -324,7 +324,7 @@ int __glXDispSwap_CreatePixmap(__GLXclie
+ 
+     REQUEST_FIXED_SIZE(xGLXCreatePixmapReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+-    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs);
++    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+ 
+     return __glXDisp_CreatePixmap(cl, pc);
+ }
+@@ -405,7 +405,7 @@ int __glXDispSwap_CreatePbuffer(__GLXcli
+ 
+     REQUEST_FIXED_SIZE(xGLXCreatePbufferReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+-    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs);
++    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+ 
+     return __glXDisp_CreatePbuffer(cl, pc);
+ }
+@@ -470,7 +470,7 @@ int __glXDispSwap_ChangeDrawableAttribut
+ 
+     REQUEST_FIXED_SIZE(xGLXChangeDrawableAttributesReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+-    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs);
++    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+ 
+     return __glXDisp_ChangeDrawableAttributes(cl, pc);
+ }
+@@ -492,7 +492,7 @@ int __glXDispSwap_ChangeDrawableAttribut
+ 
+     REQUEST_FIXED_SIZE(xGLXChangeDrawableAttributesSGIXReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+-    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs);
++    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+ 
+     return __glXDisp_ChangeDrawableAttributesSGIX(cl, pc);
+ }
+@@ -515,7 +515,7 @@ int __glXDispSwap_CreateWindow(__GLXclie
+ 
+     REQUEST_FIXED_SIZE(xGLXCreateWindowReq, req->numAttribs << 3);
+     attribs = (CARD32*)(req + 1);
+-    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs);
++    __GLX_SWAP_INT_ARRAY(attribs, req->numAttribs << 1);
+ 
+     return __glXDisp_CreateWindow(cl, pc);
+ }

@@ -1,0 +1,51 @@
+From 89d271cc1cb8214252a213bee37318a82d0e1db4 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 24 May 2010 16:55:24 -0400
+Subject: [PATCH] Build with PAM support
+
+---
+ configure.ac       |    2 ++
+ hw/dmx/Makefile.am |    1 +
+ os/utils.c         |    1 +
+ 3 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 776a3ae..b057af9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -310,6 +310,8 @@ AC_CHECK_HEADER([execinfo.h],[
+     ])]
+ )
+ 
++SYS_LIBS="-lpam_misc -lpam"
++
+ dnl ---------------------------------------------------------------------------
+ dnl Bus options and CPU capabilities.  Replaces logic in
+ dnl hw/xfree86/os-support/bus/Makefile.am, among others.
+diff --git a/hw/dmx/Makefile.am b/hw/dmx/Makefile.am
+index 3c59320..bbf0eb1 100644
+--- a/hw/dmx/Makefile.am
++++ b/hw/dmx/Makefile.am
+@@ -83,6 +83,7 @@ Xdmx_SOURCES = dmx.c \
+ XDMX_LIBS = \
+ 	@XDMX_LIBS@ \
+ 	$(GLX_LIBS) \
++	-lpam_misc -lpam \
+         input/libdmxinput.a \
+         config/libdmxconfig.a
+ 
+diff --git a/os/utils.c b/os/utils.c
+index 4b43325..38d2732 100644
+--- a/os/utils.c
++++ b/os/utils.c
+@@ -1838,6 +1838,7 @@ CheckUserParameters(int argc, char **argv, char **envp)
+  * usually only done for setuid servers (uid != euid).
+  */
+ 
++#define USE_PAM 1
+ #ifdef USE_PAM
+ #include <security/pam_appl.h>
+ #include <security/pam_misc.h>
+-- 
+1.7.0.1
+

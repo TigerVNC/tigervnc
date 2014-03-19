@@ -1,0 +1,25 @@
+Index: xorg-server-1.6.3.901/hw/xfree86/common/xf86pciBus.c
+===============================================================================
+--- xorg-server-1.7.99/hw/xfree86/common/xf86pciBus.c
++++ xorg-server-1.7.99/hw/xfree86/common/xf86pciBus.c
+@@ -186,12 +186,14 @@
+ 	case 0x3d3d:		    driverList[0] = "glint"; break;
+ 	case 0x105d:		    driverList[0] = "i128"; break;
+ 	case 0x8086:
+-	    if ((dev->device_id == 0x00d1) || (dev->device_id == 0x7800)) {
+-		driverList[0] = "i740";
+-            } else if (dev->device_id == 0x8108) {
+-                break; /* "hooray" for poulsbo */
+-	    } else {
+-		driverList[0] = "intel";
++	    switch (dev->device_id)
++	    {
++		case 0x00d1: case 0x7800:
++		    driverList[0] = "i740"; break;
++		case 0x8109: case 0x8108: case 0x4102:
++		    driverList[0] = "psb"; driverList[1] = "psb_drv"; break;
++		default:
++		    driverList[0] = "intel"; break;
+ 	    }
+ 	    break;
+ 	case 0x102b:		    driverList[0] = "mga";	break;

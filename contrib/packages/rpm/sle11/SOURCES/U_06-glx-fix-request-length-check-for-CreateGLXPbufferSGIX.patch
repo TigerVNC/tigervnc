@@ -1,0 +1,39 @@
+From: Julien Cristau <jcristau@debian.org>
+Date: Sun Jan 23 17:05:26 2011 +0100
+Subject: [PATCH] glx: fix request length check for CreateGLXPbufferSGIX
+Patch-Mainline: Upstream
+Git-commit: a883cf1545abd89bb2cadfa659718884b56fd234
+References: bnc #648278, CVE-2010-4818
+Signed-off-by: Egbert Eich <eich@suse.de>
+
+The request is followed by an attribute list.
+
+Signed-off-by: Julien Cristau <jcristau@debian.org>
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+---
+ glx/glxcmds.c     |    2 +-
+ glx/glxcmdsswap.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+--- xorg-server-1.6.5.orig/glx/glxcmds.c
++++ xorg-server-1.6.5/glx/glxcmds.c
+@@ -1411,7 +1411,7 @@ int __glXDisp_CreateGLXPbufferSGIX(__GLX
+     ClientPtr client = cl->client;
+     xGLXCreateGLXPbufferSGIXReq *req = (xGLXCreateGLXPbufferSGIXReq *) pc;
+ 
+-    REQUEST_SIZE_MATCH(xGLXCreateGLXPbufferSGIXReq);
++    REQUEST_AT_LEAST_SIZE(xGLXCreateGLXPbufferSGIXReq);
+ 
+     return DoCreatePbuffer(cl->client, req->screen, req->fbconfig,
+ 			   req->width, req->height, req->pbuffer);
+--- xorg-server-1.6.5.orig/glx/glxcmdsswap.c
++++ xorg-server-1.6.5/glx/glxcmdsswap.c
+@@ -424,7 +424,7 @@ int __glXDispSwap_CreateGLXPbufferSGIX(_
+     xGLXCreateGLXPbufferSGIXReq *req = (xGLXCreateGLXPbufferSGIXReq *) pc;    
+     __GLX_DECLARE_SWAP_VARIABLES;
+ 
+-    REQUEST_SIZE_MATCH(xGLXCreateGLXPbufferSGIXReq);
++    REQUEST_AT_LEAST_SIZE(xGLXCreateGLXPbufferSGIXReq);
+ 
+     __GLX_SWAP_INT(&req->screen);
+     __GLX_SWAP_INT(&req->fbconfig);

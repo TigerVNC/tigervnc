@@ -1,0 +1,60 @@
+#!/bin/bash
+read request url httptype || exit 0
+url="${url//}"
+httptype="${httptype//}"
+
+width=$1
+height=$2
+port=$3
+
+if [ "x$httptype" != "x" ]; then
+	line="x"
+	while [ -n "$line" ]; do
+		read line || exit 0
+		line="${line//}"
+	done
+fi
+case "$url" in
+/)
+	# We need the size of the display for the current applet.
+	# The VNC menubar is 20 pixels high ...
+	height=$((height+20))
+	ctype="text/html"
+	content="
+<HTML><HEAD><TITLE>Remote Desktop</TITLE></HEAD>
+<BODY>
+<APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar WIDTH=$width HEIGHT=$height>
+	<param name=PORT value=$port>
+</APPLET>
+</BODY></HTML>"
+	;;
+*.jar|*.class)
+	# Use basename to make sure we have just a filename, not ../../...
+	url=${url/.*\/}
+	ctype="application/octet-stream"
+	cfile="/usr/share/vnc/classes/$url"
+	content="FILE"
+	;;
+esac
+
+if [ "x$httptype" != "x" ]; then
+	echo "HTTP/1.0 200 OK"
+	echo "Content-Type: $ctype"
+	if [ "$content" == "FILE" ]; then
+		clen=`wc -c "$cfile"`
+	else
+		clen=`echo "$content"|wc -c`
+	fi
+	echo "Content-Length: $clen"
+	echo "Connection: close"
+	echo
+fi
+
+if [ "$request" == "GET" ]; then
+	if [ "$content" == "FILE" ]; then
+		cat "$cfile"
+	else
+		echo "$content"
+	fi
+fi
+exit 0

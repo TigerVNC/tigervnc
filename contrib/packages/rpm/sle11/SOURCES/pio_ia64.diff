@@ -1,0 +1,87 @@
+Index: xorg-server-1.8.0/hw/xfree86/common/compiler.h
+===================================================================
+--- xorg-server-1.8.0.orig/hw/xfree86/common/compiler.h
++++ xorg-server-1.8.0/hw/xfree86/common/compiler.h
+@@ -409,12 +409,18 @@ extern _X_EXPORT unsigned int inl(unsign
+ #    undef inb
+ #    undef inw
+ #    undef inl
+-extern _X_EXPORT void outb(unsigned long port, unsigned char val);
+-extern _X_EXPORT void outw(unsigned long port, unsigned short val);
+-extern _X_EXPORT void outl(unsigned long port, unsigned int val);
+-extern _X_EXPORT unsigned int inb(unsigned long port);
+-extern _X_EXPORT unsigned int inw(unsigned long port);
+-extern _X_EXPORT unsigned int inl(unsigned long port);
++#define outb(p,v) outb_ia64(p,v)
++#define outw(p,v) outw_ia64(p,v)
++#define outl(p,v) outl_ia64(p,v)
++#define inb(p) inb_ia64(p)
++#define inw(p) inw_ia64(p)
++#define inl(p) inl_ia64(p)
++extern _X_EXPORT void outb_ia64(unsigned long port, unsigned char val);
++extern _X_EXPORT void outw_ia64(unsigned long port, unsigned short val);
++extern _X_EXPORT void outl_ia64(unsigned long port, unsigned int val);
++extern _X_EXPORT unsigned int inb_ia64(unsigned long port);
++extern _X_EXPORT unsigned int inw_ia64(unsigned long port);
++extern _X_EXPORT unsigned int inl_ia64(unsigned long port);
+  
+ #   elif (defined(linux) || defined(__FreeBSD__)) && defined(__amd64__)
+  
+Index: xorg-server-1.8.0/hw/xfree86/os-support/shared/ia64Pci.c
+===================================================================
+--- xorg-server-1.8.0.orig/hw/xfree86/os-support/shared/ia64Pci.c
++++ xorg-server-1.8.0/hw/xfree86/os-support/shared/ia64Pci.c
+@@ -60,7 +60,7 @@ static int ia64_port_to_fd(unsigned long
+     return (port >> 24) & 0xffffffff;
+ }
+ 
+-void outb(unsigned long port, unsigned char val)
++void outb_ia64(unsigned long port, unsigned char val)
+ {
+     int fd = ia64_port_to_fd(port);
+ 
+@@ -80,7 +80,7 @@ void outb(unsigned long port, unsigned c
+     return;
+ }
+ 
+-void outw(unsigned long port, unsigned short val)
++void outw_ia64(unsigned long port, unsigned short val)
+ {
+     int fd = ia64_port_to_fd(port);
+ 
+@@ -100,7 +100,7 @@ void outw(unsigned long port, unsigned s
+     return;
+ }
+ 
+-void outl(unsigned long port, unsigned int val)
++void outl_ia64(unsigned long port, unsigned int val)
+ {
+     int fd = ia64_port_to_fd(port);
+ 
+@@ -120,7 +120,7 @@ void outl(unsigned long port, unsigned i
+     return;
+ }
+ 
+-unsigned int inb(unsigned long port)
++unsigned int inb_ia64(unsigned long port)
+ {
+     int fd = ia64_port_to_fd(port);
+     unsigned char val;
+@@ -142,7 +142,7 @@ unsigned int inb(unsigned long port)
+     return val;
+ }
+ 
+-unsigned int inw(unsigned long port)
++unsigned int inw_ia64(unsigned long port)
+ {
+     int fd = ia64_port_to_fd(port);
+     unsigned short val;
+@@ -164,7 +164,7 @@ unsigned int inw(unsigned long port)
+     return val;
+ }
+ 
+-unsigned int inl(unsigned long port)
++unsigned int inl_ia64(unsigned long port)
+ {
+     int fd = ia64_port_to_fd(port);
+     unsigned int val;

@@ -1,0 +1,37 @@
+From 21ed660f30a3f96c787ab00a16499e0fb034b2ad Mon Sep 17 00:00:00 2001
+From: Chris Humbert <freedesktop@mahadri.com>
+Date: Fri, 7 May 2010 17:02:43 +1000
+Subject: [PATCH] dix: make DeviceEvent coordinates signed for Xinerama. #24986
+
+With Xinerama enabled, event coordinates are relative to Screen 0, so
+they can be negative.  The new DeviceEvent's coordinates are of type
+uint16_t, making screens above and to the left of Screen 0 unusable.
+
+X.Org Bug 24986 <https://bugs.freedesktop.org/show_bug.cgi?id=24986>
+
+Signed-off-by: Chris Humbert <freedesktop@mahadri.com>
+Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+---
+ include/eventstr.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/eventstr.h b/include/eventstr.h
+index 79685c1..433227e 100644
+--- a/include/eventstr.h
++++ b/include/eventstr.h
+@@ -91,9 +91,9 @@ struct _DeviceEvent
+         uint32_t button;  /**< Button number */
+         uint32_t key;     /**< Key code */
+     } detail;
+-    uint16_t root_x;      /**< Pos relative to root window in integral data */
++    int16_t root_x;       /**< Pos relative to root window in integral data */
+     float root_x_frac;    /**< Pos relative to root window in frac part */
+-    uint16_t root_y;      /**< Pos relative to root window in integral part */
++    int16_t root_y;       /**< Pos relative to root window in integral part */
+     float root_y_frac;    /**< Pos relative to root window in frac part */
+     uint8_t    buttons[(MAX_BUTTONS + 7)/8]; /**< Button mask */
+     struct {
+-- 
+1.7.0.1
+

@@ -1,0 +1,118 @@
+From 31aebe89b716989e81e5de889e4f7e03d154a482 Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <x@fedoraproject.org>
+Date: Mon, 26 Jul 2010 10:48:41 +1000
+Subject: [PATCH] xkb: post-fix PointerKeys button events with a DeviceChangedEvent.
+
+commit 14327858391ebe929b806efb53ad79e789361883
+    xkb: release XTEST pointer buttons on physical releases. (#28808)
+revealed a bug with the XTEST/PointerKeys interaction.
+
+Events resulting from PointerKeys are injected into the event processing
+stream, not appended to the event queue. The events generated for the fake
+button press include a DeviceChangedEvent (DCE), a raw button event and the
+button event itself. The DCE causes the master to switch classes to the
+attached XTEST pointer device.
+
+Once the fake button is processed, normal event processing continues with
+events in the EQ. The master still contains the XTEST classes, causing some
+events to be dropped if e.g. the number of valuators of the event in the
+queue exceeds the XTEST device's number of valuators.
+
+Example: the EQ contains the following events, processed one-by-one, left to
+right.
+
+[DCE (dev)][Btn down][Btn up][Motion][Motion][...]
+                  ^ XkbFakeDeviceButton injects [DCE (XTEST)][Btn up]
+
+Thus the event sequence processed looks like this:
+
+[DCE (dev)][Btn down][Btn up][DCE (XTEST)][Btn up][Motion][Motion][...]
+
+The first DCE causes the master to switch to the device. The button up event
+injects a DCE to the XTEST device, causing the following Motion events to be
+processed with the master still being on XTEST classes.
+
+This patch post-fixes the injected event sequence with a DCE to restore the
+classes of the original slave device, resulting in an event sequence like
+this:
+[DCE (dev)][Btn down][Btn up][DCE (XTEST)][Btn up][DCE (dev)][Motion][Motion]
+
+Note that this is a simplified description. The event sequence injected by
+the PointerKeys code is injected for the master device only and the matching
+slave device that caused the injection has already finished processing on
+the slave. Furthermore, the injection happens as part of the the XKB layer,
+before the unwrapping of the processInputProc takes us into the DIX where
+the DCE is actually handled.
+
+Bug reproducible with a device that reports more than 2 valuators. Simply
+cause button releases on the device and wait for a "too many valuators"
+warning message.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ xkb/xkbActions.c |   28 +++++++++++++++++++++-------
+ 1 files changed, 21 insertions(+), 7 deletions(-)
+
+diff --git a/xkb/xkbActions.c b/xkb/xkbActions.c
+index 33ad5c5..0bbca29 100644
+--- a/xkb/xkbActions.c
++++ b/xkb/xkbActions.c
+@@ -1366,34 +1366,48 @@ XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
+ {
+     EventListPtr        events;
+     int                 nevents, i;
+-    DeviceIntPtr        ptr;
++    DeviceIntPtr        ptr, mpointer, lastSlave;
+ 
+     /* If dev is a slave device, and the SD is attached, do nothing. If we'd
+      * post through the attached master pointer we'd get duplicate events.
+      *
+      * if dev is a master keyboard, post through the XTEST device
+-     *
+      * if dev is a floating slave, post through the device itself.
++     *
++     * The event is injected into the event processing, not the EQ. Thus,
++     * ensure that we restore the master after the event sequence to the
++     * original set of classes. Otherwise, the master remains on the XTEST
++     * classes and drops events that don't fit into the XTEST layout (e.g.
++     * events with more than 2 valuators).
++     * To do so, we remember the lastSlave that posted through the master
++     * and add a DeviceChangedEvent to the end of the list.
+      */
+ 
+-    if (IsMaster(dev))
+-        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
+-    else if (!dev->u.master)
++    if (IsMaster(dev)) {
++        mpointer = GetMaster(dev, MASTER_POINTER);
++        lastSlave = mpointer->u.lastSlave;
++        ptr = GetXTestDevice(mpointer);
++    } else if (!dev->u.master)
+         ptr = dev;
+     else
+         return;
+ 
+-    events = InitEventList(GetMaximumEventsNum());
++    /* xkb fake device buttons are one-shot events. Force a DCE after they
++     * happen to restore the device to it's previous source */
++    events = InitEventList(GetMaximumEventsNum() + 1);
+     OsBlockSignals();
+     nevents = GetPointerEvents(events, ptr,
+                                press ? ButtonPress : ButtonRelease, button,
+                                0 /* flags */, 0 /* first */,
+                                0 /* num_val */, NULL);
++    if (IsMaster(dev) && (lastSlave && lastSlave != ptr))
++        CreateClassesChangedEvent(&events[nevents++], mpointer,
++                                  lastSlave, DEVCHANGE_POINTER_EVENT);
+     OsReleaseSignals();
+ 
+ 
+     for (i = 0; i < nevents; i++)
+         mieqProcessDeviceEvent(ptr, (InternalEvent*)events[i].event, NULL);
+ 
+-    FreeEventList(events, GetMaximumEventsNum());
++    FreeEventList(events, GetMaximumEventsNum() + 1);
+ }
+-- 
+1.7.1
+

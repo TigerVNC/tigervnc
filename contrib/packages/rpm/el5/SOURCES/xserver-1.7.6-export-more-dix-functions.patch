@@ -1,0 +1,26 @@
+From 6db7cc3d3f750bbb1c170f8fe538e9fb75bc5b34 Mon Sep 17 00:00:00 2001
+From: Adam Tkac <atkac@redhat.com>
+Date: Wed, 14 Apr 2010 12:16:26 +0200
+Subject: [PATCH] Export XkbCopyDeviceKeymap from Xorg, it is needed by VNC.
+
+Signed-off-by: Adam Tkac <atkac@redhat.com>
+---
+ include/xkbsrv.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/xkbsrv.h b/include/xkbsrv.h
+index ebc7cdb..dc3142a 100644
+--- a/include/xkbsrv.h
++++ b/include/xkbsrv.h
+@@ -936,7 +936,7 @@ extern Bool XkbCopyKeymap(
+         XkbDescPtr              /* dst */,
+         XkbDescPtr              /* src */);
+ 
+-extern Bool XkbCopyDeviceKeymap(
++extern _X_EXPORT Bool XkbCopyDeviceKeymap(
+         DeviceIntPtr            /* dst */,
+         DeviceIntPtr            /* src */);
+ 
+-- 
+1.7.0.1
+

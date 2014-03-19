@@ -1,0 +1,172 @@
+From 1766ae8a69daa06730e41d094fdddf53db3a1a9e Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Tue, 28 Jul 2009 11:07:13 -0400
+Subject: [PATCH] RANDR: right-of placement by default
+
+[Enhanced to add a new prefer clone option for drivers. This
+allows for servers like RN50 where two heads are disjoint. - airlied]
+
+[Enhanced to ignore rightof on single crtc cards - airlied]
+---
+ hw/xfree86/common/xf86str.h |    9 ++++-
+ hw/xfree86/modes/xf86Crtc.c |   77 +++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 77 insertions(+), 9 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86str.h b/hw/xfree86/common/xf86str.h
+index 5c3aa00..8224668 100644
+--- a/hw/xfree86/common/xf86str.h
++++ b/hw/xfree86/common/xf86str.h
+@@ -503,10 +503,13 @@ typedef struct _confdrirec {
+ } confDRIRec, *confDRIPtr;
+ 
+ /* These values should be adjusted when new fields are added to ScrnInfoRec */
+-#define NUM_RESERVED_INTS		15
++#define NUM_RESERVED_INTS		14
+ #define NUM_RESERVED_POINTERS		14
+ #define NUM_RESERVED_FUNCS		11
+ 
++/* let clients know they can use this */
++#define XF86_SCRN_HAS_PREFER_CLONE 1
++
+ typedef pointer (*funcPointer)(void);
+ 
+ /* flags for depth 24 pixmap options */
+@@ -672,7 +675,6 @@ typedef void xf86SetOverscanProc          (ScrnInfoPtr, int);
+  * are to be dependent on compile-time defines.
+  */
+ 
+-
+ typedef struct _ScrnInfoRec {
+     int			driverVersion;
+     char *		driverName;		/* canonical name used in */
+@@ -778,6 +780,9 @@ typedef struct _ScrnInfoRec {
+     /* -nr support */
+     int                 canDoBGNoneRoot;
+ 
++    /* initial rightof support disable */
++    int                 preferClone;
++
+     /*
+      * These can be used when the minor ABI version is incremented.
+      * The NUM_* parameters must be reduced appropriately to keep the
+diff --git a/hw/xfree86/modes/xf86Crtc.c b/hw/xfree86/modes/xf86Crtc.c
+index a66c979..4d14f57 100644
+--- a/hw/xfree86/modes/xf86Crtc.c
++++ b/hw/xfree86/modes/xf86Crtc.c
+@@ -1146,6 +1146,15 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
+     int			o;
+     int			min_x, min_y;
+     
++    /* check for initial right-of heuristic */
++    for (o = 0; o < config->num_output; o++)
++    {
++	xf86OutputPtr	output = config->output[o];
++
++	if (output->initial_x || output->initial_y)
++            return TRUE;
++    }
++
+     for (o = 0; o < config->num_output; o++)
+     {
+ 	xf86OutputPtr	output = config->output[o];
+@@ -2028,6 +2037,60 @@ bestModeForAspect(xf86CrtcConfigPtr config, Bool *enabled, float aspect)
+     return match;
+ }
+ 
++static int
++numEnabledOutputs(xf86CrtcConfigPtr config, Bool *enabled)
++{
++    int i = 0, p;
++
++    for (i = 0, p = -1; nextEnabledOutput(config, enabled, &p); i++) ;
++
++    return i;
++}
++
++static Bool
++xf86TargetRightOf(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
++		  DisplayModePtr *modes, Bool *enabled,
++		  int width, int height)
++{
++    int o;
++    int w = 0;
++
++    if (config->num_crtc == 1)
++	return FALSE;
++
++    if (scrn->preferClone)
++	return FALSE;
++
++    if (numEnabledOutputs(config, enabled) < 2)
++	return FALSE;
++
++    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
++	DisplayModePtr mode =
++	    xf86OutputHasPreferredMode(config->output[o], width, height);
++
++	if (!mode)
++	    return FALSE;
++
++	w += mode->HDisplay;
++    }
++
++    if (w > width)
++	return FALSE;
++
++    w = 0;
++    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
++	DisplayModePtr mode =
++	    xf86OutputHasPreferredMode(config->output[o], width, height);
++
++	config->output[o]->initial_x = w;
++	w += mode->HDisplay;
++
++	modes[o] = mode;
++    }
++
++    return TRUE;
++}
++
+ static Bool
+ xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
+ 		    DisplayModePtr *modes, Bool *enabled,
+@@ -2085,13 +2148,9 @@ xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
+      * biggest mode for its aspect ratio, assuming one exists.
+      */
+     if (!ret) do {
+-	int i = 0;
+ 	float aspect = 0.0;
+ 
+-	/* count the number of enabled outputs */
+-	for (i = 0, p = -1; nextEnabledOutput(config, enabled, &p); i++) ;
+-
+-	if (i != 1)
++	if (numEnabledOutputs(config, enabled) != 1)
+ 	    break;
+ 
+ 	p = -1;
+@@ -2378,6 +2437,8 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
+ 
+     if (xf86TargetUserpref(scrn, config, modes, enabled, width, height))
+ 	xf86DrvMsg(i, X_INFO, "Using user preference for initial modes\n");
++    else if (xf86TargetRightOf(scrn, config, modes, enabled, width, height))
++	xf86DrvMsg(i, X_INFO, "Using spanning desktop for initial modes\n");
+     else if (xf86TargetPreferred(scrn, config, modes, enabled, width, height))
+ 	xf86DrvMsg(i, X_INFO, "Using exact sizes for initial modes\n");
+     else if (xf86TargetAspect(scrn, config, modes, enabled, width, height))
+@@ -2394,8 +2455,10 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
+ 			config->output[o]->name);
+ 	else
+ 	    xf86DrvMsg (scrn->scrnIndex, X_INFO,
+-			"Output %s using initial mode %s\n",
+-			config->output[o]->name, modes[o]->name);
++			"Output %s using initial mode %s +%d+%d\n",
++			config->output[o]->name, modes[o]->name,
++                        config->output[o]->initial_x,
++                        config->output[o]->initial_y);
+     }
+ 
+     /*
+-- 
+1.7.0.1
+

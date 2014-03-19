@@ -1,0 +1,22 @@
+Index: hw/xfree86/common/xf86AutoConfig.c
+================================================================================
+--- hw/xfree86/common/xf86AutoConfig.c
++++ hw/xfree86/common/xf86AutoConfig.c
+@@ -506,7 +506,7 @@
+     /* Fallback to platform default hardware */
+     if (i < (nmatches - 1)) {
+ #if defined(__i386__) || defined(__amd64__) || defined(__hurd__)
+-	matches[i++] = xnfstrdup("vesa");
++	matches[i++] = xnfstrdup("fbdev");
+ #elif defined(__sparc__) && !defined(sun)
+ 	matches[i++] = xnfstrdup("sunffb");
+ #endif
+@@ -517,7 +517,7 @@
+ #if !defined(__linux__) && defined(__sparc__)
+ 	matches[i++] = xnfstrdup("wsfb");
+ #else
+-	matches[i++] = xnfstrdup("fbdev");
++	matches[i++] = xnfstrdup("vesa");
+ #endif
+     }
+ }

@@ -1,0 +1,38 @@
+--- hw/xfree86/common/xf86pciBus.c
++++ hw/xfree86/common/xf86pciBus.c
+@@ -176,7 +176,11 @@
+ 	case 0x1142:		    driverList[0] = "apm"; break;
+ 	case 0xedd8:		    driverList[0] = "ark"; break;
+ 	case 0x1a03:		    driverList[0] = "ast"; break;
+-	case 0x1002:		    driverList[0] = "ati"; break;
++	case 0x1002:
++		driverList[0] = "fglrx";
++		driverList[1] = "radeonhd";
++		driverList[2] = "ati";
++		break;
+ 	case 0x102c:		    driverList[0] = "chips"; break;
+ 	case 0x1013:		    driverList[0] = "cirrus"; break;
+ 	case 0x3d3d:		    driverList[0] = "glint"; break;
+@@ -192,8 +196,20 @@
+ 	    break;
+ 	case 0x102b:		    driverList[0] = "mga";	break;
+ 	case 0x10c8:		    driverList[0] = "neomagic"; break;
+-	case 0x10de: case 0x12d2:   driverList[0] = "nv";	break;
+-	case 0x1106:		    driverList[0] = "openchrome"; break;
++	case 0x12d2:		    driverList[0] = "nv";	break;
++	case 0x10de:
++		driverList[0] = "nvidia";
++		driverList[1] = "nouveau";
++		/* GeForce 6150SE support broken (bnc #465190/544674) */
++		if (dev->device_id != 0x03D0) {
++			driverList[2] = "nv";
++		}
++		break;
++	case 0x1106:
++		driverList[0] = "via";
++		driverList[1] = "openchrome";
++		driverList[2] = "unichrome";
++		break;
+         case 0x1b36:		    driverList[0] = "qxl"; break;
+ 	case 0x1163:		    driverList[0] = "rendition"; break;
+ 	case 0x5333:

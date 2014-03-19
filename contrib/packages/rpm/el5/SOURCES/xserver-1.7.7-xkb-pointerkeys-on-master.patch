@@ -1,0 +1,47 @@
+From cd73cd8cdd64b73e0d371d90843a78fb5fa471bd Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Tue, 29 Jun 2010 15:24:51 +1000
+Subject: [PATCH 3/4] xkb: emulate PointerKeys events only on the master device.
+
+This patch replicates the behaviour for button events. Only generate a
+PointerKeys motion event on the master device, not on the slave device.
+Fixes the current issue of PointerKey motion events generating key events as
+well.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ xkb/xkbActions.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/xkb/xkbActions.c b/xkb/xkbActions.c
+index 8d70a55..3f57202 100644
+--- a/xkb/xkbActions.c
++++ b/xkb/xkbActions.c
+@@ -496,9 +496,6 @@ _XkbFilterPointerMove(	XkbSrvInfoPtr	xkbi,
+ int	x,y;
+ Bool	accel;
+ 
+-    if (xkbi->device == inputInfo.keyboard)
+-        return 0;
+-
+     if (filter->keycode==0) {		/* initial press */
+ 	filter->keycode = keycode;
+ 	filter->active = 1;
+@@ -1329,10 +1326,12 @@ XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
+     DeviceIntPtr        ptr;
+     int                 gpe_flags = 0;
+ 
+-    if (!dev->u.master)
++    if (IsMaster(dev))
++        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
++    else if (!dev->u.master)
+         ptr = dev;
+     else
+-        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
++        return;
+ 
+     if (flags & XkbSA_MoveAbsoluteX || flags & XkbSA_MoveAbsoluteY)
+         gpe_flags = POINTER_ABSOLUTE;
+-- 
+1.7.1
+

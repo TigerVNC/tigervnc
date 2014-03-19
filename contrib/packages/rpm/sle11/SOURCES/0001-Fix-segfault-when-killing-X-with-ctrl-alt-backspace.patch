@@ -1,0 +1,10 @@
+--- xorg-server-1.9.0/mi/misprite.c.orig	2010-07-23 21:40:56.000000000 +0200
++++ xorg-server-1.9.0/mi/misprite.c	2010-08-23 15:44:51.000000000 +0200
+@@ -384,6 +384,7 @@ miSpriteCloseScreen (int i, ScreenPtr pS
+     pScreen->InstallColormap = pScreenPriv->InstallColormap;
+     pScreen->StoreColors = pScreenPriv->StoreColors;
+ 
++    miSpriteDisableDamage(pScreen, pScreenPriv);
+     DamageDestroy (pScreenPriv->pDamage);
+ 
+     free(pScreenPriv);

@@ -1,0 +1,29 @@
+From: Michel Dänzer <michel@daenzer.net>
+Subject: Pad size of system memory copy for 1x1 pixmaps
+References: bfo#32803 bnc#652523
+
+Temporary description by: Jeff Mahoney <jeffm@suse.com>
+ This patch fixes a crash that occured frequently with glibc malloc
+ perturbing enabled and was a bit more random otherwise. The issue
+ appears to be that the pExaPixmap for 1x1 pixmaps was allocating a single
+ byte. The patch uses paddedWidth, which I expect is 4 bytes instead.
+
+Acked-by: Jeff Mahoney <jeffm@suse.com>
+---
+
+ exa/exa_mixed.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/exa/exa_mixed.c b/exa/exa_mixed.c
+index ef20eb5..606f1e1 100644
+--- a/exa/exa_mixed.c
++++ b/exa/exa_mixed.c
+@@ -98,7 +98,7 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
+ 	pExaPixmap->use_gpu_copy = FALSE;
+ 
+ 	if (w == 1 && h == 1) {
+-	    pExaPixmap->sys_ptr = malloc((pPixmap->drawable.bitsPerPixel + 7) / 8);
++	    pExaPixmap->sys_ptr = malloc(paddedWidth);
+ 
+ 	    /* Set up damage tracking */
+ 	    pExaPixmap->pDamage = DamageCreate(exaDamageReport_mixed, NULL,

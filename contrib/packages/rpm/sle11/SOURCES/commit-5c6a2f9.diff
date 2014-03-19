@@ -1,0 +1,166 @@
+commit 5c6a2f93ebc16a78093782b442306de23ae94e78
+Author: Chris Wilson <chris@chris-wilson.co.uk>
+Date:   Mon Sep 27 19:39:23 2010 +0100
+
+    xfree86: Kill pixmapPrivate with a vengeance (v2)
+    
+    ScrnInfo->pixmapPrivate only existed in order to catch invalid access to
+    the framebuffer by making the backing data NULL across the VT switch.
+    This was causing more confusion in the higher layers during mode setting
+    without any real benefit, so remove it.
+    
+    v2: Kill ShadowModifyPixmapHeader() as well.
+    
+    Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+    Cc: Julien Cristau <jcristau@debian.org>
+    Cc: Andrew Guertin <lists@dolphinling.net>
+    Reviewed-by: Keith Packard <keithp@keithp.com>
+    Signed-off-by: Keith Packard <keithp@keithp.com>
+
+diff --git a/hw/xfree86/common/xf86Helper.c b/hw/xfree86/common/xf86Helper.c
+index 90e0c67..97e5aec 100644
+--- a/hw/xfree86/common/xf86Helper.c
++++ b/hw/xfree86/common/xf86Helper.c
+@@ -1180,10 +1180,6 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
+     if (enable)
+     {
+ 	/*
+-	 * Restore the screen pixmap devPrivate field
+-	 */
+-	pspix->devPrivate = pScrnInfo->pixmapPrivate;
+-	/*
+ 	 * Restore all of the clip lists on the screen
+ 	 */
+ 	if (!xf86Resetting)
+@@ -1196,13 +1192,6 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
+ 	 * Empty all of the clip lists on the screen
+ 	 */
+ 	xf86SetRootClip (pScreen, FALSE);
+-	/*
+-	 * save the screen pixmap devPrivate field and
+-	 * replace it with NULL so accidental references
+-	 * to the frame buffer are caught
+-	 */
+-	pScrnInfo->pixmapPrivate = pspix->devPrivate;
+-	pspix->devPrivate.ptr = NULL;
+     }
+ }
+ 
+diff --git a/hw/xfree86/common/xf86str.h b/hw/xfree86/common/xf86str.h
+index c9b261d..b979884 100644
+--- a/hw/xfree86/common/xf86str.h
++++ b/hw/xfree86/common/xf86str.h
+@@ -765,7 +765,7 @@ typedef struct _ScrnInfoRec {
+ 
+     /* Allow screens to be enabled/disabled individually */
+     Bool		vtSema;
+-    DevUnion		pixmapPrivate;		/* saved devPrivate from pixmap */
++    DevUnion		pixmapPrivate;          /* XXX obsoleted; just for ABI compatibility */
+ 
+     /* hw cursor moves at SIGIO time */
+     Bool		silkenMouse;
+diff --git a/hw/xfree86/modes/xf86RandR12.c b/hw/xfree86/modes/xf86RandR12.c
+index 8a593a7..ba0862a 100644
+--- a/hw/xfree86/modes/xf86RandR12.c
++++ b/hw/xfree86/modes/xf86RandR12.c
+@@ -511,7 +511,6 @@ xf86RandR12SetMode (ScreenPtr	    pScreen,
+     WindowPtr		pRoot = pScreen->root;
+     DisplayModePtr      currentMode = NULL;
+     Bool 		ret = TRUE;
+-    PixmapPtr 		pspix = NULL;
+ 
+     if (pRoot)
+ 	(*scrp->EnableDisableFBAccess) (pScreen->myNum, FALSE);
+@@ -560,14 +559,6 @@ xf86RandR12SetMode (ScreenPtr	    pScreen,
+ 	pScreen->mmHeight = oldmmHeight;
+         scrp->currentMode = currentMode;
+     }
+-    /*
+-     * Get the new Screen pixmap ptr as SwitchMode might have called
+-     * ModifyPixmapHeader and xf86EnableDisableFBAccess will put it back...
+-     * Unfortunately.
+-     */
+-    pspix = (*pScreen->GetScreenPixmap) (pScreen);
+-    if (pspix->devPrivate.ptr)
+-       scrp->pixmapPrivate = pspix->devPrivate;
+ 
+     /*
+      * Make sure the layout is correct
+diff --git a/hw/xfree86/shadowfb/shadow.c b/hw/xfree86/shadowfb/shadow.c
+index 0af53d1..5cc476a 100644
+--- a/hw/xfree86/shadowfb/shadow.c
++++ b/hw/xfree86/shadowfb/shadow.c
+@@ -36,15 +36,6 @@ static void ShadowCopyWindow(
+     RegionPtr prgn 
+ );
+ static Bool ShadowCreateGC(GCPtr pGC);
+-static Bool ShadowModifyPixmapHeader(
+-    PixmapPtr pPixmap,
+-    int width,
+-    int height,
+-    int depth,
+-    int bitsPerPixel,
+-    int devKind,
+-    pointer pPixData
+-);
+ 
+ static Bool ShadowEnterVT(int index, int flags);
+ static void ShadowLeaveVT(int index, int flags);
+@@ -189,7 +180,6 @@ ShadowFBInit2 (
+     pScreen->CloseScreen = ShadowCloseScreen;
+     pScreen->CopyWindow = ShadowCopyWindow;
+     pScreen->CreateGC = ShadowCreateGC;
+-    pScreen->ModifyPixmapHeader = ShadowModifyPixmapHeader;
+ 
+     pScrn->EnterVT = ShadowEnterVT;
+     pScrn->LeaveVT = ShadowLeaveVT;
+@@ -310,49 +300,6 @@ ShadowCopyWindow(
+     }
+ }
+ 
+-static Bool
+-ShadowModifyPixmapHeader(
+-    PixmapPtr pPixmap,
+-    int width,
+-    int height,
+-    int depth,
+-    int bitsPerPixel,
+-    int devKind,
+-    pointer pPixData
+-)
+-{
+-    ScreenPtr pScreen;
+-    ScrnInfoPtr pScrn;
+-    ShadowScreenPtr pPriv;
+-    Bool retval;
+-    PixmapPtr pScreenPix;
+-
+-    if (!pPixmap)
+-	return FALSE;
+-
+-    pScreen = pPixmap->drawable.pScreen;
+-    pScrn = xf86Screens[pScreen->myNum];
+-
+-    pScreenPix = (*pScreen->GetScreenPixmap)(pScreen);
+-    
+-    if (pPixmap == pScreenPix && !pScrn->vtSema)
+-	pScreenPix->devPrivate = pScrn->pixmapPrivate;
+-    
+-    pPriv = GET_SCREEN_PRIVATE(pScreen);
+-
+-    pScreen->ModifyPixmapHeader = pPriv->ModifyPixmapHeader;
+-    retval = (*pScreen->ModifyPixmapHeader)(pPixmap,
+-	width, height, depth, bitsPerPixel, devKind, pPixData);
+-    pScreen->ModifyPixmapHeader = ShadowModifyPixmapHeader;
+-
+-    if (pPixmap == pScreenPix && !pScrn->vtSema)
+-    {
+-	pScrn->pixmapPrivate = pScreenPix->devPrivate;
+-	pScreenPix->devPrivate.ptr = 0;
+-    }
+-    return retval;
+-}
+-
+ static void
+ ShadowComposite(
+     CARD8 op,

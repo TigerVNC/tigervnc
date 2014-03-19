@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=TigerVNC Viewer
+Name[fr]=Visionneur TigerVNC
+Comment=Connect to VNC server and display remote desktop
+Comment[fr]=Se connecter à un serveur VNC et afficher le bureau distant
+Exec=/usr/bin/vncviewer
+Icon=tigervnc
+Terminal=false
+Type=Application
+StartupWMClass=TigerVNC Viewer: Connection Details
+Categories=Network;RemoteAccess;

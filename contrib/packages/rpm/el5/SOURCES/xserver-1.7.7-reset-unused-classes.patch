@@ -1,0 +1,71 @@
+From 742150bab3b2d184a8ff7b6224151c2bb395aab6 Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <x@fedoraproject.org>
+Date: Wed, 28 Jul 2010 14:24:59 +1000
+Subject: [PATCH] Xi: reset the unused classes pointer after copying
+
+After copying the unused_classes into the device, reset the original
+pointer. Otherwise we have two pointers pointing to the same field and both
+get freed on device removal.
+
+Some classes already have this behaviour since 51c8fd69.
+
+Signed-off-by: Fedora X Ninjas <x@fedoraproject.org>
+---
+ Xi/exevents.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/Xi/exevents.c b/Xi/exevents.c
+index 566b0ef..a6160dd 100644
+--- a/Xi/exevents.c
++++ b/Xi/exevents.c
+@@ -227,6 +227,7 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+             classes = dixLookupPrivate(&to->devPrivates,
+                                        UnusedClassesPrivateKey);
+             to->intfeed = classes->intfeed;
++            classes->intfeed = NULL;
+         }
+ 
+         i = &to->intfeed;
+@@ -263,6 +264,7 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+             classes = dixLookupPrivate(&to->devPrivates,
+                                        UnusedClassesPrivateKey);
+             to->stringfeed = classes->stringfeed;
++            classes->stringfeed = NULL;
+         }
+ 
+         s = &to->stringfeed;
+@@ -299,6 +301,7 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+             classes = dixLookupPrivate(&to->devPrivates,
+                                        UnusedClassesPrivateKey);
+             to->bell = classes->bell;
++            classes->bell = NULL;
+         }
+ 
+         b = &to->bell;
+@@ -336,6 +339,7 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+             classes = dixLookupPrivate(&to->devPrivates,
+                                        UnusedClassesPrivateKey);
+             to->leds = classes->leds;
++            classes->leds = NULL;
+         }
+ 
+         l = &to->leds;
+@@ -387,6 +391,7 @@ DeepCopyKeyboardClasses(DeviceIntPtr from, DeviceIntPtr to)
+             to->kbdfeed = classes->kbdfeed;
+             if (!to->kbdfeed)
+                 InitKeyboardDeviceStruct(to, NULL, NULL, NULL);
++            classes->kbdfeed = NULL;
+         }
+ 
+         k = &to->kbdfeed;
+@@ -517,6 +522,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
+             classes = dixLookupPrivate(&to->devPrivates,
+                                        UnusedClassesPrivateKey);
+             to->ptrfeed = classes->ptrfeed;
++            classes->ptrfeed = NULL;
+         }
+ 
+         p = &to->ptrfeed;
+-- 
+1.7.1
+

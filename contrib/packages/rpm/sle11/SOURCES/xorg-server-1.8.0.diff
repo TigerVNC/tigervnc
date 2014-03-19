@@ -1,0 +1,11 @@
+--- config/Makefile.am.orig	2010-06-11 04:14:57.000000000 +0200
++++ config/Makefile.am	2010-08-23 15:47:19.000000000 +0200
+@@ -9,7 +9,7 @@
+ libconfig_la_SOURCES += udev.c
+ libconfig_la_LIBADD = $(UDEV_LIBS)
+ 
+-xorgconfddir = $(datadir)/X11/$(XF86CONFIGDIR)
++xorgconfddir = $(sysconfdir)/X11/$(XF86CONFIGDIR)
+ xorgconfd_DATA = 10-evdev.conf
+ 
+ else

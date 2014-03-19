@@ -1,0 +1,20 @@
+diff -up tigervnc-1.0.90/unix/xserver/hw/vnc/Makefile.am.gethomedir tigervnc-1.0.90/unix/xserver/hw/vnc/Makefile.am
+--- tigervnc-1.0.90/unix/xserver/hw/vnc/Makefile.am.gethomedir	2011-03-22 10:53:05.206429397 +0100
++++ tigervnc-1.0.90/unix/xserver/hw/vnc/Makefile.am	2011-03-22 10:53:30.550388457 +0100
+@@ -5,6 +5,7 @@ RFB_LIB=$(LIB_DIR)/rfb/librfb.la
+ RDR_LIB=$(LIB_DIR)/rdr/librdr.la $(GNUTLS_LDFLAGS)
+ NETWORK_LIB=$(LIB_DIR)/network/libnetwork.la
+ XREGION_LIB=$(LIB_DIR)/Xregion/libXregion.la
++OS_LIB=$(LIB_DIR)/os/libos.la
+ COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
+ 
+ noinst_LTLIBRARIES = libvnccommon.la
+@@ -52,7 +53,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I
+ 
+ libvnc_la_LDFLAGS = -module -avoid-version -Wl,-z,now
+ 
+-libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS)
++libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS) $(OS_LIB)
+ 
+ EXTRA_DIST = Xvnc.man
+ 

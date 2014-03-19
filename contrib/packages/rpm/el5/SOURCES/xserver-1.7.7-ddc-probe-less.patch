@@ -1,0 +1,30 @@
+From 872e6e49882d655c4e7dd7914e0bf34480a8c30b Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 9 Aug 2010 14:33:55 -0400
+Subject: [PATCH] ddc: Don't probe for DDC/CI or EEPROM, some monitors hate that
+
+Those monitors are garbage, of course.
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+---
+ hw/xfree86/ddc/ddc.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/hw/xfree86/ddc/ddc.c b/hw/xfree86/ddc/ddc.c
+index 6fad9fb..df46689 100644
+--- a/hw/xfree86/ddc/ddc.c
++++ b/hw/xfree86/ddc/ddc.c
+@@ -311,10 +311,6 @@ DDC2Init(int scrnIndex, I2CBusPtr pBus)
+     dev = DDC2MakeDevice(pBus, 0x00A0, "ddc2");
+     if (xf86I2CProbeAddress(pBus, 0x0060))
+ 	DDC2MakeDevice(pBus, 0x0060, "E-EDID segment register");
+-    if (xf86I2CProbeAddress(pBus, 0x0062))
+-	DDC2MakeDevice(pBus, 0x0062, "EDID EEPROM interface");
+-    if (xf86I2CProbeAddress(pBus, 0x006E))
+-	DDC2MakeDevice(pBus, 0x006E, "DDC control interface");
+ 
+     return dev;
+ }
+-- 
+1.7.2
+

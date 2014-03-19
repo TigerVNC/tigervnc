@@ -1,0 +1,29 @@
+From 4704b4d3d60bc40dcb9fbd050ca1ffdf42cbeaf9 Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Fri, 12 Feb 2010 14:34:28 -0500
+Subject: [PATCH] Inherit the DPMS timeouts from -s
+
+---
+ dix/main.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dix/main.c b/dix/main.c
+index f96245a..d887f5c 100644
+--- a/dix/main.c
++++ b/dix/main.c
+@@ -159,9 +159,9 @@ int main(int argc, char *argv[], char *envp[])
+ 	ScreenSaverBlanking = defaultScreenSaverBlanking;
+ 	ScreenSaverAllowExposures = defaultScreenSaverAllowExposures;
+ #ifdef DPMSExtension
+-	DPMSStandbyTime = DEFAULT_SCREEN_SAVER_TIME;
+-	DPMSSuspendTime = DEFAULT_SCREEN_SAVER_TIME;
+-	DPMSOffTime = DEFAULT_SCREEN_SAVER_TIME;
++	DPMSStandbyTime = defaultScreenSaverTime;
++	DPMSSuspendTime = defaultScreenSaverTime;
++	DPMSOffTime = defaultScreenSaverTime;
+ 	DPMSEnabled = TRUE;
+ 	DPMSPowerLevel = 0;
+ #endif
+-- 
+1.6.5.2
+

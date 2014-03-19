@@ -1,0 +1,67 @@
+From d68eb105421d4b88b1489ac954085dea4c99fc24 Mon Sep 17 00:00:00 2001
+From: Fedora X Ninjas <x@fedoraproject.org>
+Date: Wed, 9 Jun 2010 16:38:20 +1000
+Subject: [PATCH] xkb: fix invalid memory writes in _XkbCopyGeom.
+
+Classic strlen/strcpy mistake of
+   foo = malloc(strlen(bar));
+   strcpy(foo, bar);
+
+Testcase: valgrind Xephyr :1
+
+==8591== Invalid write of size 1
+==8591==    at 0x4A0638F: strcpy (mc_replace_strmem.c:311)
+==8591==    by 0x605593: _XkbCopyGeom (xkbUtils.c:1994)
+==8591==    by 0x605973: XkbCopyKeymap (xkbUtils.c:2118)
+==8591==    by 0x6122B3: InitKeyboardDeviceStruct (xkbInit.c:560)
+==8591==    by 0x4472E2: CoreKeyboardProc (devices.c:577)
+==8591==    by 0x447162: ActivateDevice (devices.c:530)
+==8591==    by 0x4475D6: InitCoreDevices (devices.c:672)
+==8591==    by 0x4449EE: main (main.c:254)
+==8591==  Address 0x6f96505 is 0 bytes after a block of size 53 alloc'd
+==8591==    at 0x4A0515D: malloc (vg_replace_malloc.c:195)
+==8591==    by 0x6054B7: _XkbCopyGeom (xkbUtils.c:1980)
+==8591==    by 0x605973: XkbCopyKeymap (xkbUtils.c:2118)
+==8591==    by 0x6122B3: InitKeyboardDeviceStruct (xkbInit.c:560)
+==8591==    by 0x4472E2: CoreKeyboardProc (devices.c:577)
+==8591==    by 0x447162: ActivateDevice (devices.c:530)
+==8591==    by 0x4475D6: InitCoreDevices (devices.c:672)
+==8591==    by 0x4449EE: main (main.c:254)
+
+Reported-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by-and-apologised-for: Daniel Stone <daniel@fooishbar.org>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+
+Conflicts:
+
+	xkb/xkbUtils.c
+---
+ xkb/xkbUtils.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/xkb/xkbUtils.c b/xkb/xkbUtils.c
+index 30ec438..1abb5a8 100644
+--- a/xkb/xkbUtils.c
++++ b/xkb/xkbUtils.c
+@@ -1940,7 +1940,7 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
+         /* font */
+         if (src->geom->label_font) {
+             if (!dst->geom->label_font) {
+-                tmp = xalloc(strlen(src->geom->label_font));
++                tmp = xalloc(strlen(src->geom->label_font) + 1);
+                 if (!tmp)
+                     return FALSE;
+                 dst->geom->label_font = tmp;
+@@ -1948,7 +1948,7 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
+             else if (strlen(src->geom->label_font) !=
+                 strlen(dst->geom->label_font)) {
+                 tmp = xrealloc(dst->geom->label_font,
+-                               strlen(src->geom->label_font));
++                               strlen(src->geom->label_font) + 1);
+                 if (!tmp)
+                     return FALSE;
+                 dst->geom->label_font = tmp;
+-- 
+1.6.5.2
+

@@ -1,0 +1,58 @@
+From 7bdea0bb8f38dba2d214482301de981c3260450d Mon Sep 17 00:00:00 2001
+From: Adam Tkac <atkac@redhat.com>
+Date: Mon, 22 Mar 2010 14:52:29 +0100
+Subject: [PATCH] dix: Export AllocDevicePair GetPointerEvents, GetKeyboardEvents and generate_modkeymap functions from Xorg.
+
+Those functions are used by TigerVNC libvnc.so module which doesn't
+use standard XInput infrastructure but uses same functions like,
+for example, XTest devices.
+
+Signed-off-by: Adam Tkac <atkac@redhat.com>
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ include/input.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/input.h b/include/input.h
+index 8561308..63f981e 100644
+--- a/include/input.h
++++ b/include/input.h
+@@ -432,7 +432,7 @@ extern void CreateClassesChangedEvent(EventListPtr event,
+                                       DeviceIntPtr master,
+                                       DeviceIntPtr slave,
+                                       int type);
+-extern int GetPointerEvents(
++extern _X_EXPORT int GetPointerEvents(
+     EventListPtr events,
+     DeviceIntPtr pDev,
+     int type,
+@@ -442,7 +442,7 @@ extern int GetPointerEvents(
+     int num_valuators,
+     int *valuators);
+ 
+-extern int GetKeyboardEvents(
++extern _X_EXPORT int GetKeyboardEvents(
+     EventListPtr events,
+     DeviceIntPtr pDev,
+     int type,
+@@ -493,7 +493,7 @@ extern int AttachDevice(ClientPtr client,
+ extern _X_EXPORT DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
+ extern DeviceIntPtr GetMaster(DeviceIntPtr dev, int type);
+ 
+-extern int AllocDevicePair(ClientPtr client,
++extern _X_EXPORT int AllocDevicePair(ClientPtr client,
+                              char* name,
+                              DeviceIntPtr* ptr,
+                              DeviceIntPtr* keybd,
+@@ -505,7 +505,7 @@ extern void DeepCopyDeviceClasses(DeviceIntPtr from,
+                                   DeviceChangedEvent *dce);
+ 
+ /* Helper functions. */
+-extern int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
++extern _X_EXPORT int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
+                               KeyCode **modkeymap, int *max_keys_per_mod);
+ extern int change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *map,
+                          int max_keys_per_mod);
+-- 
+1.6.6.1
+

@@ -1,0 +1,37 @@
+diff -up tigervnc-1.0.90-20091221svn3929/unix/vncserver.cookie tigervnc-1.0.90-20091221svn3929/unix/vncserver
+--- tigervnc-1.0.90-20091221svn3929/unix/vncserver.cookie	2009-11-12 11:39:54.000000000 +0100
++++ tigervnc-1.0.90-20091221svn3929/unix/vncserver	2009-12-21 16:15:01.907799091 +0100
+@@ -189,27 +189,12 @@ $vncPort = 5900 + $displayNumber;
+ $desktopLog = "$vncUserDir/$host:$displayNumber.log";
+ unlink($desktopLog);
+ 
+-# Make an X server cookie - use /dev/urandom on systems that have it,
+-# otherwise use perl's random number generator, seeded with the sum
+-# of the current time, our PID and part of the encrypted form of the password.
+-
+-my $cookie = "";
+-if (open(URANDOM, '<', '/dev/urandom')) {
+-  my $randata;
+-  if (sysread(URANDOM, $randata, 16) == 16) {
+-    $cookie = unpack 'h*', $randata;
+-  }
+-  close(URANDOM);
+-}
+-if ($cookie eq "") {
+-  srand(time+$$+unpack("L",`cat $vncUserDir/passwd`));
+-  for (1..16) {
+-    $cookie .= sprintf("%02x", int(rand(256)) % 256);
+-  }
+-}
+-
+-system("xauth -f $xauthorityFile add $host:$displayNumber . $cookie");
+-system("xauth -f $xauthorityFile add $host/unix:$displayNumber . $cookie"); 
++# Make an X server cookie - use mcookie
++$cookie = `/usr/bin/mcookie`;
++open (XAUTH, "|xauth -f $xauthorityFile source -");
++print XAUTH "add $host:$displayNumber . $cookie\n";
++print XAUTH "add $host/unix:$displayNumber . $cookie\n";
++close XAUTH;
+ 
+ if ($opt{'-name'}) {
+     $desktopName = $opt{'-name'};

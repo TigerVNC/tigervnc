@@ -1,0 +1,35 @@
+Index: linuxPci.c
+================================================================================
+--- linuxPci.c
++++ linuxPci.c
+@@ -195,7 +195,7 @@
+     struct pci_id_match bridge_match = {
+ 	PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
+ 	(PCI_CLASS_BRIDGE << 16) | (PCI_SUBCLASS_BRIDGE_PCI << 8),
+-	0
++	(PCI_CLASS_BRIDGE << 16) | (PCI_SUBCLASS_BRIDGE_PCI << 8)
+     };
+     struct pci_device *bridge;
+     struct pci_device_iterator *iter;
+@@ -433,7 +433,6 @@
+ xf86MapLegacyIO(struct pci_device *dev)
+ {
+     const int domain = dev->domain;
+-    struct pci_device *bridge = get_parent_bridge(dev);
+     int fd;
+ 
+     if (domain >= MAX_DOMAINS)
+@@ -441,9 +440,11 @@
+ 
+     if (DomainMmappedIO[domain] == NULL) {
+ 	/* Permanently map all of I/O space */
+-	fd = linuxOpenLegacy(bridge, "legacy_io");
++	fd = linuxOpenLegacy(dev, "legacy_io");
+ 	if (fd < 0) {
+-	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
++	    struct pci_device *bridge = get_parent_bridge(dev);
++	    if (bridge != NULL)
++	        DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
+ 						  0, linuxGetIOSize(bridge),
+ 						  PCIIOC_MMAP_IS_IO);
+ 	}

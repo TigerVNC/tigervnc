@@ -1,0 +1,13 @@
+Index: hw/xfree86/common/xf86VidMode.c
+================================================================================
+--- hw/xfree86/common/xf86VidMode.c
++++ hw/xfree86/common/xf86VidMode.c
+@@ -220,6 +220,8 @@
+ 
+     pScrn = xf86Screens[scrnIndex];
+     pVidMode = VMPTR(pScrn->pScreen);
++    if (!pScrn->modes)
++	return FALSE;
+     pVidMode->First = pScrn->modes;
+     pVidMode->Next =  pVidMode->First->next;
+ 

@@ -1,0 +1,21 @@
+commit 532d2051245a1d8afe7ca236f1d966d555bb121a
+Author: Dave Airlie <airlied@linux.ie>
+Date:   Fri Sep 12 17:21:25 2008 +1000
+
+    Revert "intel: sync to vblank by default"
+    
+    This reverts commit e9bf3e4cc9a7e4bcd4c45bd707541d26ecdf0409.
+
+diff --git a/src/mesa/drivers/dri/intel/intel_screen.c b/src/mesa/drivers/dri/intel/intel_screen.c
+index c193830..f02192d 100644
+--- a/src/mesa/drivers/dri/intel/intel_screen.c
++++ b/src/mesa/drivers/dri/intel/intel_screen.c
+@@ -55,7 +55,7 @@ PUBLIC const char __driConfigOptions[] =
+    DRI_CONF_BEGIN
+    DRI_CONF_SECTION_PERFORMANCE
+       DRI_CONF_FTHROTTLE_MODE(DRI_CONF_FTHROTTLE_IRQS)
+-      DRI_CONF_VBLANK_MODE(DRI_CONF_VBLANK_ALWAYS_SYNC)
++      DRI_CONF_VBLANK_MODE(DRI_CONF_VBLANK_DEF_INTERVAL_0)
+       /* Options correspond to DRI_CONF_BO_REUSE_DISABLED,
+        * DRI_CONF_BO_REUSE_ALL
+        */

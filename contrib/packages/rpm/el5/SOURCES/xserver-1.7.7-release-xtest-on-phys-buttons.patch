@@ -1,0 +1,93 @@
+From 005073e94bde03b52ae8f5b6ae98abc2f75f7355 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Thu, 1 Jul 2010 12:44:57 +1000
+Subject: [PATCH] xkb: release XTEST pointer buttons on physical releases.
+
+If a button release event is posted for the MD pointer, post a release event
+through the matching XTEST device. This way, a client who posts a button
+press through the XTEST extension cannot inadvertedly lock the button.
+
+This behaviour is required for historical reasons, until server 1.7 the core
+pointer would release a button press on physical events, regardless of the
+XTEST state.
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ include/xkbsrv.h |    6 ++++++
+ xkb/xkbAccessX.c |   20 +++++++-------------
+ xkb/xkbActions.c |    4 ++--
+ 3 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/include/xkbsrv.h b/include/xkbsrv.h
+index aab833f..7a5d351 100644
+--- a/include/xkbsrv.h
++++ b/include/xkbsrv.h
+@@ -941,6 +941,12 @@ extern int XkbGetEffectiveGroup(
+ extern void XkbMergeLockedPtrBtns(
+         DeviceIntPtr            /* master */);
+ 
++extern void XkbFakeDeviceButton(
++        DeviceIntPtr            /* dev */,
++        int                     /* press */,
++        int                     /* button */);
++
++
+ #include "xkbfile.h"
+ #include "xkbrules.h"
+ 
+diff --git a/xkb/xkbAccessX.c b/xkb/xkbAccessX.c
+index 670f368..dae85f3 100644
+--- a/xkb/xkbAccessX.c
++++ b/xkb/xkbAccessX.c
+@@ -710,19 +710,13 @@ DeviceEvent     *event = &ev->device_event;
+ 	if (xkbi) {
+ 	    xkbi->lockedPtrButtons&= ~(1 << (event->detail.key & 0x7));
+ 
+-            /* Merge this MD's lockedPtrButtons with the one of all
+-             * attached slave devices.
+-             * The DIX uses a merged button state for MDs, not
+-             * releasing buttons until the last SD has released
+-             * thenm. If we unconditionally clear the
+-             * lockedPtrButtons bit on the MD, a PointerKeys button
+-             * release on the SD keyboard won't generate the required fake button
+-             * event on the XTEST pointer, thus never processing the
+-             * button event in the DIX and the XTEST pointer's
+-             * buttons stay down - result is a stuck button.
+-             */
+-	    if (IsMaster(dev))
+-                XkbMergeLockedPtrBtns(dev);
++            if (IsMaster(dev))
++            {
++                DeviceIntPtr source;
++                dixLookupDevice(&source, event->sourceid, serverClient, DixWriteAccess);
++                if (!IsXTestDevice(source, GetMaster(dev, MASTER_POINTER)))
++                    XkbFakeDeviceButton(dev, FALSE, event->detail.key);
++            }
+ 	}
+ 
+ 	changed |= XkbPointerButtonMask;
+diff --git a/xkb/xkbActions.c b/xkb/xkbActions.c
+index e68b782..33ad5c5 100644
+--- a/xkb/xkbActions.c
++++ b/xkb/xkbActions.c
+@@ -46,7 +46,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ static int xkbDevicePrivateKeyIndex;
+ DevPrivateKey xkbDevicePrivateKey = &xkbDevicePrivateKeyIndex;
+ 
+-static void XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button);
++void XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button);
+ static void XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y);
+ 
+ void
+@@ -1361,7 +1361,7 @@ XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
+     FreeEventList(events, GetMaximumEventsNum());
+ }
+ 
+-static void
++void
+ XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
+ {
+     EventListPtr        events;
+-- 
+1.7.1
+

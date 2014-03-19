@@ -1,0 +1,367 @@
+From 9edbc4bd615311f4eefe13a54b7c7b7e34b3645a Mon Sep 17 00:00:00 2001
+From: Adam Jackson <ajax@redhat.com>
+Date: Mon, 26 Apr 2010 14:57:23 -0400
+Subject: [PATCH] modes: Combine xf86DefaultModes and DMTModes
+
+DMTModes is what xf86DefaultModes was always meant to be.  Smash the two
+together, leaving aliases in place for the old names to make it easy on
+external modules.
+
+Signed-off-by: Adam Jackson <ajax@redhat.com>
+---
+ hw/xfree86/common/Makefile.am    |   10 +---
+ hw/xfree86/common/extramodes     |   27 ---------
+ hw/xfree86/common/modeline2c.awk |   93 -------------------------------
+ hw/xfree86/common/vesamodes      |  111 --------------------------------------
+ hw/xfree86/common/xf86Config.c   |    3 +-
+ hw/xfree86/common/xf86Priv.h     |    2 +-
+ hw/xfree86/modes/xf86EdidModes.c |    5 ++-
+ hw/xfree86/modes/xf86Modes.c     |    2 +-
+ 8 files changed, 9 insertions(+), 244 deletions(-)
+ delete mode 100644 hw/xfree86/common/extramodes
+ delete mode 100644 hw/xfree86/common/modeline2c.awk
+ delete mode 100644 hw/xfree86/common/vesamodes
+
+diff --git a/hw/xfree86/common/Makefile.am b/hw/xfree86/common/Makefile.am
+index ad27210..9bf0c73 100644
+--- a/hw/xfree86/common/Makefile.am
++++ b/hw/xfree86/common/Makefile.am
+@@ -23,14 +23,6 @@ RANDRSOURCES = xf86RandR.c
+ 
+ BUSSOURCES = xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
+ 
+-MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
+-
+-xf86DefModeSet.c: $(srcdir)/modeline2c.awk $(MODEDEFSOURCES)
+-	cat $(MODEDEFSOURCES) | LC_ALL=C $(AWK) -f $(srcdir)/modeline2c.awk > $@
+-	echo >> $@
+-
+-BUILT_SOURCES = xf86DefModeSet.c
+-
+ AM_LDFLAGS = -r
+ libcommon_la_SOURCES = xf86Configure.c xf86ShowOpts.c xf86Bus.c xf86Config.c \
+                       xf86Cursor.c $(DGASOURCES) xf86DPMS.c \
+@@ -40,7 +32,7 @@ libcommon_la_SOURCES = xf86Configure.c xf86ShowOpts.c xf86Bus.c xf86Config.c \
+                       xf86Helper.c xf86PM.c xf86Xinput.c xisb.c \
+                       xf86Mode.c xorgHelper.c \
+                       $(XVSOURCES) $(BUSSOURCES) $(RANDRSOURCES)
+-nodist_libcommon_la_SOURCES = xf86DefModeSet.c xf86Build.h
++nodist_libcommon_la_SOURCES = xf86Build.h
+ 
+ INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
+ 	   -I$(srcdir)/../loader -I$(srcdir)/../parser \
+diff --git a/hw/xfree86/common/extramodes b/hw/xfree86/common/extramodes
+deleted file mode 100644
+index 4505026..0000000
+--- a/hw/xfree86/common/extramodes
++++ /dev/null
+@@ -1,27 +0,0 @@
+-//
+-// Extra modes to include as default modes in the X server.
+-//
+-// $XFree86: xc/programs/Xserver/hw/xfree86/etc/extramodes,v 1.5 2002/06/05 19:43:05 dawes Exp $
+-//
+-
+-# 832x624 @ 75Hz (74.55Hz) (fix if the official/Apple spec is different) hsync: 49.725kHz
+-ModeLine "832x624" 57.284 832  864  928 1152  624  625  628  667 -Hsync -Vsync
+-
+-# 1400x1050 @ 60Hz (VESA GTF) hsync: 65.5kHz
+-ModeLine "1400x1050" 122.0 1400 1488 1640 1880   1050 1052 1064 1082 +hsync +vsync
+-
+-# 1400x1050 @ 75Hz (VESA GTF) hsync: 82.2kHz
+-ModeLine "1400x1050" 155.8 1400 1464 1784 1912   1050 1052 1064 1090 +hsync +vsync
+-
+-# 1920x1440 @ 85Hz (VESA GTF) hsync: 128.5kHz
+-Modeline "1920x1440" 341.35  1920 2072 2288 2656  1440 1441 1444 1512 -hsync +vsync
+-
+-# 2048x1536 @ 60Hz (VESA GTF) hsync: 95.3kHz
+-Modeline "2048x1536" 266.95  2048 2200 2424 2800  1536 1537 1540 1589 -hsync +vsync
+-
+-# 2048x1536 @ 75Hz (VESA GTF) hsync: 120.2kHz
+-Modeline "2048x1536" 340.48  2048 2216 2440 2832  1536 1537 1540 1603 -hsync +vsync
+-
+-# 2048x1536 @ 85Hz (VESA GTF) hsync: 137.0kHz
+-Modeline "2048x1536" 388.04  2048 2216 2440 2832  1536 1537 1540 1612 -hsync +vsync
+-
+diff --git a/hw/xfree86/common/modeline2c.awk b/hw/xfree86/common/modeline2c.awk
+deleted file mode 100644
+index 038e7e9..0000000
+--- a/hw/xfree86/common/modeline2c.awk
++++ /dev/null
+@@ -1,93 +0,0 @@
+-#!/usr/bin/awk -f
+-#
+-# Copyright (c) 2007 Joerg Sonnenberger <joerg@NetBSD.org>.
+-# All rights reserved.
+-#
+-# Based on Perl script by Dirk Hohndel.
+-#
+-# Redistribution and use in source and binary forms, with or without
+-# modification, are permitted provided that the following conditions
+-# are met:
+-#
+-# 1. Redistributions of source code must retain the above copyright
+-#    notice, this list of conditions and the following disclaimer.
+-# 2. Redistributions in binary form must reproduce the above copyright
+-#    notice, this list of conditions and the following disclaimer in
+-#    the documentation and/or other materials provided with the
+-#    distribution.
+-#
+-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-# ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+-# COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+-# INCIDENTAL, SPECIAL, EXEMPLARY OR CONSEQUENTIAL DAMAGES (INCLUDING,
+-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+-# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+-# OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+-# SUCH DAMAGE.
+-#
+-# Usage: modeline2c.awk < modefile > xf86DefModeSet.c
+-#
+-
+-BEGIN {
+-	flagsdict[""] = "0"
+-
+-	flagsdict["+hsync +vsync"] = "V_PHSYNC | V_PVSYNC"
+-	flagsdict["+hsync -vsync"] = "V_PHSYNC | V_NVSYNC"
+-	flagsdict["-hsync +vsync"] = "V_NHSYNC | V_PVSYNC"
+-	flagsdict["-hsync -vsync"] = "V_NHSYNC | V_NVSYNC"
+-	flagsdict["+hsync +vsync interlace"] = "V_PHSYNC | V_PVSYNC | V_INTERLACE"
+-	flagsdict["+hsync -vsync interlace"] = "V_PHSYNC | V_NVSYNC | V_INTERLACE"
+-	flagsdict["-hsync +vsync interlace"] = "V_NHSYNC | V_PVSYNC | V_INTERLACE"
+-	flagsdict["-hsync -vsync interlace"] = "V_NHSYNC | V_NVSYNC | V_INTERLACE"
+-
+-	print "/* THIS FILE IS AUTOMATICALLY GENERATED -- DO NOT EDIT -- LOOK at"
+-	print " * modeline2c.awk */"
+-	print ""
+-	print "/*"
+-	print " * Author: Joerg Sonnenberger <joerg@NetBSD.org>"
+-	print " * Based on Perl script from Dirk Hohndel <hohndel@XFree86.Org>"
+-	print " */"
+-	print ""
+-	print "#ifdef HAVE_XORG_CONFIG_H"
+-	print "#include <xorg-config.h>"
+-	print "#endif"
+-	print ""
+-	print "#include \"xf86.h\""
+-	print "#include \"xf86Config.h\""
+-	print "#include \"xf86Priv.h\""
+-	print "#include \"xf86_OSlib.h\""
+-	print ""
+-	print "#include \"globals.h\""
+-	print ""
+-	print "#define MODEPREFIX NULL, NULL, NULL, MODE_OK, M_T_DEFAULT"
+-	print "#define MODESUFFIX 0,0, 0,0,0,0,0,0,0, 0,0,0,0,0,0,FALSE,FALSE,0,NULL,0,0.0,0.0"
+-	print ""
+-	print "const DisplayModeRec xf86DefaultModes [] = {"
+-
+-	modeline = "\t{MODEPREFIX,%d, %d,%d,%d,%d,0, %d,%d,%d,%d,0, %s, MODESUFFIX},\n"
+-	modeline_data = "^[a-zA-Z]+[ \t]+[^ \t]+[ \t0-9.]+"
+-}
+-
+-/^[mM][oO][dD][eE][lL][iI][nN][eE]/ {
+-	flags = $0
+-	gsub(modeline_data, "", flags)
+-	flags = tolower(flags)
+-	printf(modeline, $3 * 1000, $4, $5, $6, $7,
+-	       $8, $9, $10, $11, flagsdict[flags])
+-	# Half-width double scanned modes
+-	printf(modeline, $3 * 500, $4/2, $5/2, $6/2, $7/2,
+-	       $8/2, $9/2, $10/2, $11/2, flagsdict[flags] " | V_DBLSCAN")
+-}
+-
+-/^#/ {
+-	print "/*" substr($0, 2) " */"
+-}
+-
+-END {
+-	print "};"
+-	printf "const int xf86NumDefaultModes = sizeof(xf86DefaultModes) / sizeof(DisplayModeRec);"
+-}
+diff --git a/hw/xfree86/common/vesamodes b/hw/xfree86/common/vesamodes
+deleted file mode 100644
+index 2bc8862..0000000
+--- a/hw/xfree86/common/vesamodes
++++ /dev/null
+@@ -1,111 +0,0 @@
+-//
+-//  Default modes distilled from
+-//      "VESA and Industry Standards and Guide for Computer Display Monitor
+-//       Timing", version 1.0, revision 0.8, adopted September 17, 1998.
+-//  
+-//  $XFree86: xc/programs/Xserver/hw/xfree86/etc/vesamodes,v 1.3 1999/11/16 03:28:03 tsi Exp $
+-
+-
+-# 640x350 @ 85Hz (VESA) hsync: 37.9kHz
+-ModeLine "640x350"    31.5  640  672  736  832    350  382  385  445 +hsync -vsync
+-
+-# 640x400 @ 85Hz (VESA) hsync: 37.9kHz
+-ModeLine "640x400"    31.5  640  672  736  832    400  401  404  445 -hsync +vsync
+-
+-# 720x400 @ 85Hz (VESA) hsync: 37.9kHz
+-ModeLine "720x400"    35.5  720  756  828  936    400  401  404  446 -hsync +vsync
+-
+-# 640x480 @ 60Hz (Industry standard) hsync: 31.5kHz
+-ModeLine "640x480"    25.175 640  656  752  800    480  490  492  525 -hsync -vsync
+-
+-# 640x480 @ 72Hz (VESA) hsync: 37.9kHz
+-ModeLine "640x480"    31.5  640  664  704  832    480  489  492  520 -hsync -vsync
+-
+-# 640x480 @ 75Hz (VESA) hsync: 37.5kHz
+-ModeLine "640x480"    31.5  640  656  720  840    480  481  484  500 -hsync -vsync
+-
+-# 640x480 @ 85Hz (VESA) hsync: 43.3kHz
+-ModeLine "640x480"    36.0  640  696  752  832    480  481  484  509 -hsync -vsync
+-
+-# 800x600 @ 56Hz (VESA) hsync: 35.2kHz
+-ModeLine "800x600"    36.0  800  824  896 1024    600  601  603  625 +hsync +vsync
+-
+-# 800x600 @ 60Hz (VESA) hsync: 37.9kHz
+-ModeLine "800x600"    40.0  800  840  968 1056    600  601  605  628 +hsync +vsync
+-
+-# 800x600 @ 72Hz (VESA) hsync: 48.1kHz
+-ModeLine "800x600"    50.0  800  856  976 1040    600  637  643  666 +hsync +vsync
+-
+-# 800x600 @ 75Hz (VESA) hsync: 46.9kHz
+-ModeLine "800x600"    49.5  800  816  896 1056    600  601  604  625 +hsync +vsync
+-
+-# 800x600 @ 85Hz (VESA) hsync: 53.7kHz
+-ModeLine "800x600"    56.3  800  832  896 1048    600  601  604  631 +hsync +vsync
+-
+-# 1024x768i @ 43Hz (industry standard) hsync: 35.5kHz
+-ModeLine "1024x768"   44.9 1024 1032 1208 1264    768  768  776  817 +hsync +vsync Interlace
+-
+-# 1024x768 @ 60Hz (VESA) hsync: 48.4kHz
+-ModeLine "1024x768"   65.0 1024 1048 1184 1344    768  771  777  806 -hsync -vsync
+-
+-# 1024x768 @ 70Hz (VESA) hsync: 56.5kHz
+-ModeLine "1024x768"   75.0 1024 1048 1184 1328    768  771  777  806 -hsync -vsync
+-
+-# 1024x768 @ 75Hz (VESA) hsync: 60.0kHz
+-ModeLine "1024x768"   78.75 1024 1040 1136 1312    768  769  772  800 +hsync +vsync
+-
+-# 1024x768 @ 85Hz (VESA) hsync: 68.7kHz
+-ModeLine "1024x768"   94.5 1024 1072 1168 1376    768  769  772  808 +hsync +vsync
+-
+-# 1152x864 @ 75Hz (VESA) hsync: 67.5kHz
+-ModeLine "1152x864"  108.0 1152 1216 1344 1600    864  865  868  900 +hsync +vsync
+-
+-# 1280x960 @ 60Hz (VESA) hsync: 60.0kHz
+-ModeLine "1280x960"  108.0 1280 1376 1488 1800    960  961  964 1000 +hsync +vsync
+-
+-# 1280x960 @ 85Hz (VESA) hsync: 85.9kHz
+-ModeLine "1280x960"  148.5 1280 1344 1504 1728    960  961  964 1011 +hsync +vsync
+-
+-# 1280x1024 @ 60Hz (VESA) hsync: 64.0kHz
+-ModeLine "1280x1024" 108.0 1280 1328 1440 1688   1024 1025 1028 1066 +hsync +vsync
+-
+-# 1280x1024 @ 75Hz (VESA) hsync: 80.0kHz
+-ModeLine "1280x1024" 135.0 1280 1296 1440 1688   1024 1025 1028 1066 +hsync +vsync
+-
+-# 1280x1024 @ 85Hz (VESA) hsync: 91.1kHz
+-ModeLine "1280x1024" 157.5 1280 1344 1504 1728   1024 1025 1028 1072 +hsync +vsync
+-
+-# 1600x1200 @ 60Hz (VESA) hsync: 75.0kHz
+-ModeLine "1600x1200" 162.0 1600 1664 1856 2160   1200 1201 1204 1250 +hsync +vsync
+-
+-# 1600x1200 @ 65Hz (VESA) hsync: 81.3kHz
+-ModeLine "1600x1200" 175.5 1600 1664 1856 2160   1200 1201 1204 1250 +hsync +vsync
+-
+-# 1600x1200 @ 70Hz (VESA) hsync: 87.5kHz
+-ModeLine "1600x1200" 189.0 1600 1664 1856 2160   1200 1201 1204 1250 +hsync +vsync
+-
+-# 1600x1200 @ 75Hz (VESA) hsync: 93.8kHz
+-ModeLine "1600x1200" 202.5 1600 1664 1856 2160   1200 1201 1204 1250 +hsync +vsync
+-
+-# 1600x1200 @ 85Hz (VESA) hsync: 106.3kHz
+-ModeLine "1600x1200" 229.5 1600 1664 1856 2160   1200 1201 1204 1250 +hsync +vsync
+-
+-# 1792x1344 @ 60Hz (VESA) hsync: 83.6kHz
+-ModeLine "1792x1344" 204.8 1792 1920 2120 2448   1344 1345 1348 1394 -hsync +vsync
+-
+-# 1792x1344 @ 75Hz (VESA) hsync: 106.3kHz
+-ModeLine "1792x1344" 261.0 1792 1888 2104 2456   1344 1345 1348 1417 -hsync +vsync
+-
+-# 1856x1392 @ 60Hz (VESA) hsync: 86.3kHz
+-ModeLine "1856x1392" 218.3 1856 1952 2176 2528   1392 1393 1396 1439 -hsync +vsync
+-
+-# 1856x1392 @ 75Hz (VESA) hsync: 112.5kHz
+-ModeLine "1856x1392" 288.0 1856 1984 2208 2560   1392 1393 1396 1500 -hsync +vsync
+-
+-# 1920x1440 @ 60Hz (VESA) hsync: 90.0kHz
+-ModeLine "1920x1440" 234.0 1920 2048 2256 2600   1440 1441 1444 1500 -hsync +vsync
+-
+-# 1920x1440 @ 75Hz (VESA) hsync: 112.5kHz
+-ModeLine "1920x1440" 297.0 1920 2064 2288 2640   1440 1441 1444 1500 -hsync +vsync
+-
+-
+diff --git a/hw/xfree86/common/xf86Config.c b/hw/xfree86/common/xf86Config.c
+index 6fbf613..d3dcce2 100644
+--- a/hw/xfree86/common/xf86Config.c
++++ b/hw/xfree86/common/xf86Config.c
+@@ -2367,7 +2367,8 @@ addDefaultModes(MonPtr monitorp)
+ 
+     for (i = 0; i < xf86NumDefaultModes; i++)
+     {
+-	mode = xf86DuplicateMode(&xf86DefaultModes[i]);
++	mode = xf86DuplicateMode(&DMTModes[i]);
++	mode->type = M_T_DEFAULT;
+ 	if (!modeIsPresent(mode, monitorp))
+ 	{
+ 	    monitorp->Modes = xf86ModesAdd(monitorp->Modes, mode);
+diff --git a/hw/xfree86/common/xf86Priv.h b/hw/xfree86/common/xf86Priv.h
+index 3bb1571..0ba7ffa 100644
+--- a/hw/xfree86/common/xf86Priv.h
++++ b/hw/xfree86/common/xf86Priv.h
+@@ -129,7 +129,7 @@ extern _X_EXPORT Bool xf86PathIsSafe(const char *path);
+ 
+ /* xf86DefaultModes */
+ 
+-extern _X_EXPORT const DisplayModeRec xf86DefaultModes[];
++extern _X_EXPORT const DisplayModeRec DMTModes[];
+ extern _X_EXPORT const int xf86NumDefaultModes;
+ 
+ /* xf86Configure.c */
+diff --git a/hw/xfree86/modes/xf86EdidModes.c b/hw/xfree86/modes/xf86EdidModes.c
+index b057d7d..4da0da5 100644
+--- a/hw/xfree86/modes/xf86EdidModes.c
++++ b/hw/xfree86/modes/xf86EdidModes.c
+@@ -425,6 +425,9 @@ const DisplayModeRec DMTModes[] = {
+     { MODEPREFIX,   505250, 2560, 2768, 3048, 3536, 0, 1600, 1603, 1609, 1682, 0, V_NHSYNC | V_PVSYNC, MODESUFFIX }, /* 2560x1600@85Hz */
+     { MODEPREFIX,   552750, 2560, 2608, 2640, 2720, 0, 1600, 1603, 1609, 1694, 0, V_PHSYNC | V_NVSYNC, MODESUFFIX }, /* 2560x1600@120Hz RB */
+ };
++/* name compat */
++extern _X_EXPORT const DisplayModeRec xf86DefaultModes[] __attribute__((alias("DMTModes")));
++const int xf86NumDefaultModes = sizeof(DMTModes) / sizeof(DisplayModeRec);
+ 
+ #define LEVEL_DMT 0
+ #define LEVEL_GTF 1
+@@ -459,7 +462,7 @@ FindDMTMode(int hsize, int vsize, int refresh, Bool rb)
+     int i;
+     const DisplayModeRec *ret;
+ 
+-    for (i = 0; i < sizeof(DMTModes) / sizeof(DisplayModeRec); i++) {
++    for (i = 0; i < xf86NumDefaultModes; i++) {
+ 	ret = &DMTModes[i];
+ 
+ 	if (!rb && xf86ModeIsReduced(ret))
+diff --git a/hw/xfree86/modes/xf86Modes.c b/hw/xfree86/modes/xf86Modes.c
+index 862a473..2935405 100644
+--- a/hw/xfree86/modes/xf86Modes.c
++++ b/hw/xfree86/modes/xf86Modes.c
+@@ -682,7 +682,7 @@ xf86GetDefaultModes (void)
+ 
+     for (i = 0; i < xf86NumDefaultModes; i++)
+     {
+-	const DisplayModeRec	*defMode = &xf86DefaultModes[i];
++	const DisplayModeRec	*defMode = &DMTModes[i];
+ 	
+ 	mode = xf86DuplicateMode(defMode);
+ 	head = xf86ModesAdd(head, mode);
+-- 
+1.7.1
+
