@@ -25,9 +25,10 @@
 // FILL_RECT          - fill a rectangle with a single colour
 // IMAGE_RECT         - draw a rectangle of pixel data from a buffer
 
+#include <stdio.h>
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
-#include <assert.h>
+#include <rfb/Exception.h>
 
 namespace rfb {
 
@@ -143,7 +144,10 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
               len += b;
             } while (b == 255);
 
-            assert(len <= end - ptr);
+            if (end - ptr < len) {
+              fprintf (stderr, "ZRLE decode error\n");
+              throw Exception ("ZRLE decode error");
+            }
 
 #ifdef FAVOUR_FILL_RECT
             int i = ptr - buf;
@@ -193,7 +197,10 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
                 len += b;
               } while (b == 255);
 
-              assert(len <= end - ptr);
+              if (end - ptr < len) {
+                fprintf (stderr, "ZRLE decode error\n");
+                throw Exception ("ZRLE decode error");
+              }
             }
 
             index &= 127;
