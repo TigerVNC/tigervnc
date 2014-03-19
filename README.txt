@@ -19,7 +19,7 @@ JPEG codec.
 Legal
 =====
 
-TigerVNC is
+Incomplete and generally out of date copyright list:
 
         Copyright (C) 1999 AT&T Laboratories Cambridge
         Copyright (C) 2002-2005 RealVNC Ltd.
