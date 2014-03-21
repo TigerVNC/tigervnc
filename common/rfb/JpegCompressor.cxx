@@ -207,9 +207,14 @@ void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
   cinfo->input_components = pixelsize;
 
   jpeg_set_defaults(cinfo);
-  jpeg_set_quality(cinfo, quality, TRUE);
-  if(quality >= 96) cinfo->dct_method = JDCT_ISLOW;
-  else cinfo->dct_method = JDCT_FASTEST;
+
+  if (quality >= 1 && quality <= 100) {
+    jpeg_set_quality(cinfo, quality, TRUE);
+    if (quality >= 96)
+      cinfo->dct_method = JDCT_ISLOW;
+    else
+      cinfo->dct_method = JDCT_FASTEST;
+  }
 
   switch (subsamp) {
   case SUBSAMP_420:
