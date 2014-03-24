@@ -45,22 +45,21 @@ start() {
 
     for display in ${VNCSERVERS}
     do
-        SERVS=1
-        echo -n "${display} "
-	DISP="${display%%:*}"
-	USER="${display##*:}"
-	VNCUSERARGS="${VNCSERVERARGS[${DISP}]}"
-        runuser -l ${USER} -c \
-		"cd ~${USER} &&
-		 if [ -r .vnc/passwd ]; then
-			 vncserver :${DISP} ${VNCUSERARGS}
-		 else
-			 echo
-			 echo VNC password for user ${USER} is not configured
-			 exit 1;
-		 fi;"
-        RETVAL=$?
-        [ "$RETVAL" -eq 0 ] || break
+      SERVS=1
+      echo -n "${display} "
+      DISP="${display%%:*}"
+      USER="${display##*:}"
+      VNCUSERARGS="${VNCSERVERARGS[${DISP}]}"
+      if [ -r $(eval echo ~${USER})/.vnc/passwd ]; then
+         runuser -l ${USER} -c \
+            "cd ~${USER} && vncserver :${DISP} ${VNCUSERARGS}"
+         RETVAL=$?
+      else
+        echo
+        echo VNC password for user ${USER} is not configured
+        RETVAL=1
+      fi
+      [ "$RETVAL" -eq 0 ] || break
     done
     if [ -z "$SERVS" ]; then
         echo -n "no displays configured "
