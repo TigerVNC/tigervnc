@@ -155,9 +155,6 @@ clean:
 	
 	# Add here commands to clean up after the build process.
 	dh_clean
-	(cd fltk-*; $(MAKE) distclean; rm configure)
-	(if [ -e Makefile ] ; then $(MAKE) clean ; fi)
-	(cd unix/xserver; if [ -e Makefile ] ; then $(MAKE) clean ; fi)
 
 install: DH_OPTIONS=
 install: build
