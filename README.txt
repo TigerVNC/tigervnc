@@ -66,8 +66,7 @@ The Windows version of TigerVNC contains the following programs:
 
 The Windows version of TigerVNC should work on Windows 2000 and later.  On
 Windows XP and later, winvnc may not work if the Fast User Switching or Remote
-Desktop features are in use.  Running winvnc as a service does not (yet) work
-with Windows Vista or later.
+Desktop features are in use.
 
 
 Unix/Linux-Specific (not Mac)
