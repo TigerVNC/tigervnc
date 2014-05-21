@@ -1,0 +1,14 @@
+## Patches with a number < 100 are applied in debian.
+## Ubuntu patches start with 100.
+
+# Ubuntu patches
+100_rethrow_signals.patch
+
+# Upstream patches
+504_tigervnc-cookie.patch
+510_tigervnc11-ldnow.patch
+511_tigervnc11-gethomedir.patch
+513_tigervnc11-rh692048.patch
+516_tigervnc-xorg-manpages.patch
+517_tigervnc-format-security.patch
+518_tigervnc-1.3.0-xserver-1.15.patch

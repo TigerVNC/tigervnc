@@ -1,0 +1,29 @@
+diff -up a/unix/xserver/configure.ac.jx b/unix/xserver/configure.ac
+--- a/unix/xserver/configure.ac.jx	2013-11-07 11:39:49.000000000 -0500
++++ b/unix/xserver/configure.ac	2013-11-07 11:40:17.215043570 -0500
+@@ -1597,7 +1596,7 @@ fi
+ 
+ dnl Xvnc DDX
+ AC_SUBST([XVNC_CPPFLAGS], ["-DHAVE_DIX_CONFIG_H $XSERVER_CFLAGS"])
+-AC_SUBST([XVNC_LIBS], ["$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB"])
++AC_SUBST([XVNC_LIBS], ["$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB"])
+ AC_SUBST([XVNC_SYS_LIBS], ["$GLX_SYS_LIBS"])
+ 
+ dnl Xnest DDX
+diff -up a/unix/xserver/hw/vnc/xorg-version.h b/unix/xserver/hw/vnc/xorg-version.h
+--- a/unix/xserver/hw/vnc/xorg-version.h	2013-07-01 08:41:24.000000000 -0400
++++ b/unix/xserver/hw/vnc/xorg-version.h	2013-11-07 11:39:49.749992669 -0500
+@@ -44,8 +44,12 @@
+ #define XORG 113
+ #elif XORG_VERSION_CURRENT < ((1 * 10000000) + (14 * 100000) + (99 * 1000))
+ #define XORG 114
++#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (15 * 100000) + (99 * 1000))
++#define XORG 115
++#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (16 * 100000) + (99 * 1000))
++#define XORG 116
+ #else
+-#error "X.Org newer than 1.14 is not supported"
++#error "X.Org newer than 1.16 is not supported"
+ #endif
+ 
+ #endif

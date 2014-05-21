@@ -1,0 +1,12 @@
+diff -up tigervnc-1.3.0/vncviewer/vncviewer.cxx.format-security tigervnc-1.3.0/vncviewer/vncviewer.cxx
+--- tigervnc-1.3.0/vncviewer/vncviewer.cxx.format-security	2013-12-03 16:47:04.802800182 +0000
++++ tigervnc-1.3.0/vncviewer/vncviewer.cxx	2013-12-03 16:47:08.680820024 +0000
+@@ -309,7 +309,7 @@ interpretViaParam(char *remoteHost, int
+ 
+   snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
+   vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+-  vlog.error(vncServerName);
++  vlog.error("%s", vncServerName);
+ 
+   return 0;
+ }
