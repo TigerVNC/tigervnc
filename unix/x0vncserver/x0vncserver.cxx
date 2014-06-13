@@ -269,6 +269,20 @@ public:
     return Point(pb->width(), pb->height());
   }
 
+  // -=- ColourMap callbacks
+  virtual void lookup(int index, int* r, int* g, int* b) {
+    XColor xc;
+    xc.pixel = index;
+    if (index < DisplayCells(dpy,DefaultScreen(dpy))) {
+      XQueryColor(dpy, DefaultColormap(dpy,DefaultScreen(dpy)), &xc);
+    } else {
+      xc.red = xc.green = xc.blue = 0;
+    }
+    *r = xc.red;
+    *g = xc.green;
+    *b = xc.blue;
+  }
+
   // -=- TXGlobalEventHandler interface
 
   virtual bool handleGlobalEvent(XEvent* ev) {
