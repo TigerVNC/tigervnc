@@ -42,6 +42,9 @@
 #ifdef HAVE_XTEST
 #include <X11/extensions/XTest.h>
 #endif
+#ifdef HAVE_XDAMAGE
+#include <X11/extensions/Xdamage.h>
+#endif
 
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/Image.h>
@@ -132,12 +135,13 @@ private:
 };
 
 
-class XDesktop : public SDesktop, public ColourMap
+class XDesktop : public SDesktop, public ColourMap, public TXGlobalEventHandler
 {
 public:
   XDesktop(Display* dpy_, Geometry *geometry_)
     : dpy(dpy_), geometry(geometry_), pb(0), server(0),
-      oldButtonMask(0), haveXtest(false), maxButtons(0), running(false)
+      oldButtonMask(0), haveXtest(false), haveDamage(false),
+      maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
     int xtestEventBase;
@@ -157,13 +161,26 @@ public:
     }
 #endif
 
+#ifdef HAVE_XDAMAGE
+    int xdamageErrorBase;
+
+    if (XDamageQueryExtension(dpy, &xdamageEventBase, &xdamageErrorBase)) {
+      TXWindow::setGlobalEventHandler(this);
+      haveDamage = true;
+    } else {
+#endif
+      vlog.info("DAMAGE extension not present");
+      vlog.info("Will have to poll screen for changes");
+#ifdef HAVE_XDAMAGE
+    }
+#endif
   }
   virtual ~XDesktop() {
     stop();
   }
 
   inline void poll() {
-    if (pb)
+    if (pb and not haveDamage)
       pb->poll(server);
   }
 
@@ -188,11 +205,23 @@ public:
     server = (VNCServerST *)vs;
     server->setPixelBuffer(pb);
 
+#ifdef HAVE_XDAMAGE
+    if (haveDamage) {
+      damage = XDamageCreate(dpy, DefaultRootWindow(dpy),
+                             XDamageReportRawRectangles);
+    }
+#endif
+
     running = true;
   }
 
   virtual void stop() {
     running = false;
+
+#ifdef HAVE_XDAMAGE
+    if (haveDamage)
+      XDamageDestroy(dpy, damage);
+#endif
 
     delete pb;
     pb = 0;
@@ -240,18 +269,25 @@ public:
     return Point(pb->width(), pb->height());
   }
 
-  // -=- ColourMap callbacks
-  virtual void lookup(int index, int* r, int* g, int* b) {
-    XColor xc;
-    xc.pixel = index;
-    if (index < DisplayCells(dpy,DefaultScreen(dpy))) {
-      XQueryColor(dpy, DefaultColormap(dpy,DefaultScreen(dpy)), &xc);
-    } else {
-      xc.red = xc.green = xc.blue = 0;
-    }
-    *r = xc.red;
-    *g = xc.green;
-    *b = xc.blue;
+  // -=- TXGlobalEventHandler interface
+
+  virtual bool handleGlobalEvent(XEvent* ev) {
+#ifdef HAVE_XDAMAGE
+    XDamageNotifyEvent* dev;
+    Rect rect;
+
+    if (ev->type != xdamageEventBase)
+      return false;
+
+    if (!running)
+      return true;
+
+    dev = (XDamageNotifyEvent*)ev;
+    rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
+    server->add_changed(rect);
+
+    return true;
+#endif
   }
 
 protected:
@@ -261,8 +297,13 @@ protected:
   VNCServerST* server;
   int oldButtonMask;
   bool haveXtest;
+  bool haveDamage;
   int maxButtons;
   bool running;
+#ifdef HAVE_XDAMAGE
+  Damage damage;
+  int xdamageEventBase;
+#endif
 };
 
 
@@ -469,6 +510,7 @@ int main(int argc, char** argv)
       TXWindow::handleXEvents(dpy);
 
       FD_ZERO(&rfds);
+      FD_SET(ConnectionNumber(dpy), &rfds);
       FD_SET(listener.getFd(), &rfds);
       server.getSockets(&sockets);
       int clients_connected = 0;

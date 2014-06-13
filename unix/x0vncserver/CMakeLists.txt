@@ -16,11 +16,19 @@ add_executable(x0vncserver
 )
 
 target_link_libraries(x0vncserver tx rfb network rdr ${X11_LIBRARIES})
+
 if(X11_FOUND AND X11_XTest_LIB)
   add_definitions(-DHAVE_XTEST)
   target_link_libraries(x0vncserver ${X11_XTest_LIB})
 else()
   message(WARNING "No XTest extension.  x0vncserver will be view-only.")
+endif()
+
+if(X11_FOUND AND X11_Xdamage_LIB)
+  add_definitions(-DHAVE_XDAMAGE)
+  target_link_libraries(x0vncserver ${X11_Xdamage_LIB})
+else()
+  message(WARNING "No DAMAGE extension.  x0vncserver will have to use the slower polling method.")
 endif()
 
 install(TARGETS x0vncserver DESTINATION ${BIN_DIR})
