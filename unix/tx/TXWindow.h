@@ -51,6 +51,14 @@ public:
   virtual void handleEvent(TXWindow* w, XEvent* ev) = 0;
 };
 
+// TXGlobalEventHandler is similar to TXEventHandler but will be called early and
+// for every X event. The handler should return true to indicate that the
+// event was swallowed and shouldn't be processed further.
+class TXGlobalEventHandler {
+public:
+  virtual bool handleGlobalEvent(XEvent* ev) = 0;
+};
+
 class TXWindow {
 public:
 
@@ -162,6 +170,11 @@ public:
   // returns when there are no more events to process.
   static void handleXEvents(Display* dpy);
 
+  // setGlobalEventHandler() sets the TXGlobalEventHandler to intercept all
+  // X events. It returns the previous events handler, so that handlers can
+  // chain themselves.
+  static TXGlobalEventHandler* setGlobalEventHandler(TXGlobalEventHandler* h);
+
   // windowWithName() locates a window with a given name on a display.
   static Window windowWithName(Display* dpy, Window top, const char* name);
 
@@ -204,6 +217,8 @@ private:
   std::map<Atom,Time> selectionOwnTime;
   std::map<Atom,bool> selectionOwner_;
   bool toplevel_;
+
+  static TXGlobalEventHandler* globalEventHandler;
 };
 
 extern Atom wmProtocols, wmDeleteWindow, wmTakeFocus;

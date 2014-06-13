@@ -46,6 +46,8 @@ Pixmap TXWindow::dot = 0, TXWindow::tick = 0;
 const int TXWindow::dotSize = 4, TXWindow::tickSize = 8;
 char* TXWindow::defaultWindowClass;
 
+TXGlobalEventHandler* TXWindow::globalEventHandler = NULL;
+
 void TXWindow::init(Display* dpy, const char* defaultWindowClass_)
 {
   cmap = DefaultColormap(dpy,DefaultScreen(dpy));
@@ -101,6 +103,10 @@ void TXWindow::handleXEvents(Display* dpy)
   while (XPending(dpy)) {
     XEvent ev;
     XNextEvent(dpy, &ev);
+    if (globalEventHandler) {
+      if (globalEventHandler->handleGlobalEvent(&ev))
+        continue;
+    }
     if (ev.type == MappingNotify) {
       XRefreshKeyboardMapping(&ev.xmapping);
     } else if (ev.type == PropertyNotify &&
@@ -115,6 +121,13 @@ void TXWindow::handleXEvents(Display* dpy)
       }
     }
   }
+}
+
+TXGlobalEventHandler* TXWindow::setGlobalEventHandler(TXGlobalEventHandler* h)
+{
+  TXGlobalEventHandler* old = globalEventHandler;
+  globalEventHandler = h;
+  return old;
 }
 
 void TXWindow::getColours(Display* dpy, XColor* cols, int nCols)
