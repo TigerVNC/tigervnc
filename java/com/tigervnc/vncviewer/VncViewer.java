@@ -373,7 +373,7 @@ public class VncViewer extends javax.swing.JApplet
     vlog.debug("start called");
     getTimestamp();
     if (embed.getValue() && nViewers == 0) {
-      alwaysShowServerDialog.setParam(true);
+      alwaysShowServerDialog.setParam(false);
       Configuration.global().readAppletParams(this);
       fullScreen.setParam(false);
       scalingFactor.setParam("100");
