@@ -416,6 +416,8 @@ if(BUILD_VIEWER)
   add_subdirectory(media)
 endif()
 
+add_subdirectory(tests)
+
 
 include(cmake/BuildPackages.cmake)
 
