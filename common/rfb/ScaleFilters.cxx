@@ -23,10 +23,6 @@
 #include <rfb/Rect.h>
 #include <rfb/ScaleFilters.h>
 
-#ifdef _WIN32
-#define strcasecmp _stricmp
-#endif
-
 using namespace rfb;
 
 //

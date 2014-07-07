@@ -22,6 +22,9 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
+#include <stdarg.h>
+
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #ifdef _WIN32
@@ -29,8 +32,6 @@
 #include <winsock2.h>
 #include <windows.h>
 #endif
-
-#include <os/print.h>
 
 #include <string.h>
 

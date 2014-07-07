@@ -23,7 +23,6 @@
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ConnParams.h>
-#include <os/print.h>
 
 #include <stdio.h>
 extern "C" {

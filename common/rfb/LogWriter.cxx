@@ -19,9 +19,6 @@
 // -=- LogWriter.cxx - client-side logging interface
 
 #include <string.h>
-#ifdef WIN32
-#define strcasecmp _stricmp
-#endif
 
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
