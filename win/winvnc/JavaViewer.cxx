@@ -25,8 +25,6 @@
 
 #include <windows.h>
 
-#define strcasecmp _stricmp
-
 using namespace winvnc;
 using namespace rfb;
 

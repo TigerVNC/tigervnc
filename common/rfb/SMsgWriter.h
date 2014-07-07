@@ -109,18 +109,6 @@ namespace rfb {
     // order to flush out pseudo-rectangles to the client.
     virtual bool needFakeUpdate();
 
-    // writeFramebufferUpdate() writes a framebuffer update using the given
-    // UpdateInfo and ImageGetter.  On a V3 writer this may have
-    // pseudo-rectangles for setDesktopSize and setCursor added to it, and so
-    // may invoke writeSetCursorCallback().
-    //
-    // FIXME: This function is not used because it incorrectly computes
-    //        the number of rectangles if the Tight encoder is used.
-    /*
-    virtual void writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
-                                        Region* updatedRegion);
-    */
-
     // needNoDataUpdate() returns true when an update without any
     // framebuffer changes need to be sent (using writeNoDataUpdate()).
     // Commonly this is an update that modifies the size of the framebuffer

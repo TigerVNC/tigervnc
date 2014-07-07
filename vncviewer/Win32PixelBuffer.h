@@ -19,6 +19,8 @@
 #ifndef __WIN32PIXELBUFFER_H__
 #define __WIN32PIXELBUFFER_H__
 
+#include <windows.h>
+
 #include <rfb/PixelBuffer.h>
 
 class PlatformPixelBuffer: public rfb::FullFramePixelBuffer {

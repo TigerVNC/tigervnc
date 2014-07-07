@@ -1,14 +1,8 @@
 #define PACKAGE_NAME "@CMAKE_PROJECT_NAME@"
 #define PACKAGE_VERSION "@VERSION@"
 
-#cmakedefine HAVE_SOCKLEN_T
 #cmakedefine HAVE_INET_ATON
-#cmakedefine HAVE_INET_NTOP
 #cmakedefine HAVE_GETADDRINFO
-#cmakedefine HAVE_SNPRINTF
-#cmakedefine HAVE_STRCASECMP
-#cmakedefine HAVE_STRNCASECMP
-#cmakedefine HAVE_VSNPRINTF
 #cmakedefine HAVE_GNUTLS_SET_GLOBAL_ERRNO
 #cmakedefine HAVE_GNUTLS_SET_ERRNO
 #cmakedefine HAVE_GNUTLS_X509_CRT_PRINT

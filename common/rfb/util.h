@@ -104,17 +104,4 @@ namespace rfb {
 #define __rfbmin(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
-// Declare strcasecmp() and/or strncasecmp() if absent on this system.
-
-#if !defined(WIN32) && !defined(HAVE_STRCASECMP)
-extern "C" {
-  int strcasecmp(const char *s1, const char *s2);
-}
-#endif
-#if !defined(WIN32) && !defined(HAVE_STRNCASECMP)
-extern "C" {
-  int strncasecmp(const char *s1, const char *s2, size_t n);
-}
-#endif
-
 #endif

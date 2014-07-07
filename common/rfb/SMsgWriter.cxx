@@ -122,18 +122,6 @@ bool SMsgWriter::needFakeUpdate()
   return false;
 }
 
-// FIXME: This functions is not used because it incorrectly computes
-//        the number of rectangles if the Tight encoder is used.
-/*
-void SMsgWriter::writeFramebufferUpdate(const UpdateInfo& ui, ImageGetter* ig,
-                                        Region* updatedRegion)
-{
-  writeFramebufferUpdateStart(ui.numRects());
-  writeRects(ui, ig, updatedRegion);
-  writeFramebufferUpdateEnd();
-}
-*/
-
 bool SMsgWriter::needNoDataUpdate()
 {
   return false;

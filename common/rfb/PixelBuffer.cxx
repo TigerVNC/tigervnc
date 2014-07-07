@@ -48,7 +48,7 @@ ColourMap* PixelBuffer::getColourMap() const {return colourmap;}
 void
 PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
   int inStride;
-  const U8* data = getPixelsR(r, &inStride);
+  const U8* data = getBuffer(r, &inStride);
   // We assume that the specified rectangle is pre-clipped to the buffer
   int bytesPerPixel = format.bpp/8;
   int inBytesPerRow = inStride * bytesPerPixel;
@@ -63,19 +63,6 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
     data += inBytesPerRow;
   }
 }
-
-/* ***
-Pixel PixelBuffer::getPixel(const Point& p) {
-  int stride;
-  Rect r = Rect(p.x, p.y, p.x+1, p.y+1);
-  switch(format.bpp) {
-  case 8: return *((rdr::U8*)getDataAt(r, &stride));
-  case 16: return *((rdr::U16*)getDataAt(r, &stride));
-  case 32: return *((rdr::U32*)getDataAt(r, &stride));
-  default: return 0;
-  };
-}
-*/
 
 
 static void fillRect8(U8 *buf, int stride, const Rect& r, Pixel pix)
@@ -167,7 +154,7 @@ void FullFramePixelBuffer::setPF(const PixelFormat &pf) {
 
 int FullFramePixelBuffer::getStride() const { return width(); }
 
-rdr::U8* FullFramePixelBuffer::getPixelsRW(const Rect& r, int* stride)
+rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride)
 {
   *stride = getStride();
   return &data[(r.tl.x + (r.tl.y * *stride)) * format.bpp/8];
@@ -176,14 +163,14 @@ rdr::U8* FullFramePixelBuffer::getPixelsRW(const Rect& r, int* stride)
 
 void FullFramePixelBuffer::fillRect(const Rect& r, Pixel pix) {
   int stride;
-  U8 *buf = getPixelsRW(r, &stride);
+  U8 *buf = getBufferRW(r, &stride);
   fillRectFn(buf, stride, r, pix);
 }
 
 void FullFramePixelBuffer::imageRect(const Rect& r, const void* pixels, int srcStride) {
   int bytesPerPixel = getPF().bpp/8;
   int destStride;
-  U8* dest = getPixelsRW(r, &destStride);
+  U8* dest = getBufferRW(r, &destStride);
   int bytesPerDestRow = bytesPerPixel * destStride;
   if (!srcStride) srcStride = r.width();
   int bytesPerSrcRow = bytesPerPixel * srcStride;
@@ -201,7 +188,7 @@ void FullFramePixelBuffer::maskRect(const Rect& r, const void* pixels, const voi
   Rect cr = getRect().intersect(r);
   if (cr.is_empty()) return;
   int stride;
-  U8* data = getPixelsRW(cr, &stride);
+  U8* data = getBufferRW(cr, &stride);
   U8* mask = (U8*) mask_;
   int w = cr.width();
   int h = cr.height();
@@ -239,7 +226,7 @@ void FullFramePixelBuffer::maskRect(const Rect& r, Pixel pixel, const void* mask
   Rect cr = getRect().intersect(r);
   if (cr.is_empty()) return;
   int stride;
-  U8* data = getPixelsRW(cr, &stride);
+  U8* data = getBufferRW(cr, &stride);
   U8* mask = (U8*) mask_;
   int w = cr.width();
   int h = cr.height();
@@ -299,7 +286,7 @@ void FullFramePixelBuffer::copyRect(const Rect &rect, const Point &move_by_delta
   if (srect.is_empty())
     return;
 
-  data = getPixelsRW(getRect(), &stride);
+  data = getBufferRW(getRect(), &stride);
   bytesPerPixel = getPF().bpp/8;
   bytesPerRow = stride * bytesPerPixel;
   bytesPerMemCpy = drect.width() * bytesPerPixel;

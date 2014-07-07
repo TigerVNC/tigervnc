@@ -24,11 +24,10 @@ namespace rfb {
 
   class RREDecoder : public Decoder {
   public:
-    static Decoder* create(CMsgReader* reader);
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
-    virtual ~RREDecoder();
-  private:
     RREDecoder(CMsgReader* reader);
+    virtual ~RREDecoder();
+    virtual void readRect(const Rect& r, CMsgHandler* handler);
+  private:
     CMsgReader* reader;
   };
 }

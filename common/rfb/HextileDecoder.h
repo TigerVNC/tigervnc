@@ -24,11 +24,10 @@ namespace rfb {
 
   class HextileDecoder : public Decoder {
   public:
-    static Decoder* create(CMsgReader* reader);
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
-    virtual ~HextileDecoder();
-  private:
     HextileDecoder(CMsgReader* reader);
+    virtual ~HextileDecoder();
+    virtual void readRect(const Rect& r, CMsgHandler* handler);
+  private:
     CMsgReader* reader;
   };
 }

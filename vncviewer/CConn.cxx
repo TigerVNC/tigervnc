@@ -44,6 +44,7 @@
 
 #include "CConn.h"
 #include "OptionsDialog.h"
+#include "DesktopWindow.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
@@ -88,11 +89,15 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   cp.supportsExtendedDesktopSize = true;
   cp.supportsDesktopRename = true;
 
-  cp.customCompressLevel = customCompressLevel;
-  cp.compressLevel = compressLevel;
+  if (customCompressLevel)
+    cp.compressLevel = compressLevel;
+  else
+    cp.compressLevel = -1;
 
-  cp.noJpeg = noJpeg;
-  cp.qualityLevel = qualityLevel;
+  if (!noJpeg)
+    cp.qualityLevel = qualityLevel;
+  else
+    cp.qualityLevel = -1;
 
   if(sock == NULL) {
     try {
@@ -394,14 +399,17 @@ void CConn::fillRect(const rfb::Rect& r, rfb::Pixel p)
 {
   desktop->fillRect(r,p);
 }
+
 void CConn::imageRect(const rfb::Rect& r, void* p)
 {
   desktop->imageRect(r,p);
 }
+
 void CConn::copyRect(const rfb::Rect& r, int sx, int sy)
 {
   desktop->copyRect(r,sx,sy);
 }
+
 void CConn::setCursor(int width, int height, const Point& hotspot,
                       void* data, void* mask)
 {
@@ -443,10 +451,10 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
   }
 }
 
-rdr::U8* CConn::getRawPixelsRW(const rfb::Rect& r, int* stride) {
-  return desktop->getPixelsRW(r, stride);
+rdr::U8* CConn::getRawBufferRW(const rfb::Rect& r, int* stride) {
+  return desktop->getBufferRW(r, stride);
 }
-void CConn::releaseRawPixels(const rfb::Rect& r) {
+void CConn::releaseRawBuffer(const rfb::Rect& r) {
   desktop->damageRect(r);
 }
 
@@ -615,16 +623,19 @@ void CConn::handleOptions(void *data)
 
     if (encNum != -1)
       self->currentEncoding = encNum;
-
-    self->cp.qualityLevel = qualityLevel;
   }
 
   self->cp.supportsLocalCursor = true;
 
-  self->cp.customCompressLevel = customCompressLevel;
-  self->cp.compressLevel = compressLevel;
+  if (customCompressLevel)
+    self->cp.compressLevel = compressLevel;
+  else
+    self->cp.compressLevel = -1;
 
-  self->cp.noJpeg = noJpeg;
+  if (!noJpeg && !autoSelect)
+    self->cp.qualityLevel = qualityLevel;
+  else
+    self->cp.qualityLevel = -1;
 
   self->encodingChange = true;
 

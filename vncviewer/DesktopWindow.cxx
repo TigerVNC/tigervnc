@@ -34,7 +34,9 @@
 #include "parameters.h"
 #include "vncviewer.h"
 #include "CConn.h"
+#include "Viewport.h"
 
+#include <FL/Fl.H>
 #include <FL/Fl_Scroll.H>
 #include <FL/x.H>
 
@@ -218,6 +220,26 @@ void DesktopWindow::setColourMapEntries(int firstColour, int nColours,
                                         rdr::U16* rgbs)
 {
   viewport->setColourMapEntries(firstColour, nColours, rgbs);
+}
+
+void DesktopWindow::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
+  viewport->fillRect(r, pix);
+}
+
+void DesktopWindow::imageRect(const rfb::Rect& r, void* pixels) {
+  viewport->imageRect(r, pixels);
+}
+
+void DesktopWindow::copyRect(const rfb::Rect& r, int srcX, int srcY) {
+  viewport->copyRect(r, srcX, srcY);
+}
+
+rdr::U8* DesktopWindow::getBufferRW(const rfb::Rect& r, int* stride) {
+  return viewport->getBufferRW(r, stride);
+}
+
+void DesktopWindow::damageRect(const rfb::Rect& r) {
+  viewport->damageRect(r);
 }
 
 

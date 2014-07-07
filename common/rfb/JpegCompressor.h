@@ -36,14 +36,6 @@ struct JPEG_DEST_MGR;
 
 namespace rfb {
 
-  enum JPEG_SUBSAMP {
-    SUBSAMP_UNDEFINED = -1,
-    SUBSAMP_NONE = 0,
-    SUBSAMP_420,
-    SUBSAMP_422,
-    SUBSAMP_GRAY
-  };
-
   class JpegCompressor : public rdr::MemOutStream {
 
   public:
@@ -51,8 +43,7 @@ namespace rfb {
     JpegCompressor(int bufferLen = 128*1024);
     virtual ~JpegCompressor();
 
-    void compress(const rdr::U8 *, int, const Rect&, const PixelFormat&, int,
-      JPEG_SUBSAMP);
+    void compress(const rdr::U8 *, int, const Rect&, const PixelFormat&, int, int);
 
     void writeBytes(const void*, int);
 

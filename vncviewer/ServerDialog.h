@@ -20,8 +20,9 @@
 #define __SERVERDIALOG_H__
 
 #include <FL/Fl_Window.H>
-#include <FL/Fl_Input.H>
-#include <FL/Fl_File_Chooser.H>
+
+class Fl_Widget;
+class Fl_Input;
 
 class ServerDialog : public Fl_Window {
 protected:

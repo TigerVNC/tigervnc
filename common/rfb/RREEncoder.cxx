@@ -16,7 +16,7 @@
  * USA.
  */
 #include <rdr/OutStream.h>
-#include <rfb/ImageGetter.h>
+#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/RREEncoder.h>
@@ -32,11 +32,6 @@ using namespace rfb;
 #define BPP 32
 #include <rfb/rreEncode.h>
 #undef BPP
-
-Encoder* RREEncoder::create(SMsgWriter* writer)
-{
-  return new RREEncoder(writer);
-}
 
 RREEncoder::RREEncoder(SMsgWriter* writer_) : writer(writer_)
 {

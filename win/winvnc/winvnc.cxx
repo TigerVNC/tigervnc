@@ -19,9 +19,6 @@
 // -=- VNC Server 4.0 for Windows (WinVNC4)
 
 #include <string.h>
-#ifdef WIN32
-#define strcasecmp _stricmp
-#endif
 
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/VNCServerService.h>

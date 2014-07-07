@@ -21,11 +21,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef WIN32
-#define strcasecmp _stricmp
-#endif
 
-#include <os/print.h>
 #include <rfb/Logger.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>

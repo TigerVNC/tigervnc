@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/ImageGetter.h>
+#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/HextileEncoder.h>
@@ -44,11 +44,6 @@ BoolParameter improvedHextile("ImprovedHextile",
 #include <rfb/hextileEncode.h>
 #include <rfb/hextileEncodeBetter.h>
 #undef BPP
-
-Encoder* HextileEncoder::create(SMsgWriter* writer)
-{
-  return new HextileEncoder(writer);
-}
 
 HextileEncoder::HextileEncoder(SMsgWriter* writer_) : writer(writer_)
 {

@@ -53,7 +53,7 @@ bool ComparingUpdateTracker::compare()
     for (int y=0; y<fb->height(); y+=BLOCK_SIZE) {
       Rect pos(0, y, fb->width(), __rfbmin(fb->height(), y+BLOCK_SIZE));
       int srcStride;
-      const rdr::U8* srcData = fb->getPixelsR(pos, &srcStride);
+      const rdr::U8* srcData = fb->getBuffer(pos, &srcStride);
       oldFb.imageRect(pos, srcData, srcStride);
     }
 
@@ -106,7 +106,7 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
 
   int bytesPerPixel = fb->getPF().bpp/8;
   int oldStride;
-  rdr::U8* oldData = oldFb.getPixelsRW(r, &oldStride);
+  rdr::U8* oldData = oldFb.getBufferRW(r, &oldStride);
   int oldStrideBytes = oldStride * bytesPerPixel;
 
   std::vector<Rect> changedBlocks;
@@ -116,7 +116,7 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
     // Get a strip of the source buffer
     Rect pos(r.tl.x, blockTop, r.br.x, __rfbmin(r.br.y, blockTop+BLOCK_SIZE));
     int fbStride;
-    const rdr::U8* newBlockPtr = fb->getPixelsR(pos, &fbStride);
+    const rdr::U8* newBlockPtr = fb->getBuffer(pos, &fbStride);
     int newStrideBytes = fbStride * bytesPerPixel;
 
     rdr::U8* oldBlockPtr = oldData;

@@ -191,9 +191,9 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 {
   int stride;
   rdr::U32 solidColor;
-  const PIXEL_T *rawPixels = (const PIXEL_T *)ig->getRawPixelsR(r, &stride);
+  const PIXEL_T *rawPixels = (const PIXEL_T *)ig->getRawBufferR(r, &stride);
   PIXEL_T *pixels = NULL;
-  bool grayScaleJPEG = (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1);
+  bool grayScaleJPEG = (jpegSubsampling == subsampleGray && jpegQuality != -1);
 
 #if (BPP == 32)
   // Check if it's necessary to pack 24-bit pixels, and
@@ -412,7 +412,7 @@ void ENCODE_JPEG_RECT (PIXEL_T *buf, int stride, const Rect& r,
                        rdr::OutStream *os)
 {
   jc.clear();
-  jc.compress((rdr::U8 *)buf, stride * clientpf.bpp / 8, r, clientpf,
+  jc.compress((rdr::U8 *)buf, stride, r, clientpf,
     jpegQuality, jpegSubsampling);
   os->writeU8(0x09 << 4);
   os->writeCompactLength(jc.length());
@@ -540,12 +540,7 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
     *dataend = &data[stride * h];
   bool willTransform = ig->willTransform();
 
-  if (willTransform) {
-    mask = serverpf.redMax << serverpf.redShift;
-    mask |= serverpf.greenMax << serverpf.greenShift;
-    mask |= serverpf.blueMax << serverpf.blueShift;
-  }
-  else mask = ~0;
+  serverpf.bufferFromPixel((rdr::U8*)&mask, ~0);
 
   c0 = data[0] & mask;
   n0 = 0;
@@ -650,7 +645,7 @@ bool CHECK_SOLID_TILE(Rect& r, rdr::U32 *colorPtr, bool needSameColor)
   int w = r.width(), h = r.height();
 
   int stride = w;
-  buf = (const PIXEL_T *)ig->getRawPixelsR(r, &stride);
+  buf = (const PIXEL_T *)ig->getRawBufferR(r, &stride);
 
   colorValue = *buf;
   if (needSameColor && (rdr::U32)colorValue != *colorPtr)

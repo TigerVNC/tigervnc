@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,10 +36,8 @@ ConnParams::ConnParams()
     supportsDesktopRename(false), supportsLastRect(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
-    customCompressLevel(false), compressLevel(2),
-    noJpeg(false), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(SUBSAMP_UNDEFINED),
-    name_(0), nEncodings_(0), encodings_(0),
+    compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
+    subsampling(subsampleUndefined), name_(0),
     currentEncoding_(encodingRaw), verStrPos(0)
 {
   setName("");
@@ -47,7 +46,6 @@ ConnParams::ConnParams()
 ConnParams::~ConnParams()
 {
   delete [] name_;
-  delete [] encodings_;
 }
 
 bool ConnParams::readVersion(rdr::InStream* is, bool* done)
@@ -90,69 +88,80 @@ void ConnParams::setName(const char* name)
 
 void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
-  if (nEncodings > nEncodings_) {
-    delete [] encodings_;
-    encodings_ = new rdr::S32[nEncodings];
-  }
-  nEncodings_ = nEncodings;
   useCopyRect = false;
   supportsLocalCursor = false;
   supportsDesktopResize = false;
   supportsExtendedDesktopSize = false;
   supportsLocalXCursor = false;
   supportsLastRect = false;
-  customCompressLevel = false;
   compressLevel = -1;
-  noJpeg = true;
   qualityLevel = -1;
   fineQualityLevel = -1;
-  subsampling = SUBSAMP_UNDEFINED;
+  subsampling = subsampleUndefined;
   currentEncoding_ = encodingRaw;
 
   for (int i = nEncodings-1; i >= 0; i--) {
-    encodings_[i] = encodings[i];
-
-    if (encodings[i] == encodingCopyRect)
+    switch (encodings[i]) {
+    case encodingCopyRect:
       useCopyRect = true;
-    else if (encodings[i] == pseudoEncodingCursor)
+      break;
+    case pseudoEncodingCursor:
       supportsLocalCursor = true;
-    else if (encodings[i] == pseudoEncodingXCursor)
+      break;
+    case pseudoEncodingXCursor:
       supportsLocalXCursor = true;
-    else if (encodings[i] == pseudoEncodingDesktopSize)
+      break;
+    case pseudoEncodingDesktopSize:
       supportsDesktopResize = true;
-    else if (encodings[i] == pseudoEncodingExtendedDesktopSize)
+      break;
+    case pseudoEncodingExtendedDesktopSize:
       supportsExtendedDesktopSize = true;
-    else if (encodings[i] == pseudoEncodingDesktopName)
+      break;
+    case pseudoEncodingDesktopName:
       supportsDesktopRename = true;
-    else if (encodings[i] == pseudoEncodingLastRect)
+      break;
+    case pseudoEncodingLastRect:
       supportsLastRect = true;
-    else if (encodings[i] == pseudoEncodingFence)
+      break;
+    case pseudoEncodingFence:
       supportsFence = true;
-    else if (encodings[i] == pseudoEncodingContinuousUpdates)
+      break;
+    case pseudoEncodingContinuousUpdates:
       supportsContinuousUpdates = true;
-    else if (encodings[i] >= pseudoEncodingCompressLevel0 &&
-	     encodings[i] <= pseudoEncodingCompressLevel9) {
-      customCompressLevel = true;
-      compressLevel = encodings[i] - pseudoEncodingCompressLevel0;
-    } else if (encodings[i] >= pseudoEncodingQualityLevel0 &&
-	       encodings[i] <= pseudoEncodingQualityLevel9) {
-      noJpeg = false;
-      qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
-    } else if (Encoder::supported(encodings[i]))
-      currentEncoding_ = encodings[i];
-  }
-
-  // If the TurboVNC fine quality/subsampling encodings exist, let them
-  // override the coarse TightVNC quality level
-  for (int i = nEncodings-1; i >= 0; i--) {
-    if (encodings[i] >= pseudoEncodingFineQualityLevel0 + 1 &&
-        encodings[i] <= pseudoEncodingFineQualityLevel100) {
-      noJpeg = false;
-      fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
-    } else if (encodings[i] >= pseudoEncodingSubsamp1X &&
-               encodings[i] <= pseudoEncodingSubsampGray) {
-      noJpeg = false;
-      subsampling = (JPEG_SUBSAMP)(encodings[i] - pseudoEncodingSubsamp1X);
+      break;
+    case pseudoEncodingSubsamp1X:
+      subsampling = subsampleNone;
+      break;
+    case pseudoEncodingSubsampGray:
+      subsampling = subsampleGray;
+      break;
+    case pseudoEncodingSubsamp2X:
+      subsampling = subsample2X;
+      break;
+    case pseudoEncodingSubsamp4X:
+      subsampling = subsample4X;
+      break;
+    case pseudoEncodingSubsamp8X:
+      subsampling = subsample8X;
+      break;
+    case pseudoEncodingSubsamp16X:
+      subsampling = subsample16X;
+      break;
     }
+
+    if (encodings[i] >= pseudoEncodingCompressLevel0 &&
+        encodings[i] <= pseudoEncodingCompressLevel9)
+      compressLevel = encodings[i] - pseudoEncodingCompressLevel0;
+
+    if (encodings[i] >= pseudoEncodingQualityLevel0 &&
+        encodings[i] <= pseudoEncodingQualityLevel9)
+      qualityLevel = encodings[i] - pseudoEncodingQualityLevel0;
+
+    if (encodings[i] >= pseudoEncodingFineQualityLevel0 &&
+        encodings[i] <= pseudoEncodingFineQualityLevel100)
+      fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
+
+    if (Encoder::supported(encodings[i]))
+      currentEncoding_ = encodings[i];
   }
 }

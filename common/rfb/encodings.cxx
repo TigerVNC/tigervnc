@@ -16,9 +16,6 @@
  * USA.
  */
 #include <string.h>
-#ifdef _WIN32
-#define strcasecmp _stricmp
-#endif
 #include <rfb/encodings.h>
 #include <rfb/util.h>
 

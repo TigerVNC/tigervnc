@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/encodings.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb/ConnParams.h>
@@ -113,9 +114,9 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     }
   }
 
-  if (cp->customCompressLevel && cp->compressLevel >= 0 && cp->compressLevel <= 9)
+  if (cp->compressLevel >= 0 && cp->compressLevel <= 9)
       encodings[nEncodings++] = pseudoEncodingCompressLevel0 + cp->compressLevel;
-  if (!cp->noJpeg && cp->qualityLevel >= 0 && cp->qualityLevel <= 9)
+  if (cp->qualityLevel >= 0 && cp->qualityLevel <= 9)
       encodings[nEncodings++] = pseudoEncodingQualityLevel0 + cp->qualityLevel;
 
   writeSetEncodings(nEncodings, encodings);

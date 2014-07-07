@@ -22,10 +22,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#ifdef WIN32
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#endif
 
 #include <rfb/util.h>
 #include <rfb/Configuration.h>

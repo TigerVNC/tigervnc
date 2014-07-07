@@ -43,7 +43,6 @@
 
 #include <stdlib.h>
 #include <network/TcpSocket.h>
-#include <os/net.h>
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
 

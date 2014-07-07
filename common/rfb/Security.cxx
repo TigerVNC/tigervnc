@@ -24,9 +24,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef _WIN32
-#define strcasecmp _stricmp
-#endif
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>

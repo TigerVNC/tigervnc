@@ -21,8 +21,8 @@
 
 #include <rdr/MemOutStream.h>
 #include <rdr/ZlibOutStream.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/Encoder.h>
+#include <rfb/JpegCompressor.h>
 
 // FIXME: Check if specifying extern "C" is really necessary.
 #include <stdio.h>
@@ -32,6 +32,8 @@ extern "C" {
 
 namespace rfb {
 
+  class TransImageGetter;
+
   struct TIGHT_CONF {
     unsigned int maxRectSize, maxRectWidth;
     unsigned int monoMinRectSize;
@@ -39,7 +41,7 @@ namespace rfb {
     int idxMaxColorsDivisor;
     int palMaxColorsWithJPEG;
     int jpegQuality;
-    JPEG_SUBSAMP jpegSubsampling;
+    int jpegSubsampling;
   };
 
   //
@@ -77,16 +79,16 @@ namespace rfb {
   
   class TightEncoder : public Encoder {
   public:
-    static Encoder* create(SMsgWriter* writer);
-    virtual void setCompressLevel(int level);
-    virtual void setQualityLevel(int level);
-    virtual void setFineQualityLevel(int quality, JPEG_SUBSAMP subsampling);
-    virtual int getNumRects(const Rect &r);
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
+    TightEncoder(SMsgWriter* writer);
     virtual ~TightEncoder();
 
+    virtual void setCompressLevel(int level);
+    virtual void setQualityLevel(int level);
+    virtual void setFineQualityLevel(int quality, int subsampling);
+    virtual int getNumRects(const Rect &r);
+    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
+
   private:
-    TightEncoder(SMsgWriter* writer);
     bool checkSolidTile(Rect& r, rdr::U32* colorPtr, bool needSameColor);
     void extendSolidArea(const Rect& r, rdr::U32 colorValue, Rect& er);
     void findBestSolidArea(Rect& r, rdr::U32 colorValue, Rect& bestr);
@@ -157,7 +159,7 @@ namespace rfb {
 
     const TIGHT_CONF* pconf;
     int jpegQuality;
-    JPEG_SUBSAMP jpegSubsampling;
+    int jpegSubsampling;
   };
 
 }

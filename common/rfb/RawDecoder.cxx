@@ -22,11 +22,6 @@
 
 using namespace rfb;
 
-Decoder* RawDecoder::create(CMsgReader* reader)
-{
-  return new RawDecoder(reader);
-}
-
 RawDecoder::RawDecoder(CMsgReader* reader_) : reader(reader_)
 {
 }

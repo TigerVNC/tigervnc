@@ -28,9 +28,9 @@ namespace rfb {
   class TightDecoder : public Decoder {
 
   public:
-    static Decoder* create(CMsgReader* reader);
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
+    TightDecoder(CMsgReader* reader);
     virtual ~TightDecoder();
+    virtual void readRect(const Rect& r, CMsgHandler* handler);
 
   private:
     void tightDecode8(const Rect& r);
@@ -53,8 +53,6 @@ namespace rfb {
     void directFillRect8(const Rect& r, Pixel pix);
     void directFillRect16(const Rect& r, Pixel pix);
     void directFillRect32(const Rect& r, Pixel pix);
-
-    TightDecoder(CMsgReader* reader);
 
     CMsgReader* reader;
     CMsgHandler* handler;

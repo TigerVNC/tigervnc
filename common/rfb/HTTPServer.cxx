@@ -21,10 +21,6 @@
 #include <rfb/util.h>
 #include <rdr/MemOutStream.h>
 
-#ifdef WIN32
-#define strcasecmp _stricmp
-#endif
-
 
 using namespace rfb;
 using namespace rdr;

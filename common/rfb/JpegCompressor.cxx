@@ -1,5 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@
 #include <rdr/Exception.h>
 #include <rfb/Rect.h>
 #include <rfb/PixelFormat.h>
-#include <os/print.h>
+#include <rfb/ConnParams.h>
 
 #include <stdio.h>
 extern "C" {
@@ -30,6 +31,15 @@ extern "C" {
 #include <setjmp.h>
 
 using namespace rfb;
+
+//
+// Special formats that libjpeg can have optimised code paths for
+//
+
+static const PixelFormat pfRGBX(32, 24, false, true, 255, 255, 255, 0, 8, 16);
+static const PixelFormat pfBGRX(32, 24, false, true, 255, 255, 255, 16, 8, 0);
+static const PixelFormat pfXRGB(32, 24, false, true, 255, 255, 255, 8, 16, 24);
+static const PixelFormat pfXBGR(32, 24, false, true, 255, 255, 255, 24, 16, 8);
 
 //
 // Error manager implmentation for the JPEG library
@@ -141,8 +151,8 @@ JpegCompressor::~JpegCompressor(void)
   delete cinfo;
 }
 
-void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
-  const PixelFormat& pf, int quality, JPEG_SUBSAMP subsamp)
+void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
+  const PixelFormat& pf, int quality, int subsamp)
 {
   int w = r.width();
   int h = r.height();
@@ -165,62 +175,58 @@ void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
   pixelsize = 3;
 
 #ifdef JCS_EXTENSIONS
-  // Try to have libjpeg read directly from our native format
-  if(pf.is888()) {
-    int redShift, greenShift, blueShift;
+  // Try to have libjpeg output directly to our native format
+  // libjpeg can only handle some "standard" formats
+  if (pfRGBX.equal(pf))
+    cinfo->in_color_space = JCS_EXT_RGBX;
+  else if (pfBGRX.equal(pf))
+    cinfo->in_color_space = JCS_EXT_BGRX;
+  else if (pfXRGB.equal(pf))
+    cinfo->in_color_space = JCS_EXT_XRGB;
+  else if (pfXBGR.equal(pf))
+    cinfo->in_color_space = JCS_EXT_XBGR;
 
-    if(pf.bigEndian) {
-      redShift = 24 - pf.redShift;
-      greenShift = 24 - pf.greenShift;
-      blueShift = 24 - pf.blueShift;
-    } else {
-      redShift = pf.redShift;
-      greenShift = pf.greenShift;
-      blueShift = pf.blueShift;
-    }
-
-    if(redShift == 0 && greenShift == 8 && blueShift == 16)
-      cinfo->in_color_space = JCS_EXT_RGBX;
-    if(redShift == 16 && greenShift == 8 && blueShift == 0)
-      cinfo->in_color_space = JCS_EXT_BGRX;
-    if(redShift == 24 && greenShift == 16 && blueShift == 8)
-      cinfo->in_color_space = JCS_EXT_XBGR;
-    if(redShift == 8 && greenShift == 16 && blueShift == 24)
-      cinfo->in_color_space = JCS_EXT_XRGB;
-
-    if (cinfo->in_color_space != JCS_RGB) {
-      srcBuf = (rdr::U8 *)buf;
-      pixelsize = 4;
-    }
+  if (cinfo->in_color_space != JCS_RGB) {
+    srcBuf = (rdr::U8 *)buf;
+    pixelsize = 4;
   }
 #endif
 
-  if (pitch == 0) pitch = w * pf.bpp / 8;
+  if (stride == 0)
+    stride = w;
 
   if (cinfo->in_color_space == JCS_RGB) {
     srcBuf = new rdr::U8[w * h * pixelsize];
     srcBufIsTemp = true;
-    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w, pitch, h);
-    pitch = w * pixelsize;
+    pf.rgbFromBuffer(srcBuf, (const rdr::U8 *)buf, w, stride, h);
+    stride = w;
   }
 
   cinfo->input_components = pixelsize;
 
   jpeg_set_defaults(cinfo);
-  jpeg_set_quality(cinfo, quality, TRUE);
-  if(quality >= 96) cinfo->dct_method = JDCT_ISLOW;
-  else cinfo->dct_method = JDCT_FASTEST;
+
+  if (quality >= 1 && quality <= 100) {
+    jpeg_set_quality(cinfo, quality, TRUE);
+    if (quality >= 96)
+      cinfo->dct_method = JDCT_ISLOW;
+    else
+      cinfo->dct_method = JDCT_FASTEST;
+  }
 
   switch (subsamp) {
-  case SUBSAMP_420:
+  case subsample16X:
+  case subsample8X:
+    // FIXME (fall through)
+  case subsample4X:
     cinfo->comp_info[0].h_samp_factor = 2;
     cinfo->comp_info[0].v_samp_factor = 2;
     break;
-  case SUBSAMP_422:
+  case subsample2X:
     cinfo->comp_info[0].h_samp_factor = 2;
     cinfo->comp_info[0].v_samp_factor = 1;
     break;
-  case SUBSAMP_GRAY:
+  case subsampleGray:
     jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
   default:
     cinfo->comp_info[0].h_samp_factor = 1;
@@ -229,7 +235,7 @@ void JpegCompressor::compress(const rdr::U8 *buf, int pitch, const Rect& r,
 
   rowPointer = new JSAMPROW[h];
   for (int dy = 0; dy < h; dy++)
-    rowPointer[dy] = (JSAMPROW)(&srcBuf[dy * pitch]);
+    rowPointer[dy] = (JSAMPROW)(&srcBuf[dy * stride * pixelsize]);
 
   jpeg_start_compress(cinfo, TRUE);
   while (cinfo->next_scanline < cinfo->image_height)

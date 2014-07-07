@@ -17,9 +17,10 @@
  * USA.
  */
 
+#include <stdio.h>
+
 #include <rdr/ZlibOutStream.h>
 #include <rdr/Exception.h>
-#include <os/print.h>
 
 #include <zlib.h>
 

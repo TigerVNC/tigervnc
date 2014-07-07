@@ -16,17 +16,12 @@
  * USA.
  */
 #include <rdr/OutStream.h>
-#include <rfb/ImageGetter.h>
+#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/RawEncoder.h>
 
 using namespace rfb;
-
-Encoder* RawEncoder::create(SMsgWriter* writer)
-{
-  return new RawEncoder(writer);
-}
 
 RawEncoder::RawEncoder(SMsgWriter* writer_) : writer(writer_)
 {

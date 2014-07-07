@@ -23,13 +23,13 @@
 #include <map>
 
 #include <rfb/Rect.h>
+#include <rfb/Pixel.h>
 
-#include "Viewport.h"
-
-#include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 
 class CConn;
+class Viewport;
+
 class Fl_Scroll;
 
 class DesktopWindow : public Fl_Window {
@@ -52,22 +52,12 @@ public:
 
   void setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs);
 
-  void fillRect(const rfb::Rect& r, rfb::Pixel pix) {
-    viewport->fillRect(r, pix);
-  }
-  void imageRect(const rfb::Rect& r, void* pixels) {
-    viewport->imageRect(r, pixels);
-  }
-  void copyRect(const rfb::Rect& r, int srcX, int srcY) {
-    viewport->copyRect(r, srcX, srcY);
-  }
+  void fillRect(const rfb::Rect& r, rfb::Pixel pix);
+  void imageRect(const rfb::Rect& r, void* pixels);
+  void copyRect(const rfb::Rect& r, int srcX, int srcY);
 
-  rdr::U8* getPixelsRW(const rfb::Rect& r, int* stride) {
-    return viewport->getPixelsRW(r, stride);
-  }
-  void damageRect(const rfb::Rect& r) {
-    viewport->damageRect(r);
-  }
+  rdr::U8* getBufferRW(const rfb::Rect& r, int* stride);
+  void damageRect(const rfb::Rect& r);
 
   void resizeFramebuffer(int new_w, int new_h);
 

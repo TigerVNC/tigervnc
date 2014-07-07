@@ -28,6 +28,11 @@
 #include <wininet.h>
 
 
+/* Windows has different names for these */
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+
+
 /* MSLLHOOKSTRUCT structure*/
 #ifndef LLMHF_INJECTED
 #define LLMHF_INJECTED          0x00000001

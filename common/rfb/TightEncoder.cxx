@@ -17,6 +17,7 @@
  * USA.
  */
 #include <rdr/OutStream.h>
+#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
@@ -63,16 +64,16 @@ using namespace rfb;
 // 0 = JPEG quality 15,  4:2:0 subsampling (ratio ~= 100:1)
 
 const TIGHT_CONF TightEncoder::conf[10] = {
-  { 65536, 2048,   6, 0, 0, 0,   4, 24, 15, SUBSAMP_420 }, // 0
-  { 65536, 2048,   6, 1, 1, 1,   8, 24, 29, SUBSAMP_420 }, // 1
-  { 65536, 2048,   8, 3, 3, 2,  24, 96, 41, SUBSAMP_420 }, // 2
-  { 65536, 2048,  12, 5, 5, 2,  32, 96, 42, SUBSAMP_422 }, // 3
-  { 65536, 2048,  12, 6, 7, 3,  32, 96, 62, SUBSAMP_422 }, // 4
-  { 65536, 2048,  12, 7, 8, 4,  32, 96, 77, SUBSAMP_422 }, // 5
-  { 65536, 2048,  16, 7, 8, 5,  32, 96, 79, SUBSAMP_NONE }, // 6
-  { 65536, 2048,  16, 8, 9, 6,  64, 96, 86, SUBSAMP_NONE }, // 7
-  { 65536, 2048,  24, 9, 9, 7,  64, 96, 92, SUBSAMP_NONE }, // 8
-  { 65536, 2048,  32, 9, 9, 9,  96, 96,100, SUBSAMP_NONE }  // 9
+  { 65536, 2048,   6, 0, 0, 0,   4, 24, 15, subsample4X }, // 0
+  { 65536, 2048,   6, 1, 1, 1,   8, 24, 29, subsample4X }, // 1
+  { 65536, 2048,   8, 3, 3, 2,  24, 96, 41, subsample4X }, // 2
+  { 65536, 2048,  12, 5, 5, 2,  32, 96, 42, subsample2X }, // 3
+  { 65536, 2048,  12, 6, 7, 3,  32, 96, 62, subsample2X }, // 4
+  { 65536, 2048,  12, 7, 8, 4,  32, 96, 77, subsample2X }, // 5
+  { 65536, 2048,  16, 7, 8, 5,  32, 96, 79, subsampleNone }, // 6
+  { 65536, 2048,  16, 8, 9, 6,  64, 96, 86, subsampleNone }, // 7
+  { 65536, 2048,  24, 9, 9, 7,  64, 96, 92, subsampleNone }, // 8
+  { 65536, 2048,  32, 9, 9, 9,  96, 96,100, subsampleNone }  // 9
 };
 
 const int TightEncoder::defaultCompressLevel = 2;
@@ -90,11 +91,6 @@ const int TightEncoder::defaultCompressLevel = 2;
 #define BPP 32
 #include <rfb/tightEncode.h>
 #undef BPP
-
-Encoder* TightEncoder::create(SMsgWriter* writer)
-{
-  return new TightEncoder(writer);
-} 
 
 TightEncoder::TightEncoder(SMsgWriter* writer_) : writer(writer_)
 {
@@ -122,18 +118,14 @@ void TightEncoder::setQualityLevel(int level)
     jpegSubsampling = conf[level].jpegSubsampling;
   } else {
     jpegQuality = -1;
-    jpegSubsampling = SUBSAMP_UNDEFINED;
+    jpegSubsampling = subsampleUndefined;
   }
 }
 
-void TightEncoder::setFineQualityLevel(int quality, JPEG_SUBSAMP subsampling)
+void TightEncoder::setFineQualityLevel(int quality, int subsampling)
 {
-  if (quality >= 1 && quality <= 100) {
-    jpegQuality = quality;
-  }
-  if (subsampling >= SUBSAMP_NONE && subsampling <= SUBSAMP_GRAY) {
-    jpegSubsampling = subsampling;
-  }
+  jpegQuality = quality;
+  jpegSubsampling = subsampling;
 }
 
 bool TightEncoder::checkSolidTile(Rect& r, rdr::U32* colorPtr,
@@ -345,7 +337,7 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
       sr.setXYWH(dx, dy, dw, dh);
       if (checkSolidTile(sr, &colorValue, false)) {
 
-         if (jpegSubsampling == SUBSAMP_GRAY && jpegQuality != -1) {
+         if (jpegSubsampling == subsampleGray && jpegQuality != -1) {
            Colour rgb;
            serverpf.rgbFromPixel(colorValue, NULL, &rgb);
            rdr::U32 lum = ((257 * rgb.r) + (504 * rgb.g) + (98 * rgb.b)

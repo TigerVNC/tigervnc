@@ -41,7 +41,11 @@
 
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Return_Button.H>
+#include <FL/Fl_Round_Button.H>
+#include <FL/Fl_Int_Input.H>
+#include <FL/Fl_Choice.H>
 
 using namespace std;
 using namespace rdr;

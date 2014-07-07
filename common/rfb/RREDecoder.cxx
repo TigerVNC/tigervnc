@@ -34,11 +34,6 @@ using namespace rfb;
 #include <rfb/rreDecode.h>
 #undef BPP
 
-Decoder* RREDecoder::create(CMsgReader* reader)
-{
-  return new RREDecoder(reader);
-}
-
 RREDecoder::RREDecoder(CMsgReader* reader_) : reader(reader_)
 {
 }

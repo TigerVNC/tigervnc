@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <string.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
+#include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/util.h>
 
@@ -37,11 +38,7 @@ PixelFormat::PixelFormat(int b, int d, bool e, bool t,
     redMax(rm), greenMax(gm), blueMax(bm),
     redShift(rs), greenShift(gs), blueShift(bs)
 {
-  assert((bpp == 8) || (bpp == 16) || (bpp == 32));
-  assert(depth <= bpp);
-  assert((redMax & (redMax + 1)) == 0);
-  assert((greenMax & (greenMax + 1)) == 0);
-  assert((blueMax & (blueMax + 1)) == 0);
+  assert(isSane());
 
   updateState();
 }
@@ -81,6 +78,9 @@ void PixelFormat::read(rdr::InStream* is)
   greenShift = is->readU8();
   blueShift = is->readU8();
   is->skip(3);
+
+  if (!isSane())
+    throw Exception("invalid pixel format");
 
   updateState();
 }
@@ -132,160 +132,58 @@ bool PixelFormat::isLittleEndian(void) const
 }
 
 
-Pixel PixelFormat::pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue,
-                                ColourMap* cm) const
-{
-  if (trueColour) {
-    rdr::U32 r = ((rdr::U32)red   * redMax   + 32767) / 65535;
-    rdr::U32 g = ((rdr::U32)green * greenMax + 32767) / 65535;
-    rdr::U32 b = ((rdr::U32)blue  * blueMax  + 32767) / 65535;
-
-    return (r << redShift) | (g << greenShift) | (b << blueShift);
-  } else if (cm) {
-    // Try to find the closest pixel by Cartesian distance
-    int colours = 1 << depth;
-    int diff = 256 * 256 * 4;
-    int col = 0;
-    for (int i=0; i<colours; i++) {
-      int r, g, b;
-      cm->lookup(i, &r, &g, &b);
-      int rd = (r-red) >> 8;
-      int gd = (g-green) >> 8;
-      int bd = (b-blue) >> 8;
-      int d = rd*rd + gd*gd + bd*bd;
-      if (d < diff) {
-        col = i;
-        diff = d;
-      }
-    }
-    return col;
-  }
-  // XXX just return 0 for colour map?
-  return 0;
-}
-
-
-Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue,
-                                ColourMap* cm) const
-{
-  if (trueColour) {
-    rdr::U32 r = ((rdr::U32)red   * redMax   + 127) / 255;
-    rdr::U32 g = ((rdr::U32)green * greenMax + 127) / 255;
-    rdr::U32 b = ((rdr::U32)blue  * blueMax  + 127) / 255;
-
-    return (r << redShift) | (g << greenShift) | (b << blueShift);
-  }
-
-  return pixelFromRGB((rdr::U16)(red << 8), (rdr::U16)(green << 8),
-      (rdr::U16)(blue << 8), cm);
-}
-
-
 void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
                                 int pixels, ColourMap* cm) const
 {
+  bufferFromRGB(dst, src, pixels, pixels, 1, cm);
+}
+
+void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
+                                int w, int stride, int h, ColourMap* cm) const
+{
   if (is888()) {
     // Optimised common case
-    rdr::U8 *r, *g, *b;
+    rdr::U8 *r, *g, *b, *x;
 
     if (bigEndian) {
       r = dst + (24 - redShift)/8;
       g = dst + (24 - greenShift)/8;
       b = dst + (24 - blueShift)/8;
+      x = dst + (24 - (48 - redShift - greenShift - blueShift))/8;
     } else {
       r = dst + redShift/8;
       g = dst + greenShift/8;
       b = dst + blueShift/8;
+      x = dst + (48 - redShift - greenShift - blueShift)/8;
     }
 
-    while (pixels--) {
-      *r = *(src++);
-      *g = *(src++);
-      *b = *(src++);
-      r += 4;
-      g += 4;
-      b += 4;
-    }
-  } else {
-    // Generic code
-    Pixel p;
-    rdr::U8 r, g, b;
-
-    while (pixels--) {
-      r = *(src++);
-      g = *(src++);
-      b = *(src++);
-
-      p = pixelFromRGB(r, g, b, cm);
-
-      bufferFromPixel(dst, p);
-      dst += bpp/8;
-    }
-  }
-}
-
-#define trueColorBufferFromRGB(BPP) {  \
-  rdr::U8 r, g, b;  \
-  int dstPad = pitch - w * BPP / 8;  \
-  while (h > 0) {  \
-    rdr::U8 *dstEndOfRow = (rdr::U8 *)dst + w * BPP / 8;  \
-    while (dst < dstEndOfRow) {  \
-      r = *(src++);  \
-      g = *(src++);  \
-      b = *(src++);  \
-      *(rdr::U##BPP *)dst = (((r * redMax + 127) / 255) << redShift)  \
-                          | (((g * greenMax + 127) / 255) << greenShift)  \
-                          | (((b * blueMax + 127) / 255) << blueShift);  \
-      dst += BPP / 8;  \
-    }  \
-    dst += dstPad;  \
-    h--;  \
-  }  \
-}
-
-void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
-                                int w, int pitch, int h, ColourMap* cm) const
-{
-  if (is888()) {
-    // Optimised common case
-    int rindex, gindex, bindex;
-
-    if (bigEndian) {
-      rindex = (24 - redShift)/8;
-      gindex = (24 - greenShift)/8;
-      bindex = (24 - blueShift)/8;
-    } else {
-      rindex = redShift/8;
-      gindex = greenShift/8;
-      bindex = blueShift/8;
-    }
-
-    int dstPad = pitch - w * 4;
-    while (h > 0) {
-      rdr::U8 *dstEndOfRow = (rdr::U8 *)dst + w * 4;
-      while (dst < dstEndOfRow) {
-        dst[rindex] = *(src++);
-        dst[gindex] = *(src++);
-        dst[bindex] = *(src++);
-        dst += 4;
+    int dstPad = (stride - w) * 4;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        *r = *(src++);
+        *g = *(src++);
+        *b = *(src++);
+        *x = 0;
+        r += 4;
+        g += 4;
+        b += 4;
+        x += 4;
       }
-      dst += dstPad;
-      h--;
+      r += dstPad;
+      g += dstPad;
+      b += dstPad;
+      x += dstPad;
     }
-  } else if (!cm && bpp == 16) {
-    trueColorBufferFromRGB(16);
-  } else if (!cm && bpp == 8) {
-    trueColorBufferFromRGB(8);
   } else {
     // Generic code
-    Pixel p;
-    rdr::U8 r, g, b;
-    int pixelSize = bpp/8;
+    int dstPad = (stride - w) * 4;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        Pixel p;
+        rdr::U8 r, g, b;
 
-    int dstPad = pitch - w * pixelSize;
-    while (h > 0) {
-      rdr::U8 *dstEndOfRow = (rdr::U8 *)dst + w * pixelSize;
-      while (dst < dstEndOfRow) {
         r = *(src++);
         g = *(src++);
         b = *(src++);
@@ -293,10 +191,9 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
         p = pixelFromRGB(r, g, b, cm);
 
         bufferFromPixel(dst, p);
-        dst += pixelSize;
+        dst += bpp/8;
       }
       dst += dstPad;
-      h--;
     }
   }
 }
@@ -314,24 +211,14 @@ void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
 }
 
 
-void PixelFormat::rgbFromBuffer(rdr::U16* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
+void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
 {
-  Pixel p;
-  rdr::U16 r, g, b;
-
-  while (pixels--) {
-    p = pixelFromBuffer(src);
-    src += bpp/8;
-
-    rgbFromPixel(p, cm, &r, &g, &b);
-    *(dst++) = r;
-    *(dst++) = g;
-    *(dst++) = b;
-  }
+  rgbFromBuffer(dst, src, pixels, pixels, 1, cm);
 }
 
 
-void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
+void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
+                                int w, int stride, int h, ColourMap* cm) const
 {
   if (is888()) {
     // Optimised common case
@@ -347,81 +234,40 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, Co
       b = src + blueShift/8;
     }
 
-    while (pixels--) {
-      *(dst++) = *r;
-      *(dst++) = *g;
-      *(dst++) = *b;
-      r += 4;
-      g += 4;
-      b += 4;
-    }
-  } else {
-    // Generic code
-    Pixel p;
-    rdr::U8 r, g, b;
-
-    while (pixels--) {
-      p = pixelFromBuffer(src);
-      src += bpp/8;
-
-      rgbFromPixel(p, cm, &r, &g, &b);
-      *(dst++) = r;
-      *(dst++) = g;
-      *(dst++) = b;
-    }
-  }
-}
-
-
-void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
-                                int w, int pitch, int h, ColourMap* cm) const
-{
-  if (is888()) {
-    // Optimised common case
-    int rindex, gindex, bindex;
-
-    if (bigEndian) {
-      rindex = (24 - redShift)/8;
-      gindex = (24 - greenShift)/8;
-      bindex = (24 - blueShift)/8;
-    } else {
-      rindex = redShift/8;
-      gindex = greenShift/8;
-      bindex = blueShift/8;
-    }
-
-    int srcPad = pitch - w * 4;
-    while (h > 0) {
-      rdr::U8 *srcEndOfRow = (rdr::U8 *)src + w * 4;
-      while (src < srcEndOfRow) {
-        *(dst++) = src[rindex];
-        *(dst++) = src[gindex];
-        *(dst++) = src[bindex];
-        src += 4;
+    int srcPad = (stride - w) * 4;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        *(dst++) = *r;
+        *(dst++) = *g;
+        *(dst++) = *b;
+        r += 4;
+        g += 4;
+        b += 4;
       }
-      src += srcPad;
-      h--;      
+      r += srcPad;
+      g += srcPad;
+      b += srcPad;
     }
   } else {
     // Generic code
-    Pixel p;
-    rdr::U8 r, g, b;
-    int pixelSize = bpp/8;
+    int srcPad = (stride - w) * bpp/8;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        Pixel p;
+        rdr::U8 r, g, b;
 
-    int srcPad = pitch - w * pixelSize;
-    while (h > 0) {
-      rdr::U8 *srcEndOfRow = (rdr::U8 *)src + w * pixelSize;
-      while (src < srcEndOfRow) {
         p = pixelFromBuffer(src);
 
         rgbFromPixel(p, cm, &r, &g, &b);
+
         *(dst++) = r;
         *(dst++) = g;
         *(dst++) = b;
-        src += pixelSize;
+        src += bpp/8;
       }
       src += srcPad;
-      h--;
     }
   }
 }
@@ -531,6 +377,8 @@ bool PixelFormat::parse(const char* str)
     return false;
   }
 
+  assert(isSane());
+
   updateState();
 
   return true;
@@ -565,19 +413,72 @@ static int bits(rdr::U16 value)
 
 void PixelFormat::updateState(void)
 {
-  int redBits, greenBits, blueBits;
   int endianTest = 1;
 
   redBits = bits(redMax);
   greenBits = bits(greenMax);
   blueBits = bits(blueMax);
 
-  redConvShift = 16 - redBits;
-  greenConvShift = 16 - greenBits;
-  blueConvShift = 16 - blueBits;
+  maxBits = redBits;
+  if (greenBits > maxBits)
+    maxBits = greenBits;
+  if (blueBits > maxBits)
+    maxBits = blueBits;
+
+  minBits = redBits;
+  if (greenBits < minBits)
+    minBits = greenBits;
+  if (blueBits < minBits)
+    minBits = blueBits;
 
   if (((*(char*)&endianTest) == 0) != bigEndian)
     endianMismatch = true;
   else
     endianMismatch = false;
+}
+
+bool PixelFormat::isSane(void)
+{
+  int totalBits;
+
+  if ((bpp != 8) && (bpp != 16) && (bpp != 32))
+    return false;
+  if (depth > bpp)
+    return false;
+
+  if (!trueColour && (depth != 8))
+    return false;
+
+  if (trueColour) {
+    if ((redMax & (redMax + 1)) != 0)
+      return false;
+    if ((greenMax & (greenMax + 1)) != 0)
+      return false;
+    if ((blueMax & (blueMax + 1)) != 0)
+      return false;
+
+    /*
+     * We don't allow individual channels > 8 bits in order to keep our
+     * conversions simple.
+     */
+    if (redMax >= (1 << 8))
+      return false;
+    if (greenMax >= (1 << 8))
+      return false;
+    if (blueMax >= (1 << 8))
+      return false;
+
+    totalBits = bits(redMax) + bits(greenMax) + bits(blueMax);
+    if (totalBits > bpp)
+      return false;
+
+    if (((redMax << redShift) & (greenMax << greenShift)) != 0)
+      return false;
+    if (((redMax << redShift) & (blueMax << blueShift)) != 0)
+      return false;
+    if (((greenMax << greenShift) & (blueMax << blueShift)) != 0)
+      return false;
+  }
+
+  return true;
 }

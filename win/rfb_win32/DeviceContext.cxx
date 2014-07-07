@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +34,11 @@ PixelFormat DeviceContext::getPF() const {
 }
 
 PixelFormat DeviceContext::getPF(HDC dc) {
-  PixelFormat format;
+  bool trueColour, bigEndian;
+  int bpp, depth;
+  int redMax, greenMax, blueMax;
+  int redShift, greenShift, blueShift;
+
   CompatibleBitmap bitmap(dc, 1, 1);
 
   // -=- Get the bitmap format information
@@ -49,11 +54,11 @@ PixelFormat DeviceContext::getPF(HDC dc) {
   }
 
   // Set the initial format information
-  format.trueColour = bi.bmiHeader.biBitCount > 8;
-  format.bigEndian = 0;
-  format.bpp = bi.bmiHeader.biBitCount;
+  trueColour = bi.bmiHeader.biBitCount > 8;
+  bigEndian = 0;
+  bpp = bi.bmiHeader.biBitCount;
 
-  if (format.trueColour) {
+  if (trueColour) {
     DWORD rMask=0, gMask=0, bMask=0;
 
     // Which true colour format is the DIB section using?
@@ -92,44 +97,42 @@ PixelFormat DeviceContext::getPF(HDC dc) {
     };
 
     // Convert the data we just retrieved
-    initMaxAndShift(rMask, &format.redMax, &format.redShift);
-    initMaxAndShift(gMask, &format.greenMax, &format.greenShift);
-    initMaxAndShift(bMask, &format.blueMax, &format.blueShift);
+    initMaxAndShift(rMask, &redMax, &redShift);
+    initMaxAndShift(gMask, &greenMax, &greenShift);
+    initMaxAndShift(bMask, &blueMax, &blueShift);
 
     // Calculate the depth from the colour shifts
-    format.depth = 0;
+    depth = 0;
     Pixel bits = rMask | gMask | bMask;
     while (bits) {
-      format.depth++;
+      depth++;
       bits = bits >> 1;
     }
 
     // Check that the depth & bpp are valid
-    if (format.depth > format.bpp) {
+    if (depth > bpp) {
       vlog.error("depth exceeds bits per pixel!");
-      format.bpp = format.depth;
+      bpp = depth;
     }
 
     // Correct the bits-per-pixel to something we're happy with
-    if (format.bpp <= 16)
-      format.bpp = 16;
-    else if (format.bpp <= 32)
-      format.bpp = 32;
+    if (bpp <= 16)
+      bpp = 16;
+    else if (bpp <= 32)
+      bpp = 32;
   } else {
     // Palettised format - depth reflects number of colours,
     // but bits-per-pixel is ALWAYS 8
-    format.depth = format.bpp;
-    if (format.bpp < 8)
-      format.bpp = 8;
-    vlog.info("%d-colour palettised", 1<<format.depth);
+    depth = bpp;
+    if (bpp < 8)
+      bpp = 8;
+    vlog.info("%d-colour palettised", 1<<depth);
   }
 
 
-  // Use 10 arguments constructor to trigger PixelFormat::updateState()
-  return PixelFormat(format.bpp, format.depth,
-		     format.bigEndian, format.trueColour,
-		     format.redMax, format.greenMax, format.blueMax,
-		     format.redShift, format.greenShift, format.blueShift);
+  return PixelFormat(bpp, depth, bigEndian, trueColour,
+		                 redMax, greenMax, blueMax,
+		                 redShift, greenShift, blueShift);
 }
 
 Rect DeviceContext::getClipBox() const {
