@@ -105,6 +105,12 @@ namespace rfb {
     int redBits, greenBits, blueBits;
     int maxBits, minBits;
     bool endianMismatch;
+
+    static rdr::U8 upconvTable[256*8];
+
+    class Init;
+    friend class Init;
+    static Init _init;
   };
 }
 

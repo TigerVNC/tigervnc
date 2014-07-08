@@ -102,55 +102,33 @@ inline Pixel PixelFormat::pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue)
 
 inline void PixelFormat::rgbFromPixel(Pixel p, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const
 {
-  int mb, rb, gb, bb;
+  rdr::U8 _r, _g, _b;
 
-  /* Bit replication is much cheaper than multiplication and division */
+  _r = p >> redShift;
+  _g = p >> greenShift;
+  _b = p >> blueShift;
 
-  mb = minBits;
-  rb = redBits;
-  gb = greenBits;
-  bb = blueBits;
+  _r = upconvTable[(redBits-1)*256 + _r];
+  _g = upconvTable[(greenBits-1)*256 + _g];
+  _b = upconvTable[(blueBits-1)*256 + _b];
 
-  *r = (p >> redShift) << (16 - rb);
-  *g = (p >> greenShift) << (16 - gb);
-  *b = (p >> blueShift) << (16 - bb);
-
-  while (mb < 16) {
-    *r = *r | (*r >> rb);
-    *g = *g | (*g >> gb);
-    *b = *b | (*b >> bb);
-    mb <<= 1;
-    rb <<= 1;
-    gb <<= 1;
-    bb <<= 1;
-  }
+  *r = _r << 8 | _r;
+  *g = _g << 8 | _g;
+  *b = _b << 8 | _b;
 }
 
 
 inline void PixelFormat::rgbFromPixel(Pixel p, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const
 {
-  int mb, rb, gb, bb;
+  rdr::U8 _r, _g, _b;
 
-  /* Bit replication is much cheaper than multiplication and division */
+  _r = p >> redShift;
+  _g = p >> greenShift;
+  _b = p >> blueShift;
 
-  mb = minBits;
-  rb = redBits;
-  gb = greenBits;
-  bb = blueBits;
-
-  *r = (p >> redShift) << (8 - rb);
-  *g = (p >> greenShift) << (8 - gb);
-  *b = (p >> blueShift) << (8 - bb);
-
-  while (mb < 8) {
-    *r = *r | (*r >> rb);
-    *g = *g | (*g >> gb);
-    *b = *b | (*b >> bb);
-    mb <<= 1;
-    rb <<= 1;
-    gb <<= 1;
-    bb <<= 1;
-  }
+  *r = upconvTable[(redBits-1)*256 + _r];
+  *g = upconvTable[(greenBits-1)*256 + _g];
+  *b = upconvTable[(blueBits-1)*256 + _b];
 }
 
 
