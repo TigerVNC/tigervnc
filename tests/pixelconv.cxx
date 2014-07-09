@@ -153,6 +153,8 @@ int main(int argc, char **argv)
 
   /* rgb888 targets */
 
+  printf("\n");
+
   dstpf.parse("rgb888");
 
   srcpf.parse("rgb888");
@@ -169,6 +171,8 @@ int main(int argc, char **argv)
 
   /* rgb565 targets */
 
+  printf("\n");
+
   dstpf.parse("rgb565");
 
   srcpf.parse("rgb888");
@@ -182,6 +186,8 @@ int main(int argc, char **argv)
 
   /* rgb232 targets */
 
+  printf("\n");
+
   dstpf.parse("rgb232");
 
   srcpf.parse("rgb888");
@@ -194,6 +200,8 @@ int main(int argc, char **argv)
   doTests(dstpf, srcpf);
 
   /* rgb565 with endian conversion (both ways) */
+
+  printf("\n");
 
   dstpf = rfb::PixelFormat(32, 24, false, true, 255, 255, 255, 0, 8, 16);
   srcpf = rfb::PixelFormat(32, 24, true, true, 255, 255, 255, 0, 8, 16);
