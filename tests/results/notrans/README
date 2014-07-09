@@ -1,0 +1,28 @@
+This directory contains the test results in preparation for the removal
+of the PixelTransformer class.
+
+Tests were performed on Linux with these CPUs:
+
+ - Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz
+ - ARM i.MX6 DualLite @ 1 GHz
+
+The tests show that the new bufferFromBuffer() has similar performance
+as PixelTransformer in most cases. It gets beaten in two cases:
+
+ - Input format is 16 BPP and PixelTransformer is in the
+   non-economical mode (the default mode).
+
+ - Input format is 8 BPP, mode irrelevant.
+
+PixelTransformer is about twice as fast in both these cases (more if
+converting between two low colour formats).
+
+Although this is significant, it is in cases that are already difficult
+to deal with performance wise, and exceedingly rare with modern
+hardware. As such it is difficult to motivate the extra complexity that
+PixelTransformer requires.
+
+If it turns out that these cases are significant, than we can move
+PixelTransformer's massive lookup tables into a shared cache in
+PixelFormat. Implementation complexity would be similar, but at least
+we would have a friendly API.
