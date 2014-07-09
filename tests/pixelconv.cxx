@@ -180,6 +180,19 @@ int main(int argc, char **argv)
   srcpf.parse("rgb232");
   doTests(dstpf, srcpf);
 
+  /* rgb232 targets */
+
+  dstpf.parse("rgb232");
+
+  srcpf.parse("rgb888");
+  doTests(dstpf, srcpf);
+
+  srcpf.parse("rgb565");
+  doTests(dstpf, srcpf);
+
+  srcpf.parse("bgr232");
+  doTests(dstpf, srcpf);
+
   /* rgb565 with endian conversion (both ways) */
 
   dstpf = rfb::PixelFormat(32, 24, false, true, 255, 255, 255, 0, 8, 16);
