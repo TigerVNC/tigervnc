@@ -16,10 +16,11 @@
  * USA.
  */
 #include <rdr/OutStream.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
+#include <rfb/PixelFormat.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/RREEncoder.h>
 
 using namespace rfb;
@@ -42,12 +43,12 @@ RREEncoder::~RREEncoder()
 {
 }
 
-void RREEncoder::writeRect(const Rect& r, TransImageGetter* ig)
+void RREEncoder::writeRect(const Rect& r, PixelBuffer* pb)
 {
   int w = r.width();
   int h = r.height();
   rdr::U8* imageBuf = conn->writer()->getImageBuf(w*h);
-  ig->getImage(imageBuf, r);
+  pb->getImage(conn->cp.pf(), imageBuf, r);
 
   mos.clear();
 
@@ -59,7 +60,7 @@ void RREEncoder::writeRect(const Rect& r, TransImageGetter* ig)
   }
   
   if (nSubrects < 0) {
-    RawEncoder::writeRect(r, ig);
+    RawEncoder::writeRect(r, pb);
     return;
   }
 

@@ -27,7 +27,6 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
-#include <rfb/PixelTransformer.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
@@ -84,7 +83,7 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_RESIZE,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
-  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
+  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
     lastPointerPos(0, 0), lastButtonMask(0),
     cursor(NULL), menuCtrlKey(false), menuAltKey(false)
 {
@@ -100,8 +99,6 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 
   frameBuffer = createFramebuffer(w, h);
   assert(frameBuffer);
-
-  setServerPF(serverPF);
 
   contextMenu = new Fl_Menu_Button(0, 0, 0, 0);
   // Setting box type to FL_NO_BOX prevents it from trying to draw the
@@ -130,7 +127,6 @@ Viewport::~Viewport()
 {
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
-  Fl::remove_timeout(handleUpdateTimeout, this);
   Fl::remove_timeout(handlePointerTimeout, this);
 
 #ifdef HAVE_FLTK_CLIPBOARD
@@ -140,9 +136,6 @@ Viewport::~Viewport()
   OptionsDialog::removeCallback(handleOptions);
 
   delete frameBuffer;
-
-  if (pixelTrans)
-    delete pixelTrans;
 
   if (cursor) {
     if (!cursor->alloc_array)
@@ -155,40 +148,6 @@ Viewport::~Viewport()
 }
 
 
-void Viewport::setServerPF(const rfb::PixelFormat& pf)
-{
-  if (pixelTrans)
-    delete pixelTrans;
-  pixelTrans = NULL;
-
-  if (pf.equal(getPreferredPF()))
-    return;
-
-  pixelTrans = new PixelTransformer();
-
-  // FIXME: This is an ugly (temporary) hack to get around a corner
-  //        case during startup. The conversion routines cannot handle
-  //        non-native source formats, and we can sometimes get that
-  //        as the initial format. We will switch to a better format
-  //        before getting any updates, but we need something for now.
-  //        Our old client used something completely bogus and just
-  //        hoped nothing would ever go wrong. We try to at least match
-  //        the pixel size so that we don't get any memory access issues
-  //        should a stray update appear.
-  static rdr::U32 endianTest = 1;
-  static bool nativeBigEndian = *(rdr::U8*)(&endianTest) != 1;
-  if ((pf.bpp > 8) && (pf.bigEndian != nativeBigEndian)) {
-    PixelFormat fake_pf(pf.bpp, pf.depth, nativeBigEndian, pf.trueColour,
-                        pf.redMax, pf.greenMax, pf.blueMax,
-                        pf.redShift, pf.greenShift, pf.blueShift);
-    pixelTrans->init(fake_pf, getPreferredPF());
-    return;
-  }
-
-  pixelTrans->init(pf, getPreferredPF());
-}
-
-
 const rfb::PixelFormat &Viewport::getPreferredPF()
 {
   return frameBuffer->getPF();
@@ -197,64 +156,20 @@ const rfb::PixelFormat &Viewport::getPreferredPF()
 
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
+// FIXME: Make sure this gets called on slow updates
 
 void Viewport::updateWindow()
 {
   Rect r;
 
-  Fl::remove_timeout(handleUpdateTimeout, this);
-
-  r = damage.get_bounding_rect();
-  Fl_Widget::damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
-
-  damage.clear();
+  r = frameBuffer->getDamage();
+  damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
 }
 
-void Viewport::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
-  if (pixelTrans) {
-    rfb::Pixel pix2;
-    pixelTrans->translatePixels(&pix, &pix2, 1);
-    pix = pix2;
-  }
-
-  frameBuffer->fillRect(r, pix);
-  damageRect(r);
+rfb::ModifiablePixelBuffer* Viewport::getFramebuffer(void)
+{
+  return frameBuffer;
 }
-
-void Viewport::imageRect(const rfb::Rect& r, void* pixels) {
-  if (pixelTrans) {
-    rdr::U8* buffer;
-    int stride;
-    buffer = frameBuffer->getBufferRW(r, &stride);
-    pixelTrans->translateRect(pixels, r.width(),
-                              rfb::Rect(0, 0, r.width(), r.height()),
-                              buffer, stride, rfb::Point(0, 0));
-    frameBuffer->commitBufferRW(r);
-  } else {
-    frameBuffer->imageRect(r, pixels);
-  }
-  damageRect(r);
-}
-
-void Viewport::copyRect(const rfb::Rect& r, int srcX, int srcY) {
-  frameBuffer->copyRect(r, rfb::Point(r.tl.x-srcX, r.tl.y-srcY));
-  damageRect(r);
-}
-
-rdr::U8* Viewport::getBufferRW(const rfb::Rect& r, int* stride) {
-  return frameBuffer->getBufferRW(r, stride);
-}
-
-void Viewport::commitBufferRW(const rfb::Rect& r) {
-  frameBuffer->commitBufferRW(r);
-  damageRect(r);
-}
-
-void Viewport::damageRect(const rfb::Rect& r) {
-  damage.assign_union(rfb::Region(r));
-  if (!Fl::has_timeout(handleUpdateTimeout, this))
-    Fl::add_timeout(0.500, handleUpdateTimeout, this);
-};
 
 #ifdef HAVE_FLTK_CURSOR
 static const char * dotcursor_xpm[] = {
@@ -303,10 +218,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 
       const PixelFormat *pf;
       
-      if (pixelTrans)
-        pf = &pixelTrans->getInPF();
-      else
-        pf = &frameBuffer->getPF();
+      pf = &cc->cp.pf();
 
       i = (U8*)data;
       o = buffer;
@@ -527,16 +439,6 @@ PlatformPixelBuffer* Viewport::createFramebuffer(int w, int h)
   }
 
   return fb;
-}
-
-
-void Viewport::handleUpdateTimeout(void *data)
-{
-  Viewport *self = (Viewport *)data;
-
-  assert(self);
-
-  self->updateWindow();
 }
 
 

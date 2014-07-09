@@ -27,7 +27,7 @@ namespace rfb {
   public:
     ZRLEDecoder(CConnection* conn);
     virtual ~ZRLEDecoder();
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
+    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
   private:
     rdr::ZlibInStream zis;
   };

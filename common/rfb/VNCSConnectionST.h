@@ -30,7 +30,6 @@
 #include <set>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/Timer.h>
 
@@ -193,7 +192,6 @@ namespace rfb {
 
     VNCServerST* server;
     SimpleUpdateTracker updates;
-    TransImageGetter image_getter;
     Region requested;
     bool drawRenderedCursor, removeRenderedCursor;
     Rect renderedCursorRect;

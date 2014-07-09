@@ -26,7 +26,7 @@ namespace rfb {
   public:
     HextileEncoder(SConnection* conn);
     virtual ~HextileEncoder();
-    virtual void writeRect(const Rect& r, TransImageGetter* ig);
+    virtual void writeRect(const Rect& r, PixelBuffer* pb);
   };
 }
 #endif

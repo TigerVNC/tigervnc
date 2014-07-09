@@ -84,7 +84,6 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     name(strDup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
-    useEconomicTranslate(false),
     lastConnectionTime(0), disableclients(false),
     deferTimer(this), deferPending(false)
 {

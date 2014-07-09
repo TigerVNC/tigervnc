@@ -17,7 +17,7 @@
  */
 #include <rfb/CMsgReader.h>
 #include <rfb/CConnection.h>
-#include <rfb/CMsgHandler.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/RREDecoder.h>
 
 using namespace rfb;
@@ -40,12 +40,13 @@ RREDecoder::~RREDecoder()
 {
 }
 
-void RREDecoder::readRect(const Rect& r, CMsgHandler* handler)
+void RREDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
 {
   rdr::InStream* is = conn->getInStream();
-  switch (conn->cp.pf().bpp) {
-  case 8:  rreDecode8 (r, is, handler); break;
-  case 16: rreDecode16(r, is, handler); break;
-  case 32: rreDecode32(r, is, handler); break;
+  const PixelFormat& pf = conn->cp.pf();
+  switch (pf.bpp) {
+  case 8:  rreDecode8 (r, is, pf, pb); break;
+  case 16: rreDecode16(r, is, pf, pb); break;
+  case 32: rreDecode32(r, is, pf, pb); break;
   }
 }

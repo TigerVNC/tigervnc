@@ -24,3 +24,19 @@ PlatformPixelBuffer::PlatformPixelBuffer(const rfb::PixelFormat& pf,
   FullFramePixelBuffer(pf, width, height, data, stride)
 {
 }
+
+void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
+{
+  FullFramePixelBuffer::commitBufferRW(r);
+  damage.assign_union(rfb::Region(r));
+}
+
+rfb::Rect PlatformPixelBuffer::getDamage(void)
+{
+  rfb::Rect r;
+
+  r = damage.get_bounding_rect();
+  damage.clear();
+
+  return r;
+}

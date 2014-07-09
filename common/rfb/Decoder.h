@@ -23,13 +23,19 @@
 
 namespace rfb {
   class CConnection;
-  class CMsgHandler;
+  class ModifiablePixelBuffer;
 
   class Decoder {
   public:
     Decoder(CConnection* conn);
     virtual ~Decoder();
-    virtual void readRect(const Rect& r, CMsgHandler* handler)=0;
+
+    // readRect() is the main interface that decodes the given rectangle
+    // with data from the CConnection, given at decoder creation, onto
+    // the ModifiablePixelBuffer. The PixelFormat of the PixelBuffer might
+    // not match the ConnParams and it is up to the decoder to do
+    // any necessary conversion.
+    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb)=0;
 
     static bool supported(int encoding);
     static Decoder* createDecoder(int encoding, CConnection* conn);

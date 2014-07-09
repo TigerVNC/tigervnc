@@ -193,12 +193,6 @@ DesktopWindow::~DesktopWindow()
 }
 
 
-void DesktopWindow::setServerPF(const rfb::PixelFormat& pf)
-{
-  viewport->setServerPF(pf);
-}
-
-
 const rfb::PixelFormat &DesktopWindow::getPreferredPF()
 {
   return viewport->getPreferredPF();
@@ -216,24 +210,9 @@ void DesktopWindow::setName(const char *name)
 }
 
 
-void DesktopWindow::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
-  viewport->fillRect(r, pix);
-}
-
-void DesktopWindow::imageRect(const rfb::Rect& r, void* pixels) {
-  viewport->imageRect(r, pixels);
-}
-
-void DesktopWindow::copyRect(const rfb::Rect& r, int srcX, int srcY) {
-  viewport->copyRect(r, srcX, srcY);
-}
-
-rdr::U8* DesktopWindow::getBufferRW(const rfb::Rect& r, int* stride) {
-  return viewport->getBufferRW(r, stride);
-}
-
-void DesktopWindow::commitBufferRW(const rfb::Rect& r) {
-  viewport->commitBufferRW(r);
+rfb::ModifiablePixelBuffer* DesktopWindow::getFramebuffer(void)
+{
+  return viewport->getFramebuffer();
 }
 
 

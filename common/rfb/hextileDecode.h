@@ -38,7 +38,7 @@ namespace rfb {
 #define HEXTILE_DECODE CONCAT2E(hextileDecode,BPP)
 
 void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf,
-                     CMsgHandler* handler)
+                     const PixelFormat& pf, ModifiablePixelBuffer* pb)
 {
   Rect t;
   PIXEL_T bg = 0;
@@ -56,7 +56,7 @@ void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf,
 
       if (tileType & hextileRaw) {
 	is->readBytes(buf, t.area() * (BPP/8));
-	handler->imageRect(t, buf);
+	pb->imageRect(pf, t, buf);
 	continue;
       }
 
@@ -94,7 +94,7 @@ void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf,
           }
         }
       }
-      handler->imageRect(t, buf);
+      pb->imageRect(pf, t, buf);
     }
   }
 }

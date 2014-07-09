@@ -17,7 +17,6 @@
  */
 #include <rdr/OutStream.h>
 #include <rfb/Exception.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
@@ -69,22 +68,22 @@ ZRLEEncoder::~ZRLEEncoder()
 {
 }
 
-void ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig)
+void ZRLEEncoder::writeRect(const Rect& r, PixelBuffer* pb)
 {
+  const PixelFormat& pf = conn->cp.pf();
+
   rdr::U8* imageBuf = conn->writer()->getImageBuf(64 * 64 * 4 + 4);
   mos.clear();
 
-  switch (conn->cp.pf().bpp) {
+  switch (pf.bpp) {
   case 8:
-    zrleEncode8(r, &mos, &zos, imageBuf, ig);
+    zrleEncode8(r, &mos, &zos, imageBuf, pf, pb);
     break;
   case 16:
-    zrleEncode16(r, &mos, &zos, imageBuf, ig);
+    zrleEncode16(r, &mos, &zos, imageBuf, pf, pb);
     break;
   case 32:
     {
-      const PixelFormat& pf = conn->cp.pf();
-
       Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
       bool fitsInLS3Bytes = maxPixel < (1<<24);
       bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
@@ -92,16 +91,16 @@ void ZRLEEncoder::writeRect(const Rect& r, TransImageGetter* ig)
       if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
           (fitsInMS3Bytes && pf.isBigEndian()))
       {
-        zrleEncode24A(r, &mos, &zos, imageBuf, ig);
+        zrleEncode24A(r, &mos, &zos, imageBuf, pf, pb);
       }
       else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
                (fitsInMS3Bytes && pf.isLittleEndian()))
       {
-        zrleEncode24B(r, &mos, &zos, imageBuf, ig);
+        zrleEncode24B(r, &mos, &zos, imageBuf, pf, pb);
       }
       else
       {
-        zrleEncode32(r, &mos, &zos, imageBuf, ig);
+        zrleEncode32(r, &mos, &zos, imageBuf, pf, pb);
       }
       break;
     }

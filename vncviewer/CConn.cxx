@@ -263,7 +263,6 @@ void CConn::serverInit()
   // This initial update request is a bit of a corner case, so we need
   // to help out setting the correct format here.
   assert(pendingPFChange);
-  desktop->setServerPF(pendingPF);
   cp.setPF(pendingPF);
   pendingPFChange = false;
 }
@@ -330,7 +329,6 @@ void CConn::framebufferUpdateEnd()
   // A format change has been scheduled and we are now past the update
   // with the old format. Time to active the new one.
   if (pendingPFChange) {
-    desktop->setServerPF(pendingPF);
     cp.setPF(pendingPF);
     pendingPFChange = false;
   }
@@ -405,24 +403,9 @@ void CConn::dataRect(const Rect& r, int encoding)
       throw Exception("Unknown rect encoding");
     }
   }
-  decoders[encoding]->readRect(r, this);
+  decoders[encoding]->readRect(r, desktop->getFramebuffer());
 
   sock->inStream().stopTiming();
-}
-
-void CConn::fillRect(const rfb::Rect& r, rfb::Pixel p)
-{
-  desktop->fillRect(r,p);
-}
-
-void CConn::imageRect(const rfb::Rect& r, void* p)
-{
-  desktop->imageRect(r,p);
-}
-
-void CConn::copyRect(const rfb::Rect& r, int sx, int sy)
-{
-  desktop->copyRect(r,sx,sy);
 }
 
 void CConn::setCursor(int width, int height, const Point& hotspot,
@@ -461,16 +444,8 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
 
     pf.read(&memStream);
 
-    desktop->setServerPF(pf);
     cp.setPF(pf);
   }
-}
-
-rdr::U8* CConn::getRawBufferRW(const rfb::Rect& r, int* stride) {
-  return desktop->getBufferRW(r, stride);
-}
-void CConn::releaseRawBuffer(const rfb::Rect& r) {
-  desktop->commitBufferRW(r);
 }
 
 

@@ -28,7 +28,7 @@ namespace rfb {
   public:
     ZRLEEncoder(SConnection* conn);
     virtual ~ZRLEEncoder();
-    virtual void writeRect(const Rect& r, TransImageGetter* ig);
+    virtual void writeRect(const Rect& r, PixelBuffer* pb);
   private:
     rdr::ZlibOutStream zos;
     rdr::MemOutStream mos;

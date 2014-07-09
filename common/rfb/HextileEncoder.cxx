@@ -16,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
 #include <rfb/HextileEncoder.h>
+#include <rfb/PixelFormat.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/Configuration.h>
 
 using namespace rfb;
@@ -52,30 +53,31 @@ HextileEncoder::~HextileEncoder()
 {
 }
 
-void HextileEncoder::writeRect(const Rect& r, TransImageGetter* ig)
+void HextileEncoder::writeRect(const Rect& r, PixelBuffer* pb)
 {
   conn->writer()->startRect(r, encodingHextile);
   rdr::OutStream* os = conn->getOutStream();
-  switch (conn->cp.pf().bpp) {
+  const PixelFormat& pf = conn->cp.pf();
+  switch (pf.bpp) {
   case 8:
     if (improvedHextile) {
-      hextileEncodeBetter8(r, os, ig);
+      hextileEncodeBetter8(r, os, pf, pb);
     } else {
-      hextileEncode8(r, os, ig);
+      hextileEncode8(r, os, pf, pb);
     }
     break;
   case 16:
     if (improvedHextile) {
-      hextileEncodeBetter16(r, os, ig);
+      hextileEncodeBetter16(r, os, pf, pb);
     } else {
-      hextileEncode16(r, os, ig);
+      hextileEncode16(r, os, pf, pb);
     }
     break;
   case 32:
     if (improvedHextile) {
-      hextileEncodeBetter32(r, os, ig);
+      hextileEncodeBetter32(r, os, pf, pb);
     } else {
-      hextileEncode32(r, os, ig);
+      hextileEncode32(r, os, pf, pb);
     }
     break;
   }

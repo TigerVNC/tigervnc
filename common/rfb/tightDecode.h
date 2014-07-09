@@ -77,7 +77,7 @@ void TIGHT_DECODE (const Rect& r)
     } else {
       pix = is->READ_PIXEL();
     }
-    handler->fillRect(r, pix);
+    pb->fillRect(serverpf, r, pix);
     return;
   }
 
@@ -153,7 +153,7 @@ void TIGHT_DECODE (const Rect& r)
 
   PIXEL_T *buf;
   int stride = r.width();
-  if (directDecode) buf = (PIXEL_T *)handler->getRawBufferRW(r, &stride);
+  if (directDecode) buf = (PIXEL_T *)pb->getBufferRW(r, &stride);
   else buf = (PIXEL_T *)conn->reader()->getImageBuf(r.area());
 
   if (palSize == 0) {
@@ -225,8 +225,8 @@ void TIGHT_DECODE (const Rect& r)
     }
   }
 
-  if (directDecode) handler->releaseRawBuffer(r);
-  else handler->imageRect(r, buf);
+  if (directDecode) pb->commitBufferRW(r);
+  else pb->imageRect(serverpf, r, buf);
 
   delete [] netbuf;
 
@@ -253,9 +253,9 @@ DECOMPRESS_JPEG_RECT(const Rect& r)
 
   // We always use direct decoding with JPEG images
   int stride;
-  rdr::U8 *buf = handler->getRawBufferRW(r, &stride);
+  rdr::U8 *buf = pb->getBufferRW(r, &stride);
   jd.decompress(netbuf, compressedLen, buf, stride, r, clientpf);
-  handler->releaseRawBuffer(r);
+  pb->commitBufferRW(r);
 
   delete [] netbuf;
 }

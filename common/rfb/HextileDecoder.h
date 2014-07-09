@@ -26,7 +26,7 @@ namespace rfb {
   public:
     HextileDecoder(CConnection* conn);
     virtual ~HextileDecoder();
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
+    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
   };
 }
 #endif

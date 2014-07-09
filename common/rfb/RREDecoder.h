@@ -26,7 +26,7 @@ namespace rfb {
   public:
     RREDecoder(CConnection* conn);
     virtual ~RREDecoder();
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
+    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
   };
 }
 #endif

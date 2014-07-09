@@ -71,8 +71,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     fenceDataLen(0), fenceData(NULL),
     baseRTT(-1), minRTT(-1), seenCongestion(false), pingCounter(0),
     ackedOffset(0), sentOffset(0), congWindow(0), congestionTimer(this),
-    server(server_),
-    updates(false), image_getter(server->useEconomicTranslate),
+    server(server_), updates(false),
     drawRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false),
     updateTimer(this), pointerEventTime(0),
@@ -233,8 +232,6 @@ void VNCSConnectionST::pixelBufferChange()
     // work out what's actually changed.
     updates.clear();
     updates.add_changed(server->pb->getRect());
-    vlog.debug("pixel buffer changed - re-initialising image getter");
-    image_getter.init(server->pb, cp.pf(), writer());
     writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
@@ -404,7 +401,6 @@ void VNCSConnectionST::authSuccess()
   char buffer[256];
   cp.pf().print(buffer, 256);
   vlog.info("Server default pixel format %s", buffer);
-  image_getter.init(server->pb, cp.pf(), 0);
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->pb->getRect());
@@ -478,7 +474,6 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
   char buffer[256];
   pf.print(buffer, 256);
   vlog.info("Client pixel format %s", buffer);
-  image_getter.init(server->pb, pf, writer());
   setCursor();
 }
 
@@ -1036,16 +1031,20 @@ void VNCSConnectionST::writeFramebufferUpdate()
     std::vector<Rect>::const_iterator i;
     int encoding;
 
+    Encoder* encoder;
+    PixelBuffer* pb;
+
     // Make sure the encoder has the latest settings
     encoding = cp.currentEncoding();
 
     if (!encoders[encoding])
       encoders[encoding] = Encoder::createEncoder(encoding, this);
 
-    encoders[encoding]->setCompressLevel(cp.compressLevel);
-    encoders[encoding]->setQualityLevel(cp.qualityLevel);
-    encoders[encoding]->setFineQualityLevel(cp.fineQualityLevel,
-                                            cp.subsampling);
+    encoder = encoders[encoding];
+
+    encoder->setCompressLevel(cp.compressLevel);
+    encoder->setQualityLevel(cp.qualityLevel);
+    encoder->setFineQualityLevel(cp.fineQualityLevel, cp.subsampling);
 
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original VNC4.
@@ -1055,7 +1054,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
     ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++) {
       if (i->width() && i->height()) {
-        int nUpdateRects = encoders[encoding]->getNumRects(*i);
+        int nUpdateRects = encoder->getNumRects(*i);
         if (nUpdateRects == 0 && cp.currentEncoding() == encodingTight) {
           // With Tight encoding and LastRect support, the client does not
           // care about the number of rectangles in the update - it will
@@ -1077,14 +1076,15 @@ void VNCSConnectionST::writeFramebufferUpdate()
       writer()->writeCopyRect(*i, i->tl.x - ui.copy_delta.x,
                               i->tl.y - ui.copy_delta.y);
 
+    pb = server->getPixelBuffer();
+
     ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++)
-      encoders[encoding]->writeRect(*i, &image_getter);
+      encoder->writeRect(*i, pb);
 
     if (drawRenderedCursor) {
-      image_getter.setPixelBuffer(&server->renderedCursor);
-      encoders[encoding]->writeRect(renderedCursorRect, &image_getter);
-      image_getter.setPixelBuffer(server->pb);
+      renderedCursorRect = server->renderedCursor.getEffectiveRect();
+      encoder->writeRect(renderedCursorRect, &server->renderedCursor);
 
       drawRenderedCursor = false;
     }

@@ -66,15 +66,6 @@ namespace rfb {
     virtual void bell() = 0;
     virtual void serverCutText(const char* str, rdr::U32 len) = 0;
 
-    virtual void fillRect(const Rect& r, Pixel pix) = 0;
-    virtual void imageRect(const Rect& r, void* pixels) = 0;
-    virtual void copyRect(const Rect& r, int srcX, int srcY) = 0;
-
-    virtual rdr::U8* getRawBufferRW(const Rect& r, int* stride) = 0;
-    virtual void releaseRawBuffer(const Rect& r) = 0;
-
-    virtual const PixelFormat &getPreferredPF(void) = 0;
-
     ConnParams cp;
   };
 }

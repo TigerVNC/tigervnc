@@ -16,10 +16,10 @@
  * USA.
  */
 #include <rdr/OutStream.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/RawEncoder.h>
 
 using namespace rfb;
@@ -32,23 +32,13 @@ RawEncoder::~RawEncoder()
 {
 }
 
-void RawEncoder::writeRect(const Rect& r, TransImageGetter* ig)
+void RawEncoder::writeRect(const Rect& r, PixelBuffer* pb)
 {
-  int x = r.tl.x;
-  int y = r.tl.y;
-  int w = r.width();
-  int h = r.height();
-  int nPixels;
-  rdr::U8* imageBuf = conn->writer()->getImageBuf(w, w*h, &nPixels);
-  int bytesPerRow = w * (conn->cp.pf().bpp / 8);
+  rdr::U8* buf = conn->writer()->getImageBuf(r.area());
+
+  pb->getImage(conn->cp.pf(), buf, r);
+
   conn->writer()->startRect(r, encodingRaw);
-  while (h > 0) {
-    int nRows = nPixels / w;
-    if (nRows > h) nRows = h;
-    ig->getImage(imageBuf, Rect(x, y, x+w, y+nRows));
-    conn->getOutStream()->writeBytes(imageBuf, nRows * bytesPerRow);
-    h -= nRows;
-    y += nRows;
-  }
+  conn->getOutStream()->writeBytes(buf, r.area() * conn->cp.pf().bpp/8);
   conn->writer()->endRect();
 }
