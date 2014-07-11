@@ -229,6 +229,8 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 		btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
 		btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
 		btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+		btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+		btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
 
 		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
 		axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
