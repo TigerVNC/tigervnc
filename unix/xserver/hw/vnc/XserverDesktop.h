@@ -153,5 +153,7 @@ private:
   typedef std::map<RROutputPtr, rdr::U32> OutputIdMap;
   OutputIdMap outputIdMap;
 #endif
+
+  rfb::Point oldCursorPos;
 };
 #endif

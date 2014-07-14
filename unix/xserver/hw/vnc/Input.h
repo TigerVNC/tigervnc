@@ -29,10 +29,13 @@
 
 #include <list>
 
-#include <rfb/VNCServerST.h>
+#include <rdr/types.h>
+#include <rfb/Rect.h>
 
 extern "C" {
 #include "input.h"
+/* The Xorg headers define macros that wreak havoc with STL */
+#undef max
 };
 
 #include "xorg-version.h"
@@ -41,7 +44,7 @@ extern "C" {
 class InputDevice {
 public:
 	/* Create new InputDevice instance */
-	InputDevice(rfb::VNCServerST *_server);
+	InputDevice();
 
 	/*
 	 * Press or release buttons. Relationship between buttonMask and
@@ -52,12 +55,10 @@ public:
 	/* Move pointer to target location (point coords are absolute). */
 	void PointerMove(const rfb::Point &point);
 
-	/*
-	 * Send pointer position to clients. If not called then Move() calls
-	 * won't be visible to VNC clients.
-	 */
-	void PointerSync(void);
+	/* Get current known location of the pointer */
+	const rfb::Point &getPointerPos(void);
 
+	/* Press or release one or more keys to get the given symbol */
 	void KeyboardPress(rdr::U32 keysym) { keyEvent(keysym, true); }
 	void KeyboardRelease(rdr::U32 keysym) { keyEvent(keysym, false); }
 
@@ -103,13 +104,12 @@ private:
 #endif
 
 private:
-	rfb::VNCServerST *server;
 	bool initialized;
 	DeviceIntPtr keyboardDev;
 	DeviceIntPtr pointerDev;
 
 	int oldButtonMask;
-	rfb::Point cursorPos, oldCursorPos;
+	rfb::Point cursorPos;
 
 	KeySym pressedKeys[256];
 };

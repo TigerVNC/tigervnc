@@ -689,7 +689,11 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
         }
       }
 
-      inputDevice->PointerSync();
+      // We are responsible for propagating mouse movement between clients
+      if (!oldCursorPos.equals(inputDevice->getPointerPos())) {
+        oldCursorPos = inputDevice->getPointerPos();
+        server->setCursorPos(oldCursorPos);
+      }
     }
 
     // Then let the timers do some processing. Rescheduling is done in

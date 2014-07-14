@@ -116,8 +116,8 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 }
 #endif /* XORG < 111 */
 
-InputDevice::InputDevice(rfb::VNCServerST *_server)
-	: server(_server), initialized(false), oldButtonMask(0)
+InputDevice::InputDevice()
+	: initialized(false), oldButtonMask(0)
 {
 	int i;
 
@@ -195,13 +195,9 @@ void InputDevice::PointerMove(const rfb::Point &pos)
 	cursorPos = pos;
 }
 
-void InputDevice::PointerSync(void)
+const rfb::Point &InputDevice::getPointerPos(void)
 {
-	if (cursorPos.equals(oldCursorPos))
-		return;
-
-	oldCursorPos = cursorPos;
-	server->setCursorPos(cursorPos);
+	return cursorPos;
 }
 
 static int pointerProc(DeviceIntPtr pDevice, int onoff)
