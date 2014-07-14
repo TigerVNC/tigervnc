@@ -256,10 +256,9 @@ int InputDevice::pointerProc(DeviceIntPtr pDevice, int onoff)
 	case DEVICE_OFF:
 		pDev->on = FALSE;
 		break;
-#if 0
 	case DEVICE_CLOSE:
+		singleton.pointerDev = NULL;
 		break;
-#endif
 	}
 
 	return Success;
@@ -299,6 +298,9 @@ int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
 	case DEVICE_OFF:
 		pDev->on = FALSE;
 		break;
+	case DEVICE_CLOSE:
+		singleton.keyboardDev = NULL;
+		break;
 	}
 
 	return Success;
@@ -306,10 +308,8 @@ int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
 
 void InputDevice::InitInputDevice(void)
 {
-	if (initialized)
+	if ((pointerDev != NULL) || (keyboardDev != NULL))
 		return;
-
-	initialized = true;
 
 #if XORG < 17
 	pointerDev = AddInputDevice(

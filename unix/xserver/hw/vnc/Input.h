@@ -116,7 +116,6 @@ private:
 #endif
 
 private:
-	bool initialized;
 	DeviceIntPtr keyboardDev;
 	DeviceIntPtr pointerDev;
 
