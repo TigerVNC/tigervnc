@@ -71,7 +71,7 @@ Source12:       http://downloads.sourceforge.net/project/libjpeg-turbo/1.3.0/lib
 
 # Tiger vnc patches
 Patch3:         u_tigervnc-1.3.0-fix-use-after-free.patch
-Patch4:         tigervnc-newfbsize.patch
+#Patch4:         tigervnc-newfbsize.patch
 Patch5:         tigervnc-clean-pressed-key-on-exit.patch
 
 # Xserver patches
@@ -192,7 +192,7 @@ tar xjf %SOURCE2
 cp -r ./xorg-server-*/* unix/xserver/
 
 %patch3 -p1
-%patch4 -p1
+#%patch4 -p1
 %patch5 -p1
 
 pushd unix/xserver
