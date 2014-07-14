@@ -112,9 +112,9 @@ static void vncExtensionInitWithParams(INITARGS)
           i.param->setParam(val);
       }
     }
-
-    vncExtensionInit();
   }
+
+  vncExtensionInit();
 }
 }
 
