@@ -133,7 +133,6 @@ private:
 #endif
 
   ScreenPtr pScreen;
-  InputDevice *inputDevice;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
   network::TcpListener* listener;

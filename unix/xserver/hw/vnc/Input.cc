@@ -68,6 +68,9 @@ rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock", "Avoid fake Shift pres
 
 #define BUTTONS 7
 
+class InputDevice *vncInputDevice;
+InputDevice InputDevice::singleton;
+
 /* Event queue is shared between all devices. */
 #if XORG == 15
 static xEvent *eventq = NULL;
@@ -117,9 +120,11 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 #endif /* XORG < 111 */
 
 InputDevice::InputDevice()
-	: initialized(false), oldButtonMask(0)
+	: oldButtonMask(0)
 {
 	int i;
+
+	vncInputDevice = this;
 
 #if XORG < 111
 	initEventq();

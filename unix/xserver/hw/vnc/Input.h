@@ -40,12 +40,16 @@ extern "C" {
 
 #include "xorg-version.h"
 
-/* Represents input device (keyboard + pointer) */
+/*
+ * Represents input device (keyboard + pointer)
+ *
+ * Is a singleton as input devices are global in the X server so
+ * we do not have one per desktop (i.e. per screen).
+ */
+extern class InputDevice *vncInputDevice;
+
 class InputDevice {
 public:
-	/* Create new InputDevice instance */
-	InputDevice();
-
 	/*
 	 * Press or release buttons. Relationship between buttonMask and
 	 * buttons is specified in RFB protocol.
@@ -63,17 +67,20 @@ public:
 	void KeyboardRelease(rdr::U32 keysym) { keyEvent(keysym, false); }
 
 	/*
-	 * Init input device. This cannot be done in the constructor
-	 * because constructor is called during X server extensions
-	 * initialization. Devices must be initialized after core
-	 * pointer/keyboard initialization which is actually after extesions
-	 * initialization. Check InitExtensions(), InitCoreDevices() and
-	 * InitInput() calls in dix/main.c. Instead it is called from
-	 * XserverDesktop at an appropriate time.
+	 * Init input device.
+	 * This has to be called after core pointer/keyboard
+	 * initialization which unfortunately is after extesions
+	 * initialization (which means we cannot call it in
+	 * vncExtensionInit(). Check InitExtensions(),
+	 * InitCoreDevices() and InitInput() calls in dix/main.c.
+	 * Instead we call it from XserverDesktop at an appropriate
+	 * time.
 	 */
 	void InitInputDevice(void);
 
 private:
+	InputDevice();
+
 	void keyEvent(rdr::U32 keysym, bool down);
 
 	/* Backend dependent functions below here */
@@ -117,6 +124,9 @@ private:
 	rfb::Point cursorPos;
 
 	KeySym pressedKeys[256];
+
+private:
+	static InputDevice singleton;
 };
 
 #endif

@@ -158,15 +158,12 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
 
   if (httpListener)
     httpServer = new FileHTTPServer(this);
-
-  inputDevice = new InputDevice(server);
 }
 
 XserverDesktop::~XserverDesktop()
 {
   if (!directFbptr)
     delete [] data;
-  delete inputDevice;
   delete httpServer;
   delete server;
 }
@@ -581,7 +578,7 @@ void XserverDesktop::blockHandler(fd_set* fds, OSTimePtr timeout)
   // so we abuse the fact that this routine will be called first thing
   // once the dix is done initialising.
   // [1] Technically Xvnc has InitInput(), but libvnc.so has nothing.
-  inputDevice->InitInputDevice();
+  vncInputDevice->InitInputDevice();
 
   try {
     int nextTimeout;
@@ -690,8 +687,8 @@ void XserverDesktop::wakeupHandler(fd_set* fds, int nfds)
       }
 
       // We are responsible for propagating mouse movement between clients
-      if (!oldCursorPos.equals(inputDevice->getPointerPos())) {
-        oldCursorPos = inputDevice->getPointerPos();
+      if (!oldCursorPos.equals(vncInputDevice->getPointerPos())) {
+        oldCursorPos = vncInputDevice->getPointerPos();
         server->setCursorPos(oldCursorPos);
       }
     }
@@ -820,8 +817,8 @@ void XserverDesktop::approveConnection(void* opaqueId, bool accept,
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {
-  inputDevice->PointerMove(pos);
-  inputDevice->PointerButtonAction(buttonMask);
+  vncInputDevice->PointerMove(pos);
+  vncInputDevice->PointerButtonAction(buttonMask);
 }
 
 void XserverDesktop::clientCutText(const char* str, int len)
@@ -1138,7 +1135,7 @@ void XserverDesktop::lookup(int index, int* r, int* g, int* b)
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
 {
 	if (down)
-		inputDevice->KeyboardPress(keysym);
+		vncInputDevice->KeyboardPress(keysym);
 	else
-		inputDevice->KeyboardRelease(keysym);
+		vncInputDevice->KeyboardRelease(keysym);
 }
