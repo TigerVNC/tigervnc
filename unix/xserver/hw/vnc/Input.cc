@@ -200,7 +200,7 @@ const rfb::Point &InputDevice::getPointerPos(void)
 	return cursorPos;
 }
 
-static int pointerProc(DeviceIntPtr pDevice, int onoff)
+int InputDevice::pointerProc(DeviceIntPtr pDevice, int onoff)
 {
 	BYTE map[BUTTONS + 1];
 	DevicePtr pDev = (DevicePtr)pDevice;
@@ -267,9 +267,7 @@ static void keyboardBell(int percent, DeviceIntPtr device, pointer ctrl,
 		vncBell();
 }
 
-extern void GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
-
-static int keyboardProc(DeviceIntPtr pDevice, int onoff)
+int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
 {
 #if XORG < 17
 	KeySymsRec keySyms;

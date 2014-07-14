@@ -97,10 +97,15 @@ private:
 	KeyCode addKeysym(KeySym keysym, unsigned state);
 
 private:
+	static int pointerProc(DeviceIntPtr pDevice, int onoff);
+	static int keyboardProc(DeviceIntPtr pDevice, int onoff);
+
 #if XORG >= 17
 	static void vncXkbProcessDeviceEvent(int screenNum,
 	                                     InternalEvent *event,
 	                                     DeviceIntPtr dev);
+#else
+	static void GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
 #endif
 
 private:
