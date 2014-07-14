@@ -29,20 +29,27 @@
 
 #include <list>
 
-#include <rfb/VNCServerST.h>
+#include <rdr/types.h>
+#include <rfb/Rect.h>
 
 extern "C" {
 #include "input.h"
+/* The Xorg headers define macros that wreak havoc with STL */
+#undef max
 };
 
 #include "xorg-version.h"
 
-/* Represents input device (keyboard + pointer) */
+/*
+ * Represents input device (keyboard + pointer)
+ *
+ * Is a singleton as input devices are global in the X server so
+ * we do not have one per desktop (i.e. per screen).
+ */
+extern class InputDevice *vncInputDevice;
+
 class InputDevice {
 public:
-	/* Create new InputDevice instance */
-	InputDevice(rfb::VNCServerST *_server);
-
 	/*
 	 * Press or release buttons. Relationship between buttonMask and
 	 * buttons is specified in RFB protocol.
@@ -52,27 +59,28 @@ public:
 	/* Move pointer to target location (point coords are absolute). */
 	void PointerMove(const rfb::Point &point);
 
-	/*
-	 * Send pointer position to clients. If not called then Move() calls
-	 * won't be visible to VNC clients.
-	 */
-	void PointerSync(void);
+	/* Get current known location of the pointer */
+	const rfb::Point &getPointerPos(void);
 
+	/* Press or release one or more keys to get the given symbol */
 	void KeyboardPress(rdr::U32 keysym) { keyEvent(keysym, true); }
 	void KeyboardRelease(rdr::U32 keysym) { keyEvent(keysym, false); }
 
 	/*
-	 * Init input device. This cannot be done in the constructor
-	 * because constructor is called during X server extensions
-	 * initialization. Devices must be initialized after core
-	 * pointer/keyboard initialization which is actually after extesions
-	 * initialization. Check InitExtensions(), InitCoreDevices() and
-	 * InitInput() calls in dix/main.c. Instead it is called from
-	 * XserverDesktop at an appropriate time.
+	 * Init input device.
+	 * This has to be called after core pointer/keyboard
+	 * initialization which unfortunately is after extesions
+	 * initialization (which means we cannot call it in
+	 * vncExtensionInit(). Check InitExtensions(),
+	 * InitCoreDevices() and InitInput() calls in dix/main.c.
+	 * Instead we call it from XserverDesktop at an appropriate
+	 * time.
 	 */
 	void InitInputDevice(void);
 
 private:
+	InputDevice();
+
 	void keyEvent(rdr::U32 keysym, bool down);
 
 	/* Backend dependent functions below here */
@@ -96,22 +104,28 @@ private:
 	KeyCode addKeysym(KeySym keysym, unsigned state);
 
 private:
+	static int pointerProc(DeviceIntPtr pDevice, int onoff);
+	static int keyboardProc(DeviceIntPtr pDevice, int onoff);
+
 #if XORG >= 17
 	static void vncXkbProcessDeviceEvent(int screenNum,
 	                                     InternalEvent *event,
 	                                     DeviceIntPtr dev);
+#else
+	static void GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
 #endif
 
 private:
-	rfb::VNCServerST *server;
-	bool initialized;
 	DeviceIntPtr keyboardDev;
 	DeviceIntPtr pointerDev;
 
 	int oldButtonMask;
-	rfb::Point cursorPos, oldCursorPos;
+	rfb::Point cursorPos;
 
 	KeySym pressedKeys[256];
+
+private:
+	static InputDevice singleton;
 };
 
 #endif

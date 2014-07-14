@@ -174,7 +174,7 @@ KeySym keyboardMap[MAP_LEN * KEYSYMS_PER_KEY] = {
 	XK_Menu, NoSymbol,
 };
 
-void GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap)
+void InputDevice::GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap)
 {
 	int i;
 

@@ -68,6 +68,9 @@ rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock", "Avoid fake Shift pres
 
 #define BUTTONS 7
 
+class InputDevice *vncInputDevice;
+InputDevice InputDevice::singleton;
+
 /* Event queue is shared between all devices. */
 #if XORG == 15
 static xEvent *eventq = NULL;
@@ -116,10 +119,12 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 }
 #endif /* XORG < 111 */
 
-InputDevice::InputDevice(rfb::VNCServerST *_server)
-	: server(_server), initialized(false), oldButtonMask(0)
+InputDevice::InputDevice()
+	: oldButtonMask(0)
 {
 	int i;
+
+	vncInputDevice = this;
 
 #if XORG < 111
 	initEventq();
@@ -195,16 +200,12 @@ void InputDevice::PointerMove(const rfb::Point &pos)
 	cursorPos = pos;
 }
 
-void InputDevice::PointerSync(void)
+const rfb::Point &InputDevice::getPointerPos(void)
 {
-	if (cursorPos.equals(oldCursorPos))
-		return;
-
-	oldCursorPos = cursorPos;
-	server->setCursorPos(cursorPos);
+	return cursorPos;
 }
 
-static int pointerProc(DeviceIntPtr pDevice, int onoff)
+int InputDevice::pointerProc(DeviceIntPtr pDevice, int onoff)
 {
 	BYTE map[BUTTONS + 1];
 	DevicePtr pDev = (DevicePtr)pDevice;
@@ -229,6 +230,8 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 		btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
 		btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
 		btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+		btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+		btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
 
 		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
 		axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
@@ -253,10 +256,9 @@ static int pointerProc(DeviceIntPtr pDevice, int onoff)
 	case DEVICE_OFF:
 		pDev->on = FALSE;
 		break;
-#if 0
 	case DEVICE_CLOSE:
+		singleton.pointerDev = NULL;
 		break;
-#endif
 	}
 
 	return Success;
@@ -269,9 +271,7 @@ static void keyboardBell(int percent, DeviceIntPtr device, pointer ctrl,
 		vncBell();
 }
 
-extern void GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
-
-static int keyboardProc(DeviceIntPtr pDevice, int onoff)
+int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
 {
 #if XORG < 17
 	KeySymsRec keySyms;
@@ -298,6 +298,9 @@ static int keyboardProc(DeviceIntPtr pDevice, int onoff)
 	case DEVICE_OFF:
 		pDev->on = FALSE;
 		break;
+	case DEVICE_CLOSE:
+		singleton.keyboardDev = NULL;
+		break;
 	}
 
 	return Success;
@@ -305,10 +308,8 @@ static int keyboardProc(DeviceIntPtr pDevice, int onoff)
 
 void InputDevice::InitInputDevice(void)
 {
-	if (initialized)
+	if ((pointerDev != NULL) || (keyboardDev != NULL))
 		return;
-
-	initialized = true;
 
 #if XORG < 17
 	pointerDev = AddInputDevice(
