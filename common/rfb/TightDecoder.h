@@ -30,7 +30,7 @@ namespace rfb {
   public:
     TightDecoder(CConnection* conn);
     virtual ~TightDecoder();
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
+    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
 
   private:
     rdr::U32 readCompact(rdr::InStream* is);
@@ -56,7 +56,7 @@ namespace rfb {
     void directFillRect16(const Rect& r, Pixel pix);
     void directFillRect32(const Rect& r, Pixel pix);
 
-    CMsgHandler* handler;
+    ModifiablePixelBuffer* pb;
     rdr::InStream* is;
     rdr::ZlibInStream zis[4];
     JpegDecompressor jd;

@@ -86,6 +86,21 @@ void ConnParams::setName(const char* name)
   name_ = strDup(name);
 }
 
+void ConnParams::setCursor(const Cursor& other)
+{
+  const rdr::U8* data;
+  int stride;
+
+  cursor_.hotspot = other.hotspot;
+  cursor_.setPF(other.getPF());
+  cursor_.setSize(other.width(), other.height());
+
+  data = other.getBuffer(other.getRect(), &stride);
+  cursor_.imageRect(cursor_.getRect(), data, stride);
+
+  memcpy(cursor_.mask.buf, other.mask.buf, cursor_.maskLen());
+}
+
 void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
   useCopyRect = false;

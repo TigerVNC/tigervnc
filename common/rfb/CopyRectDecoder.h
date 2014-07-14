@@ -26,7 +26,7 @@ namespace rfb {
   public:
     CopyRectDecoder(CConnection* conn);
     virtual ~CopyRectDecoder();
-    virtual void readRect(const Rect& r, CMsgHandler* handler);
+    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
   };
 }
 #endif

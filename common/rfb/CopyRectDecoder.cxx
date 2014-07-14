@@ -17,7 +17,6 @@
  */
 #include <rdr/InStream.h>
 #include <rfb/CConnection.h>
-#include <rfb/CMsgHandler.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/CopyRectDecoder.h>
 
@@ -31,9 +30,9 @@ CopyRectDecoder::~CopyRectDecoder()
 {
 }
 
-void CopyRectDecoder::readRect(const Rect& r, CMsgHandler* handler)
+void CopyRectDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
 {
   int srcX = conn->getInStream()->readU16();
   int srcY = conn->getInStream()->readU16();
-  handler->copyRect(r, srcX, srcY);
+  pb->copyRect(r, Point(r.tl.x-srcX, r.tl.y-srcY));
 }

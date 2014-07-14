@@ -65,14 +65,18 @@ namespace rfb {
     // Get a pointer into the buffer
     //   The pointer is to the top-left pixel of the specified Rect.
     //   The buffer stride (in pixels) is returned.
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) = 0;
-    virtual rdr::U8* getBufferRW(const Rect& r, int* stride) = 0;
+    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const = 0;
 
     // Get pixel data for a given part of the buffer
     //   Data is copied into the supplied buffer, with the specified
     //   stride. Try to avoid using this though as getBuffer() will in
     //   most cases avoid the extra memory copy.
-    void getImage(void* imageBuf, const Rect& r, int stride=0);
+    void getImage(void* imageBuf, const Rect& r, int stride=0) const;
+    // Get pixel data in a given format
+    //   Works just the same as getImage(), but guaranteed to be in a
+    //   specific format.
+    void getImage(const PixelFormat& pf, void* imageBuf,
+                  const Rect& r, int stride=0) const;
 
     ///////////////////////////////////////////////
     // Framebuffer update methods
@@ -89,20 +93,26 @@ namespace rfb {
     int width_, height_;
   };
 
-  // FullFramePixelBuffer
-
-  class FullFramePixelBuffer : public PixelBuffer {
+  // ModifiablePixelBuffer
+  class ModifiablePixelBuffer : public PixelBuffer {
   public:
-    FullFramePixelBuffer(const PixelFormat& pf, int width, int height,
-                         rdr::U8* data, int stride);
-    virtual ~FullFramePixelBuffer();
+    ModifiablePixelBuffer(const PixelFormat& pf, int width, int height);
+    virtual ~ModifiablePixelBuffer();
 
-  public:
-    // Get a pointer to specified pixel data
-    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) {
-      return getBufferRW(r, stride);
-    }
-    virtual rdr::U8* getBufferRW(const Rect& r, int* stride);
+    ///////////////////////////////////////////////
+    // Access to pixel data
+    //
+
+    // Get a writeable pointer into the buffer
+    //   Like getBuffer(), the pointer is to the top-left pixel of the
+    //   specified Rect and the stride in pixels is returned.
+    virtual rdr::U8* getBufferRW(const Rect& r, int* stride) = 0;
+    // Commit the modified contents
+    //   Ensures that the changes to the specified Rect is properly
+    //   stored away and any temporary buffers are freed. The Rect given
+    //   here needs to match the Rect given to the earlier call to
+    //   getBufferRW().
+    virtual void commitBufferRW(const Rect& r) = 0;
 
     ///////////////////////////////////////////////
     // Basic rendering operations
@@ -126,6 +136,30 @@ namespace rfb {
 
     //   pixel is the Pixel value to be used where mask_ is set
     void maskRect(const Rect& r, Pixel pixel, const void* mask_);
+
+    // Render in a specific format
+    //   Does the exact same thing as the above methods, but the given
+    //   pixel values are defined by the given PixelFormat.
+    void fillRect(const PixelFormat& pf, const Rect &dest, Pixel pix);
+    void imageRect(const PixelFormat& pf, const Rect &dest,
+                   const void* pixels, int stride=0);
+
+  protected:
+    ModifiablePixelBuffer();
+  };
+
+  // FullFramePixelBuffer
+
+  class FullFramePixelBuffer : public ModifiablePixelBuffer {
+  public:
+    FullFramePixelBuffer(const PixelFormat& pf, int width, int height,
+                         rdr::U8* data_, int stride);
+    virtual ~FullFramePixelBuffer();
+
+  public:
+    virtual const rdr::U8* getBuffer(const Rect& r, int* stride) const;
+    virtual rdr::U8* getBufferRW(const Rect& r, int* stride);
+    virtual void commitBufferRW(const Rect& r);
 
   protected:
     FullFramePixelBuffer();

@@ -114,7 +114,7 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 {
   int stride;
   rdr::U32 solidColor;
-  const PIXEL_T *rawPixels = (const PIXEL_T *)ig->getRawBufferR(r, &stride);
+  const PIXEL_T *rawPixels = (const PIXEL_T *)pb->getBuffer(r, &stride);
   PIXEL_T *pixels = NULL;
   bool grayScaleJPEG = (jpegSubsampling == subsampleGray && jpegQuality != -1);
 
@@ -126,7 +126,8 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
 
   if (forceSolid) {
     // Subrectangle has already been determined to be solid.
-    ig->translatePixels(rawPixels, &solidColor, 1);
+    clientpf.bufferFromBuffer((rdr::U8*)&solidColor, serverpf,
+                              (const rdr::U8*)rawPixels, 1);
     pixels = (PIXEL_T *)&solidColor;
     palette.clear();
     palette.insert(solidColor, 1);
@@ -149,14 +150,14 @@ void TIGHT_ENCODE (const Rect& r, rdr::OutStream *os, bool forceSolid)
       if(palette.size() != 0 || jpegQuality == -1) {
         pixels = (PIXEL_T *)conn->writer()->getImageBuf(r.area());
         stride = r.width();
-        ig->getImage(pixels, r);
+        pb->getImage(clientpf, pixels, r);
       }
     } else {
       // Pixel translation will be required, so create an intermediate buffer,
       // translate the raw pixels into it, and count its colors.
       pixels = (PIXEL_T *)conn->writer()->getImageBuf(r.area());
       stride = r.width();
-      ig->getImage(pixels, r);
+      pb->getImage(clientpf, pixels, r);
 
       if (grayScaleJPEG) palette.clear();
       else FILL_PALETTE(pixels, r.area());
@@ -443,7 +444,7 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
   int w = r.width(), h = r.height();
   const PIXEL_T *rowptr, *colptr, *rowptr2, *colptr2,
     *dataend = &data[stride * h];
-  bool willTransform = ig->willTransform();
+  bool willTransform = !serverpf.equal(clientpf);
 
   serverpf.bufferFromPixel((rdr::U8*)&mask, ~0);
 
@@ -490,8 +491,8 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
 
   monodone:
   if (willTransform) {
-    ig->translatePixels(&c0, &c0t, 1);
-    ig->translatePixels(&c1, &c1t, 1);
+    clientpf.bufferFromBuffer((rdr::U8*)&c0t, serverpf, (rdr::U8*)&c0, 1);
+    clientpf.bufferFromBuffer((rdr::U8*)&c1t, serverpf, (rdr::U8*)&c1, 1);
   }
   else {
     c0t = c0;  c1t = c1;
@@ -515,7 +516,7 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
         ni++;
       } else {
         if (willTransform)
-          ig->translatePixels(&ci, &cit, 1);
+          clientpf.bufferFromBuffer((rdr::U8*)&cit, serverpf, (rdr::U8*)&ci, 1);
         else
           cit = ci;
         if (!palette.insert (cit, ni) || (palette.size() > palMaxColors)) {
@@ -529,7 +530,7 @@ void FAST_FILL_PALETTE (const PIXEL_T *data, int stride, const Rect& r)
     rowptr += stride;
     colptr = rowptr;
   }
-  ig->translatePixels(&ci, &cit, 1);
+  clientpf.bufferFromBuffer((rdr::U8*)&cit, serverpf, (rdr::U8*)&ci, 1);
   if (!palette.insert (cit, ni) || (palette.size() > palMaxColors))
     palette.clear();
 }
@@ -543,7 +544,7 @@ bool CHECK_SOLID_TILE(Rect& r, rdr::U32 *colorPtr, bool needSameColor)
   int w = r.width(), h = r.height();
 
   int stride = w;
-  buf = (const PIXEL_T *)ig->getRawBufferR(r, &stride);
+  buf = (const PIXEL_T *)pb->getBuffer(r, &stride);
 
   colorValue = *buf;
   if (needSameColor && (rdr::U32)colorValue != *colorPtr)

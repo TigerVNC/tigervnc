@@ -71,8 +71,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     fenceDataLen(0), fenceData(NULL),
     baseRTT(-1), minRTT(-1), seenCongestion(false), pingCounter(0),
     ackedOffset(0), sentOffset(0), congWindow(0), congestionTimer(this),
-    server(server_),
-    updates(false), image_getter(server->useEconomicTranslate),
+    server(server_), updates(false),
     drawRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false),
     updateTimer(this), pointerEventTime(0),
@@ -233,8 +232,6 @@ void VNCSConnectionST::pixelBufferChange()
     // work out what's actually changed.
     updates.clear();
     updates.add_changed(server->pb->getRect());
-    vlog.debug("pixel buffer changed - re-initialising image getter");
-    image_getter.init(server->pb, cp.pf(), writer());
     writeFramebufferUpdate();
   } catch(rdr::Exception &e) {
     close(e.str());
@@ -404,7 +401,6 @@ void VNCSConnectionST::authSuccess()
   char buffer[256];
   cp.pf().print(buffer, 256);
   vlog.info("Server default pixel format %s", buffer);
-  image_getter.init(server->pb, cp.pf(), 0);
 
   // - Mark the entire display as "dirty"
   updates.add_changed(server->pb->getRect());
@@ -478,7 +474,6 @@ void VNCSConnectionST::setPixelFormat(const PixelFormat& pf)
   char buffer[256];
   pf.print(buffer, 256);
   vlog.info("Client pixel format %s", buffer);
-  image_getter.init(server->pb, pf, writer());
   setCursor();
 }
 
@@ -710,46 +705,6 @@ void VNCSConnectionST::supportsContinuousUpdates()
     return;
 
   writer()->writeEndOfContinuousUpdates();
-}
-
-void VNCSConnectionST::writeSetCursorCallback()
-{
-  if (cp.supportsLocalXCursor) {
-    Pixel pix0, pix1;
-    rdr::U8Array bitmap(server->cursor.getBitmap(&pix0, &pix1));
-    if (bitmap.buf) {
-      // The client supports XCursor and the cursor only has two
-      // colors. Use the XCursor encoding.
-      writer()->writeSetXCursor(server->cursor.width(),
-				server->cursor.height(),
-				server->cursor.hotspot.x,
-				server->cursor.hotspot.y,
-				bitmap.buf, server->cursor.mask.buf);
-      return;
-    } else {
-      // More than two colors
-      if (!cp.supportsLocalCursor) {
-	// FIXME: We could reduce to two colors. 
-	vlog.info("Unable to send multicolor cursor: RichCursor not supported by client");
-	return;
-      }
-    }
-  }
-
-  // Use RichCursor
-  rdr::U8* transBuffer;
-  int stride;
-  const rdr::U8* buffer;
-
-  transBuffer = writer()->getImageBuf(server->cursor.area());
-
-  buffer = server->cursor.getBuffer(server->cursor.getRect(), &stride);
-  image_getter.translatePixels(buffer, transBuffer, server->cursor.area());
-
-  writer()->writeSetCursor(server->cursor.width(),
-                           server->cursor.height(),
-                           server->cursor.hotspot,
-                           transBuffer, server->cursor.mask.buf);
 }
 
 
@@ -1050,8 +1005,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   if (needRenderedCursor()) {
     renderedCursorRect
-      = (server->renderedCursor.getRect(server->renderedCursorTL)
-         .intersect(req.get_bounding_rect()));
+      = server->renderedCursor.getEffectiveRect()
+         .intersect(req.get_bounding_rect());
 
     if (renderedCursorRect.is_empty()) {
       drawRenderedCursor = false;
@@ -1076,16 +1031,20 @@ void VNCSConnectionST::writeFramebufferUpdate()
     std::vector<Rect>::const_iterator i;
     int encoding;
 
+    Encoder* encoder;
+    PixelBuffer* pb;
+
     // Make sure the encoder has the latest settings
     encoding = cp.currentEncoding();
 
     if (!encoders[encoding])
       encoders[encoding] = Encoder::createEncoder(encoding, this);
 
-    encoders[encoding]->setCompressLevel(cp.compressLevel);
-    encoders[encoding]->setQualityLevel(cp.qualityLevel);
-    encoders[encoding]->setFineQualityLevel(cp.fineQualityLevel,
-                                            cp.subsampling);
+    encoder = encoders[encoding];
+
+    encoder->setCompressLevel(cp.compressLevel);
+    encoder->setQualityLevel(cp.qualityLevel);
+    encoder->setFineQualityLevel(cp.fineQualityLevel, cp.subsampling);
 
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original VNC4.
@@ -1095,7 +1054,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
     ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++) {
       if (i->width() && i->height()) {
-        int nUpdateRects = encoders[encoding]->getNumRects(*i);
+        int nUpdateRects = encoder->getNumRects(*i);
         if (nUpdateRects == 0 && cp.currentEncoding() == encodingTight) {
           // With Tight encoding and LastRect support, the client does not
           // care about the number of rectangles in the update - it will
@@ -1117,18 +1076,15 @@ void VNCSConnectionST::writeFramebufferUpdate()
       writer()->writeCopyRect(*i, i->tl.x - ui.copy_delta.x,
                               i->tl.y - ui.copy_delta.y);
 
+    pb = server->getPixelBuffer();
+
     ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++)
-      encoders[encoding]->writeRect(*i, &image_getter);
+      encoder->writeRect(*i, pb);
 
     if (drawRenderedCursor) {
-      image_getter.setPixelBuffer(&server->renderedCursor);
-      image_getter.setOffset(server->renderedCursorTL);
-
-      encoders[encoding]->writeRect(renderedCursorRect, &image_getter);
-
-      image_getter.setPixelBuffer(server->pb);
-      image_getter.setOffset(Point(0,0));
+      renderedCursorRect = server->renderedCursor.getEffectiveRect();
+      encoder->writeRect(renderedCursorRect, &server->renderedCursor);
 
       drawRenderedCursor = false;
     }
@@ -1170,10 +1126,16 @@ void VNCSConnectionST::setCursor()
 {
   if (state() != RFBSTATE_NORMAL)
     return;
-  if (!cp.supportsLocalCursor)
-    return;
 
-  writer()->cursorChange(this);
+  cp.setCursor(server->cursor);
+
+  if (!writer()->writeSetCursor()) {
+    if (!writer()->writeSetXCursor()) {
+      // No client support
+      return;
+    }
+  }
+
   writeFramebufferUpdate();
 }
 

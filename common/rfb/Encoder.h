@@ -21,11 +21,10 @@
 #define __RFB_ENCODER_H__
 
 #include <rfb/Rect.h>
-#include <rfb/TransImageGetter.h>
 
 namespace rfb {
   class SConnection;
-  class TransImageGetter;
+  class PixelBuffer;
 
   class Encoder {
   public:
@@ -38,9 +37,11 @@ namespace rfb {
     virtual int getNumRects(const Rect &r) { return 1; }
 
     // writeRect() is the main interface that encodes the given rectangle
-    // with data from the ImageGetter onto the SMsgWriter given at
-    // encoder creation.
-    virtual void writeRect(const Rect& r, TransImageGetter* ig)=0;
+    // with data from the PixelBuffer onto the SConnection given at
+    // encoder creation. The PixelFormat of the PixelBuffer might not
+    // match the ConnParams and it is up ot the encoder to do
+    // any necessary conversion.
+    virtual void writeRect(const Rect& r, PixelBuffer* pb)=0;
 
     static bool supported(int encoding);
     static Encoder* createEncoder(int encoding, SConnection* conn);

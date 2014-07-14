@@ -75,12 +75,43 @@ namespace rfb {
     void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
                        int w, int stride, int h) const;
 
+    Pixel pixelFromPixel(const PixelFormat &srcPF, Pixel src) const;
+
+    void bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                          const rdr::U8* src, int pixels) const;
+    void bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                          const rdr::U8* src, int w, int h,
+                          int dstStride, int srcStride) const;
+
     void print(char* str, int len) const;
     bool parse(const char* str);
 
   protected:
     void updateState(void);
     bool isSane(void);
+
+  private:
+    // Preprocessor generated, optimised methods
+
+    void directBufferFromBufferFrom888(rdr::U8* dst, const PixelFormat &srcPF,
+                                       const rdr::U8* src, int w, int h,
+                                       int dstStride, int srcStride) const;
+    void directBufferFromBufferFrom888(rdr::U16* dst, const PixelFormat &srcPF,
+                                       const rdr::U8* src, int w, int h,
+                                       int dstStride, int srcStride) const;
+    void directBufferFromBufferFrom888(rdr::U32* dst, const PixelFormat &srcPF,
+                                       const rdr::U8* src, int w, int h,
+                                       int dstStride, int srcStride) const;
+
+    void directBufferFromBufferTo888(rdr::U8* dst, const PixelFormat &srcPF,
+                                     const rdr::U8* src, int w, int h,
+                                     int dstStride, int srcStride) const;
+    void directBufferFromBufferTo888(rdr::U8* dst, const PixelFormat &srcPF,
+                                     const rdr::U16* src, int w, int h,
+                                     int dstStride, int srcStride) const;
+    void directBufferFromBufferTo888(rdr::U8* dst, const PixelFormat &srcPF,
+                                     const rdr::U32* src, int w, int h,
+                                     int dstStride, int srcStride) const;
 
   public:
     int bpp;
@@ -105,6 +136,12 @@ namespace rfb {
     int redBits, greenBits, blueBits;
     int maxBits, minBits;
     bool endianMismatch;
+
+    static rdr::U8 upconvTable[256*8];
+
+    class Init;
+    friend class Init;
+    static Init _init;
   };
 }
 

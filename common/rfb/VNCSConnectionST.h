@@ -30,7 +30,6 @@
 #include <set>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/Timer.h>
 
@@ -40,7 +39,6 @@ namespace rfb {
   class Encoder;
 
   class VNCSConnectionST : public SConnection,
-                           public WriteSetCursorCallback,
                            public Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse);
@@ -152,9 +150,6 @@ namespace rfb {
     // default access settings and the connection's access settings.
     virtual void setAccessRights(AccessRights ar) {accessRights=ar;}
 
-    // WriteSetCursorCallback
-    virtual void writeSetCursorCallback();
-
     // Timer callbacks
     virtual bool handleTimeout(Timer* t);
 
@@ -197,7 +192,6 @@ namespace rfb {
 
     VNCServerST* server;
     SimpleUpdateTracker updates;
-    TransImageGetter image_getter;
     Region requested;
     bool drawRenderedCursor, removeRenderedCursor;
     Rect renderedCursorRect;

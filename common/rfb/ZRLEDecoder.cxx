@@ -17,7 +17,7 @@
  */
 #include <rfb/CMsgReader.h>
 #include <rfb/CConnection.h>
-#include <rfb/CMsgHandler.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/ZRLEDecoder.h>
 
 using namespace rfb;
@@ -66,17 +66,16 @@ ZRLEDecoder::~ZRLEDecoder()
 {
 }
 
-void ZRLEDecoder::readRect(const Rect& r, CMsgHandler* handler)
+void ZRLEDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
 {
   rdr::InStream* is = conn->getInStream();
   rdr::U8* buf = conn->reader()->getImageBuf(64 * 64 * 4);
-  switch (conn->cp.pf().bpp) {
-  case 8:  zrleDecode8 (r, is, &zis, (rdr::U8*) buf, handler); break;
-  case 16: zrleDecode16(r, is, &zis, (rdr::U16*)buf, handler); break;
+  const rfb::PixelFormat& pf = conn->cp.pf();
+  switch (pf.bpp) {
+  case 8:  zrleDecode8 (r, is, &zis, (rdr::U8*) buf, pf, pb); break;
+  case 16: zrleDecode16(r, is, &zis, (rdr::U16*)buf, pf, pb); break;
   case 32:
     {
-      const rfb::PixelFormat& pf = handler->cp.pf();
-
       Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
       bool fitsInLS3Bytes = maxPixel < (1<<24);
       bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
@@ -84,16 +83,16 @@ void ZRLEDecoder::readRect(const Rect& r, CMsgHandler* handler)
       if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
           (fitsInMS3Bytes && pf.isBigEndian()))
       {
-        zrleDecode24A(r, is, &zis, (rdr::U32*)buf, handler);
+        zrleDecode24A(r, is, &zis, (rdr::U32*)buf, pf, pb);
       }
       else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
                (fitsInMS3Bytes && pf.isLittleEndian()))
       {
-        zrleDecode24B(r, is, &zis, (rdr::U32*)buf, handler);
+        zrleDecode24B(r, is, &zis, (rdr::U32*)buf, pf, pb);
       }
       else
       {
-        zrleDecode32(r, is, &zis, (rdr::U32*)buf, handler);
+        zrleDecode32(r, is, &zis, (rdr::U32*)buf, pf, pb);
       }
       break;
     }

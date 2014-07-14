@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#include <assert.h>
 #include <string.h>
 #include <rfb/Cursor.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Exception.h>
 
 using namespace rfb;
 
@@ -79,7 +82,7 @@ void Cursor::drawOutline(const Pixel& c)
   mask.buf = outlined.mask.buf; outlined.mask.buf = 0;
 }
 
-rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1)
+rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1) const
 {
   bool gotPix0 = false;
   bool gotPix1 = false;
@@ -173,4 +176,53 @@ void Cursor::crop()
   datasize = newDataLen;
   data = newData;
   mask.buf = newMask;
+}
+
+RenderedCursor::RenderedCursor()
+{
+}
+
+const rdr::U8* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
+{
+  Rect r;
+
+  r = _r.translate(offset.negate());
+  if (!r.enclosed_by(buffer.getRect()))
+    throw Exception("RenderedCursor: Invalid area requested");
+
+  return buffer.getBuffer(r, stride);
+}
+
+void RenderedCursor::update(PixelBuffer* framebuffer,
+                            Cursor* cursor, const Point& pos)
+{
+  Point rawOffset;
+  Rect clippedRect;
+
+  const rdr::U8* data;
+  int stride;
+
+  assert(framebuffer);
+  assert(cursor);
+
+  if (!framebuffer->getPF().equal(cursor->getPF()))
+    throw Exception("RenderedCursor: Trying to render cursor on incompatible frame buffer");
+
+  format = framebuffer->getPF();
+  width_ = framebuffer->width();
+  height_ = framebuffer->height();
+
+  rawOffset = pos.subtract(cursor->hotspot);
+  clippedRect = cursor->getRect(rawOffset).intersect(framebuffer->getRect());
+  offset = clippedRect.tl;
+
+  buffer.setPF(cursor->getPF());
+  buffer.setSize(clippedRect.width(), clippedRect.height());
+
+  data = framebuffer->getBuffer(buffer.getRect(offset), &stride);
+  buffer.imageRect(buffer.getRect(), data, stride);
+
+  data = cursor->getBuffer(cursor->getRect(), &stride);
+  buffer.maskRect(cursor->getRect(rawOffset.subtract(offset)),
+                  data, cursor->mask.buf);
 }

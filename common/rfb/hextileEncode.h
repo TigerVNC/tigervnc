@@ -44,7 +44,8 @@ int TEST_TILE_TYPE (PIXEL_T* data, int w, int h, PIXEL_T* bg, PIXEL_T* fg);
 int HEXTILE_ENCODE_TILE (PIXEL_T* data, int w, int h, int tileType,
                          rdr::U8* encoded, PIXEL_T bg);
 
-void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os, TransImageGetter *ig)
+void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os,
+                    const PixelFormat& pf, PixelBuffer* pb)
 {
   Rect t;
   PIXEL_T buf[256];
@@ -61,7 +62,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os, TransImageGetter *ig)
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
 
-      ig->getImage(buf, t);
+      pb->getImage(pf, buf, t);
 
       PIXEL_T bg = 0, fg = 0;
       int tileType = TEST_TILE_TYPE(buf, t.width(), t.height(), &bg, &fg);
@@ -90,7 +91,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os, TransImageGetter *ig)
                                          encoded, bg);
 
         if (encodedLen < 0) {
-          ig->getImage(buf, t);
+          pb->getImage(pf, buf, t);
           os->writeU8(hextileRaw);
           os->writeBytes(buf, t.width() * t.height() * (BPP/8));
           oldBgValid = oldFgValid = false;

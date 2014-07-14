@@ -27,7 +27,7 @@ namespace rfb {
   public:
     RREEncoder(SConnection* conn);
     virtual ~RREEncoder();
-    virtual void writeRect(const Rect& r, TransImageGetter* ig);
+    virtual void writeRect(const Rect& r, PixelBuffer* pb);
   private:
     rdr::MemOutStream mos;
   };

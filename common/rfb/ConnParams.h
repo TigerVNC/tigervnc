@@ -24,6 +24,7 @@
 #define __RFB_CONNPARAMS_H__
 
 #include <rdr/types.h>
+#include <rfb/Cursor.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/ScreenSet.h>
 
@@ -74,6 +75,9 @@ namespace rfb {
     const char* name() { return name_; }
     void setName(const char* name);
 
+    const Cursor& cursor() { return cursor_; }
+    void setCursor(const Cursor& cursor);
+
     rdr::S32 currentEncoding() { return currentEncoding_; }
 
     void setEncodings(int nEncodings, const rdr::S32* encodings);
@@ -100,6 +104,7 @@ namespace rfb {
 
     PixelFormat pf_;
     char* name_;
+    Cursor cursor_;
     int currentEncoding_;
     char verStr[13];
     int verStrPos;

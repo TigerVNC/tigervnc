@@ -84,7 +84,6 @@ VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
     name(strDup(name_)), pointerClient(0), comparer(0),
     renderedCursorInvalid(false),
     queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
-    useEconomicTranslate(false),
     lastConnectionTime(0), disableclients(false),
     deferTimer(this), deferPending(false)
 {
@@ -294,7 +293,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 
   comparer = new ComparingUpdateTracker(pb);
   cursor.setPF(pb->getPF());
-  renderedCursor.setPF(pb->getPF());
+  renderedCursorInvalid = true;
 
   // Make sure that we have at least one screen
   if (screenLayout.num_screens() == 0)
@@ -598,15 +597,12 @@ bool VNCServerST::checkUpdate()
 
   if (renderCursor) {
     Rect clippedCursorRect
-      = cursor.getRect(cursorTL()).intersect(pb->getRect());
+      = cursor.getRect(cursorPos.subtract(cursor.hotspot)).intersect(pb->getRect());
 
     if (!renderedCursorInvalid && (toCheck.intersect(clippedCursorRect)
                                    .is_empty())) {
       renderCursor = false;
     } else {
-      renderedCursorTL = clippedCursorRect.tl;
-      renderedCursor.setSize(clippedCursorRect.width(),
-                             clippedCursorRect.height());
       toCheck.assign_union(clippedCursorRect);
     }
   }
@@ -622,17 +618,7 @@ bool VNCServerST::checkUpdate()
     comparer->getUpdateInfo(&ui, pb->getRect());
 
   if (renderCursor) {
-    const rdr::U8* buffer;
-    int stride;
-
-    buffer = pb->getBuffer(renderedCursor.getRect(renderedCursorTL), &stride);
-    renderedCursor.imageRect(renderedCursor.getRect(), buffer, stride);
-
-    buffer = cursor.getBuffer(cursor.getRect(), &stride);
-    renderedCursor.maskRect(cursor.getRect(cursorTL()
-                                           .subtract(renderedCursorTL)),
-                            buffer, cursor.mask.buf);
-
+    renderedCursor.update(pb, &cursor, cursorPos);
     renderedCursorInvalid = false;
   }
 

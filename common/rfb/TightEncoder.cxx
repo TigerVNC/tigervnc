@@ -17,7 +17,6 @@
  * USA.
  */
 #include <rdr/OutStream.h>
-#include <rfb/TransImageGetter.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
@@ -287,10 +286,10 @@ void TightEncoder::sendRectSimple(const Rect& r)
   }
 }
 
-void TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig)
+void TightEncoder::writeRect(const Rect& _r, PixelBuffer* _pb)
 {
-  ig = _ig;
-  serverpf = ig->getPixelBuffer()->getPF();
+  pb = _pb;
+  serverpf = pb->getPF();
   ConnParams* cp = &conn->cp;
   clientpf = cp->pf();
 
@@ -366,7 +365,7 @@ void TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig)
         }
         if (bestr.tl.x != x) {
           sr.setXYWH(x, bestr.tl.y, bestr.tl.x - x, bestr.height());
-          writeRect(sr, _ig);
+          writeRect(sr, _pb);
         }
 
         // Send solid-color rectangle.
@@ -376,11 +375,11 @@ void TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig)
         if (bestr.br.x != r.br.x) {
           sr.setXYWH(bestr.br.x, bestr.tl.y, r.br.x - bestr.br.x,
             bestr.height());
-          writeRect(sr, _ig);
+          writeRect(sr, _pb);
         }
         if (bestr.br.y != r.br.y) {
           sr.setXYWH(x, bestr.br.y, w, r.br.y - bestr.br.y);
-          writeRect(sr, _ig);
+          writeRect(sr, _pb);
         }
 
         return;

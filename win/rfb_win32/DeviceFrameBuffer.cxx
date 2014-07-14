@@ -220,6 +220,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
           }
         }
       }
+      cursorBm.commitBufferRW(cursorBm.getRect());
     }
 
     // Finally invert the AND mask so it's suitable for RFB and pack it into

@@ -4,7 +4,6 @@
 #include <time.h>
 
 #include <rfb/PixelFormat.h>
-#include <rfb/PixelTransformer.h>
 
 #include "util.h"
 
@@ -12,8 +11,6 @@ static const int tile = 64;
 static const int fbsize = 4096;
 
 static rdr::U8 *fb1, *fb2;
-
-static rfb::PixelTransformer *pt = NULL;
 
 typedef void (*testfn) (rfb::PixelFormat&, rfb::PixelFormat&, rdr::U8*, rdr::U8*);
 
@@ -34,12 +31,10 @@ static void testMemcpy(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
   }
 }
 
-static void testPixelTransformer(rfb::PixelFormat &dstpf,
-                                 rfb::PixelFormat &srcpf,
-                                 rdr::U8 *dst, rdr::U8 *src)
+static void testBuffer(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
+                       rdr::U8 *dst, rdr::U8 *src)
 {
-  pt->translateRect(src, fbsize, rfb::Rect(0, 0, tile, tile),
-                    dst, fbsize, rfb::Point(0, 0));
+  dstpf.bufferFromBuffer(dst, srcpf, src, tile, tile, fbsize, fbsize);
 }
 
 static void testToRGB(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
@@ -56,11 +51,6 @@ static void testFromRGB(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf,
 
 static void doTest(testfn fn, rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf)
 {
-  if (!srcpf.isLittleEndian() && (fn == testPixelTransformer)) {
-    printf("NaN");
-    return;
-  }
-
   startCpuCounter();
 
   for (int i = 0;i < 10000;i++) {
@@ -85,7 +75,7 @@ static void doTest(testfn fn, rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf)
 
 struct TestEntry tests[] = {
   {"memcpy", testMemcpy},
-  {"PixelTransformer", testPixelTransformer},
+  {"bufferFromBuffer", testBuffer},
   {"rgbFromBuffer", testToRGB},
   {"bufferFromRGB", testFromRGB},
 };
@@ -97,12 +87,6 @@ static void doTests(rfb::PixelFormat &dstpf, rfb::PixelFormat &srcpf)
 
   dstpf.print(dstb, sizeof(dstb));
   srcpf.print(srcb, sizeof(srcb));
-
-  if (srcpf.isLittleEndian()) {
-    delete pt;
-    pt = new rfb::PixelTransformer;
-    pt->init(srcpf, dstpf);
-  }
 
   printf("%s,%s", srcb, dstb);
 
@@ -153,6 +137,8 @@ int main(int argc, char **argv)
 
   /* rgb888 targets */
 
+  printf("\n");
+
   dstpf.parse("rgb888");
 
   srcpf.parse("rgb888");
@@ -169,6 +155,8 @@ int main(int argc, char **argv)
 
   /* rgb565 targets */
 
+  printf("\n");
+
   dstpf.parse("rgb565");
 
   srcpf.parse("rgb888");
@@ -180,7 +168,24 @@ int main(int argc, char **argv)
   srcpf.parse("rgb232");
   doTests(dstpf, srcpf);
 
+  /* rgb232 targets */
+
+  printf("\n");
+
+  dstpf.parse("rgb232");
+
+  srcpf.parse("rgb888");
+  doTests(dstpf, srcpf);
+
+  srcpf.parse("rgb565");
+  doTests(dstpf, srcpf);
+
+  srcpf.parse("bgr232");
+  doTests(dstpf, srcpf);
+
   /* rgb565 with endian conversion (both ways) */
+
+  printf("\n");
 
   dstpf = rfb::PixelFormat(32, 24, false, true, 255, 255, 255, 0, 8, 16);
   srcpf = rfb::PixelFormat(32, 24, true, true, 255, 255, 255, 0, 8, 16);

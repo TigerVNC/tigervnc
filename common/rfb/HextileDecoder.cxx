@@ -17,7 +17,7 @@
  */
 #include <rfb/CMsgReader.h>
 #include <rfb/CConnection.h>
-#include <rfb/CMsgHandler.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/HextileDecoder.h>
 
 using namespace rfb;
@@ -40,13 +40,14 @@ HextileDecoder::~HextileDecoder()
 {
 }
 
-void HextileDecoder::readRect(const Rect& r, CMsgHandler* handler)
+void HextileDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
 {
   rdr::InStream* is = conn->getInStream();
   rdr::U8* buf = conn->reader()->getImageBuf(16 * 16 * 4);
-  switch (conn->cp.pf().bpp) {
-  case 8:  hextileDecode8 (r, is, (rdr::U8*) buf, handler); break;
-  case 16: hextileDecode16(r, is, (rdr::U16*)buf, handler); break;
-  case 32: hextileDecode32(r, is, (rdr::U32*)buf, handler); break;
+  const PixelFormat& pf = conn->cp.pf();
+  switch (pf.bpp) {
+  case 8:  hextileDecode8 (r, is, (rdr::U8*) buf, pf, pb); break;
+  case 16: hextileDecode16(r, is, (rdr::U16*)buf, pf, pb); break;
+  case 32: hextileDecode32(r, is, (rdr::U32*)buf, pf, pb); break;
   }
 }

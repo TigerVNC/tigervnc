@@ -34,11 +34,6 @@ namespace rfb {
   class ConnParams;
   class ScreenSet;
 
-  class WriteSetCursorCallback {
-  public:
-    virtual void writeSetCursorCallback() = 0;
-  };
-
   class SMsgWriter {
   public:
     SMsgWriter(ConnParams* cp, rdr::OutStream* os);
@@ -81,16 +76,10 @@ namespace rfb {
 
     bool writeSetDesktopName();
 
-    // Like setDesktopSize, we can't just write out a setCursor message
-    // immediately. Instead of calling writeSetCursor() directly,
-    // you must call cursorChange(), and then invoke writeSetCursor()
-    // in response to the writeSetCursorCallback() callback. This will
-    // happen when the next update is sent.
-    void cursorChange(WriteSetCursorCallback* cb);
-    void writeSetCursor(int width, int height, const Point& hotspot,
-                        void* data, void* mask);
-    void writeSetXCursor(int width, int height, int hotspotX, int hotspotY,
-                         void* data, void* mask);
+    // Like setDesktopSize, we can't just write out a cursor message
+    // immediately. 
+    bool writeSetCursor();
+    bool writeSetXCursor();
 
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out pseudo-rectangles to the client.
@@ -141,6 +130,13 @@ namespace rfb {
                                       int fb_width, int fb_height,
                                       const ScreenSet& layout);
     void writeSetDesktopNameRect(const char *name);
+    void writeSetCursorRect(int width, int height,
+                            int hotspotX, int hotspotY,
+                            const void* data, const void* mask);
+    void writeSetXCursorRect(int width, int height,
+                             int hotspotX, int hotspotY,
+                             const rdr::U8 pix0[], const rdr::U8 pix1[],
+                             const void* data, const void* mask);
 
     ConnParams* cp;
     rdr::OutStream* os;
@@ -150,12 +146,12 @@ namespace rfb {
     int nRectsInUpdate;
     int nRectsInHeader;
 
-    WriteSetCursorCallback* wsccb;
-
     bool needSetDesktopSize;
     bool needExtendedDesktopSize;
     bool needSetDesktopName;
     bool needLastRect;
+    bool needSetCursor;
+    bool needSetXCursor;
 
     int lenBeforeRect;
     int updatesSent;

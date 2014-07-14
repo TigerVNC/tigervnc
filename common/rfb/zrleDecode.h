@@ -48,7 +48,7 @@ namespace rfb {
 
 void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
                   rdr::ZlibInStream* zis, PIXEL_T* buf,
-                  CMsgHandler* handler)
+                  const PixelFormat& pf, ModifiablePixelBuffer* pb)
 {
   int length = is->readU32();
   zis->setUnderlying(is, length);
@@ -73,7 +73,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
       if (palSize == 1) {
         PIXEL_T pix = palette[0];
-        handler->fillRect(t, pix);
+        pb->fillRect(pf, t, pix);
         continue;
       }
 
@@ -173,7 +173,7 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
 
       //fprintf(stderr,"copying data to screen %dx%d at %d,%d\n",
       //t.width(),t.height(),t.tl.x,t.tl.y);
-      handler->imageRect(t, buf);
+      pb->imageRect(pf, t, buf);
     }
   }
 

@@ -64,17 +64,7 @@ public:
 
   void framebufferUpdateStart();
   void framebufferUpdateEnd();
-
   void dataRect(const rfb::Rect& r, int encoding);
-
-  void fillRect(const rfb::Rect& r, rfb::Pixel p);
-  void imageRect(const rfb::Rect& r, void* p);
-  void copyRect(const rfb::Rect& r, int sx, int sy);
-
-  rdr::U8* getRawBufferRW(const rfb::Rect& r, int* stride);
-  void releaseRawBuffer(const rfb::Rect& r);
-
-  const rfb::PixelFormat &getPreferredPF() { return fullColourPF; }
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);

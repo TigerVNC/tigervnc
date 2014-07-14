@@ -157,6 +157,8 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
     oldData += oldStrideBytes * BLOCK_SIZE;
   }
 
+  oldFb.commitBufferRW(r);
+
   if (!changedBlocks.empty()) {
     Region temp;
     temp.setOrderedRects(changedBlocks);

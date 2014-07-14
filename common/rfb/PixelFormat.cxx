@@ -19,6 +19,7 @@
  */
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
@@ -31,6 +32,42 @@
 #endif
 
 using namespace rfb;
+
+rdr::U8 PixelFormat::upconvTable[256*8];
+
+class PixelFormat::Init {
+public:
+  Init();
+};
+
+PixelFormat::Init PixelFormat::_init;
+
+
+PixelFormat::Init::Init()
+{
+  int bits;
+
+  // Bit replication is almost perfect, but not quite. And
+  // a lookup table is still quicker when there is a large
+  // difference between the source and destination depth.
+
+  for (bits = 1;bits <= 8;bits++) {
+    int i, maxVal;
+    rdr::U8 *subTable;
+
+    maxVal = (1 << bits) - 1;
+    subTable = &upconvTable[(bits-1)*256];
+
+    for (i = 0;i <= maxVal;i++)
+      subTable[i] = i * 255 / maxVal;
+
+    // Duplicate the table so that we don't have to care about
+    // the upper bits when doing a lookup
+    for (;i < 256;i += maxVal+1)
+      memcpy(&subTable[i], &subTable[0], maxVal+1);
+  }
+}
+
 
 PixelFormat::PixelFormat(int b, int d, bool e, bool t,
                          int rm, int gm, int bm, int rs, int gs, int bs)
@@ -307,6 +344,129 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
 }
 
 
+Pixel PixelFormat::pixelFromPixel(const PixelFormat &srcPF, Pixel src) const
+{
+  rdr::U16 r, g, b;
+  srcPF.rgbFromPixel(src, &r, &g, &b);
+  return pixelFromRGB(r, g, b);
+}
+
+
+void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                                   const rdr::U8* src, int pixels) const
+{
+  bufferFromBuffer(dst, srcPF, src, pixels, 1, pixels, pixels);
+}
+
+#define IS_ALIGNED(v, a) (((intptr_t)v & (a-1)) == 0)
+
+void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
+                                   const rdr::U8* src, int w, int h,
+                                   int dstStride, int srcStride) const
+{
+  if (equal(srcPF)) {
+    // Trivial case
+    while (h--) {
+      memcpy(dst, src, w * bpp/8);
+      dst += dstStride * bpp/8;
+      src += srcStride * srcPF.bpp/8;
+    }
+  } else if (is888() && srcPF.is888()) {
+    // Optimised common case A: byte shuffling (e.g. endian conversion)
+    rdr::U8 *d[4];
+    int dstPad, srcPad;
+
+    if (bigEndian != srcPF.bigEndian) {
+      d[(24 - srcPF.redShift)/8] = dst + (24 - redShift)/8;
+      d[(24 - srcPF.greenShift)/8] = dst + (24 - greenShift)/8;
+      d[(24 - srcPF.blueShift)/8] = dst + (24 - blueShift)/8;
+      d[(24 - (48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift))/8] =
+        dst + (24 - (48 - redShift - greenShift - blueShift))/8;
+    } else {
+      d[srcPF.redShift/8] = dst + redShift/8;
+      d[srcPF.greenShift/8] = dst + greenShift/8;
+      d[srcPF.blueShift/8] = dst + blueShift/8;
+      d[(48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift)/8] =
+        dst + (48 - redShift - greenShift - blueShift)/8;
+    }
+
+    dstPad = (dstStride - w) * 4;
+    srcPad = (srcStride - w) * 4;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        *d[0] = *(src++);
+        *d[1] = *(src++);
+        *d[2] = *(src++);
+        *d[3] = *(src++);
+        d[0] += 4;
+        d[1] += 4;
+        d[2] += 4;
+        d[3] += 4;
+      }
+      d[0] += dstPad;
+      d[1] += dstPad;
+      d[2] += dstPad;
+      d[3] += dstPad;
+      src += srcPad;
+    }
+  } else if (IS_ALIGNED(dst, bpp/8) && srcPF.is888()) {
+    // Optimised common case B: 888 source
+    switch (bpp) {
+    case 8:
+      directBufferFromBufferFrom888((rdr::U8*)dst, srcPF, src,
+                                    w, h, dstStride, srcStride);
+      break;
+    case 16:
+      directBufferFromBufferFrom888((rdr::U16*)dst, srcPF, src,
+                                    w, h, dstStride, srcStride);
+      break;
+    case 32:
+      directBufferFromBufferFrom888((rdr::U32*)dst, srcPF, src,
+                                    w, h, dstStride, srcStride);
+      break;
+    }
+  } else if (IS_ALIGNED(src, srcPF.bpp/8) && is888()) {
+    // Optimised common case C: 888 destination
+    switch (srcPF.bpp) {
+    case 8:
+      directBufferFromBufferTo888(dst, srcPF, (rdr::U8*)src,
+                                  w, h, dstStride, srcStride);
+      break;
+    case 16:
+      directBufferFromBufferTo888(dst, srcPF, (rdr::U16*)src,
+                                  w, h, dstStride, srcStride);
+      break;
+    case 32:
+      directBufferFromBufferTo888(dst, srcPF, (rdr::U32*)src,
+                                  w, h, dstStride, srcStride);
+      break;
+    }
+  } else {
+    // Generic code
+    int dstPad = (dstStride - w) * bpp/8;
+    int srcPad = (srcStride - w) * srcPF.bpp/8;
+    while (h--) {
+      int w_ = w;
+      while (w_--) {
+        Pixel p;
+        rdr::U8 r, g, b;
+
+        p = srcPF.pixelFromBuffer(src);
+        srcPF.rgbFromPixel(p, &r, &g, &b);
+        p = pixelFromRGB(r, g, b);
+        bufferFromPixel(dst, p);
+
+        dst += bpp/8;
+        src += srcPF.bpp/8;
+      }
+      dst += dstPad;
+      src += srcPad;
+    }
+  }
+}
+
+
 void PixelFormat::print(char* str, int len) const
 {
   // Unfortunately snprintf is not widely available so we build the string up
@@ -514,3 +674,42 @@ bool PixelFormat::isSane(void)
 
   return true;
 }
+
+// Preprocessor generated, optimised methods
+
+#define INBPP 8
+#define OUTBPP 8
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 16
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 32
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#undef INBPP
+
+#define INBPP 16
+#define OUTBPP 8
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 16
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 32
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#undef INBPP
+
+#define INBPP 32
+#define OUTBPP 8
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 16
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#define OUTBPP 32
+#include "PixelFormatBPP.cxx"
+#undef OUTBPP
+#undef INBPP
+

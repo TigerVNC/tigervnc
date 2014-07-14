@@ -19,7 +19,7 @@
  */
 #include <rfb/CMsgReader.h>
 #include <rfb/CConnection.h>
-#include <rfb/CMsgHandler.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/TightDecoder.h>
 
 using namespace rfb;
@@ -44,12 +44,12 @@ TightDecoder::~TightDecoder()
 {
 }
 
-void TightDecoder::readRect(const Rect& r, CMsgHandler* handler)
+void TightDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
 {
   is = conn->getInStream();
-  this->handler = handler;
-  clientpf = handler->getPreferredPF();
-  serverpf = handler->cp.pf();
+  this->pb = pb;
+  clientpf = pb->getPF();
+  serverpf = conn->cp.pf();
 
   if (clientpf.equal(serverpf)) {
     /* Decode directly into the framebuffer (fast path) */

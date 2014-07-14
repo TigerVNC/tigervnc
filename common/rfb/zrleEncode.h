@@ -30,6 +30,7 @@
 #include <rdr/OutStream.h>
 #include <rdr/ZlibOutStream.h>
 #include <rfb/Palette.h>
+#include <rfb/PixelBuffer.h>
 #include <assert.h>
 
 namespace rfb {
@@ -66,7 +67,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os);
 
 void ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
                   rdr::ZlibOutStream* zos, void* buf,
-                  TransImageGetter *ig)
+                  const PixelFormat& pf, PixelBuffer* pb)
 {
   zos->setUnderlying(os);
   // RLE overhead is at worst 1 byte per 64x64 (4Kpixel) block
@@ -83,7 +84,7 @@ void ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
 
-      ig->getImage(buf, t);
+      pb->getImage(pf, buf, t);
 
       ZRLE_ENCODE_TILE((PIXEL_T*)buf, t.width(), t.height(), zos);
     }

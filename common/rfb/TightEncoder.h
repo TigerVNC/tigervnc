@@ -33,7 +33,7 @@ extern "C" {
 
 namespace rfb {
 
-  class TransImageGetter;
+  class PixelBuffer;
 
   struct TIGHT_CONF {
     unsigned int maxRectSize, maxRectWidth;
@@ -65,7 +65,7 @@ namespace rfb {
     virtual void setQualityLevel(int level);
     virtual void setFineQualityLevel(int quality, int subsampling);
     virtual int getNumRects(const Rect &r);
-    virtual void writeRect(const Rect& r, TransImageGetter* ig);
+    virtual void writeRect(const Rect& r, PixelBuffer* pb);
 
   private:
     bool checkSolidTile(Rect& r, rdr::U32* colorPtr, bool needSameColor);
@@ -123,7 +123,7 @@ namespace rfb {
     rdr::MemOutStream mos;
     rdr::ZlibOutStream zos[4];
     JpegCompressor jc;
-    TransImageGetter *ig;
+    PixelBuffer *pb;
     PixelFormat serverpf, clientpf;
 
     bool pack24;

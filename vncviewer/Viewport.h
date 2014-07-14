@@ -22,10 +22,9 @@
 
 #include <map>
 
-#include <FL/Fl_Widget.H>
+namespace rfb { class ModifiablePixelBuffer; }
 
-#include <rfb/Region.h>
-#include <rfb/Pixel.h>
+#include <FL/Fl_Widget.H>
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;
@@ -41,24 +40,16 @@ public:
   Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_);
   ~Viewport();
 
-  // PixelFormat of incoming write operations
-  void setServerPF(const rfb::PixelFormat& pf);
   // Most efficient format (from Viewport's point of view)
   const rfb::PixelFormat &getPreferredPF();
 
   // Flush updates to screen
   void updateWindow();
 
-  // Methods forwarded from CConn
+  // Return a pointer to the framebuffer for decoders to write into
+  rfb::ModifiablePixelBuffer* getFramebuffer(void);
 
-  void fillRect(const rfb::Rect& r, rfb::Pixel pix);
-  void imageRect(const rfb::Rect& r, void* pixels);
-  void copyRect(const rfb::Rect& r, int srcX, int srcY);
-
-  rdr::U8* getBufferRW(const rfb::Rect& r, int* stride);
-
-  void damageRect(const rfb::Rect& r);
-
+  // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
 
@@ -73,8 +64,6 @@ public:
 private:
 
   PlatformPixelBuffer* createFramebuffer(int w, int h);
-
-  static void handleUpdateTimeout(void *data);
 
   static void handleClipboardChange(int source, void *data);
 
@@ -95,8 +84,6 @@ private:
   CConn* cc;
 
   PlatformPixelBuffer* frameBuffer;
-  rfb::PixelTransformer *pixelTrans;
-  rfb::Region damage;
 
   rfb::Point lastPointerPos;
   int lastButtonMask;

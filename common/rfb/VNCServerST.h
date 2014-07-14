@@ -177,12 +177,6 @@ namespace rfb {
     // Blacklist to be shared by multiple VNCServerST instances.
     void setBlacklist(Blacklist* bl) {blHosts = bl ? bl : &blacklist;}
 
-    // setEconomicTranslate() determines (for new connections) whether pixels
-    // should be translated for <=16bpp clients using a large lookup table
-    // (fast) or separate, smaller R, G and B tables (slower).  If set to true,
-    // small tables are used, to save memory.
-    void setEconomicTranslate(bool et) { useEconomicTranslate = et; }
-
     // setKeyRemapper() replaces the VNCServerST's default key remapper.
     // NB: A null pointer is valid here.
     void setKeyRemapper(KeyRemapper* kr) { keyRemapper = kr; }
@@ -224,9 +218,7 @@ namespace rfb {
 
     Point cursorPos;
     Cursor cursor;
-    Point cursorTL() { return cursorPos.subtract(cursor.hotspot); }
-    Point renderedCursorTL;
-    ManagedPixelBuffer renderedCursor;
+    RenderedCursor renderedCursor;
     bool renderedCursorInvalid;
 
     // - Check how many of the clients are authenticated.
@@ -244,8 +236,7 @@ namespace rfb {
 
     QueryConnectionHandler* queryConnectionHandler;
     KeyRemapper* keyRemapper;
-    bool useEconomicTranslate;
-    
+
     time_t lastUserInputTime;
     time_t lastDisconnectTime;
     time_t lastConnectionTime;

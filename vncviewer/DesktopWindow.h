@@ -27,6 +27,8 @@
 
 #include <FL/Fl_Window.H>
 
+namespace rfb { class ModifiablePixelBuffer; }
+
 class CConn;
 class Viewport;
 
@@ -39,26 +41,22 @@ public:
                 const rfb::PixelFormat& serverPF, CConn* cc_);
   ~DesktopWindow();
 
-  // PixelFormat of incoming write operations
-  void setServerPF(const rfb::PixelFormat& pf);
   // Most efficient format (from DesktopWindow's point of view)
   const rfb::PixelFormat &getPreferredPF();
 
   // Flush updates to screen
   void updateWindow();
 
-  // Methods forwarded from CConn
+  // Updated session title
   void setName(const char *name);
 
-  void fillRect(const rfb::Rect& r, rfb::Pixel pix);
-  void imageRect(const rfb::Rect& r, void* pixels);
-  void copyRect(const rfb::Rect& r, int srcX, int srcY);
+  // Return a pointer to the framebuffer for decoders to write into
+  rfb::ModifiablePixelBuffer* getFramebuffer(void);
 
-  rdr::U8* getBufferRW(const rfb::Rect& r, int* stride);
-  void damageRect(const rfb::Rect& r);
-
+  // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
 
+  // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
 

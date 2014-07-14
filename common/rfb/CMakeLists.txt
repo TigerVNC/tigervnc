@@ -31,7 +31,6 @@ set(RFB_SOURCES
   Password.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
-  PixelTransformer.cxx
   RREEncoder.cxx
   RREDecoder.cxx
   RawDecoder.cxx
@@ -53,7 +52,6 @@ set(RFB_SOURCES
   Timer.cxx
   TightDecoder.cxx
   TightEncoder.cxx
-  TransImageGetter.cxx
   UpdateTracker.cxx
   VNCSConnectionST.cxx
   VNCServerST.cxx

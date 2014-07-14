@@ -36,11 +36,12 @@ namespace rfb {
 #define READ_PIXEL CONCAT2E(readOpaque,BPP)
 #define RRE_DECODE CONCAT2E(rreDecode,BPP)
 
-void RRE_DECODE (const Rect& r, rdr::InStream* is, CMsgHandler* handler)
+void RRE_DECODE (const Rect& r, rdr::InStream* is,
+                 const PixelFormat& pf, ModifiablePixelBuffer* pb)
 {
   int nSubrects = is->readU32();
   PIXEL_T bg = is->READ_PIXEL();
-  handler->fillRect(r, bg);
+  pb->fillRect(pf, r, bg);
 
   for (int i = 0; i < nSubrects; i++) {
     PIXEL_T pix = is->READ_PIXEL();
@@ -48,7 +49,7 @@ void RRE_DECODE (const Rect& r, rdr::InStream* is, CMsgHandler* handler)
     int y = is->readU16();
     int w = is->readU16();
     int h = is->readU16();
-    handler->fillRect(Rect(r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h), pix);
+    pb->fillRect(pf, Rect(r.tl.x+x, r.tl.y+y, r.tl.x+x+w, r.tl.y+y+h), pix);
   }
 }
 

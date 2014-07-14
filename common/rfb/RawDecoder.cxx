@@ -18,7 +18,7 @@
 #include <rdr/InStream.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CConnection.h>
-#include <rfb/CMsgHandler.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/RawDecoder.h>
 
 using namespace rfb;
@@ -31,7 +31,7 @@ RawDecoder::~RawDecoder()
 {
 }
 
-void RawDecoder::readRect(const Rect& r, CMsgHandler* handler)
+void RawDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
 {
   int x = r.tl.x;
   int y = r.tl.y;
@@ -39,12 +39,13 @@ void RawDecoder::readRect(const Rect& r, CMsgHandler* handler)
   int h = r.height();
   int nPixels;
   rdr::U8* imageBuf = conn->reader()->getImageBuf(w, w*h, &nPixels);
-  int bytesPerRow = w * (conn->cp.pf().bpp / 8);
+  const PixelFormat& pf = conn->cp.pf();
+  int bytesPerRow = w * (pf.bpp / 8);
   while (h > 0) {
     int nRows = nPixels / w;
     if (nRows > h) nRows = h;
     conn->getInStream()->readBytes(imageBuf, nRows * bytesPerRow);
-    handler->imageRect(Rect(x, y, x+w, y+nRows), imageBuf);
+    pb->imageRect(pf, Rect(x, y, x+w, y+nRows), imageBuf);
     h -= nRows;
     y += nRows;
   }

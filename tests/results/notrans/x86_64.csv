@@ -1,0 +1,26 @@
+# Pixel Conversion Test 2014-07-09 14:14 UTC
+#
+# Frame buffer: 4096x4096 pixels
+# Tile size: 64x64 pixels
+#
+# Note: Results are Mpixels/sec
+#
+Source format,Destination Format,memcpy,PixelTransformer,bufferFromBuffer,rgbFromBuffer,bufferFromRGB
+
+depth 24 (32bpp) little-endian rgb888,depth 24 (32bpp) little-endian rgb888,576.901,576.901,546.133,338.512,602.353
+depth 24 (32bpp) little-endian bgr888,depth 24 (32bpp) little-endian rgb888,585.143,251.288,288.451,335.738,602.353
+depth 16 (16bpp) little-endian rgb565,depth 24 (32bpp) little-endian rgb888,585.143,405.545,205.829,162.54,620.606
+depth 7 (8bpp) rgb232,depth 24 (32bpp) little-endian rgb888,493.494,505.679,267.712,177.316,620.606
+
+depth 24 (32bpp) little-endian rgb888,depth 16 (16bpp) little-endian rgb565,999.024,231.412,257.61,344.202,265.974
+depth 16 (16bpp) little-endian bgr565,depth 16 (16bpp) little-endian rgb565,975.238,455.111,101.638,165.161,267.712
+depth 7 (8bpp) rgb232,depth 16 (16bpp) little-endian rgb565,1050.26,576.901,105.296,181.239,269.474
+
+depth 24 (32bpp) little-endian rgb888,depth 7 (8bpp) rgb232,1638.4,259.24,271.258,347.119,298.978
+depth 16 (16bpp) little-endian rgb565,depth 7 (8bpp) rgb232,1575.38,505.679,105.026,165.161,294.676
+depth 7 (8bpp) bgr232,depth 7 (8bpp) rgb232,1706.67,602.353,107.225,183.677,298.978
+
+depth 24 (32bpp) little-endian bgr888,depth 24 (32bpp) big-endian bgr888,593.623,251.288,286.434,338.512,620.606
+depth 24 (32bpp) big-endian bgr888,depth 24 (32bpp) little-endian bgr888,593.623,NaN,282.483,344.202,611.343
+depth 16 (16bpp) little-endian bgr565,depth 16 (16bpp) big-endian bgr565,1050.26,450.11,97.7566,166.504,259.24
+depth 16 (16bpp) big-endian bgr565,depth 16 (16bpp) little-endian bgr565,999.024,NaN,96.6038,155.152,267.712
