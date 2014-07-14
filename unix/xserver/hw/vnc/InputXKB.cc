@@ -42,18 +42,6 @@ extern "C" {
 #undef class
 }
 
-#if XORG < 19
-static int vncXkbScreenPrivateKeyIndex;
-static DevPrivateKey vncXkbScreenPrivateKey = &vncXkbScreenPrivateKeyIndex;
-#else
-static DevPrivateKeyRec vncXkbPrivateKeyRec;
-#define vncXkbScreenPrivateKey (&vncXkbPrivateKeyRec)
-#endif
-
-#define vncXkbScreenPrivate(pScreen) \
-	(*(InputDevice**) dixLookupPrivate(&(pScreen)->devPrivates, \
-	                                   vncXkbScreenPrivateKey))
-
 #ifndef KEYBOARD_OR_FLOAT
 #define KEYBOARD_OR_FLOAT MASTER_KEYBOARD
 #endif
@@ -209,18 +197,6 @@ static unsigned XkbKeyEffectiveGroup(XkbDescPtr xkb, KeyCode key, unsigned int m
 
 void InputDevice::PrepareInputDevices(void)
 {
-#if XORG < 19
-	if (!dixRequestPrivate(vncXkbScreenPrivateKey, sizeof(InputDevice*)))
-		FatalError("Failed to register TigerVNC XKB screen key\n");
-#else
-	if (!dixRegisterPrivateKey(vncXkbScreenPrivateKey, PRIVATE_SCREEN,
-	                           sizeof(InputDevice*)))
-		FatalError("Failed to register TigerVNC XKB screen key\n");
-#endif
-
-	for (int scr = 0; scr < screenInfo.numScreens; scr++)
-		vncXkbScreenPrivate(screenInfo.screens[scr]) = this;
-
 	/*
 	 * Not ideal since these callbacks do not stack, but it's the only
 	 * decent way we can reliably catch events for both the slave and
@@ -636,10 +612,9 @@ void InputDevice::vncXkbProcessDeviceEvent(int screenNum,
                                            InternalEvent *event,
                                            DeviceIntPtr dev)
 {
-	InputDevice *self = vncXkbScreenPrivate(screenInfo.screens[screenNum]);
 	unsigned int backupctrls;
 
-	if (event->device_event.sourceid == self->keyboardDev->id) {
+	if (event->device_event.sourceid == singleton.keyboardDev->id) {
 		XkbControlsPtr ctrls;
 
 		/*
@@ -661,7 +636,7 @@ void InputDevice::vncXkbProcessDeviceEvent(int screenNum,
 
 	dev->c_public.processInputProc(event, dev);
 
-	if (event->device_event.sourceid == self->keyboardDev->id) {
+	if (event->device_event.sourceid == singleton.keyboardDev->id) {
 		XkbControlsPtr ctrls;
 
 		ctrls = dev->key->xkbInfo->desc->ctrls;
