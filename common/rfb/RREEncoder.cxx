@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +18,10 @@
  */
 #include <rdr/OutStream.h>
 #include <rfb/encodings.h>
-#include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/Palette.h>
 #include <rfb/RREEncoder.h>
 
 using namespace rfb;
@@ -35,7 +36,8 @@ using namespace rfb;
 #include <rfb/rreEncode.h>
 #undef BPP
 
-RREEncoder::RREEncoder(SConnection* conn) : RawEncoder(conn)
+RREEncoder::RREEncoder(SConnection* conn) :
+  Encoder(conn, encodingRRE, EncoderPlain, -1)
 {
 }
 
@@ -43,30 +45,71 @@ RREEncoder::~RREEncoder()
 {
 }
 
-void RREEncoder::writeRect(const Rect& r, PixelBuffer* pb)
+bool RREEncoder::isSupported()
 {
-  int w = r.width();
-  int h = r.height();
-  rdr::U8* imageBuf = conn->writer()->getImageBuf(w*h);
-  pb->getImage(conn->cp.pf(), imageBuf, r);
+  return conn->cp.supportsEncoding(encodingRRE);
+}
 
-  mos.clear();
+void RREEncoder::writeRect(const PixelBuffer* pb, const Palette& palette)
+{
+  rdr::U8* imageBuf;
+  int stride;
+  rdr::U32 bg;
 
-  int nSubrects = -1;
-  switch (conn->cp.pf().bpp) {
-  case 8:  nSubrects = rreEncode8(imageBuf, w, h, &mos);  break;
-  case 16: nSubrects = rreEncode16(imageBuf, w, h, &mos); break;
-  case 32: nSubrects = rreEncode32(imageBuf, w, h, &mos); break;
-  }
-  
-  if (nSubrects < 0) {
-    RawEncoder::writeRect(r, pb);
+  int w = pb->width();
+  int h = pb->height();
+
+  if (palette.size() == 1) {
+    Encoder::writeSolidRect(pb, palette);
     return;
   }
 
-  conn->writer()->startRect(r, encodingRRE);
+  // We have to have our own copy of the data as we modify it as
+  // we find subrects.
+  bufferCopy.setPF(pb->getPF());
+  bufferCopy.setSize(w, h);
+
+  imageBuf = bufferCopy.getBufferRW(pb->getRect(), &stride);
+  pb->getImage(imageBuf, pb->getRect());
+
+  if (palette.size() > 0)
+    bg = palette.getColour(0);
+  else {
+    // Some crazy person is using this encoder for high colour
+    // data. Just pick the first pixel as the background colour.
+    bg = 0;
+    memcpy(&bg, imageBuf, pb->getPF().bpp/8);
+  }
+
+  int nSubrects = -1;
+  switch (pb->getPF().bpp) {
+  case 8:
+    nSubrects = rreEncode8((rdr::U8*)imageBuf, w, h, &mos, bg);
+    break;
+  case 16:
+    nSubrects = rreEncode16((rdr::U16*)imageBuf, w, h, &mos, bg);
+    break;
+  case 32:
+    nSubrects = rreEncode32((rdr::U32*)imageBuf, w, h, &mos, bg);
+    break;
+  }
+
+  bufferCopy.commitBufferRW(pb->getRect());
+
   rdr::OutStream* os = conn->getOutStream();
   os->writeU32(nSubrects);
   os->writeBytes(mos.data(), mos.length());
-  conn->writer()->endRect();
+  mos.clear();
+}
+
+void RREEncoder::writeSolidRect(int width, int height,
+                                const PixelFormat& pf,
+                                const rdr::U8* colour)
+{
+  rdr::OutStream* os;
+
+  os = conn->getOutStream();
+
+  os->writeU32(0);
+  os->writeBytes(colour, pf.bpp/8);
 }

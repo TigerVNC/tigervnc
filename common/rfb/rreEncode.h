@@ -41,47 +41,8 @@ namespace rfb {
 #define WRITE_PIXEL CONCAT2E(writeOpaque,BPP)
 #define RRE_ENCODE CONCAT2E(rreEncode,BPP)
 
-int RRE_ENCODE (PIXEL_T* data, int w, int h, rdr::OutStream* os, PIXEL_T bg);
-
-int RRE_ENCODE (void* data, int w, int h, rdr::OutStream* os)
-{
-  // Find the background colour - count occurrences of up to 4 different pixel
-  // values, and choose the one which occurs most often.
-
-  const int nCols = 4;
-  PIXEL_T pix[nCols];
-  int count[nCols] = { 0, };
-  PIXEL_T* ptr = (PIXEL_T*)data;
-  PIXEL_T* end = ptr + w*h;
-
-  while (ptr < end) {
-    int i;
-    for (i = 0; i < nCols; i++) {
-      if (count[i] == 0)
-        pix[i] = *ptr;
-
-      if (pix[i] == *ptr) {
-        count[i]++;
-        break;
-      }
-    }
-
-    if (i == nCols) break;
-    ptr++;
-  }
-  
-  int bg = 0;
-  for (int i = 1; i < nCols; i++)
-    if (count[i] > count[bg]) bg = i;
-
-  // Now call the function to do the encoding.
-
-  return RRE_ENCODE ((PIXEL_T*)data, w, h, os, pix[bg]);
-}
-
 int RRE_ENCODE (PIXEL_T* data, int w, int h, rdr::OutStream* os, PIXEL_T bg)
 {
-  int oldLen = os->length();
   os->WRITE_PIXEL(bg);
 
   int nSubrects = 0;
@@ -141,7 +102,6 @@ int RRE_ENCODE (PIXEL_T* data, int w, int h, rdr::OutStream* os, PIXEL_T bg)
       os->writeU16(y);
       os->writeU16(sw);
       os->writeU16(sh);
-      if (os->length() > oldLen + w*h) return -1;
 
       ptr = data+w;
       PIXEL_T* eor = data+w*sh;

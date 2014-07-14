@@ -34,12 +34,11 @@ using namespace rfb;
 static LogWriter vlog("SMsgWriter");
 
 SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
-  : imageBufIdealSize(0), cp(cp_), os(os_), currentEncoding(0),
+  : cp(cp_), os(os_), currentEncoding(0),
     nRectsInUpdate(0), nRectsInHeader(0),
     needSetDesktopSize(false), needExtendedDesktopSize(false),
     needSetDesktopName(false), needSetCursor(false), needSetXCursor(false),
-    lenBeforeRect(0), updatesSent(0), rawBytesEquivalent(0),
-    imageBuf(0), imageBufSize(0)
+    lenBeforeRect(0), updatesSent(0), rawBytesEquivalent(0)
 {
   for (int i = 0; i <= encodingMax; i++) {
     bytesSent[i] = 0;
@@ -60,7 +59,6 @@ SMsgWriter::~SMsgWriter()
   }
   vlog.info("  raw bytes equivalent %llu, compression ratio %f",
           rawBytesEquivalent, (double)rawBytesEquivalent / bytes);
-  delete [] imageBuf;
 }
 
 void SMsgWriter::writeServerInit()
@@ -314,26 +312,6 @@ void SMsgWriter::endRect()
     bytesSent[currentEncoding] += os->length() - lenBeforeRect;
     rectsSent[currentEncoding]++;
   }
-}
-
-rdr::U8* SMsgWriter::getImageBuf(int required, int requested, int* nPixels)
-{
-  int requiredBytes = required * (cp->pf().bpp / 8);
-  int requestedBytes = requested * (cp->pf().bpp / 8);
-  int size = requestedBytes;
-  if (size > imageBufIdealSize) size = imageBufIdealSize;
-
-  if (size < requiredBytes)
-    size = requiredBytes;
-
-  if (imageBufSize < size) {
-    imageBufSize = size;
-    delete [] imageBuf;
-    imageBuf = new rdr::U8[imageBufSize];
-  }
-  if (nPixels)
-    *nPixels = imageBufSize / (cp->pf().bpp / 8);
-  return imageBuf;
 }
 
 void SMsgWriter::startMsg(int type)

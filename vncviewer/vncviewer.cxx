@@ -313,8 +313,8 @@ static void
 createTunnel(const char *gatewayHost, const char *remoteHost,
              int remotePort, int localPort)
 {
-  char *cmd = getenv("VNC_VIA_CMD");
-  char *percent;
+  const char *cmd = getenv("VNC_VIA_CMD");
+  char *cmd2, *percent;
   char lport[10], rport[10];
   sprintf(lport, "%d", localPort);
   sprintf(rport, "%d", remotePort);
@@ -325,9 +325,11 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
   if (!cmd)
     cmd = "/usr/bin/ssh -f -L \"$L\":\"$H\":\"$R\" \"$G\" sleep 20";
   /* Compatibility with TigerVNC's method. */
-  while ((percent = strchr(cmd, '%')) != NULL)
+  cmd2 = strdup(cmd);
+  while ((percent = strchr(cmd2, '%')) != NULL)
     *percent = '$';
-  system(cmd);
+  system(cmd2);
+  free(cmd2);
 }
 
 static int mktunnel()

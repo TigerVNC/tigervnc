@@ -17,6 +17,7 @@ set(RFB_SOURCES
   Cursor.cxx
   Decoder.cxx
   d3des.c
+  EncodeManager.cxx
   Encoder.cxx
   HTTPServer.cxx
   HextileDecoder.cxx
@@ -52,6 +53,7 @@ set(RFB_SOURCES
   Timer.cxx
   TightDecoder.cxx
   TightEncoder.cxx
+  TightJPEGEncoder.cxx
   UpdateTracker.cxx
   VNCSConnectionST.cxx
   VNCServerST.cxx

@@ -109,14 +109,10 @@ namespace rfb {
     void startRect(const Rect& r, int enc);
     void endRect();
 
-    rdr::U8* getImageBuf(int required, int requested=0, int* nPixels=0);
-
     int getUpdatesSent()           { return updatesSent; }
     int getRectsSent(int encoding) { return rectsSent[encoding]; }
     int getBytesSent(int encoding) { return bytesSent[encoding]; }
     rdr::U64 getRawBytesEquivalent()    { return rawBytesEquivalent; }
-
-    int imageBufIdealSize;
 
   protected:
     void startMsg(int type);
@@ -158,9 +154,6 @@ namespace rfb {
     int bytesSent[encodingMax+1];
     int rectsSent[encodingMax+1];
     rdr::U64 rawBytesEquivalent;
-
-    rdr::U8* imageBuf;
-    int imageBufSize;
 
     typedef struct {
       rdr::U16 reason, result;
