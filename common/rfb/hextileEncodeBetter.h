@@ -19,14 +19,12 @@
 //
 // Hextile encoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// GET_IMAGE_INTO_BUF - gets a rectangle of pixel data into a buffer
 
 #include <rdr/OutStream.h>
 #include <rfb/hextileConstants.h>
-#include <rfb/TightPalette.h>
+#include <rfb/Palette.h>
 
 #include <assert.h>
 
@@ -114,13 +112,13 @@ class HEXTILE_TILE {
  private:
 
   bool m_processed[16][16];
-  TightPalette m_pal;
+  Palette m_pal;
 };
 
 HEXTILE_TILE::HEXTILE_TILE()
   : m_tile(NULL), m_width(0), m_height(0),
     m_size(0), m_flags(0), m_background(0), m_foreground(0),
-    m_numSubrects(0), m_pal(48 + 2 * BPP)
+    m_numSubrects(0)
 {
 }
 
@@ -156,7 +154,7 @@ void HEXTILE_TILE::analyze()
 
   PIXEL_T *colorsPtr = m_colors;
   rdr::U8 *coordsPtr = m_coords;
-  m_pal.reset();
+  m_pal.clear();
   m_numSubrects = 0;
 
   // Have we found the first subrect already?
@@ -200,7 +198,7 @@ void HEXTILE_TILE::analyze()
       *coordsPtr++ = (rdr::U8)((x << 4) | (y & 0x0F));
       *coordsPtr++ = (rdr::U8)(((sw - 1) << 4) | ((sh - 1) & 0x0F));
 
-      if (m_pal.insert(color, 1) == 0) {
+      if (!m_pal.insert(color, 1) || (m_pal.size() > (48 + 2 * BPP))) {
         // Handle palette overflow
         m_flags = hextileRaw;
         m_size = 0;
@@ -221,16 +219,16 @@ void HEXTILE_TILE::analyze()
   }
 
   // Save number of colors in this tile (should be no less than 2)
-  int numColors = m_pal.getNumColors();
+  int numColors = m_pal.size();
   assert(numColors >= 2);
 
-  m_background = (PIXEL_T)m_pal.getEntry(0);
+  m_background = (PIXEL_T)m_pal.getColour(0);
   m_flags = hextileAnySubrects;
   int numSubrects = m_numSubrects - m_pal.getCount(0);
 
   if (numColors == 2) {
     // Monochrome tile
-    m_foreground = (PIXEL_T)m_pal.getEntry(1);
+    m_foreground = (PIXEL_T)m_pal.getColour(1);
     m_size = 1 + 2 * numSubrects;
   } else {
     // Colored tile
@@ -277,11 +275,7 @@ void HEXTILE_TILE::encode(rdr::U8 *dst) const
 // Main encoding function.
 //
 
-void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
-#ifdef EXTRA_ARGS
-                    , EXTRA_ARGS
-#endif
-                    )
+void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os, TransImageGetter *ig)
 {
   Rect t;
   PIXEL_T buf[256];
@@ -300,7 +294,7 @@ void HEXTILE_ENCODE(const Rect& r, rdr::OutStream* os
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 16);
 
-      GET_IMAGE_INTO_BUF(t,buf);
+      ig->getImage(buf, t);
 
       tile.newTile(buf, t.width(), t.height());
       int tileType = tile.getFlags();

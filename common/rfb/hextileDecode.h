@@ -18,11 +18,8 @@
 //
 // Hextile decoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// FILL_RECT          - fill a rectangle with a single colour
-// IMAGE_RECT         - draw a rectangle of pixel data from a buffer
 
 #include <rdr/InStream.h>
 #include <rfb/hextileConstants.h>
@@ -40,11 +37,8 @@ namespace rfb {
 #define READ_PIXEL CONCAT2E(readOpaque,BPP)
 #define HEXTILE_DECODE CONCAT2E(hextileDecode,BPP)
 
-void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf
-#ifdef EXTRA_ARGS
-                     , EXTRA_ARGS
-#endif
-                     )
+void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf,
+                     CMsgHandler* handler)
 {
   Rect t;
   PIXEL_T bg = 0;
@@ -62,7 +56,7 @@ void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf
 
       if (tileType & hextileRaw) {
 	is->readBytes(buf, t.area() * (BPP/8));
-	IMAGE_RECT(t, buf);
+	handler->imageRect(t, buf);
 	continue;
       }
 
@@ -100,7 +94,7 @@ void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf
           }
         }
       }
-      IMAGE_RECT(t, buf);
+      handler->imageRect(t, buf);
     }
   }
 }

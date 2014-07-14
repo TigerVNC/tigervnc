@@ -53,16 +53,51 @@ PixelFormat::PixelFormat()
 
 bool PixelFormat::equal(const PixelFormat& other) const
 {
-  return (bpp == other.bpp &&
-          depth == other.depth &&
-          (bigEndian == other.bigEndian || bpp == 8) &&
-          trueColour == other.trueColour &&
-          (!trueColour || (redMax == other.redMax &&
-                           greenMax == other.greenMax &&
-                           blueMax == other.blueMax &&
-                           redShift == other.redShift &&
-                           greenShift == other.greenShift &&
-                           blueShift == other.blueShift)));
+  if (bpp != other.bpp || depth != other.depth)
+    return false;
+
+  if (redMax != other.redMax)
+    return false;
+  if (greenMax != other.greenMax)
+    return false;
+  if (blueMax != other.blueMax)
+    return false;
+
+  // Endianness requires more care to determine compatibility
+  if (bigEndian == other.bigEndian || bpp == 8) {
+    if (redShift != other.redShift)
+      return false;
+    if (greenShift != other.greenShift)
+      return false;
+    if (blueShift != other.blueShift)
+      return false;
+  } else {
+    // Has to be the same byte for each channel
+    if (redShift/8 != (3 - other.redShift/8))
+      return false;
+    if (greenShift/8 != (3 - other.greenShift/8))
+      return false;
+    if (blueShift/8 != (3 - other.blueShift/8))
+      return false;
+
+    // And the same bit offset within the byte
+    if (redShift%8 != other.redShift%8)
+      return false;
+    if (greenShift%8 != other.greenShift%8)
+      return false;
+    if (blueShift%8 != other.blueShift%8)
+      return false;
+
+    // And not cross a byte boundary
+    if (redShift/8 != (redShift + redBits - 1)/8)
+      return false;
+    if (greenShift/8 != (greenShift + greenBits - 1)/8)
+      return false;
+    if (blueShift/8 != (blueShift + blueBits - 1)/8)
+      return false;
+  }
+
+  return true;
 }
 
 void PixelFormat::read(rdr::InStream* is)
@@ -78,6 +113,18 @@ void PixelFormat::read(rdr::InStream* is)
   greenShift = is->readU8();
   blueShift = is->readU8();
   is->skip(3);
+
+  // We have no real support for colour maps. If the client
+  // wants one, then we force a 8-bit true colour format and
+  // pretend it's a colour map.
+  if (!trueColour) {
+    redMax = 7;
+    greenMax = 7;
+    blueMax = 3;
+    redShift = 0;
+    greenShift = 3;
+    blueShift = 6;
+  }
 
   if (!isSane())
     throw Exception("invalid pixel format");
@@ -132,14 +179,13 @@ bool PixelFormat::isLittleEndian(void) const
 }
 
 
-void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
-                                int pixels, ColourMap* cm) const
+void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int pixels) const
 {
-  bufferFromRGB(dst, src, pixels, pixels, 1, cm);
+  bufferFromRGB(dst, src, pixels, pixels, 1);
 }
 
 void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
-                                int w, int stride, int h, ColourMap* cm) const
+                                int w, int stride, int h) const
 {
   if (is888()) {
     // Optimised common case
@@ -188,7 +234,7 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
         g = *(src++);
         b = *(src++);
 
-        p = pixelFromRGB(r, g, b, cm);
+        p = pixelFromRGB(r, g, b);
 
         bufferFromPixel(dst, p);
         dst += bpp/8;
@@ -199,26 +245,14 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
 }
 
 
-void PixelFormat::rgbFromPixel(Pixel p, ColourMap* cm, Colour* rgb) const
+void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels) const
 {
-  rdr::U16 r, g, b;
-
-  rgbFromPixel(p, cm, &r, &g, &b);
-
-  rgb->r = r;
-  rgb->g = g;
-  rgb->b = b;
-}
-
-
-void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm) const
-{
-  rgbFromBuffer(dst, src, pixels, pixels, 1, cm);
+  rgbFromBuffer(dst, src, pixels, pixels, 1);
 }
 
 
 void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
-                                int w, int stride, int h, ColourMap* cm) const
+                                int w, int stride, int h) const
 {
   if (is888()) {
     // Optimised common case
@@ -260,7 +294,7 @@ void PixelFormat::rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
 
         p = pixelFromBuffer(src);
 
-        rgbFromPixel(p, cm, &r, &g, &b);
+        rgbFromPixel(p, &r, &g, &b);
 
         *(dst++) = r;
         *(dst++) = g;
@@ -449,36 +483,34 @@ bool PixelFormat::isSane(void)
   if (!trueColour && (depth != 8))
     return false;
 
-  if (trueColour) {
-    if ((redMax & (redMax + 1)) != 0)
-      return false;
-    if ((greenMax & (greenMax + 1)) != 0)
-      return false;
-    if ((blueMax & (blueMax + 1)) != 0)
-      return false;
+  if ((redMax & (redMax + 1)) != 0)
+    return false;
+  if ((greenMax & (greenMax + 1)) != 0)
+    return false;
+  if ((blueMax & (blueMax + 1)) != 0)
+    return false;
 
-    /*
-     * We don't allow individual channels > 8 bits in order to keep our
-     * conversions simple.
-     */
-    if (redMax >= (1 << 8))
-      return false;
-    if (greenMax >= (1 << 8))
-      return false;
-    if (blueMax >= (1 << 8))
-      return false;
+  /*
+   * We don't allow individual channels > 8 bits in order to keep our
+   * conversions simple.
+   */
+  if (redMax >= (1 << 8))
+    return false;
+  if (greenMax >= (1 << 8))
+    return false;
+  if (blueMax >= (1 << 8))
+    return false;
 
-    totalBits = bits(redMax) + bits(greenMax) + bits(blueMax);
-    if (totalBits > bpp)
-      return false;
+  totalBits = bits(redMax) + bits(greenMax) + bits(blueMax);
+  if (totalBits > bpp)
+    return false;
 
-    if (((redMax << redShift) & (greenMax << greenShift)) != 0)
-      return false;
-    if (((redMax << redShift) & (blueMax << blueShift)) != 0)
-      return false;
-    if (((greenMax << greenShift) & (blueMax << blueShift)) != 0)
-      return false;
-  }
+  if (((redMax << redShift) & (greenMax << greenShift)) != 0)
+    return false;
+  if (((redMax << redShift) & (blueMax << blueShift)) != 0)
+    return false;
+  if (((greenMax << greenShift) & (blueMax << blueShift)) != 0)
+    return false;
 
   return true;
 }

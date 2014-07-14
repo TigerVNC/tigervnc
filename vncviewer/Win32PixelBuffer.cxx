@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,12 +35,12 @@
 
 using namespace rfb;
 
-static rfb::LogWriter vlog("PlatformPixelBuffer");
+static rfb::LogWriter vlog("Win32PixelBuffer");
 
-PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
-  FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
-                                        255, 255, 255, 16, 8, 0),
-                       width, height, NULL, NULL),
+Win32PixelBuffer::Win32PixelBuffer(int width, int height) :
+  PlatformPixelBuffer(rfb::PixelFormat(32, 24, false, true,
+                                       255, 255, 255, 16, 8, 0),
+                      width, height, NULL, width),
   bitmap(NULL)
 {
   BITMAPINFOHEADER bih;
@@ -64,13 +64,13 @@ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
 }
 
 
-PlatformPixelBuffer::~PlatformPixelBuffer()
+Win32PixelBuffer::~Win32PixelBuffer()
 {
   DeleteObject(bitmap);
 }
 
 
-void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
+void Win32PixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
 {
   HDC dc;
 

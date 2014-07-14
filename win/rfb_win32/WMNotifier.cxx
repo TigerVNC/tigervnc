@@ -46,12 +46,6 @@ WMMonitor::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
       notifier->notifyDisplayEvent(Notifier::DisplayPixelFormatChanged);
     }
     break;
-	case WM_SYSCOLORCHANGE:
-  case WM_PALETTECHANGED:
-    if (notifier) {
-      notifier->notifyDisplayEvent(Notifier::DisplayColourMapChanged);
-    }
-    break;
   };
   return MsgWindow::processMessage(msg, wParam, lParam);
 }

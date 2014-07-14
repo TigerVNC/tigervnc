@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,14 +21,14 @@
 
 #include <windows.h>
 
-#include <rfb/PixelBuffer.h>
+#include "PlatformPixelBuffer.h"
 
-class PlatformPixelBuffer: public rfb::FullFramePixelBuffer {
+class Win32PixelBuffer: public PlatformPixelBuffer {
 public:
-  PlatformPixelBuffer(int width, int height);
-  ~PlatformPixelBuffer();
+  Win32PixelBuffer(int width, int height);
+  ~Win32PixelBuffer();
 
-  void draw(int src_x, int src_y, int x, int y, int w, int h);
+  virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
 
 protected:
   HBITMAP bitmap;

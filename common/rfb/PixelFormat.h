@@ -35,7 +35,6 @@
 #define __RFB_PIXELFORMAT_H__
 
 #include <rfb/Pixel.h>
-#include <rfb/ColourMap.h>
 
 namespace rdr { class InStream; class OutStream; }
 
@@ -44,9 +43,12 @@ namespace rfb {
   class PixelFormat {
   public:
     PixelFormat(int b, int d, bool e, bool t,
-                int rm=0, int gm=0, int bm=0, int rs=0, int gs=0, int bs=0);
+                int rm, int gm, int bm, int rs, int gs, int bs);
     PixelFormat();
 
+    // Checks if the formats have identical buffer representation.
+    // They might still have different pixel representation, endianness
+    // or true colour state.
     bool equal(const PixelFormat& other) const;
 
     void read(rdr::InStream* is);
@@ -59,20 +61,19 @@ namespace rfb {
     inline Pixel pixelFromBuffer(const rdr::U8* buffer) const;
     inline void bufferFromPixel(rdr::U8* buffer, Pixel pixel) const;
 
-    inline Pixel pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue, ColourMap* cm=0) const;
-    inline Pixel pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue, ColourMap* cm=0) const;
+    inline Pixel pixelFromRGB(rdr::U16 red, rdr::U16 green, rdr::U16 blue) const;
+    inline Pixel pixelFromRGB(rdr::U8 red, rdr::U8 green, rdr::U8 blue) const;
 
-    void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int pixels, ColourMap* cm=0) const;
-    void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int w, int stride,
-                       int h, ColourMap* cm=0) const;
+    void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src, int pixels) const;
+    void bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
+                       int w, int stride, int h) const;
 
-    void rgbFromPixel(Pixel pix, ColourMap* cm, Colour* rgb) const;
-    inline void rgbFromPixel(Pixel pix, ColourMap* cm, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const;
-    inline void rgbFromPixel(Pixel pix, ColourMap* cm, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const;
+    inline void rgbFromPixel(Pixel pix, rdr::U16 *r, rdr::U16 *g, rdr::U16 *b) const;
+    inline void rgbFromPixel(Pixel pix, rdr::U8 *r, rdr::U8 *g, rdr::U8 *b) const;
 
-    void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels, ColourMap* cm=0) const;
-    void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int w, int stride,
-                       int h, ColourMap* cm=0) const;
+    void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src, int pixels) const;
+    void rgbFromBuffer(rdr::U8* dst, const rdr::U8* src,
+                       int w, int stride, int h) const;
 
     void print(char* str, int len) const;
     bool parse(const char* str);
@@ -84,6 +85,9 @@ namespace rfb {
   public:
     int bpp;
     int depth;
+
+    // This only tracks if the client thinks it is in colour map mode.
+    // In practice we are always in true colour mode.
     bool trueColour;
 
   // FIXME: These should be protected, but we need to fix TransImageGetter first.

@@ -24,11 +24,9 @@ namespace rfb {
 
   class RREDecoder : public Decoder {
   public:
-    RREDecoder(CMsgReader* reader);
+    RREDecoder(CConnection* conn);
     virtual ~RREDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
-  private:
-    CMsgReader* reader;
   };
 }
 #endif

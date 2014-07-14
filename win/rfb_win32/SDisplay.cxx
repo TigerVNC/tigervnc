@@ -350,12 +350,6 @@ SDisplay::notifyDisplayEvent(WMMonitor::Notifier::DisplayEventType evt) {
     vlog.debug("desktop format changed");
     recreatePixelBuffer();
     break;
-  case WMMonitor::Notifier::DisplayColourMapChanged:
-    vlog.debug("desktop colormap changed");
-    pb->updateColourMap();
-    if (server)
-      server->setColourMapEntries();
-    break;
   default:
     vlog.error("unknown display event received");
   }

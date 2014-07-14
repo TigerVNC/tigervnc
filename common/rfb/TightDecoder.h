@@ -28,11 +28,13 @@ namespace rfb {
   class TightDecoder : public Decoder {
 
   public:
-    TightDecoder(CMsgReader* reader);
+    TightDecoder(CConnection* conn);
     virtual ~TightDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
 
   private:
+    rdr::U32 readCompact(rdr::InStream* is);
+
     void tightDecode8(const Rect& r);
     void tightDecode16(const Rect& r);
     void tightDecode32(const Rect& r);
@@ -54,7 +56,6 @@ namespace rfb {
     void directFillRect16(const Rect& r, Pixel pix);
     void directFillRect32(const Rect& r, Pixel pix);
 
-    CMsgReader* reader;
     CMsgHandler* handler;
     rdr::InStream* is;
     rdr::ZlibInStream zis[4];

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,9 @@
 #include "menukey.h"
 #include "vncviewer.h"
 
+#include "PlatformPixelBuffer.h"
+#include "FLTKPixelBuffer.h"
+
 #if defined(WIN32)
 #include "Win32PixelBuffer.h"
 #elif defined(__APPLE__)
@@ -58,11 +61,6 @@
 #else
 #include "X11PixelBuffer.h"
 #endif
-
-// We also have a generic version of the above, using pure FLTK:
-//
-// #include "PlatformPixelBuffer.h"
-//
 
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
@@ -87,7 +85,7 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_RESIZE,
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL), pixelTrans(NULL),
-    colourMapChange(false), lastPointerPos(0, 0), lastButtonMask(0),
+    lastPointerPos(0, 0), lastButtonMask(0),
     cursor(NULL), menuCtrlKey(false), menuAltKey(false)
 {
 // FLTK STR #2599 must be fixed for proper dead keys support
@@ -100,7 +98,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   Fl::add_clipboard_notify(handleClipboardChange, this);
 #endif
 
-  frameBuffer = new PlatformPixelBuffer(w, h);
+  frameBuffer = createFramebuffer(w, h);
   assert(frameBuffer);
 
   setServerPF(serverPF);
@@ -183,32 +181,17 @@ void Viewport::setServerPF(const rfb::PixelFormat& pf)
     PixelFormat fake_pf(pf.bpp, pf.depth, nativeBigEndian, pf.trueColour,
                         pf.redMax, pf.greenMax, pf.blueMax,
                         pf.redShift, pf.greenShift, pf.blueShift);
-    pixelTrans->init(fake_pf, &colourMap, getPreferredPF());
+    pixelTrans->init(fake_pf, getPreferredPF());
     return;
   }
 
-  pixelTrans->init(pf, &colourMap, getPreferredPF());
+  pixelTrans->init(pf, getPreferredPF());
 }
 
 
 const rfb::PixelFormat &Viewport::getPreferredPF()
 {
   return frameBuffer->getPF();
-}
-
-
-// setColourMapEntries() changes some of the entries in the colourmap.
-// We don't actually act on these changes until we need to. This is
-// because recalculating the internal translation table can be expensive.
-// This also solves the issue of silly servers sending colour maps in
-// multiple pieces.
-void Viewport::setColourMapEntries(int firstColour, int nColours,
-                                   rdr::U16* rgbs)
-{
-  for (int i = 0; i < nColours; i++)
-    colourMap.set(firstColour+i, rgbs[i*3], rgbs[i*3+1], rgbs[i*3+2]);
-
-  colourMapChange = true;
 }
 
 
@@ -230,8 +213,6 @@ void Viewport::updateWindow()
 void Viewport::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
   if (pixelTrans) {
     rfb::Pixel pix2;
-    if (colourMapChange)
-      commitColourMap();
     pixelTrans->translatePixels(&pix, &pix2, 1);
     pix = pix2;
   }
@@ -242,12 +223,12 @@ void Viewport::fillRect(const rfb::Rect& r, rfb::Pixel pix) {
 
 void Viewport::imageRect(const rfb::Rect& r, void* pixels) {
   if (pixelTrans) {
-    if (colourMapChange)
-      commitColourMap();
+    rdr::U8* buffer;
+    int stride;
+    buffer = frameBuffer->getBufferRW(r, &stride);
     pixelTrans->translateRect(pixels, r.width(),
                               rfb::Rect(0, 0, r.width(), r.height()),
-                              frameBuffer->data, frameBuffer->getStride(),
-                              r.tl);
+                              buffer, stride, rfb::Point(0, 0));
   } else {
     frameBuffer->imageRect(r, pixels);
   }
@@ -327,7 +308,7 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
       m_width = (width+7)/8;
       for (int y = 0;y < height;y++) {
         for (int x = 0;x < width;x++) {
-          pf->rgbFromBuffer(o, i, 1, &colourMap);
+          pf->rgbFromBuffer(o, i, 1);
 
           if (m[(m_width*y)+(x/8)] & 0x80>>(x%8))
             o[3] = 255;
@@ -369,6 +350,9 @@ void Viewport::resize(int x, int y, int w, int h)
   PlatformPixelBuffer* newBuffer;
   rfb::Rect rect;
 
+  const rdr::U8* data;
+  int stride;
+
   // FIXME: Resize should probably be a feature of the pixel buffer itself
 
   if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
@@ -377,13 +361,14 @@ void Viewport::resize(int x, int y, int w, int h)
   vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
              frameBuffer->width(), frameBuffer->height(), w, h);
 
-  newBuffer = new PlatformPixelBuffer(w, h);
+  newBuffer = createFramebuffer(w, h);
   assert(newBuffer);
 
   rect.setXYWH(0, 0,
                __rfbmin(newBuffer->width(), frameBuffer->width()),
                __rfbmin(newBuffer->height(), frameBuffer->height()));
-  newBuffer->imageRect(rect, frameBuffer->data, frameBuffer->getStride());
+  data = frameBuffer->getBuffer(frameBuffer->getRect(), &stride);
+  newBuffer->imageRect(rect, data, stride);
 
   // Black out any new areas
 
@@ -519,6 +504,26 @@ int Viewport::handle(int event)
 }
 
 
+PlatformPixelBuffer* Viewport::createFramebuffer(int w, int h)
+{
+  PlatformPixelBuffer *fb;
+
+  try {
+#if defined(WIN32)
+    fb = new Win32PixelBuffer(w, h);
+#elif defined(__APPLE__)
+    fb = new OSXPixelBuffer(w, h);
+#else
+    fb = new X11PixelBuffer(w, h);
+#endif
+  } catch (rdr::Exception& e) {
+    fb = new FLTKPixelBuffer(w, h);
+  }
+
+  return fb;
+}
+
+
 void Viewport::handleUpdateTimeout(void *data)
 {
   Viewport *self = (Viewport *)data;
@@ -526,19 +531,6 @@ void Viewport::handleUpdateTimeout(void *data)
   assert(self);
 
   self->updateWindow();
-}
-
-
-void Viewport::commitColourMap()
-{
-  if (pixelTrans == NULL)
-    return;
-  if (!colourMapChange)
-    return;
-
-  colourMapChange = false;
-
-  pixelTrans->setColourMapEntries(0, 0);
 }
 
 

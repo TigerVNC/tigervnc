@@ -19,6 +19,7 @@
 #include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 #include <rfb/RREEncoder.h>
 
 using namespace rfb;
@@ -33,7 +34,7 @@ using namespace rfb;
 #include <rfb/rreEncode.h>
 #undef BPP
 
-RREEncoder::RREEncoder(SMsgWriter* writer_) : writer(writer_)
+RREEncoder::RREEncoder(SConnection* conn) : RawEncoder(conn)
 {
 }
 
@@ -41,30 +42,30 @@ RREEncoder::~RREEncoder()
 {
 }
 
-bool RREEncoder::writeRect(const Rect& r, TransImageGetter* ig, Rect* actual)
+void RREEncoder::writeRect(const Rect& r, TransImageGetter* ig)
 {
   int w = r.width();
   int h = r.height();
-  rdr::U8* imageBuf = writer->getImageBuf(w*h);
+  rdr::U8* imageBuf = conn->writer()->getImageBuf(w*h);
   ig->getImage(imageBuf, r);
 
   mos.clear();
 
   int nSubrects = -1;
-  switch (writer->bpp()) {
+  switch (conn->cp.pf().bpp) {
   case 8:  nSubrects = rreEncode8(imageBuf, w, h, &mos);  break;
   case 16: nSubrects = rreEncode16(imageBuf, w, h, &mos); break;
   case 32: nSubrects = rreEncode32(imageBuf, w, h, &mos); break;
   }
   
   if (nSubrects < 0) {
-    return writer->writeRect(r, encodingRaw, ig, actual);
+    RawEncoder::writeRect(r, ig);
+    return;
   }
 
-  writer->startRect(r, encodingRRE);
-  rdr::OutStream* os = writer->getOutStream();
+  conn->writer()->startRect(r, encodingRRE);
+  rdr::OutStream* os = conn->getOutStream();
   os->writeU32(nSubrects);
   os->writeBytes(mos.data(), mos.length());
-  writer->endRect();
-  return true;
+  conn->writer()->endRect();
 }

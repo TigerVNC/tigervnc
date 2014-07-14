@@ -19,10 +19,8 @@
 //
 // zrleEncode.h - zrle encoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
-// EXTRA_ARGS         - optional extra arguments
-// GET_IMAGE_INTO_BUF - gets a rectangle of pixel data into a buffer
 //
 // Note that the buf argument to ZRLE_ENCODE needs to be at least one pixel
 // bigger than the largest tile of pixel data, since the ZRLE encoding
@@ -31,6 +29,7 @@
 
 #include <rdr/OutStream.h>
 #include <rdr/ZlibOutStream.h>
+#include <rfb/Palette.h>
 #include <assert.h>
 
 namespace rfb {
@@ -44,13 +43,13 @@ namespace rfb {
 
 #ifdef CPIXEL
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
-#define WRITE_PIXEL CONCAT2E(writeOpaque,CPIXEL)
+#define WRITE_PIXEL(os, u) CONCAT2E(writeOpaque,CPIXEL)(os, u)
 #define ZRLE_ENCODE CONCAT2E(zrleEncode,CPIXEL)
 #define ZRLE_ENCODE_TILE CONCAT2E(zrleEncodeTile,CPIXEL)
 #define BPPOUT 24
 #else
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
-#define WRITE_PIXEL CONCAT2E(writeOpaque,BPP)
+#define WRITE_PIXEL(os, u) os->CONCAT2E(writeOpaque,BPP)(u)
 #define ZRLE_ENCODE CONCAT2E(zrleEncode,BPP)
 #define ZRLE_ENCODE_TILE CONCAT2E(zrleEncodeTile,BPP)
 #define BPPOUT BPP
@@ -61,65 +60,13 @@ namespace rfb {
 static const int bitsPerPackedPixel[] = {
   0, 1, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
 };
-
-// The PaletteHelper class helps us build up the palette from pixel data by
-// storing a reverse index using a simple hash-table
-
-class PaletteHelper {
-public:
-  enum { MAX_SIZE = 127 };
-
-  PaletteHelper()
-  {
-    memset(index, 255, sizeof(index));
-    size = 0;
-  }
-
-  inline int hash(rdr::U32 pix)
-  {
-    return (pix ^ (pix >> 17)) & 4095;
-  }
-
-  inline void insert(rdr::U32 pix)
-  {
-    if (size < MAX_SIZE) {
-      int i = hash(pix);
-      while (index[i] != 255 && key[i] != pix)
-        i++;
-      if (index[i] != 255) return;
-
-      index[i] = size;
-      key[i] = pix;
-      palette[size] = pix;
-    }
-    size++;
-  }
-
-  inline int lookup(rdr::U32 pix)
-  {
-    assert(size <= MAX_SIZE);
-    int i = hash(pix);
-    while (index[i] != 255 && key[i] != pix)
-      i++;
-    if (index[i] != 255) return index[i];
-    return -1;
-  }
-
-  rdr::U32 palette[MAX_SIZE];
-  rdr::U8 index[4096+MAX_SIZE];
-  rdr::U32 key[4096+MAX_SIZE];
-  int size;
-};
 #endif
 
 void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os);
 
-bool ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
-                  rdr::ZlibOutStream* zos, void* buf, Rect* actual
-#ifdef EXTRA_ARGS
-                  , EXTRA_ARGS
-#endif
-                  )
+void ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
+                  rdr::ZlibOutStream* zos, void* buf,
+                  TransImageGetter *ig)
 {
   zos->setUnderlying(os);
   // RLE overhead is at worst 1 byte per 64x64 (4Kpixel) block
@@ -132,28 +79,17 @@ bool ZRLE_ENCODE (const Rect& r, rdr::OutStream* os,
 
     t.br.y = __rfbmin(r.br.y, t.tl.y + 64);
 
-    // enough for width 16384 32-bit pixels
-    if (os->length() + worstCaseLine > 4097 * 1024) {
-      if (t.tl.y == r.tl.y)
-        throw Exception("ZRLE: not enough space for first line?");
-      actual->tl = r.tl;
-      actual->br.x = r.br.x;
-      actual->br.y = t.tl.y;
-      return false;
-    }
-
     for (t.tl.x = r.tl.x; t.tl.x < r.br.x; t.tl.x += 64) {
 
       t.br.x = __rfbmin(r.br.x, t.tl.x + 64);
 
-      GET_IMAGE_INTO_BUF(t,buf);
+      ig->getImage(buf, t);
 
       ZRLE_ENCODE_TILE((PIXEL_T*)buf, t.width(), t.height(), zos);
     }
 
     zos->flush();
   }
-  return true;
 }
 
 
@@ -161,7 +97,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
 {
   // First find the palette and the number of runs
 
-  PaletteHelper ph;
+  Palette palette;
 
   int runs = 0;
   int singlePixels = 0;
@@ -178,7 +114,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
       while (*++ptr == pix) ;
       runs++;
     }
-    ph.insert(pix);
+    palette.insert(pix, 1);
   }
 
   //fprintf(stderr,"runs %d, single pixels %d, paletteSize %d\n",
@@ -186,9 +122,9 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
 
   // Solid tile is a special case
 
-  if (ph.size == 1) {
+  if (palette.size() == 1) {
     os->writeU8(1);
-    os->WRITE_PIXEL(ph.palette[0]);
+    WRITE_PIXEL(os, palette.getColour(0));
     return;
   }
 
@@ -209,8 +145,8 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
     estimatedBytes = plainRleBytes;
   }
 
-  if (ph.size < 128) {
-    int paletteRleBytes = (BPPOUT/8) * ph.size + 2 * runs + singlePixels;
+  if (palette.size() < 128) {
+    int paletteRleBytes = (BPPOUT/8) * palette.size() + 2 * runs + singlePixels;
 
     if (paletteRleBytes < estimatedBytes) {
       useRle = true;
@@ -218,9 +154,9 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
       estimatedBytes = paletteRleBytes;
     }
 
-    if (ph.size < 17) {
-      int packedBytes = ((BPPOUT/8) * ph.size +
-                         w * h * bitsPerPackedPixel[ph.size-1] / 8);
+    if (palette.size() < 17) {
+      int packedBytes = ((BPPOUT/8) * palette.size() +
+                         w * h * bitsPerPackedPixel[palette.size()-1] / 8);
 
       if (packedBytes < estimatedBytes) {
         useRle = false;
@@ -230,12 +166,12 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
     }
   }
 
-  if (!usePalette) ph.size = 0;
+  if (!usePalette) palette.clear();
 
-  os->writeU8((useRle ? 128 : 0) | ph.size);
+  os->writeU8((useRle ? 128 : 0) | palette.size());
 
-  for (int i = 0; i < ph.size; i++) {
-    os->WRITE_PIXEL(ph.palette[i]);
+  for (int i = 0; i < palette.size(); i++) {
+    WRITE_PIXEL(os, palette.getColour(i));
   }
 
   if (useRle) {
@@ -251,17 +187,17 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
         ptr++;
       int len = ptr - runStart;
       if (len <= 2 && usePalette) {
-        int index = ph.lookup(pix);
+        int index = palette.lookup(pix);
         if (len == 2)
           os->writeU8(index);
         os->writeU8(index);
         continue;
       }
       if (usePalette) {
-        int index = ph.lookup(pix);
+        int index = palette.lookup(pix);
         os->writeU8(index | 128);
       } else {
-        os->WRITE_PIXEL(pix);
+        WRITE_PIXEL(os, pix);
       }
       len -= 1;
       while (len >= 255) {
@@ -279,9 +215,9 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
 
       // packed pixels
 
-      assert (ph.size < 17);
+      assert (palette.size() < 17);
 
-      int bppp = bitsPerPackedPixel[ph.size-1];
+      int bppp = bitsPerPackedPixel[palette.size()-1];
 
       PIXEL_T* ptr = data;
 
@@ -293,7 +229,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
 
         while (ptr < eol) {
           PIXEL_T pix = *ptr++;
-          rdr::U8 index = ph.lookup(pix);
+          rdr::U8 index = palette.lookup(pix);
           byte = (byte << bppp) | index;
           nbits += bppp;
           if (nbits >= 8) {
@@ -312,7 +248,7 @@ void ZRLE_ENCODE_TILE (PIXEL_T* data, int w, int h, rdr::OutStream* os)
 
 #ifdef CPIXEL
       for (PIXEL_T* ptr = data; ptr < data+w*h; ptr++) {
-        os->WRITE_PIXEL(*ptr);
+        WRITE_PIXEL(os, *ptr);
       }
 #else
       os->writeBytes(data, w*h*(BPP/8));

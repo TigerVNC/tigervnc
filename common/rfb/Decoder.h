@@ -22,16 +22,19 @@
 #include <rfb/Rect.h>
 
 namespace rfb {
-  class CMsgReader;
+  class CConnection;
   class CMsgHandler;
 
   class Decoder {
   public:
+    Decoder(CConnection* conn);
     virtual ~Decoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler)=0;
 
     static bool supported(int encoding);
-    static Decoder* createDecoder(int encoding, CMsgReader* reader);
+    static Decoder* createDecoder(int encoding, CConnection* conn);
+  protected:
+    CConnection* conn;
   };
 }
 

@@ -24,11 +24,12 @@
 #include <rfb/TransImageGetter.h>
 
 namespace rfb {
-  class SMsgWriter;
+  class SConnection;
   class TransImageGetter;
 
   class Encoder {
   public:
+    Encoder(SConnection* conn);
     virtual ~Encoder();
 
     virtual void setCompressLevel(int level) {};
@@ -36,14 +37,16 @@ namespace rfb {
     virtual void setFineQualityLevel(int quality, int subsampling) {};
     virtual int getNumRects(const Rect &r) { return 1; }
 
-    // writeRect() tries to write the given rectangle.  If it is unable to
-    // write the whole rectangle it returns false and sets actual to the actual
-    // rectangle which was updated.
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig,
-                           Rect* actual)=0;
+    // writeRect() is the main interface that encodes the given rectangle
+    // with data from the ImageGetter onto the SMsgWriter given at
+    // encoder creation.
+    virtual void writeRect(const Rect& r, TransImageGetter* ig)=0;
 
     static bool supported(int encoding);
-    static Encoder* createEncoder(int encoding, SMsgWriter* writer);
+    static Encoder* createEncoder(int encoding, SConnection* conn);
+
+  protected:
+    SConnection* conn;
   };
 }
 

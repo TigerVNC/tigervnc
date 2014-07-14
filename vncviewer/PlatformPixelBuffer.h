@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,31 +21,13 @@
 
 #include <rfb/PixelBuffer.h>
 
-#include <FL/fl_draw.H>
-
-class PlatformPixelBuffer: public rfb::ManagedPixelBuffer {
+class PlatformPixelBuffer: public rfb::FullFramePixelBuffer {
 public:
-  PlatformPixelBuffer(int width, int height) :
-    rfb::ManagedPixelBuffer(rfb::PixelFormat(32, 24, false, true,
-                                             255, 255, 255, 0, 8, 16),
-                            width, height)
-    {};
+  PlatformPixelBuffer(const rfb::PixelFormat& pf, int width, int height,
+                      rdr::U8* data, int stride);
 
-  inline void draw(int src_x, int src_y, int x, int y, int w, int h);
+  virtual void draw(int src_x, int src_y, int x, int y, int w, int h) = 0;
+
 };
-
-inline void PlatformPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
-{
-  int pixel_bytes, stride_bytes;
-  const uchar *buf_start;
-
-  pixel_bytes = getPF().bpp/8;
-  stride_bytes = pixel_bytes * getStride();
-  buf_start = data +
-              pixel_bytes * src_x +
-              stride_bytes * src_y;
-
-  fl_draw_image(buf_start, x, y, w, h, pixel_bytes, stride_bytes);
-}
 
 #endif

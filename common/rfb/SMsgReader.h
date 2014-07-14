@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,24 +31,29 @@ namespace rfb {
 
   class SMsgReader {
   public:
+    SMsgReader(SMsgHandler* handler, rdr::InStream* is);
     virtual ~SMsgReader();
 
-    virtual void readClientInit()=0;
+    void readClientInit();
 
     // readMsg() reads a message, calling the handler as appropriate.
-    virtual void readMsg()=0;
+    void readMsg();
 
     rdr::InStream* getInStream() { return is; }
 
   protected:
-    virtual void readSetPixelFormat();
-    virtual void readSetEncodings();
-    virtual void readFramebufferUpdateRequest();
-    virtual void readKeyEvent();
-    virtual void readPointerEvent();
-    virtual void readClientCutText();
+    void readSetPixelFormat();
+    void readSetEncodings();
+    void readSetDesktopSize();
 
-    SMsgReader(SMsgHandler* handler, rdr::InStream* is);
+    void readFramebufferUpdateRequest();
+    void readEnableContinuousUpdates();
+
+    void readFence();
+
+    void readKeyEvent();
+    void readPointerEvent();
+    void readClientCutText();
 
     SMsgHandler* handler;
     rdr::InStream* is;

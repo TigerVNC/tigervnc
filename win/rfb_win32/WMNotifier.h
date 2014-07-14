@@ -44,7 +44,7 @@ namespace rfb {
 
       class Notifier {
       public:
-        typedef enum {DisplaySizeChanged, DisplayColourMapChanged,
+        typedef enum {DisplaySizeChanged,
           DisplayPixelFormatChanged} DisplayEventType;
         virtual void notifyDisplayEvent(DisplayEventType evt) = 0;
       };

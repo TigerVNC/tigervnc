@@ -25,11 +25,10 @@ namespace rfb {
 
   class ZRLEDecoder : public Decoder {
   public:
-    ZRLEDecoder(CMsgReader* reader);
+    ZRLEDecoder(CConnection* conn);
     virtual ~ZRLEDecoder();
     virtual void readRect(const Rect& r, CMsgHandler* handler);
   private:
-    CMsgReader* reader;
     rdr::ZlibInStream zis;
   };
 }

@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/encodings.h>
+#include <rfb/Decoder.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
@@ -65,8 +66,9 @@ static const PixelFormat verylowColourPF(8, 3,false, true,
 // 64 colours (2 bits per component)
 static const PixelFormat lowColourPF(8, 6, false, true,
                                      3, 3, 3, 4, 2, 0);
-// 256 colours (palette)
-static const PixelFormat mediumColourPF(8, 8, false, false);
+// 256 colours (2-3 bits per component)
+static const PixelFormat mediumColourPF(8, 8, false, true,
+                                        7, 7, 3, 5, 2, 0);
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
@@ -78,6 +80,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 {
   setShared(::shared);
   sock = socket;
+
+  memset(decoders, 0, sizeof(decoders));
 
   int encNum = encodingNum(preferredEncoding);
   if (encNum != -1)
@@ -129,6 +133,9 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 CConn::~CConn()
 {
   OptionsDialog::removeCallback(handleOptions);
+
+  for (int i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
+    delete decoders[i];
 
   if (desktop)
     delete desktop;
@@ -342,7 +349,7 @@ void CConn::framebufferUpdateEnd()
 
 void CConn::setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs)
 {
-  desktop->setColourMapEntries(firstColour, nColours, rgbs);
+  vlog.error("Invalid SetColourMapEntries from server!");
 }
 
 void CConn::bell()
@@ -379,19 +386,27 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
   delete [] buffer;
 }
 
-// We start timing on beginRect and stop timing on endRect, to
-// avoid skewing the bandwidth estimation as a result of the server
-// being slow or the network having high latency
-void CConn::beginRect(const Rect& r, int encoding)
+void CConn::dataRect(const Rect& r, int encoding)
 {
   sock->inStream().startTiming();
-  if (encoding != encodingCopyRect) {
-    lastServerEncoding = encoding;
-  }
-}
 
-void CConn::endRect(const Rect& r, int encoding)
-{
+  if (encoding != encodingCopyRect)
+    lastServerEncoding = encoding;
+
+  if (!Decoder::supported(encoding)) {
+    fprintf(stderr, "Unknown rect encoding %d\n", encoding);
+    throw Exception("Unknown rect encoding");
+  }
+
+  if (!decoders[encoding]) {
+    decoders[encoding] = Decoder::createDecoder(encoding, this);
+    if (!decoders[encoding]) {
+      fprintf(stderr, "Unknown rect encoding %d\n", encoding);
+      throw Exception("Unknown rect encoding");
+    }
+  }
+  decoders[encoding]->readRect(r, this);
+
   sock->inStream().stopTiming();
 }
 

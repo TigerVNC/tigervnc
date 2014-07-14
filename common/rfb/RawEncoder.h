@@ -24,11 +24,9 @@ namespace rfb {
 
   class RawEncoder : public Encoder {
   public:
-    RawEncoder(SMsgWriter* writer);
+    RawEncoder(SConnection* conn);
     virtual ~RawEncoder();
-    virtual bool writeRect(const Rect& r, TransImageGetter* ig, Rect* actual);
-  private:
-    SMsgWriter* writer;
+    virtual void writeRect(const Rect& r, TransImageGetter* ig);
   };
 }
 #endif

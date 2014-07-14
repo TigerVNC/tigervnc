@@ -18,7 +18,7 @@
 //
 // RRE encoding function.
 //
-// This file is #included after having set the following macros:
+// This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
 //
 // The data argument to RRE_ENCODE contains the pixel data, and it writes the

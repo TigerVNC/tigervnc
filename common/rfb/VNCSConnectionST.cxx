@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
+#include <rfb/Encoder.h>
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -81,6 +82,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   peerEndpoint.buf = sock->getPeerEndpoint();
   VNCServerST::connectionsLog.write(1,"accepted: %s", peerEndpoint.buf);
 
+  memset(encoders, 0, sizeof(encoders));
+
   // Configure the socket
   setSocketTimeouts();
   lastEventTime = time(0);
@@ -105,6 +108,9 @@ VNCSConnectionST::~VNCSConnectionST()
 
   // Remove this client from the server
   server->clients.remove(this);
+
+  for (int i = 0; i <= encodingMax; i++)
+    delete encoders[i];
 
   delete [] fenceData;
 }
@@ -249,15 +255,6 @@ void VNCSConnectionST::screenLayoutChangeOrClose(rdr::U16 reason)
   try {
     screenLayoutChange(reason);
   } catch(rdr::Exception &e) {
-    close(e.str());
-  }
-}
-
-void VNCSConnectionST::setColourMapEntriesOrClose(int firstColour,int nColours)
-{
-  try {
-    setColourMapEntries(firstColour, nColours);
-  } catch(rdr::Exception& e) {
     close(e.str());
   }
 }
@@ -625,11 +622,6 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
   writeFramebufferUpdate();
 }
 
-void VNCSConnectionST::setInitialColourMap()
-{
-  setColourMapEntries(0, 0);
-}
-
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
 {
   if (flags & fenceFlagRequest) {
@@ -745,13 +737,19 @@ void VNCSConnectionST::writeSetCursorCallback()
   }
 
   // Use RichCursor
-  rdr::U8* transData = writer()->getImageBuf(server->cursor.area());
-  image_getter.translatePixels(server->cursor.data, transData,
-			       server->cursor.area());
+  rdr::U8* transBuffer;
+  int stride;
+  const rdr::U8* buffer;
+
+  transBuffer = writer()->getImageBuf(server->cursor.area());
+
+  buffer = server->cursor.getBuffer(server->cursor.getRect(), &stride);
+  image_getter.translatePixels(buffer, transBuffer, server->cursor.area());
+
   writer()->writeSetCursor(server->cursor.width(),
                            server->cursor.height(),
                            server->cursor.hotspot,
-                           transData, server->cursor.mask.buf);
+                           transBuffer, server->cursor.mask.buf);
 }
 
 
@@ -1074,18 +1072,30 @@ void VNCSConnectionST::writeFramebufferUpdate()
   }
 
   if (!ui.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
+    std::vector<Rect> rects;
+    std::vector<Rect>::const_iterator i;
+    int encoding;
+
+    // Make sure the encoder has the latest settings
+    encoding = cp.currentEncoding();
+
+    if (!encoders[encoding])
+      encoders[encoding] = Encoder::createEncoder(encoding, this);
+
+    encoders[encoding]->setCompressLevel(cp.compressLevel);
+    encoders[encoding]->setQualityLevel(cp.qualityLevel);
+    encoders[encoding]->setFineQualityLevel(cp.fineQualityLevel,
+                                            cp.subsampling);
+
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original VNC4.
-    writer()->setupCurrentEncoder();
     int nRects = (ui.copied.numRects() +
                   (drawRenderedCursor ? 1 : 0));
 
-    std::vector<Rect> rects;
-    std::vector<Rect>::const_iterator i;
     ui.changed.get_rects(&rects);
     for (i = rects.begin(); i != rects.end(); i++) {
       if (i->width() && i->height()) {
-        int nUpdateRects = writer()->getNumRects(*i);
+        int nUpdateRects = encoders[encoding]->getNumRects(*i);
         if (nUpdateRects == 0 && cp.currentEncoding() == encodingTight) {
           // With Tight encoding and LastRect support, the client does not
           // care about the number of rectangles in the update - it will
@@ -1102,41 +1112,39 @@ void VNCSConnectionST::writeFramebufferUpdate()
     
     writer()->writeFramebufferUpdateStart(nRects);
 
-    Region updatedRegion;
-    writer()->writeRects(ui, &image_getter, &updatedRegion);
-    updates.subtract(updatedRegion);
+    ui.copied.get_rects(&rects);
+    for (i = rects.begin(); i != rects.end(); i++)
+      writer()->writeCopyRect(*i, i->tl.x - ui.copy_delta.x,
+                              i->tl.y - ui.copy_delta.y);
 
-    if (drawRenderedCursor)
-      writeRenderedCursorRect();
+    ui.changed.get_rects(&rects);
+    for (i = rects.begin(); i != rects.end(); i++)
+      encoders[encoding]->writeRect(*i, &image_getter);
+
+    if (drawRenderedCursor) {
+      image_getter.setPixelBuffer(&server->renderedCursor);
+      image_getter.setOffset(server->renderedCursorTL);
+
+      encoders[encoding]->writeRect(renderedCursorRect, &image_getter);
+
+      image_getter.setPixelBuffer(server->pb);
+      image_getter.setOffset(Point(0,0));
+
+      drawRenderedCursor = false;
+    }
 
     writer()->writeFramebufferUpdateEnd();
 
     writeRTTPing();
 
     requested.clear();
+    updates.clear();
   }
 
 out:
   network::TcpSocket::cork(sock->getFd(), false);
 }
 
-
-// writeRenderedCursorRect() writes a single rectangle drawing the rendered
-// cursor on the client.
-
-void VNCSConnectionST::writeRenderedCursorRect()
-{
-  image_getter.setPixelBuffer(&server->renderedCursor);
-  image_getter.setOffset(server->renderedCursorTL);
-
-  Rect actual;
-  writer()->writeRect(renderedCursorRect, &image_getter, &actual);
-
-  image_getter.setPixelBuffer(server->pb);
-  image_getter.setOffset(Point(0,0));
-
-  drawRenderedCursor = false;
-}
 
 void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
 {
@@ -1151,21 +1159,6 @@ void VNCSConnectionST::screenLayoutChange(rdr::U16 reason)
   writer()->writeExtendedDesktopSize(reason, 0, cp.width, cp.height,
                                      cp.screenLayout);
   writeFramebufferUpdate();
-}
-
-void VNCSConnectionST::setColourMapEntries(int firstColour, int nColours)
-{
-  if (!readyForSetColourMapEntries)
-    return;
-  if (server->pb->getPF().trueColour)
-    return;
-
-  image_getter.setColourMapEntries(firstColour, nColours);
-
-  if (cp.pf().trueColour) {
-    updates.add_changed(server->pb->getRect());
-    writeFramebufferUpdate();
-  }
 }
 
 

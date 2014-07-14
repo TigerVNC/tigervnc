@@ -28,7 +28,6 @@
 #include <windows.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/Region.h>
-#include <rfb/ColourMap.h>
 #include <rfb/Exception.h>
 
 namespace rfb {
@@ -39,7 +38,7 @@ namespace rfb {
     // -=- DIBSectionBuffer
     //
 
-    class DIBSectionBuffer : public FullFramePixelBuffer, ColourMap {
+    class DIBSectionBuffer : public FullFramePixelBuffer {
     public:
       DIBSectionBuffer(HWND window);
       DIBSectionBuffer(HDC device);
@@ -48,32 +47,11 @@ namespace rfb {
       virtual void setPF(const PixelFormat &pf);
       virtual void setSize(int w, int h);
 
-      virtual int getStride() const {return stride;}
-
-      virtual ColourMap* getColourMap() const {return (ColourMap*)this;}
-
-      // - ColourMap interface
-      virtual void lookup(int index, int* r, int *g, int* b) {
-        *r = palette[index].r;
-        *g = palette[index].g;
-        *b = palette[index].b;
-      }
-  
-      // Custom colourmap interface
-      void setColour(int index, int r, int g, int b) {
-        palette[index].r = r;
-        palette[index].g = g;
-        palette[index].b = b;
-      }
-      void refreshPalette();
-
       // *** virtual void copyRect(const Rect &dest, const Point &move_by_delta);
     public:
       HBITMAP bitmap;
     protected:
       void recreateBuffer();
-      Colour palette[256];
-      int stride;
       HWND window;
       HDC device;
     };

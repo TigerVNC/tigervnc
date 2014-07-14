@@ -18,6 +18,7 @@
  * USA.
  */
 #include <rfb/CMsgReader.h>
+#include <rfb/CConnection.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/TightDecoder.h>
 
@@ -25,8 +26,6 @@ using namespace rfb;
 
 #define TIGHT_MAX_WIDTH 2048
 
-#define FILL_RECT(r, p) handler->fillRect(r, p)
-#define IMAGE_RECT(r, p) handler->imageRect(r, p)
 #define BPP 8
 #include <rfb/tightDecode.h>
 #undef BPP
@@ -37,7 +36,7 @@ using namespace rfb;
 #include <rfb/tightDecode.h>
 #undef BPP
 
-TightDecoder::TightDecoder(CMsgReader* reader_) : reader(reader_)
+TightDecoder::TightDecoder(CConnection* conn) : Decoder(conn)
 {
 }
 
@@ -47,7 +46,7 @@ TightDecoder::~TightDecoder()
 
 void TightDecoder::readRect(const Rect& r, CMsgHandler* handler)
 {
-  is = reader->getInStream();
+  is = conn->getInStream();
   this->handler = handler;
   clientpf = handler->getPreferredPF();
   serverpf = handler->cp.pf();
@@ -68,4 +67,23 @@ void TightDecoder::readRect(const Rect& r, CMsgHandler* handler)
   case 32:
     tightDecode32(r); break;
   }
+}
+
+rdr::U32 TightDecoder::readCompact(rdr::InStream* is)
+{
+  rdr::U8 b;
+  rdr::U32 result;
+
+  b = is->readU8();
+  result = (int)b & 0x7F;
+  if (b & 0x80) {
+    b = is->readU8();
+    result |= ((int)b & 0x7F) << 7;
+    if (b & 0x80) {
+      b = is->readU8();
+      result |= ((int)b & 0xFF) << 14;
+    }
+  }
+
+  return result;
 }

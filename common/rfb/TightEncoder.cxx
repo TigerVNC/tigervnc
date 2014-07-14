@@ -18,9 +18,11 @@
  */
 #include <rdr/OutStream.h>
 #include <rfb/TransImageGetter.h>
+#include <rfb/PixelBuffer.h>
 #include <rfb/encodings.h>
 #include <rfb/ConnParams.h>
 #include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 #include <rfb/TightEncoder.h>
 
 using namespace rfb;
@@ -92,7 +94,7 @@ const int TightEncoder::defaultCompressLevel = 2;
 #include <rfb/tightEncode.h>
 #undef BPP
 
-TightEncoder::TightEncoder(SMsgWriter* writer_) : writer(writer_)
+TightEncoder::TightEncoder(SConnection* conn) : Encoder(conn)
 {
   setCompressLevel(defaultCompressLevel);
   setQualityLevel(-1);
@@ -225,7 +227,7 @@ void TightEncoder::extendSolidArea(const Rect& r, rdr::U32 colorValue,
 
 int TightEncoder::getNumRects(const Rect &r)
 {
-  ConnParams* cp = writer->getConnParams();
+  ConnParams* cp = &conn->cp;
   const unsigned int w = r.width();
   const unsigned int h = r.height();
 
@@ -285,12 +287,11 @@ void TightEncoder::sendRectSimple(const Rect& r)
   }
 }
 
-bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
-                             Rect* actual)
+void TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig)
 {
   ig = _ig;
   serverpf = ig->getPixelBuffer()->getPF();
-  ConnParams* cp = writer->getConnParams();
+  ConnParams* cp = &conn->cp;
   clientpf = cp->pf();
 
   // Shortcuts to rectangle coordinates and dimensions.
@@ -303,7 +304,7 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
   // Encode small rects as is.
   if (!cp->supportsLastRect || w * h < TIGHT_MIN_SPLIT_RECT_SIZE) {
     sendRectSimple(r);
-    return true;
+    return;
   }
 
   // Split big rects into separately encoded subrects.
@@ -338,9 +339,9 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
       if (checkSolidTile(sr, &colorValue, false)) {
 
          if (jpegSubsampling == subsampleGray && jpegQuality != -1) {
-           Colour rgb;
-           serverpf.rgbFromPixel(colorValue, NULL, &rgb);
-           rdr::U32 lum = ((257 * rgb.r) + (504 * rgb.g) + (98 * rgb.b)
+           rdr::U16 r, g, b;
+           serverpf.rgbFromPixel(colorValue, &r, &g, &b);
+           rdr::U32 lum = ((257 * r) + (504 * g) + (98 * b)
                            + 16500) / 1000;
            colorValue = lum + (lum << 8) + (lum << 16);
          }
@@ -365,7 +366,7 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
         }
         if (bestr.tl.x != x) {
           sr.setXYWH(x, bestr.tl.y, bestr.tl.x - x, bestr.height());
-          writeRect(sr, _ig, NULL);
+          writeRect(sr, _ig);
         }
 
         // Send solid-color rectangle.
@@ -375,21 +376,21 @@ bool TightEncoder::writeRect(const Rect& _r, TransImageGetter* _ig,
         if (bestr.br.x != r.br.x) {
           sr.setXYWH(bestr.br.x, bestr.tl.y, r.br.x - bestr.br.x,
             bestr.height());
-          writeRect(sr, _ig, NULL);
+          writeRect(sr, _ig);
         }
         if (bestr.br.y != r.br.y) {
           sr.setXYWH(x, bestr.br.y, w, r.br.y - bestr.br.y);
-          writeRect(sr, _ig, NULL);
+          writeRect(sr, _ig);
         }
 
-        return true;
+        return;
       }
     }
   }
 
   // No suitable solid-color rectangles found.
   sendRectSimple(r);
-  return true;
+  return;
 }
 
 void TightEncoder::writeSubrect(const Rect& r, bool forceSolid)
@@ -405,8 +406,26 @@ void TightEncoder::writeSubrect(const Rect& r, bool forceSolid)
     tightEncode32(r, &mos, forceSolid); break;
   }
 
-  writer->startRect(r, encodingTight);
-  rdr::OutStream* os = writer->getOutStream();
+  conn->writer()->startRect(r, encodingTight);
+  rdr::OutStream* os = conn->getOutStream();
   os->writeBytes(mos.data(), mos.length());
-  writer->endRect();
+  conn->writer()->endRect();
+}
+
+void TightEncoder::writeCompact(rdr::OutStream* os, rdr::U32 value)
+{
+  rdr::U8 b;
+  b = value & 0x7F;
+  if (value <= 0x7F) {
+    os->writeU8(b);
+  } else {
+    os->writeU8(b | 0x80);
+    b = value >> 7 & 0x7F;
+    if (value <= 0x3FFF) {
+      os->writeU8(b);
+    } else {
+      os->writeU8(b | 0x80);
+      os->writeU8(value >> 14 & 0xFF);
+    }
+  }
 }

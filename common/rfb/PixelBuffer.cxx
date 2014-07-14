@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,16 +34,11 @@ static LogWriter vlog("PixelBuffer");
 
 // -=- Generic pixel buffer class
 
-PixelBuffer::PixelBuffer(const PixelFormat& pf, int w, int h, ColourMap* cm)
-  : format(pf), width_(w), height_(h), colourmap(cm) {}
-PixelBuffer::PixelBuffer() : width_(0), height_(0), colourmap(0) {}
+PixelBuffer::PixelBuffer(const PixelFormat& pf, int w, int h)
+  : format(pf), width_(w), height_(h) {}
+PixelBuffer::PixelBuffer() : width_(0), height_(0) {}
 
 PixelBuffer::~PixelBuffer() {}
-
-
-void PixelBuffer::setPF(const PixelFormat &pf) {format = pf;}
-const PixelFormat& PixelBuffer::getPF() const {return format;}
-ColourMap* PixelBuffer::getColourMap() const {return colourmap;}
 
 
 void
@@ -65,63 +61,10 @@ PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) {
 }
 
 
-static void fillRect8(U8 *buf, int stride, const Rect& r, Pixel pix)
-{
-  U8* ptr = buf;
-  int w = r.width(), h = r.height();
-
-  while (h > 0) {
-    memset(ptr, pix, w);
-    ptr += stride;
-    h--;
-  }
-}
-
-static void fillRect16(U8 *buf, int stride, const Rect& r, Pixel pix)
-{
-  U16* ptr = (U16 *)buf;
-  int w = r.width(), h = r.height(), wBytes = w * 2;
-
-  while (w > 0) {
-    *ptr++ = pix;  w--;
-  }
-  h--;
-
-  ptr = (U16 *)buf;
-
-  while (h > 0) {
-    U16 *oldptr = ptr;
-    memcpy(ptr += stride, oldptr, wBytes);
-    h--;
-  }
-}
-
-static void fillRect32(U8 *buf, int stride, const Rect& r, Pixel pix)
-{
-  U32* ptr = (U32 *)buf;
-  int w = r.width(), h = r.height(), wBytes = w * 4;
-
-  while (w > 0) {
-    *ptr++ = pix;  w--;
-  }
-  h--;
-
-  ptr = (U32 *)buf;
-
-  while (h > 0) {
-    U32 *oldptr = ptr;
-    memcpy(ptr += stride, oldptr, wBytes);
-    h--;
-  }
-}
-
-
 FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
-                                           rdr::U8* data_, ColourMap* cm)
-  : PixelBuffer(pf, w, h, cm), data(data_)
+                                           rdr::U8* data_, int stride_)
+  : PixelBuffer(pf, w, h), data(data_), stride(stride_)
 {
-  // Called again to configure the fill function
-  setPF(pf);
 }
 
 FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
@@ -129,42 +72,33 @@ FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
 FullFramePixelBuffer::~FullFramePixelBuffer() {}
 
 
-void FullFramePixelBuffer::setPF(const PixelFormat &pf) {
-  // We have this as a separate method for ManagedPixelBuffer's
-  // sake. Direct users of FullFramePixelBuffer aren't allowed
-  // to call it.
-
-  PixelBuffer::setPF(pf);
-
-  switch(pf.bpp) {
-  case 8:
-    fillRectFn = fillRect8;
-    break;
-  case 16:
-    fillRectFn = fillRect16;
-    break;
-  case 32:
-    fillRectFn = fillRect32;
-    break;
-  default:
-    throw Exception("rfb::FullFramePixelBuffer - Unsupported pixel format");
-  }
-}
-
-
-int FullFramePixelBuffer::getStride() const { return width(); }
-
-rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride)
+rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
 {
-  *stride = getStride();
-  return &data[(r.tl.x + (r.tl.y * *stride)) * format.bpp/8];
+  *stride_ = stride;
+  return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
 }
 
 
 void FullFramePixelBuffer::fillRect(const Rect& r, Pixel pix) {
   int stride;
-  U8 *buf = getBufferRW(r, &stride);
-  fillRectFn(buf, stride, r, pix);
+  U8 *buf, pixbuf[4];
+  int w, h, b;
+
+  buf = getBufferRW(r, &stride);
+  w = r.width();
+  h = r.height();
+  b = format.bpp/8;
+
+  format.bufferFromPixel(pixbuf, pix);
+
+  while (h--) {
+    int w_ = w;
+    while (w_--) {
+      memcpy(buf, pixbuf, b);
+      buf += b;
+    }
+    buf += (stride - w) * b;
+  }
 }
 
 void FullFramePixelBuffer::imageRect(const Rect& r, const void* pixels, int srcStride) {
@@ -314,39 +248,31 @@ void FullFramePixelBuffer::copyRect(const Rect &rect, const Point &move_by_delta
 // Automatically allocates enough space for the specified format & area
 
 ManagedPixelBuffer::ManagedPixelBuffer()
-  : datasize(0), own_colourmap(false)
+  : datasize(0)
 {
   checkDataSize();
 };
 
 ManagedPixelBuffer::ManagedPixelBuffer(const PixelFormat& pf, int w, int h)
-  : FullFramePixelBuffer(pf, w, h, 0, 0), datasize(0), own_colourmap(false)
+  : FullFramePixelBuffer(pf, w, h, NULL, w), datasize(0)
 {
   checkDataSize();
 };
 
 ManagedPixelBuffer::~ManagedPixelBuffer() {
   if (data) delete [] data;
-  if (colourmap && own_colourmap) delete colourmap;
 };
 
 
 void
 ManagedPixelBuffer::setPF(const PixelFormat &pf) {
-  FullFramePixelBuffer::setPF(pf); checkDataSize();
+  format = pf; checkDataSize();
 };
 void
 ManagedPixelBuffer::setSize(int w, int h) {
-  width_ = w; height_ = h; checkDataSize();
+  width_ = w; height_ = h; stride = w; checkDataSize();
 };
 
-
-void
-ManagedPixelBuffer::setColourMap(ColourMap* cm, bool own_cm) {
-  if (colourmap && own_colourmap) delete colourmap;
-  colourmap = cm;
-  own_colourmap = own_cm;
-}
 
 inline void
 ManagedPixelBuffer::checkDataSize() {

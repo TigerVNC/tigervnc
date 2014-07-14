@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +17,100 @@
  * USA.
  */
 #include <stdio.h>
+#include <rfb/msgTypes.h>
 #include <rdr/InStream.h>
 #include <rfb/Exception.h>
 #include <rfb/util.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/CMsgReader.h>
+#include <rfb/Decoder.h>
 
 using namespace rfb;
 
 CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
   : imageBufIdealSize(0), handler(handler_), is(is_),
-    imageBuf(0), imageBufSize(0)
+    imageBuf(0), imageBufSize(0), nUpdateRectsLeft(0)
 {
-  for (int i = 0; i <= encodingMax; i++) {
-    decoders[i] = 0;
-  }
 }
 
 CMsgReader::~CMsgReader()
 {
-  for (int i = 0; i <= encodingMax; i++) {
-    delete decoders[i];
-  }
   delete [] imageBuf;
+}
+
+void CMsgReader::readServerInit()
+{
+  int width = is->readU16();
+  int height = is->readU16();
+  handler->setDesktopSize(width, height);
+  PixelFormat pf;
+  pf.read(is);
+  handler->setPixelFormat(pf);
+  CharArray name(is->readString());
+  handler->setName(name.buf);
+  handler->serverInit();
+}
+
+void CMsgReader::readMsg()
+{
+  if (nUpdateRectsLeft == 0) {
+    int type = is->readU8();
+
+    switch (type) {
+    case msgTypeSetColourMapEntries:
+      readSetColourMapEntries();
+      break;
+    case msgTypeBell:
+      readBell();
+      break;
+    case msgTypeServerCutText:
+      readServerCutText();
+      break;
+    case msgTypeFramebufferUpdate:
+      readFramebufferUpdate();
+      break;
+    case msgTypeServerFence:
+      readFence();
+      break;
+    case msgTypeEndOfContinuousUpdates:
+      readEndOfContinuousUpdates();
+      break;
+    default:
+      fprintf(stderr, "unknown message type %d\n", type);
+      throw Exception("unknown message type");
+    }
+  } else {
+    int x = is->readU16();
+    int y = is->readU16();
+    int w = is->readU16();
+    int h = is->readU16();
+    int encoding = is->readS32();
+
+    switch (encoding) {
+    case pseudoEncodingLastRect:
+      nUpdateRectsLeft = 1;     // this rectangle is the last one
+      break;
+    case pseudoEncodingCursor:
+      readSetCursor(w, h, Point(x,y));
+      break;
+    case pseudoEncodingDesktopName:
+      readSetDesktopName(x, y, w, h);
+      break;
+    case pseudoEncodingDesktopSize:
+      handler->setDesktopSize(w, h);
+      break;
+    case pseudoEncodingExtendedDesktopSize:
+      readExtendedDesktopSize(x, y, w, h);
+      break;
+    default:
+      readRect(Rect(x, y, x+w, y+h), encoding);
+      break;
+    };
+
+    nUpdateRectsLeft--;
+    if (nUpdateRectsLeft == 0)
+      handler->framebufferUpdateEnd();
+  }
 }
 
 void CMsgReader::readSetColourMapEntries()
@@ -72,14 +144,38 @@ void CMsgReader::readServerCutText()
   handler->serverCutText(ca.buf, len);
 }
 
-void CMsgReader::readFramebufferUpdateStart()
+void CMsgReader::readFence()
 {
-  handler->framebufferUpdateStart();
+  rdr::U32 flags;
+  rdr::U8 len;
+  char data[64];
+
+  is->skip(3);
+
+  flags = is->readU32();
+
+  len = is->readU8();
+  if (len > sizeof(data)) {
+    fprintf(stderr, "Ignoring fence with too large payload\n");
+    is->skip(len);
+    return;
+  }
+
+  is->readBytes(data, len);
+
+  handler->fence(flags, len, data);
 }
 
-void CMsgReader::readFramebufferUpdateEnd()
+void CMsgReader::readEndOfContinuousUpdates()
 {
-  handler->framebufferUpdateEnd();
+  handler->endOfContinuousUpdates();
+}
+
+void CMsgReader::readFramebufferUpdate()
+{
+  is->skip(1);
+  nUpdateRectsLeft = is->readU16();
+  handler->framebufferUpdateStart();
 }
 
 void CMsgReader::readRect(const Rect& r, int encoding)
@@ -94,35 +190,7 @@ void CMsgReader::readRect(const Rect& r, int encoding)
   if (r.is_empty())
     fprintf(stderr, "Warning: zero size rect\n");
 
-  handler->beginRect(r, encoding);
-
-  if (encoding == encodingCopyRect) {
-    readCopyRect(r);
-  } else {
-
-    if (!Decoder::supported(encoding)) {
-      fprintf(stderr, "Unknown rect encoding %d\n", encoding);
-      throw Exception("Unknown rect encoding");
-    }
-
-    if (!decoders[encoding]) {
-      decoders[encoding] = Decoder::createDecoder(encoding, this);
-      if (!decoders[encoding]) {
-        fprintf(stderr, "Unknown rect encoding %d\n", encoding);
-        throw Exception("Unknown rect encoding");
-      }
-    }
-    decoders[encoding]->readRect(r, handler);
-  }
-
-  handler->endRect(r, encoding);
-}
-
-void CMsgReader::readCopyRect(const Rect& r)
-{
-  int srcX = is->readU16();
-  int srcY = is->readU16();
-  handler->copyRect(r, srcX, srcY);
+  handler->dataRect(r, encoding);
 }
 
 void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
@@ -136,6 +204,43 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   is->readBytes(mask.buf, mask_len);
 
   handler->setCursor(width, height, hotspot, data.buf, mask.buf);
+}
+
+void CMsgReader::readSetDesktopName(int x, int y, int w, int h)
+{
+  char* name = is->readString();
+
+  if (x || y || w || h) {
+    fprintf(stderr, "Ignoring DesktopName rect with non-zero position/size\n");
+  } else {
+    handler->setName(name);
+  }
+
+  delete [] name;
+}
+
+void CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
+{
+  unsigned int screens, i;
+  rdr::U32 id, flags;
+  int sx, sy, sw, sh;
+  ScreenSet layout;
+
+  screens = is->readU8();
+  is->skip(3);
+
+  for (i = 0;i < screens;i++) {
+    id = is->readU32();
+    sx = is->readU16();
+    sy = is->readU16();
+    sw = is->readU16();
+    sh = is->readU16();
+    flags = is->readU32();
+
+    layout.add_screen(Screen(id, sx, sy, sw, sh, flags));
+  }
+
+  handler->setExtendedDesktopSize(x, y, w, h, layout);
 }
 
 rdr::U8* CMsgReader::getImageBuf(int required, int requested, int* nPixels)
@@ -156,9 +261,4 @@ rdr::U8* CMsgReader::getImageBuf(int required, int requested, int* nPixels)
   if (nPixels)
     *nPixels = imageBufSize / (handler->cp.pf().bpp / 8);
   return imageBuf;
-}
-
-int CMsgReader::bpp()
-{
-  return handler->cp.pf().bpp;
 }

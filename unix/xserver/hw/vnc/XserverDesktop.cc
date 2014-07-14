@@ -51,7 +51,6 @@ extern "C" {
 
 extern char *display;
 
-#include "colormapst.h"
 #ifdef RANDR
 #include "randrstr.h"
 #endif
@@ -143,14 +142,11 @@ XserverDesktop::XserverDesktop(ScreenPtr pScreen_,
   : pScreen(pScreen_),
     server(0), httpServer(0),
     listener(listener_), httpListener(httpListener_),
-    cmap(0), deferredUpdateTimerSet(false),
+    deferredUpdateTimerSet(false),
     grabbing(false), ignoreHooks_(false), directFbptr(true),
     queryConnectId(0)
 {
   format = pf;
-  colourmap = this;
-
-  serverReset(pScreen);
 
   server = new VNCServerST(name, this);
   setFramebuffer(pScreen->width, pScreen->height, fbptr, stride);
@@ -168,24 +164,6 @@ XserverDesktop::~XserverDesktop()
   delete server;
 }
 
-void XserverDesktop::serverReset(ScreenPtr pScreen_)
-{
-  pScreen = pScreen_;
-  int i;
-  pointer retval;
-
-#if XORG >= 17
-#define dixLookupResource dixLookupResourceByType
-#endif
-  i = dixLookupResource(&retval, pScreen->defColormap, RT_COLORMAP, NullClient,
-			DixReadAccess);
-
-  /* Handle suspicious conditions */
-  assert(i == Success);
-
-  cmap = (ColormapPtr) retval;
-}
-
 void XserverDesktop::blockUpdates()
 {
   server->blockUpdates();
@@ -196,7 +174,7 @@ void XserverDesktop::unblockUpdates()
   server->unblockUpdates();
 }
 
-void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride)
+void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride_)
 {
   ScreenSet layout;
 
@@ -210,12 +188,12 @@ void XserverDesktop::setFramebuffer(int w, int h, void* fbptr, int stride)
 
   if (!fbptr) {
     fbptr = new rdr::U8[w * h * (format.bpp/8)];
-    stride = w;
+    stride_ = w;
     directFbptr = false;
   }
 
   data = (rdr::U8*)fbptr;
-  stride_ = stride;
+  stride = stride_;
 
   layout = computeScreenLayout();
 
@@ -376,44 +354,6 @@ XserverDesktop::queryConnection(network::Socket* sock,
   return rfb::VNCServerST::PENDING;
 }
 
-
-void XserverDesktop::setColormap(ColormapPtr cmap_)
-{
-  if (cmap != cmap_) {
-    cmap = cmap_;
-    setColourMapEntries(0, 0);
-  }
-}
-
-void XserverDesktop::setColourMapEntries(ColormapPtr pColormap, int ndef,
-                                         xColorItem* pdef)
-{
-  if (cmap != pColormap || ndef <= 0) return;
-
-  unsigned int first = pdef[0].pixel;
-  unsigned int n = 1;
-
-  for (int i = 1; i < ndef; i++) {
-    if (first + n == pdef[i].pixel) {
-      n++;
-    } else {
-      setColourMapEntries(first, n);
-      first = pdef[i].pixel;
-      n = 1;
-    }
-  }
-  setColourMapEntries(first, n);
-}
-
-void XserverDesktop::setColourMapEntries(int firstColour, int nColours)
-{
-  try {
-    server->setColourMapEntries(firstColour, nColours);
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::setColourMapEntries: %s",e.str());
-  }
-}
-
 void XserverDesktop::bell()
 {
   server->bell();
@@ -466,7 +406,7 @@ void XserverDesktop::setCursor(CursorPtr cursor)
           rgb[1] = (*in >>  8) & 0xff;
           rgb[2] = (*in >>  0) & 0xff;
 
-          getPF().bufferFromRGB(out, rgb, 1, this);
+          getPF().bufferFromRGB(out, rgb, 1);
 
           if (((*in >> 24) & 0xff) > 127)
             cursorMask[y * rfbMaskBytesPerRow + x/8] |= 0x80>>(x%8);
@@ -477,42 +417,42 @@ void XserverDesktop::setCursor(CursorPtr cursor)
       }
     } else {
 #endif
-      xColorItem fg, bg;
-      fg.red   = cursor->foreRed;
-      fg.green = cursor->foreGreen;
-      fg.blue  = cursor->foreBlue;
-      FakeAllocColor(cmap, &fg);
-      bg.red   = cursor->backRed;
-      bg.green = cursor->backGreen;
-      bg.blue  = cursor->backBlue;
-      FakeAllocColor(cmap, &bg);
-      FakeFreeColor(cmap, fg.pixel);
-      FakeFreeColor(cmap, bg.pixel);
+      rdr::U8 rgb[3];
+      rdr::U8 fg[4], bg[4];
+
+      rdr::U8* buffer;
+
+      rgb[0] = cursor->foreRed;
+      rgb[1] = cursor->foreGreen;
+      rgb[2] = cursor->foreBlue;
+      getPF().bufferFromRGB(fg, rgb, 1);
+
+      rgb[0] = cursor->backRed;
+      rgb[1] = cursor->backGreen;
+      rgb[2] = cursor->backBlue;
+      getPF().bufferFromRGB(bg, rgb, 1);
 
       int xMaskBytesPerRow = BitmapBytePad(w);
 
+      buffer = cursorData;
+
       for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
+          rdr::U8 *pixel;
           int byte = y * xMaskBytesPerRow + x / 8;
 #if (BITMAP_BIT_ORDER == MSBFirst)
           int bit = 7 - x % 8;
 #else
           int bit = x % 8;
 #endif
-          switch (getPF().bpp) {
-          case 8:
-            ((rdr::U8*)cursorData)[y * w + x]
-              = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
-            break;
-          case 16:
-            ((rdr::U16*)cursorData)[y * w + x]
-              = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
-            break;
-          case 32:
-            ((rdr::U32*)cursorData)[y * w + x]
-              = (cursor->bits->source[byte] & (1 << bit)) ? fg.pixel : bg.pixel;
-            break;
-          }
+
+          if (cursor->bits->source[byte] & (1 << bit))
+            pixel = fg;
+          else
+            pixel = bg;
+
+          memcpy(buffer, pixel, getPF().bpp/8);
+          buffer += getPF().bpp/8;
         }
       }
 
@@ -1103,33 +1043,6 @@ void XserverDesktop::grabRegion(const rfb::Region& region)
     }
   }
   grabbing = false;
-}
-
-int XserverDesktop::getStride() const
-{
-  return stride_;
-}
-
-void XserverDesktop::lookup(int index, int* r, int* g, int* b)
-{
-  if ((cmap->c_class | DynamicClass) == DirectColor) {
-    VisualPtr v = cmap->pVisual;
-    *r = cmap->red  [(index & v->redMask  ) >> v->offsetRed  ].co.local.red;
-    *g = cmap->green[(index & v->greenMask) >> v->offsetGreen].co.local.green;
-    *b = cmap->blue [(index & v->blueMask ) >> v->offsetBlue ].co.local.blue;
-  } else {
-    EntryPtr pent;
-    pent = (EntryPtr)&cmap->red[index];
-    if (pent->fShared) {
-      *r = pent->co.shco.red->color;
-      *g = pent->co.shco.green->color;
-      *b = pent->co.shco.blue->color;
-    } else {
-      *r = pent->co.local.red;
-      *g = pent->co.local.green;
-      *b = pent->co.local.blue;
-    }
-  }
 }
 
 void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)

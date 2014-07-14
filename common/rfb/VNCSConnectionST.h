@@ -37,6 +37,8 @@
 struct RTTInfo;
 
 namespace rfb {
+  class Encoder;
+
   class VNCSConnectionST : public SConnection,
                            public WriteSetCursorCallback,
                            public Timer::Callback {
@@ -71,7 +73,6 @@ namespace rfb {
     // Wrappers to make these methods "safe" for VNCServerST.
     void writeFramebufferUpdateOrClose();
     void screenLayoutChangeOrClose(rdr::U16 reason);
-    void setColourMapEntriesOrClose(int firstColour, int nColours);
     void setCursorOrClose();
     void bellOrClose();
     void serverCutTextOrClose(const char *str, int len);
@@ -138,7 +139,6 @@ namespace rfb {
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setDesktopSize(int fb_width, int fb_height,
                                 const ScreenSet& layout);
-    virtual void setInitialColourMap();
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void enableContinuousUpdates(bool enable,
                                          int x, int y, int w, int h);
@@ -171,9 +171,7 @@ namespace rfb {
 
     void writeFramebufferUpdate();
 
-    void writeRenderedCursorRect();
     void screenLayoutChange(rdr::U16 reason);
-    void setColourMapEntries(int firstColour, int nColours);
     void setCursor();
     void setDesktopName(const char *name);
     void setSocketTimeouts();
@@ -205,6 +203,7 @@ namespace rfb {
     Rect renderedCursorRect;
     bool continuousUpdates;
     Region cuRegion;
+    Encoder* encoders[encodingMax+1];
 
     Timer updateTimer;
 

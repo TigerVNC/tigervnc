@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +19,9 @@
 #include <stdio.h>
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/fenceTypes.h>
 #include <rfb/encodings.h>
+#include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb/ConnParams.h>
@@ -34,6 +37,12 @@ CMsgWriter::CMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
 
 CMsgWriter::~CMsgWriter()
 {
+}
+
+void CMsgWriter::writeClientInit(bool shared)
+{
+  os->writeU8(shared);
+  endMsg();
 }
 
 void CMsgWriter::writeSetPixelFormat(const PixelFormat& pf)
@@ -104,9 +113,11 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
   // Remaining encodings
   for (int i = encodingMax; i >= 0; i--) {
     switch (i) {
+    case encodingCopyRect:
     case encodingTight:
     case encodingZRLE:
     case encodingHextile:
+      /* These have already been sent earlier */
       break;
     default:
       if ((i != preferredEncoding) && Decoder::supported(i))
@@ -121,7 +132,35 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
 
   writeSetEncodings(nEncodings, encodings);
 }
-  
+
+void CMsgWriter::writeSetDesktopSize(int width, int height,
+                                     const ScreenSet& layout)
+{
+  if (!cp->supportsSetDesktopSize)
+    throw Exception("Server does not support SetDesktopSize");
+
+  startMsg(msgTypeSetDesktopSize);
+  os->pad(1);
+
+  os->writeU16(width);
+  os->writeU16(height);
+
+  os->writeU8(layout.num_screens());
+  os->pad(1);
+
+  ScreenSet::const_iterator iter;
+  for (iter = layout.begin();iter != layout.end();++iter) {
+    os->writeU32(iter->id);
+    os->writeU16(iter->dimensions.tl.x);
+    os->writeU16(iter->dimensions.tl.y);
+    os->writeU16(iter->dimensions.width());
+    os->writeU16(iter->dimensions.height());
+    os->writeU32(iter->flags);
+  }
+
+  endMsg();
+}
+
 void CMsgWriter::writeFramebufferUpdateRequest(const Rect& r, bool incremental)
 {
   startMsg(msgTypeFramebufferUpdateRequest);
@@ -133,6 +172,43 @@ void CMsgWriter::writeFramebufferUpdateRequest(const Rect& r, bool incremental)
   endMsg();
 }
 
+void CMsgWriter::writeEnableContinuousUpdates(bool enable,
+                                              int x, int y, int w, int h)
+{
+  if (!cp->supportsContinuousUpdates)
+    throw Exception("Server does not support continuous updates");
+
+  startMsg(msgTypeEnableContinuousUpdates);
+
+  os->writeU8(!!enable);
+
+  os->writeU16(x);
+  os->writeU16(y);
+  os->writeU16(w);
+  os->writeU16(h);
+
+  endMsg();
+}
+
+void CMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
+{
+  if (!cp->supportsFence)
+    throw Exception("Server does not support fences");
+  if (len > 64)
+    throw Exception("Too large fence payload");
+  if ((flags & ~fenceFlagsSupported) != 0)
+    throw Exception("Unknown fence flags");
+
+  startMsg(msgTypeClientFence);
+  os->pad(3);
+
+  os->writeU32(flags);
+
+  os->writeU8(len);
+  os->writeBytes(data, len);
+
+  endMsg();
+}
 
 void CMsgWriter::keyEvent(rdr::U32 key, bool down)
 {
@@ -167,4 +243,14 @@ void CMsgWriter::clientCutText(const char* str, rdr::U32 len)
   os->writeU32(len);
   os->writeBytes(str, len);
   endMsg();
+}
+
+void CMsgWriter::startMsg(int type)
+{
+  os->writeU8(type);
+}
+
+void CMsgWriter::endMsg()
+{
+  os->flush();
 }

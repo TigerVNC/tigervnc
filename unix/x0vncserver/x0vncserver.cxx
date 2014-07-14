@@ -135,7 +135,7 @@ private:
 };
 
 
-class XDesktop : public SDesktop, public ColourMap, public TXGlobalEventHandler
+class XDesktop : public SDesktop, public TXGlobalEventHandler
 {
 public:
   XDesktop(Display* dpy_, Geometry *geometry_)
@@ -199,7 +199,7 @@ public:
     ImageFactory factory((bool)useShm, (bool)useOverlay);
 
     // Create pixel buffer and provide it to the server object.
-    pb = new XPixelBuffer(dpy, factory, geometry->getRect(), this);
+    pb = new XPixelBuffer(dpy, factory, geometry->getRect());
     vlog.info("Allocated %s", pb->getImage()->classDesc());
 
     server = (VNCServerST *)vs;
@@ -267,20 +267,6 @@ public:
 
   virtual Point getFbSize() {
     return Point(pb->width(), pb->height());
-  }
-
-  // -=- ColourMap callbacks
-  virtual void lookup(int index, int* r, int* g, int* b) {
-    XColor xc;
-    xc.pixel = index;
-    if (index < DisplayCells(dpy,DefaultScreen(dpy))) {
-      XQueryColor(dpy, DefaultColormap(dpy,DefaultScreen(dpy)), &xc);
-    } else {
-      xc.red = xc.green = xc.blue = 0;
-    }
-    *r = xc.red;
-    *g = xc.green;
-    *b = xc.blue;
   }
 
   // -=- TXGlobalEventHandler interface

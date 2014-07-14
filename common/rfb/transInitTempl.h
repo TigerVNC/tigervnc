@@ -46,12 +46,8 @@ namespace rfb {
 
 #define OUTPIXEL rdr::CONCAT2E(U,BPPOUT)
 #define SWAPOUT CONCAT2E(SWAP,BPPOUT)
-#define initSimpleCMtoTCOUT    CONCAT2E(initSimpleCMtoTC,BPPOUT)
-#define initSimpleTCtoTCOUT    CONCAT2E(initSimpleTCtoTC,BPPOUT)
-#define initSimpleCMtoCubeOUT  CONCAT2E(initSimpleCMtoCube,BPPOUT)
-#define initSimpleTCtoCubeOUT  CONCAT2E(initSimpleTCtoCube,BPPOUT)
-#define initRGBTCtoTCOUT       CONCAT2E(initRGBTCtoTC,BPPOUT)
-#define initRGBTCtoCubeOUT     CONCAT2E(initRGBTCtoCube,BPPOUT)
+#define initSimpleOUT          CONCAT2E(initSimple,BPPOUT)
+#define initRGBOUT             CONCAT2E(initRGB,BPPOUT)
 #define initOneRGBTableOUT     CONCAT2E(initOneRGBTable,BPPOUT)
 #define initOneRGBCubeTableOUT CONCAT2E(initOneRGBCubeTable,BPPOUT)
 
@@ -61,34 +57,8 @@ namespace rfb {
   static bool nativeBigEndian = *(rdr::U8*)(&endianTest) != 1;
 #endif
 
-void initSimpleCMtoTCOUT (rdr::U8** tablep, const PixelFormat& inPF,
-                          ColourMap* cm, const PixelFormat& outPF)
-{
-  if (inPF.bpp != 8 && inPF.bigEndian != nativeBigEndian)
-    throw Exception("Internal error: inPF is not native endian");
-
-  int size = 1 << inPF.bpp;
-
-  delete [] *tablep;
-  *tablep = new rdr::U8[size * sizeof(OUTPIXEL)];
-  OUTPIXEL* table = (OUTPIXEL*)*tablep;
-
-  for (int i = 0; i < size; i++) {
-    int r,g,b;
-    cm->lookup(i,&r,&g,&b);
-
-    table[i] = ((((r * outPF.redMax   + 32767) / 65535) << outPF.redShift) |
-                (((g * outPF.greenMax + 32767) / 65535) << outPF.greenShift) |
-                (((b * outPF.blueMax  + 32767) / 65535) << outPF.blueShift));
-#if (BPPOUT != 8)
-    if (outPF.bigEndian != nativeBigEndian)
-      table[i] = SWAPOUT (table[i]);
-#endif
-  }
-}
-
-void initSimpleTCtoTCOUT (rdr::U8** tablep, const PixelFormat& inPF,
-                          const PixelFormat& outPF)
+void initSimpleOUT (rdr::U8** tablep, const PixelFormat& inPF,
+                    const PixelFormat& outPF)
 {
   if (inPF.bpp != 8 && inPF.bigEndian != nativeBigEndian)
     throw Exception("Internal error: inPF is not native endian");
@@ -118,55 +88,8 @@ void initSimpleTCtoTCOUT (rdr::U8** tablep, const PixelFormat& inPF,
   }
 }
 
-void initSimpleCMtoCubeOUT (rdr::U8** tablep, const PixelFormat& inPF,
-                            ColourMap* cm, ColourCube* cube)
-{
-  if (inPF.bpp != 8 && inPF.bigEndian != nativeBigEndian)
-    throw Exception("Internal error: inPF is not native endian");
-
-  int size = 1 << inPF.bpp;
-
-  delete [] *tablep;
-  *tablep = new rdr::U8[size * sizeof(OUTPIXEL)];
-  OUTPIXEL* table = (OUTPIXEL*)*tablep;
-
-  for (int i = 0; i < size; i++) {
-    int r,g,b;
-    cm->lookup(i,&r,&g,&b);
-    r = (r * (cube->nRed-1)   + 32767) / 65535;
-    g = (g * (cube->nGreen-1) + 32767) / 65535;
-    b = (b * (cube->nBlue-1)  + 32767) / 65535;
-    table[i] = cube->lookup(r, g, b);
-  }
-}
-
-void initSimpleTCtoCubeOUT (rdr::U8** tablep, const PixelFormat& inPF,
-                            ColourCube* cube)
-{
-  if (inPF.bpp != 8 && inPF.bigEndian != nativeBigEndian)
-    throw Exception("Internal error: inPF is not native endian");
-
-  int size = 1 << inPF.bpp;
-
-  delete [] *tablep;
-  *tablep = new rdr::U8[size * sizeof(OUTPIXEL)];
-  OUTPIXEL* table = (OUTPIXEL*)*tablep;
-
-  for (int i = 0; i < size; i++) {
-    int r = (i >> inPF.redShift)   & inPF.redMax;
-    int g = (i >> inPF.greenShift) & inPF.greenMax;
-    int b = (i >> inPF.blueShift)  & inPF.blueMax;
-
-    r = (r * (cube->nRed-1)   + inPF.redMax/2)   / inPF.redMax;
-    g = (g * (cube->nGreen-1) + inPF.greenMax/2) / inPF.greenMax;
-    b = (b * (cube->nBlue-1)  + inPF.blueMax/2)  / inPF.blueMax;
-
-    table[i] = cube->lookup(r, g, b);
-  }
-}
-
-void initOneRGBTableOUT (OUTPIXEL* table, int inMax, int outMax,
-                         int outShift, bool swap)
+static void initOneRGBTableOUT (OUTPIXEL* table, int inMax, int outMax,
+                                int outShift, bool swap)
 {
   int size = inMax + 1;
 
@@ -179,8 +102,8 @@ void initOneRGBTableOUT (OUTPIXEL* table, int inMax, int outMax,
   }
 }
 
-void initRGBTCtoTCOUT (rdr::U8** tablep, const PixelFormat& inPF,
-                       const PixelFormat& outPF)
+void initRGBOUT (rdr::U8** tablep, const PixelFormat& inPF,
+                 const PixelFormat& outPF)
 {
   if (inPF.bpp != 8 && inPF.bigEndian != nativeBigEndian)
     throw Exception("Internal error: inPF is not native endian");
@@ -205,50 +128,8 @@ void initRGBTCtoTCOUT (rdr::U8** tablep, const PixelFormat& inPF,
 }
 
 
-void initOneRGBCubeTableOUT (OUTPIXEL* table, int inMax, int outMax,
-                             int outMult)
-{
-  int size = inMax + 1;
-
-  for (int i = 0; i < size; i++) {
-    table[i] = ((i * outMax + inMax / 2) / inMax) * outMult;
-  }
-}
-
-void initRGBTCtoCubeOUT (rdr::U8** tablep, const PixelFormat& inPF,
-                         ColourCube* cube)
-{
-  if (inPF.bpp != 8 && inPF.bigEndian != nativeBigEndian)
-    throw Exception("Internal error: inPF is not native endian");
-
-  int size = inPF.redMax + inPF.greenMax + inPF.blueMax + 3 + cube->size();
-
-  delete [] *tablep;
-  *tablep = new rdr::U8[size * sizeof(OUTPIXEL)];
-
-  OUTPIXEL* redTable = (OUTPIXEL*)*tablep;
-  OUTPIXEL* greenTable = redTable + inPF.redMax + 1;
-  OUTPIXEL* blueTable = greenTable + inPF.greenMax + 1;
-  OUTPIXEL* cubeTable = blueTable + inPF.blueMax + 1;
-
-  initOneRGBCubeTableOUT (redTable,   inPF.redMax,   cube->nRed-1,
-                               cube->redMult());
-  initOneRGBCubeTableOUT (greenTable, inPF.greenMax, cube->nGreen-1,
-                               cube->greenMult());
-  initOneRGBCubeTableOUT (blueTable,  inPF.blueMax,  cube->nBlue-1,
-                               cube->blueMult());
-  for (int i = 0; i < cube->size(); i++) {
-    cubeTable[i] = cube->table[i];
-  }
-}
-
 #undef OUTPIXEL
-#undef initSimpleCMtoTCOUT
-#undef initSimpleTCtoTCOUT
-#undef initSimpleCMtoCubeOUT
-#undef initSimpleTCtoCubeOUT
-#undef initRGBTCtoTCOUT
-#undef initRGBTCtoCubeOUT
+#undef initSimpleOUT
+#undef initRGBOUT
 #undef initOneRGBTableOUT
-#undef initOneRGBCubeTableOUT
 }

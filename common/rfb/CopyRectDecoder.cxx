@@ -1,5 +1,4 @@
-/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+/* Copyright 2014 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,25 +15,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __RFB_CMSGREADERV3_H__
-#define __RFB_CMSGREADERV3_H__
+#include <rdr/InStream.h>
+#include <rfb/CConnection.h>
+#include <rfb/CMsgHandler.h>
+#include <rfb/PixelBuffer.h>
+#include <rfb/CopyRectDecoder.h>
 
-#include <rfb/CMsgReader.h>
+using namespace rfb;
 
-namespace rfb {
-  class CMsgReaderV3 : public CMsgReader {
-  public:
-    CMsgReaderV3(CMsgHandler* handler, rdr::InStream* is);
-    virtual ~CMsgReaderV3();
-    virtual void readServerInit();
-    virtual void readMsg();
-  private:
-    virtual void readFramebufferUpdate();
-    virtual void readSetDesktopName(int x, int y, int w, int h);
-    virtual void readExtendedDesktopSize(int x, int y, int w, int h);
-    virtual void readFence();
-    virtual void readEndOfContinuousUpdates();
-    int nUpdateRectsLeft;
-  };
+CopyRectDecoder::CopyRectDecoder(CConnection* conn) : Decoder(conn)
+{
 }
-#endif
+
+CopyRectDecoder::~CopyRectDecoder()
+{
+}
+
+void CopyRectDecoder::readRect(const Rect& r, CMsgHandler* handler)
+{
+  int srcX = conn->getInStream()->readU16();
+  int srcY = conn->getInStream()->readU16();
+  handler->copyRect(r, srcX, srcY);
+}

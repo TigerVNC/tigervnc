@@ -19,6 +19,7 @@
 #include <rfb/TransImageGetter.h>
 #include <rfb/encodings.h>
 #include <rfb/SMsgWriter.h>
+#include <rfb/SConnection.h>
 #include <rfb/HextileEncoder.h>
 #include <rfb/Configuration.h>
 
@@ -30,8 +31,6 @@ BoolParameter improvedHextile("ImprovedHextile",
                               "ratios by the cost of using more CPU time",
                               true);
 
-#define EXTRA_ARGS ImageGetter* ig
-#define GET_IMAGE_INTO_BUF(r,buf) ig->getImage(buf, r);
 #define BPP 8
 #include <rfb/hextileEncode.h>
 #include <rfb/hextileEncodeBetter.h>
@@ -45,7 +44,7 @@ BoolParameter improvedHextile("ImprovedHextile",
 #include <rfb/hextileEncodeBetter.h>
 #undef BPP
 
-HextileEncoder::HextileEncoder(SMsgWriter* writer_) : writer(writer_)
+HextileEncoder::HextileEncoder(SConnection* conn) : Encoder(conn)
 {
 }
 
@@ -53,12 +52,11 @@ HextileEncoder::~HextileEncoder()
 {
 }
 
-bool HextileEncoder::writeRect(const Rect& r, TransImageGetter* ig,
-                               Rect* actual)
+void HextileEncoder::writeRect(const Rect& r, TransImageGetter* ig)
 {
-  writer->startRect(r, encodingHextile);
-  rdr::OutStream* os = writer->getOutStream();
-  switch (writer->bpp()) {
+  conn->writer()->startRect(r, encodingHextile);
+  rdr::OutStream* os = conn->getOutStream();
+  switch (conn->cp.pf().bpp) {
   case 8:
     if (improvedHextile) {
       hextileEncodeBetter8(r, os, ig);
@@ -81,6 +79,5 @@ bool HextileEncoder::writeRect(const Rect& r, TransImageGetter* ig,
     }
     break;
   }
-  writer->endRect();
-  return true;
+  conn->writer()->endRect();
 }

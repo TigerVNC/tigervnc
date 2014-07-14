@@ -5,9 +5,7 @@ set(RFB_SOURCES
   CConnection.cxx
   CMsgHandler.cxx
   CMsgReader.cxx
-  CMsgReaderV3.cxx
   CMsgWriter.cxx
-  CMsgWriterV3.cxx
   CSecurityPlain.cxx
   CSecurityStack.cxx
   CSecurityVeNCrypt.cxx
@@ -15,6 +13,7 @@ set(RFB_SOURCES
   ComparingUpdateTracker.cxx
   Configuration.cxx
   ConnParams.cxx
+  CopyRectDecoder.cxx
   Cursor.cxx
   Decoder.cxx
   d3des.c
@@ -41,9 +40,7 @@ set(RFB_SOURCES
   SConnection.cxx
   SMsgHandler.cxx
   SMsgReader.cxx
-  SMsgReaderV3.cxx
   SMsgWriter.cxx
-  SMsgWriterV3.cxx
   ServerCore.cxx
   Security.cxx
   SecurityServer.cxx
@@ -56,7 +53,6 @@ set(RFB_SOURCES
   Timer.cxx
   TightDecoder.cxx
   TightEncoder.cxx
-  TightPalette.cxx
   TransImageGetter.cxx
   UpdateTracker.cxx
   VNCSConnectionST.cxx

@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +25,9 @@
 #define __RFB_CMSGREADER_H__
 
 #include <rdr/types.h>
+
+#include <rfb/Rect.h>
 #include <rfb/encodings.h>
-#include <rfb/Decoder.h>
 
 namespace rdr { class InStream; }
 
@@ -35,39 +37,39 @@ namespace rfb {
 
   class CMsgReader {
   public:
+    CMsgReader(CMsgHandler* handler, rdr::InStream* is);
     virtual ~CMsgReader();
 
-    virtual void readServerInit()=0;
+    void readServerInit();
 
     // readMsg() reads a message, calling the handler as appropriate.
-    virtual void readMsg()=0;
+    void readMsg();
 
     rdr::InStream* getInStream() { return is; }
     rdr::U8* getImageBuf(int required, int requested=0, int* nPixels=0);
-    int bpp();
 
     int imageBufIdealSize;
 
   protected:
-    virtual void readSetColourMapEntries();
-    virtual void readBell();
-    virtual void readServerCutText();
+    void readSetColourMapEntries();
+    void readBell();
+    void readServerCutText();
+    void readFence();
+    void readEndOfContinuousUpdates();
 
-    virtual void readFramebufferUpdateStart();
-    virtual void readFramebufferUpdateEnd();
-    virtual void readRect(const Rect& r, int encoding);
+    void readFramebufferUpdate();
 
-    virtual void readCopyRect(const Rect& r);
+    void readRect(const Rect& r, int encoding);
 
-    virtual void readSetCursor(int width, int height, const Point& hotspot);
-
-    CMsgReader(CMsgHandler* handler, rdr::InStream* is);
+    void readSetCursor(int width, int height, const Point& hotspot);
+    void readSetDesktopName(int x, int y, int w, int h);
+    void readExtendedDesktopSize(int x, int y, int w, int h);
 
     CMsgHandler* handler;
     rdr::InStream* is;
-    Decoder* decoders[encodingMax+1];
     rdr::U8* imageBuf;
     int imageBufSize;
+    int nUpdateRectsLeft;
   };
 }
 #endif

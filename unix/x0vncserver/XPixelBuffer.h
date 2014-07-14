@@ -37,8 +37,7 @@ using namespace rfb;
 class XPixelBuffer : public FullFramePixelBuffer
 {
 public:
-  XPixelBuffer(Display *dpy, ImageFactory &factory,
-               const Rect &rect, ColourMap* cm);
+  XPixelBuffer(Display *dpy, ImageFactory &factory, const Rect &rect);
   virtual ~XPixelBuffer();
 
   // Provide access to the underlying Image object.
@@ -46,9 +45,6 @@ public:
 
   // Detect changed pixels, notify the server.
   inline void poll(VNCServer *server) { m_poller->poll(server); }
-
-  // Override PixelBuffer::getStride().
-  virtual int getStride() const { return m_stride; }
 
   // Override PixelBuffer::grabRegion().
   virtual void grabRegion(const rfb::Region& region);
@@ -60,9 +56,6 @@ protected:
   Image* m_image;
   int m_offsetLeft;
   int m_offsetTop;
-
-  // The number of pixels in a row, with padding included.
-  int m_stride;
 
   // Copy pixels from the screen to the pixel buffer,
   // for the specified rectangular area of the buffer.

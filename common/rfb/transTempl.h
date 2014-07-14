@@ -42,7 +42,6 @@
 #define OUTPIXEL rdr::CONCAT2E(U,BPPOUT)
 #define transSimpleINtoOUT CONCAT4E(transSimple,BPPIN,to,BPPOUT)
 #define transRGBINtoOUT CONCAT4E(transRGB,BPPIN,to,BPPOUT)
-#define transRGBCubeINtoOUT CONCAT4E(transRGBCube,BPPIN,to,BPPOUT)
 
 #if (BPPIN <= 16)
 
@@ -111,41 +110,9 @@ void transRGBINtoOUT (void* table,
   }
 }
 
-// transRGBCubeINtoOUT is similar to transRGBINtoOUT but also looks up the
-// colour cube index in a fourth table to yield a pixel value.
-
-void transRGBCubeINtoOUT (void* table,
-                          const PixelFormat& inPF, const void* inPtr, int inStride,
-                          const PixelFormat& outPF, void* outPtr,
-                          int outStride, int width, int height)
-{
-  OUTPIXEL* redTable = (OUTPIXEL*)table;
-  OUTPIXEL* greenTable = redTable + inPF.redMax + 1;
-  OUTPIXEL* blueTable = greenTable + inPF.greenMax + 1;
-  OUTPIXEL* cubeTable = blueTable + inPF.blueMax + 1;
-  INPIXEL* ip = (INPIXEL*)inPtr;
-  OUTPIXEL* op = (OUTPIXEL*)outPtr;
-  int inExtra = inStride - width;
-  int outExtra = outStride - width;
-
-  while (height > 0) {
-    OUTPIXEL* opEndOfRow = op + width;
-    while (op < opEndOfRow) {
-      *op++ = cubeTable[(redTable  [(*ip >> inPF.redShift)   & inPF.redMax] +
-                         greenTable[(*ip >> inPF.greenShift) & inPF.greenMax] +
-                         blueTable [(*ip >> inPF.blueShift)  & inPF.blueMax])];
-      ip++;
-    }
-    ip += inExtra;
-    op += outExtra;
-    height--;
-  }
-}
-
 #endif
 
 #undef INPIXEL
 #undef OUTPIXEL
 #undef transSimpleINtoOUT
 #undef transRGBINtoOUT
-#undef transRGBCubeINtoOUT

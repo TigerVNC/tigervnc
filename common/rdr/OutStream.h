@@ -65,25 +65,6 @@ namespace rdr {
     inline void writeS16(S16 s) { writeU16((U16)s); }
     inline void writeS32(S32 s) { writeU32((U32)s); }
 
-    // writeCompactLength() writes 1..3 bytes representing length of the data
-    // following.  This method is used by the Tight encoder.
-
-    inline void writeCompactLength(unsigned int len) {
-      U8 b = len & 0x7F;
-      if (len <= 0x7F) {
-        writeU8(b);
-      } else {
-        writeU8(b | 0x80);
-        b = len >> 7 & 0x7F;
-        if (len <= 0x3FFF) {
-          writeU8(b);
-        } else {
-          writeU8(b | 0x80);
-          writeU8(len >> 14 & 0xFF);
-        }
-      }
-    }
-
     // writeString() writes a string - a U32 length followed by the data.  The
     // given string should be null-terminated (but the terminating null is not
     // written to the stream).
@@ -128,12 +109,6 @@ namespace rdr {
                                        *ptr++ = ((U8*)&u)[1];
                                        *ptr++ = ((U8*)&u)[2];
                                        *ptr++ = ((U8*)&u)[3]; }
-    inline void writeOpaque24A(U32 u) { check(3); *ptr++ = ((U8*)&u)[0];
-                                        *ptr++ = ((U8*)&u)[1];
-                                        *ptr++ = ((U8*)&u)[2]; }
-    inline void writeOpaque24B(U32 u) { check(3); *ptr++ = ((U8*)&u)[1];
-                                        *ptr++ = ((U8*)&u)[2];
-                                        *ptr++ = ((U8*)&u)[3]; }
 
     // length() returns the length of the stream.
 

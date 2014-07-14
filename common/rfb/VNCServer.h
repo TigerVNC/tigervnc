@@ -52,12 +52,6 @@ namespace rfb {
     // getPixelBuffer() returns a pointer to the PixelBuffer object.
     virtual PixelBuffer* getPixelBuffer() const = 0;
 
-    // setColourMapEntries() tells the server that some entries in the colour
-    // map have changed.  The server will retrieve them via the PixelBuffer's
-    // ColourMap object.  This may result in protocol messages being sent.
-    // If nColours is 0, this means the rest of the colour map.
-    virtual void setColourMapEntries(int firstColour=0, int nColours=0) = 0;
-
     // serverCutText() tells the server that the cut text has changed.  This
     // will normally be sent to all clients.
     virtual void serverCutText(const char* str, int len) = 0;
@@ -79,7 +73,7 @@ namespace rfb {
     // in left-to-right order.  The server takes its own copy of the data in
     // cursorData and mask.
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           void* cursorData, void* mask) = 0;
+                           const void* cursorData, const void* mask) = 0;
 
     // setCursorPos() tells the server the current position of the cursor.
     virtual void setCursorPos(const Point& p) = 0;

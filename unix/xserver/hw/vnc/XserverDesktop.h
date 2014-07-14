@@ -54,7 +54,7 @@ namespace rfb {
 namespace network { class TcpListener; class Socket; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
-                       public rfb::ColourMap, public rdr::Substitutor,
+                       public rdr::Substitutor,
                        public rfb::VNCServerST::QueryConnectionHandler {
 public:
 
@@ -65,13 +65,10 @@ public:
   virtual ~XserverDesktop();
 
   // methods called from X server code
-  void serverReset(ScreenPtr pScreen);
   void blockUpdates();
   void unblockUpdates();
   void setFramebuffer(int w, int h, void* fbptr, int stride);
   void refreshScreenLayout();
-  void setColormap(ColormapPtr cmap);
-  void setColourMapEntries(ColormapPtr pColormap, int ndef, xColorItem* pdef);
   void bell();
   void serverCutText(const char* str, int len);
   void setDesktopName(const char* name);
@@ -112,10 +109,6 @@ public:
 
   // rfb::PixelBuffer callbacks
   virtual void grabRegion(const rfb::Region& r);
-  virtual int getStride() const;
-
-  // rfb::ColourMap callbacks
-  virtual void lookup(int index, int* r, int* g, int* b);
 
   // rdr::Substitutor callback
   virtual char* substitute(const char* varName);
@@ -126,7 +119,6 @@ public:
                                                         char** reason);
 
 private:
-  void setColourMapEntries(int firstColour, int nColours);
   rfb::ScreenSet computeScreenLayout();
 #ifdef RANDR
   RRModePtr findRandRMode(RROutputPtr output, int width, int height);
@@ -137,8 +129,6 @@ private:
   rfb::HTTPServer* httpServer;
   network::TcpListener* listener;
   network::TcpListener* httpListener;
-  ColormapPtr cmap;
-  int stride_;
   bool deferredUpdateTimerSet;
   bool grabbing;
   bool ignoreHooks_;
