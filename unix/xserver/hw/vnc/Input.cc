@@ -1,5 +1,5 @@
 /* Copyright (C) 2009 TightVNC Team
- * Copyright (C) 2009 Red Hat, Inc.
+ * Copyright (C) 2009, 2014 Red Hat, Inc.
  * Copyright 2013 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
@@ -202,6 +202,14 @@ void InputDevice::PointerMove(const rfb::Point &pos)
 
 const rfb::Point &InputDevice::getPointerPos(void)
 {
+	if (pointerDev != NULL) {
+		int x, y;
+
+		GetSpritePosition (pointerDev, &x, &y);
+		cursorPos.x = x;
+		cursorPos.y = y;
+	}
+
 	return cursorPos;
 }
 
