@@ -647,6 +647,47 @@ bool Viewport::handleXEvent(void *event, void *data)
 
   assert(event);
 
+#if !defined(WIN32) && !defined(__APPLE__)
+  XEvent *xevent = (XEvent*)event;
+
+  if (xevent->type == KeyPress) {
+    char str;
+    KeySym keysym;
+
+    XLookupString(&xevent->xkey, &str, 1, &keysym, NULL);
+    if (keysym == NoSymbol) {
+      vlog.error(_("No symbol for key code %d (in the current state)"),
+                 (int)xevent->xkey.keycode);
+      return true;
+    }
+
+    switch (keysym) {
+    // For the first few years, there wasn't a good consensus on what the
+    // Windows keys should be mapped to for X11. So we need to help out a
+    // bit and map all variants to the same key...
+    case XK_Meta_L:
+    case XK_Hyper_L:
+      keysym = XK_Super_L;
+      break;
+    case XK_Meta_R:
+    case XK_Hyper_R:
+      keysym = XK_Super_R;
+      break;
+    // There has been several variants for Shift-Tab over the years.
+    // RFB states that we should always send a normal tab.
+    case XK_ISO_Left_Tab:
+      keysym = XK_Tab;
+      break;
+    }
+
+    self->handleKeyPress(xevent->xkey.keycode, keysym);
+    return true;
+  } else if (xevent->type == KeyRelease) {
+    self->handleKeyRelease(xevent->xkey.keycode);
+    return true;
+  }
+#endif
+
   return false;
 }
 

@@ -36,6 +36,11 @@
 #define mkdir(path, mode) _mkdir(path)
 #endif
 
+#if !defined(WIN32) && !defined(__APPLE__)
+#include <X11/Xlib.h>
+#include <X11/XKBlib.h>
+#endif
+
 #include <rfb/Logger_stdio.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/Security.h>
@@ -385,6 +390,11 @@ int main(int argc, char** argv)
   signal(SIGTERM, CleanupSignalHandler);
 
   init_fltk();
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  fl_open_display();
+  XkbSetDetectableAutoRepeat(fl_display, True, NULL);
+#endif
 
   Configuration::enableViewerParams();
 
