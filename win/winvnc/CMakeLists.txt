@@ -17,7 +17,14 @@ add_executable(winvnc4 WIN32
   winvnc.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/winvnc.rc)
 
-target_link_libraries(winvnc4 rfb rfb_win32 Xregion network rdr ws2_32.lib)
+# When building with GnuTLS, librdr depends on ws2_32, so in order to make
+# MinGW happy, we need to put ws2_32 in librdr's target_link_libraries string,
+# not here.
+if(GNUTLS_FOUND)
+  target_link_libraries(winvnc4 rfb rfb_win32 rfb Xregion network rdr)
+else()
+  target_link_libraries(winvnc4 rfb rfb_win32 rfb Xregion network rdr ${WINSOCK2_LIBRARIES})
+endif()
 
 if(BUILD_JAVA)
   set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/winvnc.rc
