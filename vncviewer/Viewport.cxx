@@ -77,9 +77,14 @@
 #include <FL/Fl_Menu.H>
 #include <FL/Fl_Menu_Button.H>
 
+#ifdef __APPLE__
+#include "cocoa.h"
+#endif
+
 #ifdef WIN32
 #include "win32.h"
 #endif
+
 
 using namespace rfb;
 using namespace rdr;
@@ -708,7 +713,35 @@ bool Viewport::handleXEvent(void *event, void *data)
 
     return true;
   }
-#elif !defined(__APPLE__)
+#elif defined(__APPLE__)
+  if (cocoa_is_keyboard_event(event)) {
+    int keyCode;
+
+    keyCode = cocoa_event_keycode(event);
+
+    if (cocoa_is_key_press(event)) {
+      rdr::U32 keySym;
+
+      keySym = cocoa_event_keysym(event);
+      if (keySym == NoSymbol) {
+        vlog.error(_("No symbol for key code 0x%02x (in the current state)"),
+                   (int)keyCode);
+        return true;
+      }
+
+      self->handleKeyPress(keyCode, keySym);
+
+      // We don't get any release events for CapsLock, so we have to
+      // send the release right away.
+      if (keySym == XK_Caps_Lock)
+        self->handleKeyRelease(keyCode);
+    } else {
+      self->handleKeyRelease(keyCode);
+    }
+
+    return true;
+  }
+#else
   XEvent *xevent = (XEvent*)event;
 
   if (xevent->type == KeyPress) {
