@@ -30,6 +30,8 @@ extern "C" {
 int win32_enable_lowlevel_keyboard(HWND hwnd);
 void win32_disable_lowlevel_keyboard(HWND hwnd);
 
+int win32_vkey_to_keysym(UINT vkey, int extended);
+
 };
 
 #endif

@@ -44,6 +44,11 @@
 #define NoSymbol 0
 #endif
 
+// Missing in at least some versions of MinGW
+#ifndef MAPVK_VK_TO_VSC
+#define MAPVK_VK_TO_VSC 0
+#endif
+
 #include "Viewport.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
@@ -647,7 +652,63 @@ bool Viewport::handleXEvent(void *event, void *data)
 
   assert(event);
 
-#if !defined(WIN32) && !defined(__APPLE__)
+#if defined(WIN32)
+  MSG *msg = (MSG*)event;
+
+  if ((msg->message == WM_KEYDOWN) || (msg->message == WM_SYSKEYDOWN)) {
+    UINT vKey;
+    bool isExtended;
+    int keyCode;
+    rdr::U32 keySym;
+
+    vKey = msg->wParam;
+    isExtended = (msg->lParam & (1 << 24)) != 0;
+
+    keyCode = ((msg->lParam >> 16) & 0xff);
+
+    // Windows sets the scan code to 0x00 for multimedia keys, so we
+    // have to do a reverse lookup based on the vKey.
+    if (keyCode == 0x00) {
+      keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
+      if (keyCode == 0x00) {
+        vlog.error(_("No scan code for %svirtual key 0x%02x"),
+                   isExtended?"extended ":"", (int)vKey);
+        return true;
+      }
+    }
+
+    if (isExtended)
+      keyCode |= 0x100;
+
+    keySym = win32_vkey_to_keysym(vKey, isExtended);
+    if (keySym == NoSymbol) {
+      vlog.error(_("No symbol for %svirtual key 0x%02x"),
+                 isExtended?"extended ":"", (int)vKey);
+      return true;
+    }
+
+    self->handleKeyPress(keyCode, keySym);
+
+    return true;
+  } else if ((msg->message == WM_KEYUP) || (msg->message == WM_SYSKEYUP)) {
+    UINT vKey;
+    bool isExtended;
+    int keyCode;
+
+    vKey = msg->wParam;
+    isExtended = (msg->lParam & (1 << 24)) != 0;
+
+    keyCode = ((msg->lParam >> 16) & 0xff);
+    if (keyCode == 0x00)
+      keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
+    if (isExtended)
+      keyCode |= 0x100;
+
+    self->handleKeyRelease(keyCode);
+
+    return true;
+  }
+#elif !defined(__APPLE__)
   XEvent *xevent = (XEvent*)event;
 
   if (xevent->type == KeyPress) {
