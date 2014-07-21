@@ -41,7 +41,7 @@ else()
   set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} X11PixelBuffer.cxx)
 endif()
 
-if(WIN32)
+if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_executable(vncviewer WIN32 ${VNCVIEWER_SOURCES})
 else()
   add_executable(vncviewer ${VNCVIEWER_SOURCES})
