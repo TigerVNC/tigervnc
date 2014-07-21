@@ -827,7 +827,7 @@ static const struct codepair keysymtab[] = {
   { 0xfe5a, 0x030c }, /*                               COMBINING CARON */
   { 0xfe5b, 0x0327 }, /*                               COMBINING CEDILLA */
   { 0xfe5c, 0x0328 }, /*                               COMBINING OGONEK */
-  { 0xfe5d, 0x1da5 }, /*                               MODIFIER LETTER SMALL IOTA */
+  { 0xfe5d, 0x0345 }, /*                               COMBINING GREEK YPOGEGRAMMENI */
   { 0xfe5e, 0x3099 }, /*                               COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK */
   { 0xfe5f, 0x309a }, /*                               COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
   { 0xfe60, 0x0323 }, /*                               COMBINING DOT BELOW */
