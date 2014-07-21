@@ -39,6 +39,10 @@
 #include <rfb/XF86keysym.h>
 #endif
 
+#ifndef NoSymbol
+#define NoSymbol 0
+#endif
+
 #include "Viewport.h"
 #include "CConn.h"
 #include "OptionsDialog.h"
@@ -702,7 +706,7 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
   // Unknown special key?
   if (keyText[0] == '\0') {
     vlog.error(_("Unknown FLTK key code %d (0x%04x)"), keyCode, keyCode);
-    return XK_VoidSymbol;
+    return NoSymbol;
   }
 
   // Look up the symbol the key produces and translate that from Unicode
@@ -710,7 +714,7 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
   if (fl_utf_nb_char((const unsigned char*)keyText, strlen(keyText)) != 1) {
     vlog.error(_("Multiple characters given for key code %d (0x%04x): '%s'"),
                keyCode, keyCode, keyText);
-    return XK_VoidSymbol;
+    return NoSymbol;
   }
 
   ucs = fl_utf8decode(keyText, NULL, NULL);
@@ -754,7 +758,7 @@ void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText,
   }
 
   keySym = translateKeyEvent(keyCode, origKeyCode, keyText);
-  if (keySym == XK_VoidSymbol)
+  if (keySym == NoSymbol)
     return;
 
 #ifdef WIN32

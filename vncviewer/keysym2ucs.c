@@ -34,6 +34,8 @@
 
 #include "keysym2ucs.h"
 
+#define NoSymbol 0
+
 struct codepair {
   unsigned short keysym;
   unsigned short ucs;
@@ -886,5 +888,5 @@ unsigned ucs2keysym(unsigned ucs)
     return ucs | 0x01000000;
 
   /* no matching keysym value found */
-  return 0xFFFFFF;
+  return NoSymbol;
 }
