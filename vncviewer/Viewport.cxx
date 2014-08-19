@@ -1025,6 +1025,10 @@ void Viewport::handleFLTKKeyPress(void)
 {
   rdr::U32 keySym;
 
+#ifdef HAVE_FLTK_XHANDLERS
+  return;
+#endif
+
   keySym = translateKeyEvent();
   if (keySym == NoSymbol)
     return;
