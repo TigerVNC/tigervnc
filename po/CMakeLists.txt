@@ -19,17 +19,18 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
 
   add_custom_target(translations_update
     ${GETTEXT_XGETTEXT_EXECUTABLE}
-      --directory ${PROJECT_SOURCE_DIR}
+      --directory="${PROJECT_SOURCE_DIR}"
       --output="${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot"
       --default-domain=tigervnc
       --keyword=_
       --keyword=N_
-      --copyright-holder='TigerVNC Team and many others (see README.txt)'
+      --copyright-holder="TigerVNC Team and many others \(see README.txt\)"
       --msgid-bugs-address="tigervnc-devel@lists.sourceforge.net"
       --sort-output
       --no-location
       ${po_source}
     COMMENT "Updating tigervnc.pot"
+    VERBATIM
   )
 endif (GETTEXT_XGETTEXT_EXECUTABLE)
 
