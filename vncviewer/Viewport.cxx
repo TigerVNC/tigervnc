@@ -534,6 +534,8 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
     keySym = XK_Super_L;
     break;
   case XK_Alt_L:
+    keySym = XK_Mode_switch;
+    break;
   case XK_Alt_R:
     keySym = XK_ISO_Level3_Shift;
     break;
