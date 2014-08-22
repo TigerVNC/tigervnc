@@ -84,8 +84,8 @@ Build Requirements (Java)
 Building FLTK
 =============
 
-TigerVNC requires FLTK 1.3.0 (or later). Although it will build and work
-with plain 1.3.0, to get full functionality and the best behaviour you
+TigerVNC requires FLTK 1.3.2 (or later). Although it will build and work
+with plain 1.3.2, to get full functionality and the best behaviour you
 need to build a patched version:
 
 1. Check out FLTK 1.3.2 using Subversion:
