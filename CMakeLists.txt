@@ -300,6 +300,9 @@ if(FLTK_FOUND)
   # FLTK STR #2860
   check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(int,int,int,int) = &Fl_Window::fullscreen_screens; return 0; }" HAVE_FLTK_FULLSCREEN_SCREENS)
 
+  # FLTK STR #xxxx
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_xhandler(NULL, NULL); return 0; }" HAVE_FLTK_XHANDLERS)
+
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)
 endif()

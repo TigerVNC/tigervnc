@@ -73,6 +73,8 @@ private:
   void handleKeyPress(int keyCode, rdr::U32 keySym);
   void handleKeyRelease(int keyCode);
 
+  static bool handleXEvent(void *event, void *data);
+
   rdr::U32 translateKeyEvent(void);
   void handleFLTKKeyPress(void);
 

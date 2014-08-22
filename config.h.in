@@ -17,6 +17,7 @@
 #cmakedefine HAVE_FLTK_CURSOR
 #cmakedefine HAVE_FLTK_WORK_AREA
 #cmakedefine HAVE_FLTK_ICONS
+#cmakedefine HAVE_FLTK_XHANDLERS
 #cmakedefine HAVE_ACTIVE_DESKTOP_H
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1

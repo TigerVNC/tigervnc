@@ -100,6 +100,11 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   Fl::add_clipboard_notify(handleClipboardChange, this);
 #endif
 
+#ifdef HAVE_FLTK_XHANDLERS
+  // We need to intercept keyboard events early
+  Fl::add_xhandler(handleXEvent, this);
+#endif
+
   frameBuffer = createFramebuffer(w, h);
   assert(frameBuffer);
 
@@ -131,6 +136,10 @@ Viewport::~Viewport()
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
   Fl::remove_timeout(handlePointerTimeout, this);
+
+#ifdef HAVE_FLTK_XHANDLERS
+  Fl::remove_xhandler(handleXEvent);
+#endif
 
 #ifdef HAVE_FLTK_CLIPBOARD
   Fl::remove_clipboard_notify(handleClipboardChange);
@@ -617,6 +626,28 @@ void Viewport::handleKeyRelease(int keyCode)
   }
 
   downKeySym.erase(iter);
+}
+
+
+bool Viewport::handleXEvent(void *event, void *data)
+{
+  Viewport *self = (Viewport *)data;
+  Fl_Widget *focus;
+
+  assert(self);
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+  if (!focus)
+    return false;
+
+  if (focus != self)
+    return false;
+
+  assert(event);
+
+  return false;
 }
 
 
