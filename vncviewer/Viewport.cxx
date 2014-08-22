@@ -30,6 +30,7 @@
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
+#define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -821,9 +822,24 @@ rdr::U32 Viewport::translateKeyEvent(void)
   }
 
   // Unknown special key?
-  if (keyText[0] == '\0') {
+  if (keyTextLen == 0) {
     vlog.error(_("Unknown FLTK key code %d (0x%04x)"), keyCode, keyCode);
     return NoSymbol;
+  }
+
+  // Control character?
+  if ((keyTextLen == 1) && ((keyText[0] < 0x20) | (keyText[0] == 0x7f))) {
+    if (keyText[0] == 0x00)
+      return XK_2;
+    else if (keyText[0] < 0x1b) {
+      if (!!Fl::event_state(FL_SHIFT) != !!Fl::event_state(FL_CAPS_LOCK))
+        return keyText[0] + XK_A - 0x01;
+      else
+        return keyText[0] + XK_a - 0x01;
+    } else if (keyText[0] < 0x20)
+      return keyText[0] + XK_3 - 0x1b;
+    else
+      return XK_8;
   }
 
   // Look up the symbol the key produces and translate that from Unicode
