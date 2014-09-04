@@ -103,7 +103,6 @@ extern "C" {
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
 
-extern const char *display;
 extern int monitorResolution;
 
 #define VFB_DEFAULT_WIDTH  1024
