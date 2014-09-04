@@ -83,7 +83,11 @@ _X_EXPORT XF86ModuleData vncModuleData = { &vncVersRec, vncSetup, NULL };
 
 static void *
 vncSetup(void * module, void * opts, int *errmaj, int *errmin) {
+#if XORG >= 116
     LoadExtensionList(&vncExt, 1, FALSE);
+#else
+    LoadExtension(&vncExt, FALSE);
+#endif
     /* Need a non-NULL return value to indicate success */
     return (void *)1;
 }
