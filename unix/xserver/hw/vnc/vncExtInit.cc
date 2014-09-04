@@ -76,7 +76,6 @@ extern "C" {
   static void vncSelectionCallback(CallbackListPtr *callbacks, void * data,
 				   void * args);
 
-  extern const char *display;
   extern char *listenaddr;
 }
 
