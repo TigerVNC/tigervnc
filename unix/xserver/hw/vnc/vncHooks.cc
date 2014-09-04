@@ -89,8 +89,13 @@ typedef struct {
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
 typedef struct {
+#if XORG >= 116
     const GCFuncs *wrappedFuncs;
     const GCOps *wrappedOps;
+#else
+    GCFuncs *wrappedFuncs;
+    GCOps *wrappedOps;
+#endif
 } vncHooksGCRec, *vncHooksGCPtr;
 
 #if XORG == 15
@@ -916,7 +921,11 @@ public:
   }
   GCPtr pGC;
   vncHooksGCPtr vncHooksGC;
+#if XORG >= 116
   const GCFuncs* oldFuncs;
+#else
+  GCFuncs* oldFuncs;
+#endif
   ScreenPtr pScreen;
 };
 
