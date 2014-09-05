@@ -103,7 +103,6 @@ extern "C" {
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
 
-extern char *display;
 extern int monitorResolution;
 
 #define VFB_DEFAULT_WIDTH  1024
@@ -762,7 +761,7 @@ vfbUninstallColormap(ColormapPtr pmap)
 	    curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
 						   RT_COLORMAP);
 #else
-	    dixLookupResourceByType((pointer *) &curpmap, pmap->pScreen->defColormap,
+	    dixLookupResourceByType((void * *) &curpmap, pmap->pScreen->defColormap,
 				    RT_COLORMAP, serverClient, DixUnknownAccess);
 #endif
 	    (*pmap->pScreen->InstallColormap)(curpmap);
@@ -1597,7 +1596,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 } /* end vfbScreenInit */
 
 
-static void vfbClientStateChange(CallbackListPtr*, pointer, pointer) {
+static void vfbClientStateChange(CallbackListPtr*, void *, void *) {
   dispatchException &= ~DE_RESET;
 }
  
@@ -1625,7 +1624,11 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 #if XORG >= 113
 #ifdef GLXEXT
     if (serverGeneration == 1)
+#if XORG >= 116
+        LoadExtensionList(&glxExt, 1, TRUE);
+#else
         LoadExtension(&glxExt, TRUE);
+#endif
 #endif
 #endif
 

@@ -272,7 +272,7 @@ int InputDevice::pointerProc(DeviceIntPtr pDevice, int onoff)
 	return Success;
 }
 
-static void keyboardBell(int percent, DeviceIntPtr device, pointer ctrl,
+static void keyboardBell(int percent, DeviceIntPtr device, void * ctrl,
 			 int class_)
 {
 	if (percent > 0)

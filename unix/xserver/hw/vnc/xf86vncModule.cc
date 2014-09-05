@@ -81,11 +81,15 @@ static XF86ModuleVersionInfo vncVersRec =
 
 _X_EXPORT XF86ModuleData vncModuleData = { &vncVersRec, vncSetup, NULL };
 
-static pointer
-vncSetup(pointer module, pointer opts, int *errmaj, int *errmin) {
+static void *
+vncSetup(void * module, void * opts, int *errmaj, int *errmin) {
+#if XORG >= 116
+    LoadExtensionList(&vncExt, 1, FALSE);
+#else
     LoadExtension(&vncExt, FALSE);
+#endif
     /* Need a non-NULL return value to indicate success */
-    return (pointer)1;
+    return (void *)1;
 }
 
 static void vncExtensionInitWithParams(INITARGS)

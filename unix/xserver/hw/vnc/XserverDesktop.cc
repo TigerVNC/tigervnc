@@ -49,8 +49,6 @@ extern "C" {
 #define public c_public
 #define class c_class
 
-extern char *display;
-
 #ifdef RANDR
 #include "randrstr.h"
 #endif

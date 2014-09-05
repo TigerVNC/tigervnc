@@ -89,8 +89,13 @@ typedef struct {
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
 typedef struct {
+#if XORG >= 116
+    const GCFuncs *wrappedFuncs;
+    const GCOps *wrappedOps;
+#else
     GCFuncs *wrappedFuncs;
     GCOps *wrappedOps;
+#endif
 } vncHooksGCRec, *vncHooksGCPtr;
 
 #if XORG == 15
@@ -139,8 +144,8 @@ static Bool vncHooksDisplayCursor(
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask);
 #else
-static void vncHooksBlockHandler(ScreenPtr pScreen, pointer pTimeout,
-                                 pointer pReadmask);
+static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout,
+                                 void * pReadmask);
 #endif
 #ifdef RENDER
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
@@ -169,7 +174,7 @@ static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
 static void vncHooksChangeGC(GCPtr pGC, unsigned long mask);
 static void vncHooksCopyGC(GCPtr src, unsigned long mask, GCPtr dst);
 static void vncHooksDestroyGC(GCPtr pGC);
-static void vncHooksChangeClip(GCPtr pGC, int type, pointer pValue,int nrects);
+static void vncHooksChangeClip(GCPtr pGC, int type, void * pValue,int nrects);
 static void vncHooksDestroyClip(GCPtr pGC);
 static void vncHooksCopyClip(GCPtr dst, GCPtr src);
 
@@ -221,10 +226,10 @@ static void vncHooksImageText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
                                 int count, unsigned short *chars);
 static void vncHooksImageGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
                                   int y, unsigned int nglyph,
-                                  CharInfoPtr *ppci, pointer pglyphBase);
+                                  CharInfoPtr *ppci, void * pglyphBase);
 static void vncHooksPolyGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
                                  int y, unsigned int nglyph,
-                                 CharInfoPtr *ppci, pointer pglyphBase);
+                                 CharInfoPtr *ppci, void * pglyphBase);
 static void vncHooksPushPixels(GCPtr pGC, PixmapPtr pBitMap,
                                DrawablePtr pDrawable, int w, int h, int x,
                                int y);
@@ -540,8 +545,8 @@ static Bool vncHooksDisplayCursor(
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask)
 #else
-static void vncHooksBlockHandler(ScreenPtr pScreen_, pointer pTimeout,
-                                 pointer pReadmask)
+static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
+                                 void * pReadmask)
 #endif
 {
 #if XORG <= 112
@@ -876,7 +881,7 @@ static void vncHooksDestroyGC(GCPtr pGC) {
   GCFuncUnwrapper u(pGC);
   (*pGC->funcs->DestroyGC) (pGC);
 }
-static void vncHooksChangeClip(GCPtr pGC, int type, pointer pValue, int nrects)
+static void vncHooksChangeClip(GCPtr pGC, int type, void * pValue, int nrects)
 {
   GCFuncUnwrapper u(pGC);
   (*pGC->funcs->ChangeClip) (pGC, type, pValue, nrects);
@@ -916,7 +921,11 @@ public:
   }
   GCPtr pGC;
   vncHooksGCPtr vncHooksGC;
+#if XORG >= 116
+  const GCFuncs* oldFuncs;
+#else
   GCFuncs* oldFuncs;
+#endif
   ScreenPtr pScreen;
 };
 
@@ -1755,7 +1764,7 @@ static void vncHooksImageText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 
 static void vncHooksImageGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
                                   int y, unsigned int nglyph,
-                                  CharInfoPtr *ppci, pointer pglyphBase)
+                                  CharInfoPtr *ppci, void * pglyphBase)
 {
   GC_OP_UNWRAPPER(pDrawable, pGC, ImageGlyphBlt);
 
@@ -1781,7 +1790,7 @@ static void vncHooksImageGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
 
 static void vncHooksPolyGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
                                  int y, unsigned int nglyph,
-                                 CharInfoPtr *ppci, pointer pglyphBase)
+                                 CharInfoPtr *ppci, void * pglyphBase)
 {
   GC_OP_UNWRAPPER(pDrawable, pGC, PolyGlyphBlt);
 
