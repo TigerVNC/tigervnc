@@ -113,3 +113,25 @@ diff -up xorg-server-1.16.0/os/WaitFor.c.vnc xorg-server-1.16.0/os/WaitFor.c
          BlockHandler((void *) &wt, (void *) &LastSelectMask);
          if (NewOutputPending)
              FlushAllOutput();
+@@ -223,10 +223,20 @@ WaitForSomething(int *pClientsReady)
+             i = Select(MaxClients, &LastSelectMask, &clientsWritable, NULL, wt);
+         }
+         else {
+-            i = Select(MaxClients, &LastSelectMask, NULL, NULL, wt);
++	    if (AnyClientsWriteBlocked)
++		XFD_ORSET(&socketsWritable, &ClientsWriteBlocked, &socketsWritable);
++
++	    if (XFD_ANYSET(&socketsWritable)) {
++		i = Select(MaxClients, &LastSelectMask, &socketsWritable, NULL, wt);
++		if (AnyClientsWriteBlocked)
++		    XFD_ANDSET(&clientsWritable, &socketsWritable, &ClientsWriteBlocked);
++	    } else {
++		i = Select(MaxClients, &LastSelectMask, NULL, NULL, wt);
++	    }
+         }
+         selecterr = GetErrno();
+         WakeupHandler(i, (void *) &LastSelectMask);
++	vncWriteWakeupHandler(i, &socketsWritable);
+         if (i <= 0) {           /* An error or timeout occurred */
+             if (dispatchException)
+                 return 0;
