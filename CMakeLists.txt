@@ -301,7 +301,7 @@ if(FLTK_FOUND)
   check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(int,int,int,int) = &Fl_Window::fullscreen_screens; return 0; }" HAVE_FLTK_FULLSCREEN_SCREENS)
 
   # FLTK STR #xxxx
-  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_xhandler(NULL, NULL); return 0; }" HAVE_FLTK_XHANDLERS)
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_system_handler(NULL, NULL); return 0; }" HAVE_FLTK_XHANDLERS)
 
   # FLTK STR #xxxx
   check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::disable_im(); return 0; }" HAVE_FLTK_IM)

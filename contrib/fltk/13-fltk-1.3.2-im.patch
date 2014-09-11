@@ -1,6 +1,6 @@
 diff -up fltk-1.3.2/FL/Fl.H.im fltk-1.3.2/FL/Fl.H
---- fltk-1.3.2/FL/Fl.H.im	2014-07-25 14:28:52.771417210 +0200
-+++ fltk-1.3.2/FL/Fl.H	2014-07-25 14:28:52.774417261 +0200
+--- fltk-1.3.2/FL/Fl.H.im	2014-09-10 14:40:05.193265424 +0200
++++ fltk-1.3.2/FL/Fl.H	2014-09-10 14:40:05.196265471 +0200
 @@ -699,6 +699,17 @@ public:
    static int event_inside(const Fl_Widget*);
    static int test_shortcut(Fl_Shortcut);
@@ -20,8 +20,8 @@ diff -up fltk-1.3.2/FL/Fl.H.im fltk-1.3.2/FL/Fl.H
    static int handle(int, Fl_Window*);
    static int handle_(int, Fl_Window*);
 diff -up fltk-1.3.2/FL/win32.H.im fltk-1.3.2/FL/win32.H
---- fltk-1.3.2/FL/win32.H.im	2014-07-25 14:28:52.765417109 +0200
-+++ fltk-1.3.2/FL/win32.H	2014-07-25 14:28:52.774417261 +0200
+--- fltk-1.3.2/FL/win32.H.im	2014-09-10 14:40:05.186265315 +0200
++++ fltk-1.3.2/FL/win32.H	2014-09-10 14:40:05.196265471 +0200
 @@ -102,6 +102,8 @@ extern FL_EXPORT void fl_save_dc( HWND w
  
  inline Window fl_xid(const Fl_Window* w) { Fl_X *temp = Fl_X::i(w); return temp ? temp->xid : 0; }
@@ -32,55 +32,171 @@ diff -up fltk-1.3.2/FL/win32.H.im fltk-1.3.2/FL/win32.H
  FL_EXPORT Window fl_xid_(const Fl_Window* w);
  #define fl_xid(w) fl_xid_(w)
 diff -up fltk-1.3.2/src/Fl_cocoa.mm.im fltk-1.3.2/src/Fl_cocoa.mm
---- fltk-1.3.2/src/Fl_cocoa.mm.im	2014-07-25 14:37:30.656153283 +0200
-+++ fltk-1.3.2/src/Fl_cocoa.mm	2014-07-25 14:38:03.540708006 +0200
-@@ -53,6 +53,7 @@ extern "C" {
- #include <math.h>
+--- fltk-1.3.2/src/Fl_cocoa.mm.im	2014-09-10 14:40:05.193265424 +0200
++++ fltk-1.3.2/src/Fl_cocoa.mm	2014-09-10 14:43:41.103642243 +0200
+@@ -88,6 +88,7 @@ static void createAppleMenu(void);
+ static Fl_Region MacRegionMinusRect(Fl_Region r, int x,int y,int w,int h);
+ static void cocoaMouseHandler(NSEvent *theEvent);
+ static int calc_mac_os_version();
++static void im_update(void);
  
- #import <Cocoa/Cocoa.h>
-+#import <Carbon/Carbon.h>
+ static Fl_Quartz_Graphics_Driver fl_quartz_driver;
+ static Fl_Display_Device fl_quartz_display(&fl_quartz_driver);
+@@ -108,6 +109,30 @@ int fl_mac_os_version = calc_mac_os_vers
+ static int got_events = 0;
+ static Fl_Window* resize_from_system;
+ static int main_screen_height; // height of menubar-containing screen used to convert between Cocoa and FLTK global screen coordinates
++static int im_enabled = -1;
++
++// Carbon functions and definitions
++
++typedef void *TSMDocumentID;
++
++extern "C" enum {
++ kTSMDocumentEnabledInputSourcesPropertyTag = 'enis' //  from Carbon/TextServices.h
++};
++
++// Undocumented voodoo. Taken from Mozilla.
++static const int smEnableRomanKybdsOnly = -23;
++
++typedef TSMDocumentID (*TSMGetActiveDocument_type)(void);
++static TSMGetActiveDocument_type TSMGetActiveDocument;
++typedef OSStatus (*TSMSetDocumentProperty_type)(TSMDocumentID, OSType, UInt32, void*);
++static TSMSetDocumentProperty_type TSMSetDocumentProperty;
++typedef OSStatus (*TSMRemoveDocumentProperty_type)(TSMDocumentID, OSType);
++static TSMRemoveDocumentProperty_type TSMRemoveDocumentProperty;
++typedef CFArrayRef (*TISCreateASCIICapableInputSourceList_type)(void);
++static TISCreateASCIICapableInputSourceList_type TISCreateASCIICapableInputSourceList;
++
++typedef void (*KeyScript_type)(short);
++static KeyScript_type KeyScript;
  
- #ifndef NSINTEGER_DEFINED // appears with 10.5 in NSObjCRuntime.h
- #if defined(__LP64__) && __LP64__
-@@ -1391,6 +1392,35 @@ void fl_close_display() {
+ #if CONSOLIDATE_MOTION
+ static Fl_Window* send_motion;
+@@ -978,6 +1003,7 @@ void fl_open_callback(void (*cb)(const c
+ #endif
+ {
+   BOOL seen_open_file;
++  TSMDocumentID currentDoc;
+ }
+ - (void)windowDidMove:(NSNotification *)notif;
+ - (void)windowDidResize:(NSNotification *)notif;
+@@ -991,6 +1017,7 @@ void fl_open_callback(void (*cb)(const c
+ - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender;
+ - (void)applicationDidBecomeActive:(NSNotification *)notify;
+ - (void)applicationDidChangeScreenParameters:(NSNotification *)aNotification;
++- (void)applicationDidUpdate:(NSNotification *)aNotification;
+ - (void)applicationWillResignActive:(NSNotification *)notify;
+ - (void)applicationWillHide:(NSNotification *)notify;
+ - (void)applicationWillUnhide:(NSNotification *)notify;
+@@ -1175,6 +1202,23 @@ void fl_open_callback(void (*cb)(const c
+     }
+   Fl::handle(FL_SCREEN_CONFIGURATION_CHANGED, NULL);
+ }
++- (void)applicationDidUpdate:(NSNotification *)aNotification
++{
++  if ((fl_mac_os_version >= 100500) && (im_enabled != -1) &&
++      (TSMGetActiveDocument != NULL)) {
++    TSMDocumentID newDoc;
++    // It is extremely unclear when Cocoa decides to create/update
++    // the input context, but debugging reveals that it is done
++    // by NSApplication:updateWindows. So check if the input context
++    // has shifted after each such run so that we can update our
++    // input methods status.
++    newDoc = TSMGetActiveDocument();
++    if (newDoc != currentDoc) {
++        im_update();
++        currentDoc = newDoc;
++    }
++  }
++}
+ - (void)applicationWillResignActive:(NSNotification *)notify
+ {
+   fl_lock_function();
+@@ -1322,6 +1365,13 @@ void fl_open_display() {
+   static char beenHereDoneThat = 0;
+   if ( !beenHereDoneThat ) {
+     beenHereDoneThat = 1;
++
++    TSMGetActiveDocument = (TSMGetActiveDocument_type)Fl_X::get_carbon_function("TSMGetActiveDocument");
++    TSMSetDocumentProperty = (TSMSetDocumentProperty_type)Fl_X::get_carbon_function("TSMSetDocumentProperty");
++    TSMRemoveDocumentProperty = (TSMRemoveDocumentProperty_type)Fl_X::get_carbon_function("TSMRemoveDocumentProperty");
++    TISCreateASCIICapableInputSourceList = (TISCreateASCIICapableInputSourceList_type)Fl_X::get_carbon_function("TISCreateASCIICapableInputSourceList");
++
++    KeyScript = (KeyScript_type)Fl_X::get_carbon_function("KeyScript");
+     
+     BOOL need_new_nsapp = (NSApp == nil);
+     if (need_new_nsapp) [NSApplication sharedApplication];
+@@ -1390,6 +1440,66 @@ void fl_open_display() {
+ void fl_close_display() {
  }
  
- 
-+// Undocumented voodoo. Taken from Mozilla.
-+#define ENABLE_ROMAN_KYBDS_ONLY -23
++// Force a "Roman" or "ASCII" keyboard, which both the Mozilla and
++// Safari people seem to think implies turning off advanced IME stuff
++// (see nsTSMManager::SyncKeyScript in Mozilla and enableSecureTextInput
++// in Safari/Webcore). Should be good enough for us then...
++
++static void im_update(void) {
++  if (fl_mac_os_version >= 100500) {
++    TSMDocumentID doc;
++
++    if ((TSMGetActiveDocument == NULL) ||
++        (TSMSetDocumentProperty == NULL) ||
++        (TSMRemoveDocumentProperty == NULL) ||
++        (TISCreateASCIICapableInputSourceList == NULL))
++      return;
++
++    doc = TSMGetActiveDocument();
++
++    if (im_enabled)
++      TSMRemoveDocumentProperty(doc, kTSMDocumentEnabledInputSourcesPropertyTag);
++    else {
++      CFArrayRef inputSources;
++
++      inputSources = TISCreateASCIICapableInputSourceList();
++      TSMSetDocumentProperty(doc, kTSMDocumentEnabledInputSourcesPropertyTag,
++                             sizeof(CFArrayRef), &inputSources);
++      CFRelease(inputSources);
++    }
++  } else {
++    if (KeyScript == NULL)
++      return;
++
++    if (im_enabled)
++      KeyScript(smKeyEnableKybds);
++    else
++      KeyScript(smEnableRomanKybdsOnly);
++  }
++}
 +
 +void Fl::enable_im() {
-+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
-+  TSMRemoveDocumentProperty(TSMGetActiveDocument(),
-+                            kTSMDocumentEnabledInputSourcesPropertyTag);
-+#else
-+  KeyScript(smKeyEnableKybds);
-+#endif
++  fl_open_display();
++
++  im_enabled = 1;
++
++  if (fl_mac_os_version >= 100500)
++    [NSApp updateWindows];
++  else
++    im_update();
 +}
 +
 +void Fl::disable_im() {
-+  // Force a "Roman" or "ASCII" keyboard, which both the Mozilla and
-+  // Safari people seem to think implies turning off advanced IME stuff
-+  // (see nsTSMManager::SyncKeyScript in Mozilla and enableSecureTextInput
-+  // in Safari/Webcore). Should be good enough for us then...
-+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
-+  CFArrayRef inputSources = TISCreateASCIICapableInputSourceList();
-+  TSMSetDocumentProperty(TSMGetActiveDocument(),
-+                         kTSMDocumentEnabledInputSourcesPropertyTag,
-+                         sizeof(CFArrayRef), &inputSources);
-+  CFRelease(inputSources);
-+#else
-+  KeyScript(ENABLE_ROMAN_KYBDS_ONLY);
-+#endif
++  fl_open_display();
++
++  im_enabled = 0;
++
++  if (fl_mac_os_version >= 100500)
++    [NSApp updateWindows];
++  else
++    im_update();
 +}
 +
-+
+ 
  // Gets the border sizes and the titlebar size
  static void get_window_frame_sizes(int &bx, int &by, int &bt) {
-   static bool first = true;
 diff -up fltk-1.3.2/src/Fl.cxx.im fltk-1.3.2/src/Fl.cxx
---- fltk-1.3.2/src/Fl.cxx.im	2014-07-25 14:28:52.772417227 +0200
-+++ fltk-1.3.2/src/Fl.cxx	2014-07-25 14:28:52.774417261 +0200
+--- fltk-1.3.2/src/Fl.cxx.im	2014-09-10 14:40:05.194265440 +0200
++++ fltk-1.3.2/src/Fl.cxx	2014-09-10 14:40:05.197265486 +0200
 @@ -593,45 +593,6 @@ int Fl::run() {
    return 0;
  }
@@ -129,7 +245,7 @@ diff -up fltk-1.3.2/src/Fl.cxx.im fltk-1.3.2/src/Fl.cxx
    repeatedly to "run" your program.  You can also check what happened
 diff -up fltk-1.3.2/src/Fl_Native_File_Chooser_WIN32.cxx.im fltk-1.3.2/src/Fl_Native_File_Chooser_WIN32.cxx
 --- fltk-1.3.2/src/Fl_Native_File_Chooser_WIN32.cxx.im	2012-06-26 09:03:46.000000000 +0200
-+++ fltk-1.3.2/src/Fl_Native_File_Chooser_WIN32.cxx	2014-07-25 14:28:52.774417261 +0200
++++ fltk-1.3.2/src/Fl_Native_File_Chooser_WIN32.cxx	2014-09-10 14:40:05.197265486 +0200
 @@ -34,6 +34,7 @@ LPCWSTR utf8towchar(const char *in); //M
  char *wchartoutf8(LPCWSTR in);  //MG
  
@@ -157,8 +273,8 @@ diff -up fltk-1.3.2/src/Fl_Native_File_Chooser_WIN32.cxx.im fltk-1.3.2/src/Fl_Na
    clear_pathnames();
    // PARENT WINDOW
 diff -up fltk-1.3.2/src/Fl_win32.cxx.im fltk-1.3.2/src/Fl_win32.cxx
---- fltk-1.3.2/src/Fl_win32.cxx.im	2014-07-25 14:28:52.772417227 +0200
-+++ fltk-1.3.2/src/Fl_win32.cxx	2014-07-25 14:28:52.775417277 +0200
+--- fltk-1.3.2/src/Fl_win32.cxx.im	2014-09-10 14:40:05.194265440 +0200
++++ fltk-1.3.2/src/Fl_win32.cxx	2014-09-10 14:40:05.197265486 +0200
 @@ -60,8 +60,6 @@
  #include <ole2.h>
  #include <shellapi.h>
@@ -220,7 +336,7 @@ diff -up fltk-1.3.2/src/Fl_win32.cxx.im fltk-1.3.2/src/Fl_win32.cxx
    if (himc) {
 @@ -338,7 +335,6 @@ void* Fl::thread_message() {
  
- extern bool fl_send_xhandlers(void *e);
+ extern int fl_send_system_handlers(void *e);
  
 -IActiveIMMApp *fl_aimm = NULL;
  MSG fl_msg;
@@ -337,8 +453,8 @@ diff -up fltk-1.3.2/src/Fl_win32.cxx.im fltk-1.3.2/src/Fl_win32.cxx
    return x;
  }
 diff -up fltk-1.3.2/src/Fl_x.cxx.im fltk-1.3.2/src/Fl_x.cxx
---- fltk-1.3.2/src/Fl_x.cxx.im	2014-07-25 14:28:52.773417244 +0200
-+++ fltk-1.3.2/src/Fl_x.cxx	2014-07-25 14:28:52.775417277 +0200
+--- fltk-1.3.2/src/Fl_x.cxx.im	2014-09-10 14:40:05.194265440 +0200
++++ fltk-1.3.2/src/Fl_x.cxx	2014-09-10 14:40:05.198265502 +0200
 @@ -313,6 +313,7 @@ XVisualInfo *fl_visual;
  Colormap fl_colormap;
  XIM fl_xim_im = 0;

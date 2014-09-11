@@ -112,7 +112,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 
 #ifdef HAVE_FLTK_XHANDLERS
   // We need to intercept keyboard events early
-  Fl::add_xhandler(handleXEvent, this);
+  Fl::add_system_handler(handleSystemEvent, this);
 #endif
 
   frameBuffer = createFramebuffer(w, h);
@@ -148,7 +148,7 @@ Viewport::~Viewport()
   Fl::remove_timeout(handlePointerTimeout, this);
 
 #ifdef HAVE_FLTK_XHANDLERS
-  Fl::remove_xhandler(handleXEvent);
+  Fl::remove_system_handler(handleSystemEvent);
 #endif
 
 #ifdef HAVE_FLTK_CLIPBOARD
@@ -647,7 +647,7 @@ void Viewport::handleKeyRelease(int keyCode)
 }
 
 
-bool Viewport::handleXEvent(void *event, void *data)
+int Viewport::handleSystemEvent(void *event, void *data)
 {
   Viewport *self = (Viewport *)data;
   Fl_Widget *focus;
@@ -658,10 +658,10 @@ bool Viewport::handleXEvent(void *event, void *data)
   if (!focus)
     focus = Fl::focus();
   if (!focus)
-    return false;
+    return 0;
 
   if (focus != self)
-    return false;
+    return 0;
 
   assert(event);
 
@@ -686,7 +686,7 @@ bool Viewport::handleXEvent(void *event, void *data)
       if (keyCode == 0x00) {
         vlog.error(_("No scan code for %svirtual key 0x%02x"),
                    isExtended?"extended ":"", (int)vKey);
-        return true;
+        return 1;
       }
     }
 
@@ -697,12 +697,12 @@ bool Viewport::handleXEvent(void *event, void *data)
     if (keySym == NoSymbol) {
       vlog.error(_("No symbol for %svirtual key 0x%02x"),
                  isExtended?"extended ":"", (int)vKey);
-      return true;
+      return 1;
     }
 
     self->handleKeyPress(keyCode, keySym);
 
-    return true;
+    return 1;
   } else if ((msg->message == WM_KEYUP) || (msg->message == WM_SYSKEYUP)) {
     UINT vKey;
     bool isExtended;
@@ -719,7 +719,7 @@ bool Viewport::handleXEvent(void *event, void *data)
 
     self->handleKeyRelease(keyCode);
 
-    return true;
+    return 1;
   }
 #elif defined(__APPLE__)
   if (cocoa_is_keyboard_event(event)) {
@@ -734,7 +734,7 @@ bool Viewport::handleXEvent(void *event, void *data)
       if (keySym == NoSymbol) {
         vlog.error(_("No symbol for key code 0x%02x (in the current state)"),
                    (int)keyCode);
-        return true;
+        return 1;
       }
 
       self->handleKeyPress(keyCode, keySym);
@@ -747,7 +747,7 @@ bool Viewport::handleXEvent(void *event, void *data)
       self->handleKeyRelease(keyCode);
     }
 
-    return true;
+    return 1;
   }
 #else
   XEvent *xevent = (XEvent*)event;
@@ -760,7 +760,7 @@ bool Viewport::handleXEvent(void *event, void *data)
     if (keysym == NoSymbol) {
       vlog.error(_("No symbol for key code %d (in the current state)"),
                  (int)xevent->xkey.keycode);
-      return true;
+      return 1;
     }
 
     switch (keysym) {
@@ -783,14 +783,14 @@ bool Viewport::handleXEvent(void *event, void *data)
     }
 
     self->handleKeyPress(xevent->xkey.keycode, keysym);
-    return true;
+    return 1;
   } else if (xevent->type == KeyRelease) {
     self->handleKeyRelease(xevent->xkey.keycode);
-    return true;
+    return 1;
   }
 #endif
 
-  return false;
+  return 0;
 }
 
 
