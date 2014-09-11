@@ -303,6 +303,9 @@ if(FLTK_FOUND)
   # FLTK STR #xxxx
   check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_xhandler(NULL, NULL); return 0; }" HAVE_FLTK_XHANDLERS)
 
+  # FLTK STR #xxxx
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::disable_im(); return 0; }" HAVE_FLTK_IM)
+
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)
 endif()

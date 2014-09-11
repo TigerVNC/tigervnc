@@ -410,7 +410,9 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_FOCUS:
+#ifdef HAVE_FLTK_IM
     Fl::disable_im();
+#endif
     // Yes, we would like some focus please!
     return 1;
 
@@ -419,7 +421,9 @@ int Viewport::handle(int event)
     // sense (e.g. Alt+Tab where we only see the Alt press)
     while (!downKeySym.empty())
       handleKeyRelease(downKeySym.begin()->first);
+#ifdef HAVE_FLTK_IM
     Fl::enable_im();
+#endif
     return 1;
 
   case FL_KEYDOWN:
