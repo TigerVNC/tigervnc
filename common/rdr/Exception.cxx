@@ -50,7 +50,7 @@ Exception::Exception(const char *format, ...) {
 }
 
 SystemException::SystemException(const char* s, int err_)
-  : Exception(s), err(err_)
+  : Exception("%s", s), err(err_)
 {
   strncat(str_, ": ", len-1-strlen(str_));
 #ifdef _WIN32

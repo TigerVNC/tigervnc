@@ -34,10 +34,19 @@
 
 #include "keysym2ucs.h"
 
+#define NoSymbol 0
+
 struct codepair {
   unsigned short keysym;
   unsigned short ucs;
-} keysymtab[] = {
+};
+
+struct combiningpair {
+  unsigned short spacing;
+  unsigned short combining;
+};
+
+static const struct codepair keysymtab[] = {
   { 0x01a1, 0x0104 }, /*                     Aogonek Ą LATIN CAPITAL LETTER A WITH OGONEK */
   { 0x01a2, 0x02d8 }, /*                       breve ˘ BREVE */
   { 0x01a3, 0x0141 }, /*                     Lstroke Ł LATIN CAPITAL LETTER L WITH STROKE */
@@ -823,10 +832,35 @@ struct codepair {
   { 0xfe5a, 0x030c }, /*                               COMBINING CARON */
   { 0xfe5b, 0x0327 }, /*                               COMBINING CEDILLA */
   { 0xfe5c, 0x0328 }, /*                               COMBINING OGONEK */
-  { 0xfe5d, 0x1da5 }, /*                               MODIFIER LETTER SMALL IOTA */
+  { 0xfe5d, 0x0345 }, /*                               COMBINING GREEK YPOGEGRAMMENI */
   { 0xfe5e, 0x3099 }, /*                               COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK */
   { 0xfe5f, 0x309a }, /*                               COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
   { 0xfe60, 0x0323 }, /*                               COMBINING DOT BELOW */
+};
+
+static const struct combiningpair combinetab[] = {
+  { 0x0060, 0x0300 }, /*                GRAVE ACCENT ` COMBINING GRAVE ACCENT */
+  { 0x00b4, 0x0301 }, /*                ACUTE ACCENT ´ COMBINING ACUTE ACCENT */
+  { 0x0027, 0x0301 }, /*                  APOSTROPHE ' COMBINING ACUTE ACCENT */
+  { 0x0384, 0x0301 }, /*                 GREEK TONOS ΄ COMBINING ACUTE ACCENT */
+  { 0x005e, 0x0302 }, /*           CIRCUMFLEX ACCENT ^ COMBINING CIRCUMFLEX ACCENT */
+  { 0x007e, 0x0303 }, /*                       TILDE ~ COMBINING TILDE */
+  { 0x00af, 0x0304 }, /*                      MACRON ¯ COMBINING MACRON */
+  { 0x02d8, 0x0306 }, /*                       BREVE ˘ COMBINING BREVE */
+  { 0x02d9, 0x0307 }, /*                   DOT ABOVE ˙ COMBINING DOT ABOVE */
+  { 0x00a8, 0x0308 }, /*                   DIAERESIS ¨ COMBINING DIAERESIS */
+  { 0x0022, 0x0308 }, /*              QUOTATION MARK " COMBINING DIAERESIS */
+  { 0x02da, 0x030a }, /*                  RING ABOVE ˚ COMBINING RING ABOVE */
+  { 0x00b0, 0x030a }, /*                 DEGREE SIGN ° COMBINING RING ABOVE */
+  { 0x02dd, 0x030b }, /*         DOUBLE ACUTE ACCENT ˝ COMBINING DOUBLE ACUTE ACCENT */
+  { 0x02c7, 0x030c }, /*                       CARON ˇ COMBINING CARON */
+  { 0x00b8, 0x0327 }, /*                     CEDILLA ¸ COMBINING CEDILLA */
+  { 0x02db, 0x0328 }, /*                      OGONEK ¸ COMBINING OGONEK */
+  { 0x037a, 0x0345 }, /*         GREEK YPOGEGRAMMENI ͺ COMBINING GREEK YPOGEGRAMMENI */
+  { 0x309b, 0x3099 }, /* KATAKANA-HIRAGANA VOICED SOUND MARK ゛COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK */
+  { 0x309c, 0x309a }, /* KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK ゜COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
+  { 0x002e, 0x0323 }, /*                   FULL STOP . COMBINING DOT BELOW */
+  { 0x0385, 0x0344 }, /*       GREEK DIALYTIKA TONOS ΅ COMBINING GREEK DIALYTIKA TONOS */
 };
 
 unsigned keysym2ucs(unsigned keysym)
@@ -884,5 +918,21 @@ unsigned ucs2keysym(unsigned ucs)
     return ucs | 0x01000000;
 
   /* no matching keysym value found */
-  return 0xFFFFFF;
+  return NoSymbol;
+}
+
+unsigned ucs2combining(unsigned spacing)
+{
+  int cur = 0;
+  int max = sizeof(combinetab) / sizeof(struct combiningpair) - 1;
+
+  /* linear search in table */
+  while (cur <= max) {
+    if (combinetab[cur].spacing == spacing)
+      return combinetab[cur].combining;
+    cur++;
+  }
+
+  /* no matching Unicode value found */
+  return -1;
 }

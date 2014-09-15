@@ -30,6 +30,7 @@
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
+#define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -37,6 +38,15 @@
 
 #ifndef XF86XK_ModeLock
 #include <rfb/XF86keysym.h>
+#endif
+
+#ifndef NoSymbol
+#define NoSymbol 0
+#endif
+
+// Missing in at least some versions of MinGW
+#ifndef MAPVK_VK_TO_VSC
+#define MAPVK_VK_TO_VSC 0
 #endif
 
 #include "Viewport.h"
@@ -67,9 +77,14 @@
 #include <FL/Fl_Menu.H>
 #include <FL/Fl_Menu_Button.H>
 
+#ifdef __APPLE__
+#include "cocoa.h"
+#endif
+
 #ifdef WIN32
 #include "win32.h"
 #endif
+
 
 using namespace rfb;
 using namespace rdr;
@@ -82,19 +97,22 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
 
+// Fake key presses use this value and above
+static const int fakeKeyBase = 0x200;
+
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
     lastPointerPos(0, 0), lastButtonMask(0),
     cursor(NULL), menuCtrlKey(false), menuAltKey(false)
 {
-// FLTK STR #2599 must be fixed for proper dead keys support
-#ifdef HAVE_FLTK_DEAD_KEYS
-  set_simple_keyboard();
-#endif
-
 // FLTK STR #2636 gives us the ability to monitor clipboard changes
 #ifdef HAVE_FLTK_CLIPBOARD
   Fl::add_clipboard_notify(handleClipboardChange, this);
+#endif
+
+#ifdef HAVE_FLTK_XHANDLERS
+  // We need to intercept keyboard events early
+  Fl::add_system_handler(handleSystemEvent, this);
 #endif
 
   frameBuffer = createFramebuffer(w, h);
@@ -128,6 +146,10 @@ Viewport::~Viewport()
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
   Fl::remove_timeout(handlePointerTimeout, this);
+
+#ifdef HAVE_FLTK_XHANDLERS
+  Fl::remove_system_handler(handleSystemEvent);
+#endif
 
 #ifdef HAVE_FLTK_CLIPBOARD
   Fl::remove_clipboard_notify(handleClipboardChange);
@@ -388,6 +410,9 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_FOCUS:
+#ifdef HAVE_FLTK_IM
+    Fl::disable_im();
+#endif
     // Yes, we would like some focus please!
     return 1;
 
@@ -395,26 +420,18 @@ int Viewport::handle(int event)
     // Release all keys that were pressed as that generally makes most
     // sense (e.g. Alt+Tab where we only see the Alt press)
     while (!downKeySym.empty())
-      handleKeyEvent(downKeySym.begin()->first, downKeySym.begin()->first,
-                     "", false);
+      handleKeyRelease(downKeySym.begin()->first);
+#ifdef HAVE_FLTK_IM
+    Fl::enable_im();
+#endif
     return 1;
 
   case FL_KEYDOWN:
-    if (menuKeyCode && (Fl::event_key() == menuKeyCode)) {
-      popupContextMenu();
-      return 1;
-    }
-
-    handleKeyEvent(Fl::event_key(), Fl::event_original_key(),
-                   Fl::event_text(), true);
+    handleFLTKKeyPress();
     return 1;
 
   case FL_KEYUP:
-    if (menuKeyCode && (Fl::event_key() == menuKeyCode))
-      return 1;
-
-    handleKeyEvent(Fl::event_key(), Fl::event_original_key(),
-                   Fl::event_text(), false);
+    handleKeyRelease(Fl::event_original_key());
     return 1;
   }
 
@@ -491,9 +508,305 @@ void Viewport::handlePointerTimeout(void *data)
 }
 
 
-rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *keyText)
+void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
+{
+  static bool menuRecursion = false;
+
+  // Prevent recursion if the menu wants to send its own
+  // activation key.
+  if (menuKeySym && (keySym == menuKeySym) && !menuRecursion) {
+    menuRecursion = true;
+    popupContextMenu();
+    menuRecursion = false;
+    return;
+  }
+
+  if (viewOnly)
+    return;
+
+#ifdef __APPLE__
+  // Alt on OS X behaves more like AltGr on other systems, and to get
+  // sane behaviour we should translate things in that manner for the
+  // remote VNC server. However that means we lose the ability to use
+  // Alt as a shortcut modifier. Do what RealVNC does and hijack the
+  // left command key as an Alt replacement.
+  switch (keySym) {
+  case XK_Super_L:
+    keySym = XK_Alt_L;
+    break;
+  case XK_Super_R:
+    keySym = XK_Super_L;
+    break;
+  case XK_Alt_L:
+    keySym = XK_Mode_switch;
+    break;
+  case XK_Alt_R:
+    keySym = XK_ISO_Level3_Shift;
+    break;
+  }
+#endif
+
+#ifdef WIN32
+  // Ugly hack alert!
+  //
+  // Windows doesn't have a proper AltGr, but handles it using fake
+  // Ctrl+Alt. Unfortunately X11 doesn't generally like the combination
+  // Ctrl+Alt+AltGr, which we usually end up with when Xvnc tries to
+  // get everything in the correct state. Cheat and temporarily release
+  // Ctrl and Alt when we send some other symbol.
+  bool ctrlPressed, altPressed;
+  DownMap::iterator iter;
+
+  ctrlPressed = false;
+  altPressed = false;
+  for (iter = downKeySym.begin();iter != downKeySym.end();++iter) {
+    if (iter->second == XK_Control_L)
+      ctrlPressed = true;
+    else if (iter->second == XK_Alt_R)
+      altPressed = true;
+  }
+
+  if (ctrlPressed && altPressed) {
+    vlog.debug("Faking release of AltGr (Ctrl_L+Alt_R)");
+    try {
+      cc->writer()->keyEvent(XK_Control_L, false);
+      cc->writer()->keyEvent(XK_Alt_R, false);
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+  }
+#endif
+
+  // Because of the way keyboards work, we cannot expect to have the same
+  // symbol on release as when pressed. This breaks the VNC protocol however,
+  // so we need to keep track of what keysym a key _code_ generated on press
+  // and send the same on release.
+  downKeySym[keyCode] = keySym;
+
+#if defined(WIN32) || defined(__APPLE__)
+  vlog.debug("Key pressed: 0x%04x => 0x%04x", keyCode, keySym);
+#else
+  vlog.debug("Key pressed: 0x%04x => XK_%s (0x%04x)",
+             keyCode, XKeysymToString(keySym), keySym);
+#endif
+
+  try {
+    cc->writer()->keyEvent(keySym, true);
+  } catch (rdr::Exception& e) {
+    vlog.error("%s", e.str());
+    exit_vncviewer(e.str());
+  }
+
+#ifdef WIN32
+  // Ugly hack continued...
+  if (ctrlPressed && altPressed) {
+    vlog.debug("Restoring AltGr state");
+    try {
+      cc->writer()->keyEvent(XK_Control_L, true);
+      cc->writer()->keyEvent(XK_Alt_R, true);
+    } catch (rdr::Exception& e) {
+      vlog.error("%s", e.str());
+      exit_vncviewer(e.str());
+    }
+  }
+#endif
+}
+
+
+void Viewport::handleKeyRelease(int keyCode)
+{
+  DownMap::iterator iter;
+
+  if (viewOnly)
+    return;
+
+  iter = downKeySym.find(keyCode);
+  if (iter == downKeySym.end()) {
+    // These occur somewhat frequently so let's not spam them unless
+    // logging is turned up.
+    vlog.debug("Unexpected release of key code %d", keyCode);
+    return;
+  }
+
+#if defined(WIN32) || defined(__APPLE__)
+  vlog.debug("Key released: 0x%04x => 0x%04x", keyCode, iter->second);
+#else
+  vlog.debug("Key released: 0x%04x => XK_%s (0x%04x)",
+             keyCode, XKeysymToString(iter->second), iter->second);
+#endif
+
+  try {
+    cc->writer()->keyEvent(iter->second, false);
+  } catch (rdr::Exception& e) {
+    vlog.error("%s", e.str());
+    exit_vncviewer(e.str());
+  }
+
+  downKeySym.erase(iter);
+}
+
+
+int Viewport::handleSystemEvent(void *event, void *data)
+{
+  Viewport *self = (Viewport *)data;
+  Fl_Widget *focus;
+
+  assert(self);
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+  if (!focus)
+    return 0;
+
+  if (focus != self)
+    return 0;
+
+  assert(event);
+
+#if defined(WIN32)
+  MSG *msg = (MSG*)event;
+
+  if ((msg->message == WM_KEYDOWN) || (msg->message == WM_SYSKEYDOWN)) {
+    UINT vKey;
+    bool isExtended;
+    int keyCode;
+    rdr::U32 keySym;
+
+    vKey = msg->wParam;
+    isExtended = (msg->lParam & (1 << 24)) != 0;
+
+    keyCode = ((msg->lParam >> 16) & 0xff);
+
+    // Windows sets the scan code to 0x00 for multimedia keys, so we
+    // have to do a reverse lookup based on the vKey.
+    if (keyCode == 0x00) {
+      keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
+      if (keyCode == 0x00) {
+        vlog.error(_("No scan code for %svirtual key 0x%02x"),
+                   isExtended?"extended ":"", (int)vKey);
+        return 1;
+      }
+    }
+
+    if (isExtended)
+      keyCode |= 0x100;
+
+    keySym = win32_vkey_to_keysym(vKey, isExtended);
+    if (keySym == NoSymbol) {
+      vlog.error(_("No symbol for %svirtual key 0x%02x"),
+                 isExtended?"extended ":"", (int)vKey);
+      return 1;
+    }
+
+    self->handleKeyPress(keyCode, keySym);
+
+    return 1;
+  } else if ((msg->message == WM_KEYUP) || (msg->message == WM_SYSKEYUP)) {
+    UINT vKey;
+    bool isExtended;
+    int keyCode;
+
+    vKey = msg->wParam;
+    isExtended = (msg->lParam & (1 << 24)) != 0;
+
+    keyCode = ((msg->lParam >> 16) & 0xff);
+    if (keyCode == 0x00)
+      keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
+    if (isExtended)
+      keyCode |= 0x100;
+
+    self->handleKeyRelease(keyCode);
+
+    return 1;
+  }
+#elif defined(__APPLE__)
+  if (cocoa_is_keyboard_event(event)) {
+    int keyCode;
+
+    keyCode = cocoa_event_keycode(event);
+
+    if (cocoa_is_key_press(event)) {
+      rdr::U32 keySym;
+
+      keySym = cocoa_event_keysym(event);
+      if (keySym == NoSymbol) {
+        vlog.error(_("No symbol for key code 0x%02x (in the current state)"),
+                   (int)keyCode);
+        return 1;
+      }
+
+      self->handleKeyPress(keyCode, keySym);
+
+      // We don't get any release events for CapsLock, so we have to
+      // send the release right away.
+      if (keySym == XK_Caps_Lock)
+        self->handleKeyRelease(keyCode);
+    } else {
+      self->handleKeyRelease(keyCode);
+    }
+
+    return 1;
+  }
+#else
+  XEvent *xevent = (XEvent*)event;
+
+  if (xevent->type == KeyPress) {
+    char str;
+    KeySym keysym;
+
+    XLookupString(&xevent->xkey, &str, 1, &keysym, NULL);
+    if (keysym == NoSymbol) {
+      vlog.error(_("No symbol for key code %d (in the current state)"),
+                 (int)xevent->xkey.keycode);
+      return 1;
+    }
+
+    switch (keysym) {
+    // For the first few years, there wasn't a good consensus on what the
+    // Windows keys should be mapped to for X11. So we need to help out a
+    // bit and map all variants to the same key...
+    case XK_Meta_L:
+    case XK_Hyper_L:
+      keysym = XK_Super_L;
+      break;
+    case XK_Meta_R:
+    case XK_Hyper_R:
+      keysym = XK_Super_R;
+      break;
+    // There has been several variants for Shift-Tab over the years.
+    // RFB states that we should always send a normal tab.
+    case XK_ISO_Left_Tab:
+      keysym = XK_Tab;
+      break;
+    }
+
+    self->handleKeyPress(xevent->xkey.keycode, keysym);
+    return 1;
+  } else if (xevent->type == KeyRelease) {
+    self->handleKeyRelease(xevent->xkey.keycode);
+    return 1;
+  }
+#endif
+
+  return 0;
+}
+
+
+rdr::U32 Viewport::translateKeyEvent(void)
 {
   unsigned ucs;
+  int keyCode, origKeyCode;
+  const char *keyText;
+  int keyTextLen;
+
+  keyCode = Fl::event_key();
+  origKeyCode = Fl::event_original_key();
+  keyText = Fl::event_text();
+  keyTextLen = Fl::event_length();
+
+  vlog.debug("FLTK key %d (%d) '%s'[%d]", origKeyCode, keyCode, keyText, keyTextLen);
 
   // First check for function keys
   if ((keyCode > FL_F) && (keyCode <= FL_F_Last))
@@ -536,23 +849,6 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
       return XK_KP_Delete;
     }
   }
-
-#ifdef __APPLE__
-  // Alt on OS X behaves more like AltGr on other systems, and to get
-  // sane behaviour we should translate things in that manner for the
-  // remote VNC server. However that means we lose the ability to use
-  // Alt as a shortcut modifier. Do what RealVNC does and hijack the
-  // left command key as an Alt replacement.
-  switch (keyCode) {
-  case FL_Meta_L:
-    return XK_Alt_L;
-  case FL_Meta_R:
-    return XK_Super_L;
-  case FL_Alt_L:
-  case FL_Alt_R:
-    return XK_ISO_Level3_Shift;
-  }
-#endif
 
 #if defined(WIN32) || defined(__APPLE__)
   // X11 fairly consistently uses XK_KP_Separator for comma and
@@ -700,9 +996,24 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
   }
 
   // Unknown special key?
-  if (keyText[0] == '\0') {
+  if (keyTextLen == 0) {
     vlog.error(_("Unknown FLTK key code %d (0x%04x)"), keyCode, keyCode);
-    return XK_VoidSymbol;
+    return NoSymbol;
+  }
+
+  // Control character?
+  if ((keyTextLen == 1) && ((keyText[0] < 0x20) | (keyText[0] == 0x7f))) {
+    if (keyText[0] == 0x00)
+      return XK_2;
+    else if (keyText[0] < 0x1b) {
+      if (!!Fl::event_state(FL_SHIFT) != !!Fl::event_state(FL_CAPS_LOCK))
+        return keyText[0] + XK_A - 0x01;
+      else
+        return keyText[0] + XK_a - 0x01;
+    } else if (keyText[0] < 0x20)
+      return keyText[0] + XK_3 - 0x1b;
+    else
+      return XK_8;
   }
 
   // Look up the symbol the key produces and translate that from Unicode
@@ -710,7 +1021,7 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
   if (fl_utf_nb_char((const unsigned char*)keyText, strlen(keyText)) != 1) {
     vlog.error(_("Multiple characters given for key code %d (0x%04x): '%s'"),
                keyCode, keyCode, keyText);
-    return XK_VoidSymbol;
+    return NoSymbol;
   }
 
   ucs = fl_utf8decode(keyText, NULL, NULL);
@@ -718,113 +1029,19 @@ rdr::U32 Viewport::translateKeyEvent(int keyCode, int origKeyCode, const char *k
 }
 
 
-void Viewport::handleKeyEvent(int keyCode, int origKeyCode, const char *keyText, bool down)
+void Viewport::handleFLTKKeyPress(void)
 {
   rdr::U32 keySym;
 
-  if (viewOnly)
-    return;
-
-  // Because of the way keyboards work, we cannot expect to have the same
-  // symbol on release as when pressed. This breaks the VNC protocol however,
-  // so we need to keep track of what keysym a key _code_ generated on press
-  // and send the same on release.
-  if (!down) {
-    DownMap::iterator iter;
-
-    iter = downKeySym.find(origKeyCode);
-    if (iter == downKeySym.end()) {
-      vlog.error(_("Unexpected release of FLTK key code %d (0x%04x)"),
-                 origKeyCode, origKeyCode);
-      return;
-    }
-
-    vlog.debug("Key released: 0x%04x => 0x%04x", origKeyCode, iter->second);
-
-    try {
-      cc->writer()->keyEvent(iter->second, false);
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
-    }
-
-    downKeySym.erase(iter);
-
-    return;
-  }
-
-  keySym = translateKeyEvent(keyCode, origKeyCode, keyText);
-  if (keySym == XK_VoidSymbol)
-    return;
-
-#ifdef WIN32
-  // Ugly hack alert!
-  //
-  // Windows doesn't have a proper AltGr, but handles it using fake
-  // Ctrl+Alt. Unfortunately X11 doesn't generally like the combination
-  // Ctrl+Alt+AltGr, which we usually end up with when Xvnc tries to
-  // get everything in the correct state. Cheat and temporarily release
-  // Ctrl and Alt whenever we get a key with a symbol.
-  bool need_cheat = true;
-
-  if (keyText[0] == '\0')
-    need_cheat = false;
-  else if ((downKeySym.find(FL_Control_L) == downKeySym.end()) &&
-           (downKeySym.find(FL_Control_R) == downKeySym.end()))
-    need_cheat = false;
-  else if ((downKeySym.find(FL_Alt_L) == downKeySym.end()) &&
-           (downKeySym.find(FL_Alt_R) == downKeySym.end()))
-    need_cheat = false;
-
-  if (need_cheat) {
-    vlog.debug("Faking release of AltGr (Ctrl+Alt)");
-    try {
-      if (downKeySym.find(FL_Control_L) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Control_L, false);
-      if (downKeySym.find(FL_Control_R) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Control_R, false);
-      if (downKeySym.find(FL_Alt_L) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Alt_L, false);
-      if (downKeySym.find(FL_Alt_R) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Alt_R, false);
-    } catch (rdr::Exception& e) {
-      vlog.error("%s", e.str());
-      exit_vncviewer(e.str());
-    }
-  }
+#ifdef HAVE_FLTK_XHANDLERS
+  return;
 #endif
 
-  vlog.debug("Key pressed: 0x%04x (0x%04x) '%s' => 0x%04x",
-             origKeyCode, keyCode, keyText, keySym);
+  keySym = translateKeyEvent();
+  if (keySym == NoSymbol)
+    return;
 
-  downKeySym[origKeyCode] = keySym;
-
-  try {
-    cc->writer()->keyEvent(keySym, down);
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
-    exit_vncviewer(e.str());
-  }
-
-#ifdef WIN32
-  // Ugly hack continued...
-  if (need_cheat) {
-    vlog.debug("Restoring AltGr state");
-    try {
-      if (downKeySym.find(FL_Control_L) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Control_L, true);
-      if (downKeySym.find(FL_Control_R) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Control_R, true);
-      if (downKeySym.find(FL_Alt_L) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Alt_L, true);
-      if (downKeySym.find(FL_Alt_R) != downKeySym.end())
-        cc->writer()->keyEvent(XK_Alt_R, true);
-    } catch (rdr::Exception& e) {
-      vlog.error(e.str());
-      exit_vncviewer(e.str());
-    }
-  }
-#endif
+  handleKeyPress(Fl::event_original_key(), keySym);
 }
 
 
@@ -849,7 +1066,7 @@ void Viewport::initContextMenu()
   contextMenu->add(_("Alt"), 0, NULL, (void*)ID_ALT,
 		   FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
 
-  if (menuKeyCode) {
+  if (menuKeySym) {
     char sendMenuKey[64];
     snprintf(sendMenuKey, 64, _("Send %s"), (const char *)menuKey);
     contextMenu->add(sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
@@ -918,25 +1135,31 @@ void Viewport::popupContextMenu()
     window()->size(w(), h());
     break;
   case ID_CTRL:
-    handleKeyEvent(FL_Control_L, FL_Control_L, "", m->value());
+    if (m->value())
+      handleKeyPress(fakeKeyBase + 0, XK_Control_L);
+    else
+      handleKeyRelease(fakeKeyBase + 0);
     menuCtrlKey = !menuCtrlKey;
     break;
   case ID_ALT:
-    handleKeyEvent(FL_Alt_L, FL_Alt_L, "", m->value());
+    if (m->value())
+      handleKeyPress(fakeKeyBase + 1, XK_Alt_L);
+    else
+      handleKeyRelease(fakeKeyBase + 1);
     menuAltKey = !menuAltKey;
     break;
   case ID_MENUKEY:
-    handleKeyEvent(menuKeyCode, menuKeyCode, "", true);
-    handleKeyEvent(menuKeyCode, menuKeyCode, "", false);
+    handleKeyPress(fakeKeyBase + 2, menuKeySym);
+    handleKeyRelease(fakeKeyBase + 2);
     break;
   case ID_CTRLALTDEL:
-    handleKeyEvent(FL_Control_L, FL_Control_L, "", true);
-    handleKeyEvent(FL_Alt_L, FL_Alt_L, "", true);
-    handleKeyEvent(FL_Delete, FL_Delete, "", true);
+    handleKeyPress(fakeKeyBase + 3, XK_Control_L);
+    handleKeyPress(fakeKeyBase + 4, XK_Alt_L);
+    handleKeyPress(fakeKeyBase + 5, XK_Delete);
 
-    handleKeyEvent(FL_Delete, FL_Delete, "", false);
-    handleKeyEvent(FL_Alt_L, FL_Alt_L, "", false);
-    handleKeyEvent(FL_Control_L, FL_Control_L, "", false);
+    handleKeyRelease(fakeKeyBase + 5);
+    handleKeyRelease(fakeKeyBase + 4);
+    handleKeyRelease(fakeKeyBase + 3);
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
@@ -962,7 +1185,7 @@ void Viewport::popupContextMenu()
 
 void Viewport::setMenuKey()
 {
-  menuKeyCode = getMenuKeyCode();
+  getMenuKey(&menuKeyCode, &menuKeySym);
 }
 
 

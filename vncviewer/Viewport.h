@@ -70,8 +70,13 @@ private:
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);
   static void handlePointerTimeout(void *data);
 
-  rdr::U32 translateKeyEvent(int keyCode, int origKeyCode, const char *keyText);
-  void handleKeyEvent(int keyCode, int origKeyCode, const char *keyText, bool down);
+  void handleKeyPress(int keyCode, rdr::U32 keySym);
+  void handleKeyRelease(int keyCode);
+
+  static int handleSystemEvent(void *event, void *data);
+
+  rdr::U32 translateKeyEvent(void);
+  void handleFLTKKeyPress(void);
 
   void initContextMenu();
   void popupContextMenu();
@@ -91,6 +96,7 @@ private:
   typedef std::map<int, rdr::U32> DownMap;
   DownMap downKeySym;
 
+  rdr::U32 menuKeySym;
   int menuKeyCode;
   Fl_Menu_Button *contextMenu;
 

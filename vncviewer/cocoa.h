@@ -22,4 +22,11 @@
 int cocoa_capture_display(Fl_Window *win, bool all_displays);
 void cocoa_release_display(Fl_Window *win);
 
+int cocoa_is_keyboard_event(const void *event);
+
+int cocoa_is_key_press(const void *event);
+
+int cocoa_event_keycode(const void *event);
+int cocoa_event_keysym(const void *event);
+
 #endif

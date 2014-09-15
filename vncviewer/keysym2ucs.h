@@ -10,6 +10,8 @@ extern "C" {
 unsigned keysym2ucs(unsigned keysym);
 unsigned ucs2keysym(unsigned ucs);
 
+unsigned ucs2combining(unsigned spacing);
+
 #ifdef __cplusplus
 }
 #endif

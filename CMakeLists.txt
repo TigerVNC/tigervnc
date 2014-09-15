@@ -279,9 +279,6 @@ if(FLTK_FOUND)
   set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
 
-  # FLTK STR #2599
-  check_cxx_source_compiles("#include <FL/Fl_Widget.H>\nint main(int c, char** v) { void (Fl_Widget::*foo)() = &Fl_Widget::set_simple_keyboard; return 0; }" HAVE_FLTK_DEAD_KEYS)
-
   # FLTK STR #2636
   check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_clipboard_notify(NULL, NULL); return 0; }" HAVE_FLTK_CLIPBOARD)
 
@@ -302,6 +299,12 @@ if(FLTK_FOUND)
 
   # FLTK STR #2860
   check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(int,int,int,int) = &Fl_Window::fullscreen_screens; return 0; }" HAVE_FLTK_FULLSCREEN_SCREENS)
+
+  # FLTK STR #xxxx
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_system_handler(NULL, NULL); return 0; }" HAVE_FLTK_XHANDLERS)
+
+  # FLTK STR #xxxx
+  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::disable_im(); return 0; }" HAVE_FLTK_IM)
 
   set(CMAKE_REQUIRED_INCLUDES)
   set(CMAKE_REQUIRED_LIBRARIES)
