@@ -142,16 +142,13 @@ diff -up fltk-1.3.2/src/Fl_win32.cxx.xhandlers fltk-1.3.2/src/Fl_win32.cxx
  IActiveIMMApp *fl_aimm = NULL;
  MSG fl_msg;
  
-@@ -401,26 +403,25 @@ int fl_wait(double time_to_wait) {
+@@ -401,23 +403,21 @@ int fl_wait(double time_to_wait) {
  
    // Execute the message we got, and all other pending messages:
    // have_message = PeekMessage(&fl_msg, NULL, 0, 0, PM_REMOVE);
 -  have_message = PeekMessageW(&fl_msg, NULL, 0, 0, PM_REMOVE);
 -  if (have_message > 0) {
 -    while (have_message != 0 && have_message != -1) {
--      // Let applications treat WM_QUIT identical to SIGTERM on *nix
--      if (fl_msg.message == WM_QUIT)
--        raise(SIGTERM);
 -      if (fl_msg.message == fl_wake_msg) {
 -        // Used for awaking wait() from another thread
 -	thread_message_ = (void*)fl_msg.wParam;
@@ -168,10 +165,6 @@ diff -up fltk-1.3.2/src/Fl_win32.cxx.xhandlers fltk-1.3.2/src/Fl_win32.cxx
 +  while ((have_message = PeekMessageW(&fl_msg, NULL, 0, 0, PM_REMOVE)) > 0) {
 +    if (fl_send_system_handlers(&fl_msg))
 +      continue;
-+
-+    // Let applications treat WM_QUIT identical to SIGTERM on *nix
-+    if (fl_msg.message == WM_QUIT)
-+      raise(SIGTERM);
 +
 +    if (fl_msg.message == fl_wake_msg) {
 +      // Used for awaking wait() from another thread
