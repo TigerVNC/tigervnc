@@ -16,6 +16,7 @@ that one connected to the physical screen).
 XDamage will be used if the existing X server supports it. Otherwise
 .B x0vncserver
 will fall back to polling the screen for changes.
+
 .SH OPTIONS
 .B x0vncserver
 interprets the command line as a list of parameters with optional values.
@@ -25,13 +26,16 @@ to use the \fBPasswordFile\fP parameter (see its description below).
 .PP
 There are several forms of specifying parameters in the command line (here we
 use `\fISomeParameter\fP' as an example parameter name):
+
 .TP
 .B -\fISomeParameter\fP
 Enable the parameter, turn the feature on.  This form can be used with
 parameters that simply enable or disable some feature.
+.
 .TP
 .B -\fISomeParameter\fP=0
 Disable the parameter, turn the feature off.
+.
 .TP
 .B -\fISomeParameter\fP=\fIvalue\fP
 Assign the specified \fIvalue\fP to the parameter.  The leading dash can be
@@ -39,15 +43,19 @@ omitted, or it can be doubled if desired (like in GNU-style long options).
 .PP
 Parameter names are case-insensitive, their order in the command line can be
 arbitrary.
+
 .SH PARAMETERS
+
 .TP
 .B display
 The X display name.  If not specified, it defaults to the value of the
 DISPLAY environment variable.
+.
 .TP
 .B rfbport
 TCP port to listen for incoming VNC connections (RFB protocol).  The default
 port is 5900.
+.
 .TP
 .B Log
 Specifies which log output should be directed to which target logger, and the
@@ -55,6 +63,7 @@ level of output to log.  Format is \fIlog\fP:\fItarget\fP:\fIlevel\fP.
 Default is \fB*:stderr:30\fP (log everything to stderr, set log level to 30).
 Log level should be a value between 0 and 100, higher levels produce more
 output.
+.
 .TP
 .B HostsFile
 This parameter allows to specify a file name with IP access control rules.
@@ -67,84 +76,103 @@ include only an action sign (+, - or ?) will match any IP address.
 \fINetmask\fP is optional and can be specified either in dotted format
 (e.g. /255.255.255.0), or as a single number of bits (e.g. /24).  Default is
 to accept connections from any IP address.
+.
 .TP
 .B SecurityTypes
 Specify which security scheme to use for incoming connections.  Valid values
 are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
 \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP
 and \fBX509Plain\fP. Default is \fBVncAuth,TLSVnc\fP.
+.
 .TP
 .B rfbauth, PasswordFile
 Password file for VNC authentication.  There is no default, you should
 specify the password file explicitly.  Password file should be created with
 the \fBvncpasswd\fP(1) utility.
+.
 .TP
 .B Password
 Obfuscated binary encoding of the password which clients must supply to
 access the server.  Using this parameter is insecure, use \fBPasswordFile\fP
 parameter instead.
+.
 .TP
 .B PlainUsers
 A comma separated list of user names that are allowed to authenticate via
 any of the "Plain" security types (Plain, TLSPlain, etc.). Specify \fB*\fP
 to allow any user to authenticate using this security type. Default is to
 deny all users.
+.
 .TP
 .B pam_service
 PAM service name to use when authentication users using any of the "Plain"
 security types. Default is \fBvnc\fP.
+.
 .TP
 .B x509cert
 Path to a X509 certificate in PEM format to be used for all X509 based
 security types (X509None, X509Vnc, etc.).
+.
 .TP
 .B x509key
 Private key counter part to the certificate given in \fBx509cert\fP. Must
 also be in PEM format.
+.
 .TP
 .B BlacklistThreshold
 The number of unauthenticated connection attempts allowed from any individual
 host before that host is black-listed.  Default is 5.
+.
 .TP
 .B BlacklistTimeout
 The initial timeout applied when a host is first black-listed.  The host
 cannot re-attempt a connection until the timeout expires.  Default is 10.
+.
 .TP
 .B QueryConnect
 Prompt the local user to accept or reject incoming connections.  Default is
 off.
+.
 .TP
 .B QueryConnectTimeout
 Number of seconds to show the Accept Connection dialog before rejecting the
 connection.  Default is 10.
+.
 .TP
 .B AlwaysShared
 Always treat incoming connections as shared, regardless of the
 client-specified setting.  Default is off.
+.
 .TP
 .B NeverShared
 Never treat incoming connections as shared, regardless of the
 client-specified setting.  Default is off.
+.
 .TP
 .B DisconnectClients
 Disconnect existing clients if an incoming connection is non-shared.  If
 combined with \fBNeverShared\fP then new connections will be refused while
 there is a client active.  Default is on.
+.
 .TP
 .B AcceptKeyEvents
 Accept key press and release events from clients.  Default is on.
+.
 .TP
 .B AcceptPointerEvents
 Accept pointer events from clients.  Default is on.
+.
 .TP
 .B RemapKeys
 Comma-separated list of incoming keysyms to remap.  Mappings are expressed as
 two hex values, prefixed by \fB0x\fP, and separated by \fB->\fP (`dash' and
 `greater than' characters).
+.
 .TP
 .B Protocol3.3
 Always use RFB protocol version 3.3 for backwards compatibility with
 badly-behaved clients.  Default is off.
+.
 .TP
 .B Geometry
 This option specifies the screen area that will be shown to VNC clients.  The
@@ -154,14 +182,17 @@ format is
 right and/or from the bottom of the screen.  Offsets are optional, +0+0 is
 assumed by default (top left corner).  If the argument is empty, full screen
 is shown to VNC clients (this is the default).
+.
 .TP
 .B MaxProcessorUsage
 Maximum percentage of CPU time to be consumed when polling the
 screen.  Default is 35.
+.
 .TP
 .B PollingCycle
 Milliseconds per one polling cycle.  Actual interval may be dynamically
 adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
+.
 .TP
 .B VideoArea
 This option specifies the screen area that will be handled as video.  The
@@ -177,6 +208,7 @@ supporting VideoRectangleSelection protocol extension.  In other words,
 clients may choose video selection themselves, but if they do not, then the
 \fBVideoArea\fP parameter will take effect.  If the argument is empty, no
 video area is set (this is the default).
+.
 .TP
 .B DeferUpdate
 x0vncserver uses a "deferred update" mechanism which enhances performance in
@@ -186,55 +218,67 @@ clients. This means that more changes tend to get coalesced together in a
 single update. Setting it to 0 results in the same behaviour as earlier
 versions of x0vncserver, where the first change to the framebuffer causes an
 immediate update to any waiting clients.
+.
 .TP
 .B AlwaysSetDeferUpdateTimer
 Keep delaying sending the screen update to the client(s) each time the
 screen is updated. Otherwise the delay is from the first update. Default
 is off.
+.
 .TP
 .B CompareFB
 Perform pixel comparison on framebuffer to reduce unnecessary updates. Can
 be either \fB0\fP (off), \fB1\fP (always) or \fB2\fP (auto). Default is
 \fB2\fP.
+.
 .TP
 .B UseSHM
 Use MIT-SHM extension if available.  Using that extension accelerates reading
 the screen.  Default is on.
+.
 .TP
 .B OverlayMode
 Use overlay mode in IRIX or Solaris (does not have effect in other systems).
 This enables system-specific access to complete full-color version of the
 screen (the default X visual often provides 256 colors).  Also, in overlay
 mode, \fBx0vncserver\fP can show correct mouse cursor.  Default is on.
+.
 .TP
 .B ZlibLevel
 Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
 Acceptable values are between 0 and 9.  Default is to use the standard
 compression level provided by the \fBzlib\fP(3) compression library.
+.
 .TP
 .B ImprovedHextile
 Use improved compression algorithm for Hextile encoding which achieves better
 compression ratios by the cost of using slightly more CPU time.  Default is
 on.
+.
 .TP
 .B IdleTimeout
 The number of seconds after which an idle VNC connection will be dropped
 (zero means no timeout).  Default is 0.
+.
 .TP
 .B MaxDisconnectionTime
 Terminate when no client has been connected for \fIN\fP seconds.  Default is
 0.
+.
 .TP
 .B MaxConnectionTime
 Terminate when a client has been connected for \fIN\fP seconds.  Default is
 0.
+.
 .TP
 .B MaxIdleTime
 Terminate after \fIN\fP seconds of user inactivity.  Default is 0.
+.
 .TP
 .B ClientWaitTimeMillis
 The number of milliseconds to wait for a client which is no longer
 responding.  Default is 20000.
+.
 .TP
 .B AcceptCutText
 .TQ
@@ -242,11 +286,13 @@ responding.  Default is 20000.
 .TQ
 .B MaxCutText
 Currently unused.
+
 .SH SEE ALSO
 .BR Xvnc (1),
 .BR vncpasswd (1),
 .br
 http://www.tigervnc.org/
+
 .SH AUTHOR
 Constantin Kaplinsky and others.
 

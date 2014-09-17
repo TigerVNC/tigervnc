@@ -33,29 +33,29 @@ command-line and through the \fBvncconfig\fP(1) program.
 .TP
 .B \-geometry \fIwidth\fPx\fIheight\fP
 Specify the size of the desktop to be created. Default is 1024x768.
-
+.
 .TP
 .B \-depth \fIdepth\fP
 Specify the pixel depth in bits of the desktop to be created. Default is 24,
 other possible values are 8, 15, and 16 - anything else is likely to cause
 strange behaviour by applications.
-
+.
 .TP
 .B \-pixelformat \fIformat\fP
 Specify pixel format for server to use (BGRnnn or RGBnnn).  The default for
 depth 8 is BGR233 (meaning the most significant two bits represent blue, the
 next three green, and the least significant three represent red), the default
 for depth 16 is RGB565 and for depth 24 is RGB888.
-
+.
 .TP
 .B \-interface \fIIP address\fP or \-i \fIIP address\fP
 Listen on interface. By default Xvnc listens on all available interfaces.
-
+.
 .TP
 .B \-inetd 
 This significantly changes Xvnc's behaviour so that it can be launched from
 inetd.  See the section below on usage with inetd.
-
+.
 .TP
 .B \-help
 List all the options and parameters
@@ -75,13 +75,13 @@ case-insensitive.
 .B \-desktop \fIdesktop-name\fP
 Each desktop has a name which may be displayed by the viewer. It defaults to
 "x11".
-
+.
 .TP
 .B \-rfbport \fIport\fP
 Specifies the TCP port on which Xvnc listens for connections from viewers (the
 protocol used in VNC is called RFB - "remote framebuffer").  The default is
 5900 plus the display number.
-
+.
 .TP
 .B \-rfbwait \fItime\fP, \-ClientWaitTimeMillis \fItime\fP
 
@@ -89,7 +89,7 @@ Time in milliseconds to wait for a viewer which is blocking Xvnc.  This is
 necessary because Xvnc is single-threaded and sometimes blocks until the viewer
 has finished sending or receiving a message - note that this does not mean an
 update will be aborted after this time.  Default is 20000 (20 seconds).
-
+.
 .TP
 .B \-httpd \fIdirectory\fP
 Run a mini-HTTP server which serves files from the given directory.  Normally
@@ -97,18 +97,18 @@ the directory will contain the classes for the Java viewer.  In addition, files
 with a .vnc extension will have certain substitutions made so that a single
 installation of the Java VNC viewer can be served by separate instances of
 Xvnc.
-
+.
 .TP
 .B \-httpPort \fIport\fP
 Specifies the port on which the mini-HTTP server runs.  Default is 5800 plus
 the display number.
-
+.
 .TP
 .B \-rfbauth \fIpasswd-file\fP, \-PasswordFile \fIpasswd-file\fP
 Specifies the file containing the password used to authenticate viewers.  The
 file is accessed each time a connection comes in, so it can be changed on the
 fly via \fBvncpasswd\fP(1).
-
+.
 .TP
 .B \-DeferUpdate \fItime\fP
 Xvnc uses a "deferred update" mechanism which enhances performance in many
@@ -118,139 +118,139 @@ means that more changes tend to get coalesced together in a single
 update. Setting it to 0 results in the same behaviour as earlier versions of
 Xvnc, where the first change to the framebuffer causes an immediate update to
 any waiting clients.
-
+.
 .TP
 .B \-AlwaysSetDeferUpdateTimer
 Keep delaying sending the screen update to the client(s) each time the
 screen is updated. Otherwise the delay is from the first update. Default
 is off.
-
+.
 .TP
 .B \-SendCutText
 Send clipboard changes to clients (default is on).  Note that you must also run
 \fBvncconfig\fP(1) to get the clipboard to work.
-
+.
 .TP
 .B \-AcceptCutText
 Accept clipboard updates from clients (default is on).  Note that you must also
 run \fBvncconfig\fP(1) to get the clipboard to work.
-
+.
 .TP
 .B \-MaxCutText \fIbytes\fP
 The maximum size of a clipboard update that will be accepted from a client.
 Default is \fB262144\fP.
-
+.
 .TP
 .B \-AcceptPointerEvents
 Accept pointer press and release events from clients (default is on).
-
+.
 .TP
 .B \-AcceptKeyEvents
 Accept key press and release events from clients (default is on).
-
+.
 .TP
 .B \-DisconnectClients
 Disconnect existing clients if an incoming connection is non-shared (default is
 on). If \fBDisconnectClients\fP is false, then a new non-shared connection will
 be refused while there is a client active.  When combined with
 \fBNeverShared\fP this means only one client is allowed at a time.
-
+.
 .TP
 .B \-NeverShared
 Never treat incoming connections as shared, regardless of the client-specified
 setting (default is off).
-
+.
 .TP
 .B \-AlwaysShared
 Always treat incoming connections as shared, regardless of the client-specified
 setting (default is off).
-
+.
 .TP
 .B \-Protocol3.3
 Always use protocol version 3.3 for backwards compatibility with badly-behaved
 clients (default is off).
-
+.
 .TP
 .B \-CompareFB
 Perform pixel comparison on framebuffer to reduce unnecessary updates (default
 is on).
-
+.
 .TP
 .B \-ZlibLevel
 Zlib compression level for ZRLE encoding (it does not affect Tight encoding).
 Acceptable values are between 0 and 9.  Default is to use the standard
 compression level provided by the \fBzlib\fP(3) compression library.
-
+.
 .TP
 .B \-ImprovedHextile
 Use improved compression algorithm for Hextile encoding which achieves better
 compression ratios by the cost of using slightly more CPU time.  Default is
 on.
-
+.
 .TP
 .B \-SecurityTypes \fIsec-types\fP
 Specify which security scheme to use for incoming connections.  Valid values
 are a comma separated list of \fBNone\fP, \fBVncAuth\fP, \fBPlain\fP,
 \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP, \fBX509None\fP, \fBX509Vnc\fP
 and \fBX509Plain\fP. Default is \fBVncAuth,TLSVnc\fP.
-
+.
 .TP
 .B \-Password \fIpassword\fP
 Obfuscated binary encoding of the password which clients must supply to
 access the server.  Using this parameter is insecure, use \fBPasswordFile\fP
 parameter instead.
-
+.
 .TP
 .B \-PlainUsers \fIuser-list\fP
 A comma separated list of user names that are allowed to authenticate via
 any of the "Plain" security types (Plain, TLSPlain, etc.). Specify \fB*\fP
 to allow any user to authenticate using this security type. Default is to
 deny all users.
-
+.
 .TP
 .B \-pam_service \fIname\fP
 PAM service name to use when authentication users using any of the "Plain"
 security types. Default is \fBvnc\fP.
-
+.
 .TP
 .B \-x509cert \fIpath\fP
 Path to a X509 certificate in PEM format to be used for all X509 based
 security types (X509None, X509Vnc, etc.).
-
+.
 .TP
 .B \-x509key \fIpath\fP
 Private key counter part to the certificate given in \fBx509cert\fP. Must
 also be in PEM format.
-
+.
 .TP
 .B \-BlacklistThreshold \fIcount\fP
 The number of unauthenticated connection attempts allowed from any individual
 host before that host is black-listed.  Default is 5.
-
+.
 .TP
 .B \-BlacklistTimeout \fIseconds\fP
 The initial timeout applied when a host is first black-listed.  The host
 cannot re-attempt a connection until the timeout expires.  Default is 10.
-
+.
 .TP
 .B \-IdleTimeout \fIseconds\fP
 The number of seconds after which an idle VNC connection will be dropped
 (default is 0, which means that idle connections will never be dropped).
-
+.
 .TP
 .B \-MaxDisconnectionTime \fIseconds\fP
 Terminate when no client has been connected for \fIN\fP seconds.  Default is
 0.
-
+.
 .TP
 .B \-MaxConnectionTime \fIseconds\fP
 Terminate when a client has been connected for \fIN\fP seconds.  Default is
 0.
-
+.
 .TP
 .B \-MaxIdleTime \fIseconds\fP
 Terminate after \fIN\fP seconds of user inactivity.  Default is 0.
-
+.
 .TP
 .B \-QueryConnect
 Prompts the user of the desktop to explicitly accept or reject incoming
@@ -261,17 +261,17 @@ The \fBvncconfig\fP(1) program must be running on the desktop in order for
 QueryConnect to be supported by the \fBvnc.so\fP(1) module or
 \fBXvnc\fP(1) program.  The \fBx0vncserver\fP(1) program does not require
 \fBvncconfig\fP(1) to be running.
-
+.
 .TP
 .B \-QueryConnectTimeout \fIseconds\fP
 Number of seconds to show the Accept Connection dialog before rejecting the
 connection.  Default is \fB10\fP.
-
+.
 .TP
 .B \-localhost
 Only allow connections from the same machine. Useful if you use SSH and want to
 stop non-SSH connections from any other hosts.
-
+.
 .TP
 .B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
 Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
@@ -279,7 +279,7 @@ Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
 output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can target a
 specific source file if you know the name of its "LogWriter".  Default is
 \fB*:stderr:30\fP.
-
+.
 .TP
 .B \-RemapKeys \fImapping
 Sets up a keyboard mapping.
@@ -293,7 +293,7 @@ where
 is a hexadecimal keysym. For example, to exchange the " and @ symbols you would specify the following:
 .IP "" 10
 RemapKeys=0x22<>0x40
-
+.
 .TP
 .B \-AvoidShiftNumLock
 Key affected by NumLock often require a fake Shift to be inserted in order
