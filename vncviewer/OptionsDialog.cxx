@@ -252,8 +252,8 @@ void OptionsDialog::loadOptions(void)
     }
   }
 
-  caInput->value(CSecurityTLS::x509ca);
-  crlInput->value(CSecurityTLS::x509crl);
+  caInput->value(CSecurityTLS::X509CA);
+  crlInput->value(CSecurityTLS::X509CRL);
 
   handleX509(encX509Checkbox, this);
 #endif
@@ -368,8 +368,8 @@ void OptionsDialog::storeOptions(void)
 
   SecurityClient::secTypes.setParam(security.ToString());
 
-  CSecurityTLS::x509ca.setParam(caInput->value());
-  CSecurityTLS::x509crl.setParam(crlInput->value());
+  CSecurityTLS::X509CA.setParam(caInput->value());
+  CSecurityTLS::X509CRL.setParam(crlInput->value());
 #endif
 
   /* Input */

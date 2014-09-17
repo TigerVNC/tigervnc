@@ -144,8 +144,8 @@ const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
 
 VoidParameter* parameterArray[] = {
 #ifdef HAVE_GNUTLS
-  &CSecurityTLS::x509ca,
-  &CSecurityTLS::x509crl,
+  &CSecurityTLS::X509CA,
+  &CSecurityTLS::X509CRL,
 #endif // HAVE_GNUTLS
   &SecurityClient::secTypes,
   &dotWhenNoCursor,

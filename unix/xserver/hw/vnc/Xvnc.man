@@ -208,18 +208,18 @@ to allow any user to authenticate using this security type. Default is to
 deny all users.
 .
 .TP
-.B \-pam_service \fIname\fP
+.B \-pam_service \fIname\fP, \-PAMService \fIname\fP
 PAM service name to use when authentication users using any of the "Plain"
 security types. Default is \fBvnc\fP.
 .
 .TP
-.B \-x509cert \fIpath\fP
+.B \-X509Cert \fIpath\fP
 Path to a X509 certificate in PEM format to be used for all X509 based
 security types (X509None, X509Vnc, etc.).
 .
 .TP
-.B \-x509key \fIpath\fP
-Private key counter part to the certificate given in \fBx509cert\fP. Must
+.B \-X509Key \fIpath\fP
+Private key counter part to the certificate given in \fBX509Cert\fP. Must
 also be in PEM format.
 .
 .TP
