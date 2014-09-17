@@ -1,4 +1,4 @@
-.TH Xvnc 1 "17 Apr 2006" "TigerVNC" "Virtual Network Computing"
+.TH Xvnc 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 Xvnc \- the X VNC server 
 .SH SYNOPSIS

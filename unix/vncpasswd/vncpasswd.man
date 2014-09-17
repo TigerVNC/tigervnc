@@ -1,4 +1,4 @@
-.TH vncpasswd 1 "09 Jul 2010" "TigerVNC" "Virtual Network Computing"
+.TH vncpasswd 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncpasswd \- change the VNC password
 .SH SYNOPSIS

@@ -1,4 +1,4 @@
-.TH vncconfig 1 "17 Apr 2006" "TigerVNC" "Virtual Network Computing"
+.TH vncconfig 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncconfig \- configure and control a VNC server
 .SH SYNOPSIS

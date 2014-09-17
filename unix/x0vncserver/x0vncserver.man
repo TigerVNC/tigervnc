@@ -1,4 +1,4 @@
-.TH X0VNCSERVER 1 "Dec 23, 2008" "TigerVNC" "TigerVNC Manual"
+.TH X0VNCSERVER 1 "" "TigerVNC" "TigerVNC Manual"
 .SH NAME
 x0vncserver \- TigerVNC Server for X displays
 .SH SYNOPSIS

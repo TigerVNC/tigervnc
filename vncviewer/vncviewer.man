@@ -1,4 +1,4 @@
-.TH vncviewer 1 "05 May 2004" "TigerVNC" "Virtual Network Computing"
+.TH vncviewer 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncviewer \- VNC viewer for X
 .SH SYNOPSIS
