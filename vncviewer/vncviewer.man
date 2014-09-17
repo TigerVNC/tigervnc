@@ -260,6 +260,11 @@ command is executed with the environment variables \fIL\fR, \fIH\fR,
 host, the port number on the remote host, and the gateway machine
 respectively.
 
+.SH FILES
+.TP
+$HOME/.vnc/default.tigervnc
+Default configuration options.
+
 .SH SEE ALSO
 .BR Xvnc (1),
 .BR vncpasswd (1),
