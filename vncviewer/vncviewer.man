@@ -124,6 +124,18 @@ the server, you can specify it here to avoid typing it in.  It will usually be
 "~/.vnc/passwd".
 .
 .TP
+.B \-X509CA \fIpath\fP
+Path to CA certificate to use when authenticating remote servers using any
+of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
+format. Default is \fB$HOME/.vnc/x509_ca.pem\fP, if it exists.
+.
+.TP
+.B \-X509CRL \fIpath\fP
+Path to certificate revocation list to use in conjunction with
+\fB-X509CA\fP. Must also be in PEM format. Default is
+\fB$HOME/.vnc/x509_crl.pem\fP, if it exists.
+.
+.TP
 .B \-Shared
 When you make a connection to a VNC server, all other existing connections are
 normally closed.  This option requests that they be left open, allowing you to
@@ -264,6 +276,12 @@ respectively.
 .TP
 $HOME/.vnc/default.tigervnc
 Default configuration options.
+.TP
+$HOME/.vnc/x509_ca.pem
+Default CA certificate for authenticating servers.
+.TP
+$HOME/.vnc/x509_crl.pem
+Default certificate revocation list.
 
 .SH SEE ALSO
 .BR Xvnc (1),
