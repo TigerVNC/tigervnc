@@ -19,6 +19,8 @@ vncserver \- start or stop a VNC server
 .RI [ Xvnc-options... ]
 .br
 .BI "vncserver \-kill :" display#
+.br
+.BI "vncserver \-list"
 .SH DESCRIPTION
 .B vncserver
 is used to start a VNC (Virtual Network Computing) desktop.
@@ -119,6 +121,10 @@ when launching TigerVNC from within certain grid computing environments.
 Automatically kill Xvnc whenever the xstartup script exits.  In most cases,
 this has the effect of terminating Xvnc when the user logs out of the window
 manager.
+
+.TP
+.B \-list
+Lists all VNC desktops started by vncserver.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
