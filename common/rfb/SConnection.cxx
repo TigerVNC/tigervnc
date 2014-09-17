@@ -26,6 +26,8 @@
 #include <rfb/SMsgWriter.h>
 #include <rfb/SConnection.h>
 #include <rfb/ServerCore.h>
+#include <rfb/encodings.h>
+#include <rfb/EncodeManager.h>
 
 #include <rfb/LogWriter.h>
 
@@ -47,7 +49,8 @@ SConnection::SConnection(bool reverseConnection_)
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
     security(0), ssecurity(0), state_(RFBSTATE_UNINITIALISED),
-    reverseConnection(reverseConnection_)
+    reverseConnection(reverseConnection_),
+    preferredEncoding(encodingRaw)
 {
   defaultMajorVersion = 3;
   defaultMinorVersion = 8;
@@ -262,6 +265,21 @@ void SConnection::writeConnFailedFromScratch(const char* msg,
   os->writeU32(0);
   os->writeString(msg);
   os->flush();
+}
+
+void SConnection::setEncodings(int nEncodings, rdr::S32* encodings)
+{
+  int i;
+
+  preferredEncoding = encodingRaw;
+  for (i = 0;i < nEncodings;i++) {
+    if (EncodeManager::supported(encodings[i])) {
+      preferredEncoding = encodings[i];
+      break;
+    }
+  }
+
+  SMsgHandler::setEncodings(nEncodings, encodings);
 }
 
 void SConnection::versionReceived()

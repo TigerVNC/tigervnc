@@ -164,7 +164,7 @@ void EncodeManager::prepareEncoders()
   indexed = indexedRLE = fullColour = encoderRaw;
 
   // Try to respect the client's wishes
-  preferred = conn->cp.preferredEncoding();
+  preferred = conn->getPreferredEncoding();
   switch (preferred) {
   case encodingRRE:
     // Horrible for anything high frequency and/or lots of colours

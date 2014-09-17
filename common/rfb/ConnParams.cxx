@@ -22,7 +22,6 @@
 #include <rdr/OutStream.h>
 #include <rfb/Exception.h>
 #include <rfb/encodings.h>
-#include <rfb/EncodeManager.h>
 #include <rfb/ConnParams.h>
 #include <rfb/util.h>
 
@@ -37,8 +36,7 @@ ConnParams::ConnParams()
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(subsampleUndefined), name_(0),
-    preferredEncoding_(encodingRaw), verStrPos(0)
+    subsampling(subsampleUndefined), name_(0), verStrPos(0)
 {
   setName("");
 }
@@ -118,7 +116,6 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   qualityLevel = -1;
   fineQualityLevel = -1;
   subsampling = subsampleUndefined;
-  preferredEncoding_ = encodingRaw;
 
   encodings_.clear();
   encodings_.insert(encodingRaw);
@@ -183,9 +180,6 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
     if (encodings[i] >= pseudoEncodingFineQualityLevel0 &&
         encodings[i] <= pseudoEncodingFineQualityLevel100)
       fineQualityLevel = encodings[i] - pseudoEncodingFineQualityLevel0;
-
-    if (EncodeManager::supported(encodings[i]))
-      preferredEncoding_ = encodings[i];
 
     if (encodings[i] > 0)
       encodings_.insert(encodings[i]);

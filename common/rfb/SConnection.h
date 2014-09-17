@@ -70,6 +70,11 @@ namespace rfb {
     void approveConnection(bool accept, const char* reason=0);
 
 
+    // Overridden from SMsgHandler
+
+    virtual void setEncodings(int nEncodings, rdr::S32* encodings);
+
+
     // Methods to be overridden in a derived class
 
     // versionReceived() indicates that the version number has just been read
@@ -173,6 +178,8 @@ namespace rfb {
 
     stateEnum state() { return state_; }
 
+    rdr::S32 getPreferredEncoding() { return preferredEncoding; }
+
   protected:
     void setState(stateEnum s) { state_ = s; }
     void writeFakeColourMap(void);
@@ -194,6 +201,7 @@ namespace rfb {
     SSecurity* ssecurity;
     stateEnum state_;
     bool reverseConnection;
+    rdr::S32 preferredEncoding;
   };
 }
 #endif
