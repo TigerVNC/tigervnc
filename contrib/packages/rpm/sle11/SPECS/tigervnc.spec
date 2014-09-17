@@ -142,42 +142,6 @@ Patch236:       u_xserver_xvfb-randr.patch
 Patch237:       U_os-Reset-input-buffer-s-ignoreBytes-field.patch
 Patch238:       u_Avoid-use-after-free-in-dix-dixfonts.c-doImageText.patch
 
-# Fltk patches
-# Export dead key information from FLTK to the apps
-# http://www.fltk.org/str.php?L2599
-Patch510: http://www.fltk.org/strfiles/2599/fltk-1_v4.3.x-keyboard-x11.patch
-Patch511: http://www.fltk.org/strfiles/2599/fltk-1_v4.3.x-keyboard-win32.patch
-Patch512: http://www.fltk.org/strfiles/2599/fltk-1_v6.3.x-keyboard-osx.patch
-
-# Notify applications of changes to the clipboard
-# http://www.fltk.org/str.php?L2636
-Patch513: http://www.fltk.org/strfiles/2636/fltk-1.3.x-clipboard.patch
-Patch514: http://www.fltk.org/strfiles/2636/fltk-1_v6.3.x-clipboard-x11.patch
-Patch515: http://www.fltk.org/strfiles/2636/fltk-1_v3.3.x-clipboard-win32-fix.patch
-Patch516: http://www.fltk.org/strfiles/2636/fltk-1_v2.3.x-clipboard-win32.patch
-Patch517: http://www.fltk.org/strfiles/2636/fltk-1_v2.3.x-clipboard-osx.patch
-
-# Ability to convert a Fl_Pixmap to a Fl_RGB_Image
-# http://www.fltk.org/str.php?L2659
-Patch518: http://www.fltk.org/strfiles/2659/pixmap_v2.patch
-
-# Support for custom cursors
-# http://www.fltk.org/str.php?L2660
-Patch519: http://www.fltk.org/strfiles/2660/fltk-1_v5.3.x-cursor.patch
-
-# Improve modality interaction with WM
-# http://www.fltk.org/str.php?L2802
-Patch520: http://www.fltk.org/strfiles/2802/fltk-1_v2.3.0-modal.patch
-
-# Window icons
-# http://www.fltk.org/str.php?L2816
-Patch521: http://www.fltk.org/strfiles/2816/fltk-1_v3.3.0-icons.patch
-
-# Multihead
-# http://fltk.org/str.php?L2860
-Patch522: http://www.fltk.org/strfiles/2860/fltk-1.3.x-screen_num.patch
-Patch523: http://www.fltk.org/strfiles/2860/fltk-1_v3.3.x-multihead.patch
-
 %description
 TigerVNC is a high-performance, platform-neutral implementation of VNC (Virtual Network Computing), 
 a client/server application that allows users to launch and interact with graphical applications on remote machines. 
@@ -272,20 +236,10 @@ popd
 
 tar xzf %SOURCE11
 pushd fltk-*
-%patch510 -p1 -b .keyboard-x11
-%patch511 -p1 -b .keyboard-win32
-%patch512 -p1 -b .keyboard-osx
-%patch513 -p1 -b .clipboard
-%patch514 -p1 -b .clipboard-x11
-%patch515 -p1 -b .clipboard-win32-fix
-%patch516 -p1 -b .clipboard-win32
-%patch517 -p1 -b .clipboard-osx
-%patch518 -p1 -b .pixmap
-%patch519 -p1 -b .cursor
-%patch520 -p1 -b .modal
-%patch521 -p1 -b .icons
-%patch522 -p1 -b .screen_num
-%patch523 -p1 -b .multihead
+for p in `find ../contrib/fltk -maxdepth 1 -type f -name "*.patch"|sort` ;
+do
+  patch -p1 -i $p
+done
 popd
 
 tar xzf %SOURCE12

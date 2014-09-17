@@ -153,41 +153,6 @@ Patch13: tigervnc11-rh692048.patch
 Patch101: tigervnc-ac-compatibility.patch
 Patch102: tigervnc-xorg-1.7.5-remove-copyisolatin1lowered.patch
 
-# Export dead key information from FLTK to the apps
-# http://www.fltk.org/str.php?L2599
-Patch110: http://www.fltk.org/strfiles/2599/fltk-1_v4.3.x-keyboard-x11.patch
-Patch111: http://www.fltk.org/strfiles/2599/fltk-1_v4.3.x-keyboard-win32.patch
-Patch112: http://www.fltk.org/strfiles/2599/fltk-1_v6.3.x-keyboard-osx.patch
-
-# Notify applications of changes to the clipboard
-# http://www.fltk.org/str.php?L2636
-Patch113: http://www.fltk.org/strfiles/2636/fltk-1.3.x-clipboard.patch
-Patch114: http://www.fltk.org/strfiles/2636/fltk-1_v6.3.x-clipboard-x11.patch
-Patch115: http://www.fltk.org/strfiles/2636/fltk-1_v3.3.x-clipboard-win32-fix.patch
-Patch116: http://www.fltk.org/strfiles/2636/fltk-1_v2.3.x-clipboard-win32.patch
-Patch117: http://www.fltk.org/strfiles/2636/fltk-1_v2.3.x-clipboard-osx.patch
-
-# Ability to convert a Fl_Pixmap to a Fl_RGB_Image
-# http://www.fltk.org/str.php?L2659
-Patch118: http://www.fltk.org/strfiles/2659/pixmap_v2.patch
-
-# Support for custom cursors
-# http://www.fltk.org/str.php?L2660
-Patch119: http://www.fltk.org/strfiles/2660/fltk-1_v5.3.x-cursor.patch
-
-# Improve modality interaction with WM
-# http://www.fltk.org/str.php?L2802
-Patch120: http://www.fltk.org/strfiles/2802/fltk-1_v2.3.0-modal.patch
-
-# Window icons
-# http://www.fltk.org/str.php?L2816
-Patch121: http://www.fltk.org/strfiles/2816/fltk-1_v3.3.0-icons.patch
-
-# Multihead
-# http://fltk.org/str.php?L2860
-Patch122: http://www.fltk.org/strfiles/2860/fltk-1.3.x-screen_num.patch
-Patch123: http://www.fltk.org/strfiles/2860/fltk-1_v3.3.x-multihead.patch
-
 # Patches from libdrm-2.4.15-4.fc12.src.rpm
 # hardcode the 666 instead of 660 for device nodes
 Patch133: libdrm-make-dri-perms-okay.patch
@@ -505,20 +470,10 @@ rm -rf %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 
 tar xzf %SOURCE11
 pushd fltk-*
-%patch110 -p1 -b .keyboard-x11
-%patch111 -p1 -b .keyboard-win32
-%patch112 -p1 -b .keyboard-osx
-%patch113 -p1 -b .clipboard
-%patch114 -p1 -b .clipboard-x11
-%patch115 -p1 -b .clipboard-win32-fix
-%patch116 -p1 -b .clipboard-win32
-%patch117 -p1 -b .clipboard-osx
-%patch118 -p1 -b .pixmap
-%patch119 -p1 -b .cursor
-%patch120 -p1 -b .modal
-%patch121 -p1 -b .icons
-%patch122 -p1 -b .screen_num
-%patch123 -p1 -b .multihead
+for p in `find ../contrib/fltk -maxdepth 1 -type f -name "*.patch"|sort` ;
+do
+  patch -p1 -i $p
+done
 popd
 
 tar xzf %SOURCE12
