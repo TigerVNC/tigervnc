@@ -43,7 +43,11 @@ UserMsgBox *CSecurityTLS::msg = NULL;
 
 StringParameter SecurityClient::secTypes
 ("SecurityTypes",
- "Specify which security scheme to use (None, VncAuth)",
+ "Specify which security scheme to use (None, VncAuth, Plain"
+#ifdef HAVE_GNUTLS
+ ", TLSNone, TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain"
+#endif
+ ")",
 #ifdef HAVE_GNUTLS
  "X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None",
 #else
