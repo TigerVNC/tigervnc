@@ -45,25 +45,16 @@ public:
   // Return the same information as a Rect structure.
   const Rect& getRect() const { return m_rect; }
 
-  // Return coordinates of the video rectangle if one was set with the
-  // "VideoArea" parameter. The coordinates are relative to the whole
-  // rectangle as returned by getRect(). In other words, the
-  // coordinate (0, 0) corresponds to the top left corner of the
-  // rectangle shown to RFB clients.
-  const Rect& getVideoRect() const { return m_videoRect; }
-
 protected:
   // Parse a string, extract size and coordinates,
   // and return that rectangle clipped to m_rect.
   Rect parseString(const char *arg) const;
 
   static StringParameter m_geometryParam;
-  static StringParameter m_videoAreaParam;
 
   int m_fullWidth;
   int m_fullHeight;
   Rect m_rect;
-  Rect m_videoRect;
 };
 
 #endif // __GEOMETRY_H__

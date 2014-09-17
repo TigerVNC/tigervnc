@@ -194,22 +194,6 @@ Milliseconds per one polling cycle.  Actual interval may be dynamically
 adjusted to satisfy \fBMaxProcessorUsage\fP setting.  Default is 30.
 .
 .TP
-.B VideoArea
-This option specifies the screen area that will be handled as video.  The
-format is
-.B \fIwidth\fPx\fIheight\fP+\fIxoffset\fP+\fIyoffset\fP
-, where `+' signs can be replaced with `\-' signs to specify offsets from the
-right and/or from the bottom of the screen.  Offsets are optional, +0+0 is
-assumed by default (top left corner).  Video area is not checked for actual
-changes, it is assumed to be changing continuously and is sent in each screen
-update.  Normally, video area is compressed with JPEG (if allowed by the
-client).  Note that this setting can be overriden by TigerVNC clients
-supporting VideoRectangleSelection protocol extension.  In other words,
-clients may choose video selection themselves, but if they do not, then the
-\fBVideoArea\fP parameter will take effect.  If the argument is empty, no
-video area is set (this is the default).
-.
-.TP
 .B DeferUpdate
 x0vncserver uses a "deferred update" mechanism which enhances performance in
 many cases. After any change to the framebuffer, x0vncserver waits for this
