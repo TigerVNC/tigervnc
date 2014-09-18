@@ -1,0 +1,107 @@
+Test protocol for keyboard handling
+===================================
+
+Platform specific tests/issues are marked with [].
+
+Client
+------
+
+- Normal symbols:
+
+  - ASCII characters
+  - Latin 1 character
+  - Unicode BMP characters
+  - Unicode non-BMP characters
+
+- Dead keys:
+
+  - Grave
+  - Acute
+  - Circumflex
+  - Tilde
+  - Macron
+  - Breve
+  - Dot above
+  - Diaeresis
+  - Ring above
+  - Double acute
+  - Caron
+  - Cedilla
+  - Ogonek
+  - Ypogegrammeni
+  - Katakana voiced mark
+  - Katakana semi-voiced mark
+  - Dialytika tonos
+  - FIXME: Many more that we currently probably don't support
+
+  - No composition on client
+
+- Modifiers:
+
+  - CapsLock, NumLock (sent but ignored by server)
+  - Shift, Ctrl
+  - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
+  - Left/right identification (FIXME: broken for Shift on Win)
+  - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [Mac]
+  - Meta and Hyper sends Super [X11]
+
+  - CapsLock, Shift and AltGr affect symbol lookup
+  - NumLock affects symbol lookup [Win, X11]
+  - Ctrl does not affect symbol lookup
+  - Shift inverts NumLock behaviour [X11]
+  - Shift turns NumLock off, but not on [Win] (FIXME: fake Shifts also sent)
+  - CtrlL+AltR fake release [Win]
+  - Ctrl+Alt+any (note behaviour above though)
+  - Ctrl+AltGr+any (FIXME: broken on Win)
+  - "Shift press, A press, Shift release, A release" should not send "a release"
+
+- Numpad:
+
+  - Numpad specific symbols are sent
+  - Affected by NumLock
+  - Decimal key should send Decimal for layouts with . as a symbol, and
+    Separator for layouts with , as a symbol
+
+- Multimedia keys:
+
+  - Back, Forward, Refresh, Stop
+  - HomePage, Search, Favourites
+  - Mail, Calculator
+  - Volume up, down, mute
+  - Media next, previous, stop, play
+  - Sleep
+  - FIXME: probably more keys exist
+
+- Non-character keys:
+
+  - F1-F24
+  - Tab, Space, Backspace, Return
+  - LeftTab sends Tab
+  - Esc, PrntScrn, ScrollLock, Pause
+  - Insert, Delete, Home, End, PageUp, PageDown
+  - Arrow keys
+  - Menu
+
+- French layout (AZERTY and inverted shift behaviour for many keys)
+
+- Key repeat should not send repeated release events
+
+- Keys are released on loss of focus
+
+- Local layout changes are respected
+
+- Local input methods are disabled/enabled with focus
+
+- System keys should be grabbed in full screen
+
+  The exact keys depends on the system and configuration, but it
+  is usually variants of these:
+
+  - Alt+Tab
+  - Super (and Super+other)
+  - Multimedia keys
+  - Ctrl+Alt+Delete
+  - Ctrl+Esc
+  - F8-F12
+
+- Virtual keyboard (as much of the above as is possible)

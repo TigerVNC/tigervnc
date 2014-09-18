@@ -1,4 +1,4 @@
-.TH vncviewer 1 "05 May 2004" "TigerVNC" "Virtual Network Computing"
+.TH vncviewer 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncviewer \- VNC viewer for X
 .SH SYNOPSIS
@@ -81,9 +81,6 @@ to a remote screen which is the same size as your local one. If the remote
 screen is bigger, you can scroll by bumping the mouse against the edge of the
 screen.
 
-Unfortunately this mode doesn't work completely with all window managers, since
-it breaks the X window management conventions.
-
 .SH OPTIONS (PARAMETERS)
 You can get a list of parameters by giving \fB\-h\fP as a command-line option
 to vncviewer.  Parameters can be turned on with -\fIparam\fP or off with
@@ -99,11 +96,11 @@ dialog box.
 .TP
 .B \-display \fIXdisplay\fP
 Specifies the X display on which the VNC viewer window should appear.
-
+.
 .TP
 .B \-geometry \fIgeometry\fP
 Standard X position and sizing specification.
-
+.
 .TP
 .B \-listen \fI[port]\fP
 Causes vncviewer to listen on the given port (default 5500) for reverse
@@ -111,51 +108,99 @@ connections from a VNC server.  WinVNC supports reverse connections initiated
 using the 'Add New Client' menu option or the '\-connect' command-line option.
 Xvnc supports reverse connections with a helper program called
 .B vncconfig.
-
+.
 .TP
-.B \-passwd \fIpassword-file\fP
+.B \-SecurityTypes \fIsec-types\fP
+Specify which security schemes to attempt to use when authenticating with
+the server.  Valid values are a comma separated list of \fBNone\fP,
+\fBVncAuth\fP, \fBPlain\fP, \fBTLSNone\fP, \fBTLSVnc\fP, \fBTLSPlain\fP,
+\fBX509None\fP, \fBX509Vnc\fP and \fBX509Plain\fP. Default is to attempt
+every supported scheme. 
+.
+.TP
+.B \-passwd, \-PasswordFile \fIpassword-file\fP
 If you are on a filesystem which gives you access to the password file used by
 the server, you can specify it here to avoid typing it in.  It will usually be
 "~/.vnc/passwd".
-
+.
+.TP
+.B \-X509CA \fIpath\fP
+Path to CA certificate to use when authenticating remote servers using any
+of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
+format. Default is \fB$HOME/.vnc/x509_ca.pem\fP, if it exists.
+.
+.TP
+.B \-X509CRL \fIpath\fP
+Path to certificate revocation list to use in conjunction with
+\fB-X509CA\fP. Must also be in PEM format. Default is
+\fB$HOME/.vnc/x509_crl.pem\fP, if it exists.
+.
 .TP
 .B \-Shared
 When you make a connection to a VNC server, all other existing connections are
 normally closed.  This option requests that they be left open, allowing you to
 share the desktop with someone already using it.
-
+.
 .TP
 .B \-ViewOnly
 Specifies that no keyboard or mouse events should be sent to the server.
 Useful if you want to view a desktop without interfering; often needs to be
 combined with
 .B \-Shared.
-
+.
+.TP
+.B \-AcceptClipboard
+Accept clipboard changes from the server. Default is on.
+.
+.TP
+.B \-SendClipboard
+Send clipboard changes to the server. Default is on.
+.
+.TP
+.B \-SendPrimary
+Send the primary selection and cut buffer to the server as well as the
+clipboard selection. Default is on.
+.
 .TP
 .B \-Maximize
 Maximize viewer window. 
-
+.
 .TP
 .B \-FullScreen
 Start in full-screen mode.
-
+.
+.TP
+.B \-FullScreenAllMonitors
+Use all local monitors and not just the current one when switching to
+full-screen mode.
+.
+.TP
+.B \-FullscreenSystemKeys
+Pass special keys (like Alt+Tab) directly to the server when in full-screen
+mode.
+.
 .TP
 .B \-DesktopSize \fIwidth\fPx\fIheight\fP
 Instead of keeping the existing remote screen size, the client will attempt to
 switch to the specified since when connecting. If the server does not support
 the SetDesktopSize message then the screen will retain the original size.
-
+.
+.TP
+.B \-RemoteResize
+Dynamically resize the remote desktop size as the size of the local client
+window changes. Note that this may not work with all VNC servers.
+.
 .TP
 .B \-AutoSelect
 Use automatic selection of encoding and pixel format (default is on).  Normally
 the viewer tests the speed of the connection to the server and chooses the
 encoding and pixel format appropriately.  Turn it off with \fB-AutoSelect=0\fP.
-
+.
 .TP
 .B \-FullColor, \-FullColour
 Tells the VNC server to send full-color pixels in the best format for this
 display.  This is default. 
-
+.
 .TP
 .B \-LowColorLevel, \-LowColourLevel \fIlevel\fP
 Selects the reduced color level to use on slow links.  \fIlevel\fP can range
@@ -163,40 +208,53 @@ from 0 to 2, 0 meaning 8 colors, 1 meaning 64 colors (the default), 2 meaning
 256 colors. Note that decision if reduced color level is used is made by
 vncviewer. If you would like to force vncviewer to use reduced color level
 use \fB-AutoSelect=0\fP parameter.
-
+.
 .TP
 .B \-PreferredEncoding \fIencoding\fP
 This option specifies the preferred encoding to use from one of "Tight", "ZRLE",
 "hextile" or "raw".
-
+.
 .TP
-.B -UseLocalCursor
-Render the mouse cursor locally if the server supports it (default is on).
-This can make the interactive performance feel much better over slow links.
-
+.B \-NoJpeg
+Disable lossy JPEG compression in Tight encoding. Default is off.
+.
 .TP
-.B \-WMDecorationWidth \fIw\fP, \-WMDecorationHeight \fIh\fP
-The total width and height taken up by window manager decorations.  This is
-used to calculate the maximum size of the VNC viewer window.  Default is
-width 6, height 24.
-
+.B \-QualityLevel \fIlevel\fP
+JPEG quality level. 0 = Low, 9 = High. May be adjusted automatically if
+\fB-AutoSelect\fP is turned on. Default is 8.
+.
 .TP
-.B \-log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
+.B \-CompressLevel \fIlevel\fP
+Use specified lossless compression level. 0 = Low, 6 = High. Default is 2.
+.
+.TP
+.B \-CustomCompressLevel
+Use custom compression level. Default if \fBCompressLevel\fP is specified.
+.
+.TP
+.B \-DotWhenNoCursor
+Show the dot cursor when the server sends an invisible cursor. Default is off.
+.
+.TP
+.B \-PointerEventInterval \fItime\fP
+Time in milliseconds to rate-limit successive pointer events. Default is
+to send events immediately.
+.
+.TP
+.B \-Log \fIlogname\fP:\fIdest\fP:\fIlevel\fP
 Configures the debug log settings.  \fIdest\fP can currently be \fBstderr\fP or
 \fBstdout\fP, and \fIlevel\fP is between 0 and 100, 100 meaning most verbose
 output.  \fIlogname\fP is usually \fB*\fP meaning all, but you can target a
 specific source file if you know the name of its "LogWriter".  Default is
 \fB*:stderr:30\fP.
-
+.
 .TP
 .B \-MenuKey \fIkeysym-name\fP
-This option specifies the key which brings up the popup menu.  The key is
-specified as an X11 keysym name (these can be obtained by removing the XK_
-prefix from the entries in "/usr/include/X11/keysymdef.h" - the currently 
-implemented list is: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Pause, 
+This option specifies the key which brings up the popup menu. The currently
+supported list is: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Pause,
 Print, Scroll_Lock, Escape, Insert, Delete, Home, Page_Up, Page_Down).
 Default is F8.
-
+.
 .TP
 \fB\-via\fR \fIgateway\fR
 Automatically create encrypted TCP tunnel to the \fIgateway\fR machine
@@ -214,6 +272,17 @@ command is executed with the environment variables \fIL\fR, \fIH\fR,
 host, the port number on the remote host, and the gateway machine
 respectively.
 
+.SH FILES
+.TP
+$HOME/.vnc/default.tigervnc
+Default configuration options.
+.TP
+$HOME/.vnc/x509_ca.pem
+Default CA certificate for authenticating servers.
+.TP
+$HOME/.vnc/x509_crl.pem
+Default certificate revocation list.
+
 .SH SEE ALSO
 .BR Xvnc (1),
 .BR vncpasswd (1),
@@ -223,9 +292,10 @@ respectively.
 http://www.tigervnc.org
 
 .SH AUTHOR
-Tristan Richardson, RealVNC Ltd.
+Tristan Richardson, RealVNC Ltd. and others.
 
 VNC was originally developed by the RealVNC team while at Olivetti
 Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
-implemented by Constantin Kaplinsky. Many other people participated in
-development, testing and support.
+implemented by Constantin Kaplinsky. Many other people have since
+participated in development, testing and support. This manual is part
+of the TigerVNC software suite.

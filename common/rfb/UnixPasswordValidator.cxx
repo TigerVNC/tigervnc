@@ -31,8 +31,10 @@
 
 using namespace rfb;
 
-static StringParameter pam_service
-  ("pam_service", "service name for pam password validation", "vnc");
+static StringParameter pamService
+  ("PAMService", "Service name for PAM password validation", "vnc");
+AliasParameter pam_service("pam_service", "Alias for PAMService",
+                           &pamService);
 
 int do_pam_auth(const char *service, const char *username,
 	        const char *password);
@@ -42,7 +44,7 @@ bool UnixPasswordValidator::validateInternal(SConnection * sc,
 					     const char *password)
 {
 #ifdef HAVE_PAM
-  CharArray service(strDup(pam_service.getData()));
+  CharArray service(strDup(pamService.getData()));
   return do_pam_auth(service.buf, username, password);
 #else
   throw AuthFailureException("PAM not supported");

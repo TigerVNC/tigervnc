@@ -32,11 +32,6 @@ StringParameter Geometry::m_geometryParam("Geometry",
   "If the argument is empty, full screen is shown to VNC clients.",
   "");
 
-StringParameter Geometry::m_videoAreaParam("VideoArea",
-  "Screen area to be handled as video. "
-  "Format is <width>x<height>+<offset_x>+<offset_y>.",
-  "");
-
 Geometry::Geometry(int fullWidth, int fullHeight)
   : m_fullWidth(fullWidth),
     m_fullHeight(fullHeight),
@@ -58,25 +53,6 @@ Geometry::Geometry(int fullWidth, int fullHeight)
   // Everything went good so far.
   vlog.info("Desktop geometry is set to %dx%d+%d+%d",
             width(), height(), offsetLeft(), offsetTop());
-
-  // Handle the VideoArea parameter, save the result in m_videoRect.
-  // Note that we log absolute coordinates but save relative ones.
-  param = m_videoAreaParam.getData();
-  bool videoAreaSpecified = (strlen(param) > 0);
-  if (videoAreaSpecified) {
-    Rect absVideoRect = parseString(param);
-    if (!absVideoRect.is_empty()) {
-      vlog.info("Video area set to %dx%d+%d+%d",
-                absVideoRect.width(), absVideoRect.height(),
-                absVideoRect.tl.x, absVideoRect.tl.y);
-      Point base(-offsetLeft(), -offsetTop());
-      m_videoRect = absVideoRect.translate(base);
-    } else {
-      vlog.info("Video area was not set");
-      m_videoRect.clear();
-    }
-  }
-  delete[] param;
 }
 
 Rect Geometry::parseString(const char *arg) const

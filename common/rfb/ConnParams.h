@@ -80,7 +80,6 @@ namespace rfb {
     const Cursor& cursor() { return cursor_; }
     void setCursor(const Cursor& cursor);
 
-    rdr::S32 preferredEncoding() { return preferredEncoding_; }
     bool supportsEncoding(rdr::S32 encoding);
 
     void setEncodings(int nEncodings, const rdr::S32* encodings);
@@ -108,7 +107,6 @@ namespace rfb {
     PixelFormat pf_;
     char* name_;
     Cursor cursor_;
-    rdr::S32 preferredEncoding_;
     std::set<rdr::S32> encodings_;
     char verStr[13];
     int verStrPos;

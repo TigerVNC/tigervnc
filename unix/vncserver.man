@@ -1,4 +1,4 @@
-.TH vncserver 1 "13 Mar 2011" "TigerVNC" "Virtual Network Computing"
+.TH vncserver 1 "" "TigerVNC" "Virtual Network Computing"
 .SH NAME
 vncserver \- start or stop a VNC server
 .SH SYNOPSIS
@@ -19,6 +19,8 @@ vncserver \- start or stop a VNC server
 .RI [ Xvnc-options... ]
 .br
 .BI "vncserver \-kill :" display#
+.br
+.BI "vncserver \-list"
 .SH DESCRIPTION
 .B vncserver
 is used to start a VNC (Virtual Network Computing) desktop.
@@ -54,24 +56,24 @@ name defaults to "\fIhost\fP:\fIdisplay#\fP (\fIusername\fP)", but you can
 change it with this option.  The desktop name option is passed to the xstartup
 script via the $VNCDESKTOP environment variable, which allows you to run a
 different set of applications depending on the name of the desktop.
-
+.
 .TP
 .B \-geometry \fIwidth\fPx\fIheight\fP
 Specify the size of the VNC desktop to be created. Default is 1024x768. 
-
+.
 .TP
 .B \-depth \fIdepth\fP
 Specify the pixel depth (in bits) of the VNC desktop to be created. Default is
 24.  Other possible values are 8, 15 and 16 - anything else is likely to cause
 strange behaviour by applications.
-
+.
 .TP
 .B \-pixelformat \fIformat\fP
 Specify pixel format for Xvnc to use (BGRnnn or RGBnnn).  The default for
 depth 8 is BGR233 (meaning the most significant two bits represent blue, the
 next three green, and the least significant three represent red), the default
 for depth 16 is RGB565, and the default for depth 24 is RGB888.
-
+.
 .TP
 .B \-cc 3
 As an alternative to the default TrueColor visual, this allows you to run an
@@ -80,7 +82,7 @@ palette), which can be useful for running some old X applications which only
 work on such a display.  Values other than 3 (PseudoColor) and 4 (TrueColor)
 for the \-cc option may result in strange behaviour, and PseudoColor desktops
 must have an 8-bit depth.
-
+.
 .TP
 .B \-kill :\fIdisplay#\fP
 This kills a VNC desktop previously started with vncserver.  It does this by
@@ -90,7 +92,7 @@ killing the Xvnc process, whose process ID is stored in the file
 option ignores anything preceding the first colon (":") in the display
 argument.  Thus, you can invoke "vncserver \-kill $DISPLAY", for example at the
 end of your xstartup file after a particular application exits.
-
+.
 .TP
 .B \-fp \fIfont-path\fP
 If the vncserver script detects that the X Font Server (XFS) is running, it
@@ -106,19 +108,23 @@ The
 .B \-fp
 argument allows you to override the above fallback logic and specify a font
 path for Xvnc to use.
-
+.
 .TP
 .B \-fg
 Runs Xvnc as a foreground process.  This has two effects: (1) The VNC server
 can be aborted with CTRL-C, and (2) the VNC server will exit as soon as the
 user logs out of the window manager in the VNC session.  This may be necessary
 when launching TigerVNC from within certain grid computing environments.
-
+.
 .TP
 .B \-autokill
 Automatically kill Xvnc whenever the xstartup script exits.  In most cases,
 this has the effect of terminating Xvnc when the user logs out of the window
 manager.
+.
+.TP
+.B \-list
+Lists all VNC desktops started by vncserver.
 
 .SH FILES
 Several VNC-related files are found in the directory $HOME/.vnc:
@@ -148,11 +154,10 @@ option.
 http://www.tigervnc.org
 
 .SH AUTHOR
-Tristan Richardson, RealVNC Ltd.
-.br
-D. R. Commander
+Tristan Richardson, RealVNC Ltd., D. R. Commander and others.
 
 VNC was originally developed by the RealVNC team while at Olivetti
 Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
-implemented by Constantin Kaplinsky. Many other people participated in
-development, testing and support.
+implemented by Constantin Kaplinsky. Many other people have since
+participated in development, testing and support. This manual is part
+of the TigerVNC software suite.

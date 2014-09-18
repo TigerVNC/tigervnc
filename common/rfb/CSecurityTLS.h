@@ -50,8 +50,8 @@ namespace rfb {
       { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
     static void setDefaults();
 
-    static StringParameter x509ca;
-    static StringParameter x509crl;
+    static StringParameter X509CA;
+    static StringParameter X509CRL;
     static UserMsgBox *msg;
 
   protected:

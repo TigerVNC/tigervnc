@@ -39,10 +39,10 @@
 using namespace rfb;
 
 StringParameter SSecurityTLS::X509_CertFile
-("x509cert", "specifies path to the x509 certificate in PEM format", "", ConfServer);
+("X509Cert", "Path to the X509 certificate in PEM format", "", ConfServer);
 
 StringParameter SSecurityTLS::X509_KeyFile
-("x509key", "specifies path to the key of the x509 certificate in PEM format", "", ConfServer);
+("X509Key", "Path to the key of the X509 certificate in PEM format", "", ConfServer);
 
 static LogWriter vlog("TLS");
 static LogWriter vlog_raw("RawTLS");
