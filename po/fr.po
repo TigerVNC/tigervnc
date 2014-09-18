@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-09-18 13:16+0000\n"
+"POT-Creation-Date: 2014-09-18 13:55+0000\n"
 "PO-Revision-Date: 2010-03-13 09:47+0100\n"
 "Last-Translator: Alain Portal <alain.portal@free.fr>\n"
 "Language-Team: French <kde-francophone@kde.org>\n"
@@ -14,9 +14,8 @@ msgstr ""
 "X-Generator: Lokalize 1.0\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#, fuzzy
 msgid "About"
-msgstr "À propos..."
+msgstr "Au sujet de"
 
 #, fuzzy
 msgid "About TigerVNC Viewer"
@@ -38,13 +37,11 @@ msgstr "Autoriser la compression JPEG :"
 msgid "Alt"
 msgstr "Alt"
 
-#, fuzzy
 msgid "Authentication"
-msgstr "Authentification VNC"
+msgstr "Authentification"
 
-#, fuzzy
 msgid "Authentication cancelled"
-msgstr "Authentification VNC"
+msgstr "Authentification annulée"
 
 msgid "Auto select"
 msgstr "Sélection automatique"
@@ -53,27 +50,29 @@ msgid "Cancel"
 msgstr "Annuler"
 
 msgid "Close"
-msgstr ""
+msgstr "Fermer"
 
 msgid "Color level"
-msgstr ""
+msgstr "Niveau de couleur"
 
 #, fuzzy
 msgid "Compression"
 msgstr "Niveau de compression personnalisé :"
 
 msgid "Connect"
-msgstr ""
+msgstr "Connexion"
 
 msgid "Connection info..."
 msgstr "Informations de la connexion..."
 
 #, c-format
 msgid "Could not create VNC home directory: %s."
-msgstr ""
+msgstr "Impossible de créer le répertoire de départ VNC : %s."
 
 msgid "Could not create VNC home directory: can't obtain home directory path."
 msgstr ""
+"Impossible de créer le répertoire de départ VNC : impossible d'obtenir le "
+"chemin du répertoire de départ."
 
 msgid "Ctrl"
 msgstr "Ctrl"
@@ -112,19 +111,19 @@ msgid "Enable full-screen mode over all monitors"
 msgstr ""
 
 msgid "Enabling continuous updates"
-msgstr ""
+msgstr "Autorisation de mises à jour en continu"
 
 msgid "Encryption"
-msgstr ""
+msgstr "Cryptage"
 
 msgid "Exit viewer"
 msgstr "Quitte le visionneur"
 
 msgid "Failure grabbing keyboard"
-msgstr ""
+msgstr "Échec de saisie clavier"
 
 msgid "Failure grabbing mouse"
-msgstr ""
+msgstr "Échec de saisie souris"
 
 msgid "Full (all available colors)"
 msgstr "Complet (toutes les couleurs disponibles)"
@@ -136,20 +135,20 @@ msgid "Full-screen mode"
 msgstr "Mode plein écran"
 
 msgid "Hide"
-msgstr ""
+msgstr "Cacher"
 
 msgid "Hide Others"
-msgstr ""
+msgstr "Cacher les autres"
 
 #, fuzzy
 msgid "Input"
 msgstr "Entrée :"
 
 msgid "Internal FLTK error. Exiting."
-msgstr ""
+msgstr "Erreur FLTK interne. Procédure de sortie."
 
 msgid "Load..."
-msgstr ""
+msgstr "Chargement..."
 
 msgid "Low (64 colors)"
 msgstr "Faible (64 couleurs)"
@@ -160,16 +159,15 @@ msgstr "Moyen (256 couleurs)"
 msgid "Menu key"
 msgstr ""
 
-#, fuzzy
 msgid "Misc."
-msgstr "Divers :"
+msgstr "Divers"
 
 #, c-format
 msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr ""
+msgstr "Caractères multiples donnés pour la clé de code %d (0x%04x) : '%s'"
 
 msgid "No"
-msgstr ""
+msgstr "Non"
 
 #, c-format
 msgid "No scan code for %svirtual key 0x%02x"
@@ -188,13 +186,13 @@ msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr ""
 
 msgid "None"
-msgstr ""
+msgstr "Aucun(e)"
 
 msgid "OK"
 msgstr "OK"
 
 msgid "Opening password file failed"
-msgstr ""
+msgstr "Échec de l'ouverture du fichier mot de passe"
 
 msgid "Options..."
 msgstr "Options..."
@@ -206,16 +204,16 @@ msgid "Password:"
 msgstr "Mot de passe :"
 
 msgid "Path to X509 CA certificate"
-msgstr ""
+msgstr "Certificat du chemin pour X509 CA"
 
 msgid "Path to X509 CRL file"
-msgstr ""
+msgstr "Fichier du chemin pour X509 CRL"
 
 msgid "Preferred encoding"
-msgstr ""
+msgstr "Codage favori"
 
 msgid "Quit"
-msgstr ""
+msgstr "Quitter"
 
 msgid "Refresh screen"
 msgstr "Rafraîchir l'écran"
@@ -224,19 +222,19 @@ msgid "Resize remote session on connect"
 msgstr ""
 
 msgid "Resize remote session to the local window"
-msgstr ""
+msgstr "Redimensionner session distante pour la fenêtre locale"
 
 msgid "Resize window to session"
-msgstr ""
+msgstr "Redimensionner la fenêtre pour la session"
 
 msgid "Save As..."
-msgstr ""
+msgstr "Enregistrer sous"
 
 msgid "Screen"
-msgstr ""
+msgstr "Écran"
 
 msgid "Security"
-msgstr ""
+msgstr "Sécurité"
 
 #, c-format
 msgid "Send %s"
@@ -253,37 +251,37 @@ msgid "Send primary selection and cut buffer as clipboard"
 msgstr "Exporter les données vers le presse-papiers"
 
 msgid "Services"
-msgstr ""
+msgstr "Services"
 
 #, c-format
 msgid "SetDesktopSize failed: %d"
-msgstr ""
+msgstr "Échec SetDesktopSize : %d"
 
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Partagé (ne pas déconnecter les autres visionneurs)"
 
 msgid "Show All"
-msgstr ""
+msgstr "Afficher tout"
 
 msgid "Show dot when no cursor"
 msgstr "Afficher un point s'il n'y a pas de curseur"
 
 msgid "Standard VNC (insecure without encryption)"
-msgstr ""
+msgstr "VNC standard (non sécurité sans cryptage)"
 
 msgid "TLS with X509 certificates"
-msgstr ""
+msgstr "TLS avec certificat X509"
 
 msgid "TLS with anonymous certificates"
-msgstr ""
+msgstr "TLS avec certificats anonymes"
 
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr ""
+msgstr "Débit %d kbit/s - %d pour une meilleure qualité"
 
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
-msgstr ""
+msgstr "Débit %d kbit/s - le spectre couleurs est à présent %s"
 
 #, fuzzy
 msgid "TigerVNC Viewer"
@@ -304,25 +302,25 @@ msgstr ""
 
 #, c-format
 msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr ""
+msgstr "Code par clé FLTK %d inconnu (0x%04x)"
 
 #, c-format
 msgid "Unknown decimal separator: '%s'"
-msgstr ""
+msgstr "Séparateur décimal inconnu : '%s'"
 
 msgid "Username and password (insecure without encryption)"
-msgstr ""
+msgstr "Nom d'utilisateur et mot de passe (non sécurisé sans cryptage)"
 
 msgid "Username:"
 msgstr "Nom d'utilisateur :"
 
 #, c-format
 msgid "Using %s encoding"
-msgstr ""
+msgstr "Utilise le codage %s"
 
 #, c-format
 msgid "Using pixel format %s"
-msgstr ""
+msgstr "Utilisation du format pixels %s"
 
 msgid "VNC Viewer: Connection Details"
 msgstr "Visionneur VNC : détails de la connection"
@@ -347,37 +345,20 @@ msgid "View only (ignore mouse and keyboard)"
 msgstr "Voir seulement (ignorer la souris et le clavier)"
 
 msgid "Yes"
-msgstr ""
+msgstr "Oui"
 
 #, c-format
 msgid "connected to host %s port %d"
-msgstr ""
+msgstr "connecté à l'hôte %s port %d"
 
 msgid "disabled"
-msgstr ""
+msgstr "désactivé"
 
 msgid "enabled"
-msgstr ""
+msgstr "activé"
 
-#, fuzzy
 msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "niveau (1=rapide, 9=le meilleur)"
+msgstr "niveau (1=rapide, 6=optimal [4-6 sont rarement utiles])"
 
-#, fuzzy
 msgid "quality (0=poor, 9=best)"
-msgstr "qualité (1=pauvre, 9=la meilleure)"
-
-#~ msgid "Encoding and Color Level:"
-#~ msgstr "Jeu de caractères et niveau de couleurs :"
-
-#~ msgid "New connection..."
-#~ msgstr "Nouvelle connexion..."
-
-#~ msgid "Render cursor locally"
-#~ msgstr "Restituer le curseur localement"
-
-#~ msgid "TigerVNC: %.240s"
-#~ msgstr "TigerVNC : %.240s"
-
-#~ msgid "VNC Menu"
-#~ msgstr "Menu VNC"
+msgstr "qualité (0=faible, 9=optimale)"

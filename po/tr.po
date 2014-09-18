@@ -1,80 +1,77 @@
-# Copyright (C) 2011 TigerVNC Team
+# Copyright (C) TigerVNC Team
 msgid ""
 msgstr ""
-"Project-Id-Version: TigerVNC 0.0.91\n"
+"Project-Id-Version: TigerVNC 1.3.80\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-09-18 13:55+0000\n"
-"PO-Revision-Date: 2011-08-29 16:01+0200\n"
-"Last-Translator: Peter Astrand <astrand@cendio.se>\n"
-"Language-Team: Swedish\n"
-"Language: \n"
+"POT-Creation-Date: 2014-09-18 13:20+0000\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "About"
-msgstr "Om"
+msgstr "Hakkında"
 
 msgid "About TigerVNC Viewer"
-msgstr "Om VNC-visaren"
+msgstr ""
 
 msgid "About TigerVNC viewer..."
-msgstr "Om TigerVNC-visaren..."
+msgstr ""
 
 msgid "About..."
-msgstr "Om..."
+msgstr "Hakkında..."
 
 msgid "Accept clipboard from server"
-msgstr "Acceptera urklipp från server"
+msgstr ""
 
 msgid "Allow JPEG compression:"
-msgstr "Tillåt JPEG-kompression:"
+msgstr "JPEG sıkıştırmasına izin ver:"
 
 msgid "Alt"
-msgstr "Alt"
+msgstr ""
 
 msgid "Authentication"
-msgstr "Autentisering"
+msgstr "Doğrulama"
 
 msgid "Authentication cancelled"
-msgstr "Autentisering avbruten"
+msgstr "Doğrulama iptal edildi"
 
 msgid "Auto select"
-msgstr "Automatiskt val"
+msgstr "Otomatik seç"
 
 msgid "Cancel"
-msgstr "Avbryt"
+msgstr "İptal"
 
 msgid "Close"
-msgstr "Stäng"
+msgstr "Kapat"
 
 msgid "Color level"
-msgstr "Färgnivå"
+msgstr "Renk seviyesi"
 
+#, fuzzy
 msgid "Compression"
-msgstr "Kompression"
+msgstr "SSH sıkıştırma"
 
 msgid "Connect"
-msgstr "Anslut"
+msgstr "Bağlan"
 
 msgid "Connection info..."
-msgstr "Information om anslutningen..."
+msgstr "Bağlantı bilgisi..."
 
 #, c-format
 msgid "Could not create VNC home directory: %s."
-msgstr "Kunde inte skapa VNC-hemkatalog: %s."
+msgstr "VNC ana dizini oluşturulamadı: %s"
 
 msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "Kunde inte skapa VNC-hemkatalog: kan inte avgöra hemkatalogens sökväg"
+msgstr "VNC ana dizini oluşturulamadı: ana dizin yolu alınamıyor."
 
 msgid "Ctrl"
-msgstr "Ctrl"
+msgstr ""
 
 msgid "Custom compression level:"
-msgstr "Anpassad kompressionsnivå:"
+msgstr "Özel sıkıştırma seviyesi:"
 
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Desktop name: %.80s\n"
 "Host: %.80s port: %d\n"
@@ -87,80 +84,80 @@ msgid ""
 "Protocol version: %d.%d\n"
 "Security method: %s\n"
 msgstr ""
-"Skrivbordsnamn: %.80s\n"
-"Värd: %.80s port: %d\n"
-"Storlek: %d x %d\n"
-"Pixelformat: %s\n"
-"(serverstandard %s)\n"
-"Begärd kodning: %s\n"
-"Senast använd kodning: %s\n"
-"Uppskattad hastighet på förbindelsen: %d kbit/s\n"
-"Protokollversion: %d.%d\n"
-"Säkerhetsmetod: %s\n"
+"Masaüstü adı: %.80s\n"
+"Boyut: %d x %d\n"
+"Piksel biçimi: %s\n"
+"(sunucu varsayılanı %s)\n"
+"İstenen kodlama: %s\n"
+"Son kullanılan kodlama: %s\n"
+"Hat hızı tahmini: %d kbit/s\n"
 
 msgid "Dismiss menu"
-msgstr "Stäng meny"
+msgstr "Menüyü kapat"
 
+#, fuzzy
 msgid "Enable full-screen mode over all monitors"
-msgstr ""
+msgstr "Tüm monitörlerde tam ekran modunu etkinleştir"
 
 msgid "Enabling continuous updates"
-msgstr "Aktiverar kontinuerliga uppdateringar"
+msgstr "Sürekli güncelleştirmeler etkinleştiriliyor"
 
 msgid "Encryption"
-msgstr "Kryptering"
+msgstr "Şifreleme"
 
 msgid "Exit viewer"
-msgstr "Avsluta visaren"
+msgstr ""
 
 msgid "Failure grabbing keyboard"
-msgstr "Misslyckades med att fånga tangentbordet"
+msgstr "Klavye yakalanamadı"
 
 msgid "Failure grabbing mouse"
-msgstr "Misslyckades med att fånga musen"
+msgstr "Fare yakalanamadı"
 
 msgid "Full (all available colors)"
-msgstr "Full (alla tillgängliga färger)"
+msgstr "Tam (bütün mevcut renkler)"
 
 msgid "Full screen"
-msgstr "Fullskärm"
+msgstr "Tam ekran"
 
+#, fuzzy
 msgid "Full-screen mode"
-msgstr "Fullskärmsläge"
+msgstr "Tam ekran modu"
 
 msgid "Hide"
-msgstr "Göm"
+msgstr "Gizle"
 
 msgid "Hide Others"
-msgstr "Göm andra"
+msgstr "Diğerlerini Gizle"
 
 msgid "Input"
-msgstr "Inmatning"
+msgstr ""
 
 msgid "Internal FLTK error. Exiting."
-msgstr "Internt FLTK-fel. Avslutar."
+msgstr "Dahili FLTK hatası. Çıkışıyor."
 
 msgid "Load..."
-msgstr "Öppna..."
+msgstr "Yükle..."
 
 msgid "Low (64 colors)"
-msgstr "Låg (64 färger)"
+msgstr "Düşük (64 renk)"
 
 msgid "Medium (256 colors)"
-msgstr "Medium (256 färger)"
+msgstr "Orta (256 renk)"
 
+#, fuzzy
 msgid "Menu key"
-msgstr "Menytangent"
+msgstr "Açılır menü tuşu"
 
 msgid "Misc."
-msgstr "Diverse"
+msgstr "Çeşitli"
 
 #, c-format
 msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr "Multipla tecken angivna för tangentkod %d (0x%04x): '%s'"
+msgstr "Anahtar kodu %d (0x%04x) için birden fazla karakter verilmiş: '%s'"
 
 msgid "No"
-msgstr "Ingen"
+msgstr "Hayır"
 
 #, c-format
 msgid "No scan code for %svirtual key 0x%02x"
@@ -179,104 +176,105 @@ msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr ""
 
 msgid "None"
-msgstr "Ingen"
+msgstr "Yok"
 
 msgid "OK"
-msgstr "Ok"
+msgstr "Tamam"
 
 msgid "Opening password file failed"
-msgstr "Öppning av lösenordsfilen misslyckades"
+msgstr "Parola dosyası açılamadı"
 
 msgid "Options..."
-msgstr "Inställningar..."
+msgstr "Seçenekler..."
 
 msgid "Pass system keys directly to server (full screen)"
-msgstr "Skicka systemtangenter direkt till servern (fullskärm)"
-
-msgid "Password:"
-msgstr "Lösenord:"
-
-msgid "Path to X509 CA certificate"
-msgstr "Sökväg till CA-certifikat för X509"
-
-msgid "Path to X509 CRL file"
-msgstr "Sökväg till CRL-fil för X509"
-
-msgid "Preferred encoding"
-msgstr "Föredragen kodning"
-
-msgid "Quit"
-msgstr "Avsluta"
-
-msgid "Refresh screen"
-msgstr "Uppdatera skärm"
-
-msgid "Resize remote session on connect"
 msgstr ""
 
+msgid "Password:"
+msgstr "Şifre:"
+
+msgid "Path to X509 CA certificate"
+msgstr "X509 CA sertifikası yolu"
+
+msgid "Path to X509 CRL file"
+msgstr "X509  CRL  dosyası  yolu"
+
+msgid "Preferred encoding"
+msgstr "Tercih edilen kodlama"
+
+msgid "Quit"
+msgstr "Çık"
+
+msgid "Refresh screen"
+msgstr ""
+
+#, fuzzy
+msgid "Resize remote session on connect"
+msgstr "Uzak oturumu yerel pencereye yeniden boyutlandır"
+
 msgid "Resize remote session to the local window"
-msgstr "Anpassa sessionsstorlek till lokalt fönster"
+msgstr "Uzak oturumu yerel pencereye yeniden boyutlandır"
 
 msgid "Resize window to session"
-msgstr "Anpassa fönster till session"
+msgstr "Pencereyi oturuma tekrar boyutlandır"
 
 msgid "Save As..."
-msgstr "Spara som..."
+msgstr "Farklı Kaydet..."
 
 msgid "Screen"
-msgstr "Skärm"
+msgstr "Ekran"
 
 msgid "Security"
-msgstr "Säkerhet"
+msgstr "Güvenlik"
 
 #, c-format
 msgid "Send %s"
-msgstr "Skicka %s"
+msgstr "%s gönder"
 
 msgid "Send Ctrl-Alt-Del"
-msgstr "Skicka Ctrl-Alt-Del"
+msgstr "Ctrl-Alt-Del gönder"
 
 msgid "Send clipboard to server"
-msgstr "Skicka urklipp till server"
+msgstr ""
 
 msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Skicka primär markering och klippbuffert som urklipp"
+msgstr ""
 
 msgid "Services"
-msgstr "Tjänster"
+msgstr "Hizmetler"
 
 #, c-format
 msgid "SetDesktopSize failed: %d"
-msgstr "SetDesktopSize misslyckades: %d"
+msgstr "SetDesktopSize başarısız: %d"
 
 msgid "Shared (don't disconnect other viewers)"
-msgstr "Delad (koppla ej från andra visare)"
+msgstr ""
 
 msgid "Show All"
-msgstr "Visa alla"
+msgstr "Tümü Göster"
 
 msgid "Show dot when no cursor"
-msgstr "Visa punkt när muspekare saknas"
+msgstr ""
 
 msgid "Standard VNC (insecure without encryption)"
-msgstr "Standard-VNC (osäkert utan kryptering)"
+msgstr "Standart VNC (şifreleme olmadan güvensiz)"
 
 msgid "TLS with X509 certificates"
-msgstr "TLS med X509-certifikat"
+msgstr "X509 sertifikalı TLS"
 
 msgid "TLS with anonymous certificates"
-msgstr "TLS med anonyma certifikat"
+msgstr "Adsız sertifikalı  TLS"
 
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr "Bandbredd %d kbit/s - byter till kvalitet %d"
+msgstr "Verim %d kbit/s - %d kalitesine değiştiriliyor"
 
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Bandbredd %d kbit/s - fullfärg är nu %s"
+msgstr "Verim %d kbit/s - tam renkli artık %s"
 
 msgid "TigerVNC Viewer"
-msgstr "VNC-visare"
+msgstr ""
 
 #, fuzzy, c-format
 msgid ""
@@ -285,69 +283,67 @@ msgid ""
 "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC-visare %d-bit v%s (%s)\n"
-"%s\n"
-"Copyright (C) 1999-2011 TigerVNC-teamet och många andra (se README.txt)\n"
-"Se http://www.tigervnc.org för mer information om TigerVNC."
 
 #, c-format
 msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr "Okänd FLTK-tangentkod %d (0x%04x)"
+msgstr "Bilinmeyen FLTK anahtar kodu %d (0x%04x)"
 
 #, c-format
 msgid "Unknown decimal separator: '%s'"
-msgstr "Okänd decimalseparator: '%s'"
+msgstr "Bilinmeyen ondalık ayırıcıs: '%s'"
 
 msgid "Username and password (insecure without encryption)"
-msgstr "Användarnamn och lösenord (osäkert utan kryptering)"
+msgstr "Kullanıcı adı ve şifre (şifreleme olmadan güvensiz)"
 
 msgid "Username:"
-msgstr "Användarnamn:"
+msgstr "Kullanıcı adı:"
 
 #, c-format
 msgid "Using %s encoding"
-msgstr "Använder kodning %s"
+msgstr "%s kodlaması kullanılıyor"
 
 #, c-format
 msgid "Using pixel format %s"
-msgstr "Använder pixelformat %s"
+msgstr "%s piksel biçimi kullanılıyor"
 
 msgid "VNC Viewer: Connection Details"
-msgstr "VNC-visare: Anslutningsdetaljer"
+msgstr "VNC Görüntüleyici: Bağlantı Bilgileri"
 
+#, fuzzy
 msgid "VNC Viewer: Connection Options"
-msgstr "VNC-visare: Anslutningsalternativ"
+msgstr "VNC Görüntüleyici: Bağlantı Bilgileri"
 
 msgid "VNC authentication"
-msgstr "VNC-autentisering"
+msgstr "VNC doğrulaması"
 
+#, fuzzy
 msgid "VNC connection info"
-msgstr "VNC anslutningsinformation"
+msgstr "Bağlantı bilgisi..."
 
 msgid "VNC server:"
-msgstr "VNC-server:"
+msgstr "VNC sunucusu:"
 
 msgid "Very low (8 colors)"
-msgstr "Mycket låg (8 färger)"
+msgstr "Çok düşük (8 renk)"
 
 msgid "View only (ignore mouse and keyboard)"
-msgstr "Endast visning (ignorera mus och tangentbord)"
+msgstr ""
 
 msgid "Yes"
-msgstr "Ja"
+msgstr "Evet"
 
 #, c-format
 msgid "connected to host %s port %d"
-msgstr "ansluten till värd %s port %d"
+msgstr "%s ana makinesin, %d bağlantı noktasına bağlı"
 
 msgid "disabled"
-msgstr "avaktiverad"
+msgstr "devre dışı"
 
 msgid "enabled"
-msgstr "aktiverad"
+msgstr "etkin"
 
 msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "nivå (1=snabb, 6=bäst [4-6 sällan användbara])"
+msgstr "seviye (1=hızlı, 6=en iyi [4-6 nadiren kullanışlıdır])"
 
 msgid "quality (0=poor, 9=best)"
-msgstr "kvalitet (0=dålig, 9=bäst)"
+msgstr "kalite (0=düşük, 9=yüksek)"

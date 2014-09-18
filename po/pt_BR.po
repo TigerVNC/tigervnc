@@ -1,80 +1,79 @@
-# Copyright (C) 2011 TigerVNC Team
+# Copyright (C) TigerVNC Team
 msgid ""
 msgstr ""
-"Project-Id-Version: TigerVNC 0.0.91\n"
+"Project-Id-Version: TigerVNC 1.3.80\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-09-18 13:55+0000\n"
-"PO-Revision-Date: 2011-08-29 16:01+0200\n"
-"Last-Translator: Peter Astrand <astrand@cendio.se>\n"
-"Language-Team: Swedish\n"
-"Language: \n"
+"POT-Creation-Date: 2014-09-18 13:20+0000\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "About"
-msgstr "Om"
+msgstr "Sobre"
 
 msgid "About TigerVNC Viewer"
-msgstr "Om VNC-visaren"
+msgstr ""
 
 msgid "About TigerVNC viewer..."
-msgstr "Om TigerVNC-visaren..."
+msgstr ""
 
 msgid "About..."
-msgstr "Om..."
+msgstr "Sobre..."
 
 msgid "Accept clipboard from server"
-msgstr "Acceptera urklipp från server"
+msgstr ""
 
 msgid "Allow JPEG compression:"
-msgstr "Tillåt JPEG-kompression:"
+msgstr "Permite compressão JPEG:"
 
 msgid "Alt"
-msgstr "Alt"
+msgstr ""
 
 msgid "Authentication"
-msgstr "Autentisering"
+msgstr "Autenticação"
 
 msgid "Authentication cancelled"
-msgstr "Autentisering avbruten"
+msgstr "Autenticação cancelada"
 
 msgid "Auto select"
-msgstr "Automatiskt val"
+msgstr "Seleção automática"
 
 msgid "Cancel"
-msgstr "Avbryt"
+msgstr "Cancelar"
 
 msgid "Close"
-msgstr "Stäng"
+msgstr "Fechar"
 
 msgid "Color level"
-msgstr "Färgnivå"
+msgstr "Profundidade de cores"
 
+#, fuzzy
 msgid "Compression"
-msgstr "Kompression"
+msgstr "Compressão SSH"
 
 msgid "Connect"
-msgstr "Anslut"
+msgstr "Conectar"
 
 msgid "Connection info..."
-msgstr "Information om anslutningen..."
+msgstr "Informação de conexão..."
 
 #, c-format
 msgid "Could not create VNC home directory: %s."
-msgstr "Kunde inte skapa VNC-hemkatalog: %s."
+msgstr "Não foi possível criar uma diretoria inicial VCN: %s."
 
 msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "Kunde inte skapa VNC-hemkatalog: kan inte avgöra hemkatalogens sökväg"
+msgstr ""
+"Nao foi possível criar o diretório home VNC: não foi possível obter o "
+"caminho do diretório home."
 
 msgid "Ctrl"
-msgstr "Ctrl"
+msgstr ""
 
 msgid "Custom compression level:"
-msgstr "Anpassad kompressionsnivå:"
+msgstr "Compressão personalizada:"
 
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Desktop name: %.80s\n"
 "Host: %.80s port: %d\n"
@@ -87,80 +86,80 @@ msgid ""
 "Protocol version: %d.%d\n"
 "Security method: %s\n"
 msgstr ""
-"Skrivbordsnamn: %.80s\n"
-"Värd: %.80s port: %d\n"
-"Storlek: %d x %d\n"
-"Pixelformat: %s\n"
-"(serverstandard %s)\n"
-"Begärd kodning: %s\n"
-"Senast använd kodning: %s\n"
-"Uppskattad hastighet på förbindelsen: %d kbit/s\n"
-"Protokollversion: %d.%d\n"
-"Säkerhetsmetod: %s\n"
+"Nome do desktop: %.80s\n"
+"Tamanho: %d x %d\n"
+"Formato do pixel: %s\n"
+"(padrão do servidor %s)\n"
+"Codificação solicitada: %s\n"
+"Última codificação usada: %s\n"
+"Velocidade estimada da linha: %d kbit/s\n"
 
 msgid "Dismiss menu"
-msgstr "Stäng meny"
+msgstr "Recusar menu"
 
+#, fuzzy
 msgid "Enable full-screen mode over all monitors"
-msgstr ""
+msgstr "Ativar o modo de tela cheia em todos os monitores"
 
 msgid "Enabling continuous updates"
-msgstr "Aktiverar kontinuerliga uppdateringar"
+msgstr "Ativando atualizações contínuas"
 
 msgid "Encryption"
-msgstr "Kryptering"
+msgstr "Criptografia"
 
 msgid "Exit viewer"
-msgstr "Avsluta visaren"
+msgstr ""
 
 msgid "Failure grabbing keyboard"
-msgstr "Misslyckades med att fånga tangentbordet"
+msgstr "Falha ao se conectar com o teclado"
 
 msgid "Failure grabbing mouse"
-msgstr "Misslyckades med att fånga musen"
+msgstr "Falha ao se conectar com o mouse"
 
 msgid "Full (all available colors)"
-msgstr "Full (alla tillgängliga färger)"
+msgstr "Completo (todas as cores)"
 
 msgid "Full screen"
-msgstr "Fullskärm"
+msgstr "Tela-cheia"
 
+#, fuzzy
 msgid "Full-screen mode"
-msgstr "Fullskärmsläge"
+msgstr "Modo tela-cheia"
 
 msgid "Hide"
-msgstr "Göm"
+msgstr "Ocultar"
 
 msgid "Hide Others"
-msgstr "Göm andra"
+msgstr "Esconder Outros"
 
 msgid "Input"
-msgstr "Inmatning"
+msgstr ""
 
 msgid "Internal FLTK error. Exiting."
-msgstr "Internt FLTK-fel. Avslutar."
+msgstr "Erro interno no FLTK. Saindo."
 
 msgid "Load..."
-msgstr "Öppna..."
+msgstr "Carregar…"
 
 msgid "Low (64 colors)"
-msgstr "Låg (64 färger)"
+msgstr "Baixo (64 cores)"
 
 msgid "Medium (256 colors)"
-msgstr "Medium (256 färger)"
+msgstr "Médio (256 cores)"
 
+#, fuzzy
 msgid "Menu key"
-msgstr "Menytangent"
+msgstr "Tecla de menu pop-up"
 
 msgid "Misc."
-msgstr "Diverse"
+msgstr "Diversos"
 
 #, c-format
 msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr "Multipla tecken angivna för tangentkod %d (0x%04x): '%s'"
+msgstr "Diversos caracteres fornecidos como código de chave %d (0x%04x): '%s'"
 
 msgid "No"
-msgstr "Ingen"
+msgstr "Não"
 
 #, c-format
 msgid "No scan code for %svirtual key 0x%02x"
@@ -179,104 +178,105 @@ msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr ""
 
 msgid "None"
-msgstr "Ingen"
+msgstr "Nenhum"
 
 msgid "OK"
-msgstr "Ok"
+msgstr "OK"
 
 msgid "Opening password file failed"
-msgstr "Öppning av lösenordsfilen misslyckades"
+msgstr "A abertura do arquivo de senha falhou"
 
 msgid "Options..."
-msgstr "Inställningar..."
+msgstr "Opções..."
 
 msgid "Pass system keys directly to server (full screen)"
-msgstr "Skicka systemtangenter direkt till servern (fullskärm)"
-
-msgid "Password:"
-msgstr "Lösenord:"
-
-msgid "Path to X509 CA certificate"
-msgstr "Sökväg till CA-certifikat för X509"
-
-msgid "Path to X509 CRL file"
-msgstr "Sökväg till CRL-fil för X509"
-
-msgid "Preferred encoding"
-msgstr "Föredragen kodning"
-
-msgid "Quit"
-msgstr "Avsluta"
-
-msgid "Refresh screen"
-msgstr "Uppdatera skärm"
-
-msgid "Resize remote session on connect"
 msgstr ""
 
+msgid "Password:"
+msgstr "Senha:"
+
+msgid "Path to X509 CA certificate"
+msgstr "Caminho para o certificado X509 CA"
+
+msgid "Path to X509 CRL file"
+msgstr "Caminho para o arquivo X509 CRL"
+
+msgid "Preferred encoding"
+msgstr "Codificação preferida"
+
+msgid "Quit"
+msgstr "Sair"
+
+msgid "Refresh screen"
+msgstr ""
+
+#, fuzzy
+msgid "Resize remote session on connect"
+msgstr "Redimensionar a sessão remota para a janela local"
+
 msgid "Resize remote session to the local window"
-msgstr "Anpassa sessionsstorlek till lokalt fönster"
+msgstr "Redimensionar a sessão remota para a janela local"
 
 msgid "Resize window to session"
-msgstr "Anpassa fönster till session"
+msgstr "Redimensionar a janela para a sessão"
 
 msgid "Save As..."
-msgstr "Spara som..."
+msgstr "Salvar como…"
 
 msgid "Screen"
-msgstr "Skärm"
+msgstr "Tela"
 
 msgid "Security"
-msgstr "Säkerhet"
+msgstr "Segurança"
 
 #, c-format
 msgid "Send %s"
-msgstr "Skicka %s"
+msgstr "Enviar %s"
 
 msgid "Send Ctrl-Alt-Del"
-msgstr "Skicka Ctrl-Alt-Del"
+msgstr "Enviar Ctrl-Alt-Del"
 
 msgid "Send clipboard to server"
-msgstr "Skicka urklipp till server"
+msgstr ""
 
 msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Skicka primär markering och klippbuffert som urklipp"
+msgstr ""
 
 msgid "Services"
-msgstr "Tjänster"
+msgstr "Serviços"
 
 #, c-format
 msgid "SetDesktopSize failed: %d"
-msgstr "SetDesktopSize misslyckades: %d"
+msgstr "Definir tamanho do desktop falhou: %d"
 
 msgid "Shared (don't disconnect other viewers)"
-msgstr "Delad (koppla ej från andra visare)"
+msgstr ""
 
 msgid "Show All"
-msgstr "Visa alla"
+msgstr "Exibir Todos"
 
 msgid "Show dot when no cursor"
-msgstr "Visa punkt när muspekare saknas"
+msgstr ""
 
 msgid "Standard VNC (insecure without encryption)"
-msgstr "Standard-VNC (osäkert utan kryptering)"
+msgstr "VNC padrão (inseguro sem criptografia)"
 
 msgid "TLS with X509 certificates"
-msgstr "TLS med X509-certifikat"
+msgstr "TLS com certificados X509"
 
 msgid "TLS with anonymous certificates"
-msgstr "TLS med anonyma certifikat"
+msgstr "TLS com certificados anônimos"
 
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr "Bandbredd %d kbit/s - byter till kvalitet %d"
+msgstr "Resultado %d kbit/s - alteração para qualidade %d"
 
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Bandbredd %d kbit/s - fullfärg är nu %s"
+msgstr "Resultado %d kbit/s - a cor total agora está em %s"
 
 msgid "TigerVNC Viewer"
-msgstr "VNC-visare"
+msgstr ""
 
 #, fuzzy, c-format
 msgid ""
@@ -285,69 +285,67 @@ msgid ""
 "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC-visare %d-bit v%s (%s)\n"
-"%s\n"
-"Copyright (C) 1999-2011 TigerVNC-teamet och många andra (se README.txt)\n"
-"Se http://www.tigervnc.org för mer information om TigerVNC."
 
 #, c-format
 msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr "Okänd FLTK-tangentkod %d (0x%04x)"
+msgstr "Código de chave FLTK desconhecido %d (0x%04x)"
 
 #, c-format
 msgid "Unknown decimal separator: '%s'"
-msgstr "Okänd decimalseparator: '%s'"
+msgstr "Separador decimal desconhecido:  '%s'"
 
 msgid "Username and password (insecure without encryption)"
-msgstr "Användarnamn och lösenord (osäkert utan kryptering)"
+msgstr "Usuário e senha (inseguro sem criptografia)"
 
 msgid "Username:"
-msgstr "Användarnamn:"
+msgstr "Nome de usuário:"
 
 #, c-format
 msgid "Using %s encoding"
-msgstr "Använder kodning %s"
+msgstr "Usando criptografia %s"
 
 #, c-format
 msgid "Using pixel format %s"
-msgstr "Använder pixelformat %s"
+msgstr "Usando formato de pixel %s"
 
 msgid "VNC Viewer: Connection Details"
-msgstr "VNC-visare: Anslutningsdetaljer"
+msgstr "Visualizador VNC: Detalhes da conexão"
 
+#, fuzzy
 msgid "VNC Viewer: Connection Options"
-msgstr "VNC-visare: Anslutningsalternativ"
+msgstr "Visualizador VNC: Detalhes da conexão"
 
 msgid "VNC authentication"
-msgstr "VNC-autentisering"
+msgstr "Autenticação VNC"
 
+#, fuzzy
 msgid "VNC connection info"
-msgstr "VNC anslutningsinformation"
+msgstr "Informação de conexão..."
 
 msgid "VNC server:"
-msgstr "VNC-server:"
+msgstr "Servidor VNC:"
 
 msgid "Very low (8 colors)"
-msgstr "Mycket låg (8 färger)"
+msgstr "Muito baixo (8 cores)"
 
 msgid "View only (ignore mouse and keyboard)"
-msgstr "Endast visning (ignorera mus och tangentbord)"
+msgstr ""
 
 msgid "Yes"
-msgstr "Ja"
+msgstr "Sim"
 
 #, c-format
 msgid "connected to host %s port %d"
-msgstr "ansluten till värd %s port %d"
+msgstr "conectado à host %s porta %d"
 
 msgid "disabled"
-msgstr "avaktiverad"
+msgstr "desativado"
 
 msgid "enabled"
-msgstr "aktiverad"
+msgstr "ativado"
 
 msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "nivå (1=snabb, 6=bäst [4-6 sällan användbara])"
+msgstr "nível (1=rápido, 6=o melhor [4-6 raramente úteis])"
 
 msgid "quality (0=poor, 9=best)"
-msgstr "kvalitet (0=dålig, 9=bäst)"
+msgstr "qualidade (0=ruim, 9=o melhor)"

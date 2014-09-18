@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-09-18 13:16+0000\n"
+"POT-Creation-Date: 2014-09-18 13:55+0000\n"
 "PO-Revision-Date: 2011-11-24 13:31+0100\n"
 "Last-Translator: Constantin Kaplinsky <const@tightvnc.com>\n"
 "Language-Team: Russian\n"
@@ -12,9 +12,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#, fuzzy
 msgid "About"
-msgstr "О программе..."
+msgstr "О программе"
 
 #, fuzzy
 msgid "About TigerVNC Viewer"
@@ -36,13 +35,11 @@ msgstr "Разрешить сжатие JPEG:"
 msgid "Alt"
 msgstr "Alt"
 
-#, fuzzy
 msgid "Authentication"
-msgstr "Аутентификация VNC"
+msgstr "Аутентификация"
 
-#, fuzzy
 msgid "Authentication cancelled"
-msgstr "Аутентификация VNC"
+msgstr "Аутентификация отменена"
 
 msgid "Auto select"
 msgstr "Автоматический выбор"
@@ -51,27 +48,29 @@ msgid "Cancel"
 msgstr "Отмена"
 
 msgid "Close"
-msgstr ""
+msgstr "Закрыть"
 
 msgid "Color level"
-msgstr ""
+msgstr "Уровень цветности"
 
 #, fuzzy
 msgid "Compression"
 msgstr "Нестандартный уровень сжатия:"
 
 msgid "Connect"
-msgstr ""
+msgstr "Подключ."
 
 msgid "Connection info..."
 msgstr "Информация о соединении..."
 
 #, c-format
 msgid "Could not create VNC home directory: %s."
-msgstr ""
+msgstr "Не удается создать домашний каталог VNC: %s."
 
 msgid "Could not create VNC home directory: can't obtain home directory path."
 msgstr ""
+"Не удается создать домашний каталог VNC: не удается получить путь к "
+"домашнему каталогу."
 
 msgid "Ctrl"
 msgstr "Ctrl"
@@ -110,19 +109,19 @@ msgid "Enable full-screen mode over all monitors"
 msgstr ""
 
 msgid "Enabling continuous updates"
-msgstr ""
+msgstr "Включение регулярного обновления"
 
 msgid "Encryption"
-msgstr ""
+msgstr "Шифрование"
 
 msgid "Exit viewer"
 msgstr "Выход"
 
 msgid "Failure grabbing keyboard"
-msgstr ""
+msgstr "Ошибка при перехвате для клавиатуры"
 
 msgid "Failure grabbing mouse"
-msgstr ""
+msgstr "Ошибка при перехвате для мыши"
 
 msgid "Full (all available colors)"
 msgstr "Многоцветный режим (все доступные цвета)"
@@ -134,20 +133,20 @@ msgid "Full-screen mode"
 msgstr "Полноэкранный режим"
 
 msgid "Hide"
-msgstr ""
+msgstr "Скрыть"
 
 msgid "Hide Others"
-msgstr ""
+msgstr "Скрыть прочее"
 
 #, fuzzy
 msgid "Input"
 msgstr "Ввод:"
 
 msgid "Internal FLTK error. Exiting."
-msgstr ""
+msgstr "Внутренняя ошибка FLTK. Выполняется выход."
 
 msgid "Load..."
-msgstr ""
+msgstr "Загрузка..."
 
 msgid "Low (64 colors)"
 msgstr "Низкое качество цвета (64 цвета)"
@@ -158,16 +157,15 @@ msgstr "Среднее качество цвета (256 цветов)"
 msgid "Menu key"
 msgstr ""
 
-#, fuzzy
 msgid "Misc."
-msgstr "Разное:"
+msgstr "Разное"
 
 #, c-format
 msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr ""
+msgstr "Несколько символов для кода ключа %d (0x%04x): '%s'"
 
 msgid "No"
-msgstr ""
+msgstr "Нет"
 
 #, c-format
 msgid "No scan code for %svirtual key 0x%02x"
@@ -186,13 +184,13 @@ msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr ""
 
 msgid "None"
-msgstr ""
+msgstr "Нет"
 
 msgid "OK"
 msgstr "OK"
 
 msgid "Opening password file failed"
-msgstr ""
+msgstr "Ошибка при открытии файла с паролем"
 
 msgid "Options..."
 msgstr "Параметры..."
@@ -204,16 +202,16 @@ msgid "Password:"
 msgstr "Пароль:"
 
 msgid "Path to X509 CA certificate"
-msgstr ""
+msgstr "Путь к сертификату X509 CA"
 
 msgid "Path to X509 CRL file"
-msgstr ""
+msgstr "Путь к файлу X509 CRL"
 
 msgid "Preferred encoding"
-msgstr ""
+msgstr "Предпочтительное кодирование"
 
 msgid "Quit"
-msgstr ""
+msgstr "Выход"
 
 msgid "Refresh screen"
 msgstr "Обновить экран"
@@ -222,19 +220,19 @@ msgid "Resize remote session on connect"
 msgstr ""
 
 msgid "Resize remote session to the local window"
-msgstr ""
+msgstr "Изменить размер удалённой сессии до местного окна"
 
 msgid "Resize window to session"
-msgstr ""
+msgstr "Изменить размер окна сессии"
 
 msgid "Save As..."
-msgstr ""
+msgstr "Сохранить как..."
 
 msgid "Screen"
-msgstr ""
+msgstr "Экран"
 
 msgid "Security"
-msgstr ""
+msgstr "Безопасность"
 
 #, c-format
 msgid "Send %s"
@@ -251,37 +249,37 @@ msgid "Send primary selection and cut buffer as clipboard"
 msgstr "Посылать \"primary selection\" и \"cut buffer\" как буфер обмена"
 
 msgid "Services"
-msgstr ""
+msgstr "Службы"
 
 #, c-format
 msgid "SetDesktopSize failed: %d"
-msgstr ""
+msgstr "Ошибка SetDesktopSize: %d"
 
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Разделяемый режим (не отключать других клиентов)"
 
 msgid "Show All"
-msgstr ""
+msgstr "Показать все"
 
 msgid "Show dot when no cursor"
 msgstr "Показывать точку при отсутствии курсора"
 
 msgid "Standard VNC (insecure without encryption)"
-msgstr ""
+msgstr "Стандартный VNC (без защиты и шифрования)"
 
 msgid "TLS with X509 certificates"
-msgstr ""
+msgstr "TLS с сертификатами X509"
 
 msgid "TLS with anonymous certificates"
-msgstr ""
+msgstr "TLS с анонимными сертификатами"
 
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr ""
+msgstr "Пропускная способность %d Кбит/с - изменяется на качество %d"
 
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
-msgstr ""
+msgstr "Пропускная способность %d Кбит/с - теперь полноцветный режим %s"
 
 #, fuzzy
 msgid "TigerVNC Viewer"
@@ -301,25 +299,25 @@ msgstr ""
 
 #, c-format
 msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr ""
+msgstr "Неизвестный код ключа FLTK %d (0x%04x)"
 
 #, c-format
 msgid "Unknown decimal separator: '%s'"
-msgstr ""
+msgstr "Неизвестный десятичный разделитель: '%s'"
 
 msgid "Username and password (insecure without encryption)"
-msgstr ""
+msgstr "Имя пользователя и пароль (без защиты и шифрования)"
 
 msgid "Username:"
 msgstr "Имя пользователя:"
 
 #, c-format
 msgid "Using %s encoding"
-msgstr ""
+msgstr "Использование кодирования %s"
 
 #, c-format
 msgid "Using pixel format %s"
-msgstr ""
+msgstr "Использование формата точек %s"
 
 msgid "VNC Viewer: Connection Details"
 msgstr "VNC Viewer: детали соединения"
@@ -344,34 +342,21 @@ msgid "View only (ignore mouse and keyboard)"
 msgstr "Только просмотр (игнорировать мышь и клавиатуру)"
 
 msgid "Yes"
-msgstr ""
+msgstr "Да"
 
 #, c-format
 msgid "connected to host %s port %d"
-msgstr ""
+msgstr "подключен к хосту %s, порт %d"
 
 msgid "disabled"
-msgstr ""
+msgstr "отключено"
 
 msgid "enabled"
-msgstr ""
+msgstr "включено"
 
-#, fuzzy
 msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "уровень (1=быстро, 9=макс.сжатие)"
+msgstr ""
+"уровень (1=высокая скорость, 6=высокое качество [4-6 используются редко])"
 
-#, fuzzy
 msgid "quality (0=poor, 9=best)"
-msgstr "качество (1=низкое, 9=наилучшее)"
-
-#~ msgid "Encoding and Color Level:"
-#~ msgstr "Кодирование и цветовой режим:"
-
-#~ msgid "New connection..."
-#~ msgstr "Новое соединение..."
-
-#~ msgid "Render cursor locally"
-#~ msgstr "Рисовать курсор локально"
-
-#~ msgid "VNC Menu"
-#~ msgstr "Меню VNC"
+msgstr "качество (0=наихудшее, 9=наилучшее)"

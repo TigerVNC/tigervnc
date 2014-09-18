@@ -1,7 +1,7 @@
 # Gettext support - mostly borrowed from the Licq project
 
 set(po_FILES
-    de fr pl ru sk sv
+    de es fr it nl pl pt_BR ru sk sv tr
 )
 
 if (NOT GETTEXT_MSGMERGE_EXECUTABLE AND NOT GETTEXT_MSGFMT_EXECUTABLE)
