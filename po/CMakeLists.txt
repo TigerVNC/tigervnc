@@ -24,7 +24,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       --keyword=_
       --keyword=N_
       "--copyright-holder=TigerVNC Team and many others \(see README.txt\)"
-      --msgid-bugs-address=tigervnc-devel@lists.sourceforge.net
+      --msgid-bugs-address=tigervnc-devel@googlegroups.com
       --sort-output
       --no-location
       ${po_source}
