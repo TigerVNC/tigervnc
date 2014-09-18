@@ -2,8 +2,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
-"Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2011-08-29 15:49+0200\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2014-09-18 13:16+0000\n"
 "PO-Revision-Date: 2011-08-29 16:01+0200\n"
 "Last-Translator: Peter Astrand <astrand@cendio.se>\n"
 "Language-Team: Swedish\n"
@@ -55,6 +55,9 @@ msgstr "Färgnivå"
 msgid "Compression"
 msgstr "Kompression"
 
+msgid "Connect"
+msgstr ""
+
 msgid "Connection info..."
 msgstr "Information om anslutningen..."
 
@@ -98,16 +101,23 @@ msgstr ""
 msgid "Dismiss menu"
 msgstr "Stäng meny"
 
+msgid "Enable full-screen mode over all monitors"
+msgstr ""
+
+msgid "Enabling continuous updates"
+msgstr ""
+
 msgid "Encryption"
 msgstr "Kryptering"
 
 msgid "Exit viewer"
 msgstr "Avsluta visaren"
 
-msgid "Extended encryption and authentication methods (VeNCrypt)"
-msgstr "Utökade krypterings- och autentiseringsmetoder (VeNCrypt)"
-
 msgid "Failure grabbing keyboard"
+msgstr "Misslyckades med att fånga tangentbordet"
+
+#, fuzzy
+msgid "Failure grabbing mouse"
 msgstr "Misslyckades med att fånga tangentbordet"
 
 msgid "Full (all available colors)"
@@ -131,6 +141,9 @@ msgstr "Inmatning"
 msgid "Internal FLTK error. Exiting."
 msgstr "Internt FLTK-fel. Avslutar."
 
+msgid "Load..."
+msgstr ""
+
 msgid "Low (64 colors)"
 msgstr "Låg (64 färger)"
 
@@ -149,6 +162,22 @@ msgstr "Multipla tecken angivna för tangentkod %d (0x%04x): '%s'"
 
 msgid "No"
 msgstr "Ingen"
+
+#, c-format
+msgid "No scan code for %svirtual key 0x%02x"
+msgstr ""
+
+#, c-format
+msgid "No symbol for %svirtual key 0x%02x"
+msgstr ""
+
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr ""
+
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr ""
 
 msgid "None"
 msgstr "Ingen"
@@ -182,6 +211,21 @@ msgstr "Avsluta"
 
 msgid "Refresh screen"
 msgstr "Uppdatera skärm"
+
+msgid "Resize remote session on connect"
+msgstr ""
+
+msgid "Resize remote session to the local window"
+msgstr ""
+
+msgid "Resize window to session"
+msgstr ""
+
+msgid "Save As..."
+msgstr ""
+
+msgid "Screen"
+msgstr ""
 
 msgid "Security"
 msgstr "Säkerhet"
@@ -235,11 +279,11 @@ msgstr "Bandbredd %d kbit/s - fullfärg är nu %s"
 msgid "TigerVNC Viewer"
 msgstr "VNC-visare"
 
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s (%s)\n"
 "%s\n"
-"Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
+"Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "TigerVNC-visare %d-bit v%s (%s)\n"
@@ -248,16 +292,12 @@ msgstr ""
 "Se http://www.tigervnc.org för mer information om TigerVNC."
 
 #, c-format
-msgid "TigerVNC: %.240s"
-msgstr "TigerVNC: %.240s"
-
-#, c-format
-msgid "Unexpected release of FLTK key code %d (0x%04x)"
-msgstr "Oväntat uppsläpp av FLTK-tangentkod %d (0x%04x)"
-
-#, c-format
 msgid "Unknown FLTK key code %d (0x%04x)"
 msgstr "Okänd FLTK-tangentkod %d (0x%04x)"
+
+#, c-format
+msgid "Unknown decimal separator: '%s'"
+msgstr ""
 
 msgid "Username and password (insecure without encryption)"
 msgstr "Användarnamn och lösenord (osäkert utan kryptering)"
@@ -312,3 +352,12 @@ msgstr "nivå (1=snabb, 6=bäst [4-6 sällan användbara])"
 
 msgid "quality (0=poor, 9=best)"
 msgstr "kvalitet (0=dålig, 9=bäst)"
+
+#~ msgid "Extended encryption and authentication methods (VeNCrypt)"
+#~ msgstr "Utökade krypterings- och autentiseringsmetoder (VeNCrypt)"
+
+#~ msgid "TigerVNC: %.240s"
+#~ msgstr "TigerVNC: %.240s"
+
+#~ msgid "Unexpected release of FLTK key code %d (0x%04x)"
+#~ msgstr "Oväntat uppsläpp av FLTK-tangentkod %d (0x%04x)"

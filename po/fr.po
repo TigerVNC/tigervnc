@@ -2,8 +2,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2011-08-29 15:49+0200\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2014-09-18 13:16+0000\n"
 "PO-Revision-Date: 2010-03-13 09:47+0100\n"
 "Last-Translator: Alain Portal <alain.portal@free.fr>\n"
 "Language-Team: French <kde-francophone@kde.org>\n"
@@ -62,6 +62,9 @@ msgstr ""
 msgid "Compression"
 msgstr "Niveau de compression personnalisé :"
 
+msgid "Connect"
+msgstr ""
+
 msgid "Connection info..."
 msgstr "Informations de la connexion..."
 
@@ -105,16 +108,22 @@ msgstr ""
 msgid "Dismiss menu"
 msgstr "Rejeter le menu"
 
+msgid "Enable full-screen mode over all monitors"
+msgstr ""
+
+msgid "Enabling continuous updates"
+msgstr ""
+
 msgid "Encryption"
 msgstr ""
 
 msgid "Exit viewer"
 msgstr "Quitte le visionneur"
 
-msgid "Extended encryption and authentication methods (VeNCrypt)"
+msgid "Failure grabbing keyboard"
 msgstr ""
 
-msgid "Failure grabbing keyboard"
+msgid "Failure grabbing mouse"
 msgstr ""
 
 msgid "Full (all available colors)"
@@ -139,6 +148,9 @@ msgstr "Entrée :"
 msgid "Internal FLTK error. Exiting."
 msgstr ""
 
+msgid "Load..."
+msgstr ""
+
 msgid "Low (64 colors)"
 msgstr "Faible (64 couleurs)"
 
@@ -157,6 +169,22 @@ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
 msgstr ""
 
 msgid "No"
+msgstr ""
+
+#, c-format
+msgid "No scan code for %svirtual key 0x%02x"
+msgstr ""
+
+#, c-format
+msgid "No symbol for %svirtual key 0x%02x"
+msgstr ""
+
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr ""
+
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr ""
 
 msgid "None"
@@ -191,6 +219,21 @@ msgstr ""
 
 msgid "Refresh screen"
 msgstr "Rafraîchir l'écran"
+
+msgid "Resize remote session on connect"
+msgstr ""
+
+msgid "Resize remote session to the local window"
+msgstr ""
+
+msgid "Resize window to session"
+msgstr ""
+
+msgid "Save As..."
+msgstr ""
+
+msgid "Screen"
+msgstr ""
 
 msgid "Security"
 msgstr ""
@@ -250,7 +293,7 @@ msgstr "À propos du visionneur VNC"
 msgid ""
 "TigerVNC Viewer %d-bit v%s (%s)\n"
 "%s\n"
-"Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
+"Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "Visionneur TigerVNC %d-bit v%s (%s)\n"
@@ -260,15 +303,11 @@ msgstr ""
 "Voir http://www.tigervnc.org pour plus d'informations sur TigerVNC."
 
 #, c-format
-msgid "TigerVNC: %.240s"
-msgstr "TigerVNC : %.240s"
-
-#, c-format
-msgid "Unexpected release of FLTK key code %d (0x%04x)"
+msgid "Unknown FLTK key code %d (0x%04x)"
 msgstr ""
 
 #, c-format
-msgid "Unknown FLTK key code %d (0x%04x)"
+msgid "Unknown decimal separator: '%s'"
 msgstr ""
 
 msgid "Username and password (insecure without encryption)"
@@ -336,6 +375,9 @@ msgstr "qualité (1=pauvre, 9=la meilleure)"
 
 #~ msgid "Render cursor locally"
 #~ msgstr "Restituer le curseur localement"
+
+#~ msgid "TigerVNC: %.240s"
+#~ msgstr "TigerVNC : %.240s"
 
 #~ msgid "VNC Menu"
 #~ msgstr "Menu VNC"

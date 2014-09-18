@@ -2,8 +2,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
-"Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2011-08-29 15:49+0200\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2014-09-18 13:16+0000\n"
 "PO-Revision-Date: 2008-11-30 21:34+0100\n"
 "Last-Translator: Jozef Riha <jose1711@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
@@ -59,6 +59,9 @@ msgstr ""
 msgid "Compression"
 msgstr "Vlastný stupeň kompresie:"
 
+msgid "Connect"
+msgstr ""
+
 msgid "Connection info..."
 msgstr "Informácie o pripojení..."
 
@@ -102,16 +105,22 @@ msgstr ""
 msgid "Dismiss menu"
 msgstr "Zrušiť menu"
 
+msgid "Enable full-screen mode over all monitors"
+msgstr ""
+
+msgid "Enabling continuous updates"
+msgstr ""
+
 msgid "Encryption"
 msgstr ""
 
 msgid "Exit viewer"
 msgstr "Ukončiť prehliadač"
 
-msgid "Extended encryption and authentication methods (VeNCrypt)"
+msgid "Failure grabbing keyboard"
 msgstr ""
 
-msgid "Failure grabbing keyboard"
+msgid "Failure grabbing mouse"
 msgstr ""
 
 msgid "Full (all available colors)"
@@ -136,6 +145,9 @@ msgstr "Vstupy:"
 msgid "Internal FLTK error. Exiting."
 msgstr ""
 
+msgid "Load..."
+msgstr ""
+
 msgid "Low (64 colors)"
 msgstr "Nízka (64 farieb)"
 
@@ -154,6 +166,22 @@ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
 msgstr ""
 
 msgid "No"
+msgstr ""
+
+#, c-format
+msgid "No scan code for %svirtual key 0x%02x"
+msgstr ""
+
+#, c-format
+msgid "No symbol for %svirtual key 0x%02x"
+msgstr ""
+
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr ""
+
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr ""
 
 msgid "None"
@@ -188,6 +216,21 @@ msgstr ""
 
 msgid "Refresh screen"
 msgstr "Obnoviť obrazovku"
+
+msgid "Resize remote session on connect"
+msgstr ""
+
+msgid "Resize remote session to the local window"
+msgstr ""
+
+msgid "Resize window to session"
+msgstr ""
+
+msgid "Save As..."
+msgstr ""
+
+msgid "Screen"
+msgstr ""
 
 msgid "Security"
 msgstr ""
@@ -247,7 +290,7 @@ msgstr "O aplikácií VNC Viewer"
 msgid ""
 "TigerVNC Viewer %d-bit v%s (%s)\n"
 "%s\n"
-"Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
+"Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 "TigerVNC Viewer %d-bit verzie %s (%s)\n"
@@ -256,15 +299,11 @@ msgstr ""
 "Pre informácie o TigerVNC navštívte http://www.tigervnc.org."
 
 #, c-format
-msgid "TigerVNC: %.240s"
-msgstr ""
-
-#, c-format
-msgid "Unexpected release of FLTK key code %d (0x%04x)"
-msgstr ""
-
-#, c-format
 msgid "Unknown FLTK key code %d (0x%04x)"
+msgstr ""
+
+#, c-format
+msgid "Unknown decimal separator: '%s'"
 msgstr ""
 
 msgid "Username and password (insecure without encryption)"
