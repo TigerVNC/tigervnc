@@ -9,14 +9,6 @@ diff -up xserver/configure.ac.vnc xserver/configure.ac
  AC_PROG_LN_S
  AC_LIBTOOL_WIN32_DLL
  AC_DISABLE_STATIC
-@@ -1028,7 +1029,6 @@ fi
- if test "x$WAYLAND" = xyes; then
-         PKG_CHECK_MODULES(XWAYLAND, $WAYLAND_MODULES)
-       AC_DEFINE(XORG_WAYLAND, 1, [Support wayland mode])
--      WAYLAND_SCANNER_RULES(['$(top_srcdir)/hw/xfree86/xwayland'])
- fi
- AM_CONDITIONAL(WAYLAND, [test "x$WAYLAND" = xyes])
- 
 @@ -1573,6 +1573,10 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
