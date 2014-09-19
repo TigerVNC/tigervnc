@@ -8,6 +8,5 @@
 504_tigervnc-cookie.patch
 510_tigervnc11-ldnow.patch
 511_tigervnc11-gethomedir.patch
-513_tigervnc11-rh692048.patch
 516_tigervnc-xorg-manpages.patch
 517_tigervnc-format-security.patch
