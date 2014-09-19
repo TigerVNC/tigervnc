@@ -45,7 +45,6 @@ Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 Patch4: tigervnc-cookie.patch
 Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
-Patch13: tigervnc11-rh692048.patch
 Patch16: tigervnc-xorg-manpages.patch
 
 %description
@@ -140,7 +139,6 @@ This package contains icons for TigerVNC viewer
 %patch4 -p1 -b .cookie
 %patch10 -p1 -b .ldnow
 %patch11 -p1 -b .gethomedir
-%patch13 -p1 -b .rh692048
 
 tar xzf %SOURCE11
 pushd fltk-*

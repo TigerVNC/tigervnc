@@ -147,8 +147,6 @@ Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 Patch4: tigervnc-cookie.patch
 Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=692048
-Patch13: tigervnc11-rh692048.patch
 
 Patch101: tigervnc-ac-compatibility.patch
 Patch102: tigervnc-xorg-1.7.5-remove-copyisolatin1lowered.patch
@@ -466,7 +464,6 @@ rm -rf %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 %patch4 -p1 -b .cookie
 %patch10 -p1 -b .ldnow
 %patch11 -p1 -b .gethomedir
-%patch13 -p1 -b .rh692048
 
 tar xzf %SOURCE11
 pushd fltk-*
