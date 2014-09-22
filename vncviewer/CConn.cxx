@@ -160,31 +160,65 @@ const char *CConn::connectionInfo()
 {
   static char infoText[1024] = "";
 
+  char scratch[100];
   char pfStr[100];
-  char spfStr[100];
+
+  // Crude way of avoiding constant overflow checks
+  assert((sizeof(scratch) + 1) * 10 < sizeof(infoText));
+
+  infoText[0] = '\0';
+
+  snprintf(scratch, sizeof(scratch),
+           _("Desktop name: %.80s"), cp.name());
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
+
+  snprintf(scratch, sizeof(scratch),
+           _("Host: %.80s port: %d"), serverHost, serverPort);
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
+
+  snprintf(scratch, sizeof(scratch),
+           _("Size: %d x %d"), cp.width, cp.height);
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
 
   cp.pf().print(pfStr, 100);
-  serverPF.print(spfStr, 100);
+  snprintf(scratch, sizeof(scratch),
+           _("Pixel format: %s"), pfStr);
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
 
-  int secType = csecurity->getType();
+  serverPF.print(pfStr, 100);
+  snprintf(scratch, sizeof(scratch),
+           _("(server default %s)"), pfStr);
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
 
-  snprintf(infoText, sizeof(infoText),
-           _("Desktop name: %.80s\n"
-             "Host: %.80s port: %d\n"
-             "Size: %d x %d\n"
-             "Pixel format: %s\n"
-             "(server default %s)\n"
-             "Requested encoding: %s\n"
-             "Last used encoding: %s\n"
-             "Line speed estimate: %d kbit/s\n"
-             "Protocol version: %d.%d\n"
-             "Security method: %s\n"),
-           cp.name(), serverHost, serverPort, cp.width, cp.height,
-           pfStr, spfStr, encodingName(currentEncoding),
-           encodingName(lastServerEncoding),
-           sock->inStream().kbitsPerSecond(),
-           cp.majorVersion, cp.minorVersion,
-           secTypeName(secType));
+  snprintf(scratch, sizeof(scratch),
+           _("Requested encoding: %s"), encodingName(currentEncoding));
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
+
+  snprintf(scratch, sizeof(scratch),
+           _("Last used encoding: %s"), encodingName(lastServerEncoding));
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
+
+  snprintf(scratch, sizeof(scratch),
+           _("Line speed estimate: %d kbit/s"), sock->inStream().kbitsPerSecond());
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
+
+  snprintf(scratch, sizeof(scratch),
+           _("Protocol version: %d.%d"), cp.majorVersion, cp.minorVersion);
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
+
+  snprintf(scratch, sizeof(scratch),
+           _("Security method: %s"), secTypeName(csecurity->getType()));
+  strcat(infoText, scratch);
+  strcat(infoText, "\n");
 
   return infoText;
 }
