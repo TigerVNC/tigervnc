@@ -103,7 +103,7 @@ StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
 StringParameter geometry("geometry",
-			 "Specify size and position of viewer window", "");
+                         "Specify size and position of viewer window", "");
 
 BoolParameter listenMode("listen", "Listen for connections from VNC servers", false);
 
@@ -197,33 +197,34 @@ bool encodeValue(const char* val, char* dest, size_t destSize) {
       strncpy(dest+pos, "\\\\", 2);
       pos++;
       if (pos >= destSize) {
-	vlog.error(_("Encoding backslash: The size of the buffer dest "
-	             "is to small, it needs to be more than %d bytes bigger."),
-	             (destSize - 1 - i));
-	return false;
+        vlog.error(_("Encoding backslash: The size of the buffer dest "
+                     "is to small, it needs to be more than %d bytes bigger."),
+                     (destSize - 1 - i));
+        return false;
       }
 
     } else {
 
-      for (int j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++)
+      for (int j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
 
-	if (val[i] == replaceMap[j].first) {
-	  dest[pos] = '\\';
-	  pos++;
-	  if (pos >= destSize) {
-	    vlog.error(_("Encoding escape sequence: The size of the buffer "
-	                 "dest is to small, it needs to be more than %d bytes "
-	                 "bigger."), (destSize - 1 - i));
-	    return false;
-	  }
+        if (val[i] == replaceMap[j].first) {
+          dest[pos] = '\\';
+          pos++;
+          if (pos >= destSize) {
+            vlog.error(_("Encoding escape sequence: The size of the buffer "
+                         "dest is to small, it needs to be more than %d bytes "
+                         "bigger."), (destSize - 1 - i));
+            return false;
+          }
 
-	  dest[pos] = replaceMap[j].second;
-	  normalCharacter = false;
-	  break;
-	}
+          dest[pos] = replaceMap[j].second;
+          normalCharacter = false;
+          break;
+        }
 
-      if (normalCharacter) {
-	dest[pos] = val[i];
+        if (normalCharacter) {
+          dest[pos] = val[i];
+        }
       }
     }
     normalCharacter = true; // Reset for next loop
@@ -254,22 +255,22 @@ bool decodeValue(const char* val, char* dest, size_t destSize) {
     if (val[i] == '\\') {
       
       for (int j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
-	if (val[i+1] == replaceMap[j].second) {
-	  dest[pos] = replaceMap[j].first;
-	  escapedCharacter = true;
-	  pos--;
-	  break;
-	}
+        if (val[i+1] == replaceMap[j].second) {
+          dest[pos] = replaceMap[j].first;
+          escapedCharacter = true;
+          pos--;
+          break;
+        }
       }
 
       if (!escapedCharacter) {
-	if (val[i+1] == '\\') {
-	  dest[pos] = val[i];
-	  i++;
-	} else {
-	  vlog.error(_("Unknown escape sequence at character %d"), i);
-	  return false;
-	}
+        if (val[i+1] == '\\') {
+          dest[pos] = val[i];
+          i++;
+        } else {
+          vlog.error(_("Unknown escape sequence at character %d"), i);
+          return false;
+        }
       }
 
     } else {
@@ -425,8 +426,10 @@ void saveToReg(const char* servername) {
   
   HKEY hKey;
     
-  LONG res = RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\TigerVNC\\vncviewer", 0, NULL, 
-			     REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
+  LONG res = RegCreateKeyExW(HKEY_CURRENT_USER,
+                             L"Software\\TigerVNC\\vncviewer", 0, NULL,
+                             REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,
+                             &hKey, NULL);
   if (res != ERROR_SUCCESS) {
     vlog.error(_("Error(%d) creating key: Software\\TigerVNC\\vncviewer"), res);
     return;
@@ -458,8 +461,9 @@ char* loadFromReg() {
 
   HKEY hKey;
 
-  LONG res = RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\TigerVNC\\vncviewer"
-			   , 0, KEY_READ, &hKey);
+  LONG res = RegOpenKeyExW(HKEY_CURRENT_USER,
+                           L"Software\\TigerVNC\\vncviewer", 0,
+                           KEY_READ, &hKey);
   if (res != ERROR_SUCCESS) {
     if (res == ERROR_FILE_NOT_FOUND) {
       // The key does not exist, defaults will be used.
@@ -482,13 +486,13 @@ char* loadFromReg() {
   for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (getKeyString(parameterArray[i]->getName(), stringValue, buffersize, &hKey))
-	parameterArray[i]->setParam(stringValue);
+        parameterArray[i]->setParam(stringValue);
     } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
       if (getKeyInt(parameterArray[i]->getName(), &intValue, &hKey))
-	((IntParameter*)parameterArray[i])->setParam(intValue);
+        ((IntParameter*)parameterArray[i])->setParam(intValue);
     } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
       if (getKeyInt(parameterArray[i]->getName(), &intValue, &hKey))
-	((BoolParameter*)parameterArray[i])->setParam(intValue);
+        ((BoolParameter*)parameterArray[i])->setParam(intValue);
     } else {      
       vlog.info(_("The parameterArray contains a object of a invalid type at line %d."), i);
     }
@@ -548,7 +552,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
-	fprintf(f, "%s=%s\n", ((StringParameter*)parameterArray[i])->getName(), encodingBuffer);
+        fprintf(f, "%s=%s\n", ((StringParameter*)parameterArray[i])->getName(), encodingBuffer);
     } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
       fprintf(f, "%s=%d\n", ((IntParameter*)parameterArray[i])->getName(), (int)*(IntParameter*)parameterArray[i]);
     } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
@@ -608,10 +612,10 @@ char* loadViewerParameters(const char *filename) {
       if (line[sizeof(line) -1] != '\0') {
         vlog.error(_("Could not read the line(%d) in the configuration file,"
                      "the buffersize is to small."), lineNr);
-	return NULL;
+        return NULL;
       }
       if (feof(f))
-	break;
+        break;
 
       snprintf(readError, sizeof(readError),
                _("Failed to read line %d in file %s"), lineNr, filepath);
@@ -621,13 +625,13 @@ char* loadViewerParameters(const char *filename) {
     // Make sure that the first line of the file has the file identifier string
     if(lineNr == 1) {
       if(strncmp(line, IDENTIFIER_STRING, strlen(IDENTIFIER_STRING)) == 0) {
-	continue;
+        continue;
       } else {
         snprintf(readError, sizeof(readError),
                  _("Line 1 in file %s\nmust contain the TigerVNC "
                    "configuration file identifier string:\n"
                    "\"%s\""), filepath, IDENTIFIER_STRING);
-	throw Exception(readError);
+        throw Exception(readError);
       }
     }
     
@@ -645,7 +649,7 @@ char* loadViewerParameters(const char *filename) {
     char *value = strchr(line, '=');
     if (value == NULL) {
       vlog.info(_("Bad Name/Value pair on line: %d in file: %s"),
-		lineNr, filepath);
+                lineNr, filepath);
       continue;
     }
     *value = '\0'; // line only contains the parameter name below.
@@ -659,7 +663,7 @@ char* loadViewerParameters(const char *filename) {
       if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
         vlog.info(_("The value of the parameter %s on line %d in file %s "
                     "is invalid."), line, lineNr, filepath);
-	continue;
+        continue;
       }
       snprintf(servername, sizeof(decodingBuffer), "%s", decodingBuffer);
       invalidParameterName = false;
@@ -669,40 +673,40 @@ char* loadViewerParameters(const char *filename) {
       // Find and set the correct parameter
       for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
 
-	if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
-	  if (strcasecmp(line, ((StringParameter*)parameterArray[i])->getName()) == 0) {
+        if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
+          if (strcasecmp(line, ((StringParameter*)parameterArray[i])->getName()) == 0) {
 
-	    if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
-        vlog.info(_("The value of the parameter %s on line %d in file %s "
-                    "is invalid."), line, lineNr, filepath);
-	      continue;
-	    }
-	    ((StringParameter*)parameterArray[i])->setParam(decodingBuffer);
-	    invalidParameterName = false;
-	  }
+            if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer))) {
+              vlog.info(_("The value of the parameter %s on line %d in file %s "
+                          "is invalid."), line, lineNr, filepath);
+              continue;
+            }
+            ((StringParameter*)parameterArray[i])->setParam(decodingBuffer);
+            invalidParameterName = false;
+          }
 
-	} else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
-	  if (strcasecmp(line, ((IntParameter*)parameterArray[i])->getName()) == 0) {
-	    ((IntParameter*)parameterArray[i])->setParam(atoi(value));
-	    invalidParameterName = false;
-	  }
-	
-	} else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
-	  if (strcasecmp(line, ((BoolParameter*)parameterArray[i])->getName()) == 0) {
-	    ((BoolParameter*)parameterArray[i])->setParam(atoi(value));
-	    invalidParameterName = false;
-	  }
+        } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
+          if (strcasecmp(line, ((IntParameter*)parameterArray[i])->getName()) == 0) {
+            ((IntParameter*)parameterArray[i])->setParam(atoi(value));
+            invalidParameterName = false;
+          }
 
-	} else {      
-    vlog.info(_("The parameterArray contains a object of a invalid type "
-                "at line %d."), lineNr);
-	}
+        } else if (dynamic_cast<BoolParameter*>(parameterArray[i]) != NULL) {
+          if (strcasecmp(line, ((BoolParameter*)parameterArray[i])->getName()) == 0) {
+            ((BoolParameter*)parameterArray[i])->setParam(atoi(value));
+            invalidParameterName = false;
+          }
+
+        } else {
+          vlog.info(_("The parameterArray contains a object of a invalid type "
+                      "at line %d."), lineNr);
+        }
       }
     }
 
     if (invalidParameterName)
       vlog.info(_("Invalid parameter name on line: %d in file: %s"),
-		lineNr, filepath);
+                lineNr, filepath);
   }
   fclose(f); f=0;
   
