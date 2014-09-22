@@ -77,10 +77,12 @@ using namespace network;
 using namespace rfb;
 using namespace std;
 
-static const char aboutText[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
-                                   "%s\n"
-                                   "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
-                                   "See http://www.tigervnc.org for information on TigerVNC.");
+static const char _aboutText[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
+                                    "%s\n"
+                                    "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
+                                    "See http://www.tigervnc.org for information on TigerVNC.");
+static char aboutText[1024];
+
 extern const char* buildTime;
 
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
@@ -101,8 +103,7 @@ void exit_vncviewer(const char *error)
 void about_vncviewer()
 {
   fl_message_title(_("About TigerVNC Viewer"));
-  fl_message(gettext(aboutText), (int)sizeof(size_t)*8,
-             PACKAGE_VERSION, __BUILD__, buildTime);
+  fl_message("%s", aboutText);
 }
 
 static void about_callback(Fl_Widget *widget, void *data)
@@ -361,13 +362,14 @@ int main(int argc, char** argv)
   bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
   textdomain(PACKAGE_NAME);
 
+  // Generate the about string now that we get the proper translation
+  snprintf(aboutText, sizeof(aboutText), _aboutText,
+           (int)sizeof(size_t)*8, PACKAGE_VERSION, __BUILD__, buildTime);
+
   rfb::SecurityClient::setDefaults();
 
   // Write about text to console, still using normal locale codeset
-  fprintf(stderr,"\n");
-  fprintf(stderr, gettext(aboutText), (int)sizeof(size_t)*8,
-          PACKAGE_VERSION, __BUILD__, buildTime);
-  fprintf(stderr,"\n");
+  fprintf(stderr,"\n%s\n", aboutText);
 
   // Set gettext codeset to what our GUI toolkit uses. Since we are
   // passing strings from strerror/gai_strerror to the GUI, these must
