@@ -26,7 +26,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       "--copyright-holder=TigerVNC Team and many others \(see README.txt\)"
       --msgid-bugs-address=tigervnc-devel@googlegroups.com
       --sort-output
-      --no-location
+      --add-location
       ${po_source}
     COMMENT "Updating tigervnc.pot"
     VERBATIM
