@@ -19,8 +19,8 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
 
   add_custom_target(translations_update
     ${GETTEXT_XGETTEXT_EXECUTABLE}
-      --directory="${PROJECT_SOURCE_DIR}"
-      --output="${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot"
+      "--directory=${PROJECT_SOURCE_DIR}"
+      "--output=${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot"
       --default-domain=tigervnc
       --keyword=_
       --keyword=N_
