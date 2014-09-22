@@ -79,7 +79,7 @@ using namespace std;
 
 static const char _aboutText[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
                                     "%s\n"
-                                    "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
+                                    "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
                                     "See http://www.tigervnc.org for information on TigerVNC.");
 static char aboutText[1024];
 
@@ -364,7 +364,8 @@ int main(int argc, char** argv)
 
   // Generate the about string now that we get the proper translation
   snprintf(aboutText, sizeof(aboutText), _aboutText,
-           (int)sizeof(size_t)*8, PACKAGE_VERSION, __BUILD__, buildTime);
+           (int)sizeof(size_t)*8, PACKAGE_VERSION, __BUILD__,
+           buildTime, 2014);
 
   rfb::SecurityClient::setDefaults();
 
