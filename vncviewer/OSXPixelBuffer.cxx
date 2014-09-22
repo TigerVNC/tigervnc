@@ -30,6 +30,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 
+#include "i18n.h"
 #include "OSXPixelBuffer.h"
 
 using namespace rfb;
@@ -46,7 +47,7 @@ OSXPixelBuffer::OSXPixelBuffer(int width, int height) :
 
   data = new rdr::U8[width * height * format.bpp/8];
   if (data == NULL)
-    throw rfb::Exception("Error: Not enough memory for framebuffer");
+    throw rfb::Exception(_("Error: Not enough memory for framebuffer"));
 
   lut = CGColorSpaceCreateDeviceRGB();
   assert(lut);

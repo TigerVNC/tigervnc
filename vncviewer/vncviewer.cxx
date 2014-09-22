@@ -115,7 +115,7 @@ static void CleanupSignalHandler(int sig)
 {
   // CleanupSignalHandler allows C++ object cleanup to happen because it calls
   // exit() rather than the default which is to abort.
-  vlog.info("CleanupSignalHandler called");
+  vlog.info(_("CleanupSignalHandler called"));
   exit(1);
 }
 
@@ -461,8 +461,8 @@ int main(int argc, char** argv)
 #ifndef WIN32
   /* Specifying -via and -listen together is nonsense */
   if (listenMode && strlen(via.getValueStr()) > 0) {
-    vlog.error("Parameters -listen and -via are incompatible");
-    fl_alert("Parameters -listen and -via are incompatible");
+    vlog.error(_("Parameters -listen and -via are incompatible"));
+    fl_alert(_("Parameters -listen and -via are incompatible"));
     exit_vncviewer();
     return 1;
   }
@@ -476,7 +476,7 @@ int main(int argc, char** argv)
 
       TcpListener listener(NULL, port);
 
-      vlog.info("Listening on port %d\n", port);
+      vlog.info(_("Listening on port %d\n"), port);
       sock = listener.accept();   
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());

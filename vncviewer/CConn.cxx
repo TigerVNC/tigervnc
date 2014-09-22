@@ -381,7 +381,7 @@ void CConn::framebufferUpdateEnd()
 
 void CConn::setColourMapEntries(int firstColour, int nColours, rdr::U16* rgbs)
 {
-  vlog.error("Invalid SetColourMapEntries from server!");
+  vlog.error(_("Invalid SetColourMapEntries from server!"));
 }
 
 void CConn::bell()
@@ -426,15 +426,15 @@ void CConn::dataRect(const Rect& r, int encoding)
     lastServerEncoding = encoding;
 
   if (!Decoder::supported(encoding)) {
-    fprintf(stderr, "Unknown rect encoding %d\n", encoding);
-    throw Exception("Unknown rect encoding");
+    vlog.error(_("Unknown rect encoding %d"), encoding);
+    throw Exception(_("Unknown rect encoding"));
   }
 
   if (!decoders[encoding]) {
     decoders[encoding] = Decoder::createDecoder(encoding, this);
     if (!decoders[encoding]) {
-      fprintf(stderr, "Unknown rect encoding %d\n", encoding);
-      throw Exception("Unknown rect encoding");
+      vlog.error(_("Unknown rect encoding %d"), encoding);
+      throw Exception(_("Unknown rect encoding"));
     }
   }
   decoders[encoding]->readRect(r, desktop->getFramebuffer());

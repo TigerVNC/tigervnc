@@ -29,6 +29,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
 
+#include "i18n.h"
 #include "X11PixelBuffer.h"
 
 using namespace rfb;
@@ -56,7 +57,7 @@ static PixelFormat display_pf()
     if (format[i].depth == fl_visual->depth) break;
 
   if (i == nformats)
-    throw rfb::Exception("Error: display lacks pixmap format for default depth");
+    throw rfb::Exception(_("Error: display lacks pixmap format for default depth"));
 
   switch (format[i].bits_per_pixel) {
   case 8:
@@ -65,7 +66,7 @@ static PixelFormat display_pf()
     bpp = format[i].bits_per_pixel;
     break;
   default:
-    throw rfb::Exception("Error: couldn't find suitable pixmap format");
+    throw rfb::Exception(_("Error: couldn't find suitable pixmap format"));
   }
 
   XFree(format);
@@ -74,9 +75,9 @@ static PixelFormat display_pf()
   trueColour = (fl_visual->c_class == TrueColor);
 
   if (!trueColour)
-    throw rfb::Exception("Error: only true colour displays supported");
+    throw rfb::Exception(_("Error: only true colour displays supported"));
 
-  vlog.info("Using default colormap and visual, %sdepth %d.",
+  vlog.info(_("Using default colormap and visual, %sdepth %d."),
             (fl_visual->c_class == TrueColor) ? "TrueColor, " :
             ((fl_visual->c_class == PseudoColor) ? "PseudoColor, " : ""),
             fl_visual->depth);
