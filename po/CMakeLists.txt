@@ -1,7 +1,7 @@
 # Gettext support - mostly borrowed from the Licq project
 
 set(po_FILES
-    de fr pl ru sk sv
+    de es fr it nl pl pt_BR ru sk sv tr
 )
 
 if (NOT GETTEXT_MSGMERGE_EXECUTABLE AND NOT GETTEXT_MSGFMT_EXECUTABLE)
@@ -12,7 +12,6 @@ find_program(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
 if (GETTEXT_XGETTEXT_EXECUTABLE)
   # Get list of all source files
   file(GLOB_RECURSE po_source
-    RELATIVE ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/vncviewer/*.h
     ${PROJECT_SOURCE_DIR}/vncviewer/*.cxx
   )
@@ -24,10 +23,10 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       --default-domain=tigervnc
       --keyword=_
       --keyword=N_
-      --copyright-holder="TigerVNC Team and many others \(see README.txt\)"
-      --msgid-bugs-address="tigervnc-devel@lists.sourceforge.net"
+      "--copyright-holder=TigerVNC Team and many others \(see README.txt\)"
+      --msgid-bugs-address=tigervnc-devel@googlegroups.com
       --sort-output
-      --no-location
+      --add-location
       ${po_source}
     COMMENT "Updating tigervnc.pot"
     VERBATIM

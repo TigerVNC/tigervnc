@@ -103,7 +103,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
         break;
       default:
         geom_x = geom_y = 0;
-        vlog.error("Invalid geometry specified!");
+        vlog.error(_("Invalid geometry specified!"));
       }
     }
   }
@@ -324,7 +324,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
         Fl::screen_xywh(sx, sy, sw, sh, i);
 
         if ((sx == x) && (sy == y) && (sw == w) && (sh == h)) {
-          vlog.info("Adjusting window size to avoid accidental full screen request");
+          vlog.info(_("Adjusting window size to avoid accidental full screen request"));
           // Assume a panel of some form and adjust the height
           y += 20;
           h -= 40;
@@ -794,7 +794,7 @@ void DesktopWindow::remoteResize(int width, int height)
              cc->cp.width, cc->cp.height, width, height, layout.num_screens());
 
   if (!layout.validate(width, height)) {
-    vlog.error("Invalid screen layout computed for resize request!");
+    vlog.error(_("Invalid screen layout computed for resize request!"));
     return;
   }
 

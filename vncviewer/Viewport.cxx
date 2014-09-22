@@ -684,8 +684,10 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (keyCode == 0x00) {
       keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
       if (keyCode == 0x00) {
-        vlog.error(_("No scan code for %svirtual key 0x%02x"),
-                   isExtended?"extended ":"", (int)vKey);
+        if (isExtended)
+          vlog.error(_("No scan code for extended virtual key 0x%02x"), (int)vKey);
+        else
+          vlog.error(_("No scan code for virtual key 0x%02x"), (int)vKey);
         return 1;
       }
     }
@@ -695,8 +697,10 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
     keySym = win32_vkey_to_keysym(vKey, isExtended);
     if (keySym == NoSymbol) {
-      vlog.error(_("No symbol for %svirtual key 0x%02x"),
-                 isExtended?"extended ":"", (int)vKey);
+      if (isExtended)
+        vlog.error(_("No symbol for extended virtual key 0x%02x"), (int)vKey);
+      else
+        vlog.error(_("No symbol for virtual key 0x%02x"), (int)vKey);
       return 1;
     }
 

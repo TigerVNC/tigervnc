@@ -77,11 +77,11 @@ using namespace network;
 using namespace rfb;
 using namespace std;
 
-static const char aboutText[] = N_("TigerVNC Viewer %d-bit v%s (%s)\n"
-                                   "%s\n"
-                                   "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n"
-                                   "See http://www.tigervnc.org for information on TigerVNC.");
-extern const char* buildTime;
+static const char _aboutText[] = N_("TigerVNC Viewer %d-bit v%s\n"
+                                    "Built on: %s\n"
+                                    "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+                                    "See http://www.tigervnc.org for information on TigerVNC.");
+static char aboutText[1024];
 
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
@@ -101,8 +101,7 @@ void exit_vncviewer(const char *error)
 void about_vncviewer()
 {
   fl_message_title(_("About TigerVNC Viewer"));
-  fl_message(gettext(aboutText), (int)sizeof(size_t)*8,
-             PACKAGE_VERSION, __BUILD__, buildTime);
+  fl_message("%s", aboutText);
 }
 
 static void about_callback(Fl_Widget *widget, void *data)
@@ -114,7 +113,7 @@ static void CleanupSignalHandler(int sig)
 {
   // CleanupSignalHandler allows C++ object cleanup to happen because it calls
   // exit() rather than the default which is to abort.
-  vlog.info("CleanupSignalHandler called");
+  vlog.info(_("CleanupSignalHandler called"));
   exit(1);
 }
 
@@ -361,13 +360,15 @@ int main(int argc, char** argv)
   bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
   textdomain(PACKAGE_NAME);
 
+  // Generate the about string now that we get the proper translation
+  snprintf(aboutText, sizeof(aboutText), _aboutText,
+           (int)sizeof(size_t)*8, PACKAGE_VERSION,
+           BUILD_TIMESTAMP, 2014);
+
   rfb::SecurityClient::setDefaults();
 
   // Write about text to console, still using normal locale codeset
-  fprintf(stderr,"\n");
-  fprintf(stderr, gettext(aboutText), (int)sizeof(size_t)*8,
-          PACKAGE_VERSION, __BUILD__, buildTime);
-  fprintf(stderr,"\n");
+  fprintf(stderr,"\n%s\n", aboutText);
 
   // Set gettext codeset to what our GUI toolkit uses. Since we are
   // passing strings from strerror/gai_strerror to the GUI, these must
@@ -459,8 +460,8 @@ int main(int argc, char** argv)
 #ifndef WIN32
   /* Specifying -via and -listen together is nonsense */
   if (listenMode && strlen(via.getValueStr()) > 0) {
-    vlog.error("Parameters -listen and -via are incompatible");
-    fl_alert("Parameters -listen and -via are incompatible");
+    vlog.error(_("Parameters -listen and -via are incompatible"));
+    fl_alert(_("Parameters -listen and -via are incompatible"));
     exit_vncviewer();
     return 1;
   }
@@ -474,7 +475,7 @@ int main(int argc, char** argv)
 
       TcpListener listener(NULL, port);
 
-      vlog.info("Listening on port %d\n", port);
+      vlog.info(_("Listening on port %d\n"), port);
       sock = listener.accept();   
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());

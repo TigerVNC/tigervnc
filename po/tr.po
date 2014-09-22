@@ -1,17 +1,13 @@
-# Copyright (C) 2011 TigerVNC Team
+# Copyright (C) TigerVNC Team
 msgid ""
 msgstr ""
-"Project-Id-Version: TigerVNC 0.0.91\n"
+"Project-Id-Version: TigerVNC 1.3.80\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2014-09-22 11:15+0000\n"
-"PO-Revision-Date: 2005-03-01 20:41+0100\n"
-"Last-Translator: Klaus Franken <Klaus.Franken@StrukturPunkt.de>\n"
-"Language-Team: German\n"
-"Language: \n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:194
 #, c-format
@@ -20,23 +16,23 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:227
 msgid "About"
-msgstr "Über"
+msgstr "Hakkında"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:103
 msgid "About TigerVNC Viewer"
-msgstr "Über TigerVNC-Viewer"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1086
 msgid "About TigerVNC viewer..."
-msgstr "Über TigerVNC-Viewer..."
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:86
 msgid "About..."
-msgstr "Über..."
+msgstr "Hakkında..."
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:704
 msgid "Accept clipboard from server"
-msgstr "Akzeptiere Zwischenablage vom Server"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:327
 msgid "Adjusting window size to avoid accidental full screen request"
@@ -44,23 +40,23 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:563
 msgid "Allow JPEG compression:"
-msgstr "Erlaube JPEG-Kompression:"
+msgstr "JPEG sıkıştırmasına izin ver:"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1070
 msgid "Alt"
-msgstr "Alt"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:648
 msgid "Authentication"
-msgstr "Authentifizierung"
+msgstr "Doğrulama"
 
 #: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:89
 msgid "Authentication cancelled"
-msgstr "Authentifizierung abgebrochen"
+msgstr "Doğrulama iptal edildi"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:437
 msgid "Auto select"
-msgstr "Automatisch auswählen"
+msgstr "Otomatik seç"
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:651
 #, c-format
@@ -75,7 +71,7 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:221
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:83
 msgid "Cancel"
-msgstr "Abbrechen"
+msgstr "İptal"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:116
 msgid "CleanupSignalHandler called"
@@ -83,24 +79,24 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:222
 msgid "Close"
-msgstr "Schließen"
+msgstr "Kapat"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:499
 msgid "Color level"
-msgstr "Farblevel"
+msgstr "Renk seviyesi"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:421
 #, fuzzy
 msgid "Compression"
-msgstr "individueller Kompressionslevel:"
+msgstr "SSH sıkıştırma"
 
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:96
 msgid "Connect"
-msgstr "Verbinden"
+msgstr "Bağlan"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1085
 msgid "Connection info..."
-msgstr "Verbindungsinformationen..."
+msgstr "Bağlantı bilgisi..."
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:362
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:404
@@ -135,13 +131,11 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:256
 #, c-format
 msgid "Could not create VNC home directory: %s."
-msgstr "VNC-Benutzerverzeichnis %s konnte nicht erstellt werden"
+msgstr "VNC ana dizini oluşturulamadı: %s"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:251
 msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr ""
-"VNC-Benutzerverzeichnis konnte nicht angelegt werden: auf "
-"Benutzerverzeichnispfad kann nicht zugegriffen werden."
+msgstr "VNC ana dizini oluşturulamadı: ana dizin yolu alınamıyor."
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:310
 #, c-format
@@ -161,11 +155,11 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1068
 msgid "Ctrl"
-msgstr "Strg"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:550
 msgid "Custom compression level:"
-msgstr "individueller Kompressionslevel:"
+msgstr "Özel sıkıştırma seviyesi:"
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:283
 msgid ""
@@ -180,16 +174,16 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1088
 msgid "Dismiss menu"
-msgstr "Menü verlassen"
+msgstr "Menüyü kapat"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:778
 #, fuzzy
 msgid "Enable full-screen mode over all monitors"
-msgstr "Vollbildmodus für alle Monitore aktivieren"
+msgstr "Tüm monitörlerde tam ekran modunu etkinleştir"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:469
 msgid "Enabling continuous updates"
-msgstr "Fortlaufende Aktualisierungen aktivieren"
+msgstr "Sürekli güncelleştirmeler etkinleştiriliyor"
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:200
 #, c-format
@@ -214,7 +208,7 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:595
 msgid "Encryption"
-msgstr "Verschlüsselung"
+msgstr "Şifreleme"
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:503
 #, c-format
@@ -271,14 +265,12 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1056
 msgid "Exit viewer"
-msgstr "Viewer beenden"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:588
 #, fuzzy
 msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr ""
-"VNC-Benutzerverzeichnis konnte nicht angelegt werden: auf "
-"Benutzerverzeichnispfad kann nicht zugegriffen werden."
+msgstr "VNC ana dizini oluşturulamadı: ana dizin yolu alınamıyor."
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:602
 #, c-format
@@ -293,9 +285,7 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:528
 #, fuzzy
 msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr ""
-"VNC-Benutzerverzeichnis konnte nicht angelegt werden: auf "
-"Benutzerverzeichnispfad kann nicht zugegriffen werden."
+msgstr "VNC ana dizini oluşturulamadı: ana dizin yolu alınamıyor."
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:542
 #, c-format
@@ -306,32 +296,32 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:538
 #: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:551
 msgid "Failure grabbing keyboard"
-msgstr "Fehler beim Erkennen der Tastatur"
+msgstr "Klavye yakalanamadı"
 
 #: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:563
 msgid "Failure grabbing mouse"
-msgstr "Fehler beim Erkennen der Maus"
+msgstr "Fare yakalanamadı"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:512
 msgid "Full (all available colors)"
-msgstr "Voll (alle verfügbaren Farben)"
+msgstr "Tam (bütün mevcut renkler)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1059
 msgid "Full screen"
-msgstr "Vollbildmodus"
+msgstr "Tam ekran"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:770
 #, fuzzy
 msgid "Full-screen mode"
-msgstr "Vollbild-Modus"
+msgstr "Tam ekran modu"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:230
 msgid "Hide"
-msgstr "Verbergen"
+msgstr "Gizle"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:238
 msgid "Hide Others"
-msgstr "Andere Verbergen"
+msgstr "Diğerlerini Gizle"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:177
 #, c-format
@@ -339,13 +329,12 @@ msgid "Host: %.80s port: %d"
 msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:690
-#, fuzzy
 msgid "Input"
-msgstr "Eingaben:"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:510
 msgid "Internal FLTK error. Exiting."
-msgstr "Interner FLTK-Fehler. Beenden."
+msgstr "Dahili FLTK hatası. Çıkışıyor."
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:384
 msgid "Invalid SetColourMapEntries from server!"
@@ -367,7 +356,7 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:204
 #, fuzzy, c-format
 msgid "Last used encoding: %s"
-msgstr "%s Verschlüsselung wird verwendet"
+msgstr "%s kodlaması kullanılıyor"
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:631
 #, c-format
@@ -389,33 +378,33 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:69
 msgid "Load..."
-msgstr "Laden..."
+msgstr "Yükle..."
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:526
 msgid "Low (64 colors)"
-msgstr "Niedrig (64 Farben)"
+msgstr "Düşük (64 renk)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:519
 msgid "Medium (256 colors)"
-msgstr "Medium (256 Farben)"
+msgstr "Orta (256 renk)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:725
 #, fuzzy
 msgid "Menu key"
-msgstr "Taste für Kontextmenü"
+msgstr "Açılır menü tuşu"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:791
 msgid "Misc."
-msgstr "Sonstiges"
+msgstr "Çeşitli"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1026
 #, c-format
 msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr "Mehrere Zeichen für Schlüsselcode %d (0x%04x) eingegeben: '%s'"
+msgstr "Anahtar kodu %d (0x%04x) için birden fazla karakter verilmiş: '%s'"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:218
 msgid "No"
-msgstr "Nein"
+msgstr "Hayır"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:688
 #, c-format
@@ -451,21 +440,21 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:659
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:727
 msgid "None"
-msgstr "Keine"
+msgstr "Yok"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:220
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:88
 msgid "OK"
-msgstr "Ok"
+msgstr "Tamam"
 
 #: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:74
 msgid "Opening password file failed"
-msgstr "Öffnen der Passwortdatei fehlgeschlagen"
+msgstr "Parola dosyası açılamadı"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1084
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:64
 msgid "Options..."
-msgstr "Optionen..."
+msgstr "Seçenekler..."
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:463
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:464
@@ -479,24 +468,24 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:87
 #: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:102
 msgid "Password:"
-msgstr "Passwort:"
+msgstr "Şifre:"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:625
 msgid "Path to X509 CA certificate"
-msgstr "Pfad zum X509 CA Zertifikat"
+msgstr "X509 CA sertifikası yolu"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:632
 msgid "Path to X509 CRL file"
-msgstr "Pfad zur X509 CRL Datei"
+msgstr "X509  CRL  dosyası  yolu"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:188
 #, fuzzy, c-format
 msgid "Pixel format: %s"
-msgstr "Pixelformat %s wird verwendet"
+msgstr "%s piksel biçimi kullanılıyor"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:449
 msgid "Preferred encoding"
-msgstr "Bevorzugte Kodierung"
+msgstr "Tercih edilen kodlama"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:214
 #, c-format
@@ -505,41 +494,41 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:233
 msgid "Quit"
-msgstr "Beenden"
+msgstr "Çık"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1082
 msgid "Refresh screen"
-msgstr "Bildschirm auffrischen"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:199
 #, fuzzy, c-format
 msgid "Requested encoding: %s"
-msgstr "Bevorzugte Kodierung"
+msgstr "Tercih edilen kodlama"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:749
 #, fuzzy
 msgid "Resize remote session on connect"
-msgstr "Remote-Session an das lokale Fenster anpassen"
+msgstr "Uzak oturumu yerel pencereye yeniden boyutlandır"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:762
 msgid "Resize remote session to the local window"
-msgstr "Remote-Session an das lokale Fenster anpassen"
+msgstr "Uzak oturumu yerel pencereye yeniden boyutlandır"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1062
 msgid "Resize window to session"
-msgstr "Fenster an Session anpassen"
+msgstr "Pencereyi oturuma tekrar boyutlandır"
 
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:74
 msgid "Save As..."
-msgstr "Speichern unter..."
+msgstr "Farklı Kaydet..."
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:741
 msgid "Screen"
-msgstr "Bildschirm"
+msgstr "Ekran"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:580
 msgid "Security"
-msgstr "Sicherheit"
+msgstr "Güvenlik"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:219
 #, c-format
@@ -553,41 +542,40 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1075
 #, c-format
 msgid "Send %s"
-msgstr "Sende %s"
+msgstr "%s gönder"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1080
 msgid "Send Ctrl-Alt-Del"
-msgstr "Sende Strg-Alt-Del"
+msgstr "Ctrl-Alt-Del gönder"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:710
 msgid "Send clipboard to server"
-msgstr "Sende Zwischenablage zum Server"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:716
-#, fuzzy
 msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Sende primary selection & cut buffer als Zwischenablage"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:237
 msgid "Services"
-msgstr "Dienste"
+msgstr "Hizmetler"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:319
 #, c-format
 msgid "SetDesktopSize failed: %d"
-msgstr "SetDesktopSize fehlgeschlagen: %d"
+msgstr "SetDesktopSize başarısız: %d"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:799
 msgid "Shared (don't disconnect other viewers)"
-msgstr "Gemeinsamer Zugriff (andere VNC-Viewer nicht trennen)"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:239
 msgid "Show All"
-msgstr "Alle Zeigen"
+msgstr "Tümü Göster"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:805
 msgid "Show dot when no cursor"
-msgstr "Zeige Punkt wenn kein Cursor"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:182
 #, c-format
@@ -596,15 +584,15 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:665
 msgid "Standard VNC (insecure without encryption)"
-msgstr "Standard-VNC (unsicher ohne Verschlüsselung)"
+msgstr "Standart VNC (şifreleme olmadan güvensiz)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:618
 msgid "TLS with X509 certificates"
-msgstr "TLS mit X509-Zertifikaten"
+msgstr "X509 sertifikalı TLS"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:612
 msgid "TLS with anonymous certificates"
-msgstr "TLS mit anonymen Zertifikaten"
+msgstr "Adsız sertifikalı  TLS"
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:448
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:497
@@ -623,51 +611,46 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:539
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr "Durchsatz %d kbit/s - Ändern der Qualität auf %d"
+msgstr "Verim %d kbit/s - %d kalitesine değiştiriliyor"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:561
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Durchsatz %d kbit/s - Full Color jetzt %s"
+msgstr "Verim %d kbit/s - tam renkli artık %s"
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:210
 msgid "TigerVNC Viewer"
-msgstr "TigerVNC-Viewer"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:80
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
 "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC-Viewer version %s (%s)\n"
-"%s\n"
-"Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
-"Copyright (C) 2005 Klaus Franken, StrukturPunkt\n"
-"Siehe http://www.tigervnc.org für Informationen über TigerVNC."
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1004
 #, c-format
 msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr "Unbekannter FLTK-Tastencode %d (0x%04x)"
+msgstr "Bilinmeyen FLTK anahtar kodu %d (0x%04x)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:878
 #, c-format
 msgid "Unknown decimal separator: '%s'"
-msgstr "Unbekanntes Dezimaltrennzeichen:'%s'"
+msgstr "Bilinmeyen ondalık ayırıcıs: '%s'"
 
 #: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:271
 #, fuzzy, c-format
 msgid "Unknown escape sequence at character %d"
-msgstr "Unbekanntes Dezimaltrennzeichen:'%s'"
+msgstr "Bilinmeyen ondalık ayırıcıs: '%s'"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:430
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:437
 #, fuzzy
 msgid "Unknown rect encoding"
-msgstr "%s Verschlüsselung wird verwendet"
+msgstr "%s kodlaması kullanılıyor"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:429
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:436
@@ -677,16 +660,16 @@ msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:671
 msgid "Username and password (insecure without encryption)"
-msgstr "Benutzername und Passwort (unsicher ohne VerschlÃŒsselung)"
+msgstr "Kullanıcı adı ve şifre (şifreleme olmadan güvensiz)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:99
 msgid "Username:"
-msgstr "Benutzername:"
+msgstr "Kullanıcı adı:"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:573
 #, c-format
 msgid "Using %s encoding"
-msgstr "%s Verschlüsselung wird verwendet"
+msgstr "%s kodlaması kullanılıyor"
 
 #: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:80
 #, c-format
@@ -696,68 +679,70 @@ msgstr ""
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:620
 #, c-format
 msgid "Using pixel format %s"
-msgstr "Pixelformat %s wird verwendet"
+msgstr "%s piksel biçimi kullanılıyor"
 
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:42
 msgid "VNC Viewer: Connection Details"
-msgstr "VNC-Viewer: Verbindungsdetails"
+msgstr "VNC Görüntüleyici: Bağlantı Bilgileri"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:57
+#, fuzzy
 msgid "VNC Viewer: Connection Options"
-msgstr "VNC-Viewer: Verbindungsoptionen"
+msgstr "VNC Görüntüleyici: Bağlantı Bilgileri"
 
 #: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:86
 #: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:96
 msgid "VNC authentication"
-msgstr "VNC-Autorisierung"
+msgstr "VNC doğrulaması"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1176
+#, fuzzy
 msgid "VNC connection info"
-msgstr "VNC Verbindungsinformation"
+msgstr "Bağlantı bilgisi..."
 
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:49
 #: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:54
 msgid "VNC server:"
-msgstr "VNC-Server:"
+msgstr "VNC sunucusu:"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:533
 msgid "Very low (8 colors)"
-msgstr "Sehr gering (8 Farben)"
+msgstr "Çok düşük (8 renk)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:698
-#, fuzzy
 msgid "View only (ignore mouse and keyboard)"
-msgstr "nur Ansicht (ignoriere Maus und Tastatur)"
+msgstr ""
 
 #: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:219
 msgid "Yes"
-msgstr "Ja"
+msgstr "Evet"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:111
 #, c-format
 msgid "connected to host %s port %d"
-msgstr "verbunden mit Host %s Port %d"
+msgstr "%s ana makinesin, %d bağlantı noktasına bağlı"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
 msgid "disabled"
-msgstr "deaktiviert"
+msgstr "devre dışı"
 
 #: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
 msgid "enabled"
-msgstr "aktiviert"
+msgstr "etkin"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:556
 msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "Level (1=schnell, 9=beste) [4-6 sind selten sinnvoll]"
+msgstr "seviye (1=hızlı, 6=en iyi [4-6 nadiren kullanışlıdır])"
 
 #: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:569
 msgid "quality (0=poor, 9=best)"
-msgstr "Qualität (0=schlechte, 9=beste)"
+msgstr "kalite (0=düşük, 9=yüksek)"
 
 #: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:63
 msgid "unable to create DIB section"
 msgstr ""
 
+#, fuzzy
 #~ msgid ""
 #~ "Desktop name: %.80s\n"
 #~ "Host: %.80s port: %d\n"
@@ -770,13 +755,10 @@ msgstr ""
 #~ "Protocol version: %d.%d\n"
 #~ "Security method: %s\n"
 #~ msgstr ""
-#~ "Desktopname: %.80s\n"
-#~ "Host: %.80s port: %d\n"
-#~ "Größe: %d x %d\n"
-#~ "Pixelformat: %s\n"
-#~ "(Server Standard %s)\n"
-#~ "gewünschte Kodierung: %s\n"
-#~ "letzte benutzte Kodierung: %s\n"
-#~ "Leitungsgeschwindigkeit (geschätzt): %d kbit/s\n"
-#~ "Protokollversion: %d.%d\n"
-#~ "Sicherheitsmethode: %s\n"
+#~ "Masaüstü adı: %.80s\n"
+#~ "Boyut: %d x %d\n"
+#~ "Piksel biçimi: %s\n"
+#~ "(sunucu varsayılanı %s)\n"
+#~ "İstenen kodlama: %s\n"
+#~ "Son kullanılan kodlama: %s\n"
+#~ "Hat hızı tahmini: %d kbit/s\n"

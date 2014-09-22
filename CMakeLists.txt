@@ -39,13 +39,13 @@ if(MSVC)
   message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
 endif()
 
-set(BUILD "")
-execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
+set(BUILD_TIMESTAMP "")
+execute_process(COMMAND "date" "+%Y-%m-%d %H:%M" OUTPUT_VARIABLE BUILD_TIMESTAMP)
 
-if(NOT BUILD)
-  set(BUILD "")
+if(NOT BUILD_TIMESTAMP)
+  set(BUILD_TIMESTAMP "")
 else()
-  string(REGEX REPLACE "\n" "" BUILD ${BUILD})
+  string(REGEX REPLACE "\n" "" BUILD_TIMESTAMP ${BUILD_TIMESTAMP})
 endif()
 
 # Default to optimised builds instead of debug ones. Our code has no bugs ;)
@@ -56,12 +56,8 @@ endif()
 
 message(STATUS "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(BUILD "${BUILD}d")
-endif()
-
-message(STATUS "VERSION = ${VERSION}, BUILD = ${BUILD}")
-add_definitions(-D__BUILD__="${BUILD}")
+message(STATUS "VERSION = ${VERSION}")
+add_definitions(-DBUILD_TIMESTAMP="${BUILD_TIMESTAMP}")
 
 # We want to keep our asserts even in release builds so remove NDEBUG
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -UNDEBUG")
