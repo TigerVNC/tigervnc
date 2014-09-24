@@ -120,7 +120,7 @@ int main(int argc, char **argv)
   time(&t);
   strftime(datebuffer, sizeof(datebuffer), "%Y-%m-%d %H:%M UTC", gmtime(&t));
 
-  printf("# Pixel Conversion Test %s\n", datebuffer);
+  printf("# Pixel Conversion Performance Test %s\n", datebuffer);
   printf("#\n");
   printf("# Frame buffer: %dx%d pixels\n", fbsize, fbsize);
   printf("# Tile size: %dx%d pixels\n", tile, tile);
