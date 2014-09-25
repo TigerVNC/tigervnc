@@ -141,6 +141,12 @@ namespace rfb {
     class Init;
     friend class Init;
     static Init _init;
+
+    /* Only for testing this class */
+    friend void makePixel(const rfb::PixelFormat &, rdr::U8 *);
+    friend bool verifyPixel(const rfb::PixelFormat &,
+                            const rfb::PixelFormat &,
+                            const rdr::U8 *);
   };
 }
 
