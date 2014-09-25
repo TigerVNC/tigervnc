@@ -121,8 +121,7 @@ namespace rfb {
     // In practice we are always in true colour mode.
     bool trueColour;
 
-  // FIXME: These should be protected, but we need to fix TransImageGetter first.
-  public:
+  protected:
     bool bigEndian;
     int redMax;
     int greenMax;
