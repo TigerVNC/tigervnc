@@ -121,8 +121,7 @@ namespace rfb {
     // In practice we are always in true colour mode.
     bool trueColour;
 
-  // FIXME: These should be protected, but we need to fix TransImageGetter first.
-  public:
+  protected:
     bool bigEndian;
     int redMax;
     int greenMax;
@@ -142,6 +141,12 @@ namespace rfb {
     class Init;
     friend class Init;
     static Init _init;
+
+    /* Only for testing this class */
+    friend void makePixel(const rfb::PixelFormat &, rdr::U8 *);
+    friend bool verifyPixel(const rfb::PixelFormat &,
+                            const rfb::PixelFormat &,
+                            const rdr::U8 *);
   };
 }
 
