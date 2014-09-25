@@ -373,21 +373,31 @@ void PixelFormat::bufferFromBuffer(rdr::U8* dst, const PixelFormat &srcPF,
     }
   } else if (is888() && srcPF.is888()) {
     // Optimised common case A: byte shuffling (e.g. endian conversion)
-    rdr::U8 *d[4];
+    rdr::U8 *d[4], *s[4];
     int dstPad, srcPad;
 
-    if (bigEndian != srcPF.bigEndian) {
-      d[(24 - srcPF.redShift)/8] = dst + (24 - redShift)/8;
-      d[(24 - srcPF.greenShift)/8] = dst + (24 - greenShift)/8;
-      d[(24 - srcPF.blueShift)/8] = dst + (24 - blueShift)/8;
-      d[(24 - (48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift))/8] =
-        dst + (24 - (48 - redShift - greenShift - blueShift))/8;
+    if (bigEndian) {
+      s[0] = dst + (24 - redShift)/8;
+      s[1] = dst + (24 - greenShift)/8;
+      s[2] = dst + (24 - blueShift)/8;
+      s[3] = dst + (24 - (48 - redShift - greenShift - blueShift))/8;
     } else {
-      d[srcPF.redShift/8] = dst + redShift/8;
-      d[srcPF.greenShift/8] = dst + greenShift/8;
-      d[srcPF.blueShift/8] = dst + blueShift/8;
-      d[(48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift)/8] =
-        dst + (48 - redShift - greenShift - blueShift)/8;
+      s[0] = dst + redShift/8;
+      s[1] = dst + greenShift/8;
+      s[2] = dst + blueShift/8;
+      s[3] = dst + (48 - redShift - greenShift - blueShift)/8;
+    }
+
+    if (srcPF.bigEndian) {
+      d[(24 - srcPF.redShift)/8] = s[0];
+      d[(24 - srcPF.greenShift)/8] = s[1];
+      d[(24 - srcPF.blueShift)/8] = s[2];
+      d[(24 - (48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift))/8] = s[3];
+    } else {
+      d[srcPF.redShift/8] = s[0];
+      d[srcPF.greenShift/8] = s[1];
+      d[srcPF.blueShift/8] = s[2];
+      d[(48 - srcPF.redShift - srcPF.greenShift - srcPF.blueShift)/8] = s[3];
     }
 
     dstPad = (dstStride - w) * 4;
