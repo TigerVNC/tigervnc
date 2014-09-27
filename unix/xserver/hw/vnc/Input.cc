@@ -126,10 +126,6 @@ InputDevice::InputDevice()
 
 	vncInputDevice = this;
 
-#if XORG < 111
-	initEventq();
-#endif
-
 	for (i = 0;i < 256;i++)
 		pressedKeys[i] = NoSymbol;
 }
@@ -359,6 +355,10 @@ void InputDevice::InitInputDevice(void)
 	    !EnableDevice(keyboardDev, TRUE))
 		FatalError("Failed to activate TigerVNC devices\n");
 #endif /* 17 */
+
+#if XORG < 111
+	initEventq();
+#endif
 
 	PrepareInputDevices();
 }
