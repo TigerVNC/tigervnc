@@ -148,7 +148,7 @@ static const int vkey_map[][3] = {
   { VK_UP,                  XK_KP_Up,       XK_Up },
   { VK_RIGHT,               XK_KP_Right,    XK_Right },
   { VK_DOWN,                XK_KP_Down,     XK_Down },
-  { VK_SNAPSHOT,            XK_Print,       NoSymbol },
+  { VK_SNAPSHOT,            XK_Sys_Req,     XK_Print },
   { VK_INSERT,              XK_KP_Insert,   XK_Insert },
   { VK_DELETE,              XK_KP_Delete,   XK_Delete },
   { VK_LWIN,                NoSymbol,       XK_Super_L },

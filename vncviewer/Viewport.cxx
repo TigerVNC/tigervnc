@@ -695,6 +695,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (isExtended)
       keyCode |= 0x100;
 
+    // VK_SNAPSHOT sends different scan codes depending on the state of
+    // Alt. This means that we can get different scan codes on press and
+    // release. Force it to be something standard.
+    if (vKey == VK_SNAPSHOT)
+      keyCode = 0x137;
+
     keySym = win32_vkey_to_keysym(vKey, isExtended);
     if (keySym == NoSymbol) {
       if (isExtended)
@@ -720,6 +726,8 @@ int Viewport::handleSystemEvent(void *event, void *data)
       keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
     if (isExtended)
       keyCode |= 0x100;
+    if (vKey == VK_SNAPSHOT)
+      keyCode = 0x137;
 
     self->handleKeyRelease(keyCode);
 

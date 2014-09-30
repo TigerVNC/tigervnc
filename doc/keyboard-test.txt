@@ -81,6 +81,7 @@ Client
   - Insert, Delete, Home, End, PageUp, PageDown
   - Arrow keys
   - Menu
+  - Alt+PrntScrn sends Sys_Req [Win]
 
 - French layout (AZERTY and inverted shift behaviour for many keys)
 
