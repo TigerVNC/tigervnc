@@ -260,7 +260,7 @@ void PixelFormat::bufferFromRGB(rdr::U8 *dst, const rdr::U8* src,
     }
   } else {
     // Generic code
-    int dstPad = (stride - w) * 4;
+    int dstPad = (stride - w) * bpp/8;
     while (h--) {
       int w_ = w;
       while (w_--) {
