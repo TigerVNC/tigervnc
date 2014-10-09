@@ -122,7 +122,7 @@ static bool testPixel(const rfb::PixelFormat &dstpf,
 static bool testBuffer(const rfb::PixelFormat &dstpf,
                        const rfb::PixelFormat &srcpf)
 {
-  int i, unaligned;
+  int i, x, y, unaligned;
   rdr::U8 bufIn[fbMalloc], bufOut[fbMalloc];
 
   // Once aligned, and once unaligned
@@ -139,13 +139,29 @@ static bool testBuffer(const rfb::PixelFormat &dstpf,
         return false;
     }
 
+    memset(bufIn, 0, sizeof(bufIn));
+    for (y = 0;y < fbHeight;y++) {
+      for (x = 0;x < fbWidth/2;x++)
+        makePixel(srcpf, bufIn + unaligned + (x + y*fbWidth)*srcpf.bpp/8);
+    }
+
     memset(bufOut, 0, sizeof(bufOut));
     dstpf.bufferFromBuffer(bufOut + unaligned, srcpf, bufIn + unaligned,
-                           fbWidth, fbHeight, fbWidth, fbWidth);
+                           fbWidth/2, fbHeight, fbWidth, fbWidth);
 
-    for (i = 0;i < fbArea;i++) {
-      if (!verifyPixel(dstpf, srcpf, bufOut + unaligned + i*dstpf.bpp/8))
-        return false;
+    for (y = 0;y < fbHeight;y++) {
+      for (x = 0;x < fbWidth;x++) {
+        if (x < fbWidth/2) {
+          if (!verifyPixel(dstpf, srcpf,
+                           bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8))
+            return false;
+        } else {
+          const rdr::U8 zero[4] = { 0, 0, 0, 0 };
+          if (memcmp(bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8, zero,
+                     dstpf.bpp/8) != 0)
+            return false;
+        }
+      }
     }
   }
 
@@ -155,7 +171,7 @@ static bool testBuffer(const rfb::PixelFormat &dstpf,
 static bool testRGB(const rfb::PixelFormat &dstpf,
                     const rfb::PixelFormat &srcpf)
 {
-  int i, unaligned;
+  int i, x, y, unaligned;
   rdr::U8 bufIn[fbMalloc], bufRGB[fbMalloc], bufOut[fbMalloc];
 
   // Once aligned, and once unaligned
@@ -174,17 +190,33 @@ static bool testRGB(const rfb::PixelFormat &dstpf,
         return false;
     }
 
+    memset(bufIn, 0, sizeof(bufIn));
+    for (y = 0;y < fbHeight;y++) {
+      for (x = 0;x < fbWidth/2;x++)
+        makePixel(srcpf, bufIn + unaligned + (x + y*fbWidth)*srcpf.bpp/8);
+    }
+
     memset(bufRGB, 0, sizeof(bufRGB));
     srcpf.rgbFromBuffer(bufRGB + unaligned, bufIn + unaligned,
-                        fbWidth, fbWidth, fbHeight);
+                        fbWidth/2, fbWidth, fbHeight);
 
     memset(bufOut, 0, sizeof(bufOut));
     dstpf.bufferFromRGB(bufOut + unaligned, bufRGB + unaligned,
-                        fbWidth, fbWidth, fbHeight);
+                        fbWidth/2, fbWidth, fbHeight);
 
-    for (i = 0;i < fbArea;i++) {
-      if (!verifyPixel(dstpf, srcpf, bufOut + unaligned + i*dstpf.bpp/8))
-        return false;
+    for (y = 0;y < fbHeight;y++) {
+      for (x = 0;x < fbWidth;x++) {
+        if (x < fbWidth/2) {
+          if (!verifyPixel(dstpf, srcpf,
+                           bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8))
+            return false;
+        } else {
+          const rdr::U8 zero[4] = { 0, 0, 0, 0 };
+          if (memcmp(bufOut + unaligned + (x + y*fbWidth)*dstpf.bpp/8, zero,
+                     dstpf.bpp/8) != 0)
+            return false;
+        }
+      }
     }
   }
 
