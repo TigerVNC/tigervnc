@@ -57,7 +57,7 @@ static PixelFormat display_pf()
     if (format[i].depth == fl_visual->depth) break;
 
   if (i == nformats)
-    throw rfb::Exception(_("Error: display lacks pixmap format for default depth"));
+    throw rfb::Exception(_("Display lacks pixmap format for default depth"));
 
   switch (format[i].bits_per_pixel) {
   case 8:
@@ -66,7 +66,7 @@ static PixelFormat display_pf()
     bpp = format[i].bits_per_pixel;
     break;
   default:
-    throw rfb::Exception(_("Error: couldn't find suitable pixmap format"));
+    throw rfb::Exception(_("Couldn't find suitable pixmap format"));
   }
 
   XFree(format);
@@ -75,7 +75,7 @@ static PixelFormat display_pf()
   trueColour = (fl_visual->c_class == TrueColor);
 
   if (!trueColour)
-    throw rfb::Exception(_("Error: only true colour displays supported"));
+    throw rfb::Exception(_("Only true colour displays supported"));
 
   vlog.info(_("Using default colormap and visual, %sdepth %d."),
             (fl_visual->c_class == TrueColor) ? "TrueColor, " :
