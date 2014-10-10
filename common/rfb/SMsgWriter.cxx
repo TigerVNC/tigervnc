@@ -18,7 +18,6 @@
  * USA.
  */
 #include <stdio.h>
-#include <assert.h>
 #include <rdr/OutStream.h>
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>

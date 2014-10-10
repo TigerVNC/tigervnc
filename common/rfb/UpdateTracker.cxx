@@ -21,8 +21,6 @@
 // Tracks updated regions and a region-copy event, too
 //
 
-#include <assert.h>
-
 #include <rfb/UpdateTracker.h>
 #include <rfb/LogWriter.h>
 
