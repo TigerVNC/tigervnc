@@ -109,6 +109,10 @@ Bool XVncExtGetParam(Display* dpy, const char* param, char** value, int* len)
   if (rep.success) {
     *len = rep.valueLen;
     *value = (char*) Xmalloc (*len+1);
+    if (!*value) {
+      _XEatData(dpy, (*len+1)&~1);
+      return False;
+    }
     _XReadPad(dpy, *value, *len);
     (*value)[*len] = 0;
   }
@@ -141,6 +145,10 @@ char* XVncExtGetParamDesc(Display* dpy, const char* param)
   }
   if (rep.success) {
     desc = (char*)Xmalloc(rep.descLen+1);
+    if (!*desc) {
+      _XEatData(dpy, (rep.descLen+1)&~1);
+      return False;
+    }
     _XReadPad(dpy, desc, rep.descLen);
     desc[rep.descLen] = 0;
   }
@@ -243,6 +251,10 @@ Bool XVncExtGetClientCutText(Display* dpy, char** str, int* len)
   SyncHandle();
   *len = rep.textLen;
   *str = (char*) Xmalloc (*len+1);
+  if (!*str) {
+    _XEatData(dpy, (*len+1)&~1);
+    return False;
+  }
   _XReadPad(dpy, *str, *len);
   (*str)[*len] = 0;
   return True;
@@ -312,9 +324,15 @@ Bool XVncExtGetQueryConnect(Display* dpy, char** addr, char** user,
   SyncHandle();
 
   *addr = Xmalloc(rep.addrLen+1);
+  *user = Xmalloc(rep.userLen+1);
+  if (!*addr || !*user) {
+    Xfree(*addr);
+    Xfree(*user);
+    _XEatData(dpy, (rep.addrLen+1)&~1 + (rep.userLen+1)&~1);
+    return False;
+  }
   _XReadPad(dpy, *addr, rep.addrLen);
   (*addr)[rep.addrLen] = 0;
-  *user = Xmalloc(rep.userLen+1);
   _XReadPad(dpy, *user, rep.userLen);
   (*user)[rep.userLen] = 0;
   *timeout = rep.timeout;

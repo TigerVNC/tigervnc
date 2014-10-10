@@ -21,7 +21,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include <FL/x.H>
@@ -57,7 +56,7 @@ static PixelFormat display_pf()
     if (format[i].depth == fl_visual->depth) break;
 
   if (i == nformats)
-    throw rfb::Exception(_("Error: display lacks pixmap format for default depth"));
+    throw rfb::Exception(_("Display lacks pixmap format for default depth"));
 
   switch (format[i].bits_per_pixel) {
   case 8:
@@ -66,7 +65,7 @@ static PixelFormat display_pf()
     bpp = format[i].bits_per_pixel;
     break;
   default:
-    throw rfb::Exception(_("Error: couldn't find suitable pixmap format"));
+    throw rfb::Exception(_("Couldn't find suitable pixmap format"));
   }
 
   XFree(format);
@@ -75,7 +74,7 @@ static PixelFormat display_pf()
   trueColour = (fl_visual->c_class == TrueColor);
 
   if (!trueColour)
-    throw rfb::Exception(_("Error: only true colour displays supported"));
+    throw rfb::Exception(_("Only true colour displays supported"));
 
   vlog.info(_("Using default colormap and visual, %sdepth %d."),
             (fl_visual->c_class == TrueColor) ? "TrueColor, " :
@@ -104,10 +103,12 @@ X11PixelBuffer::X11PixelBuffer(int width, int height) :
   if (!setupShm()) {
     xim = XCreateImage(fl_display, fl_visual->visual, fl_visual->depth,
                        ZPixmap, 0, 0, width, height, BitmapPad(fl_display), 0);
-    assert(xim);
+    if (!xim)
+      throw rfb::Exception(_("Could not create framebuffer image"));
 
     xim->data = (char*)malloc(xim->bytes_per_line * xim->height);
-    assert(xim->data);
+    if (!xim->data)
+      throw rfb::Exception(_("Not enough memory for framebuffer"));
   }
 
   data = (rdr::U8*)xim->data;

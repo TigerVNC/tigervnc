@@ -28,7 +28,6 @@
 #include <rdr/ZlibInStream.h>
 #include <rfb/Exception.h>
 #include <rfb/TightConstants.h>
-#include <assert.h>
 
 namespace rfb {
 

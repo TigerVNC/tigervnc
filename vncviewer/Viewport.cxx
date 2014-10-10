@@ -27,6 +27,7 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Exception.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
@@ -452,6 +453,8 @@ PlatformPixelBuffer* Viewport::createFramebuffer(int w, int h)
     fb = new X11PixelBuffer(w, h);
 #endif
   } catch (rdr::Exception& e) {
+    vlog.error(_("Unable to create platform specific framebuffer: %s"), e.str());
+    vlog.error(_("Using platform independent framebuffer"));
     fb = new FLTKPixelBuffer(w, h);
   }
 
