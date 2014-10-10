@@ -20,8 +20,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-
 #include <ApplicationServices/ApplicationServices.h>
 
 #include <FL/Fl_Window.H>
@@ -50,13 +48,14 @@ OSXPixelBuffer::OSXPixelBuffer(int width, int height) :
     throw rfb::Exception(_("Not enough memory for framebuffer"));
 
   lut = CGColorSpaceCreateDeviceRGB();
-  assert(lut);
+  if (!lut)
+    throw rfb::Exception(_("Could not create framebuffer device"));
 
   bitmap = CGBitmapContextCreate(data, width, height, 8, width*4, lut,
                                  kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little);
-  assert(bitmap);
-
   CGColorSpaceRelease(lut);
+  if (!bitmap)
+    throw rfb::Exception(_("Could not create framebuffer bitmap"));
 }
 
 

@@ -21,7 +21,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include <FL/x.H>
@@ -104,10 +103,12 @@ X11PixelBuffer::X11PixelBuffer(int width, int height) :
   if (!setupShm()) {
     xim = XCreateImage(fl_display, fl_visual->visual, fl_visual->depth,
                        ZPixmap, 0, 0, width, height, BitmapPad(fl_display), 0);
-    assert(xim);
+    if (!xim)
+      throw rfb::Exception(_("Could not create framebuffer image"));
 
     xim->data = (char*)malloc(xim->bytes_per_line * xim->height);
-    assert(xim->data);
+    if (!xim->data)
+      throw rfb::Exception(_("Not enough memory for framebuffer"));
   }
 
   data = (rdr::U8*)xim->data;
