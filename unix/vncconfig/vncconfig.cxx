@@ -215,6 +215,10 @@ public:
       if (cutText)
         XFree(cutText);
       cutText = (char*)malloc(nitems); // assuming XFree() same as free()
+      if (!cutText) {
+        vlog.error("unable to allocate selection buffer");
+        return;
+      }
       memcpy(cutText, data, nitems);
       cutTextLen = nitems;
       vlog.debug("sending %s selection as server cut text: '%.*s%s'",
