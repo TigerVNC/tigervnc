@@ -20,10 +20,9 @@ Build Requirements (All Systems)
    * Gnu gettext 0.14.4 or later
    * See "Building Native Language Support" below.
 
--- libjpeg-turbo SDK
-   * If your system does not include libjpeg-turbo, then you can download the
-     SDK from http://sourceforge.net/projects/libjpeg-turbo/files/
-   * See "Building High-Performance JPEG Support" below.
+-- libjpeg-turbo
+   * "Normal" libjpegv6 is also supported, although it is not
+     recommended as it is much slower.
 
 
 =========================
@@ -262,53 +261,6 @@ libgcc or libstdc++ dynamic libraries.  To eliminate this dependency, add
   -DBUILD_STATIC=1
 
 to the CMake command line.
-
-
-======================================
-Building High-Performance JPEG Support
-======================================
-
-In order to achieve its high levels of performance, TigerVNC relies on
-libjpeg-turbo (http://www.libjpeg-turbo.org), a derivative of libjpeg which
-uses SIMD instructions to accelerate baseline JPEG compression and
-decompression.  If you are building TigerVNC on an operating system that
-includes libjpeg-turbo as a system library (for instance, Fedora 14 and later),
-then the TigerVNC build system should detect the system version of
-libjpeg-turbo automatically and link against it.  However, this produces a
-version of TigerVNC that depends on the libjpeg-turbo dynamic libraries, and
-thus the TigerVNC binaries are not portable.
-
-To build a fully portable, cross-compatible version of TigerVNC with
-high-performance JPEG support, it is necessary to link against the
-libjpeg-turbo static library.  This is also necessary when building the
-Windows or OS X versions of TigerVNC.  To link against the libjpeg-turbo static
-library, first install the libjpeg-turbo SDK, which is available from
-https://sourceforge.net/projects/libjpeg-turbo/files/.  Next, use the
-JPEG_INCLUDE_DIR and JPEG_LIBRARY CMake variables to specify the location of
-libjpeg-turbo.  For example, adding
-
-  -DJPEG_INCLUDE_DIR=/opt/libjpeg-turbo/include \
-    -DJPEG_LIBRARY=/opt/libjpeg-turbo/lib/libjpeg.a
-
-to the CMake command line will link TigerVNC against a static version of
-libjpeg-turbo installed under /opt/TigerVNC (which is the normal install
-location for the libjpeg-turbo SDK on Unix and Linux platforms.)  Replace "lib"
-with "lib32" or "lib64" to use the 32-bit or 64-bit version of the library on
-64-bit Linux platforms.
-
-When building on Windows systems, adding
-
-  -DJPEG_INCLUDE_DIR=/c/libjpeg-turbo-gcc[64]/include \
-    -DJPEG_LIBRARY=/c/libjpeg-turbo-gcc[64]/lib/libjpeg.a
-
-to the CMake command line will link TigerVNC against the static version of
-libjpeg-turbo provided by the libjpeg-turbo SDK for GCC (MinGW.)
-
-CMake will report:
-
-  Performing Test FOUND_LIBJPEG_TURBO - Success
-
-if it successfully finds libjpeg-turbo.
 
 
 =====================
