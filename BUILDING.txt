@@ -14,7 +14,7 @@ Build Requirements (All Systems)
    * See "Building FLTK" below.
 
 -- If building TLS support:
-   * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
+   * GnuTLS
 
 -- If building native language support (NLS):
    * Gnu gettext 0.14.4 or later
@@ -388,87 +388,6 @@ libintl located under /opt/gettext.  Adding
 
 to the CMake command line would link TigerVNC against the static versions of
 libiconv and libintl included in the MinGW Developer Toolkit.
-
-
-===============================================
-Building Transport Layer Security (TLS) support
-===============================================
-
-VeNCrypt (the TigerVNC security and authentication extensions) can be built
-with TLS support, which provides built-in encryption for VNC sessions.  This
-requires GnuTLS, which is readily available in many Linux distributions but not
-as readily available in binary form on other types of systems.  This section
-describes the issues associated with building a version of TigerVNC with TLS
-support and how to work around those issues.
-
-
-Unix/Mac
---------
-
-In general, if you are building on a Unix-ish platform that has the GnuTLS
-libraries and include files installed in the standard system locations, then
-the TigerVNC build system should detect the system version of GnuTLS
-automatically and link against it.  However, this produces a version of
-TigerVNC that depends on the GnuTLS dynamic libraries, and thus the TigerVNC
-binaries are not portable.
-
-To build a fully portable, cross-compatible version of TigerVNC with TLS
-support, it is necessary to link against the GnuTLS static library (as well
-as the static libraries of its dependencies.)  If you are lucky enough, then
-your O/S distribution may include pre-packaged versions of these static
-libraries.  Otherwise, it will be necessary to build GnuTLS, libgcrypt,
-libtasn1, and libgpg-error from source.
-
-You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY CMake variables to
-build TigerVNC against a custom build of GnuTLS that is installed in a
-non-system directory.  For instance, adding
-
-  -DGNUTLS_INCLUDE_DIR=/opt/gnutls/include \
-    -DGNUTLS_LIBRARY='/opt/gnutls/lib/libgnutls.a;/opt/gnutls/lib/libgcrypt.a;/opt/gnutls/lib/libgpg-error.a;/opt/gnutls/lib/libtasn1.a' \
-    -DUSE_INCLUDED_ZLIB=1
-
-to the CMake or 'build-xorg build' command line will cause TigerVNC to be
-statically linked against a custom installation of GnuTLS that resides under
-/opt/gnutls.  GnuTLS depends on zlib, so specifying -DUSE_INCLUDED_ZLIB=1 will
-satisfy that dependency using TigerVNC's in-tree version of zlib, which
-prevents TigerVNC from depending on the libz dynamic library.
-
-
-MinGW
------
-
-An installer containing the GnuTLS header files, as well as static and dynamic
-link libraries for 32-bit MinGW, can be downloaded from the following site:
-
-http://josefsson.org/gnutls4win/
-
-As of this writing, GnuTLS cannot be built cleanly with MinGW64 due to the fact
-that portions of the code assume an LP64 data model (Windows uses LLP64.)
-Thus, it is not possible at this time to produce a Win64 version of TigerVNC
-with TLS support.
-
-Whether you use the above installer or build GnuTLS from source, make sure that
-you install the libraries and headers into a pathname that doesn't contain
-spaces (the installer will try to install under c:\Program Files unless you
-tell it otherwise.)  If the GnuTLS include path contains spaces, then the MinGW
-resource compiler will barf when you try to build TigerVNC.
-
-You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY CMake variables to
-specify the directory under which you installed GnuTLS.  For instance, adding
-
-  -DGNUTLS_INCLUDE_DIR=/c/gnutls/include \
-    -DGNUTLS_LIBRARY=/c/gnutls/lib/libgnutls.dll.a
-
-to the CMake command line when using MinGW will cause TigerVNC to be linked
-against GnuTLS DLLs that are installed under c:\gnutls.
-
-Adding
-
-  -DGNUTLS_INCLUDE_DIR=/c/gnutls/include \
-    -DGNUTLS_LIBRARY='/c/gnutls/lib/libgnutls.a;/c/gnutls/lib/libgcrypt.a;/c/gnutls/lib/libtasn1.a;/c/gnutls/lib/libgpg-error.a'
-
-to the CMake command line will cause TigerVNC to be statically linked against
-GnuTLS libraries that are installed under c:\gnutls.
 
 
 ===================
