@@ -89,49 +89,6 @@ else()
   message(STATUS "32-bit build")
 endif()
 
-# This ensures that we don't depend on libstdc++ or libgcc
-if(CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE AND NOT CYGWIN)
-  option(BUILD_STATIC
-    "Link statically against libgcc and libstdc++, if possible" OFF)
-  if(BUILD_STATIC)
-    # For some reason, simply passing ${CMAKE_CXX_FLAGS} to the compiler in
-    # execute_process() doesn't work.  Grrr...
-    if(CMAKE_SIZEOF_VOID_P MATCHES 8)
-      execute_process(COMMAND ${CMAKE_CXX_COMPILER} -m64
-        --print-file-name=libstdc++.a OUTPUT_VARIABLE LIBSTDCPLUSPLUS
-        RESULT_VARIABLE RESULT)
-    else()
-      execute_process(COMMAND ${CMAKE_CXX_COMPILER} -m32
-        --print-file-name=libstdc++.a OUTPUT_VARIABLE LIBSTDCPLUSPLUS
-        RESULT_VARIABLE RESULT)
-    endif()
-    string(REGEX REPLACE "\n" "" LIBSTDCPLUSPLUS ${LIBSTDCPLUSPLUS})
-    if(RESULT MATCHES 0 AND LIBSTDCPLUSPLUS)
-      message(STATUS "Linking with static libstdc++:\n   ${LIBSTDCPLUSPLUS}")
-      file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/staticlib)
-      execute_process(COMMAND ${CMAKE_COMMAND} -E remove
-        ${CMAKE_BINARY_DIR}/staticlib/libstdc++.a)
-      if(MINGW)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E copy
-          ${LIBSTDCPLUSPLUS} ${CMAKE_BINARY_DIR}/staticlib/libstdc++.a)
-      else()
-        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${LIBSTDCPLUSPLUS} ${CMAKE_BINARY_DIR}/staticlib/libstdc++.a)
-      endif()
-      set(CMAKE_EXE_LINKER_FLAGS
-        "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_BINARY_DIR}/staticlib")
-      set(CMAKE_SHARED_LINKER_FLAGS
-        "${CMAKE_SHARED_LINKER_FLAGS} -L${CMAKE_BINARY_DIR}/staticlib")
-    else()
-      message(WARNING Cannot find static libstdc++.  TigerVNC will depend on dynamic libstdc++.)
-    endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc")
-    set(CMAKE_SHARED_LINKER_FLAGS
-      "${CMAKE_SHARED_LINKER_FLAGS} -static-libgcc")
-  endif()
-endif()
-
 # CMake doesn't properly support resource compilation with MinGW.  Boo!
 if(MINGW)
   if(NOT DEFINED RC)
@@ -372,6 +329,8 @@ set(CMAKE_REQUIRED_LIBRARIES)
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
+
+include(cmake/StaticBuild.cmake)
 
 add_subdirectory(common)
 

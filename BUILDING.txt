@@ -252,15 +252,20 @@ Debug Build
 Add "-DCMAKE_BUILD_TYPE=Debug" to the CMake command line.
 
 
-Self-Contained GCC Build
-------------------------
+Portable (semi-static) Build
+----------------------------
 
-If TigerVNC is built using GCC (including MinGW), then it may depend on the
-libgcc or libstdc++ dynamic libraries.  To eliminate this dependency, add
+TigerVNC can under favourble circumstances be built in a way that allows
+the resulting binaries to run on any system without having to also install
+all the dynamic libraries it depends on. Enable this mode by adding:
 
   -DBUILD_STATIC=1
 
 to the CMake command line.
+
+Note that the method used to achieve this is very fragile and it may be
+necessary to tweak cmake/StaticBuild.cmake to make things work on your
+specific system.
 
 
 =====================
