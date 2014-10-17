@@ -189,7 +189,11 @@ int X11PixelBuffer::setupShm()
   caughtError = false;
   old_handler = XSetErrorHandler(XShmAttachErrorHandler);
 
-  XShmAttach(fl_display, shminfo);
+  if (!XShmAttach(fl_display, shminfo)) {
+    XSetErrorHandler(old_handler);
+    goto free_shmaddr;
+  }
+
   XSync(fl_display, False);
 
   XSetErrorHandler(old_handler);
