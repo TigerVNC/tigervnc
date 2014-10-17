@@ -48,6 +48,10 @@ endif()
 
 target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
 
+if(APPLE)
+  target_link_libraries(vncviewer "-framework Cocoa" "-framework Carbon")
+endif()
+
 install(TARGETS vncviewer DESTINATION ${BIN_DIR})
 if(UNIX)
   install(FILES vncviewer.man DESTINATION ${MAN_DIR}/man1 RENAME vncviewer.1)
