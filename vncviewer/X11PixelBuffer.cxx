@@ -156,6 +156,11 @@ int X11PixelBuffer::setupShm()
   Bool pixmaps;
   XErrorHandler old_handler;
   Status status;
+  const char *display_name = XDisplayName (NULL);
+
+  /* Don't use MIT-SHM on remote displays */
+  if (*display_name && *display_name != ':')
+    return 0;
 
   if (!XShmQueryVersion(fl_display, &major, &minor, &pixmaps))
     return 0;
@@ -184,7 +189,11 @@ int X11PixelBuffer::setupShm()
   caughtError = false;
   old_handler = XSetErrorHandler(XShmAttachErrorHandler);
 
-  XShmAttach(fl_display, shminfo);
+  if (!XShmAttach(fl_display, shminfo)) {
+    XSetErrorHandler(old_handler);
+    goto free_shmaddr;
+  }
+
   XSync(fl_display, False);
 
   XSetErrorHandler(old_handler);
