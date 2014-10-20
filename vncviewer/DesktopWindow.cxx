@@ -387,15 +387,6 @@ int DesktopWindow::handle(int event)
     }
     // Continue processing so that the viewport also gets mouse events
     break;
-
-  case FL_SHORTCUT:
-    // Sometimes the focus gets out of whack and we fall through to the
-    // shortcut dispatching. Try to make things sane again...
-    if (Fl::focus() == NULL) {
-      take_focus();
-      Fl::handle(FL_KEYDOWN, this);
-    }
-    return 1;
   }
 
   return Fl_Window::handle(event);
