@@ -14,16 +14,15 @@ Build Requirements (All Systems)
    * See "Building FLTK" below.
 
 -- If building TLS support:
-   * GnuTLS and its dependencies (libgcrypt, libtasn1, libgpg-error)
+   * GnuTLS
 
 -- If building native language support (NLS):
    * Gnu gettext 0.14.4 or later
    * See "Building Native Language Support" below.
 
--- libjpeg-turbo SDK
-   * If your system does not include libjpeg-turbo, then you can download the
-     SDK from http://sourceforge.net/projects/libjpeg-turbo/files/
-   * See "Building High-Performance JPEG Support" below.
+-- libjpeg-turbo
+   * "Normal" libjpegv6 is also supported, although it is not
+     recommended as it is much slower.
 
 
 =========================
@@ -253,62 +252,20 @@ Debug Build
 Add "-DCMAKE_BUILD_TYPE=Debug" to the CMake command line.
 
 
-Self-Contained GCC Build
-------------------------
+Portable (semi-static) Build
+----------------------------
 
-If TigerVNC is built using GCC (including MinGW), then it may depend on the
-libgcc or libstdc++ dynamic libraries.  To eliminate this dependency, add
+TigerVNC can under favourble circumstances be built in a way that allows
+the resulting binaries to run on any system without having to also install
+all the dynamic libraries it depends on. Enable this mode by adding:
 
   -DBUILD_STATIC=1
 
 to the CMake command line.
 
-
-======================================
-Building High-Performance JPEG Support
-======================================
-
-In order to achieve its high levels of performance, TigerVNC relies on
-libjpeg-turbo (http://www.libjpeg-turbo.org), a derivative of libjpeg which
-uses SIMD instructions to accelerate baseline JPEG compression and
-decompression.  If you are building TigerVNC on an operating system that
-includes libjpeg-turbo as a system library (for instance, Fedora 14 and later),
-then the TigerVNC build system should detect the system version of
-libjpeg-turbo automatically and link against it.  However, this produces a
-version of TigerVNC that depends on the libjpeg-turbo dynamic libraries, and
-thus the TigerVNC binaries are not portable.
-
-To build a fully portable, cross-compatible version of TigerVNC with
-high-performance JPEG support, it is necessary to link against the
-libjpeg-turbo static library.  This is also necessary when building the
-Windows or OS X versions of TigerVNC.  To link against the libjpeg-turbo static
-library, first install the libjpeg-turbo SDK, which is available from
-https://sourceforge.net/projects/libjpeg-turbo/files/.  Next, use the
-JPEG_INCLUDE_DIR and JPEG_LIBRARY CMake variables to specify the location of
-libjpeg-turbo.  For example, adding
-
-  -DJPEG_INCLUDE_DIR=/opt/libjpeg-turbo/include \
-    -DJPEG_LIBRARY=/opt/libjpeg-turbo/lib/libjpeg.a
-
-to the CMake command line will link TigerVNC against a static version of
-libjpeg-turbo installed under /opt/TigerVNC (which is the normal install
-location for the libjpeg-turbo SDK on Unix and Linux platforms.)  Replace "lib"
-with "lib32" or "lib64" to use the 32-bit or 64-bit version of the library on
-64-bit Linux platforms.
-
-When building on Windows systems, adding
-
-  -DJPEG_INCLUDE_DIR=/c/libjpeg-turbo-gcc[64]/include \
-    -DJPEG_LIBRARY=/c/libjpeg-turbo-gcc[64]/lib/libjpeg.a
-
-to the CMake command line will link TigerVNC against the static version of
-libjpeg-turbo provided by the libjpeg-turbo SDK for GCC (MinGW.)
-
-CMake will report:
-
-  Performing Test FOUND_LIBJPEG_TURBO - Success
-
-if it successfully finds libjpeg-turbo.
+Note that the method used to achieve this is very fragile and it may be
+necessary to tweak cmake/StaticBuild.cmake to make things work on your
+specific system.
 
 
 =====================
@@ -388,87 +345,6 @@ libintl located under /opt/gettext.  Adding
 
 to the CMake command line would link TigerVNC against the static versions of
 libiconv and libintl included in the MinGW Developer Toolkit.
-
-
-===============================================
-Building Transport Layer Security (TLS) support
-===============================================
-
-VeNCrypt (the TigerVNC security and authentication extensions) can be built
-with TLS support, which provides built-in encryption for VNC sessions.  This
-requires GnuTLS, which is readily available in many Linux distributions but not
-as readily available in binary form on other types of systems.  This section
-describes the issues associated with building a version of TigerVNC with TLS
-support and how to work around those issues.
-
-
-Unix/Mac
---------
-
-In general, if you are building on a Unix-ish platform that has the GnuTLS
-libraries and include files installed in the standard system locations, then
-the TigerVNC build system should detect the system version of GnuTLS
-automatically and link against it.  However, this produces a version of
-TigerVNC that depends on the GnuTLS dynamic libraries, and thus the TigerVNC
-binaries are not portable.
-
-To build a fully portable, cross-compatible version of TigerVNC with TLS
-support, it is necessary to link against the GnuTLS static library (as well
-as the static libraries of its dependencies.)  If you are lucky enough, then
-your O/S distribution may include pre-packaged versions of these static
-libraries.  Otherwise, it will be necessary to build GnuTLS, libgcrypt,
-libtasn1, and libgpg-error from source.
-
-You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY CMake variables to
-build TigerVNC against a custom build of GnuTLS that is installed in a
-non-system directory.  For instance, adding
-
-  -DGNUTLS_INCLUDE_DIR=/opt/gnutls/include \
-    -DGNUTLS_LIBRARY='/opt/gnutls/lib/libgnutls.a;/opt/gnutls/lib/libgcrypt.a;/opt/gnutls/lib/libgpg-error.a;/opt/gnutls/lib/libtasn1.a' \
-    -DUSE_INCLUDED_ZLIB=1
-
-to the CMake or 'build-xorg build' command line will cause TigerVNC to be
-statically linked against a custom installation of GnuTLS that resides under
-/opt/gnutls.  GnuTLS depends on zlib, so specifying -DUSE_INCLUDED_ZLIB=1 will
-satisfy that dependency using TigerVNC's in-tree version of zlib, which
-prevents TigerVNC from depending on the libz dynamic library.
-
-
-MinGW
------
-
-An installer containing the GnuTLS header files, as well as static and dynamic
-link libraries for 32-bit MinGW, can be downloaded from the following site:
-
-http://josefsson.org/gnutls4win/
-
-As of this writing, GnuTLS cannot be built cleanly with MinGW64 due to the fact
-that portions of the code assume an LP64 data model (Windows uses LLP64.)
-Thus, it is not possible at this time to produce a Win64 version of TigerVNC
-with TLS support.
-
-Whether you use the above installer or build GnuTLS from source, make sure that
-you install the libraries and headers into a pathname that doesn't contain
-spaces (the installer will try to install under c:\Program Files unless you
-tell it otherwise.)  If the GnuTLS include path contains spaces, then the MinGW
-resource compiler will barf when you try to build TigerVNC.
-
-You can manipulate the GNUTLS_INCLUDE_DIR and GNUTLS_LIBRARY CMake variables to
-specify the directory under which you installed GnuTLS.  For instance, adding
-
-  -DGNUTLS_INCLUDE_DIR=/c/gnutls/include \
-    -DGNUTLS_LIBRARY=/c/gnutls/lib/libgnutls.dll.a
-
-to the CMake command line when using MinGW will cause TigerVNC to be linked
-against GnuTLS DLLs that are installed under c:\gnutls.
-
-Adding
-
-  -DGNUTLS_INCLUDE_DIR=/c/gnutls/include \
-    -DGNUTLS_LIBRARY='/c/gnutls/lib/libgnutls.a;/c/gnutls/lib/libgcrypt.a;/c/gnutls/lib/libtasn1.a;/c/gnutls/lib/libgpg-error.a'
-
-to the CMake command line will cause TigerVNC to be statically linked against
-GnuTLS libraries that are installed under c:\gnutls.
 
 
 ===================
