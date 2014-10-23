@@ -275,6 +275,7 @@ popd
 
 # Build all tigervnc
 cmake -G"Unix Makefiles" \
+  -DBUILD_STATIC=off \
   -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DJPEG_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \

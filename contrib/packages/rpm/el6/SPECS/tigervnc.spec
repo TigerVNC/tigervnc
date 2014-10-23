@@ -181,6 +181,7 @@ make %{?_smp_mflags}
 popd
 
 %{cmake28} -G"Unix Makefiles" \
+  -DBUILD_STATIC=off \
   -DCMAKE_INSTALL_PREFIX=%{_prefix} \
   -DFLTK_LIBRARIES="%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk.a;%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk_images.a;-lpng" \
   -DFLTK_INCLUDE_DIR=%{tigervnc_src_dir}/fltk-1.3.2
