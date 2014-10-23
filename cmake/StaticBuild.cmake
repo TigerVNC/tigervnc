@@ -34,7 +34,7 @@ if(BUILD_STATIC)
     set(GNUTLS_LIBRARIES "-Wl,-Bstatic -lgnutls -ltasn1")
 
     if(NETTLE_LIBRARY)
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp -lcrypt32")
     endif()
     if(GCRYPT_LIBRARY)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lgcrypt -lgpg-error")
