@@ -55,7 +55,6 @@ namespace rfb {
     rdr::U8 nAvailableTypes;
     rdr::U32 *availableTypes;
     rdr::U8 iAvailableType;
-    const char* desc;
   };
 }
 #endif
