@@ -34,13 +34,18 @@ if(BUILD_STATIC)
     set(GNUTLS_LIBRARIES "-Wl,-Bstatic -lgnutls -ltasn1")
 
     if(NETTLE_LIBRARY)
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp -lcrypt32")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp")
     endif()
     if(GCRYPT_LIBRARY)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lgcrypt -lgpg-error")
     endif()
 
     set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -Wl,-Bdynamic")
+
+    # GnuTLS uses various crypto-api stuff
+    if (WIN32)
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32")
+    endif()
 
     # nanosleep() lives here on Solaris
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
