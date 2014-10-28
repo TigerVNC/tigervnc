@@ -51,6 +51,15 @@ if(BUILD_STATIC)
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lrt")
     endif()
+
+    # GnuTLS uses gettext and zlib, so make sure those are always
+    # included and in the proper order
+    set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} ${ZLIB_LIBRARIES}")
+    set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} ${GETTEXT_LIBRARIES}")
+
+    # The last variables might introduce whitespace, which CMake
+    # throws a hissy fit about
+    string(STRIP ${GNUTLS_LIBRARIES} GNUTLS_LIBRARIES)
   endif()
 
   if(FLTK_FOUND)
