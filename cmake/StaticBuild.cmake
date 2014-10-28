@@ -8,7 +8,7 @@
 #
 
 option(BUILD_STATIC
-    "Link statically against most libraries, if possible" ON)
+    "Link statically against most libraries, if possible" OFF)
 
 if(BUILD_STATIC)
   message(STATUS "Attempting to link static binaries...")
