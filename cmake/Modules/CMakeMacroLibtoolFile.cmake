@@ -26,6 +26,8 @@ macro(libtool_create_control_file _target)
     endif()
   endforeach()
 
+  set(STATIC_MODE OFF)
+
   foreach(library ${target_libs})
     # Assume all entries are shared libs if platform-specific static library
     # extension is not matched.
@@ -43,8 +45,17 @@ macro(libtool_create_control_file _target)
         # No shared library extension matched.  Check whether target is a CMake
         # target.
         get_target_property(_ltp ${library} TYPE)
-        if(NOT _ltp AND NOT ${library} STREQUAL "general")
-          # Not a CMake target, so use find_library() to attempt to locate the
+        if(_ltp OR ${library} STREQUAL "general")
+          # Target is a CMake target, so ignore (CMake targets are static
+          # libs in TigerVNC.)
+        elseif(${library} STREQUAL "-Wl,-Bstatic")
+          # All following libraries should be static
+          set(STATIC_MODE ON)
+        elseif(${library} STREQUAL "-Wl,-Bdynamic")
+          # All following libraries should be dynamic
+          set(STATIC_MODE OFF)
+        else()
+          # Normal library, so use find_library() to attempt to locate the
           # library in a system directory.
 
           # Need to remove -l prefix
@@ -52,22 +63,28 @@ macro(libtool_create_control_file _target)
             string(REPLACE ${CMAKE_LINK_LIBRARY_FLAG} "" library ${library})
           endif()
 
+          if(STATIC_MODE)
+            set(library ${CMAKE_STATIC_LIBRARY_PREFIX}${library}${CMAKE_STATIC_LIBRARY_SUFFIX})
+          endif()
+
           find_library(FL ${library})
           if(FL)
-            # Found library, so extract the path and library name, then add the
+            # Found library. Depending on if it's static or not we might
+            # extract the path and library name, then add the
             # result to the libtool dependency libs.
-            get_filename_component(_shared_lib ${FL} NAME_WE)
-            get_filename_component(_shared_lib_path ${FL} PATH)
-            string(REPLACE "lib" "" _shared_lib ${_shared_lib})
-            set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
+            if(STATIC_MODE)
+              set(_target_dependency_libs "${_target_dependency_libs} ${FL}")
+            else()
+              get_filename_component(_shared_lib ${FL} NAME_WE)
+              get_filename_component(_shared_lib_path ${FL} PATH)
+              string(REPLACE "lib" "" _shared_lib ${_shared_lib})
+              set(_target_dependency_libs "${_target_dependency_libs} -L${_shared_lib_path} -l${_shared_lib}")
+            endif()
           else()
-            # No shared library found, so ignore target.
+            # No library found, so ignore target.
           endif()
           # Need to clear FL to get new results next loop
           unset(FL CACHE)
-        else()
-          # Target is a CMake target, so ignore if (CMake targets are static
-          # libs in TigerVNC.)
         endif()
       endif()
     else()
