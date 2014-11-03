@@ -68,10 +68,15 @@ const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
   list<rdr::U8> result;
   list<U32>::iterator i;
 
-  result.push_back(secTypeVeNCrypt);
+  bool VeNCryptPresent = false;
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
-    if (*i < 0x100)
+    if (*i < 0x100) {
       result.push_back(*i);
+    } else {
+      if(!VeNCryptPresent)
+        result.push_back(secTypeVeNCrypt);
+      VeNCryptPresent = true;
+    }
 
   return result;
 }
