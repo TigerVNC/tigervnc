@@ -14,7 +14,19 @@ macro(libtool_create_control_file _target)
   # into libtool control file as library dependencies, and handle a few corner
   # cases.
   #
+
+  # First we need to split up any internal entries
+  set(target_libs "")
   foreach(library ${${_target}_LIB_DEPENDS})
+    if("${library}" MATCHES " ")
+      string(REPLACE " " ";" lib_list "${library}")
+      list(APPEND target_libs ${lib_list})
+    else()
+      list(APPEND target_libs "${library}")
+    endif()
+  endforeach()
+
+  foreach(library ${target_libs})
     # Assume all entries are shared libs if platform-specific static library
     # extension is not matched.
     if("${library}" MATCHES "[^.+\\${CMAKE_STATIC_LIBRARY_SUFFIX}]$")
