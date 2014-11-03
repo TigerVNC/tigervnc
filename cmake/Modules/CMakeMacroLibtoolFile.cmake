@@ -46,6 +46,12 @@ macro(libtool_create_control_file _target)
         if(NOT _ltp AND NOT ${library} STREQUAL "general")
           # Not a CMake target, so use find_library() to attempt to locate the
           # library in a system directory.
+
+          # Need to remove -l prefix
+          if (${library} MATCHES "^\\${CMAKE_LINK_LIBRARY_FLAG}")
+            string(REPLACE ${CMAKE_LINK_LIBRARY_FLAG} "" library ${library})
+          endif()
+
           find_library(FL ${library})
           if(FL)
             # Found library, so extract the path and library name, then add the
