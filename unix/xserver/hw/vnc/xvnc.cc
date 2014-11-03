@@ -1318,12 +1318,22 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
     /* Make sure the CRTC has this output set */
     vncRandRCrtcSet(pScreen, crtc, NULL, 0, 0, RR_Rotate_0, 1, &output);
 
-    /* Populate a list of default modes */
-    RRModePtr modes[sizeof(vncRandRWidths)/sizeof(*vncRandRWidths)];
-    int num_modes;
+    /* Populate a list of modes */
+    RRModePtr modes[sizeof(vncRandRWidths)/sizeof(*vncRandRWidths) + 1];
+    int num_modes = 0;
 
-    num_modes = 0;
+    /* Start with requested mode */
+    mode = vncRandRModeGet(pScreen->width, pScreen->height);
+    if(mode != NULL) {
+      modes[num_modes] = mode;
+      num_modes++;
+    }
+
+    /* Add default modes */
     for (int i = 0;i < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);i++) {
+        if (vncRandRWidths[i] == pScreen->width && vncRandRHeights[i] == pScreen->height)
+            continue;
+
         mode = vncRandRModeGet(vncRandRWidths[i], vncRandRHeights[i]);
         if (mode != NULL) {
             modes[num_modes] = mode;
@@ -1331,7 +1341,7 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
         }
     }
 
-    RROutputSetModes(output, modes, num_modes, 0);
+    RROutputSetModes(output, modes, num_modes, 1);
 
     return crtc;
 }
