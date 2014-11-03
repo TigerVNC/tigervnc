@@ -45,6 +45,8 @@ macro(libtool_create_control_file _target)
           else()
             # No shared library found, so ignore target.
           endif()
+          # Need to clear FL to get new results next loop
+          unset(FL CACHE)
         else()
           # Target is a CMake target, so ignore if (CMake targets are static
           # libs in TigerVNC.)
@@ -69,6 +71,8 @@ macro(libtool_create_control_file _target)
         else()
           # No absolute pathname found.  Ignore it.
         endif()
+        # Need to clear FL to get new results next loop
+        unset(FL CACHE)
       endif()
     endif()
   endforeach()
