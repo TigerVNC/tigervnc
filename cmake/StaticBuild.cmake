@@ -8,7 +8,7 @@
 #
 
 option(BUILD_STATIC
-    "Link statically against most libraries, if possible" ON)
+    "Link statically against most libraries, if possible" OFF)
 
 if(BUILD_STATIC)
   message(STATUS "Attempting to link static binaries...")
@@ -39,7 +39,7 @@ if(BUILD_STATIC)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -ltasn1")
     endif()
     if(NETTLE_LIBRARY)
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp -lcrypt32")
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp")
     endif()
     if(GCRYPT_LIBRARY)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lgcrypt -lgpg-error")
@@ -47,31 +47,45 @@ if(BUILD_STATIC)
 
     set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -Wl,-Bdynamic")
 
+    # GnuTLS uses various crypto-api stuff
+    if (WIN32)
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32")
+    endif()
+
     # nanosleep() lives here on Solaris
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-      set(GNUTLS_LIBRARIES ${GNUTLS_LIBRARIES} -lrt)
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lrt")
     endif()
+
+    # GnuTLS uses gettext and zlib, so make sure those are always
+    # included and in the proper order
+    set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} ${ZLIB_LIBRARIES}")
+    set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} ${GETTEXT_LIBRARIES}")
+
+    # The last variables might introduce whitespace, which CMake
+    # throws a hissy fit about
+    string(STRIP ${GNUTLS_LIBRARIES} GNUTLS_LIBRARIES)
   endif()
 
   if(FLTK_FOUND)
     set(FLTK_LIBRARIES "-Wl,-Bstatic -lfltk_images -lpng -ljpeg -lfltk -Wl,-Bdynamic")
 
     if(WIN32)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} comctl32)
+      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lcomctl32")
     elseif(APPLE)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} "-framework Cocoa")
+      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -framework Cocoa")
     else()
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} m)
+      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lm")
     endif()
 
     if(X11_FOUND AND NOT APPLE)
       if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-        set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xfixes_LIB} "-Wl,-Bstatic -lXft -Wl,-Bdynamic" fontconfig Xext -R/usr/sfw/lib)
+        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xfixes_LIB} -Wl,-Bstatic -lXft -Wl,-Bdynamic -lfontconfig -lXext -R/usr/sfw/lib")
       else()
-        set(FLTK_LIBRARIES ${FLTK_LIBRARIES} "-Wl,-Bstatic -lXcursor -lXfixes -lXft -lfontconfig -lexpat -lfreetype -lbz2 -lXrender -lXext -lXinerama -Wl,-Bdynamic")
+        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lXcursor -lXfixes -lXft -lfontconfig -lexpat -lfreetype -lbz2 -lXrender -lXext -lXinerama -Wl,-Bdynamic")
       endif()
 
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} X11)
+      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lX11")
     endif()
   endif()
 
@@ -79,7 +93,7 @@ if(BUILD_STATIC)
   # them statically, even libXext. libX11 is somewhat stable, although
   # even it has had an ABI change once or twice.
   if(X11_FOUND AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -Wl,-Bdynamic" X11)
+    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -Wl,-Bdynamic -lX11")
     if(X11_XTest_LIB)
       set(X11_XTest_LIB "-Wl,-Bstatic -lXtst -Wl,-Bdynamic")
     endif()
@@ -92,7 +106,11 @@ if(BUILD_STATIC)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nodefaultlibs")
   set(STATIC_BASE_LIBRARIES "-Wl,-Bstatic -lstdc++ -Wl,-Bdynamic")
   if(WIN32)
-    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lmoldname -lmingwex -lgcc -lgcc_eh -lmsvcrt -lkernel32")
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -luser32 -lkernel32 -ladvapi32 -lshell32")
+    # mingw has some fun circular dependencies that requires us to link
+    # these things again
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
   else()
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lgcc -lgcc_eh -lc")
   endif()

@@ -67,12 +67,6 @@ StringParameter CSecurityTLS::X509CA("X509CA", "X509 CA certificate", "", ConfVi
 StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer);
 
 static LogWriter vlog("TLS");
-static LogWriter vlog_raw("RawTLS");
-
-static void debug_log(int level, const char* str)
-{
-  vlog_raw.debug("[%d]: %s", level, str);
-}
 
 void CSecurityTLS::initGlobal()
 {
@@ -80,13 +74,6 @@ void CSecurityTLS::initGlobal()
 
   if (!globalInitDone) {
     gnutls_global_init();
-
-    /* 100 means debug log */
-    if (vlog_raw.getLevel() >= 100) {
-      gnutls_global_set_log_level(10);
-      gnutls_global_set_log_function(debug_log);
-    }
-
     globalInitDone = true;
   }
 }
