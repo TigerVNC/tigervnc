@@ -30,14 +30,9 @@ if(BUILD_STATIC)
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
     FIND_LIBRARY(NETTLE_LIBRARY NAMES nettle libnettle
       HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
-    FIND_LIBRARY(TASN1_LIBRARY NAMES tasn1 libtasn1
-      HINTS ${PC_GNUTLS_LIBDIR} ${PC_GNUTLS_LIBRARY_DIRS})
 
-    set(GNUTLS_LIBRARIES "-Wl,-Bstatic -lgnutls")
+    set(GNUTLS_LIBRARIES "-Wl,-Bstatic -lgnutls -ltasn1")
 
-    if(TASN1_LIBRARY)
-      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -ltasn1")
-    endif()
     if(NETTLE_LIBRARY)
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lnettle -lhogweed -lgmp")
     endif()
