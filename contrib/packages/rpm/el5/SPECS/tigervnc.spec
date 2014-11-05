@@ -1043,6 +1043,8 @@ export CMAKE_PREFIX_PATH="%{xorg_buildroot}%{_prefix}:%{_prefix}"
 export CMAKE_EXE_LINKER_FLAGS="-static-libgcc -L%{xorg_buildroot}%{_libdir}"
 %{cmake28} -G"Unix Makefiles" \
   -DCMAKE_INSTALL_PREFIX=%{xorg_buildroot}%{_prefix} \
+  -DX11_INC_SEARCH_PATH=%{xorg_buildroot}%{_includedir} \
+  -DX11_LIB_SEARCH_PATH=%{xorg_buildroot}%{_libdir} \
   -DCMAKE_BUILD_TYPE=Release \
   -DOPTION_USE_THREADS=off \
   -DOPTION_BUILD_EXAMPLES=off \
@@ -1054,6 +1056,8 @@ echo "*** Building VNC ***"
 export CFLAGS="$CFLAGS -fPIC"
 export CXXFLAGS=`echo $CXXFLAGS | sed -e 's/ -c //g'`
 %{cmake28} -G"Unix Makefiles" \
+  -DX11_INC_SEARCH_PATH=%{xorg_buildroot}%{_includedir} \
+  -DX11_LIB_SEARCH_PATH=%{xorg_buildroot}%{_libdir} \
   -DFLTK_LIBRARY_DIR=%{tigervnc_src_dir}/fltk-1.3.2/lib \
   -DFLTK_LIBRARIES="%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk.a;%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk_images.a;-lpng" \
   -DFLTK_FLUID_EXECUTABLE=%{tigervnc_src_dir}/fltk-1.3.2/bin/fluid \
