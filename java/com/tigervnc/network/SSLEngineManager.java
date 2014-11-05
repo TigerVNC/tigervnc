@@ -41,14 +41,14 @@ public class SSLEngineManager {
   private ByteBuffer peerNetData;
 
   private Executor executor;
-  private FdInStream inStream;
-  private FdOutStream outStream;
+  private FdInStream in;
+  private FdOutStream os;
 
-  public SSLEngineManager(SSLEngine sslEngine, FdInStream is,
-                          FdOutStream os) throws IOException {
+  public SSLEngineManager(SSLEngine sslEngine, FdInStream is_,
+                          FdOutStream os_) throws IOException {
 
-    inStream = is;
-    outStream = os;
+    in = is_;
+    os = os_;
     engine = sslEngine;
 
     executor = Executors.newSingleThreadExecutor();
@@ -56,7 +56,8 @@ public class SSLEngineManager {
     pktBufSize = engine.getSession().getPacketBufferSize();
     appBufSize = engine.getSession().getApplicationBufferSize();
 
-    myAppData = ByteBuffer.allocate(appBufSize);
+    myAppData =
+      ByteBuffer.allocate(Math.max(appBufSize, os.getBufSize()));
     myNetData = ByteBuffer.allocate(pktBufSize);
     peerAppData = ByteBuffer.allocate(appBufSize);
     peerNetData = ByteBuffer.allocate(pktBufSize);
@@ -80,13 +81,14 @@ public class SSLEngineManager {
         SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
         peerNetData.compact();
         hs = res.getHandshakeStatus();
+        // Check status
         switch (res.getStatus()) {
           case BUFFER_UNDERFLOW:
-            int len = Math.min(peerNetData.remaining(), inStream.getBufSize());
-            int m = inStream.check(1, len, false);
-            byte[] buf = new byte[m];
-            inStream.readBytes(buf, 0, m);
-            peerNetData.put(buf, 0, m);
+            int max = Math.min(peerNetData.remaining(), in.getBufSize());
+            int m = in.check(1, max, true);
+            int pos = peerNetData.position();
+            in.readBytes(peerNetData.array(), pos, m);
+            peerNetData.position(pos+m);
             peerNetData.flip();
             peerNetData.compact();
             break;
@@ -102,7 +104,7 @@ public class SSLEngineManager {
         }
         break;
     
-      case NEED_WRAP :
+      case NEED_WRAP:
         // Empty the local network packet buffer.
         myNetData.clear();
     
@@ -112,20 +114,17 @@ public class SSLEngineManager {
     
         // Check status
         switch (res.getStatus()) {
-          case OK :
+          case OK:
             myAppData.compact();
             myNetData.flip();
-            int n = myNetData.remaining();
-            byte[] b = new byte[n];
-            myNetData.get(b);
+            os.writeBytes(myNetData.array(), 0, myNetData.remaining());
+            os.flush();
             myNetData.clear();
-            outStream.writeBytes(b, 0, n);
-            outStream.flush();
             break;
     
           case BUFFER_OVERFLOW:
             // FIXME: How much larger should the buffer be?
-            // fallthrough
+            break;
     
           case CLOSED:
             engine.closeOutbound();
@@ -133,7 +132,8 @@ public class SSLEngineManager {
     
         }
         break;
-      case NEED_TASK :
+
+      case NEED_TASK:
         // Handle blocking tasks
         executeTasks();
         break;
@@ -151,29 +151,28 @@ public class SSLEngineManager {
 
   public int read(byte[] data, int dataPtr, int length) throws IOException {
     // Read SSL/TLS encoded data from peer
-    int len = Math.min(pktBufSize,inStream.getBufSize());
-    int bytesRead = inStream.check(1,len,false);
-    byte[] buf = new byte[bytesRead];
-    inStream.readBytes(buf, 0, bytesRead);
-    if (peerNetData.remaining() < bytesRead) {
-      peerNetData.flip();
-      ByteBuffer b = ByteBuffer.allocate(peerNetData.remaining() + bytesRead);
-      b.put(peerNetData);
-      peerNetData = b;
-    }
-    peerNetData.put(buf);
+    int bytesRead = 0;
     peerNetData.flip();
     SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
     peerNetData.compact();
     switch (res.getStatus()) {
       case OK :
+        bytesRead = Math.min(length, res.bytesProduced());
         peerAppData.flip();
-        peerAppData.get(data, dataPtr, res.bytesProduced());
+        peerAppData.get(data, dataPtr, bytesRead);
         peerAppData.compact();
         break;
 
       case BUFFER_UNDERFLOW:
-        // normal (need more net data)
+        // need more net data
+        int pos = peerNetData.position();
+        // attempt to drain the underlying buffer first
+        int need = peerNetData.remaining();
+        int avail = in.check(1, in.getBufSize(), false);
+        if (avail < need)
+          avail = in.check(1, Math.min(need, in.getBufSize()), true);
+        in.readBytes(peerNetData.array(), pos, Math.min(need, avail));
+        peerNetData.position(pos+Math.min(need, avail));
         break;
 
       case CLOSED:
@@ -181,24 +180,28 @@ public class SSLEngineManager {
         break;
 
     }
-    return res.bytesProduced();
+    return bytesRead;
   }
 
   public int write(byte[] data, int dataPtr, int length) throws IOException {
     int n = 0;
-    // FIXME: resize myAppData if necessary
     myAppData.put(data, dataPtr, length);
     myAppData.flip();
     while (myAppData.hasRemaining()) {
       SSLEngineResult res = engine.wrap(myAppData, myNetData);
       n += res.bytesConsumed();
       switch (res.getStatus()) {
-        case BUFFER_OVERFLOW:
-          ByteBuffer b = ByteBuffer.allocate(myNetData.capacity() + myAppData.remaining());
-          myNetData.flip();
-          b.put(myNetData);
-          myNetData = b;
+        case OK:
           break;
+
+        case BUFFER_OVERFLOW:
+          // Make room in the buffer by flushing the outstream
+          myNetData.flip();
+          os.writeBytes(myNetData.array(), 0, myNetData.remaining());
+          os.flush();
+          myNetData.clear();
+          break;
+
         case CLOSED:
           engine.closeOutbound();
           break;
@@ -206,12 +209,9 @@ public class SSLEngineManager {
     }
     myAppData.clear();
     myNetData.flip();
-    int len = myNetData.remaining();
-    byte[] buf = new byte[len];
-    myNetData.get(buf);
+    os.writeBytes(myNetData.array(), 0, myNetData.remaining());
+    os.flush();
     myNetData.clear();
-    outStream.writeBytes(buf, 0, len);
-    outStream.flush();
     return n;
   }
 
