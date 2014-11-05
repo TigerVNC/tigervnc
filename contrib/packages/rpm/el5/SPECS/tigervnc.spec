@@ -1,5 +1,5 @@
 %define _default_patch_fuzz 2
-%define snap 20131128svn5139
+%define snap 20141104git3fd8b0e3
 %define mesa_version 7.7.1
 
 Name: tigervnc
@@ -16,11 +16,13 @@ Source0: %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1: vncserver.service
 Source2: vncserver.sysconfig
 Source6: vncviewer.desktop
+Source9: FindX11.cmake
 Source11: http://fltk.org/pub/fltk/1.3.2/fltk-1.3.2-source.tar.gz
 Source12: http://downloads.sourceforge.net/project/libjpeg-turbo/1.3.0/libjpeg-turbo-1.3.0.tar.gz
 
 # http://ftp.redhat.com/pub/redhat/linux/enterprise/6Client/en/os/SRPMS/xorg-x11-proto-devel-7.6-13.el6.src.rpm
 # http://ftp.redhat.com/pub/redhat/linux/enterprise/6Client/en/os/SRPMS/
+Source98: http://www.x.org/releases/X11R7.5/src/util/makedepend-1.0.2.tar.bz2
 Source99: http://xcb.freedesktop.org/dist/libpthread-stubs-0.3.tar.bz2
 Source100: http://www.x.org/releases/X11R7.5/src/lib/libICE-1.0.6.tar.bz2
 Source101: http://www.x.org/releases/X11R7.5/src/lib/libSM-1.1.1.tar.bz2
@@ -113,13 +115,25 @@ Source162: http://cgit.freedesktop.org/pixman/snapshot/pixman-0.26.0.tar.gz
 Source163: http://www.x.org/releases/X11R7.5/src/lib/libXres-1.0.4.tar.bz2
 Source164: http://www.x.org/releases/individual/lib/libXxf86misc-1.0.2.tar.bz2
 
+Source200: http://fontconfig.org/release/fontconfig-2.4.1.tar.gz
+Source201: 25-no-hint-fedora.conf
+Source202: 30-aliases-fedora.conf
+Source203: 40-generic-fedora.conf
+Source204: 64-nonlatin-fedora.conf
+Source205: 75-blacklist-fedora.conf
+
+Source210: fc-cache.1
+Source211: fc-cat.1
+Source212: fc-list.1
+Source213: fc-match.1
+
 # FIXME:
 # need to apply any patches in from the F12 srpms
-#http://dl.fedoraproject.org/pub/archive/fedora/linux/releases/12/Fedora/source/SRPMS/mesa-7.6-0.13.fc12.src.rpm
-#http://dl.fedoraproject.org/pub/archive/fedora/linux/releases/12/Fedora/source/SRPMS/pixman-0.16.2-1.fc12.src.rpm
-#http://vault.centos.org/6.3/os/Source/SPackages/pixman-0.18.4-1.el6_0.1.src.rpm
-#http://archive.fedoraproject.org/pub/archive/fedora/linux/releases/12/Everything/source/SRPMS/libdrm-2.4.15-4.fc12.src.rpm
-#http://dl.fedoraproject.org/pub/archive/fedora/linux/releases/12/Fedora/source/SRPMS/freetype-2.3.9-6.fc12.src.rpm
+# http://dl.fedoraproject.org/pub/archive/fedora/linux/releases/12/Fedora/source/SRPMS/mesa-7.6-0.13.fc12.src.rpm
+# http://dl.fedoraproject.org/pub/archive/fedora/linux/releases/12/Fedora/source/SRPMS/pixman-0.16.2-1.fc12.src.rpm
+# http://vault.centos.org/6.3/os/Source/SPackages/pixman-0.18.4-1.el6_0.1.src.rpm
+# http://archive.fedoraproject.org/pub/archive/fedora/linux/releases/12/Everything/source/SRPMS/libdrm-2.4.15-4.fc12.src.rpm
+# http://dl.fedoraproject.org/pub/archive/fedora/linux/releases/12/Fedora/source/SRPMS/freetype-2.3.9-6.fc12.src.rpm
 
 BuildRoot: %{_tmppath}/%{name}-%{version}%{?snap:-%{snap}}-%{release}-root-%(%{__id_u} -n)
 
@@ -131,6 +145,8 @@ BuildRequires: cmake28
 BuildRequires: pkgconfig >= 0.20
 BuildRequires: gcc44, gcc44-c++
 BuildRequires: glibc-devel, libstdc++-devel, libpng-devel
+BuildRequires: expat-devel
+BuildRequires: gperf, intltool, libtalloc-devel
 
 BuildRequires: openmotif-devel
 Requires: openmotif, openmotif22
@@ -147,9 +163,14 @@ Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 Patch4: tigervnc-cookie.patch
 Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
+# https://bugzilla.redhat.com/show_bug.cgi?id=692048
+Patch14: tigervnc-x0vncserver-static-libs-fix.patch
+Patch15: tigervnc-static-fltk.patch
 
 Patch101: tigervnc-ac-compatibility.patch
 Patch102: tigervnc-xorg-1.7.5-remove-copyisolatin1lowered.patch
+Patch124: fltk-1.3.2-libdl.patch
+Patch125: fltk-1.3.2-static-libs.patch
 
 # Patches from libdrm-2.4.15-4.fc12.src.rpm
 # hardcode the 666 instead of 660 for device nodes
@@ -461,9 +482,12 @@ rm -rf %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
 
 # sed -i -e 's/80/0/g' CMakeLists.txt
+cp %SOURCE9 cmake/Modules/
 %patch4 -p1 -b .cookie
 %patch10 -p1 -b .ldnow
 %patch11 -p1 -b .gethomedir
+%patch15 -p1 -b .static-fltk
+%patch14 -p1 -b .x0vncserver
 
 tar xzf %SOURCE11
 pushd fltk-*
@@ -471,12 +495,16 @@ for p in `find ../contrib/fltk -maxdepth 1 -type f -name "*.patch"|sort` ;
 do
   patch -p1 -i $p
 done
+cp %SOURCE9 CMake/
+%patch124 -p1 -b .libdl
+%patch125 -p1 -b .static-libs
 popd
 
 tar xzf %SOURCE12
 
 mkdir xorg
 pushd xorg
+tar xjf %SOURCE98
 tar xjf %SOURCE99
 tar xjf %SOURCE100
 tar xjf %SOURCE101
@@ -535,8 +563,8 @@ tar xjf %SOURCE153
 tar xjf %SOURCE154
 tar xjf %SOURCE155
 tar xjf %SOURCE156
-#tar xjf %SOURCE157
-#tar xjf %SOURCE158
+# tar xjf %SOURCE157
+# tar xjf %SOURCE158
 tar xjf %SOURCE159
 tar xjf %SOURCE160
 tar xjf %SOURCE161
@@ -544,8 +572,8 @@ tar xzf %SOURCE162
 tar xjf %SOURCE163
 tar xjf %SOURCE164
 popd
-cp -a unix/xserver xorg/xserver
-cp -a xorg/xorg-server-1.*/* xorg/xserver
+tar xzf %SOURCE200
+cp -a xorg/xorg-server-1.*/* unix/xserver
 pushd xorg
 pushd libdrm-*
 %patch133 -p1 -b .forceperms
@@ -637,9 +665,10 @@ pushd libXt-*
 %patch10400 -p1 -b .libsm-fix
 popd
 
-pushd xserver
-patch -p1 < %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}/unix/xserver17.patch
+popd
 
+pushd unix/xserver
+patch -p1 < %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}/unix/xserver17.patch
 for all in `find %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}/unix/xorg-7.5-patches/ -type f |grep '.*\.patch$'`; do
 	echo Applying $all
 	patch -p1 < $all
@@ -762,7 +791,6 @@ done
 
 %patch8000 -p1 -b .cve-2011-4818
 %patch8001 -p1 -b .cve-2011-4818-extra
-popd
 
 popd
 
@@ -771,79 +799,47 @@ popd
 %define static_lib_buildroot %{tigervnc_src_dir}/build
 export CC=gcc44
 export CXX=g++44
-export CFLAGS="$RPM_OPT_FLAGS"
-export CXXFLAGS="$CFLAGS"
-
-echo "*** Building fltk ***"
-pushd fltk-*
-export CFLAGS="$RPM_OPT_FLAGS"
+export CFLAGS="$RPM_OPT_FLAGS -fPIC"
 export CXXFLAGS="$CFLAGS -static-libgcc"
-%{cmake28} -G"Unix Makefiles" \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DOPTION_PREFIX_LIB=%{_libdir} \
-  -DOPTION_PREFIX_CONFIG=%{_libdir} \
-  -DOPTION_USE_THREADS=off \
-  -DOPTION_BUILD_EXAMPLES=off \
-  -DOPTION_USE_SYSTEM_LIBPNG=on
-make %{?_smp_mflags}
+
+%define xorg_buildroot %{tigervnc_src_dir}/xorg.build
+mkdir -p %{xorg_buildroot}%{_libdir}
+pushd %{xorg_buildroot}%{_libdir}
+ln -s `g++44 -print-file-name=libexpat.a`
+ln -s `g++44 -print-file-name=libgcrypt.a`
+ln -s `g++44 -print-file-name=libgpg-error.a`
+ln -s `g++44 -print-file-name=libgnutls.a`
+ln -s `g++44 -print-file-name=libstdc++.a`
+ln -s `g++44 -print-file-name=libcrypto.a`
+ln -s `g++44 -print-file-name=libz.a`
+ln -s `g++44 -print-file-name=libgcc.a`
+ln -s `g++44 -print-file-name=libpng.a`
 popd
 
 echo "*** Building libjpeg-turbo ***"
 pushd libjpeg-turbo-*
-export CFLAGS="$RPM_OPT_FLAGS -fPIC"
-export CXXFLAGS="$CFLAGS -static-libgcc"
 ./configure --prefix=%{_prefix} --libdir=%{_libdir} --disable-nls --enable-static --disable-shared
-make %{?_smp_mflags} DESTDIR=%{static_lib_buildroot} install
+make %{?_smp_mflags} DESTDIR=%{xorg_buildroot} install
 popd
 
-echo "*** Building VNC ***"
-export CFLAGS="$RPM_OPT_FLAGS -fPIC"
-export CXXFLAGS="$CFLAGS"
-%{cmake28} -G"Unix Makefiles" \
-  -DBUILD_STATIC=1 \
-  -DUSE_INCLUDED_ZLIB=1 \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DFLTK_LIBRARIES="%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk.a;%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk_images.a;`g++ -print-file-name=libpng.a`" \
-  -DFLTK_FLUID_EXECUTABLE=%{tigervnc_src_dir}/fltk-1.3.2/bin/fluid \
-  -DFLTK_INCLUDE_DIR=%{tigervnc_src_dir}/fltk-1.3.2 \
-  -DJPEG_INCLUDE_DIR=%{static_lib_buildroot}%{_includedir} \
-  -DJPEG_LIBRARY=%{static_lib_buildroot}%{_libdir}/libjpeg.a \
-  -DGNUTLS_LIBRARY='%{_libdir}/libgnutls.a;%{_libdir}/libgcrypt.a;%{_libdir}/libgpg-error.a'
-make %{?_smp_mflags}
-
-echo "*** Building Xorg ***"
-%define xorg_buildroot %{tigervnc_src_dir}/xorg.build
-mkdir -p %{xorg_buildroot}%{_libdir}
-pushd %{xorg_buildroot}%{_libdir}
-ln -s `g++ -print-file-name=libstdc++.a`
-ln -s `g++ -print-file-name=libcrypto.a`
-ln -s `g++ -print-file-name=libz.a`
-ln -s `g++ -print-file-name=libgcc.a`
-popd
 export CFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir}"
 export CXXFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir} -static-libgcc"
-export LDFLAGS="-L%{xorg_buildroot}%{_libdir} $LDFLAGS"
+export CPPFLAGS=$CXXFLAGS
+export LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir}"
 export ACLOCAL="aclocal -I %{xorg_buildroot}%{_datadir}/aclocal"
 export PKG_CONFIG_PATH="%{xorg_buildroot}%{_libdir}/pkgconfig:%{xorg_buildroot}%{_datadir}/pkgconfig"
+
+echo "*** Building Xorg ***"
 pushd xorg
-pushd util-macros-*
-echo "Building macros"
-./configure --prefix=/usr --libdir=%{_libdir} --disable-nls --enable-static --disable-shared
-make DESTDIR=%{xorg_buildroot} install
-find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir='%{_libdir}'|libdir='%{xorg_buildroot}%{_libdir}'|" {} \;
-find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
-find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=/usr|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
-popd
 
 echo "*** Building freetype ***"
 pushd freetype-*
-./configure --prefix=/usr --libdir=%{_libdir} --enable-static --disable-shared --with-libtool=/usr/bin/libtool --disable-nls CFLAGS="$CFLAGS -fno-strict-aliasing"
+CFLAGS="$CFLAGS -fno-strict-aliasing" LDFLAGS="$LDFLAGS -static" ./configure --prefix=/usr --libdir=%{_libdir} --enable-static --disable-shared
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' builds/unix/libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' builds/unix/libtool
 make DESTDIR=%{xorg_buildroot} install
 find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir='%{_libdir}'|libdir='%{xorg_buildroot}%{_libdir}'|" {} \;
-find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
 find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=/usr|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
 # fix multilib issues
 %ifarch x86_64 s390x ia64 ppc64 alpha sparc64
@@ -872,30 +868,41 @@ cat >%{xorg_buildroot}%{_includedir}/freetype2/freetype/config/ftconfig.h <<EOF
 EOF
 popd
 
+pushd util-macros-*
+echo "Building macros"
+./configure --prefix=/usr --libdir=%{_libdir} --disable-nls --enable-static --disable-shared
+make DESTDIR=%{xorg_buildroot} install
+find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir='%{_libdir}'|libdir='%{xorg_buildroot}%{_libdir}'|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=/usr|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
+popd
+
 modules="\
-    dri2proto \
-    glproto \
-    xf86vidmodeproto \
-    xextproto \
-    xproto \
-    kbproto \
-    inputproto \
-    xcmiscproto \
     bigreqsproto \
-    xf86bigfontproto \
-    fixesproto \
-    damageproto \
-    xf86driproto \
-    randrproto \
-    renderproto \
-    scrnsaverproto \
-    resourceproto \
-    fontsproto \
-    videoproto \
     compositeproto \
-    xineramaproto \
-    xf86dgaproto \
+    damageproto \
+    dri2proto \
+    fixesproto \
+    fontsproto \
+    glproto \
+    inputproto \
+    kbproto \
+    randrproto \
     recordproto \
+    renderproto \
+    resourceproto \
+    scrnsaverproto \
+    videoproto \
+    xproto \
+    xcmiscproto \
+    xextproto \
+    xf86bigfontproto \
+    xf86dgaproto \
+    xf86driproto \
+    xf86vidmodeproto \
+    xf86miscproto \
+    xineramaproto \
+    makedepend \
     xtrans \
     libXau \
     libXdmcp \
@@ -921,6 +928,7 @@ modules="\
     libxkbfile \
     libXrandr \
     libXres \
+    libXScrnSaver \
     libXtst \
     libXv \
     libXxf86dga \
@@ -938,17 +946,14 @@ for module in ${modules}; do
   echo ======================
 %ifarch i386 i686
   if [ "${module}" = "libdrm" ]; then
-    export CFLAGS=`echo $CFLAGS | sed -e 's/-march=i*86/-march=native/'`
+    extraoptions="${extraoptions} --disable-intel"
   fi
 %endif
   if [ "${module}" = "libXaw" ]; then
     extraoptions="${extraoptions} --disable-xaw8 --disable-xaw6"
   fi
-  #if [ "${module}" = "randrproto" ]; then
-  #  ./autogen.sh
-  #fi
   if [ "${module}" = "libX11" ]; then
-    extraoptions="${extraoptions} --without-xcb --disable-specs --disable-dependency-tracking"
+    extraoptions="${extraoptions} --without-xcb --disable-specs"
   fi
   if [ "${module}" = "libSM" ]; then
     extraoptions="${extraoptions} --without-libuuid"
@@ -962,13 +967,21 @@ for module in ${modules}; do
   if [ "${module}" = "libXfont" ]; then
     extraoptions="${extraoptions} --with-freetype-config=%{xorg_buildroot}%{_bindir}/freetype-config"
   fi
-  ./configure --prefix=/usr --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared
+  if [ "${module}" = "libpthread-stubs" ]; then
+    LDFLAGS="" ./configure --prefix=/usr --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
+  elif [ "${module}" = "libX11" ]; then
+    XDMCP_FLAGS="-L%{xorg_buildroot}%{_libdir} -Wl,-B,static -lXdmcp -lXau" ./configure --prefix=/usr --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
+  elif [ "${module}" = "libXtst" ]; then
+    XTST_FLAGS="-L%{xorg_buildroot}%{_libdir} -Wl,-B,static -lXext" ./configure --prefix=/usr --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
+  else
+    ./configure --prefix=/usr --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
+  fi
   echo ======================
   echo building ${module}
   echo ======================
   make DESTDIR=%{xorg_buildroot} install
   find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir='%{_libdir}'|libdir='%{xorg_buildroot}%{_libdir}'|" {} \;
-  find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+  find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
   find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=/usr|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
   popd
 done
@@ -982,8 +995,6 @@ pushd Mesa-*
 %else
 %define _mesa_flags --enable-pic
 %endif
-export CFLAGS="$RPM_OPT_FLAGS -fvisibility=hidden -Os"
-export CXXFLAGS="$RPM_OPT_FLAGS -fvisibility=hidden -Os -static-libgcc"
 
 # Need to set cfghost?
 ./configure \
@@ -1009,18 +1020,58 @@ export CXXFLAGS="$RPM_OPT_FLAGS -fvisibility=hidden -Os -static-libgcc"
 make DESTDIR=%{xorg_buildroot}
 make DESTDIR=%{xorg_buildroot} install
 find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir='%{_libdir}'|libdir='%{xorg_buildroot}%{_libdir}'|" {} \;
-find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
 find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=/usr|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
-#rm %{xorg_buildroot}%{_libdir}/dri/libdricore.so
 popd
 
 popd
-pushd xorg/xserver
-export CFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir}"
-export CXXFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir} -static-libgcc"
+
+echo "*** Building fontconfig ***"
+pushd fontconfig-*
+HASDOCBOOK=no ./configure --prefix=%{_prefix} --libdir=%{_libdir} --with-add-fonts=/usr/share/X11/fonts/Type1,/usr/share/X11/fonts/OTF --enable-static --disable-shared
+make %{?_smp_mflags}
+make DESTDIR=%{xorg_buildroot} install
+find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -exec sed -i -e "s|libdir='%{_libdir}'|libdir='%{xorg_buildroot}%{_libdir}'|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=/usr|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
+popd
+
+echo "*** Building fltk ***"
+pushd fltk-*
+export CMAKE_PREFIX_PATH="%{xorg_buildroot}%{_prefix}:%{_prefix}"
+export CMAKE_EXE_LINKER_FLAGS="-static-libgcc -L%{xorg_buildroot}%{_libdir}"
+%{cmake28} -G"Unix Makefiles" \
+  -DCMAKE_INSTALL_PREFIX=%{xorg_buildroot}%{_prefix} \
+  -DX11_INC_SEARCH_PATH=%{xorg_buildroot}%{_includedir} \
+  -DX11_LIB_SEARCH_PATH=%{xorg_buildroot}%{_libdir} \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DOPTION_USE_THREADS=off \
+  -DOPTION_BUILD_EXAMPLES=off \
+  -DOPTION_USE_SYSTEM_LIBPNG=on
+make %{?_smp_mflags}
+popd
+
+echo "*** Building VNC ***"
+export CFLAGS="$CFLAGS -fPIC"
+export CXXFLAGS=`echo $CXXFLAGS | sed -e 's/ -c //g'`
+%{cmake28} -G"Unix Makefiles" \
+  -DX11_INC_SEARCH_PATH=%{xorg_buildroot}%{_includedir} \
+  -DX11_LIB_SEARCH_PATH=%{xorg_buildroot}%{_libdir} \
+  -DFLTK_LIBRARY_DIR=%{tigervnc_src_dir}/fltk-1.3.2/lib \
+  -DFLTK_LIBRARIES="%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk.a;%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk_images.a;-lpng" \
+  -DFLTK_FLUID_EXECUTABLE=%{tigervnc_src_dir}/fltk-1.3.2/bin/fluid \
+  -DFLTK_INCLUDE_DIR=%{tigervnc_src_dir}/fltk-1.3.2 \
+  -DBUILD_STATIC=1 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_INCLUDED_ZLIB=0 \
+  -DCMAKE_INSTALL_PREFIX=%{_prefix}
+
+make %{?_smp_mflags}
+
+pushd unix/xserver
+export LD=$CXX
 export PIXMANINCDIR=%{xorg_buildroot}%{_includedir}/pixman-1
 autoreconf -fiv 
-
 ./configure --prefix=/usr --libdir=%{_libdir} --mandir=%{_datadir}/man \
 	--disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
 	--disable-xwin --disable-xephyr --disable-kdrive --with-pic \
@@ -1077,14 +1128,14 @@ popd
 # Build Java applet
 pushd java
 %{cmake28} .
-make
+LANG=C make
 popd
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
-pushd xorg/xserver/hw/vnc
+pushd unix/xserver/hw/vnc
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
 
