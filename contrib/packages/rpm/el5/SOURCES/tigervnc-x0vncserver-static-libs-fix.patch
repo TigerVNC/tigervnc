@@ -1,0 +1,22 @@
+--- a/unix/x0vncserver/CMakeLists.txt	2014-10-29 18:25:30.000000000 -0400
++++ b/unix/x0vncserver/CMakeLists.txt	2014-10-29 18:26:38.000000000 -0400
+@@ -31,7 +31,7 @@
+   message(WARNING "No DAMAGE extension.  x0vncserver will have to use the slower polling method.")
+ endif()
+ 
+-target_link_libraries(x0vncserver ${X11_LIBRARIES})
++target_link_libraries(x0vncserver ${X11_LIBRARIES} ${X11_Xdmcp_LIB} ${X11_Xau_LIB})
+ 
+ install(TARGETS x0vncserver DESTINATION ${BIN_DIR})
+ install(FILES x0vncserver.man DESTINATION ${MAN_DIR}/man1 RENAME x0vncserver.1)
+--- a/unix/vncconfig/CMakeLists.txt	2014-10-29 18:45:41.000000000 -0400
++++ b/unix/vncconfig/CMakeLists.txt	2014-10-29 18:46:17.000000000 -0400
+@@ -9,7 +9,7 @@
+   vncconfig.cxx
+   QueryConnectDialog.cxx)
+ 
+-target_link_libraries(vncconfig tx rfb network rdr ${X11_LIBRARIES})
++target_link_libraries(vncconfig tx rfb network rdr ${X11_LIBRARIES} ${X11_Xdmcp_LIB} ${X11_Xau_LIB})
+ 
+ install(TARGETS vncconfig DESTINATION ${BIN_DIR})
+ install(FILES vncconfig.man DESTINATION ${MAN_DIR}/man1 RENAME vncconfig.1)
