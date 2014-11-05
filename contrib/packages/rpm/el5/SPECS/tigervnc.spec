@@ -812,7 +812,6 @@ ln -s `g++44 -print-file-name=libgnutls.a`
 ln -s `g++44 -print-file-name=libstdc++.a`
 ln -s `g++44 -print-file-name=libcrypto.a`
 ln -s `g++44 -print-file-name=libz.a`
-ln -s `g++44 -print-file-name=libm.a`
 ln -s `g++44 -print-file-name=libgcc.a`
 ln -s `g++44 -print-file-name=libpng.a`
 popd
