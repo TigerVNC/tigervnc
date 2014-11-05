@@ -2,7 +2,7 @@
 
 Name: tigervnc
 Version: 1.3.80
-Release: 17%{?snap:.%{snap}}%{?dist}
+Release: 18%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -153,7 +153,7 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
 	chmod -x "$all"
 done
-patch -p1 -b --suffix .vnc < ../xserver113.patch
+patch -p1 -b --suffix .vnc < ../xserver115.patch
 popd
 
 %patch16 -p0 -b .man
@@ -332,6 +332,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Tue Nov 04 2014 Brian P. Hinz <bphinz@users.sourceforge.net> 1.3.80-18.20131128svn5139
+- Bumped xserver patch to keep pace with native version
+
 * Thu Nov 28 2013 Brian P. Hinz <bphinz@users.sourceforge.net> 1.3.80-17.20131128svn5139
 - Bumped version to 1.3.80
 - Cleaned up linter warnings
