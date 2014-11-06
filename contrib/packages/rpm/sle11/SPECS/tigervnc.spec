@@ -324,7 +324,7 @@ popd
 # Build java client
 pushd java
 cmake -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix}
-make %{?_smp_mflags}
+JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make %{?_smp_mflags}
 popd
 
 %install

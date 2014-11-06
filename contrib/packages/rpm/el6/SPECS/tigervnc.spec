@@ -219,7 +219,7 @@ popd
 # Build Java applet
 pushd java
 %{cmake28} .
-make
+JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
 popd
 
 %install
