@@ -218,7 +218,16 @@ popd
 
 # Build Java applet
 pushd java
-%{cmake28} .
+%{cmake28} \
+%if 0%{!?self_signed:1}
+	-DJAVA_KEYSTORE=%{_keystore} \
+	-DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
+	-DJAVA_KEY_ALIAS=%{_key_alias} \
+	-DJAVA_STOREPASS=":env STOREPASS" \
+	-DJAVA_KEYPASS=":env KEYPASS" \
+	-DJAVA_TSA_URL=https://timestamp.geotrust.com/tsa .
+%endif
+
 JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
 popd
 
