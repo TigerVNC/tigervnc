@@ -28,7 +28,6 @@
 #include <rdr/OutStream.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SecurityServer.h>
-#include <rfb/SSecurity.h>
 
 namespace rfb {
 

@@ -28,6 +28,7 @@
 #include <rfb/ServerCore.h>
 #include <rfb/encodings.h>
 #include <rfb/EncodeManager.h>
+#include <rfb/SSecurity.h>
 
 #include <rfb/LogWriter.h>
 
@@ -223,6 +224,7 @@ void SConnection::processSecurityMsg()
     if (done) {
       state_ = RFBSTATE_QUERYING;
       queryConnection(ssecurity->getUserName());
+      setAccessRights(ssecurity->getAccessRights());
     }
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
