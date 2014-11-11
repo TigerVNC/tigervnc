@@ -43,7 +43,7 @@ StringParameter SecurityServer::secTypes
 #endif
  ")",
 #ifdef HAVE_GNUTLS
- "VncAuth,TLSVnc",
+ "TLSVnc,VncAuth",
 #else
  "VncAuth",
 #endif
