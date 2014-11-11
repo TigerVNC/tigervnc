@@ -658,12 +658,20 @@ void DesktopWindow::maximizeWindow()
 
 void DesktopWindow::handleDesktopSize()
 {
-  int width, height;
+  if (desktopSize.hasBeenSet()) {
+    int width, height;
 
-  if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2)
-    return;
+    // An explicit size has been requested
 
-  remoteResize(width, height);
+    if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2)
+      return;
+
+    remoteResize(width, height);
+  } else if (::remoteResize) {
+    // No explicit size, but remote resizing is on so make sure it
+    // matches whatever size the window ended up being
+    remoteResize(w(), h());
+  }
 }
 
 
