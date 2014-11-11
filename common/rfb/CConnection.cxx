@@ -181,7 +181,7 @@ void CConnection::processSecurityTypesMsg()
     if (secType != secTypeInvalid) {
       os->writeU8(secType);
       os->flush();
-      vlog.debug("Choosing security type %s(%d)",secTypeName(secType),secType);
+      vlog.info("Choosing security type %s(%d)",secTypeName(secType),secType);
     }
   }
 

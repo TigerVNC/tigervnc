@@ -164,7 +164,7 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
 	  break;
       }
 
-      vlog.debug("Choosing security type %s (%d)", secTypeName(chosenType),
+      vlog.info("Choosing security type %s (%d)", secTypeName(chosenType),
 		 chosenType);
 
       /* Set up the stack according to the chosen type: */
