@@ -356,14 +356,11 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
     return;
   }
 
-  // - localhostOnly will mean "127.0.0.1 only", no IPv6
-  bool use_ipv6 = !localhostOnly;
+  bool use_ipv6;
   int af;
 #ifdef AF_INET6
-  if (use_ipv6)
-    af = AF_INET6;
-  else
-    af = AF_INET;
+  use_ipv6 = true;
+  af = AF_INET6;
 #else
   use_ipv6 = false;
   af = AF_INET;
@@ -411,8 +408,24 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
     memset(&addr6, 0, (sa_len = sizeof(addr6)));
     addr6.sin6_family = af;
     addr6.sin6_port = htons(port);
-    sa = (struct sockaddr *)&addr6;
-  } else {
+
+    if (localhostOnly)
+      addr6.sin6_addr = in6addr_loopback;
+    else if (listenaddr != NULL) {
+#ifdef HAVE_INET_PTON
+      if (inet_pton(AF_INET6, listenaddr, &addr6.sin6_addr) != 1)
+	use_ipv6 = false;
+#else
+      // Unable to parse without inet_pton
+      use_ipv6 = false;
+#endif
+    }
+
+    if (use_ipv6)
+      sa = (struct sockaddr *)&addr6;
+  }
+
+  if (!use_ipv6) {
     memset(&addr, 0, (sa_len = sizeof(addr)));
     addr.sin_family = af;
     addr.sin_port = htons(port);

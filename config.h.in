@@ -2,6 +2,7 @@
 #define PACKAGE_VERSION "@VERSION@"
 
 #cmakedefine HAVE_INET_ATON
+#cmakedefine HAVE_INET_PTON
 #cmakedefine HAVE_GETADDRINFO
 #cmakedefine HAVE_GNUTLS_SET_GLOBAL_ERRNO
 #cmakedefine HAVE_GNUTLS_SET_ERRNO
