@@ -356,9 +356,38 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
     return;
   }
 
+  // - localhostOnly will mean "127.0.0.1 only", no IPv6
+  bool use_ipv6 = !localhostOnly;
+  int af;
+#ifdef AF_INET6
+  if (use_ipv6)
+    af = AF_INET6;
+  else
+    af = AF_INET;
+#else
+  use_ipv6 = false;
+  af = AF_INET;
+#endif
+
   initSockets();
-  if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    throw SocketException("unable to create listening socket", errorNumber);
+  if ((fd = socket(af, SOCK_STREAM, 0)) < 0) {
+    // - Socket creation failed
+    if (use_ipv6) {
+      // - Trying to make an IPv6-capable socket failed - try again, IPv4-only
+      use_ipv6 = false;
+      af = AF_INET;
+      fd = socket(af, SOCK_STREAM, 0);
+    }
+    if (fd < 0)
+      throw SocketException("unable to create listening socket", errorNumber);
+  } else {
+    // - Socket creation succeeded
+    if (use_ipv6) {
+      // - We made an IPv6-capable socket, and we need it to do IPv4 too
+      int opt = 0;
+      setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt));
+    }
+  }
 
 #ifndef WIN32
   // - By default, close the socket on exec()
@@ -375,27 +404,41 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
 
   // - Bind it to the desired port
   struct sockaddr_in addr;
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
+  struct sockaddr_in6 addr6;
+  struct sockaddr *sa;
+  int sa_len;
+  if (use_ipv6) {
+    memset(&addr6, 0, (sa_len = sizeof(addr6)));
+    addr6.sin6_family = af;
+    addr6.sin6_port = htons(port);
+    sa = (struct sockaddr *)&addr6;
+  } else {
+    memset(&addr, 0, (sa_len = sizeof(addr)));
+    addr.sin_family = af;
+    addr.sin_port = htons(port);
 
-  if (localhostOnly) {
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-  } else if (listenaddr != NULL) {
+    if (localhostOnly) {
+      addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    } else if (listenaddr != NULL) {
 #ifdef HAVE_INET_ATON
-    if (inet_aton(listenaddr, &addr.sin_addr) == 0)
+      if (inet_aton(listenaddr, &addr.sin_addr) == 0)
 #else
-    /* Some systems (e.g. Windows) do not have inet_aton, sigh */
-    if ((addr.sin_addr.s_addr = inet_addr(listenaddr)) == INADDR_NONE)
+	/* Some systems (e.g. Windows) do not have inet_aton, sigh */
+	if ((addr.sin_addr.s_addr = inet_addr(listenaddr)) == INADDR_NONE)
 #endif
-    {
-      closesocket(fd);
-      throw Exception("invalid network interface address: %s", listenaddr);
-    }
-  } else
-    addr.sin_addr.s_addr = htonl(INADDR_ANY); /* Bind to 0.0.0.0 by default. */
+	{
+	  closesocket(fd);
+	  throw Exception("invalid network interface address: %s", listenaddr);
+	}
+    } else
+      /* Bind to 0.0.0.0 by default. */
+      addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    sa = (struct sockaddr *)&addr;
+  }
 
   addr.sin_port = htons(port);
-  if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+  if (bind(fd, sa, sa_len) < 0) {
     int e = errorNumber;
     closesocket(fd);
     throw SocketException("unable to bind listening socket", e);
