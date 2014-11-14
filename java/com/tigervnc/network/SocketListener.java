@@ -36,11 +36,8 @@ abstract public class SocketListener {
   // if one is installed.  Otherwise, returns 0.
   abstract public Socket accept();
 
-  // setFilter() applies the specified filter to all new connections
-  //public void setFilter(ConnectionFilter* f) {filter = f;}
   public FileDescriptor getFd() {return fd;}
 
   protected FileDescriptor fd;
-  //protected ConnectionFilter* filter;
 
 }

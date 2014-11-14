@@ -58,7 +58,6 @@ abstract public class Socket {
   // Is the remote end on the same machine?
   abstract public boolean sameMachine();
 
-  // Was there a "?" in the ConnectionFilter used to accept this Socket?
   public void setRequiresQuery() {queryConnection = true;}
   public final boolean requiresQuery() {return queryConnection;}
 
@@ -78,29 +77,3 @@ abstract public class Socket {
   boolean isShutdown_;
   boolean queryConnection;
 }
-
-/*
-abstract class ConnectionFilter {
-  public abstract boolean verifyConnection(Socket s);
-};
-
-abstract class SocketListener {
-  public SocketListener() {
-    fd = null; filter = null;
-  }
-
-  // shutdown() stops the socket from accepting further connections
-  public abstract void shutdown();
-
-  // accept() returns a new Socket object if there is a connection
-  // attempt in progress AND if the connection passes the filter
-  // if one is installed.  Otherwise, returns 0.
-  public abstract Socket accept();
-
-  // setFilter() applies the specified filter to all new connections
-  public void setFilter(ConnectionFilter f) {filter = f;}
-  //public SocketDescriptor getFd() {return fd;}
-  protected FileDescriptor fd;
-  protected ConnectionFilter filter;
-};
-*/
