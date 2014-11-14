@@ -113,8 +113,7 @@ public class TcpSocket extends Socket {
   }
 
   public int getMyPort() {
-    SocketAddress address = ((SocketDescriptor)getFd()).socket().getLocalSocketAddress();
-    return ((InetSocketAddress)address).getPort();
+    return getSockPort();
   }
 
   public String getPeerAddress() {
@@ -184,7 +183,7 @@ public class TcpSocket extends Socket {
   }
 
   public int getSockPort() {
-    return ((InetSocketAddress)((SocketDescriptor)getFd()).socket().getRemoteSocketAddress()).getPort();
+    return ((SocketDescriptor)getFd()).socket().getLocalPort();
   }
 
   /* Tunnelling support. */

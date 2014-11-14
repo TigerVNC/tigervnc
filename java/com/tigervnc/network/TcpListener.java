@@ -144,9 +144,9 @@ public class TcpListener extends SocketListener  {
     return s;
   }
 
-  //public int getMyPort() {
-  //  return TcpSocket.getSockPort();
-  //}
+  public int getMyPort() {
+    return ((SocketDescriptor)getFd()).socket().getLocalPort();
+  }
 
   private boolean closeFd;
   private ServerSocketChannel channel;
