@@ -29,7 +29,7 @@ abstract public class SocketListener {
   public SocketListener() {}
 
   // shutdown() stops the socket from accepting further connections
-  abstract public void shutdown();
+  abstract public void shutdown() throws Exception;
 
   // accept() returns a new Socket object if there is a connection
   // attempt in progress AND if the connection passes the filter

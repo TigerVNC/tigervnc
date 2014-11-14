@@ -84,12 +84,21 @@ public class TcpListener extends SocketListener  {
     this(listenaddr, port, false, null, true);
   }
 
-//  TcpListener::~TcpListener() {
-//    if (closeFd) closesocket(fd);
-//  }
+  protected void finalize() throws Exception {
+    if (closeFd)
+      try {
+        ((SocketDescriptor)getFd()).close();
+      } catch (IOException e) {
+        throw new Exception(e.getMessage());
+      }
+  }
 
-  public void shutdown() {
-    //shutdown(getFd(), 2);
+  public void shutdown() throws Exception {
+    try {
+      ((SocketDescriptor)getFd()).shutdown();
+    } catch (IOException e) {
+      throw new Exception(e.getMessage());
+    }
   }
 
   public TcpSocket accept() {
