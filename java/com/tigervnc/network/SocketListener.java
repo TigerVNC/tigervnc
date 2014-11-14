@@ -29,18 +29,15 @@ abstract public class SocketListener {
   public SocketListener() {}
 
   // shutdown() stops the socket from accepting further connections
-  abstract public void shutdown();
+  abstract public void shutdown() throws Exception;
 
   // accept() returns a new Socket object if there is a connection
   // attempt in progress AND if the connection passes the filter
   // if one is installed.  Otherwise, returns 0.
   abstract public Socket accept();
 
-  // setFilter() applies the specified filter to all new connections
-  //public void setFilter(ConnectionFilter* f) {filter = f;}
   public FileDescriptor getFd() {return fd;}
 
   protected FileDescriptor fd;
-  //protected ConnectionFilter* filter;
 
 }

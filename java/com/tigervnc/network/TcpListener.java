@@ -84,12 +84,21 @@ public class TcpListener extends SocketListener  {
     this(listenaddr, port, false, null, true);
   }
 
-//  TcpListener::~TcpListener() {
-//    if (closeFd) closesocket(fd);
-//  }
+  protected void finalize() throws Exception {
+    if (closeFd)
+      try {
+        ((SocketDescriptor)getFd()).close();
+      } catch (IOException e) {
+        throw new Exception(e.getMessage());
+      }
+  }
 
-  public void shutdown() {
-    //shutdown(getFd(), 2);
+  public void shutdown() throws Exception {
+    try {
+      ((SocketDescriptor)getFd()).shutdown();
+    } catch (IOException e) {
+      throw new Exception(e.getMessage());
+    }
   }
 
   public TcpSocket accept() {
@@ -132,32 +141,12 @@ public class TcpListener extends SocketListener  {
     }
     fd.setChannel(new_sock);
     TcpSocket s = new TcpSocket(fd);
-    //if (filter && !filter->verifyConnection(s)) {
-    //  delete s;
-    //  return 0;
-    //}
     return s;
   }
 
-/*
-void TcpListener::getMyAddresses(std::list<char*>* result) {
-  const hostent* addrs = gethostbyname(0);
-  if (addrs == 0)
-    throw rdr::SystemException("gethostbyname", errorNumber);
-  if (addrs->h_addrtype != AF_INET)
-    throw rdr::Exception("getMyAddresses: bad family");
-  for (int i=0; addrs->h_addr_list[i] != 0; i++) {
-    const char* addrC = inet_ntoa(*((struct in_addr*)addrs->h_addr_list[i]));
-    char* addr = new char[strlen(addrC)+1];
-    strcpy(addr, addrC);
-    result->push_back(addr);
+  public int getMyPort() {
+    return ((SocketDescriptor)getFd()).socket().getLocalPort();
   }
-}
-  */
-
-  //public int getMyPort() {
-  //  return TcpSocket.getSockPort();
-  //}
 
   private boolean closeFd;
   private ServerSocketChannel channel;

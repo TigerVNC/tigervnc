@@ -457,7 +457,7 @@ public class VncViewer extends javax.swing.JApplet
       while (true) {
         Socket new_sock = listener.accept();
         if (new_sock != null)
-          newViewer(this, new_sock);
+          newViewer(this, new_sock, true);
       }
     }
 
