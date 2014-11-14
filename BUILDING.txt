@@ -15,6 +15,7 @@ Build Requirements (All Systems)
 
 -- If building TLS support:
    * GnuTLS
+   * See "Building TLS Support" below.
 
 -- If building native language support (NLS):
    * Gnu gettext 0.14.4 or later
@@ -319,6 +320,28 @@ or ":file " (see the jarsigner documentation for more info):
     ...
     -DJAVA_STOREPASS=":env StorePass"
     -DJAVA_KEYPASS=":env KeyPass"
+
+
+======================================
+Building TLS Support
+======================================
+
+TLS requires GnuTLS, which is supplied with most Linux distributions and
+with MinGW for Windows and can be built from source on OS X and other 
+Unix variants. However, GnuTLS versions > 2.12.x && < 3.3.x should be
+avoided because of potential incompatibilities during initial handshaking.
+
+You can override the GNUTLS_LIBRARY and GNUTLS_INCLUDE_DIR CMake variables
+to specify the locations of libgnutls and any dependencies.  For instance,
+adding
+
+  -DGNUTLS_INCLUDE_DIR=/usr/local/include \
+  -DGNUTLS_LIBRARY="/usr/local/lib/libgnutls.a; \
+                    /usr/local/lib/libgcrypt.a; \
+                    /usr/local/lib/libgpg-error.a"
+
+to the CMake command line would link TigerVNC against a static version of
+libgnutls located under /usr/local.
 
 
 ======================================
