@@ -239,14 +239,43 @@ int TcpSocket::getMyPort() {
 }
 
 char* TcpSocket::getPeerAddress() {
-  struct sockaddr_in  info;
-  struct in_addr    addr;
-  socklen_t info_size = sizeof(info);
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
+  const void *addr;
+#if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
+  char buffer[INET6_ADDRSTRLEN];
+#else
+  char buffer[46];
+#endif /* defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON) */
 
-  getpeername(getFd(), (struct sockaddr *)&info, &info_size);
-  memcpy(&addr, &info.sin_addr, sizeof(addr));
+  if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
+    vlog.error("unable to get peer name for socket");
+    return rfb::strDup("");
+  }
+
+  switch (sa.u.sa.sa_family) {
+#ifdef HAVE_GETADDRINFO
+  case AF_INET6:
+    addr = &sa.u.sin6.sin6_addr;
+    break;
+#endif /* HAVE_GETADDRINFO */
+
+  default:
+    addr = &sa.u.sin.sin_addr;
+    break;
+  }
+
+#ifdef HAVE_INET_PTON
+  const char* name = inet_ntop(sa.u.sa.sa_family, addr,
+			       buffer, sizeof (buffer));
+#else
+  if (sa.u.sa.sa_family != AF_INET) {
+    vlog.error("unable to convert non-IPv4 address to string");
+    return rfb::strDup("");
+  }
 
   char* name = inet_ntoa(addr);
+#endif /* HAVE_INET_PTON */
   if (name) {
     return rfb::strDup(name);
   } else {
@@ -255,11 +284,20 @@ char* TcpSocket::getPeerAddress() {
 }
 
 int TcpSocket::getPeerPort() {
-  struct sockaddr_in  info;
-  socklen_t info_size = sizeof(info);
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
 
-  getpeername(getFd(), (struct sockaddr *)&info, &info_size);
-  return ntohs(info.sin_port);
+  getpeername(getFd(), &sa.u.sa, &sa_size);
+
+  switch (sa.u.sa.sa_family) {
+#ifdef HAVE_GETADDRINFO
+  case AF_INET6:
+    return ntohs(sa.u.sin6.sin6_port);
+#endif /* HAVE_GETADDRINFO */
+
+  default:
+    return ntohs(sa.u.sin.sin_port);
+  }
 }
 
 char* TcpSocket::getPeerEndpoint() {
@@ -326,25 +364,34 @@ bool TcpSocket::cork(int sock, bool enable) {
 
 bool TcpSocket::isSocket(int sock)
 {
-  struct sockaddr_in info;
-  socklen_t info_size = sizeof(info);
-  return getsockname(sock, (struct sockaddr *)&info, &info_size) >= 0;
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
+  return getsockname(sock, &sa.u.sa, &sa_size) >= 0;
 }
 
 bool TcpSocket::isConnected(int sock)
 {
-  struct sockaddr_in info;
-  socklen_t info_size = sizeof(info);
-  return getpeername(sock, (struct sockaddr *)&info, &info_size) >= 0;
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
+  return getpeername(sock, &sa.u.sa, &sa_size) >= 0;
 }
 
 int TcpSocket::getSockPort(int sock)
 {
-  struct sockaddr_in info;
-  socklen_t info_size = sizeof(info);
-  if (getsockname(sock, (struct sockaddr *)&info, &info_size) < 0)
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
+  if (getsockname(sock, &sa.u.sa, &sa_size) < 0)
     return 0;
-  return ntohs(info.sin_port);
+
+  switch (sa.u.sa.sa_family) {
+#ifdef HAVE_GETADDRINFO
+  case AF_INET6:
+    return ntohs(sa.u.sin6.sin6_port);
+#endif /* HAVE_GETADDRINFO */
+
+  default:
+    return ntohs(sa.u.sin.sin_port);
+  }
 }
 
 
@@ -515,6 +562,30 @@ TcpListener::accept() {
 }
 
 void TcpListener::getMyAddresses(std::list<char*>* result) {
+#if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
+  vnc_sockaddr_t sa;
+  struct addrinfo *ai, *current, hints;
+
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_canonname = NULL;
+  hints.ai_addr = NULL;
+  hints.ai_next = NULL;
+
+  if ((getaddrinfo(NULL, NULL, &hints, &ai)) != 0)
+    return;
+
+  for (current= ai; current != NULL; current = current->ai_next) {
+    if (current->ai_family != AF_INET && current->ai_family != AF_INET6)
+      continue;
+
+    char *addr = new char[INET6_ADDRSTRLEN];
+    inet_ntop(current->ai_family, current->ai_addr, addr, INET6_ADDRSTRLEN);
+    result->push_back(addr);
+  }
+  freeaddrinfo(ai);
+#else
   const hostent* addrs = gethostbyname(0);
   if (addrs == 0)
     throw rdr::SystemException("gethostbyname", errorNumber);
@@ -526,6 +597,7 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
     strcpy(addr, addrC);
     result->push_back(addr);
   }
+#endif /* defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON) */
 }
 
 int TcpListener::getMyPort() {
@@ -558,6 +630,15 @@ patternMatchIP(const TcpFilter::Pattern& pattern, const char* value) {
 bool
 TcpFilter::verifyConnection(Socket* s) {
   rfb::CharArray name;
+
+#ifdef HAVE_GETADDRINFO
+  vnc_sockaddr_t sa;
+  socklen_t sa_size = sizeof(sa);
+  if (getpeername(s->getFd(), &sa.u.sa, &sa_size) != 0 ||
+      sa.u.sa.sa_family != AF_INET)
+    /* Matching only works for IPv4 */
+    return false;
+#endif /* HAVE_GETADDRINFO */
 
   name.buf = s->getPeerAddress();
   std::list<TcpFilter::Pattern>::iterator i;
