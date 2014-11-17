@@ -358,7 +358,7 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
 
   bool use_ipv6;
   int af;
-#ifdef AF_INET6
+#ifdef HAVE_GETADDRINFO
   use_ipv6 = true;
   af = AF_INET6;
 #else
@@ -380,9 +380,14 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
   } else {
     // - Socket creation succeeded
     if (use_ipv6) {
+#ifdef IPV6_V6ONLY
       // - We made an IPv6-capable socket, and we need it to do IPv4 too
       int opt = 0;
       setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt));
+#else
+      vlog.error("IPV6_V6ONLY support is missing. "
+		 "IPv4 clients may not be able to connect.");
+#endif
     }
   }
 
@@ -401,9 +406,13 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
 
   // - Bind it to the desired port
   struct sockaddr_in addr;
+#ifdef HAVE_GETADDRINFO
   struct sockaddr_in6 addr6;
+#endif
   struct sockaddr *sa;
   int sa_len;
+
+#ifdef HAVE_GETADDRINFO
   if (use_ipv6) {
     memset(&addr6, 0, (sa_len = sizeof(addr6)));
     addr6.sin6_family = af;
@@ -424,6 +433,7 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
     if (use_ipv6)
       sa = (struct sockaddr *)&addr6;
   }
+#endif
 
   if (!use_ipv6) {
     memset(&addr, 0, (sa_len = sizeof(addr)));
