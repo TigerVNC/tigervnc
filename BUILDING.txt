@@ -336,9 +336,7 @@ to specify the locations of libgnutls and any dependencies.  For instance,
 adding
 
   -DGNUTLS_INCLUDE_DIR=/usr/local/include \
-  -DGNUTLS_LIBRARY="/usr/local/lib/libgnutls.a; \
-                    /usr/local/lib/libgcrypt.a; \
-                    /usr/local/lib/libgpg-error.a"
+  -DGNUTLS_LIBRARY=/usr/local/lib/libgnutls.a
 
 to the CMake command line would link TigerVNC against a static version of
 libgnutls located under /usr/local.
