@@ -241,46 +241,42 @@ int TcpSocket::getMyPort() {
 char* TcpSocket::getPeerAddress() {
   vnc_sockaddr_t sa;
   socklen_t sa_size = sizeof(sa);
-  const void *addr;
-#if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
-  char buffer[INET6_ADDRSTRLEN];
-#else
-  char buffer[46];
-#endif /* defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON) */
 
   if (getpeername(getFd(), &sa.u.sa, &sa_size) != 0) {
     vlog.error("unable to get peer name for socket");
     return rfb::strDup("");
   }
 
-  switch (sa.u.sa.sa_family) {
-#ifdef HAVE_GETADDRINFO
-  case AF_INET6:
-    addr = &sa.u.sin6.sin6_addr;
-    break;
-#endif /* HAVE_GETADDRINFO */
+#if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
+  if (sa.u.sa.sa_family == AF_INET6) {
+    char buffer[INET6_ADDRSTRLEN];
+    const char *name;
 
-  default:
-    addr = &sa.u.sin.sin_addr;
-    break;
-  }
+    name = inet_ntop(sa.u.sa.sa_family, &sa.u.sin6.sin6_addr,
+                     buffer + 1, sizeof(buffer));
+    if (name == NULL) {
+      vlog.error("unable to convert peer name to a string");
+      return rfb::strDup("");
+    }
 
-#ifdef HAVE_INET_PTON
-  const char* name = inet_ntop(sa.u.sa.sa_family, addr,
-			       buffer, sizeof (buffer));
-#else
-  if (sa.u.sa.sa_family != AF_INET) {
-    vlog.error("unable to convert non-IPv4 address to string");
-    return rfb::strDup("");
-  }
-
-  char* name = inet_ntoa(sa.u.sin.sin_addr);
-#endif /* HAVE_INET_PTON */
-  if (name) {
     return rfb::strDup(name);
-  } else {
-    return rfb::strDup("");
   }
+#endif
+
+  if (sa.u.sa.sa_family == AF_INET) {
+    char *name;
+
+    name = inet_ntoa(sa.u.sin.sin_addr);
+    if (name == NULL) {
+      vlog.error("unable to convert peer name to a string");
+      return rfb::strDup("");
+    }
+
+    return rfb::strDup(name);
+  }
+
+  vlog.error("unknown address family for socket");
+  return rfb::strDup("");
 }
 
 int TcpSocket::getPeerPort() {
@@ -294,9 +290,10 @@ int TcpSocket::getPeerPort() {
   case AF_INET6:
     return ntohs(sa.u.sin6.sin6_port);
 #endif /* HAVE_GETADDRINFO */
-
-  default:
+  case AF_INET:
     return ntohs(sa.u.sin.sin_port);
+  default:
+    return 0;
   }
 }
 
@@ -331,7 +328,11 @@ bool TcpSocket::sameMachine() {
 				&myaddr.u.sin6.sin6_addr);
 #endif
 
-  return (peeraddr.u.sin.sin_addr.s_addr == myaddr.u.sin.sin_addr.s_addr);
+  if (peeraddr.u.sa.sa_family == AF_INET)
+    return (peeraddr.u.sin.sin_addr.s_addr == myaddr.u.sin.sin_addr.s_addr);
+
+  // No idea what this is. Assume we're on different machines.
+  return false;
 }
 
 void TcpSocket::shutdown()
