@@ -30,7 +30,7 @@ FLTKPixelBuffer::FLTKPixelBuffer(int width, int height) :
 {
   data = new rdr::U8[width * height * format.bpp/8];
   if (data == NULL)
-    throw rfb::Exception(_("Error: Not enough memory for framebuffer"));
+    throw rfb::Exception(_("Not enough memory for framebuffer"));
 }
 
 FLTKPixelBuffer::~FLTKPixelBuffer()
