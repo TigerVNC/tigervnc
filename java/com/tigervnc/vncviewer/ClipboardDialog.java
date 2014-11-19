@@ -37,6 +37,14 @@ class ClipboardDialog extends Dialog implements ActionListener {
     // clipboard transfers to VncViewer.maxCutText.getValue() bytes.
     private LogWriter vlog = new LogWriter("VncTransferHandler");
 
+    public void exportToClipboard(JComponent c, Clipboard clip, int a)
+        throws IllegalStateException {
+      if (!(c instanceof JTextComponent)) return;
+      StringSelection selection =
+        new StringSelection(((JTextComponent)c).getText());
+      clip.setContents(selection, null);
+    }
+
     public boolean importData(JComponent c, Transferable t) {
       if (canImport(c, t.getTransferDataFlavors())) {
         try {
@@ -114,13 +122,11 @@ class ClipboardDialog extends Dialog implements ActionListener {
 
   public void serverCutText(String str, int len) {
     textArea.setText(str);
-    textArea.selectAll();
     textArea.copy();
   }
 
   public void clientCutText() {
     int hc = textArea.getText().hashCode();
-    textArea.setText("");
     textArea.paste();
     textArea.setCaretPosition(0);
     String text = textArea.getText();
@@ -139,8 +145,7 @@ class ClipboardDialog extends Dialog implements ActionListener {
       serverCutText(new String(""), 0);
     } else if (s instanceof JButton && (JButton)s == sendButton) {
       String text = textArea.getText();
-      if (cc.viewer.sendClipboard.getValue())
-        cc.writeClientCutText(text, text.length());
+      cc.writeClientCutText(text, text.length());
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
       endDialog();
