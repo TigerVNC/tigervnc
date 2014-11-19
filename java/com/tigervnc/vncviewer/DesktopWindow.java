@@ -85,7 +85,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     addKeyListener(this);
     addFocusListener(new FocusAdapter() {
       public void focusGained(FocusEvent e) {
-        checkClipboard();
+        cc.clipboardDialog.clientCutText();
       }
       public void focusLost(FocusEvent e) {
         cc.releaseDownKeys();
@@ -357,36 +357,6 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
       g2.drawImage(im.getImage(), 0, 0, null);
     }
     g2.dispose();
-  }
-
-  public synchronized void checkClipboard() {
-    SecurityManager sm = System.getSecurityManager();
-    try {
-      if (sm != null) sm.checkSystemClipboardAccess();
-      Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-      if (cb != null) {
-        Transferable t = cb.getContents(null);
-        if (t == null) return;
-        DataFlavor flavor = 
-          DataFlavor.selectBestTextFlavor(t.getTransferDataFlavors());
-        if (flavor == null) return;
-        BufferedReader br = new BufferedReader(flavor.getReaderForText(t));
-        CharBuffer cbuf =
-          CharBuffer.allocate(VncViewer.maxCutText.getValue());
-        br.read(cbuf);
-        cbuf.flip();
-        String newContents = cbuf.toString();
-        if (!cc.clipboardDialog.compareContentsTo(newContents)) {
-          cc.clipboardDialog.setContents(newContents);
-          if (cc.viewer.sendClipboard.getValue())
-            cc.writeClientCutText(newContents, newContents.length());
-        }
-        br.close();
-        System.gc();
-      }
-    } catch(java.lang.Exception e) {
-      vlog.debug("Exception getting clipboard data: " + e.getMessage());
-    }
   }
 
   // Mouse-Motion callback function
