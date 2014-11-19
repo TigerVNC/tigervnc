@@ -274,7 +274,7 @@ char* TcpSocket::getPeerAddress() {
     return rfb::strDup("");
   }
 
-  char* name = inet_ntoa(addr);
+  char* name = inet_ntoa(sa.u.sin.sin_addr);
 #endif /* HAVE_INET_PTON */
   if (name) {
     return rfb::strDup(name);
