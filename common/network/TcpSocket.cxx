@@ -249,17 +249,21 @@ char* TcpSocket::getPeerAddress() {
 
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
   if (sa.u.sa.sa_family == AF_INET6) {
-    char buffer[INET6_ADDRSTRLEN];
+    char buffer[INET6_ADDRSTRLEN + 2];
     const char *name;
 
+    buffer[0] = '[';
+
     name = inet_ntop(sa.u.sa.sa_family, &sa.u.sin6.sin6_addr,
-                     buffer + 1, sizeof(buffer));
+                     buffer + 1, sizeof(buffer) - 2);
     if (name == NULL) {
       vlog.error("unable to convert peer name to a string");
       return rfb::strDup("");
     }
 
-    return rfb::strDup(name);
+    strcat(buffer, "]");
+
+    return rfb::strDup(buffer);
   }
 #endif
 
