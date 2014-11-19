@@ -435,7 +435,7 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
 #ifdef IPV6_V6ONLY
       // - We made an IPv6-capable socket, and we need it to do IPv4 too
       int opt = 0;
-      setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt));
+      setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&opt, sizeof(opt));
 #else
       vlog.error("IPV6_V6ONLY support is missing. "
 		 "IPv4 clients may not be able to connect.");
