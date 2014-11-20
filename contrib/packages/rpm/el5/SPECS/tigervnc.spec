@@ -1,10 +1,10 @@
 %define _default_patch_fuzz 2
-%define snap 20141104git3fd8b0e3
+%define snap 20141119git59c5a55c
 %define mesa_version 7.7.1
 
 Name: tigervnc
 Version: 1.3.80
-Release: 17%{?snap:.%{snap}}%{?dist}
+Release: 18%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -427,23 +427,6 @@ The VNC system allows you to access the same desktop from a wide
 variety of platforms. This package contains minimal installation
 of TigerVNC server, allowing others to access the desktop on your
 machine.
-
-%ifnarch s390 s390x
-%package server-module
-Summary: TigerVNC module to Xorg
-Group: User Interface/X
-Provides: vnc-server = 4.1.3-2, vnc-libs = 4.1.3-2
-Obsoletes: vnc-server < 4.1.3-2, vnc-libs < 4.1.3-2
-Provides: tightvnc-server-module = 1.5.0-0.15.20090204svn3586
-Obsoletes: tightvnc-server-module < 1.5.0-0.15.20090204svn3586
-Requires: xorg-x11-server-Xorg
-Requires: tigervnc-license
-BuildRequires: nasm >= 2.04
-
-%description server-module
-This package contains libvnc.so module to X server, allowing others
-to access the desktop on your machine.
-%endif
 
 %package server-applet
 Summary: Java TigerVNC viewer applet for TigerVNC server
@@ -1178,12 +1161,9 @@ popd
 %find_lang %{name} %{name}.lang
 
 # remove unwanted files
-rm -f  $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/libvnc.la
-rm -f  $RPM_BUILD_ROOT%{_libdir}/dri/libdricore.so
-
-%ifarch s390 s390x %{?rhel:ppc ppc64}
-rm -f $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/libvnc.so
-%endif
+rm -f $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/libvnc.la
+rm -f $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/libvnc.a
+rm -f $RPM_BUILD_ROOT%{_libdir}/dri/libdricore.so
 
 # move files to correct location
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/dri
@@ -1242,12 +1222,6 @@ fi
 %{_mandir}/man1/vncconfig.1*
 %{_libdir}/dri/swrast_dri.so
 
-%ifnarch s390 s390x
-%files server-module
-%defattr(-,root,root,-)
-%{_libdir}/xorg/modules/extensions/libvnc.a
-%endif
-
 %files server-applet
 %defattr(-,root,root,-)
 %doc java/com/tigervnc/vncviewer/README
@@ -1262,6 +1236,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Wed Nov 19 2014 Brian P. Hinz <bphinz@users.sourceforge.net> 1.3.80-18.20141119git59c5a55c
+- Removed server module sub-package
+
 * Thu Nov 28 2013 Brian P. Hinz <bphinz@users.sourceforge.net> 1.3.80-17.20131128svn5139
 - Bumped version to 1.3.80
 - Cleaned up linter warnings
