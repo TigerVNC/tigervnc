@@ -14,12 +14,11 @@
 
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
-%define         snap 20131202svn5145
 %define         debug_package %{nil}
 
 
 Name:           tigervnc
-Version:        1.3.80
+Version:        @VERSION@
 Release:        1%{?snap:.%{snap}}%{?dist}
 Packager:       Brian P. Hinz <bphinz@users.sourceforge.net>
 License:        GPL-2.0 and MIT

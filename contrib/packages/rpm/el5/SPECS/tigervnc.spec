@@ -1,9 +1,8 @@
 %define _default_patch_fuzz 2
-%define snap 20141119git59c5a55c
 %define mesa_version 7.7.1
 
 Name: tigervnc
-Version: 1.3.80
+Version: @VERSION@
 Release: 18%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
