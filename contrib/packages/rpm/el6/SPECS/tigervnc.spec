@@ -1,7 +1,5 @@
-%define		snap 20131128svn5139
-
 Name: tigervnc
-Version: 1.3.80
+Version: @VERSION@
 Release: 18%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
