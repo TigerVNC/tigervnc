@@ -34,8 +34,8 @@ namespace rfb {
 
   class VncAuthPasswdGetter {
   public:
-    // getPasswd() returns a string or null if unsuccessful.  The
-    // SSecurityVncAuth object delete[]s the string when done.
+    // getVncAuthPasswd() fills buffer of given password and readOnlyPassword.
+    // If there was no read only password in the file, readOnlyPassword buffer is null.
     virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword)=0;
   };
 
