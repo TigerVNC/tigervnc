@@ -399,6 +399,66 @@ int TcpSocket::getSockPort(int sock)
   }
 }
 
+#ifdef HAVE_GETADDRINFO
+static bool bindIPv6 (int fd,
+		      const char *listenaddr,
+		      int port,
+		      bool localhostOnly)
+{
+  struct sockaddr_in6 addr6;
+  socklen_t sa_len;
+
+  memset(&addr6, 0, (sa_len = sizeof(addr6)));
+  addr6.sin6_family = AF_INET6;
+  addr6.sin6_port = htons(port);
+
+  if (localhostOnly)
+    addr6.sin6_addr = in6addr_loopback;
+  else if (listenaddr != NULL) {
+#ifdef HAVE_INET_PTON
+    if (inet_pton(AF_INET6, listenaddr, &addr6.sin6_addr) != 1)
+      return false;
+#else
+    // Unable to parse without inet_pton
+    return false;
+#endif
+  }
+
+  return bind(fd, (struct sockaddr *) &addr6, sa_len) >= 0;
+}
+#endif /* HAVE_GETADDRINFO */
+
+static bool bindIPv4 (int fd,
+		      const char *listenaddr,
+		      int port,
+		      bool localhostOnly)
+{
+  struct sockaddr_in addr;
+  socklen_t sa_len;
+
+  memset(&addr, 0, (sa_len = sizeof(addr)));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(port);
+
+  if (localhostOnly)
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  else if (listenaddr != NULL) {
+#ifdef HAVE_INET_ATON
+    if (inet_aton(listenaddr, &addr.sin_addr) == 0)
+#else
+      /* Some systems (e.g. Windows) do not have inet_aton, sigh */
+      if ((addr.sin_addr.s_addr = inet_addr(listenaddr)) == INADDR_NONE)
+#endif
+      {
+	closesocket(fd);
+	throw Exception("invalid network interface address: %s", listenaddr);
+      }
+  } else
+    /* Bind to 0.0.0.0 by default. */
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  return bind(fd, (struct sockaddr *) &addr, sa_len) >= 0;
+}
 
 TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
 			 int sock, bool close_) : closeFd(close_)
@@ -457,76 +517,15 @@ TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
 #endif
 
   // - Bind it to the desired port
-  struct sockaddr_in addr;
 #ifdef HAVE_GETADDRINFO
-  struct sockaddr_in6 addr6;
+  use_ipv6 = bindIPv6 (fd, listenaddr, port, localhostOnly);
+  if (!use_ipv6)
 #endif
-  struct sockaddr *sa;
-  int sa_len;
-
-  for (;;) {
-#ifdef HAVE_GETADDRINFO
-    if (use_ipv6) {
-      memset(&addr6, 0, (sa_len = sizeof(addr6)));
-      addr6.sin6_family = af;
-      addr6.sin6_port = htons(port);
-
-      if (localhostOnly)
-	addr6.sin6_addr = in6addr_loopback;
-      else if (listenaddr != NULL) {
-#ifdef HAVE_INET_PTON
-	if (inet_pton(AF_INET6, listenaddr, &addr6.sin6_addr) != 1)
-	  use_ipv6 = false;
-#else
-	// Unable to parse without inet_pton
-	use_ipv6 = false;
-#endif
-      }
-
-      if (use_ipv6)
-	sa = (struct sockaddr *)&addr6;
+    if (!bindIPv4 (fd, listenaddr, port, localhostOnly)) {
+      int e = errorNumber;
+      closesocket(fd);
+      throw SocketException("unable to bind listening socket", e);
     }
-#endif
-
-    if (!use_ipv6) {
-      memset(&addr, 0, (sa_len = sizeof(addr)));
-      addr.sin_family = af;
-      addr.sin_port = htons(port);
-
-      if (localhostOnly) {
-	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-      } else if (listenaddr != NULL) {
-#ifdef HAVE_INET_ATON
-	if (inet_aton(listenaddr, &addr.sin_addr) == 0)
-#else
-	  /* Some systems (e.g. Windows) do not have inet_aton, sigh */
-	  if ((addr.sin_addr.s_addr = inet_addr(listenaddr)) == INADDR_NONE)
-#endif
-	  {
-	    closesocket(fd);
-	    throw Exception("invalid network interface address: %s", listenaddr);
-	  }
-      } else
-	/* Bind to 0.0.0.0 by default. */
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-      sa = (struct sockaddr *)&addr;
-    }
-
-    if (bind(fd, sa, sa_len) >= 0)
-      /* Success */
-      break;
-    else {
-      if (!use_ipv6) {
-	int e = errorNumber;
-	closesocket(fd);
-	throw SocketException("unable to bind listening socket", e);
-      }
-
-      /* Try again with IPv4 */
-      use_ipv6 = false;
-    }
-  }
 
   // - Set it to be a listening socket
   if (listen(fd, 5) < 0) {
