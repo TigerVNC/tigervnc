@@ -584,6 +584,9 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 {
   unsigned int result;
 
+  if (!(accessRights & AccessSetDesktopSize)) return;
+  if (!rfb::Server::acceptSetDesktopSize) return;
+
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height)) {
     writer()->writeExtendedDesktopSize(reasonClient, resultInvalid,

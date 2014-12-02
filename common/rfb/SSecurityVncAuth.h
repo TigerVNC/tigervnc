@@ -25,6 +25,7 @@
 #define __RFB_SSECURITYVNCAUTH_H__
 
 #include <rfb/Configuration.h>
+#include <rfb/Password.h>
 #include <rfb/SSecurity.h>
 #include <rfb/Security.h>
 #include <rdr/types.h>
@@ -33,15 +34,15 @@ namespace rfb {
 
   class VncAuthPasswdGetter {
   public:
-    // getPasswd() returns a string or null if unsuccessful.  The
-    // SSecurityVncAuth object delete[]s the string when done.
-    virtual char* getVncAuthPasswd()=0;
+    // getVncAuthPasswd() fills buffer of given password and readOnlyPassword.
+    // If there was no read only password in the file, readOnlyPassword buffer is null.
+    virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword)=0;
   };
 
   class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {
   public:
     VncAuthPasswdParameter(const char* name, const char* desc, StringParameter* passwdFile_);
-    virtual char* getVncAuthPasswd();
+    virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword);
   protected:
     StringParameter* passwdFile;
   };
@@ -52,15 +53,18 @@ namespace rfb {
     virtual bool processMsg(SConnection* sc);
     virtual int getType() const {return secTypeVncAuth;}
     virtual const char* getUserName() const {return 0;}
+    virtual SConnection::AccessRights getAccessRights() const { return accessRights; }
     static StringParameter vncAuthPasswdFile;
     static VncAuthPasswdParameter vncAuthPasswd;
   private:
+    bool verifyResponse(const PlainPasswd &password);
     enum {vncAuthChallengeSize = 16};
     rdr::U8 challenge[vncAuthChallengeSize];
     rdr::U8 response[vncAuthChallengeSize];
     bool sentChallenge;
     int responsePos;
     VncAuthPasswdGetter* pg;
+    SConnection::AccessRights accessRights;
   };
 }
 #endif
