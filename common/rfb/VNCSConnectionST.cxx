@@ -445,9 +445,10 @@ void VNCSConnectionST::clientInit(bool shared)
 {
   lastEventTime = time(0);
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
+  if (!(accessRights & AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
   if (!shared) {
-    if (rfb::Server::disconnectClients) {
+    if (rfb::Server::disconnectClients && (accessRights & AccessNonShared)) {
       // - Close all the other connected clients
       vlog.debug("non-shared connection - closing clients");
       server->closeClients("Non-shared connection requested", getSock());
@@ -583,6 +584,9 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
                                       const ScreenSet& layout)
 {
   unsigned int result;
+
+  if (!(accessRights & AccessSetDesktopSize)) return;
+  if (!rfb::Server::acceptSetDesktopSize) return;
 
   // Don't bother the desktop with an invalid configuration
   if (!layout.validate(fb_width, fb_height)) {

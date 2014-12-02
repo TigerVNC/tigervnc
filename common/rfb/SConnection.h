@@ -28,7 +28,6 @@
 #include <rdr/OutStream.h>
 #include <rfb/SMsgHandler.h>
 #include <rfb/SecurityServer.h>
-#include <rfb/SSecurity.h>
 
 namespace rfb {
 
@@ -123,13 +122,15 @@ namespace rfb {
     // is up to the derived class.
 
     typedef rdr::U16 AccessRights;
-    static const AccessRights AccessView;         // View display contents
-    static const AccessRights AccessKeyEvents;    // Send key events
-    static const AccessRights AccessPtrEvents;    // Send pointer events
-    static const AccessRights AccessCutText;      // Send/receive clipboard events
-    static const AccessRights AccessDefault;      // The default rights, INCLUDING FUTURE ONES
-    static const AccessRights AccessNoQuery;      // Connect without local user accepting
-    static const AccessRights AccessFull;         // All of the available AND FUTURE rights
+    static const AccessRights AccessView;           // View display contents
+    static const AccessRights AccessKeyEvents;      // Send key events
+    static const AccessRights AccessPtrEvents;      // Send pointer events
+    static const AccessRights AccessCutText;        // Send/receive clipboard events
+    static const AccessRights AccessSetDesktopSize; // Change desktop size
+    static const AccessRights AccessNonShared;      // Exclusive access to the server
+    static const AccessRights AccessDefault;        // The default rights, INCLUDING FUTURE ONES
+    static const AccessRights AccessNoQuery;        // Connect without local user accepting
+    static const AccessRights AccessFull;           // All of the available AND FUTURE rights
     virtual void setAccessRights(AccessRights ar) = 0;
 
     // Other methods

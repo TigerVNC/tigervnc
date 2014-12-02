@@ -44,12 +44,11 @@
 #define __RFB_SSECURITY_H__
 
 #include <rdr/types.h>
+#include <rfb/SConnection.h>
 #include <rfb/util.h>
 #include <list>
 
 namespace rfb {
-
-  class SConnection;
 
   class SSecurity {
   public:
@@ -63,6 +62,8 @@ namespace rfb {
     // necessary.  Null may be returned to indicate that there is no user name
     // for this security type.
     virtual const char* getUserName() const = 0;
+
+    virtual SConnection::AccessRights getAccessRights() const { return SConnection::AccessDefault; }
   };
 
 }

@@ -89,6 +89,10 @@ rfb::BoolParameter rfb::Server::sendCutText
 ("SendCutText",
  "Send clipboard changes to clients.",
  true);
+rfb::BoolParameter rfb::Server::acceptSetDesktopSize
+("AcceptSetDesktopSize",
+ "Accept set desktop size events from clients.",
+ true);
 rfb::BoolParameter rfb::Server::queryConnect
 ("QueryConnect",
  "Prompt the local user to accept or reject incoming connections.",
