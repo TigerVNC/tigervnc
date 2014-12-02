@@ -31,6 +31,7 @@ namespace rfb {
     virtual bool processMsg(SConnection* cc);
     virtual int getType() const { return type; };
     virtual const char* getUserName() const;
+    virtual SConnection::AccessRights getAccessRights() const;
   protected:
     short state;
     SSecurity* state0;
