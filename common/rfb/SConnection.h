@@ -127,6 +127,7 @@ namespace rfb {
     static const AccessRights AccessPtrEvents;      // Send pointer events
     static const AccessRights AccessCutText;        // Send/receive clipboard events
     static const AccessRights AccessSetDesktopSize; // Change desktop size
+    static const AccessRights AccessNonShared;      // Exclusive access to the server
     static const AccessRights AccessDefault;        // The default rights, INCLUDING FUTURE ONES
     static const AccessRights AccessNoQuery;        // Connect without local user accepting
     static const AccessRights AccessFull;           // All of the available AND FUTURE rights

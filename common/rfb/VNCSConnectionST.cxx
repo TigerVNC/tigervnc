@@ -445,9 +445,10 @@ void VNCSConnectionST::clientInit(bool shared)
 {
   lastEventTime = time(0);
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
+  if (!(accessRights & AccessNonShared)) shared = true;
   if (rfb::Server::neverShared) shared = false;
   if (!shared) {
-    if (rfb::Server::disconnectClients) {
+    if (rfb::Server::disconnectClients && (accessRights & AccessNonShared)) {
       // - Close all the other connected clients
       vlog.debug("non-shared connection - closing clients");
       server->closeClients("Non-shared connection requested", getSock());
