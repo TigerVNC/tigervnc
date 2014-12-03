@@ -113,7 +113,7 @@ static void CleanupSignalHandler(int sig)
 {
   // CleanupSignalHandler allows C++ object cleanup to happen because it calls
   // exit() rather than the default which is to abort.
-  vlog.info(_("CleanupSignalHandler called"));
+  vlog.info(_("Termination signal %d has been received. TigerVNC Viewer will now exit."), sig);
   exit(1);
 }
 
@@ -460,6 +460,8 @@ int main(int argc, char** argv)
 #ifndef WIN32
   /* Specifying -via and -listen together is nonsense */
   if (listenMode && strlen(via.getValueStr()) > 0) {
+    // TRANSLATORS: "Parameters" are command line arguments, or settings
+    // from a file or the Windows registry.
     vlog.error(_("Parameters -listen and -via are incompatible"));
     fl_alert(_("Parameters -listen and -via are incompatible"));
     exit_vncviewer();
