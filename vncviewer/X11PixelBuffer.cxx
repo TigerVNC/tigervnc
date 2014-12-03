@@ -56,6 +56,8 @@ static PixelFormat display_pf()
     if (format[i].depth == fl_visual->depth) break;
 
   if (i == nformats)
+    // TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+    // to translate.
     throw rfb::Exception(_("Display lacks pixmap format for default depth"));
 
   switch (format[i].bits_per_pixel) {
@@ -65,6 +67,8 @@ static PixelFormat display_pf()
     bpp = format[i].bits_per_pixel;
     break;
   default:
+    // TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+    // to translate.
     throw rfb::Exception(_("Couldn't find suitable pixmap format"));
   }
 

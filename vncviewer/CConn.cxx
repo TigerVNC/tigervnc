@@ -183,12 +183,15 @@ const char *CConn::connectionInfo()
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
+  // TRANSLATORS: Will be filled in with a string describing the
+  // protocol pixel format in a fairly language neutral way
   cp.pf().print(pfStr, 100);
   snprintf(scratch, sizeof(scratch),
            _("Pixel format: %s"), pfStr);
   strcat(infoText, scratch);
   strcat(infoText, "\n");
 
+  // TRANSLATORS: Similar to the earlier "Pixel format" string
   serverPF.print(pfStr, 100);
   snprintf(scratch, sizeof(scratch),
            _("(server default %s)"), pfStr);
@@ -426,6 +429,7 @@ void CConn::dataRect(const Rect& r, int encoding)
     lastServerEncoding = encoding;
 
   if (!Decoder::supported(encoding)) {
+    // TRANSLATORS: Refers to a VNC protocol encoding type
     vlog.error(_("Unknown rect encoding %d"), encoding);
     throw Exception(_("Unknown rect encoding"));
   }
