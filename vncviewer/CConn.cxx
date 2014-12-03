@@ -430,15 +430,15 @@ void CConn::dataRect(const Rect& r, int encoding)
 
   if (!Decoder::supported(encoding)) {
     // TRANSLATORS: Refers to a VNC protocol encoding type
-    vlog.error(_("Unknown rect encoding %d"), encoding);
-    throw Exception(_("Unknown rect encoding"));
+    vlog.error(_("Unknown encoding %d"), encoding);
+    throw Exception(_("Unknown encoding"));
   }
 
   if (!decoders[encoding]) {
     decoders[encoding] = Decoder::createDecoder(encoding, this);
     if (!decoders[encoding]) {
-      vlog.error(_("Unknown rect encoding %d"), encoding);
-      throw Exception(_("Unknown rect encoding"));
+      vlog.error(_("Unknown encoding %d"), encoding);
+      throw Exception(_("Unknown encoding"));
     }
   }
   decoders[encoding]->readRect(r, desktop->getFramebuffer());

@@ -113,7 +113,7 @@ static void CleanupSignalHandler(int sig)
 {
   // CleanupSignalHandler allows C++ object cleanup to happen because it calls
   // exit() rather than the default which is to abort.
-  vlog.info(_("CleanupSignalHandler called"));
+  vlog.info(_("Termination signal %d has been received. TigerVNC Viewer will now exit."), sig);
   exit(1);
 }
 
