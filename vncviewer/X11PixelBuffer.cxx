@@ -80,9 +80,7 @@ static PixelFormat display_pf()
   if (!trueColour)
     throw rfb::Exception(_("Only true colour displays supported"));
 
-  vlog.info(_("Using default colormap and visual, %sdepth %d."),
-            (fl_visual->c_class == TrueColor) ? "TrueColor, " :
-            ((fl_visual->c_class == PseudoColor) ? "PseudoColor, " : ""),
+  vlog.info(_("Using default colormap and visual, TrueColor, depth %d."),
             fl_visual->depth);
 
   redShift   = ffs(fl_visual->red_mask)   - 1;
