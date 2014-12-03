@@ -25,7 +25,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       --keyword=N_
       "--copyright-holder=TigerVNC Team and many others \(see README.txt\)"
       --msgid-bugs-address=tigervnc-devel@googlegroups.com
-      --sort-output
+      --sort-by-file
       --add-location
       ${po_source}
     COMMENT "Updating tigervnc.pot"
@@ -40,7 +40,7 @@ foreach(lang ${po_FILES})
   # Update po files after pot file
   add_custom_command(TARGET translations_update POST_BUILD
     COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none
-      --sort-output ${po} ${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot
+      --sort-by-file ${po} ${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot
     COMMENT "Updating ${lang}.po"
   )
 
