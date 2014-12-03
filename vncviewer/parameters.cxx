@@ -143,9 +143,9 @@ BoolParameter fullscreenSystemKeys("FullscreenSystemKeys",
 StringParameter via("via", "Gateway to tunnel via", "");
 #endif
 
-const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
+static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
 
-VoidParameter* parameterArray[] = {
+static VoidParameter* parameterArray[] = {
 #ifdef HAVE_GNUTLS
   &CSecurityTLS::X509CA,
   &CSecurityTLS::X509CRL,
@@ -185,7 +185,7 @@ static struct {
 } replaceMap[] = {'\n', 'n',
                   '\r', 'r'};
 
-bool encodeValue(const char* val, char* dest, size_t destSize) {
+static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
   bool normalCharacter = true;
   size_t pos = 0;
@@ -232,7 +232,7 @@ bool encodeValue(const char* val, char* dest, size_t destSize) {
 }
 
 
-bool decodeValue(const char* val, char* dest, size_t destSize) {
+static bool decodeValue(const char* val, char* dest, size_t destSize) {
 
   size_t pos = 0;
   bool escapedCharacter = false;
@@ -277,7 +277,7 @@ bool decodeValue(const char* val, char* dest, size_t destSize) {
 
 
 #ifdef _WIN32
-void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
+static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
   
   const DWORD buffersize = 256;
 
@@ -310,7 +310,7 @@ void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
 }
 
 
-void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
+static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
 
   const DWORD buffersize = 256;
   wchar_t name[buffersize];
@@ -331,7 +331,7 @@ void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
 }
 
 
-bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* hKey) {
+static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* hKey) {
   
   DWORD buffersize = 256;
   WCHAR value[destSize];
@@ -369,7 +369,7 @@ bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* hKey) {
 }
 
 
-bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
+static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
   
   const DWORD buffersize = 256;
   DWORD dwordsize = sizeof(DWORD);
@@ -398,7 +398,7 @@ bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
 }
 
 
-void saveToReg(const char* servername) {
+static void saveToReg(const char* servername) {
   
   HKEY hKey;
     
@@ -433,7 +433,7 @@ void saveToReg(const char* servername) {
 }
 
 
-char* loadFromReg() {
+static char* loadFromReg() {
 
   HKEY hKey;
 
