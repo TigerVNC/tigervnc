@@ -15,6 +15,7 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 %define         debug_package %{nil}
+%{!?_self_signed: %define _self_signed 1}
 
 
 Name:           tigervnc
@@ -316,7 +317,7 @@ popd
 # Build java client
 pushd java
 cmake -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \
-%if 0%{!?_self_signed:1}
+%if !%{_self_signed}
   -DJAVA_KEYSTORE=%{_keystore} \
   -DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
   -DJAVA_KEY_ALIAS=%{_key_alias} \

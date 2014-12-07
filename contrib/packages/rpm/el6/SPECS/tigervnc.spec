@@ -1,3 +1,5 @@
+%{!?_self_signed: %define _self_signed 1}
+
 Name: tigervnc
 Version: @VERSION@
 Release: 18%{?snap:.%{snap}}%{?dist}
@@ -25,6 +27,9 @@ BuildRequires: freetype-devel, libXdmcp-devel
 BuildRequires: desktop-file-utils, java-devel, jpackage-utils
 BuildRequires: libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires: cmake28
+%ifnarch s390 s390x
+BuildRequires: xorg-x11-server-devel
+%endif
 
 BuildRequires: openmotif-devel
 Requires: openmotif, openmotif22
@@ -189,14 +194,14 @@ pushd unix/xserver
 autoreconf -fiv
 %configure \
 	--disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
-	--disable-xwin --disable-xephyr --disable-kdrive --with-pic \
-	--disable-static --disable-xinerama \
+	--disable-xwin --disable-xephyr --disable-kdrive --disable-wayland \
+	--with-pic --disable-static --disable-xinerama \
 	--with-default-font-path="catalogue:%{_sysconfdir}/X11/fontpath.d,built-ins" \
-  --with-serverconfig-path=/usr/%{_libdir}/xorg \
+	--with-serverconfig-path=%{_libdir}/xorg \
 	--with-fontrootdir=%{_datadir}/X11/fonts \
 	--with-xkb-output=%{_localstatedir}/lib/xkb \
 	--enable-install-libxf86config \
-	--enable-glx --disable-dri --enable-dri2 \
+	--enable-glx --enable-glx-tls --disable-dri --enable-dri2 --disable-dri3 \
 	--disable-config-dbus \
 	--disable-config-hal \
 	--disable-config-udev \
@@ -217,7 +222,7 @@ popd
 # Build Java applet
 pushd java
 %{cmake28} \
-%if 0%{!?self_signed:1}
+%if !%{_self_signed}
 	-DJAVA_KEYSTORE=%{_keystore} \
 	-DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
 	-DJAVA_KEY_ALIAS=%{_key_alias} \
