@@ -1,0 +1,11 @@
+--- a/unix/xserver/configure.ac	2014-12-06 18:06:03.477010977 -0500
++++ b/unix/xserver/configure.ac	2014-12-06 18:06:49.768005867 -0500
+@@ -1309,7 +1309,7 @@
+ 
+ if test "x$GLX_USE_TLS" = xyes ; then
+ 	GLX_DEFINES="-DGLX_USE_TLS -DPTHREADS"
+-	GLX_SYS_LIBS="$GLX_SYS_LIBS -lpthread"
++	GLX_SYS_LIBS="$GLX_SYS_LIBS -lglapi -lpthread"
+ fi
+ AC_SUBST([GLX_DEFINES])
+ AC_SUBST([GLX_SYS_LIBS])
