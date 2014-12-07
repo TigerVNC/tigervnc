@@ -1,5 +1,6 @@
 %define _default_patch_fuzz 2
 %define mesa_version 7.7.1
+%{!?_self_signed: %define _self_signed 1}
 
 Name: tigervnc
 Version: @VERSION@
@@ -1110,7 +1111,7 @@ popd
 # Build Java applet
 pushd java
 %{cmake28} \
-%if 0%{!?_self_signed:1}
+%if !%{_self_signed}
 	-DJAVA_KEYSTORE=%{_keystore} \
 	-DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
 	-DJAVA_KEY_ALIAS=%{_key_alias} \
