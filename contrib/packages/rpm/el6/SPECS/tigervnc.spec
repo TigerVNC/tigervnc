@@ -1,3 +1,5 @@
+%{!?_self_signed: %define _self_signed 1}
+
 Name: tigervnc
 Version: @VERSION@
 Release: 18%{?snap:.%{snap}}%{?dist}
@@ -217,7 +219,7 @@ popd
 # Build Java applet
 pushd java
 %{cmake28} \
-%if 0%{!?self_signed:1}
+%if !%{_self_signed}
 	-DJAVA_KEYSTORE=%{_keystore} \
 	-DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
 	-DJAVA_KEY_ALIAS=%{_key_alias} \
