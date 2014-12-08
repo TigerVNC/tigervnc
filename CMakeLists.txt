@@ -321,12 +321,6 @@ else()
   set(CMAKE_EXTRA_INCLUDE_FILES sys/socket.h)
 endif()
 check_function_exists(inet_aton HAVE_INET_ATON)
-# This might give a false positive on Windows as it is also guarded by
-# a version check that we do not satisfy (requires Vista, but we target
-# Windows 2000).
-if(NOT WIN32)
-check_function_exists(inet_pton HAVE_INET_PTON)
-endif()
 check_function_exists(getaddrinfo HAVE_GETADDRINFO)
 set(CMAKE_EXTRA_INCLUDE_FILES) 
 set(CMAKE_REQUIRED_LIBRARIES)
