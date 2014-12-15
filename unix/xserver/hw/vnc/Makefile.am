@@ -7,6 +7,9 @@ NETWORK_LIB=$(LIB_DIR)/network/libnetwork.la
 XREGION_LIB=$(LIB_DIR)/Xregion/libXregion.la
 COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
 
+# Hack to get the C headers to work when included from C++ code
+AM_CXXFLAGS = -fpermissive
+
 noinst_LTLIBRARIES = libvnccommon.la
 
 HDRS = RegionHelper.h vncExtInit.h vncHooks.h XserverDesktop.h xorg-version.h \
