@@ -1,4 +1,0 @@
-## Name: VNC
-## Description: Opens VNC server ports so that viewers can connect.
-
-TCP="5900:5999"
