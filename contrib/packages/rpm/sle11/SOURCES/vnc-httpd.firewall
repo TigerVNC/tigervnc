@@ -1,4 +1,0 @@
-## Name: VNC mini-HTTP server
-## Description: Opens the VNC HTTP ports so that browsers can connect.
-
-TCP="5800:5899"
