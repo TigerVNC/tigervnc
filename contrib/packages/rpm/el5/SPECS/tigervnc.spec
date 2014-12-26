@@ -421,6 +421,7 @@ pushd %{xorg_buildroot}%{_libdir}
 ln -s `g++44 -print-file-name=libstdc++.a`
 ln -s `g++44 -print-file-name=libz.a`
 ln -s `g++44 -print-file-name=libgcc.a`
+ln -s `g++44 -print-file-name=libexpat.a`
 popd
 
 echo "*** Building libjpeg-turbo ***"
