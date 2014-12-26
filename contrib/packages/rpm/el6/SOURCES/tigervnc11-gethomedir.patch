@@ -8,7 +8,7 @@ diff -up tigervnc-1.2.0/unix/xserver/hw/vnc/Makefile.am.gethomedir tigervnc-1.2.
 +OS_LIB=$(LIB_DIR)/os/libos.la
  COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
  
- noinst_LTLIBRARIES = libvnccommon.la
+ # Hack to get the C headers to work when included from C++ code
 @@ -55,7 +56,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I
  
  libvnc_la_LDFLAGS = -module -avoid-version -Wl,-z,now
