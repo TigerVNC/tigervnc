@@ -49,7 +49,6 @@ Patch4: tigervnc-cookie.patch
 Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
 Patch16: tigervnc-xorg-manpages.patch
-Patch17: tigervnc-xorg115-glx-tls.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -161,7 +160,6 @@ patch -p1 -b --suffix .vnc < ../xserver115.patch
 popd
 
 %patch16 -p0 -b .man
-%patch17 -p1 -b .glx
 
 %build
 %define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
