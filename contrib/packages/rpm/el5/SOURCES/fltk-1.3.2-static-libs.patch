@@ -35,7 +35,7 @@
 +endif(X11_Xrender_FOUND)
 +
 +if(USE_X11)
-+   target_link_libraries(fltk ${X11_LIBRARIES})
++   target_link_libraries(fltk ${X11_LIBRARIES} -lxcb -lXdmcp -lXau)
 +endif(USE_X11)
 +
  if(LIB_fontconfig)
