@@ -1,9 +1,11 @@
 %define _default_patch_fuzz 2
+%define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
+%define xorg_buildroot %{tigervnc_src_dir}/xorg.build
 %{!?_self_signed: %define _self_signed 1}
 
 Name: tigervnc
 Version: @VERSION@
-Release: 1%{?snap:.%{snap}}%{?dist}
+Release: 2%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -128,8 +130,7 @@ Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 Patch4: tigervnc-cookie.patch
 Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
-Patch14: tigervnc-x0vncserver-static-libs-fix.patch
-Patch15: tigervnc-static-fltk.patch
+Patch12: tigervnc14-static-build-fixes.patch
 
 # fltk patches
 Patch124: fltk-1.3.2-libdl.patch
@@ -262,12 +263,14 @@ This package contains icons for TigerVNC viewer
 rm -rf %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
 
+# Search paths for X11 are hard coded into FindX11.cmake
 cp %SOURCE9 cmake/Modules/
+sed -i -e "s#@_includedir@#%{xorg_buildroot}%{_includedir}#" cmake/Modules/FindX11.cmake
+sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" cmake/Modules/FindX11.cmake
 %patch4 -p1 -b .cookie
 %patch10 -p1 -b .ldnow
 %patch11 -p1 -b .gethomedir
-%patch15 -p1 -b .static-fltk
-%patch14 -p1 -b .x0vncserver
+%patch12 -p1 -b .static-build-fixes
 
 tar xzf %SOURCE11
 pushd fltk-*
@@ -275,7 +278,10 @@ for p in `find ../contrib/fltk -maxdepth 1 -type f -name "*.patch"|sort` ;
 do
   patch -p1 -i $p
 done
+# Search paths for X11 are hard coded into FindX11.cmake
 cp %SOURCE9 CMake/
+sed -i -e "s#@_includedir@#%{xorg_buildroot}%{_includedir}#" CMake/FindX11.cmake
+sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" CMake/FindX11.cmake
 %patch124 -p1 -b .libdl
 %patch125 -p1 -b .static-libs
 popd
@@ -408,20 +414,21 @@ patch -p1 < %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}/unix/xserver112.pat
 popd
 
 %build
-%define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 export CC=gcc44
 export CXX=g++44
 export CFLAGS="$RPM_OPT_FLAGS -fPIC"
 export CXXFLAGS="$CFLAGS -static-libgcc"
 export PYTHON=python26
 
-%define xorg_buildroot %{tigervnc_src_dir}/xorg.build
 mkdir -p %{xorg_buildroot}%{_libdir}
 pushd %{xorg_buildroot}%{_libdir}
-ln -s `g++44 -print-file-name=libstdc++.a`
 ln -s `g++44 -print-file-name=libz.a`
 ln -s `g++44 -print-file-name=libgcc.a`
 ln -s `g++44 -print-file-name=libexpat.a`
+ln -s `g++44 -print-file-name=libgnutls.a`
+ln -s `g++44 -print-file-name=libgpg-error.a`
+ln -s `g++44 -print-file-name=libgcrypt.a`
+ln -s `g++44 -print-file-name=libcrypto.a`
 popd
 
 echo "*** Building libjpeg-turbo ***"
@@ -446,9 +453,9 @@ popd
 export CFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir}"
 export CXXFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir} -static-libgcc"
 export CPPFLAGS=$CXXFLAGS
-export LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir}"
+export LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir} -L%{xorg_buildroot}%{_libdir}/tigervnc"
 export ACLOCAL="aclocal -I %{xorg_buildroot}%{_datadir}/aclocal"
-export PKG_CONFIG_PATH="%{xorg_buildroot}%{_libdir}/pkgconfig:%{xorg_buildroot}%{_libdir}/tigervnc/pkgconfig:%{xorg_buildroot}%{_datadir}/pkgconfig"
+export PKG_CONFIG_PATH="%{xorg_buildroot}%{_libdir}/pkgconfig:%{xorg_buildroot}%{_libdir}/tigervnc/pkgconfig:%{xorg_buildroot}%{_datadir}/pkgconfig:%{_libdir}/pkgconfig:%{_datadir}/pkgconfig"
 
 echo "*** Building freetype ***"
 pushd freetype-*
@@ -490,7 +497,7 @@ popd
 echo "*** Building fontconfig ***"
 pushd fontconfig-*
 autoreconf -fiv
-LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" HASDOCBOOK=no ./configure --prefix=%{_prefix} --libdir=%{_libdir} --with-add-fonts=/usr/share/X11/fonts/Type1,/usr/share/X11/fonts/OTF --enable-static --disable-shared
+LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" HASDOCBOOK=no ./configure --prefix=%{_prefix} --libdir=%{_libdir} --with-add-fonts=/usr/share/X11/fonts/Type1,/usr/share/X11/fonts/OTF --enable-static --disable-shared --with-confdir=%{_sysconfdir}/fonts --with-cache-dir=%{_localstatedir}/cache/fontconfig --with-default-fonts=%{_datadir}/fonts --with-add-fonts="%{_datadir}/X11/fonts/Type1,%{_datadir}/X11/fonts/OTF,%{_datadir}/X11/fonts/TTF,%{_prefix}/local/share/fonts,~/.fonts"
 make %{?_smp_mflags}
 make DESTDIR=%{xorg_buildroot} install
 find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
@@ -665,7 +672,6 @@ export PYTHON2=python26
 %ifarch %{ix86}
 sed -i -e 's/-std=c99/-std=gnu99/g' configure.ac
 %endif
-sed -i 's/^default_driver.*$/default_driver="dri"/' configure.ac
 autoreconf -fiv
 %ifarch %{ix86}
 # i do not have words for how much the assembly dispatch code infuriates me
@@ -704,30 +710,29 @@ popd
 echo "*** Building fltk ***"
 pushd fltk-*
 export CMAKE_PREFIX_PATH="%{xorg_buildroot}%{_prefix}:%{_prefix}"
-export CMAKE_EXE_LINKER_FLAGS="-static-libgcc -L%{xorg_buildroot}%{_libdir}"
-export LDFLAGS="$LDFLAGS -static"
+export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 export PKG_CONFIG="pkg-config --static" 
 %{cmake28} -G"Unix Makefiles" \
-  -DCMAKE_INSTALL_PREFIX=%{xorg_buildroot}%{_prefix} \
-  -DX11_INC_SEARCH_PATH=%{xorg_buildroot}%{_includedir} \
-  -DX11_LIB_SEARCH_PATH=%{xorg_buildroot}%{_libdir} \
+  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+  -DOPTION_PREFIX_LIB=%{_libdir} \
   -DCMAKE_BUILD_TYPE=Release \
   -DOPTION_USE_THREADS=off \
   -DOPTION_BUILD_EXAMPLES=off \
-  -DOPTION_USE_SYSTEM_LIBPNG=on
+  -DOPTION_USE_SYSTEM_LIBPNG=on \
+  -DPNG_LIBRARY=%{_libdir}/libpng.a \
+  -DPNG_INCLUDE_DIR=%{_includedir} \
+  -DOPTION_USE_GL=off
 make %{?_smp_mflags}
+make DESTDIR=%{xorg_buildroot} install
 popd
 
 echo "*** Building VNC ***"
 export CFLAGS="$CFLAGS -fPIC"
 export CXXFLAGS=`echo $CXXFLAGS | sed -e 's/ -c //g'`
 %{cmake28} -G"Unix Makefiles" \
-  -DX11_INC_SEARCH_PATH=%{xorg_buildroot}%{_includedir} \
-  -DX11_LIB_SEARCH_PATH=%{xorg_buildroot}%{_libdir} \
-  -DFLTK_LIBRARY_DIR=%{tigervnc_src_dir}/fltk-1.3.2/lib \
-  -DFLTK_LIBRARIES="%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk.a;%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk_images.a;-lpng;" \
-  -DFLTK_FLUID_EXECUTABLE=%{tigervnc_src_dir}/fltk-1.3.2/bin/fluid \
-  -DFLTK_INCLUDE_DIR=%{tigervnc_src_dir}/fltk-1.3.2 \
+  -DFLTK_FLUID_EXECUTABLE=%{xorg_buildroot}%{_bindir}/fluid \
+  -DFLTK_LIBRARY_DIR=%{xorg_buildroot}%{_libdir} \
+  -DFLTK_INCLUDE_DIR=%{xorg_buildroot}%{_includedir} \
   -DBUILD_STATIC=1 \
   -DCMAKE_BUILD_TYPE=Release \
   -DUSE_INCLUDED_ZLIB=0 \
