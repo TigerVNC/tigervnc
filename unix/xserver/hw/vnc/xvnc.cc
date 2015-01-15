@@ -1323,6 +1323,21 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
     int num_modes;
 
     num_modes = 0;
+
+    int j;
+    for (j = 0;j < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);j++)
+      if (vncRandRWidths[j] == vfbScreens[0].fb.width &&
+	  vncRandRHeights[j] == vfbScreens[0].fb.height)
+	break;
+
+    if (j == sizeof(vncRandRWidths)/sizeof(*vncRandRWidths)) {
+      /* User-set geometry needs to be added */
+      mode = vncRandRModeGet(vfbScreens[0].fb.width,
+			     vfbScreens[0].fb.height);
+      modes[num_modes] = mode;
+      num_modes++;
+    }
+
     for (int i = 0;i < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);i++) {
         mode = vncRandRModeGet(vncRandRWidths[i], vncRandRHeights[i]);
         if (mode != NULL) {
