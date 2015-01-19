@@ -5,7 +5,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 2%{?snap:.%{snap}}%{?dist}
+Release: 3%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -497,7 +497,7 @@ popd
 echo "*** Building fontconfig ***"
 pushd fontconfig-*
 autoreconf -fiv
-LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" HASDOCBOOK=no ./configure --prefix=%{_prefix} --libdir=%{_libdir} --with-add-fonts=/usr/share/X11/fonts/Type1,/usr/share/X11/fonts/OTF --enable-static --disable-shared --with-confdir=%{_sysconfdir}/fonts --with-cache-dir=%{_localstatedir}/cache/fontconfig --with-default-fonts=%{_datadir}/fonts --with-add-fonts="%{_datadir}/X11/fonts/Type1,%{_datadir}/X11/fonts/OTF,%{_datadir}/X11/fonts/TTF,%{_prefix}/local/share/fonts,~/.fonts"
+LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" HASDOCBOOK=no ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --with-confdir=%{_sysconfdir}/fonts --with-cache-dir=%{_localstatedir}/cache/fontconfig --with-default-fonts=%{_datadir}/fonts --with-add-fonts="%{_datadir}/X11/fonts/Type1,%{_datadir}/X11/fonts/OTF,%{_datadir}/X11/fonts/TTF,%{_datadir}/X11/fonts/misc,%{_datadir}/X11/fonts/100dpi,%{_datadir}/X11/fonts/75dpi,%{_prefix}/local/share/fonts,~/.fonts"
 make %{?_smp_mflags}
 make DESTDIR=%{xorg_buildroot} install
 find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
@@ -630,7 +630,7 @@ for module in ${modules}; do
   elif [ "${module}" = "pixman" ]; then
     LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" CFLAGS="$CFLAGS -fno-strict-aliasing" ./configure --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
   elif [ "${module}" = "libXt" ]; then
-    LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" CFLAGS="$CFLAGS -fno-strict-aliasing" ./configure --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
+    LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" CFLAGS="$CFLAGS -fno-strict-aliasing" ./configure --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic --with-xfile-search-path="%{_sysconfdir}/X11/%%L/%%T/%%N%%C%%S:%{_sysconfdir}/X11/%%l/%%T/\%%N%%C%%S:%{_sysconfdir}/X11/%%T/%%N%%C%%S:%{_sysconfdir}/X11/%%L/%%T/%%N%%S:%{_sysconfdir}/X\11/%%l/%%T/%%N%%S:%{_sysconfdir}/X11/%%T/%%N%%S:%{_datadir}/X11/%%L/%%T/%%N%%C%%S:%{_datadir}/X1\1/%%l/%%T/%%N%%C%%S:%{_datadir}/X11/%%T/%%N%%C%%S:%{_datadir}/X11/%%L/%%T/%%N%%S:%{_datadir}/X11/%%\l/%%T/%%N%%S:%{_datadir}/X11/%%T/%%N%%S"
   elif [ "${module}" = "libX11" ]; then
     LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" ./configure --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
   elif [ "${module}" = "libXtst" ]; then
@@ -751,11 +751,14 @@ chmod +x ./configure
 GL_LIBS='-Wl,-Bdynamic -lGL' LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir}/tigervnc -Wl,-rpath,%{_libdir}/tigervnc:%{_libdir}" \
 %configure \
   --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_datadir}/man \
+  --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} \
+  --with-vendor-name="The TigerVNC Project" --with-vendor-name-short="TigerVNC" \
+  --with-vendor-web="http://www.tigervnc.org" \
   --disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
   --disable-xwin --disable-xephyr --disable-kdrive --disable-wayland \
   --with-pic --enable-static --disable-shared --disable-xinerama \
   --with-default-xkb-rules=base \
-  --with-default-font-path="built-ins" \
+  --with-default-font-path="catalogue:%{_sysconfdir}/X11/fontpath.d,%{_datadir}/X11/fonts/misc,%{_datadir}/X11/fonts/OTF,%{_datadir}/X11/fonts/TTF,%{_datadir}/X11/fonts/Type1,%{_datadir}/X11/fonts/100dpi,%{_datadir}/X11/fonts/75dpi,built-ins" \
   --with-serverconfig-path=%{_libdir}/xorg \
   --with-fontrootdir=%{_datadir}/X11/fonts \
   --with-xkb-output=%{_localstatedir}/lib/xkb \
@@ -911,6 +914,11 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Mon Jan 19 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.0-3
+- Added default font paths to Xvnc and fontconfig
+- Added vendor strings to Xvnc
+- Specified xfile-search-path when configuring libXt the same way el6 does
+
 * Wed Dec 24 2014 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-1.20141119git59c5a55c
 - Rebuilt against Xorg 7.7 with CVE-2104-12-09 patches from debian.
 - Bumped versions of Mesa, Freetype, fontconfig, etc.
