@@ -981,6 +981,11 @@ public class CConn extends CConnection implements
         options.secIdent.isSelected());
     }
 
+    options.resizeOnConnect.setSelected(UserPreferences.getBool("global", "ResizeOnConnect"));
+    String resizeWidth = UserPreferences.get("global", "ResizeWidth");
+    options.resizeWidth.setText(resizeWidth != null && resizeWidth.length() > 0 ? resizeWidth : "1024");
+    String resizeHeight = UserPreferences.get("global", "ResizeHeight");
+    options.resizeHeight.setText(resizeHeight != null && resizeHeight.length() > 0 ? resizeHeight : "768");
     options.fullScreen.setSelected(fullScreen);
     options.useLocalCursor.setSelected(viewer.useLocalCursor.getValue());
     options.acceptBell.setSelected(viewer.acceptBell.getValue());
@@ -1060,6 +1065,11 @@ public class CConn extends CConnection implements
     viewer.acceptClipboard.setParam(options.acceptClipboard.isSelected());
     viewer.sendClipboard.setParam(options.sendClipboard.isSelected());
     viewer.acceptBell.setParam(options.acceptBell.isSelected());
+
+    if (options.resizeOnConnect.isSelected()) {
+      viewer.desktopSize.setParam(options.resizeWidth.getText() + "x"  + options.resizeHeight.getText());
+    }
+
     String scaleString =
       options.scalingFactor.getSelectedItem().toString();
     String oldScaleFactor = viewer.scalingFactor.getValue();

@@ -45,12 +45,13 @@ class OptionsDialog extends Dialog implements
   JRadioButton zrle, hextile, tight, raw;
   JRadioButton fullColour, mediumColour, lowColour, veryLowColour;
   JCheckBox viewOnly, acceptClipboard, sendClipboard, acceptBell;
-  JCheckBox fullScreen, shared, useLocalCursor;
+  JCheckBox resizeOnConnect, fullScreen, shared, useLocalCursor;
   JCheckBox secVeNCrypt, encNone, encTLS, encX509;
   JCheckBox secNone, secVnc, secPlain, secIdent, sendLocalUsername;
   JButton okButton, cancelButton;
   JButton ca, crl;
   JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
+  JTextField resizeWidth, resizeHeight;
 
   @SuppressWarnings({"rawtypes","unchecked"})
   public OptionsDialog(CConn cc_) {
@@ -147,6 +148,14 @@ class OptionsDialog extends Dialog implements
     // Misc tab
     MiscPanel=new JPanel(new GridBagLayout());
 
+    resizeOnConnect = new JCheckBox("Resize remote session on connect");
+    resizeOnConnect.addItemListener(this);
+    resizeWidth = new JTextField("1024", 4);
+    resizeWidth.addActionListener(this);
+    resizeWidth.setEnabled(false);
+    resizeHeight = new JTextField("768", 4);
+    resizeHeight.addActionListener(this);
+    resizeHeight.setEnabled(false);
     fullScreen = new JCheckBox("Full-screen mode");
     fullScreen.addItemListener(this);
     fullScreen.setEnabled(!cc.viewer.embed.getValue());
@@ -171,15 +180,21 @@ class OptionsDialog extends Dialog implements
       sfeTextField.setBorder(new CompoundBorder(sfeTextField.getBorder(),
                                                 new EmptyBorder(0,2,0,0)));
     }
+    JPanel resizePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    resizePanel.add(resizeWidth);
+    resizePanel.add(new JLabel("x"));
+    resizePanel.add(resizeHeight);
     scalingFactor.setEditable(true);
     scalingFactor.addItemListener(this);
     scalingFactor.setEnabled(!cc.viewer.embed.getValue());
-    addGBComponent(fullScreen,MiscPanel,     0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(shared,MiscPanel,         0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(useLocalCursor,MiscPanel, 0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(acceptBell,MiscPanel,     0, 3, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
-    addGBComponent(scalingFactorLabel,MiscPanel, 0, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
-    addGBComponent(scalingFactor,MiscPanel, 1, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
+    addGBComponent(resizeOnConnect,MiscPanel,0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(resizePanel,MiscPanel,    0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,20,0,5));
+    addGBComponent(fullScreen,MiscPanel,     0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(shared,MiscPanel,         0, 3, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(useLocalCursor,MiscPanel, 0, 4, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(acceptBell,MiscPanel,     0, 5, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
+    addGBComponent(scalingFactorLabel,MiscPanel, 0, 6, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
+    addGBComponent(scalingFactor,MiscPanel, 1, 6, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
 
     // load/save tab
     DefaultsPanel=new JPanel(new GridBagLayout());
@@ -330,6 +345,9 @@ class OptionsDialog extends Dialog implements
     UserPreferences.set("global", "SendClipboard", sendClipboard.isSelected());
     String menuKeyStr = MenuKey.getMenuKeySymbols()[menuKey.getSelectedIndex()].name;
     UserPreferences.set("global", "MenuKey", menuKeyStr);
+    UserPreferences.set("global", "ResizeOnConnect", resizeOnConnect.isSelected());
+    UserPreferences.set("global", "ResizeWidth", resizeWidth.getText());
+    UserPreferences.set("global", "ResizeHeight", resizeHeight.getText());
     UserPreferences.set("global", "FullScreen", fullScreen.isSelected());
     UserPreferences.set("global", "Shared", shared.isSelected());
     UserPreferences.set("global", "UseLocalCursor", useLocalCursor.isSelected());
@@ -401,6 +419,11 @@ class OptionsDialog extends Dialog implements
     acceptClipboard.setSelected(UserPreferences.getBool("global", "AcceptClipboard"));
     sendClipboard.setSelected(UserPreferences.getBool("global", "SendClipboard"));
     menuKey.setSelectedItem(UserPreferences.get("global", "MenuKey"));
+    resizeOnConnect.setSelected(UserPreferences.getBool("global", "ResizeOnConnect"));
+    resizeWidth.setText(UserPreferences.get("global", "ResizeWidth"));
+    resizeWidth.setEnabled(resizeOnConnect.isSelected());
+    resizeHeight.setText(UserPreferences.get("global", "ResizeHeight"));
+    resizeHeight.setEnabled(resizeOnConnect.isSelected());
     fullScreen.setSelected(UserPreferences.getBool("global", "FullScreen"));
     if (shared.isEnabled())
       shared.setSelected(UserPreferences.getBool("global", "Shared"));
@@ -573,6 +596,10 @@ class OptionsDialog extends Dialog implements
     if (s instanceof JCheckBox && (JCheckBox)s == secIdent ||
         s instanceof JCheckBox && (JCheckBox)s == secPlain) {
       sendLocalUsername.setEnabled(secIdent.isSelected()||secPlain.isSelected());
+    }
+    if (s instanceof JCheckBox && (JCheckBox)s == resizeOnConnect) {
+      resizeWidth.setEnabled(resizeOnConnect.isSelected());
+      resizeHeight.setEnabled(resizeOnConnect.isSelected());
     }
   }
 
