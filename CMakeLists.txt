@@ -18,7 +18,7 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tigervnc)
-set(VERSION 1.4.1)
+set(VERSION 1.4.2)
 
 # The RC version must always be four comma-separated numbers
 set(RCVERSION 1,4,2,0)
