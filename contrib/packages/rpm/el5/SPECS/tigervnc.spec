@@ -914,6 +914,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Fri Jan 23 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.2-1
+- 1.4.2 release
+
 * Mon Jan 19 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.0-3
 - Added default font paths to Xvnc and fontconfig
 - Added vendor strings to Xvnc

@@ -21,7 +21,7 @@ project(tigervnc)
 set(VERSION 1.4.1)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,4,1,0)
+set(RCVERSION 1,4,2,0)
 
 # Installation paths
 set(BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")

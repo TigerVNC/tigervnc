@@ -2,7 +2,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 18%{?snap:.%{snap}}%{?dist}
+Release: 1%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -344,6 +344,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Fri Jan 23 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.2-1
+- 1.4.2 release
+
 * Tue Nov 04 2014 Brian P. Hinz <bphinz@users.sourceforge.net> 1.3.80-18.20131128svn5139
 - Bumped xserver patch to keep pace with native version
 
