@@ -653,6 +653,12 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
   if (vncRandRGetOutputCount(screenIndex) == 0)
     return rfb::resultProhibited;
 
+  char buffer[2048];
+  vlog.debug("Got request for framebuffer resize to %dx%d",
+             fb_width, fb_height);
+  layout.print(buffer, sizeof(buffer));
+  vlog.debug("%s", buffer);
+
   /*
    * First check that we don't have any active clone modes. That's just
    * too messy to deal with.
@@ -667,6 +673,8 @@ unsigned int XserverDesktop::setScreenLayout(int fb_width, int fb_height,
 
   /* Try to create more outputs if needed... (only works on Xvnc) */
   if (layout.num_screens() > availableOutputs) {
+    vlog.debug("Insufficient screens. Need to create %d more.",
+               layout.num_screens() - availableOutputs);
     ret = vncRandRCreateOutputs(screenIndex,
                                 layout.num_screens() - availableOutputs);
     if (ret < 0) {
