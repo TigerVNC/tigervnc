@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2015 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,41 +23,26 @@
 #include <dix-config.h>
 #endif
 
-#include <rfb/Configuration.h>
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
-#include <rfb/ScreenSet.h>
-#include <rfb/screenTypes.h>
+#include "opaque.h"
+#ifdef RANDR
+#include "randrstr.h"
+#endif
 
 #include "xorg-version.h"
 
-extern "C" {
-#define class c_class
-#define private c_private
-#define bool c_bool
-#define new c_new
 #include "xf86.h"
 #include "xf86Module.h"
-#ifdef RANDR
-#include "randrstr.h"
-#endif /* RANDR */
-#undef class
-#undef private
-#undef bool
-#undef new
 
-using namespace rfb;
+#include "vncExtInit.h"
+#include "RFBGlue.h"
 
-extern void vncExtensionInit();
-static void vncExtensionInitWithParams(INITARGS);
-
-char *listenaddr = NULL;
+static void vncModuleInit(INITARGS);
 
 static MODULESETUPPROTO(vncSetup);
 
 ExtensionModule vncExt =
 {
-    vncExtensionInitWithParams,
+    vncModuleInit,
     "VNC",
 #if XORG < 112
     NULL,
@@ -92,42 +78,39 @@ vncSetup(void * module, void * opts, int *errmaj, int *errmin) {
     return (void *)1;
 }
 
-static void vncExtensionInitWithParams(INITARGS)
+static void vncModuleInit(INITARGS)
 {
   static char once = 0;
 
   if (!once) {
     once++;
-    rfb::initStdIOLoggers();
-    rfb::LogWriter::setLogParams("*:stderr:30");
-    rfb::Configuration::enableServerParams();
+
+    vncInitRFB();
 
     for (int scr = 0; scr < screenInfo.numScreens; scr++) {
-      ScrnInfoPtr pScrn = xf86Screens[scr];
+      ScrnInfoPtr pScrn;
+      XF86OptionPtr option;
 
-      for (ParameterIterator i; i.param; i.next()) {
-        const char *val;
-#if XORG < 112
-        val = xf86FindOptionValue(pScrn->options, i.param->getName());
-#else
-        val = xf86FindOptionValue((XF86OptionPtr)pScrn->options, i.param->getName());
-#endif
-        if (val)
-          i.param->setParam(val);
+      pScrn = xf86Screens[scr];
+      option = pScrn->options;
+      while (option != NULL) {
+        vncSetParam(xf86OptionName(option), xf86OptionValue(option));
+        option = xf86NextOption(option);
       }
     }
   }
 
   vncExtensionInit();
 }
-}
 
+#ifdef RANDR
 RRModePtr vncRandRModeGet(int width, int height)
 {
     return NULL;
 }
 
-RROutputPtr vncRandROutputCreate(ScreenPtr pScreen)
+int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
 {
-    return NULL;
+  return -1;
 }
+#endif

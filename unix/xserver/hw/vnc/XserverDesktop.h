@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2015 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 
 #include <map>
 
+#include <stdint.h>
+
 #include <rfb/SDesktop.h>
 #include <rfb/HTTPServer.h>
 #include <rfb/PixelBuffer.h>
@@ -36,16 +38,6 @@
 #include <rfb/VNCServerST.h>
 #include <rdr/SubstitutingInStream.h>
 #include "Input.h"
-
-extern "C" {
-#define class c_class
-#include <scrnintstr.h>
-#include <os.h>
-#ifdef RANDR
-#include <randrstr.h>
-#endif
-#undef class
-}
 
 namespace rfb {
   class VNCServerST;
@@ -58,10 +50,10 @@ class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public rfb::VNCServerST::QueryConnectionHandler {
 public:
 
-  XserverDesktop(ScreenPtr pScreen, network::TcpListener* listener,
+  XserverDesktop(int screenIndex, network::TcpListener* listener,
                  network::TcpListener* httpListener_,
                  const char* name, const rfb::PixelFormat &pf,
-                 void* fbptr, int stride);
+                 int width, int height, void* fbptr, int stride);
   virtual ~XserverDesktop();
 
   // methods called from X server code
@@ -72,31 +64,27 @@ public:
   void bell();
   void serverCutText(const char* str, int len);
   void setDesktopName(const char* name);
-  void setCursor(CursorPtr cursor);
-  void add_changed(RegionPtr reg);
-  void add_copied(RegionPtr dst, int dx, int dy);
-  void ignoreHooks(bool b) { ignoreHooks_ = b; }
-  void blockHandler(fd_set* fds, OSTimePtr timeout);
-  void wakeupHandler(fd_set* fds, int nfds);
-  void writeBlockHandler(fd_set* fds);
+  void setCursor(int width, int height, int hotX, int hotY,
+                 const unsigned char *rgbaData);
+  void add_changed(const rfb::Region &region);
+  void add_copied(const rfb::Region &dest, const rfb::Point &delta);
+  void readBlockHandler(fd_set* fds, struct timeval ** timeout);
+  void readWakeupHandler(fd_set* fds, int nfds);
+  void writeBlockHandler(fd_set* fds, struct timeval ** timeout);
   void writeWakeupHandler(fd_set* fds, int nfds);
   void addClient(network::Socket* sock, bool reverse);
   void disconnectClients();
 
   // QueryConnect methods called from X server code
-  // getQueryTimeout()
-  //   Returns the timeout associated with a particular
-  //   connection, identified by an opaque Id passed to the
-  //   X code earlier.  Also optionally gets the address and
-  //   name associated with that connection.
-  //   Returns zero if the Id is not recognised.
-  int getQueryTimeout(void* opaqueId,
-                      const char** address=0,
-                      const char** username=0);
+  // getQueryConnect()
+  //   Returns information about the currently waiting query
+  //   (or an id of 0 if there is none waiting)
+  void getQueryConnect(uint32_t* opaqueId, const char** address,
+                       const char** username, int *timeout);
 
   // approveConnection()
   //   Used by X server code to supply the result of a query.
-  void approveConnection(void* opaqueId, bool accept,
+  void approveConnection(uint32_t opaqueId, bool accept,
                          const char* rejectMsg=0);
 
   // rfb::SDesktop callbacks
@@ -120,26 +108,23 @@ public:
 
 private:
   rfb::ScreenSet computeScreenLayout();
-#ifdef RANDR
-  RRModePtr findRandRMode(RROutputPtr output, int width, int height);
-#endif
 
-  ScreenPtr pScreen;
+  int screenIndex;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
   network::TcpListener* listener;
   network::TcpListener* httpListener;
   bool deferredUpdateTimerSet;
-  bool grabbing;
-  bool ignoreHooks_;
   bool directFbptr;
+  struct timeval dixTimeout;
 
-  void* queryConnectId;
+  uint32_t queryConnectId;
+  network::Socket* queryConnectSocket;
   rfb::CharArray queryConnectAddress;
   rfb::CharArray queryConnectUsername;
 
 #ifdef RANDR
-  typedef std::map<RROutputPtr, rdr::U32> OutputIdMap;
+  typedef std::map<intptr_t, rdr::U32> OutputIdMap;
   OutputIdMap outputIdMap;
 #endif
 

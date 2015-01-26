@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009 Pierre Ossman for Cendio AB
+ * Copyright 2009-2015 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,15 @@
 #endif
 
 #include <stdio.h>
-#include "XserverDesktop.h"
+
 #include "vncHooks.h"
 #include "vncExtInit.h"
+
 #include "xorg-version.h"
 
-extern "C" {
-#define class c_class
-#define private c_private
-#define public c_public
 #include "scrnintstr.h"
 #include "windowstr.h"
+#include "cursorstr.h"
 #include "gcstruct.h"
 #include "regionstr.h"
 #include "dixfontstr.h"
@@ -44,14 +42,14 @@ extern "C" {
 #include "randrstr.h"
 #endif
 
-#undef class
-#undef private
-#undef public
-}
-
-#include "RegionHelper.h"
-
 #define DBGPRINT(x) //(fprintf x)
+
+// REGION_NULL was introduced in the Xorg tree as the way to initialise an
+// empty region.  If it's not already defined do it the old way.  Note that the
+// old way causes a segfault in the new tree...
+#ifndef REGION_NULL
+#define REGION_NULL(pScreen,pReg) REGION_INIT(pScreen,pReg,NullBox,0)
+#endif
 
 // MAX_RECTS_PER_OP is the maximum number of rectangles we generate from
 // operations like Polylines and PolySegment.  If the operation is more complex
@@ -65,8 +63,8 @@ extern "C" {
 // functions are each wrapped individually, while the GC "funcs" and "ops" are
 // wrapped as a unit.
 
-typedef struct {
-  XserverDesktop* desktop;
+typedef struct _vncHooksScreenRec {
+  int                          ignoreHooks;
 
   CloseScreenProcPtr           CloseScreen;
   CreateGCProcPtr              CreateGC;
@@ -88,7 +86,7 @@ typedef struct {
 #endif
 } vncHooksScreenRec, *vncHooksScreenPtr;
 
-typedef struct {
+typedef struct _vncHooksGCRec {
 #if XORG >= 116
     const GCFuncs *wrappedFuncs;
     const GCOps *wrappedOps;
@@ -250,9 +248,24 @@ static GCOps vncHooksGCOps = {
 // resets.  It is called once for each screen, but the indexes are only
 // allocated once for each server generation.
 
-Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
+int vncHooksInit(int scrIdx)
 {
+  ScreenPtr pScreen;
   vncHooksScreenPtr vncHooksScreen;
+
+#ifdef RENDER
+  PictureScreenPtr ps;
+#endif
+#ifdef RANDR
+  rrScrPrivPtr rp;
+#endif
+
+  pScreen = screenInfo.screens[scrIdx];
+
+  if (sizeof(BoxRec) != sizeof(struct UpdateRect)) {
+    ErrorF("vncHooksInit: Incompatible BoxRec size\n");
+    return FALSE;
+  }
 
 #if XORG < 19
   if (!dixRequestPrivate(vncHooksScreenPrivateKey, sizeof(vncHooksScreenRec))) {
@@ -280,7 +293,7 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 
   vncHooksScreen = vncHooksScreenPrivate(pScreen);
 
-  vncHooksScreen->desktop = desktop;
+  vncHooksScreen->ignoreHooks = 0;
 
   vncHooksScreen->CloseScreen = pScreen->CloseScreen;
   vncHooksScreen->CreateGC = pScreen->CreateGC;
@@ -292,7 +305,6 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   vncHooksScreen->DisplayCursor = pScreen->DisplayCursor;
   vncHooksScreen->BlockHandler = pScreen->BlockHandler;
 #ifdef RENDER
-  PictureScreenPtr ps;
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     vncHooksScreen->Composite = ps->Composite;
@@ -300,7 +312,6 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   }
 #endif
 #ifdef RANDR
-  rrScrPrivPtr rp;
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     vncHooksScreen->RandRSetConfig = rp->rrSetConfig;
@@ -339,6 +350,66 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
   return TRUE;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// vncGetScreenImage() grabs a chunk of data from the main screen into the
+// provided buffer. It lives here rather than in XorgGlue.c because it
+// temporarily pauses the hooks.
+
+void vncGetScreenImage(int scrIdx, int x, int y, int width, int height,
+                       char *buffer, int strideBytes)
+{
+  ScreenPtr pScreen = screenInfo.screens[scrIdx];
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+
+  int i;
+
+  vncHooksScreen->ignoreHooks++;
+
+  // We do one line at a time since GetImage() cannot handle stride
+  for (i = y; i < y + height; i++) {
+    DrawablePtr pDrawable;
+#if XORG < 19
+    pDrawable = (DrawablePtr) WindowTable[scrIdx];
+#else
+    pDrawable = (DrawablePtr) pScreen->root;
+#endif
+
+    (*pScreen->GetImage) (pDrawable, x, i, width, 1,
+                          ZPixmap, (unsigned long)~0L, buffer);
+
+    buffer += strideBytes;
+  }
+
+  vncHooksScreen->ignoreHooks--;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Helper functions for adding changes and copies
+//
+
+static inline void add_changed(ScreenPtr pScreen, RegionPtr reg)
+{
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+  if (vncHooksScreen->ignoreHooks)
+    return;
+  vncAddChanged(pScreen->myNum,
+                (const struct UpdateRect*)REGION_EXTENTS(pScreen, reg),
+                REGION_NUM_RECTS(reg),
+                (const struct UpdateRect*)REGION_RECTS(reg));
+}
+
+static inline void add_copied(ScreenPtr pScreen, RegionPtr dst,
+                              int dx, int dy)
+{
+  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
+  if (vncHooksScreen->ignoreHooks)
+    return;
+  vncAddCopied(pScreen->myNum,
+               (const struct UpdateRect*)REGION_EXTENTS(pScreen, dst),
+               REGION_NUM_RECTS(dst),
+               (const struct UpdateRect*)REGION_RECTS(dst), dx, dy);
+}
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -347,9 +418,6 @@ Bool vncHooksInit(ScreenPtr pScreen, XserverDesktop* desktop)
 //
 
 // SCREEN_UNWRAP and SCREEN_REWRAP unwrap and rewrap the given screen function.
-// It would be nice to do this with a C++ class, but each function is of a
-// distinct type, so it would have to use templates, and it's not worth that
-// much pain.
 
 #define SCREEN_UNWRAP(scrn,field)                                         \
   ScreenPtr pScreen = scrn;                                               \
@@ -369,6 +437,13 @@ static Bool vncHooksCloseScreen(int i, ScreenPtr pScreen_)
 static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 #endif
 {
+#ifdef RENDER
+  PictureScreenPtr ps;
+#endif
+#ifdef RANDR
+  rrScrPrivPtr rp;
+#endif
+
   SCREEN_UNWRAP(pScreen_, CloseScreen);
 
   pScreen->CreateGC = vncHooksScreen->CreateGC;
@@ -380,7 +455,6 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
   pScreen->DisplayCursor = vncHooksScreen->DisplayCursor;
   pScreen->BlockHandler = vncHooksScreen->BlockHandler;
 #ifdef RENDER
-  PictureScreenPtr ps;
   ps = GetPictureScreenIfSet(pScreen);
   if (ps) {
     ps->Composite = vncHooksScreen->Composite;
@@ -388,7 +462,6 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
   }
 #endif
 #ifdef RANDR
-  rrScrPrivPtr rp;
   rp = rrGetScrPriv(pScreen);
   if (rp) {
     rp->rrSetConfig = vncHooksScreen->RandRSetConfig;
@@ -410,11 +483,12 @@ static Bool vncHooksCloseScreen(ScreenPtr pScreen_)
 
 static Bool vncHooksCreateGC(GCPtr pGC)
 {
+  vncHooksGCPtr vncHooksGC = vncHooksGCPrivate(pGC);
+  Bool ret;
+
   SCREEN_UNWRAP(pGC->pScreen, CreateGC);
 
-  vncHooksGCPtr vncHooksGC = vncHooksGCPrivate(pGC);
-
-  Bool ret = (*pScreen->CreateGC) (pGC);
+  ret = (*pScreen->CreateGC) (pGC);
 
   vncHooksGC->wrappedOps = 0;
   vncHooksGC->wrappedFuncs = pGC->funcs;
@@ -432,13 +506,21 @@ static Bool vncHooksCreateGC(GCPtr pGC)
 static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                                RegionPtr pOldRegion)
 {
+  int dx, dy;
+  BoxRec screen_box;
+  RegionRec copied, screen_rgn;
+
   SCREEN_UNWRAP(pWin->drawable.pScreen, CopyWindow);
 
-  int dx, dy;
-  RegionHelper copied(pScreen, pOldRegion);
+  REGION_NULL(pScreen, &copied);
+  REGION_COPY(pScreen, &copied, pOldRegion);
 
-  BoxRec screen_box = {0, 0, pScreen->width, pScreen->height};
-  RegionHelper screen_rgn(pScreen, &screen_box, 1);
+  screen_box.x1 = 0;
+  screen_box.y1 = 0;
+  screen_box.x2 = pScreen->width;
+  screen_box.y2 = pScreen->height;
+
+  REGION_INIT(pScreen, &screen_rgn, &screen_box, 1);
 
   dx = pWin->drawable.x - ptOldOrg.x;
   dy = pWin->drawable.y - ptOldOrg.y;
@@ -447,15 +529,18 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
   // We also need to copy with changes to the Window's clipping region.
   // Finally, make sure we don't get copies to or from regions outside
   // the framebuffer.
-  REGION_INTERSECT(pScreen, copied.reg, copied.reg, screen_rgn.reg);
-  REGION_TRANSLATE(pScreen, copied.reg, dx, dy);
-  REGION_INTERSECT(pScreen, copied.reg, copied.reg, screen_rgn.reg);
-  REGION_INTERSECT(pScreen, copied.reg, copied.reg, &pWin->borderClip);
+  REGION_INTERSECT(pScreen, &copied, &copied, &screen_rgn);
+  REGION_TRANSLATE(pScreen, &copied, dx, dy);
+  REGION_INTERSECT(pScreen, &copied, &copied, &screen_rgn);
+  REGION_INTERSECT(pScreen, &copied, &copied, &pWin->borderClip);
 
   (*pScreen->CopyWindow) (pWin, ptOldOrg, pOldRegion);
 
-  if (REGION_NOTEMPTY(pScreen, copied.reg))
-    vncHooksScreen->desktop->add_copied(copied.reg, dx, dy);
+  if (REGION_NOTEMPTY(pScreen, &copied))
+    add_copied(pScreen, &copied, dx, dy);
+
+  REGION_UNINIT(pScreen, &copied);
+  REGION_UNINIT(pScreen, &screen_rgn);
 
   SCREEN_REWRAP(CopyWindow);
 }
@@ -466,23 +551,26 @@ static void vncHooksCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
                                       int h, Bool generateExposures)
 {
+  BoxRec box;
+  RegionRec reg;
+
   SCREEN_UNWRAP(pWin->drawable.pScreen, ClearToBackground);
 
-  BoxRec box;
   box.x1 = x + pWin->drawable.x;
   box.y1 = y + pWin->drawable.y;
   box.x2 = w ? (box.x1 + w) : (pWin->drawable.x + pWin->drawable.width);
   box.y2 = h ? (box.y1 + h) : (pWin->drawable.y + pWin->drawable.height);
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, &pWin->clipList);
+  REGION_INIT(pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pScreen, &reg, &reg, &pWin->clipList);
 
   (*pScreen->ClearToBackground) (pWin, x, y, w, h, generateExposures);
 
   if (!generateExposures) {
-    vncHooksScreen->desktop->add_changed(changed.reg);
+    add_changed(pScreen, &reg);
   }
+
+  REGION_UNINIT(pScreen, &reg);
 
   SCREEN_REWRAP(ClearToBackground);
 }
@@ -492,13 +580,18 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
 
 static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr pRegion)
 {
+  RegionRec reg;
+
   SCREEN_UNWRAP(pWin->drawable.pScreen, RestoreAreas);
 
-  RegionHelper changed(pScreen, pRegion);
+  REGION_NULL(pScreen, &reg);
+  REGION_COPY(pScreen, &reg, pRegion);
 
   RegionPtr result = (*pScreen->RestoreAreas) (pWin, pRegion);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pScreen, &reg);
+
+  REGION_UNINIT(pScreen, &reg);
 
   SCREEN_REWRAP(RestoreAreas);
 
@@ -514,25 +607,98 @@ static Bool vncHooksDisplayCursor(
 #endif
 				  ScreenPtr pScreen_, CursorPtr cursor)
 {
+  Bool ret;
+
   SCREEN_UNWRAP(pScreen_, DisplayCursor);
 
-  Bool ret = (*pScreen->DisplayCursor) (
+  ret = (*pScreen->DisplayCursor) (
 #if XORG >= 16
 					pDev,
 #endif
 					pScreen, cursor);
+
 #if XORG >= 16
   /*
    * XXX DIX calls this function with NULL argument to remove cursor sprite from
    * screen. Should we handle this in setCursor as well?
    */
-  if (cursor != NullCursor) {
+  if (cursor != NullCursor)
 #endif
-    vncHooksScreen->desktop->setCursor(cursor);
-#if XORG >= 16
-  }
+  {
+    int width, height;
+    int hotX, hotY;
+
+    unsigned char *rgbaData;
+
+    width = cursor->bits->width;
+    height = cursor->bits->height;
+
+    hotX = cursor->bits->xhot;
+    hotY = cursor->bits->yhot;
+
+    rgbaData = malloc(width * height * 4);
+    if (rgbaData == NULL)
+      goto out;
+
+#ifdef ARGB_CURSOR
+    if (cursor->bits->argb) {
+      unsigned char *out;
+      CARD32 *in;
+      int i;
+
+      in = cursor->bits->argb;
+      out = rgbaData;
+      for (i = 0; i < width*height; i++) {
+        out[0] = (*in >> 16) & 0xff;
+        out[1] = (*in >>  8) & 0xff;
+        out[2] = (*in >>  0) & 0xff;
+        out[3] = (*in >> 24) & 0xff;
+        out += 4;
+        in++;
+      }
+    } else {
+#endif
+      unsigned char *out;
+      int xMaskBytesPerRow;
+
+      xMaskBytesPerRow = BitmapBytePad(width);
+
+      out = rgbaData;
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          int byte = y * xMaskBytesPerRow + x / 8;
+#if (BITMAP_BIT_ORDER == MSBFirst)
+          int bit = 7 - x % 8;
+#else
+          int bit = x % 8;
 #endif
 
+          if (cursor->bits->source[byte] & (1 << bit)) {
+            out[0] = cursor->foreRed;
+            out[1] = cursor->foreGreen;
+            out[2] = cursor->foreBlue;
+          } else {
+            out[0] = cursor->backRed;
+            out[1] = cursor->backGreen;
+            out[2] = cursor->backBlue;
+          }
+
+          if (cursor->bits->mask[byte] & (1 << bit))
+            out[3] = 0xff;
+          else
+            out[3] = 0x00;
+
+          out += 4;
+        }
+      }
+#ifdef ARGB_CURSOR
+    }
+#endif
+
+    vncSetCursor(pScreen->myNum, width, height, hotX, hotY, rgbaData);
+  }
+
+out:
   SCREEN_REWRAP(DisplayCursor);
 
   return ret;
@@ -555,7 +721,7 @@ static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
   SCREEN_UNWRAP(pScreen_, BlockHandler);
 #endif
 
-  vncHooksScreen->desktop->ignoreHooks(true);
+  vncHooksScreen->ignoreHooks++;
 
 #if XORG <= 112
   (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
@@ -563,7 +729,7 @@ static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
   (*pScreen->BlockHandler) (pScreen, pTimeout, pReadmask);
 #endif
 
-  vncHooksScreen->desktop->ignoreHooks(false);
+  vncHooksScreen->ignoreHooks--;
 
   SCREEN_REWRAP(BlockHandler);
 }
@@ -580,28 +746,20 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
   PictureScreenPtr ps = GetPictureScreen(pScreen);
 
-  RegionHelper changed(pScreen);
+  RegionRec changed;
 
   if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
       ((WindowPtr) pDst->pDrawable)->viewable) {
     BoxRec box;
-    rfb::Rect rect1, rect2;
 
-    rect1.setXYWH(pDst->pDrawable->x + xDst,
-		  pDst->pDrawable->y + yDst,
-		  width,
-		  height);
-        
-    rect2 = rect1.intersect(vncHooksScreen->desktop->getRect());
+    box.x1 = max(pDst->pDrawable->x + xDst, 0);
+    box.y1 = max(pDst->pDrawable->y + yDst, 0);
+    box.x2 = min(box.x1 + width, pScreen->width);
+    box.y2 = min(box.y1 + height, pScreen->height);
 
-    box.x1 = rect2.tl.x;
-    box.y1 = rect2.tl.y;
-    box.x2 = rect2.br.x;
-    box.y2 = rect2.br.y;
-
-    changed.init(&box, 0);
+    REGION_INIT(pScreen, &changed, &box, 0);
   } else {
-    changed.init(NullBox, 0);
+    REGION_NULL(pScreen, &changed);
   }
 
 
@@ -610,8 +768,10 @@ void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 		   xMask, yMask, xDst, yDst, width, height);
   ps->Composite = vncHooksComposite;
 
-  if (REGION_NOTEMPTY(pScreen, changed.reg))
-    vncHooksScreen->desktop->add_changed(changed.reg);
+  if (REGION_NOTEMPTY(pScreen, &changed))
+    add_changed(pScreen, &changed);
+
+  REGION_UNINIT(pScreen, &changed);
 }
 
 static int
@@ -672,38 +832,38 @@ void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
   vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
   PictureScreenPtr ps = GetPictureScreen(pScreen);
 
-  RegionHelper changed(pScreen);
+  RegionPtr changed;
 
   if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
       ((WindowPtr) pDst->pDrawable)->viewable) {
-    rfb::Rect fbrect;
     BoxRec fbbox;
     RegionRec fbreg;
 
-    changed.reg = GlyphsToRegion(pScreen, nlists, lists, glyphs);
-    REGION_TRANSLATE(pScreen, changed.reg,
+    changed = GlyphsToRegion(pScreen, nlists, lists, glyphs);
+    REGION_TRANSLATE(pScreen, changed,
                      pDst->pDrawable->x, pDst->pDrawable->y);
 
-    fbrect = vncHooksScreen->desktop->getRect();
-    fbbox.x1 = fbrect.tl.x;
-    fbbox.y1 = fbrect.tl.y;
-    fbbox.x2 = fbrect.br.x;
-    fbbox.y2 = fbrect.br.y;
+    fbbox.x1 = 0;
+    fbbox.y1 = 0;
+    fbbox.x2 = pScreen->width;
+    fbbox.y2 = pScreen->height;
     REGION_INIT(pScreen, &fbreg, &fbbox, 0);
 
-    REGION_INTERSECT(pScreen, changed.reg, changed.reg, &fbreg);
+    REGION_INTERSECT(pScreen, changed, changed, &fbreg);
 
     REGION_UNINIT(pScreen, &fbreg);
   } else {
-    changed.init(NullBox, 0);
+    changed = REGION_CREATE(pScreen, NullBox, 0);
   }
 
   ps->Glyphs = vncHooksScreen->Glyphs;
   (*ps->Glyphs)(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlists, lists, glyphs);
   ps->Glyphs = vncHooksGlyphs;
 
-  if (REGION_NOTEMPTY(pScreen, changed.reg))
-    vncHooksScreen->desktop->add_changed(changed.reg);
+  if (REGION_NOTEMPTY(pScreen, changed))
+    add_changed(pScreen, changed);
+
+  REGION_DESTROY(pScreen, changed);
 }
 
 #endif /* RENDER */
@@ -712,45 +872,6 @@ void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
 #ifdef RANDR
 
-static void vncPreScreenResize(ScreenPtr pScreen)
-{
-  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
-
-  // We need to prevent the RFB core from accessing the framebuffer
-  // for a while as there might be updates thrown our way inside
-  // the routines that change the screen (i.e. before we have a
-  // pointer to the new framebuffer).
-  vncHooksScreen->desktop->blockUpdates();
-}
-
-static void vncPostScreenResize(ScreenPtr pScreen, Bool success)
-{
-  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);
-
-  RegionRec reg;
-  BoxRec box;
-
-  if (success) {
-    // Let the RFB core know of the new dimensions and framebuffer
-    vncHooksScreen->desktop->setFramebuffer(pScreen->width, pScreen->height,
-                                            vncFbptr[pScreen->myNum],
-                                            vncFbstride[pScreen->myNum]);
-  }
-
-  vncHooksScreen->desktop->unblockUpdates();
-
-  if (success) {
-    // Mark entire screen as changed
-    box.x1 = 0;
-    box.y1 = 0;
-    box.x2 = pScreen->width;
-    box.y2 = pScreen->height;
-    REGION_INIT(pScreen, &reg, &box, 1);
-
-    vncHooksScreen->desktop->add_changed(&reg);
-  }
-}
-
 static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
                                    int rate, RRScreenSizePtr pSize)
 {
@@ -758,13 +879,13 @@ static Bool vncHooksRandRSetConfig(ScreenPtr pScreen, Rotation rotation,
   rrScrPrivPtr rp = rrGetScrPriv(pScreen);
   Bool ret;
 
-  vncPreScreenResize(pScreen);
+  vncPreScreenResize(pScreen->myNum);
 
   rp->rrSetConfig = vncHooksScreen->RandRSetConfig;
   ret = (*rp->rrSetConfig)(pScreen, rotation, rate, pSize);
   rp->rrSetConfig = vncHooksRandRSetConfig;
 
-  vncPostScreenResize(pScreen, ret);
+  vncPostScreenResize(pScreen->myNum, ret, pScreen->width, pScreen->height);
 
   if (!ret)
     return FALSE;
@@ -780,13 +901,13 @@ static Bool vncHooksRandRScreenSetSize(ScreenPtr pScreen,
   rrScrPrivPtr rp = rrGetScrPriv(pScreen);
   Bool ret;
 
-  vncPreScreenResize(pScreen);
+  vncPreScreenResize(pScreen->myNum);
 
   rp->rrScreenSetSize = vncHooksScreen->RandRScreenSetSize;
   ret = (*rp->rrScreenSetSize)(pScreen, width, height, mmWidth, mmHeight);
   rp->rrScreenSetSize = vncHooksRandRScreenSetSize;
 
-  vncPostScreenResize(pScreen, ret);
+  vncPostScreenResize(pScreen->myNum, ret, pScreen->width, pScreen->height);
 
   if (!ret)
     return FALSE;
@@ -811,7 +932,7 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
   if (!ret)
     return FALSE;
 
-  vncHooksScreen->desktop->refreshScreenLayout();
+  vncRefreshScreenLayout(pScreen->myNum);
 
   return TRUE;
 }
@@ -823,76 +944,73 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
 // GC "funcs"
 //
 
-// GCFuncUnwrapper is a helper class which unwraps the GC funcs and ops in its
-// constructor and rewraps them in its destructor.
+// Unwrap and rewrap helpers
 
-class GCFuncUnwrapper {
-public:
-  GCFuncUnwrapper(GCPtr pGC_) : pGC(pGC_) {
-    vncHooksGC = vncHooksGCPrivate(pGC);
-    pGC->funcs = vncHooksGC->wrappedFuncs;
-    if (vncHooksGC->wrappedOps)
-      pGC->ops = vncHooksGC->wrappedOps;
-  }
-  ~GCFuncUnwrapper() {
-    vncHooksGC->wrappedFuncs = pGC->funcs;
-    pGC->funcs = &vncHooksGCFuncs;
-    if (vncHooksGC->wrappedOps) {
-      vncHooksGC->wrappedOps = pGC->ops;
-      pGC->ops = &vncHooksGCOps;
+#define GC_FUNC_PROLOGUE(pGC, name)\
+    vncHooksGCPtr pGCPriv = vncHooksGCPrivate(pGC);\
+    (pGC)->funcs = pGCPriv->wrappedFuncs;\
+    if(pGCPriv->wrappedOps)\
+        (pGC)->ops = pGCPriv->wrappedOps; \
+    DBGPRINT((stderr,"vncHooks" #name " called\n"))
+
+#define GC_FUNC_EPILOGUE(pGC)\
+    pGCPriv->wrappedFuncs = (pGC)->funcs;\
+    (pGC)->funcs = &vncHooksGCFuncs;\
+    if(pGCPriv->wrappedOps) {\
+        pGCPriv->wrappedOps = (pGC)->ops;\
+        (pGC)->ops = &vncHooksGCOps;\
     }
-  }
-  GCPtr pGC;
-  vncHooksGCPtr vncHooksGC;
-};
-
 
 // ValidateGC - wrap the "ops" if a viewable window OR the screen pixmap
 
 static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
                                DrawablePtr pDrawable)
 {
-  GCFuncUnwrapper u(pGC);
-
-  DBGPRINT((stderr,"vncHooksValidateGC called\n"));
-
+  GC_FUNC_PROLOGUE(pGC, ValidateGC);
   (*pGC->funcs->ValidateGC) (pGC, changes, pDrawable);
-
-  u.vncHooksGC->wrappedOps = 0;
   if ((pDrawable->type == DRAWABLE_WINDOW &&
        ((WindowPtr) pDrawable)->viewable) ||
       (pDrawable == &pGC->pScreen->GetScreenPixmap(pGC->pScreen)->drawable)) {
-    u.vncHooksGC->wrappedOps = pGC->ops;
+    pGCPriv->wrappedOps = pGC->ops;
     DBGPRINT((stderr,"vncHooksValidateGC: wrapped GC ops\n"));
-  }    
+  } else {
+    pGCPriv->wrappedOps = NULL;
+  }
+  GC_FUNC_EPILOGUE(pGC);
 }
 
 // Other GC funcs - just unwrap and call on
 
 static void vncHooksChangeGC(GCPtr pGC, unsigned long mask) {
-  GCFuncUnwrapper u(pGC);
+  GC_FUNC_PROLOGUE(pGC, ChangeGC);
   (*pGC->funcs->ChangeGC) (pGC, mask);
+  GC_FUNC_EPILOGUE(pGC);
 }
 static void vncHooksCopyGC(GCPtr src, unsigned long mask, GCPtr dst) {
-  GCFuncUnwrapper u(dst);
+  GC_FUNC_PROLOGUE(dst, CopyGC);
   (*dst->funcs->CopyGC) (src, mask, dst);
+  GC_FUNC_EPILOGUE(dst);
 }
 static void vncHooksDestroyGC(GCPtr pGC) {
-  GCFuncUnwrapper u(pGC);
+  GC_FUNC_PROLOGUE(pGC, DestroyGC);
   (*pGC->funcs->DestroyGC) (pGC);
+  GC_FUNC_EPILOGUE(pGC);
 }
 static void vncHooksChangeClip(GCPtr pGC, int type, void * pValue, int nrects)
 {
-  GCFuncUnwrapper u(pGC);
+  GC_FUNC_PROLOGUE(pGC, ChangeClip);
   (*pGC->funcs->ChangeClip) (pGC, type, pValue, nrects);
+  GC_FUNC_EPILOGUE(pGC);
 }
 static void vncHooksDestroyClip(GCPtr pGC) {
-  GCFuncUnwrapper u(pGC);
+  GC_FUNC_PROLOGUE(pGC, DestroyClip);
   (*pGC->funcs->DestroyClip) (pGC);
+  GC_FUNC_EPILOGUE(pGC);
 }
 static void vncHooksCopyClip(GCPtr dst, GCPtr src) {
-  GCFuncUnwrapper u(dst);
+  GC_FUNC_PROLOGUE(dst, CopyClip);
   (*dst->funcs->CopyClip) (dst, src);
+  GC_FUNC_EPILOGUE(dst);
 }
 
 
@@ -901,40 +1019,19 @@ static void vncHooksCopyClip(GCPtr dst, GCPtr src) {
 // GC "ops"
 //
 
-// GCOpUnwrapper is a helper class which unwraps the GC funcs and ops in its
-// constructor and rewraps them in its destructor.
+// Unwrap and rewrap helpers
 
-class GCOpUnwrapper {
-public:
-  GCOpUnwrapper(DrawablePtr pDrawable, GCPtr pGC_)
-    : pGC(pGC_), pScreen(pDrawable->pScreen)
-  {
-    vncHooksGC = vncHooksGCPrivate(pGC);
-    oldFuncs = pGC->funcs;
-    pGC->funcs = vncHooksGC->wrappedFuncs;
-    pGC->ops = vncHooksGC->wrappedOps;
-  }
-  ~GCOpUnwrapper() {
-    vncHooksGC->wrappedOps = pGC->ops;
-    pGC->funcs = oldFuncs;
-    pGC->ops = &vncHooksGCOps;
-  }
-  GCPtr pGC;
-  vncHooksGCPtr vncHooksGC;
-#if XORG >= 116
-  const GCFuncs* oldFuncs;
-#else
-  GCFuncs* oldFuncs;
-#endif
-  ScreenPtr pScreen;
-};
+#define GC_OP_PROLOGUE(pGC, name)\
+    vncHooksGCPtr pGCPriv = vncHooksGCPrivate(pGC);\
+    GCFuncs *oldFuncs = pGC->funcs;\
+    pGC->funcs = pGCPriv->wrappedFuncs;\
+    pGC->ops = pGCPriv->wrappedOps; \
+    DBGPRINT((stderr,"vncHooks" #name " called\n"))
 
-#define GC_OP_UNWRAPPER(pDrawable, pGC, name)                             \
-  GCOpUnwrapper u(pDrawable, pGC);                                        \
-  ScreenPtr pScreen = (pDrawable)->pScreen;                               \
-  vncHooksScreenPtr vncHooksScreen = vncHooksScreenPrivate(pScreen);      \
-  DBGPRINT((stderr,"vncHooks" #name " called\n"));
-
+#define GC_OP_EPILOGUE(pGC)\
+    pGCPriv->wrappedOps = pGC->ops;\
+    pGC->funcs = oldFuncs;\
+    pGC->ops   = &vncHooksGCOps
 
 // FillSpans - assume the entire clip region is damaged. This is pessimistic,
 // but I believe this function is rarely used so it doesn't matter.
@@ -943,17 +1040,23 @@ static void vncHooksFillSpans(DrawablePtr pDrawable, GCPtr pGC, int nInit,
                               DDXPointPtr pptInit, int *pwidthInit,
                               int fSorted)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, FillSpans);
+  RegionRec reg;
 
-  RegionHelper changed(pScreen, pGC->pCompositeClip);
+  GC_OP_PROLOGUE(pGC, FillSpans);
+
+  REGION_NULL(pGC->pScreen, &reg);
+  REGION_COPY(pGC->pScreen, &reg, pGC->pCompositeClip);
 
   if (pDrawable->type == DRAWABLE_WINDOW)
-    REGION_INTERSECT(pScreen, changed.reg, changed.reg,
-                     &((WindowPtr)pDrawable)->borderClip);
+    REGION_INTERSECT(pScreen, &reg, &reg, &((WindowPtr)pDrawable)->borderClip);
 
   (*pGC->ops->FillSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+  GC_OP_EPILOGUE(pGC);
 }
 
 // SetSpans - assume the entire clip region is damaged.  This is pessimistic,
@@ -963,17 +1066,23 @@ static void vncHooksSetSpans(DrawablePtr pDrawable, GCPtr pGC, char *psrc,
                              DDXPointPtr ppt, int *pwidth, int nspans,
                              int fSorted)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, SetSpans);
+  RegionRec reg;
 
-  RegionHelper changed(pScreen, pGC->pCompositeClip);
+  GC_OP_PROLOGUE(pGC, SetSpans);
+
+  REGION_NULL(pGC->pScreen, &reg);
+  REGION_COPY(pGC->pScreen, &reg, pGC->pCompositeClip);
 
   if (pDrawable->type == DRAWABLE_WINDOW)
-    REGION_INTERSECT(pScreen, changed.reg, changed.reg,
-                     &((WindowPtr)pDrawable)->borderClip);
+    REGION_INTERSECT(pScreen, &reg, &reg, &((WindowPtr)pDrawable)->borderClip);
 
   (*pGC->ops->SetSpans) (pDrawable, pGC, psrc, ppt, pwidth, nspans, fSorted);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PutImage - changed region is the given rectangle, clipped by pCompositeClip
@@ -982,22 +1091,27 @@ static void vncHooksPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
                              int x, int y, int w, int h, int leftPad,
                              int format, char *pBits)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PutImage);
-
   BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, PutImage);
+
   box.x1 = x + pDrawable->x;
   box.y1 = y + pDrawable->y;
   box.x2 = box.x1 + w;
   box.y2 = box.y1 + h;
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->PutImage) (pDrawable, pGC, depth, x, y, w, h, leftPad, format,
                          pBits);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+  GC_OP_EPILOGUE(pGC);
 }
 
 // CopyArea - destination of the copy is the dest rectangle, clipped by
@@ -1008,59 +1122,67 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
                                   GCPtr pGC, int srcx, int srcy, int w, int h,
                                   int dstx, int dsty)
 {
-  GC_OP_UNWRAPPER(pDst, pGC, CopyArea);
-
   BoxRec box;
+  RegionRec dst, src, changed;
+
+  RegionPtr ret;
+
+  GC_OP_PROLOGUE(pGC, CopyArea);
+
   box.x1 = dstx + pDst->x;
   box.y1 = dsty + pDst->y;
   box.x2 = box.x1 + w;
   box.y2 = box.y1 + h;
 
-  RegionHelper dst(pScreen, &box, 0);
-  REGION_INTERSECT(pScreen, dst.reg, dst.reg, pGC->pCompositeClip);
-
-  RegionHelper src(pScreen);
+  REGION_INIT(pGC->pScreen, &dst, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &dst, &dst, pGC->pCompositeClip);
 
   // The source of the data has to be something that's on screen.
   // This means either a window, or the screen pixmap.
-  if ((pSrc->pScreen == pScreen) &&
+  if ((pSrc->pScreen == pGC->pScreen) &&
       ((pSrc->type == DRAWABLE_WINDOW) ||
-       (pSrc == &pScreen->GetScreenPixmap(pScreen)->drawable))) {
+       (pSrc == &pGC->pScreen->GetScreenPixmap(pGC->pScreen)->drawable))) {
     box.x1 = srcx + pSrc->x;
     box.y1 = srcy + pSrc->y;
     box.x2 = box.x1 + w;
     box.y2 = box.y1 + h;
 
-    src.init(&box, 0);
+    REGION_INIT(pGC->pScreen, &src, &box, 0);
 
     if ((pSrc->type == DRAWABLE_WINDOW) &&
         REGION_NOTEMPTY(pScreen, &((WindowPtr)pSrc)->clipList)) {
-      REGION_INTERSECT(pScreen, src.reg, src.reg, &((WindowPtr)pSrc)->clipList);
+      REGION_INTERSECT(pScreen, &src, &src, &((WindowPtr)pSrc)->clipList);
     }
 
-    REGION_TRANSLATE(pScreen, src.reg,
+    REGION_TRANSLATE(pScreen, &src,
                      dstx + pDst->x - srcx - pSrc->x,
                      dsty + pDst->y - srcy - pSrc->y);
   } else {
-    src.init(NullBox, 0);
+    REGION_NULL(pGC->pScreen, &src);
   }
 
-  RegionHelper changed(pScreen, NullBox, 0);
-  REGION_SUBTRACT(pScreen, changed.reg, dst.reg, src.reg);
-  REGION_INTERSECT(pScreen, dst.reg, dst.reg, src.reg);
+  REGION_NULL(pGC->pScreen, &changed);
 
-  RegionPtr rgn = (*pGC->ops->CopyArea) (pSrc, pDst, pGC, srcx, srcy, w, h,
-                                         dstx, dsty);
+  REGION_SUBTRACT(pScreen, &changed, &dst, &src);
+  REGION_INTERSECT(pScreen, &dst, &dst, &src);
 
-  if (REGION_NOTEMPTY(pScreen, dst.reg))
-    vncHooksScreen->desktop->add_copied(dst.reg,
-                                        dstx + pDst->x - srcx - pSrc->x,
-                                        dsty + pDst->y - srcy - pSrc->y);
+  ret = (*pGC->ops->CopyArea) (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
 
-  if (REGION_NOTEMPTY(pScreen, changed.reg))
-    vncHooksScreen->desktop->add_changed(changed.reg);
+  if (REGION_NOTEMPTY(pScreen, &dst))
+    add_copied(pGC->pScreen, &dst,
+               dstx + pDst->x - srcx - pSrc->x,
+               dsty + pDst->y - srcy - pSrc->y);
 
-  return rgn;
+  if (REGION_NOTEMPTY(pScreen, &changed))
+    add_changed(pGC->pScreen, &changed);
+
+  REGION_UNINIT(pGC->pScreen, &dst);
+  REGION_UNINIT(pGC->pScreen, &src);
+  REGION_UNINIT(pGC->pScreen, &changed);
+
+  GC_OP_EPILOGUE(pGC);
+
+  return ret;
 }
 
 
@@ -1071,23 +1193,31 @@ static RegionPtr vncHooksCopyPlane(DrawablePtr pSrc, DrawablePtr pDst,
                                    GCPtr pGC, int srcx, int srcy, int w, int h,
                                    int dstx, int dsty, unsigned long plane)
 {
-  GC_OP_UNWRAPPER(pDst, pGC, CopyPlane);
-
   BoxRec box;
+  RegionRec reg;
+
+  RegionPtr ret;
+
+  GC_OP_PROLOGUE(pGC, CopyPlane);
+
   box.x1 = dstx + pDst->x;
   box.y1 = dsty + pDst->y;
   box.x2 = box.x1 + w;
   box.y2 = box.y1 + h;
 
-  RegionHelper changed(pScreen, &box, 0);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  ret = (*pGC->ops->CopyPlane) (pSrc, pDst, pGC, srcx, srcy, w, h,
+                                dstx, dsty, plane);
 
-  RegionPtr rgn = (*pGC->ops->CopyPlane) (pSrc, pDst, pGC, srcx, srcy, w, h,
-                                          dstx, dsty, plane);
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
 
-  return rgn;
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+  GC_OP_EPILOGUE(pGC);
+
+  return ret;
 }
 
 // PolyPoint - changed region is the bounding rect, clipped by pCompositeClip
@@ -1095,23 +1225,29 @@ static RegionPtr vncHooksCopyPlane(DrawablePtr pSrc, DrawablePtr pDst,
 static void vncHooksPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode,
                               int npt, xPoint *pts)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyPoint);
+  int minX, minY, maxX, maxY;
+  int i;
+
+  BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, PolyPoint);
 
   if (npt == 0) {
     (*pGC->ops->PolyPoint) (pDrawable, pGC, mode, npt, pts);
-    return;
+    goto out;
   }
 
-  int minX = pts[0].x;
-  int maxX = pts[0].x;
-  int minY = pts[0].y;
-  int maxY = pts[0].y;
+  minX = pts[0].x;
+  maxX = pts[0].x;
+  minY = pts[0].y;
+  maxY = pts[0].y;
 
   if (mode == CoordModePrevious) {
     int x = pts[0].x;
     int y = pts[0].y;
 
-    for (int i = 1; i < npt; i++) {
+    for (i = 1; i < npt; i++) {
       x += pts[i].x;
       y += pts[i].y;
       if (x < minX) minX = x;
@@ -1120,7 +1256,7 @@ static void vncHooksPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode,
       if (y > maxY) maxY = y;
     }
   } else {
-    for (int i = 1; i < npt; i++) {
+    for (i = 1; i < npt; i++) {
       if (pts[i].x < minX) minX = pts[i].x;
       if (pts[i].x > maxX) maxX = pts[i].x;
       if (pts[i].y < minY) minY = pts[i].y;
@@ -1128,19 +1264,22 @@ static void vncHooksPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode,
     }
   }
 
-  BoxRec box;
   box.x1 = minX + pDrawable->x;
   box.y1 = minY + pDrawable->y;
   box.x2 = maxX + 1 + pDrawable->x;
   box.y2 = maxY + 1 + pDrawable->y;
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyPoint) (pDrawable, pGC, mode, npt, pts);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // Polylines - changed region is the union of the bounding rects of each line,
@@ -1150,18 +1289,25 @@ static void vncHooksPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode,
 static void vncHooksPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode,
                               int npt, DDXPointPtr ppts)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, Polylines);
+  int nRegRects;
+  xRectangle regRects[MAX_RECTS_PER_OP];
+
+  int lw;
+
+  RegionPtr reg;
+
+  GC_OP_PROLOGUE(pGC, Polylines);
 
   if (npt == 0) {
     (*pGC->ops->Polylines) (pDrawable, pGC, mode, npt, ppts);
-    return;
+    goto out;
   }
 
-  int nRegRects = npt - 1;
-  xRectangle regRects[MAX_RECTS_PER_OP];
+  nRegRects = npt - 1;
 
-  int lw = pGC->lineWidth;
-  if (lw == 0) lw = 1;
+  lw = pGC->lineWidth;
+  if (lw == 0)
+    lw = 1;
 
   if (npt == 1)
   {
@@ -1181,21 +1327,25 @@ static void vncHooksPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode,
      * and converted to int yields 6 * lw
      */
 
-    int extra = lw / 2;
-    if (pGC->joinStyle == JoinMiter) {
-      extra = 6 * lw;
-    }
+    int extra;
 
     int prevX, prevY, curX, curY;
     int rectX1, rectY1, rectX2, rectY2;
     int minX, minY, maxX, maxY;
+
+    int i;
+
+    extra = lw / 2;
+    if (pGC->joinStyle == JoinMiter) {
+      extra = 6 * lw;
+    }
 
     prevX = ppts[0].x + pDrawable->x;
     prevY = ppts[0].y + pDrawable->y;
     minX = maxX = prevX;
     minY = maxY = prevY;
 
-    for (int i = 0; i < nRegRects; i++) {
+    for (i = 0; i < nRegRects; i++) {
       if (mode == CoordModeOrigin) {
         curX = pDrawable->x + ppts[i+1].x;
         curY = pDrawable->y + ppts[i+1].y;
@@ -1245,13 +1395,17 @@ static void vncHooksPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode,
     }
   }
 
-  RegionHelper changed(pScreen, nRegRects, regRects);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  reg = RECTS_TO_REGION(pGC->pScreen, nRegRects, regRects, CT_NONE);
+  REGION_INTERSECT(pGC->pScreen, reg, reg, pGC->pCompositeClip);
 
   (*pGC->ops->Polylines) (pDrawable, pGC, mode, npt, ppts);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, reg);
+
+  REGION_DESTROY(pGC->pScreen, reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PolySegment - changed region is the union of the bounding rects of each
@@ -1261,26 +1415,34 @@ static void vncHooksPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode,
 static void vncHooksPolySegment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
                                 xSegment *segs)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolySegment);
-
-  if (nseg == 0) {
-    (*pGC->ops->PolySegment) (pDrawable, pGC, nseg, segs);
-    return;
-  }
-
   xRectangle regRects[MAX_RECTS_PER_OP];
-  int nRegRects = nseg;
+  int nRegRects;
 
-  int lw = pGC->lineWidth;
-  int extra = lw / 2;
+  int lw, extra;
 
   int rectX1, rectY1, rectX2, rectY2;
   int minX, minY, maxX, maxY;
 
+  int i;
+
+  RegionPtr reg;
+
+  GC_OP_PROLOGUE(pGC, PolySegment);
+
+  if (nseg == 0) {
+    (*pGC->ops->PolySegment) (pDrawable, pGC, nseg, segs);
+    goto out;
+  }
+
+  nRegRects = nseg;
+
+  lw = pGC->lineWidth;
+  extra = lw / 2;
+
   minX = maxX = segs[0].x1;
   minY = maxY = segs[0].y1;
 
-  for (int i = 0; i < nseg; i++) {
+  for (i = 0; i < nseg; i++) {
     if (segs[i].x1 > segs[i].x2) {
       rectX1 = pDrawable->x + segs[i].x2 - extra;
       rectX2 = pDrawable->x + segs[i].x1 + extra + 1;
@@ -1318,13 +1480,17 @@ static void vncHooksPolySegment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
     nRegRects = 1;
   }
 
-  RegionHelper changed(pScreen, nRegRects, regRects);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  reg = RECTS_TO_REGION(pGC->pScreen, nRegRects, regRects, CT_NONE);
+  REGION_INTERSECT(pGC->pScreen, reg, reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolySegment) (pDrawable, pGC, nseg, segs);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, reg);
+
+  REGION_DESTROY(pGC->pScreen, reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PolyRectangle - changed region is the union of the bounding rects around
@@ -1335,26 +1501,34 @@ static void vncHooksPolySegment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 static void vncHooksPolyRectangle(DrawablePtr pDrawable, GCPtr pGC, int nrects,
                                   xRectangle *rects)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyRectangle);
-
-  if (nrects == 0) {
-    (*pGC->ops->PolyRectangle) (pDrawable, pGC, nrects, rects);
-    return;
-  }
-
   xRectangle regRects[MAX_RECTS_PER_OP*4];
-  int nRegRects = nrects * 4;
+  int nRegRects;
 
-  int lw = pGC->lineWidth;
-  int extra = lw / 2;
+  int lw, extra;
 
   int rectX1, rectY1, rectX2, rectY2;
   int minX, minY, maxX, maxY;
 
+  int i;
+
+  RegionPtr reg;
+
+  GC_OP_PROLOGUE(pGC, PolyRectangle);
+
+  if (nrects == 0) {
+    (*pGC->ops->PolyRectangle) (pDrawable, pGC, nrects, rects);
+    goto out;
+  }
+
+  nRegRects = nrects * 4;
+
+  lw = pGC->lineWidth;
+  extra = lw / 2;
+
   minX = maxX = rects[0].x;
   minY = maxY = rects[0].y;
 
-  for (int i = 0; i < nrects; i++) {
+  for (i = 0; i < nrects; i++) {
     if (nrects <= MAX_RECTS_PER_OP) {
       regRects[i*4].x = rects[i].x - extra + pDrawable->x;
       regRects[i*4].y = rects[i].y - extra + pDrawable->y;
@@ -1395,13 +1569,17 @@ static void vncHooksPolyRectangle(DrawablePtr pDrawable, GCPtr pGC, int nrects,
     nRegRects = 1;
   }
 
-  RegionHelper changed(pScreen, nRegRects, regRects);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  reg = RECTS_TO_REGION(pGC->pScreen, nRegRects, regRects, CT_NONE);
+  REGION_INTERSECT(pGC->pScreen, reg, reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyRectangle) (pDrawable, pGC, nrects, rects);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, reg);
+
+  REGION_DESTROY(pGC->pScreen, reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PolyArc - changed region is the union of bounding rects around each arc,
@@ -1411,27 +1589,36 @@ static void vncHooksPolyRectangle(DrawablePtr pDrawable, GCPtr pGC, int nrects,
 static void vncHooksPolyArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
                             xArc *arcs)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyArc);
-
-  if (narcs == 0) {
-    (*pGC->ops->PolyArc) (pDrawable, pGC, narcs, arcs);
-    return;
-  }
-
   xRectangle regRects[MAX_RECTS_PER_OP];
-  int nRegRects = narcs;
+  int nRegRects;
 
-  int lw = pGC->lineWidth;
-  if (lw == 0) lw = 1;
-  int extra = lw / 2;
+  int lw, extra;
 
   int rectX1, rectY1, rectX2, rectY2;
   int minX, minY, maxX, maxY;
 
+  int i;
+
+  RegionPtr reg;
+
+  GC_OP_PROLOGUE(pGC, PolyArc);
+
+  if (narcs == 0) {
+    (*pGC->ops->PolyArc) (pDrawable, pGC, narcs, arcs);
+    goto out;
+  }
+
+  nRegRects = narcs;
+
+  lw = pGC->lineWidth;
+  if (lw == 0)
+    lw = 1;
+  extra = lw / 2;
+
   minX = maxX = arcs[0].x;
   minY = maxY = arcs[0].y;
 
-  for (int i = 0; i < narcs; i++) {
+  for (i = 0; i < narcs; i++) {
     if (narcs <= MAX_RECTS_PER_OP) {
       regRects[i].x = arcs[i].x - extra + pDrawable->x;
       regRects[i].y = arcs[i].y - extra + pDrawable->y;
@@ -1457,13 +1644,17 @@ static void vncHooksPolyArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
     nRegRects = 1;
   }
 
-  RegionHelper changed(pScreen, nRegRects, regRects);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  reg = RECTS_TO_REGION(pGC->pScreen, nRegRects, regRects, CT_NONE);
+  REGION_INTERSECT(pGC->pScreen, reg, reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyArc) (pDrawable, pGC, narcs, arcs);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, reg);
+
+  REGION_DESTROY(pGC->pScreen, reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 
@@ -1473,23 +1664,29 @@ static void vncHooksPolyArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
 static void vncHooksFillPolygon(DrawablePtr pDrawable, GCPtr pGC, int shape,
                                 int mode, int count, DDXPointPtr pts)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, FillPolygon);
+  int minX, minY, maxX, maxY;
+  int i;
+
+  BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, FillPolygon);
 
   if (count == 0) {
     (*pGC->ops->FillPolygon) (pDrawable, pGC, shape, mode, count, pts);
-    return;
+    goto out;
   }
 
-  int minX = pts[0].x;
-  int maxX = pts[0].x;
-  int minY = pts[0].y;
-  int maxY = pts[0].y;
+  minX = pts[0].x;
+  maxX = pts[0].x;
+  minY = pts[0].y;
+  maxY = pts[0].y;
 
   if (mode == CoordModePrevious) {
     int x = pts[0].x;
     int y = pts[0].y;
 
-    for (int i = 1; i < count; i++) {
+    for (i = 1; i < count; i++) {
       x += pts[i].x;
       y += pts[i].y;
       if (x < minX) minX = x;
@@ -1498,7 +1695,7 @@ static void vncHooksFillPolygon(DrawablePtr pDrawable, GCPtr pGC, int shape,
       if (y > maxY) maxY = y;
     }
   } else {
-    for (int i = 1; i < count; i++) {
+    for (i = 1; i < count; i++) {
       if (pts[i].x < minX) minX = pts[i].x;
       if (pts[i].x > maxX) maxX = pts[i].x;
       if (pts[i].y < minY) minY = pts[i].y;
@@ -1506,19 +1703,22 @@ static void vncHooksFillPolygon(DrawablePtr pDrawable, GCPtr pGC, int shape,
     }
   }
 
-  BoxRec box;
   box.x1 = minX + pDrawable->x;
   box.y1 = minY + pDrawable->y;
   box.x2 = maxX + 1 + pDrawable->x;
   box.y2 = maxY + 1 + pDrawable->y;
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->FillPolygon) (pDrawable, pGC, shape, mode, count, pts);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PolyFillRect - changed region is the union of the rectangles, clipped by
@@ -1528,21 +1728,26 @@ static void vncHooksFillPolygon(DrawablePtr pDrawable, GCPtr pGC, int shape,
 static void vncHooksPolyFillRect(DrawablePtr pDrawable, GCPtr pGC, int nrects,
                                  xRectangle *rects)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyFillRect);
+  xRectangle regRects[MAX_RECTS_PER_OP];
+  int nRegRects;
+  int rectX1, rectY1, rectX2, rectY2;
+  int minX, minY, maxX, maxY;
+  int i;
+
+  RegionPtr reg;
+
+  GC_OP_PROLOGUE(pGC, PolyFillRect);
 
   if (nrects == 0) {
     (*pGC->ops->PolyFillRect) (pDrawable, pGC, nrects, rects);
-    return;
+    goto out;
   }
 
-  xRectangle regRects[MAX_RECTS_PER_OP];
-  int nRegRects = nrects;
-  int rectX1, rectY1, rectX2, rectY2;
-  int minX, minY, maxX, maxY;
+  nRegRects = nrects;
   minX = maxX = rects[0].x;
   minY = maxY = rects[0].y;
 
-  for (int i = 0; i < nrects; i++) {
+  for (i = 0; i < nrects; i++) {
     if (nrects <= MAX_RECTS_PER_OP) {
       regRects[i].x = rects[i].x + pDrawable->x;
       regRects[i].y = rects[i].y + pDrawable->y;
@@ -1568,13 +1773,17 @@ static void vncHooksPolyFillRect(DrawablePtr pDrawable, GCPtr pGC, int nrects,
     nRegRects = 1;
   }
 
-  RegionHelper changed(pScreen, nRegRects, regRects);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  reg = RECTS_TO_REGION(pGC->pScreen, nRegRects, regRects, CT_NONE);
+  REGION_INTERSECT(pGC->pScreen, reg, reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyFillRect) (pDrawable, pGC, nrects, rects);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, reg);
+
+  REGION_DESTROY(pGC->pScreen, reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PolyFillArc - changed region is the union of bounding rects around each arc,
@@ -1584,27 +1793,36 @@ static void vncHooksPolyFillRect(DrawablePtr pDrawable, GCPtr pGC, int nrects,
 static void vncHooksPolyFillArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
                                 xArc *arcs)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyFillArc);
-
-  if (narcs == 0) {
-    (*pGC->ops->PolyFillArc) (pDrawable, pGC, narcs, arcs);
-    return;
-  }
-
   xRectangle regRects[MAX_RECTS_PER_OP];
-  int nRegRects = narcs;
+  int nRegRects;
 
-  int lw = pGC->lineWidth;
-  if (lw == 0) lw = 1;
-  int extra = lw / 2;
+  int lw, extra;
 
   int rectX1, rectY1, rectX2, rectY2;
   int minX, minY, maxX, maxY;
 
+  int i;
+
+  RegionPtr reg;
+
+  GC_OP_PROLOGUE(pGC, PolyFillArc);
+
+  if (narcs == 0) {
+    (*pGC->ops->PolyFillArc) (pDrawable, pGC, narcs, arcs);
+    goto out;
+  }
+
+  nRegRects = narcs;
+
+  lw = pGC->lineWidth;
+  if (lw == 0)
+    lw = 1;
+  extra = lw / 2;
+
   minX = maxX = arcs[0].x;
   minY = maxY = arcs[0].y;
 
-  for (int i = 0; i < narcs; i++) {
+  for (i = 0; i < narcs; i++) {
     if (narcs <= MAX_RECTS_PER_OP) {
       regRects[i].x = arcs[i].x - extra + pDrawable->x;
       regRects[i].y = arcs[i].y - extra + pDrawable->y;
@@ -1630,13 +1848,17 @@ static void vncHooksPolyFillArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
     nRegRects = 1;
   }
 
-  RegionHelper changed(pScreen, nRegRects, regRects);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  reg = RECTS_TO_REGION(pGC->pScreen, nRegRects, regRects, CT_NONE);
+  REGION_INTERSECT(pGC->pScreen, reg, reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyFillArc) (pDrawable, pGC, narcs, arcs);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, reg);
+
+  REGION_DESTROY(pGC->pScreen, reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // GetTextBoundingRect - calculate a bounding rectangle around n chars of a
@@ -1645,10 +1867,10 @@ static void vncHooksPolyFillArc(DrawablePtr pDrawable, GCPtr pGC, int narcs,
 static void GetTextBoundingRect(DrawablePtr pDrawable, FontPtr font, int x,
                                 int y, int nchars, BoxPtr box)
 {
-  int ascent = __rfbmax(FONTASCENT(font), FONTMAXBOUNDS(font, ascent));
-  int descent = __rfbmax(FONTDESCENT(font), FONTMAXBOUNDS(font, descent));
-  int charWidth = __rfbmax(FONTMAXBOUNDS(font,rightSideBearing),
-                           FONTMAXBOUNDS(font,characterWidth));
+  int ascent = max(FONTASCENT(font), FONTMAXBOUNDS(font, ascent));
+  int descent = max(FONTDESCENT(font), FONTMAXBOUNDS(font, descent));
+  int charWidth = max(FONTMAXBOUNDS(font,rightSideBearing),
+                      FONTMAXBOUNDS(font,characterWidth));
 
   box->x1 = pDrawable->x + x;
   box->y1 = pDrawable->y + y - ascent;
@@ -1665,21 +1887,30 @@ static void GetTextBoundingRect(DrawablePtr pDrawable, FontPtr font, int x,
 static int vncHooksPolyText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
                              int count, char *chars)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyText8);
-
-  if (count == 0)
-    return (*pGC->ops->PolyText8) (pDrawable, pGC, x, y, count, chars);
-
+  int ret;
   BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, PolyText8);
+
+  if (count == 0) {
+    ret = (*pGC->ops->PolyText8) (pDrawable, pGC, x, y, count, chars);
+    goto out;
+  }
+
   GetTextBoundingRect(pDrawable, pGC->font, x, y, count, &box);
 
-  RegionHelper changed(pScreen, &box, 0);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  ret = (*pGC->ops->PolyText8) (pDrawable, pGC, x, y, count, chars);
 
-  int ret = (*pGC->ops->PolyText8) (pDrawable, pGC, x, y, count, chars);
+  add_changed(pGC->pScreen, &reg);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 
   return ret;
 }
@@ -1690,21 +1921,30 @@ static int vncHooksPolyText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 static int vncHooksPolyText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
                               int count, unsigned short *chars)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyText16);
-
-  if (count == 0)
-    return (*pGC->ops->PolyText16) (pDrawable, pGC, x, y, count, chars);
-
+  int ret;
   BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, PolyText16);
+
+  if (count == 0) {
+    ret = (*pGC->ops->PolyText16) (pDrawable, pGC, x, y, count, chars);
+    goto out;
+  }
+
   GetTextBoundingRect(pDrawable, pGC->font, x, y, count, &box);
 
-  RegionHelper changed(pScreen, &box, 0);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  ret = (*pGC->ops->PolyText16) (pDrawable, pGC, x, y, count, chars);
 
-  int ret = (*pGC->ops->PolyText16) (pDrawable, pGC, x, y, count, chars);
+  add_changed(pGC->pScreen, &reg);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 
   return ret;
 }
@@ -1715,23 +1955,29 @@ static int vncHooksPolyText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 static void vncHooksImageText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
                                int count, char *chars)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, ImageText8);
+  BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, ImageText8);
 
   if (count == 0) {
     (*pGC->ops->ImageText8) (pDrawable, pGC, x, y, count, chars);
-    return;
+    goto out;
   }
 
-  BoxRec box;
   GetTextBoundingRect(pDrawable, pGC->font, x, y, count, &box);
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->ImageText8) (pDrawable, pGC, x, y, count, chars);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // ImageText16 - changed region is bounding rect around count chars, clipped by
@@ -1740,23 +1986,29 @@ static void vncHooksImageText8(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 static void vncHooksImageText16(DrawablePtr pDrawable, GCPtr pGC, int x, int y,
                                 int count, unsigned short *chars)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, ImageText16);
+  BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, ImageText16);
 
   if (count == 0) {
     (*pGC->ops->ImageText16) (pDrawable, pGC, x, y, count, chars);
-    return;
+    goto out;
   }
 
-  BoxRec box;
   GetTextBoundingRect(pDrawable, pGC->font, x, y, count, &box);
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->ImageText16) (pDrawable, pGC, x, y, count, chars);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // ImageGlyphBlt - changed region is bounding rect around nglyph chars, clipped
@@ -1766,23 +2018,29 @@ static void vncHooksImageGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
                                   int y, unsigned int nglyph,
                                   CharInfoPtr *ppci, void * pglyphBase)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, ImageGlyphBlt);
+  BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, ImageGlyphBlt);
 
   if (nglyph == 0) {
     (*pGC->ops->ImageGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci,pglyphBase);
-    return;
+    goto out;
   }
 
-  BoxRec box;
   GetTextBoundingRect(pDrawable, pGC->font, x, y, nglyph, &box);
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->ImageGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PolyGlyphBlt - changed region is bounding rect around nglyph chars, clipped
@@ -1792,23 +2050,29 @@ static void vncHooksPolyGlyphBlt(DrawablePtr pDrawable, GCPtr pGC, int x,
                                  int y, unsigned int nglyph,
                                  CharInfoPtr *ppci, void * pglyphBase)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PolyGlyphBlt);
+  BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, PolyGlyphBlt);
 
   if (nglyph == 0) {
     (*pGC->ops->PolyGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci,pglyphBase);
-    return;
+    goto out;
   }
 
-  BoxRec box;
   GetTextBoundingRect(pDrawable, pGC->font, x, y, nglyph, &box);
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->PolyGlyphBlt) (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+out:
+  GC_OP_EPILOGUE(pGC);
 }
 
 // PushPixels - changed region is the given rectangle, clipped by
@@ -1818,19 +2082,24 @@ static void vncHooksPushPixels(GCPtr pGC, PixmapPtr pBitMap,
                                DrawablePtr pDrawable, int w, int h, int x,
                                int y)
 {
-  GC_OP_UNWRAPPER(pDrawable, pGC, PushPixels);
-
   BoxRec box;
+  RegionRec reg;
+
+  GC_OP_PROLOGUE(pGC, PushPixels);
+
   box.x1 = x + pDrawable->x;
   box.y1 = y + pDrawable->y;
   box.x2 = box.x1 + w;
   box.y2 = box.y1 + h;
 
-  RegionHelper changed(pScreen, &box, 0);
-
-  REGION_INTERSECT(pScreen, changed.reg, changed.reg, pGC->pCompositeClip);
+  REGION_INIT(pGC->pScreen, &reg, &box, 0);
+  REGION_INTERSECT(pGC->pScreen, &reg, &reg, pGC->pCompositeClip);
 
   (*pGC->ops->PushPixels) (pGC, pBitMap, pDrawable, w, h, x, y);
 
-  vncHooksScreen->desktop->add_changed(changed.reg);
+  add_changed(pGC->pScreen, &reg);
+
+  REGION_UNINIT(pGC->pScreen, &reg);
+
+  GC_OP_EPILOGUE(pGC);
 }
