@@ -112,13 +112,8 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   // On OS X we can do the maximize thing properly before the
   // window is showned. Other platforms handled further down...
   if (maximize) {
-#ifdef HAVE_FLTK_WORK_AREA
     int dummy;
     Fl::screen_work_area(dummy, dummy, w, h, geom_x, geom_y);
-#else
-    w = Fl::w();
-    h = Fl::h();
-#endif
   }
 #endif
 
@@ -128,7 +123,6 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     size(w, h);
   }
 
-#ifdef HAVE_FLTK_FULLSCREEN
   if (fullScreen) {
     // Hack: Window managers seem to be rather crappy at respecting
     // fullscreen hints on initial windows. So on X11 we'll have to
@@ -139,16 +133,13 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     delayedFullscreen = true;
 #endif
   }
-#endif
 
   show();
 
   // Full screen events are not sent out for a hidden window,
   // so send a fake one here to set up things properly.
-#ifdef HAVE_FLTK_FULLSCREEN
   if (fullscreen_active())
     handle(FL_FULLSCREEN);
-#endif
 
   // Unfortunately, current FLTK does not allow us to set the
   // maximized property on Windows and X11 before showing the window.
@@ -165,7 +156,6 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   if ((w != this->w()) || (h != this->h()))
     scroll->size(this->w(), this->h());
 
-#ifdef HAVE_FLTK_FULLSCREEN
   if (delayedFullscreen) {
     // Hack: Fullscreen requests may be ignored, so we need a timeout for
     // when we should stop waiting. We also really need to wait for the
@@ -173,7 +163,6 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     Fl::add_timeout(0.5, handleFullscreenTimeout, this);
     fullscreen_on();
   }
-#endif
 }
 
 
@@ -245,9 +234,7 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
   // like they are.
-#ifdef HAVE_FLTK_FULLSCREEN
   if (!fullscreen_active()) {
-#endif
     if ((w() == viewport->w()) && (h() == viewport->h()))
       size(new_w, new_h);
     else {
@@ -257,9 +244,7 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
       if ((w() > new_w) || (h() > new_h))
         size(__rfbmin(w(), new_w), __rfbmin(h(), new_h));
     }
-#ifdef HAVE_FLTK_FULLSCREEN
   }
-#endif
 
   viewport->size(new_w, new_h);
 
@@ -288,10 +273,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 #if ! (defined(WIN32) || defined(__APPLE__))
   // X11 window managers will treat a resize to cover the entire
   // monitor as a request to go full screen. Make sure we avoid this.
-#ifdef HAVE_FLTK_FULLSCREEN
-  if (!fullscreen_active())
-#endif
-  {
+  if (!fullscreen_active()) {
     bool resize_req;
 
     // If there is no X11 window, then this must be a resize request,
@@ -367,7 +349,6 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 int DesktopWindow::handle(int event)
 {
   switch (event) {
-#ifdef HAVE_FLTK_FULLSCREEN
   case FL_FULLSCREEN:
     fullScreen.setParam(fullscreen_active());
 
@@ -406,7 +387,6 @@ int DesktopWindow::handle(int event)
     }
     // Continue processing so that the viewport also gets mouse events
     break;
-#endif
 
   case FL_SHORTCUT:
     // Sometimes the focus gets out of whack and we fall through to the
@@ -428,7 +408,6 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
   ret = Fl::handle_(event, win);
 
-#ifdef HAVE_FLTK_FULLSCREEN
   // This is hackish and the result of the dodgy focus handling in FLTK.
   // The basic problem is that FLTK's view of focus and the system's tend
   // to differ, and as a result we do not see all the FL_FOCUS events we
@@ -456,7 +435,6 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
       break;
     }
   }
-#endif
 
   return ret;
 }
@@ -464,8 +442,6 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
 void DesktopWindow::fullscreen_on()
 {
-#ifdef HAVE_FLTK_FULLSCREEN
-#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
   if (not fullScreenAllMonitors)
     fullscreen_screens(-1, -1, -1, -1);
   else {
@@ -504,10 +480,8 @@ void DesktopWindow::fullscreen_on()
 
     fullscreen_screens(top, bottom, left, right);
   }
-#endif // HAVE_FLTK_FULLSCREEN_SCREENS
 
   fullscreen();
-#endif // HAVE_FLTK_FULLSCREEN
 }
 
 void DesktopWindow::grabKeyboard()
@@ -527,13 +501,7 @@ void DesktopWindow::grabKeyboard()
 #elif defined(__APPLE__)
   int ret;
   
-  ret = cocoa_capture_display(this,
-#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
-                              fullScreenAllMonitors
-#else
-                              false
-#endif
-                              );
+  ret = cocoa_capture_display(this, fullScreenAllMonitors);
   if (ret != 0)
     vlog.error(_("Failure grabbing keyboard"));
 #else
@@ -590,14 +558,12 @@ void DesktopWindow::handleGrab(void *data)
 
   assert(self);
 
-#ifdef HAVE_FLTK_FULLSCREEN
   if (!fullscreenSystemKeys)
     return;
   if (!self->fullscreen_active())
     return;
 
   self->grabKeyboard();
-#endif
 }
 
 
@@ -608,31 +574,22 @@ void DesktopWindow::maximizeWindow()
   // We cannot use ShowWindow() in full screen mode as it will
   // resize things implicitly. Fortunately modifying the style
   // directly results in a maximized state once we leave full screen.
-#ifdef HAVE_FLTK_FULLSCREEN
   if (fullscreen_active()) {
     WINDOWINFO wi;
     wi.cbSize = sizeof(WINDOWINFO);
     GetWindowInfo(fl_xid(this), &wi);
     SetWindowLongPtr(fl_xid(this), GWL_STYLE, wi.dwStyle | WS_MAXIMIZE);
   } else
-#endif
     ShowWindow(fl_xid(this), SW_MAXIMIZE);
 #elif defined(__APPLE__)
   // OS X is somewhat strange and does not really have a concept of a
   // maximized window, so we can simply resize the window to the workarea.
   // Note that we shouldn't do this whilst in full screen as that will
   // incorrectly adjust things.
-#ifdef HAVE_FLTK_FULLSCREEN
   if (fullscreen_active())
     return;
-#endif
   int X, Y, W, H;
-#ifdef HAVE_FLTK_WORK_AREA
   Fl::screen_work_area(X, Y, W, H, this->x(), this->y());
-#else
-  W = Fl::w();
-  H = Fl::h();
-#endif
   size(W, H);
 #else
   // X11
@@ -690,9 +647,7 @@ void DesktopWindow::remoteResize(int width, int height)
   ScreenSet layout;
   ScreenSet::iterator iter;
 
-#ifdef HAVE_FLTK_FULLSCREEN
   if (!fullscreen_active() || (width > w()) || (height > h())) {
-#endif
     // In windowed mode (or the framebuffer is so large that we need
     // to scroll) we just report a single virtual screen that covers
     // the entire framebuffer.
@@ -723,7 +678,6 @@ void DesktopWindow::remoteResize(int width, int height)
     layout.begin()->dimensions.tl.y = 0;
     layout.begin()->dimensions.br.x = width;
     layout.begin()->dimensions.br.y = height;
-#ifdef HAVE_FLTK_FULLSCREEN
   } else {
     int i;
     rdr::U32 id;
@@ -790,7 +744,6 @@ void DesktopWindow::remoteResize(int width, int height)
     if (layout.num_screens() == 0)
       layout.add_screen(rfb::Screen(0, 0, 0, width, height, 0));
   }
-#endif
 
   // Do we actually change anything?
   if ((width == cc->cp.width) &&
@@ -866,7 +819,6 @@ void DesktopWindow::handleOptions(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
 
-#ifdef HAVE_FLTK_FULLSCREEN
   if (self->fullscreen_active() && fullscreenSystemKeys)
     self->grabKeyboard();
   else
@@ -876,7 +828,6 @@ void DesktopWindow::handleOptions(void *data)
     self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
-#endif
 }
 
 void DesktopWindow::handleFullscreenTimeout(void *data)
@@ -895,7 +846,6 @@ void DesktopWindow::handleFullscreenTimeout(void *data)
 
 void DesktopWindow::handleEdgeScroll(void *data)
 {
-#ifdef HAVE_FLTK_FULLSCREEN
   DesktopWindow *self = (DesktopWindow *)data;
 
   int mx, my;
@@ -952,5 +902,4 @@ void DesktopWindow::handleEdgeScroll(void *data)
   self->scroll->scroll_to(self->scroll->xposition() - dx, self->scroll->yposition() - dy);
 
   Fl::repeat_timeout(0.1, handleEdgeScroll, data);
-#endif
 }

@@ -228,41 +228,6 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
-if(FLTK_FOUND)
-  set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
-  set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
-
-  # FLTK STR #2636
-  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_clipboard_notify(NULL, NULL); return 0; }" HAVE_FLTK_CLIPBOARD)
-
-  # FLTK STR #2638
-  check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_Volume_Down; }" HAVE_FLTK_MEDIAKEYS)
-
-  # FLTK STR #2641
-  check_cxx_source_compiles("#include <FL/Enumerations.H>\nint main(int c, char** v) { return FL_FULLSCREEN; }" HAVE_FLTK_FULLSCREEN)
-
-  # FLTK STR #2660
-  check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(const Fl_RGB_Image*,int,int) = &Fl_Window::cursor; return 0; }" HAVE_FLTK_CURSOR)
-
-  # FLTK STR #2697
-  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { int X, Y, W, H; Fl::screen_work_area(X, Y, W, H); return 0; }" HAVE_FLTK_WORK_AREA)
-
-  # FLTK STR #2816
-  check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { Fl_Window::default_icons(0, 0); return 0; }" HAVE_FLTK_ICONS)
-
-  # FLTK STR #2860
-  check_cxx_source_compiles("#include <FL/Fl_Window.H>\nint main(int c, char** v) { void (Fl_Window::*foo)(int,int,int,int) = &Fl_Window::fullscreen_screens; return 0; }" HAVE_FLTK_FULLSCREEN_SCREENS)
-
-  # FLTK STR #xxxx
-  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::add_system_handler(NULL, NULL); return 0; }" HAVE_FLTK_XHANDLERS)
-
-  # FLTK STR #xxxx
-  check_cxx_source_compiles("#include <FL/Fl.H>\nint main(int c, char** v) { Fl::disable_im(); return 0; }" HAVE_FLTK_IM)
-
-  set(CMAKE_REQUIRED_INCLUDES)
-  set(CMAKE_REQUIRED_LIBRARIES)
-endif()
-
 # Check for GNUTLS library
 option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
 if(ENABLE_GNUTLS)

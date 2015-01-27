@@ -106,15 +106,10 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
     lastPointerPos(0, 0), lastButtonMask(0),
     cursor(NULL), menuCtrlKey(false), menuAltKey(false)
 {
-// FLTK STR #2636 gives us the ability to monitor clipboard changes
-#ifdef HAVE_FLTK_CLIPBOARD
   Fl::add_clipboard_notify(handleClipboardChange, this);
-#endif
 
-#ifdef HAVE_FLTK_XHANDLERS
   // We need to intercept keyboard events early
   Fl::add_system_handler(handleSystemEvent, this);
-#endif
 
   frameBuffer = createFramebuffer(w, h);
   assert(frameBuffer);
@@ -148,13 +143,9 @@ Viewport::~Viewport()
   // again later when this object is already gone.
   Fl::remove_timeout(handlePointerTimeout, this);
 
-#ifdef HAVE_FLTK_XHANDLERS
   Fl::remove_system_handler(handleSystemEvent);
-#endif
 
-#ifdef HAVE_FLTK_CLIPBOARD
   Fl::remove_clipboard_notify(handleClipboardChange);
-#endif
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -194,7 +185,6 @@ rfb::ModifiablePixelBuffer* Viewport::getFramebuffer(void)
   return frameBuffer;
 }
 
-#ifdef HAVE_FLTK_CURSOR
 static const char * dotcursor_xpm[] = {
   "5 5 2 1",
   ".	c #000000",
@@ -204,12 +194,10 @@ static const char * dotcursor_xpm[] = {
   " ... ",
   " ... ",
   "     "};
-#endif
 
 void Viewport::setCursor(int width, int height, const Point& hotspot,
                               void* data, void* mask)
 {
-#ifdef HAVE_FLTK_CURSOR
   if (cursor) {
     if (!cursor->alloc_array)
       delete [] cursor->array;
@@ -269,7 +257,6 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 
   if (Fl::belowmouse() == this)
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
-#endif
 }
 
 
@@ -365,17 +352,13 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_ENTER:
-    // Yes, we would like some pointer events please!
-#ifdef HAVE_FLTK_CURSOR
     if (cursor)
       window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
-#endif
+    // Yes, we would like some pointer events please!
     return 1;
 
   case FL_LEAVE:
-#ifdef HAVE_FLTK_CURSOR
     window()->cursor(FL_CURSOR_DEFAULT);
-#endif
     // Fall through as we want a last move event to help trigger edge stuff
   case FL_PUSH:
   case FL_RELEASE:
@@ -411,9 +394,7 @@ int Viewport::handle(int event)
     return 1;
 
   case FL_FOCUS:
-#ifdef HAVE_FLTK_IM
     Fl::disable_im();
-#endif
     // Yes, we would like some focus please!
     return 1;
 
@@ -422,17 +403,12 @@ int Viewport::handle(int event)
     // sense (e.g. Alt+Tab where we only see the Alt press)
     while (!downKeySym.empty())
       handleKeyRelease(downKeySym.begin()->first);
-#ifdef HAVE_FLTK_IM
     Fl::enable_im();
-#endif
     return 1;
 
   case FL_KEYDOWN:
-    handleFLTKKeyPress();
-    return 1;
-
   case FL_KEYUP:
-    handleKeyRelease(Fl::event_original_key());
+    // Just ignore these as keys were handled in the event handler
     return 1;
   }
 
@@ -808,272 +784,16 @@ int Viewport::handleSystemEvent(void *event, void *data)
   return 0;
 }
 
-
-rdr::U32 Viewport::translateKeyEvent(void)
-{
-  unsigned ucs;
-  int keyCode, origKeyCode;
-  const char *keyText;
-  int keyTextLen;
-
-  keyCode = Fl::event_key();
-  origKeyCode = Fl::event_original_key();
-  keyText = Fl::event_text();
-  keyTextLen = Fl::event_length();
-
-  vlog.debug("FLTK key %d (%d) '%s'[%d]", origKeyCode, keyCode, keyText, keyTextLen);
-
-  // First check for function keys
-  if ((keyCode > FL_F) && (keyCode <= FL_F_Last))
-    return XK_F1 + (keyCode - FL_F - 1);
-
-  // Numpad numbers
-  if ((keyCode >= (FL_KP + '0')) && (keyCode <= (FL_KP + '9')))
-    return XK_KP_0 + (keyCode - (FL_KP + '0'));
-
-  // FLTK does some special remapping of numpad keys when numlock is off
-  if ((origKeyCode >= FL_KP) && (origKeyCode <= FL_KP_Last)) {
-    switch (keyCode) {
-    case FL_F+1:
-      return XK_KP_F1;
-    case FL_F+2:
-      return XK_KP_F2;
-    case FL_F+3:
-      return XK_KP_F3;
-    case FL_F+4:
-      return XK_KP_F4;
-    case FL_Home:
-      return XK_KP_Home;
-    case FL_Left:
-      return XK_KP_Left;
-    case FL_Up:
-      return XK_KP_Up;
-    case FL_Right:
-      return XK_KP_Right;
-    case FL_Down:
-      return XK_KP_Down;
-    case FL_Page_Up:
-      return XK_KP_Page_Up;
-    case FL_Page_Down:
-      return XK_KP_Page_Down;
-    case FL_End:
-      return XK_KP_End;
-    case FL_Insert:
-      return XK_KP_Insert;
-    case FL_Delete:
-      return XK_KP_Delete;
-    }
-  }
-
-#if defined(WIN32) || defined(__APPLE__)
-  // X11 fairly consistently uses XK_KP_Separator for comma and
-  // XK_KP_Decimal for period. Windows and OS X are a different matter
-  // though.
-  //
-  // OS X will consistently generate the same key code no matter what
-  // layout is being used.
-  //
-  // Windows is terribly inconcistent, and is not something that's
-  // likely to change:
-  // http://blogs.msdn.com/michkap/archive/2006/09/13/752377.aspx
-  //
-  // To get X11 behaviour, we instead look at the text generated by
-  // they key.
-  if ((keyCode == (FL_KP + ',')) || (keyCode == (FL_KP + '.'))) {
-    switch (keyText[0]) {
-    case ',':
-      return XK_KP_Separator;
-    case '.':
-      return XK_KP_Decimal;
-    default:
-      vlog.error(_("Unknown decimal separator: '%s'"), keyText);
-      return XK_KP_Decimal;
-    }
-  }
-#endif
-
-  // Then other special keys
-  switch (keyCode) {
-  case FL_BackSpace:
-    return XK_BackSpace;
-  case FL_Tab:
-    return XK_Tab;
-  case FL_Enter:
-    return XK_Return;
-  case FL_Pause:
-    return XK_Pause;
-  case FL_Scroll_Lock:
-    return XK_Scroll_Lock;
-  case FL_Escape:
-    return XK_Escape;
-  case FL_Home:
-    return XK_Home;
-  case FL_Left:
-    return XK_Left;
-  case FL_Up:
-    return XK_Up;
-  case FL_Right:
-    return XK_Right;
-  case FL_Down:
-    return XK_Down;
-  case FL_Page_Up:
-    return XK_Page_Up;
-  case FL_Page_Down:
-    return XK_Page_Down;
-  case FL_End:
-    return XK_End;
-  case FL_Print:
-    return XK_Print;
-  case FL_Insert:
-    return XK_Insert;
-  case FL_Menu:
-    return XK_Menu;
-  case FL_Help:
-    return XK_Help;
-  case FL_Num_Lock:
-    return XK_Num_Lock;
-  case FL_Shift_L:
-    return XK_Shift_L;
-  case FL_Shift_R:
-    return XK_Shift_R;
-  case FL_Control_L:
-    return XK_Control_L;
-  case FL_Control_R:
-    return XK_Control_R;
-  case FL_Caps_Lock:
-    return XK_Caps_Lock;
-  case FL_Meta_L:
-    return XK_Super_L;
-  case FL_Meta_R:
-    return XK_Super_R;
-  case FL_Alt_L:
-    return XK_Alt_L;
-  case FL_Alt_R:
-    return XK_Alt_R;
-  case FL_Delete:
-    return XK_Delete;
-  case FL_KP_Enter:
-    return XK_KP_Enter;
-  case FL_KP + '=':
-    return XK_KP_Equal;
-  case FL_KP + '*':
-    return XK_KP_Multiply;
-  case FL_KP + '+':
-    return XK_KP_Add;
-  case FL_KP + ',':
-    return XK_KP_Separator;
-  case FL_KP + '-':
-    return XK_KP_Subtract;
-  case FL_KP + '.':
-    return XK_KP_Decimal;
-  case FL_KP + '/':
-    return XK_KP_Divide;
-#ifdef HAVE_FLTK_MEDIAKEYS
-  case FL_Volume_Down:
-    return XF86XK_AudioLowerVolume;
-  case FL_Volume_Mute:
-    return XF86XK_AudioMute;
-  case FL_Volume_Up:
-    return XF86XK_AudioRaiseVolume;
-  case FL_Media_Play:
-    return XF86XK_AudioPlay;
-  case FL_Media_Stop:
-    return XF86XK_AudioStop;
-  case FL_Media_Prev:
-    return XF86XK_AudioPrev;
-  case FL_Media_Next:
-    return XF86XK_AudioNext;
-  case FL_Home_Page:
-    return XF86XK_HomePage;
-  case FL_Mail:
-    return XF86XK_Mail;
-  case FL_Search:
-    return XF86XK_Search;
-  case FL_Back:
-    return XF86XK_Back;
-  case FL_Forward:
-    return XF86XK_Forward;
-  case FL_Stop:
-    return XF86XK_Stop;
-  case FL_Refresh:
-    return XF86XK_Refresh;
-  case FL_Sleep:
-    return XF86XK_Sleep;
-  case FL_Favorites:
-    return XF86XK_Favorites;
-#endif
-  case XK_ISO_Level3_Shift:
-    // FLTK tends to let this one leak through on X11...
-    return XK_ISO_Level3_Shift;
-  case XK_Multi_key:
-    // Same for this...
-    return XK_Multi_key;
-  }
-
-  // Unknown special key?
-  if (keyTextLen == 0) {
-    vlog.error(_("Unknown FLTK key code %d (0x%04x)"), keyCode, keyCode);
-    return NoSymbol;
-  }
-
-  // Control character?
-  if ((keyTextLen == 1) && ((keyText[0] < 0x20) | (keyText[0] == 0x7f))) {
-    if (keyText[0] == 0x00)
-      return XK_2;
-    else if (keyText[0] < 0x1b) {
-      if (!!Fl::event_state(FL_SHIFT) != !!Fl::event_state(FL_CAPS_LOCK))
-        return keyText[0] + XK_A - 0x01;
-      else
-        return keyText[0] + XK_a - 0x01;
-    } else if (keyText[0] < 0x20)
-      return keyText[0] + XK_3 - 0x1b;
-    else
-      return XK_8;
-  }
-
-  // Look up the symbol the key produces and translate that from Unicode
-  // to a X11 keysym.
-  if (fl_utf_nb_char((const unsigned char*)keyText, strlen(keyText)) != 1) {
-    vlog.error(_("Multiple characters given for key code %d (0x%04x): '%s'"),
-               keyCode, keyCode, keyText);
-    return NoSymbol;
-  }
-
-  ucs = fl_utf8decode(keyText, NULL, NULL);
-  return ucs2keysym(ucs);
-}
-
-
-void Viewport::handleFLTKKeyPress(void)
-{
-  rdr::U32 keySym;
-
-#ifdef HAVE_FLTK_XHANDLERS
-  return;
-#endif
-
-  keySym = translateKeyEvent();
-  if (keySym == NoSymbol)
-    return;
-
-  handleKeyPress(Fl::event_original_key(), keySym);
-}
-
-
 void Viewport::initContextMenu()
 {
   contextMenu->clear();
 
   contextMenu->add(_("Exit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
 
-#ifdef HAVE_FLTK_FULLSCREEN
   contextMenu->add(_("Full screen"), 0, NULL, (void*)ID_FULLSCREEN, 
 		   FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
-#endif
   contextMenu->add(_("Resize window to session"), 0, NULL, (void*)ID_RESIZE, 
-#ifdef HAVE_FLTK_FULLSCREEN
        (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
-#endif
 		   FL_MENU_DIVIDER);
 
   contextMenu->add(_("Ctrl"), 0, NULL, (void*)ID_CTRL, 
@@ -1114,18 +834,14 @@ void Viewport::popupContextMenu()
 
   // Unfortunately FLTK doesn't reliably restore the mouse pointer for
   // menus, so we have to help it out.
-#ifdef HAVE_FLTK_CURSOR
   if (Fl::belowmouse() == this)
     window()->cursor(FL_CURSOR_DEFAULT);
-#endif
 
   m = contextMenu->popup();
 
   // Back to our proper mouse pointer.
-#ifdef HAVE_FLTK_CURSOR
   if ((Fl::belowmouse() == this) && cursor)
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
-#endif
 
   if (m == NULL)
     return;
@@ -1134,19 +850,15 @@ void Viewport::popupContextMenu()
   case ID_EXIT:
     exit_vncviewer();
     break;
-#ifdef HAVE_FLTK_FULLSCREEN
   case ID_FULLSCREEN:
     if (window()->fullscreen_active())
       window()->fullscreen_off();
     else
       ((DesktopWindow*)window())->fullscreen_on();
     break;
-#endif
   case ID_RESIZE:
-#ifdef HAVE_FLTK_FULLSCREEN
     if (window()->fullscreen_active())
       break;
-#endif
     window()->size(w(), h());
     break;
   case ID_CTRL:

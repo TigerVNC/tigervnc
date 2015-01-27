@@ -60,11 +60,7 @@ int cocoa_capture_display(Fl_Window *win, bool all_displays)
       if (count != Fl::screen_count())
         return 1;
 
-#ifdef HAVE_FLTK_FULLSCREEN_SCREENS
       index = Fl::screen_num(win->x(), win->y(), win->w(), win->h());
-#else
-      index = 0;
-#endif
 
       if (CGDisplayCapture(displays[index]) != kCGErrorSuccess)
         return 1;
@@ -99,11 +95,9 @@ void cocoa_release_display(Fl_Window *win)
 
   // FIXME: Store the previous level somewhere so we don't have to hard
   //        code a level here.
-#ifdef HAVE_FLTK_FULLSCREEN
   if (win->fullscreen_active() && win->contains(Fl::focus()))
     newlevel = NSStatusWindowLevel;
   else
-#endif
     newlevel = NSNormalWindowLevel;
 
   // Only change if different as the level change also moves the window

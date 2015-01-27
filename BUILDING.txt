@@ -9,9 +9,7 @@ Build Requirements (All Systems)
 
 -- CMake (http://www.cmake.org) v2.8 or later
 
--- FLTK 1.3.2
-   * Must be a patched snapshot to get full functionality
-   * See "Building FLTK" below.
+-- FLTK 1.3.3 or later
 
 -- If building TLS support:
    * GnuTLS
@@ -78,38 +76,6 @@ Build Requirements (Java)
 -- Sun/Oracle JDK v5 or later or OpenJDK
 
 -- See "Building Java Support" below.
-
-
-=============
-Building FLTK
-=============
-
-TigerVNC requires FLTK 1.3.2 (or later). Although it will build and work
-with plain 1.3.2, to get full functionality and the best behaviour you
-need to build a patched version:
-
-1. Check out FLTK 1.3.2 using Subversion:
-$ svn co http://svn.easysw.com/public/fltk/fltk/tags/release-1.3.2 fltk-1.3.2
-
-2. For full functionality, apply patches. All patches can be found in
-   the contrib/fltk/ directory. There are also some general fixes to
-   FLTK that can be found in the contrib/fltk/fixes/ directory that
-   might be useful.
-
-3. Use CMake to build FLTK using the same procedures described below for
-   building TigerVNC.  The recipes in the "Build Recipes" section also apply.
-   If you want optimized code, make sure to build with
-   -DCMAKE_BUILD_TYPE=Release. 
-
-4. (optional) Use 'make install' to install FLTK into a directory of your
-   choosing.
-
-5. When building TigerVNC, set the FLTK_FLUID_EXECUTABLE CMake variable to the
-   location of the fluid executable that was built in Step 3 or installed in
-   Step 4.  This gives CMake a hint as to where to find the FLTK library.
-
-6. If you did not install FLTK, then set the FLTK_INCLUDE_DIR CMake variable to
-   the location of the FLTK source directory.
 
 
 ==================
