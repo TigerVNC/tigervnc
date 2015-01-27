@@ -70,7 +70,7 @@ init()
     pushd xserver
 
 	patch -p1 < $SRCDIR/unix/xserver18.patch
-    for all in `find $SRCDIR/unix/xorg-$XORG_VERSION-patches/ -type f |grep '.*\.patch$'`; do
+    for all in `find $SRCDIR/contrib/xorg/xorg-$XORG_VERSION-patches/ -type f |grep '.*\.patch$'`; do
 	echo Applying $all
 	patch -p1 < $all
     done
@@ -86,7 +86,7 @@ update_modules()
     if [ -d xorg.build ]; then rm -rf xorg.build; fi
     mkdir xorg
     pushd xorg
-    $SRCDIR/unix/download-xorg-$XORG_VERSION
+    $SRCDIR/contrib/xorg/download-xorg-$XORG_VERSION
     for module in ${modules}; do
         tar jxf ~/.tigervnc-xorg-$XORG_VERSION/${module}.tar.bz2
     done

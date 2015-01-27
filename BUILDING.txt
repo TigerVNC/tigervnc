@@ -150,14 +150,14 @@ version of the TigerVNC Server.  This is accomplished by downloading and
 building the more recent Xorg modules in a local directory and then building
 Xvnc such that it links against the local build of these libraries, not the X11
 libraries installed on the system.  The "build-xorg" script in the TigerVNC
-source distribution (located under unix/) automates this process.
+source distribution (located under contrib/xorg/) automates this process.
 
 The following procedure will build both the TigerVNC Viewer and a
 "legacy-friendly" version of the TigerVNC Server:
 
   cd {build_directory}
-  sh {source_directory}/unix/build-xorg init
-  sh {source_directory}/unix/build-xorg build [additional CMake flags]
+  sh {source_directory}/contrib/xorg/build-xorg init
+  sh {source_directory}/contrib/xorg/build-xorg build [additional CMake flags]
 
 build-xorg generates a version of Xvnc that has no external dependencies on the
 X11 shared libraries or any other distribution-specific shared libraries.  This
@@ -171,11 +171,11 @@ once the X11 modules and other dependencies have been built for the first time.
 This is convenient for testing changes that just apply to the TigerVNC source
 code.  To accomplish this, run:
 
-  sh {source_directory}/unix/build-xorg rebuild [additional make flags]
+  sh {source_directory}/contrib/xorg/build-xorg rebuild [additional make flags]
 
 For instance,
 
-  sh {source_directory}/unix/build-xorg rebuild clean
+  sh {source_directory}/contrib/xorg/build-xorg rebuild clean
 
 will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
