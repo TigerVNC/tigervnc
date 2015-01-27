@@ -1,7 +1,7 @@
 /* Copyright (C) 2009 TightVNC Team
  * Copyright (C) 2009, 2010 Red Hat, Inc.
  * Copyright (C) 2009, 2010 TigerVNC Team
- * Copyright 2013 Pierre Ossman for Cendio AB
+ * Copyright 2013-2015 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,109 +23,44 @@
 #ifndef INPUT_H_
 #define INPUT_H_
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
+#include <stdlib.h>
+#include <X11/X.h>
 
-#include <list>
-
-#include <rdr/types.h>
-#include <rfb/Rect.h>
-
+#ifdef __cplusplus
 extern "C" {
-#include "input.h"
-/* The Xorg headers define macros that wreak havoc with STL */
-#undef max
-};
-
-#include "xorg-version.h"
-
-/*
- * Represents input device (keyboard + pointer)
- *
- * Is a singleton as input devices are global in the X server so
- * we do not have one per desktop (i.e. per screen).
- */
-extern class InputDevice *vncInputDevice;
-
-class InputDevice {
-public:
-	/*
-	 * Press or release buttons. Relationship between buttonMask and
-	 * buttons is specified in RFB protocol.
-	 */
-	void PointerButtonAction(int buttonMask);
-
-	/* Move pointer to target location (point coords are absolute). */
-	void PointerMove(const rfb::Point &point);
-
-	/* Get current known location of the pointer */
-	const rfb::Point &getPointerPos(void);
-
-	/* Press or release one or more keys to get the given symbol */
-	void KeyboardPress(rdr::U32 keysym) { keyEvent(keysym, true); }
-	void KeyboardRelease(rdr::U32 keysym) { keyEvent(keysym, false); }
-
-	/*
-	 * Init input device.
-	 * This has to be called after core pointer/keyboard
-	 * initialization which unfortunately is after extesions
-	 * initialization (which means we cannot call it in
-	 * vncExtensionInit(). Check InitExtensions(),
-	 * InitCoreDevices() and InitInput() calls in dix/main.c.
-	 * Instead we call it from XserverDesktop at an appropriate
-	 * time.
-	 */
-	void InitInputDevice(void);
-
-private:
-	InputDevice();
-
-	void keyEvent(rdr::U32 keysym, bool down);
-
-	/* Backend dependent functions below here */
-	void PrepareInputDevices(void);
-
-	unsigned getKeyboardState(void);
-	unsigned getLevelThreeMask(void);
-
-	KeyCode pressShift(void);
-	std::list<KeyCode> releaseShift(void);
-
-	KeyCode pressLevelThree(void);
-	std::list<KeyCode> releaseLevelThree(void);
-
-	KeyCode keysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state);
-
-	bool isLockModifier(KeyCode keycode, unsigned state);
-
-	bool isAffectedByNumLock(KeyCode keycode);
-
-	KeyCode addKeysym(KeySym keysym, unsigned state);
-
-private:
-	static int pointerProc(DeviceIntPtr pDevice, int onoff);
-	static int keyboardProc(DeviceIntPtr pDevice, int onoff);
-
-#if XORG >= 17
-	static void vncXkbProcessDeviceEvent(int screenNum,
-	                                     InternalEvent *event,
-	                                     DeviceIntPtr dev);
-#else
-	static void GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
 #endif
 
-private:
-	DeviceIntPtr keyboardDev;
-	DeviceIntPtr pointerDev;
+void vncInitInputDevice(void);
 
-	int oldButtonMask;
-	rfb::Point cursorPos;
+void vncPointerButtonAction(int buttonMask);
+void vncPointerMove(int x, int y);
+void vncGetPointerPos(int *x, int *y);
 
-	KeySym pressedKeys[256];
+void vncKeyboardEvent(KeySym keysym, int down);
 
-private:
-	static InputDevice singleton;
-};
+/* Backend dependent functions below here */
+
+void vncPrepareInputDevices(void);
+
+unsigned vncGetKeyboardState(void);
+unsigned vncGetLevelThreeMask(void);
+
+KeyCode vncPressShift(void);
+size_t vncReleaseShift(KeyCode *keys, size_t maxKeys);
+
+KeyCode vncPressLevelThree(void);
+size_t vncReleaseLevelThree(KeyCode *keys, size_t maxKeys);
+
+KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state);
+
+int vncIsLockModifier(KeyCode keycode, unsigned state);
+
+int vncIsAffectedByNumLock(KeyCode keycode);
+
+KeyCode vncAddKeysym(KeySym keysym, unsigned state);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

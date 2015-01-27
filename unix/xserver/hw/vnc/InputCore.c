@@ -1,6 +1,6 @@
 /* Copyright (C) 2009 TightVNC Team
  * Copyright (C) 2009 Red Hat, Inc.
- * Copyright 2013 Pierre Ossman for Cendio AB
+ * Copyright 2013-2015 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,6 @@
 #include "Input.h"
 #include "xorg-version.h"
 
-extern "C" {
-#define public c_public
-#define class c_class
 #include "inputstr.h"
 #ifndef XKB_IN_SERVER
 #define XKB_IN_SERVER
@@ -46,9 +43,8 @@ extern "C" {
 #include <X11/XF86keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#undef public
-#undef class
-}
+
+extern DeviceIntPtr vncKeyboardDev;
 
 #if XORG < 17
 
@@ -61,7 +57,7 @@ extern "C" {
 #define MAX_KEY 255
 #define MAP_LEN (MAX_KEY - MIN_KEY + 1)
 #define KEYSYMS_PER_KEY 2
-KeySym keyboardMap[MAP_LEN * KEYSYMS_PER_KEY] = {
+static KeySym keyboardMap[MAP_LEN * KEYSYMS_PER_KEY] = {
 	NoSymbol, NoSymbol,
 	XK_Escape, NoSymbol,
 	XK_1, XK_exclam,
@@ -174,7 +170,7 @@ KeySym keyboardMap[MAP_LEN * KEYSYMS_PER_KEY] = {
 	XK_Menu, NoSymbol,
 };
 
-void InputDevice::GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap)
+void vncGetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap)
 {
 	int i;
 
@@ -221,17 +217,17 @@ void InputDevice::GetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap)
 	keysyms->map = keyboardMap;
 }
 
-void InputDevice::PrepareInputDevices(void)
+void vncPrepareInputDevices(void)
 {
 	/* Don't need to do anything here */
 }
 
-unsigned InputDevice::getKeyboardState(void)
+unsigned vncGetKeyboardState(void)
 {
-	return keyboardDev->key->state;
+	return vncKeyboardDev->key->state;
 }
 
-unsigned InputDevice::getLevelThreeMask(void)
+unsigned vncGetLevelThreeMask(void)
 {
 	int i, j, k;
 
@@ -241,12 +237,12 @@ unsigned InputDevice::getLevelThreeMask(void)
 	int maxKeysPerMod;
 	CARD8 *modmap;
 
-	minKeyCode = keyboardDev->key->curKeySyms.minKeyCode;
-	mapWidth = keyboardDev->key->curKeySyms.mapWidth;
-	map = keyboardDev->key->curKeySyms.map;
+	minKeyCode = vncKeyboardDev->key->curKeySyms.minKeyCode;
+	mapWidth = vncKeyboardDev->key->curKeySyms.mapWidth;
+	map = vncKeyboardDev->key->curKeySyms.map;
 
-	maxKeysPerMod = keyboardDev->key->maxKeysPerModifier;
-	modmap = keyboardDev->key->modifierKeyMap;
+	maxKeysPerMod = vncKeyboardDev->key->maxKeysPerModifier;
+	modmap = vncKeyboardDev->key->modifierKeyMap;
 
 	for (i = 3; i < 8; i++) {
 		for (k = 0; k < maxKeysPerMod; k++) {
@@ -268,41 +264,44 @@ unsigned InputDevice::getLevelThreeMask(void)
 	return 0;
 }
 
-KeyCode InputDevice::pressShift(void)
+KeyCode vncPressShift(void)
 {
 	int maxKeysPerMod;
 
-	maxKeysPerMod = keyboardDev->key->maxKeysPerModifier;
-	return keyboardDev->key->modifierKeyMap[ShiftMapIndex * maxKeysPerMod];
+	maxKeysPerMod = vncKeyboardDev->key->maxKeysPerModifier;
+	return vncKeyboardDev->key->modifierKeyMap[ShiftMapIndex * maxKeysPerMod];
 }
 
-std::list<KeyCode> InputDevice::releaseShift(void)
+size_t vncReleaseShift(KeyCode *keys, size_t maxKeys)
 {
-	std::list<KeyCode> keys;
-
+	size_t count;
 	int maxKeysPerMod;
 
-	maxKeysPerMod = keyboardDev->key->maxKeysPerModifier;
+	count = 0;
+	maxKeysPerMod = vncKeyboardDev->key->maxKeysPerModifier;
 	for (int k = 0; k < maxKeysPerMod; k++) {
 		int keycode;
 		int index;
 
 		index = ShiftMapIndex * maxKeysPerMod + k;
 
-		keycode = keyboardDev->key->modifierKeyMap[index];
+		keycode = vncKeyboardDev->key->modifierKeyMap[index];
 		if (keycode == 0)
 			continue;
 
-		if (!IS_PRESSED(keyboardDev, keycode))
+		if (!IS_PRESSED(vncKeyboardDev, keycode))
 			continue;
 
-		keys.push_back(keycode);
+		if (count >= maxKeys)
+			return 0;
+
+		keys[count++] = keycode;
 	}
 
-	return keys;
+	return count;
 }
 
-KeyCode InputDevice::pressLevelThree(void)
+KeyCode vncPressLevelThree(void)
 {
 	unsigned mask, index;
 	int maxKeysPerMod;
@@ -312,41 +311,44 @@ KeyCode InputDevice::pressLevelThree(void)
 		return 0;
 
 	index = ffs(mask) - 1;
-	maxKeysPerMod = keyboardDev->key->maxKeysPerModifier;
-	return keyboardDev->key->modifierKeyMap[index * maxKeysPerMod];
+	maxKeysPerMod = vncKeyboardDev->key->maxKeysPerModifier;
+	return vncKeyboardDev->key->modifierKeyMap[index * maxKeysPerMod];
 }
 
-std::list<KeyCode> InputDevice::releaseLevelThree(void)
+size_t vncReleaseLevelThree(KeyCode *keys, size_t maxKeys)
 {
-	std::list<KeyCode> keys;
-
+	size_t count;
 	unsigned mask, msindex;
 	int maxKeysPerMod;
 
 	mask = getLevelThreeMask();
 	if (mask == 0)
-		return keys;
+		return 0;
 
 	msindex = ffs(mask) - 1;
 
-	maxKeysPerMod = keyboardDev->key->maxKeysPerModifier;
+	count = 0;
+	maxKeysPerMod = vncKeyboardDev->key->maxKeysPerModifier;
 	for (int k = 0; k < maxKeysPerMod; k++) {
 		int keycode;
 		int index;
 
 		index = msindex * maxKeysPerMod + k;
 
-		keycode = keyboardDev->key->modifierKeyMap[index];
+		keycode = vncKeyboardDev->key->modifierKeyMap[index];
 		if (keycode == 0)
 			continue;
 
-		if (!IS_PRESSED(keyboardDev, keycode))
+		if (!IS_PRESSED(vncKeyboardDev, keycode))
 			continue;
 
-		keys.push_back(keycode);
+		if (count >= maxKeys)
+			return 0;
+
+		keys[count++] = keycode;
 	}
 
-	return keys;
+	return count;
 }
 
 static KeySym KeyCodetoKeySym(KeySymsPtr keymap, int keycode, int col)
@@ -397,7 +399,7 @@ static KeySym KeyCodetoKeySym(KeySymsPtr keymap, int keycode, int col)
 	return syms[col];
 }
 
-KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state)
+KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state)
 {
 	int i, j;
 	unsigned mask;
@@ -405,9 +407,9 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state, unsigned *ne
 	KeySymsPtr keymap;
 	int mapWidth;
 
-	mask = getLevelThreeMask();
+	mask = vncGetLevelThreeMask();
 
-	keymap = &keyboardDev->key->curKeySyms;
+	keymap = &vncKeyboardDev->key->curKeySyms;
 
 	/*
 	 * Column 0 means both shift and "mode_switch" (AltGr) must be released,
@@ -449,7 +451,7 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state, unsigned *ne
 	return 0;
 }
 
-bool InputDevice::isLockModifier(KeyCode keycode, unsigned state)
+int vncIsLockModifier(KeyCode keycode, unsigned state)
 {
 	int i, j, k;
 
@@ -461,12 +463,12 @@ bool InputDevice::isLockModifier(KeyCode keycode, unsigned state)
 
 	int num_lock_index;
 
-	minKeyCode = keyboardDev->key->curKeySyms.minKeyCode;
-	mapWidth = keyboardDev->key->curKeySyms.mapWidth;
-	map = keyboardDev->key->curKeySyms.map;
+	minKeyCode = vncKeyboardDev->key->curKeySyms.minKeyCode;
+	mapWidth = vncKeyboardDev->key->curKeySyms.mapWidth;
+	map = vncKeyboardDev->key->curKeySyms.map;
 
-	maxKeysPerMod = keyboardDev->key->maxKeysPerModifier;
-	modmap = keyboardDev->key->modifierKeyMap;
+	maxKeysPerMod = vncKeyboardDev->key->maxKeysPerModifier;
+	modmap = vncKeyboardDev->key->modifierKeyMap;
 
 	/* Caps Lock is fairly easy as it has a dedicated modmap entry */
 	for (k = 0; k < maxKeysPerMod; k++) {
@@ -474,7 +476,7 @@ bool InputDevice::isLockModifier(KeyCode keycode, unsigned state)
 
 		index = LockMapIndex * maxKeysPerMod + k;
 		if (keycode == modmap[index])
-			return true;
+			return 1;
 	}
 
 	/* For Num Lock we need to find the correct modmap entry */
@@ -500,7 +502,7 @@ bool InputDevice::isLockModifier(KeyCode keycode, unsigned state)
 done:
 
 	if (num_lock_index == 0)
-		return false;
+		return 0;
 
 	/* Now we can look in the modmap */ 
 	for (k = 0; k < maxKeysPerMod; k++) {
@@ -508,43 +510,43 @@ done:
 
 		index = num_lock_index * maxKeysPerMod + k;
 		if (keycode == modmap[index])
-			return true;
+			return 1;
 	}
 
-	return false;
+	return 0;
 }
 
-bool InputDevice::isAffectedByNumLock(KeyCode keycode)
+int vncIsAffectedByNumLock(KeyCode keycode)
 {
 	KeySymsPtr keymap;
 	int i, per;
 	KeySym *syms;
 
-	keymap = &keyboardDev->key->curKeySyms;
+	keymap = &vncKeyboardDev->key->curKeySyms;
 	per = keymap->mapWidth;
 	syms = &keymap->map[(keycode - keymap->minKeyCode) * per];
 
 	for (i = 0;i < per;i++) {
 		if (IsKeypadKey(syms[i]))
-			return true;
+			return 1;
 		if (IsPrivateKeypadKey(syms[i]))
-			return true;
+			return 1;
 	}
 
-	return false;
+	return 0;
 }
 
-KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
+KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 {
 	KeyCode kc;
 
 	int minKeyCode, maxKeyCode, mapWidth;
 	KeySym *map;
 
-	minKeyCode = keyboardDev->key->curKeySyms.minKeyCode;
-	maxKeyCode = keyboardDev->key->curKeySyms.maxKeyCode;
-	mapWidth = keyboardDev->key->curKeySyms.mapWidth;
-	map = keyboardDev->key->curKeySyms.map;
+	minKeyCode = vncKeyboardDev->key->curKeySyms.minKeyCode;
+	maxKeyCode = vncKeyboardDev->key->curKeySyms.maxKeyCode;
+	mapWidth = vncKeyboardDev->key->curKeySyms.mapWidth;
+	map = vncKeyboardDev->key->curKeySyms.map;
 
 	/*
 	 * Magic, which dynamically adds keysym<->keycode mapping
@@ -570,17 +572,17 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 #if XORG == 15
 		master = inputInfo.keyboard;
 #else
-		master = keyboardDev->u.master;
+		master = vncKeyboardDev->u.master;
 #endif
 		void *slave = dixLookupPrivate(&master->devPrivates,
 					       CoreDevicePrivateKey);
-		if (keyboardDev == slave) {
+		if (vncKeyboardDev == slave) {
 			dixSetPrivate(&master->devPrivates,
 				      CoreDevicePrivateKey, NULL);
 #if XORG == 15
-			SwitchCoreKeyboard(keyboardDev);
+			SwitchCoreKeyboard(vncKeyboardDev);
 #else
-			CopyKeyClass(keyboardDev, master);
+			CopyKeyClass(vncKeyboardDev, master);
 #endif
 		}
 

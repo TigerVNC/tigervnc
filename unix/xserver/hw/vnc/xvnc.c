@@ -1,6 +1,6 @@
 /* Copyright (c) 1993  X Consortium
    Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
-   Copyright 2009 Pierre Ossman for Cendio AB
+   Copyright 2009-2015 Pierre Ossman for Cendio AB
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -32,16 +32,10 @@ from the X Consortium.
 #include <dix-config.h>
 #endif
 
-#include <rfb/Configuration.h>
-#include <rfb/Logger_stdio.h>
-#include <rfb/LogWriter.h>
-#include <network/TcpSocket.h>
 #include "vncExtInit.h"
+#include "RFBGlue.h"
 #include "xorg-version.h"
 
-extern "C" {
-#define class c_class
-#define public c_public
 #ifdef WIN32
 #include <X11/Xwinsock.h>
 #endif
@@ -61,9 +55,7 @@ extern "C" {
 #include "gcstruct.h"
 #include "input.h"
 #include "mipointer.h"
-#define new New
 #include "micmap.h"
-#undef new
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -89,9 +81,6 @@ extern "C" {
 #include "version-config.h"
 #endif
 #include "site.h"
-#undef class
-#undef public
-}
 
 #if XORG >= 110
 #define Xalloc malloc
@@ -164,10 +153,8 @@ static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static int lastScreen = -1;
 static Bool Render = TRUE;
 
-static bool displaySpecified = false;
+static Bool displaySpecified = FALSE;
 static char displayNumStr[16];
-
-char *listenaddr = NULL;
 
 static int vncVerbose = DEFAULT_LOG_VERBOSITY;
 
@@ -211,8 +198,6 @@ vfbBitsPerPixel(int depth)
 }
 
 static void vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb);
-
-extern "C" {
 
 #ifdef DPMSExtension
     /* Why support DPMS? Because stupid modern desktop environments
@@ -325,7 +310,6 @@ ddxUseMsg()
     ErrorF("-depth D               set screen 0's depth\n");
     ErrorF("-pixelformat fmt       set pixel format (rgbNNN or bgrNNN)\n");
     ErrorF("-inetd                 has been launched from inetd\n");
-    ErrorF("-interface IP_address  listen on specified interface\n");
     ErrorF("-noclipboard           disable clipboard settings modification via vncconfig utility\n");
     ErrorF("-verbose [n]           verbose startup messages\n");
     ErrorF("-quiet                 minimal startup messages\n");
@@ -338,8 +322,7 @@ ddxUseMsg()
             "Other valid forms are <param>=<value> -<param>=<value> "
             "--<param>=<value>\n"
             "Parameter names are case-insensitive.  The parameters are:\n\n");
-    rfb::Configuration::listParams(79, 14);
-  }
+    vncListParams(79, 14);
 }
 
 /* ddxInitGlobals - called by |InitGlobals| from os/util.c */
@@ -348,21 +331,21 @@ void ddxInitGlobals(void)
 }
 
 static 
-bool displayNumFree(int num)
+Bool displayNumFree(int num)
 {
-    try {
-	network::TcpListener l(NULL, 6000+num);
-    } catch (rdr::Exception& e) {
-	return false;
-    }
     char file[256];
+    if (vncIsTCPPortUsed(6000+num))
+        return FALSE;
     sprintf(file, "/tmp/.X%d-lock", num);
-    if (access(file, F_OK) == 0) return false;
+    if (access(file, F_OK) == 0)
+        return FALSE;
     sprintf(file, "/tmp/.X11-unix/X%d", num);
-    if (access(file, F_OK) == 0) return false;
+    if (access(file, F_OK) == 0)
+        return FALSE;
     sprintf(file, "/usr/spool/sockets/X11/%d", num);
-    if (access(file, F_OK) == 0) return false;
-    return true;
+    if (access(file, F_OK) == 0)
+        return FALSE;
+    return TRUE;
 }
 
 int 
@@ -375,13 +358,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	vfbInitializeDefaultScreens();
 	vfbInitializePixmapDepths();
 	firstTime = FALSE;
-	rfb::initStdIOLoggers();
-	rfb::LogWriter::setLogParams("*:stderr:30");
-	rfb::Configuration::enableServerParams();
+	vncInitRFB();
     }
 
     if (argv[i][0] ==  ':')
-	displaySpecified = true;
+        displaySpecified = TRUE;
 
     if (strcmp (argv[i], "-screen") == 0)	/* -screen n WxHxD */
     {
@@ -574,7 +555,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	close(2);
 	
 	if (!displaySpecified) {
-	    int port = network::TcpSocket::getSockPort(vncInetdSock);
+	    int port = vncGetSocketPort(vncInetdSock);
 	    int displayNum = port - 5900;
 	    if (displayNum < 0 || displayNum > 99 || !displayNumFree(displayNum)) {
 		for (displayNum = 1; displayNum < 100; displayNum++)
@@ -591,25 +572,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	return 1;
     }
 
-    if (strcmp(argv[i], "-interface") == 0 ||
-	strcmp(argv[i], "-i") == 0) {
-	if (++i >= argc) {
-	    UseMsg();
-	    return 2;
-	}
-
-	if (listenaddr != NULL) /* Only first -interface is valid */
-		return 2;
-
-	listenaddr = strdup(argv[i]);
-	if (listenaddr == NULL)
-	    FatalError("Not enough memory");
-
-	return 2;
-    }
-
     if (strcmp(argv[i], "-noclipboard") == 0) {
-	noclipboard = true;
+	vncNoClipboard = 1;
 	return 1;
     }
 
@@ -636,11 +600,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
         return 1;
     }
 
-    if (rfb::Configuration::setParam(argv[i]))
+    if (vncSetParamSimple(argv[i]))
 	return 1;
     
     if (argv[i][0] == '-' && i+1 < argc) {
-	if (rfb::Configuration::setParam(&argv[i][1], argv[i+1]))
+	if (vncSetParam(&argv[i][1], argv[i+1]))
 	    return 2;
     }
     
@@ -1337,15 +1301,18 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
 }
 
 /* Used from XserverDesktop when it needs more outputs... */
-RROutputPtr vncRandROutputCreate(ScreenPtr pScreen)
+int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
 {
     RRCrtcPtr crtc;
 
-    crtc = vncRandRCrtcCreate(pScreen);
-    if (crtc == NULL)
-        return NULL;
+    while (extraOutputs > 0) {
+        crtc = vncRandRCrtcCreate(screenInfo.screens[scrIdx]);
+        if (crtc == NULL)
+            return -1;
+        extraOutputs--;
+    }
 
-    return crtc->outputs[0];
+    return 0;
 }
 
 static Bool vncRandRInit(ScreenPtr pScreen)
@@ -1596,13 +1563,13 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 } /* end vfbScreenInit */
 
 
-static void vfbClientStateChange(CallbackListPtr*, void *, void *) {
+static void vfbClientStateChange(CallbackListPtr *a, void *b, void *c) {
   dispatchException &= ~DE_RESET;
 }
  
 #if XORG >= 113
 #ifdef GLXEXT
-extern "C" void GlxExtensionInit(void);
+extern void GlxExtensionInit(void);
 
 static ExtensionModule glxExt = {
     GlxExtensionInit,
@@ -1615,11 +1582,12 @@ static ExtensionModule glxExt = {
 void
 InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 {
+    int i;
+    int NumFormats = 0;
+
   ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
   ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
          VENDOR_STRING);
-    int i;
-    int NumFormats = 0;
 
 #if XORG >= 113
 #ifdef GLXEXT
@@ -1722,3 +1690,11 @@ void CloseInput(void)
 {
 }
 #endif
+
+void vncClientGone(int fd)
+{
+  if (fd == vncInetdSock) {
+    ErrorF("inetdSock client gone\n");
+    GiveUp(0);
+  }
+}

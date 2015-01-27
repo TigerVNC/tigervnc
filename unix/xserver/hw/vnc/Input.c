@@ -1,6 +1,6 @@
 /* Copyright (C) 2009 TightVNC Team
  * Copyright (C) 2009, 2014 Red Hat, Inc.
- * Copyright 2013 Pierre Ossman for Cendio AB
+ * Copyright 2013-2015 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,11 @@
 #include <dix-config.h>
 #endif
 
-#include <rfb/LogWriter.h>
-#include "Input.h"
 #include "xorg-version.h"
+
+#include "Input.h"
 #include "vncExtInit.h"
 
-extern "C" {
-#define public c_public
-#define class c_class
 #include "inputstr.h"
 #if XORG >= 110
 #include "inpututils.h"
@@ -51,25 +48,8 @@ extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#undef public
-#undef class
-}
-
-#if XORG >= 110
-#define Xfree free
-#endif
-
-using namespace rdr;
-using namespace rfb;
-
-static LogWriter vlog("Input");
-
-rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock", "Avoid fake Shift presses for keys affected by NumLock.", true);
 
 #define BUTTONS 7
-
-class InputDevice *vncInputDevice;
-InputDevice InputDevice::singleton;
 
 /* Event queue is shared between all devices. */
 #if XORG == 15
@@ -78,9 +58,91 @@ static xEvent *eventq = NULL;
 static EventList *eventq = NULL;
 #endif
 
-#if XORG < 111
-static void initEventq(void)
+DeviceIntPtr vncKeyboardDev;
+DeviceIntPtr vncPointerDev;
+
+static int oldButtonMask;
+static int cursorPosX, cursorPosY;
+
+static KeySym pressedKeys[256];
+
+#if XORG < 17
+extern void vncGetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
+#endif
+
+static int vncPointerProc(DeviceIntPtr pDevice, int onoff);
+static void vncKeyboardBell(int percent, DeviceIntPtr device,
+                            void * ctrl, int class);
+static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff);
+
+#define LOG_NAME "Input"
+
+#define LOG_ERROR(...) vncLogError(LOG_NAME, __VA_ARGS__)
+#define LOG_STATUS(...) vncLogStatus(LOG_NAME, __VA_ARGS__)
+#define LOG_INFO(...) vncLogInfo(LOG_NAME, __VA_ARGS__)
+#define LOG_DEBUG(...) vncLogDebug(LOG_NAME, __VA_ARGS__)
+
+/*
+ * Init input device.
+ * This has to be called after core pointer/keyboard
+ * initialization which unfortunately is after extesions
+ * initialization (which means we cannot call it in
+ * vncExtensionInit(). Check InitExtensions(),
+ * InitCoreDevices() and InitInput() calls in dix/main.c.
+ * Instead we call it from XserverDesktop at an appropriate
+ * time.
+ */
+void vncInitInputDevice(void)
 {
+	int i, ret;
+
+	if ((vncPointerDev != NULL) || (vncKeyboardDev != NULL))
+		return;
+
+	for (i = 0;i < 256;i++)
+		pressedKeys[i] = NoSymbol;
+
+#if XORG < 17
+	vncPointerDev = AddInputDevice(
+#if XORG >= 16
+				    serverClient,
+#endif
+				    vncPointerProc, TRUE);
+	RegisterPointerDevice(vncPointerDev);
+
+	vncKeyboardDev = AddInputDevice(
+#if XORG >= 16
+				     serverClient,
+#endif
+				     vncKeyboardProc, TRUE);
+	RegisterKeyboardDevice(vncKeyboardDev);
+
+	if (ActivateDevice(vncPointerDev) != Success ||
+	    ActivateDevice(vncKeyboardDev) != Success)
+		FatalError("Failed to activate TigerVNC devices\n");
+
+	if (!EnableDevice(vncPointerDev) ||
+	    !EnableDevice(vncKeyboardDev))
+		FatalError("Failed to enable TigerVNC devices\n");
+#else /* < 17 */
+	ret = AllocDevicePair(serverClient, "TigerVNC",
+	                      &vncPointerDev, &vncKeyboardDev,
+	                      vncPointerProc, vncKeyboardProc,
+			      FALSE);
+
+	if (ret != Success)
+		FatalError("Failed to initialize TigerVNC input devices\n");
+
+	if (ActivateDevice(vncPointerDev, TRUE) != Success ||
+	    ActivateDevice(vncKeyboardDev, TRUE) != Success)
+		FatalError("Failed to activate TigerVNC devices\n");
+
+	if (!EnableDevice(vncPointerDev, TRUE) ||
+	    !EnableDevice(vncKeyboardDev, TRUE))
+		FatalError("Failed to activate TigerVNC devices\n");
+#endif /* 17 */
+
+#if XORG < 111
 	/* eventq is never free()-ed because it exists during server life. */
 	if (eventq == NULL) {
 #if XORG == 15
@@ -92,8 +154,89 @@ static void initEventq(void)
 		GetEventList(&eventq);
 #endif
 	}
+#endif
+
+	vncPrepareInputDevices();
 }
-#endif /* XORG < 111 */
+
+void vncPointerButtonAction(int buttonMask)
+{
+	int i;
+#if XORG < 111
+	int n;
+#endif
+#if XORG >= 110
+	ValuatorMask mask;
+#endif
+
+	for (i = 0; i < BUTTONS; i++) {
+		if ((buttonMask ^ oldButtonMask) & (1 << i)) {
+			int action = (buttonMask & (1<<i)) ?
+				     ButtonPress : ButtonRelease;
+#if XORG < 110
+			n = GetPointerEvents(eventq, vncPointerDev,
+			                     action, i + 1,
+					     POINTER_RELATIVE, 0, 0, NULL);
+			enqueueEvents(vncPointerDev, n);
+#elif XORG < 111
+			valuator_mask_set_range(&mask, 0, 0, NULL);
+			n = GetPointerEvents(eventq, vncPointerDev,
+			                     action, i + 1,
+					     POINTER_RELATIVE, &mask);
+			enqueueEvents(vncPointerDev, n);
+#else
+			valuator_mask_set_range(&mask, 0, 0, NULL);
+			QueuePointerEvents(vncPointerDev, action, i + 1,
+					   POINTER_RELATIVE, &mask);
+#endif
+		}
+	}
+
+	oldButtonMask = buttonMask;
+}
+
+void vncPointerMove(int x, int y)
+{
+	int valuators[2];
+#if XORG < 111
+	int n;
+#endif
+#if XORG >= 110
+	ValuatorMask mask;
+#endif
+
+	if (cursorPosX == x && cursorPosY == y)
+		return;
+
+	valuators[0] = x;
+	valuators[1] = y;
+#if XORG < 110
+	n = GetPointerEvents(eventq, vncPointerDev, MotionNotify, 0,
+	                     POINTER_ABSOLUTE, 0, 2, valuators);
+	enqueueEvents(vncPointerDev, n);
+#elif XORG < 111
+	valuator_mask_set_range(&mask, 0, 2, valuators);
+	n = GetPointerEvents(eventq, vncPointerDev, MotionNotify, 0,
+	                     POINTER_ABSOLUTE, &mask);
+	enqueueEvents(vncPointerDev, n);
+#else
+	valuator_mask_set_range(&mask, 0, 2, valuators);
+	QueuePointerEvents(vncPointerDev, MotionNotify, 0,
+	                   POINTER_ABSOLUTE, &mask);
+#endif
+
+	cursorPosX = x;
+	cursorPosY = y;
+}
+
+void vncGetPointerPos(int *x, int *y)
+{
+	if (vncPointerDev != NULL)
+		GetSpritePosition(vncPointerDev, &cursorPosX, &cursorPosY);
+
+	*x = cursorPosX;
+	*y = cursorPosY;
+}
 
 #if XORG < 111
 static void enqueueEvents(DeviceIntPtr dev, int n)
@@ -119,97 +262,7 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 }
 #endif /* XORG < 111 */
 
-InputDevice::InputDevice()
-	: oldButtonMask(0)
-{
-	int i;
-
-	vncInputDevice = this;
-
-	for (i = 0;i < 256;i++)
-		pressedKeys[i] = NoSymbol;
-}
-
-void InputDevice::PointerButtonAction(int buttonMask)
-{
-	int i;
-#if XORG < 111
-	int n;
-#endif
-#if XORG >= 110
-	ValuatorMask mask;
-#endif
-
-	for (i = 0; i < BUTTONS; i++) {
-		if ((buttonMask ^ oldButtonMask) & (1 << i)) {
-			int action = (buttonMask & (1<<i)) ?
-				     ButtonPress : ButtonRelease;
-#if XORG < 110
-			n = GetPointerEvents(eventq, pointerDev, action, i + 1,
-					     POINTER_RELATIVE, 0, 0, NULL);
-			enqueueEvents(pointerDev, n);
-#elif XORG < 111
-			valuator_mask_set_range(&mask, 0, 0, NULL);
-			n = GetPointerEvents(eventq, pointerDev, action, i + 1,
-					     POINTER_RELATIVE, &mask);
-			enqueueEvents(pointerDev, n);
-#else
-			valuator_mask_set_range(&mask, 0, 0, NULL);
-			QueuePointerEvents(pointerDev, action, i + 1,
-					   POINTER_RELATIVE, &mask);
-#endif
-		}
-	}
-
-	oldButtonMask = buttonMask;
-}
-
-void InputDevice::PointerMove(const rfb::Point &pos)
-{
-	int valuators[2];
-#if XORG < 111
-	int n;
-#endif
-#if XORG >= 110
-	ValuatorMask mask;
-#endif
-
-	if (pos.equals(cursorPos))
-		return;
-
-	valuators[0] = pos.x;
-	valuators[1] = pos.y;
-#if XORG < 110
-	n = GetPointerEvents(eventq, pointerDev, MotionNotify, 0, POINTER_ABSOLUTE, 0,
-			     2, valuators);
-	enqueueEvents(pointerDev, n);
-#elif XORG < 111
-	valuator_mask_set_range(&mask, 0, 2, valuators);
-	n = GetPointerEvents(eventq, pointerDev, MotionNotify, 0, POINTER_ABSOLUTE,
-			     &mask);
-	enqueueEvents(pointerDev, n);
-#else
-	valuator_mask_set_range(&mask, 0, 2, valuators);
-	QueuePointerEvents(pointerDev, MotionNotify, 0, POINTER_ABSOLUTE, &mask);
-#endif
-
-	cursorPos = pos;
-}
-
-const rfb::Point &InputDevice::getPointerPos(void)
-{
-	if (pointerDev != NULL) {
-		int x, y;
-
-		GetSpritePosition (pointerDev, &x, &y);
-		cursorPos.x = x;
-		cursorPos.y = y;
-	}
-
-	return cursorPos;
-}
-
-int InputDevice::pointerProc(DeviceIntPtr pDevice, int onoff)
+static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 {
 	BYTE map[BUTTONS + 1];
 	DevicePtr pDev = (DevicePtr)pDevice;
@@ -261,21 +314,21 @@ int InputDevice::pointerProc(DeviceIntPtr pDevice, int onoff)
 		pDev->on = FALSE;
 		break;
 	case DEVICE_CLOSE:
-		singleton.pointerDev = NULL;
+		vncPointerDev = NULL;
 		break;
 	}
 
 	return Success;
 }
 
-static void keyboardBell(int percent, DeviceIntPtr device, void * ctrl,
-			 int class_)
+static void vncKeyboardBell(int percent, DeviceIntPtr device,
+                            void * ctrl, int class)
 {
 	if (percent > 0)
 		vncBell();
 }
 
-int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
+static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 {
 #if XORG < 17
 	KeySymsRec keySyms;
@@ -286,7 +339,7 @@ int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
 	switch (onoff) {
 	case DEVICE_INIT:
 #if XORG < 17
-		GetInitKeyboardMap(&keySyms, modMap);
+		vncGetInitKeyboardMap(&keySyms, modMap);
 #endif
 		InitKeyboardDeviceStruct(
 #if XORG >= 17
@@ -294,7 +347,8 @@ int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
 #else
 					 pDev, &keySyms, modMap,
 #endif
-					 keyboardBell, (KbdCtrlProcPtr)NoopDDA);
+					 vncKeyboardBell,
+					 (KbdCtrlProcPtr)NoopDDA);
 		break;
 	case DEVICE_ON:
 		pDev->on = TRUE;
@@ -303,67 +357,14 @@ int InputDevice::keyboardProc(DeviceIntPtr pDevice, int onoff)
 		pDev->on = FALSE;
 		break;
 	case DEVICE_CLOSE:
-		singleton.keyboardDev = NULL;
+		vncKeyboardDev = NULL;
 		break;
 	}
 
 	return Success;
 }
 
-void InputDevice::InitInputDevice(void)
-{
-	if ((pointerDev != NULL) || (keyboardDev != NULL))
-		return;
-
-#if XORG < 17
-	pointerDev = AddInputDevice(
-#if XORG >= 16
-				    serverClient,
-#endif
-				    pointerProc, TRUE);
-	RegisterPointerDevice(pointerDev);
-
-	keyboardDev = AddInputDevice(
-#if XORG >= 16
-				     serverClient,
-#endif
-				     keyboardProc, TRUE);
-	RegisterKeyboardDevice(keyboardDev);
-
-	if (ActivateDevice(pointerDev) != Success ||
-	    ActivateDevice(keyboardDev) != Success)
-		FatalError("Failed to activate TigerVNC devices\n");
-
-	if (!EnableDevice(pointerDev) ||
-	    !EnableDevice(keyboardDev))
-		FatalError("Failed to enable TigerVNC devices\n");
-#else /* < 17 */
-	int ret;
-
-	ret = AllocDevicePair(serverClient, "TigerVNC", &pointerDev,
-			      &keyboardDev, pointerProc, keyboardProc,
-			      FALSE);
-
-	if (ret != Success)
-		FatalError("Failed to initialize TigerVNC input devices\n");
-
-	if (ActivateDevice(pointerDev, TRUE) != Success ||
-	    ActivateDevice(keyboardDev, TRUE) != Success)
-		FatalError("Failed to activate TigerVNC devices\n");
-
-	if (!EnableDevice(pointerDev, TRUE) ||
-	    !EnableDevice(keyboardDev, TRUE))
-		FatalError("Failed to activate TigerVNC devices\n");
-#endif /* 17 */
-
-#if XORG < 111
-	initEventq();
-#endif
-
-	PrepareInputDevices();
-}
-
-static inline void pressKey(DeviceIntPtr dev, int kc, bool down, const char *msg)
+static inline void pressKey(DeviceIntPtr dev, int kc, Bool down, const char *msg)
 {
 	int action;
 #if XORG < 111
@@ -371,7 +372,7 @@ static inline void pressKey(DeviceIntPtr dev, int kc, bool down, const char *msg
 #endif
 
 	if (msg != NULL)
-		vlog.debug("%s %d %s", msg, kc, down ? "down" : "up");
+		LOG_DEBUG("%s %d %s", msg, kc, down ? "down" : "up");
 
 	action = down ? KeyPress : KeyRelease;
 #if XORG < 111
@@ -432,14 +433,14 @@ static struct altKeysym_t {
 };
 
 /*
- * keyEvent() - work out the best keycode corresponding to the keysym sent by
- * the viewer. This is basically impossible in the general case, but we make
- * a best effort by assuming that all useful keysyms can be reached using
- * just the Shift and Level 3 (AltGr) modifiers. For core keyboards this is
- * basically always true, and should be true for most sane, western XKB
+ * vncKeyboardEvent() - work out the best keycode corresponding to the keysym
+ * sent by the viewer. This is basically impossible in the general case, but
+ * we make a best effort by assuming that all useful keysyms can be reached
+ * using just the Shift and Level 3 (AltGr) modifiers. For core keyboards this
+ * is basically always true, and should be true for most sane, western XKB
  * layouts.
  */
-void InputDevice::keyEvent(rdr::U32 keysym, bool down)
+void vncKeyboardEvent(KeySym keysym, int down)
 {
 	int i;
 	unsigned state, new_state;
@@ -447,7 +448,8 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 
 	unsigned level_three_mask;
 	KeyCode shift_press, level_three_press;
-	std::list<KeyCode> shift_release, level_three_release;
+	KeyCode shift_release[8], level_three_release[8];
+	size_t shift_release_count, level_three_release_count;
 
 	/*
 	 * Release events must match the press event, so look up what
@@ -457,7 +459,7 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 		for (i = 0;i < 256;i++) {
 			if (pressedKeys[i] == keysym) {
 				pressedKeys[i] = NoSymbol;
-				pressKey(keyboardDev, i, false, "keycode");
+				pressKey(vncKeyboardDev, i, FALSE, "keycode");
 				mieqProcessInputEvents();
 				return;
 			}
@@ -467,7 +469,7 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 		 * This can happen quite often as we ignore some
 		 * key presses.
 		 */
-		vlog.debug("Unexpected release of keysym 0x%x", keysym);
+		LOG_DEBUG("Unexpected release of keysym 0x%x", keysym);
 		return;
 	}
 
@@ -479,9 +481,9 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	 */ 
 	mieqProcessInputEvents();
 
-	state = getKeyboardState();
+	state = vncGetKeyboardState();
 
-	keycode = keysymToKeycode(keysym, state, &new_state);
+	keycode = vncKeysymToKeycode(keysym, state, &new_state);
 
 	/* Try some equivalent keysyms if we couldn't find a perfect match */
 	if (keycode == 0) {
@@ -495,37 +497,37 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 			else
 				continue;
 
-			keycode = keysymToKeycode(altsym, state, &new_state);
+			keycode = vncKeysymToKeycode(altsym, state, &new_state);
 			if (keycode != 0)
 				break;
 		}
 	}
 
 	/* We don't have lock synchronisation... */
-	if (isLockModifier(keycode, new_state)) {
-		vlog.debug("Ignoring lock key (e.g. caps lock)");
+	if (vncIsLockModifier(keycode, new_state)) {
+		LOG_DEBUG("Ignoring lock key (e.g. caps lock)");
 		return;
 	}
 
 	/* No matches. Will have to add a new entry... */
 	if (keycode == 0) {
-		keycode = addKeysym(keysym, state);
+		keycode = vncAddKeysym(keysym, state);
 		if (keycode == 0) {
-			vlog.error("Failure adding new keysym 0x%x", keysym);
+			LOG_ERROR("Failure adding new keysym 0x%x", keysym);
 			return;
 		}
 
-		vlog.info("Added unknown keysym 0x%x to keycode %d",
-			  keysym, keycode);
+		LOG_INFO("Added unknown keysym 0x%x to keycode %d",
+		         keysym, keycode);
 
 		/*
 		 * The state given to addKeysym() is just a hint and
 		 * the actual result might still require some state
 		 * changes.
 		 */
-		keycode = keysymToKeycode(keysym, state, &new_state);
+		keycode = vncKeysymToKeycode(keysym, state, &new_state);
 		if (keycode == 0) {
-			vlog.error("Newly added keysym 0x%x cannot be generated", keysym);
+			LOG_ERROR("Newly added keysym 0x%x cannot be generated", keysym);
 			return;
 		}
 	}
@@ -542,11 +544,11 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	 * can use an alternative keysym.
 	 */
 	if (((state & ShiftMask) != (new_state & ShiftMask)) &&
-	    avoidShiftNumLock && isAffectedByNumLock(keycode)) {
+	    vncGetAvoidShiftNumLock() && vncIsAffectedByNumLock(keycode)) {
 	    	KeyCode keycode2;
 	    	unsigned new_state2;
 
-		vlog.debug("Finding alternative to keysym 0x%x to avoid fake shift for numpad", keysym);
+		LOG_DEBUG("Finding alternative to keysym 0x%x to avoid fake shift for numpad", keysym);
 
 		for (i = 0;i < sizeof(altKeysym)/sizeof(altKeysym[0]);i++) {
 			KeySym altsym;
@@ -558,19 +560,19 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 			else
 				continue;
 
-			keycode2 = keysymToKeycode(altsym, state, &new_state2);
+			keycode2 = vncKeysymToKeycode(altsym, state, &new_state2);
 			if (keycode2 == 0)
 				continue;
 
 			if (((state & ShiftMask) != (new_state2 & ShiftMask)) &&
-			    isAffectedByNumLock(keycode2))
+			    vncIsAffectedByNumLock(keycode2))
 				continue;
 
 			break;
 		}
 
 		if (i == sizeof(altKeysym)/sizeof(altKeysym[0]))
-			vlog.debug("No alternative keysym found");
+			LOG_DEBUG("No alternative keysym found");
 		else {
 			keycode = keycode2;
 			new_state = new_state2;
@@ -598,65 +600,64 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 	 * so we need to know what the mask is for level 3 shifts.
 	 */
 	if ((new_state & ~ShiftMask) != (state & ~ShiftMask))
-		level_three_mask = getLevelThreeMask();
+		level_three_mask = vncGetLevelThreeMask();
 	else
 		level_three_mask = 0;
 
 	shift_press = level_three_press = 0;
+	shift_release_count = level_three_release_count = 0;
 
 	/* Need a fake press or release of shift? */
 	if (!(state & ShiftMask) && (new_state & ShiftMask)) {
-		shift_press = pressShift();
+		shift_press = vncPressShift();
 		if (shift_press == 0) {
-			vlog.error("Unable to find a modifier key for Shift");
+			LOG_ERROR("Unable to find a modifier key for Shift");
 			return;
 		}
 
-		pressKey(keyboardDev, shift_press, true, "temp shift");
+		pressKey(vncKeyboardDev, shift_press, TRUE, "temp shift");
 	} else if ((state & ShiftMask) && !(new_state & ShiftMask)) {
-		std::list<KeyCode>::const_iterator iter;
-
-		shift_release = releaseShift();
-		if (shift_release.empty()) {
-			vlog.error("Unable to find the modifier key(s) for releasing Shift");
+		shift_release_count = vncReleaseShift(shift_release,
+		                                      sizeof(shift_release)/sizeof(*shift_release));
+		if (shift_release_count == 0) {
+			LOG_ERROR("Unable to find the modifier key(s) for releasing Shift");
 			return;
 		}
 
-		for (iter = shift_release.begin();iter != shift_release.end();++iter)
-			pressKey(keyboardDev, *iter, false, "temp shift");
+		for (i = 0;i < shift_release_count;i++)
+			pressKey(vncKeyboardDev, shift_release[i], FALSE, "temp shift");
 	}
 
 	/* Need a fake press or release of level three shift? */
 	if (!(state & level_three_mask) && (new_state & level_three_mask)) {
-		level_three_press = pressLevelThree();
+		level_three_press = vncPressLevelThree();
 		if (level_three_press == 0) {
-			vlog.error("Unable to find a modifier key for ISO_Level3_Shift/Mode_Switch");
+			LOG_ERROR("Unable to find a modifier key for ISO_Level3_Shift/Mode_Switch");
 			return;
 		}
 
-		pressKey(keyboardDev, level_three_press, true, "temp level 3 shift");
+		pressKey(vncKeyboardDev, level_three_press, TRUE, "temp level 3 shift");
 	} else if ((state & level_three_mask) && !(new_state & level_three_mask)) {
-		std::list<KeyCode>::const_iterator iter;
-
-		level_three_release = releaseLevelThree();
-		if (level_three_release.empty()) {
-			vlog.error("Unable to find the modifier key(s) for releasing ISO_Level3_Shift/Mode_Switch");
+		level_three_release_count = vncReleaseLevelThree(level_three_release,
+		                                                 sizeof(level_three_release)/sizeof(*level_three_release));
+		if (level_three_release_count == 0) {
+			LOG_ERROR("Unable to find the modifier key(s) for releasing ISO_Level3_Shift/Mode_Switch");
 			return;
 		}
 
-		for (iter = level_three_release.begin();iter != level_three_release.end();++iter)
-			pressKey(keyboardDev, *iter, false, "temp level 3 shift");
+		for (i = 0;i < level_three_release_count;i++)
+			pressKey(vncKeyboardDev, level_three_release[i], FALSE, "temp level 3 shift");
 	}
 
 	/* Now press the actual key */
-	pressKey(keyboardDev, keycode, true, "keycode");
+	pressKey(vncKeyboardDev, keycode, TRUE, "keycode");
 
 	/* And store the mapping so that we can do a proper release later */
 	for (i = 0;i < 256;i++) {
 		if (i == keycode)
 			continue;
 		if (pressedKeys[i] == keysym) {
-			vlog.error("Keysym 0x%x generated by both keys %d and %d", keysym, i, keycode);
+			LOG_ERROR("Keysym 0x%x generated by both keys %d and %d", keysym, i, keycode);
 			pressedKeys[i] = NoSymbol;
 		}
 	}
@@ -665,20 +666,18 @@ void InputDevice::keyEvent(rdr::U32 keysym, bool down)
 
 	/* Undo any fake level three shift */
 	if (level_three_press != 0)
-		pressKey(keyboardDev, level_three_press, false, "temp level 3 shift");
-	else if (!level_three_release.empty()) {
-		std::list<KeyCode>::const_iterator iter;
-		for (iter = level_three_release.begin();iter != level_three_release.end();++iter)
-			pressKey(keyboardDev, *iter, true, "temp level 3 shift");
+		pressKey(vncKeyboardDev, level_three_press, FALSE, "temp level 3 shift");
+	else if (level_three_release_count != 0) {
+		for (i = 0;i < level_three_release_count;i++)
+			pressKey(vncKeyboardDev, level_three_release[i], TRUE, "temp level 3 shift");
 	}
 
 	/* Undo any fake shift */
 	if (shift_press != 0)
-		pressKey(keyboardDev, shift_press, false, "temp shift");
-	else if (!shift_release.empty()) {
-		std::list<KeyCode>::const_iterator iter;
-		for (iter = shift_release.begin();iter != shift_release.end();++iter)
-			pressKey(keyboardDev, *iter, true, "temp shift");
+		pressKey(vncKeyboardDev, shift_press, FALSE, "temp shift");
+	else if (shift_release_count != 0) {
+		for (i = 0;i < shift_release_count;i++)
+			pressKey(vncKeyboardDev, shift_release[i], TRUE, "temp shift");
 	}
 
 	/*

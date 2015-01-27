@@ -48,6 +48,7 @@ namespace rfb {
     static BoolParameter sendCutText;
     static BoolParameter acceptSetDesktopSize;
     static BoolParameter queryConnect;
+    static IntParameter queryConnectTimeout;
 
   };
 

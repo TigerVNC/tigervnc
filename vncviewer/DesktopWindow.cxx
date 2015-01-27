@@ -798,8 +798,11 @@ void DesktopWindow::remoteResize(int width, int height)
       (layout == cc->cp.screenLayout))
     return;
 
-  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d (%d screens)",
-             cc->cp.width, cc->cp.height, width, height, layout.num_screens());
+  char buffer[2048];
+  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
+             cc->cp.width, cc->cp.height, width, height);
+  layout.print(buffer, sizeof(buffer));
+  vlog.debug("%s", buffer);
 
   if (!layout.validate(width, height)) {
     vlog.error(_("Invalid screen layout computed for resize request!"));

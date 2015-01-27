@@ -1,6 +1,6 @@
 /* Copyright (C) 2009 TightVNC Team
  * Copyright (C) 2009 Red Hat, Inc.
- * Copyright 2013 Pierre Ossman for Cendio AB
+ * Copyright 2013-2015 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,29 +22,33 @@
 #include <dix-config.h>
 #endif
 
-#include "Input.h"
 #include "xorg-version.h"
 
 #if XORG >= 17
 
-extern "C" {
-#define public c_public
-#define class c_class
+#include <stdio.h>
+
+#include <X11/keysym.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 #include "xkbsrv.h"
 #include "xkbstr.h"
 #include "eventstr.h"
 #include "scrnintstr.h"
 #include "mi.h"
-#include <X11/keysym.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#undef public
-#undef class
-}
+
+#include "Input.h"
 
 #ifndef KEYBOARD_OR_FLOAT
 #define KEYBOARD_OR_FLOAT MASTER_KEYBOARD
 #endif
+
+extern DeviceIntPtr vncKeyboardDev;
+
+static void vncXkbProcessDeviceEvent(int screenNum,
+                                     InternalEvent *event,
+                                     DeviceIntPtr dev);
 
 /* Stolen from libX11 */
 static Bool
@@ -195,7 +199,7 @@ static unsigned XkbKeyEffectiveGroup(XkbDescPtr xkb, KeyCode key, unsigned int m
 	return effectiveGroup;
 }
 
-void InputDevice::PrepareInputDevices(void)
+void vncPrepareInputDevices(void)
 {
 	/*
 	 * Not ideal since these callbacks do not stack, but it's the only
@@ -206,15 +210,15 @@ void InputDevice::PrepareInputDevices(void)
 	mieqSetHandler(ET_KeyRelease, vncXkbProcessDeviceEvent);
 }
 
-unsigned InputDevice::getKeyboardState(void)
+unsigned vncGetKeyboardState(void)
 {
 	DeviceIntPtr master;
 
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
+	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
 	return XkbStateFieldFromRec(&master->key->xkbInfo->state);
 }
 
-unsigned InputDevice::getLevelThreeMask(void)
+unsigned vncGetLevelThreeMask(void)
 {
 	unsigned state;
 	KeyCode keycode;
@@ -222,17 +226,17 @@ unsigned InputDevice::getLevelThreeMask(void)
 	XkbAction *act;
 
 	/* Group state is still important */
-	state = getKeyboardState();
+	state = vncGetKeyboardState();
 	state &= ~0xff;
 
-	keycode = keysymToKeycode(XK_ISO_Level3_Shift, state, NULL);
+	keycode = vncKeysymToKeycode(XK_ISO_Level3_Shift, state, NULL);
 	if (keycode == 0) {
-		keycode = keysymToKeycode(XK_Mode_switch, state, NULL);
+		keycode = vncKeysymToKeycode(XK_Mode_switch, state, NULL);
 		if (keycode == 0)
 			return 0;
 	}
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -246,18 +250,18 @@ unsigned InputDevice::getLevelThreeMask(void)
 		return act->mods.mask;
 }
 
-KeyCode InputDevice::pressShift(void)
+KeyCode vncPressShift(void)
 {
 	unsigned state;
 
 	XkbDescPtr xkb;
 	unsigned int key;
 
-	state = getKeyboardState();
+	state = vncGetKeyboardState();
 	if (state & ShiftMask)
 		return 0;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
 		unsigned char mask;
@@ -281,20 +285,23 @@ KeyCode InputDevice::pressShift(void)
 	return 0;
 }
 
-std::list<KeyCode> InputDevice::releaseShift(void)
+size_t vncReleaseShift(KeyCode *keys, size_t maxKeys)
 {
+	size_t count;
+
 	unsigned state;
-	std::list<KeyCode> keys;
 
 	DeviceIntPtr master;
 	XkbDescPtr xkb;
 	unsigned int key;
 
-	state = getKeyboardState();
+	state = vncGetKeyboardState();
 	if (!(state & ShiftMask))
-		return keys;
+		return 0;
 
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
+	count = 0;
+
+	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
@@ -318,13 +325,16 @@ std::list<KeyCode> InputDevice::releaseShift(void)
 		if (!(mask & ShiftMask))
 			continue;
 
-		keys.push_back(key);
+		if (count >= maxKeys)
+			return 0;
+
+		keys[count++] = key;
 	}
 
-	return keys;
+	return count;
 }
 
-KeyCode InputDevice::pressLevelThree(void)
+KeyCode vncPressLevelThree(void)
 {
 	unsigned state, mask;
 
@@ -332,22 +342,22 @@ KeyCode InputDevice::pressLevelThree(void)
 	XkbDescPtr xkb;
 	XkbAction *act;
 
-	mask = getLevelThreeMask();
+	mask = vncGetLevelThreeMask();
 	if (mask == 0)
 		return 0;
 
-	state = getKeyboardState();
+	state = vncGetKeyboardState();
 	if (state & mask)
 		return 0;
 
-	keycode = keysymToKeycode(XK_ISO_Level3_Shift, state, NULL);
+	keycode = vncKeysymToKeycode(XK_ISO_Level3_Shift, state, NULL);
 	if (keycode == 0) {
-		keycode = keysymToKeycode(XK_Mode_switch, state, NULL);
+		keycode = vncKeysymToKeycode(XK_Mode_switch, state, NULL);
 		if (keycode == 0)
 			return 0;
 	}
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -358,24 +368,27 @@ KeyCode InputDevice::pressLevelThree(void)
 	return keycode;
 }
 
-std::list<KeyCode> InputDevice::releaseLevelThree(void)
+size_t vncReleaseLevelThree(KeyCode *keys, size_t maxKeys)
 {
+	size_t count;
+
 	unsigned state, mask;
-	std::list<KeyCode> keys;
 
 	DeviceIntPtr master;
 	XkbDescPtr xkb;
 	unsigned int key;
 
-	mask = getLevelThreeMask();
+	mask = vncGetLevelThreeMask();
 	if (mask == 0)
-		return keys;
+		return 0;
 
-	state = getKeyboardState();
+	state = vncGetKeyboardState();
 	if (!(state & mask))
-		return keys;
+		return 0;
 
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
+	count = 0;
+
+	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
@@ -399,14 +412,16 @@ std::list<KeyCode> InputDevice::releaseLevelThree(void)
 		if (!(key_mask & mask))
 			continue;
 
-		keys.push_back(key);
+		if (count >= maxKeys)
+			return 0;
+
+		keys[count++] = key;
 	}
 
-	return keys;
+	return count;
 }
 
-KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state,
-                                     unsigned *new_state)
+KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state)
 {
 	XkbDescPtr xkb;
 	unsigned int key;
@@ -416,7 +431,7 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state,
 	if (new_state != NULL)
 		*new_state = state;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		unsigned int state_out;
 		KeySym dummy;
@@ -444,48 +459,48 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state,
 
 	*new_state = (state & ~ShiftMask) |
 	             ((state & ShiftMask) ? 0 : ShiftMask);
-	key = keysymToKeycode(keysym, *new_state, NULL);
+	key = vncKeysymToKeycode(keysym, *new_state, NULL);
 	if (key != 0)
 		return key;
 
-	level_three_mask = getLevelThreeMask();
+	level_three_mask = vncGetLevelThreeMask();
 	if (level_three_mask == 0)
 		return 0;
 
 	*new_state = (state & ~level_three_mask) | 
 	             ((state & level_three_mask) ? 0 : level_three_mask);
-	key = keysymToKeycode(keysym, *new_state, NULL);
+	key = vncKeysymToKeycode(keysym, *new_state, NULL);
 	if (key != 0)
 		return key;
 
 	*new_state = (state & ~(ShiftMask | level_three_mask)) | 
 	             ((state & ShiftMask) ? 0 : ShiftMask) |
 	             ((state & level_three_mask) ? 0 : level_three_mask);
-	key = keysymToKeycode(keysym, *new_state, NULL);
+	key = vncKeysymToKeycode(keysym, *new_state, NULL);
 	if (key != 0)
 		return key;
 
 	return 0;
 }
 
-bool InputDevice::isLockModifier(KeyCode keycode, unsigned state)
+int vncIsLockModifier(KeyCode keycode, unsigned state)
 {
 	XkbDescPtr xkb;
 	XkbAction *act;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
-		return false;
+		return 0;
 
 	if (act->type != XkbSA_LockMods)
-		return false;
+		return 0;
 
-	return true;
+	return 1;
 }
 
-bool InputDevice::isAffectedByNumLock(KeyCode keycode)
+int vncIsAffectedByNumLock(KeyCode keycode)
 {
 	unsigned state;
 
@@ -499,7 +514,7 @@ bool InputDevice::isAffectedByNumLock(KeyCode keycode)
 	XkbKeyTypeRec *type;
 
 	/* Group state is still important */
-	state = getKeyboardState();
+	state = vncGetKeyboardState();
 	state &= ~0xff;
 
 	/*
@@ -507,17 +522,17 @@ bool InputDevice::isAffectedByNumLock(KeyCode keycode)
 	 * or following the keysym Num_Lock is the best approach. We
 	 * try the latter.
 	 */
-	numlock_keycode = keysymToKeycode(XK_Num_Lock, state, NULL);
+	numlock_keycode = vncKeysymToKeycode(XK_Num_Lock, state, NULL);
 	if (numlock_keycode == 0)
-		return false;
+		return 0;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, numlock_keycode, state);
 	if (act == NULL)
-		return false;
+		return 0;
 	if (act->type != XkbSA_LockMods)
-		return false;
+		return 0;
 
 	if (act->mods.flags & XkbSA_UseModMapMods)
 		numlock_mask = xkb->map->modmap[keycode];
@@ -527,12 +542,12 @@ bool InputDevice::isAffectedByNumLock(KeyCode keycode)
 	group = XkbKeyEffectiveGroup(xkb, keycode, state);
 	type = XkbKeyKeyType(xkb, keycode, group);
 	if ((type->mods.mask & numlock_mask) == 0)
-		return false;
+		return 0;
 
-	return true;
+	return 1;
 }
 
-KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
+KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 {
 	DeviceIntPtr master;
 	XkbDescPtr xkb;
@@ -545,7 +560,7 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 	KeySym *syms;
 	KeySym upper, lower;
 
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
+	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
 		if (XkbKeyNumGroups(xkb, key) == 0)
@@ -608,13 +623,13 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 	return key;
 }
 
-void InputDevice::vncXkbProcessDeviceEvent(int screenNum,
-                                           InternalEvent *event,
-                                           DeviceIntPtr dev)
+static void vncXkbProcessDeviceEvent(int screenNum,
+                                     InternalEvent *event,
+                                     DeviceIntPtr dev)
 {
 	unsigned int backupctrls;
 
-	if (event->device_event.sourceid == singleton.keyboardDev->id) {
+	if (event->device_event.sourceid == vncKeyboardDev->id) {
 		XkbControlsPtr ctrls;
 
 		/*
@@ -634,9 +649,9 @@ void InputDevice::vncXkbProcessDeviceEvent(int screenNum,
 			event->device_event.key_repeat = TRUE;
 	}
 
-	dev->c_public.processInputProc(event, dev);
+	dev->public.processInputProc(event, dev);
 
-	if (event->device_event.sourceid == singleton.keyboardDev->id) {
+	if (event->device_event.sourceid == vncKeyboardDev->id) {
 		XkbControlsPtr ctrls;
 
 		ctrls = dev->key->xkbInfo->desc->ctrls;

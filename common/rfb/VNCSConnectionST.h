@@ -174,6 +174,8 @@ namespace rfb {
     network::Socket* sock;
     CharArray peerEndpoint;
 
+    Timer queryConnectTimer;
+
     bool inProcessMessages;
 
     bool pendingSyncFence, syncFence;

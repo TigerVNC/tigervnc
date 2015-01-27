@@ -36,6 +36,10 @@
 // is assigned a particular log level.
 
 #define DEF_LOGFUNCTION(name, level) \
+  inline void name(const char* fmt, va_list ap) { \
+    if (m_log && (level <= m_level))       \
+      m_log->write(level, m_name, fmt, ap);\
+  } \
   inline void name(const char* fmt, ...) __printf_attr(2, 3) { \
     if (m_log && (level <= m_level)) {     \
       va_list ap; va_start(ap, fmt);       \
