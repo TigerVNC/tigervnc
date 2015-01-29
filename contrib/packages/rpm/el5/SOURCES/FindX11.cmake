@@ -60,27 +60,26 @@ if (UNIX)
   # found in tcl on the mac
   set(CMAKE_FIND_FRAMEWORK_SAVE ${CMAKE_FIND_FRAMEWORK})
   set(CMAKE_FIND_FRAMEWORK NEVER)
-  if(NOT X11_INC_SEARCH_PATH)
-    set(X11_INC_SEARCH_PATH
-      /usr/pkg/xorg/include
-      /usr/X11R6/include
-      /usr/X11R7/include
-      /usr/include/X11
-      /usr/openwin/include
-      /usr/openwin/share/include
-      /opt/graphics/OpenGL/include
-    )
-  endif()
+  set(X11_INC_SEARCH_PATH
+    @_includedir@
+    /usr/pkg/xorg/include
+    /usr/X11R6/include
+    /usr/X11R7/include
+    /usr/include/X11
+    /usr/openwin/include
+    /usr/openwin/share/include
+    /opt/graphics/OpenGL/include
+  )
 
 
-  if(NOT X11_LIB_SEARCH_PATH)
-    set(X11_LIB_SEARCH_PATH
-      /usr/pkg/xorg/lib
-      /usr/X11R6/lib
-      /usr/X11R7/lib
-      /usr/openwin/lib
-    )
-  endif()
+  set(X11_LIB_SEARCH_PATH
+    @_libdir@
+    @_libdir@/tigervnc
+    /usr/pkg/xorg/lib
+    /usr/X11R6/lib
+    /usr/X11R7/lib
+    /usr/openwin/lib
+  )
 
   find_path(X11_X11_INCLUDE_PATH X11/X.h                             ${X11_INC_SEARCH_PATH})
   find_path(X11_Xlib_INCLUDE_PATH X11/Xlib.h                         ${X11_INC_SEARCH_PATH})
@@ -122,6 +121,7 @@ if (UNIX)
   find_path(X11_Xt_INCLUDE_PATH X11/Intrinsic.h                      ${X11_INC_SEARCH_PATH})
   find_path(X11_Xv_INCLUDE_PATH X11/extensions/Xvlib.h               ${X11_INC_SEARCH_PATH})
   find_path(X11_XSync_INCLUDE_PATH X11/extensions/sync.h             ${X11_INC_SEARCH_PATH})
+  find_path(X11_xcb_INCLUDE_PATH X11/xcb.h                           ${X11_INC_SEARCH_PATH})
 
 
   find_library(X11_X11_LIB X11               ${X11_LIB_SEARCH_PATH})
@@ -152,6 +152,7 @@ if (UNIX)
   find_library(X11_Xv_LIB Xv                 ${X11_LIB_SEARCH_PATH})
   find_library(X11_Xxf86misc_LIB Xxf86misc   ${X11_LIB_SEARCH_PATH})
   find_library(X11_Xxf86vm_LIB Xxf86vm       ${X11_LIB_SEARCH_PATH})
+  find_library(X11_xcb_LIB xcb               ${X11_LIB_SEARCH_PATH})
 
   set(X11_LIBRARY_DIR "")
   if(X11_X11_LIB)
@@ -179,7 +180,7 @@ if (UNIX)
 
   set(X11_LIBRARIES) # start with empty list
   if(X11_X11_LIB)
-    set(X11_LIBRARIES ${X11_LIBRARIES} ${X11_X11_LIB})
+    set(X11_LIBRARIES ${X11_LIBRARIES} ${X11_X11_LIB} ${X11_xcb_LIB})
   endif()
 
   if(X11_Xext_LIB)
@@ -203,15 +204,13 @@ if (UNIX)
 
   if (X11_Xau_LIB AND X11_Xau_INCLUDE_PATH)
     set(X11_Xau_FOUND TRUE)
+    set(X11_LIBRARIES ${X11_LIBRARIES} ${X11_Xau_LIB})
   endif ()
 
   if (X11_Xdmcp_INCLUDE_PATH AND X11_Xdmcp_LIB)
       set(X11_Xdmcp_FOUND TRUE)
       set(X11_INCLUDE_DIR ${X11_INCLUDE_DIR} ${X11_Xdmcp_INCLUDE_PATH})
       set(X11_LIBRARIES ${X11_LIBRARIES} ${X11_Xdmcp_LIB})
-      if (X11_Xau_FOUND)
-      	set(X11_LIBRARIES ${X11_LIBRARIES} ${X11_Xau_LIB})
-      endif ()
   endif ()
 
   if (X11_Xaccessrules_INCLUDE_PATH AND X11_Xaccessstr_INCLUDE_PATH)
@@ -333,6 +332,10 @@ if (UNIX)
      set(X11_SM_FOUND TRUE)
   endif()
 
+  if(X11_xcb_LIB AND X11_xcb_INCLUDE_PATH)
+     set(X11_xcb_FOUND TRUE)
+  endif()
+
   # Most of the X11 headers will be in the same directories, avoid
   # creating a huge list of duplicates.
   if (X11_INCLUDE_DIR)
@@ -353,7 +356,7 @@ if (UNIX)
     if($ENV{ISC} MATCHES "^yes$")
       set(X11_X_EXTRA_LIBS -lnsl_s -linet)
     else()
-      set(X11_X_EXTRA_LIBS "")
+      set(X11_X_EXTRA_LIBS "-Wl,-Bdynamic -ldl")
 
       # See if XOpenDisplay in X11 works by itself.
       CHECK_LIBRARY_EXISTS("${X11_LIBRARIES}" "XOpenDisplay" "${X11_LIBRARY_DIR}" X11_LIB_X11_SOLO)
@@ -421,14 +424,6 @@ if (UNIX)
           set (X11_X_PRE_LIBS ${X11_SM_LIB} ${X11_X_PRE_LIBS})
         endif()
       endif()
-    endif ()
-
-    if (X11_Xdmcp_FOUND)
-      set (X11_X_EXTRA_LIBS ${X11_X_EXTRA_LIBS} ${X11_Xdmcp_LIB})
-    endif ()
-
-    if (X11_Xau_FOUND)
-      set (X11_X_EXTRA_LIBS ${X11_X_EXTRA_LIBS} ${X11_Xau_LIB})
     endif ()
 
     # Build the final list of libraries.
@@ -506,6 +501,8 @@ if (UNIX)
     X11_ICE_INCLUDE_PATH
     X11_SM_LIB
     X11_SM_INCLUDE_PATH
+    X11_xcb_LIB
+    X11_xcb_INCLUDE_PATH
     X11_XSync_INCLUDE_PATH
   )
   set(CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK_SAVE})

@@ -1,0 +1,139 @@
+--- a/cmake/StaticBuild.cmake	2014-12-25 23:28:45.000000000 -0500
++++ b/cmake/StaticBuild.cmake	2015-01-01 18:18:36.000000000 -0500
+@@ -82,10 +82,10 @@
+       if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+         set(FLTK_LIBRARIES "${FLTK_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xfixes_LIB} -Wl,-Bstatic -lXft -Wl,-Bdynamic -lfontconfig -lXext -R/usr/sfw/lib")
+       else()
+-        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lXcursor -lXfixes -lXft -lfontconfig -lexpat -lfreetype -lbz2 -lXrender -lXext -lXinerama -Wl,-Bdynamic")
++        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lXft -lfontconfig -lfreetype -lXcursor -lXfixes -lz -lbz2 -lXrender -lXinerama -lXext -lexpat -Wl,-Bdynamic")
+       endif()
+ 
+-      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lX11")
++      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lX11 -lxcb -lXdmcp -lXau -lICE -Wl,-Bdynamic -ldl")
+     endif()
+   endif()
+ 
+@@ -93,7 +93,7 @@
+   # them statically, even libXext. libX11 is somewhat stable, although
+   # even it has had an ABI change once or twice.
+   if(X11_FOUND AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+-    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -Wl,-Bdynamic -lX11")
++    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -lX11 -lxcb -lXdmcp -lXau -lICE -Wl,-Bdynamic -ldl -lpthread")
+     if(X11_XTest_LIB)
+       set(X11_XTest_LIB "-Wl,-Bstatic -lXtst -Wl,-Bdynamic")
+     endif()
+--- a/vncviewer/CMakeLists.txt	2014-11-04 21:38:36.000000000 -0500
++++ b/vncviewer/CMakeLists.txt	2015-01-01 18:15:32.000000000 -0500
+@@ -46,7 +46,7 @@
+   add_executable(vncviewer ${VNCVIEWER_SOURCES})
+ endif()
+ 
+-target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
++target_link_libraries(vncviewer ${FLTK_LIBRARIES} rfb network rdr os Xregion ${GETTEXT_LIBRARIES})
+ 
+ if(APPLE)
+   target_link_libraries(vncviewer "-framework Cocoa" "-framework Carbon")
+--- a/CMakeLists.txt	2014-12-26 15:16:04.000000000 -0500
++++ b/CMakeLists.txt	2015-01-01 23:00:40.000000000 -0500
+@@ -203,6 +203,41 @@
+   add_subdirectory(java)
+ endif()
+ 
++# Check for GNUTLS library
++option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
++if(ENABLE_GNUTLS)
++  find_package(GnuTLS)
++  if (GNUTLS_FOUND)
++    include_directories(${GNUTLS_INCLUDE_DIR})
++    add_definitions("-DHAVE_GNUTLS")
++    add_definitions(${GNUTLS_DEFINITIONS})
++    
++    # Detect old version of GnuTLS
++    set(CMAKE_REQUIRED_FLAGS -I${GNUTLS_INCLUDE_DIR})
++    set(CMAKE_EXTRA_INCLUDE_FILES gnutls/gnutls.h)
++    set(CMAKE_REQUIRED_LIBRARIES ${GNUTLS_LIBRARIES})
++    if(WIN32)
++      set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ws2_32 user32)
++    endif()
++    if(ZLIB_FOUND)
++      # When we build against the static version of GnuTLS, we also use the
++      # included version of Zlib, but it isn't built yet, so we have to use the
++      # system's version (if available) to perform this test.
++      set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES};-lz)
++    endif()
++    check_function_exists(gnutls_transport_set_errno HAVE_GNUTLS_SET_ERRNO)
++    check_function_exists(gnutls_transport_set_global_errno HAVE_GNUTLS_SET_GLOBAL_ERRNO)
++    check_function_exists(gnutls_x509_crt_print HAVE_GNUTLS_X509_CRT_PRINT)
++    check_type_size(gnutls_x509_crt_t GNUTLS_X509_CRT_T)
++    check_type_size(gnutls_datum_t GNUTLS_DATUM_T)
++    check_type_size(gnutls_pk_algorithm_t GNUTLS_PK_ALGORITHM_T)
++    check_type_size(gnutls_sign_algorithm_t GNUTLS_SIGN_ALGORITHM_T)
++    set(CMAKE_REQUIRED_FLAGS)
++    set(CMAKE_EXTRA_INCLUDE_FILES) 
++    set(CMAKE_REQUIRED_LIBRARIES)
++  endif()
++endif()
++
+ # Check for FLTK
+ set(FLTK_SKIP_FLUID TRUE)
+ set(FLTK_SKIP_OPENGL TRUE)
+@@ -228,6 +263,8 @@
+   endif()
+ endif()
+ 
++include(cmake/StaticBuild.cmake)
++
+ if(FLTK_FOUND)
+   set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
+   set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
+@@ -263,41 +300,6 @@
+   set(CMAKE_REQUIRED_LIBRARIES)
+ endif()
+ 
+-# Check for GNUTLS library
+-option(ENABLE_GNUTLS "Enable protocol encryption and advanced authentication" ON)
+-if(ENABLE_GNUTLS)
+-  find_package(GnuTLS)
+-  if (GNUTLS_FOUND)
+-    include_directories(${GNUTLS_INCLUDE_DIR})
+-    add_definitions("-DHAVE_GNUTLS")
+-    add_definitions(${GNUTLS_DEFINITIONS})
+-    
+-    # Detect old version of GnuTLS
+-    set(CMAKE_REQUIRED_FLAGS -I${GNUTLS_INCLUDE_DIR})
+-    set(CMAKE_EXTRA_INCLUDE_FILES gnutls/gnutls.h)
+-    set(CMAKE_REQUIRED_LIBRARIES ${GNUTLS_LIBRARIES})
+-    if(WIN32)
+-      set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ws2_32 user32)
+-    endif()
+-    if(ZLIB_FOUND)
+-      # When we build against the static version of GnuTLS, we also use the
+-      # included version of Zlib, but it isn't built yet, so we have to use the
+-      # system's version (if available) to perform this test.
+-      set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES};-lz)
+-    endif()
+-    check_function_exists(gnutls_transport_set_errno HAVE_GNUTLS_SET_ERRNO)
+-    check_function_exists(gnutls_transport_set_global_errno HAVE_GNUTLS_SET_GLOBAL_ERRNO)
+-    check_function_exists(gnutls_x509_crt_print HAVE_GNUTLS_X509_CRT_PRINT)
+-    check_type_size(gnutls_x509_crt_t GNUTLS_X509_CRT_T)
+-    check_type_size(gnutls_datum_t GNUTLS_DATUM_T)
+-    check_type_size(gnutls_pk_algorithm_t GNUTLS_PK_ALGORITHM_T)
+-    check_type_size(gnutls_sign_algorithm_t GNUTLS_SIGN_ALGORITHM_T)
+-    set(CMAKE_REQUIRED_FLAGS)
+-    set(CMAKE_EXTRA_INCLUDE_FILES) 
+-    set(CMAKE_REQUIRED_LIBRARIES)
+-  endif()
+-endif()
+-
+ # Check for PAM library
+ option(ENABLE_PAM "Enable PAM authentication support" ON)
+ if(ENABLE_PAM)
+@@ -330,8 +332,6 @@
+ add_definitions(-DHAVE_CONFIG_H)
+ include_directories(${CMAKE_BINARY_DIR})
+ 
+-include(cmake/StaticBuild.cmake)
+-
+ add_subdirectory(common)
+ 
+ if(WIN32)
