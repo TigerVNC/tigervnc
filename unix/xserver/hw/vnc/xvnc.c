@@ -283,10 +283,12 @@ OsVendorFatalError(const char *f, va_list args)
 {
 }
 
+#ifdef DDXBEFORERESET
 void ddxBeforeReset(void)
 {
     return;
 }
+#endif
 
 void ddxUseMsg(void)
 {
