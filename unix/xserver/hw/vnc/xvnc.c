@@ -96,9 +96,6 @@ from the X Consortium.
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
-
-extern int monitorResolution;
-
 #define VFB_DEFAULT_WIDTH  1024
 #define VFB_DEFAULT_HEIGHT 768
 #define VFB_DEFAULT_DEPTH  24
