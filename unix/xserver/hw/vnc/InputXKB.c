@@ -24,8 +24,6 @@
 
 #include "xorg-version.h"
 
-#if XORG >= 17
-
 #include <stdio.h>
 
 #include <X11/keysym.h>
@@ -658,5 +656,3 @@ static void vncXkbProcessDeviceEvent(int screenNum,
 		ctrls->enabled_ctrls = backupctrls;
 	}
 }
-
-#endif /* XORG >= 117 */

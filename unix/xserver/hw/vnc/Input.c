@@ -32,19 +32,11 @@
 #include "inpututils.h"
 #endif
 #include "mi.h"
-#if XORG >= 16
 #include "exevents.h"
-#endif
-#if XORG == 16
-extern void
-CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
-#endif
-#if XORG >= 17
 #include "xkbsrv.h"
 #include "xkbstr.h"
 #include "xserver-properties.h"
 extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
-#endif
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -52,9 +44,7 @@ extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #define BUTTONS 7
 
 /* Event queue is shared between all devices. */
-#if XORG == 15
-static xEvent *eventq = NULL;
-#elif XORG < 111
+#if XORG < 111
 static EventList *eventq = NULL;
 #endif
 
@@ -65,10 +55,6 @@ static int oldButtonMask;
 static int cursorPosX, cursorPosY;
 
 static KeySym pressedKeys[256];
-
-#if XORG < 17
-extern void vncGetInitKeyboardMap(KeySymsPtr keysyms, CARD8 *modmap);
-#endif
 
 static int vncPointerProc(DeviceIntPtr pDevice, int onoff);
 static void vncKeyboardBell(int percent, DeviceIntPtr device,
@@ -102,29 +88,6 @@ void vncInitInputDevice(void)
 	for (i = 0;i < 256;i++)
 		pressedKeys[i] = NoSymbol;
 
-#if XORG < 17
-	vncPointerDev = AddInputDevice(
-#if XORG >= 16
-				    serverClient,
-#endif
-				    vncPointerProc, TRUE);
-	RegisterPointerDevice(vncPointerDev);
-
-	vncKeyboardDev = AddInputDevice(
-#if XORG >= 16
-				     serverClient,
-#endif
-				     vncKeyboardProc, TRUE);
-	RegisterKeyboardDevice(vncKeyboardDev);
-
-	if (ActivateDevice(vncPointerDev) != Success ||
-	    ActivateDevice(vncKeyboardDev) != Success)
-		FatalError("Failed to activate TigerVNC devices\n");
-
-	if (!EnableDevice(vncPointerDev) ||
-	    !EnableDevice(vncKeyboardDev))
-		FatalError("Failed to enable TigerVNC devices\n");
-#else /* < 17 */
 	ret = AllocDevicePair(serverClient, "TigerVNC",
 	                      &vncPointerDev, &vncKeyboardDev,
 	                      vncPointerProc, vncKeyboardProc,
@@ -140,20 +103,11 @@ void vncInitInputDevice(void)
 	if (!EnableDevice(vncPointerDev, TRUE) ||
 	    !EnableDevice(vncKeyboardDev, TRUE))
 		FatalError("Failed to activate TigerVNC devices\n");
-#endif /* 17 */
 
 #if XORG < 111
 	/* eventq is never free()-ed because it exists during server life. */
-	if (eventq == NULL) {
-#if XORG == 15
-		eventq = (xEvent *)xcalloc(sizeof(xEvent),
-					   GetMaximumEventsNum());
-		if (!eventq)
-			FatalError("Couldn't allocate eventq\n");
-#else
+	if (eventq == NULL)
 		GetEventList(&eventq);
-#endif
-	}
 #endif
 
 	vncPrepareInputDevices();
@@ -249,15 +203,7 @@ static void enqueueEvents(DeviceIntPtr dev, int n)
 		 * good programming practise but in this case it is safe and
 		 * clear.
 		 */
-		mieqEnqueue(dev,
-#if XORG == 15
-			    eventq + i
-#elif XORG == 16
-			    (eventq + i)->event
-#else
-			    (InternalEvent *) (eventq + i)->event
-#endif
-			   );
+		mieqEnqueue(dev, (InternalEvent *) (eventq + i)->event);
 	}
 }
 #endif /* XORG < 111 */
@@ -267,21 +213,18 @@ static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 	BYTE map[BUTTONS + 1];
 	DevicePtr pDev = (DevicePtr)pDevice;
 	int i;
-#if XORG >= 17
 	/*
 	 * NOTE: map[] array is one element longer than btn_labels[] array. This
 	 * is not a bug.
 	 */
 	Atom btn_labels[BUTTONS];
 	Atom axes_labels[2];
-#endif
 
 	switch (onoff) {
 	case DEVICE_INIT:
 		for (i = 0; i < BUTTONS + 1; i++)
 			map[i] = i;
 
-#if XORG >= 17
 		btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
 		btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
 		btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
@@ -292,20 +235,11 @@ static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 
 		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
 		axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
-#endif
 
-		InitPointerDeviceStruct(pDev, map, BUTTONS,
-#if XORG == 15
-					GetMotionHistory,
-#elif XORG >= 17
-					btn_labels,
-#endif
+		InitPointerDeviceStruct(pDev, map, BUTTONS, btn_labels,
 					(PtrCtrlProcPtr)NoopDDA,
-					GetMotionHistorySize(), 2
-#if XORG >= 17
-					, axes_labels
-#endif
-					);
+					GetMotionHistorySize(),
+					2, axes_labels);
 		break;
 	case DEVICE_ON:
 		pDev->on = TRUE;
@@ -330,24 +264,11 @@ static void vncKeyboardBell(int percent, DeviceIntPtr device,
 
 static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 {
-#if XORG < 17
-	KeySymsRec keySyms;
-	CARD8 modMap[MAP_LENGTH];
-#endif
 	DevicePtr pDev = (DevicePtr)pDevice;
 
 	switch (onoff) {
 	case DEVICE_INIT:
-#if XORG < 17
-		vncGetInitKeyboardMap(&keySyms, modMap);
-#endif
-		InitKeyboardDeviceStruct(
-#if XORG >= 17
-					 pDevice, NULL,
-#else
-					 pDev, &keySyms, modMap,
-#endif
-					 vncKeyboardBell,
+		InitKeyboardDeviceStruct(pDevice, NULL, vncKeyboardBell,
 					 (KbdCtrlProcPtr)NoopDDA);
 		break;
 	case DEVICE_ON:

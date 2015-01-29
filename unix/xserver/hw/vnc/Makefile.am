@@ -16,7 +16,7 @@ HDRS = vncExtInit.h vncHooks.h \
 
 libvnccommon_la_SOURCES = $(HDRS) vncExt.c vncExtInit.cc vncHooks.c \
 	vncBlockHandler.c XorgGlue.c RFBGlue.cc XserverDesktop.cc \
-	Input.c InputCore.c InputXKB.c
+	Input.c InputXKB.c
 
 libvnccommon_la_CPPFLAGS = -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
 	-DVENDOR_STRING="\"$(VENDOR_STRING)\"" -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
