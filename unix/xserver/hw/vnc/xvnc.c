@@ -424,10 +424,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	pix = atoi(argv[i]);
 	if (-1 == lastScreen)
 	{
-	    int i;
-	    for (i = 0; i < MAXSCREENS; i++)
+	    int j;
+	    for (j = 0; j < MAXSCREENS; j++)
 	    {
-		vfbScreens[i].blackPixel = pix;
+		vfbScreens[j].blackPixel = pix;
 	    }
 	}
 	else
@@ -444,10 +444,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	pix = atoi(argv[i]);
 	if (-1 == lastScreen)
 	{
-	    int i;
-	    for (i = 0; i < MAXSCREENS; i++)
+	    int j;
+	    for (j = 0; j < MAXSCREENS; j++)
 	    {
-		vfbScreens[i].whitePixel = pix;
+		vfbScreens[j].whitePixel = pix;
 	    }
 	}
 	else
@@ -464,10 +464,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	linebias = atoi(argv[i]);
 	if (-1 == lastScreen)
 	{
-	    int i;
-	    for (i = 0; i < MAXSCREENS; i++)
+	    int j;
+	    for (j = 0; j < MAXSCREENS; j++)
 	    {
-		vfbScreens[i].lineBias = linebias;
+		vfbScreens[j].lineBias = linebias;
 	    }
 	}
 	else
@@ -532,10 +532,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
 	if (-1 == lastScreen)
 	{
-	    int i;
-	    for (i = 0; i < MAXSCREENS; i++)
+	    int j;
+	    for (j = 0; j < MAXSCREENS; j++)
 	    {
-		SET_PIXEL_FORMAT(vfbScreens[i]);
+		SET_PIXEL_FORMAT(vfbScreens[j]);
 	    }
 	}
 	else
@@ -1585,7 +1585,7 @@ static ExtensionModule glxExt = {
 #endif
 
 void
-InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
+InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
 {
     int i;
     int NumFormats = 0;
@@ -1630,18 +1630,18 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 	{
 	    if (NumFormats >= MAXFORMATS)
 		FatalError ("MAXFORMATS is too small for this server\n");
-	    screenInfo->formats[NumFormats].depth = i;
-	    screenInfo->formats[NumFormats].bitsPerPixel = vfbBitsPerPixel(i);
-	    screenInfo->formats[NumFormats].scanlinePad = BITMAP_SCANLINE_PAD;
+	    scrInfo->formats[NumFormats].depth = i;
+	    scrInfo->formats[NumFormats].bitsPerPixel = vfbBitsPerPixel(i);
+	    scrInfo->formats[NumFormats].scanlinePad = BITMAP_SCANLINE_PAD;
 	    NumFormats++;
 	}
     }
 
-    screenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
-    screenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
-    screenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
-    screenInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
-    screenInfo->numPixmapFormats = NumFormats;
+    scrInfo->imageByteOrder = IMAGE_BYTE_ORDER;
+    scrInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
+    scrInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
+    scrInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
+    scrInfo->numPixmapFormats = NumFormats;
 
     /* initialize screens */
 
