@@ -328,11 +328,6 @@ void ddxUseMsg(void)
     vncListParams(79, 14);
 }
 
-/* ddxInitGlobals - called by |InitGlobals| from os/util.c */
-void ddxInitGlobals(void)
-{
-}
-
 static 
 Bool displayNumFree(int num)
 {
