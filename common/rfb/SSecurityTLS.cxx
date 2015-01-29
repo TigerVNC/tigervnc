@@ -27,6 +27,8 @@
 #error "This source should not be compiled without HAVE_GNUTLS defined"
 #endif
 
+#include <stdlib.h>
+
 #include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>
 #include <rfb/LogWriter.h>
@@ -166,15 +168,25 @@ bool SSecurityTLS::processMsg(SConnection *sc)
 
 void SSecurityTLS::setParams(gnutls_session_t session)
 {
-  static const char kx_anon_priority[] = "NORMAL:+ANON-ECDH:+ANON-DH";
-  static const char kx_priority[] = "NORMAL";
+  static const char kx_anon_priority[] = ":+ANON-ECDH:+ANON-DH";
 
   int ret;
+  char *prio;
   const char *err;
 
-  ret = gnutls_priority_set_direct(session,
-                                   anon ? kx_anon_priority : kx_priority,
-                                   &err);
+  prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
+                       strlen(kx_anon_priority) + 1);
+  if (prio == NULL)
+    throw AuthFailureException("Not enough memory for GnuTLS priority string");
+
+  strcpy(prio, Security::GnuTLSPriority);
+  if (anon)
+    strcat(prio, kx_anon_priority);
+
+  ret = gnutls_priority_set_direct(session, prio, &err);
+
+  free(prio);
+
   if (ret != GNUTLS_E_SUCCESS) {
     if (ret == GNUTLS_E_INVALID_REQUEST)
       vlog.error("GnuTLS priority syntax error at: %s", err);

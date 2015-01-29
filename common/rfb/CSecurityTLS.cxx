@@ -201,20 +201,32 @@ bool CSecurityTLS::processMsg(CConnection* cc)
 
 void CSecurityTLS::setParam()
 {
-  static const char kx_anon_priority[] = "NORMAL:+ANON-ECDH:+ANON-DH";
-  static const char kx_priority[] = "NORMAL";
+  static const char kx_anon_priority[] = ":+ANON-ECDH:+ANON-DH";
 
   int ret;
+  char *prio;
   const char *err;
 
-  if (anon) {
-    ret = gnutls_priority_set_direct(session, kx_anon_priority, &err);
-    if (ret != GNUTLS_E_SUCCESS) {
-      if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw AuthFailureException("gnutls_set_priority_direct failed");
-    }
+  prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
+                       strlen(kx_anon_priority) + 1);
+  if (prio == NULL)
+    throw AuthFailureException("Not enough memory for GnuTLS priority string");
 
+  strcpy(prio, Security::GnuTLSPriority);
+  if (anon)
+    strcat(prio, kx_anon_priority);
+
+  ret = gnutls_priority_set_direct(session, prio, &err);
+
+  free(prio);
+
+  if (ret != GNUTLS_E_SUCCESS) {
+    if (ret == GNUTLS_E_INVALID_REQUEST)
+      vlog.error("GnuTLS priority syntax error at: %s", err);
+    throw AuthFailureException("gnutls_set_priority_direct failed");
+  }
+
+  if (anon) {
     if (gnutls_anon_allocate_client_credentials(&anon_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_anon_allocate_client_credentials failed");
 
@@ -223,13 +235,6 @@ void CSecurityTLS::setParam()
 
     vlog.debug("Anonymous session has been set");
   } else {
-    ret = gnutls_priority_set_direct(session, kx_priority, &err);
-    if (ret != GNUTLS_E_SUCCESS) {
-      if (ret == GNUTLS_E_INVALID_REQUEST)
-        vlog.error("GnuTLS priority syntax error at: %s", err);
-      throw AuthFailureException("gnutls_set_priority_direct failed");
-    }
-
     if (gnutls_certificate_allocate_credentials(&cert_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_certificate_allocate_credentials failed");
 
