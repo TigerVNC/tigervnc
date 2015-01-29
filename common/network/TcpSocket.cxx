@@ -45,6 +45,7 @@
 #include <network/TcpSocket.h>
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Configuration.h>
 
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long)-1)
@@ -72,6 +73,11 @@ typedef struct vnc_sockaddr {
 } vnc_sockaddr_t;
 
 static rfb::LogWriter vlog("TcpSocket");
+
+static rfb::BoolParameter UseIPv4("UseIPv4", "Use IPv4 for incoming and outgoing connections.", true);
+#ifdef HAVE_GETADDRINFO
+static rfb::BoolParameter UseIPv6("UseIPv6", "Use IPv6 for incoming and outgoing connections.", true);
+#endif
 
 /* Tunnelling support. */
 int network::findFreeTcpPort (void)
@@ -151,8 +157,19 @@ TcpSocket::TcpSocket(const char *host, int port)
 
   for (current = ai; current != NULL; current = current->ai_next) {
     family = current->ai_family;
-    if (family != AF_INET && family != AF_INET6)
+
+    switch (family) {
+    case AF_INET:
+      if (!UseIPv4)
+        continue;
+      break;
+    case AF_INET6:
+      if (!UseIPv6)
+        continue;
+      break;
+    default:
       continue;
+    }
 
     salen = current->ai_addrlen;
     memcpy(&sa, current->ai_addr, salen);
@@ -163,6 +180,9 @@ TcpSocket::TcpSocket(const char *host, int port)
       sa.u.sin6.sin6_port = htons(port);
 
 #else /* HAVE_GETADDRINFO */
+    if (!UseIPv4)
+      throw Exception("Only IPv4 available but it is disabled");
+
     family = AF_INET;
     salen = sizeof(struct sockaddr_in);
 
@@ -408,6 +428,9 @@ static int bindIPv6 (const char *listenaddr,
   socklen_t sa_len;
   int fd;
 
+  if (!UseIPv6)
+    return -1;
+
   if ((fd = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
     return -1;
 
@@ -457,6 +480,9 @@ static int bindIPv4 (const char *listenaddr,
   struct sockaddr_in addr;
   socklen_t sa_len;
   int fd;
+
+  if (!UseIPv4)
+    return -1;
 
   if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     return -1;
