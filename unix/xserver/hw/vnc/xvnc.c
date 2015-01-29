@@ -69,11 +69,15 @@ from the X Consortium.
 #include <sys/shm.h>
 #endif /* HAS_SHM */
 #include "dix.h"
+#include "os.h"
 #include "miline.h"
 #include "inputstr.h"
 #ifdef RANDR
 #include "randrstr.h"
 #endif /* RANDR */
+#ifdef DPMSExtension
+#include "dpmsproc.h"
+#endif
 #include <X11/keysym.h>
   extern char buildtime[];
 #if XORG >= 17
