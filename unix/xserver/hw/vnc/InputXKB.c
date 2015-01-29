@@ -628,35 +628,32 @@ static void vncXkbProcessDeviceEvent(int screenNum,
                                      DeviceIntPtr dev)
 {
 	unsigned int backupctrls;
+	XkbControlsPtr ctrls;
 
-	if (event->device_event.sourceid == vncKeyboardDev->id) {
-		XkbControlsPtr ctrls;
-
-		/*
-		 * We need to bypass AccessX since it is timing sensitive and
-		 * the network can cause fake event delays.
-		 */
-		ctrls = dev->key->xkbInfo->desc->ctrls;
-		backupctrls = ctrls->enabled_ctrls;
-		ctrls->enabled_ctrls &= ~XkbAllFilteredEventsMask;
-
-		/*
-		 * This flag needs to be set for key repeats to be properly
-		 * respected.
-		 */
-		if ((event->device_event.type == ET_KeyPress) &&
-		    key_is_down(dev, event->device_event.detail.key, KEY_PROCESSED))
-			event->device_event.key_repeat = TRUE;
+	if (event->device_event.sourceid != vncKeyboardDev->id) {
+		dev->public.processInputProc(event, dev);
+		return;
 	}
+
+	/*
+	 * We need to bypass AccessX since it is timing sensitive and
+	 * the network can cause fake event delays.
+	 */
+	ctrls = dev->key->xkbInfo->desc->ctrls;
+	backupctrls = ctrls->enabled_ctrls;
+	ctrls->enabled_ctrls &= ~XkbAllFilteredEventsMask;
+
+	/*
+	 * This flag needs to be set for key repeats to be properly
+	 * respected.
+	 */
+	if ((event->device_event.type == ET_KeyPress) &&
+	    key_is_down(dev, event->device_event.detail.key, KEY_PROCESSED))
+		event->device_event.key_repeat = TRUE;
 
 	dev->public.processInputProc(event, dev);
 
-	if (event->device_event.sourceid == vncKeyboardDev->id) {
-		XkbControlsPtr ctrls;
-
-		ctrls = dev->key->xkbInfo->desc->ctrls;
-		ctrls->enabled_ctrls = backupctrls;
-	}
+	ctrls->enabled_ctrls = backupctrls;
 }
 
 #endif /* XORG >= 117 */
