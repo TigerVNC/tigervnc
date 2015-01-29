@@ -354,7 +354,6 @@ static int ProcVncExtListParams(ClientPtr client)
   char *params;
   size_t len;
 
-  REQUEST(xVncExtListParamsReq);
   REQUEST_SIZE_MATCH(xVncExtListParamsReq);
 
   rep.type = X_Reply;
@@ -429,7 +428,6 @@ static int ProcVncExtGetClientCutText(ClientPtr client)
 {
   xVncExtGetClientCutTextReply rep;
 
-  REQUEST(xVncExtGetClientCutTextReq);
   REQUEST_SIZE_MATCH(xVncExtGetClientCutTextReq);
 
   rep.type = X_Reply;
@@ -581,7 +579,6 @@ static int ProcVncExtGetQueryConnect(ClientPtr client)
 
   xVncExtGetQueryConnectReply rep;
 
-  REQUEST(xVncExtGetQueryConnectReq);
   REQUEST_SIZE_MATCH(xVncExtGetQueryConnectReq);
 
   vncGetQueryConnect(&opaqueId, &qcAddress, &qcUsername, &qcTimeout);
