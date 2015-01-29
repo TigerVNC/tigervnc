@@ -64,9 +64,9 @@ namespace rfb {
   private:
     static void initGlobal();
 
-    gnutls_session session;
-    gnutls_anon_client_credentials anon_cred;
-    gnutls_certificate_credentials cert_cred;
+    gnutls_session_t session;
+    gnutls_anon_client_credentials_t anon_cred;
+    gnutls_certificate_credentials_t cert_cred;
     bool anon;
 
     char *cafile, *crlfile;
