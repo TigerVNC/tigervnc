@@ -211,7 +211,7 @@ int DPMSSet(ClientPtr client, int level)
     return Success;
 }
 
-Bool DPMSSupported()
+Bool DPMSSupported(void)
 {
     /* Causes DPMSCapable to return false, meaning no devices are DPMS
        capable */
@@ -270,7 +270,7 @@ DarwinGlxWrapInitVisuals(
 #endif
 
 void
-OsVendorInit()
+OsVendorInit(void)
 {
 }
 
@@ -288,8 +288,7 @@ void ddxBeforeReset(void)
     return;
 }
 
-void 
-ddxUseMsg()
+void ddxUseMsg(void)
 {
     ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
     ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
@@ -1678,7 +1677,7 @@ Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
   return TRUE;
 }
 
-void ProcessInputEvents()
+void ProcessInputEvents(void)
 {
   mieqProcessInputEvents();
 #if XORG == 15
