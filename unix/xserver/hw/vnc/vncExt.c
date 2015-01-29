@@ -331,7 +331,7 @@ static int ProcVncExtGetParamDesc(ClientPtr client)
   }
   WriteToClient(client, sizeof(xVncExtGetParamDescReply), (char *)&rep);
   if (desc)
-    WriteToClient(client, len, (char*)desc);
+    WriteToClient(client, len, desc);
   return (client->noClientException);
 }
 
@@ -613,9 +613,9 @@ static int ProcVncExtGetQueryConnect(ClientPtr client)
   }
   WriteToClient(client, sizeof(xVncExtGetQueryConnectReply), (char *)&rep);
   if (qcTimeout)
-    WriteToClient(client, strlen(qcAddress), (char*)qcAddress);
+    WriteToClient(client, strlen(qcAddress), qcAddress);
   if (qcTimeout)
-    WriteToClient(client, strlen(qcUsername), (char*)qcUsername);
+    WriteToClient(client, strlen(qcUsername), qcUsername);
   return (client->noClientException);
 }
 
