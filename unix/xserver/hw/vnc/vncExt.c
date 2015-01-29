@@ -123,6 +123,8 @@ int vncNotifyQueryConnect(void)
 
 void vncClientCutText(const char* str, int len)
 {
+  xVncExtClientCutTextNotifyEvent ev;
+
   if (clientCutText != NULL)
     free(clientCutText);
   clientCutTextLen = 0;
@@ -136,7 +138,6 @@ void vncClientCutText(const char* str, int len)
   memcpy(clientCutText, str, len);
   clientCutTextLen = len;
 
-  xVncExtClientCutTextNotifyEvent ev;
   ev.type = vncEventBase + VncExtClientCutTextNotify;
   for (struct VncInputSelect* cur = vncInputSelectHead; cur; cur = cur->next) {
     if (cur->mask & VncExtClientCutTextMask) {
@@ -164,6 +165,7 @@ void vncClientCutText(const char* str, int len)
 static int ProcVncExtSetParam(ClientPtr client)
 {
   char *param;
+  xVncExtSetParamReply rep;
 
   REQUEST(xVncExtSetParamReq);
   REQUEST_FIXED_SIZE(xVncExtSetParamReq, stuff->paramLen);
@@ -174,7 +176,6 @@ static int ProcVncExtSetParam(ClientPtr client)
   strncpy(param, (char*)&stuff[1], stuff->paramLen);
   param[stuff->paramLen] = '\0';
 
-  xVncExtSetParamReply rep;
   rep.type = X_Reply;
   rep.length = 0;
   rep.success = 0;
@@ -233,6 +234,7 @@ static int ProcVncExtGetParam(ClientPtr client)
   char* param;
   char* value;
   size_t len;
+  xVncExtGetParamReply rep;
 
   REQUEST(xVncExtGetParamReq);
   REQUEST_FIXED_SIZE(xVncExtGetParamReq, stuff->paramLen);
@@ -248,7 +250,6 @@ static int ProcVncExtGetParam(ClientPtr client)
 
   free(param);
 
-  xVncExtGetParamReply rep;
   rep.type = X_Reply;
   rep.sequenceNumber = client->sequence;
   rep.success = 0;
@@ -293,6 +294,7 @@ static int ProcVncExtGetParamDesc(ClientPtr client)
   char* param;
   const char* desc;
   size_t len;
+  xVncExtGetParamDescReply rep;
 
   REQUEST(xVncExtGetParamDescReq);
   REQUEST_FIXED_SIZE(xVncExtGetParamDescReq, stuff->paramLen);
@@ -308,7 +310,6 @@ static int ProcVncExtGetParamDesc(ClientPtr client)
 
   free(param);
 
-  xVncExtGetParamDescReply rep;
   rep.type = X_Reply;
   rep.sequenceNumber = client->sequence;
   rep.success = 0;
@@ -349,15 +350,15 @@ static int SProcVncExtGetParamDesc(ClientPtr client)
 
 static int ProcVncExtListParams(ClientPtr client)
 {
+  xVncExtListParamsReply rep;
+  char *params;
+  size_t len;
+
   REQUEST(xVncExtListParamsReq);
   REQUEST_SIZE_MATCH(xVncExtListParamsReq);
 
-  xVncExtListParamsReply rep;
   rep.type = X_Reply;
   rep.sequenceNumber = client->sequence;
-
-  char *params;
-  size_t len;
 
   params = vncGetParamList();
   if (params == NULL)
@@ -426,10 +427,11 @@ static int SProcVncExtSetServerCutText(ClientPtr client)
 
 static int ProcVncExtGetClientCutText(ClientPtr client)
 {
+  xVncExtGetClientCutTextReply rep;
+
   REQUEST(xVncExtGetClientCutTextReq);
   REQUEST_SIZE_MATCH(xVncExtGetClientCutTextReq);
 
-  xVncExtGetClientCutTextReply rep;
   rep.type = X_Reply;
   rep.length = (clientCutTextLen + 3) >> 2;
   rep.sequenceNumber = client->sequence;
@@ -522,6 +524,7 @@ static int SProcVncExtSelectInput(ClientPtr client)
 static int ProcVncExtConnect(ClientPtr client)
 {
   char *address;
+  xVncExtConnectReply rep;
 
   REQUEST(xVncExtConnectReq);
   REQUEST_FIXED_SIZE(xVncExtConnectReq, stuff->strLen);
@@ -532,7 +535,6 @@ static int ProcVncExtConnect(ClientPtr client)
   strncpy(address, (char*)&stuff[1], stuff->strLen);
   address[stuff->strLen] = 0;
 
-  xVncExtConnectReply rep;
   rep.success = 0;
   if (vncConnectClient(address) == 0)
         rep.success = 1;
@@ -573,16 +575,17 @@ static int SProcVncExtConnect(ClientPtr client)
 
 static int ProcVncExtGetQueryConnect(ClientPtr client)
 {
-  REQUEST(xVncExtGetQueryConnectReq);
-  REQUEST_SIZE_MATCH(xVncExtGetQueryConnectReq);
-
   uint32_t opaqueId;
   const char *qcAddress, *qcUsername;
   int qcTimeout;
 
+  xVncExtGetQueryConnectReply rep;
+
+  REQUEST(xVncExtGetQueryConnectReq);
+  REQUEST_SIZE_MATCH(xVncExtGetQueryConnectReq);
+
   vncGetQueryConnect(&opaqueId, &qcAddress, &qcUsername, &qcTimeout);
 
-  xVncExtGetQueryConnectReply rep;
   rep.type = X_Reply;
   rep.sequenceNumber = client->sequence;
   rep.timeout = qcTimeout;

@@ -1264,6 +1264,9 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
     RRModePtr mode;
     char name[100];
 
+    RRModePtr *modes;
+    int i, num_modes;
+
     /* First we create the CRTC... */
     crtc = RRCrtcCreate(pScreen, NULL);
 
@@ -1283,11 +1286,12 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
     vncRandRCrtcSet(pScreen, crtc, NULL, 0, 0, RR_Rotate_0, 1, &output);
 
     /* Populate a list of default modes */
-    RRModePtr modes[sizeof(vncRandRWidths)/sizeof(*vncRandRWidths)];
-    int num_modes;
+    modes = malloc(sizeof(RRModePtr)*sizeof(vncRandRWidths)/sizeof(*vncRandRWidths));
+    if (modes == NULL)
+        return NULL;
 
     num_modes = 0;
-    for (int i = 0;i < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);i++) {
+    for (i = 0;i < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);i++) {
         mode = vncRandRModeGet(vncRandRWidths[i], vncRandRHeights[i]);
         if (mode != NULL) {
             modes[num_modes] = mode;
@@ -1296,6 +1300,8 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
     }
 
     RROutputSetModes(output, modes, num_modes, 0);
+
+    free(modes);
 
     return crtc;
 }
@@ -1404,6 +1410,10 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     int dpi;
     int ret;
     void *pbits;
+
+#ifdef RANDR
+    rrScrPrivPtr rp;
+#endif
 
 #if XORG >= 113
     if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
@@ -1539,8 +1549,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pScreen->CloseScreen = vfbCloseScreen;
 
 #ifdef RANDR
-    rrScrPrivPtr rp;
-
     ret = RRScreenInit(pScreen);
     if (!ret) return FALSE;
 
