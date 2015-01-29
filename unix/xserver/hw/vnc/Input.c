@@ -26,6 +26,7 @@
 
 #include "Input.h"
 #include "vncExtInit.h"
+#include "RFBGlue.h"
 
 #include "inputstr.h"
 #if XORG >= 110

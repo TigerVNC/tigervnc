@@ -34,6 +34,7 @@ from the X Consortium.
 
 #include "vncExtInit.h"
 #include "RFBGlue.h"
+#include "XorgGlue.h"
 #include "xorg-version.h"
 
 #ifdef WIN32
@@ -1053,7 +1054,6 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     FlushAllOutput ();
 }
 
-RRModePtr vncRandRModeGet(int width, int height);
 static Bool vncRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc, RRModePtr mode,
                             int x, int y, Rotation rotation, int num_outputs,
                             RROutputPtr *outputs);
@@ -1234,8 +1234,8 @@ static const int vncRandRHeights[] = { 1200, 1080, 1200, 1050, 1050,  768, 1024,
 
 static int vncRandRIndex = 0;
 
-/* This is a global symbol since XserverDesktop also uses it */
-RRModePtr vncRandRModeGet(int width, int height)
+/* This is a global symbol since findRandRMode() also uses it */
+void *vncRandRModeGet(int width, int height)
 {
     xRRModeInfo	modeInfo;
     char name[100];

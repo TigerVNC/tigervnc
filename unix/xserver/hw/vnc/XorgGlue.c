@@ -30,10 +30,6 @@
 
 #include "XorgGlue.h"
 
-#ifdef RANDR
-extern RRModePtr vncRandRModeGet(int width, int height);
-#endif
-
 const char *vncGetDisplay(void)
 {
   return display;

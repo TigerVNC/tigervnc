@@ -46,9 +46,6 @@
 #include "XorgGlue.h"
 #include "Input.h"
 
-// Hack to catch when inetd has let us go
-extern "C" void vncClientGone(int fd);
-
 using namespace rfb;
 using namespace network;
 

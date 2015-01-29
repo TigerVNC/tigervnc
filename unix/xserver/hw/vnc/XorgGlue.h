@@ -57,7 +57,9 @@ intptr_t vncRandRGetOutputId(int scrIdx, int outputIdx);
 void vncRandRGetOutputDimensions(int scrIdx, int outputIdx,
                                  int *x, int *y, int *width, int *height);
 
-// This one hides in xvnc.c or vncModule.c
+// These hide in xvnc.c or vncModule.c
+void vncClientGone(int fd);
+void *vncRandRModeGet(int width, int height);
 int vncRandRCreateOutputs(int scrIdx, int extraOutputs);
 
 #ifdef __cplusplus

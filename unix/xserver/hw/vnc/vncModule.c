@@ -35,6 +35,7 @@
 
 #include "vncExtInit.h"
 #include "RFBGlue.h"
+#include "XorgGlue.h"
 
 static void vncModuleInit(INITARGS);
 
@@ -103,8 +104,12 @@ static void vncModuleInit(INITARGS)
   vncExtensionInit();
 }
 
+void vncClientGone(int fd)
+{
+}
+
 #ifdef RANDR
-RRModePtr vncRandRModeGet(int width, int height)
+void *vncRandRModeGet(int width, int height)
 {
     return NULL;
 }
