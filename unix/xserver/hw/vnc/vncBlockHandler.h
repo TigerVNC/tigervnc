@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2015 Pierre Ossman for Cendio AB
+ * Copyright 2011-2014 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,17 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#ifndef __VNCHOOKS_H__
-#define __VNCHOOKS_H__
+
+#ifndef VNCBLOCKHANDLER_H
+#define VNCBLOCKHANDLER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int vncHooksInit(int scrIdx);
-
-void vncGetScreenImage(int scrIdx, int x, int y, int width, int height,
-                       char *buffer, int strideBytes);
+void vncRegisterBlockHandlers(void);
 
 #ifdef __cplusplus
 }

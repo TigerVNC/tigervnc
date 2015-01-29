@@ -101,7 +101,6 @@ int Timer::checkTimeouts() {
   while (pending.front()->isBefore(now)) {
     Timer* timer = pending.front();
     pending.pop_front();
-    vlog.debug("handleTimeout(%p)", timer);
     if (timer->cb->handleTimeout(timer)) {
       timer->dueTime = addMillis(timer->dueTime, timer->timeoutMs);
       if (timer->isBefore(now)) {

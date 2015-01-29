@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2015 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,8 @@ struct RTTInfo {
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
-  : SConnection(reverse), sock(s), inProcessMessages(false),
+  : SConnection(reverse), sock(s),
+    queryConnectTimer(this), inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(NULL),
     baseRTT(-1), minRTT(-1), seenCongestion(false), pingCounter(0),
@@ -434,8 +435,10 @@ void VNCSConnectionST::queryConnection(const char* userName)
   CharArray reason;
   VNCServerST::queryResult qr = server->queryConnection(sock, userName,
                                                         &reason.buf);
-  if (qr == VNCServerST::PENDING)
+  if (qr == VNCServerST::PENDING) {
+    queryConnectTimer.start(rfb::Server::queryConnectTimeout * 1000);
     return;
+  }
 
   // - If server returns ACCEPT/REJECT then pass result to SConnection
   approveConnection(qr == VNCServerST::ACCEPT, reason.buf);
@@ -714,6 +717,10 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
       writeFramebufferUpdate();
     else if (t == &congestionTimer)
       updateCongestion();
+    else if (t == &queryConnectTimer) {
+      if (state() == RFBSTATE_QUERYING)
+        approveConnection(false, "The attempt to prompt the user to accept the connection failed");
+    }
   } catch (rdr::Exception& e) {
     close(e.str());
   }

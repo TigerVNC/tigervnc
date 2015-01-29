@@ -1,0 +1,195 @@
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2015 Pierre Ossman for Cendio AB
+ * 
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+ * USA.
+ */
+
+#include <stdlib.h>
+
+#include <network/TcpSocket.h>
+#include <rfb/Configuration.h>
+#include <rfb/LogWriter.h>
+#include <rfb/Logger_stdio.h>
+
+#include "RFBGlue.h"
+
+using namespace rfb;
+
+// Loggers used by C code must be created here
+static LogWriter inputLog("Input");
+
+void vncInitRFB(void)
+{
+  rfb::initStdIOLoggers();
+  rfb::LogWriter::setLogParams("*:stderr:30");
+  rfb::Configuration::enableServerParams();
+}
+
+void vncLogError(const char *name, const char *format, ...)
+{
+  LogWriter *vlog;
+  va_list ap;
+  vlog = LogWriter::getLogWriter(name);
+  if (vlog == NULL)
+    return;
+  va_start(ap, format);
+  vlog->error(format, ap);
+  va_end(ap);
+}
+
+void vncLogStatus(const char *name, const char *format, ...)
+{
+  LogWriter *vlog;
+  va_list ap;
+  vlog = LogWriter::getLogWriter(name);
+  if (vlog == NULL)
+    return;
+  va_start(ap, format);
+  vlog->status(format, ap);
+  va_end(ap);
+}
+
+void vncLogInfo(const char *name, const char *format, ...)
+{
+  LogWriter *vlog;
+  va_list ap;
+  vlog = LogWriter::getLogWriter(name);
+  if (vlog == NULL)
+    return;
+  va_start(ap, format);
+  vlog->info(format, ap);
+  va_end(ap);
+}
+
+void vncLogDebug(const char *name, const char *format, ...)
+{
+  LogWriter *vlog;
+  va_list ap;
+  vlog = LogWriter::getLogWriter(name);
+  if (vlog == NULL)
+    return;
+  va_start(ap, format);
+  vlog->debug(format, ap);
+  va_end(ap);
+}
+
+int vncSetParam(const char *name, const char *value)
+{
+  return rfb::Configuration::setParam(name, value);
+}
+
+int vncSetParamSimple(const char *nameAndValue)
+{
+  return rfb::Configuration::setParam(nameAndValue);
+}
+
+char* vncGetParam(const char *name)
+{
+  rfb::VoidParameter *param;
+  char *value;
+  char *ret;
+
+  // Hack to avoid exposing password!
+  if (strcasecmp(name, "Password") == 0)
+    return NULL;
+
+  param = rfb::Configuration::getParam(name);
+  if (param == NULL)
+    return NULL;
+
+  value = param->getValueStr();
+  if (value == NULL)
+    return NULL;
+
+  ret = strdup(value);
+
+  delete [] value;
+
+  return ret;
+}
+
+const char* vncGetParamDesc(const char *name)
+{
+  rfb::VoidParameter *param;
+
+  param = rfb::Configuration::getParam(name);
+  if (param == NULL)
+    return NULL;
+
+  return param->getDescription();
+}
+
+int vncGetParamCount(void)
+{
+  int count;
+
+  count = 0;
+  for (ParameterIterator i; i.param; i.next())
+    count++;
+
+  return count;
+}
+
+char *vncGetParamList(void)
+{
+  int len;
+  char *data, *ptr;
+
+  len = 0;
+
+  for (ParameterIterator i; i.param; i.next()) {
+    int l = strlen(i.param->getName());
+    if (l <= 255)
+      len += l + 1;
+  }
+
+  data = (char*)malloc(len + 1);
+  if (data == NULL)
+    return NULL;
+
+  ptr = data;
+  for (ParameterIterator i; i.param; i.next()) {
+    int l = strlen(i.param->getName());
+    if (l <= 255) {
+      *ptr++ = l;
+      memcpy(ptr, i.param->getName(), l);
+      ptr += l;
+    }
+  }
+  *ptr = '\0';
+
+  return data;
+}
+
+void vncListParams(int width, int nameWidth)
+{
+  rfb::Configuration::listParams(width, nameWidth);
+}
+
+int vncGetSocketPort(int fd)
+{
+  return network::TcpSocket::getSockPort(fd);
+}
+
+int vncIsTCPPortUsed(int port)
+{
+  try {
+    network::TcpListener l(NULL, port);
+  } catch (rdr::Exception& e) {
+    return 0;
+  }
+  return 1;
+}
