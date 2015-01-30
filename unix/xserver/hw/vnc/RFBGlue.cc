@@ -46,7 +46,7 @@ void vncLogError(const char *name, const char *format, ...)
   if (vlog == NULL)
     return;
   va_start(ap, format);
-  vlog->error(format, ap);
+  vlog->verror(format, ap);
   va_end(ap);
 }
 
@@ -58,7 +58,7 @@ void vncLogStatus(const char *name, const char *format, ...)
   if (vlog == NULL)
     return;
   va_start(ap, format);
-  vlog->status(format, ap);
+  vlog->vstatus(format, ap);
   va_end(ap);
 }
 
@@ -70,7 +70,7 @@ void vncLogInfo(const char *name, const char *format, ...)
   if (vlog == NULL)
     return;
   va_start(ap, format);
-  vlog->info(format, ap);
+  vlog->vinfo(format, ap);
   va_end(ap);
 }
 
@@ -82,7 +82,7 @@ void vncLogDebug(const char *name, const char *format, ...)
   if (vlog == NULL)
     return;
   va_start(ap, format);
-  vlog->debug(format, ap);
+  vlog->vdebug(format, ap);
   va_end(ap);
 }
 
