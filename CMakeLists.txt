@@ -116,14 +116,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # Check for zlib
-find_package(ZLIB)
-option(USE_INCLUDED_ZLIB "Force use of the bundled zlib")
-if(NOT ZLIB_FOUND)
-  set(USE_INCLUDED_ZLIB 1)
-endif()
-if(USE_INCLUDED_ZLIB)
-  message(STATUS "Using included zlib library")
-endif()
+find_package(ZLIB REQUIRED)
 
 # Check for gettext
 option(ENABLE_NLS "Enable translation of program messages" ON)

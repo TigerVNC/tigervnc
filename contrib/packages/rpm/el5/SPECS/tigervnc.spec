@@ -1046,7 +1046,6 @@ export CXXFLAGS=`echo $CXXFLAGS | sed -e 's/ -c //g'`
   -DFLTK_INCLUDE_DIR=%{tigervnc_src_dir}/fltk-1.3.2 \
   -DBUILD_STATIC=1 \
   -DCMAKE_BUILD_TYPE=Release \
-  -DUSE_INCLUDED_ZLIB=0 \
   -DCMAKE_INSTALL_PREFIX=%{_prefix}
 
 make %{?_smp_mflags}
