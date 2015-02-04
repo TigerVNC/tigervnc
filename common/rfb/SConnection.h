@@ -184,6 +184,9 @@ namespace rfb {
   protected:
     void setState(stateEnum s) { state_ = s; }
 
+    void setReader(SMsgReader *r) { reader_ = r; }
+    void setWriter(SMsgWriter *w) { writer_ = w; }
+
   private:
     void writeFakeColourMap(void);
 
