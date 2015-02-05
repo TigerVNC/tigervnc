@@ -31,6 +31,11 @@ Xvnc_SOURCES = xvnc.c \
 	$(top_srcdir)/Xi/stubs.c $(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/fb/fbcmap_mi.c buildtime.c
 
+# Xvnc contains no C++ sources so automake doesn't understand that we
+# need to use the C++ compiler to link things. This is the upstream
+# recommendation for coaxing automake.
+nodist_EXTRA_Xvnc_SOURCES = dummy.cxx
+
 Xvnc_CPPFLAGS = $(XVNC_CPPFLAGS) -DTIGERVNC -DNO_MODULE_EXTS \
 	-UHAVE_CONFIG_H \
 	-DXFree86Server -DVENDOR_RELEASE="$(VENDOR_RELEASE)" \
@@ -46,6 +51,9 @@ libvnc_la_LTLIBRARIES = libvnc.la
 libvnc_ladir = $(moduledir)/extensions
 
 libvnc_la_SOURCES = vncModule.c
+
+# See Xvnc magic above
+nodist_EXTRA_libvnc_la_SOURCES = dummy.cxx
 
 libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_H \
 	-I$(top_srcdir)/hw/xfree86/common \

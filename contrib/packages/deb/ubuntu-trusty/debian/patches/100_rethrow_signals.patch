@@ -1,5 +1,5 @@
---- a/unix/xserver/hw/vnc/xvnc.cc	2013-07-14 14:05:29.963390223 -0400
-+++ b/unix/xserver/hw/vnc/xvnc.cc	2013-07-14 14:04:12.840357191 -0400
+--- a/unix/xserver/hw/vnc/xvnc.c	2013-07-14 14:05:29.963390223 -0400
++++ b/unix/xserver/hw/vnc/xvnc.c	2013-07-14 14:04:12.840357191 -0400
 @@ -250,7 +250,7 @@
  #if XORG < 111
  AbortDDX()
