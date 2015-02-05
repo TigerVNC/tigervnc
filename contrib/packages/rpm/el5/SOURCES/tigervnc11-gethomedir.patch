@@ -9,7 +9,7 @@ diff -up tigervnc-1.0.90/unix/xserver/hw/vnc/Makefile.am.gethomedir tigervnc-1.0
  COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
  
  noinst_LTLIBRARIES = libvnccommon.la
-@@ -52,7 +53,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I
+@@ -52,6 +53,6 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I
  
  libvnc_la_LDFLAGS = -module -avoid-version -Wl,-z,now
  
@@ -17,4 +17,3 @@ diff -up tigervnc-1.0.90/unix/xserver/hw/vnc/Makefile.am.gethomedir tigervnc-1.0
 +libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS) $(OS_LIB)
  
  EXTRA_DIST = Xvnc.man
- 
