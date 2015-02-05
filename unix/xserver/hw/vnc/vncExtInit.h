@@ -20,6 +20,7 @@
 #define __VNCEXTINIT_H__
 
 #include <stdint.h>
+#include <stddef.h>
 #include <sys/select.h>
 
 // Only from C++

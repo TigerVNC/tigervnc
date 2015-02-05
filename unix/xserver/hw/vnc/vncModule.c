@@ -29,6 +29,9 @@
 #endif
 
 #include "xorg-version.h"
+#if XORG <= 111
+typedef pointer XF86OptionPtr;
+#endif
 
 #include "xf86.h"
 #include "xf86Module.h"
