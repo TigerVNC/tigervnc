@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
+#include <os/winerrno.h>
 #include <direct.h>
 #define mkdir(path, mode) _mkdir(path)
 #endif

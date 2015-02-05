@@ -31,8 +31,7 @@
 #define close closesocket
 #undef errno
 #define errno WSAGetLastError()
-#undef EINTR
-#define EINTR WSAEINTR
+#include <os/winerrno.h>
 #else
 #include <sys/types.h>
 #include <errno.h>
