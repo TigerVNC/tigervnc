@@ -183,6 +183,8 @@ namespace rfb {
 
   protected:
     void setState(stateEnum s) { state_ = s; }
+
+  private:
     void writeFakeColourMap(void);
 
     bool readyForSetColourMapEntries;
