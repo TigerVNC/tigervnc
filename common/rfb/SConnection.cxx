@@ -48,11 +48,10 @@ const SConnection::AccessRights SConnection::AccessNoQuery        = 0x0400;
 const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 
 
-SConnection::SConnection(bool reverseConnection_)
+SConnection::SConnection()
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
     security(0), ssecurity(0), state_(RFBSTATE_UNINITIALISED),
-    reverseConnection(reverseConnection_),
     preferredEncoding(encodingRaw)
 {
   defaultMajorVersion = 3;

@@ -38,7 +38,7 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection(bool reverseConnection_);
+    SConnection();
     virtual ~SConnection();
 
     // Methods to initialise the connection
@@ -206,7 +206,6 @@ namespace rfb {
     SecurityServer *security;
     SSecurity* ssecurity;
     stateEnum state_;
-    bool reverseConnection;
     rdr::S32 preferredEncoding;
   };
 }

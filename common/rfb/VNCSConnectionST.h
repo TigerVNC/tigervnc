@@ -173,6 +173,7 @@ namespace rfb {
 
     network::Socket* sock;
     CharArray peerEndpoint;
+    bool reverseConnection;
 
     Timer queryConnectTimer;
 
