@@ -99,23 +99,43 @@ ModifiablePixelBuffer::~ModifiablePixelBuffer()
 void ModifiablePixelBuffer::fillRect(const Rect& r, Pixel pix)
 {
   int stride;
-  U8 *buf, pixbuf[4];
+  U8 *buf;
   int w, h, b;
 
-  buf = getBufferRW(r, &stride);
   w = r.width();
   h = r.height();
   b = format.bpp/8;
 
-  format.bufferFromPixel(pixbuf, pix);
+  if (h == 0)
+    return;
 
-  while (h--) {
-    int w_ = w;
-    while (w_--) {
+  buf = getBufferRW(r, &stride);
+
+  if (b == 1) {
+    while (h--) {
+      memset(buf, pix, w);
+      buf += stride * b;
+    }
+  } else {
+    U8 pixbuf[4], *start;
+    int w1;
+
+    start = buf;
+
+    format.bufferFromPixel(pixbuf, pix);
+
+    w1 = w;
+    while (w1--) {
       memcpy(buf, pixbuf, b);
       buf += b;
     }
     buf += (stride - w) * b;
+    h--;
+
+    while (h--) {
+      memcpy(buf, start, w * b);
+      buf += stride * b;
+    }
   }
 
   commitBufferRW(r);
