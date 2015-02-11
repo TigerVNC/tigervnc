@@ -270,7 +270,7 @@ void SConnection::writeConnFailedFromScratch(const char* msg,
   os->flush();
 }
 
-void SConnection::setEncodings(int nEncodings, rdr::S32* encodings)
+void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
   int i;
 

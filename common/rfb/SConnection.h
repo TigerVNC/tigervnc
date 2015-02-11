@@ -71,7 +71,7 @@ namespace rfb {
 
     // Overridden from SMsgHandler
 
-    virtual void setEncodings(int nEncodings, rdr::S32* encodings);
+    virtual void setEncodings(int nEncodings, const rdr::S32* encodings);
 
 
     // Methods to be overridden in a derived class
