@@ -23,6 +23,7 @@
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/UpdateTracker.h>
+#include <rfb/LogWriter.h>
 
 #include <rfb/RawEncoder.h>
 #include <rfb/RREEncoder.h>
@@ -32,6 +33,8 @@
 #include <rfb/TightJPEGEncoder.h>
 
 using namespace rfb;
+
+static LogWriter vlog("EncodeManager");
 
 // Split each rectangle into smaller ones no larger than this area,
 // and no wider than this width.
@@ -73,8 +76,50 @@ struct RectInfo {
 
 };
 
+static const char *encoderClassName(EncoderClass klass)
+{
+  switch (klass) {
+  case encoderRaw:
+    return "Raw";
+  case encoderRRE:
+    return "RRE";
+  case encoderHextile:
+    return "Hextile";
+  case encoderTight:
+    return "Tight";
+  case encoderTightJPEG:
+    return "Tight (JPEG)";
+  case encoderZRLE:
+    return "ZRLE";
+  }
+
+  return "Unknown Encoder Class";
+}
+
+static const char *encoderTypeName(EncoderType type)
+{
+  switch (type) {
+  case encoderSolid:
+    return "Solid";
+  case encoderBitmap:
+    return "Bitmap";
+  case encoderBitmapRLE:
+    return "Bitmap RLE";
+  case encoderIndexed:
+    return "Indexed";
+  case encoderIndexedRLE:
+    return "Indexed RLE";
+  case encoderFullColour:
+    return "Full Colour";
+  }
+
+  return "Unknown Encoder Type";
+}
+
 EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
 {
+  StatsVector::iterator iter;
+
   encoders.resize(encoderClassMax, NULL);
   activeEncoders.resize(encoderTypeMax, encoderRaw);
 
@@ -84,14 +129,76 @@ EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
   encoders[encoderTight] = new TightEncoder(conn);
   encoders[encoderTightJPEG] = new TightJPEGEncoder(conn);
   encoders[encoderZRLE] = new ZRLEEncoder(conn);
+
+  updates = 0;
+  stats.resize(encoderClassMax);
+  for (iter = stats.begin();iter != stats.end();++iter) {
+    StatsVector::value_type::iterator iter2;
+    iter->resize(encoderTypeMax);
+    for (iter2 = iter->begin();iter2 != iter->end();++iter2)
+      memset(&*iter2, 0, sizeof(EncoderStats));
+  }
 }
 
 EncodeManager::~EncodeManager()
 {
   std::vector<Encoder*>::iterator iter;
 
+  logStats();
+
   for (iter = encoders.begin();iter != encoders.end();iter++)
     delete *iter;
+}
+
+void EncodeManager::logStats()
+{
+  int i, j;
+
+  unsigned rects;
+  unsigned long long pixels, bytes, equivalent;
+
+  double ratio;
+
+  rects = 0;
+  pixels = bytes = equivalent = 0;
+
+  vlog.info("Framebuffer updates: %u", updates);
+
+  for (i = 0;i < stats.size();i++) {
+    // Did this class do anything at all?
+    for (j = 0;j < stats[i].size();j++) {
+      if (stats[i][j].rects != 0)
+        break;
+    }
+    if (j == stats[i].size())
+      continue;
+
+    vlog.info("  %s:", encoderClassName((EncoderClass)i));
+
+    for (j = 0;j < stats[i].size();j++) {
+      if (stats[i][j].rects == 0)
+        continue;
+
+      rects += stats[i][j].rects;
+      pixels += stats[i][j].pixels;
+      bytes += stats[i][j].bytes;
+      equivalent += stats[i][j].equivalent;
+
+      ratio = (double)stats[i][j].equivalent / stats[i][j].bytes;
+
+      vlog.info("    %s: %u rects, %llu pixels",
+                encoderTypeName((EncoderType)j),
+                stats[i][j].rects, stats[i][j].pixels);
+      vlog.info("    %*s  %llu bytes (%g ratio)",
+                strlen(encoderTypeName((EncoderType)j)), "",
+                stats[i][j].bytes, ratio);
+    }
+  }
+
+  ratio = (double)equivalent / bytes;
+
+  vlog.info("  Total: %u rects, %llu pixels", rects, pixels);
+  vlog.info("         %llu bytes (%g ratio)", bytes, ratio);
 }
 
 bool EncodeManager::supported(int encoding)
@@ -113,6 +220,8 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
 {
     int nRects;
     Region changed;
+
+    updates++;
 
     prepareEncoders();
 
@@ -292,6 +401,40 @@ int EncodeManager::computeNumRects(const Region& changed)
   return numRects;
 }
 
+Encoder *EncodeManager::startRect(const Rect& rect, int type)
+{
+  Encoder *encoder;
+  int klass, equiv;
+
+  activeType = type;
+  klass = activeEncoders[activeType];
+
+  beforeLength = conn->getOutStream()->length();
+
+  stats[klass][activeType].rects++;
+  stats[klass][activeType].pixels += rect.area();
+  equiv = 12 + rect.area() * conn->cp.pf().bpp/8;
+  stats[klass][activeType].equivalent += equiv;
+
+  encoder = encoders[klass];
+  conn->writer()->startRect(rect, encoder->encoding);
+
+  return encoder;
+}
+
+void EncodeManager::endRect()
+{
+  int klass;
+  int length;
+
+  conn->writer()->endRect();
+
+  length = conn->getOutStream()->length() - beforeLength;
+
+  klass = activeEncoders[activeType];
+  stats[klass][activeType].bytes += length;
+}
+
 void EncodeManager::writeCopyRects(const UpdateInfo& ui)
 {
   std::vector<Rect> rects;
@@ -362,8 +505,7 @@ void EncodeManager::writeSolidRects(Region *changed, const PixelBuffer* pb)
           }
 
           // Send solid-color rectangle.
-          encoder = encoders[activeEncoders[encoderSolid]];
-          conn->writer()->startRect(erp, encoder->encoding);
+          encoder = startRect(erp, encoderSolid);
           if (encoder->flags & EncoderUseNativePF) {
             encoder->writeSolidRect(erp.width(), erp.height(),
                                     pb->getPF(), colourValue);
@@ -377,7 +519,7 @@ void EncodeManager::writeSolidRects(Region *changed, const PixelBuffer* pb)
             encoder->writeSolidRect(erp.width(), erp.height(),
                                     conn->cp.pf(), converted);
           }
-          conn->writer()->endRect();
+          endRect();
 
           changed->assign_subtract(Region(erp));
 
@@ -507,14 +649,14 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
       type = encoderIndexed;
   }
 
-  encoder = encoders[activeEncoders[type]];
+  encoder = startRect(rect, type);
 
   if (encoder->flags & EncoderUseNativePF)
     ppb = preparePixelBuffer(rect, pb, false);
 
-  conn->writer()->startRect(rect, encoder->encoding);
   encoder->writeRect(ppb, info.palette);
-  conn->writer()->endRect();
+
+  endRect();
 }
 
 bool EncodeManager::checkSolidTile(const Rect& r, const rdr::U8* colourValue,

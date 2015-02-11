@@ -33,31 +33,15 @@ using namespace rfb;
 static LogWriter vlog("SMsgWriter");
 
 SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
-  : cp(cp_), os(os_), currentEncoding(0),
+  : cp(cp_), os(os_),
     nRectsInUpdate(0), nRectsInHeader(0),
     needSetDesktopSize(false), needExtendedDesktopSize(false),
-    needSetDesktopName(false), needSetCursor(false), needSetXCursor(false),
-    lenBeforeRect(0), updatesSent(0), rawBytesEquivalent(0)
+    needSetDesktopName(false), needSetCursor(false), needSetXCursor(false)
 {
-  for (int i = 0; i <= encodingMax; i++) {
-    bytesSent[i] = 0;
-    rectsSent[i] = 0;
-  }
 }
 
 SMsgWriter::~SMsgWriter()
 {
-  vlog.info("framebuffer updates %d",updatesSent);
-  int bytes = 0;
-  for (int i = 0; i <= encodingMax; i++) {
-    if (i != encodingCopyRect)
-      bytes += bytesSent[i];
-    if (rectsSent[i])
-      vlog.info("  %s rects %d, bytes %d",
-                encodingName(i), rectsSent[i], bytesSent[i]);
-  }
-  vlog.info("  raw bytes equivalent %llu, compression ratio %f",
-          rawBytesEquivalent, (double)rawBytesEquivalent / bytes);
 }
 
 void SMsgWriter::writeServerInit()
@@ -276,7 +260,6 @@ void SMsgWriter::writeFramebufferUpdateEnd()
     os->writeU32(pseudoEncodingLastRect);
   }
 
-  updatesSent++;
   endMsg();
 }
 
@@ -293,11 +276,6 @@ void SMsgWriter::startRect(const Rect& r, int encoding)
   if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
     throw Exception("SMsgWriter::startRect: nRects out of sync");
 
-  currentEncoding = encoding;
-  lenBeforeRect = os->length();
-  if (encoding != encodingCopyRect)
-    rawBytesEquivalent += 12 + r.width() * r.height() * (cp->pf().bpp/8);
-
   os->writeS16(r.tl.x);
   os->writeS16(r.tl.y);
   os->writeU16(r.width());
@@ -307,10 +285,6 @@ void SMsgWriter::startRect(const Rect& r, int encoding)
 
 void SMsgWriter::endRect()
 {
-  if (currentEncoding <= encodingMax) {
-    bytesSent[currentEncoding] += os->length() - lenBeforeRect;
-    rectsSent[currentEncoding]++;
-  }
 }
 
 void SMsgWriter::startMsg(int type)

@@ -41,6 +41,8 @@ namespace rfb {
     EncodeManager(SConnection* conn);
     ~EncodeManager();
 
+    void logStats();
+
     // Hack to let ConnParams calculate the client's preferred encoding
     static bool supported(int encoding);
 
@@ -51,6 +53,9 @@ namespace rfb {
     void prepareEncoders();
 
     int computeNumRects(const Region& changed);
+
+    Encoder *startRect(const Rect& rect, int type);
+    void endRect();
 
     void writeCopyRects(const UpdateInfo& ui);
     void writeSolidRects(Region *changed, const PixelBuffer* pb);
@@ -96,6 +101,19 @@ namespace rfb {
 
     std::vector<Encoder*> encoders;
     std::vector<int> activeEncoders;
+
+    struct EncoderStats {
+      unsigned rects;
+      unsigned long long bytes;
+      unsigned long long pixels;
+      unsigned long long equivalent;
+    };
+    typedef std::vector< std::vector<struct EncoderStats> > StatsVector;
+
+    unsigned updates;
+    StatsVector stats;
+    int activeType;
+    int beforeLength;
 
     class OffsetPixelBuffer : public FullFramePixelBuffer {
     public:
