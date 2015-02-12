@@ -452,83 +452,104 @@ void EncodeManager::writeSolidRects(Region *changed, const PixelBuffer* pb)
   std::vector<Rect> rects;
   std::vector<Rect>::const_iterator rect;
 
-  // FIXME: This gives up after the first rect it finds. A large update
-  //        (like a whole screen refresh) might have lots of large solid
-  //        areas.
-
   changed->get_rects(&rects);
-  for (rect = rects.begin(); rect != rects.end(); ++rect) {
-    Rect sr;
-    int dx, dy, dw, dh;
+  for (rect = rects.begin(); rect != rects.end(); ++rect)
+    findSolidRect(*rect, changed, pb);
+}
 
-    // We start by finding a solid 16x16 block
-    for (dy = rect->tl.y; dy < rect->br.y; dy += SolidSearchBlock) {
+void EncodeManager::findSolidRect(const Rect& rect, Region *changed,
+                                  const PixelBuffer* pb)
+{
+  Rect sr;
+  int dx, dy, dw, dh;
 
-      dh = SolidSearchBlock;
-      if (dy + dh > rect->br.y)
-        dh = rect->br.y - dy;
+  // We start by finding a solid 16x16 block
+  for (dy = rect.tl.y; dy < rect.br.y; dy += SolidSearchBlock) {
 
-      for (dx = rect->tl.x; dx < rect->br.x; dx += SolidSearchBlock) {
-        // We define it like this to guarantee alignment
-        rdr::U32 _buffer;
-        rdr::U8* colourValue = (rdr::U8*)&_buffer;
+    dh = SolidSearchBlock;
+    if (dy + dh > rect.br.y)
+      dh = rect.br.y - dy;
 
-        dw = SolidSearchBlock;
-        if (dx + dw > rect->br.x)
-          dw = rect->br.x - dx;
+    for (dx = rect.tl.x; dx < rect.br.x; dx += SolidSearchBlock) {
+      // We define it like this to guarantee alignment
+      rdr::U32 _buffer;
+      rdr::U8* colourValue = (rdr::U8*)&_buffer;
 
-        pb->getImage(colourValue, Rect(dx, dy, dx+1, dy+1));
+      dw = SolidSearchBlock;
+      if (dx + dw > rect.br.x)
+        dw = rect.br.x - dx;
 
-        sr.setXYWH(dx, dy, dw, dh);
-        if (checkSolidTile(sr, colourValue, pb)) {
-          Rect erb, erp;
+      pb->getImage(colourValue, Rect(dx, dy, dx+1, dy+1));
 
-          Encoder *encoder;
+      sr.setXYWH(dx, dy, dw, dh);
+      if (checkSolidTile(sr, colourValue, pb)) {
+        Rect erb, erp;
 
-          // We then try extending the area by adding more blocks
-          // in both directions and pick the combination that gives
-          // the largest area.
-          sr.setXYWH(dx, dy, rect->br.x - dx, rect->br.y - dy);
-          extendSolidAreaByBlock(sr, colourValue, pb, &erb);
+        Encoder *encoder;
 
-          // Did we end up getting the entire rectangle?
-          if (erb.equals(*rect))
-            erp = erb;
-          else {
-            // Don't bother with sending tiny rectangles
-            if (erb.area() < SolidBlockMinArea)
-              continue;
+        // We then try extending the area by adding more blocks
+        // in both directions and pick the combination that gives
+        // the largest area.
+        sr.setXYWH(dx, dy, rect.br.x - dx, rect.br.y - dy);
+        extendSolidAreaByBlock(sr, colourValue, pb, &erb);
 
-            // Extend the area again, but this time one pixel
-            // row/column at a time.
-            extendSolidAreaByPixel(*rect, erb, colourValue, pb, &erp);
-          }
+        // Did we end up getting the entire rectangle?
+        if (erb.equals(rect))
+          erp = erb;
+        else {
+          // Don't bother with sending tiny rectangles
+          if (erb.area() < SolidBlockMinArea)
+            continue;
 
-          // Send solid-color rectangle.
-          encoder = startRect(erp, encoderSolid);
-          if (encoder->flags & EncoderUseNativePF) {
-            encoder->writeSolidRect(erp.width(), erp.height(),
-                                    pb->getPF(), colourValue);
-          } else {
-            rdr::U32 _buffer2;
-            rdr::U8* converted = (rdr::U8*)&_buffer2;
-
-            conn->cp.pf().bufferFromBuffer(converted, pb->getPF(),
-                                           colourValue, 1);
-
-            encoder->writeSolidRect(erp.width(), erp.height(),
-                                    conn->cp.pf(), converted);
-          }
-          endRect();
-
-          changed->assign_subtract(Region(erp));
-
-          break;
+          // Extend the area again, but this time one pixel
+          // row/column at a time.
+          extendSolidAreaByPixel(rect, erb, colourValue, pb, &erp);
         }
-      }
 
-      if (dx < rect->br.x)
-        break;
+        // Send solid-color rectangle.
+        encoder = startRect(erp, encoderSolid);
+        if (encoder->flags & EncoderUseNativePF) {
+          encoder->writeSolidRect(erp.width(), erp.height(),
+                                  pb->getPF(), colourValue);
+        } else {
+          rdr::U32 _buffer2;
+          rdr::U8* converted = (rdr::U8*)&_buffer2;
+
+          conn->cp.pf().bufferFromBuffer(converted, pb->getPF(),
+                                         colourValue, 1);
+
+          encoder->writeSolidRect(erp.width(), erp.height(),
+                                  conn->cp.pf(), converted);
+        }
+        endRect();
+
+        changed->assign_subtract(Region(erp));
+
+        // Search remaining areas by recursion
+        // FIXME: Is this the best way to divide things up?
+
+        // Left? (Note that we've already searched a SolidSearchBlock
+        //        pixels high strip here)
+        if ((erp.tl.x != rect.tl.x) && (erp.height() > SolidSearchBlock)) {
+          sr.setXYWH(rect.tl.x, erp.tl.y + SolidSearchBlock,
+                     erp.tl.x - rect.tl.x, erp.height() - SolidSearchBlock);
+          findSolidRect(sr, changed, pb);
+        }
+
+        // Right?
+        if (erp.br.x != rect.br.x) {
+          sr.setXYWH(erp.br.x, erp.tl.y, rect.br.x - erp.br.x, erp.height());
+          findSolidRect(sr, changed, pb);
+        }
+
+        // Below?
+        if (erp.br.y != rect.br.y) {
+          sr.setXYWH(rect.tl.x, erp.br.y, rect.width(), rect.br.y - erp.br.y);
+          findSolidRect(sr, changed, pb);
+        }
+
+        return;
+      }
     }
   }
 }

@@ -59,6 +59,7 @@ namespace rfb {
 
     void writeCopyRects(const UpdateInfo& ui);
     void writeSolidRects(Region *changed, const PixelBuffer* pb);
+    void findSolidRect(const Rect& rect, Region *changed, const PixelBuffer* pb);
     void writeRects(const Region& changed, const PixelBuffer* pb);
 
     void writeSubRect(const Rect& rect, const PixelBuffer *pb);
