@@ -624,7 +624,7 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
 
   // Special exception inherited from the Tight encoder
   if (activeEncoders[encoderFullColour] == encoderTightJPEG) {
-    if (conn->cp.compressLevel < 2)
+    if ((conn->cp.compressLevel != -1) && (conn->cp.compressLevel < 2))
       maxColours = 24;
     else
       maxColours = 96;
