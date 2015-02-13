@@ -57,8 +57,8 @@ namespace rfb {
     virtual void endOfContinuousUpdates();
     virtual void serverInit() = 0;
 
-    virtual void framebufferUpdateStart() = 0;
-    virtual void framebufferUpdateEnd() = 0;
+    virtual void framebufferUpdateStart();
+    virtual void framebufferUpdateEnd();
     virtual void dataRect(const Rect& r, int encoding) = 0;
 
     virtual void setColourMapEntries(int firstColour, int nColours,

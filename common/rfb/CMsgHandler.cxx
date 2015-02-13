@@ -74,3 +74,11 @@ void CMsgHandler::endOfContinuousUpdates()
 {
   cp.supportsContinuousUpdates = true;
 }
+
+void CMsgHandler::framebufferUpdateStart()
+{
+}
+
+void CMsgHandler::framebufferUpdateEnd()
+{
+}

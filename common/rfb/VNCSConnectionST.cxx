@@ -66,7 +66,7 @@ struct RTTInfo {
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
-  : SConnection(reverse), sock(s),
+  : sock(s), reverseConnection(reverse),
     queryConnectTimer(this), inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(NULL),

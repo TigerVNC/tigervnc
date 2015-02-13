@@ -136,6 +136,9 @@ namespace rfb {
   protected:
     void setState(stateEnum s) { state_ = s; }
 
+    void setReader(CMsgReader *r) { reader_ = r; }
+    void setWriter(CMsgWriter *w) { writer_ = w; }
+
   private:
     // This is a default implementation of fences that automatically
     // responds to requests, stating no support for synchronisation.

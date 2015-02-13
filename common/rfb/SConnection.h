@@ -38,7 +38,7 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection(bool reverseConnection_);
+    SConnection();
     virtual ~SConnection();
 
     // Methods to initialise the connection
@@ -71,7 +71,7 @@ namespace rfb {
 
     // Overridden from SMsgHandler
 
-    virtual void setEncodings(int nEncodings, rdr::S32* encodings);
+    virtual void setEncodings(int nEncodings, const rdr::S32* encodings);
 
 
     // Methods to be overridden in a derived class
@@ -183,6 +183,11 @@ namespace rfb {
 
   protected:
     void setState(stateEnum s) { state_ = s; }
+
+    void setReader(SMsgReader *r) { reader_ = r; }
+    void setWriter(SMsgWriter *w) { writer_ = w; }
+
+  private:
     void writeFakeColourMap(void);
 
     bool readyForSetColourMapEntries;
@@ -201,7 +206,6 @@ namespace rfb {
     SecurityServer *security;
     SSecurity* ssecurity;
     stateEnum state_;
-    bool reverseConnection;
     rdr::S32 preferredEncoding;
   };
 }

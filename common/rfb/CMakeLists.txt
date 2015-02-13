@@ -67,7 +67,7 @@ if(WIN32)
   set(RFB_SOURCES ${RFB_SOURCES} WinPasswdValidator.cxx)
 endif(WIN32)
 
-set(RFB_LIBRARIES ${JPEG_LIBRARIES} os rdr)
+set(RFB_LIBRARIES ${JPEG_LIBRARIES} os rdr Xregion)
 
 if(HAVE_PAM)
   set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
