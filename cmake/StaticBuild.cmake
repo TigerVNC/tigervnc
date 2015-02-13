@@ -47,14 +47,18 @@ if(BUILD_STATIC)
 
     set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -Wl,-Bdynamic")
 
-    # GnuTLS uses various crypto-api stuff
     if (WIN32)
+      # GnuTLS uses various crypto-api stuff
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lcrypt32")
+      # And sockets
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lws2_32")
     endif()
 
-    # nanosleep() lives here on Solaris
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+      # nanosleep() lives here on Solaris
       set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lrt")
+      # and socket functions are hidden here
+      set(GNUTLS_LIBRARIES "${GNUTLS_LIBRARIES} -lsocket")
     endif()
 
     # GnuTLS uses gettext and zlib, so make sure those are always
