@@ -782,11 +782,9 @@ int Viewport::handleSystemEvent(void *event, void *data)
     // For the first few years, there wasn't a good consensus on what the
     // Windows keys should be mapped to for X11. So we need to help out a
     // bit and map all variants to the same key...
-    case XK_Meta_L:
     case XK_Hyper_L:
       keysym = XK_Super_L;
       break;
-    case XK_Meta_R:
     case XK_Hyper_R:
       keysym = XK_Super_R;
       break;
