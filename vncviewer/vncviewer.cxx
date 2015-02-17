@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <locale.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #ifdef WIN32
@@ -261,6 +262,20 @@ static void mkvnchomedir()
 
 static void usage(const char *programName)
 {
+#ifdef WIN32
+  // If we don't have a console then we need to create one for output
+  if (GetConsoleWindow() == NULL) {
+    HANDLE handle;
+    int fd;
+
+    AllocConsole();
+
+    handle = GetStdHandle(STD_ERROR_HANDLE);
+    fd = _open_osfhandle((intptr_t)handle, O_TEXT);
+    *stderr = *fdopen(fd, "w");
+  }
+#endif
+
   fprintf(stderr,
           "\nusage: %s [parameters] [host:displayNum] [parameters]\n"
           "       %s [parameters] -listen [port] [parameters]\n",
@@ -273,6 +288,12 @@ static void usage(const char *programName)
           "--<param>=<value>\n"
           "Parameter names are case-insensitive.  The parameters are:\n\n");
   Configuration::listParams(79, 14);
+
+#ifdef WIN32
+  // Just wait for the user to kill the console window
+  Sleep(INFINITE);
+#endif
+
   exit(1);
 }
 
