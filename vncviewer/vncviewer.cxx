@@ -385,7 +385,7 @@ int main(int argc, char** argv)
   // Generate the about string now that we get the proper translation
   snprintf(aboutText, sizeof(aboutText), _aboutText,
            (int)sizeof(size_t)*8, PACKAGE_VERSION,
-           BUILD_TIMESTAMP, 2014);
+           BUILD_TIMESTAMP, 2015);
 
   rfb::SecurityClient::setDefaults();
 

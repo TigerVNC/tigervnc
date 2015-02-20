@@ -93,7 +93,7 @@ from the X Consortium.
 #endif
 
 #define XVNCVERSION "TigerVNC 1.4.80"
-#define XVNCCOPYRIGHT ("Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)\n" \
+#define XVNCCOPYRIGHT ("Copyright (C) 1999-2015 TigerVNC Team and many others (see README.txt)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
 #define VFB_DEFAULT_WIDTH  1024
