@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
@@ -1060,41 +1061,80 @@ void Viewport::handleFLTKKeyPress(void)
 
 void Viewport::initContextMenu()
 {
-  contextMenu->clear();
-
-  contextMenu->add(_("E&xit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
+  size_t i;
+  Fl_Menu_Item items[] = {
+    { strdup(_("E&xit viewer")), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER },
 
 #ifdef HAVE_FLTK_FULLSCREEN
-  contextMenu->add(_("&Full screen"), 0, NULL, (void*)ID_FULLSCREEN, 
-		   FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
+    { strdup(_("&Full screen")), 0, NULL, (void*)ID_FULLSCREEN, FL_MENU_TOGGLE },
 #endif
-  contextMenu->add(_("Resize &window to session"), 0, NULL, (void*)ID_RESIZE, 
+    { strdup(_("Resize &window to session")), 0, NULL, (void*)ID_RESIZE, FL_MENU_DIVIDER },
+
+    { strdup(_("&Ctrl")), 0, NULL, (void*)ID_CTRL, FL_MENU_TOGGLE },
+    { strdup(_("&Alt")), 0, NULL, (void*)ID_ALT, FL_MENU_TOGGLE },
+
+    { strdup("Menu key"), 0, NULL, (void*)ID_MENUKEY, 0 },
+    { strdup("Secret shortcut menu key"), menuKeyCode, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE },
+    { strdup(_("Send Ctrl-Alt-&Del")), 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER },
+
+    { strdup(_("&Refresh screen")), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER },
+
+    { strdup(_("&Options...")), 0, NULL, (void*)ID_OPTIONS, 0 },
+    { strdup(_("Connection &info...")), 0, NULL, (void*)ID_INFO, 0 },
+    { strdup(_("About &TigerVNC viewer...")), 0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER },
+
+    { strdup(_("Dismiss &menu")), 0, NULL, (void*)ID_DISMISS, 0 },
+
+    {0}
+  };
+
+  // Update any state
+  for (i = 0;i < sizeof(items)/sizeof(items[0]);i++) {
+    switch ((intptr_t)items[i].user_data_) {
 #ifdef HAVE_FLTK_FULLSCREEN
-       (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
+    case ID_FULLSCREEN:
+      if (window()->fullscreen_active())
+        items[i].flags |= FL_MENU_VALUE;
+      break;
+    case ID_RESIZE:
+      if (window()->fullscreen_active())
+        items[i].flags |= FL_MENU_INACTIVE;
+      break;
 #endif
-		   FL_MENU_DIVIDER);
-
-  contextMenu->add(_("&Ctrl"), 0, NULL, (void*)ID_CTRL, 
-		   FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
-  contextMenu->add(_("&Alt"), 0, NULL, (void*)ID_ALT,
-		   FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
-
-  if (menuKeySym) {
-    char sendMenuKey[64];
-    snprintf(sendMenuKey, 64, _("Send %s"), (const char *)menuKey);
-    contextMenu->add(sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
-    contextMenu->add("Secret shortcut menu key", menuKeyCode, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
+    case ID_CTRL:
+      if (menuCtrlKey)
+        items[i].flags |= FL_MENU_VALUE;
+      break;
+    case ID_ALT:
+      if (menuAltKey)
+        items[i].flags |= FL_MENU_VALUE;
+      break;
+    }
   }
 
-  contextMenu->add(_("Send Ctrl-Alt-&Del"), 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
+  // The menu key needs to have its fields updated, or the entries removed
+  for (i = 0;i < sizeof(items)/sizeof(items[0]);i++) {
+    char sendMenuKey[64];
 
-  contextMenu->add(_("&Refresh screen"), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
+    if ((intptr_t)items[i].user_data_ != ID_MENUKEY)
+      continue;
 
-  contextMenu->add(_("&Options..."), 0, NULL, (void*)ID_OPTIONS, 0);
-  contextMenu->add(_("Connection &info..."), 0, NULL, (void*)ID_INFO, 0);
-  contextMenu->add(_("About &TigerVNC viewer..."), 0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
+    if (!menuKeySym) {
+      memmove(items + i, items + i + 1,
+              sizeof(items) - (sizeof(items[0]) * (i+1)));
+      i--;
+      continue;
+    }
 
-  contextMenu->add(_("Dismiss &menu"), 0, NULL, (void*)ID_DISMISS, 0);
+    if (items[i].flags & FL_MENU_INVISIBLE)
+      continue;
+
+    snprintf(sendMenuKey, 64, _("Send %s"), (const char *)menuKey);
+    free((void*)items[i].text);
+    items[i].text = strdup(sendMenuKey);
+  }
+
+  contextMenu->copy(items);
 }
 
 

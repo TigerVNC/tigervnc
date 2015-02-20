@@ -724,9 +724,19 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 
   menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
 
-  menuKeyChoice->add(_("None"), 0, NULL, (void*)0, FL_MENU_DIVIDER);
+  Fl_Menu_Item items[getMenuKeySymbolCount() + 2];
+
+  memset(items, 0, sizeof(items));
+
+  items[0].text = strdup(_("None"));
+  items[0].flags = FL_MENU_DIVIDER;
+
   for (int i = 0; i < getMenuKeySymbolCount(); i++)
-    menuKeyChoice->add(getMenuKeySymbols()[i].name, 0, NULL, 0, 0);
+      items[i+1].text = strdup(getMenuKeySymbols()[i].name);
+
+  items[getMenuKeySymbolCount()+1].text = NULL;
+
+  menuKeyChoice->copy(items);
 
   ty += CHOICE_HEIGHT + TIGHT_MARGIN;
 
