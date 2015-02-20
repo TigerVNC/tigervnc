@@ -1109,29 +1109,18 @@ void Viewport::initContextMenu()
       if (menuAltKey)
         items[i].flags |= FL_MENU_VALUE;
       break;
+    case ID_MENUKEY:
+      // The menu key needs to have its fields updated, or the entries hidden
+      if (!menuKeySym)
+        items[i].flags |= FL_MENU_INACTIVE | FL_MENU_INVISIBLE;
+      else if (!(items[i].flags & FL_MENU_INVISIBLE)) {
+        char sendMenuKey[64];
+        snprintf(sendMenuKey, 64, _("Send %s"), (const char *)menuKey);
+        free((void*)items[i].text);
+        items[i].text = strdup(sendMenuKey);
+      }
+      break;
     }
-  }
-
-  // The menu key needs to have its fields updated, or the entries removed
-  for (i = 0;i < sizeof(items)/sizeof(items[0]);i++) {
-    char sendMenuKey[64];
-
-    if ((intptr_t)items[i].user_data_ != ID_MENUKEY)
-      continue;
-
-    if (!menuKeySym) {
-      memmove(items + i, items + i + 1,
-              sizeof(items) - (sizeof(items[0]) * (i+1)));
-      i--;
-      continue;
-    }
-
-    if (items[i].flags & FL_MENU_INVISIBLE)
-      continue;
-
-    snprintf(sendMenuKey, 64, _("Send %s"), (const char *)menuKey);
-    free((void*)items[i].text);
-    items[i].text = strdup(sendMenuKey);
   }
 
   contextMenu->copy(items);
