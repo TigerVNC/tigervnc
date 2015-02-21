@@ -1,15 +1,15 @@
 /* Copyright 2015 Pierre Ossman <ossman@cendio.se> for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -96,7 +96,7 @@ public:
 
 protected:
   rdr::FileInStream *in;
-  rfb::Decoder *decoders[rfb::encodingMax+1];
+  rfb::Decoder *decoders[rfb::encodingMax + 1];
   rfb::ManagedPixelBuffer pb;
   rfb::SimpleUpdateTracker updates;
   class SConn *sc;
@@ -163,7 +163,7 @@ CConn::CConn(const char *filename)
   setStreams(in, NULL);
 
   memset(decoders, 0, sizeof(decoders));
-  for (i = 0;i < rfb::encodingMax;i++) {
+  for (i = 0; i < rfb::encodingMax; i++) {
     if (!rfb::Decoder::supported(i))
       continue;
 
@@ -184,7 +184,7 @@ CConn::CConn(const char *filename)
 
   sc = new SConn();
   sc->cp.setPF(pb.getPF());
-  sc->setEncodings(sizeof(encodings)/sizeof(*encodings), encodings);
+  sc->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
 }
 
 CConn::~CConn()
@@ -195,7 +195,7 @@ CConn::~CConn()
 
   delete in;
 
-  for (i = 0;i < rfb::encodingMax;i++)
+  for (i = 0; i < rfb::encodingMax; i++)
     delete decoders[i];
 }
 
@@ -272,9 +272,9 @@ double Manager::getRatio()
   unsigned long long bytes, equivalent;
 
   bytes = equivalent = 0;
-  for (iter = stats.begin();iter != stats.end();++iter) {
+  for (iter = stats.begin(); iter != stats.end(); ++iter) {
     StatsVector::value_type::iterator iter2;
-    for (iter2 = iter->begin();iter2 != iter->end();++iter2) {
+    for (iter2 = iter->begin(); iter2 != iter->end(); ++iter2) {
       bytes += iter2->bytes;
       equivalent += iter2->equivalent;
     }
@@ -348,12 +348,12 @@ static void sort(double *array, int count)
   int i;
   do {
     sorted = true;
-    for (i = 1;i < count;i++) {
+    for (i = 1; i < count; i++) {
       if (array[i-1] > array[i]) {
         double d;
         d = array[i];
-        array[i] = array[i-1];
-        array[i-1] = d;
+        array[i] = array[i - 1];
+        array[i - 1] = d;
         sorted = false;
       }
     }
@@ -385,8 +385,8 @@ int main(int argc, char **argv)
       continue;
 
     if (argv[i][0] == '-') {
-      if (i+1 < argc) {
-        if (rfb::Configuration::setParam(&argv[i][1], argv[i+1])) {
+      if (i + 1 < argc) {
+        if (rfb::Configuration::setParam(&argv[i][1], argv[i + 1])) {
           i++;
           continue;
         }
@@ -419,18 +419,18 @@ int main(int argc, char **argv)
   runTest(fn, &ratio);
 
   // Multiple runs to get a good average
-  for (i = 0;i < runCount;i++)
+  for (i = 0; i < runCount; i++)
     times[i] = runTest(fn, &ratio);
 
   // Calculate median and median deviation
   sort(times, runCount);
-  median = times[runCount/2];
+  median = times[runCount / 2];
 
-  for (i = 0;i < runCount;i++)
+  for (i = 0; i < runCount; i++)
     dev[i] = fabs((times[i] - median) / median) * 100;
 
   sort(dev, runCount);
-  meddev = dev[runCount/2];
+  meddev = dev[runCount / 2];
 
   printf("CPU time: %g s (+/- %g %)\n", median, meddev);
   printf("Ratio: %g\n", ratio);
