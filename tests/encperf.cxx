@@ -60,7 +60,8 @@ static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16)
 static const rdr::S32 encodings[] = {
   rfb::encodingTight, rfb::encodingCopyRect, rfb::encodingRRE,
   rfb::encodingHextile, rfb::encodingZRLE, rfb::pseudoEncodingLastRect,
-  rfb::pseudoEncodingQualityLevel0 + 8 };
+  rfb::pseudoEncodingQualityLevel0 + 8,
+  rfb::pseudoEncodingCompressLevel0 + 2};
 
 class DummyOutStream : public rdr::OutStream {
 public:
