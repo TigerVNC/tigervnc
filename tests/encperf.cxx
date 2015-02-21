@@ -49,6 +49,7 @@
 
 static rfb::IntParameter width("width", "Frame buffer width", 0);
 static rfb::IntParameter height("height", "Frame buffer height", 0);
+static rfb::IntParameter count("count", "Number of benchmark iterations", 9);
 
 static rfb::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
@@ -368,8 +369,6 @@ static void sort(double *array, int count)
   } while (!sorted);
 }
 
-static const int runCount = 9;
-
 static void usage(const char *argv0)
 {
   fprintf(stderr, "Syntax: %s [options] <rfb file>\n", argv0);
@@ -383,10 +382,6 @@ int main(int argc, char **argv)
   int i;
 
   const char *fn;
-
-  double times[runCount], dev[runCount];
-  double median, meddev, ratio;
-  unsigned long long bytes, equivalent;
 
   fn = NULL;
   for (i = 1; i < argc; i++) {
@@ -408,6 +403,11 @@ int main(int argc, char **argv)
 
     fn = argv[i];
   }
+
+  int runCount = count;
+  double times[runCount], dev[runCount];
+  double median, meddev, ratio;
+  unsigned long long bytes, equivalent;
 
   if (fn == NULL) {
     fprintf(stderr, "No file specified!\n\n");
