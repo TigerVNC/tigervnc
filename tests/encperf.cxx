@@ -1,4 +1,5 @@
 /* Copyright 2015 Pierre Ossman <ossman@cendio.se> for Cendio AB
+ * Copyright (C) 2015 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +80,8 @@ public:
   CConn(const char *filename);
   ~CConn();
 
-  double getRatio();
+  void getStats(double& ratio, unsigned long long& bytes,
+                unsigned long long& rawEquivalent);
 
   virtual void setDesktopSize(int w, int h);
   virtual void setCursor(int, int, const rfb::Point&, void*, void*);
@@ -106,7 +108,7 @@ class Manager : public rfb::EncodeManager {
 public:
   Manager(class rfb::SConnection *conn);
 
-  double getRatio();
+  void getStats(double&, unsigned long long&, unsigned long long&);
 };
 
 class SConn : public rfb::SConnection {
@@ -116,7 +118,7 @@ public:
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
 
-  double getRatio();
+  void getStats(double&, unsigned long long&, unsigned long long&);
 
   virtual void setAccessRights(AccessRights ar);
 
@@ -199,9 +201,10 @@ CConn::~CConn()
     delete decoders[i];
 }
 
-double CConn::getRatio()
+void CConn::getStats(double& ratio, unsigned long long& bytes,
+                     unsigned long long& rawEquivalent)
 {
-  return sc->getRatio();
+  sc->getStats(ratio, bytes, rawEquivalent);
 }
 
 void CConn::setDesktopSize(int w, int h)
@@ -266,7 +269,8 @@ Manager::Manager(class rfb::SConnection *conn) :
 {
 }
 
-double Manager::getRatio()
+void Manager::getStats(double& ratio, unsigned long long& encodedBytes,
+                       unsigned long long& rawEquivalent)
 {
   StatsVector::iterator iter;
   unsigned long long bytes, equivalent;
@@ -280,7 +284,9 @@ double Manager::getRatio()
     }
   }
 
-  return (double)equivalent / bytes;
+  ratio = (double)equivalent / bytes;
+  encodedBytes = bytes;
+  rawEquivalent = equivalent;
 }
 
 SConn::SConn()
@@ -304,9 +310,10 @@ void SConn::writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb)
   manager->writeUpdate(ui, pb, NULL);
 }
 
-double SConn::getRatio()
+void SConn::getStats(double& ratio, unsigned long long& bytes,
+                     unsigned long long& rawEquivalent)
 {
-  return manager->getRatio();
+  manager->getStats(ratio, bytes, rawEquivalent);
 }
 
 void SConn::setAccessRights(AccessRights ar)
@@ -318,7 +325,8 @@ void SConn::setDesktopSize(int fb_width, int fb_height,
 {
 }
 
-static double runTest(const char *fn, double *ratio)
+static double runTest(const char *fn, double& ratio, unsigned long long& bytes,
+                      unsigned long long& rawEquivalent)
 {
   CConn *cc;
   double time;
@@ -335,7 +343,7 @@ static double runTest(const char *fn, double *ratio)
   }
 
   time = cc->encodeTime;
-  *ratio = cc->getRatio();
+  cc->getStats(ratio, bytes, rawEquivalent);
 
   delete cc;
 
@@ -378,6 +386,7 @@ int main(int argc, char **argv)
 
   double times[runCount], dev[runCount];
   double median, meddev, ratio;
+  unsigned long long bytes, equivalent;
 
   fn = NULL;
   for (i = 1; i < argc; i++) {
@@ -416,11 +425,11 @@ int main(int argc, char **argv)
   }
 
   // Warmup
-  runTest(fn, &ratio);
+  runTest(fn, ratio, bytes, equivalent);
 
   // Multiple runs to get a good average
   for (i = 0; i < runCount; i++)
-    times[i] = runTest(fn, &ratio);
+    times[i] = runTest(fn, ratio, bytes, equivalent);
 
   // Calculate median and median deviation
   sort(times, runCount);
@@ -433,6 +442,8 @@ int main(int argc, char **argv)
   meddev = dev[runCount / 2];
 
   printf("CPU time: %g s (+/- %g %)\n", median, meddev);
+  printf("Encoded bytes: %lld\n", bytes);
+  printf("Raw equivalent bytes: %lld\n", equivalent);
   printf("Ratio: %g\n", ratio);
 
   return 0;
