@@ -212,10 +212,7 @@ void vncPrepareInputDevices(void)
 
 unsigned vncGetKeyboardState(void)
 {
-	DeviceIntPtr master;
-
-	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
-	return XkbStateFieldFromRec(&master->key->xkbInfo->state);
+	return XkbStateFieldFromRec(&vncKeyboardDev->master->key->xkbInfo->state);
 }
 
 unsigned vncGetLevelThreeMask(void)
@@ -236,7 +233,7 @@ unsigned vncGetLevelThreeMask(void)
 			return 0;
 	}
 
-	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = vncKeyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -261,7 +258,7 @@ KeyCode vncPressShift(void)
 	if (state & ShiftMask)
 		return 0;
 
-	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = vncKeyboardDev->master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
 		unsigned char mask;
@@ -301,7 +298,7 @@ size_t vncReleaseShift(KeyCode *keys, size_t maxKeys)
 
 	count = 0;
 
-	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
+	master = vncKeyboardDev->master;
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
@@ -357,7 +354,7 @@ KeyCode vncPressLevelThree(void)
 			return 0;
 	}
 
-	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = vncKeyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -388,7 +385,7 @@ size_t vncReleaseLevelThree(KeyCode *keys, size_t maxKeys)
 
 	count = 0;
 
-	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
+	master = vncKeyboardDev->master;
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
@@ -431,7 +428,7 @@ KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state)
 	if (new_state != NULL)
 		*new_state = state;
 
-	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = vncKeyboardDev->master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		unsigned int state_out;
 		KeySym dummy;
@@ -488,7 +485,7 @@ int vncIsLockModifier(KeyCode keycode, unsigned state)
 	XkbDescPtr xkb;
 	XkbAction *act;
 
-	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = vncKeyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -526,7 +523,7 @@ int vncIsAffectedByNumLock(KeyCode keycode)
 	if (numlock_keycode == 0)
 		return 0;
 
-	xkb = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = vncKeyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, numlock_keycode, state);
 	if (act == NULL)
@@ -560,7 +557,7 @@ KeyCode vncAddKeysym(KeySym keysym, unsigned state)
 	KeySym *syms;
 	KeySym upper, lower;
 
-	master = GetMaster(vncKeyboardDev, KEYBOARD_OR_FLOAT);
+	master = vncKeyboardDev->master;
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
 		if (XkbKeyNumGroups(xkb, key) == 0)
