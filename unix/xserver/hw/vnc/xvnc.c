@@ -679,9 +679,9 @@ vfbInstallColormap(ColormapPtr pmap)
 	entries = pmap->pVisual->ColormapEntries;
 	pVisual = pmap->pVisual;
 
-	ppix = (Pixel *)xalloc(entries * sizeof(Pixel));
-	prgb = (xrgb *)xalloc(entries * sizeof(xrgb));
-	defs = (xColorItem *)xalloc(entries * sizeof(xColorItem));
+	ppix = (Pixel *)malloc(entries * sizeof(Pixel));
+	prgb = (xrgb *)malloc(entries * sizeof(xrgb));
+	defs = (xColorItem *)malloc(entries * sizeof(xColorItem));
 
 	for (i = 0; i < entries; i++)  ppix[i] = i;
 	/* XXX truecolor */
@@ -700,9 +700,9 @@ vfbInstallColormap(ColormapPtr pmap)
 	}
 	(*pmap->pScreen->StoreColors)(pmap, entries, defs);
 	
-	xfree(ppix);
-	xfree(prgb);
-	xfree(defs);
+	free(ppix);
+	free(prgb);
+	free(defs);
     }
 }
 
