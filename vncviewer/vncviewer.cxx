@@ -330,7 +330,7 @@ interpretViaParam(char *remoteHost, int *remotePort, int localPort)
 
   snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
   vncServerName[VNCSERVERNAMELEN - 1] = '\0';
-  vlog.error(vncServerName);
+  vlog.error("%s", vncServerName);
 
   return 0;
 }
