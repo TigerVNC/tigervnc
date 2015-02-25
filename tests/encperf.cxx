@@ -442,7 +442,7 @@ int main(int argc, char **argv)
   sort(dev, runCount);
   meddev = dev[runCount / 2];
 
-  printf("CPU time: %g s (+/- %g %)\n", median, meddev);
+  printf("CPU time: %g s (+/- %g %%)\n", median, meddev);
   printf("Encoded bytes: %lld\n", bytes);
   printf("Raw equivalent bytes: %lld\n", equivalent);
   printf("Ratio: %g\n", ratio);
