@@ -1062,39 +1062,48 @@ void Viewport::initContextMenu()
 {
   contextMenu->clear();
 
-  contextMenu->add(_("E&xit viewer"), 0, NULL, (void*)ID_EXIT, FL_MENU_DIVIDER);
+  fltk_menu_add(contextMenu, _("E&xit viewer"), 0, NULL,
+                (void*)ID_EXIT, FL_MENU_DIVIDER);
 
 #ifdef HAVE_FLTK_FULLSCREEN
-  contextMenu->add(_("&Full screen"), 0, NULL, (void*)ID_FULLSCREEN, 
-		   FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
+  fltk_menu_add(contextMenu, _("&Full screen"), 0, NULL, (void*)ID_FULLSCREEN,
+                FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
 #endif
-  contextMenu->add(_("Resize &window to session"), 0, NULL, (void*)ID_RESIZE, 
+  fltk_menu_add(contextMenu, _("Resize &window to session"), 0, NULL,
+                (void*)ID_RESIZE,
 #ifdef HAVE_FLTK_FULLSCREEN
-       (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
+                (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
 #endif
-		   FL_MENU_DIVIDER);
+                FL_MENU_DIVIDER);
 
-  contextMenu->add(_("&Ctrl"), 0, NULL, (void*)ID_CTRL, 
-		   FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
-  contextMenu->add(_("&Alt"), 0, NULL, (void*)ID_ALT,
-		   FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
+  fltk_menu_add(contextMenu, _("&Ctrl"), 0, NULL, (void*)ID_CTRL,
+                FL_MENU_TOGGLE | (menuCtrlKey?FL_MENU_VALUE:0));
+  fltk_menu_add(contextMenu, _("&Alt"), 0, NULL, (void*)ID_ALT,
+                FL_MENU_TOGGLE | (menuAltKey?FL_MENU_VALUE:0));
 
   if (menuKeySym) {
     char sendMenuKey[64];
     snprintf(sendMenuKey, 64, _("Send %s"), (const char *)menuKey);
-    contextMenu->add(sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
-    contextMenu->add("Secret shortcut menu key", menuKeyCode, NULL, (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
+    fltk_menu_add(contextMenu, sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
+    fltk_menu_add(contextMenu, "Secret shortcut menu key", menuKeyCode, NULL,
+                  (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
   }
 
-  contextMenu->add(_("Send Ctrl-Alt-&Del"), 0, NULL, (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
+  fltk_menu_add(contextMenu, _("Send Ctrl-Alt-&Del"), 0, NULL,
+                (void*)ID_CTRLALTDEL, FL_MENU_DIVIDER);
 
-  contextMenu->add(_("&Refresh screen"), 0, NULL, (void*)ID_REFRESH, FL_MENU_DIVIDER);
+  fltk_menu_add(contextMenu, _("&Refresh screen"), 0, NULL,
+                (void*)ID_REFRESH, FL_MENU_DIVIDER);
 
-  contextMenu->add(_("&Options..."), 0, NULL, (void*)ID_OPTIONS, 0);
-  contextMenu->add(_("Connection &info..."), 0, NULL, (void*)ID_INFO, 0);
-  contextMenu->add(_("About &TigerVNC viewer..."), 0, NULL, (void*)ID_ABOUT, FL_MENU_DIVIDER);
+  fltk_menu_add(contextMenu, _("&Options..."), 0, NULL,
+                (void*)ID_OPTIONS, 0);
+  fltk_menu_add(contextMenu, _("Connection &info..."), 0, NULL,
+                (void*)ID_INFO, 0);
+  fltk_menu_add(contextMenu, _("About &TigerVNC viewer..."), 0, NULL,
+                (void*)ID_ABOUT, FL_MENU_DIVIDER);
 
-  contextMenu->add(_("Dismiss &menu"), 0, NULL, (void*)ID_DISMISS, 0);
+  fltk_menu_add(contextMenu, _("Dismiss &menu"), 0, NULL,
+                (void*)ID_DISMISS, 0);
 }
 
 
