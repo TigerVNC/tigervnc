@@ -203,7 +203,7 @@ static NSString *key_translate(UInt16 keyCode, UInt32 modifierFlags)
 
   layout = NULL;
 
-#if (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
+#if (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5) || defined(__x86_64__)
   TISInputSourceRef keyboard;
   CFDataRef uchr;
 
