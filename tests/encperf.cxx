@@ -53,6 +53,10 @@ static rfb::IntParameter count("count", "Number of benchmark iterations", 9);
 
 static rfb::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
+static rfb::BoolParameter translate("translate",
+                                    "Translate 8-bit and 16-bit datasets into 24-bit",
+                                    true);
+
 // The frame buffer (and output) is always this format
 static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
 
@@ -174,8 +178,6 @@ CConn::CConn(const char *filename)
     decoders[i] = rfb::Decoder::createDecoder(i, this);
   }
 
-  pb.setPF(fbPF);
-
   // Need to skip the initial handshake and ServerInit
   setState(RFBSTATE_NORMAL);
   // That also means that the reader and writer weren't setup
@@ -185,6 +187,8 @@ CConn::CConn(const char *filename)
   rfb::PixelFormat pf;
   pf.parse(format);
   setPixelFormat(pf);
+
+  pb.setPF((bool)translate ? fbPF : pf);
 
   sc = new SConn();
   sc->cp.setPF(pb.getPF());
