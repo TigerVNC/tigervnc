@@ -408,7 +408,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	    {
 		ErrorF("Invalid pixmap depth %d\n", depth);
 		UseMsg();
-		return;
+		return 0;
 	    }
 	    vfbPixmapDepths[depth] = TRUE;
 	    ret++;
