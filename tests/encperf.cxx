@@ -337,9 +337,9 @@ static double runTest(const char *fn, double& ratio, unsigned long long& bytes,
   CConn *cc;
   double time;
 
-  cc = new CConn(fn);
-
   try {
+    cc = new CConn(fn);
+
     while (true)
       cc->processMsg();
   } catch (rdr::EndOfStream e) {
