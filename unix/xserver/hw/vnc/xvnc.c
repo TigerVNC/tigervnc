@@ -87,11 +87,6 @@ from the X Consortium.
 #endif
 #include "site.h"
 
-#if XORG >= 110
-#define Xalloc malloc
-#define Xfree free
-#endif
-
 #define XVNCVERSION "TigerVNC 1.4.80"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2015 TigerVNC Team and many others (see README.txt)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
@@ -679,9 +674,11 @@ vfbInstallColormap(ColormapPtr pmap)
 	entries = pmap->pVisual->ColormapEntries;
 	pVisual = pmap->pVisual;
 
-	ppix = (Pixel *)xalloc(entries * sizeof(Pixel));
-	prgb = (xrgb *)xalloc(entries * sizeof(xrgb));
-	defs = (xColorItem *)xalloc(entries * sizeof(xColorItem));
+	ppix = (Pixel *)calloc(entries, sizeof(Pixel));
+	prgb = (xrgb *)calloc(entries, sizeof(xrgb));
+	defs = (xColorItem *)calloc(entries, sizeof(xColorItem));
+	if (!ppix || !prgb || !defs)
+	  FatalError ("Not enough memory for color map\n");
 
 	for (i = 0; i < entries; i++)  ppix[i] = i;
 	/* XXX truecolor */
@@ -700,9 +697,9 @@ vfbInstallColormap(ColormapPtr pmap)
 	}
 	(*pmap->pScreen->StoreColors)(pmap, entries, defs);
 	
-	xfree(ppix);
-	xfree(prgb);
-	xfree(defs);
+	free(ppix);
+	free(prgb);
+	free(defs);
     }
 }
 
@@ -786,7 +783,7 @@ vfbAllocateFramebufferMemory(vfbFramebufferInfoPtr pfb)
         break;
 #endif
     case NORMAL_MEMORY_FB:
-        pfb->pfbMemory = Xalloc(pfb->sizeInBytes);
+        pfb->pfbMemory = malloc(pfb->sizeInBytes);
         break;
     }
 
@@ -813,7 +810,7 @@ vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb)
         break;
 #endif /* HAS_SHM */
     case NORMAL_MEMORY_FB:
-        Xfree(pfb->pfbMemory);
+        free(pfb->pfbMemory);
         break;
     }
 
