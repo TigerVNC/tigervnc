@@ -87,11 +87,6 @@ from the X Consortium.
 #endif
 #include "site.h"
 
-#if XORG >= 110
-#define Xalloc malloc
-#define Xfree free
-#endif
-
 #define XVNCVERSION "TigerVNC 1.4.80"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2015 TigerVNC Team and many others (see README.txt)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
@@ -346,6 +341,13 @@ Bool displayNumFree(int num)
     return TRUE;
 }
 
+#define fail_unless_args(_argc,_i,_n)		\
+    if (_i + _n >= _argc)			\
+    {						\
+        UseMsg();				\
+        return 0;				\
+    }
+
 int 
 ddxProcessArgument(int argc, char *argv[], int i)
 {
@@ -365,12 +367,13 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-screen") == 0)	/* -screen n WxHxD */
     {
 	int screenNum;
-	if (i + 2 >= argc) UseMsg();
+	fail_unless_args(argc, i, 2);
 	screenNum = atoi(argv[i+1]);
 	if (screenNum < 0 || screenNum >= MAXSCREENS)
 	{
 	    ErrorF("Invalid screen number %d\n", screenNum);
 	    UseMsg();
+	    return 0;
 	}
 	if (3 != sscanf(argv[i+2], "%dx%dx%d",
 			&vfbScreens[screenNum].fb.width,
@@ -379,6 +382,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	{
 	    ErrorF("Invalid screen configuration %s\n", argv[i+2]);
 	    UseMsg();
+	    return 0;
 	}
 
 	if (screenNum >= vfbNumScreens)
@@ -391,13 +395,15 @@ ddxProcessArgument(int argc, char *argv[], int i)
     {
 	int depth, ret = 1;
 
-	if (++i >= argc) UseMsg();
+	fail_unless_args(argc, i, 1);
+	++i;
 	while ((i < argc) && (depth = atoi(argv[i++])) != 0)
 	{
 	    if (depth < 0 || depth > 32)
 	    {
 		ErrorF("Invalid pixmap depth %d\n", depth);
 		UseMsg();
+		return 0;
 	    }
 	    vfbPixmapDepths[depth] = TRUE;
 	    ret++;
@@ -420,7 +426,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-blackpixel") == 0)	/* -blackpixel n */
     {
 	Pixel pix;
-	if (++i >= argc) UseMsg();
+	fail_unless_args(argc, i, 1);
+	++i;
 	pix = atoi(argv[i]);
 	if (-1 == lastScreen)
 	{
@@ -440,7 +447,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-whitepixel") == 0)	/* -whitepixel n */
     {
 	Pixel pix;
-	if (++i >= argc) UseMsg();
+	fail_unless_args(argc, i, 1);
+	++i;
 	pix = atoi(argv[i]);
 	if (-1 == lastScreen)
 	{
@@ -460,7 +468,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-linebias") == 0)	/* -linebias n */
     {
 	unsigned int linebias;
-	if (++i >= argc) UseMsg();
+	fail_unless_args(argc, i, 1);
+	++i;
 	linebias = atoi(argv[i]);
 	if (-1 == lastScreen)
 	{
@@ -487,18 +496,21 @@ ddxProcessArgument(int argc, char *argv[], int i)
     
     if (strcmp(argv[i], "-geometry") == 0)
     {
-	if (++i >= argc) UseMsg();
+	fail_unless_args(argc, i, 1);
+	++i;
 	if (sscanf(argv[i],"%dx%d",&vfbScreens[0].fb.width,
 		   &vfbScreens[0].fb.height) != 2) {
 	    ErrorF("Invalid geometry %s\n", argv[i]);
 	    UseMsg();
+	    return 0;
 	}
 	return 2;
     }
     
     if (strcmp(argv[i], "-depth") == 0)
     {
-	if (++i >= argc) UseMsg();
+	fail_unless_args(argc, i, 1);
+	++i;
 	vfbScreens[0].fb.depth = atoi(argv[i]);
 	return 2;
     }
@@ -507,10 +519,12 @@ ddxProcessArgument(int argc, char *argv[], int i)
     {
 	char rgbbgr[4];
 	int bits1, bits2, bits3;
-	if (++i >= argc) UseMsg();
+	fail_unless_args(argc, i, 1);
+	++i;
 	if (sscanf(argv[i], "%3s%1d%1d%1d", rgbbgr,&bits1,&bits2,&bits3) < 4) {
 	    ErrorF("Invalid pixel format %s\n", argv[i]);
 	    UseMsg();
+	    return 0;
 	}
 
 #define SET_PIXEL_FORMAT(vfbScreen)                     \
@@ -528,6 +542,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
     } else {                                            \
         ErrorF("Invalid pixel format %s\n", argv[i]);   \
         UseMsg();                                       \
+        return 0;					\
     }
 
 	if (-1 == lastScreen)
@@ -679,9 +694,11 @@ vfbInstallColormap(ColormapPtr pmap)
 	entries = pmap->pVisual->ColormapEntries;
 	pVisual = pmap->pVisual;
 
-	ppix = (Pixel *)xalloc(entries * sizeof(Pixel));
-	prgb = (xrgb *)xalloc(entries * sizeof(xrgb));
-	defs = (xColorItem *)xalloc(entries * sizeof(xColorItem));
+	ppix = (Pixel *)calloc(entries, sizeof(Pixel));
+	prgb = (xrgb *)calloc(entries, sizeof(xrgb));
+	defs = (xColorItem *)calloc(entries, sizeof(xColorItem));
+	if (!ppix || !prgb || !defs)
+	  FatalError ("Not enough memory for color map\n");
 
 	for (i = 0; i < entries; i++)  ppix[i] = i;
 	/* XXX truecolor */
@@ -700,9 +717,9 @@ vfbInstallColormap(ColormapPtr pmap)
 	}
 	(*pmap->pScreen->StoreColors)(pmap, entries, defs);
 	
-	xfree(ppix);
-	xfree(prgb);
-	xfree(defs);
+	free(ppix);
+	free(prgb);
+	free(defs);
     }
 }
 
@@ -786,7 +803,7 @@ vfbAllocateFramebufferMemory(vfbFramebufferInfoPtr pfb)
         break;
 #endif
     case NORMAL_MEMORY_FB:
-        pfb->pfbMemory = Xalloc(pfb->sizeInBytes);
+        pfb->pfbMemory = malloc(pfb->sizeInBytes);
         break;
     }
 
@@ -813,7 +830,7 @@ vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb)
         break;
 #endif /* HAS_SHM */
     case NORMAL_MEMORY_FB:
-        Xfree(pfb->pfbMemory);
+        free(pfb->pfbMemory);
         break;
     }
 

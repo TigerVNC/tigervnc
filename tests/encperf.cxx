@@ -1,15 +1,16 @@
 /* Copyright 2015 Pierre Ossman <ossman@cendio.se> for Cendio AB
- * 
+ * Copyright (C) 2015 D. R. Commander.  All Rights Reserved.
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
@@ -48,8 +49,13 @@
 
 static rfb::IntParameter width("width", "Frame buffer width", 0);
 static rfb::IntParameter height("height", "Frame buffer height", 0);
+static rfb::IntParameter count("count", "Number of benchmark iterations", 9);
 
 static rfb::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
+
+static rfb::BoolParameter translate("translate",
+                                    "Translate 8-bit and 16-bit datasets into 24-bit",
+                                    true);
 
 // The frame buffer (and output) is always this format
 static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
@@ -58,7 +64,8 @@ static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16)
 static const rdr::S32 encodings[] = {
   rfb::encodingTight, rfb::encodingCopyRect, rfb::encodingRRE,
   rfb::encodingHextile, rfb::encodingZRLE, rfb::pseudoEncodingLastRect,
-  rfb::pseudoEncodingQualityLevel0 + 8 };
+  rfb::pseudoEncodingQualityLevel0 + 8,
+  rfb::pseudoEncodingCompressLevel0 + 2};
 
 class DummyOutStream : public rdr::OutStream {
 public:
@@ -79,7 +86,8 @@ public:
   CConn(const char *filename);
   ~CConn();
 
-  double getRatio();
+  void getStats(double& ratio, unsigned long long& bytes,
+                unsigned long long& rawEquivalent);
 
   virtual void setDesktopSize(int w, int h);
   virtual void setCursor(int, int, const rfb::Point&, void*, void*);
@@ -96,7 +104,7 @@ public:
 
 protected:
   rdr::FileInStream *in;
-  rfb::Decoder *decoders[rfb::encodingMax+1];
+  rfb::Decoder *decoders[rfb::encodingMax + 1];
   rfb::ManagedPixelBuffer pb;
   rfb::SimpleUpdateTracker updates;
   class SConn *sc;
@@ -106,7 +114,7 @@ class Manager : public rfb::EncodeManager {
 public:
   Manager(class rfb::SConnection *conn);
 
-  double getRatio();
+  void getStats(double&, unsigned long long&, unsigned long long&);
 };
 
 class SConn : public rfb::SConnection {
@@ -116,7 +124,7 @@ public:
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
 
-  double getRatio();
+  void getStats(double&, unsigned long long&, unsigned long long&);
 
   virtual void setAccessRights(AccessRights ar);
 
@@ -163,14 +171,12 @@ CConn::CConn(const char *filename)
   setStreams(in, NULL);
 
   memset(decoders, 0, sizeof(decoders));
-  for (i = 0;i < rfb::encodingMax;i++) {
+  for (i = 0; i < rfb::encodingMax; i++) {
     if (!rfb::Decoder::supported(i))
       continue;
 
     decoders[i] = rfb::Decoder::createDecoder(i, this);
   }
-
-  pb.setPF(fbPF);
 
   // Need to skip the initial handshake and ServerInit
   setState(RFBSTATE_NORMAL);
@@ -182,9 +188,11 @@ CConn::CConn(const char *filename)
   pf.parse(format);
   setPixelFormat(pf);
 
+  pb.setPF((bool)translate ? fbPF : pf);
+
   sc = new SConn();
   sc->cp.setPF(pb.getPF());
-  sc->setEncodings(sizeof(encodings)/sizeof(*encodings), encodings);
+  sc->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
 }
 
 CConn::~CConn()
@@ -195,13 +203,14 @@ CConn::~CConn()
 
   delete in;
 
-  for (i = 0;i < rfb::encodingMax;i++)
+  for (i = 0; i < rfb::encodingMax; i++)
     delete decoders[i];
 }
 
-double CConn::getRatio()
+void CConn::getStats(double& ratio, unsigned long long& bytes,
+                     unsigned long long& rawEquivalent)
 {
-  return sc->getRatio();
+  sc->getStats(ratio, bytes, rawEquivalent);
 }
 
 void CConn::setDesktopSize(int w, int h)
@@ -266,21 +275,24 @@ Manager::Manager(class rfb::SConnection *conn) :
 {
 }
 
-double Manager::getRatio()
+void Manager::getStats(double& ratio, unsigned long long& encodedBytes,
+                       unsigned long long& rawEquivalent)
 {
   StatsVector::iterator iter;
   unsigned long long bytes, equivalent;
 
   bytes = equivalent = 0;
-  for (iter = stats.begin();iter != stats.end();++iter) {
+  for (iter = stats.begin(); iter != stats.end(); ++iter) {
     StatsVector::value_type::iterator iter2;
-    for (iter2 = iter->begin();iter2 != iter->end();++iter2) {
+    for (iter2 = iter->begin(); iter2 != iter->end(); ++iter2) {
       bytes += iter2->bytes;
       equivalent += iter2->equivalent;
     }
   }
 
-  return (double)equivalent / bytes;
+  ratio = (double)equivalent / bytes;
+  encodedBytes = bytes;
+  rawEquivalent = equivalent;
 }
 
 SConn::SConn()
@@ -304,9 +316,10 @@ void SConn::writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb)
   manager->writeUpdate(ui, pb, NULL);
 }
 
-double SConn::getRatio()
+void SConn::getStats(double& ratio, unsigned long long& bytes,
+                     unsigned long long& rawEquivalent)
 {
-  return manager->getRatio();
+  manager->getStats(ratio, bytes, rawEquivalent);
 }
 
 void SConn::setAccessRights(AccessRights ar)
@@ -318,7 +331,8 @@ void SConn::setDesktopSize(int fb_width, int fb_height,
 {
 }
 
-static double runTest(const char *fn, double *ratio)
+static double runTest(const char *fn, double& ratio, unsigned long long& bytes,
+                      unsigned long long& rawEquivalent)
 {
   CConn *cc;
   double time;
@@ -335,7 +349,7 @@ static double runTest(const char *fn, double *ratio)
   }
 
   time = cc->encodeTime;
-  *ratio = cc->getRatio();
+  cc->getStats(ratio, bytes, rawEquivalent);
 
   delete cc;
 
@@ -348,19 +362,17 @@ static void sort(double *array, int count)
   int i;
   do {
     sorted = true;
-    for (i = 1;i < count;i++) {
+    for (i = 1; i < count; i++) {
       if (array[i-1] > array[i]) {
         double d;
         d = array[i];
-        array[i] = array[i-1];
-        array[i-1] = d;
+        array[i] = array[i - 1];
+        array[i - 1] = d;
         sorted = false;
       }
     }
   } while (!sorted);
 }
-
-static const int runCount = 9;
 
 static void usage(const char *argv0)
 {
@@ -376,17 +388,14 @@ int main(int argc, char **argv)
 
   const char *fn;
 
-  double times[runCount], dev[runCount];
-  double median, meddev, ratio;
-
   fn = NULL;
   for (i = 1; i < argc; i++) {
     if (rfb::Configuration::setParam(argv[i]))
       continue;
 
     if (argv[i][0] == '-') {
-      if (i+1 < argc) {
-        if (rfb::Configuration::setParam(&argv[i][1], argv[i+1])) {
+      if (i + 1 < argc) {
+        if (rfb::Configuration::setParam(&argv[i][1], argv[i + 1])) {
           i++;
           continue;
         }
@@ -399,6 +408,11 @@ int main(int argc, char **argv)
 
     fn = argv[i];
   }
+
+  int runCount = count;
+  double times[runCount], dev[runCount];
+  double median, meddev, ratio;
+  unsigned long long bytes, equivalent;
 
   if (fn == NULL) {
     fprintf(stderr, "No file specified!\n\n");
@@ -416,23 +430,25 @@ int main(int argc, char **argv)
   }
 
   // Warmup
-  runTest(fn, &ratio);
+  runTest(fn, ratio, bytes, equivalent);
 
   // Multiple runs to get a good average
-  for (i = 0;i < runCount;i++)
-    times[i] = runTest(fn, &ratio);
+  for (i = 0; i < runCount; i++)
+    times[i] = runTest(fn, ratio, bytes, equivalent);
 
   // Calculate median and median deviation
   sort(times, runCount);
-  median = times[runCount/2];
+  median = times[runCount / 2];
 
-  for (i = 0;i < runCount;i++)
+  for (i = 0; i < runCount; i++)
     dev[i] = fabs((times[i] - median) / median) * 100;
 
   sort(dev, runCount);
-  meddev = dev[runCount/2];
+  meddev = dev[runCount / 2];
 
-  printf("CPU time: %g s (+/- %g %)\n", median, meddev);
+  printf("CPU time: %g s (+/- %g %%)\n", median, meddev);
+  printf("Encoded bytes: %lld\n", bytes);
+  printf("Raw equivalent bytes: %lld\n", equivalent);
   printf("Ratio: %g\n", ratio);
 
   return 0;
