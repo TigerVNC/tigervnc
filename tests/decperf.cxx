@@ -145,9 +145,9 @@ static double runTest(const char *fn)
   CConn *cc;
   double time;
 
-  cc = new CConn(fn);
-
   try {
+    cc = new CConn(fn);
+
     while (true)
       cc->processMsg();
   } catch (rdr::EndOfStream e) {
