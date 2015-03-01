@@ -182,6 +182,7 @@ Patch121:  freetype-2.3.11-CVE-2012-5669.patch
 # https://release.debian.org/proposed-updates/stable_diffs/xorg-server_1.12.4-6+deb7u5.debdiff
 Patch10000: 16_CVE-2014-mult.diff
 Patch10001: 17_CVE-regressions.diff
+Patch10002: CVE-2015-0255.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -396,6 +397,7 @@ tar xjf %SOURCE204
 pushd xorg-server-1*
 %patch10000 -p1 -b .CVE-2014-mult
 %patch10001 -p1 -b .CVE-regressions
+%patch10002 -p1 -b .CVE-2015-0255
 for f in `find . -type f -perm -000`; do
   chmod +r "$f"
 done
