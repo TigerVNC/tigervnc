@@ -20,6 +20,7 @@ Source6: vncviewer.desktop
 Source9: FindX11.cmake
 Source11: http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
 Source12: http://downloads.sourceforge.net/project/libjpeg-turbo/1.3.0/libjpeg-turbo-1.3.0.tar.gz
+Source13: http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/1.5.10/libpng-1.5.10.tar.bz2
 
 Source100: http://www.x.org/releases/X11R7.7/src/everything/bigreqsproto-1.1.2.tar.bz2
 Source101: http://www.x.org/releases/X11R7.7/src/everything/compositeproto-0.4.2.tar.bz2
@@ -275,6 +276,7 @@ pushd fltk-*
 popd
 
 tar xzf %SOURCE12
+tar xjf %SOURCE13
 
 mkdir xorg
 pushd xorg
@@ -695,6 +697,17 @@ popd
 
 popd
 
+echo "*** Building libpng ***"
+pushd libpng-*
+CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
+  --prefix=%{_prefix} \
+  --libdir=%{_libdir} \
+  --disable-shared \
+  --enable-static
+make %{?_smp_mflags}
+make DESTDIR=%{xorg_buildroot} install
+popd
+
 echo "*** Building fltk ***"
 pushd fltk-*
 export CMAKE_PREFIX_PATH="%{xorg_buildroot}%{_prefix}:%{_prefix}"
@@ -708,7 +721,7 @@ CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
   --disable-shared \
   --enable-localjpeg \
   --enable-localzlib \
-  --enable-localpng \
+  --disable-localpng \
   --enable-xinerama \
   --enable-xft \
   --enable-xdbe \
