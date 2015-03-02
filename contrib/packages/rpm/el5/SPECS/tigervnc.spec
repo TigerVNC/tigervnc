@@ -133,8 +133,7 @@ Patch11: tigervnc11-gethomedir.patch
 Patch12: tigervnc14-static-build-fixes.patch
 
 # fltk patches
-Patch124: fltk-1.3.2-libdl.patch
-Patch125: fltk-1.3.2-static-libs.patch
+Patch15: fltk-1.3.3-static-libs.patch
 
 # freetype patches
 Patch20:  freetype-2.1.10-enable-ft2-bci.patch
@@ -274,12 +273,7 @@ sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" cmake/Modules/FindX11.cmake
 
 tar xzf %SOURCE11
 pushd fltk-*
-# Search paths for X11 are hard coded into FindX11.cmake
-cp %SOURCE9 CMake/
-sed -i -e "s#@_includedir@#%{xorg_buildroot}%{_includedir}#" CMake/FindX11.cmake
-sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" CMake/FindX11.cmake
-%patch124 -p1 -b .libdl
-%patch125 -p1 -b .static-libs
+%patch15 -p1 -b .static-libs
 popd
 
 tar xzf %SOURCE12
@@ -708,16 +702,21 @@ pushd fltk-*
 export CMAKE_PREFIX_PATH="%{xorg_buildroot}%{_prefix}:%{_prefix}"
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 export PKG_CONFIG="pkg-config --static" 
-%{cmake28} -G"Unix Makefiles" \
-  -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DOPTION_PREFIX_LIB=%{_libdir} \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DOPTION_USE_THREADS=off \
-  -DOPTION_BUILD_EXAMPLES=off \
-  -DOPTION_USE_SYSTEM_LIBPNG=on \
-  -DPNG_LIBRARY=%{_libdir}/libpng.a \
-  -DPNG_INCLUDE_DIR=%{_includedir} \
-  -DOPTION_USE_GL=off
+CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
+  --prefix=%{_prefix} \
+  --libdir=%{_libdir} \
+  --enable-x11 \
+  --enable-gl \
+  --disable-shared \
+  --enable-localjpeg \
+  --enable-localzlib \
+  --enable-localpng \
+  --enable-xinerama \
+  --enable-xft \
+  --enable-xdbe \
+  --enable-xfixes \
+  --enable-xcursor \
+  --with-x 
 make %{?_smp_mflags}
 make DESTDIR=%{xorg_buildroot} install
 popd
