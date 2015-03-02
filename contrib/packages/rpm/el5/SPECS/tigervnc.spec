@@ -128,7 +128,6 @@ Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 # tigervnc patches
 Patch4: tigervnc-cookie.patch
-Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
 Patch12: tigervnc14-static-build-fixes.patch
 
@@ -267,7 +266,6 @@ cp %SOURCE9 cmake/Modules/
 sed -i -e "s#@_includedir@#%{xorg_buildroot}%{_includedir}#" cmake/Modules/FindX11.cmake
 sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" cmake/Modules/FindX11.cmake
 %patch4 -p1 -b .cookie
-%patch10 -p1 -b .ldnow
 %patch11 -p1 -b .gethomedir
 %patch12 -p1 -b .static-build-fixes
 

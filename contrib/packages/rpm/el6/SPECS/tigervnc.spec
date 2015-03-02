@@ -46,7 +46,6 @@ Provides: tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 Patch4: tigervnc-cookie.patch
-Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
 Patch16: tigervnc-xorg-manpages.patch
 
@@ -140,7 +139,6 @@ This package contains icons for TigerVNC viewer
 
 # sed -i -e 's/80/0/g' CMakeLists.txt
 %patch4 -p1 -b .cookie
-%patch10 -p1 -b .ldnow
 %patch11 -p1 -b .gethomedir
 
 tar xzf %SOURCE11
