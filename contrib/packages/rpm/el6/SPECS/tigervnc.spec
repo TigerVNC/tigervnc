@@ -2,7 +2,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 18%{?snap:.%{snap}}%{?dist}
+Release: 19%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -14,7 +14,7 @@ Source0: %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1: vncserver.service
 Source2: vncserver.sysconfig
 Source6: vncviewer.desktop
-Source11: http://fltk.org/pub/fltk/1.3.2/fltk-1.3.2-source.tar.gz
+Source11: http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: libX11-devel, automake, autoconf, libtool, gettext, gettext-devel
@@ -46,7 +46,6 @@ Provides: tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 Patch4: tigervnc-cookie.patch
-Patch10: tigervnc11-ldnow.patch
 Patch11: tigervnc11-gethomedir.patch
 Patch16: tigervnc-xorg-manpages.patch
 
@@ -140,16 +139,9 @@ This package contains icons for TigerVNC viewer
 
 # sed -i -e 's/80/0/g' CMakeLists.txt
 %patch4 -p1 -b .cookie
-%patch10 -p1 -b .ldnow
 %patch11 -p1 -b .gethomedir
 
 tar xzf %SOURCE11
-pushd fltk-*
-for p in `find ../contrib/fltk -maxdepth 1 -type f -name "*.patch"|sort` ;
-do
-  patch -p1 -i $p
-done
-popd
 
 cp -r /usr/share/xorg-x11-server-source/* unix/xserver
 pushd unix/xserver
@@ -186,8 +178,8 @@ popd
 %{cmake28} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
   -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-  -DFLTK_LIBRARIES="%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk.a;%{tigervnc_src_dir}/fltk-1.3.2/lib/libfltk_images.a;-lpng" \
-  -DFLTK_INCLUDE_DIR=%{tigervnc_src_dir}/fltk-1.3.2
+  -DFLTK_LIBRARIES="%{tigervnc_src_dir}/fltk-1.3.3/lib/libfltk.a;%{tigervnc_src_dir}/fltk-1.3.3/lib/libfltk_images.a;-lpng" \
+  -DFLTK_INCLUDE_DIR=%{tigervnc_src_dir}/fltk-1.3.3
 make LDFLAGS="-lpng" %{?_smp_mflags}
 
 pushd unix/xserver
@@ -344,6 +336,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Thu Feb 19 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-19
+- Bumped fltk version to 1.3.3, no longer requires any patching
+
 * Tue Nov 04 2014 Brian P. Hinz <bphinz@users.sourceforge.net> 1.3.80-18.20131128svn5139
 - Bumped xserver patch to keep pace with native version
 
