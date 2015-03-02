@@ -5,7 +5,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 3%{?snap:.%{snap}}%{?dist}
+Release: 4%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -18,7 +18,7 @@ Source1: vncserver.service
 Source2: vncserver.sysconfig
 Source6: vncviewer.desktop
 Source9: FindX11.cmake
-Source11: http://fltk.org/pub/fltk/1.3.2/fltk-1.3.2-source.tar.gz
+Source11: http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
 Source12: http://downloads.sourceforge.net/project/libjpeg-turbo/1.3.0/libjpeg-turbo-1.3.0.tar.gz
 
 Source100: http://www.x.org/releases/X11R7.7/src/everything/bigreqsproto-1.1.2.tar.bz2
@@ -274,10 +274,6 @@ sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" cmake/Modules/FindX11.cmake
 
 tar xzf %SOURCE11
 pushd fltk-*
-for p in `find ../contrib/fltk -maxdepth 1 -type f -name "*.patch"|sort` ;
-do
-  patch -p1 -i $p
-done
 # Search paths for X11 are hard coded into FindX11.cmake
 cp %SOURCE9 CMake/
 sed -i -e "s#@_includedir@#%{xorg_buildroot}%{_includedir}#" CMake/FindX11.cmake
@@ -914,6 +910,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Thu Feb 19 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-4
+- Bumped fltk to 1.3.3, no longer requires patching
+
 * Mon Jan 19 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.0-3
 - Added default font paths to Xvnc and fontconfig
 - Added vendor strings to Xvnc
