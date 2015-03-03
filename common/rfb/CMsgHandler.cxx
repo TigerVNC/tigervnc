@@ -38,13 +38,13 @@ void CMsgHandler::setDesktopSize(int width, int height)
   cp.height = height;
 }
 
-void CMsgHandler::setExtendedDesktopSize(int reason, int result,
+void CMsgHandler::setExtendedDesktopSize(unsigned reason, unsigned result,
                                          int width, int height,
                                          const ScreenSet& layout)
 {
   cp.supportsSetDesktopSize = true;
 
-  if ((reason == (signed)reasonClient) && (result != (signed)resultSuccess))
+  if ((reason == reasonClient) && (result != resultSuccess))
     return;
 
   if (!layout.validate(width, height))
