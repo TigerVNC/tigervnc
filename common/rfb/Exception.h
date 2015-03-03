@@ -24,14 +24,15 @@ namespace rfb {
   typedef rdr::Exception Exception;
   struct AuthFailureException : public Exception {
     AuthFailureException(const char* s="Authentication failure")
-      : Exception(s) {}
+      : Exception("%s", s) {}
   };
   struct AuthCancelledException : public rfb::Exception {
     AuthCancelledException(const char* s="Authentication cancelled")
-      : Exception(s) {}
+      : Exception("%s", s) {}
   };
   struct ConnFailedException : public Exception {
-    ConnFailedException(const char* s="Connection failed") : Exception(s) {}
+    ConnFailedException(const char* s="Connection failed")
+      : Exception("%s", s) {}
   };
 }
 #endif

@@ -489,7 +489,6 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
-  char write_error[buffersize*2];
   char encodingBuffer[buffersize];
 
   // Write to the registry or a predefined file if no filename was specified.
@@ -514,12 +513,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   /* Write parameters to file */
   FILE* f = fopen(filepath, "w+");
-  if (!f) {
-    snprintf(write_error, sizeof(write_error),
-             _("Failed to write configuration file, can't open %s: %s"),
-             filepath, strerror(errno));
-    throw Exception(write_error);
-  }
+  if (!f)
+    throw Exception(_("Failed to write configuration file, can't open %s: %s"),
+                    filepath, strerror(errno));
   
   fprintf(f, "%s\r\n", IDENTIFIER_STRING);
   fprintf(f, "\r\n");
@@ -548,7 +544,6 @@ char* loadViewerParameters(const char *filename) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
-  char readError[buffersize*2];
   char line[buffersize];
   char decodingBuffer[buffersize];
   static char servername[sizeof(line)];
@@ -575,10 +570,8 @@ char* loadViewerParameters(const char *filename) {
   if (!f) {
     if (!filename)
       return NULL; // Use defaults.
-    snprintf(readError, sizeof(readError),
-             _("Failed to read configuration file, can't open %s: %s"),
-             filepath, strerror(errno));
-    throw Exception(readError);
+    throw Exception(_("Failed to read configuration file, can't open %s: %s"),
+                    filepath, strerror(errno));
   }
   
   int lineNr = 0;
@@ -587,31 +580,23 @@ char* loadViewerParameters(const char *filename) {
     // Read the next line
     lineNr++;
     if (!fgets(line, sizeof(line), f)) {
-      if (line[sizeof(line) -1] != '\0') {
-        snprintf(readError, sizeof(readError),
-                 _("Failed to read line %d in file %s: %s"),
-                 lineNr, filepath, _("Line too long"));
-        throw Exception(readError);
-      }
+      if (line[sizeof(line) -1] != '\0')
+        throw Exception(_("Failed to read line %d in file %s: %s"),
+                        lineNr, filepath, _("Line too long"));
       if (feof(f))
         break;
 
-      snprintf(readError, sizeof(readError),
-               _("Failed to read line %d in file %s: %s"),
-               lineNr, filepath, strerror(errno));
-      throw Exception(readError);
+      throw Exception(_("Failed to read line %d in file %s: %s"),
+                      lineNr, filepath, strerror(errno));
     }
     
     // Make sure that the first line of the file has the file identifier string
     if(lineNr == 1) {
-      if(strncmp(line, IDENTIFIER_STRING, strlen(IDENTIFIER_STRING)) == 0) {
+      if(strncmp(line, IDENTIFIER_STRING, strlen(IDENTIFIER_STRING)) == 0)
         continue;
-      } else {
-        snprintf(readError, sizeof(readError),
-                 _("Configuration file %s is in an invalid format"),
-                 filepath);
-        throw Exception(readError);
-      }
+      else
+        throw Exception(_("Configuration file %s is in an invalid format"),
+                        filepath);
     }
     
     // Skip empty lines and comments

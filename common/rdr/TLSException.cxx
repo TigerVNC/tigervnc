@@ -34,15 +34,8 @@ using namespace rdr;
 
 #ifdef HAVE_GNUTLS
 TLSException::TLSException(const char* s, int err_)
-  : Exception(s), err(err_)
+  : Exception("%s: %s (%d)", s, gnutls_strerror(err), err), err(err_)
 {
-  strncat(str_, ": ", len-1-strlen(str_));
-  strncat(str_, gnutls_strerror(err), len-1-strlen(str_));
-  strncat(str_, " (", len-1-strlen(str_));
-  char buf[20];
-  sprintf(buf,"%d",err);
-  strncat(str_, buf, len-1-strlen(str_));
-  strncat(str_, ")", len-1-strlen(str_));
 }
 #endif /* HAVE_GNUTLS */
 
