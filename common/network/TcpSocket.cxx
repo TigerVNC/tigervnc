@@ -234,6 +234,9 @@ TcpSocket::TcpSocket(const char *host, int port)
   }
 
   freeaddrinfo(ai);
+
+  if (current == NULL)
+    throw Exception("No useful address for host");
 #endif /* HAVE_GETADDRINFO */
 
   if (result == -1)
