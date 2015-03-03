@@ -79,10 +79,6 @@ using namespace network;
 using namespace rfb;
 using namespace std;
 
-static const char _aboutText[] = N_("TigerVNC Viewer %d-bit v%s\n"
-                                    "Built on: %s\n"
-                                    "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
-                                    "See http://www.tigervnc.org for information on TigerVNC.");
 static char aboutText[1024];
 
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
@@ -382,7 +378,11 @@ int main(int argc, char** argv)
   textdomain(PACKAGE_NAME);
 
   // Generate the about string now that we get the proper translation
-  snprintf(aboutText, sizeof(aboutText), _aboutText,
+  snprintf(aboutText, sizeof(aboutText),
+           _("TigerVNC Viewer %d-bit v%s\n"
+             "Built on: %s\n"
+             "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+             "See http://www.tigervnc.org for information on TigerVNC."),
            (int)sizeof(size_t)*8, PACKAGE_VERSION,
            BUILD_TIMESTAMP, 2015);
 
