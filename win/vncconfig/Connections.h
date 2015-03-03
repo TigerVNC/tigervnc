@@ -117,11 +117,11 @@ namespace rfb {
         case IDC_HOSTS:
           {
             DWORD selected = SendMessage(GetDlgItem(handle, IDC_HOSTS), LB_GETCURSEL, 0, 0);
-            int count = SendMessage(GetDlgItem(handle, IDC_HOSTS), LB_GETCOUNT, 0, 0);
-            bool enable = selected != LB_ERR;
+            DWORD count = SendMessage(GetDlgItem(handle, IDC_HOSTS), LB_GETCOUNT, 0, 0);
+            bool enable = selected != (DWORD)LB_ERR;
             enableItem(IDC_HOST_REMOVE, enable);
             enableItem(IDC_HOST_UP, enable && (selected > 0));
-            enableItem(IDC_HOST_DOWN, enable && (selected < count-1));
+            enableItem(IDC_HOST_DOWN, enable && (selected+1 < count));
             enableItem(IDC_HOST_EDIT, enable);
             setChanged(isChanged());
           }

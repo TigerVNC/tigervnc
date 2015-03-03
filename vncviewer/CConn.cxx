@@ -134,7 +134,7 @@ CConn::~CConn()
 {
   OptionsDialog::removeCallback(handleOptions);
 
-  for (int i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
+  for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
     delete decoders[i];
 
   if (desktop)

@@ -58,7 +58,7 @@ int FileInStream::pos()
 
 int FileInStream::overrun(int itemSize, int nItems, bool wait)
 {
-  if (itemSize > sizeof(b))
+  if (itemSize > (int)sizeof(b))
     throw Exception("FileInStream overrun: max itemSize exceeded");
 
   if (end - ptr != 0)

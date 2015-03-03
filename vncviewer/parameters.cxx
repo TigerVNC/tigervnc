@@ -202,7 +202,7 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
     } else {
 
-      for (int j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
+      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
 
         if (val[i] == replaceMap[j].first) {
           dest[pos] = '\\';
@@ -242,7 +242,7 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
     // Check for escape sequences
     if (val[i] == '\\') {
       
-      for (int j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
+      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
         if (val[i+1] == replaceMap[j].second) {
           dest[pos] = replaceMap[j].first;
           escapedCharacter = true;
@@ -413,7 +413,7 @@ static void saveToReg(const char* servername) {
 
   setKeyString("ServerName", servername, &hKey);
 
-  for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       setKeyString(parameterArray[i]->getName(), *(StringParameter*)parameterArray[i], &hKey);
     } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
@@ -459,7 +459,7 @@ static char* loadFromReg() {
   int intValue = 0;
   char stringValue[buffersize];
   
-  for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (getKeyString(parameterArray[i]->getName(), stringValue, buffersize, &hKey))
         parameterArray[i]->setParam(stringValue);
@@ -523,7 +523,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   if (encodeValue(servername, encodingBuffer, buffersize))  
     fprintf(f, "ServerName=%s\n", encodingBuffer);
   
-  for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
         fprintf(f, "%s=%s\n", ((StringParameter*)parameterArray[i])->getName(), encodingBuffer);
@@ -635,7 +635,7 @@ char* loadViewerParameters(const char *filename) {
     } else {
     
       // Find and set the correct parameter
-      for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+      for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
 
         if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
           if (strcasecmp(line, ((StringParameter*)parameterArray[i])->getName()) == 0) {

@@ -129,7 +129,7 @@ struct ActiveDesktop {
         vlog.error("failed to get desktop item count: %ld", hr);
         return false;
       }
-      for (unsigned int i=0; i<itemCount; i++) {
+      for (int i=0; i<itemCount; i++) {
         if (enableItem(i, false))
           restoreItems.insert(i);
       }

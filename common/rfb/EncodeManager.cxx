@@ -152,7 +152,7 @@ EncodeManager::~EncodeManager()
 
 void EncodeManager::logStats()
 {
-  int i, j;
+  size_t i, j;
 
   unsigned rects;
   unsigned long long pixels, bytes, equivalent;
@@ -603,7 +603,7 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
   Encoder *encoder;
 
   struct RectInfo info;
-  int divisor, maxColours;
+  unsigned int divisor, maxColours;
 
   bool useRLE;
   EncoderType type;

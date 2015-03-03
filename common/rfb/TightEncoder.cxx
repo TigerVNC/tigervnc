@@ -201,7 +201,7 @@ void TightEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
   }
 
   while (count) {
-    int iter_count;
+    unsigned int iter_count;
 
     iter_count = sizeof(rgb)/3;
     if (iter_count > count)
