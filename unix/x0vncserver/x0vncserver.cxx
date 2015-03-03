@@ -287,6 +287,8 @@ public:
     server->add_changed(rect);
 
     return true;
+#else
+  return false;
 #endif
   }
 
