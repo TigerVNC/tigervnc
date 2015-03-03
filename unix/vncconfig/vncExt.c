@@ -328,7 +328,7 @@ Bool XVncExtGetQueryConnect(Display* dpy, char** addr, char** user,
   if (!*addr || !*user) {
     Xfree(*addr);
     Xfree(*user);
-    _XEatData(dpy, (rep.addrLen+1)&~1 + (rep.userLen+1)&~1);
+    _XEatData(dpy, ((rep.addrLen+1)&~1) + ((rep.userLen+1)&~1));
     return False;
   }
   _XReadPad(dpy, *addr, rep.addrLen);
