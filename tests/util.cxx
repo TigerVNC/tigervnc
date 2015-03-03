@@ -107,7 +107,7 @@ double getCpuCounter(cpucounter_t c)
   counters[1] = (uint64_t)s[1].dwHighDateTime << 32 |
                 s[1].dwLowDateTime;
 
-  seconds = (double)(counters[1] - counters[2]) / 10000000.0;
+  seconds = (double)(counters[1] - counters[0]) / 10000000.0;
 #else
   seconds = (double)(s[1].ru_utime.tv_sec -
                      s[0].ru_utime.tv_sec);
