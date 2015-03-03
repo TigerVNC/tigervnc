@@ -455,8 +455,13 @@ int main(int argc, char **argv)
   meddev = dev[runCount / 2];
 
   printf("CPU time: %g s (+/- %g %%)\n", median, meddev);
+#ifdef WIN32
+  printf("Encoded bytes: %I64d\n", bytes);
+  printf("Raw equivalent bytes: %I64d\n", equivalent);
+#else
   printf("Encoded bytes: %lld\n", bytes);
   printf("Raw equivalent bytes: %lld\n", equivalent);
+#endif
   printf("Ratio: %g\n", ratio);
 
   return 0;
