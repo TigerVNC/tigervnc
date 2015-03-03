@@ -122,7 +122,7 @@ void Sid::getUserNameAndDomain(TCHAR** name, TCHAR** domain) {
 
 Sid::Administrators::Administrators() {
   PSID sid = 0;
-  SID_IDENTIFIER_AUTHORITY ntAuth = SECURITY_NT_AUTHORITY;
+  SID_IDENTIFIER_AUTHORITY ntAuth = { SECURITY_NT_AUTHORITY };
   if (!AllocateAndInitializeSid(&ntAuth, 2,
                                 SECURITY_BUILTIN_DOMAIN_RID,
                                 DOMAIN_ALIAS_RID_ADMINS,
@@ -134,7 +134,7 @@ Sid::Administrators::Administrators() {
 
 Sid::SYSTEM::SYSTEM() {
   PSID sid = 0;
-  SID_IDENTIFIER_AUTHORITY ntAuth = SECURITY_NT_AUTHORITY;
+  SID_IDENTIFIER_AUTHORITY ntAuth = { SECURITY_NT_AUTHORITY };
   if (!AllocateAndInitializeSid(&ntAuth, 1,
                                 SECURITY_LOCAL_SYSTEM_RID,
                                 0, 0, 0, 0, 0, 0, 0, &sid))

@@ -182,8 +182,8 @@ static VoidParameter* parameterArray[] = {
 static struct {
   const char first;
   const char second;
-} replaceMap[] = {'\n', 'n',
-                  '\r', 'r'};
+} replaceMap[] = { { '\n', 'n' },
+                   { '\r', 'r' } };
 
 static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
