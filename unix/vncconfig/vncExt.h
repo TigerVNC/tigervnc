@@ -54,7 +54,7 @@ void XVncExtFreeParamList(char** list);
 Bool XVncExtSetServerCutText(Display* dpy, const char* str, int len);
 Bool XVncExtGetClientCutText(Display* dpy, char** str, int* len);
 Bool XVncExtSelectInput(Display* dpy, Window w, int mask);
-Bool XVncExtConnect(Display* dpy, char* hostAndPort);
+Bool XVncExtConnect(Display* dpy, const char* hostAndPort);
 Bool XVncExtGetQueryConnect(Display* dpy, char** addr,
                             char** user, int* timeout, void** opaqueId);
 Bool XVncExtApproveConnect(Display* dpy, void* opaqueId, int approve);

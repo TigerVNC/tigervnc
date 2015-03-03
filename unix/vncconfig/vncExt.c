@@ -278,7 +278,7 @@ Bool XVncExtSelectInput(Display* dpy, Window w, int mask)
   return True;
 }
 
-Bool XVncExtConnect(Display* dpy, char* hostAndPort)
+Bool XVncExtConnect(Display* dpy, const char* hostAndPort)
 {
   xVncExtConnectReq* req;
   xVncExtConnectReply rep;
