@@ -5,6 +5,7 @@ RFB_LIB=$(LIB_DIR)/rfb/librfb.la
 RDR_LIB=$(LIB_DIR)/rdr/librdr.la
 NETWORK_LIB=$(LIB_DIR)/network/libnetwork.la
 XREGION_LIB=$(LIB_DIR)/Xregion/libXregion.la
+OS_LIB=$(LIB_DIR)/os/libos.la
 COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
 
 # Hack to get the C headers to work when included from C++ code
@@ -58,7 +59,7 @@ libvnc_la_CPPFLAGS = $(XVNC_CPPFLAGS) -I$(TIGERVNC_SRCDIR)/common -UHAVE_CONFIG_
 
 libvnc_la_LDFLAGS = -module -avoid-version
 
-libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS)
+libvnc_la_LIBADD = libvnccommon.la $(COMMON_LIBS) $(OS_LIB)
 
 EXTRA_DIST = Xvnc.man
 
