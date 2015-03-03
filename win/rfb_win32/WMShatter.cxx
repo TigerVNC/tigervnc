@@ -37,7 +37,8 @@ rfb::win32::IsSafeWM(HWND window, UINT msg, WPARAM wParam, LPARAM lParam) {
     break;
   };
   if (!result) {
-    vlog.info("IsSafeWM: 0x%x received 0x%x(%u, %lu) - not safe", window, msg, wParam, lParam);
+    vlog.info("IsSafeWM: 0x%p received 0x%x(%I64u, %I64u) - not safe",
+              window, msg, (long long)wParam, (long long)lParam);
   }
   return result;
 }

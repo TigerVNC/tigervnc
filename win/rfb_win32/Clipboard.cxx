@@ -96,7 +96,8 @@ Clipboard::processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
   switch (msg) {
 
   case WM_CHANGECBCHAIN:
-    vlog.debug("change clipboard chain (%x, %x)", wParam, lParam);
+    vlog.debug("change clipboard chain (%I64x, %I64x)",
+               (long long)wParam, (long long)lParam);
     if ((HWND) wParam == next_window)
       next_window = (HWND) lParam;
     else if (next_window != 0)
