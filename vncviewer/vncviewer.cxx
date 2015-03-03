@@ -425,6 +425,7 @@ int main(int argc, char** argv)
   try {
     defaultServerName = loadViewerParameters(NULL);
   } catch (rfb::Exception& e) {
+    defaultServerName = "";
     fl_alert("%s", e.str());
   }
   
