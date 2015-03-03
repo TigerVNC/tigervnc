@@ -91,6 +91,8 @@ static const char *encoderClassName(EncoderClass klass)
     return "Tight (JPEG)";
   case encoderZRLE:
     return "ZRLE";
+  case encoderClassMax:
+    break;
   }
 
   return "Unknown Encoder Class";
@@ -111,6 +113,8 @@ static const char *encoderTypeName(EncoderType type)
     return "Indexed RLE";
   case encoderFullColour:
     return "Full Colour";
+  case encoderTypeMax:
+    break;
   }
 
   return "Unknown Encoder Type";
