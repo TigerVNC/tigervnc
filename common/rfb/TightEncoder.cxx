@@ -163,7 +163,7 @@ void TightEncoder::writeFullColourRect(const PixelBuffer* pb, const Palette& pal
   int length;
 
   const rdr::U8* buffer;
-  int stride, w, h;
+  int stride, h;
 
   os = conn->getOutStream();
 

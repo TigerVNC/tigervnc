@@ -760,7 +760,6 @@ void VNCSConnectionST::writeRTTPing()
 void VNCSConnectionST::handleRTTPong(const struct RTTInfo &rttInfo)
 {
   unsigned rtt, delay;
-  int bdp;
 
   pingCounter--;
 

@@ -598,7 +598,6 @@ TcpListener::accept() {
 
 void TcpListener::getMyAddresses(std::list<char*>* result) {
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
-  vnc_sockaddr_t sa;
   struct addrinfo *ai, *current, hints;
 
   memset(&hints, 0, sizeof(struct addrinfo));

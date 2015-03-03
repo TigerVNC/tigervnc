@@ -551,7 +551,6 @@ char* loadViewerParameters(const char *filename) {
   char readError[buffersize*2];
   char line[buffersize];
   char decodingBuffer[buffersize];
-  char decodedValue[buffersize];
   static char servername[sizeof(line)];
 
   // Load from the registry or a predefined file if no filename was specified.
