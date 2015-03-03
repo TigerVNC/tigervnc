@@ -129,7 +129,7 @@ struct ActiveDesktop {
         vlog.error("failed to get desktop item count: %ld", hr);
         return false;
       }
-      for (unsigned int i=0; i<itemCount; i++) {
+      for (int i=0; i<itemCount; i++) {
         if (enableItem(i, false))
           restoreItems.insert(i);
       }
@@ -148,7 +148,7 @@ DWORD SysParamsInfo(UINT action, UINT param, PVOID ptr, UINT ini) {
   DWORD r = ERROR_SUCCESS;
   if (!SystemParametersInfo(action, param, ptr, ini)) {
     r = GetLastError();
-    vlog.info("SPI error: %d", r);
+    vlog.info("SPI error: %lu", r);
   }
   return r;
 }
@@ -303,12 +303,12 @@ void CleanDesktop::enableEffects() {
       desktopCfg.openKey(HKEY_CURRENT_USER, _T("Control Panel\\Desktop"));
       SysParamsInfo(SPI_SETFONTSMOOTHING, desktopCfg.getInt(_T("FontSmoothing"), 0) != 0, 0, SPIF_SENDCHANGE);
 #ifdef RFB_HAVE_SPI_UIEFFECTS
-      if (SysParamsInfo(SPI_SETUIEFFECTS, 0, (void*)uiEffects, SPIF_SENDCHANGE) == ERROR_CALL_NOT_IMPLEMENTED) {
-        SysParamsInfo(SPI_SETCOMBOBOXANIMATION, 0, (void*)comboBoxAnim, SPIF_SENDCHANGE);
-        SysParamsInfo(SPI_SETGRADIENTCAPTIONS, 0, (void*)gradientCaptions, SPIF_SENDCHANGE);
-        SysParamsInfo(SPI_SETHOTTRACKING, 0, (void*)hotTracking, SPIF_SENDCHANGE);
-        SysParamsInfo(SPI_SETLISTBOXSMOOTHSCROLLING, 0, (void*)listBoxSmoothScroll, SPIF_SENDCHANGE);
-        SysParamsInfo(SPI_SETMENUANIMATION, 0, (void*)menuAnim, SPIF_SENDCHANGE);
+      if (SysParamsInfo(SPI_SETUIEFFECTS, 0, (void*)(intptr_t)uiEffects, SPIF_SENDCHANGE) == ERROR_CALL_NOT_IMPLEMENTED) {
+        SysParamsInfo(SPI_SETCOMBOBOXANIMATION, 0, (void*)(intptr_t)comboBoxAnim, SPIF_SENDCHANGE);
+        SysParamsInfo(SPI_SETGRADIENTCAPTIONS, 0, (void*)(intptr_t)gradientCaptions, SPIF_SENDCHANGE);
+        SysParamsInfo(SPI_SETHOTTRACKING, 0, (void*)(intptr_t)hotTracking, SPIF_SENDCHANGE);
+        SysParamsInfo(SPI_SETLISTBOXSMOOTHSCROLLING, 0, (void*)(intptr_t)listBoxSmoothScroll, SPIF_SENDCHANGE);
+        SysParamsInfo(SPI_SETMENUANIMATION, 0, (void*)(intptr_t)menuAnim, SPIF_SENDCHANGE);
       }
       restoreEffects = false;
 #else

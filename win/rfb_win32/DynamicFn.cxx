@@ -29,12 +29,12 @@ static LogWriter vlog("DynamicFn");
 DynamicFnBase::DynamicFnBase(const TCHAR* dllName, const char* fnName) : fnPtr(0), dllHandle(0) {
   dllHandle = LoadLibrary(dllName);
   if (!dllHandle) {
-    vlog.info("DLL %s not found (%d)", (const char*)CStr(dllName), GetLastError());
+    vlog.info("DLL %s not found (%lu)", (const char*)CStr(dllName), GetLastError());
     return;
   }
   fnPtr = (void*) GetProcAddress(dllHandle, fnName);
   if (!fnPtr)
-    vlog.info("proc %s not found in %s (%d)", fnName, (const char*)CStr(dllName), GetLastError());
+    vlog.info("proc %s not found in %s (%lu)", fnName, (const char*)CStr(dllName), GetLastError());
 }
 
 DynamicFnBase::~DynamicFnBase() {

@@ -134,7 +134,7 @@ CConn::~CConn()
 {
   OptionsDialog::removeCallback(handleOptions);
 
-  for (int i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
+  for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
     delete decoders[i];
 
   if (desktop)
@@ -313,8 +313,8 @@ void CConn::setDesktopSize(int w, int h)
 }
 
 // setExtendedDesktopSize() is a more advanced version of setDesktopSize()
-void CConn::setExtendedDesktopSize(int reason, int result, int w, int h,
-                                   const rfb::ScreenSet& layout)
+void CConn::setExtendedDesktopSize(unsigned reason, unsigned result,
+                                   int w, int h, const rfb::ScreenSet& layout)
 {
   CConnection::setExtendedDesktopSize(reason, result, w, h, layout);
 
@@ -411,7 +411,7 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
   ret = fl_utf8froma(buffer, size, str, len);
   assert(ret < size);
 
-  vlog.debug("Got clipboard data (%d bytes)", strlen(buffer));
+  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
 
   // RFB doesn't have separate selection and clipboard concepts, so we
   // dump the data into both variants.

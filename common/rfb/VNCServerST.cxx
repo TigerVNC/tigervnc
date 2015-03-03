@@ -544,7 +544,7 @@ inline bool VNCServerST::checkDefer()
   if (!deferPending)
     return true;
 
-  if (msSince(&deferStart) >= deferUpdateTime)
+  if (msSince(&deferStart) >= (unsigned)deferUpdateTime)
     return true;
 
   return false;

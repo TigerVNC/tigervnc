@@ -49,7 +49,8 @@ WMCursor::WMCursor() : hooks(0), use_getCursorInfo(false), cursor(0) {
 #ifdef RFB_HAVE_GETCURSORINFO
   // Check the OS version
   bool is_win98 = (osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) &&
-    (osVersion.dwMajorVersion > 4) || ((osVersion.dwMajorVersion == 4) && (osVersion.dwMinorVersion > 0));
+    ((osVersion.dwMajorVersion > 4) ||
+     ((osVersion.dwMajorVersion == 4) && (osVersion.dwMinorVersion > 0)));
   bool is_win2K = (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT) && (osVersion.dwMajorVersion >= 5);
 
   // Use GetCursorInfo if OS version is sufficient

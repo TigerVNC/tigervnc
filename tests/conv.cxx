@@ -266,7 +266,7 @@ struct TestEntry tests[] = {
 static void doTests(const rfb::PixelFormat &dstpf,
                     const rfb::PixelFormat &srcpf)
 {
-  int i;
+  size_t i;
   char dstb[256], srcb[256];
 
   dstpf.print(dstb, sizeof(dstb));

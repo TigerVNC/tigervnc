@@ -44,7 +44,7 @@ ssize_t TLSInStream::pull(gnutls_transport_ptr str, void* data, size_t size)
       return -1;
     }
 
-    if (in->getend() - in->getptr() < size)
+    if (in->getend() - in->getptr() < (ptrdiff_t)size)
       size = in->getend() - in->getptr();
   
     in->readBytes(data, size);

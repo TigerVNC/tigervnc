@@ -182,8 +182,8 @@ static VoidParameter* parameterArray[] = {
 static struct {
   const char first;
   const char second;
-} replaceMap[] = {'\n', 'n',
-                  '\r', 'r'};
+} replaceMap[] = { { '\n', 'n' },
+                   { '\r', 'r' } };
 
 static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
@@ -202,7 +202,7 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
     } else {
 
-      for (int j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
+      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
 
         if (val[i] == replaceMap[j].first) {
           dest[pos] = '\\';
@@ -242,7 +242,7 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
     // Check for escape sequences
     if (val[i] == '\\') {
       
-      for (int j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
+      for (size_t j = 0; j < sizeof(replaceMap)/sizeof(replaceMap[0]); j++) {
         if (val[i+1] == replaceMap[j].second) {
           dest[pos] = replaceMap[j].first;
           escapedCharacter = true;
@@ -303,7 +303,7 @@ static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_SZ, (BYTE*)&value, (wcslen(value)+1)*2);
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to write parameter %s of type %s to the registry: %d"),
+    vlog.error(_("Failed to write parameter %s of type %s to the registry: %ld"),
                _name, "REG_SZ", res);
     return;
   }
@@ -324,7 +324,7 @@ static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
   
   LONG res = RegSetValueExW(*hKey, name, 0, REG_DWORD, (BYTE*)&value, sizeof(DWORD));
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to write parameter %s of type %s to the registry: %d"),
+    vlog.error(_("Failed to write parameter %s of type %s to the registry: %ld"),
                _name, "REG_DWORD", res);
     return;
   }
@@ -348,7 +348,7 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
     if (res == ERROR_FILE_NOT_FOUND) {
       // The value does not exist, defaults will be used.
     } else {
-      vlog.error(_("Failed to read parameter %s from the registry: %d"),
+      vlog.error(_("Failed to read parameter %s from the registry: %ld"),
                  _name, res);
     }
     return false;
@@ -387,7 +387,7 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
     if (res == ERROR_FILE_NOT_FOUND) {
       // The value does not exist, defaults will be used.
     } else {
-      vlog.error(_("Failed to read parameter %s from the registry: %d"),
+      vlog.error(_("Failed to read parameter %s from the registry: %ld"),
                  _name, res);
     }
     return false;
@@ -407,13 +407,13 @@ static void saveToReg(const char* servername) {
                              REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,
                              &hKey, NULL);
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to create registry key: %d"), res);
+    vlog.error(_("Failed to create registry key: %ld"), res);
     return;
   }
 
   setKeyString("ServerName", servername, &hKey);
 
-  for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       setKeyString(parameterArray[i]->getName(), *(StringParameter*)parameterArray[i], &hKey);
     } else if (dynamic_cast<IntParameter*>(parameterArray[i]) != NULL) {
@@ -428,7 +428,7 @@ static void saveToReg(const char* servername) {
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to close registry key: %d"), res);
+    vlog.error(_("Failed to close registry key: %ld"), res);
   }
 }
 
@@ -444,7 +444,7 @@ static char* loadFromReg() {
     if (res == ERROR_FILE_NOT_FOUND) {
       // The key does not exist, defaults will be used.
     } else {
-      vlog.error(_("Failed to open registry key: %d"), res);
+      vlog.error(_("Failed to open registry key: %ld"), res);
     }
     return NULL;
   }
@@ -459,7 +459,7 @@ static char* loadFromReg() {
   int intValue = 0;
   char stringValue[buffersize];
   
-  for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (getKeyString(parameterArray[i]->getName(), stringValue, buffersize, &hKey))
         parameterArray[i]->setParam(stringValue);
@@ -477,7 +477,7 @@ static char* loadFromReg() {
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS){
-    vlog.error(_("Failed to close registry key: %d"), res);
+    vlog.error(_("Failed to close registry key: %ld"), res);
   }
   
   return servername;
@@ -489,7 +489,6 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
-  char write_error[buffersize*2];
   char encodingBuffer[buffersize];
 
   // Write to the registry or a predefined file if no filename was specified.
@@ -514,12 +513,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
 
   /* Write parameters to file */
   FILE* f = fopen(filepath, "w+");
-  if (!f) {
-    snprintf(write_error, sizeof(write_error),
-             _("Failed to write configuration file, can't open %s: %s"),
-             filepath, strerror(errno));
-    throw Exception(write_error);
-  }
+  if (!f)
+    throw Exception(_("Failed to write configuration file, can't open %s: %s"),
+                    filepath, strerror(errno));
   
   fprintf(f, "%s\r\n", IDENTIFIER_STRING);
   fprintf(f, "\r\n");
@@ -527,7 +523,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   if (encodeValue(servername, encodingBuffer, buffersize))  
     fprintf(f, "ServerName=%s\n", encodingBuffer);
   
-  for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+  for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
     if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
       if (encodeValue(*(StringParameter*)parameterArray[i], encodingBuffer, buffersize))
         fprintf(f, "%s=%s\n", ((StringParameter*)parameterArray[i])->getName(), encodingBuffer);
@@ -548,10 +544,8 @@ char* loadViewerParameters(const char *filename) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
-  char readError[buffersize*2];
   char line[buffersize];
   char decodingBuffer[buffersize];
-  char decodedValue[buffersize];
   static char servername[sizeof(line)];
 
   // Load from the registry or a predefined file if no filename was specified.
@@ -576,10 +570,8 @@ char* loadViewerParameters(const char *filename) {
   if (!f) {
     if (!filename)
       return NULL; // Use defaults.
-    snprintf(readError, sizeof(readError),
-             _("Failed to read configuration file, can't open %s: %s"),
-             filepath, strerror(errno));
-    throw Exception(readError);
+    throw Exception(_("Failed to read configuration file, can't open %s: %s"),
+                    filepath, strerror(errno));
   }
   
   int lineNr = 0;
@@ -588,31 +580,23 @@ char* loadViewerParameters(const char *filename) {
     // Read the next line
     lineNr++;
     if (!fgets(line, sizeof(line), f)) {
-      if (line[sizeof(line) -1] != '\0') {
-        snprintf(readError, sizeof(readError),
-                 _("Failed to read line %d in file %s: %s"),
-                 lineNr, filepath, _("Line too long"));
-        throw Exception(readError);
-      }
+      if (line[sizeof(line) -1] != '\0')
+        throw Exception(_("Failed to read line %d in file %s: %s"),
+                        lineNr, filepath, _("Line too long"));
       if (feof(f))
         break;
 
-      snprintf(readError, sizeof(readError),
-               _("Failed to read line %d in file %s: %s"),
-               lineNr, filepath, strerror(errno));
-      throw Exception(readError);
+      throw Exception(_("Failed to read line %d in file %s: %s"),
+                      lineNr, filepath, strerror(errno));
     }
     
     // Make sure that the first line of the file has the file identifier string
     if(lineNr == 1) {
-      if(strncmp(line, IDENTIFIER_STRING, strlen(IDENTIFIER_STRING)) == 0) {
+      if(strncmp(line, IDENTIFIER_STRING, strlen(IDENTIFIER_STRING)) == 0)
         continue;
-      } else {
-        snprintf(readError, sizeof(readError),
-                 _("Configuration file %s is in an invalid format"),
-                 filepath);
-        throw Exception(readError);
-      }
+      else
+        throw Exception(_("Configuration file %s is in an invalid format"),
+                        filepath);
     }
     
     // Skip empty lines and comments
@@ -651,7 +635,7 @@ char* loadViewerParameters(const char *filename) {
     } else {
     
       // Find and set the correct parameter
-      for (int i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
+      for (size_t i = 0; i < sizeof(parameterArray)/sizeof(VoidParameter*); i++) {
 
         if (dynamic_cast<StringParameter*>(parameterArray[i]) != NULL) {
           if (strcasecmp(line, ((StringParameter*)parameterArray[i])->getName()) == 0) {

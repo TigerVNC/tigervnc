@@ -59,8 +59,8 @@ VNCServerWin32::VNCServerWin32()
       CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
     vncServer(CStr(ComputerName().buf), &desktop),
     hostThread(0), runServer(false), isDesktopStarted(false),
-    httpServer(&vncServer), config(&sockMgr), trayIcon(0),
-    rfbSock(&sockMgr), httpSock(&sockMgr),
+    httpServer(&vncServer), config(&sockMgr),
+    rfbSock(&sockMgr), httpSock(&sockMgr), trayIcon(0),
     queryConnectDialog(0)
 {
   // Initialise the desktop
@@ -189,10 +189,10 @@ int VNCServerWin32::run() {
 
     vlog.debug("Server exited cleanly");
   } catch (rdr::SystemException &s) {
-    vlog.error(s.str());
+    vlog.error("%s", s.str());
     result = s.err;
   } catch (rdr::Exception &e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
   }
 
   { Lock l(runLock);

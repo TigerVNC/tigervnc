@@ -141,17 +141,16 @@ void ControlPanel::SendCommand(DWORD command, int data)
 {
   COPYDATASTRUCT copyData;
   copyData.dwData = command;
-  copyData.lpData = 0;
   getSelConnInfo();
   if (data != -1) {
     ListConnStatus.Copy(&ListSelConn);
     ListConnStatus.setAllStatus(data);
     ListConnStatus.setDisable(isItemChecked(IDC_DISABLE_CLIENTS));
-    copyData.cbData = (DWORD)((long long)&ListConnStatus);
   } else {
     ListConnStatus.Clear();
   }
-  copyData.cbData = (DWORD)((long long)&ListConnStatus);
+  copyData.cbData = 0;
+  copyData.lpData = &ListConnStatus;
   SendMessage(m_hSTIcon, WM_COPYDATA, 0, (LPARAM)&copyData);
 }
 

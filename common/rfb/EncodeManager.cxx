@@ -91,6 +91,8 @@ static const char *encoderClassName(EncoderClass klass)
     return "Tight (JPEG)";
   case encoderZRLE:
     return "ZRLE";
+  case encoderClassMax:
+    break;
   }
 
   return "Unknown Encoder Class";
@@ -111,6 +113,8 @@ static const char *encoderTypeName(EncoderType type)
     return "Indexed RLE";
   case encoderFullColour:
     return "Full Colour";
+  case encoderTypeMax:
+    break;
   }
 
   return "Unknown Encoder Type";
@@ -152,12 +156,14 @@ EncodeManager::~EncodeManager()
 
 void EncodeManager::logStats()
 {
-  int i, j;
+  size_t i, j;
 
   unsigned rects;
   unsigned long long pixels, bytes, equivalent;
 
   double ratio;
+
+  char a[1024], b[1024];
 
   rects = 0;
   pixels = bytes = equivalent = 0;
@@ -186,19 +192,23 @@ void EncodeManager::logStats()
 
       ratio = (double)stats[i][j].equivalent / stats[i][j].bytes;
 
-      vlog.info("    %s: %u rects, %llu pixels",
-                encoderTypeName((EncoderType)j),
-                stats[i][j].rects, stats[i][j].pixels);
-      vlog.info("    %*s  %llu bytes (%g ratio)",
-                strlen(encoderTypeName((EncoderType)j)), "",
-                stats[i][j].bytes, ratio);
+      siPrefix(stats[i][j].rects, "rects", a, sizeof(a));
+      siPrefix(stats[i][j].pixels, "pixels", b, sizeof(b));
+      vlog.info("    %s: %s, %s", encoderTypeName((EncoderType)j), a, b);
+      iecPrefix(stats[i][j].bytes, "B", a, sizeof(a));
+      vlog.info("    %*s  %s (1:%g ratio)",
+                (int)strlen(encoderTypeName((EncoderType)j)), "",
+                a, ratio);
     }
   }
 
   ratio = (double)equivalent / bytes;
 
-  vlog.info("  Total: %u rects, %llu pixels", rects, pixels);
-  vlog.info("         %llu bytes (%g ratio)", bytes, ratio);
+  siPrefix(rects, "rects", a, sizeof(a));
+  siPrefix(pixels, "pixels", b, sizeof(b));
+  vlog.info("  Total: %s, %s", a, b);
+  iecPrefix(bytes, "B", a, sizeof(a));
+  vlog.info("         %s (1:%g ratio)", a, ratio);
 }
 
 bool EncodeManager::supported(int encoding)
@@ -603,7 +613,7 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb)
   Encoder *encoder;
 
   struct RectInfo info;
-  int divisor, maxColours;
+  unsigned int divisor, maxColours;
 
   bool useRLE;
   EncoderType type;

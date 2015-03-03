@@ -16,6 +16,7 @@
  * USA.
  */
 #include <stdio.h>
+#include <stdint.h>
 
 #define NEED_REPLIES
 #include <X11/Xlib.h>
@@ -277,7 +278,7 @@ Bool XVncExtSelectInput(Display* dpy, Window w, int mask)
   return True;
 }
 
-Bool XVncExtConnect(Display* dpy, char* hostAndPort)
+Bool XVncExtConnect(Display* dpy, const char* hostAndPort)
 {
   xVncExtConnectReq* req;
   xVncExtConnectReply rep;
@@ -328,7 +329,7 @@ Bool XVncExtGetQueryConnect(Display* dpy, char** addr, char** user,
   if (!*addr || !*user) {
     Xfree(*addr);
     Xfree(*user);
-    _XEatData(dpy, (rep.addrLen+1)&~1 + (rep.userLen+1)&~1);
+    _XEatData(dpy, ((rep.addrLen+1)&~1) + ((rep.userLen+1)&~1));
     return False;
   }
   _XReadPad(dpy, *addr, rep.addrLen);
@@ -336,7 +337,7 @@ Bool XVncExtGetQueryConnect(Display* dpy, char** addr, char** user,
   _XReadPad(dpy, *user, rep.userLen);
   (*user)[rep.userLen] = 0;
   *timeout = rep.timeout;
-  *opaqueId = (void*)rep.opaqueId;
+  *opaqueId = (void*)(intptr_t)rep.opaqueId;
   return True;
 }
 
@@ -351,7 +352,7 @@ Bool XVncExtApproveConnect(Display* dpy, void* opaqueId, int approve)
   req->reqType = codes->major_opcode;
   req->vncExtReqType = X_VncExtApproveConnect;
   req->approve = approve;
-  req->opaqueId = (CARD32)opaqueId;
+  req->opaqueId = (CARD32)(intptr_t)opaqueId;
   UnlockDisplay(dpy);
   SyncHandle();
   return True;

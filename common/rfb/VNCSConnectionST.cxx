@@ -70,8 +70,9 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     queryConnectTimer(this), inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(NULL),
-    baseRTT(-1), minRTT(-1), seenCongestion(false), pingCounter(0),
-    ackedOffset(0), sentOffset(0), congWindow(0), congestionTimer(this),
+    baseRTT(-1), congWindow(0), ackedOffset(0), sentOffset(0),
+    minRTT(-1), seenCongestion(false),
+    pingCounter(0), congestionTimer(this),
     server(server_), updates(false),
     drawRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this),
@@ -760,7 +761,6 @@ void VNCSConnectionST::writeRTTPing()
 void VNCSConnectionST::handleRTTPong(const struct RTTInfo &rttInfo)
 {
   unsigned rtt, delay;
-  int bdp;
 
   pingCounter--;
 
@@ -1131,7 +1131,7 @@ void VNCSConnectionST::setStatus(int status)
     accessRights = accessRights | AccessPtrEvents | AccessKeyEvents | AccessView;
     break;
   case 1:
-    accessRights = accessRights & ~(AccessPtrEvents | AccessKeyEvents) | AccessView;
+    accessRights = (accessRights & ~(AccessPtrEvents | AccessKeyEvents)) | AccessView;
     break;
   case 2:
     accessRights = accessRights & ~(AccessPtrEvents | AccessKeyEvents | AccessView);

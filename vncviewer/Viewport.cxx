@@ -104,7 +104,7 @@ static const int fakeKeyBase = 0x200;
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
     lastPointerPos(0, 0), lastButtonMask(0),
-    cursor(NULL), menuCtrlKey(false), menuAltKey(false)
+    menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
 // FLTK STR #2636 gives us the ability to monitor clipboard changes
 #ifdef HAVE_FLTK_CLIPBOARD
@@ -351,7 +351,7 @@ int Viewport::handle(int event)
                      Fl::event_length() + 1);
     assert(ret < (Fl::event_length() + 1));
 
-    vlog.debug("Sending clipboard data (%d bytes)", strlen(buffer));
+    vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(buffer));
 
     try {
       cc->writer()->clientCutText(buffer, ret);

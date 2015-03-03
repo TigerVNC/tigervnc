@@ -51,7 +51,7 @@ RegKey::RegKey(const HKEY k) : key(0), freeKey(false), valueNameBufLen(0) {
   LONG result = RegOpenKeyEx(k, 0, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx(HKEY)", result);
-  vlog.debug("duplicated %x to %x", k, key);
+  vlog.debug("duplicated %p to %p", k, key);
   freeKey = true;
 }
 
@@ -59,7 +59,7 @@ RegKey::RegKey(const RegKey& k) : key(0), freeKey(false), valueNameBufLen(0) {
   LONG result = RegOpenKeyEx(k.key, 0, 0, KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx(RegKey&)", result);
-  vlog.debug("duplicated %x to %x", k.key, key);
+  vlog.debug("duplicated %p to %p", k.key, key);
   freeKey = true;
 }
 
@@ -69,7 +69,7 @@ RegKey::~RegKey() {
 
 
 void RegKey::setHKEY(HKEY k, bool fK) {
-  vlog.debug("setHKEY(%x,%d)", k, (int)fK);
+  vlog.debug("setHKEY(%p,%d)", k, (int)fK);
   close();
   freeKey = fK;
   key = k;
@@ -80,10 +80,10 @@ bool RegKey::createKey(const RegKey& root, const TCHAR* name) {
   close();
   LONG result = RegCreateKey(root.key, name, &key);
   if (result != ERROR_SUCCESS) {
-    vlog.error("RegCreateKey(%x, %s): %x", root.key, name, result);
+    vlog.error("RegCreateKey(%p, %s): %lx", root.key, name, result);
     throw rdr::SystemException("RegCreateKeyEx", result);
   }
-  vlog.debug("createKey(%x,%s) = %x", root.key, (const char*)CStr(name), key);
+  vlog.debug("createKey(%p,%s) = %p", root.key, (const char*)CStr(name), key);
   freeKey = true;
   return true;
 }
@@ -93,7 +93,7 @@ void RegKey::openKey(const RegKey& root, const TCHAR* name, bool readOnly) {
   LONG result = RegOpenKeyEx(root.key, name, 0, readOnly ? KEY_READ : KEY_ALL_ACCESS, &key);
   if (result != ERROR_SUCCESS)
     throw rdr::SystemException("RegOpenKeyEx (open)", result);
-  vlog.debug("openKey(%x,%s,%s) = %x", root.key, (const char*)CStr(name),
+  vlog.debug("openKey(%p,%s,%s) = %p", root.key, (const char*)CStr(name),
 	         readOnly ? "ro" : "rw", key);
   freeKey = true;
 }
@@ -113,7 +113,7 @@ void RegKey::setDACL(const PACL acl, bool inherit) {
 
 void RegKey::close() {
   if (freeKey) {
-    vlog.debug("RegCloseKey(%x)", key);
+    vlog.debug("RegCloseKey(%p)", key);
     RegCloseKey(key);
     key = 0;
   }

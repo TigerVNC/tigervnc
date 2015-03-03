@@ -301,7 +301,6 @@ void SMsgWriter::writePseudoRects()
 {
   if (needSetCursor) {
     rdr::U8* data;
-    int stride;
 
     const Cursor& cursor = cp->cursor();
 

@@ -91,7 +91,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
       rMask = bi.mask.red;
       gMask = bi.mask.green;
       bMask = bi.mask.blue;
-      vlog.info("%lu-bit BitFields: (%lx, %lx, %lx)",
+      vlog.info("%d-bit BitFields: (%lx, %lx, %lx)",
                  bi.bmiHeader.biBitCount, rMask, gMask, bMask);
       break;
     };
@@ -127,6 +127,10 @@ PixelFormat DeviceContext::getPF(HDC dc) {
     if (bpp < 8)
       bpp = 8;
     vlog.info("%d-colour palettised", 1<<depth);
+    // Aren't really used, but set them to keep the compiler happy
+    redMax = redShift = 0;
+    greenMax = greenShift = 0;
+    blueMax = blueShift = 0;
   }
 
 

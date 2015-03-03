@@ -155,6 +155,10 @@ TcpSocket::TcpSocket(const char *host, int port)
 		    gai_strerror(result));
   }
 
+  // This logic is too complex for the compiler to determine if
+  // sock is properly assigned or not.
+  sock = -1;
+
   for (current = ai; current != NULL; current = current->ai_next) {
     family = current->ai_family;
 
@@ -230,6 +234,9 @@ TcpSocket::TcpSocket(const char *host, int port)
   }
 
   freeaddrinfo(ai);
+
+  if (current == NULL)
+    throw Exception("No useful address for host");
 #endif /* HAVE_GETADDRINFO */
 
   if (result == -1)
@@ -591,7 +598,6 @@ TcpListener::accept() {
 
 void TcpListener::getMyAddresses(std::list<char*>* result) {
 #if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
-  vnc_sockaddr_t sa;
   struct addrinfo *ai, *current, hints;
 
   memset(&hints, 0, sizeof(struct addrinfo));

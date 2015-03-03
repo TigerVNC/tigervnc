@@ -32,6 +32,12 @@
 
 struct timeval;
 
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
+
 namespace rfb {
 
   // -=- Class to handle cleanup of arrays of characters
@@ -45,6 +51,7 @@ namespace rfb {
     ~CharArray() {
       delete [] buf;
     }
+    void format(const char *fmt, ...) __printf_attr(2, 3);
     // Get the buffer pointer & clear it (i.e. caller takes ownership)
     char* takeBuf() {char* tmp = buf; buf = 0; return tmp;}
     void replaceBuf(char* b) {delete [] buf; buf = b;}
@@ -90,6 +97,11 @@ namespace rfb {
 
   // Returns time elapsed since given moment in milliseconds.
   unsigned msSince(const struct timeval *then);
+
+  size_t siPrefix(long long value, const char *unit,
+                  char *buffer, size_t maxlen);
+  size_t iecPrefix(long long value, const char *unit,
+                   char *buffer, size_t maxlen);
 }
 
 // Some platforms (e.g. Windows) include max() and min() macros in their

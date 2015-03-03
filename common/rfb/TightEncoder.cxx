@@ -163,7 +163,7 @@ void TightEncoder::writeFullColourRect(const PixelBuffer* pb, const Palette& pal
   int length;
 
   const rdr::U8* buffer;
-  int stride, w, h;
+  int stride, h;
 
   os = conn->getOutStream();
 
@@ -201,7 +201,7 @@ void TightEncoder::writePixels(const rdr::U8* buffer, const PixelFormat& pf,
   }
 
   while (count) {
-    int iter_count;
+    unsigned int iter_count;
 
     iter_count = sizeof(rgb)/3;
     if (iter_count > count)

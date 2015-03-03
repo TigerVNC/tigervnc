@@ -57,7 +57,7 @@ int cocoa_capture_display(Fl_Window *win, bool all_displays)
       if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
         return 1;
 
-      if (count != Fl::screen_count())
+      if (count != (unsigned)Fl::screen_count())
         return 1;
 
 #ifdef HAVE_FLTK_FULLSCREEN_SCREENS
@@ -424,7 +424,7 @@ int cocoa_event_keysym(const void *event)
   NSEvent *nsevent;
 
   UInt16 key_code;
-  int i;
+  size_t i;
 
   NSString *chars;
   UInt32 modifiers;

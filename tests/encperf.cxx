@@ -158,6 +158,9 @@ void DummyOutStream::flush()
 int DummyOutStream::overrun(int itemSize, int nItems)
 {
   flush();
+  if (itemSize * nItems > end - ptr)
+    nItems = (end - ptr) / itemSize;
+  return nItems;
 }
 
 CConn::CConn(const char *filename)
@@ -339,7 +342,12 @@ static double runTest(const char *fn, double& ratio, unsigned long long& bytes,
 
   try {
     cc = new CConn(fn);
+  } catch (rdr::Exception e) {
+    fprintf(stderr, "Failed to open rfb file: %s\n", e.str());
+    exit(1);
+  }
 
+  try {
     while (true)
       cc->processMsg();
   } catch (rdr::EndOfStream e) {
@@ -447,8 +455,13 @@ int main(int argc, char **argv)
   meddev = dev[runCount / 2];
 
   printf("CPU time: %g s (+/- %g %%)\n", median, meddev);
+#ifdef WIN32
+  printf("Encoded bytes: %I64d\n", bytes);
+  printf("Raw equivalent bytes: %I64d\n", equivalent);
+#else
   printf("Encoded bytes: %lld\n", bytes);
   printf("Raw equivalent bytes: %lld\n", equivalent);
+#endif
   printf("Ratio: %g\n", ratio);
 
   return 0;

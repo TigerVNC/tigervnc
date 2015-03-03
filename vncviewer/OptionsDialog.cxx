@@ -422,7 +422,7 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
 
   int orig_tx, orig_ty;
   int half_width, full_width;
-  int width, height;
+  int height;
 
   tx += OUTER_MARGIN;
   ty += OUTER_MARGIN;
@@ -453,8 +453,6 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   {
     tx += GROUP_MARGIN;
     ty += GROUP_MARGIN;
-
-    width = encodingGroup->w() - GROUP_MARGIN * 2;
 
     tightButton = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                RADIO_MIN_WIDTH,
@@ -503,8 +501,6 @@ void OptionsDialog::createCompressionPage(int tx, int ty, int tw, int th)
   {
     tx += GROUP_MARGIN;
     ty += GROUP_MARGIN;
-
-    width = colorlevelGroup->w() - GROUP_MARGIN * 2;
 
     fullcolorCheckbox = new Fl_Round_Button(LBLRIGHT(tx, ty,
                                                      RADIO_MIN_WIDTH,

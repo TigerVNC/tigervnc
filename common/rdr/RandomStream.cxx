@@ -44,7 +44,7 @@ RandomStream::RandomStream()
 #ifdef RFB_HAVE_WINCRYPT
   provider = 0;
   if (!CryptAcquireContext(&provider, 0, 0, PROV_RSA_FULL, 0)) {
-    if (GetLastError() == NTE_BAD_KEYSET) {
+    if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(&provider, 0, 0, PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
         fprintf(stderr, "RandomStream: unable to create keyset\n");
         provider = 0;

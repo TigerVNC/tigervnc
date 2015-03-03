@@ -21,12 +21,18 @@
 #ifndef __RDR_EXCEPTION_H__
 #define __RDR_EXCEPTION_H__
 
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
+
 namespace rdr {
 
   struct Exception {
     enum { len = 256 };
     char str_[len];
-    Exception(const char *format = 0, ...);
+    Exception(const char *format = 0, ...) __printf_attr(2, 3);
     virtual ~Exception() {}
     virtual const char* str() const { return str_; }
   };
@@ -37,15 +43,15 @@ namespace rdr {
   }; 
 
   struct TimedOut : public Exception {
-    TimedOut(const char* s="Timed out") : Exception(s) {}
+    TimedOut(const char* s="Timed out") : Exception("%s", s) {}
   };
  
   struct EndOfStream : public Exception {
-    EndOfStream(const char* s="End of stream") : Exception(s) {}
+    EndOfStream(const char* s="End of stream") : Exception("%s", s) {}
   };
 
   struct FrameException : public Exception {
-    FrameException(const char* s="Frame exception") : Exception(s) {}
+    FrameException(const char* s="Frame exception") : Exception("%s", s) {}
   };
 
 }

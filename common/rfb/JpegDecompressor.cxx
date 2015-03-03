@@ -116,7 +116,7 @@ JpegDecompressor::JpegDecompressor(void)
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error
-    throw rdr::Exception(err->lastError);
+    throw rdr::Exception("%s", err->lastError);
   }
 
   jpeg_create_decompress(dinfo);
@@ -162,7 +162,7 @@ void JpegDecompressor::decompress(const rdr::U8 *jpegBuf, int jpegBufLen,
     jpeg_abort_decompress(dinfo);
     if (dstBufIsTemp && dstBuf) delete[] dstBuf;
     if (rowPointer) delete[] rowPointer;
-    throw rdr::Exception(err->lastError);
+    throw rdr::Exception("%s", err->lastError);
   }
 
   src->pub.next_input_byte = jpegBuf;

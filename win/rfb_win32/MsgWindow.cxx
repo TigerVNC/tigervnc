@@ -52,7 +52,7 @@ LRESULT CALLBACK MsgWindowProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
     SetWindowLongPtr(wnd, GWLP_USERDATA, 0);
   MsgWindow* _this = (MsgWindow*) GetWindowLongPtr(wnd, GWLP_USERDATA);
   if (!_this) {
-    vlog.info("null _this in %x, message %x", wnd, msg);
+    vlog.info("null _this in %p, message %x", wnd, msg);
     return SafeDefWindowProc(wnd, msg, wParam, lParam);
   }
 
@@ -85,7 +85,7 @@ MsgWindowClass::MsgWindowClass() : classAtom(0) {
 
 MsgWindowClass::~MsgWindowClass() {
   if (classAtom) {
-    UnregisterClass((const TCHAR*)classAtom, instance);
+    UnregisterClass((const TCHAR*)(intptr_t)classAtom, instance);
   }
 }
 
@@ -97,18 +97,19 @@ static MsgWindowClass baseClass;
 
 MsgWindow::MsgWindow(const TCHAR* name_) : name(tstrDup(name_)), handle(0) {
   vlog.debug("creating window \"%s\"", (const char*)CStr(name.buf));
-  handle = CreateWindow((const TCHAR*)baseClass.classAtom, name.buf, WS_OVERLAPPED,
-    0, 0, 10, 10, 0, 0, baseClass.instance, this);
+  handle = CreateWindow((const TCHAR*)(intptr_t)baseClass.classAtom,
+                        name.buf, WS_OVERLAPPED, 0, 0, 10, 10, 0, 0,
+                        baseClass.instance, this);
   if (!handle) {
     throw rdr::SystemException("unable to create WMNotifier window instance", GetLastError());
   }
-  vlog.debug("created window \"%s\" (%x)", (const char*)CStr(name.buf), handle);
+  vlog.debug("created window \"%s\" (%p)", (const char*)CStr(name.buf), handle);
 }
 
 MsgWindow::~MsgWindow() {
   if (handle)
     DestroyWindow(handle);
-  vlog.debug("destroyed window \"%s\" (%x)", (const char*)CStr(name.buf), handle); 
+  vlog.debug("destroyed window \"%s\" (%p)", (const char*)CStr(name.buf), handle);
 }
 
 LRESULT

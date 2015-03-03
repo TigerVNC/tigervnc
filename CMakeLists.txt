@@ -67,6 +67,18 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -UNDEBUG")
 set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -UNDEBUG")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -UNDEBUG")
 
+# Tell the compiler to be stringent
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat=2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wformat=2")
+# Make sure we catch these issues whilst developing
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+  # We have a lot of old GnuTLS crud we need to ignore for now
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=deprecated-declarations")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
+ENDIF()
+
 if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
 endif()

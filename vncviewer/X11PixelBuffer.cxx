@@ -157,7 +157,6 @@ int X11PixelBuffer::setupShm()
   int major, minor;
   Bool pixmaps;
   XErrorHandler old_handler;
-  Status status;
   const char *display_name = XDisplayName (NULL);
 
   /* Don't use MIT-SHM on remote displays */
