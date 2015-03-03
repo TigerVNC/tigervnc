@@ -158,6 +158,9 @@ void DummyOutStream::flush()
 int DummyOutStream::overrun(int itemSize, int nItems)
 {
   flush();
+  if (itemSize * nItems > end - ptr)
+    nItems = (end - ptr) / itemSize;
+  return nItems;
 }
 
 CConn::CConn(const char *filename)
