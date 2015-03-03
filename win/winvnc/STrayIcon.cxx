@@ -179,7 +179,7 @@ public:
         case 2:
           return thread.server.disconnectClients("IPC disconnect") ? 1 : 0;
         case 3:
-          thread.server.setClientsStatus((rfb::ListConnInfo *)command->cbData);
+          thread.server.setClientsStatus((rfb::ListConnInfo *)command->lpData);
         case 4:
           thread.server.getClientsInfo(&LCInfo);
           CPanel->UpdateListView(&LCInfo);
