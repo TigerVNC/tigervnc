@@ -102,7 +102,7 @@ namespace rfb {
     inline bool overlaps(const Rect &r) const {
       return tl.x < r.br.x && tl.y < r.br.y && br.x > r.tl.x && br.y > r.tl.y;
     }
-    inline unsigned int area() const {return is_empty() ? 0 : (br.x-tl.x)*(br.y-tl.y);}
+    inline int area() const {return is_empty() ? 0 : (br.x-tl.x)*(br.y-tl.y);}
     inline Point dimensions() const {return Point(width(), height());}
     inline int width() const {return br.x-tl.x;}
     inline int height() const {return br.y-tl.y;}
