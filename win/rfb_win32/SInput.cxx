@@ -151,7 +151,7 @@ win32::SPointer::pointerEvent(const Point& pos, int buttonmask)
         flags &= ~MOUSEEVENTF_ABSOLUTE;
         SystemParametersInfo(SPI_GETMOUSE, 0, &mouseInfo, 0);
         SystemParametersInfo(SPI_GETMOUSESPEED, 0, &oldSpeed, 0);
-        vlog.debug("SPI_GETMOUSE %d, %d, %d, speed %d", mouseInfo[0], mouseInfo[1], mouseInfo[2], oldSpeed);
+        vlog.debug("SPI_GETMOUSE %lu, %lu, %lu, speed %lu", mouseInfo[0], mouseInfo[1], mouseInfo[2], oldSpeed);
         ULONG idealMouseInfo[] = {10, 0, 0};
         SystemParametersInfo(SPI_SETMOUSESPEED, 0, &newSpeed, 0);
         SystemParametersInfo(SPI_SETMOUSE, 0, &idealMouseInfo, 0);
@@ -266,7 +266,7 @@ latin1ToDeadChars_t latin1ToDeadChars[] = {
 // the appropriate scancode corresponding to the supplied virtual keycode.
 
 inline void doKeyboardEvent(BYTE vkCode, DWORD flags) {
-  vlog.debug("vkCode 0x%x flags 0x%x", vkCode, flags);
+  vlog.debug("vkCode 0x%x flags 0x%lx", vkCode, flags);
   keybd_event(vkCode, MapVirtualKey(vkCode, 0), flags, 0);
 }
 

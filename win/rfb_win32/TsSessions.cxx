@@ -77,7 +77,7 @@ namespace win32 {
 
     // Try to reconnect our session to the console
     ConsoleSessionId console;
-    vlog.info("Console session is %d", console.id);
+    vlog.info("Console session is %lu", console.id);
     if (!(*_WinStationConnect)(0, sessionId, console.id, L"", 0))
       throw rdr::SystemException("Unable to connect session to Console", GetLastError());
 

@@ -411,7 +411,7 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
   ret = fl_utf8froma(buffer, size, str, len);
   assert(ret < size);
 
-  vlog.debug("Got clipboard data (%d bytes)", strlen(buffer));
+  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
 
   // RFB doesn't have separate selection and clipboard concepts, so we
   // dump the data into both variants.

@@ -303,7 +303,7 @@ static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
 
   LONG res = RegSetValueExW(*hKey, name, 0, REG_SZ, (BYTE*)&value, (wcslen(value)+1)*2);
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to write parameter %s of type %s to the registry: %d"),
+    vlog.error(_("Failed to write parameter %s of type %s to the registry: %ld"),
                _name, "REG_SZ", res);
     return;
   }
@@ -324,7 +324,7 @@ static void setKeyInt(const char *_name, const int _value, HKEY* hKey) {
   
   LONG res = RegSetValueExW(*hKey, name, 0, REG_DWORD, (BYTE*)&value, sizeof(DWORD));
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to write parameter %s of type %s to the registry: %d"),
+    vlog.error(_("Failed to write parameter %s of type %s to the registry: %ld"),
                _name, "REG_DWORD", res);
     return;
   }
@@ -348,7 +348,7 @@ static bool getKeyString(const char* _name, char* dest, size_t destSize, HKEY* h
     if (res == ERROR_FILE_NOT_FOUND) {
       // The value does not exist, defaults will be used.
     } else {
-      vlog.error(_("Failed to read parameter %s from the registry: %d"),
+      vlog.error(_("Failed to read parameter %s from the registry: %ld"),
                  _name, res);
     }
     return false;
@@ -387,7 +387,7 @@ static bool getKeyInt(const char* _name, int* dest, HKEY* hKey) {
     if (res == ERROR_FILE_NOT_FOUND) {
       // The value does not exist, defaults will be used.
     } else {
-      vlog.error(_("Failed to read parameter %s from the registry: %d"),
+      vlog.error(_("Failed to read parameter %s from the registry: %ld"),
                  _name, res);
     }
     return false;
@@ -407,7 +407,7 @@ static void saveToReg(const char* servername) {
                              REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,
                              &hKey, NULL);
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to create registry key: %d"), res);
+    vlog.error(_("Failed to create registry key: %ld"), res);
     return;
   }
 
@@ -428,7 +428,7 @@ static void saveToReg(const char* servername) {
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS) {
-    vlog.error(_("Failed to close registry key: %d"), res);
+    vlog.error(_("Failed to close registry key: %ld"), res);
   }
 }
 
@@ -444,7 +444,7 @@ static char* loadFromReg() {
     if (res == ERROR_FILE_NOT_FOUND) {
       // The key does not exist, defaults will be used.
     } else {
-      vlog.error(_("Failed to open registry key: %d"), res);
+      vlog.error(_("Failed to open registry key: %ld"), res);
     }
     return NULL;
   }
@@ -477,7 +477,7 @@ static char* loadFromReg() {
 
   res = RegCloseKey(hKey);
   if (res != ERROR_SUCCESS){
-    vlog.error(_("Failed to close registry key: %d"), res);
+    vlog.error(_("Failed to close registry key: %ld"), res);
   }
   
   return servername;

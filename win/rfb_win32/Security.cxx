@@ -112,7 +112,7 @@ void Sid::getUserNameAndDomain(TCHAR** name, TCHAR** domain) {
   LookupAccountSid(0, (PSID)buf, 0, &nameLen, 0, &domainLen, &use);
   if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     throw rdr::SystemException("Unable to determine SID name lengths", GetLastError());
-  vlog.info("nameLen=%d, domainLen=%d, use=%d", nameLen, domainLen, use);
+  vlog.info("nameLen=%lu, domainLen=%lu, use=%d", nameLen, domainLen, use);
   *name = new TCHAR[nameLen];
   *domain = new TCHAR[domainLen];
   if (!LookupAccountSid(0, (PSID)buf, *name, &nameLen, *domain, &domainLen, &use))

@@ -99,7 +99,7 @@ VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
     vlog.error("failed to register handler: %lu", err);
     ExitProcess(err);
   }
-  vlog.debug("registered handler (%lx)", service->status_handle);
+  vlog.debug("registered handler (%p)", service->status_handle);
   service->setStatus(SERVICE_START_PENDING);
   vlog.debug("entering %s serviceMain", service->getName());
   service->status.dwWin32ExitCode = service->serviceMain(dwArgc, lpszArgv);
@@ -132,7 +132,7 @@ Service::start() {
     entry[1].lpServiceProc = NULL;
     vlog.debug("entering dispatcher");
     if (!SetProcessShutdownParameters(0x100, 0))
-      vlog.error("unable to set shutdown parameters: %d", GetLastError());
+      vlog.error("unable to set shutdown parameters: %lu", GetLastError());
     service = this;
     if (!StartServiceCtrlDispatcher(entry))
       throw SystemException("unable to start service", GetLastError());
@@ -176,9 +176,9 @@ Service::setStatus(DWORD state) {
   if (!SetServiceStatus(status_handle, &status)) {
     status.dwCurrentState = SERVICE_STOPPED;
     status.dwWin32ExitCode = GetLastError();
-    vlog.error("unable to set service status:%u", status.dwWin32ExitCode);
+    vlog.error("unable to set service status:%lu", status.dwWin32ExitCode);
   }
-  vlog.debug("set status to %u(%u)", state, status.dwCheckPoint);
+  vlog.debug("set status to %lu(%lu)", state, status.dwCheckPoint);
 }
 
 Service::~Service() {
@@ -200,11 +200,11 @@ static bool
 switchToDesktop(HDESK desktop) {
   HDESK old_desktop = GetThreadDesktop(GetCurrentThreadId());
   if (!SetThreadDesktop(desktop)) {
-    vlog.debug("switchToDesktop failed:%u", GetLastError());
+    vlog.debug("switchToDesktop failed:%lu", GetLastError());
     return false;
   }
   if (!CloseDesktop(old_desktop))
-    vlog.debug("unable to close old desktop:%u", GetLastError());
+    vlog.debug("unable to close old desktop:%lu", GetLastError());
   return true;
 }
 
@@ -218,7 +218,7 @@ inputDesktopSelected() {
 		DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
 		DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
   if (!input) {
-    vlog.debug("unable to OpenInputDesktop(1):%u", GetLastError());
+    vlog.debug("unable to OpenInputDesktop(1):%lu", GetLastError());
     return false;
   }
 
@@ -227,17 +227,17 @@ inputDesktopSelected() {
   char inputname[256];
 
   if (!GetUserObjectInformation(current, UOI_NAME, currentname, 256, &size)) {
-    vlog.debug("unable to GetUserObjectInformation(1):%u", GetLastError());
+    vlog.debug("unable to GetUserObjectInformation(1):%lu", GetLastError());
     CloseDesktop(input);
     return false;
   }
   if (!GetUserObjectInformation(input, UOI_NAME, inputname, 256, &size)) {
-    vlog.debug("unable to GetUserObjectInformation(2):%u", GetLastError());
+    vlog.debug("unable to GetUserObjectInformation(2):%lu", GetLastError());
     CloseDesktop(input);
     return false;
   }
   if (!CloseDesktop(input))
-    vlog.debug("unable to close input desktop:%u", GetLastError());
+    vlog.debug("unable to close input desktop:%lu", GetLastError());
 
   // *** vlog.debug("current=%s, input=%s", currentname, inputname);
   bool result = strcmp(currentname, inputname) == 0;
@@ -254,7 +254,7 @@ selectInputDesktop() {
 		DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
 		DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
   if (!desktop) {
-    vlog.debug("unable to OpenInputDesktop(2):%u", GetLastError());
+    vlog.debug("unable to OpenInputDesktop(2):%lu", GetLastError());
     return false;
   }
 

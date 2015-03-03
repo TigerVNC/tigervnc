@@ -148,7 +148,7 @@ DWORD SysParamsInfo(UINT action, UINT param, PVOID ptr, UINT ini) {
   DWORD r = ERROR_SUCCESS;
   if (!SystemParametersInfo(action, param, ptr, ini)) {
     r = GetLastError();
-    vlog.info("SPI error: %d", r);
+    vlog.info("SPI error: %lu", r);
   }
   return r;
 }

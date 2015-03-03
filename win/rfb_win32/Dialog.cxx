@@ -278,7 +278,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     if ((handle == 0) || (handle == (HWND)-1))
       throw rdr::SystemException("PropertySheet failed", GetLastError());
     centerWindow(handle, owner);
-    plog.info("created %lx", handle);
+    plog.info("created %p", handle);
 
 #ifdef _DIALOG_CAPTURE
     if (capture) {
@@ -336,7 +336,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
     }
 #endif
 
-    plog.info("finished %lx", handle);
+    plog.info("finished %p", handle);
 
     DestroyWindow(handle);
     handle = 0;
@@ -361,7 +361,7 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
 }
 
 void PropSheet::reInitPages() {
-  plog.debug("reInitPages %lx", handle);
+  plog.debug("reInitPages %p", handle);
   std::list<PropSheetPage*>::iterator pspi;
   for (pspi=pages.begin(); pspi!=pages.end(); pspi++) {
     if ((*pspi)->handle)
@@ -370,7 +370,7 @@ void PropSheet::reInitPages() {
 }
 
 bool PropSheet::commitPages() {
-  plog.debug("commitPages %lx", handle);
+  plog.debug("commitPages %p", handle);
   bool result = true;
   std::list<PropSheetPage*>::iterator pspi;
   for (pspi=pages.begin(); pspi!=pages.end(); pspi++) {
@@ -383,7 +383,7 @@ bool PropSheet::commitPages() {
 
 void PropSheetPage::setChanged(bool changed) {
   if (propSheet) {
-    plog.debug("setChanged[%lx(%lx)]=%d", handle, propSheet->handle, (int)changed);
+    plog.debug("setChanged[%p(%p)]=%d", handle, propSheet->handle, (int)changed);
     if (changed)
       PropSheet_Changed(propSheet->handle, handle);
     else

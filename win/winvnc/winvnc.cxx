@@ -182,7 +182,7 @@ static void processParams(int argc, char** argv) {
         close_console = true;
         vlog.info("closing console");
         if (!FreeConsole())
-          vlog.info("unable to close console:%u", GetLastError());
+          vlog.info("unable to close console:%lu", GetLastError());
 
       } else if ((strcasecmp(argv[i], "-help") == 0) ||
         (strcasecmp(argv[i], "--help") == 0) ||

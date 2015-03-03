@@ -91,7 +91,7 @@ PixelFormat DeviceContext::getPF(HDC dc) {
       rMask = bi.mask.red;
       gMask = bi.mask.green;
       bMask = bi.mask.blue;
-      vlog.info("%lu-bit BitFields: (%lx, %lx, %lx)",
+      vlog.info("%d-bit BitFields: (%lx, %lx, %lx)",
                  bi.bmiHeader.biBitCount, rMask, gMask, bMask);
       break;
     };
