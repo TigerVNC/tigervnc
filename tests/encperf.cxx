@@ -339,7 +339,12 @@ static double runTest(const char *fn, double& ratio, unsigned long long& bytes,
 
   try {
     cc = new CConn(fn);
+  } catch (rdr::Exception e) {
+    fprintf(stderr, "Failed to open rfb file: %s\n", e.str());
+    exit(1);
+  }
 
+  try {
     while (true)
       cc->processMsg();
   } catch (rdr::EndOfStream e) {
