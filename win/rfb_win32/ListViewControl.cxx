@@ -30,7 +30,7 @@ void ListViewControl::SelectLVItem(DWORD idListView, HWND hDlg, int numberItem)
 BOOL ListViewControl::InitLVColumns(DWORD idListView, HWND hDlg, int width, int columns,
                                     TCHAR *title[], DWORD mask, DWORD LVStyle, DWORD format)
 {
-  ListView_SetExtendedListViewStyle(GetDlgItem(hDlg, idListView), LVStyle);
+  (void)ListView_SetExtendedListViewStyle(GetDlgItem(hDlg, idListView), LVStyle);
   TCHAR szText[256];      
   LVCOLUMN lvc; 
   int iCol;
@@ -90,12 +90,12 @@ void ListViewControl::GetLVItemText(DWORD idListView, HWND hDlg, int numberItem,
 
 void ListViewControl::DeleteLVItem(DWORD idListView, HWND hDlg, int number)
 {
-  ListView_DeleteItem(GetDlgItem(hDlg, idListView), number);
+  (void)ListView_DeleteItem(GetDlgItem(hDlg, idListView), number);
 }
 
 void ListViewControl::DeleteAllLVItem(DWORD idListView, HWND hDlg)
 {
-  ListView_DeleteAllItems(GetDlgItem(hDlg, idListView));
+  (void)ListView_DeleteAllItems(GetDlgItem(hDlg, idListView));
 }
 
 ListViewControl::~ListViewControl()
