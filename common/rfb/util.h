@@ -90,6 +90,11 @@ namespace rfb {
 
   // Returns time elapsed since given moment in milliseconds.
   unsigned msSince(const struct timeval *then);
+
+  size_t siPrefix(long long value, const char *unit,
+                  char *buffer, size_t maxlen);
+  size_t iecPrefix(long long value, const char *unit,
+                   char *buffer, size_t maxlen);
 }
 
 // Some platforms (e.g. Windows) include max() and min() macros in their

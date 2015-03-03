@@ -34,6 +34,7 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <sys/time.h>
 
 #include <rfb/util.h>
@@ -109,5 +110,45 @@ namespace rfb {
     diff -= then->tv_usec / 1000;
 
     return diff;
+  }
+
+  static size_t doPrefix(long long value, const char *unit,
+                         char *buffer, size_t maxlen,
+                         unsigned divisor, const char **prefixes,
+                         size_t prefixCount) {
+    double newValue;
+    size_t prefix, len;
+
+    newValue = value;
+    prefix = 0;
+    while (newValue >= divisor) {
+      if (prefix >= prefixCount)
+        break;
+      newValue /= divisor;
+      prefix++;
+    }
+
+    len = snprintf(buffer, maxlen, "%g %s%s", newValue,
+                   (prefix == 0) ? "" : prefixes[prefix-1], unit);
+    buffer[maxlen-1] = '\0';
+
+    return len;
+  }
+
+  static const char *siPrefixes[] =
+    { "k", "M", "G", "T", "P", "E", "Z", "Y" };
+  static const char *iecPrefixes[] =
+    { "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
+
+  size_t siPrefix(long long value, const char *unit,
+                  char *buffer, size_t maxlen) {
+    return doPrefix(value, unit, buffer, maxlen, 1000, siPrefixes,
+                    sizeof(siPrefixes)/sizeof(*siPrefixes));
+  }
+
+  size_t iecPrefix(long long value, const char *unit,
+                   char *buffer, size_t maxlen) {
+    return doPrefix(value, unit, buffer, maxlen, 1024, iecPrefixes,
+                    sizeof(iecPrefixes)/sizeof(*iecPrefixes));
   }
 };
