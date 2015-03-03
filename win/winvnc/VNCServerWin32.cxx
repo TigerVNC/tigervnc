@@ -189,10 +189,10 @@ int VNCServerWin32::run() {
 
     vlog.debug("Server exited cleanly");
   } catch (rdr::SystemException &s) {
-    vlog.error(s.str());
+    vlog.error("%s", s.str());
     result = s.err;
   } catch (rdr::Exception &e) {
-    vlog.error(e.str());
+    vlog.error("%s", e.str());
   }
 
   { Lock l(runLock);

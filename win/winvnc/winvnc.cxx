@@ -87,7 +87,7 @@ static void MsgBoxOrLog(const char* msg, bool isError=false) {
   } else {
     if (isError) {
       try {
-        vlog.error(msg);
+        vlog.error("%s", msg);
         return;
       } catch (...) {
       }
