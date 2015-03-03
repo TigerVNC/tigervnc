@@ -155,6 +155,10 @@ TcpSocket::TcpSocket(const char *host, int port)
 		    gai_strerror(result));
   }
 
+  // This logic is too complex for the compiler to determine if
+  // sock is properly assigned or not.
+  sock = -1;
+
   for (current = ai; current != NULL; current = current->ai_next) {
     family = current->ai_family;
 
