@@ -102,10 +102,12 @@ void about_vncviewer()
   fl_message("%s", aboutText);
 }
 
+#ifdef __APPLE__
 static void about_callback(Fl_Widget *widget, void *data)
 {
   about_vncviewer();
 }
+#endif
 
 static void CleanupSignalHandler(int sig)
 {
