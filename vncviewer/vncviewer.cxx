@@ -30,6 +30,7 @@
 #include <signal.h>
 #include <locale.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #ifdef WIN32
@@ -58,6 +59,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_PNG_Image.H>
+#include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/fl_ask.H>
 #include <FL/x.H>
 
@@ -67,6 +69,7 @@
 #include "ServerDialog.h"
 #include "UserDialog.h"
 #include "vncviewer.h"
+#include "fltk_layout.h"
 
 #ifdef WIN32
 #include "resource.h"
@@ -82,6 +85,8 @@ using namespace std;
 static char aboutText[1024];
 
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
+
+static const char *argv0 = NULL;
 
 static bool exitMainloop = false;
 static const char *exitError = NULL;
@@ -106,6 +111,29 @@ void about_vncviewer()
 static void about_callback(Fl_Widget *widget, void *data)
 {
   about_vncviewer();
+}
+
+static void new_connection_cb(Fl_Widget *widget, void *data)
+{
+  const char *argv[2];
+  pid_t pid;
+
+  pid = fork();
+  if (pid == -1) {
+    vlog.error(_("Error starting new TigerVNC Viewer: %s"), strerror(errno));
+    return;
+  }
+
+  if (pid != 0)
+    return;
+
+  argv[0] = argv0;
+  argv[1] = NULL;
+
+  execvp(argv[0], (char * const *)argv);
+
+  vlog.error(_("Error starting new TigerVNC Viewer: %s"), strerror(errno));
+  _exit(1);
 }
 #endif
 
@@ -239,6 +267,16 @@ static void init_fltk()
   Fl_Mac_App_Menu::show = _("Show All");
 
   fl_mac_set_about(about_callback, NULL);
+
+  Fl_Sys_Menu_Bar *menubar;
+  char buffer[1024];
+  menubar = new Fl_Sys_Menu_Bar(0, 0, 500, 25);
+  // Fl_Sys_Menu_Bar overrides methods without them being virtual,
+  // which means we cannot use our generic Fl_Menu_ helpers.
+  if (fltk_menu_escape(_("&File"), buffer, sizeof(buffer)) < sizeof(buffer))
+      menubar->add(buffer, 0, 0, 0, FL_SUBMENU);
+  if (fltk_menu_escape(_("&New Connection"), buffer, sizeof(buffer)) < sizeof(buffer))
+      menubar->insert(1, buffer, FL_COMMAND | 'n', new_connection_cb);
 #endif
 }
 
@@ -374,6 +412,8 @@ static int mktunnel()
 int main(int argc, char** argv)
 {
   UserDialog dlg;
+
+  argv0 = argv[0];
 
   setlocale(LC_ALL, "");
   bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
