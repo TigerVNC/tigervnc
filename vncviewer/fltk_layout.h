@@ -35,9 +35,9 @@ static inline int gui_str_len(const char *str)
 }
 
 /* Escapes all @ in text as those have special meaning in labels */
-static inline int fltk_escape(const char *in, char *out, size_t maxlen)
+static inline size_t fltk_escape(const char *in, char *out, size_t maxlen)
 {
-    int len;
+    size_t len;
 
     len = 0;
 
@@ -69,9 +69,9 @@ static inline int fltk_escape(const char *in, char *out, size_t maxlen)
 }
 
 /* Filter out unsafe characters for menu entries */
-static inline int fltk_menu_escape(const char *in, char *out, size_t maxlen)
+static inline size_t fltk_menu_escape(const char *in, char *out, size_t maxlen)
 {
-    int len;
+    size_t len;
 
     len = 0;
 
