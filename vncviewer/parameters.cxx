@@ -580,15 +580,16 @@ char* loadViewerParameters(const char *filename) {
     // Read the next line
     lineNr++;
     if (!fgets(line, sizeof(line), f)) {
-      if (line[sizeof(line) -1] != '\0')
-        throw Exception(_("Failed to read line %d in file %s: %s"),
-                        lineNr, filepath, _("Line too long"));
       if (feof(f))
         break;
 
       throw Exception(_("Failed to read line %d in file %s: %s"),
                       lineNr, filepath, strerror(errno));
     }
+
+    if (strlen(line) == (sizeof(line) - 1))
+      throw Exception(_("Failed to read line %d in file %s: %s"),
+                      lineNr, filepath, _("Line too long"));
     
     // Make sure that the first line of the file has the file identifier string
     if(lineNr == 1) {
