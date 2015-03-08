@@ -2,7 +2,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 19%{?snap:.%{snap}}%{?dist}
+Release: 20%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -187,7 +187,7 @@ autoreconf -fiv
 %configure \
 	--disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
 	--disable-xwin --disable-xephyr --disable-kdrive --disable-wayland \
-	--with-pic --disable-static --disable-xinerama \
+	--with-pic --disable-static --enable-xinerama \
 	--with-default-font-path="catalogue:%{_sysconfdir}/X11/fontpath.d,built-ins" \
 	--with-serverconfig-path=%{_libdir}/xorg \
 	--with-fontrootdir=%{_datadir}/X11/fonts \
@@ -336,6 +336,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Sat Mar 07 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-20
+- Don't disable xinerama extension
+
 * Thu Feb 19 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-19
 - Bumped fltk version to 1.3.3, no longer requires any patching
 

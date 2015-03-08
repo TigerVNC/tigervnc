@@ -105,7 +105,7 @@ config-stamp:
 		--enable-xdm-auth-1 \
 		--enable-glx \
 		--disable-dri --enable-dri2 \
-		--disable-xinerama \
+		--enable-xinerama \
 		--enable-xf86vidmode \
 		--enable-xace \
 		--disable-selinux \

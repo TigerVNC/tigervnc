@@ -5,7 +5,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 4%{?snap:.%{snap}}%{?dist}
+Release: 5%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -762,7 +762,7 @@ GL_LIBS='-Wl,-Bdynamic -lGL' LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir}/tig
   --with-vendor-web="http://www.tigervnc.org" \
   --disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
   --disable-xwin --disable-xephyr --disable-kdrive --disable-wayland \
-  --with-pic --enable-static --disable-shared --disable-xinerama \
+  --with-pic --enable-static --disable-shared --enable-xinerama \
   --with-default-xkb-rules=base \
   --with-default-font-path="catalogue:%{_sysconfdir}/X11/fontpath.d,%{_datadir}/X11/fonts/misc,%{_datadir}/X11/fonts/OTF,%{_datadir}/X11/fonts/TTF,%{_datadir}/X11/fonts/Type1,%{_datadir}/X11/fonts/100dpi,%{_datadir}/X11/fonts/75dpi,built-ins" \
   --with-serverconfig-path=%{_libdir}/xorg \
@@ -920,6 +920,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Sat Mar 07 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-5
+- Don't disable xinerama extension
+
 * Thu Feb 19 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-4
 - Bumped fltk to 1.3.3, no longer requires patching
 
