@@ -534,15 +534,45 @@ int main(int argc, char** argv)
 #endif
 
   if (listenMode) {
+    std::list<TcpListener> listeners;
     try {
       int port = 5500;
       if (isdigit(vncServerName[0]))
         port = atoi(vncServerName);
 
-      TcpListener listener(NULL, port);
+      createTcpListeners(&listeners, 0, port);
 
       vlog.info(_("Listening on port %d\n"), port);
-      sock = listener.accept();   
+
+      /* Wait for a connection */
+      while (sock == NULL) {
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        for (std::list<TcpListener>::iterator i = listeners.begin();
+             i != listeners.end();
+             i++)
+          FD_SET((*i).getFd(), &rfds);
+
+        int n = select(FD_SETSIZE, &rfds, 0, 0, 0);
+        if (n < 0) {
+          if (errno == EINTR) {
+            vlog.debug("Interrupted select() system call");
+            continue;
+          } else {
+            throw rdr::SystemException("select", errno);
+          }
+        }
+
+        for (std::list<TcpListener>::iterator i = listeners.begin ();
+             i != listeners.end();
+             i++)
+          if (FD_ISSET((*i).getFd(), &rfds)) {
+            sock = (*i).accept();
+            if (sock)
+              /* Got a connection */
+              break;
+          }
+      }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       fl_alert("%s", e.str());

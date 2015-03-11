@@ -34,7 +34,6 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
@@ -42,6 +41,7 @@
 #endif
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <network/TcpSocket.h>
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
@@ -274,16 +274,17 @@ char* TcpSocket::getPeerAddress() {
     return rfb::strDup("");
   }
 
-#if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
+#if defined(HAVE_GETADDRINFO)
   if (sa.u.sa.sa_family == AF_INET6) {
     char buffer[INET6_ADDRSTRLEN + 2];
-    const char *name;
+    int ret;
 
     buffer[0] = '[';
 
-    name = inet_ntop(sa.u.sa.sa_family, &sa.u.sin6.sin6_addr,
-                     buffer + 1, sizeof(buffer) - 2);
-    if (name == NULL) {
+    ret = getnameinfo(&sa.u.sa, sizeof(sa.u.sin6),
+                      buffer + 1, sizeof(buffer) - 2, NULL, 0,
+                      NI_NUMERICHOST);
+    if (ret != 0) {
       vlog.error("unable to convert peer name to a string");
       return rfb::strDup("");
     }
@@ -426,139 +427,77 @@ int TcpSocket::getSockPort(int sock)
   }
 }
 
-static int bindIPv6 (const char *listenaddr,
-		     int port,
-		     bool localhostOnly)
+TcpListener::TcpListener(int sock)
 {
-#ifdef HAVE_GETADDRINFO
-  struct sockaddr_in6 addr6;
-  socklen_t sa_len;
-  int fd;
-
-  if (!UseIPv6)
-    return -1;
-
-  if ((fd = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
-    return -1;
-
-#ifdef IPV6_V6ONLY
-  // - We made an IPv6-capable socket, and we need it to do IPv4 too
-  int opt = 0;
-  setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&opt, sizeof(opt));
-#else
-  vlog.error("IPV6_V6ONLY support is missing. "
-	     "IPv4 clients may not be able to connect.");
-#endif
-
-  memset(&addr6, 0, (sa_len = sizeof(addr6)));
-  addr6.sin6_family = AF_INET6;
-  addr6.sin6_port = htons(port);
-
-  if (localhostOnly)
-    addr6.sin6_addr = in6addr_loopback;
-  else if (listenaddr != NULL) {
-#ifdef HAVE_INET_PTON
-    if (inet_pton(AF_INET6, listenaddr, &addr6.sin6_addr) != 1) {
-      closesocket(fd);
-      return -1;
-    }
-#else
-    // Unable to parse without inet_pton
-    closesocket(fd);
-    return -1;
-#endif
-  }
-
-  if (bind(fd, (struct sockaddr *) &addr6, sa_len) == -1) {
-    closesocket(fd);
-    return -1;
-  }
-
-  return fd;
-#else
-  return -1;
-#endif /* HAVE_GETADDRINFO */
+  fd = sock;
 }
 
-static int bindIPv4 (const char *listenaddr,
-		     int port,
-		     bool localhostOnly)
+TcpListener::TcpListener(const TcpListener& other)
 {
-  struct sockaddr_in addr;
-  socklen_t sa_len;
-  int fd;
-
-  if (!UseIPv4)
-    return -1;
-
-  if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    return -1;
-
-  memset(&addr, 0, (sa_len = sizeof(addr)));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-
-  if (localhostOnly)
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-  else if (listenaddr != NULL) {
-#ifdef HAVE_INET_ATON
-    if (inet_aton(listenaddr, &addr.sin_addr) == 0)
-#else
-      /* Some systems (e.g. Windows) do not have inet_aton, sigh */
-      if ((addr.sin_addr.s_addr = inet_addr(listenaddr)) == INADDR_NONE)
-#endif
-      {
-	closesocket(fd);
-	throw Exception("invalid network interface address: %s", listenaddr);
-      }
-  } else
-    /* Bind to 0.0.0.0 by default. */
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-  if (bind(fd, (struct sockaddr *) &addr, sa_len) == -1) {
-    closesocket(fd);
-    return -1;
-  }
-
-  return fd;
+  fd = dup (other.fd);
+  // Hope TcpListener::shutdown(other) doesn't get called...
 }
 
-TcpListener::TcpListener(const char *listenaddr, int port, bool localhostOnly,
-			 int sock, bool close_) : closeFd(close_)
+TcpListener& TcpListener::operator= (const TcpListener& other)
 {
-  if (sock != -1) {
-    fd = sock;
-    return;
+  if (this != &other)
+  {
+    closesocket (fd);
+    fd = dup (other.fd);
+    // Hope TcpListener::shutdown(other) doesn't get called...
   }
+  return *this;
+}
+
+TcpListener::TcpListener(const struct sockaddr *listenaddr,
+                         socklen_t listenaddrlen)
+{
+  int one = 1;
+  vnc_sockaddr_t sa;
+  int sock;
 
   initSockets();
-  if ((fd = bindIPv6 (listenaddr, port, localhostOnly)) < 0)
-    if ((fd = bindIPv4 (listenaddr, port, localhostOnly)) < 0)
-      throw SocketException("unable to create listening socket", errorNumber);
+
+  if ((sock = socket (listenaddr->sa_family, SOCK_STREAM, 0)) < 0)
+    throw SocketException("unable to create listening socket", errorNumber);
+
+  memcpy (&sa, listenaddr, listenaddrlen);
+#ifdef IPV6_V6ONLY
+  if (listenaddr->sa_family == AF_INET6) {
+    if (setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&one, sizeof(one)))
+      throw SocketException("unable to set IPV6_V6ONLY", errorNumber);
+  }
+#endif /* defined(IPV6_V6ONLY) */
+
+  if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
+    closesocket(sock);
+    throw SocketException("failed to bind socket", errorNumber);
+  }
 
 #ifndef WIN32
   // - By default, close the socket on exec()
-  fcntl(fd, F_SETFD, FD_CLOEXEC);
+  fcntl(sock, F_SETFD, FD_CLOEXEC);
 
-  int one = 1;
-  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
-		 (char *)&one, sizeof(one)) < 0) {
+  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+                 (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
-    closesocket(fd);
+    closesocket(sock);
     throw SocketException("unable to create listening socket", e);
   }
 #endif
 
   // - Set it to be a listening socket
-  if (listen(fd, 5) < 0) {
+  if (listen(sock, 5) < 0) {
     int e = errorNumber;
-    closesocket(fd);
+    closesocket(sock);
     throw SocketException("unable to set socket to listening mode", e);
   }
+
+  fd = sock;
 }
 
 TcpListener::~TcpListener() {
-  if (closeFd) closesocket(fd);
+  closesocket(fd);
 }
 
 void TcpListener::shutdown()
@@ -596,46 +535,160 @@ TcpListener::accept() {
   return s;
 }
 
-void TcpListener::getMyAddresses(std::list<char*>* result) {
-#if defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON)
+int TcpListener::getMyPort() {
+  return TcpSocket::getSockPort(getFd());
+}
+
+
+void network::createLocalTcpListeners(std::list<TcpListener> *listeners,
+                                      int port)
+{
+  std::list<TcpListener> new_listeners;
+  vnc_sockaddr_t sa;
+#ifdef HAVE_GETADDRINFO
+  if (UseIPv6) {
+    sa.u.sin6.sin6_family = AF_INET6;
+    sa.u.sin6.sin6_port = htons (port);
+    sa.u.sin6.sin6_addr = in6addr_loopback;
+    try {
+      new_listeners.push_back (TcpListener (&sa.u.sa, sizeof (sa.u.sin6)));
+    } catch (SocketException& e) {
+      // Ignore this if it is due to lack of address family support on
+      // the interface or on the system
+      if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT)
+        // Otherwise, report the error
+        throw;
+    }
+  }
+#endif /* HAVE_GETADDRINFO */
+  if (UseIPv4) {
+    sa.u.sin.sin_family = AF_INET;
+    sa.u.sin.sin_port = htons (port);
+    sa.u.sin.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
+    try {
+      new_listeners.push_back (TcpListener (&sa.u.sa, sizeof (sa.u.sin)));
+    } catch (SocketException& e) {
+      // Ignore this if it is due to lack of address family support on
+      // the interface or on the system
+      if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT)
+        // Otherwise, report the error
+        throw;
+    }
+  }
+
+  if (new_listeners.empty ())
+    throw SocketException("createLocalTcpListeners: no addresses available",
+                          EADDRNOTAVAIL);
+
+  listeners->splice (listeners->end(), new_listeners);
+}
+
+void network::createTcpListeners(std::list<TcpListener> *listeners,
+                                 const char *addr,
+                                 int port)
+{
+  std::list<TcpListener> new_listeners;
+
+#ifdef HAVE_GETADDRINFO
   struct addrinfo *ai, *current, hints;
+  char service[16];
 
   memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_canonname = NULL;
   hints.ai_addr = NULL;
   hints.ai_next = NULL;
 
-  if ((getaddrinfo(NULL, NULL, &hints, &ai)) != 0)
-    return;
+  snprintf (service, sizeof (service) - 1, "%d", port);
+  service[sizeof (service) - 1] = '\0';
+  if ((getaddrinfo(addr, service, &hints, &ai)) != 0)
+    throw rdr::SystemException("getaddrinfo", errorNumber);
 
-  for (current= ai; current != NULL; current = current->ai_next) {
-    if (current->ai_family != AF_INET && current->ai_family != AF_INET6)
+  for (current = ai; current != NULL; current = current->ai_next) {
+    switch (current->ai_family) {
+    case AF_INET:
+      if (!UseIPv4)
+        continue;
+      break;
+
+    case AF_INET6:
+      if (!UseIPv6)
+        continue;
+      break;
+
+    default:
       continue;
+    }
 
-    char *addr = new char[INET6_ADDRSTRLEN];
-    inet_ntop(current->ai_family, current->ai_addr, addr, INET6_ADDRSTRLEN);
-    result->push_back(addr);
+    try {
+      new_listeners.push_back(TcpListener (current->ai_addr,
+                                           current->ai_addrlen));
+    } catch (SocketException& e) {
+      // Ignore this if it is due to lack of address family support on
+      // the interface or on the system
+      if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT) {
+        // Otherwise, report the error
+        freeaddrinfo(ai);
+        throw;
+      }
+    }
   }
   freeaddrinfo(ai);
 #else
-  const hostent* addrs = gethostbyname(0);
-  if (addrs == 0)
-    throw rdr::SystemException("gethostbyname", errorNumber);
-  if (addrs->h_addrtype != AF_INET)
-    throw rdr::Exception("getMyAddresses: bad family");
-  for (int i=0; addrs->h_addr_list[i] != 0; i++) {
-    const char* addrC = inet_ntoa(*((struct in_addr*)addrs->h_addr_list[i]));
-    char* addr = new char[strlen(addrC)+1];
-    strcpy(addr, addrC);
-    result->push_back(addr);
+  const hostent* addrs;
+  if (addr) {
+    /* Bind to specific address */
+    addrs = gethostbyname(addr);
+    if (addrs == 0)
+      throw rdr::SystemException("gethostbyname", errorNumber);
+    if (addrs->h_addrtype != AF_INET)
+      throw rdr::Exception("createTcpListeners: bad family");
+    for (int i=0; addrs->h_addr_list[i] != 0; i++) {
+      struct sockaddr_in addr;
+      addr.sin_family = AF_INET;
+      memcpy (&addr.sin_addr, addrs->h_addr_list[i], addrs->h_length);
+      addr.sin_port = htons(port);
+      try {
+        new_listeners.push_back(TcpListener ((struct sockaddr*)&addr,
+                                             addrs->h_length));
+      } catch (SocketException& e) {
+        // Ignore this if it is due to lack of address family support
+        // on the interface or on the system
+        if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT) {
+          // Otherwise, report the error
+          freeaddrinfo(ai);
+          throw;
+        }
+      }
+    }
+  } else {
+    /* Bind to any address */
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port);
+    try {
+      new_listeners.push_back(TcpListener ((struct sockaddr*)&addr,
+                                           sizeof (struct sockaddr_in)));
+    } catch (SocketException& e) {
+      // Ignore this if it is due to lack of address family support on
+      // the interface or on the system
+      if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT) {
+        // Otherwise, report the error
+        freeaddrinfo(ai);
+        throw;
+      }
+    }
   }
-#endif /* defined(HAVE_GETADDRINFO) && defined(HAVE_INET_PTON) */
-}
+#endif /* defined(HAVE_GETADDRINFO) */
 
-int TcpListener::getMyPort() {
-  return TcpSocket::getSockPort(getFd());
+  if (new_listeners.empty ())
+    throw SocketException("createTcpListeners: no addresses available",
+                          EADDRNOTAVAIL);
+
+  listeners->splice (listeners->end(), new_listeners);
 }
 
 

@@ -29,6 +29,7 @@
 #define __NETWORK_TCP_SOCKET_H__
 
 #include <network/Socket.h>
+#include <sys/socket.h>
 
 #include <list>
 
@@ -66,19 +67,23 @@ namespace network {
 
   class TcpListener : public SocketListener {
   public:
-    TcpListener(const char *listenaddr, int port, bool localhostOnly=false,
-		int sock=-1, bool close=true);
+    TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
+    TcpListener(int sock);
+    TcpListener(const TcpListener& other);
+    TcpListener& operator= (const TcpListener& other);
     virtual ~TcpListener();
 
     virtual void shutdown();
     virtual Socket* accept();
 
-    void getMyAddresses(std::list<char*>* addrs);
     int getMyPort();
-
-  private:
-    bool closeFd;
   };
+
+  void createLocalTcpListeners(std::list<TcpListener> *listeners,
+                               int port);
+  void createTcpListeners(std::list<TcpListener> *listeners,
+                          const char *addr,
+                          int port);
 
   class TcpFilter : public ConnectionFilter {
   public:
