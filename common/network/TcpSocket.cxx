@@ -152,7 +152,7 @@ TcpSocket::TcpSocket(const char *host, int port)
 
   if ((result = getaddrinfo(host, NULL, &hints, &ai)) != 0) {
     throw Exception("unable to resolve host by name: %s",
-		    gai_strerror(result));
+                    gai_strerror(result));
   }
 
   // This logic is too complex for the compiler to determine if
@@ -222,7 +222,7 @@ TcpSocket::TcpSocket(const char *host, int port)
       err = errorNumber;
 #ifndef WIN32
       if (err == EINTR)
-	continue;
+        continue;
 #endif
       closesocket(sock);
       break;
@@ -356,7 +356,7 @@ bool TcpSocket::sameMachine() {
 #ifdef HAVE_GETADDRINFO
   if (peeraddr.u.sa.sa_family == AF_INET6)
       return IN6_ARE_ADDR_EQUAL(&peeraddr.u.sin6.sin6_addr,
-				&myaddr.u.sin6.sin6_addr);
+                                &myaddr.u.sin6.sin6_addr);
 #endif
 
   if (peeraddr.u.sa.sa_family == AF_INET)
@@ -375,7 +375,7 @@ void TcpSocket::shutdown()
 bool TcpSocket::enableNagles(int sock, bool enable) {
   int one = enable ? 0 : 1;
   if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
-		 (char *)&one, sizeof(one)) < 0) {
+                 (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
     vlog.error("unable to setsockopt TCP_NODELAY: %d", e);
     return false;
