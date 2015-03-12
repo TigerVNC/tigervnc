@@ -741,7 +741,6 @@ export CXXFLAGS=`echo $CXXFLAGS | sed -e 's/ -c //g'`
   -DFLTK_INCLUDE_DIR=%{xorg_buildroot}%{_includedir} \
   -DBUILD_STATIC=1 \
   -DCMAKE_BUILD_TYPE=Release \
-  -DUSE_INCLUDED_ZLIB=0 \
   -DZLIB_INCLUDE_DIR=%{_includedir} \
   -DZLIB_LIBRARY=%{_libdir}/libz.a \
   -DCMAKE_INSTALL_PREFIX=%{_prefix}

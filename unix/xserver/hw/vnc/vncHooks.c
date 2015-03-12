@@ -96,10 +96,7 @@ typedef struct _vncHooksGCRec {
 #endif
 } vncHooksGCRec, *vncHooksGCPtr;
 
-#if XORG == 15
-static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKey;
-static DevPrivateKey vncHooksGCPrivateKey = &vncHooksGCPrivateKey;
-#elif XORG < 19
+#if XORG < 19
 static int vncHooksScreenPrivateKeyIndex;
 static int vncHooksGCPrivateKeyIndex;
 static DevPrivateKey vncHooksScreenPrivateKey = &vncHooksScreenPrivateKeyIndex;
@@ -133,11 +130,8 @@ static void vncHooksClearToBackground(WindowPtr pWin, int x, int y, int w,
 #if XORG < 110
 static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr prgnExposed);
 #endif
-static Bool vncHooksDisplayCursor(
-#if XORG >= 16
-				  DeviceIntPtr pDev,
-#endif
-				  ScreenPtr pScreen, CursorPtr cursor);
+static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
+                                  ScreenPtr pScreen, CursorPtr cursor);
 #if XORG <= 112
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask);
@@ -601,30 +595,20 @@ static RegionPtr vncHooksRestoreAreas(WindowPtr pWin, RegionPtr pRegion)
 
 // DisplayCursor - get the cursor shape
 
-static Bool vncHooksDisplayCursor(
-#if XORG >= 16
-				  DeviceIntPtr pDev,
-#endif
-				  ScreenPtr pScreen_, CursorPtr cursor)
+static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
+                                  ScreenPtr pScreen_, CursorPtr cursor)
 {
   Bool ret;
 
   SCREEN_UNWRAP(pScreen_, DisplayCursor);
 
-  ret = (*pScreen->DisplayCursor) (
-#if XORG >= 16
-					pDev,
-#endif
-					pScreen, cursor);
+  ret = (*pScreen->DisplayCursor) (pDev, pScreen, cursor);
 
-#if XORG >= 16
   /*
    * XXX DIX calls this function with NULL argument to remove cursor sprite from
    * screen. Should we handle this in setCursor as well?
    */
-  if (cursor != NullCursor)
-#endif
-  {
+  if (cursor != NullCursor) {
     int width, height;
     int hotX, hotY;
 

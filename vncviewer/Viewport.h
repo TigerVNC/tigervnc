@@ -75,9 +75,6 @@ private:
 
   static int handleSystemEvent(void *event, void *data);
 
-  rdr::U32 translateKeyEvent(void);
-  void handleFLTKKeyPress(void);
-
   void initContextMenu();
   void popupContextMenu();
 

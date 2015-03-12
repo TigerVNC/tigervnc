@@ -165,7 +165,6 @@ static void init_fltk()
   Fl_Window::default_xclass("vncviewer");
 
   // Set the default icon for all windows.
-#ifdef HAVE_FLTK_ICONS
 #ifdef WIN32
   HICON lg, sm;
 
@@ -225,7 +224,6 @@ static void init_fltk()
   for (int i = 0;i < count;i++)
       delete icons[i];
 #endif
-#endif // FLTK_HAVE_ICONS
 
   // This makes the "icon" in dialogs rounded, which fits better
   // with the above schemes.

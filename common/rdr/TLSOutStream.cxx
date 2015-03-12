@@ -25,7 +25,6 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSOutStream.h>
-#include <rdr/TLSErrno.h>
 #include <errno.h>
 
 #ifdef HAVE_GNUTLS
@@ -33,7 +32,7 @@ using namespace rdr;
 
 enum { DEFAULT_BUF_SIZE = 16384 };
 
-ssize_t TLSOutStream::push(gnutls_transport_ptr str, const void* data,
+ssize_t TLSOutStream::push(gnutls_transport_ptr_t str, const void* data,
 				   size_t size)
 {
   TLSOutStream* self= (TLSOutStream*) str;
@@ -43,17 +42,17 @@ ssize_t TLSOutStream::push(gnutls_transport_ptr str, const void* data,
     out->writeBytes(data, size);
     out->flush();
   } catch (Exception& e) {
-    gnutls_errno_helper(self->session, EINVAL);
+    gnutls_transport_set_errno(self->session, EINVAL);
     return -1;
   }
 
   return size;
 }
 
-TLSOutStream::TLSOutStream(OutStream* _out, gnutls_session _session)
+TLSOutStream::TLSOutStream(OutStream* _out, gnutls_session_t _session)
   : session(_session), out(_out), bufSize(DEFAULT_BUF_SIZE), offset(0)
 {
-  gnutls_transport_ptr recv, send;
+  gnutls_transport_ptr_t recv, send;
 
   ptr = start = new U8[bufSize];
   end = start + bufSize;

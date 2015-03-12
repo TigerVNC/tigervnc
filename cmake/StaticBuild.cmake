@@ -15,7 +15,7 @@ if(BUILD_STATIC)
 
   set(JPEG_LIBRARIES "-Wl,-Bstatic -ljpeg -Wl,-Bdynamic")
 
-  if(WIN32 AND NOT USE_INCLUDED_ZLIB)
+  if(WIN32)
     set(ZLIB_LIBRARIES "-Wl,-Bstatic -lz -Wl,-Bdynamic")
   endif()
 

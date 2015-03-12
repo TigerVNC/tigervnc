@@ -93,6 +93,10 @@ namespace rfb {
     /* Output char* is stored in static array */
     char *ToString(void);
 
+#ifdef HAVE_GNUTLS
+    static StringParameter GnuTLSPriority;
+#endif
+
   private:
     std::list<rdr::U32> enabledSecTypes;
   };

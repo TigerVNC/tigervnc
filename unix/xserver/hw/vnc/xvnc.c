@@ -80,11 +80,9 @@ from the X Consortium.
 #endif
 #include <X11/keysym.h>
   extern char buildtime[];
-#if XORG >= 17
 #undef VENDOR_RELEASE
 #undef VENDOR_STRING
 #include "version-config.h"
-#endif
 #include "site.h"
 
 #define XVNCVERSION "TigerVNC 1.4.80"
@@ -848,39 +846,28 @@ vfbCrossScreen (ScreenPtr pScreen, Bool entering)
 {
 }
 
-static Bool vfbRealizeCursor(
-#if XORG >= 16
-			     DeviceIntPtr pDev,
-#endif
-			     ScreenPtr pScreen, CursorPtr pCursor) {
+static Bool vfbRealizeCursor(DeviceIntPtr pDev,
+                             ScreenPtr pScreen, CursorPtr pCursor)
+{
     return TRUE;
 }
 
-static Bool vfbUnrealizeCursor(
-#if XORG >= 16
-			       DeviceIntPtr pDev,
-#endif
-			       ScreenPtr pScreen, CursorPtr pCursor) {
+static Bool vfbUnrealizeCursor(DeviceIntPtr pDev,
+                               ScreenPtr pScreen, CursorPtr pCursor)
+{
     return TRUE;
 }
 
-static void vfbSetCursor(
-#if XORG >= 16
-			 DeviceIntPtr pDev,
-#endif
-			 ScreenPtr pScreen, CursorPtr pCursor, int x, int y) 
+static void vfbSetCursor(DeviceIntPtr pDev,
+                         ScreenPtr pScreen, CursorPtr pCursor, int x, int y) 
 {
 }
 
-static void vfbMoveCursor(
-#if XORG >= 16
-			  DeviceIntPtr pDev,
-#endif
-			  ScreenPtr pScreen, int x, int y) 
+static void vfbMoveCursor(DeviceIntPtr pDev,
+                          ScreenPtr pScreen, int x, int y) 
 {
 }
 
-#if XORG >= 16
 static Bool
 vfbDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
 {   
@@ -891,17 +878,14 @@ static void
 vfbDeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 { 
 }
-#endif
 
 static miPointerSpriteFuncRec vfbPointerSpriteFuncs = {
     vfbRealizeCursor,
     vfbUnrealizeCursor,
     vfbSetCursor,
-    vfbMoveCursor
-#if XORG >= 16
-    , vfbDeviceCursorInitialize,
+    vfbMoveCursor,
+    vfbDeviceCursorInitialize,
     vfbDeviceCursorCleanup
-#endif
 };
 
 static miPointerScreenFuncRec vfbPointerCursorFuncs = {
@@ -1220,11 +1204,7 @@ static Bool vncRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc, RRModePtr mode,
     }
 
     /* Let RandR know we approve, and let it update its internal state */
-    ret = RRCrtcNotify(crtc, mode, x, y, rotation,
-#if XORG >= 16
-                       NULL,
-#endif
-                       num_outputs, outputs);
+    ret = RRCrtcNotify(crtc, mode, x, y, rotation, NULL, num_outputs, outputs);
     if (!ret)
         return FALSE;
 
@@ -1694,9 +1674,6 @@ Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 void ProcessInputEvents(void)
 {
   mieqProcessInputEvents();
-#if XORG == 15
-  miPointerUpdate();
-#endif
 }
 
 // InitInput is called after InitExtensions, so we're guaranteed that

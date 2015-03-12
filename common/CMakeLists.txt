@@ -1,10 +1,3 @@
-if(USE_INCLUDED_ZLIB)
-  add_subdirectory(zlib)
-
-  set(ZLIB_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/common/zlib)
-  set(ZLIB_LIBRARIES zlib)
-endif()
-
 add_subdirectory(os)
 add_subdirectory(rdr)
 add_subdirectory(network)
@@ -19,7 +12,4 @@ add_subdirectory(rfb)
 if(CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_SIZEOF_VOID_P MATCHES 8) AND NOT WIN32)
   set_target_properties(os rdr network Xregion rfb
     PROPERTIES COMPILE_FLAGS -fPIC)
-  if(USE_INCLUDED_ZLIB)
-    set_target_properties(zlib PROPERTIES COMPILE_FLAGS -fPIC)
-  endif()
 endif()

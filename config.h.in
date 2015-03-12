@@ -4,22 +4,6 @@
 #cmakedefine HAVE_INET_ATON
 #cmakedefine HAVE_INET_PTON
 #cmakedefine HAVE_GETADDRINFO
-#cmakedefine HAVE_GNUTLS_SET_GLOBAL_ERRNO
-#cmakedefine HAVE_GNUTLS_SET_ERRNO
-#cmakedefine HAVE_GNUTLS_X509_CRT_PRINT
-#cmakedefine HAVE_GNUTLS_X509_CRT_T
-#cmakedefine HAVE_GNUTLS_DATUM_T
-#cmakedefine HAVE_GNUTLS_PK_ALGORITHM_T
-#cmakedefine HAVE_GNUTLS_SIGN_ALGORITHM_T
-#cmakedefine HAVE_FLTK_CLIPBOARD
-#cmakedefine HAVE_FLTK_MEDIAKEYS
-#cmakedefine HAVE_FLTK_FULLSCREEN
-#cmakedefine HAVE_FLTK_FULLSCREEN_SCREENS
-#cmakedefine HAVE_FLTK_CURSOR
-#cmakedefine HAVE_FLTK_WORK_AREA
-#cmakedefine HAVE_FLTK_ICONS
-#cmakedefine HAVE_FLTK_XHANDLERS
-#cmakedefine HAVE_FLTK_IM
 #cmakedefine HAVE_ACTIVE_DESKTOP_H
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1

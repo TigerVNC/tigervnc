@@ -27,6 +27,8 @@
 #error "This source should not be compiled without HAVE_GNUTLS defined"
 #endif
 
+#include <stdlib.h>
+
 #include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>
 #include <rfb/LogWriter.h>
@@ -164,15 +166,32 @@ bool SSecurityTLS::processMsg(SConnection *sc)
   return true;
 }
 
-void SSecurityTLS::setParams(gnutls_session session)
+void SSecurityTLS::setParams(gnutls_session_t session)
 {
-  static const int kx_anon_priority[] = { GNUTLS_KX_ANON_DH, 0 };
-  static const int kx_priority[] = { GNUTLS_KX_DHE_DSS, GNUTLS_KX_RSA,
-				     GNUTLS_KX_DHE_RSA, GNUTLS_KX_SRP, 0 };
+  static const char kx_anon_priority[] = ":+ANON-ECDH:+ANON-DH";
 
-  if (gnutls_kx_set_priority(session, anon ? kx_anon_priority : kx_priority)
-      != GNUTLS_E_SUCCESS)
-    throw AuthFailureException("gnutls_kx_set_priority failed");
+  int ret;
+  char *prio;
+  const char *err;
+
+  prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
+                       strlen(kx_anon_priority) + 1);
+  if (prio == NULL)
+    throw AuthFailureException("Not enough memory for GnuTLS priority string");
+
+  strcpy(prio, Security::GnuTLSPriority);
+  if (anon)
+    strcat(prio, kx_anon_priority);
+
+  ret = gnutls_priority_set_direct(session, prio, &err);
+
+  free(prio);
+
+  if (ret != GNUTLS_E_SUCCESS) {
+    if (ret == GNUTLS_E_INVALID_REQUEST)
+      vlog.error("GnuTLS priority syntax error at: %s", err);
+    throw AuthFailureException("gnutls_set_priority_direct failed");
+  }
 
   if (gnutls_dh_params_init(&dh_params) != GNUTLS_E_SUCCESS)
     throw AuthFailureException("gnutls_dh_params_init failed");

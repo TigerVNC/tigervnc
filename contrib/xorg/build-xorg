@@ -9,7 +9,7 @@ set -e
 PREFIX=
 MAKE="make"
 PARALLEL_MAKE=0
-XORG_VERSION=7.4
+XORG_VERSION=7.5
 XONLY=0
 CFGHOST=
 SRCDIR=`dirname $0`/..
@@ -55,9 +55,6 @@ modules="dri2proto \
     libpciaccess \
     pixman"
 
-modules74="fontcacheproto \
-    evieext"
-
 init()
 {
     update_modules
@@ -72,12 +69,8 @@ init()
 
     pushd xserver
 
-    if [ "$XORG_VERSION" = "7.4" ]; then
-	patch -p1 < $SRCDIR/unix/xserver16.patch
-    else
 	patch -p1 < $SRCDIR/unix/xserver18.patch
-    fi
-    for all in `find $SRCDIR/unix/xorg-$XORG_VERSION-patches/ -type f |grep '.*\.patch$'`; do
+    for all in `find $SRCDIR/contrib/xorg/xorg-$XORG_VERSION-patches/ -type f |grep '.*\.patch$'`; do
 	echo Applying $all
 	patch -p1 < $all
     done
@@ -93,7 +86,7 @@ update_modules()
     if [ -d xorg.build ]; then rm -rf xorg.build; fi
     mkdir xorg
     pushd xorg
-    $SRCDIR/unix/download-xorg-$XORG_VERSION
+    $SRCDIR/contrib/xorg/download-xorg-$XORG_VERSION
     for module in ${modules}; do
         tar jxf ~/.tigervnc-xorg-$XORG_VERSION/${module}.tar.bz2
     done
@@ -117,7 +110,7 @@ build ()
 
     # Build VNC
     echo "*** Building VNC ***"
-    cmake -G"Unix Makefiles" ${1+"$@"} -DUSE_INCLUDED_ZLIB=1 -DBUILD_STATIC=1 $SRCDIR
+    cmake -G"Unix Makefiles" ${1+"$@"} -DBUILD_STATIC=1 $SRCDIR
     $MAKE
 
     # Build Xorg
@@ -244,19 +237,12 @@ do
 	xbuild)     MODE=build;  XONLY=1     ;;
 	rebuild)    MODE=rebuild             ;;
 	update)     MODE=update              ;;
-	-version)   XORG_VERSION=$2;  shift  ;;
 	-parallel)  PARALLEL_MAKE=1;         ;;
 	-srcdir)    SRCDIR=$2;        shift  ;;
 	*)          break                    ;;
     esac
     shift
 done
-
-case "$XORG_VERSION" in
-    7.4)  modules=$modules" "$modules74  ;;
-    7.5)  ;;
-    *)    if [ ! "$MODE" = "rebuild" ]; then usage; fi  ;;
-esac
 
 pushd $SRCDIR
 SRCDIR=`pwd`

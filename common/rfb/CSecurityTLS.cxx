@@ -42,7 +42,6 @@
 #include <rdr/TLSInStream.h>
 #include <rdr/TLSOutStream.h>
 #include <os/os.h>
-#include <os/tls.h>
 
 #include <gnutls/x509.h>
 
@@ -202,14 +201,32 @@ bool CSecurityTLS::processMsg(CConnection* cc)
 
 void CSecurityTLS::setParam()
 {
-  static const int kx_anon_priority[] = { GNUTLS_KX_ANON_DH, 0 };
-  static const int kx_priority[] = { GNUTLS_KX_DHE_DSS, GNUTLS_KX_RSA,
-				     GNUTLS_KX_DHE_RSA, GNUTLS_KX_SRP, 0 };
+  static const char kx_anon_priority[] = ":+ANON-ECDH:+ANON-DH";
+
+  int ret;
+  char *prio;
+  const char *err;
+
+  prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
+                       strlen(kx_anon_priority) + 1);
+  if (prio == NULL)
+    throw AuthFailureException("Not enough memory for GnuTLS priority string");
+
+  strcpy(prio, Security::GnuTLSPriority);
+  if (anon)
+    strcat(prio, kx_anon_priority);
+
+  ret = gnutls_priority_set_direct(session, prio, &err);
+
+  free(prio);
+
+  if (ret != GNUTLS_E_SUCCESS) {
+    if (ret == GNUTLS_E_INVALID_REQUEST)
+      vlog.error("GnuTLS priority syntax error at: %s", err);
+    throw AuthFailureException("gnutls_set_priority_direct failed");
+  }
 
   if (anon) {
-    if (gnutls_kx_set_priority(session, kx_anon_priority) != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_kx_set_priority failed");
-
     if (gnutls_anon_allocate_client_credentials(&anon_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_anon_allocate_client_credentials failed");
 
@@ -218,9 +235,6 @@ void CSecurityTLS::setParam()
 
     vlog.debug("Anonymous session has been set");
   } else {
-    if (gnutls_kx_set_priority(session, kx_priority) != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_kx_set_priority failed");
-
     if (gnutls_certificate_allocate_credentials(&cert_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_certificate_allocate_credentials failed");
 
@@ -259,10 +273,10 @@ void CSecurityTLS::checkSession()
 				  GNUTLS_CERT_SIGNER_NOT_FOUND |
 				  GNUTLS_CERT_SIGNER_NOT_CA;
   unsigned int status;
-  const gnutls_datum *cert_list;
+  const gnutls_datum_t *cert_list;
   unsigned int cert_list_size = 0;
   int err;
-  gnutls_datum info;
+  gnutls_datum_t info;
 
   if (anon)
     return;
@@ -298,7 +312,7 @@ void CSecurityTLS::checkSession()
     throw AuthFailureException("empty certificate chain");
 
   /* Process only server's certificate, not issuer's certificate */
-  gnutls_x509_crt crt;
+  gnutls_x509_crt_t crt;
   gnutls_x509_crt_init(&crt);
 
   if (gnutls_x509_crt_import(crt, &cert_list[0], GNUTLS_X509_FMT_DER) < 0)

@@ -9,12 +9,12 @@ Build Requirements (All Systems)
 
 -- CMake (http://www.cmake.org) v2.8 or later
 
--- FLTK 1.3.2
-   * Must be a patched snapshot to get full functionality
-   * See "Building FLTK" below.
+-- zlib
+
+-- FLTK 1.3.3 or later
 
 -- If building TLS support:
-   * GnuTLS
+   * GnuTLS 3.x
    * See "Building TLS Support" below.
 
 -- If building native language support (NLS):
@@ -33,27 +33,9 @@ Build Requirements (Unix)
 -- Non-Mac platforms:
    * X11 development kit
 
--- If building Xvnc:
-   * autoconf 2.57 or later
-   * automake 1.7 or later
-   * libtool 1.4 or later
-   * OpenSSL v0.9.7 or later
-   * Python v2.3 or later
-   * zlib v1.2 or later
-
-   * pkgconfig 0.20 or later
-     If you are using an older RPM-based system which does not meet this
-     minimum requirement (such as Red Hat Enterprise Linux 4), then you can
-     build pkgconfig 0.20 from the Fedora 5 source RPM:
-     http://archive.fedoraproject.org/pub/archive/fedora/linux/core/5/source/SRPMS/pkgconfig-0.20-2.2.1.src.rpm
-
-   * gettext 0.14.4 or later
-     If you are using an older RPM-based system which does not meet this
-     minimum requirement (such as Red Hat Enterprise Linux 4), then you can
-     build gettext 0.14.5 from the Fedora 5 source RPM:
-     http://archive.fedoraproject.org/pub/archive/fedora/linux/core/5/source/SRPMS/gettext-0.14.5-3.src.rpm
-     NOTE: gcj and libgcj are required when building the above source RPM.
-
+-- If building Xvnc/libvnc.so:
+   * Xorg server source code, 1.7 or never
+   * All build requirements Xorg imposes (see its documentation)
 
 ============================
 Build Requirements (Windows)
@@ -78,38 +60,6 @@ Build Requirements (Java)
 -- Sun/Oracle JDK v5 or later or OpenJDK
 
 -- See "Building Java Support" below.
-
-
-=============
-Building FLTK
-=============
-
-TigerVNC requires FLTK 1.3.2 (or later). Although it will build and work
-with plain 1.3.2, to get full functionality and the best behaviour you
-need to build a patched version:
-
-1. Check out FLTK 1.3.2 using Subversion:
-$ svn co http://svn.easysw.com/public/fltk/fltk/tags/release-1.3.2 fltk-1.3.2
-
-2. For full functionality, apply patches. All patches can be found in
-   the contrib/fltk/ directory. There are also some general fixes to
-   FLTK that can be found in the contrib/fltk/fixes/ directory that
-   might be useful.
-
-3. Use CMake to build FLTK using the same procedures described below for
-   building TigerVNC.  The recipes in the "Build Recipes" section also apply.
-   If you want optimized code, make sure to build with
-   -DCMAKE_BUILD_TYPE=Release. 
-
-4. (optional) Use 'make install' to install FLTK into a directory of your
-   choosing.
-
-5. When building TigerVNC, set the FLTK_FLUID_EXECUTABLE CMake variable to the
-   location of the fluid executable that was built in Step 3 or installed in
-   Step 4.  This gives CMake a hint as to where to find the FLTK library.
-
-6. If you did not install FLTK, then set the FLTK_INCLUDE_DIR CMake variable to
-   the location of the FLTK source directory.
 
 
 ==================
@@ -202,14 +152,14 @@ version of the TigerVNC Server.  This is accomplished by downloading and
 building the more recent Xorg modules in a local directory and then building
 Xvnc such that it links against the local build of these libraries, not the X11
 libraries installed on the system.  The "build-xorg" script in the TigerVNC
-source distribution (located under unix/) automates this process.
+source distribution (located under contrib/xorg/) automates this process.
 
 The following procedure will build both the TigerVNC Viewer and a
 "legacy-friendly" version of the TigerVNC Server:
 
   cd {build_directory}
-  sh {source_directory}/unix/build-xorg init
-  sh {source_directory}/unix/build-xorg build [additional CMake flags]
+  sh {source_directory}/contrib/xorg/build-xorg init
+  sh {source_directory}/contrib/xorg/build-xorg build [additional CMake flags]
 
 build-xorg generates a version of Xvnc that has no external dependencies on the
 X11 shared libraries or any other distribution-specific shared libraries.  This
@@ -223,11 +173,11 @@ once the X11 modules and other dependencies have been built for the first time.
 This is convenient for testing changes that just apply to the TigerVNC source
 code.  To accomplish this, run:
 
-  sh {source_directory}/unix/build-xorg rebuild [additional make flags]
+  sh {source_directory}/contrib/xorg/build-xorg rebuild [additional make flags]
 
 For instance,
 
-  sh {source_directory}/unix/build-xorg rebuild clean
+  sh {source_directory}/contrib/xorg/build-xorg rebuild clean
 
 will clean both the Xvnc and vncviewer builds without destroying any of the
 build configuration or module dependencies.
