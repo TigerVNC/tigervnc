@@ -28,8 +28,13 @@
 #ifndef __NETWORK_TCP_SOCKET_H__
 #define __NETWORK_TCP_SOCKET_H__
 
+#ifdef HAVE_CONFIG_H
+#include <config.h> /* for HAVE_GETADDRINFO */
+#endif
+
 #include <network/Socket.h>
-#include <sys/socket.h>
+#include <sys/socket.h> /* for socklen_t */
+#include <netinet/in.h> /* for struct sockaddr_in */
 
 #include <list>
 
@@ -85,6 +90,16 @@ namespace network {
                           const char *addr,
                           int port);
 
+  typedef struct vnc_sockaddr {
+    union {
+      sockaddr     sa;
+      sockaddr_in  sin;
+#ifdef HAVE_GETADDRINFO
+      sockaddr_in6 sin6;
+#endif
+    } u;
+  } vnc_sockaddr_t;
+
   class TcpFilter : public ConnectionFilter {
   public:
     TcpFilter(const char* filter);
@@ -95,8 +110,10 @@ namespace network {
     typedef enum {Accept, Reject, Query} Action;
     struct Pattern {
       Action action;
-      unsigned long address;
-      unsigned long mask;
+      vnc_sockaddr_t address;
+      unsigned int prefixlen;
+
+      vnc_sockaddr_t mask; // computed from address and prefix
     };
     static Pattern parsePattern(const char* s);
     static char* patternToStr(const Pattern& p);
