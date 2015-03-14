@@ -5,7 +5,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 5%{?snap:.%{snap}}%{?dist}
+Release: 6%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -21,6 +21,10 @@ Source9: FindX11.cmake
 Source11: http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
 Source12: http://downloads.sourceforge.net/project/libjpeg-turbo/1.3.0/libjpeg-turbo-1.3.0.tar.gz
 Source13: http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/1.5.10/libpng-1.5.10.tar.bz2
+Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
+Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.2.tar.gz
+Source16: https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz
+Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.13.tar.xz
 
 Source100: http://www.x.org/releases/X11R7.7/src/everything/bigreqsproto-1.1.2.tar.bz2
 Source101: http://www.x.org/releases/X11R7.7/src/everything/compositeproto-0.4.2.tar.bz2
@@ -106,7 +110,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}%{?snap:-%{snap}}-%{release}-root-%(%{_
 # xorg requires newer versions of automake, & autoconf than are available with el5. Use el6 versions.
 BuildRequires: automake >= 1.11, autoconf >= 2.60, libtool >= 1.4, gettext >= 0.14.4, gettext-devel >= 0.14.4, bison-devel, python26
 BuildRequires: desktop-file-utils, java-devel, jpackage-utils
-BuildRequires: gnutls-devel, pam-devel
+BuildRequires: pam-devel
 BuildRequires: cmake28
 BuildRequires: pkgconfig >= 0.20
 BuildRequires: gcc44, gcc44-c++
@@ -114,6 +118,7 @@ BuildRequires: glibc-devel, libstdc++-devel, libpng-devel
 BuildRequires: expat-devel
 BuildRequires: git, gperf, intltool, libtalloc-devel
 BuildRequires: kernel-headers, libatomic_ops-devel
+BuildRequires: xz
 
 BuildRequires: openmotif-devel
 Requires: openmotif, openmotif22
@@ -277,6 +282,10 @@ popd
 
 tar xzf %SOURCE12
 tar xjf %SOURCE13
+tar xjf %SOURCE14
+tar xzf %SOURCE15
+tar xzf %SOURCE16
+xzcat %SOURCE17 | tar xf -
 
 mkdir xorg
 pushd xorg
@@ -415,9 +424,6 @@ pushd %{xorg_buildroot}%{_libdir}
 ln -s `g++44 -print-file-name=libz.a`
 ln -s `g++44 -print-file-name=libgcc.a`
 ln -s `g++44 -print-file-name=libexpat.a`
-ln -s `g++44 -print-file-name=libgnutls.a`
-ln -s `g++44 -print-file-name=libgpg-error.a`
-ln -s `g++44 -print-file-name=libgcrypt.a`
 ln -s `g++44 -print-file-name=libcrypto.a`
 popd
 
@@ -439,13 +445,71 @@ find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
 find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
 popd
+popd
 
 export CFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir}"
 export CXXFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir} -static-libgcc"
 export CPPFLAGS=$CXXFLAGS
-export LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir} -L%{xorg_buildroot}%{_libdir}/tigervnc"
+export LDFLAGS="-L%{xorg_buildroot}%{_libdir} -L%{xorg_buildroot}%{_libdir}/tigervnc $LDFLAGS"
 export ACLOCAL="aclocal -I %{xorg_buildroot}%{_datadir}/aclocal"
 export PKG_CONFIG_PATH="%{xorg_buildroot}%{_libdir}/pkgconfig:%{xorg_buildroot}%{_libdir}/tigervnc/pkgconfig:%{xorg_buildroot}%{_datadir}/pkgconfig:%{_libdir}/pkgconfig:%{_datadir}/pkgconfig"
+
+echo "*** Building gmp ***"
+pushd gmp-*
+%ifarch x86_64 s390x ia64 ppc64 alpha sparc64
+LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" ABI=64 ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --enable-cxx
+%else
+LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" ABI=32 ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --enable-cxx
+%endif
+make %{?_smp_mflags} DESTDIR=%{xorg_buildroot} install
+find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
+popd
+
+echo "*** Building libtasn1 ***"
+pushd libtasn1-*
+LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared
+make %{?_smp_mflags} DESTDIR=%{xorg_buildroot} install
+find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
+popd
+
+echo "*** Building nettle ***"
+pushd nettle-*
+autoreconf -fiv
+LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --disable-openssl
+make %{?_smp_mflags} DESTDIR=%{xorg_buildroot} install
+find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
+popd
+
+echo "*** Building gnutls ***"
+pushd gnutls-*
+LDFLAGS="-L%{xorg_buildroot}%{_libdir} -lgmp $LDFLAGS -static" PKG_CONFIG="pkg-config --static" ./configure \
+  --prefix=%{_prefix} \
+  --libdir=%{_libdir} \
+  --enable-static \
+  --disable-shared \
+  --without-p11-kit \
+  --disable-guile \
+  --disable-srp-authentication \
+  --disable-libdane \
+  --disable-doc \
+  --enable-local-libopts \
+  --without-tpm \
+  --disable-dependency-tracking \
+  --disable-silent-rules \
+  --disable-heartbeat-support
+make %{?_smp_mflags} DESTDIR=%{xorg_buildroot} install
+find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
+popd
+
+pushd xorg
 
 echo "*** Building freetype ***"
 pushd freetype-*
@@ -741,6 +805,7 @@ export CXXFLAGS=`echo $CXXFLAGS | sed -e 's/ -c //g'`
   -DFLTK_INCLUDE_DIR=%{xorg_buildroot}%{_includedir} \
   -DBUILD_STATIC=1 \
   -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_INCLUDED_ZLIB=0 \
   -DZLIB_INCLUDE_DIR=%{_includedir} \
   -DZLIB_LIBRARY=%{_libdir}/libz.a \
   -DCMAKE_INSTALL_PREFIX=%{_prefix}
@@ -919,6 +984,9 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Sat Mar 14 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-6
+- Build static libraries to meet new minimum requirements
+
 * Sat Mar 07 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-5
 - Don't disable xinerama extension
 
