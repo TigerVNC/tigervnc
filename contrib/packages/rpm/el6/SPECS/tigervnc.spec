@@ -36,8 +36,6 @@ BuildRequires: cmake28
 BuildRequires: xorg-x11-server-devel
 %endif
 
-BuildRequires: openmotif-devel
-Requires: openmotif, openmotif22
 Requires(post): initscripts chkconfig coreutils
 Requires(postun): coreutils
 Requires: libjpeg-turbo
