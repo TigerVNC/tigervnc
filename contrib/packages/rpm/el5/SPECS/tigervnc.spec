@@ -120,8 +120,6 @@ BuildRequires: git, gperf, intltool, libtalloc-devel
 BuildRequires: kernel-headers, libatomic_ops-devel
 BuildRequires: xz
 
-BuildRequires: openmotif-devel
-Requires: openmotif, openmotif22
 Requires(post): initscripts chkconfig coreutils
 Requires(postun):coreutils
 Requires: hicolor-icon-theme
