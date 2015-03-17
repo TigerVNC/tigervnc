@@ -33,8 +33,14 @@
 #endif
 
 #include <network/Socket.h>
+
+#ifdef WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h> /* for socklen_t */
 #include <netinet/in.h> /* for struct sockaddr_in */
+#endif
 
 #include <list>
 
