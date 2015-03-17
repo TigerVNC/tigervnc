@@ -1,7 +1,6 @@
 #define PACKAGE_NAME "@CMAKE_PROJECT_NAME@"
 #define PACKAGE_VERSION "@VERSION@"
 
-#cmakedefine HAVE_GETADDRINFO
 #cmakedefine HAVE_ACTIVE_DESKTOP_H
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
 #cmakedefine ENABLE_NLS 1

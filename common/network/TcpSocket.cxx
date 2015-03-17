@@ -57,7 +57,7 @@
 #define INADDR_LOOPBACK ((unsigned long)0x7F000001)
 #endif
 
-#if defined(HAVE_GETADDRINFO) && !defined(IN6_ARE_ADDR_EQUAL)
+#ifndef IN6_ARE_ADDR_EQUAL
 #define IN6_ARE_ADDR_EQUAL(a,b) \
   (memcmp ((const void*)(a), (const void*)(b), sizeof (struct in6_addr)) == 0)
 #endif
@@ -73,9 +73,7 @@ using namespace rdr;
 static rfb::LogWriter vlog("TcpSocket");
 
 static rfb::BoolParameter UseIPv4("UseIPv4", "Use IPv4 for incoming and outgoing connections.", true);
-#ifdef HAVE_GETADDRINFO
 static rfb::BoolParameter UseIPv6("UseIPv6", "Use IPv6 for incoming and outgoing connections.", true);
-#endif
 
 /* Tunnelling support. */
 int network::findFreeTcpPort (void)
@@ -150,14 +148,11 @@ TcpSocket::TcpSocket(const char *host, int port)
   int sock, err, result, family;
   vnc_sockaddr_t sa;
   socklen_t salen;
-#ifdef HAVE_GETADDRINFO
   struct addrinfo *ai, *current, hints;
-#endif
 
   // - Create a socket
   initSockets();
 
-#ifdef HAVE_GETADDRINFO
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
@@ -198,37 +193,10 @@ TcpSocket::TcpSocket(const char *host, int port)
     else
       sa.u.sin6.sin6_port = htons(port);
 
-#else /* HAVE_GETADDRINFO */
-    if (!UseIPv4)
-      throw Exception("Only IPv4 available but it is disabled");
-
-    family = AF_INET;
-    salen = sizeof(struct sockaddr_in);
-
-    /* Try processing the host as an IP address */
-    memset(&sa, 0, sizeof(sa));
-    sa.u.sin.sin_family = AF_INET;
-    sa.u.sin.sin_addr.s_addr = inet_addr((char *)host);
-    sa.u.sin.sin_port = htons(port);
-    if ((int)sa.u.sin.sin_addr.s_addr == -1) {
-      /* Host was not an IP address - try resolving as DNS name */
-      struct hostent *hostinfo;
-      hostinfo = gethostbyname((char *)host);
-      if (hostinfo && hostinfo->h_addr) {
-        sa.u.sin.sin_addr.s_addr = ((struct in_addr *)hostinfo->h_addr)->s_addr;
-      } else {
-        err = errorNumber;
-        throw SocketException("unable to resolve host by name", err);
-      }
-    }
-#endif /* HAVE_GETADDRINFO */
-
     sock = socket (family, SOCK_STREAM, 0);
     if (sock == -1) {
       err = errorNumber;
-#ifdef HAVE_GETADDRINFO
       freeaddrinfo(ai);
-#endif /* HAVE_GETADDRINFO */
       throw SocketException("unable to create socket", err);
     }
 
@@ -243,7 +211,6 @@ TcpSocket::TcpSocket(const char *host, int port)
       break;
     }
 
-#ifdef HAVE_GETADDRINFO
     if (result == 0)
       break;
   }
@@ -252,7 +219,6 @@ TcpSocket::TcpSocket(const char *host, int port)
 
   if (current == NULL)
     throw Exception("No useful address for host");
-#endif /* HAVE_GETADDRINFO */
 
   if (result == -1)
     throw SocketException("unable connect to socket", err);
@@ -289,7 +255,6 @@ char* TcpSocket::getPeerAddress() {
     return rfb::strDup("");
   }
 
-#if defined(HAVE_GETADDRINFO)
   if (sa.u.sa.sa_family == AF_INET6) {
     char buffer[INET6_ADDRSTRLEN + 2];
     int ret;
@@ -308,7 +273,6 @@ char* TcpSocket::getPeerAddress() {
 
     return rfb::strDup(buffer);
   }
-#endif
 
   if (sa.u.sa.sa_family == AF_INET) {
     char *name;
@@ -333,10 +297,8 @@ int TcpSocket::getPeerPort() {
   getpeername(getFd(), &sa.u.sa, &sa_size);
 
   switch (sa.u.sa.sa_family) {
-#ifdef HAVE_GETADDRINFO
   case AF_INET6:
     return ntohs(sa.u.sin6.sin6_port);
-#endif /* HAVE_GETADDRINFO */
   case AF_INET:
     return ntohs(sa.u.sin.sin_port);
   default:
@@ -369,12 +331,9 @@ bool TcpSocket::sameMachine() {
   if (peeraddr.u.sa.sa_family != myaddr.u.sa.sa_family)
       return false;
 
-#ifdef HAVE_GETADDRINFO
   if (peeraddr.u.sa.sa_family == AF_INET6)
       return IN6_ARE_ADDR_EQUAL(&peeraddr.u.sin6.sin6_addr,
                                 &myaddr.u.sin6.sin6_addr);
-#endif
-
   if (peeraddr.u.sa.sa_family == AF_INET)
     return (peeraddr.u.sin.sin_addr.s_addr == myaddr.u.sin.sin_addr.s_addr);
 
@@ -432,11 +391,8 @@ int TcpSocket::getSockPort(int sock)
     return 0;
 
   switch (sa.u.sa.sa_family) {
-#ifdef HAVE_GETADDRINFO
   case AF_INET6:
     return ntohs(sa.u.sin6.sin6_port);
-#endif /* HAVE_GETADDRINFO */
-
   default:
     return ntohs(sa.u.sin.sin_port);
   }
@@ -551,7 +507,6 @@ TcpListener::accept() {
 }
 
 void TcpListener::getMyAddresses(std::list<char*>* result) {
-#if defined(HAVE_GETADDRINFO)
   struct addrinfo *ai, *current, hints;
 
   initSockets();
@@ -591,21 +546,6 @@ void TcpListener::getMyAddresses(std::list<char*>* result) {
   }
 
   freeaddrinfo(ai);
-#else
-  const hostent* addrs = gethostbyname(0);
-  if (!UseIPv4)
-    return;
-  if (addrs == 0)
-    throw rdr::SystemException("gethostbyname", errorNumber);
-  if (addrs->h_addrtype != AF_INET)
-    throw rdr::Exception("getMyAddresses: bad family");
-  for (int i=0; addrs->h_addr_list[i] != 0; i++) {
-    const char* addrC = inet_ntoa(*((struct in_addr*)addrs->h_addr_list[i]));
-    char* addr = new char[strlen(addrC)+1];
-    strcpy(addr, addrC);
-    result->push_back(addr);
-  }
-#endif /* defined(HAVE_GETADDRINFO) */
 }
 
 int TcpListener::getMyPort() {
@@ -621,7 +561,6 @@ void network::createLocalTcpListeners(std::list<TcpListener> *listeners,
 
   initSockets();
 
-#ifdef HAVE_GETADDRINFO
   if (UseIPv6) {
     sa.u.sin6.sin6_family = AF_INET6;
     sa.u.sin6.sin6_port = htons (port);
@@ -636,7 +575,6 @@ void network::createLocalTcpListeners(std::list<TcpListener> *listeners,
         throw;
     }
   }
-#endif /* HAVE_GETADDRINFO */
   if (UseIPv4) {
     sa.u.sin.sin_family = AF_INET;
     sa.u.sin.sin_port = htons (port);
@@ -665,7 +603,6 @@ void network::createTcpListeners(std::list<TcpListener> *listeners,
 {
   std::list<TcpListener> new_listeners;
 
-#ifdef HAVE_GETADDRINFO
   struct addrinfo *ai, *current, hints;
   char service[16];
   int result;
@@ -716,53 +653,6 @@ void network::createTcpListeners(std::list<TcpListener> *listeners,
     }
   }
   freeaddrinfo(ai);
-#else
-  const hostent* addrs;
-  if (addr) {
-    /* Bind to specific address */
-    addrs = gethostbyname(addr);
-    if (addrs == 0)
-      throw rdr::SystemException("gethostbyname", errorNumber);
-    if (addrs->h_addrtype != AF_INET)
-      throw rdr::Exception("createTcpListeners: bad family");
-    for (int i=0; addrs->h_addr_list[i] != 0; i++) {
-      struct sockaddr_in addr;
-      addr.sin_family = AF_INET;
-      memcpy (&addr.sin_addr, addrs->h_addr_list[i], addrs->h_length);
-      addr.sin_port = htons(port);
-      try {
-        new_listeners.push_back(TcpListener ((struct sockaddr*)&addr,
-                                             addrs->h_length));
-      } catch (SocketException& e) {
-        // Ignore this if it is due to lack of address family support
-        // on the interface or on the system
-        if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT) {
-          // Otherwise, report the error
-          freeaddrinfo(ai);
-          throw;
-        }
-      }
-    }
-  } else {
-    /* Bind to any address */
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(port);
-    try {
-      new_listeners.push_back(TcpListener ((struct sockaddr*)&addr,
-                                           sizeof (struct sockaddr_in)));
-    } catch (SocketException& e) {
-      // Ignore this if it is due to lack of address family support on
-      // the interface or on the system
-      if (e.err != EADDRNOTAVAIL && e.err != EAFNOSUPPORT) {
-        // Otherwise, report the error
-        freeaddrinfo(ai);
-        throw;
-      }
-    }
-  }
-#endif /* defined(HAVE_GETADDRINFO) */
 
   if (new_listeners.empty ())
     throw SocketException("createTcpListeners: no addresses available",
@@ -885,7 +775,6 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
     pattern.address.u.sa.sa_family = AF_UNSPEC;
     pattern.prefixlen = 0;
   } else {
-#ifdef HAVE_GETADDRINFO
     struct addrinfo hints;
     struct addrinfo *ai;
     char *p = addr.buf;
@@ -910,10 +799,6 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
     memcpy (&pattern.address.u.sa, ai->ai_addr, ai->ai_addrlen);
     freeaddrinfo (ai);
-#else
-    pattern.address.u.sa.sa_family = AF_INET;
-    pattern.address.u.sin.sin_addr.s_addr = inet_addr(addr.buf);
-#endif /* HAVE_GETADDRINFO */
 
     family = pattern.address.u.sa.sa_family;
 
@@ -987,7 +872,6 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
 
 char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
   rfb::CharArray addr;
-#ifdef HAVE_GETADDRINFO
   char buffer[INET6_ADDRSTRLEN + 2];
 
   if (p.address.u.sa.sa_family == AF_INET) {
@@ -1002,11 +886,6 @@ char* TcpFilter::patternToStr(const TcpFilter::Pattern& p) {
     addr.buf = rfb::strDup(buffer);
   } else if (p.address.u.sa.sa_family == AF_UNSPEC)
     addr.buf = rfb::strDup("");
-#else
-  in_addr tmp;
-  tmp.s_addr = p.address.u.sin.sin_addr.s_addr;
-  addr.buf = rfb::strDup(inet_ntoa(tmp));
-#endif /* HAVE_GETADDRINFO */
 
   char action;
   switch (p.action) {

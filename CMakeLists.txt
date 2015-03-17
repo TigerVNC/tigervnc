@@ -252,18 +252,6 @@ if(ENABLE_PAM)
 endif()
 set(HAVE_PAM ${ENABLE_PAM})
 
-# Check for socket functions
-if(WIN32)
-  # check_function_exists() cannot handle stdcall, so just define things
-  set(HAVE_GETADDRINFO 1)
-else()
-  if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-    set(CMAKE_REQUIRED_LIBRARIES socket)
-  endif()
-  check_function_exists(getaddrinfo HAVE_GETADDRINFO)
-  set(CMAKE_REQUIRED_LIBRARIES)
-endif()
-
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)

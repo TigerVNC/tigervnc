@@ -28,10 +28,6 @@
 #ifndef __NETWORK_TCP_SOCKET_H__
 #define __NETWORK_TCP_SOCKET_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h> /* for HAVE_GETADDRINFO */
-#endif
-
 #include <network/Socket.h>
 
 #ifdef WIN32
@@ -101,9 +97,7 @@ namespace network {
     union {
       sockaddr     sa;
       sockaddr_in  sin;
-#ifdef HAVE_GETADDRINFO
       sockaddr_in6 sin6;
-#endif
     } u;
   } vnc_sockaddr_t;
 
