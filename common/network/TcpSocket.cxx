@@ -120,6 +120,23 @@ static void initSockets() {
 }
 
 
+// -=- Socket duplication help for Windows
+static int dupsocket(int fd)
+{
+#ifdef WIN32
+  int ret;
+  WSAPROTOCOL_INFO info;
+  ret = WSADuplicateSocket(fd, GetCurrentProcessId(), &info);
+  if (ret != 0)
+    throw SocketException("unable to duplicate socket", errorNumber);
+  return WSASocket(info.iAddressFamily, info.iSocketType, info.iProtocol,
+                   &info, 0, 0);
+#else
+  return dup(fd);
+#endif
+}
+
+
 // -=- TcpSocket
 
 TcpSocket::TcpSocket(int sock, bool close)
@@ -432,7 +449,7 @@ TcpListener::TcpListener(int sock)
 
 TcpListener::TcpListener(const TcpListener& other)
 {
-  fd = dup (other.fd);
+  fd = dupsocket (other.fd);
   // Hope TcpListener::shutdown(other) doesn't get called...
 }
 
@@ -441,7 +458,7 @@ TcpListener& TcpListener::operator= (const TcpListener& other)
   if (this != &other)
   {
     closesocket (fd);
-    fd = dup (other.fd);
+    fd = dupsocket (other.fd);
     // Hope TcpListener::shutdown(other) doesn't get called...
   }
   return *this;
