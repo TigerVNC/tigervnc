@@ -255,13 +255,11 @@ set(HAVE_PAM ${ENABLE_PAM})
 # Check for socket functions
 if(WIN32)
   # check_function_exists() cannot handle stdcall, so just define things
-  set(HAVE_INET_ATON 1)
   set(HAVE_GETADDRINFO 1)
 else()
   if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
     set(CMAKE_REQUIRED_LIBRARIES socket)
   endif()
-  check_function_exists(inet_aton HAVE_INET_ATON)
   check_function_exists(getaddrinfo HAVE_GETADDRINFO)
   set(CMAKE_REQUIRED_LIBRARIES)
 endif()
