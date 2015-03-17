@@ -43,7 +43,7 @@ static IntParameter http_port("HTTPPortNumber",
 static IntParameter port_number("PortNumber",
   "TCP/IP port on which the server will accept connections", 5900);
 static StringParameter hosts("Hosts",
-  "Filter describing which hosts are allowed access to this server", "+0.0.0.0/0.0.0.0");
+  "Filter describing which hosts are allowed access to this server", "+");
 static BoolParameter localHost("LocalHost",
   "Only accept connections from via the local loop-back network interface", false);
 static BoolParameter queryOnlyIfLoggedOn("QueryOnlyIfLoggedOn",
@@ -136,7 +136,7 @@ void VNCServerWin32::regConfigChanged() {
   httpSock.setPort(http_port, localHost);
 
   // -=- Update the Java viewer's web page port number.
-  httpServer.setRFBport(rfbSock.sock ? port_number : 0);
+  httpServer.setRFBport(rfbSock.isListening() ? port_number : 0);
 
   // -=- Update the TCP address filter for both ports, if open.
   CharArray pattern(hosts.getData());
