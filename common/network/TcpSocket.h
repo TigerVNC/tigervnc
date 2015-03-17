@@ -28,7 +28,13 @@
 #ifndef __NETWORK_TCP_SOCKET_H__
 #define __NETWORK_TCP_SOCKET_H__
 
+#ifdef HAVE_CONFIG_H
+#include <config.h> /* for HAVE_GETADDRINFO */
+#endif
+
 #include <network/Socket.h>
+#include <sys/socket.h> /* for socklen_t */
+#include <netinet/in.h> /* for struct sockaddr_in */
 
 #include <list>
 
@@ -66,19 +72,33 @@ namespace network {
 
   class TcpListener : public SocketListener {
   public:
-    TcpListener(const char *listenaddr, int port, bool localhostOnly=false,
-		int sock=-1, bool close=true);
+    TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
+    TcpListener(int sock);
+    TcpListener(const TcpListener& other);
+    TcpListener& operator= (const TcpListener& other);
     virtual ~TcpListener();
 
     virtual void shutdown();
     virtual Socket* accept();
 
-    void getMyAddresses(std::list<char*>* addrs);
     int getMyPort();
-
-  private:
-    bool closeFd;
   };
+
+  void createLocalTcpListeners(std::list<TcpListener> *listeners,
+                               int port);
+  void createTcpListeners(std::list<TcpListener> *listeners,
+                          const char *addr,
+                          int port);
+
+  typedef struct vnc_sockaddr {
+    union {
+      sockaddr     sa;
+      sockaddr_in  sin;
+#ifdef HAVE_GETADDRINFO
+      sockaddr_in6 sin6;
+#endif
+    } u;
+  } vnc_sockaddr_t;
 
   class TcpFilter : public ConnectionFilter {
   public:
@@ -90,8 +110,10 @@ namespace network {
     typedef enum {Accept, Reject, Query} Action;
     struct Pattern {
       Action action;
-      unsigned long address;
-      unsigned long mask;
+      vnc_sockaddr_t address;
+      unsigned int prefixlen;
+
+      vnc_sockaddr_t mask; // computed from address and prefix
     };
     static Pattern parsePattern(const char* s);
     static char* patternToStr(const Pattern& p);

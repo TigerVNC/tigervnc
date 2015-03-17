@@ -91,14 +91,14 @@ public:
 
 
 XserverDesktop::XserverDesktop(int screenIndex_,
-                               network::TcpListener* listener_,
-                               network::TcpListener* httpListener_,
+                               std::list<network::TcpListener> listeners_,
+                               std::list<network::TcpListener> httpListeners_,
                                const char* name, const rfb::PixelFormat &pf,
                                int width, int height,
                                void* fbptr, int stride)
   : screenIndex(screenIndex_),
     server(0), httpServer(0),
-    listener(listener_), httpListener(httpListener_),
+    listeners(listeners_), httpListeners(httpListeners_),
     deferredUpdateTimerSet(false), directFbptr(true),
     queryConnectId(0)
 {
@@ -108,7 +108,7 @@ XserverDesktop::XserverDesktop(int screenIndex_,
   setFramebuffer(width, height, fbptr, stride);
   server->setQueryConnectionHandler(this);
 
-  if (httpListener)
+  if (!httpListeners.empty ())
     httpServer = new FileHTTPServer(this);
 }
 
@@ -222,7 +222,7 @@ char* XserverDesktop::substitute(const char* varName)
   }
   if (strcmp(varName, "$PORT") == 0) {
     char* str = new char[10];
-    sprintf(str, "%d", listener ? listener->getMyPort() : 0);
+    sprintf(str, "%d", listeners.empty () ? 0 : (*listeners.begin ()).getMyPort());
     return str;
   }
   if (strcmp(varName, "$WIDTH") == 0) {
@@ -393,14 +393,18 @@ void XserverDesktop::readBlockHandler(fd_set* fds, struct timeval ** timeout)
 
     // Add all sockets we want read events for, after purging
     // any closed sockets.
-    if (listener)
-      FD_SET(listener->getFd(), fds);
-    if (httpListener)
-      FD_SET(httpListener->getFd(), fds);
+    for (std::list<network::TcpListener>::iterator i = listeners.begin();
+         i != listeners.end();
+         i++)
+      FD_SET((*i).getFd(), fds);
+    for (std::list<network::TcpListener>::iterator i = httpListeners.begin();
+         i != httpListeners.end();
+         i++)
+      FD_SET((*i).getFd(), fds);
 
     std::list<Socket*> sockets;
-    server->getSockets(&sockets);
     std::list<Socket*>::iterator i;
+    server->getSockets(&sockets);
     for (i = sockets.begin(); i != sockets.end(); i++) {
       int fd = (*i)->getFd();
       if ((*i)->isShutdown()) {
@@ -452,20 +456,24 @@ void XserverDesktop::readWakeupHandler(fd_set* fds, int nfds)
     // First check for file descriptors with something to do
     if (nfds >= 1) {
 
-      if (listener) {
-        if (FD_ISSET(listener->getFd(), fds)) {
-          FD_CLR(listener->getFd(), fds);
-          Socket* sock = listener->accept();
+      for (std::list<network::TcpListener>::iterator i = listeners.begin();
+           i != listeners.end();
+           i++) {
+        if (FD_ISSET((*i).getFd(), fds)) {
+          FD_CLR((*i).getFd(), fds);
+          Socket* sock = (*i).accept();
           sock->outStream().setBlocking(false);
           server->addSocket(sock);
           vlog.debug("new client, sock %d",sock->getFd());
         }
       }
 
-      if (httpListener) {
-        if (FD_ISSET(httpListener->getFd(), fds)) {
-          FD_CLR(httpListener->getFd(), fds);
-          Socket* sock = httpListener->accept();
+      for (std::list<network::TcpListener>::iterator i = httpListeners.begin();
+           i != httpListeners.end();
+           i++) {
+        if (FD_ISSET((*i).getFd(), fds)) {
+          FD_CLR((*i).getFd(), fds);
+          Socket* sock = (*i).accept();
           sock->outStream().setBlocking(false);
           httpServer->addSocket(sock);
           vlog.debug("new http client, sock %d",sock->getFd());
