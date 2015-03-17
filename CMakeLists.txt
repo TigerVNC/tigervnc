@@ -254,10 +254,7 @@ set(HAVE_PAM ${ENABLE_PAM})
 
 # Check for socket functions
 if(WIN32)
-  set(CMAKE_EXTRA_INCLUDE_FILES winsock2.h ws2tcpip.h)
   set(CMAKE_REQUIRED_LIBRARIES ws2_32)
-else()
-  set(CMAKE_EXTRA_INCLUDE_FILES sys/socket.h)
 endif()
 check_function_exists(inet_aton HAVE_INET_ATON)
 # This might give a false positive on Windows as it is also guarded by
@@ -267,7 +264,6 @@ if(NOT WIN32)
 check_function_exists(inet_pton HAVE_INET_PTON)
 endif()
 check_function_exists(getaddrinfo HAVE_GETADDRINFO)
-set(CMAKE_EXTRA_INCLUDE_FILES) 
 set(CMAKE_REQUIRED_LIBRARIES)
 
 # Generate config.h and make sure the source finds it
