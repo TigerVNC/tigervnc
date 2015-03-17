@@ -254,17 +254,14 @@ set(HAVE_PAM ${ENABLE_PAM})
 
 # Check for socket functions
 if(WIN32)
-  set(CMAKE_REQUIRED_LIBRARIES ws2_32)
+  # check_function_exists() cannot handle stdcall, so just define things
+  set(HAVE_INET_ATON 1)
+  set(HAVE_GETADDRINFO 1)
+else()
+  check_function_exists(inet_aton HAVE_INET_ATON)
+  check_function_exists(getaddrinfo HAVE_GETADDRINFO)
+  set(CMAKE_REQUIRED_LIBRARIES)
 endif()
-check_function_exists(inet_aton HAVE_INET_ATON)
-# This might give a false positive on Windows as it is also guarded by
-# a version check that we do not satisfy (requires Vista, but we target
-# Windows 2000).
-if(NOT WIN32)
-check_function_exists(inet_pton HAVE_INET_PTON)
-endif()
-check_function_exists(getaddrinfo HAVE_GETADDRINFO)
-set(CMAKE_REQUIRED_LIBRARIES)
 
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)
