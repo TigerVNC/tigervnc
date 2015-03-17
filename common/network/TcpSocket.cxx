@@ -668,6 +668,7 @@ void network::createTcpListeners(std::list<TcpListener> *listeners,
 #ifdef HAVE_GETADDRINFO
   struct addrinfo *ai, *current, hints;
   char service[16];
+  int result;
 
   initSockets();
 
@@ -681,8 +682,9 @@ void network::createTcpListeners(std::list<TcpListener> *listeners,
 
   snprintf (service, sizeof (service) - 1, "%d", port);
   service[sizeof (service) - 1] = '\0';
-  if ((getaddrinfo(addr, service, &hints, &ai)) != 0)
-    throw rdr::SystemException("getaddrinfo", errorNumber);
+  if ((result = getaddrinfo(addr, service, &hints, &ai)) != 0)
+    throw rdr::Exception("unable to resolve listening address: %s",
+                         gai_strerror(result));
 
   for (current = ai; current != NULL; current = current->ai_next) {
     switch (current->ai_family) {
