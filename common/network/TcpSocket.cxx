@@ -46,6 +46,10 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 
+#ifdef WIN32
+#include <os/winerrno.h>
+#endif
+
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long)-1)
 #endif
