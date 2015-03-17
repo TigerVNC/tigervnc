@@ -543,6 +543,9 @@ void network::createLocalTcpListeners(std::list<TcpListener> *listeners,
 {
   std::list<TcpListener> new_listeners;
   vnc_sockaddr_t sa;
+
+  initSockets();
+
 #ifdef HAVE_GETADDRINFO
   if (UseIPv6) {
     sa.u.sin6.sin6_family = AF_INET6;
@@ -590,6 +593,8 @@ void network::createTcpListeners(std::list<TcpListener> *listeners,
 #ifdef HAVE_GETADDRINFO
   struct addrinfo *ai, *current, hints;
   char service[16];
+
+  initSockets();
 
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
