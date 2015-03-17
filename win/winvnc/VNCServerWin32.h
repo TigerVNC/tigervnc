@@ -82,7 +82,7 @@ namespace winvnc {
 
     // SocketManager::AddressChangeNotifier interface
     // Used to keep tray icon up to date
-    virtual void processAddressChange(network::SocketListener* sl);
+    virtual void processAddressChange();
 
     // RegConfig::Callback interface
     // Called via the EventManager whenver RegConfig sees the registry change

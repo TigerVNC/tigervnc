@@ -30,6 +30,14 @@
 
 #include <network/Socket.h>
 
+#ifdef WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h> /* for socklen_t */
+#include <netinet/in.h> /* for struct sockaddr_in */
+#endif
+
 #include <list>
 
 /* Tunnelling support. */
@@ -66,19 +74,32 @@ namespace network {
 
   class TcpListener : public SocketListener {
   public:
-    TcpListener(const char *listenaddr, int port, bool localhostOnly=false,
-		int sock=-1, bool close=true);
+    TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
+    TcpListener(int sock);
+    TcpListener(const TcpListener& other);
+    TcpListener& operator= (const TcpListener& other);
     virtual ~TcpListener();
 
     virtual void shutdown();
     virtual Socket* accept();
 
-    void getMyAddresses(std::list<char*>* addrs);
+    static void getMyAddresses(std::list<char*>* result);
     int getMyPort();
-
-  private:
-    bool closeFd;
   };
+
+  void createLocalTcpListeners(std::list<TcpListener> *listeners,
+                               int port);
+  void createTcpListeners(std::list<TcpListener> *listeners,
+                          const char *addr,
+                          int port);
+
+  typedef struct vnc_sockaddr {
+    union {
+      sockaddr     sa;
+      sockaddr_in  sin;
+      sockaddr_in6 sin6;
+    } u;
+  } vnc_sockaddr_t;
 
   class TcpFilter : public ConnectionFilter {
   public:
@@ -90,8 +111,10 @@ namespace network {
     typedef enum {Accept, Reject, Query} Action;
     struct Pattern {
       Action action;
-      unsigned long address;
-      unsigned long mask;
+      vnc_sockaddr_t address;
+      unsigned int prefixlen;
+
+      vnc_sockaddr_t mask; // computed from address and prefix
     };
     static Pattern parsePattern(const char* s);
     static char* patternToStr(const Pattern& p);

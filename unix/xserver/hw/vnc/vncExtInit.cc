@@ -134,33 +134,44 @@ void vncExtensionInit(void)
     for (int scr = 0; scr < vncGetScreenCount(); scr++) {
 
       if (!desktop[scr]) {
-        network::TcpListener* listener = 0;
-        network::TcpListener* httpListener = 0;
+        std::list<network::TcpListener> listeners;
+        std::list<network::TcpListener> httpListeners;
         if (scr == 0 && vncInetdSock != -1) {
           if (network::TcpSocket::isSocket(vncInetdSock) &&
               !network::TcpSocket::isConnected(vncInetdSock))
           {
-            listener = new network::TcpListener(NULL, 0, 0, vncInetdSock, true);
+            listeners.push_back (network::TcpListener(vncInetdSock));
             vlog.info("inetd wait");
           }
         } else {
+          const char *addr = interface;
           int port = rfbport;
           if (port == 0) port = 5900 + atoi(vncGetDisplay());
           port += 1000 * scr;
-          if (strcasecmp(interface, "all") == 0)
-            listener = new network::TcpListener(NULL, port, localhostOnly);
+          if (strcasecmp(addr, "all") == 0)
+            addr = 0;
+          if (localhostOnly)
+            network::createLocalTcpListeners(&listeners, port);
           else
-            listener = new network::TcpListener(interface, port, localhostOnly);
+            network::createTcpListeners(&listeners, addr, port);
+
           vlog.info("Listening for VNC connections on %s interface(s), port %d",
-                    (const char*)interface, port);
+                    localhostOnly ? "local" : (const char*)interface,
+                    port);
+
           CharArray httpDirStr(httpDir.getData());
           if (httpDirStr.buf[0]) {
             port = httpPort;
             if (port == 0) port = 5800 + atoi(vncGetDisplay());
             port += 1000 * scr;
-            httpListener = new network::TcpListener(interface, port, localhostOnly);
+            if (localhostOnly)
+              network::createLocalTcpListeners(&httpListeners, port);
+            else
+              network::createTcpListeners(&httpListeners, addr, port);
+
             vlog.info("Listening for HTTP connections on %s interface(s), port %d",
-                      (const char*)interface, port);
+                      localhostOnly ? "local" : (const char*)interface,
+                      port);
           }
         }
 
@@ -168,8 +179,8 @@ void vncExtensionInit(void)
         PixelFormat pf = vncGetPixelFormat(scr);
 
         desktop[scr] = new XserverDesktop(scr,
-                                          listener,
-                                          httpListener,
+                                          listeners,
+                                          httpListeners,
                                           desktopNameStr.buf,
                                           pf,
                                           vncGetScreenWidth(scr),
@@ -178,7 +189,7 @@ void vncExtensionInit(void)
                                           vncFbstride[scr]);
         vlog.info("created VNC server for screen %d", scr);
 
-        if (scr == 0 && vncInetdSock != -1 && !listener) {
+        if (scr == 0 && vncInetdSock != -1 && listeners.empty()) {
           network::Socket* sock = new network::TcpSocket(vncInetdSock);
           desktop[scr]->addClient(sock, false);
           vlog.info("added inetd sock");
