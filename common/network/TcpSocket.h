@@ -81,6 +81,7 @@ namespace network {
     virtual void shutdown();
     virtual Socket* accept();
 
+    static void getMyAddresses(std::list<char*>* result);
     int getMyPort();
   };
 

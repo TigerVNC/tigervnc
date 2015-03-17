@@ -101,8 +101,8 @@ void VNCServerWin32::processAddressChange(network::SocketListener* sock_) {
 
   // Fetch the list of addresses
   std::list<char*> addrs;
-  if (rfbSock.sock)
-    rfbSock.sock->getMyAddresses(&addrs);
+  if (rfbSock.isListening())
+    TcpListener::getMyAddresses(&addrs);
   else
     addrs.push_front(strDup("Not accepting connections"));
 

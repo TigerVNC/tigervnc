@@ -533,6 +533,64 @@ TcpListener::accept() {
   return s;
 }
 
+void TcpListener::getMyAddresses(std::list<char*>* result) {
+#if defined(HAVE_GETADDRINFO)
+  struct addrinfo *ai, *current, hints;
+
+  initSockets();
+
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_canonname = NULL;
+  hints.ai_addr = NULL;
+  hints.ai_next = NULL;
+
+  // Windows doesn't like NULL for service, so specify something
+  if ((getaddrinfo(NULL, "1", &hints, &ai)) != 0)
+    return;
+
+  for (current= ai; current != NULL; current = current->ai_next) {
+    switch (current->ai_family) {
+    case AF_INET:
+      if (!UseIPv4)
+        continue;
+      break;
+    case AF_INET6:
+      if (!UseIPv6)
+        continue;
+      break;
+    default:
+      continue;
+    }
+
+    char *addr = new char[INET6_ADDRSTRLEN];
+
+    getnameinfo(current->ai_addr, current->ai_addrlen, addr, INET6_ADDRSTRLEN,
+                NULL, 0, NI_NUMERICHOST);
+
+    result->push_back(addr);
+  }
+
+  freeaddrinfo(ai);
+#else
+  const hostent* addrs = gethostbyname(0);
+  if (!UseIPv4)
+    return;
+  if (addrs == 0)
+    throw rdr::SystemException("gethostbyname", errorNumber);
+  if (addrs->h_addrtype != AF_INET)
+    throw rdr::Exception("getMyAddresses: bad family");
+  for (int i=0; addrs->h_addr_list[i] != 0; i++) {
+    const char* addrC = inet_ntoa(*((struct in_addr*)addrs->h_addr_list[i]));
+    char* addr = new char[strlen(addrC)+1];
+    strcpy(addr, addrC);
+    result->push_back(addr);
+  }
+#endif /* defined(HAVE_GETADDRINFO) */
+}
+
 int TcpListener::getMyPort() {
   return TcpSocket::getSockPort(getFd());
 }
