@@ -2,7 +2,6 @@
 #define PACKAGE_VERSION "@VERSION@"
 
 #cmakedefine HAVE_INET_ATON
-#cmakedefine HAVE_INET_PTON
 #cmakedefine HAVE_GETADDRINFO
 #cmakedefine HAVE_ACTIVE_DESKTOP_H
 #cmakedefine HAVE_ACTIVE_DESKTOP_L
