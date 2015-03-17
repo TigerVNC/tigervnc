@@ -90,8 +90,8 @@ VNCServerWin32::~VNCServerWin32() {
 }
 
 
-void VNCServerWin32::processAddressChange(network::SocketListener* sock_) {
-  if (!trayIcon || (sock_ != rfbSock.sock))
+void VNCServerWin32::processAddressChange() {
+  if (!trayIcon)
     return;
 
   // Tool-tip prefix depends on server mode
@@ -144,7 +144,7 @@ void VNCServerWin32::regConfigChanged() {
   httpSock.setFilter(pattern.buf);
 
   // -=- Update the tray icon tooltip text with IP addresses
-  processAddressChange(rfbSock.sock);
+  processAddressChange();
 }
 
 
