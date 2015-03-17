@@ -16,6 +16,7 @@
  * USA.
  */
 
+#include <winsock2.h>
 #include <windows.h>
 #include <commctrl.h>
 #include <string.h>
