@@ -62,6 +62,11 @@
   (memcmp ((const void*)(a), (const void*)(b), sizeof (struct in6_addr)) == 0)
 #endif
 
+// Missing on older Windows and OS X
+#ifndef AI_NUMERICSERV
+#define AI_NUMERICSERV 0
+#endif
+
 using namespace network;
 using namespace rdr;
 
