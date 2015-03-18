@@ -7,620 +7,725 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tigervnc 1.3.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-11-19 12:46+0000\n"
+"POT-Creation-Date: 2015-03-18 10:46+0100\n"
 "PO-Revision-Date: 2014-11-22 12:02+0100\n"
 "Last-Translator: Benno Schulenberg <benno@vertaalt.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
-"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
 "X-Generator: Lokalize 1.0\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:194
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:111
 #, c-format
-msgid "(server default %s)"
-msgstr "(serverstandaard is %s)"
+msgid "connected to host %s port %d"
+msgstr "verbonden met host %s poort %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:227
-msgid "About"
-msgstr "Info"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:103
-msgid "About TigerVNC Viewer"
-msgstr "Info over TigerVNC-viewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1097
-msgid "About TigerVNC viewer..."
-msgstr "Info over TigerVNC-viewer..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:86
-msgid "About..."
-msgstr "Info..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:704
-msgid "Accept clipboard from server"
-msgstr "Klembord van server accepteren"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:327
-msgid "Adjusting window size to avoid accidental full screen request"
-msgstr "Venstergrootte wordt aangepast om onbedoeld volledigschermverzoek te vermijden"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:563
-msgid "Allow JPEG compression:"
-msgstr "JPEG-compressie toestaan:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1081
-msgid "Alt"
-msgstr "Alt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:648
-msgid "Authentication"
-msgstr "Authenticatie"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:89
-msgid "Authentication cancelled"
-msgstr "Authenticatie is geannuleerd"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:437
-msgid "Auto select"
-msgstr "Automatisch selecteren"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:651
-#, c-format
-msgid "Bad Name/Value pair on line: %d in file: %s"
-msgstr "Ongeldig naam-waardepaar op regel %d in bestand %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:91
-msgid "BitBlt failed"
-msgstr "### BitBlt is mislukt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:91
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:221
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:83
-msgid "Cancel"
-msgstr "Annuleren"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:116
-msgid "CleanupSignalHandler called"
-msgstr "### CleanupSignalHandler is aangeroepen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:222
-msgid "Close"
-msgstr "Sluiten"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:499
-msgid "Color level"
-msgstr "Kleurdiepte"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:421
-msgid "Compression"
-msgstr "Compressie"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:96
-msgid "Connect"
-msgstr "Verbinden"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1096
-msgid "Connection info..."
-msgstr "Verbindingsinfo..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:362
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:404
-#, c-format
-msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:302
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:340
-#, c-format
-msgid "Could not convert the parameter-name %s to wchar_t* when writing to the Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:318
-#, c-format
-msgid "Could not convert the parameter-value %s to wchar_t* when writing to the Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:381
-#, c-format
-msgid "Could not convert the parameter-value for %s to utf8 char* when reading from the Registry, the buffer dest is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:256
-#, c-format
-msgid "Could not create VNC home directory: %s."
-msgstr "Kan de VNC-thuismap niet aanmaken: %s."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:251
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "Kan de VNC-thuismap niet aanmaken: kan pad van thuismap niet verkrijgen."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:58
-msgid "Could not create framebuffer bitmap"
-msgstr "Kan framebuffer-bitkaart niet aanmaken"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Kan framebuffer-apparaat niet aanmaken"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:107
-msgid "Could not create framebuffer image"
-msgstr "Kan framebuffer-afbeelding niet aanmaken"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:310
-#, c-format
-msgid "Could not encode the parameter-value %s when writing to the Registry."
-msgstr "Kan parameterwaarde %s niet coderen tijdens schrijven naar de Registry."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:613
-#, c-format
-msgid "Could not read the line(%d) in the configuration file,the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:68
-msgid "Couldn't find suitable pixmap format"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "### CreateCompatibleDC is mislukt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1079
-msgid "Ctrl"
-msgstr "Ctrl"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:550
-msgid "Custom compression level:"
-msgstr "Aangepast compressieniveau:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:283
-msgid "Decoding: The size of the buffer dest is to small, it needs to be 1 byte bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:172
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:172
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Bureaubladnaam: %.80s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1099
-msgid "Dismiss menu"
-msgstr "Menu verlaten"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:59
-msgid "Display lacks pixmap format for default depth"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:778
-msgid "Enable full-screen mode over all monitors"
-msgstr "Volledigscherm-modus over alle beeldschermen inschakelen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:469
-msgid "Enabling continuous updates"
-msgstr "Continue updates inschakelen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:200
-#, c-format
-msgid "Encoding backslash: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:214
-#, c-format
-msgid "Encoding escape sequence: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:234
-#, c-format
-msgid "Encoding normal character: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:595
-msgid "Encryption"
-msgstr "Versleuteling"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:503
-#, c-format
-msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:455
-#, c-format
-msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:434
-#, c-format
-msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:471
-#, c-format
-msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:373
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:415
-#, c-format
-msgid "Error(%d) reading %s from Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:348
-#, c-format
-msgid "Error(%d) writing %d(REG_DWORD) to Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:326
-#, c-format
-msgid "Error(%d) writing %s(REG_SZ) to Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1067
-msgid "Exit viewer"
-msgstr "Viewer verlaten"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:588
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr "Lezen van configuratiebestand is mislukt; kan pad van thuismap niet verkrijgen."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:602
-#, c-format
-msgid "Failed to read configuration file, can't open %s"
-msgstr "Lezen van configuratiebestand is mislukt; kan %s niet openen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:621
-#, c-format
-msgid "Failed to read line %d in file %s"
-msgstr "Lezen van regel %d in bestand %s is mislukt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:528
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr "Schrijven van configuratiebestand is mislukt; kan pad van thuismap niet verkrijgen."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:542
-#, c-format
-msgid "Failed to write configuration file, can't open %s"
-msgstr "Schrijven van configuratiebestand is mislukt; kan %s niet openen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:526
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:538
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:551
-msgid "Failure grabbing keyboard"
-msgstr "Het pakken van het toetsenbord is mislukt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:563
-msgid "Failure grabbing mouse"
-msgstr "Het pakken van de muis is mislukt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:512
-msgid "Full (all available colors)"
-msgstr "Alles (alle beschikbare kleuren)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1070
-msgid "Full screen"
-msgstr "Volledig scherm"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:770
-msgid "Full-screen mode"
-msgstr "Volledigscherm-modus"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:230
-msgid "Hide"
-msgstr "Verbergen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:238
-msgid "Hide Others"
-msgstr "Andere verbergen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:177
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:177
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Host: %.80s poort: %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:690
-msgid "Input"
-msgstr "Invoer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:510
-msgid "Internal FLTK error. Exiting."
-msgstr "Interne FLTK-fout.  Bezig met afsluiten."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:384
-msgid "Invalid SetColourMapEntries from server!"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:106
-msgid "Invalid geometry specified!"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:708
-#, c-format
-msgid "Invalid parameter name on line: %d in file: %s"
-msgstr "Ongeldige parameternaam op regel %d in bestand %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:805
-msgid "Invalid screen layout computed for resize request!"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:204
-#, c-format
-msgid "Last used encoding: %s"
-msgstr "Laatst gebruikte codering: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:631
-#, c-format
-msgid ""
-"Line 1 in file %s\n"
-"must contain the TigerVNC configuration file identifier string:\n"
-"\"%s\""
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:209
-#, c-format
-msgid "Line speed estimate: %d kbit/s"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:478
-#, c-format
-msgid "Listening on port %d\n"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:69
-msgid "Load..."
-msgstr "Laden..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:526
-msgid "Low (64 colors)"
-msgstr "laag (64 kleuren)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:519
-msgid "Medium (256 colors)"
-msgstr "medium (256 kleuren)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:725
-msgid "Menu key"
-msgstr "Menutoets"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:791
-msgid "Misc."
-msgstr "Overige"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1037
-#, c-format
-msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr "Meerdere tekens opgegeven voor toetscode %d (0x%04x): '%s'"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:218
-msgid "No"
-msgstr "Nee"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:691
-#, c-format
-msgid "No scan code for extended virtual key 0x%02x"
-msgstr "Geen scancode voor uitgebreide virtuele toets 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:693
-#, c-format
-msgid "No scan code for virtual key 0x%02x"
-msgstr "Geen scancode voor virtuele toets 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:710
-#, c-format
-msgid "No symbol for extended virtual key 0x%02x"
-msgstr "Geen symbool voor uitgebreide virtuele toets 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:776
-#, c-format
-msgid "No symbol for key code %d (in the current state)"
-msgstr "Geen symbool voor toetscode %d (in de huidige toestand)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:750
-#, c-format
-msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr "Geen symbool voor toetscode 0x%02x (in de huidige toestand)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:712
-#, c-format
-msgid "No symbol for virtual key 0x%02x"
-msgstr "Geen symbool voor virtuele toets 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:606
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:659
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:727
-msgid "None"
-msgstr "Geen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:48
-#: /home/ossman/devel/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:111
-msgid "Not enough memory for framebuffer"
-msgstr "Onvoldoende geheugen beschikbaar voor framebuffer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:220
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:88
-msgid "OK"
-msgstr "OK"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:77
-msgid "Only true colour displays supported"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:74
-msgid "Opening password file failed"
-msgstr "Openen van wachtwoordbestand is mislukt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1095
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:64
-msgid "Options..."
-msgstr "Opties..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:463
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:464
-#, fuzzy
-msgid "Parameters -listen and -via are incompatible"
-msgstr "de opties '-listen' en '-via' gaan niet samen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:722
-msgid "Pass system keys directly to server (full screen)"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:87
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:102
-msgid "Password:"
-msgstr "Wachtwoord:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:625
-msgid "Path to X509 CA certificate"
-msgstr "Pad naar X509 CA-certificaat"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:632
-msgid "Path to X509 CRL file"
-msgstr "Pad naar X509 CRL-bestand"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:188
-#, c-format
-msgid "Pixel format: %s"
-msgstr "Pixel-indeling: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:449
-msgid "Preferred encoding"
-msgstr "Voorkeurscodering"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:214
-#, c-format
-msgid "Protocol version: %d.%d"
-msgstr "Protocolversie: %d.%d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:233
-msgid "Quit"
-msgstr "Afsluiten"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1093
-msgid "Refresh screen"
-msgstr "Scherm verversen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:199
-#, c-format
-msgid "Requested encoding: %s"
-msgstr "Gevraagde codering: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:749
-msgid "Resize remote session on connect"
-msgstr "Grootte van gindse sessie aanpassen bij verbinden"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:762
-msgid "Resize remote session to the local window"
-msgstr "Gindse sessie aan het lokale venster aanpassen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1073
-msgid "Resize window to session"
-msgstr "Venster aan sessie aanpassen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:74
-msgid "Save As..."
-msgstr "Opslaan als..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:741
-msgid "Screen"
-msgstr "Scherm"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:580
-msgid "Security"
-msgstr "Beveiliging"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:219
-#, c-format
-msgid "Security method: %s"
-msgstr "Beveiligingsmethode: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "### SelectObject is mislukt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1086
-#, c-format
-msgid "Send %s"
-msgstr "%s zenden"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1091
-msgid "Send Ctrl-Alt-Del"
-msgstr "Ctrl-Alt-Del zenden"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:710
-msgid "Send clipboard to server"
-msgstr "Klembord naar server zenden"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:716
-msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Hoofdselectie en knipbuffer als klembord verzenden"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:237
-msgid "Services"
-msgstr "Diensten"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:319
-#, c-format
-msgid "SetDesktopSize failed: %d"
-msgstr "### SetDesktopSize is mislukt: %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:799
-msgid "Shared (don't disconnect other viewers)"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:239
-msgid "Show All"
-msgstr "Alles tonen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:805
-msgid "Show dot when no cursor"
-msgstr "Punt tonen als er geen cursor is"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:182
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:182
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Grootte: %d x %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:665
-msgid "Standard VNC (insecure without encryption)"
-msgstr "Standaard VNC (onveilig zonder versleuteling)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:618
-msgid "TLS with X509 certificates"
-msgstr "TLS met X509-certificaten"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:612
-msgid "TLS with anonymous certificates"
-msgstr "TLS met anonieme certificaten"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:448
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:497
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:561
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:701
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:190
 #, c-format
-msgid "The parameterArray contains a object of a invalid type at line %d."
+msgid "Pixel format: %s"
+msgstr "Pixel-indeling: %s"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:197
+#, c-format
+msgid "(server default %s)"
+msgstr "(serverstandaard is %s)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:202
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Gevraagde codering: %s"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:207
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "Laatst gebruikte codering: %s"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:212
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
 msgstr ""
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:664
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:680
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:217
 #, c-format
-msgid "The value of the parameter %s on line %d in file %s is invalid."
+msgid "Protocol version: %d.%d"
+msgstr "Protocolversie: %d.%d"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:222
+#, c-format
+msgid "Security method: %s"
+msgstr "Beveiligingsmethode: %s"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:322
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "### SetDesktopSize is mislukt: %d"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:387
+msgid "Invalid SetColourMapEntries from server!"
 msgstr ""
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:539
+#. TRANSLATORS: Refers to a VNC protocol encoding type
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:433
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:440
+#, fuzzy, c-format
+msgid "Unknown encoding %d"
+msgstr "Onbekende rect-codering %d"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:434
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:441
+#, fuzzy
+msgid "Unknown encoding"
+msgstr "Onbekende rect-codering"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:473
+msgid "Enabling continuous updates"
+msgstr "Continue updates inschakelen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:543
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Throughput %d kbit/s - verander naar kwaliteit %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:561
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:565
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
 msgstr "Throughput %d kbit/s - volledige kleuren is nu %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:210
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:567
+msgid "disabled"
+msgstr "uitgeschakeld"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:567
+msgid "enabled"
+msgstr "ingeschakeld"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:577
+#, c-format
+msgid "Using %s encoding"
+msgstr "Codering %s wordt gebruikt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:624
+#, c-format
+msgid "Using pixel format %s"
+msgstr "Pixel-indeling %s wordt gebruikt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:106
+msgid "Invalid geometry specified!"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:309
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr ""
+"Venstergrootte wordt aangepast om onbedoeld volledigschermverzoek te "
+"vermijden"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:491
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:497
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:510
+msgid "Failure grabbing keyboard"
+msgstr "Het pakken van het toetsenbord is mislukt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:522
+msgid "Failure grabbing mouse"
+msgstr "Het pakken van de muis is mislukt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:752
+msgid "Invalid screen layout computed for resize request!"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:48
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:113
+msgid "Not enough memory for framebuffer"
+msgstr "Onvoldoende geheugen beschikbaar voor framebuffer"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:52
+msgid "Could not create framebuffer device"
+msgstr "Kan framebuffer-apparaat niet aanmaken"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:58
+msgid "Could not create framebuffer bitmap"
+msgstr "Kan framebuffer-bitkaart niet aanmaken"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC-viewer: Verbindingsopties"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:83
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:91
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:247
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:88
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:246
+msgid "OK"
+msgstr "OK"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:413
+msgid "Compression"
+msgstr "Compressie"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:429
+msgid "Auto select"
+msgstr "Automatisch selecteren"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:441
+msgid "Preferred encoding"
+msgstr "Voorkeurscodering"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:489
+msgid "Color level"
+msgstr "Kleurdiepte"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:500
+msgid "Full (all available colors)"
+msgstr "Alles (alle beschikbare kleuren)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:507
+msgid "Medium (256 colors)"
+msgstr "medium (256 kleuren)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:514
+msgid "Low (64 colors)"
+msgstr "laag (64 kleuren)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:521
+msgid "Very low (8 colors)"
+msgstr "heel laag (8 kleuren)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:538
+msgid "Custom compression level:"
+msgstr "Aangepast compressieniveau:"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:544
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "niveau (1=snel, 6=best [4-6 zijn zelden nuttig])"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:551
+msgid "Allow JPEG compression:"
+msgstr "JPEG-compressie toestaan:"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:557
+msgid "quality (0=poor, 9=best)"
+msgstr "kwaliteit (0=slecht, 9=best)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:568
+msgid "Security"
+msgstr "Beveiliging"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:583
+msgid "Encryption"
+msgstr "Versleuteling"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:594
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:647
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:715
+msgid "None"
+msgstr "Geen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:600
+msgid "TLS with anonymous certificates"
+msgstr "TLS met anonieme certificaten"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:606
+msgid "TLS with X509 certificates"
+msgstr "TLS met X509-certificaten"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:613
+msgid "Path to X509 CA certificate"
+msgstr "Pad naar X509 CA-certificaat"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:620
+msgid "Path to X509 CRL file"
+msgstr "Pad naar X509 CRL-bestand"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:636
+msgid "Authentication"
+msgstr "Authenticatie"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:653
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Standaard VNC (onveilig zonder versleuteling)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:659
+msgid "Username and password (insecure without encryption)"
+msgstr "Gebruikersnaam en wachtwoord (onveilig zonder versleuteling)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:678
+msgid "Input"
+msgstr "Invoer"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:686
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Alleen kijken (muis en toetsenbord negeren)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:692
+msgid "Accept clipboard from server"
+msgstr "Klembord van server accepteren"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:698
+msgid "Send clipboard to server"
+msgstr "Klembord naar server zenden"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:704
+msgid "Send primary selection and cut buffer as clipboard"
+msgstr "Hoofdselectie en knipbuffer als klembord verzenden"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:710
+msgid "Pass system keys directly to server (full screen)"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:713
+msgid "Menu key"
+msgstr "Menutoets"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:729
+msgid "Screen"
+msgstr "Scherm"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:737
+msgid "Resize remote session on connect"
+msgstr "Grootte van gindse sessie aanpassen bij verbinden"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:750
+msgid "Resize remote session to the local window"
+msgstr "Gindse sessie aan het lokale venster aanpassen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:756
+msgid "Full-screen mode"
+msgstr "Volledigscherm-modus"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:762
+msgid "Enable full-screen mode over all monitors"
+msgstr "Volledigscherm-modus over alle beeldschermen inschakelen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:771
+msgid "Misc."
+msgstr "Overige"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:779
+msgid "Shared (don't disconnect other viewers)"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:785
+msgid "Show dot when no cursor"
+msgstr "Punt tonen als er geen cursor is"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC-viewer: Verbindingsdetails"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:49
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "VNC-server:"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Opties..."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Laden..."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Opslaan als..."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "Info..."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "Verbinden"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:74
+msgid "Opening password file failed"
+msgstr "Openen van wachtwoordbestand is mislukt"
+
+#. Largely copied from FLTK so that we get the same look and feel
+#. as the simpler password input.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:86
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:96
+msgid "VNC authentication"
+msgstr "VNC-authenticatie"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:87
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:102
+msgid "Password:"
+msgstr "Wachtwoord:"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:89
+msgid "Authentication cancelled"
+msgstr "Authenticatie is geannuleerd"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:99
+msgid "Username:"
+msgstr "Gebruikersnaam:"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:432
+#, c-format
+msgid "Unable to create platform specific framebuffer: %s"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:433
+msgid "Using platform independent framebuffer"
+msgstr "Platform-onafhankelijk framebuffer wordt gebruikt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:667
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Geen scancode voor uitgebreide virtuele toets 0x%02x"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:669
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Geen scancode voor virtuele toets 0x%02x"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:686
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Geen symbool voor uitgebreide virtuele toets 0x%02x"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:688
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Geen symbool voor virtuele toets 0x%02x"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:726
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "Geen symbool voor toetscode 0x%02x (in de huidige toestand)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:752
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "Geen symbool voor toetscode %d (in de huidige toestand)"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:789
+#, fuzzy
+msgid "E&xit viewer"
+msgstr "Viewer verlaten"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:792
+#, fuzzy
+msgid "&Full screen"
+msgstr "Volledig scherm"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:794
+#, fuzzy
+msgid "Resize &window to session"
+msgstr "Venster aan sessie aanpassen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:799
+#, fuzzy
+msgid "&Ctrl"
+msgstr "Ctrl"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:801
+#, fuzzy
+msgid "&Alt"
+msgstr "Alt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:806
+#, c-format
+msgid "Send %s"
+msgstr "%s zenden"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:812
+#, fuzzy
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Ctrl-Alt-Del zenden"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:815
+#, fuzzy
+msgid "&Refresh screen"
+msgstr "Scherm verversen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:818
+#, fuzzy
+msgid "&Options..."
+msgstr "Opties..."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:820
+#, fuzzy
+msgid "Connection &info..."
+msgstr "Verbindingsinfo..."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:822
+#, fuzzy
+msgid "About &TigerVNC viewer..."
+msgstr "Info over TigerVNC-viewer..."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:825
+#, fuzzy
+msgid "Dismiss &menu"
+msgstr "Menu verlaten"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:906
+msgid "VNC connection info"
+msgstr "VNC-verbindingsinfo"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:62
+msgid "unable to create DIB section"
+msgstr "kan geen DIB-sectie aanmaken"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:79
+msgid "CreateCompatibleDC failed"
+msgstr "### CreateCompatibleDC is mislukt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:82
+msgid "SelectObject failed"
+msgstr "### SelectObject is mislukt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:91
+msgid "BitBlt failed"
+msgstr "### BitBlt is mislukt"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:61
+msgid "Display lacks pixmap format for default depth"
+msgstr ""
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:72
+msgid "Couldn't find suitable pixmap format"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:81
+msgid "Only true colour displays supported"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:83
+#, c-format
+msgid "Using default colormap and visual, TrueColor, depth %d."
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:109
+msgid "Could not create framebuffer image"
+msgstr "Kan framebuffer-afbeelding niet aanmaken"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:279
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:313
+#, fuzzy, c-format
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr ""
+"Kan parameterwaarde %s niet coderen tijdens schrijven naar de Registry."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:285
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:292
+#, fuzzy, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr ""
+"Kan parameterwaarde %s niet coderen tijdens schrijven naar de Registry."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:298
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:319
+#, fuzzy, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr ""
+"Kan parameterwaarde %s niet coderen tijdens schrijven naar de Registry."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:334
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:373
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:343
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:382
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:352
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:402
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:416
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:465
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:527
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:658
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:423
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:472
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:439
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:496
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr ""
+"Schrijven van configuratiebestand is mislukt; kan pad van thuismap niet "
+"verkrijgen."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:509
+#, fuzzy, c-format
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "Schrijven van configuratiebestand is mislukt; kan %s niet openen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:552
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr ""
+"Lezen van configuratiebestand is mislukt; kan pad van thuismap niet "
+"verkrijgen."
+
+#. Use defaults.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:565
+#, fuzzy, c-format
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "Lezen van configuratiebestand is mislukt; kan %s niet openen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:578
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:583
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:608
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:621
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:637
+#, fuzzy, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "Lezen van regel %d in bestand %s is mislukt"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:584
+msgid "Line too long"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:591
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:609
+msgid "Invalid format"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:622
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:638
+msgid "Invalid format or too large value"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:665
+#, fuzzy, c-format
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "Ongeldige parameternaam op regel %d in bestand %s"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:106
+msgid "About TigerVNC Viewer"
+msgstr "Info over TigerVNC-viewer"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:123
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:135
+#, fuzzy, c-format
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "Info over TigerVNC-viewer"
+
+#. CleanupSignalHandler allows C++ object cleanup to happen because it calls
+#. exit() rather than the default which is to abort.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:144
+#, c-format
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr ""
+
+#. Avoid empty titles for popups
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:236
 msgid "TigerVNC Viewer"
 msgstr "TigerVNC-viewer"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:80
+#. FLTK exposes these so that we can translate them.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:244
+msgid "No"
+msgstr "Nee"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:245
+msgid "Yes"
+msgstr "Ja"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:248
+msgid "Close"
+msgstr "Sluiten"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:253
+msgid "About"
+msgstr "Info"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:256
+msgid "Hide"
+msgstr "Verbergen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:259
+msgid "Quit"
+msgstr "Afsluiten"
+
+#. Don't want the print item
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:263
+msgid "Services"
+msgstr "Diensten"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:264
+msgid "Hide Others"
+msgstr "Andere verbergen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:265
+msgid "Show All"
+msgstr "Alles tonen"
+
+#. Fl_Sys_Menu_Bar overrides methods without them being virtual,
+#. which means we cannot use our generic Fl_Menu_ helpers.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:274
+msgid "&File"
+msgstr ""
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:276
+#, fuzzy
+msgid "&New Connection"
+msgstr "VNC-verbindingsinfo"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:287
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr ""
+"Kan de VNC-thuismap niet aanmaken: kan pad van thuismap niet verkrijgen."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:292
+#, c-format
+msgid "Could not create VNC home directory: %s."
+msgstr "Kan de VNC-thuismap niet aanmaken: %s."
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:422
 #, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
@@ -629,123 +734,22 @@ msgid ""
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:456
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:527
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:528
+#, fuzzy
+msgid "Parameters -listen and -via are incompatible"
+msgstr "de opties '-listen' en '-via' gaan niet samen"
+
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:543
 #, c-format
-msgid "Unable to create platform specific framebuffer: %s"
+msgid "Listening on port %d"
 msgstr ""
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1015
-#, c-format
-msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr "Onbekende FLTK-toetscode %d (0x%04x)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:889
-#, c-format
-msgid "Unknown decimal separator: '%s'"
-msgstr "Onbekend decimaal scheidingsteken: '%s'"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:271
-#, c-format
-msgid "Unknown escape sequence at character %d"
-msgstr "Onbekende stuurcodereeks bij teken %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:430
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:437
-msgid "Unknown rect encoding"
-msgstr "Onbekende rect-codering"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:429
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:436
-#, c-format
-msgid "Unknown rect encoding %d"
-msgstr "Onbekende rect-codering %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:671
-msgid "Username and password (insecure without encryption)"
-msgstr "Gebruikersnaam en wachtwoord (onveilig zonder versleuteling)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:99
-msgid "Username:"
-msgstr "Gebruikersnaam:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:573
-#, c-format
-msgid "Using %s encoding"
-msgstr "Codering %s wordt gebruikt"
-
-# FIXME: what is filled in for %s?
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:79
-#, c-format
-msgid "Using default colormap and visual, %sdepth %d."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:620
-#, c-format
-msgid "Using pixel format %s"
-msgstr "Pixel-indeling %s wordt gebruikt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:457
-msgid "Using platform independent framebuffer"
-msgstr "Platform-onafhankelijk framebuffer wordt gebruikt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:42
-msgid "VNC Viewer: Connection Details"
-msgstr "VNC-viewer: Verbindingsdetails"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:57
-msgid "VNC Viewer: Connection Options"
-msgstr "VNC-viewer: Verbindingsopties"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:86
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:96
-msgid "VNC authentication"
-msgstr "VNC-authenticatie"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1187
-msgid "VNC connection info"
-msgstr "VNC-verbindingsinfo"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:49
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:54
-msgid "VNC server:"
-msgstr "VNC-server:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:533
-msgid "Very low (8 colors)"
-msgstr "heel laag (8 kleuren)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:698
-msgid "View only (ignore mouse and keyboard)"
-msgstr "Alleen kijken (muis en toetsenbord negeren)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:219
-msgid "Yes"
-msgstr "Ja"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:111
-#, c-format
-msgid "connected to host %s port %d"
-msgstr "verbonden met host %s poort %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "disabled"
-msgstr "uitgeschakeld"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "enabled"
-msgstr "ingeschakeld"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:556
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "niveau (1=snel, 6=best [4-6 zijn zelden nuttig])"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:569
-msgid "quality (0=poor, 9=best)"
-msgstr "kwaliteit (0=slecht, 9=best)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "kan geen DIB-sectie aanmaken"
+#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:604
+msgid "Internal FLTK error. Exiting."
+msgstr "Interne FLTK-fout.  Bezig met afsluiten."
 
 #, fuzzy
 #~ msgid ""
@@ -767,3 +771,21 @@ msgstr "kan geen DIB-sectie aanmaken"
 #~ "Gevraagde encoding: %s\n"
 #~ "Laatst gebruikte encoding: %s\n"
 #~ "Schatting lijn snelheid: %d kbit/s\n"
+
+#~ msgid "Unknown escape sequence at character %d"
+#~ msgstr "Onbekende stuurcodereeks bij teken %d"
+
+#~ msgid "Unknown decimal separator: '%s'"
+#~ msgstr "Onbekend decimaal scheidingsteken: '%s'"
+
+#~ msgid "Unknown FLTK key code %d (0x%04x)"
+#~ msgstr "Onbekende FLTK-toetscode %d (0x%04x)"
+
+#~ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
+#~ msgstr "Meerdere tekens opgegeven voor toetscode %d (0x%04x): '%s'"
+
+#~ msgid "CleanupSignalHandler called"
+#~ msgstr "### CleanupSignalHandler is aangeroepen"
+
+#~ msgid "Bad Name/Value pair on line: %d in file: %s"
+#~ msgstr "Ongeldig naam-waardepaar op regel %d in bestand %s"
