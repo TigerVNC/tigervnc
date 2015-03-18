@@ -540,7 +540,7 @@ int main(int argc, char** argv)
 
       createTcpListeners(&listeners, 0, port);
 
-      vlog.info(_("Listening on port %d\n"), port);
+      vlog.info(_("Listening on port %d"), port);
 
       /* Wait for a connection */
       while (sock == NULL) {
