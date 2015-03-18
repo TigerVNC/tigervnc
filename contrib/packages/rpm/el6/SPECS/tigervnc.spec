@@ -22,6 +22,7 @@ Source16: https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz
 Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.13.tar.xz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+BuildRequires: gcc, gcc-c++
 BuildRequires: libX11-devel, automake, autoconf, libtool, gettext, gettext-devel
 BuildRequires: libXext-devel, xorg-x11-server-source, libXi-devel
 BuildRequires: xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
@@ -31,7 +32,7 @@ BuildRequires: mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires: freetype-devel, libXdmcp-devel
 BuildRequires: desktop-file-utils, java-devel, jpackage-utils
 BuildRequires: libjpeg-turbo-devel, pam-devel
-BuildRequires: cmake28
+BuildRequires: cmake >= 2.8
 %ifnarch s390 s390x
 BuildRequires: xorg-x11-server-devel
 %endif
@@ -261,7 +262,7 @@ make %{?_smp_mflags}
 make DESTDIR=%{static_lib_buildroot} install
 popd
 
-%{cmake28} -G"Unix Makefiles" \
+%{cmake} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
   -DCMAKE_INSTALL_PREFIX=%{_prefix} \
   -DFLTK_LIBRARIES="%{static_lib_buildroot}%{_libdir}/libfltk.a;%{static_lib_buildroot}%{_libdir}/libfltk_images.a;%{static_lib_buildroot}%{_libdir}/libpng.a" \
@@ -301,7 +302,7 @@ popd
 
 # Build Java applet
 pushd java
-%{cmake28} \
+%{cmake} \
 %if !%{_self_signed}
 	-DJAVA_KEYSTORE=%{_keystore} \
 	-DJAVA_KEYSTORE_TYPE=%{_keystore_type} \
