@@ -1566,7 +1566,12 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
 
 static void vfbClientStateChange(CallbackListPtr *a, void *b, void *c) {
-  dispatchException &= ~DE_RESET;
+    if (dispatchException & DE_RESET) {
+        ErrorF("Warning: VNC extension does not support -reset, terminating instead. Use -noreset to prevent termination.\n");
+
+        dispatchException |= DE_TERMINATE;
+        dispatchException &= ~DE_RESET;
+    }
 }
  
 #if XORG >= 113
