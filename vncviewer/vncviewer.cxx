@@ -82,14 +82,30 @@ using namespace network;
 using namespace rfb;
 using namespace std;
 
-static char aboutText[1024];
-
 char vncServerName[VNCSERVERNAMELEN] = { '\0' };
 
 static const char *argv0 = NULL;
 
 static bool exitMainloop = false;
 static const char *exitError = NULL;
+
+static const char *about_text()
+{
+  static char buffer[1024];
+
+  // This is used in multiple places with potentially different
+  // encodings, so we need to make sure we get a fresh string every
+  // time.
+  snprintf(buffer, sizeof(buffer),
+           _("TigerVNC Viewer %d-bit v%s\n"
+             "Built on: %s\n"
+             "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+             "See http://www.tigervnc.org for information on TigerVNC."),
+           (int)sizeof(size_t)*8, PACKAGE_VERSION,
+           BUILD_TIMESTAMP, 2015);
+
+  return buffer;
+}
 
 void exit_vncviewer(const char *error)
 {
@@ -104,7 +120,7 @@ void exit_vncviewer(const char *error)
 void about_vncviewer()
 {
   fl_message_title(_("About TigerVNC Viewer"));
-  fl_message("%s", aboutText);
+  fl_message("%s", about_text());
 }
 
 #ifdef __APPLE__
@@ -417,19 +433,10 @@ int main(int argc, char** argv)
   bindtextdomain(PACKAGE_NAME, LOCALE_DIR);
   textdomain(PACKAGE_NAME);
 
-  // Generate the about string now that we get the proper translation
-  snprintf(aboutText, sizeof(aboutText),
-           _("TigerVNC Viewer %d-bit v%s\n"
-             "Built on: %s\n"
-             "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
-             "See http://www.tigervnc.org for information on TigerVNC."),
-           (int)sizeof(size_t)*8, PACKAGE_VERSION,
-           BUILD_TIMESTAMP, 2015);
-
   rfb::SecurityClient::setDefaults();
 
   // Write about text to console, still using normal locale codeset
-  fprintf(stderr,"\n%s\n", aboutText);
+  fprintf(stderr,"\n%s\n", about_text());
 
   // Set gettext codeset to what our GUI toolkit uses. Since we are
   // passing strings from strerror/gai_strerror to the GUI, these must
