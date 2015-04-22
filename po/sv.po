@@ -3,14 +3,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TigerVNC 0.0.91\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2015-03-18 10:51+0100\n"
+"POT-Creation-Date: 2015-03-18 10:46+0100\n"
 "PO-Revision-Date: 2011-08-29 16:01+0200\n"
 "Last-Translator: Peter Astrand <astrand@cendio.se>\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: sv\n"
+"Language: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:111
@@ -21,52 +21,52 @@ msgstr "ansluten till värd %s port %d"
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:172
 #, c-format
 msgid "Desktop name: %.80s"
-msgstr "Skrivbordsnamn: %.80s"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:177
 #, c-format
 msgid "Host: %.80s port: %d"
-msgstr "Värd: %.80s port: %d"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:182
 #, c-format
 msgid "Size: %d x %d"
-msgstr "Storlek: %d x %d"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:190
-#, c-format
+#, fuzzy, c-format
 msgid "Pixel format: %s"
-msgstr "Pixelformat: %s"
+msgstr "Använder pixelformat %s"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:197
 #, c-format
 msgid "(server default %s)"
-msgstr "(serverstandard %s)"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:202
-#, c-format
+#, fuzzy, c-format
 msgid "Requested encoding: %s"
-msgstr "Begärd kodning: %s"
+msgstr "Föredragen kodning"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:207
-#, c-format
+#, fuzzy, c-format
 msgid "Last used encoding: %s"
-msgstr "Senast använd kodning: %s"
+msgstr "Använder kodning %s"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:212
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
-msgstr "Uppskattad hastighet på förbindelsen: %d kbit/s"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:217
 #, c-format
 msgid "Protocol version: %d.%d"
-msgstr "Protokollversion: %d.%d"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:222
 #, c-format
 msgid "Security method: %s"
-msgstr "Säkerhetsmetod: %s"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:322
 #, c-format
@@ -75,19 +75,20 @@ msgstr "SetDesktopSize misslyckades: %d"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:387
 msgid "Invalid SetColourMapEntries from server!"
-msgstr "Ogiltig SetColourMapEntries från server!"
+msgstr ""
 
 #. TRANSLATORS: Refers to a VNC protocol encoding type
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:433
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:440
-#, c-format
+#, fuzzy, c-format
 msgid "Unknown encoding %d"
-msgstr "Okänd kodning %d"
+msgstr "Använder kodning %s"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:434
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:441
+#, fuzzy
 msgid "Unknown encoding"
-msgstr "Okänd kodning"
+msgstr "Använder kodning %s"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:473
 msgid "Enabling continuous updates"
@@ -123,11 +124,11 @@ msgstr "Använder pixelformat %s"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:106
 msgid "Invalid geometry specified!"
-msgstr "Ogiltig geometri angiven!"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:309
 msgid "Adjusting window size to avoid accidental full screen request"
-msgstr "Justerar fönsterstorleken för att undvika fullskärm av misstag"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:491
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:497
@@ -141,21 +142,22 @@ msgstr "Misslyckades med att fånga musen"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:752
 msgid "Invalid screen layout computed for resize request!"
-msgstr "Ogiltig skärmlayout beräknad för storleksförändrings-begäran!"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:48
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:113
 msgid "Not enough memory for framebuffer"
-msgstr "Inte tillräckligt med minne för framebuffer"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:52
+#, fuzzy
 msgid "Could not create framebuffer device"
-msgstr "Kunde inte skapa framebuffer-enhet"
+msgstr "Kunde inte skapa VNC-hemkatalog: %s."
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:58
 msgid "Could not create framebuffer bitmap"
-msgstr "Kunde inte skapa framebuffer-bitmap"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:57
 msgid "VNC Viewer: Connection Options"
@@ -296,7 +298,7 @@ msgstr "Skärm"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:737
 msgid "Resize remote session on connect"
-msgstr "Anpassa sessionsstorlek vid anslutning"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:750
 msgid "Resize remote session to the local window"
@@ -308,7 +310,7 @@ msgstr "Fullskärmsläge"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:762
 msgid "Enable full-screen mode over all monitors"
-msgstr "Aktivera fullskärmsläge på alla skärmar"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:771
 msgid "Misc."
@@ -378,61 +380,66 @@ msgstr "Användarnamn:"
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:432
 #, c-format
 msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Kan inte skapa plattformsspecifik framebuffer: %s"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:433
 msgid "Using platform independent framebuffer"
-msgstr "Använder plattformsoberoende framebuffer"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:667
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
-msgstr "Ingen scancode för utökad virtuell tangent 0x%02x"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:669
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
-msgstr "Ingen scancode för virtuell tangent 0x%02x"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:686
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
-msgstr "Ingen symbol för utökad virtuell tangent 0x%02x"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:688
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
-msgstr "Ingen symbol för virtuell tangent 0x%02x"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:726
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr "Ingen symbol för tangentkod 0x%02x (i nuvarande tillstånd)"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:752
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
-msgstr "Ingen symbol för tangentkod %d (i nuvarande tillstånd)"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:789
+#, fuzzy
 msgid "E&xit viewer"
-msgstr "&Avsluta visaren"
+msgstr "Avsluta visaren"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:792
+#, fuzzy
 msgid "&Full screen"
-msgstr "&Fullskärm"
+msgstr "Fullskärm"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:794
+#, fuzzy
 msgid "Resize &window to session"
-msgstr "Anpassa &fönster till session"
+msgstr "Anpassa fönster till session"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:799
+#, fuzzy
 msgid "&Ctrl"
-msgstr "&Ctrl"
+msgstr "Ctrl"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:801
+#, fuzzy
 msgid "&Alt"
-msgstr "&Alt"
+msgstr "Alt"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:806
 #, c-format
@@ -440,28 +447,34 @@ msgid "Send %s"
 msgstr "Skicka %s"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:812
+#, fuzzy
 msgid "Send Ctrl-Alt-&Del"
-msgstr "Skicka Ctrl-Alt-&Del"
+msgstr "Skicka Ctrl-Alt-Del"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:815
+#, fuzzy
 msgid "&Refresh screen"
-msgstr "&Uppdatera skärm"
+msgstr "Uppdatera skärm"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:818
+#, fuzzy
 msgid "&Options..."
-msgstr "&Inställningar..."
+msgstr "Inställningar..."
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:820
+#, fuzzy
 msgid "Connection &info..."
-msgstr "&Information om anslutningen..."
+msgstr "Information om anslutningen..."
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:822
+#, fuzzy
 msgid "About &TigerVNC viewer..."
-msgstr "Om &TigerVNC-visaren..."
+msgstr "Om TigerVNC-visaren..."
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:825
+#, fuzzy
 msgid "Dismiss &menu"
-msgstr "Stäng &meny"
+msgstr "Stäng meny"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:906
 msgid "VNC connection info"
@@ -469,84 +482,84 @@ msgstr "VNC anslutningsinformation"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:62
 msgid "unable to create DIB section"
-msgstr "kan inte skapa DIB-sektion"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:79
 msgid "CreateCompatibleDC failed"
-msgstr "CreateCompatibleDC misslyckades"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:82
 msgid "SelectObject failed"
-msgstr "SelectObject misslyckades"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:91
 msgid "BitBlt failed"
-msgstr "BitBlt misslyckades"
+msgstr ""
 
 #. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
 #. to translate.
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:61
 msgid "Display lacks pixmap format for default depth"
-msgstr "Skärmen saknar pixmap-format för standarddjup"
+msgstr ""
 
 #. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
 #. to translate.
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:72
 msgid "Couldn't find suitable pixmap format"
-msgstr "Kunde inte hitta lämpligt pixmap-format"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:81
 msgid "Only true colour displays supported"
-msgstr "Endast skärmar med true colour stöds"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:83
 #, c-format
 msgid "Using default colormap and visual, TrueColor, depth %d."
-msgstr "Använder standardfärgkarta och visual, TrueColor, depth %d."
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:109
 msgid "Could not create framebuffer image"
-msgstr "Kunde inte skapa framebuffer-bild"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:279
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:313
 #, c-format
 msgid "The name of the parameter %s was too large to write to the registry"
-msgstr "Namnet på parameter %s var för stor för skrivning till registret"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:285
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:292
 #, c-format
 msgid "The parameter %s was too large to write to the registry"
-msgstr "Parameter %s var för stor för skrivning till registret"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:298
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:319
 #, c-format
 msgid "Failed to write parameter %s of type %s to the registry: %ld"
-msgstr "Misslyckades med att skriva parameter %s av typ %s till registret: %ld"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:334
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:373
 #, c-format
 msgid "The name of the parameter %s was too large to read from the registry"
-msgstr "Namnet på parameter %s var för stor för att läsas från registret"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:343
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:382
 #, c-format
 msgid "Failed to read parameter %s from the registry: %ld"
-msgstr "Misslyckades med att läsa parameter %s från registret: %ld"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:352
 #, c-format
 msgid "The parameter %s was too large to read from the registry"
-msgstr "Parameter %s var för stor för läsning från registret"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:402
 #, c-format
 msgid "Failed to create registry key: %ld"
-msgstr "Misslyckades med att skapa registernyckel: %d"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:416
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:465
@@ -554,37 +567,39 @@ msgstr "Misslyckades med att skapa registernyckel: %d"
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:658
 #, c-format
 msgid "Unknown parameter type for parameter %s"
-msgstr "Okänd parametertyp för parameter %s"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:423
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:472
 #, c-format
 msgid "Failed to close registry key: %ld"
-msgstr "Misslyckades med att stänga registernyckel: %ld"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:439
 #, c-format
 msgid "Failed to open registry key: %ld"
-msgstr "Misslyckades med att öppna registernyckel: %ld"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:496
+#, fuzzy
 msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr "Misslyckades med att skriva konfigurations-fil, kan inte avgöra hemkatalogens sökväg."
+msgstr "Kunde inte skapa VNC-hemkatalog: kan inte avgöra hemkatalogens sökväg"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:509
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to write configuration file, can't open %s: %s"
-msgstr "Misslyckades med att skriva konfigurations-fil: kan inte öppna %s: %s"
+msgstr "Kunde inte skapa VNC-hemkatalog: kan inte avgöra hemkatalogens sökväg"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:552
+#, fuzzy
 msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr "Misslyckades med att läsa konfigurations-fil, kan inte avgöra hemkatalogens sökväg."
+msgstr "Kunde inte skapa VNC-hemkatalog: kan inte avgöra hemkatalogens sökväg"
 
 #. Use defaults.
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:565
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to read configuration file, can't open %s: %s"
-msgstr "Misslyckades med att läsa konfigurations-fil, kan inte öppna %s: %s"
+msgstr "Kunde inte skapa VNC-hemkatalog: kan inte avgöra hemkatalogens sökväg"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:578
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:583
@@ -593,30 +608,30 @@ msgstr "Misslyckades med att läsa konfigurations-fil, kan inte öppna %s: %s"
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:637
 #, c-format
 msgid "Failed to read line %d in file %s: %s"
-msgstr "Misslyckades med att läsa rad %d i fil %s: %s"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:584
 msgid "Line too long"
-msgstr "Raden är för lång"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:591
 #, c-format
 msgid "Configuration file %s is in an invalid format"
-msgstr "Konfigurationsfilen %s har ogiltigt format"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:609
 msgid "Invalid format"
-msgstr "Ogiltigt format"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:622
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:638
 msgid "Invalid format or too large value"
-msgstr "Ogiltigt format eller för stort värde"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:665
 #, c-format
 msgid "Unknown parameter %s on line %d in file %s"
-msgstr "Okänd parameter %s på rad %d i fil %s"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:106
 msgid "About TigerVNC Viewer"
@@ -624,9 +639,9 @@ msgstr "Om VNC-visaren"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:123
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:135
-#, c-format
+#, fuzzy, c-format
 msgid "Error starting new TigerVNC Viewer: %s"
-msgstr "Fel vid start av ny TigerVNC-visare: %s"
+msgstr "Om VNC-visaren"
 
 #. CleanupSignalHandler allows C++ object cleanup to happen because it calls
 #. exit() rather than the default which is to abort.
@@ -634,7 +649,6 @@ msgstr "Fel vid start av ny TigerVNC-visare: %s"
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr ""
-"Termineringssignal %d har mottagits. TigerVNC-visaren kommer nu att avslutas."
 
 #. Avoid empty titles for popups
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:236
@@ -683,11 +697,12 @@ msgstr "Visa alla"
 #. which means we cannot use our generic Fl_Menu_ helpers.
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:274
 msgid "&File"
-msgstr "&Arkiv"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:276
+#, fuzzy
 msgid "&New Connection"
-msgstr "&Ny anslutning"
+msgstr "VNC anslutningsinformation"
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:287
 msgid "Could not create VNC home directory: can't obtain home directory path."
@@ -699,30 +714,66 @@ msgid "Could not create VNC home directory: %s."
 msgstr "Kunde inte skapa VNC-hemkatalog: %s."
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:422
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
 "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC-visare %d-bit v%s\n"
-"Byggd: %s\n"
-"Copyright (C) 1999-%d TigerVNC-teamet och många andra (se README.txt)\n"
-"Se http://www.tigervnc.org för information om TigerVNC."
+"TigerVNC-visare %d-bit v%s (%s)\n"
+"%s\n"
+"Copyright (C) 1999-2011 TigerVNC-teamet och många andra (se README.txt)\n"
+"Se http://www.tigervnc.org för mer information om TigerVNC."
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:527
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:528
 msgid "Parameters -listen and -via are incompatible"
-msgstr "Parametrar -listen och -via är inkompatibla"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:543
 #, c-format
 msgid "Listening on port %d"
-msgstr "Lyssnar på port %d"
+msgstr ""
 
 #: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:604
 msgid "Internal FLTK error. Exiting."
 msgstr "Internt FLTK-fel. Avslutar."
+
+#~ msgid ""
+#~ "Desktop name: %.80s\n"
+#~ "Host: %.80s port: %d\n"
+#~ "Size: %d x %d\n"
+#~ "Pixel format: %s\n"
+#~ "(server default %s)\n"
+#~ "Requested encoding: %s\n"
+#~ "Last used encoding: %s\n"
+#~ "Line speed estimate: %d kbit/s\n"
+#~ "Protocol version: %d.%d\n"
+#~ "Security method: %s\n"
+#~ msgstr ""
+#~ "Skrivbordsnamn: %.80s\n"
+#~ "Värd: %.80s port: %d\n"
+#~ "Storlek: %d x %d\n"
+#~ "Pixelformat: %s\n"
+#~ "(serverstandard %s)\n"
+#~ "Begärd kodning: %s\n"
+#~ "Senast använd kodning: %s\n"
+#~ "Uppskattad hastighet på förbindelsen: %d kbit/s\n"
+#~ "Protokollversion: %d.%d\n"
+#~ "Säkerhetsmetod: %s\n"
+
+#, fuzzy
+#~ msgid "Unknown escape sequence at character %d"
+#~ msgstr "Okänd decimalseparator: '%s'"
+
+#~ msgid "Unknown decimal separator: '%s'"
+#~ msgstr "Okänd decimalseparator: '%s'"
+
+#~ msgid "Unknown FLTK key code %d (0x%04x)"
+#~ msgstr "Okänd FLTK-tangentkod %d (0x%04x)"
+
+#~ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
+#~ msgstr "Multipla tecken angivna för tangentkod %d (0x%04x): '%s'"
