@@ -38,13 +38,6 @@ foreach(lang ${po_FILES})
   set(po  "${CMAKE_CURRENT_SOURCE_DIR}/${lang}.po")
   set(mo "${CMAKE_CURRENT_BINARY_DIR}/${lang}.mo")
 
-  # Update po files after pot file
-  add_custom_command(TARGET translations_update POST_BUILD
-    COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none
-      --sort-by-file ${po} ${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot
-    COMMENT "Updating ${lang}.po"
-  )
-
   # Add command to build X.mo from X.po
   add_custom_command(OUTPUT ${mo}
     COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
