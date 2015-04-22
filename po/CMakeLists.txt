@@ -12,6 +12,7 @@ find_program(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
 if (GETTEXT_XGETTEXT_EXECUTABLE)
   # Get list of all source files
   file(GLOB_RECURSE po_source
+    RELATIVE ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/vncviewer/*.h
     ${PROJECT_SOURCE_DIR}/vncviewer/*.cxx
   )
