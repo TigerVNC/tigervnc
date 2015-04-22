@@ -7,734 +7,622 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tigervnc 1.3.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2015-03-18 10:46+0100\n"
+"POT-Creation-Date: 2014-11-19 12:46+0000\n"
 "PO-Revision-Date: 2014-11-22 10:05+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
+"Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: uk\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Lokalize 1.5\n"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:111
-#, c-format
-msgid "connected to host %s port %d"
-msgstr "з’єднано з вузлом %s, порт %d"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:172
-#, c-format
-msgid "Desktop name: %.80s"
-msgstr "Назва робочої станції: %.80s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:177
-#, c-format
-msgid "Host: %.80s port: %d"
-msgstr "Вузол: %.80s порт: %d"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:182
-#, c-format
-msgid "Size: %d x %d"
-msgstr "Розмір: %d x %d"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:190
-#, c-format
-msgid "Pixel format: %s"
-msgstr "Формат у пікселях: %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:197
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:194
 #, c-format
 msgid "(server default %s)"
 msgstr "(типовий для сервера %s)"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:202
-#, c-format
-msgid "Requested encoding: %s"
-msgstr "Запит щодо кодування: %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:207
-#, c-format
-msgid "Last used encoding: %s"
-msgstr "Останнє використане кодування: %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:212
-#, c-format
-msgid "Line speed estimate: %d kbit/s"
-msgstr "Оцінка швидкості лінії: %d кбіт/с"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:217
-#, c-format
-msgid "Protocol version: %d.%d"
-msgstr "Версія протоколу: %d.%d"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:222
-#, c-format
-msgid "Security method: %s"
-msgstr "Метод захисту: %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:322
-#, c-format
-msgid "SetDesktopSize failed: %d"
-msgstr "Помилка SetDesktopSize: %d"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:387
-msgid "Invalid SetColourMapEntries from server!"
-msgstr "Некоректне значення SetColourMapEntries від сервера!"
-
-#. TRANSLATORS: Refers to a VNC protocol encoding type
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:433
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:440
-#, fuzzy, c-format
-msgid "Unknown encoding %d"
-msgstr "Невідоме кодування rect, %d"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:434
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:441
-#, fuzzy
-msgid "Unknown encoding"
-msgstr "Невідоме кодування rect"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:473
-msgid "Enabling continuous updates"
-msgstr "Увімкнути неперервне оновлення"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:543
-#, c-format
-msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr "Пропускна здатність %d кбіт/с — змінюємо якість на %d"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:565
-#, c-format
-msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Пропускна здатність %d кбіт/с — змінюємо колірність на %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:567
-msgid "disabled"
-msgstr "вимкнено"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:567
-msgid "enabled"
-msgstr "увімкнено"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:577
-#, c-format
-msgid "Using %s encoding"
-msgstr "Використовуємо кодування %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/CConn.cxx:624
-#, c-format
-msgid "Using pixel format %s"
-msgstr "Використовуємо формат у пікселях %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:106
-msgid "Invalid geometry specified!"
-msgstr "Вказано некоректні геометричні параметри!"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:309
-msgid "Adjusting window size to avoid accidental full screen request"
-msgstr ""
-"Коригувати розміри вікна, щоб уникнути випадкового запиту щодо переходу у "
-"повноекранний режим"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:491
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:497
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:510
-msgid "Failure grabbing keyboard"
-msgstr "Помилка під час спроби перехопити клавіатуру"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:522
-msgid "Failure grabbing mouse"
-msgstr "Помилка під час спроби перехопити мишу"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/DesktopWindow.cxx:752
-msgid "Invalid screen layout computed for resize request!"
-msgstr ""
-"Результати обчислення компонування вікна для запиту щодо зміни розмірів є "
-"некоректними!"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:48
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:113
-msgid "Not enough memory for framebuffer"
-msgstr "Недостатньо пам’яті для буфера кадрів"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Не вдалося створити пристрій буфера кадрів"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OSXPixelBuffer.cxx:58
-msgid "Could not create framebuffer bitmap"
-msgstr "Не вдалося створити растрові дані буфера кадрів"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:57
-msgid "VNC Viewer: Connection Options"
-msgstr "Засіб перегляду VNC: параметри з’єднання"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:83
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:91
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:247
-msgid "Cancel"
-msgstr "Скасувати"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:88
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:246
-msgid "OK"
-msgstr "Гаразд"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:413
-msgid "Compression"
-msgstr "Стискання"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:429
-msgid "Auto select"
-msgstr "Автовибір"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:441
-msgid "Preferred encoding"
-msgstr "Бажане кодування"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:489
-msgid "Color level"
-msgstr "Рівень відтворення кольору"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:500
-msgid "Full (all available colors)"
-msgstr "Повністю (усі доступні кольори)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:507
-msgid "Medium (256 colors)"
-msgstr "Середній (256 кольори)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:514
-msgid "Low (64 colors)"
-msgstr "Низький (64 кольори)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:521
-msgid "Very low (8 colors)"
-msgstr "Дуже низький (8 кольорів)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:538
-msgid "Custom compression level:"
-msgstr "Нетиповий рівень стискання:"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:544
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "рівень (1=швидко, 6=найякісніше [4-6 використовувати не варто])"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:551
-msgid "Allow JPEG compression:"
-msgstr "Дозволити стискання JPEG:"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:557
-msgid "quality (0=poor, 9=best)"
-msgstr "якість (0=найгірша, 9=найкраща)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:568
-msgid "Security"
-msgstr "Захист"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:583
-msgid "Encryption"
-msgstr "Шифрування"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:594
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:647
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:715
-msgid "None"
-msgstr "Немає"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:600
-msgid "TLS with anonymous certificates"
-msgstr "TLS із анонімними сертифікатами"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:606
-msgid "TLS with X509 certificates"
-msgstr "TLS з сертифікатами X509"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:613
-msgid "Path to X509 CA certificate"
-msgstr "Шлях до сертифіката CA X509"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:620
-msgid "Path to X509 CRL file"
-msgstr "Шлях до файла CRL X509"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:636
-msgid "Authentication"
-msgstr "Розпізнавання"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:653
-msgid "Standard VNC (insecure without encryption)"
-msgstr "Стандартний VNC (без захисту і шифрування)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:659
-msgid "Username and password (insecure without encryption)"
-msgstr "Ім’я користувача і пароль (без захисту і шифрування)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:678
-msgid "Input"
-msgstr "Введення"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:686
-msgid "View only (ignore mouse and keyboard)"
-msgstr "Лише перегляд (ігнорувати сигнали від миші і клавіатури)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:692
-msgid "Accept clipboard from server"
-msgstr "Приймати вміст буфера з сервера"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:698
-msgid "Send clipboard to server"
-msgstr "Надіслати вміст буфера обміну до сервера"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:704
-msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Надіслати основне позначене і вирізати буфер до буфера обміну"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:710
-msgid "Pass system keys directly to server (full screen)"
-msgstr ""
-"Передавати натискання системних клавіш безпосередньо до сервера "
-"(повноекранний режим)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:713
-msgid "Menu key"
-msgstr "Клавіша меню"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:729
-msgid "Screen"
-msgstr "Екран"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:737
-msgid "Resize remote session on connect"
-msgstr "Змінювати розміри віддаленого сеансу під час з’єднання"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:750
-msgid "Resize remote session to the local window"
-msgstr "Змінювати розміри віддаленого сеансу відповідно до локального вікна"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:756
-msgid "Full-screen mode"
-msgstr "Повноекранний режим"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:762
-msgid "Enable full-screen mode over all monitors"
-msgstr "Увімкнути повноекранний режим на усіх моніторах"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:771
-msgid "Misc."
-msgstr "Інше"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:779
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Спільний (не від’єднувати інші засоби перегляду)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/OptionsDialog.cxx:785
-msgid "Show dot when no cursor"
-msgstr "Показувати крапку, якщо немає курсора"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:42
-msgid "VNC Viewer: Connection Details"
-msgstr "Засіб перегляду VNC: подробиці з’єднання"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:49
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:54
-msgid "VNC server:"
-msgstr "Сервер VNC:"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:64
-msgid "Options..."
-msgstr "Параметри…"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:69
-msgid "Load..."
-msgstr "Завантажити…"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:74
-msgid "Save As..."
-msgstr "Зберегти як…"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:86
-msgid "About..."
-msgstr "Про програму…"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/ServerDialog.cxx:96
-msgid "Connect"
-msgstr "З'єднатися"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:74
-msgid "Opening password file failed"
-msgstr "Спроба відкриття файла паролів зазнала невдачі"
-
-#. Largely copied from FLTK so that we get the same look and feel
-#. as the simpler password input.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:86
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:96
-msgid "VNC authentication"
-msgstr "Розпізнавання VNC"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:87
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:102
-msgid "Password:"
-msgstr "Пароль:"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:89
-msgid "Authentication cancelled"
-msgstr "Розпізнавання скасовано"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/UserDialog.cxx:99
-msgid "Username:"
-msgstr "Користувач:"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:432
-#, c-format
-msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Не вдалося створити специфічний для платформи буфер кадрів: %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:433
-msgid "Using platform independent framebuffer"
-msgstr "Використовуємо незалежний від платформи буфер кадрів"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:667
-#, c-format
-msgid "No scan code for extended virtual key 0x%02x"
-msgstr "Немає коду сканування для віртуальної клавіші розширення 0x%02x"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:669
-#, c-format
-msgid "No scan code for virtual key 0x%02x"
-msgstr "Немає коду сканування для віртуальної клавіші 0x%02x"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:686
-#, c-format
-msgid "No symbol for extended virtual key 0x%02x"
-msgstr "Немає символу для віртуальної клавіші розширення 0x%02x"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:688
-#, c-format
-msgid "No symbol for virtual key 0x%02x"
-msgstr "Немає символу для віртуальної клавіші 0x%02x"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:726
-#, c-format
-msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr "Немає символу для клавіші з кодом 0x%02x (у поточному стані)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:752
-#, c-format
-msgid "No symbol for key code %d (in the current state)"
-msgstr "Немає символу для клавіші з кодом %d (у поточному стані)"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:789
-#, fuzzy
-msgid "E&xit viewer"
-msgstr "Вийти із засобу перегляду"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:792
-#, fuzzy
-msgid "&Full screen"
-msgstr "На весь екран"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:794
-#, fuzzy
-msgid "Resize &window to session"
-msgstr "Змінити розміри вікна відповідно до сеансу"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:799
-#, fuzzy
-msgid "&Ctrl"
-msgstr "Ctrl"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:801
-#, fuzzy
-msgid "&Alt"
-msgstr "Alt"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:806
-#, c-format
-msgid "Send %s"
-msgstr "Надіслати %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:812
-#, fuzzy
-msgid "Send Ctrl-Alt-&Del"
-msgstr "Надіслати Ctrl-Alt-Del"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:815
-#, fuzzy
-msgid "&Refresh screen"
-msgstr "Оновити вміст екрана"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:818
-#, fuzzy
-msgid "&Options..."
-msgstr "Параметри…"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:820
-#, fuzzy
-msgid "Connection &info..."
-msgstr "Дані щодо з’єднання…"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:822
-#, fuzzy
-msgid "About &TigerVNC viewer..."
-msgstr "Про засіб перегляду TigerVNC…"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:825
-#, fuzzy
-msgid "Dismiss &menu"
-msgstr "Закрити меню"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Viewport.cxx:906
-msgid "VNC connection info"
-msgstr "Дані щодо з’єднання VNC"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "не вдалося створити розділ DIB"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "Помилка CreateCompatibleDC"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "Помилка SelectObject"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/Win32PixelBuffer.cxx:91
-msgid "BitBlt failed"
-msgstr "Помилка BitBlt"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:61
-msgid "Display lacks pixmap format for default depth"
-msgstr "Для дисплея не вказано формат у пікселях для типової глибини"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:72
-msgid "Couldn't find suitable pixmap format"
-msgstr "Не вдалося визначити відповідний формат зображення"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:81
-msgid "Only true colour displays supported"
-msgstr "Передбачено підтримку лише дисплеїв з True Color"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:83
-#, fuzzy, c-format
-msgid "Using default colormap and visual, TrueColor, depth %d."
-msgstr "Використовуємо типову карту кольорів і відтворення, %sглибина %d."
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/X11PixelBuffer.cxx:109
-msgid "Could not create framebuffer image"
-msgstr "Не вдалося створити зображення буфера кадрів"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:279
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:313
-#, fuzzy, c-format
-msgid "The name of the parameter %s was too large to write to the registry"
-msgstr ""
-"Не вдалося виконати кодування значення параметра %s під час запису до "
-"реєстру."
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:285
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:292
-#, fuzzy, c-format
-msgid "The parameter %s was too large to write to the registry"
-msgstr ""
-"Не вдалося виконати кодування значення параметра %s під час запису до "
-"реєстру."
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:298
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:319
-#, fuzzy, c-format
-msgid "Failed to write parameter %s of type %s to the registry: %ld"
-msgstr ""
-"Не вдалося виконати кодування значення параметра %s під час запису до "
-"реєстру."
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:334
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:373
-#, c-format
-msgid "The name of the parameter %s was too large to read from the registry"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:343
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:382
-#, c-format
-msgid "Failed to read parameter %s from the registry: %ld"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:352
-#, c-format
-msgid "The parameter %s was too large to read from the registry"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:402
-#, c-format
-msgid "Failed to create registry key: %ld"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:416
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:465
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:527
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:658
-#, c-format
-msgid "Unknown parameter type for parameter %s"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:423
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:472
-#, c-format
-msgid "Failed to close registry key: %ld"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:439
-#, c-format
-msgid "Failed to open registry key: %ld"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:496
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr ""
-"Не вдалося записати файл налаштувань, оскільки не вдалося визначити шлях до "
-"домашнього каталогу."
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:509
-#, fuzzy, c-format
-msgid "Failed to write configuration file, can't open %s: %s"
-msgstr "Не вдалося записати файл налаштувань, оскільки не вдалося відкрити %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:552
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr ""
-"Не вдалося прочитати файл налаштувань, оскільки не вдалося визначити шлях до "
-"домашнього каталогу."
-
-#. Use defaults.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:565
-#, fuzzy, c-format
-msgid "Failed to read configuration file, can't open %s: %s"
-msgstr "Не вдалося прочитати файл налаштувань, оскільки не вдалося відкрити %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:578
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:583
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:608
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:621
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:637
-#, fuzzy, c-format
-msgid "Failed to read line %d in file %s: %s"
-msgstr "Не вдалося прочитати рядок %d у файлі %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:584
-msgid "Line too long"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:591
-#, c-format
-msgid "Configuration file %s is in an invalid format"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:609
-msgid "Invalid format"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:622
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:638
-msgid "Invalid format or too large value"
-msgstr ""
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/parameters.cxx:665
-#, fuzzy, c-format
-msgid "Unknown parameter %s on line %d in file %s"
-msgstr "Некоректна назва параметра у рядку %d файла %s"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:106
-msgid "About TigerVNC Viewer"
-msgstr "Про засіб перегляду TigerVNC"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:123
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:135
-#, fuzzy, c-format
-msgid "Error starting new TigerVNC Viewer: %s"
-msgstr "Про засіб перегляду TigerVNC"
-
-#. CleanupSignalHandler allows C++ object cleanup to happen because it calls
-#. exit() rather than the default which is to abort.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:144
-#, c-format
-msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
-msgstr ""
-
-#. Avoid empty titles for popups
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:236
-msgid "TigerVNC Viewer"
-msgstr "Засіб перегляду TigerVNC"
-
-#. FLTK exposes these so that we can translate them.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:244
-msgid "No"
-msgstr "Ні"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:245
-msgid "Yes"
-msgstr "Так"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:248
-msgid "Close"
-msgstr "Закрити"
-
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:253
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:227
 msgid "About"
 msgstr "Про програму"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:256
-msgid "Hide"
-msgstr "Сховати"
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:103
+msgid "About TigerVNC Viewer"
+msgstr "Про засіб перегляду TigerVNC"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:259
-msgid "Quit"
-msgstr "Вийти"
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1097
+msgid "About TigerVNC viewer..."
+msgstr "Про засіб перегляду TigerVNC…"
 
-#. Don't want the print item
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:263
-msgid "Services"
-msgstr "Служби"
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "Про програму…"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:264
-msgid "Hide Others"
-msgstr "Сховати решту"
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:704
+msgid "Accept clipboard from server"
+msgstr "Приймати вміст буфера з сервера"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:265
-msgid "Show All"
-msgstr "Показати всі"
+#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:327
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "Коригувати розміри вікна, щоб уникнути випадкового запиту щодо переходу у повноекранний режим"
 
-#. Fl_Sys_Menu_Bar overrides methods without them being virtual,
-#. which means we cannot use our generic Fl_Menu_ helpers.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:274
-msgid "&File"
-msgstr ""
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:563
+msgid "Allow JPEG compression:"
+msgstr "Дозволити стискання JPEG:"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:276
-#, fuzzy
-msgid "&New Connection"
-msgstr "Дані щодо з’єднання VNC"
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1081
+msgid "Alt"
+msgstr "Alt"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:287
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr ""
-"Не вдалося створити домашній каталог VNC: не вдалося отримати шлях до "
-"домашнього каталогу."
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:648
+msgid "Authentication"
+msgstr "Розпізнавання"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:292
+#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:89
+msgid "Authentication cancelled"
+msgstr "Розпізнавання скасовано"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:437
+msgid "Auto select"
+msgstr "Автовибір"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:651
+#, c-format
+msgid "Bad Name/Value pair on line: %d in file: %s"
+msgstr "Помилкова пара назва/значення у рядку %d файла %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:91
+msgid "BitBlt failed"
+msgstr "Помилка BitBlt"
+
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:91
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:221
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:83
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:116
+msgid "CleanupSignalHandler called"
+msgstr "Викликано CleanupSignalHandler"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:222
+msgid "Close"
+msgstr "Закрити"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:499
+msgid "Color level"
+msgstr "Рівень відтворення кольору"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:421
+msgid "Compression"
+msgstr "Стискання"
+
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "З'єднатися"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1096
+msgid "Connection info..."
+msgstr "Дані щодо з’єднання…"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:362
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:404
+#, c-format
+msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is to small."
+msgstr "Не вдалося перетворити назву параметра %s на wchar_t* під час читання даних з реєстру. Розмір буфера є надто малим."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:302
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:340
+#, c-format
+msgid "Could not convert the parameter-name %s to wchar_t* when writing to the Registry, the buffersize is to small."
+msgstr "Не вдалося перетворити назву параметра %s на wchar_t* під час запису даних до реєстру. Розмір буфера є надто малим."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:318
+#, c-format
+msgid "Could not convert the parameter-value %s to wchar_t* when writing to the Registry, the buffersize is to small."
+msgstr "Не вдалося перетворити значення параметра %s на wchar_t* під час запису даних до реєстру. Розмір буфера є надто малим."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:381
+#, c-format
+msgid "Could not convert the parameter-value for %s to utf8 char* when reading from the Registry, the buffer dest is to small."
+msgstr "Не вдалося перетворити значення параметра %s на utf8 char* під час читання з реєстру. Буфер призначення є надто малим."
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:256
 #, c-format
 msgid "Could not create VNC home directory: %s."
 msgstr "Не вдалося створити домашній каталог VNC: %s."
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:422
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:251
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "Не вдалося створити домашній каталог VNC: не вдалося отримати шлях до домашнього каталогу."
+
+#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:58
+msgid "Could not create framebuffer bitmap"
+msgstr "Не вдалося створити растрові дані буфера кадрів"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:52
+msgid "Could not create framebuffer device"
+msgstr "Не вдалося створити пристрій буфера кадрів"
+
+#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:107
+msgid "Could not create framebuffer image"
+msgstr "Не вдалося створити зображення буфера кадрів"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:310
+#, c-format
+msgid "Could not encode the parameter-value %s when writing to the Registry."
+msgstr "Не вдалося виконати кодування значення параметра %s під час запису до реєстру."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:613
+#, c-format
+msgid "Could not read the line(%d) in the configuration file,the buffersize is to small."
+msgstr "Не вдалося прочитати рядок %d у файлі налаштувань. Розмір буфера є надто малим."
+
+#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:68
+msgid "Couldn't find suitable pixmap format"
+msgstr "Не вдалося визначити відповідний формат зображення"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:79
+msgid "CreateCompatibleDC failed"
+msgstr "Помилка CreateCompatibleDC"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1079
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:550
+msgid "Custom compression level:"
+msgstr "Нетиповий рівень стискання:"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:283
+msgid "Decoding: The size of the buffer dest is to small, it needs to be 1 byte bigger."
+msgstr "Декодування: розмір буфера призначення є надто малим. Його слід збільшити на 1 байт."
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:172
+#, c-format
+msgid "Desktop name: %.80s"
+msgstr "Назва робочої станції: %.80s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1099
+msgid "Dismiss menu"
+msgstr "Закрити меню"
+
+#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:59
+msgid "Display lacks pixmap format for default depth"
+msgstr "Для дисплея не вказано формат у пікселях для типової глибини"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:778
+msgid "Enable full-screen mode over all monitors"
+msgstr "Увімкнути повноекранний режим на усіх моніторах"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:469
+msgid "Enabling continuous updates"
+msgstr "Увімкнути неперервне оновлення"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:200
+#, c-format
+msgid "Encoding backslash: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+msgstr "Кодування зворотної похилої риски: розмір буфера призначення є надто малим. Його слід збільшити на понад %d байтів."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:214
+#, c-format
+msgid "Encoding escape sequence: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+msgstr "Кодування екранованої послідовності: розмір буфера призначення є надто малим. Його слід збільшити на понад %d байтів."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:234
+#, c-format
+msgid "Encoding normal character: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+msgstr "Кодування звичайного символу: розмір буфера призначення є надто малим. Його слід збільшити на понад %d байтів."
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:595
+msgid "Encryption"
+msgstr "Шифрування"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:503
+#, c-format
+msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
+msgstr "Помилка (%d) закриття ключа:  Software\\TigerVNC\\vncviewer"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:455
+#, c-format
+msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
+msgstr "Помилка (%d) закриття ключа: Software\\TigerVNC\\vncviewer"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:434
+#, c-format
+msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
+msgstr "Помилка (%d) під час створення ключа: Software\\TigerVNC\\vncviewer"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:471
+#, c-format
+msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
+msgstr "Помилка (%d) під час відкриття ключа: Software\\TigerVNC\\vncviewer"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:373
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:415
+#, c-format
+msgid "Error(%d) reading %s from Registry."
+msgstr "Помилка (%d) під час читання %s з реєстру."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:348
+#, c-format
+msgid "Error(%d) writing %d(REG_DWORD) to Registry."
+msgstr "Помилка (%d) під час запису %d(REG_DWORD) до реєстру."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:326
+#, c-format
+msgid "Error(%d) writing %s(REG_SZ) to Registry."
+msgstr "Помилка (%d) під час запису %s(REG_SZ) до реєстру."
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1067
+msgid "Exit viewer"
+msgstr "Вийти із засобу перегляду"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:588
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "Не вдалося прочитати файл налаштувань, оскільки не вдалося визначити шлях до домашнього каталогу."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:602
+#, c-format
+msgid "Failed to read configuration file, can't open %s"
+msgstr "Не вдалося прочитати файл налаштувань, оскільки не вдалося відкрити %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:621
+#, c-format
+msgid "Failed to read line %d in file %s"
+msgstr "Не вдалося прочитати рядок %d у файлі %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:528
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "Не вдалося записати файл налаштувань, оскільки не вдалося визначити шлях до домашнього каталогу."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:542
+#, c-format
+msgid "Failed to write configuration file, can't open %s"
+msgstr "Не вдалося записати файл налаштувань, оскільки не вдалося відкрити %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:526
+#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:538
+#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:551
+msgid "Failure grabbing keyboard"
+msgstr "Помилка під час спроби перехопити клавіатуру"
+
+#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:563
+msgid "Failure grabbing mouse"
+msgstr "Помилка під час спроби перехопити мишу"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:512
+msgid "Full (all available colors)"
+msgstr "Повністю (усі доступні кольори)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1070
+msgid "Full screen"
+msgstr "На весь екран"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:770
+msgid "Full-screen mode"
+msgstr "Повноекранний режим"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:230
+msgid "Hide"
+msgstr "Сховати"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:238
+msgid "Hide Others"
+msgstr "Сховати решту"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:177
+#, c-format
+msgid "Host: %.80s port: %d"
+msgstr "Вузол: %.80s порт: %d"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:690
+msgid "Input"
+msgstr "Введення"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:510
+msgid "Internal FLTK error. Exiting."
+msgstr "Внутрішня помилка FLTK. Завершуємо роботу."
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:384
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "Некоректне значення SetColourMapEntries від сервера!"
+
+#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:106
+msgid "Invalid geometry specified!"
+msgstr "Вказано некоректні геометричні параметри!"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:708
+#, c-format
+msgid "Invalid parameter name on line: %d in file: %s"
+msgstr "Некоректна назва параметра у рядку %d файла %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:805
+msgid "Invalid screen layout computed for resize request!"
+msgstr "Результати обчислення компонування вікна для запиту щодо зміни розмірів є некоректними!"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:204
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "Останнє використане кодування: %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:631
+#, c-format
+msgid ""
+"Line 1 in file %s\n"
+"must contain the TigerVNC configuration file identifier string:\n"
+"\"%s\""
+msgstr ""
+"Рядок 1 у файлі %s\n"
+"має містити рядок ідентифікатор файла налаштувань TigerVNC:\n"
+"«%s»"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:209
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "Оцінка швидкості лінії: %d кбіт/с"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:478
+#, c-format
+msgid "Listening on port %d\n"
+msgstr "Очікуємо на дані на порту %d\n"
+
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Завантажити…"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:526
+msgid "Low (64 colors)"
+msgstr "Низький (64 кольори)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:519
+msgid "Medium (256 colors)"
+msgstr "Середній (256 кольори)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:725
+msgid "Menu key"
+msgstr "Клавіша меню"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:791
+msgid "Misc."
+msgstr "Інше"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1037
+#, c-format
+msgid "Multiple characters given for key code %d (0x%04x): '%s'"
+msgstr "З клавішею з кодом %d (0x%04x) пов’язано декілька символів: «%s»"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:218
+msgid "No"
+msgstr "Ні"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:691
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Немає коду сканування для віртуальної клавіші розширення 0x%02x"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:693
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Немає коду сканування для віртуальної клавіші 0x%02x"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:710
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Немає символу для віртуальної клавіші розширення 0x%02x"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:776
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "Немає символу для клавіші з кодом %d (у поточному стані)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:750
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "Немає символу для клавіші з кодом 0x%02x (у поточному стані)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:712
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Немає символу для віртуальної клавіші 0x%02x"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:606
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:659
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:727
+msgid "None"
+msgstr "Немає"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:48
+#: /home/ossman/devel/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
+#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:111
+msgid "Not enough memory for framebuffer"
+msgstr "Недостатньо пам’яті для буфера кадрів"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:220
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:88
+msgid "OK"
+msgstr "Гаразд"
+
+#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:77
+msgid "Only true colour displays supported"
+msgstr "Передбачено підтримку лише дисплеїв з True Color"
+
+#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:74
+msgid "Opening password file failed"
+msgstr "Спроба відкриття файла паролів зазнала невдачі"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1095
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Параметри…"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:463
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:464
+msgid "Parameters -listen and -via are incompatible"
+msgstr "Параметри -listen і -via є несумісними"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:722
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Передавати натискання системних клавіш безпосередньо до сервера (повноекранний режим)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:87
+#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:102
+msgid "Password:"
+msgstr "Пароль:"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:625
+msgid "Path to X509 CA certificate"
+msgstr "Шлях до сертифіката CA X509"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:632
+msgid "Path to X509 CRL file"
+msgstr "Шлях до файла CRL X509"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:188
+#, c-format
+msgid "Pixel format: %s"
+msgstr "Формат у пікселях: %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:449
+msgid "Preferred encoding"
+msgstr "Бажане кодування"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:214
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "Версія протоколу: %d.%d"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:233
+msgid "Quit"
+msgstr "Вийти"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1093
+msgid "Refresh screen"
+msgstr "Оновити вміст екрана"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:199
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Запит щодо кодування: %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:749
+msgid "Resize remote session on connect"
+msgstr "Змінювати розміри віддаленого сеансу під час з’єднання"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:762
+msgid "Resize remote session to the local window"
+msgstr "Змінювати розміри віддаленого сеансу відповідно до локального вікна"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1073
+msgid "Resize window to session"
+msgstr "Змінити розміри вікна відповідно до сеансу"
+
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Зберегти як…"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:741
+msgid "Screen"
+msgstr "Екран"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:580
+msgid "Security"
+msgstr "Захист"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:219
+#, c-format
+msgid "Security method: %s"
+msgstr "Метод захисту: %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:82
+msgid "SelectObject failed"
+msgstr "Помилка SelectObject"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1086
+#, c-format
+msgid "Send %s"
+msgstr "Надіслати %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1091
+msgid "Send Ctrl-Alt-Del"
+msgstr "Надіслати Ctrl-Alt-Del"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:710
+msgid "Send clipboard to server"
+msgstr "Надіслати вміст буфера обміну до сервера"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:716
+msgid "Send primary selection and cut buffer as clipboard"
+msgstr "Надіслати основне позначене і вирізати буфер до буфера обміну"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:237
+msgid "Services"
+msgstr "Служби"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:319
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "Помилка SetDesktopSize: %d"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:799
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Спільний (не від’єднувати інші засоби перегляду)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:239
+msgid "Show All"
+msgstr "Показати всі"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:805
+msgid "Show dot when no cursor"
+msgstr "Показувати крапку, якщо немає курсора"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:182
+#, c-format
+msgid "Size: %d x %d"
+msgstr "Розмір: %d x %d"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:665
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Стандартний VNC (без захисту і шифрування)"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:618
+msgid "TLS with X509 certificates"
+msgstr "TLS з сертифікатами X509"
+
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:612
+msgid "TLS with anonymous certificates"
+msgstr "TLS із анонімними сертифікатами"
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:448
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:497
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:561
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:701
+#, c-format
+msgid "The parameterArray contains a object of a invalid type at line %d."
+msgstr "Змінна parameterArray містить об’єкт некоректного типу у рядку %d."
+
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:664
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:680
+#, c-format
+msgid "The value of the parameter %s on line %d in file %s is invalid."
+msgstr "Значення параметра %s у рядку %d файла %s є некоректним."
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:539
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr "Пропускна здатність %d кбіт/с — змінюємо якість на %d"
+
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:561
+#, c-format
+msgid "Throughput %d kbit/s - full color is now %s"
+msgstr "Пропускна здатність %d кбіт/с — змінюємо колірність на %s"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:210
+msgid "TigerVNC Viewer"
+msgstr "Засіб перегляду TigerVNC"
+
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:80
 #, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
@@ -744,139 +632,122 @@ msgid ""
 msgstr ""
 "Засіб перегляду TigerVNC, %d-бітовий, v%s\n"
 "Зібрано: %s\n"
-"Авторські права належать команді TigerVNC та багатьом іншим (див. файл "
-"README.txt), 1999–%d\n"
+"Авторські права належать команді TigerVNC та багатьом іншим (див. файл README.txt), 1999–%d\n"
 "Докладніший опис TigerVNC можна знайти на http://www.tigervnc.org."
 
-#. TRANSLATORS: "Parameters" are command line arguments, or settings
-#. from a file or the Windows registry.
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:527
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:528
-msgid "Parameters -listen and -via are incompatible"
-msgstr "Параметри -listen і -via є несумісними"
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:456
+#, c-format
+msgid "Unable to create platform specific framebuffer: %s"
+msgstr "Не вдалося створити специфічний для платформи буфер кадрів: %s"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:543
-#, fuzzy, c-format
-msgid "Listening on port %d"
-msgstr "Очікуємо на дані на порту %d\n"
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1015
+#, c-format
+msgid "Unknown FLTK key code %d (0x%04x)"
+msgstr "Невідомий код клавіші FLTK, %d (0x%04x)"
 
-#: /home/astrand/thin/vnc/tigervnc/tigervnc/vncviewer/vncviewer.cxx:604
-msgid "Internal FLTK error. Exiting."
-msgstr "Внутрішня помилка FLTK. Завершуємо роботу."
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:889
+#, c-format
+msgid "Unknown decimal separator: '%s'"
+msgstr "Невідомий десятковий роздільник: «%s»"
 
-#~ msgid "Unknown escape sequence at character %d"
-#~ msgstr "Невідома послідовність екранування на позиції %d"
+#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:271
+#, c-format
+msgid "Unknown escape sequence at character %d"
+msgstr "Невідома послідовність екранування на позиції %d"
 
-#~ msgid "Unknown decimal separator: '%s'"
-#~ msgstr "Невідомий десятковий роздільник: «%s»"
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:430
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:437
+msgid "Unknown rect encoding"
+msgstr "Невідоме кодування rect"
 
-#~ msgid "Unknown FLTK key code %d (0x%04x)"
-#~ msgstr "Невідомий код клавіші FLTK, %d (0x%04x)"
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:429
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:436
+#, c-format
+msgid "Unknown rect encoding %d"
+msgstr "Невідоме кодування rect, %d"
 
-#~ msgid "The value of the parameter %s on line %d in file %s is invalid."
-#~ msgstr "Значення параметра %s у рядку %d файла %s є некоректним."
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:671
+msgid "Username and password (insecure without encryption)"
+msgstr "Ім’я користувача і пароль (без захисту і шифрування)"
 
-#~ msgid "The parameterArray contains a object of a invalid type at line %d."
-#~ msgstr "Змінна parameterArray містить об’єкт некоректного типу у рядку %d."
+#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:99
+msgid "Username:"
+msgstr "Користувач:"
 
-#~ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-#~ msgstr "З клавішею з кодом %d (0x%04x) пов’язано декілька символів: «%s»"
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:573
+#, c-format
+msgid "Using %s encoding"
+msgstr "Використовуємо кодування %s"
 
-#~ msgid ""
-#~ "Line 1 in file %s\n"
-#~ "must contain the TigerVNC configuration file identifier string:\n"
-#~ "\"%s\""
-#~ msgstr ""
-#~ "Рядок 1 у файлі %s\n"
-#~ "має містити рядок ідентифікатор файла налаштувань TigerVNC:\n"
-#~ "«%s»"
+#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:79
+#, c-format
+msgid "Using default colormap and visual, %sdepth %d."
+msgstr "Використовуємо типову карту кольорів і відтворення, %sглибина %d."
 
-#~ msgid "Error(%d) writing %s(REG_SZ) to Registry."
-#~ msgstr "Помилка (%d) під час запису %s(REG_SZ) до реєстру."
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:620
+#, c-format
+msgid "Using pixel format %s"
+msgstr "Використовуємо формат у пікселях %s"
 
-#~ msgid "Error(%d) writing %d(REG_DWORD) to Registry."
-#~ msgstr "Помилка (%d) під час запису %d(REG_DWORD) до реєстру."
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:457
+msgid "Using platform independent framebuffer"
+msgstr "Використовуємо незалежний від платформи буфер кадрів"
 
-#~ msgid "Error(%d) reading %s from Registry."
-#~ msgstr "Помилка (%d) під час читання %s з реєстру."
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "Засіб перегляду VNC: подробиці з’єднання"
 
-#~ msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
-#~ msgstr "Помилка (%d) під час відкриття ключа: Software\\TigerVNC\\vncviewer"
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "Засіб перегляду VNC: параметри з’єднання"
 
-#~ msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
-#~ msgstr "Помилка (%d) під час створення ключа: Software\\TigerVNC\\vncviewer"
+#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:86
+#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:96
+msgid "VNC authentication"
+msgstr "Розпізнавання VNC"
 
-#~ msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
-#~ msgstr "Помилка (%d) закриття ключа: Software\\TigerVNC\\vncviewer"
+#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1187
+msgid "VNC connection info"
+msgstr "Дані щодо з’єднання VNC"
 
-#~ msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
-#~ msgstr "Помилка (%d) закриття ключа:  Software\\TigerVNC\\vncviewer"
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:49
+#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "Сервер VNC:"
 
-#~ msgid ""
-#~ "Encoding normal character: The size of the buffer dest is to small, it "
-#~ "needs to be more than %d bytes bigger."
-#~ msgstr ""
-#~ "Кодування звичайного символу: розмір буфера призначення є надто малим. "
-#~ "Його слід збільшити на понад %d байтів."
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:533
+msgid "Very low (8 colors)"
+msgstr "Дуже низький (8 кольорів)"
 
-#~ msgid ""
-#~ "Encoding escape sequence: The size of the buffer dest is to small, it "
-#~ "needs to be more than %d bytes bigger."
-#~ msgstr ""
-#~ "Кодування екранованої послідовності: розмір буфера призначення є надто "
-#~ "малим. Його слід збільшити на понад %d байтів."
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:698
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Лише перегляд (ігнорувати сигнали від миші і клавіатури)"
 
-#~ msgid ""
-#~ "Encoding backslash: The size of the buffer dest is to small, it needs to "
-#~ "be more than %d bytes bigger."
-#~ msgstr ""
-#~ "Кодування зворотної похилої риски: розмір буфера призначення є надто "
-#~ "малим. Його слід збільшити на понад %d байтів."
+#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:219
+msgid "Yes"
+msgstr "Так"
 
-#~ msgid ""
-#~ "Decoding: The size of the buffer dest is to small, it needs to be 1 byte "
-#~ "bigger."
-#~ msgstr ""
-#~ "Декодування: розмір буфера призначення є надто малим. Його слід збільшити "
-#~ "на 1 байт."
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:111
+#, c-format
+msgid "connected to host %s port %d"
+msgstr "з’єднано з вузлом %s, порт %d"
 
-#~ msgid ""
-#~ "Could not read the line(%d) in the configuration file,the buffersize is "
-#~ "to small."
-#~ msgstr ""
-#~ "Не вдалося прочитати рядок %d у файлі налаштувань. Розмір буфера є надто "
-#~ "малим."
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
+msgid "disabled"
+msgstr "вимкнено"
 
-#~ msgid ""
-#~ "Could not convert the parameter-value for %s to utf8 char* when reading "
-#~ "from the Registry, the buffer dest is to small."
-#~ msgstr ""
-#~ "Не вдалося перетворити значення параметра %s на utf8 char* під час "
-#~ "читання з реєстру. Буфер призначення є надто малим."
+#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
+msgid "enabled"
+msgstr "увімкнено"
 
-#~ msgid ""
-#~ "Could not convert the parameter-value %s to wchar_t* when writing to the "
-#~ "Registry, the buffersize is to small."
-#~ msgstr ""
-#~ "Не вдалося перетворити значення параметра %s на wchar_t* під час запису "
-#~ "даних до реєстру. Розмір буфера є надто малим."
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:556
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "рівень (1=швидко, 6=найякісніше [4-6 використовувати не варто])"
 
-#~ msgid ""
-#~ "Could not convert the parameter-name %s to wchar_t* when writing to the "
-#~ "Registry, the buffersize is to small."
-#~ msgstr ""
-#~ "Не вдалося перетворити назву параметра %s на wchar_t* під час запису "
-#~ "даних до реєстру. Розмір буфера є надто малим."
+#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:569
+msgid "quality (0=poor, 9=best)"
+msgstr "якість (0=найгірша, 9=найкраща)"
 
-#~ msgid ""
-#~ "Could not convert the parameter-name %s to wchar_t* when reading from the "
-#~ "Registry, the buffersize is to small."
-#~ msgstr ""
-#~ "Не вдалося перетворити назву параметра %s на wchar_t* під час читання "
-#~ "даних з реєстру. Розмір буфера є надто малим."
-
-#~ msgid "CleanupSignalHandler called"
-#~ msgstr "Викликано CleanupSignalHandler"
-
-#~ msgid "Bad Name/Value pair on line: %d in file: %s"
-#~ msgstr "Помилкова пара назва/значення у рядку %d файла %s"
+#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:62
+msgid "unable to create DIB section"
+msgstr "не вдалося створити розділ DIB"
