@@ -12,6 +12,7 @@ find_program(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
 if (GETTEXT_XGETTEXT_EXECUTABLE)
   # Get list of all source files
   file(GLOB_RECURSE po_source
+    RELATIVE ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/vncviewer/*.h
     ${PROJECT_SOURCE_DIR}/vncviewer/*.cxx
   )
@@ -37,13 +38,6 @@ endif (GETTEXT_XGETTEXT_EXECUTABLE)
 foreach(lang ${po_FILES})
   set(po  "${CMAKE_CURRENT_SOURCE_DIR}/${lang}.po")
   set(mo "${CMAKE_CURRENT_BINARY_DIR}/${lang}.mo")
-
-  # Update po files after pot file
-  add_custom_command(TARGET translations_update POST_BUILD
-    COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none
-      --sort-by-file ${po} ${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot
-    COMMENT "Updating ${lang}.po"
-  )
 
   # Add command to build X.mo from X.po
   add_custom_command(OUTPUT ${mo}
