@@ -440,11 +440,6 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   }
 #endif /* defined(IPV6_V6ONLY) */
 
-  if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
-    closesocket(sock);
-    throw SocketException("failed to bind socket", errorNumber);
-  }
-
 #ifndef WIN32
   // - By default, close the socket on exec()
   fcntl(sock, F_SETFD, FD_CLOEXEC);
@@ -456,6 +451,11 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
     throw SocketException("unable to create listening socket", e);
   }
 #endif
+
+  if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
+    closesocket(sock);
+    throw SocketException("failed to bind socket", errorNumber);
+  }
 
   // - Set it to be a listening socket
   if (listen(sock, 5) < 0) {
