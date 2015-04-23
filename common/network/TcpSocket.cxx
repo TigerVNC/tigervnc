@@ -440,10 +440,15 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   }
 #endif /* defined(IPV6_V6ONLY) */
 
-#ifndef WIN32
+#ifdef FD_CLOEXEC
   // - By default, close the socket on exec()
   fcntl(sock, F_SETFD, FD_CLOEXEC);
+#endif
 
+  // SO_REUSEADDR is broken on Windows. It allows binding to a port
+  // that already has a listening socket on it. SO_EXCLUSIVEADDRUSE
+  // might do what we want, but requires investigation.
+#ifndef WIN32
   if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                  (char *)&one, sizeof(one)) < 0) {
     int e = errorNumber;
