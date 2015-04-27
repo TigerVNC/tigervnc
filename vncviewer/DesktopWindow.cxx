@@ -85,7 +85,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   // coordinates relative to the right edge / bottom edge) at this
   // time.
   int geom_x = 0, geom_y = 0;
-  if (geometry.hasBeenSet()) {
+  if (strcmp(geometry, "") != 0) {
     int matched;
     matched = sscanf(geometry.getValueStr(), "+%d+%d", &geom_x, &geom_y);
     if (matched == 2) {
@@ -606,12 +606,12 @@ void DesktopWindow::maximizeWindow()
 
 void DesktopWindow::handleDesktopSize()
 {
-  if (desktopSize.hasBeenSet()) {
+  if (strcmp(desktopSize, "") != 0) {
     int width, height;
 
     // An explicit size has been requested
 
-    if (sscanf(desktopSize.getValueStr(), "%dx%d", &width, &height) != 2)
+    if (sscanf(desktopSize, "%dx%d", &width, &height) != 2)
       return;
 
     remoteResize(width, height);

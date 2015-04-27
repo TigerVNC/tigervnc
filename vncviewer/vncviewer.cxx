@@ -496,27 +496,6 @@ int main(int argc, char** argv)
       vncServerName[VNCSERVERNAMELEN - 1] = '\0';
     }
 
-  if (!::autoSelect.hasBeenSet()) {
-    // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
-    if (::preferredEncoding.hasBeenSet() || ::fullColour.hasBeenSet() ||
-	::fullColourAlias.hasBeenSet()) {
-      ::autoSelect.setParam(false);
-    }
-  }
-  if (!::fullColour.hasBeenSet() && !::fullColourAlias.hasBeenSet()) {
-    // Default to FullColor=0 if AutoSelect=0 && LowColorLevel is set
-    if (!::autoSelect && (::lowColourLevel.hasBeenSet() ||
-                          ::lowColourLevelAlias.hasBeenSet())) {
-      ::fullColour.setParam(false);
-    }
-  }
-  if (!::customCompressLevel.hasBeenSet()) {
-    // Default to CustomCompressLevel=1 if CompressLevel is used.
-    if(::compressLevel.hasBeenSet()) {
-      ::customCompressLevel.setParam(true);
-    }
-  }
-
   mkvnchomedir();
 
   CSecurity::upg = &dlg;
