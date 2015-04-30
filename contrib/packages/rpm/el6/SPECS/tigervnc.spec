@@ -50,7 +50,6 @@ Provides: tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 Patch4: tigervnc-cookie.patch
-Patch11: tigervnc11-gethomedir.patch
 Patch16: tigervnc-xorg-manpages.patch
 
 %description

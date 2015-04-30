@@ -132,7 +132,6 @@ Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 # tigervnc patches
 Patch4: tigervnc-cookie.patch
-Patch11: tigervnc11-gethomedir.patch
 Patch12: tigervnc14-static-build-fixes.patch
 
 # fltk patches
