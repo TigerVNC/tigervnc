@@ -361,7 +361,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
     if (firstTime)
     {
-	vfbInitializeDefaultScreens();
+        /* Force -noreset as default until we properly handle resets */
+	dispatchExceptionAtReset = 0;
+
+        vfbInitializeDefaultScreens();
 	vfbInitializePixmapDepths();
 	firstTime = FALSE;
 	vncInitRFB();
