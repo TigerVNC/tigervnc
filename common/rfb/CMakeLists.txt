@@ -29,7 +29,6 @@ set(RFB_SOURCES
   Logger.cxx
   Logger_file.cxx
   Logger_stdio.cxx
-  Logger_syslog.cxx
   Password.cxx
   PixelBuffer.cxx
   PixelFormat.cxx
@@ -62,6 +61,10 @@ set(RFB_SOURCES
   ZRLEDecoder.cxx
   encodings.cxx
   util.cxx)
+
+if(UNIX)
+  set(RFB_SOURCES ${RFB_SOURCES} Logger_syslog.cxx)
+endif()
 
 if(WIN32)
   include_directories(${CMAKE_SOURCE_DIR}/win)
