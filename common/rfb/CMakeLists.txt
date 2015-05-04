@@ -29,6 +29,7 @@ set(RFB_SOURCES
   Logger.cxx
   Logger_file.cxx
   Logger_stdio.cxx
+  Logger_syslog.cxx
   Password.cxx
   PixelBuffer.cxx
   PixelFormat.cxx

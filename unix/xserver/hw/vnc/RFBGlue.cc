@@ -23,6 +23,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Logger_stdio.h>
+#include <rfb/Logger_syslog.h>
 
 #include "RFBGlue.h"
 
@@ -34,6 +35,7 @@ static LogWriter inputLog("Input");
 void vncInitRFB(void)
 {
   rfb::initStdIOLoggers();
+  rfb::initSyslogLogger();
   rfb::LogWriter::setLogParams("*:stderr:30");
   rfb::Configuration::enableServerParams();
 }

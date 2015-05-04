@@ -72,10 +72,15 @@ namespace rfb {
       }
     }
 
-    DEF_LOGFUNCTION(error, 0)
-    DEF_LOGFUNCTION(status, 10)
-    DEF_LOGFUNCTION(info, 30)
-    DEF_LOGFUNCTION(debug, 100)
+    static const int LEVEL_ERROR  = 0;
+    static const int LEVEL_STATUS = 10;
+    static const int LEVEL_INFO   = 30;
+    static const int LEVEL_DEBUG  = 100;
+
+    DEF_LOGFUNCTION(error, LEVEL_ERROR)
+    DEF_LOGFUNCTION(status, LEVEL_STATUS)
+    DEF_LOGFUNCTION(info, LEVEL_INFO)
+    DEF_LOGFUNCTION(debug, LEVEL_DEBUG)
 
     // -=- DIAGNOSTIC & HELPER ROUTINES
 
