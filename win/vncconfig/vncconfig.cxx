@@ -43,7 +43,7 @@ static LogWriter vlog("main");
 #include <vncconfig/Desktop.h>
 
 
-TStr rfb::win32::AppName("VNC Config");
+TStr rfb::win32::AppName("TigerVNC Configuration");
 
 
 #ifdef _DEBUG

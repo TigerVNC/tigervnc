@@ -29,7 +29,7 @@ using namespace winvnc;
 using namespace rfb;
 using namespace win32;
 
-const TCHAR* winvnc::VNCServerService::Name = _T("WinVNC4");
+const TCHAR* winvnc::VNCServerService::Name = _T("TigerVNC Server");
 
 VNCServerService::VNCServerService()
   : Service(Name)
