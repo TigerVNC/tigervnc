@@ -269,7 +269,6 @@ cp %SOURCE9 cmake/Modules/
 sed -i -e "s#@_includedir@#%{xorg_buildroot}%{_includedir}#" cmake/Modules/FindX11.cmake
 sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" cmake/Modules/FindX11.cmake
 %patch4 -p1 -b .cookie
-%patch11 -p1 -b .gethomedir
 %patch12 -p1 -b .static-build-fixes
 
 tar xzf %SOURCE11

@@ -142,7 +142,6 @@ This package contains icons for TigerVNC viewer
 
 # sed -i -e 's/80/0/g' CMakeLists.txt
 %patch4 -p1 -b .cookie
-%patch11 -p1 -b .gethomedir
 
 tar xzf %SOURCE11
 tar xjf %SOURCE13
