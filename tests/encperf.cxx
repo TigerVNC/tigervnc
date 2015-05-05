@@ -427,12 +427,12 @@ int main(int argc, char **argv)
     usage(argv[0]);
   }
 
-  if (!format.hasBeenSet()) {
+  if (strcmp(format, "") == 0) {
     fprintf(stderr, "Pixel format not specified!\n\n");
     usage(argv[0]);
   }
 
-  if (!width.hasBeenSet() || !height.hasBeenSet()) {
+  if (width == 0 || height == 0) {
     fprintf(stderr, "Frame buffer size not specified!\n\n");
     usage(argv[0]);
   }

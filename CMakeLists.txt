@@ -80,16 +80,9 @@ if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
 endif()
 
-# Minimum version is Windows 2000 (5.0)
+# Minimum version is Windows XP SP2 (5.2)
 if(WIN32)
-  if(NOT CMAKE_SIZEOF_VOID_P MATCHES 8)
-    add_definitions(-D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500)
-  else()
-    set(WIN64 1)
-    # Win64 doesn't like us requesting a Windows version that didn't have
-    # 64-bit support. Request XP (5.1) instead.
-    add_definitions(-D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0501)
-  endif()
+  add_definitions(-D_WIN32_IE=0x0502 -D_WIN32_WINNT=0x0502)
 endif()
 
 if(CMAKE_SIZEOF_VOID_P MATCHES 8)
@@ -258,24 +251,6 @@ if(ENABLE_PAM)
   endif()
 endif()
 set(HAVE_PAM ${ENABLE_PAM})
-
-# Check for socket functions
-if(WIN32)
-  set(CMAKE_EXTRA_INCLUDE_FILES winsock2.h ws2tcpip.h)
-  set(CMAKE_REQUIRED_LIBRARIES ws2_32)
-else()
-  set(CMAKE_EXTRA_INCLUDE_FILES sys/socket.h)
-endif()
-check_function_exists(inet_aton HAVE_INET_ATON)
-# This might give a false positive on Windows as it is also guarded by
-# a version check that we do not satisfy (requires Vista, but we target
-# Windows 2000).
-if(NOT WIN32)
-check_function_exists(inet_pton HAVE_INET_PTON)
-endif()
-check_function_exists(getaddrinfo HAVE_GETADDRINFO)
-set(CMAKE_EXTRA_INCLUDE_FILES) 
-set(CMAKE_REQUIRED_LIBRARIES)
 
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)

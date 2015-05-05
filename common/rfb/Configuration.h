@@ -165,8 +165,6 @@ namespace rfb {
     virtual bool isBool() const;
 
     virtual void setImmutable();
-    virtual void setHasBeenSet();
-    bool hasBeenSet();
 
   protected:
     friend class Configuration;
@@ -174,7 +172,6 @@ namespace rfb {
 
     VoidParameter* _next;
     bool immutable;
-    bool _hasBeenSet;
     const char* name;
     const char* description;
   };

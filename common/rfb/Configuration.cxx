@@ -88,7 +88,6 @@ bool Configuration::set(const char* name, int len,
         strncasecmp(current->getName(), name, len) == 0)
     {
       bool b = current->setParam(val);
-      current->setHasBeenSet(); 
       if (b && immutable) 
 	current->setImmutable();
       return b;
@@ -113,7 +112,6 @@ bool Configuration::set(const char* config, bool immutable) {
     while (current) {
       if (strcasecmp(current->getName(), config) == 0) {
         bool b = current->setParam();
-	current->setHasBeenSet(); 
         if (b && immutable) 
 	  current->setImmutable();
         return b;
@@ -182,7 +180,7 @@ void Configuration::list(int width, int nameWidth) {
 
 VoidParameter::VoidParameter(const char* name_, const char* desc_,
 			     ConfigurationObject co)
-  : immutable(false), _hasBeenSet(false), name(name_), description(desc_)
+  : immutable(false), name(name_), description(desc_)
 {
   Configuration *conf = NULL;
 
@@ -224,16 +222,6 @@ void
 VoidParameter::setImmutable() {
   vlog.debug("set immutable %s", getName());
   immutable = true;
-}
-
-void
-VoidParameter::setHasBeenSet() {
-  _hasBeenSet = true;
-} 
-
-bool
-VoidParameter::hasBeenSet() {
-  return _hasBeenSet;
 }
 
 // -=- AliasParameter

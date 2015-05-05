@@ -26,12 +26,16 @@ static LogWriter vlog("ManagedListener");
 
 
 ManagedListener::ManagedListener(SocketManager* mgr)
-: sock(0), filter(0), manager(mgr), addrChangeNotifier(0), server(0), port(0), localOnly(false) {
+: filter(0), manager(mgr), addrChangeNotifier(0), server(0), port(0), localOnly(false) {
 }
 
 ManagedListener::~ManagedListener() {
-  if (sock)
-    manager->remListener(sock);
+  if (!sockets.empty()) {
+    std::list<network::TcpListener>::iterator iter;
+    for (iter = sockets.begin(); iter != sockets.end(); ++iter)
+      manager->remListener(&*iter);
+    sockets.clear();
+  }
   delete filter;
 }
 
@@ -57,8 +61,11 @@ void ManagedListener::setFilter(const char* filterStr) {
   vlog.info("set filter to %s", filterStr);
   delete filter;
   filter = new network::TcpFilter(filterStr);
-  if (sock && !localOnly)
-    sock->setFilter(filter);
+  if (!sockets.empty() && !localOnly) {
+    std::list<network::TcpListener>::iterator iter;
+    for (iter = sockets.begin(); iter != sockets.end(); ++iter)
+      iter->setFilter(filter);
+  }
 }
 
 void ManagedListener::setAddressChangeNotifier(SocketManager::AddressChangeNotifier* acn) {
@@ -68,26 +75,40 @@ void ManagedListener::setAddressChangeNotifier(SocketManager::AddressChangeNotif
   refresh();
 }
 
+bool ManagedListener::isListening() {
+  return !sockets.empty();
+}
 
 void ManagedListener::refresh() {
-  if (sock)
-    manager->remListener(sock);
-  sock = 0;
+  std::list<network::TcpListener>::iterator iter;
+  if (!sockets.empty()) {
+    for (iter = sockets.begin(); iter != sockets.end(); ++iter)
+      manager->remListener(&*iter);
+    sockets.clear();
+  }
   if (!server)
     return;
   try {
-    if (port)
-      sock = new network::TcpListener(NULL, port, localOnly);
+    if (port) {
+      if (localOnly)
+        network::createLocalTcpListeners(&sockets, port);
+      else
+        network::createTcpListeners(&sockets, NULL, port);
+    }
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
   }
-  if (sock) {
-    if (!localOnly)
-      sock->setFilter(filter);
+  if (!sockets.empty()) {
+    if (!localOnly) {
+      for (iter = sockets.begin(); iter != sockets.end(); ++iter)
+        iter->setFilter(filter);
+    }
     try {
-      manager->addListener(sock, server, addrChangeNotifier);
+      for (iter = sockets.begin(); iter != sockets.end(); ++iter)
+        manager->addListener(&*iter, server, addrChangeNotifier);
     } catch (...) {
-      sock = 0;
+      // FIXME: Should unwind what we've added
+      sockets.clear();
       throw;
     }
   }

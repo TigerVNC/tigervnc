@@ -155,6 +155,14 @@ static int vncVerbose = DEFAULT_LOG_VERBOSITY;
 
 
 static void
+vncPrintBanner(void)
+{
+    ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
+    ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
+           VENDOR_STRING);
+}
+
+static void
 vfbInitializePixmapDepths(void)
 {
     int i;
@@ -285,9 +293,8 @@ void ddxBeforeReset(void)
 
 void ddxUseMsg(void)
 {
-    ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
-    ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
-           VENDOR_STRING);
+    vncPrintBanner();
+
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
 #ifdef RENDER
@@ -309,6 +316,7 @@ void ddxUseMsg(void)
     ErrorF("-noclipboard           disable clipboard settings modification via vncconfig utility\n");
     ErrorF("-verbose [n]           verbose startup messages\n");
     ErrorF("-quiet                 minimal startup messages\n");
+    ErrorF("-version               show the server version\n");
     ErrorF("\nVNC parameters:\n");
 
     fprintf(stderr,"\n"
@@ -353,7 +361,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
     if (firstTime)
     {
-	vfbInitializeDefaultScreens();
+        /* Force -noreset as default until we properly handle resets */
+	dispatchExceptionAtReset = 0;
+
+        vfbInitializeDefaultScreens();
 	vfbInitializePixmapDepths();
 	firstTime = FALSE;
 	vncInitRFB();
@@ -609,6 +620,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
         vncVerbose = -1;
         LogSetParameter(XLOG_VERBOSITY, vncVerbose);
         return 1;
+    }
+
+    if (!strcmp(argv[i], "-showconfig") || !strcmp(argv[i], "-version")) {
+        vncPrintBanner();
+        exit(0);
     }
 
     if (vncSetParamSimple(argv[i]))
@@ -1566,7 +1582,12 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
 
 static void vfbClientStateChange(CallbackListPtr *a, void *b, void *c) {
-  dispatchException &= ~DE_RESET;
+    if (dispatchException & DE_RESET) {
+        ErrorF("Warning: VNC extension does not support -reset, terminating instead. Use -noreset to prevent termination.\n");
+
+        dispatchException |= DE_TERMINATE;
+        dispatchException &= ~DE_RESET;
+    }
 }
  
 #if XORG >= 113
@@ -1587,9 +1608,7 @@ InitOutput(ScreenInfo *scrInfo, int argc, char **argv)
     int i;
     int NumFormats = 0;
 
-  ErrorF("\nXvnc %s - built %s\n%s", XVNCVERSION, buildtime, XVNCCOPYRIGHT);
-  ErrorF("Underlying X server release %d, %s\n\n", VENDOR_RELEASE,
-         VENDOR_STRING);
+    vncPrintBanner();
 
 #if XORG >= 113
 #ifdef GLXEXT

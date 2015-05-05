@@ -37,7 +37,7 @@ using namespace win32;
 
 static LogWriter vlog("main");
 
-TStr rfb::win32::AppName("VNC Server");
+TStr rfb::win32::AppName("TigerVNC Server");
 
 
 extern bool runAsService;
@@ -169,7 +169,7 @@ static void processParams(int argc, char** argv) {
         int j = i;
         i = argc;
         if (rfb::win32::registerService(VNCServerService::Name,
-                                        _T("VNC Server Version 4"),
+                                        _T("Provides remote access to this machine via the VNC/RFB protocol."),
                                         argc-(j+1), &argv[j+1]))
           MsgBoxOrLog("Registered service successfully");
       } else if (strcasecmp(argv[i], "-unregister") == 0) {

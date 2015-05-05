@@ -23,6 +23,7 @@
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Logger_stdio.h>
+#include <rfb/Logger_syslog.h>
 
 #include "RFBGlue.h"
 
@@ -34,6 +35,7 @@ static LogWriter inputLog("Input");
 void vncInitRFB(void)
 {
   rfb::initStdIOLoggers();
+  rfb::initSyslogLogger();
   rfb::LogWriter::setLogParams("*:stderr:30");
   rfb::Configuration::enableServerParams();
 }
@@ -187,7 +189,10 @@ int vncGetSocketPort(int fd)
 int vncIsTCPPortUsed(int port)
 {
   try {
-    network::TcpListener l(NULL, port);
+    // Attempt to create TCPListeners on that port.
+    // They go out of scope immediately and are destroyed.
+    std::list<network::TcpListener> dummy;
+    network::createTcpListeners (&dummy, 0, port);
   } catch (rdr::Exception& e) {
     return 0;
   }

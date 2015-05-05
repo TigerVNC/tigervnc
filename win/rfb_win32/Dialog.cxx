@@ -86,21 +86,17 @@ TCHAR* Dialog::getItemString(int id) {
 }
 
 void Dialog::setItemChecked(int id, bool state) {
-  dlog.debug("bool[%d]=%d", id, (int)state);
   SendMessage(GetDlgItem(handle, id), BM_SETCHECK, state ? BST_CHECKED : BST_UNCHECKED, 0);
 }
 void Dialog::setItemInt(int id, int value) {
-  dlog.debug("int[%d]=%d", id, value);
   SetDlgItemInt(handle, id, value, TRUE);
 }
 void Dialog::setItemString(int id, const TCHAR* s) {
-  dlog.debug("string[%d]=%s", id, (const char*)CStr(s));
   SetDlgItemText(handle, id, s);
 }
 
 
 void Dialog::enableItem(int id, bool state) {
-  dlog.debug("enable[%d]=%d", id, (int)state);
   EnableWindow(GetDlgItem(handle, id), state);
 }
 
@@ -361,7 +357,6 @@ bool PropSheet::showPropSheet(HWND owner, bool showApply, bool showCtxtHelp, boo
 }
 
 void PropSheet::reInitPages() {
-  plog.debug("reInitPages %p", handle);
   std::list<PropSheetPage*>::iterator pspi;
   for (pspi=pages.begin(); pspi!=pages.end(); pspi++) {
     if ((*pspi)->handle)
@@ -370,7 +365,6 @@ void PropSheet::reInitPages() {
 }
 
 bool PropSheet::commitPages() {
-  plog.debug("commitPages %p", handle);
   bool result = true;
   std::list<PropSheetPage*>::iterator pspi;
   for (pspi=pages.begin(); pspi!=pages.end(); pspi++) {
@@ -383,7 +377,6 @@ bool PropSheet::commitPages() {
 
 void PropSheetPage::setChanged(bool changed) {
   if (propSheet) {
-    plog.debug("setChanged[%p(%p)]=%d", handle, propSheet->handle, (int)changed);
     if (changed)
       PropSheet_Changed(propSheet->handle, handle);
     else
