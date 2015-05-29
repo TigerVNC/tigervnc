@@ -2,21 +2,9 @@
 /* Generated with:
 cat /usr/i686-pc-mingw32/sys-root/mingw/include/winerror.h \
  | awk '/#define WSAE.*WSABASE/{gsub("WSA", ""); print "#undef " $2 "\n#define " $2 " WSA" $2}' \
- | egrep -v '_QOS|PROVIDER|PROCTABLE'
+ | egrep -v 'EINTR|EBADF|EACCES|EFAULT|EINVAL|EMFILE|_QOS|PROVIDER|PROCTABLE'
 */
 
-#undef EINTR
-#define EINTR WSAEINTR
-#undef EBADF
-#define EBADF WSAEBADF
-#undef EACCES
-#define EACCES WSAEACCES
-#undef EFAULT
-#define EFAULT WSAEFAULT
-#undef EINVAL
-#define EINVAL WSAEINVAL
-#undef EMFILE
-#define EMFILE WSAEMFILE
 #undef EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #undef EINPROGRESS
