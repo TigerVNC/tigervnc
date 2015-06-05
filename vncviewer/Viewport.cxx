@@ -281,6 +281,8 @@ void Viewport::resize(int x, int y, int w, int h)
   const rdr::U8* data;
   int stride;
 
+  const rdr::U8 black[4] = { 0, 0, 0, 0 };
+
   // FIXME: Resize should probably be a feature of the pixel buffer itself
 
   if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
@@ -304,14 +306,14 @@ void Viewport::resize(int x, int y, int w, int h)
     rect.setXYWH(frameBuffer->width(), 0,
                  newBuffer->width() - frameBuffer->width(),
                  newBuffer->height());
-    newBuffer->fillRect(rect, 0);
+    newBuffer->fillRect(rect, black);
   }
 
   if (newBuffer->height() > frameBuffer->height()) {
     rect.setXYWH(0, frameBuffer->height(),
                  newBuffer->width(),
                  newBuffer->height() - frameBuffer->height());
-    newBuffer->fillRect(rect, 0);
+    newBuffer->fillRect(rect, black);
   }
 
   delete frameBuffer;

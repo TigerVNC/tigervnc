@@ -96,7 +96,7 @@ ModifiablePixelBuffer::~ModifiablePixelBuffer()
 {
 }
 
-void ModifiablePixelBuffer::fillRect(const Rect& r, Pixel pix)
+void ModifiablePixelBuffer::fillRect(const Rect& r, const void* pix)
 {
   int stride;
   U8 *buf;
@@ -113,20 +113,18 @@ void ModifiablePixelBuffer::fillRect(const Rect& r, Pixel pix)
 
   if (b == 1) {
     while (h--) {
-      memset(buf, pix, w);
+      memset(buf, *(const U8*)pix, w);
       buf += stride * b;
     }
   } else {
-    U8 pixbuf[4], *start;
+    U8 *start;
     int w1;
 
     start = buf;
 
-    format.bufferFromPixel(pixbuf, pix);
-
     w1 = w;
     while (w1--) {
-      memcpy(buf, pixbuf, b);
+      memcpy(buf, pix, b);
       buf += b;
     }
     buf += (stride - w) * b;
@@ -309,9 +307,11 @@ void ModifiablePixelBuffer::copyRect(const Rect &rect,
 }
 
 void ModifiablePixelBuffer::fillRect(const PixelFormat& pf, const Rect &dest,
-                                     Pixel pix)
+                                     const void* pix)
 {
-  fillRect(dest, format.pixelFromPixel(pf, pix));
+  rdr::U8 buf[4];
+  format.bufferFromBuffer(buf, pf, (const rdr::U8*)pix, 1);
+  fillRect(dest, buf);
 }
 
 void ModifiablePixelBuffer::imageRect(const PixelFormat& pf, const Rect &dest,

@@ -38,13 +38,11 @@ void Encoder::writeSolidRect(int width, int height,
                              const PixelFormat& pf, const rdr::U8* colour)
 {
   ManagedPixelBuffer buffer(pf, width, height);
-  Pixel pixel;
 
   Palette palette;
   rdr::U32 palcol;
 
-  pixel = pf.pixelFromBuffer(colour);
-  buffer.fillRect(buffer.getRect(), pixel);
+  buffer.fillRect(buffer.getRect(), colour);
 
   palcol = 0;
   memcpy(&palcol, colour, pf.bpp/8);
