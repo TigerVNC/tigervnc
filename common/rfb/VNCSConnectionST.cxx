@@ -1056,8 +1056,11 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
     writeRTTPing();
 
+    // The request might be for just part of the screen, so we cannot
+    // just clear the entire update tracker.
+    updates.subtract(requested);
+
     requested.clear();
-    updates.clear();
   }
 
 out:
