@@ -186,7 +186,7 @@ namespace rfb {
 
     unsigned baseRTT;
     unsigned congWindow;
-    int ackedOffset, sentOffset;
+    unsigned ackedOffset, sentOffset;
 
     unsigned minRTT;
     bool seenCongestion;
