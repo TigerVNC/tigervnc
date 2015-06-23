@@ -1058,7 +1058,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
     // The request might be for just part of the screen, so we cannot
     // just clear the entire update tracker.
-    updates.subtract(requested);
+    updates.subtract(req);
 
     requested.clear();
   }
