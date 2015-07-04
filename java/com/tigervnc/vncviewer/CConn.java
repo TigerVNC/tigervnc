@@ -781,7 +781,7 @@ public class CConn extends CConnection implements
       Attributes attributes = manifest.getMainAttributes();
       pkgDate = attributes.getValue("Package-Date");
       pkgTime = attributes.getValue("Package-Time");
-    } catch (IOException e) { }
+    } catch (java.lang.Exception e) { }
 
     Window fullScreenWindow = Viewport.getFullScreenWindow();
     if (fullScreenWindow != null)
