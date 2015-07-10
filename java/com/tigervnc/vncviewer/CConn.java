@@ -1002,6 +1002,14 @@ public class CConn extends CConnection implements
       if (desktop != null)
         desktop.setScaledSize();
     }
+    if (viewer.desktopSize.getValue() != null &&
+        viewer.desktopSize.getValue().split("x").length == 2) {
+      options.desktopSize.setSelected(true);
+      String desktopWidth = viewer.desktopSize.getValue().split("x")[0];
+      options.desktopWidth.setText(desktopWidth);
+      String desktopHeight = viewer.desktopSize.getValue().split("x")[1];
+      options.desktopHeight.setText(desktopHeight);
+    }
   }
 
   public void getOptions() {
@@ -1199,6 +1207,11 @@ public class CConn extends CConnection implements
         Security.DisableSecType(Security.secTypeTLSIdent);
         Security.DisableSecType(Security.secTypeX509Ident);
       }
+    }
+    if (options.desktopSize.isSelected()) {
+      String desktopSize =
+        options.desktopWidth.getText() + "x" + options.desktopHeight.getText();
+      viewer.desktopSize.setParam(desktopSize);
     }
     if (options.fullScreen.isSelected() ^ fullScreen)
       toggleFullScreen();
