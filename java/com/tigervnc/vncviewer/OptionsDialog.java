@@ -22,6 +22,8 @@ package com.tigervnc.vncviewer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.text.Format;
+import java.text.NumberFormat;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -31,6 +33,21 @@ class OptionsDialog extends Dialog implements
                             ActionListener,
                             ItemListener
 {
+
+  private class IntegerTextField extends JFormattedTextField {
+    public IntegerTextField(Format format) {
+      super(format);
+    }
+    @Override
+    protected void processFocusEvent(final FocusEvent e) {
+      if (e.isTemporary())
+        return;
+      if (e.getID() == FocusEvent.FOCUS_LOST)
+        if (getText() == null || getText().isEmpty())
+          setValue(null);
+      super.processFocusEvent(e);
+    }
+  }
 
   // Constants
   // Static variables
@@ -45,12 +62,13 @@ class OptionsDialog extends Dialog implements
   JRadioButton zrle, hextile, tight, raw;
   JRadioButton fullColour, mediumColour, lowColour, veryLowColour;
   JCheckBox viewOnly, acceptClipboard, sendClipboard, acceptBell;
-  JCheckBox fullScreen, shared, useLocalCursor;
+  JCheckBox desktopSize, fullScreen, shared, useLocalCursor;
   JCheckBox secVeNCrypt, encNone, encTLS, encX509;
   JCheckBox secNone, secVnc, secPlain, secIdent, sendLocalUsername;
   JButton okButton, cancelButton;
   JButton ca, crl;
   JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
+  JTextField desktopWidth, desktopHeight;
 
   @SuppressWarnings({"rawtypes","unchecked"})
   public OptionsDialog(CConn cc_) {
@@ -146,6 +164,23 @@ class OptionsDialog extends Dialog implements
 
     // Screen tab
     ScreenPanel=new JPanel(new GridBagLayout());
+    desktopSize = new JCheckBox("Resize remote session on connect");
+    desktopSize.addItemListener(this);
+    desktopSize.setEnabled(cc.viewer.desktopSize.getValue() != null);
+    NumberFormat format = NumberFormat.getIntegerInstance();
+    format.setMaximumIntegerDigits(5);
+    format.setMinimumIntegerDigits(0);
+    format.setGroupingUsed(false);
+    desktopWidth = new IntegerTextField(format);
+    desktopWidth.setColumns(4);
+    desktopWidth.setEnabled(desktopSize.isSelected());
+    desktopHeight = new IntegerTextField(format);
+    desktopHeight.setColumns(4);
+    desktopHeight.setEnabled(desktopSize.isSelected());
+    JPanel desktopSizePanel = new JPanel();
+    desktopSizePanel.add(desktopWidth);
+    desktopSizePanel.add(new JLabel("x"));
+    desktopSizePanel.add(desktopHeight);
     fullScreen = new JCheckBox("Full-screen mode");
     fullScreen.addItemListener(this);
     fullScreen.setEnabled(!cc.viewer.embed.getValue());
@@ -167,7 +202,9 @@ class OptionsDialog extends Dialog implements
     scalingFactor.setEditable(true);
     scalingFactor.addItemListener(this);
     scalingFactor.setEnabled(!cc.viewer.embed.getValue());
-    addGBComponent(fullScreen,ScreenPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(desktopSize,ScreenPanel, 0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
+    addGBComponent(desktopSizePanel,ScreenPanel, 0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.REMAINDER, GridBagConstraints.LINE_START, new Insets(0,20,0,0));
+    addGBComponent(fullScreen,ScreenPanel, 0, 3, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,5));
     addGBComponent(scalingFactorLabel,ScreenPanel, 0, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
     addGBComponent(scalingFactor,ScreenPanel, 1, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
 
@@ -335,6 +372,9 @@ class OptionsDialog extends Dialog implements
     UserPreferences.set("global", "SendClipboard", sendClipboard.isSelected());
     String menuKeyStr = MenuKey.getMenuKeySymbols()[menuKey.getSelectedIndex()].name;
     UserPreferences.set("global", "MenuKey", menuKeyStr);
+    String desktopSizeString =
+      desktopSize.isSelected() ? desktopWidth.getText() + "x" + desktopHeight.getText() : "";
+    UserPreferences.set("global", "DesktopSize", desktopSizeString);
     UserPreferences.set("global", "FullScreen", fullScreen.isSelected());
     UserPreferences.set("global", "Shared", shared.isSelected());
     UserPreferences.set("global", "UseLocalCursor", useLocalCursor.isSelected());
@@ -406,6 +446,12 @@ class OptionsDialog extends Dialog implements
     acceptClipboard.setSelected(UserPreferences.getBool("global", "AcceptClipboard"));
     sendClipboard.setSelected(UserPreferences.getBool("global", "SendClipboard"));
     menuKey.setSelectedItem(UserPreferences.get("global", "MenuKey"));
+    desktopSize.setSelected(UserPreferences.get("global", "DesktopSize") != null);
+    if (desktopSize.isSelected()) {
+      String desktopSizeString = UserPreferences.get("global", "DesktopSize");
+      desktopWidth.setText(desktopSizeString.split("x")[0]);
+      desktopHeight.setText(desktopSizeString.split("x")[1]);
+    }
     fullScreen.setSelected(UserPreferences.getBool("global", "FullScreen"));
     if (shared.isEnabled())
       shared.setSelected(UserPreferences.getBool("global", "Shared"));
@@ -555,6 +601,10 @@ class OptionsDialog extends Dialog implements
     }
     if (s instanceof JCheckBox && (JCheckBox)s == customCompressLevel) {
       compressLevel.setEnabled(customCompressLevel.isSelected());
+    }
+    if (s instanceof JCheckBox && (JCheckBox)s == desktopSize) {
+      desktopWidth.setEnabled(desktopSize.isSelected());
+      desktopHeight.setEnabled(desktopSize.isSelected());
     }
     if (s instanceof JCheckBox && (JCheckBox)s == noJpeg) {
       qualityLevel.setEnabled(noJpeg.isSelected());
