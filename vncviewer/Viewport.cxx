@@ -869,6 +869,7 @@ void Viewport::popupContextMenu()
     break;
   case ID_MINIMIZE:
     window()->iconize();
+    break;
   case ID_RESIZE:
     if (window()->fullscreen_active())
       break;
