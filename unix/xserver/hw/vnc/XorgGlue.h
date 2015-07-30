@@ -59,8 +59,8 @@ void vncRandRGetOutputDimensions(int scrIdx, int outputIdx,
 
 // These hide in xvnc.c or vncModule.c
 void vncClientGone(int fd);
-void *vncRandRModeGet(int width, int height);
 int vncRandRCreateOutputs(int scrIdx, int extraOutputs);
+void *vncRandRCreatePreferredMode(void *output, int width, int height);
 
 #ifdef __cplusplus
 }

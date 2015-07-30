@@ -291,25 +291,6 @@ void vncRandRGetOutputDimensions(int scrIdx, int outputIdx,
 #endif
 }
 
-#ifdef RANDR
-static RRModePtr findRandRMode(RROutputPtr output, int width, int height)
-{
-  RRModePtr mode;
-
-  for (int i = 0;i < output->numModes;i++) {
-    if ((output->modes[i]->mode.width == width) &&
-        (output->modes[i]->mode.height == height))
-      return output->modes[i];
-  }
-
-  mode = vncRandRModeGet(width, height);
-  if (mode != NULL)
-    return mode;
-
-  return NULL;
-}
-#endif
-
 int vncRandRReconfigureOutput(int scrIdx, int outputIdx, int x, int y,
                               int width, int height)
 {
@@ -340,15 +321,10 @@ int vncRandRReconfigureOutput(int scrIdx, int outputIdx, int x, int y,
       return -1;
   }
 
-  mode = crtc->mode;
-
-  /* Need to switch mode? */
-  if ((mode == NULL) ||
-      (mode->mode.width != width) || (mode->mode.height != height)) {
-    mode = findRandRMode(output, width, height);
-    if (mode == NULL)
-      return -1;
-  }
+  /* Make sure we have the mode we want */
+  mode = vncRandRCreatePreferredMode(output, width, height);
+  if (mode == NULL)
+    return -1;
 
   /* Reconfigure new mode and position */
   return RRCrtcSet(crtc, mode, x, y, crtc->rotation, 1, &output);
