@@ -169,6 +169,7 @@ TcpSocket::TcpSocket(const char *host, int port)
     int family;
     vnc_sockaddr_t sa;
     socklen_t salen;
+    char ntop[NI_MAXHOST];
 
     family = current->ai_family;
 
@@ -193,6 +194,9 @@ TcpSocket::TcpSocket(const char *host, int port)
     else
       sa.u.sin6.sin6_port = htons(port);
 
+    getnameinfo(&sa.u.sa, salen, ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST);
+    vlog.debug("Connecting to %s [%s] port %d", host, ntop, port);
+
     sock = socket (family, SOCK_STREAM, 0);
     if (sock == -1) {
       err = errorNumber;
@@ -207,6 +211,8 @@ TcpSocket::TcpSocket(const char *host, int port)
       if (err == EINTR)
         continue;
 #endif
+      vlog.debug("Failed to connect to address %s port %d: %d",
+                 ntop, port, err);
       closesocket(sock);
       sock = -1;
       break;
