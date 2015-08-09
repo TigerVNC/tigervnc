@@ -19,12 +19,12 @@ Source2: vncserver.sysconfig
 Source6: vncviewer.desktop
 Source9: FindX11.cmake
 Source11: http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
-Source12: http://downloads.sourceforge.net/project/libjpeg-turbo/1.3.0/libjpeg-turbo-1.3.0.tar.gz
+Source12: http://downloads.sourceforge.net/project/libjpeg-turbo/1.4.1/libjpeg-turbo-1.4.1.tar.gz
 Source13: http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/1.5.10/libpng-1.5.10.tar.bz2
 Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
-Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.2.tar.gz
+Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.5.tar.gz
 Source16: https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz
-Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.13.tar.xz
+Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.16.tar.xz
 
 Source100: http://www.x.org/releases/X11R7.7/src/everything/bigreqsproto-1.1.2.tar.bz2
 Source101: http://www.x.org/releases/X11R7.7/src/everything/compositeproto-0.4.2.tar.bz2
@@ -105,7 +105,7 @@ Source204: ftp://ftp.freedesktop.org/pub/mesa/older-versions/9.x/9.2.5/MesaLib-9
 # NOTE:
 Source205: https://github.com/dottedmag/libsha1/archive/0.3.tar.gz
 
-BuildRoot: %{_tmppath}/%{name}-%{version}%{?snap:-%{snap}}-%{release}-root-%(%{__id_u} -n)
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # xorg requires newer versions of automake, & autoconf than are available with el5. Use el6 versions.
 BuildRequires: automake >= 1.11, autoconf >= 2.60, libtool >= 1.4, gettext >= 0.14.4, gettext-devel >= 0.14.4, bison-devel, python26
@@ -183,6 +183,14 @@ Patch121:  freetype-2.3.11-CVE-2012-5669.patch
 # https://release.debian.org/proposed-updates/stable_diffs/xorg-server_1.12.4-6+deb7u5.debdiff
 Patch10000: 16_CVE-2014-mult.diff
 Patch10001: 17_CVE-regressions.diff
+# http://www.x.org/wiki/Development/Security/Advisory-2015-02-10/
+Patch10002: CVE-2015-0255.diff
+# http://www.x.org/wiki/Development/Security/Advisory-2015-03-17/
+Patch10003: CVE-2015-1802.diff
+Patch10004: CVE-2015-1803.diff 
+Patch10005: CVE-2015-1804.diff
+# http://lists.x.org/archives/xorg-announce/2015-April/002561.html
+Patch10006: CVE-2013-7439.diff
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -299,6 +307,9 @@ tar xjf %SOURCE110
 tar xjf %SOURCE111
 tar xjf %SOURCE112
 tar xjf %SOURCE113
+pushd libX11-*
+%patch10006 -p1 -b .CVE-2013-7439
+popd
 tar xjf %SOURCE114
 tar xjf %SOURCE115
 tar xjf %SOURCE116
@@ -309,6 +320,11 @@ tar xjf %SOURCE120
 tar xjf %SOURCE121
 tar xjf %SOURCE122
 tar xjf %SOURCE123
+pushd libXfont-*
+%patch10003 -p1 -b .CVE-2015-1802
+%patch10004 -p1 -b .CVE-2015-1803
+%patch10005 -p1 -b .CVE-2015-1804
+popd
 tar xjf %SOURCE124
 tar xjf %SOURCE125
 tar xjf %SOURCE126
@@ -391,6 +407,7 @@ tar xjf %SOURCE204
 pushd xorg-server-1*
 %patch10000 -p1 -b .CVE-2014-mult
 %patch10001 -p1 -b .CVE-regressions
+%patch10002 -p1 -b .CVE-2015-0255
 for f in `find . -type f -perm -000`; do
   chmod +r "$f"
 done
@@ -980,6 +997,10 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Sun Aug 09 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.5.80-7
+- Patch Xorg sources with latest relevant CVE patches.
+- Update libjpeg-turbo, gnutls, libtasn1 to latest upstream versions.
+
 * Sat Mar 14 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-6
 - Build static libraries to meet new minimum requirements
 
