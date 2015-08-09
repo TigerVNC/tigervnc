@@ -182,7 +182,7 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
   bool normalCharacter = true;
   size_t pos = 0;
 
-  for (int i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
+  for (size_t i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
     
     // Check for sequences which will need encoding
     if (val[i] == '\\') {
@@ -229,7 +229,7 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
   size_t pos = 0;
   bool escapedCharacter = false;
   
-  for (int i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
+  for (size_t i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
     
     // Check for escape sequences
     if (val[i] == '\\') {

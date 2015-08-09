@@ -186,7 +186,7 @@ namespace rfb {
 
     unsigned baseRTT;
     unsigned congWindow;
-    int ackedOffset, sentOffset;
+    unsigned ackedOffset, sentOffset;
 
     unsigned minRTT;
     bool seenCongestion;
@@ -196,8 +196,8 @@ namespace rfb {
     VNCServerST* server;
     SimpleUpdateTracker updates;
     Region requested;
-    bool drawRenderedCursor, removeRenderedCursor;
-    Rect renderedCursorRect;
+    bool updateRenderedCursor, removeRenderedCursor;
+    Region damagedCursorRegion;
     bool continuousUpdates;
     Region cuRegion;
     EncodeManager encodeManager;

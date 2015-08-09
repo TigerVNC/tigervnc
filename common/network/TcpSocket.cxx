@@ -145,9 +145,7 @@ TcpSocket::TcpSocket(int sock, bool close)
 TcpSocket::TcpSocket(const char *host, int port)
   : closeFd(true)
 {
-  int sock, err, result, family;
-  vnc_sockaddr_t sa;
-  socklen_t salen;
+  int sock, err, result;
   struct addrinfo *ai, *current, hints;
 
   // - Create a socket
@@ -165,11 +163,14 @@ TcpSocket::TcpSocket(const char *host, int port)
                     gai_strerror(result));
   }
 
-  // This logic is too complex for the compiler to determine if
-  // sock is properly assigned or not.
   sock = -1;
-
+  err = 0;
   for (current = ai; current != NULL; current = current->ai_next) {
+    int family;
+    vnc_sockaddr_t sa;
+    socklen_t salen;
+    char ntop[NI_MAXHOST];
+
     family = current->ai_family;
 
     switch (family) {
@@ -193,6 +194,9 @@ TcpSocket::TcpSocket(const char *host, int port)
     else
       sa.u.sin6.sin6_port = htons(port);
 
+    getnameinfo(&sa.u.sa, salen, ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST);
+    vlog.debug("Connecting to %s [%s] port %d", host, ntop, port);
+
     sock = socket (family, SOCK_STREAM, 0);
     if (sock == -1) {
       err = errorNumber;
@@ -207,7 +211,10 @@ TcpSocket::TcpSocket(const char *host, int port)
       if (err == EINTR)
         continue;
 #endif
+      vlog.debug("Failed to connect to address %s port %d: %d",
+                 ntop, port, err);
       closesocket(sock);
+      sock = -1;
       break;
     }
 
@@ -217,11 +224,12 @@ TcpSocket::TcpSocket(const char *host, int port)
 
   freeaddrinfo(ai);
 
-  if (current == NULL)
-    throw Exception("No useful address for host");
-
-  if (result == -1)
-    throw SocketException("unable connect to socket", err);
+  if (sock == -1) {
+    if (err == 0)
+      throw Exception("No useful address for host");
+    else
+      throw SocketException("unable connect to socket", err);
+  }
 
 #ifndef WIN32
   // - By default, close the socket on exec()

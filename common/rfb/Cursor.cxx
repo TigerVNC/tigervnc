@@ -38,6 +38,7 @@ void Cursor::setSize(int w, int h) {
 void Cursor::drawOutline(const Pixel& c)
 {
   Cursor outlined;
+  rdr::U8 cbuf[4];
 
   // Create a mirror of the existing cursor
   outlined.setPF(getPF());
@@ -45,7 +46,8 @@ void Cursor::drawOutline(const Pixel& c)
   outlined.hotspot = hotspot;
 
   // Clear the mirror's background to the outline colour
-  outlined.fillRect(getRect(), c);
+  outlined.getPF().bufferFromPixel(cbuf, c);
+  outlined.fillRect(getRect(), cbuf);
 
   // Blit the existing cursor, using its mask
   outlined.maskRect(getRect(), data, mask.buf);

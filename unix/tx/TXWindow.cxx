@@ -89,11 +89,11 @@ void TXWindow::init(Display* dpy, const char* defaultWindowClass_)
   XSetFont(dpy, defaultGC, defaultFont);
   XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
 
-  static char dotBits[] = { 0x06, 0x0f, 0x0f, 0x06};
-  dot = XCreateBitmapFromData(dpy, DefaultRootWindow(dpy), dotBits,
+  static unsigned char dotBits[] = { 0x06, 0x0f, 0x0f, 0x06};
+  dot = XCreateBitmapFromData(dpy, DefaultRootWindow(dpy), (char*)dotBits,
                               dotSize, dotSize);
-  static char tickBits[] = { 0x80, 0xc0, 0xe2, 0x76, 0x3e, 0x1c, 0x08, 0x00};
-  tick = XCreateBitmapFromData(dpy, DefaultRootWindow(dpy), tickBits,
+  static unsigned char tickBits[] = { 0x80, 0xc0, 0xe2, 0x76, 0x3e, 0x1c, 0x08, 0x00};
+  tick = XCreateBitmapFromData(dpy, DefaultRootWindow(dpy), (char*)tickBits,
                                tickSize, tickSize);
   defaultWindowClass = rfb::strDup(defaultWindowClass_);
 }

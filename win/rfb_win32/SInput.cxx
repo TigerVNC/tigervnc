@@ -66,7 +66,7 @@ static DWORD buttonUpMapping[8] = {
 };
 
 static DWORD buttonDataMapping[8] = {
-  0, 0, 0, 120, -120, 0, 0, 0
+  0, 0, 0, 120, (DWORD)-120, 0, 0, 0
 };
 
 win32::SPointer::SPointer()

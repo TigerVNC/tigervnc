@@ -94,7 +94,7 @@ static rfb::LogWriter vlog("Viewport");
 
 // Menu constants
 
-enum { ID_EXIT, ID_FULLSCREEN, ID_RESIZE,
+enum { ID_EXIT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
 
@@ -281,6 +281,8 @@ void Viewport::resize(int x, int y, int w, int h)
   const rdr::U8* data;
   int stride;
 
+  const rdr::U8 black[4] = { 0, 0, 0, 0 };
+
   // FIXME: Resize should probably be a feature of the pixel buffer itself
 
   if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
@@ -304,14 +306,14 @@ void Viewport::resize(int x, int y, int w, int h)
     rect.setXYWH(frameBuffer->width(), 0,
                  newBuffer->width() - frameBuffer->width(),
                  newBuffer->height());
-    newBuffer->fillRect(rect, 0);
+    newBuffer->fillRect(rect, black);
   }
 
   if (newBuffer->height() > frameBuffer->height()) {
     rect.setXYWH(0, frameBuffer->height(),
                  newBuffer->width(),
                  newBuffer->height() - frameBuffer->height());
-    newBuffer->fillRect(rect, 0);
+    newBuffer->fillRect(rect, black);
   }
 
   delete frameBuffer;
@@ -791,6 +793,8 @@ void Viewport::initContextMenu()
 
   fltk_menu_add(contextMenu, _("&Full screen"), 0, NULL, (void*)ID_FULLSCREEN,
                 FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
+  fltk_menu_add(contextMenu, _("Minimi&ze"), 0, NULL,
+                (void*)ID_MINIMIZE, 0);
   fltk_menu_add(contextMenu, _("Resize &window to session"), 0, NULL,
                 (void*)ID_RESIZE,
                 (window()->fullscreen_active()?FL_MENU_INACTIVE:0) |
@@ -862,6 +866,9 @@ void Viewport::popupContextMenu()
       window()->fullscreen_off();
     else
       ((DesktopWindow*)window())->fullscreen_on();
+    break;
+  case ID_MINIMIZE:
+    window()->iconize();
     break;
   case ID_RESIZE:
     if (window()->fullscreen_active())

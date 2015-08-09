@@ -365,7 +365,7 @@ public class VncViewer extends javax.swing.JApplet
         build = attributes.getValue("Build");
         buildDate = attributes.getValue("Package-Date");
         buildTime = attributes.getValue("Package-Time");
-      } catch (java.io.IOException e) { }
+      } catch (java.lang.Exception e) { }
     }
   }
 

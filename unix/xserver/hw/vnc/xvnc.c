@@ -85,7 +85,7 @@ from the X Consortium.
 #include "version-config.h"
 #include "site.h"
 
-#define XVNCVERSION "TigerVNC 1.4.80"
+#define XVNCVERSION "TigerVNC 1.5.80"
 #define XVNCCOPYRIGHT ("Copyright (C) 1999-2015 TigerVNC Team and many others (see README.txt)\n" \
                        "See http://www.tigervnc.org for information on TigerVNC.\n")
 
@@ -1071,6 +1071,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 static Bool vncRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc, RRModePtr mode,
                             int x, int y, Rotation rotation, int num_outputs,
                             RROutputPtr *outputs);
+static RRModePtr vncRandRModeGet(int width, int height);
 
 static Bool vncRandRScreenSetSize(ScreenPtr pScreen,
                                   CARD16 width, CARD16 height,
@@ -1179,7 +1180,7 @@ static Bool vncRandRScreenSetSize(ScreenPtr pScreen,
             continue;
         }
 
-        /* Just needs to be resized */
+        /* Just needs to be resized to a temporary mode */
         mode = vncRandRModeGet(width - crtc->x, height - crtc->y);
         if (mode == NULL) {
             ErrorF("Warning: Unable to create custom mode for %dx%d",
@@ -1244,8 +1245,7 @@ static const int vncRandRHeights[] = { 1200, 1080, 1200, 1050, 1050,  768, 1024,
 
 static int vncRandRIndex = 0;
 
-/* This is a global symbol since findRandRMode() also uses it */
-void *vncRandRModeGet(int width, int height)
+static RRModePtr vncRandRModeGet(int width, int height)
 {
     xRRModeInfo	modeInfo;
     char name[100];
@@ -1267,15 +1267,50 @@ void *vncRandRModeGet(int width, int height)
     return mode;
 }
 
+static void vncRandRSetModes(RROutputPtr output, int pref_width, int pref_height)
+{
+    RRModePtr mode;
+    RRModePtr *modes;
+    int i, num_modes, num_pref;
+
+    num_modes = sizeof(vncRandRWidths)/sizeof(*vncRandRWidths) + 1;
+    modes = malloc(sizeof(RRModePtr)*num_modes);
+    if (modes == NULL)
+        return;
+
+    num_modes = 0;
+    num_pref = 0;
+
+    if ((pref_width > 0) && (pref_height > 0)) {
+        mode = vncRandRModeGet(pref_width, pref_height);
+        if (mode != NULL) {
+            modes[num_modes] = mode;
+            num_modes++;
+            num_pref++;
+        }
+    }
+
+    for (i = 0;i < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);i++) {
+        if ((vncRandRWidths[i] == pref_width) &&
+            (vncRandRHeights[i] == pref_height))
+            continue;
+        mode = vncRandRModeGet(vncRandRWidths[i], vncRandRHeights[i]);
+        if (mode != NULL) {
+            modes[num_modes] = mode;
+            num_modes++;
+        }
+    }
+
+    RROutputSetModes(output, modes, num_modes, num_pref);
+
+    free(modes);
+}
+
 static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
 {
     RRCrtcPtr crtc;
     RROutputPtr output;
-    RRModePtr mode;
     char name[100];
-
-    RRModePtr *modes;
-    int i, num_modes;
 
     /* First we create the CRTC... */
     crtc = RRCrtcCreate(pScreen, NULL);
@@ -1296,22 +1331,7 @@ static RRCrtcPtr vncRandRCrtcCreate(ScreenPtr pScreen)
     vncRandRCrtcSet(pScreen, crtc, NULL, 0, 0, RR_Rotate_0, 1, &output);
 
     /* Populate a list of default modes */
-    modes = malloc(sizeof(RRModePtr)*sizeof(vncRandRWidths)/sizeof(*vncRandRWidths));
-    if (modes == NULL)
-        return NULL;
-
-    num_modes = 0;
-    for (i = 0;i < sizeof(vncRandRWidths)/sizeof(*vncRandRWidths);i++) {
-        mode = vncRandRModeGet(vncRandRWidths[i], vncRandRHeights[i]);
-        if (mode != NULL) {
-            modes[num_modes] = mode;
-            num_modes++;
-        }
-    }
-
-    RROutputSetModes(output, modes, num_modes, 0);
-
-    free(modes);
+    vncRandRSetModes(output, -1, -1);
 
     return crtc;
 }
@@ -1329,6 +1349,30 @@ int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
     }
 
     return 0;
+}
+
+/* Used to create a preferred mode from various places */
+void *vncRandRCreatePreferredMode(void *out, int width, int height)
+{
+    RROutputPtr output;
+
+    output = out;
+
+    /* Already the preferred mode? */
+    if ((output->numModes >= 1) && (output->numPreferred == 1) &&
+        (output->modes[0]->mode.width == width) &&
+        (output->modes[0]->mode.height == height))
+        return output->modes[0];
+
+    /* Recreate the list, with the mode we want as preferred */
+    vncRandRSetModes(output, width, height);
+
+    if ((output->numModes >= 1) && (output->numPreferred == 1) &&
+        (output->modes[0]->mode.width == width) &&
+        (output->modes[0]->mode.height == height))
+        return output->modes[0];
+
+    return NULL;
 }
 
 static Bool vncRandRInit(ScreenPtr pScreen)
@@ -1350,13 +1394,13 @@ static Bool vncRandRInit(ScreenPtr pScreen)
     crtc = vncRandRCrtcCreate(pScreen);
 
     /* Make sure the current screen size is the active mode */
-    mode = vncRandRModeGet(pScreen->width, pScreen->height);
+    mode = vncRandRCreatePreferredMode(crtc->outputs[0],
+                                       pScreen->width, pScreen->height);
     if (mode == NULL)
         return FALSE;
 
     ret = vncRandRCrtcSet(pScreen, crtc, mode, 0, 0, RR_Rotate_0,
                           crtc->numOutputs, crtc->outputs);
-    RRModeDestroy(mode);
     if (!ret)
         return FALSE;
 

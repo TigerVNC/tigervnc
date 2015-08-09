@@ -77,7 +77,7 @@ void TIGHT_DECODE (const Rect& r)
     } else {
       pix = is->READ_PIXEL();
     }
-    pb->fillRect(serverpf, r, pix);
+    pb->fillRect(serverpf, r, &pix);
     return;
   }
 

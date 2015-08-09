@@ -112,13 +112,28 @@ void vncClientGone(int fd)
 }
 
 #ifdef RANDR
-void *vncRandRModeGet(int width, int height)
-{
-    return NULL;
-}
-
 int vncRandRCreateOutputs(int scrIdx, int extraOutputs)
 {
   return -1;
+}
+
+void *vncRandRCreatePreferredMode(void *out, int width, int height)
+{
+  RROutputPtr output;
+
+  /*
+   * We're not going to change which modes are preferred, but let's
+   * see if we can at least find a mode with matching dimensions.
+   */
+
+  output = out;
+
+  for (int i = 0;i < output->numModes;i++) {
+    if ((output->modes[i]->mode.width == width) &&
+        (output->modes[i]->mode.height == height))
+      return output->modes[i];
+  }
+
+  return NULL;
 }
 #endif

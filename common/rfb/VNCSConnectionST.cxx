@@ -74,7 +74,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     minRTT(-1), seenCongestion(false),
     pingCounter(0), congestionTimer(this),
     server(server_), updates(false),
-    drawRenderedCursor(false), removeRenderedCursor(false),
+    updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this),
     updateTimer(this), pointerEventTime(0),
     accessRights(AccessDefault), startTime(time(0))
@@ -198,7 +198,7 @@ void VNCSConnectionST::pixelBufferChange()
       // We need to clip the next update to the new size, but also add any
       // extra bits if it's bigger.  If we wanted to do this exactly, something
       // like the code below would do it, but at the moment we just update the
-      // entire new size.  However, we do need to clip the renderedCursorRect
+      // entire new size.  However, we do need to clip the damagedCursorRegion
       // because that might be added to updates in writeFramebufferUpdate().
 
       //updates.intersect(server->pb->getRect());
@@ -210,7 +210,7 @@ void VNCSConnectionST::pixelBufferChange()
       //  updates.add_changed(Rect(0, cp.height, cp.width,
       //                           server->pb->height()));
 
-      renderedCursorRect = renderedCursorRect.intersect(server->pb->getRect());
+      damagedCursorRegion.assign_intersect(server->pb->getRect());
 
       cp.width = server->pb->width();
       cp.height = server->pb->height();
@@ -341,10 +341,10 @@ bool VNCSConnectionST::getComparerState()
 void VNCSConnectionST::renderedCursorChange()
 {
   if (state() != RFBSTATE_NORMAL) return;
-  if (!renderedCursorRect.is_empty())
+  if (!damagedCursorRegion.is_empty())
     removeRenderedCursor = true;
   if (needRenderedCursor()) {
-    drawRenderedCursor = true;
+    updateRenderedCursor = true;
     writeFramebufferUpdateOrClose();
   }
 }
@@ -688,9 +688,8 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 void VNCSConnectionST::supportsLocalCursor()
 {
   if (cp.supportsLocalCursor || cp.supportsLocalXCursor) {
-    if (!renderedCursorRect.is_empty())
+    if (!damagedCursorRegion.is_empty())
       removeRenderedCursor = true;
-    drawRenderedCursor = false;
     setCursor();
   }
 }
@@ -910,6 +909,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   Region req;
   UpdateInfo ui;
   bool needNewUpdateInfo;
+  bool drawRenderedCursor;
 
   updateTimer.stop();
 
@@ -975,28 +975,31 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // copy, then when the copy happens the corresponding rectangle in the
   // destination will be wrong, so add it to the changed region.
 
-  if (!ui.copied.is_empty() && !renderedCursorRect.is_empty()) {
-    Rect bogusCopiedCursor = (renderedCursorRect.translate(ui.copy_delta)
-                              .intersect(server->pb->getRect()));
+  if (!ui.copied.is_empty() && !damagedCursorRegion.is_empty()) {
+    Region bogusCopiedCursor;
+
+    bogusCopiedCursor.copyFrom(damagedCursorRegion);
+    bogusCopiedCursor.translate(ui.copy_delta);
+    bogusCopiedCursor.assign_intersect(server->pb->getRect());
     if (!ui.copied.intersect(bogusCopiedCursor).is_empty()) {
       updates.add_changed(bogusCopiedCursor);
       needNewUpdateInfo = true;
     }
   }
 
-  // If we need to remove the old rendered cursor, just add the rectangle to
+  // If we need to remove the old rendered cursor, just add the region to
   // the changed region.
 
   if (removeRenderedCursor) {
-    updates.add_changed(renderedCursorRect);
+    updates.add_changed(damagedCursorRegion);
     needNewUpdateInfo = true;
-    renderedCursorRect.clear();
+    damagedCursorRegion.clear();
     removeRenderedCursor = false;
   }
 
   // Return if there is nothing to send the client.
 
-  if (updates.is_empty() && !writer()->needFakeUpdate() && !drawRenderedCursor)
+  if (updates.is_empty() && !writer()->needFakeUpdate() && !updateRenderedCursor)
     goto out;
 
   // The `updates' object could change, make sure we have valid update info.
@@ -1009,13 +1012,18 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // with the update region, we need to draw the rendered cursor regardless of
   // whether it has changed.
 
+  drawRenderedCursor = false;
   if (needRenderedCursor()) {
+    Rect renderedCursorRect;
+
     renderedCursorRect
       = server->renderedCursor.getEffectiveRect()
          .intersect(req.get_bounding_rect());
 
     if (renderedCursorRect.is_empty()) {
       drawRenderedCursor = false;
+    } else if (updateRenderedCursor) {
+      drawRenderedCursor = true;
     } else if (!ui.changed.union_(ui.copied)
                .intersect(renderedCursorRect).is_empty()) {
       drawRenderedCursor = true;
@@ -1030,6 +1038,9 @@ void VNCSConnectionST::writeFramebufferUpdate()
     //  updates.subtract(renderedCursorRect);
     //  updates.getUpdateInfo(&ui, req);
     //}
+
+    damagedCursorRegion.assign_union(renderedCursorRect);
+    updateRenderedCursor = false;
   }
 
   if (!ui.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
@@ -1045,9 +1056,11 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
     writeRTTPing();
 
-    drawRenderedCursor = false;
+    // The request might be for just part of the screen, so we cannot
+    // just clear the entire update tracker.
+    updates.subtract(req);
+
     requested.clear();
-    updates.clear();
   }
 
 out:
