@@ -73,8 +73,13 @@ namespace rfb {
         newPat.buf[1] = 0;
         _tcscat(newPat.buf, host.buf);
 
-        network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(CStr(newPat.buf)));
-        pattern.replaceBuf(TCharArray(network::TcpFilter::patternToStr(pat)).takeBuf());
+        try {
+          network::TcpFilter::Pattern pat(network::TcpFilter::parsePattern(CStr(newPat.buf)));
+          pattern.replaceBuf(TCharArray(network::TcpFilter::patternToStr(pat)).takeBuf());
+        } catch(rdr::Exception e) {
+          MsgBox(NULL, TStr(e.str()), MB_ICONEXCLAMATION | MB_OK);
+          return false;
+        }
         return true;
       }
       const TCHAR* getPattern() {return pattern.buf;}
