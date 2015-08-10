@@ -68,14 +68,13 @@ output.
 .B HostsFile
 This parameter allows to specify a file name with IP access control rules.
 The file should include one rule per line, and the rule format is one of the
-following: +\fIaddress\fP/\fInetmask\fP (accept connections from the
-specified address group), -\fIaddress\fP/\fInetmask\fP (reject connections)
-or ?\fIaddress\fP/\fInetmask\fP (query the local user).  The first rule
+following: +\fIaddress\fP/\fIprefix\fP (accept connections from the
+specified address group), -\fIaddress\fP/\fIprefix\fP (reject connections)
+or ?\fIaddress\fP/\fIprefix\fP (query the local user).  The first rule
 matching the IP address determines the action to be performed.  Rules that
 include only an action sign (+, - or ?) will match any IP address.
-\fINetmask\fP is optional and can be specified either in dotted format
-(e.g. /255.255.255.0), or as a single number of bits (e.g. /24).  Default is
-to accept connections from any IP address.
+\fIPrefix\fP is optional and is specified as a number of bits (e.g. /24).
+Default is to accept connections from any IP address.
 .
 .TP
 .B SecurityTypes
