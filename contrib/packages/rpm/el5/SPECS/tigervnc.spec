@@ -5,7 +5,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 6%{?snap:.%{snap}}%{?dist}
+Release: 7%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
