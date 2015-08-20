@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2009-2013 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2015 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -548,6 +548,7 @@ public class CConn extends CConnection implements
     menu.fullScreen.setEnabled(s);
     menu.newConn.setEnabled(s);
     options.fullScreen.setEnabled(s);
+    options.fullScreenAllMonitors.setEnabled(s);
     options.scalingFactor.setEnabled(s);
   }
 
@@ -569,16 +570,17 @@ public class CConn extends CConnection implements
   }
 
   private void reconfigureViewport() {
-    //viewport.setMaxSize(cp.width, cp.height);
     boolean pack = true;
-    Dimension dpySize = viewport.getToolkit().getScreenSize();
+    Dimension dpySize = viewport.getScreenSize();
     desktop.setScaledSize();
     int w = desktop.scaledWidth;
     int h = desktop.scaledHeight;
     if (fullScreen) {
-      viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
-      viewport.setGeometry(0, 0, dpySize.width, dpySize.height, false);
-      Viewport.setFullScreenWindow(viewport);
+      if (!viewer.fullScreenAllMonitors.getValue())
+        viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
+      viewport.setBounds(viewport.getScreenBounds());
+      if (!viewer.fullScreenAllMonitors.getValue())
+        Viewport.setFullScreenWindow(viewport);
     } else {
       int wmDecorationWidth = viewport.getInsets().left + viewport.getInsets().right;
       int wmDecorationHeight = viewport.getInsets().top + viewport.getInsets().bottom;
@@ -982,6 +984,7 @@ public class CConn extends CConnection implements
     }
 
     options.fullScreen.setSelected(fullScreen);
+    options.fullScreenAllMonitors.setSelected(viewer.fullScreenAllMonitors.getValue());
     options.useLocalCursor.setSelected(viewer.useLocalCursor.getValue());
     options.acceptBell.setSelected(viewer.acceptBell.getValue());
     String scaleString = viewer.scalingFactor.getValue();
@@ -1211,8 +1214,19 @@ public class CConn extends CConnection implements
     String desktopSize = (options.desktopSize.isSelected()) ?
         options.desktopWidth.getText() + "x" + options.desktopHeight.getText() : "";
     viewer.desktopSize.setParam(desktopSize);
-    if (options.fullScreen.isSelected() ^ fullScreen)
+    if (options.fullScreen.isSelected() ^ fullScreen) {
+      viewer.fullScreenAllMonitors.setParam(options.fullScreenAllMonitors.isSelected());
       toggleFullScreen();
+    } else {
+      if (viewer.fullScreenAllMonitors.getValue() !=
+          options.fullScreenAllMonitors.isSelected()) {
+        viewer.fullScreenAllMonitors.setParam(options.fullScreenAllMonitors.isSelected());
+        if (desktop != null)
+          recreateViewport();
+      } else {
+        viewer.fullScreenAllMonitors.setParam(options.fullScreenAllMonitors.isSelected());
+      }
+    }
   }
 
   public void toggleFullScreen() {

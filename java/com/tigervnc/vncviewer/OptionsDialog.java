@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2015 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ class OptionsDialog extends Dialog implements
   JRadioButton zrle, hextile, tight, raw;
   JRadioButton fullColour, mediumColour, lowColour, veryLowColour;
   JCheckBox viewOnly, acceptClipboard, sendClipboard, acceptBell;
-  JCheckBox desktopSize, fullScreen, shared, useLocalCursor;
+  JCheckBox desktopSize, fullScreen, fullScreenAllMonitors, shared, useLocalCursor;
   JCheckBox secVeNCrypt, encNone, encTLS, encX509;
   JCheckBox secNone, secVnc, secPlain, secIdent, sendLocalUsername;
   JButton okButton, cancelButton;
@@ -185,6 +185,9 @@ class OptionsDialog extends Dialog implements
     fullScreen = new JCheckBox("Full-screen mode");
     fullScreen.addItemListener(this);
     fullScreen.setEnabled(!cc.viewer.embed.getValue());
+    fullScreenAllMonitors = new JCheckBox("Enable full-screen mode over all monitors");
+    fullScreenAllMonitors.addItemListener(this);
+    fullScreenAllMonitors.setEnabled(!cc.viewer.embed.getValue());
     JLabel scalingFactorLabel = new JLabel("Scaling Factor");
     Object[] scalingFactors = {
       "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%",
@@ -206,6 +209,7 @@ class OptionsDialog extends Dialog implements
     addGBComponent(desktopSize,ScreenPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
     addGBComponent(desktopSizePanel,ScreenPanel, 0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.REMAINDER, GridBagConstraints.LINE_START, new Insets(0,20,0,0));
     addGBComponent(fullScreen,ScreenPanel, 0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,5));
+    addGBComponent(fullScreenAllMonitors,ScreenPanel, 0, 3, 4, 1, 2, 2, 1, 0, GridBagConstraints.REMAINDER, GridBagConstraints.LINE_START, new Insets(4,25,0,5));
     addGBComponent(scalingFactorLabel,ScreenPanel, 0, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
     addGBComponent(scalingFactor,ScreenPanel, 1, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
 
@@ -330,6 +334,7 @@ class OptionsDialog extends Dialog implements
     veryLowColour.setEnabled(!autoSelect.isSelected());
     compressLevel.setEnabled(customCompressLevel.isSelected());
     qualityLevel.setEnabled(noJpeg.isSelected());
+    fullScreenAllMonitors.setEnabled(fullScreen.isSelected());
     sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
       (secPlain.isSelected()||secIdent.isSelected()));
   }
@@ -374,6 +379,7 @@ class OptionsDialog extends Dialog implements
       desktopSize.isSelected() ? desktopWidth.getText() + "x" + desktopHeight.getText() : "";
     UserPreferences.set("global", "DesktopSize", desktopSizeString);
     UserPreferences.set("global", "FullScreen", fullScreen.isSelected());
+    UserPreferences.set("global", "FullScreenAllMonitors", fullScreenAllMonitors.isSelected());
     UserPreferences.set("global", "Shared", shared.isSelected());
     UserPreferences.set("global", "UseLocalCursor", useLocalCursor.isSelected());
     UserPreferences.set("global", "AcceptBell", acceptBell.isSelected());
@@ -451,6 +457,7 @@ class OptionsDialog extends Dialog implements
       desktopHeight.setText(desktopSizeString.split("x")[1]);
     }
     fullScreen.setSelected(UserPreferences.getBool("global", "FullScreen"));
+    fullScreenAllMonitors.setSelected(UserPreferences.getBool("global", "FullScreenAllMonitors"));
     if (shared.isEnabled())
       shared.setSelected(UserPreferences.getBool("global", "Shared"));
     useLocalCursor.setSelected(UserPreferences.getBool("global", "UseLocalCursor"));

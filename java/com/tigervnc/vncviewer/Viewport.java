@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2015 Brian P. Hinz
  * Copyright (C) 2012-2013 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
@@ -28,12 +28,14 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Window;
 import java.lang.reflect.*;
 import javax.swing.*;
 
 import com.tigervnc.rfb.*;
 import java.lang.Exception;
+import java.awt.Rectangle;
 
 public class Viewport extends JFrame
 {
@@ -165,6 +167,32 @@ public class Viewport extends JFrame
     }
     if (!cc.fullScreen)
       setLocation(x, y);
+  }
+
+  public Dimension getScreenSize() {
+    return getScreenBounds().getSize();
+  }
+
+  public Rectangle getScreenBounds() {
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    Rectangle r = new Rectangle();
+    setMaximizedBounds(null);
+    if (cc.viewer.fullScreenAllMonitors.getValue()) {
+      for (GraphicsDevice gd : ge.getScreenDevices())
+        for (GraphicsConfiguration gc : gd.getConfigurations())
+          r = r.union(gc.getBounds());
+      if (!cc.fullScreen)
+        pack();
+      Rectangle mb = new Rectangle(r);
+      mb.grow(getInsets().left, getInsets().bottom);
+      setMaximizedBounds(mb);
+    } else {
+      GraphicsDevice gd = ge.getDefaultScreenDevice();
+      GraphicsConfiguration gc = gd.getDefaultConfiguration();
+      r = gc.getBounds();
+    }
+    return r;
   }
 
   public static Window getFullScreenWindow() {
