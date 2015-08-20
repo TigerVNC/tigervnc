@@ -194,7 +194,7 @@ int vncIsTCPPortUsed(int port)
     std::list<network::TcpListener> dummy;
     network::createTcpListeners (&dummy, 0, port);
   } catch (rdr::Exception& e) {
-    return 0;
+    return 1;
   }
-  return 1;
+  return 0;
 }
