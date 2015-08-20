@@ -167,7 +167,8 @@ class OptionsDialog extends Dialog implements
     ScreenPanel=new JPanel(new GridBagLayout());
     desktopSize = new JCheckBox("Resize remote session on connect");
     desktopSize.addItemListener(this);
-    desktopSize.setEnabled(cc.viewer.desktopSize.getValue() != null);
+    desktopSize.setEnabled(!cc.viewer.embed.getValue() &&
+                           (cc.viewer.desktopSize.getValue() != null));
     NumberFormat format = NumberFormat.getIntegerInstance();
     format.setMaximumIntegerDigits(5);
     format.setMinimumIntegerDigits(0);
