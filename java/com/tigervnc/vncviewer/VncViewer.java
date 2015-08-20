@@ -100,7 +100,6 @@ public class VncViewer extends javax.swing.JApplet
           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       }
       UIManager.setLookAndFeel(laf);
-      UIManager.put("TitledBorder.titleColor",Color.blue);
       if (UIManager.getLookAndFeel().getName().equals("Metal")) {
         UIManager.put("swing.boldMetal", Boolean.FALSE);
         Enumeration<Object> keys = UIManager.getDefaults().keys();
