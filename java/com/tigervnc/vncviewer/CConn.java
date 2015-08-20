@@ -1208,11 +1208,9 @@ public class CConn extends CConnection implements
         Security.DisableSecType(Security.secTypeX509Ident);
       }
     }
-    if (options.desktopSize.isSelected()) {
-      String desktopSize =
-        options.desktopWidth.getText() + "x" + options.desktopHeight.getText();
-      viewer.desktopSize.setParam(desktopSize);
-    }
+    String desktopSize = (options.desktopSize.isSelected()) ?
+        options.desktopWidth.getText() + "x" + options.desktopHeight.getText() : "";
+    viewer.desktopSize.setParam(desktopSize);
     if (options.fullScreen.isSelected() ^ fullScreen)
       toggleFullScreen();
   }
