@@ -36,12 +36,15 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     setLightWeightPopupEnabled(false);
     cc = cc_;
     restore    = addMenuItem("Restore",KeyEvent.VK_R);
+    restore.setEnabled(!cc.viewer.embed.getValue());
     move       = addMenuItem("Move");
     move.setEnabled(false);
     size       = addMenuItem("Size");
     size.setEnabled(false);
     minimize   = addMenuItem("Minimize", KeyEvent.VK_N);
+    minimize.setEnabled(!cc.viewer.embed.getValue());
     maximize   = addMenuItem("Maximize", KeyEvent.VK_X);
+    maximize.setEnabled(!cc.viewer.embed.getValue());
     addSeparator();
     exit       = addMenuItem("Close Viewer", KeyEvent.VK_C);
     addSeparator();

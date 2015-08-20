@@ -545,6 +545,9 @@ public class CConn extends CConnection implements
   }
   
   public void setEmbeddedFeatures(boolean s) {
+    menu.restore.setEnabled(s);
+    menu.minimize.setEnabled(s);
+    menu.maximize.setEnabled(s);
     menu.fullScreen.setEnabled(s);
     menu.newConn.setEnabled(s);
     options.fullScreen.setEnabled(s);
