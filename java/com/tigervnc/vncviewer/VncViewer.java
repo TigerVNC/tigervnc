@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2015 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public class VncViewer extends javax.swing.JApplet
 
   public static final String aboutText = new String("TigerVNC Java Viewer v%s (%s)%n"+
                                                     "Built on %s at %s%n"+
-                                                    "Copyright (C) 1999-2013 TigerVNC Team and many others (see README.txt)%n"+
+                                                    "Copyright (C) 1999-2015 TigerVNC Team and many others (see README.txt)%n"+
                                                     "See http://www.tigervnc.org for information on TigerVNC.");
 
   public static String version = null;
@@ -100,7 +100,6 @@ public class VncViewer extends javax.swing.JApplet
           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       }
       UIManager.setLookAndFeel(laf);
-      UIManager.put("TitledBorder.titleColor",Color.blue);
       if (UIManager.getLookAndFeel().getName().equals("Metal")) {
         UIManager.put("swing.boldMetal", Boolean.FALSE);
         Enumeration<Object> keys = UIManager.getDefaults().keys();
@@ -554,6 +553,10 @@ public class VncViewer extends javax.swing.JApplet
   = new BoolParameter("FullScreen",
                       "Full Screen Mode",
                       false);
+  BoolParameter fullScreenAllMonitors
+  = new BoolParameter("FullScreenAllMonitors",
+                      "Enable full screen over all monitors",
+                      true);
   BoolParameter acceptClipboard
   = new BoolParameter("AcceptClipboard",
                       "Accept clipboard changes from the server",
