@@ -335,7 +335,6 @@ class OptionsDialog extends Dialog implements
     veryLowColour.setEnabled(!autoSelect.isSelected());
     compressLevel.setEnabled(customCompressLevel.isSelected());
     qualityLevel.setEnabled(noJpeg.isSelected());
-    fullScreenAllMonitors.setEnabled(fullScreen.isSelected());
     sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
       (secPlain.isSelected()||secIdent.isSelected()));
   }
