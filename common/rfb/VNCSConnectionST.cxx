@@ -100,8 +100,10 @@ VNCSConnectionST::~VNCSConnectionST()
 
   // Release any keys the client still had pressed
   std::set<rdr::U32>::iterator i;
-  for (i=pressedKeys.begin(); i!=pressedKeys.end(); i++)
+  for (i=pressedKeys.begin(); i!=pressedKeys.end(); i++) {
+    vlog.debug("Releasing key 0x%x on client disconnect", *i);
     server->desktop->keyEvent(*i, false);
+  }
   if (server->pointerClient == this)
     server->pointerClient = 0;
 
@@ -499,9 +501,13 @@ public:
   VNCSConnectionSTShiftPresser(SDesktop* desktop_)
     : desktop(desktop_), pressed(false) {}
   ~VNCSConnectionSTShiftPresser() {
-    if (pressed) { desktop->keyEvent(XK_Shift_L, false); }
+    if (pressed) {
+      vlog.debug("Releasing fake Shift_L");
+      desktop->keyEvent(XK_Shift_L, false);
+    }
   }
   void press() {
+    vlog.debug("Pressing fake Shift_L");
     desktop->keyEvent(XK_Shift_L, true);
     pressed = true;
   }
@@ -517,9 +523,20 @@ void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
+  if (down)
+    vlog.debug("Key pressed: 0x%x", key);
+  else
+    vlog.debug("Key released: 0x%x", key);
+
   // Remap the key if required
-  if (server->keyRemapper)
-    key = server->keyRemapper->remapKey(key);
+  if (server->keyRemapper) {
+    rdr::U32 newkey;
+    newkey = server->keyRemapper->remapKey(key);
+    if (newkey != key) {
+      vlog.debug("Key remapped to 0x%x", newkey);
+      key = newkey;
+    }
+  }
 
   // Turn ISO_Left_Tab into shifted Tab.
   VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
