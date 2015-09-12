@@ -5,7 +5,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 7%{?snap:.%{snap}}%{?dist}
+Release: 8%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -100,7 +100,7 @@ Source203: http://dri.freedesktop.org/libdrm/libdrm-2.4.52.tar.bz2
 Source204: ftp://ftp.freedesktop.org/pub/mesa/older-versions/9.x/9.2.5/MesaLib-9.2.5.tar.bz2
 # NOTE:
 #   libgcrypt from el5 is not new enough to satisfy newer Xorg requirements for --with-sha1,
-#   which causes Xorg to link against libssl.so and introduce about 10 dynamic dependencies. 
+#   which causes Xorg to link against libssl.so and introduce about 10 dynamic dependencies.
 #   to prevent this, build a static libsha1 and link against that.
 # NOTE:
 Source205: https://github.com/dottedmag/libsha1/archive/0.3.tar.gz
@@ -133,6 +133,8 @@ Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 # tigervnc patches
 Patch4: tigervnc-cookie.patch
 Patch12: tigervnc14-static-build-fixes.patch
+Patch13: tigervnc14-Add-dridir-param.patch
+Patch14: tigervnc14-Add-xkbcompdir-param.patch
 
 # fltk patches
 Patch15: fltk-1.3.3-static-libs.patch
@@ -187,7 +189,7 @@ Patch10001: 17_CVE-regressions.diff
 Patch10002: CVE-2015-0255.diff
 # http://www.x.org/wiki/Development/Security/Advisory-2015-03-17/
 Patch10003: CVE-2015-1802.diff
-Patch10004: CVE-2015-1803.diff 
+Patch10004: CVE-2015-1803.diff
 Patch10005: CVE-2015-1804.diff
 # http://lists.x.org/archives/xorg-announce/2015-April/002561.html
 Patch10006: CVE-2013-7439.diff
@@ -422,6 +424,8 @@ for all in `find . -type f -perm -001`; do
   chmod -x "$all"
 done
 patch -p1 < %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}/unix/xserver112.patch
+%patch13 -p1 -b .dridir
+%patch14 -p1 -b .xkbcompdir
 
 popd
 
@@ -557,7 +561,7 @@ cat >%{xorg_buildroot}%{_includedir}/freetype2/freetype/config/ftconfig.h <<EOF
 # error "unexpected value for __WORDSIZE macro"
 #endif
 
-#endif 
+#endif
 EOF
 popd
 
@@ -721,10 +725,10 @@ for module in ${modules}; do
   find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
   if [ "${module}" = "libxcb" ]; then
     sed 's,@libdir@,%{xorg_buildroot}%{_libdir},;s,@prefix@,%{xorg_buildroot}%{_prefix},;s,@exec_prefix@,%{xorg_buildroot}%{_exec_prefix},' %{SOURCE140} > %{xorg_buildroot}%{_libdir}/pkgconfig/pthread-stubs.pc
-    sed -i -e 's/^\(Libs.private:.*\)$/\1 -L${libdir} -lXdmcp -lXau/' %{xorg_buildroot}%{_libdir}/pkgconfig/xcb.pc 
+    sed -i -e 's/^\(Libs.private:.*\)$/\1 -L${libdir} -lXdmcp -lXau/' %{xorg_buildroot}%{_libdir}/pkgconfig/xcb.pc
   elif [ "${module}" = "libX11" ]; then
-    sed -i -e 's/^\(Libs:.*\)$/\1 -ldl/' %{xorg_buildroot}%{_libdir}/pkgconfig/x11.pc 
-    sed -i -e 's/^\(Libs.private:.*\)$/\1 -L${libdir} -lxcb/' %{xorg_buildroot}%{_libdir}/pkgconfig/x11.pc 
+    sed -i -e 's/^\(Libs:.*\)$/\1 -ldl/' %{xorg_buildroot}%{_libdir}/pkgconfig/x11.pc
+    sed -i -e 's/^\(Libs.private:.*\)$/\1 -L${libdir} -lxcb/' %{xorg_buildroot}%{_libdir}/pkgconfig/x11.pc
   elif [ "${module}" = "libSM" ]; then
     echo 'Libs.private: -L${libdir} -lICE' >> %{xorg_buildroot}%{_libdir}/pkgconfig/sm.pc
   fi
@@ -748,7 +752,7 @@ autoreconf -fiv
 %endif
 
 # link libGL statically against any xorg libraries built above
-LDFLAGS="$LDFLAGS -Wl,-Bstatic -lxcb -lX11 -lXdmcp -lXau -lXext -lXxf86vm -ldrm -Wl,-Bdynamic -Wl,-rpath,%{_libdir}/tigervnc:%{_libdir}" \
+LDFLAGS="$LDFLAGS -Wl,-Bstatic -lxcb -lX11 -lXdmcp -lXau -lXext -lXxf86vm -ldrm -Wl,-Bdynamic -Wl,-rpath,"'\$$'"ORIGIN/../..%{_libdir}/tigervnc:%{_libdir}/tigervnc:%{_libdir}" \
 PKG_CONFIG="pkg-config --static" ./configure %{common_flags} \
     --prefix=%{_prefix} \
     --libdir=%{_libdir}/tigervnc \
@@ -789,7 +793,7 @@ echo "*** Building fltk ***"
 pushd fltk-*
 export CMAKE_PREFIX_PATH="%{xorg_buildroot}%{_prefix}:%{_prefix}"
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
-export PKG_CONFIG="pkg-config --static" 
+export PKG_CONFIG="pkg-config --static"
 CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
@@ -804,7 +808,7 @@ CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
   --enable-xdbe \
   --enable-xfixes \
   --enable-xcursor \
-  --with-x 
+  --with-x
 make %{?_smp_mflags}
 make DESTDIR=%{xorg_buildroot} install
 popd
@@ -828,10 +832,10 @@ make %{?_smp_mflags}
 pushd unix/xserver
 export PIXMANINCDIR=%{xorg_buildroot}%{_includedir}/pixman-1
 sed -i -e 's/^\(\s*WAYLAND_SCANNER_RULES.*\)/dnl\1/' configure.ac
-autoreconf -fiv 
+autoreconf -fiv
 chmod +x ./configure
 # create a relocatable Xvnc so that we can bundle the custom libGL & swrast w/o overwriting existing libs
-GL_LIBS='-Wl,-Bdynamic -lGL' LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir}/tigervnc -Wl,-rpath,%{_libdir}/tigervnc:%{_libdir}" \
+GL_LIBS='-Wl,-Bdynamic -lGL' LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir}/tigervnc -Wl,-rpath,"'\$$'"ORIGIN/../..%{_libdir}/tigervnc:%{_libdir}/tigervnc:%{_libdir}" \
 %configure \
   --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_datadir}/man \
   --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} \
@@ -997,6 +1001,10 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Sun Sep 12 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.5.80-8
+- Build Xvnc with link path relative to $ORIGIN and apply dridir patch
+  to make it portable.
+
 * Sun Aug 09 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.5.80-7
 - Patch Xorg sources with latest relevant CVE patches.
 - Update libjpeg-turbo, gnutls, libtasn1 to latest upstream versions.
@@ -1048,11 +1056,11 @@ fi
 * Sat Mar 30 2013 Brian P. Hinz <bphinz@users.sourceforge.net> 1.2.0-11.20130330svn5066
 - Updated to TigerVNC svn 5066
 - Updated fltk to 1.3.2 and updated fltk patches per BUILDING.txt
-- Fixed vncserver init script & config file which had been overwritten by 
+- Fixed vncserver init script & config file which had been overwritten by
   systemd versions.
 
 * Wed Nov 28 2012 Brian P. Hinz <bphinz@users.sourceforge.net> 1.2.0-7.20120915svn4999
-- Changed BuildRequires to cmake28 
+- Changed BuildRequires to cmake28
 - Set PIXMANINCDIR when building Xvnc
 
 * Tue Sep 18 2012 Brian P. Hinz <bphinz@users.sourceforge.net> 1.2.0-6.20120915svn4999
