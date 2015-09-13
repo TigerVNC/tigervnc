@@ -230,10 +230,13 @@ public class CSecurityTLS extends CSecurity {
         File cacert = new File(cafile);
         if (cacert.exists() && cacert.canRead()) {
           InputStream caStream = new FileInputStream(cafile);
-          Certificate cert = cf.generateCertificate(caStream);
-          String dn = 
-            ((X509Certificate)cert).getSubjectX500Principal().getName();
-          ks.setCertificateEntry(dn, (X509Certificate)cert);
+          Collection<? extends Certificate> cacerts =
+            cf.generateCertificates(caStream);
+          for (Certificate cert : cacerts) {
+            String dn =
+              ((X509Certificate)cert).getSubjectX500Principal().getName();
+            ks.setCertificateEntry(dn, (X509Certificate)cert);
+          }
         }
         PKIXBuilderParameters params =
           new PKIXBuilderParameters(ks, new X509CertSelector());
