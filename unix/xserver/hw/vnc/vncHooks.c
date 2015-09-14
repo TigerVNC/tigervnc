@@ -715,7 +715,7 @@ static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
 
 // Composite - The core of XRENDER
 
-void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
+static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 		       PicturePtr pDst, INT16 xSrc, INT16 ySrc, INT16 xMask, 
 		       INT16 yMask, INT16 xDst, INT16 yDst, CARD16 width, CARD16 height)
 {
@@ -801,7 +801,7 @@ GlyphsToRegion(ScreenPtr pScreen, int nlist, GlyphListPtr list, GlyphPtr *glyphs
 
 // Glyphs - Glyph specific version of Composite (caches and whatnot)
 
-void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst, 
+static void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
            PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc, int nlists, 
            GlyphListPtr lists, GlyphPtr * glyphs)
 {
