@@ -182,8 +182,10 @@ public class Viewport extends JFrame
       for (GraphicsDevice gd : ge.getScreenDevices())
         for (GraphicsConfiguration gc : gd.getConfigurations())
           r = r.union(gc.getBounds());
+      Dimension d = getPreferredSize();
       if (!cc.fullScreen)
-        pack();
+        if ((d.width > 0) && (d.height > 0))
+          pack();
       Rectangle mb = new Rectangle(r);
       mb.grow(getInsets().left, getInsets().bottom);
       setMaximizedBounds(mb);
