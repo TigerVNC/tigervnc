@@ -50,6 +50,7 @@ extern int vncFbstride[];
 extern int vncInetdSock;
 
 void vncExtensionInit(void);
+int vncExtensionIsActive(int scrIdx);
 
 void vncCallReadBlockHandlers(fd_set * fds, struct timeval ** timeout);
 void vncCallReadWakeupHandlers(fd_set * fds, int nfds);

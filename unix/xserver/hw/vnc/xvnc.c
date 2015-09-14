@@ -1744,6 +1744,11 @@ void ProcessInputEvents(void)
 
 void InitInput(int argc, char *argv[])
 {
+  int i;
+  for (i = 0;i < screenInfo.numScreens;i++) {
+    if (!vncExtensionIsActive(i))
+        FatalError("failed to activate VNC extension for one or more screens");
+  }
   mieqInit ();
 }
 

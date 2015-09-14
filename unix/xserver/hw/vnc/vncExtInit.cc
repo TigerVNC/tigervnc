@@ -205,6 +205,11 @@ void vncExtensionInit(void)
   vncRegisterBlockHandlers();
 }
 
+int vncExtensionIsActive(int scrIdx)
+{
+  return (desktop[scrIdx] != NULL);
+}
+
 void vncCallReadBlockHandlers(fd_set * fds, struct timeval ** timeout)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
