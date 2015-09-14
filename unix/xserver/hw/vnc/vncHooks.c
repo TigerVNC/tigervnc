@@ -44,13 +44,6 @@
 
 #define DBGPRINT(x) //(fprintf x)
 
-// REGION_NULL was introduced in the Xorg tree as the way to initialise an
-// empty region.  If it's not already defined do it the old way.  Note that the
-// old way causes a segfault in the new tree...
-#ifndef REGION_NULL
-#define REGION_NULL(pScreen,pReg) REGION_INIT(pScreen,pReg,NullBox,0)
-#endif
-
 // MAX_RECTS_PER_OP is the maximum number of rectangles we generate from
 // operations like Polylines and PolySegment.  If the operation is more complex
 // than this, we simply use the bounding box.  Ideally it would be a
