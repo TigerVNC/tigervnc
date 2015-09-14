@@ -728,13 +728,23 @@ static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
   if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
       ((WindowPtr) pDst->pDrawable)->viewable) {
     BoxRec box;
+    RegionRec fbreg;
 
     box.x1 = max(pDst->pDrawable->x + xDst, 0);
     box.y1 = max(pDst->pDrawable->y + yDst, 0);
-    box.x2 = min(box.x1 + width, pScreen->width);
-    box.y2 = min(box.y1 + height, pScreen->height);
-
+    box.x2 = box.x1 + width;
+    box.y2 = box.y1 + height;
     REGION_INIT(pScreen, &changed, &box, 0);
+
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = pScreen->width;
+    box.y2 = pScreen->height;
+    REGION_INIT(pScreen, &fbreg, &box, 0);
+
+    REGION_INTERSECT(pScreen, &changed, &changed, &fbreg);
+
+    REGION_UNINIT(pScreen, &fbreg);
   } else {
     REGION_NULL(pScreen, &changed);
   }
