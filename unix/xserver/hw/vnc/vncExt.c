@@ -51,6 +51,7 @@ static int vncErrorBase = 0;
 static int vncEventBase = 0;
 
 int vncNoClipboard = 0;
+int vncTrustXClient = 0;
 
 static char* clientCutText = NULL;
 static int clientCutTextLen = 0;
@@ -188,6 +189,17 @@ static int ProcVncExtSetParam(ClientPtr client)
    */
   if (strncasecmp(param, "desktop", 7) != 0 &&
       strncasecmp(param, "AcceptPointerEvents", 19) != 0 &&
+      (!vncTrustXClient || strncasecmp(param, "AlwaysShared", 12) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "NeverShared", 11) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "DisconnectClients", 17) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "SecurityTypes", 13) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "PlainUsers", 10) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "PasswordFile", 12) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "RFBAuth", 7) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "Password", 8) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "MaxDisconnectionTime", 20) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "MaxConnectionTime", 17) != 0) &&
+      (!vncTrustXClient || strncasecmp(param, "MaxIdleTime", 11) != 0) &&
       (vncNoClipboard || strncasecmp(param, "SendCutText", 11) != 0) &&
       (vncNoClipboard || strncasecmp(param, "AcceptCutText", 13) != 0))
     goto deny;

@@ -314,6 +314,7 @@ void ddxUseMsg(void)
     ErrorF("-pixelformat fmt       set pixel format (rgbNNN or bgrNNN)\n");
     ErrorF("-inetd                 has been launched from inetd\n");
     ErrorF("-noclipboard           disable clipboard settings modification via vncconfig utility\n");
+    ErrorF("-trustxclient          allow vncconfig utility to change sharing and security options\n");
     ErrorF("-verbose [n]           verbose startup messages\n");
     ErrorF("-quiet                 minimal startup messages\n");
     ErrorF("-version               show the server version\n");
@@ -596,6 +597,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
     if (strcmp(argv[i], "-noclipboard") == 0) {
 	vncNoClipboard = 1;
+	return 1;
+    }
+
+    if (strcmp(argv[i], "-trustxclient") == 0) {
+	vncTrustXClient = 1;
 	return 1;
     }
 
