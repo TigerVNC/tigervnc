@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 m-privacy GmbH
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011-2012,2014 Brian P. Hinz
+ * Copyright (C) 2011-2012,2015 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,11 +29,15 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.MessageDigest;
 import java.security.cert.*;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -218,7 +222,7 @@ public class CSecurityTLS extends CSecurity {
               ks.setCertificateEntry(c.getSubjectX500Principal().getName(), c);
         File castore = new File(FileUtils.getVncHomeDir()+"x509_savedcerts.pem");
         if (castore.exists() && castore.canRead()) {
-          InputStream caStream = new FileInputStream(castore);
+          InputStream caStream = new MyFileInputStream(castore);
           Collection<? extends Certificate> cacerts =
             cf.generateCertificates(caStream);
           for (Certificate cert : cacerts) {
@@ -229,7 +233,7 @@ public class CSecurityTLS extends CSecurity {
         }
         File cacert = new File(cafile);
         if (cacert.exists() && cacert.canRead()) {
-          InputStream caStream = new FileInputStream(cafile);
+          InputStream caStream = new MyFileInputStream(cacert);
           Collection<? extends Certificate> cacerts =
             cf.generateCertificates(caStream);
           for (Certificate cert : cacerts) {
@@ -254,9 +258,7 @@ public class CSecurityTLS extends CSecurity {
         tmf = TrustManagerFactory.getInstance("PKIX");
         tmf.init(new CertPathTrustManagerParameters(params));
         tm = (X509TrustManager)tmf.getTrustManagers()[0];
-      } catch (java.io.FileNotFoundException e) {
-        vlog.error(e.toString());
-      } catch (java.io.IOException e) {
+      } catch (java.lang.Exception e) {
         vlog.error(e.toString());
       }
     }
@@ -304,26 +306,41 @@ public class CSecurityTLS extends CSecurity {
               vlog.info("Certificate save failed, unable to create ~/.vnc");
               return;
             }
+            Collection<? extends X509Certificate> cacerts = null;
+            String castore =
+              FileUtils.getVncHomeDir()+"x509_savedcerts.pem";
+            File caFile = new File(castore);
+            try {
+              caFile.createNewFile();
+            } catch (IOException ioe) {
+              vlog.error(ioe.getCause().getMessage());
+              return;
+            }
+            InputStream caStream = new MyFileInputStream(caFile);
+            CertificateFactory cf =
+              CertificateFactory.getInstance("X.509");
+            cacerts =
+              (Collection <? extends X509Certificate>)cf.generateCertificates(caStream);
             for (int i = 0; i < chain.length; i++) {
-              byte[] der = chain[i].getEncoded();
-              String pem = DatatypeConverter.printBase64Binary(der);
-              pem = pem.replaceAll("(.{64})", "$1\n");
-              FileWriter fw = null;
-              try {
-                String castore =
-                  FileUtils.getVncHomeDir()+"x509_savedcerts.pem";
-                fw = new FileWriter(castore, true);
-                fw.write("-----BEGIN CERTIFICATE-----\n");
-                fw.write(pem+"\n");
-                fw.write("-----END CERTIFICATE-----\n");
-              } catch (IOException ioe) {
-                throw new Exception(ioe.getCause().getMessage());
-              } finally {
+              if (cacerts == null || !cacerts.contains(chain[i])) {
+                byte[] der = chain[i].getEncoded();
+                String pem = DatatypeConverter.printBase64Binary(der);
+                pem = pem.replaceAll("(.{64})", "$1\n");
+                FileWriter fw = null;
                 try {
-                  if (fw != null)
-                    fw.close();
-                } catch(IOException ioe2) {
-                  throw new Exception(ioe2.getCause().getMessage());
+                  fw = new FileWriter(castore, true);
+                  fw.write("-----BEGIN CERTIFICATE-----\n");
+                  fw.write(pem+"\n");
+                  fw.write("-----END CERTIFICATE-----\n");
+                } catch (IOException ioe) {
+                  throw new Exception(ioe.getCause().getMessage());
+                } finally {
+                  try {
+                    if (fw != null)
+                      fw.close();
+                  } catch(IOException ioe2) {
+                    throw new Exception(ioe2.getCause().getMessage());
+                  }
                 }
               }
             }
@@ -343,6 +360,62 @@ public class CSecurityTLS extends CSecurity {
       return tm.getAcceptedIssuers();
     }
 
+    private class MyFileInputStream extends InputStream {
+      // Blank lines in a certificate file will cause Java 6 to throw a
+      // "DerInputStream.getLength(): lengthTag=127, too big" exception.
+      ByteBuffer buf;
+
+      public MyFileInputStream(String name) {
+        this(new File(name));
+      }
+
+      public MyFileInputStream(File file) {
+        StringBuffer sb = new StringBuffer();
+        BufferedReader reader = null;
+        try {
+          reader = new BufferedReader(new FileReader(file));
+          String l;
+          while ((l = reader.readLine()) != null) {
+            if (l.trim().length() > 0 )
+              sb.append(l+"\n");
+          }
+        } catch (java.lang.Exception e) {
+          throw new Exception(e.toString());
+        } finally {
+          try {
+            if (reader != null)
+              reader.close();
+          } catch(IOException ioe) {
+            throw new Exception(ioe.getCause().getMessage());
+          }
+        }
+        Charset utf8 = Charset.forName("UTF-8");
+        buf = ByteBuffer.wrap(sb.toString().getBytes(utf8));
+        buf.limit(buf.capacity());
+      }
+
+      @Override
+      public int read(byte[] b) throws IOException {
+        return this.read(b, 0, b.length);
+      }
+
+      @Override
+      public int read(byte[] b, int off, int len) throws IOException {
+        if (!buf.hasRemaining())
+          return -1;
+        len = Math.min(len, buf.remaining());
+        buf.get(b, off, len);
+        return len;
+      }
+
+
+      @Override
+      public int read() throws IOException {
+        if (!buf.hasRemaining())
+          return -1;
+        return buf.get() & 0xFF;
+      }
+    }
   }
 
   public final int getType() { return anon ? Security.secTypeTLSNone : Security.secTypeX509None; }
