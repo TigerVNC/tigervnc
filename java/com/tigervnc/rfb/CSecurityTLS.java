@@ -3,7 +3,8 @@
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 m-privacy GmbH
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011-2012,2015 Brian P. Hinz
+ * Copyright (C) 2011-2015 Brian P. Hinz
+ * Copyright (C) 2015 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,7 +139,10 @@ public class CSecurityTLS extends CSecurity {
       manager = new SSLEngineManager(engine, is, os);
       manager.doHandshake();
     } catch(java.lang.Exception e) {
-      throw new Exception(e.getMessage());
+      if (e.getMessage().equals("X.509 certificate not trusted"))
+        throw new WarningException(e.getMessage());
+      else
+        throw new SystemException(e.toString());
     }
 
     //checkSession();
@@ -345,10 +349,10 @@ public class CSecurityTLS extends CSecurity {
               }
             }
           } else {
-            System.exit(1);
+            throw new WarningException("X.509 certificate not trusted");
           }
         } else {
-          throw new Exception(e.getCause().getMessage());
+          throw new SystemException(e.getCause().getMessage());
         }
       } catch (java.lang.Exception e) {
         throw new Exception(e.getCause().getMessage());
