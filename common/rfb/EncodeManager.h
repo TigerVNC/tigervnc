@@ -112,6 +112,7 @@ namespace rfb {
     typedef std::vector< std::vector<struct EncoderStats> > StatsVector;
 
     unsigned updates;
+    EncoderStats copyStats;
     StatsVector stats;
     int activeType;
     int beforeLength;

@@ -135,6 +135,7 @@ EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
   encoders[encoderZRLE] = new ZRLEEncoder(conn);
 
   updates = 0;
+  memset(&copyStats, 0, sizeof(copyStats));
   stats.resize(encoderClassMax);
   for (iter = stats.begin();iter != stats.end();++iter) {
     StatsVector::value_type::iterator iter2;
@@ -169,6 +170,25 @@ void EncodeManager::logStats()
   pixels = bytes = equivalent = 0;
 
   vlog.info("Framebuffer updates: %u", updates);
+
+  if (copyStats.rects != 0) {
+    vlog.info("  %s:", "CopyRect");
+
+    rects += copyStats.rects;
+    pixels += copyStats.pixels;
+    bytes += copyStats.bytes;
+    equivalent += copyStats.equivalent;
+
+    ratio = (double)copyStats.equivalent / copyStats.bytes;
+
+    siPrefix(copyStats.rects, "rects", a, sizeof(a));
+    siPrefix(copyStats.pixels, "pixels", b, sizeof(b));
+    vlog.info("    %s: %s, %s", "Copies", a, b);
+    iecPrefix(copyStats.bytes, "B", a, sizeof(a));
+    vlog.info("    %*s  %s (1:%g ratio)",
+              (int)strlen("Copies"), "",
+              a, ratio);
+  }
 
   for (i = 0;i < stats.size();i++) {
     // Did this class do anything at all?
@@ -450,11 +470,22 @@ void EncodeManager::writeCopyRects(const UpdateInfo& ui)
   std::vector<Rect> rects;
   std::vector<Rect>::const_iterator rect;
 
+  beforeLength = conn->getOutStream()->length();
+
   ui.copied.get_rects(&rects, ui.copy_delta.x <= 0, ui.copy_delta.y <= 0);
   for (rect = rects.begin(); rect != rects.end(); ++rect) {
+    int equiv;
+
+    copyStats.rects++;
+    copyStats.pixels += rect->area();
+    equiv = 12 + rect->area() * conn->cp.pf().bpp/8;
+    copyStats.equivalent += equiv;
+
     conn->writer()->writeCopyRect(*rect, rect->tl.x - ui.copy_delta.x,
                                    rect->tl.y - ui.copy_delta.y);
   }
+
+  copyStats.bytes += conn->getOutStream()->length() - beforeLength;
 }
 
 void EncodeManager::writeSolidRects(Region *changed, const PixelBuffer* pb)
