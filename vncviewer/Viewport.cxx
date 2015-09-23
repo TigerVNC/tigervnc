@@ -170,7 +170,6 @@ const rfb::PixelFormat &Viewport::getPreferredPF()
 
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
-// FIXME: Make sure this gets called on slow updates
 
 void Viewport::updateWindow()
 {

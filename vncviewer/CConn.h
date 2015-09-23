@@ -81,6 +81,8 @@ private:
 
   static void handleOptions(void *data);
 
+  static void handleUpdateTimeout(void *data);
+
 private:
   char* serverHost;
   int serverPort;
