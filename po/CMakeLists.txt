@@ -28,7 +28,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       --msgid-bugs-address=tigervnc-devel@googlegroups.com
       --sort-by-file
       --add-location
-      --add-comments
+      --add-comments=TRANSLATORS
       ${po_source}
     COMMENT "Updating tigervnc.pot"
     VERBATIM
