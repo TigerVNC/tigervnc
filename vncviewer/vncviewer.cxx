@@ -292,9 +292,11 @@ static void init_fltk()
   menubar = new Fl_Sys_Menu_Bar(0, 0, 500, 25);
   // Fl_Sys_Menu_Bar overrides methods without them being virtual,
   // which means we cannot use our generic Fl_Menu_ helpers.
-  if (fltk_menu_escape(_("&File"), buffer, sizeof(buffer)) < sizeof(buffer))
+  if (fltk_menu_escape(p_("SysMenu|", "&File"),
+                       buffer, sizeof(buffer)) < sizeof(buffer))
       menubar->add(buffer, 0, 0, 0, FL_SUBMENU);
-  if (fltk_menu_escape(_("&New Connection"), buffer, sizeof(buffer)) < sizeof(buffer))
+  if (fltk_menu_escape(p_("SysMenu|File|", "&New Connection"),
+                       buffer, sizeof(buffer)) < sizeof(buffer))
       menubar->insert(1, buffer, FL_COMMAND | 'n', new_connection_cb);
 #endif
 }
