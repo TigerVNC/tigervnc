@@ -22,7 +22,16 @@
 
 #include "gettext.h"
 
+/* Need to tell gcc that pgettext() doesn't screw up format strings */
+#ifdef __GNUC__
+static const char *
+pgettext_aux (const char *domain,
+              const char *msg_ctxt_id, const char *msgid,
+              int category) __attribute__ ((format_arg (3)));
+#endif
+
 #define _(String) gettext (String)
+#define p_(Context, String) pgettext (Context, String)
 #define N_(String) gettext_noop (String)
 
 #endif /* _I18N_H */
