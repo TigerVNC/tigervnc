@@ -22,6 +22,7 @@
 #define VNCSERVERNAMELEN 64
 
 void exit_vncviewer(const char *error = NULL);
+bool should_exit();
 void about_vncviewer();
 
 #endif

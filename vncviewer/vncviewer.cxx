@@ -117,6 +117,11 @@ void exit_vncviewer(const char *error)
   exitMainloop = true;
 }
 
+bool should_exit()
+{
+  return exitMainloop;
+}
+
 void about_vncviewer()
 {
   fl_message_title(_("About TigerVNC Viewer"));

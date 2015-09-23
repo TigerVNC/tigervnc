@@ -240,6 +240,9 @@ void CConn::blockCallback()
     next_timer = INT_MAX;
 
   Fl::wait((double)next_timer / 1000.0);
+
+  if (should_exit())
+    throw rdr::Exception("Termination requested");
 }
 
 void CConn::socketEvent(FL_SOCKET fd, void *data)
@@ -267,7 +270,10 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     exit_vncviewer();
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
-    exit_vncviewer(e.str());
+    // Somebody might already have requested us to terminate, and
+    // might have already provided an error message.
+    if (!should_exit())
+      exit_vncviewer(e.str());
   }
 
   recursing = false;
