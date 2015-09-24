@@ -104,6 +104,9 @@ static void vncWriteBlockHandlerFallback(OSTimePtr timeout)
   FD_ZERO(&fallbackFds);
   vncWriteBlockHandler(&fallbackFds);
 
+  // vncWriteBlockHandler() will clear this, so we need to restore it
+  needFallback = TRUE;
+
   if (!XFD_ANYSET(&fallbackFds))
     return;
 
