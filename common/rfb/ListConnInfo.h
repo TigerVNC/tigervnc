@@ -79,7 +79,7 @@ namespace rfb {
 
     int iGetStatus() { return *si;}
 
-    void iSetStatus( int status) { *si = status;}
+    void iSetStatus(int istatus) { *si = istatus;}
 
     void Copy(ListConnInfo* InputList) {
       Clear();
