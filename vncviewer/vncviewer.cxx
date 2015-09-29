@@ -525,7 +525,7 @@ int main(int argc, char** argv)
 #endif
 
   if (listenMode) {
-    std::list<TcpListener> listeners;
+    std::list<TcpListener*> listeners;
     try {
       int port = 5500;
       if (isdigit(vncServerName[0]))
@@ -539,10 +539,10 @@ int main(int argc, char** argv)
       while (sock == NULL) {
         fd_set rfds;
         FD_ZERO(&rfds);
-        for (std::list<TcpListener>::iterator i = listeners.begin();
+        for (std::list<TcpListener*>::iterator i = listeners.begin();
              i != listeners.end();
              i++)
-          FD_SET((*i).getFd(), &rfds);
+          FD_SET((*i)->getFd(), &rfds);
 
         int n = select(FD_SETSIZE, &rfds, 0, 0, 0);
         if (n < 0) {
@@ -554,11 +554,11 @@ int main(int argc, char** argv)
           }
         }
 
-        for (std::list<TcpListener>::iterator i = listeners.begin ();
+        for (std::list<TcpListener*>::iterator i = listeners.begin ();
              i != listeners.end();
              i++)
-          if (FD_ISSET((*i).getFd(), &rfds)) {
-            sock = (*i).accept();
+          if (FD_ISSET((*i)->getFd(), &rfds)) {
+            sock = (*i)->accept();
             if (sock)
               /* Got a connection */
               break;
@@ -571,6 +571,10 @@ int main(int argc, char** argv)
       return 1; 
     }
 
+    while (!listeners.empty()) {
+      delete listeners.back();
+      listeners.pop_back();
+    }
   } else {
     if (vncServerName[0] == '\0') {
       ServerDialog::run(defaultServerName, vncServerName);

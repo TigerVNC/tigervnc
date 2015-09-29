@@ -45,7 +45,7 @@ namespace winvnc {
 
   protected:
     void refresh();
-    std::list<network::TcpListener> sockets;
+    std::list<network::TcpListener*> sockets;
     network::TcpFilter* filter;
     rfb::win32::SocketManager* manager;
     rfb::win32::SocketManager::AddressChangeNotifier* addrChangeNotifier;

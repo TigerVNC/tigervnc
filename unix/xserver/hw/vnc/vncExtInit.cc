@@ -134,13 +134,13 @@ void vncExtensionInit(void)
     for (int scr = 0; scr < vncGetScreenCount(); scr++) {
 
       if (!desktop[scr]) {
-        std::list<network::TcpListener> listeners;
-        std::list<network::TcpListener> httpListeners;
+        std::list<network::TcpListener*> listeners;
+        std::list<network::TcpListener*> httpListeners;
         if (scr == 0 && vncInetdSock != -1) {
           if (network::TcpSocket::isSocket(vncInetdSock) &&
               !network::TcpSocket::isConnected(vncInetdSock))
           {
-            listeners.push_back (network::TcpListener(vncInetdSock));
+            listeners.push_back(new network::TcpListener(vncInetdSock));
             vlog.info("inetd wait");
           }
         } else {

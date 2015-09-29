@@ -51,8 +51,8 @@ class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
 public:
 
   XserverDesktop(int screenIndex,
-                 std::list<network::TcpListener> listeners_,
-                 std::list<network::TcpListener> httpListeners_,
+                 std::list<network::TcpListener*> listeners_,
+                 std::list<network::TcpListener*> httpListeners_,
                  const char* name, const rfb::PixelFormat &pf,
                  int width, int height, void* fbptr, int stride);
   virtual ~XserverDesktop();
@@ -113,8 +113,8 @@ private:
   int screenIndex;
   rfb::VNCServerST* server;
   rfb::HTTPServer* httpServer;
-  std::list<network::TcpListener> listeners;
-  std::list<network::TcpListener> httpListeners;
+  std::list<network::TcpListener*> listeners;
+  std::list<network::TcpListener*> httpListeners;
   bool deferredUpdateTimerSet;
   bool directFbptr;
   struct timeval dixTimeout;

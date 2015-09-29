@@ -76,8 +76,6 @@ namespace network {
   public:
     TcpListener(const struct sockaddr *listenaddr, socklen_t listenaddrlen);
     TcpListener(int sock);
-    TcpListener(const TcpListener& other);
-    TcpListener& operator= (const TcpListener& other);
     virtual ~TcpListener();
 
     virtual void shutdown();
@@ -87,11 +85,13 @@ namespace network {
     int getMyPort();
   };
 
-  void createLocalTcpListeners(std::list<TcpListener> *listeners,
+  void createLocalTcpListeners(std::list<TcpListener*> *listeners,
                                int port);
-  void createTcpListeners(std::list<TcpListener> *listeners,
+  void createTcpListeners(std::list<TcpListener*> *listeners,
                           const char *addr,
                           int port);
+  void createTcpListeners(std::list<TcpListener*> *listeners,
+                          const struct addrinfo *ai);
 
   typedef struct vnc_sockaddr {
     union {
