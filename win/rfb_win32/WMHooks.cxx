@@ -265,7 +265,9 @@ WMHooksThread::run() {
       NotifyHooksCursor((HCURSOR)msg.lParam);
 #ifdef _DEBUG
     } else if (msg.message == diagnosticMsg) {
-      vlog.info("DIAG msg=%x(%d) wnd=%lx", msg.wParam, msg.wParam, msg.lParam);
+      vlog.info("DIAG msg=%x(%d) wnd=%lx",
+                (unsigned)msg.wParam, (int)msg.wParam,
+                (unsigned long)msg.lParam);
 #endif
     }
   }
