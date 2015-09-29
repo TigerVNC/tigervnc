@@ -76,6 +76,12 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 ENDIF()
 
+option(ENABLE_ASAN "Enable address sanitizer support" OFF)
+if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+endif()
+
 if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
 endif()
