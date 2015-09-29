@@ -329,8 +329,8 @@ void vncAddChanged(int scrIdx, const struct UpdateRect *extents,
 {
   Region reg;
 
-  reg.setExtentsAndOrderedRects((ShortRect*)extents,
-                                nRects, (ShortRect*)rects);
+  reg.setExtentsAndOrderedRects((const ShortRect*)extents,
+                                nRects, (const ShortRect*)rects);
   desktop[scrIdx]->add_changed(reg);
 }
 
@@ -340,8 +340,8 @@ void vncAddCopied(int scrIdx, const struct UpdateRect *extents,
 {
   Region reg;
 
-  reg.setExtentsAndOrderedRects((ShortRect*)extents,
-                                nRects, (ShortRect*)rects);
+  reg.setExtentsAndOrderedRects((const ShortRect*)extents,
+                                nRects, (const ShortRect*)rects);
   desktop[scrIdx]->add_copied(reg, rfb::Point(dx, dy));
 }
 

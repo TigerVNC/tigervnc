@@ -45,7 +45,7 @@ namespace rdr {
 
     virtual ~MemInStream() {
       if (deleteWhenDone)
-        delete [] (U8*)start;
+        delete [] start;
     }
 
     int pos() { return ptr - start; }
