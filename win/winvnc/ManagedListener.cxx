@@ -107,7 +107,11 @@ void ManagedListener::refresh() {
       for (iter = sockets.begin(); iter != sockets.end(); ++iter)
         manager->addListener(*iter, server, addrChangeNotifier);
     } catch (...) {
-      // FIXME: Should unwind what we've added
+      std::list<network::TcpListener*>::iterator iter2;
+      for (iter2 = sockets.begin(); iter2 != iter; ++iter2)
+        manager->remListener(*iter2);
+      for (; iter2 != sockets.end(); ++iter2)
+        delete *iter;
       sockets.clear();
       throw;
     }
