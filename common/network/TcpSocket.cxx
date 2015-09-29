@@ -469,8 +469,9 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
 #endif
 
   if (bind(sock, &sa.u.sa, listenaddrlen) == -1) {
+    int e = errorNumber;
     closesocket(sock);
-    throw SocketException("failed to bind socket", errorNumber);
+    throw SocketException("failed to bind socket", e);
   }
 
   // - Set it to be a listening socket
