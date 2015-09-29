@@ -443,8 +443,11 @@ TcpListener::TcpListener(const struct sockaddr *listenaddr,
   memcpy (&sa, listenaddr, listenaddrlen);
 #ifdef IPV6_V6ONLY
   if (listenaddr->sa_family == AF_INET6) {
-    if (setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&one, sizeof(one)))
-      throw SocketException("unable to set IPV6_V6ONLY", errorNumber);
+    if (setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&one, sizeof(one))) {
+      int e = errorNumber;
+      closesocket(sock);
+      throw SocketException("unable to set IPV6_V6ONLY", e);
+    }
   }
 #endif /* defined(IPV6_V6ONLY) */
 
