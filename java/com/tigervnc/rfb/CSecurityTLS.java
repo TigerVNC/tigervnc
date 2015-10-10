@@ -42,6 +42,12 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+import javax.net.ssl.HostnameVerifier;
 import javax.swing.JOptionPane;
 import javax.xml.bind.DatatypeConverter;
 
@@ -279,6 +285,7 @@ public class CSecurityTLS extends CSecurity {
       MessageDigest md = null;
       try {
         md = MessageDigest.getInstance("SHA-1");
+        verifyHostname(chain[0]);
         tm.checkServerTrusted(chain, authType);
       } catch (CertificateException e) {
         if (e.getCause() instanceof CertPathBuilderException) {
@@ -349,19 +356,90 @@ public class CSecurityTLS extends CSecurity {
               }
             }
           } else {
-            throw new WarningException("X.509 certificate not trusted");
+            throw new SystemException(e.getCause().getMessage());
           }
+        } else if (e instanceof MyCertificateParsingException) {
+          Object[] answer = {"YES", "NO"};
+          int ret = JOptionPane.showOptionDialog(null,
+            "Hostname verification failed. Do you want to continue?",
+            "Hostname Verification Failure",
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+            null, answer, answer[0]);
+          if (ret != JOptionPane.YES_OPTION)
+            throw new WarningException("Hostname verification failed.");
         } else {
           throw new SystemException(e.getCause().getMessage());
         }
       } catch (java.lang.Exception e) {
-        throw new Exception(e.getCause().getMessage());
+        throw new SystemException(e.getCause().getMessage());
       }
     }
 
     public X509Certificate[] getAcceptedIssuers ()
     {
       return tm.getAcceptedIssuers();
+    }
+
+    private void verifyHostname(X509Certificate cert)
+      throws CertificateParsingException
+    {
+      try {
+        Collection sans = cert.getSubjectAlternativeNames();
+        if (sans == null) {
+          String dn = cert.getSubjectX500Principal().getName();
+          LdapName ln = new LdapName(dn);
+          for (Rdn rdn : ln.getRdns()) {
+            if (rdn.getType().equalsIgnoreCase("CN")) {
+              String peer =
+                ((CConn)client).getSocket().getPeerName().toLowerCase();
+              if (peer.equals(((String)rdn.getValue()).toLowerCase()))
+                return;
+            }
+          }
+        } else {
+          Iterator i = sans.iterator();
+          while (i.hasNext()) {
+            List nxt = (List)i.next();
+            if (((Integer)nxt.get(0)).intValue() == 2) {
+              String peer =
+                ((CConn)client).getSocket().getPeerName().toLowerCase();
+              if (peer.equals(((String)nxt.get(1)).toLowerCase()))
+                return;
+            } else if (((Integer)nxt.get(0)).intValue() == 7) {
+              String peer = ((CConn)client).getSocket().getPeerAddress();
+              if (peer.equals(((String)nxt.get(1)).toLowerCase()))
+                return;
+            }
+          }
+        }
+        throw new MyCertificateParsingException();
+      } catch (CertificateParsingException e) {
+        throw new MyCertificateParsingException(e.getCause());
+      } catch (InvalidNameException e) {
+        throw new MyCertificateParsingException(e.getCause());
+      }
+    }
+
+    private class MyCertificateParsingException
+      extends CertificateParsingException
+    {
+
+      public MyCertificateParsingException() {
+        super();
+      }
+
+      public MyCertificateParsingException(String msg) {
+        super(msg);
+      }
+
+      public MyCertificateParsingException(String msg, Throwable cause) {
+        super(msg, cause);
+      }
+
+      public MyCertificateParsingException(Throwable cause) {
+        super(cause);
+      }
+
     }
 
     private class MyFileInputStream extends InputStream {
@@ -411,7 +489,6 @@ public class CSecurityTLS extends CSecurity {
         buf.get(b, off, len);
         return len;
       }
-
 
       @Override
       public int read() throws IOException {
