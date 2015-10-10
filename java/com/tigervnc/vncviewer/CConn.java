@@ -1411,6 +1411,10 @@ public class CConn extends CConnection implements
 
   public void actionPerformed(ActionEvent e) {}
 
+  public Socket getSocket() {
+    return sock;
+  }
+
   ////////////////////////////////////////////////////////////////////
   // The following methods are called from both RFB and GUI threads
 
