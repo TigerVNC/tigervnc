@@ -33,6 +33,7 @@ import java.security.cert.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -66,23 +67,17 @@ public class CSecurityTLS extends CSecurity {
 
   private void initGlobal()
   {
-    boolean globalInitDone = false;
-
-    if (!globalInitDone) {
-      try {
-        ctx = SSLContext.getInstance("TLS");
-      } catch(NoSuchAlgorithmException e) {
-        throw new Exception(e.toString());
-      }
-
-      globalInitDone = true;
+    try {
+      ctx = SSLContext.getInstance("TLS");
+    } catch(NoSuchAlgorithmException e) {
+      throw new Exception(e.toString());
     }
   }
 
   public CSecurityTLS(boolean _anon)
   {
     anon = _anon;
-    session = null;
+    manager = null;
 
     setDefaults();
     cafile = x509ca.getData();
@@ -122,7 +117,7 @@ public class CSecurityTLS extends CSecurity {
 
     initGlobal();
 
-    if (session == null) {
+    if (manager == null) {
       if (!is.checkNoWait(1))
         return false;
 
@@ -138,20 +133,14 @@ public class CSecurityTLS extends CSecurity {
       }
 
       setParam();
-
     }
 
     try {
       manager = new SSLEngineManager(engine, is, os);
       manager.doHandshake();
     } catch(java.lang.Exception e) {
-      if (e.getMessage().equals("X.509 certificate not trusted"))
-        throw new WarningException(e.getMessage());
-      else
-        throw new SystemException(e.toString());
+      throw new SystemException(e.toString());
     }
-
-    //checkSession();
 
     cc.setStreams(new TLSInStream(is, manager),
 		              new TLSOutStream(os, manager));
@@ -203,13 +192,6 @@ public class CSecurityTLS extends CSecurity {
       engine.setEnabledCipherSuites(engine.getSupportedCipherSuites());
     }
 
-  }
-
-  class MyHandshakeListener implements HandshakeCompletedListener {
-   public void handshakeCompleted(HandshakeCompletedEvent e) {
-     vlog.info("Handshake succesful!");
-     vlog.info("Using cipher suite: " + e.getCipherSuite());
-   }
   }
 
   class MyX509TrustManager implements X509TrustManager
@@ -269,7 +251,7 @@ public class CSecurityTLS extends CSecurity {
         tmf.init(new CertPathTrustManagerParameters(params));
         tm = (X509TrustManager)tmf.getTrustManagers()[0];
       } catch (java.lang.Exception e) {
-        vlog.error(e.toString());
+        throw new Exception(e.getMessage());
       }
     }
 
@@ -287,7 +269,7 @@ public class CSecurityTLS extends CSecurity {
         md = MessageDigest.getInstance("SHA-1");
         verifyHostname(chain[0]);
         tm.checkServerTrusted(chain, authType);
-      } catch (CertificateException e) {
+      } catch (java.lang.Exception e) {
         if (e.getCause() instanceof CertPathBuilderException) {
           Object[] answer = {"YES", "NO"};
           X509Certificate cert = chain[0];
@@ -312,19 +294,19 @@ public class CSecurityTLS extends CSecurity {
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
             null, answer, answer[0]);
           if (ret == JOptionPane.YES_OPTION) {
-            File vncDir = new File(FileUtils.getVncHomeDir());
-            if (!vncDir.exists() && !vncDir.mkdir()) {
-              vlog.info("Certificate save failed, unable to create ~/.vnc");
-              return;
-            }
             Collection<? extends X509Certificate> cacerts = null;
-            String castore =
-              FileUtils.getVncHomeDir()+"x509_savedcerts.pem";
-            File caFile = new File(castore);
+            File vncDir = new File(FileUtils.getVncHomeDir());
+            File caFile = new File(vncDir, "x509_savedcerts.pem");
             try {
-              caFile.createNewFile();
-            } catch (IOException ioe) {
-              vlog.error(ioe.getCause().getMessage());
+              if (!vncDir.exists())
+                vncDir.mkdir();
+              if (!caFile.createNewFile()) {
+                vlog.error("Certificate save failed.");
+                return;
+              }
+            } catch (java.lang.Exception ioe) {
+              // skip save if security settings prohibit access to filesystem
+              vlog.error("Certificate save failed: "+ioe.getMessage());
               return;
             }
             InputStream caStream = new MyFileInputStream(caFile);
@@ -339,39 +321,28 @@ public class CSecurityTLS extends CSecurity {
                 pem = pem.replaceAll("(.{64})", "$1\n");
                 FileWriter fw = null;
                 try {
-                  fw = new FileWriter(castore, true);
+                  fw = new FileWriter(caFile.getAbsolutePath(), true);
                   fw.write("-----BEGIN CERTIFICATE-----\n");
                   fw.write(pem+"\n");
                   fw.write("-----END CERTIFICATE-----\n");
                 } catch (IOException ioe) {
-                  throw new Exception(ioe.getCause().getMessage());
+                  throw new Exception(ioe.getMessage());
                 } finally {
                   try {
                     if (fw != null)
                       fw.close();
                   } catch(IOException ioe2) {
-                    throw new Exception(ioe2.getCause().getMessage());
+                    throw new Exception(ioe2.getMessage());
                   }
                 }
               }
             }
           } else {
-            throw new SystemException(e.getCause().getMessage());
+            throw new WarningException("Peer certificate verification failed.");
           }
-        } else if (e instanceof MyCertificateParsingException) {
-          Object[] answer = {"YES", "NO"};
-          int ret = JOptionPane.showOptionDialog(null,
-            "Hostname verification failed. Do you want to continue?",
-            "Hostname Verification Failure",
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-            null, answer, answer[0]);
-          if (ret != JOptionPane.YES_OPTION)
-            throw new WarningException("Hostname verification failed.");
         } else {
-          throw new SystemException(e.getCause().getMessage());
+          throw new SystemException(e.getMessage());
         }
-      } catch (java.lang.Exception e) {
-        throw new SystemException(e.getCause().getMessage());
       }
     }
 
@@ -412,34 +383,19 @@ public class CSecurityTLS extends CSecurity {
             }
           }
         }
-        throw new MyCertificateParsingException();
+        Object[] answer = {"YES", "NO"};
+        int ret = JOptionPane.showOptionDialog(null,
+          "Hostname verification failed. Do you want to continue?",
+          "Hostname Verification Failure",
+          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+          null, answer, answer[0]);
+        if (ret != JOptionPane.YES_OPTION)
+          throw new WarningException("Hostname verification failed.");
       } catch (CertificateParsingException e) {
-        throw new MyCertificateParsingException(e.getCause());
+        throw new SystemException(e.getMessage());
       } catch (InvalidNameException e) {
-        throw new MyCertificateParsingException(e.getCause());
+        throw new SystemException(e.getMessage());
       }
-    }
-
-    private class MyCertificateParsingException
-      extends CertificateParsingException
-    {
-
-      public MyCertificateParsingException() {
-        super();
-      }
-
-      public MyCertificateParsingException(String msg) {
-        super(msg);
-      }
-
-      public MyCertificateParsingException(String msg, Throwable cause) {
-        super(msg, cause);
-      }
-
-      public MyCertificateParsingException(Throwable cause) {
-        super(cause);
-      }
-
     }
 
     private class MyFileInputStream extends InputStream {
@@ -468,7 +424,7 @@ public class CSecurityTLS extends CSecurity {
             if (reader != null)
               reader.close();
           } catch(IOException ioe) {
-            throw new Exception(ioe.getCause().getMessage());
+            throw new Exception(ioe.getMessage());
           }
         }
         Charset utf8 = Charset.forName("UTF-8");
@@ -503,13 +459,9 @@ public class CSecurityTLS extends CSecurity {
   public final String description()
     { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
 
-  //protected void checkSession();
   protected CConnection client;
 
-
-
   private SSLContext ctx;
-  private SSLSession session;
   private SSLEngine engine;
   private SSLEngineManager manager;
   private boolean anon;

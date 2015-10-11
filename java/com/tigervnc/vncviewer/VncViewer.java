@@ -464,19 +464,18 @@ public class VncViewer extends javax.swing.JApplet
       cc = new CConn(this, sock, vncServerName.getValue());
       while (!cc.shuttingDown)
         cc.processMsg();
+      exit(0);
     } catch (java.lang.Exception e) {
       if (cc == null || !cc.shuttingDown) {
         reportException(e);
         if (cc != null)
           cc.deleteWindow();
-        exit(1);
       } else if (embed.getValue()) {
         reportException(new java.lang.Exception("Connection closed"));
-      } else {
-        cc = null;
+        exit(0);
       }
+      exit(1);
     }
-    exit(0);
   }
 
   static BoolParameter noLionFS
