@@ -33,6 +33,7 @@ import java.security.cert.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -66,23 +67,17 @@ public class CSecurityTLS extends CSecurity {
 
   private void initGlobal()
   {
-    boolean globalInitDone = false;
-
-    if (!globalInitDone) {
-      try {
-        ctx = SSLContext.getInstance("TLS");
-      } catch(NoSuchAlgorithmException e) {
-        throw new Exception(e.toString());
-      }
-
-      globalInitDone = true;
+    try {
+      ctx = SSLContext.getInstance("TLS");
+    } catch(NoSuchAlgorithmException e) {
+      throw new Exception(e.toString());
     }
   }
 
   public CSecurityTLS(boolean _anon)
   {
     anon = _anon;
-    session = null;
+    manager = null;
 
     setDefaults();
     cafile = x509ca.getData();
@@ -122,7 +117,7 @@ public class CSecurityTLS extends CSecurity {
 
     initGlobal();
 
-    if (session == null) {
+    if (manager == null) {
       if (!is.checkNoWait(1))
         return false;
 
@@ -138,7 +133,6 @@ public class CSecurityTLS extends CSecurity {
       }
 
       setParam();
-
     }
 
     try {
@@ -300,19 +294,19 @@ public class CSecurityTLS extends CSecurity {
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
             null, answer, answer[0]);
           if (ret == JOptionPane.YES_OPTION) {
-            File vncDir = new File(FileUtils.getVncHomeDir());
-            if (!vncDir.exists() && !vncDir.mkdir()) {
-              vlog.info("Certificate save failed, unable to create ~/.vnc");
-              return;
-            }
             Collection<? extends X509Certificate> cacerts = null;
-            String castore =
-              FileUtils.getVncHomeDir()+"x509_savedcerts.pem";
-            File caFile = new File(castore);
+            File vncDir = new File(FileUtils.getVncHomeDir());
+            File caFile = new File(vncDir, "x509_savedcerts.pem");
             try {
-              caFile.createNewFile();
-            } catch (IOException ioe) {
-              vlog.error(ioe.getCause().getMessage());
+              if (!vncDir.exists())
+                vncDir.mkdir();
+              if (!caFile.createNewFile()) {
+                vlog.error("Certificate save failed.");
+                return;
+              }
+            } catch (java.lang.Exception ioe) {
+              // skip save if security settings prohibit access to filesystem
+              vlog.error("Certificate save failed: "+ioe.getMessage());
               return;
             }
             InputStream caStream = new MyFileInputStream(caFile);
@@ -327,7 +321,7 @@ public class CSecurityTLS extends CSecurity {
                 pem = pem.replaceAll("(.{64})", "$1\n");
                 FileWriter fw = null;
                 try {
-                  fw = new FileWriter(castore, true);
+                  fw = new FileWriter(caFile.getAbsolutePath(), true);
                   fw.write("-----BEGIN CERTIFICATE-----\n");
                   fw.write(pem+"\n");
                   fw.write("-----END CERTIFICATE-----\n");
@@ -430,7 +424,7 @@ public class CSecurityTLS extends CSecurity {
             if (reader != null)
               reader.close();
           } catch(IOException ioe) {
-            throw new Exception(ioe.getCause().getMessage());
+            throw new Exception(ioe.getMessage());
           }
         }
         Charset utf8 = Charset.forName("UTF-8");
@@ -468,7 +462,6 @@ public class CSecurityTLS extends CSecurity {
   protected CConnection client;
 
   private SSLContext ctx;
-  private SSLSession session;
   private SSLEngine engine;
   private SSLEngineManager manager;
   private boolean anon;
