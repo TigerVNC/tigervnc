@@ -302,6 +302,7 @@ if ($fontPath ne $defFontPath) {
 }
 unless (kill 0, `cat $pidFile`) {
     warn "Could not start Xvnc.\n\n";
+    unlink $pidFile;
     open(LOG, "<$desktopLog");
     while (<LOG>) { print; }
     close(LOG);
@@ -587,7 +588,12 @@ sub List
     print "X DISPLAY #\tPROCESS ID\n";
     foreach my $file (@filelist) {
 	if ($file =~ /$host:(\d+)$\.pid/) {
-	    print ":".$1."\t\t".`cat $vncUserDir/$file`;
+	    chop($tmp_pid = `cat $vncUserDir/$file`);
+	    if (kill 0, $tmp_pid) {
+		print ":".$1."\t\t".`cat $vncUserDir/$file`;
+	    } else {
+		unlink ($vncUserDir . "/" . $file);
+	    }
 	}
     }
     exit 1;
