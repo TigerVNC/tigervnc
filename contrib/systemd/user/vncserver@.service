@@ -1,0 +1,28 @@
+# The vncserver service unit file for user mode
+#
+# 1. Copy this file to $XDG_CONFIG_HOME/systemd/users/vncserver@.service
+# 2. Edit the vncserver parameters appropriately
+#   ("/usr/bin/vncserver %i -arg1 -arg2 -argn")
+# 3. Run `systemctl --user daemon-reload`
+# 4. Run `systemctl --user enable vncserver@:<display>.service`
+# 5. If you wish to continue running after your user logs out of the box
+#    you must enable linger for your user with loginctl like this
+#    `loginctl enable-linger username` prior to using the service
+#    
+# DO NOT RUN THIS SERVICE if your local area network is untrusted! 
+#
+# See the wiki page for more on security
+# https://wiki.archlinux.org/index.php/Vncserver
+
+[Unit]
+Description=Remote desktop service (VNC)
+After=syslog.target network.target
+
+[Service]
+Type=forking
+ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'
+ExecStart=/usr/bin/vncserver -geometry 1440x900 -alwaysshared %i
+ExecStop=/usr/bin/vncserver -kill %i
+
+[Install]
+WantedBy=default.target
