@@ -43,7 +43,7 @@ Client
   - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
   - Left/right identification (FIXME: broken for Shift on Win)
   - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [Mac]
-  - Meta and Hyper sends Super [X11]
+  - Hyper sends Super [X11]
 
   - CapsLock, Shift and AltGr affect symbol lookup
   - NumLock affects symbol lookup [Win, X11]
