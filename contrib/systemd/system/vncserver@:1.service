@@ -1,0 +1,30 @@
+# The vncserver service unit file system mode
+#
+# 1. Copy this file to /etc/systemd/system/vncserver@:<display>.service
+# 2. Edit User=
+#   ("User=foo")
+# 3. Edit the vncserver parameters appropriately
+#   ("/usr/bin/vncserver %i -arg1 -arg2 -argn")
+# 4. Run `systemctl --system daemon-reload`
+# 5. Run `systemctl enable vncserver@:<display>.service`
+#
+# DO NOT RUN THIS SERVICE if your local area network is untrusted! 
+#
+# See the wiki page for more on security
+# https://wiki.archlinux.org/index.php/Vncserver
+
+[Unit]
+Description=Remote desktop service (VNC)
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=
+PAMName=login
+
+ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'
+ExecStart=/usr/bin/vncserver -geometry 1440x900 -alwaysshared -fg %i
+ExecStop=/usr/bin/vncserver -kill %i
+
+[Install]
+WantedBy=multi-user.target

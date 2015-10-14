@@ -252,17 +252,46 @@ if ($opt{'-name'}) {
 # Now start the X VNC Server
 
 $cmd = $exedir."Xvnc :$displayNumber";
-$cmd .= " -desktop " . &quotedString($desktopName);
-$cmd .= " -httpd $vncJavaFiles" if ($vncJavaFiles);
-$cmd .= " -auth $xauthorityFile";
-$cmd .= " -geometry $geometry" if ($geometry);
-$cmd .= " -depth $depth" if ($depth);
-$cmd .= " -pixelformat $pixelformat" if ($pixelformat);
-$cmd .= " -rfbwait 30000";
-$cmd .= " -rfbauth $vncUserDir/passwd";
-$cmd .= " -rfbport $vncPort";
-$cmd .= " -fp $fontPath" if ($fontPath);
-$cmd .= " -pn";
+
+my %default_opts;
+my %config;
+
+$default_opts{desktop} = &quotedString($desktopName);
+$default_opts{httpd} = $vncJavaFiles if ($vncJavaFiles);
+$default_opts{auth} = $xauthorityFile;
+$default_opts{geometry} = $geometry if ($geometry);
+$default_opts{depth} = $depth if ($depth);
+$default_opts{pixelformat} = $pixelformat if ($pixelformat);
+$default_opts{rfbwait} = 30000;
+$default_opts{rfbauth} = "$vncUserDir/passwd";
+$default_opts{rfbport} = $vncPort;
+$default_opts{fp} = $fontPath if ($fontPath);
+$default_opts{pn} = "";
+
+# if a user configuration file already exists
+if(stat("$vncUserDir/config")) {
+
+  # loads and parses configuration file
+  if(open(IN, "$vncUserDir/config")) {
+    while(<IN>) {
+      next if /^#/;
+      if(my ($k, $v) = /^\s*(\w+)\s*=\s*(.*?)$/) {
+        $config{$k} = $v;
+      }
+    }
+    close(IN);
+  }
+}
+
+foreach my $k (sort keys %config) {
+  $cmd .= " -$k $config{$k}";
+	# user's option takes precedence
+  delete $default_opts{$k};
+}
+
+foreach my $k (sort keys %default_opts) {
+  $cmd .= " -$k $default_opts{$k}";
+}
 
 # Add color database stuff here, e.g.:
 #
