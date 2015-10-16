@@ -199,6 +199,8 @@ if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "WARNING: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
+include_directories(${JPEG_INCLUDE_DIR})
+
 option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
 if(BUILD_JAVA)
   add_subdirectory(java)
