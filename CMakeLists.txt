@@ -39,12 +39,9 @@ if(MSVC)
   message(FATAL_ERROR "TigerVNC cannot be built with Visual Studio.  Please use MinGW")
 endif()
 
-set(BUILD_TIMESTAMP "")
-execute_process(COMMAND "date" "+%Y-%m-%d %H:%M" OUTPUT_VARIABLE BUILD_TIMESTAMP)
-
 if(NOT BUILD_TIMESTAMP)
   set(BUILD_TIMESTAMP "")
-else()
+  execute_process(COMMAND "date" "+%Y-%m-%d %H:%M" OUTPUT_VARIABLE BUILD_TIMESTAMP)
   string(REGEX REPLACE "\n" "" BUILD_TIMESTAMP ${BUILD_TIMESTAMP})
 endif()
 
@@ -57,6 +54,7 @@ endif()
 message(STATUS "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
 
 message(STATUS "VERSION = ${VERSION}")
+message(STATUS "BUILD_TIMESTAMP = ${BUILD_TIMESTAMP}")
 add_definitions(-DBUILD_TIMESTAMP="${BUILD_TIMESTAMP}")
 
 # We want to keep our asserts even in release builds so remove NDEBUG
