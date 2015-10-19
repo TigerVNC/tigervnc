@@ -134,6 +134,14 @@ A shell script specifying X applications to be run when a VNC desktop is
 started.  If this file does not exist, then vncserver will create a default
 xstartup script which attempts to launch your chosen window manager.
 .TP
+$HOME/.vnc/config
+An optional server config file wherein options to be passed to Xvnc are listed
+to avoid hard-coding them to the physical invocation. List options in this file
+one per line. For those requiring an argument, simply separate the option from
+the argument with an equal sign, for example: "geometry=2000x1200" or
+"securitytypes=vncauth,tlsvnc". Options without an argument are simply listed
+as a single word, for example: "localhost" or "alwaysshared".
+.TP
 $HOME/.vnc/passwd
 The VNC password file.
 .TP
