@@ -53,6 +53,7 @@ $vncJavaFiles = (((-d "$vncClasses") && "$vncClasses") ||
                  ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes"));
                  
 $vncUserDir = "$ENV{HOME}/.vnc";
+$skipxstartup = 0;
 $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 
 $defaultXStartup
@@ -133,7 +134,7 @@ if ($fontPath eq "") {
 # Check command line options
 
 &ParseOptions("-geometry",1,"-depth",1,"-pixelformat",1,"-name",1,"-kill",1,
-	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0,"-autokill",0);
+	      "-help",0,"-h",0,"--help",0,"-fp",1,"-list",0,"-fg",0,"-autokill",0,"-noxstartup",0);
 
 &Usage() if ($opt{'-help'} || $opt{'-h'} || $opt{'--help'});
 
@@ -154,6 +155,9 @@ if ($opt{'-depth'}) {
 }
 if ($opt{'-pixelformat'}) {
     $pixelformat = $opt{'-pixelformat'};
+}
+if ($opt{'-noxstartup'}) {
+    $skipxstartup = 1;
 }
 if ($opt{'-fp'}) {
     $fontPath = $opt{'-fp'};
@@ -355,12 +359,14 @@ warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
 
 # Create the user's xstartup script if necessary.
 
-if (!(-e "$vncUserDir/xstartup")) {
-    warn "Creating default startup script $vncUserDir/xstartup\n";
-    open(XSTARTUP, ">$vncUserDir/xstartup");
-    print XSTARTUP $defaultXStartup;
-    close(XSTARTUP);
-    chmod 0755, "$vncUserDir/xstartup";
+if (! $skipxstartup) {
+    if (!(-e "$vncUserDir/xstartup")) {
+        warn "Creating default startup script $vncUserDir/xstartup\n";
+        open(XSTARTUP, ">$vncUserDir/xstartup");
+        print XSTARTUP $defaultXStartup;
+        close(XSTARTUP);
+        chmod 0755, "$vncUserDir/xstartup";
+    }
 }
 
 # Create the user's config file if necessary.
@@ -375,7 +381,9 @@ if (!(-e "$vncUserDir/config")) {
 
 # Run the X startup script.
 
-warn "Starting applications specified in $vncUserDir/xstartup\n";
+if (! $skipxstartup) {
+    warn "Starting applications specified in $vncUserDir/xstartup\n";
+}
 warn "Log file is $desktopLog\n\n";
 
 # If the unix domain socket exists then use that (DISPLAY=:n) otherwise use
@@ -393,18 +401,24 @@ $ENV{VNCDESKTOP}= $desktopName;
 system($exedir."vncconfig -nowin >> " . &quotedString($desktopLog) . " 2>&1 &");
 
 if ($opt{'-fg'}) {
-    system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1");
+    if (! $skipxstartup) {
+        system("$vncUserDir/xstartup >> " . &quotedString($desktopLog) . " 2>&1");
+    }
     if (kill 0, `cat $pidFile`) {
         $opt{'-kill'} = ':'.$displayNumber;
         &Kill();
     }
 } else {
     if ($opt{'-autokill'}) {
-        system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> "
-            . &quotedString($desktopLog) . " 2>&1 &");
+    	if (! $skipxstartup) {
+            system("($vncUserDir/xstartup; $0 -kill :$displayNumber) >> "
+             . &quotedString($desktopLog) . " 2>&1 &");
+    	}
     } else {
-        system("$vncUserDir/xstartup >> " . &quotedString($desktopLog)
-            . " 2>&1 &");
+    	if (! $skipxstartup) {
+            system("$vncUserDir/xstartup >> " . &quotedString($desktopLog)
+             . " 2>&1 &");
+    	}
     }
 }
 
@@ -621,6 +635,7 @@ sub Usage
 	"                 [-fp <font-path>]\n".
 	"                 [-fg]\n".
 	"                 [-autokill]\n".
+	"                 [-noxstartup]\n".
 	"                 <Xvnc-options>...\n\n".
 	"       $prog -kill <X-display>\n\n".
 	"       $prog -list\n\n");
