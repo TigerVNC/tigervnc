@@ -16,6 +16,7 @@ vncserver \- start or stop a VNC server
 .IR font-path ]
 .RB [ \-fg ]
 .RB [ \-autokill ]
+.RB [ \-noxstartup ]
 .RI [ Xvnc-options... ]
 .br
 .BI "vncserver \-kill :" display#
@@ -121,6 +122,11 @@ when launching TigerVNC from within certain grid computing environments.
 Automatically kill Xvnc whenever the xstartup script exits.  In most cases,
 this has the effect of terminating Xvnc when the user logs out of the window
 manager.
+.
+.TP
+.B \-noxstartup
+Do not run the %HOME/.vnc/xstartup script after launching Xvnc.  This
+option allows you to manually start a window manager in your TigerVNC session.
 .
 .TP
 .B \-list
