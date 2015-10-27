@@ -81,6 +81,17 @@ $defaultXStartup
        "xterm -geometry 80x24+10+10 -ls -title \"\$VNCDESKTOP Desktop\" &\n".
        "twm &\n");
 
+$defaultConfig
+    = ("## Supported server options to pass to vncserver upon invocation can be listed\n".
+       "## in this file. See the following manpages for more: vncserver(1) Xvnc(1).\n".
+       "## Several common ones are shown below. Uncomment and modify to your liking.\n".
+       "##\n".
+       "# securitytypes=vncauth,tlsvnc\n".
+       "# desktop=sandbox\n".
+       "# geometry=2000x1200\n".
+       "# localhost\n".
+       "# alwaysshared\n");
+
 chop($host = `uname -n`);
 
 if (-d "/etc/X11/fontpath.d") {
@@ -252,17 +263,48 @@ if ($opt{'-name'}) {
 # Now start the X VNC Server
 
 $cmd = $exedir."Xvnc :$displayNumber";
-$cmd .= " -desktop " . &quotedString($desktopName);
-$cmd .= " -httpd $vncJavaFiles" if ($vncJavaFiles);
-$cmd .= " -auth $xauthorityFile";
-$cmd .= " -geometry $geometry" if ($geometry);
-$cmd .= " -depth $depth" if ($depth);
-$cmd .= " -pixelformat $pixelformat" if ($pixelformat);
-$cmd .= " -rfbwait 30000";
-$cmd .= " -rfbauth $vncUserDir/passwd";
-$cmd .= " -rfbport $vncPort";
-$cmd .= " -fp $fontPath" if ($fontPath);
-$cmd .= " -pn";
+
+my %default_opts;
+my %config;
+
+$default_opts{desktop} = &quotedString($desktopName);
+$default_opts{httpd} = $vncJavaFiles if ($vncJavaFiles);
+$default_opts{auth} = $xauthorityFile;
+$default_opts{geometry} = $geometry if ($geometry);
+$default_opts{depth} = $depth if ($depth);
+$default_opts{pixelformat} = $pixelformat if ($pixelformat);
+$default_opts{rfbwait} = 30000;
+$default_opts{rfbauth} = "$vncUserDir/passwd";
+$default_opts{rfbport} = $vncPort;
+$default_opts{fp} = $fontPath if ($fontPath);
+$default_opts{pn} = "";
+
+# if a user configuration file already exists
+if(stat("$vncUserDir/config")) {
+
+  # loads and parses configuration file
+  if(open(IN, "$vncUserDir/config")) {
+    while(<IN>) {
+      next if /^#/;
+      if(my ($k, $v) = /^\s*(\w+)\s*=\s*(.+)$/) {
+        $config{$k} = $v;
+      } elsif ($_ =~ m/^\s*(\S+)/) {
+        $config{$1} = $k;
+      }
+    }
+    close(IN);
+  }
+}
+
+foreach my $k (sort keys %config) {
+  $cmd .= " -$k $config{$k}";
+  # user's option takes precedence
+  delete $default_opts{$k};
+}
+
+foreach my $k (sort keys %default_opts) {
+  $cmd .= " -$k $default_opts{$k}";
+}
 
 # Add color database stuff here, e.g.:
 #
@@ -319,6 +361,16 @@ if (!(-e "$vncUserDir/xstartup")) {
     print XSTARTUP $defaultXStartup;
     close(XSTARTUP);
     chmod 0755, "$vncUserDir/xstartup";
+}
+
+# Create the user's config file if necessary.
+
+if (!(-e "$vncUserDir/config")) {
+    warn "Creating default config $vncUserDir/config\n";
+    open(XSTARTUP, ">$vncUserDir/config");
+    print XSTARTUP $defaultConfig;
+    close(XSTARTUP);
+    chmod 0644, "$vncUserDir/config";
 }
 
 # Run the X startup script.
