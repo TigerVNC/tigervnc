@@ -48,7 +48,7 @@ next three green, and the least significant three represent red), the default
 for depth 16 is RGB565 and for depth 24 is RGB888.
 .
 .TP
-.B \-interface \fIIP address\fP or \-i \fIIP address\fP
+.B \-interface \fIIP address\fP
 Listen on interface. By default Xvnc listens on all available interfaces.
 .
 .TP
