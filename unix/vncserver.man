@@ -17,6 +17,8 @@ vncserver \- start or stop a VNC server
 .RB [ \-fg ]
 .RB [ \-autokill ]
 .RB [ \-noxstartup ]
+.RB [ \-xstartup 
+.IR script ]
 .RI [ Xvnc-options... ]
 .br
 .BI "vncserver \-kill :" display#
@@ -127,6 +129,11 @@ manager.
 .B \-noxstartup
 Do not run the %HOME/.vnc/xstartup script after launching Xvnc.  This
 option allows you to manually start a window manager in your TigerVNC session.
+.
+.TP
+.B \-xstartup \fIscript\fP
+Run a custom startup script, instead of %HOME/.vnc/xstartup, after launching
+Xvnc. This is useful to run full-screen applications.
 .
 .TP
 .B \-list
