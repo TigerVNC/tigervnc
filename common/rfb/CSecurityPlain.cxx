@@ -22,6 +22,8 @@
 #include <rfb/UserPasswdGetter.h>
 #include <rfb/util.h>
 
+#include <rdr/OutStream.h>
+
 using namespace rfb;
 
 bool CSecurityPlain::processMsg(CConnection* cc)

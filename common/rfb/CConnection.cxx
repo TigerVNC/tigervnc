@@ -17,16 +17,21 @@
  */
 #include <stdio.h>
 #include <string.h>
+
 #include <rfb/Exception.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
+#include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
 #include <rfb/util.h>
 
 #include <rfb/LogWriter.h>
+
+#include <rdr/InStream.h>
+#include <rdr/OutStream.h>
 
 using namespace rfb;
 

@@ -28,10 +28,12 @@
 #endif
 
 #include <rfb/CMsgWriter.h>
+#include <rfb/CSecurity.h>
 #include <rfb/encodings.h>
 #include <rfb/Decoder.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Security.h>
 #include <rfb/util.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>

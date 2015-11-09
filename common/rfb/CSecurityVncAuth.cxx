@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include <stdio.h>
+
 #include <rfb/CConnection.h>
 #include <rfb/Password.h>
 #include <rfb/CSecurityVncAuth.h>
@@ -32,6 +33,8 @@ extern "C" {
 #include <rfb/d3des.h>
 }
 
+#include <rdr/InStream.h>
+#include <rdr/OutStream.h>
 
 using namespace rfb;
 
