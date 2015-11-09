@@ -199,12 +199,6 @@ void DesktopWindow::setName(const char *name)
 }
 
 
-rfb::ModifiablePixelBuffer* DesktopWindow::getFramebuffer(void)
-{
-  return viewport->getFramebuffer();
-}
-
-
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
 

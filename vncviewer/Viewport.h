@@ -46,9 +46,6 @@ public:
   // Flush updates to screen
   void updateWindow();
 
-  // Return a pointer to the framebuffer for decoders to write into
-  rfb::ModifiablePixelBuffer* getFramebuffer(void);
-
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
