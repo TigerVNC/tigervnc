@@ -23,12 +23,8 @@
 #ifndef __RFB_CCONNECTION_H__
 #define __RFB_CCONNECTION_H__
 
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
 #include <rfb/CMsgHandler.h>
-#include <rfb/CSecurity.h>
 #include <rfb/util.h>
-#include <rfb/SecurityClient.h>
 
 namespace rfb {
 
@@ -36,6 +32,7 @@ namespace rfb {
   class CMsgWriter;
   class CSecurity;
   class IdentityVerifier;
+  class SecurityClient;
 
   class CConnection : public CMsgHandler {
   public:
