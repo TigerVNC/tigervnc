@@ -67,11 +67,6 @@ SConnection::SConnection()
 SConnection::~SConnection()
 {
   if (ssecurity) ssecurity->destroy();
-  deleteReaderAndWriter();
-}
-
-void SConnection::deleteReaderAndWriter()
-{
   delete reader_;
   reader_ = 0;
   delete writer_;

@@ -43,11 +43,6 @@ CConnection::CConnection()
 CConnection::~CConnection()
 {
   if (csecurity) csecurity->destroy();
-  deleteReaderAndWriter();
-}
-
-void CConnection::deleteReaderAndWriter()
-{
   delete reader_;
   reader_ = 0;
   delete writer_;
