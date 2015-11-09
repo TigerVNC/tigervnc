@@ -198,16 +198,7 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
 
       FD_ZERO(&fds);
       FD_SET(fd, &fds);
-#ifdef _WIN32_WCE
-      // NB: This fixes a broken Winsock2 select() behaviour.  select()
-      // never returns for non-blocking sockets, unless they're already
-      // ready to be written to...
-      u_long zero = 0; ioctlsocket(fd, FIONBIO, &zero);
-#endif
       n = select(fd+1, 0, &fds, 0, tvp);
-#ifdef _WIN32_WCE
-      u_long one = 0; ioctlsocket(fd, FIONBIO, &one);
-#endif
     } while (n < 0 && errno == EINTR);
 
     if (n < 0) throw SystemException("select",errno);
