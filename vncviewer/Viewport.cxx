@@ -113,6 +113,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 
   frameBuffer = createFramebuffer(w, h);
   assert(frameBuffer);
+  cc->setFramebuffer(frameBuffer);
 
   contextMenu = new Fl_Menu_Button(0, 0, 0, 0);
   // Setting box type to FL_NO_BOX prevents it from trying to draw the
@@ -149,8 +150,6 @@ Viewport::~Viewport()
 
   OptionsDialog::removeCallback(handleOptions);
 
-  delete frameBuffer;
-
   if (cursor) {
     if (!cursor->alloc_array)
       delete [] cursor->array;
@@ -177,11 +176,6 @@ void Viewport::updateWindow()
 
   r = frameBuffer->getDamage();
   damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
-}
-
-rfb::ModifiablePixelBuffer* Viewport::getFramebuffer(void)
-{
-  return frameBuffer;
 }
 
 static const char * dotcursor_xpm[] = {
@@ -274,51 +268,15 @@ void Viewport::draw()
 
 void Viewport::resize(int x, int y, int w, int h)
 {
-  PlatformPixelBuffer* newBuffer;
-  rfb::Rect rect;
+  if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
+    vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
+               frameBuffer->width(), frameBuffer->height(), w, h);
 
-  const rdr::U8* data;
-  int stride;
-
-  const rdr::U8 black[4] = { 0, 0, 0, 0 };
-
-  // FIXME: Resize should probably be a feature of the pixel buffer itself
-
-  if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
-    goto end;
-
-  vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
-             frameBuffer->width(), frameBuffer->height(), w, h);
-
-  newBuffer = createFramebuffer(w, h);
-  assert(newBuffer);
-
-  rect.setXYWH(0, 0,
-               __rfbmin(newBuffer->width(), frameBuffer->width()),
-               __rfbmin(newBuffer->height(), frameBuffer->height()));
-  data = frameBuffer->getBuffer(frameBuffer->getRect(), &stride);
-  newBuffer->imageRect(rect, data, stride);
-
-  // Black out any new areas
-
-  if (newBuffer->width() > frameBuffer->width()) {
-    rect.setXYWH(frameBuffer->width(), 0,
-                 newBuffer->width() - frameBuffer->width(),
-                 newBuffer->height());
-    newBuffer->fillRect(rect, black);
+    frameBuffer = createFramebuffer(w, h);
+    assert(frameBuffer);
+    cc->setFramebuffer(frameBuffer);
   }
 
-  if (newBuffer->height() > frameBuffer->height()) {
-    rect.setXYWH(0, frameBuffer->height(),
-                 newBuffer->width(),
-                 newBuffer->height() - frameBuffer->height());
-    newBuffer->fillRect(rect, black);
-  }
-
-  delete frameBuffer;
-  frameBuffer = newBuffer;
-
-end:
   Fl_Widget::resize(x, y, w, h);
 }
 

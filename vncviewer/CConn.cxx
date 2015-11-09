@@ -29,8 +29,6 @@
 
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
-#include <rfb/encodings.h>
-#include <rfb/Decoder.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
@@ -83,8 +81,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   setShared(::shared);
   sock = socket;
 
-  memset(decoders, 0, sizeof(decoders));
-
   int encNum = encodingNum(preferredEncoding);
   if (encNum != -1)
     currentEncoding = encNum;
@@ -136,9 +132,6 @@ CConn::~CConn()
 {
   OptionsDialog::removeCallback(handleOptions);
   Fl::remove_timeout(handleUpdateTimeout, this);
-
-  for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
-    delete decoders[i];
 
   if (desktop)
     delete desktop;
@@ -441,20 +434,7 @@ void CConn::dataRect(const Rect& r, int encoding)
   if (encoding != encodingCopyRect)
     lastServerEncoding = encoding;
 
-  if (!Decoder::supported(encoding)) {
-    // TRANSLATORS: Refers to a VNC protocol encoding type
-    vlog.error(_("Unknown encoding %d"), encoding);
-    throw Exception(_("Unknown encoding"));
-  }
-
-  if (!decoders[encoding]) {
-    decoders[encoding] = Decoder::createDecoder(encoding, this);
-    if (!decoders[encoding]) {
-      vlog.error(_("Unknown encoding %d"), encoding);
-      throw Exception(_("Unknown encoding"));
-    }
-  }
-  decoders[encoding]->readRect(r, desktop->getFramebuffer());
+  CConnection::dataRect(r, encoding);
 
   sock->inStream().stopTiming();
 }

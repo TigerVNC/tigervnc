@@ -33,7 +33,6 @@
 
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
-#include <rfb/Decoder.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/PixelFormat.h>
 
@@ -50,7 +49,8 @@ public:
   virtual void setDesktopSize(int w, int h);
   virtual void setPixelFormat(const rfb::PixelFormat& pf);
   virtual void setCursor(int, int, const rfb::Point&, void*, void*);
-  virtual void dataRect(const rfb::Rect&, int);
+  virtual void framebufferUpdateStart();
+  virtual void framebufferUpdateEnd();
   virtual void setColourMapEntries(int, int, rdr::U16*);
   virtual void bell();
   virtual void serverCutText(const char*, rdr::U32);
@@ -60,26 +60,14 @@ public:
 
 protected:
   rdr::FileInStream *in;
-  rfb::Decoder *decoders[rfb::encodingMax+1];
-  rfb::ManagedPixelBuffer pb;
 };
 
 CConn::CConn(const char *filename)
 {
-  int i;
-
   cpuTime = 0.0;
 
   in = new rdr::FileInStream(filename);
   setStreams(in, NULL);
-
-  memset(decoders, 0, sizeof(decoders));
-  for (i = 0;i < rfb::encodingMax;i++) {
-    if (!rfb::Decoder::supported(i))
-      continue;
-
-    decoders[i] = rfb::Decoder::createDecoder(i, this);
-  }
 
   // Need to skip the initial handshake
   setState(RFBSTATE_INITIALISATION);
@@ -89,40 +77,33 @@ CConn::CConn(const char *filename)
 
 CConn::~CConn()
 {
-  int i;
-
   delete in;
-
-  for (i = 0;i < rfb::encodingMax;i++)
-    delete decoders[i];
 }
 
 void CConn::setDesktopSize(int w, int h)
 {
   CConnection::setDesktopSize(w, h);
 
-  pb.setSize(cp.width, cp.height);
+  setFramebuffer(new rfb::ManagedPixelBuffer(filePF, cp.width, cp.height));
 }
 
 void CConn::setPixelFormat(const rfb::PixelFormat& pf)
 {
   // Override format
   CConnection::setPixelFormat(filePF);
-
-  pb.setPF(cp.pf());
 }
 
 void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
 {
 }
 
-void CConn::dataRect(const rfb::Rect &r, int encoding)
+void CConn::framebufferUpdateStart()
 {
-  if (!decoders[encoding])
-    throw rdr::Exception("Unknown encoding");
-
   startCpuCounter();
-  decoders[encoding]->readRect(r, &pb);
+}
+
+void CConn::framebufferUpdateEnd()
+{
   endCpuCounter();
 
   cpuTime += getCpuCounter();

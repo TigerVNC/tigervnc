@@ -38,7 +38,6 @@
 
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
-#include <rfb/Decoder.h>
 #include <rfb/UpdateTracker.h>
 
 #include <rfb/EncodeManager.h>
@@ -104,8 +103,6 @@ public:
 
 protected:
   rdr::FileInStream *in;
-  rfb::Decoder *decoders[rfb::encodingMax + 1];
-  rfb::ManagedPixelBuffer pb;
   rfb::SimpleUpdateTracker updates;
   class SConn *sc;
 };
@@ -165,21 +162,11 @@ int DummyOutStream::overrun(int itemSize, int nItems)
 
 CConn::CConn(const char *filename)
 {
-  int i;
-
   decodeTime = 0.0;
   encodeTime = 0.0;
 
   in = new rdr::FileInStream(filename);
   setStreams(in, NULL);
-
-  memset(decoders, 0, sizeof(decoders));
-  for (i = 0; i < rfb::encodingMax; i++) {
-    if (!rfb::Decoder::supported(i))
-      continue;
-
-    decoders[i] = rfb::Decoder::createDecoder(i, this);
-  }
 
   // Need to skip the initial handshake and ServerInit
   setState(RFBSTATE_NORMAL);
@@ -191,23 +178,15 @@ CConn::CConn(const char *filename)
   pf.parse(format);
   setPixelFormat(pf);
 
-  pb.setPF((bool)translate ? fbPF : pf);
-
   sc = new SConn();
-  sc->cp.setPF(pb.getPF());
+  sc->cp.setPF((bool)translate ? fbPF : pf);
   sc->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
 }
 
 CConn::~CConn()
 {
-  int i;
-
   delete sc;
-
   delete in;
-
-  for (i = 0; i < rfb::encodingMax; i++)
-    delete decoders[i];
 }
 
 void CConn::getStats(double& ratio, unsigned long long& bytes,
@@ -220,7 +199,7 @@ void CConn::setDesktopSize(int w, int h)
 {
   CConnection::setDesktopSize(w, h);
 
-  pb.setSize(cp.width, cp.height);
+  setFramebuffer(new rfb::ManagedPixelBuffer(sc->cp.pf(), cp.width, cp.height));
 }
 
 void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
@@ -230,17 +209,23 @@ void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
 void CConn::framebufferUpdateStart()
 {
   updates.clear();
+  startCpuCounter();
 }
 
 void CConn::framebufferUpdateEnd()
 {
   rfb::UpdateInfo ui;
-  rfb::Region clip(pb.getRect());
+  rfb::PixelBuffer* pb = getFramebuffer();
+  rfb::Region clip(pb->getRect());
+
+  endCpuCounter();
+
+  decodeTime += getCpuCounter();
 
   updates.getUpdateInfo(&ui, clip);
 
   startCpuCounter();
-  sc->writeUpdate(ui, &pb);
+  sc->writeUpdate(ui, pb);
   endCpuCounter();
 
   encodeTime += getCpuCounter();
@@ -248,14 +233,7 @@ void CConn::framebufferUpdateEnd()
 
 void CConn::dataRect(const rfb::Rect &r, int encoding)
 {
-  if (!decoders[encoding])
-    throw rdr::Exception("Unknown encoding");
-
-  startCpuCounter();
-  decoders[encoding]->readRect(r, &pb);
-  endCpuCounter();
-
-  decodeTime += getCpuCounter();
+  CConnection::dataRect(r, encoding);
 
   if (encoding != rfb::encodingCopyRect) // FIXME
     updates.add_changed(rfb::Region(r));

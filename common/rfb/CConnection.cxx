@@ -40,13 +40,15 @@ static LogWriter vlog("CConnection");
 CConnection::CConnection()
   : csecurity(0), is(0), os(0), reader_(0), writer_(0),
     shared(false),
-    state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false)
+    state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
+    framebuffer(NULL), decoder(this)
 {
   security = new SecurityClient();
 }
 
 CConnection::~CConnection()
 {
+  setFramebuffer(NULL);
   if (csecurity) csecurity->destroy();
   delete reader_;
   reader_ = 0;
@@ -58,6 +60,45 @@ void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 {
   is = is_;
   os = os_;
+}
+
+void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
+{
+  if ((framebuffer != NULL) && (fb != NULL)) {
+    Rect rect;
+
+    const rdr::U8* data;
+    int stride;
+
+    const rdr::U8 black[4] = { 0, 0, 0, 0 };
+
+    // Copy still valid area
+
+    rect.setXYWH(0, 0,
+                 __rfbmin(fb->width(), framebuffer->width()),
+                 __rfbmin(fb->height(), framebuffer->height()));
+    data = framebuffer->getBuffer(framebuffer->getRect(), &stride);
+    fb->imageRect(rect, data, stride);
+
+    // Black out any new areas
+
+    if (fb->width() > framebuffer->width()) {
+      rect.setXYWH(framebuffer->width(), 0,
+                   fb->width() - fb->width(),
+                   fb->height());
+      fb->fillRect(rect, black);
+    }
+
+    if (fb->height() > framebuffer->height()) {
+      rect.setXYWH(0, framebuffer->height(),
+                   fb->width(),
+                   fb->height() - framebuffer->height());
+      fb->fillRect(rect, black);
+    }
+  }
+
+  delete framebuffer;
+  framebuffer = fb;
 }
 
 void CConnection::initialiseProtocol()
@@ -258,6 +299,11 @@ void CConnection::securityCompleted()
   vlog.debug("Authentication success!");
   authSuccess();
   writer_->writeClientInit(shared);
+}
+
+void CConnection::dataRect(const Rect& r, int encoding)
+{
+  decoder.decodeRect(r, encoding, framebuffer);
 }
 
 void CConnection::authSuccess()

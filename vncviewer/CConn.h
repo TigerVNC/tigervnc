@@ -23,10 +23,9 @@
 #include <FL/Fl.H>
 
 #include <rfb/CConnection.h>
-#include <rfb/encodings.h>
-#include <network/Socket.h>
+#include <rdr/FdInStream.h>
 
-namespace rfb { class Decoder; }
+namespace network { class Socket; }
 
 class DesktopWindow;
 
@@ -95,8 +94,6 @@ private:
 
   bool pendingPFChange;
   rfb::PixelFormat pendingPF;
-
-  rfb::Decoder *decoders[rfb::encodingMax+1];
 
   int currentEncoding, lastServerEncoding;
 
