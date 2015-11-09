@@ -61,13 +61,11 @@ void Logger_File::write(int level, const char *logname, const char *message)
     if (!m_file) return;
   }
 
-#ifndef _WIN32_WCE
   time_t current = time(0);
   if (current != m_lastLogTime) {
     m_lastLogTime = current;
     fprintf(m_file, "\n%s", ctime(&m_lastLogTime));
   }
-#endif
 
   fprintf(m_file," %s:", logname);
   int column = strlen(logname) + 2;
