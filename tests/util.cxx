@@ -29,7 +29,10 @@
 #include "util.h"
 
 #ifdef WIN32
-typedef FILETIME syscounter_t;
+typedef struct {
+  FILETIME kernelTime;
+  FILETIME userTime;
+} syscounter_t;
 #else
 typedef struct rusage syscounter_t;
 #endif
@@ -73,10 +76,10 @@ void freeCpuCounter(cpucounter_t c)
 static void measureCpu(syscounter_t *counter)
 {
 #ifdef WIN32
-  FILETIME dummy1, dummy2, dummy3;
+  FILETIME dummy1, dummy2;
 
   GetProcessTimes(GetCurrentProcess(), &dummy1, &dummy2,
-                  &dummy3, counter);
+                  &counter->kernelTime, &counter->userTime);
 #else
   getrusage(RUSAGE_SELF, counter);
 #endif
@@ -97,23 +100,35 @@ void endCpuCounter(cpucounter_t c)
 double getCpuCounter(cpucounter_t c)
 {
   syscounter_t *s = (syscounter_t*)c;
-  double seconds;
+  double sysSeconds, userSeconds;
 
 #ifdef WIN32
   uint64_t counters[2];
 
-  counters[0] = (uint64_t)s[0].dwHighDateTime << 32 |
-                s[0].dwLowDateTime;
-  counters[1] = (uint64_t)s[1].dwHighDateTime << 32 |
-                s[1].dwLowDateTime;
+  counters[0] = (uint64_t)s[0].kernelTime.dwHighDateTime << 32 |
+                s[0].kernelTime.dwLowDateTime;
+  counters[1] = (uint64_t)s[1].kernelTime.dwHighDateTime << 32 |
+                s[1].kernelTime.dwLowDateTime;
 
-  seconds = (double)(counters[1] - counters[0]) / 10000000.0;
+  sysSeconds = (double)(counters[1] - counters[0]) / 10000000.0;
+
+  counters[0] = (uint64_t)s[0].userTime.dwHighDateTime << 32 |
+                s[0].userTime.dwLowDateTime;
+  counters[1] = (uint64_t)s[1].userTime.dwHighDateTime << 32 |
+                s[1].userTime.dwLowDateTime;
+
+  userSeconds = (double)(counters[1] - counters[0]) / 10000000.0;
 #else
-  seconds = (double)(s[1].ru_utime.tv_sec -
-                     s[0].ru_utime.tv_sec);
-  seconds += (double)(s[1].ru_utime.tv_usec -
-                      s[0].ru_utime.tv_usec) / 1000000.0;
+  sysSeconds = (double)(s[1].ru_stime.tv_sec -
+                        s[0].ru_stime.tv_sec);
+  sysSeconds += (double)(s[1].ru_stime.tv_usec -
+                         s[0].ru_stime.tv_usec) / 1000000.0;
+
+  userSeconds = (double)(s[1].ru_utime.tv_sec -
+                         s[0].ru_utime.tv_sec);
+  userSeconds += (double)(s[1].ru_utime.tv_usec -
+                          s[0].ru_utime.tv_usec) / 1000000.0;
 #endif
 
-  return seconds;
+  return sysSeconds + userSeconds;
 }
