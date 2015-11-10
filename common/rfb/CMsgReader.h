@@ -46,7 +46,6 @@ namespace rfb {
     void readMsg();
 
     rdr::InStream* getInStream() { return is; }
-    rdr::U8* getImageBuf(int required, int requested=0, int* nPixels=0);
 
     int imageBufIdealSize;
 
@@ -67,8 +66,6 @@ namespace rfb {
 
     CMsgHandler* handler;
     rdr::InStream* is;
-    rdr::U8* imageBuf;
-    int imageBufSize;
     int nUpdateRectsLeft;
   };
 }
