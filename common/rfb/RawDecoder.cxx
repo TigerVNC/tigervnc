@@ -16,14 +16,13 @@
  * USA.
  */
 #include <rdr/InStream.h>
-#include <rfb/CMsgReader.h>
-#include <rfb/CConnection.h>
+#include <rfb/ConnParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/RawDecoder.h>
 
 using namespace rfb;
 
-RawDecoder::RawDecoder(CConnection* conn) : Decoder(conn)
+RawDecoder::RawDecoder()
 {
 }
 
@@ -31,22 +30,37 @@ RawDecoder::~RawDecoder()
 {
 }
 
-void RawDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
+void RawDecoder::readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, ModifiablePixelBuffer* pb)
 {
+  const PixelFormat& pf = cp.pf();
+
+  rdr::U8 imageBuf[16384];
+  const int maxPixels = sizeof(imageBuf) / (pf.bpp/8);
+
   int x = r.tl.x;
   int y = r.tl.y;
   int w = r.width();
   int h = r.height();
-  int nPixels;
-  rdr::U8* imageBuf = conn->reader()->getImageBuf(w, w*h, &nPixels);
-  const PixelFormat& pf = conn->cp.pf();
-  int bytesPerRow = w * (pf.bpp / 8);
+
   while (h > 0) {
-    int nRows = nPixels / w;
-    if (nRows > h) nRows = h;
-    conn->getInStream()->readBytes(imageBuf, nRows * bytesPerRow);
-    pb->imageRect(pf, Rect(x, y, x+w, y+nRows), imageBuf);
-    h -= nRows;
-    y += nRows;
+    int dx;
+
+    dx = 0;
+    while (dx < w) {
+      int dw;
+
+      dw = maxPixels;
+      if (dx + dw > w)
+        dw = w - dx;
+
+      is->readBytes(imageBuf, dw * pf.bpp/8);
+      pb->imageRect(pf, Rect(x+dx, y, x+dx+dw, y+1), imageBuf);
+
+      dx += dw;
+    }
+
+    y++;
+    h--;
   }
 }

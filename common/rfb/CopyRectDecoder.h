@@ -24,9 +24,10 @@ namespace rfb {
 
   class CopyRectDecoder : public Decoder {
   public:
-    CopyRectDecoder(CConnection* conn);
+    CopyRectDecoder();
     virtual ~CopyRectDecoder();
-    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
+    virtual void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, ModifiablePixelBuffer* pb);
   };
 }
 #endif

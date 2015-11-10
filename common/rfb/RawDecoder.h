@@ -21,12 +21,12 @@
 #include <rfb/Decoder.h>
 
 namespace rfb {
-
   class RawDecoder : public Decoder {
   public:
-    RawDecoder(CConnection* conn);
+    RawDecoder();
     virtual ~RawDecoder();
-    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
+    virtual void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, ModifiablePixelBuffer* pb);
   };
 }
 #endif

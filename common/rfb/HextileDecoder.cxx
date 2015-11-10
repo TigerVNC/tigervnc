@@ -15,8 +15,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/CMsgReader.h>
-#include <rfb/CConnection.h>
+#include <rdr/InStream.h>
+#include <rfb/ConnParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/HextileDecoder.h>
 
@@ -32,7 +32,7 @@ using namespace rfb;
 #include <rfb/hextileDecode.h>
 #undef BPP
 
-HextileDecoder::HextileDecoder(CConnection* conn) : Decoder(conn)
+HextileDecoder::HextileDecoder()
 {
 }
 
@@ -40,11 +40,11 @@ HextileDecoder::~HextileDecoder()
 {
 }
 
-void HextileDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
+void HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
+                              const ConnParams& cp, ModifiablePixelBuffer* pb)
 {
-  rdr::InStream* is = conn->getInStream();
-  rdr::U8* buf = conn->reader()->getImageBuf(16 * 16 * 4);
-  const PixelFormat& pf = conn->cp.pf();
+  const PixelFormat& pf = cp.pf();
+  rdr::U8 buf[16 * 16 * 4 * pf.bpp/8];
   switch (pf.bpp) {
   case 8:  hextileDecode8 (r, is, (rdr::U8*) buf, pf, pb); break;
   case 16: hextileDecode16(r, is, (rdr::U16*)buf, pf, pb); break;

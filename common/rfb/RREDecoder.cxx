@@ -15,8 +15,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/CMsgReader.h>
-#include <rfb/CConnection.h>
+#include <rdr/InStream.h>
+#include <rfb/ConnParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/RREDecoder.h>
 
@@ -32,7 +32,7 @@ using namespace rfb;
 #include <rfb/rreDecode.h>
 #undef BPP
 
-RREDecoder::RREDecoder(CConnection* conn) : Decoder(conn)
+RREDecoder::RREDecoder()
 {
 }
 
@@ -40,10 +40,10 @@ RREDecoder::~RREDecoder()
 {
 }
 
-void RREDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
+void RREDecoder::readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, ModifiablePixelBuffer* pb)
 {
-  rdr::InStream* is = conn->getInStream();
-  const PixelFormat& pf = conn->cp.pf();
+  const PixelFormat& pf = cp.pf();
   switch (pf.bpp) {
   case 8:  rreDecode8 (r, is, pf, pb); break;
   case 16: rreDecode16(r, is, pf, pb); break;
