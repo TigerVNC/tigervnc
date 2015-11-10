@@ -25,6 +25,7 @@
 #define __RDR_OUTSTREAM_H__
 
 #include <rdr/types.h>
+#include <rdr/InStream.h>
 #include <string.h> // for memcpy
 
 namespace rdr {
@@ -97,6 +98,17 @@ namespace rdr {
         memcpy(ptr, dataPtr, n);
         ptr += n;
         dataPtr += n;
+      }
+    }
+
+    // copyBytes() efficiently transfers data between streams
+
+    void copyBytes(InStream* is, int length) {
+      while (length > 0) {
+        int n = check(1, length);
+        is->readBytes(ptr, n);
+        ptr += n;
+        length -= n;
       }
     }
 
