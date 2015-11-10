@@ -1,5 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
+ * Copyright 2009-2015 Pierre Ossman for Cendio AB
  *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,39 +32,35 @@ namespace rfb {
     TightDecoder();
     virtual ~TightDecoder();
     virtual void readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, ModifiablePixelBuffer* pb);
+                          const ConnParams& cp, rdr::OutStream* os);
+    virtual void decodeRect(const Rect& r, const void* buffer,
+                            size_t buflen, const ConnParams& cp,
+                            ModifiablePixelBuffer* pb);
 
   private:
     rdr::U32 readCompact(rdr::InStream* is);
 
-    void tightDecode8(const Rect& r);
-    void tightDecode16(const Rect& r);
-    void tightDecode32(const Rect& r);
+    void FilterGradient24(const rdr::U8* inbuf, const PixelFormat& pf,
+                          rdr::U32* outbuf, int stride, const Rect& r);
 
-    void DecompressJpegRect8(const Rect& r);
-    void DecompressJpegRect16(const Rect& r);
-    void DecompressJpegRect32(const Rect& r);
+    void FilterGradient(const rdr::U8* inbuf, const PixelFormat& pf,
+                        rdr::U16* outbuf, int stride, const Rect& r);
+    void FilterGradient(const rdr::U8* inbuf, const PixelFormat& pf,
+                        rdr::U32* outbuf, int stride, const Rect& r);
 
-    void FilterGradient8(rdr::U8 *netbuf, rdr::U8* buf, int stride, 
-                         const Rect& r);
-    void FilterGradient16(rdr::U8 *netbuf, rdr::U16* buf, int stride, 
-                          const Rect& r);
-    void FilterGradient24(rdr::U8 *netbuf, rdr::U32* buf, int stride, 
-                          const Rect& r);
-    void FilterGradient32(rdr::U8 *netbuf, rdr::U32* buf, int stride, 
-                          const Rect& r);
+    void FilterPalette(const rdr::U8* palette, int palSize,
+                       const rdr::U8* inbuf, rdr::U8* outbuf,
+                       int stride, const Rect& r);
+    void FilterPalette(const rdr::U16* palette, int palSize,
+                       const rdr::U8* inbuf, rdr::U16* outbuf,
+                       int stride, const Rect& r);
+    void FilterPalette(const rdr::U32* palette, int palSize,
+                       const rdr::U8* inbuf, rdr::U32* outbuf,
+                       int stride, const Rect& r);
 
-    void directFillRect8(const Rect& r, Pixel pix);
-    void directFillRect16(const Rect& r, Pixel pix);
-    void directFillRect32(const Rect& r, Pixel pix);
-
-    ModifiablePixelBuffer* pb;
-    rdr::InStream* is;
+  private:
     rdr::ZlibInStream zis[4];
     JpegDecompressor jd;
-    PixelFormat clientpf;
-    PixelFormat serverpf;
-    bool directDecode;
   };
 }
 

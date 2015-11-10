@@ -26,6 +26,7 @@
 #include <rfb/LogWriter.h>
 
 #include <rdr/Exception.h>
+#include <rdr/MemOutStream.h>
 
 using namespace rfb;
 
@@ -35,12 +36,14 @@ DecodeManager::DecodeManager(CConnection *conn) :
   conn(conn)
 {
   memset(decoders, 0, sizeof(decoders));
+  bufferStream = new rdr::MemOutStream();
 }
 
 DecodeManager::~DecodeManager()
 {
   for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
     delete decoders[i];
+  delete bufferStream;
 }
 
 void DecodeManager::decodeRect(const Rect& r, int encoding,
@@ -60,5 +63,11 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
       throw rdr::Exception("Unknown encoding");
     }
   }
-  decoders[encoding]->readRect(r, conn->getInStream(), conn->cp, pb);
+
+  bufferStream->clear();
+  decoders[encoding]->readRect(r, conn->getInStream(),
+                               conn->cp, bufferStream);
+  decoders[encoding]->decodeRect(r, bufferStream->data(),
+                                 bufferStream->length(),
+                                 conn->cp, pb);
 }

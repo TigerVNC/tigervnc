@@ -15,7 +15,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rdr/InStream.h>
+#include <rdr/MemInStream.h>
+#include <rdr/OutStream.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/CopyRectDecoder.h>
 
@@ -30,10 +31,17 @@ CopyRectDecoder::~CopyRectDecoder()
 }
 
 void CopyRectDecoder::readRect(const Rect& r, rdr::InStream* is,
-                               const ConnParams& cp,
-                               ModifiablePixelBuffer* pb)
+                               const ConnParams& cp, rdr::OutStream* os)
 {
-  int srcX = is->readU16();
-  int srcY = is->readU16();
+  os->copyBytes(is, 4);
+}
+
+void CopyRectDecoder::decodeRect(const Rect& r, const void* buffer,
+                                 size_t buflen, const ConnParams& cp,
+                                 ModifiablePixelBuffer* pb)
+{
+  rdr::MemInStream is(buffer, buflen);
+  int srcX = is.readU16();
+  int srcY = is.readU16();
   pb->copyRect(r, Point(r.tl.x-srcX, r.tl.y-srcY));
 }

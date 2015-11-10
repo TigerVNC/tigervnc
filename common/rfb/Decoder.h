@@ -19,7 +19,10 @@
 #ifndef __RFB_DECODER_H__
 #define __RFB_DECODER_H__
 
-namespace rdr { class InStream; }
+namespace rdr {
+  class InStream;
+  class OutStream;
+}
 
 namespace rfb {
   class ConnParams;
@@ -31,12 +34,20 @@ namespace rfb {
     Decoder();
     virtual ~Decoder();
 
-    // readRect() is the main interface that decodes the given rectangle
-    // with data from the given InStream, onto the ModifiablePixelBuffer.
-    // The PixelFormat of the PixelBuffer might not match the ConnParams
-    // and it is up to the decoder to do any necessary conversion.
+    // These functions are the main interface to an individual decoder
+
+    // readRect() transfers data for the given rectangle from the
+    // InStream to the OutStream, possibly changing it along the way to
+    // make it easier to decode.
     virtual void readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, ModifiablePixelBuffer* pb)=0;
+                          const ConnParams& cp, rdr::OutStream* os)=0;
+    // decodeRect() decodes the given rectangle with data from the
+    // given buffer, onto the ModifiablePixelBuffer. The PixelFormat of
+    // the PixelBuffer might not match the ConnParams and it is up to
+    // the decoder to do any necessary conversion.
+    virtual void decodeRect(const Rect& r, const void* buffer,
+                            size_t buflen, const ConnParams& cp,
+                            ModifiablePixelBuffer* pb)=0;
 
     static bool supported(int encoding);
     static Decoder* createDecoder(int encoding);
