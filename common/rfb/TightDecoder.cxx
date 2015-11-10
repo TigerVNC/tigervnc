@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/CMsgReader.h>
-#include <rfb/CConnection.h>
+#include <rdr/InStream.h>
+#include <rfb/ConnParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/TightDecoder.h>
 
@@ -36,7 +36,7 @@ using namespace rfb;
 #include <rfb/tightDecode.h>
 #undef BPP
 
-TightDecoder::TightDecoder(CConnection* conn) : Decoder(conn)
+TightDecoder::TightDecoder()
 {
 }
 
@@ -44,12 +44,13 @@ TightDecoder::~TightDecoder()
 {
 }
 
-void TightDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
+void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
+                            const ConnParams& cp, ModifiablePixelBuffer* pb)
 {
-  is = conn->getInStream();
+  this->is = is;
   this->pb = pb;
   clientpf = pb->getPF();
-  serverpf = conn->cp.pf();
+  serverpf = cp.pf();
 
   if (clientpf.equal(serverpf)) {
     /* Decode directly into the framebuffer (fast path) */

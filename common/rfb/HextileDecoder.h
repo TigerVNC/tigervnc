@@ -24,9 +24,10 @@ namespace rfb {
 
   class HextileDecoder : public Decoder {
   public:
-    HextileDecoder(CConnection* conn);
+    HextileDecoder();
     virtual ~HextileDecoder();
-    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
+    virtual void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, ModifiablePixelBuffer* pb);
   };
 }
 #endif

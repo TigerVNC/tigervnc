@@ -28,7 +28,7 @@
 
 using namespace rfb;
 
-Decoder::Decoder(CConnection* conn_) : conn(conn_)
+Decoder::Decoder()
 {
 }
 
@@ -51,21 +51,21 @@ bool Decoder::supported(int encoding)
   }
 }
 
-Decoder* Decoder::createDecoder(int encoding, CConnection* conn)
+Decoder* Decoder::createDecoder(int encoding)
 {
   switch (encoding) {
   case encodingRaw:
-    return new RawDecoder(conn);
+    return new RawDecoder();
   case encodingCopyRect:
-    return new CopyRectDecoder(conn);
+    return new CopyRectDecoder();
   case encodingRRE:
-    return new RREDecoder(conn);
+    return new RREDecoder();
   case encodingHextile:
-    return new HextileDecoder(conn);
+    return new HextileDecoder();
   case encodingZRLE:
-    return new ZRLEDecoder(conn);
+    return new ZRLEDecoder();
   case encodingTight:
-    return new TightDecoder(conn);
+    return new TightDecoder();
   default:
     return NULL;
   }

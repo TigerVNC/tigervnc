@@ -28,9 +28,10 @@ namespace rfb {
   class TightDecoder : public Decoder {
 
   public:
-    TightDecoder(CConnection* conn);
+    TightDecoder();
     virtual ~TightDecoder();
-    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
+    virtual void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, ModifiablePixelBuffer* pb);
 
   private:
     rdr::U32 readCompact(rdr::InStream* is);

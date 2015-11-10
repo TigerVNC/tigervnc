@@ -15,8 +15,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rfb/CMsgReader.h>
-#include <rfb/CConnection.h>
+#include <rdr/InStream.h>
+#include <rfb/ConnParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/ZRLEDecoder.h>
 
@@ -58,7 +58,7 @@ static inline rdr::U32 readOpaque24B(rdr::InStream* is)
 #undef CPIXEL
 #undef BPP
 
-ZRLEDecoder::ZRLEDecoder(CConnection* conn) : Decoder(conn)
+ZRLEDecoder::ZRLEDecoder()
 {
 }
 
@@ -66,11 +66,11 @@ ZRLEDecoder::~ZRLEDecoder()
 {
 }
 
-void ZRLEDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
+void ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
+                           const ConnParams& cp, ModifiablePixelBuffer* pb)
 {
-  rdr::InStream* is = conn->getInStream();
-  rdr::U8* buf = conn->reader()->getImageBuf(64 * 64 * 4);
-  const rfb::PixelFormat& pf = conn->cp.pf();
+  const rfb::PixelFormat& pf = cp.pf();
+  rdr::U8* buf[64 * 64 * 4 * pf.bpp/8];
   switch (pf.bpp) {
   case 8:  zrleDecode8 (r, is, &zis, (rdr::U8*) buf, pf, pb); break;
   case 16: zrleDecode16(r, is, &zis, (rdr::U16*)buf, pf, pb); break;

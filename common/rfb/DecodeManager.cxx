@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/Decoder.h>
 
@@ -53,11 +54,11 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
   }
 
   if (!decoders[encoding]) {
-    decoders[encoding] = Decoder::createDecoder(encoding, conn);
+    decoders[encoding] = Decoder::createDecoder(encoding);
     if (!decoders[encoding]) {
       vlog.error("Unknown encoding %d", encoding);
       throw rdr::Exception("Unknown encoding");
     }
   }
-  decoders[encoding]->readRect(r, pb);
+  decoders[encoding]->readRect(r, conn->getInStream(), conn->cp, pb);
 }
