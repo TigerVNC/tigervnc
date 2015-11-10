@@ -23,19 +23,17 @@
 #include <rfb/util.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/CMsgReader.h>
-#include <rfb/Decoder.h>
 
 using namespace rfb;
 
 CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
   : imageBufIdealSize(0), handler(handler_), is(is_),
-    imageBuf(0), imageBufSize(0), nUpdateRectsLeft(0)
+    nUpdateRectsLeft(0)
 {
 }
 
 CMsgReader::~CMsgReader()
 {
-  delete [] imageBuf;
 }
 
 void CMsgReader::readServerInit()
@@ -241,24 +239,4 @@ void CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
   }
 
   handler->setExtendedDesktopSize(x, y, w, h, layout);
-}
-
-rdr::U8* CMsgReader::getImageBuf(int required, int requested, int* nPixels)
-{
-  int requiredBytes = required * (handler->cp.pf().bpp / 8);
-  int requestedBytes = requested * (handler->cp.pf().bpp / 8);
-  int size = requestedBytes;
-  if (size > imageBufIdealSize) size = imageBufIdealSize;
-
-  if (size < requiredBytes)
-    size = requiredBytes;
-
-  if (imageBufSize < size) {
-    imageBufSize = size;
-    delete [] imageBuf;
-    imageBuf = new rdr::U8[imageBufSize];
-  }
-  if (nPixels)
-    *nPixels = imageBufSize / (handler->cp.pf().bpp / 8);
-  return imageBuf;
 }
