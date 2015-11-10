@@ -15,7 +15,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
 #include <rdr/InStream.h>
+#include <rdr/MemInStream.h>
+#include <rdr/OutStream.h>
+
 #include <rfb/ConnParams.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/ZRLEDecoder.h>
@@ -67,13 +71,25 @@ ZRLEDecoder::~ZRLEDecoder()
 }
 
 void ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
-                           const ConnParams& cp, ModifiablePixelBuffer* pb)
+                           const ConnParams& cp, rdr::OutStream* os)
 {
+  rdr::U32 len;
+
+  len = is->readU32();
+  os->writeU32(len);
+  os->copyBytes(is, len);
+}
+
+void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
+                             size_t buflen, const ConnParams& cp,
+                             ModifiablePixelBuffer* pb)
+{
+  rdr::MemInStream is(buffer, buflen);
   const rfb::PixelFormat& pf = cp.pf();
   rdr::U8* buf[64 * 64 * 4 * pf.bpp/8];
   switch (pf.bpp) {
-  case 8:  zrleDecode8 (r, is, &zis, (rdr::U8*) buf, pf, pb); break;
-  case 16: zrleDecode16(r, is, &zis, (rdr::U16*)buf, pf, pb); break;
+  case 8:  zrleDecode8 (r, &is, &zis, (rdr::U8*) buf, pf, pb); break;
+  case 16: zrleDecode16(r, &is, &zis, (rdr::U16*)buf, pf, pb); break;
   case 32:
     {
       Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
@@ -83,16 +99,16 @@ void ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
       if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
           (fitsInMS3Bytes && pf.isBigEndian()))
       {
-        zrleDecode24A(r, is, &zis, (rdr::U32*)buf, pf, pb);
+        zrleDecode24A(r, &is, &zis, (rdr::U32*)buf, pf, pb);
       }
       else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
                (fitsInMS3Bytes && pf.isLittleEndian()))
       {
-        zrleDecode24B(r, is, &zis, (rdr::U32*)buf, pf, pb);
+        zrleDecode24B(r, &is, &zis, (rdr::U32*)buf, pf, pb);
       }
       else
       {
-        zrleDecode32(r, is, &zis, (rdr::U32*)buf, pf, pb);
+        zrleDecode32(r, &is, &zis, (rdr::U32*)buf, pf, pb);
       }
       break;
     }

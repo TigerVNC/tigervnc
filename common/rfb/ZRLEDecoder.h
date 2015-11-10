@@ -28,7 +28,10 @@ namespace rfb {
     ZRLEDecoder();
     virtual ~ZRLEDecoder();
     virtual void readRect(const Rect& r, rdr::InStream* is,
-                          const ConnParams& cp, ModifiablePixelBuffer* pb);
+                          const ConnParams& cp, rdr::OutStream* os);
+    virtual void decodeRect(const Rect& r, const void* buffer,
+                            size_t buflen, const ConnParams& cp,
+                            ModifiablePixelBuffer* pb);
   private:
     rdr::ZlibInStream zis;
   };

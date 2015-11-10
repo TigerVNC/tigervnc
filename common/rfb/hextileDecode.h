@@ -37,12 +37,14 @@ namespace rfb {
 #define READ_PIXEL CONCAT2E(readOpaque,BPP)
 #define HEXTILE_DECODE CONCAT2E(hextileDecode,BPP)
 
-void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf,
-                     const PixelFormat& pf, ModifiablePixelBuffer* pb)
+static void HEXTILE_DECODE (const Rect& r, rdr::InStream* is,
+                            const PixelFormat& pf,
+                            ModifiablePixelBuffer* pb)
 {
   Rect t;
   PIXEL_T bg = 0;
   PIXEL_T fg = 0;
+  PIXEL_T buf[16 * 16 * 4];
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
@@ -55,20 +57,20 @@ void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf,
       int tileType = is->readU8();
 
       if (tileType & hextileRaw) {
-	is->readBytes(buf, t.area() * (BPP/8));
-	pb->imageRect(pf, t, buf);
-	continue;
+        is->readBytes(buf, t.area() * (BPP/8));
+        pb->imageRect(pf, t, buf);
+        continue;
       }
 
       if (tileType & hextileBgSpecified)
-	bg = is->READ_PIXEL();
+        bg = is->READ_PIXEL();
 
       int len = t.area();
-      PIXEL_T* ptr = (PIXEL_T*)buf;
+      PIXEL_T* ptr = buf;
       while (len-- > 0) *ptr++ = bg;
 
       if (tileType & hextileFgSpecified)
-	fg = is->READ_PIXEL();
+        fg = is->READ_PIXEL();
 
       if (tileType & hextileAnySubrects) {
         int nSubrects = is->readU8();
@@ -85,7 +87,7 @@ void HEXTILE_DECODE (const Rect& r, rdr::InStream* is, PIXEL_T* buf,
           int y = (xy & 15);
           int w = ((wh >> 4) & 15) + 1;
           int h = (wh & 15) + 1;
-          PIXEL_T* ptr = (PIXEL_T*)buf + y * t.width() + x;
+          PIXEL_T* ptr = buf + y * t.width() + x;
           int rowAdd = t.width() - w;
           while (h-- > 0) {
             int len = w;

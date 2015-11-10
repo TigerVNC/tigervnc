@@ -21,6 +21,8 @@
 
 #include <rfb/encodings.h>
 
+namespace rdr { class MemOutStream; }
+
 namespace rfb {
   class CConnection;
   class Decoder;
@@ -38,6 +40,7 @@ namespace rfb {
   private:
     CConnection *conn;
     Decoder *decoders[encodingMax+1];
+    rdr::MemOutStream *bufferStream;
   };
 }
 
