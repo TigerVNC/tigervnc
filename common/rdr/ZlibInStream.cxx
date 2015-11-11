@@ -16,6 +16,8 @@
  * USA.
  */
 
+#include <assert.h>
+
 #include <rdr/ZlibInStream.h>
 #include <rdr/Exception.h>
 #include <zlib.h>
@@ -26,26 +28,16 @@ enum { DEFAULT_BUF_SIZE = 16384 };
 
 ZlibInStream::ZlibInStream(int bufSize_)
   : underlying(0), bufSize(bufSize_ ? bufSize_ : DEFAULT_BUF_SIZE), offset(0),
-    bytesIn(0)
+    zs(NULL), bytesIn(0)
 {
-  zs = new z_stream;
-  zs->zalloc    = Z_NULL;
-  zs->zfree     = Z_NULL;
-  zs->opaque    = Z_NULL;
-  zs->next_in   = Z_NULL;
-  zs->avail_in  = 0;
-  if (inflateInit(zs) != Z_OK) {
-    delete zs;
-    throw Exception("ZlibInStream: inflateInit failed");
-  }
   ptr = end = start = new U8[bufSize];
+  init();
 }
 
 ZlibInStream::~ZlibInStream()
 {
+  deinit();
   delete [] start;
-  inflateEnd(zs);
-  delete zs;
 }
 
 void ZlibInStream::setUnderlying(InStream* is, int bytesIn_)
@@ -60,7 +52,7 @@ int ZlibInStream::pos()
   return offset + ptr - start;
 }
 
-void ZlibInStream::reset()
+void ZlibInStream::removeUnderlying()
 {
   ptr = end = start;
   if (!underlying) return;
@@ -70,6 +62,38 @@ void ZlibInStream::reset()
     end = start; // throw away any data
   }
   underlying = 0;
+}
+
+void ZlibInStream::reset()
+{
+  deinit();
+  init();
+}
+
+void ZlibInStream::init()
+{
+  assert(zs == NULL);
+
+  zs = new z_stream;
+  zs->zalloc    = Z_NULL;
+  zs->zfree     = Z_NULL;
+  zs->opaque    = Z_NULL;
+  zs->next_in   = Z_NULL;
+  zs->avail_in  = 0;
+  if (inflateInit(zs) != Z_OK) {
+    delete zs;
+    zs = NULL;
+    throw Exception("ZlibInStream: inflateInit failed");
+  }
+}
+
+void ZlibInStream::deinit()
+{
+  assert(zs != NULL);
+  removeUnderlying();
+  inflateEnd(zs);
+  delete zs;
+  zs = NULL;
 }
 
 int ZlibInStream::overrun(int itemSize, int nItems, bool wait)
