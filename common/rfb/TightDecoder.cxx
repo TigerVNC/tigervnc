@@ -165,7 +165,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   bufptr += 1;
   buflen -= 1;
 
-  // Flush zlib streams if we are told by the server to do so.
+  // Reset zlib streams if we are told by the server to do so.
   for (int i = 0; i < 4; i++) {
     if (comp_ctl & 1) {
       zis[i].reset();
@@ -309,8 +309,8 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
     netbuf = new rdr::U8[dataSize];
 
     zis[streamId].readBytes(netbuf, dataSize);
-    zis[streamId].reset();
 
+    zis[streamId].removeUnderlying();
     delete ms;
 
     bufptr = netbuf;
