@@ -36,7 +36,7 @@ using namespace rfb;
 #include <rfb/rreDecode.h>
 #undef BPP
 
-RREDecoder::RREDecoder()
+RREDecoder::RREDecoder() : Decoder(DecoderPlain)
 {
 }
 

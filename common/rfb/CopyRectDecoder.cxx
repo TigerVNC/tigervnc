@@ -22,7 +22,7 @@
 
 using namespace rfb;
 
-CopyRectDecoder::CopyRectDecoder()
+CopyRectDecoder::CopyRectDecoder() : Decoder(DecoderPlain)
 {
 }
 

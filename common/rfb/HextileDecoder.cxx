@@ -36,7 +36,7 @@ using namespace rfb;
 #include <rfb/hextileDecode.h>
 #undef BPP
 
-HextileDecoder::HextileDecoder()
+HextileDecoder::HextileDecoder() : Decoder(DecoderPlain)
 {
 }
 

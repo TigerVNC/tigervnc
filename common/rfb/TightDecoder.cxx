@@ -46,7 +46,7 @@ static const int TIGHT_MIN_TO_COMPRESS = 12;
 #include <rfb/tightDecode.h>
 #undef BPP
 
-TightDecoder::TightDecoder()
+TightDecoder::TightDecoder() : Decoder(DecoderPlain)
 {
 }
 
