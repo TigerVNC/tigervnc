@@ -7,5 +7,9 @@ add_library(os STATIC
   os.cxx)
 
 if(UNIX)
+  target_link_libraries(os pthread)
+endif()
+
+if(UNIX)
   libtool_create_control_file(os)
 endif()

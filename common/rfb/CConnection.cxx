@@ -64,6 +64,8 @@ void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 
 void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
 {
+  decoder.flush();
+
   if ((framebuffer != NULL) && (fb != NULL)) {
     Rect rect;
 
@@ -303,6 +305,8 @@ void CConnection::securityCompleted()
 
 void CConnection::setDesktopSize(int w, int h)
 {
+  decoder.flush();
+
   CMsgHandler::setDesktopSize(w,h);
 }
 
@@ -311,6 +315,8 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
                                          int w, int h,
                                          const ScreenSet& layout)
 {
+  decoder.flush();
+
   CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
 }
 
@@ -321,6 +327,8 @@ void CConnection::framebufferUpdateStart()
 
 void CConnection::framebufferUpdateEnd()
 {
+  decoder.flush();
+
   CMsgHandler::framebufferUpdateEnd();
 }
 

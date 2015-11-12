@@ -19,7 +19,16 @@
 #ifndef __RFB_DECODEMANAGER_H__
 #define __RFB_DECODEMANAGER_H__
 
+#include <list>
+
+#include <os/Thread.h>
+
 #include <rfb/encodings.h>
+
+namespace os {
+  class Condition;
+  class Mutex;
+}
 
 namespace rdr { class MemOutStream; }
 
@@ -37,10 +46,48 @@ namespace rfb {
     void decodeRect(const Rect& r, int encoding,
                     ModifiablePixelBuffer* pb);
 
+    void flush();
+
   private:
     CConnection *conn;
     Decoder *decoders[encodingMax+1];
-    rdr::MemOutStream *bufferStream;
+
+    struct QueueEntry {
+      bool active;
+      Rect rect;
+      int encoding;
+      Decoder* decoder;
+      const ConnParams* cp;
+      ModifiablePixelBuffer* pb;
+      rdr::MemOutStream* bufferStream;
+    };
+
+    std::list<rdr::MemOutStream*> freeBuffers;
+    std::list<QueueEntry*> workQueue;
+
+    os::Mutex* queueMutex;
+    os::Condition* producerCond;
+    os::Condition* consumerCond;
+
+  private:
+    class DecodeThread : public os::Thread {
+    public:
+      DecodeThread(DecodeManager* manager);
+      ~DecodeThread();
+
+      void stop();
+
+    protected:
+      void worker();
+      DecodeManager::QueueEntry* findEntry();
+
+    private:
+      DecodeManager* manager;
+
+      bool stopRequested;
+    };
+
+    std::list<DecodeThread*> threads;
   };
 }
 
