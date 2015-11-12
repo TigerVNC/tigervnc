@@ -28,6 +28,9 @@ namespace rfb {
     virtual ~CopyRectDecoder();
     virtual void readRect(const Rect& r, rdr::InStream* is,
                           const ConnParams& cp, rdr::OutStream* os);
+    virtual void getAffectedRegion(const Rect& rect, const void* buffer,
+                                   size_t buflen, const ConnParams& cp,
+                                   Region* region);
     virtual void decodeRect(const Rect& r, const void* buffer,
                             size_t buflen, const ConnParams& cp,
                             ModifiablePixelBuffer* pb);

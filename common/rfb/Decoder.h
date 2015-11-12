@@ -53,6 +53,13 @@ namespace rfb {
     // A lock will be held whilst these are called so it is safe to
     // read and update internal state as necessary.
 
+    // getAffectedRegion() returns the parts of the frame buffer will
+    // be either read from or written do when decoding this rect. The
+    // default implementation simply returns the given rectangle.
+    virtual void getAffectedRegion(const Rect& rect, const void* buffer,
+                                   size_t buflen, const ConnParams& cp,
+                                   Region* region);
+
     // decodeRect() decodes the given rectangle with data from the
     // given buffer, onto the ModifiablePixelBuffer. The PixelFormat of
     // the PixelBuffer might not match the ConnParams and it is up to

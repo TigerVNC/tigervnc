@@ -23,6 +23,7 @@
 
 #include <os/Thread.h>
 
+#include <rfb/Region.h>
 #include <rfb/encodings.h>
 
 namespace os {
@@ -60,6 +61,7 @@ namespace rfb {
       const ConnParams* cp;
       ModifiablePixelBuffer* pb;
       rdr::MemOutStream* bufferStream;
+      Region affectedRegion;
     };
 
     std::list<rdr::MemOutStream*> freeBuffers;

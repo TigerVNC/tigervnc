@@ -18,6 +18,7 @@
  */
 #include <stdio.h>
 #include <rfb/encodings.h>
+#include <rfb/Region.h>
 #include <rfb/Decoder.h>
 #include <rfb/RawDecoder.h>
 #include <rfb/CopyRectDecoder.h>
@@ -34,6 +35,13 @@ Decoder::Decoder(enum DecoderFlags flags) : flags(flags)
 
 Decoder::~Decoder()
 {
+}
+
+void Decoder::getAffectedRegion(const Rect& rect, const void* buffer,
+                                size_t buflen, const ConnParams& cp,
+                                Region* region)
+{
+  region->reset(rect);
 }
 
 bool Decoder::supported(int encoding)

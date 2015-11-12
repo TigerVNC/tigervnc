@@ -18,6 +18,7 @@
 #include <rdr/MemInStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/Region.h>
 #include <rfb/CopyRectDecoder.h>
 
 using namespace rfb;
@@ -34,6 +35,23 @@ void CopyRectDecoder::readRect(const Rect& r, rdr::InStream* is,
                                const ConnParams& cp, rdr::OutStream* os)
 {
   os->copyBytes(is, 4);
+}
+
+
+void CopyRectDecoder::getAffectedRegion(const Rect& rect,
+                                        const void* buffer,
+                                        size_t buflen,
+                                        const ConnParams& cp,
+                                        Region* region)
+{
+  rdr::MemInStream is(buffer, buflen);
+  int srcX = is.readU16();
+  int srcY = is.readU16();
+
+  Decoder::getAffectedRegion(rect, buffer, buflen, cp, region);
+
+  region->assign_union(Region(rect.translate(Point(srcX-rect.tl.x,
+                                                   srcY-rect.tl.y))));
 }
 
 void CopyRectDecoder::decodeRect(const Rect& r, const void* buffer,
