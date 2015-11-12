@@ -301,6 +301,29 @@ void CConnection::securityCompleted()
   writer_->writeClientInit(shared);
 }
 
+void CConnection::setDesktopSize(int w, int h)
+{
+  CMsgHandler::setDesktopSize(w,h);
+}
+
+void CConnection::setExtendedDesktopSize(unsigned reason,
+                                         unsigned result,
+                                         int w, int h,
+                                         const ScreenSet& layout)
+{
+  CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
+}
+
+void CConnection::framebufferUpdateStart()
+{
+  CMsgHandler::framebufferUpdateStart();
+}
+
+void CConnection::framebufferUpdateEnd()
+{
+  CMsgHandler::framebufferUpdateEnd();
+}
+
 void CConnection::dataRect(const Rect& r, int encoding)
 {
   decoder.decodeRect(r, encoding, framebuffer);

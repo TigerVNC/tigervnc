@@ -342,6 +342,8 @@ void CConn::setName(const char* name)
 // one.
 void CConn::framebufferUpdateStart()
 {
+  CConnection::framebufferUpdateStart();
+
   // Note: This might not be true if sync fences are supported
   pendingUpdate = false;
 
@@ -357,6 +359,8 @@ void CConn::framebufferUpdateStart()
 // appropriately, and then request another incremental update.
 void CConn::framebufferUpdateEnd()
 {
+  CConnection::framebufferUpdateEnd();
+
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
 
