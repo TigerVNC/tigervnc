@@ -28,10 +28,16 @@ namespace rfb {
   class ConnParams;
   class ModifiablePixelBuffer;
   class Rect;
+  class Region;
+
+  enum DecoderFlags {
+    // A constant for decoders that don't need anything special
+    DecoderPlain = 0,
+  };
 
   class Decoder {
   public:
-    Decoder();
+    Decoder(enum DecoderFlags flags);
     virtual ~Decoder();
 
     // These functions are the main interface to an individual decoder
@@ -58,6 +64,9 @@ namespace rfb {
   public:
     static bool supported(int encoding);
     static Decoder* createDecoder(int encoding);
+
+  public:
+    const enum DecoderFlags flags;
   };
 }
 

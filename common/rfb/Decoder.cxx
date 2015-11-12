@@ -28,7 +28,7 @@
 
 using namespace rfb;
 
-Decoder::Decoder()
+Decoder::Decoder(enum DecoderFlags flags) : flags(flags)
 {
 }
 

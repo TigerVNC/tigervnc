@@ -25,7 +25,7 @@
 
 using namespace rfb;
 
-RawDecoder::RawDecoder()
+RawDecoder::RawDecoder() : Decoder(DecoderPlain)
 {
 }
 
