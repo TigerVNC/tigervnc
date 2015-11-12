@@ -62,7 +62,7 @@ static inline rdr::U32 readOpaque24B(rdr::InStream* is)
 #undef CPIXEL
 #undef BPP
 
-ZRLEDecoder::ZRLEDecoder() : Decoder(DecoderPlain)
+ZRLEDecoder::ZRLEDecoder() : Decoder(DecoderOrdered)
 {
 }
 
