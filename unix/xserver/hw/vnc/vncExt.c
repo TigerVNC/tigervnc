@@ -196,7 +196,7 @@ static int ProcVncExtSetParam(ClientPtr client)
   rep.success = 1;
 
   // Send DesktopName update if desktop name has been changed
-  if (strncasecmp(param, "desktop", 7) != 0)
+  if (strncasecmp(param, "desktop", 7) == 0)
     vncUpdateDesktopName();
 
 deny:
