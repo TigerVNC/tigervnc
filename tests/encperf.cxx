@@ -208,6 +208,8 @@ void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
 
 void CConn::framebufferUpdateStart()
 {
+  CConnection::framebufferUpdateStart();
+
   updates.clear();
   startCpuCounter();
 }
@@ -217,6 +219,8 @@ void CConn::framebufferUpdateEnd()
   rfb::UpdateInfo ui;
   rfb::PixelBuffer* pb = getFramebuffer();
   rfb::Region clip(pb->getRect());
+
+  CConnection::framebufferUpdateEnd();
 
   endCpuCounter();
 

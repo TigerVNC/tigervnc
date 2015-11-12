@@ -99,11 +99,15 @@ void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
 
 void CConn::framebufferUpdateStart()
 {
+  CConnection::framebufferUpdateStart();
+
   startCpuCounter();
 }
 
 void CConn::framebufferUpdateEnd()
 {
+  CConnection::framebufferUpdateEnd();
+
   endCpuCounter();
 
   cpuTime += getCpuCounter();

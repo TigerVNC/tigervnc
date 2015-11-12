@@ -92,6 +92,15 @@ namespace rfb {
 
     // Methods overridden from CMsgHandler
 
+    // Note: These must be called by any deriving classes
+
+    virtual void setDesktopSize(int w, int h);
+    virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
+                                        int w, int h,
+                                        const ScreenSet& layout);
+
+    virtual void framebufferUpdateStart();
+    virtual void framebufferUpdateEnd();
     virtual void dataRect(const Rect& r, int encoding);
 
 
