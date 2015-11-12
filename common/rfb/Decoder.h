@@ -33,6 +33,8 @@ namespace rfb {
   enum DecoderFlags {
     // A constant for decoders that don't need anything special
     DecoderPlain = 0,
+    // All rects for this decoder must be handled in order
+    DecoderOrdered = 1 << 0,
   };
 
   class Decoder {

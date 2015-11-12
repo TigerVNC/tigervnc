@@ -251,17 +251,26 @@ DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
        ++iter) {
     DecodeManager::QueueEntry* entry;
 
+    std::list<DecodeManager::QueueEntry*>::iterator iter2;
+
     entry = *iter;
 
     // Another thread working on this?
     if (entry->active)
       goto next;
 
+    // If this is an ordered decoder then make sure this is the first
+    // rectangle in the queue for that decoder
+    if (entry->decoder->flags & DecoderOrdered) {
+      for (iter2 = manager->workQueue.begin(); iter2 != iter; ++iter2) {
+        if (entry->encoding == (*iter2)->encoding)
+          goto next;
+      }
+    }
+
     // Check overlap with earlier rectangles
     if (!lockedRegion.intersect(entry->affectedRegion).is_empty())
       goto next;
-
-    // FIXME: check dependencies between rects
 
     return entry;
 
