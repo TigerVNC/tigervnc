@@ -22,6 +22,7 @@
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>
 #include <rfb/Decoder.h>
+#include <rfb/Region.h>
 
 #include <rfb/LogWriter.h>
 
@@ -129,6 +130,10 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
   entry->pb = pb;
   entry->bufferStream = bufferStream;
 
+  decoder->getAffectedRegion(r, bufferStream->data(),
+                             bufferStream->length(), conn->cp,
+                             &entry->affectedRegion);
+
   queueMutex->lock();
 
   // The workers add buffers to the end so it's safe to assume
@@ -233,6 +238,7 @@ void DecodeManager::DecodeThread::worker()
 DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
 {
   std::list<DecodeManager::QueueEntry*>::iterator iter;
+  Region lockedRegion;
 
   if (manager->workQueue.empty())
     return NULL;
@@ -243,13 +249,24 @@ DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
   for (iter = manager->workQueue.begin();
        iter != manager->workQueue.end();
        ++iter) {
+    DecodeManager::QueueEntry* entry;
+
+    entry = *iter;
+
     // Another thread working on this?
-    if ((*iter)->active)
-      continue;
+    if (entry->active)
+      goto next;
+
+    // Check overlap with earlier rectangles
+    if (!lockedRegion.intersect(entry->affectedRegion).is_empty())
+      goto next;
 
     // FIXME: check dependencies between rects
 
-    return *iter;
+    return entry;
+
+next:
+    lockedRegion.assign_union(entry->affectedRegion);
   }
 
   return NULL;
