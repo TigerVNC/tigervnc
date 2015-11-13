@@ -67,7 +67,6 @@ namespace rfb {
 
   private:
     rdr::ZlibInStream zis[4];
-    JpegDecompressor jd;
   };
 }
 

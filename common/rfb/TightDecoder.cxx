@@ -173,11 +173,6 @@ bool TightDecoder::doRectsConflict(const Rect& rectA,
   if (((comp_ctl_a & 0x0f) & (comp_ctl_b & 0x0f)) != 0)
     return true;
 
-  // We have a shared JpegDecompressor, so one at a time
-  if (((comp_ctl_a >> 4) == tightJpeg) &&
-      ((comp_ctl_b >> 4) == tightJpeg))
-    return true;
-
   return false;
 }
 
@@ -228,6 +223,8 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
 
     int stride;
     rdr::U8 *buf;
+
+    JpegDecompressor jd;
 
     assert(buflen >= 4);
 
