@@ -38,7 +38,7 @@ static LogWriter vlog("DecodeManager");
 DecodeManager::DecodeManager(CConnection *conn) :
   conn(conn)
 {
-  int i;
+  size_t cpuCount;
 
   memset(decoders, 0, sizeof(decoders));
 
@@ -46,9 +46,15 @@ DecodeManager::DecodeManager(CConnection *conn) :
   producerCond = new os::Condition(queueMutex);
   consumerCond = new os::Condition(queueMutex);
 
-  // Just a single thread for now as we haven't sorted out the
-  // dependencies between rects
-  for (i = 0;i < 1;i++) {
+  cpuCount = os::Thread::getSystemCPUCount();
+  if (cpuCount == 0) {
+    vlog.error("Unable to determine the number of CPU cores on this system");
+    cpuCount = 1;
+  } else {
+    vlog.info("Detected %d CPU core(s) available for decoding", (int)cpuCount);
+  }
+
+  while (cpuCount--) {
     // Twice as many possible entries in the queue as there
     // are worker threads to make sure they don't stall
     freeBuffers.push_back(new rdr::MemOutStream());

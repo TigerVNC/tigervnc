@@ -32,6 +32,9 @@ namespace os {
 
     bool isRunning();
 
+  public:
+    static size_t getSystemCPUCount();
+
   protected:
     virtual void worker() = 0;
 

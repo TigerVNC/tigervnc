@@ -20,6 +20,7 @@
 #include <windows.h>
 #else
 #include <pthread.h>
+#include <unistd.h>
 #endif
 
 #include <rdr/Exception.h>
@@ -97,6 +98,36 @@ bool Thread::isRunning()
   AutoMutex a(mutex);
 
   return running;
+}
+
+size_t Thread::getSystemCPUCount()
+{
+#ifdef WIN32
+  SYSTEM_INFO si;
+  size_t count;
+  DWORD mask;
+
+  GetSystemInfo(&si);
+
+  count = 0;
+  for (mask = si.dwActiveProcessorMask;mask != 0;mask >>= 1) {
+    if (mask & 0x1)
+      count++;
+  }
+
+  if (count > si.dwNumberOfProcessors)
+    count = si.dwNumberOfProcessors;
+
+  return count;
+#else
+  long ret;
+
+  ret = sysconf(_SC_NPROCESSORS_ONLN);
+  if (ret == -1)
+    return 0;
+
+  return ret;
+#endif
 }
 
 #ifdef WIN32
