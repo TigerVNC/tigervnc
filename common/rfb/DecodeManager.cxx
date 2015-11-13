@@ -268,6 +268,23 @@ DecodeManager::QueueEntry* DecodeManager::DecodeThread::findEntry()
       }
     }
 
+    // For a partially ordered decoder we must ask the decoder for each
+    // pair of rectangles.
+    if (entry->decoder->flags & DecoderPartiallyOrdered) {
+      for (iter2 = manager->workQueue.begin(); iter2 != iter; ++iter2) {
+        if (entry->encoding != (*iter2)->encoding)
+          continue;
+        if (entry->decoder->doRectsConflict(entry->rect,
+                                            entry->bufferStream->data(),
+                                            entry->bufferStream->length(),
+                                            (*iter2)->rect,
+                                            (*iter2)->bufferStream->data(),
+                                            (*iter2)->bufferStream->length(),
+                                            *entry->cp))
+          goto next;
+      }
+    }
+
     // Check overlap with earlier rectangles
     if (!lockedRegion.intersect(entry->affectedRegion).is_empty())
       goto next;

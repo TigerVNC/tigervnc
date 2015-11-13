@@ -44,6 +44,14 @@ void Decoder::getAffectedRegion(const Rect& rect, const void* buffer,
   region->reset(rect);
 }
 
+bool Decoder::doRectsConflict(const Rect& rectA, const void* bufferA,
+                              size_t buflenA, const Rect& rectB,
+                              const void* bufferB, size_t buflenB,
+                              const ConnParams& cp)
+{
+  return false;
+}
+
 bool Decoder::supported(int encoding)
 {
   switch (encoding) {
