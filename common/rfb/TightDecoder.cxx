@@ -46,7 +46,7 @@ static const int TIGHT_MIN_TO_COMPRESS = 12;
 #include <rfb/tightDecode.h>
 #undef BPP
 
-TightDecoder::TightDecoder() : Decoder(DecoderOrdered)
+TightDecoder::TightDecoder() : Decoder(DecoderPartiallyOrdered)
 {
 }
 
@@ -146,6 +146,39 @@ void TightDecoder::readRect(const Rect& r, rdr::InStream* is,
     os->writeOpaque32(len);
     os->copyBytes(is, len);
   }
+}
+
+bool TightDecoder::doRectsConflict(const Rect& rectA,
+                                   const void* bufferA,
+                                   size_t buflenA,
+                                   const Rect& rectB,
+                                   const void* bufferB,
+                                   size_t buflenB,
+                                   const ConnParams& cp)
+{
+  rdr::U8 comp_ctl_a, comp_ctl_b;
+
+  assert(buflenA >= 1);
+  assert(buflenB >= 1);
+
+  comp_ctl_a = *(const rdr::U8*)bufferA;
+  comp_ctl_b = *(const rdr::U8*)bufferB;
+
+  // Resets or use of zlib pose the same problem, so merge them
+  if ((comp_ctl_a & 0x80) == 0x00)
+    comp_ctl_a |= 1 << ((comp_ctl_a >> 4) & 0x03);
+  if ((comp_ctl_b & 0x80) == 0x00)
+    comp_ctl_b |= 1 << ((comp_ctl_b >> 4) & 0x03);
+
+  if (((comp_ctl_a & 0x0f) & (comp_ctl_b & 0x0f)) != 0)
+    return true;
+
+  // We have a shared JpegDecompressor, so one at a time
+  if (((comp_ctl_a >> 4) == tightJpeg) &&
+      ((comp_ctl_b >> 4) == tightJpeg))
+    return true;
+
+  return false;
 }
 
 void TightDecoder::decodeRect(const Rect& r, const void* buffer,

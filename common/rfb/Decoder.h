@@ -35,6 +35,9 @@ namespace rfb {
     DecoderPlain = 0,
     // All rects for this decoder must be handled in order
     DecoderOrdered = 1 << 0,
+    // Only some of the rects must be handled in order,
+    // see doesRectsConflict()
+    DecoderPartiallyOrdered = 1 << 1,
   };
 
   class Decoder {
@@ -61,6 +64,17 @@ namespace rfb {
     virtual void getAffectedRegion(const Rect& rect, const void* buffer,
                                    size_t buflen, const ConnParams& cp,
                                    Region* region);
+
+    // doesRectsConflict() determines if two rectangles must be decoded
+    // in the order they were received. This will only be called if the
+    // DecoderPartiallyOrdered flag has been set.
+    virtual bool doRectsConflict(const Rect& rectA,
+                                 const void* bufferA,
+                                 size_t buflenA,
+                                 const Rect& rectB,
+                                 const void* bufferB,
+                                 size_t buflenB,
+                                 const ConnParams& cp);
 
     // decodeRect() decodes the given rectangle with data from the
     // given buffer, onto the ModifiablePixelBuffer. The PixelFormat of
