@@ -28,15 +28,19 @@ PlatformPixelBuffer::PlatformPixelBuffer(const rfb::PixelFormat& pf,
 void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
 {
   FullFramePixelBuffer::commitBufferRW(r);
+  mutex.lock();
   damage.assign_union(rfb::Region(r));
+  mutex.unlock();
 }
 
 rfb::Rect PlatformPixelBuffer::getDamage(void)
 {
   rfb::Rect r;
 
+  mutex.lock();
   r = damage.get_bounding_rect();
   damage.clear();
+  mutex.unlock();
 
   return r;
 }

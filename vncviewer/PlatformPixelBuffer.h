@@ -19,6 +19,8 @@
 #ifndef __PLATFORMPIXELBUFFER_H__
 #define __PLATFORMPIXELBUFFER_H__
 
+#include <os/Mutex.h>
+
 #include <rfb/PixelBuffer.h>
 #include <rfb/Region.h>
 
@@ -33,6 +35,7 @@ public:
   rfb::Rect getDamage(void);
 
 protected:
+  os::Mutex mutex;
   rfb::Region damage;
 };
 
