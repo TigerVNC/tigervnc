@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include <rdr/Exception.h>
 #include <rdr/FileInStream.h>
@@ -125,10 +126,19 @@ void CConn::serverCutText(const char*, rdr::U32)
 {
 }
 
-static double runTest(const char *fn)
+struct stats
+{
+  double decodeTime;
+  double realTime;
+};
+
+static struct stats runTest(const char *fn)
 {
   CConn *cc;
-  double time;
+  struct timeval start, stop;
+  struct stats s;
+
+  gettimeofday(&start, NULL);
 
   try {
     cc = new CConn(fn);
@@ -146,11 +156,15 @@ static double runTest(const char *fn)
     exit(1);
   }
 
-  time = cc->cpuTime;
+  gettimeofday(&stop, NULL);
+
+  s.decodeTime = cc->cpuTime;
+  s.realTime = (double)stop.tv_sec - start.tv_sec;
+  s.realTime += ((double)stop.tv_usec - start.tv_usec)/1000000.0;
 
   delete cc;
 
-  return time;
+  return s;
 }
 
 static void sort(double *array, int count)
@@ -176,7 +190,8 @@ static const int runCount = 9;
 int main(int argc, char **argv)
 {
   int i;
-  double times[runCount], dev[runCount];
+  struct stats runs[runCount];
+  double values[runCount], dev[runCount];
   double median, meddev;
 
   if (argc != 2) {
@@ -189,19 +204,37 @@ int main(int argc, char **argv)
 
   // Multiple runs to get a good average
   for (i = 0;i < runCount;i++)
-    times[i] = runTest(argv[1]);
+    runs[i] = runTest(argv[1]);
 
-  // Calculate median and median deviation
-  sort(times, runCount);
-  median = times[runCount/2];
+  // Calculate median and median deviation for CPU usage
+  for (i = 0;i < runCount;i++)
+    values[i] = runs[i].decodeTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
 
   for (i = 0;i < runCount;i++)
-    dev[i] = fabs((times[i] - median) / median) * 100;
+    dev[i] = fabs((values[i] - median) / median) * 100;
 
   sort(dev, runCount);
   meddev = dev[runCount/2];
 
   printf("CPU time: %g s (+/- %g %%)\n", median, meddev);
+
+  // And for CPU core usage
+  for (i = 0;i < runCount;i++)
+    values[i] = runs[i].decodeTime / runs[i].realTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
+
+  for (i = 0;i < runCount;i++)
+    dev[i] = fabs((values[i] - median) / median) * 100;
+
+  sort(dev, runCount);
+  meddev = dev[runCount/2];
+
+  printf("Core usage: %g (+/- %g %%)\n", median, meddev);
 
   return 0;
 }

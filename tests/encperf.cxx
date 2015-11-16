@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include <rdr/Exception.h>
 #include <rdr/OutStream.h>
@@ -173,10 +174,10 @@ CConn::CConn(const char *filename)
   // That also means that the reader and writer weren't setup
   setReader(new rfb::CMsgReader(this, in));
   // Nor the frame buffer size and format
-  setDesktopSize(width, height);
   rfb::PixelFormat pf;
   pf.parse(format);
   setPixelFormat(pf);
+  setDesktopSize(width, height);
 
   sc = new SConn();
   sc->cp.setPF((bool)translate ? fbPF : pf);
@@ -197,9 +198,13 @@ void CConn::getStats(double& ratio, unsigned long long& bytes,
 
 void CConn::setDesktopSize(int w, int h)
 {
+  rfb::ModifiablePixelBuffer *pb;
+
   CConnection::setDesktopSize(w, h);
 
-  setFramebuffer(new rfb::ManagedPixelBuffer(sc->cp.pf(), cp.width, cp.height));
+  pb = new rfb::ManagedPixelBuffer((bool)translate ? fbPF : cp.pf(),
+                                   cp.width, cp.height);
+  setFramebuffer(pb);
 }
 
 void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
@@ -316,11 +321,24 @@ void SConn::setDesktopSize(int fb_width, int fb_height,
 {
 }
 
-static double runTest(const char *fn, double& ratio, unsigned long long& bytes,
-                      unsigned long long& rawEquivalent)
+struct stats
+{
+  double decodeTime;
+  double encodeTime;
+  double realTime;
+
+  double ratio;
+  unsigned long long bytes;
+  unsigned long long rawEquivalent;
+};
+
+static struct stats runTest(const char *fn)
 {
   CConn *cc;
-  double time;
+  struct stats s;
+  struct timeval start, stop;
+
+  gettimeofday(&start, NULL);
 
   try {
     cc = new CConn(fn);
@@ -338,12 +356,17 @@ static double runTest(const char *fn, double& ratio, unsigned long long& bytes,
     exit(1);
   }
 
-  time = cc->encodeTime;
-  cc->getStats(ratio, bytes, rawEquivalent);
+  gettimeofday(&stop, NULL);
+
+  s.decodeTime = cc->decodeTime;
+  s.encodeTime = cc->encodeTime;
+  s.realTime = (double)stop.tv_sec - start.tv_sec;
+  s.realTime += ((double)stop.tv_usec - start.tv_usec)/1000000.0;
+  cc->getStats(s.ratio, s.bytes, s.rawEquivalent);
 
   delete cc;
 
-  return time;
+  return s;
 }
 
 static void sort(double *array, int count)
@@ -400,9 +423,9 @@ int main(int argc, char **argv)
   }
 
   int runCount = count;
-  double times[runCount], dev[runCount];
-  double median, meddev, ratio;
-  unsigned long long bytes, equivalent;
+  struct stats runs[runCount];
+  double values[runCount], dev[runCount];
+  double median, meddev;
 
   if (fn == NULL) {
     fprintf(stderr, "No file specified!\n\n");
@@ -420,31 +443,65 @@ int main(int argc, char **argv)
   }
 
   // Warmup
-  runTest(fn, ratio, bytes, equivalent);
+  runTest(fn);
 
   // Multiple runs to get a good average
   for (i = 0; i < runCount; i++)
-    times[i] = runTest(fn, ratio, bytes, equivalent);
+    runs[i] = runTest(fn);
 
-  // Calculate median and median deviation
-  sort(times, runCount);
-  median = times[runCount / 2];
+  // Calculate median and median deviation for CPU usage decoding
+  for (i = 0;i < runCount;i++)
+    values[i] = runs[i].decodeTime;
 
-  for (i = 0; i < runCount; i++)
-    dev[i] = fabs((times[i] - median) / median) * 100;
+  sort(values, runCount);
+  median = values[runCount/2];
+
+  for (i = 0;i < runCount;i++)
+    dev[i] = fabs((values[i] - median) / median) * 100;
 
   sort(dev, runCount);
-  meddev = dev[runCount / 2];
+  meddev = dev[runCount/2];
 
-  printf("CPU time: %g s (+/- %g %%)\n", median, meddev);
+  printf("CPU time (decoding): %g s (+/- %g %%)\n", median, meddev);
+
+  // And for CPU usage encoding
+  for (i = 0;i < runCount;i++)
+    values[i] = runs[i].encodeTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
+
+  for (i = 0;i < runCount;i++)
+    dev[i] = fabs((values[i] - median) / median) * 100;
+
+  sort(dev, runCount);
+  meddev = dev[runCount/2];
+
+  printf("CPU time (encoding): %g s (+/- %g %%)\n", median, meddev);
+
+  // And for CPU core usage encoding
+  for (i = 0;i < runCount;i++)
+    values[i] = (runs[i].decodeTime + runs[i].encodeTime) / runs[i].realTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
+
+  for (i = 0;i < runCount;i++)
+    dev[i] = fabs((values[i] - median) / median) * 100;
+
+  sort(dev, runCount);
+  meddev = dev[runCount/2];
+
+  printf("Core usage (total): %g (+/- %g %%)\n", median, meddev);
+
 #ifdef WIN32
-  printf("Encoded bytes: %I64d\n", bytes);
-  printf("Raw equivalent bytes: %I64d\n", equivalent);
+  printf("Encoded bytes: %I64d\n", runs[0].bytes);
+  printf("Raw equivalent bytes: %I64d\n", runs[0].rawEquivalent);
 #else
-  printf("Encoded bytes: %lld\n", bytes);
-  printf("Raw equivalent bytes: %lld\n", equivalent);
+  printf("Encoded bytes: %lld\n", runs[0].bytes);
+  printf("Raw equivalent bytes: %lld\n", runs[0].rawEquivalent);
 #endif
-  printf("Ratio: %g\n", ratio);
+  printf("Ratio: %g\n", runs[0].ratio);
 
   return 0;
 }
