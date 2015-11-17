@@ -36,7 +36,7 @@ using namespace rfb;
 static LogWriter vlog("DecodeManager");
 
 DecodeManager::DecodeManager(CConnection *conn) :
-  conn(conn)
+  conn(conn), threadException(NULL)
 {
   size_t cpuCount;
 
@@ -70,6 +70,8 @@ DecodeManager::~DecodeManager()
     delete threads.back();
     threads.pop_back();
   }
+
+  delete threadException;
 
   while (!freeBuffers.empty()) {
     delete freeBuffers.back();
@@ -121,6 +123,9 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
 
   queueMutex->unlock();
 
+  // First check if any thread has encountered a problem
+  throwThreadException();
+
   // Read the rect
   bufferStream->clear();
   decoder->readRect(r, conn->getInStream(), conn->cp, bufferStream);
@@ -163,6 +168,33 @@ void DecodeManager::flush()
     producerCond->wait();
 
   queueMutex->unlock();
+
+  throwThreadException();
+}
+
+void DecodeManager::setThreadException(const rdr::Exception& e)
+{
+  os::AutoMutex a(queueMutex);
+
+  if (threadException == NULL)
+    return;
+
+  threadException = new rdr::Exception("Exception on worker thread: %s", e.str());
+}
+
+void DecodeManager::throwThreadException()
+{
+  os::AutoMutex a(queueMutex);
+
+  if (threadException == NULL)
+    return;
+
+  rdr::Exception e(*threadException);
+
+  delete threadException;
+  threadException = NULL;
+
+  throw e;
 }
 
 DecodeManager::DecodeThread::DecodeThread(DecodeManager* manager)
@@ -218,8 +250,9 @@ void DecodeManager::DecodeThread::worker()
       entry->decoder->decodeRect(entry->rect, entry->bufferStream->data(),
                                  entry->bufferStream->length(),
                                  *entry->cp, entry->pb);
+    } catch (rdr::Exception e) {
+      manager->setThreadException(e);
     } catch(...) {
-      // FIXME: Try to get the exception back to the main thread
       assert(false);
     }
 

@@ -31,7 +31,10 @@ namespace os {
   class Mutex;
 }
 
-namespace rdr { class MemOutStream; }
+namespace rdr {
+  class Exception;
+  class MemOutStream;
+}
 
 namespace rfb {
   class CConnection;
@@ -48,6 +51,10 @@ namespace rfb {
                     ModifiablePixelBuffer* pb);
 
     void flush();
+
+  private:
+    void setThreadException(const rdr::Exception& e);
+    void throwThreadException();
 
   private:
     CConnection *conn;
@@ -90,6 +97,7 @@ namespace rfb {
     };
 
     std::list<DecodeThread*> threads;
+    rdr::Exception *threadException;
   };
 }
 
