@@ -228,13 +228,7 @@ const char *CConn::connectionInfo()
 
 void CConn::blockCallback()
 {
-  int next_timer;
-
-  next_timer = Timer::checkTimeouts();
-  if (next_timer == 0)
-    next_timer = INT_MAX;
-
-  Fl::wait((double)next_timer / 1000.0);
+  run_mainloop();
 
   if (should_exit())
     throw rdr::Exception("Termination requested");

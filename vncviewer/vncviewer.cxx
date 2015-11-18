@@ -128,6 +128,20 @@ void about_vncviewer()
   fl_message("%s", about_text());
 }
 
+void run_mainloop()
+{
+  int next_timer;
+
+  next_timer = Timer::checkTimeouts();
+  if (next_timer == 0)
+    next_timer = INT_MAX;
+
+  if (Fl::wait((double)next_timer / 1000.0) < 0.0) {
+    vlog.error(_("Internal FLTK error. Exiting."));
+    exit(-1);
+  }
+}
+
 #ifdef __APPLE__
 static void about_callback(Fl_Widget *widget, void *data)
 {
@@ -590,18 +604,8 @@ int main(int argc, char** argv)
 
   CConn *cc = new CConn(vncServerName, sock);
 
-  while (!exitMainloop) {
-    int next_timer;
-
-    next_timer = Timer::checkTimeouts();
-    if (next_timer == 0)
-      next_timer = INT_MAX;
-
-    if (Fl::wait((double)next_timer / 1000.0) < 0.0) {
-      vlog.error(_("Internal FLTK error. Exiting."));
-      break;
-    }
-  }
+  while (!exitMainloop)
+    run_mainloop();
 
   delete cc;
 
