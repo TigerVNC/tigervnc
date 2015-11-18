@@ -44,3 +44,8 @@ rfb::Rect PlatformPixelBuffer::getDamage(void)
 
   return r;
 }
+
+bool PlatformPixelBuffer::isRendering(void)
+{
+  return false;
+}

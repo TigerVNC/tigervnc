@@ -21,8 +21,10 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 
+#include <FL/Fl.H>
 #include <FL/x.H>
 
 #include <rfb/LogWriter.h>
@@ -34,6 +36,8 @@
 using namespace rfb;
 
 static rfb::LogWriter vlog("X11PixelBuffer");
+
+std::list<X11PixelBuffer*> X11PixelBuffer::shmList;
 
 static PixelFormat display_pf()
 {
@@ -97,7 +101,7 @@ static PixelFormat display_pf()
 
 X11PixelBuffer::X11PixelBuffer(int width, int height) :
   PlatformPixelBuffer(display_pf(), width, height, NULL, 0),
-  shminfo(NULL), xim(NULL)
+  shminfo(NULL), xim(NULL), pendingPutImage(0)
 {
   // Might not be open at this point
   fl_open_display();
@@ -122,6 +126,8 @@ X11PixelBuffer::~X11PixelBuffer()
 {
   if (shminfo) {
     vlog.debug("Freeing shared memory XImage");
+    shmList.remove(this);
+    Fl::remove_system_handler(handleSystemEvent);
     shmdt(shminfo->shmaddr);
     shmctl(shminfo->shmid, IPC_RMID, 0);
     delete shminfo;
@@ -137,12 +143,18 @@ X11PixelBuffer::~X11PixelBuffer()
 
 void X11PixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
 {
-  if (shminfo)
-    XShmPutImage(fl_display, fl_window, fl_gc, xim, src_x, src_y, x, y, w, h, False);
-  else
+  if (shminfo) {
+    XShmPutImage(fl_display, fl_window, fl_gc, xim, src_x, src_y, x, y, w, h, True);
+    pendingPutImage++;
+  } else {
     XPutImage(fl_display, fl_window, fl_gc, xim, src_x, src_y, x, y, w, h);
+  }
 }
 
+bool X11PixelBuffer::isRendering(void)
+{
+  return pendingPutImage > 0;
+}
 
 static bool caughtError;
 
@@ -202,6 +214,11 @@ int X11PixelBuffer::setupShm()
   if (caughtError)
     goto free_shmaddr;
 
+  // FLTK is a bit stupid and unreliable if you register the same
+  // callback with different data values.
+  Fl::add_system_handler(handleSystemEvent, NULL);
+  shmList.push_back(this);
+
   vlog.debug("Using shared memory XImage");
 
   return 1;
@@ -219,6 +236,34 @@ free_xim:
 free_shminfo:
   delete shminfo;
   shminfo = NULL;
+
+  return 0;
+}
+
+int X11PixelBuffer::handleSystemEvent(void* event, void* data)
+{
+  XEvent* xevent;
+  XShmCompletionEvent* shmevent;
+
+  std::list<X11PixelBuffer*>::iterator iter;
+
+  xevent = (XEvent*)event;
+  assert(xevent);
+
+  if (xevent->type != XShmGetEventBase(fl_display))
+    return 0;
+
+  shmevent = (XShmCompletionEvent*)event;
+
+  for (iter = shmList.begin();iter != shmList.end();++iter) {
+    if (shmevent->shmseg != (*iter)->shminfo->shmseg)
+      continue;
+
+    (*iter)->pendingPutImage--;
+    assert((*iter)->pendingPutImage >= 0);
+
+    return 1;
+  }
 
   return 0;
 }
