@@ -34,6 +34,8 @@ public:
   virtual void draw(int src_x, int src_y, int x, int y, int w, int h) = 0;
   rfb::Rect getDamage(void);
 
+  virtual bool isRendering(void);
+
 protected:
   os::Mutex mutex;
   rfb::Region damage;
