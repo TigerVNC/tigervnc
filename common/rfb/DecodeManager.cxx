@@ -51,7 +51,12 @@ DecodeManager::DecodeManager(CConnection *conn) :
     vlog.error("Unable to determine the number of CPU cores on this system");
     cpuCount = 1;
   } else {
-    vlog.info("Detected %d CPU core(s) available for decoding", (int)cpuCount);
+    vlog.info("Detected %d CPU core(s)", (int)cpuCount);
+    // No point creating more threads than this, they'll just end up
+    // wasting CPU fighting for locks
+    if (cpuCount > 4)
+      cpuCount = 4;
+    vlog.info("Creating %d decoder thread(s)", (int)cpuCount);
   }
 
   while (cpuCount--) {
