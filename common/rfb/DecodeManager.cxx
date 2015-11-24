@@ -56,7 +56,12 @@ DecodeManager::DecodeManager(CConnection *conn) :
     // wasting CPU fighting for locks
     if (cpuCount > 4)
       cpuCount = 4;
-    vlog.info("Creating %d decoder thread(s)", (int)cpuCount);
+    // The overhead of threading is small, but not small enough to
+    // ignore on single CPU systems
+    if (cpuCount == 1)
+      vlog.info("Decoding data on main thread");
+    else
+      vlog.info("Creating %d decoder thread(s)", (int)cpuCount);
   }
 
   while (cpuCount--) {
@@ -115,6 +120,17 @@ void DecodeManager::decodeRect(const Rect& r, int encoding,
   }
 
   decoder = decoders[encoding];
+
+  // Fast path for single CPU machines to avoid the context
+  // switching overhead
+  if (threads.size() == 1) {
+    bufferStream = freeBuffers.front();
+    bufferStream->clear();
+    decoder->readRect(r, conn->getInStream(), conn->cp, bufferStream);
+    decoder->decodeRect(r, bufferStream->data(), bufferStream->length(),
+                        conn->cp, pb);
+    return;
+  }
 
   // Wait for an available memory buffer
   queueMutex->lock();
