@@ -2,7 +2,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 21%{?snap:.%{snap}}%{?dist}
+Release: 1%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -15,11 +15,11 @@ Source1: vncserver.service
 Source2: vncserver.sysconfig
 Source6: vncviewer.desktop
 Source11: http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
-Source13: http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/1.5.10/libpng-1.5.10.tar.bz2
+Source13: http://downloads.sourceforge.net/project/libpng/libpng15/1.5.24/libpng-1.5.24.tar.bz2
 Source14: https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
-Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.2.tar.gz
+Source15: http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.7.tar.gz
 Source16: https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz
-Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.13.tar.xz
+Source17: ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.19.tar.xz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: gcc, gcc-c++
@@ -423,6 +423,10 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Thu Nov 26 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-1
+- Version bump for 1.6 release
+- Update gnutls, libtasn1, libpng to latest upstream versions.
+
 * Sat Mar 14 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.4.80-21
 - Build static libraries to meet new minimum requirements
 
