@@ -1,11 +1,18 @@
 %define _default_patch_fuzz 2
 %define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
-%define xorg_buildroot %{tigervnc_src_dir}/xorg.build
 %{!?_self_signed: %define _self_signed 1}
+%{!?_bootstrap: %define _bootstrap 1}
+#%global scl_name %{name}$(echo %version | sed -e 's/\\.//;s/\\..*//')
+%define scl_name %{name}16
+%if %{_bootstrap}
+%define xorg_buildroot $RPM_BUILD_ROOT/opt/%{name}/%{scl_name}
+%else
+%define xorg_buildroot /opt/%{name}/%{scl_name}
+%endif
 
 Name: tigervnc
 Version: @VERSION@
-Release: 1%{?snap:.%{snap}}%{?dist}
+Release: 2%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -119,6 +126,9 @@ BuildRequires: expat-devel
 BuildRequires: git, gperf, intltool, libtalloc-devel
 BuildRequires: kernel-headers, libatomic_ops-devel
 BuildRequires: xz
+%if !%{_bootstrap}
+BuildRequires: %{name}-static-devel == %{version}
+%endif
 
 Requires(post): initscripts chkconfig coreutils
 Requires(postun):coreutils
@@ -270,7 +280,17 @@ BuildArch: noarch
 %description icons
 This package contains icons for TigerVNC viewer
 
+%if %{_bootstrap}
+%package static-devel
+Summary: Static development files necessary to build TigerVNC
+Group: Development/Libraries
+
+%description static-devel
+This package contains static development files necessary to build TigerVNC
+%endif
+
 %prep
+rm -rf $RPM_BUILD_ROOT
 rm -rf %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
 
@@ -281,6 +301,7 @@ sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" cmake/Modules/FindX11.cmake
 %patch4 -p1 -b .cookie
 %patch12 -p1 -b .static-build-fixes
 
+%if %{_bootstrap}
 tar xzf %SOURCE11
 pushd fltk-*
 %patch15 -p1 -b .static-libs
@@ -292,9 +313,11 @@ tar xjf %SOURCE14
 tar xzf %SOURCE15
 tar xzf %SOURCE16
 xzcat %SOURCE17 | tar xf -
+%endif
 
 mkdir xorg
 pushd xorg
+%if %{_bootstrap}
 tar xjf %SOURCE100
 tar xjf %SOURCE101
 tar xjf %SOURCE102
@@ -362,7 +385,9 @@ tar xjf %SOURCE155
 tar xjf %SOURCE156
 tar xjf %SOURCE157
 tar xjf %SOURCE158
+%endif
 tar xjf %SOURCE159
+%if %{_bootstrap}
 tar xjf %SOURCE160
 tar xjf %SOURCE161
 tar xjf %SOURCE162
@@ -406,6 +431,7 @@ popd
 tar xjf %SOURCE202
 tar xjf %SOURCE203
 tar xjf %SOURCE204
+%endif
 pushd xorg-server-1*
 %patch10000 -p1 -b .CVE-2014-mult
 %patch10001 -p1 -b .CVE-regressions
@@ -414,7 +440,9 @@ for f in `find . -type f -perm -000`; do
   chmod +r "$f"
 done
 popd
+%if %{_bootstrap}
 tar xzf %SOURCE205
+%endif
 popd
 
 cp -a xorg/xorg-server-1*/* unix/xserver
@@ -436,12 +464,13 @@ export CFLAGS="$RPM_OPT_FLAGS -fPIC"
 export CXXFLAGS="$CFLAGS -static-libgcc"
 export PYTHON=python26
 
+%if %{_bootstrap}
 mkdir -p %{xorg_buildroot}%{_libdir}
 pushd %{xorg_buildroot}%{_libdir}
-ln -s `g++44 -print-file-name=libz.a`
-ln -s `g++44 -print-file-name=libgcc.a`
-ln -s `g++44 -print-file-name=libexpat.a`
-ln -s `g++44 -print-file-name=libcrypto.a`
+ln -s `g++44 -print-file-name=libz.a` .
+ln -s `g++44 -print-file-name=libgcc.a` .
+ln -s `g++44 -print-file-name=libexpat.a` .
+ln -s `g++44 -print-file-name=libcrypto.a` .
 popd
 
 echo "*** Building libjpeg-turbo ***"
@@ -463,6 +492,7 @@ find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=
 find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
 popd
 popd
+%endif
 
 export CFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir}"
 export CXXFLAGS="$RPM_OPT_FLAGS -fPIC -I%{xorg_buildroot}%{_includedir} -static-libgcc"
@@ -471,6 +501,7 @@ export LDFLAGS="-L%{xorg_buildroot}%{_libdir} -L%{xorg_buildroot}%{_libdir}/tige
 export ACLOCAL="aclocal -I %{xorg_buildroot}%{_datadir}/aclocal"
 export PKG_CONFIG_PATH="%{xorg_buildroot}%{_libdir}/pkgconfig:%{xorg_buildroot}%{_libdir}/tigervnc/pkgconfig:%{xorg_buildroot}%{_datadir}/pkgconfig:%{_libdir}/pkgconfig:%{_datadir}/pkgconfig"
 
+%if %{_bootstrap}
 echo "*** Building gmp ***"
 pushd gmp-*
 %ifarch x86_64 s390x ia64 ppc64 alpha sparc64
@@ -735,7 +766,11 @@ for module in ${modules}; do
 
   popd
 done
+%else
+pushd xorg
+%endif
 
+%if %{_bootstrap}
 # build mesa
 echo "*** Building Mesa ***"
 pushd Mesa-*
@@ -775,9 +810,11 @@ find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{xorg_buildroot}%{_libdir}|" {} \;
 find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=%{xorg_buildroot}%{_prefix}|" {} \;
 popd
+%endif
 
 popd
 
+%if %{_bootstrap}
 echo "*** Building libpng ***"
 pushd libpng-*
 CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
@@ -791,10 +828,12 @@ popd
 
 echo "*** Building fltk ***"
 pushd fltk-*
+%endif
 export CMAKE_PREFIX_PATH="%{xorg_buildroot}%{_prefix}:%{_prefix}"
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 export PKG_CONFIG="pkg-config --static"
-CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
+%if %{_bootstrap}
+./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
   --enable-x11 \
@@ -812,6 +851,7 @@ CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
 make %{?_smp_mflags}
 make DESTDIR=%{xorg_buildroot} install
 popd
+%endif
 
 echo "*** Building VNC ***"
 export CFLAGS="$CFLAGS -fPIC"
@@ -835,7 +875,7 @@ sed -i -e 's/^\(\s*WAYLAND_SCANNER_RULES.*\)/dnl\1/' configure.ac
 autoreconf -fiv
 chmod +x ./configure
 # create a relocatable Xvnc so that we can bundle the custom libGL & swrast w/o overwriting existing libs
-GL_LIBS='-Wl,-Bdynamic -lGL' LDFLAGS="$LDFLAGS -L%{xorg_buildroot}%{_libdir}/tigervnc -Wl,-rpath,"'\$$'"ORIGIN/../..%{_libdir}/tigervnc:%{_libdir}/tigervnc:%{_libdir}" \
+GL_LIBS='-Wl,-Bdynamic -lGL' LDFLAGS="$LDFLAGS -Wl,-rpath,"'\$$'"ORIGIN/../..%{_libdir}/tigervnc:%{_libdir}/tigervnc:%{_libdir}" \
 %configure \
   --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_datadir}/man \
   --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} \
@@ -886,16 +926,17 @@ JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
 popd
 
 %install
-rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
 pushd unix/xserver/hw/vnc
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
 
-pushd xorg/Mesa-*
-make install DESTDIR=$RPM_BUILD_ROOT
-popd
+mkdir -p $RPM_BUILD_ROOT%{_libdir}/tigervnc/dri
+install -m644 -p %{xorg_buildroot}%{_libdir}/tigervnc/dri/swrast_dri.so $RPM_BUILD_ROOT%{_libdir}/tigervnc/dri
+for f in `find %{xorg_buildroot}%{_libdir}/tigervnc -name "lib*" -print` ; do
+cp -a $f $RPM_BUILD_ROOT%{_libdir}/tigervnc
+done
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/init.d
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
@@ -925,6 +966,12 @@ install -m644 com/tigervnc/vncviewer/index.vnc $RPM_BUILD_ROOT%{_datadir}/vnc/cl
 popd
 
 %find_lang %{name} %{name}.lang
+
+%if %{_bootstrap}
+find %{xorg_buildroot}%{_prefix} -type f -name "*.la" -delete
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{xorg_buildroot}%{_libdir}|libdir=/opt/%{name}/%{scl_name}%{_libdir}|" {} \;
+find %{xorg_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{xorg_buildroot}%{_prefix}|prefix=/opt/%{name}/%{scl_name}%{_prefix}|" {} \;
+%endif
 
 # remove unwanted files
 rm -rf $RPM_BUILD_ROOT%{_libdir}/tigervnc/pkgconfig
@@ -1000,7 +1047,23 @@ fi
 %defattr(-,root,root,-)
 %{_datadir}/icons/hicolor/*/apps/*
 
+%if %{_bootstrap}
+%files static-devel
+%defattr(-,root,root,-)
+/opt/%{name}/%{scl_name}%{_sysconfdir}/*
+/opt/%{name}/%{scl_name}%{_bindir}/*
+/opt/%{name}/%{scl_name}%{_datadir}/*
+/opt/%{name}/%{scl_name}%{_includedir}/*
+/opt/%{name}/%{scl_name}%{_libdir}/*
+%ifarch x86_64 s390x ia64 ppc64 alpha sparc64
+/opt/%{name}/%{scl_name}%{_prefix}/lib/python2.6/*
+%endif
+%endif
+
 %changelog
+* Fri Nov 27 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-2
+- Split static pre-reqs into separate package
+
 * Thu Nov 26 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-1
 - Version bump for 1.6 release
 - Update libjpeg-turbo, gnutls, libtasn1, libpng to latest upstream versions.
