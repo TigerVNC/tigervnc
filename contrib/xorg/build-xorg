@@ -12,7 +12,7 @@ PARALLEL_MAKE=0
 XORG_VERSION=7.5
 XONLY=0
 CFGHOST=
-SRCDIR=`dirname $0`/..
+SRCDIR=`dirname $0`/../..
 
 modules="dri2proto \
     libpthread-stubs \
