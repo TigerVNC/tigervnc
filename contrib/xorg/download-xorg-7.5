@@ -3,6 +3,8 @@
 
 import os
 import glob
+import sys
+import urllib2
 
 #INDI = "http://ftp.sunet.se/pub/X11/ftp.x.org/individual"
 INDI = "http://ftp.x.org/pub/individual/"
@@ -63,7 +65,39 @@ packages = {
     "freetype": "http://downloads.sourceforge.net/freetype/freetype-2.4.2.tar.bz2",
     }
 
-
+# Python-based replacement for wget, which allows us to catch exceptions
+def webget(url, file_name):
+    file_name = "%s/%s" % (os.getcwd(), file_name)
+    print "Downloading: %s" % (url)
+    try:
+        u = urllib2.urlopen(url)
+    except urllib2.URLError:
+        print sys.exc_info()[0]
+        sys.exit("ERROR: Unable to open URL: %s" % url)
+    try:
+        f = open(file_name, 'wb')
+    except IOError:
+        sys.exit("ERROR: Unable to save to: %s" % file_name)
+    else:
+        meta = u.info()
+        file_size = int(meta.getheaders("Content-Length")[0])
+        print "  Saving as: %s Bytes: %s" % (file_name, file_size)
+        
+        file_size_dl = 0
+        block_sz = 8192/2
+        while True:
+            buffer = u.read(block_sz)
+            if not buffer:
+                break
+        
+            file_size_dl += len(buffer)
+            f.write(buffer)
+            status = r"  Progress: %7d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
+            status = status + chr(8)*(len(status)+1)
+            print status,
+        
+        f.close()
+    print status
 
 def main():
     dir = os.path.expanduser("~")+"/.tigervnc-xorg-7.5"
@@ -79,7 +113,8 @@ def main():
         else :
             fname = pkg + ".tar.gz"
         if not os.path.exists(fname):
-            assert 0 == os.spawnvp(os.P_WAIT, "wget", ["-N", "-c", "-O", fname, loc])
+            webget(loc, fname)
+            #assert 0 == os.spawnvp(os.P_WAIT, "wget", ["-N", "-c", "-O", fname, loc])
 
     os.chdir(cwd)
 main()
