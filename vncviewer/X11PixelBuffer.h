@@ -24,6 +24,8 @@
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
 
+#include <list>
+
 #include "PlatformPixelBuffer.h"
 
 class X11PixelBuffer: public PlatformPixelBuffer {
@@ -33,12 +35,19 @@ public:
 
   virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
 
+  virtual bool isRendering(void);
+
 protected:
   int setupShm();
+
+  static int handleSystemEvent(void* event, void* data);
 
 protected:
   XShmSegmentInfo *shminfo;
   XImage *xim;
+  int pendingPutImage;
+
+  static std::list<X11PixelBuffer*> shmList;
 };
 
 

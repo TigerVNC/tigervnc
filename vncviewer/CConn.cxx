@@ -28,10 +28,10 @@
 #endif
 
 #include <rfb/CMsgWriter.h>
-#include <rfb/encodings.h>
-#include <rfb/Decoder.h>
+#include <rfb/CSecurity.h>
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
+#include <rfb/Security.h>
 #include <rfb/util.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
@@ -46,6 +46,7 @@
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
+#include "PlatformPixelBuffer.h"
 #include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
@@ -80,8 +81,6 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
 {
   setShared(::shared);
   sock = socket;
-
-  memset(decoders, 0, sizeof(decoders));
 
   int encNum = encodingNum(preferredEncoding);
   if (encNum != -1)
@@ -134,9 +133,6 @@ CConn::~CConn()
 {
   OptionsDialog::removeCallback(handleOptions);
   Fl::remove_timeout(handleUpdateTimeout, this);
-
-  for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); i++)
-    delete decoders[i];
 
   if (desktop)
     delete desktop;
@@ -233,13 +229,7 @@ const char *CConn::connectionInfo()
 
 void CConn::blockCallback()
 {
-  int next_timer;
-
-  next_timer = Timer::checkTimeouts();
-  if (next_timer == 0)
-    next_timer = INT_MAX;
-
-  Fl::wait((double)next_timer / 1000.0);
+  run_mainloop();
 
   if (should_exit())
     throw rdr::Exception("Termination requested");
@@ -347,10 +337,31 @@ void CConn::setName(const char* name)
 // one.
 void CConn::framebufferUpdateStart()
 {
+  ModifiablePixelBuffer* pb;
+  PlatformPixelBuffer* ppb;
+
+  CConnection::framebufferUpdateStart();
+
   // Note: This might not be true if sync fences are supported
   pendingUpdate = false;
 
   requestNewUpdate();
+
+  // We might still be rendering the previous update
+  pb = getFramebuffer();
+  assert(pb != NULL);
+  ppb = dynamic_cast<PlatformPixelBuffer*>(pb);
+  assert(ppb != NULL);
+  if (ppb->isRendering()) {
+    // Need to stop monitoring the socket or we'll just busy loop
+    assert(sock != NULL);
+    Fl::remove_fd(sock->getFd());
+
+    while (ppb->isRendering())
+      run_mainloop();
+
+    Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
+  }
 
   // Update the screen prematurely for very slow updates
   Fl::add_timeout(1.0, handleUpdateTimeout, this);
@@ -362,6 +373,8 @@ void CConn::framebufferUpdateStart()
 // appropriately, and then request another incremental update.
 void CConn::framebufferUpdateEnd()
 {
+  CConnection::framebufferUpdateEnd();
+
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
 
@@ -439,20 +452,7 @@ void CConn::dataRect(const Rect& r, int encoding)
   if (encoding != encodingCopyRect)
     lastServerEncoding = encoding;
 
-  if (!Decoder::supported(encoding)) {
-    // TRANSLATORS: Refers to a VNC protocol encoding type
-    vlog.error(_("Unknown encoding %d"), encoding);
-    throw Exception(_("Unknown encoding"));
-  }
-
-  if (!decoders[encoding]) {
-    decoders[encoding] = Decoder::createDecoder(encoding, this);
-    if (!decoders[encoding]) {
-      vlog.error(_("Unknown encoding %d"), encoding);
-      throw Exception(_("Unknown encoding"));
-    }
-  }
-  decoders[encoding]->readRect(r, desktop->getFramebuffer());
+  CConnection::dataRect(r, encoding);
 
   sock->inStream().stopTiming();
 }

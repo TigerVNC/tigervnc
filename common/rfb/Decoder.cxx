@@ -18,6 +18,7 @@
  */
 #include <stdio.h>
 #include <rfb/encodings.h>
+#include <rfb/Region.h>
 #include <rfb/Decoder.h>
 #include <rfb/RawDecoder.h>
 #include <rfb/CopyRectDecoder.h>
@@ -28,12 +29,27 @@
 
 using namespace rfb;
 
-Decoder::Decoder(CConnection* conn_) : conn(conn_)
+Decoder::Decoder(enum DecoderFlags flags) : flags(flags)
 {
 }
 
 Decoder::~Decoder()
 {
+}
+
+void Decoder::getAffectedRegion(const Rect& rect, const void* buffer,
+                                size_t buflen, const ConnParams& cp,
+                                Region* region)
+{
+  region->reset(rect);
+}
+
+bool Decoder::doRectsConflict(const Rect& rectA, const void* bufferA,
+                              size_t buflenA, const Rect& rectB,
+                              const void* bufferB, size_t buflenB,
+                              const ConnParams& cp)
+{
+  return false;
 }
 
 bool Decoder::supported(int encoding)
@@ -51,21 +67,21 @@ bool Decoder::supported(int encoding)
   }
 }
 
-Decoder* Decoder::createDecoder(int encoding, CConnection* conn)
+Decoder* Decoder::createDecoder(int encoding)
 {
   switch (encoding) {
   case encodingRaw:
-    return new RawDecoder(conn);
+    return new RawDecoder();
   case encodingCopyRect:
-    return new CopyRectDecoder(conn);
+    return new CopyRectDecoder();
   case encodingRRE:
-    return new RREDecoder(conn);
+    return new RREDecoder();
   case encodingHextile:
-    return new HextileDecoder(conn);
+    return new HextileDecoder();
   case encodingZRLE:
-    return new ZRLEDecoder(conn);
+    return new ZRLEDecoder();
   case encodingTight:
-    return new TightDecoder(conn);
+    return new TightDecoder();
   default:
     return NULL;
   }

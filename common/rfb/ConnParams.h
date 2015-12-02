@@ -56,14 +56,14 @@ namespace rfb {
     void setVersion(int major, int minor) {
       majorVersion = major; minorVersion = minor;
     }
-    bool isVersion(int major, int minor) {
+    bool isVersion(int major, int minor) const {
       return majorVersion == major && minorVersion == minor;
     }
-    bool beforeVersion(int major, int minor) {
+    bool beforeVersion(int major, int minor) const {
       return (majorVersion < major ||
               (majorVersion == major && minorVersion < minor));
     }
-    bool afterVersion(int major, int minor) {
+    bool afterVersion(int major, int minor) const {
       return !beforeVersion(major,minor+1);
     }
 
@@ -71,16 +71,16 @@ namespace rfb {
     int height;
     ScreenSet screenLayout;
 
-    const PixelFormat& pf() { return pf_; }
+    const PixelFormat& pf() const { return pf_; }
     void setPF(const PixelFormat& pf);
 
-    const char* name() { return name_; }
+    const char* name() const { return name_; }
     void setName(const char* name);
 
-    const Cursor& cursor() { return cursor_; }
+    const Cursor& cursor() const { return cursor_; }
     void setCursor(const Cursor& cursor);
 
-    bool supportsEncoding(rdr::S32 encoding);
+    bool supportsEncoding(rdr::S32 encoding) const;
 
     void setEncodings(int nEncodings, const rdr::S32* encodings);
 

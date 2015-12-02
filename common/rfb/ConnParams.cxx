@@ -99,7 +99,7 @@ void ConnParams::setCursor(const Cursor& other)
   memcpy(cursor_.mask.buf, other.mask.buf, cursor_.maskLen());
 }
 
-bool ConnParams::supportsEncoding(rdr::S32 encoding)
+bool ConnParams::supportsEncoding(rdr::S32 encoding) const
 {
   return encodings_.count(encoding) != 0;
 }

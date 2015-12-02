@@ -84,7 +84,7 @@ CSecurity* SecurityClient::GetCSecurity(U32 secType)
     return new CSecurityStack(secTypeX509None, "X509 with no password",
 			      new CSecurityTLS(false));
   case secTypeX509Vnc:
-    return new CSecurityStack(secTypeX509None, "X509 with VNCAuth",
+    return new CSecurityStack(secTypeX509Vnc, "X509 with VNCAuth",
 			      new CSecurityTLS(false), new CSecurityVncAuth());
   case secTypeX509Plain:
     return new CSecurityStack(secTypeX509Plain, "X509 with Username/Password",

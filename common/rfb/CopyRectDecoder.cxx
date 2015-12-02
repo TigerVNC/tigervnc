@@ -15,14 +15,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <rdr/InStream.h>
-#include <rfb/CConnection.h>
+#include <rdr/MemInStream.h>
+#include <rdr/OutStream.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/Region.h>
 #include <rfb/CopyRectDecoder.h>
 
 using namespace rfb;
 
-CopyRectDecoder::CopyRectDecoder(CConnection* conn) : Decoder(conn)
+CopyRectDecoder::CopyRectDecoder() : Decoder(DecoderPlain)
 {
 }
 
@@ -30,9 +31,35 @@ CopyRectDecoder::~CopyRectDecoder()
 {
 }
 
-void CopyRectDecoder::readRect(const Rect& r, ModifiablePixelBuffer* pb)
+void CopyRectDecoder::readRect(const Rect& r, rdr::InStream* is,
+                               const ConnParams& cp, rdr::OutStream* os)
 {
-  int srcX = conn->getInStream()->readU16();
-  int srcY = conn->getInStream()->readU16();
+  os->copyBytes(is, 4);
+}
+
+
+void CopyRectDecoder::getAffectedRegion(const Rect& rect,
+                                        const void* buffer,
+                                        size_t buflen,
+                                        const ConnParams& cp,
+                                        Region* region)
+{
+  rdr::MemInStream is(buffer, buflen);
+  int srcX = is.readU16();
+  int srcY = is.readU16();
+
+  Decoder::getAffectedRegion(rect, buffer, buflen, cp, region);
+
+  region->assign_union(Region(rect.translate(Point(srcX-rect.tl.x,
+                                                   srcY-rect.tl.y))));
+}
+
+void CopyRectDecoder::decodeRect(const Rect& r, const void* buffer,
+                                 size_t buflen, const ConnParams& cp,
+                                 ModifiablePixelBuffer* pb)
+{
+  rdr::MemInStream is(buffer, buflen);
+  int srcX = is.readU16();
+  int srcY = is.readU16();
   pb->copyRect(r, Point(r.tl.x-srcX, r.tl.y-srcY));
 }

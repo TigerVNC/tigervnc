@@ -50,9 +50,6 @@ public:
   // Updated session title
   void setName(const char *name);
 
-  // Return a pointer to the framebuffer for decoders to write into
-  rfb::ModifiablePixelBuffer* getFramebuffer(void);
-
   // Resize the current framebuffer, but retain the contents
   void resizeFramebuffer(int new_w, int new_h);
 
