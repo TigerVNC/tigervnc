@@ -1,0 +1,40 @@
+This directory contains the evaluation of the multi-core implementation
+in the decoder. The baseline is the performance before the addition of
+the DecodeManager class.
+
+Tests were performed on the following systems:
+
+ - eLux RP Atom N270 1.6 GHz
+ - Lubuntu 13.10 i.MX6 Quad 1.2 GHz
+ - Fedora 22 i7-3770 3.4 GHz
+ - Windows Vista Core 2 Duo E7400 2.8 GHz
+ - Windows 10 i3-4170 3.7 GHz
+ - OS X 10.6 Core 2 Duo 2.53 GHz
+ - OS X 10.11 i5 2.3 GHz
+
+The systems were tested with:
+
+ a) The old, baseline code
+ b) The new code with all CPUs enabled
+ c) The new code with only one CPU enabled
+
+The test itself consists of running decperf on the test files from the
+TurboVNC project. Rate of decoding is then compared to the baseline.
+Note that the CPU time is divided by core usage in the multi CPU cases
+in order to derive total decoding time. This method is sensitive to
+other load on the system.
+
+On average, there is no regression in performance for single CPU
+systems. This however relies on the addition of the single CPU shortcut
+in DecodeManager. Without that the performance sees a 10% lower rate.
+
+Dual CPU systems see between 20% and 50% increase, and the quad core
+systems between 75% and 125% on average. OS X is an outlier though in
+that it gets a mere 32% increase on average. It is unknown why at this
+point and tracing doesn't reveal anything obvious. It may be because it
+is not a true quad core system, but rather uses HyperThreading.
+
+So in summary, the new code can do a noticable improvement on decoding
+time. However it does so at a cost of efficiency. Four times the CPUs
+only gives you about twice the performance. More improvements may be
+possible.
