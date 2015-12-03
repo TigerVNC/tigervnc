@@ -1,5 +1,6 @@
 /* Copyright (C) 2000-2003 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright 2004-2005 Cendio AB.
+ * Copyright 2009-2015 Pierre Ossman for Cendio AB
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
  *    
  * This is free software; you can redistribute it and/or modify
@@ -24,11 +25,6 @@
 // This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
 
-#include <rdr/InStream.h>
-#include <rdr/ZlibInStream.h>
-#include <rfb/Exception.h>
-#include <rfb/TightConstants.h>
-
 namespace rfb {
 
 // CONCAT2E concatenates its arguments, expanding them if they are macros
@@ -39,232 +35,60 @@ namespace rfb {
 #endif
 
 #define PIXEL_T rdr::CONCAT2E(U,BPP)
-#define READ_PIXEL CONCAT2E(readOpaque,BPP)
-#define TIGHT_DECODE TightDecoder::CONCAT2E(tightDecode,BPP)
-#define DECOMPRESS_JPEG_RECT TightDecoder::CONCAT2E(DecompressJpegRect,BPP)
-#define FILTER_GRADIENT TightDecoder::CONCAT2E(FilterGradient,BPP)
-
-#define TIGHT_MIN_TO_COMPRESS 12
-
-// Main function implementing Tight decoder
-
-void TIGHT_DECODE (const Rect& r)
-{
-  bool cutZeros = false;
-#if BPP == 32
-  if (serverpf.is888()) {
-    cutZeros = true;
-  } 
-#endif
-
-  rdr::U8 comp_ctl = is->readU8();
-
-  // Flush zlib streams if we are told by the server to do so.
-  for (int i = 0; i < 4; i++) {
-    if (comp_ctl & 1) {
-      zis[i].reset();
-    }
-    comp_ctl >>= 1;
-  }
-
-  // "Fill" compression type.
-  if (comp_ctl == tightFill) {
-    PIXEL_T pix;
-    if (cutZeros) {
-      rdr::U8 bytebuf[3];
-      is->readBytes(bytebuf, 3);
-      serverpf.bufferFromRGB((rdr::U8*)&pix, bytebuf, 1);
-    } else {
-      pix = is->READ_PIXEL();
-    }
-    pb->fillRect(serverpf, r, &pix);
-    return;
-  }
-
-  // "JPEG" compression type.
-  if (comp_ctl == tightJpeg) {
-    DECOMPRESS_JPEG_RECT(r);
-    return;
-  }
-
-  // Quit on unsupported compression type.
-  if (comp_ctl > tightMaxSubencoding) {
-    throw Exception("TightDecoder: bad subencoding value received");
-    return;
-  }
-
-  // "Basic" compression type.
-  int palSize = 0;
-  static PIXEL_T palette[256];
-  bool useGradient = false;
-
-  if ((comp_ctl & tightExplicitFilter) != 0) {
-    rdr::U8 filterId = is->readU8();
-
-    switch (filterId) {
-    case tightFilterPalette:
-      palSize = is->readU8() + 1;
-      if (cutZeros) {
-        rdr::U8 tightPalette[256 * 3];
-        is->readBytes(tightPalette, palSize * 3);
-        serverpf.bufferFromRGB((rdr::U8*)palette, tightPalette, palSize);
-      } else {
-        is->readBytes(palette, palSize * sizeof(PIXEL_T));
-      }
-      break;
-    case tightFilterGradient:
-      useGradient = true;
-      break;
-    case tightFilterCopy:
-      break;
-    default:
-      throw Exception("TightDecoder: unknown filter code received");
-      return;
-    }
-  }
-
-  int bppp = BPP;
-  if (palSize != 0) {
-    bppp = (palSize <= 2) ? 1 : 8;
-  } else if (cutZeros) {
-    bppp = 24;
-  }
-
-  // Determine if the data should be decompressed or just copied.
-  int rowSize = (r.width() * bppp + 7) / 8;
-  int dataSize = r.height() * rowSize;
-  int streamId = -1;
-  rdr::InStream *input;
-  if (dataSize < TIGHT_MIN_TO_COMPRESS) {
-    input = is;
-  } else {
-    int length = readCompact(is);
-    streamId = comp_ctl & 0x03;
-    zis[streamId].setUnderlying(is, length);
-    input = &zis[streamId];
-  }
-
-  // Allocate netbuf and read in data
-  rdr::U8 *netbuf = new rdr::U8[dataSize];
-  if (!netbuf) {
-    throw Exception("rfb::TightDecoder::tightDecode unable to allocate buffer");
-  }
-  input->readBytes(netbuf, dataSize);
-
-  PIXEL_T *buf;
-  int stride = r.width();
-  if (directDecode) buf = (PIXEL_T *)pb->getBufferRW(r, &stride);
-  else buf = (PIXEL_T *)conn->reader()->getImageBuf(r.area());
-
-  if (palSize == 0) {
-    // Truecolor data
-    if (useGradient) {
-#if BPP == 32
-      if (cutZeros) {
-        FilterGradient24(netbuf, buf, stride, r);
-      } else 
-#endif
-      {
-        FILTER_GRADIENT(netbuf, buf, stride, r);
-      }
-    } else {
-      // Copy
-      int h = r.height();
-      PIXEL_T *ptr = buf;
-      rdr::U8 *srcPtr = netbuf;
-      int w = r.width();
-      if (cutZeros) {
-        while (h > 0) {
-          serverpf.bufferFromRGB((rdr::U8*)ptr, srcPtr, w);
-          ptr += stride;
-          srcPtr += w * 3;
-          h--;
-        }
-      } else {
-        while (h > 0) {
-          memcpy(ptr, srcPtr, w * sizeof(PIXEL_T));
-          ptr += stride;
-          srcPtr += w * sizeof(PIXEL_T);
-          h--;
-        }
-      }
-    }
-  } else {
-    // Indexed color
-    int x, h = r.height(), w = r.width(), b, pad = stride - w;
-    PIXEL_T *ptr = buf;
-    rdr::U8 bits, *srcPtr = netbuf;
-    if (palSize <= 2) {
-      // 2-color palette
-      while (h > 0) {
-        for (x = 0; x < w / 8; x++) {
-          bits = *srcPtr++;
-          for (b = 7; b >= 0; b--) {
-            *ptr++ = palette[bits >> b & 1];
-          }
-        }
-        if (w % 8 != 0) {
-          bits = *srcPtr++;
-          for (b = 7; b >= 8 - w % 8; b--) {
-            *ptr++ = palette[bits >> b & 1];
-          }
-        }
-        ptr += pad;
-        h--;
-      }
-    } else {
-      // 256-color palette
-      while (h > 0) {
-        PIXEL_T *endOfRow = ptr + w;
-        while (ptr < endOfRow) {
-          *ptr++ = palette[*srcPtr++];
-        }
-        ptr += pad;
-        h--;
-      }
-    }
-  }
-
-  if (directDecode) pb->commitBufferRW(r);
-  else pb->imageRect(serverpf, r, buf);
-
-  delete [] netbuf;
-
-  if (streamId != -1) {
-    zis[streamId].reset();
-  }
-}
-
-void
-DECOMPRESS_JPEG_RECT(const Rect& r)
-{
-  // Read length
-  int compressedLen = readCompact(is);
-  if (compressedLen <= 0) {
-      throw Exception("Incorrect data received from the server.\n");
-  }
-
-  // Allocate netbuf and read in data
-  rdr::U8* netbuf = new rdr::U8[compressedLen];
-  if (!netbuf) {
-    throw Exception("rfb::TightDecoder::DecompressJpegRect unable to allocate buffer");
-  }
-  is->readBytes(netbuf, compressedLen);
-
-  // We always use direct decoding with JPEG images
-  int stride;
-  rdr::U8 *buf = pb->getBufferRW(r, &stride);
-  jd.decompress(netbuf, compressedLen, buf, stride, r, clientpf);
-  pb->commitBufferRW(r);
-
-  delete [] netbuf;
-}
 
 #if BPP == 32
 
 void
-TightDecoder::FilterGradient24(rdr::U8 *netbuf, PIXEL_T* buf, int stride,
-                               const Rect& r)
+TightDecoder::FilterGradient24(const rdr::U8 *inbuf,
+                               const PixelFormat& pf, PIXEL_T* outbuf,
+                               int stride, const Rect& r)
+{
+  int x, y, c;
+  rdr::U8 prevRow[TIGHT_MAX_WIDTH*3];
+  rdr::U8 thisRow[TIGHT_MAX_WIDTH*3];
+  rdr::U8 pix[3]; 
+  int est[3]; 
+
+  memset(prevRow, 0, sizeof(prevRow));
+
+  // Set up shortcut variables
+  int rectHeight = r.height();
+  int rectWidth = r.width();
+
+  for (y = 0; y < rectHeight; y++) {
+    /* First pixel in a row */
+    for (c = 0; c < 3; c++) {
+      pix[c] = inbuf[y*rectWidth*3+c] + prevRow[c];
+      thisRow[c] = pix[c];
+    }
+    pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
+
+    /* Remaining pixels of a row */
+    for (x = 1; x < rectWidth; x++) {
+      for (c = 0; c < 3; c++) {
+        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
+        if (est[c] > 0xff) {
+          est[c] = 0xff;
+        } else if (est[c] < 0) {
+          est[c] = 0;
+        }
+        pix[c] = inbuf[(y*rectWidth+x)*3+c] + est[c];
+        thisRow[x*3+c] = pix[c];
+      }
+      pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride+x], pix, 1);
+    }
+
+    memcpy(prevRow, thisRow, sizeof(prevRow));
+  }
+}
+
+#endif
+
+#if BPP != 8
+
+void TightDecoder::FilterGradient(const rdr::U8* inbuf,
+                                  const PixelFormat& pf, PIXEL_T* outbuf,
+                                  int stride, const Rect& r)
 {
   int x, y, c;
   static rdr::U8 prevRow[TIGHT_MAX_WIDTH*3];
@@ -280,57 +104,13 @@ TightDecoder::FilterGradient24(rdr::U8 *netbuf, PIXEL_T* buf, int stride,
 
   for (y = 0; y < rectHeight; y++) {
     /* First pixel in a row */
-    for (c = 0; c < 3; c++) {
-      pix[c] = netbuf[y*rectWidth*3+c] + prevRow[c];
-      thisRow[c] = pix[c];
-    }
-    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1);
-
-    /* Remaining pixels of a row */
-    for (x = 1; x < rectWidth; x++) {
-      for (c = 0; c < 3; c++) {
-        est[c] = prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c];
-        if (est[c] > 0xff) {
-          est[c] = 0xff;
-        } else if (est[c] < 0) {
-          est[c] = 0;
-        }
-        pix[c] = netbuf[(y*rectWidth+x)*3+c] + est[c];
-        thisRow[x*3+c] = pix[c];
-      }
-      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1);
-    }
-
-    memcpy(prevRow, thisRow, sizeof(prevRow));
-  }
-}
-
-#endif
-
-void
-FILTER_GRADIENT(rdr::U8 *netbuf, PIXEL_T* buf, int stride, const Rect& r)
-{
-  int x, y, c;
-  static rdr::U8 prevRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
-  static rdr::U8 thisRow[TIGHT_MAX_WIDTH*sizeof(PIXEL_T)];
-  rdr::U8 pix[3]; 
-  int est[3]; 
-
-  memset(prevRow, 0, sizeof(prevRow));
-
-  // Set up shortcut variables
-  int rectHeight = r.height();
-  int rectWidth = r.width();
-
-  for (y = 0; y < rectHeight; y++) {
-    /* First pixel in a row */
-    serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth], 1);
+    pf.rgbFromBuffer(pix, &inbuf[y*rectWidth], 1);
     for (c = 0; c < 3; c++)
       pix[c] += prevRow[c];
 
     memcpy(thisRow, pix, sizeof(pix));
 
-    serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride], pix, 1);
+    pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride], pix, 1);
 
     /* Remaining pixels of a row */
     for (x = 1; x < rectWidth; x++) {
@@ -343,23 +123,60 @@ FILTER_GRADIENT(rdr::U8 *netbuf, PIXEL_T* buf, int stride, const Rect& r)
         }
       }
 
-      serverpf.rgbFromBuffer(pix, (rdr::U8*)&netbuf[y*rectWidth+x], 1);
+      pf.rgbFromBuffer(pix, &inbuf[y*rectWidth+x], 1);
       for (c = 0; c < 3; c++)
         pix[c] += est[c];
 
       memcpy(&thisRow[x*3], pix, sizeof(pix));
 
-      serverpf.bufferFromRGB((rdr::U8*)&buf[y*stride+x], pix, 1);
+      pf.bufferFromRGB((rdr::U8*)&outbuf[y*stride+x], pix, 1);
     }
 
     memcpy(prevRow, thisRow, sizeof(prevRow));
   }
 }
 
-#undef TIGHT_MIN_TO_COMPRESS
-#undef FILTER_GRADIENT
-#undef DECOMPRESS_JPEG_RECT
-#undef TIGHT_DECODE
-#undef READ_PIXEL
+#endif
+
+void TightDecoder::FilterPalette(const PIXEL_T* palette, int palSize,
+                                 const rdr::U8* inbuf, PIXEL_T* outbuf,
+                                 int stride, const Rect& r)
+{
+  // Indexed color
+  int x, h = r.height(), w = r.width(), b, pad = stride - w;
+  PIXEL_T* ptr = outbuf;
+  rdr::U8 bits;
+  const rdr::U8* srcPtr = inbuf;
+  if (palSize <= 2) {
+    // 2-color palette
+    while (h > 0) {
+      for (x = 0; x < w / 8; x++) {
+        bits = *srcPtr++;
+        for (b = 7; b >= 0; b--) {
+          *ptr++ = palette[bits >> b & 1];
+        }
+      }
+      if (w % 8 != 0) {
+        bits = *srcPtr++;
+        for (b = 7; b >= 8 - w % 8; b--) {
+          *ptr++ = palette[bits >> b & 1];
+        }
+      }
+      ptr += pad;
+      h--;
+    }
+  } else {
+    // 256-color palette
+    while (h > 0) {
+      PIXEL_T *endOfRow = ptr + w;
+      while (ptr < endOfRow) {
+        *ptr++ = palette[*srcPtr++];
+      }
+      ptr += pad;
+      h--;
+    }
+  }
+}
+
 #undef PIXEL_T
 }

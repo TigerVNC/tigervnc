@@ -23,12 +23,9 @@
 #ifndef __RFB_CCONNECTION_H__
 #define __RFB_CCONNECTION_H__
 
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
 #include <rfb/CMsgHandler.h>
-#include <rfb/CSecurity.h>
+#include <rfb/DecodeManager.h>
 #include <rfb/util.h>
-#include <rfb/SecurityClient.h>
 
 namespace rfb {
 
@@ -36,6 +33,7 @@ namespace rfb {
   class CMsgWriter;
   class CSecurity;
   class IdentityVerifier;
+  class SecurityClient;
 
   class CConnection : public CMsgHandler {
   public:
@@ -67,6 +65,13 @@ namespace rfb {
     // only ever support protocol version 3.3
     void setProtocol3_3(bool s) {useProtocol3_3 = s;}
 
+    // setFramebuffer configures the PixelBuffer that the CConnection
+    // should render all pixel data in to. Note that the CConnection
+    // takes ownership of the PixelBuffer and it must not be deleted by
+    // anyone else. Call setFramebuffer again with NULL or a different
+    // PixelBuffer to delete the previous one.
+    void setFramebuffer(ModifiablePixelBuffer* fb);
+
     // initialiseProtocol() should be called once the streams and security
     // types are set.  Subsequently, processMsg() should be called whenever
     // there is data to read on the InStream.
@@ -85,6 +90,20 @@ namespace rfb {
     void processMsg();
 
 
+    // Methods overridden from CMsgHandler
+
+    // Note: These must be called by any deriving classes
+
+    virtual void setDesktopSize(int w, int h);
+    virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
+                                        int w, int h,
+                                        const ScreenSet& layout);
+
+    virtual void framebufferUpdateStart();
+    virtual void framebufferUpdateEnd();
+    virtual void dataRect(const Rect& r, int encoding);
+
+
     // Methods to be overridden in a derived class
 
     // getIdVerifier() returns the identity verifier associated with the connection.
@@ -100,13 +119,6 @@ namespace rfb {
 
 
     // Other methods
-
-    // deleteReaderAndWriter() deletes the reader and writer associated with
-    // this connection.  This may be useful if you want to delete the streams
-    // before deleting the SConnection to make sure that no attempt by the
-    // SConnection is made to read or write.
-    // XXX Do we really need this at all???
-    void deleteReaderAndWriter();
 
     CMsgReader* reader() { return reader_; }
     CMsgWriter* writer() { return writer_; }
@@ -139,6 +151,8 @@ namespace rfb {
     void setReader(CMsgReader *r) { reader_ = r; }
     void setWriter(CMsgWriter *w) { writer_ = w; }
 
+    ModifiablePixelBuffer* getFramebuffer() { return framebuffer; }
+
   private:
     // This is a default implementation of fences that automatically
     // responds to requests, stating no support for synchronisation.
@@ -167,6 +181,9 @@ namespace rfb {
     CharArray serverName;
 
     bool useProtocol3_3;
+
+    ModifiablePixelBuffer* framebuffer;
+    DecodeManager decoder;
   };
 }
 #endif

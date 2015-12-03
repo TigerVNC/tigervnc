@@ -15,6 +15,7 @@ set(RFB_SOURCES
   ConnParams.cxx
   CopyRectDecoder.cxx
   Cursor.cxx
+  DecodeManager.cxx
   Decoder.cxx
   d3des.c
   EncodeManager.cxx

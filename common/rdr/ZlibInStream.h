@@ -38,10 +38,14 @@ namespace rdr {
     virtual ~ZlibInStream();
 
     void setUnderlying(InStream* is, int bytesIn);
-    void reset();
+    void removeUnderlying();
     int pos();
+    void reset();
 
   private:
+
+    void init();
+    void deinit();
 
     int overrun(int itemSize, int nItems, bool wait);
     bool decompress(bool wait);

@@ -1,5 +1,4 @@
-/* Copyright (C) 2005 Martin Koegler
- * Copyright (C) 2010 TigerVNC Team
+/* Copyright 2015 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,29 +16,49 @@
  * USA.
  */
 
-#include <rfb/CConnection.h>
-#include <rfb/CSecurityPlain.h>
-#include <rfb/UserPasswdGetter.h>
-#include <rfb/util.h>
+#ifndef __OS_MUTEX_H__
+#define __OS_MUTEX_H__
 
-#include <rdr/OutStream.h>
+namespace os {
+  class Condition;
 
-using namespace rfb;
+  class Mutex {
+  public:
+    Mutex();
+    ~Mutex();
 
-bool CSecurityPlain::processMsg(CConnection* cc)
-{
-   rdr::OutStream* os = cc->getOutStream();
+    void lock();
+    void unlock();
 
-  CharArray username;
-  CharArray password;
+  private:
+    friend Condition;
 
-  (CSecurity::upg)->getUserPasswd(&username.buf, &password.buf);
+    void* systemMutex;
+  };
 
-  // Return the response to the server
-  os->writeU32(strlen(username.buf));
-  os->writeU32(strlen(password.buf));
-  os->writeBytes(username.buf,strlen(username.buf));
-  os->writeBytes(password.buf,strlen(password.buf));
-  os->flush();
-  return true;
+  class AutoMutex {
+  public:
+    AutoMutex(Mutex* mutex) { m = mutex; m->lock(); }
+    ~AutoMutex() { m->unlock(); }
+  private:
+    Mutex* m;
+  };
+
+  class Condition {
+  public:
+    Condition(Mutex* mutex);
+    ~Condition();
+
+    void wait();
+
+    void signal();
+    void broadcast();
+
+  private:
+    Mutex* mutex;
+    void* systemCondition;
+  };
+
 }
+
+#endif

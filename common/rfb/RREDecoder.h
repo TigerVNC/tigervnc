@@ -24,9 +24,13 @@ namespace rfb {
 
   class RREDecoder : public Decoder {
   public:
-    RREDecoder(CConnection* conn);
+    RREDecoder();
     virtual ~RREDecoder();
-    virtual void readRect(const Rect& r, ModifiablePixelBuffer* pb);
+    virtual void readRect(const Rect& r, rdr::InStream* is,
+                          const ConnParams& cp, rdr::OutStream* os);
+    virtual void decodeRect(const Rect& r, const void* buffer,
+                            size_t buflen, const ConnParams& cp,
+                            ModifiablePixelBuffer* pb);
   };
 }
 #endif

@@ -140,13 +140,6 @@ namespace rfb {
     bool authenticated() { return (state_ == RFBSTATE_INITIALISATION ||
                                    state_ == RFBSTATE_NORMAL); }
 
-    // deleteReaderAndWriter() deletes the reader and writer associated with
-    // this connection.  This may be useful if you want to delete the streams
-    // before deleting the SConnection to make sure that no attempt by the
-    // SConnection is made to read or write.
-    // XXX Do we really need this at all???
-    void deleteReaderAndWriter();
-
     // throwConnFailedException() prints a message to the log, sends a conn
     // failed message to the client (if possible) and throws a
     // ConnFailedException.

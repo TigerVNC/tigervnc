@@ -1,5 +1,4 @@
-/* Copyright (C) 2005 Martin Koegler
- * Copyright (C) 2010 TigerVNC Team
+/* Copyright 2015 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,29 +16,41 @@
  * USA.
  */
 
-#include <rfb/CConnection.h>
-#include <rfb/CSecurityPlain.h>
-#include <rfb/UserPasswdGetter.h>
-#include <rfb/util.h>
+#ifndef __OS_THREAD_H__
+#define __OP_THREAD_H__
 
-#include <rdr/OutStream.h>
+namespace os {
+  class Mutex;
 
-using namespace rfb;
+  class Thread {
+  public:
+    Thread();
+    virtual ~Thread();
 
-bool CSecurityPlain::processMsg(CConnection* cc)
-{
-   rdr::OutStream* os = cc->getOutStream();
+    void start();
+    void wait();
 
-  CharArray username;
-  CharArray password;
+    bool isRunning();
 
-  (CSecurity::upg)->getUserPasswd(&username.buf, &password.buf);
+  public:
+    static size_t getSystemCPUCount();
 
-  // Return the response to the server
-  os->writeU32(strlen(username.buf));
-  os->writeU32(strlen(password.buf));
-  os->writeBytes(username.buf,strlen(username.buf));
-  os->writeBytes(password.buf,strlen(password.buf));
-  os->flush();
-  return true;
+  protected:
+    virtual void worker() = 0;
+
+  private:
+#ifdef WIN32
+    static long unsigned __stdcall startRoutine(void* data);
+#else
+    static void* startRoutine(void* data);
+#endif
+
+  private:
+    Mutex *mutex;
+    bool running;
+
+    void *threadId;
+  };
 }
+
+#endif

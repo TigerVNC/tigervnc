@@ -119,6 +119,13 @@ if(BUILD_STATIC_GCC)
   if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-Bstatic -lasan -Wl,-Bdynamic -ldl -lm -lpthread")
   endif()
+  if(ENABLE_TSAN AND NOT WIN32 AND NOT APPLE AND CMAKE_SIZEOF_VOID_P MATCHES 8)
+    # libtsan redefines some C++ symbols which then conflict with a
+    # statically linked libstdc++. Work around this by allowing multiple
+    # definitions. The linker will pick the first one (i.e. the one
+    # from libtsan).
+    set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -Wl,-z -Wl,muldefs -Wl,-Bstatic -ltsan -Wl,-Bdynamic -ldl -lm")
+  endif()
   if(WIN32)
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -lmingw32 -lgcc_eh -lgcc -lmoldname -lmingwex -lmsvcrt")
     set(STATIC_BASE_LIBRARIES "${STATIC_BASE_LIBRARIES} -luser32 -lkernel32 -ladvapi32 -lshell32")

@@ -17,16 +17,21 @@
  */
 #include <stdio.h>
 #include <string.h>
+
 #include <rfb/Exception.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
 #include <rfb/CSecurity.h>
 #include <rfb/Security.h>
+#include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
 #include <rfb/util.h>
 
 #include <rfb/LogWriter.h>
+
+#include <rdr/InStream.h>
+#include <rdr/OutStream.h>
 
 using namespace rfb;
 
@@ -35,19 +40,16 @@ static LogWriter vlog("CConnection");
 CConnection::CConnection()
   : csecurity(0), is(0), os(0), reader_(0), writer_(0),
     shared(false),
-    state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false)
+    state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
+    framebuffer(NULL), decoder(this)
 {
   security = new SecurityClient();
 }
 
 CConnection::~CConnection()
 {
+  setFramebuffer(NULL);
   if (csecurity) csecurity->destroy();
-  deleteReaderAndWriter();
-}
-
-void CConnection::deleteReaderAndWriter()
-{
   delete reader_;
   reader_ = 0;
   delete writer_;
@@ -58,6 +60,47 @@ void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 {
   is = is_;
   os = os_;
+}
+
+void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
+{
+  decoder.flush();
+
+  if ((framebuffer != NULL) && (fb != NULL)) {
+    Rect rect;
+
+    const rdr::U8* data;
+    int stride;
+
+    const rdr::U8 black[4] = { 0, 0, 0, 0 };
+
+    // Copy still valid area
+
+    rect.setXYWH(0, 0,
+                 __rfbmin(fb->width(), framebuffer->width()),
+                 __rfbmin(fb->height(), framebuffer->height()));
+    data = framebuffer->getBuffer(framebuffer->getRect(), &stride);
+    fb->imageRect(rect, data, stride);
+
+    // Black out any new areas
+
+    if (fb->width() > framebuffer->width()) {
+      rect.setXYWH(framebuffer->width(), 0,
+                   fb->width() - fb->width(),
+                   fb->height());
+      fb->fillRect(rect, black);
+    }
+
+    if (fb->height() > framebuffer->height()) {
+      rect.setXYWH(0, framebuffer->height(),
+                   fb->width(),
+                   fb->height() - framebuffer->height());
+      fb->fillRect(rect, black);
+    }
+  }
+
+  delete framebuffer;
+  framebuffer = fb;
 }
 
 void CConnection::initialiseProtocol()
@@ -258,6 +301,40 @@ void CConnection::securityCompleted()
   vlog.debug("Authentication success!");
   authSuccess();
   writer_->writeClientInit(shared);
+}
+
+void CConnection::setDesktopSize(int w, int h)
+{
+  decoder.flush();
+
+  CMsgHandler::setDesktopSize(w,h);
+}
+
+void CConnection::setExtendedDesktopSize(unsigned reason,
+                                         unsigned result,
+                                         int w, int h,
+                                         const ScreenSet& layout)
+{
+  decoder.flush();
+
+  CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
+}
+
+void CConnection::framebufferUpdateStart()
+{
+  CMsgHandler::framebufferUpdateStart();
+}
+
+void CConnection::framebufferUpdateEnd()
+{
+  decoder.flush();
+
+  CMsgHandler::framebufferUpdateEnd();
+}
+
+void CConnection::dataRect(const Rect& r, int encoding)
+{
+  decoder.decodeRect(r, encoding, framebuffer);
 }
 
 void CConnection::authSuccess()

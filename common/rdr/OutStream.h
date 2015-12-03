@@ -25,6 +25,7 @@
 #define __RDR_OUTSTREAM_H__
 
 #include <rdr/types.h>
+#include <rdr/InStream.h>
 #include <string.h> // for memcpy
 
 namespace rdr {
@@ -89,7 +90,7 @@ namespace rdr {
 
     // writeBytes() writes an exact number of bytes.
 
-    virtual void writeBytes(const void* data, int length) {
+    void writeBytes(const void* data, int length) {
       const U8* dataPtr = (const U8*)data;
       const U8* dataEnd = dataPtr + length;
       while (dataPtr < dataEnd) {
@@ -97,6 +98,17 @@ namespace rdr {
         memcpy(ptr, dataPtr, n);
         ptr += n;
         dataPtr += n;
+      }
+    }
+
+    // copyBytes() efficiently transfers data between streams
+
+    void copyBytes(InStream* is, int length) {
+      while (length > 0) {
+        int n = check(1, length);
+        is->readBytes(ptr, n);
+        ptr += n;
+        length -= n;
       }
     }
 

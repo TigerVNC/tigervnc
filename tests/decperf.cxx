@@ -27,13 +27,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include <rdr/Exception.h>
 #include <rdr/FileInStream.h>
 
 #include <rfb/CConnection.h>
 #include <rfb/CMsgReader.h>
-#include <rfb/Decoder.h>
 #include <rfb/PixelBuffer.h>
 #include <rfb/PixelFormat.h>
 
@@ -50,7 +50,8 @@ public:
   virtual void setDesktopSize(int w, int h);
   virtual void setPixelFormat(const rfb::PixelFormat& pf);
   virtual void setCursor(int, int, const rfb::Point&, void*, void*);
-  virtual void dataRect(const rfb::Rect&, int);
+  virtual void framebufferUpdateStart();
+  virtual void framebufferUpdateEnd();
   virtual void setColourMapEntries(int, int, rdr::U16*);
   virtual void bell();
   virtual void serverCutText(const char*, rdr::U32);
@@ -60,26 +61,14 @@ public:
 
 protected:
   rdr::FileInStream *in;
-  rfb::Decoder *decoders[rfb::encodingMax+1];
-  rfb::ManagedPixelBuffer pb;
 };
 
 CConn::CConn(const char *filename)
 {
-  int i;
-
   cpuTime = 0.0;
 
   in = new rdr::FileInStream(filename);
   setStreams(in, NULL);
-
-  memset(decoders, 0, sizeof(decoders));
-  for (i = 0;i < rfb::encodingMax;i++) {
-    if (!rfb::Decoder::supported(i))
-      continue;
-
-    decoders[i] = rfb::Decoder::createDecoder(i, this);
-  }
 
   // Need to skip the initial handshake
   setState(RFBSTATE_INITIALISATION);
@@ -89,40 +78,37 @@ CConn::CConn(const char *filename)
 
 CConn::~CConn()
 {
-  int i;
-
   delete in;
-
-  for (i = 0;i < rfb::encodingMax;i++)
-    delete decoders[i];
 }
 
 void CConn::setDesktopSize(int w, int h)
 {
   CConnection::setDesktopSize(w, h);
 
-  pb.setSize(cp.width, cp.height);
+  setFramebuffer(new rfb::ManagedPixelBuffer(filePF, cp.width, cp.height));
 }
 
 void CConn::setPixelFormat(const rfb::PixelFormat& pf)
 {
   // Override format
   CConnection::setPixelFormat(filePF);
-
-  pb.setPF(cp.pf());
 }
 
 void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
 {
 }
 
-void CConn::dataRect(const rfb::Rect &r, int encoding)
+void CConn::framebufferUpdateStart()
 {
-  if (!decoders[encoding])
-    throw rdr::Exception("Unknown encoding");
+  CConnection::framebufferUpdateStart();
 
   startCpuCounter();
-  decoders[encoding]->readRect(r, &pb);
+}
+
+void CConn::framebufferUpdateEnd()
+{
+  CConnection::framebufferUpdateEnd();
+
   endCpuCounter();
 
   cpuTime += getCpuCounter();
@@ -140,10 +126,19 @@ void CConn::serverCutText(const char*, rdr::U32)
 {
 }
 
-static double runTest(const char *fn)
+struct stats
+{
+  double decodeTime;
+  double realTime;
+};
+
+static struct stats runTest(const char *fn)
 {
   CConn *cc;
-  double time;
+  struct timeval start, stop;
+  struct stats s;
+
+  gettimeofday(&start, NULL);
 
   try {
     cc = new CConn(fn);
@@ -161,11 +156,15 @@ static double runTest(const char *fn)
     exit(1);
   }
 
-  time = cc->cpuTime;
+  gettimeofday(&stop, NULL);
+
+  s.decodeTime = cc->cpuTime;
+  s.realTime = (double)stop.tv_sec - start.tv_sec;
+  s.realTime += ((double)stop.tv_usec - start.tv_usec)/1000000.0;
 
   delete cc;
 
-  return time;
+  return s;
 }
 
 static void sort(double *array, int count)
@@ -191,7 +190,8 @@ static const int runCount = 9;
 int main(int argc, char **argv)
 {
   int i;
-  double times[runCount], dev[runCount];
+  struct stats runs[runCount];
+  double values[runCount], dev[runCount];
   double median, meddev;
 
   if (argc != 2) {
@@ -204,19 +204,37 @@ int main(int argc, char **argv)
 
   // Multiple runs to get a good average
   for (i = 0;i < runCount;i++)
-    times[i] = runTest(argv[1]);
+    runs[i] = runTest(argv[1]);
 
-  // Calculate median and median deviation
-  sort(times, runCount);
-  median = times[runCount/2];
+  // Calculate median and median deviation for CPU usage
+  for (i = 0;i < runCount;i++)
+    values[i] = runs[i].decodeTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
 
   for (i = 0;i < runCount;i++)
-    dev[i] = fabs((times[i] - median) / median) * 100;
+    dev[i] = fabs((values[i] - median) / median) * 100;
 
   sort(dev, runCount);
   meddev = dev[runCount/2];
 
   printf("CPU time: %g s (+/- %g %%)\n", median, meddev);
+
+  // And for CPU core usage
+  for (i = 0;i < runCount;i++)
+    values[i] = runs[i].decodeTime / runs[i].realTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
+
+  for (i = 0;i < runCount;i++)
+    dev[i] = fabs((values[i] - median) / median) * 100;
+
+  sort(dev, runCount);
+  meddev = dev[runCount/2];
+
+  printf("Core usage: %g (+/- %g %%)\n", median, meddev);
 
   return 0;
 }

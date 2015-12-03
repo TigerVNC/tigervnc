@@ -1111,19 +1111,26 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
                                   GCPtr pGC, int srcx, int srcy, int w, int h,
                                   int dstx, int dsty)
 {
-  BoxRec box;
   RegionRec dst, src, changed;
 
   RegionPtr ret;
 
   GC_OP_PROLOGUE(pGC, CopyArea);
 
-  box.x1 = dstx + pDst->x;
-  box.y1 = dsty + pDst->y;
-  box.x2 = box.x1 + w;
-  box.y2 = box.y1 + h;
+  // Apparently this happens now and then...
+  if ((w == 0) || (h == 0))
+    REGION_NULL(pGC->pScreen, &dst);
+  else {
+    BoxRec box;
 
-  REGION_INIT(pGC->pScreen, &dst, &box, 0);
+    box.x1 = dstx + pDst->x;
+    box.y1 = dsty + pDst->y;
+    box.x2 = box.x1 + w;
+    box.y2 = box.y1 + h;
+
+    REGION_INIT(pGC->pScreen, &dst, &box, 0);
+  }
+
   REGION_INTERSECT(pGC->pScreen, &dst, &dst, pGC->pCompositeClip);
 
   // The source of the data has to be something that's on screen.
@@ -1131,6 +1138,8 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
   if ((pSrc->pScreen == pGC->pScreen) &&
       ((pSrc->type == DRAWABLE_WINDOW) ||
        (pSrc == &pGC->pScreen->GetScreenPixmap(pGC->pScreen)->drawable))) {
+    BoxRec box;
+
     box.x1 = srcx + pSrc->x;
     box.y1 = srcy + pSrc->y;
     box.x2 = box.x1 + w;

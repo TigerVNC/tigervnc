@@ -23,11 +23,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/time.h>
 #ifdef _WIN32
 #include <winsock2.h>
-#ifndef _WIN32_WCE
-#include <sys/timeb.h>
-#endif
 #define read(s,b,l) recv(s,(char*)b,l,0)
 #define close closesocket
 #undef errno
@@ -36,7 +34,6 @@
 #else
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/time.h>
 #endif
 
 #ifndef vncmin
@@ -160,35 +157,6 @@ int FdInStream::overrun(int itemSize, int nItems, bool wait)
 
   return nItems;
 }
-
-#ifdef _WIN32
-static void gettimeofday(struct timeval* tv, void*)
-{
-  LARGE_INTEGER counts, countsPerSec;
-  static double usecPerCount = 0.0;
-
-  if (QueryPerformanceCounter(&counts)) {
-    if (usecPerCount == 0.0) {
-      QueryPerformanceFrequency(&countsPerSec);
-      usecPerCount = 1000000.0 / countsPerSec.QuadPart;
-    }
-
-    LONGLONG usecs = (LONGLONG)(counts.QuadPart * usecPerCount);
-    tv->tv_usec = (long)(usecs % 1000000);
-    tv->tv_sec = (long)(usecs / 1000000);
-
-  } else {
-#ifndef _WIN32_WCE
-    struct timeb tb;
-    ftime(&tb);
-    tv->tv_sec = tb.time;
-    tv->tv_usec = tb.millitm * 1000;
-#else
-    throw SystemException("QueryPerformanceCounter", GetLastError());
-#endif
-  }
-}
-#endif
 
 //
 // readWithTimeoutOrCallback() reads up to the given length in bytes from the

@@ -19,11 +19,8 @@
 // -=- Timer.cxx
 
 #include <stdio.h>
-#ifdef WIN32
-#ifndef _WIN32_WCE
-#include <sys/timeb.h>
-#endif
-#endif
+#include <sys/time.h>
+
 #include <rfb/Timer.h>
 #include <rfb/util.h>
 #include <rfb/LogWriter.h>
@@ -37,39 +34,6 @@ using namespace rfb;
 
 #ifndef __NO_DEFINE_VLOG__
 static LogWriter vlog("Timer");
-#endif
-
-
-// Win32 does not provide gettimeofday, so we emulate it to simplify the
-// Timer code.
-
-#ifdef _WIN32
-static void gettimeofday(struct timeval* tv, void*)
-{
-  LARGE_INTEGER counts, countsPerSec;
-  static double usecPerCount = 0.0;
-
-  if (QueryPerformanceCounter(&counts)) {
-    if (usecPerCount == 0.0) {
-      QueryPerformanceFrequency(&countsPerSec);
-      usecPerCount = 1000000.0 / countsPerSec.QuadPart;
-    }
-
-    LONGLONG usecs = (LONGLONG)(counts.QuadPart * usecPerCount);
-    tv->tv_usec = (long)(usecs % 1000000);
-    tv->tv_sec = (long)(usecs / 1000000);
-
-  } else {
-#ifndef _WIN32_WCE
-    struct timeb tb;
-    ftime(&tb);
-    tv->tv_sec = tb.time;
-    tv->tv_usec = tb.millitm * 1000;
-#else
-    throw SystemException("QueryPerformanceCounter", GetLastError());
-#endif
-  }
-}
 #endif
 
 
