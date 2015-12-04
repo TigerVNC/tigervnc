@@ -6,10 +6,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.3.90\n"
+"Project-Id-Version: tigervnc 1.5.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-11-19 12:46+0000\n"
-"PO-Revision-Date: 2015-04-30 01:15+0300\n"
+"POT-Creation-Date: 2015-11-26 11:33+0000\n"
+"PO-Revision-Date: 2015-12-03 21:41+0200\n"
 "Last-Translator: Jorma Karvonen <karvonen.jorma@gmail.com>\n"
 "Language-Team: Finnish <translation-team-fi@lists.sourceforge.net>\n"
 "Language: fi\n"
@@ -18,611 +18,607 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.7.5\n"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:111
 #, c-format
-msgid "(server default %s)"
-msgstr "(palvelinoletus %s)"
+msgid "connected to host %s port %d"
+msgstr "yhdistetty verkkotietokoneeseen %s portissa %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:227
-msgid "About"
-msgstr "Ohjelmasta"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:103
-msgid "About TigerVNC Viewer"
-msgstr "TigerVNC-selainohjelmasta"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1097
-msgid "About TigerVNC viewer..."
-msgstr "TigerVNC-selainohjelmasta..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:86
-msgid "About..."
-msgstr "Ohjelmasta..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:704
-msgid "Accept clipboard from server"
-msgstr "Hyväksy leikepöytä palvelimelta"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:327
-msgid "Adjusting window size to avoid accidental full screen request"
-msgstr "Säädetään ikkunakoko tahattomien kokonäyttöpyyntöjen välttämiseksi"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:563
-msgid "Allow JPEG compression:"
-msgstr "Salli JPEG-tiivistys:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1081
-msgid "Alt"
-msgstr "Alt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:648
-msgid "Authentication"
-msgstr "Todentaminen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:89
-msgid "Authentication cancelled"
-msgstr "Todentaminen peruttu"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:437
-msgid "Auto select"
-msgstr "Automaattivalinta"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:651
-#, c-format
-msgid "Bad Name/Value pair on line: %d in file: %s"
-msgstr "Väärä nimi/arvo-pari rivillä: %d tiedostossa: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:91
-msgid "BitBlt failed"
-msgstr "BitBlt epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:91
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:221
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:83
-msgid "Cancel"
-msgstr "Peru"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:116
-msgid "CleanupSignalHandler called"
-msgstr "CleanupSignalHandler kutsuttu"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:222
-msgid "Close"
-msgstr "Sulje"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:499
-msgid "Color level"
-msgstr "Väritaso"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:421
-msgid "Compression"
-msgstr "Tiivistys"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:96
-msgid "Connect"
-msgstr "Yhdistä"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1096
-msgid "Connection info..."
-msgstr "Yhdistämistiedot..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:362
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:404
-#, c-format
-msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is to small."
-msgstr "Parametrinimen %s muuntaminen wchar_t*-tyypiksi epäonnistui kun luetaan Windows-rekisteristä, puskurikoko on liian pieni."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:302
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:340
-#, c-format
-msgid "Could not convert the parameter-name %s to wchar_t* when writing to the Registry, the buffersize is to small."
-msgstr "Parametrinimen %s muuntaminen wchar_t*-tyypiksi epäonnistui kun kirjoitetaan Windows-rekisteriin, puskurikoko on liian pieni."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:318
-#, c-format
-msgid "Could not convert the parameter-value %s to wchar_t* when writing to the Registry, the buffersize is to small."
-msgstr "Parametriarvon %s muuntaminen wchar_t*-tyypiksi epäonnistui kun kirjoitetaan Windows-rekisteriin, puskurikoko on liian pieni."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:381
-#, c-format
-msgid "Could not convert the parameter-value for %s to utf8 char* when reading from the Registry, the buffer dest is to small."
-msgstr "Parametriarvon %s muuntaminen utf8 char*-tyypiksi epäonnistui kun luetaan Windows-rekisteristä, puskurikohde on liian pieni."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:256
-#, c-format
-msgid "Could not create VNC home directory: %s."
-msgstr "VNC-kotihakemiston luominen epäonnistui: %s."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:251
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "VNC-kotihakemiston luominen epäonnistui: kotihakemistopolku ei saavutettu."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:58
-msgid "Could not create framebuffer bitmap"
-msgstr "Framebuffer-bittikartan luominen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Framebuffer-laitteen luominen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:107
-msgid "Could not create framebuffer image"
-msgstr "Framebuffer-kuvien luominen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:310
-#, c-format
-msgid "Could not encode the parameter-value %s when writing to the Registry."
-msgstr "Parametriarvon %s koodaus epäonnistui kirjoitettaessa Windows-rekisteriin."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:613
-#, c-format
-msgid "Could not read the line(%d) in the configuration file,the buffersize is to small."
-msgstr "Rivin(%d) lukeminen asetustiedostosta epäonnistui, puskurikoko on liian pieni. "
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:68
-msgid "Couldn't find suitable pixmap format"
-msgstr "Sopivan pikselikarttamuodon löytäminen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "CreateCompatibleDC epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1079
-msgid "Ctrl"
-msgstr "Ctrl"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:550
-msgid "Custom compression level:"
-msgstr "Oma tiivistystaso:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:283
-msgid "Decoding: The size of the buffer dest is to small, it needs to be 1 byte bigger."
-msgstr "Koodauksen purku: Puskurikohteen koko on liian pieni, sen on oltava yhden tavun suurempi."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:172
+#: vncviewer/CConn.cxx:173
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Työpöytänimi: %.80s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1099
-msgid "Dismiss menu"
-msgstr "Lopeta valikko"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:59
-msgid "Display lacks pixmap format for default depth"
-msgstr "Näytöltä puuttuu pikselikarttamuoto oletussyvyydelle"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:778
-msgid "Enable full-screen mode over all monitors"
-msgstr "Otetaan käyttöön kokonäyttötila kaikissa näyttöpäätteissä"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:469
-msgid "Enabling continuous updates"
-msgstr "Otetaan käyttöön jatkuvat päivitykset"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:200
-#, c-format
-msgid "Encoding backslash: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr "Koodataan kenoviiva: Puskurikohteen koko on liian pieni, sen on oltava yli %d tavua suurempi."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:214
-#, c-format
-msgid "Encoding escape sequence: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr "Koodinvaihtosekvenssin koodaus: Puskurikohteen koko on liian pieni, sen on oltava yli %d tavua suurempi."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:234
-#, c-format
-msgid "Encoding normal character: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-msgstr "Normaalin merkin koodaus: Puskurikohteen koko on liian pieni, sen on oltava yli %d tavua suurempi."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:595
-msgid "Encryption"
-msgstr "Salaus"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:503
-#, c-format
-msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
-msgstr "Virhe(%d) suljettaessa avainta:  Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:455
-#, c-format
-msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
-msgstr "Virhe(%d) suljettaessa avainta: Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:434
-#, c-format
-msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
-msgstr "Virhe(%d) luotaessa avainta: Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:471
-#, c-format
-msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
-msgstr "Virhe(%d) avattaessa avainta: Software\\TigerVNC\\vncviewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:373
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:415
-#, c-format
-msgid "Error(%d) reading %s from Registry."
-msgstr "Virhe(%d) luettaessa %s Windows-rekisteristä."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:348
-#, c-format
-msgid "Error(%d) writing %d(REG_DWORD) to Registry."
-msgstr "Virhe(%d) kirjoitettaessa %d(REG_DWORD) Windows-rekisteriin."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:326
-#, c-format
-msgid "Error(%d) writing %s(REG_SZ) to Registry."
-msgstr "Virhe(%d) kirjoitettaessa %s(REG_SZ) Windows-rekisteriin."
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1067
-msgid "Exit viewer"
-msgstr "Poistu selaimesta"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:588
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr "Asetustiedoston lukeminen epäonnistui, kotihakemistopolun saavuttaminen epäonnistui."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:602
-#, c-format
-msgid "Failed to read configuration file, can't open %s"
-msgstr "Asetustiedoston lukeminen epäonnistui, kohteen %s avaaminen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:621
-#, c-format
-msgid "Failed to read line %d in file %s"
-msgstr "Rivin %d lukeminen tiedostosta %s epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:528
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr "Asetustiedoston kirjoittaminen epäonnistui, kotihakemistopolun saavuttaminen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:542
-#, c-format
-msgid "Failed to write configuration file, can't open %s"
-msgstr "Asetustiedoston kirjoittaminen epäonnistui, kohteen %s avaaminen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:526
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:538
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:551
-msgid "Failure grabbing keyboard"
-msgstr "Häiriö näppäimistöön tarttumisessa"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:563
-msgid "Failure grabbing mouse"
-msgstr "Häiriö hiireen tarttumisessa"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:512
-msgid "Full (all available colors)"
-msgstr "Täysi (kaikki saatavilla olevat värit)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1070
-msgid "Full screen"
-msgstr "Kokonäyttö"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:770
-msgid "Full-screen mode"
-msgstr "Kokonäyttötila"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:230
-msgid "Hide"
-msgstr "Piilota"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:238
-msgid "Hide Others"
-msgstr "Piilota muut"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:177
+#: vncviewer/CConn.cxx:178
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Verkkotietokone: %.80s portti: %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:690
-msgid "Input"
-msgstr "Syöte"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:510
-msgid "Internal FLTK error. Exiting."
-msgstr "Sisäinen FLTK-virhe. Poistutaan."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:384
-msgid "Invalid SetColourMapEntries from server!"
-msgstr "Virheellisiä SetColourMapEntries-komponentteja palvelimelta"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:106
-msgid "Invalid geometry specified!"
-msgstr "Virheellinen geometria määritelty!"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:708
-#, c-format
-msgid "Invalid parameter name on line: %d in file: %s"
-msgstr "Virheellinen parametrinimi rivillä: %d tiedostossa: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:805
-msgid "Invalid screen layout computed for resize request!"
-msgstr "Virheellinen näyttöasettelu laskettu koon muuttamispyynnölle!"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:204
-#, c-format
-msgid "Last used encoding: %s"
-msgstr "Viimeisin käytetty koodaus: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:631
-#, c-format
-msgid ""
-"Line 1 in file %s\n"
-"must contain the TigerVNC configuration file identifier string:\n"
-"\"%s\""
-msgstr ""
-"Riviin 1 tiedostossa %s\n"
-"on sisällyttävä TigerVNC-asetustiedostotunnistemerkkijono:\n"
-"”%s”"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:209
-#, c-format
-msgid "Line speed estimate: %d kbit/s"
-msgstr "Rivinopeusarvio: %d kilobittiä/s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:478
-#, c-format
-msgid "Listening on port %d\n"
-msgstr "Kuunnellaan portissa %d\n"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:69
-msgid "Load..."
-msgstr "Lataa..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:526
-msgid "Low (64 colors)"
-msgstr "Alhainen (64 väriä)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:519
-msgid "Medium (256 colors)"
-msgstr "Keskilaatuinen (256 väriä)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:725
-msgid "Menu key"
-msgstr "Valikkoavain"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:791
-msgid "Misc."
-msgstr "Sekalaista"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1037
-#, c-format
-msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr "Avainkoodille %d (0x%04x) on annettu useita merkkejä: ’%s’"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:218
-msgid "No"
-msgstr "Ei"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:691
-#, c-format
-msgid "No scan code for extended virtual key 0x%02x"
-msgstr "Ei toimintakoodia laajennetulle virtuaalinäppäimelle 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:693
-#, c-format
-msgid "No scan code for virtual key 0x%02x"
-msgstr "Ei toimintakoodia virtuaalinäppäimelle 0x%02x"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:710
-#, c-format
-msgid "No symbol for extended virtual key 0x%02x"
-msgstr "Laajennetulle virtuaaliavaimelle 0x%02x ei ole symbolia"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:776
-#, c-format
-msgid "No symbol for key code %d (in the current state)"
-msgstr "Avainkoodille %d ei ole symbolia (nykyisessä tilassa)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:750
-#, c-format
-msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr "Avainkoodille 0x%02x ei ole symbolia (nykyisessä tilassa)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:712
-#, c-format
-msgid "No symbol for virtual key 0x%02x"
-msgstr "Virtuaaliavaimelle 0x%02x ei ole symbolia"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:606
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:659
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:727
-msgid "None"
-msgstr "Ei mitään"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:48
-#: /home/ossman/devel/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:111
-msgid "Not enough memory for framebuffer"
-msgstr "Muisti ei riitä framebufferille"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:220
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:88
-msgid "OK"
-msgstr "Valmis"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:77
-msgid "Only true colour displays supported"
-msgstr "Tuetaan vain true color-näyttöjä"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:74
-msgid "Opening password file failed"
-msgstr "Salasanatiedoston avaaminen epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1095
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:64
-msgid "Options..."
-msgstr "Valitsimet..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:463
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:464
-msgid "Parameters -listen and -via are incompatible"
-msgstr "Parametrit -listen ja -via ovat yhteensopimattomia"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:722
-msgid "Pass system keys directly to server (full screen)"
-msgstr "Välitä järjestelmäavaimet suoraan palvelimelle (kokonäyttö)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:87
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:102
-msgid "Password:"
-msgstr "Salasana:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:625
-msgid "Path to X509 CA certificate"
-msgstr "Polku X509 CA-varmenteeseen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:632
-msgid "Path to X509 CRL file"
-msgstr "Polku X509 CRL-tiedostoon"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:188
-#, c-format
-msgid "Pixel format: %s"
-msgstr "Pikselimuoto: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:449
-msgid "Preferred encoding"
-msgstr "Ensisijainen koodaus"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:214
-#, c-format
-msgid "Protocol version: %d.%d"
-msgstr "Yhteyskäytäntöversio: %d.%d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:233
-msgid "Quit"
-msgstr "Poistu"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1093
-msgid "Refresh screen"
-msgstr "Virkistä näyttöä"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:199
-#, c-format
-msgid "Requested encoding: %s"
-msgstr "Pyydetty koodaus: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:749
-msgid "Resize remote session on connect"
-msgstr "Sovita etäistunnon koko yhteydellä"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:762
-msgid "Resize remote session to the local window"
-msgstr "Sovita etäistunto paikalliseen ikkunaan"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1073
-msgid "Resize window to session"
-msgstr "Sovita ikkunan koko istuntoon"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:74
-msgid "Save As..."
-msgstr "Tallenna nimellä..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:741
-msgid "Screen"
-msgstr "Näyttö"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:580
-msgid "Security"
-msgstr "Turvallisuus"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:219
-#, c-format
-msgid "Security method: %s"
-msgstr "Turvamenetelmä: %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "SelectObject epäonnistui"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1086
-#, c-format
-msgid "Send %s"
-msgstr "Lähetä %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1091
-msgid "Send Ctrl-Alt-Del"
-msgstr "Lähetä Ctrl-Alt-Del"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:710
-msgid "Send clipboard to server"
-msgstr "Lähetä leikepöytä palvelimelle"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:716
-msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Lähetä ensisijainen valinta ja leikkaa puskuri leikepöytänä"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:237
-msgid "Services"
-msgstr "Palvelut"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:319
-#, c-format
-msgid "SetDesktopSize failed: %d"
-msgstr "SetDesktopSize epäonnistui: %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:799
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Jaettu (älä katkaise yhteyttä muihin  selaimiin)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:239
-msgid "Show All"
-msgstr "Näytä kaikki"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:805
-msgid "Show dot when no cursor"
-msgstr "Näytä piste kun kohdistinta ei ole"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:182
+#: vncviewer/CConn.cxx:183
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Koko: %d x %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:665
-msgid "Standard VNC (insecure without encryption)"
-msgstr "Vakio VNC (turvaton ilman salausta)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:618
-msgid "TLS with X509 certificates"
-msgstr "TLS X509-varmenteilla"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:612
-msgid "TLS with anonymous certificates"
-msgstr "TLS anonyymeilla varmenteilla"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:448
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:497
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:561
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:701
+#: vncviewer/CConn.cxx:191
 #, c-format
-msgid "The parameterArray contains a object of a invalid type at line %d."
-msgstr "Komponentti parameterArray sisältää rivillä %d tyypiltään virheellisen objektin."
+msgid "Pixel format: %s"
+msgstr "Pikselimuoto: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:664
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:680
+#: vncviewer/CConn.cxx:198
 #, c-format
-msgid "The value of the parameter %s on line %d in file %s is invalid."
-msgstr "Parametrin %s arvo rivillä %d tiedostossa %s on virheellinen."
+msgid "(server default %s)"
+msgstr "(palvelinoletus %s)"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:539
+#: vncviewer/CConn.cxx:203
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Pyydetty koodaus: %s"
+
+#: vncviewer/CConn.cxx:208
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "Viimeisin käytetty koodaus: %s"
+
+#: vncviewer/CConn.cxx:213
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "Rivinopeusarvio: %d kilobittiä/s"
+
+#: vncviewer/CConn.cxx:218
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "Yhteyskäytäntöversio: %d.%d"
+
+#: vncviewer/CConn.cxx:223
+#, c-format
+msgid "Security method: %s"
+msgstr "Turvamenetelmä: %s"
+
+#: vncviewer/CConn.cxx:329
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "SetDesktopSize epäonnistui: %d"
+
+#: vncviewer/CConn.cxx:398
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "Virheellisiä SetColourMapEntries-komponentteja palvelimelta"
+
+#. TRANSLATORS: Refers to a VNC protocol encoding type
+#: vncviewer/CConn.cxx:444 vncviewer/CConn.cxx:451
+#, c-format
+msgid "Unknown encoding %d"
+msgstr "Tuntematon koodaus %d"
+
+#: vncviewer/CConn.cxx:445 vncviewer/CConn.cxx:452
+msgid "Unknown encoding"
+msgstr "Tuntematon koodaus"
+
+#: vncviewer/CConn.cxx:484
+msgid "Enabling continuous updates"
+msgstr "Otetaan käyttöön jatkuvat päivitykset"
+
+#: vncviewer/CConn.cxx:554
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Suoritusteho %d kilobittiä/s - vaihdetaan laaduksi %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:561
+#: vncviewer/CConn.cxx:576
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
 msgstr "Suoritusteho %d kilobittiä/s - koko väri on nyt %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:210
-msgid "TigerVNC Viewer"
-msgstr "TigerVNC-selain"
+#: vncviewer/CConn.cxx:578
+msgid "disabled"
+msgstr "poistettu käytöstä"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:80
+#: vncviewer/CConn.cxx:578
+msgid "enabled"
+msgstr "otettu käyttöön"
+
+#: vncviewer/CConn.cxx:588
+#, c-format
+msgid "Using %s encoding"
+msgstr "Käytetään %s-koodausta"
+
+#: vncviewer/CConn.cxx:635
+#, c-format
+msgid "Using pixel format %s"
+msgstr "Käytetään pikselimuotoa %s"
+
+#: vncviewer/DesktopWindow.cxx:106
+msgid "Invalid geometry specified!"
+msgstr "Virheellinen geometria määritelty!"
+
+#: vncviewer/DesktopWindow.cxx:309
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "Säädetään ikkunakoko tahattomien kokonäyttöpyyntöjen välttämiseksi"
+
+#: vncviewer/DesktopWindow.cxx:491 vncviewer/DesktopWindow.cxx:497
+#: vncviewer/DesktopWindow.cxx:510
+msgid "Failure grabbing keyboard"
+msgstr "Häiriö näppäimistöön tarttumisessa"
+
+#: vncviewer/DesktopWindow.cxx:522
+msgid "Failure grabbing mouse"
+msgstr "Häiriö hiireen tarttumisessa"
+
+#: vncviewer/DesktopWindow.cxx:752
+msgid "Invalid screen layout computed for resize request!"
+msgstr "Virheellinen näyttöasettelu laskettu koon muuttamispyynnölle!"
+
+#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
+#: vncviewer/X11PixelBuffer.cxx:113
+msgid "Not enough memory for framebuffer"
+msgstr "Muisti ei riitä framebufferille"
+
+#: vncviewer/OSXPixelBuffer.cxx:52
+msgid "Could not create framebuffer device"
+msgstr "Framebuffer-laitteen luominen epäonnistui"
+
+#: vncviewer/OSXPixelBuffer.cxx:58
+msgid "Could not create framebuffer bitmap"
+msgstr "Framebuffer-bittikartan luominen epäonnistui"
+
+#: vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC-selain: Yhteysvalitsimet"
+
+#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
+#: vncviewer/vncviewer.cxx:268
+msgid "Cancel"
+msgstr "Peru"
+
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:267
+msgid "OK"
+msgstr "Valmis"
+
+#: vncviewer/OptionsDialog.cxx:413
+msgid "Compression"
+msgstr "Tiivistys"
+
+#: vncviewer/OptionsDialog.cxx:429
+msgid "Auto select"
+msgstr "Automaattivalinta"
+
+#: vncviewer/OptionsDialog.cxx:441
+msgid "Preferred encoding"
+msgstr "Ensisijainen koodaus"
+
+#: vncviewer/OptionsDialog.cxx:489
+msgid "Color level"
+msgstr "Väritaso"
+
+#: vncviewer/OptionsDialog.cxx:500
+msgid "Full (all available colors)"
+msgstr "Täysi (kaikki saatavilla olevat värit)"
+
+#: vncviewer/OptionsDialog.cxx:507
+msgid "Medium (256 colors)"
+msgstr "Keskilaatuinen (256 väriä)"
+
+#: vncviewer/OptionsDialog.cxx:514
+msgid "Low (64 colors)"
+msgstr "Alhainen (64 väriä)"
+
+#: vncviewer/OptionsDialog.cxx:521
+msgid "Very low (8 colors)"
+msgstr "Hyvin alhainen (8 väriä)"
+
+#: vncviewer/OptionsDialog.cxx:538
+msgid "Custom compression level:"
+msgstr "Oma tiivistystaso:"
+
+#: vncviewer/OptionsDialog.cxx:544
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "taso (1=nopea, 6=paras [4-6 ovat harvoin hyödyllisiä])"
+
+#: vncviewer/OptionsDialog.cxx:551
+msgid "Allow JPEG compression:"
+msgstr "Salli JPEG-tiivistys:"
+
+#: vncviewer/OptionsDialog.cxx:557
+msgid "quality (0=poor, 9=best)"
+msgstr "laatu (0=heikko, 9=paras)"
+
+#: vncviewer/OptionsDialog.cxx:568
+msgid "Security"
+msgstr "Turvallisuus"
+
+#: vncviewer/OptionsDialog.cxx:583
+msgid "Encryption"
+msgstr "Salaus"
+
+#: vncviewer/OptionsDialog.cxx:594 vncviewer/OptionsDialog.cxx:647
+#: vncviewer/OptionsDialog.cxx:715
+msgid "None"
+msgstr "Ei mitään"
+
+#: vncviewer/OptionsDialog.cxx:600
+msgid "TLS with anonymous certificates"
+msgstr "TLS anonyymeilla varmenteilla"
+
+#: vncviewer/OptionsDialog.cxx:606
+msgid "TLS with X509 certificates"
+msgstr "TLS X509-varmenteilla"
+
+#: vncviewer/OptionsDialog.cxx:613
+msgid "Path to X509 CA certificate"
+msgstr "Polku X509 CA-varmenteeseen"
+
+#: vncviewer/OptionsDialog.cxx:620
+msgid "Path to X509 CRL file"
+msgstr "Polku X509 CRL-tiedostoon"
+
+#: vncviewer/OptionsDialog.cxx:636
+msgid "Authentication"
+msgstr "Todentaminen"
+
+#: vncviewer/OptionsDialog.cxx:653
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Vakio VNC (turvaton ilman salausta)"
+
+#: vncviewer/OptionsDialog.cxx:659
+msgid "Username and password (insecure without encryption)"
+msgstr "Käyttäjätunnus ja salasana (turvaton ilman salausta)"
+
+#: vncviewer/OptionsDialog.cxx:678
+msgid "Input"
+msgstr "Syöte"
+
+#: vncviewer/OptionsDialog.cxx:686
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Katso ainoastaan (ohita hiiri ja näppäimistö)"
+
+#: vncviewer/OptionsDialog.cxx:692
+msgid "Accept clipboard from server"
+msgstr "Hyväksy leikepöytä palvelimelta"
+
+#: vncviewer/OptionsDialog.cxx:698
+msgid "Send clipboard to server"
+msgstr "Lähetä leikepöytä palvelimelle"
+
+#: vncviewer/OptionsDialog.cxx:704
+msgid "Send primary selection and cut buffer as clipboard"
+msgstr "Lähetä ensisijainen valinta ja leikkaa puskuri leikepöytänä"
+
+#: vncviewer/OptionsDialog.cxx:710
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Välitä järjestelmäavaimet suoraan palvelimelle (kokonäyttö)"
+
+#: vncviewer/OptionsDialog.cxx:713
+msgid "Menu key"
+msgstr "Valikkoavain"
+
+#: vncviewer/OptionsDialog.cxx:729
+msgid "Screen"
+msgstr "Näyttö"
+
+#: vncviewer/OptionsDialog.cxx:737
+msgid "Resize remote session on connect"
+msgstr "Sovita etäistunnon koko yhteydellä"
+
+#: vncviewer/OptionsDialog.cxx:750
+msgid "Resize remote session to the local window"
+msgstr "Sovita etäistunto paikalliseen ikkunaan"
+
+#: vncviewer/OptionsDialog.cxx:756
+msgid "Full-screen mode"
+msgstr "Kokonäyttötila"
+
+#: vncviewer/OptionsDialog.cxx:762
+msgid "Enable full-screen mode over all monitors"
+msgstr "Otetaan käyttöön kokonäyttötila kaikissa näyttöpäätteissä"
+
+#: vncviewer/OptionsDialog.cxx:771
+msgid "Misc."
+msgstr "Sekalaista"
+
+#: vncviewer/OptionsDialog.cxx:779
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Jaettu (älä katkaise yhteyttä muihin  selaimiin)"
+
+#: vncviewer/OptionsDialog.cxx:785
+msgid "Show dot when no cursor"
+msgstr "Näytä piste kun kohdistinta ei ole"
+
+#: vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC-selain: Yhteyden lisätiedot"
+
+#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "VNC-palvelin:"
+
+#: vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Valitsimet..."
+
+#: vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Lataa..."
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Tallenna nimellä..."
+
+#: vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "Ohjelmasta..."
+
+#: vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "Yhdistä"
+
+#: vncviewer/UserDialog.cxx:74
+msgid "Opening password file failed"
+msgstr "Salasanatiedoston avaaminen epäonnistui"
+
+#: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
+msgid "VNC authentication"
+msgstr "VNC-todentaminen"
+
+#: vncviewer/UserDialog.cxx:87 vncviewer/UserDialog.cxx:102
+msgid "Password:"
+msgstr "Salasana:"
+
+#: vncviewer/UserDialog.cxx:89
+msgid "Authentication cancelled"
+msgstr "Todentaminen peruttu"
+
+#: vncviewer/UserDialog.cxx:99
+msgid "Username:"
+msgstr "Käyttäjätunnus:"
+
+#: vncviewer/Viewport.cxx:433
+#, c-format
+msgid "Unable to create platform specific framebuffer: %s"
+msgstr "Alustakohtaisen framebuffer-puskurin luominen epäonnistui: %s"
+
+#: vncviewer/Viewport.cxx:434
+msgid "Using platform independent framebuffer"
+msgstr "Käytetään alustariippumatonta framebuffer-puskuria"
+
+#: vncviewer/Viewport.cxx:668
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Ei toimintakoodia laajennetulle virtuaalinäppäimelle 0x%02x"
+
+#: vncviewer/Viewport.cxx:670
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Ei toimintakoodia virtuaalinäppäimelle 0x%02x"
+
+#: vncviewer/Viewport.cxx:687
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Laajennetulle virtuaaliavaimelle 0x%02x ei ole symbolia"
+
+#: vncviewer/Viewport.cxx:689
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Virtuaaliavaimelle 0x%02x ei ole symbolia"
+
+#: vncviewer/Viewport.cxx:727
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "Avainkoodille 0x%02x ei ole symbolia (nykyisessä tilassa)"
+
+#: vncviewer/Viewport.cxx:753
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "Avainkoodille %d ei ole symbolia (nykyisessä tilassa)"
+
+#: vncviewer/Viewport.cxx:790
+msgctxt "ContextMenu|"
+msgid "E&xit viewer"
+msgstr "P&oistu selaimesta"
+
+#: vncviewer/Viewport.cxx:793
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "&Kokonäyttö"
+
+#: vncviewer/Viewport.cxx:796
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "Mi&nimoi"
+
+#: vncviewer/Viewport.cxx:798
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "Sovita &ikkunan koko istuntoon"
+
+#: vncviewer/Viewport.cxx:803
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "&Ctrl"
+
+#: vncviewer/Viewport.cxx:806
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&Alt"
+
+#: vncviewer/Viewport.cxx:812
+#, c-format
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "Lähetä %s"
+
+#: vncviewer/Viewport.cxx:818
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Lähetä Ctrl-Alt-&Del"
+
+#: vncviewer/Viewport.cxx:821
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "Vi&rkistä näyttöä"
+
+#: vncviewer/Viewport.cxx:824
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "&Valitsimet..."
+
+#: vncviewer/Viewport.cxx:826
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "Yhd&istämistiedot..."
+
+#: vncviewer/Viewport.cxx:828
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "&TigerVNC-selainohjelmasta..."
+
+#: vncviewer/Viewport.cxx:831
+msgctxt "ContextMenu|"
+msgid "Dismiss &menu"
+msgstr "Lop&eta valikko"
+
+#: vncviewer/Viewport.cxx:915
+msgid "VNC connection info"
+msgstr "VNC-yhteystiedot"
+
+#: vncviewer/Win32PixelBuffer.cxx:62
+msgid "unable to create DIB section"
+msgstr "lohkon DIB luominen epäonnistui"
+
+#: vncviewer/Win32PixelBuffer.cxx:79
+msgid "CreateCompatibleDC failed"
+msgstr "CreateCompatibleDC epäonnistui"
+
+#: vncviewer/Win32PixelBuffer.cxx:82
+msgid "SelectObject failed"
+msgstr "SelectObject epäonnistui"
+
+#: vncviewer/Win32PixelBuffer.cxx:91
+msgid "BitBlt failed"
+msgstr "BitBlt epäonnistui"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:61
+msgid "Display lacks pixmap format for default depth"
+msgstr "Näytöltä puuttuu pikselikarttamuoto oletussyvyydelle"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:72
+msgid "Couldn't find suitable pixmap format"
+msgstr "Sopivan pikselikarttamuodon löytäminen epäonnistui"
+
+#: vncviewer/X11PixelBuffer.cxx:81
+msgid "Only true colour displays supported"
+msgstr "Tuetaan vain true color-näyttöjä"
+
+#: vncviewer/X11PixelBuffer.cxx:83
+#, c-format
+msgid "Using default colormap and visual, TrueColor, depth %d."
+msgstr "Käytetään oletusvärikarttaa ja visuaalisuutta, TrueColor, syvyys %d."
+
+#: vncviewer/X11PixelBuffer.cxx:109
+msgid "Could not create framebuffer image"
+msgstr "Framebuffer-kuvien luominen epäonnistui"
+
+#  Käännökseen lisätty Windows-etuliite, jotta rekisteri ei 
+#  käyttäjän mielessä sekaantuisi prosessorirekisteriin
+#: vncviewer/parameters.cxx:279 vncviewer/parameters.cxx:313
+#, c-format
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr "Parametrin %s nimi oli liian suuri kirjoitettavaksi Windows-rekisteriin"
+
+#: vncviewer/parameters.cxx:285 vncviewer/parameters.cxx:292
+#, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr "Parametri %s oli liian suuri kirjoitettavaksi Windows-rekisteriin"
+
+#: vncviewer/parameters.cxx:298 vncviewer/parameters.cxx:319
+#, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr "Parametrin %s, joka on tyyppiä %s, kirjoittaminen Windows-rekisteriin epäonnistui: %ld"
+
+#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:373
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr "Parametrin %s nimi oli liian suuri luettavaksi Windows-rekisteristä"
+
+#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:382
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr "Parametrin %s lukeminen Windows-rekisteristä epäonnistui: %ld"
+
+#: vncviewer/parameters.cxx:352
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr "Parametri %s oli liian suuri luettavaksi Windows-rekisteristä"
+
+#: vncviewer/parameters.cxx:402
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr "Windows-rekisteriavaimen luominen epäonnistui: %ld"
+
+#: vncviewer/parameters.cxx:416 vncviewer/parameters.cxx:465
+#: vncviewer/parameters.cxx:527 vncviewer/parameters.cxx:658
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr "Tuntematon parametrityyppi parametrille %s"
+
+#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr "Windows-rekisteriavaimen sulkeminen epäonnistui: %ld"
+
+#: vncviewer/parameters.cxx:439
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr "Windows-rekisteriavaimen avaaminen epäonnistui: %ld"
+
+#: vncviewer/parameters.cxx:496
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "Asetustiedoston kirjoittaminen epäonnistui, kotihakemistopolun saavuttaminen epäonnistui"
+
+#: vncviewer/parameters.cxx:509
+#, c-format
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "Asetustiedoston kirjoittaminen epäonnistui, kohteen %s avaaminen epäonnistui: %s"
+
+#: vncviewer/parameters.cxx:552
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "Asetustiedoston lukeminen epäonnistui, kotihakemistopolun saavuttaminen epäonnistui."
+
+#: vncviewer/parameters.cxx:565
+#, c-format
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "Asetustiedoston lukeminen epäonnistui, kohteen %s avaaminen epäonnistui: %s"
+
+#: vncviewer/parameters.cxx:578 vncviewer/parameters.cxx:583
+#: vncviewer/parameters.cxx:608 vncviewer/parameters.cxx:621
+#: vncviewer/parameters.cxx:637
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "Rivin %d lukeminen tiedostosta %s epäonnistui: %s"
+
+#: vncviewer/parameters.cxx:584
+msgid "Line too long"
+msgstr "Rivi on liian pitkä"
+
+#: vncviewer/parameters.cxx:591
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "Asetustiedoston %s muoto on virheellinen"
+
+#: vncviewer/parameters.cxx:609
+msgid "Invalid format"
+msgstr "Virheellinen muoto"
+
+#: vncviewer/parameters.cxx:622 vncviewer/parameters.cxx:638
+msgid "Invalid format or too large value"
+msgstr "Virheellinen muoto tai liian suuri arvo"
+
+#: vncviewer/parameters.cxx:665
+#, c-format
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "Tuntematon parametri %s rivillä %d tiedostossa %s"
+
+#: vncviewer/vncviewer.cxx:100
 #, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
@@ -635,122 +631,180 @@ msgstr ""
 "Copyright (C) 1999-%d TigerVNC-ryhmä ja monet muut (katso README.txt)\n"
 "TigerVNC-lisätietoja varten katso http://www.tigervnc.org ."
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:456
+#: vncviewer/vncviewer.cxx:127
+msgid "About TigerVNC Viewer"
+msgstr "TigerVNC-selainohjelmasta"
+
+#: vncviewer/vncviewer.cxx:144 vncviewer/vncviewer.cxx:156
 #, c-format
-msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Alustakohtaisen framebuffer-puskurin luominen epäonnistui: %s"
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "Virhe käynnistettäessä uusi TigerVNC-selainohjelma: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1015
+#: vncviewer/vncviewer.cxx:165
 #, c-format
-msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr "Tuntematon FLTK-avainkoodi %d (0x%04x)"
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr "Päättämissignaali %d on vastaanotettu. TigerVNC-selain sulkeutuu."
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:889
-#, c-format
-msgid "Unknown decimal separator: '%s'"
-msgstr "Tuntematon desimaalierotin: ’%s’"
+#: vncviewer/vncviewer.cxx:257
+msgid "TigerVNC Viewer"
+msgstr "TigerVNC-selain"
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:271
-#, c-format
-msgid "Unknown escape sequence at character %d"
-msgstr "Tuntematon koodinvaihtosekvensssi merkissä %d"
+#: vncviewer/vncviewer.cxx:265
+msgid "No"
+msgstr "Ei"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:430
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:437
-msgid "Unknown rect encoding"
-msgstr "Tuntematon rect-koodaus"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:429
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:436
-#, c-format
-msgid "Unknown rect encoding %d"
-msgstr "Tuntematon rect-koodaus %d"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:671
-msgid "Username and password (insecure without encryption)"
-msgstr "Käyttäjätunnus ja salasana (turvaton ilman salausta)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:99
-msgid "Username:"
-msgstr "Käyttäjätunnus:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:573
-#, c-format
-msgid "Using %s encoding"
-msgstr "Käytetään %s-koodausta"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:79
-#, c-format
-msgid "Using default colormap and visual, %sdepth %d."
-msgstr "Käytetään oletusvärikarttaa ja visuaalisuutta, %s-syvyys %d."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:620
-#, c-format
-msgid "Using pixel format %s"
-msgstr "Käytetään pikselimuotoa %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:457
-msgid "Using platform independent framebuffer"
-msgstr "Käytetään alustariippumatonta framebuffer-puskuria"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:42
-msgid "VNC Viewer: Connection Details"
-msgstr "VNC-selain: Yhteyden lisätiedot"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:57
-msgid "VNC Viewer: Connection Options"
-msgstr "VNC-selain: Yhteysvalitsimet"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:86
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:96
-msgid "VNC authentication"
-msgstr "VNC-todentaminen"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1187
-msgid "VNC connection info"
-msgstr "VNC-yhteystiedot"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:49
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:54
-msgid "VNC server:"
-msgstr "VNC-palvelin:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:533
-msgid "Very low (8 colors)"
-msgstr "Hyvin alhainen (8 väriä)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:698
-msgid "View only (ignore mouse and keyboard)"
-msgstr "Katso ainoastaan (ohita hiiri ja näppäimistö)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:219
+#: vncviewer/vncviewer.cxx:266
 msgid "Yes"
 msgstr "Kyllä"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:111
+#: vncviewer/vncviewer.cxx:269
+msgid "Close"
+msgstr "Sulje"
+
+#: vncviewer/vncviewer.cxx:274
+msgid "About"
+msgstr "Ohjelmasta"
+
+#: vncviewer/vncviewer.cxx:277
+msgid "Hide"
+msgstr "Piilota"
+
+#: vncviewer/vncviewer.cxx:280
+msgid "Quit"
+msgstr "Poistu"
+
+#: vncviewer/vncviewer.cxx:284
+msgid "Services"
+msgstr "Palvelut"
+
+#: vncviewer/vncviewer.cxx:285
+msgid "Hide Others"
+msgstr "Piilota muut"
+
+#: vncviewer/vncviewer.cxx:286
+msgid "Show All"
+msgstr "Näytä kaikki"
+
+#: vncviewer/vncviewer.cxx:295
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "Tie&dosto"
+
+#: vncviewer/vncviewer.cxx:298
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "&Uusi yhteys"
+
+#: vncviewer/vncviewer.cxx:310
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "VNC-kotihakemiston luominen epäonnistui: kotihakemistopolku ei saavutettu."
+
+#: vncviewer/vncviewer.cxx:315
 #, c-format
-msgid "connected to host %s port %d"
-msgstr "yhdistetty verkkotietokoneeseen %s portissa %d"
+msgid "Could not create VNC home directory: %s."
+msgstr "VNC-kotihakemiston luominen epäonnistui: %s."
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "disabled"
-msgstr "poistettu käytöstä"
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:520 vncviewer/vncviewer.cxx:521
+msgid "Parameters -listen and -via are incompatible"
+msgstr "Parametrit -listen ja -via ovat yhteensopimattomia"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "enabled"
-msgstr "otettu käyttöön"
+#: vncviewer/vncviewer.cxx:536
+#, c-format
+msgid "Listening on port %d"
+msgstr "Kuunnellaan portissa %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:556
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "taso (1=nopea, 6=paras [4-6 ovat harvoin hyödyllisiä])"
+#: vncviewer/vncviewer.cxx:601
+msgid "Internal FLTK error. Exiting."
+msgstr "Sisäinen FLTK-virhe. Poistutaan."
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:569
-msgid "quality (0=poor, 9=best)"
-msgstr "laatu (0=heikko, 9=paras)"
+#~ msgid "Alt"
+#~ msgstr "Alt"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "lohkon DIB luominen epäonnistui"
+#~ msgid "Bad Name/Value pair on line: %d in file: %s"
+#~ msgstr "Väärä nimi/arvo-pari rivillä: %d tiedostossa: %s"
+
+#~ msgid "CleanupSignalHandler called"
+#~ msgstr "CleanupSignalHandler kutsuttu"
+
+#~ msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is to small."
+#~ msgstr "Parametrinimen %s muuntaminen wchar_t*-tyypiksi epäonnistui kun luetaan Windows-rekisteristä, puskurikoko on liian pieni."
+
+#~ msgid "Could not convert the parameter-name %s to wchar_t* when writing to the Registry, the buffersize is to small."
+#~ msgstr "Parametrinimen %s muuntaminen wchar_t*-tyypiksi epäonnistui kun kirjoitetaan Windows-rekisteriin, puskurikoko on liian pieni."
+
+#~ msgid "Could not convert the parameter-value %s to wchar_t* when writing to the Registry, the buffersize is to small."
+#~ msgstr "Parametriarvon %s muuntaminen wchar_t*-tyypiksi epäonnistui kun kirjoitetaan Windows-rekisteriin, puskurikoko on liian pieni."
+
+#~ msgid "Could not convert the parameter-value for %s to utf8 char* when reading from the Registry, the buffer dest is to small."
+#~ msgstr "Parametriarvon %s muuntaminen utf8 char*-tyypiksi epäonnistui kun luetaan Windows-rekisteristä, puskurikohde on liian pieni."
+
+#~ msgid "Could not read the line(%d) in the configuration file,the buffersize is to small."
+#~ msgstr "Rivin(%d) lukeminen asetustiedostosta epäonnistui, puskurikoko on liian pieni. "
+
+#~ msgid "Decoding: The size of the buffer dest is to small, it needs to be 1 byte bigger."
+#~ msgstr "Koodauksen purku: Puskurikohteen koko on liian pieni, sen on oltava yhden tavun suurempi."
+
+#~ msgid "Encoding backslash: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+#~ msgstr "Koodataan kenoviiva: Puskurikohteen koko on liian pieni, sen on oltava yli %d tavua suurempi."
+
+#~ msgid "Encoding escape sequence: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+#~ msgstr "Koodinvaihtosekvenssin koodaus: Puskurikohteen koko on liian pieni, sen on oltava yli %d tavua suurempi."
+
+#~ msgid "Encoding normal character: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
+#~ msgstr "Normaalin merkin koodaus: Puskurikohteen koko on liian pieni, sen on oltava yli %d tavua suurempi."
+
+#~ msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
+#~ msgstr "Virhe(%d) suljettaessa avainta:  Software\\TigerVNC\\vncviewer"
+
+#~ msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
+#~ msgstr "Virhe(%d) suljettaessa avainta: Software\\TigerVNC\\vncviewer"
+
+#~ msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
+#~ msgstr "Virhe(%d) luotaessa avainta: Software\\TigerVNC\\vncviewer"
+
+#~ msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
+#~ msgstr "Virhe(%d) avattaessa avainta: Software\\TigerVNC\\vncviewer"
+
+#~ msgid "Error(%d) reading %s from Registry."
+#~ msgstr "Virhe(%d) luettaessa %s Windows-rekisteristä."
+
+#~ msgid "Error(%d) writing %d(REG_DWORD) to Registry."
+#~ msgstr "Virhe(%d) kirjoitettaessa %d(REG_DWORD) Windows-rekisteriin."
+
+#~ msgid "Error(%d) writing %s(REG_SZ) to Registry."
+#~ msgstr "Virhe(%d) kirjoitettaessa %s(REG_SZ) Windows-rekisteriin."
+
+#~ msgid ""
+#~ "Line 1 in file %s\n"
+#~ "must contain the TigerVNC configuration file identifier string:\n"
+#~ "\"%s\""
+#~ msgstr ""
+#~ "Riviin 1 tiedostossa %s\n"
+#~ "on sisällyttävä TigerVNC-asetustiedostotunnistemerkkijono:\n"
+#~ "”%s”"
+
+#~ msgid "Multiple characters given for key code %d (0x%04x): '%s'"
+#~ msgstr "Avainkoodille %d (0x%04x) on annettu useita merkkejä: ’%s’"
+
+#~ msgid "The parameterArray contains a object of a invalid type at line %d."
+#~ msgstr "Komponentti parameterArray sisältää rivillä %d tyypiltään virheellisen objektin."
+
+#~ msgid "The value of the parameter %s on line %d in file %s is invalid."
+#~ msgstr "Parametrin %s arvo rivillä %d tiedostossa %s on virheellinen."
+
+#~ msgid "Unknown FLTK key code %d (0x%04x)"
+#~ msgstr "Tuntematon FLTK-avainkoodi %d (0x%04x)"
+
+#~ msgid "Unknown decimal separator: '%s'"
+#~ msgstr "Tuntematon desimaalierotin: ’%s’"
+
+#~ msgid "Unknown escape sequence at character %d"
+#~ msgstr "Tuntematon koodinvaihtosekvensssi merkissä %d"
+
+#~ msgid "Using default colormap and visual, %sdepth %d."
+#~ msgstr "Käytetään oletusvärikarttaa ja visuaalisuutta, %s-syvyys %d."
 
 #~ msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is too small."
 #~ msgstr "Parametrinimen %s muuntaminen wchar_t*-tyypiksi epäonnistui kun luetaan Registrystä, puskurikoko on liian pieni."
@@ -778,6 +832,3 @@ msgstr "lohkon DIB luominen epäonnistui"
 
 #~ msgid "Could not read the line(%d) in the configuration file,the buffersize is too small."
 #~ msgstr "Rivin(%d) lukeminen asetustiedostossa epäonnistui, puskurikoko on liian pieni. "
-
-#~ msgid "Using default colormap and visual, %s depth %d."
-#~ msgstr "Käytetään oletusvärikarttaa ja visuaalisuutta, %s-syvyys %d."
