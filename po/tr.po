@@ -494,13 +494,13 @@ msgstr "BitBlt başarısız"
 #. to translate.
 #: vncviewer/X11PixelBuffer.cxx:61
 msgid "Display lacks pixmap format for default depth"
-msgstr "Görüntü aygıtının varsayılan renk derinliği için pixmap düzeni yok"
+msgstr "Görüntü aygıtının varsayılan renk derinliği için pixmap biçimi yok"
 
 #. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
 #. to translate.
 #: vncviewer/X11PixelBuffer.cxx:72
 msgid "Couldn't find suitable pixmap format"
-msgstr "Uygun pixmap düzeni bulunamıyor"
+msgstr "Uygun pixmap biçimi bulunamıyor"
 
 #: vncviewer/X11PixelBuffer.cxx:81
 msgid "Only true colour displays supported"
