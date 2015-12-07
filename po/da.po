@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.4.90\n"
+"Project-Id-Version: tigervnc 1.5.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2015-06-22 07:27+0000\n"
-"PO-Revision-Date: 2015-06-27 15:00+0000\n"
+"POT-Creation-Date: 2015-11-26 11:33+0000\n"
+"PO-Revision-Date: 2015-12-08 15:00+0000\n"
 "Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -22,103 +22,103 @@ msgstr ""
 msgid "connected to host %s port %d"
 msgstr "forbundet til værten %s på port %d"
 
-#: vncviewer/CConn.cxx:172
+#: vncviewer/CConn.cxx:173
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Skrivebordsnavn: %.80s"
 
-#: vncviewer/CConn.cxx:177
+#: vncviewer/CConn.cxx:178
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Vært: %.80s port: %d"
 
-#: vncviewer/CConn.cxx:182
+#: vncviewer/CConn.cxx:183
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Størrelse: %d x %d"
 
-#: vncviewer/CConn.cxx:190
+#: vncviewer/CConn.cxx:191
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Billedformat: %s"
 
-#: vncviewer/CConn.cxx:197
+#: vncviewer/CConn.cxx:198
 #, c-format
 msgid "(server default %s)"
 msgstr "(serverstandard %s)"
 
-#: vncviewer/CConn.cxx:202
+#: vncviewer/CConn.cxx:203
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Anmodt kodning: %s"
 
-#: vncviewer/CConn.cxx:207
+#: vncviewer/CConn.cxx:208
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Sidst anvendt kodning: %s"
 
-#: vncviewer/CConn.cxx:212
+#: vncviewer/CConn.cxx:213
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Linjehastighedsestimat: %d kbit/s"
 
-#: vncviewer/CConn.cxx:217
+#: vncviewer/CConn.cxx:218
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Protokolversion: %d.%d"
 
-#: vncviewer/CConn.cxx:222
+#: vncviewer/CConn.cxx:223
 #, c-format
 msgid "Security method: %s"
 msgstr "Sikkerhedsmetode: %s"
 
-#: vncviewer/CConn.cxx:322
+#: vncviewer/CConn.cxx:329
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "SetDesktopSize fejlede: %d"
 
-#: vncviewer/CConn.cxx:387
+#: vncviewer/CConn.cxx:398
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Ugyldig SetColourMapEntries fra server!"
 
 #. TRANSLATORS: Refers to a VNC protocol encoding type
-#: vncviewer/CConn.cxx:433 vncviewer/CConn.cxx:440
+#: vncviewer/CConn.cxx:444 vncviewer/CConn.cxx:451
 #, c-format
 msgid "Unknown encoding %d"
 msgstr "Ukendt kodning %d"
 
-#: vncviewer/CConn.cxx:434 vncviewer/CConn.cxx:441
+#: vncviewer/CConn.cxx:445 vncviewer/CConn.cxx:452
 msgid "Unknown encoding"
 msgstr "Ukendt kodning"
 
-#: vncviewer/CConn.cxx:473
+#: vncviewer/CConn.cxx:484
 msgid "Enabling continuous updates"
 msgstr "Aktiverer fortsættende opdateringer"
 
-#: vncviewer/CConn.cxx:543
+#: vncviewer/CConn.cxx:554
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Gennemløb %d kbit/s - ændrer til kvalitet %d"
 
-#: vncviewer/CConn.cxx:565
+#: vncviewer/CConn.cxx:576
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
 msgstr "Gennemløb %d kbit/s - fuld farve er nu %s"
 
-#: vncviewer/CConn.cxx:567
+#: vncviewer/CConn.cxx:578
 msgid "disabled"
 msgstr "deaktiveret"
 
-#: vncviewer/CConn.cxx:567
+#: vncviewer/CConn.cxx:578
 msgid "enabled"
 msgstr "aktiveret"
 
-#: vncviewer/CConn.cxx:577
+#: vncviewer/CConn.cxx:588
 #, c-format
 msgid "Using %s encoding"
 msgstr "Bruger %s-kodning"
 
-#: vncviewer/CConn.cxx:624
+#: vncviewer/CConn.cxx:635
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Bruger billedpunktsformat %s"
@@ -162,11 +162,11 @@ msgid "VNC Viewer: Connection Options"
 msgstr "VNC-fremviser: Forbindelsesindstillinger"
 
 #: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
-#: vncviewer/vncviewer.cxx:263
+#: vncviewer/vncviewer.cxx:268
 msgid "Cancel"
 msgstr "Afbryd"
 
-#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:262
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:267
 msgid "OK"
 msgstr "O.k."
 
@@ -351,8 +351,6 @@ msgstr "Forbind"
 msgid "Opening password file failed"
 msgstr "Åbning af adgangskodefil mislykkedes"
 
-#. Largely copied from FLTK so that we get the same look and feel
-#. as the simpler password input.
 #: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
 msgid "VNC authentication"
 msgstr "VNC-godkendelse"
@@ -369,95 +367,112 @@ msgstr "Godkendelse afbrudt"
 msgid "Username:"
 msgstr "Brugernavn:"
 
-#: vncviewer/Viewport.cxx:434
+#: vncviewer/Viewport.cxx:433
 #, c-format
 msgid "Unable to create platform specific framebuffer: %s"
 msgstr "Kan ikke oprette platformspecifik framebuffer: %s"
 
-#: vncviewer/Viewport.cxx:435
+#: vncviewer/Viewport.cxx:434
 msgid "Using platform independent framebuffer"
 msgstr "Bruger framebuffer uafhængig af platform"
 
-#: vncviewer/Viewport.cxx:669
+#: vncviewer/Viewport.cxx:668
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Ingen skanningskode for udvidet virtuel nøgle 0x%02x"
 
-#: vncviewer/Viewport.cxx:671
+#: vncviewer/Viewport.cxx:670
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Ingen skanningskode for virtuel nøgle 0x%02x"
 
-#: vncviewer/Viewport.cxx:688
+#: vncviewer/Viewport.cxx:687
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Intet symbol for udvidet virtuel nøgle 0x%02x"
 
-#: vncviewer/Viewport.cxx:690
+#: vncviewer/Viewport.cxx:689
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Intet symbol for virtuel nøgle 0x%02x"
 
-#: vncviewer/Viewport.cxx:728
+#: vncviewer/Viewport.cxx:727
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Intet symbol for nøglekode 0x%02x (i den nuværende tilstand)"
 
-#: vncviewer/Viewport.cxx:754
+#: vncviewer/Viewport.cxx:753
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Intet symbol for nøglekode %d (i den nuværende tilstand)"
 
-#: vncviewer/Viewport.cxx:791
+#: vncviewer/Viewport.cxx:790
+msgctxt "ContextMenu|"
 msgid "E&xit viewer"
 msgstr "&Afslut fremviser"
 
-#: vncviewer/Viewport.cxx:794
+#: vncviewer/Viewport.cxx:793
+msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&Fuld skærm"
 
 #: vncviewer/Viewport.cxx:796
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "&Minimer"
+
+#: vncviewer/Viewport.cxx:798
+msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Ændr størrelse for &vindue til session"
 
-#: vncviewer/Viewport.cxx:801
+#: vncviewer/Viewport.cxx:803
+msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:803
+#: vncviewer/Viewport.cxx:806
+msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:808
+#: vncviewer/Viewport.cxx:812
 #, c-format
+msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Send %s"
 
-#: vncviewer/Viewport.cxx:814
+#: vncviewer/Viewport.cxx:818
+msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Send Ctrl-Alt-&Slet"
 
-#: vncviewer/Viewport.cxx:817
+#: vncviewer/Viewport.cxx:821
+msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Opdater skærm"
 
-#: vncviewer/Viewport.cxx:820
+#: vncviewer/Viewport.cxx:824
+msgctxt "ContextMenu|"
 msgid "&Options..."
-msgstr "&Tilvalg ..."
+msgstr "&Indstillinger ..."
 
-#: vncviewer/Viewport.cxx:822
+#: vncviewer/Viewport.cxx:826
+msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Forbindelses&info ..."
 
-#: vncviewer/Viewport.cxx:824
+#: vncviewer/Viewport.cxx:828
+msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Om &TigerVNC-fremviseren ..."
 
-#: vncviewer/Viewport.cxx:827
+#: vncviewer/Viewport.cxx:831
+msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
 msgstr "Fjern %menu"
 
-#: vncviewer/Viewport.cxx:908
+#: vncviewer/Viewport.cxx:915
 msgid "VNC connection info"
 msgstr "VNC-forbindelsesinfo"
 
@@ -566,7 +581,6 @@ msgstr "Kunne ikke skrive konfigurationsfil, kan ikke åbne %s: %s"
 msgid "Failed to read configuration file, can't obtain home directory path."
 msgstr "Kunne ikke læse konfigurationsfil, kan ikke indhente hjemmemappens sti."
 
-#. Use defaults.
 #: vncviewer/parameters.cxx:565
 #, c-format
 msgid "Failed to read configuration file, can't open %s: %s"
@@ -614,95 +628,90 @@ msgstr ""
 "Ophavsret 1999-%d TigerVNC-holdet og mange andre (se README.txt)\n"
 "Se http://www.tigervnc.org for information om TigerVNC."
 
-#: vncviewer/vncviewer.cxx:122
+#: vncviewer/vncviewer.cxx:127
 msgid "About TigerVNC Viewer"
 msgstr "Om TigerVNC-fremviseren"
 
-#: vncviewer/vncviewer.cxx:139 vncviewer/vncviewer.cxx:151
+#: vncviewer/vncviewer.cxx:144 vncviewer/vncviewer.cxx:156
 #, c-format
 msgid "Error starting new TigerVNC Viewer: %s"
 msgstr "Fejl ved start af ny TigerVNC-fremviser: %s"
 
-#. CleanupSignalHandler allows C++ object cleanup to happen because it calls
-#. exit() rather than the default which is to abort.
-#: vncviewer/vncviewer.cxx:160
+#: vncviewer/vncviewer.cxx:165
 #, c-format
 msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
 msgstr "Opsigelsessignalet %d er blevet modtaget. TigerVNC-fremviseren vil nu afslutte."
 
-#. Avoid empty titles for popups
-#: vncviewer/vncviewer.cxx:252
+#: vncviewer/vncviewer.cxx:257
 msgid "TigerVNC Viewer"
 msgstr "TigerVNC-fremviser"
 
-#. FLTK exposes these so that we can translate them.
-#: vncviewer/vncviewer.cxx:260
+#: vncviewer/vncviewer.cxx:265
 msgid "No"
 msgstr "Nej"
 
-#: vncviewer/vncviewer.cxx:261
+#: vncviewer/vncviewer.cxx:266
 msgid "Yes"
 msgstr "Ja"
 
-#: vncviewer/vncviewer.cxx:264
+#: vncviewer/vncviewer.cxx:269
 msgid "Close"
 msgstr "Luk"
 
-#: vncviewer/vncviewer.cxx:269
+#: vncviewer/vncviewer.cxx:274
 msgid "About"
 msgstr "Om"
 
-#: vncviewer/vncviewer.cxx:272
+#: vncviewer/vncviewer.cxx:277
 msgid "Hide"
 msgstr "Skjul"
 
-#: vncviewer/vncviewer.cxx:275
+#: vncviewer/vncviewer.cxx:280
 msgid "Quit"
 msgstr "Afslut"
 
-#. Don't want the print item
-#: vncviewer/vncviewer.cxx:279
+#: vncviewer/vncviewer.cxx:284
 msgid "Services"
 msgstr "Tjenester"
 
-#: vncviewer/vncviewer.cxx:280
+#: vncviewer/vncviewer.cxx:285
 msgid "Hide Others"
 msgstr "Skjul andre"
 
-#: vncviewer/vncviewer.cxx:281
+#: vncviewer/vncviewer.cxx:286
 msgid "Show All"
 msgstr "Vis alle"
 
-#. Fl_Sys_Menu_Bar overrides methods without them being virtual,
-#. which means we cannot use our generic Fl_Menu_ helpers.
-#: vncviewer/vncviewer.cxx:290
+#: vncviewer/vncviewer.cxx:295
+msgctxt "SysMenu|"
 msgid "&File"
 msgstr "&Fil"
 
-#: vncviewer/vncviewer.cxx:292
+#: vncviewer/vncviewer.cxx:298
+msgctxt "SysMenu|File|"
 msgid "&New Connection"
 msgstr "&Ny forbindelse"
 
-#: vncviewer/vncviewer.cxx:303
+#: vncviewer/vncviewer.cxx:310
 msgid "Could not create VNC home directory: can't obtain home directory path."
 msgstr "Kunne ikke oprette VNC-hjemmemappen: Kan ikke indhente hjemmemappens sti."
 
-#: vncviewer/vncviewer.cxx:308
+#: vncviewer/vncviewer.cxx:315
 #, c-format
 msgid "Could not create VNC home directory: %s."
 msgstr "Kunne ikke oprette VNC-hjemmemappe: %s."
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:513 vncviewer/vncviewer.cxx:514
+#: vncviewer/vncviewer.cxx:520 vncviewer/vncviewer.cxx:521
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Parameterne -listen og -via er ikke kompatible"
 
-#: vncviewer/vncviewer.cxx:529
+#: vncviewer/vncviewer.cxx:536
 #, c-format
 msgid "Listening on port %d"
 msgstr "Lytter på port %d"
 
-#: vncviewer/vncviewer.cxx:590
+#: vncviewer/vncviewer.cxx:601
 msgid "Internal FLTK error. Exiting."
 msgstr "Intern FLTK-fejl. Afbryder."
