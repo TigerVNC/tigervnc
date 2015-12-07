@@ -753,6 +753,8 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   bool prefix_specified;
   int family;
 
+  initSockets();
+
   prefix_specified = rfb::strSplit(&p[1], '/', &addr.buf, &pref.buf);
   if (addr.buf[0] == '\0') {
     // Match any address
