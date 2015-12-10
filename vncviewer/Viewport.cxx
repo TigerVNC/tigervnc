@@ -403,8 +403,10 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   assert(self);
 
+#if !defined(WIN32) && !defined(__APPLE__)
   if (!sendPrimary && (source == 0))
     return;
+#endif
 
   Fl::paste(*self, source);
 }

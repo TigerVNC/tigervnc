@@ -264,7 +264,9 @@ void OptionsDialog::loadOptions(void)
   viewOnlyCheckbox->value(viewOnly);
   acceptClipboardCheckbox->value(acceptClipboard);
   sendClipboardCheckbox->value(sendClipboard);
+#if !defined(WIN32) && !defined(__APPLE__)
   sendPrimaryCheckbox->value(sendPrimary);
+#endif
   systemKeysCheckbox->value(fullscreenSystemKeys);
 
   menuKeyChoice->value(0);
@@ -372,7 +374,9 @@ void OptionsDialog::storeOptions(void)
   viewOnly.setParam(viewOnlyCheckbox->value());
   acceptClipboard.setParam(acceptClipboardCheckbox->value());
   sendClipboard.setParam(sendClipboardCheckbox->value());
+#if !defined(WIN32) && !defined(__APPLE__)
   sendPrimary.setParam(sendPrimaryCheckbox->value());
+#endif
   fullscreenSystemKeys.setParam(systemKeysCheckbox->value());
 
   if (menuKeyChoice->value() == 0)
@@ -698,11 +702,13 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                        _("Send clipboard to server")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 
+#if !defined(WIN32) && !defined(__APPLE__)
   sendPrimaryCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
                                                      _("Send primary selection and cut buffer as clipboard")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
+#endif
 
   systemKeysCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                     CHECK_MIN_WIDTH,
