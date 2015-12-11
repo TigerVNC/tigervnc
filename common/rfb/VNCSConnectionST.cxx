@@ -29,15 +29,18 @@
 #endif
 
 #include <network/TcpSocket.h>
-#include <rfb/VNCSConnectionST.h>
+
+#include <rfb/ComparingUpdateTracker.h>
+#include <rfb/Encoder.h>
+#include <rfb/KeyRemapper.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Security.h>
+#include <rfb/ServerCore.h>
+#include <rfb/SMsgWriter.h>
+#include <rfb/VNCServerST.h>
+#include <rfb/VNCSConnectionST.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
-#include <rfb/ServerCore.h>
-#include <rfb/ComparingUpdateTracker.h>
-#include <rfb/KeyRemapper.h>
-#include <rfb/Encoder.h>
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>

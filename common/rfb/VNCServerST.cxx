@@ -51,12 +51,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <rfb/ComparingUpdateTracker.h>
+#include <rfb/KeyRemapper.h>
+#include <rfb/ListConnInfo.h>
+#include <rfb/Security.h>
 #include <rfb/ServerCore.h>
 #include <rfb/VNCServerST.h>
 #include <rfb/VNCSConnectionST.h>
-#include <rfb/ComparingUpdateTracker.h>
-#include <rfb/Security.h>
-#include <rfb/KeyRemapper.h>
 #include <rfb/util.h>
 
 #include <rdr/types.h>

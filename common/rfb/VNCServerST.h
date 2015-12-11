@@ -28,19 +28,18 @@
 
 #include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
-#include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Blacklist.h>
 #include <rfb/Cursor.h>
 #include <rfb/Timer.h>
 #include <network/Socket.h>
-#include <rfb/ListConnInfo.h>
 #include <rfb/ScreenSet.h>
 
 namespace rfb {
 
   class VNCSConnectionST;
   class ComparingUpdateTracker;
+  class ListConnInfo;
   class PixelBuffer;
   class KeyRemapper;
 

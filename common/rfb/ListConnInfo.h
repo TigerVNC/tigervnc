@@ -20,6 +20,10 @@
 #ifndef __RFB_LISTCONNINFO_INCLUDED__
 #define __RFB_LISTCONNINFO_INCLUDED__
 
+#include <list>
+
+#include <rfb/util.h>
+
 namespace rfb {
 
   struct ListConnInfo  {

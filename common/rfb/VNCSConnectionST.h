@@ -30,15 +30,14 @@
 #include <list>
 #include <set>
 
-#include <rfb/SConnection.h>
-#include <rfb/SMsgWriter.h>
-#include <rfb/VNCServerST.h>
-#include <rfb/Timer.h>
 #include <rfb/EncodeManager.h>
+#include <rfb/SConnection.h>
+#include <rfb/Timer.h>
 
 struct RTTInfo;
 
 namespace rfb {
+  class VNCServerST;
 
   class VNCSConnectionST : public SConnection,
                            public Timer::Callback {
