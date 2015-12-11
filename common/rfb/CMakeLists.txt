@@ -2,6 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR}/common ${JPEG_INCLUDE_DIR})
 
 set(RFB_SOURCES
   Blacklist.cxx
+  Congestion.cxx
   CConnection.cxx
   CMsgHandler.cxx
   CMsgReader.cxx
