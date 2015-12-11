@@ -72,7 +72,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     fenceDataLen(0), fenceData(NULL),
     baseRTT(-1), congWindow(0), ackedOffset(0), sentOffset(0),
     minRTT(-1), seenCongestion(false),
-    pingCounter(0), congestionTimer(this),
+    congestionTimer(this),
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
@@ -659,6 +659,8 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
 
 void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
 {
+  rdr::U8 type;
+
   if (flags & fenceFlagRequest) {
     if (flags & fenceFlagSyncNext) {
       pendingSyncFence = true;
@@ -682,18 +684,20 @@ void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
     return;
   }
 
-  struct RTTInfo rttInfo;
+  if (len < 1)
+    vlog.error("Fence response of unexpected size received");
 
-  switch (len) {
+  type = data[0];
+
+  switch (type) {
   case 0:
     // Initial dummy fence;
     break;
-  case sizeof(struct RTTInfo):
-    memcpy(&rttInfo, data, sizeof(struct RTTInfo));
-    handleRTTPong(rttInfo);
+  case 1:
+    handleRTTPong();
     break;
   default:
-    vlog.error("Fence response of unexpected size received");
+    vlog.error("Fence response of unexpected type received");
   }
 }
 
@@ -734,7 +738,8 @@ void VNCSConnectionST::supportsLocalCursor()
 
 void VNCSConnectionST::supportsFence()
 {
-  writer()->writeFence(fenceFlagRequest, 0, NULL);
+  char type = 0;
+  writer()->writeFence(fenceFlagRequest, sizeof(type), &type);
 }
 
 void VNCSConnectionST::supportsContinuousUpdates()
@@ -768,6 +773,7 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
 void VNCSConnectionST::writeRTTPing()
 {
   struct RTTInfo rttInfo;
+  char type;
 
   if (!cp.supportsFence)
     return;
@@ -778,13 +784,14 @@ void VNCSConnectionST::writeRTTPing()
   rttInfo.offset = sock->outStream().length();
   rttInfo.inFlight = rttInfo.offset - ackedOffset;
 
+  pings.push_back(rttInfo);
+
   // We need to make sure any old update are already processed by the
   // time we get the response back. This allows us to reliably throttle
   // back on client overload, as well as network overload.
+  type = 1;
   writer()->writeFence(fenceFlagRequest | fenceFlagBlockBefore,
-                       sizeof(struct RTTInfo), (const char*)&rttInfo);
-
-  pingCounter++;
+                       sizeof(type), &type);
 
   sentOffset = rttInfo.offset;
 
@@ -793,11 +800,16 @@ void VNCSConnectionST::writeRTTPing()
     congestionTimer.start(__rfbmin(baseRTT * 2, 100));
 }
 
-void VNCSConnectionST::handleRTTPong(const struct RTTInfo &rttInfo)
+void VNCSConnectionST::handleRTTPong()
 {
+  struct RTTInfo rttInfo;
   unsigned rtt, delay;
 
-  pingCounter--;
+  if (pings.empty())
+    return;
+
+  rttInfo = pings.front();
+  pings.pop_front();
 
   rtt = msSince(&rttInfo.tv);
   if (rtt < 1)
@@ -881,7 +893,7 @@ bool VNCSConnectionST::isCongested()
   // This could further clog up the tubes, but congestion control isn't
   // really working properly right now anyway as the wire would otherwise
   // be idle for at least RTT/2.
-  if (pingCounter == 1)
+  if (pings.size() == 1)
     return false;
 
   return true;

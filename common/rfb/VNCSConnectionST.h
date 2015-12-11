@@ -27,7 +27,9 @@
 #ifndef __RFB_VNCSCONNECTIONST_H__
 #define __RFB_VNCSCONNECTIONST_H__
 
+#include <list>
 #include <set>
+
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/VNCServerST.h>
@@ -160,7 +162,7 @@ namespace rfb {
 
     // Congestion control
     void writeRTTPing();
-    void handleRTTPong(const struct RTTInfo &rttInfo);
+    void handleRTTPong();
     bool isCongested();
     void updateCongestion();
 
@@ -195,8 +197,8 @@ namespace rfb {
 
     unsigned minRTT;
     bool seenCongestion;
-    unsigned pingCounter;
     Timer congestionTimer;
+    std::list<struct RTTInfo> pings;
 
     VNCServerST* server;
     SimpleUpdateTracker updates;
