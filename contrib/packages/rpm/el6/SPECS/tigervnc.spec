@@ -10,7 +10,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 2%{?snap:.%{snap}}%{?dist}
+Release: 3%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -208,7 +208,7 @@ popd
 
 echo "*** Building libtasn1 ***"
 pushd libtasn1-*
-LDFLAGS="-L%{static_lib_buildroot}%{_libdir} $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared
+LDFLAGS="-L%{static_lib_buildroot}%{_libdir} $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --host=%{_host} --build=%{_build}
 make %{?_smp_mflags} DESTDIR=%{static_lib_buildroot} install
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{static_lib_buildroot}%{_libdir}|" {} \;
@@ -218,7 +218,7 @@ popd
 echo "*** Building nettle ***"
 pushd nettle-*
 autoreconf -fiv
-LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --disable-openssl
+LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --disable-openssl --host=%{_host} --build=%{_build}
 make %{?_smp_mflags} DESTDIR=%{static_lib_buildroot} install
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{static_lib_buildroot}%{_libdir}|" {} \;
@@ -230,6 +230,8 @@ pushd gnutls-*
 LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lnettle -lhogweed -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
+  --host=%{_host} \
+  --build=%{_build} \
   --enable-static \
   --disable-shared \
   --without-p11-kit \
@@ -253,6 +255,8 @@ pushd libpng-*
 CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
+  --host=%{_host} \
+  --build=%{_build} \
   --disable-shared \
   --enable-static
 make %{?_smp_mflags}
@@ -269,6 +273,8 @@ export PKG_CONFIG="pkg-config --static"
 CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lpng -Wl,-Bdynamic $LDFLAGS" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
+  --host=%{_host} \
+  --build=%{_build} \
   --enable-x11 \
   --enable-gl \
   --disable-shared \
@@ -468,6 +474,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec 11 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-3
+- Configure with --host and --build to avoid build host-specific compiler opts
+
 * Sun Nov 29 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-2
 - Split static pre-reqs into separate package
 
