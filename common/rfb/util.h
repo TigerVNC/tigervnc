@@ -95,8 +95,16 @@ namespace rfb {
     return (secs < 0 || secs > (INT_MAX/1000) ? INT_MAX : secs * 1000);
   }
 
+  // Returns time elapsed between two moments in milliseconds.
+  unsigned msBetween(const struct timeval *first,
+                     const struct timeval *second);
+
   // Returns time elapsed since given moment in milliseconds.
   unsigned msSince(const struct timeval *then);
+
+  // Returns true if first happened before seconds
+  bool isBefore(const struct timeval *first,
+                const struct timeval *second);
 
   size_t siPrefix(long long value, const char *unit,
                   char *buffer, size_t maxlen, int precision=6);

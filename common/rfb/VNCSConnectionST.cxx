@@ -43,7 +43,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
   : sock(s), reverseConnection(reverse),
     queryConnectTimer(this), inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
-    fenceDataLen(0), fenceData(NULL),
+    fenceDataLen(0), fenceData(NULL), congestionTimer(this),
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), pointerEventTime(0),
@@ -726,6 +726,8 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
     if (t == &queryConnectTimer) {
       if (state() == RFBSTATE_QUERYING)
         approveConnection(false, "The attempt to prompt the user to accept the connection failed");
+    } else if (t == &congestionTimer) {
+      writeFramebufferUpdate();
     }
   } catch (rdr::Exception& e) {
     close(e.str());
@@ -742,6 +744,8 @@ void VNCSConnectionST::writeRTTPing()
   if (!cp.supportsFence)
     return;
 
+  congestion.updatePosition(sock->outStream().length());
+
   // We need to make sure any old update are already processed by the
   // time we get the response back. This allows us to reliably throttle
   // back on client overload, as well as network overload.
@@ -749,11 +753,15 @@ void VNCSConnectionST::writeRTTPing()
   writer()->writeFence(fenceFlagRequest | fenceFlagBlockBefore,
                        sizeof(type), &type);
 
-  congestion.sentPing(sock->outStream().length());
+  congestion.sentPing();
 }
 
 bool VNCSConnectionST::isCongested()
 {
+  unsigned eta;
+
+  congestionTimer.stop();
+
   // Stuff still waiting in the send buffer?
   sock->outStream().flush();
   if (sock->outStream().bufferUsage() > 0)
@@ -762,13 +770,22 @@ bool VNCSConnectionST::isCongested()
   if (!cp.supportsFence)
     return false;
 
-  return congestion.isCongested(sock->outStream().length(),
-                                sock->outStream().getIdleTime());
+  congestion.updatePosition(sock->outStream().length());
+  if (!congestion.isCongested())
+    return false;
+
+  eta = congestion.getUncongestedETA();
+  if (eta >= 0)
+    congestionTimer.start(eta);
+
+  return true;
 }
 
 
 void VNCSConnectionST::writeFramebufferUpdate()
 {
+  congestion.updatePosition(sock->outStream().length());
+
   // We're in the middle of processing a command that's supposed to be
   // synchronised. Allowing an update to slip out right now might violate
   // that synchronisation.
@@ -805,6 +822,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
   writeDataUpdate();
 
   network::TcpSocket::cork(sock->getFd(), false);
+
+  congestion.updatePosition(sock->outStream().length());
 }
 
 void VNCSConnectionST::writeNoDataUpdate()

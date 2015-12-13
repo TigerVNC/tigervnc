@@ -187,6 +187,7 @@ namespace rfb {
     char *fenceData;
 
     Congestion congestion;
+    Timer congestionTimer;
 
     VNCServerST* server;
     SimpleUpdateTracker updates;

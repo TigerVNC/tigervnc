@@ -21,41 +21,62 @@
 
 #include <list>
 
-#include <rfb/Timer.h>
-
 namespace rfb {
-  class Congestion : public Timer::Callback {
+  class Congestion {
   public:
     Congestion();
     ~Congestion();
 
+    // updatePosition() registers the current stream position and can
+    // and should be called often.
+    void updatePosition(unsigned pos);
+
     // sentPing() must be called when a marker is placed on the
-    // outgoing stream, along with the current stream position.
-    // gotPong() must be called when the response for such a marker
-    // is received.
-    void sentPing(int offset);
+    // outgoing stream. gotPong() must be called when the response for
+    // such a marker is received.
+    void sentPing();
     void gotPong();
 
     // isCongested() determines if the transport is currently congested
-    // or if more data can be sent. The curren stream position and how
-    // long the transport has been idle must be specified.
-    bool isCongested(int offset, unsigned idleTime);
+    // or if more data can be sent.
+    bool isCongested();
+
+    // getUncongestedETA() returns the number of milliseconds until the
+    // transport is no longer congested. Returns 0 if there is no
+    // congestion, and -1 if it is unknown when the transport will no
+    // longer be congested.
+    int getUncongestedETA();
+
+  protected:
+    unsigned getExtraBuffer();
+    unsigned getInFlight();
+
+    void updateCongestion();
 
   private:
-    // Timer callbacks
-    virtual bool handleTimeout(Timer* t);
+    unsigned lastPosition;
+    unsigned extraBuffer;
+    struct timeval lastUpdate;
+    struct timeval lastSent;
 
-  private:
     unsigned baseRTT;
     unsigned congWindow;
-    unsigned ackedOffset, sentOffset;
 
-    unsigned minRTT;
-    bool seenCongestion;
-    Timer congestionTimer;
+    struct RTTInfo {
+      struct timeval tv;
+      unsigned pos;
+      unsigned extra;
+      bool congested;
+    };
 
-    struct RTTInfo;
     std::list<struct RTTInfo> pings;
+
+    struct RTTInfo lastPong;
+    struct timeval lastPongArrival;
+
+    int measurements;
+    struct timeval lastAdjustment;
+    unsigned minRTT, minCongestedRTT;
   };
 }
 
