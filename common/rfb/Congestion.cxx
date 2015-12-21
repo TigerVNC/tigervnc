@@ -27,6 +27,10 @@
  * based algorithm rather than a loss based one. There is also a lot of
  * interpolation of values. This is because we have rather horrible
  * granularity in our measurements.
+ *
+ * We use a simplistic form of slow start in order to ramp up quickly
+ * from an idle state. We do not have any persistent threshold though
+ * as we have too much noise for it to be reliable.
  */
 
 #include <assert.h>
@@ -57,7 +61,7 @@ static LogWriter vlog("Congestion");
 
 Congestion::Congestion() :
     lastPosition(0), extraBuffer(0),
-    baseRTT(-1), congWindow(INITIAL_WINDOW),
+    baseRTT(-1), congWindow(INITIAL_WINDOW), inSlowStart(true),
     measurements(0), minRTT(-1), minCongestedRTT(-1)
 {
   gettimeofday(&lastUpdate, NULL);
@@ -98,6 +102,7 @@ void Congestion::updatePosition(unsigned pos)
     measurements = 0;
     gettimeofday(&lastAdjustment, NULL);
     minRTT = minCongestedRTT = -1;
+    inSlowStart = true;
   }
 
   // Commonly we will be in a state of overbuffering. We need to
@@ -355,29 +360,56 @@ void Congestion::updateCongestion()
   // a "perfect" one cannot be distinguished from a too small one. This
   // translates to a goal of a few extra milliseconds of delay.
 
-  // First we check all pongs to make sure we're not having a too large
-  // congestion window.
   diff = minRTT - baseRTT;
 
-  // FIXME: Should we do slow start?
-  if (diff > 100) {
-    // Way too fast
+  if (diff > __rfbmax(100, baseRTT/2)) {
+    // We have no way of detecting loss, so assume massive latency
+    // spike means packet loss. Adjust the window and go directly
+    // to congestion avoidance.
+#ifdef CONGESTION_DEBUG
+    vlog.debug("Latency spike! Backing off...");
+#endif
     congWindow = congWindow * baseRTT / minRTT;
-  } else if (diff > 50) {
-    // Slightly too fast
-    congWindow -= 4096;
+    inSlowStart = false;
+  }
+
+  if (inSlowStart) {
+    // Slow start. Aggressive growth until we see congestion.
+
+    if (diff > 25) {
+      // If we see an increased latency then we assume we've hit the
+      // limit and it's time to leave slow start and switch to
+      // congestion avoidance
+      congWindow = congWindow * baseRTT / minRTT;
+      inSlowStart = false;
+    } else {
+      // It's not safe to increase unless we actually used the entire
+      // congestion window, hence we look at minCongestedRTT and not
+      // minRTT
+
+      diff = minCongestedRTT - baseRTT;
+      if (diff < 25)
+        congWindow *= 2;
+    }
   } else {
-    // Secondly only the "congested" pongs are checked to see if the
-    // window is too small.
+    // Congestion avoidance (VEGAS)
 
-    diff = minCongestedRTT - baseRTT;
+    if (diff > 50) {
+      // Slightly too fast
+      congWindow -= 4096;
+    } else {
+      // Only the "congested" pongs are checked to see if the
+      // window is too small.
 
-    if (diff < 5) {
-      // Way too slow
-      congWindow += 8192;
-    } else if (diff < 25) {
-      // Too slow
-      congWindow += 4096;
+      diff = minCongestedRTT - baseRTT;
+
+      if (diff < 5) {
+        // Way too slow
+        congWindow += 8192;
+      } else if (diff < 25) {
+        // Too slow
+        congWindow += 4096;
+      }
     }
   }
 
@@ -387,9 +419,10 @@ void Congestion::updateCongestion()
     congWindow = MAXIMUM_WINDOW;
 
 #ifdef CONGESTION_DEBUG
-  vlog.debug("RTT: %d ms (%d ms), Window: %d KiB, Bandwidth: %g Mbps",
-             minRTT, baseRTT, congWindow / 1024,
-             congWindow * 8.0 / baseRTT / 1000.0);
+  vlog.debug("RTT: %d/%d ms (%d ms), Window: %d KiB, Bandwidth: %g Mbps%s",
+             minRTT, minCongestedRTT, baseRTT, congWindow / 1024,
+             congWindow * 8.0 / baseRTT / 1000.0,
+             inSlowStart ? " (slow start)" : "");
 #endif
 
   measurements = 0;

@@ -61,6 +61,7 @@ namespace rfb {
 
     unsigned baseRTT;
     unsigned congWindow;
+    bool inSlowStart;
 
     struct RTTInfo {
       struct timeval tv;
