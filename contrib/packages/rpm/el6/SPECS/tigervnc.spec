@@ -1,4 +1,12 @@
 %{!?_self_signed: %define _self_signed 1}
+%{!?_bootstrap: %define _bootstrap 1}
+%define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
+%global scl_name %{name}16
+%if %{_bootstrap}
+%define static_lib_buildroot %{tigervnc_src_dir}/opt/%{name}/%{scl_name}
+%else
+%define static_lib_buildroot /opt/%{name}/%{scl_name}
+%endif
 
 Name: tigervnc
 Version: @VERSION@
@@ -33,6 +41,9 @@ BuildRequires: freetype-devel, libXdmcp-devel
 BuildRequires: desktop-file-utils, java-devel, jpackage-utils
 BuildRequires: libjpeg-turbo-devel, pam-devel
 BuildRequires: cmake >= 2.8
+%if !%{_bootstrap}
+BuildRequires: %{name}-static-devel == %{version}
+%endif
 %ifnarch s390 s390x
 BuildRequires: xorg-x11-server-devel
 %endif
@@ -137,18 +148,29 @@ BuildArch: noarch
 %description icons
 This package contains icons for TigerVNC viewer
 
+%if %{_bootstrap}
+%package static-devel
+Summary: Static development files necessary to build TigerVNC
+Group: Development/Libraries
+
+%description static-devel
+This package contains static development files necessary to build TigerVNC
+%endif
+
 %prep
+rm -rf $RPM_BUILD_ROOT
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
 
-# sed -i -e 's/80/0/g' CMakeLists.txt
 %patch4 -p1 -b .cookie
 
+%if %{_bootstrap}
 tar xzf %SOURCE11
 tar xjf %SOURCE13
 tar xjf %SOURCE14
 tar xzf %SOURCE15
 tar xzf %SOURCE16
 xzcat %SOURCE17 | tar xf -
+%endif
 
 cp -r /usr/share/xorg-x11-server-source/* unix/xserver
 pushd unix/xserver
@@ -161,9 +183,9 @@ popd
 %patch16 -p0 -b .man
 
 %build
-%define tigervnc_src_dir %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
-%define static_lib_buildroot %{tigervnc_src_dir}/build
+%if %{_bootstrap}
 mkdir -p %{static_lib_buildroot}%{_libdir}
+%endif
 
 %ifarch sparcv9 sparc64 s390 s390x
 export CFLAGS="$RPM_OPT_FLAGS -fPIC -I%{static_lib_buildroot}%{_includedir}"
@@ -174,6 +196,7 @@ export CXXFLAGS=$CFLAGS
 export CPPFLAGS=$CXXFLAGS
 export PKG_CONFIG_PATH="%{static_lib_buildroot}%{_libdir}/pkgconfig:%{static_lib_buildroot}%{_datadir}/pkgconfig:%{_libdir}/pkgconfig:%{_datadir}/pkgconfig"
 
+%if %{_bootstrap}
 echo "*** Building gmp ***"
 pushd gmp-*
 ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --enable-cxx --disable-assembly
@@ -185,7 +208,7 @@ popd
 
 echo "*** Building libtasn1 ***"
 pushd libtasn1-*
-LDFLAGS="-L%{static_lib_buildroot}%{_libdir} $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared
+LDFLAGS="-L%{static_lib_buildroot}%{_libdir} $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --host=%{_host} --build=%{_build}
 make %{?_smp_mflags} DESTDIR=%{static_lib_buildroot} install
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{static_lib_buildroot}%{_libdir}|" {} \;
@@ -195,7 +218,7 @@ popd
 echo "*** Building nettle ***"
 pushd nettle-*
 autoreconf -fiv
-LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --disable-openssl
+LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure --prefix=%{_prefix} --libdir=%{_libdir} --enable-static --disable-shared --disable-openssl --host=%{_host} --build=%{_build}
 make %{?_smp_mflags} DESTDIR=%{static_lib_buildroot} install
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.la" -delete
 find %{static_lib_buildroot}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=%{static_lib_buildroot}%{_libdir}|" {} \;
@@ -207,6 +230,8 @@ pushd gnutls-*
 LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lnettle -lhogweed -ltasn1 -lgmp -Wl,-Bdynamic $LDFLAGS" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
+  --host=%{_host} \
+  --build=%{_build} \
   --enable-static \
   --disable-shared \
   --without-p11-kit \
@@ -230,6 +255,8 @@ pushd libpng-*
 CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
+  --host=%{_host} \
+  --build=%{_build} \
   --disable-shared \
   --enable-static
 make %{?_smp_mflags}
@@ -238,12 +265,16 @@ popd
 
 echo "*** Building fltk ***"
 pushd fltk-*
+%endif
 export CMAKE_PREFIX_PATH="%{static_lib_buildroot}%{_prefix}:%{_prefix}"
 export CMAKE_EXE_LINKER_FLAGS=$LDFLAGS
 export PKG_CONFIG="pkg-config --static"
+%if %{_bootstrap}
 CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="-L%{static_lib_buildroot}%{_libdir} -Wl,-Bstatic -lpng -Wl,-Bdynamic $LDFLAGS" ./configure \
   --prefix=%{_prefix} \
   --libdir=%{_libdir} \
+  --host=%{_host} \
+  --build=%{_build} \
   --enable-x11 \
   --enable-gl \
   --disable-shared \
@@ -259,6 +290,7 @@ CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="-L%{static_lib_buildroot}%{_l
 make %{?_smp_mflags} 
 make DESTDIR=%{static_lib_buildroot} install
 popd
+%endif
 
 %{cmake} -G"Unix Makefiles" \
   -DBUILD_STATIC=off \
@@ -314,7 +346,17 @@ JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
 popd
 
 %install
-rm -rf $RPM_BUILD_ROOT
+%if %{_bootstrap}
+for l in gmp libtasn1 nettle gnutls libpng fltk; do
+pushd $l-*
+make install DESTDIR=$RPM_BUILD_ROOT/opt/%{name}/%{scl_name}
+popd
+done
+find %{buildroot}/opt/%{name}/%{scl_name}%{_prefix} -type f -name "*.la" -delete
+find %{buildroot}/opt/%{name}/%{scl_name}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|libdir=%{_libdir}|libdir=/opt/%{name}/%{scl_name}%{_libdir}|" {} \;
+find %{buildroot}/opt/%{name}/%{scl_name}%{_prefix} -type f -name "*.pc" -exec sed -i -e "s|prefix=%{_prefix}|prefix=/opt/%{name}/%{scl_name}%{_prefix}|" {} \;
+%endif
+
 make install DESTDIR=$RPM_BUILD_ROOT
 
 pushd unix/xserver/hw/vnc
@@ -422,7 +464,22 @@ fi
 %defattr(-,root,root,-)
 %{_datadir}/icons/hicolor/*/apps/*
 
+%if %{_bootstrap}
+%files static-devel
+%defattr(-,root,root,-)
+/opt/%{name}/%{scl_name}%{_bindir}/*
+/opt/%{name}/%{scl_name}%{_includedir}/*
+/opt/%{name}/%{scl_name}%{_libdir}/*
+/opt/%{name}/%{scl_name}%{_datadir}/*
+%endif
+
 %changelog
+* Fri Dec 11 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-3
+- Configure with --host and --build to avoid build host-specific compiler opts
+
+* Sun Nov 29 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-2
+- Split static pre-reqs into separate package
+
 * Thu Nov 26 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-1
 - Version bump for 1.6 release
 - Update gnutls, libtasn1, libpng to latest upstream versions.
