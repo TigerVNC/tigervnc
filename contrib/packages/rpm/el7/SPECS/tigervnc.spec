@@ -10,7 +10,7 @@
 
 Name:           tigervnc
 Version:        1.6.80
-Release:        1%{?dist}
+Release:        1%{?snap:.%{snap}}%{?dist}
 Summary:        A TigerVNC remote display system
 
 Group:          User Interface/Desktops
