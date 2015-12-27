@@ -71,7 +71,7 @@ public class KeyPairECDSA extends KeyPair{
                   (prv_array.length>=48 ? 384 : 256);
   }
 
-  void generate(int key_size) throws JSchException{
+  @SuppressWarnings({"static"}) void generate(int key_size) throws JSchException{
     this.key_size=key_size;
     try{
       Class c=Class.forName(jsch.getConfig("keypairgen.ecdsa"));
@@ -282,7 +282,7 @@ public class KeyPairECDSA extends KeyPair{
     return key_size;
   }
 
-  public byte[] getSignature(byte[] data){
+  @SuppressWarnings({"static"}) public byte[] getSignature(byte[] data){
     try{      
       Class c=Class.forName((String)jsch.getConfig("signature.ecdsa"));
       SignatureECDSA ecdsa=(SignatureECDSA)(c.newInstance());
@@ -303,7 +303,7 @@ public class KeyPairECDSA extends KeyPair{
     return null;
   }
 
-  public Signature getVerifier(){
+  @SuppressWarnings({"static"}) public Signature getVerifier(){
     try{      
       Class c=Class.forName((String)jsch.getConfig("signature.ecdsa"));
       final SignatureECDSA ecdsa=(SignatureECDSA)(c.newInstance());

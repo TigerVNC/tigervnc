@@ -383,7 +383,7 @@ public abstract class KeyPair{
     return j;
   }
 
-  private Random genRandom(){
+  @SuppressWarnings({"static"}) private Random genRandom(){
     if(random==null){
       try{
 	Class c=Class.forName(jsch.getConfig("random"));
@@ -394,7 +394,7 @@ public abstract class KeyPair{
     return random;
   }
 
-  private HASH genHash(){
+  @SuppressWarnings({"static"}) private HASH genHash(){
     try{
       Class c=Class.forName(jsch.getConfig("md5"));
       hash=(HASH)(c.newInstance());
@@ -404,7 +404,7 @@ public abstract class KeyPair{
     }
     return hash;
   }
-  private Cipher genCipher(){
+  @SuppressWarnings({"static"}) private Cipher genCipher(){
     try{
       Class c;
       c=Class.forName(jsch.getConfig("3des-cbc"));
@@ -421,7 +421,7 @@ public abstract class KeyPair{
     h(n) <- hash(h(n-1), passphrase, iv);
     key <- (h(0),...,h(n))[0,..,key.length];
   */
-  synchronized byte[] genKey(byte[] passphrase, byte[] iv){
+  @SuppressWarnings({"static"}) synchronized byte[] genKey(byte[] passphrase, byte[] iv){
     if(cipher==null) cipher=genCipher();
     if(hash==null) hash=genHash();
 
@@ -565,7 +565,7 @@ public abstract class KeyPair{
     }
   }
 
-  public static KeyPair load(JSch jsch, byte[] prvkey, byte[] pubkey) throws JSchException{
+  @SuppressWarnings({"static"}) public static KeyPair load(JSch jsch, byte[] prvkey, byte[] pubkey) throws JSchException{
 
     byte[] iv=new byte[8];       // 8
     boolean encrypted=true;
@@ -985,7 +985,7 @@ public abstract class KeyPair{
     "Private-MAC: "
   };
 
-  static KeyPair loadPPK(JSch jsch, byte[] buf) throws JSchException {
+  @SuppressWarnings({"static"}) static KeyPair loadPPK(JSch jsch, byte[] buf) throws JSchException {
     byte[] pubkey = null;
     byte[] prvkey = null;
     int lines = 0;

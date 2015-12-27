@@ -2308,7 +2308,7 @@ break;
     }
   }
 
-  public String getConfig(String key){
+  @SuppressWarnings({"static"}) public String getConfig(String key){
     Object foo=null;
     if(config!=null){
       foo=config.get(key);
@@ -2534,7 +2534,7 @@ break;
     catch(Exception e){ return false; }
   }
 
-  private String[] checkSignatures(String sigs){
+  @SuppressWarnings({"static"}) private String[] checkSignatures(String sigs){
     if(sigs==null || sigs.length()==0)
       return null;
 
