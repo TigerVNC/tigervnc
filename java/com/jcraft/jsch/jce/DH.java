@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@ import java.math.BigInteger;
 import java.security.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import com.jcraft.jsch.JSchException;
 
 public class DH implements com.jcraft.jsch.DH{
   BigInteger p;
@@ -47,9 +48,7 @@ public class DH implements com.jcraft.jsch.DH{
   private KeyAgreement myKeyAgree;
   public void init() throws Exception{
     myKpairGen=KeyPairGenerator.getInstance("DH");
-//    myKpairGen=KeyPairGenerator.getInstance("DiffieHellman");
     myKeyAgree=KeyAgreement.getInstance("DH");
-//    myKeyAgree=KeyAgreement.getInstance("DiffieHellman");
   }
   public byte[] getE() throws Exception{
     if(e==null){
@@ -57,8 +56,6 @@ public class DH implements com.jcraft.jsch.DH{
       myKpairGen.initialize(dhSkipParamSpec);
       KeyPair myKpair=myKpairGen.generateKeyPair();
       myKeyAgree.init(myKpair.getPrivate());
-//    BigInteger x=((javax.crypto.interfaces.DHPrivateKey)(myKpair.getPrivate())).getX();
-      byte[] myPubKeyEnc=myKpair.getPublic().getEncoded();
       e=((javax.crypto.interfaces.DHPublicKey)(myKpair.getPublic())).getY();
       e_array=e.toByteArray();
     }
@@ -71,21 +68,33 @@ public class DH implements com.jcraft.jsch.DH{
       PublicKey yourPubKey=myKeyFac.generatePublic(keySpec);
       myKeyAgree.doPhase(yourPubKey, true);
       byte[] mySharedSecret=myKeyAgree.generateSecret();
-      K=new BigInteger(mySharedSecret);
+      K=new BigInteger(1, mySharedSecret);
       K_array=K.toByteArray();
-
-//System.err.println("K.signum(): "+K.signum()+
-//		   " "+Integer.toHexString(mySharedSecret[0]&0xff)+
-//		   " "+Integer.toHexString(K_array[0]&0xff));
-
       K_array=mySharedSecret;
     }
     return K_array;
   }
-  public void setP(byte[] p){ setP(new BigInteger(p)); }
-  public void setG(byte[] g){ setG(new BigInteger(g)); }
-  public void setF(byte[] f){ setF(new BigInteger(f)); }
+  public void setP(byte[] p){ setP(new BigInteger(1, p)); }
+  public void setG(byte[] g){ setG(new BigInteger(1, g)); }
+  public void setF(byte[] f){ setF(new BigInteger(1, f)); }
   void setP(BigInteger p){this.p=p;}
   void setG(BigInteger g){this.g=g;}
   void setF(BigInteger f){this.f=f;}
+
+  // e, f must be in [1, p-1].
+  public void checkRange() throws Exception {
+    /*
+    checkRange(e);
+    checkRange(f);
+    */
+  }
+
+  private void checkRange(BigInteger tmp) throws Exception {
+    BigInteger one = BigInteger.ONE;
+    BigInteger p_1 = p.subtract(one);
+    // !(1<tmp && tmp<p-1)  We expect tmp is in the range [2, p-2].
+    if(!(one.compareTo(tmp) < 0 && tmp.compareTo(p_1) < 0)){
+      throw new JSchException("invalid DH value");
+   }
+  }
 }

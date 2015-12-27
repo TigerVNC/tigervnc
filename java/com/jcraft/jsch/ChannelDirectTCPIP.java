@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -54,7 +54,8 @@ public class ChannelDirectTCPIP extends Channel{
     io=new IO();
   }
 
-  public void connect() throws JSchException{
+  public void connect(int connectTimeout) throws JSchException{
+    this.connectTimeout=connectTimeout;
     try{
       Session _session=getSession();
       if(!_session.isConnected()){
@@ -68,6 +69,9 @@ public class ChannelDirectTCPIP extends Channel{
           thread.setDaemon(_session.daemon_thread);
         }
         thread.start();
+      }
+      else {
+        sendChannelOpen();
       }
     }
     catch(Exception e){
@@ -116,7 +120,16 @@ public class ChannelDirectTCPIP extends Channel{
       }
     }
     catch(Exception e){
+      // Whenever an exception is thrown by sendChannelOpen(),
+      // 'connected' is false.
+      if(!connected){
+        connected=true;
+      }
+      disconnect();
+      return;
     }
+
+    eof();
     disconnect();
   }
 
@@ -133,7 +146,9 @@ public class ChannelDirectTCPIP extends Channel{
   public void setOrgPort(int foo){this.originator_port=foo;}
 
   protected Packet genChannelOpenPacket(){
-    Buffer buf = new Buffer(150);
+    Buffer buf = new Buffer(50 + // 6 + 4*8 + 12
+                            host.length() + originator_IP_address.length() +
+                            Session.buffer_margin);
     Packet packet = new Packet(buf);
     // byte   SSH_MSG_CHANNEL_OPEN(90)
     // string channel type         //

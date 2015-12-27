@@ -308,7 +308,7 @@ final class Tree{
     gen_bitlen(s);
 
     // The field len is now set, we can generate the bit codes
-    gen_codes(tree, max_code, s.bl_count);
+    gen_codes(tree, max_code, s.bl_count, s.next_code);
   }
 
   // Generate the codes for a given tree and bit counts (which need not be
@@ -317,11 +317,11 @@ final class Tree{
   // the given tree and the field len is set for all tree elements.
   // OUT assertion: the field code is set for all tree elements of non
   //     zero code length.
-  static short[] next_code=new short[MAX_BITS+1]; // next code value for each bit length
-  synchronized static void gen_codes(short[] tree, // the tree to decorate
-                         int max_code, // largest code with non zero frequency
-                         short[] bl_count // number of codes at each bit length
-                        ){
+  private final static void gen_codes(
+                        short[] tree, // the tree to decorate
+                        int max_code, // largest code with non zero frequency
+                        short[] bl_count, // number of codes at each bit length
+                        short[] next_code){
     short code = 0;            // running code value
     int bits;                  // bit index
     int n;                     // code index
@@ -350,7 +350,8 @@ final class Tree{
   // Reverse the first len bits of a code, using straightforward code (a faster
   // method would use a table)
   // IN assertion: 1 <= len <= 15
-  static int bi_reverse(int code, // the value to invert
+  private final static int bi_reverse(
+                        int code, // the value to invert
 			int len   // its bit length
 			){
     int res = 0;

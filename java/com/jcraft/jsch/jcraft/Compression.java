@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,6 @@ package com.jcraft.jsch.jcraft;
 import com.jcraft.jzlib.*;
 import com.jcraft.jsch.*;
 
-@SuppressWarnings({"deprecation"})
 public class Compression implements com.jcraft.jsch.Compression {
   static private final int BUF_SIZE=4096;
   private final int buffer_margin=32+20; // AES256 + HMACSHA1

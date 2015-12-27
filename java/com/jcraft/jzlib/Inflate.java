@@ -85,6 +85,8 @@ final class Inflate{
   static final private int HCRC=22;
   static final private int FLAGS=23;
 
+  static final int INFLATE_ANY=0x40000000;
+
   int mode;                            // current inflate mode
 
   // mode dependent information
@@ -99,6 +101,11 @@ final class Inflate{
 
   // mode independent information
   int  wrap;          // flag for no wrapper
+                      // 0: no wrapper
+                      // 1: zlib header
+                      // 2: gzip header
+                      // 4: auto detection
+
   int wbits;            // log2(window size)  (8..15, defaults to 15)
 
   InfBlocks blocks;     // current inflate_blocks state
@@ -142,6 +149,16 @@ final class Inflate{
     wrap = 0;
     if(w < 0){
       w = - w;
+    }
+    else if((w&INFLATE_ANY) != 0){
+      wrap = 4;
+      w &= ~INFLATE_ANY;
+      if(w < 48)
+        w &= 15;
+    }
+    else if((w & ~31) != 0) { // for example, DEF_WBITS + 32
+      wrap = 4;               // zlib and gzip wrapped data should be accepted.
+      w &= 15;
     }
     else {
       wrap = (w >> 4) + 1;
@@ -195,7 +212,11 @@ final class Inflate{
         try { r=readBytes(2, r, f); }
         catch(Return e){ return e.r; }
 
-        if((wrap&2)!=0 && this.need == 0x8b1fL) {   // gzip header
+        if((wrap == 4 || (wrap&2)!=0) &&
+           this.need == 0x8b1fL) {   // gzip header
+          if(wrap == 4){
+            wrap = 2;
+          }
 	  z.adler=new CRC32();
           checksum(2, this.need);
 
@@ -206,13 +227,28 @@ final class Inflate{
           break;
         }
 
+        if((wrap&2) != 0){
+          this.mode = BAD;
+          z.msg = "incorrect header check";
+          break;
+        }
+
         flags = 0;
 
         this.method = ((int)this.need)&0xff;
         b=((int)(this.need>>8))&0xff;
 
-        if((wrap&1)==0 ||  // check if zlib header allowed
-           (((this.method << 8)+b) % 31)!=0){
+        if(((wrap&1)==0 ||  // check if zlib header allowed
+            (((this.method << 8)+b) % 31)!=0) &&
+           (this.method&0xf)!=Z_DEFLATED){
+          if(wrap == 4){
+            z.next_in_index -= 2;
+            z.avail_in += 2;
+            z.total_in -= 2;
+            wrap = 0;
+            this.mode = BLOCKS;
+            break;
+          }  
           this.mode = BAD;
           z.msg = "incorrect header check";
           // since zlib 1.2, it is allowted to inflateSync for this case.
@@ -231,6 +267,10 @@ final class Inflate{
 	  */
           break;
         }
+  
+        if(wrap == 4){
+          wrap = 1;
+        }  
 
         if((this.method>>4)+8>this.wbits){
           this.mode = BAD;

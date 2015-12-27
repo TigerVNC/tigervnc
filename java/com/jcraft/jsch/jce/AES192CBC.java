@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2005-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2005-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -54,10 +54,12 @@ public class AES192CBC implements Cipher{
     try{
       SecretKeySpec keyspec=new SecretKeySpec(key, "AES");
       cipher=javax.crypto.Cipher.getInstance("AES/CBC/"+pad);
-      cipher.init((mode==ENCRYPT_MODE?
-                   javax.crypto.Cipher.ENCRYPT_MODE:
-                   javax.crypto.Cipher.DECRYPT_MODE),
-                  keyspec, new IvParameterSpec(iv));
+      synchronized(javax.crypto.Cipher.class){
+        cipher.init((mode==ENCRYPT_MODE?
+                     javax.crypto.Cipher.ENCRYPT_MODE:
+                     javax.crypto.Cipher.DECRYPT_MODE),
+                    keyspec, new IvParameterSpec(iv));
+      }
     }
     catch(Exception e){
       cipher=null;

@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,11 +31,11 @@ package com.jcraft.jsch;
 
 import java.net.*;
 import java.io.*;
+import java.util.Vector;
 
-@SuppressWarnings({"rawtypes","unchecked"})
 public class ChannelForwardedTCPIP extends Channel{
 
-  static java.util.Vector pool=new java.util.Vector();
+  private static Vector pool = new Vector();
 
   static private final int LOCAL_WINDOW_SIZE_MAX=0x20000;
 //static private final int LOCAL_WINDOW_SIZE_MAX=0x100000;
@@ -43,12 +43,9 @@ public class ChannelForwardedTCPIP extends Channel{
 
   static private final int TIMEOUT=10*1000;
 
-  SocketFactory factory=null;
   private Socket socket=null;
   private ForwardedTCPIPDaemon daemon=null;
-  String target;
-  int lport;
-  int rport;
+  private Config config = null;
 
   ChannelForwardedTCPIP(){
     super();
@@ -61,8 +58,9 @@ public class ChannelForwardedTCPIP extends Channel{
 
   public void run(){
     try{ 
-      if(lport==-1){
-        Class c=Class.forName(target);
+      if(config instanceof ConfigDaemon){
+        ConfigDaemon _config = (ConfigDaemon)config;
+        Class c=Class.forName(_config.target);
         daemon=(ForwardedTCPIPDaemon)c.newInstance();
 
         PipedOutputStream out=new PipedOutputStream();
@@ -71,15 +69,14 @@ public class ChannelForwardedTCPIP extends Channel{
                                                  ), false);
 
         daemon.setChannel(this, getInputStream(), out);
-        Object[] foo=getPort(getSession(), rport);
-        daemon.setArg((Object[])foo[3]);
-
+        daemon.setArg(_config.arg);
         new Thread(daemon).start();
       }
       else{
-        socket=(factory==null) ? 
-           Util.createSocket(target, lport, TIMEOUT) : 
-          factory.createSocket(target, lport);
+        ConfigLHost _config = (ConfigLHost)config;
+        socket=(_config.factory==null) ? 
+           Util.createSocket(_config.target, _config.lport, TIMEOUT) : 
+          _config.factory.createSocket(_config.target, _config.lport);
         socket.setTcpNoDelay(true);
         io.setInputStream(socket.getInputStream());
         io.setOutputStream(socket.getOutputStream());
@@ -155,32 +152,29 @@ public class ChannelForwardedTCPIP extends Channel{
       // session has been already down.
     }
 
-    synchronized(pool){
-      for(int i=0; i<pool.size(); i++){
-        Object[] foo=(Object[])(pool.elementAt(i));
-        if(foo[0]!=_session) continue;
-        if(((Integer)foo[1]).intValue()!=port) continue;
-        this.rport=port;
-        this.target=(String)foo[2];
-        if(foo[3]==null || (foo[3] instanceof Object[])){ this.lport=-1; }
-        else{ this.lport=((Integer)foo[3]).intValue(); }
-        if(foo.length>=6){
-          this.factory=((SocketFactory)foo[5]);
-        }
-        break;
-      }
-      if(target==null){
-        //System.err.println("??");
+    this.config = getPort(_session, Util.byte2str(addr), port);
+    if(this.config == null)
+      this.config = getPort(_session, null, port);
+
+    if(this.config == null){
+      if(JSch.getLogger().isEnabled(Logger.ERROR)){
+        JSch.getLogger().log(Logger.ERROR, 
+                             "ChannelForwardedTCPIP: "+Util.byte2str(addr)+":"+port+" is not registered.");
       }
     }
   }
 
-  static Object[] getPort(Session session, int rport){
+  private static Config getPort(Session session, String address_to_bind, int rport){
     synchronized(pool){
       for(int i=0; i<pool.size(); i++){
-        Object[] bar=(Object[])(pool.elementAt(i));
-        if(bar[0]!=session) continue;
-        if(((Integer)bar[1]).intValue()!=rport) continue;
+        Config bar = (Config)(pool.elementAt(i));
+        if(bar.session != session) continue;
+        if(bar.rport != rport) {
+          if(bar.rport != 0 || bar.allocated_rport != rport)
+            continue;
+        }
+        if(address_to_bind != null &&
+           !bar.address_to_bind.equals(address_to_bind)) continue;
         return bar;
       }
       return null;
@@ -188,13 +182,14 @@ public class ChannelForwardedTCPIP extends Channel{
   }
 
   static String[] getPortForwarding(Session session){
-    java.util.Vector foo=new java.util.Vector();
+    Vector foo = new Vector();
     synchronized(pool){
       for(int i=0; i<pool.size(); i++){
-        Object[] bar=(Object[])(pool.elementAt(i));
-        if(bar[0]!=session) continue;
-        if(bar[3]==null){ foo.addElement(bar[1]+":"+bar[2]+":"); }
-        else{ foo.addElement(bar[1]+":"+bar[2]+":"+bar[3]); }
+        Config config = (Config)(pool.elementAt(i));
+        if(config instanceof ConfigDaemon)
+          foo.addElement(config.allocated_rport+":"+config.target+":");
+        else
+          foo.addElement(config.allocated_rport+":"+config.target+":"+((ConfigLHost)config).lport);
       }
     }
     String[] bar=new String[foo.size()];
@@ -210,31 +205,39 @@ public class ChannelForwardedTCPIP extends Channel{
     else{ return address; }
   }
 
-  static void addPort(Session session, String _address_to_bind, int port, String target, int lport, SocketFactory factory) throws JSchException{
+  static void addPort(Session session, String _address_to_bind,
+                      int port, int allocated_port, String target, int lport, SocketFactory factory) throws JSchException{
     String address_to_bind=normalize(_address_to_bind);
     synchronized(pool){
-      if(getPort(session, port)!=null){
+      if(getPort(session, address_to_bind, port)!=null){
         throw new JSchException("PortForwardingR: remote port "+port+" is already registered.");
       }
-      Object[] foo=new Object[6];
-      foo[0]=session; foo[1]=new Integer(port);
-      foo[2]=target; foo[3]=new Integer(lport);
-      foo[4]=address_to_bind;
-      foo[5]=factory;
-      pool.addElement(foo);
+      ConfigLHost config = new ConfigLHost();
+      config.session = session;
+      config.rport = port;
+      config.allocated_rport = allocated_port;
+      config.target = target;
+      config.lport =lport;
+      config.address_to_bind = address_to_bind;
+      config.factory = factory;
+      pool.addElement(config);
     }
   }
-  static void addPort(Session session, String _address_to_bind, int port, String daemon, Object[] arg) throws JSchException{
+  static void addPort(Session session, String _address_to_bind,
+                      int port, int allocated_port, String daemon, Object[] arg) throws JSchException{
     String address_to_bind=normalize(_address_to_bind);
     synchronized(pool){
-      if(getPort(session, port)!=null){
+      if(getPort(session, address_to_bind, port)!=null){
         throw new JSchException("PortForwardingR: remote port "+port+" is already registered.");
       }
-      Object[] foo=new Object[5];
-      foo[0]=session; foo[1]=new Integer(port);
-      foo[2]=daemon; foo[3]=arg;
-      foo[4]=address_to_bind; 
-      pool.addElement(foo);
+      ConfigDaemon config = new ConfigDaemon();
+      config.session = session;
+      config.rport = port;
+      config.allocated_rport = port;
+      config.target = daemon;
+      config.arg = arg;
+      config.address_to_bind = address_to_bind;
+      pool.addElement(config);
     }
   }
   static void delPort(ChannelForwardedTCPIP c){
@@ -245,26 +248,21 @@ public class ChannelForwardedTCPIP extends Channel{
     catch(JSchException e){
       // session has been already down.
     }
-    if(_session!=null)
-      delPort(_session, c.rport);
+    if(_session!=null && c.config!=null)
+      delPort(_session, c.config.rport);
   }
   static void delPort(Session session, int rport){
     delPort(session, null, rport);
   }
   static void delPort(Session session, String address_to_bind, int rport){
     synchronized(pool){
-      Object[] foo=null;
-      for(int i=0; i<pool.size(); i++){
-        Object[] bar=(Object[])(pool.elementAt(i));
-        if(bar[0]!=session) continue;
-        if(((Integer)bar[1]).intValue()!=rport) continue;
-        foo=bar;
-        break;
-      }
-      if(foo==null)return;
+      Config foo = getPort(session, normalize(address_to_bind), rport);
+      if(foo == null)
+        foo = getPort(session, null, rport);
+      if(foo==null) return;
       pool.removeElement(foo);
       if(address_to_bind==null){
-        address_to_bind=(String)foo[4];
+        address_to_bind=foo.address_to_bind;
       }	
       if(address_to_bind==null){
         address_to_bind="0.0.0.0";
@@ -298,9 +296,9 @@ public class ChannelForwardedTCPIP extends Channel{
     synchronized(pool){
       rport=new int[pool.size()];
       for(int i=0; i<pool.size(); i++){
-        Object[] bar=(Object[])(pool.elementAt(i));
-        if(bar[0]==session) {
-          rport[count++]=((Integer)bar[1]).intValue();
+        Config config = (Config)(pool.elementAt(i));
+        if(config.session == session) {
+          rport[count++]=config.rport; // ((Integer)bar[1]).intValue();
         }
       }
     }
@@ -309,8 +307,25 @@ public class ChannelForwardedTCPIP extends Channel{
     }
   }
 
-  public int getRemotePort(){return rport;}
-  void setSocketFactory(SocketFactory factory){
-    this.factory=factory;
+  public int getRemotePort(){return (config!=null ? config.rport: 0);}
+  private void setSocketFactory(SocketFactory factory){
+    if(config!=null && (config instanceof ConfigLHost) )
+      ((ConfigLHost)config).factory = factory;
+  }
+  static abstract class Config {
+    Session session;
+    int rport;
+    int allocated_rport;
+    String address_to_bind;
+    String target;
+  }
+
+  static class ConfigDaemon extends Config {
+    Object[] arg;
+  }
+
+  static class ConfigLHost extends Config {
+    int lport;
+    SocketFactory factory;
   }
 }

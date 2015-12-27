@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,8 +29,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 import java.net.Socket;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-@SuppressWarnings({"rawtypes","unchecked"})
 class Util{
 
   private static final byte[] b64 =Util.str2byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
@@ -41,20 +43,25 @@ class Util{
     }
     return 0;
   }
-  static byte[] fromBase64(byte[] buf, int start, int length){
-    byte[] foo=new byte[length];
-    int j=0;
-    for (int i=start;i<start+length;i+=4){
-      foo[j]=(byte)((val(buf[i])<<2)|((val(buf[i+1])&0x30)>>>4));
-      if(buf[i+2]==(byte)'='){ j++; break;}
-      foo[j+1]=(byte)(((val(buf[i+1])&0x0f)<<4)|((val(buf[i+2])&0x3c)>>>2));
-      if(buf[i+3]==(byte)'='){ j+=2; break;}
-      foo[j+2]=(byte)(((val(buf[i+2])&0x03)<<6)|(val(buf[i+3])&0x3f));
-      j+=3;
+  static byte[] fromBase64(byte[] buf, int start, int length) throws JSchException {
+    try {
+      byte[] foo=new byte[length];
+      int j=0;
+      for (int i=start;i<start+length;i+=4){
+        foo[j]=(byte)((val(buf[i])<<2)|((val(buf[i+1])&0x30)>>>4));
+        if(buf[i+2]==(byte)'='){ j++; break;}
+        foo[j+1]=(byte)(((val(buf[i+1])&0x0f)<<4)|((val(buf[i+2])&0x3c)>>>2));
+        if(buf[i+3]==(byte)'='){ j+=2; break;}
+        foo[j+2]=(byte)(((val(buf[i+2])&0x03)<<6)|(val(buf[i+3])&0x3f));
+        j+=3;
+      }
+      byte[] bar=new byte[j];
+      System.arraycopy(foo, 0, bar, 0, j);
+      return bar;
     }
-    byte[] bar=new byte[j];
-    System.arraycopy(foo, 0, bar, 0, j);
-    return bar;
+    catch(ArrayIndexOutOfBoundsException e) {
+      throw new JSchException("fromBase64: invalid base64 data", e);
+    }
   }
   static byte[] toBase64(byte[] buf, int start, int length){
 
@@ -384,7 +391,7 @@ class Util{
       }
       tmp.interrupt();
       tmp=null;
-      throw new JSchException(message);
+      throw new JSchException(message, ee[0]);
     }
     return socket;
   } 
@@ -419,6 +426,17 @@ class Util{
 
   static String byte2str(byte[] str, int s, int l){
     return byte2str(str, s, l, "UTF-8");
+  }
+
+  static String toHex(byte[] str){
+    StringBuffer sb = new StringBuffer();
+    for(int i = 0; i<str.length; i++){
+      String foo = Integer.toHexString(str[i]&0xff);
+      sb.append("0x"+(foo.length() == 1 ? "0" : "")+foo);
+      if(i+1<str.length)
+        sb.append(":");
+    }
+    return sb.toString();
   }
 
   static final byte[] empty = str2byte("");
@@ -466,10 +484,43 @@ class Util{
     return result;
   }
 
+  static String checkTilde(String str){
+    try{
+      if(str.startsWith("~")){
+        str = str.replace("~", System.getProperty("user.home"));
+      }
+    }
+    catch(SecurityException e){
+    }
+    return str;
+  }
+
   private static int skipUTF8Char(byte b){
     if((byte)(b&0x80)==0) return 1;
     if((byte)(b&0xe0)==(byte)0xc0) return 2;
     if((byte)(b&0xf0)==(byte)0xe0) return 3;
     return 1;
+  }
+
+  static byte[] fromFile(String _file) throws IOException {
+    _file = checkTilde(_file);
+    File file = new File(_file);
+    FileInputStream fis = new FileInputStream(_file);
+    try {
+      byte[] result = new byte[(int)(file.length())];
+      int len=0;
+      while(true){
+        int i=fis.read(result, len, result.length-len);
+        if(i<=0)
+          break;
+        len+=i;
+      }
+      fis.close();
+      return result;
+    }
+    finally {
+      if(fis!=null)
+        fis.close();
+    }
   }
 }

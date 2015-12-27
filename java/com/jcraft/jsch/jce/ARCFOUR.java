@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2008-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2008-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -51,10 +51,12 @@ public class ARCFOUR implements Cipher{
     try{
       cipher=javax.crypto.Cipher.getInstance("RC4");
       SecretKeySpec _key = new SecretKeySpec(key, "RC4");
-      cipher.init((mode==ENCRYPT_MODE?
-		   javax.crypto.Cipher.ENCRYPT_MODE:
-		   javax.crypto.Cipher.DECRYPT_MODE),
-		  _key);
+      synchronized(javax.crypto.Cipher.class){
+        cipher.init((mode==ENCRYPT_MODE?
+                     javax.crypto.Cipher.ENCRYPT_MODE:
+                     javax.crypto.Cipher.DECRYPT_MODE),
+		    _key);
+      }
     }
     catch(Exception e){
       cipher=null;
