@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -33,43 +33,10 @@ import com.jcraft.jsch.MAC;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
-public class HMACMD5 implements MAC{
-  private static final String name="hmac-md5";
-  private static final int BSIZE=16;
-  private Mac mac;
-  public int getBlockSize(){return BSIZE;};
-  public void init(byte[] key) throws Exception{
-    if(key.length>BSIZE){
-      byte[] tmp=new byte[BSIZE];
-      System.arraycopy(key, 0, tmp, 0, BSIZE);	  
-      key=tmp;
-    }
-
-    SecretKeySpec skey=new SecretKeySpec(key, "HmacMD5");
-    mac=Mac.getInstance("HmacMD5");
-    mac.init(skey);
-  } 
-
-  private final byte[] tmp=new byte[4];
-  public void update(int i){
-    tmp[0]=(byte)(i>>>24);
-    tmp[1]=(byte)(i>>>16);
-    tmp[2]=(byte)(i>>>8);
-    tmp[3]=(byte)i;
-    update(tmp, 0, 4);
-  }
-  public void update(byte foo[], int s, int l){
-    mac.update(foo, s, l);      
-  }
-  public void doFinal(byte[] buf, int offset){
-    try{
-      mac.doFinal(buf, offset);
-    }
-    catch(ShortBufferException e){
-    }
-  }
-
-  public String getName(){
-    return name;
+public class HMACMD5 extends HMAC {
+  public HMACMD5(){
+    name = "hmac-md5";
+    bsize = 16;
+    algorithm = "HmacMD5";
   }
 }

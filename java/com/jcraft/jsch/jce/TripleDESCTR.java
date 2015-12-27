@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2008-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2008-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -67,10 +67,12 @@ public class TripleDESCTR implements Cipher{
       DESedeKeySpec keyspec=new DESedeKeySpec(key);
       SecretKeyFactory keyfactory=SecretKeyFactory.getInstance("DESede");
       SecretKey _key=keyfactory.generateSecret(keyspec);
-      cipher.init((mode==ENCRYPT_MODE?
-		   javax.crypto.Cipher.ENCRYPT_MODE:
-		   javax.crypto.Cipher.DECRYPT_MODE),
-		  _key, new IvParameterSpec(iv));
+      synchronized(javax.crypto.Cipher.class){
+        cipher.init((mode==ENCRYPT_MODE?
+                     javax.crypto.Cipher.ENCRYPT_MODE:
+                     javax.crypto.Cipher.DECRYPT_MODE),
+                    _key, new IvParameterSpec(iv));
+      }
     }
     catch(Exception e){
       cipher=null;

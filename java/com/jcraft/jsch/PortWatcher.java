@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -32,7 +32,6 @@ package com.jcraft.jsch;
 import java.net.*;
 import java.io.*;
 
-@SuppressWarnings({"rawtypes","unchecked"})
 class PortWatcher implements Runnable{
   private static java.util.Vector pool=new java.util.Vector();
   private static InetAddress anyLocalAddress=null;
@@ -55,6 +54,7 @@ class PortWatcher implements Runnable{
   InetAddress boundaddress;
   Runnable thread;
   ServerSocket ss;
+  int connectTimeout=0;
 
   static String[] getPortForwarding(Session session){
     java.util.Vector foo=new java.util.Vector();
@@ -93,7 +93,17 @@ class PortWatcher implements Runnable{
       return null;
     }
   }
+  private static String normalize(String address){
+    if(address!=null){
+      if(address.length()==0 || address.equals("*"))
+        address="0.0.0.0";
+      else if(address.equals("localhost"))
+        address="127.0.0.1";
+    }
+    return address;
+  }
   static PortWatcher addPort(Session session, String address, int lport, String host, int rport, ServerSocketFactory ssf) throws JSchException{
+    address = normalize(address);
     if(getPort(session, address, lport)!=null){
       throw new JSchException("PortForwardingL: local port "+ address+":"+lport+" is already registered.");
     }
@@ -102,6 +112,7 @@ class PortWatcher implements Runnable{
     return pw;
   }
   static void delPort(Session session, String address, int lport) throws JSchException{
+    address = normalize(address);
     PortWatcher pw=getPort(session, address, lport);
     if(pw==null){
       throw new JSchException("PortForwardingL: local port "+address+":"+lport+" is not registered.");
@@ -171,7 +182,7 @@ class PortWatcher implements Runnable{
 	((ChannelDirectTCPIP)channel).setPort(rport);
 	((ChannelDirectTCPIP)channel).setOrgIPAddress(socket.getInetAddress().getHostAddress());
 	((ChannelDirectTCPIP)channel).setOrgPort(socket.getPort());
-        channel.connect();
+        channel.connect(connectTimeout);
 	if(channel.exitstatus!=-1){
 	}
       }
@@ -179,7 +190,6 @@ class PortWatcher implements Runnable{
     catch(Exception e){
       //System.err.println("! "+e);
     }
-
     delete();
   }
 
@@ -191,5 +201,9 @@ class PortWatcher implements Runnable{
     }
     catch(Exception e){
     }
+  }
+
+  void setConnectTimeout(int connectTimeout){
+    this.connectTimeout=connectTimeout;
   }
 }

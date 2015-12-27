@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,6 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-@SuppressWarnings({"rawtypes"})
 public class DHG1 extends KeyExchange{
 
   static final byte[] g={ 2 };
@@ -56,24 +55,14 @@ public class DHG1 extends KeyExchange{
   private static final int SSH_MSG_KEXDH_INIT=                     30;
   private static final int SSH_MSG_KEXDH_REPLY=                    31;
 
-  static final int RSA=0;
-  static final int DSS=1;
-  private int type=0;
-
   private int state;
 
   DH dh;
-//  HASH sha;
-
-//  byte[] K;
-//  byte[] H;
 
   byte[] V_S;
   byte[] V_C;
   byte[] I_S;
   byte[] I_C;
-
-//  byte[] K_S;
 
   byte[] e;
 
@@ -88,8 +77,6 @@ public class DHG1 extends KeyExchange{
     this.I_S=I_S;      
     this.I_C=I_C;      
 
-//    sha=new SHA1();
-//    sha.init();
     try{
       Class c=Class.forName(session.getConfig("sha-1"));
       sha=(HASH)(c.newInstance());
@@ -156,25 +143,15 @@ public class DHG1 extends KeyExchange{
       }
 
       K_S=_buf.getString();
-      // K_S is server_key_blob, which includes ....
-      // string ssh-dss
-      // impint p of dsa
-      // impint q of dsa
-      // impint g of dsa
-      // impint pub_key of dsa
-      //System.err.print("K_S: "); //dump(K_S, 0, K_S.length);
+
       byte[] f=_buf.getMPInt();
       byte[] sig_of_H=_buf.getString();
-      /*
-for(int ii=0; ii<sig_of_H.length;ii++){
-  System.err.print(Integer.toHexString(sig_of_H[ii]&0xff));
-  System.err.print(": ");
-}
-System.err.println("");
-      */
 
       dh.setF(f);
-      K=dh.getK();
+
+      dh.checkRange();
+
+      K=normalize(dh.getK());
 
       //The hash H is computed as the HASH hash of the concatenation of the
       //following:
@@ -207,104 +184,12 @@ System.err.println("");
       String alg=Util.byte2str(K_S, i, j);
       i+=j;
 
-      boolean result=false;
+      boolean result = verify(alg, K_S, i, sig_of_H);
 
-      if(alg.equals("ssh-rsa")){
-	byte[] tmp;
-	byte[] ee;
-	byte[] n;
-
-	type=RSA;
-
-	j=((K_S[i++]<<24)&0xff000000)|((K_S[i++]<<16)&0x00ff0000)|
-	  ((K_S[i++]<<8)&0x0000ff00)|((K_S[i++])&0x000000ff);
-	tmp=new byte[j]; System.arraycopy(K_S, i, tmp, 0, j); i+=j;
-	ee=tmp;
-	j=((K_S[i++]<<24)&0xff000000)|((K_S[i++]<<16)&0x00ff0000)|
-	  ((K_S[i++]<<8)&0x0000ff00)|((K_S[i++])&0x000000ff);
-	tmp=new byte[j]; System.arraycopy(K_S, i, tmp, 0, j); i+=j;
-	n=tmp;
-	
-//	SignatureRSA sig=new SignatureRSA();
-//	sig.init();
-
-	SignatureRSA sig=null;
-	try{
-	  Class c=Class.forName(session.getConfig("signature.rsa"));
-	  sig=(SignatureRSA)(c.newInstance());
-	  sig.init();
-	}
-	catch(Exception e){
-	  System.err.println(e);
-	}
-
-	sig.setPubKey(ee, n);   
-	sig.update(H);
-	result=sig.verify(sig_of_H);
-
-        if(JSch.getLogger().isEnabled(Logger.INFO)){
-          JSch.getLogger().log(Logger.INFO, 
-                               "ssh_rsa_verify: signature "+result);
-        }
-
-      }
-      else if(alg.equals("ssh-dss")){
-	byte[] q=null;
-	byte[] tmp;
-	byte[] p;
-	byte[] g;
-      
-	type=DSS;
-
-	j=((K_S[i++]<<24)&0xff000000)|((K_S[i++]<<16)&0x00ff0000)|
-	  ((K_S[i++]<<8)&0x0000ff00)|((K_S[i++])&0x000000ff);
-	tmp=new byte[j]; System.arraycopy(K_S, i, tmp, 0, j); i+=j;
-	p=tmp;
-	j=((K_S[i++]<<24)&0xff000000)|((K_S[i++]<<16)&0x00ff0000)|
-	  ((K_S[i++]<<8)&0x0000ff00)|((K_S[i++])&0x000000ff);
-	tmp=new byte[j]; System.arraycopy(K_S, i, tmp, 0, j); i+=j;
-	q=tmp;
-	j=((K_S[i++]<<24)&0xff000000)|((K_S[i++]<<16)&0x00ff0000)|
-	  ((K_S[i++]<<8)&0x0000ff00)|((K_S[i++])&0x000000ff);
-	tmp=new byte[j]; System.arraycopy(K_S, i, tmp, 0, j); i+=j;
-	g=tmp;
-	j=((K_S[i++]<<24)&0xff000000)|((K_S[i++]<<16)&0x00ff0000)|
-	  ((K_S[i++]<<8)&0x0000ff00)|((K_S[i++])&0x000000ff);
-	tmp=new byte[j]; System.arraycopy(K_S, i, tmp, 0, j); i+=j;
-	f=tmp;
-//	SignatureDSA sig=new SignatureDSA();
-//	sig.init();
-	SignatureDSA sig=null;
-	try{
-	  Class c=Class.forName(session.getConfig("signature.dss"));
-	  sig=(SignatureDSA)(c.newInstance());
-	  sig.init();
-	}
-	catch(Exception e){
-	  System.err.println(e);
-	}
-	sig.setPubKey(f, p, q, g);   
-	sig.update(H);
-	result=sig.verify(sig_of_H);
-
-        if(JSch.getLogger().isEnabled(Logger.INFO)){
-          JSch.getLogger().log(Logger.INFO, 
-                               "ssh_dss_verify: signature "+result);
-        }
-
-      }
-      else{
-	System.err.println("unknown alg");
-      }	    
       state=STATE_END;
       return result;
     }
     return false;
-  }
-
-  public String getKeyType(){
-    if(type==DSS) return "DSA";
-    return "RSA";
   }
 
   public int getState(){return state; }

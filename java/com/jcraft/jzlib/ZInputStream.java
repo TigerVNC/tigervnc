@@ -50,7 +50,7 @@ public class ZInputStream extends FilterInputStream {
   }
   public ZInputStream(InputStream in, boolean nowrap) throws IOException {
     super(in);
-    iis = new InflaterInputStream(in);
+    iis = new InflaterInputStream(in, nowrap);
     compress=false;
   }
 

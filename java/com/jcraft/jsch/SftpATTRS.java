@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -108,12 +108,12 @@ public class SftpATTRS {
   }
 
   public String  getAtimeString(){
-    SimpleDateFormat locale=new SimpleDateFormat();
-    return (locale.format(new Date(atime)));
+    Date date= new Date(((long)atime)*1000L);
+    return (date.toString());
   }
 
   public String  getMtimeString(){
-    Date date= new Date(((long)mtime)*1000);
+    Date date= new Date(((long)mtime)*1000L);
     return (date.toString());
   }
 
@@ -123,8 +123,14 @@ public class SftpATTRS {
   public static final int SSH_FILEXFER_ATTR_ACMODTIME=    0x00000008;
   public static final int SSH_FILEXFER_ATTR_EXTENDED=     0x80000000;
 
+  static final int S_IFMT=0xf000;
+  static final int S_IFIFO=0x1000;
+  static final int S_IFCHR=0x2000;
   static final int S_IFDIR=0x4000;
+  static final int S_IFBLK=0x6000;
+  static final int S_IFREG=0x8000;
   static final int S_IFLNK=0xa000;
+  static final int S_IFSOCK=0xc000;
 
   int flags=0;
   long size;
@@ -231,14 +237,39 @@ public class SftpATTRS {
     this.permissions=permissions;
   }
 
+  private boolean isType(int mask) {
+    return (flags&SSH_FILEXFER_ATTR_PERMISSIONS)!=0 &&
+           (permissions&S_IFMT)==mask;
+  }
+
+  public boolean isReg(){
+    return isType(S_IFREG);
+  }
+
   public boolean isDir(){
-    return ((flags&SSH_FILEXFER_ATTR_PERMISSIONS)!=0 && 
-	    ((permissions&S_IFDIR)==S_IFDIR));
+    return isType(S_IFDIR);
   }      
+
+  public boolean isChr(){
+    return isType(S_IFCHR);
+  }      
+
+  public boolean isBlk(){
+    return isType(S_IFBLK);
+  }      
+
+  public boolean isFifo(){
+    return isType(S_IFIFO);
+  }      
+
   public boolean isLink(){
-    return ((flags&SSH_FILEXFER_ATTR_PERMISSIONS)!=0 && 
-	    ((permissions&S_IFLNK)==S_IFLNK));
-  }      
+    return isType(S_IFLNK);
+  }
+
+  public boolean isSock(){
+    return isType(S_IFSOCK);
+  }
+
   public int getFlags() { return flags; }
   public long getSize() { return size; }
   public int getUId() { return uid; }

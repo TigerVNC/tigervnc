@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -213,12 +213,55 @@ public class Buffer{
   }
 
   void checkFreeSize(int n){
-    if(buffer.length<index+n){
-      byte[] tmp = new byte[buffer.length*2];
+    int size = index+n+Session.buffer_margin;
+    if(buffer.length<size){
+      int i = buffer.length*2;
+      if(i<size) i = size;
+      byte[] tmp = new byte[i];
       System.arraycopy(buffer, 0, tmp, 0, index);
       buffer = tmp;
     }
   }
+
+  byte[][] getBytes(int n, String msg) throws JSchException {
+    byte[][] tmp = new byte[n][];
+    for(int i = 0; i < n; i++){
+      int j = getInt();
+      if(getLength() < j){
+        throw new JSchException(msg);
+      }
+      tmp[i] = new byte[j];
+      getByte(tmp[i]);
+    }
+    return tmp;
+  }
+
+  /*
+  static Buffer fromBytes(byte[]... args){
+    int length = args.length*4;
+    for(int i = 0; i < args.length; i++){
+      length += args[i].length;
+    }
+    Buffer buf = new Buffer(length);
+    for(int i = 0; i < args.length; i++){
+      buf.putString(args[i]);
+    }
+    return buf;
+  }
+  */
+
+  static Buffer fromBytes(byte[][] args){
+    int length = args.length*4;
+    for(int i = 0; i < args.length; i++){
+      length += args[i].length;
+    }
+    Buffer buf = new Buffer(length);
+    for(int i = 0; i < args.length; i++){
+      buf.putString(args[i]);
+    }
+    return buf;
+  }
+
 
 /*
   static String[] chars={
