@@ -59,7 +59,7 @@ public class KeyPairDSA extends KeyPair{
       key_size = (new java.math.BigInteger(P_array)).bitLength();
   }
 
-  void generate(int key_size) throws JSchException{
+  @SuppressWarnings({"static"}) void generate(int key_size) throws JSchException{
     this.key_size=key_size;
     try{
       Class c=Class.forName(jsch.getConfig("keypairgen.dsa"));
@@ -247,7 +247,7 @@ public class KeyPairDSA extends KeyPair{
     return key_size;
   }
 
-  public byte[] getSignature(byte[] data){
+  @SuppressWarnings({"static"}) public byte[] getSignature(byte[] data){
     try{      
       Class c=Class.forName((String)jsch.getConfig("signature.dss"));
       SignatureDSA dsa=(SignatureDSA)(c.newInstance());
@@ -267,7 +267,7 @@ public class KeyPairDSA extends KeyPair{
     return null;
   }
 
-  public Signature getVerifier(){
+  @SuppressWarnings({"static"}) public Signature getVerifier(){
     try{      
       Class c=Class.forName((String)jsch.getConfig("signature.dss"));
       SignatureDSA dsa=(SignatureDSA)(c.newInstance());

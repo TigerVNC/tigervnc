@@ -218,7 +218,7 @@ public class KeyPairPKCS8 extends KeyPair {
     return kpair.forSSHAgent();
   }
 
-  public boolean decrypt(byte[] _passphrase){
+  @SuppressWarnings({"static"}) public boolean decrypt(byte[] _passphrase){
     if(!isEncrypted()){
       return true;
     }
@@ -330,7 +330,7 @@ or
     return false;
   }
 
-  Cipher getCipher(byte[] id){
+  @SuppressWarnings({"static"}) Cipher getCipher(byte[] id){
     Cipher cipher=null;
     String name = null;
     try{

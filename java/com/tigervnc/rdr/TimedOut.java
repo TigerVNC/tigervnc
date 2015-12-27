@@ -19,14 +19,8 @@
 
 package com.tigervnc.rdr;
 
-public class Exception extends RuntimeException {
-  public Exception(String s) {
-    super(s);
-  }
-}
-
-class FrameException extends Exception {
-  public FrameException() {
-    super("Frame Exception");
+class TimedOut extends Exception {
+  public TimedOut() {
+    super("Timed out");
   }
 }

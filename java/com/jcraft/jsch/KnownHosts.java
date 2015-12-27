@@ -482,7 +482,7 @@ loop:
     return hosts;
   }
 
-  private synchronized MAC getHMACSHA1(){
+  @SuppressWarnings({"static"}) private synchronized MAC getHMACSHA1(){
     if(hmacsha1==null){
       try{
         Class c=Class.forName(jsch.getConfig("hmac-sha1"));

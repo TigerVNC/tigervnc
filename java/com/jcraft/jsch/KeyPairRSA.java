@@ -61,7 +61,7 @@ public class KeyPairRSA extends KeyPair{
     }
   }
 
-  void generate(int key_size) throws JSchException{
+  @SuppressWarnings({"static"}) void generate(int key_size) throws JSchException{
     this.key_size=key_size;
     try{
       Class c=Class.forName(jsch.getConfig("keypairgen.rsa"));
@@ -316,7 +316,7 @@ public class KeyPairRSA extends KeyPair{
     return key_size;
   }
 
-  public byte[] getSignature(byte[] data){
+  @SuppressWarnings({"static"}) public byte[] getSignature(byte[] data){
     try{      
       Class c=Class.forName((String)jsch.getConfig("signature.rsa"));
       SignatureRSA rsa=(SignatureRSA)(c.newInstance());
@@ -335,7 +335,7 @@ public class KeyPairRSA extends KeyPair{
     return null;
   }
 
-  public Signature getVerifier(){
+  @SuppressWarnings({"static"}) public Signature getVerifier(){
     try{      
       Class c=Class.forName((String)jsch.getConfig("signature.rsa"));
       SignatureRSA rsa=(SignatureRSA)(c.newInstance());
