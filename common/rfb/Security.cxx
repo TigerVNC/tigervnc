@@ -74,7 +74,18 @@ const std::list<rdr::U8> Security::GetEnabledSecTypes(void)
   list<rdr::U8> result;
   list<U32>::iterator i;
 
-  result.push_back(secTypeVeNCrypt);
+  /* Partial workaround for Vino's stupid behaviour. It doesn't allow
+   * the basic authentication types as part of the VeNCrypt handshake,
+   * making it impossible for a client to do opportunistic encryption.
+   * At least make it possible to connect when encryption is explicitly
+   * disabled. */
+  for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++) {
+    if (*i >= 0x100) {
+      result.push_back(secTypeVeNCrypt);
+      break;
+    }
+  }
+
   for (i = enabledSecTypes.begin(); i != enabledSecTypes.end(); i++)
     if (*i < 0x100)
       result.push_back(*i);
