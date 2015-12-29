@@ -242,8 +242,10 @@ unlink($desktopLog);
 
 $cookie = `mcookie`;
 
-system("xauth -f $xauthorityFile add $host:$displayNumber . $cookie");
-system("xauth -f $xauthorityFile add $host/unix:$displayNumber . $cookie"); 
+open(XAUTH, "|xauth -f $xauthorityFile source -");
+print XAUTH "add $host:$displayNumber . $cookie\n";
+print XAUTH "add $host/unix:$displayNumber . $cookie\n";
+close(XAUTH);
 
 if ($opt{'-name'}) {
     $desktopName = $opt{'-name'};
