@@ -38,8 +38,6 @@ if($slashndx>=0) {
 
 $vncClasses = "";
 
-$xauth = "xauth";
-
 &SanityCheck();
 
 #
@@ -793,27 +791,13 @@ sub SanityCheck
     #
 
  cmd:
-    foreach $cmd ("uname") {
+    foreach $cmd ("uname","xauth") {
 	for (split(/:/,$ENV{PATH})) {
 	    if (-x "$_/$cmd") {
 		next cmd;
 	    }
 	}
 	die "$prog: couldn't find \"$cmd\" on your PATH.\n";
-    }
-    if (-x "/usr/X11R6/bin/xauth") {
-	$xauth = "/usr/X11R6/bin/xauth";
-    }
-    else {
-      cmd1:
-	foreach $cmd ("xauth") {
-	    for (split(/:/,$ENV{PATH})) {
-		if (-x "$_/$cmd") {
-		    next cmd1;
-		}
-	    }
-	    die "$prog: couldn't find \"$cmd\" on your PATH.\n";
-	}
     }
 
     if($exedir eq "") {
