@@ -4,13 +4,13 @@
 # Peter Åstrand <astrand@cendio.se>, 2011.
 # Göran Uddeborg <goeran@uddeborg.se>, 2015.
 #
-# $Revision: 1.9 $
+# $Revision: 1.10 $
 msgid ""
 msgstr ""
 "Project-Id-Version: tigervnc 1.5.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2015-11-26 11:33+0000\n"
-"PO-Revision-Date: 2015-12-02 22:50+0100\n"
+"PO-Revision-Date: 2015-12-28 16:52+0100\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -206,7 +206,7 @@ msgstr "Mycket låg (8 färger)"
 
 #: vncviewer/OptionsDialog.cxx:538
 msgid "Custom compression level:"
-msgstr "Anpassad kompressionsnivå:"
+msgstr "Anpassad komprimeringsnivå:"
 
 #: vncviewer/OptionsDialog.cxx:544
 msgid "level (1=fast, 6=best [4-6 are rarely useful])"
@@ -214,7 +214,7 @@ msgstr "nivå (1=snabb, 6=bäst [4-6 sällan användbara])"
 
 #: vncviewer/OptionsDialog.cxx:551
 msgid "Allow JPEG compression:"
-msgstr "Tillåt JPEG-kompression:"
+msgstr "Tillåt JPEG-komprimering:"
 
 #: vncviewer/OptionsDialog.cxx:557
 msgid "quality (0=poor, 9=best)"
