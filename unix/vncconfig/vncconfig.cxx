@@ -51,6 +51,8 @@ LogWriter vlog("vncconfig");
 StringParameter displayname("display", "The X display", "");
 BoolParameter noWindow("nowin", "Don't display a window", 0);
 BoolParameter iconic("iconic", "Start with window iconified", 0);
+BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
+                         "as the CLIPBOARD selection", true);
 BoolParameter sendPrimary("SendPrimary", "Send the PRIMARY as well as the "
                           "CLIPBOARD selection", true);
 IntParameter pollTime("poll",
@@ -87,6 +89,8 @@ public:
   VncConfigWindow(Display* dpy)
     : TXWindow(dpy, 300, 100), cutText(0), cutTextLen(0),
       acceptClipboard(dpy, "Accept clipboard from viewers", this, false, this),
+      setPrimaryCB(dpy, "Also set primary selection",
+                      this, false, this),
       sendClipboard(dpy, "Send clipboard to viewers", this, false, this),
       sendPrimaryCB(dpy, "Send primary selection to viewers", this,false,this),
       pollTimer(this),
@@ -98,6 +102,10 @@ public:
     acceptClipboard.move(xPad, y);
     acceptClipboard.checked(getBoolParam(dpy, ACCEPT_CUT_TEXT));
     y += acceptClipboard.height();
+    setPrimaryCB.move(xPad + 10, y);
+    setPrimaryCB.checked(setPrimary);
+    setPrimaryCB.disabled(!acceptClipboard.checked());
+    y += setPrimaryCB.height();
     sendClipboard.move(xPad, y);
     sendClipboard.checked(getBoolParam(dpy, SEND_CUT_TEXT));
     y += sendClipboard.height();
@@ -136,7 +144,9 @@ public:
                      cutTextLen<9?cutTextLen:8, cutText,
                      cutTextLen<9?"":"...");
           XStoreBytes(dpy, cutText, cutTextLen);
-          ownSelection(XA_PRIMARY, cutEv->time);
+          if (setPrimaryCB.checked()) {
+            ownSelection(XA_PRIMARY, cutEv->time);
+          }
           ownSelection(xaCLIPBOARD, cutEv->time);
           delete [] selection[0];
           delete [] selection[1];
@@ -238,6 +248,7 @@ public:
     if (checkbox == &acceptClipboard) {
       XVncExtSetParam(dpy, (acceptClipboard.checked()
                             ? ACCEPT_CUT_TEXT "=1" : ACCEPT_CUT_TEXT "=0"));
+      setPrimaryCB.disabled(!acceptClipboard.checked());
     } else if (checkbox == &sendClipboard) {
       XVncExtSetParam(dpy, (sendClipboard.checked()
                             ? SEND_CUT_TEXT "=1" : SEND_CUT_TEXT "=0"));
@@ -269,7 +280,7 @@ private:
   int cutTextLen;
   char* selection[2];
   int selectionLen[2];
-  TXCheckbox acceptClipboard, sendClipboard, sendPrimaryCB;
+  TXCheckbox acceptClipboard, setPrimaryCB, sendClipboard, sendPrimaryCB;
   rfb::Timer pollTimer;
 
   QueryConnectDialog* queryConnectDialog;
