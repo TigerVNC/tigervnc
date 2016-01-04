@@ -5,5 +5,4 @@
 100_rethrow_signals.patch
 
 # Upstream patches
-504_tigervnc-cookie.patch
 516_tigervnc-xorg-manpages.patch

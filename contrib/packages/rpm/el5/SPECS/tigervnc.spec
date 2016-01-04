@@ -141,7 +141,6 @@ Provides: tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 # tigervnc patches
-Patch4: tigervnc-cookie.patch
 Patch12: tigervnc14-static-build-fixes.patch
 Patch13: tigervnc14-Add-dridir-param.patch
 Patch14: tigervnc14-Add-xkbcompdir-param.patch
@@ -298,7 +297,6 @@ rm -rf %{_builddir}/%{name}-%{version}%{?snap:-%{snap}}
 cp %SOURCE9 cmake/Modules/
 sed -i -e "s#@_includedir@#%{xorg_buildroot}%{_includedir}#" cmake/Modules/FindX11.cmake
 sed -i -e "s#@_libdir@#%{xorg_buildroot}%{_libdir}#" cmake/Modules/FindX11.cmake
-%patch4 -p1 -b .cookie
 %patch12 -p1 -b .static-build-fixes
 
 %if %{_bootstrap}
