@@ -60,7 +60,6 @@ Obsoletes: vnc < 4.1.3-2, vnc-libs < 4.1.3-2
 Provides: tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
-Patch4: tigervnc-cookie.patch
 Patch16: tigervnc-xorg-manpages.patch
 
 %description
@@ -160,8 +159,6 @@ This package contains static development files necessary to build TigerVNC
 %prep
 rm -rf $RPM_BUILD_ROOT
 %setup -q -n %{name}-%{version}%{?snap:-%{snap}}
-
-%patch4 -p1 -b .cookie
 
 %if %{_bootstrap}
 tar xzf %SOURCE11
