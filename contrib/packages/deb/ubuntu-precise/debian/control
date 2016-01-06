@@ -7,7 +7,7 @@ Build-Depends: debhelper (>> 7.1), zlib1g-dev, libjpeg-turbo8-dev, libxaw7-dev (
 Homepage: http://www.tigervnc.com
 
 Package: tigervncserver
-Architecture: amd64 i386
+Architecture: any
 Provides: xserver, vnc-server
 Depends: x11-common | xserver-common, x11-utils, xauth, libbz2-1.0, libc6, libfontenc1, libfreetype6, libgcc1, libgl1-mesa-dri, libgnutls28, libjpeg-turbo8, libp11-kit0, libpam0g, libpixman-1-0, libstdc++6, libtasn1-3, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxfont1, libxtst6, zlib1g, libglu1-mesa, libxcursor1, libxinerama1, libxfixes3
 Recommends: xfonts-base, x11-xserver-utils
@@ -28,7 +28,7 @@ Description: virtual network computing server software
  JPEG codec.
 
 Package: xtigervncviewer
-Architecture: amd64 i386
+Architecture: any
 Provides: vncviewer, vnc-viewer
 Depends: libc6, libexpat1, libfontconfig1, libfreetype6, libgcc1, libgnutls28, libjpeg-turbo8, libp11-kit0, libpng12-0, libstdc++6, libtasn1-3, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxft2, libxrender1, zlib1g, libglu1-mesa
 Recommends: xfonts-base
