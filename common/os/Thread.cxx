@@ -20,6 +20,7 @@
 #include <windows.h>
 #else
 #include <pthread.h>
+#include <signal.h>
 #include <unistd.h>
 #endif
 
@@ -64,8 +65,19 @@ void Thread::start()
     throw rdr::SystemException("Failed to create thread", GetLastError());
 #else
   int ret;
+  sigset_t all, old;
+
+  // Creating threads from libraries is a bit evil, so mitigate the
+  // issue by at least avoiding signals on these threads
+  sigfillset(&all);
+  ret = pthread_sigmask(SIG_SETMASK, &all, &old);
+  if (ret != 0)
+    throw rdr::SystemException("Failed to mask signals", ret);
 
   ret = pthread_create((pthread_t*)threadId, NULL, startRoutine, this);
+
+  pthread_sigmask(SIG_SETMASK, &old, NULL);
+
   if (ret != 0)
     throw rdr::SystemException("Failed to create thread", ret);
 #endif
