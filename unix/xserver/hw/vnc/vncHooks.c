@@ -372,7 +372,7 @@ void vncGetScreenImage(int scrIdx, int x, int y, int width, int height,
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Helper functions for adding changes and copies
+// Helper functions
 //
 
 static inline void add_changed(ScreenPtr pScreen, RegionPtr reg)
@@ -398,6 +398,33 @@ static inline void add_copied(ScreenPtr pScreen, RegionPtr dst,
                (const struct UpdateRect*)REGION_RECTS(dst), dx, dy);
 }
 
+static inline Bool is_visible(DrawablePtr drawable)
+{
+  PixmapPtr scrPixmap;
+
+  scrPixmap = drawable->pScreen->GetScreenPixmap(drawable->pScreen);
+
+  if (drawable->type == DRAWABLE_WINDOW) {
+    WindowPtr window;
+    PixmapPtr winPixmap;
+
+    window = (WindowPtr)drawable;
+    winPixmap = drawable->pScreen->GetWindowPixmap(window);
+
+    if (!window->viewable)
+      return FALSE;
+
+    if (winPixmap != scrPixmap)
+      return FALSE;
+
+    return TRUE;
+  }
+
+  if (drawable != &scrPixmap->drawable)
+    return FALSE;
+
+  return TRUE;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -727,8 +754,7 @@ static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask,
 
   RegionRec changed;
 
-  if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
-      ((WindowPtr) pDst->pDrawable)->viewable) {
+  if (is_visible(pDst->pDrawable)) {
     BoxRec box;
     RegionRec fbreg;
 
@@ -823,8 +849,7 @@ static void vncHooksGlyphs(CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
   RegionPtr changed;
 
-  if (pDst->pDrawable->type == DRAWABLE_WINDOW &&
-      ((WindowPtr) pDst->pDrawable)->viewable) {
+  if (is_visible(pDst->pDrawable)) {
     BoxRec fbbox;
     RegionRec fbreg;
 
@@ -950,16 +975,14 @@ static Bool vncHooksRandRCrtcSet(ScreenPtr pScreen, RRCrtcPtr crtc,
         (pGC)->ops = &vncHooksGCOps;\
     }
 
-// ValidateGC - wrap the "ops" if a viewable window OR the screen pixmap
+// ValidateGC - wrap the "ops" if the drawable is on screen
 
 static void vncHooksValidateGC(GCPtr pGC, unsigned long changes,
                                DrawablePtr pDrawable)
 {
   GC_FUNC_PROLOGUE(pGC, ValidateGC);
   (*pGC->funcs->ValidateGC) (pGC, changes, pDrawable);
-  if ((pDrawable->type == DRAWABLE_WINDOW &&
-       ((WindowPtr) pDrawable)->viewable) ||
-      (pDrawable == &pGC->pScreen->GetScreenPixmap(pGC->pScreen)->drawable)) {
+  if (is_visible(pDrawable)) {
     pGCPriv->wrappedOps = pGC->ops;
     DBGPRINT((stderr,"vncHooksValidateGC: wrapped GC ops\n"));
   } else {
@@ -1134,10 +1157,7 @@ static RegionPtr vncHooksCopyArea(DrawablePtr pSrc, DrawablePtr pDst,
   REGION_INTERSECT(pGC->pScreen, &dst, &dst, pGC->pCompositeClip);
 
   // The source of the data has to be something that's on screen.
-  // This means either a window, or the screen pixmap.
-  if ((pSrc->pScreen == pGC->pScreen) &&
-      ((pSrc->type == DRAWABLE_WINDOW) ||
-       (pSrc == &pGC->pScreen->GetScreenPixmap(pGC->pScreen)->drawable))) {
+  if (is_visible(pSrc)) {
     BoxRec box;
 
     box.x1 = srcx + pSrc->x;
