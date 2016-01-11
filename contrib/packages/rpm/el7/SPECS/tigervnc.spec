@@ -22,7 +22,6 @@ Source0:        %{name}-%{version}%{?snap:-%{snap}}.tar.bz2
 Source1:        vncserver.service
 Source2:        vncserver.sysconfig
 Source3:        10-libvnc.conf
-Source6:        vncviewer.desktop
 Source11:	http://fltk.org/pub/fltk/1.3.3/fltk-1.3.3-source.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -33,7 +32,7 @@ BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel
-BuildRequires:  desktop-file-utils, java-devel, jpackage-utils
+BuildRequires:  java-devel, jpackage-utils
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
 BuildRequires:  systemd, cmake
 
@@ -291,20 +290,6 @@ rm -rf %{buildroot}%{_initrddir}
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/vncservers
-
-# Install desktop stuff
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/{16x16,24x24,48x48}/apps
-
-pushd media/icons
-for s in 16 24 48; do
-install -m644 tigervnc_$s.png $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/${s}x$s/apps/tigervnc.png
-done
-popd
-
-mkdir $RPM_BUILD_ROOT%{_datadir}/applications
-desktop-file-install \
-        --dir $RPM_BUILD_ROOT%{_datadir}/applications \
-        %{SOURCE6}
 
 # Install Java applet
 pushd java
