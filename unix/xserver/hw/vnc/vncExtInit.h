@@ -57,6 +57,8 @@ void vncCallWriteWakeupHandlers(fd_set * fds, int nfds);
 
 int vncGetAvoidShiftNumLock(void);
 
+int vncGetSendPrimary(void);
+
 void vncUpdateDesktopName(void);
 
 void vncServerCutText(const char *text, size_t len);

@@ -27,7 +27,6 @@
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "scrnintstr.h"
-#include "selection.h"
 
 #define _VNCEXT_SERVER_
 #define _VNCEXT_PROTO_
@@ -43,9 +42,6 @@ static int SProcVncExtDispatch(ClientPtr client);
 static void vncResetProc(ExtensionEntry* extEntry);
 
 static void vncClientStateChange(CallbackListPtr*, void *, void *);
-
-static void vncSelectionCallback(CallbackListPtr *callbacks,
-                                 void * data, void * args);
 
 static int vncErrorBase = 0;
 static int vncEventBase = 0;
@@ -78,10 +74,6 @@ int vncAddExtension(void)
 
   if (!AddCallback(&ClientStateCallback, vncClientStateChange, 0)) {
     FatalError("Add ClientStateCallback failed\n");
-  }
-
-  if (!AddCallback(&SelectionCallback, vncSelectionCallback, 0)) {
-    FatalError("Add SelectionCallback failed\n");
   }
 
   return 0;
@@ -354,32 +346,6 @@ static int SProcVncExtListParams(ClientPtr client)
   return ProcVncExtListParams(client);
 }
 
-static int ProcVncExtSetServerCutText(ClientPtr client)
-{
-  REQUEST(xVncExtSetServerCutTextReq);
-  REQUEST_FIXED_SIZE(xVncExtSetServerCutTextReq, stuff->textLen);
-  vncServerCutText((const char*)&stuff[1], stuff->textLen);
-  return (client->noClientException);
-}
-
-static int SProcVncExtSetServerCutText(ClientPtr client)
-{
-  REQUEST(xVncExtSetServerCutTextReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
-  swaps(&stuff->length);
-#endif
-  REQUEST_AT_LEAST_SIZE(xVncExtSetServerCutTextReq);
-#if XORG < 112
-  swapl(&stuff->textLen, n);
-#else
-  swapl(&stuff->textLen);
-#endif
-  return ProcVncExtSetServerCutText(client);
-}
-
 static int ProcVncExtSelectInput(ClientPtr client)
 {
   struct VncInputSelect** nextPtr;
@@ -583,8 +549,6 @@ static int ProcVncExtDispatch(ClientPtr client)
     return ProcVncExtGetParamDesc(client);
   case X_VncExtListParams:
     return ProcVncExtListParams(client);
-  case X_VncExtSetServerCutText:
-    return ProcVncExtSetServerCutText(client);
   case X_VncExtSelectInput:
     return ProcVncExtSelectInput(client);
   case X_VncExtConnect:
@@ -610,8 +574,6 @@ static int SProcVncExtDispatch(ClientPtr client)
     return SProcVncExtGetParamDesc(client);
   case X_VncExtListParams:
     return SProcVncExtListParams(client);
-  case X_VncExtSetServerCutText:
-    return SProcVncExtSetServerCutText(client);
   case X_VncExtSelectInput:
     return SProcVncExtSelectInput(client);
   case X_VncExtConnect:
@@ -644,39 +606,3 @@ static void vncClientStateChange(CallbackListPtr * l, void * d, void * p)
     }
   }
 }
-
-static void SendSelectionChangeEvent(Atom selection)
-{
-  xVncExtSelectionChangeNotifyEvent ev;
-  ev.type = vncEventBase + VncExtSelectionChangeNotify;
-  for (struct VncInputSelect* cur = vncInputSelectHead; cur; cur = cur->next) {
-    if (cur->mask & VncExtSelectionChangeMask) {
-      ev.sequenceNumber = cur->client->sequence;
-      ev.window = cur->window;
-      ev.selection = selection;
-      if (cur->client->swapped) {
-#if XORG < 112
-        int n;
-        swaps(&ev.sequenceNumber, n);
-        swapl(&ev.window, n);
-        swapl(&ev.selection, n);
-#else
-        swaps(&ev.sequenceNumber);
-        swapl(&ev.window);
-        swapl(&ev.selection);
-#endif
-      }
-      WriteToClient(cur->client, sizeof(xVncExtSelectionChangeNotifyEvent),
-                    (char *)&ev);
-    }
-  }
-}
-
-static void vncSelectionCallback(CallbackListPtr *callbacks, void * data, void * args)
-{
-  SelectionInfoRec *info = (SelectionInfoRec *) args;
-  Selection *selection = info->selection;
-
-  SendSelectionChangeEvent(selection->selection);
-}
-

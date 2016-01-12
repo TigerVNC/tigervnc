@@ -22,6 +22,7 @@
 
 #include <X11/Xatom.h>
 
+#include "propertyst.h"
 #include "scrnintstr.h"
 #include "selection.h"
 #include "windowstr.h"
@@ -29,6 +30,7 @@
 
 #include "xorg-version.h"
 
+#include "vncExtInit.h"
 #include "vncSelection.h"
 #include "RFBGlue.h"
 
@@ -48,13 +50,24 @@ static int clientCutTextLen;
 static int vncCreateSelectionWindow(void);
 static int vncOwnSelection(Atom selection);
 static int vncProcConvertSelection(ClientPtr client);
+static int vncProcSendEvent(ClientPtr client);
+static void vncSelectionCallback(CallbackListPtr *callbacks,
+                                 void * data, void * args);
 
 static int (*origProcConvertSelection)(ClientPtr);
+static int (*origProcSendEvent)(ClientPtr);
 
 void vncSelectionInit(void)
 {
+  /* There are no hooks for when these are internal windows, so
+   * override the relevant handlers. */
   origProcConvertSelection = ProcVector[X_ConvertSelection];
   ProcVector[X_ConvertSelection] = vncProcConvertSelection;
+  origProcSendEvent = ProcVector[X_SendEvent];
+  ProcVector[X_SendEvent] = vncProcSendEvent;
+
+  if (!AddCallback(&SelectionCallback, vncSelectionCallback, 0))
+    FatalError("Add VNC SelectionCallback failed\n");
 }
 
 void vncClientCutText(const char* str, int len)
@@ -240,8 +253,6 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
   return Success;
 }
 
-/* The original code cannot deal with the selection owner being
- * serverClient, so we have to reimplement this. */
 static int vncProcConvertSelection(ClientPtr client)
 {
   Bool paramsOkay;
@@ -288,4 +299,103 @@ static int vncProcConvertSelection(ClientPtr client)
   }
 
   return origProcConvertSelection(client);
+}
+
+static void vncHandleSelection(Atom selection, Atom target,
+                               Atom property, Atom requestor,
+                               TimeStamp time)
+{
+  Atom xaSTRING;
+  PropertyPtr prop;
+  int rc;
+
+  LOG_DEBUG("Selection notification for %s (target %s, property %s)",
+            NameForAtom(selection), NameForAtom(target),
+            NameForAtom(property));
+
+  xaSTRING = MakeAtom("STRING", 6, TRUE);
+
+  if (target != xaSTRING)
+    return;
+  if (property != xaSTRING)
+    return;
+
+  rc = dixLookupProperty(&prop, pWindow, xaSTRING,
+                         serverClient, DixReadAccess);
+  if (rc != Success)
+    return;
+
+  if (prop->type != xaSTRING)
+    return;
+  if (prop->format != 8)
+    return;
+
+  vncServerCutText(prop->data, prop->size);
+}
+
+#define SEND_EVENT_BIT 0x80
+
+static int vncProcSendEvent(ClientPtr client)
+{
+  REQUEST(xSendEventReq);
+  REQUEST_SIZE_MATCH(xSendEventReq);
+
+  stuff->event.u.u.type &= ~(SEND_EVENT_BIT);
+
+  if (stuff->event.u.u.type == SelectionNotify &&
+      stuff->event.u.selectionNotify.requestor == wid) {
+    TimeStamp time;
+    time = ClientTimeToServerTime(stuff->event.u.selectionNotify.time);
+    vncHandleSelection(stuff->event.u.selectionNotify.selection,
+                       stuff->event.u.selectionNotify.target,
+                       stuff->event.u.selectionNotify.property,
+                       stuff->event.u.selectionNotify.requestor,
+                       time);
+  }
+
+  return origProcSendEvent(client);
+}
+
+static void vncSelectionCallback(CallbackListPtr *callbacks,
+                                 void * data, void * args)
+{
+  SelectionInfoRec *info = (SelectionInfoRec *) args;
+
+  Atom xaPRIMARY, xaCLIPBOARD, xaSTRING;
+  xEvent event;
+  int rc;
+
+  if (info->kind != SelectionSetOwner)
+    return;
+  if (info->client == serverClient)
+    return;
+
+  xaPRIMARY = MakeAtom("PRIMARY", 7, TRUE);
+  xaCLIPBOARD = MakeAtom("CLIPBOARD", 9, TRUE);
+
+  if ((info->selection->selection != xaPRIMARY) &&
+      (info->selection->selection != xaCLIPBOARD))
+    return;
+
+  if ((info->selection->selection == xaPRIMARY) &&
+      !vncGetSendPrimary())
+    return;
+
+  rc = vncCreateSelectionWindow();
+  if (rc != Success)
+    return;
+
+  LOG_DEBUG("Requesting %s selection",
+            NameForAtom(info->selection->selection));
+
+  xaSTRING = MakeAtom("STRING", 6, TRUE);
+
+  event.u.u.type = SelectionRequest;
+  event.u.selectionRequest.owner = info->selection->window;
+  event.u.selectionRequest.time = currentTime.milliseconds;
+  event.u.selectionRequest.requestor = wid;
+  event.u.selectionRequest.selection = info->selection->selection;
+  event.u.selectionRequest.target = xaSTRING;
+  event.u.selectionRequest.property = xaSTRING;
+  WriteEventsToClient(info->client, 1, &event);
 }

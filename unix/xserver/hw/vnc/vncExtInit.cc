@@ -70,6 +70,9 @@ rfb::StringParameter interface("interface",
 rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
                                      "Avoid fake Shift presses for keys affected by NumLock.",
                                      true);
+rfb::BoolParameter sendPrimary("SendPrimary",
+                               "Send the PRIMARY as well as the CLIPBOARD selection",
+                               true);
 
 static PixelFormat vncGetPixelFormat(int scrIdx)
 {
@@ -243,6 +246,11 @@ void vncCallWriteWakeupHandlers(fd_set * fds, int nfds)
 int vncGetAvoidShiftNumLock(void)
 {
   return (bool)avoidShiftNumLock;
+}
+
+int vncGetSendPrimary(void)
+{
+  return (bool)sendPrimary;
 }
 
 void vncUpdateDesktopName(void)
