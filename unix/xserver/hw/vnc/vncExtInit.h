@@ -41,8 +41,6 @@ int vncAddExtension(void);
 
 int vncNotifyQueryConnect(void);
 
-void vncClientCutText(const char* str, int len);
-
 // vncExtInit.cc
 extern void* vncFbptr[];
 extern int vncFbstride[];

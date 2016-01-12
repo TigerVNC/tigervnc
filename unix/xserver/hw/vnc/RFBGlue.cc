@@ -31,6 +31,7 @@ using namespace rfb;
 
 // Loggers used by C code must be created here
 static LogWriter inputLog("Input");
+static LogWriter selectionLog("Selection");
 
 void vncInitRFB(void)
 {

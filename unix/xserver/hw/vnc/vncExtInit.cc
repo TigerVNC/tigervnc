@@ -35,6 +35,7 @@
 #include "vncExtInit.h"
 #include "vncHooks.h"
 #include "vncBlockHandler.h"
+#include "vncSelection.h"
 #include "XorgGlue.h"
 
 using namespace rfb;
@@ -122,6 +123,8 @@ void vncExtensionInit(void)
   ret = vncAddExtension();
   if (ret == -1)
     return;
+
+  vncSelectionInit();
 
   vlog.info("VNC extension running!");
 

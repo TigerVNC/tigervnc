@@ -52,9 +52,6 @@ static int vncEventBase = 0;
 
 int vncNoClipboard = 0;
 
-static char* clientCutText = NULL;
-static int clientCutTextLen = 0;
-
 static struct VncInputSelect* vncInputSelectHead = NULL;
 
 struct VncInputSelect {
@@ -119,47 +116,6 @@ int vncNotifyQueryConnect(void)
   }
 
   return count;
-}
-
-void vncClientCutText(const char* str, int len)
-{
-  xVncExtClientCutTextNotifyEvent ev;
-
-  if (clientCutText != NULL)
-    free(clientCutText);
-  clientCutTextLen = 0;
-
-  clientCutText = malloc(len);
-  if (clientCutText == NULL) {
-    ErrorF("Could not allocate clipboard buffer\n");
-    return;
-  }
-
-  memcpy(clientCutText, str, len);
-  clientCutTextLen = len;
-
-  ev.type = vncEventBase + VncExtClientCutTextNotify;
-  for (struct VncInputSelect* cur = vncInputSelectHead; cur; cur = cur->next) {
-    if (cur->mask & VncExtClientCutTextMask) {
-      ev.sequenceNumber = cur->client->sequence;
-      ev.window = cur->window;
-      ev.time = GetTimeInMillis();
-      if (cur->client->swapped) {
-#if XORG < 112
-        int n;
-        swaps(&ev.sequenceNumber, n);
-        swapl(&ev.window, n);
-        swapl(&ev.time, n);
-#else
-        swaps(&ev.sequenceNumber);
-        swapl(&ev.window);
-        swapl(&ev.time);
-#endif
-      }
-      WriteToClient(cur->client, sizeof(xVncExtClientCutTextNotifyEvent),
-                    (char *)&ev);
-    }
-  }
 }
 
 static int ProcVncExtSetParam(ClientPtr client)
@@ -424,47 +380,6 @@ static int SProcVncExtSetServerCutText(ClientPtr client)
   return ProcVncExtSetServerCutText(client);
 }
 
-static int ProcVncExtGetClientCutText(ClientPtr client)
-{
-  xVncExtGetClientCutTextReply rep;
-
-  REQUEST_SIZE_MATCH(xVncExtGetClientCutTextReq);
-
-  rep.type = X_Reply;
-  rep.length = (clientCutTextLen + 3) >> 2;
-  rep.sequenceNumber = client->sequence;
-  rep.textLen = clientCutTextLen;
-  if (client->swapped) {
-#if XORG < 112
-    int n;
-    swaps(&rep.sequenceNumber, n);
-    swapl(&rep.length, n);
-    swapl(&rep.textLen, n);
-#else
-    swaps(&rep.sequenceNumber);
-    swapl(&rep.length);
-    swapl(&rep.textLen);
-#endif
-  }
-  WriteToClient(client, sizeof(xVncExtGetClientCutTextReply), (char *)&rep);
-  if (clientCutText)
-    WriteToClient(client, clientCutTextLen, clientCutText);
-  return (client->noClientException);
-}
-
-static int SProcVncExtGetClientCutText(ClientPtr client)
-{
-  REQUEST(xVncExtGetClientCutTextReq);
-#if XORG < 112
-  register char n;
-  swaps(&stuff->length, n);
-#else
-  swaps(&stuff->length);
-#endif
-  REQUEST_SIZE_MATCH(xVncExtGetClientCutTextReq);
-  return ProcVncExtGetClientCutText(client);
-}
-
 static int ProcVncExtSelectInput(ClientPtr client)
 {
   struct VncInputSelect** nextPtr;
@@ -670,8 +585,6 @@ static int ProcVncExtDispatch(ClientPtr client)
     return ProcVncExtListParams(client);
   case X_VncExtSetServerCutText:
     return ProcVncExtSetServerCutText(client);
-  case X_VncExtGetClientCutText:
-    return ProcVncExtGetClientCutText(client);
   case X_VncExtSelectInput:
     return ProcVncExtSelectInput(client);
   case X_VncExtConnect:
@@ -699,8 +612,6 @@ static int SProcVncExtDispatch(ClientPtr client)
     return SProcVncExtListParams(client);
   case X_VncExtSetServerCutText:
     return SProcVncExtSetServerCutText(client);
-  case X_VncExtGetClientCutText:
-    return SProcVncExtGetClientCutText(client);
   case X_VncExtSelectInput:
     return SProcVncExtSelectInput(client);
   case X_VncExtConnect:
