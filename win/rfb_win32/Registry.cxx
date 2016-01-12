@@ -20,7 +20,6 @@
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Security.h>
-#include <rfb_win32/DynamicFn.h>
 #include <rdr/MemOutStream.h>
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
@@ -100,11 +99,7 @@ void RegKey::openKey(const RegKey& root, const TCHAR* name, bool readOnly) {
 
 void RegKey::setDACL(const PACL acl, bool inherit) {
   DWORD result;
-  typedef DWORD (WINAPI *_SetSecurityInfo_proto) (HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL);
-  DynamicFn<_SetSecurityInfo_proto> _SetSecurityInfo(_T("advapi32.dll"), "SetSecurityInfo");
-  if (!_SetSecurityInfo.isValid())
-    throw rdr::SystemException("RegKey::setDACL failed", ERROR_CALL_NOT_IMPLEMENTED);
-  if ((result = (*_SetSecurityInfo)(key, SE_REGISTRY_KEY,
+  if ((result = SetSecurityInfo(key, SE_REGISTRY_KEY,
     DACL_SECURITY_INFORMATION |
     (inherit ? UNPROTECTED_DACL_SECURITY_INFORMATION : PROTECTED_DACL_SECURITY_INFORMATION),
     0, 0, acl, 0)) != ERROR_SUCCESS)

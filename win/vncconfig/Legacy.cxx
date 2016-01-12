@@ -206,8 +206,7 @@ void LegacyPage::LoadPrefs()
         regKey.setInt(_T("IdleTimeout"), key.getInt(_T("IdleTimeout"), 0));
 
         regKey.setBool(_T("RemoveWallpaper"), key.getBool(_T("RemoveWallpaper")));
-        regKey.setBool(_T("RemovePattern"), key.getBool(_T("RemoveWallpaper")));
-        regKey.setBool(_T("DisableEffects"), key.getBool(_T("RemoveWallpaper")));
+        regKey.setBool(_T("DisableEffects"), key.getBool(_T("DisableEffects")));
 
         if (key.getInt(_T("QuerySetting"), 2) != 2) {
           regKey.setBool(_T("QueryConnect"), key.getInt(_T("QuerySetting")) > 2);

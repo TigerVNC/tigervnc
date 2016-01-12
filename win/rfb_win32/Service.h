@@ -21,8 +21,6 @@
 // Win32 service-mode code.
 // Derive your service from this code and let it handle the annoying Win32
 // service API.
-// The underlying implementation takes care of the differences between
-// Windows NT and Windows 95 based systems
 
 #ifndef __RFB_WIN32_SERVICE_H__
 #define __RFB_WIN32_SERVICE_H__
@@ -86,18 +84,14 @@ namespace rfb {
 
     // -=- Routines used by desktop back-end code to manage desktops/window stations
 
-    //     Returns false under Win9x
     bool desktopChangeRequired();
 
-    //     Returns true under Win9x
     bool changeDesktop();
 
     // -=- Routines used by the SInput Keyboard class to emulate Ctrl-Alt-Del
-    //     Returns false under Win9x
     bool emulateCtrlAltDel();
 
     // -=- Routines to initialise the Event Log target Logger
-    //     Returns false under Win9x
     bool initEventLogLogger(const TCHAR* srcname);
 
     // -=- Routines to register/unregister the service

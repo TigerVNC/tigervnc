@@ -24,17 +24,10 @@
 #include <rfb_win32/CleanDesktop.h>
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Registry.h>
-#include <rfb_win32/OSVersion.h>
 #include <rfb/LogWriter.h>
 #include <rdr/Exception.h>
 #include <os/os.h>
 #include <set>
-
-#ifdef SPI_GETUIEFFECTS
-#define RFB_HAVE_SPI_UIEFFECTS
-#else
-#pragma message("  NOTE: Not building Get/Set UI Effects support.")
-#endif
 
 using namespace rfb;
 using namespace rfb::win32;
@@ -154,14 +147,14 @@ DWORD SysParamsInfo(UINT action, UINT param, PVOID ptr, UINT ini) {
 }
 
 
-CleanDesktop::CleanDesktop() : restoreActiveDesktop(false), restoreWallpaper(false),
-                               restorePattern(false), restoreEffects(false) {
+CleanDesktop::CleanDesktop() : restoreActiveDesktop(false),
+                               restoreWallpaper(false),
+                               restoreEffects(false) {
   CoInitialize(0);
 }
 
 CleanDesktop::~CleanDesktop() {
   enableEffects();
-  enablePattern();
   enableWallpaper();
   CoUninitialize();
 }
@@ -221,42 +214,6 @@ void CleanDesktop::enableWallpaper() {
 }
 
 
-void CleanDesktop::disablePattern() {
-  try {
-    ImpersonateCurrentUser icu;
-
-    vlog.debug("disable desktop pattern");
-    SysParamsInfo(SPI_SETDESKPATTERN, 0, (PVOID) "", SPIF_SENDCHANGE);
-    restorePattern = true;
-
-  } catch (rdr::Exception& e) {
-    vlog.info("%s", e.str());
-  }
-}
-
-void CleanDesktop::enablePattern() {
-  try {
-    if (restorePattern) {
-      ImpersonateCurrentUser icu;
-
-      vlog.debug("restoring pattern...");
-
-      TCharArray pattern;
-      if (osVersion.isPlatformWindows) {
-        RegKey cfgKey;
-        cfgKey.openKey(HKEY_CURRENT_USER, _T("Control Panel\\Desktop"));
-        pattern.buf = cfgKey.getString(_T("Pattern"));
-      }
-      SysParamsInfo(SPI_SETDESKPATTERN, 0, pattern.buf, SPIF_SENDCHANGE);
-      restorePattern = false;
-    }
-
-  } catch (rdr::Exception& e) {
-    vlog.info("%s", e.str());
-  }
-}
-
-
 void CleanDesktop::disableEffects() {
   try {
     ImpersonateCurrentUser icu;
@@ -264,7 +221,6 @@ void CleanDesktop::disableEffects() {
     vlog.debug("disable desktop effects");
 
     SysParamsInfo(SPI_SETFONTSMOOTHING, FALSE, 0, SPIF_SENDCHANGE);
-#ifdef RFB_HAVE_SPI_UIEFFECTS
     if (SysParamsInfo(SPI_GETUIEFFECTS, 0, &uiEffects, 0) == ERROR_CALL_NOT_IMPLEMENTED) {
       SysParamsInfo(SPI_GETCOMBOBOXANIMATION, 0, &comboBoxAnim, 0);
       SysParamsInfo(SPI_GETGRADIENTCAPTIONS, 0, &gradientCaptions, 0);
@@ -282,9 +238,6 @@ void CleanDesktop::disableEffects() {
       // We *always* restore UI effects overall, since there is no Windows GUI to do it
       uiEffects = TRUE;
     }
-#else
-    vlog.debug("  not supported");
-#endif
     restoreEffects = true;
 
   } catch (rdr::Exception& e) {
@@ -302,7 +255,6 @@ void CleanDesktop::enableEffects() {
       RegKey desktopCfg;
       desktopCfg.openKey(HKEY_CURRENT_USER, _T("Control Panel\\Desktop"));
       SysParamsInfo(SPI_SETFONTSMOOTHING, desktopCfg.getInt(_T("FontSmoothing"), 0) != 0, 0, SPIF_SENDCHANGE);
-#ifdef RFB_HAVE_SPI_UIEFFECTS
       if (SysParamsInfo(SPI_SETUIEFFECTS, 0, (void*)(intptr_t)uiEffects, SPIF_SENDCHANGE) == ERROR_CALL_NOT_IMPLEMENTED) {
         SysParamsInfo(SPI_SETCOMBOBOXANIMATION, 0, (void*)(intptr_t)comboBoxAnim, SPIF_SENDCHANGE);
         SysParamsInfo(SPI_SETGRADIENTCAPTIONS, 0, (void*)(intptr_t)gradientCaptions, SPIF_SENDCHANGE);
@@ -311,9 +263,6 @@ void CleanDesktop::enableEffects() {
         SysParamsInfo(SPI_SETMENUANIMATION, 0, (void*)(intptr_t)menuAnim, SPIF_SENDCHANGE);
       }
       restoreEffects = false;
-#else
-      vlog.info("  not supported");
-#endif
     }
 
   } catch (rdr::Exception& e) {

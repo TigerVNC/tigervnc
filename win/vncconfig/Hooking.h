@@ -34,13 +34,9 @@ namespace rfb {
         : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_HOOKING)), regKey(rk) {}
       void initDialog() {
         setItemChecked(IDC_USEPOLLING, rfb::win32::SDisplay::updateMethod == 0);
-        setItemChecked(IDC_USEHOOKS, (rfb::win32::SDisplay::updateMethod == 1) &&
-                       rfb::win32::SDisplay::areHooksAvailable());
-        enableItem(IDC_USEHOOKS, rfb::win32::SDisplay::areHooksAvailable());
+        setItemChecked(IDC_USEHOOKS, (rfb::win32::SDisplay::updateMethod == 1));
         setItemChecked(IDC_POLLCONSOLES, rfb::win32::WMPoller::poll_console_windows);
-        setItemChecked(IDC_CAPTUREBLT, osVersion.isPlatformNT &&
-                       rfb::win32::DeviceFrameBuffer::useCaptureBlt);
-        enableItem(IDC_CAPTUREBLT, osVersion.isPlatformNT);
+        setItemChecked(IDC_CAPTUREBLT, rfb::win32::DeviceFrameBuffer::useCaptureBlt);
         onCommand(IDC_USEHOOKS, 0);
       }
       bool onCommand(int id, int cmd) {

@@ -38,17 +38,6 @@ namespace rfb {
     //   for the currently logged-on user, or null if no user is
     //   logged on.
     //
-    //   Under Windows 95/98/Me, which don't support security tokens,
-    //   the token will be INVALID_HANDLE_VALUE if a user is logged on.
-    //
-    //   Under Windows NT/2K, it may be the case that the token is
-    //   null even when a user *is* logged on, because we use some hacks
-    //   to detect the user's token and sometimes they fail.  On these
-    //   platforms, isSafe() will return False if the token is null.
-    //
-    //   Under Windows XP, etc, isSafe() will always be True, and the token
-    //   will always be set to the currently logged on user's token.
-    //
     //   canImpersonate() tests whether there is a user token that is safe
     //   to impersonate.
     //
@@ -56,18 +45,15 @@ namespace rfb {
 
     struct CurrentUserToken : public Handle {
       CurrentUserToken();
-      bool isSafe() const { return isSafe_; };
-      bool canImpersonate() const { return h && isSafe(); }
-      bool noUserLoggedOn() const { return !h && isSafe(); }
-    private:
-      bool isSafe_;
+      bool canImpersonate() const { return h; }
+      bool noUserLoggedOn() const { return !h; }
     };
 
     // ImpersonateCurrentUser
     //   Throws an exception on failure.
     //   Succeeds (trivially) if process is not running as service.
     //   Fails if CurrentUserToken is not valid.
-    //   Fails if platform is NT AND cannot impersonate token.
+    //   Fails if cannot impersonate token.
     //   Succeeds otherwise.
 
     struct ImpersonateCurrentUser {
@@ -79,8 +65,6 @@ namespace rfb {
     // UserName
     //   Returns the name of the user the thread is currently running as.
     //   Raises a SystemException in case of error.
-    //   NB: Raises a SystemException with err == ERROR_NOT_LOGGED_ON if
-    //       running under Windows 9x/95/Me and no user is logged on.
 
     struct UserName : public TCharArray {
       UserName();

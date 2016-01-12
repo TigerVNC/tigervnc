@@ -93,7 +93,6 @@ namespace rfb {
       static BoolParameter disableLocalInputs;
       static StringParameter disconnectAction;
       static BoolParameter removeWallpaper;
-      static BoolParameter removePattern;
       static BoolParameter disableEffects;
 
       // -=- Use by VNC Config to determine whether hooks are available
@@ -139,7 +138,6 @@ namespace rfb {
       // Desktop optimisation
       CleanDesktop* cleanDesktop;
       bool isWallpaperRemoved;
-      bool isPatternRemoved;
       bool areEffectsDisabled;
 
       // Cursor

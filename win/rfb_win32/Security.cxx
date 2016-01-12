@@ -19,7 +19,6 @@
 // -=- Security.cxx
 
 #include <rfb_win32/Security.h>
-#include <rfb_win32/DynamicFn.h>
 #include <rfb/LogWriter.h>
 
 #include <lmcons.h>
@@ -155,18 +154,9 @@ Sid::FromToken::FromToken(HANDLE h) {
 
 
 PACL rfb::win32::CreateACL(const AccessEntries& ae, PACL existing_acl) {
-  typedef DWORD (WINAPI *_SetEntriesInAcl_proto) (ULONG, PEXPLICIT_ACCESS, PACL, PACL*);
-#ifdef UNICODE
-  const char* fnName = "SetEntriesInAclW";
-#else
-  const char* fnName = "SetEntriesInAclA";
-#endif
-  DynamicFn<_SetEntriesInAcl_proto> _SetEntriesInAcl(_T("advapi32.dll"), fnName);
-  if (!_SetEntriesInAcl.isValid())
-    throw rdr::SystemException("CreateACL failed; no SetEntriesInAcl", ERROR_CALL_NOT_IMPLEMENTED);
   PACL new_dacl;
   DWORD result;
-  if ((result = (*_SetEntriesInAcl)(ae.entry_count, ae.entries, existing_acl, &new_dacl)) != ERROR_SUCCESS)
+  if ((result = SetEntriesInAcl(ae.entry_count, ae.entries, existing_acl, &new_dacl)) != ERROR_SUCCESS)
     throw rdr::SystemException("SetEntriesInAcl", result);
   return new_dacl;
 }

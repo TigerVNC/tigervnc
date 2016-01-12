@@ -21,7 +21,6 @@
 #include <vncconfig/PasswordDialog.h>
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/SecurityPage.h>
-#include <rfb_win32/OSVersion.h>
 #include <rfb_win32/MsgBox.h>
 #include <rfb/ServerCore.h>
 #include <rfb/Security.h>
@@ -87,7 +86,7 @@ namespace rfb {
         registryInsecure = warn;
       }
       bool enableQueryOnlyIfLoggedOn() {
-        return isItemChecked(IDC_QUERY_CONNECT) && osVersion.isPlatformNT && (osVersion.dwMajorVersion >= 5);
+        return isItemChecked(IDC_QUERY_CONNECT);
       }
 
 

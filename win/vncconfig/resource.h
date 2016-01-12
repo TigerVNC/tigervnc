@@ -64,7 +64,6 @@
 #define IDC_DISCONNECT_LOCK             1057
 #define IDC_DISCONNECT_LOGOFF           1058
 #define IDC_REMOVE_WALLPAPER            1059
-#define IDC_REMOVE_PATTERN              1060
 #define IDC_DISABLE_EFFECTS             1061
 #define IDC_CAPTUREBLT                  1062
 #define IDC_QUERY                       1064
