@@ -391,7 +391,9 @@ bool rfb::win32::initEventLogLogger(const TCHAR* srcname) {
 
 // -=- Registering and unregistering the service
 
-bool rfb::win32::registerService(const TCHAR* name, const TCHAR* desc,
+bool rfb::win32::registerService(const TCHAR* name,
+                                 const TCHAR* display,
+                                 const TCHAR* desc,
                                  int argc, char** argv) {
 
   // - Initialise the default service parameters
@@ -429,14 +431,18 @@ bool rfb::win32::registerService(const TCHAR* name, const TCHAR* desc,
     if (!scm)
       throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
-
+    // - Add the service
     ServiceHandle service = CreateService(scm,
-      name, desc, SC_MANAGER_ALL_ACCESS,
+      name, display, SC_MANAGER_ALL_ACCESS,
       SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
       SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
       cmdline.buf, NULL, NULL, NULL, NULL, NULL);
     if (!service)
       throw rdr::SystemException("unable to create service", GetLastError());
+
+    // - Set a description
+    SERVICE_DESCRIPTION sdesc = {(LPTSTR)desc};
+    ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &sdesc);
 
     // - Register the event log source
     RegKey hk, hk2;

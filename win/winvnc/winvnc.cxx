@@ -169,6 +169,7 @@ static void processParams(int argc, char** argv) {
         int j = i;
         i = argc;
         if (rfb::win32::registerService(VNCServerService::Name,
+                                        _T("TigerVNC Server"),
                                         _T("Provides remote access to this machine via the VNC/RFB protocol."),
                                         argc-(j+1), &argv[j+1]))
           MsgBoxOrLog("Registered service successfully");
