@@ -137,10 +137,8 @@ BEGIN
                     BS_AUTORADIOBUTTON,7,25,183,15
     CONTROL         "Poll console windows for updates",IDC_POLLCONSOLES,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,25,40,165,15
-    CONTROL         "Use VNC Mirror driver to track changes",IDC_USEDRIVER,
-                    "Button",BS_AUTORADIOBUTTON,7,55,183,15
     CONTROL         "Capture alpha-blended windows",IDC_CAPTUREBLT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,183,15
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,55,183,15
 END
 
 IDD_AUTH_VNC_PASSWD DIALOG DISCARDABLE  0, 0, 212, 70

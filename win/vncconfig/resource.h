@@ -69,7 +69,6 @@
 #define IDC_CAPTUREBLT                  1062
 #define IDC_QUERY                       1064
 #define IDC_USEPOLLING                  1066
-#define IDC_USEDRIVER                   1068
 #define IDC_QUERY_LOGGED_ON             1069
 #define IDC_AUTH_ADMIN_PASSWD           1076
 #define IDC_AUTH_VIEWONLY_PASSWD        1077

@@ -96,9 +96,8 @@ namespace rfb {
       static BoolParameter removePattern;
       static BoolParameter disableEffects;
 
-      // -=- Use by VNC Config to determine whether hooks, driver, etc are available
+      // -=- Use by VNC Config to determine whether hooks are available
       static bool areHooksAvailable();
-      static bool isDriverAvailable();
 
 
     protected:

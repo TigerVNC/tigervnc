@@ -29,7 +29,6 @@
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb_win32/SDisplayCoreWMHooks.h>
-#include <rfb_win32/SDisplayCoreDriver.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
@@ -173,9 +172,7 @@ void SDisplay::startCore() {
   int tryMethod = updateMethod_;
   while (!core) {
     try {
-      if (tryMethod == 2)
-        core = new SDisplayCoreDriver(this, &updates);
-      else if (tryMethod == 1)
+      if (tryMethod == 1)
         core = new SDisplayCoreWMHooks(this, &updates);
       else
         core = new SDisplayCorePolling(this, &updates);
@@ -232,10 +229,6 @@ void SDisplay::stopCore() {
 
 bool SDisplay::areHooksAvailable() {
   return WMHooks::areAvailable();
-}
-
-bool SDisplay::isDriverAvailable() {
-  return SDisplayCoreDriver::isAvailable();
 }
 
 
