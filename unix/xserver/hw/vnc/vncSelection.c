@@ -333,6 +333,18 @@ static void vncSelectionRequest(Atom selection, Atom target)
   WriteEventsToClient(pSel->client, 1, &event);
 }
 
+static Bool vncHasAtom(Atom atom, const Atom list[], size_t size)
+{
+  size_t i;
+
+  for (i = 0;i < size;i++) {
+    if (list[i] == atom)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
 static void vncHandleSelection(Atom selection, Atom target,
                                Atom property, Atom requestor,
                                TimeStamp time)
@@ -340,26 +352,34 @@ static void vncHandleSelection(Atom selection, Atom target,
   PropertyPtr prop;
   int rc;
 
-  LOG_DEBUG("Selection notification for %s (target %s, property %s)",
-            NameForAtom(selection), NameForAtom(target),
-            NameForAtom(property));
-
-  if (target != xaSTRING)
-    return;
-  if (property != xaSTRING)
-    return;
-
-  rc = dixLookupProperty(&prop, pWindow, xaSTRING,
+  rc = dixLookupProperty(&prop, pWindow, property,
                          serverClient, DixReadAccess);
   if (rc != Success)
     return;
 
-  if (prop->type != xaSTRING)
-    return;
-  if (prop->format != 8)
+  LOG_DEBUG("Selection notification for %s (target %s, property %s, type %s)",
+            NameForAtom(selection), NameForAtom(target),
+            NameForAtom(property), NameForAtom(prop->type));
+
+  if (target != property)
     return;
 
-  vncServerCutText(prop->data, prop->size);
+  if (target == xaTARGETS) {
+    if (prop->format != 32)
+      return;
+    if (prop->type != XA_ATOM)
+      return;
+
+    if (vncHasAtom(xaSTRING, (const Atom*)prop->data, prop->size))
+      vncSelectionRequest(selection, xaSTRING);
+  } else if (target == xaSTRING) {
+    if (prop->format != 8)
+      return;
+    if (prop->type != xaSTRING)
+      return;
+
+    vncServerCutText(prop->data, prop->size);
+  }
 }
 
 #define SEND_EVENT_BIT 0x80
@@ -403,5 +423,5 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
       !vncGetSendPrimary())
     return;
 
-  vncSelectionRequest(info->selection->selection, xaSTRING);
+  vncSelectionRequest(info->selection->selection, xaTARGETS);
 }
