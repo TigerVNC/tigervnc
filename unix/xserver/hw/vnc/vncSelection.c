@@ -41,6 +41,9 @@
 #define LOG_INFO(...) vncLogInfo(LOG_NAME, __VA_ARGS__)
 #define LOG_DEBUG(...) vncLogDebug(LOG_NAME, __VA_ARGS__)
 
+static Atom xaPRIMARY, xaCLIPBOARD;
+static Atom xaTARGETS, xaTIMESTAMP, xaSTRING, xaTEXT;
+
 static WindowPtr pWindow;
 static Window wid;
 
@@ -59,6 +62,14 @@ static int (*origProcSendEvent)(ClientPtr);
 
 void vncSelectionInit(void)
 {
+  xaPRIMARY = MakeAtom("PRIMARY", 7, TRUE);
+  xaCLIPBOARD = MakeAtom("CLIPBOARD", 9, TRUE);
+
+  xaTARGETS = MakeAtom("TARGETS", 7, TRUE);
+  xaTIMESTAMP = MakeAtom("TIMESTAMP", 9, TRUE);
+  xaSTRING = MakeAtom("STRING", 6, TRUE);
+  xaTEXT = MakeAtom("TEXT", 4, TRUE);
+
   /* There are no hooks for when these are internal windows, so
    * override the relevant handlers. */
   origProcConvertSelection = ProcVector[X_ConvertSelection];
@@ -87,10 +98,10 @@ void vncClientCutText(const char* str, int len)
   memcpy(clientCutText, str, len);
   clientCutTextLen = len;
 
-  rc = vncOwnSelection(MakeAtom("PRIMARY", 7, TRUE));
+  rc = vncOwnSelection(xaPRIMARY);
   if (rc != Success)
     LOG_ERROR("Could not set PRIMARY selection");
-  vncOwnSelection(MakeAtom("CLIPBOARD", 9, TRUE));
+  vncOwnSelection(xaCLIPBOARD);
   if (rc != Success)
     LOG_ERROR("Could not set CLIPBOARD selection");
 }
@@ -186,7 +197,6 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
   WindowPtr pWin;
   int rc;
 
-  Atom xaTARGETS, xaTIMESTAMP, xaSTRING, xaTEXT;
   Atom realProperty;
 
   xEvent event;
@@ -211,11 +221,6 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
     realProperty = target;
 
   /* FIXME: MULTIPLE target */
-
-  xaTARGETS = MakeAtom("TARGETS", 7, TRUE);
-  xaTIMESTAMP = MakeAtom("TIMESTAMP", 9, TRUE);
-  xaSTRING = MakeAtom("STRING", 6, TRUE);
-  xaTEXT = MakeAtom("TEXT", 4, TRUE);
 
   if (target == xaTARGETS) {
     Atom targets[] = { xaTARGETS, xaTIMESTAMP, xaSTRING, xaTEXT };
@@ -305,15 +310,12 @@ static void vncHandleSelection(Atom selection, Atom target,
                                Atom property, Atom requestor,
                                TimeStamp time)
 {
-  Atom xaSTRING;
   PropertyPtr prop;
   int rc;
 
   LOG_DEBUG("Selection notification for %s (target %s, property %s)",
             NameForAtom(selection), NameForAtom(target),
             NameForAtom(property));
-
-  xaSTRING = MakeAtom("STRING", 6, TRUE);
 
   if (target != xaSTRING)
     return;
@@ -361,7 +363,6 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
 {
   SelectionInfoRec *info = (SelectionInfoRec *) args;
 
-  Atom xaPRIMARY, xaCLIPBOARD, xaSTRING;
   xEvent event;
   int rc;
 
@@ -369,9 +370,6 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
     return;
   if (info->client == serverClient)
     return;
-
-  xaPRIMARY = MakeAtom("PRIMARY", 7, TRUE);
-  xaCLIPBOARD = MakeAtom("CLIPBOARD", 9, TRUE);
 
   if ((info->selection->selection != xaPRIMARY) &&
       (info->selection->selection != xaCLIPBOARD))
@@ -387,8 +385,6 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
 
   LOG_DEBUG("Requesting %s selection",
             NameForAtom(info->selection->selection));
-
-  xaSTRING = MakeAtom("STRING", 6, TRUE);
 
   event.u.u.type = SelectionRequest;
   event.u.selectionRequest.owner = info->selection->window;
