@@ -306,6 +306,33 @@ static int vncProcConvertSelection(ClientPtr client)
   return origProcConvertSelection(client);
 }
 
+static void vncSelectionRequest(Atom selection, Atom target)
+{
+  Selection *pSel;
+  xEvent event;
+  int rc;
+
+  rc = vncCreateSelectionWindow();
+  if (rc != Success)
+    return;
+
+  LOG_DEBUG("Requesting %s for %s selection",
+            NameForAtom(target), NameForAtom(selection));
+
+  rc = dixLookupSelection(&pSel, selection, serverClient, DixGetAttrAccess);
+  if (rc != Success)
+    return;
+
+  event.u.u.type = SelectionRequest;
+  event.u.selectionRequest.owner = pSel->window;
+  event.u.selectionRequest.time = currentTime.milliseconds;
+  event.u.selectionRequest.requestor = wid;
+  event.u.selectionRequest.selection = selection;
+  event.u.selectionRequest.target = target;
+  event.u.selectionRequest.property = target;
+  WriteEventsToClient(pSel->client, 1, &event);
+}
+
 static void vncHandleSelection(Atom selection, Atom target,
                                Atom property, Atom requestor,
                                TimeStamp time)
@@ -363,9 +390,6 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
 {
   SelectionInfoRec *info = (SelectionInfoRec *) args;
 
-  xEvent event;
-  int rc;
-
   if (info->kind != SelectionSetOwner)
     return;
   if (info->client == serverClient)
@@ -379,19 +403,5 @@ static void vncSelectionCallback(CallbackListPtr *callbacks,
       !vncGetSendPrimary())
     return;
 
-  rc = vncCreateSelectionWindow();
-  if (rc != Success)
-    return;
-
-  LOG_DEBUG("Requesting %s selection",
-            NameForAtom(info->selection->selection));
-
-  event.u.u.type = SelectionRequest;
-  event.u.selectionRequest.owner = info->selection->window;
-  event.u.selectionRequest.time = currentTime.milliseconds;
-  event.u.selectionRequest.requestor = wid;
-  event.u.selectionRequest.selection = info->selection->selection;
-  event.u.selectionRequest.target = xaSTRING;
-  event.u.selectionRequest.property = xaSTRING;
-  WriteEventsToClient(info->client, 1, &event);
+  vncSelectionRequest(info->selection->selection, xaSTRING);
 }
