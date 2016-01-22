@@ -17,35 +17,18 @@
  */
 
 // Helper class used to obtain information about a particular monitor.
-// This class wraps the Windows MONITORINFOEX ASCII structure, providing
-// methods that can safely be called on both multi-monitor aware systems
-// and older "legacy" systems.
 
 
 #ifndef __RFB_WIN32_MONITORINFO_H__
 #define __RFB_WIN32_MONITORINFO_H__
 
 #include <windows.h>
-#ifdef MONITOR_DEFAULTTONULL
-#define RFB_HAVE_MONITORINFO
-#endif
 
 namespace rfb {
   namespace win32 {
 
     // Structure containing info on the monitor nearest the window.
-    // Copes with multi-monitor OSes and older ones.
-#ifdef RFB_HAVE_MONITORINFO
     struct MonitorInfo : MONITORINFOEXA {
-#else
-    struct MonitorInfo {
-      DWORD cbSize;
-      RECT rcMonitor;
-      RECT rcWork;
-      DWORD dwFlags;
-      char szDevice[1]; // Always null...
-#endif
-
       // Constructor: Obtains monitor info for the monitor that has the
       //   greatest overlap with the supplied window or rectangle.
       MonitorInfo(HWND hwnd);

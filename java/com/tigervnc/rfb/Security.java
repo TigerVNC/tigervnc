@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2015 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,19 @@ public class Security {
   {
     List<Integer> result = new ArrayList<Integer>();
 
-    result.add(secTypeVeNCrypt);
+   /* Partial workaround for Vino's stupid behaviour. It doesn't allow
+    * the basic authentication types as part of the VeNCrypt handshake,
+    * making it impossible for a client to do opportunistic encryption.
+    * At least make it possible to connect when encryption is explicitly
+    * disabled. */
+    for (Iterator<Integer> i = enabledSecTypes.iterator(); i.hasNext(); ) {
+      int refType = (Integer)i.next();
+      if (refType >= 0x100) {
+        result.add(secTypeVeNCrypt);
+        break;
+      }
+    }
+
     for (Iterator<Integer> i = enabledSecTypes.iterator(); i.hasNext(); ) {
       int refType = (Integer)i.next();
       if (refType < 0x100)

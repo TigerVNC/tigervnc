@@ -137,10 +137,8 @@ BEGIN
                     BS_AUTORADIOBUTTON,7,25,183,15
     CONTROL         "Poll console windows for updates",IDC_POLLCONSOLES,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,25,40,165,15
-    CONTROL         "Use VNC Mirror driver to track changes",IDC_USEDRIVER,
-                    "Button",BS_AUTORADIOBUTTON,7,55,183,15
     CONTROL         "Capture alpha-blended windows",IDC_CAPTUREBLT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,183,15
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,55,183,15
 END
 
 IDD_AUTH_VNC_PASSWD DIALOG DISCARDABLE  0, 0, 212, 70
@@ -243,20 +241,18 @@ STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CONTROL | WS_POPUP | WS_CAPTION |
 CAPTION "Desktop"
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "While connected",IDC_STATIC,7,5,171,60
+    GROUPBOX        "While connected",IDC_STATIC,7,5,171,45
     CONTROL         "Remove wallpaper",IDC_REMOVE_WALLPAPER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,15,155,15
-    CONTROL         "Remove background pattern",IDC_REMOVE_PATTERN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,30,155,15
     CONTROL         "Disable user interface effects",IDC_DISABLE_EFFECTS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,46,155,14
-    GROUPBOX        "When last client disconnects",IDC_STATIC,7,70,171,60
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,30,155,14
+    GROUPBOX        "When last client disconnects",IDC_STATIC,7,55,171,60
     CONTROL         "Do nothing",IDC_DISCONNECT_NONE,"Button",
-                    BS_AUTORADIOBUTTON,15,80,155,15
+                    BS_AUTORADIOBUTTON,15,65,155,15
     CONTROL         "Lock workstation",IDC_DISCONNECT_LOCK,"Button",
-                    BS_AUTORADIOBUTTON,15,95,155,15
+                    BS_AUTORADIOBUTTON,15,80,155,15
     CONTROL         "Logoff user",IDC_DISCONNECT_LOGOFF,"Button",
-                    BS_AUTORADIOBUTTON,15,110,155,15
+                    BS_AUTORADIOBUTTON,15,95,155,15
 END
 
 

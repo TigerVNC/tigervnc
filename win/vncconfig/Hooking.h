@@ -34,28 +34,19 @@ namespace rfb {
         : PropSheetPage(GetModuleHandle(0), MAKEINTRESOURCE(IDD_HOOKING)), regKey(rk) {}
       void initDialog() {
         setItemChecked(IDC_USEPOLLING, rfb::win32::SDisplay::updateMethod == 0);
-        setItemChecked(IDC_USEHOOKS, (rfb::win32::SDisplay::updateMethod == 1) &&
-                       rfb::win32::SDisplay::areHooksAvailable());
-        enableItem(IDC_USEHOOKS, rfb::win32::SDisplay::areHooksAvailable());
-        setItemChecked(IDC_USEDRIVER, (rfb::win32::SDisplay::updateMethod == 2) &&
-                       rfb::win32::SDisplay::isDriverAvailable());
-        enableItem(IDC_USEDRIVER, rfb::win32::SDisplay::isDriverAvailable());
+        setItemChecked(IDC_USEHOOKS, (rfb::win32::SDisplay::updateMethod == 1));
         setItemChecked(IDC_POLLCONSOLES, rfb::win32::WMPoller::poll_console_windows);
-        setItemChecked(IDC_CAPTUREBLT, osVersion.isPlatformNT &&
-                       rfb::win32::DeviceFrameBuffer::useCaptureBlt);
-        enableItem(IDC_CAPTUREBLT, osVersion.isPlatformNT);
+        setItemChecked(IDC_CAPTUREBLT, rfb::win32::DeviceFrameBuffer::useCaptureBlt);
         onCommand(IDC_USEHOOKS, 0);
       }
       bool onCommand(int id, int cmd) {
         switch (id) {
         case IDC_USEPOLLING:
         case IDC_USEHOOKS:
-        case IDC_USEDRIVER:
         case IDC_POLLCONSOLES:
         case IDC_CAPTUREBLT:
           setChanged(((rfb::win32::SDisplay::updateMethod == 0) != isItemChecked(IDC_USEPOLLING)) ||
             ((rfb::win32::SDisplay::updateMethod == 1) != isItemChecked(IDC_USEHOOKS)) ||
-            ((rfb::win32::SDisplay::updateMethod == 2) != isItemChecked(IDC_USEDRIVER)) ||
             (rfb::win32::WMPoller::poll_console_windows != isItemChecked(IDC_POLLCONSOLES)) ||
             (rfb::win32::DeviceFrameBuffer::useCaptureBlt != isItemChecked(IDC_CAPTUREBLT)));
           enableItem(IDC_POLLCONSOLES, isItemChecked(IDC_USEHOOKS));
@@ -68,8 +59,6 @@ namespace rfb {
           regKey.setInt(_T("UpdateMethod"), 0);
         if (isItemChecked(IDC_USEHOOKS))
           regKey.setInt(_T("UpdateMethod"), 1);
-        if (isItemChecked(IDC_USEDRIVER))
-          regKey.setInt(_T("UpdateMethod"), 2);
         regKey.setBool(_T("PollConsoleWindows"), isItemChecked(IDC_POLLCONSOLES));
         regKey.setBool(_T("UseCaptureBlt"), isItemChecked(IDC_CAPTUREBLT));
 

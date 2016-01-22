@@ -20,10 +20,8 @@
 
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
-#include <rfb_win32/DynamicFn.h>
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Registry.h>
-#include <rfb_win32/OSVersion.h>
 #include <rfb/Threading.h>
 #include <logmessages/messages.h>
 #include <rdr/Exception.h>
@@ -66,29 +64,7 @@ VOID WINAPI serviceHandler(DWORD control) {
 }
 
 
-// -=- Message window derived class used under Win9x to implement stopService
-
-#define WM_SMSG_SERVICE_STOP WM_USER
-
-class ServiceMsgWindow : public MsgWindow {
-public:
-  ServiceMsgWindow(const TCHAR* name) : MsgWindow(name) {}
-  LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-    case WM_SMSG_SERVICE_STOP:
-      service->stop();
-      return TRUE;
-    }
-    return MsgWindow::processMessage(msg, wParam, lParam);
-  }
-
-  static const TCHAR* baseName;
-};
-
-const TCHAR* ServiceMsgWindow::baseName = _T("ServiceWindow:");
-
-
-// -=- Service main procedure, used under WinNT/2K/XP by the SCM
+// -=- Service main procedure
 
 VOID WINAPI serviceProc(DWORD dwArgc, LPTSTR* lpszArgv) {
   vlog.debug("entering %s serviceProc", service->getName());
@@ -124,38 +100,17 @@ Service::Service(const TCHAR* name_) : name(name_) {
 
 void
 Service::start() {
-  if (osVersion.isPlatformNT) {
-    SERVICE_TABLE_ENTRY entry[2];
-    entry[0].lpServiceName = (TCHAR*)name;
-    entry[0].lpServiceProc = serviceProc;
-    entry[1].lpServiceName = NULL;
-    entry[1].lpServiceProc = NULL;
-    vlog.debug("entering dispatcher");
-    if (!SetProcessShutdownParameters(0x100, 0))
-      vlog.error("unable to set shutdown parameters: %lu", GetLastError());
-    service = this;
-    if (!StartServiceCtrlDispatcher(entry))
-      throw SystemException("unable to start service", GetLastError());
-  } else {
-
-    // - Create the service window, so the service can be stopped
-    TCharArray wndName(_tcslen(getName()) + _tcslen(ServiceMsgWindow::baseName) + 1);
-    _tcscpy(wndName.buf, ServiceMsgWindow::baseName);
-    _tcscat(wndName.buf, getName());
-    ServiceMsgWindow service_window(wndName.buf);
-
-    // - Locate the RegisterServiceProcess function
-	  typedef DWORD (WINAPI * _RegisterServiceProcess_proto)(DWORD, DWORD);
-    DynamicFn<_RegisterServiceProcess_proto> _RegisterServiceProcess(_T("kernel32.dll"), "RegisterServiceProcess");
-    if (!_RegisterServiceProcess.isValid())
-      throw Exception("unable to find RegisterServiceProcess");
-
-    // - Run the service
-    (*_RegisterServiceProcess)(NULL, 1);
-    service = this;
-    serviceMain(0, 0);
-	  (*_RegisterServiceProcess)(NULL, 0);
-  }
+  SERVICE_TABLE_ENTRY entry[2];
+  entry[0].lpServiceName = (TCHAR*)name;
+  entry[0].lpServiceProc = serviceProc;
+  entry[1].lpServiceName = NULL;
+  entry[1].lpServiceProc = NULL;
+  vlog.debug("entering dispatcher");
+  if (!SetProcessShutdownParameters(0x100, 0))
+    vlog.error("unable to set shutdown parameters: %lu", GetLastError());
+  service = this;
+  if (!StartServiceCtrlDispatcher(entry))
+    throw SystemException("unable to start service", GetLastError());
 }
 
 void
@@ -165,8 +120,6 @@ Service::setStatus() {
 
 void
 Service::setStatus(DWORD state) {
-  if (!osVersion.isPlatformNT)
-    return;
   if (status_handle == 0) {
     vlog.debug("warning - cannot setStatus");
     return;
@@ -282,65 +235,23 @@ selectInputDesktop() {
 
 bool
 rfb::win32::desktopChangeRequired() {
-  if (!osVersion.isPlatformNT)
-    return false;
-
   return !inputDesktopSelected();
 }
 
 bool
 rfb::win32::changeDesktop() {
-  if (!osVersion.isPlatformNT)
-    return true;
-  if (osVersion.cannotSwitchDesktop)
-    return false;
-
   return selectInputDesktop();
 }
 
 
 // -=- Ctrl-Alt-Del emulation
 
-class CADThread : public Thread {
-public:
-  CADThread() : Thread("CtrlAltDel Emulator"), result(false) {}
-  virtual void run() {
-	  HDESK old_desktop = GetThreadDesktop(GetCurrentThreadId());
-
-    if (switchToDesktop(OpenDesktop(_T("Winlogon"), 0, FALSE, DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW |
-		  DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL |
-		  DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
-      DESKTOP_SWITCHDESKTOP | GENERIC_WRITE))) {
-	    PostMessage(HWND_BROADCAST, WM_HOTKEY, 0, MAKELONG(MOD_ALT | MOD_CONTROL, VK_DELETE));
-      switchToDesktop(old_desktop);
-      result = true;
-    }
-  }
-  bool result;
-};
-
 bool
 rfb::win32::emulateCtrlAltDel() {
-  if (!osVersion.isPlatformNT)
-    return false;
-
-  if (osVersion.dwMajorVersion >= 6) {
-    rfb::win32::Handle sessionEventCad = 
-      CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNCCad");
-    SetEvent(sessionEventCad);
-    return true;
-  }
-
-  CADThread* cad_thread = new CADThread();
-  vlog.debug("emulate Ctrl-Alt-Del");
-  if (cad_thread) {
-    cad_thread->start();
-    cad_thread->join();
-    bool result = cad_thread->result;
-    delete cad_thread;
-    return result;
-  }
-  return false;
+  rfb::win32::Handle sessionEventCad = 
+    CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNCCad");
+  SetEvent(sessionEventCad);
+  return true;
 }
 
 
@@ -379,27 +290,22 @@ static Logger_EventLog* logger = 0;
 bool rfb::win32::initEventLogLogger(const TCHAR* srcname) {
   if (logger)
     return false;
-  if (osVersion.isPlatformNT) {
-    logger = new Logger_EventLog(srcname);
-    logger->registerLogger();
-    return true;
-  } else {
-    return false;
-  }
+  logger = new Logger_EventLog(srcname);
+  logger->registerLogger();
+  return true;
 }
 
 
 // -=- Registering and unregistering the service
 
-bool rfb::win32::registerService(const TCHAR* name, const TCHAR* desc,
+bool rfb::win32::registerService(const TCHAR* name,
+                                 const TCHAR* display,
+                                 const TCHAR* desc,
                                  int argc, char** argv) {
 
   // - Initialise the default service parameters
   const TCHAR* defaultcmdline;
-  if (osVersion.isPlatformNT)
-    defaultcmdline = _T("-service");
-  else
-    defaultcmdline = _T("-noconsole -service");
+  defaultcmdline = _T("-service");
 
   // - Get the full pathname of our executable
   ModuleFileName buffer;
@@ -422,50 +328,44 @@ bool rfb::win32::registerService(const TCHAR* name, const TCHAR* desc,
     
   // - Register the service
 
-  if (osVersion.isPlatformNT) {
+  // - Open the SCM
+  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
+  if (!scm)
+    throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
-    // - Open the SCM
-    ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
-    if (!scm)
-      throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
+  // - Add the service
+  ServiceHandle service = CreateService(scm,
+    name, display, SC_MANAGER_ALL_ACCESS,
+    SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
+    SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
+    cmdline.buf, NULL, NULL, NULL, NULL, NULL);
+  if (!service)
+    throw rdr::SystemException("unable to create service", GetLastError());
 
+  // - Set a description
+  SERVICE_DESCRIPTION sdesc = {(LPTSTR)desc};
+  ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &sdesc);
 
-    ServiceHandle service = CreateService(scm,
-      name, desc, SC_MANAGER_ALL_ACCESS,
-      SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
-      SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
-      cmdline.buf, NULL, NULL, NULL, NULL, NULL);
-    if (!service)
-      throw rdr::SystemException("unable to create service", GetLastError());
+  // - Register the event log source
+  RegKey hk, hk2;
 
-    // - Register the event log source
-    RegKey hk, hk2;
+  hk2.createKey(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"));
+  hk.createKey(hk2, name);
 
-    hk2.createKey(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"));
-    hk.createKey(hk2, name);
-
-    for (i=_tcslen(buffer.buf); i>0; i--) {
-      if (buffer.buf[i] == _T('\\')) {
-        buffer.buf[i+1] = 0;
-        break;
-      }
+  for (i=_tcslen(buffer.buf); i>0; i--) {
+    if (buffer.buf[i] == _T('\\')) {
+      buffer.buf[i+1] = 0;
+      break;
     }
-
-    const TCHAR* dllFilename = _T("logmessages.dll");
-    TCharArray dllPath(_tcslen(buffer.buf) + _tcslen(dllFilename) + 1);
-    _tcscpy(dllPath.buf, buffer.buf);
-    _tcscat(dllPath.buf, dllFilename);
- 
-    hk.setExpandString(_T("EventMessageFile"), dllPath.buf);
-    hk.setInt(_T("TypesSupported"), EVENTLOG_ERROR_TYPE | EVENTLOG_INFORMATION_TYPE);
-
-  } else {
-
-    RegKey services;
-    services.createKey(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Windows\\CurrentVersion\\RunServices"));
-    services.setString(name, cmdline.buf);
-
   }
+
+  const TCHAR* dllFilename = _T("logmessages.dll");
+  TCharArray dllPath(_tcslen(buffer.buf) + _tcslen(dllFilename) + 1);
+  _tcscpy(dllPath.buf, buffer.buf);
+  _tcscat(dllPath.buf, dllFilename);
+
+  hk.setExpandString(_T("EventMessageFile"), dllPath.buf);
+  hk.setInt(_T("TypesSupported"), EVENTLOG_ERROR_TYPE | EVENTLOG_INFORMATION_TYPE);
 
   Sleep(500);
 
@@ -473,32 +373,22 @@ bool rfb::win32::registerService(const TCHAR* name, const TCHAR* desc,
 }
 
 bool rfb::win32::unregisterService(const TCHAR* name) {
-  if (osVersion.isPlatformNT) {
+  // - Open the SCM
+  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
+  if (!scm)
+    throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
-    // - Open the SCM
-    ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
-    if (!scm)
-      throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
+  // - Create the service
+  ServiceHandle service = OpenService(scm, name, SC_MANAGER_ALL_ACCESS);
+  if (!service)
+    throw rdr::SystemException("unable to locate the service", GetLastError());
+  if (!DeleteService(service))
+    throw rdr::SystemException("unable to remove the service", GetLastError());
 
-    // - Create the service
-    ServiceHandle service = OpenService(scm, name, SC_MANAGER_ALL_ACCESS);
-    if (!service)
-      throw rdr::SystemException("unable to locate the service", GetLastError());
-    if (!DeleteService(service))
-      throw rdr::SystemException("unable to remove the service", GetLastError());
-
-    // - Register the event log source
-    RegKey hk;
-    hk.openKey(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"));
-    hk.deleteKey(name);
-
-  } else {
-
-		RegKey services;
-    services.openKey(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Windows\\CurrentVersion\\RunServices"));
-    services.deleteValue(name);
-
-  }
+  // - Register the event log source
+  RegKey hk;
+  hk.openKey(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"));
+  hk.deleteKey(name);
 
   Sleep(500);
 
@@ -508,51 +398,21 @@ bool rfb::win32::unregisterService(const TCHAR* name) {
 
 // -=- Starting and stopping the service
 
-HWND findServiceWindow(const TCHAR* name) {
-  TCharArray wndName(_tcslen(ServiceMsgWindow::baseName)+_tcslen(name)+1);
-  _tcscpy(wndName.buf, ServiceMsgWindow::baseName);
-  _tcscat(wndName.buf, name);
-  vlog.debug("searching for %s window", wndName.buf);
-  return FindWindow(0, wndName.buf);
-}
-
 bool rfb::win32::startService(const TCHAR* name) {
 
-  if (osVersion.isPlatformNT) {
-    // - Open the SCM
-    ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
-    if (!scm)
-      throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
+  // - Open the SCM
+  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+  if (!scm)
+    throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
-    // - Locate the service
-    ServiceHandle service = OpenService(scm, name, SERVICE_START);
-    if (!service)
-      throw rdr::SystemException("unable to open the service", GetLastError());
+  // - Locate the service
+  ServiceHandle service = OpenService(scm, name, SERVICE_START);
+  if (!service)
+    throw rdr::SystemException("unable to open the service", GetLastError());
 
-    // - Start the service
-    if (!StartService(service, 0, NULL))
-      throw rdr::SystemException("unable to start the service", GetLastError());
-  } else {
-    // - Check there is no service window
-    if (findServiceWindow(name))
-      throw rdr::Exception("the service is already running");
-
-    // - Find the RunServices registry key
-		RegKey services;
-		services.openKey(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Windows\\CurrentVersion\\RunServices"));
-
-    // - Read the command-line from it
-    TCharArray cmdLine(services.getString(name));
-
-    // - Start the service
-    PROCESS_INFORMATION proc_info;
-    STARTUPINFO startup_info;
-    ZeroMemory(&startup_info, sizeof(startup_info));
-    startup_info.cb = sizeof(startup_info);
-    if (!CreateProcess(0, cmdLine.buf, 0, 0, FALSE, CREATE_NEW_CONSOLE, 0, 0, &startup_info, &proc_info)) {
-      throw SystemException("unable to start service", GetLastError());
-    }
-  }
+  // - Start the service
+  if (!StartService(service, 0, NULL))
+    throw rdr::SystemException("unable to start the service", GetLastError());
 
   Sleep(500);
 
@@ -560,52 +420,20 @@ bool rfb::win32::startService(const TCHAR* name) {
 }
 
 bool rfb::win32::stopService(const TCHAR* name) {
-  if (osVersion.isPlatformNT) {
-    // - Open the SCM
-    ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
-    if (!scm)
-      throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
+  // - Open the SCM
+  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+  if (!scm)
+    throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
-    // - Locate the service
-    ServiceHandle service = OpenService(scm, name, SERVICE_STOP);
-    if (!service)
-      throw rdr::SystemException("unable to open the service", GetLastError());
+  // - Locate the service
+  ServiceHandle service = OpenService(scm, name, SERVICE_STOP);
+  if (!service)
+    throw rdr::SystemException("unable to open the service", GetLastError());
 
-    // - Start the service
-    SERVICE_STATUS status;
-    if (!ControlService(service, SERVICE_CONTROL_STOP, &status))
-      throw rdr::SystemException("unable to stop the service", GetLastError());
-
-  } else {
-    // - Find the service window
-    HWND service_window = findServiceWindow(name);
-    if (!service_window)
-      throw Exception("unable to locate running service");
-
-    // Tell it to quit
-    vlog.debug("sending service stop request");
-    if (!SendMessage(service_window, WM_SMSG_SERVICE_STOP, 0, 0))
-      throw Exception("unable to stop service");
-
-    // Check it's quitting...
-    DWORD process_id = 0;
-    HANDLE process = 0;
-    if (!GetWindowThreadProcessId(service_window, &process_id))
-      throw SystemException("unable to verify service has quit", GetLastError());
-    process = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, FALSE, process_id);
-    if (!process)
-      throw SystemException("unable to obtain service handle", GetLastError());
-    int retries = 5;
-    vlog.debug("checking status");
-    while (retries-- && (WaitForSingleObject(process, 1000) != WAIT_OBJECT_0)) {}
-    if (!retries) {
-      vlog.debug("failed to quit - terminating");
-      // May not have quit because of silly Win9x registry watching bug..
-      if (!TerminateProcess(process, 1))
-        throw SystemException("unable to terminate process!", GetLastError());
-      throw Exception("service failed to quit - called TerminateProcess");
-    }
-  }
+  // - Start the service
+  SERVICE_STATUS status;
+  if (!ControlService(service, SERVICE_CONTROL_STOP, &status))
+    throw rdr::SystemException("unable to stop the service", GetLastError());
 
   Sleep(500);
 
@@ -613,27 +441,22 @@ bool rfb::win32::stopService(const TCHAR* name) {
 }
 
 DWORD rfb::win32::getServiceState(const TCHAR* name) {
-  if (osVersion.isPlatformNT) {
-    // - Open the SCM
-    ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
-    if (!scm)
-      throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
+  // - Open the SCM
+  ServiceHandle scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+  if (!scm)
+    throw rdr::SystemException("unable to open Service Control Manager", GetLastError());
 
-    // - Locate the service
-    ServiceHandle service = OpenService(scm, name, SERVICE_INTERROGATE);
-    if (!service)
-      throw rdr::SystemException("unable to open the service", GetLastError());
+  // - Locate the service
+  ServiceHandle service = OpenService(scm, name, SERVICE_INTERROGATE);
+  if (!service)
+    throw rdr::SystemException("unable to open the service", GetLastError());
 
-    // - Get the service status
-    SERVICE_STATUS status;
-    if (!ControlService(service, SERVICE_CONTROL_INTERROGATE, (SERVICE_STATUS*)&status))
-      throw rdr::SystemException("unable to query the service", GetLastError());
+  // - Get the service status
+  SERVICE_STATUS status;
+  if (!ControlService(service, SERVICE_CONTROL_INTERROGATE, (SERVICE_STATUS*)&status))
+    throw rdr::SystemException("unable to query the service", GetLastError());
 
-    return status.dwCurrentState;
-  } else {
-    HWND service_window = findServiceWindow(name);
-    return service_window ? SERVICE_RUNNING : SERVICE_STOPPED;
-  }
+  return status.dwCurrentState;
 }
 
 char* rfb::win32::serviceStateName(DWORD state) {

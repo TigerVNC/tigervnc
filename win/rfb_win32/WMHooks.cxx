@@ -19,7 +19,6 @@
 // -=- WMHooks.cxx
 
 #include <rfb_win32/WMHooks.h>
-#include <rfb_win32/DynamicFn.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/IntervalTimer.h>
@@ -34,52 +33,106 @@ using namespace rfb::win32;
 static LogWriter vlog("WMHooks");
 
 
+static HMODULE hooksLibrary;
+
 typedef UINT (*WM_Hooks_WMVAL_proto)();
+static WM_Hooks_WMVAL_proto WM_Hooks_WindowChanged;
+static WM_Hooks_WMVAL_proto WM_Hooks_WindowBorderChanged;
+static WM_Hooks_WMVAL_proto WM_Hooks_WindowClientAreaChanged;
+static WM_Hooks_WMVAL_proto WM_Hooks_RectangleChanged;
+#ifdef _DEBUG
+static WM_Hooks_WMVAL_proto WM_Hooks_Diagnostic;
+#endif
+
 typedef BOOL (*WM_Hooks_Install_proto)(DWORD owner, DWORD thread);
+static WM_Hooks_Install_proto WM_Hooks_Install;
 typedef BOOL (*WM_Hooks_Remove_proto)(DWORD owner);
-typedef BOOL (*WM_Hooks_EnableCursorShape_proto)(BOOL enable);
+static WM_Hooks_Remove_proto WM_Hooks_Remove;
 #ifdef _DEBUG
 typedef void (*WM_Hooks_SetDiagnosticRange_proto)(UINT min, UINT max);
-DynamicFn<WM_Hooks_SetDiagnosticRange_proto> WM_Hooks_SetDiagnosticRange(_T("wm_hooks.dll"), "WM_Hooks_SetDiagnosticRange");
+static WM_Hooks_SetDiagnosticRange_proto WM_Hooks_SetDiagnosticRange;
 #endif
+
+typedef BOOL (*WM_Hooks_EnableRealInputs_proto)(BOOL pointer, BOOL keyboard);
+static WM_Hooks_EnableRealInputs_proto WM_Hooks_EnableRealInputs;
+
+
+static void LoadHooks()
+{
+  if (hooksLibrary != NULL)
+    return;
+
+  hooksLibrary = LoadLibrary("wm_hooks.dll");
+  if (hooksLibrary == NULL)
+    return;
+
+  WM_Hooks_WindowChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_WindowChanged");
+  if (WM_Hooks_WindowChanged == NULL)
+    goto error;
+  WM_Hooks_WindowBorderChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_WindowBorderChanged");
+  if (WM_Hooks_WindowBorderChanged == NULL)
+    goto error;
+  WM_Hooks_WindowClientAreaChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_WindowClientAreaChanged");
+  if (WM_Hooks_WindowClientAreaChanged == NULL)
+    goto error;
+  WM_Hooks_RectangleChanged = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_RectangleChanged");
+  if (WM_Hooks_RectangleChanged == NULL)
+    goto error;
+#ifdef _DEBUG
+  WM_Hooks_Diagnostic = (WM_Hooks_WMVAL_proto)GetProcAddress(hooksLibrary, "WM_Hooks_Diagnostic");
+  if (WM_Hooks_Diagnostic == NULL)
+    goto error;
+#endif
+
+  WM_Hooks_Install = (WM_Hooks_Install_proto)GetProcAddress(hooksLibrary, "WM_Hooks_Install");
+  if (WM_Hooks_Install == NULL)
+    goto error;
+  WM_Hooks_Remove = (WM_Hooks_Remove_proto)GetProcAddress(hooksLibrary, "WM_Hooks_Remove");
+  if (WM_Hooks_Remove == NULL)
+    goto error;
+#ifdef _DEBUG
+  WM_Hooks_SetDiagnosticRange = (WM_Hooks_SetDiagnosticRange_proto)GetProcAddress(hooksLibrary, "WM_Hooks_SetDiagnosticRange");
+  if (WM_Hooks_SetDiagnosticRange == NULL)
+    goto error;
+#endif
+
+  WM_Hooks_EnableRealInputs = (WM_Hooks_EnableRealInputs_proto)GetProcAddress(hooksLibrary, "WM_Hooks_EnableRealInputs");
+  if (WM_Hooks_EnableRealInputs == NULL)
+    goto error;
+
+  return;
+
+error:
+  FreeLibrary(hooksLibrary);
+  hooksLibrary = NULL;
+}
 
 
 class WMHooksThread : public Thread {
 public:
   WMHooksThread() : Thread("WMHookThread"), 
-    WM_Hooks_Install(_T("wm_hooks.dll"), "WM_Hooks_Install"),
-    WM_Hooks_Remove(_T("wm_hooks.dll"), "WM_Hooks_Remove"),
-    WM_Hooks_EnableCursorShape(_T("wm_hooks.dll"), "WM_Hooks_EnableCursorShape"),
     active(true) {
   }
   virtual void run();
   virtual Thread* join();
-  DynamicFn<WM_Hooks_Install_proto> WM_Hooks_Install;;
-  DynamicFn<WM_Hooks_Remove_proto> WM_Hooks_Remove;
-  DynamicFn<WM_Hooks_EnableCursorShape_proto> WM_Hooks_EnableCursorShape;
 protected:
   bool active;
 };
 
-WMHooksThread* hook_mgr = 0;
-std::list<WMHooks*> hooks;
-std::list<WMCursorHooks*> cursor_hooks;
-Mutex hook_mgr_lock;
-HCURSOR hook_cursor = (HCURSOR)LoadImage(0, IDC_ARROW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+static WMHooksThread* hook_mgr = 0;
+static std::list<WMHooks*> hooks;
+static Mutex hook_mgr_lock;
 
 
 static bool StartHookThread() {
   if (hook_mgr)
     return true;
+  if (hooksLibrary == NULL)
+    return false;
   vlog.debug("creating thread");
   hook_mgr = new WMHooksThread();
-  if (!hook_mgr->WM_Hooks_Install.isValid() ||
-      !hook_mgr->WM_Hooks_Remove.isValid()) {
-    vlog.debug("hooks not available");
-    return false;
-  }
   vlog.debug("installing hooks");
-  if (!(*hook_mgr->WM_Hooks_Install)(hook_mgr->getThreadId(), 0)) {
+  if (!WM_Hooks_Install(hook_mgr->getThreadId(), 0)) {
     vlog.error("failed to initialise hooks");
     delete hook_mgr->join();
     hook_mgr = 0;
@@ -93,7 +146,7 @@ static bool StartHookThread() {
 static void StopHookThread() {
   if (!hook_mgr)
     return;
-  if (!hooks.empty() || !cursor_hooks.empty())
+  if (!hooks.empty())
     return;
   vlog.debug("closing thread");
   delete hook_mgr->join();
@@ -110,37 +163,11 @@ static bool AddHook(WMHooks* hook) {
   return true;
 }
 
-static bool AddCursorHook(WMCursorHooks* hook) {
-  vlog.debug("adding cursor hook");
-  Lock l(hook_mgr_lock);
-  if (!StartHookThread())
-    return false;
-  if (!hook_mgr->WM_Hooks_EnableCursorShape.isValid())
-    return false;
-  if (cursor_hooks.empty() && !(*hook_mgr->WM_Hooks_EnableCursorShape)(TRUE))
-    return false;
-  cursor_hooks.push_back(hook);
-  return true;
-}
-
 static bool RemHook(WMHooks* hook) {
   {
     vlog.debug("removing hook");
     Lock l(hook_mgr_lock);
     hooks.remove(hook);
-  }
-  StopHookThread();
-  return true;
-}
-
-static bool RemCursorHook(WMCursorHooks* hook) {
-  {
-    vlog.debug("removing cursor hook");
-    Lock l(hook_mgr_lock);
-    cursor_hooks.remove(hook);
-    if (hook_mgr->WM_Hooks_EnableCursorShape.isValid() &&
-        cursor_hooks.empty())
-      (*hook_mgr->WM_Hooks_EnableCursorShape)(FALSE);
   }
   StopHookThread();
   return true;
@@ -153,34 +180,16 @@ static void NotifyHooksRegion(const Region& r) {
     (*i)->NotifyHooksRegion(r);
 }
 
-static void NotifyHooksCursor(HCURSOR c) {
-  Lock l(hook_mgr_lock);
-  hook_cursor = c;
-}
-
-
-static UINT GetMsgVal(DynamicFn<WM_Hooks_WMVAL_proto>& fn) {
-  if (fn.isValid())
-    return (*fn)();
-  return WM_NULL;
-}
 
 void
 WMHooksThread::run() {
   // Obtain message ids for all supported hook messages
-  DynamicFn<WM_Hooks_WMVAL_proto> WM_Hooks_WindowChanged(_T("wm_hooks.dll"), "WM_Hooks_WindowChanged");
-  DynamicFn<WM_Hooks_WMVAL_proto> WM_Hooks_WindowBorderChanged(_T("wm_hooks.dll"), "WM_Hooks_WindowBorderChanged");
-  DynamicFn<WM_Hooks_WMVAL_proto> WM_Hooks_WindowClientAreaChanged(_T("wm_hooks.dll"), "WM_Hooks_WindowClientAreaChanged");
-  DynamicFn<WM_Hooks_WMVAL_proto> WM_Hooks_RectangleChanged(_T("wm_hooks.dll"), "WM_Hooks_RectangleChanged");
-  DynamicFn<WM_Hooks_WMVAL_proto> WM_Hooks_CursorChanged(_T("wm_hooks.dll"), "WM_Hooks_CursorChanged");
-  UINT windowMsg = GetMsgVal(WM_Hooks_WindowChanged);
-  UINT clientAreaMsg = GetMsgVal(WM_Hooks_WindowClientAreaChanged);
-  UINT borderMsg = GetMsgVal(WM_Hooks_WindowBorderChanged);
-  UINT rectangleMsg = GetMsgVal(WM_Hooks_RectangleChanged);
-  UINT cursorMsg = GetMsgVal(WM_Hooks_CursorChanged);
+  UINT windowMsg = WM_Hooks_WindowChanged();
+  UINT clientAreaMsg = WM_Hooks_WindowClientAreaChanged();
+  UINT borderMsg = WM_Hooks_WindowBorderChanged();
+  UINT rectangleMsg = WM_Hooks_RectangleChanged();
 #ifdef _DEBUG
-  DynamicFn<WM_Hooks_WMVAL_proto> WM_Hooks_Diagnostic(_T("wm_hooks.dll"), "WM_Hooks_Diagnostic");
-  UINT diagnosticMsg = GetMsgVal(WM_Hooks_Diagnostic);
+  UINT diagnosticMsg = WM_Hooks_Diagnostic();
 #endif
   MSG msg;
   RECT wrect;
@@ -261,8 +270,6 @@ WMHooksThread::run() {
         updateDelayTimer.start(updateDelayMs);
       }
 
-    } else if (msg.message == cursorMsg) {
-      NotifyHooksCursor((HCURSOR)msg.lParam);
 #ifdef _DEBUG
     } else if (msg.message == diagnosticMsg) {
       vlog.info("DIAG msg=%x(%d) wnd=%lx",
@@ -273,7 +280,7 @@ WMHooksThread::run() {
   }
 
   vlog.debug("stopping hook thread - processed %d events", count);
-  (*WM_Hooks_Remove)(getThreadId());
+  WM_Hooks_Remove(getThreadId());
 }
 
 Thread*
@@ -288,6 +295,7 @@ WMHooksThread::join() {
 // -=- WMHooks class
 
 rfb::win32::WMHooks::WMHooks() : updateEvent(0) {
+  LoadHooks();
 }
 
 rfb::win32::WMHooks::~WMHooks() {
@@ -310,16 +318,10 @@ bool rfb::win32::WMHooks::getUpdates(UpdateTracker* ut) {
   return true;
 }
 
-bool rfb::win32::WMHooks::areAvailable() {
-  WMHooksThread wmht;
-  return wmht.WM_Hooks_Install.isValid();
-}
-
 #ifdef _DEBUG
 void
 rfb::win32::WMHooks::setDiagnosticRange(UINT min, UINT max) {
-  if (WM_Hooks_SetDiagnosticRange.isValid())
-    (*WM_Hooks_SetDiagnosticRange)(min, max);
+  WM_Hooks_SetDiagnosticRange(min, max);
 }
 #endif
 
@@ -334,32 +336,31 @@ void rfb::win32::WMHooks::NotifyHooksRegion(const Region& r) {
 // -=- WMBlockInput class
 
 rfb::win32::WMBlockInput::WMBlockInput() : active(false) {
+  LoadHooks();
 }
 
 rfb::win32::WMBlockInput::~WMBlockInput() {
   blockInputs(false);
 }
 
-typedef BOOL (*WM_Hooks_EnableRealInputs_proto)(BOOL pointer, BOOL keyboard);
-DynamicFn<WM_Hooks_EnableRealInputs_proto>* WM_Hooks_EnableRealInputs = 0;
+static bool blocking = false;
 static bool blockRealInputs(bool block_) {
   // NB: Requires blockMutex to be held!
+  if (hooksLibrary == NULL)
+    return false;
   if (block_) {
-    if (WM_Hooks_EnableRealInputs)
+    if (blocking)
       return true;
     // Enable blocking
-    WM_Hooks_EnableRealInputs = new DynamicFn<WM_Hooks_EnableRealInputs_proto>(_T("wm_hooks.dll"), "WM_Hooks_EnableRealInputs");
-    if (WM_Hooks_EnableRealInputs->isValid() && (**WM_Hooks_EnableRealInputs)(false, false))
-      return true;
+    if (!WM_Hooks_EnableRealInputs(false, false))
+      return false;
+    blocking = true;
   }
-  if (WM_Hooks_EnableRealInputs) {
-    // Clean up the DynamicFn, either if init failed, or block_ is false
-    if (WM_Hooks_EnableRealInputs->isValid())
-      (**WM_Hooks_EnableRealInputs)(true, true);
-    delete WM_Hooks_EnableRealInputs;
-    WM_Hooks_EnableRealInputs = 0;
+  if (blocking) {
+    WM_Hooks_EnableRealInputs(true, true);
+    blocking = false;
   }
-  return block_ == (WM_Hooks_EnableRealInputs != 0);
+  return block_ == blocking;
 }
 
 Mutex blockMutex;
@@ -374,24 +375,4 @@ bool rfb::win32::WMBlockInput::blockInputs(bool on) {
   blockCount = newCount;
   active = on;
   return true;
-}
-
-
-// -=- WMCursorHooks class
-
-rfb::win32::WMCursorHooks::WMCursorHooks() {
-}
-
-rfb::win32::WMCursorHooks::~WMCursorHooks() {
-  RemCursorHook(this);
-}
-
-bool
-rfb::win32::WMCursorHooks::start() {
-  return AddCursorHook(this);
-}
-
-HCURSOR
-rfb::win32::WMCursorHooks::getCursor() const {
-  return hook_cursor;
 }

@@ -30,26 +30,13 @@
 #include <rfb_win32/SInput.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Service.h>
-#include <rfb_win32/OSVersion.h>
-#include <rfb_win32/DynamicFn.h>
 #include <rfb_win32/keymap.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 
-#if(defined(INPUT_MOUSE) && defined(RFB_HAVE_MONITORINFO) && defined(MOUSEEVENTF_VIRTUALDESK))
-#define RFB_HAVE_SENDINPUT
-#else
-#pragma message("  NOTE: Not building SendInput support.")
-#endif
-
 using namespace rfb;
 
 static LogWriter vlog("SInput");
-
-#ifdef RFB_HAVE_SENDINPUT
-typedef UINT (WINAPI *_SendInput_proto)(UINT, LPINPUT, int);
-static win32::DynamicFn<_SendInput_proto> _SendInput(_T("user32.dll"), "SendInput");
-#endif
 
 //
 // -=- Pointer implementation for Win32
@@ -125,44 +112,18 @@ win32::SPointer::pointerEvent(const Point& pos, int buttonmask)
     // The event lies outside the primary monitor.  Under Win2K, we can just use
     // SendInput, which allows us to provide coordinates scaled to the virtual desktop.
     // SendInput is available on all multi-monitor-aware platforms.
-#ifdef RFB_HAVE_SENDINPUT
-    if (osVersion.isPlatformNT) {
-      if (!_SendInput.isValid())
-        throw rdr::Exception("SendInput not available");
-      INPUT evt;
-      evt.type = INPUT_MOUSE;
-      Point vPos(pos.x-GetSystemMetrics(SM_XVIRTUALSCREEN),
-                 pos.y-GetSystemMetrics(SM_YVIRTUALSCREEN));
-      evt.mi.dx = (vPos.x * 65535) / (GetSystemMetrics(SM_CXVIRTUALSCREEN)-1);
-      evt.mi.dy = (vPos.y * 65535) / (GetSystemMetrics(SM_CYVIRTUALSCREEN)-1);
-      evt.mi.dwFlags = flags | MOUSEEVENTF_VIRTUALDESK;
-      evt.mi.dwExtraInfo = 0;
-      evt.mi.mouseData = data;
-      evt.mi.time = 0;
-      if ((*_SendInput)(1, &evt, sizeof(evt)) != 1)
-        throw rdr::SystemException("SendInput", GetLastError());
-    } else {
-      // Under Win9x, this is not addressable by either mouse_event or SendInput
-      // *** STUPID KLUDGY HACK ***
-      POINT cursorPos; GetCursorPos(&cursorPos);
-      ULONG oldSpeed, newSpeed = 10;
-      ULONG mouseInfo[3];
-      if (flags & MOUSEEVENTF_MOVE) {
-        flags &= ~MOUSEEVENTF_ABSOLUTE;
-        SystemParametersInfo(SPI_GETMOUSE, 0, &mouseInfo, 0);
-        SystemParametersInfo(SPI_GETMOUSESPEED, 0, &oldSpeed, 0);
-        vlog.debug("SPI_GETMOUSE %lu, %lu, %lu, speed %lu", mouseInfo[0], mouseInfo[1], mouseInfo[2], oldSpeed);
-        ULONG idealMouseInfo[] = {10, 0, 0};
-        SystemParametersInfo(SPI_SETMOUSESPEED, 0, &newSpeed, 0);
-        SystemParametersInfo(SPI_SETMOUSE, 0, &idealMouseInfo, 0);
-      }
-      ::mouse_event(flags, pos.x-cursorPos.x, pos.y-cursorPos.y, data, 0);
-      if (flags & MOUSEEVENTF_MOVE) {
-        SystemParametersInfo(SPI_SETMOUSE, 0, &mouseInfo, 0);
-        SystemParametersInfo(SPI_SETMOUSESPEED, 0, &oldSpeed, 0);
-      }
-    }
-#endif
+    INPUT evt;
+    evt.type = INPUT_MOUSE;
+    Point vPos(pos.x-GetSystemMetrics(SM_XVIRTUALSCREEN),
+               pos.y-GetSystemMetrics(SM_YVIRTUALSCREEN));
+    evt.mi.dx = (vPos.x * 65535) / (GetSystemMetrics(SM_CXVIRTUALSCREEN)-1);
+    evt.mi.dy = (vPos.y * 65535) / (GetSystemMetrics(SM_CYVIRTUALSCREEN)-1);
+    evt.mi.dwFlags = flags | MOUSEEVENTF_VIRTUALDESK;
+    evt.mi.dwExtraInfo = 0;
+    evt.mi.mouseData = data;
+    evt.mi.time = 0;
+    if (SendInput(1, &evt, sizeof(evt)) != 1)
+      throw rdr::SystemException("SendInput", GetLastError());
   }
 }
 
@@ -173,8 +134,6 @@ win32::SPointer::pointerEvent(const Point& pos, int buttonmask)
 BoolParameter rfb::win32::SKeyboard::deadKeyAware("DeadKeyAware",
   "Whether to assume the viewer has already interpreted dead key sequences "
   "into latin-1 characters", true);
-
-static bool oneShift;
 
 // The keysymToAscii table transforms a couple of awkward keysyms into their
 // ASCII equivalents.
@@ -332,7 +291,6 @@ void doKeyEventWithModifiers(BYTE vkCode, BYTE modifierState, bool down)
 
 win32::SKeyboard::SKeyboard()
 {
-  oneShift = rfb::win32::osVersion.isPlatformWindows;
   for (unsigned int i = 0; i < sizeof(keymap) / sizeof(keymap_t); i++) {
     vkMap[keymap[i].keysym] = keymap[i].vk;
     extendedMap[keymap[i].keysym] = keymap[i].extended;

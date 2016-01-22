@@ -135,7 +135,6 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, char* cmdLine, int cmdShow) {
         } else if (e.err != ERROR_CALL_NOT_IMPLEMENTED &&
                    e.err != ERROR_NOT_LOGGED_ON) {
           // If the call is not implemented, ignore the error and continue
-          // If we are on Win9x and no user is logged on, ignore error and continue
           throw;
         }
         warnOnChangePassword = true;

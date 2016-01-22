@@ -25,7 +25,6 @@
 #include <vector>
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/DeviceContext.h>
-#include <rfb_win32/OSVersion.h>
 #include <rfb_win32/IconInfo.h>
 #include <rfb/VNCServer.h>
 #include <rfb/LogWriter.h>
@@ -108,10 +107,9 @@ DeviceFrameBuffer::grabRect(const Rect &rect) {
   // Map the rectangle coords from VNC Desktop-relative to device relative - usually (0,0)
   Point src = desktopToDevice(rect.tl);
 
-  // Note: Microsoft's documentation lies directly about CAPTUREBLT and claims it works on 98/ME
-  //       If you try CAPTUREBLT on 98 then you get blank output...
-  if (!::BitBlt(tmpDC, rect.tl.x, rect.tl.y, rect.width(), rect.height(), device, src.x, src.y,
-    (osVersion.isPlatformNT && useCaptureBlt) ? (CAPTUREBLT | SRCCOPY) : SRCCOPY)) {
+  if (!::BitBlt(tmpDC, rect.tl.x, rect.tl.y,
+                rect.width(), rect.height(), device, src.x, src.y,
+                useCaptureBlt ? (CAPTUREBLT | SRCCOPY) : SRCCOPY)) {
     if (ignoreGrabErrors)
       vlog.error("BitBlt failed:%ld", GetLastError());
     else

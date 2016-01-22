@@ -25,11 +25,9 @@
 #include <rfb_win32/TsSessions.h>
 #include <rfb_win32/CleanDesktop.h>
 #include <rfb_win32/CurrentUser.h>
-#include <rfb_win32/DynamicFn.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/SDisplayCorePolling.h>
 #include <rfb_win32/SDisplayCoreWMHooks.h>
-#include <rfb_win32/SDisplayCoreDriver.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 
@@ -52,8 +50,6 @@ StringParameter displayDevice("DisplayDevice",
   "Display device name of the monitor to be remoted, or empty to export the whole desktop.", "");
 BoolParameter rfb::win32::SDisplay::removeWallpaper("RemoveWallpaper",
   "Remove the desktop wallpaper when the server is in use.", false);
-BoolParameter rfb::win32::SDisplay::removePattern("RemovePattern",
-  "Remove the desktop background pattern when the server is in use.", false);
 BoolParameter rfb::win32::SDisplay::disableEffects("DisableEffects",
   "Disable desktop user interface effects when the server is in use.", false);
 
@@ -62,9 +58,6 @@ BoolParameter rfb::win32::SDisplay::disableEffects("DisableEffects",
 //
 // SDisplay
 //
-
-typedef BOOL (WINAPI *_LockWorkStation_proto)();
-DynamicFn<_LockWorkStation_proto> _LockWorkStation(_T("user32.dll"), "LockWorkStation");
 
 // -=- Constructor/Destructor
 
@@ -128,10 +121,7 @@ void SDisplay::stop()
       if (!cut.h) {
         vlog.info("ignoring DisconnectAction=Lock - no current user");
       } else {
-        if (_LockWorkStation.isValid())
-          (*_LockWorkStation)();
-        else
-          ExitWindowsEx(EWX_LOGOFF, 0);
+        LockWorkStation();
       }
     }
   }
@@ -173,9 +163,7 @@ void SDisplay::startCore() {
   int tryMethod = updateMethod_;
   while (!core) {
     try {
-      if (tryMethod == 2)
-        core = new SDisplayCoreDriver(this, &updates);
-      else if (tryMethod == 1)
+      if (tryMethod == 1)
         core = new SDisplayCoreWMHooks(this, &updates);
       else
         core = new SDisplayCorePolling(this, &updates);
@@ -202,14 +190,11 @@ void SDisplay::startCore() {
 
   // Apply desktop optimisations
   cleanDesktop = new CleanDesktop;
-  if (removePattern)
-    cleanDesktop->disablePattern();
   if (removeWallpaper)
     cleanDesktop->disableWallpaper();
   if (disableEffects)
     cleanDesktop->disableEffects();
   isWallpaperRemoved = removeWallpaper;
-  isPatternRemoved = removePattern;
   areEffectsDisabled = disableEffects;
 }
 
@@ -227,15 +212,6 @@ void SDisplay::stopCore() {
   delete cleanDesktop; cleanDesktop = 0;
   delete cursor; cursor = 0;
   ResetEvent(updateEvent);
-}
-
-
-bool SDisplay::areHooksAvailable() {
-  return WMHooks::areAvailable();
-}
-
-bool SDisplay::isDriverAvailable() {
-  return SDisplayCoreDriver::isAvailable();
 }
 
 
@@ -262,7 +238,6 @@ bool SDisplay::isRestartRequired() {
   // - Check that the desktop optimisation settings haven't changed
   //   This isn't very efficient, but it shouldn't change very often!
   if ((isWallpaperRemoved != removeWallpaper) ||
-      (isPatternRemoved != removePattern) ||
       (areEffectsDisabled != disableEffects))
     return true;
 

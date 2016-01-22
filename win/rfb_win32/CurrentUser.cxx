@@ -21,10 +21,9 @@
 #include <stdlib.h>
 #include <rfb/LogWriter.h>
 #include <rfb_win32/CurrentUser.h>
-#include <rfb_win32/DynamicFn.h>
 #include <rfb_win32/Service.h>
-#include <rfb_win32/OSVersion.h>
 #include <lmcons.h>
+#include <wtsapi32.h>
 
 using namespace rfb;
 using namespace win32;
@@ -68,48 +67,18 @@ BOOL CALLBACK enumDesktops(LPTSTR lpszDesktop, LPARAM lParam) {
 }
 
 
-CurrentUserToken::CurrentUserToken() : isSafe_(false) {
+CurrentUserToken::CurrentUserToken() {
   if (isServiceProcess()) {
-    // If the platform is Windows 95/98/Me then we must fake the token's presence
-    if (osVersion.isPlatformWindows) {
-      try {
-        UserName un;
-        h = INVALID_HANDLE_VALUE;
-      } catch (rdr::SystemException& e) {
-        if (e.err != ERROR_NOT_LOGGED_ON)
-          throw;
-        if (FindWindow(shellIconClass, 0))
-          h = INVALID_HANDLE_VALUE;
-      }
-      isSafe_ = (h != 0);
-      return;
-    }
-
     // Try to get the user token using the Terminal Services APIs
-    //   NB: This will only work under XP/2003 and later
-    typedef BOOL (WINAPI *WTSQueryUserToken_proto)(ULONG, PHANDLE);
-    DynamicFn<WTSQueryUserToken_proto> _WTSQueryUserToken(_T("wtsapi32.dll"), "WTSQueryUserToken");
-    if (_WTSQueryUserToken.isValid()) {
-      (*_WTSQueryUserToken)(-1, &h);
-      isSafe_ = true;
-      return;
-    }
-
-    // Try to find the Shell Tray Icon window and take its token
-    //   NB: This will only work under NT/2K (and later, but they're dealt with above)
-    //   NB: If the shell is not running then this will return an Unsafe Null token.
-    EnumDesktops(GetProcessWindowStation(), enumDesktops, (LPARAM)&h);
-    isSafe_ = (h != 0);
+    WTSQueryUserToken(-1, &h);
   } else {
     // Try to open the security token for the User-Mode process
     if (!OpenProcessToken(GetCurrentProcess(), GENERIC_ALL, &h)) {
       DWORD err = GetLastError();
       if (err != ERROR_CALL_NOT_IMPLEMENTED)
         throw rdr::SystemException("OpenProcessToken failed", err);
-      // Under Windows 95/98/Me, we fake the handle value...
       h = INVALID_HANDLE_VALUE;
     }
-    isSafe_ = true;
   }
 }
 

@@ -21,7 +21,6 @@
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
 #include <rfb_win32/SDisplay.h>
-#include <rfb_win32/DynamicFn.h>
 
 namespace rfb {
 
@@ -35,20 +34,10 @@ namespace rfb {
         CharArray action(rfb::win32::SDisplay::disconnectAction.getData());
         bool disconnectLock = stricmp(action.buf, "Lock") == 0;
         bool disconnectLogoff = stricmp(action.buf, "Logoff") == 0;
-        typedef BOOL (WINAPI *_LockWorkStation_proto)();
-        DynamicFn<_LockWorkStation_proto> _LockWorkStation(_T("user32.dll"), "LockWorkStation");
-        if (!_LockWorkStation.isValid()) {
-          enableItem(IDC_DISCONNECT_LOCK, false);
-          if (disconnectLock) {
-            disconnectLogoff = true;
-            disconnectLock = false;
-          }
-        }
         setItemChecked(IDC_DISCONNECT_LOGOFF, disconnectLogoff);
         setItemChecked(IDC_DISCONNECT_LOCK, disconnectLock);
         setItemChecked(IDC_DISCONNECT_NONE, !disconnectLock && !disconnectLogoff);
         setItemChecked(IDC_REMOVE_WALLPAPER, rfb::win32::SDisplay::removeWallpaper);
-        setItemChecked(IDC_REMOVE_PATTERN, rfb::win32::SDisplay::removePattern);
         setItemChecked(IDC_DISABLE_EFFECTS, rfb::win32::SDisplay::disableEffects);
       }
       bool onCommand(int id, int cmd) {
@@ -57,7 +46,6 @@ namespace rfb {
         case IDC_DISCONNECT_LOCK:
         case IDC_DISCONNECT_NONE:
         case IDC_REMOVE_WALLPAPER:
-        case IDC_REMOVE_PATTERN:
         case IDC_DISABLE_EFFECTS:
           CharArray action(rfb::win32::SDisplay::disconnectAction.getData());
           bool disconnectLock = stricmp(action.buf, "Lock") == 0;
@@ -65,7 +53,6 @@ namespace rfb {
           setChanged((disconnectLogoff != isItemChecked(IDC_DISCONNECT_LOGOFF)) ||
                      (disconnectLock != isItemChecked(IDC_DISCONNECT_LOCK)) ||
                      (isItemChecked(IDC_REMOVE_WALLPAPER) != rfb::win32::SDisplay::removeWallpaper) ||
-                     (isItemChecked(IDC_REMOVE_PATTERN) != rfb::win32::SDisplay::removePattern) ||
                      (isItemChecked(IDC_DISABLE_EFFECTS) != rfb::win32::SDisplay::disableEffects));
           break;
         }
@@ -79,7 +66,6 @@ namespace rfb {
           action = _T("Lock");
         regKey.setString(_T("DisconnectAction"), action);
         regKey.setBool(_T("RemoveWallpaper"), isItemChecked(IDC_REMOVE_WALLPAPER));
-        regKey.setBool(_T("RemovePattern"), isItemChecked(IDC_REMOVE_PATTERN));
         regKey.setBool(_T("DisableEffects"), isItemChecked(IDC_DISABLE_EFFECTS));
         return true;
       }
