@@ -387,8 +387,6 @@ if (-e "/tmp/.X11-unix/X$displayNumber" ||
 }
 $ENV{VNCDESKTOP}= $desktopName;
 
-system($exedir."vncconfig -nowin >> " . &quotedString($desktopLog) . " 2>&1 &");
-
 if ($opt{'-fg'}) {
     if (! $skipxstartup) {
         system("$xstartup >> " . &quotedString($desktopLog) . " 2>&1");
