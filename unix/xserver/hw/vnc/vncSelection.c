@@ -247,36 +247,16 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
     if (rc != Success)
       return rc;
   } else if (target == xaUTF8_STRING) {
-    unsigned char* buffer;
-    unsigned char* out;
-    size_t len;
+    char* buffer;
 
-    const unsigned char* in;
-    size_t in_len;
-
-    buffer = malloc(strlen(clientCutText)*2);
+    buffer = vncLatin1ToUTF8(clientCutText, (size_t)-1);
     if (buffer == NULL)
       return BadAlloc;
 
-    out = buffer;
-    len = 0;
-    in = clientCutText;
-    while (*in != '\0') {
-      if (*in & 0x80) {
-        *out++ = 0xc0 | (*in >> 6);
-        *out++ = 0x80 | (*in & 0x3f);
-        len += 2;
-        in++;
-      } else {
-        *out++ = *in++;
-        len++;
-      }
-    }
-
     rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
                                  xaUTF8_STRING, 8, PropModeReplace,
-                                 len, buffer, TRUE);
-    free(buffer);
+                                 strlen(buffer), buffer, TRUE);
+    vncStrFree(buffer);
     if (rc != Success)
       return rc;
   } else {
@@ -424,56 +404,19 @@ static void vncHandleSelection(Atom selection, Atom target,
     vncStrFree(filtered);
   } else if (target == xaUTF8_STRING) {
     char *filtered;
-    unsigned char* buffer;
-    unsigned char* out;
-    size_t len;
-
-    const unsigned char* in;
-    size_t in_len;
+    char* buffer;
 
     if (prop->format != 8)
       return;
     if (prop->type != xaUTF8_STRING)
       return;
 
-    buffer = malloc(prop->size);
+    buffer = vncUTF8ToLatin1(prop->data, prop->size);
     if (buffer == NULL)
       return;
 
-    out = buffer;
-    len = 0;
-    in = prop->data;
-    in_len = prop->size;
-    while (in_len > 0) {
-      if ((*in & 0x80) == 0x00) {
-        *out++ = *in++;
-        len++;
-        in_len--;
-      } else if ((*in & 0xe0) == 0xc0) {
-        unsigned ucs;
-        ucs = (*in++ & 0x1f) << 6;
-        in_len--;
-        if (in_len > 0) {
-          ucs |= (*in++ & 0x3f);
-          in_len--;
-        }
-        if (ucs <= 0xff)
-          *out++ = ucs;
-        else
-          *out++ = '?';
-        len++;
-      } else {
-        *out++ = '?';
-        len++;
-        do {
-          in++;
-          in_len--;
-        } while ((in_len > 0) && ((*in & 0xc0) == 0x80));
-      }
-    }
-
-    filtered = vncConvertLF(buffer, len);
-    free(buffer);
+    filtered = vncConvertLF(buffer, (size_t)-1);
+    vncStrFree(buffer);
     if (filtered == NULL)
       return;
 

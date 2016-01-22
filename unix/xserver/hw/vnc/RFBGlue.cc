@@ -220,6 +220,24 @@ char* vncConvertLF(const char* src, size_t bytes)
   }
 }
 
+char* vncLatin1ToUTF8(const char* src, size_t bytes)
+{
+  try {
+    return latin1ToUTF8(src, bytes);
+  } catch (...) {
+    return NULL;
+  }
+}
+
+char* vncUTF8ToLatin1(const char* src, size_t bytes)
+{
+  try {
+    return utf8ToLatin1(src, bytes);
+  } catch (...) {
+    return NULL;
+  }
+}
+
 void vncStrFree(char* str)
 {
   strFree(str);

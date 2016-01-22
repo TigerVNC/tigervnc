@@ -235,25 +235,17 @@ void Viewport::updateWindow()
 void Viewport::serverCutText(const char* str)
 {
   char *buffer;
-  int size, ret;
+  size_t len;
 
   clearPendingClipboard();
 
   if (!acceptClipboard)
     return;
 
-  size = fl_utf8froma(NULL, 0, str, strlen(str));
-  if (size <= 0)
-    return;
+  buffer = latin1ToUTF8(str);
+  len = strlen(buffer);
 
-  size++;
-
-  buffer = new char[size];
-
-  ret = fl_utf8froma(buffer, size, str, strlen(str));
-  assert(ret < size);
-
-  vlog.debug("Got clipboard data (%d bytes)", (int)strlen(buffer));
+  vlog.debug("Got clipboard data (%d bytes)", (int)len);
 
   if (!hasFocus()) {
     pendingServerCutText = buffer;
@@ -264,11 +256,11 @@ void Viewport::serverCutText(const char* str)
   // dump the data into both variants.
 #if !defined(WIN32) && !defined(__APPLE__)
   if (setPrimary)
-    Fl::copy(buffer, ret, 0);
+    Fl::copy(buffer, len, 0);
 #endif
-  Fl::copy(buffer, ret, 1);
+  Fl::copy(buffer, len, 1);
 
-  delete [] buffer;
+  strFree(buffer);
 }
 
 static const char * dotcursor_xpm[] = {
@@ -550,27 +542,19 @@ void Viewport::resize(int x, int y, int w, int h)
 int Viewport::handle(int event)
 {
   char *buffer, *filtered;
-  int ret;
   int buttonMask, wheelMask;
   DownMap::const_iterator iter;
 
   switch (event) {
   case FL_PASTE:
-    buffer = new char[Fl::event_length() + 1];
-
     clearPendingClipboard();
 
-    // This is documented as to ASCII, but actually does to 8859-1
-    ret = fl_utf8toa(Fl::event_text(), Fl::event_length(), buffer,
-                     Fl::event_length() + 1);
-    assert(ret < (Fl::event_length() + 1));
-    filtered = convertLF(buffer, ret);
-    delete [] buffer;
+    buffer = utf8ToLatin1(Fl::event_text(), Fl::event_length());
+    filtered = convertLF(buffer);
+    strFree(buffer);
 
     if (!hasFocus()) {
-      pendingClientCutText = new char[strlen(filtered) + 1];
-      strcpy((char*)pendingClientCutText, filtered);
-      strFree(filtered);
+      pendingClientCutText = filtered;
       return 1;
     }
 
@@ -747,9 +731,9 @@ void Viewport::handleClipboardChange(int source, void *data)
 
 void Viewport::clearPendingClipboard()
 {
-  delete [] pendingServerCutText;
+  strFree(pendingServerCutText);
   pendingServerCutText = NULL;
-  delete [] pendingClientCutText;
+  strFree(pendingClientCutText);
   pendingClientCutText = NULL;
 }
 

@@ -114,8 +114,8 @@ private:
 
   bool firstLEDState;
 
-  const char* pendingServerCutText;
-  const char* pendingClientCutText;
+  char* pendingServerCutText;
+  char* pendingClientCutText;
 
   rdr::U32 menuKeySym;
   int menuKeyCode, menuKeyFLTK;

@@ -50,6 +50,10 @@ int vncGetSocketPort(int fd);
 int vncIsTCPPortUsed(int port);
 
 char* vncConvertLF(const char* src, size_t bytes);
+
+char* vncLatin1ToUTF8(const char* src, size_t bytes);
+char* vncUTF8ToLatin1(const char* src, size_t bytes);
+
 void vncStrFree(char* str);
 
 #ifdef __cplusplus

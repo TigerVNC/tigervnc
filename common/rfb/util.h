@@ -88,6 +88,15 @@ namespace rfb {
 
   char* convertLF(const char* src, size_t bytes = (size_t)-1);
 
+  // Convertions between various Unicode formats. The returned strings are
+  // always null terminated and must be freed using strFree().
+
+  size_t ucs4ToUTF8(unsigned src, char* dst);
+  size_t utf8ToUCS4(const char* src, size_t max, unsigned* dst);
+
+  char* latin1ToUTF8(const char* src, size_t bytes = (size_t)-1);
+  char* utf8ToLatin1(const char* src, size_t bytes = (size_t)-1);
+
   // HELPER functions for timeout handling
 
   // soonestTimeout() is a function to help work out the soonest of several
