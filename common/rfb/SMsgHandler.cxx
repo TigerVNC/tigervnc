@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2019 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,29 @@ void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
     supportsLEDState();
   if (client.supportsEncoding(pseudoEncodingQEMUKeyEvent) && firstQEMUKeyEvent)
     supportsQEMUKeyEvent();
+}
+
+void SMsgHandler::handleClipboardCaps(rdr::U32 flags, const rdr::U32* lengths)
+{
+  client.setClipboardCaps(flags, lengths);
+}
+
+void SMsgHandler::handleClipboardRequest(rdr::U32 flags)
+{
+}
+
+void SMsgHandler::handleClipboardPeek(rdr::U32 flags)
+{
+}
+
+void SMsgHandler::handleClipboardNotify(rdr::U32 flags)
+{
+}
+
+void SMsgHandler::handleClipboardProvide(rdr::U32 flags,
+                                         const size_t* lengths,
+                                         const rdr::U8* const* data)
+{
 }
 
 void SMsgHandler::supportsLocalCursor()

@@ -63,6 +63,9 @@ namespace rfb {
   const int pseudoEncodingVMwareCursor = 0x574d5664;
   const int pseudoEncodingVMwareLEDState = 0x574d5668;
 
+  // UltraVNC-specific
+  const int pseudoEncodingExtendedClipboard = 0xC0A1E5CE;
+
   int encodingNum(const char* name);
   const char* encodingName(int num);
 }

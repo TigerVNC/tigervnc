@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <rfb/Exception.h>
+#include <rfb/clipboardTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/CMsgReader.h>
 #include <rfb/CMsgWriter.h>
@@ -53,7 +54,7 @@ CConnection::CConnection()
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
     framebuffer(NULL), decoder(this),
-    serverClipboard(NULL)
+    serverClipboard(NULL), hasLocalClipboard(false)
 {
 }
 
@@ -467,12 +468,75 @@ void CConnection::dataRect(const Rect& r, int encoding)
 
 void CConnection::serverCutText(const char* str)
 {
+  hasLocalClipboard = false;
+
   strFree(serverClipboard);
   serverClipboard = NULL;
 
   serverClipboard = latin1ToUTF8(str);
 
   handleClipboardAnnounce(true);
+}
+
+void CConnection::handleClipboardCaps(rdr::U32 flags,
+                                      const rdr::U32* lengths)
+{
+  rdr::U32 sizes[] = { 0 };
+
+  CMsgHandler::handleClipboardCaps(flags, lengths);
+
+  writer()->writeClipboardCaps(rfb::clipboardUTF8 |
+                               rfb::clipboardRequest |
+                               rfb::clipboardPeek |
+                               rfb::clipboardNotify |
+                               rfb::clipboardProvide,
+                               sizes);
+}
+
+void CConnection::handleClipboardRequest(rdr::U32 flags)
+{
+  if (!(flags & rfb::clipboardUTF8))
+    return;
+  if (!hasLocalClipboard)
+    return;
+  handleClipboardRequest();
+}
+
+void CConnection::handleClipboardPeek(rdr::U32 flags)
+{
+  if (!hasLocalClipboard)
+    return;
+  if (server.clipboardFlags() & rfb::clipboardNotify)
+    writer()->writeClipboardNotify(rfb::clipboardUTF8);
+}
+
+void CConnection::handleClipboardNotify(rdr::U32 flags)
+{
+  strFree(serverClipboard);
+  serverClipboard = NULL;
+
+  if (flags & rfb::clipboardUTF8) {
+    hasLocalClipboard = false;
+    handleClipboardAnnounce(true);
+  } else {
+    handleClipboardAnnounce(false);
+  }
+}
+
+void CConnection::handleClipboardProvide(rdr::U32 flags,
+                                         const size_t* lengths,
+                                         const rdr::U8* const* data)
+{
+  if (!(flags & rfb::clipboardUTF8))
+    return;
+
+  strFree(serverClipboard);
+  serverClipboard = NULL;
+
+  serverClipboard = convertLF((const char*)data[0], lengths[0]);
+
+  // FIXME: Should probably verify that this data was actually requested
+  handleClipboardData(serverClipboard);
 }
 
 void CConnection::authSuccess()
@@ -506,19 +570,35 @@ void CConnection::requestClipboard()
     handleClipboardData(serverClipboard);
     return;
   }
+
+  if (server.clipboardFlags() & rfb::clipboardRequest)
+    writer()->writeClipboardRequest(rfb::clipboardUTF8);
 }
 
 void CConnection::announceClipboard(bool available)
 {
-  if (available)
-    handleClipboardRequest();
+  hasLocalClipboard = available;
+
+  if (server.clipboardFlags() & rfb::clipboardNotify)
+    writer()->writeClipboardNotify(available ? rfb::clipboardUTF8 : 0);
+  else {
+    if (available)
+      handleClipboardRequest();
+  }
 }
 
 void CConnection::sendClipboardData(const char* data)
 {
-  CharArray latin1(utf8ToLatin1(data));
+  if (server.clipboardFlags() & rfb::clipboardProvide) {
+    CharArray filtered(convertCRLF(data));
+    size_t sizes[1] = { strlen(filtered.buf) + 1 };
+    const rdr::U8* data[1] = { (const rdr::U8*)filtered.buf };
+    writer()->writeClipboardProvide(rfb::clipboardUTF8, sizes, data);
+  } else {
+    CharArray latin1(utf8ToLatin1(data));
 
-  writer()->writeClientCutText(latin1.buf);
+    writer()->writeClientCutText(latin1.buf);
+  }
 }
 
 void CConnection::refreshFramebuffer()
@@ -656,6 +736,7 @@ void CConnection::updateEncodings()
 
   encodings.push_back(pseudoEncodingDesktopName);
   encodings.push_back(pseudoEncodingLastRect);
+  encodings.push_back(pseudoEncodingExtendedClipboard);
   encodings.push_back(pseudoEncodingContinuousUpdates);
   encodings.push_back(pseudoEncodingFence);
   encodings.push_back(pseudoEncodingQEMUKeyEvent);

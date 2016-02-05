@@ -111,6 +111,15 @@ namespace rfb {
 
     virtual void serverCutText(const char* str);
 
+    virtual void handleClipboardCaps(rdr::U32 flags,
+                                     const rdr::U32* lengths);
+    virtual void handleClipboardRequest(rdr::U32 flags);
+    virtual void handleClipboardPeek(rdr::U32 flags);
+    virtual void handleClipboardNotify(rdr::U32 flags);
+    virtual void handleClipboardProvide(rdr::U32 flags,
+                                        const size_t* lengths,
+                                        const rdr::U8* const* data);
+
 
     // Methods to be overridden in a derived class
 
@@ -277,6 +286,7 @@ namespace rfb {
     DecodeManager decoder;
 
     char* serverClipboard;
+    bool hasLocalClipboard;
   };
 }
 #endif
