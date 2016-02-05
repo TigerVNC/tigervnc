@@ -520,7 +520,7 @@ int Viewport::handle(int event)
     vlog.debug("Sending clipboard data (%d bytes)", (int)strlen(buffer));
 
     try {
-      cc->writer()->clientCutText(buffer, ret);
+      cc->writer()->writeClientCutText(buffer, ret);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
@@ -666,7 +666,7 @@ void Viewport::handlePointerEvent(const rfb::Point& pos, int buttonMask)
   if (!viewOnly) {
     if (pointerEventInterval == 0 || buttonMask != lastButtonMask) {
       try {
-        cc->writer()->pointerEvent(pos, buttonMask);
+        cc->writer()->writePointerEvent(pos, buttonMask);
       } catch (rdr::Exception& e) {
         vlog.error("%s", e.str());
         exit_vncviewer(e.str());
@@ -689,7 +689,8 @@ void Viewport::handlePointerTimeout(void *data)
   assert(self);
 
   try {
-    self->cc->writer()->pointerEvent(self->lastPointerPos, self->lastButtonMask);
+    self->cc->writer()->writePointerEvent(self->lastPointerPos,
+                                          self->lastButtonMask);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     exit_vncviewer(e.str());
@@ -756,9 +757,9 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
   try {
     // Fake keycode?
     if (keyCode > 0xff)
-      cc->writer()->keyEvent(keySym, 0, true);
+      cc->writer()->writeKeyEvent(keySym, 0, true);
     else
-      cc->writer()->keyEvent(keySym, keyCode, true);
+      cc->writer()->writeKeyEvent(keySym, keyCode, true);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     exit_vncviewer(e.str());
@@ -790,9 +791,9 @@ void Viewport::handleKeyRelease(int keyCode)
 
   try {
     if (keyCode > 0xff)
-      cc->writer()->keyEvent(iter->second, 0, false);
+      cc->writer()->writeKeyEvent(iter->second, 0, false);
     else
-      cc->writer()->keyEvent(iter->second, keyCode, false);
+      cc->writer()->writeKeyEvent(iter->second, keyCode, false);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     exit_vncviewer(e.str());

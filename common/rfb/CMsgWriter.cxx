@@ -217,7 +217,7 @@ void CMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
   endMsg();
 }
 
-void CMsgWriter::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
+void CMsgWriter::writeKeyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
   if (!cp->supportsQEMUKeyEvent || !keycode) {
     /* This event isn't meaningful without a valid keysym */
@@ -240,7 +240,7 @@ void CMsgWriter::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 }
 
 
-void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
+void CMsgWriter::writePointerEvent(const Point& pos, int buttonMask)
 {
   Point p(pos);
   if (p.x < 0) p.x = 0;
@@ -256,7 +256,7 @@ void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
 }
 
 
-void CMsgWriter::clientCutText(const char* str, int len)
+void CMsgWriter::writeClientCutText(const char* str, rdr::U32 len)
 {
   startMsg(msgTypeClientCutText);
   os->pad(3);

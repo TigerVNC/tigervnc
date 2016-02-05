@@ -22,6 +22,8 @@
 
 #include <map>
 
+#include <rfb/Rect.h>
+
 #include <FL/Fl_Widget.H>
 
 class Fl_Menu_Button;
