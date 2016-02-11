@@ -219,8 +219,8 @@ void SConnection::processSecurityMsg()
     bool done = ssecurity->processMsg(this);
     if (done) {
       state_ = RFBSTATE_QUERYING;
-      queryConnection(ssecurity->getUserName());
       setAccessRights(ssecurity->getAccessRights());
+      queryConnection(ssecurity->getUserName());
     }
   } catch (AuthFailureException& e) {
     vlog.error("AuthFailureException: %s", e.str());
