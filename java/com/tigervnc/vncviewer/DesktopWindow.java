@@ -53,6 +53,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
                        CConn cc_) {
     cc = cc_;
     setSize(width, height);
+    setScaledSize();
     setOpaque(false);
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -105,8 +106,14 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
 
   public final PixelFormat getPF() { return im.getPF(); }
 
-  public void setViewport(Viewport viewport) {
-    viewport.setChild(this);
+  public void setViewport(JViewport viewport) {
+    setScaledSize();
+    viewport.setView(this);
+    // pack() must be called on a JFrame before getInsets()
+    // will return anything other than 0.
+    if (viewport.getRootPane() != null)
+      if (getRootPane().getParent() instanceof JFrame)
+        ((JFrame)getRootPane().getParent()).pack();
   }
 
   // Methods called from the RFB thread - these need to be synchronized
@@ -244,6 +251,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     int h = cc.cp.height;
     hideLocalCursor();
     setSize(w, h);
+    setScaledSize();
     im.resize(w, h);
   }
 

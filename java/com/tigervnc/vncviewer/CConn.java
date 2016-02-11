@@ -266,7 +266,6 @@ public class CConn extends CConnection implements
     pendingPFChange = false;
 
     if (viewer.embed.getValue()) {
-      desktop.setScaledSize();
       setupEmbeddedFrame();
     } else {
       recreateViewport();
@@ -301,7 +300,7 @@ public class CConn extends CConnection implements
     }
     sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-    sp.getViewport().setView(desktop);
+    desktop.setViewport(sp.getViewport());
     viewer.getContentPane().removeAll();
     viewer.add(sp);
     viewer.addFocusListener(new FocusAdapter() {
@@ -537,7 +536,6 @@ public class CConn extends CConnection implements
 
     desktop.resize();
     if (viewer.embed.getValue()) {
-      desktop.setScaledSize();
       setupEmbeddedFrame();
     } else {
       recreateViewport();
@@ -565,7 +563,7 @@ public class CConn extends CConnection implements
     if (viewport != null) viewport.dispose();
     viewport = new Viewport(cp.name(), this);
     viewport.setUndecorated(fullScreen);
-    desktop.setViewport(viewport);
+    desktop.setViewport(viewport.getViewport());
     reconfigureViewport();
     if ((cp.width > 0) && (cp.height > 0))
       viewport.setVisible(true);
@@ -573,9 +571,7 @@ public class CConn extends CConnection implements
   }
 
   private void reconfigureViewport() {
-    boolean pack = true;
     Dimension dpySize = viewport.getScreenSize();
-    desktop.setScaledSize();
     int w = desktop.scaledWidth;
     int h = desktop.scaledHeight;
     if (fullScreen) {
@@ -587,26 +583,21 @@ public class CConn extends CConnection implements
     } else {
       int wmDecorationWidth = viewport.getInsets().left + viewport.getInsets().right;
       int wmDecorationHeight = viewport.getInsets().top + viewport.getInsets().bottom;
-      if (w + wmDecorationWidth >= dpySize.width) {
+      if (w + wmDecorationWidth >= dpySize.width)
         w = dpySize.width - wmDecorationWidth;
-        pack = false;
-      }
-      if (h + wmDecorationHeight >= dpySize.height) {
+      if (h + wmDecorationHeight >= dpySize.height)
         h = dpySize.height - wmDecorationHeight;
-        pack = false;
-      }
-
       if (viewport.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
         w = viewport.getSize().width;
         h = viewport.getSize().height;
         int x = viewport.getLocation().x;
         int y = viewport.getLocation().y;
-        viewport.setGeometry(x, y, w, h, pack);
+        viewport.setGeometry(x, y, w, h);
       } else {
         int x = (dpySize.width - w - wmDecorationWidth) / 2;
         int y = (dpySize.height - h - wmDecorationHeight)/2;
         viewport.setExtendedState(JFrame.NORMAL);
-        viewport.setGeometry(x, y, w, h, pack);
+        viewport.setGeometry(x, y, w, h);
       }
       Viewport.setFullScreenWindow(null);
     }
@@ -1005,8 +996,6 @@ public class CConn extends CConnection implements
       }
       int scaleFactor =
         Integer.parseInt(scaleString.substring(0, scaleString.length()));
-      if (desktop != null)
-        desktop.setScaledSize();
     }
     if (viewer.desktopSize.getValue() != null &&
         viewer.desktopSize.getValue().split("x").length == 2) {
