@@ -155,16 +155,12 @@ public class Viewport extends JFrame
     }
   }
 
-  public void setChild(DesktopWindow child) {
-    sp.getViewport().setView(child);
+  public JViewport getViewport() {
+    return sp.getViewport();
   }
 
-  public void setGeometry(int x, int y, int w, int h, boolean pack) {
-    if (pack) {
-      pack();
-    } else {
-      setSize(w, h);
-    }
+  public void setGeometry(int x, int y, int w, int h) {
+    pack();
     if (!cc.fullScreen)
       setLocation(x, y);
   }
@@ -182,10 +178,6 @@ public class Viewport extends JFrame
       for (GraphicsDevice gd : ge.getScreenDevices())
         for (GraphicsConfiguration gc : gd.getConfigurations())
           r = r.union(gc.getBounds());
-      Dimension d = getPreferredSize();
-      if (!cc.fullScreen)
-        if ((d.width > 0) && (d.height > 0))
-          pack();
       Rectangle mb = new Rectangle(r);
       mb.grow(getInsets().left, getInsets().bottom);
       setMaximizedBounds(mb);
