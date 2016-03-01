@@ -732,7 +732,7 @@ for module in ${modules}; do
   elif [ "${module}" = "libXt" ]; then
     LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" CFLAGS="$CFLAGS -fno-strict-aliasing" ./configure --host=%{_host} --build=%{_build} --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic --with-xfile-search-path="%{_sysconfdir}/X11/%%L/%%T/%%N%%C%%S:%{_sysconfdir}/X11/%%l/%%T/\%%N%%C%%S:%{_sysconfdir}/X11/%%T/%%N%%C%%S:%{_sysconfdir}/X11/%%L/%%T/%%N%%S:%{_sysconfdir}/X\11/%%l/%%T/%%N%%S:%{_sysconfdir}/X11/%%T/%%N%%S:%{_datadir}/X11/%%L/%%T/%%N%%C%%S:%{_datadir}/X1\1/%%l/%%T/%%N%%C%%S:%{_datadir}/X11/%%T/%%N%%C%%S:%{_datadir}/X11/%%L/%%T/%%N%%S:%{_datadir}/X11/%%\l/%%T/%%N%%S:%{_datadir}/X11/%%T/%%N%%S"
   elif [ "${module}" = "libX11" ]; then
-    LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" ./configure --host=%{_host} --build=%{_build} --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --disable-static --enable-shared --with-pic
+    LDFLAGS="$LDFLAGS -lpthread" PKG_CONFIG="pkg-config --static" ./configure --host=%{_host} --build=%{_build} --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --disable-static --enable-shared --with-pic
   elif [ "${module}" = "libXtst" ]; then
     LDFLAGS="$LDFLAGS -static" PKG_CONFIG="pkg-config --static" ./configure --host=%{_host} --build=%{_build} --prefix=%{_prefix} --libdir=%{_libdir} ${extraoptions} --enable-static --disable-shared --with-pic
   elif [ "${module}" = "libXpm" ]; then
