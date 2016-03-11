@@ -36,12 +36,23 @@
 #include <assert.h>
 #include <sys/time.h>
 
+#ifdef __linux__
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <linux/sockios.h>
+#endif
+
 #include <rfb/Congestion.h>
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 
 // Debug output on what the congestion control is up to
 #undef CONGESTION_DEBUG
+
+// Dump socket congestion window debug trace to disk
+#undef CONGESTION_TRACE
 
 using namespace rfb;
 
@@ -271,6 +282,33 @@ int Congestion::getUncongestedETA()
     eta += etaNext;
     prevPing = &*iter;
   }
+}
+
+void Congestion::debugTrace(const char* filename, int fd)
+{
+#ifdef CONGESTION_TRACE
+#ifdef __linux__
+  FILE *f;
+  f = fopen(filename, "ab");
+  if (f != NULL) {
+    struct tcp_info info;
+    int buffered;
+    socklen_t len;
+    len = sizeof(info);
+    if ((getsockopt(fd, IPPROTO_TCP,
+                    TCP_INFO, &info, &len) == 0) &&
+        (ioctl(fd, SIOCOUTQ, &buffered) == 0)) {
+      struct timeval now;
+      gettimeofday(&now, NULL);
+      fprintf(f, "%u.%06u,%u,%u,%u,%u\n",
+              (unsigned)now.tv_sec, (unsigned)now.tv_usec,
+              congWindow, info.tcpi_snd_cwnd * info.tcpi_snd_mss,
+              getInFlight(), buffered);
+    }
+    fclose(f);
+  }
+#endif
+#endif
 }
 
 unsigned Congestion::getExtraBuffer()

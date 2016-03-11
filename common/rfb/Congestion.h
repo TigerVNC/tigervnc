@@ -47,6 +47,11 @@ namespace rfb {
     // longer be congested.
     int getUncongestedETA();
 
+    // debugTrace() writes the current congestion window, as well as the
+    // congestion window of the underlying TCP layer, to the specified
+    // file
+    void debugTrace(const char* filename, int fd);
+
   protected:
     unsigned getExtraBuffer();
     unsigned getInFlight();
