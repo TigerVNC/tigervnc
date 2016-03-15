@@ -191,7 +191,7 @@ public class CConn extends CConnection implements
     String passwordFileStr = viewer.passwordFile.getValue();
     PasswdDialog dlg;
 
-    if (user == null && passwordFileStr != "") {
+    if (user == null && !passwordFileStr.equals("")) {
       InputStream fp = null;
       try {
         fp = new FileInputStream(passwordFileStr);
