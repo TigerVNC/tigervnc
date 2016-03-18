@@ -657,7 +657,17 @@ public class VncViewer extends javax.swing.JApplet
                      "JPEG quality level. "+
                      "0 = Low, 9 = High",
                      8);
-
+  StringParameter x509ca
+  = new StringParameter("X509CA",
+    "Path to CA certificate to use when authenticating remote servers "+
+    "using any of the X509 security schemes (X509None, X509Vnc, etc.). "+
+    "Must be in PEM format.",
+    FileUtils.getHomeDir()+".vnc/x509_ca.pem");
+  StringParameter x509crl
+  = new StringParameter("X509CRL",
+    "Path to certificate revocation list to use in conjunction with "+
+    "-X509CA. Must also be in PEM format.",
+    FileUtils.getHomeDir()+".vnc/x509_crl.pem");
   StringParameter config
   = new StringParameter("config",
   "Specifies a configuration file to load.", null);
@@ -665,5 +675,5 @@ public class VncViewer extends javax.swing.JApplet
   Thread thread;
   Socket sock;
   static int nViewers;
-  static LogWriter vlog = new LogWriter("main");
+  static LogWriter vlog = new LogWriter("VncViewer");
 }

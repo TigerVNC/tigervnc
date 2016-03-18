@@ -30,7 +30,7 @@ import javax.swing.text.*;
 
 import com.tigervnc.rfb.LogWriter;
 
-class ClipboardDialog extends Dialog implements ActionListener {
+class ClipboardDialog extends Dialog {
 
   private class VncTransferHandler extends TransferHandler {
     // Custom TransferHandler designed to limit the size of outbound
@@ -109,14 +109,12 @@ class ClipboardDialog extends Dialog implements ActionListener {
     JPanel pb = new JPanel();
     clearButton = new JButton("Clear");
     pb.add(clearButton);
-    clearButton.addActionListener(this);
     sendButton = new JButton("Send to VNC server");
     pb.add(sendButton);
-    sendButton.addActionListener(this);
     cancelButton = new JButton("Cancel");
     pb.add(cancelButton);
-    cancelButton.addActionListener(this);
     getContentPane().add("South", pb);
+    addListeners(this);
     pack();
   }
 
