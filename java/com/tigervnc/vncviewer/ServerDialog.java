@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2013 Brian P. Hinz
+ * Copyright (C) 2011-2016 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,9 +28,12 @@ import java.util.*;
 
 import com.tigervnc.rfb.*;
 
-class ServerDialog extends Dialog implements
-                           ActionListener
-{
+import static java.awt.GridBagConstraints.HORIZONTAL;
+import static java.awt.GridBagConstraints.LINE_START;
+import static java.awt.GridBagConstraints.NONE;
+import static java.awt.GridBagConstraints.REMAINDER;
+
+class ServerDialog extends Dialog {
 
   @SuppressWarnings({"unchecked","rawtypes"})
   public ServerDialog(OptionsDialog options_,
@@ -39,9 +42,8 @@ class ServerDialog extends Dialog implements
     super(true);
     cc = cc_;
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    setResizable(false);
-    setSize(new Dimension(340, 135));
     setTitle("VNC Viewer: Connection Details");
+    setResizable(false);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         if (VncViewer.nViewers == 1) {
@@ -54,25 +56,14 @@ class ServerDialog extends Dialog implements
     });
 
     options = options_;
-    getContentPane().setLayout(new GridBagLayout());
 
-    JLabel serverLabel = new JLabel("Server:", JLabel.RIGHT);
-    if (UserPreferences.get("ServerDialog", "history") != null) {
-      String valueStr = UserPreferences.get("ServerDialog", "history");
-      server = new JComboBox(valueStr.split(","));
-    } else {
-      server = new JComboBox();
-    }
-
-    // Hack to set the left inset on editable JComboBox
-    if (UIManager.getLookAndFeel().getID() == "Windows") {
-      server.setBorder(BorderFactory.createCompoundBorder(server.getBorder(),
-        BorderFactory.createEmptyBorder(0,2,0,0)));
-    } else if (UIManager.getLookAndFeel().getID() == "Metal") {
-      ComboBoxEditor editor = server.getEditor();
-      JTextField jtf = (JTextField)editor.getEditorComponent();
-      jtf.setBorder(new CompoundBorder(jtf.getBorder(), new EmptyBorder(0,2,0,0)));
-    }
+    JLabel serverLabel = new JLabel("VNC Server:", JLabel.RIGHT);
+    String valueStr = new String("");
+    if (UserPreferences.get("ServerDialog", "history") != null)
+      valueStr = UserPreferences.get("ServerDialog", "history");
+    server = new MyJComboBox(valueStr.split(","));
+    if (valueStr.equals(""))
+      server.setPrototypeDisplayValue("255.255.255.255:5900");
 
     server.setEditable(true);
     editor = server.getEditor();
@@ -88,42 +79,50 @@ class ServerDialog extends Dialog implements
       }
     });
 
-    JPanel topPanel = new JPanel(new GridBagLayout());
+    Container contentPane = this.getContentPane();
+    contentPane.setLayout(new GridBagLayout());
 
-    addGBComponent(new JLabel(VncViewer.logoIcon),topPanel, 0, 0, 1, 1, 0, 0, 0, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(5,5,5,15));
-    addGBComponent(serverLabel,topPanel, 1, 0, 1, 1, 0, 0, 0, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_END, new Insets(10,0,5,5));
-    addGBComponent(server,topPanel, 2, 0, 1, 1, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(10,0,5,40));
-
+    JLabel icon = new JLabel(VncViewer.logoIcon);
     optionsButton = new JButton("Options...");
     aboutButton = new JButton("About...");
     okButton = new JButton("OK");
     cancelButton = new JButton("Cancel");
-    JPanel buttonPanel = new JPanel(new GridBagLayout());
-    buttonPanel.setPreferredSize(new Dimension(340, 40));
-    addGBComponent(aboutButton,buttonPanel, 0, 3, 1, 1, 0, 0, 0.2, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(0,5,0,5));
-    addGBComponent(optionsButton,buttonPanel, 1, 3, 1, 1, 0, 0, 0, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(0,5,0,5));
-    addGBComponent(okButton,buttonPanel, 2, 3, 1, 1, 0, 0, 0.8, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(0,5,0,5));
-    addGBComponent(cancelButton,buttonPanel, 3, 3, 1, 1, 0, 0, 0.5, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(0,5,0,5));
 
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.anchor = GridBagConstraints.LINE_START;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.gridheight = 1;
-    gbc.insets = new Insets(0,0,0,0);
-    gbc.ipadx = 0;
-    gbc.ipady = 0;
-    gbc.weightx = 1;
-    gbc.weighty = 1;
-    getContentPane().add(topPanel,gbc);
-    getContentPane().add(buttonPanel);
-
-    server.addActionListener(this);
-    optionsButton.addActionListener(this);
-    aboutButton.addActionListener(this);
-    okButton.addActionListener(this);
-    cancelButton.addActionListener(this);
-
+    contentPane.add(icon,
+                    new GridBagConstraints(0, 0,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(5, 5, 5, 5),
+                                           NONE, NONE));
+    contentPane.add(serverLabel,
+                    new GridBagConstraints(1, 0,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(5, 10, 5, 5),
+                                           NONE, NONE));
+    contentPane.add(server,
+                    new GridBagConstraints(2, 0,
+                                           REMAINDER, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(5, 0, 5, 5),
+                                           NONE, NONE));
+    JPanel buttonPane = new JPanel();
+    buttonPane.setLayout(new GridLayout(1, 4, 5, 5));
+    buttonPane.add(aboutButton);
+    buttonPane.add(optionsButton);
+    buttonPane.add(okButton);
+    buttonPane.add(cancelButton);
+    contentPane.add(buttonPane,
+                    new GridBagConstraints(0, 1,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(5, 5, 5, 5),
+                                           NONE, NONE));
+    addListeners(this);
     pack();
   }
 
@@ -160,12 +159,14 @@ class ServerDialog extends Dialog implements
     }
     // set params
     Configuration.setParam("Server", Hostname.getHost(serverName));
-    Configuration.setParam("Port", Integer.toString(Hostname.getPort(serverName)));
+    Configuration.setParam("Port",
+                            Integer.toString(Hostname.getPort(serverName)));
     // Update the history list
     String valueStr = UserPreferences.get("ServerDialog", "history");
     String t = (valueStr == null) ? "" : valueStr;
     StringTokenizer st = new StringTokenizer(t, ",");
-    StringBuffer sb = new StringBuffer().append((String)server.getSelectedItem());
+    StringBuffer sb =
+        new StringBuffer().append((String)server.getSelectedItem());
     while (st.hasMoreTokens()) {
       String str = st.nextToken();
       if (!str.equals((String)server.getSelectedItem()) && !str.equals("")) {
@@ -180,7 +181,7 @@ class ServerDialog extends Dialog implements
 
   CConn cc;
   @SuppressWarnings("rawtypes")
-  JComboBox server;
+  MyJComboBox server;
   ComboBoxEditor editor;
   JButton aboutButton, optionsButton, okButton, cancelButton;
   OptionsDialog options;

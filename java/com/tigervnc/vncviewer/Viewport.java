@@ -37,6 +37,11 @@ import com.tigervnc.rfb.*;
 import java.lang.Exception;
 import java.awt.Rectangle;
 
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 public class Viewport extends JFrame
 {
   public Viewport(String name, CConn cc_) {
@@ -86,22 +91,24 @@ public class Viewport extends JFrame
           if ((sp.getSize().width != cc.desktop.scaledWidth) ||
               (sp.getSize().height != cc.desktop.scaledHeight)) {
             cc.desktop.setScaledSize();
-            sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+            sp.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
+            sp.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_NEVER);
             sp.validate();
             if (getExtendedState() != JFrame.MAXIMIZED_BOTH &&
                 !cc.fullScreen) {
               sp.setSize(new Dimension(cc.desktop.scaledWidth,
                                        cc.desktop.scaledHeight));
-              int w = cc.desktop.scaledWidth + getInsets().left + getInsets().right;
-              int h = cc.desktop.scaledHeight + getInsets().top + getInsets().bottom;
+              int w = cc.desktop.scaledWidth + getInsets().left +
+                      getInsets().right;
+              int h = cc.desktop.scaledHeight + getInsets().top +
+                      getInsets().bottom;
               if (scaleString.equalsIgnoreCase("FixedRatio"))
                 setSize(w, h);
             }
           }
         } else {
-          sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-          sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+          sp.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
+          sp.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
           sp.validate();
         }
         if (cc.desktop.cursor != null) {

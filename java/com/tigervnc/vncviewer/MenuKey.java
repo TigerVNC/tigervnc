@@ -70,6 +70,13 @@ public class MenuKey
     return menuSymbols;
   }
 
+  public static String getKeyText(MenuKeySymbol sym) {
+    if (VncViewer.os.startsWith("mac os x"))
+      return sym.name.replace("_", " ");
+    else
+      return KeyEvent.getKeyText(sym.keycode);
+  }
+
   public static String getMenuKeyValueStr() {
     String s = "";
     for (int i = 0; i < getMenuKeySymbolCount(); i++) {

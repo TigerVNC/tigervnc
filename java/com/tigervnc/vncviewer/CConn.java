@@ -39,6 +39,7 @@ import java.awt.event.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.jar.Attributes;
@@ -191,7 +192,7 @@ public class CConn extends CConnection implements
     String passwordFileStr = viewer.passwordFile.getValue();
     PasswdDialog dlg;
 
-    if (user == null && passwordFileStr != "") {
+    if (user == null && !passwordFileStr.equals("")) {
       InputStream fp = null;
       try {
         fp = new FileInputStream(passwordFileStr);
@@ -884,8 +885,10 @@ public class CConn extends CConnection implements
       options.encNone.setEnabled(false);
       options.encTLS.setEnabled(false);
       options.encX509.setEnabled(false);
-      options.ca.setEnabled(false);
-      options.crl.setEnabled(false);
+      options.x509ca.setEnabled(false);
+      options.caButton.setEnabled(false);
+      options.x509crl.setEnabled(false);
+      options.crlButton.setEnabled(false);
       options.secIdent.setEnabled(false);
       options.secNone.setEnabled(false);
       options.secVnc.setEnabled(false);
@@ -966,11 +969,23 @@ public class CConn extends CConnection implements
           }
         }
       }
+      File caFile = new File(viewer.x509ca.getValue());
+      if (caFile.exists() && caFile.canRead())
+        options.x509ca.setText(caFile.getAbsolutePath());
+      File crlFile = new File(viewer.x509crl.getValue());
+      if (crlFile.exists() && crlFile.canRead())
+        options.x509crl.setText(crlFile.getAbsolutePath());
       options.encNone.setEnabled(options.secVeNCrypt.isSelected());
       options.encTLS.setEnabled(options.secVeNCrypt.isSelected());
       options.encX509.setEnabled(options.secVeNCrypt.isSelected());
-      options.ca.setEnabled(options.secVeNCrypt.isSelected());
-      options.crl.setEnabled(options.secVeNCrypt.isSelected());
+      options.x509ca.setEnabled(options.secVeNCrypt.isSelected() &&
+                                options.encX509.isSelected());
+      options.caButton.setEnabled(options.secVeNCrypt.isSelected() &&
+                                  options.encX509.isSelected());
+      options.x509crl.setEnabled(options.secVeNCrypt.isSelected() &&
+                                 options.encX509.isSelected());
+      options.crlButton.setEnabled(options.secVeNCrypt.isSelected() &&
+                                   options.encX509.isSelected());
       options.secIdent.setEnabled(options.secVeNCrypt.isSelected());
       options.secPlain.setEnabled(options.secVeNCrypt.isSelected());
       options.sendLocalUsername.setEnabled(options.secPlain.isSelected()||
@@ -1057,6 +1072,10 @@ public class CConn extends CConnection implements
       cp.qualityLevel = viewer.qualityLevel.getValue();
       encodingChange = true;
     }
+    if (!options.x509ca.getText().equals(""))
+        CSecurityTLS.x509ca.setParam(options.x509ca.getText());
+    if (!options.x509crl.getText().equals(""))
+        CSecurityTLS.x509crl.setParam(options.x509crl.getText());
     viewer.sendLocalUsername.setParam(options.sendLocalUsername.isSelected());
 
     viewer.viewOnly.setParam(options.viewOnly.isSelected());
