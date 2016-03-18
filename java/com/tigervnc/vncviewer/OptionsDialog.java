@@ -412,7 +412,7 @@ class OptionsDialog extends Dialog {
     JLabel menuKeyLabel = new JLabel("Menu Key");
     String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()];
     for (int i = 0; i < MenuKey.getMenuKeySymbolCount(); i++)
-      menuKeys[i] = KeyEvent.getKeyText(MenuKey.getMenuKeySymbols()[i].keycode);
+      menuKeys[i] = MenuKey.getKeyText(MenuKey.getMenuKeySymbols()[i]);
     menuKey  = new JComboBox(menuKeys);
 
     inputPanel.add(viewOnly,
