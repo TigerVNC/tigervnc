@@ -127,6 +127,7 @@ BuildRequires: kernel-headers, libatomic_ops-devel
 BuildRequires: xz
 %if !%{_bootstrap}
 BuildRequires: %{name}-static-devel == %{version}
+BuildRequires: nasm >= 2.01
 %endif
 
 Requires(post): initscripts chkconfig coreutils
