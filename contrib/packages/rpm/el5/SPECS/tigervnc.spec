@@ -457,7 +457,7 @@ popd
 %build
 export CC=gcc44
 export CXX=g++44
-export CFLAGS="$RPM_OPT_FLAGS -fPIC"
+export CFLAGS="-g $RPM_OPT_FLAGS -fPIC"
 export CXXFLAGS="$CFLAGS -static-libgcc"
 export PYTHON=python26
 
