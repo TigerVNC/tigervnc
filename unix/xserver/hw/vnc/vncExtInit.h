@@ -90,6 +90,8 @@ void vncPreScreenResize(int scrIdx);
 void vncPostScreenResize(int scrIdx, int success, int width, int height);
 void vncRefreshScreenLayout(int scrIdx);
 
+int vncOverrideParam(const char *nameAndValue);
+
 #ifdef __cplusplus
 }
 #endif
