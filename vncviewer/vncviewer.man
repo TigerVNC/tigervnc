@@ -153,6 +153,11 @@ combined with
 Accept clipboard changes from the server. Default is on.
 .
 .TP
+.B \-SetPrimary
+Set the primary selection as well as the clipboard selection.
+Default is on.
+.
+.TP
 .B \-SendClipboard
 Send clipboard changes to the server. Default is on.
 .

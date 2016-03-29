@@ -439,7 +439,8 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
 
   // RFB doesn't have separate selection and clipboard concepts, so we
   // dump the data into both variants.
-  Fl::copy(buffer, ret, 0);
+  if (setPrimary)
+    Fl::copy(buffer, ret, 0);
   Fl::copy(buffer, ret, 1);
 
   delete [] buffer;

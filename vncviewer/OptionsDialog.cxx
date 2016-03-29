@@ -263,6 +263,9 @@ void OptionsDialog::loadOptions(void)
 
   viewOnlyCheckbox->value(viewOnly);
   acceptClipboardCheckbox->value(acceptClipboard);
+#if !defined(WIN32) && !defined(__APPLE__)
+  setPrimaryCheckbox->value(setPrimary);
+#endif
   sendClipboardCheckbox->value(sendClipboard);
 #if !defined(WIN32) && !defined(__APPLE__)
   sendPrimaryCheckbox->value(sendPrimary);
@@ -373,6 +376,9 @@ void OptionsDialog::storeOptions(void)
   /* Input */
   viewOnly.setParam(viewOnlyCheckbox->value());
   acceptClipboard.setParam(acceptClipboardCheckbox->value());
+#if !defined(WIN32) && !defined(__APPLE__)
+  setPrimary.setParam(setPrimaryCheckbox->value());
+#endif
   sendClipboard.setParam(sendClipboardCheckbox->value());
 #if !defined(WIN32) && !defined(__APPLE__)
   sendPrimary.setParam(sendPrimaryCheckbox->value());
@@ -695,6 +701,14 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
                                                          CHECK_HEIGHT,
                                                          _("Accept clipboard from server")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  setPrimaryCheckbox = new Fl_Check_Button(LBLRIGHT(tx + INDENT, ty,
+                                                    CHECK_MIN_WIDTH,
+                                                    CHECK_HEIGHT,
+                                                    _("Also set primary selection")));
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+#endif
 
   sendClipboardCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                        CHECK_MIN_WIDTH,
