@@ -720,7 +720,7 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
   sendPrimaryCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
                                                      CHECK_MIN_WIDTH,
                                                      CHECK_HEIGHT,
-                                                     _("Send primary selection and cut buffer as clipboard")));
+                                                     _("Send primary selection as clipboard")));
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
 #endif
 
