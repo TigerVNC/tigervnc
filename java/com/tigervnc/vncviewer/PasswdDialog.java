@@ -120,6 +120,8 @@ class PasswdDialog extends Dialog implements UserInfo,
     if (userEntry.isEnabled())
       if (userEntry.getText().equals(""))
         return false;
+      else if (!passwdEntry.isEnabled())
+        return true;
     if (passwdEntry.isEnabled())
       if (!passwdEntry.getText().equals(""))
         return true;

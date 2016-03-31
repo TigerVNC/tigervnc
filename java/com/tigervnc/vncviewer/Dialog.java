@@ -99,6 +99,8 @@ class Dialog extends JDialog implements ActionListener,
     for (Component ch : c.getComponents()) {
       if (ch instanceof JCheckBox)
         ((JCheckBox)ch).addItemListener(this);
+      else if (ch instanceof JRadioButton)
+        ((JRadioButton)ch).addActionListener(this);
       else if (ch instanceof JButton)
         ((JButton)ch).addActionListener(this);
       else if (ch instanceof JComboBox)

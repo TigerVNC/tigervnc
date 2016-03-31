@@ -31,7 +31,6 @@ import javax.swing.text.*;
 import java.util.*;
 import java.util.Map.Entry;
 
-
 import com.tigervnc.rfb.*;
 
 import static java.awt.GridBagConstraints.BOTH;
@@ -50,16 +49,16 @@ class OptionsDialog extends Dialog {
   private class IntegerDocument extends PlainDocument {
     private int limit;
 
-    IntegerDocument(int limit) {
+    public IntegerDocument(int max) {
       super();
-      this.limit = limit;
+      limit = max;
     }
 
-    public void insertString(int offset, String  str, AttributeSet a)
+    public void insertString(int offset, String str, AttributeSet a)
           throws BadLocationException {
       if (str == null || !str.matches("^[0-9]+$")) return;
       if ((getLength() + str.length()) > limit)
-        java.awt.Toolkit.getDefaultToolkit().beep();
+        Toolkit.getDefaultToolkit().beep();
       else
         super.insertString(offset, str, a);
     }
@@ -68,11 +67,11 @@ class OptionsDialog extends Dialog {
   private class IntegerTextField extends JFormattedTextField {
     public IntegerTextField(int digits) {
       super();
-      this.setDocument(new IntegerDocument(digits));
+      setDocument(new IntegerDocument(digits));
       Font f = getFont();
       String template = String.format("%0"+digits+"d", 0);
       int w = getFontMetrics(f).stringWidth(template) +
-              getMargin().left + getMargin().right + 
+              getMargin().left + getMargin().right +
               getInsets().left + getInsets().right;
       int h = getPreferredSize().height;
       setPreferredSize(new Dimension(w, h));
@@ -95,17 +94,20 @@ class OptionsDialog extends Dialog {
   CConn cc;
   @SuppressWarnings({"rawtypes"})
   JComboBox menuKey, compressLevel, qualityLevel, scalingFactor;
-  ButtonGroup encodingGroup, colourGroup;
+  ButtonGroup encodingGroup, colourGroup, sshArgsGroup;
   JRadioButton zrle, hextile, tight, raw, fullColour, mediumColour,
-               lowColour, veryLowColour;
+               lowColour, veryLowColour, sshArgsDefault, sshArgsCustom;
   JCheckBox autoSelect, customCompressLevel, noJpeg, viewOnly,
             acceptClipboard, sendClipboard, acceptBell, desktopSize,
             fullScreen, fullScreenAllMonitors, shared, useLocalCursor,
             secVeNCrypt, encNone, encTLS, encX509, secNone, secVnc,
-            secPlain, secIdent, sendLocalUsername;
+            secPlain, secIdent, sendLocalUsername, sshTunnel, sshUseExt,
+            sshUseGateway;
   JButton okButton, cancelButton, caButton, crlButton, cfLoadButton,
-          cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
-  JTextField desktopWidth, desktopHeight, x509ca, x509crl;
+          cfSaveAsButton, defSaveButton, defReloadButton, defClearButton,
+          sshConfigBrowser, sshKeyFileBrowser, sshClientBrowser;
+  JTextField desktopWidth, desktopHeight, x509ca, x509crl, sshUser, sshHost,
+             sshPort, sshClient, sshArguments, sshConfig, sshKeyFile;
   JTabbedPane tabPane;
 
   @SuppressWarnings({"rawtypes","unchecked"})
@@ -123,6 +125,7 @@ class OptionsDialog extends Dialog {
 
     encodingGroup = new ButtonGroup();
     colourGroup = new ButtonGroup();
+    sshArgsGroup = new ButtonGroup();
     int indent = 0;
 
     // Compression tab
@@ -573,6 +576,248 @@ class OptionsDialog extends Dialog {
                                          new Insets(0, 0, 0, 0),
                                          NONE, NONE));
 
+    // SSH tab
+    JPanel sshPanel = new JPanel(new GridBagLayout());
+    sshPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+    sshTunnel = new JCheckBox("Tunnel VNC over SSH");
+
+    JPanel tunnelPanel = new JPanel(new GridBagLayout());
+
+    sshUseGateway = new JCheckBox("Use SSH gateway");
+    JLabel sshUserLabel = new JLabel("Username");
+    sshUser = new JTextField();
+    JLabel sshUserAtLabel = new JLabel("@");
+    JLabel sshHostLabel = new JLabel("Hostname (or IP address)");
+    sshHost = new JTextField("");
+    JLabel sshPortLabel = new JLabel("Port");
+    sshPort = new IntegerTextField(5);
+
+    sshUseExt = new JCheckBox("Use external SSH client");
+    sshClient = new JTextField();
+    sshClient.setName(Configuration.getParam("extSSHClient").getName());
+    sshClientBrowser = new JButton("Browse");
+    JLabel sshConfigLabel = new JLabel("SSH config file");
+    sshConfig = new JTextField();
+    sshConfig.setName(Configuration.getParam("sshConfig").getName());
+    sshConfigBrowser = new JButton("Browse");
+    JLabel sshKeyFileLabel = new JLabel("SSH identity file");
+    sshKeyFile = new JTextField();
+    sshKeyFile.setName(Configuration.getParam("sshKeyFile").getName());
+    sshKeyFileBrowser = new JButton("Browse");
+    JPanel sshArgsPanel = new JPanel(new GridBagLayout());
+    JLabel sshArgsLabel = new JLabel("Arguments:");
+    sshArgsDefault =
+      new GroupedJRadioButton("Default", sshArgsGroup, sshArgsPanel);
+    sshArgsCustom =
+      new GroupedJRadioButton("Custom", sshArgsGroup, sshArgsPanel);
+    sshArguments = new JTextField();
+
+    JPanel gatewayPanel = new JPanel(new GridBagLayout());
+    gatewayPanel.add(sshUseGateway,
+                    new GridBagConstraints(0, 0,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    indent = getButtonLabelInset(sshUseGateway);
+    gatewayPanel.add(sshUserLabel,
+                 new GridBagConstraints(0, 1,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, indent, 4, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshHostLabel,
+                 new GridBagConstraints(2, 1,
+                                        1, 1,
+                                        HEAVY, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 0, 4, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshPortLabel,
+                 new GridBagConstraints(3, 1,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 5, 4, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshUser,
+                 new GridBagConstraints(0, 2,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, indent, 0, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshUserAtLabel,
+                 new GridBagConstraints(1, 2,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 2, 0, 2),
+                                        NONE, NONE));
+    gatewayPanel.add(sshHost,
+                 new GridBagConstraints(2, 2,
+                                        1, 1,
+                                        HEAVY, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 0, 0, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshPort,
+                 new GridBagConstraints(3, 2,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 5, 0, 0),
+                                        NONE, NONE));
+
+    JPanel clientPanel = new JPanel(new GridBagLayout());
+    clientPanel.add(sshUseExt,
+                    new GridBagConstraints(0, 0,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+    clientPanel.add(sshClient,
+                    new GridBagConstraints(1, 0,
+                                           1, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    clientPanel.add(sshClientBrowser,
+                    new GridBagConstraints(2, 0,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArgsLabel,
+                    new GridBagConstraints(0, 1,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArgsDefault,
+                    new GridBagConstraints(1, 1,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArgsCustom,
+                    new GridBagConstraints(2, 1,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArguments,
+                    new GridBagConstraints(3, 1,
+                                           1, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    indent = getButtonLabelInset(sshUseExt);
+    clientPanel.add(sshArgsPanel,
+                    new GridBagConstraints(0, 1,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(4, indent, 0, 0),
+                                           NONE, NONE));
+
+    JPanel opensshPanel = new JPanel(new GridBagLayout());
+    opensshPanel.setBorder(BorderFactory.createTitledBorder("Embedded SSH client configuration"));
+    opensshPanel.add(sshConfigLabel,
+                     new GridBagConstraints(0, 0,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, NONE,
+                                            new Insets(0, 0, 5, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshConfig,
+                     new GridBagConstraints(1, 0,
+                                            1, 1,
+                                            HEAVY, LIGHT,
+                                            LINE_START, HORIZONTAL,
+                                            new Insets(0, 5, 5, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshConfigBrowser,
+                     new GridBagConstraints(2, 0,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, VERTICAL,
+                                            new Insets(0, 5, 5, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshKeyFileLabel,
+                     new GridBagConstraints(0, 1,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, NONE,
+                                            new Insets(0, 0, 0, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshKeyFile,
+                     new GridBagConstraints(1, 1,
+                                            1, 1,
+                                            HEAVY, LIGHT,
+                                            LINE_START, HORIZONTAL,
+                                            new Insets(0, 5, 0, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshKeyFileBrowser,
+                     new GridBagConstraints(2, 1,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, VERTICAL,
+                                            new Insets(0, 5, 0, 0),
+                                            NONE, NONE));
+    tunnelPanel.add(gatewayPanel,
+                    new GridBagConstraints(0, 0,
+                                           REMAINDER, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    tunnelPanel.add(clientPanel,
+                    new GridBagConstraints(0, 1,
+                                           REMAINDER, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    tunnelPanel.add(opensshPanel,
+                    new GridBagConstraints(0, 2,
+                                           REMAINDER, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+
+    sshPanel.add(sshTunnel,
+                 new GridBagConstraints(0, 0,
+                                        REMAINDER, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, NONE,
+                                        new Insets(0, 0, 4, 0),
+                                        NONE, NONE));
+    indent = getButtonLabelInset(sshTunnel);
+    sshPanel.add(tunnelPanel,
+                 new GridBagConstraints(0, 2,
+                                        REMAINDER, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, indent, 4, 0),
+                                        NONE, NONE));
+    sshPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+                 new GridBagConstraints(0, RELATIVE,
+                                        REMAINDER, REMAINDER,
+                                        HEAVY, HEAVY,
+                                        LINE_START, BOTH,
+                                        new Insets(0, 0, 0, 0),
+                                        NONE, NONE));
 
     // load/save tab
     JPanel loadSavePanel = new JPanel(new GridBagLayout());
@@ -659,6 +904,7 @@ class OptionsDialog extends Dialog {
     tabPane.addTab("Input", inputPanel);
     tabPane.addTab("Screen", ScreenPanel);
     tabPane.addTab("Misc", MiscPanel);
+    tabPane.addTab("SSH", sshPanel);
     tabPane.addTab("Load / Save", loadSavePanel);
     tabPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     // Resize the tabPane if necessary to prevent scrolling
@@ -701,8 +947,10 @@ class OptionsDialog extends Dialog {
     veryLowColour.setEnabled(!autoSelect.isSelected());
     compressLevel.setEnabled(customCompressLevel.isSelected());
     qualityLevel.setEnabled(noJpeg.isSelected());
-    sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
-      (secPlain.isSelected()||secIdent.isSelected()));
+    sendLocalUsername.setEnabled(secVeNCrypt.isEnabled() &&
+      (secPlain.isSelected() || secIdent.isSelected()));
+    sshArguments.setEnabled(sshTunnel.isSelected() &&
+      (sshUseExt.isSelected() && sshArgsCustom.isSelected()));
   }
 
   private void updatePreferences() {
@@ -782,6 +1030,19 @@ class OptionsDialog extends Dialog {
     if (!CSecurityTLS.x509crl.getValueStr().equals(""))
       UserPreferences.set("viewer", "x509crl",
               CSecurityTLS.x509crl.getValueStr());
+    UserPreferences.set("global", "Tunnel", sshTunnel.isSelected());
+    if (sshUseGateway.isSelected()) {
+      String via = sshUser.getText()+"@"+sshHost.getText()+":"+sshPort.getText();
+      UserPreferences.set("global", "Via", via);
+    }
+    if (sshUseExt.isSelected()) {
+      UserPreferences.set("global", "extSSH", sshUseExt.isSelected());
+      UserPreferences.set("global", "extSSHClient", sshClient.getText());
+      if (!sshArguments.getText().isEmpty())
+        UserPreferences.set("global", "extSSHArgs", sshArguments.getText());
+    }
+    UserPreferences.set("global", "SSHConfig", sshConfig.getText());
+    UserPreferences.set("global", "SSHKeyFile", sshKeyFile.getText());
   }
 
   private void restorePreferences() {
@@ -832,8 +1093,7 @@ class OptionsDialog extends Dialog {
     sendClipboard.setSelected(UserPreferences.getBool("global",
             "SendClipboard"));
     menuKey.setSelectedItem(UserPreferences.get("global", "MenuKey"));
-    desktopSize.setSelected(UserPreferences.get("global", "DesktopSize")
-            != null);
+    desktopSize.setSelected(!UserPreferences.get("global", "DesktopSize").isEmpty());
     if (desktopSize.isSelected()) {
       String desktopSizeString = UserPreferences.get("global", "DesktopSize");
       desktopWidth.setText(desktopSizeString.split("x")[0]);
@@ -874,6 +1134,70 @@ class OptionsDialog extends Dialog {
       secNone.setSelected(UserPreferences.getBool("viewer", "secNone", true));
     if (secVnc.isEnabled())
       secVnc.setSelected(UserPreferences.getBool("viewer", "secVnc", true));
+    sshTunnel.setSelected(UserPreferences.getBool("global", "Tunnel"));
+    sshUseGateway.setSelected(UserPreferences.get("global", "Via") != null);
+    if (sshUseGateway.isSelected())
+      cc.viewer.via.setParam(UserPreferences.get("global", "Via"));
+    sshUser.setText(Tunnel.getSshUser(cc));
+    sshHost.setText(Tunnel.getSshHost(cc));
+    sshPort.setText(Integer.toString(Tunnel.getSshPort(cc)));
+    sshUseExt.setSelected(UserPreferences.getBool("global", "extSSH"));
+    File f = new File(UserPreferences.get("global", "extSSHClient"));
+    if (f.exists() && f.canExecute())
+      sshClient.setText(f.getAbsolutePath());
+    sshArguments.setText(UserPreferences.get("global", "extSSHArgs"));
+    if (sshArguments.getText().isEmpty())
+      sshArgsDefault.setSelected(true);
+    else
+      sshArgsCustom.setSelected(true);
+    f = new File(UserPreferences.get("global", "SSHConfig"));
+    if (f.exists() && f.canRead())
+      sshConfig.setText(f.getAbsolutePath());
+    if (UserPreferences.get("global", "SSHKeyFile") != null) {
+      f = new File(UserPreferences.get("global", "SSHKeyFile"));
+      if (f.exists() && f.canRead())
+        sshKeyFile.setText(f.getAbsolutePath());
+    } else {
+      sshKeyFile.setText(Tunnel.getSshKeyFile(cc));
+    }
+    sshUseGateway.setEnabled(sshTunnel.isSelected());
+    sshUser.setEnabled(sshTunnel.isSelected() &&
+                       sshUseGateway.isEnabled() &&
+                       sshUseGateway.isSelected());
+    sshHost.setEnabled(sshTunnel.isSelected() &&
+                       sshUseGateway.isEnabled() &&
+                       sshUseGateway.isSelected());
+    sshPort.setEnabled(sshTunnel.isSelected() &&
+                       sshUseGateway.isEnabled() &&
+                       sshUseGateway.isSelected());
+    sshUseExt.setEnabled(sshTunnel.isSelected());
+    sshClient.setEnabled(sshTunnel.isSelected() &&
+                         sshUseExt.isEnabled());
+    sshClientBrowser.setEnabled(sshTunnel.isSelected() &&
+                                sshUseExt.isEnabled() &&
+                                sshUseExt.isSelected());
+    sshArgsDefault.setEnabled(sshTunnel.isSelected() &&
+                              sshUseExt.isEnabled() &&
+                              sshUseExt.isSelected());
+    sshArgsCustom.setEnabled(sshTunnel.isSelected() &&
+                             sshUseExt.isEnabled() &&
+                             sshUseExt.isSelected());
+    sshArguments.setEnabled(sshTunnel.isSelected() &&
+                            sshUseExt.isEnabled() &&
+                            sshUseExt.isSelected() &&
+                            sshArgsCustom.isSelected());
+    sshConfig.setEnabled(sshTunnel.isSelected() &&
+                         sshUseExt.isEnabled() &&
+                         !sshUseExt.isSelected());
+    sshConfigBrowser.setEnabled(sshTunnel.isSelected() &&
+                                sshUseExt.isEnabled() &&
+                                !sshUseExt.isSelected());
+    sshKeyFile.setEnabled(sshTunnel.isSelected() &&
+                          sshUseExt.isEnabled() &&
+                          !sshUseExt.isSelected());
+    sshKeyFileBrowser.setEnabled(sshTunnel.isSelected() &&
+                                 sshUseExt.isEnabled() &&
+                                 !sshUseExt.isSelected());
   }
 
   public void endDialog() {
@@ -890,15 +1214,15 @@ class OptionsDialog extends Dialog {
       JButton button = (JButton)s;
       if (button == okButton) {
         JTextField[] fields =
-          { x509ca, x509crl };
+          { x509ca, x509crl, sshClient, sshConfig, sshKeyFile };
         for (JTextField field : fields) {
           if (field.getText() != null && !field.getText().equals("")) {
             File f = new File(field.getText());
             if (!f.exists() || !f.canRead()) {
               String msg = new String("The file "+f.getAbsolutePath()+
                            " specified for option "+field.getName()+
-                           " does not exist or cannot be read.  Please "+
-                           "correct before proceeding.");
+                           " does not exist or cannot be read.  Please"+
+                           " correct before proceeding.");
               JOptionPane.showMessageDialog(this, msg, "WARNING",
                                             JOptionPane.WARNING_MESSAGE);
               return;
@@ -958,6 +1282,35 @@ class OptionsDialog extends Dialog {
         int ret = fc.showOpenDialog(this);
         if (ret == JFileChooser.APPROVE_OPTION)
           x509crl.setText(fc.getSelectedFile().toString());
+      } else if (button == sshClientBrowser) {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Path to external SSH client");
+        fc.setApproveButtonText("OK");
+        fc.setFileHidingEnabled(false);
+        int ret = fc.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION)
+          sshClient.setText(fc.getSelectedFile().toString());
+      } else if (button == sshConfigBrowser) {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Path to OpenSSH client config file");
+        fc.setApproveButtonText("OK");
+        fc.setFileHidingEnabled(false);
+        int ret = fc.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION)
+          sshConfig.setText(fc.getSelectedFile().toString());
+      } else if (button == sshKeyFileBrowser) {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Path to SSH key file");
+        fc.setApproveButtonText("OK");
+        fc.setFileHidingEnabled(false);
+        int ret = fc.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION)
+          sshKeyFile.setText(fc.getSelectedFile().toString());
+      }
+    } else if (s instanceof JRadioButton) {
+      JRadioButton button = (JRadioButton)s;
+      if (button == sshArgsCustom || button == sshArgsDefault) {
+        sshArguments.setEnabled(sshArgsCustom.isSelected());
       }
     }
   }
@@ -983,16 +1336,16 @@ class OptionsDialog extends Dialog {
         qualityLevel.setEnabled(enable);
       } else if (item == encX509) {
         x509ca.setEnabled(enable);
-        x509crl.setEnabled(enable);
         caButton.setEnabled(enable);
+        x509crl.setEnabled(enable);
         crlButton.setEnabled(enable);
       } else if (item == secVeNCrypt) {
         encNone.setEnabled(enable);
         encTLS.setEnabled(enable);
         encX509.setEnabled(enable);
         x509ca.setEnabled(enable && encX509.isSelected());
-        x509crl.setEnabled(enable && encX509.isSelected());
         caButton.setEnabled(enable && encX509.isSelected());
+        x509crl.setEnabled(enable && encX509.isSelected());
         crlButton.setEnabled(enable && encX509.isSelected());
         secIdent.setEnabled(enable);
         secPlain.setEnabled(enable);
@@ -1005,6 +1358,60 @@ class OptionsDialog extends Dialog {
       } else if (item == secIdent || item == secPlain) {
         sendLocalUsername.setEnabled(secIdent.isSelected() ||
                                      secPlain.isSelected());
+      } else if (item == sshTunnel) {
+        sshUseGateway.setEnabled(enable);
+        sshUser.setEnabled(enable &&
+                           sshUseGateway.isEnabled() &&
+                           sshUseGateway.isSelected());
+        sshHost.setEnabled(enable &&
+                           sshUseGateway.isEnabled() &&
+                           sshUseGateway.isSelected());
+        sshPort.setEnabled(enable &&
+                           sshUseGateway.isEnabled() &&
+                           sshUseGateway.isSelected());
+        sshUseExt.setEnabled(enable);
+        sshClient.setEnabled(enable &&
+                             sshUseExt.isEnabled() &&
+                             sshUseExt.isSelected());
+        sshClientBrowser.setEnabled(enable &&
+                                    sshUseExt.isEnabled() &&
+                                    sshUseExt.isSelected());
+        sshArgsDefault.setEnabled(enable &&
+                                  sshUseExt.isEnabled() &&
+                                  sshUseExt.isSelected());
+        sshArgsCustom.setEnabled(enable &&
+                                 sshUseExt.isEnabled() &&
+                                 sshUseExt.isSelected());
+        sshArguments.setEnabled(enable &&
+                                sshUseExt.isEnabled() &&
+                                sshUseExt.isSelected() &&
+                                sshArgsCustom.isSelected());
+        sshConfig.setEnabled(enable &&
+                             sshUseExt.isEnabled() &&
+                             !sshUseExt.isSelected());
+        sshConfigBrowser.setEnabled(enable &&
+                                    sshUseExt.isEnabled() &&
+                                    !sshUseExt.isSelected());
+        sshKeyFile.setEnabled(enable &&
+                              sshUseExt.isEnabled() &&
+                              !sshUseExt.isSelected());
+        sshKeyFileBrowser.setEnabled(enable &&
+                                     sshUseExt.isEnabled() &&
+                                     !sshUseExt.isSelected());
+      } else if (item == sshUseExt) {
+        sshClient.setEnabled(enable);
+        sshClientBrowser.setEnabled(enable);
+        sshArgsDefault.setEnabled(enable);
+        sshArgsCustom.setEnabled(enable);
+        sshArguments.setEnabled(enable && sshArgsCustom.isSelected());
+        sshConfig.setEnabled(!enable);
+        sshConfigBrowser.setEnabled(!enable);
+        sshKeyFile.setEnabled(!enable);
+        sshKeyFileBrowser.setEnabled(!enable);
+      } else if (item == sshUseGateway) {
+        sshUser.setEnabled(enable);
+        sshHost.setEnabled(enable);
+        sshPort.setEnabled(enable);
       }
     }
   }

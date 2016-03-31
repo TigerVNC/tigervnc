@@ -78,7 +78,7 @@ public class CConn extends CConnection implements
   public CConn(VncViewer viewer_, Socket sock_,
                String vncServerName)
   {
-    serverHost = null; serverPort = 0; sock = sock_; viewer = viewer_;
+    sock = sock_; viewer = viewer_;
     pendingPFChange = false;
     currentEncoding = Encodings.encodingTight; lastServerEncoding = -1;
     fullColour = viewer.fullColour.getValue();
@@ -121,8 +121,8 @@ public class CConn extends CConnection implements
     } else {
       if (vncServerName != null &&
           !viewer.alwaysShowServerDialog.getValue()) {
-        serverHost = Hostname.getHost(vncServerName);
-        serverPort = Hostname.getPort(vncServerName);
+        setServerName(Hostname.getHost(vncServerName));
+        setServerPort(Hostname.getPort(vncServerName));
       } else {
         ServerDialog dlg = new ServerDialog(options, vncServerName, this);
         boolean ret = dlg.showDialog();
@@ -130,20 +130,27 @@ public class CConn extends CConnection implements
           close();
           return;
         }
-        serverHost = viewer.vncServerName.getValueStr();
-        serverPort = viewer.vncServerPort.getValue();
+        setServerName(viewer.vncServerName.getValueStr());
+        setServerPort(viewer.vncServerPort.getValue());
       }
 
       try {
-        sock = new TcpSocket(serverHost, serverPort);
+        if (viewer.tunnel.getValue() || (viewer.via.getValue() != null)) {
+          int localPort = TcpSocket.findFreeTcpPort();
+          if (localPort == 0)
+            throw new Exception("Could not obtain free TCP port");
+          Tunnel.createTunnel(this, localPort);
+          sock = new TcpSocket("localhost", localPort);
+        } else {
+          sock = new TcpSocket(getServerName(), getServerPort());
+        }
       } catch (java.lang.Exception e) {
         throw new Exception(e.getMessage());
       }
-      vlog.info("connected to host "+serverHost+" port "+serverPort);
+      vlog.info("connected to host "+getServerName()+" port "+getServerPort());
     }
 
     sock.inStream().setBlockCallback(this);
-    setServerName(serverHost);
     setStreams(sock.inStream(), sock.outStream());
     initialiseProtocol();
   }
@@ -896,10 +903,47 @@ public class CConn extends CConnection implements
       options.sendLocalUsername.setEnabled(false);
       options.cfLoadButton.setEnabled(false);
       options.cfSaveAsButton.setEnabled(true);
+      options.sshTunnel.setEnabled(false);
+      options.sshUseGateway.setEnabled(false);
+      options.sshUser.setEnabled(false);
+      options.sshHost.setEnabled(false);
+      options.sshPort.setEnabled(false);
+      options.sshUseExt.setEnabled(false);
+      options.sshClient.setEnabled(false);
+      options.sshClientBrowser.setEnabled(false);
+      options.sshArgsDefault.setEnabled(false);
+      options.sshArgsCustom.setEnabled(false);
+      options.sshArguments.setEnabled(false);
+      options.sshConfig.setEnabled(false);
+      options.sshConfigBrowser.setEnabled(false);
+      options.sshKeyFile.setEnabled(false);
+      options.sshKeyFileBrowser.setEnabled(false);
     } else {
       options.shared.setSelected(viewer.shared.getValue());
       options.sendLocalUsername.setSelected(viewer.sendLocalUsername.getValue());
       options.cfSaveAsButton.setEnabled(false);
+      if (viewer.tunnel.getValue() || viewer.via.getValue() != null)
+        options.sshTunnel.setSelected(true);
+      if (viewer.via.getValue() != null)
+        options.sshUseGateway.setSelected(true);
+      options.sshUser.setText(Tunnel.getSshUser(this));
+      options.sshHost.setText(Tunnel.getSshHost(this));
+      options.sshPort.setText(Integer.toString(Tunnel.getSshPort(this)));
+      options.sshUseExt.setSelected(viewer.extSSH.getValue());
+      File client = new File(viewer.extSSHClient.getValue());
+      if (client.exists() && client.canRead())
+        options.sshClient.setText(client.getAbsolutePath());
+      if (viewer.extSSHArgs.getValue() == null) {
+        options.sshArgsDefault.setSelected(true);
+        options.sshArguments.setText("");
+      } else {
+        options.sshArgsCustom.setSelected(true);
+        options.sshArguments.setText(viewer.extSSHArgs.getValue());
+      }
+      File config = new File(viewer.sshConfig.getValue());
+      if (config.exists() && config.canRead())
+        options.sshConfig.setText(config.getAbsolutePath());
+      options.sshKeyFile.setText(Tunnel.getSshKeyFile(this));
 
       /* Process non-VeNCrypt sectypes */
       java.util.List<Integer> secTypes = new ArrayList<Integer>();
@@ -990,6 +1034,46 @@ public class CConn extends CConnection implements
       options.secPlain.setEnabled(options.secVeNCrypt.isSelected());
       options.sendLocalUsername.setEnabled(options.secPlain.isSelected()||
         options.secIdent.isSelected());
+      options.sshTunnel.setEnabled(true);
+        options.sshUseGateway.setEnabled(options.sshTunnel.isSelected());
+        options.sshUser.setEnabled(options.sshTunnel.isSelected() &&
+                                   options.sshUseGateway.isEnabled() &&
+                                   options.sshUseGateway.isSelected());
+        options.sshHost.setEnabled(options.sshTunnel.isSelected() &&
+                                   options.sshUseGateway.isEnabled() &&
+                                   options.sshUseGateway.isSelected());
+        options.sshPort.setEnabled(options.sshTunnel.isSelected() &&
+                                   options.sshUseGateway.isEnabled() &&
+                                   options.sshUseGateway.isSelected());
+        options.sshUseExt.setEnabled(options.sshTunnel.isSelected());
+        options.sshClient.setEnabled(options.sshTunnel.isSelected() &&
+                                     options.sshUseExt.isEnabled() &&
+                                     options.sshUseExt.isSelected());
+        options.sshClientBrowser.setEnabled(options.sshTunnel.isSelected() &&
+                                            options.sshUseExt.isEnabled() &&
+                                            options.sshUseExt.isSelected());
+        options.sshArgsDefault.setEnabled(options.sshTunnel.isSelected() &&
+                                          options.sshUseExt.isEnabled() &&
+                                          options.sshUseExt.isSelected());
+        options.sshArgsCustom.setEnabled(options.sshTunnel.isSelected() &&
+                                         options.sshUseExt.isEnabled() &&
+                                         options.sshUseExt.isSelected());
+        options.sshArguments.setEnabled(options.sshTunnel.isSelected() &&
+                                        options.sshUseExt.isEnabled() &&
+                                        options.sshUseExt.isSelected() &&
+                                        options.sshArgsCustom.isSelected());
+        options.sshConfig.setEnabled(options.sshTunnel.isSelected() &&
+                                     options.sshUseExt.isEnabled() &&
+                                     !options.sshUseExt.isSelected());
+        options.sshConfigBrowser.setEnabled(options.sshTunnel.isSelected() &&
+                                            options.sshUseExt.isEnabled() &&
+                                            !options.sshUseExt.isSelected());
+        options.sshKeyFile.setEnabled(options.sshTunnel.isSelected() &&
+                                      options.sshUseExt.isEnabled() &&
+                                      !options.sshUseExt.isSelected());
+        options.sshKeyFileBrowser.setEnabled(options.sshTunnel.isSelected() &&
+                                             options.sshUseExt.isEnabled() &&
+                                             !options.sshUseExt.isSelected());
     }
 
     options.fullScreen.setSelected(fullScreen);
@@ -1111,6 +1195,7 @@ public class CConn extends CConnection implements
       if (desktop != null)
         desktop.resetLocalCursor();
     }
+    viewer.extSSH.setParam(options.sshUseExt.isSelected());
 
     checkEncodings();
 
@@ -1221,6 +1306,22 @@ public class CConn extends CConnection implements
         Security.DisableSecType(Security.secTypeTLSIdent);
         Security.DisableSecType(Security.secTypeX509Ident);
       }
+      if (options.sshTunnel.isSelected()) {
+        if (options.sshUseGateway.isSelected()) {
+          String user = options.sshUser.getText();
+          String host = options.sshHost.getText();
+          String port = options.sshPort.getText();
+          viewer.via.setParam(user+"@"+host+":"+port);
+        } else {
+          viewer.tunnel.setParam(true);
+        }
+      }
+      viewer.extSSH.setParam(options.sshUseExt.isSelected());
+      viewer.extSSHClient.setParam(options.sshClient.getText());
+      if (options.sshArgsCustom.isSelected())
+        viewer.extSSHArgs.setParam(options.sshArguments.getText());
+      viewer.sshConfig.setParam(options.sshConfig.getText());
+      viewer.sshKeyFile.setParam(options.sshKeyFile.getText());
     }
     String desktopSize = (options.desktopSize.isSelected()) ?
         options.desktopWidth.getText() + "x" + options.desktopHeight.getText() : "";
@@ -1472,8 +1573,6 @@ public class CConn extends CConnection implements
   // the following are only ever accessed by the GUI thread:
   int buttonMask;
 
-  private String serverHost;
-  private int serverPort;
   private Socket sock;
 
   protected DesktopWindow desktop;
