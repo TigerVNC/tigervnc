@@ -10,7 +10,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 3%{?snap:.%{snap}}%{?dist}
+Release: 4%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -60,6 +60,7 @@ Provides: tightvnc = 1.5.0-0.15.20090204svn3586
 Obsoletes: tightvnc < 1.5.0-0.15.20090204svn3586
 
 Patch16: tigervnc-xorg-manpages.patch
+Patch17: nettle-2.7.1-ecc-cve.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -165,6 +166,9 @@ tar xjf %SOURCE13
 tar xjf %SOURCE14
 tar xzf %SOURCE15
 tar xzf %SOURCE16
+pushd nettle-*
+%patch17 -p1 -b .ecc-cve
+popd
 xzcat %SOURCE17 | tar xf -
 %endif
 
@@ -456,6 +460,9 @@ fi
 %endif
 
 %changelog
+* Sat Apr 02 2016 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-4
+- Fixed CVE-2015-8803 CVE-2015-8804 CVE-2015-8805 secp256r1 and secp384r1 bugs
+
 * Fri Dec 11 2015 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-3
 - Configure with --host and --build to avoid build host-specific compiler opts
 
