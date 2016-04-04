@@ -3,7 +3,9 @@
 #
 
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0022 OLD)
+if(POLICY CMP0022)
+  cmake_policy(SET CMP0022 OLD)
+endif()
 
 # Internal cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
