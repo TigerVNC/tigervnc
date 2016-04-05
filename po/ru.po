@@ -1,780 +1,719 @@
-# Copyright (C) 2011 TigerVNC Team
+# Russian translation for tigervnc.
+# Copyright © 2015 the TigerVNC Team (msgids)
+# This file is distributed under the same license as the tigervnc package.
+# Constantin Kaplinsky <const@tightvnc.com>, 2011.
+# PuppyRus linux team <www.puppyrus.org>.
+# Pavel Maryanov <acid@jack.kiev.ua>, 2016.
 msgid ""
 msgstr ""
-"Project-Id-Version: TigerVNC 0.0.91\n"
+"Project-Id-Version: tigervnc 1.5.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2014-09-22 11:15+0000\n"
-"PO-Revision-Date: 2011-11-24 13:31+0100\n"
-"Last-Translator: Constantin Kaplinsky <const@tightvnc.com>\n"
-"Language-Team: Russian\n"
-"Language: \n"
+"POT-Creation-Date: 2015-11-26 11:33+0000\n"
+"PO-Revision-Date: 2016-04-05 11:29+0300\n"
+"Last-Translator: Pavel Maryanov <acid@jack.kiev.ua>\n"
+"Language-Team: Russian <gnu@d07.ru>\n"
+"Language: ru_UA\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 1.8.7.1\n"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:111
 #, c-format
-msgid "(server default %s)"
-msgstr ""
+msgid "connected to host %s port %d"
+msgstr "подключен к компьютеру %s, порт %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:227
-msgid "About"
-msgstr "О программе"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:103
-#, fuzzy
-msgid "About TigerVNC Viewer"
-msgstr "О VNC Viewer"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1086
-#, fuzzy
-msgid "About TigerVNC viewer..."
-msgstr "О VNC Viewer..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:86
-msgid "About..."
-msgstr "О программе..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:704
-msgid "Accept clipboard from server"
-msgstr "Принимать буфер обмена с сервера"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:327
-msgid "Adjusting window size to avoid accidental full screen request"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:563
-msgid "Allow JPEG compression:"
-msgstr "Разрешить сжатие JPEG:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1070
-msgid "Alt"
-msgstr "Alt"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:648
-msgid "Authentication"
-msgstr "Аутентификация"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:89
-msgid "Authentication cancelled"
-msgstr "Аутентификация отменена"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:437
-msgid "Auto select"
-msgstr "Автоматический выбор"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:651
-#, c-format
-msgid "Bad Name/Value pair on line: %d in file: %s"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:92
-msgid "BitBlt failed"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:91
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:221
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:83
-msgid "Cancel"
-msgstr "Отмена"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:116
-msgid "CleanupSignalHandler called"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:222
-msgid "Close"
-msgstr "Закрыть"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:499
-msgid "Color level"
-msgstr "Уровень цветности"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:421
-#, fuzzy
-msgid "Compression"
-msgstr "Нестандартный уровень сжатия:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:96
-msgid "Connect"
-msgstr "Подключ."
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1085
-msgid "Connection info..."
-msgstr "Информация о соединении..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:362
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:404
-#, c-format
-msgid ""
-"Could not convert the parameter-name %s to wchar_t* when reading from the "
-"Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:302
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:340
-#, c-format
-msgid ""
-"Could not convert the parameter-name %s to wchar_t* when writing to the "
-"Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:318
-#, c-format
-msgid ""
-"Could not convert the parameter-value %s to wchar_t* when writing to the "
-"Registry, the buffersize is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:381
-#, c-format
-msgid ""
-"Could not convert the parameter-value for %s to utf8 char* when reading from "
-"the Registry, the buffer dest is to small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:256
-#, c-format
-msgid "Could not create VNC home directory: %s."
-msgstr "Не удается создать домашний каталог VNC: %s."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:251
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr ""
-"Не удается создать домашний каталог VNC: не удается получить путь к "
-"домашнему каталогу."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:310
-#, c-format
-msgid "Could not encode the parameter-value %s when writing to the Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:613
-#, c-format
-msgid ""
-"Could not read the line(%d) in the configuration file,the buffersize is to "
-"small."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:80
-msgid "CreateCompatibleDC failed"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1068
-msgid "Ctrl"
-msgstr "Ctrl"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:550
-msgid "Custom compression level:"
-msgstr "Нестандартный уровень сжатия:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:283
-msgid ""
-"Decoding: The size of the buffer dest is to small, it needs to be 1 byte "
-"bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:172
+#: vncviewer/CConn.cxx:173
 #, c-format
 msgid "Desktop name: %.80s"
-msgstr ""
+msgstr "Имя компьютера: %.80s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1088
-msgid "Dismiss menu"
-msgstr "Закрыть меню"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:778
-msgid "Enable full-screen mode over all monitors"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:469
-msgid "Enabling continuous updates"
-msgstr "Включение регулярного обновления"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:200
-#, c-format
-msgid ""
-"Encoding backslash: The size of the buffer dest is to small, it needs to be "
-"more than %d bytes bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:214
-#, c-format
-msgid ""
-"Encoding escape sequence: The size of the buffer dest is to small, it needs "
-"to be more than %d bytes bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:234
-#, c-format
-msgid ""
-"Encoding normal character: The size of the buffer dest is to small, it needs "
-"to be more than %d bytes bigger."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:595
-msgid "Encryption"
-msgstr "Шифрование"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:503
-#, c-format
-msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:455
-#, c-format
-msgid "Error(%d) closing key: Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:434
-#, c-format
-msgid "Error(%d) creating key: Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:471
-#, c-format
-msgid "Error(%d) opening key: Software\\TigerVNC\\vncviewer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:373
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:415
-#, c-format
-msgid "Error(%d) reading %s from Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:348
-#, c-format
-msgid "Error(%d) writing %d(REG_DWORD) to Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:326
-#, c-format
-msgid "Error(%d) writing %s(REG_SZ) to Registry."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OSXPixelBuffer.cxx:50
-#: /home/ossman/devel/tigervnc/vncviewer/FLTKPixelBuffer.cxx:33
-msgid "Error: Not enough memory for framebuffer"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:69
-msgid "Error: couldn't find suitable pixmap format"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:60
-msgid "Error: display lacks pixmap format for default depth"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:78
-msgid "Error: only true colour displays supported"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1056
-msgid "Exit viewer"
-msgstr "Выход"
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:588
-#, fuzzy
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr ""
-"Не удается создать домашний каталог VNC: не удается получить путь к "
-"домашнему каталогу."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:602
-#, c-format
-msgid "Failed to read configuration file, can't open %s"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:621
-#, c-format
-msgid "Failed to read line %d in file %s"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:528
-#, fuzzy
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr ""
-"Не удается создать домашний каталог VNC: не удается получить путь к "
-"домашнему каталогу."
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:542
-#, c-format
-msgid "Failed to write configuration file, can't open %s"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:526
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:538
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:551
-msgid "Failure grabbing keyboard"
-msgstr "Ошибка при перехвате для клавиатуры"
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:563
-msgid "Failure grabbing mouse"
-msgstr "Ошибка при перехвате для мыши"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:512
-msgid "Full (all available colors)"
-msgstr "Многоцветный режим (все доступные цвета)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1059
-msgid "Full screen"
-msgstr "Полноэкранный режим"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:770
-msgid "Full-screen mode"
-msgstr "Полноэкранный режим"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:230
-msgid "Hide"
-msgstr "Скрыть"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:238
-msgid "Hide Others"
-msgstr "Скрыть прочее"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:177
+#: vncviewer/CConn.cxx:178
 #, c-format
 msgid "Host: %.80s port: %d"
-msgstr ""
+msgstr "Компьютер: %.80s порт: %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:690
-#, fuzzy
-msgid "Input"
-msgstr "Ввод:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:510
-msgid "Internal FLTK error. Exiting."
-msgstr "Внутренняя ошибка FLTK. Выполняется выход."
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:384
-msgid "Invalid SetColourMapEntries from server!"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:106
-msgid "Invalid geometry specified!"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:708
+#: vncviewer/CConn.cxx:183
 #, c-format
-msgid "Invalid parameter name on line: %d in file: %s"
-msgstr ""
+msgid "Size: %d x %d"
+msgstr "Размер: %d x %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/DesktopWindow.cxx:797
-msgid "Invalid screen layout computed for resize request!"
-msgstr ""
+#: vncviewer/CConn.cxx:191
+#, c-format
+msgid "Pixel format: %s"
+msgstr "Формат пикселей: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:204
-#, fuzzy, c-format
+#: vncviewer/CConn.cxx:198
+#, c-format
+msgid "(server default %s)"
+msgstr "(сервер по умолчанию %s)"
+
+#: vncviewer/CConn.cxx:203
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Запрошено кодирование: %s"
+
+#: vncviewer/CConn.cxx:208
+#, c-format
 msgid "Last used encoding: %s"
-msgstr "Использование кодирования %s"
+msgstr "Используется кодирование: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:631
-#, c-format
-msgid ""
-"Line 1 in file %s\n"
-"must contain the TigerVNC configuration file identifier string:\n"
-"\"%s\""
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:209
+#: vncviewer/CConn.cxx:213
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
-msgstr ""
+msgstr "Скорость соединения: %d кбит/с"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:478
-#, c-format
-msgid "Listening on port %d\n"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:69
-msgid "Load..."
-msgstr "Загрузка..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:526
-msgid "Low (64 colors)"
-msgstr "Низкое качество цвета (64 цвета)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:519
-msgid "Medium (256 colors)"
-msgstr "Среднее качество цвета (256 цветов)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:725
-msgid "Menu key"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:791
-msgid "Misc."
-msgstr "Разное"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1026
-#, c-format
-msgid "Multiple characters given for key code %d (0x%04x): '%s'"
-msgstr "Несколько символов для кода ключа %d (0x%04x): '%s'"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:218
-msgid "No"
-msgstr "Нет"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:688
-#, c-format
-msgid "No scan code for extended virtual key 0x%02x"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:690
-#, c-format
-msgid "No scan code for virtual key 0x%02x"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:701
-#, c-format
-msgid "No symbol for extended virtual key 0x%02x"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:765
-#, c-format
-msgid "No symbol for key code %d (in the current state)"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:739
-#, c-format
-msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:703
-#, c-format
-msgid "No symbol for virtual key 0x%02x"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:606
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:659
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:727
-msgid "None"
-msgstr "Нет"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:220
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:88
-msgid "OK"
-msgstr "OK"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:74
-msgid "Opening password file failed"
-msgstr "Ошибка при открытии файла с паролем"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1084
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:64
-msgid "Options..."
-msgstr "Параметры..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:463
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:464
-msgid "Parameters -listen and -via are incompatible"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:722
-msgid "Pass system keys directly to server (full screen)"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:87
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:102
-msgid "Password:"
-msgstr "Пароль:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:625
-msgid "Path to X509 CA certificate"
-msgstr "Путь к сертификату X509 CA"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:632
-msgid "Path to X509 CRL file"
-msgstr "Путь к файлу X509 CRL"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:188
-#, fuzzy, c-format
-msgid "Pixel format: %s"
-msgstr "Использование формата точек %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:449
-msgid "Preferred encoding"
-msgstr "Предпочтительное кодирование"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:214
+#: vncviewer/CConn.cxx:218
 #, c-format
 msgid "Protocol version: %d.%d"
-msgstr ""
+msgstr "Версия протокола: %d.%d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:233
-msgid "Quit"
-msgstr "Выход"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1082
-msgid "Refresh screen"
-msgstr "Обновить экран"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:199
-#, fuzzy, c-format
-msgid "Requested encoding: %s"
-msgstr "Предпочтительное кодирование"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:749
-msgid "Resize remote session on connect"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:762
-msgid "Resize remote session to the local window"
-msgstr "Изменить размер удалённой сессии до местного окна"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1062
-msgid "Resize window to session"
-msgstr "Изменить размер окна сессии"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:74
-msgid "Save As..."
-msgstr "Сохранить как..."
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:741
-msgid "Screen"
-msgstr "Экран"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:580
-msgid "Security"
-msgstr "Безопасность"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:219
+#: vncviewer/CConn.cxx:223
 #, c-format
 msgid "Security method: %s"
-msgstr ""
+msgstr "Метод защиты: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:83
-msgid "SelectObject failed"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1075
-#, c-format
-msgid "Send %s"
-msgstr "Послать %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1080
-msgid "Send Ctrl-Alt-Del"
-msgstr "Послать Ctrl-Alt-Del"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:710
-msgid "Send clipboard to server"
-msgstr "Посылать буфер обмена на сервер"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:716
-#, fuzzy
-msgid "Send primary selection and cut buffer as clipboard"
-msgstr "Посылать \"primary selection\" и \"cut buffer\" как буфер обмена"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:237
-msgid "Services"
-msgstr "Службы"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:319
+#: vncviewer/CConn.cxx:329
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "Ошибка SetDesktopSize: %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:799
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Разделяемый режим (не отключать других клиентов)"
+#: vncviewer/CConn.cxx:398
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "С сервера получен недопустмый SetColourMapEntries"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:239
-msgid "Show All"
-msgstr "Показать все"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:805
-msgid "Show dot when no cursor"
-msgstr "Показывать точку при отсутствии курсора"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:182
+#. TRANSLATORS: Refers to a VNC protocol encoding type
+#: vncviewer/CConn.cxx:444 vncviewer/CConn.cxx:451
 #, c-format
-msgid "Size: %d x %d"
-msgstr ""
+msgid "Unknown encoding %d"
+msgstr "Неизвестное кодирование %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:665
-msgid "Standard VNC (insecure without encryption)"
-msgstr "Стандартный VNC (без защиты и шифрования)"
+#: vncviewer/CConn.cxx:445 vncviewer/CConn.cxx:452
+msgid "Unknown encoding"
+msgstr "Неизвестное кодирование"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:618
-msgid "TLS with X509 certificates"
-msgstr "TLS с сертификатами X509"
+#: vncviewer/CConn.cxx:484
+msgid "Enabling continuous updates"
+msgstr "Включение непрерывного обновления"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:612
+#: vncviewer/CConn.cxx:554
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr "Пропускная способность %d кбит/с. Установлено качество %d"
+
+#: vncviewer/CConn.cxx:576
+#, c-format
+msgid "Throughput %d kbit/s - full color is now %s"
+msgstr "Пропускная способность %d кбит/с. Глубина цвета %s"
+
+#: vncviewer/CConn.cxx:578
+msgid "disabled"
+msgstr "отключено"
+
+#: vncviewer/CConn.cxx:578
+msgid "enabled"
+msgstr "включено"
+
+#: vncviewer/CConn.cxx:588
+#, c-format
+msgid "Using %s encoding"
+msgstr "Используется кодирование %s"
+
+#: vncviewer/CConn.cxx:635
+#, c-format
+msgid "Using pixel format %s"
+msgstr "Используется формат пикселей %s"
+
+#: vncviewer/DesktopWindow.cxx:106
+msgid "Invalid geometry specified!"
+msgstr "Указан недопустимый размер экрана."
+
+#: vncviewer/DesktopWindow.cxx:309
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "Зафиксировать размер окна, чтобы исключить переключения на полный экран"
+
+#: vncviewer/DesktopWindow.cxx:491 vncviewer/DesktopWindow.cxx:497
+#: vncviewer/DesktopWindow.cxx:510
+msgid "Failure grabbing keyboard"
+msgstr "Не удалось перехватить клавиатуру"
+
+#: vncviewer/DesktopWindow.cxx:522
+msgid "Failure grabbing mouse"
+msgstr "Не удалось перехватить мышь"
+
+#: vncviewer/DesktopWindow.cxx:752
+msgid "Invalid screen layout computed for resize request!"
+msgstr "Для запроса на изменение рамера рассчитан недопустимый макет экрана."
+
+#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
+#: vncviewer/X11PixelBuffer.cxx:113
+msgid "Not enough memory for framebuffer"
+msgstr "Недостаточно памяти для framebuffer"
+
+#: vncviewer/OSXPixelBuffer.cxx:52
+msgid "Could not create framebuffer device"
+msgstr "Не удалось создать устройство framebuffer"
+
+#: vncviewer/OSXPixelBuffer.cxx:58
+msgid "Could not create framebuffer bitmap"
+msgstr "Не удалось создать framebuffer bitmap"
+
+#: vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC Viewer: параметры соединения"
+
+#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
+#: vncviewer/vncviewer.cxx:268
+msgid "Cancel"
+msgstr "Отмена"
+
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:267
+msgid "OK"
+msgstr "ОК"
+
+#: vncviewer/OptionsDialog.cxx:413
+msgid "Compression"
+msgstr "Сжатие"
+
+#: vncviewer/OptionsDialog.cxx:429
+msgid "Auto select"
+msgstr "Автоматический выбор"
+
+#: vncviewer/OptionsDialog.cxx:441
+msgid "Preferred encoding"
+msgstr "Вид кодирования"
+
+#: vncviewer/OptionsDialog.cxx:489
+msgid "Color level"
+msgstr "Глубина цвета"
+
+#: vncviewer/OptionsDialog.cxx:500
+msgid "Full (all available colors)"
+msgstr "Полная (все цвета)"
+
+#: vncviewer/OptionsDialog.cxx:507
+msgid "Medium (256 colors)"
+msgstr "Средняя (256 цветов)"
+
+#: vncviewer/OptionsDialog.cxx:514
+msgid "Low (64 colors)"
+msgstr "Низкая (64 цвета)"
+
+#: vncviewer/OptionsDialog.cxx:521
+msgid "Very low (8 colors)"
+msgstr "Минимум цвета (8 цветов)"
+
+#: vncviewer/OptionsDialog.cxx:538
+msgid "Custom compression level:"
+msgstr "Задать уровень сжатия:"
+
+#: vncviewer/OptionsDialog.cxx:544
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "уровень (1=мин, 6=макс. [4-6 используются редко])"
+
+#: vncviewer/OptionsDialog.cxx:551
+msgid "Allow JPEG compression:"
+msgstr "Разрешить сжатие JPEG:"
+
+#: vncviewer/OptionsDialog.cxx:557
+msgid "quality (0=poor, 9=best)"
+msgstr "качество (0=наихудшее, 9=наилучшее)"
+
+#: vncviewer/OptionsDialog.cxx:568
+msgid "Security"
+msgstr "Безопасность"
+
+#: vncviewer/OptionsDialog.cxx:583
+msgid "Encryption"
+msgstr "Шифрование"
+
+#: vncviewer/OptionsDialog.cxx:594 vncviewer/OptionsDialog.cxx:647
+#: vncviewer/OptionsDialog.cxx:715
+msgid "None"
+msgstr "Нет"
+
+#: vncviewer/OptionsDialog.cxx:600
 msgid "TLS with anonymous certificates"
 msgstr "TLS с анонимными сертификатами"
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:448
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:497
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:561
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:701
+#: vncviewer/OptionsDialog.cxx:606
+msgid "TLS with X509 certificates"
+msgstr "TLS с сертификатами X509"
+
+#: vncviewer/OptionsDialog.cxx:613
+msgid "Path to X509 CA certificate"
+msgstr "Путь к сертификату X509 CA"
+
+#: vncviewer/OptionsDialog.cxx:620
+msgid "Path to X509 CRL file"
+msgstr "Путь к файлу X509 CRL"
+
+#: vncviewer/OptionsDialog.cxx:636
+msgid "Authentication"
+msgstr "Авторизация"
+
+#: vncviewer/OptionsDialog.cxx:653
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Стандартный VNC (без защиты и шифрования)"
+
+#: vncviewer/OptionsDialog.cxx:659
+msgid "Username and password (insecure without encryption)"
+msgstr "Имя пользователя и пароль (без защиты и шифрования)"
+
+#: vncviewer/OptionsDialog.cxx:678
+msgid "Input"
+msgstr "Ввод"
+
+#: vncviewer/OptionsDialog.cxx:686
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Только просмотр (не перехватывать мышь и клавиатуру)"
+
+#: vncviewer/OptionsDialog.cxx:692
+msgid "Accept clipboard from server"
+msgstr "Принимать буфер обмена с сервера"
+
+#: vncviewer/OptionsDialog.cxx:698
+msgid "Send clipboard to server"
+msgstr "Отправлять буфер обмена на сервер"
+
+#: vncviewer/OptionsDialog.cxx:704
+msgid "Send primary selection and cut buffer as clipboard"
+msgstr "Отправлять выделение в терминале в буфер обмена сервера"
+
+#: vncviewer/OptionsDialog.cxx:710
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Отправлять сочетания клавиш (для полного экрана)"
+
+#: vncviewer/OptionsDialog.cxx:713
+msgid "Menu key"
+msgstr "Вызов меню:"
+
+#: vncviewer/OptionsDialog.cxx:729
+msgid "Screen"
+msgstr "Экран"
+
+#: vncviewer/OptionsDialog.cxx:737
+msgid "Resize remote session on connect"
+msgstr "Изменить размер удалённого экрана"
+
+#: vncviewer/OptionsDialog.cxx:750
+msgid "Resize remote session to the local window"
+msgstr "Изменить размер удалённого сеанса до локального окна"
+
+#: vncviewer/OptionsDialog.cxx:756
+msgid "Full-screen mode"
+msgstr "Полноэкранный режим"
+
+#: vncviewer/OptionsDialog.cxx:762
+msgid "Enable full-screen mode over all monitors"
+msgstr "Расширить режим полного экрана на все мониторы"
+
+#: vncviewer/OptionsDialog.cxx:771
+msgid "Misc."
+msgstr "Разное"
+
+#: vncviewer/OptionsDialog.cxx:779
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Совместная работа (не отключать других клиентов)"
+
+#: vncviewer/OptionsDialog.cxx:785
+msgid "Show dot when no cursor"
+msgstr "Показывать точку при отсутствии курсора"
+
+#: vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC Viewer: информация о соединении"
+
+#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "Сервер VNC:"
+
+#: vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Параметры"
+
+#: vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Загрузить"
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Сохранить"
+
+#: vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "О программе"
+
+#: vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "Подключ."
+
+#: vncviewer/UserDialog.cxx:74
+msgid "Opening password file failed"
+msgstr "Не удалось открыть файл с паролем"
+
+#: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
+msgid "VNC authentication"
+msgstr "Авторизация VNC"
+
+#: vncviewer/UserDialog.cxx:87 vncviewer/UserDialog.cxx:102
+msgid "Password:"
+msgstr "Пароль:"
+
+#: vncviewer/UserDialog.cxx:89
+msgid "Authentication cancelled"
+msgstr "Авторизация отменена"
+
+#: vncviewer/UserDialog.cxx:99
+msgid "Username:"
+msgstr "Имя пользователя:"
+
+#: vncviewer/Viewport.cxx:433
 #, c-format
-msgid "The parameterArray contains a object of a invalid type at line %d."
-msgstr ""
+msgid "Unable to create platform specific framebuffer: %s"
+msgstr "Не удаётся создать framebuffer: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:664
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:680
+#: vncviewer/Viewport.cxx:434
+msgid "Using platform independent framebuffer"
+msgstr "Используется универсальный framebuffer"
+
+#: vncviewer/Viewport.cxx:668
 #, c-format
-msgid "The value of the parameter %s on line %d in file %s is invalid."
-msgstr ""
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Нет скан-кода для дополнительной виртуальной клавиши 0x%02x"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:539
+#: vncviewer/Viewport.cxx:670
 #, c-format
-msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr "Пропускная способность %d Кбит/с - изменяется на качество %d"
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Нет скан-кода для виртуальной клавиши 0x%02x"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:561
+#: vncviewer/Viewport.cxx:687
 #, c-format
-msgid "Throughput %d kbit/s - full color is now %s"
-msgstr "Пропускная способность %d Кбит/с - теперь полноцветный режим %s"
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Нет символа для расширенной виртуальной клавиши 0x%02x"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:210
-#, fuzzy
-msgid "TigerVNC Viewer"
-msgstr "О VNC Viewer"
+#: vncviewer/Viewport.cxx:689
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Нет символа для виртуальной клавиши 0x%02x"
 
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:80
-#, fuzzy, c-format
+#: vncviewer/Viewport.cxx:727
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "Нет символа для кода клавиши 0x%02x (в текущем состоянии)"
+
+#: vncviewer/Viewport.cxx:753
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "Нет символа для кода клавиши %d (в текущем состоянии)"
+
+#: vncviewer/Viewport.cxx:790
+msgctxt "ContextMenu|"
+msgid "E&xit viewer"
+msgstr "В&ыход"
+
+#: vncviewer/Viewport.cxx:793
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "&Полный экран"
+
+#: vncviewer/Viewport.cxx:796
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "&Свернуть"
+
+#: vncviewer/Viewport.cxx:798
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "Изменить размер окна"
+
+#: vncviewer/Viewport.cxx:803
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "&CTRL"
+
+#: vncviewer/Viewport.cxx:806
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&ALT"
+
+#: vncviewer/Viewport.cxx:812
+#, c-format
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "Отправить %s"
+
+#: vncviewer/Viewport.cxx:818
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Отправить CTRL-ALT-&DEL"
+
+#: vncviewer/Viewport.cxx:821
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "&Обновить экран"
+
+#: vncviewer/Viewport.cxx:824
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "&Параметры"
+
+#: vncviewer/Viewport.cxx:826
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "Сведения о соединении"
+
+#: vncviewer/Viewport.cxx:828
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "О &TigerVNC viewer"
+
+#: vncviewer/Viewport.cxx:831
+msgctxt "ContextMenu|"
+msgid "Dismiss &menu"
+msgstr "Закрыть &меню"
+
+#: vncviewer/Viewport.cxx:915
+msgid "VNC connection info"
+msgstr "Сведения о соединении VNC"
+
+#: vncviewer/Win32PixelBuffer.cxx:62
+msgid "unable to create DIB section"
+msgstr "не удаётся создать выбор DIB"
+
+#: vncviewer/Win32PixelBuffer.cxx:79
+msgid "CreateCompatibleDC failed"
+msgstr "Ошибка CreateCompatibleDC"
+
+#: vncviewer/Win32PixelBuffer.cxx:82
+msgid "SelectObject failed"
+msgstr "Ошибка SelectObject"
+
+#: vncviewer/Win32PixelBuffer.cxx:91
+msgid "BitBlt failed"
+msgstr "Ошибка BitBlt"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:61
+msgid "Display lacks pixmap format for default depth"
+msgstr "Неправильный формат pixmap для выбранной глубины цвета"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:72
+msgid "Couldn't find suitable pixmap format"
+msgstr "Не удалось найти допустимый формат pixmap"
+
+#: vncviewer/X11PixelBuffer.cxx:81
+msgid "Only true colour displays supported"
+msgstr "Поддерживаются только полноцветные экраны"
+
+#: vncviewer/X11PixelBuffer.cxx:83
+#, c-format
+msgid "Using default colormap and visual, TrueColor, depth %d."
+msgstr "Используются стандартная цветовая карта и визульное оформление, TrueColor, глубина %d."
+
+#: vncviewer/X11PixelBuffer.cxx:109
+msgid "Could not create framebuffer image"
+msgstr "Не удалось создать изображение в framebuffer"
+
+#: vncviewer/parameters.cxx:279 vncviewer/parameters.cxx:313
+#, c-format
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr "Название параметра %s слишком длинное для записи в реестр"
+
+#: vncviewer/parameters.cxx:285 vncviewer/parameters.cxx:292
+#, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr "Параметр %s слишком длинный для записи в реестр"
+
+#: vncviewer/parameters.cxx:298 vncviewer/parameters.cxx:319
+#, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr "Не удалось записать параметр %s типа %s в реестр: %ld"
+
+#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:373
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr "Название параметра %s слишком длинное для чтения из реестра"
+
+#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:382
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr "Не удалось прочитать параметр %s из реестра: %ld"
+
+#: vncviewer/parameters.cxx:352
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr "Параметр %s слишком длинный для чтения из реестра"
+
+#: vncviewer/parameters.cxx:402
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr "Не удалось создать ключ реестра: %ld"
+
+#: vncviewer/parameters.cxx:416 vncviewer/parameters.cxx:465
+#: vncviewer/parameters.cxx:527 vncviewer/parameters.cxx:658
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr "Неизвестный тип для параметра %s"
+
+#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr "Не удалось закрыть ключ реестра: %ld"
+
+#: vncviewer/parameters.cxx:439
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr "Не удалось открыть ключ реестра: %ld"
+
+#: vncviewer/parameters.cxx:496
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "Не удалось создать домашний каталог VNC: не удаётся получить путь к домашнему каталогу."
+
+#: vncviewer/parameters.cxx:509
+#, c-format
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "Не удалось записать файл конфигурации: не удаётся открыть %s: %s"
+
+#: vncviewer/parameters.cxx:552
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "Не удалось прочитать файл конфигурации: не удаётся получить путь к домашнему каталогу."
+
+#: vncviewer/parameters.cxx:565
+#, c-format
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "Не удалось прочитать файл конфигурации: не удаётся открыть %s: %s"
+
+#: vncviewer/parameters.cxx:578 vncviewer/parameters.cxx:583
+#: vncviewer/parameters.cxx:608 vncviewer/parameters.cxx:621
+#: vncviewer/parameters.cxx:637
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "Не удалось прочитать строку  %d из файла %s: %s"
+
+#: vncviewer/parameters.cxx:584
+msgid "Line too long"
+msgstr "Строка слишком длинная"
+
+#: vncviewer/parameters.cxx:591
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "Недопустимый формат файла конфигурации %s"
+
+#: vncviewer/parameters.cxx:609
+msgid "Invalid format"
+msgstr "Недопустимый формат"
+
+#: vncviewer/parameters.cxx:622 vncviewer/parameters.cxx:638
+msgid "Invalid format or too large value"
+msgstr "Недопустимый формат или слишком большое значение"
+
+#: vncviewer/parameters.cxx:665
+#, c-format
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "Неизвестный параметр %s в строке %d файла %s"
+
+#: vncviewer/vncviewer.cxx:100
+#, c-format
 msgid ""
 "TigerVNC Viewer %d-bit v%s\n"
 "Built on: %s\n"
 "Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
 "See http://www.tigervnc.org for information on TigerVNC."
 msgstr ""
-"TigerVNC Viewer %d-bit версия %s (%s)\n"
-"%s\n"
-"Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
-"Ищите информацию о TigerVNC на сайте http://www.tigervnc.org"
+"TigerVNC Viewer (%d-разрядная версия) %s\n"
+"Сборка от: %s\n"
+"© 1999-%d, TigerVNC Team и многие другие (см. README.txt).\n"
+"Информацию о TigerVNC на сайте http://www.tigervnc.org"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1004
+#: vncviewer/vncviewer.cxx:127
+msgid "About TigerVNC Viewer"
+msgstr "О TigerVNC viewer"
+
+#: vncviewer/vncviewer.cxx:144 vncviewer/vncviewer.cxx:156
 #, c-format
-msgid "Unknown FLTK key code %d (0x%04x)"
-msgstr "Неизвестный код ключа FLTK %d (0x%04x)"
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "Не удалось запустить новый TigerVNC Viewer: %s"
 
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:878
+#: vncviewer/vncviewer.cxx:165
 #, c-format
-msgid "Unknown decimal separator: '%s'"
-msgstr "Неизвестный десятичный разделитель: '%s'"
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr "Получен сигнал завершения работы %d. TigerVNC Viewer будет закрыт."
 
-#: /home/ossman/devel/tigervnc/vncviewer/parameters.cxx:271
-#, fuzzy, c-format
-msgid "Unknown escape sequence at character %d"
-msgstr "Неизвестный десятичный разделитель: '%s'"
+#: vncviewer/vncviewer.cxx:257
+msgid "TigerVNC Viewer"
+msgstr "TigerVNC Viewer"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:430
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:437
-#, fuzzy
-msgid "Unknown rect encoding"
-msgstr "Использование кодирования %s"
+#: vncviewer/vncviewer.cxx:265
+msgid "No"
+msgstr "Нет"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:429
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:436
-#, c-format
-msgid "Unknown rect encoding %d"
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:671
-msgid "Username and password (insecure without encryption)"
-msgstr "Имя пользователя и пароль (без защиты и шифрования)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:99
-msgid "Username:"
-msgstr "Имя пользователя:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:573
-#, c-format
-msgid "Using %s encoding"
-msgstr "Использование кодирования %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/X11PixelBuffer.cxx:80
-#, c-format
-msgid "Using default colormap and visual, %sdepth %d."
-msgstr ""
-
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:620
-#, c-format
-msgid "Using pixel format %s"
-msgstr "Использование формата точек %s"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:42
-msgid "VNC Viewer: Connection Details"
-msgstr "VNC Viewer: детали соединения"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:57
-msgid "VNC Viewer: Connection Options"
-msgstr "VNC Viewer: параметры соединения"
-
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:86
-#: /home/ossman/devel/tigervnc/vncviewer/UserDialog.cxx:96
-msgid "VNC authentication"
-msgstr "Аутентификация VNC"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Viewport.cxx:1176
-msgid "VNC connection info"
-msgstr "Информация о соединении VNC"
-
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:49
-#: /home/ossman/devel/tigervnc/vncviewer/ServerDialog.cxx:54
-msgid "VNC server:"
-msgstr "Сервер VNC:"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:533
-msgid "Very low (8 colors)"
-msgstr "Минимум цвета (8 цветов)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:698
-#, fuzzy
-msgid "View only (ignore mouse and keyboard)"
-msgstr "Только просмотр (игнорировать мышь и клавиатуру)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/vncviewer.cxx:219
+#: vncviewer/vncviewer.cxx:266
 msgid "Yes"
 msgstr "Да"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:111
+#: vncviewer/vncviewer.cxx:269
+msgid "Close"
+msgstr "Закрыть"
+
+#: vncviewer/vncviewer.cxx:274
+msgid "About"
+msgstr "О программе"
+
+#: vncviewer/vncviewer.cxx:277
+msgid "Hide"
+msgstr "Скрыть"
+
+#: vncviewer/vncviewer.cxx:280
+msgid "Quit"
+msgstr "Выход"
+
+#: vncviewer/vncviewer.cxx:284
+msgid "Services"
+msgstr "Службы"
+
+#: vncviewer/vncviewer.cxx:285
+msgid "Hide Others"
+msgstr "Скрыть прочее"
+
+#: vncviewer/vncviewer.cxx:286
+msgid "Show All"
+msgstr "Показать все"
+
+#: vncviewer/vncviewer.cxx:295
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "&Файл"
+
+#: vncviewer/vncviewer.cxx:298
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "&Новое соединение"
+
+#: vncviewer/vncviewer.cxx:310
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "Не удалось создать домашний каталог VNC: не удаётся получить путь к домашнему каталогу."
+
+#: vncviewer/vncviewer.cxx:315
 #, c-format
-msgid "connected to host %s port %d"
-msgstr "подключен к хосту %s, порт %d"
+msgid "Could not create VNC home directory: %s."
+msgstr "Не удалось создать домашний каталог VNC: %s."
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "disabled"
-msgstr "отключено"
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:520 vncviewer/vncviewer.cxx:521
+msgid "Parameters -listen and -via are incompatible"
+msgstr "Параметры -listen и -via несовместимы"
 
-#: /home/ossman/devel/tigervnc/vncviewer/CConn.cxx:563
-msgid "enabled"
-msgstr "включено"
+#: vncviewer/vncviewer.cxx:536
+#, c-format
+msgid "Listening on port %d"
+msgstr "Прослушивается порт %d"
 
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:556
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr ""
-"уровень (1=высокая скорость, 6=высокое качество [4-6 используются редко])"
-
-#: /home/ossman/devel/tigervnc/vncviewer/OptionsDialog.cxx:569
-msgid "quality (0=poor, 9=best)"
-msgstr "качество (0=наихудшее, 9=наилучшее)"
-
-#: /home/ossman/devel/tigervnc/vncviewer/Win32PixelBuffer.cxx:63
-msgid "unable to create DIB section"
-msgstr ""
-
-#~ msgid ""
-#~ "Desktop name: %.80s\n"
-#~ "Host: %.80s port: %d\n"
-#~ "Size: %d x %d\n"
-#~ "Pixel format: %s\n"
-#~ "(server default %s)\n"
-#~ "Requested encoding: %s\n"
-#~ "Last used encoding: %s\n"
-#~ "Line speed estimate: %d kbit/s\n"
-#~ "Protocol version: %d.%d\n"
-#~ "Security method: %s\n"
-#~ msgstr ""
-#~ "Имя сеанса: %.80s\n"
-#~ "Машина: %.80s порт: %d\n"
-#~ "Размер: %d x %d\n"
-#~ "Формат цвета: %s\n"
-#~ "(значение сервера %s)\n"
-#~ "Запрошенная схема кодирования: %s\n"
-#~ "Последняя схема кодирования: %s\n"
-#~ "Скорость линии связи: %d кбит/с\n"
-#~ "Версия протокола: %d.%d\n"
-#~ "Схема безопасности: %s\n"
+#: vncviewer/vncviewer.cxx:601
+msgid "Internal FLTK error. Exiting."
+msgstr "Внутренняя ошибка FLTK. Выход."
