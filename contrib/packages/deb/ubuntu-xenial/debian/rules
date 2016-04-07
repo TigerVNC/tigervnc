@@ -44,24 +44,29 @@ export CC = gcc
 
 XCFLAGS = -Wall -Wunused -Wno-format-y2k -fPIE -fno-strict-aliasing
 
-get-orig-source: $(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz
-	@
+## ideally we would use the xorg sources provided by ubuntu
+#XORG_SOURCE_ARCHIVE ?= /usr/src/xorg-server.tar.xz
+## however tigervnc 1.6.0 does support only xorg up to 1.17
+XORG_SOURCE_ARCHIVE ?= xorg-server-1.17.4.tar.bz2
 
-$(SOURCE_NAME)_$(SOURCE_VERSION).orig.tar.gz:
-	$(CURDIR)/get-orig-source.sh
+$(XORG_SOURCE_ARCHIVE):
+	# download xorg source archive if not present
+	wget http://xorg.freedesktop.org/releases/individual/xserver/$(XORG_SOURCE_ARCHIVE)
+
+xorg-source-stamp: $(XORG_SOURCE_ARCHIVE)
+	tar -C unix/xserver -axf $(XORG_SOURCE_ARCHIVE) --strip-components=1
+	cd unix/xserver && patch -p1 < ../xserver117.patch
+	patch -p1 < debian/xorg-source-patches/100_rethrow_signals.patch
+	patch -p1 < debian/xorg-source-patches/516_tigervnc-xorg-manpages.patch
+	touch xorg-source-stamp
 
 configure: config-stamp
-config-stamp:
+config-stamp: xorg-source-stamp
 	dh_testdir
 	# Add here commands to configure the package.
-	(cd fltk-*;DSOFLAGS="$(filter-out -fPIE -pie,$(LDFLAGS))" \
-    ./configure --enable-shared=no --enable-cairo --enable-cp936 \
-    --with-optim="$(CFLAGS) $(XCFLAGS)" --libdir=$(libdir);make)
 	cmake -G"Unix Makefiles" \
-    -DBUILD_STATIC=off \
-  	-DCMAKE_INSTALL_PREFIX=/usr \
-  	-DFLTK_LIBRARIES="$(CURDIR)/fltk-1.3.3/lib/libfltk.a;$(CURDIR)/fltk-1.3.3/lib/libfltk_images.a;-lpng" \
-  	-DFLTK_INCLUDE_DIR=$(CURDIR)/fltk-1.3.3
+		-DBUILD_STATIC=off \
+	 	-DCMAKE_INSTALL_PREFIX=/usr
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
@@ -280,4 +285,4 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install get-orig-source
+.PHONY: build clean binary-indep binary-arch binary install
