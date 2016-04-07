@@ -1,5 +1,5 @@
 # Russian translation for tigervnc.
-# Copyright © 2015 the TigerVNC Team (msgids)
+# Copyright © 2016 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
 # Constantin Kaplinsky <const@tightvnc.com>, 2011.
 # PuppyRus linux team <www.puppyrus.org>.
@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: tigervnc 1.5.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
 "POT-Creation-Date: 2015-11-26 11:33+0000\n"
-"PO-Revision-Date: 2016-04-05 11:29+0300\n"
+"PO-Revision-Date: 2016-04-07 16:08+0300\n"
 "Last-Translator: Pavel Maryanov <acid@jack.kiev.ua>\n"
 "Language-Team: Russian <gnu@d07.ru>\n"
 "Language: ru_UA\n"
@@ -513,7 +513,7 @@ msgstr "Поддерживаются только полноцветные эк�
 #: vncviewer/X11PixelBuffer.cxx:83
 #, c-format
 msgid "Using default colormap and visual, TrueColor, depth %d."
-msgstr "Используются стандартная цветовая карта и визульное оформление, TrueColor, глубина %d."
+msgstr "Используется стандартная цветовая карта и визуальное оформление, TrueColor, глубина %d."
 
 #: vncviewer/X11PixelBuffer.cxx:109
 msgid "Could not create framebuffer image"
