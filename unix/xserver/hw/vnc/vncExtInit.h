@@ -36,6 +36,7 @@ extern "C" {
 
 // vncExt.c
 extern int vncNoClipboard;
+extern int vncTrustXClient;
 
 int vncAddExtension(void);
 
