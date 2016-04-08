@@ -301,7 +301,7 @@ static inline void pressKey(DeviceIntPtr dev, int kc, Bool down, const char *msg
 	n = GetKeyboardEvents(eventq, dev, action, kc);
 	enqueueEvents(dev, n);
 #else
-	QueueKeyboardEvents(dev, action, kc, NULL);
+	QueueKeyboardEvents(dev, action, kc);
 #endif
 }
 
