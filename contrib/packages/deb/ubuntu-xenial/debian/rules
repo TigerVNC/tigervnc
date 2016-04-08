@@ -44,18 +44,11 @@ export CC = gcc
 
 XCFLAGS = -Wall -Wunused -Wno-format-y2k -fPIE -fno-strict-aliasing
 
-## ideally we would use the xorg sources provided by ubuntu
-#XORG_SOURCE_ARCHIVE ?= /usr/src/xorg-server.tar.xz
-## however tigervnc 1.6.0 does support only xorg up to 1.17
-XORG_SOURCE_ARCHIVE ?= xorg-server-1.17.4.tar.bz2
-
-$(XORG_SOURCE_ARCHIVE):
-	# download xorg source archive if not present
-	wget http://xorg.freedesktop.org/releases/individual/xserver/$(XORG_SOURCE_ARCHIVE)
+XORG_SOURCE_ARCHIVE = /usr/src/xorg-server.tar.xz
 
 xorg-source-stamp: $(XORG_SOURCE_ARCHIVE)
 	tar -C unix/xserver -axf $(XORG_SOURCE_ARCHIVE) --strip-components=1
-	cd unix/xserver && patch -p1 < ../xserver117.patch
+	cd unix/xserver && patch -p1 < ../xserver118.patch
 	patch -p1 < debian/xorg-source-patches/100_rethrow_signals.patch
 	patch -p1 < debian/xorg-source-patches/516_tigervnc-xorg-manpages.patch
 	touch xorg-source-stamp
@@ -85,16 +78,13 @@ config-stamp: xorg-source-stamp
 		--with-xkb-output=/var/lib/xkb \
 		--with-default-xkb-rules=evdev \
 		--disable-devel-docs \
-		--disable-install-libxf86config \
 		--enable-mitshm \
 		--enable-xres \
 		--disable-xcsecurity \
-		--disable-xcalibrate \
 		--disable-tslib \
 		--enable-dbe \
 		--disable-xf86bigfont \
 		--disable-dpms \
-		--disable-config-dbus \
 		--disable-config-hal \
 		--disable-config-udev \
 		--disable-xorg \
@@ -102,11 +92,8 @@ config-stamp: xorg-source-stamp
 		--disable-xwin \
 		--disable-xfake \
 		--disable-install-setuid \
-		--enable-gestures \
 		--with-default-font-path="/usr/share/fonts/X11/misc,/usr/share/fonts/X11/cyrillic,/usr/share/fonts/X11/100dpi/:unscaled,/usr/share/fonts/X11/75dpi/:unscaled,/usr/share/fonts/X11/Type1,/usr/share/fonts/X11/100dpi,/usr/share/fonts/X11/75dpi,/var/lib/defoma/x-ttcidfont-conf.d/dirs/TrueType,built-ins" \
 		--enable-aiglx \
-		--enable-glx-tls \
-		--enable-registry \
 		--enable-composite \
 		--enable-record \
 		--enable-xv \
@@ -120,7 +107,6 @@ config-stamp: xorg-source-stamp
 		--enable-xinerama \
 		--enable-xf86vidmode \
 		--enable-xace \
-		--disable-selinux \
 		--enable-xfree86-utils \
 		--disable-dmx \
 		--disable-xvfb \
@@ -180,6 +166,9 @@ install: build
 	# tigervncserver
 	make install DESTDIR=$(CURDIR)/debian/tigervncserver
 	(cd unix/xserver/hw/vnc; make install DESTDIR=$(CURDIR)/debian/tigervncserver)
+	# TODO: why does viewer stuff end up in server installation?
+	rm -rf $(CURDIR)/debian/tigervncserver/usr/share/applications
+	rm -rf $(CURDIR)/debian/tigervncserver/usr/share/icons
 	mv $(CURDIR)/debian/tigervncserver/usr/bin/Xvnc \
 		$(CURDIR)/debian/tigervncserver/usr/bin/Xtigervnc
 	mv $(CURDIR)/debian/tigervncserver/usr/bin/vncconfig \

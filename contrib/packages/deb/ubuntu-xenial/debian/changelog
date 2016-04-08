@@ -1,8 +1,7 @@
-tigervnc (1.6.0-3) xenial; urgency=low
+tigervnc (1.6.80-1) xenial; urgency=low
 
   * Build using libfltk1.3-dev as provided by ubuntu.
-  * Prepare for using xorg-server-source, which is version 1.18 in xenial and
-    not yet supported by tigervnc.
+  * Build using xorg-server-source as provided by ubuntu.
 
  -- Dominik Muth <dominik.muth@gmx.de>  Thu, 07 Apr 2016 22:17:09 +0200
 
