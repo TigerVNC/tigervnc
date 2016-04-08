@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <set>
+#include <string>
+
 #include <rfb/Configuration.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
@@ -52,6 +55,15 @@ int vncFbstride[MAXSCREENS];
 
 int vncInetdSock = -1;
 
+struct CaseInsensitiveCompare {
+  bool operator() (const std::string &a, const std::string &b) const {
+    return strcasecmp(a.c_str(), b.c_str()) < 0;
+  }
+};
+
+typedef std::set<std::string, CaseInsensitiveCompare> ParamSet;
+static ParamSet allowOverrideSet;
+
 rfb::StringParameter httpDir("httpd",
                              "Directory containing files to serve via HTTP",
                              "");
@@ -69,6 +81,9 @@ rfb::StringParameter interface("interface",
 rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
                                      "Avoid fake Shift presses for keys affected by NumLock.",
                                      true);
+rfb::StringParameter allowOverride("AllowOverride",
+                                   "Comma separated list of parameters that can be modified using VNC extension.",
+                                   "desktop,AcceptPointerEvents,SendCutText,AcceptCutText");
 
 static PixelFormat vncGetPixelFormat(int scrIdx)
 {
@@ -97,6 +112,19 @@ static PixelFormat vncGetPixelFormat(int scrIdx)
   return PixelFormat(bpp, depth, bigEndian, trueColour,
                      redMax, greenMax, blueMax,
                      redShift, greenShift, blueShift);
+}
+
+static void parseOverrideList(const char *text, ParamSet &out)
+{
+  for (const char* iter = text; ; ++iter) {
+    if (*iter == ',' || *iter == '\0') {
+      out.insert(std::string(text, iter));
+      text = iter + 1;
+
+      if (*iter == '\0')
+        break;
+    }
+  }
 }
 
 void vncExtensionInit(void)
@@ -128,6 +156,10 @@ void vncExtensionInit(void)
   try {
     if (!initialised) {
       rfb::initStdIOLoggers();
+
+      parseOverrideList(allowOverride, allowOverrideSet);
+      allowOverride.setImmutable();
+
       initialised = true;
     }
 
@@ -378,4 +410,17 @@ void vncPostScreenResize(int scrIdx, int success, int width, int height)
 void vncRefreshScreenLayout(int scrIdx)
 {
   desktop[scrIdx]->refreshScreenLayout();
+}
+
+int vncOverrideParam(const char *nameAndValue)
+{
+  const char* equalSign = strchr(nameAndValue, '=');
+  if (!equalSign)
+    return 0;
+
+  std::string key(nameAndValue, equalSign);
+  if (allowOverrideSet.find(key) == allowOverrideSet.end())
+    return 0;
+
+  return rfb::Configuration::setParam(nameAndValue);
 }

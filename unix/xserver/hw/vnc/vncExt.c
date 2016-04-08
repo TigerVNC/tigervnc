@@ -182,17 +182,16 @@ static int ProcVncExtSetParam(ClientPtr client)
   rep.sequenceNumber = client->sequence;
 
   /*
-   * Allow to change only certain parameters.
-   * Changing other parameters (for example PAM service name)
-   * could have negative security impact.
+   * Prevent change of clipboard related parameters if clipboard is disabled.
    */
-  if (strncasecmp(param, "desktop", 7) != 0 &&
-      strncasecmp(param, "AcceptPointerEvents", 19) != 0 &&
-      (vncNoClipboard || strncasecmp(param, "SendCutText", 11) != 0) &&
-      (vncNoClipboard || strncasecmp(param, "AcceptCutText", 13) != 0))
+  if (vncNoClipboard &&
+      (strncasecmp(param, "SendCutText", 11) == 0 ||
+       strncasecmp(param, "AcceptCutText", 13) == 0))
     goto deny;
 
-  vncSetParamSimple(param);
+  if (!vncOverrideParam(param))
+    goto deny;
+
   rep.success = 1;
 
   // Send DesktopName update if desktop name has been changed
