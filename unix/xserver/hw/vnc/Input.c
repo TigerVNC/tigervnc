@@ -300,8 +300,10 @@ static inline void pressKey(DeviceIntPtr dev, int kc, Bool down, const char *msg
 #if XORG < 111
 	n = GetKeyboardEvents(eventq, dev, action, kc);
 	enqueueEvents(dev, n);
-#else
+#elif XORG < 118
 	QueueKeyboardEvents(dev, action, kc, NULL);
+#else
+	QueueKeyboardEvents(dev, action, kc);
 #endif
 }
 
