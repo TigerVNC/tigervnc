@@ -42,6 +42,10 @@
 #define KEYBOARD_OR_FLOAT MASTER_KEYBOARD
 #endif
 
+#if XORG < 118
+#define GetMaster(dev, type) ((dev)->master)
+#endif
+
 extern DeviceIntPtr vncKeyboardDev;
 
 static void vncXkbProcessDeviceEvent(int screenNum,
