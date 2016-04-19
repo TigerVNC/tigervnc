@@ -34,6 +34,7 @@
 #include <FL/Fl.H>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
@@ -44,7 +45,6 @@
 
 #define NoSymbol 0
 
-#include "i18n.h"
 #include "keysym2ucs.h"
 #include "KeyboardWin32.h"
 

@@ -34,6 +34,7 @@
 
 #include <core/Exception.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/xdgdirs.h>
 
@@ -47,8 +48,6 @@
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
-
-#include "i18n.h"
 
 static core::LogWriter vlog("Parameters");
 
