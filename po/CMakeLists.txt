@@ -25,7 +25,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       --default-domain=tigervnc
       --from-code=UTF-8
       --keyword=_
-      --keyword=p_:1c,2
+      --keyword=C_:1c,2
       --keyword=N_
       "--copyright-holder=TigerVNC team and many others \(see README.rst\)"
       --msgid-bugs-address=tigervnc-devel@googlegroups.com
