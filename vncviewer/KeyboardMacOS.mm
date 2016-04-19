@@ -38,6 +38,7 @@ const int kVK_RightCommand = 0x36;
 const int kVK_Menu = 0x6E;
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #define XK_LATIN1
 #define XK_MISCELLANY
@@ -47,7 +48,6 @@ const int kVK_Menu = 0x6E;
 
 #define NoSymbol 0
 
-#include "i18n.h"
 #include "keysym2ucs.h"
 #include "KeyboardMacOS.h"
 

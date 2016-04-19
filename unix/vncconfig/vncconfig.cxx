@@ -44,6 +44,7 @@
 #include <core/Exception.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include "TXWindow.h"
 #include "TXCheckbox.h"
@@ -207,6 +208,10 @@ void removeArgs(int* argc, char** argv, int first, int n)
 int main(int argc, char** argv)
 {
   programName = argv[0];
+
+  setlocale(LC_ALL, "");
+  core::initTranslations();
+
   core::initStdIOLoggers();
   core::LogWriter::setLogParams("*:stderr:30");
 
