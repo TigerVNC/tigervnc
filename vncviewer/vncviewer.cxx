@@ -410,10 +410,10 @@ static void init_fltk()
   // Fl_Sys_Menu_Bar overrides methods without them being virtual,
   // which means we cannot use our generic Fl_Menu_ helpers.
   menubar->add(
-    fltk_menu_escape(p_("SysMenu|", "&File")).c_str(),
+    fltk_menu_escape(C_("SysMenu|", "&File")).c_str(),
     0, nullptr, nullptr, FL_SUBMENU);
   menubar->insert(
-    1, fltk_menu_escape(p_("SysMenu|File|", "&New Connection")).c_str(),
+    1, fltk_menu_escape(C_("SysMenu|File|", "&New Connection")).c_str(),
     FL_COMMAND | 'n', new_connection_cb);
 #endif
 }
