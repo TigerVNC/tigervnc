@@ -34,6 +34,7 @@
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
+#include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
 #include <core/xdgdirs.h>
@@ -65,7 +66,6 @@
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
 #include "PlatformPixelBuffer.h"
-#include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
 

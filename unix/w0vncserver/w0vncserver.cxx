@@ -33,6 +33,7 @@
 #include <rdr/FdOutStream.h>
 #include <core/Logger_stdio.h>
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include "parameters.h"
 #include "GSocketSource.h"
@@ -105,6 +106,9 @@ int main(int argc, char** argv)
   GSocketSource* monitor;
   rfb::SDesktop* desktop;
   rfb::VNCServerST* server;
+
+  setlocale(LC_ALL, "");
+  core::initTranslations();
 
   programName = argv[0];
 

@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <list>
 
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/encodings.h>
@@ -39,7 +40,6 @@
 
 #include "OptionsDialog.h"
 #include "ShortcutHandler.h"
-#include "i18n.h"
 #include "parameters.h"
 
 #include "fltk/layout.h"

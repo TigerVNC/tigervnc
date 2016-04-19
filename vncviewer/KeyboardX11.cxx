@@ -29,10 +29,10 @@
 #include <FL/x.H>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 
 #include <rfb/ledStates.h>
 
-#include "i18n.h"
 #include "KeyboardX11.h"
 
 extern const struct _code_map_xkb_to_qnum {

@@ -11,12 +11,15 @@ add_library(core STATIC
   LogWriter.cxx
   Region.cxx
   Timer.cxx
+  i18n.cxx
   string.cxx
   time.cxx
   xdgdirs.cxx)
 
 target_include_directories(core PUBLIC ${CMAKE_SOURCE_DIR}/common)
+target_include_directories(core SYSTEM PUBLIC ${Intl_INCLUDE_DIR})
 target_include_directories(core SYSTEM PUBLIC ${PIXMAN_INCLUDE_DIRS})
+target_link_libraries(core ${Intl_LIBRARIES})
 target_link_libraries(core ${PIXMAN_LIBRARIES})
 
 if(UNIX)
@@ -25,6 +28,8 @@ endif()
 
 if(WIN32)
   target_link_libraries(core ws2_32)
+elseif(APPLE)
+  target_link_libraries(core "-framework Carbon")
 endif()
 
 if(UNIX)

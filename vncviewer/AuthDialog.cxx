@@ -32,11 +32,12 @@
 #include <FL/Fl_Secret_Input.H>
 #include <FL/fl_ask.H>
 
+#include <core/i18n.h>
+
 #include "fltk/layout.h"
 
 #include "AuthDialog.h"
 #include "parameters.h"
-#include "i18n.h"
 
 /* xpm:s predate const, so they have invalid definitions */
 #pragma GCC diagnostic push

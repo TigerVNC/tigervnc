@@ -28,6 +28,7 @@
 #include <stdexcept>
 
 #include <core/LogWriter.h>
+#include <core/i18n.h>
 #include <core/string.h>
 
 #include <rfb/CMsgWriter.h>
@@ -52,7 +53,6 @@
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
-#include "i18n.h"
 #include "parameters.h"
 #include "vncviewer.h"
 
