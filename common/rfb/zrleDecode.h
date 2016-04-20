@@ -172,8 +172,6 @@ void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
         }
       }
 
-      //fprintf(stderr,"copying data to screen %dx%d at %d,%d\n",
-      //t.width(),t.height(),t.tl.x,t.tl.y);
       pb->imageRect(pf, t, buf);
     }
   }
