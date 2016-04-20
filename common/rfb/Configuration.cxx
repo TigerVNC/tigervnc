@@ -379,7 +379,7 @@ StringParameter::StringParameter(const char* name_, const char* desc_,
   : VoidParameter(name_, desc_, co), value(strDup(v)), def_value(v)
 {
   if (!v) {
-    fprintf(stderr,"Default value <null> for %s not allowed\n",name_);
+    vlog.error("Default value <null> for %s not allowed",name_);
     throw rfb::Exception("Default value <null> not allowed");
   }
 }

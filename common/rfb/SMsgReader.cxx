@@ -83,7 +83,7 @@ void SMsgReader::readMsg()
     readQEMUMessage();
     break;
   default:
-    fprintf(stderr, "unknown message type %d\n", msgType);
+    vlog.error("unknown message type %d", msgType);
     throw Exception("unknown message type");
   }
 }
@@ -173,7 +173,7 @@ void SMsgReader::readFence()
 
   len = is->readU8();
   if (len > sizeof(data)) {
-    fprintf(stderr, "Ignoring fence with too large payload\n");
+    vlog.error("Ignoring fence with too large payload");
     is->skip(len);
     return;
   }

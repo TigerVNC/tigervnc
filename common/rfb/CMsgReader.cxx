@@ -23,9 +23,12 @@
 #include <rfb/msgTypes.h>
 #include <rdr/InStream.h>
 #include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/CMsgReader.h>
+
+static rfb::LogWriter vlog("CMsgReader");
 
 using namespace rfb;
 
@@ -74,7 +77,7 @@ void CMsgReader::readMsg()
       readEndOfContinuousUpdates();
       break;
     default:
-      fprintf(stderr, "unknown message type %d\n", type);
+      vlog.error("unknown message type %d", type);
       throw Exception("unknown message type");
     }
   } else {
@@ -151,7 +154,7 @@ void CMsgReader::readServerCutText()
   rdr::U32 len = is->readU32();
   if (len > 256*1024) {
     is->skip(len);
-    fprintf(stderr,"cut text too long (%d bytes) - ignoring\n",len);
+    vlog.error("cut text too long (%d bytes) - ignoring",len);
     return;
   }
   CharArray ca(len+1);
@@ -172,7 +175,7 @@ void CMsgReader::readFence()
 
   len = is->readU8();
   if (len > sizeof(data)) {
-    fprintf(stderr, "Ignoring fence with too large payload\n");
+    vlog.error("Ignoring fence with too large payload");
     is->skip(len);
     return;
   }
@@ -198,14 +201,14 @@ void CMsgReader::readRect(const Rect& r, int encoding)
 {
   if ((r.br.x > handler->server.width()) ||
       (r.br.y > handler->server.height())) {
-    fprintf(stderr, "Rect too big: %dx%d at %d,%d exceeds %dx%d\n",
+    vlog.error("Rect too big: %dx%d at %d,%d exceeds %dx%d",
 	    r.width(), r.height(), r.tl.x, r.tl.y,
             handler->server.width(), handler->server.height());
     throw Exception("Rect too big");
   }
 
   if (r.is_empty())
-    fprintf(stderr, "Warning: zero size rect\n");
+    vlog.error("zero size rect");
 
   handler->dataRect(r, encoding);
 }
@@ -449,7 +452,7 @@ void CMsgReader::readSetDesktopName(int x, int y, int w, int h)
   char* name = is->readString();
 
   if (x || y || w || h) {
-    fprintf(stderr, "Ignoring DesktopName rect with non-zero position/size\n");
+    vlog.error("Ignoring DesktopName rect with non-zero position/size");
   } else {
     handler->setName(name);
   }

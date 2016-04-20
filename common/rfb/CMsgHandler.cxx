@@ -19,8 +19,11 @@
 #include <stdio.h>
 
 #include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
 #include <rfb/CMsgHandler.h>
 #include <rfb/screenTypes.h>
+
+static rfb::LogWriter vlog("CMsgHandler");
 
 using namespace rfb;
 
