@@ -75,8 +75,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     pingCounter(0), congestionTimer(this),
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
-    continuousUpdates(false), encodeManager(this),
-    updateTimer(this), pointerEventTime(0),
+    continuousUpdates(false), encodeManager(this), pointerEventTime(0),
     accessRights(AccessDefault), startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
@@ -196,6 +195,10 @@ void VNCSConnectionST::flushSocket()
   try {
     setSocketTimeouts();
     sock->outStream().flush();
+    // Flushing the socket might release an update that was previously
+    // delayed because of congestion.
+    if (sock->outStream().bufferUsage() == 0)
+      writeFramebufferUpdate();
   } catch (rdr::Exception &e) {
     close(e.str());
   }
@@ -741,9 +744,7 @@ void VNCSConnectionST::supportsContinuousUpdates()
 bool VNCSConnectionST::handleTimeout(Timer* t)
 {
   try {
-    if (t == &updateTimer)
-      writeFramebufferUpdate();
-    else if (t == &congestionTimer)
+    if (t == &congestionTimer)
       updateCongestion();
     else if (t == &queryConnectTimer) {
       if (state() == RFBSTATE_QUERYING)
@@ -939,8 +940,6 @@ void VNCSConnectionST::writeFramebufferUpdate()
   bool needNewUpdateInfo;
   bool drawRenderedCursor;
 
-  updateTimer.stop();
-
   // We're in the middle of processing a command that's supposed to be
   // synchronised. Allowing an update to slip out right now might violate
   // that synchronisation.
@@ -960,10 +959,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   // Check that we actually have some space on the link and retry in a
   // bit if things are congested.
-  if (isCongested()) {
-    updateTimer.start(50);
+  if (isCongested())
     return;
-  }
 
   // In continuous mode, we will be outputting at least three distinct
   // messages. We need to aggregate these in order to not clog up TCP's

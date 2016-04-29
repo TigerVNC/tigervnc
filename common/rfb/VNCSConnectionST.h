@@ -205,8 +205,6 @@ namespace rfb {
     Region cuRegion;
     EncodeManager encodeManager;
 
-    Timer updateTimer;
-
     std::set<rdr::U32> pressedKeys;
 
     time_t lastEventTime;
