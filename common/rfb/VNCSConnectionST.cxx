@@ -190,6 +190,17 @@ void VNCSConnectionST::processMessages()
   }
 }
 
+void VNCSConnectionST::flushSocket()
+{
+  if (state() == RFBSTATE_CLOSING) return;
+  try {
+    setSocketTimeouts();
+    sock->outStream().flush();
+  } catch (rdr::Exception &e) {
+    close(e.str());
+  }
+}
+
 void VNCSConnectionST::pixelBufferChange()
 {
   try {

@@ -593,7 +593,7 @@ int main(int argc, char** argv)
       // Process events on existing VNC connections
       for (i = sockets.begin(); i != sockets.end(); i++) {
         if (FD_ISSET((*i)->getFd(), &rfds))
-          server.processSocketEvent(*i);
+          server.processSocketReadEvent(*i);
       }
 
       if (desktop.isRunning() && sched.goodTimeToPoll()) {

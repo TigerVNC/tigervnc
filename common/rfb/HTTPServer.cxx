@@ -337,7 +337,7 @@ HTTPServer::removeSocket(network::Socket* sock) {
 }
 
 void
-HTTPServer::processSocketEvent(network::Socket* sock) {
+HTTPServer::processSocketReadEvent(network::Socket* sock) {
   std::list<Session*>::iterator i;
   for (i=sessions.begin(); i!=sessions.end(); i++) {
     if ((*i)->getSock() == sock) {
@@ -346,6 +346,23 @@ HTTPServer::processSocketEvent(network::Socket* sock) {
           vlog.info("completed HTTP request");
           sock->shutdown();
         }
+      } catch (rdr::Exception& e) {
+        vlog.error("untrapped: %s", e.str());
+        sock->shutdown();
+      }
+      return;
+    }
+  }
+  throw rdr::Exception("invalid Socket in HTTPServer");
+}
+
+void
+HTTPServer::processSocketWriteEvent(network::Socket* sock) {
+  std::list<Session*>::iterator i;
+  for (i=sessions.begin(); i!=sessions.end(); i++) {
+    if ((*i)->getSock() == sock) {
+      try {
+        sock->outStream().flush();
       } catch (rdr::Exception& e) {
         vlog.error("untrapped: %s", e.str());
         sock->shutdown();

@@ -495,7 +495,7 @@ void XserverDesktop::readWakeupHandler(fd_set* fds, int nfds)
         int fd = (*i)->getFd();
         if (FD_ISSET(fd, fds)) {
           FD_CLR(fd, fds);
-          server->processSocketEvent(*i);
+          server->processSocketReadEvent(*i);
         }
       }
 
@@ -505,7 +505,7 @@ void XserverDesktop::readWakeupHandler(fd_set* fds, int nfds)
           int fd = (*i)->getFd();
           if (FD_ISSET(fd, fds)) {
             FD_CLR(fd, fds);
-            httpServer->processSocketEvent(*i);
+            httpServer->processSocketReadEvent(*i);
           }
         }
       }
@@ -581,7 +581,7 @@ void XserverDesktop::writeWakeupHandler(fd_set* fds, int nfds)
       int fd = (*i)->getFd();
       if (FD_ISSET(fd, fds)) {
         FD_CLR(fd, fds);
-        (*i)->outStream().flush();
+        server->processSocketWriteEvent(*i);
       }
     }
 
@@ -591,7 +591,7 @@ void XserverDesktop::writeWakeupHandler(fd_set* fds, int nfds)
         int fd = (*i)->getFd();
         if (FD_ISSET(fd, fds)) {
           FD_CLR(fd, fds);
-          (*i)->outStream().flush();
+          httpServer->processSocketWriteEvent(*i);
         }
       }
     }

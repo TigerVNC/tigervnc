@@ -58,11 +58,16 @@ namespace rfb {
     //   Could clean up socket-specific resources here.
     virtual void removeSocket(network::Socket* sock);
 
-    // processSocketEvent()
+    // processSocketReadEvent()
     //   The platform-specific side of the server implementation calls
     //   this method whenever data arrives on one of the active
     //   network sockets.
-    virtual void processSocketEvent(network::Socket* sock);
+    virtual void processSocketReadEvent(network::Socket* sock);
+
+    // processSocketWriteEvent()
+    //   Similar to processSocketReadEvent(), but called when it is
+    //   possible to write more data to a socket.
+    virtual void processSocketWriteEvent(network::Socket* sock);
 
     // Check for socket timeouts
     virtual int checkTimeouts();

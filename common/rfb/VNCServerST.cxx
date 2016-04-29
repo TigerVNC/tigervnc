@@ -163,13 +163,26 @@ void VNCServerST::removeSocket(network::Socket* sock) {
   closingSockets.remove(sock);
 }
 
-void VNCServerST::processSocketEvent(network::Socket* sock)
+void VNCServerST::processSocketReadEvent(network::Socket* sock)
 {
   // - Find the appropriate VNCSConnectionST and process the event
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
       (*ci)->processMessages();
+      return;
+    }
+  }
+  throw rdr::Exception("invalid Socket in VNCServerST");
+}
+
+void VNCServerST::processSocketWriteEvent(network::Socket* sock)
+{
+  // - Find the appropriate VNCSConnectionST and process the event
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ci++) {
+    if ((*ci)->getSock() == sock) {
+      (*ci)->flushSocket();
       return;
     }
   }

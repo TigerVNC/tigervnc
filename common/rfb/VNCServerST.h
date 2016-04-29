@@ -67,11 +67,15 @@ namespace rfb {
     //   Clean up any resources associated with the Socket
     virtual void removeSocket(network::Socket* sock);
 
-    // processSocketEvent
+    // processSocketReadEvent
     //   Read more RFB data from the Socket.  If an error occurs during
     //   processing then shutdown() is called on the Socket, causing
     //   removeSocket() to be called by the caller at a later time.
-    virtual void processSocketEvent(network::Socket* sock);
+    virtual void processSocketReadEvent(network::Socket* sock);
+
+    // processSocketWriteEvent
+    //   Flush pending data from the Socket on to the network.
+    virtual void processSocketWriteEvent(network::Socket* sock);
 
     // checkTimeouts
     //   Returns the number of milliseconds left until the next idle timeout
