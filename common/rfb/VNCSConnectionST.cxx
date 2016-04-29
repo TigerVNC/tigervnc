@@ -832,6 +832,7 @@ bool VNCSConnectionST::isCongested()
   int offset;
 
   // Stuff still waiting in the send buffer?
+  sock->outStream().flush();
   if (sock->outStream().bufferUsage() > 0)
     return true;
 
