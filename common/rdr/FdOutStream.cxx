@@ -95,32 +95,14 @@ unsigned FdOutStream::getIdleTime()
 
 void FdOutStream::flush()
 {
-  int timeoutms_;
-
-  if (blocking)
-    timeoutms_ = timeoutms;
-  else
-    timeoutms_ = 0;
-
   while (sentUpTo < ptr) {
     int n = writeWithTimeout((const void*) sentUpTo,
-                             ptr - sentUpTo, timeoutms_);
+                             ptr - sentUpTo,
+                             blocking? timeoutms : 0);
 
     // Timeout?
-    if (n == 0) {
-      // If non-blocking then we're done here
-      if (!blocking)
-        break;
-
-      // Otherwise try blocking (with possible timeout)
-      if ((timeoutms_ == 0) && (timeoutms != 0)) {
-        timeoutms_ = timeoutms;
-        break;
-      }
-
-      // Proper timeout
+    if ((n == 0) && blocking)
       throw TimedOut();
-    }
 
     sentUpTo += n;
     offset += n;
