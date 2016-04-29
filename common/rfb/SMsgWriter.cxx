@@ -285,6 +285,7 @@ void SMsgWriter::startRect(const Rect& r, int encoding)
 
 void SMsgWriter::endRect()
 {
+  os->flush();
 }
 
 void SMsgWriter::startMsg(int type)
