@@ -508,6 +508,7 @@ int main(int argc, char** argv)
     PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);
 
     while (!caughtSignal) {
+      int wait_ms;
       struct timeval tv;
       fd_set rfds;
       std::list<Socket*> sockets;
@@ -538,23 +539,24 @@ int main(int argc, char** argv)
       if (!clients_connected)
         sched.reset();
 
+      wait_ms = 0;
+
       if (sched.isRunning()) {
-        int wait_ms = sched.millisRemaining();
+        wait_ms = sched.millisRemaining();
         if (wait_ms > 500) {
           wait_ms = 500;
         }
-        tv.tv_usec = wait_ms * 1000;
-#ifdef DEBUG
-        // fprintf(stderr, "[%d]\t", wait_ms);
-#endif
-      } else {
-        tv.tv_usec = 100000;
       }
-      tv.tv_sec = 0;
+
+      soonestTimeout(&wait_ms, server.checkTimeouts());
+
+      tv.tv_sec = wait_ms / 1000;
+      tv.tv_usec = (wait_ms % 1000) * 1000;
 
       // Do the wait...
       sched.sleepStarted();
-      int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
+      int n = select(FD_SETSIZE, &rfds, 0, 0,
+                     wait_ms ? &tv : NULL);
       sched.sleepFinished();
 
       if (n < 0) {
@@ -580,7 +582,6 @@ int main(int argc, char** argv)
         }
       }
 
-      Timer::checkTimeouts();
       server.checkTimeouts();
 
       // Client list could have been changed.
