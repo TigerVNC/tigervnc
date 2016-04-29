@@ -510,7 +510,7 @@ int main(int argc, char** argv)
     while (!caughtSignal) {
       int wait_ms;
       struct timeval tv;
-      fd_set rfds;
+      fd_set rfds, wfds;
       std::list<Socket*> sockets;
       std::list<Socket*>::iterator i;
 
@@ -518,6 +518,8 @@ int main(int argc, char** argv)
       TXWindow::handleXEvents(dpy);
 
       FD_ZERO(&rfds);
+      FD_ZERO(&wfds);
+
       FD_SET(ConnectionNumber(dpy), &rfds);
       for (std::list<TcpListener*>::iterator i = listeners.begin();
            i != listeners.end();
@@ -532,6 +534,8 @@ int main(int argc, char** argv)
           delete (*i);
         } else {
           FD_SET((*i)->getFd(), &rfds);
+          if ((*i)->outStream().bufferUsage() > 0)
+            FD_SET((*i)->getFd(), &wfds);
           clients_connected++;
         }
       }
@@ -555,7 +559,7 @@ int main(int argc, char** argv)
 
       // Do the wait...
       sched.sleepStarted();
-      int n = select(FD_SETSIZE, &rfds, 0, 0,
+      int n = select(FD_SETSIZE, &rfds, &wfds, 0,
                      wait_ms ? &tv : NULL);
       sched.sleepFinished();
 
@@ -575,6 +579,7 @@ int main(int argc, char** argv)
         if (FD_ISSET((*i)->getFd(), &rfds)) {
           Socket* sock = (*i)->accept();
           if (sock) {
+            sock->outStream().setBlocking(false);
             server.addSocket(sock);
           } else {
             vlog.status("Client connection rejected");
@@ -595,6 +600,8 @@ int main(int argc, char** argv)
       for (i = sockets.begin(); i != sockets.end(); i++) {
         if (FD_ISSET((*i)->getFd(), &rfds))
           server.processSocketReadEvent(*i);
+        if (FD_ISSET((*i)->getFd(), &wfds))
+          server.processSocketWriteEvent(*i);
       }
 
       if (desktop.isRunning() && sched.goodTimeToPoll()) {
