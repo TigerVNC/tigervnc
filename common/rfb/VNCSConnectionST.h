@@ -65,6 +65,9 @@ namespace rfb {
     // Socket if an error occurs, via the close() call.
     void processMessages();
 
+    // flushSocket() pushes any unwritten data on to the network.
+    void flushSocket();
+
     // Called when the underlying pixelbuffer is resized or replaced.
     void pixelBufferChange();
 
@@ -201,8 +204,6 @@ namespace rfb {
     bool continuousUpdates;
     Region cuRegion;
     EncodeManager encodeManager;
-
-    Timer updateTimer;
 
     std::set<rdr::U32> pressedKeys;
 

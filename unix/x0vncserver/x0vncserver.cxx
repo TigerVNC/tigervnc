@@ -508,8 +508,9 @@ int main(int argc, char** argv)
     PollingScheduler sched((int)pollingCycle, (int)maxProcessorUsage);
 
     while (!caughtSignal) {
+      int wait_ms;
       struct timeval tv;
-      fd_set rfds;
+      fd_set rfds, wfds;
       std::list<Socket*> sockets;
       std::list<Socket*>::iterator i;
 
@@ -517,6 +518,8 @@ int main(int argc, char** argv)
       TXWindow::handleXEvents(dpy);
 
       FD_ZERO(&rfds);
+      FD_ZERO(&wfds);
+
       FD_SET(ConnectionNumber(dpy), &rfds);
       for (std::list<TcpListener*>::iterator i = listeners.begin();
            i != listeners.end();
@@ -531,6 +534,8 @@ int main(int argc, char** argv)
           delete (*i);
         } else {
           FD_SET((*i)->getFd(), &rfds);
+          if ((*i)->outStream().bufferUsage() > 0)
+            FD_SET((*i)->getFd(), &wfds);
           clients_connected++;
         }
       }
@@ -538,23 +543,24 @@ int main(int argc, char** argv)
       if (!clients_connected)
         sched.reset();
 
+      wait_ms = 0;
+
       if (sched.isRunning()) {
-        int wait_ms = sched.millisRemaining();
+        wait_ms = sched.millisRemaining();
         if (wait_ms > 500) {
           wait_ms = 500;
         }
-        tv.tv_usec = wait_ms * 1000;
-#ifdef DEBUG
-        // fprintf(stderr, "[%d]\t", wait_ms);
-#endif
-      } else {
-        tv.tv_usec = 100000;
       }
-      tv.tv_sec = 0;
+
+      soonestTimeout(&wait_ms, server.checkTimeouts());
+
+      tv.tv_sec = wait_ms / 1000;
+      tv.tv_usec = (wait_ms % 1000) * 1000;
 
       // Do the wait...
       sched.sleepStarted();
-      int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
+      int n = select(FD_SETSIZE, &rfds, &wfds, 0,
+                     wait_ms ? &tv : NULL);
       sched.sleepFinished();
 
       if (n < 0) {
@@ -573,6 +579,7 @@ int main(int argc, char** argv)
         if (FD_ISSET((*i)->getFd(), &rfds)) {
           Socket* sock = (*i)->accept();
           if (sock) {
+            sock->outStream().setBlocking(false);
             server.addSocket(sock);
           } else {
             vlog.status("Client connection rejected");
@@ -580,7 +587,6 @@ int main(int argc, char** argv)
         }
       }
 
-      Timer::checkTimeouts();
       server.checkTimeouts();
 
       // Client list could have been changed.
@@ -593,7 +599,9 @@ int main(int argc, char** argv)
       // Process events on existing VNC connections
       for (i = sockets.begin(); i != sockets.end(); i++) {
         if (FD_ISSET((*i)->getFd(), &rfds))
-          server.processSocketEvent(*i);
+          server.processSocketReadEvent(*i);
+        if (FD_ISSET((*i)->getFd(), &wfds))
+          server.processSocketWriteEvent(*i);
       }
 
       if (desktop.isRunning() && sched.goodTimeToPoll()) {
