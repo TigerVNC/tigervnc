@@ -46,6 +46,7 @@ protected:
   XShmSegmentInfo *shminfo;
   XImage *xim;
   int pendingPutImage;
+  Drawable pendingDrawable;
 
   static std::list<X11PixelBuffer*> shmList;
 };

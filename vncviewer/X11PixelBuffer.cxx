@@ -101,7 +101,7 @@ static PixelFormat display_pf()
 
 X11PixelBuffer::X11PixelBuffer(int width, int height) :
   PlatformPixelBuffer(display_pf(), width, height, NULL, 0),
-  shminfo(NULL), xim(NULL), pendingPutImage(0)
+  shminfo(NULL), xim(NULL), pendingPutImage(0), pendingDrawable(0)
 {
   // Might not be open at this point
   fl_open_display();
@@ -146,6 +146,8 @@ void X11PixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
   if (shminfo) {
     XShmPutImage(fl_display, fl_window, fl_gc, xim, src_x, src_y, x, y, w, h, True);
     pendingPutImage++;
+    assert((pendingPutImage == 1) || (pendingDrawable == fl_window));
+    pendingDrawable = fl_window;
   } else {
     XPutImage(fl_display, fl_window, fl_gc, xim, src_x, src_y, x, y, w, h);
   }
@@ -255,8 +257,16 @@ int X11PixelBuffer::handleSystemEvent(void* event, void* data)
 
   shmevent = (XShmCompletionEvent*)event;
 
+  if (shmevent->send_event)
+    return 0;
+
   for (iter = shmList.begin();iter != shmList.end();++iter) {
     if (shmevent->shmseg != (*iter)->shminfo->shmseg)
+      continue;
+
+    /* HP has a buggy X server on their thin clients that sends bogus
+     * extra events with an incorrect drawable id */
+    if (shmevent->drawable != (*iter)->pendingDrawable)
       continue;
 
     (*iter)->pendingPutImage--;
