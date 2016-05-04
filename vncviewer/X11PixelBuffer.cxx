@@ -252,7 +252,7 @@ int X11PixelBuffer::handleSystemEvent(void* event, void* data)
   xevent = (XEvent*)event;
   assert(xevent);
 
-  if (xevent->type != XShmGetEventBase(fl_display))
+  if (xevent->type != XShmGetEventBase(fl_display) + ShmCompletion)
     return 0;
 
   shmevent = (XShmCompletionEvent*)event;
