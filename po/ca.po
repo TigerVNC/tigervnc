@@ -1,0 +1,718 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR TigerVNC Team and many others (see README.txt)
+# This file is distributed under the same license as the PACKAGE package.
+# Robert Antoni Buj Gelonch <rbuj@fedoraproject.org>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2016-05-06 21:22+0200\n"
+"PO-Revision-Date: 2016-05-06 23:08+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: ca\n"
+
+#: vncviewer/CConn.cxx:111
+#, c-format
+msgid "connected to host %s port %d"
+msgstr "connectat a l'amfitrió %s port %d"
+
+#: vncviewer/CConn.cxx:173
+#, c-format
+msgid "Desktop name: %.80s"
+msgstr "Nom de l'escriptori: %.80s"
+
+#: vncviewer/CConn.cxx:178
+#, c-format
+msgid "Host: %.80s port: %d"
+msgstr "Amfitrió: %.80s port: %d"
+
+#: vncviewer/CConn.cxx:183
+#, c-format
+msgid "Size: %d x %d"
+msgstr "Mida: %d x %d"
+
+#: vncviewer/CConn.cxx:191
+#, c-format
+msgid "Pixel format: %s"
+msgstr "Format dels píxels: %s"
+
+#: vncviewer/CConn.cxx:198
+#, c-format
+msgid "(server default %s)"
+msgstr "(predeterminat del servidor %s)"
+
+#: vncviewer/CConn.cxx:203
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Codificació sol·licitada: %s"
+
+#: vncviewer/CConn.cxx:208
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "Última codificació utilitzada: %s"
+
+#: vncviewer/CConn.cxx:213
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "Estimació de la velocitat de la línia: %d kbit/s"
+
+#: vncviewer/CConn.cxx:218
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "Versió del protocol: %d.%d"
+
+#: vncviewer/CConn.cxx:223
+#, c-format
+msgid "Security method: %s"
+msgstr "Mètode de seguretat: %s"
+
+#: vncviewer/CConn.cxx:329
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "SetDesktopSize ha fallat: %d"
+
+#: vncviewer/CConn.cxx:398
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "SetColourMapEntries no vàlid del servidor!"
+
+#. TRANSLATORS: Refers to a VNC protocol encoding type
+#: vncviewer/CConn.cxx:444 vncviewer/CConn.cxx:451
+#, c-format
+msgid "Unknown encoding %d"
+msgstr "Codificació %d desconeguda"
+
+#: vncviewer/CConn.cxx:445 vncviewer/CConn.cxx:452
+msgid "Unknown encoding"
+msgstr "Codificació desconeguda"
+
+#: vncviewer/CConn.cxx:484
+msgid "Enabling continuous updates"
+msgstr "S'habiliten les actualitzacions contínues"
+
+#: vncviewer/CConn.cxx:554
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr "Capacitat de procés %d kbit/s - es canvia a la qualitat %d"
+
+#: vncviewer/CConn.cxx:576
+#, c-format
+msgid "Throughput %d kbit/s - full color is now %s"
+msgstr "Capacitat de procés %d kbit/s - el color complet ara és %s"
+
+#: vncviewer/CConn.cxx:578
+msgid "disabled"
+msgstr "inhabilitat"
+
+#: vncviewer/CConn.cxx:578
+msgid "enabled"
+msgstr "habilitat"
+
+#: vncviewer/CConn.cxx:588
+#, c-format
+msgid "Using %s encoding"
+msgstr "S'utilitza la codificació %s"
+
+#: vncviewer/CConn.cxx:635
+#, c-format
+msgid "Using pixel format %s"
+msgstr "S'utilitza el format dels píxels %s"
+
+#: vncviewer/DesktopWindow.cxx:106
+msgid "Invalid geometry specified!"
+msgstr "S'ha especificat una geometria no vàlida!"
+
+#: vncviewer/DesktopWindow.cxx:309
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "S'ajusta la mida de la finestra per evitar la sol·licitud accidental de pantalla completa"
+
+#: vncviewer/DesktopWindow.cxx:491 vncviewer/DesktopWindow.cxx:497
+#: vncviewer/DesktopWindow.cxx:510
+msgid "Failure grabbing keyboard"
+msgstr "Fracàs de l'agafament del teclat"
+
+#: vncviewer/DesktopWindow.cxx:522
+msgid "Failure grabbing mouse"
+msgstr "Fracàs de l'agafament del ratolí"
+
+#: vncviewer/DesktopWindow.cxx:752
+msgid "Invalid screen layout computed for resize request!"
+msgstr "El càlcul de la disposició de la pantalla no és vàlid per al redimensionament sol·licitat!"
+
+#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
+#: vncviewer/X11PixelBuffer.cxx:113
+msgid "Not enough memory for framebuffer"
+msgstr "No hi ha prou memòria per al framebuffer"
+
+#: vncviewer/OSXPixelBuffer.cxx:52
+msgid "Could not create framebuffer device"
+msgstr "No s'ha pogut crear el dispositiu del framebuffer"
+
+#: vncviewer/OSXPixelBuffer.cxx:58
+msgid "Could not create framebuffer bitmap"
+msgstr "No s'ha pogut crear el mapa de bits del framebuffer"
+
+#: vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "Visualitzador VNC: Opcions de connexió"
+
+#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
+#: vncviewer/vncviewer.cxx:268
+msgid "Cancel"
+msgstr "Cancel·la"
+
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:267
+msgid "OK"
+msgstr "D'acord"
+
+#: vncviewer/OptionsDialog.cxx:413
+msgid "Compression"
+msgstr "Compressió"
+
+#: vncviewer/OptionsDialog.cxx:429
+msgid "Auto select"
+msgstr "Auto-selecciona"
+
+#: vncviewer/OptionsDialog.cxx:441
+msgid "Preferred encoding"
+msgstr "Codificació preferida"
+
+#: vncviewer/OptionsDialog.cxx:489
+msgid "Color level"
+msgstr "Nivell de color"
+
+#: vncviewer/OptionsDialog.cxx:500
+msgid "Full (all available colors)"
+msgstr "Complet (tots els colors)"
+
+#: vncviewer/OptionsDialog.cxx:507
+msgid "Medium (256 colors)"
+msgstr "Mitjà (256 colors)"
+
+#: vncviewer/OptionsDialog.cxx:514
+msgid "Low (64 colors)"
+msgstr "Baix (64 colors)"
+
+#: vncviewer/OptionsDialog.cxx:521
+msgid "Very low (8 colors)"
+msgstr "Molt baix (8 colors)"
+
+#: vncviewer/OptionsDialog.cxx:538
+msgid "Custom compression level:"
+msgstr "Nivell de compressió personalitzat:"
+
+#: vncviewer/OptionsDialog.cxx:544
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "nivell (1=ràpid, 6=millor [4-6 són rarament útils])"
+
+#: vncviewer/OptionsDialog.cxx:551
+msgid "Allow JPEG compression:"
+msgstr "Permet la compressió JPEG:"
+
+#: vncviewer/OptionsDialog.cxx:557
+msgid "quality (0=poor, 9=best)"
+msgstr "qualitat (0=pobra, 9=millor)"
+
+#: vncviewer/OptionsDialog.cxx:568
+msgid "Security"
+msgstr "Seguretat"
+
+#: vncviewer/OptionsDialog.cxx:583
+msgid "Encryption"
+msgstr "Xifrat"
+
+#: vncviewer/OptionsDialog.cxx:594 vncviewer/OptionsDialog.cxx:647
+#: vncviewer/OptionsDialog.cxx:715
+msgid "None"
+msgstr "Sense"
+
+#: vncviewer/OptionsDialog.cxx:600
+msgid "TLS with anonymous certificates"
+msgstr "TLS amb certificats anònims"
+
+#: vncviewer/OptionsDialog.cxx:606
+msgid "TLS with X509 certificates"
+msgstr "TLS amb certificats X509"
+
+#: vncviewer/OptionsDialog.cxx:613
+msgid "Path to X509 CA certificate"
+msgstr "Camí al certificat de l'AC X509"
+
+#: vncviewer/OptionsDialog.cxx:620
+msgid "Path to X509 CRL file"
+msgstr "Camí al fitxer CRL X509"
+
+#: vncviewer/OptionsDialog.cxx:636
+msgid "Authentication"
+msgstr "Autenticació"
+
+#: vncviewer/OptionsDialog.cxx:653
+msgid "Standard VNC (insecure without encryption)"
+msgstr "VNC estàndard (no segur, sense xifrat)"
+
+#: vncviewer/OptionsDialog.cxx:659
+msgid "Username and password (insecure without encryption)"
+msgstr "Nom d'usuari i contrasenya (no segur, sense xifrat)"
+
+#: vncviewer/OptionsDialog.cxx:678
+msgid "Input"
+msgstr "Entrada"
+
+#: vncviewer/OptionsDialog.cxx:686
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Únicament visualitza (ignora el ratolí i el teclat)"
+
+#: vncviewer/OptionsDialog.cxx:692
+msgid "Accept clipboard from server"
+msgstr "Accepta el porta-retalls del servidor"
+
+#: vncviewer/OptionsDialog.cxx:698
+msgid "Send clipboard to server"
+msgstr "Envia el porta-retalls al sevidor"
+
+#: vncviewer/OptionsDialog.cxx:704
+msgid "Send primary selection and cut buffer as clipboard"
+msgstr "Envia la selecció i el buffer retalla com a porta-retalls"
+
+#: vncviewer/OptionsDialog.cxx:710
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Tecles directament al servidor (pantalla completa)"
+
+#: vncviewer/OptionsDialog.cxx:713
+msgid "Menu key"
+msgstr "Tecla de menú"
+
+#: vncviewer/OptionsDialog.cxx:729
+msgid "Screen"
+msgstr "Pantalla"
+
+#: vncviewer/OptionsDialog.cxx:737
+msgid "Resize remote session on connect"
+msgstr "Redimensiona la sessió remota amb la connexió"
+
+#: vncviewer/OptionsDialog.cxx:750
+msgid "Resize remote session to the local window"
+msgstr "Redimensiona la sessió remota a la finestra local"
+
+#: vncviewer/OptionsDialog.cxx:756
+msgid "Full-screen mode"
+msgstr "Mode pantalla completa"
+
+#: vncviewer/OptionsDialog.cxx:762
+msgid "Enable full-screen mode over all monitors"
+msgstr "Habilita el mode pantalla completa en tots els monitors"
+
+#: vncviewer/OptionsDialog.cxx:771
+msgid "Misc."
+msgstr "Misc."
+
+#: vncviewer/OptionsDialog.cxx:779
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Compartició (no desconnectis els altres visualitzadors)"
+
+#: vncviewer/OptionsDialog.cxx:785
+msgid "Show dot when no cursor"
+msgstr "Mostra el punt quan no hi hagi cursor"
+
+#: vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "Visualitzador VNC: Detalls de la connexió"
+
+#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "Visualitzador VNC:"
+
+#: vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Opcions..."
+
+#: vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Carrega..."
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Desa com..."
+
+#: vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "Quant a..."
+
+#: vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "Connecta"
+
+#: vncviewer/UserDialog.cxx:74
+msgid "Opening password file failed"
+msgstr "L'obriment del fitxer de la contrasenya ha fallat"
+
+#: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
+msgid "VNC authentication"
+msgstr "Autenticació VNC"
+
+#: vncviewer/UserDialog.cxx:87 vncviewer/UserDialog.cxx:102
+msgid "Password:"
+msgstr "Contrasenya:"
+
+#: vncviewer/UserDialog.cxx:89
+msgid "Authentication cancelled"
+msgstr "Autenticació cancel·lada"
+
+#: vncviewer/UserDialog.cxx:99
+msgid "Username:"
+msgstr "Nom d'usuari:"
+
+#: vncviewer/Viewport.cxx:433
+#, c-format
+msgid "Unable to create platform specific framebuffer: %s"
+msgstr "No es pot crear el framebuffer específic de la plataforma: %s"
+
+#: vncviewer/Viewport.cxx:434
+msgid "Using platform independent framebuffer"
+msgstr "S'utilitza un framebuffer independent de la plataforma"
+
+#: vncviewer/Viewport.cxx:668
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Sense codi d'escaneig per a la tecla virtual estesa 0x%02x"
+
+#: vncviewer/Viewport.cxx:670
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Sense codi d'escaneig per a la tecla virtual 0x%02x"
+
+#: vncviewer/Viewport.cxx:687
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Sense símbol per a la tecla virtual estesa 0x%02x"
+
+#: vncviewer/Viewport.cxx:689
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Sense símbol per a la tecla virtual 0x%02x"
+
+#: vncviewer/Viewport.cxx:727
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr "Sense símbol per al codi de tecla 0x%02x (a l'estat actual)"
+
+#: vncviewer/Viewport.cxx:753
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr "Sense símbol per al codi de tecla %d (a l'estat actual)"
+
+#: vncviewer/Viewport.cxx:790
+msgctxt "ContextMenu|"
+msgid "E&xit viewer"
+msgstr "Surt del &visualitzador"
+
+#: vncviewer/Viewport.cxx:793
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "Pantalla &completa"
+
+#: vncviewer/Viewport.cxx:796
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "Maximit&za"
+
+#: vncviewer/Viewport.cxx:798
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "Redimensiona la &finestra a la sessió"
+
+#: vncviewer/Viewport.cxx:803
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "&Ctrl"
+
+#: vncviewer/Viewport.cxx:806
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&Alt"
+
+#: vncviewer/Viewport.cxx:812
+#, c-format
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "Envia %s"
+
+#: vncviewer/Viewport.cxx:818
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Envia Ctrl-Alt-&Supr"
+
+#: vncviewer/Viewport.cxx:821
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "&Refresca la pantalla"
+
+#: vncviewer/Viewport.cxx:824
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "&Opcions..."
+
+#: vncviewer/Viewport.cxx:826
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "&Informació de la connexió..."
+
+#: vncviewer/Viewport.cxx:828
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "Quant al visualitzador %TigerVNC..."
+
+#: vncviewer/Viewport.cxx:831
+msgctxt "ContextMenu|"
+msgid "Dismiss &menu"
+msgstr "&Menú d'acomiadament"
+
+#: vncviewer/Viewport.cxx:915
+msgid "VNC connection info"
+msgstr "Informació de la connexió VNC"
+
+#: vncviewer/Win32PixelBuffer.cxx:62
+msgid "unable to create DIB section"
+msgstr "no s'ha pogut crear la secció DIB"
+
+#: vncviewer/Win32PixelBuffer.cxx:79
+msgid "CreateCompatibleDC failed"
+msgstr "CreateCompatibleDC ha fallat"
+
+#: vncviewer/Win32PixelBuffer.cxx:82
+msgid "SelectObject failed"
+msgstr "SelectObject  ha fallat"
+
+#: vncviewer/Win32PixelBuffer.cxx:91
+msgid "BitBlt failed"
+msgstr "BitBlt ha fallat"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:61
+msgid "Display lacks pixmap format for default depth"
+msgstr "Pantalla les mancances del format pixmap per a la profunditat predeterminada"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:72
+msgid "Couldn't find suitable pixmap format"
+msgstr "No s'ha pogut trobar cap format pixmap adequat"
+
+#: vncviewer/X11PixelBuffer.cxx:81
+msgid "Only true colour displays supported"
+msgstr "Únicament s'admeten les pantalles de color verdader"
+
+#: vncviewer/X11PixelBuffer.cxx:83
+#, c-format
+msgid "Using default colormap and visual, TrueColor, depth %d."
+msgstr "S'utilitzen els valors predeterminats dels efectes visuals i de l'assignació de colors, TrueColor, profunditat %d."
+
+#: vncviewer/X11PixelBuffer.cxx:109
+msgid "Could not create framebuffer image"
+msgstr "No s'ha pogut crear el framebuffer de la imatge"
+
+#: vncviewer/parameters.cxx:279 vncviewer/parameters.cxx:313
+#, c-format
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr "El nom del paràmetre %s era massa gran per escriure's al registre"
+
+#: vncviewer/parameters.cxx:285 vncviewer/parameters.cxx:292
+#, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr "El paràmetre %s era massa gran per escriure's al registre"
+
+#: vncviewer/parameters.cxx:298 vncviewer/parameters.cxx:319
+#, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr "Ha fallat l'escriptura del paràmetre %s de tipus %s al registre: %ld"
+
+#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:373
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr "El nom del paràmetre %s era massa gran per llegir-se del registre"
+
+#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:382
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr "Ha fallat la lectura del paràmetre %s del registre: %ld"
+
+#: vncviewer/parameters.cxx:352
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr "El paràmetre %s era massa gran per llegir-se del registre"
+
+#: vncviewer/parameters.cxx:402
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr "Ha fallat la creació de la clau del registre: %ld"
+
+#: vncviewer/parameters.cxx:416 vncviewer/parameters.cxx:465
+#: vncviewer/parameters.cxx:527 vncviewer/parameters.cxx:658
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr "Tipus de paràmetre desconegut per al paràmetre %s"
+
+#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr "Ha fallat el tancament de la clau del registre: %ld"
+
+#: vncviewer/parameters.cxx:439
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr "Ha fallat l'obriment de la clau del registre: %ld"
+
+#: vncviewer/parameters.cxx:496
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "Ha fallat l'escriptura del fitxer de configuració, no es pot obtenir el camí al directori inicial."
+
+#: vncviewer/parameters.cxx:509
+#, c-format
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "Ha fallat l'escriptura del fitxer de configuració, no es pot obrir %s: %s"
+
+#: vncviewer/parameters.cxx:552
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "Ha fallat la lectura del fitxer de configuració, no es pot obtenir el camí al directori inicial."
+
+#: vncviewer/parameters.cxx:565
+#, c-format
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "Ha fallat la lectura del fitxer de configuració, no es pot obrir %s: %s."
+
+#: vncviewer/parameters.cxx:578 vncviewer/parameters.cxx:583
+#: vncviewer/parameters.cxx:608 vncviewer/parameters.cxx:621
+#: vncviewer/parameters.cxx:637
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "Ha fallat la lectura de la línia %d al fitxer %s: %s"
+
+#: vncviewer/parameters.cxx:584
+msgid "Line too long"
+msgstr "La línia és massa gran"
+
+#: vncviewer/parameters.cxx:591
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "El fitxer de configuració %s no té un format vàlid."
+
+#: vncviewer/parameters.cxx:609
+msgid "Invalid format"
+msgstr "El format no és vàlid"
+
+#: vncviewer/parameters.cxx:622 vncviewer/parameters.cxx:638
+msgid "Invalid format or too large value"
+msgstr "El format no és vàlid o bé el valor és massa gran"
+
+#: vncviewer/parameters.cxx:665
+#, c-format
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "Paràmetre desconegut %s en la línia %d al fitxer %s"
+
+#: vncviewer/vncviewer.cxx:100
+#, c-format
+msgid ""
+"TigerVNC Viewer %d-bit v%s\n"
+"Built on: %s\n"
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+"See http://www.tigervnc.org for information on TigerVNC."
+msgstr ""
+"Visualitzador TigerVNC de %d bits v%s\n"
+"Es va construir: %s\n"
+"Copyright (C) 1999-%d L'equip de TigerVNC i molts altres (vegeu README.txt)\n"
+"Vegeu http://www.tigervnc.org per a més informació sobre TigerVNC."
+
+#: vncviewer/vncviewer.cxx:127
+msgid "About TigerVNC Viewer"
+msgstr "Quant al visualitzador TigerVNC"
+
+#: vncviewer/vncviewer.cxx:144 vncviewer/vncviewer.cxx:156
+#, c-format
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "Error en iniciar el visualitzador TigerVNC nou: %s"
+
+#: vncviewer/vncviewer.cxx:165
+#, c-format
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr "S'ha rebut el senyal d'acabament %d. El visualitzador TigerVNC es tancarà ara."
+
+#: vncviewer/vncviewer.cxx:257
+msgid "TigerVNC Viewer"
+msgstr "Visualitzador TigerVNC"
+
+#: vncviewer/vncviewer.cxx:265
+msgid "No"
+msgstr "No"
+
+#: vncviewer/vncviewer.cxx:266
+msgid "Yes"
+msgstr "Sí"
+
+#: vncviewer/vncviewer.cxx:269
+msgid "Close"
+msgstr "Tanca"
+
+#: vncviewer/vncviewer.cxx:274
+msgid "About"
+msgstr "Quant a"
+
+#: vncviewer/vncviewer.cxx:277
+msgid "Hide"
+msgstr "Oculta"
+
+#: vncviewer/vncviewer.cxx:280
+msgid "Quit"
+msgstr "Surt"
+
+#: vncviewer/vncviewer.cxx:284
+msgid "Services"
+msgstr "Serveis"
+
+#: vncviewer/vncviewer.cxx:285
+msgid "Hide Others"
+msgstr "Oculta els altres"
+
+#: vncviewer/vncviewer.cxx:286
+msgid "Show All"
+msgstr "Mostra-ho tot"
+
+#: vncviewer/vncviewer.cxx:295
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "&Fitxer"
+
+#: vncviewer/vncviewer.cxx:298
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "Connexió &nova"
+
+#: vncviewer/vncviewer.cxx:310
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "No s'ha pogut crear el directori inicial de VNC: no s'ha pogut obtenir el camí al directori inicial."
+
+#: vncviewer/vncviewer.cxx:315
+#, c-format
+msgid "Could not create VNC home directory: %s."
+msgstr "No s'ha pogut crear el directori inicial de VNC: %s."
+
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:520 vncviewer/vncviewer.cxx:521
+msgid "Parameters -listen and -via are incompatible"
+msgstr "Els paràmetres -listen i -via són incompatibles"
+
+#: vncviewer/vncviewer.cxx:536
+#, c-format
+msgid "Listening on port %d"
+msgstr "S'està escoltant al port %d"
+
+#: vncviewer/vncviewer.cxx:601
+msgid "Internal FLTK error. Exiting."
+msgstr "Error FLTK intern. Se surt."
