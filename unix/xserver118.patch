@@ -48,15 +48,14 @@ diff -ur xorg-server.orig/configure.ac xorg-server/configure.ac
 diff -ur xorg-server.orig/hw/Makefile.am xorg-server/hw/Makefile.am
 --- xorg-server.orig/hw/Makefile.am	2016-04-09 21:28:27.059999965 +0200
 +++ xorg-server/hw/Makefile.am	2016-04-09 21:28:57.587999860 +0200
-@@ -43,7 +43,8 @@
+@@ -43,6 +43,7 @@
  	$(KDRIVE_SUBDIRS)	\
  	$(XQUARTZ_SUBDIRS)	\
- 	$(XWAYLAND_SUBDIRS) \
--	$(XMIR_SUBDIRS)
-+	$(XMIR_SUBDIRS)		\
+-	$(XWAYLAND_SUBDIRS)
++	$(XWAYLAND_SUBDIRS) \
 +	vnc
  
- DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland xmir
+ DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland
  
 diff -ur xorg-server.orig/mi/miinitext.c xorg-server/mi/miinitext.c
 --- xorg-server.orig/mi/miinitext.c	2016-04-09 21:28:27.015999965 +0200
