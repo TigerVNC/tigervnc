@@ -65,6 +65,7 @@ config-stamp:
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
+  patch -p1 -i ../../debian/patches/debian_libtool.patch; \
 	./configure --prefix=/usr \
 		--disable-silent-rules \
 		--disable-static \
