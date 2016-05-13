@@ -146,7 +146,7 @@ char* XVncExtGetParamDesc(Display* dpy, const char* param)
   }
   if (rep.success) {
     desc = (char*)Xmalloc(rep.descLen+1);
-    if (!*desc) {
+    if (!desc) {
       _XEatData(dpy, (rep.descLen+1)&~1);
       return False;
     }
