@@ -1,6 +1,5 @@
-/* $Xorg: Xutil.h,v 1.8 2001/02/09 02:03:39 xorgcvs Exp $ */
-
-/***********************************************************
+/* $Xorg: region.h,v 1.4 2001/02/09 02:03:40 xorgcvs Exp $ */
+/************************************************************************
 
 Copyright 1987, 1998  The Open Group
 
@@ -45,168 +44,147 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
-******************************************************************/
-/* $XFree86: xc/lib/X11/Xutil.h,v 3.4 2001/12/14 19:54:10 dawes Exp $ */
+************************************************************************/
 
-#ifndef _XREGION_H_
-#define _XREGION_H_
-
-/* - Faked defines to fool the X11 region code */
-
-#include <stdlib.h>
-#include <string.h>
-
-#define Bool int
-#define Xmalloc malloc
-#define Xfree free
-#define Xrealloc realloc
-
-#define NeedFunctionPrototypes 1
-
-/* - Cribbed from Xlib.h */
+#ifndef _X11_XREGION_H_
+#define _X11_XREGION_H_
 
 typedef struct {
-    short x, y;
-} XPoint;
+    short x1, x2, y1, y2;
+} Box, BOX, BoxRec, *BoxPtr;
 
 typedef struct {
-    short x, y;
-    unsigned short width, height;
-} XRectangle;
+    short x, y, width, height;
+}RECTANGLE, RectangleRec, *RectanglePtr;
+
+#define TRUE 1
+#define FALSE 0
+#define MAXSHORT 32767
+#define MINSHORT -MAXSHORT
+#ifndef MAX
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+
+/* 
+ *   clip region
+ */
+
+typedef struct _XRegion {
+    long size;
+    long numRects;
+    BOX *rects;
+    BOX extents;
+} REGION;
+
+/* Xutil.h contains the declaration: 
+ * typedef struct _XRegion *Region; 
+ */   
+
+/*  1 if two BOXs overlap.
+ *  0 if two BOXs do not overlap.
+ *  Remember, x2 and y2 are not in the region 
+ */
+#define EXTENTCHECK(r1, r2) \
+	((r1)->x2 > (r2)->x1 && \
+	 (r1)->x1 < (r2)->x2 && \
+	 (r1)->y2 > (r2)->y1 && \
+	 (r1)->y1 < (r2)->y2)
 
 /*
- * opaque reference to Region data type 
+ *  update region extents
  */
-typedef struct _XRegion *Region; 
+#define EXTENTS(r,idRect){\
+            if((r)->x1 < (idRect)->extents.x1)\
+              (idRect)->extents.x1 = (r)->x1;\
+            if((r)->y1 < (idRect)->extents.y1)\
+              (idRect)->extents.y1 = (r)->y1;\
+            if((r)->x2 > (idRect)->extents.x2)\
+              (idRect)->extents.x2 = (r)->x2;\
+            if((r)->y2 > (idRect)->extents.y2)\
+              (idRect)->extents.y2 = (r)->y2;\
+        }
 
-/* Return values from XRectInRegion() */
- 
-#define RectangleOut 0
-#define RectangleIn  1
-#define RectanglePart 2
+/*
+ *   Check to see if there is enough memory in the present region.
+ */
+#define MEMCHECK(reg, rect, firstrect){\
+        if ((reg)->numRects >= ((reg)->size - 1)){\
+          (firstrect) = (BOX *) Xrealloc \
+          ((char *)(firstrect), (unsigned) (2 * (sizeof(BOX)) * ((reg)->size)));\
+          if ((firstrect) == 0)\
+            return(0);\
+          (reg)->size *= 2;\
+          (rect) = &(firstrect)[(reg)->numRects];\
+         }\
+       }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*  this routine checks to see if the previous rectangle is the same
+ *  or subsumes the new rectangle to add.
+ */
 
-extern int XClipBox(
-#if NeedFunctionPrototypes
-    Region		/* r */,
-    XRectangle*		/* rect_return */
-#endif
-);
+#define CHECK_PREVIOUS(Reg, R, Rx1, Ry1, Rx2, Ry2)\
+               (!(((Reg)->numRects > 0)&&\
+                  ((R-1)->y1 == (Ry1)) &&\
+                  ((R-1)->y2 == (Ry2)) &&\
+                  ((R-1)->x1 <= (Rx1)) &&\
+                  ((R-1)->x2 >= (Rx2))))
 
-extern Region XCreateRegion(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+/*  add a rectangle to the given Region */
+#define ADDRECT(reg, r, rx1, ry1, rx2, ry2){\
+    if (((rx1) < (rx2)) && ((ry1) < (ry2)) &&\
+        CHECK_PREVIOUS((reg), (r), (rx1), (ry1), (rx2), (ry2))){\
+              (r)->x1 = (rx1);\
+              (r)->y1 = (ry1);\
+              (r)->x2 = (rx2);\
+              (r)->y2 = (ry2);\
+              EXTENTS((r), (reg));\
+              (reg)->numRects++;\
+              (r)++;\
+            }\
+        }
 
-extern const char *XDefaultString (void);
 
-extern int XDestroyRegion(
-#if NeedFunctionPrototypes
-    Region		/* r */
-#endif
-);
 
-extern int XEmptyRegion(
-#if NeedFunctionPrototypes
-    Region		/* r */
-#endif
-);
+/*  add a rectangle to the given Region */
+#define ADDRECTNOX(reg, r, rx1, ry1, rx2, ry2){\
+            if ((rx1 < rx2) && (ry1 < ry2) &&\
+                CHECK_PREVIOUS((reg), (r), (rx1), (ry1), (rx2), (ry2))){\
+              (r)->x1 = (rx1);\
+              (r)->y1 = (ry1);\
+              (r)->x2 = (rx2);\
+              (r)->y2 = (ry2);\
+              (reg)->numRects++;\
+              (r)++;\
+            }\
+        }
 
-extern int XEqualRegion(
-#if NeedFunctionPrototypes
-    Region		/* r1 */,
-    Region		/* r2 */
-#endif
-);
+#define EMPTY_REGION(pReg) pReg->numRects = 0
 
-extern int XIntersectRegion(
-#if NeedFunctionPrototypes
-    Region		/* sra */,
-    Region		/* srb */,
-    Region		/* dr_return */
-#endif
-);
+#define REGION_NOT_EMPTY(pReg) pReg->numRects
 
-extern int XOffsetRegion(
-#if NeedFunctionPrototypes
-    Region		/* r */,
-    int			/* dx */,
-    int			/* dy */
-#endif
-);
+#define INBOX(r, x, y) \
+      ( ( ((r).x2 >  x)) && \
+        ( ((r).x1 <= x)) && \
+        ( ((r).y2 >  y)) && \
+        ( ((r).y1 <= y)) )
 
-extern Bool XPointInRegion(
-#if NeedFunctionPrototypes
-    Region		/* r */,
-    int			/* x */,
-    int			/* y */
-#endif
-);
+/*
+ * number of points to buffer before sending them off
+ * to scanlines() :  Must be an even number
+ */
+#define NUMPTSTOBUFFER 200
 
-extern Region XPolygonRegion(
-#if NeedFunctionPrototypes
-    XPoint*		/* points */,
-    int			/* n */,
-    int			/* fill_rule */
-#endif
-);
+/*
+ * used to allocate buffers for points and link
+ * the buffers together
+ */
+typedef struct _POINTBLOCK {
+    XPoint pts[NUMPTSTOBUFFER];
+    struct _POINTBLOCK *next;
+} POINTBLOCK;
 
-extern int XRectInRegion(
-#if NeedFunctionPrototypes
-    Region		/* r */,
-    int			/* x */,
-    int			/* y */,
-    unsigned int	/* width */,
-    unsigned int	/* height */
-#endif
-);
-
-extern int XShrinkRegion(
-#if NeedFunctionPrototypes
-    Region		/* r */,
-    int			/* dx */,
-    int			/* dy */
-#endif
-);
-
-extern int XSubtractRegion(
-#if NeedFunctionPrototypes
-    Region		/* sra */,
-    Region		/* srb */,
-    Region		/* dr_return */
-#endif
-);
-
-extern int XUnionRectWithRegion(
-#if NeedFunctionPrototypes
-    XRectangle*		/* rectangle */,
-    Region		/* src_region */,
-    Region		/* dest_region_return */
-#endif
-);
-
-extern int XUnionRegion(
-#if NeedFunctionPrototypes
-    Region		/* sra */,
-    Region		/* srb */,
-    Region		/* dr_return */
-#endif
-);
-
-extern int XXorRegion(
-#if NeedFunctionPrototypes
-    Region		/* sra */,
-    Region		/* srb */,
-    Region		/* dr_return */
-#endif
-);
-
-#ifdef __cplusplus
-};
-#endif
-
-#endif /* _XUTIL_H_ */
+#endif /* _X11_XREGION_H_ */

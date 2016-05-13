@@ -72,8 +72,11 @@ SOFTWARE.
  * the y-x-banding that's so nice to have...
  */
 
+#include <string.h>
+
+#include "Xlibint.h"
+#include "Xutil.h"
 #include "Xregion.h"
-#include "region.h"
 
 #ifndef min
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
