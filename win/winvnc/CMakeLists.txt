@@ -17,7 +17,7 @@ add_executable(winvnc4 WIN32
   winvnc.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/winvnc.rc)
 
-target_link_libraries(winvnc4 rfb rfb_win32 Xregion network rdr ws2_32.lib)
+target_link_libraries(winvnc4 rfb rfb_win32 network rdr ws2_32.lib)
 
 if(BUILD_JAVA)
   set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/winvnc.rc
