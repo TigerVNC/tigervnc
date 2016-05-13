@@ -1,4 +1,3 @@
-/* $Xorg: Xutil.h,v 1.8 2001/02/09 02:03:39 xorgcvs Exp $ */
 
 /***********************************************************
 
@@ -29,13 +28,13 @@ Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -46,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/lib/X11/Xutil.h,v 3.4 2001/12/14 19:54:10 dawes Exp $ */
 
 #ifndef _X11_XUTIL_H_
 #define _X11_XUTIL_H_
@@ -54,131 +52,100 @@ SOFTWARE.
 /* You must include <X11/Xlib.h> before including this file */
 #include "Xlib.h"
 
+
 /*
- * opaque reference to Region data type 
+ * opaque reference to Region data type
  */
-typedef struct _XRegion *Region; 
+typedef struct _XRegion *Region;
 
 /* Return values from XRectInRegion() */
- 
+
 #define RectangleOut 0
 #define RectangleIn  1
 #define RectanglePart 2
 
 extern int XClipBox(
-#if NeedFunctionPrototypes
     Region		/* r */,
     XRectangle*		/* rect_return */
-#endif
 );
 
 extern Region XCreateRegion(
-#if NeedFunctionPrototypes
     void
-#endif
 );
 
-extern const char *XDefaultString (void);
-
 extern int XDestroyRegion(
-#if NeedFunctionPrototypes
     Region		/* r */
-#endif
 );
 
 extern int XEmptyRegion(
-#if NeedFunctionPrototypes
     Region		/* r */
-#endif
 );
 
 extern int XEqualRegion(
-#if NeedFunctionPrototypes
     Region		/* r1 */,
     Region		/* r2 */
-#endif
 );
 
 extern int XIntersectRegion(
-#if NeedFunctionPrototypes
     Region		/* sra */,
     Region		/* srb */,
     Region		/* dr_return */
-#endif
 );
 
 extern int XOffsetRegion(
-#if NeedFunctionPrototypes
     Region		/* r */,
     int			/* dx */,
     int			/* dy */
-#endif
 );
 
 extern Bool XPointInRegion(
-#if NeedFunctionPrototypes
     Region		/* r */,
     int			/* x */,
     int			/* y */
-#endif
 );
 
 extern Region XPolygonRegion(
-#if NeedFunctionPrototypes
     XPoint*		/* points */,
     int			/* n */,
     int			/* fill_rule */
-#endif
 );
 
 extern int XRectInRegion(
-#if NeedFunctionPrototypes
     Region		/* r */,
     int			/* x */,
     int			/* y */,
     unsigned int	/* width */,
     unsigned int	/* height */
-#endif
 );
 
 extern int XShrinkRegion(
-#if NeedFunctionPrototypes
     Region		/* r */,
     int			/* dx */,
     int			/* dy */
-#endif
 );
 
 extern int XSubtractRegion(
-#if NeedFunctionPrototypes
     Region		/* sra */,
     Region		/* srb */,
     Region		/* dr_return */
-#endif
 );
 
 extern int XUnionRectWithRegion(
-#if NeedFunctionPrototypes
     XRectangle*		/* rectangle */,
     Region		/* src_region */,
     Region		/* dest_region_return */
-#endif
 );
 
 extern int XUnionRegion(
-#if NeedFunctionPrototypes
     Region		/* sra */,
     Region		/* srb */,
     Region		/* dr_return */
-#endif
 );
 
 extern int XXorRegion(
-#if NeedFunctionPrototypes
     Region		/* sra */,
     Region		/* srb */,
     Region		/* dr_return */
-#endif
 );
 
-#endif /* _XUTIL_H_ */
+#endif /* _X11_XUTIL_H_ */
