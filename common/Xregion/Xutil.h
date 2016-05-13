@@ -52,6 +52,22 @@ SOFTWARE.
 /* You must include <X11/Xlib.h> before including this file */
 #include "Xlib.h"
 
+/****** Avoid symbol clash with "real" libX11 ******/
+#define XClipBox vncXClipBox
+#define XCreateRegion vncXCreateRegion
+#define XDestroyRegion vncXDestroyRegion
+#define XEmptyRegion vncXEmptyRegion
+#define XEqualRegion vncXEqualRegion
+#define XIntersectRegion vncXIntersectRegion
+#define XOffsetRegion vncXOffsetRegion
+#define XPointInRegion vncXPointInRegion
+#define XPolygonRegion vncXPolygonRegion
+#define XRectInRegion vncXRectInRegion
+#define XShrinkRegion vncXShrinkRegion
+#define XSubtractRegion vncXSubtractRegion
+#define XUnionRectWithRegion vncXUnionRectWithRegion
+#define XUnionRegion vncXUnionRegion
+#define XXorRegion vncXXorRegion
 
 /*
  * opaque reference to Region data type
