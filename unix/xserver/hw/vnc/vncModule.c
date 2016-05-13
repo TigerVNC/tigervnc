@@ -58,7 +58,7 @@ ExtensionModule vncExt =
 static XF86ModuleVersionInfo vncVersRec =
 {
     "vnc",
-    "Constantin Kaplinsky",
+    "TigerVNC Project",
     MODINFOSTRING1,
     MODINFOSTRING2,
     XORG_VERSION_CURRENT,
