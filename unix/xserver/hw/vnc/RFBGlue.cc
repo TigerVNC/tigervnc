@@ -90,7 +90,15 @@ void vncLogDebug(const char *name, const char *format, ...)
 
 int vncSetParam(const char *name, const char *value)
 {
-  return rfb::Configuration::setParam(name, value);
+  if (value != NULL)
+    return rfb::Configuration::setParam(name, value);
+  else {
+    VoidParameter *param;
+    param = rfb::Configuration::getParam(name);
+    if (param == NULL)
+      return false;
+    return param->setParam();
+  }
 }
 
 int vncSetParamSimple(const char *nameAndValue)
