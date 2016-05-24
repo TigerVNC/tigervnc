@@ -280,7 +280,10 @@ respectively.
 .SH FILES
 .TP
 $HOME/.vnc/default.tigervnc
-Default configuration options.
+Default configuration options. This file must have a "magic" first line of
+"TigerVNC Configuration file Version 1.0" (without quotes), followed by simple
+<setting>=<value> pairs of your choosing. The available settings are those
+shown in this man page.
 .TP
 $HOME/.vnc/x509_ca.pem
 Default CA certificate for authenticating servers.
