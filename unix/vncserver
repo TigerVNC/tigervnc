@@ -362,9 +362,9 @@ if (! $skipxstartup) {
 
 if (!(-e "$vncUserDir/config")) {
     warn "Creating default config $vncUserDir/config\n";
-    open(XSTARTUP, ">$vncUserDir/config");
-    print XSTARTUP $defaultConfig;
-    close(XSTARTUP);
+    open(VNCUSERCONFIG, ">$vncUserDir/config");
+    print VNCUSERCONFIG $defaultConfig;
+    close(VNCUSERCONFIG);
     chmod 0644, "$vncUserDir/config";
 }
 
