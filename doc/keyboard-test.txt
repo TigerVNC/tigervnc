@@ -100,10 +100,12 @@ Client
 - Non-character keys:
 
   - F1-F24
-  - Tab, Space, Backspace, Return
+  - Tab, Space, Backspace, Return, Esc
   - LeftTab sends Tab
-  - Esc, PrntScrn, ScrollLock, Pause
-  - Insert, Delete, Home, End, PageUp, PageDown
+  - PrntScrn, ScrollLock, Pause [X11, Win]
+  - Help [X11?, OS X]
+  - Insert [X11, Win]
+  - Delete, Home, End, PageUp, PageDown
   - Arrow keys
   - Menu
   - Alt+PrntScrn sends Sys_Req [Win]
