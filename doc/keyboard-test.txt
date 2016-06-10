@@ -65,10 +65,7 @@ Client
   - Hyper sends Super [X11]
 
   - CapsLock, Shift and AltGr affect symbol lookup
-  - NumLock affects symbol lookup [Win, X11]
   - Ctrl does not affect symbol lookup
-  - Shift inverts NumLock behaviour [X11]
-  - Shift turns NumLock off, but not on [Win] (FIXME: fake Shifts also sent)
   - CtrlL+AltR fake release [Win]
   - Ctrl+Alt+any (note behaviour above though)
   - Ctrl+AltGr+any (FIXME: broken on Win)
@@ -76,10 +73,12 @@ Client
 
 - Numpad:
 
+  - NumLock affects symbol lookup [Win, X11]
   - Numpad specific symbols are sent
-  - Affected by NumLock
   - Decimal key should send Decimal for layouts with . as a symbol, and
     Separator for layouts with , as a symbol
+  - Shift inverts NumLock behaviour [X11]
+  - Shift turns NumLock off, but not on [Win] (FIXME: fake Shifts also sent)
 
 - Multimedia keys:
 
