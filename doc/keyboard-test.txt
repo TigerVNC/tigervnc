@@ -20,7 +20,7 @@ Client
   - ASCII characters
   - Latin 1 character
   - Unicode BMP characters
-  - Unicode non-BMP characters
+  - Unicode non-BMP characters (does any layout actually have these?)
 
 - Dead keys:
 
@@ -29,13 +29,14 @@ Client
 
     X11: US International for most, Greek for some specific diacretics
     Win: US International, Czech, Greek Polytonic, Vietnamese
-    OS X: ABC Extended, Greek
+    OS X: ABC Extended (FIXME: lots of broken keys),
+          Greek (FIXME: cannot be used with TigerVNC)
 
   - Grave
   - Acute
   - Circumflex
   - Tilde
-  - Macron
+  - Macron (FIXME: broken on Win)
   - Breve
   - Dot above
   - Dot below
@@ -45,15 +46,15 @@ Client
   - Caron
   - Cedilla
   - Ogonek
-  - Ypogegrammeni (iota below)
-  - Dialytika tonos
-  - Comma above
-  - Reversed comma above
-  - Horn
-  - Hook above
-  - Hook below
-  - Dakuten (Katakana voiced mark)
-  - Handakuten (Katakana semi-voiced mark)
+  - Ypogegrammeni (iota below) (FIXME: broken on Win)
+  - Dialytika tonos [Win] (Diaresis on X11, and maybe OS X?)
+  - Comma above (FIXME: broken on Win)
+  - Reversed comma above (FIXME: broken on Win)
+  - Horn [X11?]
+  - Hook above [Win?]
+  - Hook below [X11?, Win?]
+  - Dakuten (Katakana voiced mark) (Only Input Methods layouts?)
+  - Handakuten (Katakana semi-voiced mark) (Only Input Methods layouts?)
   - FIXME: Many more that we currently probably don't support
 
   - No composition on client
@@ -68,7 +69,7 @@ Client
   - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
   - Meta [X11]
   - Left/right identification (FIXME: broken for Shift on Win)
-  - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [Mac]
+  - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [OS X]
   - Hyper sends Super [X11]
 
   - CapsLock, Shift and AltGr affect symbol lookup
@@ -89,19 +90,21 @@ Client
 
 - Multimedia keys:
 
+  OS X: FIXME: all broken
+
   - Back, Forward, Refresh, Stop
-  - HomePage, Search, Favourites
+  - HomePage, Search, Favourites (FIXME: broken on Win)
   - Mail, Calculator
   - Volume up, down, mute
   - Media next, previous, stop, play
-  - Sleep
+  - Sleep (FIXME: broken on Win)
   - FIXME: probably more keys exist
 
 - Non-character keys:
 
-  - F1-F24
+  - F1-F24 (FIXME: F14-F15 broken on OS X)
   - Tab, Space, Backspace, Return, Esc
-  - LeftTab sends Tab
+  - LeftTab sends Tab [X11?]
   - PrntScrn, ScrollLock, Pause [X11, Win]
   - Help [X11?, OS X]
   - Insert [X11, Win]
@@ -120,7 +123,7 @@ Client
 
 - Local input methods are disabled/enabled with focus
 
-- System keys should be grabbed in full screen
+- System keys should be grabbed in full screen (FIXME: lots missing on Win)
 
   The exact keys depends on the system and configuration, but it
   is usually variants of these:
