@@ -60,6 +60,7 @@ Client
   - CapsLock, NumLock (sent but ignored by server)
   - Shift, Ctrl
   - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
+  - Meta [X11]
   - Left/right identification (FIXME: broken for Shift on Win)
   - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [Mac]
   - Hyper sends Super [X11]
