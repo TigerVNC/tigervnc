@@ -3,6 +3,15 @@ Test protocol for keyboard handling
 
 Platform specific tests/issues are marked with [].
 
+These tests are primarily about what is sent over the protocol and some
+may be difficult or impossible to test using normal applications. In
+these cases you can turn on debug logging in either the client or the
+server by specifying "-Log *:stderr:100".
+
+We currently have a limitation in Xvnc where it can run out of symbols,
+resulting in nothing being sent to the applications. Just run setxkbmap
+with any layout to reset the symbol table.
+
 Client
 ------
 
@@ -14,6 +23,13 @@ Client
   - Unicode non-BMP characters
 
 - Dead keys:
+
+  These are not available on a single layout, so you need to switch to
+  test everything. The useful layouts also differ per platform:
+
+    X11: US International for most, Greek for some specific diacretics
+    Win: US International, Czech, Greek Polytonic, Vietnamese
+    OS X: ABC Extended, Greek
 
   - Grave
   - Acute
@@ -37,6 +53,9 @@ Client
   - No composition on client
 
 - Modifiers:
+
+  X11: You can usually toggle Hyper/Super and Compose/Scroll_Lock using
+       XKB options.
 
   - CapsLock, NumLock (sent but ignored by server)
   - Shift, Ctrl
