@@ -38,16 +38,22 @@ Client
   - Macron
   - Breve
   - Dot above
+  - Dot below
   - Diaeresis
   - Ring above
   - Double acute
   - Caron
   - Cedilla
   - Ogonek
-  - Ypogegrammeni
-  - Katakana voiced mark
-  - Katakana semi-voiced mark
+  - Ypogegrammeni (iota below)
   - Dialytika tonos
+  - Comma above
+  - Reversed comma above
+  - Horn
+  - Hook above
+  - Hook below
+  - Dakuten (Katakana voiced mark)
+  - Handakuten (Katakana semi-voiced mark)
   - FIXME: Many more that we currently probably don't support
 
   - No composition on client
