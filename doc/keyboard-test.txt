@@ -74,9 +74,9 @@ Client
 
   - CapsLock, Shift and AltGr affect symbol lookup
   - Ctrl does not affect symbol lookup
-  - CtrlL+AltR fake release [Win]
-  - Ctrl+Alt+any (note behaviour above though)
-  - Ctrl+AltGr+any (FIXME: broken on Win)
+  - CtrlL+AltR is fake released to compensate for Windows' AltGr magic [Win]
+  - Ctrl+Alt+<ANY> sends the same symbol as <ANY> (note behaviour above though)
+  - Ctrl+AltGr+<ANY> sends the same symbol as AltGr+<ANY> (FIXME: broken on Win)
   - "Shift press, A press, Shift release, A release" should not send "a release"
 
 - Numpad:
