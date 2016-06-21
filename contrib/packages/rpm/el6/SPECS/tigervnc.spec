@@ -10,7 +10,7 @@
 
 Name: tigervnc
 Version: @VERSION@
-Release: 4%{?snap:.%{snap}}%{?dist}
+Release: 5%{?snap:.%{snap}}%{?dist}
 Summary: A TigerVNC remote display system
 
 Group: User Interface/Desktops
@@ -177,7 +177,7 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
 	chmod -x "$all"
 done
-patch -p1 -b --suffix .vnc < ../xserver115.patch
+patch -p1 -b --suffix .vnc < ../xserver117.patch
 popd
 
 %patch16 -p0 -b .man
@@ -460,6 +460,9 @@ fi
 %endif
 
 %changelog
+* Mon Jun 20 2016 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-5
+- Patch for Xorg 1.17 due to vendor bump of Xorg version
+
 * Sat Apr 02 2016 Brian P. Hinz <bphinz@users.sourceforge.net> 1.6.80-4
 - Fixed CVE-2015-8803 CVE-2015-8804 CVE-2015-8805 secp256r1 and secp384r1 bugs
 
