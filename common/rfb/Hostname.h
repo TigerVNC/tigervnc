@@ -19,6 +19,7 @@
 #ifndef __RFB_HOSTNAME_H__
 #define __RFB_HOSTNAME_H__
 
+#include <assert.h>
 #include <stdlib.h>
 #include <rdr/Exception.h>
 #include <rfb/util.h>
@@ -26,30 +27,75 @@
 namespace rfb {
 
   static void getHostAndPort(const char* hi, char** host, int* port, int basePort=5900) {
-    CharArray portBuf;
-    CharArray hostBuf;
+    const char* hostStart;
+    const char* hostEnd;
+    const char* portStart;
+
     if (hi == NULL)
       throw rdr::Exception("NULL host specified");
+
+    assert(host);
+    assert(port);
+
     if (hi[0] == '[') {
-      if (!strSplit(&hi[1], ']', &hostBuf.buf, &portBuf.buf))
+      hostStart = &hi[1];
+      hostEnd = strchr(hostStart, ']');
+      if (hostEnd == NULL)
         throw rdr::Exception("unmatched [ in host");
+
+      portStart = hostEnd + 1;
+      if (*portStart == '\0')
+        portStart = NULL;
     } else {
-      portBuf.buf = strDup(hi);
-    }
-    if (strSplit(portBuf.buf, ':', hostBuf.buf ? 0 : &hostBuf.buf, &portBuf.buf)) {
-      if (portBuf.buf[0] == ':') {
-        *port = atoi(&portBuf.buf[1]);
+      hostStart = &hi[0];
+      hostEnd = strrchr(hostStart, ':');
+
+      if (hostEnd == NULL) {
+        hostEnd = hostStart + strlen(hostStart);
+        portStart = NULL;
       } else {
-        *port = atoi(portBuf.buf);
-        if (*port < 100) *port += basePort;
+        if ((hostEnd > hostStart) && (hostEnd[-1] == ':'))
+          hostEnd--;
+        portStart = strchr(hostStart, ':');
+        if (portStart != hostEnd) {
+          // We found more : in the host. This is probably an IPv6 address
+          hostEnd = hostStart + strlen(hostStart);
+          portStart = NULL;
+        }
       }
-    } else {
-      *port = basePort;
     }
-    if (strlen(hostBuf.buf) == 0)
+
+    if (hostStart == hostEnd)
       *host = strDup("localhost");
-    else
-      *host = hostBuf.takeBuf();
+    else {
+      size_t len;
+      len = hostEnd - hostStart + 1;
+      *host = new char[len];
+      strncpy(*host, hostStart, len-1);
+      (*host)[len-1] = '\0';
+    }
+
+    if (portStart == NULL)
+      *port = basePort;
+    else {
+      char* end;
+
+      if (portStart[0] != ':')
+        throw rdr::Exception("invalid port specified");
+
+      if (portStart[1] != ':')
+        portStart += 1;
+      else {
+        portStart += 2;
+        basePort = 0;
+      }
+
+      *port = strtol(portStart, &end, 10);
+      if (*end != '\0')
+        throw rdr::Exception("invalid port specified");
+
+      *port += basePort;
+    }
   }
 
 };
