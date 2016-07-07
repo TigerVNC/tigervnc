@@ -22,7 +22,7 @@
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/ModuleFileName.h>
 #include <rfb_win32/Registry.h>
-#include <rfb/Threading.h>
+#include <rfb_win32/Handle.h>
 #include <logmessages/messages.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>

@@ -24,6 +24,8 @@
 #include <time.h>
 #include <rfb/Logger.h>
 
+namespace os { class Mutex; }
+
 namespace rfb {
 
   class Logger_File : public Logger {
@@ -43,6 +45,7 @@ namespace rfb {
     char* m_filename;
     FILE* m_file;
     time_t m_lastLogTime;
+    os::Mutex* mutex;
   };
 
   bool initFileLogger(const char* filename);

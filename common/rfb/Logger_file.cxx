@@ -21,36 +21,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <os/Mutex.h>
+
 #include <rfb/util.h>
 #include <rfb/Logger_file.h>
-#include <rfb/Threading.h>
 
 using namespace rfb;
-
-
-// If threading is available then protect the write() operation
-// from concurrent accesses
-#ifdef __RFB_THREADING_IMPL
-static Mutex logLock;
-#endif
-
 
 Logger_File::Logger_File(const char* loggerName)
   : Logger(loggerName), indent(13), width(79), m_filename(0), m_file(0),
     m_lastLogTime(0)
 {
+  mutex = new os::Mutex();
 }
 
 Logger_File::~Logger_File()
 {
   closeFile();
+  delete mutex;
 }
 
 void Logger_File::write(int level, const char *logname, const char *message)
 {
-#ifdef __RFB_THREADING_IMPL
-  Lock l(logLock);
-#endif
+  os::AutoMutex a(mutex);
+
   if (!m_file) {
     if (!m_filename) return;
     CharArray bakFilename(strlen(m_filename) + 1 + 4);

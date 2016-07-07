@@ -30,6 +30,12 @@
 #include <winvnc/JavaViewer.h>
 #include <winvnc/ManagedListener.h>
 
+namespace os {
+    class Mutex;
+    class Condition;
+    class Thread;
+}
+
 namespace winvnc {
 
   class STrayIconThread;
@@ -99,16 +105,16 @@ namespace winvnc {
     Command command;
     const void* commandData;
     int commandDataLen;
-    rfb::Mutex commandLock;
-    rfb::Condition commandSig;
+    os::Mutex* commandLock;
+    os::Condition* commandSig;
     rfb::win32::Handle commandEvent;
     rfb::win32::Handle sessionEvent;
 
     // VNCServerWin32 Server-internal state
     rfb::win32::SDisplay desktop;
     rfb::VNCServerST vncServer;
-    rfb::Mutex runLock;
-    rfb::Thread* hostThread;
+    os::Mutex* runLock;
+    DWORD thread_id;
     bool runServer;
     bool isDesktopStarted;
     JavaViewerServer httpServer;

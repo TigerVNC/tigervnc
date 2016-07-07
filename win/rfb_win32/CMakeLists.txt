@@ -22,7 +22,6 @@ set(RFB_WIN32_SOURCES
   SInput.cxx
   SocketManager.cxx
   TCharArray.cxx
-  Threading.cxx
   TsSessions.cxx
   Win32Util.cxx
   WMCursor.cxx

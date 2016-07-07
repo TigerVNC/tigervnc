@@ -25,7 +25,6 @@
 #include <rfb/util.h>
 #include <rfb/Logger_syslog.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Threading.h>
 
 using namespace rfb;
 

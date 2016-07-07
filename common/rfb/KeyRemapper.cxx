@@ -17,6 +17,9 @@
  */
 
 #include <stdio.h>
+
+#include <os/Mutex.h>
+
 #include <rfb/KeyRemapper.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
@@ -27,14 +30,21 @@ static LogWriter vlog("KeyRemapper");
 
 KeyRemapper KeyRemapper::defInstance;
 
-#ifdef __RFB_THREADING_IMPL
-static Mutex mappingLock;
-#endif
+KeyRemapper::KeyRemapper(const char* m)
+{
+  mutex = new os::Mutex;
+
+  setMapping(m);
+}
+
+KeyRemapper::~KeyRemapper()
+{
+  delete mutex;
+}
 
 void KeyRemapper::setMapping(const char* m) {
-#ifdef __RFB_THREADING_IMPL
-  Lock l(mappingLock);
-#endif
+  os::AutoMutex a(mutex);
+
   mapping.clear();
   while (m[0]) {
     int from, to;
@@ -59,9 +69,8 @@ void KeyRemapper::setMapping(const char* m) {
 }
 
 rdr::U32 KeyRemapper::remapKey(rdr::U32 key) const {
-#ifdef __RFB_THREADING_IMPL
-  Lock l(mappingLock);
-#endif
+  os::AutoMutex a(mutex);
+
   std::map<rdr::U32,rdr::U32>::const_iterator i = mapping.find(key);
   if (i != mapping.end())
     return i->second;

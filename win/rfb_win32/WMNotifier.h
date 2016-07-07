@@ -28,7 +28,6 @@
 #define __RFB_WIN32_NOTIFIER_H__
 
 #include <rfb/SDesktop.h>
-#include <rfb/Threading.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/SInput.h>

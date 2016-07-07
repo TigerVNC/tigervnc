@@ -18,11 +18,13 @@
 
 // -=- WMHooks.cxx
 
+#include <os/Mutex.h>
+#include <os/Thread.h>
+
 #include <rfb_win32/WMHooks.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/MsgWindow.h>
 #include <rfb_win32/IntervalTimer.h>
-#include <rfb/Threading.h>
 #include <rfb/LogWriter.h>
 
 #include <list>
@@ -108,20 +110,21 @@ error:
 }
 
 
-class WMHooksThread : public Thread {
+class WMHooksThread : public os::Thread {
 public:
-  WMHooksThread() : Thread("WMHookThread"), 
-    active(true) {
-  }
-  virtual void run();
-  virtual Thread* join();
+  WMHooksThread() : active(true), thread_id(-1) { }
+  void stop();
+  DWORD getThreadId() { return thread_id; }
+protected:
+  virtual void worker();
 protected:
   bool active;
+  DWORD thread_id;
 };
 
 static WMHooksThread* hook_mgr = 0;
 static std::list<WMHooks*> hooks;
-static Mutex hook_mgr_lock;
+static os::Mutex hook_mgr_lock;
 
 
 static bool StartHookThread() {
@@ -131,15 +134,17 @@ static bool StartHookThread() {
     return false;
   vlog.debug("creating thread");
   hook_mgr = new WMHooksThread();
+  hook_mgr->start();
+  while (hook_mgr->getThreadId() == (DWORD)-1)
+    Sleep(0);
   vlog.debug("installing hooks");
   if (!WM_Hooks_Install(hook_mgr->getThreadId(), 0)) {
     vlog.error("failed to initialise hooks");
-    delete hook_mgr->join();
+    hook_mgr->stop();
+    delete hook_mgr;
     hook_mgr = 0;
     return false;
   }
-  vlog.debug("starting thread");
-  hook_mgr->start();
   return true;
 }
 
@@ -149,14 +154,15 @@ static void StopHookThread() {
   if (!hooks.empty())
     return;
   vlog.debug("closing thread");
-  delete hook_mgr->join();
+  hook_mgr->stop();
+  delete hook_mgr;
   hook_mgr = 0;
 }
 
 
 static bool AddHook(WMHooks* hook) {
   vlog.debug("adding hook");
-  Lock l(hook_mgr_lock);
+  os::AutoMutex a(&hook_mgr_lock);
   if (!StartHookThread())
     return false;
   hooks.push_back(hook);
@@ -166,7 +172,7 @@ static bool AddHook(WMHooks* hook) {
 static bool RemHook(WMHooks* hook) {
   {
     vlog.debug("removing hook");
-    Lock l(hook_mgr_lock);
+    os::AutoMutex a(&hook_mgr_lock);
     hooks.remove(hook);
   }
   StopHookThread();
@@ -174,7 +180,7 @@ static bool RemHook(WMHooks* hook) {
 }
 
 static void NotifyHooksRegion(const Region& r) {
-  Lock l(hook_mgr_lock);
+  os::AutoMutex a(&hook_mgr_lock);
   std::list<WMHooks*>::iterator i;
   for (i=hooks.begin(); i!=hooks.end(); i++)
     (*i)->NotifyHooksRegion(r);
@@ -182,7 +188,7 @@ static void NotifyHooksRegion(const Region& r) {
 
 
 void
-WMHooksThread::run() {
+WMHooksThread::worker() {
   // Obtain message ids for all supported hook messages
   UINT windowMsg = WM_Hooks_WindowChanged();
   UINT clientAreaMsg = WM_Hooks_WindowClientAreaChanged();
@@ -207,6 +213,8 @@ WMHooksThread::run() {
   int activeRgn = 0;
 
   vlog.debug("starting hook thread");
+
+  thread_id = GetCurrentThreadId();
 
   while (active && GetMessage(&msg, NULL, 0, 0)) {
     count++;
@@ -283,13 +291,13 @@ WMHooksThread::run() {
   WM_Hooks_Remove(getThreadId());
 }
 
-Thread*
-WMHooksThread::join() {
+void
+WMHooksThread::stop() {
   vlog.debug("stopping WMHooks thread");
   active = false;
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);
-  vlog.debug("joining WMHooks thread");
-  return Thread::join();
+  vlog.debug("waiting for WMHooks thread");
+  wait();
 }
 
 // -=- WMHooks class
@@ -311,7 +319,7 @@ bool rfb::win32::WMHooks::setEvent(HANDLE ue) {
 
 bool rfb::win32::WMHooks::getUpdates(UpdateTracker* ut) {
   if (!updatesReady) return false;
-  Lock l(hook_mgr_lock);
+  os::AutoMutex a(&hook_mgr_lock);
   updates.copyTo(ut);
   updates.clear();
   updatesReady = false;
@@ -363,12 +371,12 @@ static bool blockRealInputs(bool block_) {
   return block_ == blocking;
 }
 
-Mutex blockMutex;
-int blockCount = 0;
+static os::Mutex blockMutex;
+static int blockCount = 0;
 
 bool rfb::win32::WMBlockInput::blockInputs(bool on) {
   if (active == on) return true;
-  Lock l(blockMutex);
+  os::AutoMutex a(&blockMutex);
   int newCount = on ? blockCount+1 : blockCount-1;
   if (!blockRealInputs(newCount > 0))
     return false;

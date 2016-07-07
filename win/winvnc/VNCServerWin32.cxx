@@ -21,9 +21,13 @@
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/resource.h>
 #include <winvnc/STrayIcon.h>
+
+#include <os/Mutex.h>
+
 #include <rfb_win32/ComputerName.h>
 #include <rfb_win32/CurrentUser.h>
 #include <rfb_win32/Service.h>
+
 #include <rfb/Hostname.h>
 #include <rfb/LogWriter.h>
 
@@ -53,16 +57,21 @@ static BoolParameter showTrayIcon("ShowTrayIcon",
 
 
 VNCServerWin32::VNCServerWin32()
-  : command(NoCommand), commandSig(commandLock),
+  : command(NoCommand),
     commandEvent(CreateEvent(0, TRUE, FALSE, 0)),
     sessionEvent(isServiceProcess() ?
       CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC") : 0),
     vncServer(CStr(ComputerName().buf), &desktop),
-    hostThread(0), runServer(false), isDesktopStarted(false),
+    thread_id(-1), runServer(false), isDesktopStarted(false),
     httpServer(&vncServer), config(&sockMgr),
     rfbSock(&sockMgr), httpSock(&sockMgr), trayIcon(0),
     queryConnectDialog(0)
 {
+  commandLock = new os::Mutex;
+  commandSig = new os::Condition(commandLock);
+
+  runLock = new os::Mutex;
+
   // Initialise the desktop
   desktop.setStatusLocation(&isDesktopStarted);
 
@@ -85,8 +94,15 @@ VNCServerWin32::~VNCServerWin32() {
   desktop.setStatusLocation(0);
 
   // Join the Accept/Reject dialog thread
-  if (queryConnectDialog)
-    delete queryConnectDialog->join();
+  if (queryConnectDialog) {
+    queryConnectDialog->wait();
+    delete queryConnectDialog;
+  }
+
+  delete runLock;
+
+  delete commandSig;
+  delete commandLock;
 }
 
 
@@ -149,8 +165,9 @@ void VNCServerWin32::regConfigChanged() {
 
 
 int VNCServerWin32::run() {
-  { Lock l(runLock);
-    hostThread = Thread::self();
+  {
+    os::AutoMutex a(runLock);
+    thread_id = GetCurrentThreadId();
     runServer = true;
   }
 
@@ -195,19 +212,20 @@ int VNCServerWin32::run() {
     vlog.error("%s", e.str());
   }
 
-  { Lock l(runLock);
+  {
+    os::AutoMutex a(runLock);
     runServer = false;
-    hostThread = 0;
+    thread_id = (DWORD)-1;
   }
 
   return result;
 }
 
 void VNCServerWin32::stop() {
-  Lock l(runLock);
+  os::AutoMutex a(runLock);
   runServer = false;
-  if (hostThread)
-    PostThreadMessage(hostThread->getThreadId(), WM_QUIT, 0, 0);
+  if (thread_id != (DWORD)-1)
+    PostThreadMessage(thread_id, WM_QUIT, 0, 0);
 }
 
 
@@ -261,17 +279,17 @@ void VNCServerWin32::queryConnectionComplete() {
 
 
 bool VNCServerWin32::queueCommand(Command cmd, const void* data, int len, bool wait) {
-  Lock l(commandLock);
+  os::AutoMutex a(commandLock);
   while (command != NoCommand)
-    commandSig.wait();
+    commandSig->wait();
   command = cmd;
   commandData = data;
   commandDataLen = len;
   SetEvent(commandEvent);
   if (wait) {
     while (command != NoCommand)
-      commandSig.wait();
-    commandSig.signal();
+      commandSig->wait();
+    commandSig->signal();
   }
   return true;
 }
@@ -282,7 +300,7 @@ void VNCServerWin32::processEvent(HANDLE event_) {
   if (event_ == commandEvent.h) {
     // If there is no command queued then return immediately
     {
-      Lock l(commandLock);
+      os::AutoMutex a(commandLock);
       if (command == NoCommand)
         return;
     }
@@ -312,7 +330,8 @@ void VNCServerWin32::processEvent(HANDLE event_) {
       vncServer.approveConnection(queryConnectDialog->getSock(),
                                   queryConnectDialog->isAccepted(),
                                   "Connection rejected by user");
-      delete queryConnectDialog->join();
+      queryConnectDialog->wait();
+      delete queryConnectDialog;
       queryConnectDialog = 0;
       break;
 
@@ -322,9 +341,9 @@ void VNCServerWin32::processEvent(HANDLE event_) {
 
     // Clear the command and signal completion
     {
-      Lock l(commandLock);
+      os::AutoMutex a(commandLock);
       command = NoCommand;
-      commandSig.signal();
+      commandSig->signal();
     }
   } else if (event_ == sessionEvent.h) {
     stop();
