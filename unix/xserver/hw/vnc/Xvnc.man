@@ -317,7 +317,7 @@ programs allowed to override the parameters.
 When \fBNoClipboard\fP parameter is set, allowing override of \fBSendCutText\fP
 and \fBAcceptCutText\fP has no effect.
 
-Default is \fBdesktop,AcceptPointerEvents,SendCutText,AcceptCutText\fP.
+Default is \fBdesktop,AcceptPointerEvents,SendCutText,AcceptCutText,SendPrimary,SetPrimary\fP.
 
 .SH USAGE WITH INETD
 By configuring the \fBinetd\fP(1) service appropriately, Xvnc can be launched

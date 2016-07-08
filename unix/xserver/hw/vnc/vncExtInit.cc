@@ -84,7 +84,7 @@ rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
                                      true);
 rfb::StringParameter allowOverride("AllowOverride",
                                    "Comma separated list of parameters that can be modified using VNC extension.",
-                                   "desktop,AcceptPointerEvents,SendCutText,AcceptCutText");
+                                   "desktop,AcceptPointerEvents,SendCutText,AcceptCutText,SendPrimary,SetPrimary");
 rfb::BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
                               "as the CLIPBOARD selection", true);
 rfb::BoolParameter sendPrimary("SendPrimary",
