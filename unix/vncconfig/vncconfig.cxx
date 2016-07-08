@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2012-2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +55,9 @@ BoolParameter iconic("iconic", "Start with window iconified", 0);
 #define ACCEPT_CUT_TEXT "AcceptCutText"
 #define SEND_CUT_TEXT "SendCutText"
 
+#define SET_PRIMARY "SetPrimary"
+#define SEND_PRIMARY "SendPrimary"
+
 char* programName = 0;
 Display* dpy;
 int vncExtEventBase, vncExtErrorBase;
@@ -75,16 +79,26 @@ public:
   VncConfigWindow(Display* dpy)
     : TXWindow(dpy, 300, 100),
       acceptClipboard(dpy, "Accept clipboard from viewers", this, false, this),
+      setPrimaryCB(dpy, "Also set primary selection", this, false, this),
       sendClipboard(dpy, "Send clipboard to viewers", this, false, this),
+      sendPrimaryCB(dpy, "Send primary selection to viewers", this,false,this),
       queryConnectDialog(0)
   {
     int y = yPad;
     acceptClipboard.move(xPad, y);
     acceptClipboard.checked(getBoolParam(dpy, ACCEPT_CUT_TEXT));
     y += acceptClipboard.height();
+    setPrimaryCB.move(xPad + 10, y);
+    setPrimaryCB.checked(getBoolParam(dpy, SET_PRIMARY));
+    setPrimaryCB.disabled(!acceptClipboard.checked());
+    y += setPrimaryCB.height();
     sendClipboard.move(xPad, y);
     sendClipboard.checked(getBoolParam(dpy, SEND_CUT_TEXT));
     y += sendClipboard.height();
+    sendPrimaryCB.move(xPad + 10, y);
+    sendPrimaryCB.checked(getBoolParam(dpy, SEND_PRIMARY));
+    sendPrimaryCB.disabled(!sendClipboard.checked());
+    y += sendPrimaryCB.height();
     setEventHandler(this);
     toplevel("VNC config", this, 0, 0, 0, iconic);
     XVncExtSelectInput(dpy, win(), VncExtQueryConnectMask);
@@ -125,9 +139,17 @@ public:
     if (checkbox == &acceptClipboard) {
       XVncExtSetParam(dpy, (acceptClipboard.checked()
                             ? ACCEPT_CUT_TEXT "=1" : ACCEPT_CUT_TEXT "=0"));
+      setPrimaryCB.disabled(!acceptClipboard.checked());
     } else if (checkbox == &sendClipboard) {
       XVncExtSetParam(dpy, (sendClipboard.checked()
                             ? SEND_CUT_TEXT "=1" : SEND_CUT_TEXT "=0"));
+      sendPrimaryCB.disabled(!sendClipboard.checked());
+    } else if (checkbox == &setPrimaryCB) {
+      XVncExtSetParam(dpy, (setPrimaryCB.checked()
+                            ? SET_PRIMARY "=1" : SET_PRIMARY "=0"));
+    } else if (checkbox == &sendPrimaryCB) {
+      XVncExtSetParam(dpy, (sendPrimaryCB.checked()
+                            ? SEND_PRIMARY "=1" : SEND_PRIMARY "=0"));
     }
   }
 
@@ -140,7 +162,8 @@ public:
   }
 
 private:
-  TXCheckbox acceptClipboard, sendClipboard;
+  TXCheckbox acceptClipboard, setPrimaryCB;
+  TXCheckbox sendClipboard, sendPrimaryCB;
 
   QueryConnectDialog* queryConnectDialog;
   void* queryConnectId;
