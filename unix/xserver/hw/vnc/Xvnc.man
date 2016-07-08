@@ -126,19 +126,22 @@ screen is updated. Otherwise the delay is from the first update. Default
 is off.
 .
 .TP
-.B \-SendCutText
-Send clipboard changes to clients (default is on).  Note that you must also run
-\fBvncconfig\fP(1) to get the clipboard to work.
-.
-.TP
 .B \-AcceptCutText
-Accept clipboard updates from clients (default is on).  Note that you must also
-run \fBvncconfig\fP(1) to get the clipboard to work.
+Accept clipboard updates from clients (default is on).
 .
 .TP
 .B \-MaxCutText \fIbytes\fP
 The maximum size of a clipboard update that will be accepted from a client.
 Default is \fB262144\fP.
+.
+.TP
+.B \-SendCutText
+Send clipboard changes to clients (default is on).
+.
+.TP
+.B \-SendPrimary
+Send the primary selection and cut buffer to the server as well as the
+clipboard selection. Default is on.
 .
 .TP
 .B \-AcceptPointerEvents

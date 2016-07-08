@@ -24,10 +24,6 @@
 #define _VNCEXT_PROTO_
 #include "vncExt.h"
 
-static Bool XVncExtClientCutTextNotifyWireToEvent(Display* dpy, XEvent* e,
-                                                  xEvent* w);
-static Bool XVncExtSelectionChangeNotifyWireToEvent(Display* dpy, XEvent* e,
-                                                    xEvent* w);
 static Bool XVncExtQueryConnectNotifyWireToEvent(Display* dpy, XEvent* e,
                                                  xEvent* w);
 
@@ -40,10 +36,6 @@ static Bool checkExtension(Display* dpy)
     extensionInited = True;
     codes = XInitExtension(dpy, VNCEXTNAME);
     if (!codes) return False;
-    XESetWireToEvent(dpy, codes->first_event + VncExtClientCutTextNotify,
-                     XVncExtClientCutTextNotifyWireToEvent);
-    XESetWireToEvent(dpy, codes->first_event + VncExtSelectionChangeNotify,
-                     XVncExtSelectionChangeNotifyWireToEvent);
     XESetWireToEvent(dpy, codes->first_event + VncExtQueryConnectNotify,
                      XVncExtQueryConnectNotifyWireToEvent);
   }
@@ -214,53 +206,6 @@ void XVncExtFreeParamList(char** list)
   }
 }
 
-Bool XVncExtSetServerCutText(Display* dpy, const char* str, int len)
-{
-  xVncExtSetServerCutTextReq* req;
-
-  if (!checkExtension(dpy)) return False;
-
-  LockDisplay(dpy);
-  GetReq(VncExtSetServerCutText, req);
-  req->reqType = codes->major_opcode;
-  req->vncExtReqType = X_VncExtSetServerCutText;
-  req->length += (len + 3) >> 2;
-  req->textLen = len;
-  Data(dpy, str, len);
-  UnlockDisplay(dpy);
-  SyncHandle();
-  return True;
-}
-
-Bool XVncExtGetClientCutText(Display* dpy, char** str, int* len)
-{
-  xVncExtGetClientCutTextReq* req;
-  xVncExtGetClientCutTextReply rep;
-
-  if (!checkExtension(dpy)) return False;
-
-  LockDisplay(dpy);
-  GetReq(VncExtGetClientCutText, req);
-  req->reqType = codes->major_opcode;
-  req->vncExtReqType = X_VncExtGetClientCutText;
-  if (!_XReply(dpy, (xReply *)&rep, 0, xFalse)) {
-    UnlockDisplay(dpy);
-    SyncHandle();
-    return False;
-  }
-  UnlockDisplay(dpy);
-  SyncHandle();
-  *len = rep.textLen;
-  *str = (char*) Xmalloc (*len+1);
-  if (!*str) {
-    _XEatData(dpy, (*len+1)&~1);
-    return False;
-  }
-  _XReadPad(dpy, *str, *len);
-  (*str)[*len] = 0;
-  return True;
-}
-
 Bool XVncExtSelectInput(Display* dpy, Window w, int mask)
 {
   xVncExtSelectInputReq* req;
@@ -358,35 +303,6 @@ Bool XVncExtApproveConnect(Display* dpy, void* opaqueId, int approve)
   return True;
 }
 
-
-static Bool XVncExtClientCutTextNotifyWireToEvent(Display* dpy, XEvent* e,
-                                                  xEvent* w)
-{
-  XVncExtClientCutTextEvent* ev = (XVncExtClientCutTextEvent*)e;
-  xVncExtClientCutTextNotifyEvent* wire = (xVncExtClientCutTextNotifyEvent*)w;
-  ev->type = wire->type & 0x7f;
-  ev->serial = _XSetLastRequestRead(dpy,(xGenericReply*)wire);
-  ev->send_event = (wire->type & 0x80) != 0;
-  ev->display = dpy;
-  ev->window = wire->window;
-  ev->time = wire->time;
-  return True;
-}
-
-static Bool XVncExtSelectionChangeNotifyWireToEvent(Display* dpy, XEvent* e,
-                                                    xEvent* w)
-{
-  XVncExtSelectionChangeEvent* ev = (XVncExtSelectionChangeEvent*)e;
-  xVncExtSelectionChangeNotifyEvent* wire
-    = (xVncExtSelectionChangeNotifyEvent*)w;
-  ev->type = wire->type & 0x7f;
-  ev->serial = _XSetLastRequestRead(dpy,(xGenericReply*)wire);
-  ev->send_event = (wire->type & 0x80) != 0;
-  ev->display = dpy;
-  ev->window = wire->window;
-  ev->selection = wire->selection;
-  return True;
-}
 
 static Bool XVncExtQueryConnectNotifyWireToEvent(Display* dpy, XEvent* e,
                                                     xEvent* w)

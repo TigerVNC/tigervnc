@@ -38,6 +38,7 @@
 #include "vncExtInit.h"
 #include "vncHooks.h"
 #include "vncBlockHandler.h"
+#include "vncSelection.h"
 #include "XorgGlue.h"
 
 using namespace rfb;
@@ -84,6 +85,11 @@ rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
 rfb::StringParameter allowOverride("AllowOverride",
                                    "Comma separated list of parameters that can be modified using VNC extension.",
                                    "desktop,AcceptPointerEvents,SendCutText,AcceptCutText");
+rfb::BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
+                              "as the CLIPBOARD selection", true);
+rfb::BoolParameter sendPrimary("SendPrimary",
+                               "Send the PRIMARY as well as the CLIPBOARD selection",
+                               true);
 
 static PixelFormat vncGetPixelFormat(int scrIdx)
 {
@@ -150,6 +156,8 @@ void vncExtensionInit(void)
   ret = vncAddExtension();
   if (ret == -1)
     return;
+
+  vncSelectionInit();
 
   vlog.info("VNC extension running!");
 
@@ -272,6 +280,16 @@ void vncCallWriteWakeupHandlers(fd_set * fds, int nfds)
 int vncGetAvoidShiftNumLock(void)
 {
   return (bool)avoidShiftNumLock;
+}
+
+int vncGetSetPrimary(void)
+{
+  return (bool)setPrimary;
+}
+
+int vncGetSendPrimary(void)
+{
+  return (bool)sendPrimary;
 }
 
 void vncUpdateDesktopName(void)

@@ -41,8 +41,6 @@ int vncAddExtension(void);
 
 int vncNotifyQueryConnect(void);
 
-void vncClientCutText(const char* str, int len);
-
 // vncExtInit.cc
 extern void* vncFbptr[];
 extern int vncFbstride[];
@@ -58,6 +56,9 @@ void vncCallWriteBlockHandlers(fd_set * fds, struct timeval ** timeout);
 void vncCallWriteWakeupHandlers(fd_set * fds, int nfds);
 
 int vncGetAvoidShiftNumLock(void);
+
+int vncGetSetPrimary(void);
+int vncGetSendPrimary(void);
 
 void vncUpdateDesktopName(void);
 

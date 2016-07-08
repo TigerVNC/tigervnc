@@ -37,14 +37,11 @@ server with the VNC extension.  Note that it cannot be used to control VNC
 servers prior to version 4.
 
 When run with no options, it runs as a kind of "helper" application for Xvnc.
-Its main purpose when run in this mode is to support clipboard transfer to and
-from the VNC viewer(s).  Note that without a running instance of
-\fBvncconfig\fP there will be no clipboard support.  It puts up a window with
-some checkboxes which can be used to disable clipboard transfers if required
-(in the future there may be more functions available from this window).  The
-\fB-nowin\fP flag can be used if you always want clipboard support but don't
-wish to clutter the desktop with this window - alternatively the \fB-iconic\fP
-option can be used to make it iconified by default.
+Its main purpose when run in this mode is to query the user how new
+connections should be handled (provided this feature is enabled). The
+\fB-nowin\fP flag can be used if you always want the query support but don't
+wish to clutter the desktop with the settings window - alternatively the
+\fB-iconic\fP option can be used to make it iconified by default.
 
 When run in any other mode, \fBvncconfig\fP is a one-shot program used to
 configure or control Xvnc as appropriate.  It can be used to tell Xvnc to

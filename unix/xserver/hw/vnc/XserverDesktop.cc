@@ -43,6 +43,7 @@
 #include "XserverDesktop.h"
 #include "vncExtInit.h"
 #include "vncHooks.h"
+#include "vncSelection.h"
 #include "XorgGlue.h"
 #include "Input.h"
 

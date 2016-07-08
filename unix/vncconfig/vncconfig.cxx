@@ -38,7 +38,6 @@
 #include <rfb/Configuration.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
-#include <rfb/Timer.h>
 #include "TXWindow.h"
 #include "TXCheckbox.h"
 #include "TXLabel.h"
@@ -51,18 +50,6 @@ LogWriter vlog("vncconfig");
 StringParameter displayname("display", "The X display", "");
 BoolParameter noWindow("nowin", "Don't display a window", 0);
 BoolParameter iconic("iconic", "Start with window iconified", 0);
-BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
-                         "as the CLIPBOARD selection", true);
-BoolParameter sendPrimary("SendPrimary", "Send the PRIMARY as well as the "
-                          "CLIPBOARD selection", true);
-IntParameter pollTime("poll",
-                      "How often to poll for clipboard changes in ms", 0);
-
-inline const char* selectionName(Atom sel) {
-  if (sel == xaCLIPBOARD) return "CLIPBOARD";
-  if (sel == XA_PRIMARY) return "PRIMARY";
-  return "unknown";
-}
 
 #define ACCEPT_CUT_TEXT "AcceptCutText"
 #define SEND_CUT_TEXT "SendCutText"
@@ -83,90 +70,29 @@ static bool getBoolParam(Display* dpy, const char* param) {
 class VncConfigWindow : public TXWindow, public TXEventHandler,
                         public TXDeleteWindowCallback,
                         public TXCheckboxCallback,
-                        public rfb::Timer::Callback,
                         public QueryResultCallback {
 public:
   VncConfigWindow(Display* dpy)
-    : TXWindow(dpy, 300, 100), cutText(0), cutTextLen(0),
+    : TXWindow(dpy, 300, 100),
       acceptClipboard(dpy, "Accept clipboard from viewers", this, false, this),
-      setPrimaryCB(dpy, "Also set primary selection",
-                      this, false, this),
       sendClipboard(dpy, "Send clipboard to viewers", this, false, this),
-      sendPrimaryCB(dpy, "Send primary selection to viewers", this,false,this),
-      pollTimer(this),
       queryConnectDialog(0)
   {
-    selection[0] = selection[1] = 0;
-    selectionLen[0] = selectionLen[1] = 0;
     int y = yPad;
     acceptClipboard.move(xPad, y);
     acceptClipboard.checked(getBoolParam(dpy, ACCEPT_CUT_TEXT));
     y += acceptClipboard.height();
-    setPrimaryCB.move(xPad + 10, y);
-    setPrimaryCB.checked(setPrimary);
-    setPrimaryCB.disabled(!acceptClipboard.checked());
-    y += setPrimaryCB.height();
     sendClipboard.move(xPad, y);
     sendClipboard.checked(getBoolParam(dpy, SEND_CUT_TEXT));
     y += sendClipboard.height();
-    sendPrimaryCB.move(xPad, y);
-    sendPrimaryCB.checked(sendPrimary);
-    sendPrimaryCB.disabled(!sendClipboard.checked());
-    y += sendPrimaryCB.height();
     setEventHandler(this);
     toplevel("VNC config", this, 0, 0, 0, iconic);
-    XVncExtSelectInput(dpy, win(),
-                       VncExtClientCutTextMask|
-                       VncExtSelectionChangeMask|
-                       VncExtQueryConnectMask);
-    XConvertSelection(dpy, XA_PRIMARY, XA_STRING,
-                      XA_PRIMARY, win(), CurrentTime);
-    XConvertSelection(dpy, xaCLIPBOARD, XA_STRING,
-                      xaCLIPBOARD, win(), CurrentTime);
-    if (pollTime != 0)
-      pollTimer.start(pollTime);
+    XVncExtSelectInput(dpy, win(), VncExtQueryConnectMask);
   }
 
-  // handleEvent(). If we get a ClientCutTextNotify event from Xvnc, set the
-  // primary and clipboard selections to the clientCutText. If we get a
-  // SelectionChangeNotify event from Xvnc, set the serverCutText to the value
-  // of the new selection.
+  // handleEvent()
 
   virtual void handleEvent(TXWindow* w, XEvent* ev) {
-    if (acceptClipboard.checked()) {
-      if (ev->type == vncExtEventBase + VncExtClientCutTextNotify) {
-        XVncExtClientCutTextEvent* cutEv = (XVncExtClientCutTextEvent*)ev;
-        if (cutText)
-          XFree(cutText);
-        cutText = 0;
-        if (XVncExtGetClientCutText(dpy, &cutText, &cutTextLen)) {
-          vlog.debug("Got client cut text: '%.*s%s'",
-                     cutTextLen<9?cutTextLen:8, cutText,
-                     cutTextLen<9?"":"...");
-          XStoreBytes(dpy, cutText, cutTextLen);
-          if (setPrimaryCB.checked()) {
-            ownSelection(XA_PRIMARY, cutEv->time);
-          }
-          ownSelection(xaCLIPBOARD, cutEv->time);
-          delete [] selection[0];
-          delete [] selection[1];
-          selection[0] = selection[1] = 0;
-          selectionLen[0] = selectionLen[1] = 0;
-        }
-      }
-    }
-    if (sendClipboard.checked()) {
-      if (ev->type == vncExtEventBase + VncExtSelectionChangeNotify) {
-        vlog.debug("selection change event");
-        XVncExtSelectionChangeEvent* selEv = (XVncExtSelectionChangeEvent*)ev;
-        if (selEv->selection == xaCLIPBOARD ||
-            (selEv->selection == XA_PRIMARY && sendPrimaryCB.checked())) {
-          if (!selectionOwner(selEv->selection))
-            XConvertSelection(dpy, selEv->selection, XA_STRING,
-                              selEv->selection, win(), CurrentTime);
-        }
-      }
-    }
     if (ev->type == vncExtEventBase + VncExtQueryConnectNotify) {
        vlog.debug("query connection event");
        if (queryConnectDialog)
@@ -188,55 +114,6 @@ public:
        }
     }
   }
-  
-
-  // selectionRequest() is called when we are the selection owner and another X
-  // client has requested the selection.  We simply put the server's cut text
-  // into the requested property.  TXWindow will handle the rest.
-  bool selectionRequest(Window requestor, Atom selection, Atom property)
-  {
-    if (cutText)
-      XChangeProperty(dpy, requestor, property, XA_STRING, 8,
-                      PropModeReplace, (unsigned char*)cutText,
-                      cutTextLen);
-    return cutText;
-  }
-
-  // selectionNotify() is called when we have requested the selection from the
-  // selection owner.
-  void selectionNotify(XSelectionEvent* ev, Atom type, int format,
-                       int nitems, void* data)
-  {
-    if (ev->requestor != win() || ev->target != XA_STRING)
-      return;
-
-    if (data && format == 8) {
-      int i = (ev->selection == XA_PRIMARY ? 0 : 1);
-      if (selectionLen[i] == nitems && memcmp(selection[i], data, nitems) == 0)
-        return;
-      delete [] selection[i];
-      selection[i] = new char[nitems];
-      memcpy(selection[i], data, nitems);
-      selectionLen[i] = nitems;
-      if (cutTextLen == nitems && memcmp(cutText, data, nitems) == 0) {
-        vlog.debug("ignoring duplicate cut text");
-        return;
-      }
-      if (cutText)
-        XFree(cutText);
-      cutText = (char*)malloc(nitems); // assuming XFree() same as free()
-      if (!cutText) {
-        vlog.error("unable to allocate selection buffer");
-        return;
-      }
-      memcpy(cutText, data, nitems);
-      cutTextLen = nitems;
-      vlog.debug("sending %s selection as server cut text: '%.*s%s'",
-                 selectionName(ev->selection),cutTextLen<9?cutTextLen:8,
-                 cutText, cutTextLen<9?"":"...");
-      XVncExtSetServerCutText(dpy, cutText, cutTextLen);
-    }
-  }
 
   // TXDeleteWindowCallback method
   virtual void deleteWindow(TXWindow* w) {
@@ -248,23 +125,10 @@ public:
     if (checkbox == &acceptClipboard) {
       XVncExtSetParam(dpy, (acceptClipboard.checked()
                             ? ACCEPT_CUT_TEXT "=1" : ACCEPT_CUT_TEXT "=0"));
-      setPrimaryCB.disabled(!acceptClipboard.checked());
     } else if (checkbox == &sendClipboard) {
       XVncExtSetParam(dpy, (sendClipboard.checked()
                             ? SEND_CUT_TEXT "=1" : SEND_CUT_TEXT "=0"));
-      sendPrimaryCB.disabled(!sendClipboard.checked());
     }
-  }
-
-  // rfb::Timer::Callback interface
-  virtual bool handleTimeout(rfb::Timer* timer) {
-    if (sendPrimaryCB.checked() && !selectionOwner(XA_PRIMARY))
-      XConvertSelection(dpy, XA_PRIMARY, XA_STRING,
-                        XA_PRIMARY, win(), CurrentTime);
-    if (!selectionOwner(xaCLIPBOARD))
-      XConvertSelection(dpy, xaCLIPBOARD, XA_STRING,
-                        xaCLIPBOARD, win(), CurrentTime);
-    return true;
   }
 
   // QueryResultCallback interface
@@ -276,12 +140,7 @@ public:
   }
 
 private:
-  char* cutText;
-  int cutTextLen;
-  char* selection[2];
-  int selectionLen[2];
-  TXCheckbox acceptClipboard, setPrimaryCB, sendClipboard, sendPrimaryCB;
-  rfb::Timer pollTimer;
+  TXCheckbox acceptClipboard, sendClipboard;
 
   QueryConnectDialog* queryConnectDialog;
   void* queryConnectId;
