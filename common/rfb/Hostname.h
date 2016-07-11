@@ -84,17 +84,14 @@ namespace rfb {
         throw rdr::Exception("invalid port specified");
 
       if (portStart[1] != ':')
-        portStart += 1;
-      else {
-        portStart += 2;
-        basePort = 0;
-      }
-
-      *port = strtol(portStart, &end, 10);
+        *port = strtol(portStart + 1, &end, 10);
+      else
+        *port = strtol(portStart + 2, &end, 10);
       if (*end != '\0')
         throw rdr::Exception("invalid port specified");
 
-      *port += basePort;
+      if ((portStart[1] != ':') && (*port < 100))
+        *port += basePort;
     }
   }
 
