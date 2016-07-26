@@ -104,8 +104,9 @@ else()
   message(STATUS "32-bit build")
 endif()
 
-# CMake doesn't properly support resource compilation with MinGW.  Boo!
-if(MINGW)
+# Versions of CMake before 2.8.7 do not properly support resource compilation
+# with MinGW.  Boo!
+if(MINGW AND "${CMAKE_VERSION}" VERSION_LESS "2.8.7")
   if(NOT DEFINED RC)
     set(CMAKE_RC_COMPILER_INIT windres)
   else()
