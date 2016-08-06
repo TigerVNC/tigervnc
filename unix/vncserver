@@ -26,10 +26,7 @@
 # vncserver - wrapper script to start an X VNC server.
 #
 
-#
 # First make sure we're operating in a sane environment.
-#
-
 $exedir = "";
 $slashndx = rindex($0, "/");
 if($slashndx>=0) {
@@ -41,7 +38,8 @@ $vncClasses = "";
 &SanityCheck();
 
 #
-# Global variables.  You may want to configure some of these for your site.
+# Global variables.  You may want to configure some of these for
+# your site
 #
 
 $geometry = "1024x768";
@@ -51,10 +49,16 @@ $vncJavaFiles = (((-d "$vncClasses") && "$vncClasses") ||
                  ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes"));
                  
 $vncUserDir = "$ENV{HOME}/.vnc";
+$vncUserConfig = "$vncUserDir/config";
+
+$vncSystemConfigDir = "/etc/tigervnc";
+$vncSystemConfigDefaultsFile = "$vncSystemConfigDir/vncserver-config-defaults";
+$vncSystemConfigMandatoryFile = "$vncSystemConfigDir/vncserver-config-mandatory";
+
 $skipxstartup = 0;
 $xauthorityFile = "$ENV{XAUTHORITY}" || "$ENV{HOME}/.Xauthority";
 
-$xstartup = $vncUserDir . "/xstartup";
+$xstartupFile = $vncUserDir . "/xstartup";
 $defaultXStartup
     = ("#!/bin/sh\n\n".
        "unset SESSION_MANAGER\n".
@@ -159,7 +163,7 @@ if ($opt{'-noxstartup'}) {
     $skipxstartup = 1;
 }
 if ($opt{'-xstartup'}) {
-    $xstartup = $opt{'-xstartup'};
+    $xstartupFile = $opt{'-xstartup'};
 }
 if ($opt{'-fp'}) {
     $fontPath = $opt{'-fp'};
@@ -168,22 +172,89 @@ if ($opt{'-fp'}) {
 
 &CheckGeometryAndDepth();
 
-
 # Create the user's vnc directory if necessary.
-
 if (!(-e $vncUserDir)) {
     if (!mkdir($vncUserDir,0755)) {
 	die "$prog: Could not create $vncUserDir.\n";
     }
 }
     
+# Find display number.
+if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
+    $displayNumber = $1;
+    shift(@ARGV);
+    if (!&CheckDisplayNumber($displayNumber)) {
+	die "A VNC server is already running as :$displayNumber\n";
+    }
+} elsif ((@ARGV > 0) && ($ARGV[0] !~ /^-/) && ($ARGV[0] !~ /^\+/)) {
+    &Usage();
+} else {
+    $displayNumber = &GetDisplayNumber();
+}
+
+$vncPort = 5900 + $displayNumber;
+
+if ($opt{'-name'}) {
+    $desktopName = $opt{'-name'};
+} else {
+    $desktopName = "$host:$displayNumber ($ENV{USER})";
+}
+
+my %default_opts;
+my %config;
+
+# We set some reasonable defaults. Config file settings
+# override these where present.
+$default_opts{desktop} = &quotedString($desktopName);
+$default_opts{httpd} = $vncJavaFiles if ($vncJavaFiles);
+$default_opts{auth} = $xauthorityFile;
+$default_opts{geometry} = $geometry if ($geometry);
+$default_opts{depth} = $depth if ($depth);
+$default_opts{pixelformat} = $pixelformat if ($pixelformat);
+$default_opts{rfbwait} = 30000;
+$default_opts{rfbauth} = "$vncUserDir/passwd";
+$default_opts{rfbport} = $vncPort;
+$default_opts{fp} = $fontPath if ($fontPath);
+$default_opts{pn} = "";
+
+# Load user-overrideable system defaults
+LoadConfig($vncSystemConfigDefaultsFile);
+
+# Then the user's settings
+LoadConfig($vncUserConfig);
+
+# And then override anything set above if mandatory settings exist.
+# WARNING: "Mandatory" is used loosely here! As the man page says,
+# there is nothing stopping someone from EASILY subverting the
+# settings in $vncSystemConfigMandatoryFile by simply passing
+# CLI args to vncserver, which trump config files! To properly
+# hard force policy in a non-subvertible way would require major
+# development work that touches Xvnc itself.
+LoadConfig($vncSystemConfigMandatoryFile, 1);
+
+#
 # Check whether VNC authentication is enabled, and if so, prompt the user to
 # create a VNC password if they don't already have one.
+#
 
 $securityTypeArgSpecified = 0;
 $vncAuthEnabled = 0;
 $passwordArgSpecified = 0;
+@vncAuthStrings = ("vncauth", "tlsvnc", "x509vnc");
 
+# ...first we check our configuration files' settings
+if ($config{'securitytypes'}) {
+  $securityTypeArgSpecified = 1;
+  foreach $arg2 (split(',', $config{'securitytypes'})) {
+    if (grep {$_ eq lc($arg2)} @vncAuthStrings) {
+      $vncAuthEnabled = 1;
+    }
+  }
+}
+
+# ...and finally we check CLI args, which in the case of the topic at
+# hand (VNC auth or not), override anything found in configuration files
+# (even so-called "mandatory" settings).
 for ($i = 0; $i < @ARGV; ++$i) {
     # -SecurityTypes can be followed by a space or "="
     my @splitargs = split('=', $ARGV[$i]);
@@ -195,8 +266,7 @@ for ($i = 0; $i < @ARGV; ++$i) {
             $securityTypeArgSpecified = 1;
         }
         foreach $arg2 (split(',', @splitargs[1])) {
-            if (lc($arg2) eq "vncauth" || lc($arg2) eq "tlsvnc"
-             || lc($arg2) eq "x509vnc") {
+            if (grep {$_ eq lc($arg2)} @vncAuthStrings) {
                 $vncAuthEnabled = 1;
             }
         }
@@ -218,22 +288,6 @@ if ((!$securityTypeArgSpecified || $vncAuthEnabled) && !$passwordArgSpecified) {
         }
     }
 }
- 
-# Find display number.
-
-if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
-    $displayNumber = $1;
-    shift(@ARGV);
-    if (!&CheckDisplayNumber($displayNumber)) {
-	die "A VNC server is already running as :$displayNumber\n";
-    }
-} elsif ((@ARGV > 0) && ($ARGV[0] !~ /^-/) && ($ARGV[0] !~ /^\+/)) {
-    &Usage();
-} else {
-    $displayNumber = &GetDisplayNumber();
-}
-
-$vncPort = 5900 + $displayNumber;
 
 $desktopLog = "$vncUserDir/$host:$displayNumber.log";
 unlink($desktopLog);
@@ -247,52 +301,14 @@ print XAUTH "add $host:$displayNumber . $cookie\n";
 print XAUTH "add $host/unix:$displayNumber . $cookie\n";
 close(XAUTH);
 
-if ($opt{'-name'}) {
-    $desktopName = $opt{'-name'};
-} else {
-    $desktopName = "$host:$displayNumber ($ENV{USER})";
-}
-
 # Now start the X VNC Server
 
+# We build up our Xvnc command with options
 $cmd = $exedir."Xvnc :$displayNumber";
-
-my %default_opts;
-my %config;
-
-$default_opts{desktop} = &quotedString($desktopName);
-$default_opts{httpd} = $vncJavaFiles if ($vncJavaFiles);
-$default_opts{auth} = $xauthorityFile;
-$default_opts{geometry} = $geometry if ($geometry);
-$default_opts{depth} = $depth if ($depth);
-$default_opts{pixelformat} = $pixelformat if ($pixelformat);
-$default_opts{rfbwait} = 30000;
-$default_opts{rfbauth} = "$vncUserDir/passwd";
-$default_opts{rfbport} = $vncPort;
-$default_opts{fp} = $fontPath if ($fontPath);
-$default_opts{pn} = "";
-
-# if a user configuration file already exists
-if(stat("$vncUserDir/config")) {
-
-  # loads and parses configuration file
-  if(open(IN, "$vncUserDir/config")) {
-    while(<IN>) {
-      next if /^#/;
-      if(my ($k, $v) = /^\s*(\w+)\s*=\s*(.+)$/) {
-        $config{$k} = $v;
-      } elsif ($_ =~ m/^\s*(\S+)/) {
-        $config{$1} = $k;
-      }
-    }
-    close(IN);
-  }
-}
 
 foreach my $k (sort keys %config) {
   $cmd .= " -$k $config{$k}";
-  # user's option takes precedence
-  delete $default_opts{$k};
+  delete $default_opts{$k}; # file options take precedence
 }
 
 foreach my $k (sort keys %default_opts) {
@@ -300,17 +316,14 @@ foreach my $k (sort keys %default_opts) {
 }
 
 # Add color database stuff here, e.g.:
-#
 # $cmd .= " -co /usr/lib/X11/rgb";
-#
 
 foreach $arg (@ARGV) {
-    $cmd .= " " . &quotedString($arg);
+  $cmd .= " " . &quotedString($arg);
 }
 $cmd .= " >> " . &quotedString($desktopLog) . " 2>&1";
 
 # Run $cmd and record the process ID.
-
 $pidFile = "$vncUserDir/$host:$displayNumber.pid";
 system("$cmd & echo \$! >$pidFile");
 
@@ -347,19 +360,17 @@ unless (kill 0, `cat $pidFile`) {
 warn "\nNew '$desktopName' desktop is $host:$displayNumber\n\n";
 
 # Create the user's xstartup script if necessary.
-
 if (! $skipxstartup) {
-    if (!(-e "$xstartup")) {
-	warn "Creating default startup script $xstartup\n";
-	open(XSTARTUP, ">$xstartup");
+    if (!(-e "$xstartupFile")) {
+	warn "Creating default startup script $xstartupFile\n";
+	open(XSTARTUP, ">$xstartupFile");
         print XSTARTUP $defaultXStartup;
         close(XSTARTUP);
-        chmod 0755, "$xstartup";
+        chmod 0755, "$xstartupFile";
     }
 }
 
 # Create the user's config file if necessary.
-
 if (!(-e "$vncUserDir/config")) {
     warn "Creating default config $vncUserDir/config\n";
     open(XSTARTUP, ">$vncUserDir/config");
@@ -369,9 +380,8 @@ if (!(-e "$vncUserDir/config")) {
 }
 
 # Run the X startup script.
-
 if (! $skipxstartup) {
-    warn "Starting applications specified in $xstartup\n";
+    warn "Starting applications specified in $xstartupFile\n";
 }
 warn "Log file is $desktopLog\n\n";
 
@@ -391,7 +401,7 @@ system($exedir."vncconfig -nowin >> " . &quotedString($desktopLog) . " 2>&1 &");
 
 if ($opt{'-fg'}) {
     if (! $skipxstartup) {
-        system("$xstartup >> " . &quotedString($desktopLog) . " 2>&1");
+        system("$xstartupFile >> " . &quotedString($desktopLog) . " 2>&1");
     }
     if (kill 0, `cat $pidFile`) {
         $opt{'-kill'} = ':'.$displayNumber;
@@ -400,12 +410,12 @@ if ($opt{'-fg'}) {
 } else {
     if ($opt{'-autokill'}) {
     	if (! $skipxstartup) {
-            system("($xstartup; $0 -kill :$displayNumber) >> "
+            system("($xstartupFile; $0 -kill :$displayNumber) >> "
 	     . &quotedString($desktopLog) . " 2>&1 &");
     	}
     } else {
     	if (! $skipxstartup) {
-            system("$xstartup >> " . &quotedString($desktopLog)
+            system("$xstartupFile >> " . &quotedString($desktopLog)
 	     . " 2>&1 &");
     	}
     }
@@ -413,8 +423,46 @@ if ($opt{'-fg'}) {
 
 exit;
 
-
 ###############################################################################
+# Functions
+###############################################################################
+
+#
+# Populate the global %config hash with settings from a specified
+# vncserver configuration file if it exists
+#
+# Args: 1. file path
+#       2. optional boolean flag to enable warning when a previously
+#          set configuration setting is being overridden
+#
+sub LoadConfig {
+  local ($configFile, $warnoverride) = @_;
+  local ($toggle) = undef;
+
+  if (stat($configFile)) {
+    if (open(IN, $configFile)) {
+      while (<IN>) {
+        next if /^#/;
+        if (my ($k, $v) = /^\s*(\w+)\s*=\s*(.+)$/) {
+          $k = lc($k); # must normalize key case
+          if ($warnoverride && $config{$k}) {
+            print("Warning: $configFile is overriding previously defined '$k' to be '$v'\n");
+          }
+          $config{$k} = $v;
+        } elsif ($_ =~ m/^\s*(\S+)/) {
+          # We can't reasonably warn on override of toggles (e.g. AlwaysShared)
+          # because it would get crazy to do so. We'd have to check if the
+          # current config file being loaded defined the logical opposite setting
+          # (NeverShared vs. AlwaysShared, etc etc).
+          $toggle = lc($1); # must normalize key case
+          $config{$toggle} = $k;
+        }
+      }
+      close(IN);
+    }
+  }
+}
+
 #
 # CheckGeometryAndDepth simply makes sure that the geometry and depth values
 # are sensible.
@@ -759,18 +807,12 @@ sub ParseOptions
 }
 
 
-#
 # Routine to make sure we're operating in a sane environment.
-#
-
 sub SanityCheck
 {
     local ($cmd);
 
-    #
     # Get the program name
-    #
-
     ($prog) = ($0 =~ m|([^/]+)$|);
 
     #
@@ -812,14 +854,9 @@ sub SanityCheck
 	}
     }
 
-    #
-    # Check the HOME environment variable is set
-    #
-
     if (!defined($ENV{HOME})) {
 	die "$prog: The HOME environment variable is not set.\n";
     }
-#    chdir($ENV{HOME});
 
     #
     # Find socket constants. 'use Socket' is a perl5-ism, so we wrap it in an

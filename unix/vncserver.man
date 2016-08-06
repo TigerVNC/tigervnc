@@ -147,6 +147,26 @@ A shell script specifying X applications to be run when a VNC desktop is
 started.  If this file does not exist, then vncserver will create a default
 xstartup script which attempts to launch your chosen window manager.
 .TP
+/etc/tigervnc/vncserver-config-defaults
+The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
+and defines options to be passed to Xvnc, they will be used as defaults for
+users. The user's $HOME/.vnc/config overrides settings configured in this file.
+The overall configuration file load order is: this file, $HOME/.vnc/config,
+and then /etc/tigervnc/vncserver-config-mandatory. None are required to exist.
+.TP
+/etc/tigervnc/vncserver-config-mandatory
+The optional system-wide equivalent of $HOME/.vnc/config. If this file exists
+and defines options to be passed to Xvnc, they will override any of the same
+options defined in a user's $HOME/.vnc/config. This file offers a mechanism
+to establish some basic form of system-wide policy. WARNING! There is
+nothing stopping users from constructing their own vncserver-like script
+that calls Xvnc directly to bypass any options defined in
+/etc/tigervnc/vncserver-config-mandatory.  Likewise, any CLI arguments passed
+to vncserver will override ANY config file setting of the same name. The
+overall configuration file load order is:
+/etc/tigervnc/vncserver-config-defaults, $HOME/.vnc/config, and then this file.
+None are required to exist.
+.TP
 $HOME/.vnc/config
 An optional server config file wherein options to be passed to Xvnc are listed
 to avoid hard-coding them to the physical invocation. List options in this file
