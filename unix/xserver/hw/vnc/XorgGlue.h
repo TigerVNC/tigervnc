@@ -33,6 +33,8 @@ void vncGetScreenFormat(int scrIdx, int *depth, int *bpp,
                         int *trueColour, int *bigEndian,
                         int *redMask, int *greenMask, int *blueMask);
 
+int vncGetScreenX(int scrIdx);
+int vncGetScreenY(int scrIdx);
 int vncGetScreenWidth(int scrIdx);
 int vncGetScreenHeight(int scrIdx);
 

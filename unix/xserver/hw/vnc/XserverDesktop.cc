@@ -514,6 +514,8 @@ void XserverDesktop::readWakeupHandler(fd_set* fds, int nfds)
       // We are responsible for propagating mouse movement between clients
       int cursorX, cursorY;
       vncGetPointerPos(&cursorX, &cursorY);
+      cursorX -= vncGetScreenX(screenIndex);
+      cursorY -= vncGetScreenY(screenIndex);
       if (oldCursorPos.x != cursorX || oldCursorPos.y != cursorY) {
         oldCursorPos.x = cursorX;
         oldCursorPos.y = cursorY;
@@ -648,7 +650,8 @@ void XserverDesktop::approveConnection(uint32_t opaqueId, bool accept,
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {
-  vncPointerMove(pos.x, pos.y);
+  vncPointerMove(pos.x + vncGetScreenX(screenIndex),
+                 pos.y + vncGetScreenY(screenIndex));
   vncPointerButtonAction(buttonMask);
 }
 
