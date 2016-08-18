@@ -394,10 +394,14 @@ void vncAddCopied(int scrIdx, const struct UpdateRect *extents,
   desktop[scrIdx]->add_copied(reg, rfb::Point(dx, dy));
 }
 
-void vncSetCursor(int scrIdx, int width, int height, int hotX, int hotY,
+void vncSetCursor(int width, int height, int hotX, int hotY,
                   const unsigned char *rgbaData)
 {
-  desktop[scrIdx]->setCursor(width, height, hotX, hotY, rgbaData);
+  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
+    if (desktop[scr] == NULL)
+      continue;
+    desktop[scr]->setCursor(width, height, hotX, hotY, rgbaData);
+  }
 }
 
 void vncPreScreenResize(int scrIdx)
