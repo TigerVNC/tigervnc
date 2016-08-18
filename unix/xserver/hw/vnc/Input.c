@@ -33,7 +33,9 @@
 #include "inpututils.h"
 #endif
 #include "mi.h"
+#include "mipointer.h"
 #include "exevents.h"
+#include "scrnintstr.h"
 #include "xkbsrv.h"
 #include "xkbstr.h"
 #include "xserver-properties.h"
@@ -186,8 +188,16 @@ void vncPointerMove(int x, int y)
 
 void vncGetPointerPos(int *x, int *y)
 {
-	if (vncPointerDev != NULL)
-		GetSpritePosition(vncPointerDev, &cursorPosX, &cursorPosY);
+	if (vncPointerDev != NULL) {
+		ScreenPtr ptrScreen;
+
+		miPointerGetPosition(vncPointerDev, &cursorPosX, &cursorPosY);
+
+		/* Pointer coordinates are screen relative */
+		ptrScreen = miPointerGetScreen(vncPointerDev);
+		cursorPosX += ptrScreen->x;
+		cursorPosY += ptrScreen->y;
+	}
 
 	*x = cursorPosX;
 	*y = cursorPosY;
