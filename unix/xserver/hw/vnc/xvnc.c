@@ -854,6 +854,40 @@ vfbFreeFramebufferMemory(vfbFramebufferInfoPtr pfb)
 static Bool
 vfbCursorOffScreen (ScreenPtr *ppScreen, int *x, int *y)
 {
+    int absX, absY;
+    int i;
+
+    if (screenInfo.numScreens == 1)
+        return FALSE;
+
+    if ((*x >= 0) && (*x < (*ppScreen)->width) &&
+        (*y >= 0) && (*y < (*ppScreen)->height))
+        return FALSE;
+
+    absX = *x + (*ppScreen)->x;
+    absY = *y + (*ppScreen)->y;
+
+    for (i = 0;i < screenInfo.numScreens;i++) {
+        ScreenPtr newScreen;
+
+        newScreen = screenInfo.screens[i];
+
+        if (absX < newScreen->x)
+            continue;
+        if (absY < newScreen->y)
+            continue;
+        if (absX >= (newScreen->x + newScreen->width))
+            continue;
+        if (absY >= (newScreen->y + newScreen->height))
+            continue;
+
+        *ppScreen = newScreen;
+        *x = absX - newScreen->x;
+        *y = absY - newScreen->y;
+
+        return TRUE;
+    }
+
     return FALSE;
 }
 
@@ -1456,11 +1490,10 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 #endif
 {
-#if XORG < 113
-    vfbScreenInfoPtr pvfb = &vfbScreens[index];
-#else
-    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+#if XORG >= 113
+    int index = pScreen->myNum;
 #endif
+    vfbScreenInfoPtr pvfb = &vfbScreens[index];
     int dpi;
     int ret;
     void *pbits;
@@ -1481,13 +1514,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     pbits = vfbAllocateFramebufferMemory(&pvfb->fb);
     if (!pbits) return FALSE;
-#if XORG < 113
     vncFbptr[index] = pbits;
     vncFbstride[index] = pvfb->fb.paddedWidth;
-#else
-    vncFbptr[pScreen->myNum] = pbits;
-    vncFbstride[pScreen->myNum] = pvfb->fb.paddedWidth;
-#endif
 
     miSetPixmapDepths();
 
@@ -1522,6 +1550,12 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 	break;
     default:
 	return FALSE;
+    }
+
+    if (index > 0) {
+        ScreenPtr prevScreen = screenInfo.screens[index-1];
+        pScreen->x = prevScreen->x + prevScreen->width;
+        pScreen->y = 0;
     }
 
     ret = fbScreenInit(pScreen, pbits, pvfb->fb.width, pvfb->fb.height,
