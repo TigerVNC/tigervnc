@@ -259,7 +259,7 @@ pushd java
 	-DJAVA_KEY_ALIAS=%{_key_alias} \
 	-DJAVA_STOREPASS=":env STOREPASS" \
 	-DJAVA_KEYPASS=":env KEYPASS" \
-	-DJAVA_TSA_URL=https://timestamp.geotrust.com/tsa .
+	-DJAVA_TSA_URL=http://timestamp.geotrust.com/tsa .
 %endif
 
 JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make
