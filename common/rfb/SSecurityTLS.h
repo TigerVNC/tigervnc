@@ -54,8 +54,6 @@ namespace rfb {
     void setParams(gnutls_session_t session);
 
   private:
-    static void initGlobal();
-
     gnutls_session_t session;
     gnutls_dh_params_t dh_params;
     gnutls_anon_server_credentials_t anon_cred;

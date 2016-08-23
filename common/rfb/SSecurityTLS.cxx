@@ -48,23 +48,15 @@ StringParameter SSecurityTLS::X509_KeyFile
 
 static LogWriter vlog("TLS");
 
-void SSecurityTLS::initGlobal()
-{
-  static bool globalInitDone = false;
-
-  if (!globalInitDone) {
-    if (gnutls_global_init() != GNUTLS_E_SUCCESS)
-      throw AuthFailureException("gnutls_global_init failed");
-    globalInitDone = true;
-  }
-}
-
 SSecurityTLS::SSecurityTLS(bool _anon) : session(0), dh_params(0),
 						 anon_cred(0), cert_cred(0),
 						 anon(_anon), fis(0), fos(0)
 {
   certfile = X509_CertFile.getData();
   keyfile = X509_KeyFile.getData();
+
+  if (gnutls_global_init() != GNUTLS_E_SUCCESS)
+    throw AuthFailureException("gnutls_global_init failed");
 }
 
 void SSecurityTLS::shutdown()
@@ -94,8 +86,6 @@ void SSecurityTLS::shutdown()
   if (session) {
     gnutls_deinit(session);
     session = 0;
-
-    gnutls_global_deinit();
   }
 }
 
@@ -111,6 +101,8 @@ SSecurityTLS::~SSecurityTLS()
 
   delete[] keyfile;
   delete[] certfile;
+
+  gnutls_global_deinit();
 }
 
 bool SSecurityTLS::processMsg(SConnection *sc)
@@ -121,8 +113,6 @@ bool SSecurityTLS::processMsg(SConnection *sc)
   vlog.debug("Process security message (session %p)", session);
 
   if (!session) {
-    initGlobal();
-
     if (gnutls_init(&session, GNUTLS_SERVER) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_init failed");
 
