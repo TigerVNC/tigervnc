@@ -67,21 +67,14 @@ StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer
 
 static LogWriter vlog("TLS");
 
-void CSecurityTLS::initGlobal()
-{
-  static bool globalInitDone = false;
-
-  if (!globalInitDone) {
-    gnutls_global_init();
-    globalInitDone = true;
-  }
-}
-
 CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
 						 anon(_anon), fis(0), fos(0)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
+
+  if (gnutls_global_init() != GNUTLS_E_SUCCESS)
+    throw AuthFailureException("gnutls_global_init failed");
 }
 
 void CSecurityTLS::setDefaults()
@@ -125,8 +118,6 @@ void CSecurityTLS::shutdown(bool needbye)
   if (session) {
     gnutls_deinit(session);
     session = 0;
-
-    gnutls_global_deinit();
   }
 }
 
@@ -142,6 +133,8 @@ CSecurityTLS::~CSecurityTLS()
 
   delete[] cafile;
   delete[] crlfile;
+
+  gnutls_global_deinit();
 }
 
 bool CSecurityTLS::processMsg(CConnection* cc)
@@ -149,8 +142,6 @@ bool CSecurityTLS::processMsg(CConnection* cc)
   rdr::InStream* is = cc->getInStream();
   rdr::OutStream* os = cc->getOutStream();
   client = cc;
-
-  initGlobal();
 
   if (!session) {
     if (!is->checkNoWait(1))
