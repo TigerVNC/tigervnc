@@ -43,18 +43,22 @@ import com.tigervnc.rfb.*;
 import com.tigervnc.rfb.Cursor;
 import com.tigervnc.rfb.Point;
 
+import static com.tigervnc.vncviewer.Parameters.*;
+
 class DesktopWindow extends JPanel implements Runnable, MouseListener,
   MouseMotionListener, MouseWheelListener, KeyListener {
 
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the RFB thread
 
-  public DesktopWindow(int width, int height, PixelFormat serverPF,
+  public DesktopWindow(int width, int height, String name, PixelFormat serverPF,
                        CConn cc_) {
     cc = cc_;
     setSize(width, height);
     setScaledSize();
     setOpaque(false);
+    if (cc.viewport != null)
+      cc.viewport.setName(name);
     GraphicsEnvironment ge =
       GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice gd = ge.getDefaultScreenDevice();
@@ -67,7 +71,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     } else {
       vlog.debug("GraphicsDevice does not support HW acceleration.");
     }
-    im = new BIPixelBuffer(width, height, cc, this);
+    im = new BIPixelBuffer(serverPF, width, height, this);
 
     cursor = new Cursor();
     cursorBacking = new ManagedPixelBuffer();
@@ -86,7 +90,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     addKeyListener(this);
     addFocusListener(new FocusAdapter() {
       public void focusGained(FocusEvent e) {
-        cc.clipboardDialog.clientCutText();
+        ClipboardDialog.clientCutText();
       }
       public void focusLost(FocusEvent e) {
         cc.releaseDownKeys();
@@ -94,6 +98,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     });
     setFocusTraversalKeysEnabled(false);
     setFocusable(true);
+    OptionsDialog.addCallback("handleOptions", this);
   }
 
   public int width() {
@@ -125,10 +130,8 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     // might be being altered by the GUI thread.  However it's only a single
     // boolean and it doesn't matter if we get the wrong value anyway.
 
-    synchronized(cc.viewer.useLocalCursor) {
-      if (!cc.viewer.useLocalCursor.getValue())
-        return;
-    }
+    if (!useLocalCursor.getValue())
+      return;
 
     hideLocalCursor();
 
@@ -319,7 +322,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
   }
 
   public void setScaledSize() {
-    String scaleString = cc.viewer.scalingFactor.getValue();
+    String scaleString = scalingFactor.getValue();
     if (!scaleString.equalsIgnoreCase("Auto") &&
         !scaleString.equalsIgnoreCase("FixedRatio")) {
       int scalingFactor = Integer.parseInt(scaleString);
@@ -369,7 +372,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
 
   // Mouse-Motion callback function
   private void mouseMotionCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue() &&
+    if (!viewOnly.getValue() &&
         e.getX() >= 0 && e.getX() <= scaledWidth &&
         e.getY() >= 0 && e.getY() <= scaledHeight)
       cc.writePointerEvent(e);
@@ -394,7 +397,7 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
 
   // Mouse callback function
   private void mouseCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue()) {
+    if (!viewOnly.getValue()) {
       if ((e.getID() == MouseEvent.MOUSE_RELEASED) ||
           (e.getX() >= 0 && e.getX() <= scaledWidth &&
            e.getY() >= 0 && e.getY() <= scaledHeight))
@@ -407,14 +410,14 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
   public void mousePressed(MouseEvent e) { mouseCB(e); }
   public void mouseClicked(MouseEvent e) {}
   public void mouseEntered(MouseEvent e) {
-    if (cc.viewer.embed.getValue())
+    if (embed.getValue())
       requestFocus();
   }
   public void mouseExited(MouseEvent e) {}
 
   // MouseWheel callback function
   private void mouseWheelCB(MouseWheelEvent e) {
-    if (!cc.viewer.viewOnly.getValue())
+    if (!viewOnly.getValue())
       cc.writeWheelEvent(e);
   }
 
@@ -443,14 +446,15 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
         lastY : (int)Math.floor(lastY * scaleHeightRatio);
       java.awt.Point ev = new java.awt.Point(lastX, lastY);
       ev.translate(sx - lastX, sy - lastY);
-      cc.showMenu((int)ev.getX(), (int)ev.getY());
+      F8Menu menu = new F8Menu(cc);
+      menu.show(this, (int)ev.getX(), (int)ev.getY());
       return;
     }
     int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
     if ((e.getModifiers() & ctrlAltShiftMask) == ctrlAltShiftMask) {
       switch (e.getKeyCode()) {
         case KeyEvent.VK_A:
-          cc.showAbout();
+          VncViewer.showAbout(this);
           return;
         case KeyEvent.VK_F:
           cc.toggleFullScreen();
@@ -462,10 +466,10 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
           cc.showInfo();
           return;
         case KeyEvent.VK_O:
-          cc.options.showDialog(cc.viewport);
+            OptionsDialog.showDialog(cc.viewport);
           return;
         case KeyEvent.VK_W:
-          VncViewer.newViewer(cc.viewer);
+          VncViewer.newViewer();
           return;
         case KeyEvent.VK_LEFT:
         case KeyEvent.VK_RIGHT:
@@ -562,6 +566,14 @@ class DesktopWindow extends JPanel implements Runnable, MouseListener,
     } catch(InterruptedException e) {}
     im.updateColourMap();
     setColourMapEntriesTimerThread = null;
+  }
+
+  public void handleOptions()
+  {
+    if (fullScreen.getValue() && Viewport.getFullScreenWindow() == null)
+      cc.toggleFullScreen();
+    else if (!fullScreen.getValue() && Viewport.getFullScreenWindow() != null)
+      cc.toggleFullScreen();
   }
 
   // access to cc by different threads is specified in CConn

@@ -111,7 +111,7 @@ abstract public class CConnection extends CMsgHandler {
     int secType = Security.secTypeInvalid;
 
     List<Integer> secTypes = new ArrayList<Integer>();
-    secTypes = Security.GetEnabledSecTypes();
+    secTypes = security.GetEnabledSecTypes();
 
     if (cp.isVersion(3,3)) {
 
@@ -291,6 +291,16 @@ abstract public class CConnection extends CMsgHandler {
   // getIdVerifier() returns the identity verifier associated with the connection.
   // Ownership of the IdentityVerifier is retained by the CConnection instance.
   //public IdentityVerifier getIdentityVerifier() { return 0; }
+
+  public void framebufferUpdateStart()
+  {
+    super.framebufferUpdateStart();
+  }
+
+  public void framebufferUpdateEnd()
+  {
+    super.framebufferUpdateEnd();
+  }
 
   // authSuccess() is called when authentication has succeeded.
   public void authSuccess() {}

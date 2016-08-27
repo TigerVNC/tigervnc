@@ -60,6 +60,8 @@ public class Security {
   public static final int secResultFailed = 1;
   public static final int secResultTooMany = 2; // deprecated
 
+  public Security() { }
+
   public Security(StringParameter secTypes)
   {
     String secTypesStr;
@@ -70,9 +72,9 @@ public class Security {
     secTypesStr = null;
   }
 
-  public static List<Integer> enabledSecTypes = new ArrayList<Integer>();
+  private List<Integer> enabledSecTypes = new ArrayList<Integer>();
 
-  public static final List<Integer> GetEnabledSecTypes()
+  public final List<Integer> GetEnabledSecTypes()
   {
     List<Integer> result = new ArrayList<Integer>();
 
@@ -98,7 +100,7 @@ public class Security {
     return (result);
   }
 
-  public static final List<Integer> GetEnabledExtSecTypes()
+  public final List<Integer> GetEnabledExtSecTypes()
   {
     List<Integer> result = new ArrayList<Integer>();
 
@@ -111,7 +113,7 @@ public class Security {
     return (result);
   }
 
-  public static final void EnableSecType(int secType)
+  public final void EnableSecType(int secType)
   {
 
     for (Iterator<Integer> i = enabledSecTypes.iterator(); i.hasNext(); )
@@ -134,7 +136,29 @@ public class Security {
     return false;
   }
 
-  public static void DisableSecType(int secType) { enabledSecTypes.remove((Object)secType); }
+  public String ToString()
+  {
+    Iterator<Integer> i;
+    String out = new String("");
+    boolean firstpass = true;
+    String name;
+
+    for (i = enabledSecTypes.iterator(); i.hasNext(); ) {
+      name = secTypeName((Integer)i.next());
+      if (name.startsWith("[")) /* Unknown security type */
+        continue;
+
+      if (!firstpass)
+        out = out.concat(",");
+      else
+        firstpass = false;
+      out = out.concat(name);
+    }
+
+    return out;
+  }
+
+  public void DisableSecType(int secType) { enabledSecTypes.remove((Object)secType); }
 
   public static int secTypeNum(String name) {
     if (name.equalsIgnoreCase("None"))      return secTypeNone;
@@ -203,7 +227,9 @@ public class Security {
     return (result);
   }
 
-  public final void SetSecTypes(List<Integer> secTypes) { enabledSecTypes = secTypes; }
+  public final void SetSecTypes(List<Integer> secTypes) {
+    enabledSecTypes = secTypes;
+  }
 
   static LogWriter vlog = new LogWriter("Security");
 }

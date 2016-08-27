@@ -149,7 +149,6 @@ class PasswdDialog extends Dialog implements UserInfo,
                                             String instruction,
                                             String[] prompt,
                                             boolean[] echo) {
-    vlog.info("OK");
     Container panel = new JPanel(new GridBagLayout());
     ((JPanel)panel).setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 

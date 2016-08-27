@@ -27,8 +27,8 @@ import com.tigervnc.rfb.Exception;
 
 public class BIPixelBuffer extends PlatformPixelBuffer implements ImageObserver
 {
-  public BIPixelBuffer(int w, int h, CConn cc_, DesktopWindow desktop_) {
-    super(w, h, cc_, desktop_);
+  public BIPixelBuffer(PixelFormat pf, int w, int h, DesktopWindow desktop_) {
+    super(pf, w, h, desktop_);
     clip = new Rectangle();
   }
 

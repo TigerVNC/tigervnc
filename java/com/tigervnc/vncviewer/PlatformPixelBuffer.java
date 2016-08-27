@@ -27,12 +27,11 @@ import com.tigervnc.rfb.*;
 
 abstract public class PlatformPixelBuffer extends PixelBuffer
 {
-  public PlatformPixelBuffer(int w, int h, CConn cc_, DesktopWindow desktop_) {
-    cc = cc_;
+  public PlatformPixelBuffer(PixelFormat pf, int w, int h, DesktopWindow desktop_) {
     desktop = desktop_;
     PixelFormat nativePF = getNativePF();
-    if (nativePF.depth > cc.serverPF.depth) {
-      setPF(cc.serverPF);
+    if (nativePF.depth > pf.depth) {
+      setPF(pf);
     } else {
       setPF(nativePF);
     }
@@ -103,7 +102,6 @@ abstract public class PlatformPixelBuffer extends PixelBuffer
   byte[] greens;
   byte[] blues;
 
-  CConn cc;
   DesktopWindow desktop;
   static LogWriter vlog = new LogWriter("PlatformPixelBuffer");
 }

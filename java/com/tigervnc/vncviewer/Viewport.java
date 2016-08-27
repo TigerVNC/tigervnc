@@ -42,6 +42,8 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import static com.tigervnc.vncviewer.Parameters.*;
+
 public class Viewport extends JFrame
 {
   public Viewport(String name, CConn cc_) {
@@ -58,7 +60,7 @@ public class Viewport extends JFrame
     sp.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
     getContentPane().add(sp);
     if (VncViewer.os.startsWith("mac os x")) {
-      if (!VncViewer.noLionFS.getValue())
+      if (!noLionFS.getValue())
         enableLionFS();
     }
     addWindowFocusListener(new WindowAdapter() {
@@ -72,20 +74,12 @@ public class Viewport extends JFrame
     });
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        if (VncViewer.nViewers == 1) {
-          if (cc.closeListener != null) {
-            cc.close();
-          } else {
-            cc.viewer.exit(1);
-          }
-        } else {
-          cc.close();
-        }
+        cc.close();
       }
     });
     addComponentListener(new ComponentAdapter() {
       public void componentResized(ComponentEvent e) {
-        String scaleString = cc.viewer.scalingFactor.getValue();
+        String scaleString = scalingFactor.getValue();
         if (scaleString.equalsIgnoreCase("Auto") ||
             scaleString.equalsIgnoreCase("FixedRatio")) {
           if ((sp.getSize().width != cc.desktop.scaledWidth) ||
@@ -95,7 +89,7 @@ public class Viewport extends JFrame
             sp.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_NEVER);
             sp.validate();
             if (getExtendedState() != JFrame.MAXIMIZED_BOTH &&
-                !cc.fullScreen) {
+                !fullScreen.getValue()) {
               sp.setSize(new Dimension(cc.desktop.scaledWidth,
                                        cc.desktop.scaledHeight));
               int w = cc.desktop.scaledWidth + getInsets().left +
@@ -118,6 +112,10 @@ public class Viewport extends JFrame
         }
       }
     });
+  }
+
+  public void setName(String name) {
+    setTitle(name + "- TigerVNC");
   }
 
   boolean lionFSSupported() { return canDoLionFS; }
@@ -168,7 +166,7 @@ public class Viewport extends JFrame
 
   public void setGeometry(int x, int y, int w, int h) {
     pack();
-    if (!cc.fullScreen)
+    if (!fullScreen.getValue())
       setLocation(x, y);
   }
 
@@ -181,7 +179,7 @@ public class Viewport extends JFrame
       GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle r = new Rectangle();
     setMaximizedBounds(null);
-    if (cc.viewer.fullScreenAllMonitors.getValue()) {
+    if (fullScreenAllMonitors.getValue()) {
       for (GraphicsDevice gd : ge.getScreenDevices())
         for (GraphicsConfiguration gc : gd.getConfigurations())
           r = r.union(gc.getBounds());

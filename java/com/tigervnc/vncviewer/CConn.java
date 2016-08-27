@@ -35,7 +35,9 @@
 package com.tigervnc.vncviewer;
 
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
+import java.awt.Toolkit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +51,7 @@ import javax.swing.ImageIcon;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.*;
+import java.util.prefs.*;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
@@ -57,16 +60,18 @@ import com.tigervnc.rfb.Exception;
 import com.tigervnc.network.Socket;
 import com.tigervnc.network.TcpSocket;
 
+import static com.tigervnc.vncviewer.Parameters.*;
+
 public class CConn extends CConnection implements 
-  UserPasswdGetter, UserMsgBox, OptionsDialogCallback, 
+  UserPasswdGetter, UserMsgBox,
   FdInStreamBlockCallback, ActionListener {
 
-  public final PixelFormat getPreferredPF() { return fullColourPF; }
-  static final PixelFormat verylowColourPF =
+  public final PixelFormat getPreferredPF() { return fullColorPF; }
+  static final PixelFormat verylowColorPF =
     new PixelFormat(8, 3, false, true, 1, 1, 1, 2, 1, 0);
-  static final PixelFormat lowColourPF =
+  static final PixelFormat lowColorPF =
     new PixelFormat(8, 6, false, true, 3, 3, 3, 4, 2, 0);
-  static final PixelFormat mediumColourPF =
+  static final PixelFormat mediumColorPF =
     new PixelFormat(8, 8, false, false, 7, 7, 3, 0, 3, 6);
   static final int KEY_LOC_SHIFT_R = 0;
   static final int KEY_LOC_SHIFT_L = 16;
@@ -75,67 +80,48 @@ public class CConn extends CConnection implements
   ////////////////////////////////////////////////////////////////////
   // The following methods are all called from the RFB thread
 
-  public CConn(VncViewer viewer_, Socket sock_,
-               String vncServerName)
+  public CConn(String vncServerName, Socket socket)
   {
-    sock = sock_; viewer = viewer_;
     pendingPFChange = false;
     currentEncoding = Encodings.encodingTight; lastServerEncoding = -1;
-    fullColour = viewer.fullColour.getValue();
-    lowColourLevel = viewer.lowColourLevel.getValue();
-    autoSelect = viewer.autoSelect.getValue();
     formatChange = false; encodingChange = false;
-    fullScreen = viewer.fullScreen.getValue();
-    menuKeyCode = MenuKey.getMenuKeyCode();
-    options = new OptionsDialog(this);
-    options.initDialog();
-    clipboardDialog = new ClipboardDialog(this);
     firstUpdate = true; pendingUpdate = false; continuousUpdates = false;
     forceNonincremental = true; supportsSyncFence = false;
+
+    setShared(shared.getValue());
+    sock = socket;
     downKeySym = new HashMap<Integer, Integer>();
 
-    setShared(viewer.shared.getValue());
     upg = this;
     msg = this;
 
-    String encStr = viewer.preferredEncoding.getValue();
-    int encNum = Encodings.encodingNum(encStr);
-    if (encNum != -1) {
+    int encNum = Encodings.encodingNum(preferredEncoding.getValue());
+    if (encNum != -1)
       currentEncoding = encNum;
-    }
+
+    cp.supportsLocalCursor = useLocalCursor.getValue();
+
     cp.supportsDesktopResize = true;
     cp.supportsExtendedDesktopSize = true;
+    cp.supportsDesktopRename = true;
+
     cp.supportsSetDesktopSize = false;
     cp.supportsClientRedirect = true;
-    cp.supportsDesktopRename = true;
-    cp.supportsLocalCursor = viewer.useLocalCursor.getValue();
-    cp.customCompressLevel = viewer.customCompressLevel.getValue();
-    cp.compressLevel = viewer.compressLevel.getValue();
-    cp.noJpeg = viewer.noJpeg.getValue();
-    cp.qualityLevel = viewer.qualityLevel.getValue();
-    initMenu();
+    if (customCompressLevel.getValue())
+      cp.compressLevel = compressLevel.getValue();
+    else
+      cp.compressLevel = -1;
 
-    if (sock != null) {
-      String name = sock.getPeerEndpoint();
-      vlog.info("Accepted connection from " + name);
-    } else {
-      if (vncServerName != null &&
-          !viewer.alwaysShowServerDialog.getValue()) {
-        setServerName(Hostname.getHost(vncServerName));
-        setServerPort(Hostname.getPort(vncServerName));
-      } else {
-        ServerDialog dlg = new ServerDialog(options, vncServerName, this);
-        boolean ret = dlg.showDialog();
-        if (!ret) {
-          close();
-          return;
-        }
-        setServerName(viewer.vncServerName.getValueStr());
-        setServerPort(viewer.vncServerPort.getValue());
-      }
+    if (noJpeg.getValue())
+      cp.qualityLevel = qualityLevel.getValue();
+    else
+      cp.qualityLevel = -1;
 
+    if (sock == null) {
+      setServerName(Hostname.getHost(vncServerName));
+      setServerPort(Hostname.getPort(vncServerName));
       try {
-        if (viewer.tunnel.getValue() || (viewer.via.getValue() != null)) {
+        if (tunnel.getValue() || !via.getValue().isEmpty()) {
           int localPort = TcpSocket.findFreeTcpPort();
           if (localPort == 0)
             throw new Exception("Could not obtain free TCP port");
@@ -148,11 +134,21 @@ public class CConn extends CConnection implements
         throw new Exception(e.getMessage());
       }
       vlog.info("connected to host "+getServerName()+" port "+getServerPort());
+    } else {
+      String name = sock.getPeerEndpoint();
+      if (listenMode.getValue())
+        vlog.info("Accepted connection from " + name);
+      else
+        vlog.info("connected to host "+Hostname.getHost(name)+" port "+Hostname.getPort(name));
     }
 
     sock.inStream().setBlockCallback(this);
+
     setStreams(sock.inStream(), sock.outStream());
+
     initialiseProtocol();
+
+    OptionsDialog.addCallback("handleOptions", this);
   }
 
   public void refreshFramebuffer()
@@ -196,7 +192,7 @@ public class CConn extends CConnection implements
   public final boolean getUserPasswd(StringBuffer user, StringBuffer passwd) {
     String title = ("VNC Authentication ["
                     +csecurity.description() + "]");
-    String passwordFileStr = viewer.passwordFile.getValue();
+    String passwordFileStr = passwordFile.getValue();
     PasswdDialog dlg;
 
     if (user == null && !passwordFileStr.equals("")) {
@@ -222,16 +218,16 @@ public class CConn extends CConnection implements
     if (user == null) {
       dlg = new PasswdDialog(title, (user == null), (passwd == null));
     } else {
-      if ((passwd == null) && viewer.sendLocalUsername.getValue()) {
+      if ((passwd == null) && sendLocalUsername.getValue()) {
          user.append((String)System.getProperties().get("user.name"));
          return true;
       }
-      dlg = new PasswdDialog(title, viewer.sendLocalUsername.getValue(),
+      dlg = new PasswdDialog(title, sendLocalUsername.getValue(),
          (passwd == null));
     }
-    if (!dlg.showDialog()) return false;
+    dlg.showDialog();
     if (user != null) {
-      if (viewer.sendLocalUsername.getValue()) {
+      if (sendLocalUsername.getValue()) {
          user.append((String)System.getProperties().get("user.name"));
       } else {
          user.append(dlg.userEntry.getText());
@@ -252,13 +248,13 @@ public class CConn extends CConnection implements
 
     // If using AutoSelect with old servers, start in FullColor
     // mode. See comment in autoSelectFormatAndEncoding.
-    if (cp.beforeVersion(3, 8) && autoSelect)
-      fullColour = true;
+    if (cp.beforeVersion(3, 8) && autoSelect.getValue())
+      fullColor.setParam(true);
 
     serverPF = cp.pf();
 
-    desktop = new DesktopWindow(cp.width, cp.height, serverPF, this);
-    fullColourPF = desktop.getPreferredPF();
+    desktop = new DesktopWindow(cp.width, cp.height, cp.name(), serverPF, this);
+    fullColorPF = desktop.getPreferredPF();
 
     // Force a switch to the format and encoding we'd like
     formatChange = true; encodingChange = true;
@@ -273,55 +269,7 @@ public class CConn extends CConnection implements
     cp.setPF(pendingPF);
     pendingPFChange = false;
 
-    if (viewer.embed.getValue()) {
-      setupEmbeddedFrame();
-    } else {
-      recreateViewport();
-    }
-  }
-
-  void setupEmbeddedFrame() {
-    UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
-      new UIDefaults.LazyInputMap(new Object[]{}));
-    JScrollPane sp = new JScrollPane();
-    sp.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-    sp.getViewport().setBackground(Color.BLACK);
-    InputMap im = sp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
-    if (im != null) {
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlAltShiftMask),
-             "unitScrollUp");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlAltShiftMask),
-             "unitScrollDown");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlAltShiftMask),
-             "unitScrollLeft");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlAltShiftMask),
-             "unitScrollRight");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlAltShiftMask),
-             "scrollUp");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlAltShiftMask),
-             "scrollDown");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, ctrlAltShiftMask),
-             "scrollLeft");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, ctrlAltShiftMask),
-             "scrollRight");
-    }
-    sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-    desktop.setViewport(sp.getViewport());
-    viewer.getContentPane().removeAll();
-    viewer.add(sp);
-    viewer.addFocusListener(new FocusAdapter() {
-      public void focusGained(FocusEvent e) {
-        if (desktop.isAncestorOf(viewer))
-          desktop.requestFocus();
-      }
-      public void focusLost(FocusEvent e) {
-        releaseDownKeys();
-      }
-    });
-    viewer.validate();
-    desktop.requestFocus();
+    recreateViewport();
   }
 
   // setDesktopSize() is called when the desktop size changes (including when
@@ -350,10 +298,13 @@ public class CConn extends CConnection implements
                              String x509subject) {
     try {
       sock.close();
-      setServerPort(port);
       sock = new TcpSocket(host, port);
       vlog.info("Redirected to "+host+":"+port);
-      VncViewer.newViewer(viewer, sock, true);
+      setServerName(host);
+      setServerPort(port);
+      sock.inStream().setBlockCallback(this);
+      setStreams(sock.inStream(), sock.outStream());
+      initialiseProtocol();
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }
@@ -362,10 +313,8 @@ public class CConn extends CConnection implements
   // setName() is called when the desktop name changes
   public void setName(String name) {
     super.setName(name);
-
-    if (viewport != null) {
+    if (viewport != null)
       viewport.setTitle(name+" - TigerVNC");
-    }
   }
 
   // framebufferUpdateStart() is called at the beginning of an update.
@@ -374,6 +323,8 @@ public class CConn extends CConnection implements
   // one.
   public void framebufferUpdateStart()
   {
+    super.framebufferUpdateStart();
+
     // Note: This might not be true if sync fences are supported
     pendingUpdate = false;
 
@@ -386,6 +337,7 @@ public class CConn extends CConnection implements
   // appropriately, and then request another incremental update.
   public void framebufferUpdateEnd()
   {
+    super.framebufferUpdateEnd();
 
     desktop.updateWindow();
 
@@ -398,10 +350,10 @@ public class CConn extends CConnection implements
         writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext, 0, null);
 
       if (cp.supportsSetDesktopSize &&
-          viewer.desktopSize.getValue() != null &&
-          viewer.desktopSize.getValue().split("x").length == 2) {
-        width = Integer.parseInt(viewer.desktopSize.getValue().split("x")[0]);
-        height = Integer.parseInt(viewer.desktopSize.getValue().split("x")[1]);
+          !desktopSize.getValue().isEmpty() &&
+          desktopSize.getValue().split("x").length == 2) {
+        width = Integer.parseInt(desktopSize.getValue().split("x")[0]);
+        height = Integer.parseInt(desktopSize.getValue().split("x")[1]);
         ScreenSet layout;
 
         layout = cp.screenLayout;
@@ -442,24 +394,28 @@ public class CConn extends CConnection implements
     }
 
     // Compute new settings based on updated bandwidth values
-    if (autoSelect)
+    if (autoSelect.getValue())
       autoSelectFormatAndEncoding();
   }
 
   // The rest of the callbacks are fairly self-explanatory...
 
-  public void setColourMapEntries(int firstColour, int nColours, int[] rgbs) {
-    desktop.setColourMapEntries(firstColour, nColours, rgbs);
+  public void setColourMapEntries(int firstColor, int nColors, int[] rgbs) {
+    desktop.setColourMapEntries(firstColor, nColors, rgbs);
   }
 
   public void bell() {
-    if (viewer.acceptBell.getValue())
+    if (acceptBell.getValue())
       desktop.getToolkit().beep();
   }
 
   public void serverCutText(String str, int len) {
-    if (viewer.acceptClipboard.getValue())
-      clipboardDialog.serverCutText(str, len);
+    StringSelection buffer;
+
+    if (!acceptClipboard.getValue())
+      return;
+
+    ClipboardDialog.serverCutText(str);
   }
 
   // We start timing on beginRect and stop timing on endRect, to
@@ -543,50 +499,54 @@ public class CConn extends CConnection implements
       return;
 
     desktop.resize();
-    if (viewer.embed.getValue()) {
-      setupEmbeddedFrame();
-    } else {
+    if (!firstUpdate)
       recreateViewport();
-    }
   }
   
-  public void setEmbeddedFeatures(boolean s) {
-    menu.restore.setEnabled(s);
-    menu.minimize.setEnabled(s);
-    menu.maximize.setEnabled(s);
-    menu.fullScreen.setEnabled(s);
-    menu.newConn.setEnabled(s);
-    options.fullScreen.setEnabled(s);
-    options.fullScreenAllMonitors.setEnabled(s);
-    options.scalingFactor.setEnabled(s);
-  }
-
   // recreateViewport() recreates our top-level window.  This seems to be
   // better than attempting to resize the existing window, at least with
   // various X window managers.
 
   public void recreateViewport() {
-    if (viewer.embed.getValue())
-      return;
-    if (viewport != null) viewport.dispose();
-    viewport = new Viewport(cp.name(), this);
-    viewport.setUndecorated(fullScreen);
-    desktop.setViewport(viewport.getViewport());
-    reconfigureViewport();
-    if ((cp.width > 0) && (cp.height > 0))
-      viewport.setVisible(true);
-    desktop.requestFocusInWindow();
+    if (embed.getValue()) {
+      desktop.setViewport(VncViewer.getViewport());
+      Container viewer =
+        SwingUtilities.getAncestorOfClass(JApplet.class, desktop);
+      viewer.addFocusListener(new FocusAdapter() {
+        public void focusGained(FocusEvent e) {
+          Container c =
+            SwingUtilities.getAncestorOfClass(JApplet.class, desktop);
+          if (c != null && desktop.isAncestorOf(c))
+            desktop.requestFocus();
+        }
+        public void focusLost(FocusEvent e) {
+          releaseDownKeys();
+        }
+      });
+      viewer.validate();
+      desktop.requestFocus();
+    } else {
+      if (viewport != null)
+        viewport.dispose();
+      viewport = new Viewport(cp.name(), this);
+      viewport.setUndecorated(fullScreen.getValue());
+      desktop.setViewport(viewport.getViewport());
+      reconfigureViewport();
+      if ((cp.width > 0) && (cp.height > 0))
+        viewport.setVisible(true);
+      desktop.requestFocusInWindow();
+    }
   }
 
   private void reconfigureViewport() {
     Dimension dpySize = viewport.getScreenSize();
     int w = desktop.scaledWidth;
     int h = desktop.scaledHeight;
-    if (fullScreen) {
-      if (!viewer.fullScreenAllMonitors.getValue())
+    if (fullScreen.getValue()) {
+      if (!fullScreenAllMonitors.getValue())
         viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
       viewport.setBounds(viewport.getScreenBounds());
-      if (!viewer.fullScreenAllMonitors.getValue())
+      if (!fullScreenAllMonitors.getValue())
         Viewport.setFullScreenWindow(viewport);
     } else {
       int wmDecorationWidth = viewport.getInsets().left + viewport.getInsets().right;
@@ -629,7 +589,7 @@ public class CConn extends CConnection implements
   private void autoSelectFormatAndEncoding() {
     long kbitsPerSecond = sock.inStream().kbitsPerSecond();
     long timeWaited = sock.inStream().timeWaited();
-    boolean newFullColour = fullColour;
+    boolean newFullColor = fullColor.getValue();
     int newQualityLevel = cp.qualityLevel;
 
     // Always use Tight
@@ -653,7 +613,7 @@ public class CConn extends CConnection implements
         vlog.info("Throughput "+kbitsPerSecond+
                   " kbit/s - changing to quality "+newQualityLevel);
         cp.qualityLevel = newQualityLevel;
-        viewer.qualityLevel.setParam(Integer.toString(newQualityLevel));
+        qualityLevel.setParam(newQualityLevel);
         encodingChange = true;
       }
     }
@@ -670,12 +630,12 @@ public class CConn extends CConnection implements
     }
 
     // Select best color level
-    newFullColour = (kbitsPerSecond > 256);
-    if (newFullColour != fullColour) {
+    newFullColor = (kbitsPerSecond > 256);
+    if (newFullColor != fullColor.getValue()) {
       vlog.info("Throughput "+kbitsPerSecond+
                 " kbit/s - full color is now "+
-  	            (newFullColour ? "enabled" : "disabled"));
-      fullColour = newFullColour;
+                (newFullColor ? "enabled" : "disabled"));
+      fullColor.setParam(newFullColor);
       formatChange = true;
       forceNonincremental = true;
     }
@@ -691,15 +651,15 @@ public class CConn extends CConnection implements
       /* Catch incorrect requestNewUpdate calls */
       assert(!pendingUpdate || supportsSyncFence);
 
-      if (fullColour) {
-        pf = fullColourPF;
+      if (fullColor.getValue()) {
+        pf = fullColorPF;
       } else {
-        if (lowColourLevel == 0) {
-          pf = verylowColourPF;
-        } else if (lowColourLevel == 1) {
-          pf = lowColourPF;
+        if (lowColorLevel.getValue() == 0) {
+          pf = verylowColorPF;
+        } else if (lowColorLevel.getValue() == 1) {
+          pf = lowColorPF;
         } else {
-          pf = mediumColourPF;
+          pf = mediumColorPF;
         }
       }
 
@@ -746,12 +706,11 @@ public class CConn extends CConnection implements
   // close() shuts down the socket, thus waking up the RFB thread.
   public void close() {
     if (closeListener != null) {
-      viewer.embed.setParam(true);
-      if (VncViewer.nViewers == 1) {
-        JFrame f = (JFrame)JOptionPane.getFrameForComponent(viewer);
-        if (f != null)
-          f.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
-      }
+      embed.setParam(true);
+      JFrame f =
+        (JFrame)SwingUtilities.getAncestorOfClass(JFrame.class, desktop);
+      if (f != null)
+        f.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
     }
     deleteWindow();
     shuttingDown = true;
@@ -761,47 +720,6 @@ public class CConn extends CConnection implements
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());
     }
-  }
-
-  // Menu callbacks.  These are guaranteed only to be called after serverInit()
-  // has been called, since the menu is only accessible from the DesktopWindow
-
-  private void initMenu() {
-    menu = new F8Menu(this);
-  }
-
-  void showMenu(int x, int y) {
-    String os = System.getProperty("os.name");
-    if (os.startsWith("Windows"))
-      com.sun.java.swing.plaf.windows.WindowsLookAndFeel.setMnemonicHidden(false);
-    menu.show(desktop, x, y);
-  }
-
-  void showAbout() {
-    String pkgDate = "";
-    String pkgTime = "";
-    try {
-      Manifest manifest = new Manifest(VncViewer.timestamp);
-      Attributes attributes = manifest.getMainAttributes();
-      pkgDate = attributes.getValue("Package-Date");
-      pkgTime = attributes.getValue("Package-Time");
-    } catch (java.lang.Exception e) { }
-
-    Window fullScreenWindow = Viewport.getFullScreenWindow();
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(null);
-    String msg =
-      String.format(VncViewer.aboutText, VncViewer.version, VncViewer.build,
-                    VncViewer.buildDate, VncViewer.buildTime);
-    JOptionPane op =
-      new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
-                      JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon);
-    JDialog dlg = op.createDialog(desktop, "About TigerVNC Viewer for Java");
-    dlg.setIconImage(VncViewer.frameIcon);
-    dlg.setAlwaysOnTop(true);
-    dlg.setVisible(true);
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(fullScreenWindow);
   }
 
   void showInfo() {
@@ -830,8 +748,10 @@ public class CConn extends CConnection implements
                     cp.majorVersion, cp.minorVersion,
                     Security.secTypeName(csecurity.getType()),
                     csecurity.description());
-    JOptionPane op = new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE,
-                                     JOptionPane.DEFAULT_OPTION);
+    Object[] options = {"Close  \u21B5"};
+    JOptionPane op =
+      new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE,
+                      JOptionPane.DEFAULT_OPTION, null, options);
     JDialog dlg = op.createDialog(desktop, "VNC connection info");
     dlg.setIconImage(VncViewer.frameIcon);
     dlg.setAlwaysOnTop(true);
@@ -845,507 +765,74 @@ public class CConn extends CConnection implements
     pendingUpdate = true;
   }
 
-
-  // OptionsDialogCallback.  setOptions() sets the options dialog's checkboxes
-  // etc to reflect our flags.  getOptions() sets our flags according to the
-  // options dialog's checkboxes.  They are both called from the GUI thread.
-  // Some of the flags are also accessed by the RFB thread.  I believe that
-  // reading and writing boolean and int values in java is atomic, so there is
-  // no need for synchronization.
-
-  public void setOptions() {
-    int digit;
-    options.autoSelect.setSelected(autoSelect);
-    options.fullColour.setSelected(fullColour);
-    options.veryLowColour.setSelected(!fullColour && lowColourLevel == 0);
-    options.lowColour.setSelected(!fullColour && lowColourLevel == 1);
-    options.mediumColour.setSelected(!fullColour && lowColourLevel == 2);
-    options.tight.setSelected(currentEncoding == Encodings.encodingTight);
-    options.zrle.setSelected(currentEncoding == Encodings.encodingZRLE);
-    options.hextile.setSelected(currentEncoding == Encodings.encodingHextile);
-    options.raw.setSelected(currentEncoding == Encodings.encodingRaw);
-
-    options.customCompressLevel.setSelected(viewer.customCompressLevel.getValue());
-    digit = 0 + viewer.compressLevel.getValue();
-    if (digit >= 0 && digit <= 9) {
-      options.compressLevel.setSelectedItem(digit);
-    } else {
-      options.compressLevel.setSelectedItem(Integer.parseInt(viewer.compressLevel.getDefaultStr()));
-    }
-    options.noJpeg.setSelected(!viewer.noJpeg.getValue());
-    digit = 0 + viewer.qualityLevel.getValue();
-    if (digit >= 0 && digit <= 9) {
-      options.qualityLevel.setSelectedItem(digit);
-    } else {
-      options.qualityLevel.setSelectedItem(Integer.parseInt(viewer.qualityLevel.getDefaultStr()));
-    }
-
-    options.viewOnly.setSelected(viewer.viewOnly.getValue());
-    options.acceptClipboard.setSelected(viewer.acceptClipboard.getValue());
-    options.sendClipboard.setSelected(viewer.sendClipboard.getValue());
-    options.menuKey.setSelectedItem(KeyEvent.getKeyText(MenuKey.getMenuKeyCode()));
-    options.sendLocalUsername.setSelected(viewer.sendLocalUsername.getValue());
-
-    if (state() == RFBSTATE_NORMAL) {
-      options.shared.setEnabled(false);
-      options.secVeNCrypt.setEnabled(false);
-      options.encNone.setEnabled(false);
-      options.encTLS.setEnabled(false);
-      options.encX509.setEnabled(false);
-      options.x509ca.setEnabled(false);
-      options.caButton.setEnabled(false);
-      options.x509crl.setEnabled(false);
-      options.crlButton.setEnabled(false);
-      options.secIdent.setEnabled(false);
-      options.secNone.setEnabled(false);
-      options.secVnc.setEnabled(false);
-      options.secPlain.setEnabled(false);
-      options.sendLocalUsername.setEnabled(false);
-      options.cfLoadButton.setEnabled(false);
-      options.cfSaveAsButton.setEnabled(true);
-      options.sshTunnel.setEnabled(false);
-      options.sshUseGateway.setEnabled(false);
-      options.sshUser.setEnabled(false);
-      options.sshHost.setEnabled(false);
-      options.sshPort.setEnabled(false);
-      options.sshUseExt.setEnabled(false);
-      options.sshClient.setEnabled(false);
-      options.sshClientBrowser.setEnabled(false);
-      options.sshArgsDefault.setEnabled(false);
-      options.sshArgsCustom.setEnabled(false);
-      options.sshArguments.setEnabled(false);
-      options.sshConfig.setEnabled(false);
-      options.sshConfigBrowser.setEnabled(false);
-      options.sshKeyFile.setEnabled(false);
-      options.sshKeyFileBrowser.setEnabled(false);
-    } else {
-      options.shared.setSelected(viewer.shared.getValue());
-      options.sendLocalUsername.setSelected(viewer.sendLocalUsername.getValue());
-      options.cfSaveAsButton.setEnabled(false);
-      if (viewer.tunnel.getValue() || viewer.via.getValue() != null)
-        options.sshTunnel.setSelected(true);
-      if (viewer.via.getValue() != null)
-        options.sshUseGateway.setSelected(true);
-      options.sshUser.setText(Tunnel.getSshUser(this));
-      options.sshHost.setText(Tunnel.getSshHost(this));
-      options.sshPort.setText(Integer.toString(Tunnel.getSshPort(this)));
-      options.sshUseExt.setSelected(viewer.extSSH.getValue());
-      File client = new File(viewer.extSSHClient.getValue());
-      if (client.exists() && client.canRead())
-        options.sshClient.setText(client.getAbsolutePath());
-      if (viewer.extSSHArgs.getValue() == null) {
-        options.sshArgsDefault.setSelected(true);
-        options.sshArguments.setText("");
-      } else {
-        options.sshArgsCustom.setSelected(true);
-        options.sshArguments.setText(viewer.extSSHArgs.getValue());
-      }
-      File config = new File(viewer.sshConfig.getValue());
-      if (config.exists() && config.canRead())
-        options.sshConfig.setText(config.getAbsolutePath());
-      options.sshKeyFile.setText(Tunnel.getSshKeyFile(this));
-
-      /* Process non-VeNCrypt sectypes */
-      java.util.List<Integer> secTypes = new ArrayList<Integer>();
-      secTypes = Security.GetEnabledSecTypes();
-      for (Iterator<Integer> i = secTypes.iterator(); i.hasNext();) {
-        switch ((Integer)i.next()) {
-        case Security.secTypeVeNCrypt:
-          options.secVeNCrypt.setSelected(UserPreferences.getBool("viewer", "secVeNCrypt", true));
-          break;
-        case Security.secTypeNone:
-          options.encNone.setSelected(true);
-          options.secNone.setSelected(UserPreferences.getBool("viewer", "secTypeNone", true));
-          break;
-        case Security.secTypeVncAuth:
-          options.encNone.setSelected(true);
-          options.secVnc.setSelected(UserPreferences.getBool("viewer", "secTypeVncAuth", true));
-          break;
-        }
-      }
-
-      /* Process VeNCrypt subtypes */
-      if (options.secVeNCrypt.isSelected()) {
-        java.util.List<Integer> secTypesExt = new ArrayList<Integer>();
-        secTypesExt = Security.GetEnabledExtSecTypes();
-        for (Iterator<Integer> iext = secTypesExt.iterator(); iext.hasNext();) {
-          switch ((Integer)iext.next()) {
-          case Security.secTypePlain:
-            options.encNone.setSelected(UserPreferences.getBool("viewer", "encNone", true));
-            options.secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
-            break;
-          case Security.secTypeIdent:
-            options.encNone.setSelected(UserPreferences.getBool("viewer", "encNone", true));
-            options.secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
-            break;
-          case Security.secTypeTLSNone:
-            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
-            options.secNone.setSelected(UserPreferences.getBool("viewer", "secNone", true));
-            break;
-          case Security.secTypeTLSVnc:
-            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
-            options.secVnc.setSelected(UserPreferences.getBool("viewer", "secVnc", true));
-            break;
-          case Security.secTypeTLSPlain:
-            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
-            options.secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
-            break;
-          case Security.secTypeTLSIdent:
-            options.encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
-            options.secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
-            break;
-          case Security.secTypeX509None:
-            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
-            options.secNone.setSelected(UserPreferences.getBool("viewer", "secNone", true));
-            break;
-          case Security.secTypeX509Vnc:
-            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
-            options.secVnc.setSelected(UserPreferences.getBool("viewer", "secVnc", true));
-            break;
-          case Security.secTypeX509Plain:
-            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
-            options.secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
-            break;
-          case Security.secTypeX509Ident:
-            options.encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
-            options.secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
-            break;
-          }
-        }
-      }
-      File caFile = new File(viewer.x509ca.getValue());
-      if (caFile.exists() && caFile.canRead())
-        options.x509ca.setText(caFile.getAbsolutePath());
-      File crlFile = new File(viewer.x509crl.getValue());
-      if (crlFile.exists() && crlFile.canRead())
-        options.x509crl.setText(crlFile.getAbsolutePath());
-      options.encNone.setEnabled(options.secVeNCrypt.isSelected());
-      options.encTLS.setEnabled(options.secVeNCrypt.isSelected());
-      options.encX509.setEnabled(options.secVeNCrypt.isSelected());
-      options.x509ca.setEnabled(options.secVeNCrypt.isSelected() &&
-                                options.encX509.isSelected());
-      options.caButton.setEnabled(options.secVeNCrypt.isSelected() &&
-                                  options.encX509.isSelected());
-      options.x509crl.setEnabled(options.secVeNCrypt.isSelected() &&
-                                 options.encX509.isSelected());
-      options.crlButton.setEnabled(options.secVeNCrypt.isSelected() &&
-                                   options.encX509.isSelected());
-      options.secIdent.setEnabled(options.secVeNCrypt.isSelected());
-      options.secPlain.setEnabled(options.secVeNCrypt.isSelected());
-      options.sendLocalUsername.setEnabled(options.secPlain.isSelected()||
-        options.secIdent.isSelected());
-      options.sshTunnel.setEnabled(true);
-        options.sshUseGateway.setEnabled(options.sshTunnel.isSelected());
-        options.sshUser.setEnabled(options.sshTunnel.isSelected() &&
-                                   options.sshUseGateway.isEnabled() &&
-                                   options.sshUseGateway.isSelected());
-        options.sshHost.setEnabled(options.sshTunnel.isSelected() &&
-                                   options.sshUseGateway.isEnabled() &&
-                                   options.sshUseGateway.isSelected());
-        options.sshPort.setEnabled(options.sshTunnel.isSelected() &&
-                                   options.sshUseGateway.isEnabled() &&
-                                   options.sshUseGateway.isSelected());
-        options.sshUseExt.setEnabled(options.sshTunnel.isSelected());
-        options.sshClient.setEnabled(options.sshTunnel.isSelected() &&
-                                     options.sshUseExt.isEnabled() &&
-                                     options.sshUseExt.isSelected());
-        options.sshClientBrowser.setEnabled(options.sshTunnel.isSelected() &&
-                                            options.sshUseExt.isEnabled() &&
-                                            options.sshUseExt.isSelected());
-        options.sshArgsDefault.setEnabled(options.sshTunnel.isSelected() &&
-                                          options.sshUseExt.isEnabled() &&
-                                          options.sshUseExt.isSelected());
-        options.sshArgsCustom.setEnabled(options.sshTunnel.isSelected() &&
-                                         options.sshUseExt.isEnabled() &&
-                                         options.sshUseExt.isSelected());
-        options.sshArguments.setEnabled(options.sshTunnel.isSelected() &&
-                                        options.sshUseExt.isEnabled() &&
-                                        options.sshUseExt.isSelected() &&
-                                        options.sshArgsCustom.isSelected());
-        options.sshConfig.setEnabled(options.sshTunnel.isSelected() &&
-                                     options.sshUseExt.isEnabled() &&
-                                     !options.sshUseExt.isSelected());
-        options.sshConfigBrowser.setEnabled(options.sshTunnel.isSelected() &&
-                                            options.sshUseExt.isEnabled() &&
-                                            !options.sshUseExt.isSelected());
-        options.sshKeyFile.setEnabled(options.sshTunnel.isSelected() &&
-                                      options.sshUseExt.isEnabled() &&
-                                      !options.sshUseExt.isSelected());
-        options.sshKeyFileBrowser.setEnabled(options.sshTunnel.isSelected() &&
-                                             options.sshUseExt.isEnabled() &&
-                                             !options.sshUseExt.isSelected());
-    }
-
-    options.fullScreen.setSelected(fullScreen);
-    options.fullScreenAllMonitors.setSelected(viewer.fullScreenAllMonitors.getValue());
-    options.useLocalCursor.setSelected(viewer.useLocalCursor.getValue());
-    options.acceptBell.setSelected(viewer.acceptBell.getValue());
-    String scaleString = viewer.scalingFactor.getValue();
-    if (scaleString.equalsIgnoreCase("Auto")) {
-      options.scalingFactor.setSelectedItem("Auto");
-    } else if(scaleString.equalsIgnoreCase("FixedRatio")) {
-      options.scalingFactor.setSelectedItem("Fixed Aspect Ratio");
-    } else {
-      digit = Integer.parseInt(scaleString);
-      if (digit >= 1 && digit <= 1000) {
-        options.scalingFactor.setSelectedItem(digit+"%");
-      } else {
-        digit = Integer.parseInt(viewer.scalingFactor.getDefaultStr());
-        options.scalingFactor.setSelectedItem(digit+"%");
-      }
-      int scaleFactor =
-        Integer.parseInt(scaleString.substring(0, scaleString.length()));
-    }
-    if (viewer.desktopSize.getValue() != null &&
-        viewer.desktopSize.getValue().split("x").length == 2) {
-      options.desktopSize.setSelected(true);
-      String desktopWidth = viewer.desktopSize.getValue().split("x")[0];
-      options.desktopWidth.setText(desktopWidth);
-      String desktopHeight = viewer.desktopSize.getValue().split("x")[1];
-      options.desktopHeight.setText(desktopHeight);
-    }
+  public synchronized int currentEncoding() {
+    return currentEncoding;
   }
 
-  public void getOptions() {
-    autoSelect = options.autoSelect.isSelected();
-    if (fullColour != options.fullColour.isSelected()) {
-      formatChange = true;
-      forceNonincremental = true;
-    }
-    fullColour = options.fullColour.isSelected();
-    if (!fullColour) {
-      int newLowColourLevel = (options.veryLowColour.isSelected() ? 0 :
-                               options.lowColour.isSelected() ? 1 : 2);
-      if (newLowColourLevel != lowColourLevel) {
-        lowColourLevel = newLowColourLevel;
-        formatChange = true;
-        forceNonincremental = true;
-      }
-    }
-    int newEncoding = (options.zrle.isSelected() ?  Encodings.encodingZRLE :
-                       options.hextile.isSelected() ?  Encodings.encodingHextile :
-                       options.tight.isSelected() ?  Encodings.encodingTight :
-                       Encodings.encodingRaw);
-    if (newEncoding != currentEncoding) {
-      currentEncoding = newEncoding;
-      encodingChange = true;
+  public void handleOptions()
+  {
+
+    if (viewport != null && viewport.isVisible()) {
+      viewport.toFront();
+      viewport.requestFocus();
     }
 
-    viewer.customCompressLevel.setParam(options.customCompressLevel.isSelected());
-    if (cp.customCompressLevel != viewer.customCompressLevel.getValue()) {
-      cp.customCompressLevel = viewer.customCompressLevel.getValue();
-      encodingChange = true;
+    // Checking all the details of the current set of encodings is just
+    // a pain. Assume something has changed, as resending the encoding
+    // list is cheap. Avoid overriding what the auto logic has selected
+    // though.
+    if (!autoSelect.getValue()) {
+      int encNum = Encodings.encodingNum(preferredEncoding.getValue());
+
+      if (encNum != -1)
+        this.currentEncoding = encNum;
     }
-    if (Integer.parseInt(options.compressLevel.getSelectedItem().toString()) >= 0 &&
-        Integer.parseInt(options.compressLevel.getSelectedItem().toString()) <= 9) {
-      viewer.compressLevel.setParam(options.compressLevel.getSelectedItem().toString());
+
+    this.cp.supportsLocalCursor = useLocalCursor.getValue();
+
+    if (customCompressLevel.getValue())
+      this.cp.compressLevel = compressLevel.getValue();
+    else
+      this.cp.compressLevel = -1;
+
+    if (!noJpeg.getValue() && !autoSelect.getValue())
+      this.cp.qualityLevel = qualityLevel.getValue();
+    else
+      this.cp.qualityLevel = -1;
+
+    this.encodingChange = true;
+
+    // Format changes refreshes the entire screen though and are therefore
+    // very costly. It's probably worth the effort to see if it is necessary
+    // here.
+    PixelFormat pf;
+
+    if (fullColor.getValue()) {
+      pf = fullColorPF;
     } else {
-      viewer.compressLevel.setParam(viewer.compressLevel.getDefaultStr());
-    }
-    if (cp.compressLevel != viewer.compressLevel.getValue()) {
-      cp.compressLevel = viewer.compressLevel.getValue();
-      encodingChange = true;
-    }
-    viewer.noJpeg.setParam(!options.noJpeg.isSelected());
-    if (cp.noJpeg != viewer.noJpeg.getValue()) {
-      cp.noJpeg = viewer.noJpeg.getValue();
-      encodingChange = true;
-    }
-    viewer.qualityLevel.setParam(options.qualityLevel.getSelectedItem().toString());
-    if (cp.qualityLevel != viewer.qualityLevel.getValue()) {
-      cp.qualityLevel = viewer.qualityLevel.getValue();
-      encodingChange = true;
-    }
-    if (!options.x509ca.getText().equals(""))
-        CSecurityTLS.x509ca.setParam(options.x509ca.getText());
-    if (!options.x509crl.getText().equals(""))
-        CSecurityTLS.x509crl.setParam(options.x509crl.getText());
-    viewer.sendLocalUsername.setParam(options.sendLocalUsername.isSelected());
-
-    viewer.viewOnly.setParam(options.viewOnly.isSelected());
-    viewer.acceptClipboard.setParam(options.acceptClipboard.isSelected());
-    viewer.sendClipboard.setParam(options.sendClipboard.isSelected());
-    viewer.acceptBell.setParam(options.acceptBell.isSelected());
-    String scaleString =
-      options.scalingFactor.getSelectedItem().toString();
-    String oldScaleFactor = viewer.scalingFactor.getValue();
-    if (scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
-      scaleString = new String("FixedRatio");
-    } else if (scaleString.equalsIgnoreCase("Auto")) {
-      scaleString = new String("Auto");
-    } else {
-      scaleString=scaleString.substring(0, scaleString.length()-1);
-    }
-    if (!oldScaleFactor.equals(scaleString)) {
-      viewer.scalingFactor.setParam(scaleString);
-      if ((options.fullScreen.isSelected() == fullScreen) &&
-          (desktop != null))
-        recreateViewport();
+      if (lowColorLevel.getValue() == 0)
+        pf = verylowColorPF;
+      else if (lowColorLevel.getValue() == 1)
+        pf = lowColorPF;
+      else
+        pf = mediumColorPF;
     }
 
-    clipboardDialog.setSendingEnabled(viewer.sendClipboard.getValue());
-    viewer.menuKey.setParam(MenuKey.getMenuKeySymbols()[options.menuKey.getSelectedIndex()].name);
-    F8Menu.f8.setText("Send "+KeyEvent.getKeyText(MenuKey.getMenuKeyCode()));
+    if (!pf.equal(this.cp.pf())) {
+      this.formatChange = true;
 
-    setShared(options.shared.isSelected());
-    viewer.useLocalCursor.setParam(options.useLocalCursor.isSelected());
-    if (cp.supportsLocalCursor != viewer.useLocalCursor.getValue()) {
-      cp.supportsLocalCursor = viewer.useLocalCursor.getValue();
-      encodingChange = true;
-      if (desktop != null)
-        desktop.resetLocalCursor();
+      // Without fences, we cannot safely trigger an update request directly
+      // but must wait for the next update to arrive.
+      if (this.supportsSyncFence)
+        this.requestNewUpdate();
     }
-    viewer.extSSH.setParam(options.sshUseExt.isSelected());
 
-    checkEncodings();
-
-    if (state() != RFBSTATE_NORMAL) {
-      /* Process security types which don't use encryption */
-      if (options.encNone.isSelected()) {
-        if (options.secNone.isSelected())
-          Security.EnableSecType(Security.secTypeNone);
-        if (options.secVnc.isSelected())
-          Security.EnableSecType(Security.secTypeVncAuth);
-        if (options.secPlain.isSelected())
-          Security.EnableSecType(Security.secTypePlain);
-        if (options.secIdent.isSelected())
-          Security.EnableSecType(Security.secTypeIdent);
-      } else {
-        Security.DisableSecType(Security.secTypeNone);
-        Security.DisableSecType(Security.secTypeVncAuth);
-        Security.DisableSecType(Security.secTypePlain);
-        Security.DisableSecType(Security.secTypeIdent);
-      }
-
-      /* Process security types which use TLS encryption */
-      if (options.encTLS.isSelected()) {
-        if (options.secNone.isSelected())
-          Security.EnableSecType(Security.secTypeTLSNone);
-        if (options.secVnc.isSelected())
-          Security.EnableSecType(Security.secTypeTLSVnc);
-        if (options.secPlain.isSelected())
-          Security.EnableSecType(Security.secTypeTLSPlain);
-        if (options.secIdent.isSelected())
-          Security.EnableSecType(Security.secTypeTLSIdent);
-      } else {
-        Security.DisableSecType(Security.secTypeTLSNone);
-        Security.DisableSecType(Security.secTypeTLSVnc);
-        Security.DisableSecType(Security.secTypeTLSPlain);
-        Security.DisableSecType(Security.secTypeTLSIdent);
-      }
-
-      /* Process security types which use X509 encryption */
-      if (options.encX509.isSelected()) {
-        if (options.secNone.isSelected())
-          Security.EnableSecType(Security.secTypeX509None);
-        if (options.secVnc.isSelected())
-          Security.EnableSecType(Security.secTypeX509Vnc);
-        if (options.secPlain.isSelected())
-          Security.EnableSecType(Security.secTypeX509Plain);
-        if (options.secIdent.isSelected())
-          Security.EnableSecType(Security.secTypeX509Ident);
-      } else {
-        Security.DisableSecType(Security.secTypeX509None);
-        Security.DisableSecType(Security.secTypeX509Vnc);
-        Security.DisableSecType(Security.secTypeX509Plain);
-        Security.DisableSecType(Security.secTypeX509Ident);
-      }
-
-      /* Process *None security types */
-      if (options.secNone.isSelected()) {
-        if (options.encNone.isSelected())
-          Security.EnableSecType(Security.secTypeNone);
-        if (options.encTLS.isSelected())
-          Security.EnableSecType(Security.secTypeTLSNone);
-        if (options.encX509.isSelected())
-          Security.EnableSecType(Security.secTypeX509None);
-      } else {
-        Security.DisableSecType(Security.secTypeNone);
-        Security.DisableSecType(Security.secTypeTLSNone);
-        Security.DisableSecType(Security.secTypeX509None);
-      }
-
-      /* Process *Vnc security types */
-      if (options.secVnc.isSelected()) {
-        if (options.encNone.isSelected())
-          Security.EnableSecType(Security.secTypeVncAuth);
-        if (options.encTLS.isSelected())
-          Security.EnableSecType(Security.secTypeTLSVnc);
-        if (options.encX509.isSelected())
-          Security.EnableSecType(Security.secTypeX509Vnc);
-      } else {
-        Security.DisableSecType(Security.secTypeVncAuth);
-        Security.DisableSecType(Security.secTypeTLSVnc);
-        Security.DisableSecType(Security.secTypeX509Vnc);
-      }
-
-      /* Process *Plain security types */
-      if (options.secPlain.isSelected()) {
-        if (options.encNone.isSelected())
-          Security.EnableSecType(Security.secTypePlain);
-        if (options.encTLS.isSelected())
-          Security.EnableSecType(Security.secTypeTLSPlain);
-        if (options.encX509.isSelected())
-          Security.EnableSecType(Security.secTypeX509Plain);
-      } else {
-        Security.DisableSecType(Security.secTypePlain);
-        Security.DisableSecType(Security.secTypeTLSPlain);
-        Security.DisableSecType(Security.secTypeX509Plain);
-      }
-
-      /* Process *Ident security types */
-      if (options.secIdent.isSelected()) {
-        if (options.encNone.isSelected())
-          Security.EnableSecType(Security.secTypeIdent);
-        if (options.encTLS.isSelected())
-          Security.EnableSecType(Security.secTypeTLSIdent);
-        if (options.encX509.isSelected())
-          Security.EnableSecType(Security.secTypeX509Ident);
-      } else {
-        Security.DisableSecType(Security.secTypeIdent);
-        Security.DisableSecType(Security.secTypeTLSIdent);
-        Security.DisableSecType(Security.secTypeX509Ident);
-      }
-      if (options.sshTunnel.isSelected()) {
-        if (options.sshUseGateway.isSelected()) {
-          String user = options.sshUser.getText();
-          String host = options.sshHost.getText();
-          String port = options.sshPort.getText();
-          viewer.via.setParam(user+"@"+host+":"+port);
-        } else {
-          viewer.tunnel.setParam(true);
-        }
-      }
-      viewer.extSSH.setParam(options.sshUseExt.isSelected());
-      viewer.extSSHClient.setParam(options.sshClient.getText());
-      if (options.sshArgsCustom.isSelected())
-        viewer.extSSHArgs.setParam(options.sshArguments.getText());
-      viewer.sshConfig.setParam(options.sshConfig.getText());
-      viewer.sshKeyFile.setParam(options.sshKeyFile.getText());
-    }
-    String desktopSize = (options.desktopSize.isSelected()) ?
-        options.desktopWidth.getText() + "x" + options.desktopHeight.getText() : "";
-    viewer.desktopSize.setParam(desktopSize);
-    if (options.fullScreen.isSelected() ^ fullScreen) {
-      viewer.fullScreenAllMonitors.setParam(options.fullScreenAllMonitors.isSelected());
-      toggleFullScreen();
-    } else {
-      if (viewer.fullScreenAllMonitors.getValue() !=
-          options.fullScreenAllMonitors.isSelected()) {
-        viewer.fullScreenAllMonitors.setParam(options.fullScreenAllMonitors.isSelected());
-        if (desktop != null)
-          recreateViewport();
-      } else {
-        viewer.fullScreenAllMonitors.setParam(options.fullScreenAllMonitors.isSelected());
-      }
-    }
   }
 
   public void toggleFullScreen() {
-    if (viewer.embed.getValue())
+    if (embed.getValue())
       return;
-    fullScreen = !fullScreen;
-    menu.fullScreen.setSelected(fullScreen);
+    fullScreen.setParam(!fullScreen.getValue());
     if (viewport != null) {
       if (!viewport.lionFSSupported()) {
         recreateViewport();
@@ -1369,7 +856,7 @@ public class CConn extends CConnection implements
   }
 
   public void writeKeyEvent(KeyEvent ev) {
-    if (viewer.viewOnly.getValue() || shuttingDown)
+    if (viewOnly.getValue() || shuttingDown)
       return;
 
     boolean down = (ev.getID() == KeyEvent.KEY_PRESSED);
@@ -1539,12 +1026,6 @@ public class CConn extends CConnection implements
 
   // the following never change so need no synchronization:
 
-
-  // viewer object is only ever accessed by the GUI thread so needs no
-  // synchronization (except for one test in DesktopWindow - see comment
-  // there).
-  VncViewer viewer;
-
   // access to desktop by different threads is specified in DesktopWindow
 
   // the following need no synchronization:
@@ -1559,27 +1040,21 @@ public class CConn extends CConnection implements
   // reading and writing int and boolean is atomic in java, so no
   // synchronization of the following flags is needed:
 
-  int lowColourLevel;
-
 
   // All menu, options, about and info stuff is done in the GUI thread (apart
   // from when constructed).
-  F8Menu menu;
-  OptionsDialog options;
-
-  // clipboard sync issues?
-  ClipboardDialog clipboardDialog;
 
   // the following are only ever accessed by the GUI thread:
   int buttonMask;
 
+  private String serverHost;
+  private int serverPort;
   private Socket sock;
 
   protected DesktopWindow desktop;
 
-  // FIXME: should be private
-  public PixelFormat serverPF;
-  private PixelFormat fullColourPF;
+  private PixelFormat serverPF;
+  private PixelFormat fullColorPF;
 
   private boolean pendingPFChange;
   private PixelFormat pendingPF;
@@ -1597,11 +1072,7 @@ public class CConn extends CConnection implements
 
   private boolean supportsSyncFence;
 
-  public int menuKeyCode;
   Viewport viewport;
-  private boolean fullColour;
-  private boolean autoSelect;
-  boolean fullScreen;
   private HashMap<Integer, Integer> downKeySym;
   public ActionListener closeListener = null;
 

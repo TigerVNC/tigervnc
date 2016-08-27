@@ -31,6 +31,7 @@ package com.tigervnc.vncviewer;
 import java.awt.*;
 import java.awt.Dialog.*;
 import java.awt.event.*;
+import java.io.File;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.text.*;
@@ -52,7 +53,7 @@ class Dialog extends JDialog implements ActionListener,
     }
   }
 
-  public boolean showDialog(Component c) {
+  public void showDialog(Component c) {
     initDialog();
     if (c != null) {
       setLocationRelativeTo(c);
@@ -70,11 +71,10 @@ class Dialog extends JDialog implements ActionListener,
     if (getModalityType() == ModalityType.APPLICATION_MODAL)
       setAlwaysOnTop(true);
     setVisible(true);
-    return ret;
   }
 
-  public boolean showDialog() {
-    return showDialog(null);
+  public void showDialog() {
+    showDialog(null);
   }
 
   public void endDialog() {
@@ -137,6 +137,21 @@ class Dialog extends JDialog implements ActionListener,
     return width + gap;
   }
 
+  public static File showChooser(String title, File defFile, Container c) {
+    JFileChooser fc = new JFileChooser(defFile);
+    fc.setDialogTitle(title);
+    fc.setApproveButtonText("OK  \u21B5");
+    fc.setFileHidingEnabled(false);
+    if (fc.showOpenDialog(c) == JFileChooser.APPROVE_OPTION)
+      return fc.getSelectedFile();
+    else
+      return null;
+  }
+
+  protected File showChooser(String title, File defFile) {
+    return showChooser(title, defFile, this);
+  }
+
   protected class GroupedJRadioButton extends JRadioButton {
     public GroupedJRadioButton(String l, ButtonGroup g, JComponent c) {
       super(l);
@@ -181,9 +196,9 @@ class Dialog extends JDialog implements ActionListener,
       JTextField jtf = (JTextField)editor.getEditorComponent();
       jtf.setDocument(doc);
     }
+
   }
 
   private Window fullScreenWindow;
-  protected boolean ret = true;
 
 }
