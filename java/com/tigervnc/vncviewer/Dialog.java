@@ -34,6 +34,7 @@ import java.awt.event.*;
 import java.io.File;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.*;
 import javax.swing.text.*;
 
 class Dialog extends JDialog implements ActionListener,
@@ -137,15 +138,27 @@ class Dialog extends JDialog implements ActionListener,
     return width + gap;
   }
 
-  public static File showChooser(String title, File defFile, Container c) {
+  public static File showChooser(String title, File defFile,
+                                 Container c, FileNameExtensionFilter f) {
     JFileChooser fc = new JFileChooser(defFile);
     fc.setDialogTitle(title);
     fc.setApproveButtonText("OK  \u21B5");
     fc.setFileHidingEnabled(false);
+    if (f != null)
+      fc.setFileFilter(f);
     if (fc.showOpenDialog(c) == JFileChooser.APPROVE_OPTION)
       return fc.getSelectedFile();
     else
       return null;
+  }
+
+  public static File showChooser(String title, File defFile, Container c) {
+    return showChooser(title, defFile, c, null);
+  }
+
+  protected File showChooser(String title, File defFile,
+                             FileNameExtensionFilter f) {
+    return showChooser(title, defFile, this, f);
   }
 
   protected File showChooser(String title, File defFile) {

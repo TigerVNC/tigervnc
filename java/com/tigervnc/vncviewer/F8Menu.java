@@ -23,6 +23,7 @@ import java.awt.*;
 import java.awt.Cursor;
 import java.awt.event.*;
 import java.io.File;
+import javax.swing.filechooser.*;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -139,7 +140,9 @@ public class F8Menu extends JPopupMenu implements ActionListener {
 	    File dflt = new File(FileUtils.getVncHomeDir().concat("default.tigervnc"));
 	    if (!dflt.exists() || !dflt.isFile())
 	      dflt = new File(FileUtils.getVncHomeDir());
-	    File f = Dialog.showChooser(title, dflt, this);
+      FileNameExtensionFilter filter =
+        new FileNameExtensionFilter("TigerVNC configuration (*.tigervnc)", "tigervnc");
+	    File f = Dialog.showChooser(title, dflt, this, filter);
 	    while (f != null && f.exists() && f.isFile()) {
 	      String msg = f.getAbsolutePath();
 	      msg = msg.concat(" already exists. Do you want to overwrite?");
@@ -154,7 +157,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
 	      if (op.getValue() == options[0])
 	        break;
 	      else
-	        f = Dialog.showChooser(title, f, this);
+	        f = Dialog.showChooser(title, f, this, filter);
 	    }
 	    if (f != null && (!f.exists() || f.canWrite()))
 	      saveViewerParameters(f.getAbsolutePath(), vncServerName.getValue());

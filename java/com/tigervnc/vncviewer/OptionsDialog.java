@@ -27,6 +27,7 @@ import java.text.Format;
 import java.text.NumberFormat;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.*;
 import javax.swing.UIManager.*;
 import javax.swing.text.*;
 import java.util.*;
@@ -779,7 +780,9 @@ class OptionsDialog extends Dialog {
       public void actionPerformed(ActionEvent e) {
         JComponent c = ((JButton)e.getSource()).getRootPane();
         File dflt = new File(CSecurityTLS.X509CA.getValueStr());
-        File f = showChooser("Path to X509 CA certificate", dflt, c);
+        FileNameExtensionFilter filter =
+          new FileNameExtensionFilter("X.509 certificate", "crt", "cer", "pem");
+        File f = showChooser("Path to X509 CA certificate", dflt, c, filter);
         if (f != null && f.exists() && f.canRead())
           caInput.setText(f.getAbsolutePath());
       }
@@ -791,7 +794,9 @@ class OptionsDialog extends Dialog {
       public void actionPerformed(ActionEvent e) {
         JComponent c = ((JButton)e.getSource()).getRootPane();
         File dflt = new File(CSecurityTLS.X509CRL.getValueStr());
-        File f = showChooser("Path to X509 CRL file", dflt, c);
+        FileNameExtensionFilter filter =
+          new FileNameExtensionFilter("X.509 CRL", "crl");
+        File f = showChooser("Path to X509 CRL file", dflt, c, filter);
         if (f != null && f.exists() && f.canRead())
           crlInput.setText(f.getAbsolutePath());
       }

@@ -24,6 +24,7 @@ import java.awt.event.*;
 import java.io.File;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.*;
 import javax.swing.WindowConstants.*;
 import java.util.*;
 
@@ -221,7 +222,9 @@ class ServerDialog extends Dialog implements Runnable {
   private void handleLoad() {
     String title = "Select a TigerVNC configuration file";
     File dflt = new File(FileUtils.getVncHomeDir().concat("default.tigervnc"));
-    File f = showChooser(title, dflt);
+    FileNameExtensionFilter filter =
+      new FileNameExtensionFilter("TigerVNC configuration (*.tigervnc)", "tigervnc");
+    File f = showChooser(title, dflt, filter);
     if (f != null && f.exists() && f.canRead())
       loadViewerParameters(f.getAbsolutePath());
   }
@@ -231,7 +234,9 @@ class ServerDialog extends Dialog implements Runnable {
     File dflt = new File(FileUtils.getVncHomeDir().concat("default.tigervnc"));
     if (!dflt.exists() || !dflt.isFile())
       dflt = new File(FileUtils.getVncHomeDir());
-    File f = showChooser(title, dflt);
+    FileNameExtensionFilter filter =
+      new FileNameExtensionFilter("TigerVNC configuration (*.tigervnc)", "tigervnc");
+    File f = showChooser(title, dflt, filter);
     while (f != null && f.exists() && f.isFile()) {
       String msg = f.getAbsolutePath();
       msg = msg.concat(" already exists. Do you want to overwrite?");
@@ -246,7 +251,7 @@ class ServerDialog extends Dialog implements Runnable {
       if (op.getValue() == options[0])
         break;
       else
-        f = showChooser(title, f);
+        f = showChooser(title, f, filter);
     }
     if (f != null && (!f.exists() || f.canWrite()))
       saveViewerParameters(f.getAbsolutePath(), (String)server.getSelectedItem());
