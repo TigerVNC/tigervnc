@@ -9,7 +9,7 @@ add_subdirectory(rfb)
 # because PIC code does not exist on that platform and MinGW complains if -fPIC
 # is passed (additionally, libvnc is not used on Windows.)
 
-if(CMAKE_COMPILER_IS_GNUCXX AND NOT WIN32)
+if(NOT WIN32)
   set_target_properties(os rdr network Xregion rfb
     PROPERTIES COMPILE_FLAGS -fPIC)
 endif()
