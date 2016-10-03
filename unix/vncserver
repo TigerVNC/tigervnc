@@ -47,7 +47,7 @@ $geometry = "1024x768";
 $vncJavaFiles = (((-d "$vncClasses") && "$vncClasses") ||
                  ((-d "/usr/share/vnc/classes") && "/usr/share/vnc/classes") ||
                  ((-d "/usr/local/vnc/classes") && "/usr/local/vnc/classes"));
-                 
+
 $vncUserDir = "$ENV{HOME}/.vnc";
 $vncUserConfig = "$vncUserDir/config";
 
@@ -178,7 +178,7 @@ if (!(-e $vncUserDir)) {
 	die "$prog: Could not create $vncUserDir.\n";
     }
 }
-    
+
 # Find display number.
 if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
     $displayNumber = $1;
@@ -329,7 +329,7 @@ system("$cmd & echo \$! >$pidFile");
 
 # Give Xvnc a chance to start up
 
-sleep(3); 
+sleep(3);
 if ($fontPath ne $defFontPath) {
     unless (kill 0, `cat $pidFile`) {
         if ($fpArgSpecified) {
@@ -499,7 +499,7 @@ sub GetDisplayNumber
 	    return $n+0; # Bruce Mah's workaround for bug in perl 5.005_02
 	}
     }
-    
+
     die "$prog: no free display number on $host.\n";
 }
 
@@ -743,7 +743,7 @@ sub Kill
     } else {
 	warn "Xvnc process ID $pid already killed\n";
 	$opt{'-kill'} =~ s/://;
-    
+
 	if (-e "/tmp/.X11-unix/X$opt{'-kill'}") {
 	    print "Xvnc did not appear to shut down cleanly.";
 	    print " Removing /tmp/.X11-unix/X$opt{'-kill'}\n";
