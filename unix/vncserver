@@ -293,8 +293,24 @@ $desktopLog = "$vncUserDir/$host:$displayNumber.log";
 unlink($desktopLog);
 
 # Make an X server cookie and set up the Xauthority file
-
+# mcookie is a part of util-linux, usually only GNU/Linux systems have it.
 $cookie = `mcookie`;
+# Fallback for non GNU/Linux OS - use /dev/urandom on systems that have it,
+# otherwise use perl's random number generator, seeded with the sum
+# of the current time, our PID and part of the encrypted form of the password.
+if ($cookie eq "" && open(URANDOM, '<', '/dev/urandom')) {
+  my $randata;
+  if (sysread(URANDOM, $randata, 16) == 16) {
+    $cookie = unpack 'h*', $randata;
+  }
+  close(URANDOM);
+}
+if ($cookie eq "") {
+  srand(time+$$+unpack("L",`cat $vncUserDir/passwd`));
+  for (1..16) {
+    $cookie .= sprintf("%02x", int(rand(256)) % 256);
+  }
+}
 
 open(XAUTH, "|xauth -f $xauthorityFile source -");
 print XAUTH "add $host:$displayNumber . $cookie\n";
@@ -818,7 +834,7 @@ sub SanityCheck
     #
 
  cmd:
-    foreach $cmd ("uname","mcookie","xauth") {
+    foreach $cmd ("uname","xauth") {
 	for (split(/:/,$ENV{PATH})) {
 	    if (-x "$_/$cmd") {
 		next cmd;
