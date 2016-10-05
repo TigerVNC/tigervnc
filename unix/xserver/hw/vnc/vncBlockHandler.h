@@ -26,6 +26,9 @@ extern "C" {
 
 void vncRegisterBlockHandlers(void);
 
+void vncSetNotifyFd(int fd, int scrIdx, int read, int write);
+void vncRemoveNotifyFd(int fd);
+
 #ifdef __cplusplus
 }
 #endif

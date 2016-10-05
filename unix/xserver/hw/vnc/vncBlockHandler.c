@@ -25,6 +25,7 @@
 
 #include <X11/Xpoll.h>
 
+#include "os.h"
 #include "dix.h"
 #include "scrnintstr.h"
 
@@ -33,84 +34,209 @@
 #include "xorg-version.h"
 
 #if XORG >= 119
+static void vncBlockHandler(void* data, void* timeout);
+static void vncSocketNotify(int fd, int xevents, void *data);
+#else
+static void vncBlockHandler(void * data, OSTimePtr t, void * readmask);
+static void vncWakeupHandler(void * data, int nfds, void * readmask);
 
-static void vncBlockHandler(void* data, void* timeout)
-{
-  vncCallBlockHandlers(timeout);
-}
+struct vncFdEntry {
+  int fd;
+  int read, write;
+  int scrIdx;
+  struct vncFdEntry* next;
+};
+
+static struct vncFdEntry* fdsHead = NULL;
+#endif
 
 void vncRegisterBlockHandlers(void)
 {
   if (!RegisterBlockAndWakeupHandlers(vncBlockHandler,
-                                      (ServerWakeupHandlerProcPtr)NoopDDA, 0))
-    FatalError("RegisterBlockAndWakeupHandlers() failed\n");
-}
-
+#if XORG >= 119
+                                      (ServerWakeupHandlerProcPtr)NoopDDA,
 #else
-
-static void vncBlockHandler(void * data, OSTimePtr t, void * readmask);
-static void vncWakeupHandler(void * data, int nfds, void * readmask);
-void vncWriteBlockHandler(fd_set *fds);
-void vncWriteWakeupHandler(int nfds, fd_set *fds);
-
-void vncRegisterBlockHandlers(void)
-{
-  if (!RegisterBlockAndWakeupHandlers(vncBlockHandler, vncWakeupHandler, 0))
+                                      vncWakeupHandler,
+#endif
+                                      0))
     FatalError("RegisterBlockAndWakeupHandlers() failed\n");
 }
 
+void vncSetNotifyFd(int fd, int scrIdx, int read, int write)
+{
+#if XORG >= 119
+  int mask = (read ? X_NOTIFY_READ : 0) | (write ? X_NOTIFY_WRITE : 0);
+  SetNotifyFd(fd, vncSocketNotify, mask, (void*)scrIdx);
+#else
+  static struct vncFdEntry* entry;
+
+  entry = fdsHead;
+  while (entry) {
+    if (entry->fd == fd) {
+      assert(entry->scrIdx == scrIdx);
+      entry->read = read;
+      entry->write = write;
+      return;
+    }
+    entry = entry->next;
+  }
+
+  entry = malloc(sizeof(struct vncFdEntry));
+  memset(entry, 0, sizeof(struct vncFdEntry));
+
+  entry->fd = fd;
+  entry->scrIdx = scrIdx;
+  entry->read = read;
+  entry->write = write;
+
+  entry->next = fdsHead;
+  fdsHead = entry;
+#endif
+}
+
+void vncRemoveNotifyFd(int fd)
+{
+#if XORG >= 119
+  RemoveNotifyFd(fd);
+#else
+  static struct vncFdEntry** prev;
+  static struct vncFdEntry* entry;
+
+  prev = &fdsHead;
+  entry = fdsHead;
+  while (entry) {
+    if (entry->fd == fd) {
+      *prev = entry->next;
+      return;
+    }
+    prev = &entry->next;
+    entry = entry->next;
+  }
+
+  assert(FALSE);
+#endif
+}
+
+#if XORG >= 119
+static void vncSocketNotify(int fd, int xevents, void *data)
+{
+  int scrIdx;
+
+  scrIdx = (int)data;
+  vncHandleSocketEvent(fd, scrIdx,
+                       xevents & X_NOTIFY_READ,
+                       xevents & X_NOTIFY_WRITE);
+}
+#endif
+
+#if XORG < 119
 static void vncWriteBlockHandlerFallback(OSTimePtr timeout);
 static void vncWriteWakeupHandlerFallback(void);
+void vncWriteBlockHandler(fd_set *fds);
+void vncWriteWakeupHandler(int nfds, fd_set *fds);
+#endif
 
 //
-// vncBlockHandler - called just before the X server goes into select().  Call
-// on to the block handler for each desktop.  Then check whether any of the
-// selections have changed, and if so, notify any interested X clients.
+// vncBlockHandler - called just before the X server goes into poll().
+//
+// For older versions of X this also allows us to register file
+// descriptors that we want read events on.
 //
 
-static void vncBlockHandler(void * data, OSTimePtr timeout, void * readmask)
+#if XORG >= 119
+static void vncBlockHandler(void* data, void* timeout)
+#else
+static void vncBlockHandler(void * data, OSTimePtr t, void * readmask)
+#endif
 {
-  fd_set* fds = (fd_set*)readmask;
+#if XORG < 119
+  int _timeout;
+  int* timeout = &_timeout;
+  static struct timeval tv;
 
-  vncWriteBlockHandlerFallback(timeout);
+  fd_set* fds;
+  static struct vncFdEntry* entry;
 
-  vncCallReadBlockHandlers(fds, timeout);
+  if (*t == NULL)
+    _timeout = -1;
+  else
+    _timeout = (*t)->tv_sec * 1000 + (*t)->tv_usec / 1000;
+#endif
+
+  vncCallBlockHandlers(timeout);
+
+#if XORG < 119
+  if (_timeout != -1) {
+    tv.tv_sec= _timeout / 1000;
+    tv.tv_usec = (_timeout % 1000) * 1000;
+    *t = &tv;
+  }
+
+  fds = (fd_set*)readmask;
+  entry = fdsHead;
+  while (entry) {
+    if (entry->read)
+      FD_SET(entry->fd, fds);
+    entry = entry->next;
+  }
+
+  vncWriteBlockHandlerFallback(t);
+#endif
 }
 
+#if XORG < 119
 static void vncWakeupHandler(void * data, int nfds, void * readmask)
 {
   fd_set* fds = (fd_set*)readmask;
 
-  vncCallReadWakeupHandlers(fds, nfds);
+  static struct vncFdEntry* entry;
+
+  entry = fdsHead;
+  while (entry) {
+    if (entry->read && FD_ISSET(entry->fd, fds))
+      vncHandleSocketEvent(entry->fd, entry->scrIdx, TRUE, FALSE);
+    entry = entry->next;
+  }
 
   vncWriteWakeupHandlerFallback();
 }
+#endif
 
 //
-// vncWriteBlockHandler - extra hack to be able to get the main select loop
-// to monitor writeable fds and not just readable. This requirers a modified
-// Xorg and might therefore not be called. When it is called though, it will
-// do so before vncBlockHandler (and vncWriteWakeupHandler called after
-// vncWakeupHandler).
+// vncWriteBlockHandler - extra hack to be able to get old versions of the X
+// server to monitor writeable fds and not just readable. This requirers a
+// modified Xorg and might therefore not be called.
 //
 
+#if XORG < 119
 static Bool needFallback = TRUE;
 static fd_set fallbackFds;
 static struct timeval tw;
 
 void vncWriteBlockHandler(fd_set *fds)
 {
-  struct timeval *dummy;
+  static struct vncFdEntry* entry;
 
   needFallback = FALSE;
 
-  dummy = NULL;
-  vncCallWriteBlockHandlers(fds, &dummy);
+  entry = fdsHead;
+  while (entry) {
+    if (entry->write)
+      FD_SET(entry->fd, fds);
+    entry = entry->next;
+  }
 }
 
 void vncWriteWakeupHandler(int nfds, fd_set *fds)
 {
-  vncCallWriteWakeupHandlers(fds, nfds);
+  static struct vncFdEntry* entry;
+
+  entry = fdsHead;
+  while (entry) {
+    if (entry->write && FD_ISSET(entry->fd, fds))
+      vncHandleSocketEvent(entry->fd, entry->scrIdx, FALSE, TRUE);
+    entry = entry->next;
+  }
 }
 
 static void vncWriteBlockHandlerFallback(OSTimePtr timeout)
@@ -161,5 +287,4 @@ static void vncWriteWakeupHandlerFallback(void)
 
   vncWriteWakeupHandler(ret, &fallbackFds);
 }
-
 #endif

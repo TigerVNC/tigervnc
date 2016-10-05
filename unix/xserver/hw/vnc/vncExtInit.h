@@ -22,7 +22,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <sys/select.h>
-#include "xorg-version.h"
 
 // Only from C++
 #ifdef __cplusplus
@@ -51,14 +50,8 @@ extern int vncInetdSock;
 void vncExtensionInit(void);
 int vncExtensionIsActive(int scrIdx);
 
-#if XORG >= 119
+void vncHandleSocketEvent(int fd, int scrIdx, int read, int write);
 void vncCallBlockHandlers(int* timeout);
-#else
-void vncCallReadBlockHandlers(fd_set * fds, struct timeval ** timeout);
-void vncCallReadWakeupHandlers(fd_set * fds, int nfds);
-void vncCallWriteBlockHandlers(fd_set * fds, struct timeval ** timeout);
-void vncCallWriteWakeupHandlers(fd_set * fds, int nfds);
-#endif
 
 int vncGetAvoidShiftNumLock(void);
 

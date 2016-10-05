@@ -40,6 +40,7 @@
 #include "vncBlockHandler.h"
 #include "vncSelection.h"
 #include "XorgGlue.h"
+#include "xorg-version.h"
 
 using namespace rfb;
 
@@ -249,7 +250,10 @@ int vncExtensionIsActive(int scrIdx)
   return (desktop[scrIdx] != NULL);
 }
 
-#if XORG >= 119
+void vncHandleSocketEvent(int fd, int scrIdx, int read, int write)
+{
+  desktop[scrIdx]->handleSocketEvent(fd, read, write);
+}
 
 void vncCallBlockHandlers(int* timeout)
 {
@@ -257,38 +261,6 @@ void vncCallBlockHandlers(int* timeout)
     if (desktop[scr])
       desktop[scr]->blockHandler(timeout);
 }
-
-#else
-
-void vncCallReadBlockHandlers(fd_set * fds, struct timeval ** timeout)
-{
-  for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->readBlockHandler(fds, timeout);
-}
-
-void vncCallReadWakeupHandlers(fd_set * fds, int nfds)
-{
-  for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->readWakeupHandler(fds, nfds);
-}
-
-void vncCallWriteBlockHandlers(fd_set * fds, struct timeval ** timeout)
-{
-  for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->writeBlockHandler(fds, timeout);
-}
-
-void vncCallWriteWakeupHandlers(fd_set * fds, int nfds)
-{
-  for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->writeWakeupHandler(fds, nfds);
-}
-
-#endif
 
 int vncGetAvoidShiftNumLock(void)
 {
