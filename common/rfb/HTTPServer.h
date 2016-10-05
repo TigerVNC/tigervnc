@@ -26,8 +26,6 @@
 #ifndef __RFB_HTTP_SERVER_H__
 #define __RFB_HTTP_SERVER_H__
 
-#include <list>
-
 #include <rdr/MemInStream.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/Configuration.h>
@@ -58,6 +56,10 @@ namespace rfb {
     //   Could clean up socket-specific resources here.
     virtual void removeSocket(network::Socket* sock);
 
+    // getSockets() gets a list of sockets.  This can be used to generate an
+    // fd_set for calling select().
+    virtual void getSockets(std::list<network::Socket*>* sockets);
+
     // processSocketReadEvent()
     //   The platform-specific side of the server implementation calls
     //   this method whenever data arrives on one of the active
@@ -71,12 +73,6 @@ namespace rfb {
 
     // Check for socket timeouts
     virtual int checkTimeouts();
-
-
-    // getSockets() gets a list of sockets.  This can be used to generate an
-    // fd_set for calling select().
-
-    virtual void getSockets(std::list<network::Socket*>* sockets);
 
 
     // -=- File interface

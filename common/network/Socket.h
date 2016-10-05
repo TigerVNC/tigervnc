@@ -21,6 +21,8 @@
 #ifndef __NETWORK_SOCKET_H__
 #define __NETWORK_SOCKET_H__
 
+#include <list>
+
 #include <limits.h>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -124,6 +126,10 @@ namespace network {
     //   delete the Socket!  This call is used mainly to cause per-Socket
     //   resources to be freed.
     virtual void removeSocket(network::Socket* sock) = 0;
+
+    // getSockets() gets a list of sockets.  This can be used to generate an
+    //   fd_set for calling select().
+    virtual void getSockets(std::list<network::Socket*>* sockets) = 0;
 
     // processSocketReadEvent() tells the server there is a Socket read event.
     //   The implementation can indicate that the Socket is no longer active

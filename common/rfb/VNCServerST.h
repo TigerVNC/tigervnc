@@ -25,8 +25,6 @@
 
 #include <sys/time.h>
 
-#include <list>
-
 #include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
 #include <rfb/Configuration.h>
@@ -66,6 +64,10 @@ namespace rfb {
     // removeSocket
     //   Clean up any resources associated with the Socket
     virtual void removeSocket(network::Socket* sock);
+
+    // getSockets() gets a list of sockets.  This can be used to generate an
+    // fd_set for calling select().
+    virtual void getSockets(std::list<network::Socket*>* sockets);
 
     // processSocketReadEvent
     //   Read more RFB data from the Socket.  If an error occurs during
@@ -110,11 +112,6 @@ namespace rfb {
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);
-
-    // getSockets() gets a list of sockets.  This can be used to generate an
-    // fd_set for calling select().
-
-    void getSockets(std::list<network::Socket*>* sockets);
 
     // getSConnection() gets the SConnection for a particular Socket.  If
     // the Socket is not recognised then null is returned.
