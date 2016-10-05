@@ -128,9 +128,11 @@ static Bool vncHooksDisplayCursor(DeviceIntPtr pDev,
 #if XORG <= 112
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask);
-#else
+#elif XORG <= 118
 static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout,
                                  void * pReadmask);
+#else
+static void vncHooksBlockHandler(ScreenPtr pScreen, void * pTimeout);
 #endif
 #ifdef RENDER
 static void vncHooksComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, 
@@ -716,9 +718,11 @@ out:
 #if XORG <= 112
 static void vncHooksBlockHandler(int i, pointer blockData, pointer pTimeout,
                                  pointer pReadmask)
-#else
+#elif XORG <= 118
 static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
                                  void * pReadmask)
+#else
+static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout)
 #endif
 {
 #if XORG <= 112
@@ -731,8 +735,10 @@ static void vncHooksBlockHandler(ScreenPtr pScreen_, void * pTimeout,
 
 #if XORG <= 112
   (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
-#else
+#elif XORG <= 118
   (*pScreen->BlockHandler) (pScreen, pTimeout, pReadmask);
+#else
+  (*pScreen->BlockHandler) (pScreen, pTimeout);
 #endif
 
   vncHooksScreen->ignoreHooks--;
@@ -1033,12 +1039,21 @@ static void vncHooksCopyClip(GCPtr dst, GCPtr src) {
 
 // Unwrap and rewrap helpers
 
+#if XORG >= 116
+#define GC_OP_PROLOGUE(pGC, name)\
+    vncHooksGCPtr pGCPriv = vncHooksGCPrivate(pGC);\
+    const GCFuncs *oldFuncs = pGC->funcs;\
+    pGC->funcs = pGCPriv->wrappedFuncs;\
+    pGC->ops = pGCPriv->wrappedOps; \
+    DBGPRINT((stderr,"vncHooks" #name " called\n"))
+#else
 #define GC_OP_PROLOGUE(pGC, name)\
     vncHooksGCPtr pGCPriv = vncHooksGCPrivate(pGC);\
     GCFuncs *oldFuncs = pGC->funcs;\
     pGC->funcs = pGCPriv->wrappedFuncs;\
     pGC->ops = pGCPriv->wrappedOps; \
     DBGPRINT((stderr,"vncHooks" #name " called\n"))
+#endif
 
 #define GC_OP_EPILOGUE(pGC)\
     pGCPriv->wrappedOps = pGC->ops;\

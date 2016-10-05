@@ -38,6 +38,7 @@
 #include <rfb/VNCServerST.h>
 #include <rdr/SubstitutingInStream.h>
 #include "Input.h"
+#include "xorg-version.h"
 
 namespace rfb {
   class VNCServerST;
@@ -69,10 +70,16 @@ public:
                  const unsigned char *rgbaData);
   void add_changed(const rfb::Region &region);
   void add_copied(const rfb::Region &dest, const rfb::Point &delta);
+#if XORG >= 119
+  void handleListenFd(int fd);
+  void handleSocketFd(int fd, int xevents);
+  void blockHandler(int* timeout);
+#else
   void readBlockHandler(fd_set* fds, struct timeval ** timeout);
   void readWakeupHandler(fd_set* fds, int nfds);
   void writeBlockHandler(fd_set* fds, struct timeval ** timeout);
   void writeWakeupHandler(fd_set* fds, int nfds);
+#endif
   void addClient(network::Socket* sock, bool reverse);
   void disconnectClients();
 

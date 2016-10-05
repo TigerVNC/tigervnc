@@ -249,6 +249,17 @@ int vncExtensionIsActive(int scrIdx)
   return (desktop[scrIdx] != NULL);
 }
 
+#if XORG >= 119
+
+void vncCallBlockHandlers(int* timeout)
+{
+  for (int scr = 0; scr < vncGetScreenCount(); scr++)
+    if (desktop[scr])
+      desktop[scr]->blockHandler(timeout);
+}
+
+#else
+
 void vncCallReadBlockHandlers(fd_set * fds, struct timeval ** timeout)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
@@ -276,6 +287,8 @@ void vncCallWriteWakeupHandlers(fd_set * fds, int nfds)
     if (desktop[scr])
       desktop[scr]->writeWakeupHandler(fds, nfds);
 }
+
+#endif
 
 int vncGetAvoidShiftNumLock(void)
 {

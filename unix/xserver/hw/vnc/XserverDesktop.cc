@@ -90,6 +90,30 @@ public:
   XserverDesktop* desktop;
 };
 
+#if XORG >= 119
+extern "C" {
+/*
+ * xserver NotifyFd callbacks. Note we also expect write notifies to work,
+ * which only works with xserver >= 1.19.
+ */
+#include "os.h"
+
+static void HandleListenFd(int fd, int xevents, void *data)
+{
+  XserverDesktop *desktop = (XserverDesktop *)data;
+
+  desktop->handleListenFd(fd);
+}
+
+static void HandleSocketFd(int fd, int xevents, void *data)
+{
+  XserverDesktop *desktop = (XserverDesktop *)data;
+
+  desktop->handleSocketFd(fd, xevents);
+}
+
+}
+#endif
 
 XserverDesktop::XserverDesktop(int screenIndex_,
                                std::list<network::TcpListener*> listeners_,
@@ -111,15 +135,35 @@ XserverDesktop::XserverDesktop(int screenIndex_,
 
   if (!httpListeners.empty ())
     httpServer = new FileHTTPServer(this);
+
+#if XORG >= 119
+  for (std::list<TcpListener*>::iterator i = listeners.begin();
+       i != listeners.end();
+       i++) {
+    SetNotifyFd((*i)->getFd(), HandleListenFd, X_NOTIFY_READ, this);
+  }
+
+  for (std::list<TcpListener*>::iterator i = httpListeners.begin();
+       i != httpListeners.end();
+       i++) {
+    SetNotifyFd((*i)->getFd(), HandleListenFd, X_NOTIFY_READ, this);
+  }
+#endif
 }
 
 XserverDesktop::~XserverDesktop()
 {
   while (!listeners.empty()) {
+#if XORG >= 119
+    RemoveNotifyFd(listeners.back()->getFd());
+#endif
     delete listeners.back();
     listeners.pop_back();
   }
   while (!httpListeners.empty()) {
+#if XORG >= 119
+    RemoveNotifyFd(listeners.back()->getFd());
+#endif
     delete httpListeners.back();
     httpListeners.pop_back();
   }
@@ -389,6 +433,140 @@ void XserverDesktop::add_copied(const rfb::Region &dest, const rfb::Point &delta
   }
 }
 
+#if XORG >= 119
+void XserverDesktop::handleListenFd(int fd)
+{
+  std::list<TcpListener*>::iterator i;
+  SocketServer *fd_server = NULL;
+  bool is_http = false;
+
+  for (i = listeners.begin(); i != listeners.end(); i++) {
+    if ((*i)->getFd() == fd) {
+      fd_server = server;
+      break;
+    }
+  }
+  if (httpServer && !fd_server) {
+    for (i = httpListeners.begin(); i != httpListeners.end(); i++) {
+      if ((*i)->getFd() == fd) {
+        fd_server = httpServer;
+        is_http = true;
+        break;
+      }
+    }
+  }
+  if (!fd_server) {
+    vlog.error("XserverDesktop::handleListenFd: Error cannot find fd");
+    return;
+  }
+
+  Socket* sock = (*i)->accept();
+  sock->outStream().setBlocking(false);
+  vlog.debug("new %sclient, sock %d", is_http ? "http " : "", sock->getFd());
+  fd_server->addSocket(sock);
+  SetNotifyFd(sock->getFd(), HandleSocketFd, X_NOTIFY_READ, this);
+}
+
+void XserverDesktop::handleSocketFd(int fd, int xevents)
+{
+  std::list<Socket*> sockets;
+  std::list<Socket*>::iterator i;
+  SocketServer *fd_server = NULL;
+  bool is_http = false;
+
+  server->getSockets(&sockets);
+  for (i = sockets.begin(); i != sockets.end(); i++) {
+    if ((*i)->getFd() == fd) {
+      fd_server = server;
+      break;
+    }
+  }
+  if (httpServer && !fd_server) {
+    httpServer->getSockets(&sockets);
+    for (i = sockets.begin(); i != sockets.end(); i++) {
+      if ((*i)->getFd() == fd) {
+        fd_server = httpServer;
+        is_http = true;
+        break;
+      }
+    }
+  }
+  if (!fd_server) {
+    vlog.error("XserverDesktop::handleSocketFd: Error cannot find fd");
+    return;
+  }
+
+  if (xevents & X_NOTIFY_READ)
+    fd_server->processSocketReadEvent(*i);
+
+  if (xevents & X_NOTIFY_WRITE)
+    fd_server->processSocketWriteEvent(*i);
+
+  if ((*i)->isShutdown()) {
+    vlog.debug("%sclient gone, sock %d", is_http ? "http " : "", fd);
+    RemoveNotifyFd(fd);
+    fd_server->removeSocket(*i);
+    if (!is_http)
+      vncClientGone(fd);
+    delete (*i);
+  }
+}
+
+void XserverDesktop::blockHandler(int* timeout)
+{
+  // We don't have a good callback for when we can init input devices[1],
+  // so we abuse the fact that this routine will be called first thing
+  // once the dix is done initialising.
+  // [1] Technically Xvnc has InitInput(), but libvnc.so has nothing.
+  vncInitInputDevice();
+
+  try {
+    std::list<Socket*> sockets;
+    std::list<Socket*>::iterator i;
+    server->getSockets(&sockets);
+    for (i = sockets.begin(); i != sockets.end(); i++) {
+      int fd = (*i)->getFd();
+      if ((*i)->isShutdown()) {
+        vlog.debug("client gone, sock %d",fd);
+        server->removeSocket(*i);
+        vncClientGone(fd);
+        delete (*i);
+      } else {
+        /* Update existing NotifyFD to listen for write (or not) */
+        if ((*i)->outStream().bufferUsage() > 0)
+          SetNotifyFd(fd, HandleSocketFd, X_NOTIFY_READ | X_NOTIFY_WRITE, this);
+        else
+          SetNotifyFd(fd, HandleSocketFd, X_NOTIFY_READ, this);
+      }
+    }
+    if (httpServer) {
+      httpServer->getSockets(&sockets);
+      for (i = sockets.begin(); i != sockets.end(); i++) {
+        int fd = (*i)->getFd();
+        if ((*i)->isShutdown()) {
+          vlog.debug("http client gone, sock %d",fd);
+          httpServer->removeSocket(*i);
+          delete (*i);
+        } else {
+          /* Update existing NotifyFD to listen for write (or not) */
+          if ((*i)->outStream().bufferUsage() > 0)
+            SetNotifyFd(fd, HandleSocketFd, X_NOTIFY_READ | X_NOTIFY_WRITE, this);
+          else
+            SetNotifyFd(fd, HandleSocketFd, X_NOTIFY_READ, this);
+        }
+      }
+    }
+
+    int nextTimeout = server->checkTimeouts();
+    if (nextTimeout > 0 && (*timeout == -1 || nextTimeout < *timeout))
+      *timeout = nextTimeout;
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::blockHandler: %s",e.str());
+  }
+}
+
+#else
+
 void XserverDesktop::readBlockHandler(fd_set* fds, struct timeval ** timeout)
 {
   // We don't have a good callback for when we can init input devices[1],
@@ -603,10 +781,15 @@ void XserverDesktop::writeWakeupHandler(fd_set* fds, int nfds)
   }
 }
 
+#endif
+
 void XserverDesktop::addClient(Socket* sock, bool reverse)
 {
   vlog.debug("new client, sock %d reverse %d",sock->getFd(),reverse);
   server->addSocket(sock, reverse);
+#if XORG >= 119
+  SetNotifyFd(sock->getFd(), HandleSocketFd, X_NOTIFY_READ, this);
+#endif
 }
 
 void XserverDesktop::disconnectClients()

@@ -30,6 +30,23 @@
 
 #include "vncExtInit.h"
 #include "vncBlockHandler.h"
+#include "xorg-version.h"
+
+#if XORG >= 119
+
+static void vncBlockHandler(void* data, void* timeout)
+{
+  vncCallBlockHandlers(timeout);
+}
+
+void vncRegisterBlockHandlers(void)
+{
+  if (!RegisterBlockAndWakeupHandlers(vncBlockHandler,
+                                      (ServerWakeupHandlerProcPtr)NoopDDA, 0))
+    FatalError("RegisterBlockAndWakeupHandlers() failed\n");
+}
+
+#else
 
 static void vncBlockHandler(void * data, OSTimePtr t, void * readmask);
 static void vncWakeupHandler(void * data, int nfds, void * readmask);
@@ -144,3 +161,5 @@ static void vncWriteWakeupHandlerFallback(void)
 
   vncWriteWakeupHandler(ret, &fallbackFds);
 }
+
+#endif
