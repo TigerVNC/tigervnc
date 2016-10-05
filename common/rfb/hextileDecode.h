@@ -44,7 +44,7 @@ static void HEXTILE_DECODE (const Rect& r, rdr::InStream* is,
   Rect t;
   PIXEL_T bg = 0;
   PIXEL_T fg = 0;
-  PIXEL_T buf[16 * 16 * 4];
+  PIXEL_T buf[16 * 16];
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 16) {
 
