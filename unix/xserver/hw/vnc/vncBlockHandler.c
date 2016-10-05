@@ -191,6 +191,9 @@ static void vncWakeupHandler(void * data, int nfds, void * readmask)
 
   static struct vncFdEntry* entry;
 
+  if (nfds <= 0)
+    return;
+
   entry = fdsHead;
   while (entry) {
     if (entry->read && FD_ISSET(entry->fd, fds))
@@ -230,6 +233,9 @@ void vncWriteBlockHandler(fd_set *fds)
 void vncWriteWakeupHandler(int nfds, fd_set *fds)
 {
   static struct vncFdEntry* entry;
+
+  if (nfds <= 0)
+    return;
 
   entry = fdsHead;
   while (entry) {
