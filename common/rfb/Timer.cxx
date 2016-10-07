@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,20 +59,35 @@ inline static int diffTimeMillis(timeval later, timeval earlier) {
 std::list<Timer*> Timer::pending;
 
 int Timer::checkTimeouts() {
+  timeval start;
+
   if (pending.empty())
     return 0;
-  timeval now;
-  gettimeofday(&now, 0);
-  while (pending.front()->isBefore(now)) {
-    Timer* timer = pending.front();
+
+  gettimeofday(&start, 0);
+  while (pending.front()->isBefore(start)) {
+    Timer* timer;
+    timeval before;
+
+    timer = pending.front();
     pending.pop_front();
+
+    gettimeofday(&before, 0);
     if (timer->cb->handleTimeout(timer)) {
+      timeval now;
+
+      gettimeofday(&now, 0);
+
       timer->dueTime = addMillis(timer->dueTime, timer->timeoutMs);
       if (timer->isBefore(now)) {
-        // Time has jumped forwards!
-	      vlog.info("time has moved forwards!");
-        timer->dueTime = addMillis(now, timer->timeoutMs);
+        // Time has jumped forwards, or we're not getting enough
+        // CPU time for the timers
+
+        timer->dueTime = addMillis(before, timer->timeoutMs);
+        if (timer->isBefore(now))
+          timer->dueTime = now;
       }
+
       insertTimer(timer);
     } else if (pending.empty()) {
       return 0;
