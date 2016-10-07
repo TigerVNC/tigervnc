@@ -609,7 +609,6 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   if (!incremental) {
     // Non-incremental update - treat as if area requested has changed
     updates.add_changed(reqRgn);
-    server->comparer->add_changed(reqRgn);
 
     // And send the screen layout to the client (which, unlike the
     // framebuffer dimensions, the client doesn't get during init)
@@ -1001,9 +1000,8 @@ void VNCSConnectionST::writeDataUpdate()
 
   updates.enable_copyrect(cp.useCopyRect);
 
-  // Fetch updates from server object, and see if we are allowed to send
-  // anything right now (the framebuffer might have changed in ways we
-  // haven't yet been informed of).
+  // See if we are allowed to send anything right now (the framebuffer
+  // might have changed in ways we haven't yet been informed of).
   if (!server->checkUpdate())
     return;
 

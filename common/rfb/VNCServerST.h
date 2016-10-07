@@ -227,9 +227,9 @@ namespace rfb {
     int authClientCount();
 
     bool needRenderedCursor();
-    void startDefer();
-    bool checkDefer();
-    void tryUpdate();
+    void startFrameClock();
+    void stopFrameClock();
+    void writeUpdate();
     bool checkUpdate();
     const RenderedCursor* getRenderedCursor();
 
@@ -246,9 +246,7 @@ namespace rfb {
 
     bool disableclients;
 
-    Timer deferTimer;
-    bool deferPending;
-    struct timeval deferStart;
+    Timer frameTimer;
   };
 
 };
