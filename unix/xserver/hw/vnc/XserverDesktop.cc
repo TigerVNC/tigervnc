@@ -101,7 +101,7 @@ XserverDesktop::XserverDesktop(int screenIndex_,
   : screenIndex(screenIndex_),
     server(0), httpServer(0),
     listeners(listeners_), httpListeners(httpListeners_),
-    deferredUpdateTimerSet(false), directFbptr(true),
+    directFbptr(true),
     queryConnectId(0)
 {
   format = pf;
