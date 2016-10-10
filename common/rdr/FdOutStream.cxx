@@ -101,8 +101,13 @@ void FdOutStream::flush()
                              blocking? timeoutms : 0);
 
     // Timeout?
-    if ((n == 0) && blocking)
+    if (n == 0) {
+      // If non-blocking then we're done here
+      if (!blocking)
+        break;
+
       throw TimedOut();
+    }
 
     sentUpTo += n;
     offset += n;
