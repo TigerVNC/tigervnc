@@ -208,10 +208,7 @@ void InputDevice::PrepareInputDevices(void)
 
 unsigned InputDevice::getKeyboardState(void)
 {
-	DeviceIntPtr master;
-
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
-	return XkbStateFieldFromRec(&master->key->xkbInfo->state);
+	return XkbStateFieldFromRec(&keyboardDev->master->key->xkbInfo->state);
 }
 
 unsigned InputDevice::getLevelThreeMask(void)
@@ -232,7 +229,7 @@ unsigned InputDevice::getLevelThreeMask(void)
 			return 0;
 	}
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = keyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -257,7 +254,7 @@ KeyCode InputDevice::pressShift(void)
 	if (state & ShiftMask)
 		return 0;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = keyboardDev->master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
 		unsigned char mask;
@@ -294,7 +291,7 @@ std::list<KeyCode> InputDevice::releaseShift(void)
 	if (!(state & ShiftMask))
 		return keys;
 
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
+	master = keyboardDev->master;
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
@@ -347,7 +344,7 @@ KeyCode InputDevice::pressLevelThree(void)
 			return 0;
 	}
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = keyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -375,7 +372,7 @@ std::list<KeyCode> InputDevice::releaseLevelThree(void)
 	if (!(state & mask))
 		return keys;
 
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
+	master = keyboardDev->master;
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		XkbAction *act;
@@ -416,7 +413,7 @@ KeyCode InputDevice::keysymToKeycode(KeySym keysym, unsigned state,
 	if (new_state != NULL)
 		*new_state = state;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = keyboardDev->master->key->xkbInfo->desc;
 	for (key = xkb->min_key_code; key <= xkb->max_key_code; key++) {
 		unsigned int state_out;
 		KeySym dummy;
@@ -473,7 +470,7 @@ bool InputDevice::isLockModifier(KeyCode keycode, unsigned state)
 	XkbDescPtr xkb;
 	XkbAction *act;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = keyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, keycode, state);
 	if (act == NULL)
@@ -511,7 +508,7 @@ bool InputDevice::isAffectedByNumLock(KeyCode keycode)
 	if (numlock_keycode == 0)
 		return false;
 
-	xkb = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT)->key->xkbInfo->desc;
+	xkb = keyboardDev->master->key->xkbInfo->desc;
 
 	act = XkbKeyActionPtr(xkb, numlock_keycode, state);
 	if (act == NULL)
@@ -545,7 +542,7 @@ KeyCode InputDevice::addKeysym(KeySym keysym, unsigned state)
 	KeySym *syms;
 	KeySym upper, lower;
 
-	master = GetMaster(keyboardDev, KEYBOARD_OR_FLOAT);
+	master = keyboardDev->master;
 	xkb = master->key->xkbInfo->desc;
 	for (key = xkb->max_key_code; key >= xkb->min_key_code; key--) {
 		if (XkbKeyNumGroups(xkb, key) == 0)
