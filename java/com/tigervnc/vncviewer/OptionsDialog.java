@@ -215,7 +215,7 @@ class OptionsDialog extends Dialog {
     });
 
     JPanel buttonPane = new JPanel(new GridLayout(1, 5, 10, 10));
-    buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
+    buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
     buttonPane.add(Box.createRigidArea(new Dimension()));
     buttonPane.add(Box.createRigidArea(new Dimension()));
     buttonPane.add(Box.createRigidArea(new Dimension()));
