@@ -22,6 +22,7 @@
 // BPP                - 8, 16 or 32
 
 #include <rdr/InStream.h>
+#include <rfb/Exception.h>
 #include <rfb/hextileConstants.h>
 
 namespace rfb {
@@ -87,6 +88,9 @@ static void HEXTILE_DECODE (const Rect& r, rdr::InStream* is,
           int y = (xy & 15);
           int w = ((wh >> 4) & 15) + 1;
           int h = (wh & 15) + 1;
+          if (x + w > 16 || y + h > 16) {
+            throw rfb::Exception("HEXTILE_DECODE: Hextile out of bounds");
+          }
           PIXEL_T* ptr = buf + y * t.width() + x;
           int rowAdd = t.width() - w;
           while (h-- > 0) {
