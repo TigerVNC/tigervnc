@@ -110,6 +110,8 @@ VNCServerST::~VNCServerST()
     desktop->stop();
   }
 
+  if (comparer)
+    comparer->logStats();
   delete comparer;
 }
 
@@ -155,6 +157,10 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         desktopStarted = false;
         desktop->stop();
       }
+
+      if (comparer)
+        comparer->logStats();
+
       return;
     }
   }
@@ -292,6 +298,9 @@ void VNCServerST::unblockUpdates()
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 {
+  if (comparer)
+    comparer->logStats();
+
   pb = pb_;
   delete comparer;
   comparer = 0;

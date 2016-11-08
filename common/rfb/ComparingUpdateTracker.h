@@ -40,12 +40,17 @@ namespace rfb {
 
     virtual void enable();
     virtual void disable();
+
+    void logStats();
+
   private:
     void compareRect(const Rect& r, Region* newchanged);
     PixelBuffer* fb;
     ManagedPixelBuffer oldFb;
     bool firstCompare;
     bool enabled;
+
+    rdr::U32 totalPixels, missedPixels;
   };
 
 }
