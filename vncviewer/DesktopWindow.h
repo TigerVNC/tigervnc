@@ -63,12 +63,14 @@ public:
   int handle(int event);
 
   void fullscreen_on();
+  void grabKeyboard();
+  void ungrabKeyboard();
+  void toggle_grab_keys();
+  bool grab_active();
 
 private:
   static int fltkHandle(int event, Fl_Window *win);
 
-  void grabKeyboard();
-  void ungrabKeyboard();
 
   static void handleGrab(void *data);
 
@@ -96,6 +98,7 @@ private:
   bool firstUpdate;
   bool delayedFullscreen;
   bool delayedDesktopSize;
+  bool grab_keys;
 };
 
 #endif

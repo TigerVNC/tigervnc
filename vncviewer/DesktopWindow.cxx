@@ -59,7 +59,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
   : Fl_Window(w, h), cc(cc_), firstUpdate(true),
-    delayedFullscreen(false), delayedDesktopSize(false)
+    delayedFullscreen(false), delayedDesktopSize(false), grab_keys(false)
 {
   scroll = new Fl_Scroll(0, 0, w, h);
   scroll->color(FL_BLACK);
@@ -387,6 +387,10 @@ int DesktopWindow::handle(int event)
 }
 
 
+bool DesktopWindow::grab_active() {
+  return grab_keys;
+}
+
 int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 {
   int ret;
@@ -469,8 +473,14 @@ void DesktopWindow::fullscreen_on()
   fullscreen();
 }
 
+void DesktopWindow::toggle_grab_keys() {
+  this->grab_keys = !(this->grab_keys);
+  grabKeyboard();
+}
+
 void DesktopWindow::grabKeyboard()
 {
+  if(!(this->grab_keys)) { ungrabKeyboard(); return; }
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
   // correct widget regardless of which low level window got the system
   // event.
