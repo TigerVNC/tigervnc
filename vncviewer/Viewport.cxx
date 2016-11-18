@@ -755,7 +755,7 @@ void Viewport::initContextMenu()
                 FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Grab keys"),
                 0, NULL, (void*)ID_GRAB,
-                FL_MENU_TOGGLE | (((DesktopWindow*)window())->grab_active()?FL_MENU_VALUE:0));
+                FL_MENU_TOGGLE | (((DesktopWindow*)window())->isGrabActive()?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Minimi&ze"),
                 0, NULL, (void*)ID_MINIMIZE, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Resize &window to session"),
@@ -833,7 +833,7 @@ void Viewport::popupContextMenu()
       ((DesktopWindow*)window())->fullscreen_on();
     break;
   case ID_GRAB:
-    ((DesktopWindow*)window())->toggle_grab_keys();
+    ((DesktopWindow*)window())->toggleGrabKeys();
     break;
   case ID_MINIMIZE:
     window()->iconize();

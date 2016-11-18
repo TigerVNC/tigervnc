@@ -59,7 +59,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
   : Fl_Window(w, h), cc(cc_), firstUpdate(true),
-    delayedFullscreen(false), delayedDesktopSize(false), grab_keys(false)
+    delayedFullscreen(false), delayedDesktopSize(false), grabActive(false)
 {
   scroll = new Fl_Scroll(0, 0, w, h);
   scroll->color(FL_BLACK);
@@ -359,13 +359,12 @@ int DesktopWindow::handle(int event)
     if (!fullscreenSystemKeys)
       break;
 
-    if (fullscreen_active())
+    if (isGrabActive())
       grabKeyboard();
     else
       ungrabKeyboard();
 
     break;
-
   case FL_ENTER:
   case FL_LEAVE:
   case FL_DRAG:
@@ -387,8 +386,8 @@ int DesktopWindow::handle(int event)
 }
 
 
-bool DesktopWindow::grab_active() {
-  return grab_keys;
+bool DesktopWindow::isGrabActive() {
+  return grabActive;
 }
 
 int DesktopWindow::fltkHandle(int event, Fl_Window *win)
@@ -403,7 +402,6 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
   // need. Fortunately we can grab them here...
 
   DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
-
   if (dw && fullscreenSystemKeys) {
     switch (event) {
     case FL_FOCUS:
@@ -412,7 +410,7 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
       //        a) Fl::grab(0) on X11 will release the keyboard grab for us.
       //        b) Gaining focus on the system level causes FLTK to switch
       //           window level on OS X.
-      if (dw->fullscreen_active())
+      if (dw->isGrabActive())
         dw->grabKeyboard();
       break;
 
@@ -473,19 +471,23 @@ void DesktopWindow::fullscreen_on()
   fullscreen();
 }
 
-void DesktopWindow::toggle_grab_keys() {
-  this->grab_keys = !(this->grab_keys);
-  grabKeyboard();
+void DesktopWindow::toggleGrabKeys() {
+  this->grabActive = !(this->grabActive);
+  if(this->grabActive)
+    grabKeyboard();
+  else
+    ungrabKeyboard();
 }
 
 void DesktopWindow::grabKeyboard()
 {
-  if(!(this->grab_keys)) { ungrabKeyboard(); return; }
   // Grabbing the keyboard is fairly safe as FLTK reroutes events to the
   // correct widget regardless of which low level window got the system
   // event.
 
   // FIXME: Push this stuff into FLTK.
+
+  this->grabActive = true;
 
 #if defined(WIN32)
   int ret;
@@ -531,6 +533,7 @@ void DesktopWindow::grabKeyboard()
 void DesktopWindow::ungrabKeyboard()
 {
   Fl::remove_timeout(handleGrab, this);
+  this->grabActive = false;
 
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
@@ -555,7 +558,7 @@ void DesktopWindow::handleGrab(void *data)
 
   if (!fullscreenSystemKeys)
     return;
-  if (!self->fullscreen_active())
+  if (!self->isGrabActive())
     return;
 
   self->grabKeyboard();
