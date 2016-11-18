@@ -472,11 +472,10 @@ void DesktopWindow::fullscreen_on()
 }
 
 void DesktopWindow::toggleGrabKeys() {
-  this->grabActive = !(this->grabActive);
   if(this->grabActive)
-    grabKeyboard();
-  else
     ungrabKeyboard();
+  else
+    grabKeyboard();
 }
 
 void DesktopWindow::grabKeyboard()
