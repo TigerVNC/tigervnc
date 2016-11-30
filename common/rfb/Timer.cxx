@@ -129,6 +129,9 @@ void Timer::start(int timeoutMs_) {
   gettimeofday(&now, 0);
   stop();
   timeoutMs = timeoutMs_;
+  // The rest of the code assumes non-zero timeout
+  if (timeoutMs <= 0)
+    timeoutMs = 1;
   dueTime = addMillis(now, timeoutMs);
   insertTimer(this);
 }
