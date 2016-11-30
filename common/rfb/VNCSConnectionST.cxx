@@ -223,6 +223,9 @@ void VNCSConnectionST::pixelBufferChange()
           }
         }
       }
+
+      // Drop any lossy tracking that is now outside the framebuffer
+      encodeManager.pruneLosslessRefresh(Region(server->pb->getRect()));
     }
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
@@ -1026,7 +1029,8 @@ void VNCSConnectionST::writeDataUpdate()
 
   // Return if there is nothing to send the client.
 
-  if (updates.is_empty() && !writer()->needFakeUpdate())
+  if (updates.is_empty() && !writer()->needFakeUpdate() &&
+      !encodeManager.needsLosslessRefresh(req))
     return;
 
   // The `updates' object could change, make sure we have valid update info.
@@ -1055,12 +1059,16 @@ void VNCSConnectionST::writeDataUpdate()
     damagedCursorRegion.assign_union(ui.changed.intersect(renderedCursorRect));
   }
 
-  if (ui.is_empty() && !writer()->needFakeUpdate())
+  if (ui.is_empty() && !writer()->needFakeUpdate() &&
+      !encodeManager.needsLosslessRefresh(req))
     return;
 
   writeRTTPing();
 
-  encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  if (!ui.is_empty())
+    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  else
+    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(), cursor);
 
   writeRTTPing();
 

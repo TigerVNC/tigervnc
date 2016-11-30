@@ -35,6 +35,8 @@ namespace rfb {
     // Give us the raw frame buffer, and not something converted to
     // the what the client is asking for.
     EncoderUseNativePF = 1 << 0,
+    // Encoder does not encode pixels perfectly accurate
+    EncoderLossy = 1 << 1,
   };
 
   class Encoder {
