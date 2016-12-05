@@ -82,6 +82,8 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     encodings[nEncodings++] = pseudoEncodingExtendedDesktopSize;
   if (cp->supportsDesktopRename)
     encodings[nEncodings++] = pseudoEncodingDesktopName;
+  if (cp->supportsLEDState)
+    encodings[nEncodings++] = pseudoEncodingLEDState;
 
   encodings[nEncodings++] = pseudoEncodingLastRect;
   encodings[nEncodings++] = pseudoEncodingContinuousUpdates;

@@ -47,6 +47,9 @@ public:
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
 
+  // Change client LED state
+  void setLEDState(unsigned int state);
+
   void draw(Surface* dst);
 
   // Fl_Widget callback methods
@@ -58,6 +61,8 @@ public:
   int handle(int event);
 
 private:
+
+  unsigned int getModifierMask(unsigned int keysym);
 
   static void handleClipboardChange(int source, void *data);
 

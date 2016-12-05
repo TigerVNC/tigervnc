@@ -109,6 +109,9 @@ void CMsgReader::readMsg()
     case pseudoEncodingExtendedDesktopSize:
       readExtendedDesktopSize(x, y, w, h);
       break;
+    case pseudoEncodingLEDState:
+      readLEDState();
+      break;
     default:
       readRect(Rect(x, y, x+w, y+h), encoding);
       break;
@@ -381,4 +384,13 @@ void CMsgReader::readExtendedDesktopSize(int x, int y, int w, int h)
   }
 
   handler->setExtendedDesktopSize(x, y, w, h, layout);
+}
+
+void CMsgReader::readLEDState()
+{
+  rdr::U8 state;
+
+  state = is->readU8();
+
+  handler->setLEDState(state);
 }

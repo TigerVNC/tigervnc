@@ -65,6 +65,7 @@ namespace rfb {
     void readSetCursorWithAlpha(int width, int height, const Point& hotspot);
     void readSetDesktopName(int x, int y, int w, int h);
     void readExtendedDesktopSize(int x, int y, int w, int h);
+    void readLEDState();
 
     CMsgHandler* handler;
     rdr::InStream* is;

@@ -53,7 +53,9 @@ if(WIN32)
 endif()
 
 if(APPLE)
-  target_link_libraries(vncviewer "-framework Cocoa" "-framework Carbon")
+  target_link_libraries(vncviewer "-framework Cocoa")
+  target_link_libraries(vncviewer "-framework Carbon")
+  target_link_libraries(vncviewer "-framework IOKit")
 endif()
 
 install(TARGETS vncviewer DESTINATION ${BIN_DIR})

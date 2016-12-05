@@ -82,3 +82,8 @@ void CMsgHandler::framebufferUpdateStart()
 void CMsgHandler::framebufferUpdateEnd()
 {
 }
+
+void CMsgHandler::setLEDState(unsigned int state)
+{
+  cp.setLEDState(state);
+}

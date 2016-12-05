@@ -34,6 +34,7 @@ namespace rfb {
   const int pseudoEncodingXCursor = -240;
   const int pseudoEncodingCursor = -239;
   const int pseudoEncodingDesktopSize = -223;
+  const int pseudoEncodingLEDState = -261;
   const int pseudoEncodingExtendedDesktopSize = -308;
   const int pseudoEncodingDesktopName = -307;
   const int pseudoEncodingFence = -312;

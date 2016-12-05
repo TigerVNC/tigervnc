@@ -1,4 +1,4 @@
-/* Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
+/* Copyright 2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,25 +15,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#ifndef __RFB_LEDSTATES_H__
+#define __RFB_LEDSTATES_H__
 
-#ifndef __VNCVIEWER_COCOA_H__
-#define __VNCVIEWER_COCOA_H__
+namespace rfb {
 
-int cocoa_capture_display(Fl_Window *win, bool all_displays);
-void cocoa_release_display(Fl_Window *win);
+  const unsigned int ledScrollLock = 1 << 0;
+  const unsigned int ledNumLock = 1 << 1;
+  const unsigned int ledCapsLock = 1 << 2;
 
-typedef struct CGColorSpace *CGColorSpaceRef;
-
-CGColorSpaceRef cocoa_win_color_space(Fl_Window *win);
-
-int cocoa_is_keyboard_event(const void *event);
-
-int cocoa_is_key_press(const void *event);
-
-int cocoa_event_keycode(const void *event);
-int cocoa_event_keysym(const void *event);
-
-int cocoa_set_caps_lock_state(bool on);
-int cocoa_set_num_lock_state(bool on);
+  const unsigned int ledUnknown = (unsigned int)-1;
+}
 
 #endif

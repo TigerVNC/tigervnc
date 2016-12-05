@@ -27,6 +27,9 @@
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 
+#include <IOKit/hidsystem/IOHIDLib.h>
+#include <IOKit/hidsystem/IOHIDParameter.h>
+
 #define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
@@ -405,4 +408,51 @@ int cocoa_event_keysym(const void *event)
     return ucs2keysym(ucs2combining([chars characterAtIndex:0]));
 
   return ucs2keysym([chars characterAtIndex:0]);
+}
+
+static int cocoa_open_hid(io_connect_t *ioc)
+{
+  kern_return_t ret;
+  io_service_t ios;
+  CFMutableDictionaryRef mdict;
+
+  mdict = IOServiceMatching(kIOHIDSystemClass);
+  ios = IOServiceGetMatchingService(kIOMasterPortDefault,
+                                    (CFDictionaryRef) mdict);
+  if (!ios)
+    return KERN_FAILURE;
+
+  ret = IOServiceOpen(ios, mach_task_self(), kIOHIDParamConnectType, ioc);
+  IOObjectRelease(ios);
+  if (ret != KERN_SUCCESS)
+    return ret;
+
+  return KERN_SUCCESS;
+}
+
+static int cocoa_set_modifier_lock_state(int modifier, bool on)
+{
+  kern_return_t ret;
+  io_connect_t ioc;
+
+  ret = cocoa_open_hid(&ioc);
+  if (ret != KERN_SUCCESS)
+    return ret;
+
+  ret = IOHIDSetModifierLockState(ioc, modifier, on);
+  IOServiceClose(ioc);
+  if (ret != KERN_SUCCESS)
+    return ret;
+
+  return KERN_SUCCESS;
+}
+
+int cocoa_set_caps_lock_state(bool on)
+{
+  return cocoa_set_modifier_lock_state(kIOHIDCapsLockState, on);
+}
+
+int cocoa_set_num_lock_state(bool on)
+{
+  return cocoa_set_modifier_lock_state(kIOHIDNumLockState, on);
 }

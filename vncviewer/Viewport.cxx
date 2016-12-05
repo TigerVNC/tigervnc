@@ -28,6 +28,7 @@
 #include <rfb/CMsgWriter.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
+#include <rfb/ledStates.h>
 
 // FLTK can pull in the X11 headers on some systems
 #ifndef XK_VoidSymbol
@@ -39,6 +40,10 @@
 
 #ifndef XF86XK_ModeLock
 #include <rfb/XF86keysym.h>
+#endif
+
+#if ! (defined(WIN32) || defined(__APPLE__))
+#include <X11/XKBlib.h>
 #endif
 
 #ifndef NoSymbol
@@ -91,6 +96,11 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
 
 // Fake key presses use this value and above
 static const int fakeKeyBase = 0x200;
+
+// Used to detect fake input (0xaa is not a real key)
+#ifdef WIN32
+static const WORD SCAN_FAKE = 0xaa;
+#endif
 
 Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(NULL),
@@ -215,6 +225,108 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 
   if (Fl::belowmouse() == this)
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+}
+
+
+void Viewport::setLEDState(unsigned int state)
+{
+  Fl_Widget *focus;
+
+  vlog.debug("Got server LED state: 0x%08x", state);
+
+  focus = Fl::grab();
+  if (!focus)
+    focus = Fl::focus();
+  if (!focus)
+    return;
+
+  if (focus != this)
+    return;
+
+#if defined(WIN32)
+  INPUT input[6];
+  UINT count;
+  UINT ret;
+
+  memset(input, 0, sizeof(input));
+  count = 0;
+
+  if (!!(state & ledCapsLock) != !!(GetKeyState(VK_CAPITAL) & 0x1)) {
+    input[count].type = input[count+1].type = INPUT_KEYBOARD;
+    input[count].ki.wVk = input[count+1].ki.wVk = VK_CAPITAL;
+    input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
+    input[count].ki.dwFlags = 0;
+    input[count+1].ki.dwFlags = KEYEVENTF_KEYUP;
+    count += 2;
+  }
+
+  if (!!(state & ledNumLock) != !!(GetKeyState(VK_NUMLOCK) & 0x1)) {
+    input[count].type = input[count+1].type = INPUT_KEYBOARD;
+    input[count].ki.wVk = input[count+1].ki.wVk = VK_NUMLOCK;
+    input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
+    input[count].ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
+    input[count+1].ki.dwFlags = KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+    count += 2;
+  }
+
+  if (!!(state & ledScrollLock) != !!(GetKeyState(VK_SCROLL) & 0x1)) {
+    input[count].type = input[count+1].type = INPUT_KEYBOARD;
+    input[count].ki.wVk = input[count+1].ki.wVk = VK_SCROLL;
+    input[count].ki.wScan = input[count+1].ki.wScan = SCAN_FAKE;
+    input[count].ki.dwFlags = 0;
+    input[count+1].ki.dwFlags = KEYEVENTF_KEYUP;
+    count += 2;
+  }
+
+  if (count == 0)
+    return;
+
+  ret = SendInput(count, input, sizeof(*input));
+  if (ret < count)
+    vlog.error(_("Failed to update keyboard LED state: %lu"), GetLastError());
+#elif defined(__APPLE__)
+  int ret;
+
+  ret = cocoa_set_caps_lock_state(state & ledCapsLock);
+  if (ret != 0) {
+    vlog.error(_("Failed to update keyboard LED state: %d"), ret);
+    return;
+  }
+
+  ret = cocoa_set_num_lock_state(state & ledNumLock);
+  if (ret != 0) {
+    vlog.error(_("Failed to update keyboard LED state: %d"), ret);
+    return;
+  }
+
+  // No support for Scroll Lock //
+
+#else
+  unsigned int affect, values;
+  unsigned int mask;
+
+  Bool ret;
+
+  affect = values = 0;
+
+  affect |= LockMask;
+  if (state & ledCapsLock)
+    values |= LockMask;
+
+  mask = getModifierMask(XK_Num_Lock);
+  affect |= mask;
+  if (state & ledNumLock)
+    values |= mask;
+
+  mask = getModifierMask(XK_Scroll_Lock);
+  affect |= mask;
+  if (state & ledScrollLock)
+    values |= mask;
+
+  ret = XkbLockModifiers(fl_display, XkbUseCoreKbd, affect, values);
+  if (!ret)
+    vlog.error(_("Failed to update keyboard LED state"));
+#endif
 }
 
 
@@ -351,6 +463,55 @@ int Viewport::handle(int event)
 
   return Fl_Widget::handle(event);
 }
+
+
+#if ! (defined(WIN32) || defined(__APPLE__))
+unsigned int Viewport::getModifierMask(unsigned int keysym)
+{
+  XkbDescPtr xkb;
+  unsigned int mask, keycode;
+  XkbAction *act;
+
+  mask = 0;
+
+  xkb = XkbGetMap(fl_display, XkbAllComponentsMask, XkbUseCoreKbd);
+  if (xkb == NULL)
+    return 0;
+
+  for (keycode = xkb->min_key_code; keycode <= xkb->max_key_code; keycode++) {
+    unsigned int state_out;
+    KeySym ks;
+
+    XkbTranslateKeyCode(xkb, keycode, 0, &state_out, &ks);
+    if (ks == NoSymbol)
+      continue;
+
+    if (ks == keysym)
+      break;
+  }
+
+  // KeySym not mapped?
+  if (keycode > xkb->max_key_code)
+    goto out;
+
+  act = XkbKeyAction(xkb, keycode, 0);
+  if (act == NULL)
+    goto out;
+  if (act->type != XkbSA_LockMods)
+    goto out;
+
+  if (act->mods.flags & XkbSA_UseModMapMods)
+    mask = xkb->map->modmap[keycode];
+  else
+    mask = act->mods.mask;
+
+out:
+  XkbFreeKeyboard(xkb, XkbAllComponentsMask, True);
+
+  return mask;
+}
+#endif
+
 
 void Viewport::handleClipboardChange(int source, void *data)
 {
@@ -577,6 +738,11 @@ int Viewport::handleSystemEvent(void *event, void *data)
 
     keyCode = ((msg->lParam >> 16) & 0xff);
 
+    if (keyCode == SCAN_FAKE) {
+      vlog.debug("Ignoring fake key press (virtual key 0x%02x)", vKey);
+      return 1;
+    }
+
     // Windows sets the scan code to 0x00 for multimedia keys, so we
     // have to do a reverse lookup based on the vKey.
     if (keyCode == 0x00) {
@@ -620,6 +786,12 @@ int Viewport::handleSystemEvent(void *event, void *data)
     isExtended = (msg->lParam & (1 << 24)) != 0;
 
     keyCode = ((msg->lParam >> 16) & 0xff);
+
+    if (keyCode == SCAN_FAKE) {
+      vlog.debug("Ignoring fake key release (virtual key 0x%02x)", vKey);
+      return 1;
+    }
+
     if (keyCode == 0x00)
       keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
     if (isExtended)

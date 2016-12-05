@@ -69,6 +69,8 @@ namespace rfb {
     virtual void bell() = 0;
     virtual void serverCutText(const char* str, rdr::U32 len) = 0;
 
+    virtual void setLEDState(unsigned int state);
+
     ConnParams cp;
   };
 }
