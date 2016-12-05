@@ -377,9 +377,16 @@ void VNCSConnectionST::renderedCursorChange()
 
 bool VNCSConnectionST::needRenderedCursor()
 {
-  bool pointerpos = (!server->cursorPos.equals(pointerEventPos) && (time(0) - pointerEventTime) > 0);
-  return (state() == RFBSTATE_NORMAL
-          && ((!cp.supportsLocalCursor && !cp.supportsLocalXCursor) || pointerpos));
+  if (state() != RFBSTATE_NORMAL)
+    return false;
+
+  if (!cp.supportsLocalCursor && !cp.supportsLocalXCursor)
+    return true;
+  if (!server->cursorPos.equals(pointerEventPos) &&
+      (time(0) - pointerEventTime) > 0)
+    return true;
+
+  return false;
 }
 
 
