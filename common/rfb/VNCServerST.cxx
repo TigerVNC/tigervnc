@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -621,12 +621,8 @@ bool VNCServerST::checkUpdate()
     Rect clippedCursorRect
       = cursor.getRect(cursorPos.subtract(cursor.hotspot)).intersect(pb->getRect());
 
-    if (!renderedCursorInvalid && (toCheck.intersect(clippedCursorRect)
-                                   .is_empty())) {
-      renderCursor = false;
-    } else {
-      toCheck.assign_union(clippedCursorRect);
-    }
+    if (!toCheck.intersect(clippedCursorRect).is_empty())
+      renderedCursorInvalid = true;
   }
 
   pb->grabRegion(toCheck);
@@ -639,11 +635,6 @@ bool VNCServerST::checkUpdate()
   if (comparer->compare())
     comparer->getUpdateInfo(&ui, pb->getRect());
 
-  if (renderCursor) {
-    renderedCursor.update(pb, &cursor, cursorPos);
-    renderedCursorInvalid = false;
-  }
-
   std::list<VNCSConnectionST*>::iterator ci, ci_next;
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
@@ -654,6 +645,16 @@ bool VNCServerST::checkUpdate()
   comparer->clear();
 
   return true;
+}
+
+const RenderedCursor* VNCServerST::getRenderedCursor()
+{
+  if (renderedCursorInvalid) {
+    renderedCursor.update(pb, &cursor, cursorPos);
+    renderedCursorInvalid = false;
+  }
+
+  return &renderedCursor;
 }
 
 void VNCServerST::getConnInfo(ListConnInfo * listConn)

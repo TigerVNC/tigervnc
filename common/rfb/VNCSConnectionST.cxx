@@ -997,8 +997,7 @@ void VNCSConnectionST::writeDataUpdate()
   Region req;
   UpdateInfo ui;
   bool needNewUpdateInfo;
-  bool drawRenderedCursor;
-  RenderedCursor *cursor;
+  const RenderedCursor *cursor;
 
   updates.enable_copyrect(cp.useCopyRect);
 
@@ -1064,21 +1063,21 @@ void VNCSConnectionST::writeDataUpdate()
   // with the update region, we need to draw the rendered cursor regardless of
   // whether it has changed.
 
-  drawRenderedCursor = false;
+  cursor = NULL;
   if (needRenderedCursor()) {
     Rect renderedCursorRect;
 
+    cursor = server->getRenderedCursor();
+
     renderedCursorRect
-      = server->renderedCursor.getEffectiveRect()
-         .intersect(req.get_bounding_rect());
+      = cursor->getEffectiveRect().intersect(req.get_bounding_rect());
 
     if (renderedCursorRect.is_empty()) {
-      drawRenderedCursor = false;
-    } else if (updateRenderedCursor) {
-      drawRenderedCursor = true;
-    } else if (!ui.changed.union_(ui.copied)
+      cursor = NULL;
+    } else if (!updateRenderedCursor &&
+               ui.changed.union_(ui.copied)
                .intersect(renderedCursorRect).is_empty()) {
-      drawRenderedCursor = true;
+      cursor = NULL;
     }
 
     // We could remove the new cursor rect from updates here.  It's not clear
@@ -1086,7 +1085,7 @@ void VNCSConnectionST::writeDataUpdate()
     // the same bit of screen twice, but we have the overhead of a more complex
     // region.
 
-    //if (drawRenderedCursor) {
+    //if (cursor) {
     //  updates.subtract(renderedCursorRect);
     //  updates.getUpdateInfo(&ui, req);
     //}
@@ -1095,12 +1094,8 @@ void VNCSConnectionST::writeDataUpdate()
     updateRenderedCursor = false;
   }
 
-  if (ui.is_empty() && !writer()->needFakeUpdate() && !drawRenderedCursor)
+  if (ui.is_empty() && !writer()->needFakeUpdate() && !cursor)
     return;
-
-  cursor = NULL;
-  if (drawRenderedCursor)
-    cursor = &server->renderedCursor;
 
   writeRTTPing();
 
