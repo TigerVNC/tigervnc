@@ -1080,15 +1080,10 @@ void VNCSConnectionST::writeDataUpdate()
       cursor = NULL;
     }
 
-    // We could remove the new cursor rect from updates here.  It's not clear
-    // whether this is worth it.  If we do remove it, then we won't draw over
-    // the same bit of screen twice, but we have the overhead of a more complex
-    // region.
-
-    //if (cursor) {
-    //  updates.subtract(renderedCursorRect);
-    //  updates.getUpdateInfo(&ui, req);
-    //}
+    if (cursor) {
+      updates.subtract(renderedCursorRect);
+      updates.getUpdateInfo(&ui, req);
+    }
 
     damagedCursorRegion.assign_union(renderedCursorRect);
     updateRenderedCursor = false;
