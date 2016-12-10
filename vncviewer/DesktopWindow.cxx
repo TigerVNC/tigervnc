@@ -666,23 +666,31 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
   DesktopWindow *dw = dynamic_cast<DesktopWindow*>(win);
 
-  if (dw && fullscreenSystemKeys) {
+  if (dw) {
     switch (event) {
     case FL_FOCUS:
-      // FIXME: We reassert the keyboard grabbing on focus as FLTK there are
-      //        some issues we need to work around:
-      //        a) Fl::grab(0) on X11 will release the keyboard grab for us.
-      //        b) Gaining focus on the system level causes FLTK to switch
-      //           window level on OS X.
-      if (dw->fullscreen_active())
-        dw->grabKeyboard();
+      if (fullscreenSystemKeys) {
+        // FIXME: We reassert the keyboard grabbing on focus as FLTK there are
+        //        some issues we need to work around:
+        //        a) Fl::grab(0) on X11 will release the keyboard grab for us.
+        //        b) Gaining focus on the system level causes FLTK to switch
+        //           window level on OS X.
+        if (dw->fullscreen_active())
+          dw->grabKeyboard();
+      }
+
+      // We may have gotten our lock keys out of sync with the server
+      // whilst we didn't have focus. Try to sort this out.
+      dw->viewport->pushLEDState();
       break;
 
     case FL_UNFOCUS:
-      // FIXME: We need to relinquish control when the entire window loses
-      //        focus as it is very tied to this specific window on some
-      //        platforms and we want to be able to open subwindows.
-      dw->ungrabKeyboard();
+      if (fullscreenSystemKeys) {
+        // FIXME: We need to relinquish control when the entire window loses
+        //        focus as it is very tied to this specific window on some
+        //        platforms and we want to be able to open subwindows.
+        dw->ungrabKeyboard();
+      }
       break;
     }
   }

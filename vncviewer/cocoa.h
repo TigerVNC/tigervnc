@@ -36,4 +36,7 @@ int cocoa_event_keysym(const void *event);
 int cocoa_set_caps_lock_state(bool on);
 int cocoa_set_num_lock_state(bool on);
 
+int cocoa_get_caps_lock_state(bool *on);
+int cocoa_get_num_lock_state(bool *on);
+
 #endif

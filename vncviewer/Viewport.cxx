@@ -329,6 +329,87 @@ void Viewport::setLEDState(unsigned int state)
 #endif
 }
 
+void Viewport::pushLEDState()
+{
+  unsigned int state;
+
+  // Server support?
+  if (cc->cp.ledState() == ledUnknown)
+    return;
+
+  state = 0;
+
+#if defined(WIN32)
+  if (GetKeyState(VK_CAPITAL) & 0x1)
+    state |= ledCapsLock;
+  if (GetKeyState(VK_NUMLOCK) & 0x1)
+    state |= ledNumLock;
+  if (GetKeyState(VK_SCROLL) & 0x1)
+    state |= ledScrollLock;
+#elif defined(__APPLE__)
+  int ret;
+  bool on;
+
+  ret = cocoa_get_caps_lock_state(&on);
+  if (ret != 0) {
+    vlog.error(_("Failed to get keyboard LED state: %d"), ret);
+    return;
+  }
+  if (on)
+    state |= ledCapsLock;
+
+  ret = cocoa_get_num_lock_state(&on);
+  if (ret != 0) {
+    vlog.error(_("Failed to get keyboard LED state: %d"), ret);
+    return;
+  }
+  if (on)
+    state |= ledNumLock;
+
+  // No support for Scroll Lock //
+  state |= (cc->cp.ledState() & ledScrollLock);
+
+#else
+  unsigned int mask;
+
+  Status status;
+  XkbStateRec xkbState;
+
+  status = XkbGetState(fl_display, XkbUseCoreKbd, &xkbState);
+  if (status != Success) {
+    vlog.error(_("Failed to get keyboard LED state: %d"), status);
+    return;
+  }
+
+  if (xkbState.locked_mods & LockMask)
+    state |= ledCapsLock;
+
+  mask = getModifierMask(XK_Num_Lock);
+  if (xkbState.locked_mods & mask)
+    state |= ledNumLock;
+
+  mask = getModifierMask(XK_Scroll_Lock);
+  if (xkbState.locked_mods & mask)
+    state |= ledScrollLock;
+#endif
+
+  if ((state & ledCapsLock) != (cc->cp.ledState() & ledCapsLock)) {
+    vlog.debug("Inserting fake CapsLock to get in sync with server");
+    handleKeyPress(fakeKeyBase + 100, XK_Caps_Lock);
+    handleKeyRelease(fakeKeyBase + 100);
+  }
+  if ((state & ledNumLock) != (cc->cp.ledState() & ledNumLock)) {
+    vlog.debug("Inserting fake NumLock to get in sync with server");
+    handleKeyPress(fakeKeyBase + 101, XK_Num_Lock);
+    handleKeyRelease(fakeKeyBase + 101);
+  }
+  if ((state & ledScrollLock) != (cc->cp.ledState() & ledScrollLock)) {
+    vlog.debug("Inserting fake ScrollLock to get in sync with server");
+    handleKeyPress(fakeKeyBase + 102, XK_Scroll_Lock);
+    handleKeyRelease(fakeKeyBase + 102);
+  }
+}
+
 
 void Viewport::draw(Surface* dst)
 {

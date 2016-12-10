@@ -447,6 +447,23 @@ static int cocoa_set_modifier_lock_state(int modifier, bool on)
   return KERN_SUCCESS;
 }
 
+static int cocoa_get_modifier_lock_state(int modifier, bool *on)
+{
+  kern_return_t ret;
+  io_connect_t ioc;
+
+  ret = cocoa_open_hid(&ioc);
+  if (ret != KERN_SUCCESS)
+    return ret;
+
+  ret = IOHIDGetModifierLockState(ioc, modifier, on);
+  IOServiceClose(ioc);
+  if (ret != KERN_SUCCESS)
+    return ret;
+
+  return KERN_SUCCESS;
+}
+
 int cocoa_set_caps_lock_state(bool on)
 {
   return cocoa_set_modifier_lock_state(kIOHIDCapsLockState, on);
@@ -455,4 +472,14 @@ int cocoa_set_caps_lock_state(bool on)
 int cocoa_set_num_lock_state(bool on)
 {
   return cocoa_set_modifier_lock_state(kIOHIDNumLockState, on);
+}
+
+int cocoa_get_caps_lock_state(bool *on)
+{
+  return cocoa_get_modifier_lock_state(kIOHIDCapsLockState, on);
+}
+
+int cocoa_get_num_lock_state(bool *on)
+{
+  return cocoa_get_modifier_lock_state(kIOHIDNumLockState, on);
 }

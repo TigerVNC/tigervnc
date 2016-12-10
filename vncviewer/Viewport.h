@@ -49,6 +49,8 @@ public:
 
   // Change client LED state
   void setLEDState(unsigned int state);
+  // Change server LED state
+  void pushLEDState();
 
   void draw(Surface* dst);
 
