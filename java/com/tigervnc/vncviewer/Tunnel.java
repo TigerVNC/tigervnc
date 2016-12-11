@@ -179,7 +179,7 @@ public class Tunnel {
           else
   	        jsch.addIdentity(privateKey.getAbsolutePath());
       }
-  
+
       String user = getSshUser();
       String label = new String("SSH Authentication");
       PasswdDialog dlg =
