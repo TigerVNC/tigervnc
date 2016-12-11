@@ -132,6 +132,10 @@ macro(libtool_create_control_file _target)
   file(APPEND ${_laname} "dlpreopen=''\n\n")
   file(APPEND ${_laname} "libdir='/usr/lib'\n\n")
 
+  # Make sure the timestamp is updated to trigger other make invocations
+  add_custom_command(TARGET ${_target} POST_BUILD COMMAND
+    "${CMAKE_COMMAND}" -E touch "${_laname}")
+
 
   # Add custom command to symlink the static library so that autotools finds
   # the library in .libs.  These are executed after the specified target build.
