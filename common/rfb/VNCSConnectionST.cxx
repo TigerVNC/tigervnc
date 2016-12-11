@@ -34,10 +34,12 @@
 #include <rfb/Security.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
+#include <rfb/ledStates.h>
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/Encoder.h>
+#define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -557,6 +559,73 @@ void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
     if (newkey != key) {
       vlog.debug("Key remapped to 0x%x", newkey);
       key = newkey;
+    }
+  }
+
+  // Avoid lock keys if we don't know the server state
+  if ((server->ledState == ledUnknown) &&
+      ((key == XK_Caps_Lock) ||
+       (key == XK_Num_Lock) ||
+       (key == XK_Scroll_Lock))) {
+    vlog.debug("Ignoring lock key (e.g. caps lock)");
+    return;
+  }
+  // Always ignore ScrollLock though as we don't have a heuristic
+  // for that
+  if (key == XK_Scroll_Lock) {
+    vlog.debug("Ignoring lock key (e.g. caps lock)");
+    return;
+  }
+
+  if (down && (server->ledState != ledUnknown)) {
+    // CapsLock synchronisation heuristic
+    // (this assumes standard interaction between CapsLock the Shift
+    // keys and normal characters)
+    if (((key >= XK_A) && (key <= XK_Z)) ||
+        ((key >= XK_a) && (key <= XK_z))) {
+      bool uppercase, shift, lock;
+
+      uppercase = (key >= XK_A) && (key <= XK_Z);
+      shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
+              pressedKeys.find(XK_Shift_R) != pressedKeys.end();
+      lock = server->ledState & ledCapsLock;
+
+      if (lock == (uppercase == shift)) {
+        vlog.debug("Inserting fake CapsLock to get in sync with client");
+        server->desktop->keyEvent(XK_Caps_Lock, true);
+        server->desktop->keyEvent(XK_Caps_Lock, false);
+      }
+    }
+
+    // NumLock synchronisation heuristic
+    // (this is more cautious because of the differences between Unix,
+    // Windows and macOS)
+    if (((key >= XK_KP_Home) && (key <= XK_KP_Delete)) ||
+        ((key >= XK_KP_0) && (key <= XK_KP_9)) ||
+        (key == XK_KP_Separator) || (key == XK_KP_Decimal)) {
+      bool number, shift, lock;
+
+      number = ((key >= XK_KP_0) && (key <= XK_KP_9)) ||
+                (key == XK_KP_Separator) || (key == XK_KP_Decimal);
+      shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
+              pressedKeys.find(XK_Shift_R) != pressedKeys.end();
+      lock = server->ledState & ledNumLock;
+
+      if (shift) {
+        // We don't know the appropriate NumLock state for when Shift
+        // is pressed as it could be one of:
+        //
+        // a) A Unix client where Shift negates NumLock
+        //
+        // b) A Windows client where Shift only cancels NumLock
+        //
+        // c) A macOS client where Shift doesn't have any effect
+        //
+      } else if (lock == (number == shift)) {
+        vlog.debug("Inserting fake NumLock to get in sync with client");
+        server->desktop->keyEvent(XK_Num_Lock, true);
+        server->desktop->keyEvent(XK_Num_Lock, false);
+      }
     }
   }
 

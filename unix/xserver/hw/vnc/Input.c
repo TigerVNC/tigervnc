@@ -437,12 +437,6 @@ void vncKeyboardEvent(KeySym keysym, int down)
 		}
 	}
 
-	/* We don't have lock synchronisation... */
-	if (vncIsLockModifier(keycode, new_state)) {
-		LOG_DEBUG("Ignoring lock key (e.g. caps lock)");
-		return;
-	}
-
 	/* No matches. Will have to add a new entry... */
 	if (keycode == 0) {
 		keycode = vncAddKeysym(keysym, state);

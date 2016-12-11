@@ -74,6 +74,10 @@ namespace rfb {
 
     // setName() tells the server what desktop title to supply to clients
     virtual void setName(const char* name) = 0;
+
+    // setLEDState() tells the server what the current lock keys LED
+    // state is
+    virtual void setLEDState(unsigned int state) = 0;
   };
 }
 #endif

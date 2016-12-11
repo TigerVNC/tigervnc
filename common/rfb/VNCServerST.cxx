@@ -58,6 +58,7 @@
 #include <rfb/Security.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/util.h>
+#include <rfb/ledStates.h>
 
 #include <rdr/types.h>
 
@@ -74,7 +75,7 @@ LogWriter VNCServerST::connectionsLog("Connections");
 
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
-    blockCounter(0), pb(0),
+    blockCounter(0), pb(0), ledState(ledUnknown),
     name(strDup(name_)), pointerClient(0), comparer(0),
     cursor(new Cursor(0, 0, Point(), NULL)),
     renderedCursorInvalid(false),
@@ -456,6 +457,11 @@ void VNCServerST::setCursorPos(const Point& pos)
     for (ci = clients.begin(); ci != clients.end(); ci++)
       (*ci)->renderedCursorChange();
   }
+}
+
+void VNCServerST::setLEDState(unsigned int state)
+{
+  ledState = state;
 }
 
 // Other public methods

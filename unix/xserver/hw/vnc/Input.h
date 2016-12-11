@@ -53,8 +53,6 @@ size_t vncReleaseLevelThree(KeyCode *keys, size_t maxKeys);
 
 KeyCode vncKeysymToKeycode(KeySym keysym, unsigned state, unsigned *new_state);
 
-int vncIsLockModifier(KeyCode keycode, unsigned state);
-
 int vncIsAffectedByNumLock(KeyCode keycode);
 
 KeyCode vncAddKeysym(KeySym keysym, unsigned state);
