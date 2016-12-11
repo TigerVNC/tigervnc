@@ -62,6 +62,18 @@ public class ZlibInStream extends InStream {
     ptr = end = start;
   }
 
+  public void removeUnderlying()
+  {
+    ptr = end = start;
+    if (underlying == null) return;
+
+    while (bytesIn > 0) {
+      decompress(true);
+      end = start; // throw away any data
+    }
+    underlying = null;
+  }
+
   public int pos()
   {
     return offset + ptr - start;

@@ -74,7 +74,7 @@ public class SSLEngineManager {
            hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
 
       switch (hs) {
-    
+
       case NEED_UNWRAP:
         // Receive handshaking data from peer
         peerNetData.flip();
@@ -92,26 +92,26 @@ public class SSLEngineManager {
             peerNetData.flip();
             peerNetData.compact();
             break;
-    
+
           case OK:
             // Process incoming handshaking data
             break;
-    
+
           case CLOSED:
             engine.closeInbound();
             break;
-    
+
         }
         break;
-    
+
       case NEED_WRAP:
         // Empty the local network packet buffer.
         myNetData.clear();
-    
+
         // Generate handshaking data
         res = engine.wrap(myAppData, myNetData);
         hs = res.getHandshakeStatus();
-    
+
         // Check status
         switch (res.getStatus()) {
           case OK:
@@ -121,15 +121,15 @@ public class SSLEngineManager {
             os.flush();
             myNetData.clear();
             break;
-    
+
           case BUFFER_OVERFLOW:
             // FIXME: How much larger should the buffer be?
             break;
-    
+
           case CLOSED:
             engine.closeOutbound();
             break;
-    
+
         }
         break;
 

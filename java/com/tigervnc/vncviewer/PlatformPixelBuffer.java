@@ -24,86 +24,38 @@ import java.awt.image.*;
 import java.nio.ByteOrder;
 
 import com.tigervnc.rfb.*;
+import com.tigervnc.rfb.Point;
 
-abstract public class PlatformPixelBuffer extends PixelBuffer
+public class PlatformPixelBuffer extends FullFramePixelBuffer
 {
-  public PlatformPixelBuffer(int w, int h, CConn cc_, DesktopWindow desktop_) {
-    cc = cc_;
-    desktop = desktop_;
-    PixelFormat nativePF = getNativePF();
-    if (nativePF.depth > cc.serverPF.depth) {
-      setPF(cc.serverPF);
-    } else {
-      setPF(nativePF);
-    }
-    resize(w, h);
+  public PlatformPixelBuffer(PixelFormat pf,
+                             int w, int h,
+                             WritableRaster data)
+  {
+    super(pf, w, h, data);
+    damage = new Rect(0, 0, w, h);
   }
 
-  // resize() resizes the image, preserving the image data where possible.
-  abstract public void resize(int w, int h);
-
-  public PixelFormat getNativePF() {
-    PixelFormat pf;
-    cm = tk.getColorModel();
-    if (cm.getColorSpace().getType() == java.awt.color.ColorSpace.TYPE_RGB) {
-      int depth = ((cm.getPixelSize() > 24) ? 24 : cm.getPixelSize());
-      int bpp = (depth > 16 ? 32 : (depth > 8 ? 16 : 8));
-      ByteOrder byteOrder = ByteOrder.nativeOrder();
-      boolean bigEndian = (byteOrder == ByteOrder.BIG_ENDIAN ? true : false);
-      boolean trueColour = (depth > 8 ? true : false);
-      int redShift    = cm.getComponentSize()[0] + cm.getComponentSize()[1];
-      int greenShift  = cm.getComponentSize()[0];
-      int blueShift   = 0;
-      pf = new PixelFormat(bpp, depth, bigEndian, trueColour,
-        (depth > 8 ? 0xff : 0),
-        (depth > 8 ? 0xff : 0),
-        (depth > 8 ? 0xff : 0),
-        (depth > 8 ? redShift : 0),
-        (depth > 8 ? greenShift : 0),
-        (depth > 8 ? blueShift : 0));
-    } else {
-      pf = new PixelFormat(8, 8, false, false, 7, 7, 3, 0, 3, 6);
-    }
-    vlog.debug("Native pixel format is "+pf.print());
-    return pf;
-  }
-
-  abstract public void imageRect(int x, int y, int w, int h, Object pix);
-
-  // setColourMapEntries() changes some of the entries in the colourmap.
-  // However these settings won't take effect until updateColourMap() is
-  // called.  This is because getting java to recalculate its internal
-  // translation table and redraw the screen is expensive.
-
-  public void setColourMapEntries(int firstColour, int nColours_,
-                                               int[] rgbs) {
-    nColours = nColours_;
-    reds = new byte[nColours];
-    blues = new byte[nColours];
-    greens = new byte[nColours];
-    for (int i = 0; i < nColours; i++) {
-      reds[firstColour+i] = (byte)(rgbs[i*3]   >> 8);
-      greens[firstColour+i] = (byte)(rgbs[i*3+1] >> 8);
-      blues[firstColour+i] = (byte)(rgbs[i*3+2] >> 8);
+  public void commitBufferRW(Rect r)
+  {
+    super.commitBufferRW(r);
+    synchronized(damage) {
+      Rect n = damage.union_boundary(r);
+      damage.setXYWH(n.tl.x, n.tl.y, n.width(), n.height());
     }
   }
 
-  public void updateColourMap() {
-    cm = new IndexColorModel(8, nColours, reds, greens, blues);
+  public Rect getDamage() {
+    Rect r = new Rect();
+
+    synchronized(damage) {
+      r.setXYWH(damage.tl.x, damage.tl.y, damage.width(), damage.height());
+      damage.clear();
+    }
+
+    return r;
   }
 
-  protected static Toolkit tk = Toolkit.getDefaultToolkit();
+  protected Rect damage;
 
-  abstract public Image getImage();
-
-  protected Image image;
-
-  int nColours;
-  byte[] reds;
-  byte[] greens;
-  byte[] blues;
-
-  CConn cc;
-  DesktopWindow desktop;
-  static LogWriter vlog = new LogWriter("PlatformPixelBuffer");
 }

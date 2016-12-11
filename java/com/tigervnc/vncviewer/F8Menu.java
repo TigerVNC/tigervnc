@@ -22,48 +22,59 @@ package com.tigervnc.vncviewer;
 import java.awt.*;
 import java.awt.Cursor;
 import java.awt.event.*;
+import java.io.File;
+import javax.swing.filechooser.*;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JFileChooser;
-import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 
 import com.tigervnc.rfb.*;
 
+import static com.tigervnc.vncviewer.Parameters.*;
+
 public class F8Menu extends JPopupMenu implements ActionListener {
-  public F8Menu(CConn cc_) {
+  public F8Menu(CConn cc) {
     super("VNC Menu");
     setLightWeightPopupEnabled(false);
-    cc = cc_;
+    String os = System.getProperty("os.name");
+    if (os.startsWith("Windows"))
+      com.sun.java.swing.plaf.windows.WindowsLookAndFeel.setMnemonicHidden(false);
+    this.cc = cc;
     restore    = addMenuItem("Restore",KeyEvent.VK_R);
-    restore.setEnabled(!cc.viewer.embed.getValue());
+    restore.setEnabled(!embed.getValue());
     move       = addMenuItem("Move");
     move.setEnabled(false);
     size       = addMenuItem("Size");
     size.setEnabled(false);
     minimize   = addMenuItem("Minimize", KeyEvent.VK_N);
-    minimize.setEnabled(!cc.viewer.embed.getValue());
+    minimize.setEnabled(!embed.getValue());
     maximize   = addMenuItem("Maximize", KeyEvent.VK_X);
-    maximize.setEnabled(!cc.viewer.embed.getValue());
+    maximize.setEnabled(!embed.getValue());
     addSeparator();
     exit       = addMenuItem("Close Viewer", KeyEvent.VK_C);
     addSeparator();
-    fullScreen = new JCheckBoxMenuItem("Full Screen");
-    fullScreen.setMnemonic(KeyEvent.VK_F);
-    fullScreen.setSelected(cc.fullScreen);
-    fullScreen.addActionListener(this);
-    fullScreen.setEnabled(!cc.viewer.embed.getValue());
-    add(fullScreen);
+    fullScreenCheckbox = new JCheckBoxMenuItem("Full Screen");
+    fullScreenCheckbox.setMnemonic(KeyEvent.VK_F);
+    fullScreenCheckbox.setSelected(fullScreen.getValue());
+    fullScreenCheckbox.addActionListener(this);
+    fullScreenCheckbox.setEnabled(!embed.getValue());
+    add(fullScreenCheckbox);
     addSeparator();
     clipboard  = addMenuItem("Clipboard...");
     addSeparator();
-    f8 = addMenuItem("Send "+KeyEvent.getKeyText(MenuKey.getMenuKeyCode()), MenuKey.getMenuKeyCode());
+    int keyCode = MenuKey.getMenuKeyCode();
+    String keyText = KeyEvent.getKeyText(keyCode);
+    f8 = addMenuItem("Send "+keyText, keyCode);
     ctrlAltDel = addMenuItem("Send Ctrl-Alt-Del");
     addSeparator();
     refresh    = addMenuItem("Refresh Screen", KeyEvent.VK_H);
     addSeparator();
     newConn    = addMenuItem("New connection...", KeyEvent.VK_W);
-    newConn.setEnabled(!cc.viewer.embed.getValue());
+    newConn.setEnabled(!embed.getValue());
     options    = addMenuItem("Options...", KeyEvent.VK_O);
     save       = addMenuItem("Save connection info as...", KeyEvent.VK_S);
     info       = addMenuItem("Connection info...", KeyEvent.VK_I);
@@ -94,19 +105,25 @@ public class F8Menu extends JPopupMenu implements ActionListener {
   public void actionPerformed(ActionEvent ev) {
     if (actionMatch(ev, exit)) {
       cc.close();
-    } else if (actionMatch(ev, fullScreen)) {
-      cc.toggleFullScreen();
+    } else if (actionMatch(ev, fullScreenCheckbox)) {
+      if (fullScreenCheckbox.isSelected())
+        cc.desktop.fullscreen_on();
+      else
+        cc.desktop.fullscreen_off();
     } else if (actionMatch(ev, restore)) {
-      if (cc.fullScreen) cc.toggleFullScreen();
-      cc.viewport.setExtendedState(JFrame.NORMAL);
+      if (cc.desktop.fullscreen_active())
+        cc.desktop.fullscreen_off();
+      cc.desktop.setExtendedState(JFrame.NORMAL);
     } else if (actionMatch(ev, minimize)) {
-      if (cc.fullScreen) cc.toggleFullScreen();
-      cc.viewport.setExtendedState(JFrame.ICONIFIED);
+      if (cc.desktop.fullscreen_active())
+        cc.desktop.fullscreen_off();
+      cc.desktop.setExtendedState(JFrame.ICONIFIED);
     } else if (actionMatch(ev, maximize)) {
-      if (cc.fullScreen) cc.toggleFullScreen();
-      cc.viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
+      if (cc.desktop.fullscreen_active())
+        cc.desktop.fullscreen_off();
+      cc.desktop.setExtendedState(JFrame.MAXIMIZED_BOTH);
     } else if (actionMatch(ev, clipboard)) {
-      cc.clipboardDialog.showDialog(cc.viewport);
+      ClipboardDialog.showDialog(cc.desktop);
     } else if (actionMatch(ev, f8)) {
       cc.writeKeyEvent(MenuKey.getMenuKeySym(), true);
       cc.writeKeyEvent(MenuKey.getMenuKeySym(), false);
@@ -120,32 +137,60 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     } else if (actionMatch(ev, refresh)) {
       cc.refresh();
     } else if (actionMatch(ev, newConn)) {
-      VncViewer.newViewer(cc.viewer);
+      VncViewer.newViewer();
     } else if (actionMatch(ev, options)) {
-      cc.options.showDialog(cc.viewport);
+      OptionsDialog.showDialog(cc.desktop);
     } else if (actionMatch(ev, save)) {
-      JFileChooser fc = new JFileChooser();
-      fc.setDialogTitle("Save current configuration as:");
-      fc.setApproveButtonText("OK");
-      fc.setFileHidingEnabled(false);
-      Window fullScreenWindow = Viewport.getFullScreenWindow();
-      if (fullScreenWindow != null)
-        Viewport.setFullScreenWindow(null);
-      int ret = fc.showOpenDialog(cc.viewport);
-      if (fullScreenWindow != null)
-        Viewport.setFullScreenWindow(fullScreenWindow);
-      if (ret == JFileChooser.APPROVE_OPTION) {
-        String filename = fc.getSelectedFile().toString();
-        if (filename != null)
-          Configuration.save(filename);
-      }
+	    String title = "Save the TigerVNC configuration to file";
+	    File dflt = new File(FileUtils.getVncHomeDir().concat("default.tigervnc"));
+	    if (!dflt.exists() || !dflt.isFile())
+	      dflt = new File(FileUtils.getVncHomeDir());
+      FileNameExtensionFilter filter =
+        new FileNameExtensionFilter("TigerVNC configuration (*.tigervnc)", "tigervnc");
+	    File f = Dialog.showChooser(title, dflt, this, filter);
+	    while (f != null && f.exists() && f.isFile()) {
+	      String msg = f.getAbsolutePath();
+	      msg = msg.concat(" already exists. Do you want to overwrite?");
+	      Object[] options = {"Overwrite", "No  \u21B5"};
+	      JOptionPane op =
+	        new JOptionPane(msg, JOptionPane.QUESTION_MESSAGE,
+	                        JOptionPane.OK_CANCEL_OPTION, null, options, options[1]);
+	      JDialog dlg = op.createDialog(this, "TigerVNC Viewer");
+	      dlg.setIconImage(VncViewer.frameIcon);
+	      dlg.setAlwaysOnTop(true);
+	      dlg.setVisible(true);
+	      if (op.getValue() == options[0])
+	        break;
+	      else
+	        f = Dialog.showChooser(title, f, this, filter);
+	    }
+	    if (f != null && (!f.exists() || f.canWrite()))
+	      saveViewerParameters(f.getAbsolutePath(), vncServerName.getValue());
     } else if (actionMatch(ev, info)) {
       cc.showInfo();
     } else if (actionMatch(ev, about)) {
-      cc.showAbout();
+      VncViewer.showAbout(cc.desktop);
     } else if (actionMatch(ev, dismiss)) {
       firePopupMenuCanceled();
     }
+  }
+
+  public void show(Component invoker, int x, int y) {
+    // lightweight components can't show in FullScreen Exclusive mode
+    /*
+    Window fsw = DesktopWindow.getFullScreenWindow();
+    GraphicsDevice gd = null;
+    if (fsw != null) {
+      gd = fsw.getGraphicsConfiguration().getDevice();
+      if (gd.isFullScreenSupported())
+        DesktopWindow.setFullScreenWindow(null);
+    }
+    */
+    super.show(invoker, x, y);
+    /*
+    if (fsw != null && gd.isFullScreenSupported())
+      DesktopWindow.setFullScreenWindow(fsw);
+      */
   }
 
   CConn cc;
@@ -153,6 +198,6 @@ public class F8Menu extends JPopupMenu implements ActionListener {
   JMenuItem exit, clipboard, ctrlAltDel, refresh;
   JMenuItem newConn, options, save, info, about, dismiss;
   static JMenuItem f8;
-  JCheckBoxMenuItem fullScreen;
+  JCheckBoxMenuItem fullScreenCheckbox;
   static LogWriter vlog = new LogWriter("F8Menu");
 }

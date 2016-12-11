@@ -22,56 +22,181 @@
 package com.tigervnc.rfb;
 
 import com.tigervnc.rdr.InStream;
+import com.tigervnc.rdr.MemInStream;
+import com.tigervnc.rdr.OutStream;
 import com.tigervnc.rdr.ZlibInStream;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.awt.image.*;
 import java.awt.*;
+import java.math.BigInteger;
+import java.io.*;
+import java.nio.*;
+import javax.imageio.*;
+import javax.imageio.stream.*;
 
 public class TightDecoder extends Decoder {
 
   final static int TIGHT_MAX_WIDTH = 2048;
+  final static int TIGHT_MIN_TO_COMPRESS = 12;
 
   // Compression control
-  final static int rfbTightExplicitFilter = 0x04;
-  final static int rfbTightFill = 0x08;
-  final static int rfbTightJpeg = 0x09;
-  final static int rfbTightMaxSubencoding = 0x09;
+  final static int tightExplicitFilter = 0x04;
+  final static int tightFill = 0x08;
+  final static int tightJpeg = 0x09;
+  final static int tightMaxSubencoding = 0x09;
 
   // Filters to improve compression efficiency
-  final static int rfbTightFilterCopy = 0x00;
-  final static int rfbTightFilterPalette = 0x01;
-  final static int rfbTightFilterGradient = 0x02;
-  final static int rfbTightMinToCompress = 12;
+  final static int tightFilterCopy = 0x00;
+  final static int tightFilterPalette = 0x01;
+  final static int tightFilterGradient = 0x02;
 
-  final static Toolkit tk = Toolkit.getDefaultToolkit();
-
-  public TightDecoder(CMsgReader reader_) {
-    reader = reader_;
+  public TightDecoder() {
+    super(DecoderFlags.DecoderPartiallyOrdered);
     zis = new ZlibInStream[4];
     for (int i = 0; i < 4; i++)
       zis[i] = new ZlibInStream();
   }
 
-  public void readRect(Rect r, CMsgHandler handler)
+  public void readRect(Rect r, InStream is,
+                       ConnParams cp, OutStream os)
   {
-    InStream is = reader.getInStream();
-    boolean cutZeros = false;
-    clientpf = handler.getPreferredPF();
-    serverpf = handler.cp.pf();
-    int bpp = serverpf.bpp;
-    cutZeros = false;
-    if (bpp == 32) {
-      if (serverpf.is888()) {
-        cutZeros = true;
+    int comp_ctl;
+
+    comp_ctl = is.readU8();
+    os.writeU8(comp_ctl);
+
+    comp_ctl >>= 4;
+
+    // "Fill" compression type.
+    if (comp_ctl == tightFill) {
+      if (cp.pf().is888())
+        os.copyBytes(is, 3);
+      else
+        os.copyBytes(is, cp.pf().bpp/8);
+      return;
+    }
+
+    // "JPEG" compression type.
+    if (comp_ctl == tightJpeg) {
+      int len;
+
+      len = readCompact(is);
+      os.writeOpaque32(len);
+      os.copyBytes(is, len);
+      return;
+    }
+
+    // Quit on unsupported compression type.
+    if (comp_ctl > tightMaxSubencoding)
+      throw new Exception("TightDecoder: bad subencoding value received");
+
+    // "Basic" compression type.
+
+    int palSize = 0;
+
+    if (r.width() > TIGHT_MAX_WIDTH)
+      throw new Exception("TightDecoder: too large rectangle ("+r.width()+" pixels)");
+
+    // Possible palette
+    if ((comp_ctl & tightExplicitFilter) != 0) {
+      int filterId;
+
+      filterId = is.readU8() & 0xff;
+      os.writeU8(filterId);
+
+      switch (filterId) {
+      case tightFilterPalette:
+        palSize = is.readU8() + 1;
+        os.writeU32(palSize - 1);
+
+        if (cp.pf().is888())
+          os.copyBytes(is, palSize * 3);
+        else
+          os.copyBytes(is, palSize * cp.pf().bpp/8);
+        break;
+      case tightFilterGradient:
+        if (cp.pf().bpp == 8)
+          throw new Exception("TightDecoder: invalid BPP for gradient filter");
+        break;
+      case tightFilterCopy:
+        break;
+      default:
+        throw new Exception("TightDecoder: unknown filter code received");
       }
     }
 
-    int comp_ctl = is.readU8();
+    int rowSize, dataSize;
 
-    boolean bigEndian = handler.cp.pf().bigEndian;
+    if (palSize != 0) {
+      if (palSize <= 2)
+        rowSize = (r.width() + 7) / 8;
+      else
+        rowSize = r.width();
+    } else if (cp.pf().is888()) {
+      rowSize = r.width() * 3;
+    } else {
+      rowSize = r.width() * cp.pf().bpp/8;
+    }
 
-    // Flush zlib streams if we are told by the server to do so.
+    dataSize = r.height() * rowSize;
+
+    if (dataSize < TIGHT_MIN_TO_COMPRESS) {
+      os.copyBytes(is, dataSize);
+    } else {
+      int len;
+
+      len = readCompact(is);
+      os.writeOpaque32(len);
+      os.copyBytes(is, len);
+    }
+  }
+
+  public boolean doRectsConflict(Rect rectA,
+                                 Object bufferA,
+                                 int buflenA,
+                                 Rect rectB,
+                                 Object bufferB,
+                                 int buflenB,
+                                 ConnParams cp)
+  {
+    byte comp_ctl_a, comp_ctl_b;
+
+    assert(buflenA >= 1);
+    assert(buflenB >= 1);
+
+    comp_ctl_a = ((byte[])bufferA)[0];
+    comp_ctl_b = ((byte[])bufferB)[0];
+
+    // Resets or use of zlib pose the same problem, so merge them
+    if ((comp_ctl_a & 0x80) == 0x00)
+      comp_ctl_a |= 1 << ((comp_ctl_a >> 4) & 0x03);
+    if ((comp_ctl_b & 0x80) == 0x00)
+      comp_ctl_b |= 1 << ((comp_ctl_b >> 4) & 0x03);
+
+    if (((comp_ctl_a & 0x0f) & (comp_ctl_b & 0x0f)) != 0)
+      return true;
+
+    return false;
+  }
+
+  public void decodeRect(Rect r, Object buffer,
+                         int buflen, ConnParams cp,
+                         ModifiablePixelBuffer pb)
+  {
+    ByteBuffer bufptr;
+    PixelFormat pf = cp.pf();
+
+    int comp_ctl;
+
+    bufptr = ByteBuffer.wrap((byte[])buffer);
+
+    assert(buflen >= 1);
+
+    comp_ctl = bufptr.get() & 0xff;
+    buflen -= 1;
+
+    // Reset zlib streams if we are told by the server to do so.
     for (int i = 0; i < 4; i++) {
       if ((comp_ctl & 1) != 0) {
         zis[i].reset();
@@ -80,190 +205,216 @@ public class TightDecoder extends Decoder {
     }
 
     // "Fill" compression type.
-    if (comp_ctl == rfbTightFill) {
-      int[] pix = new int[1];
-      if (cutZeros) {
-        byte[] bytebuf = new byte[3];
-        is.readBytes(bytebuf, 0, 3);
-        serverpf.bufferFromRGB(pix, 0, bytebuf, 0, 1);
+    if (comp_ctl == tightFill) {
+      if (pf.is888()) {
+        ByteBuffer pix = ByteBuffer.allocate(4);
+
+        assert(buflen >= 3);
+
+        pf.bufferFromRGB(pix, bufptr, 1);
+        pb.fillRect(pf, r, pix.array());
       } else {
-        pix[0] = is.readPixel(serverpf.bpp/8, serverpf.bigEndian);
+        assert(buflen >= pf.bpp/8);
+        byte[] pix = new byte[pf.bpp/8];
+        bufptr.get(pix);
+        pb.fillRect(pf, r, pix);
       }
-      handler.fillRect(r, pix[0]);
       return;
     }
 
     // "JPEG" compression type.
-    if (comp_ctl == rfbTightJpeg) {
-      DECOMPRESS_JPEG_RECT(r, is, handler);
+    if (comp_ctl == tightJpeg) {
+      int len;
+
+      WritableRaster buf;
+
+      JpegDecompressor jd = new JpegDecompressor();
+
+      assert(buflen >= 4);
+
+      len = bufptr.getInt();
+      buflen -= 4;
+
+      // We always use direct decoding with JPEG images
+      buf = pb.getBufferRW(r);
+      jd.decompress(bufptr, len, buf, r, pb.getPF());
+      pb.commitBufferRW(r);
       return;
     }
 
     // Quit on unsupported compression type.
-    if (comp_ctl > rfbTightMaxSubencoding) {
+    if (comp_ctl > tightMaxSubencoding)
       throw new Exception("TightDecoder: bad subencoding value received");
-    }
 
     // "Basic" compression type.
     int palSize = 0;
-    int[] palette = new int[256];
+    ByteBuffer palette = ByteBuffer.allocate(256 * 4);
     boolean useGradient = false;
 
-    if ((comp_ctl & rfbTightExplicitFilter) != 0) {
-      int filterId = is.readU8();
+    if ((comp_ctl & tightExplicitFilter) != 0) {
+      int filterId;
+
+      assert(buflen >= 1);
+
+      filterId = bufptr.get();
 
       switch (filterId) {
-      case rfbTightFilterPalette:
-        palSize = is.readU8() + 1;
-        byte[] tightPalette;
-        if (cutZeros) {
-          tightPalette = new byte[256 * 3];
-          is.readBytes(tightPalette, 0, palSize * 3);
-          serverpf.bufferFromRGB(palette, 0, tightPalette, 0, palSize);
+      case tightFilterPalette:
+        assert(buflen >= 1);
+
+        palSize = bufptr.getInt() + 1;
+        buflen -= 4;
+
+        if (pf.is888()) {
+          ByteBuffer tightPalette = ByteBuffer.allocate(palSize * 3);
+
+          assert(buflen >= tightPalette.capacity());
+
+          bufptr.get(tightPalette.array(), 0, tightPalette.capacity());
+          buflen -= tightPalette.capacity();
+
+          pf.bufferFromRGB(palette.duplicate(), tightPalette, palSize);
         } else {
-          is.readPixels(palette, palSize, serverpf.bpp/8, serverpf.bigEndian);
+          int len;
+
+          len = palSize * pf.bpp/8;
+
+          assert(buflen >= len);
+
+          bufptr.get(palette.array(), 0, len);
+          buflen -= len;
         }
         break;
-      case rfbTightFilterGradient:
+      case tightFilterGradient:
         useGradient = true;
         break;
-      case rfbTightFilterCopy:
+      case tightFilterCopy:
         break;
       default:
-        throw new Exception("TightDecoder: unknown filter code recieved");
+        assert(false);
       }
     }
 
-    int bppp = bpp;
-    if (palSize != 0) {
-      bppp = (palSize <= 2) ? 1 : 8;
-    } else if (cutZeros) {
-      bppp = 24;
-    }
-
     // Determine if the data should be decompressed or just copied.
-    int rowSize = (r.width() * bppp + 7) / 8;
-    int dataSize = r.height() * rowSize;
-    int streamId = -1;
-    InStream input;
-    if (dataSize < rfbTightMinToCompress) {
-      input = is;
+    int rowSize, dataSize;
+    byte[] netbuf;
+
+    if (palSize != 0) {
+      if (palSize <= 2)
+        rowSize = (r.width() + 7) / 8;
+      else
+        rowSize = r.width();
+    } else if (pf.is888()) {
+      rowSize = r.width() * 3;
     } else {
-      int length = is.readCompactLength();
-      streamId = comp_ctl & 0x03;
-      zis[streamId].setUnderlying(is, length);
-      input = (ZlibInStream)zis[streamId];
+      rowSize = r.width() * pf.bpp/8;
     }
 
-    // Allocate netbuf and read in data
-    byte[] netbuf = new byte[dataSize];
-    input.readBytes(netbuf, 0, dataSize);
+    dataSize = r.height() * rowSize;
 
+    if (dataSize < TIGHT_MIN_TO_COMPRESS) {
+      assert(buflen >= dataSize);
+    } else {
+      int len;
+      int streamId;
+      MemInStream ms;
+
+      assert(buflen >= 4);
+
+      len = bufptr.getInt();
+      buflen -= 4;
+
+      assert(buflen >= len);
+
+      streamId = comp_ctl & 0x03;
+      ms = new MemInStream(bufptr.array(), bufptr.position(), len);
+      zis[streamId].setUnderlying(ms, len);
+
+      // Allocate netbuf and read in data
+      netbuf = new byte[dataSize];
+
+      zis[streamId].readBytes(netbuf, 0, dataSize);
+
+      zis[streamId].removeUnderlying();
+      ms = null;
+
+      bufptr = ByteBuffer.wrap(netbuf);
+      buflen = dataSize;
+    }
+
+    ByteBuffer outbuf = ByteBuffer.allocate(r.area() * pf.bpp/8);
     int stride = r.width();
-    int[] buf = reader.getImageBuf(r.area());
 
     if (palSize == 0) {
       // Truecolor data.
       if (useGradient) {
-        if (bpp == 32 && cutZeros) {
-          FilterGradient24(netbuf, buf, stride, r);
+        if (pf.is888()) {
+          FilterGradient24(bufptr, pf, outbuf, stride, r);
         } else {
-          FilterGradient(netbuf, buf, stride, r);
+          switch (pf.bpp) {
+          case 8:
+            assert(false);
+            break;
+          case 16:
+            FilterGradient(bufptr, pf, outbuf, stride, r);
+            break;
+          case 32:
+            FilterGradient(bufptr, pf, outbuf, stride, r);
+            break;
+          }
         }
       } else {
         // Copy
-        int h = r.height();
-        int ptr = 0;
-        int srcPtr = 0;
+        ByteBuffer ptr = (ByteBuffer)outbuf.duplicate().mark();
+        ByteBuffer srcPtr = bufptr.duplicate();
         int w = r.width();
-        if (cutZeros) {
-          serverpf.bufferFromRGB(buf, ptr, netbuf, srcPtr, w*h);
-        } else {
-          int pixelSize = (bpp >= 24) ? 3 : bpp/8;
+        int h = r.height();
+        if (pf.is888()) {
           while (h > 0) {
-            for (int i = 0; i < w; i++) {
-              if (bpp == 8) {
-                buf[ptr+i] = netbuf[srcPtr+i] & 0xff;
-              } else {
-                for (int j = pixelSize-1; j >= 0; j--)
-                  buf[ptr+i] |= ((netbuf[srcPtr+i+j] & 0xff) << j*8);
-              }
-            }
-            ptr += stride;
-            srcPtr += w * pixelSize;
+            pf.bufferFromRGB(ptr.duplicate(), srcPtr.duplicate(), w);
+            ptr.position(ptr.position() + stride * pf.bpp/8);
+            srcPtr.position(srcPtr.position() + w * 3);
+            h--;
+          }
+        } else {
+          while (h > 0) {
+            ptr.put(srcPtr.array(), srcPtr.position(), w * pf.bpp/8);
+            ptr.reset().position(ptr.position() + stride * pf.bpp/8).mark();
+            srcPtr.position(srcPtr.position() + w * pf.bpp/8);
             h--;
           }
         }
       }
     } else {
       // Indexed color
-      int x, h = r.height(), w = r.width(), b, pad = stride - w;
-      int ptr = 0;
-      int srcPtr = 0, bits;
-      if (palSize <= 2) {
-        // 2-color palette
-        while (h > 0) {
-          for (x = 0; x < w / 8; x++) {
-            bits = netbuf[srcPtr++];
-            for(b = 7; b >= 0; b--) {
-              buf[ptr++] = palette[bits >> b & 1];
-            }
-          }
-          if (w % 8 != 0) {
-            bits = netbuf[srcPtr++];
-            for (b = 7; b >= 8 - w % 8; b--) {
-              buf[ptr++] = palette[bits >> b & 1];
-            }
-          }
-          ptr += pad;
-          h--;
-        }
-      } else {
-        // 256-color palette
-        while (h > 0) {
-          int endOfRow = ptr + w;
-          while (ptr < endOfRow) {
-            buf[ptr++] = palette[netbuf[srcPtr++] & 0xff];
-          }
-          ptr += pad;
-          h--;
-        }
+      switch (pf.bpp) {
+      case 8:
+        FilterPalette8(palette, palSize,
+                       bufptr, outbuf, stride, r);
+        break;
+      case 16:
+        FilterPalette16(palette.asShortBuffer(), palSize,
+                        bufptr, outbuf.asShortBuffer(), stride, r);
+        break;
+      case 32:
+        FilterPalette32(palette.asIntBuffer(), palSize,
+                        bufptr, outbuf.asIntBuffer(), stride, r);
+        break;
       }
     }
 
-    handler.imageRect(r, buf);
+    pb.imageRect(pf, r, outbuf.array());
 
-    if (streamId != -1) {
-      zis[streamId].reset();
-    }
   }
 
-  final private void DECOMPRESS_JPEG_RECT(Rect r, InStream is, CMsgHandler handler)
+  final private void FilterGradient24(ByteBuffer inbuf,
+                                      PixelFormat pf, ByteBuffer outbuf,
+                                      int stride, Rect r)
   {
-    // Read length
-    int compressedLen = is.readCompactLength();
-    if (compressedLen <= 0)
-      vlog.info("Incorrect data received from the server.");
-
-    // Allocate netbuf and read in data
-    byte[] netbuf = new byte[compressedLen];
-    is.readBytes(netbuf, 0, compressedLen);
-
-    // Create an Image object from the JPEG data.
-    Image jpeg = tk.createImage(netbuf);
-    jpeg.setAccelerationPriority(1);
-    handler.imageRect(r, jpeg);
-    jpeg.flush();
-  }
-
-  final private void FilterGradient24(byte[] netbuf, int[] buf, int stride,
-                                      Rect r)
-  {
-
     int x, y, c;
     byte[] prevRow = new byte[TIGHT_MAX_WIDTH*3];
     byte[] thisRow = new byte[TIGHT_MAX_WIDTH*3];
-    byte[] pix = new byte[3];
+    ByteBuffer pix = ByteBuffer.allocate(3);
     int[] est = new int[3];
 
     // Set up shortcut variables
@@ -273,38 +424,38 @@ public class TightDecoder extends Decoder {
     for (y = 0; y < rectHeight; y++) {
       /* First pixel in a row */
       for (c = 0; c < 3; c++) {
-        pix[c] = (byte)(netbuf[y*rectWidth*3+c] + prevRow[c]);
-        thisRow[c] = pix[c];
+        pix.put(c, (byte)(inbuf.get(y*rectWidth*3+c) + prevRow[c]));
+        thisRow[c] = pix.get(c);
       }
-      serverpf.bufferFromRGB(buf, y*stride, pix, 0, 1);
+      pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride), pix, 1);
 
       /* Remaining pixels of a row */
       for (x = 1; x < rectWidth; x++) {
         for (c = 0; c < 3; c++) {
-          est[c] = (int)(prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c]);
-          if (est[c] > 0xFF) {
-            est[c] = 0xFF;
+          est[c] = prevRow[x*3+c] + pix.get(c) - prevRow[(x-1)*3+c];
+          if (est[c] > 0xff) {
+            est[c] = 0xff;
           } else if (est[c] < 0) {
             est[c] = 0;
           }
-          pix[c] = (byte)(netbuf[(y*rectWidth+x)*3+c] + est[c]);
-          thisRow[x*3+c] = pix[c];
+          pix.put(c, (byte)(inbuf.get((y*rectWidth+x)*3+c) + est[c]));
+          thisRow[x*3+c] = pix.get(c);
         }
-        serverpf.bufferFromRGB(buf, y*stride+x, pix, 0, 1);
+        pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride+x), pix, 1);
       }
 
       System.arraycopy(thisRow, 0, prevRow, 0, prevRow.length);
     }
   }
 
-  final private void FilterGradient(byte[] netbuf, int[] buf, int stride,
-                                    Rect r)
+  final private void FilterGradient(ByteBuffer inbuf,
+                                    PixelFormat pf, ByteBuffer outbuf,
+                                    int stride, Rect r)
   {
-
     int x, y, c;
     byte[] prevRow = new byte[TIGHT_MAX_WIDTH];
     byte[] thisRow = new byte[TIGHT_MAX_WIDTH];
-    byte[] pix = new byte[3];
+    ByteBuffer pix = ByteBuffer.allocate(3);
     int[] est = new int[3];
 
     // Set up shortcut variables
@@ -313,19 +464,18 @@ public class TightDecoder extends Decoder {
 
     for (y = 0; y < rectHeight; y++) {
       /* First pixel in a row */
-      // FIXME
-      //serverpf.rgbFromBuffer(pix, 0, netbuf, y*rectWidth, 1, cm);
+      pf.rgbFromBuffer(pix, (ByteBuffer)inbuf.position(y*rectWidth), 1);
       for (c = 0; c < 3; c++)
-        pix[c] += prevRow[c];
+        pix.put(c, (byte)(pix.get(c) + prevRow[c]));
 
-      System.arraycopy(pix, 0, thisRow, 0, pix.length);
+      System.arraycopy(pix.array(), 0, thisRow, 0, pix.capacity());
 
-      serverpf.bufferFromRGB(buf, y*stride, pix, 0, 1);
+      pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride), pix, 1);
 
       /* Remaining pixels of a row */
       for (x = 1; x < rectWidth; x++) {
         for (c = 0; c < 3; c++) {
-          est[c] = (int)(prevRow[x*3+c] + pix[c] - prevRow[(x-1)*3+c]);
+          est[c] = prevRow[x*3+c] + pix.get(c) - prevRow[(x-1)*3+c];
           if (est[c] > 0xff) {
             est[c] = 0xff;
           } else if (est[c] < 0) {
@@ -333,24 +483,156 @@ public class TightDecoder extends Decoder {
           }
         }
 
-        // FIXME
-        //serverpf.rgbFromBuffer(pix, 0, netbuf, y*rectWidth+x, 1, cm);
+        pf.rgbFromBuffer(pix, (ByteBuffer)inbuf.position(y*rectWidth+x), 1);
         for (c = 0; c < 3; c++)
-          pix[c] += est[c];
+          pix.put(c, (byte)(pix.get(c) + est[c]));
 
-        System.arraycopy(pix, 0, thisRow, x*3, pix.length);
+        System.arraycopy(pix.array(), 0, thisRow, x*3, pix.capacity());
 
-        serverpf.bufferFromRGB(buf, y*stride+x, pix, 0, 1);
+        pf.bufferFromRGB((ByteBuffer)outbuf.position(y*stride+x), pix, 1);
       }
 
       System.arraycopy(thisRow, 0, prevRow, 0, prevRow.length);
     }
   }
 
-  private CMsgReader reader;
+  private void FilterPalette8(ByteBuffer palette, int palSize,
+                              ByteBuffer inbuf, ByteBuffer outbuf,
+                              int stride, Rect r)
+  {
+    // Indexed color
+    int x, h = r.height(), w = r.width(), b, pad = stride - w;
+    ByteBuffer ptr = outbuf.duplicate();
+    byte bits;
+    ByteBuffer srcPtr = inbuf.duplicate();
+    if (palSize <= 2) {
+      // 2-color palette
+      while (h > 0) {
+        for (x = 0; x < w / 8; x++) {
+          bits = srcPtr.get();
+          for (b = 7; b >= 0; b--) {
+            ptr.put(palette.get(bits >> b & 1));
+          }
+        }
+        if (w % 8 != 0) {
+          bits = srcPtr.get();
+          for (b = 7; b >= 8 - w % 8; b--) {
+            ptr.put(palette.get(bits >> b & 1));
+          }
+        }
+        ptr.position(ptr.position() + pad);
+        h--;
+      }
+    } else {
+      // 256-color palette
+      while (h > 0) {
+        int endOfRow = ptr.position() + w;
+        while (ptr.position() < endOfRow) {
+          ptr.put(palette.get(srcPtr.get()));
+        }
+        ptr.position(ptr.position() + pad);
+        h--;
+      }
+    }
+  }
+
+  private void FilterPalette16(ShortBuffer palette, int palSize,
+                               ByteBuffer inbuf, ShortBuffer outbuf,
+                               int stride, Rect r)
+  {
+    // Indexed color
+    int x, h = r.height(), w = r.width(), b, pad = stride - w;
+    ShortBuffer ptr = outbuf.duplicate();
+    byte bits;
+    ByteBuffer srcPtr = inbuf.duplicate();
+    if (palSize <= 2) {
+      // 2-color palette
+      while (h > 0) {
+        for (x = 0; x < w / 8; x++) {
+          bits = srcPtr.get();
+          for (b = 7; b >= 0; b--) {
+            ptr.put(palette.get(bits >> b & 1));
+          }
+        }
+        if (w % 8 != 0) {
+          bits = srcPtr.get();
+          for (b = 7; b >= 8 - w % 8; b--) {
+            ptr.put(palette.get(bits >> b & 1));
+          }
+        }
+        ptr.position(ptr.position() + pad);
+        h--;
+      }
+    } else {
+      // 256-color palette
+      while (h > 0) {
+        int endOfRow = ptr.position() + w;
+        while (ptr.position() < endOfRow) {
+          ptr.put(palette.get(srcPtr.get()));
+        }
+        ptr.position(ptr.position() + pad);
+        h--;
+      }
+    }
+  }
+
+  private void FilterPalette32(IntBuffer palette, int palSize,
+                               ByteBuffer inbuf, IntBuffer outbuf,
+                               int stride, Rect r)
+  {
+    // Indexed color
+    int x, h = r.height(), w = r.width(), b, pad = stride - w;
+    IntBuffer ptr = outbuf.duplicate();
+    byte bits;
+    ByteBuffer srcPtr = inbuf.duplicate();
+    if (palSize <= 2) {
+      // 2-color palette
+      while (h > 0) {
+        for (x = 0; x < w / 8; x++) {
+          bits = srcPtr.get();
+          for (b = 7; b >= 0; b--) {
+            ptr.put(palette.get(bits >> b & 1));
+          }
+        }
+        if (w % 8 != 0) {
+          bits = srcPtr.get();
+          for (b = 7; b >= 8 - w % 8; b--) {
+            ptr.put(palette.get(bits >> b & 1));
+          }
+        }
+        ptr.position(ptr.position() + pad);
+        h--;
+      }
+    } else {
+      // 256-color palette
+      while (h > 0) {
+        int endOfRow = ptr.position() + w;
+        while (ptr.position() < endOfRow) {
+          ptr.put(palette.get(srcPtr.get() & 0xff));
+        }
+        ptr.position(ptr.position() + pad);
+        h--;
+      }
+    }
+  }
+
+  public final int readCompact(InStream is) {
+    byte b;
+    int result;
+
+    b = (byte)is.readU8();
+    result = (int)b & 0x7F;
+    if ((b & 0x80) != 0) {
+      b = (byte)is.readU8();
+      result |= ((int)b & 0x7F) << 7;
+      if ((b & 0x80) != 0) {
+        b = (byte)is.readU8();
+        result |= ((int)b & 0xFF) << 14;
+      }
+    }
+    return result;
+  }
+
   private ZlibInStream[] zis;
-  private PixelFormat serverpf;
-  private PixelFormat clientpf;
-  static LogWriter vlog = new LogWriter("TightDecoder");
 
 }

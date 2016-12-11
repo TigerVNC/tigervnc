@@ -18,22 +18,37 @@
 
 package com.tigervnc.rfb;
 
-public class Cursor extends ManagedPixelBuffer {
+import java.awt.image.*;
 
-  public Cursor(PixelFormat pf, int w, int h) {
+public class FullFramePixelBuffer extends ModifiablePixelBuffer {
+
+  public FullFramePixelBuffer(PixelFormat pf, int w, int h,
+                              WritableRaster data_) {
     super(pf, w, h);
-    hotspot = new Point(0, 0);
+    data = data_;
   }
 
-  public void setSize(int w, int h) {
-    int oldMaskLen = maskLen();
-    super.setSize(w, h);
-    if (mask == null || maskLen() > oldMaskLen)
-      mask = new byte[maskLen()];
+  protected FullFramePixelBuffer() {}
+
+  public WritableRaster getBufferRW(Rect r)
+  {
+    return data.createWritableChild(r.tl.x, r.tl.y, r.width(), r.height(),
+                                    0, 0, null);
   }
 
-  public int maskLen() { return (width() + 7) / 8 * height(); }
+  public void commitBufferRW(Rect r)
+  {
+  }
 
-  public Point hotspot;
-  public byte[] mask;
+  public Raster getBuffer(Rect r)
+  {
+    Raster src =
+      data.createChild(r.tl.x, r.tl.y, r.width(), r.height(), 0, 0, null);
+    WritableRaster dst =
+      data.createCompatibleWritableRaster(r.width(), r.height());
+    dst.setDataElements(0, 0, src);
+    return dst;
+  }
+
+  protected WritableRaster data;
 }

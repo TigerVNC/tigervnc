@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2011 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright (C) 2011-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2015 Brian P. Hinz
+ * Copyright (C) 2011-2016 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,29 +35,37 @@ import java.awt.event.*;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.File;
 import java.lang.Character;
 import java.lang.reflect.*;
+import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager.*;
 
 import com.tigervnc.rdr.*;
 import com.tigervnc.rfb.*;
 import com.tigervnc.network.*;
 
+import static com.tigervnc.vncviewer.Parameters.*;
+
 public class VncViewer extends javax.swing.JApplet 
   implements Runnable, ActionListener {
 
-  public static final String aboutText = new String("TigerVNC Java Viewer v%s (%s)%n"+
-                                                    "Built on %s at %s%n"+
-                                                    "Copyright (C) 1999-2016 TigerVNC Team and many others (see README.txt)%n"+
-                                                    "See http://www.tigervnc.org for information on TigerVNC.");
+  public static final String aboutText =
+    new String("TigerVNC Java Viewer v%s (%s)%n"+
+               "Built on %s at %s%n"+
+               "Copyright (C) 1999-2016 TigerVNC Team and many others (see README.txt)%n"+
+               "See http://www.tigervnc.org for information on TigerVNC.");
 
   public static String version = null;
   public static String build = null;
@@ -73,6 +81,7 @@ public class VncViewer extends javax.swing.JApplet
     VncViewer.class.getResourceAsStream("timestamp");
   public static final String os = 
     System.getProperty("os.name").toLowerCase();
+  private static VncViewer applet;
 
   public static void setLookAndFeel() {
     try {
@@ -133,12 +142,12 @@ public class VncViewer extends javax.swing.JApplet
     viewer.start();
   }
 
+  public VncViewer() {
+    // Only called in applet mode
+    this(new String[0]);
+  }
 
   public VncViewer(String[] argv) {
-    embed.setParam(false);
-
-    // load user preferences
-    UserPreferences.load("global");
 
     SecurityClient.setDefaults();
 
@@ -150,14 +159,24 @@ public class VncViewer extends javax.swing.JApplet
 
     Configuration.enableViewerParams();
 
+    /* Load the default parameter settings */
+    String defaultServerName;
+    try {
+      defaultServerName = loadViewerParameters(null);
+    } catch (com.tigervnc.rfb.Exception e) {
+      defaultServerName = "";
+      vlog.info(e.getMessage());
+    }
+
     // Override defaults with command-line options
     for (int i = 0; i < argv.length; i++) {
       if (argv[i].length() == 0)
         continue;
 
       if (argv[i].equalsIgnoreCase("-config")) {
-        if (++i >= argv.length) usage();
-          Configuration.load(argv[i]);
+        if (++i >= argv.length)
+          usage();
+        defaultServerName = loadViewerParameters(argv[i]);
         continue;
       }
 
@@ -181,28 +200,11 @@ public class VncViewer extends javax.swing.JApplet
         usage();
       }
 
-      if (vncServerName.getValue() != null)
+      if (!vncServerName.getValue().isEmpty())
         usage();
       vncServerName.setParam(argv[i]);
     }
 
-    if (!autoSelect.hasBeenSet()) {
-      // Default to AutoSelect=0 if -PreferredEncoding or -FullColor is used
-      autoSelect.setParam(!preferredEncoding.hasBeenSet() &&
-                          !fullColour.hasBeenSet() &&
-                          !fullColourAlias.hasBeenSet());
-    }
-    if (!fullColour.hasBeenSet() && !fullColourAlias.hasBeenSet()) {
-      // Default to FullColor=0 if AutoSelect=0 && LowColorLevel is set
-      if (!autoSelect.getValue() && (lowColourLevel.hasBeenSet() ||
-                          lowColourLevelAlias.hasBeenSet())) {
-        fullColour.setParam(false);
-      }
-    }
-    if (!customCompressLevel.hasBeenSet()) {
-      // Default to CustomCompressLevel=1 if CompressLevel is used.
-      customCompressLevel.setParam(compressLevel.hasBeenSet());
-    }
   }
 
   public static void usage() {
@@ -272,26 +274,27 @@ public class VncViewer extends javax.swing.JApplet
     System.exit(1);
   }
 
-  public VncViewer() {
-    UserPreferences.load("global");
-    embed.setParam(true);
-  }
-
-  public static void newViewer(VncViewer oldViewer, Socket sock, boolean close) {
-    VncViewer viewer = new VncViewer();
-    viewer.embed.setParam(oldViewer.embed.getValue());
-    viewer.sock = sock;
-    viewer.start();
-    if (close)
-      oldViewer.exit(0);
-  }
-
-  public static void newViewer(VncViewer oldViewer, Socket sock) {
-    newViewer(oldViewer, sock, false);
-  }
-
-  public static void newViewer(VncViewer oldViewer) {
-    newViewer(oldViewer, null);
+  public static void newViewer() {
+    String cmd = "java -jar ";
+    try {
+      URL url =
+        VncViewer.class.getProtectionDomain().getCodeSource().getLocation();
+      File f = new File(url.toURI());
+      if (!f.exists() || !f.canRead()) {
+        String msg = new String("The jar file "+f.getAbsolutePath()+
+                                " does not exist or cannot be read.");
+        JOptionPane.showMessageDialog(null, msg, "ERROR",
+                                      JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      cmd = cmd.concat(f.getAbsolutePath());
+      Thread t = new Thread(new ExtProcess(cmd, vlog));
+      t.start();
+    } catch (java.net.URISyntaxException e) {
+      vlog.info(e.getMessage());
+    } catch (java.lang.Exception e) {
+      vlog.info(e.getMessage());
+    }
   }
 
   public boolean isAppletDragStart(MouseEvent e) {
@@ -311,7 +314,7 @@ public class VncViewer extends javax.swing.JApplet
 
   public void appletDragStarted() {
     embed.setParam(false);
-    cc.recreateViewport();
+    //cc.recreateViewport();
     JFrame f = (JFrame)JOptionPane.getFrameForComponent(this);
     // The default JFrame created by the drag event will be
     // visible briefly between appletDragStarted and Finished.
@@ -320,7 +323,6 @@ public class VncViewer extends javax.swing.JApplet
   }
 
   public void appletDragFinished() {
-    cc.setEmbeddedFeatures(true);
     JFrame f = (JFrame)JOptionPane.getFrameForComponent(this);
     if (f != null)
       f.dispose();
@@ -331,24 +333,72 @@ public class VncViewer extends javax.swing.JApplet
   }
 
   public void appletRestored() {
-    cc.setEmbeddedFeatures(false);
     cc.setCloseListener(null);
   }
 
-  public void init() {
-    vlog.debug("init called");
-    Container parent = getParent();
-    while (!parent.isFocusCycleRoot()) {
-      parent = parent.getParent();
+  public static void setupEmbeddedFrame(JScrollPane sp) {
+    InputMap im = sp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
+    if (im != null) {
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlAltShiftMask),
+             "unitScrollUp");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlAltShiftMask),
+             "unitScrollDown");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlAltShiftMask),
+             "unitScrollLeft");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlAltShiftMask),
+             "unitScrollRight");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlAltShiftMask),
+             "scrollUp");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlAltShiftMask),
+             "scrollDown");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, ctrlAltShiftMask),
+             "scrollLeft");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, ctrlAltShiftMask),
+             "scrollRight");
     }
-    ((Frame)parent).setModalExclusionType(null);
-    parent.setFocusable(false);
-    parent.setFocusTraversalKeysEnabled(false);
-    setLookAndFeel();
-    setBackground(Color.white);
+    applet.getContentPane().removeAll();
+    applet.getContentPane().add(sp);
+    applet.validate();
   }
 
-  private void getTimestamp() {
+  public void init() {
+    // Called right after zero-arg constructor in applet mode
+    setLookAndFeel();
+    setBackground(Color.white);
+    applet = this;
+    String servername = loadAppletParameters(applet);
+    vncServerName.setParam(servername);
+    alwaysShowServerDialog.setParam(false);
+    if (embed.getValue()) {
+      fullScreen.setParam(false);
+      remoteResize.setParam(false);
+      maximize.setParam(false);
+      scalingFactor.setParam("100");
+    }
+    setFocusTraversalKeysEnabled(false);
+    addFocusListener(new FocusAdapter() {
+      public void focusGained(FocusEvent e) {
+        if (cc != null && cc.desktop != null)
+          cc.desktop.viewport.requestFocusInWindow();
+      }
+    });
+    Frame frame = (Frame)getFocusCycleRootAncestor();
+    frame.setFocusTraversalKeysEnabled(false);
+    frame.addWindowListener(new WindowAdapter() {
+      // Transfer focus to scrollpane when browser receives it
+      public void windowActivated(WindowEvent e) {
+        if (cc != null && cc.desktop != null)
+          cc.desktop.viewport.requestFocusInWindow();
+      }
+      public void windowDeactivated(WindowEvent e) {
+        if (cc != null)
+          cc.releaseDownKeys();
+      }
+    });
+  }
+
+  private static void getTimestamp() {
     if (version == null || build == null) {
       try {
         Manifest manifest = new Manifest(timestamp);
@@ -361,31 +411,40 @@ public class VncViewer extends javax.swing.JApplet
     }
   }
 
+  public static void showAbout(Container parent) {
+    String pkgDate = "";
+    String pkgTime = "";
+    try {
+      Manifest manifest = new Manifest(VncViewer.timestamp);
+      Attributes attributes = manifest.getMainAttributes();
+      pkgDate = attributes.getValue("Package-Date");
+      pkgTime = attributes.getValue("Package-Time");
+    } catch (java.lang.Exception e) { }
+
+    Window fullScreenWindow = DesktopWindow.getFullScreenWindow();
+    if (fullScreenWindow != null)
+      DesktopWindow.setFullScreenWindow(null);
+    String msg =
+      String.format(VncViewer.aboutText, VncViewer.version, VncViewer.build,
+                    VncViewer.buildDate, VncViewer.buildTime);
+    Object[] options = {"Close  \u21B5"};
+    JOptionPane op =
+      new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
+                      JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon, options);
+    JDialog dlg = op.createDialog(parent, "About TigerVNC Viewer for Java");
+    dlg.setIconImage(VncViewer.frameIcon);
+    dlg.setAlwaysOnTop(true);
+    dlg.setVisible(true);
+    if (fullScreenWindow != null)
+      DesktopWindow.setFullScreenWindow(fullScreenWindow);
+  }
+
   public void start() {
-    vlog.debug("start called");
-    getTimestamp();
-    if (embed.getValue() && nViewers == 0) {
-      alwaysShowServerDialog.setParam(false);
-      Configuration.global().readAppletParams(this);
-      fullScreen.setParam(false);
-      scalingFactor.setParam("100");
-      String host = getCodeBase().getHost();
-      if (vncServerName.getValue() == null && vncServerPort.getValue() != 0) {
-        int port = vncServerPort.getValue();
-        vncServerName.setParam(host + ((port >= 5900 && port <= 5999)
-                                       ? (":"+(port-5900))
-                                       : ("::"+port)));
-      }
-    }
-    nViewers++;
     thread = new Thread(this);
     thread.start();
   }
 
   public void exit(int n) {
-    nViewers--;
-    if (nViewers > 0)
-      return;
     if (embed.getValue())
       destroy();
     else
@@ -425,14 +484,13 @@ public class VncViewer extends javax.swing.JApplet
     }
   }
 
-  CConn cc;
   public void run() {
     cc = null;
 
     if (listenMode.getValue()) {
       int port = 5500;
 
-      if (vncServerName.getValue() != null &&
+      if (!vncServerName.getValue().isEmpty() &&
           Character.isDigit(vncServerName.getValue().charAt(0)))
         port = Integer.parseInt(vncServerName.getValue());
 
@@ -446,15 +504,26 @@ public class VncViewer extends javax.swing.JApplet
 
       vlog.info("Listening on port "+port);
 
-      while (true) {
-        Socket new_sock = listener.accept();
-        if (new_sock != null)
-          newViewer(this, new_sock, true);
+      while (sock == null)
+        sock = listener.accept();
+    } else {
+      if (alwaysShowServerDialog.getValue() || sock == null) {
+        if (vncServerName.getValue().isEmpty()) {
+          try {
+            SwingUtilities.invokeAndWait(new ServerDialog());
+          } catch (InvocationTargetException e) {
+            reportException(e);
+          } catch (InterruptedException e) {
+            reportException(e);
+          }
+          if (vncServerName.getValue().isEmpty())
+            exit(0);
+        }
       }
     }
 
     try {
-      cc = new CConn(this, sock, vncServerName.getValue());
+      cc = new CConn(vncServerName.getValue(), sock);
       while (!cc.shuttingDown)
         cc.processMsg();
       exit(0);
@@ -462,7 +531,7 @@ public class VncViewer extends javax.swing.JApplet
       if (cc == null || !cc.shuttingDown) {
         reportException(e);
         if (cc != null)
-          cc.deleteWindow();
+          cc.close();
       } else if (embed.getValue()) {
         reportException(new java.lang.Exception("Connection closed"));
         exit(0);
@@ -471,243 +540,12 @@ public class VncViewer extends javax.swing.JApplet
     }
   }
 
-  static BoolParameter noLionFS
-  = new BoolParameter("NoLionFS",
-  "On Mac systems, setting this parameter will force the use of the old "+
-  "(pre-Lion) full-screen mode, even if the viewer is running on OS X 10.7 "+
-  "Lion or later.",
-  false);
-
-  BoolParameter embed
-  = new BoolParameter("Embed",
-  "If the viewer is being run as an applet, display its output to " +
-  "an embedded frame in the browser window rather than to a dedicated " +
-  "window. Embed=1 implies FullScreen=0 and Scale=100.",
-  false);
-
-  BoolParameter useLocalCursor
-  = new BoolParameter("UseLocalCursor",
-                      "Render the mouse cursor locally",
-                      true);
-  BoolParameter sendLocalUsername
-  = new BoolParameter("SendLocalUsername",
-                      "Send the local username for SecurityTypes "+
-                      "such as Plain rather than prompting",
-                      true);
-  StringParameter passwordFile
-  = new StringParameter("PasswordFile",
-                        "Password file for VNC authentication",
-                        "");
-  AliasParameter passwd
-  = new AliasParameter("passwd",
-                       "Alias for PasswordFile",
-                       passwordFile);
-  BoolParameter autoSelect
-  = new BoolParameter("AutoSelect",
-                      "Auto select pixel format and encoding",
-                      true);
-  BoolParameter fullColour
-  = new BoolParameter("FullColour",
-                      "Use full colour - otherwise 6-bit colour is "+
-                      "used until AutoSelect decides the link is "+
-                      "fast enough",
-                      true);
-  AliasParameter fullColourAlias
-  = new AliasParameter("FullColor",
-                       "Alias for FullColour",
-                       fullColour);
-  IntParameter lowColourLevel
-  = new IntParameter("LowColorLevel",
-                     "Color level to use on slow connections. "+
-                     "0 = Very Low (8 colors), 1 = Low (64 colors), "+
-                     "2 = Medium (256 colors)",
-                     2);
-  AliasParameter lowColourLevelAlias
-  = new AliasParameter("LowColourLevel",
-                       "Alias for LowColorLevel",
-                       lowColourLevel);
-  StringParameter preferredEncoding
-  = new StringParameter("PreferredEncoding",
-                        "Preferred encoding to use (Tight, ZRLE, "+
-                        "hextile or raw) - implies AutoSelect=0",
-                        "Tight");
-  BoolParameter viewOnly
-  = new BoolParameter("ViewOnly",
-                      "Don't send any mouse or keyboard events to "+
-                      "the server",
-                      false);
-  BoolParameter shared
-  = new BoolParameter("Shared",
-                      "Don't disconnect other viewers upon "+
-                      "connection - share the desktop instead",
-                      false);
-  BoolParameter fullScreen
-  = new BoolParameter("FullScreen",
-                      "Full Screen Mode",
-                      false);
-  BoolParameter fullScreenAllMonitors
-  = new BoolParameter("FullScreenAllMonitors",
-                      "Enable full screen over all monitors",
-                      true);
-  BoolParameter acceptClipboard
-  = new BoolParameter("AcceptClipboard",
-                      "Accept clipboard changes from the server",
-                      true);
-  BoolParameter sendClipboard
-  = new BoolParameter("SendClipboard",
-                      "Send clipboard changes to the server",
-                      true);
-  static IntParameter maxCutText
-  = new IntParameter("MaxCutText",
-                     "Maximum permitted length of an outgoing clipboard update",
-                     262144);
-  StringParameter menuKey
-  = new StringParameter("MenuKey",
-                        "The key which brings up the popup menu",
-                        "F8");
-  StringParameter desktopSize
-  = new StringParameter("DesktopSize",
-                        "Reconfigure desktop size on the server on "+
-                        "connect (if possible)", "");
-  BoolParameter listenMode
-  = new BoolParameter("listen",
-                      "Listen for connections from VNC servers",
-                      false);
-  StringParameter scalingFactor
-  = new StringParameter("ScalingFactor",
-                        "Reduce or enlarge the remote desktop image. "+
-                        "The value is interpreted as a scaling factor "+
-                        "in percent. If the parameter is set to "+
-                        "\"Auto\", then automatic scaling is "+
-                        "performed. Auto-scaling tries to choose a "+
-                        "scaling factor in such a way that the whole "+
-                        "remote desktop will fit on the local screen. "+
-                        "If the parameter is set to \"FixedRatio\", "+
-                        "then automatic scaling is performed, but the "+
-                        "original aspect ratio is preserved.",
-                        "100");
-  BoolParameter alwaysShowServerDialog
-  = new BoolParameter("AlwaysShowServerDialog",
-                      "Always show the server dialog even if a server "+
-                      "has been specified in an applet parameter or on "+
-                      "the command line",
-                      false);
-  StringParameter vncServerName
-  = new StringParameter("Server",
-                        "The VNC server <host>[:<dpyNum>] or "+
-                        "<host>::<port>",
-                        null);
-  IntParameter vncServerPort
-  = new IntParameter("Port",
-                     "The VNC server's port number, assuming it is on "+
-                     "the host from which the applet was downloaded",
-                     0);
-  BoolParameter acceptBell
-  = new BoolParameter("AcceptBell",
-                      "Produce a system beep when requested to by the server.",
-                      true);
-  StringParameter via
-  = new StringParameter("Via",
-    "Automatically create an encrypted TCP tunnel to "+
-    "the gateway machine, then connect to the VNC host "+
-    "through that tunnel. By default, this option invokes "+
-    "SSH local port forwarding using the embedded JSch "+
-    "client, however an external SSH client may be specified "+
-    "using the \"-extSSH\" parameter. Note that when using "+
-    "the -via option, the VNC host machine name should be "+
-    "specified from the point of view of the gateway machine, "+
-    "e.g. \"localhost\" denotes the gateway, "+
-    "not the machine on which the viewer was launched. "+
-    "See the System Properties section below for "+
-    "information on configuring the -Via option.", null);
-  BoolParameter tunnel
-  = new BoolParameter("Tunnel",
-    "The -Tunnel command is basically a shorthand for the "+
-    "-via command when the VNC server and SSH gateway are "+
-    "one and the same. -Tunnel creates an SSH connection "+
-    "to the server and forwards the VNC through the tunnel "+
-    "without the need to specify anything else.", false);
-  BoolParameter extSSH
-  = new BoolParameter("extSSH",
-    "By default, SSH tunneling uses the embedded JSch client "+
-    "for tunnel creation. This option causes the client to "+
-    "invoke an external SSH client application for all tunneling "+
-    "operations. By default, \"/usr/bin/ssh\" is used, however "+
-    "the path to the external application may be specified using "+
-    "the -SSHClient option.", false);
-  StringParameter extSSHClient
-  = new StringParameter("extSSHClient",
-    "Specifies the path to an external SSH client application "+
-    "that is to be used for tunneling operations when the -extSSH "+
-    "option is in effect.", "/usr/bin/ssh");
-  StringParameter extSSHArgs
-  = new StringParameter("extSSHArgs",
-    "Specifies the arguments string or command template to be used "+
-    "by the external SSH client application when the -extSSH option "+
-    "is in effect. The string will be processed according to the same "+
-    "pattern substitution rules as the VNC_TUNNEL_CMD and VNC_VIA_CMD "+
-    "system properties, and can be used to override those in a more "+
-    "command-line friendly way. If not specified, then the appropriate "+
-    "VNC_TUNNEL_CMD or VNC_VIA_CMD command template will be used.", null);
-  StringParameter sshConfig
-  = new StringParameter("SSHConfig",
-    "Specifies the path to an OpenSSH configuration file that to "+
-    "be parsed by the embedded JSch SSH client during tunneling "+
-    "operations.", FileUtils.getHomeDir()+".ssh/config");
-  StringParameter sshKey
-  = new StringParameter("SSHKey",
-    "When using the Via or Tunnel options with the embedded SSH client, "+
-    "this parameter specifies the text of the SSH private key to use when "+
-    "authenticating with the SSH server. You can use \\n within the string "+
-    "to specify a new line.", null);
-  StringParameter sshKeyFile
-  = new StringParameter("SSHKeyFile",
-    "When using the Via or Tunnel options with the embedded SSH client, "+
-    "this parameter specifies a file that contains an SSH private key "+
-    "(or keys) to use when authenticating with the SSH server. If not "+
-    "specified, ~/.ssh/id_dsa or ~/.ssh/id_rsa will be used (if they exist). "+
-    "Otherwise, the client will fallback to prompting for an SSH password.",
-    null);
-  StringParameter sshKeyPass
-  = new StringParameter("SSHKeyPass",
-    "When using the Via or Tunnel options with the embedded SSH client, "+
-    "this parameter specifies the passphrase for the SSH key.", null);
-  BoolParameter customCompressLevel
-  = new BoolParameter("CustomCompressLevel",
-                      "Use custom compression level. "+
-                      "Default if CompressLevel is specified.",
-                      false);
-  IntParameter compressLevel
-  = new IntParameter("CompressLevel",
-                     "Use specified compression level "+
-                     "0 = Low, 6 = High",
-                     1);
-  BoolParameter noJpeg
-  = new BoolParameter("NoJPEG",
-                      "Disable lossy JPEG compression in Tight encoding.",
-                      false);
-  IntParameter qualityLevel
-  = new IntParameter("QualityLevel",
-                     "JPEG quality level. "+
-                     "0 = Low, 9 = High",
-                     8);
-  StringParameter x509ca
-  = new StringParameter("X509CA",
-    "Path to CA certificate to use when authenticating remote servers "+
-    "using any of the X509 security schemes (X509None, X509Vnc, etc.). "+
-    "Must be in PEM format.",
-    FileUtils.getHomeDir()+".vnc/x509_ca.pem");
-  StringParameter x509crl
-  = new StringParameter("X509CRL",
-    "Path to certificate revocation list to use in conjunction with "+
-    "-X509CA. Must also be in PEM format.",
-    FileUtils.getHomeDir()+".vnc/x509_crl.pem");
-  StringParameter config
-  = new StringParameter("config",
+  public static CConn cc;
+  public static StringParameter config
+  = new StringParameter("Config",
   "Specifies a configuration file to load.", null);
 
   Thread thread;
   Socket sock;
-  static int nViewers;
   static LogWriter vlog = new LogWriter("VncViewer");
 }

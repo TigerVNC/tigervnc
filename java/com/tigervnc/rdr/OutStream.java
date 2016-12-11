@@ -116,6 +116,17 @@ abstract public class OutStream {
     }
   }
 
+  // copyBytes() efficiently transfers data between streams
+
+  public void copyBytes(InStream is, int length) {
+    while (length > 0) {
+      int n = check(1, length);
+      is.readBytes(b, ptr, n);
+      ptr += n;
+      length -= n;
+    }
+  }
+
   // writeOpaqueN() writes a quantity without byte-swapping.  Because java has
   // no byte-ordering, we just use big-endian.
 

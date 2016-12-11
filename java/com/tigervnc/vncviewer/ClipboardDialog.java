@@ -26,83 +26,125 @@ import java.io.*;
 import java.nio.*;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.*;
 import javax.swing.text.*;
 
 import com.tigervnc.rfb.LogWriter;
 
+import static com.tigervnc.vncviewer.Parameters.*;
+
 class ClipboardDialog extends Dialog {
 
-  private class VncTransferHandler extends TransferHandler {
-    // Custom TransferHandler designed to limit the size of outbound
-    // clipboard transfers to VncViewer.maxCutText.getValue() bytes.
-    private LogWriter vlog = new LogWriter("VncTransferHandler");
+  protected static class MyJTextArea extends JTextArea {
 
-    public void exportToClipboard(JComponent c, Clipboard clip, int a)
-        throws IllegalStateException {
-      if (!(c instanceof JTextComponent)) return;
-      StringSelection selection =
-        new StringSelection(((JTextComponent)c).getText());
-      clip.setContents(selection, null);
-    }
+	  private class VncTransferHandler extends TransferHandler {
+	    // Custom TransferHandler designed to limit the size of outbound
+	    // clipboard transfers to VncViewer.maxCutText.getValue() bytes.
+	    private LogWriter vlog = new LogWriter("VncTransferHandler");
 
-    public boolean importData(JComponent c, Transferable t) {
-      if (canImport(c, t.getTransferDataFlavors())) {
+	    public void exportToClipboard(JComponent c, Clipboard clip, int a)
+	        throws IllegalStateException {
+	      if (!(c instanceof JTextComponent)) return;
+        String text = ((JTextComponent)c).getText();
         try {
-          DataFlavor VncFlavor = null;
-          for (DataFlavor f : t.getTransferDataFlavors())
-            if (f.isFlavorTextType() && f.isRepresentationClassInputStream())
-              VncFlavor = f;
-          if (VncFlavor == null) return false;
-          Reader reader = (Reader)VncFlavor.getReaderForText(t);
-          CharBuffer cbuf =
-            CharBuffer.allocate(VncViewer.maxCutText.getValue());
-          cbuf.limit(reader.read(cbuf.array(), 0, cbuf.length()));
-          reader.close();
-          if (c instanceof JTextComponent)
-            ((JTextComponent)c).setText(cbuf.toString());
-          return true;
-        } catch (OutOfMemoryError oome) {
-          vlog.error("ERROR: Too much data on local clipboard!");
-        } catch (UnsupportedFlavorException ufe) {
-          // Skip import
-          vlog.info(ufe.toString());
-        } catch (IOException ioe) {
-          // Skip import
-          vlog.info(ioe.toString());
+          if (text.equals((String)clip.getData(DataFlavor.stringFlavor))) return;
+        } catch (IOException e) {
+          // worst case we set the clipboard contents unnecessarily
+	        vlog.info(e.toString());
+        } catch (UnsupportedFlavorException e) {
+          // worst case we set the clipboard contents unnecessarily
+	        vlog.info(e.toString());
         }
-      }
-      return false;
-    }
+	      StringSelection selection = new StringSelection(text);
+	      clip.setContents(selection, null);
+	    }
 
-    public boolean canImport(JComponent c, DataFlavor[] flavors) {
-      for (DataFlavor f : flavors)
-        if (f.isFlavorTextType() && f.isRepresentationClassReader())
-          return true;
-      return false;
+	    public boolean importData(JComponent c, Transferable t) {
+	      if (canImport(c, t.getTransferDataFlavors())) {
+	        try {
+	          DataFlavor VncFlavor = null;
+	          for (DataFlavor f : t.getTransferDataFlavors()) {
+	            if (f.isMimeTypeEqual("text/plain") &&
+                  f.isRepresentationClassInputStream()) {
+	              VncFlavor = f;
+                break;
+              }
+            }
+	          if (VncFlavor == null) return false;
+	          CharBuffer cbuf =
+	            CharBuffer.allocate(maxCutText.getValue());
+	          Reader reader = (Reader)VncFlavor.getReaderForText(t);
+            int n = reader.read(cbuf.array(), 0, cbuf.length());
+	          reader.close();
+            // reader returns -1 (EOF) for empty clipboard
+            cbuf.limit(n < 0 ? 0 : n);
+	          if (c instanceof JTextComponent)
+              if (!cbuf.toString().equals(((JTextComponent)c).getText()))
+	              ((JTextComponent)c).setText(cbuf.toString());
+	          return true;
+	        } catch (OutOfMemoryError e) {
+	          vlog.error("ERROR: Too much data on local clipboard!");
+	        } catch (UnsupportedFlavorException e) {
+	          // Skip import
+	          vlog.info(e.toString());
+	        } catch (IOException e) {
+	          // Skip import
+	          vlog.info(e.toString());
+	        }
+	      }
+	      return false;
+	    }
+
+	    public boolean canImport(JComponent c, DataFlavor[] flavors) {
+	      for (DataFlavor f : flavors)
+	        if (f.isMimeTypeEqual("text/plain") &&
+              f.isRepresentationClassReader())
+	          return true;
+	      return false;
+	    }
+	  }
+
+	  private class MyTextListener implements DocumentListener {
+	    public MyTextListener() { }
+
+	    public void changedUpdate(DocumentEvent e) { } 
+
+	    public void insertUpdate(DocumentEvent e) {
+        if (!listen) return;
+	      String text = textArea.getText();
+	      if (sendClipboard.getValue())
+	        VncViewer.cc.writeClientCutText(text, text.length());
+	    }
+
+	    public void removeUpdate(DocumentEvent e) { }
+	  }
+
+    public MyJTextArea() {
+      super();
+      setTransferHandler(new VncTransferHandler());
+      getDocument().addDocumentListener(new MyTextListener());
+      // If the textArea can receive the focus, then text within the textArea
+      // can be selected.  On platforms that don't support separate selection
+      // and clipboard buffers, this triggers a replacement of the textAra's
+      // contents with the selected text.
+      setFocusable(false);
+      setLineWrap(false);
+      setWrapStyleWord(true);
     }
   }
 
-  public ClipboardDialog(CConn cc_) {
+  public ClipboardDialog() {
     super(false);
     setTitle("VNC Clipboard Viewer");
     setPreferredSize(new Dimension(640, 480));
-    addWindowFocusListener(new WindowAdapter() {
+    addWindowFocusListener(new WindowFocusListener() {
       // Necessary to ensure that updates from the system clipboard
-      // still occur when the ClipboardDialog has the focus.
-      public void WindowGainedFocus(WindowEvent e) {
+      // are propagated to the textArea when the dialog is visible.
+      public void windowGainedFocus(WindowEvent e) {
         clientCutText();
       }
+      public void windowLostFocus(WindowEvent e) { }
     });
-    cc = cc_;
-    textArea = new JTextArea();
-    textArea.setTransferHandler(new VncTransferHandler());
-    // If the textArea can receive the focus, then text within the textArea
-    // can be selected.  On platforms that don't support separate selection
-    // and clipboard buffers, this triggers a replacement of the textAra's
-    // contents with the selected text.
-    textArea.setFocusable(false);
-    textArea.setLineWrap(false);
-    textArea.setWrapStyleWord(true);
     JScrollPane sp = new JScrollPane(textArea);
     getContentPane().add(sp, BorderLayout.CENTER);
     // button panel placed below the scrollpane
@@ -118,19 +160,40 @@ class ClipboardDialog extends Dialog {
     pack();
   }
 
-  public void serverCutText(String str, int len) {
-    textArea.setText(str);
-    textArea.copy();
+  public static void showDialog(Container c) {
+    if (dialog == null)
+      dialog = new ClipboardDialog();
+    dialog.show(c);
   }
 
-  public void clientCutText() {
-    int hc = textArea.getText().hashCode();
+  public void show(Container c) {
+    super.showDialog(c);
+  }
+
+  public void endDialog() {
+    super.endDialog();
+    dialog.dispose();
+  }
+
+  public static void serverCutText(String str) {
+    if (textArea.getText().equals(str))
+      return;
+    // Update the text area with incoming serverCutText.  We need to diable
+    // the DocumentListener temporarily to prevent an clientCutText msg from
+    // being sent back to the server when the textArea is updated.
+    listen = false;
+    textArea.setText(str);
+    textArea.copy();
+    listen = true;
+  }
+
+  public static void clientCutText() {
+    // Update the textArea with the current contents of the system clipboard.
+    // The TransferHandler ensures that the textArea's contents are only 
+    // changed when they differ from the clipboard's.  If the textArea is
+    // updated, the DocumentListener will trigger an RFB clientCutText msg.
     textArea.paste();
     textArea.setCaretPosition(0);
-    String text = textArea.getText();
-    if (cc.viewer.sendClipboard.getValue())
-      if (hc != text.hashCode())
-        cc.writeClientCutText(text, text.length());
   }
 
   public void setSendingEnabled(boolean b) {
@@ -140,18 +203,20 @@ class ClipboardDialog extends Dialog {
   public void actionPerformed(ActionEvent e) {
     Object s = e.getSource();
     if (s instanceof JButton && (JButton)s == clearButton) {
-      serverCutText(new String(""), 0);
+      serverCutText(new String(""));
     } else if (s instanceof JButton && (JButton)s == sendButton) {
       String text = textArea.getText();
-      cc.writeClientCutText(text, text.length());
+      VncViewer.cc.writeClientCutText(text, text.length());
       endDialog();
     } else if (s instanceof JButton && (JButton)s == cancelButton) {
       endDialog();
     }
   }
 
-  CConn cc;
-  JTextArea textArea;
-  JButton clearButton, sendButton, cancelButton;
+  private JButton clearButton, sendButton, cancelButton;
+  private static boolean listen = true;
+  static ClipboardDialog dialog;
+  static MyJTextArea textArea = new MyJTextArea();
+  static Toolkit tk = Toolkit.getDefaultToolkit();
   static LogWriter vlog = new LogWriter("ClipboardDialog");
 }
