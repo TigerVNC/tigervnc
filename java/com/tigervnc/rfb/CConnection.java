@@ -19,7 +19,11 @@
 
 package com.tigervnc.rfb;
 
+import java.awt.color.*;
+import java.awt.image.*;
+import java.nio.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.tigervnc.network.*;
 import com.tigervnc.rdr.*;
@@ -28,21 +32,86 @@ abstract public class CConnection extends CMsgHandler {
 
   public CConnection()
   {
-    csecurity = null; is = null; os = null; reader_ = null;
-    writer_ = null; shared = false;
+    super();
+    csecurity = null; is = null; os = null; reader_ = null; writer_ = null;
+    shared = false;
     state_ = RFBSTATE_UNINITIALISED; useProtocol3_3 = false;
+    framebuffer = null; decoder = new DecodeManager(this);
     security = new SecurityClient();
   }
 
-  // deleteReaderAndWriter() deletes the reader and writer associated with
-  // this connection.  This may be useful if you want to delete the streams
-  // before deleting the SConnection to make sure that no attempt by the
-  // SConnection is made to read or write.
-  // XXX Do we really need this at all???
-  public void deleteReaderAndWriter()
+  // Methods to initialise the connection
+
+  // setServerName() is used to provide a unique(ish) name for the server to
+  // which we are connected.  This might be the result of getPeerEndpoint on
+  // a TcpSocket, for example, or a host specified by DNS name & port.
+  // The serverName is used when verifying the Identity of a host (see RA2).
+  public final void setServerName(String name) {
+    serverName = name;
+  }
+
+  // setShared sets the value of the shared flag which will be sent to the
+  // server upon initialisation.
+  public final void setShared(boolean s) { shared = s; }
+
+  // setProtocol3_3 configures whether or not the CConnection should
+  // only ever support protocol version 3.3
+  public final void setProtocol3_3(boolean s) { useProtocol3_3 = s; }
+
+  // setStreams() sets the streams to be used for the connection.  These must
+  // be set before initialiseProtocol() and processMsg() are called.  The
+  // CSecurity object may call setStreams() again to provide alternative
+  // streams over which the RFB protocol is sent (i.e. encrypting/decrypting
+  // streams).  Ownership of the streams remains with the caller
+  // (i.e. SConnection will not delete them).
+  public final void setStreams(InStream is_, OutStream os_)
   {
-    reader_ = null;
-    writer_ = null;
+    is = is_;
+    os = os_;
+  }
+
+  // setFramebuffer configures the PixelBuffer that the CConnection
+  // should render all pixel data in to. Note that the CConnection
+  // takes ownership of the PixelBuffer and it must not be deleted by
+  // anyone else. Call setFramebuffer again with NULL or a different
+  // PixelBuffer to delete the previous one.
+  public void setFramebuffer(ModifiablePixelBuffer fb)
+  {
+    decoder.flush();
+
+    if ((framebuffer != null) && (fb != null)) {
+      Rect rect = new Rect();
+
+      Raster data;
+
+      byte[] black = new byte[4];
+
+      // Copy still valid area
+
+      rect.setXYWH(0, 0,
+                   Math.min(fb.width(), framebuffer.width()),
+                   Math.min(fb.height(), framebuffer.height()));
+      data = framebuffer.getBuffer(rect);
+      fb.imageRect(framebuffer.getPF(), rect, data);
+
+      // Black out any new areas
+
+      if (fb.width() > framebuffer.width()) {
+        rect.setXYWH(framebuffer.width(), 0,
+                     fb.width() - framebuffer.width(),
+                     fb.height());
+        fb.fillRect(rect, black);
+      }
+
+      if (fb.height() > framebuffer.height()) {
+        rect.setXYWH(0, framebuffer.height(),
+                     fb.width(),
+                     fb.height() - framebuffer.height());
+        fb.fillRect(rect, black);
+      }
+    }
+
+    framebuffer = fb;
   }
 
   // initialiseProtocol() should be called once the streams and security
@@ -75,11 +144,12 @@ abstract public class CConnection extends CMsgHandler {
   private void processVersionMsg()
   {
     vlog.debug("reading protocol version");
-    if (!cp.readVersion(is)) {
+    AtomicBoolean done = new AtomicBoolean();
+    if (!cp.readVersion(is, done)) {
       state_ = RFBSTATE_INVALID;
       throw new Exception("reading version failed: not an RFB server?");
     }
-    if (!cp.done) return;
+    if (!done.get()) return;
 
     vlog.info("Server supports RFB protocol version "
               +cp.majorVersion+"."+ cp.minorVersion);
@@ -241,52 +311,30 @@ abstract public class CConnection extends CMsgHandler {
 
   private void securityCompleted() {
     state_ = RFBSTATE_INITIALISATION;
-    reader_ = new CMsgReaderV3(this, is);
-    writer_ = new CMsgWriterV3(cp, os);
+    reader_ = new CMsgReader(this, is);
+    writer_ = new CMsgWriter(cp, os);
     vlog.debug("Authentication success!");
     authSuccess();
     writer_.writeClientInit(shared);
   }
 
-  // Methods to initialise the connection
-
-  // setServerName() is used to provide a unique(ish) name for the server to
-  // which we are connected.  This might be the result of getPeerEndpoint on
-  // a TcpSocket, for example, or a host specified by DNS name & port.
-  // The serverName is used when verifying the Identity of a host (see RA2).
-  public final void setServerName(String name) {
-    serverName = name;
-  }
-
-  // setStreams() sets the streams to be used for the connection.  These must
-  // be set before initialiseProtocol() and processMsg() are called.  The
-  // CSecurity object may call setStreams() again to provide alternative
-  // streams over which the RFB protocol is sent (i.e. encrypting/decrypting
-  // streams).  Ownership of the streams remains with the caller
-  // (i.e. SConnection will not delete them).
-  public final void setStreams(InStream is_, OutStream os_)
-  {
-    is = is_;
-    os = os_;
-  }
-
-  // setShared sets the value of the shared flag which will be sent to the
-  // server upon initialisation.
-  public final void setShared(boolean s) { shared = s; }
-
-  // setProtocol3_3 configures whether or not the CConnection should
-  // only ever support protocol version 3.3
-  public final void setProtocol3_3(boolean s) { useProtocol3_3 = s; }
-
-  public void setServerPort(int port) {
-    serverPort = port;
-  }
-
-  public void initSecTypes() {
-    nSecTypes = 0;
-  }
-
   // Methods to be overridden in a derived class
+
+  // Note: These must be called by any deriving classes
+
+  public void setDesktopSize(int w, int h) {
+    decoder.flush();
+
+    super.setDesktopSize(w,h);
+  }
+
+  public void setExtendedDesktopSize(int reason,
+                                     int result, int w, int h,
+                                     ScreenSet layout) {
+    decoder.flush();
+
+    super.setExtendedDesktopSize(reason, result, w, h, layout);
+  }
 
   // getIdVerifier() returns the identity verifier associated with the connection.
   // Ownership of the IdentityVerifier is retained by the CConnection instance.
@@ -299,11 +347,20 @@ abstract public class CConnection extends CMsgHandler {
 
   public void framebufferUpdateEnd()
   {
+    decoder.flush();
+
     super.framebufferUpdateEnd();
   }
 
+  public void dataRect(Rect r, int encoding)
+  {
+    decoder.decodeRect(r, encoding, framebuffer);
+  }
+
   // authSuccess() is called when authentication has succeeded.
-  public void authSuccess() {}
+  public void authSuccess()
+  {
+  }
 
   // serverInit() is called when the ServerInit message is received.  The
   // derived class must call on to CConnection::serverInit().
@@ -313,34 +370,17 @@ abstract public class CConnection extends CMsgHandler {
     vlog.debug("initialisation done");
   }
 
-  // getCSecurity() gets the CSecurity object for the given type.  The type
-  // is guaranteed to be one of the secTypes passed in to addSecType().  The
-  // CSecurity object's destroy() method will be called by the CConnection
-  // from its destructor.
-  //abstract public CSecurity getCSecurity(int secType);
-
-  // getCurrentCSecurity() gets the CSecurity instance used for this
-  // connection.
-  //public CSecurity getCurrentCSecurity() { return security; }
-
-  // setClientSecTypeOrder() determines whether the client should obey the
-  // server's security type preference, by picking the first server security
-  // type that the client supports, or whether it should pick the first type
-  // that the server supports, from the client-supported list of types.
-  public void setClientSecTypeOrder( boolean csto ) {
-    clientSecTypeOrder = csto;
-  }
-
   // Other methods
 
-  public CMsgReaderV3 reader() { return reader_; }
-  public CMsgWriterV3 writer() { return writer_; }
+  public CMsgReader reader() { return reader_; }
+  public CMsgWriter writer() { return writer_; }
 
   public InStream getInStream() { return is; }
   public OutStream getOutStream() { return os; }
 
+  // Access method used by SSecurity implementations that can verify servers'
+  // Identities, to determine the unique(ish) name of the server.
   public String getServerName() { return serverName; }
-  public int getServerPort() { return serverPort; }
 
   public static final int RFBSTATE_UNINITIALISED = 0;
   public static final int RFBSTATE_PROTOCOL_VERSION = 1;
@@ -353,7 +393,17 @@ abstract public class CConnection extends CMsgHandler {
 
   public int state() { return state_; }
 
-  protected final void setState(int s) { state_ = s; }
+  public int getServerPort() { return serverPort; }
+  public void setServerPort(int port) {
+    serverPort = port;
+  }
+
+  protected void setState(int s) { state_ = s; }
+
+  protected void setReader(CMsgReader r) { reader_ = r; }
+  protected void setWriter(CMsgWriter w) { writer_ = w; }
+
+  protected ModifiablePixelBuffer getFramebuffer() { return framebuffer; }
 
   public void fence(int flags, int len, byte[] data)
   {
@@ -383,20 +433,27 @@ abstract public class CConnection extends CMsgHandler {
     throw new AuthFailureException(reason);
   }
 
-  InStream is;
-  OutStream os;
-  CMsgReaderV3 reader_;
-  CMsgWriterV3 writer_;
-  boolean shared;
+  private InStream is;
+  private OutStream os;
+  private CMsgReader reader_;
+  private CMsgWriter writer_;
+  private boolean deleteStreamsWhenDone;
+  private boolean shared;
+  private int state_ = RFBSTATE_UNINITIALISED;
+
+  private String serverName;
+
+  private boolean useProtocol3_3;
+
+  protected ModifiablePixelBuffer framebuffer;
+  private DecodeManager decoder;
+
   public CSecurity csecurity;
   public SecurityClient security;
   public static final int maxSecTypes = 8;
   int nSecTypes;
   int[] secTypes;
-  int state_ = RFBSTATE_UNINITIALISED;
-  String serverName;
   int serverPort;
-  boolean useProtocol3_3;
   boolean clientSecTypeOrder;
 
   static LogWriter vlog = new LogWriter("CConnection");

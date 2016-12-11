@@ -159,20 +159,6 @@ abstract public class InStream {
     }
   }
 
-  public final int readCompactLength() {
-    int b = readU8();
-    int result = b & 0x7F;
-    if ((b & 0x80) != 0) {
-      b = readU8();
-      result |= (b & 0x7F) << 7;
-      if ((b & 0x80) != 0) {
-        b = readU8();
-        result |= (b & 0xFF) << 14;
-      }
-    }
-    return result;
-  }
-
   // pos() returns the position in the stream.
 
   abstract public int pos();

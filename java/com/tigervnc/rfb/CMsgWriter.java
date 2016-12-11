@@ -20,13 +20,23 @@
 
 package com.tigervnc.rfb;
 
+import com.tigervnc.rdr.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import com.tigervnc.rdr.*;
+import java.util.Iterator;
 
-abstract public class CMsgWriter {
+public class CMsgWriter {
 
-  abstract public void writeClientInit(boolean shared);
+  protected CMsgWriter(ConnParams cp_, OutStream os_)
+  {
+    cp = cp_;
+    os = os_;
+  }
+
+  synchronized public void writeClientInit(boolean shared) {
+    os.writeU8(shared?1:0);
+    endMsg();
+  }
 
   synchronized public void writeSetPixelFormat(PixelFormat pf)
   {
@@ -53,6 +63,7 @@ abstract public class CMsgWriter {
   {
     int nEncodings = 0;
     int[] encodings = new int[Encodings.encodingMax+3];
+
     if (cp.supportsLocalCursor)
       encodings[nEncodings++] = Encodings.pseudoEncodingCursor;
     if (cp.supportsDesktopResize)
@@ -67,7 +78,6 @@ abstract public class CMsgWriter {
     encodings[nEncodings++] = Encodings.pseudoEncodingLastRect;
     encodings[nEncodings++] = Encodings.pseudoEncodingContinuousUpdates;
     encodings[nEncodings++] = Encodings.pseudoEncodingFence;
-
 
     if (Decoder.supported(preferredEncoding)) {
       encodings[nEncodings++] = preferredEncoding;
@@ -98,9 +108,11 @@ abstract public class CMsgWriter {
     // Remaining encodings
     for (int i = Encodings.encodingMax; i >= 0; i--) {
       switch (i) {
+      case Encodings.encodingCopyRect:
       case Encodings.encodingTight:
       case Encodings.encodingZRLE:
       case Encodings.encodingHextile:
+        /* These have already been sent earlier */
         break;
       default:
         if ((i != preferredEncoding) && Decoder.supported(i))
@@ -108,14 +120,43 @@ abstract public class CMsgWriter {
       }
     }
 
-    encodings[nEncodings++] = Encodings.pseudoEncodingLastRect;
-    if (cp.customCompressLevel && cp.compressLevel >= 0 && cp.compressLevel <= 9)
-      encodings[nEncodings++] = Encodings.pseudoEncodingCompressLevel0 + cp.compressLevel;
-    if (!cp.noJpeg && cp.qualityLevel >= 0 && cp.qualityLevel <= 9)
-      encodings[nEncodings++] = Encodings.pseudoEncodingQualityLevel0 + cp.qualityLevel;
+    if (cp.compressLevel >= 0 && cp.compressLevel <= 9)
+      encodings[nEncodings++] =
+        Encodings.pseudoEncodingCompressLevel0 + cp.compressLevel;
+    if (cp.qualityLevel >= 0 && cp.qualityLevel <= 9)
+      encodings[nEncodings++] =
+        Encodings.pseudoEncodingQualityLevel0 + cp.qualityLevel;
 
     writeSetEncodings(nEncodings, encodings);
   }
+
+  synchronized public void writeSetDesktopSize(int width, int height,
+                                               ScreenSet layout)
+	{
+	  if (!cp.supportsSetDesktopSize)
+	    throw new Exception("Server does not support SetDesktopSize");
+
+	  startMsg(MsgTypes.msgTypeSetDesktopSize);
+	  os.pad(1);
+
+	  os.writeU16(width);
+	  os.writeU16(height);
+
+	  os.writeU8(layout.num_screens());
+	  os.pad(1);
+
+    for (Iterator<Screen> iter = layout.screens.iterator(); iter.hasNext(); ) {
+      Screen refScreen = (Screen)iter.next();
+	    os.writeU32(refScreen.id);
+	    os.writeU16(refScreen.dimensions.tl.x);
+	    os.writeU16(refScreen.dimensions.tl.y);
+	    os.writeU16(refScreen.dimensions.width());
+	    os.writeU16(refScreen.dimensions.height());
+	    os.writeU32(refScreen.flags);
+	  }
+
+	  endMsg();
+	}
 
   synchronized public void writeFramebufferUpdateRequest(Rect r, boolean incremental)
   {
@@ -125,6 +166,44 @@ abstract public class CMsgWriter {
     os.writeU16(r.tl.y);
     os.writeU16(r.width());
     os.writeU16(r.height());
+    endMsg();
+  }
+
+  synchronized public void writeEnableContinuousUpdates(boolean enable,
+                                           int x, int y, int w, int h)
+  {
+    if (!cp.supportsContinuousUpdates)
+      throw new Exception("Server does not support continuous updates");
+
+    startMsg(MsgTypes.msgTypeEnableContinuousUpdates);
+
+    os.writeU8((enable?1:0));
+
+    os.writeU16(x);
+    os.writeU16(y);
+    os.writeU16(w);
+    os.writeU16(h);
+
+    endMsg();
+  }
+
+  synchronized public void writeFence(int flags, int len, byte[] data)
+  {
+    if (!cp.supportsFence)
+      throw new Exception("Server does not support fences");
+    if (len > 64)
+      throw new Exception("Too large fence payload");
+    if ((flags & ~fenceTypes.fenceFlagsSupported) != 0)
+      throw new Exception("Unknown fence flags");
+
+    startMsg(MsgTypes.msgTypeClientFence);
+    os.pad(3);
+
+    os.writeU32(flags);
+
+    os.writeU8(len);
+    os.writeBytes(data, 0, len);
+
     endMsg();
   }
 
@@ -163,17 +242,14 @@ abstract public class CMsgWriter {
     endMsg();
   }
 
-  abstract public void startMsg(int type);
-  abstract public void endMsg();
+  synchronized public void startMsg(int type) {
+    os.writeU8(type);
+  }
 
-  synchronized public void setOutStream(OutStream os_) { os = os_; }
-
-  ConnParams getConnParams() { return cp; }
-  OutStream getOutStream() { return os; }
-
-  protected CMsgWriter(ConnParams cp_, OutStream os_) {cp = cp_; os = os_;}
+  synchronized public void endMsg() {
+    os.flush();
+  }
 
   ConnParams cp;
   OutStream os;
-  static LogWriter vlog = new LogWriter("CMsgWriter");
 }

@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2012 Brian P. Hinz
+ * Copyright (C) 2012-2016 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,21 @@
 package com.tigervnc.rfb;
 
 import com.tigervnc.rdr.*;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConnParams {
-  static LogWriter vlog = new LogWriter("ConnParams");
 
-  public ConnParams() {
+  private static final int subsampleUndefined = -1;
+  private static final int subsampleNone = 0;
+  private static final int subsampleGray = 1;
+  private static final int subsample2X = 2;
+  private static final int subsample4X = 3;
+  private static final int subsample8X = 4;
+  private static final int subsample16X = 5;
+
+  public ConnParams()
+  {
     majorVersion = 0; minorVersion = 0;
     width = 0; height = 0; useCopyRect = false;
     supportsLocalCursor = false; supportsLocalXCursor = false;
@@ -34,19 +44,17 @@ public class ConnParams {
     supportsSetDesktopSize = false; supportsFence = false;
     supportsContinuousUpdates = false;
     supportsClientRedirect = false;
-    customCompressLevel = false; compressLevel = 6;
-    noJpeg = false; qualityLevel = -1; fineQualityLevel = -1;
-    subsampling = "SUBSAMP_UNDEFINED";
-    name_ = null; nEncodings_ = 0; encodings_ = null;
-    currentEncoding_ = Encodings.encodingRaw; verStrPos = 0;
+    compressLevel = 6; qualityLevel = -1; fineQualityLevel = -1;
+    subsampling = subsampleUndefined; name_ = null; verStrPos = 0;
+
+    encodings_ = new ArrayList();
     screenLayout = new ScreenSet();
 
     setName("");
   }
 
-  public boolean readVersion(InStream is)
+  public boolean readVersion(InStream is, AtomicBoolean done)
   {
-    done = false;
     if (verStrPos >= 12) return false;
     verStr = new StringBuilder(13);
     while (is.checkNoWait(1) && verStrPos < 12) {
@@ -54,10 +62,10 @@ public class ConnParams {
     }
 
     if (verStrPos < 12) {
-      done = false;
+      done.set(false);
       return true;
     }
-    done = true;
+    done.set(true);
     verStr.insert(12,'0');
     verStrPos = 0;
     if (verStr.toString().matches("RFB \\d{3}\\.\\d{3}\\n0")) {
@@ -68,7 +76,8 @@ public class ConnParams {
     return false;
   }
 
-  public void writeVersion(OutStream os) {
+  public void writeVersion(OutStream os)
+  {
     String str = String.format("RFB %03d.%03d\n", majorVersion, minorVersion);
     os.writeBytes(str.getBytes(), 0, 12);
     os.flush();
@@ -97,10 +106,11 @@ public class ConnParams {
 
   public PixelFormat pf() { return pf_; }
   public void setPF(PixelFormat pf) {
+
     pf_ = pf;
-    if (pf.bpp != 8 && pf.bpp != 16 && pf.bpp != 32) {
+
+    if (pf.bpp != 8 && pf.bpp != 16 && pf.bpp != 32)
       throw new Exception("setPF: not 8, 16 or 32 bpp?");
-    }
   }
 
   public String name() { return name_; }
@@ -109,80 +119,96 @@ public class ConnParams {
     name_ = name;
   }
 
-  public int currentEncoding() { return currentEncoding_; }
-  public int nEncodings() { return nEncodings_; }
-  public int[] encodings() { return encodings_; }
+  public boolean supportsEncoding(int encoding)
+  {
+    return encodings_.indexOf(encoding) != -1;
+  }
+
   public void setEncodings(int nEncodings, int[] encodings)
   {
-    if (nEncodings > nEncodings_) {
-      encodings_ = new int[nEncodings];
-    }
-    nEncodings_ = nEncodings;
     useCopyRect = false;
     supportsLocalCursor = false;
     supportsDesktopResize = false;
     supportsExtendedDesktopSize = false;
     supportsLocalXCursor = false;
     supportsLastRect = false;
-    customCompressLevel = false;
     compressLevel = -1;
-    noJpeg = true;
     qualityLevel = -1;
     fineQualityLevel = -1;
-    subsampling = "SUBSAMP_UNDEFINED";
-    currentEncoding_ = Encodings.encodingRaw;
+    subsampling = subsampleUndefined;
+
+    encodings_.clear();
+    encodings_.add(Encodings.encodingRaw);
 
     for (int i = nEncodings-1; i >= 0; i--) {
-      encodings_[i] = encodings[i];
-
-      if (encodings[i] == Encodings.encodingCopyRect)
+      switch (encodings[i]) {
+      case Encodings.encodingCopyRect:
         useCopyRect = true;
-      else if (encodings[i] == Encodings.pseudoEncodingCursor)
+        break;
+      case Encodings.pseudoEncodingCursor:
         supportsLocalCursor = true;
-      else if (encodings[i] == Encodings.pseudoEncodingXCursor)
+        break;
+      case Encodings.pseudoEncodingXCursor:
         supportsLocalXCursor = true;
-      else if (encodings[i] == Encodings.pseudoEncodingDesktopSize)
+        break;
+      case Encodings.pseudoEncodingDesktopSize:
         supportsDesktopResize = true;
-      else if (encodings[i] == Encodings.pseudoEncodingExtendedDesktopSize)
+        break;
+      case Encodings.pseudoEncodingExtendedDesktopSize:
         supportsExtendedDesktopSize = true;
-      else if (encodings[i] == Encodings.pseudoEncodingDesktopName)
+        break;
+      case Encodings.pseudoEncodingDesktopName:
         supportsDesktopRename = true;
-      else if (encodings[i] == Encodings.pseudoEncodingLastRect)
+        break;
+      case Encodings.pseudoEncodingLastRect:
         supportsLastRect = true;
-      else if (encodings[i] == Encodings.pseudoEncodingFence)
+        break;
+      case Encodings.pseudoEncodingFence:
         supportsFence = true;
-      else if (encodings[i] == Encodings.pseudoEncodingContinuousUpdates)
+        break;
+      case Encodings.pseudoEncodingContinuousUpdates:
         supportsContinuousUpdates = true;
-      else if (encodings[i] == Encodings.pseudoEncodingClientRedirect)
+        break;
+      case Encodings.pseudoEncodingClientRedirect:
         supportsClientRedirect = true;
-      else if (encodings[i] >= Encodings.pseudoEncodingCompressLevel0 &&
-          encodings[i] <= Encodings.pseudoEncodingCompressLevel9) {
-        customCompressLevel = true;
-        compressLevel = encodings[i] - Encodings.pseudoEncodingCompressLevel0;
-      } else if (encodings[i] >= Encodings.pseudoEncodingQualityLevel0 &&
-          encodings[i] <= Encodings.pseudoEncodingQualityLevel9) {
-        noJpeg = false;
-        qualityLevel = encodings[i] - Encodings.pseudoEncodingQualityLevel0;
-      } else if (encodings[i] <= Encodings.encodingMax &&
-               Encoder.supported(encodings[i]))
-        currentEncoding_ = encodings[i];
-    }
-
-    // If the TurboVNC fine quality/subsampling encodings exist, let them
-    // override the coarse TightVNC quality level
-    for (int i = nEncodings-1; i >= 0; i--) {
-      if (encodings[i] >= Encodings.pseudoEncodingFineQualityLevel0 + 1 &&
-          encodings[i] <= Encodings.pseudoEncodingFineQualityLevel100) {
-        noJpeg = false;
-        fineQualityLevel = encodings[i] - Encodings.pseudoEncodingFineQualityLevel0;
-      } else if (encodings[i] >= Encodings.pseudoEncodingSubsamp1X &&
-                 encodings[i] <= Encodings.pseudoEncodingSubsampGray) {
-        noJpeg = false;
-        subsampling = JpegCompressor.subsamplingName(encodings[i] - Encodings.pseudoEncodingSubsamp1X);
+        break;
+      case Encodings.pseudoEncodingSubsamp1X:
+        subsampling = subsampleNone;
+        break;
+      case Encodings.pseudoEncodingSubsampGray:
+        subsampling = subsampleGray;
+        break;
+      case Encodings.pseudoEncodingSubsamp2X:
+        subsampling = subsample2X;
+        break;
+      case Encodings.pseudoEncodingSubsamp4X:
+        subsampling = subsample4X;
+        break;
+      case Encodings.pseudoEncodingSubsamp8X:
+        subsampling = subsample8X;
+        break;
+      case Encodings.pseudoEncodingSubsamp16X:
+        subsampling = subsample16X;
+        break;
       }
+
+      if (encodings[i] >= Encodings.pseudoEncodingCompressLevel0 &&
+          encodings[i] <= Encodings.pseudoEncodingCompressLevel9)
+        compressLevel = encodings[i] - Encodings.pseudoEncodingCompressLevel0;
+
+      if (encodings[i] >= Encodings.pseudoEncodingQualityLevel0 &&
+          encodings[i] <= Encodings.pseudoEncodingQualityLevel9)
+        qualityLevel = encodings[i] - Encodings.pseudoEncodingQualityLevel0;
+
+      if (encodings[i] >= Encodings.pseudoEncodingFineQualityLevel0 &&
+          encodings[i] <= Encodings.pseudoEncodingFineQualityLevel100)
+        fineQualityLevel = encodings[i] - Encodings.pseudoEncodingFineQualityLevel0;
+
+      if (encodings[i] > 0)
+        encodings_.add(encodings[i]);
     }
   }
-  public boolean done;
+
   public boolean useCopyRect;
 
   public boolean supportsLocalCursor;
@@ -190,25 +216,22 @@ public class ConnParams {
   public boolean supportsDesktopResize;
   public boolean supportsExtendedDesktopSize;
   public boolean supportsDesktopRename;
-  public boolean supportsClientRedirect;
-  public boolean supportsFence;
-  public boolean supportsContinuousUpdates;
   public boolean supportsLastRect;
+  public boolean supportsClientRedirect;
 
   public boolean supportsSetDesktopSize;
+  public boolean supportsFence;
+  public boolean supportsContinuousUpdates;
 
-  public boolean customCompressLevel;
   public int compressLevel;
-  public boolean noJpeg;
   public int qualityLevel;
   public int fineQualityLevel;
-  public String subsampling;
+  public int subsampling;
 
   private PixelFormat pf_;
   private String name_;
-  private int nEncodings_;
-  private int[] encodings_;
-  private int currentEncoding_;
+  private Cursor cursor_;
+  private ArrayList encodings_;
   private StringBuilder verStr;
   private int verStrPos;
 }
