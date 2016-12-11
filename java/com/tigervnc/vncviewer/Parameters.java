@@ -31,168 +31,167 @@ import com.tigervnc.rfb.Exception;
 
 public class Parameters {
 
-
   public static BoolParameter noLionFS
   = new BoolParameter("NoLionFS",
-  "On Mac systems, setting this parameter will force the use of the old "+
-  "(pre-Lion) full-screen mode, even if the viewer is running on OS X 10.7 "+
-  "Lion or later.",
-  false);
+    "On Mac systems, setting this parameter will force the use of the old "+
+    "(pre-Lion) full-screen mode, even if the viewer is running on OS X 10.7 "+
+    "Lion or later.",
+    false);
 
   public static BoolParameter embed
   = new BoolParameter("Embed",
-  "If the viewer is being run as an applet, display its output to " +
-  "an embedded frame in the browser window rather than to a dedicated " +
-  "window. Embed=1 implies FullScreen=0 and Scale=100.",
-  false);
+    "If the viewer is being run as an applet, display its output to " +
+    "an embedded frame in the browser window rather than to a dedicated " +
+    "window. Embed=1 implies FullScreen=0 and Scale=100.",
+    false);
 
-  public static BoolParameter useLocalCursor
-  = new BoolParameter("UseLocalCursor",
-                      "Render the mouse cursor locally",
-                      true);
+  public static BoolParameter dotWhenNoCursor
+  = new BoolParameter("DotWhenNoCursor",
+    "Show the dot cursor when the server sends an invisible cursor",
+    false);
 
   public static BoolParameter sendLocalUsername
   = new BoolParameter("SendLocalUsername",
-                      "Send the local username for SecurityTypes "+
-                      "such as Plain rather than prompting",
-                      true);
+    "Send the local username for SecurityTypes "+
+    "such as Plain rather than prompting",
+    true);
 
   public static StringParameter passwordFile
   = new StringParameter("PasswordFile",
-                        "Password file for VNC authentication",
-                        "");
+    "Password file for VNC authentication",
+    "");
 
   public static AliasParameter passwd
   = new AliasParameter("passwd",
-                       "Alias for PasswordFile",
-                       passwordFile);
+    "Alias for PasswordFile",
+    passwordFile);
 
   public static BoolParameter autoSelect
   = new BoolParameter("AutoSelect",
-                      "Auto select pixel format and encoding",
-                      true);
+    "Auto select pixel format and encoding",
+    true);
 
   public static BoolParameter fullColor
   = new BoolParameter("FullColor",
-                      "Use full color - otherwise 6-bit colour is "+
-                      "used until AutoSelect decides the link is "+
-                      "fast enough",
-                      true);
+    "Use full color - otherwise 6-bit colour is used "+
+    "until AutoSelect decides the link is fast enough",
+    true);
 
   public static AliasParameter fullColorAlias
   = new AliasParameter("FullColour",
-                       "Alias for FullColor",
-                       Parameters.fullColor);
+    "Alias for FullColor",
+    Parameters.fullColor);
 
   public static IntParameter lowColorLevel
   = new IntParameter("LowColorLevel",
-                     "Color level to use on slow connections. "+
-                     "0 = Very Low (8 colors), 1 = Low (64 colors), "+
-                     "2 = Medium (256 colors)",
-                     2);
+    "Color level to use on slow connections. "+
+    "0 = Very Low (8 colors), 1 = Low (64 colors), "+
+    "2 = Medium (256 colors)",
+    2);
 
   public static AliasParameter lowColorLevelAlias
   = new AliasParameter("LowColourLevel",
-                       "Alias for LowColorLevel",
-                       lowColorLevel);
+    "Alias for LowColorLevel",
+    lowColorLevel);
 
   public static StringParameter preferredEncoding
   = new StringParameter("PreferredEncoding",
-                        "Preferred encoding to use (Tight, ZRLE, "+
-                        "hextile or raw) - implies AutoSelect=0",
-                        "Tight");
+    "Preferred encoding to use (Tight, ZRLE, "+
+    "hextile or raw) - implies AutoSelect=0",
+    "Tight");
+
+  public static BoolParameter remoteResize
+  = new BoolParameter("RemoteResize",
+    "Dynamically resize the remote desktop size as "+
+    "the size of the local client window changes. "+
+    "(Does not work with all servers)",
+    true);
 
   public static BoolParameter viewOnly
   = new BoolParameter("ViewOnly",
-                      "Don't send any mouse or keyboard events to "+
-                      "the server",
-                      false);
+    "Don't send any mouse or keyboard events to the server",
+    false);
 
   public static BoolParameter shared
   = new BoolParameter("Shared",
-                      "Don't disconnect other viewers upon "+
-                      "connection - share the desktop instead",
-                      false);
+    "Don't disconnect other viewers upon "+
+    "connection - share the desktop instead",
+    false);
+
+  public static BoolParameter maximize
+  = new BoolParameter("Maximize",
+    "Maximize viewer window",
+    false);
 
   public static BoolParameter fullScreen
   = new BoolParameter("FullScreen",
-                      "Full Screen Mode",
-                      false);
+    "Full Screen Mode",
+    false);
 
   public static BoolParameter fullScreenAllMonitors
   = new BoolParameter("FullScreenAllMonitors",
-                      "Enable full screen over all monitors",
-                      true);
+    "Enable full screen over all monitors",
+    true);
 
   public static BoolParameter acceptClipboard
   = new BoolParameter("AcceptClipboard",
-                      "Accept clipboard changes from the server",
-                      true);
+    "Accept clipboard changes from the server",
+    true);
 
   public static BoolParameter sendClipboard
   = new BoolParameter("SendClipboard",
-                      "Send clipboard changes to the server",
-                      true);
+    "Send clipboard changes to the server",
+    true);
 
   public static IntParameter maxCutText
   = new IntParameter("MaxCutText",
-                     "Maximum permitted length of an outgoing clipboard update",
-                     262144);
+    "Maximum permitted length of an outgoing clipboard update",
+    262144);
 
   public static StringParameter menuKey
   = new StringParameter("MenuKey",
-                        "The key which brings up the popup menu",
-                        "F8");
+    "The key which brings up the popup menu",
+    "F8");
 
   public static StringParameter desktopSize
   = new StringParameter("DesktopSize",
-                        "Reconfigure desktop size on the server on "+
-                        "connect (if possible)", "");
+    "Reconfigure desktop size on the server on connect (if possible)",
+    "");
 
   public static BoolParameter listenMode
   = new BoolParameter("listen",
-                      "Listen for connections from VNC servers",
-                      false);
+    "Listen for connections from VNC servers",
+    false);
 
   public static StringParameter scalingFactor
   = new StringParameter("ScalingFactor",
-                        "Reduce or enlarge the remote desktop image. "+
-                        "The value is interpreted as a scaling factor "+
-                        "in percent. If the parameter is set to "+
-                        "\"Auto\", then automatic scaling is "+
-                        "performed. Auto-scaling tries to choose a "+
-                        "scaling factor in such a way that the whole "+
-                        "remote desktop will fit on the local screen. "+
-                        "If the parameter is set to \"FixedRatio\", "+
-                        "then automatic scaling is performed, but the "+
-                        "original aspect ratio is preserved.",
-                        "100");
+    "Reduce or enlarge the remote desktop image. "+
+    "The value is interpreted as a scaling factor "+
+    "in percent. If the parameter is set to "+
+    "\"Auto\", then automatic scaling is "+
+    "performed. Auto-scaling tries to choose a "+
+    "scaling factor in such a way that the whole "+
+    "remote desktop will fit on the local screen. "+
+    "If the parameter is set to \"FixedRatio\", "+
+    "then automatic scaling is performed, but the "+
+    "original aspect ratio is preserved.",
+    "100");
 
   public static BoolParameter alwaysShowServerDialog
   = new BoolParameter("AlwaysShowServerDialog",
-                      "Always show the server dialog even if a server "+
-                      "has been specified in an applet parameter or on "+
-                      "the command line",
-                      false);
+    "Always show the server dialog even if a server has been "+
+    "specified in an applet parameter or on the command line",
+    false);
 
   public static StringParameter vncServerName
   = new StringParameter("Server",
-                        "The VNC server <host>[:<dpyNum>] or "+
-                        "<host>::<port>",
-                        "");
-
-  /*
-  public static IntParameter vncServerPort
-  = new IntParameter("Port",
-                     "The VNC server's port number, assuming it is on "+
-                     "the host from which the applet was downloaded",
-                     0);
-  */
+    "The VNC server <host>[:<dpyNum>] or <host>::<port>",
+    "");
 
   public static BoolParameter acceptBell
   = new BoolParameter("AcceptBell",
-                      "Produce a system beep when requested to by the server.",
-                      true);
+    "Produce a system beep when requested to by the server.",
+    true);
 
   public static StringParameter via
   = new StringParameter("Via",
@@ -271,28 +270,26 @@ public class Parameters {
 
   public static BoolParameter customCompressLevel
   = new BoolParameter("CustomCompressLevel",
-                      "Use custom compression level. "+
-                      "Default if CompressLevel is specified.",
-                      false);
+    "Use custom compression level. Default if CompressLevel is specified.",
+    false);
 
   public static IntParameter compressLevel
   = new IntParameter("CompressLevel",
-                     "Use specified compression level "+
-                     "0 = Low, 6 = High",
-                     1);
+    "Use specified compression level. 0 = Low, 6 = High",
+    1);
 
   public static BoolParameter noJpeg
   = new BoolParameter("NoJPEG",
-                      "Disable lossy JPEG compression in Tight encoding.",
-                      false);
+    "Disable lossy JPEG compression in Tight encoding.",
+    false);
 
   public static IntParameter qualityLevel
   = new IntParameter("QualityLevel",
-                     "JPEG quality level. "+
-                     "0 = Low, 9 = High",
-                     8);
+    "JPEG quality level. 0 = Low, 9 = High",
+    8);
 
-  private static final String IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
+  private static final String IDENTIFIER_STRING
+  = "TigerVNC Configuration file Version 1.0";
 
   static VoidParameter[] parameterArray = {
     CSecurityTLS.X509CA,
@@ -306,16 +303,17 @@ public class Parameters {
     compressLevel,
     noJpeg,
     qualityLevel,
+    maximize,
     fullScreen,
     fullScreenAllMonitors,
     desktopSize,
+    remoteResize,
     viewOnly,
     shared,
     acceptClipboard,
     sendClipboard,
     menuKey,
     noLionFS,
-    useLocalCursor,
     sendLocalUsername,
     maxCutText,
     scalingFactor,
@@ -333,7 +331,7 @@ public class Parameters {
   static LogWriter vlog = new LogWriter("Parameters");
 
 	public static void saveViewerParameters(String filename, String servername) {
-	
+
 	  // Write to the registry or a predefined file if no filename was specified.
     String filepath;
     if (filename == null || filename.isEmpty()) {
@@ -349,13 +347,13 @@ public class Parameters {
     } else {
       filepath = filename;
     }
-	
+
 	  /* Write parameters to file */
     File f = new File(filepath);
     if (f.exists() && !f.canWrite())
 	    throw new Exception(String.format("Failed to write configuration file,"+
                                         "can't open %s", filepath)); 
-	  
+
     PrintWriter pw = null;
     try {
       pw = new PrintWriter(f, "UTF-8");
@@ -365,12 +363,12 @@ public class Parameters {
 
     pw.println(IDENTIFIER_STRING);
     pw.println("");
-	
+
 	  if (servername != null && !servername.isEmpty()) {
 	    pw.println(String.format("ServerName=%s\n", servername));
       updateConnHistory(servername);
     }
-	  
+
     for (int i = 0; i < parameterArray.length; i++) {
       if (parameterArray[i] instanceof StringParameter) {
         //if (line.substring(0,idx).trim().equalsIgnoreCase(parameterArray[i].getName()))
@@ -432,7 +430,7 @@ public class Parameters {
 
     int lineNr = 0;
     while (line != null) {
-      
+
       // Read the next line
       try {
         line = reader.readLine();
@@ -449,7 +447,7 @@ public class Parameters {
         if(line.equals(IDENTIFIER_STRING))
           continue;
         else
-          throw new Exception(String.format(new String("Configuration file %s is in an invalid format"), filename));
+          throw new Exception(String.format("Configuration file %s is in an invalid format", filename));
       }
 
       // Skip empty lines and comments
@@ -551,13 +549,13 @@ public class Parameters {
   }
 
   public static String loadFromReg() {
-  
+
     String hKey = "global";
-  
+
     String servername = UserPreferences.get(hKey, "ServerName");
     if (servername == null)
       servername = "";
-    
+
     for (int i = 0; i < parameterArray.length; i++) {
       if (parameterArray[i] instanceof StringParameter) {
         if (UserPreferences.get(hKey, parameterArray[i].getName()) != null) {
@@ -582,7 +580,7 @@ public class Parameters {
                    parameterArray[i].getName()));
       }
     }
-  
+
     return servername;
   }
 

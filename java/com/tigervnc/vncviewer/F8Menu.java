@@ -106,19 +106,24 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     if (actionMatch(ev, exit)) {
       cc.close();
     } else if (actionMatch(ev, fullScreenCheckbox)) {
-      cc.toggleFullScreen();
+      if (fullScreenCheckbox.isSelected())
+        cc.desktop.fullscreen_on();
+      else
+        cc.desktop.fullscreen_off();
     } else if (actionMatch(ev, restore)) {
-      if (fullScreen.getValue()) cc.toggleFullScreen();
-      cc.viewport.setExtendedState(JFrame.NORMAL);
+      if (cc.desktop.fullscreen_active())
+        cc.desktop.fullscreen_off();
+      cc.desktop.setExtendedState(JFrame.NORMAL);
     } else if (actionMatch(ev, minimize)) {
-      if (fullScreen.getValue()) cc.toggleFullScreen();
-      cc.viewport.setExtendedState(JFrame.ICONIFIED);
+      if (cc.desktop.fullscreen_active())
+        cc.desktop.fullscreen_off();
+      cc.desktop.setExtendedState(JFrame.ICONIFIED);
     } else if (actionMatch(ev, maximize)) {
-      if (fullScreen.getValue()) cc.toggleFullScreen();
-      cc.viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
+      if (cc.desktop.fullscreen_active())
+        cc.desktop.fullscreen_off();
+      cc.desktop.setExtendedState(JFrame.MAXIMIZED_BOTH);
     } else if (actionMatch(ev, clipboard)) {
-      //ClipboardDialog dlg = new ClipboardDialog(cc);
-      ClipboardDialog.showDialog(cc.viewport);
+      ClipboardDialog.showDialog(cc.desktop);
     } else if (actionMatch(ev, f8)) {
       cc.writeKeyEvent(MenuKey.getMenuKeySym(), true);
       cc.writeKeyEvent(MenuKey.getMenuKeySym(), false);
@@ -134,7 +139,7 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     } else if (actionMatch(ev, newConn)) {
       VncViewer.newViewer();
     } else if (actionMatch(ev, options)) {
-      OptionsDialog.showDialog(cc.viewport);
+      OptionsDialog.showDialog(cc.desktop);
     } else if (actionMatch(ev, save)) {
 	    String title = "Save the TigerVNC configuration to file";
 	    File dflt = new File(FileUtils.getVncHomeDir().concat("default.tigervnc"));
@@ -168,6 +173,24 @@ public class F8Menu extends JPopupMenu implements ActionListener {
     } else if (actionMatch(ev, dismiss)) {
       firePopupMenuCanceled();
     }
+  }
+
+  public void show(Component invoker, int x, int y) {
+    // lightweight components can't show in FullScreen Exclusive mode
+    /*
+    Window fsw = DesktopWindow.getFullScreenWindow();
+    GraphicsDevice gd = null;
+    if (fsw != null) {
+      gd = fsw.getGraphicsConfiguration().getDevice();
+      if (gd.isFullScreenSupported())
+        DesktopWindow.setFullScreenWindow(null);
+    }
+    */
+    super.show(invoker, x, y);
+    /*
+    if (fsw != null && gd.isFullScreenSupported())
+      DesktopWindow.setFullScreenWindow(fsw);
+      */
   }
 
   CConn cc;

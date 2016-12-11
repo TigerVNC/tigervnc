@@ -94,7 +94,7 @@ class OptionsDialog extends Dialog {
     }
   }
 
-  private static Map<String, Object> callbacks = new HashMap<String, Object>();
+  private static Map<Object, String> callbacks = new HashMap<Object, String>();
   /* Compression */
   JCheckBox autoselectCheckbox;
 
@@ -140,13 +140,18 @@ class OptionsDialog extends Dialog {
   JCheckBox desktopSizeCheckbox;
   JTextField desktopWidthInput;
   JTextField desktopHeightInput;
+
+  ButtonGroup sizingGroup;
+  JRadioButton remoteResizeButton;
+  JRadioButton remoteScaleButton;
+  JComboBox scalingFactorInput;
+
   JCheckBox fullScreenCheckbox;
   JCheckBox fullScreenAllMonitorsCheckbox;
-  JComboBox scalingFactorInput;
 
   /* Misc. */
   JCheckBox sharedCheckbox;
-  JCheckBox localCursorCheckbox;
+  JCheckBox dotWhenNoCursorCheckbox;
   JCheckBox acceptBellCheckbox;
 
   /* SSH */
@@ -190,9 +195,10 @@ class OptionsDialog extends Dialog {
     tabPane.addTab("SSH", createSshPanel());
     tabPane.setBorder(BorderFactory.createEmptyBorder());
     // Resize the tabPane if necessary to prevent scrolling
-    Insets tpi =
-      (Insets)UIManager.get("TabbedPane:TabbedPaneTabArea.contentMargins");
-    int minWidth = tpi.left + tpi.right;
+    int minWidth = 0;
+    Object tpi = UIManager.get("TabbedPane:TabbedPaneTabArea.contentMargins");
+    if (tpi != null)
+      minWidth += ((Insets)tpi).left + ((Insets)tpi).right;
     for (int i = 0; i < tabPane.getTabCount(); i++)
       minWidth += tabPane.getBoundsAt(i).width;
     int minHeight = tabPane.getPreferredSize().height;
@@ -215,7 +221,7 @@ class OptionsDialog extends Dialog {
     });
 
     JPanel buttonPane = new JPanel(new GridLayout(1, 5, 10, 10));
-    buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
+    buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
     buttonPane.add(Box.createRigidArea(new Dimension()));
     buttonPane.add(Box.createRigidArea(new Dimension()));
     buttonPane.add(Box.createRigidArea(new Dimension()));
@@ -240,12 +246,12 @@ class OptionsDialog extends Dialog {
 
   public static void addCallback(String cb, Object obj)
   {
-    callbacks.put(cb, obj);
+    callbacks.put(obj, cb);
   }
 
-  public static void removeCallback(String cb)
+  public static void removeCallback(Object obj)
   {
-    callbacks.remove(cb);
+    callbacks.remove(obj);
   }
 
   public void endDialog() {
@@ -258,15 +264,18 @@ class OptionsDialog extends Dialog {
     fullScreenCheckbox.setEnabled(s);
     fullScreenAllMonitorsCheckbox.setEnabled(s);
     scalingFactorInput.setEnabled(s);
+    Enumeration<AbstractButton> e = sizingGroup.getElements();
+    while (e.hasMoreElements())
+      e.nextElement().setEnabled(s);
   }
 
   private void loadOptions()
   {
     /* Compression */
     autoselectCheckbox.setSelected(autoSelect.getValue());
-  
+
     int encNum = Encodings.encodingNum(preferredEncoding.getValueStr());
-  
+
     switch (encNum) {
     case Encodings.encodingTight:
       tightButton.setSelected(true);
@@ -281,7 +290,7 @@ class OptionsDialog extends Dialog {
       rawButton.setSelected(true);
       break;
     }
-  
+
     if (fullColor.getValue())
       fullcolorButton.setSelected(true);
     else {
@@ -323,13 +332,13 @@ class OptionsDialog extends Dialog {
     encNoneCheckbox.setSelected(false);
     encTLSCheckbox.setSelected(false);
     encX509Checkbox.setSelected(false);
-  
+
     authNoneCheckbox.setSelected(false);
     authVncCheckbox.setSelected(false);
     authPlainCheckbox.setSelected(false);
     authIdentCheckbox.setSelected(false);
     sendLocalUsernameCheckbox.setSelected(sendLocalUsername.getValue());
-  
+
     secTypes = security.GetEnabledSecTypes();
     for (iter = secTypes.iterator(); iter.hasNext(); ) {
       switch ((Integer)iter.next()) {
@@ -343,7 +352,7 @@ class OptionsDialog extends Dialog {
         break;
       }
     }
-  
+
     secTypesExt = security.GetEnabledExtSecTypes();
     for (iterExt = secTypesExt.iterator(); iterExt.hasNext(); ) {
       switch ((Integer)iterExt.next()) {
@@ -404,14 +413,14 @@ class OptionsDialog extends Dialog {
     viewOnlyCheckbox.setSelected(viewOnly.getValue());
     acceptClipboardCheckbox.setSelected(acceptClipboard.getValue());
     sendClipboardCheckbox.setSelected(sendClipboard.getValue());
-  
+
     menuKeyChoice.setSelectedIndex(0);
-  
+
     String menuKeyStr = menuKey.getValueStr();
     for (int i = 0; i < menuKeyChoice.getItemCount(); i++)
       if (menuKeyStr.equals(menuKeyChoice.getItemAt(i)))
         menuKeyChoice.setSelectedIndex(i);
-  
+
     /* Screen */
     String width, height;
 
@@ -427,6 +436,10 @@ class OptionsDialog extends Dialog {
       height = desktopSize.getValueStr().split("x")[1];
       desktopHeightInput.setText(height);
     }
+    if (remoteResize.getValue())
+      remoteResizeButton.setSelected(true);
+    else
+      remoteScaleButton.setSelected(true);
     fullScreenCheckbox.setSelected(fullScreen.getValue());
     fullScreenAllMonitorsCheckbox.setSelected(fullScreenAllMonitors.getValue());
 
@@ -434,15 +447,17 @@ class OptionsDialog extends Dialog {
     String scaleStr = scalingFactor.getValueStr();
     if (scaleStr.matches("^[0-9]+$"))
       scaleStr = scaleStr.concat("%");
+    if (scaleStr.matches("^FixedRatio$"))
+      scaleStr = new String("Fixed Aspect Ratio");
     for (int i = 0; i < scalingFactorInput.getItemCount(); i++)
       if (scaleStr.equals(scalingFactorInput.getItemAt(i)))
         scalingFactorInput.setSelectedIndex(i);
 
     handleDesktopSize();
-  
+
     /* Misc. */
     sharedCheckbox.setSelected(shared.getValue());
-    localCursorCheckbox.setSelected(useLocalCursor.getValue());
+    dotWhenNoCursorCheckbox.setSelected(dotWhenNoCursor.getValue());
     acceptBellCheckbox.setSelected(acceptBell.getValue());
 
     /* SSH */
@@ -556,7 +571,7 @@ class OptionsDialog extends Dialog {
     File crlFile = new File(crlInput.getText());
     if (crlFile.exists() && crlFile.canRead())
       CSecurityTLS.X509CRL.setParam(crlFile.getAbsolutePath());
- 
+
     /* Input */
     viewOnly.setParam(viewOnlyCheckbox.isSelected());
     acceptClipboard.setParam(acceptClipboardCheckbox.isSelected());
@@ -576,18 +591,18 @@ class OptionsDialog extends Dialog {
     } else {
       desktopSize.setParam("");
     }
+    remoteResize.setParam(remoteResizeButton.isSelected());
     fullScreen.setParam(fullScreenCheckbox.isSelected());
     fullScreenAllMonitors.setParam(fullScreenAllMonitorsCheckbox.isSelected());
 
     String scaleStr =
       ((String)scalingFactorInput.getSelectedItem()).replace("%", "");
-    if (scaleStr.equals("Fixed Aspect Ratio"))
-      scaleStr = "FixedRatio";
+    scaleStr.replace("Fixed Aspect Ratio", "FixedRatio");
     scalingFactor.setParam(scaleStr);
 
     /* Misc. */
     shared.setParam(sharedCheckbox.isSelected());
-    useLocalCursor.setParam(localCursorCheckbox.isSelected());
+    dotWhenNoCursor.setParam(dotWhenNoCursorCheckbox.isSelected());
     acceptBell.setParam(acceptBellCheckbox.isSelected());
 
     /* SSH */
@@ -614,9 +629,11 @@ class OptionsDialog extends Dialog {
       sshKeyFile.setParam(sshKeyFileInput.getText());
 
     try {
-      for (Map.Entry<String, Object> iter : callbacks.entrySet()) {
-        Object obj = iter.getValue();
-        Method cb = obj.getClass().getMethod(iter.getKey(), new Class[]{});
+      for (Map.Entry<Object, String> iter : callbacks.entrySet()) {
+        Object obj = iter.getKey();
+        Method cb = obj.getClass().getMethod(iter.getValue(), new Class[]{});
+        if (cb == null)
+          vlog.info(obj.getClass().getName());
         cb.invoke(obj);
       }
     } catch (NoSuchMethodException e) {
@@ -1015,6 +1032,9 @@ class OptionsDialog extends Dialog {
   private JPanel createScreenPanel() {
     JPanel ScreenPanel = new JPanel(new GridBagLayout());
     ScreenPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+
+    JPanel SizingPanel = new JPanel(new GridBagLayout());
+    SizingPanel.setBorder(BorderFactory.createTitledBorder("Desktop Sizing"));
     desktopSizeCheckbox = new JCheckBox("Resize remote session on connect");
     desktopSizeCheckbox.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -1028,16 +1048,28 @@ class OptionsDialog extends Dialog {
     desktopSizePanel.add(desktopWidthInput);
     desktopSizePanel.add(new JLabel(" x "));
     desktopSizePanel.add(desktopHeightInput);
-    fullScreenCheckbox = new JCheckBox("Full-screen mode");
-    fullScreenAllMonitorsCheckbox =
-      new JCheckBox("Enable full-screen mode over all monitors");
+    sizingGroup = new ButtonGroup();
+    remoteResizeButton =
+      new JRadioButton("Resize remote session to the local window");
+    sizingGroup.add(remoteResizeButton);
+    remoteScaleButton =
+      new JRadioButton("Scale remote session to the local window");
+    sizingGroup.add(remoteScaleButton);
+    remoteResizeButton.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleRemoteResize();
+      }
+    });
     JLabel scalingFactorLabel = new JLabel("Scaling Factor");
     Object[] scalingFactors = {
       "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%",
       "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
     scalingFactorInput = new MyJComboBox(scalingFactors);
     scalingFactorInput.setEditable(true);
-    ScreenPanel.add(desktopSizeCheckbox,
+    fullScreenCheckbox = new JCheckBox("Full-screen mode");
+    fullScreenAllMonitorsCheckbox =
+      new JCheckBox("Enable full-screen mode over all monitors");
+    SizingPanel.add(desktopSizeCheckbox,
                     new GridBagConstraints(0, 0,
                                            REMAINDER, 1,
                                            LIGHT, LIGHT,
@@ -1045,15 +1077,51 @@ class OptionsDialog extends Dialog {
                                            new Insets(0, 0, 0, 0),
                                            NONE, NONE));
     int indent = getButtonLabelInset(desktopSizeCheckbox);
-    ScreenPanel.add(desktopSizePanel,
+    SizingPanel.add(desktopSizePanel,
                     new GridBagConstraints(0, 1,
                                            REMAINDER, 1,
                                            LIGHT, LIGHT,
                                            LINE_START, NONE,
                                            new Insets(0, indent, 0, 0),
                                            NONE, NONE));
-    ScreenPanel.add(fullScreenCheckbox,
+    SizingPanel.add(remoteResizeButton,
                     new GridBagConstraints(0, 2,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    SizingPanel.add(remoteScaleButton,
+                    new GridBagConstraints(0, 3,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    indent = getButtonLabelInset(remoteScaleButton);
+    SizingPanel.add(scalingFactorLabel,
+                    new GridBagConstraints(0, 4,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, indent, 4, 0),
+                                           NONE, NONE));
+    SizingPanel.add(scalingFactorInput,
+                    new GridBagConstraints(1, 4,
+                                           1, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 4, 0),
+                                           NONE, NONE));
+    ScreenPanel.add(SizingPanel,
+                    new GridBagConstraints(0, 0,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    ScreenPanel.add(fullScreenCheckbox,
+                    new GridBagConstraints(0, 1,
                                            REMAINDER, 1,
                                            LIGHT, LIGHT,
                                            LINE_START, NONE,
@@ -1061,28 +1129,14 @@ class OptionsDialog extends Dialog {
                                            NONE, NONE));
     indent = getButtonLabelInset(fullScreenCheckbox);
     ScreenPanel.add(fullScreenAllMonitorsCheckbox,
-                    new GridBagConstraints(0, 3,
+                    new GridBagConstraints(0, 2,
                                            REMAINDER, 1,
                                            LIGHT, LIGHT,
                                            LINE_START, NONE,
                                            new Insets(0, indent, 4, 0),
                                            NONE, NONE));
-    ScreenPanel.add(scalingFactorLabel,
-                    new GridBagConstraints(0, 4,
-                                           1, 1,
-                                           LIGHT, LIGHT,
-                                           LINE_START, NONE,
-                                           new Insets(0, 0, 4, 0),
-                                           NONE, NONE));
-    ScreenPanel.add(scalingFactorInput,
-                    new GridBagConstraints(1, 4,
-                                           1, 1,
-                                           HEAVY, LIGHT,
-                                           LINE_START, NONE,
-                                           new Insets(0, 5, 4, 0),
-                                           NONE, NONE));
     ScreenPanel.add(Box.createRigidArea(new Dimension(5, 0)),
-                    new GridBagConstraints(0, 5,
+                    new GridBagConstraints(0, 3,
                                            REMAINDER, REMAINDER,
                                            HEAVY, HEAVY,
                                            LINE_START, BOTH,
@@ -1096,7 +1150,7 @@ class OptionsDialog extends Dialog {
     MiscPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
     sharedCheckbox =
       new JCheckBox("Shared (don't disconnect other viewers)");
-    localCursorCheckbox = new JCheckBox("Render cursor locally");
+    dotWhenNoCursorCheckbox = new JCheckBox("Show dot when no cursor");
     acceptBellCheckbox = new JCheckBox("Beep when requested by the server");
     MiscPanel.add(sharedCheckbox,
                   new GridBagConstraints(0, 0,
@@ -1105,7 +1159,7 @@ class OptionsDialog extends Dialog {
                                          LINE_START, NONE,
                                          new Insets(0, 0, 4, 0),
                                          NONE, NONE));
-    MiscPanel.add(localCursorCheckbox,
+    MiscPanel.add(dotWhenNoCursorCheckbox,
                   new GridBagConstraints(0, 1,
                                          1, 1,
                                          LIGHT, LIGHT,
@@ -1472,6 +1526,11 @@ class OptionsDialog extends Dialog {
     desktopHeightInput.setEnabled(desktopSizeCheckbox.isSelected());
   }
 
+  private void handleRemoteResize()
+  {
+    scalingFactorInput.setEnabled(!remoteResizeButton.isSelected());
+  }
+
   private void handleTunnel()
   {
     viaCheckbox.setEnabled(tunnelCheckbox.isSelected());
@@ -1533,6 +1592,8 @@ class OptionsDialog extends Dialog {
       desktopSizeCheckbox.setEnabled(false);
       desktopWidthInput.setEnabled(false);
       desktopHeightInput.setEnabled(false);
+      remoteResizeButton.setEnabled(false);
+      remoteScaleButton.setEnabled(false);
       fullScreenCheckbox.setEnabled(false);
       fullScreenAllMonitorsCheckbox.setEnabled(false);
       scalingFactorInput.setEnabled(false);

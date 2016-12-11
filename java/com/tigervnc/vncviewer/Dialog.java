@@ -65,9 +65,6 @@ class Dialog extends JDialog implements ActionListener,
       int y = (dpySize.height - mySize.height) / 2;
       setLocation(x, y);
     }
-    fullScreenWindow = Viewport.getFullScreenWindow();
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(null);
 
     if (getModalityType() == ModalityType.APPLICATION_MODAL)
       setAlwaysOnTop(true);
@@ -81,9 +78,6 @@ class Dialog extends JDialog implements ActionListener,
   public void endDialog() {
     setVisible(false);
     setAlwaysOnTop(false);
-    fullScreenWindow = Viewport.getFullScreenWindow();
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(fullScreenWindow);
   }
 
   // initDialog() can be overridden in a derived class.  Typically it is used

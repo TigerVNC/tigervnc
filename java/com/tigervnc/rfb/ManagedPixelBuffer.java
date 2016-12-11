@@ -18,21 +18,37 @@
 
 package com.tigervnc.rfb;
 
-public class ManagedPixelBuffer extends PixelBuffer {
-  public void setSize(int w, int h) {
-    width_ = w;
-    height_ = h;
-    checkDataSize();
-  }
-  public void setPF(PixelFormat pf) {
-    super.setPF(pf);
+public class ManagedPixelBuffer extends FullFramePixelBuffer {
+
+  public ManagedPixelBuffer() {
+    datasize = 0;
     checkDataSize();
   }
 
-  public int dataLen() { return area(); }
+  public ManagedPixelBuffer(PixelFormat pf, int w, int h)
+  {
+    super(pf, w, h, null);
+    datasize = 0;
+    checkDataSize();
+  }
+
+  public void setPF(PixelFormat pf) {
+    format = pf; checkDataSize();
+  }
+
+  public void setSize(int w, int h) {
+    width_ = w; height_ = h; checkDataSize();
+  }
 
   final void checkDataSize() {
-    if (data == null || data.length < dataLen())
-      data = new int[dataLen()];
+    int new_datasize = width_ * height_;
+    if (datasize < new_datasize) {
+      vlog.debug("reallocating managed buffer ("+width_+"x"+height_+")");
+      if (format != null)
+        data = PixelFormat.getColorModel(format).createCompatibleWritableRaster(width_, height_);
+    }
   }
+
+  protected int datasize;
+  static LogWriter vlog = new LogWriter("ManagedPixelBuffer");
 }

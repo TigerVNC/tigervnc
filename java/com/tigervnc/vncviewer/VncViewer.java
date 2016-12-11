@@ -47,6 +47,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager.*;
@@ -60,10 +61,11 @@ import static com.tigervnc.vncviewer.Parameters.*;
 public class VncViewer extends javax.swing.JApplet 
   implements Runnable, ActionListener {
 
-  public static final String aboutText = new String("TigerVNC Java Viewer v%s (%s)%n"+
-                                                    "Built on %s at %s%n"+
-                                                    "Copyright (C) 1999-2016 TigerVNC Team and many others (see README.txt)%n"+
-                                                    "See http://www.tigervnc.org for information on TigerVNC.");
+  public static final String aboutText =
+    new String("TigerVNC Java Viewer v%s (%s)%n"+
+               "Built on %s at %s%n"+
+               "Copyright (C) 1999-2016 TigerVNC Team and many others (see README.txt)%n"+
+               "See http://www.tigervnc.org for information on TigerVNC.");
 
   public static String version = null;
   public static String build = null;
@@ -79,6 +81,7 @@ public class VncViewer extends javax.swing.JApplet
     VncViewer.class.getResourceAsStream("timestamp");
   public static final String os = 
     System.getProperty("os.name").toLowerCase();
+  private static VncViewer applet;
 
   public static void setLookAndFeel() {
     try {
@@ -140,8 +143,8 @@ public class VncViewer extends javax.swing.JApplet
   }
 
   public VncViewer() {
-    //this(new String[0]);
-    embed.setParam(true);
+    // Only called in applet mode
+    this(new String[0]);
   }
 
   public VncViewer(String[] argv) {
@@ -311,7 +314,7 @@ public class VncViewer extends javax.swing.JApplet
 
   public void appletDragStarted() {
     embed.setParam(false);
-    cc.recreateViewport();
+    //cc.recreateViewport();
     JFrame f = (JFrame)JOptionPane.getFrameForComponent(this);
     // The default JFrame created by the drag event will be
     // visible briefly between appletDragStarted and Finished.
@@ -333,20 +336,69 @@ public class VncViewer extends javax.swing.JApplet
     cc.setCloseListener(null);
   }
 
-  public void init() {
-    vlog.debug("init called");
-    Container parent = getParent();
-    while (!parent.isFocusCycleRoot()) {
-      parent = parent.getParent();
+  public static void setupEmbeddedFrame(JScrollPane sp) {
+    InputMap im = sp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
+    if (im != null) {
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlAltShiftMask),
+             "unitScrollUp");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlAltShiftMask),
+             "unitScrollDown");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlAltShiftMask),
+             "unitScrollLeft");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlAltShiftMask),
+             "unitScrollRight");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlAltShiftMask),
+             "scrollUp");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlAltShiftMask),
+             "scrollDown");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, ctrlAltShiftMask),
+             "scrollLeft");
+      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, ctrlAltShiftMask),
+             "scrollRight");
     }
-    ((Frame)parent).setModalExclusionType(null);
-    parent.setFocusable(false);
-    parent.setFocusTraversalKeysEnabled(false);
-    setLookAndFeel();
-    setBackground(Color.white);
+    applet.getContentPane().removeAll();
+    applet.getContentPane().add(sp);
+    applet.validate();
   }
 
-  private void getTimestamp() {
+  public void init() {
+    // Called right after zero-arg constructor in applet mode
+    setLookAndFeel();
+    setBackground(Color.white);
+    applet = this;
+    String servername = loadAppletParameters(applet);
+    vncServerName.setParam(servername);
+    alwaysShowServerDialog.setParam(false);
+    if (embed.getValue()) {
+      fullScreen.setParam(false);
+      remoteResize.setParam(false);
+      maximize.setParam(false);
+      scalingFactor.setParam("100");
+    }
+    setFocusTraversalKeysEnabled(false);
+    addFocusListener(new FocusAdapter() {
+      public void focusGained(FocusEvent e) {
+        if (cc != null && cc.desktop != null)
+          cc.desktop.viewport.requestFocusInWindow();
+      }
+    });
+    Frame frame = (Frame)getFocusCycleRootAncestor();
+    frame.setFocusTraversalKeysEnabled(false);
+    frame.addWindowListener(new WindowAdapter() {
+      // Transfer focus to scrollpane when browser receives it
+      public void windowActivated(WindowEvent e) {
+        if (cc != null && cc.desktop != null)
+          cc.desktop.viewport.requestFocusInWindow();
+      }
+      public void windowDeactivated(WindowEvent e) {
+        if (cc != null)
+          cc.releaseDownKeys();
+      }
+    });
+  }
+
+  private static void getTimestamp() {
     if (version == null || build == null) {
       try {
         Manifest manifest = new Manifest(timestamp);
@@ -369,9 +421,9 @@ public class VncViewer extends javax.swing.JApplet
       pkgTime = attributes.getValue("Package-Time");
     } catch (java.lang.Exception e) { }
 
-    Window fullScreenWindow = Viewport.getFullScreenWindow();
+    Window fullScreenWindow = DesktopWindow.getFullScreenWindow();
     if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(null);
+      DesktopWindow.setFullScreenWindow(null);
     String msg =
       String.format(VncViewer.aboutText, VncViewer.version, VncViewer.build,
                     VncViewer.buildDate, VncViewer.buildTime);
@@ -384,20 +436,10 @@ public class VncViewer extends javax.swing.JApplet
     dlg.setAlwaysOnTop(true);
     dlg.setVisible(true);
     if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(fullScreenWindow);
+      DesktopWindow.setFullScreenWindow(fullScreenWindow);
   }
 
   public void start() {
-    vlog.debug("start called");
-    getTimestamp();
-    if (embed.getValue()) {
-      setupEmbeddedFrame();
-      alwaysShowServerDialog.setParam(false);
-      String servername = loadAppletParameters(this);
-      vncServerName.setParam(servername);
-      fullScreen.setParam(false);
-      scalingFactor.setParam("100");
-    }
     thread = new Thread(this);
     thread.start();
   }
@@ -407,41 +449,6 @@ public class VncViewer extends javax.swing.JApplet
       destroy();
     else
       System.exit(n);
-  }
-
-  private void setupEmbeddedFrame() {
-    UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
-      new UIDefaults.LazyInputMap(new Object[]{}));
-    sp = new JScrollPane();
-    sp.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-    sp.getViewport().setBackground(Color.BLACK);
-    InputMap im = sp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
-    if (im != null) {
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlAltShiftMask),
-             "unitScrollUp");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlAltShiftMask),
-             "unitScrollDown");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlAltShiftMask),
-             "unitScrollLeft");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlAltShiftMask),
-             "unitScrollRight");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlAltShiftMask),
-             "scrollUp");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlAltShiftMask),
-             "scrollDown");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, ctrlAltShiftMask),
-             "scrollLeft");
-      im.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, ctrlAltShiftMask),
-             "scrollRight");
-    }
-    sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-    add(sp);
-  }
-
-  public static JViewport getViewport() {
-    return sp.getViewport();
   }
 
   // If "Reconnect" button is pressed
@@ -524,7 +531,7 @@ public class VncViewer extends javax.swing.JApplet
       if (cc == null || !cc.shuttingDown) {
         reportException(e);
         if (cc != null)
-          cc.deleteWindow();
+          cc.close();
       } else if (embed.getValue()) {
         reportException(new java.lang.Exception("Connection closed"));
         exit(0);
@@ -534,7 +541,6 @@ public class VncViewer extends javax.swing.JApplet
   }
 
   public static CConn cc;
-  private static JScrollPane sp;
   public static StringParameter config
   = new StringParameter("Config",
   "Specifies a configuration file to load.", null);

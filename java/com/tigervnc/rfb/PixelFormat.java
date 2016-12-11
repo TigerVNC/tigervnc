@@ -25,40 +25,80 @@
 
 package com.tigervnc.rfb;
 
+import java.awt.color.*;
+import java.awt.image.*;
+import java.nio.*;
+import java.util.*;
+
 import com.tigervnc.rdr.*;
-import java.awt.image.ColorModel;
 
 public class PixelFormat {
 
-  public PixelFormat(int b, int d, boolean e, boolean t) {
-    bpp = b;
-    depth = d;
-    bigEndian = e;
-    trueColour = t;
-  }
   public PixelFormat(int b, int d, boolean e, boolean t,
-                     int rm, int gm, int bm, int rs, int gs, int bs) {
-    this(b, d, e, t);
-    redMax = rm;
-    greenMax = gm;
-    blueMax = bm;
-    redShift = rs;
-    greenShift = gs;
-    blueShift = bs;
-  }
-  public PixelFormat() { this(8,8,false,true,7,7,3,0,3,6); }
+                     int rm, int gm, int bm, int rs, int gs, int bs)
+  {
+    bpp = b; depth = d; trueColour = t; bigEndian = e;
+    redMax = rm; greenMax = gm; blueMax = bm;
+    redShift = rs; greenShift = gs; blueShift = bs;
+    converters = new HashMap<Integer, ColorConvertOp>();
+    assert(isSane());
 
-  public boolean equal(PixelFormat x) {
-    return (bpp == x.bpp &&
-            depth == x.depth &&
-            (bigEndian == x.bigEndian || bpp == 8) &&
-            trueColour == x.trueColour &&
-            (!trueColour || (redMax == x.redMax &&
-                             greenMax == x.greenMax &&
-                             blueMax == x.blueMax &&
-                             redShift == x.redShift &&
-                             greenShift == x.greenShift &&
-                             blueShift == x.blueShift)));
+    updateState();
+  }
+
+  public PixelFormat()
+  {
+    this(8, 8, false, true, 7, 7, 3, 0, 3, 6);
+    updateState();
+  }
+
+  public boolean equal(PixelFormat other)
+  {
+    if (bpp != other.bpp || depth != other.depth)
+      return false;
+
+    if (redMax != other.redMax)
+      return false;
+    if (greenMax != other.greenMax)
+      return false;
+    if (blueMax != other.blueMax)
+      return false;
+
+    // Endianness requires more care to determine compatibility
+    if (bigEndian == other.bigEndian || bpp == 8) {
+      if (redShift != other.redShift)
+        return false;
+      if (greenShift != other.greenShift)
+        return false;
+      if (blueShift != other.blueShift)
+        return false;
+    } else {
+      // Has to be the same byte for each channel
+      if (redShift/8 != (3 - other.redShift/8))
+        return false;
+      if (greenShift/8 != (3 - other.greenShift/8))
+        return false;
+      if (blueShift/8 != (3 - other.blueShift/8))
+        return false;
+
+      // And the same bit offset within the byte
+      if (redShift%8 != other.redShift%8)
+        return false;
+      if (greenShift%8 != other.greenShift%8)
+        return false;
+      if (blueShift%8 != other.blueShift%8)
+        return false;
+
+      // And not cross a byte boundary
+      if (redShift/8 != (redShift + redBits - 1)/8)
+        return false;
+      if (greenShift/8 != (greenShift + greenBits - 1)/8)
+        return false;
+      if (blueShift/8 != (blueShift + blueBits - 1)/8)
+        return false;
+    }
+
+    return true;
   }
 
   public void read(InStream is) {
@@ -73,6 +113,23 @@ public class PixelFormat {
     greenShift = is.readU8();
     blueShift = is.readU8();
     is.skip(3);
+
+    // We have no real support for colour maps. If the client
+    // wants one, then we force a 8-bit true colour format and
+    // pretend it's a colour map.
+    if (!trueColour) {
+      redMax = 7;
+      greenMax = 7;
+      blueMax = 3;
+      redShift = 0;
+      greenShift = 3;
+      blueShift = 6;
+    }
+
+    if (!isSane())
+      throw new Exception("invalid pixel format: "+print());
+
+    updateState();
   }
 
   public void write(OutStream os) {
@@ -87,6 +144,14 @@ public class PixelFormat {
     os.writeU8(greenShift);
     os.writeU8(blueShift);
     os.pad(3);
+  }
+
+  public final boolean isBigEndian() {
+    return bigEndian;
+  }
+
+  public final boolean isLittleEndian() {
+    return ! bigEndian;
   }
 
   public final boolean is888() {
@@ -139,53 +204,140 @@ public class PixelFormat {
     return 0;
   }
 
-  public void bufferFromRGB(int[] dst, int dstPtr, byte[] src,
-                            int srcPtr, int pixels) {
+  public void bufferFromRGB(ByteBuffer dst, ByteBuffer src, int pixels)
+  {
+    bufferFromRGB(dst, src, pixels, pixels, 1);
+  }
+
+  public void bufferFromRGB(ByteBuffer dst, ByteBuffer src,
+                            int w, int stride, int h)
+  {
     if (is888()) {
       // Optimised common case
-      int r, g, b;
+      int r, g, b, x;
 
-      for (int i=srcPtr; i < pixels; i++) {
-        if (bigEndian) {
-          r = (src[3*i+0] & 0xff) << (24 - redShift);
-          g = (src[3*i+1] & 0xff) << (24 - greenShift);
-          b = (src[3*i+2] & 0xff) << (24 - blueShift);
-          dst[dstPtr+i] = r | g | b | 0xff;
-        } else {
-          r = (src[3*i+0] & 0xff) << redShift;
-          g = (src[3*i+1] & 0xff) << greenShift;
-          b = (src[3*i+2] & 0xff) << blueShift;
-          dst[dstPtr+i] = (0xff << 24) | r | g | b;
+      if (bigEndian) {
+        r = dst.position() + (24 - redShift)/8;
+        g = dst.position() + (24 - greenShift)/8;
+        b = dst.position() + (24 - blueShift)/8;
+        x = dst.position() + (24 - (48 - redShift - greenShift - blueShift))/8;
+      } else {
+        r = dst.position() + redShift/8;
+        g = dst.position() + greenShift/8;
+        b = dst.position() + blueShift/8;
+        x = dst.position() + (48 - redShift - greenShift - blueShift)/8;
+      }
+
+      int dstPad = (stride - w) * 4;
+      while (h-- > 0) {
+        int w_ = w;
+        while (w_-- > 0) {
+          dst.put(r, src.get());
+          dst.put(g, src.get());
+          dst.put(b, src.get());
+          dst.put(x, (byte)0);
+          r += 4;
+          g += 4;
+          b += 4;
+          x += 4;
         }
+        r += dstPad;
+        g += dstPad;
+        b += dstPad;
+        x += dstPad;
       }
     } else {
       // Generic code
-      int p, r, g, b;
-      int[] rgb = new int[4];
+      int dstPad = (stride - w) * bpp/8;
+      while (h-- > 0) {
+        int w_ = w;
+        while (w_-- > 0) {
+          int p;
+          int r, g, b;
 
-      int i = srcPtr; int j = dstPtr;
-      while (i < pixels) {
-        r = src[i++] & 0xff;
-        g = src[i++] & 0xff;
-        b = src[i++] & 0xff;
+          r = src.get();
+          g = src.get();
+          b = src.get();
 
-        //p = pixelFromRGB(r, g, b, cm);
-        p = ColorModel.getRGBdefault().getDataElement(new int[] {0xff, r, g, b}, 0);
+          p = pixelFromRGB(r, g, b, model);
 
-        bufferFromPixel(dst, j, p);
-        j += bpp/8;
+          bufferFromPixel(dst, p);
+          dst.position(dst.position() + bpp/8);
+        }
+        dst.position(dst.position() + dstPad);
       }
     }
   }
 
-  public void rgbFromBuffer(byte[] dst, int dstPtr, byte[] src, int srcPtr, int pixels, ColorModel cm)
+  public void rgbFromBuffer(ByteBuffer dst, ByteBuffer src, int pixels)
+  {
+    rgbFromBuffer(dst, src, pixels, pixels, 1);
+  }
+
+  public void rgbFromBuffer(ByteBuffer dst, ByteBuffer src,
+                            int w, int stride, int h)
+  {
+    if (is888()) {
+      // Optimised common case
+      int r, g, b;
+
+      if (bigEndian) {
+        r = src.position() + (24 - redShift)/8;
+        g = src.position() + (24 - greenShift)/8;
+        b = src.position() + (24 - blueShift)/8;
+      } else {
+        r = src.position() + redShift/8;
+        g = src.position() + greenShift/8;
+        b = src.position() + blueShift/8;
+      }
+
+      int srcPad = (stride - w) * 4;
+      while (h-- > 0) {
+        int w_ = w;
+        while (w_-- > 0) {
+          dst.put(src.get(r));
+          dst.put(src.get(g));
+          dst.put(src.get(b));
+          r += 4;
+          g += 4;
+          b += 4;
+        }
+        r += srcPad;
+        g += srcPad;
+        b += srcPad;
+      }
+    } else {
+      // Generic code
+      int srcPad = (stride - w) * bpp/8;
+      while (h-- > 0) {
+        int w_ = w;
+        while (w_-- > 0) {
+          int p;
+          byte r, g, b;
+
+          p = pixelFromBuffer(src.duplicate());
+
+          r = (byte)getColorModel().getRed(p);
+          g = (byte)getColorModel().getGreen(p);
+          b = (byte)getColorModel().getBlue(p);
+
+          dst.put(r);
+          dst.put(g);
+          dst.put(b);
+          src.position(src.position() + bpp/8);
+        }
+        src.reset().position(src.position() + srcPad).mark();
+      }
+    }
+  }
+
+  public void rgbFromPixels(byte[] dst, int dstPtr, int[] src, int srcPtr, int pixels, ColorModel cm)
   {
     int p;
     byte r, g, b;
 
     for (int i=0; i < pixels; i++) {
-      p = pixelFromBuffer(src, srcPtr);
-      srcPtr += bpp/8;
+      p = src[i];
 
       dst[dstPtr++] = (byte)cm.getRed(p);
       dst[dstPtr++] = (byte)cm.getGreen(p);
@@ -193,31 +345,29 @@ public class PixelFormat {
     }
   }
 
-  public int pixelFromBuffer(byte[] buffer, int bufferPtr)
+  public int pixelFromBuffer(ByteBuffer buffer)
   {
     int p;
 
-    p = 0;
+    p = 0xff000000;
 
-    if (bigEndian) {
+    if (!bigEndian) {
       switch (bpp) {
       case 32:
-        p = (buffer[0] & 0xff) << 24 | (buffer[1] & 0xff) << 16 | (buffer[2] & 0xff) << 8 | 0xff;
-        break;
+        p |= buffer.get() << 24;
+        p |= buffer.get() << 16;
       case 16:
-        p = (buffer[0] & 0xff) << 8 | (buffer[1] & 0xff);
-        break;
+        p |= buffer.get() << 8;
       case 8:
-        p = (buffer[0] & 0xff);
-        break;
+        p |= buffer.get();
       }
     } else {
-      p = (buffer[0] & 0xff);
+      p |= buffer.get(0);
       if (bpp >= 16) {
-        p |= (buffer[1] & 0xff) << 8;
+        p |= buffer.get(1) << 8;
         if (bpp == 32) {
-          p |= (buffer[2] & 0xff) << 16;
-          p |= (buffer[3] & 0xff) << 24;
+          p |= buffer.get(2) << 16;
+          p |= buffer.get(3) << 24;
         }
       }
     }
@@ -263,33 +413,212 @@ public class PixelFormat {
     return s.toString();
   }
 
-  public void bufferFromPixel(int[] buffer, int bufPtr, int p)
+  private static int bits(int value)
+  {
+    int bits;
+
+    bits = 16;
+
+    if ((value & 0xff00) == 0) {
+      bits -= 8;
+      value <<= 8;
+    }
+    if ((value & 0xf000) == 0) {
+      bits -= 4;
+      value <<= 4;
+    }
+    if ((value & 0xc000) == 0) {
+      bits -= 2;
+      value <<= 2;
+    }
+    if ((value & 0x8000) == 0) {
+      bits -= 1;
+      value <<= 1;
+    }
+
+    return bits;
+  }
+
+  private void updateState()
+  {
+    int endianTest = 1;
+
+    redBits = bits(redMax);
+    greenBits = bits(greenMax);
+    blueBits = bits(blueMax);
+
+    maxBits = redBits;
+    if (greenBits > maxBits)
+      maxBits = greenBits;
+    if (blueBits > maxBits)
+      maxBits = blueBits;
+
+    minBits = redBits;
+    if (greenBits < minBits)
+      minBits = greenBits;
+    if (blueBits < minBits)
+      minBits = blueBits;
+
+    if ((((char)endianTest) == 0) != bigEndian)
+      endianMismatch = true;
+    else
+      endianMismatch = false;
+
+    model = getColorModel(this);
+  }
+
+  private boolean isSane()
+  {
+    int totalBits;
+
+    if ((bpp != 8) && (bpp != 16) && (bpp != 32))
+      return false;
+    if (depth > bpp)
+      return false;
+
+    if (!trueColour && (depth != 8))
+      return false;
+
+    if ((redMax & (redMax + 1)) != 0)
+      return false;
+    if ((greenMax & (greenMax + 1)) != 0)
+      return false;
+    if ((blueMax & (blueMax + 1)) != 0)
+      return false;
+
+    /*
+     * We don't allow individual channels > 8 bits in order to keep our
+     * conversions simple.
+     */
+    if (redMax >= (1 << 8))
+      return false;
+    if (greenMax >= (1 << 8))
+      return false;
+    if (blueMax >= (1 << 8))
+      return false;
+
+    totalBits = bits(redMax) + bits(greenMax) + bits(blueMax);
+    if (totalBits > bpp)
+      return false;
+
+    if (((redMax << redShift) & (greenMax << greenShift)) != 0)
+      return false;
+    if (((redMax << redShift) & (blueMax << blueShift)) != 0)
+      return false;
+    if (((greenMax << greenShift) & (blueMax << blueShift)) != 0)
+      return false;
+
+    return true;
+  }
+
+  public void bufferFromPixel(ByteBuffer buffer, int p)
   {
     if (bigEndian) {
       switch (bpp) {
         case 32:
-          buffer[bufPtr++] = (p >> 24) & 0xff;
-          buffer[bufPtr++] = (p >> 16) & 0xff;
+          buffer.put((byte)((p >> 24) & 0xff));
+          buffer.put((byte)((p >> 16) & 0xff));
           break;
         case 16:
-          buffer[bufPtr++] = (p >> 8) & 0xff;
+          buffer.put((byte)((p >> 8) & 0xff));
           break;
         case 8:
-          buffer[bufPtr++] = (p >> 0) & 0xff;
+          buffer.put((byte)((p >> 0) & 0xff));
           break;
       }
     } else {
-      buffer[0] = (p >> 0) & 0xff;
+      buffer.put(0, (byte)((p >> 0) & 0xff));
       if (bpp >= 16) {
-        buffer[1] = (p >> 8) & 0xff;
+        buffer.put(1, (byte)((p >> 8) & 0xff));
         if (bpp == 32) {
-          buffer[2] = (p >> 16) & 0xff;
-          buffer[3] = (p >> 24) & 0xff;
+          buffer.put(2, (byte)((p >> 16) & 0xff));
+          buffer.put(3, (byte)((p >> 24) & 0xff));
         }
       }
     }
   }
 
+  public ColorModel getColorModel()
+  {
+    return model;
+  }
+
+  public static ColorModel getColorModel(PixelFormat pf) {
+    if (!(pf.bpp == 32) && !(pf.bpp == 16) && !(pf.bpp == 8))
+      throw new Exception("Internal error: bpp must be 8, 16, or 32 in PixelBuffer ("+pf.bpp+")");
+    ColorModel cm;
+    switch (pf.depth) {
+    case  3:
+      // Fall-through to depth 8
+    case  6:
+      // Fall-through to depth 8
+    case  8:
+      int rmask = pf.redMax << pf.redShift;
+      int gmask = pf.greenMax << pf.greenShift;
+      int bmask = pf.blueMax << pf.blueShift;
+      cm = new DirectColorModel(8, rmask, gmask, bmask);
+      break;
+    case 16:
+      cm = new DirectColorModel(32, 0xF800, 0x07C0, 0x003E);
+      break;
+    case 24:
+      cm = new DirectColorModel(32, (0xff << 16), (0xff << 8), 0xff);
+      break;
+    case 32:
+      cm = new DirectColorModel(32, (0xff << pf.redShift),
+        (0xff << pf.greenShift), (0xff << pf.blueShift));
+      break;
+    default:
+      throw new Exception("Unsupported color depth ("+pf.depth+")");
+    }
+    assert(cm != null);
+    return cm;
+  }
+
+  public ColorConvertOp getColorConvertOp(ColorSpace src)
+  {
+    // The overhead associated with initializing ColorConvertOps is
+    // enough to justify maintaining a static lookup table.
+    if (converters.containsKey(src.getType()))
+      return converters.get(src.getType());
+    ColorSpace dst = model.getColorSpace();
+    converters.put(src.getType(), new ColorConvertOp(src, dst, null));
+    return converters.get(src.getType());
+  }
+
+  public ByteOrder getByteOrder()
+  {
+    if (isBigEndian())
+      return ByteOrder.BIG_ENDIAN;
+    else
+      return ByteOrder.LITTLE_ENDIAN;
+  }
+
+  public Raster rasterFromBuffer(Rect r, ByteBuffer buf)
+  {
+    Buffer dst;
+    DataBuffer db = null;
+
+    SampleModel sm =
+      model.createCompatibleSampleModel(r.width(), r.height());
+    switch (sm.getTransferType()) {
+    case DataBuffer.TYPE_INT:
+      dst = IntBuffer.allocate(r.area()).put(buf.asIntBuffer());
+      db = new DataBufferInt(((IntBuffer)dst).array(), r.area());
+      break;
+    case DataBuffer.TYPE_BYTE:
+      db = new DataBufferByte(buf.array(), r.area());
+      break;
+    case DataBuffer.TYPE_SHORT:
+      dst = ShortBuffer.allocate(r.area()).put(buf.asShortBuffer());
+      db = new DataBufferShort(((ShortBuffer)dst).array(), r.area());
+      break;
+    }
+    assert(db != null);
+    return Raster.createRaster(sm, db, new java.awt.Point(0, 0));
+  }
+
+  private static HashMap<Integer, ColorConvertOp> converters;
 
   public int bpp;
   public int depth;
@@ -301,4 +630,10 @@ public class PixelFormat {
   public int redShift;
   public int greenShift;
   public int blueShift;
+
+  protected int redBits, greenBits, blueBits;
+  protected int maxBits, minBits;
+  protected boolean endianMismatch;
+
+  private ColorModel model;
 }

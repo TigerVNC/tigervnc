@@ -63,16 +63,20 @@ import com.tigervnc.network.TcpSocket;
 import static com.tigervnc.vncviewer.Parameters.*;
 
 public class CConn extends CConnection implements 
-  UserPasswdGetter, UserMsgBox,
-  FdInStreamBlockCallback, ActionListener {
+  UserPasswdGetter, FdInStreamBlockCallback, ActionListener {
 
-  public final PixelFormat getPreferredPF() { return fullColorPF; }
+  // 8 colours (1 bit per component)
   static final PixelFormat verylowColorPF =
     new PixelFormat(8, 3, false, true, 1, 1, 1, 2, 1, 0);
+
+  // 64 colours (2 bits per component)
   static final PixelFormat lowColorPF =
     new PixelFormat(8, 6, false, true, 3, 3, 3, 4, 2, 0);
+
+  // 256 colours (2-3 bits per component)
   static final PixelFormat mediumColorPF =
-    new PixelFormat(8, 8, false, false, 7, 7, 3, 0, 3, 6);
+    new PixelFormat(8, 8, false, true, 7, 7, 3, 5, 2, 0);
+
   static final int KEY_LOC_SHIFT_R = 0;
   static final int KEY_LOC_SHIFT_L = 16;
   static final int SUPER_MASK = 1<<15;
@@ -82,6 +86,7 @@ public class CConn extends CConnection implements
 
   public CConn(String vncServerName, Socket socket)
   {
+    serverHost = null; serverPort = 0; desktop = null;
     pendingPFChange = false;
     currentEncoding = Encodings.encodingTight; lastServerEncoding = -1;
     formatChange = false; encodingChange = false;
@@ -93,13 +98,12 @@ public class CConn extends CConnection implements
     downKeySym = new HashMap<Integer, Integer>();
 
     upg = this;
-    msg = this;
 
     int encNum = Encodings.encodingNum(preferredEncoding.getValue());
     if (encNum != -1)
       currentEncoding = encNum;
 
-    cp.supportsLocalCursor = useLocalCursor.getValue();
+    cp.supportsLocalCursor = true;
 
     cp.supportsDesktopResize = true;
     cp.supportsExtendedDesktopSize = true;
@@ -107,12 +111,13 @@ public class CConn extends CConnection implements
 
     cp.supportsSetDesktopSize = false;
     cp.supportsClientRedirect = true;
+
     if (customCompressLevel.getValue())
       cp.compressLevel = compressLevel.getValue();
     else
       cp.compressLevel = -1;
 
-    if (noJpeg.getValue())
+    if (!noJpeg.getValue())
       cp.qualityLevel = qualityLevel.getValue();
     else
       cp.qualityLevel = -1;
@@ -142,6 +147,7 @@ public class CConn extends CConnection implements
         vlog.info("connected to host "+Hostname.getHost(name)+" port "+Hostname.getPort(name));
     }
 
+    // See callback below
     sock.inStream().setBlockCallback(this);
 
     setStreams(sock.inStream(), sock.outStream());
@@ -161,21 +167,37 @@ public class CConn extends CConnection implements
       requestNewUpdate();
   }
 
-  public boolean showMsgBox(int flags, String title, String text)
-  {
-    //StringBuffer titleText = new StringBuffer("VNC Viewer: "+title);
-    return true;
+  public String connectionInfo() {
+    String info = new String("Desktop name: %s%n"+
+                             "Host: %s:%d%n"+
+                             "Size: %dx%d%n"+
+                             "Pixel format: %s%n"+
+                             "  (server default: %s)%n"+
+                             "Requested encoding: %s%n"+
+                             "Last used encoding: %s%n"+
+                             "Line speed estimate: %d kbit/s%n"+
+                             "Protocol version: %d.%d%n"+
+                             "Security method: %s [%s]%n");
+    String infoText =
+      String.format(info, cp.name(),
+                    sock.getPeerName(), sock.getPeerPort(),
+                    cp.width, cp.height,
+                    cp.pf().print(),
+                    serverPF.print(),
+                    Encodings.encodingName(currentEncoding),
+                    Encodings.encodingName(lastServerEncoding),
+                    sock.inStream().kbitsPerSecond(),
+                    cp.majorVersion, cp.minorVersion,
+                    Security.secTypeName(csecurity.getType()),
+                    csecurity.description());
+
+    return infoText;
   }
 
-  // deleteWindow() is called when the user closes the desktop or menu windows.
+  // The RFB core is not properly asynchronous, so it calls this callback
+  // whenever it needs to block to wait for more data. Since FLTK is
+  // monitoring the socket, we just make sure FLTK gets to run.
 
-  void deleteWindow() {
-    if (viewport != null)
-      viewport.dispose();
-    viewport = null;
-  }
-
-  // blockCallback() is called when reading from the socket would block.
   public void blockCallback() {
     try {
       synchronized(this) {
@@ -238,12 +260,13 @@ public class CConn extends CConnection implements
     return true;
   }
 
-  // CConnection callback methods
+  ////////////////////// CConnection callback methods //////////////////////
 
   // serverInit() is called when the serverInit message has been received.  At
   // this point we create the desktop window and display it.  We also tell the
   // server the pixel format and encodings to use and request the first update.
-  public void serverInit() {
+  public void serverInit()
+  {
     super.serverInit();
 
     // If using AutoSelect with old servers, start in FullColor
@@ -265,23 +288,22 @@ public class CConn extends CConnection implements
     // This initial update request is a bit of a corner case, so we need
     // to help out setting the correct format here.
     assert(pendingPFChange);
-    desktop.setServerPF(pendingPF);
     cp.setPF(pendingPF);
     pendingPFChange = false;
-
-    recreateViewport();
   }
 
   // setDesktopSize() is called when the desktop size changes (including when
   // it is set initially).
-  public void setDesktopSize(int w, int h) {
+  public void setDesktopSize(int w, int h)
+  {
     super.setDesktopSize(w, h);
     resizeFramebuffer();
   }
 
   // setExtendedDesktopSize() is a more advanced version of setDesktopSize()
   public void setExtendedDesktopSize(int reason, int result, int w, int h,
-                                     ScreenSet layout) {
+                                     ScreenSet layout)
+  {
     super.setExtendedDesktopSize(reason, result, w, h, layout);
 
     if ((reason == screenTypes.reasonClient) &&
@@ -294,8 +316,8 @@ public class CConn extends CConnection implements
   }
 
   // clientRedirect() migrates the client to another host/port
-  public void clientRedirect(int port, String host,
-                             String x509subject) {
+  public void clientRedirect(int port, String host, String x509subject)
+  {
     try {
       sock.close();
       sock = new TcpSocket(host, port);
@@ -311,10 +333,11 @@ public class CConn extends CConnection implements
   }
 
   // setName() is called when the desktop name changes
-  public void setName(String name) {
+  public void setName(String name)
+  {
     super.setName(name);
-    if (viewport != null)
-      viewport.setTitle(name+" - TigerVNC");
+    if (desktop != null)
+      desktop.setName(name);
   }
 
   // framebufferUpdateStart() is called at the beginning of an update.
@@ -323,12 +346,23 @@ public class CConn extends CConnection implements
   // one.
   public void framebufferUpdateStart()
   {
+    ModifiablePixelBuffer pb;
+    PlatformPixelBuffer ppb;
+
     super.framebufferUpdateStart();
 
     // Note: This might not be true if sync fences are supported
     pendingUpdate = false;
 
     requestNewUpdate();
+
+    // We might still be rendering the previous update
+    pb = getFramebuffer();
+    assert(pb != null);
+    ppb = (PlatformPixelBuffer)pb;
+    assert(ppb != null);
+
+    //FIXME
   }
 
   // framebufferUpdateEnd() is called at the end of an update.
@@ -342,45 +376,10 @@ public class CConn extends CConnection implements
     desktop.updateWindow();
 
     if (firstUpdate) {
-      int width, height;
-
       // We need fences to make extra update requests and continuous
       // updates "safe". See fence() for the next step.
       if (cp.supportsFence)
         writer().writeFence(fenceTypes.fenceFlagRequest | fenceTypes.fenceFlagSyncNext, 0, null);
-
-      if (cp.supportsSetDesktopSize &&
-          !desktopSize.getValue().isEmpty() &&
-          desktopSize.getValue().split("x").length == 2) {
-        width = Integer.parseInt(desktopSize.getValue().split("x")[0]);
-        height = Integer.parseInt(desktopSize.getValue().split("x")[1]);
-        ScreenSet layout;
-
-        layout = cp.screenLayout;
-
-        if (layout.num_screens() == 0)
-          layout.add_screen(new Screen());
-        else if (layout.num_screens() != 1) {
-
-          while (true) {
-            Iterator<Screen> iter = layout.screens.iterator();
-            Screen screen = (Screen)iter.next();
-
-            if (!iter.hasNext())
-              break;
-
-            layout.remove_screen(screen.id);
-          }
-        }
-
-        Screen screen0 = (Screen)layout.screens.iterator().next();
-        screen0.dimensions.tl.x = 0;
-        screen0.dimensions.tl.y = 0;
-        screen0.dimensions.br.x = width;
-        screen0.dimensions.br.y = height;
-
-        writer().writeSetDesktopSize(width, height, layout);
-      }
 
       firstUpdate = false;
     }
@@ -388,7 +387,6 @@ public class CConn extends CConnection implements
     // A format change has been scheduled and we are now past the update
     // with the old format. Time to active the new one.
     if (pendingPFChange) {
-      desktop.setServerPF(pendingPF);
       cp.setPF(pendingPF);
       pendingPFChange = false;
     }
@@ -400,16 +398,19 @@ public class CConn extends CConnection implements
 
   // The rest of the callbacks are fairly self-explanatory...
 
-  public void setColourMapEntries(int firstColor, int nColors, int[] rgbs) {
-    desktop.setColourMapEntries(firstColor, nColors, rgbs);
+  public void setColourMapEntries(int firstColor, int nColors, int[] rgbs)
+  {
+    vlog.error("Invalid SetColourMapEntries from server!");
   }
 
-  public void bell() {
+  public void bell()
+  {
     if (acceptBell.getValue())
       desktop.getToolkit().beep();
   }
 
-  public void serverCutText(String str, int len) {
+  public void serverCutText(String str, int len)
+  {
     StringSelection buffer;
 
     if (!acceptClipboard.getValue())
@@ -418,34 +419,21 @@ public class CConn extends CConnection implements
     ClipboardDialog.serverCutText(str);
   }
 
-  // We start timing on beginRect and stop timing on endRect, to
-  // avoid skewing the bandwidth estimation as a result of the server
-  // being slow or the network having high latency
-  public void beginRect(Rect r, int encoding) {
+  public void dataRect(Rect r, int encoding)
+  {
     sock.inStream().startTiming();
-    if (encoding != Encodings.encodingCopyRect) {
-      lastServerEncoding = encoding;
-    }
-  }
 
-  public void endRect(Rect r, int encoding) {
+    if (encoding != Encodings.encodingCopyRect)
+      lastServerEncoding = encoding;
+
+    super.dataRect(r, encoding);
+
     sock.inStream().stopTiming();
   }
 
-  public void fillRect(Rect r, int p) {
-    desktop.fillRect(r.tl.x, r.tl.y, r.width(), r.height(), p);
-  }
-
-  public void imageRect(Rect r, Object p) {
-    desktop.imageRect(r.tl.x, r.tl.y, r.width(), r.height(), p);
-  }
-
-  public void copyRect(Rect r, int sx, int sy) {
-    desktop.copyRect(r.tl.x, r.tl.y, r.width(), r.height(), sx, sy);
-  }
-
   public void setCursor(int width, int height, Point hotspot,
-                        int[] data, byte[] mask) {
+                        byte[] data, byte[] mask)
+  {
     desktop.setCursor(width, height, hotspot, data, mask);
   }
 
@@ -480,11 +468,11 @@ public class CConn extends CConnection implements
 
       pf.read(memStream);
 
-      desktop.setServerPF(pf);
       cp.setPF(pf);
     }
   }
 
+  ////////////////////// Internal methods //////////////////////
   private void resizeFramebuffer()
   {
     if (desktop == null)
@@ -493,82 +481,7 @@ public class CConn extends CConnection implements
     if (continuousUpdates)
       writer().writeEnableContinuousUpdates(true, 0, 0, cp.width, cp.height);
 
-    if ((cp.width == 0) && (cp.height == 0))
-      return;
-    if ((desktop.width() == cp.width) && (desktop.height() == cp.height))
-      return;
-
-    desktop.resize();
-    if (!firstUpdate)
-      recreateViewport();
-  }
-  
-  // recreateViewport() recreates our top-level window.  This seems to be
-  // better than attempting to resize the existing window, at least with
-  // various X window managers.
-
-  public void recreateViewport() {
-    if (embed.getValue()) {
-      desktop.setViewport(VncViewer.getViewport());
-      Container viewer =
-        SwingUtilities.getAncestorOfClass(JApplet.class, desktop);
-      viewer.addFocusListener(new FocusAdapter() {
-        public void focusGained(FocusEvent e) {
-          Container c =
-            SwingUtilities.getAncestorOfClass(JApplet.class, desktop);
-          if (c != null && desktop.isAncestorOf(c))
-            desktop.requestFocus();
-        }
-        public void focusLost(FocusEvent e) {
-          releaseDownKeys();
-        }
-      });
-      viewer.validate();
-      desktop.requestFocus();
-    } else {
-      if (viewport != null)
-        viewport.dispose();
-      viewport = new Viewport(cp.name(), this);
-      viewport.setUndecorated(fullScreen.getValue());
-      desktop.setViewport(viewport.getViewport());
-      reconfigureViewport();
-      if ((cp.width > 0) && (cp.height > 0))
-        viewport.setVisible(true);
-      desktop.requestFocusInWindow();
-    }
-  }
-
-  private void reconfigureViewport() {
-    Dimension dpySize = viewport.getScreenSize();
-    int w = desktop.scaledWidth;
-    int h = desktop.scaledHeight;
-    if (fullScreen.getValue()) {
-      if (!fullScreenAllMonitors.getValue())
-        viewport.setExtendedState(JFrame.MAXIMIZED_BOTH);
-      viewport.setBounds(viewport.getScreenBounds());
-      if (!fullScreenAllMonitors.getValue())
-        Viewport.setFullScreenWindow(viewport);
-    } else {
-      int wmDecorationWidth = viewport.getInsets().left + viewport.getInsets().right;
-      int wmDecorationHeight = viewport.getInsets().top + viewport.getInsets().bottom;
-      if (w + wmDecorationWidth >= dpySize.width)
-        w = dpySize.width - wmDecorationWidth;
-      if (h + wmDecorationHeight >= dpySize.height)
-        h = dpySize.height - wmDecorationHeight;
-      if (viewport.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
-        w = viewport.getSize().width;
-        h = viewport.getSize().height;
-        int x = viewport.getLocation().x;
-        int y = viewport.getLocation().y;
-        viewport.setGeometry(x, y, w, h);
-      } else {
-        int x = (dpySize.width - w - wmDecorationWidth) / 2;
-        int y = (dpySize.height - h - wmDecorationHeight)/2;
-        viewport.setExtendedState(JFrame.NORMAL);
-        viewport.setGeometry(x, y, w, h);
-      }
-      Viewport.setFullScreenWindow(null);
-    }
+    desktop.resizeFramebuffer(cp.width, cp.height);
   }
 
   // autoSelectFormatAndEncoding() chooses the format and encoding appropriate
@@ -586,11 +499,12 @@ public class CConn extends CConnection implements
   //   Note: The system here is fairly arbitrary and should be replaced
   //         with something more intelligent at the server end.
   //
-  private void autoSelectFormatAndEncoding() {
+  private void autoSelectFormatAndEncoding()
+  {
     long kbitsPerSecond = sock.inStream().kbitsPerSecond();
     long timeWaited = sock.inStream().timeWaited();
     boolean newFullColor = fullColor.getValue();
-    int newQualityLevel = cp.qualityLevel;
+    int newQualityLevel = qualityLevel.getValue();
 
     // Always use Tight
     if (currentEncoding != Encodings.encodingTight) {
@@ -603,13 +517,13 @@ public class CConn extends CConnection implements
       return;
 
     // Select appropriate quality level
-    if (!cp.noJpeg) {
+    if (!noJpeg.getValue()) {
       if (kbitsPerSecond > 16000)
         newQualityLevel = 8;
       else
         newQualityLevel = 6;
 
-      if (newQualityLevel != cp.qualityLevel) {
+      if (newQualityLevel != qualityLevel.getValue()) {
         vlog.info("Throughput "+kbitsPerSecond+
                   " kbit/s - changing to quality "+newQualityLevel);
         cp.qualityLevel = newQualityLevel;
@@ -637,7 +551,17 @@ public class CConn extends CConnection implements
                 (newFullColor ? "enabled" : "disabled"));
       fullColor.setParam(newFullColor);
       formatChange = true;
-      forceNonincremental = true;
+    }
+  }
+
+  // checkEncodings() sends a setEncodings message if one is needed.
+  private void checkEncodings()
+  {
+    if (encodingChange && (writer() != null)) {
+      vlog.info("Using " + Encodings.encodingName(currentEncoding) +
+        " encoding");
+      writer().writeSetEncodings(currentEncoding, true);
+      encodingChange = false;
     }
   }
 
@@ -699,83 +623,8 @@ public class CConn extends CConnection implements
     forceNonincremental = false;
   }
 
-
-  ////////////////////////////////////////////////////////////////////
-  // The following methods are all called from the GUI thread
-
-  // close() shuts down the socket, thus waking up the RFB thread.
-  public void close() {
-    if (closeListener != null) {
-      embed.setParam(true);
-      JFrame f =
-        (JFrame)SwingUtilities.getAncestorOfClass(JFrame.class, desktop);
-      if (f != null)
-        f.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
-    }
-    deleteWindow();
-    shuttingDown = true;
-    try {
-      if (sock != null)
-        sock.shutdown();
-    } catch (java.lang.Exception e) {
-      throw new Exception(e.getMessage());
-    }
-  }
-
-  void showInfo() {
-    Window fullScreenWindow = Viewport.getFullScreenWindow();
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(null);
-    String info = new String("Desktop name: %s%n"+
-                             "Host: %s:%d%n"+
-                             "Size: %dx%d%n"+
-                             "Pixel format: %s%n"+
-                             "  (server default: %s)%n"+
-                             "Requested encoding: %s%n"+
-                             "Last used encoding: %s%n"+
-                             "Line speed estimate: %d kbit/s%n"+
-                             "Protocol version: %d.%d%n"+
-                             "Security method: %s [%s]%n");
-    String msg =
-      String.format(info, cp.name(),
-                    sock.getPeerName(), sock.getPeerPort(),
-                    cp.width, cp.height,
-                    desktop.getPF().print(),
-                    serverPF.print(),
-                    Encodings.encodingName(currentEncoding),
-                    Encodings.encodingName(lastServerEncoding),
-                    sock.inStream().kbitsPerSecond(),
-                    cp.majorVersion, cp.minorVersion,
-                    Security.secTypeName(csecurity.getType()),
-                    csecurity.description());
-    Object[] options = {"Close  \u21B5"};
-    JOptionPane op =
-      new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE,
-                      JOptionPane.DEFAULT_OPTION, null, options);
-    JDialog dlg = op.createDialog(desktop, "VNC connection info");
-    dlg.setIconImage(VncViewer.frameIcon);
-    dlg.setAlwaysOnTop(true);
-    dlg.setVisible(true);
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(fullScreenWindow);
-  }
-
-  public void refresh() {
-    writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
-    pendingUpdate = true;
-  }
-
-  public synchronized int currentEncoding() {
-    return currentEncoding;
-  }
-
   public void handleOptions()
   {
-
-    if (viewport != null && viewport.isVisible()) {
-      viewport.toFront();
-      viewport.requestFocus();
-    }
 
     // Checking all the details of the current set of encodings is just
     // a pain. Assume something has changed, as resending the encoding
@@ -788,7 +637,7 @@ public class CConn extends CConnection implements
         this.currentEncoding = encNum;
     }
 
-    this.cp.supportsLocalCursor = useLocalCursor.getValue();
+    this.cp.supportsLocalCursor = true;
 
     if (customCompressLevel.getValue())
       this.cp.compressLevel = compressLevel.getValue();
@@ -829,17 +678,66 @@ public class CConn extends CConnection implements
 
   }
 
-  public void toggleFullScreen() {
-    if (embed.getValue())
-      return;
-    fullScreen.setParam(!fullScreen.getValue());
-    if (viewport != null) {
-      if (!viewport.lionFSSupported()) {
-        recreateViewport();
-      } else {
-        viewport.toggleLionFS();
-      }
+  ////////////////////////////////////////////////////////////////////
+  // The following methods are all called from the GUI thread
+
+  // close() shuts down the socket, thus waking up the RFB thread.
+  public void close() {
+    if (closeListener != null) {
+      embed.setParam(true);
+      JFrame f =
+        (JFrame)SwingUtilities.getAncestorOfClass(JFrame.class, desktop);
+      if (f != null)
+        f.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
     }
+    shuttingDown = true;
+    try {
+      if (sock != null)
+        sock.shutdown();
+    } catch (java.lang.Exception e) {
+      throw new Exception(e.getMessage());
+    }
+  }
+
+  void showInfo() {
+    Window fullScreenWindow = DesktopWindow.getFullScreenWindow();
+    if (fullScreenWindow != null)
+      DesktopWindow.setFullScreenWindow(null);
+    String info = new String("Desktop name: %s%n"+
+                             "Host: %s:%d%n"+
+                             "Size: %dx%d%n"+
+                             "Pixel format: %s%n"+
+                             "  (server default: %s)%n"+
+                             "Requested encoding: %s%n"+
+                             "Last used encoding: %s%n"+
+                             "Line speed estimate: %d kbit/s%n"+
+                             "Protocol version: %d.%d%n"+
+                             "Security method: %s [%s]%n");
+    String msg =
+      String.format(info, cp.name(),
+                    sock.getPeerName(), sock.getPeerPort(),
+                    cp.width, cp.height,
+                    cp.pf().print(),
+                    serverPF.print(),
+                    Encodings.encodingName(currentEncoding),
+                    Encodings.encodingName(lastServerEncoding),
+                    sock.inStream().kbitsPerSecond(),
+                    cp.majorVersion, cp.minorVersion,
+                    Security.secTypeName(csecurity.getType()),
+                    csecurity.description());
+    JOptionPane op = new JOptionPane(msg, JOptionPane.PLAIN_MESSAGE,
+                                     JOptionPane.DEFAULT_OPTION);
+    JDialog dlg = op.createDialog(desktop, "VNC connection info");
+    dlg.setIconImage(VncViewer.frameIcon);
+    dlg.setAlwaysOnTop(true);
+    dlg.setVisible(true);
+    if (fullScreenWindow != null)
+      DesktopWindow.setFullScreenWindow(fullScreenWindow);
+  }
+
+  public void refresh() {
+    writer().writeFramebufferUpdateRequest(new Rect(0,0,cp.width,cp.height), false);
+    pendingUpdate = true;
   }
 
   // writeClientCutText() is called from the clipboard dialog
@@ -860,7 +758,7 @@ public class CConn extends CConnection implements
       return;
 
     boolean down = (ev.getID() == KeyEvent.KEY_PRESSED);
-   
+
     int keySym, keyCode = ev.getKeyCode();
 
     // If neither the keyCode or keyChar are defined, then there's
@@ -875,9 +773,9 @@ public class CConn extends CConnection implements
       if (iter == null) {
         // Note that dead keys will raise this sort of error falsely
         // See https://bugs.openjdk.java.net/browse/JDK-6534883 
-        vlog.error("Unexpected key release of keyCode "+keyCode);
+        vlog.debug("Unexpected key release of keyCode "+keyCode);
         String fmt = ev.paramString().replaceAll("%","%%");
-        vlog.error(String.format(fmt.replaceAll(",","%n       ")));
+        vlog.debug(String.format(fmt.replaceAll(",","%n       ")));
 
         return;
       }
@@ -961,15 +859,6 @@ public class CConn extends CConnection implements
       break;
     }
 
-    if (cp.width != desktop.scaledWidth ||
-        cp.height != desktop.scaledHeight) {
-      int sx = (desktop.scaleWidthRatio == 1.00) ?
-        ev.getX() : (int)Math.floor(ev.getX() / desktop.scaleWidthRatio);
-      int sy = (desktop.scaleHeightRatio == 1.00) ?
-        ev.getY() : (int)Math.floor(ev.getY() / desktop.scaleHeightRatio);
-      ev.translatePoint(sx - ev.getX(), sy - ev.getY());
-    }
-
     writer().writePointerEvent(new Point(ev.getX(), ev.getY()), buttonMask);
   }
 
@@ -1014,16 +903,6 @@ public class CConn extends CConnection implements
   ////////////////////////////////////////////////////////////////////
   // The following methods are called from both RFB and GUI threads
 
-  // checkEncodings() sends a setEncodings message if one is needed.
-  private void checkEncodings() {
-    if (encodingChange && (writer() != null)) {
-      vlog.info("Requesting " + Encodings.encodingName(currentEncoding) +
-        " encoding");
-      writer().writeSetEncodings(currentEncoding, true);
-      encodingChange = false;
-    }
-  }
-
   // the following never change so need no synchronization:
 
   // access to desktop by different threads is specified in DesktopWindow
@@ -1031,7 +910,6 @@ public class CConn extends CConnection implements
   // the following need no synchronization:
 
   public static UserPasswdGetter upg;
-  public UserMsgBox msg;
 
   // shuttingDown is set by the GUI thread and only ever tested by the RFB
   // thread after the window has been destroyed.
@@ -1072,7 +950,6 @@ public class CConn extends CConnection implements
 
   private boolean supportsSyncFence;
 
-  Viewport viewport;
   private HashMap<Integer, Integer> downKeySym;
   public ActionListener closeListener = null;
 
