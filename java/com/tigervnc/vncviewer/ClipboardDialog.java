@@ -41,7 +41,7 @@ class ClipboardDialog extends Dialog {
 	    // Custom TransferHandler designed to limit the size of outbound
 	    // clipboard transfers to VncViewer.maxCutText.getValue() bytes.
 	    private LogWriter vlog = new LogWriter("VncTransferHandler");
-	
+
 	    public void exportToClipboard(JComponent c, Clipboard clip, int a)
 	        throws IllegalStateException {
 	      if (!(c instanceof JTextComponent)) return;
@@ -58,7 +58,7 @@ class ClipboardDialog extends Dialog {
 	      StringSelection selection = new StringSelection(text);
 	      clip.setContents(selection, null);
 	    }
-	
+
 	    public boolean importData(JComponent c, Transferable t) {
 	      if (canImport(c, t.getTransferDataFlavors())) {
 	        try {
@@ -94,20 +94,19 @@ class ClipboardDialog extends Dialog {
 	      }
 	      return false;
 	    }
-	
+
 	    public boolean canImport(JComponent c, DataFlavor[] flavors) {
 	      for (DataFlavor f : flavors)
 	        if (f.isMimeTypeEqual("text/plain") &&
-              f.isRepresentationClassReader()) {
+              f.isRepresentationClassReader())
 	          return true;
-          }
 	      return false;
 	    }
 	  }
 
 	  private class MyTextListener implements DocumentListener {
 	    public MyTextListener() { }
-	
+
 	    public void changedUpdate(DocumentEvent e) { } 
 
 	    public void insertUpdate(DocumentEvent e) {
@@ -116,7 +115,7 @@ class ClipboardDialog extends Dialog {
 	      if (sendClipboard.getValue())
 	        VncViewer.cc.writeClientCutText(text, text.length());
 	    }
-	
+
 	    public void removeUpdate(DocumentEvent e) { }
 	  }
 
