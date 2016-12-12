@@ -82,6 +82,9 @@ namespace rfb {
     bool writeSetXCursor();
     bool writeSetCursorWithAlpha();
 
+    // Same for LED state message
+    bool writeLEDState();
+
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out pseudo-rectangles to the client.
     bool needFakeUpdate();
@@ -131,6 +134,7 @@ namespace rfb {
     void writeSetCursorWithAlphaRect(int width, int height,
                                      int hotspotX, int hotspotY,
                                      const rdr::U8* data);
+    void writeLEDStateRect(rdr::U8 state);
 
     ConnParams* cp;
     rdr::OutStream* os;
@@ -145,6 +149,7 @@ namespace rfb {
     bool needSetCursor;
     bool needSetXCursor;
     bool needSetCursorWithAlpha;
+    bool needLEDState;
 
     typedef struct {
       rdr::U16 reason, result;

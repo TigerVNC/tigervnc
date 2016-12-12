@@ -461,7 +461,17 @@ void VNCServerST::setCursorPos(const Point& pos)
 
 void VNCServerST::setLEDState(unsigned int state)
 {
+  std::list<VNCSConnectionST*>::iterator ci, ci_next;
+
+  if (state == ledState)
+    return;
+
   ledState = state;
+
+  for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
+    ci_next = ci; ci_next++;
+    (*ci)->setLEDStateOrClose(state);
+  }
 }
 
 // Other public methods

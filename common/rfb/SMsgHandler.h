@@ -74,6 +74,12 @@ namespace rfb {
     // this point if it is supported.
     virtual void supportsContinuousUpdates();
 
+    // supportsLEDState() is called the first time we detect that the
+    // client supports the LED state extension. A LEDState message
+    // should be sent back to the client to inform it of the current
+    // server state.
+    virtual void supportsLEDState();
+
     ConnParams cp;
   };
 }

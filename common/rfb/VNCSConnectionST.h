@@ -78,6 +78,7 @@ namespace rfb {
     void bellOrClose();
     void serverCutTextOrClose(const char *str, int len);
     void setDesktopNameOrClose(const char *name);
+    void setLEDStateOrClose(unsigned int state);
 
     // checkIdleTimeout() returns the number of milliseconds left until the
     // idle timeout expires.  If it has expired, the connection is closed and
@@ -146,6 +147,7 @@ namespace rfb {
     virtual void supportsLocalCursor();
     virtual void supportsFence();
     virtual void supportsContinuousUpdates();
+    virtual void supportsLEDState();
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
@@ -174,6 +176,7 @@ namespace rfb {
     void screenLayoutChange(rdr::U16 reason);
     void setCursor();
     void setDesktopName(const char *name);
+    void setLEDState(unsigned int state);
     void setSocketTimeouts();
 
     network::Socket* sock;
