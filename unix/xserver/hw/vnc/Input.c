@@ -273,6 +273,11 @@ static void vncKeyboardBell(int percent, DeviceIntPtr device,
 		vncBell();
 }
 
+static void vncKeyboardCtrl(DeviceIntPtr pDevice, KeybdCtrl *ctrl)
+{
+	vncSetLEDState(ctrl->leds);
+}
+
 static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 {
 	DevicePtr pDev = (DevicePtr)pDevice;
@@ -280,7 +285,7 @@ static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 	switch (onoff) {
 	case DEVICE_INIT:
 		InitKeyboardDeviceStruct(pDevice, NULL, vncKeyboardBell,
-					 (KbdCtrlProcPtr)NoopDDA);
+					 vncKeyboardCtrl);
 		break;
 	case DEVICE_ON:
 		pDev->on = TRUE;

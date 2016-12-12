@@ -32,6 +32,7 @@
 #include <rfb/LogWriter.h>
 #include <rfb/Hostname.h>
 #include <rfb/Region.h>
+#include <rfb/ledStates.h>
 #include <network/TcpSocket.h>
 
 #include "XserverDesktop.h"
@@ -355,6 +356,25 @@ void vncBell()
     if (desktop[scr] == NULL)
       continue;
     desktop[scr]->bell();
+  }
+}
+
+void vncSetLEDState(unsigned long leds)
+{
+  unsigned int state;
+
+  state = 0;
+  if (leds & (1 << 0))
+    state |= ledCapsLock;
+  if (leds & (1 << 1))
+    state |= ledNumLock;
+  if (leds & (1 << 2))
+    state |= ledScrollLock;
+
+  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
+    if (desktop[scr] == NULL)
+      continue;
+    desktop[scr]->setLEDState(state);
   }
 }
 

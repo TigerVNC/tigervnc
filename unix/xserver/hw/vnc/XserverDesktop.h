@@ -63,6 +63,7 @@ public:
   void setFramebuffer(int w, int h, void* fbptr, int stride);
   void refreshScreenLayout();
   void bell();
+  void setLEDState(unsigned int state);
   void serverCutText(const char* str, int len);
   void setDesktopName(const char* name);
   void setCursor(int width, int height, int hotX, int hotY,

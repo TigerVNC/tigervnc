@@ -70,6 +70,8 @@ void vncApproveConnection(uint32_t opaqueId, int approve);
 
 void vncBell(void);
 
+void vncSetLEDState(unsigned long leds);
+
 // Must match rfb::ShortRect in common/rfb/Region.h, and BoxRec in the
 // Xorg source.
 struct UpdateRect {

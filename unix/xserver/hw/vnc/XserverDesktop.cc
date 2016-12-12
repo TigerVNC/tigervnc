@@ -322,6 +322,11 @@ void XserverDesktop::bell()
   server->bell();
 }
 
+void XserverDesktop::setLEDState(unsigned int state)
+{
+  server->setLEDState(state);
+}
+
 void XserverDesktop::serverCutText(const char* str, int len)
 {
   try {
