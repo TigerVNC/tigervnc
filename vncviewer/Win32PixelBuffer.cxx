@@ -57,10 +57,8 @@ Win32PixelBuffer::Win32PixelBuffer(int width, int height) :
 
   bitmap = CreateDIBSection(NULL, (BITMAPINFO*)&bih,
                             DIB_RGB_COLORS, (void**)&data, NULL, 0);
-  if (!bitmap) {
-    int err = GetLastError();
-    throw rdr::SystemException(_("unable to create DIB section"), err);
-  }
+  if (!bitmap)
+    throw rdr::SystemException("CreateDIBSection", GetLastError());
 }
 
 
@@ -76,10 +74,10 @@ void Win32PixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
 
   dc = CreateCompatibleDC(fl_gc);
   if (!dc)
-    throw rdr::SystemException(_("CreateCompatibleDC failed"), GetLastError());
+    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
 
   if (!SelectObject(dc, bitmap))
-    throw rdr::SystemException(_("SelectObject failed"), GetLastError());
+    throw rdr::SystemException("SelectObject", GetLastError());
 
   if (!BitBlt(fl_gc, x, y, w, h, dc, src_x, src_y, SRCCOPY)) {
     // If the desktop we're rendering to is inactive (like when the screen
@@ -88,7 +86,7 @@ void Win32PixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
     // with it. For now, we've only seen this error and for this function
     // so only ignore this combination.
     if (GetLastError() != ERROR_INVALID_HANDLE)
-      throw rdr::SystemException(_("BitBlt failed"), GetLastError());
+      throw rdr::SystemException("BitBlt", GetLastError());
   }
 
   DeleteDC(dc);

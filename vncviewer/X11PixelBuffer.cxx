@@ -110,11 +110,13 @@ X11PixelBuffer::X11PixelBuffer(int width, int height) :
     xim = XCreateImage(fl_display, fl_visual->visual, fl_visual->depth,
                        ZPixmap, 0, 0, width, height, BitmapPad(fl_display), 0);
     if (!xim)
-      throw rfb::Exception(_("Could not create framebuffer image"));
+      throw rfb::Exception("XCreateImage");
 
     xim->data = (char*)malloc(xim->bytes_per_line * xim->height);
     if (!xim->data)
       throw rfb::Exception(_("Not enough memory for framebuffer"));
+
+    vlog.debug("Using standard XImage");
   }
 
   data = (rdr::U8*)xim->data;

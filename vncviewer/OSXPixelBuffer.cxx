@@ -49,13 +49,13 @@ OSXPixelBuffer::OSXPixelBuffer(int width, int height) :
 
   lut = CGColorSpaceCreateDeviceRGB();
   if (!lut)
-    throw rfb::Exception(_("Could not create framebuffer device"));
+    throw rfb::Exception("CGColorSpaceCreateDeviceRGB");
 
   bitmap = CGBitmapContextCreate(data, width, height, 8, width*4, lut,
                                  kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little);
   CGColorSpaceRelease(lut);
   if (!bitmap)
-    throw rfb::Exception(_("Could not create framebuffer bitmap"));
+    throw rfb::Exception("CGBitmapContextCreate");
 }
 
 
