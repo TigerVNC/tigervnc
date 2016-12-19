@@ -230,23 +230,24 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
     Atom targets[] = { xaTARGETS, xaTIMESTAMP,
                        xaSTRING, xaTEXT, xaUTF8_STRING };
 
-    rc = ChangeWindowProperty(pWin, realProperty, XA_ATOM, 32,
-                              PropModeReplace,
-                              sizeof(targets)/sizeof(targets[0]),
-                              targets, TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 XA_ATOM, 32, PropModeReplace,
+                                 sizeof(targets)/sizeof(targets[0]),
+                                 targets, TRUE);
     if (rc != Success)
       return rc;
   } else if (target == xaTIMESTAMP) {
-    rc = ChangeWindowProperty(pWin, realProperty, XA_INTEGER, 32,
-                              PropModeReplace, 1,
-                              &pSel->lastTimeChanged.milliseconds,
-                              TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 XA_INTEGER, 32, PropModeReplace, 1,
+                                 &pSel->lastTimeChanged.milliseconds,
+                                 TRUE);
     if (rc != Success)
       return rc;
   } else if ((target == xaSTRING) || (target == xaTEXT)) {
-    rc = ChangeWindowProperty(pWin, realProperty, XA_STRING, 8,
-                              PropModeReplace, clientCutTextLen,
-                              clientCutText, TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 XA_STRING, 8, PropModeReplace,
+                                 clientCutTextLen, clientCutText,
+                                 TRUE);
     if (rc != Success)
       return rc;
   } else if (target == xaUTF8_STRING) {
@@ -279,8 +280,9 @@ static int vncConvertSelection(ClientPtr client, Atom selection,
       }
     }
 
-    rc = ChangeWindowProperty(pWin, realProperty, xaUTF8_STRING, 8,
-                              PropModeReplace, len, buffer, TRUE);
+    rc = dixChangeWindowProperty(serverClient, pWin, realProperty,
+                                 xaUTF8_STRING, 8, PropModeReplace,
+                                 len, buffer, TRUE);
     free(buffer);
     if (rc != Success)
       return rc;
