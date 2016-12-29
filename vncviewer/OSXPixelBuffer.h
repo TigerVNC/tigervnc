@@ -21,6 +21,9 @@
 
 #include "PlatformPixelBuffer.h"
 
+// Apple headers conflict with FLTK, so redefine types here
+typedef struct CGImage* CGImageRef;
+
 class OSXPixelBuffer: public PlatformPixelBuffer {
 public:
   OSXPixelBuffer(int width, int height);
@@ -29,8 +32,7 @@ public:
   virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
 
 protected:
-  // This is really a CGContextRef, but Apple headers conflict with FLTK
-  void *bitmap;
+  CGImageRef image;
 };
 
 

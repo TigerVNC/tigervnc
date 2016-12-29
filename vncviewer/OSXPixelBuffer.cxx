@@ -39,73 +39,76 @@ OSXPixelBuffer::OSXPixelBuffer(int width, int height) :
   PlatformPixelBuffer(rfb::PixelFormat(32, 24, false, true,
                                        255, 255, 255, 16, 8, 0),
                       width, height, NULL, width),
-  bitmap(NULL)
+  image(NULL)
 {
   CGColorSpaceRef lut;
+  CGDataProviderRef provider;
 
   data = new rdr::U8[width * height * format.bpp/8];
   if (data == NULL)
     throw rfb::Exception(_("Not enough memory for framebuffer"));
 
-  lut = CGColorSpaceCreateDeviceRGB();
-  if (!lut)
-    throw rfb::Exception("CGColorSpaceCreateDeviceRGB");
+  lut = CGDisplayCopyColorSpace(kCGDirectMainDisplay);
+  if (!lut) {
+    vlog.error(_("Could not get screen color space. Using slower fallback."));
+    lut = CGColorSpaceCreateDeviceRGB();
+    if (!lut)
+      throw rfb::Exception("CGColorSpaceCreateDeviceRGB");
+  }
 
-  bitmap = CGBitmapContextCreate(data, width, height, 8, width*4, lut,
-                                 kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little);
+  provider = CGDataProviderCreateWithData(NULL, data,
+                                          width * height * 4, NULL);
+  if (!provider)
+    throw rfb::Exception("CGDataProviderCreateWithData");
+
+  image = CGImageCreate(width, height, 8, 32, width * 4, lut,
+                        kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little,
+                        provider, NULL, false, kCGRenderingIntentDefault);
   CGColorSpaceRelease(lut);
-  if (!bitmap)
-    throw rfb::Exception("CGBitmapContextCreate");
+  CGDataProviderRelease(provider);
+  if (!image)
+    throw rfb::Exception("CGImageCreate");
 }
 
 
 OSXPixelBuffer::~OSXPixelBuffer()
 {
-  CFRelease((CGContextRef)bitmap);
+  CGImageRelease(image);
   delete [] data;
 }
 
 
 void OSXPixelBuffer::draw(int src_x, int src_y, int x, int y, int w, int h)
 {
-  CGRect rect;
   CGContextRef gc;
-  CGAffineTransform at;
-  CGImageRef image;
+  CGRect rect;
 
-  gc = (CGContextRef)fl_gc;
+  gc = fl_gc;
 
   CGContextSaveGState(gc);
 
-  // We have to use clipping to partially display an image
+  // macOS Coordinates are from bottom left, not top left
+  src_y = height() - (src_y + h);
+  y = Fl_Window::current()->h() - (y + h);
 
-  rect.origin.x = x - 0.5;
-  rect.origin.y = y - 0.5;
+  // Reset the transformation matrix back to the default identity
+  // matrix as otherwise we get a massive performance hit
+  CGContextConcatCTM(gc, CGAffineTransformInvert(CGContextGetCTM(gc)));
+
+  // We have to use clipping to partially display an image
+  rect.origin.x = x;
+  rect.origin.y = y;
   rect.size.width = w;
   rect.size.height = h;
 
   CGContextClipToRect(gc, rect);
- 
-  // Oh the hackiness that is OS X image handling...
-  // The CGContextDrawImage() routine magically flips the images and offsets
-  // them by 0.5,0.5 in order to compensate for OS X unfamiliar coordinate
-  // system. But this breaks horribly when you set up the CTM to get the
-  // more familiar top-down system (which FLTK does), meaning we have to
-  // reset the CTM back to the identity matrix and calculate new origin
-  // coordinates.
-
-  at = CGContextGetCTM(gc);
-  CGContextScaleCTM(gc, 1, -1);
-  CGContextTranslateCTM(gc, -at.tx, -at.ty);
 
   rect.origin.x = x - src_x;
-  rect.origin.y = Fl_Window::current()->h() - (y - src_y);
+  rect.origin.y = y - src_y;
   rect.size.width = width();
-  rect.size.height = -height(); // Negative height does _not_ flip the image
+  rect.size.height = height();
 
-  image = CGBitmapContextCreateImage((CGContextRef)bitmap);
   CGContextDrawImage(gc, rect, image);
-  CGImageRelease(image);
 
   CGContextRestoreGState(gc);
 }
