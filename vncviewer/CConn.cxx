@@ -254,6 +254,15 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     // until the buffers are empty or things will stall.
     do {
       cc->processMsg();
+
+      // Make sure that the FLTK handling and the timers gets some CPU
+      // time in case of back to back messages
+       Fl::check();
+       Timer::checkTimeouts();
+
+       // Also check if we need to stop reading and terminate
+       if (should_exit())
+         break;
     } while (cc->sock->inStream().checkNoWait(1));
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
@@ -397,11 +406,6 @@ void CConn::framebufferUpdateEnd()
   // Compute new settings based on updated bandwidth values
   if (autoSelect)
     autoSelectFormatAndEncoding();
-
-  // Make sure that the FLTK handling and the timers gets some CPU time
-  // in case of back to back framebuffer updates.
-  Fl::check();
-  Timer::checkTimeouts();
 }
 
 // The rest of the callbacks are fairly self-explanatory...
