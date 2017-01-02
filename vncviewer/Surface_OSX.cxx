@@ -28,13 +28,15 @@
 
 #include "Surface.h"
 
-static void render(CGContextRef gc, CGImageRef image,
+static void render(CGContextRef gc, CGImageRef image, CGBlendMode mode,
                    int src_x, int src_y, int src_w, int src_h,
                    int x, int y, int w, int h)
 {
   CGRect rect;
 
   CGContextSaveGState(gc);
+
+  CGContextSetBlendMode(gc, mode);
 
   // We have to use clipping to partially display an image
   rect.origin.x = x;
@@ -52,6 +54,27 @@ static void render(CGContextRef gc, CGImageRef image,
   CGContextDrawImage(gc, rect, image);
 
   CGContextRestoreGState(gc);
+}
+
+static CGContextRef make_bitmap(int width, int height, unsigned char* data)
+{
+  CGColorSpaceRef lut;
+  CGContextRef bitmap;
+
+  lut = CGDisplayCopyColorSpace(kCGDirectMainDisplay);
+  if (!lut) {
+    lut = CGColorSpaceCreateDeviceRGB();
+    if (!lut)
+      throw rdr::Exception("CGColorSpaceCreateDeviceRGB");
+  }
+
+  bitmap = CGBitmapContextCreate(data, width, height, 8, width*4, lut,
+                                 kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+  CGColorSpaceRelease(lut);
+  if (!bitmap)
+    throw rdr::Exception("CGBitmapContextCreate");
+
+  return bitmap;
 }
 
 void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
@@ -86,35 +109,58 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   src_y = height() - (src_y + h);
   y = Fl_Window::current()->h() - (y + h);
 
-  render(fl_gc, image, src_x, src_y, width(), height(), x, y, w, h);
+  render(fl_gc, image, kCGBlendModeCopy,
+         src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
 }
 
 void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
 {
-  CGColorSpaceRef lut;
   CGContextRef bitmap;
 
-  lut = CGDisplayCopyColorSpace(kCGDirectMainDisplay);
-  if (!lut) {
-    lut = CGColorSpaceCreateDeviceRGB();
-    if (!lut)
-      throw rdr::Exception("CGColorSpaceCreateDeviceRGB");
-  }
-
-  bitmap = CGBitmapContextCreate(dst->data, dst->width(),
-                                 dst->height(), 8, dst->width()*4, lut,
-                                 kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little);
-  CGColorSpaceRelease(lut);
-  if (!bitmap)
-    throw rdr::Exception("CGBitmapContextCreate");
+  bitmap = make_bitmap(dst->width(), dst->height(), dst->data);
 
   // macOS Coordinates are from bottom left, not top left
   src_y = height() - (src_y + h);
   y = dst->height() - (y + h);
 
-  render(bitmap, image, src_x, src_y, width(), height(), x, y, w, h);
+  render(bitmap, image, kCGBlendModeCopy,
+         src_x, src_y, width(), height(), x, y, w, h);
+
+  CGContextRelease(bitmap);
+}
+
+void Surface::blend(int src_x, int src_y, int x, int y, int w, int h)
+{
+  CGContextSaveGState(fl_gc);
+
+  // Reset the transformation matrix back to the default identity
+  // matrix as otherwise we get a massive performance hit
+  CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
+
+  // macOS Coordinates are from bottom left, not top left
+  src_y = height() - (src_y + h);
+  y = Fl_Window::current()->h() - (y + h);
+
+  render(fl_gc, image, kCGBlendModeNormal,
+         src_x, src_y, width(), height(), x, y, w, h);
+
+  CGContextRestoreGState(fl_gc);
+}
+
+void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+{
+  CGContextRef bitmap;
+
+  bitmap = make_bitmap(dst->width(), dst->height(), dst->data);
+
+  // macOS Coordinates are from bottom left, not top left
+  src_y = height() - (src_y + h);
+  y = dst->height() - (y + h);
+
+  render(bitmap, image, kCGBlendModeNormal,
+         src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRelease(bitmap);
 }
@@ -139,7 +185,7 @@ void Surface::alloc()
     throw rdr::Exception("CGDataProviderCreateWithData");
 
   image = CGImageCreate(width(), height(), 8, 32, width() * 4, lut,
-                        kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little,
+                        kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
                         provider, NULL, false, kCGRenderingIntentDefault);
   CGColorSpaceRelease(lut);
   CGDataProviderRelease(provider);

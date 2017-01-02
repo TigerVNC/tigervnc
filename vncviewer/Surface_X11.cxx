@@ -54,6 +54,23 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
                    src_x, src_y, 0, 0, x, y, w, h);
 }
 
+void Surface::blend(int src_x, int src_y, int x, int y, int w, int h)
+{
+  Picture winPict;
+
+  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, NULL);
+  XRenderComposite(fl_display, PictOpOver, picture, None, winPict,
+                   src_x, src_y, 0, 0, x, y, w, h);
+  XRenderFreePicture(fl_display, winPict);
+}
+
+void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+{
+  XRenderComposite(fl_display, PictOpOver, picture, None, dst->picture,
+                   src_x, src_y, 0, 0, x, y, w, h);
+}
+
+
 void Surface::alloc()
 {
   XRenderPictFormat* format;

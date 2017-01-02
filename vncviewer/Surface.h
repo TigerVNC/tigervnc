@@ -44,6 +44,9 @@ public:
   void draw(int src_x, int src_y, int x, int y, int w, int h);
   void draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h);
 
+  void blend(int src_x, int src_y, int x, int y, int w, int h);
+  void blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h);
+
 protected:
   void alloc();
   void dealloc();

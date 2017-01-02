@@ -89,6 +89,48 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   DeleteDC(dstdc);
 }
 
+void Surface::blend(int src_x, int src_y, int x, int y, int w, int h)
+{
+  // Compositing doesn't work properly for window DC:s
+  assert(false);
+}
+
+void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+{
+  HDC dstdc, srcdc;
+  BLENDFUNCTION blend;
+
+  dstdc = CreateCompatibleDC(NULL);
+  if (!dstdc)
+    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+  srcdc = CreateCompatibleDC(NULL);
+  if (!srcdc)
+    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+
+  if (!SelectObject(dstdc, dst->bitmap))
+    throw rdr::SystemException("SelectObject", GetLastError());
+  if (!SelectObject(srcdc, bitmap))
+    throw rdr::SystemException("SelectObject", GetLastError());
+
+  blend.BlendOp = AC_SRC_OVER;
+  blend.BlendFlags = 0;
+  blend.SourceConstantAlpha = 255;
+  blend.AlphaFormat = AC_SRC_ALPHA;
+
+  if (!AlphaBlend(dstdc, x, y, w, h, srcdc, src_x, src_y, w, h, blend)) {
+    // If the desktop we're rendering to is inactive (like when the screen
+    // is locked or the UAC is active), then GDI calls will randomly fail.
+    // This is completely undocumented so we have no idea how best to deal
+    // with it. For now, we've only seen this error and for this function
+    // so only ignore this combination.
+    if (GetLastError() != ERROR_INVALID_HANDLE)
+      throw rdr::SystemException("BitBlt", GetLastError());
+  }
+
+  DeleteDC(srcdc);
+  DeleteDC(dstdc);
+}
+
 void Surface::alloc()
 {
   BITMAPINFOHEADER bih;

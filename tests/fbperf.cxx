@@ -214,8 +214,9 @@ void OverlayTestWindow::start(int width, int height)
   overlay = new Surface(400, 200);
   overlay->clear(0xff, 0x80, 0x00, 0xcc);
 
-  // X11 needs an off screen buffer for compositing to avoid flicker
-#if !defined(WIN32) && !defined(__APPLE__)
+  // X11 needs an off screen buffer for compositing to avoid flicker,
+  // and alpha blending doesn't work for windows on Win32
+#if !defined(__APPLE__)
   offscreen = new Surface(w(), h());
 #else
   offscreen = NULL;
@@ -270,9 +271,9 @@ void OverlayTestWindow::draw()
   fl_clip_box(ox, oy, ow, oh, X, Y, W, H);
   if ((W != 0) && (H != 0)) {
     if (offscreen)
-      overlay->draw(offscreen, X - ox, Y - oy, X, Y, W, H);
+      overlay->blend(offscreen, X - ox, Y - oy, X, Y, W, H);
     else
-      overlay->draw(X - ox, Y - oy, X, Y, W, H);
+      overlay->blend(X - ox, Y - oy, X, Y, W, H);
   }
 
   fl_pop_clip();
