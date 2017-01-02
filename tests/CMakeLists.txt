@@ -22,14 +22,14 @@ target_link_libraries(hostport rfb)
 
 set(FBPERF_SOURCES
   fbperf.cxx
-  ../vncviewer/FLTKPixelBuffer.cxx
-  ../vncviewer/PlatformPixelBuffer.cxx)
+  ../vncviewer/PlatformPixelBuffer.cxx
+  ../vncviewer/Surface.cxx)
 if(WIN32)
-  set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/Win32PixelBuffer.cxx)
+  set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/Surface_Win32.cxx)
 elseif(APPLE)
-  set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/OSXPixelBuffer.cxx)
+  set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/Surface_OSX.cxx)
 else()
-  set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/X11PixelBuffer.cxx)
+  set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/Surface_X11.cxx)
 endif()
 add_executable(fbperf ${FBPERF_SOURCES})
 target_link_libraries(fbperf test_util rfb ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})

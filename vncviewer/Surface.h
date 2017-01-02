@@ -1,4 +1,4 @@
-/* Copyright 2011-2014 Pierre Ossman for Cendio AB
+/* Copyright 2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,24 +16,53 @@
  * USA.
  */
 
-#ifndef __OSXPIXELBUFFER_H__
-#define __OSXPIXELBUFFER_H__
+#ifndef __SURFACE_H__
+#define __SURFACE_H__
 
-#include "PlatformPixelBuffer.h"
-
+#if defined(WIN32)
+#include <windows.h>
+#elif defined(__APPLE__)
 // Apple headers conflict with FLTK, so redefine types here
 typedef struct CGImage* CGImageRef;
+#else
+#include <X11/extensions/Xrender.h>
+#endif
 
-class OSXPixelBuffer: public PlatformPixelBuffer {
+class Fl_RGB_Image;
+
+class Surface {
 public:
-  OSXPixelBuffer(int width, int height);
-  ~OSXPixelBuffer();
+  Surface(int width, int height);
+  Surface(const Fl_RGB_Image* image);
+  ~Surface();
 
-  virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
+  int width() { return w; }
+  int height() { return h; }
+
+  void clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a=255);
+
+  void draw(int src_x, int src_y, int x, int y, int w, int h);
 
 protected:
+  void alloc();
+  void dealloc();
+  void update(const Fl_RGB_Image* image);
+
+protected:
+  int w, h;
+
+#if defined(WIN32)
+  RGBQUAD* data;
+  HBITMAP bitmap;
+#elif defined(__APPLE__)
+  unsigned char* data;
   CGImageRef image;
+#else
+  Pixmap pixmap;
+  Picture picture;
+  XRenderPictFormat* visFormat;
+#endif
 };
 
-
 #endif
+

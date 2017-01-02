@@ -1,4 +1,4 @@
-/* Copyright 2011-2014 Pierre Ossman for Cendio AB
+/* Copyright 2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,23 +16,24 @@
  * USA.
  */
 
-#ifndef __WIN32PIXELBUFFER_H__
-#define __WIN32PIXELBUFFER_H__
+#include <FL/Fl_RGB_Image.H>
 
-#include <windows.h>
+#include "Surface.h"
 
-#include "PlatformPixelBuffer.h"
+Surface::Surface(int width, int height) :
+  w(width), h(height)
+{
+  alloc();
+}
 
-class Win32PixelBuffer: public PlatformPixelBuffer {
-public:
-  Win32PixelBuffer(int width, int height);
-  ~Win32PixelBuffer();
+Surface::Surface(const Fl_RGB_Image* image) :
+  w(image->w()), h(image->h())
+{
+  alloc();
+  update(image);
+}
 
-  virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
-
-protected:
-  HBITMAP bitmap;
-};
-
-
-#endif
+Surface::~Surface()
+{
+  dealloc();
+}

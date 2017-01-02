@@ -27,15 +27,6 @@
 #include <rfb/util.h>
 
 #include "../vncviewer/PlatformPixelBuffer.h"
-#include "../vncviewer/FLTKPixelBuffer.h"
-
-#if defined(WIN32)
-#include "../vncviewer/Win32PixelBuffer.h"
-#elif defined(__APPLE__)
-#include "../vncviewer/OSXPixelBuffer.h"
-#else
-#include "../vncviewer/X11PixelBuffer.h"
-#endif
 
 #include "util.h"
 
@@ -70,6 +61,19 @@ protected:
   virtual void changefb();
 };
 
+class OverlayTestWindow: public PartialTestWindow {
+public:
+  OverlayTestWindow();
+
+  virtual void start(int width, int height);
+  virtual void stop();
+
+  virtual void draw();
+
+protected:
+  Surface* overlay;
+};
+
 TestWindow::TestWindow() :
   Fl_Window(0, 0, "Framebuffer Performance Test"),
   fb(NULL)
@@ -93,17 +97,7 @@ void TestWindow::start(int width, int height)
   frames = 0;
   time = 0;
 
-  try {
-#if defined(WIN32)
-    fb = new Win32PixelBuffer(w(), h());
-#elif defined(__APPLE__)
-    fb = new OSXPixelBuffer(w(), h());
-#else
-    fb = new X11PixelBuffer(w(), h());
-#endif
-  } catch (rdr::Exception& e) {
-    fb = new FLTKPixelBuffer(w(), h());
-  }
+  fb = new PlatformPixelBuffer(w(), h());
 
   pixel = 0;
   fb->fillRect(fb->getRect(), &pixel);
@@ -207,6 +201,60 @@ void PartialTestWindow::changefb()
   fb->fillRect(r, &pixel);
 }
 
+OverlayTestWindow::OverlayTestWindow() :
+  overlay(NULL)
+{
+}
+
+void OverlayTestWindow::start(int width, int height)
+{
+  PartialTestWindow::start(width, height);
+
+  overlay = new Surface(400, 200);
+  overlay->clear(0xff, 0x80, 0x00, 0xcc);
+}
+
+void OverlayTestWindow::stop()
+{
+  PartialTestWindow::stop();
+
+  delete overlay;
+  overlay = NULL;
+}
+
+void OverlayTestWindow::draw()
+{
+  int ox, oy, ow, oh;
+  int X, Y, W, H;
+
+  // Check what actually needs updating
+  fl_clip_box(0, 0, w(), h(), X, Y, W, H);
+  if ((W == 0) || (H == 0))
+    return;
+
+  PartialTestWindow::draw();
+
+  // We might get a redraw before we are fully ready
+  if (!overlay)
+    return;
+
+  // Simplify the clip region to a simple rectangle in order to
+  // properly draw all the layers even if they only partially overlap
+  fl_push_no_clip();
+  fl_push_clip(X, Y, W, H);
+
+  ox = (w() - overlay->width()) / 2;
+  oy = h() / 4 - overlay->height() / 2;
+  ow = overlay->width();
+  oh = overlay->height();
+  fl_clip_box(ox, oy, ow, oh, X, Y, W, H);
+  if ((W != 0) && (H != 0))
+    overlay->draw(X - ox, Y - oy, X, Y, W, H);
+
+  fl_pop_clip();
+  fl_pop_clip();
+}
+
 static void dosubtest(TestWindow* win, int width, int height,
                       unsigned long long* pixels,
 		      unsigned long long* frames,
@@ -307,6 +355,12 @@ int main(int argc, char** argv)
 
   fprintf(stderr, "Partial window update:\n\n");
   win = new PartialTestWindow();
+  dotest(win);
+  delete win;
+  fprintf(stderr, "\n");
+
+  fprintf(stderr, "Partial window update with overlay:\n\n");
+  win = new OverlayTestWindow();
   dotest(win);
   delete win;
   fprintf(stderr, "\n");

@@ -56,8 +56,6 @@ public:
 
 private:
 
-  PlatformPixelBuffer* createFramebuffer(int w, int h);
-
   static void handleClipboardChange(int source, void *data);
 
   void handlePointerEvent(const rfb::Point& pos, int buttonMask);

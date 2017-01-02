@@ -62,15 +62,6 @@
 #include "vncviewer.h"
 
 #include "PlatformPixelBuffer.h"
-#include "FLTKPixelBuffer.h"
-
-#if defined(WIN32)
-#include "Win32PixelBuffer.h"
-#elif defined(__APPLE__)
-#include "OSXPixelBuffer.h"
-#else
-#include "X11PixelBuffer.h"
-#endif
 
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
@@ -111,7 +102,7 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
   // We need to intercept keyboard events early
   Fl::add_system_handler(handleSystemEvent, this);
 
-  frameBuffer = createFramebuffer(w, h);
+  frameBuffer = new PlatformPixelBuffer(w, h);
   assert(frameBuffer);
   cc->setFramebuffer(frameBuffer);
 
@@ -272,7 +263,7 @@ void Viewport::resize(int x, int y, int w, int h)
     vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
                frameBuffer->width(), frameBuffer->height(), w, h);
 
-    frameBuffer = createFramebuffer(w, h);
+    frameBuffer = new PlatformPixelBuffer(w, h);
     assert(frameBuffer);
     cc->setFramebuffer(frameBuffer);
   }
@@ -373,29 +364,6 @@ int Viewport::handle(int event)
 
   return Fl_Widget::handle(event);
 }
-
-
-PlatformPixelBuffer* Viewport::createFramebuffer(int w, int h)
-{
-  PlatformPixelBuffer *fb;
-
-  try {
-#if defined(WIN32)
-    fb = new Win32PixelBuffer(w, h);
-#elif defined(__APPLE__)
-    fb = new OSXPixelBuffer(w, h);
-#else
-    fb = new X11PixelBuffer(w, h);
-#endif
-  } catch (rdr::Exception& e) {
-    vlog.error(_("Unable to create platform specific framebuffer: %s"), e.str());
-    vlog.error(_("Using platform independent framebuffer"));
-    fb = new FLTKPixelBuffer(w, h);
-  }
-
-  return fb;
-}
-
 
 void Viewport::handleClipboardChange(int source, void *data)
 {
