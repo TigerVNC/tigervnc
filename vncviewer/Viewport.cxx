@@ -403,6 +403,9 @@ void Viewport::handleClipboardChange(int source, void *data)
 
   assert(self);
 
+  if (!sendClipboard)
+    return;
+
 #if !defined(WIN32) && !defined(__APPLE__)
   if (!sendPrimary && (source == 0))
     return;
