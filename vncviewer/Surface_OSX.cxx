@@ -28,6 +28,32 @@
 
 #include "Surface.h"
 
+static void render(CGContextRef gc, CGImageRef image,
+                   int src_x, int src_y, int src_w, int src_h,
+                   int x, int y, int w, int h)
+{
+  CGRect rect;
+
+  CGContextSaveGState(gc);
+
+  // We have to use clipping to partially display an image
+  rect.origin.x = x;
+  rect.origin.y = y;
+  rect.size.width = w;
+  rect.size.height = h;
+
+  CGContextClipToRect(gc, rect);
+
+  rect.origin.x = x - src_x;
+  rect.origin.y = y - src_y;
+  rect.size.width = src_w;
+  rect.size.height = src_h;
+
+  CGContextDrawImage(gc, rect, image);
+
+  CGContextRestoreGState(gc);
+}
+
 void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
   unsigned char* out;
@@ -50,8 +76,6 @@ void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned 
 
 void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
 {
-  CGRect rect;
-
   CGContextSaveGState(fl_gc);
 
   // Reset the transformation matrix back to the default identity
@@ -62,22 +86,37 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   src_y = height() - (src_y + h);
   y = Fl_Window::current()->h() - (y + h);
 
-  // We have to use clipping to partially display an image
-  rect.origin.x = x;
-  rect.origin.y = y;
-  rect.size.width = w;
-  rect.size.height = h;
-
-  CGContextClipToRect(fl_gc, rect);
-
-  rect.origin.x = x - src_x;
-  rect.origin.y = y - src_y;
-  rect.size.width = width();
-  rect.size.height = height();
-
-  CGContextDrawImage(fl_gc, rect, image);
+  render(fl_gc, image, src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
+}
+
+void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+{
+  CGColorSpaceRef lut;
+  CGContextRef bitmap;
+
+  lut = CGDisplayCopyColorSpace(kCGDirectMainDisplay);
+  if (!lut) {
+    lut = CGColorSpaceCreateDeviceRGB();
+    if (!lut)
+      throw rdr::Exception("CGColorSpaceCreateDeviceRGB");
+  }
+
+  bitmap = CGBitmapContextCreate(dst->data, dst->width(),
+                                 dst->height(), 8, dst->width()*4, lut,
+                                 kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little);
+  CGColorSpaceRelease(lut);
+  if (!bitmap)
+    throw rdr::Exception("CGBitmapContextCreate");
+
+  // macOS Coordinates are from bottom left, not top left
+  src_y = height() - (src_y + h);
+  y = dst->height() - (y + h);
+
+  render(bitmap, image, src_x, src_y, width(), height(), x, y, w, h);
+
+  CGContextRelease(bitmap);
 }
 
 void Surface::alloc()

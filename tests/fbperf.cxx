@@ -72,6 +72,7 @@ public:
 
 protected:
   Surface* overlay;
+  Surface* offscreen;
 };
 
 TestWindow::TestWindow() :
@@ -202,7 +203,7 @@ void PartialTestWindow::changefb()
 }
 
 OverlayTestWindow::OverlayTestWindow() :
-  overlay(NULL)
+  overlay(NULL), offscreen(NULL)
 {
 }
 
@@ -212,12 +213,21 @@ void OverlayTestWindow::start(int width, int height)
 
   overlay = new Surface(400, 200);
   overlay->clear(0xff, 0x80, 0x00, 0xcc);
+
+  // X11 needs an off screen buffer for compositing to avoid flicker
+#if !defined(WIN32) && !defined(__APPLE__)
+  offscreen = new Surface(w(), h());
+#else
+  offscreen = NULL;
+#endif
 }
 
 void OverlayTestWindow::stop()
 {
   PartialTestWindow::stop();
 
+  delete offscreen;
+  offscreen = NULL;
   delete overlay;
   overlay = NULL;
 }
@@ -227,12 +237,14 @@ void OverlayTestWindow::draw()
   int ox, oy, ow, oh;
   int X, Y, W, H;
 
+  // We cannot update the damage region from inside the draw function,
+  // so delegate this to an idle function
+  Fl::add_idle(timer, this);
+
   // Check what actually needs updating
   fl_clip_box(0, 0, w(), h(), X, Y, W, H);
   if ((W == 0) || (H == 0))
     return;
-
-  PartialTestWindow::draw();
 
   // We might get a redraw before we are fully ready
   if (!overlay)
@@ -243,16 +255,33 @@ void OverlayTestWindow::draw()
   fl_push_no_clip();
   fl_push_clip(X, Y, W, H);
 
+  if (offscreen)
+    fb->draw(offscreen, X, Y, X, Y, W, H);
+  else
+    fb->draw(X, Y, X, Y, W, H);
+
+  pixels += W*H;
+  frames++;
+
   ox = (w() - overlay->width()) / 2;
   oy = h() / 4 - overlay->height() / 2;
   ow = overlay->width();
   oh = overlay->height();
   fl_clip_box(ox, oy, ow, oh, X, Y, W, H);
-  if ((W != 0) && (H != 0))
-    overlay->draw(X - ox, Y - oy, X, Y, W, H);
+  if ((W != 0) && (H != 0)) {
+    if (offscreen)
+      overlay->draw(offscreen, X - ox, Y - oy, X, Y, W, H);
+    else
+      overlay->draw(X - ox, Y - oy, X, Y, W, H);
+  }
 
   fl_pop_clip();
   fl_pop_clip();
+
+  if (offscreen) {
+    fl_clip_box(0, 0, w(), h(), X, Y, W, H);
+    offscreen->draw(X, Y, X, Y, W, H);
+  }
 }
 
 static void dosubtest(TestWindow* win, int width, int height,

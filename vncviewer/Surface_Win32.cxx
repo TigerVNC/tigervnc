@@ -70,6 +70,25 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   DeleteDC(dc);
 }
 
+void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+{
+  HDC origdc, dstdc;
+
+  dstdc = CreateCompatibleDC(NULL);
+  if (!dstdc)
+    throw rdr::SystemException("CreateCompatibleDC", GetLastError());
+
+  if (!SelectObject(dstdc, dst->bitmap))
+    throw rdr::SystemException("SelectObject", GetLastError());
+
+  origdc = fl_gc;
+  fl_gc = dstdc;
+  draw(src_x, src_y, x, y, w, h);
+  fl_gc = origdc;
+
+  DeleteDC(dstdc);
+}
+
 void Surface::alloc()
 {
   BITMAPINFOHEADER bih;

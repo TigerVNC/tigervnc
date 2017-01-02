@@ -244,6 +244,19 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
 }
 
 
+void Viewport::draw(Surface* dst)
+{
+  int X, Y, W, H;
+
+  // Check what actually needs updating
+  fl_clip_box(x(), y(), w(), h(), X, Y, W, H);
+  if ((W == 0) || (H == 0))
+    return;
+
+  frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
+}
+
+
 void Viewport::draw()
 {
   int X, Y, W, H;

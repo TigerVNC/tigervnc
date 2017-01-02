@@ -48,6 +48,12 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   XRenderFreePicture(fl_display, winPict);
 }
 
+void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+{
+  XRenderComposite(fl_display, PictOpSrc, picture, None, dst->picture,
+                   src_x, src_y, 0, 0, x, y, w, h);
+}
+
 void Surface::alloc()
 {
   XRenderPictFormat* format;

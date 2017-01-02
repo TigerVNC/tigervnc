@@ -30,6 +30,7 @@
 namespace rfb { class ModifiablePixelBuffer; }
 
 class CConn;
+class Surface;
 class Viewport;
 
 class Fl_Scrollbar;
@@ -95,6 +96,7 @@ private:
   CConn* cc;
   Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
+  Surface *offscreen;
 
   bool firstUpdate;
   bool delayedFullscreen;

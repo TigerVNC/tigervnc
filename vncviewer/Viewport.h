@@ -29,6 +29,7 @@ class Fl_RGB_Image;
 
 class CConn;
 class PlatformPixelBuffer;
+class Surface;
 
 class Viewport : public Fl_Widget {
 public:
@@ -45,6 +46,8 @@ public:
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  void* data, void* mask);
+
+  void draw(Surface* dst);
 
   // Fl_Widget callback methods
 

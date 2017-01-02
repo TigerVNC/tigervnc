@@ -42,6 +42,7 @@ public:
   void clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a=255);
 
   void draw(int src_x, int src_y, int x, int y, int w, int h);
+  void draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int h);
 
 protected:
   void alloc();

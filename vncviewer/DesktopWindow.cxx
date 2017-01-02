@@ -34,6 +34,7 @@
 #include "parameters.h"
 #include "vncviewer.h"
 #include "CConn.h"
+#include "Surface.h"
 #include "Viewport.h"
 
 #include <FL/Fl.H>
@@ -59,7 +60,7 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), firstUpdate(true),
+  : Fl_Window(w, h), cc(cc_), offscreen(NULL), firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false)
 {
   Fl_Group* group;
@@ -183,6 +184,8 @@ DesktopWindow::~DesktopWindow()
 
   OptionsDialog::removeCallback(handleOptions);
 
+  delete offscreen;
+
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
 }
@@ -263,7 +266,19 @@ void DesktopWindow::draw()
 {
   bool redraw;
 
-  int W, H;
+  int X, Y, W, H;
+
+  // X11 needs an off screen buffer for compositing to avoid flicker
+#if !defined(WIN32) && !defined(__APPLE__)
+
+  // Adjust offscreen surface dimensions
+  if ((offscreen == NULL) ||
+      (offscreen->width() != w()) || (offscreen->height() != h())) {
+    delete offscreen;
+    offscreen = new Surface(w(), h());
+  }
+
+#endif
 
   // Active area inside scrollbars
   W = w() - (vscroll->visible() ? vscroll->w() : 0);
@@ -274,29 +289,32 @@ void DesktopWindow::draw()
 
   // Redraw background only on full redraws
   if (redraw) {
-    if (viewport->h() < h()) {
-      fl_rectf(0, 0, W, viewport->y(), 40, 40, 40);
-      fl_rectf(0, viewport->y() + viewport->h(), W,
-               h() - (viewport->y() + viewport->h()),
-               40, 40, 40);
-    }
-    if (viewport->w() < w()) {
-      fl_rectf(0, 0, viewport->x(), H, 40, 40, 40);
-      fl_rectf(viewport->x() + viewport->w(), 0,
-               w() - (viewport->x() + viewport->w()),
-               H, 40, 40, 40);
-    }
+    if (offscreen)
+      offscreen->clear(40, 40, 40);
+    else
+      fl_rectf(0, 0, W, H, 40, 40, 40);
   }
 
   // Make sure the viewport isn't trampling on the scrollbars
   fl_push_clip(0, 0, W, H);
 
-  if (redraw)
-    draw_child(*viewport);
-  else
-    update_child(*viewport);
+  if (offscreen) {
+    viewport->draw(offscreen);
+    viewport->clear_damage();
+  } else {
+    if (redraw)
+      draw_child(*viewport);
+    else
+      update_child(*viewport);
+  }
 
   fl_pop_clip();
+
+  // Flush offscreen surface to screen
+  if (offscreen) {
+    fl_clip_box(0, 0, W, H, X, Y, W, H);
+    offscreen->draw(X, Y, X, Y, W, H);
+  }
 
   // Finally the scrollbars
 
