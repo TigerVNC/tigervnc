@@ -32,7 +32,7 @@ namespace rfb { class ModifiablePixelBuffer; }
 class CConn;
 class Viewport;
 
-class Fl_Scroll;
+class Fl_Scrollbar;
 
 class DesktopWindow : public Fl_Window {
 public:
@@ -58,6 +58,7 @@ public:
                  void* data, void* mask);
 
   // Fl_Window callback methods
+  void draw();
   void resize(int x, int y, int w, int h);
 
   int handle(int event);
@@ -78,7 +79,7 @@ private:
   static void handleResizeTimeout(void *data);
   void remoteResize(int width, int height);
 
-  void repositionViewport();
+  void repositionWidgets();
 
   static void handleClose(Fl_Widget *wnd, void *data);
 
@@ -86,11 +87,13 @@ private:
 
   static void handleFullscreenTimeout(void *data);
 
+  void scrollTo(int x, int y);
+  static void handleScroll(Fl_Widget *wnd, void *data);
   static void handleEdgeScroll(void *data);
 
 private:
   CConn* cc;
-  Fl_Scroll *scroll;
+  Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
 
   bool firstUpdate;

@@ -37,7 +37,8 @@
 #include "Viewport.h"
 
 #include <FL/Fl.H>
-#include <FL/Fl_Scroll.H>
+#include <FL/Fl_Scrollbar.H>
+#include <FL/fl_draw.H>
 #include <FL/x.H>
 
 #ifdef WIN32
@@ -61,15 +62,23 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   : Fl_Window(w, h), cc(cc_), firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false)
 {
-  scroll = new Fl_Scroll(0, 0, w, h);
-  scroll->color(FL_BLACK);
+  Fl_Group* group;
 
-  // Automatically adjust the scroll box to the window
-  resizable(scroll);
+  // Dummy group to prevent FLTK from moving our widgets around
+  group = new Fl_Group(0, 0, w, h);
+  group->resizable(NULL);
+  resizable(group);
 
   viewport = new Viewport(w, h, serverPF, cc);
 
-  scroll->end();
+  // Position will be adjusted later
+  hscroll = new Fl_Scrollbar(0, 0, 0, 0);
+  vscroll = new Fl_Scrollbar(0, 0, 0, 0);
+  hscroll->type(FL_HORIZONTAL);
+  hscroll->callback(handleScroll, this);
+  vscroll->callback(handleScroll, this);
+
+  group->end();
 
   callback(handleClose, this);
 
@@ -150,11 +159,8 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   }
 #endif
 
-  // The window manager might give us an initial window size that is different
-  // than the one we requested, and in those cases we need to manually adjust
-  // the scroll widget for things to behave sanely.
-  if ((w != this->w()) || (h != this->h()))
-    scroll->size(this->w(), this->h());
+  // Adjust layout now that we're visible and know our final size
+  repositionWidgets();
 
   if (delayedFullscreen) {
     // Hack: Fullscreen requests may be ignored, so we need a timeout for
@@ -242,14 +248,7 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
   viewport->size(new_w, new_h);
 
-  // We might not resize the main window, so we need to manually call this
-  // to make sure the viewport is centered.
-  repositionViewport();
-
-  // repositionViewport() makes sure the scroll widget notices any changes
-  // in position, but it might be just the size that changes so we also
-  // need a poke here as well.
-  redraw();
+  repositionWidgets();
 }
 
 
@@ -257,6 +256,57 @@ void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
                               void* data, void* mask)
 {
   viewport->setCursor(width, height, hotspot, data, mask);
+}
+
+
+void DesktopWindow::draw()
+{
+  bool redraw;
+
+  int W, H;
+
+  // Active area inside scrollbars
+  W = w() - (vscroll->visible() ? vscroll->w() : 0);
+  H = h() - (hscroll->visible() ? hscroll->h() : 0);
+
+  // Full redraw?
+  redraw = (damage() & ~FL_DAMAGE_CHILD);
+
+  // Redraw background only on full redraws
+  if (redraw) {
+    if (viewport->h() < h()) {
+      fl_rectf(0, 0, W, viewport->y(), 40, 40, 40);
+      fl_rectf(0, viewport->y() + viewport->h(), W,
+               h() - (viewport->y() + viewport->h()),
+               40, 40, 40);
+    }
+    if (viewport->w() < w()) {
+      fl_rectf(0, 0, viewport->x(), H, 40, 40, 40);
+      fl_rectf(viewport->x() + viewport->w(), 0,
+               w() - (viewport->x() + viewport->w()),
+               H, 40, 40, 40);
+    }
+  }
+
+  // Make sure the viewport isn't trampling on the scrollbars
+  fl_push_clip(0, 0, W, H);
+
+  if (redraw)
+    draw_child(*viewport);
+  else
+    update_child(*viewport);
+
+  fl_pop_clip();
+
+  // Finally the scrollbars
+
+  if (redraw) {
+    draw_child(*hscroll);
+    draw_child(*vscroll);
+  } else {
+    update_child(*hscroll);
+    update_child(*vscroll);
+  }
 }
 
 
@@ -334,8 +384,7 @@ void DesktopWindow::resize(int x, int y, int w, int h)
       Fl::add_timeout(0.5, handleResizeTimeout, this);
     }
 
-    // Deal with some scrolling corner cases
-    repositionViewport();
+    repositionWidgets();
   }
 }
 
@@ -346,15 +395,8 @@ int DesktopWindow::handle(int event)
   case FL_FULLSCREEN:
     fullScreen.setParam(fullscreen_active());
 
-    if (fullscreen_active())
-      scroll->type(0);
-    else
-      scroll->type(Fl_Scroll::BOTH);
-
-    // The scroll widget isn't clever enough to actually redraw the
-    // scroll bars when they are added/removed, so we need to give
-    // it a push.
-    scroll->redraw();
+    // Update scroll bars
+    repositionWidgets();
 
     if (!fullscreenSystemKeys)
       break;
@@ -751,17 +793,11 @@ void DesktopWindow::remoteResize(int width, int height)
 }
 
 
-void DesktopWindow::repositionViewport()
+void DesktopWindow::repositionWidgets()
 {
   int new_x, new_y;
 
-  // Deal with some scrolling corner cases:
-  //
-  // a) If the window is larger then the viewport, center the viewport.
-  // b) If the window is smaller than the viewport, make sure there is
-  //    no wasted space on the sides.
-  //
-  // FIXME: Doesn't compensate for scroll widget size properly.
+  // Viewport position
 
   new_x = viewport->x();
   new_y = viewport->y();
@@ -787,11 +823,40 @@ void DesktopWindow::repositionViewport()
 
   if ((new_x != viewport->x()) || (new_y != viewport->y())) {
     viewport->position(new_x, new_y);
-
-    // The scroll widget does not notice when you move around child widgets,
-    // so redraw everything to make sure things update.
-    redraw();
+    damage(FL_DAMAGE_SCROLL);
   }
+
+  // Scrollbars visbility
+
+  if (!fullscreen_active() && (w() < viewport->w()))
+    hscroll->show();
+  else
+    hscroll->hide();
+
+  if (!fullscreen_active() && (h() < viewport->h()))
+    vscroll->show();
+  else
+    vscroll->hide();
+
+  // Scrollbars positions
+
+  hscroll->resize(0, h() - Fl::scrollbar_size(),
+                  w() - (vscroll->visible() ? Fl::scrollbar_size() : 0),
+                  Fl::scrollbar_size());
+  vscroll->resize(w() - Fl::scrollbar_size(), 0,
+                  Fl::scrollbar_size(),
+                  h() - (hscroll->visible() ? Fl::scrollbar_size() : 0));
+
+  // Scrollbars range
+
+  hscroll->value(-viewport->x(),
+                 w() - (vscroll->visible() ? vscroll->w() : 0),
+                 0, viewport->w());
+  vscroll->value(-viewport->y(),
+                 h() - (hscroll->visible() ? hscroll->h() : 0),
+                 0, viewport->h());
+  hscroll->value(hscroll->clamp(hscroll->value()));
+  vscroll->value(vscroll->clamp(vscroll->value()));
 }
 
 void DesktopWindow::handleClose(Fl_Widget *wnd, void *data)
@@ -827,6 +892,38 @@ void DesktopWindow::handleFullscreenTimeout(void *data)
     self->handleDesktopSize();
     self->delayedDesktopSize = false;
   }
+}
+
+void DesktopWindow::scrollTo(int x, int y)
+{
+  x = hscroll->clamp(x);
+  y = vscroll->clamp(y);
+
+  hscroll->value(x);
+  vscroll->value(y);
+
+  if (!hscroll->visible())
+    x = -viewport->x();
+  if (!vscroll->visible())
+    y = -viewport->y();
+
+  // Scrollbar position results in inverse movement of
+  // the viewport widget
+  x = -x;
+  y = -y;
+
+  if ((viewport->x() == x) && (viewport->y() == y))
+    return;
+
+  viewport->position(x, y);
+  damage(FL_DAMAGE_SCROLL);
+}
+
+void DesktopWindow::handleScroll(Fl_Widget *widget, void *data)
+{
+  DesktopWindow *self = (DesktopWindow *)data;
+
+  self->scrollTo(self->hscroll->value(), self->vscroll->value());
 }
 
 void DesktopWindow::handleEdgeScroll(void *data)
@@ -874,17 +971,7 @@ void DesktopWindow::handleEdgeScroll(void *data)
   if ((dx == 0) && (dy == 0))
     return;
 
-  // Make sure we don't move the viewport too much
-  if (self->viewport->x() + dx > 0)
-    dx = -self->viewport->x();
-  if (self->viewport->x() + dx + self->viewport->w() < self->w())
-    dx = self->w() - (self->viewport->x() + self->viewport->w());
-  if (self->viewport->y() + dy > 0)
-    dy = -self->viewport->y();
-  if (self->viewport->y() + dy + self->viewport->h() < self->h())
-    dy = self->h() - (self->viewport->y() + self->viewport->h());
-
-  self->scroll->scroll_to(self->scroll->xposition() - dx, self->scroll->yposition() - dy);
+  self->scrollTo(self->hscroll->value() + dx, self->vscroll->value() + dy);
 
   Fl::repeat_timeout(0.1, handleEdgeScroll, data);
 }
