@@ -22,14 +22,10 @@
 
 #include <map>
 
-namespace rfb { class ModifiablePixelBuffer; }
-
 #include <FL/Fl_Widget.H>
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;
-
-namespace rfb { class PixelTransformer; }
 
 class CConn;
 class PlatformPixelBuffer;
