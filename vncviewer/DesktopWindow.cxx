@@ -38,6 +38,7 @@
 #include "Viewport.h"
 
 #include <FL/Fl.H>
+#include <FL/Fl_Image_Surface.H>
 #include <FL/Fl_Scrollbar.H>
 #include <FL/fl_draw.H>
 #include <FL/x.H>
@@ -60,7 +61,8 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), offscreen(NULL), firstUpdate(true),
+  : Fl_Window(w, h), cc(cc_), offscreen(NULL), overlay(NULL),
+    firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false)
 {
   Fl_Group* group;
@@ -170,6 +172,9 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
     Fl::add_timeout(0.5, handleFullscreenTimeout, this);
     fullscreen_on();
   }
+
+  // Show hint about menu key
+  Fl::add_timeout(0.5, menuOverlay, this);
 }
 
 
@@ -181,9 +186,12 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleResizeTimeout, this);
   Fl::remove_timeout(handleFullscreenTimeout, this);
   Fl::remove_timeout(handleEdgeScroll, this);
+  Fl::remove_timeout(menuOverlay, this);
+  Fl::remove_timeout(clearOverlay, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
+  delete overlay;
   delete offscreen;
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
@@ -255,7 +263,8 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 }
 
 
-void DesktopWindow::setCursor(int width, int height, const Point& hotspot,
+void DesktopWindow::setCursor(int width, int height,
+                              const rfb::Point& hotspot,
                               void* data, void* mask)
 {
   viewport->setCursor(width, height, hotspot, data, mask);
@@ -268,8 +277,9 @@ void DesktopWindow::draw()
 
   int X, Y, W, H;
 
-  // X11 needs an off screen buffer for compositing to avoid flicker
-#if !defined(WIN32) && !defined(__APPLE__)
+  // X11 needs an off screen buffer for compositing to avoid flicker,
+  // and alpha blending doesn't work for windows on Win32
+#if !defined(__APPLE__)
 
   // Adjust offscreen surface dimensions
   if ((offscreen == NULL) ||
@@ -287,6 +297,15 @@ void DesktopWindow::draw()
   // Full redraw?
   redraw = (damage() & ~FL_DAMAGE_CHILD);
 
+  // Simplify the clip region to a simple rectangle in order to
+  // properly draw all the layers even if they only partially overlap
+  if (redraw)
+    X = Y = 0;
+  else
+    fl_clip_box(0, 0, W, H, X, Y, W, H);
+  fl_push_no_clip();
+  fl_push_clip(X, Y, W, H);
+
   // Redraw background only on full redraws
   if (redraw) {
     if (offscreen)
@@ -294,9 +313,6 @@ void DesktopWindow::draw()
     else
       fl_rectf(0, 0, W, H, 40, 40, 40);
   }
-
-  // Make sure the viewport isn't trampling on the scrollbars
-  fl_push_clip(0, 0, W, H);
 
   if (offscreen) {
     viewport->draw(offscreen);
@@ -308,13 +324,31 @@ void DesktopWindow::draw()
       update_child(*viewport);
   }
 
-  fl_pop_clip();
+  // Overlay (if active)
+  if (overlay) {
+    int ox, oy, ow, oh;
+
+    ox = X = (w() - overlay->width()) / 2;
+    oy = Y = 50;
+    ow = overlay->width();
+    oh = overlay->height();
+
+    fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
+
+    if (offscreen)
+      overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh);
+    else
+      overlay->blend(ox - X, oy - Y, ox, oy, ow, oh);
+  }
 
   // Flush offscreen surface to screen
   if (offscreen) {
-    fl_clip_box(0, 0, W, H, X, Y, W, H);
+    fl_clip_box(0, 0, w(), h(), X, Y, W, H);
     offscreen->draw(X, Y, X, Y, W, H);
   }
+
+  fl_pop_clip();
+  fl_pop_clip();
 
   // Finally the scrollbars
 
@@ -404,6 +438,123 @@ void DesktopWindow::resize(int x, int y, int w, int h)
 
     repositionWidgets();
   }
+}
+
+
+void DesktopWindow::menuOverlay(void* data)
+{
+  DesktopWindow *self;
+
+  self = (DesktopWindow*)data;
+  self->setOverlay(_("Press %s to open the context menu"),
+                   (const char*)menuKey);
+}
+
+void DesktopWindow::setOverlay(const char* text, ...)
+{
+  va_list ap;
+  char textbuf[1024];
+
+  Fl_Image_Surface *surface;
+
+  Fl_RGB_Image* imageText;
+  Fl_RGB_Image* image;
+
+  unsigned char* buffer;
+
+  int x, y;
+  int w, h;
+
+  unsigned char* a;
+  const unsigned char* b;
+
+  delete overlay;
+  Fl::remove_timeout(clearOverlay, this);
+
+  va_start(ap, text);
+  vsnprintf(textbuf, sizeof(textbuf), text, ap);
+  textbuf[sizeof(textbuf)-1] = '\0';
+  va_end(ap);
+
+#if !defined(WIN32) && !defined(__APPLE__)
+  // FLTK < 1.3.5 crashes if fl_gc is unset
+  if (!fl_gc)
+    fl_gc = XDefaultGC(fl_display, 0);
+#endif
+
+  fl_font(FL_HELVETICA, FL_NORMAL_SIZE * 2);
+  fl_measure(textbuf, w, h);
+
+  // Margins
+  w += 80;
+  h += 40;
+
+  surface = new Fl_Image_Surface(w, h);
+  surface->set_current();
+
+  fl_rectf(0, 0, w, h, 0, 0, 0);
+
+  fl_font(FL_HELVETICA, FL_NORMAL_SIZE * 2);
+  fl_color(FL_WHITE);
+  fl_draw(textbuf, 40, 20 + fl_height() - fl_descent());
+
+  imageText = surface->image();
+  delete surface;
+
+  Fl_Display_Device::display_device()->set_current();
+
+  buffer = new unsigned char[w * h * 4];
+  image = new Fl_RGB_Image(buffer, w, h, 4);
+
+  a = buffer;
+  for (x = 0;x < image->w() * image->h();x++) {
+    a[0] = a[1] = a[2] = 0x40;
+    a[3] = 0xcc;
+    a += 4;
+  }
+
+  a = buffer;
+  b = (const unsigned char*)imageText->data()[0];
+  for (y = 0;y < h;y++) {
+    for (x = 0;x < w;x++) {
+      unsigned char alpha;
+      alpha = *b;
+      a[0] = (unsigned)a[0] * (255 - alpha) / 255 + alpha;
+      a[1] = (unsigned)a[1] * (255 - alpha) / 255 + alpha;
+      a[2] = (unsigned)a[2] * (255 - alpha) / 255 + alpha;
+      a[3] = 255 - (255 - a[3]) * (255 - alpha) / 255;
+      a += 4;
+      b += imageText->d();
+    }
+    if (imageText->ld() != 0)
+      b += imageText->ld() - w * imageText->d();
+  }
+
+  delete imageText;
+
+  x = (this->w() - image->w()) / 2;
+  y = 50;
+  w = image->w();
+  h = image->h();
+
+  overlay = new Surface(image);
+
+  delete image;
+
+  damage(FL_DAMAGE_USER1);
+
+  Fl::add_timeout(3.0, clearOverlay, this);
+}
+
+void DesktopWindow::clearOverlay(void *data)
+{
+  DesktopWindow *self;
+
+  self = (DesktopWindow*)data;
+  delete self->overlay;
+  self->overlay = NULL;
+
+  self->damage(FL_DAMAGE_USER1);
 }
 
 
@@ -727,7 +878,7 @@ void DesktopWindow::remoteResize(int width, int height)
     int i;
     rdr::U32 id;
     int sx, sy, sw, sh;
-    Rect viewport_rect, screen_rect;
+    rfb::Rect viewport_rect, screen_rect;
 
     // In full screen we report all screens that are fully covered.
 

@@ -35,6 +35,12 @@ class Viewport;
 
 class Fl_Scrollbar;
 
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
+
 class DesktopWindow : public Fl_Window {
 public:
 
@@ -67,6 +73,11 @@ public:
   void fullscreen_on();
 
 private:
+  static void menuOverlay(void *data);
+
+  void setOverlay(const char *text, ...) __printf_attr(2, 3);
+  static void clearOverlay(void *data);
+
   static int fltkHandle(int event, Fl_Window *win);
 
   void grabKeyboard();
@@ -97,6 +108,7 @@ private:
   Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
   Surface *offscreen;
+  Surface *overlay;
 
   bool firstUpdate;
   bool delayedFullscreen;
