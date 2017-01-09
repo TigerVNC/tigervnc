@@ -572,9 +572,17 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
     if (strcmp(argv[i], "-inetd") == 0)
     {
+	int nullfd;
+
 	dup2(0,3);
 	vncInetdSock = 3;
-	close(2);
+
+	/* Avoid xserver >= 1.19's epoll-fd becoming fd 2 / stderr only to be
+	   replaced by /dev/null by OsInit() because the pollfd is not
+	   writable, breaking ospoll_wait(). */
+	nullfd = open("/dev/null", O_WRONLY);
+	dup2(nullfd, 2);
+	close(nullfd);
 	
 	if (!displaySpecified) {
 	    int port = vncGetSocketPort(vncInetdSock);
