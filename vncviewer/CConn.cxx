@@ -346,31 +346,12 @@ void CConn::setName(const char* name)
 // one.
 void CConn::framebufferUpdateStart()
 {
-  ModifiablePixelBuffer* pb;
-  PlatformPixelBuffer* ppb;
-
   CConnection::framebufferUpdateStart();
 
   // Note: This might not be true if sync fences are supported
   pendingUpdate = false;
 
   requestNewUpdate();
-
-  // We might still be rendering the previous update
-  pb = getFramebuffer();
-  assert(pb != NULL);
-  ppb = dynamic_cast<PlatformPixelBuffer*>(pb);
-  assert(ppb != NULL);
-  if (ppb->isRendering()) {
-    // Need to stop monitoring the socket or we'll just busy loop
-    assert(sock != NULL);
-    Fl::remove_fd(sock->getFd());
-
-    while (ppb->isRendering())
-      run_mainloop();
-
-    Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
-  }
 
   // Update the screen prematurely for very slow updates
   Fl::add_timeout(1.0, handleUpdateTimeout, this);

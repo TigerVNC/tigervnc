@@ -136,9 +136,6 @@ void TestWindow::update()
 
   startTimeCounter();
 
-  while (fb->isRendering())
-    Fl::wait();
-
   changefb();
 
   r = fb->getDamage();

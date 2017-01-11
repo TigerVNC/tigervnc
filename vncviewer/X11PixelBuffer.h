@@ -35,20 +35,12 @@ public:
 
   virtual void draw(int src_x, int src_y, int x, int y, int w, int h);
 
-  virtual bool isRendering(void);
-
 protected:
   int setupShm();
-
-  static int handleSystemEvent(void* event, void* data);
 
 protected:
   XShmSegmentInfo *shminfo;
   XImage *xim;
-  int pendingPutImage;
-  Drawable pendingDrawable;
-
-  static std::list<X11PixelBuffer*> shmList;
 };
 
 
