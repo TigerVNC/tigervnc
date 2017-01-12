@@ -16,6 +16,7 @@
  * USA.
  */
 
+#include <math.h>
 #include <sys/time.h>
 
 #include <FL/Fl.H>
@@ -43,6 +44,9 @@ public:
   TestWindow();
   ~TestWindow();
 
+  virtual void start(int width, int height);
+  virtual void stop();
+
   virtual void draw();
 
 protected:
@@ -67,9 +71,23 @@ protected:
 };
 
 TestWindow::TestWindow() :
-  Fl_Window(1024, 768, "Framebuffer Performance Test")
+  Fl_Window(0, 0, "Framebuffer Performance Test"),
+  fb(NULL)
+{
+}
+
+TestWindow::~TestWindow()
+{
+  stop();
+}
+
+void TestWindow::start(int width, int height)
 {
   rdr::U32 pixel;
+
+  stop();
+
+  resize(x(), y(), width, height);
 
   pixels = 0;
   frames = 0;
@@ -89,11 +107,16 @@ TestWindow::TestWindow() :
 
   pixel = 0;
   fb->fillRect(fb->getRect(), &pixel);
+
+  show();
 }
 
-TestWindow::~TestWindow()
+void TestWindow::stop()
 {
+  hide();
+
   delete fb;
+  fb = NULL;
 
   Fl::remove_idle(timer, this);
 }
@@ -184,22 +207,92 @@ void PartialTestWindow::changefb()
   fb->fillRect(r, &pixel);
 }
 
-static void dotest(TestWindow* win)
+static void dosubtest(TestWindow* win, int width, int height,
+                      unsigned long long* pixels,
+		      unsigned long long* frames,
+		      double* time)
 {
   struct timeval start;
-  char s[1024];
 
-  win->show();
+  win->start(width, height);
 
   gettimeofday(&start, NULL);
-  while (rfb::msSince(&start) < 10000)
+  while (rfb::msSince(&start) < 3000)
     Fl::wait();
 
-  fprintf(stderr, "Rendering time: %g ms/frame\n",
-          win->time * 1000.0 / win->frames);
-  rfb::siPrefix(win->pixels / win->time,
-                "pixels/s", s, sizeof(s));
+  win->stop();
+
+  *pixels = win->pixels;
+  *frames = win->frames;
+  *time = win->time;
+}
+
+static bool is_constant(double a, double b)
+{
+    return (fabs(a - b) / a) < 0.1;
+}
+
+static void dotest(TestWindow* win)
+{
+  unsigned long long pixels[3];
+  unsigned long long frames[3];
+  double time[3];
+
+  double delay, rate;
+  char s[1024];
+
+  // Run the test several times at different resolutions...
+  dosubtest(win, 800, 600, &pixels[0], &frames[0], &time[0]);
+  dosubtest(win, 1024, 768, &pixels[1], &frames[1], &time[1]);
+  dosubtest(win, 1280, 960, &pixels[2], &frames[2], &time[2]);
+
+  // ...in order to compute how much of the rendering time is static,
+  // and how much depends on the number of pixels
+  // (i.e. solve: time = delay * frames + rate * pixels)
+  delay = (((time[0] - (double)pixels[0] / pixels[1] * time[1]) /
+            (frames[0] - (double)pixels[0] / pixels[1] * frames[1])) +
+           ((time[1] - (double)pixels[1] / pixels[2] * time[2]) /
+            (frames[1] - (double)pixels[1] / pixels[2] * frames[2]))) / 2.0;
+  rate = (((time[0] - (double)frames[0] / frames[1] * time[1]) /
+           (pixels[0] - (double)frames[0] / frames[1] * pixels[1])) +
+          ((time[1] - (double)frames[1] / frames[2] * time[2]) /
+           (pixels[1] - (double)frames[1] / frames[2] * pixels[2]))) / 2.0;
+
+  // However, we have some corner cases:
+
+  // We are restricted by some delay, e.g. refresh rate
+  if (is_constant(frames[0]/time[0], frames[2]/time[2])) {
+    fprintf(stderr, "WARNING: Fixed delay dominating updates.\n\n");
+    delay = time[2]/frames[2];
+    rate = 0.0;
+  }
+
+  // There isn't any fixed delay, we are only restricted by pixel
+  // throughput
+  if (fabs(delay) < 0.001) {
+    delay = 0.0;
+    rate = time[2]/pixels[2];
+  }
+
+  // We can hit cache limits that causes performance to drop
+  // with increasing update size, screwing up our calculations
+  if ((pixels[2] / time[2]) < (pixels[0] / time[0] * 0.9)) {
+    fprintf(stderr, "WARNING: Unexpected behaviour. Measurement unreliable.\n\n");
+
+    // We can't determine the proportions between these, so divide the
+    // time spent evenly
+    delay = time[2] / 2.0 / frames[2];
+    rate = time[2] / 2.0 / pixels[2];
+  }
+
+  fprintf(stderr, "Rendering delay: %g ms/frame\n", delay * 1000.0);
+  if (rate == 0.0)
+    strcpy(s, "N/A pixels/s");
+  else
+    rfb::siPrefix(1.0 / rate, "pixels/s", s, sizeof(s));
   fprintf(stderr, "Rendering rate: %s\n", s);
+  fprintf(stderr, "Maximum FPS: %g fps @ 1920x1080\n",
+          1.0 / (delay + rate * 1920 * 1080));
 }
 
 int main(int argc, char** argv)
