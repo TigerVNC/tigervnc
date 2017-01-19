@@ -68,7 +68,7 @@ void vncSetNotifyFd(int fd, int scrIdx, int read, int write)
   int mask = (read ? X_NOTIFY_READ : 0) | (write ? X_NOTIFY_WRITE : 0);
   SetNotifyFd(fd, vncSocketNotify, mask, (void*)scrIdx);
 #else
-  static struct vncFdEntry* entry;
+  struct vncFdEntry* entry;
 
   entry = fdsHead;
   while (entry) {
@@ -99,8 +99,8 @@ void vncRemoveNotifyFd(int fd)
 #if XORG >= 119
   RemoveNotifyFd(fd);
 #else
-  static struct vncFdEntry** prev;
-  static struct vncFdEntry* entry;
+  struct vncFdEntry** prev;
+  struct vncFdEntry* entry;
 
   prev = &fdsHead;
   entry = fdsHead;
