@@ -187,8 +187,9 @@ int X11PixelBuffer::setupShm()
     goto free_xim;
 
   shminfo->shmaddr = xim->data = (char*)shmat(shminfo->shmid, 0, 0);
+  shmctl(shminfo->shmid, IPC_RMID, 0); // to avoid memory leakage
   if (shminfo->shmaddr == (char *)-1)
-    goto free_shm;
+    goto free_xim;
 
   shminfo->readOnly = True;
 
@@ -215,9 +216,6 @@ int X11PixelBuffer::setupShm()
 
 free_shmaddr:
   shmdt(shminfo->shmaddr);
-
-free_shm:
-  shmctl(shminfo->shmid, IPC_RMID, 0);
 
 free_xim:
   XDestroyImage(xim);
