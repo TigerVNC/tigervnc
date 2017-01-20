@@ -201,13 +201,15 @@ void ModifiablePixelBuffer::imageRect(const Rect& r,
 }
 
 void ModifiablePixelBuffer::maskRect(const Rect& r,
-                                     const void* pixels, const void* mask_)
+                                     const void* pixels,
+                                     const void* mask_,
+                                     const Point& maskPos,
+                                     int pStride, int mStride)
 {
   int stride;
   U8* data;
   U8* mask;
-  int w, h, bpp, pixelStride, maskStride;
-  Point offset;
+  int w, h, bpp;
 
   if (!r.enclosed_by(getRect()))
     throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
@@ -220,45 +222,47 @@ void ModifiablePixelBuffer::maskRect(const Rect& r,
   w = r.width();
   h = r.height();
   bpp = getPF().bpp;
-  pixelStride = r.width();
-  maskStride = (r.width() + 7) / 8;
+  if (pStride == 0)
+    pStride = r.width();
+  if (mStride == 0)
+    mStride = (r.width() + 7) / 8;
 
-  offset = Point(r.tl.x-r.tl.x, r.tl.y-r.tl.y);
-  mask += offset.y * maskStride;
+  mask += maskPos.y * mStride;
   for (int y = 0; y < h; y++) {
-    int cy = offset.y + y;
     for (int x = 0; x < w; x++) {
-      int cx = offset.x + x;
+      int cx = maskPos.x + x;
       U8* byte = mask + (cx / 8);
       int bit = 7 - cx % 8;
       if ((*byte) & (1 << bit)) {
         switch (bpp) {
         case 8:
-          ((U8*)data)[y * stride + x] = ((U8*)pixels)[cy * pixelStride + cx];
+          ((U8*)data)[y * stride + x] = ((U8*)pixels)[y * pStride + x];
           break;
         case 16:
-          ((U16*)data)[y * stride + x] = ((U16*)pixels)[cy * pixelStride + cx];
+          ((U16*)data)[y * stride + x] = ((U16*)pixels)[y * pStride + x];
           break;
         case 32:
-          ((U32*)data)[y * stride + x] = ((U32*)pixels)[cy * pixelStride + cx];
+          ((U32*)data)[y * stride + x] = ((U32*)pixels)[y * pStride + x];
           break;
         }
       }
     }
-    mask += maskStride;
+    mask += mStride;
   }
 
   commitBufferRW(r);
 }
 
 void ModifiablePixelBuffer::maskRect(const Rect& r,
-                                     Pixel pixel, const void* mask_)
+                                     Pixel pixel,
+                                     const void* mask_,
+                                     const Point& maskPos,
+                                     int mStride)
 {
   int stride;
   U8* data;
   U8* mask;
-  int w, h, bpp, maskStride;
-  Point offset;
+  int w, h, bpp;
 
   if (!r.enclosed_by(getRect()))
     throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
@@ -271,13 +275,13 @@ void ModifiablePixelBuffer::maskRect(const Rect& r,
   w = r.width();
   h = r.height();
   bpp = getPF().bpp;
-  maskStride = (r.width() + 7) / 8;
+  if (mStride == 0)
+    mStride = (r.width() + 7) / 8;
 
-  offset = Point(r.tl.x-r.tl.x, r.tl.y-r.tl.y);
-  mask += offset.y * maskStride;
+  mask += maskPos.y * mStride;
   for (int y = 0; y < h; y++) {
     for (int x = 0; x < w; x++) {
-      int cx = offset.x + x;
+      int cx = maskPos.x + x;
       U8* byte = mask + (cx / 8);
       int bit = 7 - cx % 8;
       if ((*byte) & (1 << bit)) {
@@ -294,7 +298,7 @@ void ModifiablePixelBuffer::maskRect(const Rect& r,
         }
       }
     }
-    mask += maskStride;
+    mask += mStride;
   }
 
   commitBufferRW(r);
