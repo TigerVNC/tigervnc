@@ -51,7 +51,7 @@ static LogWriter vlog("VNCSConnST");
 static const unsigned INITIAL_WINDOW = 16384;
 
 // TCP's minimal window is 3*MSS. But since we don't know the MSS, we
-// make a guess at 4 KiB (it's probaly a bit higher).
+// make a guess at 4 KiB (it's probably a bit higher).
 static const unsigned MINIMUM_WINDOW = 4096;
 
 // The current default maximum window for Linux (4 MiB). Should be a good
@@ -821,7 +821,7 @@ void VNCSConnectionST::handleRTTPong(const struct RTTInfo &rttInfo)
   }
 
   // We only keep track of the minimum latency seen (for a given interval)
-  // on the basis that we want to avoid continous buffer issue, but don't
+  // on the basis that we want to avoid continuous buffer issue, but don't
   // mind (or even approve of) bursts.
   if (rtt < minRTT)
     minRTT = rtt;

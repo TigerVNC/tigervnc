@@ -89,7 +89,7 @@ macro(libtool_create_control_file _target)
       endif()
     else()
       # Detected a static library.  Check whether the library pathname is
-      # absolute and, if not, use find_library() to get the abolute path.
+      # absolute and, if not, use find_library() to get the absolute path.
       get_filename_component(_name ${library} NAME)
       string(REPLACE "${_name}" "" _path ${library})
       if(NOT "${_path}" STREQUAL "")

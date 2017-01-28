@@ -91,7 +91,7 @@ namespace winvnc {
     virtual void processAddressChange();
 
     // RegConfig::Callback interface
-    // Called via the EventManager whenver RegConfig sees the registry change
+    // Called via the EventManager whenever RegConfig sees the registry change
     virtual void regConfigChanged();
 
     // EventHandler interface

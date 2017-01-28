@@ -31,7 +31,7 @@ public:
 
   TimeMillis();
 
-  // Set this object to current time, returns true on sucess.
+  // Set this object to current time, returns true on success.
   bool update();
 
   // Return difference in milliseconds between two time points.

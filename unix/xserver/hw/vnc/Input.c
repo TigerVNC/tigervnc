@@ -74,7 +74,7 @@ static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff);
 /*
  * Init input device.
  * This has to be called after core pointer/keyboard
- * initialization which unfortunately is after extesions
+ * initialization which unfortunately is after extensions
  * initialization (which means we cannot call it in
  * vncExtensionInit(). Check InitExtensions(),
  * InitCoreDevices() and InitInput() calls in dix/main.c.
