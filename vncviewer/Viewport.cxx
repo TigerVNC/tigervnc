@@ -96,7 +96,7 @@ static rfb::LogWriter vlog("Viewport");
 
 enum { ID_EXIT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
-       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
+       ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS, ID_GRAB };
 
 // Fake key presses use this value and above
 static const int fakeKeyBase = 0x200;
@@ -756,6 +756,9 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Full screen"),
                 0, NULL, (void*)ID_FULLSCREEN,
                 FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
+  fltk_menu_add(contextMenu, p_("ContextMenu|", "&Grab keys"),
+                0, NULL, (void*)ID_GRAB,
+                FL_MENU_TOGGLE | (((DesktopWindow*)window())->isGrabActive()?FL_MENU_VALUE:0));
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Minimi&ze"),
                 0, NULL, (void*)ID_MINIMIZE, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Resize &window to session"),
@@ -831,6 +834,9 @@ void Viewport::popupContextMenu()
       window()->fullscreen_off();
     else
       ((DesktopWindow*)window())->fullscreen_on();
+    break;
+  case ID_GRAB:
+    ((DesktopWindow*)window())->toggleGrabKeys();
     break;
   case ID_MINIMIZE:
     window()->iconize();
