@@ -104,6 +104,10 @@ public class CMsgReader {
       case Encodings.pseudoEncodingExtendedDesktopSize:
         readExtendedDesktopSize(x, y, w, h);
         break;
+      case Encodings.pseudoEncodingClientRedirect:
+        nUpdateRectsLeft = 0;
+        readClientRedirect(x, y, w, h);
+        return;
       default:
         readRect(new Rect(x, y, x+w, y+h), encoding);
         break;
@@ -257,6 +261,18 @@ public class CMsgReader {
     }
 
     handler.setExtendedDesktopSize(x, y, w, h, layout);
+  }
+
+  protected void readClientRedirect(int x, int y, int w, int h)
+  {
+    int port = is.readU16();
+    String host = is.readString();
+    String x509subject = is.readString();
+
+    if (x != 0 || y != 0 || w != 0 || h != 0)
+      vlog.error("Ignoring ClientRedirect rect with non-zero position/size");
+    else
+      handler.clientRedirect(port, host, x509subject);
   }
 
   public int[] getImageBuf(int required) { return getImageBuf(required, 0, 0); }

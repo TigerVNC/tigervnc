@@ -326,6 +326,8 @@ public class CConn extends CConnection implements
       setServerPort(port);
       sock.inStream().setBlockCallback(this);
       setStreams(sock.inStream(), sock.outStream());
+      if (desktop != null)
+        desktop.dispose();
       initialiseProtocol();
     } catch (java.lang.Exception e) {
       throw new Exception(e.getMessage());

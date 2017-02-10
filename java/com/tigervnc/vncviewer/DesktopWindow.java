@@ -151,21 +151,6 @@ public class DesktopWindow extends JFrame
       }
     });
 
-    pack();
-    if (embed.getValue()) {
-      scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
-      scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
-      VncViewer.setupEmbeddedFrame(scroll);
-    } else {
-      if (fullScreen.getValue())
-        fullscreen_on();
-      else
-        setVisible(true);
-
-      if (maximize.getValue())
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-    }
-
   }
 
   // Remove resize listener in order to prevent recursion when resizing
@@ -227,25 +212,40 @@ public class DesktopWindow extends JFrame
     setTitle(name);
   }
 
-	// Copy the areas of the framebuffer that have been changed (damaged)
-	// to the displayed window.
+  // Copy the areas of the framebuffer that have been changed (damaged)
+  // to the displayed window.
 
-	public void updateWindow()
-	{
-	  if (firstUpdate) {
-	    if (cc.cp.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
-	      // Hack: Wait until we're in the proper mode and position until
-	      // resizing things, otherwise we might send the wrong thing.
-	      if (delayedFullscreen)
-	        delayedDesktopSize = true;
-	      else
-	        handleDesktopSize();
-	    }
-	    firstUpdate = false;
-	  }
+  public void updateWindow()
+  {
+    if (firstUpdate) {
+      pack();
+      if (embed.getValue()) {
+        scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
+        VncViewer.setupEmbeddedFrame(scroll);
+      } else {
+        if (fullScreen.getValue())
+          fullscreen_on();
+        else
+          setVisible(true);
 
-	  viewport.updateWindow();
-	}
+        if (maximize.getValue())
+          setExtendedState(JFrame.MAXIMIZED_BOTH);
+      }
+
+      if (cc.cp.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
+        // Hack: Wait until we're in the proper mode and position until
+        // resizing things, otherwise we might send the wrong thing.
+        if (delayedFullscreen)
+          delayedDesktopSize = true;
+        else
+          handleDesktopSize();
+      }
+      firstUpdate = false;
+    }
+
+    viewport.updateWindow();
+  }
 
   public void resizeFramebuffer(int new_w, int new_h)
   {
