@@ -54,20 +54,56 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
                    src_x, src_y, 0, 0, x, y, w, h);
 }
 
-void Surface::blend(int src_x, int src_y, int x, int y, int w, int h)
+static Picture alpha_mask(int a)
 {
-  Picture winPict;
+  Pixmap pixmap;
+  XRenderPictFormat* format;
+  XRenderPictureAttributes rep;
+  Picture pict;
+  XRenderColor color;
 
-  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, NULL);
-  XRenderComposite(fl_display, PictOpOver, picture, None, winPict,
-                   src_x, src_y, 0, 0, x, y, w, h);
-  XRenderFreePicture(fl_display, winPict);
+  if (a == 255)
+    return None;
+
+  pixmap = XCreatePixmap(fl_display, XDefaultRootWindow(fl_display),
+                         1, 1, 8);
+
+  format = XRenderFindStandardFormat(fl_display, PictStandardA8);
+  rep.repeat = RepeatNormal;
+  pict = XRenderCreatePicture(fl_display, pixmap, format, CPRepeat, &rep);
+  XFreePixmap(fl_display, pixmap);
+
+  color.alpha = (unsigned)a * 65535 / 255;
+
+  XRenderFillRectangle(fl_display, PictOpSrc, pict, &color,
+                       0, 0, 1, 1);
+
+  return pict;
 }
 
-void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
 {
-  XRenderComposite(fl_display, PictOpOver, picture, None, dst->picture,
+  Picture winPict, alpha;
+
+  winPict = XRenderCreatePicture(fl_display, fl_window, visFormat, 0, NULL);
+  alpha = alpha_mask(a);
+  XRenderComposite(fl_display, PictOpOver, picture, alpha, winPict,
                    src_x, src_y, 0, 0, x, y, w, h);
+  XRenderFreePicture(fl_display, winPict);
+
+  if (alpha != None)
+    XRenderFreePicture(fl_display, alpha);
+}
+
+void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a)
+{
+  Picture alpha;
+
+  alpha = alpha_mask(a);
+  XRenderComposite(fl_display, PictOpOver, picture, alpha, dst->picture,
+                   src_x, src_y, 0, 0, x, y, w, h);
+  if (alpha != None)
+    XRenderFreePicture(fl_display, alpha);
 }
 
 

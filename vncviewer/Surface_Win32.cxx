@@ -89,13 +89,13 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   DeleteDC(dstdc);
 }
 
-void Surface::blend(int src_x, int src_y, int x, int y, int w, int h)
+void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
 {
   // Compositing doesn't work properly for window DC:s
   assert(false);
 }
 
-void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a)
 {
   HDC dstdc, srcdc;
   BLENDFUNCTION blend;
@@ -114,7 +114,7 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
 
   blend.BlendOp = AC_SRC_OVER;
   blend.BlendFlags = 0;
-  blend.SourceConstantAlpha = 255;
+  blend.SourceConstantAlpha = a;
   blend.AlphaFormat = AC_SRC_ALPHA;
 
   if (!AlphaBlend(dstdc, x, y, w, h, srcdc, src_x, src_y, w, h, blend)) {

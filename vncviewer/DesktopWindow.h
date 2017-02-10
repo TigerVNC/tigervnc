@@ -76,7 +76,7 @@ private:
   static void menuOverlay(void *data);
 
   void setOverlay(const char *text, ...) __printf_attr(2, 3);
-  static void clearOverlay(void *data);
+  static void updateOverlay(void *data);
 
   static int fltkHandle(int event, Fl_Window *win);
 
@@ -109,6 +109,8 @@ private:
   Viewport *viewport;
   Surface *offscreen;
   Surface *overlay;
+  unsigned char overlayAlpha;
+  struct timeval overlayStart;
 
   bool firstUpdate;
   bool delayedFullscreen;

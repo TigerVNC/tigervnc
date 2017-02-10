@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include <rfb/LogWriter.h>
 #include <rfb/CMsgWriter.h>
@@ -187,7 +188,7 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleFullscreenTimeout, this);
   Fl::remove_timeout(handleEdgeScroll, this);
   Fl::remove_timeout(menuOverlay, this);
-  Fl::remove_timeout(clearOverlay, this);
+  Fl::remove_timeout(updateOverlay, this);
 
   OptionsDialog::removeCallback(handleOptions);
 
@@ -336,9 +337,9 @@ void DesktopWindow::draw()
     fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
 
     if (offscreen)
-      overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh);
+      overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
     else
-      overlay->blend(ox - X, oy - Y, ox, oy, ow, oh);
+      overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
   }
 
   // Flush offscreen surface to screen
@@ -469,7 +470,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
   const unsigned char* b;
 
   delete overlay;
-  Fl::remove_timeout(clearOverlay, this);
+  Fl::remove_timeout(updateOverlay, this);
 
   va_start(ap, text);
   vsnprintf(textbuf, sizeof(textbuf), text, ap);
@@ -538,21 +539,36 @@ void DesktopWindow::setOverlay(const char* text, ...)
   h = image->h();
 
   overlay = new Surface(image);
+  overlayAlpha = 0;
+  gettimeofday(&overlayStart, NULL);
 
   delete image;
 
-  damage(FL_DAMAGE_USER1);
-
-  Fl::add_timeout(3.0, clearOverlay, this);
+  Fl::add_timeout(1.0/60, updateOverlay, this);
 }
 
-void DesktopWindow::clearOverlay(void *data)
+void DesktopWindow::updateOverlay(void *data)
 {
   DesktopWindow *self;
+  unsigned elapsed;
 
   self = (DesktopWindow*)data;
-  delete self->overlay;
-  self->overlay = NULL;
+
+  elapsed = msSince(&self->overlayStart);
+
+  if (elapsed < 500) {
+    self->overlayAlpha = (unsigned)255 * elapsed / 500;
+    Fl::add_timeout(1.0/60, updateOverlay, self);
+  } else if (elapsed < 3500) {
+    self->overlayAlpha = 255;
+    Fl::add_timeout(3.0, updateOverlay, self);
+  } else if (elapsed < 4000) {
+    self->overlayAlpha = (unsigned)255 * (4000 - elapsed) / 500;
+    Fl::add_timeout(1.0/60, updateOverlay, self);
+  } else {
+    delete self->overlay;
+    self->overlay = NULL;
+  }
 
   self->damage(FL_DAMAGE_USER1);
 }

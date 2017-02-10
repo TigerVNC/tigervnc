@@ -28,7 +28,8 @@
 
 #include "Surface.h"
 
-static void render(CGContextRef gc, CGImageRef image, CGBlendMode mode,
+static void render(CGContextRef gc, CGImageRef image,
+                   CGBlendMode mode, CGFloat alpha,
                    int src_x, int src_y, int src_w, int src_h,
                    int x, int y, int w, int h)
 {
@@ -37,6 +38,7 @@ static void render(CGContextRef gc, CGImageRef image, CGBlendMode mode,
   CGContextSaveGState(gc);
 
   CGContextSetBlendMode(gc, mode);
+  CGContextSetAlpha(gc, alpha);
 
   // We have to use clipping to partially display an image
   rect.origin.x = x;
@@ -109,7 +111,7 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   src_y = height() - (src_y + h);
   y = Fl_Window::current()->h() - (y + h);
 
-  render(fl_gc, image, kCGBlendModeCopy,
+  render(fl_gc, image, kCGBlendModeCopy, 1.0,
          src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
@@ -125,13 +127,13 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   src_y = height() - (src_y + h);
   y = dst->height() - (y + h);
 
-  render(bitmap, image, kCGBlendModeCopy,
+  render(bitmap, image, kCGBlendModeCopy, 1.0,
          src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRelease(bitmap);
 }
 
-void Surface::blend(int src_x, int src_y, int x, int y, int w, int h)
+void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
 {
   CGContextSaveGState(fl_gc);
 
@@ -143,13 +145,13 @@ void Surface::blend(int src_x, int src_y, int x, int y, int w, int h)
   src_y = height() - (src_y + h);
   y = Fl_Window::current()->h() - (y + h);
 
-  render(fl_gc, image, kCGBlendModeNormal,
+  render(fl_gc, image, kCGBlendModeNormal, (CGFloat)a/255.0,
          src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
 }
 
-void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h)
+void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int h, int a)
 {
   CGContextRef bitmap;
 
@@ -159,7 +161,7 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
   src_y = height() - (src_y + h);
   y = dst->height() - (y + h);
 
-  render(bitmap, image, kCGBlendModeNormal,
+  render(bitmap, image, kCGBlendModeNormal, (CGFloat)a/255.0,
          src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRelease(bitmap);
