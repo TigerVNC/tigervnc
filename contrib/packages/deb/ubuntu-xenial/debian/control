@@ -30,7 +30,7 @@ Description: virtual network computing server software
 Package: xtigervncviewer
 Architecture: any
 Provides: vncviewer, vnc-viewer
-Depends: libc6, libexpat1, libfontconfig1, libfreetype6, libgcc1, libgnutls30, libjpeg-turbo8, libp11-kit0, libpng12-0, libstdc++6, libtasn1-3-bin, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxft2, libxrender1, zlib1g, libglu1-mesa, libxcursor1, libxinerama1, libxfixes3, libfltk1.3
+Depends: libc6, libexpat1, libfontconfig1, libfreetype6, libgcc1, libgnutls30, libjpeg-turbo8, libp11-kit0, libpng12-0, libstdc++6, libtasn1-3-bin, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxft2, libxrender1, zlib1g, libglu1-mesa, libxcursor1, libxinerama1, libxfixes3, libfltk1.3, libfltk-images1.3
 Recommends: xfonts-base
 Suggests: tigervncserver, ssh
 Description: virtual network computing client software for X
