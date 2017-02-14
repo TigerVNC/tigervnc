@@ -20,6 +20,9 @@
 #define __PLATFORMPIXELBUFFER_H__
 
 #if !defined(WIN32) && !defined(__APPLE__)
+#include <X11/Xlib.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <X11/extensions/XShm.h>
 #endif
 
