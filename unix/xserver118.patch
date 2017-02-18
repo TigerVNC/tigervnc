@@ -1,0 +1,136 @@
+diff -ur xorg-server.orig/configure.ac xorg-server/configure.ac
+--- xorg-server.orig/configure.ac	2016-04-09 21:28:27.007999965 +0200
++++ xorg-server/configure.ac	2016-04-09 21:28:57.587999860 +0200
+@@ -74,6 +74,7 @@
+ AC_CONFIG_HEADERS(include/version-config.h)
+ 
+ AM_PROG_AS
++AC_PROG_CXX
+ AC_PROG_LN_S
+ LT_PREREQ([2.2])
+ LT_INIT([disable-static win32-dll])
+@@ -1828,6 +1829,10 @@
+ 	AC_SUBST([XVFB_SYS_LIBS])
+ fi
+ 
++dnl Xvnc DDX
++AC_SUBST([XVNC_CPPFLAGS], ["-DHAVE_DIX_CONFIG_H $XSERVER_CFLAGS"])
++AC_SUBST([XVNC_LIBS], ["$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB"])
++AC_SUBST([XVNC_SYS_LIBS], ["$GLX_SYS_LIBS"])
+ 
+ dnl Xnest DDX
+ 
+@@ -1863,6 +1868,8 @@
+ fi
+ AC_MSG_RESULT([$XORG])
+ 
++AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
++
+ if test "x$XORG" = xyes; then
+ 	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
+ 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
+@@ -2081,7 +2088,6 @@
+ 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
+ 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
+ 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
+-	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
+ 	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
+ 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
+ 	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
+@@ -2653,6 +2659,7 @@
+ hw/dmx/man/Makefile
+ hw/vfb/Makefile
+ hw/vfb/man/Makefile
++hw/vnc/Makefile
+ hw/xnest/Makefile
+ hw/xnest/man/Makefile
+ hw/xwin/Makefile
+diff -ur xorg-server.orig/hw/Makefile.am xorg-server/hw/Makefile.am
+--- xorg-server.orig/hw/Makefile.am	2016-04-09 21:28:27.059999965 +0200
++++ xorg-server/hw/Makefile.am	2016-04-09 21:28:57.587999860 +0200
+@@ -43,6 +43,7 @@
+ 	$(KDRIVE_SUBDIRS)	\
+ 	$(XQUARTZ_SUBDIRS)	\
+-	$(XWAYLAND_SUBDIRS)
++	$(XWAYLAND_SUBDIRS) \
++	vnc
+ 
+ DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland
+ 
+diff -ur xorg-server.orig/mi/miinitext.c xorg-server/mi/miinitext.c
+--- xorg-server.orig/mi/miinitext.c	2016-04-09 21:28:27.015999965 +0200
++++ xorg-server/mi/miinitext.c	2016-04-09 21:28:57.587999860 +0200
+@@ -114,6 +114,10 @@
+ #include "micmap.h"
+ #include "globals.h"
+ 
++#ifdef TIGERVNC
++extern void vncExtensionInit(void);
++#endif
++
+ /* The following is only a small first step towards run-time
+  * configurable extensions.
+  */
+@@ -238,6 +242,9 @@
+ 
+ /* List of built-in (statically linked) extensions */
+ static const ExtensionModule staticExtensions[] = {
++#ifdef TIGERVNC
++    {vncExtensionInit, "VNC-EXTENSION", NULL},
++#endif
+     {GEExtensionInit, "Generic Event Extension", &noGEExtension},
+     {ShapeExtensionInit, "SHAPE", NULL},
+ #ifdef MITSHM
+diff -ur xorg-server.orig/os/WaitFor.c xorg-server/os/WaitFor.c
+--- xorg-server.orig/os/WaitFor.c	2016-04-09 21:28:27.071999965 +0200
++++ xorg-server/os/WaitFor.c	2016-04-09 21:28:57.587999860 +0200
+@@ -125,6 +125,9 @@
+ static void CheckAllTimers(void);
+ static volatile OsTimerPtr timers = NULL;
+ 
++extern void vncWriteBlockHandler(fd_set *fds);
++extern void vncWriteWakeupHandler(int nfds, fd_set *fds);
++
+ /*****************
+  * WaitForSomething:
+  *     Make the server suspend until there is
+@@ -150,6 +153,7 @@
+     INT32 timeout = 0;
+     fd_set clientsReadable;
+     fd_set clientsWritable;
++    fd_set socketsWritable;
+     int curclient;
+     int selecterr;
+     static int nready;
+@@ -213,6 +217,9 @@
+             XFD_COPYSET(&AllSockets, &LastSelectMask);
+         }
+ 
++        FD_ZERO(&socketsWritable);
++        vncWriteBlockHandler(&socketsWritable);
++
+         BlockHandler((void *) &wt, (void *) &LastSelectMask);
+         if (NewOutputPending)
+             FlushAllOutput();
+@@ -224,10 +231,20 @@
+             i = Select(MaxClients, &LastSelectMask, &clientsWritable, NULL, wt);
+         }
+         else {
+-            i = Select(MaxClients, &LastSelectMask, NULL, NULL, wt);
++	    if (AnyClientsWriteBlocked)
++		XFD_ORSET(&socketsWritable, &ClientsWriteBlocked, &socketsWritable);
++
++	    if (XFD_ANYSET(&socketsWritable)) {
++		i = Select(MaxClients, &LastSelectMask, &socketsWritable, NULL, wt);
++		if (AnyClientsWriteBlocked)
++		    XFD_ANDSET(&clientsWritable, &socketsWritable, &ClientsWriteBlocked);
++	    } else {
++		i = Select(MaxClients, &LastSelectMask, NULL, NULL, wt);
++	    }
+         }
+         selecterr = GetErrno();
+         WakeupHandler(i, (void *) &LastSelectMask);
++	vncWriteWakeupHandler(i, &socketsWritable);
+         if (i <= 0) {           /* An error or timeout occurred */
+             if (dispatchException)
+                 return 0;

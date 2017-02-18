@@ -254,6 +254,15 @@ void CConn::socketEvent(FL_SOCKET fd, void *data)
     // until the buffers are empty or things will stall.
     do {
       cc->processMsg();
+
+      // Make sure that the FLTK handling and the timers gets some CPU
+      // time in case of back to back messages
+       Fl::check();
+       Timer::checkTimeouts();
+
+       // Also check if we need to stop reading and terminate
+       if (should_exit())
+         break;
     } while (cc->sock->inStream().checkNoWait(1));
   } catch (rdr::EndOfStream& e) {
     vlog.info("%s", e.str());
@@ -337,31 +346,12 @@ void CConn::setName(const char* name)
 // one.
 void CConn::framebufferUpdateStart()
 {
-  ModifiablePixelBuffer* pb;
-  PlatformPixelBuffer* ppb;
-
   CConnection::framebufferUpdateStart();
 
   // Note: This might not be true if sync fences are supported
   pendingUpdate = false;
 
   requestNewUpdate();
-
-  // We might still be rendering the previous update
-  pb = getFramebuffer();
-  assert(pb != NULL);
-  ppb = dynamic_cast<PlatformPixelBuffer*>(pb);
-  assert(ppb != NULL);
-  if (ppb->isRendering()) {
-    // Need to stop monitoring the socket or we'll just busy loop
-    assert(sock != NULL);
-    Fl::remove_fd(sock->getFd());
-
-    while (ppb->isRendering())
-      run_mainloop();
-
-    Fl::add_fd(sock->getFd(), FL_READ | FL_EXCEPT, socketEvent, this);
-  }
 
   // Update the screen prematurely for very slow updates
   Fl::add_timeout(1.0, handleUpdateTimeout, this);
@@ -397,11 +387,6 @@ void CConn::framebufferUpdateEnd()
   // Compute new settings based on updated bandwidth values
   if (autoSelect)
     autoSelectFormatAndEncoding();
-
-  // Make sure that the FLTK handling and the timers gets some CPU time
-  // in case of back to back framebuffer updates.
-  Fl::check();
-  Timer::checkTimeouts();
 }
 
 // The rest of the callbacks are fairly self-explanatory...
@@ -439,7 +424,8 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
 
   // RFB doesn't have separate selection and clipboard concepts, so we
   // dump the data into both variants.
-  Fl::copy(buffer, ret, 0);
+  if (setPrimary)
+    Fl::copy(buffer, ret, 0);
   Fl::copy(buffer, ret, 1);
 
   delete [] buffer;

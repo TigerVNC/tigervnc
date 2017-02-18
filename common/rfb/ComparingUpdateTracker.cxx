@@ -20,12 +20,16 @@
 #include <vector>
 #include <rdr/types.h>
 #include <rfb/Exception.h>
+#include <rfb/LogWriter.h>
 #include <rfb/ComparingUpdateTracker.h>
 
 using namespace rfb;
 
+static LogWriter vlog("ComparingUpdateTracker");
+
 ComparingUpdateTracker::ComparingUpdateTracker(PixelBuffer* buffer)
-  : fb(buffer), oldFb(fb->getPF(), 0, 0), firstCompare(true), enabled(true)
+  : fb(buffer), oldFb(fb->getPF(), 0, 0), firstCompare(true),
+    enabled(true), totalPixels(0), missedPixels(0)
 {
     changed.assign_union(fb->getRect());
 }
@@ -71,6 +75,13 @@ bool ComparingUpdateTracker::compare()
   Region newChanged;
   for (i = rects.begin(); i != rects.end(); i++)
     compareRect(*i, &newChanged);
+
+  changed.get_rects(&rects);
+  for (i = rects.begin(); i != rects.end(); i++)
+    totalPixels += i->area();
+  newChanged.get_rects(&rects);
+  for (i = rects.begin(); i != rects.end(); i++)
+    missedPixels += i->area();
 
   if (changed.equals(newChanged))
     return false;
@@ -164,4 +175,20 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
     temp.setOrderedRects(changedBlocks);
     newChanged->assign_union(temp);
   }
+}
+
+void ComparingUpdateTracker::logStats()
+{
+  double ratio;
+  char a[1024], b[1024];
+
+  siPrefix(totalPixels, "pixels", a, sizeof(a));
+  siPrefix(missedPixels, "pixels", b, sizeof(b));
+
+  ratio = (double)totalPixels / missedPixels;
+
+  vlog.info("%s in / %s out", a, b);
+  vlog.info("(1:%g ratio)", ratio);
+
+  totalPixels = missedPixels = 0;
 }

@@ -25,12 +25,6 @@ public class Exception extends RuntimeException {
   }
 }
 
-class TimedOut extends Exception {
-  public TimedOut() {
-    super("Timed out");
-  }
-}
-
 class FrameException extends Exception {
   public FrameException() {
     super("Frame Exception");

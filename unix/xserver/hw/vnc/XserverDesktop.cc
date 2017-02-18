@@ -41,8 +41,10 @@
 #include <rfb/ServerCore.h>
 
 #include "XserverDesktop.h"
+#include "vncBlockHandler.h"
 #include "vncExtInit.h"
 #include "vncHooks.h"
+#include "vncSelection.h"
 #include "XorgGlue.h"
 #include "Input.h"
 
@@ -110,15 +112,29 @@ XserverDesktop::XserverDesktop(int screenIndex_,
 
   if (!httpListeners.empty ())
     httpServer = new FileHTTPServer(this);
+
+  for (std::list<TcpListener*>::iterator i = listeners.begin();
+       i != listeners.end();
+       i++) {
+    vncSetNotifyFd((*i)->getFd(), screenIndex, true, false);
+  }
+
+  for (std::list<TcpListener*>::iterator i = httpListeners.begin();
+       i != httpListeners.end();
+       i++) {
+    vncSetNotifyFd((*i)->getFd(), screenIndex, true, false);
+  }
 }
 
 XserverDesktop::~XserverDesktop()
 {
   while (!listeners.empty()) {
+    vncRemoveNotifyFd(listeners.back()->getFd());
     delete listeners.back();
     listeners.pop_back();
   }
   while (!httpListeners.empty()) {
+    vncRemoveNotifyFd(listeners.back()->getFd());
     delete httpListeners.back();
     httpListeners.pop_back();
   }
@@ -388,7 +404,76 @@ void XserverDesktop::add_copied(const rfb::Region &dest, const rfb::Point &delta
   }
 }
 
-void XserverDesktop::readBlockHandler(fd_set* fds, struct timeval ** timeout)
+void XserverDesktop::handleSocketEvent(int fd, bool read, bool write)
+{
+  try {
+    if (read) {
+      if (handleListenerEvent(fd, &listeners, server))
+        return;
+      if (handleListenerEvent(fd, &httpListeners, httpServer))
+        return;
+    }
+
+    if (handleSocketEvent(fd, server, read, write))
+      return;
+    if (handleSocketEvent(fd, httpServer, read, write))
+      return;
+
+    vlog.error("Cannot find file descriptor for socket event");
+  } catch (rdr::Exception& e) {
+    vlog.error("XserverDesktop::handleSocketEvent: %s",e.str());
+  }
+}
+
+bool XserverDesktop::handleListenerEvent(int fd,
+                                         std::list<TcpListener*>* sockets,
+                                         SocketServer* sockserv)
+{
+  std::list<TcpListener*>::iterator i;
+
+  for (i = sockets->begin(); i != sockets->end(); i++) {
+    if ((*i)->getFd() == fd)
+      break;
+  }
+
+  if (i == sockets->end())
+    return false;
+
+  Socket* sock = (*i)->accept();
+  sock->outStream().setBlocking(false);
+  vlog.debug("new client, sock %d", sock->getFd());
+  sockserv->addSocket(sock);
+  vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
+
+  return true;
+}
+
+bool XserverDesktop::handleSocketEvent(int fd,
+                                       SocketServer* sockserv,
+                                       bool read, bool write)
+{
+  std::list<Socket*> sockets;
+  std::list<Socket*>::iterator i;
+
+  sockserv->getSockets(&sockets);
+  for (i = sockets.begin(); i != sockets.end(); i++) {
+    if ((*i)->getFd() == fd)
+      break;
+  }
+
+  if (i == sockets.end())
+    return false;
+
+  if (read)
+    sockserv->processSocketReadEvent(*i);
+
+  if (write)
+    sockserv->processSocketWriteEvent(*i);
+
+  return true;
+}
+
+void XserverDesktop::blockHandler(int* timeout)
 {
   // We don't have a good callback for when we can init input devices[1],
   // so we abuse the fact that this routine will be called first thing
@@ -397,19 +482,6 @@ void XserverDesktop::readBlockHandler(fd_set* fds, struct timeval ** timeout)
   vncInitInputDevice();
 
   try {
-    int nextTimeout;
-
-    // Add all sockets we want read events for, after purging
-    // any closed sockets.
-    for (std::list<network::TcpListener*>::iterator i = listeners.begin();
-         i != listeners.end();
-         i++)
-      FD_SET((*i)->getFd(), fds);
-    for (std::list<network::TcpListener*>::iterator i = httpListeners.begin();
-         i != httpListeners.end();
-         i++)
-      FD_SET((*i)->getFd(), fds);
-
     std::list<Socket*> sockets;
     std::list<Socket*>::iterator i;
     server->getSockets(&sockets);
@@ -417,11 +489,13 @@ void XserverDesktop::readBlockHandler(fd_set* fds, struct timeval ** timeout)
       int fd = (*i)->getFd();
       if ((*i)->isShutdown()) {
         vlog.debug("client gone, sock %d",fd);
+        vncRemoveNotifyFd(fd);
         server->removeSocket(*i);
         vncClientGone(fd);
         delete (*i);
       } else {
-        FD_SET(fd, fds);
+        /* Update existing NotifyFD to listen for write (or not) */
+        vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().bufferUsage() > 0);
       }
     }
     if (httpServer) {
@@ -430,180 +504,42 @@ void XserverDesktop::readBlockHandler(fd_set* fds, struct timeval ** timeout)
         int fd = (*i)->getFd();
         if ((*i)->isShutdown()) {
           vlog.debug("http client gone, sock %d",fd);
+          vncRemoveNotifyFd(fd);
           httpServer->removeSocket(*i);
           delete (*i);
         } else {
-          FD_SET(fd, fds);
+          /* Update existing NotifyFD to listen for write (or not) */
+          vncSetNotifyFd(fd, screenIndex, true, (*i)->outStream().bufferUsage() > 0);
         }
       }
     }
 
-    // Then check when the next timer will expire.
-    // (this unfortunately also triggers any already expired timers)
-    nextTimeout = server->checkTimeouts();
-    if (nextTimeout > 0) {
-      // No timeout specified? Or later timeout than we need?
-      if ((*timeout == NULL) ||
-          ((*timeout)->tv_sec > (nextTimeout/1000)) ||
-          (((*timeout)->tv_sec == (nextTimeout/1000)) &&
-           ((*timeout)->tv_usec > ((nextTimeout%1000)*1000)))) {
-        dixTimeout.tv_sec = nextTimeout/1000;
-        dixTimeout.tv_usec = (nextTimeout%1000)*1000;
-        *timeout = &dixTimeout;
-      }
+    // We are responsible for propagating mouse movement between clients
+    int cursorX, cursorY;
+    vncGetPointerPos(&cursorX, &cursorY);
+    cursorX -= vncGetScreenX(screenIndex);
+    cursorY -= vncGetScreenY(screenIndex);
+    if (oldCursorPos.x != cursorX || oldCursorPos.y != cursorY) {
+      oldCursorPos.x = cursorX;
+      oldCursorPos.y = cursorY;
+      server->setCursorPos(oldCursorPos);
     }
 
+    // Trigger timers and check when the next will expire
+    int nextTimeout = server->checkTimeouts();
+    if (nextTimeout > 0 && (*timeout == -1 || nextTimeout < *timeout))
+      *timeout = nextTimeout;
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::blockHandler: %s",e.str());
-  }
-}
-
-void XserverDesktop::readWakeupHandler(fd_set* fds, int nfds)
-{
-  try {
-    // First check for file descriptors with something to do
-    if (nfds >= 1) {
-
-      for (std::list<network::TcpListener*>::iterator i = listeners.begin();
-           i != listeners.end();
-           i++) {
-        if (FD_ISSET((*i)->getFd(), fds)) {
-          FD_CLR((*i)->getFd(), fds);
-          Socket* sock = (*i)->accept();
-          sock->outStream().setBlocking(false);
-          server->addSocket(sock);
-          vlog.debug("new client, sock %d",sock->getFd());
-        }
-      }
-
-      for (std::list<network::TcpListener*>::iterator i = httpListeners.begin();
-           i != httpListeners.end();
-           i++) {
-        if (FD_ISSET((*i)->getFd(), fds)) {
-          FD_CLR((*i)->getFd(), fds);
-          Socket* sock = (*i)->accept();
-          sock->outStream().setBlocking(false);
-          httpServer->addSocket(sock);
-          vlog.debug("new http client, sock %d",sock->getFd());
-        }
-      }
-
-      std::list<Socket*> sockets;
-      server->getSockets(&sockets);
-      std::list<Socket*>::iterator i;
-      for (i = sockets.begin(); i != sockets.end(); i++) {
-        int fd = (*i)->getFd();
-        if (FD_ISSET(fd, fds)) {
-          FD_CLR(fd, fds);
-          server->processSocketEvent(*i);
-        }
-      }
-
-      if (httpServer) {
-        httpServer->getSockets(&sockets);
-        for (i = sockets.begin(); i != sockets.end(); i++) {
-          int fd = (*i)->getFd();
-          if (FD_ISSET(fd, fds)) {
-            FD_CLR(fd, fds);
-            httpServer->processSocketEvent(*i);
-          }
-        }
-      }
-
-      // We are responsible for propagating mouse movement between clients
-      int cursorX, cursorY;
-      vncGetPointerPos(&cursorX, &cursorY);
-      if (oldCursorPos.x != cursorX || oldCursorPos.y != cursorY) {
-        oldCursorPos.x = cursorX;
-        oldCursorPos.y = cursorY;
-        server->setCursorPos(oldCursorPos);
-      }
-    }
-
-    // Then let the timers do some processing. Rescheduling is done in
-    // blockHandler().
-    server->checkTimeouts();
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::wakeupHandler: %s",e.str());
-  }
-}
-
-void XserverDesktop::writeBlockHandler(fd_set* fds, struct timeval ** timeout)
-{
-  try {
-    std::list<Socket*> sockets;
-    std::list<Socket*>::iterator i;
-
-    server->getSockets(&sockets);
-    for (i = sockets.begin(); i != sockets.end(); i++) {
-      int fd = (*i)->getFd();
-      if ((*i)->isShutdown()) {
-        vlog.debug("client gone, sock %d",fd);
-        server->removeSocket(*i);
-        vncClientGone(fd);
-        delete (*i);
-      } else {
-        if ((*i)->outStream().bufferUsage() > 0)
-          FD_SET(fd, fds);
-      }
-    }
-
-    if (httpServer) {
-      httpServer->getSockets(&sockets);
-      for (i = sockets.begin(); i != sockets.end(); i++) {
-        int fd = (*i)->getFd();
-        if ((*i)->isShutdown()) {
-          vlog.debug("http client gone, sock %d",fd);
-          httpServer->removeSocket(*i);
-          delete (*i);
-        } else {
-          if ((*i)->outStream().bufferUsage() > 0)
-            FD_SET(fd, fds);
-        }
-      }
-    }
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::writeBlockHandler: %s",e.str());
-  }
-}
-
-void XserverDesktop::writeWakeupHandler(fd_set* fds, int nfds)
-{
-  if (nfds < 1)
-    return;
-
-  try {
-    std::list<Socket*> sockets;
-    std::list<Socket*>::iterator i;
-
-    server->getSockets(&sockets);
-    for (i = sockets.begin(); i != sockets.end(); i++) {
-      int fd = (*i)->getFd();
-      if (FD_ISSET(fd, fds)) {
-        FD_CLR(fd, fds);
-        (*i)->outStream().flush();
-      }
-    }
-
-    if (httpServer) {
-      httpServer->getSockets(&sockets);
-      for (i = sockets.begin(); i != sockets.end(); i++) {
-        int fd = (*i)->getFd();
-        if (FD_ISSET(fd, fds)) {
-          FD_CLR(fd, fds);
-          (*i)->outStream().flush();
-        }
-      }
-    }
-  } catch (rdr::Exception& e) {
-    vlog.error("XserverDesktop::writeWakeupHandler: %s",e.str());
   }
 }
 
 void XserverDesktop::addClient(Socket* sock, bool reverse)
 {
   vlog.debug("new client, sock %d reverse %d",sock->getFd(),reverse);
+  sock->outStream().setBlocking(false);
   server->addSocket(sock, reverse);
+  vncSetNotifyFd(sock->getFd(), screenIndex, true, false);
 }
 
 void XserverDesktop::disconnectClients()
@@ -647,7 +583,8 @@ void XserverDesktop::approveConnection(uint32_t opaqueId, bool accept,
 
 void XserverDesktop::pointerEvent(const Point& pos, int buttonMask)
 {
-  vncPointerMove(pos.x, pos.y);
+  vncPointerMove(pos.x + vncGetScreenX(screenIndex),
+                 pos.y + vncGetScreenY(screenIndex));
   vncPointerButtonAction(buttonMask);
 }
 

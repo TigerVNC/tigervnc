@@ -50,8 +50,6 @@ namespace rfb {
 
       Info getCursorInfo();
     protected:
-      WMCursorHooks* hooks;
-      bool use_getCursorInfo;
       HCURSOR cursor;
     };
 

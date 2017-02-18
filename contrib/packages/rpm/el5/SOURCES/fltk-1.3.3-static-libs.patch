@@ -5,7 +5,7 @@
    # Don't add to $LIBS permanently.
    ac_save_LIBS=$LIBS
 -  LIBS="-lX11 $LIBS"
-+  LIBS="-lX11 -lXrender -lxcb -lXdmcp -lXau $LIBS"
++  LIBS="-lX11 -lfreetype -lexpat -lXext -lXrender -lxcb -lXdmcp -lXau  -lz $LIBS"
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include <X11/Xlib.h>
@@ -14,7 +14,7 @@
      # libraries were built with DECnet support.  And Karl Berry says
      # the Alpha needs dnet_stub (dnet does not exist).
 -    ac_xsave_LIBS="$LIBS"; LIBS="$LIBS $X_LIBS -lX11"
-+    ac_xsave_LIBS="$LIBS"; LIBS="$LIBS $X_LIBS -lX11 -lXrender -lxcb -lXdmcp -lXau"
++    ac_xsave_LIBS="$LIBS"; LIBS="$LIBS $X_LIBS -lfreetype -lexpat -lX11 -lXext -lXrender -lxcb -lXdmcp -lXau -lz"
      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
@@ -23,7 +23,7 @@
  	fi
  
 -	LIBS="$LIBS -lX11 $X_EXTRA_LIBS"
-+	LIBS="$LIBS -lX11 -lXrender -lxcb -lXdmcp -lXau $X_EXTRA_LIBS"
++	LIBS="$LIBS -lfreetype -lexpat -lX11 -lXext -lXrender -lxcb -lXdmcp -lXau -lz $X_EXTRA_LIBS"
  	CFLAGS="$CFLAGS $X_CFLAGS"
  	CXXFLAGS="$CXXFLAGS $X_CFLAGS"
  	LDFLAGS="$X_LIBS $LDFLAGS"

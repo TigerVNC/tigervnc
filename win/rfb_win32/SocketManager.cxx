@@ -193,7 +193,7 @@ void SocketManager::processEvent(HANDLE event) {
       WSAResetEvent(event);
 
       // Call the socket server to process the event
-      ci.server->processSocketEvent(ci.sock);
+      ci.server->processSocketReadEvent(ci.sock);
       if (ci.sock->isShutdown()) {
         remSocket(ci.sock);
         return;

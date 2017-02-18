@@ -47,12 +47,13 @@ namespace rfb {
 #endif
 
 void ZRLE_DECODE (const Rect& r, rdr::InStream* is,
-                  rdr::ZlibInStream* zis, PIXEL_T* buf,
+                  rdr::ZlibInStream* zis,
                   const PixelFormat& pf, ModifiablePixelBuffer* pb)
 {
   int length = is->readU32();
   zis->setUnderlying(is, length);
   Rect t;
+  PIXEL_T buf[64 * 64];
 
   for (t.tl.y = r.tl.y; t.tl.y < r.br.y; t.tl.y += 64) {
 

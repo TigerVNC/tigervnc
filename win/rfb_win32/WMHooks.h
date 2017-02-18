@@ -47,9 +47,6 @@ namespace rfb {
       // were added, false otherwise.
       bool getUpdates(UpdateTracker* ut);
 
-      // Determine whether the hooks DLL is installed on the system
-      static bool areAvailable();
-
 #ifdef _DEBUG
       // Get notifications of any messages in the given range, to any hooked window
       void setDiagnosticRange(UINT min, UINT max);
@@ -72,17 +69,6 @@ namespace rfb {
       bool blockInputs(bool block);
     protected:
       bool active;
-    };
-
-    // - Legacy cursor handling support
-    class WMCursorHooks {
-    public:
-      WMCursorHooks();
-      ~WMCursorHooks();
-
-      bool start();
-
-      HCURSOR getCursor() const;
     };
 
   };

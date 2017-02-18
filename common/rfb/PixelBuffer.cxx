@@ -42,17 +42,32 @@ PixelBuffer::~PixelBuffer() {}
 
 
 void
-PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) const {
+PixelBuffer::getImage(void* imageBuf, const Rect& r, int outStride) const
+{
   int inStride;
-  const U8* data = getBuffer(r, &inStride);
-  // We assume that the specified rectangle is pre-clipped to the buffer
-  int bytesPerPixel = format.bpp/8;
-  int inBytesPerRow = inStride * bytesPerPixel;
-  if (!outStride) outStride = r.width();
-  int outBytesPerRow = outStride * bytesPerPixel;
-  int bytesPerMemCpy = r.width() * bytesPerPixel;
-  U8* imageBufPos = (U8*)imageBuf;
-  const U8* end = data + (inBytesPerRow * r.height());
+  const U8* data;
+  int bytesPerPixel, inBytesPerRow, outBytesPerRow, bytesPerMemCpy;
+  U8* imageBufPos;
+  const U8* end;
+
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Source rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(),
+                         r.tl.x, r.tl.y, width_, height_);
+
+  data = getBuffer(r, &inStride);
+
+  bytesPerPixel = format.bpp/8;
+  inBytesPerRow = inStride * bytesPerPixel;
+
+  if (!outStride)
+    outStride = r.width();
+  outBytesPerRow = outStride * bytesPerPixel;
+  bytesPerMemCpy = r.width() * bytesPerPixel;
+
+  imageBufPos = (U8*)imageBuf;
+  end = data + (inBytesPerRow * r.height());
+
   while (data < end) {
     memcpy(imageBufPos, data, bytesPerMemCpy);
     imageBufPos += outBytesPerRow;
@@ -70,6 +85,11 @@ void PixelBuffer::getImage(const PixelFormat& pf, void* imageBuf,
     getImage(imageBuf, r, stride);
     return;
   }
+
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Source rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(),
+                         r.tl.x, r.tl.y, width_, height_);
 
   if (stride == 0)
     stride = r.width();
@@ -101,6 +121,10 @@ void ModifiablePixelBuffer::fillRect(const Rect& r, const void* pix)
   int stride;
   U8 *buf;
   int w, h, b;
+
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(), r.tl.x, r.tl.y, width_, height_);
 
   w = r.width();
   h = r.height();
@@ -142,83 +166,122 @@ void ModifiablePixelBuffer::fillRect(const Rect& r, const void* pix)
 void ModifiablePixelBuffer::imageRect(const Rect& r,
                                       const void* pixels, int srcStride)
 {
-  int bytesPerPixel = getPF().bpp/8;
+  U8* dest;
   int destStride;
-  U8* dest = getBufferRW(r, &destStride);
-  int bytesPerDestRow = bytesPerPixel * destStride;
-  if (!srcStride) srcStride = r.width();
-  int bytesPerSrcRow = bytesPerPixel * srcStride;
-  int bytesPerFill = bytesPerPixel * r.width();
-  const U8* src = (const U8*)pixels;
-  U8* end = dest + (bytesPerDestRow * r.height());
+  int bytesPerPixel, bytesPerDestRow, bytesPerSrcRow, bytesPerFill;
+  const U8* src;
+  U8* end;
+
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(),
+                         r.tl.x, r.tl.y, width_, height_);
+
+  bytesPerPixel = getPF().bpp/8;
+
+  dest = getBufferRW(r, &destStride);
+
+  bytesPerDestRow = bytesPerPixel * destStride;
+
+  if (!srcStride)
+    srcStride = r.width();
+  bytesPerSrcRow = bytesPerPixel * srcStride;
+  bytesPerFill = bytesPerPixel * r.width();
+
+  src = (const U8*)pixels;
+  end = dest + (bytesPerDestRow * r.height());
+
   while (dest < end) {
     memcpy(dest, src, bytesPerFill);
     dest += bytesPerDestRow;
     src += bytesPerSrcRow;
   }
+
   commitBufferRW(r);
 }
 
 void ModifiablePixelBuffer::maskRect(const Rect& r,
-                                     const void* pixels, const void* mask_)
+                                     const void* pixels,
+                                     const void* mask_,
+                                     const Point& maskPos,
+                                     int pStride, int mStride)
 {
-  Rect cr = getRect().intersect(r);
-  if (cr.is_empty()) return;
   int stride;
-  U8* data = getBufferRW(cr, &stride);
-  U8* mask = (U8*) mask_;
-  int w = cr.width();
-  int h = cr.height();
-  int bpp = getPF().bpp;
-  int pixelStride = r.width();
-  int maskStride = (r.width() + 7) / 8;
+  U8* data;
+  U8* mask;
+  int w, h, bpp;
 
-  Point offset = Point(cr.tl.x-r.tl.x, cr.tl.y-r.tl.y);
-  mask += offset.y * maskStride;
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(),
+                         r.tl.x, r.tl.y, width_, height_);
+
+  data = getBufferRW(r, &stride);
+  mask = (U8*) mask_;
+
+  w = r.width();
+  h = r.height();
+  bpp = getPF().bpp;
+  if (pStride == 0)
+    pStride = r.width();
+  if (mStride == 0)
+    mStride = (r.width() + 7) / 8;
+
+  mask += maskPos.y * mStride;
   for (int y = 0; y < h; y++) {
-    int cy = offset.y + y;
     for (int x = 0; x < w; x++) {
-      int cx = offset.x + x;
+      int cx = maskPos.x + x;
       U8* byte = mask + (cx / 8);
       int bit = 7 - cx % 8;
       if ((*byte) & (1 << bit)) {
         switch (bpp) {
         case 8:
-          ((U8*)data)[y * stride + x] = ((U8*)pixels)[cy * pixelStride + cx];
+          ((U8*)data)[y * stride + x] = ((U8*)pixels)[y * pStride + x];
           break;
         case 16:
-          ((U16*)data)[y * stride + x] = ((U16*)pixels)[cy * pixelStride + cx];
+          ((U16*)data)[y * stride + x] = ((U16*)pixels)[y * pStride + x];
           break;
         case 32:
-          ((U32*)data)[y * stride + x] = ((U32*)pixels)[cy * pixelStride + cx];
+          ((U32*)data)[y * stride + x] = ((U32*)pixels)[y * pStride + x];
           break;
         }
       }
     }
-    mask += maskStride;
+    mask += mStride;
   }
 
-  commitBufferRW(cr);
+  commitBufferRW(r);
 }
 
 void ModifiablePixelBuffer::maskRect(const Rect& r,
-                                     Pixel pixel, const void* mask_)
+                                     Pixel pixel,
+                                     const void* mask_,
+                                     const Point& maskPos,
+                                     int mStride)
 {
-  Rect cr = getRect().intersect(r);
-  if (cr.is_empty()) return;
   int stride;
-  U8* data = getBufferRW(cr, &stride);
-  U8* mask = (U8*) mask_;
-  int w = cr.width();
-  int h = cr.height();
-  int bpp = getPF().bpp;
-  int maskStride = (r.width() + 7) / 8;
+  U8* data;
+  U8* mask;
+  int w, h, bpp;
 
-  Point offset = Point(cr.tl.x-r.tl.x, cr.tl.y-r.tl.y);
-  mask += offset.y * maskStride;
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(),
+                         r.tl.x, r.tl.y, width_, height_);
+
+  data = getBufferRW(r, &stride);
+  mask = (U8*) mask_;
+
+  w = r.width();
+  h = r.height();
+  bpp = getPF().bpp;
+  if (mStride == 0)
+    mStride = (r.width() + 7) / 8;
+
+  mask += maskPos.y * mStride;
   for (int y = 0; y < h; y++) {
     for (int x = 0; x < w; x++) {
-      int cx = offset.x + x;
+      int cx = maskPos.x + x;
       U8* byte = mask + (cx / 8);
       int bit = 7 - cx % 8;
       if ((*byte) & (1 << bit)) {
@@ -235,10 +298,10 @@ void ModifiablePixelBuffer::maskRect(const Rect& r,
         }
       }
     }
-    mask += maskStride;
+    mask += mStride;
   }
 
-  commitBufferRW(cr);
+  commitBufferRW(r);
 }
 
 void ModifiablePixelBuffer::copyRect(const Rect &rect,
@@ -251,26 +314,16 @@ void ModifiablePixelBuffer::copyRect(const Rect &rect,
   Rect drect, srect;
 
   drect = rect;
-  if (!drect.enclosed_by(getRect())) {
-    vlog.error("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
-               drect.width(), drect.height(), drect.tl.x, drect.tl.y, width_, height_);
-    drect = drect.intersect(getRect());
-  }
-
-  if (drect.is_empty())
-    return;
+  if (!drect.enclosed_by(getRect()))
+    throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         drect.width(), drect.height(),
+                         drect.tl.x, drect.tl.y, width_, height_);
 
   srect = drect.translate(move_by_delta.negate());
-  if (!srect.enclosed_by(getRect())) {
-    vlog.error("Source rect %dx%d at %d,%d exceeds framebuffer %dx%d",
-               srect.width(), srect.height(), srect.tl.x, srect.tl.y, width_, height_);
-    srect = srect.intersect(getRect());
-    // Need to readjust the destination now that the area has changed
-    drect = srect.translate(move_by_delta);
-  }
-
-  if (srect.is_empty())
-    return;
+  if (!srect.enclosed_by(getRect()))
+    throw rfb::Exception("Source rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         srect.width(), srect.height(),
+                         srect.tl.x, srect.tl.y, width_, height_);
 
   srcData = getBuffer(srect, &srcStride);
   dstData = getBufferRW(drect, &dstStride);
@@ -320,6 +373,11 @@ void ModifiablePixelBuffer::imageRect(const PixelFormat& pf, const Rect &dest,
   rdr::U8* dstBuffer;
   int dstStride;
 
+  if (!dest.enclosed_by(getRect()))
+    throw rfb::Exception("Destination rect %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         dest.width(), dest.height(),
+                         dest.tl.x, dest.tl.y, width_, height_);
+
   if (stride == 0)
     stride = dest.width();
 
@@ -344,6 +402,11 @@ FullFramePixelBuffer::~FullFramePixelBuffer() {}
 
 rdr::U8* FullFramePixelBuffer::getBufferRW(const Rect& r, int* stride_)
 {
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Pixel buffer request %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(),
+                         r.tl.x, r.tl.y, width_, height_);
+
   *stride_ = stride;
   return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
 }
@@ -354,6 +417,11 @@ void FullFramePixelBuffer::commitBufferRW(const Rect& r)
 
 const rdr::U8* FullFramePixelBuffer::getBuffer(const Rect& r, int* stride_) const
 {
+  if (!r.enclosed_by(getRect()))
+    throw rfb::Exception("Pixel buffer request %dx%d at %d,%d exceeds framebuffer %dx%d",
+                         r.width(), r.height(),
+                         r.tl.x, r.tl.y, width_, height_);
+
   *stride_ = stride;
   return &data[(r.tl.x + (r.tl.y * stride)) * format.bpp/8];
 }

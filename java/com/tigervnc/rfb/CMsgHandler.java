@@ -78,24 +78,17 @@ abstract public class CMsgHandler {
                              String x509subject) {}
 
   public void setCursor(int width, int height, Point hotspot,
-                        int[] data, byte[] mask) {}
+                        byte[] data, byte[] mask) {}
   public void serverInit() {}
 
   public void framebufferUpdateStart() {}
   public void framebufferUpdateEnd() {}
-  public void beginRect(Rect r, int encoding) {}
-  public void endRect(Rect r, int encoding) {}
+  public void dataRect(Rect r, int encoding) {}
 
   public void setColourMapEntries(int firstColour, int nColours,
     int[] rgbs) { }
   public void bell() {}
   public void serverCutText(String str, int len) {}
-
-  public void fillRect(Rect r, int pix) {}
-  public void imageRect(Rect r, Object pixels) {}
-  public void copyRect(Rect r, int srcX, int srcY) {}
-
-  abstract public PixelFormat getPreferredPF();
 
   public ConnParams cp;
 

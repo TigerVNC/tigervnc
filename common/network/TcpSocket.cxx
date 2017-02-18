@@ -360,18 +360,14 @@ bool TcpSocket::cork(int sock, bool enable) {
 #endif
 }
 
-bool TcpSocket::isSocket(int sock)
+bool TcpSocket::isListening(int sock)
 {
-  vnc_sockaddr_t sa;
-  socklen_t sa_size = sizeof(sa);
-  return getsockname(sock, &sa.u.sa, &sa_size) >= 0;
-}
-
-bool TcpSocket::isConnected(int sock)
-{
-  vnc_sockaddr_t sa;
-  socklen_t sa_size = sizeof(sa);
-  return getpeername(sock, &sa.u.sa, &sa_size) >= 0;
+  int listening = 0;
+  socklen_t listening_size = sizeof(listening);
+  if (getsockopt(sock, SOL_SOCKET, SO_ACCEPTCONN,
+                 (char *)&listening, &listening_size) < 0)
+    return false;
+  return listening != 0;
 }
 
 int TcpSocket::getSockPort(int sock)
@@ -752,6 +748,8 @@ TcpFilter::Pattern TcpFilter::parsePattern(const char* p) {
   rfb::CharArray addr, pref;
   bool prefix_specified;
   int family;
+
+  initSockets();
 
   prefix_specified = rfb::strSplit(&p[1], '/', &addr.buf, &pref.buf);
   if (addr.buf[0] == '\0') {

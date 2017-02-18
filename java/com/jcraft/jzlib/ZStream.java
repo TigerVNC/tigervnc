@@ -99,7 +99,24 @@ public class ZStream{
   public int inflateInit(int w){
     return inflateInit(w, false);
   }
-
+  public int inflateInit(JZlib.WrapperType wrapperType) {
+    return inflateInit(DEF_WBITS, wrapperType);
+  }
+  public int inflateInit(int w, JZlib.WrapperType wrapperType) {
+    boolean nowrap = false;
+    if(wrapperType == JZlib.W_NONE){
+      nowrap = true;
+    }
+    else if(wrapperType == JZlib.W_GZIP) {
+      w += 16;
+    }
+    else if(wrapperType == JZlib.W_ANY) {
+      w |= Inflate.INFLATE_ANY;
+    }
+    else if(wrapperType == JZlib.W_ZLIB) {
+    }
+    return inflateInit(w, nowrap);
+  }
   public int inflateInit(int w, boolean nowrap){
     istate=new Inflate(this);
     return istate.inflateInit(nowrap?-w:w);
@@ -142,6 +159,23 @@ public class ZStream{
   }
   public int deflateInit(int level, int bits){
     return deflateInit(level, bits, false);
+  }
+  public int deflateInit(int level, int bits, int memlevel, JZlib.WrapperType wrapperType){
+    if(bits < 9 || bits > 15){
+      return Z_STREAM_ERROR;
+    }
+    if(wrapperType == JZlib.W_NONE) {
+      bits *= -1;
+    }
+    else if(wrapperType == JZlib.W_GZIP) {
+        bits += 16;
+    }
+    else if(wrapperType == JZlib.W_ANY) {
+        return Z_STREAM_ERROR;
+    }
+    else if(wrapperType == JZlib.W_ZLIB) {
+    }
+    return this.deflateInit(level, bits, memlevel);
   }
   public int deflateInit(int level, int bits, int memlevel){
     dstate=new Deflate(this);

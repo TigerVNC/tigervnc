@@ -89,7 +89,7 @@ macro(libtool_create_control_file _target)
       endif()
     else()
       # Detected a static library.  Check whether the library pathname is
-      # absolute and, if not, use find_library() to get the abolute path.
+      # absolute and, if not, use find_library() to get the absolute path.
       get_filename_component(_name ${library} NAME)
       string(REPLACE "${_name}" "" _path ${library})
       if(NOT "${_path}" STREQUAL "")
@@ -131,6 +131,10 @@ macro(libtool_create_control_file _target)
   file(APPEND ${_laname} "dlopen=''\n")
   file(APPEND ${_laname} "dlpreopen=''\n\n")
   file(APPEND ${_laname} "libdir='/usr/lib'\n\n")
+
+  # Make sure the timestamp is updated to trigger other make invocations
+  add_custom_command(TARGET ${_target} POST_BUILD COMMAND
+    "${CMAKE_COMMAND}" -E touch "${_laname}")
 
 
   # Add custom command to symlink the static library so that autotools finds

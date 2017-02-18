@@ -86,7 +86,7 @@ void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
 
     if (fb->width() > framebuffer->width()) {
       rect.setXYWH(framebuffer->width(), 0,
-                   fb->width() - fb->width(),
+                   fb->width() - framebuffer->width(),
                    fb->height());
       fb->fillRect(rect, black);
     }

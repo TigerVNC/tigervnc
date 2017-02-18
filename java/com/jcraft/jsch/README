@@ -6,7 +6,7 @@
 
                             http://www.jcraft.com/jsch/
 
-Last modified: Wed Nov  1 14:43:31 UTC 2006
+Last modified: Thu Mar 18 13:58:16 UTC 2015
 
 
 Description
@@ -50,14 +50,21 @@ Features
   o J2SE 1.2.2 and later and Bouncycastle's JCE implementation that
     can be obtained at http://www.bouncycastle.org/
 * SSH2 protocol support.
-* Key exchange: diffie-hellman-group-exchange-sha1, diffie-hellman-group1-sha1
+* Key exchange: diffie-hellman-group-exchange-sha1,
+                diffie-hellman-group1-sha1,
+                diffie-hellman-group14-sha1,
+                diffie-hellman-group-exchange-sha256,
+                ecdh-sha2-nistp256,
+                ecdh-sha2-nistp384,
+                ecdh-sha2-nistp521
 * Cipher: blowfish-cbc,3des-cbc,aes128-cbc,aes192-cbc,aes256-cbc
           3des-ctr,aes128-ctr,aes192-ctr,aes256-ctc,
           arcfour,arcfour128,arcfour256
 * MAC: hmac-md5,hmac-md5-96,hmac-sha1,hmac-sha1-96
-* Host key type: ssh-dss, ssh-rsa
+* Host key type: ssh-dss,ssh-rsa,
+                 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521
 * Userauth: password
-* Userauth: publickey(DSA,RSA)
+* Userauth: publickey(DSA,RSA,ECDSA)
 * Userauth: keyboard-interactive
 * Userauth: gssapi-with-mic
 * X11 forwarding.
@@ -72,6 +79,7 @@ Features
 * envrironment variable passing.
 * remote exec.
 * generating DSA and RSA key pairs.
+* supporting private keys in OpenSSL(traditional SSLeay) and PKCS#8 format.
 * SSH File Transfer Protocol(version 0, 1, 2, 3)
 * partial authentication
 * packet compression: zlib, zlib@openssh.com

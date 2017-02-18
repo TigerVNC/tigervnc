@@ -28,7 +28,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import com.tigervnc.rdr.*;
 
-abstract public class CMsgReader {
+public class CMsgReader {
 
   protected CMsgReader(CMsgHandler handler_, InStream is_)
   {
@@ -37,7 +37,86 @@ abstract public class CMsgReader {
     is = is_;
     imageBuf = null;
     imageBufSize = 0;
-    decoders = new Decoder[Encodings.encodingMax+1];
+    nUpdateRectsLeft = 0;
+  }
+
+  public void readServerInit()
+  {
+    int width = is.readU16();
+    int height = is.readU16();
+    handler.setDesktopSize(width, height);
+    PixelFormat pf = new PixelFormat();
+    pf.read(is);
+    handler.setPixelFormat(pf);
+    String name = is.readString();
+    handler.setName(name);
+    handler.serverInit();
+  }
+
+  public void readMsg()
+  {
+    if (nUpdateRectsLeft == 0) {
+      int type = is.readU8();
+
+      switch (type) {
+      case MsgTypes.msgTypeSetColourMapEntries:
+        readSetColourMapEntries();
+        break;
+      case MsgTypes.msgTypeBell:
+        readBell();
+        break;
+      case MsgTypes.msgTypeServerCutText:
+        readServerCutText();
+        break;
+      case MsgTypes.msgTypeFramebufferUpdate:
+        readFramebufferUpdate();
+        break;
+      case MsgTypes.msgTypeServerFence:
+        readFence();
+        break;
+      case MsgTypes.msgTypeEndOfContinuousUpdates:
+        readEndOfContinuousUpdates();
+        break;
+      default:
+        //fprintf(stderr, "unknown message type %d\n", type);
+        throw new Exception("unknown message type");
+      }
+    } else {
+      int x = is.readU16();
+      int y = is.readU16();
+      int w = is.readU16();
+      int h = is.readU16();
+      int encoding = is.readS32();
+
+      switch (encoding) {
+      case Encodings.pseudoEncodingLastRect:
+        nUpdateRectsLeft = 1;     // this rectangle is the last one
+        break;
+      case Encodings.pseudoEncodingCursor:
+        readSetCursor(w, h, new Point(x,y));
+        break;
+      case Encodings.pseudoEncodingDesktopName:
+        readSetDesktopName(x, y, w, h);
+        break;
+      case Encodings.pseudoEncodingDesktopSize:
+        handler.setDesktopSize(w, h);
+        break;
+      case Encodings.pseudoEncodingExtendedDesktopSize:
+        readExtendedDesktopSize(x, y, w, h);
+        break;
+      case Encodings.pseudoEncodingClientRedirect:
+        nUpdateRectsLeft = 0;
+        readClientRedirect(x, y, w, h);
+        return;
+      default:
+        readRect(new Rect(x, y, x+w, y+h), encoding);
+        break;
+      };
+
+      nUpdateRectsLeft--;
+      if (nUpdateRectsLeft == 0)
+        handler.framebufferUpdateEnd();
+    }
   }
 
   protected void readSetColourMapEntries()
@@ -72,6 +151,43 @@ abstract public class CMsgReader {
     handler.serverCutText(chars.toString(), len);
   }
 
+  protected void readFence()
+  {
+    int flags;
+    int len;
+    byte[] data = new byte[64];
+
+    is.skip(3);
+
+    flags = is.readU32();
+
+    len = is.readU8();
+    if (len > data.length) {
+      System.out.println("Ignoring fence with too large payload\n");
+      is.skip(len);
+      return;
+    }
+
+    is.readBytes(data, 0, len);
+
+    handler.fence(flags, len, data);
+  }
+
+  protected void readEndOfContinuousUpdates()
+  {
+    handler.endOfContinuousUpdates();
+  }
+
+  protected void readFramebufferUpdate()
+  {
+    is.skip(1);
+    nUpdateRectsLeft = is.readU16();
+    handler.framebufferUpdateStart();
+  }
+
+
+
+  /*
   protected void readFramebufferUpdateStart()
   {
     handler.framebufferUpdateStart();
@@ -81,6 +197,7 @@ abstract public class CMsgReader {
   {
     handler.framebufferUpdateEnd();
   }
+  */
 
   protected void readRect(Rect r, int encoding)
   {
@@ -94,43 +211,68 @@ abstract public class CMsgReader {
     if (r.is_empty())
       vlog.error("Ignoring zero size rect");
 
-    handler.beginRect(r, encoding);
-
-    if (encoding == Encodings.encodingCopyRect) {
-      readCopyRect(r);
-    } else {
-
-      if (decoders[encoding] == null) {
-        decoders[encoding] = Decoder.createDecoder(encoding, this);
-        if (decoders[encoding] == null) {
-          vlog.error("Unknown rect encoding "+encoding);
-          throw new Exception("Unknown rect encoding");
-        }
-      }
-      decoders[encoding].readRect(r, handler);
-    }
-
-    handler.endRect(r, encoding);
-  }
-
-  protected void readCopyRect(Rect r)
-  {
-    int srcX = is.readU16();
-    int srcY = is.readU16();
-    handler.copyRect(r, srcX, srcY);
+    handler.dataRect(r, encoding);
   }
 
   protected void readSetCursor(int width, int height, Point hotspot)
   {
-    int data_len = width * height;
+    int data_len = width * height * (handler.cp.pf().bpp/8);
     int mask_len = ((width+7)/8) * height;
-    int[] data = new int[data_len];
+    byte[] data = new byte[data_len];
     byte[] mask = new byte[mask_len];
 
-    is.readPixels(data, data_len, (handler.cp.pf().bpp/8), handler.cp.pf().bigEndian);
+    is.readBytes(data, 0, data_len);
     is.readBytes(mask, 0, mask_len);
 
     handler.setCursor(width, height, hotspot, data, mask);
+  }
+
+  protected void readSetDesktopName(int x, int y, int w, int h)
+  {
+    String name = is.readString();
+
+    if (x != 0 || y != 0 || w != 0 || h != 0) {
+      vlog.error("Ignoring DesktopName rect with non-zero position/size");
+    } else {
+      handler.setName(name);
+    }
+
+  }
+
+  protected void readExtendedDesktopSize(int x, int y, int w, int h)
+  {
+    int screens, i;
+    int id, flags;
+    int sx, sy, sw, sh;
+    ScreenSet layout = new ScreenSet();
+
+    screens = is.readU8();
+    is.skip(3);
+
+    for (i = 0;i < screens;i++) {
+      id = is.readU32();
+      sx = is.readU16();
+      sy = is.readU16();
+      sw = is.readU16();
+      sh = is.readU16();
+      flags = is.readU32();
+
+      layout.add_screen(new Screen(id, sx, sy, sw, sh, flags));
+    }
+
+    handler.setExtendedDesktopSize(x, y, w, h, layout);
+  }
+
+  protected void readClientRedirect(int x, int y, int w, int h)
+  {
+    int port = is.readU16();
+    String host = is.readString();
+    String x509subject = is.readString();
+
+    if (x != 0 || y != 0 || w != 0 || h != 0)
+      vlog.error("Ignoring ClientRedirect rect with non-zero position/size");
+    else
+      handler.clientRedirect(port, host, x509subject);
   }
 
   public int[] getImageBuf(int required) { return getImageBuf(required, 0, 0); }
@@ -154,23 +296,13 @@ abstract public class CMsgReader {
     return imageBuf;
   }
 
-  public final int bpp()
-  {
-    return handler.cp.pf().bpp;
-  }
-
-  abstract public void readServerInit();
-
-  // readMsg() reads a message, calling the handler as appropriate.
-  abstract public void readMsg();
-
   public InStream getInStream() { return is; }
 
   public int imageBufIdealSize;
 
   protected CMsgHandler handler;
   protected InStream is;
-  protected Decoder[] decoders;
+  protected int nUpdateRectsLeft;
   protected int[] imageBuf;
   protected int imageBufSize;
 

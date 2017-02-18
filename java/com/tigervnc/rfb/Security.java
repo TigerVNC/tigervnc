@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011 Brian P. Hinz
+ * Copyright (C) 2011-2015 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,8 @@ public class Security {
   public static final int secResultFailed = 1;
   public static final int secResultTooMany = 2; // deprecated
 
+  public Security() { }
+
   public Security(StringParameter secTypes)
   {
     String secTypesStr;
@@ -70,13 +72,25 @@ public class Security {
     secTypesStr = null;
   }
 
-  public static List<Integer> enabledSecTypes = new ArrayList<Integer>();
+  private List<Integer> enabledSecTypes = new ArrayList<Integer>();
 
-  public static final List<Integer> GetEnabledSecTypes()
+  public final List<Integer> GetEnabledSecTypes()
   {
     List<Integer> result = new ArrayList<Integer>();
 
-    result.add(secTypeVeNCrypt);
+   /* Partial workaround for Vino's stupid behaviour. It doesn't allow
+    * the basic authentication types as part of the VeNCrypt handshake,
+    * making it impossible for a client to do opportunistic encryption.
+    * At least make it possible to connect when encryption is explicitly
+    * disabled. */
+    for (Iterator<Integer> i = enabledSecTypes.iterator(); i.hasNext(); ) {
+      int refType = (Integer)i.next();
+      if (refType >= 0x100) {
+        result.add(secTypeVeNCrypt);
+        break;
+      }
+    }
+
     for (Iterator<Integer> i = enabledSecTypes.iterator(); i.hasNext(); ) {
       int refType = (Integer)i.next();
       if (refType < 0x100)
@@ -86,7 +100,7 @@ public class Security {
     return (result);
   }
 
-  public static final List<Integer> GetEnabledExtSecTypes()
+  public final List<Integer> GetEnabledExtSecTypes()
   {
     List<Integer> result = new ArrayList<Integer>();
 
@@ -99,7 +113,7 @@ public class Security {
     return (result);
   }
 
-  public static final void EnableSecType(int secType)
+  public final void EnableSecType(int secType)
   {
 
     for (Iterator<Integer> i = enabledSecTypes.iterator(); i.hasNext(); )
@@ -122,7 +136,29 @@ public class Security {
     return false;
   }
 
-  public static void DisableSecType(int secType) { enabledSecTypes.remove((Object)secType); }
+  public String ToString()
+  {
+    Iterator<Integer> i;
+    String out = new String("");
+    boolean firstpass = true;
+    String name;
+
+    for (i = enabledSecTypes.iterator(); i.hasNext(); ) {
+      name = secTypeName((Integer)i.next());
+      if (name.startsWith("[")) /* Unknown security type */
+        continue;
+
+      if (!firstpass)
+        out = out.concat(",");
+      else
+        firstpass = false;
+      out = out.concat(name);
+    }
+
+    return out;
+  }
+
+  public void DisableSecType(int secType) { enabledSecTypes.remove((Object)secType); }
 
   public static int secTypeNum(String name) {
     if (name.equalsIgnoreCase("None"))      return secTypeNone;
@@ -191,7 +227,9 @@ public class Security {
     return (result);
   }
 
-  public final void SetSecTypes(List<Integer> secTypes) { enabledSecTypes = secTypes; }
+  public final void SetSecTypes(List<Integer> secTypes) {
+    enabledSecTypes = secTypes;
+  }
 
   static LogWriter vlog = new LogWriter("Security");
 }

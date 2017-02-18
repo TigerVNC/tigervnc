@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2016 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,20 @@ package com.tigervnc.vncviewer;
 
 import java.awt.*;
 import java.awt.Dialog.*;
+import java.awt.event.*;
+import java.io.File;
 import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.filechooser.*;
+import javax.swing.text.*;
 
-class Dialog extends JDialog {
+class Dialog extends JDialog implements ActionListener,
+                                        ItemListener,
+                                        KeyListener {
+
+  // GridBag weights
+  static double HEAVY = 1.0;
+  static double LIGHT = 0.0;
 
   public Dialog(boolean modal) {
     setIconImage(VncViewer.frameIcon);
@@ -43,7 +54,7 @@ class Dialog extends JDialog {
     }
   }
 
-  public boolean showDialog(Component c) {
+  public void showDialog(Component c) {
     initDialog();
     if (c != null) {
       setLocationRelativeTo(c);
@@ -54,57 +65,147 @@ class Dialog extends JDialog {
       int y = (dpySize.height - mySize.height) / 2;
       setLocation(x, y);
     }
-    fullScreenWindow = Viewport.getFullScreenWindow();
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(null);
 
     if (getModalityType() == ModalityType.APPLICATION_MODAL)
       setAlwaysOnTop(true);
     setVisible(true);
-    return ret;
   }
 
-  public boolean showDialog() {
-    return showDialog(null);
+  public void showDialog() {
+    showDialog(null);
   }
 
   public void endDialog() {
     setVisible(false);
     setAlwaysOnTop(false);
-    fullScreenWindow = Viewport.getFullScreenWindow();
-    if (fullScreenWindow != null)
-      Viewport.setFullScreenWindow(fullScreenWindow);
   }
 
   // initDialog() can be overridden in a derived class.  Typically it is used
   // to make sure that checkboxes have the right state, etc.
-  public void initDialog() {
+  public void initDialog() { }
+
+  public void actionPerformed(ActionEvent e) { }
+  public void itemStateChanged(ItemEvent e) { }
+  public void keyTyped(KeyEvent event) { }
+  public void keyReleased(KeyEvent event) { }
+  public void keyPressed(KeyEvent event) { }
+
+  protected void addListeners(Container c) {
+    for (Component ch : c.getComponents()) {
+      if (ch instanceof JCheckBox)
+        ((JCheckBox)ch).addItemListener(this);
+      else if (ch instanceof JRadioButton)
+        ((JRadioButton)ch).addActionListener(this);
+      else if (ch instanceof JButton)
+        ((JButton)ch).addActionListener(this);
+      else if (ch instanceof JComboBox)
+        ((JComboBox)ch).addActionListener(this);
+      else if (ch instanceof JTextField)
+        ((JTextField)ch).addKeyListener(this);
+      else if (ch instanceof Container)
+        addListeners((Container)ch);
+    }
   }
 
-  public void addGBComponent(JComponent c, JComponent cp,
-                             int gx, int gy,
-                             int gw, int gh,
-                             int gipx, int gipy,
-                             double gwx, double gwy,
-                             int fill, int anchor,
-                             Insets insets)
-  {
-      GridBagConstraints gbc = new GridBagConstraints();
-      gbc.anchor = anchor;
-      gbc.fill = fill;
-      gbc.gridx = gx;
-      gbc.gridy = gy;
-      gbc.gridwidth = gw;
-      gbc.gridheight = gh;
-      gbc.insets = insets;
-      gbc.ipadx = gipx;
-      gbc.ipady = gipy;
-      gbc.weightx = gwx;
-      gbc.weighty = gwy;
-      cp.add(c, gbc);
+  public int getButtonLabelInset(AbstractButton b) {
+    // Aligning components vertically to the label of
+    // a JCheckbox is absurdly difficult.  JCheckBox's
+    // getIcon() method generally returns null, so we 
+    // have to resort to querying the UIManager in 
+    // order to determine the width of the checkbox.
+    // The default values are based on Nimbus.
+    int width = 18;
+    int gap = 4;
+
+    Icon ico = b.getIcon();
+    if (ico == null) {
+      if (b instanceof JCheckBox)
+        ico = (Icon)UIManager.get("CheckBox.icon");
+      else if (b instanceof JRadioButton)
+        ico = (Icon)UIManager.get("RadioButton.icon");
+    }
+    if (ico != null)
+      width = Math.max(width, ico.getIconWidth());
+    if (b != null)
+      gap = Math.max(gap, b.getIconTextGap());
+
+    return width + gap;
+  }
+
+  public static File showChooser(String title, File defFile,
+                                 Container c, FileNameExtensionFilter f) {
+    JFileChooser fc = new JFileChooser(defFile);
+    fc.setDialogTitle(title);
+    fc.setApproveButtonText("OK  \u21B5");
+    fc.setFileHidingEnabled(false);
+    if (f != null)
+      fc.setFileFilter(f);
+    if (fc.showOpenDialog(c) == JFileChooser.APPROVE_OPTION)
+      return fc.getSelectedFile();
+    else
+      return null;
+  }
+
+  public static File showChooser(String title, File defFile, Container c) {
+    return showChooser(title, defFile, c, null);
+  }
+
+  protected File showChooser(String title, File defFile,
+                             FileNameExtensionFilter f) {
+    return showChooser(title, defFile, this, f);
+  }
+
+  protected File showChooser(String title, File defFile) {
+    return showChooser(title, defFile, this);
+  }
+
+  protected class GroupedJRadioButton extends JRadioButton {
+    public GroupedJRadioButton(String l, ButtonGroup g, JComponent c) {
+      super(l);
+      c.add(this);
+      if (g != null)
+        g.add(this);
+    }
+  }
+
+  protected class MyJComboBox extends JComboBox {
+    public MyJComboBox(Object[] items) {
+      super(items);
+      // Hack to set the left inset on editable JComboBox
+      if (UIManager.getLookAndFeel().getID().equals("Windows")) {
+        this.setBorder(BorderFactory.createCompoundBorder(this.getBorder(),
+          BorderFactory.createEmptyBorder(0,1,0,0)));
+      } else if (UIManager.getLookAndFeel().getID().equals("Metal")) {
+        ComboBoxEditor editor = this.getEditor();
+        JTextField jtf = (JTextField)editor.getEditorComponent();
+        jtf.setBorder(new CompoundBorder(jtf.getBorder(), new EmptyBorder(0,2,0,0)));
+      }
+    }
+
+    public MyJComboBox() {
+      new MyJComboBox(null);
+    }
+
+    @Override
+    public void setPrototypeDisplayValue(Object prototypeDisplayValue) {
+      // Even with setPrototypeDisplayValue set JComboxBox resizes 
+      // itself when setEditable(true) is called.
+      super.setPrototypeDisplayValue(prototypeDisplayValue);
+      boolean e = isEditable();
+      setEditable(false);
+      Dimension d = getPreferredSize();
+      setPreferredSize(d);
+      setEditable(e);
+    }
+
+    public void setDocument(PlainDocument doc) {
+      ComboBoxEditor editor = this.getEditor();
+      JTextField jtf = (JTextField)editor.getEditorComponent();
+      jtf.setDocument(doc);
+    }
+
   }
 
   private Window fullScreenWindow;
-  protected boolean ret = true;
 
 }

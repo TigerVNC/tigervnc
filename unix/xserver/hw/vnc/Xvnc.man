@@ -126,19 +126,22 @@ screen is updated. Otherwise the delay is from the first update. Default
 is off.
 .
 .TP
-.B \-SendCutText
-Send clipboard changes to clients (default is on).  Note that you must also run
-\fBvncconfig\fP(1) to get the clipboard to work.
-.
-.TP
 .B \-AcceptCutText
-Accept clipboard updates from clients (default is on).  Note that you must also
-run \fBvncconfig\fP(1) to get the clipboard to work.
+Accept clipboard updates from clients (default is on).
 .
 .TP
 .B \-MaxCutText \fIbytes\fP
 The maximum size of a clipboard update that will be accepted from a client.
 Default is \fB262144\fP.
+.
+.TP
+.B \-SendCutText
+Send clipboard changes to clients (default is on).
+.
+.TP
+.B \-SendPrimary
+Send the primary selection and cut buffer to the server as well as the
+clipboard selection. Default is on.
 .
 .TP
 .B \-AcceptPointerEvents
@@ -300,6 +303,21 @@ Key affected by NumLock often require a fake Shift to be inserted in order
 for the correct symbol to be generated. Turning on this option avoids these
 extra fake Shift events but may result in a slightly different symbol
 (e.g. a Return instead of a keypad Enter).
+.
+.TP
+.B \-AllowOverride
+Comma separated list of parameters that can be modified using VNC extension.
+Parameters can be modified for example using \fBvncconfig\fP(1) program from
+inside a running session.
+
+Allowing override of parameters such as \fBPAMService\fP or \fBPasswordFile\fP
+can negatively impact security if Xvnc runs under different user than the
+programs allowed to override the parameters.
+
+When \fBNoClipboard\fP parameter is set, allowing override of \fBSendCutText\fP
+and \fBAcceptCutText\fP has no effect.
+
+Default is \fBdesktop,AcceptPointerEvents,SendCutText,AcceptCutText,SendPrimary,SetPrimary\fP.
 
 .SH USAGE WITH INETD
 By configuring the \fBinetd\fP(1) service appropriately, Xvnc can be launched

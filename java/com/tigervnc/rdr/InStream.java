@@ -23,6 +23,8 @@
 
 package com.tigervnc.rdr;
 
+import java.nio.*;
+
 import com.tigervnc.network.*;
 
 abstract public class InStream {
@@ -98,6 +100,16 @@ abstract public class InStream {
 
   // readBytes() reads an exact number of bytes into an array at an offset.
 
+  public void readBytes(ByteBuffer data, int length) {
+    int dataEnd = data.mark().position() + length;
+    while (data.position() < dataEnd) {
+      int n = check(1, dataEnd - data.position());
+      data.put(b, ptr, n);
+      ptr += n;
+    }
+    data.reset();
+  }
+
   public void readBytes(byte[] data, int dataPtr, int length) {
     int dataEnd = dataPtr + length;
     while (dataPtr < dataEnd) {
@@ -145,20 +157,6 @@ abstract public class InStream {
         buf[i] = 0xff000000 | (pix[2] & 0xff)<<16 | (pix[1] & 0xff)<<8 | (pix[0] & 0xff);
       }
     }
-  }
-
-  public final int readCompactLength() {
-    int b = readU8();
-    int result = b & 0x7F;
-    if ((b & 0x80) != 0) {
-      b = readU8();
-      result |= (b & 0x7F) << 7;
-      if ((b & 0x80) != 0) {
-        b = readU8();
-        result |= (b & 0xFF) << 14;
-      }
-    }
-    return result;
   }
 
   // pos() returns the position in the stream.

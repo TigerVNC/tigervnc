@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -36,4 +36,8 @@ public interface DH{
   byte[] getE() throws Exception;
   void setF(byte[] f);
   byte[] getK() throws Exception;
+
+  // checkRange() will check if e and f are in [1,p-1]
+  // as defined at https://tools.ietf.org/html/rfc4253#section-8
+  void checkRange() throws Exception;
 }

@@ -22,13 +22,20 @@ package com.tigervnc.vncviewer;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import com.jcraft.jsch.*;
 
-class PasswdDialog extends Dialog implements KeyListener,
-                                             UserInfo,
+import com.jcraft.jsch.*;
+import com.tigervnc.rfb.*;
+
+import static java.awt.GridBagConstraints.HORIZONTAL;
+import static java.awt.GridBagConstraints.LINE_START;
+import static java.awt.GridBagConstraints.NONE;
+import static java.awt.GridBagConstraints.REMAINDER;
+
+class PasswdDialog extends Dialog implements UserInfo,
                                              UIKeyboardInteractive {
 
-  public PasswdDialog(String title, boolean userDisabled, boolean passwdDisabled) {
+  public PasswdDialog(String title,
+                      boolean userDisabled, boolean passwdDisabled) {
     super(true);
     setResizable(false);
     setTitle(title);
@@ -38,28 +45,45 @@ class PasswdDialog extends Dialog implements KeyListener,
       }
     });
 
-    JPanel p1 = new JPanel();
+    JPanel p1 = new JPanel(new GridBagLayout());
+    p1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
     userLabel = new JLabel("Username:");
-    p1.add(userLabel);
+    userLabel.setEnabled(!userDisabled);
+    p1.add(userLabel, new GridBagConstraints(0, 0,
+                                             1, 1,
+                                             LIGHT, LIGHT,
+                                             LINE_START, NONE,
+                                             new Insets(0, 0, 0, 0),
+                                             NONE, NONE));
     userEntry = new JTextField(30);
     userEntry.setEnabled(!userDisabled);
-    userLabel.setEnabled(!userDisabled);
-    p1.add(userEntry);
-    userEntry.addKeyListener(this);
+    p1.add(userEntry, new GridBagConstraints(1, 0,
+                                             1, 1,
+                                             HEAVY, LIGHT,
+                                             LINE_START, REMAINDER,
+                                             new Insets(0, 5, 0, 0),
+                                             NONE, NONE));
 
-    JPanel p2 = new JPanel();
     passwdLabel = new JLabel("Password:");
-    passwdLabel.setPreferredSize(userLabel.getPreferredSize());
-    p2.add(passwdLabel);
+    passwdLabel.setEnabled(!passwdDisabled);
+    p1.add(passwdLabel, new GridBagConstraints(0, 1,
+                                               1, 1,
+                                               LIGHT, LIGHT,
+                                               LINE_START, NONE,
+                                               new Insets(5, 0, 0, 0),
+                                               NONE, NONE));
     passwdEntry = new JPasswordField(30);
     passwdEntry.setEnabled(!passwdDisabled);
-    passwdLabel.setEnabled(!passwdDisabled);
-    p2.add(passwdEntry);
-    passwdEntry.addKeyListener(this);
+    p1.add(passwdEntry, new GridBagConstraints(1, 1,
+                                               1, 1,
+                                               HEAVY, LIGHT,
+                                               LINE_START, REMAINDER,
+                                               new Insets(5, 5, 0, 0),
+                                               NONE, NONE));
 
-    getContentPane().setLayout(new BoxLayout(getContentPane(),BoxLayout.Y_AXIS));
-    getContentPane().add(p1);
-    getContentPane().add(p2);
+    this.add(p1);
+    addListeners(this);
     pack();
     if (userEntry.isEnabled()) {
       userEntry.requestFocus();
@@ -68,10 +92,6 @@ class PasswdDialog extends Dialog implements KeyListener,
     }
   }
 
-  /** Handle the key-typed event. */
-  public void keyTyped(KeyEvent event) { }
-  /** Handle the key-released event. */
-  public void keyReleased(KeyEvent event) { }
   /** Handle the key-pressed event. */
   public void keyPressed(KeyEvent event) {
     Object s = event.getSource();
@@ -79,7 +99,8 @@ class PasswdDialog extends Dialog implements KeyListener,
        if (event.getKeyCode() == KeyEvent.VK_ENTER) {
          endDialog();
         }
-    } else if (s instanceof JPasswordField && (JPasswordField)s == passwdEntry) {
+    } else if (s instanceof JPasswordField
+              && (JPasswordField)s == passwdEntry) {
         if (event.getKeyCode() == KeyEvent.VK_ENTER) {
          endDialog();
         }
@@ -89,81 +110,91 @@ class PasswdDialog extends Dialog implements KeyListener,
   public String getPassword() {
     return new String(passwdEntry.getPassword());
   }
-  public String getPassphrase(){ return null; }
-  public boolean promptPassphrase(String message){ return false; }
-  public boolean promptPassword(String message){
+
+  public String getPassphrase() { return null; }
+  public boolean promptPassphrase(String message) { return false; }
+
+  public boolean promptPassword(String message) {
     setTitle(message);
     showDialog();
-    if (passwdEntry != null)
-      return true;
+    if (userEntry.isEnabled())
+      if (userEntry.getText().equals(""))
+        return false;
+      else if (!passwdEntry.isEnabled())
+        return true;
+    if (passwdEntry.isEnabled())
+      if (!passwdEntry.getText().equals(""))
+        return true;
     return false;
   }
-  public void showMessage(String message){
-    JOptionPane.showMessageDialog(null, message);
+
+  public void showMessage(String message) {
+    JOptionPane.showMessageDialog(null, message, "Message",
+                                  JOptionPane.PLAIN_MESSAGE);
   }
-  public boolean promptYesNo(String str){
-    Object[] options={ "yes", "no" };
-    int foo=JOptionPane.showOptionDialog(null,
+
+  public boolean promptYesNo(String str) {
+    Object[] options={ "YES", "NO" };
+    int ret=JOptionPane.showOptionDialog(null,
            str,
            "Warning",
            JOptionPane.DEFAULT_OPTION,
            JOptionPane.WARNING_MESSAGE,
            null, options, options[0]);
-     return foo==0;
+     return (ret == 0);
   }
+
   public String[] promptKeyboardInteractive(String destination,
                                             String name,
                                             String instruction,
                                             String[] prompt,
-                                            boolean[] echo){
-    Container panel = new JPanel();
-    panel.setLayout(new GridBagLayout());
+                                            boolean[] echo) {
+    Container panel = new JPanel(new GridBagLayout());
+    ((JPanel)panel).setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-    GridBagConstraints gbc =
-      new GridBagConstraints(0,0,1,1,1,1,
-                             GridBagConstraints.NORTHWEST,
-                             GridBagConstraints.NONE,
-                             new Insets(0,0,0,0),0,0);
-    gbc.weightx = 1.0;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.gridx = 0;
-    panel.add(new JLabel(instruction), gbc);
-    gbc.gridy++;
-
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    panel.add(new JLabel(instruction),
+              new GridBagConstraints(0, 0,
+                                     REMAINDER, 1,
+                                     LIGHT, LIGHT,
+                                     LINE_START, NONE,
+                                     new Insets(0, 0, 0, 0),
+                                     NONE, NONE));
 
     JTextField[] texts=new JTextField[prompt.length];
-    for(int i=0; i<prompt.length; i++){
-      gbc.fill = GridBagConstraints.NONE;
-      gbc.gridx = 0;
-      gbc.weightx = 1;
-      panel.add(new JLabel(prompt[i]),gbc);
+    for (int i = 0; i < prompt.length; i++) {
+      panel.add(new JLabel(prompt[i]),
+                new GridBagConstraints(0, i+1,
+                                       1, 1,
+                                       LIGHT, LIGHT,
+                                       LINE_START, NONE,
+                                       new Insets(5, 0, 0, 0),
+                                       NONE, NONE));
 
-      gbc.gridx = 1;
-      gbc.fill = GridBagConstraints.HORIZONTAL;
-      gbc.weighty = 1;
-      if(echo[i]){
+      if(echo[i])
         texts[i]=new JTextField(20);
-      }
-      else{
+      else
         texts[i]=new JPasswordField(20);
-      }
-      panel.add(texts[i], gbc);
-      gbc.gridy++;
+
+      panel.add(texts[i],
+                new GridBagConstraints(1, i+1,
+                                       1, 1,
+                                       HEAVY, LIGHT,
+                                       LINE_START, HORIZONTAL,
+                                       new Insets(5, 5, 0, 0),
+                                       NONE, NONE));
     }
 
-    if(JOptionPane.showConfirmDialog(null, panel,
-                                     destination+": "+name,
-                                     JOptionPane.OK_CANCEL_OPTION,
-                                     JOptionPane.QUESTION_MESSAGE)
-       ==JOptionPane.OK_OPTION){
+    if (JOptionPane.showConfirmDialog(null, panel,
+                                      destination+": "+name,
+                                      JOptionPane.OK_CANCEL_OPTION,
+                                      JOptionPane.QUESTION_MESSAGE)
+        == JOptionPane.OK_OPTION) {
       String[] response=new String[prompt.length];
       for(int i=0; i<prompt.length; i++){
         response[i]=texts[i].getText();
       }
-	return response;
-    }
-    else{
+	    return response;
+    } else{
       return null;  // cancel
     }
   }
@@ -172,4 +203,5 @@ class PasswdDialog extends Dialog implements KeyListener,
   JTextField userEntry;
   JLabel passwdLabel;
   JPasswordField passwdEntry;
+  static LogWriter vlog = new LogWriter("PasswdDialog");
 }

@@ -22,16 +22,20 @@
 #include <map>
 #include <rdr/types.h>
 
+namespace os { class Mutex; }
+
 namespace rfb {
 
   class KeyRemapper {
   public:
-    KeyRemapper(const char* m="") { setMapping(m); }
+    KeyRemapper(const char* m="");
+    ~KeyRemapper();
     void setMapping(const char* m);
     rdr::U32 remapKey(rdr::U32 key) const;
     static KeyRemapper defInstance;
   private:
     std::map<rdr::U32,rdr::U32> mapping;
+    os::Mutex* mutex;
   };
 
 };

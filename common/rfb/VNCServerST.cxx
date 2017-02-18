@@ -110,6 +110,8 @@ VNCServerST::~VNCServerST()
     desktop->stop();
   }
 
+  if (comparer)
+    comparer->logStats();
   delete comparer;
 }
 
@@ -155,6 +157,10 @@ void VNCServerST::removeSocket(network::Socket* sock) {
         desktopStarted = false;
         desktop->stop();
       }
+
+      if (comparer)
+        comparer->logStats();
+
       return;
     }
   }
@@ -163,13 +169,26 @@ void VNCServerST::removeSocket(network::Socket* sock) {
   closingSockets.remove(sock);
 }
 
-void VNCServerST::processSocketEvent(network::Socket* sock)
+void VNCServerST::processSocketReadEvent(network::Socket* sock)
 {
   // - Find the appropriate VNCSConnectionST and process the event
   std::list<VNCSConnectionST*>::iterator ci;
   for (ci = clients.begin(); ci != clients.end(); ci++) {
     if ((*ci)->getSock() == sock) {
       (*ci)->processMessages();
+      return;
+    }
+  }
+  throw rdr::Exception("invalid Socket in VNCServerST");
+}
+
+void VNCServerST::processSocketWriteEvent(network::Socket* sock)
+{
+  // - Find the appropriate VNCSConnectionST and process the event
+  std::list<VNCSConnectionST*>::iterator ci;
+  for (ci = clients.begin(); ci != clients.end(); ci++) {
+    if ((*ci)->getSock() == sock) {
+      (*ci)->flushSocket();
       return;
     }
   }
@@ -279,6 +298,9 @@ void VNCServerST::unblockUpdates()
 
 void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 {
+  if (comparer)
+    comparer->logStats();
+
   pb = pb_;
   delete comparer;
   comparer = 0;

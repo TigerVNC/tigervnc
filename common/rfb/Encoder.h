@@ -43,7 +43,7 @@ namespace rfb {
             enum EncoderFlags flags, unsigned int maxPaletteSize);
     virtual ~Encoder();
 
-    // isSupported() should return a boolean indiciating if this encoder
+    // isSupported() should return a boolean indicating if this encoder
     // is okay to use with the current connection. This usually involves
     // checking the list of encodings in the connection parameters.
     virtual bool isSupported()=0;

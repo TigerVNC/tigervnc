@@ -22,20 +22,19 @@
 #include <winvnc/VNCServerWin32.h>
 #include <rfb_win32/TCharArray.h>
 #include <rfb/Configuration.h>
-#include <rfb/Threading.h>
+
+namespace os {
+  class Mutex;
+  class Thread;
+}
 
 namespace winvnc {
 
-  class STrayIconThread : rfb::Thread {
+  class STrayIconThread : os::Thread {
   public:
     STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon,
       UINT activeIcon, UINT dis_inactiveIcon, UINT dis_activeIcon, UINT menu);
-    virtual ~STrayIconThread() {
-      runTrayIcon = false;
-      PostThreadMessage(getThreadId(), WM_QUIT, 0, 0);
-    }
-
-    virtual void run();
+    virtual ~STrayIconThread();
 
     void setToolTip(const TCHAR* text);
 
@@ -44,7 +43,10 @@ namespace winvnc {
 
     friend class STrayIcon;
   protected:
-    rfb::Mutex lock;
+    virtual void worker();
+
+    os::Mutex* lock;
+    DWORD thread_id;
     HWND windowHandle;
     rfb::TCharArray toolTip;
     VNCServerWin32& server;

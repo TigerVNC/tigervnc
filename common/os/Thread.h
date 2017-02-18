@@ -17,7 +17,9 @@
  */
 
 #ifndef __OS_THREAD_H__
-#define __OP_THREAD_H__
+#define __OS_THREAD_H__
+
+#include <stddef.h>
 
 namespace os {
   class Mutex;

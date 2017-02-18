@@ -3,6 +3,15 @@ Test protocol for keyboard handling
 
 Platform specific tests/issues are marked with [].
 
+These tests are primarily about what is sent over the protocol and some
+may be difficult or impossible to test using normal applications. In
+these cases you can turn on debug logging in either the client or the
+server by specifying "-Log *:stderr:100".
+
+We currently have a limitation in Xvnc where it can run out of symbols,
+resulting in nothing being sent to the applications. Just run setxkbmap
+with any layout to reset the symbol table.
+
 Client
 ------
 
@@ -11,74 +20,95 @@ Client
   - ASCII characters
   - Latin 1 character
   - Unicode BMP characters
-  - Unicode non-BMP characters
+  - Unicode non-BMP characters (does any layout actually have these?)
 
 - Dead keys:
+
+  These are not available on a single layout, so you need to switch to
+  test everything. The useful layouts also differ per platform:
+
+    X11: US International for most, Greek for some specific diacretics
+    Win: US International, Czech, Greek Polytonic, Vietnamese
+    OS X: ABC Extended (FIXME: lots of broken keys),
+          Greek (FIXME: cannot be used with TigerVNC)
 
   - Grave
   - Acute
   - Circumflex
   - Tilde
-  - Macron
+  - Macron (FIXME: broken on Win)
   - Breve
   - Dot above
+  - Dot below
   - Diaeresis
   - Ring above
   - Double acute
   - Caron
   - Cedilla
   - Ogonek
-  - Ypogegrammeni
-  - Katakana voiced mark
-  - Katakana semi-voiced mark
-  - Dialytika tonos
+  - Ypogegrammeni (iota below) (FIXME: broken on Win)
+  - Dialytika tonos [Win] (Diaresis on X11, and maybe OS X?)
+  - Comma above (FIXME: broken on Win)
+  - Reversed comma above (FIXME: broken on Win)
+  - Horn [X11?]
+  - Hook above [Win?]
+  - Hook below [X11?, Win?]
+  - Dakuten (Katakana voiced mark) (Only Input Methods layouts?)
+  - Handakuten (Katakana semi-voiced mark) (Only Input Methods layouts?)
   - FIXME: Many more that we currently probably don't support
 
   - No composition on client
 
 - Modifiers:
 
+  X11: You can usually toggle Hyper/Super and Compose/Scroll_Lock using
+       XKB options.
+
   - CapsLock, NumLock (sent but ignored by server)
   - Shift, Ctrl
   - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
+  - Meta [X11]
   - Left/right identification (FIXME: broken for Shift on Win)
-  - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [Mac]
+  - CmdL => AltL, CmdR => SuperL, AltL => ModeSwitch, AltR => Level3Shift [OS X]
   - Hyper sends Super [X11]
 
   - CapsLock, Shift and AltGr affect symbol lookup
-  - NumLock affects symbol lookup [Win, X11]
   - Ctrl does not affect symbol lookup
-  - Shift inverts NumLock behaviour [X11]
-  - Shift turns NumLock off, but not on [Win] (FIXME: fake Shifts also sent)
-  - CtrlL+AltR fake release [Win]
-  - Ctrl+Alt+any (note behaviour above though)
-  - Ctrl+AltGr+any (FIXME: broken on Win)
+  - CtrlL+AltR is fake released to compensate for Windows' AltGr magic [Win]
+  - Ctrl+Alt+<ANY> sends the same symbol as <ANY> (note behaviour above though)
+  - Ctrl+AltGr+<ANY> sends the same symbol as AltGr+<ANY> (FIXME: broken on Win)
   - "Shift press, A press, Shift release, A release" should not send "a release"
 
 - Numpad:
 
+  - NumLock affects symbol lookup [Win, X11]
   - Numpad specific symbols are sent
-  - Affected by NumLock
   - Decimal key should send Decimal for layouts with . as a symbol, and
     Separator for layouts with , as a symbol
+  - Shift inverts NumLock behaviour [X11]
+  - Shift turns NumLock off, but not on [Win] (FIXME: fake Shifts also sent)
 
 - Multimedia keys:
 
+  OS X: FIXME: all broken
+
   - Back, Forward, Refresh, Stop
-  - HomePage, Search, Favourites
+  - HomePage, Search, Favourites (FIXME: broken on Win)
   - Mail, Calculator
   - Volume up, down, mute
   - Media next, previous, stop, play
-  - Sleep
+  - Sleep (FIXME: broken on Win)
   - FIXME: probably more keys exist
 
 - Non-character keys:
 
-  - F1-F24
-  - Tab, Space, Backspace, Return
-  - LeftTab sends Tab
-  - Esc, PrntScrn, ScrollLock, Pause
-  - Insert, Delete, Home, End, PageUp, PageDown
+  - F1-F24 (FIXME: F14-F15 broken on OS X)
+  - Tab, Space, Backspace, Return, Esc
+  - LeftTab sends Tab [X11?]
+  - PrntScrn, ScrollLock, Pause [X11, Win]
+  - Help [X11?, OS X]
+  - Insert [X11, Win]
+  - Delete, Home, End, PageUp, PageDown
   - Arrow keys
   - Menu
   - Alt+PrntScrn sends Sys_Req [Win]
@@ -93,7 +123,7 @@ Client
 
 - Local input methods are disabled/enabled with focus
 
-- System keys should be grabbed in full screen
+- System keys should be grabbed in full screen (FIXME: lots missing on Win)
 
   The exact keys depends on the system and configuration, but it
   is usually variants of these:

@@ -503,7 +503,7 @@ The RPM spec files and patches used to create the nightly builds
 and releases can be found in the "contrib/rpm/el{5,6}" directories
 of the TigerVNC subversion trunk.  All external source tarballs
 must be fetched manually and placed into the 'SOURCES' directory
-under the rpmbuild root.  Additonally, the following macros need
+under the rpmbuild root.  Additionally, the following macros need
 to be defined:
 
   EL6:

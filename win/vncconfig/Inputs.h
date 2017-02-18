@@ -25,7 +25,6 @@
 
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/Dialog.h>
-#include <rfb_win32/OSVersion.h>
 #include <rfb/ServerCore.h>
 
 namespace rfb {
@@ -42,7 +41,6 @@ namespace rfb {
         setItemChecked(IDC_ACCEPT_CUTTEXT, rfb::Server::acceptCutText);
         setItemChecked(IDC_SEND_CUTTEXT, rfb::Server::sendCutText);
         setItemChecked(IDC_DISABLE_LOCAL_INPUTS, SDisplay::disableLocalInputs);
-        enableItem(IDC_DISABLE_LOCAL_INPUTS, !osVersion.isPlatformWindows);
         BOOL blocked = FALSE;
         if (SystemParametersInfo(SPI_GETBLOCKSENDINPUTRESETS, 0, &blocked, 0))
           setItemChecked(IDC_AFFECT_SCREENSAVER, !blocked);

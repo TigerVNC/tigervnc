@@ -31,7 +31,7 @@ namespace os {
     void unlock();
 
   private:
-    friend Condition;
+    friend class Condition;
 
     void* systemMutex;
   };

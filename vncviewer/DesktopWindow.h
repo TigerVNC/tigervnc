@@ -30,9 +30,16 @@
 namespace rfb { class ModifiablePixelBuffer; }
 
 class CConn;
+class Surface;
 class Viewport;
 
-class Fl_Scroll;
+class Fl_Scrollbar;
+
+#ifdef __GNUC__
+#  define __printf_attr(a, b) __attribute__((__format__ (__printf__, a, b)))
+#else
+#  define __printf_attr(a, b)
+#endif // __GNUC__
 
 class DesktopWindow : public Fl_Window {
 public:
@@ -58,6 +65,7 @@ public:
                  void* data, void* mask);
 
   // Fl_Window callback methods
+  void draw();
   void resize(int x, int y, int w, int h);
 
   int handle(int event);
@@ -65,6 +73,11 @@ public:
   void fullscreen_on();
 
 private:
+  static void menuOverlay(void *data);
+
+  void setOverlay(const char *text, ...) __printf_attr(2, 3);
+  static void updateOverlay(void *data);
+
   static int fltkHandle(int event, Fl_Window *win);
 
   void grabKeyboard();
@@ -78,7 +91,7 @@ private:
   static void handleResizeTimeout(void *data);
   void remoteResize(int width, int height);
 
-  void repositionViewport();
+  void repositionWidgets();
 
   static void handleClose(Fl_Widget *wnd, void *data);
 
@@ -86,12 +99,18 @@ private:
 
   static void handleFullscreenTimeout(void *data);
 
+  void scrollTo(int x, int y);
+  static void handleScroll(Fl_Widget *wnd, void *data);
   static void handleEdgeScroll(void *data);
 
 private:
   CConn* cc;
-  Fl_Scroll *scroll;
+  Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
+  Surface *offscreen;
+  Surface *overlay;
+  unsigned char overlayAlpha;
+  struct timeval overlayStart;
 
   bool firstUpdate;
   bool delayedFullscreen;

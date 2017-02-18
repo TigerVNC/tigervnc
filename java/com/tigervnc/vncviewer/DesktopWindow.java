@@ -1,8 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
- * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
- * Copyright (C) 2010, 2012-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2016 Brian P. Hinz
+ * Copyright (C) 2012-2013 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,564 +18,631 @@
  * USA.
  */
 
-//
-// DesktopWindow is an AWT Canvas representing a VNC desktop.
-//
-// Methods on DesktopWindow are called from both the GUI thread and the thread
-// which processes incoming RFB messages ("the RFB thread").  This means we
-// need to be careful with synchronization here.
-//
-
 package com.tigervnc.vncviewer;
+
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.Clipboard;
-import java.io.BufferedReader;
-import java.nio.CharBuffer;
+import java.lang.reflect.*;
+import java.util.*;
 import javax.swing.*;
+import javax.swing.Timer;
+import javax.swing.border.*;
 
 import com.tigervnc.rfb.*;
-import com.tigervnc.rfb.Cursor;
 import com.tigervnc.rfb.Point;
+import java.lang.Exception;
 
-class DesktopWindow extends JPanel implements Runnable, MouseListener,
-  MouseMotionListener, MouseWheelListener, KeyListener {
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
-  ////////////////////////////////////////////////////////////////////
-  // The following methods are all called from the RFB thread
+import static com.tigervnc.vncviewer.Parameters.*;
 
-  public DesktopWindow(int width, int height, PixelFormat serverPF,
-                       CConn cc_) {
+public class DesktopWindow extends JFrame
+{
+
+  static LogWriter vlog = new LogWriter("DesktopWindow");
+
+  public DesktopWindow(int w, int h, String name,
+                       PixelFormat serverPF, CConn cc_)
+  {
     cc = cc_;
-    setSize(width, height);
-    setOpaque(false);
-    GraphicsEnvironment ge =
-      GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice gd = ge.getDefaultScreenDevice();
-    GraphicsConfiguration gc = gd.getDefaultConfiguration();
-    BufferCapabilities bufCaps = gc.getBufferCapabilities();
-    ImageCapabilities imgCaps = gc.getImageCapabilities();
-    if (bufCaps.isPageFlipping() || bufCaps.isMultiBufferAvailable() ||
-        imgCaps.isAccelerated()) {
-      vlog.debug("GraphicsDevice supports HW acceleration.");
-    } else {
-      vlog.debug("GraphicsDevice does not support HW acceleration.");
-    }
-    im = new BIPixelBuffer(width, height, cc, this);
+    firstUpdate = true;
+    delayedFullscreen = false; delayedDesktopSize = false;
 
-    cursor = new Cursor();
-    cursorBacking = new ManagedPixelBuffer();
-    Dimension bestSize = tk.getBestCursorSize(16, 16);
-    BufferedImage cursorImage;
-    cursorImage = new BufferedImage(bestSize.width, bestSize.height,
-                                    BufferedImage.TYPE_INT_ARGB);
-    java.awt.Point hotspot = new java.awt.Point(0,0);
-    nullCursor = tk.createCustomCursor(cursorImage, hotspot, "nullCursor");
-    cursorImage.flush();
-    if (!cc.cp.supportsLocalCursor && !bestSize.equals(new Dimension(0,0)))
-      setCursor(nullCursor);
-    addMouseListener(this);
-    addMouseWheelListener(this);
-    addMouseMotionListener(this);
-    addKeyListener(this);
-    addFocusListener(new FocusAdapter() {
-      public void focusGained(FocusEvent e) {
-        cc.clipboardDialog.clientCutText();
+    setFocusable(false);
+    setFocusTraversalKeysEnabled(false);
+    getToolkit().setDynamicLayout(false);
+    if (!VncViewer.os.startsWith("mac os x"))
+      setIconImage(VncViewer.frameIcon);
+    UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
+      new UIDefaults.LazyInputMap(new Object[]{}));
+    scroll = new JScrollPane(new Viewport(w, h, serverPF, cc));
+    viewport = (Viewport)scroll.getViewport().getView();
+    scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+    getContentPane().add(scroll);
+
+    setName(name);
+
+    lastScaleFactor = scalingFactor.getValue();
+    if (VncViewer.os.startsWith("mac os x"))
+      if (!noLionFS.getValue())
+        enableLionFS();
+
+    OptionsDialog.addCallback("handleOptions", this);
+
+    addWindowFocusListener(new WindowAdapter() {
+      public void windowGainedFocus(WindowEvent e) {
+        if (isVisible())
+          if (scroll.getViewport() != null)
+            scroll.getViewport().getView().requestFocusInWindow();
       }
-      public void focusLost(FocusEvent e) {
+      public void windowLostFocus(WindowEvent e) {
         cc.releaseDownKeys();
       }
     });
-    setFocusTraversalKeysEnabled(false);
-    setFocusable(true);
-  }
 
-  public int width() {
-    return getWidth();
-  }
+    addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        cc.close();
+      }
+      public void windowDeiconified(WindowEvent e) {
+        // ViewportBorder sometimes lost when window is shaded or de-iconified
+        repositionViewport();
+      }
+    });
 
-  public int height() {
-    return getHeight();
-  }
-
-  public final PixelFormat getPF() { return im.getPF(); }
-
-  public void setViewport(Viewport viewport) {
-    viewport.setChild(this);
-  }
-
-  // Methods called from the RFB thread - these need to be synchronized
-  // wherever they access data shared with the GUI thread.
-
-  public void setCursor(int w, int h, Point hotspot,
-                        int[] data, byte[] mask) {
-    // strictly we should use a mutex around this test since useLocalCursor
-    // might be being altered by the GUI thread.  However it's only a single
-    // boolean and it doesn't matter if we get the wrong value anyway.
-
-    synchronized(cc.viewer.useLocalCursor) {
-      if (!cc.viewer.useLocalCursor.getValue())
-        return;
-    }
-
-    hideLocalCursor();
-
-    cursor.hotspot = (hotspot != null) ? hotspot : new Point(0, 0);
-    cursor.setSize(w, h);
-    cursor.setPF(getPF());
-
-    cursorBacking.setSize(cursor.width(), cursor.height());
-    cursorBacking.setPF(getPF());
-
-    cursor.data = new int[cursor.width() * cursor.height()];
-    cursor.mask = new byte[cursor.maskLen()];
-
-    int maskBytesPerRow = (w + 7) / 8;
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        int byte_ = y * maskBytesPerRow + x / 8;
-        int bit = 7 - x % 8;
-        if ((mask[byte_] & (1 << bit)) > 0) {
-          cursor.data[y * cursor.width() + x] = (0xff << 24) |
-            (im.cm.getRed(data[y * w + x]) << 16) |
-            (im.cm.getGreen(data[y * w + x]) << 8) |
-            (im.cm.getBlue(data[y * w + x]));
+    addWindowStateListener(new WindowAdapter() {
+      public void windowStateChanged(WindowEvent e) {
+        int state = e.getNewState();
+        if ((state & JFrame.MAXIMIZED_BOTH) != JFrame.MAXIMIZED_BOTH) {
+          Rectangle b = getGraphicsConfiguration().getBounds();
+          if (!b.contains(getLocationOnScreen()))
+            setLocation((int)b.getX(), (int)b.getY());
         }
+        // ViewportBorder sometimes lost when restoring on Windows
+        repositionViewport();
       }
-      System.arraycopy(mask, y * maskBytesPerRow, cursor.mask,
-        y * ((cursor.width() + 7) / 8), maskBytesPerRow);
-    }
+    });
 
-    int cw = (int)Math.floor((float)cursor.width() * scaleWidthRatio);
-    int ch = (int)Math.floor((float)cursor.height() * scaleHeightRatio);
-    Dimension bestSize = tk.getBestCursorSize(cw, ch);
-    MemoryImageSource cursorSrc;
-    cursorSrc = new MemoryImageSource(cursor.width(), cursor.height(),
-                                      ColorModel.getRGBdefault(),
-                                      cursor.data, 0, cursor.width());
-    Image srcImage = tk.createImage(cursorSrc);
-    BufferedImage cursorImage;
-    cursorImage = new BufferedImage(bestSize.width, bestSize.height,
-                                    BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2 = cursorImage.createGraphics();
-    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-                        RenderingHints.VALUE_RENDER_SPEED);
-    g2.drawImage(srcImage, 0, 0, (int)Math.min(cw, bestSize.width),
-                 (int)Math.min(ch, bestSize.height), 0, 0, cursor.width(),
-                 cursor.height(), null);
-    g2.dispose();
-    srcImage.flush();
-
-    int x = (int)Math.floor((float)cursor.hotspot.x * scaleWidthRatio);
-    int y = (int)Math.floor((float)cursor.hotspot.y * scaleHeightRatio);
-    x = (int)Math.min(x, Math.max(bestSize.width - 1, 0));
-    y = (int)Math.min(y, Math.max(bestSize.height - 1, 0));
-    java.awt.Point hs = new java.awt.Point(x, y);
-    if (!bestSize.equals(new Dimension(0, 0)))
-      softCursor = tk.createCustomCursor(cursorImage, hs, "softCursor");
-    cursorImage.flush();
-
-    if (softCursor != null) {
-      setCursor(softCursor);
-      cursorAvailable = false;
-      return;
-    }
-
-    if (!cursorAvailable) {
-      cursorAvailable = true;
-    }
-
-    showLocalCursor();
-  }
-
-  public void setServerPF(PixelFormat pf) {
-    im.setPF(pf);
-  }
-
-  public PixelFormat getPreferredPF() {
-    return im.getNativePF();
-  }
-
-  // setColourMapEntries() changes some of the entries in the colourmap.
-  // Unfortunately these messages are often sent one at a time, so we delay the
-  // settings taking effect unless the whole colourmap has changed.  This is
-  // because getting java to recalculate its internal translation table and
-  // redraw the screen is expensive.
-
-  public synchronized void setColourMapEntries(int firstColour, int nColours,
-                                               int[] rgbs) {
-    im.setColourMapEntries(firstColour, nColours, rgbs);
-    if (nColours <= 256) {
-      im.updateColourMap();
-    } else {
-      if (setColourMapEntriesTimerThread == null) {
-        setColourMapEntriesTimerThread = new Thread(this);
-        setColourMapEntriesTimerThread.start();
+    // Window resize events
+    timer = new Timer(500, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        handleResizeTimeout();
       }
-    }
-  }
-
-  // Update the actual window with the changed parts of the framebuffer.
-  public void updateWindow() {
-    Rect r = damage;
-    if (!r.is_empty()) {
-      if (cc.cp.width != scaledWidth || cc.cp.height != scaledHeight) {
-        int x = (int)Math.floor(r.tl.x * scaleWidthRatio);
-        int y = (int)Math.floor(r.tl.y * scaleHeightRatio);
-        // Need one extra pixel to account for rounding.
-        int width = (int)Math.ceil(r.width() * scaleWidthRatio) + 1;
-        int height = (int)Math.ceil(r.height() * scaleHeightRatio) + 1;
-        paintImmediately(x, y, width, height);
-      } else {
-        paintImmediately(r.tl.x, r.tl.y, r.width(), r.height());
-      }
-      damage.clear();
-    }
-  }
-
-  // resize() is called when the desktop has changed size
-  public void resize() {
-    int w = cc.cp.width;
-    int h = cc.cp.height;
-    hideLocalCursor();
-    setSize(w, h);
-    im.resize(w, h);
-  }
-
-  public final void fillRect(int x, int y, int w, int h, int pix) {
-    if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    im.fillRect(x, y, w, h, pix);
-    damageRect(new Rect(x, y, x+w, y+h));
-    showLocalCursor();
-  }
-
-  public final void imageRect(int x, int y, int w, int h,
-                              Object pix) {
-    if (overlapsCursor(x, y, w, h)) hideLocalCursor();
-    im.imageRect(x, y, w, h, pix);
-    damageRect(new Rect(x, y, x+w, y+h));
-    showLocalCursor();
-  }
-
-  public final void copyRect(int x, int y, int w, int h,
-                             int srcX, int srcY) {
-    if (overlapsCursor(x, y, w, h) || overlapsCursor(srcX, srcY, w, h))
-      hideLocalCursor();
-    im.copyRect(x, y, w, h, srcX, srcY);
-    damageRect(new Rect(x, y, x+w, y+h));
-    showLocalCursor();
-  }
-
-
-  // mutex MUST be held when overlapsCursor() is called
-  final boolean overlapsCursor(int x, int y, int w, int h) {
-    return (x < cursorBackingX + cursorBacking.width() &&
-            y < cursorBackingY + cursorBacking.height() &&
-            x + w > cursorBackingX && y + h > cursorBackingY);
-  }
-
-
-  ////////////////////////////////////////////////////////////////////
-  // The following methods are all called from the GUI thread
-
-  void resetLocalCursor() {
-    if (cc.cp.supportsLocalCursor) {
-      if (softCursor != null)
-        setCursor(softCursor);
-    } else {
-      setCursor(nullCursor);
-    }
-    hideLocalCursor();
-    cursorAvailable = false;
-  }
-
-  //
-  // Callback methods to determine geometry of our Component.
-  //
-
-  public Dimension getPreferredSize() {
-    return new Dimension(scaledWidth, scaledHeight);
-  }
-
-  public Dimension getMinimumSize() {
-    return new Dimension(scaledWidth, scaledHeight);
-  }
-
-  public Dimension getMaximumSize() {
-    return new Dimension(scaledWidth, scaledHeight);
-  }
-
-  public void setScaledSize() {
-    String scaleString = cc.viewer.scalingFactor.getValue();
-    if (!scaleString.equalsIgnoreCase("Auto") &&
-        !scaleString.equalsIgnoreCase("FixedRatio")) {
-      int scalingFactor = Integer.parseInt(scaleString);
-      scaledWidth =
-        (int)Math.floor((float)cc.cp.width * (float)scalingFactor/100.0);
-      scaledHeight =
-        (int)Math.floor((float)cc.cp.height * (float)scalingFactor/100.0);
-    } else {
-      if (cc.viewport == null) {
-        scaledWidth = cc.cp.width;
-        scaledHeight = cc.cp.height;
-      } else {
-        Dimension vpSize = cc.viewport.getSize();
-        Insets vpInsets = cc.viewport.getInsets();
-        Dimension availableSize =
-          new Dimension(vpSize.width - vpInsets.left - vpInsets.right,
-                        vpSize.height - vpInsets.top - vpInsets.bottom);
-        if (availableSize.width == 0 || availableSize.height == 0)
-          availableSize = new Dimension(cc.cp.width, cc.cp.height);
-        if (scaleString.equalsIgnoreCase("FixedRatio")) {
-          float widthRatio = (float)availableSize.width / (float)cc.cp.width;
-          float heightRatio = (float)availableSize.height / (float)cc.cp.height;
-          float ratio = Math.min(widthRatio, heightRatio);
-          scaledWidth = (int)Math.floor(cc.cp.width * ratio);
-          scaledHeight = (int)Math.floor(cc.cp.height * ratio);
+    });
+    timer.setRepeats(false);
+    addComponentListener(new ComponentAdapter() {
+      public void componentResized(ComponentEvent e) {
+        if (remoteResize.getValue()) {
+          if (timer.isRunning())
+            timer.restart();
+          else
+            // Try to get the remote size to match our window size, provided
+            // the following conditions are true:
+            //
+            // a) The user has this feature turned on
+            // b) The server supports it
+            // c) We're not still waiting for a chance to handle DesktopSize
+            // d) We're not still waiting for startup fullscreen to kick in
+            if (!firstUpdate && !delayedFullscreen &&
+                remoteResize.getValue() && cc.cp.supportsSetDesktopSize)
+              timer.start();
         } else {
-          scaledWidth = availableSize.width;
-          scaledHeight = availableSize.height;
+          String scaleString = scalingFactor.getValue();
+          if (!scaleString.matches("^[0-9]+$")) {
+            Dimension maxSize = getContentPane().getSize();
+            if ((maxSize.width != viewport.scaledWidth) ||
+                (maxSize.height != viewport.scaledHeight))
+              viewport.setScaledSize(maxSize.width, maxSize.height);
+            if (!scaleString.equals("Auto")) {
+              if (!isMaximized() && !fullscreen_active()) {
+                int dx = getInsets().left + getInsets().right;
+                int dy = getInsets().top + getInsets().bottom;
+                setSize(viewport.scaledWidth+dx, viewport.scaledHeight+dy);
+              }
+            }
+          }
+          repositionViewport();
         }
       }
-    }
-    scaleWidthRatio = (float)scaledWidth / (float)cc.cp.width;
-    scaleHeightRatio = (float)scaledHeight / (float)cc.cp.height;
+    });
+
   }
 
-  public void paintComponent(Graphics g) {
-    Graphics2D g2 = (Graphics2D) g;
-    if (cc.cp.width != scaledWidth || cc.cp.height != scaledHeight) {
-      g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-                          RenderingHints.VALUE_RENDER_QUALITY);
-      g2.drawImage(im.getImage(), 0, 0, scaledWidth, scaledHeight, null);
+  // Remove resize listener in order to prevent recursion when resizing
+  @Override
+  public void setSize(Dimension d)
+  {
+    ComponentListener[] listeners = getListeners(ComponentListener.class);
+    for (ComponentListener l : listeners)
+      removeComponentListener(l);
+    super.setSize(d);
+    for (ComponentListener l : listeners)
+      addComponentListener(l);
+  }
+
+  @Override
+  public void setSize(int width, int height)
+  {
+    ComponentListener[] listeners = getListeners(ComponentListener.class);
+    for (ComponentListener l : listeners)
+      removeComponentListener(l);
+    super.setSize(width, height);
+    for (ComponentListener l : listeners)
+      addComponentListener(l);
+  }
+
+  @Override
+  public void setBounds(Rectangle r)
+  {
+    ComponentListener[] listeners = getListeners(ComponentListener.class);
+    for (ComponentListener l : listeners)
+      removeComponentListener(l);
+    super.setBounds(r);
+    for (ComponentListener l : listeners)
+      addComponentListener(l);
+  }
+
+  private void repositionViewport()
+  {
+    scroll.revalidate();
+    Rectangle r = scroll.getViewportBorderBounds();
+    int dx = r.width - viewport.scaledWidth;
+    int dy = r.height - viewport.scaledHeight;
+    int top = (int)Math.max(Math.floor(dy/2), 0);
+    int left = (int)Math.max(Math.floor(dx/2), 0);
+    int bottom = (int)Math.max(dy - top, 0);
+    int right = (int)Math.max(dx - left, 0);
+    Insets insets = new Insets(top, left, bottom, right);
+    scroll.setViewportBorder(new MatteBorder(insets, Color.BLACK));
+    scroll.revalidate();
+  }
+
+  public PixelFormat getPreferredPF()
+  {
+    return viewport.getPreferredPF();
+  }
+
+  public void setName(String name)
+  {
+    setTitle(name);
+  }
+
+  // Copy the areas of the framebuffer that have been changed (damaged)
+  // to the displayed window.
+
+  public void updateWindow()
+  {
+    if (firstUpdate) {
+      pack();
+      if (embed.getValue()) {
+        scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
+        VncViewer.setupEmbeddedFrame(scroll);
+      } else {
+        if (fullScreen.getValue())
+          fullscreen_on();
+        else
+          setVisible(true);
+
+        if (maximize.getValue())
+          setExtendedState(JFrame.MAXIMIZED_BOTH);
+      }
+
+      if (cc.cp.supportsSetDesktopSize && !desktopSize.getValue().equals("")) {
+        // Hack: Wait until we're in the proper mode and position until
+        // resizing things, otherwise we might send the wrong thing.
+        if (delayedFullscreen)
+          delayedDesktopSize = true;
+        else
+          handleDesktopSize();
+      }
+      firstUpdate = false;
+    }
+
+    viewport.updateWindow();
+  }
+
+  public void resizeFramebuffer(int new_w, int new_h)
+  {
+    if ((new_w == viewport.scaledWidth) && (new_h == viewport.scaledHeight))
+      return;
+
+    // If we're letting the viewport match the window perfectly, then
+    // keep things that way for the new size, otherwise just keep things
+    // like they are.
+    int dx = getInsets().left + getInsets().right;
+    int dy = getInsets().top + getInsets().bottom;
+    if (!fullscreen_active()) {
+      if ((w() == viewport.scaledWidth) && (h() == viewport.scaledHeight))
+        setSize(new_w+dx, new_h+dy);
+      else {
+        // Make sure the window isn't too big. We do this manually because
+        // we have to disable the window size restriction (and it isn't
+        // entirely trustworthy to begin with).
+        if ((w() > new_w) || (h() > new_h))
+          setSize(Math.min(w(), new_w)+dx, Math.min(h(), new_h)+dy);
+      }
+    }
+
+    viewport.resize(0, 0, new_w, new_h);
+
+    // We might not resize the main window, so we need to manually call this
+    // to make sure the viewport is centered.
+    repositionViewport();
+
+    // repositionViewport() makes sure the scroll widget notices any changes
+    // in position, but it might be just the size that changes so we also
+    // need a poke here as well.
+    validate();
+  }
+
+  public void setCursor(int width, int height, Point hotspot,
+                        byte[] data, byte[] mask)
+  {
+    viewport.setCursor(width, height, hotspot, data, mask);
+  }
+
+  public void fullscreen_on()
+  {
+    fullScreen.setParam(true);
+    lastState = getExtendedState();
+    lastBounds = getBounds();
+    dispose();
+    // Screen bounds calculation affected by maximized window?
+    setExtendedState(JFrame.NORMAL);
+    setUndecorated(true);
+    setVisible(true);
+    setBounds(getScreenBounds());
+  }
+
+  public void fullscreen_off()
+  {
+    fullScreen.setParam(false);
+    dispose();
+    setUndecorated(false);
+    setExtendedState(lastState);
+    setBounds(lastBounds);
+    setVisible(true);
+  }
+
+  public boolean fullscreen_active()
+  {
+    return isUndecorated();
+  }
+
+  private void handleDesktopSize()
+  {
+    if (!desktopSize.getValue().equals("")) {
+      int width, height;
+
+      // An explicit size has been requested
+
+      if (desktopSize.getValue().split("x").length != 2)
+        return;
+
+      width = Integer.parseInt(desktopSize.getValue().split("x")[0]);
+      height = Integer.parseInt(desktopSize.getValue().split("x")[1]);
+      remoteResize(width, height);
+    } else if (remoteResize.getValue()) {
+      // No explicit size, but remote resizing is on so make sure it
+      // matches whatever size the window ended up being
+      remoteResize(w(), h());
+    }
+  }
+
+  public void handleResizeTimeout()
+  {
+    DesktopWindow self = (DesktopWindow)this;
+
+    assert(self != null);
+
+    self.remoteResize(self.w(), self.h());
+  }
+
+  private void remoteResize(int width, int height)
+  {
+    ScreenSet layout;
+    ListIterator<Screen> iter;
+
+    if (!fullscreen_active() || (width > w()) || (height > h())) {
+      // In windowed mode (or the framebuffer is so large that we need
+      // to scroll) we just report a single virtual screen that covers
+      // the entire framebuffer.
+
+      layout = cc.cp.screenLayout;
+
+      // Not sure why we have no screens, but adding a new one should be
+      // safe as there is nothing to conflict with...
+      if (layout.num_screens() == 0)
+        layout.add_screen(new Screen());
+      else if (layout.num_screens() != 1) {
+        // More than one screen. Remove all but the first (which we
+        // assume is the "primary").
+
+        while (true) {
+          iter = layout.begin();
+          Screen screen = iter.next();
+
+          if (iter == layout.end())
+            break;
+
+          layout.remove_screen(screen.id);
+        }
+      }
+
+      // Resize the remaining single screen to the complete framebuffer
+      ((Screen)layout.begin().next()).dimensions.tl.x = 0;
+      ((Screen)layout.begin().next()).dimensions.tl.y = 0;
+      ((Screen)layout.begin().next()).dimensions.br.x = width;
+      ((Screen)layout.begin().next()).dimensions.br.y = height;
     } else {
-      g2.drawImage(im.getImage(), 0, 0, null);
-    }
-    g2.dispose();
-  }
+      layout = new ScreenSet();
+      int id;
+      int sx, sy, sw, sh;
+      Rect viewport_rect = new Rect();
+      Rect screen_rect = new Rect();
 
-  // Mouse-Motion callback function
-  private void mouseMotionCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue() &&
-        e.getX() >= 0 && e.getX() <= scaledWidth &&
-        e.getY() >= 0 && e.getY() <= scaledHeight)
-      cc.writePointerEvent(e);
-    // - If local cursor rendering is enabled then use it
-    if (cursorAvailable) {
-      // - Render the cursor!
-      if (e.getX() != cursorPosX || e.getY() != cursorPosY) {
-        hideLocalCursor();
-        if (e.getX() >= 0 && e.getX() < im.width() &&
-            e.getY() >= 0 && e.getY() < im.height()) {
-          cursorPosX = e.getX();
-          cursorPosY = e.getY();
-          showLocalCursor();
+      // In full screen we report all screens that are fully covered.
+
+      viewport_rect.setXYWH(x() + (w() - width)/2, y() + (h() - height)/2,
+                            width, height);
+
+      // If we can find a matching screen in the existing set, we use
+      // that, otherwise we create a brand new screen.
+      //
+      // FIXME: We should really track screens better so we can handle
+      //        a resized one.
+      //
+      GraphicsEnvironment ge =
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
+      for (GraphicsDevice gd : ge.getScreenDevices()) {
+        for (GraphicsConfiguration gc : gd.getConfigurations()) {
+          Rectangle bounds = gc.getBounds();
+          sx = bounds.x;
+          sy = bounds.y;
+          sw = bounds.width;
+          sh = bounds.height;
+
+          // Check that the screen is fully inside the framebuffer
+          screen_rect.setXYWH(sx, sy, sw, sh);
+          if (!screen_rect.enclosed_by(viewport_rect))
+            continue;
+
+          // Adjust the coordinates so they are relative to our viewport
+          sx -= viewport_rect.tl.x;
+          sy -= viewport_rect.tl.y;
+
+          // Look for perfectly matching existing screen...
+          for (iter = cc.cp.screenLayout.begin();
+              iter != cc.cp.screenLayout.end(); iter.next()) {
+            Screen screen = iter.next(); iter.previous();
+            if ((screen.dimensions.tl.x == sx) &&
+                (screen.dimensions.tl.y == sy) &&
+                (screen.dimensions.width() == sw) &&
+                (screen.dimensions.height() == sh))
+              break;
+          }
+
+          // Found it?
+          if (iter != cc.cp.screenLayout.end()) {
+            layout.add_screen(iter.next());
+            continue;
+          }
+
+          // Need to add a new one, which means we need to find an unused id
+          Random rng = new Random();
+          while (true) {
+            id = rng.nextInt();
+            for (iter = cc.cp.screenLayout.begin();
+                iter != cc.cp.screenLayout.end(); iter.next()) {
+              Screen screen = iter.next(); iter.previous();
+              if (screen.id == id)
+                break;
+            }
+
+            if (iter == cc.cp.screenLayout.end())
+              break;
+          }
+
+          layout.add_screen(new Screen(id, sx, sy, sw, sh, 0));
         }
+
+        // If the viewport doesn't match a physical screen, then we might
+        // end up with no screens in the layout. Add a fake one...
+        if (layout.num_screens() == 0)
+          layout.add_screen(new Screen(0, 0, 0, width, height, 0));
       }
     }
-    lastX = e.getX();
-    lastY = e.getY();
-  }
-  public void mouseDragged(MouseEvent e) { mouseMotionCB(e); }
-  public void mouseMoved(MouseEvent e) { mouseMotionCB(e); }
 
-  // Mouse callback function
-  private void mouseCB(MouseEvent e) {
-    if (!cc.viewer.viewOnly.getValue()) {
-      if ((e.getID() == MouseEvent.MOUSE_RELEASED) ||
-          (e.getX() >= 0 && e.getX() <= scaledWidth &&
-           e.getY() >= 0 && e.getY() <= scaledHeight))
-        cc.writePointerEvent(e);
-    }
-    lastX = e.getX();
-    lastY = e.getY();
-  }
-  public void mouseReleased(MouseEvent e) { mouseCB(e); }
-  public void mousePressed(MouseEvent e) { mouseCB(e); }
-  public void mouseClicked(MouseEvent e) {}
-  public void mouseEntered(MouseEvent e) {
-    if (cc.viewer.embed.getValue())
-      requestFocus();
-  }
-  public void mouseExited(MouseEvent e) {}
+    // Do we actually change anything?
+    if ((width == cc.cp.width) &&
+        (height == cc.cp.height) &&
+        (layout == cc.cp.screenLayout))
+      return;
 
-  // MouseWheel callback function
-  private void mouseWheelCB(MouseWheelEvent e) {
-    if (!cc.viewer.viewOnly.getValue())
-      cc.writeWheelEvent(e);
-  }
+    String buffer;
+    vlog.debug(String.format("Requesting framebuffer resize from %dx%d to %dx%d",
+               cc.cp.width, cc.cp.height, width, height));
+    layout.debug_print();
 
-  public void mouseWheelMoved(MouseWheelEvent e) {
-    mouseWheelCB(e);
-  }
-
-  private static final Integer keyEventLock = 0; 
-
-  // Handle the key-typed event.
-  public void keyTyped(KeyEvent e) { }
-
-  // Handle the key-released event.
-  public void keyReleased(KeyEvent e) {
-    synchronized(keyEventLock) {
-      cc.writeKeyEvent(e);
-    }
-  }
-
-  // Handle the key-pressed event.
-  public void keyPressed(KeyEvent e) {
-    if (e.getKeyCode() == MenuKey.getMenuKeyCode()) {
-      int sx = (scaleWidthRatio == 1.00) ?
-        lastX : (int)Math.floor(lastX * scaleWidthRatio);
-      int sy = (scaleHeightRatio == 1.00) ?
-        lastY : (int)Math.floor(lastY * scaleHeightRatio);
-      java.awt.Point ev = new java.awt.Point(lastX, lastY);
-      ev.translate(sx - lastX, sy - lastY);
-      cc.showMenu((int)ev.getX(), (int)ev.getY());
+    if (!layout.validate(width, height)) {
+      vlog.error("Invalid screen layout computed for resize request!");
       return;
     }
-    int ctrlAltShiftMask = Event.SHIFT_MASK | Event.CTRL_MASK | Event.ALT_MASK;
-    if ((e.getModifiers() & ctrlAltShiftMask) == ctrlAltShiftMask) {
-      switch (e.getKeyCode()) {
-        case KeyEvent.VK_A:
-          cc.showAbout();
-          return;
-        case KeyEvent.VK_F:
-          cc.toggleFullScreen();
-          return;
-        case KeyEvent.VK_H:
-          cc.refresh();
-          return;
-        case KeyEvent.VK_I:
-          cc.showInfo();
-          return;
-        case KeyEvent.VK_O:
-          cc.options.showDialog(cc.viewport);
-          return;
-        case KeyEvent.VK_W:
-          VncViewer.newViewer(cc.viewer);
-          return;
-        case KeyEvent.VK_LEFT:
-        case KeyEvent.VK_RIGHT:
-        case KeyEvent.VK_UP:
-        case KeyEvent.VK_DOWN:
-          return;
-      }
-    }
-    if ((e.getModifiers() & Event.META_MASK) == Event.META_MASK) {
-      switch (e.getKeyCode()) {
-        case KeyEvent.VK_COMMA:
-        case KeyEvent.VK_N:
-        case KeyEvent.VK_W:
-        case KeyEvent.VK_I:
-        case KeyEvent.VK_R:
-        case KeyEvent.VK_L:
-        case KeyEvent.VK_F:
-        case KeyEvent.VK_Z:
-        case KeyEvent.VK_T:
-          return;
-      }
-    }
-    synchronized(keyEventLock) {
-      cc.writeKeyEvent(e);
-    }
+
+    cc.writer().writeSetDesktopSize(width, height, layout);
   }
 
-  ////////////////////////////////////////////////////////////////////
-  // The following methods are called from both RFB and GUI threads
+  boolean lionFSSupported() { return canDoLionFS; }
 
-  // Note that mutex MUST be held when hideLocalCursor() and showLocalCursor()
-  // are called.
+  private int x() { return getContentPane().getX(); }
+  private int y() { return getContentPane().getY(); }
+  private int w() { return getContentPane().getWidth(); }
+  private int h() { return getContentPane().getHeight(); }
 
-  private synchronized void hideLocalCursor() {
-    // - Blit the cursor backing store over the cursor
-    if (cursorVisible) {
-      cursorVisible = false;
-      im.imageRect(cursorBackingX, cursorBackingY, cursorBacking.width(),
-                   cursorBacking.height(), cursorBacking.data);
-      damageRect(new Rect(cursorBackingX, cursorBackingY,
-                          cursorBackingX+cursorBacking.width(),
-                          cursorBackingY+cursorBacking.height()));
-    }
-  }
-
-  private synchronized void showLocalCursor() {
-    if (cursorAvailable && !cursorVisible) {
-      if (!im.getPF().equal(cursor.getPF()) ||
-          cursor.width() == 0 || cursor.height() == 0) {
-        vlog.debug("attempting to render invalid local cursor");
-        cursorAvailable = false;
-        return;
-      }
-      cursorVisible = true;
-
-      int cursorLeft = cursor.hotspot.x;
-      int cursorTop = cursor.hotspot.y;
-      int cursorRight = cursorLeft + cursor.width();
-      int cursorBottom = cursorTop + cursor.height();
-
-      int x = (cursorLeft >= 0 ? cursorLeft : 0);
-      int y = (cursorTop >= 0 ? cursorTop : 0);
-      int w = ((cursorRight < im.width() ? cursorRight : im.width()) - x);
-      int h = ((cursorBottom < im.height() ? cursorBottom : im.height()) - y);
-
-      cursorBackingX = x;
-      cursorBackingY = y;
-      cursorBacking.setSize(w, h);
-
-      for (int j = 0; j < h; j++)
-        System.arraycopy(im.data, (y + j) * im.width() + x,
-                         cursorBacking.data, j * w, w);
-
-      im.maskRect(cursorLeft, cursorTop, cursor.width(), cursor.height(),
-                  cursor.data, cursor.mask);
-      damageRect(new Rect(x, y, x+w, y+h));
-    }
-  }
-
-  void damageRect(Rect r) {
-    if (damage.is_empty()) {
-      damage.setXYWH(r.tl.x, r.tl.y, r.width(), r.height());
-    } else {
-      r = damage.union_boundary(r);
-      damage.setXYWH(r.tl.x, r.tl.y, r.width(), r.height());
-    }
-  }
-
-  // run() is executed by the setColourMapEntriesTimerThread - it sleeps for
-  // 100ms before actually updating the colourmap.
-  public synchronized void run() {
+  void enableLionFS() {
     try {
-      Thread.sleep(100);
-    } catch(InterruptedException e) {}
-    im.updateColourMap();
-    setColourMapEntriesTimerThread = null;
+      String version = System.getProperty("os.version");
+      int firstDot = version.indexOf('.');
+      int lastDot = version.lastIndexOf('.');
+      if (lastDot > firstDot && lastDot >= 0) {
+        version = version.substring(0, version.indexOf('.', firstDot + 1));
+      }
+      double v = Double.parseDouble(version);
+      if (v < 10.7)
+        throw new Exception("Operating system version is " + v);
+
+      Class fsuClass = Class.forName("com.apple.eawt.FullScreenUtilities");
+      Class argClasses[] = new Class[]{Window.class, Boolean.TYPE};
+      Method setWindowCanFullScreen =
+        fsuClass.getMethod("setWindowCanFullScreen", argClasses);
+      setWindowCanFullScreen.invoke(fsuClass, this, true);
+
+      canDoLionFS = true;
+    } catch (Exception e) {
+      vlog.debug("Could not enable OS X 10.7+ full-screen mode: " +
+                 e.getMessage());
+    }
   }
 
-  // access to cc by different threads is specified in CConn
-  CConn cc;
+  public void toggleLionFS() {
+    try {
+      Class appClass = Class.forName("com.apple.eawt.Application");
+      Method getApplication = appClass.getMethod("getApplication",
+                                                 (Class[])null);
+      Object app = getApplication.invoke(appClass);
+      Method requestToggleFullScreen =
+        appClass.getMethod("requestToggleFullScreen", Window.class);
+      requestToggleFullScreen.invoke(app, this);
+    } catch (Exception e) {
+      vlog.debug("Could not toggle OS X 10.7+ full-screen mode: " +
+                 e.getMessage());
+    }
+  }
 
-  // access to the following must be synchronized:
-  PlatformPixelBuffer im;
-  Thread setColourMapEntriesTimerThread;
 
-  Cursor cursor;
-  boolean cursorVisible = false;     // Is cursor currently rendered?
-  boolean cursorAvailable = false;   // Is cursor available for rendering?
-  int cursorPosX, cursorPosY;
-  ManagedPixelBuffer cursorBacking;
-  int cursorBackingX, cursorBackingY;
-  java.awt.Cursor softCursor, nullCursor;
-  static Toolkit tk = Toolkit.getDefaultToolkit();
+  public boolean isMaximized()
+  {
+    int state = getExtendedState();
+    return ((state & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH);
+  }
 
-  public int scaledWidth = 0, scaledHeight = 0;
-  float scaleWidthRatio, scaleHeightRatio;
+  public Dimension getScreenSize() {
+    return getScreenBounds().getSize();
+  }
 
-  // the following are only ever accessed by the GUI thread:
-  int lastX, lastY;
-  Rect damage = new Rect();
+  public Rectangle getScreenBounds() {
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    Rectangle r = new Rectangle();
+    if (fullScreenAllMonitors.getValue()) {
+      for (GraphicsDevice gd : ge.getScreenDevices())
+        for (GraphicsConfiguration gc : gd.getConfigurations())
+          r = r.union(gc.getBounds());
+    } else {
+      GraphicsConfiguration gc = getGraphicsConfiguration();
+      r = gc.getBounds();
+    }
+    return r;
+  }
 
-  static LogWriter vlog = new LogWriter("DesktopWindow");
+  public static Window getFullScreenWindow() {
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    for (GraphicsDevice gd : ge.getScreenDevices()) {
+      Window fullScreenWindow = gd.getFullScreenWindow();
+      if (fullScreenWindow != null)
+        return fullScreenWindow;
+    }
+    return null;
+  }
+
+  public static void setFullScreenWindow(Window fullScreenWindow) {
+    GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    if (fullScreenAllMonitors.getValue()) {
+      for (GraphicsDevice gd : ge.getScreenDevices())
+        gd.setFullScreenWindow(fullScreenWindow);
+    } else {
+      GraphicsDevice gd = ge.getDefaultScreenDevice();
+      gd.setFullScreenWindow(fullScreenWindow);
+    }
+  }
+
+  public void handleOptions()
+  {
+
+    if (fullScreen.getValue() && !fullscreen_active())
+      fullscreen_on();
+    else if (!fullScreen.getValue() && fullscreen_active())
+      fullscreen_off();
+
+    if (remoteResize.getValue()) {
+      scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
+      remoteResize(w(), h());
+    } else {
+      String scaleString = scalingFactor.getValue();
+      if (!scaleString.equals(lastScaleFactor)) {
+        if (scaleString.matches("^[0-9]+$")) {
+          scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
+          scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
+          viewport.setScaledSize(cc.cp.width, cc.cp.height);
+        } else {
+          scroll.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
+          scroll.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_NEVER);
+          viewport.setScaledSize(w(), h());
+        }
+
+        if (isMaximized() || fullscreen_active()) {
+          repositionViewport();
+        } else {
+          int dx = getInsets().left + getInsets().right;
+          int dy = getInsets().top + getInsets().bottom;
+          setSize(viewport.scaledWidth+dx, viewport.scaledHeight+dy);
+        }
+
+        repositionViewport();
+        lastScaleFactor = scaleString;
+      }
+    }
+
+    if (isVisible()) {
+      toFront();
+      requestFocus();
+    }
+  }
+
+  public void handleFullscreenTimeout()
+  {
+    DesktopWindow self = (DesktopWindow)this;
+
+    assert(self != null);
+
+    self.delayedFullscreen = false;
+
+    if (self.delayedDesktopSize) {
+      self.handleDesktopSize();
+      self.delayedDesktopSize = false;
+    }
+  }
+
+  private CConn cc;
+  private JScrollPane scroll;
+  public Viewport viewport;
+
+  private boolean firstUpdate;
+  private boolean delayedFullscreen;
+  private boolean delayedDesktopSize;
+  private boolean canDoLionFS;
+  private String lastScaleFactor;
+  private Rectangle lastBounds;
+  private int lastState;
+  private Timer timer;
 }
+

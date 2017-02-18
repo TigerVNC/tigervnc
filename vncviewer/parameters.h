@@ -51,8 +51,11 @@ extern rfb::BoolParameter viewOnly;
 extern rfb::BoolParameter shared;
 
 extern rfb::BoolParameter acceptClipboard;
+extern rfb::BoolParameter setPrimary;
 extern rfb::BoolParameter sendClipboard;
+#if !defined(WIN32) && !defined(__APPLE__)
 extern rfb::BoolParameter sendPrimary;
+#endif
 
 extern rfb::StringParameter menuKey;
 

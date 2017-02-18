@@ -3,6 +3,9 @@
 #
 
 cmake_minimum_required(VERSION 2.8)
+if(POLICY CMP0022)
+  cmake_policy(SET CMP0022 OLD)
+endif()
 
 # Internal cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -18,10 +21,10 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tigervnc)
-set(VERSION 1.6.80)
+set(VERSION 1.7.80)
 
 # The RC version must always be four comma-separated numbers
-set(RCVERSION 1,6,80,0)
+set(RCVERSION 1,7,80,0)
 
 # Installation paths
 set(BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")
@@ -101,8 +104,9 @@ else()
   message(STATUS "32-bit build")
 endif()
 
-# CMake doesn't properly support resource compilation with MinGW.  Boo!
-if(MINGW)
+# Versions of CMake before 2.8.7 do not properly support resource compilation
+# with MinGW.  Boo!
+if(MINGW AND "${CMAKE_VERSION}" VERSION_LESS "2.8.7")
   if(NOT DEFINED RC)
     set(CMAKE_RC_COMPILER_INIT windres)
   else()
@@ -146,18 +150,22 @@ if(ENABLE_NLS)
     find_path(GETTEXT_INCLUDE_DIR libintl.h)
     if(GETTEXT_INCLUDE_DIR)
       set(CMAKE_REQUIRED_LIBRARIES ${ICONV_LIBRARIES})
+      set(CMAKE_REQUIRED_FLAGS -fno-builtin-dgettext)
       check_function_exists(dgettext LIBC_HAS_DGETTEXT)
       if(LIBC_HAS_DGETTEXT)
         set(GETTEXT_FOUND TRUE)
       else()
         find_library(LIBINTL_LIBRARY NAMES intl libintl)
-        check_library_exists(${LIBINTL_LIBRARY} "dgettext" "" LIBINTL_HAS_DGETTEXT)
-        if(LIBINTL_HAS_DGETTEXT)
-          set(GETTEXT_LIBRARIES ${LIBINTL_LIBRARY} ${ICONV_LIBRARIES})
-          set(GETTEXT_FOUND TRUE)
+        if(LIBINTL_LIBRARY)
+          check_library_exists(${LIBINTL_LIBRARY} "dgettext" "" LIBINTL_HAS_DGETTEXT)
+          if(LIBINTL_HAS_DGETTEXT)
+            set(GETTEXT_LIBRARIES ${LIBINTL_LIBRARY} ${ICONV_LIBRARIES})
+            set(GETTEXT_FOUND TRUE)
+          endif()
         endif()
       endif()
       set(CMAKE_REQUIRED_LIBRARIES)
+      set(CMAKE_REQUIRED_FLAGS)
     endif()
   endif()
 

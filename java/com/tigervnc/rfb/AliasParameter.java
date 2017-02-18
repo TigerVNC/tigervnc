@@ -44,5 +44,13 @@ public class AliasParameter extends VoidParameter {
     param.setImmutable();
   }
 
+  public void setHasBeenSet() {
+    param.setHasBeenSet();
+  }
+
+  public boolean hasBeenSet() {
+    return param.hasBeenSet();
+  }
+
   protected VoidParameter param;
 }

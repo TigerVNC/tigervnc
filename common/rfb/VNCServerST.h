@@ -25,8 +25,6 @@
 
 #include <sys/time.h>
 
-#include <list>
-
 #include <rfb/SDesktop.h>
 #include <rfb/VNCServer.h>
 #include <rfb/Configuration.h>
@@ -67,11 +65,19 @@ namespace rfb {
     //   Clean up any resources associated with the Socket
     virtual void removeSocket(network::Socket* sock);
 
-    // processSocketEvent
+    // getSockets() gets a list of sockets.  This can be used to generate an
+    // fd_set for calling select().
+    virtual void getSockets(std::list<network::Socket*>* sockets);
+
+    // processSocketReadEvent
     //   Read more RFB data from the Socket.  If an error occurs during
     //   processing then shutdown() is called on the Socket, causing
     //   removeSocket() to be called by the caller at a later time.
-    virtual void processSocketEvent(network::Socket* sock);
+    virtual void processSocketReadEvent(network::Socket* sock);
+
+    // processSocketWriteEvent
+    //   Flush pending data from the Socket on to the network.
+    virtual void processSocketWriteEvent(network::Socket* sock);
 
     // checkTimeouts
     //   Returns the number of milliseconds left until the next idle timeout
@@ -106,11 +112,6 @@ namespace rfb {
     // closeClients() closes all RFB sessions, except the specified one (if
     // any), and logs the specified reason for closure.
     void closeClients(const char* reason, network::Socket* sock);
-
-    // getSockets() gets a list of sockets.  This can be used to generate an
-    // fd_set for calling select().
-
-    void getSockets(std::list<network::Socket*>* sockets);
 
     // getSConnection() gets the SConnection for a particular Socket.  If
     // the Socket is not recognised then null is returned.

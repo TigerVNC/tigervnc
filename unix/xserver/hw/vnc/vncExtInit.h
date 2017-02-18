@@ -41,8 +41,6 @@ int vncAddExtension(void);
 
 int vncNotifyQueryConnect(void);
 
-void vncClientCutText(const char* str, int len);
-
 // vncExtInit.cc
 extern void* vncFbptr[];
 extern int vncFbstride[];
@@ -52,12 +50,13 @@ extern int vncInetdSock;
 void vncExtensionInit(void);
 int vncExtensionIsActive(int scrIdx);
 
-void vncCallReadBlockHandlers(fd_set * fds, struct timeval ** timeout);
-void vncCallReadWakeupHandlers(fd_set * fds, int nfds);
-void vncCallWriteBlockHandlers(fd_set * fds, struct timeval ** timeout);
-void vncCallWriteWakeupHandlers(fd_set * fds, int nfds);
+void vncHandleSocketEvent(int fd, int scrIdx, int read, int write);
+void vncCallBlockHandlers(int* timeout);
 
 int vncGetAvoidShiftNumLock(void);
+
+int vncGetSetPrimary(void);
+int vncGetSendPrimary(void);
 
 void vncUpdateDesktopName(void);
 
@@ -83,12 +82,14 @@ void vncAddCopied(int scrIdx, const struct UpdateRect *extents,
                   int nRects, const struct UpdateRect *rects,
                   int dx, int dy);
 
-void vncSetCursor(int scrIdx, int width, int height, int hotX, int hotY,
+void vncSetCursor(int width, int height, int hotX, int hotY,
                   const unsigned char *rgbaData);
 
 void vncPreScreenResize(int scrIdx);
 void vncPostScreenResize(int scrIdx, int success, int width, int height);
 void vncRefreshScreenLayout(int scrIdx);
+
+int vncOverrideParam(const char *nameAndValue);
 
 #ifdef __cplusplus
 }

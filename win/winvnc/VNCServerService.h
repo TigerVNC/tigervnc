@@ -21,7 +21,6 @@
 
 #include <winvnc/VNCServerWin32.h>
 #include <rfb_win32/Service.h>
-#include <rfb_win32/DynamicFn.h>
 
 namespace winvnc {
 
@@ -34,7 +33,6 @@ namespace winvnc {
 
     static const TCHAR* Name;
   protected:
-    rfb::win32::DynamicFn<void (WINAPI *)(BOOL)> SendSas;
     rfb::win32::Handle stopServiceEvent;
     rfb::win32::Handle sessionEvent;
     rfb::win32::Handle sessionEventCad;

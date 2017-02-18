@@ -168,7 +168,21 @@ static void processParams(int argc, char** argv) {
         runServer = false;
         int j = i;
         i = argc;
+
+        // Try to clean up earlier services we've had
+        try {
+          rfb::win32::unregisterService("WinVNC4");
+        } catch (rdr::SystemException) {
+          // Do nothing as we might fail simply because there was no
+          // service to remove
+        }
+        try {
+          rfb::win32::unregisterService("TigerVNC Server");
+        } catch (rdr::SystemException) {
+        }
+
         if (rfb::win32::registerService(VNCServerService::Name,
+                                        _T("TigerVNC Server"),
                                         _T("Provides remote access to this machine via the VNC/RFB protocol."),
                                         argc-(j+1), &argv[j+1]))
           MsgBoxOrLog("Registered service successfully");

@@ -23,24 +23,14 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <os/Mutex.h>
+
 #include <rfb/util.h>
 #include <rfb/Configuration.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>
-#include <rfb/Threading.h>
 
-#ifdef __RFB_THREADING_IMPL
-// On platforms that support Threading, we use Locks to make getData safe
-#define LOCK_CONFIG Lock l(*configLock())
-rfb::Mutex* configLock_ = 0;
-static rfb::Mutex* configLock() {
-  if (!configLock_)
-    configLock_ = new rfb::Mutex;
-  return configLock_;
-}
-#else
-#define LOCK_CONFIG
-#endif
+#define LOCK_CONFIG os::AutoMutex a(mutex)
 
 #include <rdr/HexOutStream.h>
 #include <rdr/HexInStream.h>
@@ -195,9 +185,12 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_,
 
   _next = conf->head;
   conf->head = this;
+
+  mutex = new os::Mutex();
 }
 
 VoidParameter::~VoidParameter() {
+  delete mutex;
 }
 
 const char*

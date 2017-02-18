@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 
-@SuppressWarnings({"rawtypes","unchecked"})
+
 public abstract class Channel implements Runnable{
 
   static final int SSH_MSG_CHANNEL_OPEN_CONFIRMATION=      91;
@@ -192,29 +192,38 @@ public abstract class Channel implements Runnable{
     io.setExtOutputStream(out, dontclose);
   }
   public InputStream getInputStream() throws IOException {
-    PipedInputStream in=
+    int max_input_buffer_size = 32*1024;
+    try {
+      max_input_buffer_size =
+        Integer.parseInt(getSession().getConfig("max_input_buffer_size"));
+    }
+    catch(Exception e){}
+    PipedInputStream in =
       new MyPipedInputStream(
-                             32*1024  // this value should be customizable.
+                             32*1024,  // this value should be customizable.
+                             max_input_buffer_size
                              );
-    io.setOutputStream(new PassiveOutputStream(in), false);
+    boolean resizable = 32*1024<max_input_buffer_size;
+    io.setOutputStream(new PassiveOutputStream(in, resizable), false);
     return in;
   }
   public InputStream getExtInputStream() throws IOException {
-    PipedInputStream in=
+    int max_input_buffer_size = 32*1024;
+    try {
+      max_input_buffer_size =
+        Integer.parseInt(getSession().getConfig("max_input_buffer_size"));
+    }
+    catch(Exception e){}
+    PipedInputStream in =
       new MyPipedInputStream(
-                             32*1024  // this value should be customizable.
+                             32*1024,  // this value should be customizable.
+                             max_input_buffer_size
                              );
-    io.setExtOutputStream(new PassiveOutputStream(in), false);
+    boolean resizable = 32*1024<max_input_buffer_size;
+    io.setExtOutputStream(new PassiveOutputStream(in, resizable), false);
     return in;
   }
   public OutputStream getOutputStream() throws IOException {
-    /*
-    PipedOutputStream out=new PipedOutputStream();
-    io.setInputStream(new PassiveInputStream(out
-                                             , 32*1024
-                                             ), false);
-    return out;
-    */
 
     final Channel channel=this;
     OutputStream out=new OutputStream(){
@@ -317,15 +326,24 @@ public abstract class Channel implements Runnable{
   }
 
   class MyPipedInputStream extends PipedInputStream{
+    private int BUFFER_SIZE = 1024;
+    private int max_buffer_size = BUFFER_SIZE;
     MyPipedInputStream() throws IOException{ super(); }
     MyPipedInputStream(int size) throws IOException{
       super();
       buffer=new byte[size];
+      BUFFER_SIZE = size;
+      max_buffer_size = size;
+    }
+    MyPipedInputStream(int size, int max_buffer_size) throws IOException{
+      this(size);
+      this.max_buffer_size = max_buffer_size;
     }
     MyPipedInputStream(PipedOutputStream out) throws IOException{ super(out); }
     MyPipedInputStream(PipedOutputStream out, int size) throws IOException{
       super(out);
       buffer=new byte[size];
+      BUFFER_SIZE=size;
     }
 
     /*
@@ -343,12 +361,66 @@ public abstract class Channel implements Runnable{
       buffer[in++] = 0;
       read();
     }
+
+    private int freeSpace(){
+      int size = 0;
+      if(out < in) {
+        size = buffer.length-in;
+      }
+      else if(in < out){
+        if(in == -1) size = buffer.length;
+        else size = out - in;
+      }
+      return size;
+    } 
+    synchronized void checkSpace(int len) throws IOException {
+      int size = freeSpace();
+      if(size<len){
+        int datasize=buffer.length-size;
+        int foo = buffer.length;
+        while((foo - datasize) < len){
+          foo*=2;
+        }
+
+        if(foo > max_buffer_size){
+          foo = max_buffer_size;
+        }
+        if((foo - datasize) < len) return;
+
+        byte[] tmp = new byte[foo];
+        if(out < in) {
+          System.arraycopy(buffer, 0, tmp, 0, buffer.length);
+        }
+        else if(in < out){
+          if(in == -1) {
+          }
+          else {
+            System.arraycopy(buffer, 0, tmp, 0, in);
+            System.arraycopy(buffer, out, 
+                             tmp, tmp.length-(buffer.length-out),
+                             (buffer.length-out));
+            out = tmp.length-(buffer.length-out);
+          }
+        }
+        else if(in == out){
+          System.arraycopy(buffer, 0, tmp, 0, buffer.length);
+          in=buffer.length;
+        }
+        buffer=tmp;
+      }
+      else if(buffer.length == size && size > BUFFER_SIZE) { 
+        int  i = size/2;
+        if(i<BUFFER_SIZE) i = BUFFER_SIZE;
+        byte[] tmp = new byte[i];
+        buffer=tmp;
+      }
+    }
   }
   void setLocalWindowSizeMax(int foo){ this.lwsize_max=foo; }
   void setLocalWindowSize(int foo){ this.lwsize=foo; }
   void setLocalPacketSize(int foo){ this.lmpsize=foo; }
   synchronized void setRemoteWindowSize(long foo){ this.rwsize=foo; }
-  synchronized void addRemoteWindowSize(int foo){ 
+  synchronized void addRemoteWindowSize(long foo){ 
     this.rwsize+=foo; 
     if(notifyme>0)
       notifyAll();
@@ -384,12 +456,15 @@ public abstract class Channel implements Runnable{
     if(eof_local)return;
     eof_local=true;
 
+    int i = getRecipient();
+    if(i == -1) return;
+
     try{
       Buffer buf=new Buffer(100);
       Packet packet=new Packet(buf);
       packet.reset();
       buf.putByte((byte)Session.SSH_MSG_CHANNEL_EOF);
-      buf.putInt(getRecipient());
+      buf.putInt(i);
       synchronized(this){
         if(!close)
           getSession().write(packet);
@@ -445,12 +520,15 @@ public abstract class Channel implements Runnable{
     close=true;
     eof_local=eof_remote=true;
 
+    int i = getRecipient();
+    if(i == -1) return;
+
     try{
       Buffer buf=new Buffer(100);
       Packet packet=new Packet(buf);
       packet.reset();
       buf.putByte((byte)Session.SSH_MSG_CHANNEL_CLOSE);
-      buf.putInt(getRecipient());
+      buf.putInt(i);
       synchronized(this){
         getSession().write(packet);
       }
@@ -561,8 +639,25 @@ public abstract class Channel implements Runnable{
     }
   }
   class PassiveOutputStream extends PipedOutputStream{
-    PassiveOutputStream(PipedInputStream in) throws IOException{
+    private MyPipedInputStream _sink=null;
+    PassiveOutputStream(PipedInputStream in,
+                        boolean resizable_buffer) throws IOException{
       super(in);
+      if(resizable_buffer && (in instanceof MyPipedInputStream)) {
+        this._sink=(MyPipedInputStream)in;
+      }
+    }
+    public void write(int b) throws IOException {
+      if(_sink != null) {
+        _sink.checkSpace(1);
+      }
+      super.write(b);
+    }
+    public void write(byte[] b, int off, int len) throws IOException {
+      if(_sink != null) {
+        _sink.checkSpace(len);
+      }
+      super.write(b, off, len); 
     }
   }
 
@@ -636,7 +731,7 @@ public abstract class Channel implements Runnable{
     Packet packet = genChannelOpenPacket();
     _session.write(packet);
 
-    int retry=10;
+    int retry=2000;
     long start=System.currentTimeMillis();
     long timeout=connectTimeout;
     if(timeout!=0L) retry = 1;
@@ -651,7 +746,7 @@ public abstract class Channel implements Runnable{
           }
         }
         try{
-          long t = timeout==0L ? 5000L : timeout;
+          long t = timeout==0L ? 10L : timeout;
           this.notifyme=1;
           wait(t);
         }

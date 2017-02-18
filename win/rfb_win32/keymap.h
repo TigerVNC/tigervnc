@@ -62,7 +62,7 @@ static keymap_t keymap[] = {
   { XK_Help,             VK_HELP, 0 },
   { XK_Break,            VK_CANCEL, 1 },
 
-  // Auxilliary Functions - must come before XK_KP_F1, etc
+  // Auxiliary Functions - must come before XK_KP_F1, etc
 
   { XK_F1,               VK_F1, 0 },
   { XK_F2,               VK_F2, 0 },

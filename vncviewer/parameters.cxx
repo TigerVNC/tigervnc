@@ -120,12 +120,17 @@ BoolParameter shared("Shared",
 BoolParameter acceptClipboard("AcceptClipboard",
                               "Accept clipboard changes from the server",
                               true);
+BoolParameter setPrimary("SetPrimary",
+                         "Set the primary selection as well as the "
+                         "clipboard selection", true);
 BoolParameter sendClipboard("SendClipboard",
                             "Send clipboard changes to the server", true);
+#if !defined(WIN32) && !defined(__APPLE__)
 BoolParameter sendPrimary("SendPrimary",
-                          "Send the primary selection and cut buffer to the "
+                          "Send the primary selection to the "
                           "server as well as the clipboard selection",
                           true);
+#endif
 
 StringParameter menuKey("MenuKey", "The key which brings up the popup menu",
                         "F8");
@@ -165,7 +170,9 @@ static VoidParameter* parameterArray[] = {
   &shared,
   &acceptClipboard,
   &sendClipboard,
+#if !defined(WIN32) && !defined(__APPLE__)
   &sendPrimary,
+#endif
   &menuKey,
   &fullscreenSystemKeys
 };

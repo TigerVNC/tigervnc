@@ -24,10 +24,14 @@
 //
 
 #include <rfb/Region.h>
-#include <Xregion/Xregion.h>
-#include <Xregion/region.h>
 #include <assert.h>
 #include <stdio.h>
+
+extern "C" {
+#include <Xregion/Xlibint.h>
+#include <Xregion/Xutil.h>
+#include <Xregion/Xregion.h>
+}
 
 // A _RectRegion must never be passed as a return parameter to the Xlib region
 // operations.  This is because for efficiency its "rects" member has not been

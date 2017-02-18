@@ -263,6 +263,8 @@ final class Deflate implements Cloneable {
 
   // number of codes at each bit length for an optimal tree
   short[] bl_count=new short[MAX_BITS+1];
+  // working area to be used in Tree#gen_codes()
+  short[] next_code=new short[MAX_BITS+1];
 
   // heap used to build the Huffman trees
   int[] heap=new int[2*L_CODES+1];
@@ -275,7 +277,7 @@ final class Deflate implements Cloneable {
   // Depth of each subtree used as tie breaker for trees of equal frequency
   byte[] depth=new byte[2*L_CODES+1];
 
-  int l_buf;               // index for literals or lengths */
+  byte[] l_buf;               // index for literals or lengths */
 
   // Size of match buffer for literals/lengths.  There are 4 reasons for
   // limiting lit_bufsize to 64K:
@@ -630,7 +632,7 @@ final class Deflate implements Cloneable {
     pending_buf[d_buf+last_lit*2] = (byte)(dist>>>8);
     pending_buf[d_buf+last_lit*2+1] = (byte)dist;
 
-    pending_buf[l_buf+last_lit] = (byte)lc; last_lit++;
+    l_buf[last_lit] = (byte)lc; last_lit++;
 
     if (dist == 0) {
       // lc is the unmatched char
@@ -675,7 +677,7 @@ final class Deflate implements Cloneable {
       do{
 	dist=((pending_buf[d_buf+lx*2]<<8)&0xff00)|
 	  (pending_buf[d_buf+lx*2+1]&0xff);
-	lc=(pending_buf[l_buf+lx])&0xff; lx++;
+	lc=(l_buf[lx])&0xff; lx++;
 
 	if(dist == 0){
 	  send_code(lc, ltree); // send a literal byte
@@ -1379,11 +1381,11 @@ final class Deflate implements Cloneable {
 
     // We overlay pending_buf and d_buf+l_buf. This works since the average
     // output size for (length,distance) codes is <= 24 bits.
-    pending_buf = new byte[lit_bufsize*4];
-    pending_buf_size = lit_bufsize*4;
+    pending_buf = new byte[lit_bufsize*3];
+    pending_buf_size = lit_bufsize*3;
 
-    d_buf = lit_bufsize/2;
-    l_buf = (1+2)*lit_bufsize;
+    d_buf = lit_bufsize;
+    l_buf = new byte[lit_bufsize];
 
     this.level = level;
 
@@ -1420,6 +1422,7 @@ final class Deflate implements Cloneable {
     }
     // Deallocate in reverse order of allocations:
     pending_buf=null;
+    l_buf=null;
     head=null;
     prev=null;
     window=null;
@@ -1697,6 +1700,8 @@ final class Deflate implements Cloneable {
     Deflate dest = (Deflate)super.clone();
 
     dest.pending_buf = dup(dest.pending_buf);
+    dest.d_buf = dest.d_buf;
+    dest.l_buf = dup(dest.l_buf);
     dest.window = dup(dest.window);
 
     dest.prev = dup(dest.prev);
@@ -1706,6 +1711,7 @@ final class Deflate implements Cloneable {
     dest.bl_tree = dup(dest.bl_tree);
 
     dest.bl_count = dup(dest.bl_count);
+    dest.next_code = dup(dest.next_code);
     dest.heap = dup(dest.heap);
     dest.depth = dup(dest.depth);
 

@@ -19,9 +19,9 @@
 // -=- WinVNC Version 4.0 Service-Mode implementation
 
 #include <winvnc/VNCServerService.h>
-#include <rfb_win32/OSVersion.h>
 #include <rfb_win32/TsSessions.h>
 #include <rfb_win32/ModuleFileName.h>
+#include <windows.h>
 #include <wtsapi32.h>
 #include <tlhelp32.h>
 
@@ -29,21 +29,27 @@ using namespace winvnc;
 using namespace rfb;
 using namespace win32;
 
-const TCHAR* winvnc::VNCServerService::Name = _T("TigerVNC Server");
+const TCHAR* winvnc::VNCServerService::Name = _T("TigerVNC");
+
+// SendSAS is not available until Windows 7, and missing from MinGW
+static HMODULE sasLibrary = NULL;
+typedef void WINAPI (*SendSAS_proto)(BOOL AsUser);
+static SendSAS_proto _SendSAS = NULL;
 
 VNCServerService::VNCServerService()
   : Service(Name)
-  , SendSas(_T("sas.dll"), "SendSAS")
   , stopServiceEvent(CreateEvent(0, FALSE, FALSE, 0))
   , sessionEvent(CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNC"))
   , sessionEventCad(CreateEvent(0, FALSE, FALSE, "Global\\SessionEventTigerVNCCad")) {
+  if (sasLibrary == NULL) {
+    sasLibrary = LoadLibrary("sas.dll");
+    if (sasLibrary != NULL)
+      _SendSAS = (SendSAS_proto)GetProcAddress(sasLibrary, "SendSAS");
+  }
   // - Set the service-mode logging defaults
   //   These will be overridden by the Log option in the
   //   registry, if present.
-  if (osVersion.isPlatformNT)
-    logParams.setParam("*:EventLog:0,Connections:EventLog:100");
-  else
-    logParams.setParam("*:file:0,Connections:file:100");
+  logParams.setParam("*:EventLog:0,Connections:EventLog:100");
 }
 
 
@@ -136,8 +142,8 @@ DWORD VNCServerService::serviceMain(int argc, TCHAR* argv[])
 
         //cad request
         case WAIT_OBJECT_0 + 1:
-            if (SendSas.isValid())
-                (*SendSas)(FALSE);
+            if (_SendSAS != NULL)
+                _SendSAS(FALSE);
             break; 
 
         case WAIT_TIMEOUT:

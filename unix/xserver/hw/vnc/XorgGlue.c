@@ -92,6 +92,16 @@ void vncGetScreenFormat(int scrIdx, int *depth, int *bpp,
   *blueMask = vis->blueMask;
 }
 
+int vncGetScreenX(int scrIdx)
+{
+  return screenInfo.screens[scrIdx]->x;
+}
+
+int vncGetScreenY(int scrIdx)
+{
+  return screenInfo.screens[scrIdx]->y;
+}
+
 int vncGetScreenWidth(int scrIdx)
 {
   return screenInfo.screens[scrIdx]->width;

@@ -198,7 +198,7 @@ const rdr::U8* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
 void RenderedCursor::update(PixelBuffer* framebuffer,
                             Cursor* cursor, const Point& pos)
 {
-  Point rawOffset;
+  Point rawOffset, diff;
   Rect clippedRect;
 
   const rdr::U8* data;
@@ -224,7 +224,9 @@ void RenderedCursor::update(PixelBuffer* framebuffer,
   data = framebuffer->getBuffer(buffer.getRect(offset), &stride);
   buffer.imageRect(buffer.getRect(), data, stride);
 
-  data = cursor->getBuffer(cursor->getRect(), &stride);
-  buffer.maskRect(cursor->getRect(rawOffset.subtract(offset)),
-                  data, cursor->mask.buf);
+  diff = offset.subtract(rawOffset);
+  data = cursor->getBuffer(buffer.getRect(diff), &stride);
+
+  buffer.maskRect(buffer.getRect(), data, cursor->mask.buf, diff,
+                  stride, (cursor->width() + 7) / 8);
 }

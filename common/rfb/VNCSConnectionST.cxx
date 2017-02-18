@@ -51,7 +51,7 @@ static LogWriter vlog("VNCSConnST");
 static const unsigned INITIAL_WINDOW = 16384;
 
 // TCP's minimal window is 3*MSS. But since we don't know the MSS, we
-// make a guess at 4 KiB (it's probaly a bit higher).
+// make a guess at 4 KiB (it's probably a bit higher).
 static const unsigned MINIMUM_WINDOW = 4096;
 
 // The current default maximum window for Linux (4 MiB). Should be a good
@@ -75,8 +75,7 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     pingCounter(0), congestionTimer(this),
     server(server_), updates(false),
     updateRenderedCursor(false), removeRenderedCursor(false),
-    continuousUpdates(false), encodeManager(this),
-    updateTimer(this), pointerEventTime(0),
+    continuousUpdates(false), encodeManager(this), pointerEventTime(0),
     accessRights(AccessDefault), startTime(time(0))
 {
   setStreams(&sock->inStream(), &sock->outStream());
@@ -185,6 +184,21 @@ void VNCSConnectionST::processMessages()
     writeFramebufferUpdate();
   } catch (rdr::EndOfStream&) {
     close("Clean disconnection");
+  } catch (rdr::Exception &e) {
+    close(e.str());
+  }
+}
+
+void VNCSConnectionST::flushSocket()
+{
+  if (state() == RFBSTATE_CLOSING) return;
+  try {
+    setSocketTimeouts();
+    sock->outStream().flush();
+    // Flushing the socket might release an update that was previously
+    // delayed because of congestion.
+    if (sock->outStream().bufferUsage() == 0)
+      writeFramebufferUpdate();
   } catch (rdr::Exception &e) {
     close(e.str());
   }
@@ -730,9 +744,7 @@ void VNCSConnectionST::supportsContinuousUpdates()
 bool VNCSConnectionST::handleTimeout(Timer* t)
 {
   try {
-    if (t == &updateTimer)
-      writeFramebufferUpdate();
-    else if (t == &congestionTimer)
+    if (t == &congestionTimer)
       updateCongestion();
     else if (t == &queryConnectTimer) {
       if (state() == RFBSTATE_QUERYING)
@@ -809,7 +821,7 @@ void VNCSConnectionST::handleRTTPong(const struct RTTInfo &rttInfo)
   }
 
   // We only keep track of the minimum latency seen (for a given interval)
-  // on the basis that we want to avoid continous buffer issue, but don't
+  // on the basis that we want to avoid continuous buffer issue, but don't
   // mind (or even approve of) bursts.
   if (rtt < minRTT)
     minRTT = rtt;
@@ -820,6 +832,7 @@ bool VNCSConnectionST::isCongested()
   int offset;
 
   // Stuff still waiting in the send buffer?
+  sock->outStream().flush();
   if (sock->outStream().bufferUsage() > 0)
     return true;
 
@@ -928,8 +941,6 @@ void VNCSConnectionST::writeFramebufferUpdate()
   bool needNewUpdateInfo;
   bool drawRenderedCursor;
 
-  updateTimer.stop();
-
   // We're in the middle of processing a command that's supposed to be
   // synchronised. Allowing an update to slip out right now might violate
   // that synchronisation.
@@ -949,10 +960,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   // Check that we actually have some space on the link and retry in a
   // bit if things are congested.
-  if (isCongested()) {
-    updateTimer.start(50);
+  if (isCongested())
     return;
-  }
 
   // In continuous mode, we will be outputting at least three distinct
   // messages. We need to aggregate these in order to not clog up TCP's

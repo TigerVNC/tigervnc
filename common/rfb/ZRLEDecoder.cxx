@@ -86,10 +86,9 @@ void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
 {
   rdr::MemInStream is(buffer, buflen);
   const rfb::PixelFormat& pf = cp.pf();
-  rdr::U8* buf[64 * 64 * 4 * pf.bpp/8];
   switch (pf.bpp) {
-  case 8:  zrleDecode8 (r, &is, &zis, (rdr::U8*) buf, pf, pb); break;
-  case 16: zrleDecode16(r, &is, &zis, (rdr::U16*)buf, pf, pb); break;
+  case 8:  zrleDecode8 (r, &is, &zis, pf, pb); break;
+  case 16: zrleDecode16(r, &is, &zis, pf, pb); break;
   case 32:
     {
       Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
@@ -99,16 +98,16 @@ void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
       if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
           (fitsInMS3Bytes && pf.isBigEndian()))
       {
-        zrleDecode24A(r, &is, &zis, (rdr::U32*)buf, pf, pb);
+        zrleDecode24A(r, &is, &zis, pf, pb);
       }
       else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
                (fitsInMS3Bytes && pf.isLittleEndian()))
       {
-        zrleDecode24B(r, &is, &zis, (rdr::U32*)buf, pf, pb);
+        zrleDecode24B(r, &is, &zis, pf, pb);
       }
       else
       {
-        zrleDecode32(r, &is, &zis, (rdr::U32*)buf, pf, pb);
+        zrleDecode32(r, &is, &zis, pf, pb);
       }
       break;
     }

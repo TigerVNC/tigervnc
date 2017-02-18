@@ -66,7 +66,7 @@ diff -up xorg-server-1.17.1/mi/miinitext.c.vnc xorg-server-1.17.1/mi/miinitext.c
  #include "globals.h"
  
 +#ifdef TIGERVNC
-+extern void vncExtensionInit(INITARGS);
++extern void vncExtensionInit(void);
 +#endif
 +
  /* The following is only a small first step towards run-time

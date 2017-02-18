@@ -21,6 +21,8 @@
 #ifndef __NETWORK_SOCKET_H__
 #define __NETWORK_SOCKET_H__
 
+#include <list>
+
 #include <limits.h>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
@@ -125,12 +127,21 @@ namespace network {
     //   resources to be freed.
     virtual void removeSocket(network::Socket* sock) = 0;
 
-    // processSocketEvent() tells the server there is a Socket read event.
+    // getSockets() gets a list of sockets.  This can be used to generate an
+    //   fd_set for calling select().
+    virtual void getSockets(std::list<network::Socket*>* sockets) = 0;
+
+    // processSocketReadEvent() tells the server there is a Socket read event.
     //   The implementation can indicate that the Socket is no longer active
     //   by calling shutdown() on it.  The caller will then call removeSocket()
     //   soon after processSocketEvent returns, to allow any pre-Socket
     //   resources to be tidied up.
-    virtual void processSocketEvent(network::Socket* sock) = 0;
+    virtual void processSocketReadEvent(network::Socket* sock) = 0;
+
+    // processSocketReadEvent() tells the server there is a Socket write event.
+    //   This is only necessary if the Socket has been put in non-blocking
+    //   mode and needs this callback to flush the buffer.
+    virtual void processSocketWriteEvent(network::Socket* sock) = 0;
 
     // checkTimeouts() allows the server to check socket timeouts, etc.  The
     //   return value is the number of milliseconds to wait before

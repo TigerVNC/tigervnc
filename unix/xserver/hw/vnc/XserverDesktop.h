@@ -43,7 +43,7 @@ namespace rfb {
   class VNCServerST;
 }
 
-namespace network { class TcpListener; class Socket; }
+namespace network { class TcpListener; class Socket; class SocketServer; }
 
 class XserverDesktop : public rfb::SDesktop, public rfb::FullFramePixelBuffer,
                        public rdr::Substitutor,
@@ -69,10 +69,8 @@ public:
                  const unsigned char *rgbaData);
   void add_changed(const rfb::Region &region);
   void add_copied(const rfb::Region &dest, const rfb::Point &delta);
-  void readBlockHandler(fd_set* fds, struct timeval ** timeout);
-  void readWakeupHandler(fd_set* fds, int nfds);
-  void writeBlockHandler(fd_set* fds, struct timeval ** timeout);
-  void writeWakeupHandler(fd_set* fds, int nfds);
+  void handleSocketEvent(int fd, bool read, bool write);
+  void blockHandler(int* timeout);
   void addClient(network::Socket* sock, bool reverse);
   void disconnectClients();
 
@@ -107,6 +105,14 @@ public:
                                                         const char* userName,
                                                         char** reason);
 
+protected:
+  bool handleListenerEvent(int fd,
+                           std::list<network::TcpListener*>* sockets,
+                           network::SocketServer* sockserv);
+  bool handleSocketEvent(int fd,
+                         network::SocketServer* sockserv,
+                         bool read, bool write);
+
 private:
   rfb::ScreenSet computeScreenLayout();
 
@@ -117,7 +123,6 @@ private:
   std::list<network::TcpListener*> httpListeners;
   bool deferredUpdateTimerSet;
   bool directFbptr;
-  struct timeval dixTimeout;
 
   uint32_t queryConnectId;
   network::Socket* queryConnectSocket;

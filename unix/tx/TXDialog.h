@@ -78,7 +78,7 @@ public:
   // to make sure that checkboxes have the right state, etc.
   virtual void initDialog() {}
 
-  // resize() is overidden here to re-center the dialog
+  // resize() is overridden here to re-center the dialog
   void resize(int w, int h) {
     TXWindow::resize(w,h);
     int dpyWidth = WidthOfScreen(DefaultScreenOfDisplay(dpy));

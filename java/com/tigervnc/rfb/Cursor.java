@@ -20,11 +20,18 @@ package com.tigervnc.rfb;
 
 public class Cursor extends ManagedPixelBuffer {
 
+  public Cursor(PixelFormat pf, int w, int h) {
+    super(pf, w, h);
+    hotspot = new Point(0, 0);
+  }
+
   public void setSize(int w, int h) {
+    int oldMaskLen = maskLen();
     super.setSize(w, h);
-    if (mask == null || mask.length < maskLen())
+    if (mask == null || maskLen() > oldMaskLen)
       mask = new byte[maskLen()];
   }
+
   public int maskLen() { return (width() + 7) / 8 * height(); }
 
   public Point hotspot;

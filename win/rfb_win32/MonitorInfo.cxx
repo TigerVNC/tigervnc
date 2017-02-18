@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <rfb_win32/DynamicFn.h>
+#include <tchar.h>
 #include <rfb_win32/MonitorInfo.h>
 #include <rfb_win32/Win32Util.h>
 #include <rdr/Exception.h>
@@ -36,90 +36,38 @@ using namespace win32;
 static LogWriter vlog("MonitorInfo");
 
 
-// If we are building in multi-monitor support (i.e. the headers support it)
-//   then do dynamic imports of the required system calls, and provide any
-//   other code that wouldn't otherwise compile.
-#ifdef RFB_HAVE_MONITORINFO
-#include <tchar.h>
-typedef HMONITOR (WINAPI *_MonitorFromWindow_proto)(HWND,DWORD);
-static rfb::win32::DynamicFn<_MonitorFromWindow_proto> _MonitorFromWindow(_T("user32.dll"), "MonitorFromWindow");
-typedef HMONITOR (WINAPI *_MonitorFromRect_proto)(LPCRECT,DWORD);
-static rfb::win32::DynamicFn<_MonitorFromRect_proto> _MonitorFromRect(_T("user32.dll"), "MonitorFromRect");
-typedef BOOL (WINAPI *_GetMonitorInfo_proto)(HMONITOR,LPMONITORINFO);
-static rfb::win32::DynamicFn<_GetMonitorInfo_proto> _GetMonitorInfo(_T("user32.dll"), "GetMonitorInfoA");
-typedef BOOL (WINAPI *_EnumDisplayMonitors_proto)(HDC, LPCRECT, MONITORENUMPROC, LPARAM);
-static rfb::win32::DynamicFn<_EnumDisplayMonitors_proto> _EnumDisplayMonitors(_T("user32.dll"), "EnumDisplayMonitors");
 static void fillMonitorInfo(HMONITOR monitor, MonitorInfo* mi) {
   vlog.debug("monitor=%p", monitor);
-  if (!_GetMonitorInfo.isValid())
-    throw rdr::Exception("no GetMonitorInfo");
   memset(mi, 0, sizeof(MONITORINFOEXA));
   mi->cbSize = sizeof(MONITORINFOEXA);
-  if (!(*_GetMonitorInfo)(monitor, mi))
+  if (!GetMonitorInfo(monitor, mi))
     throw rdr::SystemException("failed to GetMonitorInfo", GetLastError());
   vlog.debug("monitor is %ld,%ld-%ld,%ld", mi->rcMonitor.left, mi->rcMonitor.top, mi->rcMonitor.right, mi->rcMonitor.bottom);
   vlog.debug("work area is %ld,%ld-%ld,%ld", mi->rcWork.left, mi->rcWork.top, mi->rcWork.right, mi->rcWork.bottom);
   vlog.debug("device is \"%s\"", mi->szDevice);
 }
-#else
-#pragma message("  NOTE: Not building Multi-Monitor support.")
-#endif
 
 
 MonitorInfo::MonitorInfo(HWND window) {
   cbSize = sizeof(MonitorInfo);
   szDevice[0] = 0;
 
-#ifdef RFB_HAVE_MONITORINFO
-  try {
-    if (_MonitorFromWindow.isValid()) {
-      HMONITOR monitor = (*_MonitorFromWindow)(window, MONITOR_DEFAULTTONEAREST);
-      if (!monitor)
-        throw rdr::SystemException("failed to get monitor", GetLastError());
-      fillMonitorInfo(monitor, this);
-      return;
-    }
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
-  }
-#endif
-
-  // Legacy fallbacks - just return the desktop settings
-  vlog.debug("using legacy fall-backs");
-  HWND desktop = GetDesktopWindow();
-  GetWindowRect(desktop, &rcMonitor);
-  SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWork, 0);
-  dwFlags = 0;
+  HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+  if (!monitor)
+    throw rdr::SystemException("failed to get monitor", GetLastError());
+  fillMonitorInfo(monitor, this);
 }
 
 MonitorInfo::MonitorInfo(const RECT& r) {
   cbSize = sizeof(MonitorInfo);
   szDevice[0] = 0;
 
-#ifdef RFB_HAVE_MONITORINFO
-  try {
-    if (_MonitorFromRect.isValid()) {
-      HMONITOR monitor = (*_MonitorFromRect)(&r, MONITOR_DEFAULTTONEAREST);
-      if (!monitor)
-        throw rdr::SystemException("failed to get monitor", GetLastError());
-      fillMonitorInfo(monitor, this);
-      return;
-    }
-  } catch (rdr::Exception& e) {
-    vlog.error("%s", e.str());
-  }
-#endif
-
-  // Legacy fallbacks - just return the desktop settings
-  vlog.debug("using legacy fall-backs");
-  HWND desktop = GetDesktopWindow();
-  GetWindowRect(desktop, &rcMonitor);
-  SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWork, 0);
-  dwFlags = 0;
+  HMONITOR monitor = MonitorFromRect(&r, MONITOR_DEFAULTTONEAREST);
+  if (!monitor)
+    throw rdr::SystemException("failed to get monitor", GetLastError());
+  fillMonitorInfo(monitor, this);
 }
 
-
-#ifdef RFB_HAVE_MONITORINFO
 
 struct monitorByNameData {
   MonitorInfo* info;
@@ -133,7 +81,7 @@ static BOOL CALLBACK monitorByNameEnumProc(HMONITOR monitor,
   monitorByNameData* data = (monitorByNameData*)d;
   memset(data->info, 0, sizeof(MONITORINFOEXA));
   data->info->cbSize = sizeof(MONITORINFOEXA);
-  if ((*_GetMonitorInfo)(monitor, data->info)) {
+  if (GetMonitorInfo(monitor, data->info)) {
     if (stricmp(data->monitorName, data->info->szDevice) == 0)
       return FALSE;
   }
@@ -141,44 +89,21 @@ static BOOL CALLBACK monitorByNameEnumProc(HMONITOR monitor,
   return TRUE;
 }
 
-#endif
-
 MonitorInfo::MonitorInfo(const char* devName) {
-#ifdef RFB_HAVE_MONITORINFO
-  if (!_EnumDisplayMonitors.isValid()) {
-    vlog.debug("EnumDisplayMonitors not found");
-  } else {
-    monitorByNameData data;
-    data.info = this;
-    data.monitorName = devName;
-
-    (*_EnumDisplayMonitors)(0, 0, &monitorByNameEnumProc, (LPARAM)&data);
-    if (stricmp(data.monitorName, szDevice) == 0)
-      return;
-  }
-#endif
-  // If multi-monitor is not built, or not supported by the OS,
-  //   or if the named monitor is not found, revert to the primary monitor.
-  vlog.debug("reverting to primary monitor");
-  cbSize = sizeof(MonitorInfo);
-  szDevice[0] = 0;
-
-  HWND desktop = GetDesktopWindow();
-  GetWindowRect(desktop, &rcMonitor);
-  SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWork, 0);
-  dwFlags = 0;
+  monitorByNameData data;
+  data.info = this;
+  data.monitorName = devName;
+  EnumDisplayMonitors(0, 0, &monitorByNameEnumProc, (LPARAM)&data);
 }
 
 void MonitorInfo::moveTo(HWND handle) {
   vlog.debug("moveTo monitor=%s", szDevice);
 
-#ifdef RFB_HAVE_MONITORINFO
   MonitorInfo mi(handle);
   if (strcmp(szDevice, mi.szDevice) != 0) {
     centerWindow(handle, rcWork);
     clipTo(handle);
   }
-#endif
 }
 
 void MonitorInfo::clipTo(RECT* r) {

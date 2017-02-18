@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright (C) 2011-2015 Brian P. Hinz
+ * Copyright (C) 2011-2016 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,22 +22,67 @@ package com.tigervnc.vncviewer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.lang.reflect.*;
 import java.text.Format;
 import java.text.NumberFormat;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.*;
+import javax.swing.UIManager.*;
+import javax.swing.text.*;
+import java.util.*;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.prefs.*;
 
 import com.tigervnc.rfb.*;
 
-class OptionsDialog extends Dialog implements
-                            ActionListener,
-                            ItemListener
-{
+import static java.awt.GridBagConstraints.BOTH;
+import static java.awt.GridBagConstraints.CENTER;
+import static java.awt.GridBagConstraints.HORIZONTAL;
+import static java.awt.GridBagConstraints.LINE_END;
+import static java.awt.GridBagConstraints.LINE_START;
+import static java.awt.GridBagConstraints.PAGE_START;
+import static java.awt.GridBagConstraints.NONE;
+import static java.awt.GridBagConstraints.RELATIVE;
+import static java.awt.GridBagConstraints.REMAINDER;
+import static java.awt.GridBagConstraints.VERTICAL;
+
+import static com.tigervnc.vncviewer.Parameters.*;
+
+class OptionsDialog extends Dialog {
+
+  private class IntegerDocument extends PlainDocument {
+    private int limit;
+
+    public IntegerDocument(int max) {
+      super();
+      limit = max;
+    }
+
+    public void insertString(int offset, String str, AttributeSet a)
+          throws BadLocationException {
+      if (str == null || !str.matches("^[0-9]+$")) return;
+      if ((getLength() + str.length()) > limit)
+        Toolkit.getDefaultToolkit().beep();
+      else
+        super.insertString(offset, str, a);
+    }
+  }
 
   private class IntegerTextField extends JFormattedTextField {
-    public IntegerTextField(Format format) {
-      super(format);
+    public IntegerTextField(int digits) {
+      super();
+      setDocument(new IntegerDocument(digits));
+      Font f = getFont();
+      String template = String.format("%0"+digits+"d", 0);
+      int w = getFontMetrics(f).stringWidth(template) +
+              getMargin().left + getMargin().right +
+              getInsets().left + getInsets().right;
+      int h = getPreferredSize().height;
+      setPreferredSize(new Dimension(w, h));
     }
+
     @Override
     protected void processFocusEvent(final FocusEvent e) {
       if (e.isTemporary())
@@ -49,33 +94,88 @@ class OptionsDialog extends Dialog implements
     }
   }
 
-  // Constants
-  // Static variables
-  static LogWriter vlog = new LogWriter("OptionsDialog");
+  private static Map<Object, String> callbacks = new HashMap<Object, String>();
+  /* Compression */
+  JCheckBox autoselectCheckbox;
 
-  CConn cc;
-  JPanel FormatPanel, InputsPanel, MiscPanel, DefaultsPanel, SecPanel, ScreenPanel;
-  JCheckBox autoSelect, customCompressLevel, noJpeg;
-  @SuppressWarnings({"rawtypes"})
-  JComboBox menuKey, compressLevel, qualityLevel, scalingFactor;
-  ButtonGroup encodingGroup, colourGroup;
-  JRadioButton zrle, hextile, tight, raw;
-  JRadioButton fullColour, mediumColour, lowColour, veryLowColour;
-  JCheckBox viewOnly, acceptClipboard, sendClipboard, acceptBell;
-  JCheckBox desktopSize, fullScreen, fullScreenAllMonitors, shared, useLocalCursor;
-  JCheckBox secVeNCrypt, encNone, encTLS, encX509;
-  JCheckBox secNone, secVnc, secPlain, secIdent, sendLocalUsername;
-  JButton okButton, cancelButton;
-  JButton ca, crl;
-  JButton cfLoadButton, cfSaveAsButton, defSaveButton, defReloadButton, defClearButton;
-  JTextField desktopWidth, desktopHeight;
+  ButtonGroup encodingGroup;
+  JRadioButton tightButton;
+  JRadioButton zrleButton;
+  JRadioButton hextileButton;
+  JRadioButton rawButton;
+
+  ButtonGroup colorlevelGroup;
+  JRadioButton fullcolorButton;
+  JRadioButton mediumcolorButton;
+  JRadioButton lowcolorButton;
+  JRadioButton verylowcolorButton;
+
+  JCheckBox compressionCheckbox;
+  JCheckBox jpegCheckbox;
+  JComboBox compressionInput;
+  JComboBox jpegInput;
+
+  /* Security */
+  JCheckBox encNoneCheckbox;
+  JCheckBox encTLSCheckbox;
+  JCheckBox encX509Checkbox;
+  JTextField caInput;
+  JTextField crlInput;
+  JButton caChooser;
+  JButton crlChooser;
+
+  JCheckBox authNoneCheckbox;
+  JCheckBox authVncCheckbox;
+  JCheckBox authPlainCheckbox;
+  JCheckBox authIdentCheckbox;
+  JCheckBox sendLocalUsernameCheckbox;
+
+  /* Input */
+  JCheckBox viewOnlyCheckbox;
+  JCheckBox acceptClipboardCheckbox;
+  JCheckBox sendClipboardCheckbox;
+  JComboBox menuKeyChoice;
+
+  /* Screen */
+  JCheckBox desktopSizeCheckbox;
+  JTextField desktopWidthInput;
+  JTextField desktopHeightInput;
+
+  ButtonGroup sizingGroup;
+  JRadioButton remoteResizeButton;
+  JRadioButton remoteScaleButton;
+  JComboBox scalingFactorInput;
+
+  JCheckBox fullScreenCheckbox;
+  JCheckBox fullScreenAllMonitorsCheckbox;
+
+  /* Misc. */
+  JCheckBox sharedCheckbox;
+  JCheckBox dotWhenNoCursorCheckbox;
+  JCheckBox acceptBellCheckbox;
+
+  /* SSH */
+  JCheckBox tunnelCheckbox;
+  JCheckBox viaCheckbox;
+  JTextField viaUserInput;
+  JTextField viaHostInput;
+  JTextField viaPortInput;
+  JCheckBox extSSHCheckbox;
+  JTextField sshClientInput;
+  JButton sshClientChooser;
+  JRadioButton sshArgsDefaultButton;
+  JRadioButton sshArgsCustomButton;
+  JTextField sshArgsInput;
+  JTextField sshConfigInput;
+  JTextField sshKeyFileInput;
+  JButton sshConfigChooser;
+  JButton sshKeyFileChooser;
 
   @SuppressWarnings({"rawtypes","unchecked"})
-  public OptionsDialog(CConn cc_) {
+  public OptionsDialog() {
     super(true);
-    cc = cc_;
-    setResizable(false);
     setTitle("VNC Viewer Options");
+    setResizable(false);
 
     getContentPane().setLayout(
       new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
@@ -83,557 +183,1440 @@ class OptionsDialog extends Dialog implements
     JTabbedPane tabPane = new JTabbedPane();
     tabPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
-    ButtonGroup encodingGroup = new ButtonGroup();
-    ButtonGroup colourGroup = new ButtonGroup();
+    encodingGroup = new ButtonGroup();
+    colorlevelGroup = new ButtonGroup();
 
-    // Compression tab
-    FormatPanel=new JPanel(new GridBagLayout());
+    // tabPane
+    tabPane.addTab("Compression", createCompressionPanel());
+    tabPane.addTab("Security", createSecurityPanel());
+    tabPane.addTab("Input", createInputPanel());
+    tabPane.addTab("Screen", createScreenPanel());
+    tabPane.addTab("Misc", createMiscPanel());
+    tabPane.addTab("SSH", createSshPanel());
+    tabPane.setBorder(BorderFactory.createEmptyBorder());
+    // Resize the tabPane if necessary to prevent scrolling
+    int minWidth = 0;
+    Object tpi = UIManager.get("TabbedPane:TabbedPaneTabArea.contentMargins");
+    if (tpi != null)
+      minWidth += ((Insets)tpi).left + ((Insets)tpi).right;
+    for (int i = 0; i < tabPane.getTabCount(); i++)
+      minWidth += tabPane.getBoundsAt(i).width;
+    int minHeight = tabPane.getPreferredSize().height;
+    if (tabPane.getPreferredSize().width < minWidth)
+      tabPane.setPreferredSize(new Dimension(minWidth, minHeight));
 
-    autoSelect = new JCheckBox("Auto Select");
-    autoSelect.addItemListener(this);
+    // button pane
+    JButton okButton = new JButton("OK  \u21B5");
+    okButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        storeOptions();
+        endDialog();
+      }
+    });
+    JButton cancelButton = new JButton("Cancel");
+    cancelButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        endDialog();
+      }
+    });
 
-    JPanel encodingPanel = new JPanel(new GridBagLayout());
-    encodingPanel.setBorder(BorderFactory.createTitledBorder("Preferred encoding"));
-    tight = addRadioCheckbox("Tight", encodingGroup, encodingPanel);
-    zrle = addRadioCheckbox("ZRLE", encodingGroup, encodingPanel);
-    hextile = addRadioCheckbox("Hextile", encodingGroup, encodingPanel);
-    raw = addRadioCheckbox("Raw", encodingGroup, encodingPanel);
-
-    JPanel tightPanel = new JPanel(new GridBagLayout());
-    customCompressLevel = new JCheckBox("Custom Compression Level");
-    customCompressLevel.addItemListener(this);
-    Object[] compressionLevels = { 1, 2, 3, 4, 5, 6 };
-    compressLevel  = new JComboBox(compressionLevels);
-    JLabel compressionLabel = new JLabel("Level (1=fast, 6=best [4-6 are rarely useful])");
-    noJpeg = new JCheckBox("Allow JPEG Compression");
-    noJpeg.addItemListener(this);
-    Object[] qualityLevels = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    qualityLevel  = new JComboBox(qualityLevels);
-    JLabel qualityLabel = new JLabel("Quality (0=poor, 9=best)");
-    // Hack to set the left inset on editable JComboBox
-    if (UIManager.getLookAndFeel().getID() == "Windows") {
-      compressLevel.setBorder(BorderFactory.createCompoundBorder(compressLevel.getBorder(),
-        BorderFactory.createEmptyBorder(0,1,0,0)));
-    } else if (UIManager.getLookAndFeel().getID() == "Metal") {
-      ComboBoxEditor editor = compressLevel.getEditor();
-      JTextField jtf = (JTextField)editor.getEditorComponent();
-      jtf.setBorder(new CompoundBorder(jtf.getBorder(), new EmptyBorder(0,2,0,0)));
-    }
-    Dimension size = compressLevel.getPreferredSize();
-    compressLevel.setEditable(true);
-    compressLevel.setPreferredSize(size);
-    addGBComponent(customCompressLevel, tightPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,0,0,0));
-    addGBComponent(compressLevel, tightPanel,       0, 1, 1, 1, 2, 2, 0, 0, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(0,20,0,0));
-    addGBComponent(compressionLabel, tightPanel,    1, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,0));
-    addGBComponent(noJpeg, tightPanel,              0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,0,0,0));
-    addGBComponent(qualityLevel, tightPanel,        0, 3, 1, 1, 2, 2, 0, 0, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(0,20,0,0));
-    addGBComponent(qualityLabel, tightPanel,        1, 3, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,0));
-
-
-    JPanel colourPanel = new JPanel(new GridBagLayout());
-    colourPanel.setBorder(BorderFactory.createTitledBorder("Color level"));
-    fullColour = addRadioCheckbox("Full (all available colors)", colourGroup, colourPanel);
-    mediumColour = addRadioCheckbox("Medium (256 colors)", colourGroup, colourPanel);
-    lowColour = addRadioCheckbox("Low (64 colours)", colourGroup, colourPanel);
-    veryLowColour = addRadioCheckbox("Very low(8 colors)", colourGroup, colourPanel);
-
-    addGBComponent(autoSelect,FormatPanel,    0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
-    addGBComponent(encodingPanel,FormatPanel, 0, 1, 1, 1, 2, 2, 3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,5));
-    addGBComponent(colourPanel,FormatPanel,   1, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_END, new Insets(0,0,0,5));
-    addGBComponent(tightPanel,FormatPanel,    0, 2, 2, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(0,5,0,5));
-
-    // Input tab
-    InputsPanel=new JPanel(new GridBagLayout());
-
-    viewOnly = new JCheckBox("View Only (ignore mouse & keyboard)");
-    viewOnly.addItemListener(this);
-    acceptClipboard = new JCheckBox("Accept clipboard from server");
-    acceptClipboard.addItemListener(this);
-    sendClipboard = new JCheckBox("Send clipboard to server");
-    sendClipboard.addItemListener(this);
-    JLabel menuKeyLabel = new JLabel("Menu Key");
-    String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()];
-    for (int i = 0; i < MenuKey.getMenuKeySymbolCount(); i++)
-      menuKeys[i] = KeyEvent.getKeyText(MenuKey.getMenuKeySymbols()[i].keycode);
-    menuKey  = new JComboBox(menuKeys);
-    menuKey.addItemListener(this);
-    addGBComponent(viewOnly,InputsPanel,        0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(acceptClipboard,InputsPanel, 0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(sendClipboard,InputsPanel,   0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(menuKeyLabel,InputsPanel,    0, 3, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
-    addGBComponent(menuKey,InputsPanel,         1, 3, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
-
-    // Screen tab
-    ScreenPanel=new JPanel(new GridBagLayout());
-    desktopSize = new JCheckBox("Resize remote session on connect");
-    desktopSize.addItemListener(this);
-    desktopSize.setEnabled(!cc.viewer.embed.getValue() &&
-                           (cc.viewer.desktopSize.getValue() != null));
-    NumberFormat format = NumberFormat.getIntegerInstance();
-    format.setMaximumIntegerDigits(5);
-    format.setMinimumIntegerDigits(0);
-    format.setGroupingUsed(false);
-    desktopWidth = new IntegerTextField(format);
-    desktopWidth.setColumns(4);
-    desktopWidth.setEnabled(desktopSize.isSelected());
-    desktopHeight = new IntegerTextField(format);
-    desktopHeight.setColumns(4);
-    desktopHeight.setEnabled(desktopSize.isSelected());
-    JPanel desktopSizePanel = new JPanel();
-    desktopSizePanel.add(desktopWidth);
-    desktopSizePanel.add(new JLabel("x"));
-    desktopSizePanel.add(desktopHeight);
-    fullScreen = new JCheckBox("Full-screen mode");
-    fullScreen.addItemListener(this);
-    fullScreen.setEnabled(!cc.viewer.embed.getValue());
-    fullScreenAllMonitors = new JCheckBox("Enable full-screen mode over all monitors");
-    fullScreenAllMonitors.addItemListener(this);
-    fullScreenAllMonitors.setEnabled(!cc.viewer.embed.getValue());
-    JLabel scalingFactorLabel = new JLabel("Scaling Factor");
-    Object[] scalingFactors = {
-      "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%",
-      "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
-    scalingFactor = new JComboBox(scalingFactors);
-    // Hack to set the left inset on editable JComboBox
-    if (UIManager.getLookAndFeel().getID() == "Windows") {
-      scalingFactor.setBorder(BorderFactory.createCompoundBorder(scalingFactor.getBorder(),
-        BorderFactory.createEmptyBorder(0,1,0,0)));
-    } else if (UIManager.getLookAndFeel().getID() == "Metal") {
-      ComboBoxEditor sfe = scalingFactor.getEditor();
-      JTextField sfeTextField = (JTextField)sfe.getEditorComponent();
-      sfeTextField.setBorder(new CompoundBorder(sfeTextField.getBorder(),
-                                                new EmptyBorder(0,2,0,0)));
-    }
-    scalingFactor.setEditable(true);
-    scalingFactor.addItemListener(this);
-    scalingFactor.setEnabled(!cc.viewer.embed.getValue());
-    addGBComponent(desktopSize,ScreenPanel, 0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(desktopSizePanel,ScreenPanel, 0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.REMAINDER, GridBagConstraints.LINE_START, new Insets(0,20,0,0));
-    addGBComponent(fullScreen,ScreenPanel, 0, 2, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,5,0,5));
-    addGBComponent(fullScreenAllMonitors,ScreenPanel, 0, 3, 4, 1, 2, 2, 1, 0, GridBagConstraints.REMAINDER, GridBagConstraints.LINE_START, new Insets(4,25,0,5));
-    addGBComponent(scalingFactorLabel,ScreenPanel, 0, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(8,8,0,5));
-    addGBComponent(scalingFactor,ScreenPanel, 1, 4, 1, GridBagConstraints.REMAINDER, 2, 2, 25, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
-
-    // Misc tab
-    MiscPanel=new JPanel(new GridBagLayout());
-
-    shared = new JCheckBox("Shared connection (do not disconnect other viewers)");
-    shared.addItemListener(this);
-    useLocalCursor = new JCheckBox("Render cursor locally");
-    useLocalCursor.addItemListener(this);
-    acceptBell = new JCheckBox("Beep when requested by the server");
-    acceptBell.addItemListener(this);
-    addGBComponent(shared,MiscPanel,         0, 0, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(useLocalCursor,MiscPanel, 0, 1, 2, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(4,5,0,5));
-    addGBComponent(acceptBell,MiscPanel,     0, 2, 2, 1, 2, 2, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,5));
-
-    // load/save tab
-    DefaultsPanel=new JPanel(new GridBagLayout());
-
-    JPanel configPanel = new JPanel(new GridBagLayout());
-    configPanel.setBorder(BorderFactory.createTitledBorder("Configuration File"));
-    cfLoadButton = new JButton("Load");
-    cfLoadButton.addActionListener(this);
-    addGBComponent(cfLoadButton,configPanel, 0, 0, 1, 1, 0, 0, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-    cfSaveAsButton = new JButton("Save As...");
-    cfSaveAsButton.addActionListener(this);
-    addGBComponent(cfSaveAsButton,configPanel, 0, 1, 1, 1, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-
-    JPanel defaultsPanel = new JPanel(new GridBagLayout());
-    defaultsPanel.setBorder(BorderFactory.createTitledBorder("Defaults"));
-    defClearButton = new JButton("Clear");
-    defClearButton.addActionListener(this);
-    addGBComponent(defClearButton,defaultsPanel, 0, 0, 1, 1, 0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-    defReloadButton = new JButton("Reload");
-    defReloadButton.addActionListener(this);
-    addGBComponent(defReloadButton,defaultsPanel, 0, 1, 1, 1, 0, 0, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-    defSaveButton = new JButton("Save");
-    defSaveButton.addActionListener(this);
-    addGBComponent(defSaveButton,defaultsPanel, 0, 2, 1, 1, 0, 0, 0, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER, new Insets(4,8,4,8));
-
-    addGBComponent(configPanel,DefaultsPanel, 0, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,5,4,5));
-    addGBComponent(defaultsPanel,DefaultsPanel, 1, 0, 1, GridBagConstraints.REMAINDER, 0, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.PAGE_START, new Insets(4,0,4,5));
-
-    // security tab
-    SecPanel=new JPanel(new GridBagLayout());
-
-    JPanel encryptionPanel = new JPanel(new GridBagLayout());
-    encryptionPanel.setBorder(BorderFactory.createTitledBorder("Encryption"));
-    encNone = addCheckbox("None", null, encryptionPanel);
-    encTLS = addCheckbox("Anonymous TLS", null, encryptionPanel);
-    encX509 = addJCheckBox("TLS with X.509 certificates", null, encryptionPanel, new GridBagConstraints(0,2,3,1,1,1,GridBagConstraints.LINE_START,GridBagConstraints.REMAINDER,new Insets(0,0,0,0),0,0));
-
-    ca = new JButton("Load CA certificate");
-    ca.addActionListener(this);
-    crl = new JButton("Load CRL certificate");
-    crl.addActionListener(this);
-    addGBComponent(ca, encryptionPanel,  0, 3, 1, 1, 2, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(2,20,2,2));
-    addGBComponent(crl, encryptionPanel, 1, 3, 1, 1, 2, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(2,2,2,2));
-
-    JPanel authPanel = new JPanel(new GridBagLayout());
-    authPanel.setBorder(BorderFactory.createTitledBorder("Authentication"));
-    secNone = addCheckbox("None", null, authPanel);
-    secVnc = addCheckbox("Standard VNC", null, authPanel);
-    secPlain = addJCheckBox("Plaintext", null, authPanel, new GridBagConstraints(0,2,1,1,1,1,GridBagConstraints.LINE_START,GridBagConstraints.NONE,new Insets(0,0,0,5),0,0));
-    secIdent = addJCheckBox("Ident", null, authPanel, new GridBagConstraints(0,3,1,1,1,1,GridBagConstraints.LINE_START,GridBagConstraints.NONE,new Insets(0,0,0,5),0,0));
-    sendLocalUsername = new JCheckBox("Send Local Username");
-    sendLocalUsername.addItemListener(this);
-    addGBComponent(sendLocalUsername, authPanel, 1, 2, 1, 2, 0, 0, 2, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.LINE_START, new Insets(0,20,0,0));
-
-    secVeNCrypt = new JCheckBox("Extended encryption and authentication methods (VeNCrypt)");
-    secVeNCrypt.addItemListener(this);
-    addGBComponent(secVeNCrypt,SecPanel,     0, 0, 1, 1, 2, 2, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.FIRST_LINE_START, new Insets(4,5,0,30));
-    addGBComponent(encryptionPanel,SecPanel, 0, 1, 1, 1, 2, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.LINE_START, new Insets(0,10,2,5));
-    addGBComponent(authPanel,SecPanel,       0, 3, 1, 1, 2, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.FIRST_LINE_START, new Insets(2,10,2,5));
-
-    tabPane.add(FormatPanel);
-    tabPane.add(ScreenPanel);
-    tabPane.add(InputsPanel);
-    tabPane.add(MiscPanel);
-    tabPane.add(DefaultsPanel);
-    tabPane.add(SecPanel);
-    tabPane.addTab("Compression", FormatPanel);
-    tabPane.addTab("Security", SecPanel);
-    tabPane.addTab("Input", InputsPanel);
-    tabPane.addTab("Screen", ScreenPanel);
-    tabPane.addTab("Misc", MiscPanel);
-    tabPane.addTab("Load / Save", DefaultsPanel);
-    tabPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-
-    okButton = new JButton("OK");
-    okButton.setPreferredSize(new Dimension(90,30));
-    okButton.addActionListener(this);
-    cancelButton = new JButton("Cancel");
-    cancelButton.setPreferredSize(new Dimension(90,30));
-    cancelButton.addActionListener(this);
-
-    JPanel buttonPane = new JPanel();
-    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
-    buttonPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-    buttonPane.add(Box.createHorizontalGlue());
-    buttonPane.add(okButton);
-    buttonPane.add(Box.createRigidArea(new Dimension(5,0)));
+    JPanel buttonPane = new JPanel(new GridLayout(1, 5, 10, 10));
+    buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
+    buttonPane.add(Box.createRigidArea(new Dimension()));
+    buttonPane.add(Box.createRigidArea(new Dimension()));
+    buttonPane.add(Box.createRigidArea(new Dimension()));
     buttonPane.add(cancelButton);
-    buttonPane.add(Box.createRigidArea(new Dimension(5,0)));
+    buttonPane.add(okButton);
 
-    this.getContentPane().add(tabPane);
-    this.getContentPane().add(buttonPane);
-
+    this.add(tabPane);
+    this.add(buttonPane);
+    addListeners(this);
     pack();
-
   }
 
-  public void initDialog() {
-    if (cc != null) cc.setOptions();
-    zrle.setEnabled(!autoSelect.isSelected());
-    hextile.setEnabled(!autoSelect.isSelected());
-    tight.setEnabled(!autoSelect.isSelected());
-    raw.setEnabled(!autoSelect.isSelected());
-    fullColour.setEnabled(!autoSelect.isSelected());
-    mediumColour.setEnabled(!autoSelect.isSelected());
-    lowColour.setEnabled(!autoSelect.isSelected());
-    veryLowColour.setEnabled(!autoSelect.isSelected());
-    compressLevel.setEnabled(customCompressLevel.isSelected());
-    qualityLevel.setEnabled(noJpeg.isSelected());
-    sendLocalUsername.setEnabled(secVeNCrypt.isEnabled()&&
-      (secPlain.isSelected()||secIdent.isSelected()));
+  public static void showDialog(Container c) {
+    OptionsDialog dialog = new OptionsDialog();
+    dialog.show(c);
   }
 
-  private void updatePreferences() {
-    if (autoSelect.isSelected()) {
-      UserPreferences.set("global", "AutoSelect", true);
-    } else {
-      UserPreferences.set("global", "AutoSelect", false);
-      if (zrle.isSelected()) {
-        UserPreferences.set("global", "PreferredEncoding", "ZRLE");
-      } else if (hextile.isSelected()) {
-        UserPreferences.set("global", "PreferredEncoding", "hextile");
-      } else if (tight.isSelected()) {
-        UserPreferences.set("global", "PreferredEncoding", "Tight");
-      } else if (raw.isSelected()) {
-        UserPreferences.set("global", "PreferredEncoding", "raw");
-      }
-    }
-    if (fullColour.isSelected()) {
-      UserPreferences.set("global", "FullColour", true);
-    } else {
-      UserPreferences.set("global", "FullColour", false);
-      if (mediumColour.isSelected()) {
-        UserPreferences.set("global", "LowColorLevel", 2);
-      } else if (lowColour.isSelected()) {
-        UserPreferences.set("global", "LowColorLevel", 1);
-      } else if (veryLowColour.isSelected()) {
-        UserPreferences.set("global", "LowColorLevel", 0);
-      }
-    }
-    UserPreferences.set("global", "NoJPEG", !noJpeg.isSelected());
-    UserPreferences.set("global", "QualityLevel", (Integer)qualityLevel.getSelectedItem());
-    UserPreferences.set("global", "CustomCompressLevel", customCompressLevel.isSelected());
-    UserPreferences.set("global", "CompressLevel", (Integer)compressLevel.getSelectedItem());
-    UserPreferences.set("global", "ViewOnly", viewOnly.isSelected());
-    UserPreferences.set("global", "AcceptClipboard", acceptClipboard.isSelected());
-    UserPreferences.set("global", "SendClipboard", sendClipboard.isSelected());
-    String menuKeyStr = MenuKey.getMenuKeySymbols()[menuKey.getSelectedIndex()].name;
-    UserPreferences.set("global", "MenuKey", menuKeyStr);
-    String desktopSizeString =
-      desktopSize.isSelected() ? desktopWidth.getText() + "x" + desktopHeight.getText() : "";
-    UserPreferences.set("global", "DesktopSize", desktopSizeString);
-    UserPreferences.set("global", "FullScreen", fullScreen.isSelected());
-    UserPreferences.set("global", "FullScreenAllMonitors", fullScreenAllMonitors.isSelected());
-    UserPreferences.set("global", "Shared", shared.isSelected());
-    UserPreferences.set("global", "UseLocalCursor", useLocalCursor.isSelected());
-    UserPreferences.set("global", "AcceptBell", acceptBell.isSelected());
-    String scaleString = scalingFactor.getSelectedItem().toString();
-    if (scaleString.equalsIgnoreCase("Auto")) {
-      UserPreferences.set("global", "ScalingFactor", "Auto");
-    } else if(scaleString.equalsIgnoreCase("Fixed Aspect Ratio")) {
-      UserPreferences.set("global", "ScalingFactor", "FixedRatio");
-    } else {
-      scaleString=scaleString.substring(0, scaleString.length()-1);
-      UserPreferences.set("global", "ScalingFactor", scaleString);
-    }
-    UserPreferences.set("viewer", "secVeNCrypt", secVeNCrypt.isSelected());
-    UserPreferences.set("viewer", "encNone", encNone.isSelected());
-    UserPreferences.set("viewer", "encTLS", encTLS.isSelected());
-    UserPreferences.set("viewer", "encX509", encX509.isSelected());
-    UserPreferences.set("viewer", "secNone", secNone.isSelected());
-    UserPreferences.set("viewer", "secVnc", secVnc.isSelected());
-    UserPreferences.set("viewer", "secPlain", secPlain.isSelected());
-    UserPreferences.set("viewer", "secIdent", secIdent.isSelected());
-    UserPreferences.set("global", "SendLocalUsername", sendLocalUsername.isSelected());
-    if (CSecurityTLS.x509ca.getValueStr() != "")
-      UserPreferences.set("viewer", "x509ca", CSecurityTLS.x509ca.getValueStr());
-    if (CSecurityTLS.x509crl.getValueStr() != "")
-      UserPreferences.set("viewer", "x509crl", CSecurityTLS.x509crl.getValueStr());
+  public void show(Container c) {
+    loadOptions();
+    super.showDialog(c);
   }
 
-  private void restorePreferences() {
-    autoSelect.setSelected(UserPreferences.getBool("global", "AutoSelect"));
-    if (!autoSelect.isSelected()) {
-      if (UserPreferences.getBool("global", "FullColour")) {
-        fullColour.setSelected(true);
-      } else {
-        switch (UserPreferences.getInt("global", "LowColorLevel")) {
-        case 2:
-          mediumColour.setSelected(true);
-          break;
-        case 1:
-          lowColour.setSelected(true);
-          break;
-        case 0:
-          veryLowColour.setSelected(true);
-          break;
-        }
-      }
-      String encoding = UserPreferences.get("global", "PreferredEncoding");
-      if (encoding != null) {
-        switch (Encodings.encodingNum(encoding)) {
-        case Encodings.encodingZRLE:
-          zrle.setSelected(true);
-          break;
-        case Encodings.encodingHextile:
-          hextile.setSelected(true);
-          break;
-        case Encodings.encodingRaw:
-          raw.setSelected(true);
-          break;
-        default:
-          tight.setSelected(true);
-        }
-      }
-    }
-    noJpeg.setSelected(!UserPreferences.getBool("global", "NoJPEG"));
-    qualityLevel.setSelectedItem(UserPreferences.getInt("global", "QualityLevel"));
-    customCompressLevel.setSelected(UserPreferences.getBool("global", "CustomCompressLevel"));
-    compressLevel.setSelectedItem(UserPreferences.getInt("global", "CompressLevel"));
-    viewOnly.setSelected(UserPreferences.getBool("global", "ViewOnly"));
-    acceptClipboard.setSelected(UserPreferences.getBool("global", "AcceptClipboard"));
-    sendClipboard.setSelected(UserPreferences.getBool("global", "SendClipboard"));
-    menuKey.setSelectedItem(UserPreferences.get("global", "MenuKey"));
-    desktopSize.setSelected(UserPreferences.get("global", "DesktopSize") != null);
-    if (desktopSize.isSelected()) {
-      String desktopSizeString = UserPreferences.get("global", "DesktopSize");
-      desktopWidth.setText(desktopSizeString.split("x")[0]);
-      desktopHeight.setText(desktopSizeString.split("x")[1]);
-    }
-    fullScreen.setSelected(UserPreferences.getBool("global", "FullScreen"));
-    fullScreenAllMonitors.setSelected(UserPreferences.getBool("global", "FullScreenAllMonitors"));
-    if (shared.isEnabled())
-      shared.setSelected(UserPreferences.getBool("global", "Shared"));
-    useLocalCursor.setSelected(UserPreferences.getBool("global", "UseLocalCursor"));
-    acceptBell.setSelected(UserPreferences.getBool("global", "AcceptBell"));
-    String scaleString = UserPreferences.get("global", "ScalingFactor");
-    if (scaleString != null) {
-      if (scaleString.equalsIgnoreCase("Auto")) {
-        scalingFactor.setSelectedItem("Auto");
-      } else if (scaleString.equalsIgnoreCase("FixedRatio")) {
-        scalingFactor.setSelectedItem("Fixed Aspect Ratio");
-      } else {
-        scalingFactor.setSelectedItem(scaleString+"%");
-      }
-    }
-    if (secVeNCrypt.isEnabled()) {
-      secVeNCrypt.setSelected(UserPreferences.getBool("viewer", "secVeNCrypt", true));
-      if (secVeNCrypt.isSelected()) {
-        encNone.setSelected(UserPreferences.getBool("viewer", "encNone", true));
-        encTLS.setSelected(UserPreferences.getBool("viewer", "encTLS", true));
-        encX509.setSelected(UserPreferences.getBool("viewer", "encX509", true));
-        secPlain.setSelected(UserPreferences.getBool("viewer", "secPlain", true));
-        secIdent.setSelected(UserPreferences.getBool("viewer", "secIdent", true));
-        sendLocalUsername.setSelected(UserPreferences.getBool("global", "SendLocalUsername"));
-      }
-    }
-    if (secNone.isEnabled())
-      secNone.setSelected(UserPreferences.getBool("viewer", "secNone", true));
-    if (secVnc.isEnabled())
-      secVnc.setSelected(UserPreferences.getBool("viewer", "secVnc", true));
+  public static void addCallback(String cb, Object obj)
+  {
+    callbacks.put(obj, cb);
   }
 
-  JRadioButton addRadioCheckbox(String str, ButtonGroup group, JPanel panel) {
-    JRadioButton c = new JRadioButton(str);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.anchor = GridBagConstraints.LINE_START;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.weightx = 1;
-    gbc.weighty = 1;
-    panel.add(c,gbc);
-    group.add(c);
-    c.addItemListener(this);
-    return c;
-  }
-
-  JCheckBox addCheckbox(String str, ButtonGroup group, JPanel panel) {
-    JCheckBox c = new JCheckBox(str);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.anchor = GridBagConstraints.LINE_START;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.weightx = 1;
-    gbc.weighty = 1;
-    panel.add(c,gbc);
-    if (group != null)
-      group.add(c);
-    c.addItemListener(this);
-    return c;
-  }
-
-  JCheckBox addJCheckBox(String str, ButtonGroup group, JPanel panel,
-      GridBagConstraints gbc) {
-    JCheckBox c = new JCheckBox(str);
-    panel.add(c,gbc);
-    if (group != null)
-      group.add(c);
-    c.addItemListener(this);
-
-    return c;
+  public static void removeCallback(Object obj)
+  {
+    callbacks.remove(obj);
   }
 
   public void endDialog() {
     super.endDialog();
-    if (cc.viewport != null && cc.viewport.isVisible()) {
-      cc.viewport.toFront();
-      cc.viewport.requestFocus();
-    }
+    // Making a new dialog is so cheap that it's not worth keeping
+    this.dispose();
   }
 
-  public void actionPerformed(ActionEvent e) {
-    Object s = e.getSource();
-    if (s instanceof JButton && (JButton)s == okButton) {
-      if (cc != null) cc.getOptions();
-      endDialog();
-    } else if (s instanceof JButton && (JButton)s == cancelButton) {
-      endDialog();
-    } else if (s instanceof JButton && (JButton)s == cfLoadButton) {
-      JFileChooser fc = new JFileChooser();
-      fc.setDialogTitle("Path to configuration file");
-      fc.setApproveButtonText("OK");
-      fc.setFileHidingEnabled(false);
-      int ret = fc.showOpenDialog(this);
-      if (ret == JFileChooser.APPROVE_OPTION) {
-        String filename = fc.getSelectedFile().toString();
-        if (filename != null)
-          Configuration.load(filename);
-        cc.setOptions();
+  public void setEmbeddedFeatures(boolean s) {
+    fullScreenCheckbox.setEnabled(s);
+    fullScreenAllMonitorsCheckbox.setEnabled(s);
+    scalingFactorInput.setEnabled(s);
+    Enumeration<AbstractButton> e = sizingGroup.getElements();
+    while (e.hasMoreElements())
+      e.nextElement().setEnabled(s);
+  }
+
+  private void loadOptions()
+  {
+    /* Compression */
+    autoselectCheckbox.setSelected(autoSelect.getValue());
+
+    int encNum = Encodings.encodingNum(preferredEncoding.getValueStr());
+
+    switch (encNum) {
+    case Encodings.encodingTight:
+      tightButton.setSelected(true);
+      break;
+    case Encodings.encodingZRLE:
+      zrleButton.setSelected(true);
+      break;
+    case Encodings.encodingHextile:
+      hextileButton.setSelected(true);
+      break;
+    case Encodings.encodingRaw:
+      rawButton.setSelected(true);
+      break;
+    }
+
+    if (fullColor.getValue())
+      fullcolorButton.setSelected(true);
+    else {
+      switch (lowColorLevel.getValue()) {
+      case 0:
+        verylowcolorButton.setSelected(true);
+        break;
+      case 1:
+        lowcolorButton.setSelected(true);
+        break;
+      case 2:
+        mediumcolorButton.setSelected(true);
+        break;
       }
-    } else if (s instanceof JButton && (JButton)s == cfSaveAsButton) {
-      JFileChooser fc = new JFileChooser();
-      fc.setDialogTitle("Save current configuration as:");
-      fc.setApproveButtonText("OK");
-      fc.setFileHidingEnabled(false);
-      int ret = fc.showOpenDialog(this);
-      if (ret == JFileChooser.APPROVE_OPTION) {
-        String filename = fc.getSelectedFile().toString();
-        if (filename != null)
-          Configuration.save(filename);
+    }
+
+    int digit = 0;
+
+    compressionCheckbox.setSelected(customCompressLevel.getValue());
+    jpegCheckbox.setSelected(!noJpeg.getValue());
+    digit = 0 + compressLevel.getValue();
+    compressionInput.setSelectedItem(digit);
+    digit = 0 + qualityLevel.getValue();
+    jpegInput.setSelectedItem(digit);
+
+    handleAutoselect();
+    handleCompression();
+    handleJpeg();
+
+    /* Security */
+    Security security = new Security(SecurityClient.secTypes);
+
+    List<Integer> secTypes;
+    Iterator<Integer> iter;
+
+    List<Integer> secTypesExt;
+    Iterator<Integer> iterExt;
+
+    encNoneCheckbox.setSelected(false);
+    encTLSCheckbox.setSelected(false);
+    encX509Checkbox.setSelected(false);
+
+    authNoneCheckbox.setSelected(false);
+    authVncCheckbox.setSelected(false);
+    authPlainCheckbox.setSelected(false);
+    authIdentCheckbox.setSelected(false);
+    sendLocalUsernameCheckbox.setSelected(sendLocalUsername.getValue());
+
+    secTypes = security.GetEnabledSecTypes();
+    for (iter = secTypes.iterator(); iter.hasNext(); ) {
+      switch ((Integer)iter.next()) {
+      case Security.secTypeNone:
+        encNoneCheckbox.setSelected(true);
+        authNoneCheckbox.setSelected(true);
+        break;
+      case Security.secTypeVncAuth:
+        encNoneCheckbox.setSelected(true);
+        authVncCheckbox.setSelected(true);
+        break;
       }
-    } else if (s instanceof JButton && (JButton)s == defSaveButton) {
-      updatePreferences();
-      UserPreferences.save();
-    } else if (s instanceof JButton && (JButton)s == defReloadButton) {
-      restorePreferences();
-    } else if (s instanceof JButton && (JButton)s == defClearButton) {
-      UserPreferences.clear();
-      cc.setOptions();
-    } else if (s instanceof JButton && (JButton)s == ca) {
-      JFileChooser fc = new JFileChooser(new File(CSecurityTLS.getDefaultCA()));
-      fc.setDialogTitle("Path to X509 CA certificate");
-      fc.setApproveButtonText("OK");
-      fc.setFileHidingEnabled(false);
-      int ret = fc.showOpenDialog(this);
-      if (ret == JFileChooser.APPROVE_OPTION)
-        CSecurityTLS.x509ca.setParam(fc.getSelectedFile().toString());
-    } else if (s instanceof JButton && (JButton)s == crl) {
-      JFileChooser fc = new JFileChooser(new File(CSecurityTLS.getDefaultCRL()));
-      fc.setDialogTitle("Path to X509 CRL file");
-      fc.setApproveButtonText("OK");
-      fc.setFileHidingEnabled(false);
-      int ret = fc.showOpenDialog(this);
-      if (ret == JFileChooser.APPROVE_OPTION)
-        CSecurityTLS.x509crl.setParam(fc.getSelectedFile().toString());
+    }
+
+    secTypesExt = security.GetEnabledExtSecTypes();
+    for (iterExt = secTypesExt.iterator(); iterExt.hasNext(); ) {
+      switch ((Integer)iterExt.next()) {
+      case Security.secTypePlain:
+        encNoneCheckbox.setSelected(true);
+        authPlainCheckbox.setSelected(true);
+        break;
+      case Security.secTypeIdent:
+        encNoneCheckbox.setSelected(true);
+        authIdentCheckbox.setSelected(true);
+        break;
+      case Security.secTypeTLSNone:
+        encTLSCheckbox.setSelected(true);
+        authNoneCheckbox.setSelected(true);
+        break;
+      case Security.secTypeTLSVnc:
+        encTLSCheckbox.setSelected(true);
+        authVncCheckbox.setSelected(true);
+        break;
+      case Security.secTypeTLSPlain:
+        encTLSCheckbox.setSelected(true);
+        authPlainCheckbox.setSelected(true);
+        break;
+      case Security.secTypeTLSIdent:
+        encTLSCheckbox.setSelected(true);
+        authIdentCheckbox.setSelected(true);
+        break;
+      case Security.secTypeX509None:
+        encX509Checkbox.setSelected(true);
+        authNoneCheckbox.setSelected(true);
+        break;
+      case Security.secTypeX509Vnc:
+        encX509Checkbox.setSelected(true);
+        authVncCheckbox.setSelected(true);
+        break;
+      case Security.secTypeX509Plain:
+        encX509Checkbox.setSelected(true);
+        authPlainCheckbox.setSelected(true);
+        break;
+      case Security.secTypeX509Ident:
+        encX509Checkbox.setSelected(true);
+        authIdentCheckbox.setSelected(true);
+        break;
+      }
+    }
+
+    File caFile = new File(CSecurityTLS.X509CA.getValueStr());
+    if (caFile.exists() && caFile.canRead())
+      caInput.setText(caFile.getAbsolutePath());
+    File crlFile = new File(CSecurityTLS.X509CRL.getValueStr());
+    if (crlFile.exists() && crlFile.canRead())
+      crlInput.setText(crlFile.getAbsolutePath());
+
+    handleX509();
+    handleSendLocalUsername();
+
+    /* Input */
+    viewOnlyCheckbox.setSelected(viewOnly.getValue());
+    acceptClipboardCheckbox.setSelected(acceptClipboard.getValue());
+    sendClipboardCheckbox.setSelected(sendClipboard.getValue());
+
+    menuKeyChoice.setSelectedIndex(0);
+
+    String menuKeyStr = menuKey.getValueStr();
+    for (int i = 0; i < menuKeyChoice.getItemCount(); i++)
+      if (menuKeyStr.equals(menuKeyChoice.getItemAt(i)))
+        menuKeyChoice.setSelectedIndex(i);
+
+    /* Screen */
+    String width, height;
+
+    if (desktopSize.getValueStr().isEmpty() ||
+        desktopSize.getValueStr().split("x").length != 2) {
+      desktopSizeCheckbox.setSelected(false);
+      desktopWidthInput.setText("1024");
+      desktopHeightInput.setText("768");
+    } else {
+      desktopSizeCheckbox.setSelected(true);
+      width = desktopSize.getValueStr().split("x")[0];
+      desktopWidthInput.setText(width);
+      height = desktopSize.getValueStr().split("x")[1];
+      desktopHeightInput.setText(height);
+    }
+    if (remoteResize.getValue())
+      remoteResizeButton.setSelected(true);
+    else
+      remoteScaleButton.setSelected(true);
+    fullScreenCheckbox.setSelected(fullScreen.getValue());
+    fullScreenAllMonitorsCheckbox.setSelected(fullScreenAllMonitors.getValue());
+
+    scalingFactorInput.setSelectedItem("100%");
+    String scaleStr = scalingFactor.getValueStr();
+    if (scaleStr.matches("^[0-9]+$"))
+      scaleStr = scaleStr.concat("%");
+    if (scaleStr.matches("^FixedRatio$"))
+      scaleStr = new String("Fixed Aspect Ratio");
+    for (int i = 0; i < scalingFactorInput.getItemCount(); i++)
+      if (scaleStr.equals(scalingFactorInput.getItemAt(i)))
+        scalingFactorInput.setSelectedIndex(i);
+
+    handleDesktopSize();
+
+    /* Misc. */
+    sharedCheckbox.setSelected(shared.getValue());
+    dotWhenNoCursorCheckbox.setSelected(dotWhenNoCursor.getValue());
+    acceptBellCheckbox.setSelected(acceptBell.getValue());
+
+    /* SSH */
+    File f;
+    tunnelCheckbox.setSelected(tunnel.getValue() || !via.getValueStr().isEmpty());
+    viaCheckbox.setSelected(!via.getValueStr().isEmpty());
+    if (viaCheckbox.isSelected()) {
+      viaUserInput.setText(Tunnel.getSshUser());
+      viaHostInput.setText(Tunnel.getSshHost());
+      viaPortInput.setText(Integer.toString(Tunnel.getSshPort()));
+    }
+    extSSHCheckbox.setSelected(extSSH.getValue());
+    f = new File(extSSHClient.getValueStr());
+    if (f.exists() && f.isFile() && f.canExecute())
+      sshClientInput.setText(f.getAbsolutePath());
+    if (extSSHArgs.getValueStr().isEmpty()) {
+      sshArgsDefaultButton.setSelected(true);
+    } else {
+      sshArgsCustomButton.setSelected(true);
+      sshArgsInput.setText(extSSHArgs.getValueStr());
+    }
+    f = new File(sshKeyFile.getValueStr());
+    if (f.exists() && f.isFile() && f.canRead())
+      sshKeyFileInput.setText(f.getAbsolutePath());
+    f = new File(sshConfig.getValueStr());
+    if (f.exists() && f.isFile() && f.canRead())
+      sshConfigInput.setText(f.getAbsolutePath());
+
+    handleTunnel();
+    handleVia();
+    handleExtSSH();
+    handleEmbed();
+    handleRfbState();
+  }
+
+  private void storeOptions() {
+    /* Compression */
+    autoSelect.setParam(autoselectCheckbox.isSelected());
+
+    if (tightButton.isSelected())
+      preferredEncoding.setParam(Encodings.encodingName(Encodings.encodingTight));
+    else if (zrleButton.isSelected())
+      preferredEncoding.setParam(Encodings.encodingName(Encodings.encodingZRLE));
+    else if (hextileButton.isSelected())
+      preferredEncoding.setParam(Encodings.encodingName(Encodings.encodingHextile));
+    else if (rawButton.isSelected())
+      preferredEncoding.setParam(Encodings.encodingName(Encodings.encodingRaw));
+
+    fullColor.setParam(fullcolorButton.isSelected());
+    if (verylowcolorButton.isSelected())
+      lowColorLevel.setParam(0);
+    else if (lowcolorButton.isSelected())
+      lowColorLevel.setParam(1);
+    else if (mediumcolorButton.isSelected())
+      lowColorLevel.setParam(2);
+
+    customCompressLevel.setParam(compressionCheckbox.isSelected());
+    noJpeg.setParam(!jpegCheckbox.isSelected());
+    compressLevel.setParam((Integer)compressionInput.getSelectedItem());
+    qualityLevel.setParam((Integer)jpegInput.getSelectedItem());
+
+    /* Security */
+    Security security = new Security();
+
+    /* Process security types which don't use encryption */
+    if (encNoneCheckbox.isSelected()) {
+      if (authNoneCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeNone);
+      if (authVncCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeVncAuth);
+      if (authPlainCheckbox.isSelected())
+        security.EnableSecType(Security.secTypePlain);
+      if (authIdentCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeIdent);
+    }
+
+    /* Process security types which use TLS encryption */
+    if (encTLSCheckbox.isSelected()) {
+      if (authNoneCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeTLSNone);
+      if (authVncCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeTLSVnc);
+      if (authPlainCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeTLSPlain);
+      if (authIdentCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeTLSIdent);
+    }
+
+    /* Process security types which use X509 encryption */
+    if (encX509Checkbox.isSelected()) {
+      if (authNoneCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeX509None);
+      if (authVncCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeX509Vnc);
+      if (authPlainCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeX509Plain);
+      if (authIdentCheckbox.isSelected())
+        security.EnableSecType(Security.secTypeX509Ident);
+    }
+
+    if (authIdentCheckbox.isSelected() ||
+        authPlainCheckbox.isSelected()) {
+      sendLocalUsername.setParam(sendLocalUsernameCheckbox.isSelected());
+    }
+
+    SecurityClient.secTypes.setParam(security.ToString());
+
+    File caFile = new File(caInput.getText());
+    if (caFile.exists() && caFile.canRead())
+      CSecurityTLS.X509CA.setParam(caFile.getAbsolutePath());
+    File crlFile = new File(crlInput.getText());
+    if (crlFile.exists() && crlFile.canRead())
+      CSecurityTLS.X509CRL.setParam(crlFile.getAbsolutePath());
+
+    /* Input */
+    viewOnly.setParam(viewOnlyCheckbox.isSelected());
+    acceptClipboard.setParam(acceptClipboardCheckbox.isSelected());
+    sendClipboard.setParam(sendClipboardCheckbox.isSelected());
+
+    String menuKeyStr =
+      MenuKey.getMenuKeySymbols()[menuKeyChoice.getSelectedIndex()].name;
+    menuKey.setParam(menuKeyStr);
+
+    /* Screen */
+    if (desktopSizeCheckbox.isSelected() &&
+        !desktopWidthInput.getText().isEmpty() &&
+        !desktopHeightInput.getText().isEmpty()) {
+      String width = desktopWidthInput.getText();
+      String height = desktopHeightInput.getText();
+      desktopSize.setParam(width.concat("x").concat(height));
+    } else {
+      desktopSize.setParam("");
+    }
+    remoteResize.setParam(remoteResizeButton.isSelected());
+    fullScreen.setParam(fullScreenCheckbox.isSelected());
+    fullScreenAllMonitors.setParam(fullScreenAllMonitorsCheckbox.isSelected());
+
+    String scaleStr =
+      ((String)scalingFactorInput.getSelectedItem()).replace("%", "");
+    scaleStr.replace("Fixed Aspect Ratio", "FixedRatio");
+    scalingFactor.setParam(scaleStr);
+
+    /* Misc. */
+    shared.setParam(sharedCheckbox.isSelected());
+    dotWhenNoCursor.setParam(dotWhenNoCursorCheckbox.isSelected());
+    acceptBell.setParam(acceptBellCheckbox.isSelected());
+
+    /* SSH */
+    tunnel.setParam(tunnelCheckbox.isSelected());
+    if (viaCheckbox.isSelected() &&
+        !viaUserInput.getText().isEmpty() &&
+        !viaHostInput.getText().isEmpty() &&
+        !viaPortInput.getText().isEmpty()) {
+      String sshUser = viaUserInput.getText();
+      String sshHost = viaHostInput.getText();
+      String sshPort = viaPortInput.getText();
+      String viaStr = sshUser.concat("@").concat(sshHost).concat(":").concat(sshPort);
+      via.setParam(viaStr);
+    }
+    extSSH.setParam(extSSHCheckbox.isSelected());
+    if (!sshClientInput.getText().isEmpty())
+      extSSHClient.setParam(sshClientInput.getText());
+    if (sshArgsDefaultButton.isSelected())
+      if (!sshArgsInput.getText().isEmpty())
+        extSSHArgs.setParam(sshArgsInput.getText());
+    if (!sshConfigInput.getText().isEmpty())
+      sshConfig.setParam(sshConfigInput.getText());
+    if (!sshKeyFileInput.getText().isEmpty())
+      sshKeyFile.setParam(sshKeyFileInput.getText());
+
+    try {
+      for (Map.Entry<Object, String> iter : callbacks.entrySet()) {
+        Object obj = iter.getKey();
+        Method cb = obj.getClass().getMethod(iter.getValue(), new Class[]{});
+        if (cb == null)
+          vlog.info(obj.getClass().getName());
+        cb.invoke(obj);
+      }
+    } catch (NoSuchMethodException e) {
+      vlog.error("NoSuchMethodException: "+e.getMessage());
+    } catch (IllegalAccessException e) {
+      vlog.error("IllegalAccessException: "+e.getMessage());
+    } catch (InvocationTargetException e) {
+      vlog.error("InvocationTargetException: "+e.getMessage());
     }
   }
 
-  public void itemStateChanged(ItemEvent e) {
-    Object s = e.getSource();
-    if (s instanceof JCheckBox && (JCheckBox)s == autoSelect) {
-      zrle.setEnabled(!autoSelect.isSelected());
-      hextile.setEnabled(!autoSelect.isSelected());
-      tight.setEnabled(!autoSelect.isSelected());
-      raw.setEnabled(!autoSelect.isSelected());
-      fullColour.setEnabled(!autoSelect.isSelected());
-      mediumColour.setEnabled(!autoSelect.isSelected());
-      lowColour.setEnabled(!autoSelect.isSelected());
-      veryLowColour.setEnabled(!autoSelect.isSelected());
+  private JPanel createCompressionPanel() {
+    JPanel FormatPanel = new JPanel();
+    FormatPanel.setLayout(new BoxLayout(FormatPanel,
+                                        BoxLayout.PAGE_AXIS));
+    FormatPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+
+    JPanel autoSelectPane = new JPanel();
+    autoSelectPane.setLayout(new BoxLayout(autoSelectPane,
+                                           BoxLayout.LINE_AXIS));
+    autoSelectPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+    autoselectCheckbox = new JCheckBox("Auto Select");
+    autoselectCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleAutoselect();
+      }
+    });
+    autoSelectPane.add(autoselectCheckbox);
+    autoSelectPane.add(Box.createHorizontalGlue());
+
+    JPanel encodingPanel = new JPanel(new GridLayout(4, 1));
+    encodingPanel.setBorder(BorderFactory.createTitledBorder("Preferred encoding"));
+    tightButton = new GroupedJRadioButton("Tight", encodingGroup, encodingPanel);
+    zrleButton = new GroupedJRadioButton("ZRLE", encodingGroup, encodingPanel);
+    hextileButton = new GroupedJRadioButton("Hextile", encodingGroup, encodingPanel);
+    rawButton = new GroupedJRadioButton("Raw", encodingGroup, encodingPanel);
+
+    JPanel colorPanel = new JPanel(new GridLayout(4, 1));
+    colorPanel.setBorder(BorderFactory.createTitledBorder("Color level"));
+    fullcolorButton = new GroupedJRadioButton("Full (all available colors)",
+                                              colorlevelGroup, colorPanel);
+    mediumcolorButton = new GroupedJRadioButton("Medium (256 colors)",
+                                                colorlevelGroup, colorPanel);
+    lowcolorButton = new GroupedJRadioButton("Low (64 colors)",
+                                             colorlevelGroup, colorPanel);
+    verylowcolorButton = new GroupedJRadioButton("Very low (8 colors)",
+                                                 colorlevelGroup, colorPanel);
+
+    JPanel encodingPane = new JPanel(new GridLayout(1, 2, 5, 0));
+    encodingPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+    encodingPane.add(encodingPanel);
+    encodingPane.add(colorPanel);
+
+    JPanel tightPanel = new JPanel(new GridBagLayout());
+    compressionCheckbox = new JCheckBox("Custom Compression Level");
+    compressionCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleCompression();
+      }
+    });
+    Object[] compressionLevels = { 1, 2, 3, 4, 5, 6 };
+    compressionInput = new MyJComboBox(compressionLevels);
+    ((MyJComboBox)compressionInput).setDocument(new IntegerDocument(1));
+    compressionInput.setPrototypeDisplayValue("0.");
+    compressionInput.setEditable(true);
+    JLabel compressionLabel =
+      new JLabel("Level (1=fast, 6=best [4-6 are rarely useful])");
+    jpegCheckbox = new JCheckBox("Allow JPEG Compression");
+    jpegCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleJpeg();
+      }
+    });
+    Object[] qualityLevels = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    jpegInput = new MyJComboBox(qualityLevels);
+    jpegInput.setPrototypeDisplayValue("0.");
+    JLabel qualityLabel = new JLabel("Quality (0=poor, 9=best)");
+
+    tightPanel.add(compressionCheckbox,
+                   new GridBagConstraints(0, 0,
+                                          REMAINDER, 1,
+                                          LIGHT, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, 0, 0, 0),
+                                          NONE, NONE));
+    int indent = getButtonLabelInset(compressionCheckbox);
+    tightPanel.add(compressionInput,
+                   new GridBagConstraints(0, 1,
+                                          1, 1,
+                                          LIGHT, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, indent, 0, 0),
+                                          NONE, NONE));
+    tightPanel.add(compressionLabel,
+                   new GridBagConstraints(1, 1,
+                                          1, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, HORIZONTAL,
+                                          new Insets(0, 5, 0, 0),
+                                          NONE, NONE));
+    tightPanel.add(jpegCheckbox,
+                   new GridBagConstraints(0, 2,
+                                          REMAINDER, 1,
+                                          LIGHT, LIGHT, 
+                                          LINE_START, NONE,
+                                          new Insets(5, 0, 0, 0),
+                                          NONE, NONE));
+    indent = getButtonLabelInset(jpegCheckbox);
+    tightPanel.add(jpegInput,
+                   new GridBagConstraints(0, 3,
+                                          1, 1,
+                                          LIGHT, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, indent, 0, 0),
+                                          NONE, NONE));
+    tightPanel.add(qualityLabel,
+                   new GridBagConstraints(1, 3,
+                                          1, 1,
+                                          HEAVY, NONE,
+                                          LINE_START, HORIZONTAL,
+                                          new Insets(0, 5, 0, 0),
+                                          NONE, NONE));
+    tightPanel.add(Box.createRigidArea(new Dimension(5,0)),
+                   new GridBagConstraints(0, 4,
+                                          REMAINDER, REMAINDER,
+                                          HEAVY, HEAVY,
+                                          LINE_START, BOTH,
+                                          new Insets(0, 0, 0, 0),
+                                          NONE, NONE));
+    FormatPanel.add(autoSelectPane);
+    FormatPanel.add(encodingPane);
+    FormatPanel.add(tightPanel);
+    return FormatPanel;
+  }
+
+  private JPanel createSecurityPanel() {
+    JPanel SecPanel = new JPanel();
+    SecPanel.setLayout(new BoxLayout(SecPanel,
+                                     BoxLayout.PAGE_AXIS));
+    SecPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+
+    JPanel vencryptPane = new JPanel();
+    vencryptPane.setLayout(new BoxLayout(vencryptPane,
+                                         BoxLayout.LINE_AXIS));
+    vencryptPane.setBorder(BorderFactory.createEmptyBorder(0,0,5,0));
+
+    JPanel encrPanel = new JPanel(new GridBagLayout());
+    encrPanel.setBorder(BorderFactory.createTitledBorder("Encryption"));
+    encNoneCheckbox = new JCheckBox("None");
+    encTLSCheckbox = new JCheckBox("Anonymous TLS");
+    encX509Checkbox = new JCheckBox("TLS with X.509 certificates");
+    encX509Checkbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleX509();
+      }
+    });
+    JLabel caLabel = new JLabel("X.509 CA Certificate");
+    caInput = new JTextField();
+    caChooser = new JButton("Browse");
+    caChooser.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        JComponent c = ((JButton)e.getSource()).getRootPane();
+        File dflt = new File(CSecurityTLS.X509CA.getValueStr());
+        FileNameExtensionFilter filter =
+          new FileNameExtensionFilter("X.509 certificate", "crt", "cer", "pem");
+        File f = showChooser("Path to X509 CA certificate", dflt, c, filter);
+        if (f != null && f.exists() && f.canRead())
+          caInput.setText(f.getAbsolutePath());
+      }
+    });
+    JLabel crlLabel = new JLabel("X.509 CRL file");
+    crlInput = new JTextField();
+    crlChooser = new JButton("Browse");
+    crlChooser.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        JComponent c = ((JButton)e.getSource()).getRootPane();
+        File dflt = new File(CSecurityTLS.X509CRL.getValueStr());
+        FileNameExtensionFilter filter =
+          new FileNameExtensionFilter("X.509 CRL", "crl");
+        File f = showChooser("Path to X509 CRL file", dflt, c, filter);
+        if (f != null && f.exists() && f.canRead())
+          crlInput.setText(f.getAbsolutePath());
+      }
+    });
+    encrPanel.add(encNoneCheckbox,
+                  new GridBagConstraints(0, 0,
+                                         REMAINDER, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    encrPanel.add(encTLSCheckbox,
+                  new GridBagConstraints(0, 1,
+                                         REMAINDER, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    encrPanel.add(encX509Checkbox,
+                  new GridBagConstraints(0, 2,
+                                         3, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 0, 0),
+                                         NONE, NONE));
+    int indent = getButtonLabelInset(encX509Checkbox);
+    encrPanel.add(caLabel,
+                  new GridBagConstraints(0, 3,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_END, NONE,
+                                         new Insets(0, indent, 5, 0),
+                                         0, 0));
+    encrPanel.add(caInput,
+                  new GridBagConstraints(1, 3,
+                                         1, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, HORIZONTAL,
+                                         new Insets(0, 5, 5, 0),
+                                         0, 0));
+    encrPanel.add(caChooser,
+                  new GridBagConstraints(2, 3,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, VERTICAL,
+                                         new Insets(0, 5, 5, 0),
+                                         0, 0));
+    encrPanel.add(crlLabel,
+                  new GridBagConstraints(0, 4,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_END, NONE,
+                                         new Insets(0, indent, 0, 0),
+                                         0, 0));
+    encrPanel.add(crlInput,
+                  new GridBagConstraints(1, 4,
+                                         1, 1,
+                                         HEAVY, LIGHT,
+                                         LINE_START, HORIZONTAL,
+                                         new Insets(0, 5, 0, 0),
+                                         0, 0));
+    encrPanel.add(crlChooser,
+                  new GridBagConstraints(2, 4,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, VERTICAL,
+                                         new Insets(0, 5, 0, 0),
+                                         0, 0));
+
+    JPanel authPanel = new JPanel(new GridBagLayout());
+    authPanel.setBorder(BorderFactory.createTitledBorder("Authentication"));
+
+    authNoneCheckbox = new JCheckBox("None");
+    authVncCheckbox = new JCheckBox("Standard VNC");
+    authPlainCheckbox = new JCheckBox("Plaintext");
+    authPlainCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleSendLocalUsername();
+      }
+    });
+    authIdentCheckbox = new JCheckBox("Ident");
+    authIdentCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleSendLocalUsername();
+      }
+    });
+    sendLocalUsernameCheckbox = new JCheckBox("Send Local Username");
+    authPanel.add(authNoneCheckbox,
+                  new GridBagConstraints(0, 0,
+                                         REMAINDER, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    authPanel.add(authVncCheckbox,
+                  new GridBagConstraints(0, 1,
+                                         REMAINDER, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    authPanel.add(authPlainCheckbox,
+                  new GridBagConstraints(0, 2,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 2, 0),
+                                         NONE, NONE));
+    authPanel.add(authIdentCheckbox,
+                  new GridBagConstraints(0, 3,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(2, 0, 0, 0),
+                                         NONE, NONE));
+    authPanel.add(sendLocalUsernameCheckbox,
+                  new GridBagConstraints(1, 2,
+                                         1, 2,
+                                         HEAVY, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(2, 20, 2, 0),
+                                         NONE, NONE));
+
+    SecPanel.add(vencryptPane,
+                 new GridBagConstraints(0, 0,
+                                        REMAINDER, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 0, 4, 0),
+                                        NONE, NONE));
+    SecPanel.add(encrPanel,
+                 new GridBagConstraints(0, 1,
+                                        REMAINDER, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 0, 4, 0),
+                                        NONE, NONE));
+    SecPanel.add(authPanel,
+                 new GridBagConstraints(0, 2,
+                                        REMAINDER, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 0, 4, 0),
+                                        NONE, NONE));
+    SecPanel.add(Box.createRigidArea(new Dimension(0,0)),
+                 new GridBagConstraints(0, RELATIVE,
+                                        REMAINDER, REMAINDER,
+                                        HEAVY, HEAVY,
+                                        LINE_START, BOTH,
+                                        new Insets(0, 0, 0, 0),
+                                        NONE, NONE));
+    return SecPanel;
+  }
+
+  private JPanel createInputPanel() {
+    JPanel inputPanel = new JPanel(new GridBagLayout());
+    inputPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+
+    viewOnlyCheckbox = new JCheckBox("View only (ignore mouse and keyboard)");
+    acceptClipboardCheckbox = new JCheckBox("Accept clipboard from server");
+    sendClipboardCheckbox = new JCheckBox("Send clipboard to server");
+    JLabel menuKeyLabel = new JLabel("Menu key");
+    String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()];
+    //String[] menuKeys = new String[MenuKey.getMenuKeySymbolCount()+1];
+    //menuKeys[0] = "None";
+    for (int i = 0; i < MenuKey.getMenuKeySymbolCount(); i++)
+      menuKeys[i] = MenuKey.getKeyText(MenuKey.getMenuKeySymbols()[i]);
+      //menuKeys[i+1] = MenuKey.getKeyText(MenuKey.getMenuKeySymbols()[i]);
+    menuKeyChoice = new JComboBox(menuKeys);
+
+    inputPanel.add(viewOnlyCheckbox,
+                   new GridBagConstraints(0, 0,
+                                          REMAINDER, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, 0, 4, 0),
+                                          NONE, NONE));
+    inputPanel.add(acceptClipboardCheckbox,
+                   new GridBagConstraints(0, 1,
+                                          REMAINDER, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, 0, 4, 0),
+                                          NONE, NONE));
+    inputPanel.add(sendClipboardCheckbox,
+                   new GridBagConstraints(0, 2,
+                                          REMAINDER, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, 0, 4, 0),
+                                          NONE, NONE));
+    inputPanel.add(menuKeyLabel,
+                   new GridBagConstraints(0, 3,
+                                          1, 1,
+                                          LIGHT, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, 0, 0, 0),
+                                          NONE, NONE));
+    inputPanel.add(menuKeyChoice,
+                   new GridBagConstraints(1, 3,
+                                          1, 1,
+                                          HEAVY, LIGHT,
+                                          LINE_START, NONE,
+                                          new Insets(0, 5, 0, 0),
+                                          NONE, NONE));
+    inputPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+                   new GridBagConstraints(0, 4,
+                                          REMAINDER, REMAINDER,
+                                          HEAVY, HEAVY,
+                                          LINE_START, BOTH,
+                                          new Insets(0, 0, 0, 0),
+                                          NONE, NONE));
+    return inputPanel;
+  }
+
+  private JPanel createScreenPanel() {
+    JPanel ScreenPanel = new JPanel(new GridBagLayout());
+    ScreenPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+
+    JPanel SizingPanel = new JPanel(new GridBagLayout());
+    SizingPanel.setBorder(BorderFactory.createTitledBorder("Desktop Sizing"));
+    desktopSizeCheckbox = new JCheckBox("Resize remote session on connect");
+    desktopSizeCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleDesktopSize();
+      }
+    });
+    desktopWidthInput = new IntegerTextField(5);
+    desktopHeightInput = new IntegerTextField(5);
+    JPanel desktopSizePanel =
+      new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    desktopSizePanel.add(desktopWidthInput);
+    desktopSizePanel.add(new JLabel(" x "));
+    desktopSizePanel.add(desktopHeightInput);
+    sizingGroup = new ButtonGroup();
+    remoteResizeButton =
+      new JRadioButton("Resize remote session to the local window");
+    sizingGroup.add(remoteResizeButton);
+    remoteScaleButton =
+      new JRadioButton("Scale remote session to the local window");
+    sizingGroup.add(remoteScaleButton);
+    remoteResizeButton.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleRemoteResize();
+      }
+    });
+    JLabel scalingFactorLabel = new JLabel("Scaling Factor");
+    Object[] scalingFactors = {
+      "Auto", "Fixed Aspect Ratio", "50%", "75%", "95%", "100%", "105%",
+      "125%", "150%", "175%", "200%", "250%", "300%", "350%", "400%" };
+    scalingFactorInput = new MyJComboBox(scalingFactors);
+    scalingFactorInput.setEditable(true);
+    fullScreenCheckbox = new JCheckBox("Full-screen mode");
+    fullScreenAllMonitorsCheckbox =
+      new JCheckBox("Enable full-screen mode over all monitors");
+    SizingPanel.add(desktopSizeCheckbox,
+                    new GridBagConstraints(0, 0,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+    int indent = getButtonLabelInset(desktopSizeCheckbox);
+    SizingPanel.add(desktopSizePanel,
+                    new GridBagConstraints(0, 1,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, indent, 0, 0),
+                                           NONE, NONE));
+    SizingPanel.add(remoteResizeButton,
+                    new GridBagConstraints(0, 2,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    SizingPanel.add(remoteScaleButton,
+                    new GridBagConstraints(0, 3,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    indent = getButtonLabelInset(remoteScaleButton);
+    SizingPanel.add(scalingFactorLabel,
+                    new GridBagConstraints(0, 4,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, indent, 4, 0),
+                                           NONE, NONE));
+    SizingPanel.add(scalingFactorInput,
+                    new GridBagConstraints(1, 4,
+                                           1, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 4, 0),
+                                           NONE, NONE));
+    ScreenPanel.add(SizingPanel,
+                    new GridBagConstraints(0, 0,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    ScreenPanel.add(fullScreenCheckbox,
+                    new GridBagConstraints(0, 1,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    indent = getButtonLabelInset(fullScreenCheckbox);
+    ScreenPanel.add(fullScreenAllMonitorsCheckbox,
+                    new GridBagConstraints(0, 2,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, indent, 4, 0),
+                                           NONE, NONE));
+    ScreenPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+                    new GridBagConstraints(0, 3,
+                                           REMAINDER, REMAINDER,
+                                           HEAVY, HEAVY,
+                                           LINE_START, BOTH,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+    return ScreenPanel;
+  }
+
+  private JPanel createMiscPanel() {
+    JPanel MiscPanel = new JPanel(new GridBagLayout());
+    MiscPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+    sharedCheckbox =
+      new JCheckBox("Shared (don't disconnect other viewers)");
+    dotWhenNoCursorCheckbox = new JCheckBox("Show dot when no cursor");
+    acceptBellCheckbox = new JCheckBox("Beep when requested by the server");
+    MiscPanel.add(sharedCheckbox,
+                  new GridBagConstraints(0, 0,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    MiscPanel.add(dotWhenNoCursorCheckbox,
+                  new GridBagConstraints(0, 1,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    MiscPanel.add(acceptBellCheckbox,
+                  new GridBagConstraints(0, 2,
+                                         1, 1,
+                                         LIGHT, LIGHT,
+                                         LINE_START, NONE,
+                                         new Insets(0, 0, 4, 0),
+                                         NONE, NONE));
+    MiscPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+                  new GridBagConstraints(0, 3,
+                                         REMAINDER, REMAINDER,
+                                         HEAVY, HEAVY,
+                                         LINE_START, BOTH,
+                                         new Insets(0, 0, 0, 0),
+                                         NONE, NONE));
+    return MiscPanel;
+  }
+
+  private JPanel createSshPanel() {
+    JPanel sshPanel = new JPanel(new GridBagLayout());
+    sshPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+    ButtonGroup sshArgsGroup = new ButtonGroup();
+    tunnelCheckbox = new JCheckBox("Tunnel VNC over SSH");
+    tunnelCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleTunnel();
+      }
+    });
+
+    JPanel tunnelPanel = new JPanel(new GridBagLayout());
+
+    viaCheckbox = new JCheckBox("Use SSH gateway");
+    viaCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleVia();
+      }
+    });
+    JLabel sshUserLabel = new JLabel("Username");
+    viaUserInput = new JTextField();
+    JLabel sshUserAtLabel = new JLabel("@");
+    JLabel sshHostLabel = new JLabel("Hostname (or IP address)");
+    viaHostInput = new JTextField("");
+    JLabel sshPortLabel = new JLabel("Port");
+    viaPortInput = new IntegerTextField(5);
+
+    extSSHCheckbox = new JCheckBox("Use external SSH client");
+    extSSHCheckbox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        handleExtSSH();
+      }
+    });
+    sshClientInput = new JTextField();
+    sshClientChooser = new JButton("Browse");
+    sshClientChooser.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        JComponent c = ((JButton)e.getSource()).getRootPane();
+        File dflt = new File(extSSHClient.getValueStr());
+        File f = showChooser("Path to external SSH client", dflt, c);
+        if (f != null && f.exists() && f.isFile() && f.canExecute())
+          sshClientInput.setText(f.getAbsolutePath());
+      }
+    });
+    JLabel sshConfigLabel = new JLabel("SSH config file");
+    sshConfigInput = new JTextField();
+    sshConfigChooser = new JButton("Browse");
+    sshConfigChooser.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        JComponent c = ((JButton)e.getSource()).getRootPane();
+        File dflt = new File(sshConfig.getValueStr());
+        File f = showChooser("Path to OpenSSH client config file", dflt, c);
+        if (f != null && f.exists() && f.isFile() && f.canRead())
+          sshConfigInput.setText(f.getAbsolutePath());
+      }
+    });
+    JLabel sshKeyFileLabel = new JLabel("SSH identity file");
+    sshKeyFileInput = new JTextField();
+    sshKeyFileChooser = new JButton("Browse");
+    sshKeyFileChooser.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        JComponent c = ((JButton)e.getSource()).getRootPane();
+        File f = showChooser("Path to SSH key file", null, c);
+        if (f != null && f.exists() && f.isFile() && f.canRead())
+          sshKeyFileInput.setText(f.getAbsolutePath());
+      }
+    });
+    JPanel sshArgsPanel = new JPanel(new GridBagLayout());
+    JLabel sshArgsLabel = new JLabel("Arguments:");
+    sshArgsDefaultButton = new GroupedJRadioButton("Default", sshArgsGroup, sshArgsPanel);
+    sshArgsDefaultButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        sshArgsInput.setEnabled(sshArgsCustomButton.isSelected());
+      }
+    });
+    sshArgsCustomButton = new GroupedJRadioButton("Custom", sshArgsGroup, sshArgsPanel);
+    sshArgsCustomButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        sshArgsInput.setEnabled(sshArgsCustomButton.isSelected());
+      }
+    });
+    sshArgsInput = new JTextField();
+
+    JPanel gatewayPanel = new JPanel(new GridBagLayout());
+    gatewayPanel.add(viaCheckbox,
+                    new GridBagConstraints(0, 0,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    int indent = getButtonLabelInset(viaCheckbox);
+    gatewayPanel.add(sshUserLabel,
+                 new GridBagConstraints(0, 1,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, indent, 4, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshHostLabel,
+                 new GridBagConstraints(2, 1,
+                                        1, 1,
+                                        HEAVY, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 0, 4, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshPortLabel,
+                 new GridBagConstraints(3, 1,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 5, 4, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(viaUserInput,
+                 new GridBagConstraints(0, 2,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, indent, 0, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(sshUserAtLabel,
+                 new GridBagConstraints(1, 2,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 2, 0, 2),
+                                        NONE, NONE));
+    gatewayPanel.add(viaHostInput,
+                 new GridBagConstraints(2, 2,
+                                        1, 1,
+                                        HEAVY, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 0, 0, 0),
+                                        NONE, NONE));
+    gatewayPanel.add(viaPortInput,
+                 new GridBagConstraints(3, 2,
+                                        1, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, 5, 0, 0),
+                                        NONE, NONE));
+
+    JPanel clientPanel = new JPanel(new GridBagLayout());
+    clientPanel.add(extSSHCheckbox,
+                    new GridBagConstraints(0, 0,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+    clientPanel.add(sshClientInput,
+                    new GridBagConstraints(1, 0,
+                                           1, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    clientPanel.add(sshClientChooser,
+                    new GridBagConstraints(2, 0,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArgsLabel,
+                    new GridBagConstraints(0, 1,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArgsDefaultButton,
+                    new GridBagConstraints(1, 1,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArgsCustomButton,
+                    new GridBagConstraints(2, 1,
+                                           1, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, NONE,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    sshArgsPanel.add(sshArgsInput,
+                    new GridBagConstraints(3, 1,
+                                           1, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 5, 0, 0),
+                                           NONE, NONE));
+    indent = getButtonLabelInset(extSSHCheckbox);
+    clientPanel.add(sshArgsPanel,
+                    new GridBagConstraints(0, 1,
+                                           REMAINDER, 1,
+                                           LIGHT, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(4, indent, 0, 0),
+                                           NONE, NONE));
+
+    JPanel opensshPanel = new JPanel(new GridBagLayout());
+    TitledBorder border =
+      BorderFactory.createTitledBorder("Embedded SSH client configuration");
+    opensshPanel.setBorder(border);
+    opensshPanel.add(sshConfigLabel,
+                     new GridBagConstraints(0, 0,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, NONE,
+                                            new Insets(0, 0, 5, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshConfigInput,
+                     new GridBagConstraints(1, 0,
+                                            1, 1,
+                                            HEAVY, LIGHT,
+                                            LINE_START, HORIZONTAL,
+                                            new Insets(0, 5, 5, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshConfigChooser,
+                     new GridBagConstraints(2, 0,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, VERTICAL,
+                                            new Insets(0, 5, 5, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshKeyFileLabel,
+                     new GridBagConstraints(0, 1,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, NONE,
+                                            new Insets(0, 0, 0, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshKeyFileInput,
+                     new GridBagConstraints(1, 1,
+                                            1, 1,
+                                            HEAVY, LIGHT,
+                                            LINE_START, HORIZONTAL,
+                                            new Insets(0, 5, 0, 0),
+                                            NONE, NONE));
+    opensshPanel.add(sshKeyFileChooser,
+                     new GridBagConstraints(2, 1,
+                                            1, 1,
+                                            LIGHT, LIGHT,
+                                            LINE_START, VERTICAL,
+                                            new Insets(0, 5, 0, 0),
+                                            NONE, NONE));
+    tunnelPanel.add(gatewayPanel,
+                    new GridBagConstraints(0, 0,
+                                           REMAINDER, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    tunnelPanel.add(clientPanel,
+                    new GridBagConstraints(0, 1,
+                                           REMAINDER, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 4, 0),
+                                           NONE, NONE));
+    tunnelPanel.add(opensshPanel,
+                    new GridBagConstraints(0, 2,
+                                           REMAINDER, 1,
+                                           HEAVY, LIGHT,
+                                           LINE_START, HORIZONTAL,
+                                           new Insets(0, 0, 0, 0),
+                                           NONE, NONE));
+
+    sshPanel.add(tunnelCheckbox,
+                 new GridBagConstraints(0, 0,
+                                        REMAINDER, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, NONE,
+                                        new Insets(0, 0, 4, 0),
+                                        NONE, NONE));
+    indent = getButtonLabelInset(tunnelCheckbox);
+    sshPanel.add(tunnelPanel,
+                 new GridBagConstraints(0, 2,
+                                        REMAINDER, 1,
+                                        LIGHT, LIGHT,
+                                        LINE_START, HORIZONTAL,
+                                        new Insets(0, indent, 4, 0),
+                                        NONE, NONE));
+    sshPanel.add(Box.createRigidArea(new Dimension(5, 0)),
+                 new GridBagConstraints(0, RELATIVE,
+                                        REMAINDER, REMAINDER,
+                                        HEAVY, HEAVY,
+                                        LINE_START, BOTH,
+                                        new Insets(0, 0, 0, 0),
+                                        NONE, NONE));
+    return sshPanel;
+  }
+
+  private void handleAutoselect()
+  {
+    ButtonGroup[] groups = { encodingGroup, colorlevelGroup };
+    for (ButtonGroup grp : groups) {
+      Enumeration<AbstractButton> elems = grp.getElements();
+      while (elems.hasMoreElements())
+        elems.nextElement().setEnabled(!autoselectCheckbox.isSelected());
     }
-    if (s instanceof JCheckBox && (JCheckBox)s == customCompressLevel) {
-      compressLevel.setEnabled(customCompressLevel.isSelected());
-    }
-    if (s instanceof JCheckBox && (JCheckBox)s == desktopSize) {
-      desktopWidth.setEnabled(desktopSize.isSelected());
-      desktopHeight.setEnabled(desktopSize.isSelected());
-    }
-    if (s instanceof JCheckBox && (JCheckBox)s == noJpeg) {
-      qualityLevel.setEnabled(noJpeg.isSelected());
-    }
-    if (s instanceof JCheckBox && (JCheckBox)s == secVeNCrypt) {
-      encNone.setEnabled(secVeNCrypt.isSelected());
-      encTLS.setEnabled(secVeNCrypt.isSelected());
-      encX509.setEnabled(secVeNCrypt.isSelected());
-      ca.setEnabled(secVeNCrypt.isSelected());
-      crl.setEnabled(secVeNCrypt.isSelected());
-      secIdent.setEnabled(secVeNCrypt.isSelected());
-      secPlain.setEnabled(secVeNCrypt.isSelected());
-      sendLocalUsername.setEnabled(secVeNCrypt.isSelected());
-    }
-    if (s instanceof JCheckBox && (JCheckBox)s == encNone) {
-      secNone.setSelected(encNone.isSelected() &&
-        UserPreferences.getBool("viewer", "secNone", true));
-      secVnc.setSelected(encNone.isSelected() &&
-        UserPreferences.getBool("viewer", "secVnc", true));
-    }
-    if (s instanceof JCheckBox && (JCheckBox)s == secIdent ||
-        s instanceof JCheckBox && (JCheckBox)s == secPlain) {
-      sendLocalUsername.setEnabled(secIdent.isSelected()||secPlain.isSelected());
+
+    // JPEG setting is also affected by autoselection
+    jpegCheckbox.setEnabled(!autoselectCheckbox.isSelected());
+    handleJpeg();
+  }
+
+  private void handleCompression()
+  {
+    compressionInput.setEnabled(compressionCheckbox.isSelected());
+  }
+
+  private void handleJpeg()
+  {
+    if (jpegCheckbox.isSelected() &&
+        !autoselectCheckbox.isSelected())
+      jpegInput.setEnabled(true);
+    else
+      jpegInput.setEnabled(false);
+  }
+
+  private void handleX509()
+  {
+    caInput.setEnabled(encX509Checkbox.isSelected());
+    caChooser.setEnabled(encX509Checkbox.isSelected());
+    crlInput.setEnabled(encX509Checkbox.isSelected());
+    crlChooser.setEnabled(encX509Checkbox.isSelected());
+  }
+
+  private void handleSendLocalUsername()
+  {
+    boolean value = authIdentCheckbox.isSelected() ||
+                    authPlainCheckbox.isSelected();
+        sendLocalUsernameCheckbox.setEnabled(value);
+  }
+
+  private void handleDesktopSize()
+  {
+    desktopWidthInput.setEnabled(desktopSizeCheckbox.isSelected());
+    desktopHeightInput.setEnabled(desktopSizeCheckbox.isSelected());
+  }
+
+  private void handleRemoteResize()
+  {
+    scalingFactorInput.setEnabled(!remoteResizeButton.isSelected());
+  }
+
+  private void handleTunnel()
+  {
+    viaCheckbox.setEnabled(tunnelCheckbox.isSelected());
+    extSSHCheckbox.setEnabled(tunnelCheckbox.isSelected());
+    if (tunnelCheckbox.isSelected()) {
+      JComponent[] components = { viaUserInput, viaHostInput, viaPortInput };
+      for (JComponent c : components)
+        c.setEnabled(viaCheckbox.isSelected());
+      sshClientInput.setEnabled(extSSHCheckbox.isSelected());
+      sshClientChooser.setEnabled(extSSHCheckbox.isSelected());
+      sshArgsDefaultButton.setEnabled(extSSHCheckbox.isSelected());
+      sshArgsCustomButton.setEnabled(extSSHCheckbox.isSelected());
+      sshArgsInput.setEnabled(extSSHCheckbox.isSelected());
+      sshConfigInput.setEnabled(!extSSHCheckbox.isSelected());
+      sshConfigChooser.setEnabled(!extSSHCheckbox.isSelected());
+      sshKeyFileInput.setEnabled(!extSSHCheckbox.isSelected());
+      sshKeyFileChooser.setEnabled(!extSSHCheckbox.isSelected());
+    } else {
+      JComponent[] components = {
+        viaUserInput, viaHostInput, viaPortInput, sshClientInput,
+        sshClientChooser, sshArgsDefaultButton, sshArgsCustomButton,
+        sshArgsInput, sshConfigInput, sshConfigChooser, sshKeyFileInput,
+        sshKeyFileChooser, };
+      for (JComponent c : components)
+        c.setEnabled(false);
     }
   }
 
+  private void handleVia()
+  {
+    if (tunnelCheckbox.isSelected()) {
+      viaUserInput.setEnabled(viaCheckbox.isSelected());
+      viaHostInput.setEnabled(viaCheckbox.isSelected());
+      viaPortInput.setEnabled(viaCheckbox.isSelected());
+    }
+  }
+
+  private void handleExtSSH()
+  {
+    if (tunnelCheckbox.isSelected()) {
+      sshClientInput.setEnabled(extSSHCheckbox.isSelected());
+      sshClientChooser.setEnabled(extSSHCheckbox.isSelected());
+      sshArgsDefaultButton.setEnabled(extSSHCheckbox.isSelected());
+      sshArgsCustomButton.setEnabled(extSSHCheckbox.isSelected());
+      sshConfigInput.setEnabled(!extSSHCheckbox.isSelected());
+      sshConfigChooser.setEnabled(!extSSHCheckbox.isSelected());
+      sshKeyFileInput.setEnabled(!extSSHCheckbox.isSelected());
+      sshKeyFileChooser.setEnabled(!extSSHCheckbox.isSelected());
+      if (sshArgsCustomButton.isSelected())
+        sshArgsInput.setEnabled(extSSHCheckbox.isSelected());
+      else
+        sshArgsInput.setEnabled(false);
+    }
+  }
+
+  private void handleEmbed()
+  {
+    if (embed.getValue()) {
+      desktopSizeCheckbox.setEnabled(false);
+      desktopWidthInput.setEnabled(false);
+      desktopHeightInput.setEnabled(false);
+      remoteResizeButton.setEnabled(false);
+      remoteScaleButton.setEnabled(false);
+      fullScreenCheckbox.setEnabled(false);
+      fullScreenAllMonitorsCheckbox.setEnabled(false);
+      scalingFactorInput.setEnabled(false);
+    }
+  }
+
+  private void handleRfbState()
+  {
+    CConn cc = VncViewer.cc;
+    if (cc != null && cc.state() == CConnection.RFBSTATE_NORMAL) {
+      JComponent[] components = {
+          encNoneCheckbox, encTLSCheckbox, encX509Checkbox, authNoneCheckbox,
+          authVncCheckbox, authVncCheckbox, authIdentCheckbox, authPlainCheckbox,
+          sendLocalUsernameCheckbox, caInput, caChooser, crlInput, crlChooser,
+          sharedCheckbox, tunnelCheckbox, viaCheckbox, viaUserInput, viaHostInput,
+          viaPortInput, extSSHCheckbox, sshClientInput, sshClientChooser,
+          sshArgsDefaultButton, sshArgsCustomButton, sshArgsInput, sshConfigInput,
+          sshKeyFileInput, sshConfigChooser, sshKeyFileChooser,
+        };
+      for (JComponent c : components)
+        c.setEnabled(false);
+    }
+  }
+
+  static LogWriter vlog = new LogWriter("OptionsDialog");
 }

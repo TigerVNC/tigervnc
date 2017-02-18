@@ -58,6 +58,7 @@ config-stamp:
 	(cd unix/xserver; \
 	export PIXMANINCDIR=/usr/include/pixman-1; \
 	autoreconf -fiv; \
+  patch -p1 -i ../../debian/patches/debian_libtool.patch; \
 	./configure --prefix=/usr \
 		--disable-silent-rules \
 		--disable-static \
@@ -143,7 +144,7 @@ build-indep-stamp:
 	#  anything for this package.
 	#/usr/bin/docbook-to-man debian/vnc.sgml > vnc.1
 	(cd media;make)
-	(cd java;cmake -G"Unix Makefiles";make)
+	(cd java;cmake -G"Unix Makefiles";JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" make)
 
 	touch build-indep-stamp
 
@@ -204,18 +205,6 @@ install: build
 		$(CURDIR)/debian/xtigervncviewer/usr/bin/xtigervncviewer
 	mv $(CURDIR)/debian/xtigervncviewer/usr/share/man/man1/vncviewer.1 \
 		$(CURDIR)/debian/xtigervncviewer/usr/share/man/man1/xtigervncviewer.1
-	install -o root -g root -m 644 -D media/icons/tigervnc_16.png \
-		$(CURDIR)/debian/xtigervncviewer/usr/share/icons/hicolor/16x16/apps/tigervnc.png
-	install -o root -g root -m 644 -D media/icons/tigervnc_22.png \
-		$(CURDIR)/debian/xtigervncviewer/usr/share/icons/hicolor/22x22/apps/tigervnc.png
-	install -o root -g root -m 644 -D media/icons/tigervnc_24.png \
-		$(CURDIR)/debian/xtigervncviewer/usr/share/icons/hicolor/24x24/apps/tigervnc.png
-	install -o root -g root -m 644 -D media/icons/tigervnc_32.png \
-		$(CURDIR)/debian/xtigervncviewer/usr/share/icons/hicolor/32x32/apps/tigervnc.png
-	install -o root -g root -m 644 -D media/icons/tigervnc_48.png \
-		$(CURDIR)/debian/xtigervncviewer/usr/share/icons/hicolor/48x48/apps/tigervnc.png
-	install -o root -g root -m 644 -D media/icons/tigervnc.svg \
-		$(CURDIR)/debian/xtigervncviewer/usr/share/icons/hicolor/scalable/apps/tigervnc.svg
 	# tigervnc-java
 	mkdir -p $(CURDIR)/debian/tigervnc-java/usr/share
 	(cd java; make install DESTDIR=$(CURDIR)/debian/tigervnc-java/usr/share)

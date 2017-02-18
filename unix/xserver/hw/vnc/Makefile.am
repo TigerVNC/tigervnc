@@ -3,18 +3,20 @@ LIB_DIR=${top_builddir}/../../common
 
 RFB_LIB=$(LIB_DIR)/rfb/librfb.la
 RDR_LIB=$(LIB_DIR)/rdr/librdr.la
+OS_LIB=$(LIB_DIR)/os/libos.la
 NETWORK_LIB=$(LIB_DIR)/network/libnetwork.la
 XREGION_LIB=$(LIB_DIR)/Xregion/libXregion.la
-COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB)
+COMMON_LIBS=$(NETWORK_LIB) $(RFB_LIB) $(RDR_LIB) $(XREGION_LIB) $(OS_LIB)
 
 noinst_LTLIBRARIES = libvnccommon.la
 
 HDRS = vncExtInit.h vncHooks.h \
-	vncBlockHandler.h XorgGlue.h \
-	XserverDesktop.h xorg-version.h \
+	vncBlockHandler.h vncSelection.h \
+	XorgGlue.h XserverDesktop.h xorg-version.h \
 	Input.h RFBGlue.h
 
-libvnccommon_la_SOURCES = $(HDRS) vncExt.c vncExtInit.cc vncHooks.c \
+libvnccommon_la_SOURCES = $(HDRS) \
+	vncExt.c vncExtInit.cc vncHooks.c vncSelection.c \
 	vncBlockHandler.c XorgGlue.c RFBGlue.cc XserverDesktop.cc \
 	Input.c InputXKB.c
 

@@ -45,6 +45,8 @@
 
 #include <rfb/util.h>
 
+namespace os { class Mutex; }
+
 namespace rfb {
   class VoidParameter;
   struct ParameterIterator;
@@ -174,6 +176,8 @@ namespace rfb {
     bool immutable;
     const char* name;
     const char* description;
+
+    os::Mutex* mutex;
   };
 
   class AliasParameter : public VoidParameter {

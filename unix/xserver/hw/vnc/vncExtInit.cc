@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <set>
+#include <string>
+
 #include <rfb/Configuration.h>
 #include <rfb/Logger_stdio.h>
 #include <rfb/LogWriter.h>
@@ -35,7 +38,9 @@
 #include "vncExtInit.h"
 #include "vncHooks.h"
 #include "vncBlockHandler.h"
+#include "vncSelection.h"
 #include "XorgGlue.h"
+#include "xorg-version.h"
 
 using namespace rfb;
 
@@ -51,6 +56,15 @@ void* vncFbptr[MAXSCREENS] = { 0, };
 int vncFbstride[MAXSCREENS];
 
 int vncInetdSock = -1;
+
+struct CaseInsensitiveCompare {
+  bool operator() (const std::string &a, const std::string &b) const {
+    return strcasecmp(a.c_str(), b.c_str()) < 0;
+  }
+};
+
+typedef std::set<std::string, CaseInsensitiveCompare> ParamSet;
+static ParamSet allowOverrideSet;
 
 rfb::StringParameter httpDir("httpd",
                              "Directory containing files to serve via HTTP",
@@ -69,6 +83,14 @@ rfb::StringParameter interface("interface",
 rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock",
                                      "Avoid fake Shift presses for keys affected by NumLock.",
                                      true);
+rfb::StringParameter allowOverride("AllowOverride",
+                                   "Comma separated list of parameters that can be modified using VNC extension.",
+                                   "desktop,AcceptPointerEvents,SendCutText,AcceptCutText,SendPrimary,SetPrimary");
+rfb::BoolParameter setPrimary("SetPrimary", "Set the PRIMARY as well "
+                              "as the CLIPBOARD selection", true);
+rfb::BoolParameter sendPrimary("SendPrimary",
+                               "Send the PRIMARY as well as the CLIPBOARD selection",
+                               true);
 
 static PixelFormat vncGetPixelFormat(int scrIdx)
 {
@@ -99,6 +121,19 @@ static PixelFormat vncGetPixelFormat(int scrIdx)
                      redShift, greenShift, blueShift);
 }
 
+static void parseOverrideList(const char *text, ParamSet &out)
+{
+  for (const char* iter = text; ; ++iter) {
+    if (*iter == ',' || *iter == '\0') {
+      out.insert(std::string(text, iter));
+      text = iter + 1;
+
+      if (*iter == '\0')
+        break;
+    }
+  }
+}
+
 void vncExtensionInit(void)
 {
   int ret;
@@ -123,11 +158,17 @@ void vncExtensionInit(void)
   if (ret == -1)
     return;
 
+  vncSelectionInit();
+
   vlog.info("VNC extension running!");
 
   try {
     if (!initialised) {
       rfb::initStdIOLoggers();
+
+      parseOverrideList(allowOverride, allowOverrideSet);
+      allowOverride.setImmutable();
+
       initialised = true;
     }
 
@@ -137,8 +178,7 @@ void vncExtensionInit(void)
         std::list<network::TcpListener*> listeners;
         std::list<network::TcpListener*> httpListeners;
         if (scr == 0 && vncInetdSock != -1) {
-          if (network::TcpSocket::isSocket(vncInetdSock) &&
-              !network::TcpSocket::isConnected(vncInetdSock))
+          if (network::TcpSocket::isListening(vncInetdSock))
           {
             listeners.push_back(new network::TcpListener(vncInetdSock));
             vlog.info("inetd wait");
@@ -210,37 +250,31 @@ int vncExtensionIsActive(int scrIdx)
   return (desktop[scrIdx] != NULL);
 }
 
-void vncCallReadBlockHandlers(fd_set * fds, struct timeval ** timeout)
+void vncHandleSocketEvent(int fd, int scrIdx, int read, int write)
 {
-  for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->readBlockHandler(fds, timeout);
+  desktop[scrIdx]->handleSocketEvent(fd, read, write);
 }
 
-void vncCallReadWakeupHandlers(fd_set * fds, int nfds)
+void vncCallBlockHandlers(int* timeout)
 {
   for (int scr = 0; scr < vncGetScreenCount(); scr++)
     if (desktop[scr])
-      desktop[scr]->readWakeupHandler(fds, nfds);
-}
-
-void vncCallWriteBlockHandlers(fd_set * fds, struct timeval ** timeout)
-{
-  for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->writeBlockHandler(fds, timeout);
-}
-
-void vncCallWriteWakeupHandlers(fd_set * fds, int nfds)
-{
-  for (int scr = 0; scr < vncGetScreenCount(); scr++)
-    if (desktop[scr])
-      desktop[scr]->writeWakeupHandler(fds, nfds);
+      desktop[scr]->blockHandler(timeout);
 }
 
 int vncGetAvoidShiftNumLock(void)
 {
   return (bool)avoidShiftNumLock;
+}
+
+int vncGetSetPrimary(void)
+{
+  return (bool)setPrimary;
+}
+
+int vncGetSendPrimary(void)
+{
+  return (bool)sendPrimary;
 }
 
 void vncUpdateDesktopName(void)
@@ -345,10 +379,14 @@ void vncAddCopied(int scrIdx, const struct UpdateRect *extents,
   desktop[scrIdx]->add_copied(reg, rfb::Point(dx, dy));
 }
 
-void vncSetCursor(int scrIdx, int width, int height, int hotX, int hotY,
+void vncSetCursor(int width, int height, int hotX, int hotY,
                   const unsigned char *rgbaData)
 {
-  desktop[scrIdx]->setCursor(width, height, hotX, hotY, rgbaData);
+  for (int scr = 0; scr < vncGetScreenCount(); scr++) {
+    if (desktop[scr] == NULL)
+      continue;
+    desktop[scr]->setCursor(width, height, hotX, hotY, rgbaData);
+  }
 }
 
 void vncPreScreenResize(int scrIdx)
@@ -379,4 +417,17 @@ void vncPostScreenResize(int scrIdx, int success, int width, int height)
 void vncRefreshScreenLayout(int scrIdx)
 {
   desktop[scrIdx]->refreshScreenLayout();
+}
+
+int vncOverrideParam(const char *nameAndValue)
+{
+  const char* equalSign = strchr(nameAndValue, '=');
+  if (!equalSign)
+    return 0;
+
+  std::string key(nameAndValue, equalSign);
+  if (allowOverrideSet.find(key) == allowOverrideSet.end())
+    return 0;
+
+  return rfb::Configuration::setParam(nameAndValue);
 }

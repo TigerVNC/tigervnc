@@ -6,9 +6,9 @@ set(VNCVIEWER_SOURCES
   menukey.cxx
   CConn.cxx
   DesktopWindow.cxx
-  FLTKPixelBuffer.cxx
   UserDialog.cxx
   ServerDialog.cxx
+  Surface.cxx
   OptionsDialog.cxx
   PlatformPixelBuffer.cxx
   Viewport.cxx
@@ -33,11 +33,11 @@ elseif(APPLE)
 endif()
 
 if(WIN32)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Win32PixelBuffer.cxx)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Surface_Win32.cxx)
 elseif(APPLE)
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} OSXPixelBuffer.cxx)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Surface_OSX.cxx)
 else()
-  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} X11PixelBuffer.cxx)
+  set(VNCVIEWER_SOURCES ${VNCVIEWER_SOURCES} Surface_X11.cxx)
 endif()
 
 if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -46,7 +46,11 @@ else()
   add_executable(vncviewer ${VNCVIEWER_SOURCES})
 endif()
 
-target_link_libraries(vncviewer rfb network rdr os Xregion ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+target_link_libraries(vncviewer rfb network rdr os ${FLTK_LIBRARIES} ${GETTEXT_LIBRARIES})
+
+if(WIN32)
+  target_link_libraries(vncviewer msimg32)
+endif()
 
 if(APPLE)
   target_link_libraries(vncviewer "-framework Cocoa" "-framework Carbon")
@@ -55,4 +59,10 @@ endif()
 install(TARGETS vncviewer DESTINATION ${BIN_DIR})
 if(UNIX)
   install(FILES vncviewer.man DESTINATION ${MAN_DIR}/man1 RENAME vncviewer.1)
+  configure_file(vncviewer.desktop.in vncviewer.desktop)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.desktop DESTINATION ${DATA_DIR}/applications)
+  foreach(res 16 22 24 32 48)
+    install(FILES ../media/icons/tigervnc_${res}.png DESTINATION ${DATA_DIR}/icons/hicolor/${res}x${res}/apps RENAME tigervnc.png)
+  endforeach()
+  install(FILES ../media/icons/tigervnc.svg DESTINATION ${DATA_DIR}/icons/hicolor/scalable/apps)
 endif()

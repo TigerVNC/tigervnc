@@ -22,14 +22,19 @@
 #include <winvnc/VNCServerService.h>
 #include <winvnc/resource.h>
 
+#include <os/Mutex.h>
+#include <os/Thread.h>
+
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
+
 #include <rfb_win32/LaunchProcess.h>
 #include <rfb_win32/TrayIcon.h>
 #include <rfb_win32/AboutDialog.h>
 #include <rfb_win32/MsgBox.h>
 #include <rfb_win32/Service.h>
 #include <rfb_win32/CurrentUser.h>
+
 #include <winvnc/ControlPanel.h>
 
 using namespace rfb;
@@ -209,7 +214,7 @@ public:
 
     case WM_SET_TOOLTIP:
       {
-        rfb::Lock l(thread.lock);
+        os::AutoMutex a(thread.lock);
         if (thread.toolTip.buf)
           setToolTip(thread.toolTip.buf);
       }
@@ -231,15 +236,24 @@ protected:
 
 STrayIconThread::STrayIconThread(VNCServerWin32& sm, UINT inactiveIcon_, UINT activeIcon_, 
                                  UINT dis_inactiveIcon_, UINT dis_activeIcon_, UINT menu_)
-: Thread("TrayIcon"), windowHandle(0), server(sm),
+: thread_id(-1), windowHandle(0), server(sm),
   inactiveIcon(inactiveIcon_), activeIcon(activeIcon_),
   dis_inactiveIcon(dis_inactiveIcon_), dis_activeIcon(dis_activeIcon_),
   menu(menu_), runTrayIcon(true) {
+  lock = new os::Mutex;
   start();
+  while (thread_id == (DWORD)-1)
+    Sleep(0);
 }
 
+STrayIconThread::~STrayIconThread() {
+  runTrayIcon = false;
+  PostThreadMessage(thread_id, WM_QUIT, 0, 0);
+  delete lock;
+}
 
-void STrayIconThread::run() {
+void STrayIconThread::worker() {
+  thread_id = GetCurrentThreadId();
   while (runTrayIcon) {
     if (rfb::win32::desktopChangeRequired() && 
       !rfb::win32::changeDesktop())
@@ -260,7 +274,7 @@ void STrayIconThread::run() {
 
 void STrayIconThread::setToolTip(const TCHAR* text) {
   if (!windowHandle) return;
-  Lock l(lock);
+  os::AutoMutex a(lock);
   delete [] toolTip.buf;
   toolTip.buf = tstrDup(text);
   PostMessage(windowHandle, WM_SET_TOOLTIP, 0, 0);

@@ -95,16 +95,10 @@ unsigned FdOutStream::getIdleTime()
 
 void FdOutStream::flush()
 {
-  int timeoutms_;
-
-  if (blocking)
-    timeoutms_ = timeoutms;
-  else
-    timeoutms_ = 0;
-
   while (sentUpTo < ptr) {
     int n = writeWithTimeout((const void*) sentUpTo,
-                             ptr - sentUpTo, timeoutms_);
+                             ptr - sentUpTo,
+                             blocking? timeoutms : 0);
 
     // Timeout?
     if (n == 0) {
@@ -112,13 +106,6 @@ void FdOutStream::flush()
       if (!blocking)
         break;
 
-      // Otherwise try blocking (with possible timeout)
-      if ((timeoutms_ == 0) && (timeoutms != 0)) {
-        timeoutms_ = timeoutms;
-        break;
-      }
-
-      // Proper timeout
       throw TimedOut();
     }
 
@@ -183,38 +170,34 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
   int n;
 
   do {
+    fd_set fds;
+    struct timeval tv;
+    struct timeval* tvp = &tv;
 
-    do {
-      fd_set fds;
-      struct timeval tv;
-      struct timeval* tvp = &tv;
+    if (timeoutms != -1) {
+      tv.tv_sec = timeoutms / 1000;
+      tv.tv_usec = (timeoutms % 1000) * 1000;
+    } else {
+      tvp = NULL;
+    }
 
-      if (timeoutms != -1) {
-        tv.tv_sec = timeoutms / 1000;
-        tv.tv_usec = (timeoutms % 1000) * 1000;
-      } else {
-        tvp = 0;
-      }
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+    n = select(fd+1, 0, &fds, 0, tvp);
+  } while (n < 0 && errno == EINTR);
 
-      FD_ZERO(&fds);
-      FD_SET(fd, &fds);
-      n = select(fd+1, 0, &fds, 0, tvp);
-    } while (n < 0 && errno == EINTR);
+  if (n < 0)
+    throw SystemException("select", errno);
 
-    if (n < 0) throw SystemException("select",errno);
+  if (n == 0)
+    return 0;
 
-    if (n == 0) return 0;
+  do {
+    n = ::write(fd, data, length);
+  } while (n < 0 && (errno == EINTR));
 
-    do {
-      n = ::write(fd, data, length);
-    } while (n < 0 && (errno == EINTR));
-      
-    // NB: This outer loop simply fixes a broken Winsock2 EWOULDBLOCK
-    // condition, found only under Win98 (first edition), with slow
-    // network connections.  Should in fact never ever happen...
-  } while (n < 0 && (errno == EWOULDBLOCK));
-
-  if (n < 0) throw SystemException("write",errno);
+  if (n < 0)
+    throw SystemException("write", errno);
 
   gettimeofday(&lastWrite, NULL);
 

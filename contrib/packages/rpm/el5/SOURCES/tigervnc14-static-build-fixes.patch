@@ -9,7 +9,7 @@
        endif()
  
 -      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lX11")
-+      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lX11 -lxcb -lXdmcp -lXau -lICE -Wl,-Bdynamic -ldl")
++      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bdynamic -lX11 -Wl,-Bstatic -lxcb -lXdmcp -lXau -lICE -Wl,-Bdynamic -ldl")
      endif()
    endif()
  
@@ -18,7 +18,7 @@
    # even it has had an ABI change once or twice.
    if(X11_FOUND AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
 -    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -Wl,-Bdynamic -lX11")
-+    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -lX11 -lxcb -lXdmcp -lXau -lICE -Wl,-Bdynamic -ldl -lpthread")
++    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -Wl,-Bdynamic -lX11 -Wl,-Bstatic -lxcb -lXdmcp -lXau -lICE -Wl,-Bdynamic -ldl -lpthread")
      if(X11_XTest_LIB)
        set(X11_XTest_LIB "-Wl,-Bstatic -lXtst -Wl,-Bdynamic")
      endif()

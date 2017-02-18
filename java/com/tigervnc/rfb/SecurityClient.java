@@ -78,9 +78,9 @@ public class SecurityClient extends Security {
   //UserPasswdGetter upg = null;
   String msg = null;
 
-  static StringParameter secTypes
+  public static StringParameter secTypes
   = new StringParameter("SecurityTypes",
-                        "Specify which security scheme to use (None, VncAuth)",
-                        "Ident,TLSIdent,X509Ident,X509Plain,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,VncAuth,None", Configuration.ConfigurationObject.ConfViewer);
+                        "Specify which security scheme to use (None, VncAuth, Plain, Ident, TLSNone, TLSVnc, TLSPlain, TLSIdent, X509None, X509Vnc, X509Plain, X509Ident)",
+                        "X509Ident,X509Plain,TLSIdent,TLSPlain,X509Vnc,TLSVnc,X509None,TLSNone,Ident,VncAuth,None", Configuration.ConfigurationObject.ConfViewer);
 
 }

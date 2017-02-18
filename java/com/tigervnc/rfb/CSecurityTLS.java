@@ -58,11 +58,11 @@ import com.tigervnc.vncviewer.*;
 
 public class CSecurityTLS extends CSecurity {
 
-  public static StringParameter x509ca
-  = new StringParameter("x509ca",
+  public static StringParameter X509CA
+  = new StringParameter("X509CA",
                         "X509 CA certificate", "", Configuration.ConfigurationObject.ConfViewer);
-  public static StringParameter x509crl
-  = new StringParameter("x509crl",
+  public static StringParameter X509CRL
+  = new StringParameter("X509CRL",
                         "X509 CRL file", "", Configuration.ConfigurationObject.ConfViewer);
 
   private void initGlobal()
@@ -80,8 +80,8 @@ public class CSecurityTLS extends CSecurity {
     manager = null;
 
     setDefaults();
-    cafile = x509ca.getData();
-    crlfile = x509crl.getData();
+    cafile = X509CA.getData();
+    crlfile = X509CRL.getData();
   }
 
   public static String getDefaultCA() {
@@ -99,9 +99,9 @@ public class CSecurityTLS extends CSecurity {
   public static void setDefaults()
   {
     if (new File(getDefaultCA()).exists())
-      x509ca.setDefaultStr(getDefaultCA());
+      X509CA.setDefaultStr(getDefaultCA());
     if (new File(getDefaultCRL()).exists())
-      x509crl.setDefaultStr(getDefaultCRL());
+      X509CRL.setDefaultStr(getDefaultCRL());
   }
 
 // FIXME:

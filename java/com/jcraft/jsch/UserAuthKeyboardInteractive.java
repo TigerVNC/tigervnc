@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2002-2012 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2015 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -128,7 +128,7 @@ class UserAuthKeyboardInteractive extends UserAuth{
           if(password!=null && 
              prompt.length==1 &&
              !echo[0] &&
-             prompt[0].toLowerCase().startsWith("password:")){
+             prompt[0].toLowerCase().indexOf("password:") >= 0){
             response=new byte[1][];
             response[0]=password;
             password=null;

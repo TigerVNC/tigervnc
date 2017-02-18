@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 2.8)
 
 project(tigervnc-java Java)
 if(NOT VERSION)
-  set(VERSION 1.6.80)
+  set(VERSION 1.7.80)
 endif()
 
 find_package(Java)
 
-set(DEFAULT_JAVACFLAGS "-source 1.5 -target 1.5 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation,-rawtypes")
+set(DEFAULT_JAVACFLAGS "-source 1.6 -target 1.6 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation,-rawtypes")
 set(JAVACFLAGS ${DEFAULT_JAVACFLAGS} CACHE STRING
   "Java compiler flags (Default: ${DEFAULT_JAVACFLAGS})")
 message(STATUS "Java compiler flags = ${JAVACFLAGS}")
@@ -36,9 +36,15 @@ set(JAVA_CLASSES "")
 
 set(JSCH_CLASSNAMES
   DH
+  DHEC256
+  DHEC384
+  DHEC521
+  DHECN
+  DHGEX256
   DHG1
   DHG14
   DHGEX
+  ECDH
   JSch
   Session
   UserAuth
@@ -47,28 +53,41 @@ set(JSCH_CLASSNAMES
   UserAuthPublicKey
   UserAuthNone
   jce/AES128CBC
-  jce/AES192CTR
-  jce/ARCFOUR128
-  jce/BlowfishCBC
-  jce/HMACMD5
-  jce/KeyPairGenDSA
-  jce/Random
-  jce/SignatureRSA
   jce/AES128CTR
-  jce/AES256CBC
-  jce/ARCFOUR256
-  jce/DH
-  jce/HMACSHA196
-  jce/KeyPairGenRSA
-  jce/SHA1
-  jce/TripleDESCBC
   jce/AES192CBC
+  jce/AES192CTR
+  jce/AES256CBC
   jce/AES256CTR
   jce/ARCFOUR
+  jce/ARCFOUR128
+  jce/ARCFOUR256
+  jce/BlowfishCBC
+  jce/DH
+	jce/ECDH256
+	jce/ECDH384
+	jce/ECDH521
+	jce/ECDHN
+  jce/HMAC
+  jce/HMACMD5
   jce/HMACMD596
   jce/HMACSHA1
+  jce/HMACSHA196
+  jce/HMACSHA256
+  jce/HMACSHA512
+  jce/KeyPairGenDSA
+  jce/KeyPairGenECDSA
+  jce/KeyPairGenRSA
   jce/MD5
+  jce/PBKDF
+  jce/Random
+  jce/SHA1
+  jce/SHA256
+  jce/SHA384
+  jce/SHA512
   jce/SignatureDSA
+  jce/SignatureECDSA
+  jce/SignatureRSA
+  jce/TripleDESCBC
   jce/TripleDESCTR
   jcraft/Compression
   jcraft/HMAC

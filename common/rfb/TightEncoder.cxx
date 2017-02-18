@@ -77,7 +77,7 @@ void TightEncoder::setCompressLevel(int level)
     level = 2;
 
   idxZlibLevel = conf[level].idxZlibLevel;
-  monoZlibLevel = conf[level].idxZlibLevel;
+  monoZlibLevel = conf[level].monoZlibLevel;
   rawZlibLevel = conf[level].rawZlibLevel;
 }
 
