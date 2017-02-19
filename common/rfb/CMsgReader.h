@@ -60,6 +60,7 @@ namespace rfb {
 
     void readRect(const Rect& r, int encoding);
 
+    void readSetXCursor(int width, int height, const Point& hotspot);
     void readSetCursor(int width, int height, const Point& hotspot);
     void readSetDesktopName(int x, int y, int w, int h);
     void readExtendedDesktopSize(int x, int y, int w, int h);

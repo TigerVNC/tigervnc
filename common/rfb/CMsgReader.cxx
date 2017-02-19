@@ -88,6 +88,9 @@ void CMsgReader::readMsg()
     case pseudoEncodingLastRect:
       nUpdateRectsLeft = 1;     // this rectangle is the last one
       break;
+    case pseudoEncodingXCursor:
+      readSetXCursor(w, h, Point(x,y));
+      break;
     case pseudoEncodingCursor:
       readSetCursor(w, h, Point(x,y));
       break;
@@ -189,6 +192,61 @@ void CMsgReader::readRect(const Rect& r, int encoding)
     fprintf(stderr, "Warning: zero size rect\n");
 
   handler->dataRect(r, encoding);
+}
+
+void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
+{
+  rdr::U8 pr, pg, pb;
+  rdr::U8 sr, sg, sb;
+  int data_len = ((width+7)/8) * height;
+  int mask_len = ((width+7)/8) * height;
+  rdr::U8Array data(data_len);
+  rdr::U8Array mask(mask_len);
+
+  int x, y;
+  rdr::U8 buf[width*height*4];
+  rdr::U8* out;
+
+  if (width * height) {
+    pr = is->readU8();
+    pg = is->readU8();
+    pb = is->readU8();
+
+    sr = is->readU8();
+    sg = is->readU8();
+    sb = is->readU8();
+
+    is->readBytes(data.buf, data_len);
+    is->readBytes(mask.buf, mask_len);
+  }
+
+  int maskBytesPerRow = (width+7)/8;
+  out = buf;
+  for (y = 0;y < height;y++) {
+    for (x = 0;x < width;x++) {
+      int byte = y * maskBytesPerRow + x / 8;
+      int bit = 7 - x % 8;
+
+      if (data.buf[byte] & (1 << bit)) {
+        out[0] = pr;
+        out[1] = pg;
+        out[2] = pb;
+      } else {
+        out[0] = sr;
+        out[1] = sg;
+        out[2] = sb;
+      }
+
+      if (mask.buf[byte] & (1 << bit))
+        out[3] = 255;
+      else
+        out[3] = 0;
+
+      out += 4;
+    }
+  }
+
+  handler->setCursor(width, height, hotspot, buf);
 }
 
 void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
