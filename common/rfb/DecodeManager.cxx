@@ -197,7 +197,7 @@ void DecodeManager::setThreadException(const rdr::Exception& e)
 {
   os::AutoMutex a(queueMutex);
 
-  if (threadException == NULL)
+  if (threadException != NULL)
     return;
 
   threadException = new rdr::Exception("Exception on worker thread: %s", e.str());
