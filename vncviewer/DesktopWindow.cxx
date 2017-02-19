@@ -583,13 +583,8 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
-    if (!fullscreenSystemKeys)
-      break;
-
-    if (fullscreen_active())
+    if (fullscreenSystemKeys)
       grabKeyboard();
-    else
-      ungrabKeyboard();
 
     break;
 
@@ -635,7 +630,6 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
       //        a) Fl::grab(0) on X11 will release the keyboard grab for us.
       //        b) Gaining focus on the system level causes FLTK to switch
       //           window level on OS X.
-      if (dw->fullscreen_active())
         dw->grabKeyboard();
       break;
 
@@ -1082,7 +1076,7 @@ void DesktopWindow::handleOptions(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
 
-  if (self->fullscreen_active() && fullscreenSystemKeys)
+  if (fullscreenSystemKeys)
     self->grabKeyboard();
   else
     self->ungrabKeyboard();
