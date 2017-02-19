@@ -96,6 +96,13 @@ BoolParameter fullScreen("FullScreen", "Full screen mode", false);
 BoolParameter fullScreenAllMonitors("FullScreenAllMonitors",
                                     "Enable full screen over all monitors",
                                     true);
+BoolParameter fullScreenSelMonitors("FullScreenSellMonitors",
+                                    "Enable full screen over selected monitors."
+                                    "Virtual Screen for selected monitors "
+                                    "must not collide with other monitors.",
+                                    false);
+StringParameter fullScreenMonitors("FullScreenMonitors",
+                                    "Enable full screen over given monitors", "");
 StringParameter desktopSize("DesktopSize",
                             "Reconfigure desktop size on the server on "
                             "connect (if possible)", "");
