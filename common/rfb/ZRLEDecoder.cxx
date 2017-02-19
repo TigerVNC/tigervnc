@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2009-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,24 +92,27 @@ void ZRLEDecoder::decodeRect(const Rect& r, const void* buffer,
   case 16: zrleDecode16(r, &is, &zis, pf, pb); break;
   case 32:
     {
-      Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
-      bool fitsInLS3Bytes = maxPixel < (1<<24);
-      bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
+      if (pf.depth <= 24) {
+        Pixel maxPixel = pf.pixelFromRGB((rdr::U16)-1, (rdr::U16)-1, (rdr::U16)-1);
+        bool fitsInLS3Bytes = maxPixel < (1<<24);
+        bool fitsInMS3Bytes = (maxPixel & 0xff) == 0;
 
-      if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
-          (fitsInMS3Bytes && pf.isBigEndian()))
-      {
-        zrleDecode24A(r, &is, &zis, pf, pb);
+        if ((fitsInLS3Bytes && pf.isLittleEndian()) ||
+            (fitsInMS3Bytes && pf.isBigEndian()))
+        {
+          zrleDecode24A(r, &is, &zis, pf, pb);
+          break;
+        }
+
+        if ((fitsInLS3Bytes && pf.isBigEndian()) ||
+            (fitsInMS3Bytes && pf.isLittleEndian()))
+        {
+          zrleDecode24B(r, &is, &zis, pf, pb);
+          break;
+        }
       }
-      else if ((fitsInLS3Bytes && pf.isBigEndian()) ||
-               (fitsInMS3Bytes && pf.isLittleEndian()))
-      {
-        zrleDecode24B(r, &is, &zis, pf, pb);
-      }
-      else
-      {
-        zrleDecode32(r, &is, &zis, pf, pb);
-      }
+
+      zrleDecode32(r, &is, &zis, pf, pb);
       break;
     }
   }
