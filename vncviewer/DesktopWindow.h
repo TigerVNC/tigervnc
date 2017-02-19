@@ -62,7 +62,7 @@ public:
 
   // New image for the locally rendered cursor
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 void* data, void* mask);
+                 const rdr::U8* data);
 
   // Fl_Window callback methods
   void draw();

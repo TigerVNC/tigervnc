@@ -90,7 +90,7 @@ public:
                 unsigned long long& rawEquivalent);
 
   virtual void setDesktopSize(int w, int h);
-  virtual void setCursor(int, int, const rfb::Point&, void*, void*);
+  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
   virtual void dataRect(const rfb::Rect&, int);
@@ -207,7 +207,7 @@ void CConn::setDesktopSize(int w, int h)
   setFramebuffer(pb);
 }
 
-void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
+void CConn::setCursor(int, int, const rfb::Point&, const rdr::U8*)
 {
 }
 

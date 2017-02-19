@@ -1119,7 +1119,7 @@ void VNCSConnectionST::setCursor()
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  cp.setCursor(server->cursor);
+  cp.setCursor(*server->cursor);
 
   if (!writer()->writeSetCursor()) {
     if (!writer()->writeSetXCursor()) {

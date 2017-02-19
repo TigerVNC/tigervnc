@@ -98,7 +98,7 @@ namespace rfb {
     virtual void add_changed(const Region &region);
     virtual void add_copied(const Region &dest, const Point &delta);
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           const void* cursorData, const void* mask);
+                           const rdr::U8* data);
     virtual void setCursorPos(const Point& p);
 
     virtual void bell();
@@ -218,7 +218,7 @@ namespace rfb {
     ComparingUpdateTracker* comparer;
 
     Point cursorPos;
-    Cursor cursor;
+    Cursor* cursor;
     RenderedCursor renderedCursor;
     bool renderedCursorInvalid;
 

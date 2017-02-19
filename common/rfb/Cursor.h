@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,29 +28,30 @@
 
 namespace rfb {
 
-  class Cursor : public ManagedPixelBuffer {
+  class Cursor {
   public:
-    Cursor() {}
-    rdr::U8Array mask;
-    Point hotspot;
+    Cursor(int width, int height, const Point& hotspot, const rdr::U8* data);
+    Cursor(const Cursor& other);
+    ~Cursor();
 
-    int maskLen() const { return (width() + 7) / 8 * height(); }
+    int width() const { return width_; };
+    int height() const { return height_; };
+    const Point& hotspot() const { return hotspot_; };
+    const rdr::U8* getBuffer() const { return data; };
 
-    // setSize() resizes the cursor.  The contents of the data and mask are
-    // undefined after this call.
-    virtual void setSize(int w, int h);
-
-    // drawOutline() adds an outline to the cursor in the given colour.
-    void drawOutline(const Pixel& c);
-
-    // getBitmap() tests whether the cursor is monochrome, and if so returns a
-    // bitmap together with background and foreground colours.  The size and
-    // layout of the bitmap are the same as the mask.
-    rdr::U8* getBitmap(Pixel* pix0, Pixel* pix1) const;
+    // getBitmap() returns a monochrome version of the cursor
+    rdr::U8* getBitmap() const;
+    // getMask() returns a simple mask version of the alpha channel
+    rdr::U8* getMask() const;
 
     // crop() crops the cursor down to the smallest possible size, based on the
     // mask.
     void crop();
+
+  protected:
+    int width_, height_;
+    Point hotspot_;
+    rdr::U8* data;
   };
 
   class RenderedCursor : public PixelBuffer {

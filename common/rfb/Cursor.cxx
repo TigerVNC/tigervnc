@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2014 Pierre Ossman for Cendio AB
+ * Copyright 2014-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,71 +26,31 @@ using namespace rfb;
 
 static LogWriter vlog("Cursor");
 
-void Cursor::setSize(int w, int h) {
-  int oldMaskLen = maskLen();
-  ManagedPixelBuffer::setSize(w, h);
-  if (maskLen() > oldMaskLen) {
-    delete [] mask.buf;
-    mask.buf = new rdr::U8[maskLen()];
-  }
+Cursor::Cursor(int width, int height, const Point& hotspot,
+               const rdr::U8* data) :
+  width_(width), height_(height), hotspot_(hotspot)
+{
+  this->data = new rdr::U8[width_*height_*4];
+  memcpy(this->data, data, width_*height_*4);
 }
 
-void Cursor::drawOutline(const Pixel& c)
+Cursor::Cursor(const Cursor& other) :
+  width_(other.width_), height_(other.height_),
+  hotspot_(other.hotspot_)
 {
-  Cursor outlined;
-  rdr::U8 cbuf[4];
+  data = new rdr::U8[width_*height_*4];
+  memcpy(data, other.data, width_*height_*4);
+}
 
-  // Create a mirror of the existing cursor
-  outlined.setPF(getPF());
-  outlined.setSize(width(), height());
-  outlined.hotspot = hotspot;
-
-  // Clear the mirror's background to the outline colour
-  outlined.getPF().bufferFromPixel(cbuf, c);
-  outlined.fillRect(getRect(), cbuf);
-
-  // Blit the existing cursor, using its mask
-  outlined.maskRect(getRect(), data, mask.buf);
-
-  // Now just adjust the mask to add the outline.  The outline pixels
-  // will already be the right colour. :)
-  int maskBytesPerRow = (width() + 7) / 8;
-  for (int y = 0; y < height(); y++) {
-    for (int byte=0; byte<maskBytesPerRow; byte++) {
-      rdr::U8 m8 = mask.buf[y*maskBytesPerRow + byte];
-
-      // Handle above & below outline
-      if (y > 0) m8 |= mask.buf[(y-1)*maskBytesPerRow + byte];
-      if (y < height()-1) m8 |= mask.buf[(y+1)*maskBytesPerRow + byte];
-
-      // Left outline
-      m8 |= mask.buf[y*maskBytesPerRow + byte] << 1;
-      if (byte < maskBytesPerRow-1)
-        m8 |= (mask.buf[y*maskBytesPerRow + byte + 1] >> 7) & 1;
-
-      // Right outline
-      m8 |= mask.buf[y*maskBytesPerRow + byte] >> 1;
-      if (byte > 0)
-        m8 |= (mask.buf[y*maskBytesPerRow + byte - 1] << 7) & 128;
-
-      outlined.mask.buf[y*maskBytesPerRow + byte] = m8;
-    }
-  }
-
-  // Replace the existing cursor & mask with the new one
+Cursor::~Cursor()
+{
   delete [] data;
-  delete [] mask.buf;
-  data = outlined.data; outlined.data = 0;
-  mask.buf = outlined.mask.buf; outlined.mask.buf = 0;
 }
 
-rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1) const
+rdr::U8* Cursor::getBitmap() const
 {
-  bool gotPix0 = false;
-  bool gotPix1 = false;
-  *pix0 = *pix1 = 0;
-  rdr::U8Array source(maskLen());
-  memset(source.buf, 0, maskLen());
+  rdr::U8Array source((width()+7)/8*height());
+  memset(source.buf, 0, (width()+7)/8*height());
 
   int maskBytesPerRow = (width() + 7) / 8;
   const rdr::U8 *data_ptr = data;
@@ -98,24 +58,45 @@ rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1) const
     for (int x = 0; x < width(); x++) {
       int byte = y * maskBytesPerRow + x / 8;
       int bit = 7 - x % 8;
-      if (mask.buf[byte] & (1 << bit)) {
-        Pixel pix = getPF().pixelFromBuffer(data_ptr);
-        if (!gotPix0 || pix == *pix0) {
-          gotPix0 = true;
-          *pix0 = pix;
-        } else if (!gotPix1 || pix == *pix1) {
-          gotPix1 = true;
-          *pix1 = pix;
+      if (data_ptr[3] >= 0x80) {
+        // Use Luma with BT.709 coefficients for grayscale
+        unsigned luma;
+
+        luma = 0;
+        luma += (unsigned)data_ptr[0] * 13933; // 0.2126
+        luma += (unsigned)data_ptr[1] * 46871; // 0.7152
+        luma += (unsigned)data_ptr[2] * 4732;  // 0.0722
+        luma /= 65536;
+
+        // Gamma compensated half intensity gray
+        if (luma > 187)
           source.buf[byte] |= (1 << bit);
-        } else {
-          // not a bitmap
-          return 0;
-        }
       }
-      data_ptr += getPF().bpp/8;
+      data_ptr += 4;
     }
   }
+
   return source.takeBuf();
+}
+
+rdr::U8* Cursor::getMask() const
+{
+  rdr::U8Array mask((width()+7)/8*height());
+  memset(mask.buf, 0, (width()+7)/8*height());
+
+  int maskBytesPerRow = (width() + 7) / 8;
+  const rdr::U8 *data_ptr = data;
+  for (int y = 0; y < height(); y++) {
+    for (int x = 0; x < width(); x++) {
+      int byte = y * maskBytesPerRow + x / 8;
+      int bit = 7 - x % 8;
+      if (data_ptr[3] >= 0x80)
+        mask.buf[byte] |= (1 << bit);
+      data_ptr += 4;
+    }
+  }
+
+  return mask.takeBuf();
 }
 
 // crop() determines the "busy" rectangle for the cursor - the minimum bounding
@@ -126,58 +107,40 @@ rdr::U8* Cursor::getBitmap(Pixel* pix0, Pixel* pix1) const
 
 void Cursor::crop()
 {
-  Rect busy = getRect().intersect(Rect(hotspot.x, hotspot.y,
-                                       hotspot.x+1, hotspot.y+1));
-  int maskBytesPerRow = (width() + 7) / 8;
+  Rect busy = Rect(0, 0, width_, height_);
+  busy = busy.intersect(Rect(hotspot_.x, hotspot_.y,
+                             hotspot_.x+1, hotspot_.y+1));
   int x, y;
+  rdr::U8 *data_ptr = data;
   for (y = 0; y < height(); y++) {
     for (x = 0; x < width(); x++) {
-      int byte = y * maskBytesPerRow + x / 8;
-      int bit = 7 - x % 8;
-      if (mask.buf[byte] & (1 << bit)) {
+      if (data_ptr[3] > 0) {
         if (x < busy.tl.x) busy.tl.x = x;
         if (x+1 > busy.br.x) busy.br.x = x+1;
         if (y < busy.tl.y) busy.tl.y = y;
         if (y+1 > busy.br.y) busy.br.y = y+1;
       }
+      data_ptr += 4;
     }
   }
 
   if (width() == busy.width() && height() == busy.height()) return;
 
-  vlog.debug("cropping %dx%d to %dx%d", width(), height(),
-             busy.width(), busy.height());
-
   // Copy the pixel data
-  int newDataLen = busy.area() * (getPF().bpp/8);
+  int newDataLen = busy.area() * 4;
   rdr::U8* newData = new rdr::U8[newDataLen];
-  getImage(newData, busy);
-
-  // Copy the mask
-  int newMaskBytesPerRow = (busy.width()+7)/8;
-  int newMaskLen = newMaskBytesPerRow * busy.height();
-  rdr::U8* newMask = new rdr::U8[newMaskLen];
-  memset(newMask, 0, newMaskLen);
-  for (y = 0; y < busy.height(); y++) {
-    int newByte, newBit;
-    for (x = 0; x < busy.width(); x++) {
-      int oldByte = (y+busy.tl.y) * maskBytesPerRow + (x+busy.tl.x) / 8;
-      int oldBit = 7 - (x+busy.tl.x) % 8;
-      newByte = y * newMaskBytesPerRow + x / 8;
-      newBit = 7 - x % 8;
-      if (mask.buf[oldByte] & (1 << oldBit))
-        newMask[newByte] |= (1 << newBit);
-    }
+  data_ptr = newData;
+  for (y = busy.tl.y; y < busy.br.y; y++) {
+    memcpy(data_ptr, data + y*width()*4 + busy.tl.x*4, busy.width()*4);
+    data_ptr += busy.width()*4;
   }
 
   // Set the size and data to the new, cropped cursor.
-  setSize(busy.width(), busy.height());
-  hotspot = hotspot.subtract(busy.tl);
+  width_ = busy.width();
+  height_ = busy.height();
+  hotspot_ = hotspot_.subtract(busy.tl);
   delete [] data;
-  delete [] mask.buf;
-  datasize = newDataLen;
   data = newData;
-  mask.buf = newMask;
 }
 
 RenderedCursor::RenderedCursor()
@@ -207,26 +170,48 @@ void RenderedCursor::update(PixelBuffer* framebuffer,
   assert(framebuffer);
   assert(cursor);
 
-  if (!framebuffer->getPF().equal(cursor->getPF()))
-    throw Exception("RenderedCursor: Trying to render cursor on incompatible frame buffer");
-
   format = framebuffer->getPF();
   width_ = framebuffer->width();
   height_ = framebuffer->height();
 
-  rawOffset = pos.subtract(cursor->hotspot);
-  clippedRect = cursor->getRect(rawOffset).intersect(framebuffer->getRect());
+  rawOffset = pos.subtract(cursor->hotspot());
+  clippedRect = Rect(0, 0, cursor->width(), cursor->height())
+                .translate(rawOffset)
+                .intersect(framebuffer->getRect());
   offset = clippedRect.tl;
 
-  buffer.setPF(cursor->getPF());
+  buffer.setPF(format);
   buffer.setSize(clippedRect.width(), clippedRect.height());
 
   data = framebuffer->getBuffer(buffer.getRect(offset), &stride);
   buffer.imageRect(buffer.getRect(), data, stride);
 
   diff = offset.subtract(rawOffset);
-  data = cursor->getBuffer(buffer.getRect(diff), &stride);
+  for (int y = 0;y < buffer.height();y++) {
+    for (int x = 0;x < buffer.width();x++) {
+      size_t idx;
+      rdr::U8 bg[4], fg[4];
+      rdr::U8 rgb[3];
 
-  buffer.maskRect(buffer.getRect(), data, cursor->mask.buf, diff,
-                  stride, (cursor->width() + 7) / 8);
+      idx = (y+diff.y)*cursor->width() + (x+diff.x);
+      memcpy(fg, cursor->getBuffer() + idx*4, 4);
+
+      if (fg[3] == 0x00)
+        continue;
+      else if (fg[3] == 0xff) {
+        memcpy(rgb, fg, 3);
+      } else {
+        buffer.getImage(bg, Rect(x, y, x+1, y+1));
+        format.rgbFromBuffer(rgb, bg, 1);
+        // FIXME: Gamma aware blending
+        for (int i = 0;i < 3;i++) {
+          rgb[i] = (unsigned)rgb[i]*(255-fg[3])/255 +
+                   (unsigned)fg[i]*fg[3]/255;
+        }
+      }
+
+      format.bufferFromRGB(bg, rgb, 1);
+      buffer.imageRect(Rect(x, y, x+1, y+1), bg);
+    }
+  }
 }

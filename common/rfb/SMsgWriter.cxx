@@ -1,6 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright (C) 2011 D. R. Commander.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -301,38 +301,36 @@ void SMsgWriter::endMsg()
 void SMsgWriter::writePseudoRects()
 {
   if (needSetCursor) {
-    rdr::U8* data;
-
     const Cursor& cursor = cp->cursor();
 
-    data = new rdr::U8[cursor.area() * cp->pf().bpp/8];
-    cursor.getImage(cp->pf(), data, cursor.getRect());
+    rdr::U8Array data(cursor.width()*cursor.height() * cp->pf().bpp/8);
+    rdr::U8Array mask(cursor.getMask());
+
+    const rdr::U8* in;
+    rdr::U8* out;
+
+    in = cursor.getBuffer();
+    out = data.buf;
+    for (int i = 0;i < cursor.width()*cursor.height();i++) {
+      cp->pf().bufferFromRGB(out, in, 1);
+      in += 4;
+      out += cp->pf().bpp/8;
+    }
 
     writeSetCursorRect(cursor.width(), cursor.height(),
-                       cursor.hotspot.x, cursor.hotspot.y,
-                       data, cursor.mask.buf);
+                       cursor.hotspot().x, cursor.hotspot().y,
+                       data.buf, mask.buf);
     needSetCursor = false;
-
-    delete [] data;
   }
 
   if (needSetXCursor) {
     const Cursor& cursor = cp->cursor();
-    Pixel pix0, pix1;
-    rdr::U8 rgb0[3], rgb1[3];
-    rdr::U8Array bitmap(cursor.getBitmap(&pix0, &pix1));
-
-    if (!bitmap.buf) {
-      // FIXME: We could reduce to two colors.
-      throw Exception("SMsgWriter::writePseudoRects: Unable to send multicolor cursor: RichCursor not supported by client");
-    }
-
-    cp->pf().rgbFromPixel(pix0, &rgb0[0], &rgb0[1], &rgb0[2]);
-    cp->pf().rgbFromPixel(pix1, &rgb1[0], &rgb1[1], &rgb1[2]);
+    rdr::U8Array bitmap(cursor.getBitmap());
+    rdr::U8Array mask(cursor.getMask());
 
     writeSetXCursorRect(cursor.width(), cursor.height(),
-                        cursor.hotspot.x, cursor.hotspot.y,
-                        rgb0, rgb1, bitmap.buf, cursor.mask.buf);
+                        cursor.hotspot().x, cursor.hotspot().y,
+                        bitmap.buf, mask.buf);
     needSetXCursor = false;
   }
 
@@ -452,8 +450,6 @@ void SMsgWriter::writeSetCursorRect(int width, int height,
 
 void SMsgWriter::writeSetXCursorRect(int width, int height,
                                      int hotspotX, int hotspotY,
-                                     const rdr::U8 pix0[],
-                                     const rdr::U8 pix1[],
                                      const void* data, const void* mask)
 {
   if (!cp->supportsLocalXCursor)
@@ -467,12 +463,12 @@ void SMsgWriter::writeSetXCursorRect(int width, int height,
   os->writeU16(height);
   os->writeU32(pseudoEncodingXCursor);
   if (width * height) {
-    os->writeU8(pix0[0]);
-    os->writeU8(pix0[1]);
-    os->writeU8(pix0[2]);
-    os->writeU8(pix1[0]);
-    os->writeU8(pix1[1]);
-    os->writeU8(pix1[2]);
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeU8(255);
+    os->writeU8(0);
+    os->writeU8(0);
+    os->writeU8(0);
     os->writeBytes(data, (width+7)/8 * height);
     os->writeBytes(mask, (width+7)/8 * height);
   }

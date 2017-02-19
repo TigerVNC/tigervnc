@@ -126,7 +126,6 @@ namespace rfb {
                             const void* data, const void* mask);
     void writeSetXCursorRect(int width, int height,
                              int hotspotX, int hotspotY,
-                             const rdr::U8 pix0[], const rdr::U8 pix1[],
                              const void* data, const void* mask);
 
     ConnParams* cp;

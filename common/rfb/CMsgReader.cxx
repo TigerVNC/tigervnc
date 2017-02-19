@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2014 Pierre Ossman for Cendio AB
+ * Copyright 2009-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,10 +198,35 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   rdr::U8Array data(data_len);
   rdr::U8Array mask(mask_len);
 
+  int x, y;
+  rdr::U8 buf[width*height*4];
+  rdr::U8* in;
+  rdr::U8* out;
+
   is->readBytes(data.buf, data_len);
   is->readBytes(mask.buf, mask_len);
 
-  handler->setCursor(width, height, hotspot, data.buf, mask.buf);
+  int maskBytesPerRow = (width+7)/8;
+  in = data.buf;
+  out = buf;
+  for (y = 0;y < height;y++) {
+    for (x = 0;x < width;x++) {
+      int byte = y * maskBytesPerRow + x / 8;
+      int bit = 7 - x % 8;
+
+      handler->cp.pf().rgbFromBuffer(out, in, 1);
+
+      if (mask.buf[byte] & (1 << bit))
+        out[3] = 255;
+      else
+        out[3] = 0;
+
+      in += handler->cp.pf().bpp/8;
+      out += 4;
+    }
+  }
+
+  handler->setCursor(width, height, hotspot, buf);
 }
 
 void CMsgReader::readSetDesktopName(int x, int y, int w, int h)

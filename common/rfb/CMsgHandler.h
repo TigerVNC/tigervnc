@@ -50,7 +50,7 @@ namespace rfb {
                                         int w, int h,
                                         const ScreenSet& layout);
     virtual void setCursor(int width, int height, const Point& hotspot,
-                           void* data, void* mask) = 0;
+                           const rdr::U8* data) = 0;
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void setName(const char* name);
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);

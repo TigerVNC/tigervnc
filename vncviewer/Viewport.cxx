@@ -180,21 +180,20 @@ static const char * dotcursor_xpm[] = {
   "     "};
 
 void Viewport::setCursor(int width, int height, const Point& hotspot,
-                              void* data, void* mask)
+                         const rdr::U8* data)
 {
+  int i;
+
   if (cursor) {
     if (!cursor->alloc_array)
       delete [] cursor->array;
     delete cursor;
   }
 
-  int mask_len = ((width+7)/8) * height;
-  int i;
+  for (i = 0; i < width*height; i++)
+    if (data[i*4 + 3] != 0) break;
 
-  for (i = 0; i < mask_len; i++)
-    if (((rdr::U8*)mask)[i]) break;
-
-  if ((i == mask_len) && dotWhenNoCursor) {
+  if ((i == width*height) && dotWhenNoCursor) {
     vlog.debug("cursor is empty - using dot");
 
     Fl_Pixmap pxm(dotcursor_xpm);
@@ -207,34 +206,9 @@ void Viewport::setCursor(int width, int height, const Point& hotspot,
       cursor = new Fl_RGB_Image(buffer, 1, 1, 4);
       cursorHotspot.x = cursorHotspot.y = 0;
     } else {
-      U8 *buffer = new U8[width*height*4];
-      U8 *i, *o, *m;
-      int m_width;
-
-      const PixelFormat *pf;
-      
-      pf = &cc->cp.pf();
-
-      i = (U8*)data;
-      o = buffer;
-      m = (U8*)mask;
-      m_width = (width+7)/8;
-      for (int y = 0;y < height;y++) {
-        for (int x = 0;x < width;x++) {
-          pf->rgbFromBuffer(o, i, 1);
-
-          if (m[(m_width*y)+(x/8)] & 0x80>>(x%8))
-            o[3] = 255;
-          else
-            o[3] = 0;
-
-          o += 4;
-          i += pf->bpp/8;
-        }
-      }
-
+      U8 *buffer = new U8[width * height * 4];
+      memcpy(buffer, data, width * height * 4);
       cursor = new Fl_RGB_Image(buffer, width, height, 4);
-
       cursorHotspot = hotspot;
     }
   }

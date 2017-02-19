@@ -266,9 +266,9 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
 void DesktopWindow::setCursor(int width, int height,
                               const rfb::Point& hotspot,
-                              void* data, void* mask)
+                              const rdr::U8* data)
 {
-  viewport->setCursor(width, height, hotspot, data, mask);
+  viewport->setCursor(width, height, hotspot, data);
 }
 
 

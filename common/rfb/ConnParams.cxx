@@ -39,11 +39,13 @@ ConnParams::ConnParams()
     subsampling(subsampleUndefined), name_(0), verStrPos(0)
 {
   setName("");
+  cursor_ = new Cursor(0, 0, Point(), NULL);
 }
 
 ConnParams::~ConnParams()
 {
   delete [] name_;
+  delete cursor_;
 }
 
 bool ConnParams::readVersion(rdr::InStream* is, bool* done)
@@ -86,17 +88,8 @@ void ConnParams::setName(const char* name)
 
 void ConnParams::setCursor(const Cursor& other)
 {
-  const rdr::U8* data;
-  int stride;
-
-  cursor_.hotspot = other.hotspot;
-  cursor_.setPF(other.getPF());
-  cursor_.setSize(other.width(), other.height());
-
-  data = other.getBuffer(other.getRect(), &stride);
-  cursor_.imageRect(cursor_.getRect(), data, stride);
-
-  memcpy(cursor_.mask.buf, other.mask.buf, cursor_.maskLen());
+  delete cursor_;
+  cursor_ = new Cursor(other);
 }
 
 bool ConnParams::supportsEncoding(rdr::S32 encoding) const

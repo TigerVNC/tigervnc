@@ -66,7 +66,7 @@ public:
   void dataRect(const rfb::Rect& r, int encoding);
 
   void setCursor(int width, int height, const rfb::Point& hotspot,
-                 void* data, void* mask);
+                 const rdr::U8* data);
 
   void fence(rdr::U32 flags, unsigned len, const char data[]);
 

@@ -444,9 +444,9 @@ void CConn::dataRect(const Rect& r, int encoding)
 }
 
 void CConn::setCursor(int width, int height, const Point& hotspot,
-                      void* data, void* mask)
+                      const rdr::U8* data)
 {
-  desktop->setCursor(width, height, hotspot, data, mask);
+  desktop->setCursor(width, height, hotspot, data);
 }
 
 void CConn::fence(rdr::U32 flags, unsigned len, const char data[])

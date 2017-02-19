@@ -49,7 +49,7 @@ public:
 
   virtual void setDesktopSize(int w, int h);
   virtual void setPixelFormat(const rfb::PixelFormat& pf);
-  virtual void setCursor(int, int, const rfb::Point&, void*, void*);
+  virtual void setCursor(int, int, const rfb::Point&, const rdr::U8*);
   virtual void framebufferUpdateStart();
   virtual void framebufferUpdateEnd();
   virtual void setColourMapEntries(int, int, rdr::U16*);
@@ -94,7 +94,7 @@ void CConn::setPixelFormat(const rfb::PixelFormat& pf)
   CConnection::setPixelFormat(filePF);
 }
 
-void CConn::setCursor(int, int, const rfb::Point&, void*, void*)
+void CConn::setCursor(int, int, const rfb::Point&, const rdr::U8*)
 {
 }
 

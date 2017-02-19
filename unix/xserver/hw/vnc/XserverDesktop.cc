@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2015 Pierre Ossman for Cendio AB
+ * Copyright 2009-2017 Pierre Ossman for Cendio AB
  * Copyright 2014 Brian P. Hinz
  * 
  * This is free software; you can redistribute it and/or modify
@@ -344,46 +344,37 @@ void XserverDesktop::setCursor(int width, int height, int hotX, int hotY,
                                const unsigned char *rgbaData)
 {
   rdr::U8* cursorData;
-  rdr::U8* cursorMask;
-  int rfbMaskBytesPerRow;
 
   rdr::U8 *out;
   const unsigned char *in;
-  rdr::U8 rgb[3];
 
-  cursorData = new rdr::U8[width * height * (getPF().bpp / 8)];
+  cursorData = new rdr::U8[width * height * 4];
 
-  rfbMaskBytesPerRow = (width + 7) / 8;
-
-  cursorMask = new rdr::U8[rfbMaskBytesPerRow * height];
-
-  memset(cursorMask, 0, rfbMaskBytesPerRow * height);
-
+  // Un-premultiply alpha
   in = rgbaData;
   out = cursorData;
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      rgb[0] = *in++;
-      rgb[1] = *in++;
-      rgb[2] = *in++;
+      rdr::U8 alpha;
 
-      getPF().bufferFromRGB(out, rgb, 1);
+      alpha = in[3];
+      if (alpha == 0)
+        alpha = 1; // Avoid division by zero
 
-      if (*in++ > 127)
-        cursorMask[y * rfbMaskBytesPerRow + x/8] |= 0x80>>(x%8);
-
-      out += getPF().bpp/8;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = (unsigned)*in++ * 255/alpha;
+      *out++ = *in++;
     }
   }
 
   try {
-    server->setCursor(width, height, Point(hotX, hotY), cursorData, cursorMask);
+    server->setCursor(width, height, Point(hotX, hotY), cursorData);
   } catch (rdr::Exception& e) {
     vlog.error("XserverDesktop::setCursor: %s",e.str());
   }
 
   delete [] cursorData;
-  delete [] cursorMask;
 }
 
 void XserverDesktop::add_changed(const rfb::Region &region)
