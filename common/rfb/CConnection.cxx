@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -318,6 +319,13 @@ void CConnection::setExtendedDesktopSize(unsigned reason,
   decoder.flush();
 
   CMsgHandler::setExtendedDesktopSize(reason, result, w, h, layout);
+}
+
+void CConnection::readAndDecodeRect(const Rect& r, int encoding,
+                                    ModifiablePixelBuffer* pb)
+{
+  decoder.decodeRect(r, encoding, pb);
+  decoder.flush();
 }
 
 void CConnection::framebufferUpdateStart()

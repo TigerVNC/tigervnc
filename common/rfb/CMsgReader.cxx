@@ -16,7 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+
+#include <assert.h>
 #include <stdio.h>
+
 #include <rfb/msgTypes.h>
 #include <rdr/InStream.h>
 #include <rfb/Exception.h>
@@ -93,6 +96,9 @@ void CMsgReader::readMsg()
       break;
     case pseudoEncodingCursor:
       readSetCursor(w, h, Point(x,y));
+      break;
+    case pseudoEncodingCursorWithAlpha:
+      readSetCursorWithAlpha(w, h, Point(x,y));
       break;
     case pseudoEncodingDesktopName:
       readSetDesktopName(x, y, w, h);
@@ -285,6 +291,50 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
   }
 
   handler->setCursor(width, height, hotspot, buf);
+}
+
+void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hotspot)
+{
+  int encoding;
+
+  const PixelFormat rgbaPF(32, 32, false, true, 255, 255, 255, 16, 8, 0);
+  ManagedPixelBuffer pb(rgbaPF, width, height);
+  PixelFormat origPF;
+
+  rdr::U8* buf;
+  int stride;
+
+  encoding = is->readS32();
+
+  origPF = handler->cp.pf();
+  handler->cp.setPF(rgbaPF);
+  handler->readAndDecodeRect(pb.getRect(), encoding, &pb);
+  handler->cp.setPF(origPF);
+
+  // On-wire data has pre-multiplied alpha, but we store it
+  // non-pre-multiplied
+  buf = pb.getBufferRW(pb.getRect(), &stride);
+  assert(stride == width);
+
+  for (int i = 0;i < pb.area();i++) {
+    rdr::U8 alpha;
+
+    alpha = buf[3];
+    if (alpha == 0)
+      alpha = 1; // Avoid division by zero
+
+    buf[0] = (unsigned)buf[0] * 255/alpha;
+    buf[1] = (unsigned)buf[1] * 255/alpha;
+    buf[2] = (unsigned)buf[2] * 255/alpha;
+    buf[3] = alpha;
+
+    buf += 4;
+  }
+
+  pb.commitBufferRW(pb.getRect());
+
+  handler->setCursor(width, height, hotspot,
+                     pb.getBuffer(pb.getRect(), &stride));
 }
 
 void CMsgReader::readSetDesktopName(int x, int y, int w, int h)

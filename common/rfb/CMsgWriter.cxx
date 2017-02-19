@@ -74,6 +74,7 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
   if (cp->supportsLocalCursor) {
     encodings[nEncodings++] = pseudoEncodingXCursor;
     encodings[nEncodings++] = pseudoEncodingCursor;
+    encodings[nEncodings++] = pseudoEncodingCursorWithAlpha;
   }
   if (cp->supportsDesktopResize)
     encodings[nEncodings++] = pseudoEncodingDesktopSize;

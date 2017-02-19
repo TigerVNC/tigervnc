@@ -57,6 +57,9 @@ namespace rfb {
     virtual void endOfContinuousUpdates();
     virtual void serverInit() = 0;
 
+    virtual void readAndDecodeRect(const Rect& r, int encoding,
+                                   ModifiablePixelBuffer* pb) = 0;
+
     virtual void framebufferUpdateStart();
     virtual void framebufferUpdateEnd();
     virtual void dataRect(const Rect& r, int encoding) = 0;

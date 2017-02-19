@@ -1,4 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright 2011-2017 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,6 +99,9 @@ namespace rfb {
     virtual void setExtendedDesktopSize(unsigned reason, unsigned result,
                                         int w, int h,
                                         const ScreenSet& layout);
+
+    virtual void readAndDecodeRect(const Rect& r, int encoding,
+                                   ModifiablePixelBuffer* pb);
 
     virtual void framebufferUpdateStart();
     virtual void framebufferUpdateEnd();
