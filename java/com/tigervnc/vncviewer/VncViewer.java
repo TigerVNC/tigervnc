@@ -43,9 +43,10 @@ import java.io.File;
 import java.lang.Character;
 import java.lang.reflect.*;
 import java.net.URL;
+import java.nio.CharBuffer;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.FontUIResource;
@@ -82,6 +83,10 @@ public class VncViewer extends javax.swing.JApplet
   public static final String os = 
     System.getProperty("os.name").toLowerCase();
   private static VncViewer applet;
+
+  private String defaultServerName;
+  int VNCSERVERNAMELEN = 64;
+  CharBuffer vncServerName = CharBuffer.allocate(VNCSERVERNAMELEN);
 
   public static void setLookAndFeel() {
     try {
@@ -160,7 +165,6 @@ public class VncViewer extends javax.swing.JApplet
     Configuration.enableViewerParams();
 
     /* Load the default parameter settings */
-    String defaultServerName;
     try {
       defaultServerName = loadViewerParameters(null);
     } catch (com.tigervnc.rfb.Exception e) {
@@ -200,9 +204,7 @@ public class VncViewer extends javax.swing.JApplet
         usage();
       }
 
-      if (!vncServerName.getValue().isEmpty())
-        usage();
-      vncServerName.setParam(argv[i]);
+      vncServerName.put(argv[i].toCharArray()).flip();
     }
 
   }
@@ -367,9 +369,7 @@ public class VncViewer extends javax.swing.JApplet
     setLookAndFeel();
     setBackground(Color.white);
     applet = this;
-    String servername = loadAppletParameters(applet);
-    vncServerName.setParam(servername);
-    alwaysShowServerDialog.setParam(false);
+    vncServerName.put(loadAppletParameters(applet).toCharArray()).flip();
     if (embed.getValue()) {
       fullScreen.setParam(false);
       remoteResize.setParam(false);
@@ -486,13 +486,24 @@ public class VncViewer extends javax.swing.JApplet
 
   public void run() {
     cc = null;
+    Socket sock = null;
+
+    /* Specifying -via and -listen together is nonsense */
+    if (listenMode.getValue() && !via.getValueStr().isEmpty()) {
+      vlog.error("Parameters -listen and -via are incompatible");
+      String msg =
+        new String("Parameters -listen and -via are incompatible");
+      JOptionPane.showMessageDialog(null, msg, "ERROR",
+                                    JOptionPane.ERROR_MESSAGE);
+      exit(1);
+    }
 
     if (listenMode.getValue()) {
       int port = 5500;
 
-      if (!vncServerName.getValue().isEmpty() &&
-          Character.isDigit(vncServerName.getValue().charAt(0)))
-        port = Integer.parseInt(vncServerName.getValue());
+      if (vncServerName.charAt(0) != 0 &&
+          Character.isDigit(vncServerName.charAt(0)))
+        port = Integer.parseInt(vncServerName.toString());
 
       TcpListener listener = null;
       try {
@@ -507,23 +518,22 @@ public class VncViewer extends javax.swing.JApplet
       while (sock == null)
         sock = listener.accept();
     } else {
-      if (alwaysShowServerDialog.getValue() || sock == null) {
-        if (vncServerName.getValue().isEmpty()) {
-          try {
-            SwingUtilities.invokeAndWait(new ServerDialog());
-          } catch (InvocationTargetException e) {
-            reportException(e);
-          } catch (InterruptedException e) {
-            reportException(e);
-          }
-          if (vncServerName.getValue().isEmpty())
-            exit(0);
+      if (vncServerName.charAt(0) == 0) {
+        try {
+          SwingUtilities.invokeAndWait(
+            new ServerDialog(defaultServerName, vncServerName));
+        } catch (InvocationTargetException e) {
+          reportException(e);
+        } catch (InterruptedException e) {
+          reportException(e);
         }
+        if (vncServerName.charAt(0) == 0)
+          exit(0);
       }
     }
 
     try {
-      cc = new CConn(vncServerName.getValue(), sock);
+      cc = new CConn(vncServerName.toString(), sock);
       while (!cc.shuttingDown)
         cc.processMsg();
       exit(0);
@@ -546,6 +556,5 @@ public class VncViewer extends javax.swing.JApplet
   "Specifies a configuration file to load.", null);
 
   Thread thread;
-  Socket sock;
   static LogWriter vlog = new LogWriter("VncViewer");
 }
