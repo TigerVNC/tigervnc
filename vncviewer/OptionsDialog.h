@@ -63,6 +63,8 @@ protected:
   static void handleX509(Fl_Widget *widget, void *data);
 
   static void handleDesktopSize(Fl_Widget *widget, void *data);
+  static void handlefullScreenAllMonitors(Fl_Widget *widget, void *data);
+  static void handlefullScreenSelMonitors(Fl_Widget *widget, void *data);
 
   static void handleClipboard(Fl_Widget *widget, void *data);
 
@@ -125,6 +127,9 @@ protected:
   Fl_Check_Button *remoteResizeCheckbox;
   Fl_Check_Button *fullScreenCheckbox;
   Fl_Check_Button *fullScreenAllMonitorsCheckbox;
+  Fl_Check_Button *fullScreenSelMonitorsCheckbox;
+  Fl_Int_Input *fullScreenScreen1Input;
+  Fl_Int_Input *fullScreenScreen2Input;
 
   /* Misc. */
   Fl_Check_Button *sharedCheckbox;
