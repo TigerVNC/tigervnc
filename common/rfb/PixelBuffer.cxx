@@ -356,7 +356,6 @@ inline void
 ManagedPixelBuffer::checkDataSize() {
   unsigned long new_datasize = width_ * height_ * (format.bpp/8);
   if (datasize < new_datasize) {
-    vlog.debug("reallocating managed buffer (%dx%d)", width_, height_);
     if (data) {
       delete [] data;
       datasize = 0; data = 0;
