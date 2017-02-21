@@ -22,6 +22,7 @@ package com.tigervnc.vncviewer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.nio.CharBuffer;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.filechooser.*;
@@ -41,8 +42,10 @@ import static com.tigervnc.vncviewer.Parameters.*;
 class ServerDialog extends Dialog implements Runnable {
 
   @SuppressWarnings({"unchecked","rawtypes"})
-  public ServerDialog() {
+  public ServerDialog(String defaultServerName,
+                      CharBuffer vncServerName) {
     super(true);
+    this.vncServerName = vncServerName;
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setTitle("VNC Viewer: Connection Details");
     setResizable(false);
@@ -54,11 +57,19 @@ class ServerDialog extends Dialog implements Runnable {
     });
 
     JLabel serverLabel = new JLabel("VNC server:", JLabel.RIGHT);
-    String valueStr = new String("");
-    if (UserPreferences.get("ServerDialog", "history") != null)
-      valueStr = UserPreferences.get("ServerDialog", "history");
-    server = new MyJComboBox(valueStr.split(","));
-    server.addActionListener(new ActionListener() {
+    String valueStr = new String(defaultServerName);
+    ArrayList<String> servernames = new ArrayList<String>();
+    if (!valueStr.isEmpty())
+      servernames.add(valueStr);
+    String history = UserPreferences.get("ServerDialog", "history");
+    if (history != null) {
+      for (String s : history.split(",")) {
+        if (servernames.indexOf(s) < 0)
+          servernames.add(s);
+      }
+    }
+    serverName = new MyJComboBox(servernames.toArray());
+    serverName.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         JComboBox s = (JComboBox)e.getSource();
         if (e.getActionCommand().equals("comboBoxEdited")) {
@@ -67,18 +78,18 @@ class ServerDialog extends Dialog implements Runnable {
         }
       }
     });
-    if (valueStr.equals(""))
-      server.setPrototypeDisplayValue("255.255.255.255:5900");
+    if (servernames.size() == 0)
+      serverName.setPrototypeDisplayValue("255.255.255.255:5900");
 
-    server.setEditable(true);
-    editor = server.getEditor();
+    serverName.setEditable(true);
+    editor = serverName.getEditor();
     editor.getEditorComponent().addKeyListener(new KeyListener() {
       public void keyTyped(KeyEvent e) {}
       public void keyReleased(KeyEvent e) {}
       public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-          server.insertItemAt(editor.getItem(), 0);
-          server.setSelectedIndex(0);
+          serverName.insertItemAt(editor.getItem(), 0);
+          serverName.setSelectedIndex(0);
           handleConnect();
         }
       }
@@ -139,7 +150,7 @@ class ServerDialog extends Dialog implements Runnable {
                                            LINE_START, NONE,
                                            new Insets(5, 10, 5, 5),
                                            NONE, NONE));
-    contentPane.add(server,
+    contentPane.add(serverName,
                     new GridBagConstraints(2, 0,
                                            REMAINDER, 1,
                                            HEAVY, LIGHT,
@@ -254,7 +265,7 @@ class ServerDialog extends Dialog implements Runnable {
         f = showChooser(title, f, filter);
     }
     if (f != null && (!f.exists() || f.canWrite()))
-      saveViewerParameters(f.getAbsolutePath(), (String)server.getSelectedItem());
+      saveViewerParameters(f.getAbsolutePath(), (String)serverName.getSelectedItem());
   }
 
   private void handleAbout() {
@@ -262,22 +273,22 @@ class ServerDialog extends Dialog implements Runnable {
   }
 
   private void handleCancel() {
-    vncServerName.setParam("");
     endDialog();
   }
 
   private void handleConnect() {
-    String serverName = (String)server.getSelectedItem();
-    vncServerName.setParam(serverName);
-    saveViewerParameters(null, serverName);
+    String servername = (String)serverName.getSelectedItem();
+    vncServerName.put(servername).flip();
+    saveViewerParameters(null, servername);
     endDialog();
   }
 
   @SuppressWarnings("rawtypes")
-  MyJComboBox server;
+  MyJComboBox serverName;
   ComboBoxEditor editor;
   JButton aboutButton, optionsButton, connectButton, cancelButton;
   OptionsDialog options;
+  CharBuffer vncServerName;
   static LogWriter vlog = new LogWriter("ServerDialog");
 
 }
