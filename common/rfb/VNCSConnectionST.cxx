@@ -1121,10 +1121,12 @@ void VNCSConnectionST::setCursor()
 
   cp.setCursor(*server->cursor);
 
-  if (!writer()->writeSetCursor()) {
-    if (!writer()->writeSetXCursor()) {
-      // No client support
-      return;
+  if (!writer()->writeSetCursorWithAlpha()) {
+    if (!writer()->writeSetCursor()) {
+      if (!writer()->writeSetXCursor()) {
+        // No client support
+        return;
+      }
     }
   }
 

@@ -36,7 +36,8 @@ SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
   : cp(cp_), os(os_),
     nRectsInUpdate(0), nRectsInHeader(0),
     needSetDesktopSize(false), needExtendedDesktopSize(false),
-    needSetDesktopName(false), needSetCursor(false), needSetXCursor(false)
+    needSetDesktopName(false), needSetCursor(false),
+    needSetXCursor(false), needSetCursorWithAlpha(false)
 {
 }
 
@@ -180,11 +181,21 @@ bool SMsgWriter::writeSetXCursor()
   return true;
 }
 
+bool SMsgWriter::writeSetCursorWithAlpha()
+{
+  if (!cp->supportsLocalCursorWithAlpha)
+    return false;
+
+  needSetCursorWithAlpha = true;
+
+  return true;
+}
+
 bool SMsgWriter::needFakeUpdate()
 {
   if (needSetDesktopName)
     return true;
-  if (needSetCursor || needSetXCursor)
+  if (needSetCursor || needSetXCursor || needSetCursorWithAlpha)
     return true;
   if (needNoDataUpdate())
     return true;
@@ -231,6 +242,8 @@ void SMsgWriter::writeFramebufferUpdateStart(int nRects)
     if (needSetCursor)
       nRects++;
     if (needSetXCursor)
+      nRects++;
+    if (needSetCursorWithAlpha)
       nRects++;
   }
 
@@ -332,6 +345,15 @@ void SMsgWriter::writePseudoRects()
                         cursor.hotspot().x, cursor.hotspot().y,
                         bitmap.buf, mask.buf);
     needSetXCursor = false;
+  }
+
+  if (needSetCursorWithAlpha) {
+    const Cursor& cursor = cp->cursor();
+
+    writeSetCursorWithAlphaRect(cursor.width(), cursor.height(),
+                                cursor.hotspot().x, cursor.hotspot().y,
+                                cursor.getBuffer());
+    needSetCursorWithAlpha = false;
   }
 
   if (needSetDesktopName) {
@@ -471,5 +493,33 @@ void SMsgWriter::writeSetXCursorRect(int width, int height,
     os->writeU8(0);
     os->writeBytes(data, (width+7)/8 * height);
     os->writeBytes(mask, (width+7)/8 * height);
+  }
+}
+
+void SMsgWriter::writeSetCursorWithAlphaRect(int width, int height,
+                                             int hotspotX, int hotspotY,
+                                             const rdr::U8* data)
+{
+  if (!cp->supportsLocalCursorWithAlpha)
+    throw Exception("Client does not support local cursors");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeSetCursorWithAlphaRect: nRects out of sync");
+
+  os->writeS16(hotspotX);
+  os->writeS16(hotspotY);
+  os->writeU16(width);
+  os->writeU16(height);
+  os->writeU32(pseudoEncodingCursorWithAlpha);
+
+  // FIXME: Use an encoder with compression?
+  os->writeU32(encodingRaw);
+
+  // Alpha needs to be pre-multiplied
+  for (int i = 0;i < width*height;i++) {
+    os->writeU8((unsigned)data[0] * data[3] / 255);
+    os->writeU8((unsigned)data[1] * data[3] / 255);
+    os->writeU8((unsigned)data[2] * data[3] / 255);
+    os->writeU8(data[3]);
+    data += 4;
   }
 }

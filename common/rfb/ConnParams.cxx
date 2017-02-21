@@ -31,6 +31,7 @@ ConnParams::ConnParams()
   : majorVersion(0), minorVersion(0),
     width(0), height(0), useCopyRect(false),
     supportsLocalCursor(false), supportsLocalXCursor(false),
+    supportsLocalCursorWithAlpha(false),
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
     supportsDesktopRename(false), supportsLastRect(false),
     supportsSetDesktopSize(false), supportsFence(false),
@@ -101,6 +102,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
   useCopyRect = false;
   supportsLocalCursor = false;
+  supportsLocalCursorWithAlpha = false;
   supportsDesktopResize = false;
   supportsExtendedDesktopSize = false;
   supportsLocalXCursor = false;
@@ -123,6 +125,9 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       break;
     case pseudoEncodingXCursor:
       supportsLocalXCursor = true;
+      break;
+    case pseudoEncodingCursorWithAlpha:
+      supportsLocalCursorWithAlpha = true;
       break;
     case pseudoEncodingDesktopSize:
       supportsDesktopResize = true;
