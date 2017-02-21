@@ -47,31 +47,114 @@ Cursor::~Cursor()
   delete [] data;
 }
 
+static unsigned short pow223[] = { 0, 30, 143, 355, 676, 1113, 1673,
+                                   2361, 3181, 4139, 5237, 6479, 7869,
+                                   9409, 11103, 12952, 14961, 17130,
+                                   19462, 21960, 24626, 27461, 30467,
+                                   33647, 37003, 40535, 44245, 48136,
+                                   52209, 56466, 60907, 65535 };
+
+static unsigned short ipow(unsigned short val, unsigned short lut[])
+{
+  int idx = val >> (16-5);
+  int a, b;
+
+  if (val < 0x8000) {
+    a = lut[idx];
+    b = lut[idx+1];
+  } else {
+    a = lut[idx-1];
+    b = lut[idx];
+  }
+
+  return (val & 0x7ff) * (b-a) / 0x7ff + a;
+}
+
+static unsigned short srgb_to_lin(unsigned char srgb)
+{
+  return ipow((unsigned)srgb * 65535 / 255, pow223);
+}
+
+// Floyd-Steinberg dithering
+static void dither(int width, int height, int* data)
+{
+  for (int y = 0; y < height; y++) {
+    for (int x_ = 0; x_ < width; x_++) {
+      int x = (y & 1) ? (width - x_ - 1) : x_;
+      int error;
+
+      if (data[x] > 32767) {
+        error = data[x] - 65535;
+        data[x] = 65535;
+      } else {
+        error = data[x] - 0;
+        data[x] = 0;
+      }
+
+      if (y & 1) {
+        if (x > 0) {
+          data[x - 1] += error * 7 / 16;
+        }
+        if ((y + 1) < height) {
+          if (x > 0)
+            data[x - 1 + width] += error * 3 / 16;
+          data[x + width] += error * 5 / 16;
+          if ((x + 1) < width)
+            data[x + 1] += error * 1 / 16;
+        }
+      } else {
+        if ((x + 1) < width) {
+          data[x + 1] += error * 7 / 16;
+        }
+        if ((y + 1) < height) {
+          if ((x + 1) < width)
+            data[x + 1 + width] += error * 3 / 16;
+          data[x + width] += error * 5 / 16;
+          if (x > 0)
+            data[x - 1] += error * 1 / 16;
+        }
+      }
+    }
+    data += width;
+  }
+}
+
 rdr::U8* Cursor::getBitmap() const
 {
+  // First step is converting to luminance
+  int luminance[width()*height()];
+  int *lum_ptr = luminance;
+  const rdr::U8 *data_ptr = data;
+  for (int y = 0; y < height(); y++) {
+    for (int x = 0; x < width(); x++) {
+      // Use BT.709 coefficients for grayscale
+      *lum_ptr = 0;
+      *lum_ptr += (int)srgb_to_lin(data_ptr[0]) * 6947;  // 0.2126
+      *lum_ptr += (int)srgb_to_lin(data_ptr[1]) * 23436; // 0.7152
+      *lum_ptr += (int)srgb_to_lin(data_ptr[2]) * 2366;  // 0.0722
+      *lum_ptr /= 32768;
+
+      lum_ptr++;
+      data_ptr += 4;
+    }
+  }
+
+  // Then diterhing
+  dither(width(), height(), luminance);
+
+  // Then conversion to a bit mask
   rdr::U8Array source((width()+7)/8*height());
   memset(source.buf, 0, (width()+7)/8*height());
-
   int maskBytesPerRow = (width() + 7) / 8;
-  const rdr::U8 *data_ptr = data;
+  lum_ptr = luminance;
+  data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
       int byte = y * maskBytesPerRow + x / 8;
       int bit = 7 - x % 8;
-      if (data_ptr[3] >= 0x80) {
-        // Use Luma with BT.709 coefficients for grayscale
-        unsigned luma;
-
-        luma = 0;
-        luma += (unsigned)data_ptr[0] * 13933; // 0.2126
-        luma += (unsigned)data_ptr[1] * 46871; // 0.7152
-        luma += (unsigned)data_ptr[2] * 4732;  // 0.0722
-        luma /= 65536;
-
-        // Gamma compensated half intensity gray
-        if (luma > 187)
-          source.buf[byte] |= (1 << bit);
-      }
+      if (*lum_ptr > 32767)
+        source.buf[byte] |= (1 << bit);
+      lum_ptr++;
       data_ptr += 4;
     }
   }
@@ -81,17 +164,34 @@ rdr::U8* Cursor::getBitmap() const
 
 rdr::U8* Cursor::getMask() const
 {
+  // First step is converting to integer array
+  int alpha[width()*height()];
+  int *alpha_ptr = alpha;
+  const rdr::U8 *data_ptr = data;
+  for (int y = 0; y < height(); y++) {
+    for (int x = 0; x < width(); x++) {
+      *alpha_ptr = (int)data_ptr[3] * 65535 / 255;
+      alpha_ptr++;
+      data_ptr += 4;
+    }
+  }
+
+  // Then diterhing
+  dither(width(), height(), alpha);
+
+  // Then conversion to a bit mask
   rdr::U8Array mask((width()+7)/8*height());
   memset(mask.buf, 0, (width()+7)/8*height());
-
   int maskBytesPerRow = (width() + 7) / 8;
-  const rdr::U8 *data_ptr = data;
+  alpha_ptr = alpha;
+  data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
       int byte = y * maskBytesPerRow + x / 8;
       int bit = 7 - x % 8;
-      if (data_ptr[3] >= 0x80)
+      if (*alpha_ptr > 32767)
         mask.buf[byte] |= (1 << bit);
+      alpha_ptr++;
       data_ptr += 4;
     }
   }
