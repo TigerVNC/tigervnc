@@ -170,6 +170,8 @@ static VoidParameter* parameterArray[] = {
   &qualityLevel,
   &fullScreen,
   &fullScreenAllMonitors,
+  &fullScreenSelMonitors,
+  &fullScreenMonitors,
   &desktopSize,
   &geometry,
   &remoteResize,
