@@ -283,6 +283,11 @@ void RenderedCursor::update(PixelBuffer* framebuffer,
   buffer.setPF(format);
   buffer.setSize(clippedRect.width(), clippedRect.height());
 
+  // Bail out early to avoid pestering the framebuffer with
+  // bogus coordinates
+  if (clippedRect.area() == 0)
+    return;
+
   data = framebuffer->getBuffer(buffer.getRect(offset), &stride);
   buffer.imageRect(buffer.getRect(), data, stride);
 
