@@ -99,9 +99,9 @@ namespace rfb {
   unsigned msSince(const struct timeval *then);
 
   size_t siPrefix(long long value, const char *unit,
-                  char *buffer, size_t maxlen);
+                  char *buffer, size_t maxlen, int precision=6);
   size_t iecPrefix(long long value, const char *unit,
-                   char *buffer, size_t maxlen);
+                   char *buffer, size_t maxlen, int precision=6);
 }
 
 // Some platforms (e.g. Windows) include max() and min() macros in their

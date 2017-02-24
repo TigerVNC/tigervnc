@@ -40,6 +40,10 @@ public:
 
   const char *connectionInfo();
 
+  unsigned getFrameCount();
+  unsigned getPixelCount();
+  unsigned getPosition();
+
   // FdInStreamBlockCallback methods
   void blockCallback();
 
@@ -88,6 +92,9 @@ private:
   network::Socket* sock;
 
   DesktopWindow *desktop;
+
+  unsigned frameCount;
+  unsigned pixelCount;
 
   rfb::PixelFormat serverPF;
   rfb::PixelFormat fullColourPF;

@@ -139,7 +139,7 @@ namespace rfb {
   static size_t doPrefix(long long value, const char *unit,
                          char *buffer, size_t maxlen,
                          unsigned divisor, const char **prefixes,
-                         size_t prefixCount) {
+                         size_t prefixCount, int precision) {
     double newValue;
     size_t prefix, len;
 
@@ -152,7 +152,7 @@ namespace rfb {
       prefix++;
     }
 
-    len = snprintf(buffer, maxlen, "%g %s%s", newValue,
+    len = snprintf(buffer, maxlen, "%.*g %s%s", precision, newValue,
                    (prefix == 0) ? "" : prefixes[prefix-1], unit);
     buffer[maxlen-1] = '\0';
 
@@ -165,14 +165,16 @@ namespace rfb {
     { "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
 
   size_t siPrefix(long long value, const char *unit,
-                  char *buffer, size_t maxlen) {
+                  char *buffer, size_t maxlen, int precision) {
     return doPrefix(value, unit, buffer, maxlen, 1000, siPrefixes,
-                    sizeof(siPrefixes)/sizeof(*siPrefixes));
+                    sizeof(siPrefixes)/sizeof(*siPrefixes),
+                    precision);
   }
 
   size_t iecPrefix(long long value, const char *unit,
-                   char *buffer, size_t maxlen) {
+                   char *buffer, size_t maxlen, int precision) {
     return doPrefix(value, unit, buffer, maxlen, 1024, iecPrefixes,
-                    sizeof(iecPrefixes)/sizeof(*iecPrefixes));
+                    sizeof(iecPrefixes)/sizeof(*iecPrefixes),
+                    precision);
   }
 };

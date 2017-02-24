@@ -22,6 +22,8 @@
 
 #include <map>
 
+#include <sys/time.h>
+
 #include <rfb/Rect.h>
 #include <rfb/Pixel.h>
 
@@ -103,6 +105,8 @@ private:
   static void handleScroll(Fl_Widget *wnd, void *data);
   static void handleEdgeScroll(void *data);
 
+  static void handleStatsTimeout(void *data);
+
 private:
   CConn* cc;
   Fl_Scrollbar *hscroll, *vscroll;
@@ -115,6 +119,20 @@ private:
   bool firstUpdate;
   bool delayedFullscreen;
   bool delayedDesktopSize;
+
+  struct statsEntry {
+    unsigned fps;
+    unsigned pps;
+    unsigned bps;
+  };
+  struct statsEntry stats[100];
+
+  struct timeval statsLastTime;
+  unsigned statsLastFrame;
+  unsigned statsLastPixels;
+  unsigned statsLastPosition;
+
+  Surface *statsGraph;
 };
 
 #endif

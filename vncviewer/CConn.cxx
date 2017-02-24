@@ -73,7 +73,7 @@ static const PixelFormat mediumColourPF(8, 8, false, true,
 
 CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   : serverHost(0), serverPort(0), desktop(NULL),
-    pendingPFChange(false),
+    frameCount(0), pixelCount(0), pendingPFChange(false),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
@@ -223,6 +223,21 @@ const char *CConn::connectionInfo()
   return infoText;
 }
 
+unsigned CConn::getFrameCount()
+{
+  return frameCount;
+}
+
+unsigned CConn::getPixelCount()
+{
+  return pixelCount;
+}
+
+unsigned CConn::getPosition()
+{
+  return sock->inStream().pos();
+}
+
 // The RFB core is not properly asynchronous, so it calls this callback
 // whenever it needs to block to wait for more data. Since FLTK is
 // monitoring the socket, we just make sure FLTK gets to run.
@@ -365,6 +380,8 @@ void CConn::framebufferUpdateEnd()
 {
   CConnection::framebufferUpdateEnd();
 
+  frameCount++;
+
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
 
@@ -441,6 +458,8 @@ void CConn::dataRect(const Rect& r, int encoding)
   CConnection::dataRect(r, encoding);
 
   sock->inStream().stopTiming();
+
+  pixelCount += r.area();
 }
 
 void CConn::setCursor(int width, int height, const Point& hotspot,
