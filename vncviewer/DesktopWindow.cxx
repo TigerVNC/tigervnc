@@ -484,6 +484,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
 #endif
 
   fl_font(FL_HELVETICA, FL_NORMAL_SIZE * 2);
+  w = 0;
   fl_measure(textbuf, w, h);
 
   // Margins
