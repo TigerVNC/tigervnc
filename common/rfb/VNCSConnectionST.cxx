@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2015 Pierre Ossman for Cendio AB
+ * Copyright 2009-2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -377,9 +377,16 @@ void VNCSConnectionST::renderedCursorChange()
 
 bool VNCSConnectionST::needRenderedCursor()
 {
-  bool pointerpos = (!server->cursorPos.equals(pointerEventPos) && (time(0) - pointerEventTime) > 0);
-  return (state() == RFBSTATE_NORMAL
-          && ((!cp.supportsLocalCursor && !cp.supportsLocalXCursor) || pointerpos));
+  if (state() != RFBSTATE_NORMAL)
+    return false;
+
+  if (!cp.supportsLocalCursor && !cp.supportsLocalXCursor)
+    return true;
+  if (!server->cursorPos.equals(pointerEventPos) &&
+      (time(0) - pointerEventTime) > 0)
+    return true;
+
+  return false;
 }
 
 
@@ -602,7 +609,6 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
   if (!incremental) {
     // Non-incremental update - treat as if area requested has changed
     updates.add_changed(reqRgn);
-    server->comparer->add_changed(reqRgn);
 
     // And send the screen layout to the client (which, unlike the
     // framebuffer dimensions, the client doesn't get during init)
@@ -936,11 +942,6 @@ void VNCSConnectionST::updateCongestion()
 
 void VNCSConnectionST::writeFramebufferUpdate()
 {
-  Region req;
-  UpdateInfo ui;
-  bool needNewUpdateInfo;
-  bool drawRenderedCursor;
-
   // We're in the middle of processing a command that's supposed to be
   // synchronised. Allowing an update to slip out right now might violate
   // that synchronisation.
@@ -963,37 +964,59 @@ void VNCSConnectionST::writeFramebufferUpdate()
   if (isCongested())
     return;
 
-  // In continuous mode, we will be outputting at least three distinct
-  // messages. We need to aggregate these in order to not clog up TCP's
-  // congestion window.
+  // Updates often consists of many small writes, and in continuous
+  // mode, we will also have small fence messages around the update. We
+  // need to aggregate these in order to not clog up TCP's congestion
+  // window.
   network::TcpSocket::cork(sock->getFd(), true);
 
   // First take care of any updates that cannot contain framebuffer data
   // changes.
-  if (writer()->needNoDataUpdate()) {
-    writer()->writeNoDataUpdate();
-    requested.clear();
-    if (!continuousUpdates)
-      goto out;
-  }
+  writeNoDataUpdate();
+
+  // Then real data (if possible)
+  writeDataUpdate();
+
+  network::TcpSocket::cork(sock->getFd(), false);
+}
+
+void VNCSConnectionST::writeNoDataUpdate()
+{
+  if (!writer()->needNoDataUpdate())
+    return;
+
+  writer()->writeNoDataUpdate();
+
+  // Make sure no data update is sent until next request
+  requested.clear();
+}
+
+void VNCSConnectionST::writeDataUpdate()
+{
+  Region req;
+  UpdateInfo ui;
+  bool needNewUpdateInfo;
+  const RenderedCursor *cursor;
 
   updates.enable_copyrect(cp.useCopyRect);
 
-  // Fetch updates from server object, and see if we are allowed to send
-  // anything right now (the framebuffer might have changed in ways we
-  // haven't yet been informed of).
+  // See if we are allowed to send anything right now (the framebuffer
+  // might have changed in ways we haven't yet been informed of).
   if (!server->checkUpdate())
-    goto out;
+    return;
 
-  // Get the lists of updates. Prior to exporting the data to the `ui' object,
-  // getUpdateInfo() will normalize the `updates' object such way that its
-  // `changed' and `copied' regions would not intersect.
-
+  // See what the client has requested (if anything)
   if (continuousUpdates)
     req = cuRegion.union_(requested);
   else
     req = requested;
 
+  if (req.is_empty())
+    return;
+
+  // Get the lists of updates. Prior to exporting the data to the `ui' object,
+  // getUpdateInfo() will normalize the `updates' object such way that its
+  // `changed' and `copied' regions would not intersect.
   updates.getUpdateInfo(&ui, req);
   needNewUpdateInfo = false;
 
@@ -1026,7 +1049,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // Return if there is nothing to send the client.
 
   if (updates.is_empty() && !writer()->needFakeUpdate() && !updateRenderedCursor)
-    goto out;
+    return;
 
   // The `updates' object could change, make sure we have valid update info.
 
@@ -1038,59 +1061,46 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // with the update region, we need to draw the rendered cursor regardless of
   // whether it has changed.
 
-  drawRenderedCursor = false;
+  cursor = NULL;
   if (needRenderedCursor()) {
     Rect renderedCursorRect;
 
+    cursor = server->getRenderedCursor();
+
     renderedCursorRect
-      = server->renderedCursor.getEffectiveRect()
-         .intersect(req.get_bounding_rect());
+      = cursor->getEffectiveRect().intersect(req.get_bounding_rect());
 
     if (renderedCursorRect.is_empty()) {
-      drawRenderedCursor = false;
-    } else if (updateRenderedCursor) {
-      drawRenderedCursor = true;
-    } else if (!ui.changed.union_(ui.copied)
+      cursor = NULL;
+    } else if (!updateRenderedCursor &&
+               ui.changed.union_(ui.copied)
                .intersect(renderedCursorRect).is_empty()) {
-      drawRenderedCursor = true;
+      cursor = NULL;
     }
 
-    // We could remove the new cursor rect from updates here.  It's not clear
-    // whether this is worth it.  If we do remove it, then we won't draw over
-    // the same bit of screen twice, but we have the overhead of a more complex
-    // region.
-
-    //if (drawRenderedCursor) {
-    //  updates.subtract(renderedCursorRect);
-    //  updates.getUpdateInfo(&ui, req);
-    //}
+    if (cursor) {
+      updates.subtract(renderedCursorRect);
+      updates.getUpdateInfo(&ui, req);
+    }
 
     damagedCursorRegion.assign_union(renderedCursorRect);
     updateRenderedCursor = false;
   }
 
-  if (!ui.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
-    RenderedCursor *cursor;
+  if (ui.is_empty() && !writer()->needFakeUpdate() && !cursor)
+    return;
 
-    cursor = NULL;
-    if (drawRenderedCursor)
-      cursor = &server->renderedCursor;
+  writeRTTPing();
 
-    writeRTTPing();
+  encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
 
-    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  writeRTTPing();
 
-    writeRTTPing();
+  // The request might be for just part of the screen, so we cannot
+  // just clear the entire update tracker.
+  updates.subtract(req);
 
-    // The request might be for just part of the screen, so we cannot
-    // just clear the entire update tracker.
-    updates.subtract(req);
-
-    requested.clear();
-  }
-
-out:
-  network::TcpSocket::cork(sock->getFd(), false);
+  requested.clear();
 }
 
 

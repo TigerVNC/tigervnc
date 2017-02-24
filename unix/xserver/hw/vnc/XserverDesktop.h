@@ -121,7 +121,6 @@ private:
   rfb::HTTPServer* httpServer;
   std::list<network::TcpListener*> listeners;
   std::list<network::TcpListener*> httpListeners;
-  bool deferredUpdateTimerSet;
   bool directFbptr;
 
   uint32_t queryConnectId;

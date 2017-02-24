@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
- * Copyright 2009-2011 Pierre Ossman for Cendio AB
+ * Copyright 2009-2016 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,6 +168,8 @@ namespace rfb {
     // client.
 
     void writeFramebufferUpdate();
+    void writeNoDataUpdate();
+    void writeDataUpdate();
 
     void screenLayoutChange(rdr::U16 reason);
     void setCursor();

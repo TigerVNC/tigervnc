@@ -52,6 +52,10 @@ rfb::IntParameter rfb::Server::compareFB
  "Perform pixel comparison on framebuffer to reduce unnecessary updates "
  "(0: never, 1: always, 2: auto)",
  2);
+rfb::IntParameter rfb::Server::frameRate
+("FrameRate",
+ "The maximum number of updates per second sent to each client",
+ 60);
 rfb::BoolParameter rfb::Server::protocol3_3
 ("Protocol3.3",
  "Always use protocol version 3.3 for backwards compatibility with "
