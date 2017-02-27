@@ -282,9 +282,9 @@ public class DesktopWindow extends JFrame
   }
 
   public void setCursor(int width, int height, Point hotspot,
-                        byte[] data, byte[] mask)
+                        byte[] data)
   {
-    viewport.setCursor(width, height, hotspot, data, mask);
+    viewport.setCursor(width, height, hotspot, data);
   }
 
   public void fullscreen_on()

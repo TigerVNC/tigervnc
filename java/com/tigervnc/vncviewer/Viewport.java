@@ -2,7 +2,7 @@
  * Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
  * Copyright (C) 2009 Paul Donohue.  All Rights Reserved.
  * Copyright (C) 2010, 2012-2013 D. R. Commander.  All Rights Reserved.
- * Copyright (C) 2011-2014 Brian P. Hinz
+ * Copyright (C) 2011-2017 Brian P. Hinz
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -125,16 +125,14 @@ class Viewport extends JPanel implements MouseListener,
   };
 
   public void setCursor(int width, int height, Point hotspot,
-                        byte[] data, byte[] mask)
+                        byte[] data)
   {
-
-    int mask_len = ((width+7)/8) * height;
     int i;
 
-    for (i = 0; i < mask_len; i++)
-      if ((mask[i] & 0xff) != 0) break;
+    for (i = 0; i < width*height; i++)
+      if (data[i*4 + 3] != 0) break;
 
-    if ((i == mask_len) && dotWhenNoCursor.getValue()) {
+    if ((i == width*height) && dotWhenNoCursor.getValue()) {
       vlog.debug("cursor is empty - using dot");
       cursor = new BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB_PRE);
       cursor.setRGB(0, 0, 5, 5, dotcursor_xpm, 0, 5);
@@ -146,39 +144,11 @@ class Viewport extends JPanel implements MouseListener,
                                    BufferedImage.TYPE_INT_ARGB_PRE);
         cursorHotspot.x = cursorHotspot.y = 0;
       } else {
-        ByteBuffer buffer = ByteBuffer.allocate(width*height*4);
-        ByteBuffer in, o, m;
-        int m_width;
-
-        PixelFormat pf;
-
-        pf = cc.cp.pf();
-
-        in = (ByteBuffer)ByteBuffer.wrap(data).mark();
-        o = (ByteBuffer)buffer.duplicate().mark();
-        m = ByteBuffer.wrap(mask);
-        m_width = (width+7)/8;
-
-        for (int y = 0; y < height; y++) {
-          for (int x = 0; x < width; x++) {
-            // NOTE: BufferedImage needs ARGB, rather than RGBA
-            if ((m.get((m_width*y)+(x/8)) & 0x80>>(x%8)) != 0)
-              o.put((byte)255);
-            else
-              o.put((byte)0);
-
-            pf.rgbFromBuffer(o, in.duplicate(), 1);
-
-            o.position(o.reset().position() + 4).mark();
-            in.position(in.position() + pf.bpp/8);
-          }
-        }
-
-        IntBuffer rgb =
-          IntBuffer.allocate(width*height).put(buffer.asIntBuffer());
-        cursor = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
-        cursor.setRGB(0, 0, width, height, rgb.array(), 0, width);
-
+        IntBuffer buffer = IntBuffer.allocate(width*height);
+        buffer.put(ByteBuffer.wrap(data).asIntBuffer());
+        cursor =
+          new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
+        cursor.setRGB(0, 0, width, height, buffer.array(), 0, width);
         cursorHotspot = hotspot;
 
       }

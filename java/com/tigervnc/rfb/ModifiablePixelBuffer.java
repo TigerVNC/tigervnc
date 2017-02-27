@@ -90,7 +90,9 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
   {
     WritableRaster dest = getBufferRW(r);
 
-    ByteBuffer src = ByteBuffer.wrap(pixels).order(format.getByteOrder());
+    int length = r.area()*format.bpp/8;
+    ByteBuffer src =
+      ByteBuffer.wrap(pixels, 0, length).order(format.getByteOrder());
     Raster raster = format.rasterFromBuffer(r, src);
     dest.setDataElements(0, 0, raster);
 
@@ -239,7 +241,8 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
         cm.isCompatibleSampleModel(dstBuffer.getSampleModel())) {
       imageRect(dest, pixels);
     } else {
-      ByteBuffer src = ByteBuffer.wrap(pixels).order(pf.getByteOrder());
+      int length = dest.area()*pf.bpp/8;
+      ByteBuffer src = ByteBuffer.wrap(pixels, 0, length).order(pf.getByteOrder());
       Raster raster = pf.rasterFromBuffer(dest, src);
       ColorConvertOp converter = format.getColorConvertOp(cm.getColorSpace());
       converter.filter(raster, dstBuffer);

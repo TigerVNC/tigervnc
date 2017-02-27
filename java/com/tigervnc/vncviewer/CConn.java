@@ -434,9 +434,9 @@ public class CConn extends CConnection implements
   }
 
   public void setCursor(int width, int height, Point hotspot,
-                        byte[] data, byte[] mask)
+                        byte[] data)
   {
-    desktop.setCursor(width, height, hotspot, data, mask);
+    desktop.setCursor(width, height, hotspot, data);
   }
 
   public void fence(int flags, int len, byte[] data)

@@ -74,21 +74,24 @@ abstract public class CMsgHandler {
     cp.supportsContinuousUpdates = true;
   }
 
-  public void clientRedirect(int port, String host,
-                             String x509subject) {}
+  abstract public void clientRedirect(int port, String host,
+                                      String x509subject);
 
-  public void setCursor(int width, int height, Point hotspot,
-                        byte[] data, byte[] mask) {}
-  public void serverInit() {}
+  abstract public void setCursor(int width, int height, Point hotspot,
+                                 byte[] data);
+  abstract public void serverInit();
 
-  public void framebufferUpdateStart() {}
-  public void framebufferUpdateEnd() {}
-  public void dataRect(Rect r, int encoding) {}
+  abstract public void readAndDecodeRect(Rect r, int encoding,
+                                         ModifiablePixelBuffer pb);
 
-  public void setColourMapEntries(int firstColour, int nColours,
-    int[] rgbs) { }
-  public void bell() {}
-  public void serverCutText(String str, int len) {}
+  public void framebufferUpdateStart() {};
+  public void framebufferUpdateEnd() {};
+  abstract public void dataRect(Rect r, int encoding);
+
+  abstract public void setColourMapEntries(int firstColour, int nColours,
+    int[] rgbs);
+  abstract public void bell();
+  abstract public void serverCutText(String str, int len);
 
   public ConnParams cp;
 

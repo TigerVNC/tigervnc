@@ -1,4 +1,6 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * Copyright (C) 2011-2017 Brian P. Hinz
+ * Copyright (C) 2017 Pierre Ossman for Cendio AB
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +25,11 @@
 
 package com.tigervnc.rfb;
 
+import java.awt.image.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+
 import com.tigervnc.rdr.*;
 
 public class CMsgReader {
@@ -78,7 +82,6 @@ public class CMsgReader {
         readEndOfContinuousUpdates();
         break;
       default:
-        //fprintf(stderr, "unknown message type %d\n", type);
         throw new Exception("unknown message type");
       }
     } else {
@@ -94,6 +97,9 @@ public class CMsgReader {
         break;
       case Encodings.pseudoEncodingCursor:
         readSetCursor(w, h, new Point(x,y));
+        break;
+      case Encodings.pseudoEncodingCursorWithAlpha:
+        readSetCursorWithAlpha(w, h, new Point(x,y));
         break;
       case Encodings.pseudoEncodingDesktopName:
         readSetDesktopName(x, y, w, h);
@@ -185,20 +191,6 @@ public class CMsgReader {
     handler.framebufferUpdateStart();
   }
 
-
-
-  /*
-  protected void readFramebufferUpdateStart()
-  {
-    handler.framebufferUpdateStart();
-  }
-
-  protected void readFramebufferUpdateEnd()
-  {
-    handler.framebufferUpdateEnd();
-  }
-  */
-
   protected void readRect(Rect r, int encoding)
   {
     if ((r.br.x > handler.cp.width) || (r.br.y > handler.cp.height)) {
@@ -218,13 +210,82 @@ public class CMsgReader {
   {
     int data_len = width * height * (handler.cp.pf().bpp/8);
     int mask_len = ((width+7)/8) * height;
-    byte[] data = new byte[data_len];
-    byte[] mask = new byte[mask_len];
+    ByteBuffer data = ByteBuffer.allocate(data_len);
+    ByteBuffer mask = ByteBuffer.allocate(mask_len);
 
-    is.readBytes(data, 0, data_len);
-    is.readBytes(mask, 0, mask_len);
+    int x, y;
+    byte[] buf = new byte[width*height*4];
+    ByteBuffer in;
+    ByteBuffer out;
 
-    handler.setCursor(width, height, hotspot, data, mask);
+    is.readBytes(data, data_len);
+    is.readBytes(mask, mask_len);
+
+    int maskBytesPerRow = (width+7)/8;
+    in = (ByteBuffer)data.duplicate().mark();
+    out = (ByteBuffer)ByteBuffer.wrap(buf).mark();
+    for (y = 0;y < height;y++) {
+      for (x = 0;x < width;x++) {
+        int byte_ = y * maskBytesPerRow + x / 8;
+        int bit = 7 - x % 8;
+
+        // NOTE: BufferedImage needs ARGB, rather than RGBA
+        if ((mask.get(byte_) & (1 << bit)) != 0)
+          out.put((byte)255);
+        else
+          out.put((byte)0);
+
+        handler.cp.pf().rgbFromBuffer(out, in.duplicate(), 1);
+
+        in.position(in.position() + handler.cp.pf().bpp/8);
+        out.position(out.reset().position() + 4).mark();
+      }
+    }
+
+    handler.setCursor(width, height, hotspot, buf);
+  }
+
+  protected void readSetCursorWithAlpha(int width, int height, Point hotspot)
+  {
+    int encoding;
+
+    PixelFormat rgbaPF =
+      new PixelFormat(32, 32, false, true, 255, 255, 255, 16, 8, 0);
+    ManagedPixelBuffer pb =
+      new ManagedPixelBuffer(rgbaPF, width, height);
+    PixelFormat origPF;
+
+    DataBufferInt buf;
+
+    encoding = is.readS32();
+
+    origPF = handler.cp.pf();
+    handler.cp.setPF(rgbaPF);
+    handler.readAndDecodeRect(pb.getRect(), encoding, pb);
+    handler.cp.setPF(origPF);
+
+    if (pb.getRect().area() == 0)
+      return;
+
+    // ARGB with pre-multiplied alpha works best for BufferedImage
+    buf = (DataBufferInt)pb.getBufferRW(pb.getRect()).getDataBuffer();
+    ByteBuffer bbuf =
+      ByteBuffer.allocate(pb.area()*4).order(rgbaPF.getByteOrder());
+    bbuf.asIntBuffer().put(buf.getData()).flip().mark();
+
+    for (int i = 0;i < pb.area();i++) {
+      byte alpha = bbuf.get(bbuf.position()+3);
+
+      bbuf.put(i*4+3, (byte)(bbuf.get(i*4+2)));
+      bbuf.put(i*4+2, (byte)(bbuf.get(i*4+1)));
+      bbuf.put(i*4+1, (byte)(bbuf.get(i*4+0))); 
+      bbuf.put(i*4+0, (byte)alpha);
+
+      bbuf.position(bbuf.position() + 4);
+    }
+
+    handler.setCursor(width, height, hotspot,
+                      bbuf.array());
   }
 
   protected void readSetDesktopName(int x, int y, int w, int h)

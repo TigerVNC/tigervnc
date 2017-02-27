@@ -336,6 +336,13 @@ abstract public class CConnection extends CMsgHandler {
     super.setExtendedDesktopSize(reason, result, w, h, layout);
   }
 
+  public void readAndDecodeRect(Rect r, int encoding,
+                                ModifiablePixelBuffer pb)
+  {
+    decoder.decodeRect(r, encoding, pb);
+    decoder.flush();
+  }
+
   // getIdVerifier() returns the identity verifier associated with the connection.
   // Ownership of the IdentityVerifier is retained by the CConnection instance.
   //public IdentityVerifier getIdentityVerifier() { return 0; }
