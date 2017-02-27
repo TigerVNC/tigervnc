@@ -65,6 +65,7 @@ public class CMsgWriter {
     int[] encodings = new int[Encodings.encodingMax+3];
 
     if (cp.supportsLocalCursor) {
+      encodings[nEncodings++] = Encodings.pseudoEncodingXCursor;
       encodings[nEncodings++] = Encodings.pseudoEncodingCursor;
       encodings[nEncodings++] = Encodings.pseudoEncodingCursorWithAlpha;
     }

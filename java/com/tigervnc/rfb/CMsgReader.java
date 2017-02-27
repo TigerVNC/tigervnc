@@ -95,6 +95,9 @@ public class CMsgReader {
       case Encodings.pseudoEncodingLastRect:
         nUpdateRectsLeft = 1;     // this rectangle is the last one
         break;
+      case Encodings.pseudoEncodingXCursor:
+        readSetXCursor(w, h, new Point(x,y));
+        break;
       case Encodings.pseudoEncodingCursor:
         readSetCursor(w, h, new Point(x,y));
         break;
@@ -204,6 +207,62 @@ public class CMsgReader {
       vlog.error("Ignoring zero size rect");
 
     handler.dataRect(r, encoding);
+  }
+
+  protected void readSetXCursor(int width, int height, Point hotspot)
+  {
+    byte pr, pg, pb;
+    byte sr, sg, sb;
+    int data_len = ((width+7)/8) * height;
+    int mask_len = ((width+7)/8) * height;
+    ByteBuffer data = ByteBuffer.allocate(data_len);
+    ByteBuffer mask = ByteBuffer.allocate(mask_len);
+
+    int x, y;
+    byte[] buf = new byte[width*height*4];
+    ByteBuffer out;
+
+    if (width * height == 0)
+      return;
+
+    pr = (byte)is.readU8();
+    pg = (byte)is.readU8();
+    pb = (byte)is.readU8();
+
+    sr = (byte)is.readU8();
+    sg = (byte)is.readU8();
+    sb = (byte)is.readU8();
+
+    is.readBytes(data, data_len);
+    is.readBytes(mask, mask_len);
+
+    int maskBytesPerRow = (width+7)/8;
+    out = ByteBuffer.wrap(buf);
+    for (y = 0;y < height;y++) {
+      for (x = 0;x < width;x++) {
+        int byte_ = y * maskBytesPerRow + x / 8;
+        int bit = 7 - x % 8;
+
+        if ((data.get(byte_) & (1 << bit)) > 0) {
+          out.put(out.position() + 1, pr);
+          out.put(out.position() + 2, pg);
+          out.put(out.position() + 3, pb);
+        } else {
+          out.put(out.position() + 1, sr);
+          out.put(out.position() + 2, sg);
+          out.put(out.position() + 3, sb);
+        }
+
+        if ((mask.get(byte_) & (1 << bit)) > 0)
+          out.put(out.position() + 0, (byte)255);
+        else
+          out.put(out.position() + 0, (byte)0);
+
+        out.position(out.position() + 4);
+      }
+    }
+
+    handler.setCursor(width, height, hotspot, buf);
   }
 
   protected void readSetCursor(int width, int height, Point hotspot)
