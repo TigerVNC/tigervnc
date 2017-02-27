@@ -185,7 +185,7 @@ public class DecodeManager {
     //os::AutoMutex a(queueMutex);
     queueMutex.lock();
 
-    if (threadException == null)
+    if (threadException != null)
       return;
 
     threadException =
