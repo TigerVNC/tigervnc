@@ -297,8 +297,22 @@ void OptionsDialog::loadOptions(void)
   remoteResizeCheckbox->value(remoteResize);
   fullScreenCheckbox->value(fullScreen);
   fullScreenAllMonitorsCheckbox->value(fullScreenAllMonitors);
-
+  fullScreenSelMonitorsCheckbox->value(fullScreenSelMonitors);
+  if (sscanf(fullScreenMonitors.getValueStr(), "%d,%d", &width, &height) != 2) {
+    fullScreenSelMonitorsCheckbox->value(false);
+    fullScreenScreen1Input->value("");
+    fullScreenScreen2Input->value("");
+  } else {
+    char buf[32];
+    fullScreenSelMonitorsCheckbox->value(true);
+    snprintf(buf, sizeof(buf), "%d", width);
+    fullScreenScreen1Input->value(buf);
+    snprintf(buf, sizeof(buf), "%d", height);
+    fullScreenScreen2Input->value(buf);
+  }
   handleDesktopSize(desktopSizeCheckbox, this);
+  handlefullScreenSelMonitors(fullScreenSelMonitorsCheckbox, this);
+  handlefullScreenAllMonitors(fullScreenAllMonitorsCheckbox, this);
 
   /* Misc. */
   sharedCheckbox->value(shared);
@@ -406,7 +420,16 @@ void OptionsDialog::storeOptions(void)
   remoteResize.setParam(remoteResizeCheckbox->value());
   fullScreen.setParam(fullScreenCheckbox->value());
   fullScreenAllMonitors.setParam(fullScreenAllMonitorsCheckbox->value());
-
+  fullScreenSelMonitors.setParam(fullScreenSelMonitorsCheckbox->value());
+  if (fullScreenSelMonitorsCheckbox->value() &&
+      (sscanf(fullScreenScreen1Input->value(), "%d", &width) == 1) &&
+      (sscanf(fullScreenScreen2Input->value(), "%d", &height) == 1)) {
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%d,%d", width, height);
+    fullScreenMonitors.setParam(buf);
+  } else {
+    fullScreenSelMonitorsCheckbox->value();
+  }
   /* Misc. */
   shared.setParam(sharedCheckbox->value());
   dotWhenNoCursor.setParam(dotCursorCheckbox->value());
@@ -782,7 +805,19 @@ void OptionsDialog::createScreenPage(int tx, int ty, int tw, int th)
                                                       CHECK_MIN_WIDTH,
                                                       CHECK_HEIGHT,
                                                       _("Enable full-screen mode over all monitors")));
+  fullScreenAllMonitorsCheckbox->callback(handlefullScreenAllMonitors, this);
   ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  fullScreenSelMonitorsCheckbox = new Fl_Check_Button(LBLRIGHT(tx + INDENT, ty,
+                                                      CHECK_MIN_WIDTH,
+                                                      CHECK_HEIGHT,
+                                                      _("Enable full-screen mode selected 2 monitors")));
+  fullScreenSelMonitorsCheckbox->callback(handlefullScreenSelMonitors, this);
+  ty += CHECK_HEIGHT + TIGHT_MARGIN;
+  
+  fullScreenScreen1Input = new Fl_Int_Input(tx + INDENT, ty, 50, INPUT_HEIGHT,"1");
+  x = fullScreenScreen1Input->x() + fullScreenScreen1Input->w() + \
+      gui_str_len("1") + 3 * 2;
+  fullScreenScreen2Input = new Fl_Int_Input(x, ty, 50, INPUT_HEIGHT, "2");
 
   group->end();
 }
@@ -876,6 +911,29 @@ void OptionsDialog::handleDesktopSize(Fl_Widget *widget, void *data)
     dialog->desktopWidthInput->deactivate();
     dialog->desktopHeightInput->deactivate();
   }
+}
+void OptionsDialog::handlefullScreenSelMonitors(Fl_Widget *widget, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  if (dialog->fullScreenSelMonitorsCheckbox->value() && dialog->fullScreenAllMonitorsCheckbox->value() == 0) {
+    dialog->fullScreenScreen1Input->activate();
+    dialog->fullScreenScreen2Input->activate();
+  } else {
+    dialog->fullScreenScreen1Input->deactivate();
+    dialog->fullScreenScreen2Input->deactivate();
+  }
+}
+void OptionsDialog::handlefullScreenAllMonitors(Fl_Widget *widget, void *data)
+{
+  OptionsDialog *dialog = (OptionsDialog*)data;
+
+  if (dialog->fullScreenAllMonitorsCheckbox->value()) {
+    dialog->fullScreenSelMonitorsCheckbox->deactivate();
+  } else {
+    dialog->fullScreenSelMonitorsCheckbox->activate();
+  }
+  handlefullScreenSelMonitors(dialog->fullScreenSelMonitorsCheckbox,dialog);
 }
 
 void OptionsDialog::handleClipboard(Fl_Widget *widget, void *data)
