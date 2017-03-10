@@ -1194,7 +1194,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
 
-  const size_t statsCount = sizeof(stats)/sizeof(stats[0]);
+  const size_t statsCount = sizeof(self->stats)/sizeof(self->stats[0]);
 
   unsigned frame, pixels, pos;
   unsigned elapsed;
@@ -1219,7 +1219,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
   if (elapsed < 1)
     elapsed = 1;
 
-  memmove(&self->stats[0], &self->stats[1], sizeof(stats[0])*(statsCount-1));
+  memmove(&self->stats[0], &self->stats[1], sizeof(self->stats[0])*(statsCount-1));
 
   self->stats[statsCount-1].fps = (frame - self->statsLastFrame) * 1000 / elapsed;
   self->stats[statsCount-1].pps = (pixels - self->statsLastPixels) * 1000 / elapsed;
