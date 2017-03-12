@@ -1,0 +1,713 @@
+# Friulian translation for tigervnc.
+# Copyright (C) 2017 the TigerVNC Team (msgids)
+# This file is distributed under the same license as the tigervnc package.
+# Fabio Tomat <f.t.public@gmail.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: tigervnc 1.6.90\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
+"POT-Creation-Date: 2016-07-01 10:15+0000\n"
+"PO-Revision-Date: 2017-03-12 23:42+0100\n"
+"Last-Translator: Fabio Tomat <f.t.public@gmail.com>\n"
+"Language-Team: Friulian <f.t.public@gmail.com>\n"
+"Language: fur\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.12\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: vncviewer/CConn.cxx:110
+#, c-format
+msgid "connected to host %s port %d"
+msgstr "conetût al host %s puarte %d"
+
+#: vncviewer/CConn.cxx:169
+#, c-format
+msgid "Desktop name: %.80s"
+msgstr "Non scritori: %.80s"
+
+#: vncviewer/CConn.cxx:174
+#, c-format
+msgid "Host: %.80s port: %d"
+msgstr "Host: %.80s puarte: %d"
+
+#: vncviewer/CConn.cxx:179
+#, c-format
+msgid "Size: %d x %d"
+msgstr "Dimension: %d × %d"
+
+#: vncviewer/CConn.cxx:187
+#, c-format
+msgid "Pixel format: %s"
+msgstr "Formât pixel: %s"
+
+#: vncviewer/CConn.cxx:194
+#, c-format
+msgid "(server default %s)"
+msgstr ""
+
+#: vncviewer/CConn.cxx:199
+#, c-format
+msgid "Requested encoding: %s"
+msgstr "Codifiche domandade: %s"
+
+#: vncviewer/CConn.cxx:204
+#, c-format
+msgid "Last used encoding: %s"
+msgstr "Ultime codifiche doprade: %s"
+
+#: vncviewer/CConn.cxx:209
+#, c-format
+msgid "Line speed estimate: %d kbit/s"
+msgstr "Stime velocitât linie: %d kbit/s"
+
+#: vncviewer/CConn.cxx:214
+#, c-format
+msgid "Protocol version: %d.%d"
+msgstr "Version protocol: %d.%d"
+
+#: vncviewer/CConn.cxx:219
+#, c-format
+msgid "Security method: %s"
+msgstr "Metodi sigurece: %s"
+
+#: vncviewer/CConn.cxx:319
+#, c-format
+msgid "SetDesktopSize failed: %d"
+msgstr "SetDesktopSize falît: %d"
+
+#: vncviewer/CConn.cxx:411
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "SetColourMapEntries no valit dal servidôr!"
+
+#: vncviewer/CConn.cxx:485
+msgid "Enabling continuous updates"
+msgstr "Daûr a abilitâ i inzornaments continuis"
+
+#: vncviewer/CConn.cxx:555
+#, c-format
+msgid "Throughput %d kbit/s - changing to quality %d"
+msgstr "Velocitât %d kbit/s - si passe ae cualitât %d"
+
+#: vncviewer/CConn.cxx:577
+#, c-format
+msgid "Throughput %d kbit/s - full color is now %s"
+msgstr "Velocitât %d kbit/s - plen colôr al è cumò %s"
+
+#: vncviewer/CConn.cxx:579
+msgid "disabled"
+msgstr "disabilitât"
+
+#: vncviewer/CConn.cxx:579
+msgid "enabled"
+msgstr "abilitât"
+
+#: vncviewer/CConn.cxx:589
+#, c-format
+msgid "Using %s encoding"
+msgstr "Si dopre la codifiche %s"
+
+#: vncviewer/CConn.cxx:636
+#, c-format
+msgid "Using pixel format %s"
+msgstr "Si dopre il formât pixel %s"
+
+#: vncviewer/DesktopWindow.cxx:106
+msgid "Invalid geometry specified!"
+msgstr "Gjeometrie specificade no valide!"
+
+#: vncviewer/DesktopWindow.cxx:303
+msgid "Adjusting window size to avoid accidental full screen request"
+msgstr "Daûr a justâ la dimension dal barcon par evitâ richiestis acidentâls di plen visôr"
+
+#: vncviewer/DesktopWindow.cxx:485 vncviewer/DesktopWindow.cxx:491
+#: vncviewer/DesktopWindow.cxx:504
+msgid "Failure grabbing keyboard"
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:516
+msgid "Failure grabbing mouse"
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:746
+msgid "Invalid screen layout computed for resize request!"
+msgstr ""
+
+#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
+#: vncviewer/X11PixelBuffer.cxx:117
+msgid "Not enough memory for framebuffer"
+msgstr "No vonde memorie pal framebuffer"
+
+#: vncviewer/OSXPixelBuffer.cxx:52
+msgid "Could not create framebuffer device"
+msgstr "Impussibil creâ il dispositîf framebuffer"
+
+#: vncviewer/OSXPixelBuffer.cxx:58
+msgid "Could not create framebuffer bitmap"
+msgstr "Impussibil creâ il bitmap dal framebuffer"
+
+#: vncviewer/OptionsDialog.cxx:57
+msgid "VNC Viewer: Connection Options"
+msgstr "Visualizadôr VNC: Opzions conession"
+
+#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
+#: vncviewer/vncviewer.cxx:282
+msgid "Cancel"
+msgstr "Anule"
+
+#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:281
+msgid "OK"
+msgstr "Va ben"
+
+#: vncviewer/OptionsDialog.cxx:423
+msgid "Compression"
+msgstr "Compression"
+
+#: vncviewer/OptionsDialog.cxx:439
+msgid "Auto select"
+msgstr "Selezione in automatic"
+
+#: vncviewer/OptionsDialog.cxx:451
+msgid "Preferred encoding"
+msgstr "Codifiche preferide"
+
+#: vncviewer/OptionsDialog.cxx:499
+msgid "Color level"
+msgstr "Nivel colôr"
+
+#: vncviewer/OptionsDialog.cxx:510
+msgid "Full (all available colors)"
+msgstr "Plen (ducj i colôrs disponibii)"
+
+#: vncviewer/OptionsDialog.cxx:517
+msgid "Medium (256 colors)"
+msgstr "Medi (256 colôrs)"
+
+#: vncviewer/OptionsDialog.cxx:524
+msgid "Low (64 colors)"
+msgstr "Bas (64 colôrs)"
+
+#: vncviewer/OptionsDialog.cxx:531
+msgid "Very low (8 colors)"
+msgstr "Une vore bas (8 colôrs)"
+
+#: vncviewer/OptionsDialog.cxx:548
+msgid "Custom compression level:"
+msgstr "Nivel compression personalizât:"
+
+#: vncviewer/OptionsDialog.cxx:554
+msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+msgstr "nivel (1=veloç, 6=miôr [4-6 a son di râr utii])"
+
+#: vncviewer/OptionsDialog.cxx:561
+msgid "Allow JPEG compression:"
+msgstr "Permet compression JPEG:"
+
+#: vncviewer/OptionsDialog.cxx:567
+msgid "quality (0=poor, 9=best)"
+msgstr "cualitât (0=puore, 9=miore)"
+
+#: vncviewer/OptionsDialog.cxx:578
+msgid "Security"
+msgstr "Sigurece"
+
+#: vncviewer/OptionsDialog.cxx:593
+msgid "Encryption"
+msgstr "Cifradure"
+
+#: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
+#: vncviewer/OptionsDialog.cxx:735
+msgid "None"
+msgstr "Nissun"
+
+#: vncviewer/OptionsDialog.cxx:610
+msgid "TLS with anonymous certificates"
+msgstr "TLS cun certificâts anonims"
+
+#: vncviewer/OptionsDialog.cxx:616
+msgid "TLS with X509 certificates"
+msgstr "TLS cun certificâts X509"
+
+#: vncviewer/OptionsDialog.cxx:623
+msgid "Path to X509 CA certificate"
+msgstr "Percors pal certificât X509 CA"
+
+#: vncviewer/OptionsDialog.cxx:630
+msgid "Path to X509 CRL file"
+msgstr "Percors pal file X509 CRL"
+
+#: vncviewer/OptionsDialog.cxx:646
+msgid "Authentication"
+msgstr "Autenticazion"
+
+#: vncviewer/OptionsDialog.cxx:663
+msgid "Standard VNC (insecure without encryption)"
+msgstr "VNC standard (no sigûr cence cifradure)"
+
+#: vncviewer/OptionsDialog.cxx:669
+msgid "Username and password (insecure without encryption)"
+msgstr "Non utent e password (no sigûr cence cifradure)"
+
+#: vncviewer/OptionsDialog.cxx:688
+msgid "Input"
+msgstr "Input"
+
+#: vncviewer/OptionsDialog.cxx:696
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Viôt e vonde (ignore mouse e tastiere)"
+
+#: vncviewer/OptionsDialog.cxx:702
+msgid "Accept clipboard from server"
+msgstr "Acete notis dal servidôr"
+
+#: vncviewer/OptionsDialog.cxx:709
+msgid "Also set primary selection"
+msgstr "Stabilìs ancje la selezion primarie"
+
+#: vncviewer/OptionsDialog.cxx:716
+msgid "Send clipboard to server"
+msgstr "Invie lis notis al servidôr"
+
+#: vncviewer/OptionsDialog.cxx:723
+msgid "Send primary selection as clipboard"
+msgstr "Invie la selezion primarie come notis"
+
+#: vncviewer/OptionsDialog.cxx:730
+msgid "Pass system keys directly to server (full screen)"
+msgstr "Mande i tascj di sisteme drets al servidôr (plen visôr)"
+
+#: vncviewer/OptionsDialog.cxx:733
+msgid "Menu key"
+msgstr "Tast Menù"
+
+#: vncviewer/OptionsDialog.cxx:749
+msgid "Screen"
+msgstr "Schermi"
+
+#: vncviewer/OptionsDialog.cxx:757
+msgid "Resize remote session on connect"
+msgstr " Ae conession cambie dimension ae session rimote"
+
+#: vncviewer/OptionsDialog.cxx:770
+msgid "Resize remote session to the local window"
+msgstr "Cambie dimension ae session rimote al barcon locâl"
+
+#: vncviewer/OptionsDialog.cxx:776
+msgid "Full-screen mode"
+msgstr "Modalitât plen-visôr"
+
+#: vncviewer/OptionsDialog.cxx:782
+msgid "Enable full-screen mode over all monitors"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:791
+msgid "Misc."
+msgstr "Variis"
+
+#: vncviewer/OptionsDialog.cxx:799
+msgid "Shared (don't disconnect other viewers)"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:805
+msgid "Show dot when no cursor"
+msgstr ""
+
+#: vncviewer/ServerDialog.cxx:42
+msgid "VNC Viewer: Connection Details"
+msgstr "Visualizadôr VNC: Detais conession"
+
+#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
+msgid "VNC server:"
+msgstr "Servidôr VNC:"
+
+#: vncviewer/ServerDialog.cxx:64
+msgid "Options..."
+msgstr "Opzions..."
+
+#: vncviewer/ServerDialog.cxx:69
+msgid "Load..."
+msgstr "Cjarie..."
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "Save As..."
+msgstr "Salve come..."
+
+#: vncviewer/ServerDialog.cxx:86
+msgid "About..."
+msgstr "Informazions..."
+
+#: vncviewer/ServerDialog.cxx:96
+msgid "Connect"
+msgstr "Conet"
+
+#: vncviewer/UserDialog.cxx:74
+msgid "Opening password file failed"
+msgstr "No si è rivâts a vierzi il file de password"
+
+#: vncviewer/UserDialog.cxx:86 vncviewer/UserDialog.cxx:96
+msgid "VNC authentication"
+msgstr "Autenticazion VNC"
+
+#: vncviewer/UserDialog.cxx:87 vncviewer/UserDialog.cxx:102
+msgid "Password:"
+msgstr "Password:"
+
+#: vncviewer/UserDialog.cxx:89
+msgid "Authentication cancelled"
+msgstr "Autenticazion anulade"
+
+#: vncviewer/UserDialog.cxx:99
+msgid "Username:"
+msgstr "Non utent:"
+
+#: vncviewer/Viewport.cxx:391
+#, c-format
+msgid "Unable to create platform specific framebuffer: %s"
+msgstr "Impussibil creâ il framebuffer specific de plateforme: %s"
+
+#: vncviewer/Viewport.cxx:392
+msgid "Using platform independent framebuffer"
+msgstr "Si dopre il framebuffer indipendent de plateforme"
+
+#: vncviewer/Viewport.cxx:628
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:630
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:647
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:649
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:687
+#, c-format
+msgid "No symbol for key code 0x%02x (in the current state)"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:713
+#, c-format
+msgid "No symbol for key code %d (in the current state)"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:750
+msgctxt "ContextMenu|"
+msgid "E&xit viewer"
+msgstr "&Jes dal visualizadôr"
+
+#: vncviewer/Viewport.cxx:753
+msgctxt "ContextMenu|"
+msgid "&Full screen"
+msgstr "&Plen visôr"
+
+#: vncviewer/Viewport.cxx:756
+msgctxt "ContextMenu|"
+msgid "Minimi&ze"
+msgstr "Im&piçulìs"
+
+#: vncviewer/Viewport.cxx:758
+msgctxt "ContextMenu|"
+msgid "Resize &window to session"
+msgstr "Cambie dimension al &barcon ae session"
+
+#: vncviewer/Viewport.cxx:763
+msgctxt "ContextMenu|"
+msgid "&Ctrl"
+msgstr "&Ctrl"
+
+#: vncviewer/Viewport.cxx:766
+msgctxt "ContextMenu|"
+msgid "&Alt"
+msgstr "&Alt"
+
+#: vncviewer/Viewport.cxx:772
+#, c-format
+msgctxt "ContextMenu|"
+msgid "Send %s"
+msgstr "Invie %s"
+
+#: vncviewer/Viewport.cxx:778
+msgctxt "ContextMenu|"
+msgid "Send Ctrl-Alt-&Del"
+msgstr "Invie Ctrl-Alt-&Del"
+
+#: vncviewer/Viewport.cxx:781
+msgctxt "ContextMenu|"
+msgid "&Refresh screen"
+msgstr "Inzo&rne schermi"
+
+#: vncviewer/Viewport.cxx:784
+msgctxt "ContextMenu|"
+msgid "&Options..."
+msgstr "&Opzions..."
+
+#: vncviewer/Viewport.cxx:786
+msgctxt "ContextMenu|"
+msgid "Connection &info..."
+msgstr "&Informazions conession..."
+
+#: vncviewer/Viewport.cxx:788
+msgctxt "ContextMenu|"
+msgid "About &TigerVNC viewer..."
+msgstr "Informazions su Visualizadôr &TigerVNC"
+
+#: vncviewer/Viewport.cxx:791
+msgctxt "ContextMenu|"
+msgid "Dismiss &menu"
+msgstr "Dismet &menù"
+
+#: vncviewer/Viewport.cxx:875
+msgid "VNC connection info"
+msgstr "Informazions conession VNC"
+
+#: vncviewer/Win32PixelBuffer.cxx:62
+msgid "unable to create DIB section"
+msgstr "impussibil creâ sezion DIB"
+
+#: vncviewer/Win32PixelBuffer.cxx:79
+msgid "CreateCompatibleDC failed"
+msgstr "CreateCompatibleDC falît"
+
+#: vncviewer/Win32PixelBuffer.cxx:82
+msgid "SelectObject failed"
+msgstr "SelectObject falît"
+
+#: vncviewer/Win32PixelBuffer.cxx:91
+msgid "BitBlt failed"
+msgstr "BitBlt falît"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:65
+msgid "Display lacks pixmap format for default depth"
+msgstr "Il display al mancje di un formât pixmap pe profonditât predefinide"
+
+#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
+#. to translate.
+#: vncviewer/X11PixelBuffer.cxx:76
+msgid "Couldn't find suitable pixmap format"
+msgstr "Impussibil cjatâ un formât pixmap adat"
+
+#: vncviewer/X11PixelBuffer.cxx:85
+msgid "Only true colour displays supported"
+msgstr "Nome i visôrs a colôrs vêrs a son supuartâts"
+
+#: vncviewer/X11PixelBuffer.cxx:87
+#, c-format
+msgid "Using default colormap and visual, TrueColor, depth %d."
+msgstr ""
+
+#: vncviewer/X11PixelBuffer.cxx:113
+msgid "Could not create framebuffer image"
+msgstr "Impussibil creâ imagjin framebuffer"
+
+#: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
+#, c-format
+msgid "The name of the parameter %s was too large to write to the registry"
+msgstr "Il non dal parametri %s al jere masse larc par scrivi sul regjistri"
+
+#: vncviewer/parameters.cxx:292 vncviewer/parameters.cxx:299
+#, c-format
+msgid "The parameter %s was too large to write to the registry"
+msgstr "Il parametri %s al jere masse larc par scrivi sul regjistri"
+
+#: vncviewer/parameters.cxx:305 vncviewer/parameters.cxx:326
+#, c-format
+msgid "Failed to write parameter %s of type %s to the registry: %ld"
+msgstr "No si è rivâts a scrivi il parametri %s di gjenar %s sul regjistri: %ld"
+
+#: vncviewer/parameters.cxx:341 vncviewer/parameters.cxx:380
+#, c-format
+msgid "The name of the parameter %s was too large to read from the registry"
+msgstr "Il non dal parametri %s al jere masse larc par lei dal regjistri"
+
+#: vncviewer/parameters.cxx:350 vncviewer/parameters.cxx:389
+#, c-format
+msgid "Failed to read parameter %s from the registry: %ld"
+msgstr "No si è rivâts a lei il parametri %s dal regjistri: %ld"
+
+#: vncviewer/parameters.cxx:359
+#, c-format
+msgid "The parameter %s was too large to read from the registry"
+msgstr "Il parametri %s al jere masse larc par lei dal regjistri"
+
+#: vncviewer/parameters.cxx:409
+#, c-format
+msgid "Failed to create registry key: %ld"
+msgstr "No si è rivâts a creâ la clâf dal regjistri: %ld"
+
+#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
+#: vncviewer/parameters.cxx:534 vncviewer/parameters.cxx:665
+#, c-format
+msgid "Unknown parameter type for parameter %s"
+msgstr "Gjenar di parametri no cognossût pal parametri %s"
+
+#: vncviewer/parameters.cxx:430 vncviewer/parameters.cxx:479
+#, c-format
+msgid "Failed to close registry key: %ld"
+msgstr "No si è rivâts a sierâ la clâf dal regjistri: %ld"
+
+#: vncviewer/parameters.cxx:446
+#, c-format
+msgid "Failed to open registry key: %ld"
+msgstr "No si è rivâts a vierzi la clâf dal regjistri: %ld"
+
+#: vncviewer/parameters.cxx:503
+msgid "Failed to write configuration file, can't obtain home directory path."
+msgstr "No si è rivâts a scrivi il file di configurazion, impussibil otignî il percors de cartele cjase."
+
+#: vncviewer/parameters.cxx:516
+#, c-format
+msgid "Failed to write configuration file, can't open %s: %s"
+msgstr "No si è rivâts a scrivi il file di configurazion, impussibil vierzi %s: %s"
+
+#: vncviewer/parameters.cxx:559
+msgid "Failed to read configuration file, can't obtain home directory path."
+msgstr "No si è rivâts a lei il file di configurazion, impussibil otignî il percors de cartele cjase."
+
+#: vncviewer/parameters.cxx:572
+#, c-format
+msgid "Failed to read configuration file, can't open %s: %s"
+msgstr "No si è rivâts a lei il file di configurazion, impussibil vierzi %s: %s"
+
+#: vncviewer/parameters.cxx:585 vncviewer/parameters.cxx:590
+#: vncviewer/parameters.cxx:615 vncviewer/parameters.cxx:628
+#: vncviewer/parameters.cxx:644
+#, c-format
+msgid "Failed to read line %d in file %s: %s"
+msgstr "No si è rivâts a lei la rie %d intal file %s: %s"
+
+#: vncviewer/parameters.cxx:591
+msgid "Line too long"
+msgstr "Rie masse lungje"
+
+#: vncviewer/parameters.cxx:598
+#, c-format
+msgid "Configuration file %s is in an invalid format"
+msgstr "Il file di configurazion %s al è intun formât no valit"
+
+#: vncviewer/parameters.cxx:616
+msgid "Invalid format"
+msgstr "Formât no valit"
+
+#: vncviewer/parameters.cxx:629 vncviewer/parameters.cxx:645
+msgid "Invalid format or too large value"
+msgstr "Formât no valit o valôr masse larc"
+
+#: vncviewer/parameters.cxx:672
+#, c-format
+msgid "Unknown parameter %s on line %d in file %s"
+msgstr "Parametri %s no cognossût ae rie %d intal file %s"
+
+#: vncviewer/vncviewer.cxx:100
+#, c-format
+msgid ""
+"TigerVNC Viewer %d-bit v%s\n"
+"Built on: %s\n"
+"Copyright (C) 1999-%d TigerVNC Team and many others (see README.txt)\n"
+"See http://www.tigervnc.org for information on TigerVNC."
+msgstr ""
+"Visualizadôr TigerVNC %d-bit v%s\n"
+"Compilât su: %s\n"
+"Copyright (C) 1999-%d Scuadre TigerVNC e une vore di altris (viôt README.txt)\n"
+"Viôt http://www.tigervnc.org par informazions su TigerVNC."
+
+#: vncviewer/vncviewer.cxx:127
+msgid "About TigerVNC Viewer"
+msgstr "Informazions su Visualizadôr TigerVNC"
+
+#: vncviewer/vncviewer.cxx:140
+msgid "Internal FLTK error. Exiting."
+msgstr "Erôr FLTK interni. Daûr a jessî."
+
+#: vncviewer/vncviewer.cxx:158 vncviewer/vncviewer.cxx:170
+#, c-format
+msgid "Error starting new TigerVNC Viewer: %s"
+msgstr "Erôr tal inviâ un gnûf Visualizadôr TigerVNC: %s"
+
+#: vncviewer/vncviewer.cxx:179
+#, c-format
+msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
+msgstr "Il segnâl di terminazion %d al è stât ricevût. Il visualizadôr TigerVNC al jessarà cumò."
+
+#: vncviewer/vncviewer.cxx:271
+msgid "TigerVNC Viewer"
+msgstr "Visualizadôr TigerVNC"
+
+#: vncviewer/vncviewer.cxx:279
+msgid "No"
+msgstr "No"
+
+#: vncviewer/vncviewer.cxx:280
+msgid "Yes"
+msgstr "Sì"
+
+#: vncviewer/vncviewer.cxx:283
+msgid "Close"
+msgstr "Siere"
+
+#: vncviewer/vncviewer.cxx:288
+msgid "About"
+msgstr "Informazions"
+
+#: vncviewer/vncviewer.cxx:291
+msgid "Hide"
+msgstr "Plate"
+
+#: vncviewer/vncviewer.cxx:294
+msgid "Quit"
+msgstr "Jes"
+
+#: vncviewer/vncviewer.cxx:298
+msgid "Services"
+msgstr "Servizis"
+
+#: vncviewer/vncviewer.cxx:299
+msgid "Hide Others"
+msgstr "Plate altris"
+
+#: vncviewer/vncviewer.cxx:300
+msgid "Show All"
+msgstr "Mostre dut"
+
+#: vncviewer/vncviewer.cxx:309
+msgctxt "SysMenu|"
+msgid "&File"
+msgstr "&File"
+
+#: vncviewer/vncviewer.cxx:312
+msgctxt "SysMenu|File|"
+msgid "&New Connection"
+msgstr "&Gnove conession"
+
+#: vncviewer/vncviewer.cxx:324
+msgid "Could not create VNC home directory: can't obtain home directory path."
+msgstr "Impussibil creâ la cartele cjase di VNC: Impussibil otignî il percors de cartele cjase."
+
+#: vncviewer/vncviewer.cxx:329
+#, c-format
+msgid "Could not create VNC home directory: %s."
+msgstr "Impussibil creâ la cartele cjase di VNC: %s."
+
+#. TRANSLATORS: "Parameters" are command line arguments, or settings
+#. from a file or the Windows registry.
+#: vncviewer/vncviewer.cxx:534 vncviewer/vncviewer.cxx:535
+msgid "Parameters -listen and -via are incompatible"
+msgstr "Parametris -listen e -via no son compatibii"
+
+#: vncviewer/vncviewer.cxx:550
+#, c-format
+msgid "Listening on port %d"
+msgstr "In scolte su la puarte %d"
