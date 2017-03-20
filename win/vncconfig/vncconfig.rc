@@ -470,7 +470,7 @@ BEGIN
             #endif
             VALUE "FileVersion", __RCVERSIONSTR
             VALUE "InternalName", "vncconfig\0"
-            VALUE "LegalCopyright", "Copyright (C) 1999-2016 TigerVNC Team and many others (see README.txt)\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2017 TigerVNC Team and many others (see README.txt)\0"
             VALUE "LegalTrademarks", "TigerVNC\0"
             VALUE "OriginalFilename", "vncconfig.exe\0"
             VALUE "PrivateBuild", "\0"
