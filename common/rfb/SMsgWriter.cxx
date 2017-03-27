@@ -101,7 +101,9 @@ void SMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
   os->writeU32(flags);
 
   os->writeU8(len);
-  os->writeBytes(data, len);
+
+  if (len > 0)
+    os->writeBytes(data, len);
 
   endMsg();
 }
