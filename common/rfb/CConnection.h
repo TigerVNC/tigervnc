@@ -26,6 +26,7 @@
 
 #include <rfb/CMsgHandler.h>
 #include <rfb/DecodeManager.h>
+#include <rfb/SecurityClient.h>
 #include <rfb/util.h>
 
 namespace rfb {
@@ -34,7 +35,6 @@ namespace rfb {
   class CMsgWriter;
   class CSecurity;
   class IdentityVerifier;
-  class SecurityClient;
 
   class CConnection : public CMsgHandler {
   public:
@@ -148,7 +148,7 @@ namespace rfb {
     stateEnum state() { return state_; }
 
     CSecurity *csecurity;
-    SecurityClient *security;
+    SecurityClient security;
   protected:
     void setState(stateEnum s) { state_ = s; }
 

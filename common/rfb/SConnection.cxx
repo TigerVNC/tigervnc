@@ -51,7 +51,7 @@ const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 SConnection::SConnection()
   : readyForSetColourMapEntries(false),
     is(0), os(0), reader_(0), writer_(0),
-    security(0), ssecurity(0), state_(RFBSTATE_UNINITIALISED),
+    ssecurity(0), state_(RFBSTATE_UNINITIALISED),
     preferredEncoding(encodingRaw)
 {
   defaultMajorVersion = 3;
@@ -60,8 +60,6 @@ SConnection::SConnection()
     defaultMinorVersion = 3;
 
   cp.setVersion(defaultMajorVersion, defaultMinorVersion);
-
-  security = new SecurityServer();
 }
 
 SConnection::~SConnection()
@@ -142,7 +140,7 @@ void SConnection::processVersionMsg()
 
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;
-  secTypes = security->GetEnabledSecTypes();
+  secTypes = security.GetEnabledSecTypes();
 
   if (cp.isVersion(3,3)) {
 
@@ -161,7 +159,7 @@ void SConnection::processVersionMsg()
     os->writeU32(*i);
     if (*i == secTypeNone) os->flush();
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security->GetSSecurity(*i);
+    ssecurity = security.GetSSecurity(*i);
     processSecurityMsg();
     return;
   }
@@ -193,7 +191,7 @@ void SConnection::processSecurityType(int secType)
   std::list<rdr::U8> secTypes;
   std::list<rdr::U8>::iterator i;
 
-  secTypes = security->GetEnabledSecTypes();
+  secTypes = security.GetEnabledSecTypes();
   for (i=secTypes.begin(); i!=secTypes.end(); i++)
     if (*i == secType) break;
   if (i == secTypes.end())
@@ -204,7 +202,7 @@ void SConnection::processSecurityType(int secType)
 
   try {
     state_ = RFBSTATE_SECURITY;
-    ssecurity = security->GetSSecurity(secType);
+    ssecurity = security.GetSSecurity(secType);
   } catch (rdr::Exception& e) {
     throwConnFailedException(e.str());
   }

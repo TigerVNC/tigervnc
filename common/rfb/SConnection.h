@@ -196,7 +196,7 @@ namespace rfb {
     rdr::OutStream* os;
     SMsgReader* reader_;
     SMsgWriter* writer_;
-    SecurityServer *security;
+    SecurityServer security;
     SSecurity* ssecurity;
     stateEnum state_;
     rdr::S32 preferredEncoding;
