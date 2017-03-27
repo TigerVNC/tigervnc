@@ -200,6 +200,9 @@ void SMsgReader::readClientCutText()
 {
   is->skip(3);
   int len = is->readU32();
+  if (len < 0) {
+    throw Exception("Cut text too long.");
+  }
   if (len > maxCutText) {
     is->skip(len);
     vlog.error("Cut text too long (%d bytes) - ignoring", len);
