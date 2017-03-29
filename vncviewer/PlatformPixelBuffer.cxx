@@ -69,6 +69,7 @@ PlatformPixelBuffer::~PlatformPixelBuffer()
 #if !defined(WIN32) && !defined(__APPLE__)
   if (shminfo) {
     vlog.debug("Freeing shared memory XImage");
+    XShmDetach(fl_display, shminfo);
     shmdt(shminfo->shmaddr);
     shmctl(shminfo->shmid, IPC_RMID, 0);
     delete shminfo;
