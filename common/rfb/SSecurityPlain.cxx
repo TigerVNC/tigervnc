@@ -92,7 +92,7 @@ bool SSecurityPlain::processMsg(SConnection* sc)
   }
 
   if (state == 1) {
-    if (is->checkNoWait(ulen + plen + 2))
+    if (!is->checkNoWait(ulen + plen))
       return false;
     state = 2;
     pw = new char[plen + 1];
