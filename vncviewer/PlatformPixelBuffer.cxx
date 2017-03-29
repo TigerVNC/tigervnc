@@ -154,7 +154,7 @@ bool PlatformPixelBuffer::setupShm()
 
   shminfo->shmid = shmget(IPC_PRIVATE,
                           xim->bytes_per_line * xim->height,
-                          IPC_CREAT|0777);
+                          IPC_CREAT|0600);
   if (shminfo->shmid == -1)
     goto free_xim;
 
