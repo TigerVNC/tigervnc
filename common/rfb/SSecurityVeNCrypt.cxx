@@ -55,6 +55,8 @@ SSecurityVeNCrypt::SSecurityVeNCrypt(SecurityServer *sec) : security(sec)
 
 SSecurityVeNCrypt::~SSecurityVeNCrypt()
 {
+  delete ssecurity;
+
   if (subTypes) {
     delete [] subTypes;
     subTypes = NULL;
