@@ -44,7 +44,6 @@ CConnection::CConnection()
     state_(RFBSTATE_UNINITIALISED), useProtocol3_3(false),
     framebuffer(NULL), decoder(this)
 {
-  security = new SecurityClient();
 }
 
 CConnection::~CConnection()
@@ -167,7 +166,7 @@ void CConnection::processSecurityTypesMsg()
   int secType = secTypeInvalid;
 
   std::list<rdr::U8> secTypes;
-  secTypes = security->GetEnabledSecTypes();
+  secTypes = security.GetEnabledSecTypes();
 
   if (cp.isVersion(3,3)) {
 
@@ -235,7 +234,7 @@ void CConnection::processSecurityTypesMsg()
   }
 
   state_ = RFBSTATE_SECURITY;
-  csecurity = security->GetCSecurity(secType);
+  csecurity = security.GetCSecurity(secType);
   processSecurityMsg();
 }
 

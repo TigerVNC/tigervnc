@@ -666,6 +666,7 @@ void VNCSConnectionST::fence(rdr::U32 flags, unsigned len, const char data[])
       fenceFlags = flags & (fenceFlagBlockBefore | fenceFlagBlockAfter | fenceFlagSyncNext);
       fenceDataLen = len;
       delete [] fenceData;
+      fenceData = NULL;
       if (len > 0) {
         fenceData = new char[len];
         memcpy(fenceData, data, len);
