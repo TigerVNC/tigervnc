@@ -86,13 +86,20 @@ bool SSecurityPlain::processMsg(SConnection* sc)
   if (state == 0) {
     if (!is->checkNoWait(8))
       return false;
+
     ulen = is->readU32();
+    if (ulen > MaxSaneUsernameLength)
+      throw AuthFailureException("Too long username");
+
     plen = is->readU32();
+    if (plen > MaxSanePasswordLength)
+      throw AuthFailureException("Too long password");
+
     state = 1;
   }
 
   if (state == 1) {
-    if (is->checkNoWait(ulen + plen + 2))
+    if (!is->checkNoWait(ulen + plen))
       return false;
     state = 2;
     pw = new char[plen + 1];

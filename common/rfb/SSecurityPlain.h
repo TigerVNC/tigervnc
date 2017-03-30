@@ -54,6 +54,9 @@ namespace rfb {
     PasswordValidator* valid;
     unsigned int ulen, plen, state;
     CharArray username;
+
+    static const unsigned int MaxSaneUsernameLength = 1024;
+    static const unsigned int MaxSanePasswordLength = 1024;
   };
 
 }
