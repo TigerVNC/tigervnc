@@ -17,6 +17,7 @@
  */
 package com.tigervnc.rfb;
 
+import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -35,17 +36,16 @@ public class JpegDecompressor {
 
     jpegBuf.get(src);
     try {
-      BufferedImage image =
+      ImageIO.setUseCache(false);
+      BufferedImage jpeg =
         ImageIO.read(new MemoryCacheImageInputStream(new ByteArrayInputStream(src)));
       ColorModel cm = pf.getColorModel();
-      if (cm.isCompatibleRaster(image.getRaster()) &&
-          cm.isCompatibleSampleModel(image.getRaster().getSampleModel())) {
-        buf.setDataElements(0, 0, image.getRaster());
-      } else {
-        ColorConvertOp converter = pf.getColorConvertOp(cm.getColorSpace());
-        converter.filter(image.getRaster(), buf);
-      }
+      BufferedImage image = new BufferedImage(cm, buf, true, null);
+      Graphics2D g2 = image.createGraphics();
+      g2.drawImage(jpeg, 0, 0, null);
+      g2.dispose();
       image.flush();
+      jpeg.flush();
     } catch (IOException e) {
       throw new Exception(e.getMessage());
     }
