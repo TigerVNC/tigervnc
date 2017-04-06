@@ -202,6 +202,9 @@ void CMsgReader::readRect(const Rect& r, int encoding)
 
 void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
 {
+  if (width > maxCursorSize || height > maxCursorSize)
+    throw Exception("Too big cursor");
+
   rdr::U8 pr, pg, pb;
   rdr::U8 sr, sg, sb;
   int data_len = ((width+7)/8) * height;
@@ -257,6 +260,9 @@ void CMsgReader::readSetXCursor(int width, int height, const Point& hotspot)
 
 void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 {
+  if (width > maxCursorSize || height > maxCursorSize)
+    throw Exception("Too big cursor");
+
   int data_len = width * height * (handler->cp.pf().bpp/8);
   int mask_len = ((width+7)/8) * height;
   rdr::U8Array data(data_len);
@@ -295,6 +301,9 @@ void CMsgReader::readSetCursor(int width, int height, const Point& hotspot)
 
 void CMsgReader::readSetCursorWithAlpha(int width, int height, const Point& hotspot)
 {
+  if (width > maxCursorSize || height > maxCursorSize)
+    throw Exception("Too big cursor");
+
   int encoding;
 
   const PixelFormat rgbaPF(32, 32, false, true, 255, 255, 255, 16, 8, 0);

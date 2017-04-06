@@ -69,6 +69,8 @@ namespace rfb {
     CMsgHandler* handler;
     rdr::InStream* is;
     int nUpdateRectsLeft;
+
+    static const int maxCursorSize = 256;
   };
 }
 #endif
