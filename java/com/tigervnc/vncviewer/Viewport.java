@@ -101,8 +101,7 @@ class Viewport extends JPanel implements MouseListener,
     Rect r = frameBuffer.getDamage();
     if (!r.is_empty()) {
       if (image == null)
-        image = (BufferedImage)createImage(frameBuffer.width(), frameBuffer.height());
-      image.getRaster().setDataElements(r.tl.x, r.tl.y, frameBuffer.getBuffer(r));
+        image = (BufferedImage)frameBuffer.getImage();
       if (cc.cp.width != scaledWidth ||
           cc.cp.height != scaledHeight) {
         AffineTransform t = new AffineTransform(); 
@@ -198,7 +197,7 @@ class Viewport extends JPanel implements MouseListener,
       frameBuffer = createFramebuffer(frameBuffer.getPF(), w, h);
       assert(frameBuffer != null);
       cc.setFramebuffer(frameBuffer);
-      image = null;
+      image = (BufferedImage)frameBuffer.getImage();
     }
     setScaledSize(w, h);
   }

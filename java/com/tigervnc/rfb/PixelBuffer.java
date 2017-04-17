@@ -21,6 +21,7 @@
 
 package com.tigervnc.rfb;
 
+import java.awt.*;
 import java.awt.image.*;
 import java.awt.Color;
 import java.nio.*;
@@ -69,6 +70,7 @@ public abstract class PixelBuffer {
   //   specific format.
   //void getImage(const PixelFormat& pf, void* imageBuf,
   //                const Rect& r, int stride=0) const;
+  public Image getImage() { return image; }
 
   ///////////////////////////////////////////////
   // Framebuffer update methods
@@ -81,4 +83,5 @@ public abstract class PixelBuffer {
 
   protected PixelFormat format;
   protected int width_, height_;
+  protected Image image;
 }

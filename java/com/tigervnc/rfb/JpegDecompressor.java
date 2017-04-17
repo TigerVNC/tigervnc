@@ -29,7 +29,7 @@ public class JpegDecompressor {
   public JpegDecompressor() {}
 
   public void decompress(ByteBuffer jpegBuf, int jpegBufLen,
-    WritableRaster buf, Rect r, PixelFormat pf)
+    PixelBuffer pb, Rect r, PixelFormat pf)
   {
 
     byte[] src = new byte[jpegBufLen];
@@ -39,10 +39,9 @@ public class JpegDecompressor {
       ImageIO.setUseCache(false);
       BufferedImage jpeg =
         ImageIO.read(new MemoryCacheImageInputStream(new ByteArrayInputStream(src)));
-      ColorModel cm = pf.getColorModel();
-      BufferedImage image = new BufferedImage(cm, buf, true, null);
+      BufferedImage image = (BufferedImage)pb.getImage();
       Graphics2D g2 = image.createGraphics();
-      g2.drawImage(jpeg, 0, 0, null);
+      g2.drawImage(jpeg, r.tl.x, r.tl.y, r.width(), r.height(), null);
       g2.dispose();
       image.flush();
       jpeg.flush();

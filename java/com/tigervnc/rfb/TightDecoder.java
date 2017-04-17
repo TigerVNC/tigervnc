@@ -236,8 +236,7 @@ public class TightDecoder extends Decoder {
       buflen -= 4;
 
       // We always use direct decoding with JPEG images
-      buf = pb.getBufferRW(r);
-      jd.decompress(bufptr, len, buf, r, pb.getPF());
+      jd.decompress(bufptr, len, pb, r, pb.getPF());
       pb.commitBufferRW(r);
       return;
     }
