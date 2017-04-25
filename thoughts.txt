@@ -1,0 +1,19 @@
+Client Side:
+	Pull-down Taskbar
+	File sharing through gvfs (fuse support)
+	Full-screen Mode
+		Run on only on selected screens . DONE
+		Adding new screens shouldn't disturb user's setup ( ex: opening laptop's screen shouldn't affect which screens are used by vnc viewer) 
+		Automatically send screens' resolution and placement information to server
+	Windowed Mode
+		One big virtual window or automatically detect screen crossings and share this information with server
+	Expert Mode
+		Allow user to manipulate screen information via GUI and window
+		User should able to set  screens resolution and placement 
+			Example: User can split one screen to two screens
+Server Side:
+	Xinerama support
+	Able to add/remove screen
+	Fuse support
+	Remote Printer support
+	Remote 

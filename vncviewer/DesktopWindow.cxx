@@ -612,13 +612,8 @@ int DesktopWindow::handle(int event)
     // Update scroll bars
     repositionWidgets();
 
-    if (!fullscreenSystemKeys)
-      break;
-
-    if (fullscreen_active())
+    if (fullscreenSystemKeys)
       grabKeyboard();
-    else
-      ungrabKeyboard();
 
     break;
 
@@ -664,7 +659,6 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
       //        a) Fl::grab(0) on X11 will release the keyboard grab for us.
       //        b) Gaining focus on the system level causes FLTK to switch
       //           window level on OS X.
-      if (dw->fullscreen_active())
         dw->grabKeyboard();
       break;
 
@@ -683,9 +677,7 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
 void DesktopWindow::fullscreen_on()
 {
-  if (not fullScreenAllMonitors)
-    fullscreen_screens(-1, -1, -1, -1);
-  else {
+  if (fullScreenAllMonitors or fullScreenSelMonitors) {
     int top, bottom, left, right;
     int top_y, bottom_y, left_x, right_x;
 
@@ -698,9 +690,36 @@ void DesktopWindow::fullscreen_on()
     bottom_y = sy + sh;
     left_x = sx;
     right_x = sx + sw;
-
-    for (int i = 1;i < Fl::screen_count();i++) {
-      Fl::screen_xywh(sx, sy, sw, sh, i);
+    int *screenList;
+    int screenCount;
+    if (fullScreenSelMonitors and not fullScreenAllMonitors) {
+        screenList = new int [2];
+        int width;
+        int height;
+        if( sscanf(fullScreenMonitors, "%d,%d", &width, &height) != 2) {
+            fullscreen_screens(-1, -1, -1, -1);
+        }
+        else 
+        screenList[0] = width;
+        vlog.info(_("screen0 %d"),screenList[0]);
+        screenList[1] = height;
+        vlog.info(_("screen1 %d"),screenList[1]);
+        screenCount = 2;
+        // delete width;
+        // delete height;
+    }
+    else{
+        screenList = new int [Fl::screen_count()];
+        screenCount = Fl::screen_count();
+        for (int i = 0;i < Fl::screen_count();i++) {
+            screenList[i]=i;
+            vlog.info(_("screenf%d %d"),i,screenList[1]);
+        }
+    }
+    
+    for (int i = 0;i < screenCount;i++) {
+      Fl::screen_xywh(sx, sy, sw, sh, screenList[i]);
+      vlog.info(_("screen %d port sx=%d sy=%d sw=%d sh=%d"),screenList[i], sx, sy, sw, sh);
       if (sy < top_y) {
         top = i;
         top_y = sy;
@@ -718,10 +737,14 @@ void DesktopWindow::fullscreen_on()
         right_x = sx + sw;
       }
     }
-
+    delete screenList;
+    // delete screenCount;
+    vlog.info(_("fullscreen  top=%d bottom=%d left=%d right=%d"),top, bottom, left, right);
     fullscreen_screens(top, bottom, left, right);
   }
-
+  else {
+    fullscreen_screens(-1, -1, -1, -1);
+  }
   fullscreen();
 }
 
@@ -871,7 +894,6 @@ void DesktopWindow::handleDesktopSize()
     remoteResize(w(), h());
   }
 }
-
 
 void DesktopWindow::handleResizeTimeout(void *data)
 {
@@ -1083,7 +1105,7 @@ void DesktopWindow::handleOptions(void *data)
 {
   DesktopWindow *self = (DesktopWindow*)data;
 
-  if (self->fullscreen_active() && fullscreenSystemKeys)
+  if (fullscreenSystemKeys)
     self->grabKeyboard();
   else
     self->ungrabKeyboard();

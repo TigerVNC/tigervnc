@@ -711,7 +711,7 @@ void Viewport::initContextMenu()
   fltk_menu_add(contextMenu, p_("ContextMenu|", "&Full screen"),
                 0, NULL, (void*)ID_FULLSCREEN,
                 FL_MENU_TOGGLE | (window()->fullscreen_active()?FL_MENU_VALUE:0));
-  fltk_menu_add(contextMenu, p_("ContextMenu|", "Minimi&ze"),
+  fltk_menu_add(contextMenu, p_("ContextMenu|", "Mi&nimize"),
                 0, NULL, (void*)ID_MINIMIZE, 0);
   fltk_menu_add(contextMenu, p_("ContextMenu|", "Resize &window to session"),
                 0, NULL, (void*)ID_RESIZE,
