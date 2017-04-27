@@ -30,32 +30,36 @@
 
 static void render(CGContextRef gc, CGImageRef image,
                    CGBlendMode mode, CGFloat alpha,
-                   int src_x, int src_y, int src_w, int src_h,
+                   int src_x, int src_y,
                    int x, int y, int w, int h)
 {
   CGRect rect;
+  CGImageRef subimage;
+
+  rect.origin.x = src_x;
+  rect.origin.y = src_y;
+  rect.size.width = w;
+  rect.size.height = h;
+
+  subimage = CGImageCreateWithImageInRect(image, rect);
+  if (!subimage)
+    throw rdr::Exception("CGImageCreateImageWithImageInRect");
 
   CGContextSaveGState(gc);
 
   CGContextSetBlendMode(gc, mode);
   CGContextSetAlpha(gc, alpha);
 
-  // We have to use clipping to partially display an image
   rect.origin.x = x;
   rect.origin.y = y;
   rect.size.width = w;
   rect.size.height = h;
 
-  CGContextClipToRect(gc, rect);
-
-  rect.origin.x = x - src_x;
-  rect.origin.y = y - src_y;
-  rect.size.width = src_w;
-  rect.size.height = src_h;
-
-  CGContextDrawImage(gc, rect, image);
+  CGContextDrawImage(gc, rect, subimage);
 
   CGContextRestoreGState(gc);
+
+  CGImageRelease(subimage);
 }
 
 static CGContextRef make_bitmap(int width, int height, unsigned char* data)
@@ -108,11 +112,10 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
 
   // macOS Coordinates are from bottom left, not top left
-  src_y = height() - (src_y + h);
   y = Fl_Window::current()->h() - (y + h);
 
   render(fl_gc, image, kCGBlendModeCopy, 1.0,
-         src_x, src_y, width(), height(), x, y, w, h);
+         src_x, src_y, x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
 }
@@ -124,11 +127,10 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   bitmap = make_bitmap(dst->width(), dst->height(), dst->data);
 
   // macOS Coordinates are from bottom left, not top left
-  src_y = height() - (src_y + h);
   y = dst->height() - (y + h);
 
   render(bitmap, image, kCGBlendModeCopy, 1.0,
-         src_x, src_y, width(), height(), x, y, w, h);
+         src_x, src_y, x, y, w, h);
 
   CGContextRelease(bitmap);
 }
@@ -142,11 +144,10 @@ void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
   CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
 
   // macOS Coordinates are from bottom left, not top left
-  src_y = height() - (src_y + h);
   y = Fl_Window::current()->h() - (y + h);
 
   render(fl_gc, image, kCGBlendModeNormal, (CGFloat)a/255.0,
-         src_x, src_y, width(), height(), x, y, w, h);
+         src_x, src_y, x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
 }
@@ -158,11 +159,10 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
   bitmap = make_bitmap(dst->width(), dst->height(), dst->data);
 
   // macOS Coordinates are from bottom left, not top left
-  src_y = height() - (src_y + h);
   y = dst->height() - (y + h);
 
   render(bitmap, image, kCGBlendModeNormal, (CGFloat)a/255.0,
-         src_x, src_y, width(), height(), x, y, w, h);
+         src_x, src_y, x, y, w, h);
 
   CGContextRelease(bitmap);
 }
