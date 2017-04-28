@@ -2,19 +2,20 @@
 # Copyright (C) 2014 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2014, 2015, 2016.
+# Yuri Chornoivan <yurchor@ukr.net>, 2014, 2015, 2016, 2017.
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.6.90\n"
+"Project-Id-Version: tigervnc 1.7.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2016-07-01 10:15+0000\n"
-"PO-Revision-Date: 2016-07-01 14:38+0300\n"
+"POT-Creation-Date: 2017-04-19 13:05+0000\n"
+"PO-Revision-Date: 2017-04-28 14:54+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Lokalize 1.5\n"
 
@@ -73,80 +74,76 @@ msgstr "Версія протоколу: %d.%d"
 msgid "Security method: %s"
 msgstr "Метод захисту: %s"
 
-#: vncviewer/CConn.cxx:319
+#: vncviewer/CConn.cxx:343
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "Помилка SetDesktopSize: %d"
 
-#: vncviewer/CConn.cxx:411
+#: vncviewer/CConn.cxx:413
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Некоректне значення SetColourMapEntries від сервера!"
 
-#: vncviewer/CConn.cxx:485
+#: vncviewer/CConn.cxx:489
 msgid "Enabling continuous updates"
 msgstr "Увімкнути неперервне оновлення"
 
-#: vncviewer/CConn.cxx:555
+#: vncviewer/CConn.cxx:559
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Пропускна здатність %d кбіт/с — змінюємо якість на %d"
 
-#: vncviewer/CConn.cxx:577
+#: vncviewer/CConn.cxx:581
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
 msgstr "Пропускна здатність %d кбіт/с — змінюємо колірність на %s"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "disabled"
 msgstr "вимкнено"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "enabled"
 msgstr "увімкнено"
 
-#: vncviewer/CConn.cxx:589
+#: vncviewer/CConn.cxx:593
 #, c-format
 msgid "Using %s encoding"
 msgstr "Використовуємо кодування %s"
 
-#: vncviewer/CConn.cxx:636
+#: vncviewer/CConn.cxx:640
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Використовуємо формат у пікселях %s"
 
-#: vncviewer/DesktopWindow.cxx:106
+#: vncviewer/DesktopWindow.cxx:121
 msgid "Invalid geometry specified!"
 msgstr "Вказано некоректні геометричні параметри!"
 
-#: vncviewer/DesktopWindow.cxx:303
+#: vncviewer/DesktopWindow.cxx:434
 msgid "Adjusting window size to avoid accidental full screen request"
 msgstr "Коригувати розміри вікна, щоб уникнути випадкового запиту щодо переходу у повноекранний режим"
 
-#: vncviewer/DesktopWindow.cxx:485 vncviewer/DesktopWindow.cxx:491
-#: vncviewer/DesktopWindow.cxx:504
+#: vncviewer/DesktopWindow.cxx:478
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "Натисніть %s, щоб відкрити контекстне меню"
+
+#: vncviewer/DesktopWindow.cxx:741 vncviewer/DesktopWindow.cxx:747
+#: vncviewer/DesktopWindow.cxx:760
 msgid "Failure grabbing keyboard"
 msgstr "Помилка під час спроби перехопити клавіатуру"
 
-#: vncviewer/DesktopWindow.cxx:516
+#: vncviewer/DesktopWindow.cxx:772
 msgid "Failure grabbing mouse"
 msgstr "Помилка під час спроби перехопити мишу"
 
-#: vncviewer/DesktopWindow.cxx:746
+#: vncviewer/DesktopWindow.cxx:1002
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Результати обчислення компонування вікна для запиту щодо зміни розмірів є некоректними!"
 
-#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
-#: vncviewer/X11PixelBuffer.cxx:117
+#: vncviewer/FLTKPixelBuffer.cxx:33
 msgid "Not enough memory for framebuffer"
 msgstr "Недостатньо пам’яті для буфера кадрів"
-
-#: vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Не вдалося створити пристрій буфера кадрів"
-
-#: vncviewer/OSXPixelBuffer.cxx:58
-msgid "Could not create framebuffer bitmap"
-msgstr "Не вдалося створити растрові дані буфера кадрів"
 
 #: vncviewer/OptionsDialog.cxx:57
 msgid "VNC Viewer: Connection Options"
@@ -218,7 +215,7 @@ msgid "Encryption"
 msgstr "Шифрування"
 
 #: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
-#: vncviewer/OptionsDialog.cxx:735
+#: vncviewer/OptionsDialog.cxx:737
 msgid "None"
 msgstr "Немає"
 
@@ -262,55 +259,55 @@ msgstr "Лише перегляд (ігнорувати сигнали від м
 msgid "Accept clipboard from server"
 msgstr "Приймати вміст буфера з сервера"
 
-#: vncviewer/OptionsDialog.cxx:709
+#: vncviewer/OptionsDialog.cxx:710
 msgid "Also set primary selection"
 msgstr "Також встановити основне позначене"
 
-#: vncviewer/OptionsDialog.cxx:716
+#: vncviewer/OptionsDialog.cxx:717
 msgid "Send clipboard to server"
 msgstr "Надіслати вміст буфера обміну до сервера"
 
-#: vncviewer/OptionsDialog.cxx:723
+#: vncviewer/OptionsDialog.cxx:725
 msgid "Send primary selection as clipboard"
 msgstr "Надіслати основне позначене як буфер обміну"
 
-#: vncviewer/OptionsDialog.cxx:730
+#: vncviewer/OptionsDialog.cxx:732
 msgid "Pass system keys directly to server (full screen)"
 msgstr "Передавати натискання системних клавіш безпосередньо до сервера (повноекранний режим)"
 
-#: vncviewer/OptionsDialog.cxx:733
+#: vncviewer/OptionsDialog.cxx:735
 msgid "Menu key"
 msgstr "Клавіша меню"
 
-#: vncviewer/OptionsDialog.cxx:749
+#: vncviewer/OptionsDialog.cxx:751
 msgid "Screen"
 msgstr "Екран"
 
-#: vncviewer/OptionsDialog.cxx:757
+#: vncviewer/OptionsDialog.cxx:759
 msgid "Resize remote session on connect"
 msgstr "Змінювати розміри віддаленого сеансу під час з’єднання"
 
-#: vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:772
 msgid "Resize remote session to the local window"
 msgstr "Змінювати розміри віддаленого сеансу відповідно до локального вікна"
 
-#: vncviewer/OptionsDialog.cxx:776
+#: vncviewer/OptionsDialog.cxx:778
 msgid "Full-screen mode"
 msgstr "Повноекранний режим"
 
-#: vncviewer/OptionsDialog.cxx:782
+#: vncviewer/OptionsDialog.cxx:784
 msgid "Enable full-screen mode over all monitors"
 msgstr "Увімкнути повноекранний режим на усіх моніторах"
 
-#: vncviewer/OptionsDialog.cxx:791
+#: vncviewer/OptionsDialog.cxx:793
 msgid "Misc."
 msgstr "Інше"
 
-#: vncviewer/OptionsDialog.cxx:799
+#: vncviewer/OptionsDialog.cxx:801
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Спільний (не від’єднувати інші засоби перегляду)"
 
-#: vncviewer/OptionsDialog.cxx:805
+#: vncviewer/OptionsDialog.cxx:807
 msgid "Show dot when no cursor"
 msgstr "Показувати крапку, якщо немає курсора"
 
@@ -362,155 +359,105 @@ msgstr "Розпізнавання скасовано"
 msgid "Username:"
 msgstr "Користувач:"
 
-#: vncviewer/Viewport.cxx:391
-#, c-format
-msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Не вдалося створити специфічний для платформи буфер кадрів: %s"
-
-#: vncviewer/Viewport.cxx:392
-msgid "Using platform independent framebuffer"
-msgstr "Використовуємо незалежний від платформи буфер кадрів"
-
-#: vncviewer/Viewport.cxx:628
+#: vncviewer/Viewport.cxx:586
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Немає коду сканування для віртуальної клавіші розширення 0x%02x"
 
-#: vncviewer/Viewport.cxx:630
+#: vncviewer/Viewport.cxx:588
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Немає коду сканування для віртуальної клавіші 0x%02x"
 
-#: vncviewer/Viewport.cxx:647
+#: vncviewer/Viewport.cxx:605
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Немає символу для віртуальної клавіші розширення 0x%02x"
 
-#: vncviewer/Viewport.cxx:649
+#: vncviewer/Viewport.cxx:607
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Немає символу для віртуальної клавіші 0x%02x"
 
-#: vncviewer/Viewport.cxx:687
+#: vncviewer/Viewport.cxx:645
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Немає символу для клавіші з кодом 0x%02x (у поточному стані)"
 
-#: vncviewer/Viewport.cxx:713
+#: vncviewer/Viewport.cxx:671
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Немає символу для клавіші з кодом %d (у поточному стані)"
 
-#: vncviewer/Viewport.cxx:750
+#: vncviewer/Viewport.cxx:708
 msgctxt "ContextMenu|"
 msgid "E&xit viewer"
 msgstr "Ви&йти із засобу перегляду"
 
-#: vncviewer/Viewport.cxx:753
+#: vncviewer/Viewport.cxx:711
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&На весь екран"
 
-#: vncviewer/Viewport.cxx:756
+#: vncviewer/Viewport.cxx:714
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "М&інімізувати"
 
-#: vncviewer/Viewport.cxx:758
+#: vncviewer/Viewport.cxx:716
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Змінити &розміри вікна відповідно до сеансу"
 
-#: vncviewer/Viewport.cxx:763
+#: vncviewer/Viewport.cxx:721
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:766
+#: vncviewer/Viewport.cxx:724
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:772
+#: vncviewer/Viewport.cxx:730
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Надіслати %s"
 
-#: vncviewer/Viewport.cxx:778
+#: vncviewer/Viewport.cxx:736
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "На&діслати Ctrl-Alt-Del"
 
-#: vncviewer/Viewport.cxx:781
+#: vncviewer/Viewport.cxx:739
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Оновити вміст екрана"
 
-#: vncviewer/Viewport.cxx:784
+#: vncviewer/Viewport.cxx:742
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "П&араметри…"
 
-#: vncviewer/Viewport.cxx:786
+#: vncviewer/Viewport.cxx:744
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Дані щодо з’&єднання…"
 
-#: vncviewer/Viewport.cxx:788
+#: vncviewer/Viewport.cxx:746
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Про &засіб перегляду TigerVNC…"
 
-#: vncviewer/Viewport.cxx:791
+#: vncviewer/Viewport.cxx:749
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
 msgstr "Закрити &меню"
 
-#: vncviewer/Viewport.cxx:875
+#: vncviewer/Viewport.cxx:833
 msgid "VNC connection info"
 msgstr "Дані щодо з’єднання VNC"
-
-#: vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "не вдалося створити розділ DIB"
-
-#: vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "Помилка CreateCompatibleDC"
-
-#: vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "Помилка SelectObject"
-
-#: vncviewer/Win32PixelBuffer.cxx:91
-msgid "BitBlt failed"
-msgstr "Помилка BitBlt"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:65
-msgid "Display lacks pixmap format for default depth"
-msgstr "Для дисплея не вказано формат у пікселях для типової глибини"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:76
-msgid "Couldn't find suitable pixmap format"
-msgstr "Не вдалося визначити відповідний формат зображення"
-
-#: vncviewer/X11PixelBuffer.cxx:85
-msgid "Only true colour displays supported"
-msgstr "Передбачено підтримку лише дисплеїв з True Color"
-
-#: vncviewer/X11PixelBuffer.cxx:87
-#, c-format
-msgid "Using default colormap and visual, TrueColor, depth %d."
-msgstr "Використовуємо типову карту кольорів і відтворення, TrueColor, глибина %d."
-
-#: vncviewer/X11PixelBuffer.cxx:113
-msgid "Could not create framebuffer image"
-msgstr "Не вдалося створити зображення буфера кадрів"
 
 #: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
 #, c-format
@@ -710,6 +657,45 @@ msgstr "Параметри -listen і -via є несумісними"
 #, c-format
 msgid "Listening on port %d"
 msgstr "Очікуємо на дані на порту %d"
+
+#~ msgid "Could not create framebuffer device"
+#~ msgstr "Не вдалося створити пристрій буфера кадрів"
+
+#~ msgid "Could not create framebuffer bitmap"
+#~ msgstr "Не вдалося створити растрові дані буфера кадрів"
+
+#~ msgid "Unable to create platform specific framebuffer: %s"
+#~ msgstr "Не вдалося створити специфічний для платформи буфер кадрів: %s"
+
+#~ msgid "Using platform independent framebuffer"
+#~ msgstr "Використовуємо незалежний від платформи буфер кадрів"
+
+#~ msgid "unable to create DIB section"
+#~ msgstr "не вдалося створити розділ DIB"
+
+#~ msgid "CreateCompatibleDC failed"
+#~ msgstr "Помилка CreateCompatibleDC"
+
+#~ msgid "SelectObject failed"
+#~ msgstr "Помилка SelectObject"
+
+#~ msgid "BitBlt failed"
+#~ msgstr "Помилка BitBlt"
+
+#~ msgid "Display lacks pixmap format for default depth"
+#~ msgstr "Для дисплея не вказано формат у пікселях для типової глибини"
+
+#~ msgid "Couldn't find suitable pixmap format"
+#~ msgstr "Не вдалося визначити відповідний формат зображення"
+
+#~ msgid "Only true colour displays supported"
+#~ msgstr "Передбачено підтримку лише дисплеїв з True Color"
+
+#~ msgid "Using default colormap and visual, TrueColor, depth %d."
+#~ msgstr "Використовуємо типову карту кольорів і відтворення, TrueColor, глибина %d."
+
+#~ msgid "Could not create framebuffer image"
+#~ msgstr "Не вдалося створити зображення буфера кадрів"
 
 #~ msgid "Unknown encoding %d"
 #~ msgstr "Невідоме кодування %d"
