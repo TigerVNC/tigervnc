@@ -33,9 +33,10 @@ static CGColorSpaceRef srgb = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 
 static CGImageRef create_image(CGColorSpaceRef lut,
                                const unsigned char* data,
-                               int w, int h)
+                               int w, int h, bool skip_alpha)
 {
   CGDataProviderRef provider;
+  CGImageAlphaInfo alpha;
 
   CGImageRef image;
 
@@ -44,8 +45,15 @@ static CGImageRef create_image(CGColorSpaceRef lut,
   if (!provider)
     throw rdr::Exception("CGDataProviderCreateWithData");
 
+  // FIXME: This causes a performance hit, but is necessary to avoid
+  //        artifacts in the edges of the window
+  if (skip_alpha)
+    alpha = kCGImageAlphaNoneSkipFirst;
+  else
+    alpha = kCGImageAlphaPremultipliedFirst;
+
   image = CGImageCreate(w, h, 8, 32, w * 4, lut,
-                        kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
+                        alpha | kCGBitmapByteOrder32Little,
                         provider, NULL, false, kCGRenderingIntentDefault);
   CGDataProviderRelease(provider);
   if (!image)
@@ -63,7 +71,7 @@ static void render(CGContextRef gc, CGColorSpaceRef lut,
   CGRect rect;
   CGImageRef image, subimage;
 
-  image = create_image(lut, data, src_w, src_h);
+  image = create_image(lut, data, src_w, src_h, mode == kCGBlendModeCopy);
 
   rect.origin.x = src_x;
   rect.origin.y = src_y;
