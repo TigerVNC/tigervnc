@@ -60,7 +60,6 @@ protected:
   HBITMAP bitmap;
 #elif defined(__APPLE__)
   unsigned char* data;
-  CGImageRef image;
 #else
   Pixmap pixmap;
   Picture picture;
