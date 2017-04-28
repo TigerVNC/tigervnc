@@ -1,22 +1,22 @@
 # Brazilian Portuguese translation of tigervnc.
-# Copyright (C) 2016 the TigerVNC Team (msgids)
+# Copyright (C) 2017 the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
-# Rafael Fontenelle <rffontenelle@gmail.com>, 2015, 2016.
-#
+# Rafael Fontenelle <rffontenelle@gmail.com>, 2015, 2016, 2017.
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.6.90\n"
+"Project-Id-Version: tigervnc 1.7.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2016-07-01 10:15+0000\n"
-"PO-Revision-Date: 2016-07-01 15:36-0200\n"
+"POT-Creation-Date: 2017-04-19 13:05+0000\n"
+"PO-Revision-Date: 2017-04-28 09:02-0300\n"
 "Last-Translator: Rafael Fontenelle <rffontenelle@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge.net>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.6\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Virtaal 1.0.0-beta1\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 
 #: vncviewer/CConn.cxx:110
 #, c-format
@@ -73,80 +73,76 @@ msgstr "Versão do protocolo: %d.%d"
 msgid "Security method: %s"
 msgstr "Método de segurança: %s"
 
-#: vncviewer/CConn.cxx:319
+#: vncviewer/CConn.cxx:343
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "Definir tamanho do desktop falhou: %d"
 
-#: vncviewer/CConn.cxx:411
+#: vncviewer/CConn.cxx:413
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "SetColourMapEntries inválido do servidor!"
 
-#: vncviewer/CConn.cxx:485
+#: vncviewer/CConn.cxx:489
 msgid "Enabling continuous updates"
 msgstr "Ativando atualizações contínuas"
 
-#: vncviewer/CConn.cxx:555
+#: vncviewer/CConn.cxx:559
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Resultado %d kbit/s - alteração para qualidade %d"
 
-#: vncviewer/CConn.cxx:577
+#: vncviewer/CConn.cxx:581
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
 msgstr "Resultado %d kbit/s - a cor total agora está em %s"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "disabled"
 msgstr "desativado"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "enabled"
 msgstr "ativado"
 
-#: vncviewer/CConn.cxx:589
+#: vncviewer/CConn.cxx:593
 #, c-format
 msgid "Using %s encoding"
 msgstr "Usando codificação %s"
 
-#: vncviewer/CConn.cxx:636
+#: vncviewer/CConn.cxx:640
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Usando formato de pixel %s"
 
-#: vncviewer/DesktopWindow.cxx:106
+#: vncviewer/DesktopWindow.cxx:121
 msgid "Invalid geometry specified!"
 msgstr "Geometria inválida especificada!"
 
-#: vncviewer/DesktopWindow.cxx:303
+#: vncviewer/DesktopWindow.cxx:434
 msgid "Adjusting window size to avoid accidental full screen request"
 msgstr "Ajustando tamanho de janela para evitar solicitação de tela cheia acidental"
 
-#: vncviewer/DesktopWindow.cxx:485 vncviewer/DesktopWindow.cxx:491
-#: vncviewer/DesktopWindow.cxx:504
+#: vncviewer/DesktopWindow.cxx:478
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "Pressione %s para abrir o menu de contexto"
+
+#: vncviewer/DesktopWindow.cxx:741 vncviewer/DesktopWindow.cxx:747
+#: vncviewer/DesktopWindow.cxx:760
 msgid "Failure grabbing keyboard"
 msgstr "Falha ao se conectar com o teclado"
 
-#: vncviewer/DesktopWindow.cxx:516
+#: vncviewer/DesktopWindow.cxx:772
 msgid "Failure grabbing mouse"
 msgstr "Falha ao se conectar com o mouse"
 
-#: vncviewer/DesktopWindow.cxx:746
+#: vncviewer/DesktopWindow.cxx:1002
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Layout de tela inválida computada para solicitação de redimensionamento!"
 
-#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
-#: vncviewer/X11PixelBuffer.cxx:117
+#: vncviewer/FLTKPixelBuffer.cxx:33
 msgid "Not enough memory for framebuffer"
 msgstr "Memória insuficiente para o framebuffer"
-
-#: vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Não foi possível criar dispositivo de framebuffer"
-
-#: vncviewer/OSXPixelBuffer.cxx:58
-msgid "Could not create framebuffer bitmap"
-msgstr "Não foi possível criar bitmap de framebuffer"
 
 #: vncviewer/OptionsDialog.cxx:57
 msgid "VNC Viewer: Connection Options"
@@ -218,7 +214,7 @@ msgid "Encryption"
 msgstr "Criptografia"
 
 #: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
-#: vncviewer/OptionsDialog.cxx:735
+#: vncviewer/OptionsDialog.cxx:737
 msgid "None"
 msgstr "Nenhum"
 
@@ -262,55 +258,55 @@ msgstr "Ver apenas (ignora mouse e teclado)"
 msgid "Accept clipboard from server"
 msgstr "Aceitar área de transferência do servidor"
 
-#: vncviewer/OptionsDialog.cxx:709
+#: vncviewer/OptionsDialog.cxx:710
 msgid "Also set primary selection"
 msgstr "Também enviar seleção primária"
 
-#: vncviewer/OptionsDialog.cxx:716
+#: vncviewer/OptionsDialog.cxx:717
 msgid "Send clipboard to server"
 msgstr "Enviar área de transferência para o servidor"
 
-#: vncviewer/OptionsDialog.cxx:723
+#: vncviewer/OptionsDialog.cxx:725
 msgid "Send primary selection as clipboard"
 msgstr "Enviar seleção primária como área de transferência"
 
-#: vncviewer/OptionsDialog.cxx:730
+#: vncviewer/OptionsDialog.cxx:732
 msgid "Pass system keys directly to server (full screen)"
 msgstr "Passar teclas de sistema diretamente para o servidor (tela cheia)"
 
-#: vncviewer/OptionsDialog.cxx:733
+#: vncviewer/OptionsDialog.cxx:735
 msgid "Menu key"
 msgstr "Tecla de menu"
 
-#: vncviewer/OptionsDialog.cxx:749
+#: vncviewer/OptionsDialog.cxx:751
 msgid "Screen"
 msgstr "Tela"
 
-#: vncviewer/OptionsDialog.cxx:757
+#: vncviewer/OptionsDialog.cxx:759
 msgid "Resize remote session on connect"
 msgstr "Redimensionar a sessão remota ao conectar"
 
-#: vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:772
 msgid "Resize remote session to the local window"
 msgstr "Redimensionar a sessão remota para a janela local"
 
-#: vncviewer/OptionsDialog.cxx:776
+#: vncviewer/OptionsDialog.cxx:778
 msgid "Full-screen mode"
 msgstr "Modo tela cheia"
 
-#: vncviewer/OptionsDialog.cxx:782
+#: vncviewer/OptionsDialog.cxx:784
 msgid "Enable full-screen mode over all monitors"
 msgstr "Ativar o modo de tela cheia em todos os monitores"
 
-#: vncviewer/OptionsDialog.cxx:791
+#: vncviewer/OptionsDialog.cxx:793
 msgid "Misc."
 msgstr "Diversos"
 
-#: vncviewer/OptionsDialog.cxx:799
+#: vncviewer/OptionsDialog.cxx:801
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Compartilhado (não desconecta outros visualizadores)"
 
-#: vncviewer/OptionsDialog.cxx:805
+#: vncviewer/OptionsDialog.cxx:807
 msgid "Show dot when no cursor"
 msgstr "Mostrar ponto quando estiver sem mouse"
 
@@ -362,155 +358,105 @@ msgstr "Autenticação cancelada"
 msgid "Username:"
 msgstr "Nome de usuário:"
 
-#: vncviewer/Viewport.cxx:391
-#, c-format
-msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Não foi possível criar framebuffer específico da plataforma: %s"
-
-#: vncviewer/Viewport.cxx:392
-msgid "Using platform independent framebuffer"
-msgstr "Usando framebuffer independente de plataforma"
-
-#: vncviewer/Viewport.cxx:628
+#: vncviewer/Viewport.cxx:586
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Nenhum código de scan para a tecla virtual estendida 0x%02x"
 
-#: vncviewer/Viewport.cxx:630
+#: vncviewer/Viewport.cxx:588
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Nenhum código de scan para a tecla virtual 0x%02x"
 
-#: vncviewer/Viewport.cxx:647
+#: vncviewer/Viewport.cxx:605
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Nenhum símbolo para a tecla virtual estendida 0x%02x"
 
-#: vncviewer/Viewport.cxx:649
+#: vncviewer/Viewport.cxx:607
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Nenhum símbolo para a tecla virtual 0x%02x"
 
-#: vncviewer/Viewport.cxx:687
+#: vncviewer/Viewport.cxx:645
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Nenhum símbolo para a tecla virtual 0x%02x (no estado atual)"
 
-#: vncviewer/Viewport.cxx:713
+#: vncviewer/Viewport.cxx:671
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Nenhum símbolo para a tecla virtual %d (no estado atual)"
 
-#: vncviewer/Viewport.cxx:750
+#: vncviewer/Viewport.cxx:708
 msgctxt "ContextMenu|"
 msgid "E&xit viewer"
 msgstr "&Sair do visualizador"
 
-#: vncviewer/Viewport.cxx:753
+#: vncviewer/Viewport.cxx:711
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&Tela cheia"
 
-#: vncviewer/Viewport.cxx:756
+#: vncviewer/Viewport.cxx:714
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "Minimi&zar"
 
-#: vncviewer/Viewport.cxx:758
+#: vncviewer/Viewport.cxx:716
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Redimensionar a &janela para a sessão"
 
-#: vncviewer/Viewport.cxx:763
+#: vncviewer/Viewport.cxx:721
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:766
+#: vncviewer/Viewport.cxx:724
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:772
+#: vncviewer/Viewport.cxx:730
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Enviar %s"
 
-#: vncviewer/Viewport.cxx:778
+#: vncviewer/Viewport.cxx:736
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Enviar Ctrl-Alt-&Del"
 
-#: vncviewer/Viewport.cxx:781
+#: vncviewer/Viewport.cxx:739
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Atualizar tela"
 
-#: vncviewer/Viewport.cxx:784
+#: vncviewer/Viewport.cxx:742
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "&Opções..."
 
-#: vncviewer/Viewport.cxx:786
+#: vncviewer/Viewport.cxx:744
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "&Informação de conexão..."
 
-#: vncviewer/Viewport.cxx:788
+#: vncviewer/Viewport.cxx:746
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Sobre o visualizador &TigerVNC..."
 
-#: vncviewer/Viewport.cxx:791
+#: vncviewer/Viewport.cxx:749
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
 msgstr "Recusar &menu"
 
-#: vncviewer/Viewport.cxx:875
+#: vncviewer/Viewport.cxx:833
 msgid "VNC connection info"
 msgstr "Informação de conexão VNC..."
-
-#: vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "não foi possível criar seção DIB"
-
-#: vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "CreateCompatibleDC falhou"
-
-#: vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "SelectObject falhou"
-
-#: vncviewer/Win32PixelBuffer.cxx:91
-msgid "BitBlt failed"
-msgstr "BitBlt falhou"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:65
-msgid "Display lacks pixmap format for default depth"
-msgstr "Tela carece de formato de pixmap para profundidade padrão"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:76
-msgid "Couldn't find suitable pixmap format"
-msgstr "Não foi possível localizar um formato de pixmap adequado"
-
-#: vncviewer/X11PixelBuffer.cxx:85
-msgid "Only true colour displays supported"
-msgstr "Apenas suporte a telas True Color"
-
-#: vncviewer/X11PixelBuffer.cxx:87
-#, c-format
-msgid "Using default colormap and visual, TrueColor, depth %d."
-msgstr "Usando mapa de cores padrão e visual, TrueColor, profundidade %d."
-
-#: vncviewer/X11PixelBuffer.cxx:113
-msgid "Could not create framebuffer image"
-msgstr "Não foi possível criar imagem framebuffer"
 
 #: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
 #, c-format
@@ -710,6 +656,45 @@ msgstr "Os parâmetros -listen e -via são incompatíveis"
 #, c-format
 msgid "Listening on port %d"
 msgstr "Ouvindo na porta %d"
+
+#~ msgid "Could not create framebuffer device"
+#~ msgstr "Não foi possível criar dispositivo de framebuffer"
+
+#~ msgid "Could not create framebuffer bitmap"
+#~ msgstr "Não foi possível criar bitmap de framebuffer"
+
+#~ msgid "Unable to create platform specific framebuffer: %s"
+#~ msgstr "Não foi possível criar framebuffer específico da plataforma: %s"
+
+#~ msgid "Using platform independent framebuffer"
+#~ msgstr "Usando framebuffer independente de plataforma"
+
+#~ msgid "unable to create DIB section"
+#~ msgstr "não foi possível criar seção DIB"
+
+#~ msgid "CreateCompatibleDC failed"
+#~ msgstr "CreateCompatibleDC falhou"
+
+#~ msgid "SelectObject failed"
+#~ msgstr "SelectObject falhou"
+
+#~ msgid "BitBlt failed"
+#~ msgstr "BitBlt falhou"
+
+#~ msgid "Display lacks pixmap format for default depth"
+#~ msgstr "Tela carece de formato de pixmap para profundidade padrão"
+
+#~ msgid "Couldn't find suitable pixmap format"
+#~ msgstr "Não foi possível localizar um formato de pixmap adequado"
+
+#~ msgid "Only true colour displays supported"
+#~ msgstr "Apenas suporte a telas True Color"
+
+#~ msgid "Using default colormap and visual, TrueColor, depth %d."
+#~ msgstr "Usando mapa de cores padrão e visual, TrueColor, profundidade %d."
+
+#~ msgid "Could not create framebuffer image"
+#~ msgstr "Não foi possível criar imagem framebuffer"
 
 #~ msgid "Unknown encoding %d"
 #~ msgstr "Codificação %d desconhecida"
