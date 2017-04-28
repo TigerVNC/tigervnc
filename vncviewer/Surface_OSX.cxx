@@ -28,13 +28,47 @@
 
 #include "Surface.h"
 
-static void render(CGContextRef gc, CGImageRef image,
+static CGImageRef create_image(const unsigned char* data,
+                               int w, int h)
+{
+  CGColorSpaceRef lut;
+  CGDataProviderRef provider;
+
+  CGImageRef image;
+
+  lut = CGDisplayCopyColorSpace(kCGDirectMainDisplay);
+  if (!lut) {
+    lut = CGColorSpaceCreateDeviceRGB();
+    if (!lut)
+      throw rdr::Exception("CGColorSpaceCreateDeviceRGB");
+  }
+
+  provider = CGDataProviderCreateWithData(NULL, data,
+                                          w * h * 4, NULL);
+  if (!provider)
+    throw rdr::Exception("CGDataProviderCreateWithData");
+
+  image = CGImageCreate(w, h, 8, 32, w * 4, lut,
+                        kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
+                        provider, NULL, false, kCGRenderingIntentDefault);
+  CGColorSpaceRelease(lut);
+  CGDataProviderRelease(provider);
+  if (!image)
+    throw rdr::Exception("CGImageCreate");
+
+  return image;
+}
+
+static void render(CGContextRef gc,
+                   const unsigned char* data,
                    CGBlendMode mode, CGFloat alpha,
-                   int src_x, int src_y,
+                   int src_x, int src_y, int src_w, int src_h,
                    int x, int y, int w, int h)
 {
   CGRect rect;
-  CGImageRef subimage;
+  CGImageRef image, subimage;
+
+  image = create_image(data, src_w, src_h);
 
   rect.origin.x = src_x;
   rect.origin.y = src_y;
@@ -60,6 +94,7 @@ static void render(CGContextRef gc, CGImageRef image,
   CGContextRestoreGState(gc);
 
   CGImageRelease(subimage);
+  CGImageRelease(image);
 }
 
 static CGContextRef make_bitmap(int width, int height, unsigned char* data)
@@ -114,8 +149,8 @@ void Surface::draw(int src_x, int src_y, int x, int y, int w, int h)
   // macOS Coordinates are from bottom left, not top left
   y = Fl_Window::current()->h() - (y + h);
 
-  render(fl_gc, image, kCGBlendModeCopy, 1.0,
-         src_x, src_y, x, y, w, h);
+  render(fl_gc, data, kCGBlendModeCopy, 1.0,
+         src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
 }
@@ -129,8 +164,8 @@ void Surface::draw(Surface* dst, int src_x, int src_y, int x, int y, int w, int 
   // macOS Coordinates are from bottom left, not top left
   y = dst->height() - (y + h);
 
-  render(bitmap, image, kCGBlendModeCopy, 1.0,
-         src_x, src_y, x, y, w, h);
+  render(bitmap, data, kCGBlendModeCopy, 1.0,
+         src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRelease(bitmap);
 }
@@ -146,8 +181,8 @@ void Surface::blend(int src_x, int src_y, int x, int y, int w, int h, int a)
   // macOS Coordinates are from bottom left, not top left
   y = Fl_Window::current()->h() - (y + h);
 
-  render(fl_gc, image, kCGBlendModeNormal, (CGFloat)a/255.0,
-         src_x, src_y, x, y, w, h);
+  render(fl_gc, data, kCGBlendModeNormal, (CGFloat)a/255.0,
+         src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRestoreGState(fl_gc);
 }
@@ -161,43 +196,19 @@ void Surface::blend(Surface* dst, int src_x, int src_y, int x, int y, int w, int
   // macOS Coordinates are from bottom left, not top left
   y = dst->height() - (y + h);
 
-  render(bitmap, image, kCGBlendModeNormal, (CGFloat)a/255.0,
-         src_x, src_y, x, y, w, h);
+  render(bitmap, data, kCGBlendModeNormal, (CGFloat)a/255.0,
+         src_x, src_y, width(), height(), x, y, w, h);
 
   CGContextRelease(bitmap);
 }
 
 void Surface::alloc()
 {
-  CGColorSpaceRef lut;
-  CGDataProviderRef provider;
-
   data = new unsigned char[width() * height() * 4];
-
-  lut = CGDisplayCopyColorSpace(kCGDirectMainDisplay);
-  if (!lut) {
-    lut = CGColorSpaceCreateDeviceRGB();
-    if (!lut)
-      throw rdr::Exception("CGColorSpaceCreateDeviceRGB");
-  }
-
-  provider = CGDataProviderCreateWithData(NULL, data,
-                                          width() * height() * 4, NULL);
-  if (!provider)
-    throw rdr::Exception("CGDataProviderCreateWithData");
-
-  image = CGImageCreate(width(), height(), 8, 32, width() * 4, lut,
-                        kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little,
-                        provider, NULL, false, kCGRenderingIntentDefault);
-  CGColorSpaceRelease(lut);
-  CGDataProviderRelease(provider);
-  if (!image)
-    throw rdr::Exception("CGImageCreate");
 }
 
 void Surface::dealloc()
 {
-  CGImageRelease(image);
   delete [] data;
 }
 
