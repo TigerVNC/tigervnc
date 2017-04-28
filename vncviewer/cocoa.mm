@@ -110,6 +110,28 @@ void cocoa_release_display(Fl_Window *win)
     [nsw setLevel:newlevel];
 }
 
+CGColorSpaceRef cocoa_win_color_space(Fl_Window *win)
+{
+  NSWindow *nsw;
+  NSColorSpace *nscs;
+
+  nsw = (NSWindow*)fl_xid(win);
+
+  nscs = [nsw colorSpace];
+  if (nscs == nil) {
+    // Offscreen, so return standard SRGB color space
+    assert(false);
+    return CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+  }
+
+  CGColorSpaceRef lut = [nscs CGColorSpace];
+
+  // We want a permanent reference, not an autorelease
+  CGColorSpaceRetain(lut);
+
+  return lut;
+}
+
 int cocoa_is_keyboard_event(const void *event)
 {
   NSEvent *nsevent;
