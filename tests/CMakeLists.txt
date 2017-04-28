@@ -27,7 +27,10 @@ set(FBPERF_SOURCES
 if(WIN32)
   set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/Surface_Win32.cxx)
 elseif(APPLE)
-  set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/Surface_OSX.cxx)
+  set(FBPERF_SOURCES
+      ${FBPERF_SOURCES} ../vncviewer/Surface_OSX.cxx
+      ${FBPERF_SOURCES} ../vncviewer/keysym2ucs.c
+      ${FBPERF_SOURCES} ../vncviewer/cocoa.mm)
 else()
   set(FBPERF_SOURCES ${FBPERF_SOURCES} ../vncviewer/Surface_X11.cxx)
 endif()
