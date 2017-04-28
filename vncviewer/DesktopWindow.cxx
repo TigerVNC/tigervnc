@@ -347,10 +347,12 @@ void DesktopWindow::draw()
 
     fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
 
-    if (offscreen)
-      statsGraph->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, 204);
-    else
-      statsGraph->blend(ox - X, oy - Y, ox, oy, ow, oh, 204);
+    if ((ow != 0) && (oh != 0)) {
+      if (offscreen)
+        statsGraph->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, 204);
+      else
+        statsGraph->blend(ox - X, oy - Y, ox, oy, ow, oh, 204);
+    }
   }
 
   // Overlay (if active)
@@ -364,10 +366,12 @@ void DesktopWindow::draw()
 
     fl_clip_box(ox, oy, ow, oh, ox, oy, ow, oh);
 
-    if (offscreen)
-      overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
-    else
-      overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+    if ((ow != 0) && (oh != 0)) {
+      if (offscreen)
+        overlay->blend(offscreen, ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+      else
+        overlay->blend(ox - X, oy - Y, ox, oy, ow, oh, overlayAlpha);
+    }
   }
 
   // Flush offscreen surface to screen
