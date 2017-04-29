@@ -1,17 +1,18 @@
 # Vietnamese translations for tigervnc package
 # Bản dịch Tiếng Việt dành cho gói tigervnc
 # This file is distributed under the same license as the tigervnc package.
-# Trần Ngọc Quân <vnwildman@gmail.com>, 2014, 2015, 2016.
+# Trần Ngọc Quân <vnwildman@gmail.com>, 2014, 2015, 2016, 2017.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.6.90\n"
+"Project-Id-Version: tigervnc 1.7.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2016-07-01 10:15+0000\n"
-"PO-Revision-Date: 2016-07-04 08:44+0700\n"
+"POT-Creation-Date: 2017-04-19 13:05+0000\n"
+"PO-Revision-Date: 2017-04-29 08:02+0700\n"
 "Last-Translator: Trần Ngọc Quân <vnwildman@gmail.com>\n"
 "Language-Team: Vietnamese <translation-team-vi@lists.sourceforge.net>\n"
 "Language: vi\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -73,80 +74,76 @@ msgstr "Phiên bản giao thức: %d.%d"
 msgid "Security method: %s"
 msgstr "Phương thức bảo mật: %s"
 
-#: vncviewer/CConn.cxx:319
+#: vncviewer/CConn.cxx:343
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "SetDesktopSize gặp lỗi: %d"
 
-#: vncviewer/CConn.cxx:411
+#: vncviewer/CConn.cxx:413
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "SetColourMapEntries từ máy phục vụ không hợp lệ!"
 
-#: vncviewer/CConn.cxx:485
+#: vncviewer/CConn.cxx:489
 msgid "Enabling continuous updates"
 msgstr "Đang bật cập nhật liên tục"
 
-#: vncviewer/CConn.cxx:555
+#: vncviewer/CConn.cxx:559
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Năng lực %d kbit/s - đổi thành chất lượng %d"
 
-#: vncviewer/CConn.cxx:577
+#: vncviewer/CConn.cxx:581
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
 msgstr "Năng lực %d kbit/s - màu đầy đủ giờ là %s"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "disabled"
 msgstr "tắt"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "enabled"
 msgstr "bật"
 
-#: vncviewer/CConn.cxx:589
+#: vncviewer/CConn.cxx:593
 #, c-format
 msgid "Using %s encoding"
 msgstr "Đang dùng bảng mã %s"
 
-#: vncviewer/CConn.cxx:636
+#: vncviewer/CConn.cxx:640
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Đang dùng định dạng điểm ảnh %s"
 
-#: vncviewer/DesktopWindow.cxx:106
+#: vncviewer/DesktopWindow.cxx:121
 msgid "Invalid geometry specified!"
 msgstr "Hình dạng đã cho không hợp lệ!"
 
-#: vncviewer/DesktopWindow.cxx:303
+#: vncviewer/DesktopWindow.cxx:434
 msgid "Adjusting window size to avoid accidental full screen request"
 msgstr "Chỉnh cỡ cửa sổ để tránh yêu cầu toàm màn hình ngẫu nhiên"
 
-#: vncviewer/DesktopWindow.cxx:485 vncviewer/DesktopWindow.cxx:491
-#: vncviewer/DesktopWindow.cxx:504
+#: vncviewer/DesktopWindow.cxx:478
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "Nhấn vào %s to open the context menu để mở trình đơn ngữ cảnh"
+
+#: vncviewer/DesktopWindow.cxx:741 vncviewer/DesktopWindow.cxx:747
+#: vncviewer/DesktopWindow.cxx:760
 msgid "Failure grabbing keyboard"
 msgstr "Gặp lỗi khi điều khiển bàn phím"
 
-#: vncviewer/DesktopWindow.cxx:516
+#: vncviewer/DesktopWindow.cxx:772
 msgid "Failure grabbing mouse"
 msgstr "Gặp lỗi khi điều khiển chuột"
 
-#: vncviewer/DesktopWindow.cxx:746
+#: vncviewer/DesktopWindow.cxx:1002
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Bố cục màn hình đã tính toán không hợp lệ cho yêu cầu đổi cỡ!"
 
-#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
-#: vncviewer/X11PixelBuffer.cxx:117
+#: vncviewer/FLTKPixelBuffer.cxx:33
 msgid "Not enough memory for framebuffer"
 msgstr "Không đủ bộ nhớ cho bộ đệm khung"
-
-#: vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Không thể tạo thiết bị bộ đệm khung"
-
-#: vncviewer/OSXPixelBuffer.cxx:58
-msgid "Could not create framebuffer bitmap"
-msgstr "Không thể tạo ánh xạ bộ đệm khung"
 
 #: vncviewer/OptionsDialog.cxx:57
 msgid "VNC Viewer: Connection Options"
@@ -218,7 +215,7 @@ msgid "Encryption"
 msgstr "Mã hóa"
 
 #: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
-#: vncviewer/OptionsDialog.cxx:735
+#: vncviewer/OptionsDialog.cxx:737
 msgid "None"
 msgstr "Không có gì"
 
@@ -262,55 +259,55 @@ msgstr "Chỉ xem (không bắt chuột và bàn phím)"
 msgid "Accept clipboard from server"
 msgstr "Chấp nhận clipboard từ máy chủ"
 
-#: vncviewer/OptionsDialog.cxx:709
+#: vncviewer/OptionsDialog.cxx:710
 msgid "Also set primary selection"
 msgstr "Cũng đặt chọn chính"
 
-#: vncviewer/OptionsDialog.cxx:716
+#: vncviewer/OptionsDialog.cxx:717
 msgid "Send clipboard to server"
 msgstr "Gửi clipboard đến máy chủ"
 
-#: vncviewer/OptionsDialog.cxx:723
+#: vncviewer/OptionsDialog.cxx:725
 msgid "Send primary selection as clipboard"
 msgstr "Gửi chọn chính là clipboard"
 
-#: vncviewer/OptionsDialog.cxx:730
+#: vncviewer/OptionsDialog.cxx:732
 msgid "Pass system keys directly to server (full screen)"
 msgstr "Gửi các phím hệ thống trực tiếp đến máy phục vụ (toàn màn hình)"
 
-#: vncviewer/OptionsDialog.cxx:733
+#: vncviewer/OptionsDialog.cxx:735
 msgid "Menu key"
 msgstr "Phím trình đơn"
 
-#: vncviewer/OptionsDialog.cxx:749
+#: vncviewer/OptionsDialog.cxx:751
 msgid "Screen"
 msgstr "Màn hình"
 
-#: vncviewer/OptionsDialog.cxx:757
+#: vncviewer/OptionsDialog.cxx:759
 msgid "Resize remote session on connect"
 msgstr "Đổi cỡ phiên máy từ xa khi kết nối"
 
-#: vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:772
 msgid "Resize remote session to the local window"
 msgstr "Đổi cỡ phiên thành cửa sổ nội bộ"
 
-#: vncviewer/OptionsDialog.cxx:776
+#: vncviewer/OptionsDialog.cxx:778
 msgid "Full-screen mode"
 msgstr "Chế độ toàn màn hình"
 
-#: vncviewer/OptionsDialog.cxx:782
+#: vncviewer/OptionsDialog.cxx:784
 msgid "Enable full-screen mode over all monitors"
 msgstr "Bật chế độ toàn màn hình qua tất cả các màn hình"
 
-#: vncviewer/OptionsDialog.cxx:791
+#: vncviewer/OptionsDialog.cxx:793
 msgid "Misc."
 msgstr "Linh tinh"
 
-#: vncviewer/OptionsDialog.cxx:799
+#: vncviewer/OptionsDialog.cxx:801
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Đã chia sẻ (đừng ngắt kết nối các bộ xem khác)"
 
-#: vncviewer/OptionsDialog.cxx:805
+#: vncviewer/OptionsDialog.cxx:807
 msgid "Show dot when no cursor"
 msgstr "Hiển thị chấm khi không có con trỏ"
 
@@ -362,155 +359,105 @@ msgstr "Xác thực bị hủy bỏ"
 msgid "Username:"
 msgstr "Tài khoản:"
 
-#: vncviewer/Viewport.cxx:391
-#, c-format
-msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Không thể tạo bộ đệm khung đặc tả nền tảng: %s"
-
-#: vncviewer/Viewport.cxx:392
-msgid "Using platform independent framebuffer"
-msgstr "Đang sử dụng bộ đệm khung độc lập nên tảng"
-
-#: vncviewer/Viewport.cxx:628
+#: vncviewer/Viewport.cxx:586
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Không có mã quét cho phím ảo mở rộng 0x%02x"
 
-#: vncviewer/Viewport.cxx:630
+#: vncviewer/Viewport.cxx:588
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Không có mã quét cho phím ảo 0x%02x"
 
-#: vncviewer/Viewport.cxx:647
+#: vncviewer/Viewport.cxx:605
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Không có ký hiệu cho phím ảo mở rộng 0x%02x"
 
-#: vncviewer/Viewport.cxx:649
+#: vncviewer/Viewport.cxx:607
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Không có ký hiệu cho phím ảo 0x%02x"
 
-#: vncviewer/Viewport.cxx:687
+#: vncviewer/Viewport.cxx:645
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Không có ký hiệu cho mã phím 0x%02x (trong trạng thái hiện tại)"
 
-#: vncviewer/Viewport.cxx:713
+#: vncviewer/Viewport.cxx:671
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Không có ký hiệu cho mã phím %d (trong trạng thái hiện tại)"
 
-#: vncviewer/Viewport.cxx:750
+#: vncviewer/Viewport.cxx:708
 msgctxt "ContextMenu|"
 msgid "E&xit viewer"
 msgstr "T&hoát khỏi bộ xem"
 
-#: vncviewer/Viewport.cxx:753
+#: vncviewer/Viewport.cxx:711
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "T&oàn màn hình"
 
-#: vncviewer/Viewport.cxx:756
+#: vncviewer/Viewport.cxx:714
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "Thu &nhỏ"
 
-#: vncviewer/Viewport.cxx:758
+#: vncviewer/Viewport.cxx:716
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Đổi cỡ Cửa &sổ sang phiên"
 
-#: vncviewer/Viewport.cxx:763
+#: vncviewer/Viewport.cxx:721
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:766
+#: vncviewer/Viewport.cxx:724
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:772
+#: vncviewer/Viewport.cxx:730
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "Gửi %s"
 
-#: vncviewer/Viewport.cxx:778
+#: vncviewer/Viewport.cxx:736
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Gửi Ctrl-Alt-&Del"
 
-#: vncviewer/Viewport.cxx:781
+#: vncviewer/Viewport.cxx:739
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Làm mới màn hình"
 
-#: vncviewer/Viewport.cxx:784
+#: vncviewer/Viewport.cxx:742
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "Tù&y chọn…"
 
-#: vncviewer/Viewport.cxx:786
+#: vncviewer/Viewport.cxx:744
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Thông t&in về kết nối…"
 
-#: vncviewer/Viewport.cxx:788
+#: vncviewer/Viewport.cxx:746
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Giới thiệu Bộ xem &TigerVNC…"
 
-#: vncviewer/Viewport.cxx:791
+#: vncviewer/Viewport.cxx:749
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
 msgstr "Thải bỏ &Trình đơn"
 
-#: vncviewer/Viewport.cxx:875
+#: vncviewer/Viewport.cxx:833
 msgid "VNC connection info"
 msgstr "Thông tin kết nối VNC"
-
-#: vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "không thể tạo phần DIB"
-
-#: vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "CreateCompatibleDC gặp lỗi"
-
-#: vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "SelectObject gặp lỗi"
-
-#: vncviewer/Win32PixelBuffer.cxx:91
-msgid "BitBlt failed"
-msgstr "BitBlt gặp lỗi"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:65
-msgid "Display lacks pixmap format for default depth"
-msgstr "Hiển thị định dạng pixmap thiếu cho độ sâu mặc định"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:76
-msgid "Couldn't find suitable pixmap format"
-msgstr "Không thể tìm thấy định dạng phù hợp pixmap"
-
-#: vncviewer/X11PixelBuffer.cxx:85
-msgid "Only true colour displays supported"
-msgstr "Chỉ hỗ trợ hiển thị màu thật"
-
-#: vncviewer/X11PixelBuffer.cxx:87
-#, c-format
-msgid "Using default colormap and visual, TrueColor, depth %d."
-msgstr "Đang dùng bản đồ màu mặc định và ảo, TrueColor, độ sâu %d."
-
-#: vncviewer/X11PixelBuffer.cxx:113
-msgid "Could not create framebuffer image"
-msgstr "Không thể tạo ảnh bộ đệm khung"
 
 #: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
 #, c-format
@@ -710,6 +657,45 @@ msgstr "Các tham số -listen và -via xung khắc nhau"
 #, c-format
 msgid "Listening on port %d"
 msgstr "Đang nghe trên cổng %d"
+
+#~ msgid "Could not create framebuffer device"
+#~ msgstr "Không thể tạo thiết bị bộ đệm khung"
+
+#~ msgid "Could not create framebuffer bitmap"
+#~ msgstr "Không thể tạo ánh xạ bộ đệm khung"
+
+#~ msgid "Unable to create platform specific framebuffer: %s"
+#~ msgstr "Không thể tạo bộ đệm khung đặc tả nền tảng: %s"
+
+#~ msgid "Using platform independent framebuffer"
+#~ msgstr "Đang sử dụng bộ đệm khung độc lập nên tảng"
+
+#~ msgid "unable to create DIB section"
+#~ msgstr "không thể tạo phần DIB"
+
+#~ msgid "CreateCompatibleDC failed"
+#~ msgstr "CreateCompatibleDC gặp lỗi"
+
+#~ msgid "SelectObject failed"
+#~ msgstr "SelectObject gặp lỗi"
+
+#~ msgid "BitBlt failed"
+#~ msgstr "BitBlt gặp lỗi"
+
+#~ msgid "Display lacks pixmap format for default depth"
+#~ msgstr "Hiển thị định dạng pixmap thiếu cho độ sâu mặc định"
+
+#~ msgid "Couldn't find suitable pixmap format"
+#~ msgstr "Không thể tìm thấy định dạng phù hợp pixmap"
+
+#~ msgid "Only true colour displays supported"
+#~ msgstr "Chỉ hỗ trợ hiển thị màu thật"
+
+#~ msgid "Using default colormap and visual, TrueColor, depth %d."
+#~ msgstr "Đang dùng bản đồ màu mặc định và ảo, TrueColor, độ sâu %d."
+
+#~ msgid "Could not create framebuffer image"
+#~ msgstr "Không thể tạo ảnh bộ đệm khung"
 
 #~ msgid "Unknown encoding %d"
 #~ msgstr "Bảng mã chưa biết %d"
