@@ -312,9 +312,21 @@ int vncHooksInit(int scrIdx)
 #ifdef RANDR
   rp = rrGetScrPriv(pScreen);
   if (rp) {
-    wrap(vncHooksScreen, rp, rrSetConfig, vncHooksRandRSetConfig);
-    wrap(vncHooksScreen, rp, rrScreenSetSize, vncHooksRandRScreenSetSize);
-    wrap(vncHooksScreen, rp, rrCrtcSet, vncHooksRandRCrtcSet);
+    if (rp->rrSetConfig) {
+      wrap(vncHooksScreen, rp, rrSetConfig, vncHooksRandRSetConfig);
+    } else {
+      vncHooksScreen->rrSetConfig = rp->rrSetConfig;
+    }
+    if (rp->rrScreenSetSize) {
+      wrap(vncHooksScreen, rp, rrScreenSetSize, vncHooksRandRScreenSetSize);
+    } else {
+      vncHooksScreen->rrScreenSetSize = rp->rrScreenSetSize;
+    }
+    if (rp->rrCrtcSet) {
+      wrap(vncHooksScreen, rp, rrCrtcSet, vncHooksRandRCrtcSet);
+    } else {
+      vncHooksScreen->rrCrtcSet = rp->rrCrtcSet;
+    }
   }
 #endif
 
