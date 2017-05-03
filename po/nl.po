@@ -2,19 +2,22 @@
 # Copyright (C) the TigerVNC Team (msgids)
 # This file is distributed under the same license as the tigervnc package.
 #
-# Benno Schulenberg <benno@vertaalt.nl>, 2014, 2015, 2016.
+# "That said, you owe me a new keyboard."
+#
+# Benno Schulenberg <benno@vertaalt.nl>, 2014, 2015, 2016, 2017.
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.6.90\n"
+"Project-Id-Version: tigervnc 1.7.90\n"
 "Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2016-07-01 10:15+0000\n"
-"PO-Revision-Date: 2016-07-26 11:15+0200\n"
+"POT-Creation-Date: 2017-04-19 13:05+0000\n"
+"PO-Revision-Date: 2017-05-03 20:34+0200\n"
 "Last-Translator: Benno Schulenberg <benno@vertaalt.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 "X-Generator: Lokalize 1.0\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -73,80 +76,76 @@ msgstr "Protocolversie: %d.%d"
 msgid "Security method: %s"
 msgstr "Beveiligingsmethode: %s"
 
-#: vncviewer/CConn.cxx:319
+#: vncviewer/CConn.cxx:343
 #, c-format
 msgid "SetDesktopSize failed: %d"
 msgstr "### SetDesktopSize is mislukt: %d"
 
-#: vncviewer/CConn.cxx:411
+#: vncviewer/CConn.cxx:413
 msgid "Invalid SetColourMapEntries from server!"
 msgstr "Ongeldige 'SetColourMapEntries' van de server!"
 
-#: vncviewer/CConn.cxx:485
+#: vncviewer/CConn.cxx:489
 msgid "Enabling continuous updates"
 msgstr "Continue updates inschakelen"
 
-#: vncviewer/CConn.cxx:555
+#: vncviewer/CConn.cxx:559
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Throughput is %d kbit/s -- overgaand naar kwaliteit %d"
 
-#: vncviewer/CConn.cxx:577
+#: vncviewer/CConn.cxx:581
 #, c-format
 msgid "Throughput %d kbit/s - full color is now %s"
 msgstr "Throughput is %d kbit/s -- volledige kleuren is nu %s"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "disabled"
 msgstr "uitgeschakeld"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:583
 msgid "enabled"
 msgstr "ingeschakeld"
 
-#: vncviewer/CConn.cxx:589
+#: vncviewer/CConn.cxx:593
 #, c-format
 msgid "Using %s encoding"
 msgstr "Codering %s wordt gebruikt"
 
-#: vncviewer/CConn.cxx:636
+#: vncviewer/CConn.cxx:640
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Pixel-indeling %s wordt gebruikt"
 
-#: vncviewer/DesktopWindow.cxx:106
+#: vncviewer/DesktopWindow.cxx:121
 msgid "Invalid geometry specified!"
 msgstr "Ongeldige afmetingen opgegeven!"
 
-#: vncviewer/DesktopWindow.cxx:303
+#: vncviewer/DesktopWindow.cxx:434
 msgid "Adjusting window size to avoid accidental full screen request"
 msgstr "Venstergrootte wordt aangepast om onbedoeld volledigschermverzoek te vermijden"
 
-#: vncviewer/DesktopWindow.cxx:485 vncviewer/DesktopWindow.cxx:491
-#: vncviewer/DesktopWindow.cxx:504
+#: vncviewer/DesktopWindow.cxx:478
+#, c-format
+msgid "Press %s to open the context menu"
+msgstr "Druk op %s om het contextmenu te openen"
+
+#: vncviewer/DesktopWindow.cxx:741 vncviewer/DesktopWindow.cxx:747
+#: vncviewer/DesktopWindow.cxx:760
 msgid "Failure grabbing keyboard"
-msgstr "Het pakken van het toetsenbord is mislukt"
+msgstr "Het \"grijpen\" van het toetsenbord is mislukt"
 
-#: vncviewer/DesktopWindow.cxx:516
+#: vncviewer/DesktopWindow.cxx:772
 msgid "Failure grabbing mouse"
-msgstr "Het pakken van de muis is mislukt"
+msgstr "Het \"grijpen\" van de muis is mislukt"
 
-#: vncviewer/DesktopWindow.cxx:746
+#: vncviewer/DesktopWindow.cxx:1002
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Ongeldige schermopmaak berekend voor wijzigingsverzoek."
 
-#: vncviewer/FLTKPixelBuffer.cxx:33 vncviewer/OSXPixelBuffer.cxx:48
-#: vncviewer/X11PixelBuffer.cxx:117
+#: vncviewer/FLTKPixelBuffer.cxx:33
 msgid "Not enough memory for framebuffer"
 msgstr "Onvoldoende geheugen beschikbaar voor framebuffer"
-
-#: vncviewer/OSXPixelBuffer.cxx:52
-msgid "Could not create framebuffer device"
-msgstr "Kan framebuffer-apparaat niet aanmaken"
-
-#: vncviewer/OSXPixelBuffer.cxx:58
-msgid "Could not create framebuffer bitmap"
-msgstr "Kan framebuffer-bitkaart niet aanmaken"
 
 #: vncviewer/OptionsDialog.cxx:57
 msgid "VNC Viewer: Connection Options"
@@ -218,7 +217,7 @@ msgid "Encryption"
 msgstr "Versleuteling"
 
 #: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
-#: vncviewer/OptionsDialog.cxx:735
+#: vncviewer/OptionsDialog.cxx:737
 msgid "None"
 msgstr "Geen"
 
@@ -262,55 +261,55 @@ msgstr "Alleen kijken (muis en toetsenbord negeren)"
 msgid "Accept clipboard from server"
 msgstr "Klembord van server accepteren"
 
-#: vncviewer/OptionsDialog.cxx:709
+#: vncviewer/OptionsDialog.cxx:710
 msgid "Also set primary selection"
 msgstr "Ook de hoofdselectie instellen"
 
-#: vncviewer/OptionsDialog.cxx:716
+#: vncviewer/OptionsDialog.cxx:717
 msgid "Send clipboard to server"
 msgstr "Klembord naar server zenden"
 
-#: vncviewer/OptionsDialog.cxx:723
+#: vncviewer/OptionsDialog.cxx:725
 msgid "Send primary selection as clipboard"
 msgstr "Hoofdselectie als klembord verzenden"
 
-#: vncviewer/OptionsDialog.cxx:730
+#: vncviewer/OptionsDialog.cxx:732
 msgid "Pass system keys directly to server (full screen)"
 msgstr "Systeemsleutels direct aan server doorgeven (volledigscherm)"
 
-#: vncviewer/OptionsDialog.cxx:733
+#: vncviewer/OptionsDialog.cxx:735
 msgid "Menu key"
 msgstr "Menutoets"
 
-#: vncviewer/OptionsDialog.cxx:749
+#: vncviewer/OptionsDialog.cxx:751
 msgid "Screen"
 msgstr "Scherm"
 
-#: vncviewer/OptionsDialog.cxx:757
+#: vncviewer/OptionsDialog.cxx:759
 msgid "Resize remote session on connect"
 msgstr "Grootte van gindse sessie aanpassen bij verbinden"
 
-#: vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:772
 msgid "Resize remote session to the local window"
 msgstr "Gindse sessie aan het lokale venster aanpassen"
 
-#: vncviewer/OptionsDialog.cxx:776
+#: vncviewer/OptionsDialog.cxx:778
 msgid "Full-screen mode"
 msgstr "Volledigscherm-modus"
 
-#: vncviewer/OptionsDialog.cxx:782
+#: vncviewer/OptionsDialog.cxx:784
 msgid "Enable full-screen mode over all monitors"
 msgstr "Volledigscherm-modus over alle beeldschermen inschakelen"
 
-#: vncviewer/OptionsDialog.cxx:791
+#: vncviewer/OptionsDialog.cxx:793
 msgid "Misc."
 msgstr "Overige"
 
-#: vncviewer/OptionsDialog.cxx:799
+#: vncviewer/OptionsDialog.cxx:801
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Gedeeld (verbinding van andere viewers niet verbreken)"
 
-#: vncviewer/OptionsDialog.cxx:805
+#: vncviewer/OptionsDialog.cxx:807
 msgid "Show dot when no cursor"
 msgstr "Punt tonen als er geen cursor is"
 
@@ -362,155 +361,105 @@ msgstr "Authenticatie is geannuleerd"
 msgid "Username:"
 msgstr "Gebruikersnaam:"
 
-#: vncviewer/Viewport.cxx:391
-#, c-format
-msgid "Unable to create platform specific framebuffer: %s"
-msgstr "Kan geen platform-specifiek framebuffer aanmaken: %s"
-
-#: vncviewer/Viewport.cxx:392
-msgid "Using platform independent framebuffer"
-msgstr "Platform-onafhankelijk framebuffer wordt gebruikt"
-
-#: vncviewer/Viewport.cxx:628
+#: vncviewer/Viewport.cxx:586
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
 msgstr "Geen scancode voor uitgebreide virtuele toets 0x%02x"
 
-#: vncviewer/Viewport.cxx:630
+#: vncviewer/Viewport.cxx:588
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
 msgstr "Geen scancode voor virtuele toets 0x%02x"
 
-#: vncviewer/Viewport.cxx:647
+#: vncviewer/Viewport.cxx:605
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
 msgstr "Geen symbool voor uitgebreide virtuele toets 0x%02x"
 
-#: vncviewer/Viewport.cxx:649
+#: vncviewer/Viewport.cxx:607
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
 msgstr "Geen symbool voor virtuele toets 0x%02x"
 
-#: vncviewer/Viewport.cxx:687
+#: vncviewer/Viewport.cxx:645
 #, c-format
 msgid "No symbol for key code 0x%02x (in the current state)"
 msgstr "Geen symbool voor toetscode 0x%02x (in de huidige toestand)"
 
-#: vncviewer/Viewport.cxx:713
+#: vncviewer/Viewport.cxx:671
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Geen symbool voor toetscode %d (in de huidige toestand)"
 
-#: vncviewer/Viewport.cxx:750
+#: vncviewer/Viewport.cxx:708
 msgctxt "ContextMenu|"
 msgid "E&xit viewer"
 msgstr "Viewer af&sluiten"
 
-#: vncviewer/Viewport.cxx:753
+#: vncviewer/Viewport.cxx:711
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&Volledig scherm"
 
-#: vncviewer/Viewport.cxx:756
+#: vncviewer/Viewport.cxx:714
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "&Minimaliseren"
 
-#: vncviewer/Viewport.cxx:758
+#: vncviewer/Viewport.cxx:716
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Ve&nster aan sessie aanpassen"
 
-#: vncviewer/Viewport.cxx:763
+#: vncviewer/Viewport.cxx:721
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:766
+#: vncviewer/Viewport.cxx:724
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:772
+#: vncviewer/Viewport.cxx:730
 #, c-format
 msgctxt "ContextMenu|"
 msgid "Send %s"
 msgstr "%s zenden"
 
-#: vncviewer/Viewport.cxx:778
+#: vncviewer/Viewport.cxx:736
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Ctrl-Alt-&Del zenden"
 
-#: vncviewer/Viewport.cxx:781
+#: vncviewer/Viewport.cxx:739
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "Sch&erm verversen"
 
-#: vncviewer/Viewport.cxx:784
+#: vncviewer/Viewport.cxx:742
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "&Opties..."
 
-#: vncviewer/Viewport.cxx:786
+#: vncviewer/Viewport.cxx:744
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Verbindings&info..."
 
-#: vncviewer/Viewport.cxx:788
+#: vncviewer/Viewport.cxx:746
 msgctxt "ContextMenu|"
 msgid "About &TigerVNC viewer..."
 msgstr "Info over &TigerVNC-viewer..."
 
-#: vncviewer/Viewport.cxx:791
+#: vncviewer/Viewport.cxx:749
 msgctxt "ContextMenu|"
 msgid "Dismiss &menu"
 msgstr "Menu ver&laten"
 
-#: vncviewer/Viewport.cxx:875
+#: vncviewer/Viewport.cxx:833
 msgid "VNC connection info"
 msgstr "VNC-verbindingsinfo"
-
-#: vncviewer/Win32PixelBuffer.cxx:62
-msgid "unable to create DIB section"
-msgstr "kan geen DIB-sectie aanmaken"
-
-#: vncviewer/Win32PixelBuffer.cxx:79
-msgid "CreateCompatibleDC failed"
-msgstr "### CreateCompatibleDC is mislukt"
-
-#: vncviewer/Win32PixelBuffer.cxx:82
-msgid "SelectObject failed"
-msgstr "### SelectObject is mislukt"
-
-#: vncviewer/Win32PixelBuffer.cxx:91
-msgid "BitBlt failed"
-msgstr "### BitBlt is mislukt"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:65
-msgid "Display lacks pixmap format for default depth"
-msgstr "Scherm heeft geen pixmap-indeling voor standaard kleurdiepte"
-
-#. TRANSLATORS: "pixmap" is an X11 concept and may not be suitable
-#. to translate.
-#: vncviewer/X11PixelBuffer.cxx:76
-msgid "Couldn't find suitable pixmap format"
-msgstr "Kan geen geschikte pixmap-indeling vinden"
-
-#: vncviewer/X11PixelBuffer.cxx:85
-msgid "Only true colour displays supported"
-msgstr "Alleen true-color beeldschermen worden ondersteund"
-
-#: vncviewer/X11PixelBuffer.cxx:87
-#, c-format
-msgid "Using default colormap and visual, TrueColor, depth %d."
-msgstr "Standaard kleurenkaart en visual worden gebruikt, TrueColor, diepte %d."
-
-#: vncviewer/X11PixelBuffer.cxx:113
-msgid "Could not create framebuffer image"
-msgstr "Kan framebuffer-afbeelding niet aanmaken"
 
 #: vncviewer/parameters.cxx:286 vncviewer/parameters.cxx:320
 #, c-format
@@ -545,7 +494,7 @@ msgstr "Parameter %s is te lang om uit het register te lezen"
 #: vncviewer/parameters.cxx:409
 #, c-format
 msgid "Failed to create registry key: %ld"
-msgstr "Aanmaken registersleutel is mislukt: %ld"
+msgstr "Aanmaken van registersleutel %ld is mislukt"
 
 #: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
 #: vncviewer/parameters.cxx:534 vncviewer/parameters.cxx:665
@@ -556,12 +505,12 @@ msgstr "Onbekend parametertype voor parameter %s"
 #: vncviewer/parameters.cxx:430 vncviewer/parameters.cxx:479
 #, c-format
 msgid "Failed to close registry key: %ld"
-msgstr "Sluiten van registersleutel is mislukt: %ld"
+msgstr "Sluiten van registersleutel %ld is mislukt"
 
 #: vncviewer/parameters.cxx:446
 #, c-format
 msgid "Failed to open registry key: %ld"
-msgstr "Openen van registersleutel is mislukt: %ld"
+msgstr "Openen van registersleutel %ld is mislukt"
 
 #: vncviewer/parameters.cxx:503
 msgid "Failed to write configuration file, can't obtain home directory path."
@@ -710,6 +659,45 @@ msgstr "de opties '-listen' en '-via' gaan niet samen"
 #, c-format
 msgid "Listening on port %d"
 msgstr "Luisterend op poort %d"
+
+#~ msgid "Could not create framebuffer device"
+#~ msgstr "Kan framebuffer-apparaat niet aanmaken"
+
+#~ msgid "Could not create framebuffer bitmap"
+#~ msgstr "Kan framebuffer-bitkaart niet aanmaken"
+
+#~ msgid "Unable to create platform specific framebuffer: %s"
+#~ msgstr "Kan geen platform-specifiek framebuffer aanmaken: %s"
+
+#~ msgid "Using platform independent framebuffer"
+#~ msgstr "Platform-onafhankelijk framebuffer wordt gebruikt"
+
+#~ msgid "unable to create DIB section"
+#~ msgstr "kan geen DIB-sectie aanmaken"
+
+#~ msgid "CreateCompatibleDC failed"
+#~ msgstr "### CreateCompatibleDC is mislukt"
+
+#~ msgid "SelectObject failed"
+#~ msgstr "### SelectObject is mislukt"
+
+#~ msgid "BitBlt failed"
+#~ msgstr "### BitBlt is mislukt"
+
+#~ msgid "Display lacks pixmap format for default depth"
+#~ msgstr "Scherm heeft geen pixmap-indeling voor standaard kleurdiepte"
+
+#~ msgid "Couldn't find suitable pixmap format"
+#~ msgstr "Kan geen geschikte pixmap-indeling vinden"
+
+#~ msgid "Only true colour displays supported"
+#~ msgstr "Alleen true-color beeldschermen worden ondersteund"
+
+#~ msgid "Using default colormap and visual, TrueColor, depth %d."
+#~ msgstr "Standaard kleurenkaart en visual worden gebruikt, TrueColor, diepte %d."
+
+#~ msgid "Could not create framebuffer image"
+#~ msgstr "Kan framebuffer-afbeelding niet aanmaken"
 
 #~ msgid "Unknown encoding %d"
 #~ msgstr "Onbekende codering %d"
