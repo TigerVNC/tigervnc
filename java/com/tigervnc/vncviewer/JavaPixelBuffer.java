@@ -33,6 +33,7 @@ public class JavaPixelBuffer extends PlatformPixelBuffer
           getPreferredPF().getColorModel().createCompatibleWritableRaster(w,h));
     image = new BufferedImage(getPreferredPF().getColorModel(),
                               getBufferRW(new Rect(0, 0, w, h)), true, null);
+    image.setAccelerationPriority(1);
   }
 
   public synchronized void fillRect(Rect r, byte[] pix)
