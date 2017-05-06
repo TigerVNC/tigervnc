@@ -39,11 +39,11 @@ public class JpegDecompressor {
       ImageIO.setUseCache(false);
       BufferedImage jpeg =
         ImageIO.read(new MemoryCacheImageInputStream(new ByteArrayInputStream(src)));
+      jpeg.setAccelerationPriority(1);
       BufferedImage image = (BufferedImage)pb.getImage();
       Graphics2D g2 = image.createGraphics();
       g2.drawImage(jpeg, r.tl.x, r.tl.y, r.width(), r.height(), null);
       g2.dispose();
-      image.flush();
       jpeg.flush();
     } catch (IOException e) {
       throw new Exception(e.getMessage());
