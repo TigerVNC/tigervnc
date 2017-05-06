@@ -616,6 +616,8 @@ class OptionsDialog extends Dialog {
       String sshPort = viaPortInput.getText();
       String viaStr = sshUser.concat("@").concat(sshHost).concat(":").concat(sshPort);
       via.setParam(viaStr);
+    } else {
+      via.setParam("");
     }
     extSSH.setParam(extSSHCheckbox.isSelected());
     if (!sshClientInput.getText().isEmpty())
