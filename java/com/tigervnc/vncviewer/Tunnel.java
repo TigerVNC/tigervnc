@@ -58,7 +58,7 @@ public class Tunnel {
     String remoteHost;
 
     remotePort = cc.getServerPort();
-    if (tunnel.getValue()) {
+    if (tunnel.getValue() && via.getValue().isEmpty()) {
       gatewayHost = cc.getServerName();
       remoteHost = "localhost";
     } else {
