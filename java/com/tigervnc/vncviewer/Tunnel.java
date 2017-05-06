@@ -58,17 +58,16 @@ public class Tunnel {
     String remoteHost;
 
     remotePort = cc.getServerPort();
-    if (tunnel.getValue() && via.getValue().isEmpty()) {
-      gatewayHost = cc.getServerName();
-      remoteHost = "localhost";
-    } else {
+    gatewayHost = cc.getServerName();
+    remoteHost = "localhost";
+    if (!via.getValue().isEmpty()) {
       gatewayHost = getSshHost();
       remoteHost = cc.getServerName();
     }
 
     String pattern = extSSHArgs.getValue();
     if (pattern == null || pattern.isEmpty()) {
-      if (tunnel.getValue())
+      if (tunnel.getValue() && via.getValue().isEmpty())
         pattern = System.getProperty("VNC_TUNNEL_CMD");
       else
         pattern = System.getProperty("VNC_VIA_CMD");
@@ -207,7 +206,7 @@ public class Tunnel {
                                       int remotePort, int localPort,
                                       String pattern) throws Exception {
     if (pattern == null || pattern.length() < 1) {
-      if (tunnel.getValue())
+      if (tunnel.getValue() && via.getValue().isEmpty())
         pattern = DEFAULT_TUNNEL_TEMPLATE;
       else
         pattern = DEFAULT_VIA_TEMPLATE;
@@ -240,7 +239,7 @@ public class Tunnel {
       if (pattern.charAt(i) == '%') {
         switch (pattern.charAt(++i)) {
         case 'H':
-          cmd += (tunnel.getValue() ? gatewayHost : remoteHost);
+          cmd += remoteHost;
   	      H_found = true;
           continue;
         case 'G':
