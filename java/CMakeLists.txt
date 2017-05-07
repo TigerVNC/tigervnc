@@ -7,6 +7,8 @@ endif()
 
 find_package(Java)
 
+set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share")
+
 set(DEFAULT_JAVACFLAGS "-source 1.6 -target 1.6 -Xlint:all,-serial,-cast,-unchecked,-fallthrough,-dep-ann,-deprecation,-rawtypes")
 set(JAVACFLAGS ${DEFAULT_JAVACFLAGS} CACHE STRING
   "Java compiler flags (Default: ${DEFAULT_JAVACFLAGS})")
