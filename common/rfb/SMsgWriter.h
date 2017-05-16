@@ -149,7 +149,6 @@ namespace rfb {
     bool needSetDesktopSize;
     bool needExtendedDesktopSize;
     bool needSetDesktopName;
-    bool needLastRect;
     bool needSetCursor;
     bool needSetXCursor;
     bool needSetCursorWithAlpha;
