@@ -36,7 +36,7 @@ void vncPointerButtonAction(int buttonMask);
 void vncPointerMove(int x, int y);
 void vncGetPointerPos(int *x, int *y);
 
-void vncKeyboardEvent(KeySym keysym, int down);
+void vncKeyboardEvent(KeySym keysym, unsigned xtcode, int down);
 
 /* Backend dependent functions below here */
 

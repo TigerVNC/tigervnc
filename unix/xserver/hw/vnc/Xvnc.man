@@ -305,6 +305,13 @@ extra fake Shift events but may result in a slightly different symbol
 (e.g. a Return instead of a keypad Enter).
 .
 .TP
+.B \-RawKeyboard
+Send keyboard events straight through and avoid mapping them to the current
+keyboard layout. This effectively makes the keyboard behave according to the
+layout configured on the server instead of the layout configured on the
+client. Default is off.
+.
+.TP
 .B \-AllowOverride
 Comma separated list of parameters that can be modified using VNC extension.
 Parameters can be modified for example using \fBvncconfig\fP(1) program from
