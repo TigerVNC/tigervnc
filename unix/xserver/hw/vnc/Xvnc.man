@@ -294,8 +294,10 @@ or
 where
 .I char
 is a hexadecimal keysym. For example, to exchange the " and @ symbols you would specify the following:
-.IP "" 10
+
+.RS 10
 RemapKeys=0x22<>0x40
+.RE
 .
 .TP
 .B \-AvoidShiftNumLock
