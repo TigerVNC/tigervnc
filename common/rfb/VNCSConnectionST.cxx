@@ -100,11 +100,18 @@ VNCSConnectionST::~VNCSConnectionST()
                                     (closeReason.buf) ? closeReason.buf : "");
 
   // Release any keys the client still had pressed
-  std::set<rdr::U32>::iterator i;
-  for (i=pressedKeys.begin(); i!=pressedKeys.end(); i++) {
-    vlog.debug("Releasing key 0x%x on client disconnect", *i);
-    server->desktop->keyEvent(*i, 0, false);
+  while (!pressedKeys.empty()) {
+    rdr::U32 keysym, keycode;
+
+    keysym = pressedKeys.begin()->second;
+    keycode = pressedKeys.begin()->first;
+    pressedKeys.erase(pressedKeys.begin());
+
+    vlog.debug("Releasing key 0x%x / 0x%x on client disconnect",
+               keysym, keycode);
+    server->desktop->keyEvent(keysym, keycode, false);
   }
+
   if (server->pointerClient == this)
     server->pointerClient = 0;
 
@@ -553,6 +560,8 @@ public:
 // keyEvent() - record in the pressedKeys which keys were pressed.  Allow
 // multiple down events (for autorepeat), but only allow a single up event.
 void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
+  rdr::U32 lookup;
+
   lastEventTime = time(0);
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
@@ -648,18 +657,43 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   // Turn ISO_Left_Tab into shifted Tab.
   VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
   if (keysym == XK_ISO_Left_Tab) {
-    if (pressedKeys.find(XK_Shift_L) == pressedKeys.end() &&
-        pressedKeys.find(XK_Shift_R) == pressedKeys.end())
+    std::map<rdr::U32, rdr::U32>::const_iterator iter;
+    bool shifted;
+
+    shifted = false;
+    for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
+      if ((iter->second == XK_Shift_L) ||
+          (iter->second == XK_Shift_R)) {
+        shifted = true;
+        break;
+      }
+    }
+
+    if (!shifted)
       shiftPresser.press();
+
     keysym = XK_Tab;
   }
 
+  // We need to be able to track keys, so generate a fake index when we
+  // aren't given a keycode
+  if (keycode == 0)
+    lookup = 0x80000000 | keysym;
+  else
+    lookup = keycode;
+
+  // We force the same keysym for an already down key for the
+  // sake of sanity
+  if (pressedKeys.find(lookup) != pressedKeys.end())
+    keysym = pressedKeys[lookup];
+
   if (down) {
-    pressedKeys.insert(keysym);
+    pressedKeys[lookup] = keysym;
   } else {
-    if (!pressedKeys.erase(keysym))
+    if (!pressedKeys.erase(lookup))
       return;
   }
+
   server->desktop->keyEvent(keysym, keycode, down);
 }
 

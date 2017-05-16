@@ -27,7 +27,7 @@
 #ifndef __RFB_VNCSCONNECTIONST_H__
 #define __RFB_VNCSCONNECTIONST_H__
 
-#include <set>
+#include <map>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 #include <rfb/VNCServerST.h>
@@ -210,7 +210,7 @@ namespace rfb {
     Region cuRegion;
     EncodeManager encodeManager;
 
-    std::set<rdr::U32> pressedKeys;
+    std::map<rdr::U32, rdr::U32> pressedKeys;
 
     time_t lastEventTime;
     time_t pointerEventTime;
