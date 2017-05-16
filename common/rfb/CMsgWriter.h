@@ -57,7 +57,7 @@ namespace rfb {
 
     virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void clientCutText(const char* str, rdr::U32 len);
+    virtual void clientCutText(const char* str, int len);
 
   protected:
     void startMsg(int type);
