@@ -40,6 +40,7 @@ namespace rfb {
   const int pseudoEncodingFence = -312;
   const int pseudoEncodingContinuousUpdates = -313;
   const int pseudoEncodingCursorWithAlpha = -314;
+  const int pseudoEncodingQEMUKeyEvent = -258;
 
   // TightVNC-specific
   const int pseudoEncodingLastRect = -224;

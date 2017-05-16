@@ -771,7 +771,7 @@ void XserverDesktop::grabRegion(const rfb::Region& region)
   }
 }
 
-void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
+void XserverDesktop::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
   vncKeyboardEvent(keysym, down);
 }

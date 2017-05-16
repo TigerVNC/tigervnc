@@ -35,8 +35,9 @@ ConnParams::ConnParams()
     supportsLocalCursorWithAlpha(false),
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
     supportsDesktopRename(false), supportsLastRect(false),
-    supportsLEDState(false), supportsSetDesktopSize(false),
-    supportsFence(false), supportsContinuousUpdates(false),
+    supportsLEDState(false), supportsQEMUKeyEvent(false),
+    supportsSetDesktopSize(false), supportsFence(false),
+    supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
     subsampling(subsampleUndefined), name_(0), verStrPos(0),
     ledState_(ledUnknown)
@@ -109,6 +110,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   supportsExtendedDesktopSize = false;
   supportsLocalXCursor = false;
   supportsLastRect = false;
+  supportsQEMUKeyEvent = false;
   compressLevel = -1;
   qualityLevel = -1;
   fineQualityLevel = -1;
@@ -145,6 +147,8 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       break;
     case pseudoEncodingLEDState:
       supportsLEDState = true;
+    case pseudoEncodingQEMUKeyEvent:
+      supportsQEMUKeyEvent = true;
       break;
     case pseudoEncodingFence:
       supportsFence = true;

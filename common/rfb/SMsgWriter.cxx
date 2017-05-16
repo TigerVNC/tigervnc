@@ -39,7 +39,7 @@ SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
     needSetDesktopSize(false), needExtendedDesktopSize(false),
     needSetDesktopName(false), needSetCursor(false),
     needSetXCursor(false), needSetCursorWithAlpha(false),
-    needLEDState(false)
+    needLEDState(false), needQEMUKeyEvent(false)
 {
 }
 
@@ -207,6 +207,16 @@ bool SMsgWriter::writeLEDState()
   return true;
 }
 
+bool SMsgWriter::writeQEMUKeyEvent()
+{
+  if (!cp->supportsQEMUKeyEvent)
+    return false;
+
+  needQEMUKeyEvent = true;
+
+  return true;
+}
+
 bool SMsgWriter::needFakeUpdate()
 {
   if (needSetDesktopName)
@@ -214,6 +224,8 @@ bool SMsgWriter::needFakeUpdate()
   if (needSetCursor || needSetXCursor || needSetCursorWithAlpha)
     return true;
   if (needLEDState)
+    return true;
+  if (needQEMUKeyEvent)
     return true;
   if (needNoDataUpdate())
     return true;
@@ -264,6 +276,8 @@ void SMsgWriter::writeFramebufferUpdateStart(int nRects)
     if (needSetCursorWithAlpha)
       nRects++;
     if (needLEDState)
+      nRects++;
+    if (needQEMUKeyEvent)
       nRects++;
   }
 
@@ -384,6 +398,11 @@ void SMsgWriter::writePseudoRects()
   if (needLEDState) {
     writeLEDStateRect(cp->ledState());
     needLEDState = false;
+  }
+
+  if (needQEMUKeyEvent) {
+    writeQEMUKeyEventRect();
+    needQEMUKeyEvent = false;
   }
 }
 
@@ -564,4 +583,18 @@ void SMsgWriter::writeLEDStateRect(rdr::U8 state)
   os->writeU16(0);
   os->writeU32(pseudoEncodingLEDState);
   os->writeU8(state);
+}
+
+void SMsgWriter::writeQEMUKeyEventRect()
+{
+  if (!cp->supportsQEMUKeyEvent)
+    throw Exception("Client does not support QEMU extended key events");
+  if (++nRectsInUpdate > nRectsInHeader && nRectsInHeader)
+    throw Exception("SMsgWriter::writeQEMUKeyEventRect: nRects out of sync");
+
+  os->writeS16(0);
+  os->writeS16(0);
+  os->writeU16(0);
+  os->writeU16(0);
+  os->writeU32(pseudoEncodingQEMUKeyEvent);
 }

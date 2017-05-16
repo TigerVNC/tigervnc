@@ -103,7 +103,7 @@ VNCSConnectionST::~VNCSConnectionST()
   std::set<rdr::U32>::iterator i;
   for (i=pressedKeys.begin(); i!=pressedKeys.end(); i++) {
     vlog.debug("Releasing key 0x%x on client disconnect", *i);
-    server->desktop->keyEvent(*i, false);
+    server->desktop->keyEvent(*i, 0, false);
   }
   if (server->pointerClient == this)
     server->pointerClient = 0;
@@ -538,12 +538,12 @@ public:
   ~VNCSConnectionSTShiftPresser() {
     if (pressed) {
       vlog.debug("Releasing fake Shift_L");
-      desktop->keyEvent(XK_Shift_L, false);
+      desktop->keyEvent(XK_Shift_L, 0, false);
     }
   }
   void press() {
     vlog.debug("Pressing fake Shift_L");
-    desktop->keyEvent(XK_Shift_L, true);
+    desktop->keyEvent(XK_Shift_L, 0, true);
     pressed = true;
   }
   SDesktop* desktop;
@@ -552,32 +552,32 @@ public:
 
 // keyEvent() - record in the pressedKeys which keys were pressed.  Allow
 // multiple down events (for autorepeat), but only allow a single up event.
-void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
+void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   lastEventTime = time(0);
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
   if (down)
-    vlog.debug("Key pressed: 0x%x", key);
+    vlog.debug("Key pressed: 0x%x / 0x%x", keysym, keycode);
   else
-    vlog.debug("Key released: 0x%x", key);
+    vlog.debug("Key released: 0x%x / 0x%x", keysym, keycode);
 
   // Remap the key if required
   if (server->keyRemapper) {
     rdr::U32 newkey;
-    newkey = server->keyRemapper->remapKey(key);
-    if (newkey != key) {
+    newkey = server->keyRemapper->remapKey(keysym);
+    if (newkey != keysym) {
       vlog.debug("Key remapped to 0x%x", newkey);
-      key = newkey;
+      keysym = newkey;
     }
   }
 
   // Avoid lock keys if we don't know the server state
   if ((server->ledState == ledUnknown) &&
-      ((key == XK_Caps_Lock) ||
-       (key == XK_Num_Lock) ||
-       (key == XK_Scroll_Lock))) {
+      ((keysym == XK_Caps_Lock) ||
+       (keysym == XK_Num_Lock) ||
+       (keysym == XK_Scroll_Lock))) {
     vlog.debug("Ignoring lock key (e.g. caps lock)");
     return;
   }
@@ -587,7 +587,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
   if (!cp.supportsLEDState) {
     // Always ignore ScrollLock as we don't have a heuristic
     // for that
-    if (key == XK_Scroll_Lock) {
+    if (keysym == XK_Scroll_Lock) {
       vlog.debug("Ignoring lock key (e.g. caps lock)");
       return;
     }
@@ -596,32 +596,32 @@ void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
       // CapsLock synchronisation heuristic
       // (this assumes standard interaction between CapsLock the Shift
       // keys and normal characters)
-      if (((key >= XK_A) && (key <= XK_Z)) ||
-          ((key >= XK_a) && (key <= XK_z))) {
+      if (((keysym >= XK_A) && (keysym <= XK_Z)) ||
+          ((keysym >= XK_a) && (keysym <= XK_z))) {
         bool uppercase, shift, lock;
 
-        uppercase = (key >= XK_A) && (key <= XK_Z);
+        uppercase = (keysym >= XK_A) && (keysym <= XK_Z);
         shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
                 pressedKeys.find(XK_Shift_R) != pressedKeys.end();
         lock = server->ledState & ledCapsLock;
 
         if (lock == (uppercase == shift)) {
           vlog.debug("Inserting fake CapsLock to get in sync with client");
-          server->desktop->keyEvent(XK_Caps_Lock, true);
-          server->desktop->keyEvent(XK_Caps_Lock, false);
+          server->desktop->keyEvent(XK_Caps_Lock, 0, true);
+          server->desktop->keyEvent(XK_Caps_Lock, 0, false);
         }
       }
 
       // NumLock synchronisation heuristic
       // (this is more cautious because of the differences between Unix,
       // Windows and macOS)
-      if (((key >= XK_KP_Home) && (key <= XK_KP_Delete)) ||
-          ((key >= XK_KP_0) && (key <= XK_KP_9)) ||
-          (key == XK_KP_Separator) || (key == XK_KP_Decimal)) {
+      if (((keysym >= XK_KP_Home) && (keysym <= XK_KP_Delete)) ||
+          ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
+          (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal)) {
         bool number, shift, lock;
 
-        number = ((key >= XK_KP_0) && (key <= XK_KP_9)) ||
-                  (key == XK_KP_Separator) || (key == XK_KP_Decimal);
+        number = ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
+                  (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
         shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
                 pressedKeys.find(XK_Shift_R) != pressedKeys.end();
         lock = server->ledState & ledNumLock;
@@ -638,8 +638,8 @@ void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
           //
         } else if (lock == (number == shift)) {
           vlog.debug("Inserting fake NumLock to get in sync with client");
-          server->desktop->keyEvent(XK_Num_Lock, true);
-          server->desktop->keyEvent(XK_Num_Lock, false);
+          server->desktop->keyEvent(XK_Num_Lock, 0, true);
+          server->desktop->keyEvent(XK_Num_Lock, 0, false);
         }
       }
     }
@@ -647,19 +647,20 @@ void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
 
   // Turn ISO_Left_Tab into shifted Tab.
   VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
-  if (key == XK_ISO_Left_Tab) {
+  if (keysym == XK_ISO_Left_Tab) {
     if (pressedKeys.find(XK_Shift_L) == pressedKeys.end() &&
         pressedKeys.find(XK_Shift_R) == pressedKeys.end())
       shiftPresser.press();
-    key = XK_Tab;
+    keysym = XK_Tab;
   }
 
   if (down) {
-    pressedKeys.insert(key);
+    pressedKeys.insert(keysym);
   } else {
-    if (!pressedKeys.erase(key)) return;
+    if (!pressedKeys.erase(keysym))
+      return;
   }
-  server->desktop->keyEvent(key, down);
+  server->desktop->keyEvent(keysym, keycode, down);
 }
 
 void VNCSConnectionST::clientCutText(const char* str, int len)

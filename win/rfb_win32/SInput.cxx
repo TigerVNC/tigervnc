@@ -321,7 +321,7 @@ win32::SKeyboard::SKeyboard()
 }
 
 
-void win32::SKeyboard::keyEvent(rdr::U32 keysym, bool down)
+void win32::SKeyboard::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
   for (unsigned int i = 0; i < sizeof(keysymToAscii) / sizeof(keysymToAscii_t); i++) {
     if (keysymToAscii[i].keysym == keysym) {

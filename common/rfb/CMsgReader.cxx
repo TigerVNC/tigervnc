@@ -111,6 +111,8 @@ void CMsgReader::readMsg()
       break;
     case pseudoEncodingLEDState:
       readLEDState();
+    case pseudoEncodingQEMUKeyEvent:
+      handler->supportsQEMUKeyEvent();
       break;
     default:
       readRect(Rect(x, y, x+w, y+h), encoding);

@@ -80,6 +80,11 @@ namespace rfb {
     // server state.
     virtual void supportsLEDState();
 
+    // supportsQEMUKeyEvent() is called the first time we detect that the
+    // client wants the QEMU Extended Key Event extension. The default
+    // handler will send a pseudo-rect back, signalling server support.
+    virtual void supportsQEMUKeyEvent();
+
     ConnParams cp;
   };
 }

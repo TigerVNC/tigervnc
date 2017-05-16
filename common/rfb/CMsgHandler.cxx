@@ -75,6 +75,11 @@ void CMsgHandler::endOfContinuousUpdates()
   cp.supportsContinuousUpdates = true;
 }
 
+void CMsgHandler::supportsQEMUKeyEvent()
+{
+  cp.supportsQEMUKeyEvent = true;
+}
+
 void CMsgHandler::framebufferUpdateStart()
 {
 }

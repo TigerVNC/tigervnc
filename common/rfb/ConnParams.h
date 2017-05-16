@@ -97,6 +97,7 @@ namespace rfb {
     bool supportsDesktopRename;
     bool supportsLastRect;
     bool supportsLEDState;
+    bool supportsQEMUKeyEvent;
 
     bool supportsSetDesktopSize;
     bool supportsFence;

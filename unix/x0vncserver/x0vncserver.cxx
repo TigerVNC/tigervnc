@@ -295,10 +295,10 @@ public:
 #endif
   }
 
-  virtual void keyEvent(rdr::U32 key, bool down) {
+  virtual void keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
 #ifdef HAVE_XTEST
     if (!haveXtest) return;
-    int keycode = XKeysymToKeycode(dpy, key);
+    int keycode = XKeysymToKeycode(dpy, keysym);
     if (keycode)
       XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #endif

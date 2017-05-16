@@ -55,7 +55,7 @@ namespace rfb {
 
     // InputHandler implementation
 
-    virtual void keyEvent(rdr::U32 key, bool down);
+    virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     virtual void pointerEvent(const Point& pos, int buttonMask);
     virtual void clientCutText(const char* str, rdr::U32 len);
 

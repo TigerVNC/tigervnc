@@ -66,7 +66,7 @@ namespace rfb {
       virtual void start(VNCServer* vs);
       virtual void stop();
       virtual void pointerEvent(const Point& pos, int buttonmask);
-      virtual void keyEvent(rdr::U32 key, bool down);
+      virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
       virtual void clientCutText(const char* str, int len);
       virtual Point getFbSize();
 

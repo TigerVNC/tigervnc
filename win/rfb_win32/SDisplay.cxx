@@ -280,12 +280,12 @@ void SDisplay::pointerEvent(const Point& pos, int buttonmask) {
   }
 }
 
-void SDisplay::keyEvent(rdr::U32 key, bool down) {
+void SDisplay::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   // - Check that the SDesktop doesn't need restarting
   if (isRestartRequired())
     restartCore();
   if (kbd)
-    kbd->keyEvent(key, down);
+    kbd->keyEvent(keysym, keycode, down);
 }
 
 bool SDisplay::checkLedState() {

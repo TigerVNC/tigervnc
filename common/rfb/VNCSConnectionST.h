@@ -136,7 +136,7 @@ namespace rfb {
     virtual void clientInit(bool shared);
     virtual void setPixelFormat(const PixelFormat& pf);
     virtual void pointerEvent(const Point& pos, int buttonMask);
-    virtual void keyEvent(rdr::U32 key, bool down);
+    virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
     virtual void clientCutText(const char* str, int len);
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setDesktopSize(int fb_width, int fb_height,

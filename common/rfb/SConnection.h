@@ -73,6 +73,7 @@ namespace rfb {
 
     virtual void setEncodings(int nEncodings, const rdr::S32* encodings);
 
+    virtual void supportsQEMUKeyEvent();
 
     // Methods to be overridden in a derived class
 

@@ -89,7 +89,7 @@ public:
 
   // rfb::SDesktop callbacks
   virtual void pointerEvent(const rfb::Point& pos, int buttonMask);
-  virtual void keyEvent(rdr::U32 key, bool down);
+  virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
   virtual void clientCutText(const char* str, int len);
   virtual rfb::Point getFbSize() { return rfb::Point(width(), height()); }
   virtual unsigned int setScreenLayout(int fb_width, int fb_height,
