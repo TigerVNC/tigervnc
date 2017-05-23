@@ -1120,11 +1120,6 @@ void DesktopWindow::scrollTo(int x, int y)
   hscroll->value(x);
   vscroll->value(y);
 
-  if (!hscroll->visible())
-    x = -viewport->x();
-  if (!vscroll->visible())
-    y = -viewport->y();
-
   // Scrollbar position results in inverse movement of
   // the viewport widget
   x = -x;
@@ -1189,7 +1184,7 @@ void DesktopWindow::handleEdgeScroll(void *data)
   if ((dx == 0) && (dy == 0))
     return;
 
-  self->scrollTo(self->hscroll->value() + dx, self->vscroll->value() + dy);
+  self->scrollTo(self->hscroll->value() - dx, self->vscroll->value() - dy);
 
   Fl::repeat_timeout(0.1, handleEdgeScroll, data);
 }
