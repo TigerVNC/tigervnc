@@ -37,8 +37,11 @@
 
 #define NoSymbol 0
 
-// These are undocumented for unknown reasons
+// This wasn't added until 10.12
+#if !defined(MAC_OS_X_VERSION_10_12) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_12
 const int kVK_RightCommand = 0x36;
+#endif
+// And this is still missing
 const int kVK_Menu = 0x6E;
 
 static bool captured = false;
