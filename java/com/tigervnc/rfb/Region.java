@@ -35,7 +35,6 @@ public class Region extends Area {
 
   public Region(Region r) {
     super(r);
-    //intersect(r);
   }
 
   public void clear() { reset(); }
@@ -46,13 +45,6 @@ public class Region extends Area {
     } else {
       clear();
       assign_union(new Region(r));
-      /*
-      xrgn.numRects = 1;
-      xrgn.rects[0].x1 = xrgn.extents.x1 = r.tl.x;
-      xrgn.rects[0].y1 = xrgn.extents.y1 = r.tl.y;
-      xrgn.rects[0].x2 = xrgn.extents.x2 = r.br.x;
-      xrgn.rects[0].y2 = xrgn.extents.y2 = r.br.y;
-      */
     }
   }
 
@@ -63,33 +55,33 @@ public class Region extends Area {
   }
 
   public void assign_intersect(Region r) {
-    intersect(r);
+    super.intersect(r);
   }
 
   public void assign_union(Region r) {
-    add(r);
+    super.add(r);
   }
 
   public void assign_subtract(Region r) {
-    subtract(r);
+    super.subtract(r);
   }
 
   public Region intersect(Region r) {
-    Region ret = new Region(this);
-    ((Area)ret).intersect(this);
-    return ret;
+    Region reg = new Region(this);
+    ((Area)reg).intersect(r);
+    return reg;
   }
 
   public Region union(Region r) {
-    Region ret = new Region(r);
-    ((Area)ret).add(this);
-    return ret;
+    Region reg = new Region(this);
+    ((Area)reg).add(r);
+    return reg;
   }
 
   public Region subtract(Region r) {
-    Region ret = new Region(this);
-    ((Area)ret).subtract(r);
-    return ret;
+    Region reg = new Region(this);
+    ((Area)reg).subtract(r);
+    return reg;
   }
 
   public boolean is_empty() { return isEmpty(); }
