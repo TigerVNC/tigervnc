@@ -62,7 +62,7 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
   // These operations DO NOT clip to the pixelbuffer area, or trap overruns.
 
   // Fill a rectangle
-  public synchronized void fillRect(Rect r, byte[] pix)
+  public void fillRect(Rect r, byte[] pix)
   {
     WritableRaster buf;
     int w, h;
@@ -80,13 +80,15 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
     for (int i=0; i < r.area(); i++)
       src.put(pix);
     Raster raster = format.rasterFromBuffer(r, (ByteBuffer)src.rewind());
-    buf.setDataElements(0, 0, raster);
+    synchronized(image) {
+      buf.setDataElements(0, 0, raster);
+    }
 
     commitBufferRW(r);
   }
 
   // Copy pixel data to the buffer
-  public synchronized void imageRect(Rect r, byte[] pixels)
+  public void imageRect(Rect r, byte[] pixels)
   {
     WritableRaster dest = getBufferRW(r);
 
@@ -94,14 +96,15 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
     ByteBuffer src =
       ByteBuffer.wrap(pixels, 0, length).order(format.getByteOrder());
     Raster raster = format.rasterFromBuffer(r, src);
-    dest.setDataElements(0, 0, raster);
+    synchronized(image) {
+      dest.setDataElements(0, 0, raster);
+    }
 
     commitBufferRW(r);
   }
 
   // Copy pixel data from one PixelBuffer location to another
-  public synchronized void copyRect(Rect rect,
-                                    Point move_by_delta)
+  public void copyRect(Rect rect, Point move_by_delta)
   {
     Raster srcData;
     WritableRaster dstData;
@@ -135,7 +138,9 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
     srcData = getBuffer(srect);
     dstData = getBufferRW(drect);
 
-    dstData.setDataElements(0, 0, srcData);
+    synchronized(image) {
+      dstData.setDataElements(0, 0, srcData);
+    }
 
     commitBufferRW(rect);
   }
@@ -145,8 +150,7 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
   //   maskPos specifies the pixel offset in the mask to start from.
   //   mask_ is a pointer to the mask bits at (0,0).
   //   pStride and mStride are the strides of the pixel and mask buffers.
-  public synchronized void maskRect(Rect r,
-                                    Object pixels, byte[] mask_)
+  public void maskRect(Rect r, Object pixels, byte[] mask_)
   {
     Rect cr = getRect().intersect(r);
     if (cr.is_empty()) return;
@@ -187,15 +191,17 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
 
     int maskBytesPerRow = (w + 7) / 8;
 
-    for (int y = 0; y < h; y++) {
-      int cy = offset.y + y;
-      for (int x = 0; x < w; x++) {
-        int cx = offset.x + x;
-        int byte_ = cy * maskBytesPerRow + y / 8;
-        int bit = 7 - cx % 8;
+    synchronized(image) {
+      for (int y = 0; y < h; y++) {
+        int cy = offset.y + y;
+        for (int x = 0; x < w; x++) {
+          int cx = offset.x + x;
+          int byte_ = cy * maskBytesPerRow + y / 8;
+          int bit = 7 - cx % 8;
 
-        if ((mask_[byte_] & (1 << bit)) != 0)
-          data.setDataElements(x+cx, y+cy, t.getDataElements(x+cx, y+cy, null));
+          if ((mask_[byte_] & (1 << bit)) != 0)
+            data.setDataElements(x+cx, y+cy, t.getDataElements(x+cx, y+cy, null));
+        }
       }
     }
 
@@ -203,7 +209,7 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
   }
 
   //   pixel is the Pixel value to be used where mask_ is set
-  public synchronized void maskRect(Rect r, int pixel, byte[] mask)
+  public void maskRect(Rect r, int pixel, byte[] mask)
   {
     // FIXME
   }
@@ -211,7 +217,7 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
   // Render in a specific format
   //   Does the exact same thing as the above methods, but the given
   //   pixel values are defined by the given PixelFormat. 
-  public synchronized void fillRect(PixelFormat pf, Rect dest, byte[] pix)
+  public void fillRect(PixelFormat pf, Rect dest, byte[] pix)
   {
     WritableRaster dstBuffer = getBufferRW(dest);
 
@@ -226,13 +232,15 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
         src.put(pix);
       Raster raster = pf.rasterFromBuffer(dest, (ByteBuffer)src.rewind());
       ColorConvertOp converter = format.getColorConvertOp(cm.getColorSpace());
-      converter.filter(raster, dstBuffer);
+      synchronized(image) {
+        converter.filter(raster, dstBuffer);
+      }
     }
 
     commitBufferRW(dest);
   }
 
-  public synchronized void imageRect(PixelFormat pf, Rect dest, byte[] pixels)
+  public void imageRect(PixelFormat pf, Rect dest, byte[] pixels)
   {
     WritableRaster dstBuffer = getBufferRW(dest);
 
@@ -245,23 +253,29 @@ public abstract class ModifiablePixelBuffer extends PixelBuffer
       ByteBuffer src = ByteBuffer.wrap(pixels, 0, length).order(pf.getByteOrder());
       Raster raster = pf.rasterFromBuffer(dest, src);
       ColorConvertOp converter = format.getColorConvertOp(cm.getColorSpace());
-      converter.filter(raster, dstBuffer);
+      synchronized(image) {
+        converter.filter(raster, dstBuffer);
+      }
     }
 
     commitBufferRW(dest);
   }
 
-  public synchronized void imageRect(PixelFormat pf, Rect dest, Raster pixels)
+  public void imageRect(PixelFormat pf, Rect dest, Raster pixels)
   {
     WritableRaster dstBuffer = getBufferRW(dest);
 
     ColorModel cm = pf.getColorModel();
     if (cm.isCompatibleRaster(dstBuffer) &&
         cm.isCompatibleSampleModel(dstBuffer.getSampleModel())) {
-      dstBuffer.setDataElements(0, 0, pixels);
+      synchronized(image) {
+        dstBuffer.setDataElements(0, 0, pixels);
+      }
     } else {
       ColorConvertOp converter = format.getColorConvertOp(cm.getColorSpace());
-      converter.filter(pixels, dstBuffer);
+      synchronized(image) {
+        converter.filter(pixels, dstBuffer);
+      }
     }
 
     commitBufferRW(dest);

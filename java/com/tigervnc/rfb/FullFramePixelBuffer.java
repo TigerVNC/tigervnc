@@ -32,8 +32,11 @@ public class FullFramePixelBuffer extends ModifiablePixelBuffer {
 
   public WritableRaster getBufferRW(Rect r)
   {
-    return data.createWritableChild(r.tl.x, r.tl.y, r.width(), r.height(),
-                                    0, 0, null);
+    synchronized(image) {
+      return data.createWritableChild(r.tl.x, r.tl.y,
+                                      r.width(), r.height(),
+                                      0, 0, null);
+    }
   }
 
   public void commitBufferRW(Rect r)
@@ -42,12 +45,14 @@ public class FullFramePixelBuffer extends ModifiablePixelBuffer {
 
   public Raster getBuffer(Rect r)
   {
-    Raster src =
-      data.createChild(r.tl.x, r.tl.y, r.width(), r.height(), 0, 0, null);
-    WritableRaster dst =
-      data.createCompatibleWritableRaster(r.width(), r.height());
-    dst.setDataElements(0, 0, src);
-    return dst;
+    synchronized(image) {
+      Raster src =
+        data.createChild(r.tl.x, r.tl.y, r.width(), r.height(), 0, 0, null);
+      WritableRaster dst =
+        data.createCompatibleWritableRaster(r.width(), r.height());
+      dst.setDataElements(0, 0, src);
+      return dst;
+    }
   }
 
   protected WritableRaster data;
