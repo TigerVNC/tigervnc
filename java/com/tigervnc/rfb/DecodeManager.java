@@ -228,7 +228,7 @@ public class DecodeManager {
 
       stopRequested = false;
 
-      (thread = new Thread(this)).start();
+      (thread = new Thread(this, "Decoder Thread")).start();
     }
 
     public void stop()

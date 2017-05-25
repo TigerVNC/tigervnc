@@ -440,8 +440,7 @@ public class VncViewer extends javax.swing.JApplet
   }
 
   public void start() {
-    thread = new Thread(this);
-    thread.start();
+    (new Thread(this, "VncViewer Thread")).start();
   }
 
   public void exit(int n) {
@@ -555,6 +554,5 @@ public class VncViewer extends javax.swing.JApplet
   = new StringParameter("Config",
   "Specifies a configuration file to load.", null);
 
-  Thread thread;
   static LogWriter vlog = new LogWriter("VncViewer");
 }
