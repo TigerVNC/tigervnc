@@ -144,7 +144,6 @@ public class DecodeManager {
     entry.cp = conn.cp;
     entry.pb = pb;
     entry.bufferStream = bufferStream;
-    entry.affectedRegion = new Region(r);
 
     decoder.getAffectedRegion(r, bufferStream.data(),
                               bufferStream.length(), conn.cp,
@@ -209,6 +208,7 @@ public class DecodeManager {
   private class QueueEntry {
 
     public QueueEntry() {
+      affectedRegion = new Region();
     }
     public boolean active;
     public Rect rect;
@@ -308,7 +308,7 @@ public class DecodeManager {
         return manager.workQueue.peek();
 
       next:for (iter = manager.workQueue.iterator(); iter.hasNext();) {
-        QueueEntry entry;
+        QueueEntry entry, entry2;
 
         Iterator<QueueEntry> iter2;
 
@@ -323,8 +323,9 @@ public class DecodeManager {
         // If this is an ordered decoder then make sure this is the first
         // rectangle in the queue for that decoder
         if ((entry.decoder.flags & DecoderOrdered) != 0) {
-          for (iter2 = manager.workQueue.iterator(); iter2.hasNext() && iter2 != iter;) {
-            if (entry.encoding == (iter2.next()).encoding) {
+          for (iter2 = manager.workQueue.iterator(); iter2.hasNext() &&
+               !(entry2 = iter2.next()).equals(entry);) {
+            if (entry.encoding == entry2.encoding) {
               lockedRegion.assign_union(entry.affectedRegion);
               continue next;
             }
@@ -334,8 +335,8 @@ public class DecodeManager {
         // For a partially ordered decoder we must ask the decoder for each
         // pair of rectangles.
         if ((entry.decoder.flags & DecoderPartiallyOrdered) != 0) {
-          for (iter2 = manager.workQueue.iterator(); iter2.hasNext() && iter2 != iter;) {
-            QueueEntry entry2 = iter2.next();
+          for (iter2 = manager.workQueue.iterator(); iter2.hasNext() &&
+               !(entry2 = iter2.next()).equals(entry);) {
             if (entry.encoding != entry2.encoding)
               continue;
             if (entry.decoder.doRectsConflict(entry.rect,
