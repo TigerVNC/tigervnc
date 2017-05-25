@@ -29,6 +29,7 @@
 //
 
 package com.tigervnc.vncviewer;
+
 import java.awt.*;
 import java.awt.Color;
 import java.awt.color.ColorSpace;
@@ -100,8 +101,6 @@ class Viewport extends JPanel implements MouseListener,
   public void updateWindow() {
     Rect r = frameBuffer.getDamage();
     if (!r.is_empty()) {
-      if (image == null)
-        image = (BufferedImage)frameBuffer.getImage();
       if (cc.cp.width != scaledWidth ||
           cc.cp.height != scaledHeight) {
         AffineTransform t = new AffineTransform(); 
@@ -197,7 +196,6 @@ class Viewport extends JPanel implements MouseListener,
       frameBuffer = createFramebuffer(frameBuffer.getPF(), w, h);
       assert(frameBuffer != null);
       cc.setFramebuffer(frameBuffer);
-      image = (BufferedImage)frameBuffer.getImage();
     }
     setScaledSize(w, h);
   }
@@ -229,13 +227,16 @@ class Viewport extends JPanel implements MouseListener,
 
   public void paintComponent(Graphics g) {
     Graphics2D g2 = (Graphics2D)g;
-    if (cc.cp.width != scaledWidth ||
-        cc.cp.height != scaledHeight) {
-      g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-                          RenderingHints.VALUE_RENDER_QUALITY);
-      g2.drawImage(image, 0, 0, scaledWidth, scaledHeight, null);
-    } else {
-      g2.drawImage(image, 0, 0, null);
+    synchronized(frameBuffer.getImage()) {
+      if (cc.cp.width != scaledWidth ||
+          cc.cp.height != scaledHeight) {
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                            RenderingHints.VALUE_RENDER_QUALITY);
+        g2.drawImage(frameBuffer.getImage(), 0, 0,
+                     scaledWidth, scaledHeight, null);
+      } else {
+        g2.drawImage(frameBuffer.getImage(), 0, 0, null);
+      }
     }
     g2.dispose();
   }
@@ -415,7 +416,6 @@ class Viewport extends JPanel implements MouseListener,
 
   // access to cc by different threads is specified in CConn
   private CConn cc;
-  private BufferedImage image;
 
   // access to the following must be synchronized:
   public PlatformPixelBuffer frameBuffer;

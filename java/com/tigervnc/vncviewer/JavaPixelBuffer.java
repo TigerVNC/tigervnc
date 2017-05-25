@@ -31,21 +31,23 @@ public class JavaPixelBuffer extends PlatformPixelBuffer
   public JavaPixelBuffer(int w, int h) {
     super(getPreferredPF(), w, h,
           getPreferredPF().getColorModel().createCompatibleWritableRaster(w,h));
-    image = new BufferedImage(getPreferredPF().getColorModel(),
-                              getBufferRW(new Rect(0, 0, w, h)), true, null);
+    ColorModel cm = format.getColorModel();
+    image = new BufferedImage(cm, data, cm.isAlphaPremultiplied(), null);
     image.setAccelerationPriority(1);
   }
 
-  public synchronized void fillRect(Rect r, byte[] pix)
+  public void fillRect(Rect r, byte[] pix)
   {
     ColorModel cm = format.getColorModel();
     int pixel =
       ByteBuffer.wrap(pix).order(format.getByteOrder()).asIntBuffer().get(0);
     Color c = new Color(cm.getRGB(pixel));
-    Graphics2D g2 = ((BufferedImage)image).createGraphics();
-    g2.setColor(c);
-    g2.fillRect(r.tl.x, r.tl.y, r.width(), r.height());
-    g2.dispose();
+    synchronized(image) {
+      Graphics2D g2 = ((BufferedImage)image).createGraphics();
+      g2.setColor(c);
+      g2.fillRect(r.tl.x, r.tl.y, r.width(), r.height());
+      g2.dispose();
+    }
 
     commitBufferRW(r);
   }
