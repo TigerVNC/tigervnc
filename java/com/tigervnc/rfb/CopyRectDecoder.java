@@ -31,6 +31,20 @@ public class CopyRectDecoder extends Decoder {
     os.copyBytes(is, 4);
   }
 
+  public void getAffectedRegion(Rect rect, Object buffer,
+                                int buflen, ConnParams cp,
+                                Region region)
+  {
+    MemInStream is = new MemInStream((byte[])buffer, 0, buflen);
+    int srcX = is.readU16();
+    int srcY = is.readU16();
+
+    super.getAffectedRegion(rect, buffer, buflen, cp, region);
+
+    region.assign_union(new Region(rect.translate(new Point(srcX-rect.tl.x,
+                                                            srcY-rect.tl.y))));
+  }
+
   public void decodeRect(Rect r, Object buffer,
                          int buflen, ConnParams cp,
                          ModifiablePixelBuffer pb)
