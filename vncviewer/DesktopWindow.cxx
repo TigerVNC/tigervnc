@@ -1046,15 +1046,35 @@ void DesktopWindow::repositionWidgets()
 
   // Scrollbars visbility
 
-  if (!fullscreen_active() && (w() < viewport->w()))
-    hscroll->show();
-  else
+  if (fullscreen_active()) {
     hscroll->hide();
-
-  if (!fullscreen_active() && (h() < viewport->h()))
-    vscroll->show();
-  else
     vscroll->hide();
+  } else {
+    // Decide whether to show a scrollbar by checking if the window
+    // size (possibly minus scrollbar_size) is less than the viewport
+    // (remote framebuffer) size.
+    //
+    // We decide whether to subtract scrollbar_size on an axis by
+    // checking if the other axis *definitely* needs a scrollbar.  You
+    // might be tempted to think that this becomes a weird recursive
+    // problem, but it isn't: If the window size is less than the
+    // viewport size (without subtracting the scrollbar_size), then
+    // that axis *definitely* needs a scrollbar; if the check changes
+    // when we subtract scrollbar_size, then that axis only *maybe*
+    // needs a scrollbar.  If both axes only "maybe" need a scrollbar,
+    // then neither does; so we don't need to recurse on the "maybe"
+    // cases.
+
+    if (w() - (h() < viewport->h() ? Fl::scrollbar_size() : 0) < viewport->w())
+      hscroll->show();
+    else
+      hscroll->hide();
+
+    if (h() - (w() < viewport->w() ? Fl::scrollbar_size() : 0) < viewport->h())
+      vscroll->show();
+    else
+      vscroll->hide();
+  }
 
   // Scrollbars positions
 
@@ -1120,11 +1140,6 @@ void DesktopWindow::scrollTo(int x, int y)
   hscroll->value(x);
   vscroll->value(y);
 
-  if (!hscroll->visible())
-    x = -viewport->x();
-  if (!vscroll->visible())
-    y = -viewport->y();
-
   // Scrollbar position results in inverse movement of
   // the viewport widget
   x = -x;
@@ -1189,7 +1204,7 @@ void DesktopWindow::handleEdgeScroll(void *data)
   if ((dx == 0) && (dy == 0))
     return;
 
-  self->scrollTo(self->hscroll->value() + dx, self->vscroll->value() + dy);
+  self->scrollTo(self->hscroll->value() - dx, self->vscroll->value() - dy);
 
   Fl::repeat_timeout(0.1, handleEdgeScroll, data);
 }
