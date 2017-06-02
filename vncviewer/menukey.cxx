@@ -43,7 +43,6 @@ static const MenuKeySymbol menuSymbols[] = {
   {"F11", FL_F + 11, XK_F11},
   {"F12", FL_F + 12, XK_F12},
   {"Pause", FL_Pause, XK_Pause},
-  {"Print", FL_Print, XK_Print},
   {"Scroll_Lock", FL_Scroll_Lock, XK_Scroll_Lock},
   {"Escape", FL_Escape, XK_Escape},
   {"Insert", FL_Insert, XK_Insert},
