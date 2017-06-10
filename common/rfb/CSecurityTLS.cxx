@@ -309,13 +309,14 @@ void CSecurityTLS::checkSession()
   if (gnutls_x509_crt_import(crt, &cert_list[0], GNUTLS_X509_FMT_DER) < 0)
     throw AuthFailureException("decoding of certificate failed");
 
+char *const override(getenv("VNCVIEWER_JANKRATOCHVIL_OVERRIDE"));
   if (gnutls_x509_crt_check_hostname(crt, client->getServerName()) == 0) {
     char buf[255];
     vlog.debug("hostname mismatch");
     snprintf(buf, sizeof(buf), "Hostname (%s) does not match any certificate, "
 			       "do you want to continue?", client->getServerName());
     buf[sizeof(buf) - 1] = '\0';
-    if (!msg->showMsgBox(UserMsgBox::M_YESNO, "hostname mismatch", buf))
+    if (!override&&!msg->showMsgBox(UserMsgBox::M_YESNO, "hostname mismatch", buf))
       throw AuthFailureException("hostname mismatch");
   }
 
@@ -335,6 +336,7 @@ void CSecurityTLS::checkSession()
   if ((status & (~allowed_errors)) != 0) {
     /* No other errors are allowed */
     vlog.debug("GNUTLS status of certificate verification: %u", status);
+if (!override)
     throw AuthFailureException("Invalid status of server certificate verification");
   }
 
