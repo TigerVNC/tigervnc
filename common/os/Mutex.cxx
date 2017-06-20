@@ -18,6 +18,10 @@
 
 #ifdef WIN32
 #include <windows.h>
+#elif defined(__ANDROID__)
+#include <utils/Errors.h>
+#include <utils/Mutex.h>
+#include <utils/Condition.h>
 #else
 #include <pthread.h>
 #endif
@@ -33,6 +37,8 @@ Mutex::Mutex()
 #ifdef WIN32
   systemMutex = new CRITICAL_SECTION;
   InitializeCriticalSection((CRITICAL_SECTION*)systemMutex);
+#elif defined(__ANDROID__)
+  systemMutex = new ::android::Mutex;
 #else
   int ret;
 
@@ -48,6 +54,8 @@ Mutex::~Mutex()
 #ifdef WIN32
   DeleteCriticalSection((CRITICAL_SECTION*)systemMutex);
   delete (CRITICAL_SECTION*)systemMutex;
+#elif defined(__ANDROID__)
+  delete (::android::Mutex*)systemMutex;
 #else
   int ret;
 
@@ -62,6 +70,12 @@ void Mutex::lock()
 {
 #ifdef WIN32
   EnterCriticalSection((CRITICAL_SECTION*)systemMutex);
+#elif defined(__ANDROID__)
+  android::status_t ret;
+
+  ret = ((::android::Mutex*)systemMutex)->lock();
+  if (ret != android::NO_ERROR)
+    throw rdr::SystemException("Failed to lock mutex", ret);
 #else
   int ret;
 
@@ -75,6 +89,8 @@ void Mutex::unlock()
 {
 #ifdef WIN32
   LeaveCriticalSection((CRITICAL_SECTION*)systemMutex);
+#elif defined(__ANDROID__)
+  ((::android::Mutex*)systemMutex)->unlock();
 #else
   int ret;
 
@@ -91,6 +107,8 @@ Condition::Condition(Mutex* mutex)
 #ifdef WIN32
   systemCondition = new CONDITION_VARIABLE;
   InitializeConditionVariable((CONDITION_VARIABLE*)systemCondition);
+#elif defined(__ANDROID__)
+  systemCondition = new ::android::Condition;
 #else
   int ret;
 
@@ -105,6 +123,8 @@ Condition::~Condition()
 {
 #ifdef WIN32
   delete (CONDITION_VARIABLE*)systemCondition;
+#elif defined(__ANDROID__)
+  delete (::android::Condition*)systemCondition;
 #else
   int ret;
 
@@ -125,6 +145,12 @@ void Condition::wait()
                                  INFINITE);
   if (!ret)
     throw rdr::SystemException("Failed to wait on condition variable", GetLastError());
+#elif defined(__ANDROID__)
+  android::status_t ret;
+
+  ret = ((::android::Condition*)systemCondition)->wait(*(::android::Mutex*)mutex->systemMutex);
+  if (ret != android::NO_ERROR)
+    throw rdr::SystemException("Failed to wait on condition variable", ret);
 #else
   int ret;
 
@@ -139,6 +165,8 @@ void Condition::signal()
 {
 #ifdef WIN32
   WakeConditionVariable((CONDITION_VARIABLE*)systemCondition);
+#elif defined(__ANDROID__)
+  ((::android::Condition*)systemCondition)->signal();
 #else
   int ret;
 
@@ -152,6 +180,8 @@ void Condition::broadcast()
 {
 #ifdef WIN32
   WakeAllConditionVariable((CONDITION_VARIABLE*)systemCondition);
+#elif defined(__ANDROID__)
+  ((::android::Condition*)systemCondition)->broadcast();
 #else
   int ret;
 

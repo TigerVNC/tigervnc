@@ -18,6 +18,9 @@
 
 #ifdef WIN32
 #include <windows.h>
+#elif defined(__ANDROID__)
+#include <functional>
+#include <utils/Thread.h>
 #else
 #include <pthread.h>
 #include <signal.h>
@@ -31,12 +34,33 @@
 
 using namespace os;
 
+#if defined(__ANDROID__)
+namespace os {
+class AndroidThread : public ::android::Thread {
+public:
+  AndroidThread(std::function<void()> worker) : mWorker(worker) {}
+
+  virtual bool threadLoop() {
+    try {
+        mWorker();
+    } catch(...) {
+    }
+    return false;
+  }
+private:
+  std::function<void()> mWorker;
+};
+};
+#endif
+
 Thread::Thread() : running(false), threadId(NULL)
 {
   mutex = new Mutex;
 
 #ifdef WIN32
   threadId = new HANDLE;
+#elif defined(__ANDROID__)
+  threadId = new AndroidThread(std::bind(&Thread::worker, this));
 #else
   threadId = new pthread_t;
 #endif
@@ -46,6 +70,9 @@ Thread::~Thread()
 {
 #ifdef WIN32
   delete (HANDLE*)threadId;
+#elif defined(__ANDROID__)
+  ((AndroidThread*)threadId)->requestExit();
+  delete (::android::Thread*)threadId;
 #else
   if (isRunning())
     pthread_cancel(*(pthread_t*)threadId);
@@ -63,6 +90,8 @@ void Thread::start()
   *(HANDLE*)threadId = CreateThread(NULL, 0, startRoutine, this, 0, NULL);
   if (*(HANDLE*)threadId == NULL)
     throw rdr::SystemException("Failed to create thread", GetLastError());
+#elif defined(__ANDROID__)
+  ((AndroidThread*)threadId)->run(NULL);
 #else
   int ret;
   sigset_t all, old;
@@ -96,6 +125,12 @@ void Thread::wait()
   ret = WaitForSingleObject(*(HANDLE*)threadId, INFINITE);
   if (ret != WAIT_OBJECT_0)
     throw rdr::SystemException("Failed to join thread", GetLastError());
+#elif defined(__ANDROID__)
+  ::android::status_t ret;
+
+  ret = ((AndroidThread*)threadId)->join();
+  if (ret != ::android::NO_ERROR)
+    throw rdr::SystemException("Failed to join thread", ret);
 #else
   int ret;
 
@@ -107,9 +142,13 @@ void Thread::wait()
 
 bool Thread::isRunning()
 {
+#if defined(__ANDROID__)
+  return ((::android::Thread*)threadId)->isRunning();
+#else
   AutoMutex a(mutex);
 
   return running;
+#endif
 }
 
 size_t Thread::getSystemCPUCount()
