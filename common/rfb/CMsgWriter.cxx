@@ -239,7 +239,7 @@ void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
 }
 
 
-void CMsgWriter::clientCutText(const char* str, rdr::U32 len)
+void CMsgWriter::clientCutText(const char* str, int len)
 {
   startMsg(msgTypeClientCutText);
   os->pad(3);

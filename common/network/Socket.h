@@ -82,6 +82,7 @@ namespace network {
   class ConnectionFilter {
   public:
     virtual bool verifyConnection(Socket* s) = 0;
+    virtual ~ConnectionFilter() {}
   };
 
   class SocketListener {

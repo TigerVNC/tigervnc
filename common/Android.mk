@@ -90,11 +90,8 @@ LOCAL_C_INCLUDES := \
     external/libjpeg-turbo \
 	external/zlib
 
-LOCAL_CFLAGS := -Ofast -Wall -Wformat=2 -DNDEBUG -UNDEBUG
-
-# !! FIXME FIXME FIXME !!
-LOCAL_CFLAGS += -Wno-non-virtual-dtor -Wno-overloaded-virtual -Wno-mismatched-tags \
-                -Wno-unused-parameter -Wno-format-nonliteral -Wno-tautological-compare 
+LOCAL_CFLAGS := -Ofast -Wall -Wformat=2 -DNDEBUG -UNDEBUG -Werror
+LOCAL_CFLAGS += -Wno-unused-parameter
 
 LOCAL_CPPFLAGS := -std=c++11 -fexceptions -frtti
 

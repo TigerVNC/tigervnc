@@ -87,7 +87,7 @@ int RandomStream::pos() {
   return offset + ptr - start;
 }
 
-int RandomStream::overrun(int itemSize, int nItems, bool wait) {
+int RandomStream::overrun(int itemSize, int nItems, bool /* wait */) {
   if (itemSize > DEFAULT_BUF_LEN)
     throw Exception("RandomStream overrun: max itemSize exceeded");
 
