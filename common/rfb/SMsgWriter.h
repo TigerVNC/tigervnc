@@ -32,7 +32,7 @@ namespace rdr { class OutStream; }
 namespace rfb {
 
   class ConnParams;
-  class ScreenSet;
+  struct ScreenSet;
 
   class SMsgWriter {
   public:

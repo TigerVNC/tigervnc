@@ -55,7 +55,7 @@ namespace rfb {
     // set via the VNCServer's setPixelBuffer() method by the time this call
     // returns.
 
-    virtual void start(VNCServer* vs) {}
+    virtual void start(VNCServer* /* vs */) {}
 
     // stop() is called by the server when there are no longer any
     // authenticated clients, and therefore the desktop can cease any
@@ -71,8 +71,8 @@ namespace rfb {
 
     // setScreenLayout() requests to reconfigure the framebuffer and/or
     // the layout of screens.
-    virtual unsigned int setScreenLayout(int fb_width, int fb_height,
-                                         const ScreenSet& layout) {
+    virtual unsigned int setScreenLayout(int /* fb_width */, int /* fb_height */,
+                                         const ScreenSet& /* layout */) {
       return resultProhibited;
     }
 

@@ -25,6 +25,8 @@ namespace rfb {
     // case no user name will be retrieved.  The caller MUST delete [] the
     // result(s).
     virtual void getUserPasswd(char** user, char** password)=0;
+
+    virtual ~UserPasswdGetter() {}
   };
 }
 #endif

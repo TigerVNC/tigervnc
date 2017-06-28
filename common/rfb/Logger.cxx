@@ -37,6 +37,9 @@ Logger::~Logger() {
   // *** Should remove this logger here!
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+
 void Logger::write(int level, const char *logname, const char* format,
                    va_list ap)
 {
