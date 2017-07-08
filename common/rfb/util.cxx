@@ -44,7 +44,7 @@ namespace rfb {
 
   void CharArray::format(const char *fmt, ...) {
     va_list ap;
-    size_t len;
+    int len;
 
     va_start(ap, fmt);
     len = vsnprintf(NULL, 0, fmt, ap);
