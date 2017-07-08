@@ -37,6 +37,8 @@ namespace rfb {
     // getVncAuthPasswd() fills buffer of given password and readOnlyPassword.
     // If there was no read only password in the file, readOnlyPassword buffer is null.
     virtual void getVncAuthPasswd(PlainPasswd *password, PlainPasswd *readOnlyPassword)=0;
+
+    virtual ~VncAuthPasswdGetter() { }
   };
 
   class VncAuthPasswdParameter : public VncAuthPasswdGetter, BinaryParameter {

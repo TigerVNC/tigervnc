@@ -49,6 +49,8 @@ namespace rfb {
       //   appropriate interval.
       //   If the handler returns false then the Timer is cancelled.
       virtual bool handleTimeout(Timer* t) = 0;
+
+      virtual ~Callback() {}
     };
 
     // checkTimeouts()
