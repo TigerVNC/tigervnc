@@ -11,6 +11,9 @@
 
 /* MS Visual Studio 2008 and newer doesn't know ssize_t */
 #if defined(HAVE_GNUTLS) && defined(WIN32) && !defined(__MINGW32__)
-#include <stddef.h>
-typedef size_t ssize_t;
+    #if defined(_WIN64)
+        typedef __int64 ssize_t;
+    #else
+        typedef long ssize_t;
+    #endif
 #endif
