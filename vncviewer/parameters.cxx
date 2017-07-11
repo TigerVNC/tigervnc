@@ -59,6 +59,10 @@ BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
 
+BoolParameter alertOnFatalError("AlertOnFatalError",
+                                "Give a dialog on connection problems rather "
+                                "than exiting immediately", true);
+
 StringParameter passwordFile("PasswordFile",
                              "Password file for VNC authentication", "");
 AliasParameter passwd("passwd", "Alias for PasswordFile", &passwordFile);
@@ -174,7 +178,8 @@ static VoidParameter* parameterArray[] = {
   &sendPrimary,
 #endif
   &menuKey,
-  &fullscreenSystemKeys
+  &fullscreenSystemKeys,
+  &alertOnFatalError
 };
 
 // Encoding Table

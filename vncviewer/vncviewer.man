@@ -275,6 +275,10 @@ command is executed with the environment variables \fIL\fR, \fIH\fR,
 \fIR\fR, and \fIG\fR taken the values of the local port number, the remote
 host, the port number on the remote host, and the gateway machine
 respectively.
+.
+.TP
+.B \-AlertOnFatalError
+Display a dialog with any fatal error before exiting. Default is on.
 
 .SH FILES
 .TP

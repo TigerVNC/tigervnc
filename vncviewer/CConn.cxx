@@ -110,7 +110,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
       vlog.info(_("connected to host %s port %d"), serverHost, serverPort);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      fl_alert("%s", e.str());
+      if (alertOnFatalError)
+        fl_alert("%s", e.str());
       exit_vncviewer();
       return;
     }
