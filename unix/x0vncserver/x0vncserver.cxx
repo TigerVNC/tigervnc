@@ -39,6 +39,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/XKBlib.h>
 #ifdef HAVE_XTEST
 #include <X11/extensions/XTest.h>
 #endif
@@ -60,6 +61,14 @@ extern char buildtime[];
 
 using namespace rfb;
 using namespace network;
+
+// number of XKb indicator leds to handle
+static const int N_LEDS = 3;
+
+// order is important as it must match RFB extension
+static const char * ledNames[N_LEDS] = {
+  "Scroll Lock", "Num Lock", "Caps Lock"
+};
 
 static LogWriter vlog("Main");
 
@@ -141,12 +150,42 @@ public:
   XDesktop(Display* dpy_, Geometry *geometry_)
     : dpy(dpy_), geometry(geometry_), pb(0), server(0),
       oldButtonMask(0), haveXtest(false), haveDamage(false),
-      maxButtons(0), running(false)
+      maxButtons(0), running(false), ledMasks(), ledState(0)
   {
+    int major, minor;
+
+    int xkbOpcode, xkbErrorBase;
+
+    major = XkbMajorVersion;
+    minor = XkbMinorVersion;
+    if (!XkbQueryExtension(dpy, &xkbOpcode, &xkbEventBase,
+                           &xkbErrorBase, &major, &minor)) {
+      vlog.error("XKEYBOARD extension not present");
+      throw Exception();
+    }
+
+    XkbSelectEvents(dpy, XkbUseCoreKbd, XkbIndicatorStateNotifyMask,
+                    XkbIndicatorStateNotifyMask);
+
+    // figure out bit masks for the indicators we are interested in
+    for (int i = 0; i < N_LEDS; i++) {
+      Atom a;
+      int shift;
+      Bool on;
+
+      a = XInternAtom(dpy, ledNames[i], True);
+      if (!a || !XkbGetNamedIndicator(dpy, a, &shift, &on, NULL, NULL))
+        continue;
+
+      ledMasks[i] = 1u << shift;
+      vlog.debug("Mask for '%s' is 0x%x", ledNames[i], ledMasks[i]);
+      if (on)
+        ledState |= 1u << i;
+    }
+
 #ifdef HAVE_XTEST
     int xtestEventBase;
     int xtestErrorBase;
-    int major, minor;
 
     if (XTestQueryExtension(dpy, &xtestEventBase,
                             &xtestErrorBase, &major, &minor)) {
@@ -165,7 +204,6 @@ public:
     int xdamageErrorBase;
 
     if (XDamageQueryExtension(dpy, &xdamageEventBase, &xdamageErrorBase)) {
-      TXWindow::setGlobalEventHandler(this);
       haveDamage = true;
     } else {
 #endif
@@ -174,6 +212,8 @@ public:
 #ifdef HAVE_XDAMAGE
     }
 #endif
+
+    TXWindow::setGlobalEventHandler(this);
   }
   virtual ~XDesktop() {
     stop();
@@ -211,6 +251,8 @@ public:
                              XDamageReportRawRectangles);
     }
 #endif
+
+    server->setLEDState(ledState);
 
     running = true;
   }
@@ -272,24 +314,41 @@ public:
   // -=- TXGlobalEventHandler interface
 
   virtual bool handleGlobalEvent(XEvent* ev) {
-#ifdef HAVE_XDAMAGE
-    XDamageNotifyEvent* dev;
-    Rect rect;
+    if (ev->type == xkbEventBase + XkbEventCode) {
+      XkbEvent *kb = (XkbEvent *)ev;
 
-    if (ev->type != xdamageEventBase)
-      return false;
+      if (kb->any.xkb_type != XkbIndicatorStateNotify)
+        return false;
 
-    if (!running)
+      vlog.debug("Got indicator update, mask is now 0x%x", kb->indicators.state);
+
+      ledState = 0;
+      for (int i = 0; i < N_LEDS; i++) {
+        if (kb->indicators.state & ledMasks[i])
+          ledState |= 1u << i;
+      }
+
+      if (running)
+        server->setLEDState(ledState);
+
       return true;
+#ifdef HAVE_XDAMAGE
+    } else if (ev->type == xdamageEventBase) {
+      XDamageNotifyEvent* dev;
+      Rect rect;
 
-    dev = (XDamageNotifyEvent*)ev;
-    rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
-    server->add_changed(rect);
+      if (!running)
+        return true;
 
-    return true;
-#else
-  return false;
+      dev = (XDamageNotifyEvent*)ev;
+      rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
+      server->add_changed(rect);
+
+      return true;
 #endif
+    }
+
+    return false;
   }
 
 protected:
@@ -306,6 +365,9 @@ protected:
   Damage damage;
   int xdamageEventBase;
 #endif
+  int xkbEventBase;
+  int ledMasks[N_LEDS];
+  unsigned ledState;
 };
 
 
