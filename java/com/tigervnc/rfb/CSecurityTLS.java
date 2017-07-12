@@ -218,9 +218,8 @@ public class CSecurityTLS extends CSecurity {
           Collection<? extends Certificate> cacerts =
             cf.generateCertificates(caStream);
           for (Certificate cert : cacerts) {
-            String dn =
-              ((X509Certificate)cert).getSubjectX500Principal().getName();
-            ks.setCertificateEntry(dn, (X509Certificate)cert);
+            String thumbprint = getThumbprint((X509Certificate)cert);
+            ks.setCertificateEntry(thumbprint, (X509Certificate)cert);
           }
         }
         File cacert = new File(cafile);
@@ -229,9 +228,8 @@ public class CSecurityTLS extends CSecurity {
           Collection<? extends Certificate> cacerts =
             cf.generateCertificates(caStream);
           for (Certificate cert : cacerts) {
-            String dn =
-              ((X509Certificate)cert).getSubjectX500Principal().getName();
-            ks.setCertificateEntry(dn, (X509Certificate)cert);
+            String thumbprint = getThumbprint((X509Certificate)cert);
+            ks.setCertificateEntry(thumbprint, (X509Certificate)cert);
           }
         }
         PKIXBuilderParameters params =
@@ -264,19 +262,13 @@ public class CSecurityTLS extends CSecurity {
     public void checkServerTrusted(X509Certificate[] chain, String authType)
       throws CertificateException
     {
-      MessageDigest md = null;
       try {
-        md = MessageDigest.getInstance("SHA-1");
         verifyHostname(chain[0]);
         tm.checkServerTrusted(chain, authType);
       } catch (java.lang.Exception e) {
         if (e.getCause() instanceof CertPathBuilderException) {
           Object[] answer = {"YES", "NO"};
           X509Certificate cert = chain[0];
-          md.update(cert.getEncoded());
-          String thumbprint =
-            DatatypeConverter.printHexBinary(md.digest());
-          thumbprint = thumbprint.replaceAll("..(?!$)", "$0 ");
           int ret = JOptionPane.showOptionDialog(null,
             "This certificate has been signed by an unknown authority\n"+
             "\n"+
@@ -287,7 +279,7 @@ public class CSecurityTLS extends CSecurity {
             "  Signature Algorithm: "+cert.getPublicKey().getAlgorithm()+"\n"+
             "  Not Valid Before: "+cert.getNotBefore()+"\n"+
             "  Not Valid After: "+cert.getNotAfter()+"\n"+
-            "  SHA1 Fingerprint: "+thumbprint+"\n"+
+            "  SHA1 Fingerprint: "+getThumbprint(cert)+"\n"+
             "\n"+
             "Do you want to save it and continue?",
             "Certificate Issuer Unknown",
@@ -349,6 +341,22 @@ public class CSecurityTLS extends CSecurity {
     public X509Certificate[] getAcceptedIssuers ()
     {
       return tm.getAcceptedIssuers();
+    }
+
+    private String getThumbprint(X509Certificate cert)
+    {
+      String thumbprint = null;
+      try {
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        md.update(cert.getEncoded());
+        thumbprint = DatatypeConverter.printHexBinary(md.digest());
+        thumbprint = thumbprint.replaceAll("..(?!$)", "$0 ");
+      } catch(CertificateEncodingException e) {
+        throw new SystemException(e.getMessage());
+      } catch(NoSuchAlgorithmException e) {
+        throw new SystemException(e.getMessage());
+      }
+      return thumbprint;
     }
 
     private void verifyHostname(X509Certificate cert)
