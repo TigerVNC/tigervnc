@@ -52,6 +52,12 @@
 #include <x0vncserver/XPixelBuffer.h>
 #include <x0vncserver/PollingScheduler.h>
 
+extern const unsigned short code_map_qnum_to_xorgevdev[];
+extern const unsigned int code_map_qnum_to_xorgevdev_len;
+
+extern const unsigned short code_map_qnum_to_xorgkbd[];
+extern const unsigned int code_map_qnum_to_xorgkbd_len;
+
 // XXX Lynx/OS 2.3: protos for select(), bzero()
 #ifdef Lynx
 #include <sys/proto.h>
@@ -87,6 +93,10 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "rejecting the connection",
                                  10);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
+BoolParameter rawKeyboard("RawKeyboard",
+                          "Send keyboard events straight through and "
+                          "avoid mapping them to the current keyboard "
+                          "layout", false);
 
 //
 // Allow the main loop terminate itself gracefully on receiving a signal.
@@ -150,7 +160,8 @@ public:
   XDesktop(Display* dpy_, Geometry *geometry_)
     : dpy(dpy_), geometry(geometry_), pb(0), server(0),
       oldButtonMask(0), haveXtest(false), haveDamage(false),
-      maxButtons(0), running(false), ledMasks(), ledState(0)
+      maxButtons(0), running(false), ledMasks(), ledState(0),
+      codeMap(0), codeMapLen(0)
   {
     int major, minor;
 
@@ -181,6 +192,32 @@ public:
       vlog.debug("Mask for '%s' is 0x%x", ledNames[i], ledMasks[i]);
       if (on)
         ledState |= 1u << i;
+    }
+
+    // X11 unfortunately uses keyboard driver specific keycodes and provides no
+    // direct way to query this, so guess based on the keyboard mapping
+    XkbDescPtr desc = XkbGetKeyboard(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+    if (desc && desc->names) {
+      char *keycodes = XGetAtomName(dpy, desc->names->keycodes);
+
+      if (keycodes) {
+        if (strncmp("evdev", keycodes, strlen("evdev")) == 0) {
+          codeMap = code_map_qnum_to_xorgevdev;
+          codeMapLen = code_map_qnum_to_xorgevdev_len;
+          vlog.info("Using evdev codemap\n");
+        } else if (strncmp("xfree86", keycodes, strlen("xfree86")) == 0) {
+          codeMap = code_map_qnum_to_xorgkbd;
+          codeMapLen = code_map_qnum_to_xorgkbd_len;
+          vlog.info("Using xorgkbd codemap\n");
+        } else {
+          vlog.info("Unknown keycode '%s', no codemap\n", keycodes);
+        }
+        XFree(keycodes);
+      } else {
+        vlog.debug("Unable to get keycode map\n");
+      }
+
+      XkbFreeKeyboard(desc, XkbAllComponentsMask, True);
     }
 
 #ifdef HAVE_XTEST
@@ -297,8 +334,16 @@ public:
 
   virtual void keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
 #ifdef HAVE_XTEST
+    int keycode = 0;
     if (!haveXtest) return;
-    int keycode = XKeysymToKeycode(dpy, keysym);
+
+    // Use scan code if provided and mapping exists
+    if (codeMap && rawKeyboard && xtcode < codeMapLen)
+        keycode = codeMap[xtcode];
+
+    if (!keycode)
+        keycode = XKeysymToKeycode(dpy, keysym);
+
     if (keycode)
       XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #endif
@@ -368,6 +413,8 @@ protected:
   int xkbEventBase;
   int ledMasks[N_LEDS];
   unsigned ledState;
+  const unsigned short *codeMap;
+  unsigned codeMapLen;
 };
 
 

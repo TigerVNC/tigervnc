@@ -168,6 +168,13 @@ two hex values, prefixed by \fB0x\fP, and separated by \fB->\fP (`dash' and
 `greater than' characters).
 .
 .TP
+.B RawKeyboard
+Send keyboard events straight through and avoid mapping them to the current
+keyboard layout. This effectively makes the keyboard behave according to the
+layout configured on the server instead of the layout configured on the
+client. Default is off.
+.
+.TP
 .B Protocol3.3
 Always use RFB protocol version 3.3 for backwards compatibility with
 badly-behaved clients.  Default is off.
