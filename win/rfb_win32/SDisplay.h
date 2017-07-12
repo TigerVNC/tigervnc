@@ -106,6 +106,7 @@ namespace rfb {
       void restartCore();
       void recreatePixelBuffer(bool force=false);
       bool flushChangeTracker();  // true if flushed, false if empty
+      bool checkLedState();
 
       VNCServer* server;
 
@@ -151,6 +152,8 @@ namespace rfb {
 
       // -=- Where to write the active/inactive indicator to
       bool* statusLocation;
+
+      unsigned ledState;
     };
 
   }
