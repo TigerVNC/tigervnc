@@ -95,7 +95,7 @@ private:
   DownMap downKeySym;
 
   rdr::U32 menuKeySym;
-  int menuKeyCode;
+  int menuKeyCode, menuKeyFLTK;
   Fl_Menu_Button *contextMenu;
 
   bool menuCtrlKey;

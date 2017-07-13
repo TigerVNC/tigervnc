@@ -74,8 +74,21 @@
 #include <FL/Fl_Menu.H>
 #include <FL/Fl_Menu_Button.H>
 
+#if !defined(WIN32) && !defined(__APPLE__)
+#include <X11/XKBlib.h>
+extern const struct _code_map_xkb_to_qnum {
+  const char * from;
+  const unsigned short to;
+} code_map_xkb_to_qnum[];
+extern const unsigned int code_map_xkb_to_qnum_len;
+
+static int code_map_keycode_to_qnum[256];
+#endif
+
 #ifdef __APPLE__
 #include "cocoa.h"
+extern const unsigned short code_map_osx_to_qnum[];
+extern const unsigned int code_map_osx_to_qnum_len;
 #endif
 
 #ifdef WIN32
@@ -94,9 +107,6 @@ enum { ID_EXIT, ID_FULLSCREEN, ID_MINIMIZE, ID_RESIZE,
        ID_CTRL, ID_ALT, ID_MENUKEY, ID_CTRLALTDEL,
        ID_REFRESH, ID_OPTIONS, ID_INFO, ID_ABOUT, ID_DISMISS };
 
-// Fake key presses use this value and above
-static const int fakeKeyBase = 0x200;
-
 // Used to detect fake input (0xaa is not a real key)
 #ifdef WIN32
 static const WORD SCAN_FAKE = 0xaa;
@@ -107,6 +117,45 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
     lastPointerPos(0, 0), lastButtonMask(0),
     menuCtrlKey(false), menuAltKey(false), cursor(NULL)
 {
+#if !defined(WIN32) && !defined(__APPLE__)
+  XkbDescPtr xkb;
+  Status status;
+
+  xkb = XkbGetMap(fl_display, 0, XkbUseCoreKbd);
+  if (!xkb)
+    throw Exception("XkbGetMap");
+
+  status = XkbGetNames(fl_display, XkbKeyNamesMask, xkb);
+  if (status != Success)
+    throw Exception("XkbGetNames");
+
+  memset(code_map_keycode_to_qnum, 0, sizeof(code_map_keycode_to_qnum));
+  for (KeyCode keycode = xkb->min_key_code;
+       keycode < xkb->max_key_code;
+       keycode++) {
+    const char *keyname = xkb->names->keys[keycode].name;
+    unsigned short rfbcode;
+
+    if (keyname[0] == '\0')
+      continue;
+
+    rfbcode = 0;
+    for (unsigned i = 0;i < code_map_xkb_to_qnum_len;i++) {
+        if (strncmp(code_map_xkb_to_qnum[i].from,
+                    keyname, XkbKeyNameLength) == 0) {
+            rfbcode = code_map_xkb_to_qnum[i].to;
+            break;
+        }
+    }
+    if (rfbcode != 0)
+        code_map_keycode_to_qnum[keycode] = rfbcode;
+    else
+        vlog.debug("No key mapping for key %.4s", keyname);
+  }
+
+  XkbFreeKeyboard(xkb, 0, True);
+#endif
+
   Fl::add_clipboard_notify(handleClipboardChange, this);
 
   // We need to intercept keyboard events early
@@ -395,18 +444,18 @@ void Viewport::pushLEDState()
 
   if ((state & ledCapsLock) != (cc->cp.ledState() & ledCapsLock)) {
     vlog.debug("Inserting fake CapsLock to get in sync with server");
-    handleKeyPress(fakeKeyBase + 100, XK_Caps_Lock);
-    handleKeyRelease(fakeKeyBase + 100);
+    handleKeyPress(0x3a, XK_Caps_Lock);
+    handleKeyRelease(0x3a);
   }
   if ((state & ledNumLock) != (cc->cp.ledState() & ledNumLock)) {
     vlog.debug("Inserting fake NumLock to get in sync with server");
-    handleKeyPress(fakeKeyBase + 101, XK_Num_Lock);
-    handleKeyRelease(fakeKeyBase + 101);
+    handleKeyPress(0x45, XK_Num_Lock);
+    handleKeyRelease(0x45);
   }
   if ((state & ledScrollLock) != (cc->cp.ledState() & ledScrollLock)) {
     vlog.debug("Inserting fake ScrollLock to get in sync with server");
-    handleKeyPress(fakeKeyBase + 102, XK_Scroll_Lock);
-    handleKeyRelease(fakeKeyBase + 102);
+    handleKeyPress(0x46, XK_Scroll_Lock);
+    handleKeyRelease(0x46);
   }
 }
 
@@ -664,6 +713,11 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
   if (viewOnly)
     return;
 
+  if (keyCode == 0) {
+    vlog.error(_("No key code specified on key press"));
+    return;
+  }
+
 #ifdef __APPLE__
   // Alt on OS X behaves more like AltGr on other systems, and to get
   // sane behaviour we should translate things in that manner for the
@@ -694,23 +748,11 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
   // Ctrl+Alt+AltGr, which we usually end up with when Xvnc tries to
   // get everything in the correct state. Cheat and temporarily release
   // Ctrl and Alt when we send some other symbol.
-  bool ctrlPressed, altPressed;
-  DownMap::iterator iter;
-
-  ctrlPressed = false;
-  altPressed = false;
-  for (iter = downKeySym.begin();iter != downKeySym.end();++iter) {
-    if (iter->second == XK_Control_L)
-      ctrlPressed = true;
-    else if (iter->second == XK_Alt_R)
-      altPressed = true;
-  }
-
-  if (ctrlPressed && altPressed) {
+  if (downKeySym.count(0x1d) && downKeySym.count(0xb8)) {
     vlog.debug("Faking release of AltGr (Ctrl_L+Alt_R)");
     try {
-      cc->writer()->keyEvent(XK_Control_L, 0, false);
-      cc->writer()->keyEvent(XK_Alt_R, 0, false);
+      cc->writer()->keyEvent(downKeySym[0x1d], 0x1d, false);
+      cc->writer()->keyEvent(downKeySym[0xb8], 0xb8, false);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
@@ -732,7 +774,11 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
 #endif
 
   try {
-    cc->writer()->keyEvent(keySym, 0, true);
+    // Fake keycode?
+    if (keyCode > 0xff)
+      cc->writer()->keyEvent(keySym, 0, true);
+    else
+      cc->writer()->keyEvent(keySym, keyCode, true);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     exit_vncviewer(e.str());
@@ -740,11 +786,11 @@ void Viewport::handleKeyPress(int keyCode, rdr::U32 keySym)
 
 #ifdef WIN32
   // Ugly hack continued...
-  if (ctrlPressed && altPressed) {
+  if (downKeySym.count(0x1d) && downKeySym.count(0xb8)) {
     vlog.debug("Restoring AltGr state");
     try {
-      cc->writer()->keyEvent(XK_Control_L, 0, true);
-      cc->writer()->keyEvent(XK_Alt_R, 0, true);
+      cc->writer()->keyEvent(downKeySym[0x1d], 0x1d, true);
+      cc->writer()->keyEvent(downKeySym[0xb8], 0xb8, true);
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
       exit_vncviewer(e.str());
@@ -777,7 +823,10 @@ void Viewport::handleKeyRelease(int keyCode)
 #endif
 
   try {
-    cc->writer()->keyEvent(iter->second, 0, false);
+    if (keyCode > 0xff)
+      cc->writer()->keyEvent(iter->second, 0, false);
+    else
+      cc->writer()->keyEvent(iter->second, keyCode, false);
   } catch (rdr::Exception& e) {
     vlog.error("%s", e.str());
     exit_vncviewer(e.str());
@@ -837,14 +886,19 @@ int Viewport::handleSystemEvent(void *event, void *data)
       }
     }
 
+    if (keyCode & ~0x7f) {
+      vlog.error(_("Invalid scan code 0x%02x"), (int)keyCode);
+      return 1;
+    }
+
     if (isExtended)
-      keyCode |= 0x100;
+      keyCode |= 0x80;
 
     // VK_SNAPSHOT sends different scan codes depending on the state of
     // Alt. This means that we can get different scan codes on press and
     // release. Force it to be something standard.
     if (vKey == VK_SNAPSHOT)
-      keyCode = 0x137;
+      keyCode = 0x54;
 
     keySym = win32_vkey_to_keysym(vKey, isExtended);
     if (keySym == NoSymbol) {
@@ -852,8 +906,11 @@ int Viewport::handleSystemEvent(void *event, void *data)
         vlog.error(_("No symbol for extended virtual key 0x%02x"), (int)vKey);
       else
         vlog.error(_("No symbol for virtual key 0x%02x"), (int)vKey);
-      return 1;
     }
+
+    // Fortunately RFB and Windows use the same scan code set,
+    // so there is no conversion needed
+    // (as long as we encode the extended keys with the high bit)
 
     self->handleKeyPress(keyCode, keySym);
 
@@ -876,9 +933,9 @@ int Viewport::handleSystemEvent(void *event, void *data)
     if (keyCode == 0x00)
       keyCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
     if (isExtended)
-      keyCode |= 0x100;
+      keyCode |= 0x80;
     if (vKey == VK_SNAPSHOT)
-      keyCode = 0x137;
+      keyCode = 0x54;
 
     self->handleKeyRelease(keyCode);
 
@@ -889,6 +946,10 @@ int Viewport::handleSystemEvent(void *event, void *data)
     int keyCode;
 
     keyCode = cocoa_event_keycode(event);
+    if ((unsigned)keyCode >= code_map_osx_to_qnum_len)
+      keyCode = 0;
+    else
+      keyCode = code_map_osx_to_qnum[keyCode];
 
     if (cocoa_is_key_press(event)) {
       rdr::U32 keySym;
@@ -897,7 +958,6 @@ int Viewport::handleSystemEvent(void *event, void *data)
       if (keySym == NoSymbol) {
         vlog.error(_("No symbol for key code 0x%02x (in the current state)"),
                    (int)keyCode);
-        return 1;
       }
 
       self->handleKeyPress(keyCode, keySym);
@@ -916,14 +976,21 @@ int Viewport::handleSystemEvent(void *event, void *data)
   XEvent *xevent = (XEvent*)event;
 
   if (xevent->type == KeyPress) {
+    int keycode;
     char str;
     KeySym keysym;
+
+    keycode = code_map_keycode_to_qnum[xevent->xkey.keycode];
+
+    // Generate a fake keycode just for tracking if we can't figure
+    // out the proper one
+    if (keycode == 0)
+        keycode = 0x100 | xevent->xkey.keycode;
 
     XLookupString(&xevent->xkey, &str, 1, &keysym, NULL);
     if (keysym == NoSymbol) {
       vlog.error(_("No symbol for key code %d (in the current state)"),
                  (int)xevent->xkey.keycode);
-      return 1;
     }
 
     switch (keysym) {
@@ -943,10 +1010,13 @@ int Viewport::handleSystemEvent(void *event, void *data)
       break;
     }
 
-    self->handleKeyPress(xevent->xkey.keycode, keysym);
+    self->handleKeyPress(keycode, keysym);
     return 1;
   } else if (xevent->type == KeyRelease) {
-    self->handleKeyRelease(xevent->xkey.keycode);
+    int keycode = code_map_keycode_to_qnum[xevent->xkey.keycode];
+    if (keycode == 0)
+        keycode = 0x100 | xevent->xkey.keycode;
+    self->handleKeyRelease(keycode);
     return 1;
   }
 #endif
@@ -982,7 +1052,7 @@ void Viewport::initContextMenu()
     char sendMenuKey[64];
     snprintf(sendMenuKey, 64, p_("ContextMenu|", "Send %s"), (const char *)menuKey);
     fltk_menu_add(contextMenu, sendMenuKey, 0, NULL, (void*)ID_MENUKEY, 0);
-    fltk_menu_add(contextMenu, "Secret shortcut menu key", menuKeyCode, NULL,
+    fltk_menu_add(contextMenu, "Secret shortcut menu key", menuKeyFLTK, NULL,
                   (void*)ID_MENUKEY, FL_MENU_INVISIBLE);
   }
 
@@ -1050,30 +1120,30 @@ void Viewport::popupContextMenu()
     break;
   case ID_CTRL:
     if (m->value())
-      handleKeyPress(fakeKeyBase + 0, XK_Control_L);
+      handleKeyPress(0x1d, XK_Control_L);
     else
-      handleKeyRelease(fakeKeyBase + 0);
+      handleKeyRelease(0x1d);
     menuCtrlKey = !menuCtrlKey;
     break;
   case ID_ALT:
     if (m->value())
-      handleKeyPress(fakeKeyBase + 1, XK_Alt_L);
+      handleKeyPress(0x38, XK_Alt_L);
     else
-      handleKeyRelease(fakeKeyBase + 1);
+      handleKeyRelease(0x38);
     menuAltKey = !menuAltKey;
     break;
   case ID_MENUKEY:
-    handleKeyPress(fakeKeyBase + 2, menuKeySym);
-    handleKeyRelease(fakeKeyBase + 2);
+    handleKeyPress(menuKeyCode, menuKeySym);
+    handleKeyRelease(menuKeyCode);
     break;
   case ID_CTRLALTDEL:
-    handleKeyPress(fakeKeyBase + 3, XK_Control_L);
-    handleKeyPress(fakeKeyBase + 4, XK_Alt_L);
-    handleKeyPress(fakeKeyBase + 5, XK_Delete);
+    handleKeyPress(0x1d, XK_Control_L);
+    handleKeyPress(0x38, XK_Alt_L);
+    handleKeyPress(0xd3, XK_Delete);
 
-    handleKeyRelease(fakeKeyBase + 5);
-    handleKeyRelease(fakeKeyBase + 4);
-    handleKeyRelease(fakeKeyBase + 3);
+    handleKeyRelease(0xd3);
+    handleKeyRelease(0x38);
+    handleKeyRelease(0x1d);
     break;
   case ID_REFRESH:
     cc->refreshFramebuffer();
@@ -1099,7 +1169,7 @@ void Viewport::popupContextMenu()
 
 void Viewport::setMenuKey()
 {
-  getMenuKey(&menuKeyCode, &menuKeySym);
+  getMenuKey(&menuKeyFLTK, &menuKeyCode, &menuKeySym);
 }
 
 
