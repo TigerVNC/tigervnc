@@ -1,8 +1,6 @@
 # Gettext support - mostly borrowed from the Licq project
 
-set(po_FILES
-    bg da de el eo es fi fr fur hu it nl pl pt_BR ru sk sr sv tr uk vi zh_CN
-)
+file(STRINGS LINGUAS po_FILES)
 
 if (NOT GETTEXT_MSGMERGE_EXECUTABLE AND NOT GETTEXT_MSGFMT_EXECUTABLE)
   message(FATAL_ERROR "Gettext message catalog tools NOT found")
