@@ -656,3 +656,7 @@ msgstr "Parameterne -listen og -via er ikke kompatible"
 #, c-format
 msgid "Listening on port %d"
 msgstr "Lytter på port %d"
+
+#: vncviewer/vncviewer.desktop.in.in:6
+msgid "Connect to VNC server and display remote desktop"
+msgstr "Opret forbindelse til VNC-server og vis fjern-skrivebord"

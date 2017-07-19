@@ -1,10 +1,6 @@
 [Desktop Entry]
 Name=TigerVNC Viewer
-Name[da]=TigerVNC-fremviser
-Name[fr]=Visionneur TigerVNC
 Comment=Connect to VNC server and display remote desktop
-Comment[da]=Opret forbindelse til VNC-server og vis fjern-skrivebord
-Comment[fr]=Se connecter à un serveur VNC et afficher le bureau distant
 Exec=@BIN_DIR@/vncviewer
 Icon=tigervnc
 Terminal=false

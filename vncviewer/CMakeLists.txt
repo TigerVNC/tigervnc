@@ -59,7 +59,14 @@ endif()
 install(TARGETS vncviewer DESTINATION ${BIN_DIR})
 if(UNIX)
   install(FILES vncviewer.man DESTINATION ${MAN_DIR}/man1 RENAME vncviewer.1)
-  configure_file(vncviewer.desktop.in vncviewer.desktop)
+  configure_file(vncviewer.desktop.in.in vncviewer.desktop.in)
+  add_custom_command(OUTPUT vncviewer.desktop
+    COMMAND ${GETTEXT_MSGFMT_EXECUTABLE}
+              --desktop --template vncviewer.desktop.in
+              -d ${CMAKE_SOURCE_DIR}/po -o vncviewer.desktop
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.desktop.in
+  )
+  add_custom_target(desktop ALL DEPENDS vncviewer.desktop)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vncviewer.desktop DESTINATION ${DATA_DIR}/applications)
   foreach(res 16 22 24 32 48)
     install(FILES ../media/icons/tigervnc_${res}.png DESTINATION ${DATA_DIR}/icons/hicolor/${res}x${res}/apps RENAME tigervnc.png)

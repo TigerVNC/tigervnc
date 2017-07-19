@@ -13,6 +13,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
     RELATIVE ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/vncviewer/*.h
     ${PROJECT_SOURCE_DIR}/vncviewer/*.cxx
+    ${PROJECT_SOURCE_DIR}/vncviewer/*.desktop.in.in
   )
 
   add_custom_target(translations_update
