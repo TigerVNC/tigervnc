@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=TigerVNC Viewer
+GenericName=Remote Desktop Viewer
 Comment=Connect to VNC server and display remote desktop
 Exec=@BIN_DIR@/vncviewer
 Icon=tigervnc
