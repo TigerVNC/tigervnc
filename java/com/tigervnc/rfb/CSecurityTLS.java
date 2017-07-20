@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 m-privacy GmbH
  * Copyright (C) 2010 TigerVNC Team
- * Copyright (C) 2011-2015 Brian P. Hinz
+ * Copyright (C) 2011-2017 Brian P. Hinz
  * Copyright (C) 2015 D. R. Commander.  All Rights Reserved.
  *
  * This is free software; you can redistribute it and/or modify
@@ -211,17 +211,7 @@ public class CSecurityTLS extends CSecurity {
         for (TrustManager m : tmf.getTrustManagers())
           if (m instanceof X509TrustManager)
             for (X509Certificate c : ((X509TrustManager)m).getAcceptedIssuers())
-              ks.setCertificateEntry(c.getSubjectX500Principal().getName(), c);
-        File castore = new File(FileUtils.getVncHomeDir()+"x509_savedcerts.pem");
-        if (castore.exists() && castore.canRead()) {
-          InputStream caStream = new MyFileInputStream(castore);
-          Collection<? extends Certificate> cacerts =
-            cf.generateCertificates(caStream);
-          for (Certificate cert : cacerts) {
-            String thumbprint = getThumbprint((X509Certificate)cert);
-            ks.setCertificateEntry(thumbprint, (X509Certificate)cert);
-          }
-        }
+              ks.setCertificateEntry(getThumbprint((X509Certificate)c), c);
         File cacert = new File(cafile);
         if (cacert.exists() && cacert.canRead()) {
           InputStream caStream = new MyFileInputStream(cacert);
@@ -262,13 +252,25 @@ public class CSecurityTLS extends CSecurity {
     public void checkServerTrusted(X509Certificate[] chain, String authType)
       throws CertificateException
     {
+      Collection<? extends Certificate> certs = null;
+      X509Certificate cert = chain[0];
+      String thumbprint = getThumbprint(cert);
+      File vncDir = new File(FileUtils.getVncHomeDir());
+      File certFile = new File(vncDir, "x509_savedcerts.pem");
+      CertificateFactory cf = CertificateFactory.getInstance("X.509");
+      if (vncDir.exists() && certFile.exists() && certFile.canRead()) {
+        InputStream certStream = new MyFileInputStream(certFile);
+        certs = cf.generateCertificates(certStream);
+        for (Certificate c : certs)
+          if (thumbprint.equals(getThumbprint((X509Certificate)c)))
+            return;
+      }
       try {
-        verifyHostname(chain[0]);
+        verifyHostname(cert);
         tm.checkServerTrusted(chain, authType);
       } catch (java.lang.Exception e) {
         if (e.getCause() instanceof CertPathBuilderException) {
           Object[] answer = {"YES", "NO"};
-          X509Certificate cert = chain[0];
           int ret = JOptionPane.showOptionDialog(null,
             "This certificate has been signed by an unknown authority\n"+
             "\n"+
@@ -286,13 +288,10 @@ public class CSecurityTLS extends CSecurity {
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
             null, answer, answer[0]);
           if (ret == JOptionPane.YES_OPTION) {
-            Collection<? extends X509Certificate> cacerts = null;
-            File vncDir = new File(FileUtils.getVncHomeDir());
-            File caFile = new File(vncDir, "x509_savedcerts.pem");
             try {
               if (!vncDir.exists())
                 vncDir.mkdir();
-              if (!caFile.createNewFile()) {
+              if (!certFile.exists() && !certFile.createNewFile()) {
                 vlog.error("Certificate save failed.");
                 return;
               }
@@ -301,31 +300,24 @@ public class CSecurityTLS extends CSecurity {
               vlog.error("Certificate save failed: "+ioe.getMessage());
               return;
             }
-            InputStream caStream = new MyFileInputStream(caFile);
-            CertificateFactory cf =
-              CertificateFactory.getInstance("X.509");
-            cacerts =
-              (Collection <? extends X509Certificate>)cf.generateCertificates(caStream);
-            for (int i = 0; i < chain.length; i++) {
-              if (cacerts == null || !cacerts.contains(chain[i])) {
-                byte[] der = chain[i].getEncoded();
-                String pem = DatatypeConverter.printBase64Binary(der);
-                pem = pem.replaceAll("(.{64})", "$1\n");
-                FileWriter fw = null;
+            if (certs == null || !certs.contains(cert)) {
+              byte[] der = cert.getEncoded();
+              String pem = DatatypeConverter.printBase64Binary(der);
+              pem = pem.replaceAll("(.{64})", "$1\n");
+              FileWriter fw = null;
+              try {
+                fw = new FileWriter(certFile.getAbsolutePath(), true);
+                fw.write("-----BEGIN CERTIFICATE-----\n");
+                fw.write(pem+"\n");
+                fw.write("-----END CERTIFICATE-----\n");
+              } catch (IOException ioe) {
+                throw new Exception(ioe.getMessage());
+              } finally {
                 try {
-                  fw = new FileWriter(caFile.getAbsolutePath(), true);
-                  fw.write("-----BEGIN CERTIFICATE-----\n");
-                  fw.write(pem+"\n");
-                  fw.write("-----END CERTIFICATE-----\n");
-                } catch (IOException ioe) {
-                  throw new Exception(ioe.getMessage());
-                } finally {
-                  try {
-                    if (fw != null)
-                      fw.close();
-                  } catch(IOException ioe2) {
-                    throw new Exception(ioe2.getMessage());
-                  }
+                  if (fw != null)
+                    fw.close();
+                } catch(IOException ioe2) {
+                  throw new Exception(ioe2.getMessage());
                 }
               }
             }
