@@ -314,7 +314,8 @@ public class CMsgReader {
       new ManagedPixelBuffer(rgbaPF, width, height);
     PixelFormat origPF;
 
-    DataBufferInt buf;
+    ByteBuffer buf =
+      ByteBuffer.allocate(pb.area()*4).order(rgbaPF.getByteOrder());;
 
     encoding = is.readS32();
 
@@ -323,28 +324,26 @@ public class CMsgReader {
     handler.readAndDecodeRect(pb.getRect(), encoding, pb);
     handler.cp.setPF(origPF);
 
-    if (pb.getRect().area() == 0)
-      return;
-
     // ARGB with pre-multiplied alpha works best for BufferedImage
-    buf = (DataBufferInt)pb.getBufferRW(pb.getRect()).getDataBuffer();
-    ByteBuffer bbuf =
-      ByteBuffer.allocate(pb.area()*4).order(rgbaPF.getByteOrder());
-    bbuf.asIntBuffer().put(buf.getData()).flip().mark();
-
-    for (int i = 0;i < pb.area();i++) {
-      byte alpha = bbuf.get(bbuf.position()+3);
-
-      bbuf.put(i*4+3, (byte)(bbuf.get(i*4+2)));
-      bbuf.put(i*4+2, (byte)(bbuf.get(i*4+1)));
-      bbuf.put(i*4+1, (byte)(bbuf.get(i*4+0))); 
-      bbuf.put(i*4+0, (byte)alpha);
-
-      bbuf.position(bbuf.position() + 4);
+    if (pb.area() > 0) {
+      // Sometimes a zero width or height cursor is sent.
+      DataBuffer db = pb.getBuffer(pb.getRect()).getDataBuffer();
+      for (int i = 0;i < pb.area();i++)
+        buf.asIntBuffer().put(i, db.getElem(i));
     }
 
-    handler.setCursor(width, height, hotspot,
-                      bbuf.array());
+    for (int i = 0;i < pb.area();i++) {
+      byte alpha = buf.get(buf.position()+3);
+
+      buf.put(i*4+3, buf.get(i*4+2));
+      buf.put(i*4+2, buf.get(i*4+1));
+      buf.put(i*4+1, buf.get(i*4+0));
+      buf.put(i*4+0, alpha);
+
+      buf.position(buf.position() + 4);
+    }
+
+    handler.setCursor(width, height, hotspot, buf.array());
   }
 
   protected void readSetDesktopName(int x, int y, int w, int h)

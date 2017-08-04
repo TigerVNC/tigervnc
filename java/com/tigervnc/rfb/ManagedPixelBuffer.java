@@ -18,6 +18,8 @@
 
 package com.tigervnc.rfb;
 
+import java.awt.image.*;
+
 public class ManagedPixelBuffer extends FullFramePixelBuffer {
 
   public ManagedPixelBuffer() {
@@ -43,9 +45,15 @@ public class ManagedPixelBuffer extends FullFramePixelBuffer {
   final void checkDataSize() {
     int new_datasize = width_ * height_;
     if (datasize < new_datasize) {
-      vlog.debug("reallocating managed buffer ("+width_+"x"+height_+")");
-      if (format != null)
-        data = PixelFormat.getColorModel(format).createCompatibleWritableRaster(width_, height_);
+      if (data != null) {
+        datasize = 0; data = null;
+      }
+      if (new_datasize > 0) {
+        ColorModel cm = format.getColorModel();
+        data = cm.createCompatibleWritableRaster(width_, height_);
+        image = new BufferedImage(cm, data, cm.isAlphaPremultiplied(), null);
+        datasize = new_datasize;
+      }
     }
   }
 
