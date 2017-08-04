@@ -494,7 +494,9 @@ int main(int argc, char** argv)
     defaultServerName = loadViewerParameters(NULL);
   } catch (rfb::Exception& e) {
     defaultServerName = "";
-    fl_alert("%s", e.str());
+    vlog.error("%s", e.str());
+    if (alertOnFatalError)
+      fl_alert("%s", e.str());
   }
   
   int i = 1;
@@ -532,7 +534,8 @@ int main(int argc, char** argv)
     // TRANSLATORS: "Parameters" are command line arguments, or settings
     // from a file or the Windows registry.
     vlog.error(_("Parameters -listen and -via are incompatible"));
-    fl_alert(_("Parameters -listen and -via are incompatible"));
+    if (alertOnFatalError)
+      fl_alert(_("Parameters -listen and -via are incompatible"));
     exit_vncviewer();
     return 1;
   }
@@ -580,7 +583,8 @@ int main(int argc, char** argv)
       }
     } catch (rdr::Exception& e) {
       vlog.error("%s", e.str());
-      fl_alert("%s", e.str());
+      if (alertOnFatalError)
+        fl_alert("%s", e.str());
       exit_vncviewer();
       return 1; 
     }
@@ -609,7 +613,7 @@ int main(int argc, char** argv)
 
   delete cc;
 
-  if (exitError != NULL)
+  if (exitError != NULL && alertOnFatalError)
     fl_alert("%s", exitError);
 
   return 0;

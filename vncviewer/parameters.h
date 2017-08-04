@@ -60,6 +60,7 @@ extern rfb::BoolParameter sendPrimary;
 extern rfb::StringParameter menuKey;
 
 extern rfb::BoolParameter fullscreenSystemKeys;
+extern rfb::BoolParameter alertOnFatalError;
 
 #ifndef WIN32
 extern rfb::StringParameter via;

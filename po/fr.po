@@ -662,3 +662,7 @@ msgstr "Les paramètres -listen et -via sont incompatibles"
 #, c-format
 msgid "Listening on port %d"
 msgstr "Écoute du port %d"
+
+#: vncviewer/vncviewer.desktop.in.in:6
+msgid "Connect to VNC server and display remote desktop"
+msgstr "Se connecter à un serveur VNC et afficher le bureau distant"

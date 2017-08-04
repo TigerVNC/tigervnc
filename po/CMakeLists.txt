@@ -1,8 +1,6 @@
 # Gettext support - mostly borrowed from the Licq project
 
-set(po_FILES
-    bg da de el eo es fi fr fur hu it nl pl pt_BR ru sk sr sv tr uk vi zh_CN
-)
+file(STRINGS LINGUAS po_FILES)
 
 if (NOT GETTEXT_MSGMERGE_EXECUTABLE AND NOT GETTEXT_MSGFMT_EXECUTABLE)
   message(FATAL_ERROR "Gettext message catalog tools NOT found")
@@ -15,6 +13,7 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
     RELATIVE ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/vncviewer/*.h
     ${PROJECT_SOURCE_DIR}/vncviewer/*.cxx
+    ${PROJECT_SOURCE_DIR}/vncviewer/*.desktop.in.in
   )
 
   add_custom_target(translations_update

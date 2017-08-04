@@ -54,10 +54,14 @@ static LogWriter vlog("Parameters");
 
 IntParameter pointerEventInterval("PointerEventInterval",
                                   "Time in milliseconds to rate-limit"
-                                  " successive pointer events", 0);
+                                  " successive pointer events", 17);
 BoolParameter dotWhenNoCursor("DotWhenNoCursor",
                               "Show the dot cursor when the server sends an "
                               "invisible cursor", false);
+
+BoolParameter alertOnFatalError("AlertOnFatalError",
+                                "Give a dialog on connection problems rather "
+                                "than exiting immediately", true);
 
 StringParameter passwordFile("PasswordFile",
                              "Password file for VNC authentication", "");
@@ -174,7 +178,8 @@ static VoidParameter* parameterArray[] = {
   &sendPrimary,
 #endif
   &menuKey,
-  &fullscreenSystemKeys
+  &fullscreenSystemKeys,
+  &alertOnFatalError
 };
 
 // Encoding Table

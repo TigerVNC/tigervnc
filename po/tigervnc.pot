@@ -651,3 +651,7 @@ msgstr ""
 #, c-format
 msgid "Listening on port %d"
 msgstr ""
+
+#: vncviewer/vncviewer.desktop.in.in:6
+msgid "Connect to VNC server and display remote desktop"
+msgstr ""
