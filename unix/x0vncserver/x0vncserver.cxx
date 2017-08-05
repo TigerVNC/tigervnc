@@ -45,6 +45,9 @@
 #ifdef HAVE_XDAMAGE
 #include <X11/extensions/Xdamage.h>
 #endif
+#ifdef HAVE_XFIXES
+#include <X11/extensions/Xfixes.h>
+#endif
 
 #include <x0vncserver/Geometry.h>
 #include <x0vncserver/Image.h>
@@ -141,7 +144,7 @@ public:
   XDesktop(Display* dpy_, Geometry *geometry_)
     : dpy(dpy_), geometry(geometry_), pb(0), server(0),
       oldButtonMask(0), haveXtest(false), haveDamage(false),
-      maxButtons(0), running(false)
+      haveXfixes(false), maxButtons(0), running(false)
   {
 #ifdef HAVE_XTEST
     int xtestEventBase;
@@ -172,6 +175,21 @@ public:
       vlog.info("DAMAGE extension not present");
       vlog.info("Will have to poll screen for changes");
 #ifdef HAVE_XDAMAGE
+    }
+#endif
+
+#ifdef HAVE_XFIXES
+    int xfixesErrorBase;
+
+    if (XFixesQueryExtension(dpy, &xfixesEventBase, &xfixesErrorBase)) {
+      if (not haveDamage)
+        TXWindow::setGlobalEventHandler(this);
+      haveXfixes = true;
+    } else {
+#endif
+      vlog.info("XFIXES extension not present");
+      vlog.info("Will not be able to display cursors");
+#ifdef HAVE_XFIXES
     }
 #endif
   }
@@ -209,6 +227,13 @@ public:
     if (haveDamage) {
       damage = XDamageCreate(dpy, DefaultRootWindow(dpy),
                              XDamageReportRawRectangles);
+    }
+#endif
+
+#ifdef HAVE_XFIXES
+    if (haveXfixes) {
+      XFixesSelectCursorInput(dpy, DefaultRootWindow(dpy),
+                              XFixesDisplayCursorNotifyMask);
     }
 #endif
 
@@ -273,23 +298,81 @@ public:
 
   virtual bool handleGlobalEvent(XEvent* ev) {
 #ifdef HAVE_XDAMAGE
-    XDamageNotifyEvent* dev;
-    Rect rect;
+    if (ev->type == xdamageEventBase) {
+      XDamageNotifyEvent* dev;
+      Rect rect;
 
-    if (ev->type != xdamageEventBase)
-      return false;
+      if (!running)
+        return true;
 
-    if (!running)
+      dev = (XDamageNotifyEvent*)ev;
+      rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
+      server->add_changed(rect);
+
       return true;
-
-    dev = (XDamageNotifyEvent*)ev;
-    rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
-    server->add_changed(rect);
-
-    return true;
-#else
-  return false;
+    }
 #endif
+
+#ifdef HAVE_XFIXES
+    if (ev->type == xfixesEventBase + XFixesCursorNotify) {
+      XFixesCursorNotifyEvent* cev;
+      XFixesCursorImage *cim;
+
+      if (!running)
+        return true;
+
+      cev = (XFixesCursorNotifyEvent*)ev;
+
+      if (cev->subtype != XFixesDisplayCursorNotify)
+        return false;
+
+      cim = XFixesGetCursorImage(dpy);
+      if (cim == NULL)
+        return false;
+
+      // Copied from XserverDesktop::setCursor() in
+      // unix/xserver/hw/vnc/XserverDesktop.cc and adapted to
+      // handle long -> U32 conversion for 64-bit Xlib
+      rdr::U8* cursorData;
+      rdr::U8 *out;
+      const unsigned long *pixels;
+
+      cursorData = new rdr::U8[cim->width * cim->height * 4];
+
+      // Un-premultiply alpha
+      pixels = cim->pixels;
+      out = cursorData;
+      for (int y = 0; y < cim->height; y++) {
+        for (int x = 0; x < cim->width; x++) {
+          rdr::U8 alpha;
+          rdr::U32 pixel = *pixels++;
+          rdr::U8 *in = (rdr::U8 *) &pixel;
+
+          alpha = in[3];
+          if (alpha == 0)
+            alpha = 1; // Avoid division by zero
+
+          *out++ = (unsigned)*in++ * 255/alpha;
+          *out++ = (unsigned)*in++ * 255/alpha;
+          *out++ = (unsigned)*in++ * 255/alpha;
+          *out++ = *in++;
+        }
+      }
+
+      try {
+        server->setCursor(cim->width, cim->height, Point(cim->xhot, cim->yhot),
+                          cursorData);
+      } catch (rdr::Exception& e) {
+        vlog.error("XserverDesktop::setCursor: %s",e.str());
+      }
+
+      delete [] cursorData;
+      XFree(cim);
+      return true;
+    }
+#endif
+
+    return false;
   }
 
 protected:
@@ -300,11 +383,15 @@ protected:
   int oldButtonMask;
   bool haveXtest;
   bool haveDamage;
+  bool haveXfixes;
   int maxButtons;
   bool running;
 #ifdef HAVE_XDAMAGE
   Damage damage;
   int xdamageEventBase;
+#endif
+#ifdef HAVE_XFIXES
+  int xfixesEventBase;
 #endif
 };
 
