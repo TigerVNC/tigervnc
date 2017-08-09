@@ -62,7 +62,7 @@ if(UNIX)
 
   configure_file(vncviewer.desktop.in.in vncviewer.desktop.in)
   find_program(INTLTOOL_MERGE_EXECUTABLE intltool-merge)
-  if("${GETTEXT_VERSION_STRING}" VERSION_GREATER 0.17.99)
+  if("${GETTEXT_VERSION_STRING}" VERSION_GREATER 0.18.99)
     add_custom_command(OUTPUT vncviewer.desktop
       COMMAND ${GETTEXT_MSGFMT_EXECUTABLE}
                 --desktop --template vncviewer.desktop.in
