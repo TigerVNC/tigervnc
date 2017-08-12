@@ -295,6 +295,7 @@ public class Parameters {
     CSecurityTLS.X509CA,
     CSecurityTLS.X509CRL,
     SecurityClient.secTypes,
+    dotWhenNoCursor,
     autoSelect,
     fullColor,
     lowColorLevel,

@@ -173,7 +173,8 @@ public class VncViewer extends javax.swing.JApplet
     }
 
     // Override defaults with command-line options
-    for (int i = 0; i < argv.length; i++) {
+    int i = 0;
+    for (; i < argv.length; i++) {
       if (argv[i].length() == 0)
         continue;
 
@@ -191,9 +192,6 @@ public class VncViewer extends javax.swing.JApplet
         continue;
       }
 
-      if (Configuration.setParam(argv[i]))
-        continue;
-
       if (argv[i].charAt(0) == '-') {
         if (i+1 < argv.length) {
           if (Configuration.setParam(argv[i].substring(1), argv[i+1])) {
@@ -201,6 +199,9 @@ public class VncViewer extends javax.swing.JApplet
             continue;
           }
         }
+        if (Configuration.setParam(argv[i]))
+          continue;
+
         usage();
       }
 
