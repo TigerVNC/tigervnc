@@ -39,6 +39,7 @@ public class ConnParams {
     majorVersion = 0; minorVersion = 0;
     width = 0; height = 0; useCopyRect = false;
     supportsLocalCursor = false; supportsLocalXCursor = false;
+    supportsLocalCursorWithAlpha = false;
     supportsDesktopResize = false; supportsExtendedDesktopSize = false;
     supportsDesktopRename = false; supportsLastRect = false;
     supportsSetDesktopSize = false; supportsFence = false;
@@ -128,6 +129,7 @@ public class ConnParams {
   {
     useCopyRect = false;
     supportsLocalCursor = false;
+    supportsLocalCursorWithAlpha = false;
     supportsDesktopResize = false;
     supportsExtendedDesktopSize = false;
     supportsLocalXCursor = false;
@@ -150,6 +152,9 @@ public class ConnParams {
         break;
       case Encodings.pseudoEncodingXCursor:
         supportsLocalXCursor = true;
+        break;
+      case Encodings.pseudoEncodingCursorWithAlpha:
+        supportsLocalCursorWithAlpha = true;
         break;
       case Encodings.pseudoEncodingDesktopSize:
         supportsDesktopResize = true;
@@ -213,6 +218,7 @@ public class ConnParams {
 
   public boolean supportsLocalCursor;
   public boolean supportsLocalXCursor;
+  public boolean supportsLocalCursorWithAlpha;
   public boolean supportsDesktopResize;
   public boolean supportsExtendedDesktopSize;
   public boolean supportsDesktopRename;

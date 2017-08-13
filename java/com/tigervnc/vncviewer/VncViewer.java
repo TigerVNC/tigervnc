@@ -81,7 +81,7 @@ public class VncViewer extends javax.swing.JApplet
   public static final InputStream timestamp =
     VncViewer.class.getResourceAsStream("timestamp");
   public static final String os = 
-    System.getProperty("os.name").toLowerCase();
+    System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
   private static VncViewer applet;
 
   private String defaultServerName;

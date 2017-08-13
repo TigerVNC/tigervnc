@@ -104,6 +104,11 @@ public class CConn extends CConnection implements
       currentEncoding = encNum;
 
     cp.supportsLocalCursor = true;
+    if (VncViewer.os.contains("windows"))
+      // JRE on Windows does not support alpha cursor
+      cp.supportsLocalCursorWithAlpha = false;
+    else
+      cp.supportsLocalCursorWithAlpha = true;
 
     cp.supportsDesktopResize = true;
     cp.supportsExtendedDesktopSize = true;
