@@ -67,7 +67,8 @@ public class CMsgWriter {
     if (cp.supportsLocalCursor) {
       encodings[nEncodings++] = Encodings.pseudoEncodingXCursor;
       encodings[nEncodings++] = Encodings.pseudoEncodingCursor;
-      encodings[nEncodings++] = Encodings.pseudoEncodingCursorWithAlpha;
+      if (cp.supportsLocalCursorWithAlpha)
+        encodings[nEncodings++] = Encodings.pseudoEncodingCursorWithAlpha;
     }
     if (cp.supportsDesktopResize)
       encodings[nEncodings++] = Encodings.pseudoEncodingDesktopSize;
