@@ -65,10 +65,10 @@ public class CMsgWriter {
     int[] encodings = new int[Encodings.encodingMax+3];
 
     if (cp.supportsLocalCursor) {
-      encodings[nEncodings++] = Encodings.pseudoEncodingXCursor;
-      encodings[nEncodings++] = Encodings.pseudoEncodingCursor;
       if (cp.supportsLocalCursorWithAlpha)
         encodings[nEncodings++] = Encodings.pseudoEncodingCursorWithAlpha;
+      encodings[nEncodings++] = Encodings.pseudoEncodingCursor;
+      encodings[nEncodings++] = Encodings.pseudoEncodingXCursor;
     }
     if (cp.supportsDesktopResize)
       encodings[nEncodings++] = Encodings.pseudoEncodingDesktopSize;

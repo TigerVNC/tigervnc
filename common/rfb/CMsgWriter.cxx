@@ -72,9 +72,9 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
   rdr::U32 encodings[encodingMax+3];
 
   if (cp->supportsLocalCursor) {
-    encodings[nEncodings++] = pseudoEncodingXCursor;
-    encodings[nEncodings++] = pseudoEncodingCursor;
     encodings[nEncodings++] = pseudoEncodingCursorWithAlpha;
+    encodings[nEncodings++] = pseudoEncodingCursor;
+    encodings[nEncodings++] = pseudoEncodingXCursor;
   }
   if (cp->supportsDesktopResize)
     encodings[nEncodings++] = pseudoEncodingDesktopSize;
