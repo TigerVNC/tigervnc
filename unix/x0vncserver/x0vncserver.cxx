@@ -39,6 +39,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/XKBlib.h>
 #ifdef HAVE_XTEST
 #include <X11/extensions/XTest.h>
 #endif
@@ -253,12 +254,61 @@ public:
 #endif
   }
 
+#ifdef HAVE_XTEST
+  KeyCode XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
+    XkbDescPtr xkb;
+    XkbStateRec state;
+    unsigned keycode;
+
+    xkb = XkbGetMap(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+    if (!xkb)
+      return 0;
+
+    XkbGetState(dpy, XkbUseCoreKbd, &state);
+
+    for (keycode = xkb->min_key_code;
+         keycode <= xkb->max_key_code;
+         keycode++) {
+      KeySym cursym;
+      unsigned int mods;
+      XkbTranslateKeyCode(xkb, keycode, state.compat_state, &mods, &cursym);
+      if (cursym == keysym)
+        break;
+    }
+
+    if (keycode > xkb->max_key_code)
+      keycode = 0;
+
+    XkbFreeKeyboard(xkb, XkbAllComponentsMask, True);
+
+    return keycode;
+  }
+#endif
+
   virtual void keyEvent(rdr::U32 key, bool down) {
 #ifdef HAVE_XTEST
-    if (!haveXtest) return;
-    int keycode = XKeysymToKeycode(dpy, key);
-    if (keycode)
-      XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
+    int keycode;
+
+    if (!haveXtest)
+      return;
+
+    if (down) {
+      if (pressedKeys.find(key) != pressedKeys.end())
+        keycode = pressedKeys[key];
+      else {
+        // XKeysymToKeycode() doesn't respect state, so we have to use
+        // something slightly more complex
+        keycode = XkbKeysymToKeycode(dpy, key);
+        if (!keycode)
+          return;
+        pressedKeys[key] = keycode;
+      }
+    } else {
+        keycode = pressedKeys[key];
+        pressedKeys.erase(key);
+    }
+
+    XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #endif
   }
 
@@ -301,6 +351,7 @@ protected:
   bool haveXtest;
   bool haveDamage;
   int maxButtons;
+  std::map<KeySym, KeyCode> pressedKeys;
   bool running;
 #ifdef HAVE_XDAMAGE
   Damage damage;
