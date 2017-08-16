@@ -380,7 +380,8 @@ bool VNCSConnectionST::needRenderedCursor()
   if (state() != RFBSTATE_NORMAL)
     return false;
 
-  if (!cp.supportsLocalCursor && !cp.supportsLocalXCursor)
+  if (!cp.supportsLocalCursorWithAlpha &&
+      !cp.supportsLocalCursor && !cp.supportsLocalXCursor)
     return true;
   if (!server->cursorPos.equals(pointerEventPos) &&
       (time(0) - pointerEventTime) > 0)
@@ -725,7 +726,8 @@ void VNCSConnectionST::enableContinuousUpdates(bool enable,
 
 void VNCSConnectionST::supportsLocalCursor()
 {
-  if (cp.supportsLocalCursor || cp.supportsLocalXCursor) {
+  if (cp.supportsLocalCursorWithAlpha ||
+      cp.supportsLocalCursor || cp.supportsLocalXCursor) {
     if (!damagedCursorRegion.is_empty())
       removeRenderedCursor = true;
     setCursor();
