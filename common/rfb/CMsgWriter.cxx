@@ -232,7 +232,7 @@ void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
   if (p.y >= cp->height) p.y = cp->height - 1;
 
   startMsg(msgTypePointerEvent);
-  os->writeU8(buttonMask);
+  os->writeU16(buttonMask);
   os->writeU16(p.x);
   os->writeU16(p.y);
   endMsg();

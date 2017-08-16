@@ -310,6 +310,13 @@ int Viewport::handle(int event)
     if (Fl::event_button3())
       buttonMask |= 4;
 
+    if (event == FL_PUSH || event == FL_RELEASE) {
+        if (Fl::event_button() == 8)
+            buttonMask |= 128;
+        if (Fl::event_button() == 9)
+            buttonMask |= 256;
+    }
+
     if (event == FL_MOUSEWHEEL) {
       wheelMask = 0;
       if (Fl::event_dy() < 0)

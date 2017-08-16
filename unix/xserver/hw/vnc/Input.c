@@ -44,7 +44,7 @@ extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#define BUTTONS 7
+#define BUTTONS 9
 
 /* Event queue is shared between all devices. */
 #if XORG < 111
@@ -243,6 +243,8 @@ static int vncPointerProc(DeviceIntPtr pDevice, int onoff)
 		btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
 		btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
 		btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+		btn_labels[7] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_BACK);
+		btn_labels[8] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_FORWARD);
 
 		axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
 		axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
