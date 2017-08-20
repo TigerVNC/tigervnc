@@ -21,6 +21,13 @@
 #include <windows.h>
 #include <commctrl.h>
 
+#ifdef HAVE_GNUTLS
+#include <assert.h>
+#include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
+#define CHECK(x) assert((x)>=0)
+#endif
+
 #include <vncconfig/PasswordDialog.h>
 #include <rfb_win32/Registry.h>
 #include <rfb_win32/SecurityPage.h>
@@ -89,10 +96,36 @@ namespace rfb {
           regKey.setBinary(_T("Password"), 0, 0);
         }
 
+#ifdef HAVE_GNUTLS
         if (isItemChecked(IDC_ENC_X509)) {
-          SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Cert"));
-          SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Key"));
+          gnutls_certificate_credentials_t xcred;
+          CHECK(gnutls_global_init());
+          CHECK(gnutls_certificate_allocate_credentials(&xcred));
+          int ret = gnutls_certificate_set_x509_key_file (xcred,
+                                                          regKey.getString("X509Cert"),
+                                                          regKey.getString("X509Key"),
+                                                          GNUTLS_X509_FMT_PEM);
+          if (ret >= 0) {
+            SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Cert"));
+            SSecurityTLS::X509_CertFile.setParam(regKey.getString("X509Key"));
+          } else {
+            if (ret == GNUTLS_E_CERTIFICATE_KEY_MISMATCH) {
+              MsgBox(0, _T("Private key does not match certificate.\n")
+                        _T("X.509 security types will not be enabled!"),
+                        MB_ICONWARNING | MB_OK);
+            } else if (ret == GNUTLS_E_UNSUPPORTED_CERTIFICATE_TYPE) {
+              MsgBox(0, _T("Unsupported certificate type.\n")
+                        _T("X.509 security types will not be enabled!"),
+                        MB_ICONWARNING | MB_OK);
+            } else {
+              MsgBox(0, _T("Unknown error while importing X.509 certificate or private key.\n")
+                        _T("X.509 security types will not be enabled!"),
+                        MB_ICONWARNING | MB_OK);
+            }
+          }
+          gnutls_global_deinit();
         }
+#endif
 
         regKey.setString(_T("SecurityTypes"), security->ToString());
         regKey.setBool(_T("QueryConnect"), isItemChecked(IDC_QUERY_CONNECT));
