@@ -18,6 +18,11 @@ DefaultGroupName=TigerVNC
 #endif
 LicenseFile=@CMAKE_SOURCE_DIR@\LICENCE.txt
 
+[Dirs]
+; This directory is necessary to prevent the X509 file chooser from causing
+; an error dialog to appear when GetOpenFileName is called by SYSTEM account.
+Name: "{sys}\config\systemprofile\Desktop"
+
 [Files]
 #ifdef BUILD_WINVNC
 Source: "@CMAKE_CURRENT_BINARY_DIR@\win\winvnc\winvnc4.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; 
