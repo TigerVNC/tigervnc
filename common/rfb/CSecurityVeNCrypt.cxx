@@ -191,6 +191,13 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
   return csecurity->processMsg(cc);
 }
 
+const char* CSecurityVeNCrypt::description() const
+{
+  if (csecurity)
+    return csecurity->description();
+  return "VeNCrypt";
+}
+
 bool CSecurityVeNCrypt::isSecure() const
 {
   if (csecurity && csecurity->isSecure())
