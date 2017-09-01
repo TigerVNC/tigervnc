@@ -48,6 +48,7 @@ namespace rfb {
     virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
     virtual const char* description() const
       { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
+    virtual bool isSecure() const { return !anon; }
     static void setDefaults();
 
     static StringParameter X509CA;

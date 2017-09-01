@@ -32,6 +32,7 @@ namespace rfb {
     virtual bool processMsg(CConnection* cc);
     virtual int getType() const {return type;};
     virtual const char* description() const {return name;}
+    virtual bool isSecure() const;
   protected:
     int state;
     CSecurity* state0;

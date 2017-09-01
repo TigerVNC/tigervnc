@@ -31,7 +31,7 @@ public:
 
   // UserPasswdGetter callbacks
 
-  void getUserPasswd(char** user, char** password);
+  void getUserPasswd(bool secure, char** user, char** password);
 
   // UserMsgBox callbacks
 

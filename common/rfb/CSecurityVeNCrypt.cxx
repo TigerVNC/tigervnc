@@ -191,3 +191,9 @@ bool CSecurityVeNCrypt::processMsg(CConnection* cc)
   return csecurity->processMsg(cc);
 }
 
+bool CSecurityVeNCrypt::isSecure() const
+{
+  if (csecurity && csecurity->isSecure())
+    return true;
+  return false;
+}

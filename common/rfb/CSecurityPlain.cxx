@@ -33,7 +33,7 @@ bool CSecurityPlain::processMsg(CConnection* cc)
   CharArray username;
   CharArray password;
 
-  (CSecurity::upg)->getUserPasswd(&username.buf, &password.buf);
+  (CSecurity::upg)->getUserPasswd(cc->isSecure(), &username.buf, &password.buf);
 
   // Return the response to the server
   os->writeU32(strlen(username.buf));
