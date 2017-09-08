@@ -254,6 +254,11 @@ void CSecurityTLS::setParam()
     if (gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred) != GNUTLS_E_SUCCESS)
       throw AuthFailureException("gnutls_credentials_set failed");
 
+    if (gnutls_server_name_set(session, GNUTLS_NAME_DNS,
+                               client->getServerName(),
+                               strlen(client->getServerName())) != GNUTLS_E_SUCCESS)
+      vlog.error("Failed to configure the server name for TLS handshake");
+
     vlog.debug("X509 session has been set");
   }
 }
