@@ -277,9 +277,10 @@ int vncConnectClient(const char *addr)
   }
 
   char *host;
+  char *reflectorString;
   int port;
 
-  getHostAndPort(addr, &host, &port, 5500);
+  getHostAndPort(addr, &host, &reflectorString, &port, 5500);
 
   try {
     network::Socket* sock = new network::TcpSocket(host, port);

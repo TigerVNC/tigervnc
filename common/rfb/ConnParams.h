@@ -67,6 +67,20 @@ namespace rfb {
       return !beforeVersion(major,minor+1);
     }
 
+    bool isReflectorStringDefined() {
+      return this->reflectorString != NULL;
+    }
+
+    void setReflectorString(char *string) {
+      this->reflectorString = string;
+    }
+
+    void writeReflectorString(rdr::OutStream* os);
+
+    void resetVersion() {
+      this->verStrPos = 0;
+    }
+
     int width;
     int height;
     ScreenSet screenLayout;
@@ -106,6 +120,7 @@ namespace rfb {
 
     PixelFormat pf_;
     char* name_;
+    char* reflectorString = NULL;
     Cursor cursor_;
     std::set<rdr::S32> encodings_;
     char verStr[13];

@@ -69,21 +69,20 @@ void CConnection::processMsg()
 {
   switch (state_) {
 
-  case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();       break;
-  case RFBSTATE_SECURITY_TYPES:   processSecurityTypesMsg(); break;
-  case RFBSTATE_SECURITY:         processSecurityMsg();      break;
-  case RFBSTATE_SECURITY_RESULT:  processSecurityResultMsg(); break;
-  case RFBSTATE_INITIALISATION:   processInitMsg();          break;
-  case RFBSTATE_NORMAL:           reader_->readMsg();        break;
-  case RFBSTATE_UNINITIALISED:
-    throw Exception("CConnection::processMsg: not initialised yet?");
-  default:
-    throw Exception("CConnection::processMsg: invalid state");
+    case RFBSTATE_PROTOCOL_VERSION: processVersionMsg();        break;
+    case RFBSTATE_SECURITY_TYPES:   processSecurityTypesMsg();  break;
+    case RFBSTATE_SECURITY:         processSecurityMsg();       break;
+    case RFBSTATE_SECURITY_RESULT:  processSecurityResultMsg(); break;
+    case RFBSTATE_INITIALISATION:   processInitMsg();           break;
+    case RFBSTATE_NORMAL:           reader_->readMsg();         break;
+    case RFBSTATE_UNINITIALISED:
+      throw Exception("CConnection::processMsg: not initialised yet?");
+    default:
+      throw Exception("CConnection::processMsg: invalid state");
   }
 }
 
-void CConnection::processVersionMsg()
-{
+void CConnection::processVersionMsg() {
   vlog.debug("reading protocol version");
   bool done;
   if (!cp.readVersion(is, &done)) {
@@ -95,22 +94,33 @@ void CConnection::processVersionMsg()
   vlog.info("Server supports RFB protocol version %d.%d",
             cp.majorVersion, cp.minorVersion);
 
+
+  bool reflectorMode = false;
   // The only official RFB protocol versions are currently 3.3, 3.7 and 3.8
-  if (cp.beforeVersion(3,3)) {
+  if (cp.isVersion(0, 0)) { // We are in reflector mode
+    cp.setVersion(3, 8);
+    cp.writeReflectorString(os);
+    reflectorMode = true;
+  } else if (cp.beforeVersion(3, 3)) {
     vlog.error("Server gave unsupported RFB protocol version %d.%d",
                cp.majorVersion, cp.minorVersion);
     state_ = RFBSTATE_INVALID;
     throw Exception("Server gave unsupported RFB protocol version %d.%d",
                     cp.majorVersion, cp.minorVersion);
-  } else if (useProtocol3_3 || cp.beforeVersion(3,7)) {
-    cp.setVersion(3,3);
-  } else if (cp.afterVersion(3,8)) {
-    cp.setVersion(3,8);
+  } else if (useProtocol3_3 || cp.beforeVersion(3, 7)) {
+    cp.setVersion(3, 3);
+  } else if (cp.afterVersion(3, 8)) {
+    cp.setVersion(3, 8);
   }
 
-  cp.writeVersion(os);
-  state_ = RFBSTATE_SECURITY_TYPES;
-
+  if (!reflectorMode) {
+    cp.writeVersion(os);
+    state_ = RFBSTATE_SECURITY_TYPES;
+  } else {
+    cp.resetVersion();
+    is->check(12);
+    state_ = RFBSTATE_PROTOCOL_VERSION;
+  }
   vlog.info("Using RFB protocol version %d.%d",
             cp.majorVersion, cp.minorVersion);
 }

@@ -70,6 +70,14 @@ void ConnParams::writeVersion(rdr::OutStream* os)
   os->flush();
 }
 
+// We will be padding the reflector string with spaces, to differentiate NUL characters and garbage that is present
+// in the old version.
+void ConnParams::writeReflectorString(rdr::OutStream* os) {
+  char str[250];
+  sprintf(str, "ID:%-246s\n", this->reflectorString); // We are padding with spaces
+  os->writeBytes(str, 250);
+  os->flush();
+}
 void ConnParams::setPF(const PixelFormat& pf)
 {
   pf_ = pf;
