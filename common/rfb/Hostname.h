@@ -25,9 +25,11 @@
 
 namespace rfb {
 
-  static void getHostAndPort(const char* hi, char** host, int* port, int basePort=5900) {
+  static void getHostAndPort(const char* hi, char** host, char** reflector, int* port, int basePort=5900) {
     CharArray portBuf;
     CharArray hostBuf;
+    CharArray reflectorBuf;
+
     if (hi == NULL)
       throw rdr::Exception("NULL host specified");
     if (hi[0] == '[') {
@@ -38,7 +40,15 @@ namespace rfb {
     }
     if (strSplit(portBuf.buf, ':', hostBuf.buf ? 0 : &hostBuf.buf, &portBuf.buf)) {
       if (portBuf.buf[0] == ':') {
-        *port = atoi(&portBuf.buf[1]);
+        if (strContains(&portBuf.buf[1], ':') && strSplit(&portBuf.buf[1], ':', &portBuf.buf, &reflectorBuf.buf)) {
+          *port = atoi(portBuf.buf);
+          if (reflectorBuf.buf[0] == ':' && strlen(reflectorBuf.buf) > 4 && strncmp(reflectorBuf.buf, ":ID:", 3) == 0
+              && strSplit(&reflectorBuf.buf[3], ':', 0, &reflectorBuf.buf)) {
+            *reflector = reflectorBuf.takeBuf();
+          }
+        } else {
+          *port = atoi(&portBuf.buf[1]);
+        }
       } else {
         *port = atoi(portBuf.buf);
         if (*port < 100) *port += basePort;

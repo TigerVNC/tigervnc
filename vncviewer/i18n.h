@@ -20,6 +20,10 @@
 #ifndef _I18N_H
 #define _I18N_H 1
 
+#ifndef LC_MESSAGES
+#define LC_MESSAGES 'C'
+#endif
+
 #include "gettext.h"
 
 /* Need to tell gcc that pgettext() doesn't screw up format strings */
