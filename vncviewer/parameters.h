@@ -41,6 +41,8 @@ extern rfb::IntParameter qualityLevel;
 extern rfb::BoolParameter maximize;
 extern rfb::BoolParameter fullScreen;
 extern rfb::BoolParameter fullScreenAllMonitors;
+extern rfb::BoolParameter fullScreenSelMonitors;
+extern rfb::StringParameter fullScreenMonitors;
 extern rfb::StringParameter desktopSize;
 extern rfb::StringParameter geometry;
 extern rfb::BoolParameter remoteResize;

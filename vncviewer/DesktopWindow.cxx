@@ -687,45 +687,67 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
 
 void DesktopWindow::fullscreen_on()
 {
-  if (not fullScreenAllMonitors)
-    fullscreen_screens(-1, -1, -1, -1);
-  else {
+  if (fullScreenAllMonitors or fullScreenSelMonitors) {
     int top, bottom, left, right;
     int top_y, bottom_y, left_x, right_x;
 
     int sx, sy, sw, sh;
 
-    top = bottom = left = right = 0;
-
-    Fl::screen_xywh(sx, sy, sw, sh, 0);
+    int *screenList;
+    int screenCount;
+    if (fullScreenSelMonitors and not fullScreenAllMonitors) {
+        screenList = new int [2];
+        int width;
+        int height;
+        if( sscanf(fullScreenMonitors, "%d,%d", &width, &height) != 2) {
+            fullscreen_screens(-1, -1, -1, -1);
+        }
+        else 
+        screenList[0] = width;
+        screenList[1] = height;
+        screenCount = 2;
+        // delete width;
+        // delete height;
+    }
+    else{
+        screenList = new int [Fl::screen_count()];
+        screenCount = Fl::screen_count();
+        for (int i = 0;i < Fl::screen_count();i++) {
+            screenList[i]=i;
+        }
+    }
+    
+    top = bottom = left = right = screenList[0];
+    Fl::screen_xywh(sx, sy, sw, sh, screenList[0]);
     top_y = sy;
     bottom_y = sy + sh;
     left_x = sx;
     right_x = sx + sw;
-
-    for (int i = 1;i < Fl::screen_count();i++) {
-      Fl::screen_xywh(sx, sy, sw, sh, i);
+    
+    for (int i = 1;i < screenCount;i++) {
+      Fl::screen_xywh(sx, sy, sw, sh, screenList[i]);
       if (sy < top_y) {
-        top = i;
+        top = screenList[i];
         top_y = sy;
       }
       if ((sy + sh) > bottom_y) {
-        bottom = i;
+        bottom = screenList[i];
         bottom_y = sy + sh;
       }
       if (sx < left_x) {
-        left = i;
+        left = screenList[i];
         left_x = sx;
       }
       if ((sx + sw) > right_x) {
-        right = i;
+        right = screenList[i];
         right_x = sx + sw;
       }
     }
-
     fullscreen_screens(top, bottom, left, right);
   }
-
+  else {
+    fullscreen_screens(-1, -1, -1, -1);
+  }
   fullscreen();
 }
 
@@ -875,7 +897,6 @@ void DesktopWindow::handleDesktopSize()
     remoteResize(w(), h());
   }
 }
-
 
 void DesktopWindow::handleResizeTimeout(void *data)
 {
