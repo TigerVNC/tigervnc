@@ -615,8 +615,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
         bool uppercase, shift, lock;
 
         uppercase = (keysym >= XK_A) && (keysym <= XK_Z);
-        shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
-                pressedKeys.find(XK_Shift_R) != pressedKeys.end();
+        shift = isShiftPressed();
         lock = server->ledState & ledCapsLock;
 
         if (lock == (uppercase == shift)) {
@@ -636,8 +635,7 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
 
         number = ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
                   (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
-        shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
-                pressedKeys.find(XK_Shift_R) != pressedKeys.end();
+        shift = isShiftPressed();
         lock = server->ledState & ledNumLock;
 
         if (shift) {
@@ -662,21 +660,8 @@ void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
   // Turn ISO_Left_Tab into shifted Tab.
   VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
   if (keysym == XK_ISO_Left_Tab) {
-    std::map<rdr::U32, rdr::U32>::const_iterator iter;
-    bool shifted;
-
-    shifted = false;
-    for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
-      if ((iter->second == XK_Shift_L) ||
-          (iter->second == XK_Shift_R)) {
-        shifted = true;
-        break;
-      }
-    }
-
-    if (!shifted)
+    if (!isShiftPressed())
       shiftPresser.press();
-
     keysym = XK_Tab;
   }
 
@@ -896,6 +881,19 @@ bool VNCSConnectionST::handleTimeout(Timer* t)
   return false;
 }
 
+bool VNCSConnectionST::isShiftPressed()
+{
+    std::map<rdr::U32, rdr::U32>::const_iterator iter;
+
+    for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
+      if (iter->second == XK_Shift_L)
+        return true;
+      if (iter->second == XK_Shift_R)
+        return true;
+    }
+
+  return false;
+}
 
 void VNCSConnectionST::writeRTTPing()
 {

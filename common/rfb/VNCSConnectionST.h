@@ -160,6 +160,8 @@ namespace rfb {
 
     // Internal methods
 
+    bool isShiftPressed();
+
     // Congestion control
     void writeRTTPing();
     void handleRTTPong(const struct RTTInfo &rttInfo);
