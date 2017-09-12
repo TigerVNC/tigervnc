@@ -27,8 +27,9 @@ namespace rdr {
 namespace rfb {
   class ConnParams;
   class ModifiablePixelBuffer;
-  class Rect;
   class Region;
+
+  struct Rect;
 
   enum DecoderFlags {
     // A constant for decoders that don't need anything special

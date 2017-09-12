@@ -28,6 +28,7 @@
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
 #include <rfb/Pixel.h>
+#include <rfb/util.h>
 
 namespace rfb {
 
@@ -85,7 +86,7 @@ namespace rfb {
     // Ensure that the specified rectangle of buffer is up to date.
     //   Overridden by derived classes implementing framebuffer access
     //   to copy the required display data into place.
-    virtual void grabRegion(const Region& region) {}
+    virtual void grabRegion(const Region& __unused region) {}
 
   protected:
     PixelBuffer();

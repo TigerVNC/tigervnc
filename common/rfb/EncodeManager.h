@@ -32,7 +32,7 @@ namespace rfb {
   class PixelBuffer;
   class RenderedCursor;
   class Region;
-  class Rect;
+  struct Rect;
 
   struct RectInfo;
 

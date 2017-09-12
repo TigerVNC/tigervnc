@@ -32,7 +32,7 @@ namespace os {
 }
 
 namespace rdr {
-  class Exception;
+  struct Exception;
   class MemOutStream;
 }
 
@@ -40,7 +40,7 @@ namespace rfb {
   class CConnection;
   class Decoder;
   class ModifiablePixelBuffer;
-  class Rect;
+  struct Rect;
 
   class DecodeManager {
   public:
