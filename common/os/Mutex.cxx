@@ -49,12 +49,8 @@ Mutex::~Mutex()
   DeleteCriticalSection((CRITICAL_SECTION*)systemMutex);
   delete (CRITICAL_SECTION*)systemMutex;
 #else
-  int ret;
-
-  ret = pthread_mutex_destroy((pthread_mutex_t*)systemMutex);
+  pthread_mutex_destroy((pthread_mutex_t*)systemMutex);
   delete (pthread_mutex_t*)systemMutex;
-  if (ret != 0)
-    throw rdr::SystemException("Failed to destroy mutex", ret);
 #endif
 }
 
@@ -106,12 +102,8 @@ Condition::~Condition()
 #ifdef WIN32
   delete (CONDITION_VARIABLE*)systemCondition;
 #else
-  int ret;
-
-  ret = pthread_cond_destroy((pthread_cond_t*)systemCondition);
+  pthread_cond_destroy((pthread_cond_t*)systemCondition);
   delete (pthread_cond_t*)systemCondition;
-  if (ret != 0)
-    throw rdr::SystemException("Failed to destroy condition variable", ret);
 #endif
 }
 
