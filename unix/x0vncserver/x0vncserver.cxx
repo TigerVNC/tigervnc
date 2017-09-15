@@ -276,6 +276,14 @@ public:
   inline void poll() {
     if (pb and not haveDamage)
       pb->poll(server);
+    if (running) {
+      Window root, child;
+      int x, y, wx, wy;
+      unsigned int mask;
+      XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &child,
+                    &x, &y, &wx, &wy, &mask);
+      server->setCursorPos(rfb::Point(x, y));
+    }
   }
 
   // -=- SDesktop interface
