@@ -163,8 +163,8 @@ public:
   XDesktop(Display* dpy_, Geometry *geometry_)
     : dpy(dpy_), geometry(geometry_), pb(0), server(0),
       oldButtonMask(0), haveXtest(false), haveDamage(false),
-      haveXfixes(false),  maxButtons(0), running(false),
-      ledMasks(), ledState(0), codeMap(0), codeMapLen(0)
+      maxButtons(0), running(false), ledMasks(), ledState(0),
+      codeMap(0), codeMapLen(0)
   {
     int major, minor;
 
@@ -257,7 +257,8 @@ public:
     int xfixesErrorBase;
 
     if (XFixesQueryExtension(dpy, &xfixesEventBase, &xfixesErrorBase)) {
-      haveXfixes = true;
+      XFixesSelectCursorInput(dpy, DefaultRootWindow(dpy),
+                              XFixesDisplayCursorNotifyMask);
     } else {
 #endif
       vlog.info("XFIXES extension not present");
@@ -302,13 +303,6 @@ public:
     if (haveDamage) {
       damage = XDamageCreate(dpy, DefaultRootWindow(dpy),
                              XDamageReportRawRectangles);
-    }
-#endif
-
-#ifdef HAVE_XFIXES
-    if (haveXfixes) {
-      XFixesSelectCursorInput(dpy, DefaultRootWindow(dpy),
-                              XFixesDisplayCursorNotifyMask);
     }
 #endif
 
@@ -531,7 +525,6 @@ protected:
   int oldButtonMask;
   bool haveXtest;
   bool haveDamage;
-  bool haveXfixes;
   int maxButtons;
   std::map<KeySym, KeyCode> pressedKeys;
   bool running;
