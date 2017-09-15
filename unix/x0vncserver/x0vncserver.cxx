@@ -403,7 +403,7 @@ public:
         keycode = codeMap[xtcode];
 
     if (!keycode) {
-      if (!down || (pressedKeys.find(keysym) != pressedKeys.end()))
+      if (pressedKeys.find(keysym) != pressedKeys.end())
         keycode = pressedKeys[keysym];
       else {
         // XKeysymToKeycode() doesn't respect state, so we have to use
