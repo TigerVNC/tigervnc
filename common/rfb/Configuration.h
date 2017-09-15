@@ -215,6 +215,7 @@ namespace rfb {
     IntParameter(const char* name_, const char* desc_, int v,
                  int minValue=INT_MIN, int maxValue=INT_MAX,
 		 ConfigurationObject co=ConfGlobal);
+    using VoidParameter::setParam;
     virtual bool setParam(const char* value);
     virtual bool setParam(int v);
     virtual char* getDefaultStr() const;
@@ -251,6 +252,7 @@ namespace rfb {
   public:
     BinaryParameter(const char* name_, const char* desc_, const void* v, int l,
 		    ConfigurationObject co=ConfGlobal);
+    using VoidParameter::setParam;
     virtual ~BinaryParameter();
     virtual bool setParam(const char* value);
     virtual void setParam(const void* v, int l);

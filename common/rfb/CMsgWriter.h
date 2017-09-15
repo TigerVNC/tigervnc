@@ -33,7 +33,7 @@ namespace rfb {
 
   class PixelFormat;
   class ConnParams;
-  class ScreenSet;
+  struct ScreenSet;
   struct Rect;
 
   class CMsgWriter : public InputHandler {

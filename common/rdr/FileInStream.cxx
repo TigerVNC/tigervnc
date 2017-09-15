@@ -70,12 +70,12 @@ int FileInStream::overrun(int itemSize, int nItems, bool wait)
 
   while (end < b + itemSize) {
     size_t n = fread((U8 *)end, b + sizeof(b) - end, 1, file);
-    if (n < 1) {
-      if (n < 0 || ferror(file))
+    if (n == 0) {
+      if (ferror(file))
         throw SystemException("fread", errno);
       if (feof(file))
         throw EndOfStream();
-      if (n == 0) { return 0; }
+      return 0;
     }
     end += b + sizeof(b) - end;
   }

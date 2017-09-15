@@ -42,6 +42,7 @@
 #include <rfb/InputHandler.h>
 #include <rfb/Exception.h>
 #include <rfb/screenTypes.h>
+#include <rfb/util.h>
 
 namespace rfb {
 
@@ -55,7 +56,7 @@ namespace rfb {
     // set via the VNCServer's setPixelBuffer() method by the time this call
     // returns.
 
-    virtual void start(VNCServer* vs) {}
+    virtual void start(VNCServer* __unused_attr vs) {}
 
     // stop() is called by the server when there are no longer any
     // authenticated clients, and therefore the desktop can cease any
@@ -71,8 +72,9 @@ namespace rfb {
 
     // setScreenLayout() requests to reconfigure the framebuffer and/or
     // the layout of screens.
-    virtual unsigned int setScreenLayout(int fb_width, int fb_height,
-                                         const ScreenSet& layout) {
+    virtual unsigned int setScreenLayout(int __unused_attr fb_width,
+                                         int __unused_attr fb_height,
+                                         const ScreenSet& __unused_attr layout) {
       return resultProhibited;
     }
 
