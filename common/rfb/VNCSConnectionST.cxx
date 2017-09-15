@@ -64,6 +64,8 @@ struct RTTInfo {
   unsigned inFlight;
 };
 
+static Cursor emptyCursor(0, 0, Point(0, 0), NULL);
+
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
   : sock(s), reverseConnection(reverse),
@@ -357,6 +359,9 @@ bool VNCSConnectionST::getComparerState()
 void VNCSConnectionST::renderedCursorChange()
 {
   if (state() != RFBSTATE_NORMAL) return;
+  // Are we switching between client-side and server-side cursor?
+  if (damagedCursorRegion.is_empty() != needRenderedCursor())
+    setCursorOrClose();
   if (!damagedCursorRegion.is_empty())
     removeRenderedCursor = true;
   if (needRenderedCursor()) {
@@ -1132,7 +1137,11 @@ void VNCSConnectionST::setCursor()
   if (state() != RFBSTATE_NORMAL)
     return;
 
-  cp.setCursor(*server->cursor);
+  // We need to blank out the client's cursor or there will be two
+  if (needRenderedCursor())
+    cp.setCursor(emptyCursor);
+  else
+    cp.setCursor(*server->cursor);
 
   if (!writer()->writeSetCursorWithAlpha()) {
     if (!writer()->writeSetCursor()) {
