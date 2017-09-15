@@ -332,20 +332,67 @@ public:
 #endif
   }
 
+#ifdef HAVE_XTEST
+  KeyCode XkbKeysymToKeycode(Display* dpy, KeySym keysym) {
+    XkbDescPtr xkb;
+    XkbStateRec state;
+    unsigned keycode;
+
+    xkb = XkbGetMap(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+    if (!xkb)
+      return 0;
+
+    XkbGetState(dpy, XkbUseCoreKbd, &state);
+
+    for (keycode = xkb->min_key_code;
+         keycode <= xkb->max_key_code;
+         keycode++) {
+      KeySym cursym;
+      unsigned int mods;
+      XkbTranslateKeyCode(xkb, keycode, state.compat_state, &mods, &cursym);
+      if (cursym == keysym)
+        break;
+    }
+
+    if (keycode > xkb->max_key_code)
+      keycode = 0;
+
+    XkbFreeKeyboard(xkb, XkbAllComponentsMask, True);
+
+    return keycode;
+  }
+#endif
+
   virtual void keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
 #ifdef HAVE_XTEST
     int keycode = 0;
-    if (!haveXtest) return;
+
+    if (!haveXtest)
+      return;
 
     // Use scan code if provided and mapping exists
     if (codeMap && rawKeyboard && xtcode < codeMapLen)
         keycode = codeMap[xtcode];
 
-    if (!keycode)
-        keycode = XKeysymToKeycode(dpy, keysym);
+    if (!keycode) {
+      if (!down || (pressedKeys.find(keysym) != pressedKeys.end()))
+        keycode = pressedKeys[keysym];
+      else {
+        // XKeysymToKeycode() doesn't respect state, so we have to use
+        // something slightly more complex
+        keycode = XkbKeysymToKeycode(dpy, keysym);
+      }
+    }
 
-    if (keycode)
-      XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
+    if (!keycode)
+      return;
+
+    if (down)
+      pressedKeys[keysym] = keycode;
+    else
+      pressedKeys.erase(keysym);
+
+    XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #endif
   }
 
@@ -405,6 +452,7 @@ protected:
   bool haveXtest;
   bool haveDamage;
   int maxButtons;
+  std::map<KeySym, KeyCode> pressedKeys;
   bool running;
 #ifdef HAVE_XDAMAGE
   Damage damage;
