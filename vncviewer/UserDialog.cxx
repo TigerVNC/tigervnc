@@ -32,6 +32,7 @@
 #include <FL/Fl_Secret_Input.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Return_Button.H>
+#include <FL/Fl_Pixmap.H>
 
 #include <rfb/util.h>
 #include <rfb/Password.h>
@@ -42,7 +43,17 @@
 #include "parameters.h"
 #include "UserDialog.h"
 
+/* xpm:s predate const, so they have invalid definitions */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#include "../media/secure.xpm"
+#include "../media/insecure.xpm"
+#pragma GCC diagnostic pop
+
 using namespace rfb;
+
+static Fl_Pixmap secure_icon(secure);
+static Fl_Pixmap insecure_icon(insecure);
 
 static int ret_val = 0;
 
@@ -59,7 +70,7 @@ UserDialog::~UserDialog()
 {
 }
 
-void UserDialog::getUserPasswd(char** user, char** password)
+void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 {
   CharArray passwordFileStr(passwordFile.getData());
 
@@ -82,45 +93,72 @@ void UserDialog::getUserPasswd(char** user, char** password)
     return;
   }
 
-  if (!user) {
-    fl_message_title(_("VNC authentication"));
-    *password = strDup(fl_password(_("Password:"), ""));
-    if (!*password)
-      throw rfb::Exception(_("Authentication cancelled"));
+  Fl_Window *win;
+  Fl_Box *banner;
+  Fl_Input *username;
+  Fl_Secret_Input *passwd;
+  Fl_Box *icon;
+  Fl_Button *button;
 
-    return;
-  }
+  int y;
 
-  // Largely copied from FLTK so that we get the same look and feel
-  // as the simpler password input.
-  Fl_Window *win = new Fl_Window(410, 145, _("VNC authentication"));
+  win = new Fl_Window(410, 145, _("VNC authentication"));
   win->callback(button_cb,(void *)0);
 
-  Fl_Input *username = new Fl_Input(70, 25, 300, 25, _("Username:"));
-  username->align(FL_ALIGN_TOP_LEFT);
+  banner = new Fl_Box(0, 0, win->w(), 20);
+  banner->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE|FL_ALIGN_IMAGE_NEXT_TO_TEXT);
+  banner->box(FL_FLAT_BOX);
+  if (secure) {
+    banner->label(_("This connection is secure"));
+    banner->color(FL_GREEN);
+    banner->image(secure_icon);
+  } else {
+    banner->label(_("This connection is not secure"));
+    banner->color(FL_RED);
+    banner->image(insecure_icon);
+  }
 
-  Fl_Secret_Input *passwd = new Fl_Secret_Input(70, 70, 300, 25, _("Password:"));
-  passwd->align(FL_ALIGN_TOP_LEFT);
+  y = 20 + 10;
 
-  Fl_Box *icon = new Fl_Box(10, 10, 50, 50, "?");
+  icon = new Fl_Box(10, y, 50, 50, "?");
   icon->box(FL_UP_BOX);
   icon->labelfont(FL_TIMES_BOLD);
   icon->labelsize(34);
   icon->color(FL_WHITE);
   icon->labelcolor(FL_BLUE);
 
-  Fl_Button *button;
+  y += 5;
 
-  button = new Fl_Return_Button(310, 110, 90, 25, fl_ok);
+  if (user) {
+    (new Fl_Box(70, y, win->w()-70-10, 20, _("Username:")))
+      ->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+    y += 20 + 5;
+    username = new Fl_Input(70, y, win->w()-70-10, 25);
+    y += 25 + 5;
+  }
+
+  (new Fl_Box(70, y, win->w()-70-10, 20, _("Password:")))
+    ->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+  y += 20 + 5;
+  passwd = new Fl_Secret_Input(70, y, win->w()-70-10, 25);
+  y += 25 + 5;
+
+  y += 5;
+
+  button = new Fl_Return_Button(310, y, 90, 25, fl_ok);
   button->align(FL_ALIGN_INSIDE|FL_ALIGN_WRAP);
   button->callback(button_cb, (void*)0);
 
-  button = new Fl_Button(210, 110, 90, 25, fl_cancel);
+  button = new Fl_Button(210, y, 90, 25, fl_cancel);
   button->align(FL_ALIGN_INSIDE|FL_ALIGN_WRAP);
   button->callback(button_cb, (void*)1);
   button->shortcut(FL_Escape);
 
+  y += 25 + 10;
+
   win->end();
+
+  win->size(win->w(), y);
 
   win->set_modal();
 
@@ -130,14 +168,15 @@ void UserDialog::getUserPasswd(char** user, char** password)
   while (win->shown()) Fl::wait();
 
   if (ret_val == 0) {
-    *user = strDup(username->value());
+    if (user)
+      *user = strDup(username->value());
     *password = strDup(passwd->value());
-  } else {
-    *user = strDup("");
-    *password = strDup("");
   }
 
   delete win;
+
+  if (ret_val != 0)
+    throw rfb::Exception(_("Authentication cancelled"));
 }
 
 bool UserDialog::showMsgBox(int flags, const char* title, const char* text)

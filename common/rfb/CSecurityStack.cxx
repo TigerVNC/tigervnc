@@ -63,3 +63,12 @@ bool CSecurityStack::processMsg(CConnection* cc)
 
   return res;
 }
+
+bool CSecurityStack::isSecure() const
+{
+  if (state0 && state0->isSecure())
+    return true;
+  if (state == 1 && state1 && state1->isSecure())
+    return true;
+  return false;
+}

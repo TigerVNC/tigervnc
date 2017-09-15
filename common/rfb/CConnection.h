@@ -134,6 +134,8 @@ namespace rfb {
     // Identities, to determine the unique(ish) name of the server.
     const char* getServerName() const { return serverName.buf; }
 
+    bool isSecure() const { return csecurity ? csecurity->isSecure() : false; }
+
     enum stateEnum {
       RFBSTATE_UNINITIALISED,
       RFBSTATE_PROTOCOL_VERSION,

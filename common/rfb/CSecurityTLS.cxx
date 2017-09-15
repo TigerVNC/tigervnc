@@ -337,6 +337,9 @@ void CSecurityTLS::checkSession()
   if (status & GNUTLS_CERT_SIGNER_NOT_CA)
     vlog.debug("server cert signer not CA");
 
+  if (status & GNUTLS_CERT_INSECURE_ALGORITHM)
+    throw AuthFailureException("The server certificate uses an insecure algorithm");
+
   if ((status & (~allowed_errors)) != 0) {
     /* No other errors are allowed */
     vlog.debug("GNUTLS status of certificate verification: %u", status);

@@ -38,7 +38,8 @@ namespace rfb {
     ~CSecurityVeNCrypt();
     virtual bool processMsg(CConnection* cc);// { return true; }
     int getType() const {return chosenType;}
-    virtual const char* description() const { return secTypeName(chosenType); }
+    virtual const char* description() const;
+    virtual bool isSecure() const;
 
   protected:
     CSecurity *csecurity;

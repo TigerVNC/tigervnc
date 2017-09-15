@@ -49,6 +49,7 @@ namespace rfb {
     virtual void destroy() { delete this; }
     virtual int getType() const = 0;
     virtual const char* description() const = 0;
+    virtual bool isSecure() const { return false; }
 
     /*
      * Use variable directly instead of dumb get/set methods.
