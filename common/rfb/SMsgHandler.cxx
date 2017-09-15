@@ -41,10 +41,13 @@ void SMsgHandler::setPixelFormat(const PixelFormat& pf)
 
 void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
 {
-  bool firstFence, firstContinuousUpdates;
+  bool firstFence, firstContinuousUpdates, firstLEDState,
+       firstQEMUKeyEvent;
 
   firstFence = !cp.supportsFence;
   firstContinuousUpdates = !cp.supportsContinuousUpdates;
+  firstLEDState = !cp.supportsLEDState;
+  firstQEMUKeyEvent = !cp.supportsQEMUKeyEvent;
 
   cp.setEncodings(nEncodings, encodings);
 
@@ -54,6 +57,10 @@ void SMsgHandler::setEncodings(int nEncodings, const rdr::S32* encodings)
     supportsFence();
   if (cp.supportsContinuousUpdates && firstContinuousUpdates)
     supportsContinuousUpdates();
+  if (cp.supportsLEDState && firstLEDState)
+    supportsLEDState();
+  if (cp.supportsQEMUKeyEvent && firstQEMUKeyEvent)
+    supportsQEMUKeyEvent();
 }
 
 void SMsgHandler::supportsLocalCursor()
@@ -65,6 +72,14 @@ void SMsgHandler::supportsFence()
 }
 
 void SMsgHandler::supportsContinuousUpdates()
+{
+}
+
+void SMsgHandler::supportsLEDState()
+{
+}
+
+void SMsgHandler::supportsQEMUKeyEvent()
 {
 }
 

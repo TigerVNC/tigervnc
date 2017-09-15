@@ -92,6 +92,8 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   cp.supportsExtendedDesktopSize = true;
   cp.supportsDesktopRename = true;
 
+  cp.supportsLEDState = true;
+
   if (customCompressLevel)
     cp.compressLevel = compressLevel;
   else
@@ -501,6 +503,13 @@ void CConn::fence(rdr::U32 flags, unsigned len, const char data[])
 
     cp.setPF(pf);
   }
+}
+
+void CConn::setLEDState(unsigned int state)
+{
+  CConnection::setLEDState(state);
+
+  desktop->setLEDState(state);
 }
 
 

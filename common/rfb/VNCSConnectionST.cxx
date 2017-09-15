@@ -34,10 +34,12 @@
 #include <rfb/Security.h>
 #include <rfb/screenTypes.h>
 #include <rfb/fenceTypes.h>
+#include <rfb/ledStates.h>
 #include <rfb/ServerCore.h>
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/Encoder.h>
+#define XK_LATIN1
 #define XK_MISCELLANY
 #define XK_XKB_KEYS
 #include <rfb/keysymdef.h>
@@ -100,11 +102,18 @@ VNCSConnectionST::~VNCSConnectionST()
                                     (closeReason.buf) ? closeReason.buf : "");
 
   // Release any keys the client still had pressed
-  std::set<rdr::U32>::iterator i;
-  for (i=pressedKeys.begin(); i!=pressedKeys.end(); i++) {
-    vlog.debug("Releasing key 0x%x on client disconnect", *i);
-    server->desktop->keyEvent(*i, false);
+  while (!pressedKeys.empty()) {
+    rdr::U32 keysym, keycode;
+
+    keysym = pressedKeys.begin()->second;
+    keycode = pressedKeys.begin()->first;
+    pressedKeys.erase(pressedKeys.begin());
+
+    vlog.debug("Releasing key 0x%x / 0x%x on client disconnect",
+               keysym, keycode);
+    server->desktop->keyEvent(keysym, keycode, false);
   }
+
   if (server->pointerClient == this)
     server->pointerClient = 0;
 
@@ -313,6 +322,16 @@ void VNCSConnectionST::setCursorOrClose()
 }
 
 
+void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
+{
+  try {
+    setLEDState(state);
+  } catch(rdr::Exception& e) {
+    close(e.str());
+  }
+}
+
+
 int VNCSConnectionST::checkIdleTimeout()
 {
   int idleTimeout = rfb::Server::idleTimeout;
@@ -421,6 +440,7 @@ void VNCSConnectionST::authSuccess()
   cp.height = server->pb->height();
   cp.screenLayout = server->screenLayout;
   cp.setName(server->getName());
+  cp.setLEDState(server->ledState);
   
   // - Set the default pixel format
   cp.setPF(server->pb->getPF());
@@ -530,12 +550,12 @@ public:
   ~VNCSConnectionSTShiftPresser() {
     if (pressed) {
       vlog.debug("Releasing fake Shift_L");
-      desktop->keyEvent(XK_Shift_L, false);
+      desktop->keyEvent(XK_Shift_L, 0, false);
     }
   }
   void press() {
     vlog.debug("Pressing fake Shift_L");
-    desktop->keyEvent(XK_Shift_L, true);
+    desktop->keyEvent(XK_Shift_L, 0, true);
     pressed = true;
   }
   SDesktop* desktop;
@@ -544,42 +564,142 @@ public:
 
 // keyEvent() - record in the pressedKeys which keys were pressed.  Allow
 // multiple down events (for autorepeat), but only allow a single up event.
-void VNCSConnectionST::keyEvent(rdr::U32 key, bool down) {
+void VNCSConnectionST::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down) {
+  rdr::U32 lookup;
+
   lastEventTime = time(0);
   server->lastUserInputTime = lastEventTime;
   if (!(accessRights & AccessKeyEvents)) return;
   if (!rfb::Server::acceptKeyEvents) return;
 
   if (down)
-    vlog.debug("Key pressed: 0x%x", key);
+    vlog.debug("Key pressed: 0x%x / 0x%x", keysym, keycode);
   else
-    vlog.debug("Key released: 0x%x", key);
+    vlog.debug("Key released: 0x%x / 0x%x", keysym, keycode);
 
   // Remap the key if required
   if (server->keyRemapper) {
     rdr::U32 newkey;
-    newkey = server->keyRemapper->remapKey(key);
-    if (newkey != key) {
+    newkey = server->keyRemapper->remapKey(keysym);
+    if (newkey != keysym) {
       vlog.debug("Key remapped to 0x%x", newkey);
-      key = newkey;
+      keysym = newkey;
+    }
+  }
+
+  // Avoid lock keys if we don't know the server state
+  if ((server->ledState == ledUnknown) &&
+      ((keysym == XK_Caps_Lock) ||
+       (keysym == XK_Num_Lock) ||
+       (keysym == XK_Scroll_Lock))) {
+    vlog.debug("Ignoring lock key (e.g. caps lock)");
+    return;
+  }
+
+  // Lock key heuristics
+  // (only for clients that do not support the LED state extension)
+  if (!cp.supportsLEDState) {
+    // Always ignore ScrollLock as we don't have a heuristic
+    // for that
+    if (keysym == XK_Scroll_Lock) {
+      vlog.debug("Ignoring lock key (e.g. caps lock)");
+      return;
+    }
+
+    if (down && (server->ledState != ledUnknown)) {
+      // CapsLock synchronisation heuristic
+      // (this assumes standard interaction between CapsLock the Shift
+      // keys and normal characters)
+      if (((keysym >= XK_A) && (keysym <= XK_Z)) ||
+          ((keysym >= XK_a) && (keysym <= XK_z))) {
+        bool uppercase, shift, lock;
+
+        uppercase = (keysym >= XK_A) && (keysym <= XK_Z);
+        shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
+                pressedKeys.find(XK_Shift_R) != pressedKeys.end();
+        lock = server->ledState & ledCapsLock;
+
+        if (lock == (uppercase == shift)) {
+          vlog.debug("Inserting fake CapsLock to get in sync with client");
+          server->desktop->keyEvent(XK_Caps_Lock, 0, true);
+          server->desktop->keyEvent(XK_Caps_Lock, 0, false);
+        }
+      }
+
+      // NumLock synchronisation heuristic
+      // (this is more cautious because of the differences between Unix,
+      // Windows and macOS)
+      if (((keysym >= XK_KP_Home) && (keysym <= XK_KP_Delete)) ||
+          ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
+          (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal)) {
+        bool number, shift, lock;
+
+        number = ((keysym >= XK_KP_0) && (keysym <= XK_KP_9)) ||
+                  (keysym == XK_KP_Separator) || (keysym == XK_KP_Decimal);
+        shift = pressedKeys.find(XK_Shift_L) != pressedKeys.end() ||
+                pressedKeys.find(XK_Shift_R) != pressedKeys.end();
+        lock = server->ledState & ledNumLock;
+
+        if (shift) {
+          // We don't know the appropriate NumLock state for when Shift
+          // is pressed as it could be one of:
+          //
+          // a) A Unix client where Shift negates NumLock
+          //
+          // b) A Windows client where Shift only cancels NumLock
+          //
+          // c) A macOS client where Shift doesn't have any effect
+          //
+        } else if (lock == (number == shift)) {
+          vlog.debug("Inserting fake NumLock to get in sync with client");
+          server->desktop->keyEvent(XK_Num_Lock, 0, true);
+          server->desktop->keyEvent(XK_Num_Lock, 0, false);
+        }
+      }
     }
   }
 
   // Turn ISO_Left_Tab into shifted Tab.
   VNCSConnectionSTShiftPresser shiftPresser(server->desktop);
-  if (key == XK_ISO_Left_Tab) {
-    if (pressedKeys.find(XK_Shift_L) == pressedKeys.end() &&
-        pressedKeys.find(XK_Shift_R) == pressedKeys.end())
+  if (keysym == XK_ISO_Left_Tab) {
+    std::map<rdr::U32, rdr::U32>::const_iterator iter;
+    bool shifted;
+
+    shifted = false;
+    for (iter = pressedKeys.begin(); iter != pressedKeys.end(); ++iter) {
+      if ((iter->second == XK_Shift_L) ||
+          (iter->second == XK_Shift_R)) {
+        shifted = true;
+        break;
+      }
+    }
+
+    if (!shifted)
       shiftPresser.press();
-    key = XK_Tab;
+
+    keysym = XK_Tab;
   }
 
+  // We need to be able to track keys, so generate a fake index when we
+  // aren't given a keycode
+  if (keycode == 0)
+    lookup = 0x80000000 | keysym;
+  else
+    lookup = keycode;
+
+  // We force the same keysym for an already down key for the
+  // sake of sanity
+  if (pressedKeys.find(lookup) != pressedKeys.end())
+    keysym = pressedKeys[lookup];
+
   if (down) {
-    pressedKeys.insert(key);
+    pressedKeys[lookup] = keysym;
   } else {
-    if (!pressedKeys.erase(key)) return;
+    if (!pressedKeys.erase(lookup))
+      return;
   }
-  server->desktop->keyEvent(key, down);
+
+  server->desktop->keyEvent(keysym, keycode, down);
 }
 
 void VNCSConnectionST::clientCutText(const char* str, int len)
@@ -752,6 +872,11 @@ void VNCSConnectionST::supportsContinuousUpdates()
     return;
 
   writer()->writeEndOfContinuousUpdates();
+}
+
+void VNCSConnectionST::supportsLEDState()
+{
+  writer()->writeLEDState();
 }
 
 
@@ -1164,6 +1289,21 @@ void VNCSConnectionST::setDesktopName(const char *name)
 
   if (!writer()->writeSetDesktopName()) {
     fprintf(stderr, "Client does not support desktop rename\n");
+    return;
+  }
+
+  writeFramebufferUpdate();
+}
+
+void VNCSConnectionST::setLEDState(unsigned int ledstate)
+{
+  if (state() != RFBSTATE_NORMAL)
+    return;
+
+  cp.setLEDState(ledstate);
+
+  if (!writer()->writeLEDState()) {
+    // No client support
     return;
   }
 

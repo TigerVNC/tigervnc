@@ -22,6 +22,7 @@
 #include <rdr/OutStream.h>
 #include <rfb/Exception.h>
 #include <rfb/encodings.h>
+#include <rfb/ledStates.h>
 #include <rfb/ConnParams.h>
 #include <rfb/util.h>
 
@@ -34,10 +35,12 @@ ConnParams::ConnParams()
     supportsLocalCursorWithAlpha(false),
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
     supportsDesktopRename(false), supportsLastRect(false),
+    supportsLEDState(false), supportsQEMUKeyEvent(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(subsampleUndefined), name_(0), verStrPos(0)
+    subsampling(subsampleUndefined), name_(0), verStrPos(0),
+    ledState_(ledUnknown)
 {
   setName("");
   cursor_ = new Cursor(0, 0, Point(), NULL);
@@ -107,6 +110,7 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   supportsExtendedDesktopSize = false;
   supportsLocalXCursor = false;
   supportsLastRect = false;
+  supportsQEMUKeyEvent = false;
   compressLevel = -1;
   qualityLevel = -1;
   fineQualityLevel = -1;
@@ -140,6 +144,11 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       break;
     case pseudoEncodingLastRect:
       supportsLastRect = true;
+      break;
+    case pseudoEncodingLEDState:
+      supportsLEDState = true;
+    case pseudoEncodingQEMUKeyEvent:
+      supportsQEMUKeyEvent = true;
       break;
     case pseudoEncodingFence:
       supportsFence = true;
@@ -182,4 +191,9 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
     if (encodings[i] > 0)
       encodings_.insert(encodings[i]);
   }
+}
+
+void ConnParams::setLEDState(unsigned int state)
+{
+  ledState_ = state;
 }

@@ -101,6 +101,7 @@ namespace rfb {
     virtual void setCursor(int width, int height, const Point& hotspot,
                            const rdr::U8* data);
     virtual void setCursorPos(const Point& p);
+    virtual void setLEDState(unsigned state);
 
     virtual void bell();
 
@@ -209,6 +210,7 @@ namespace rfb {
     int blockCounter;
     PixelBuffer* pb;
     ScreenSet screenLayout;
+    unsigned int ledState;
 
     CharArray name;
 

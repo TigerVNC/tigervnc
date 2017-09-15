@@ -55,6 +55,7 @@ namespace rfb {
     virtual void setName(const char* name);
     virtual void fence(rdr::U32 flags, unsigned len, const char data[]);
     virtual void endOfContinuousUpdates();
+    virtual void supportsQEMUKeyEvent();
     virtual void serverInit() = 0;
 
     virtual void readAndDecodeRect(const Rect& r, int encoding,
@@ -68,6 +69,8 @@ namespace rfb {
 				     rdr::U16* rgbs) = 0;
     virtual void bell() = 0;
     virtual void serverCutText(const char* str, rdr::U32 len) = 0;
+
+    virtual void setLEDState(unsigned int state);
 
     ConnParams cp;
   };

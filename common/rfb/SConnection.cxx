@@ -278,6 +278,11 @@ void SConnection::setEncodings(int nEncodings, const rdr::S32* encodings)
   SMsgHandler::setEncodings(nEncodings, encodings);
 }
 
+void SConnection::supportsQEMUKeyEvent()
+{
+  writer()->writeQEMUKeyEvent();
+}
+
 void SConnection::versionReceived()
 {
 }

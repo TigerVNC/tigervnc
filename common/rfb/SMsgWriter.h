@@ -82,6 +82,12 @@ namespace rfb {
     bool writeSetXCursor();
     bool writeSetCursorWithAlpha();
 
+    // Same for LED state message
+    bool writeLEDState();
+
+    // And QEMU keyboard event handshake
+    bool writeQEMUKeyEvent();
+
     // needFakeUpdate() returns true when an immediate update is needed in
     // order to flush out pseudo-rectangles to the client.
     bool needFakeUpdate();
@@ -131,6 +137,8 @@ namespace rfb {
     void writeSetCursorWithAlphaRect(int width, int height,
                                      int hotspotX, int hotspotY,
                                      const rdr::U8* data);
+    void writeLEDStateRect(rdr::U8 state);
+    void writeQEMUKeyEventRect();
 
     ConnParams* cp;
     rdr::OutStream* os;
@@ -141,10 +149,11 @@ namespace rfb {
     bool needSetDesktopSize;
     bool needExtendedDesktopSize;
     bool needSetDesktopName;
-    bool needLastRect;
     bool needSetCursor;
     bool needSetXCursor;
     bool needSetCursorWithAlpha;
+    bool needLEDState;
+    bool needQEMUKeyEvent;
 
     typedef struct {
       rdr::U16 reason, result;

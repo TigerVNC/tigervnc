@@ -21,6 +21,7 @@
 #include <rfb/msgTypes.h>
 #include <rfb/fenceTypes.h>
 #include <rfb/encodings.h>
+#include <rfb/qemuTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/Rect.h>
@@ -82,10 +83,13 @@ void CMsgWriter::writeSetEncodings(int preferredEncoding, bool useCopyRect)
     encodings[nEncodings++] = pseudoEncodingExtendedDesktopSize;
   if (cp->supportsDesktopRename)
     encodings[nEncodings++] = pseudoEncodingDesktopName;
+  if (cp->supportsLEDState)
+    encodings[nEncodings++] = pseudoEncodingLEDState;
 
   encodings[nEncodings++] = pseudoEncodingLastRect;
   encodings[nEncodings++] = pseudoEncodingContinuousUpdates;
   encodings[nEncodings++] = pseudoEncodingFence;
+  encodings[nEncodings++] = pseudoEncodingQEMUKeyEvent;
 
   if (Decoder::supported(preferredEncoding)) {
     encodings[nEncodings++] = preferredEncoding;
@@ -213,13 +217,26 @@ void CMsgWriter::writeFence(rdr::U32 flags, unsigned len, const char data[])
   endMsg();
 }
 
-void CMsgWriter::keyEvent(rdr::U32 key, bool down)
+void CMsgWriter::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
-  startMsg(msgTypeKeyEvent);
-  os->writeU8(down);
-  os->pad(2);
-  os->writeU32(key);
-  endMsg();
+  if (!cp->supportsQEMUKeyEvent || !keycode) {
+    /* This event isn't meaningful without a valid keysym */
+    if (!keysym)
+      return;
+
+    startMsg(msgTypeKeyEvent);
+    os->writeU8(down);
+    os->pad(2);
+    os->writeU32(keysym);
+    endMsg();
+  } else {
+    startMsg(msgTypeQEMUClientMessage);
+    os->writeU8(qemuExtendedKeyEvent);
+    os->writeU16(down);
+    os->writeU32(keysym);
+    os->writeU32(keycode);
+    endMsg();
+  }
 }
 
 
@@ -239,7 +256,7 @@ void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
 }
 
 
-void CMsgWriter::clientCutText(const char* str, rdr::U32 len)
+void CMsgWriter::clientCutText(const char* str, int len)
 {
   startMsg(msgTypeClientCutText);
   os->pad(3);

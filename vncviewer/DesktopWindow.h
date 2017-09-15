@@ -66,6 +66,9 @@ public:
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
 
+  // Change client LED state
+  void setLEDState(unsigned int state);
+
   // Fl_Window callback methods
   void draw();
   void resize(int x, int y, int w, int h);

@@ -45,5 +45,7 @@ namespace rfb {
   const int msgTypeClientFence = 248;
 
   const int msgTypeSetDesktopSize = 251;
+
+  const int msgTypeQEMUClientMessage = 255;
 }
 #endif

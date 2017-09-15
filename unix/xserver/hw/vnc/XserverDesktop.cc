@@ -53,6 +53,11 @@ using namespace network;
 
 static LogWriter vlog("XserverDesktop");
 
+BoolParameter rawKeyboard("RawKeyboard",
+                          "Send keyboard events straight through and "
+                          "avoid mapping them to the current keyboard "
+                          "layout", false);
+
 class FileHTTPServer : public rfb::HTTPServer {
 public:
   FileHTTPServer(XserverDesktop* d) : desktop(d) {}
@@ -320,6 +325,11 @@ XserverDesktop::queryConnection(network::Socket* sock,
 void XserverDesktop::bell()
 {
   server->bell();
+}
+
+void XserverDesktop::setLEDState(unsigned int state)
+{
+  server->setLEDState(state);
 }
 
 void XserverDesktop::serverCutText(const char* str, int len)
@@ -766,7 +776,10 @@ void XserverDesktop::grabRegion(const rfb::Region& region)
   }
 }
 
-void XserverDesktop::keyEvent(rdr::U32 keysym, bool down)
+void XserverDesktop::keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down)
 {
-  vncKeyboardEvent(keysym, down);
+  if (!rawKeyboard)
+    keycode = 0;
+
+  vncKeyboardEvent(keysym, keycode, down);
 }

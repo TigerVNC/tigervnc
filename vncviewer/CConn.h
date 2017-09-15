@@ -74,6 +74,8 @@ public:
 
   void fence(rdr::U32 flags, unsigned len, const char data[]);
 
+  void setLEDState(unsigned int state);
+
 private:
 
   void resizeFramebuffer();

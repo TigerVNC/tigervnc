@@ -47,6 +47,11 @@ public:
   void setCursor(int width, int height, const rfb::Point& hotspot,
                  const rdr::U8* data);
 
+  // Change client LED state
+  void setLEDState(unsigned int state);
+  // Change server LED state
+  void pushLEDState();
+
   void draw(Surface* dst);
 
   // Fl_Widget callback methods
@@ -58,6 +63,8 @@ public:
   int handle(int event);
 
 private:
+
+  unsigned int getModifierMask(unsigned int keysym);
 
   static void handleClipboardChange(int source, void *data);
 
@@ -88,7 +95,7 @@ private:
   DownMap downKeySym;
 
   rdr::U32 menuKeySym;
-  int menuKeyCode;
+  int menuKeyCode, menuKeyFLTK;
   Fl_Menu_Button *contextMenu;
 
   bool menuCtrlKey;

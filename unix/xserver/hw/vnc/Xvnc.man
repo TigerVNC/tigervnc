@@ -294,8 +294,10 @@ or
 where
 .I char
 is a hexadecimal keysym. For example, to exchange the " and @ symbols you would specify the following:
-.IP "" 10
+
+.RS 10
 RemapKeys=0x22<>0x40
+.RE
 .
 .TP
 .B \-AvoidShiftNumLock
@@ -303,6 +305,13 @@ Key affected by NumLock often require a fake Shift to be inserted in order
 for the correct symbol to be generated. Turning on this option avoids these
 extra fake Shift events but may result in a slightly different symbol
 (e.g. a Return instead of a keypad Enter).
+.
+.TP
+.B \-RawKeyboard
+Send keyboard events straight through and avoid mapping them to the current
+keyboard layout. This effectively makes the keyboard behave according to the
+layout configured on the server instead of the layout configured on the
+client. Default is off.
 .
 .TP
 .B \-AllowOverride

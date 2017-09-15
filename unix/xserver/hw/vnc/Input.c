@@ -44,6 +44,11 @@ extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+extern const unsigned short code_map_qnum_to_xorgevdev[];
+extern const unsigned int code_map_qnum_to_xorgevdev_len;
+extern const unsigned short code_map_qnum_to_xorgkbd[];
+extern const unsigned int code_map_qnum_to_xorgkbd_len;
+
 #define BUTTONS 7
 
 /* Event queue is shared between all devices. */
@@ -57,12 +62,17 @@ DeviceIntPtr vncPointerDev;
 static int oldButtonMask;
 static int cursorPosX, cursorPosY;
 
+static const unsigned short *codeMap;
+static unsigned int codeMapLen;
+
 static KeySym pressedKeys[256];
 
 static int vncPointerProc(DeviceIntPtr pDevice, int onoff);
 static void vncKeyboardBell(int percent, DeviceIntPtr device,
                             void * ctrl, int class);
 static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff);
+
+static void vncKeysymKeyboardEvent(KeySym keysym, int down);
 
 #define LOG_NAME "Input"
 
@@ -87,6 +97,19 @@ void vncInitInputDevice(void)
 
 	if ((vncPointerDev != NULL) || (vncKeyboardDev != NULL))
 		return;
+
+	/*
+	 * On Linux we try to provide the same key codes as Xorg with
+	 * the evdev driver. On other platforms we mimic the older
+	 * Xorg KBD driver.
+	 */
+#ifdef __linux__
+	codeMap = code_map_qnum_to_xorgevdev;
+	codeMapLen = code_map_qnum_to_xorgevdev_len;
+#else
+	codeMap = code_map_qnum_to_xorgkbd;
+	codeMapLen = code_map_qnum_to_xorgkbd_len;
+#endif
 
 	for (i = 0;i < 256;i++)
 		pressedKeys[i] = NoSymbol;
@@ -273,6 +296,11 @@ static void vncKeyboardBell(int percent, DeviceIntPtr device,
 		vncBell();
 }
 
+static void vncKeyboardCtrl(DeviceIntPtr pDevice, KeybdCtrl *ctrl)
+{
+	vncSetLEDState(ctrl->leds);
+}
+
 static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 {
 	DevicePtr pDev = (DevicePtr)pDevice;
@@ -280,7 +308,7 @@ static int vncKeyboardProc(DeviceIntPtr pDevice, int onoff)
 	switch (onoff) {
 	case DEVICE_INIT:
 		InitKeyboardDeviceStruct(pDevice, NULL, vncKeyboardBell,
-					 (KbdCtrlProcPtr)NoopDDA);
+					 vncKeyboardCtrl);
 		break;
 	case DEVICE_ON:
 		pDev->on = TRUE;
@@ -315,6 +343,48 @@ static inline void pressKey(DeviceIntPtr dev, int kc, Bool down, const char *msg
 #else
 	QueueKeyboardEvents(dev, action, kc);
 #endif
+}
+
+/*
+ * vncKeyboardEvent() - add X11 events for the given RFB key event
+ */
+void vncKeyboardEvent(KeySym keysym, unsigned xtcode, int down)
+{
+	/* Simple case: the client has specified the key */
+	if (xtcode && xtcode < codeMapLen) {
+		int keycode;
+
+		keycode = codeMap[xtcode];
+		if (!keycode) {
+			/*
+			 * Figure something out based on keysym if we
+			 * cannot find a mapping.
+			 */
+			if (keysym)
+				vncKeysymKeyboardEvent(keysym, down);
+			return;
+		}
+
+		/*
+		 * We update the state table in case we get a mix of
+		 * events with and without key codes.
+		 */
+		if (down)
+			pressedKeys[keycode] = keysym;
+		else
+			pressedKeys[keycode] = NoSymbol;
+
+		pressKey(vncKeyboardDev, keycode, down, "raw keycode");
+		mieqProcessInputEvents();
+		return;
+	}
+
+	/*
+	 * Advanced case: We have to figure out a sequence of keys that
+	 *                result in the given keysym
+	 */
+	if (keysym)
+		vncKeysymKeyboardEvent(keysym, down);
 }
 
 /* altKeysym is a table of alternative keysyms which have the same meaning. */
@@ -367,14 +437,14 @@ static struct altKeysym_t {
 };
 
 /*
- * vncKeyboardEvent() - work out the best keycode corresponding to the keysym
- * sent by the viewer. This is basically impossible in the general case, but
- * we make a best effort by assuming that all useful keysyms can be reached
- * using just the Shift and Level 3 (AltGr) modifiers. For core keyboards this
- * is basically always true, and should be true for most sane, western XKB
- * layouts.
+ * vncKeysymKeyboardEvent() - work out the best keycode corresponding
+ * to the keysym sent by the viewer. This is basically impossible in
+ * the general case, but we make a best effort by assuming that all
+ * useful keysyms can be reached using just the Shift and
+ * Level 3 (AltGr) modifiers. For core keyboards this is basically
+ * always true, and should be true for most sane, western XKB layouts.
  */
-void vncKeyboardEvent(KeySym keysym, int down)
+static void vncKeysymKeyboardEvent(KeySym keysym, int down)
 {
 	int i;
 	unsigned state, new_state;
@@ -435,12 +505,6 @@ void vncKeyboardEvent(KeySym keysym, int down)
 			if (keycode != 0)
 				break;
 		}
-	}
-
-	/* We don't have lock synchronisation... */
-	if (vncIsLockModifier(keycode, new_state)) {
-		LOG_DEBUG("Ignoring lock key (e.g. caps lock)");
-		return;
 	}
 
 	/* No matches. Will have to add a new entry... */

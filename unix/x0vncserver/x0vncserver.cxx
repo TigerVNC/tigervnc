@@ -39,6 +39,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/XKBlib.h>
 #ifdef HAVE_XTEST
 #include <X11/extensions/XTest.h>
 #endif
@@ -51,6 +52,12 @@
 #include <x0vncserver/XPixelBuffer.h>
 #include <x0vncserver/PollingScheduler.h>
 
+extern const unsigned short code_map_qnum_to_xorgevdev[];
+extern const unsigned int code_map_qnum_to_xorgevdev_len;
+
+extern const unsigned short code_map_qnum_to_xorgkbd[];
+extern const unsigned int code_map_qnum_to_xorgkbd_len;
+
 // XXX Lynx/OS 2.3: protos for select(), bzero()
 #ifdef Lynx
 #include <sys/proto.h>
@@ -60,6 +67,14 @@ extern char buildtime[];
 
 using namespace rfb;
 using namespace network;
+
+// number of XKb indicator leds to handle
+static const int N_LEDS = 3;
+
+// order is important as it must match RFB extension
+static const char * ledNames[N_LEDS] = {
+  "Scroll Lock", "Num Lock", "Caps Lock"
+};
 
 static LogWriter vlog("Main");
 
@@ -78,6 +93,10 @@ IntParameter queryConnectTimeout("QueryConnectTimeout",
                                  "rejecting the connection",
                                  10);
 StringParameter hostsFile("HostsFile", "File with IP access control rules", "");
+BoolParameter rawKeyboard("RawKeyboard",
+                          "Send keyboard events straight through and "
+                          "avoid mapping them to the current keyboard "
+                          "layout", false);
 
 //
 // Allow the main loop terminate itself gracefully on receiving a signal.
@@ -141,12 +160,69 @@ public:
   XDesktop(Display* dpy_, Geometry *geometry_)
     : dpy(dpy_), geometry(geometry_), pb(0), server(0),
       oldButtonMask(0), haveXtest(false), haveDamage(false),
-      maxButtons(0), running(false)
+      maxButtons(0), running(false), ledMasks(), ledState(0),
+      codeMap(0), codeMapLen(0)
   {
+    int major, minor;
+
+    int xkbOpcode, xkbErrorBase;
+
+    major = XkbMajorVersion;
+    minor = XkbMinorVersion;
+    if (!XkbQueryExtension(dpy, &xkbOpcode, &xkbEventBase,
+                           &xkbErrorBase, &major, &minor)) {
+      vlog.error("XKEYBOARD extension not present");
+      throw Exception();
+    }
+
+    XkbSelectEvents(dpy, XkbUseCoreKbd, XkbIndicatorStateNotifyMask,
+                    XkbIndicatorStateNotifyMask);
+
+    // figure out bit masks for the indicators we are interested in
+    for (int i = 0; i < N_LEDS; i++) {
+      Atom a;
+      int shift;
+      Bool on;
+
+      a = XInternAtom(dpy, ledNames[i], True);
+      if (!a || !XkbGetNamedIndicator(dpy, a, &shift, &on, NULL, NULL))
+        continue;
+
+      ledMasks[i] = 1u << shift;
+      vlog.debug("Mask for '%s' is 0x%x", ledNames[i], ledMasks[i]);
+      if (on)
+        ledState |= 1u << i;
+    }
+
+    // X11 unfortunately uses keyboard driver specific keycodes and provides no
+    // direct way to query this, so guess based on the keyboard mapping
+    XkbDescPtr desc = XkbGetKeyboard(dpy, XkbAllComponentsMask, XkbUseCoreKbd);
+    if (desc && desc->names) {
+      char *keycodes = XGetAtomName(dpy, desc->names->keycodes);
+
+      if (keycodes) {
+        if (strncmp("evdev", keycodes, strlen("evdev")) == 0) {
+          codeMap = code_map_qnum_to_xorgevdev;
+          codeMapLen = code_map_qnum_to_xorgevdev_len;
+          vlog.info("Using evdev codemap\n");
+        } else if (strncmp("xfree86", keycodes, strlen("xfree86")) == 0) {
+          codeMap = code_map_qnum_to_xorgkbd;
+          codeMapLen = code_map_qnum_to_xorgkbd_len;
+          vlog.info("Using xorgkbd codemap\n");
+        } else {
+          vlog.info("Unknown keycode '%s', no codemap\n", keycodes);
+        }
+        XFree(keycodes);
+      } else {
+        vlog.debug("Unable to get keycode map\n");
+      }
+
+      XkbFreeKeyboard(desc, XkbAllComponentsMask, True);
+    }
+
 #ifdef HAVE_XTEST
     int xtestEventBase;
     int xtestErrorBase;
-    int major, minor;
 
     if (XTestQueryExtension(dpy, &xtestEventBase,
                             &xtestErrorBase, &major, &minor)) {
@@ -165,7 +241,6 @@ public:
     int xdamageErrorBase;
 
     if (XDamageQueryExtension(dpy, &xdamageEventBase, &xdamageErrorBase)) {
-      TXWindow::setGlobalEventHandler(this);
       haveDamage = true;
     } else {
 #endif
@@ -174,6 +249,8 @@ public:
 #ifdef HAVE_XDAMAGE
     }
 #endif
+
+    TXWindow::setGlobalEventHandler(this);
   }
   virtual ~XDesktop() {
     stop();
@@ -211,6 +288,8 @@ public:
                              XDamageReportRawRectangles);
     }
 #endif
+
+    server->setLEDState(ledState);
 
     running = true;
   }
@@ -253,10 +332,18 @@ public:
 #endif
   }
 
-  virtual void keyEvent(rdr::U32 key, bool down) {
+  virtual void keyEvent(rdr::U32 keysym, rdr::U32 xtcode, bool down) {
 #ifdef HAVE_XTEST
+    int keycode = 0;
     if (!haveXtest) return;
-    int keycode = XKeysymToKeycode(dpy, key);
+
+    // Use scan code if provided and mapping exists
+    if (codeMap && rawKeyboard && xtcode < codeMapLen)
+        keycode = codeMap[xtcode];
+
+    if (!keycode)
+        keycode = XKeysymToKeycode(dpy, keysym);
+
     if (keycode)
       XTestFakeKeyEvent(dpy, keycode, down, CurrentTime);
 #endif
@@ -272,24 +359,41 @@ public:
   // -=- TXGlobalEventHandler interface
 
   virtual bool handleGlobalEvent(XEvent* ev) {
-#ifdef HAVE_XDAMAGE
-    XDamageNotifyEvent* dev;
-    Rect rect;
+    if (ev->type == xkbEventBase + XkbEventCode) {
+      XkbEvent *kb = (XkbEvent *)ev;
 
-    if (ev->type != xdamageEventBase)
-      return false;
+      if (kb->any.xkb_type != XkbIndicatorStateNotify)
+        return false;
 
-    if (!running)
+      vlog.debug("Got indicator update, mask is now 0x%x", kb->indicators.state);
+
+      ledState = 0;
+      for (int i = 0; i < N_LEDS; i++) {
+        if (kb->indicators.state & ledMasks[i])
+          ledState |= 1u << i;
+      }
+
+      if (running)
+        server->setLEDState(ledState);
+
       return true;
+#ifdef HAVE_XDAMAGE
+    } else if (ev->type == xdamageEventBase) {
+      XDamageNotifyEvent* dev;
+      Rect rect;
 
-    dev = (XDamageNotifyEvent*)ev;
-    rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
-    server->add_changed(rect);
+      if (!running)
+        return true;
 
-    return true;
-#else
-  return false;
+      dev = (XDamageNotifyEvent*)ev;
+      rect.setXYWH(dev->area.x, dev->area.y, dev->area.width, dev->area.height);
+      server->add_changed(rect);
+
+      return true;
 #endif
+    }
+
+    return false;
   }
 
 protected:
@@ -306,6 +410,11 @@ protected:
   Damage damage;
   int xdamageEventBase;
 #endif
+  int xkbEventBase;
+  int ledMasks[N_LEDS];
+  unsigned ledState;
+  const unsigned short *codeMap;
+  unsigned codeMapLen;
 };
 
 

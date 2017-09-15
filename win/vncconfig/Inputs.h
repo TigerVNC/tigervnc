@@ -37,6 +37,7 @@ namespace rfb {
           regKey(rk), enableAffectSSaver(true) {}
       void initDialog() {
         setItemChecked(IDC_ACCEPT_KEYS, rfb::Server::acceptKeyEvents);
+        setItemChecked(IDC_RAW_KEYBOARD, SKeyboard::rawKeyboard);
         setItemChecked(IDC_ACCEPT_PTR, rfb::Server::acceptPointerEvents);
         setItemChecked(IDC_ACCEPT_CUTTEXT, rfb::Server::acceptCutText);
         setItemChecked(IDC_SEND_CUTTEXT, rfb::Server::sendCutText);
@@ -52,6 +53,7 @@ namespace rfb {
         BOOL inputResetsBlocked;
         SystemParametersInfo(SPI_GETBLOCKSENDINPUTRESETS, 0, &inputResetsBlocked, 0);
         setChanged((rfb::Server::acceptKeyEvents != isItemChecked(IDC_ACCEPT_KEYS)) ||
+          (SKeyboard::rawKeyboard != isItemChecked(IDC_RAW_KEYBOARD)) ||
           (rfb::Server::acceptPointerEvents != isItemChecked(IDC_ACCEPT_PTR)) ||
           (rfb::Server::acceptCutText != isItemChecked(IDC_ACCEPT_CUTTEXT)) ||
           (rfb::Server::sendCutText != isItemChecked(IDC_SEND_CUTTEXT)) ||
@@ -61,6 +63,7 @@ namespace rfb {
       }
       bool onOk() {
         regKey.setBool(_T("AcceptKeyEvents"), isItemChecked(IDC_ACCEPT_KEYS));
+        regKey.setBool(_T("RawKeyboard"), isItemChecked(IDC_RAW_KEYBOARD));
         regKey.setBool(_T("AcceptPointerEvents"), isItemChecked(IDC_ACCEPT_PTR));
         regKey.setBool(_T("AcceptCutText"), isItemChecked(IDC_ACCEPT_CUTTEXT));
         regKey.setBool(_T("SendCutText"), isItemChecked(IDC_SEND_CUTTEXT));

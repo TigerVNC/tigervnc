@@ -84,6 +84,9 @@ namespace rfb {
 
     void setEncodings(int nEncodings, const rdr::S32* encodings);
 
+    unsigned int ledState() { return ledState_; }
+    void setLEDState(unsigned int state);
+
     bool useCopyRect;
 
     bool supportsLocalCursor;
@@ -93,6 +96,8 @@ namespace rfb {
     bool supportsExtendedDesktopSize;
     bool supportsDesktopRename;
     bool supportsLastRect;
+    bool supportsLEDState;
+    bool supportsQEMUKeyEvent;
 
     bool supportsSetDesktopSize;
     bool supportsFence;
@@ -111,6 +116,7 @@ namespace rfb {
     std::set<rdr::S32> encodings_;
     char verStr[13];
     int verStrPos;
+    unsigned int ledState_;
   };
 }
 #endif

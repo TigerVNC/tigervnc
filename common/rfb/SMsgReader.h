@@ -55,6 +55,9 @@ namespace rfb {
     void readPointerEvent();
     void readClientCutText();
 
+    void readQEMUMessage();
+    void readQEMUKeyEvent();
+
     SMsgHandler* handler;
     rdr::InStream* is;
   };

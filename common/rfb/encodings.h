@@ -34,11 +34,13 @@ namespace rfb {
   const int pseudoEncodingXCursor = -240;
   const int pseudoEncodingCursor = -239;
   const int pseudoEncodingDesktopSize = -223;
+  const int pseudoEncodingLEDState = -261;
   const int pseudoEncodingExtendedDesktopSize = -308;
   const int pseudoEncodingDesktopName = -307;
   const int pseudoEncodingFence = -312;
   const int pseudoEncodingContinuousUpdates = -313;
   const int pseudoEncodingCursorWithAlpha = -314;
+  const int pseudoEncodingQEMUKeyEvent = -258;
 
   // TightVNC-specific
   const int pseudoEncodingLastRect = -224;

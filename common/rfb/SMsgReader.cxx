@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <rdr/InStream.h>
 #include <rfb/msgTypes.h>
+#include <rfb/qemuTypes.h>
 #include <rfb/Exception.h>
 #include <rfb/util.h>
 #include <rfb/SMsgHandler.h>
@@ -77,6 +78,9 @@ void SMsgReader::readMsg()
     break;
   case msgTypeClientCutText:
     readClientCutText();
+    break;
+  case msgTypeQEMUClientMessage:
+    readQEMUMessage();
     break;
   default:
     fprintf(stderr, "unknown message type %d\n", msgType);
@@ -184,7 +188,7 @@ void SMsgReader::readKeyEvent()
   bool down = is->readU8();
   is->skip(2);
   rdr::U32 key = is->readU32();
-  handler->keyEvent(key, down);
+  handler->keyEvent(key, 0, down);
 }
 
 void SMsgReader::readPointerEvent()
@@ -214,3 +218,26 @@ void SMsgReader::readClientCutText()
   handler->clientCutText(ca.buf, len);
 }
 
+void SMsgReader::readQEMUMessage()
+{
+  int subType = is->readU8();
+  switch (subType) {
+  case qemuExtendedKeyEvent:
+    readQEMUKeyEvent();
+    break;
+  default:
+    throw Exception("unknown QEMU submessage type %d", subType);
+  }
+}
+
+void SMsgReader::readQEMUKeyEvent()
+{
+  bool down = is->readU16();
+  rdr::U32 keysym = is->readU32();
+  rdr::U32 keycode = is->readU32();
+  if (!keycode) {
+    vlog.error("Key event without keycode - ignoring");
+    return;
+  }
+  handler->keyEvent(keysym, keycode, down);
+}

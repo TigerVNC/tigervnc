@@ -10,6 +10,8 @@ add_executable(x0vncserver
   PollingManager.cxx
   PollingScheduler.cxx
   TimeMillis.cxx
+  qnum_to_xorgevdev.c
+  qnum_to_xorgkbd.c
   x0vncserver.cxx
   XPixelBuffer.cxx
   ../vncconfig/QueryConnectDialog.cxx
