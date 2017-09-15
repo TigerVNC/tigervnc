@@ -33,6 +33,13 @@ else()
   message(WARNING "No DAMAGE extension.  x0vncserver will have to use the slower polling method.")
 endif()
 
+if(X11_FOUND AND X11_Xfixes_LIB)
+  add_definitions(-DHAVE_XFIXES)
+  target_link_libraries(x0vncserver ${X11_Xfixes_LIB})
+else()
+  message(WARNING "No XFIXES extension.  x0vncserver will not be able to show cursors.")
+endif()
+
 target_link_libraries(x0vncserver ${X11_LIBRARIES})
 
 install(TARGETS x0vncserver DESTINATION ${BIN_DIR})
