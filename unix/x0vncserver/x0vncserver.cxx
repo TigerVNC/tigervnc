@@ -373,8 +373,11 @@ public:
          keycode <= xkb->max_key_code;
          keycode++) {
       KeySym cursym;
-      unsigned int mods;
-      XkbTranslateKeyCode(xkb, keycode, state.compat_state, &mods, &cursym);
+      unsigned int mods, out_mods;
+      // XkbStateFieldFromRec() doesn't work properly because
+      // state.lookup_mods isn't properly updated, so we do this manually
+      mods = XkbBuildCoreState(XkbStateMods(&state), state.group);
+      XkbTranslateKeyCode(xkb, keycode, mods, &out_mods, &cursym);
       if (cursym == keysym)
         break;
     }
