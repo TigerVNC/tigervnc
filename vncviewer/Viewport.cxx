@@ -123,11 +123,11 @@ Viewport::Viewport(int w, int h, const rfb::PixelFormat& serverPF, CConn* cc_)
 
   xkb = XkbGetMap(fl_display, 0, XkbUseCoreKbd);
   if (!xkb)
-    throw Exception("XkbGetMap");
+    throw rfb::Exception("XkbGetMap");
 
   status = XkbGetNames(fl_display, XkbKeyNamesMask, xkb);
   if (status != Success)
-    throw Exception("XkbGetNames");
+    throw rfb::Exception("XkbGetNames");
 
   memset(code_map_keycode_to_qnum, 0, sizeof(code_map_keycode_to_qnum));
   for (KeyCode keycode = xkb->min_key_code;
