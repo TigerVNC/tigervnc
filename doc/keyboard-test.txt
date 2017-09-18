@@ -12,8 +12,8 @@ We currently have a limitation in Xvnc where it can run out of symbols,
 resulting in nothing being sent to the applications. Just run setxkbmap
 with any layout to reset the symbol table.
 
-Client
-------
+Client (classic, non-raw, mode)
+-------------------------------
 
 - Normal symbols:
 
@@ -115,11 +115,27 @@ Client
 
 - French layout (AZERTY and inverted shift behaviour for many keys)
 
+- Local layout changes are respected
+
+Client (raw mode)
+-----------------
+
+- All physical keys (modifiers or type of symbol shouldn't matter)
+
+  - Normal keys
+  - Dead keys
+  - Numpad
+  - Multimedia keys
+  - Non-character keys
+
+- CtrlL+AltR is fake released to compensate for Windows' AltGr magic [Win]
+
+Client (both modes)
+-------------------
+
 - Key repeat should not send repeated release events
 
 - Keys are released on loss of focus
-
-- Local layout changes are respected
 
 - Local input methods are disabled/enabled with focus
 
