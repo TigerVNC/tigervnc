@@ -64,7 +64,7 @@ Client
   X11: You can usually toggle Hyper/Super and Compose/Scroll_Lock using
        XKB options.
 
-  - CapsLock, NumLock (sent but ignored by server)
+  - CapsLock, NumLock
   - Shift, Ctrl
   - Alt, AltGr, Super [Win, X11] (FIXME: AltGr broken on Win)
   - Meta [X11]
@@ -134,5 +134,16 @@ Client
   - Ctrl+Alt+Delete
   - Ctrl+Esc
   - F8-F12
+
+- Lock key states:
+
+  - Adjusted on server when connecting
+  - Adjusted on server when regaining focus
+  - Server changes are honored when focused
+  - Server changes are not honored when not focused
+
+  - CapsLock
+  - NumLock (hidden state on macOS)
+  - ScollLock [X11, Win]
 
 - Virtual keyboard (as much of the above as is possible)
