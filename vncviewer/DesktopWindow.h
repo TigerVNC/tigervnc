@@ -87,6 +87,8 @@ private:
 
   void grabKeyboard();
   void ungrabKeyboard();
+  void grabPointer();
+  void ungrabPointer();
 
   static void handleGrab(void *data);
 
@@ -122,6 +124,9 @@ private:
   bool firstUpdate;
   bool delayedFullscreen;
   bool delayedDesktopSize;
+
+  bool keyboardGrabbed;
+  bool mouseGrabbed;
 
   struct statsEntry {
     unsigned fps;

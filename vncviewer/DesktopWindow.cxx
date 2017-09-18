@@ -65,6 +65,7 @@ DesktopWindow::DesktopWindow(int w, int h, const char *name,
   : Fl_Window(w, h), cc(cc_), offscreen(NULL), overlay(NULL),
     firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false),
+    keyboardGrabbed(false), mouseGrabbed(false),
     statsLastFrame(0), statsLastPixels(0), statsLastPosition(0),
     statsGraph(NULL)
 {
@@ -633,9 +634,18 @@ int DesktopWindow::handle(int event)
     break;
 
   case FL_ENTER:
+      if (keyboardGrabbed)
+          grabPointer();
   case FL_LEAVE:
   case FL_DRAG:
   case FL_MOVE:
+    // We don't get FL_LEAVE with a grabbed pointer, so check manually
+    if (mouseGrabbed) {
+      if ((Fl::event_x() < 0) || (Fl::event_x() >= w()) ||
+          (Fl::event_y() < 0) || (Fl::event_y() >= h())) {
+        ungrabPointer();
+      }
+    }
     if (fullscreen_active()) {
       if (((viewport->x() < 0) && (Fl::event_x() < EDGE_SCROLL_SIZE)) ||
           ((viewport->x() + viewport->w() > w()) && (Fl::event_x() > w() - EDGE_SCROLL_SIZE)) ||
@@ -691,6 +701,16 @@ int DesktopWindow::fltkHandle(int event, Fl_Window *win)
         //        platforms and we want to be able to open subwindows.
         dw->ungrabKeyboard();
       }
+      break;
+
+    case FL_RELEASE:
+      // We usually fail to grab the mouse if a mouse button was
+      // pressed when we gained focus (e.g. clicking on our window),
+      // so we may need to try again when the button is released.
+      // (We do it here rather than handle() because a window does not
+      // see FL_RELEASE events if a child widget grabs it first)
+      if (dw->keyboardGrabbed && !dw->mouseGrabbed)
+        dw->grabPointer();
       break;
     }
   }
@@ -755,14 +775,18 @@ void DesktopWindow::grabKeyboard()
   int ret;
   
   ret = win32_enable_lowlevel_keyboard(fl_xid(this));
-  if (ret != 0)
+  if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
+    return;
+  }
 #elif defined(__APPLE__)
   int ret;
   
   ret = cocoa_capture_display(this, fullScreenAllMonitors);
-  if (ret != 0)
+  if (ret != 0) {
     vlog.error(_("Failure grabbing keyboard"));
+    return;
+  }
 #else
   int ret;
 
@@ -777,24 +801,24 @@ void DesktopWindow::grabKeyboard()
     } else {
       vlog.error(_("Failure grabbing keyboard"));
     }
+    return;
   }
-
-  // We also need to grab the pointer as some WMs like to grab buttons
-  // combined with modifies (e.g. Alt+Button0 in metacity).
-  ret = XGrabPointer(fl_display, fl_xid(this), True,
-                     ButtonPressMask|ButtonReleaseMask|
-                     ButtonMotionMask|PointerMotionMask,
-                     GrabModeAsync, GrabModeAsync,
-                     None, None, CurrentTime);
-  if (ret)
-    vlog.error(_("Failure grabbing mouse"));
 #endif
+
+  keyboardGrabbed = true;
+
+  if (contains(Fl::belowmouse()))
+    grabPointer();
 }
 
 
 void DesktopWindow::ungrabKeyboard()
 {
   Fl::remove_timeout(handleGrab, this);
+
+  keyboardGrabbed = false;
+
+  ungrabPointer();
 
 #if defined(WIN32)
   win32_disable_lowlevel_keyboard(fl_xid(this));
@@ -805,8 +829,43 @@ void DesktopWindow::ungrabKeyboard()
   if (Fl::grab())
     return;
 
-  XUngrabPointer(fl_display, fl_event_time);
   XUngrabKeyboard(fl_display, fl_event_time);
+#endif
+}
+
+
+void DesktopWindow::grabPointer()
+{
+#if !defined(WIN32) && !defined(__APPLE__)
+  int ret;
+
+  // We also need to grab the pointer as some WMs like to grab buttons
+  // combined with modifies (e.g. Alt+Button0 in metacity).
+  ret = XGrabPointer(fl_display, fl_xid(this), True,
+                     ButtonPressMask|ButtonReleaseMask|
+                     ButtonMotionMask|PointerMotionMask,
+                     GrabModeAsync, GrabModeAsync,
+                     None, None, CurrentTime);
+  if (ret) {
+    // Having a button pressed prevents us from grabbing, we make
+    // a new attempt in fltkHandle()
+    if (ret == AlreadyGrabbed)
+      return;
+    vlog.error(_("Failure grabbing mouse"));
+    return;
+  }
+#endif
+
+  mouseGrabbed = true;
+}
+
+
+void DesktopWindow::ungrabPointer()
+{
+  vlog.info("ungrabPointer");
+  mouseGrabbed = false;
+#if !defined(WIN32) && !defined(__APPLE__)
+  XUngrabPointer(fl_display, fl_event_time);
 #endif
 }
 
