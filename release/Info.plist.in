@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>TigerVNC Viewer</string>
 	<key>NSHighResolutionCapable</key>
-	<string>True</string>
+	<string>False</string>
 	<key>CFBundleGetInfoString</key>
 	<string>@VERSION@, Copyright © 1998-2011 [many holders]</string>
 	<key>CFBundleIconFile</key>
