@@ -78,6 +78,10 @@ namespace winvnc {
 
     bool setClientsStatus(rfb::ListConnInfo* LCInfo);
 
+    // Used by JavaViewerServer
+    const char* getName() {return vncServer.getName();}
+    rfb::Point getDesktopSize() {return desktop.getFbSize();}
+
   protected:
     // VNCServerST::QueryConnectionHandler interface
     // Callback used to prompt user to accept or reject a connection.

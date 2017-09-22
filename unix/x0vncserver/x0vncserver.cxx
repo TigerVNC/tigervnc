@@ -427,10 +427,6 @@ public:
   virtual void clientCutText(const char* str, int len) {
   }
 
-  virtual Point getFbSize() {
-    return Point(pb->width(), pb->height());
-  }
-
   // -=- TXGlobalEventHandler interface
 
   virtual bool handleGlobalEvent(XEvent* ev) {

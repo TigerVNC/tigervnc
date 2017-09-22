@@ -68,7 +68,6 @@ namespace rfb {
       virtual void pointerEvent(const Point& pos, int buttonmask);
       virtual void keyEvent(rdr::U32 keysym, rdr::U32 keycode, bool down);
       virtual void clientCutText(const char* str, int len);
-      virtual Point getFbSize();
 
       // -=- Clipboard
       
@@ -86,6 +85,10 @@ namespace rfb {
       // -=- Notification of whether or not SDisplay is started
 
       void setStatusLocation(bool* status) {statusLocation = status;}
+
+      // -=- Used (indirectly) by JavaViewer to get desktop size
+
+      Point getFbSize();
 
       friend class SDisplayCore;
 
