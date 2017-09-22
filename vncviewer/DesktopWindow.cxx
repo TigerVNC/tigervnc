@@ -862,7 +862,6 @@ void DesktopWindow::grabPointer()
 
 void DesktopWindow::ungrabPointer()
 {
-  vlog.info("ungrabPointer");
   mouseGrabbed = false;
 #if !defined(WIN32) && !defined(__APPLE__)
   XUngrabPointer(fl_display, fl_event_time);
