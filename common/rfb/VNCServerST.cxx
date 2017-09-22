@@ -320,6 +320,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 
   comparer = new ComparingUpdateTracker(pb);
   renderedCursorInvalid = true;
+  startFrameClock();
 
   // Make sure that we have at least one screen
   if (screenLayout.num_screens() == 0)
