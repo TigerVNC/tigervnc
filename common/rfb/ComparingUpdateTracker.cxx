@@ -146,8 +146,8 @@ void ComparingUpdateTracker::compareRect(const Rect& r, Region* newChanged)
         if (memcmp(oldPtr, newPtr, blockWidthInBytes) != 0)
         {
           // A block has changed - copy the remainder to the oldFb
-          changedBlocks.push_back(Rect(blockLeft, blockTop,
-                                       blockRight, blockBottom));
+          changedBlocks.emplace_back(blockLeft, blockTop,
+                                       blockRight, blockBottom);
           for (int y2 = y; y2 < blockBottom; y2++)
           {
             memcpy(oldPtr, newPtr, blockWidthInBytes);
