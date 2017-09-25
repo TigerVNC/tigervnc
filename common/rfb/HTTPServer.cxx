@@ -122,7 +122,7 @@ protected:
 void
 copyStream(InStream& is, OutStream& os) {
   try {
-    while (1) {
+    while (true) {
       os.writeU8(is.readU8());
     }
   } catch (rdr::EndOfStream) {

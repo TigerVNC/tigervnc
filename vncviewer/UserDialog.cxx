@@ -184,7 +184,7 @@ bool UserDialog::showMsgBox(int flags, const char* title, const char* text)
   char buffer[1024];
 
   if (fltk_escape(text, buffer, sizeof(buffer)) >= sizeof(buffer))
-    return 0;
+    return false;
 
   // FLTK doesn't give us a flexible choice of the icon, so we ignore those
   // bits for now.

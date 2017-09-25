@@ -266,10 +266,10 @@ BoolParameter::setParam(const char* v) {
 
   if (*v == 0 || strcasecmp(v, "1") == 0 || strcasecmp(v, "on") == 0
       || strcasecmp(v, "true") == 0 || strcasecmp(v, "yes") == 0)
-    value = 1;
+    value = true;
   else if (strcasecmp(v, "0") == 0 || strcasecmp(v, "off") == 0
            || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
-    value = 0;
+    value = false;
   else {
     vlog.error("Bool parameter %s: invalid value '%s'", getName(), v);
     return false;

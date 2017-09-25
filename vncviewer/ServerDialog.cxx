@@ -175,7 +175,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
   file_chooser->previewButton->hide();
   file_chooser->show();
   
-  while(1) {
+  while(true) {
     
     // Block until user picks something.
     while(file_chooser->shown())
