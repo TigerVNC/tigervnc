@@ -31,7 +31,7 @@ static void doTest(const char* hostAndPort,
     rfb::getHostAndPort(hostAndPort, &host, &port);
 
     if (strcmp(host, expectedHost) != 0)
-        printf("FAILED (\"%s\" != \"%s\")", host, expectedHost);
+        printf(R"(FAILED ("%s" != "%s"))", host, expectedHost);
     else if (port != expectedPort)
         printf("FAILED (%d != %d)", port, expectedPort);
     else

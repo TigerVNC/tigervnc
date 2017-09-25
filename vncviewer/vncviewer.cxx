@@ -419,7 +419,7 @@ createTunnel(const char *gatewayHost, const char *remoteHost,
   setenv("R", rport, 1);
   setenv("L", lport, 1);
   if (!cmd)
-    cmd = "/usr/bin/ssh -f -L \"$L\":\"$H\":\"$R\" \"$G\" sleep 20";
+    cmd = R"(/usr/bin/ssh -f -L "$L":"$H":"$R" "$G" sleep 20)";
   /* Compatibility with TigerVNC's method. */
   cmd2 = strdup(cmd);
   while ((percent = strchr(cmd2, '%')) != NULL)
