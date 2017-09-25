@@ -35,7 +35,7 @@ typedef struct {
   FILETIME userTime;
 } syscounter_t;
 #else
-typedef struct rusage syscounter_t;
+using syscounter_t = struct rusage;
 #endif
 
 static syscounter_t _globalCounter[2];

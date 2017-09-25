@@ -32,7 +32,7 @@ static const int fbArea = fbWidth * fbHeight;
 // Maximum bpp, plus some room for unaligned fudging
 static const int fbMalloc = (fbArea * 4) + 4;
 
-typedef bool (*testfn) (const rfb::PixelFormat&, const rfb::PixelFormat&);
+using testfn = bool (*)(const rfb::PixelFormat &, const rfb::PixelFormat &);
 
 struct TestEntry {
   const char *label;

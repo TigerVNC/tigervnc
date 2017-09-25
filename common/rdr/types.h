@@ -21,13 +21,13 @@
 
 namespace rdr {
 
-  typedef unsigned char U8;
-  typedef unsigned short U16;
-  typedef unsigned int U32;
-  typedef unsigned long long U64;
-  typedef signed char S8;
-  typedef signed short S16;
-  typedef signed int S32;
+  using U8 = unsigned char;
+  using U16 = unsigned short;
+  using U32 = unsigned int;
+  using U64 = unsigned long long;
+  using S8 = signed char;
+  using S16 = short;
+  using S32 = int;
 
   class U8Array {
   public:

@@ -122,7 +122,7 @@ namespace rfb {
     // of a VNCSConnectionST to the server.  How the access rights are treated
     // is up to the derived class.
 
-    typedef rdr::U16 AccessRights;
+    using AccessRights = rdr::U16;
     static const AccessRights AccessView;           // View display contents
     static const AccessRights AccessKeyEvents;      // Send key events
     static const AccessRights AccessPtrEvents;      // Send pointer events

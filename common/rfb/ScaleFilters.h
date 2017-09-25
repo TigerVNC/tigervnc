@@ -30,7 +30,7 @@ namespace rfb {
   #define FINALSHIFT (2 * BITS_OF_WEIGHT - BITS_OF_CHANEL)
   #define WEIGHT_OF_ONE (1 << BITS_OF_WEIGHT)
 
-  typedef double (*filter_func)(double x);
+  using filter_func = double (*)(double);
 
   const double pi = 3.14159265358979;
 

@@ -31,7 +31,7 @@ class Fl_Input;
 class Fl_Int_Input;
 class Fl_Choice;
 
-typedef void (OptionsCallback)(void*);
+using OptionsCallback = void (void *);
 
 class OptionsDialog : public Fl_Window {
 protected:

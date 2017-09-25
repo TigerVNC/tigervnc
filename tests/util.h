@@ -19,7 +19,7 @@
 #ifndef __TESTS_UTIL_H__
 #define __TESTS_UTIL_H__
 
-typedef void* cpucounter_t;
+using cpucounter_t = void *;
 
 void startCpuCounter();
 void endCpuCounter();

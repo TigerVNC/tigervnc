@@ -64,8 +64,8 @@ namespace rfb {
   struct ScreenSet {
     ScreenSet() {};
 
-    typedef std::list<Screen>::iterator iterator;
-    typedef std::list<Screen>::const_iterator const_iterator;
+    using iterator = std::list<Screen>::iterator;
+    using const_iterator = std::list<Screen>::const_iterator;
 
     inline iterator begin() { return screens.begin(); };
     inline const_iterator begin() const { return screens.begin(); };
