@@ -36,7 +36,7 @@ using namespace std;
 
 static LogWriter vlog("CVeNCrypt");
 
-CSecurityVeNCrypt::CSecurityVeNCrypt(SecurityClient* sec) : csecurity(NULL), security(sec)
+CSecurityVeNCrypt::CSecurityVeNCrypt(SecurityClient* sec) : csecurity(nullptr), security(sec)
 {
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -49,7 +49,7 @@ CSecurityVeNCrypt::CSecurityVeNCrypt(SecurityClient* sec) : csecurity(NULL), sec
   minorVersion = 0;
   chosenType = secTypeVeNCrypt;
   nAvailableTypes = 0;
-  availableTypes = NULL;
+  availableTypes = nullptr;
   iAvailableType = 0;
 }
 

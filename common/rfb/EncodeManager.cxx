@@ -124,7 +124,7 @@ EncodeManager::EncodeManager(SConnection* conn_) : conn(conn_)
 {
   StatsVector::iterator iter;
 
-  encoders.resize(encoderClassMax, NULL);
+  encoders.resize(encoderClassMax, nullptr);
   activeEncoders.resize(encoderTypeMax, encoderRaw);
 
   encoders[encoderRaw] = new RawEncoder(conn);
@@ -261,7 +261,7 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
       nRects = ui.copied.numRects();
       nRects += computeNumRects(ui.changed);
 
-      if (renderedCursor != NULL)
+      if (renderedCursor != nullptr)
         nRects += 1;
     }
 
@@ -280,7 +280,7 @@ void EncodeManager::writeUpdate(const UpdateInfo& ui, const PixelBuffer* pb,
 
     writeRects(changed, pb);
 
-    if (renderedCursor != NULL) {
+    if (renderedCursor != nullptr) {
       Rect renderedCursorRect;
 
       renderedCursorRect = renderedCursor->getEffectiveRect();

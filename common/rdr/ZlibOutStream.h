@@ -35,7 +35,7 @@ namespace rdr {
 
   public:
 
-    ZlibOutStream(OutStream* os=0, int bufSize=0, int compressionLevel=-1);
+    ZlibOutStream(OutStream* os=nullptr, int bufSize=0, int compressionLevel=-1);
     virtual ~ZlibOutStream();
 
     void setUnderlying(OutStream* os);

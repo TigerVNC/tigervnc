@@ -64,7 +64,7 @@ int Timer::checkTimeouts() {
   if (pending.empty())
     return 0;
 
-  gettimeofday(&start, 0);
+  gettimeofday(&start, nullptr);
   while (pending.front()->isBefore(start)) {
     Timer* timer;
     timeval before;
@@ -72,11 +72,11 @@ int Timer::checkTimeouts() {
     timer = pending.front();
     pending.pop_front();
 
-    gettimeofday(&before, 0);
+    gettimeofday(&before, nullptr);
     if (timer->cb->handleTimeout(timer)) {
       timeval now;
 
-      gettimeofday(&now, 0);
+      gettimeofday(&now, nullptr);
 
       timer->dueTime = addMillis(timer->dueTime, timer->timeoutMs);
       if (timer->isBefore(now)) {
@@ -98,7 +98,7 @@ int Timer::checkTimeouts() {
 
 int Timer::getNextTimeout() {
   timeval now;
-  gettimeofday(&now, 0);
+  gettimeofday(&now, nullptr);
   int toWait = __rfbmax(1, diffTimeMillis(pending.front()->dueTime, now));
   if (toWait > pending.front()->timeoutMs) {
     if (toWait - pending.front()->timeoutMs < 1000) {
@@ -126,7 +126,7 @@ void Timer::insertTimer(Timer* t) {
 
 void Timer::start(int timeoutMs_) {
   timeval now;
-  gettimeofday(&now, 0);
+  gettimeofday(&now, nullptr);
   stop();
   timeoutMs = timeoutMs_;
   dueTime = addMillis(now, timeoutMs);

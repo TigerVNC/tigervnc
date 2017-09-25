@@ -70,7 +70,7 @@ TLSOutStream::~TLSOutStream()
   } catch (Exception&) {
   }
 #endif
-  gnutls_transport_set_push_function(session, NULL);
+  gnutls_transport_set_push_function(session, nullptr);
 
   delete [] start;
 }

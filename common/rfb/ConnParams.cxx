@@ -39,11 +39,11 @@ ConnParams::ConnParams()
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
-    subsampling(subsampleUndefined), name_(0), verStrPos(0),
+    subsampling(subsampleUndefined), name_(nullptr), verStrPos(0),
     ledState_(ledUnknown)
 {
   setName("");
-  cursor_ = new Cursor(0, 0, Point(), NULL);
+  cursor_ = new Cursor(0, 0, Point(), nullptr);
 }
 
 ConnParams::~ConnParams()

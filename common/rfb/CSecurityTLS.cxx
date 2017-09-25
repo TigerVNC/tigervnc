@@ -67,8 +67,8 @@ StringParameter CSecurityTLS::X509CRL("X509CRL", "X509 CRL file", "", ConfViewer
 
 static LogWriter vlog("TLS");
 
-CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
-						 anon(_anon), fis(0), fos(0)
+CSecurityTLS::CSecurityTLS(bool _anon) : session(nullptr), anon_cred(nullptr),
+						 anon(_anon), fis(nullptr), fos(nullptr)
 {
   cafile = X509CA.getData();
   crlfile = X509CRL.getData();
@@ -79,7 +79,7 @@ CSecurityTLS::CSecurityTLS(bool _anon) : session(0), anon_cred(0),
 
 void CSecurityTLS::setDefaults()
 {
-  char* homeDir = NULL;
+  char* homeDir = nullptr;
 
   if (getvnchomedir(&homeDir) == -1) {
     vlog.error("Could not obtain VNC home directory path");
@@ -107,17 +107,17 @@ void CSecurityTLS::shutdown(bool needbye)
 
   if (anon_cred) {
     gnutls_anon_free_client_credentials(anon_cred);
-    anon_cred = 0;
+    anon_cred = nullptr;
   }
 
   if (cert_cred) {
     gnutls_certificate_free_credentials(cert_cred);
-    cert_cred = 0;
+    cert_cred = nullptr;
   }
 
   if (session) {
     gnutls_deinit(session);
-    session = 0;
+    session = nullptr;
   }
 }
 
@@ -200,7 +200,7 @@ void CSecurityTLS::setParam()
 
   prio = (char*)malloc(strlen(Security::GnuTLSPriority) +
                        strlen(kx_anon_priority) + 1);
-  if (prio == NULL)
+  if (prio == nullptr)
     throw AuthFailureException("Not enough memory for GnuTLS priority string");
 
   strcpy(prio, Security::GnuTLSPriority);
@@ -233,7 +233,7 @@ void CSecurityTLS::setParam()
       throw AuthFailureException("load of CA cert failed");
 
     /* Load previously saved certs */
-    char *homeDir = NULL;
+    char *homeDir = nullptr;
     int err;
     if (getvnchomedir(&homeDir) == -1)
       vlog.error("Could not obtain VNC home directory path");
@@ -363,13 +363,13 @@ void CSecurityTLS::checkSession()
   }
 
   size_t out_size = 0;
-  char *out_buf = NULL;
-  char *certinfo = NULL;
+  char *out_buf = nullptr;
+  char *certinfo = nullptr;
   int len = 0;
 
   vlog.debug("certificate issuer unknown");
 
-  len = snprintf(NULL, 0, "This certificate has been signed by an unknown "
+  len = snprintf(nullptr, 0, "This certificate has been signed by an unknown "
                           "authority:\n\n%s\n\nDo you want to save it and "
                           "continue?\n ", info.data);
   if (len < 0)
@@ -378,7 +378,7 @@ void CSecurityTLS::checkSession()
   vlog.debug("%s", info.data);
 
   certinfo = new char[len];
-  if (certinfo == NULL)
+  if (certinfo == nullptr)
     throw AuthFailureException("Out of memory");
 
   snprintf(certinfo, len, "This certificate has been signed by an unknown "
@@ -397,20 +397,20 @@ void CSecurityTLS::checkSession()
 
   delete [] certinfo;
 
-  if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, NULL, &out_size)
+  if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, nullptr, &out_size)
       == GNUTLS_E_SHORT_MEMORY_BUFFER)
     AuthFailureException("Out of memory");
 
   // Save cert
   out_buf =  new char[out_size];
-  if (out_buf == NULL)
+  if (out_buf == nullptr)
     AuthFailureException("Out of memory");
 
   if (gnutls_x509_crt_export(crt, GNUTLS_X509_FMT_PEM, out_buf, &out_size) < 0)
     AuthFailureException("certificate issuer unknown, and certificate "
 			 "export failed");
 
-  char *homeDir = NULL;
+  char *homeDir = nullptr;
   if (getvnchomedir(&homeDir) == -1)
     vlog.error("Could not obtain VNC home directory path");
   else {

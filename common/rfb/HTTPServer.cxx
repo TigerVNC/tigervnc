@@ -88,9 +88,9 @@ protected:
 class rfb::HTTPServer::Session {
 public:
   Session(network::Socket& s, rfb::HTTPServer& srv)
-    : contentType(0), contentLength(-1), lastModified(-1),
+    : contentType(nullptr), contentLength(-1), lastModified(-1),
       line(s.inStream(), 256), sock(s),
-      server(srv), state(ReadRequestLine), lastActive(time(0)) {
+      server(srv), state(ReadRequestLine), lastActive(time(nullptr)) {
   }
   ~Session() {
   }
@@ -147,7 +147,7 @@ HTTPServer::Session::writeResponse(int result, const char* text) {
   OutStream& os=sock.outStream();
   writeLine(os, buffer);
   writeLine(os, "Server: TigerVNC/4.0");
-  time_t now = time(0);
+  time_t now = time(nullptr);
   struct tm* tm = gmtime(&now);
   strftime(buffer, 1024, "Date: %a, %d %b %Y %H:%M:%S GMT", tm);
   writeLine(os, buffer);
@@ -202,7 +202,7 @@ HTTPServer::Session::writeResponse(int code) {
 
 bool
 HTTPServer::Session::processHTTP() {
-  lastActive = time(0);
+  lastActive = time(nullptr);
 
   while (sock.inStream().checkNoWait(1)) {
 
@@ -290,7 +290,7 @@ HTTPServer::Session::processHTTP() {
 }
 
 int HTTPServer::Session::checkIdleTimeout() {
-  time_t now = time(0);
+  time_t now = time(nullptr);
   int timeout = (lastActive + idleTimeoutSecs) - now;
   if (timeout > 0)
     return secsToMillis(timeout);
@@ -398,7 +398,7 @@ InStream*
 HTTPServer::getFile(const char* name, const char** contentType,
                     int* contentLength, time_t* lastModified)
 {
-  return 0;
+  return nullptr;
 }
 
 const char*

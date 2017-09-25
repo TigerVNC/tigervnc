@@ -66,7 +66,7 @@ RandomStream::RandomStream()
 #endif
 #endif
     fprintf(stderr,"RandomStream: warning: no OS supplied random source - using rand()\n");
-    seed += (unsigned int) time(0) + getpid() + getpid() * 987654 + rand();
+    seed += (unsigned int) time(nullptr) + getpid() + getpid() * 987654 + rand();
     srand(seed);
   }
 }

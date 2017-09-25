@@ -70,7 +70,7 @@ TLSInStream::TLSInStream(InStream* _in, gnutls_session_t _session)
 
 TLSInStream::~TLSInStream()
 {
-  gnutls_transport_set_pull_function(session, NULL);
+  gnutls_transport_set_pull_function(session, nullptr);
 
   delete[] start;
 }

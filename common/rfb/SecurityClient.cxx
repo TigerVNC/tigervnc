@@ -36,9 +36,9 @@
 using namespace rdr;
 using namespace rfb;
 
-UserPasswdGetter *CSecurity::upg = NULL;
+UserPasswdGetter *CSecurity::upg = nullptr;
 #ifdef HAVE_GNUTLS
-UserMsgBox *CSecurityTLS::msg = NULL;
+UserMsgBox *CSecurityTLS::msg = nullptr;
 #endif
 
 StringParameter SecurityClient::secTypes
@@ -57,9 +57,9 @@ ConfViewer);
 
 CSecurity* SecurityClient::GetCSecurity(U32 secType)
 {
-  assert (CSecurity::upg != NULL); /* (upg == NULL) means bug in the viewer */
+  assert (CSecurity::upg != nullptr); /* (upg == NULL) means bug in the viewer */
 #ifdef HAVE_GNUTLS
-  assert (CSecurityTLS::msg != NULL);
+  assert (CSecurityTLS::msg != nullptr);
 #endif
 
   if (!IsSupported(secType))

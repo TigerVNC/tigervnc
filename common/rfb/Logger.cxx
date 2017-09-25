@@ -28,9 +28,9 @@
 
 using namespace rfb;
 
-Logger* Logger::loggers = 0;
+Logger* Logger::loggers = nullptr;
 
-Logger::Logger(const char* name) : registered(false), m_name(name), m_next(0) {
+Logger::Logger(const char* name) : registered(false), m_name(name), m_next(nullptr) {
 }
 
 Logger::~Logger() {
@@ -66,7 +66,7 @@ Logger::getLogger(const char* name) {
     if (strcasecmp(name, current->m_name) == 0) return current;
     current = current->m_next;
   }
-  return 0;
+  return nullptr;
 }
 
 void

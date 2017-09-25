@@ -68,7 +68,7 @@ CConn::CConn(const char *filename)
   cpuTime = 0.0;
 
   in = new rdr::FileInStream(filename);
-  setStreams(in, NULL);
+  setStreams(in, nullptr);
 
   // Need to skip the initial handshake
   setState(RFBSTATE_INITIALISATION);
@@ -138,7 +138,7 @@ static struct stats runTest(const char *fn)
   struct timeval start, stop;
   struct stats s;
 
-  gettimeofday(&start, NULL);
+  gettimeofday(&start, nullptr);
 
   try {
     cc = new CConn(fn);
@@ -156,7 +156,7 @@ static struct stats runTest(const char *fn)
     exit(1);
   }
 
-  gettimeofday(&stop, NULL);
+  gettimeofday(&stop, nullptr);
 
   s.decodeTime = cc->cpuTime;
   s.realTime = (double)stop.tv_sec - start.tv_sec;

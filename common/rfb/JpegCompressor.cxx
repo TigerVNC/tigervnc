@@ -157,9 +157,9 @@ void JpegCompressor::compress(const rdr::U8 *buf, int stride, const Rect& r,
   int w = r.width();
   int h = r.height();
   int pixelsize;
-  rdr::U8 *srcBuf = NULL;
+  rdr::U8 *srcBuf = nullptr;
   bool srcBufIsTemp = false;
-  JSAMPROW *rowPointer = NULL;
+  JSAMPROW *rowPointer = nullptr;
 
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error

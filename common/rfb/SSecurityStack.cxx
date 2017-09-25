@@ -56,7 +56,7 @@ bool SSecurityStack::processMsg(SConnection* cc)
 
 const char* SSecurityStack::getUserName() const
 {
-  const char* c = 0;
+  const char* c = nullptr;
 
   if (state1 && !c)
     c = state1->getUserName();

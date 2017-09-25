@@ -29,7 +29,7 @@
 using namespace rfb;
 
 Logger_File::Logger_File(const char* loggerName)
-  : Logger(loggerName), indent(13), width(79), m_filename(0), m_file(0),
+  : Logger(loggerName), indent(13), width(79), m_filename(nullptr), m_file(nullptr),
     m_lastLogTime(0)
 {
   mutex = new os::Mutex();
@@ -55,7 +55,7 @@ void Logger_File::write(int level, const char *logname, const char *message)
     if (!m_file) return;
   }
 
-  time_t current = time(0);
+  time_t current = time(nullptr);
   if (current != m_lastLogTime) {
     m_lastLogTime = current;
     fprintf(m_file, "\n%s", ctime(&m_lastLogTime));
@@ -103,10 +103,10 @@ void Logger_File::closeFile()
   if (m_filename) {
     if (m_file) {
       fclose(m_file);
-      m_file = 0;
+      m_file = nullptr;
     }
     strFree(m_filename);
-    m_filename = 0;
+    m_filename = nullptr;
   }
 }
 

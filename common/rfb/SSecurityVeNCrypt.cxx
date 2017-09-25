@@ -40,7 +40,7 @@ static LogWriter vlog("SVeNCrypt");
 
 SSecurityVeNCrypt::SSecurityVeNCrypt(SecurityServer *sec) : security(sec)
 {
-  ssecurity = NULL;
+  ssecurity = nullptr;
   haveSentVersion = false;
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -50,7 +50,7 @@ SSecurityVeNCrypt::SSecurityVeNCrypt(SecurityServer *sec) : security(sec)
   haveChosenType = false;
   chosenType = secTypeVeNCrypt;
   numTypes = 0;
-  subTypes = NULL;
+  subTypes = nullptr;
 }
 
 SSecurityVeNCrypt::~SSecurityVeNCrypt()
@@ -59,7 +59,7 @@ SSecurityVeNCrypt::~SSecurityVeNCrypt()
 
   if (subTypes) {
     delete [] subTypes;
-    subTypes = NULL;
+    subTypes = nullptr;
   }
 }
 
@@ -175,14 +175,14 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
 
 const char* SSecurityVeNCrypt::getUserName() const
 {
-  if (ssecurity == NULL)
-    return NULL;
+  if (ssecurity == nullptr)
+    return nullptr;
   return ssecurity->getUserName();
 }
 
 SConnection::AccessRights SSecurityVeNCrypt::getAccessRights() const
 {
-  if (ssecurity == NULL)
+  if (ssecurity == nullptr)
     return SSecurity::getAccessRights();
   return ssecurity->getAccessRights();
 }

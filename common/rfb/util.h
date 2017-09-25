@@ -47,7 +47,7 @@ namespace rfb {
   // -=- Class to handle cleanup of arrays of characters
   class CharArray {
   public:
-    CharArray() : buf(0) {}
+    CharArray() : buf(nullptr) {}
     CharArray(char* str) : buf(str) {} // note: assumes ownership
     CharArray(int len) {
       buf = new char[len];
@@ -57,7 +57,7 @@ namespace rfb {
     }
     void format(const char *fmt, ...) __printf_attr(2, 3);
     // Get the buffer pointer & clear it (i.e. caller takes ownership)
-    char* takeBuf() {char* tmp = buf; buf = 0; return tmp;}
+    char* takeBuf() {char* tmp = buf; buf = nullptr; return tmp;}
     void replaceBuf(char* b) {delete [] buf; buf = b;}
     char* buf;
   private:

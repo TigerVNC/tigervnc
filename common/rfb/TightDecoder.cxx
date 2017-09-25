@@ -301,7 +301,7 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
   size_t rowSize, dataSize;
   rdr::U8* netbuf;
 
-  netbuf = NULL;
+  netbuf = nullptr;
 
   if (palSize != 0) {
     if (palSize <= 2)

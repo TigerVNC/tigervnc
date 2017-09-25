@@ -57,7 +57,7 @@ FdOutStream::FdOutStream(int fd_, bool blocking_, int timeoutms_, int bufSize_)
   ptr = start = sentUpTo = new U8[bufSize];
   end = start + bufSize;
 
-  gettimeofday(&lastWrite, NULL);
+  gettimeofday(&lastWrite, nullptr);
 }
 
 FdOutStream::~FdOutStream()
@@ -178,12 +178,12 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
       tv.tv_sec = timeoutms / 1000;
       tv.tv_usec = (timeoutms % 1000) * 1000;
     } else {
-      tvp = NULL;
+      tvp = nullptr;
     }
 
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
-    n = select(fd+1, 0, &fds, 0, tvp);
+    n = select(fd+1, nullptr, &fds, nullptr, tvp);
   } while (n < 0 && errno == EINTR);
 
   if (n < 0)
@@ -199,7 +199,7 @@ int FdOutStream::writeWithTimeout(const void* data, int length, int timeoutms)
   if (n < 0)
     throw SystemException("write", errno);
 
-  gettimeofday(&lastWrite, NULL);
+  gettimeofday(&lastWrite, nullptr);
 
   return n;
 }

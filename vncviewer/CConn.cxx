@@ -71,8 +71,8 @@ static const PixelFormat lowColourPF(8, 6, false, true,
 static const PixelFormat mediumColourPF(8, 8, false, true,
                                         7, 7, 3, 5, 2, 0);
 
-CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
-  : serverHost(0), serverPort(0), desktop(NULL),
+CConn::CConn(const char* vncServerName, network::Socket* socket=nullptr)
+  : serverHost(nullptr), serverPort(0), desktop(nullptr),
     frameCount(0), pixelCount(0), pendingPFChange(false),
     currentEncoding(encodingTight), lastServerEncoding((unsigned int)-1),
     formatChange(false), encodingChange(false),
@@ -104,7 +104,7 @@ CConn::CConn(const char* vncServerName, network::Socket* socket=NULL)
   else
     cp.qualityLevel = -1;
 
-  if(sock == NULL) {
+  if(sock == nullptr) {
     try {
       getHostAndPort(vncServerName, &serverHost, &serverPort);
 
@@ -392,7 +392,7 @@ void CConn::framebufferUpdateEnd()
     // We need fences to make extra update requests and continuous
     // updates "safe". See fence() for the next step.
     if (cp.supportsFence)
-      writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext, 0, NULL);
+      writer()->writeFence(fenceFlagRequest | fenceFlagSyncNext, 0, nullptr);
 
     firstUpdate = false;
   }
@@ -429,7 +429,7 @@ void CConn::serverCutText(const char* str, rdr::U32 len)
   if (!acceptClipboard)
     return;
 
-  size = fl_utf8froma(NULL, 0, str, len);
+  size = fl_utf8froma(nullptr, 0, str, len);
   if (size <= 0)
     return;
 

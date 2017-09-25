@@ -50,7 +50,7 @@ PlainPasswd::PlainPasswd(const ObfuscatedPasswd& obfPwd) : CharArray(9) {
 }
 
 PlainPasswd::~PlainPasswd() {
-  replaceBuf(0);
+  replaceBuf(nullptr);
 }
 
 void PlainPasswd::replaceBuf(char* b) {

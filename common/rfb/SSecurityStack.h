@@ -26,7 +26,7 @@ namespace rfb {
 
   class SSecurityStack : public SSecurity {
   public:
-    SSecurityStack(int Type, SSecurity* s0 = 0, SSecurity* s1 = 0);
+    SSecurityStack(int Type, SSecurity* s0 = nullptr, SSecurity* s1 = nullptr);
     ~SSecurityStack();
     virtual bool processMsg(SConnection* cc);
     virtual int getType() const { return type; };

@@ -31,7 +31,7 @@ namespace rfb {
     const char* hostEnd;
     const char* portStart;
 
-    if (hi == NULL)
+    if (hi == nullptr)
       throw rdr::Exception("NULL host specified");
 
     assert(host);
@@ -40,19 +40,19 @@ namespace rfb {
     if (hi[0] == '[') {
       hostStart = &hi[1];
       hostEnd = strchr(hostStart, ']');
-      if (hostEnd == NULL)
+      if (hostEnd == nullptr)
         throw rdr::Exception("unmatched [ in host");
 
       portStart = hostEnd + 1;
       if (*portStart == '\0')
-        portStart = NULL;
+        portStart = nullptr;
     } else {
       hostStart = &hi[0];
       hostEnd = strrchr(hostStart, ':');
 
-      if (hostEnd == NULL) {
+      if (hostEnd == nullptr) {
         hostEnd = hostStart + strlen(hostStart);
-        portStart = NULL;
+        portStart = nullptr;
       } else {
         if ((hostEnd > hostStart) && (hostEnd[-1] == ':'))
           hostEnd--;
@@ -60,7 +60,7 @@ namespace rfb {
         if (portStart != hostEnd) {
           // We found more : in the host. This is probably an IPv6 address
           hostEnd = hostStart + strlen(hostStart);
-          portStart = NULL;
+          portStart = nullptr;
         }
       }
     }
@@ -75,7 +75,7 @@ namespace rfb {
       (*host)[len-1] = '\0';
     }
 
-    if (portStart == NULL)
+    if (portStart == nullptr)
       *port = basePort;
     else {
       char* end;

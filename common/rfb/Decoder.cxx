@@ -83,6 +83,6 @@ Decoder* Decoder::createDecoder(int encoding)
   case encodingTight:
     return new TightDecoder();
   default:
-    return NULL;
+    return nullptr;
   }
 }

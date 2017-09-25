@@ -62,18 +62,18 @@ static rfb::LogWriter vlog("DesktopWindow");
 DesktopWindow::DesktopWindow(int w, int h, const char *name,
                              const rfb::PixelFormat& serverPF,
                              CConn* cc_)
-  : Fl_Window(w, h), cc(cc_), offscreen(NULL), overlay(NULL),
+  : Fl_Window(w, h), cc(cc_), offscreen(nullptr), overlay(nullptr),
     firstUpdate(true),
     delayedFullscreen(false), delayedDesktopSize(false),
     keyboardGrabbed(false), mouseGrabbed(false),
     statsLastFrame(0), statsLastPixels(0), statsLastPosition(0),
-    statsGraph(NULL)
+    statsGraph(nullptr)
 {
   Fl_Group* group;
 
   // Dummy group to prevent FLTK from moving our widgets around
   group = new Fl_Group(0, 0, w, h);
-  group->resizable(NULL);
+  group->resizable(nullptr);
   resizable(group);
 
   viewport = new Viewport(w, h, serverPF, cc);
@@ -580,7 +580,7 @@ void DesktopWindow::setOverlay(const char* text, ...)
 
   overlay = new Surface(image);
   overlayAlpha = 0;
-  gettimeofday(&overlayStart, NULL);
+  gettimeofday(&overlayStart, nullptr);
 
   delete image;
 
@@ -607,7 +607,7 @@ void DesktopWindow::updateOverlay(void *data)
     Fl::add_timeout(1.0/60, updateOverlay, self);
   } else {
     delete self->overlay;
-    self->overlay = NULL;
+    self->overlay = nullptr;
   }
 
   self->damage(FL_DAMAGE_USER1);
@@ -1317,7 +1317,7 @@ void DesktopWindow::handleStatsTimeout(void *data)
   self->stats[statsCount-1].pps = (pixels - self->statsLastPixels) * 1000 / elapsed;
   self->stats[statsCount-1].bps = (pos - self->statsLastPosition) * 1000 / elapsed;
 
-  gettimeofday(&self->statsLastTime, NULL);
+  gettimeofday(&self->statsLastTime, nullptr);
   self->statsLastFrame = frame;
   self->statsLastPixels = pixels;
   self->statsLastPosition = pos;

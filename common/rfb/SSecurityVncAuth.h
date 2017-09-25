@@ -54,7 +54,7 @@ namespace rfb {
     SSecurityVncAuth();
     virtual bool processMsg(SConnection* sc);
     virtual int getType() const {return secTypeVncAuth;}
-    virtual const char* getUserName() const {return 0;}
+    virtual const char* getUserName() const {return nullptr;}
     virtual SConnection::AccessRights getAccessRights() const { return accessRights; }
     static StringParameter vncAuthPasswdFile;
     static VncAuthPasswdParameter vncAuthPasswd;

@@ -53,7 +53,7 @@ namespace rfb {
 
   class ClippingUpdateTracker : public UpdateTracker {
   public:
-    ClippingUpdateTracker() : ut(0) {}
+    ClippingUpdateTracker() : ut(nullptr) {}
     ClippingUpdateTracker(UpdateTracker* ut_, const Rect& r=Rect()) : ut(ut_), clipRect(r) {}
     
     void setUpdateTracker(UpdateTracker* ut_) {ut = ut_;}

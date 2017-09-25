@@ -31,44 +31,44 @@ namespace rdr {
 
   class U8Array {
   public:
-    U8Array() : buf(0) {}
+    U8Array() : buf(nullptr) {}
     U8Array(U8* a) : buf(a) {} // note: assumes ownership
     U8Array(int len) : buf(new U8[len]) {}
     ~U8Array() { delete [] buf; }
 
     // Get the buffer pointer & clear it (i.e. caller takes ownership)
-    U8* takeBuf() { U8* tmp = buf; buf = 0; return tmp; }
+    U8* takeBuf() { U8* tmp = buf; buf = nullptr; return tmp; }
 
     U8* buf;
   };
 
   class U16Array {
   public:
-    U16Array() : buf(0) {}
+    U16Array() : buf(nullptr) {}
     U16Array(U16* a) : buf(a) {} // note: assumes ownership
     U16Array(int len) : buf(new U16[len]) {}
     ~U16Array() { delete [] buf; }
-    U16* takeBuf() { U16* tmp = buf; buf = 0; return tmp; }
+    U16* takeBuf() { U16* tmp = buf; buf = nullptr; return tmp; }
     U16* buf;
   };
 
   class U32Array {
   public:
-    U32Array() : buf(0) {}
+    U32Array() : buf(nullptr) {}
     U32Array(U32* a) : buf(a) {} // note: assumes ownership
     U32Array(int len) : buf(new U32[len]) {}
     ~U32Array() { delete [] buf; }
-    U32* takeBuf() { U32* tmp = buf; buf = 0; return tmp; }
+    U32* takeBuf() { U32* tmp = buf; buf = nullptr; return tmp; }
     U32* buf;
   };
 
   class S32Array {
   public:
-    S32Array() : buf(0) {}
+    S32Array() : buf(nullptr) {}
     S32Array(S32* a) : buf(a) {} // note: assumes ownership
     S32Array(int len) : buf(new S32[len]) {}
     ~S32Array() { delete [] buf; }
-    S32* takeBuf() { S32* tmp = buf; buf = 0; return tmp; }
+    S32* takeBuf() { S32* tmp = buf; buf = nullptr; return tmp; }
     S32* buf;
   };
 

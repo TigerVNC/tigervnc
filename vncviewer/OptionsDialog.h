@@ -41,7 +41,7 @@ protected:
 public:
   static void showDialog();
 
-  static void addCallback(OptionsCallback *cb, void *data = NULL);
+  static void addCallback(OptionsCallback *cb, void *data = nullptr);
   static void removeCallback(OptionsCallback *cb);
 
   void show();

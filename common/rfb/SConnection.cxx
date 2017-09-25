@@ -50,8 +50,8 @@ const SConnection::AccessRights SConnection::AccessFull           = 0xffff;
 
 SConnection::SConnection()
   : readyForSetColourMapEntries(false),
-    is(0), os(0), reader_(0), writer_(0),
-    ssecurity(0), state_(RFBSTATE_UNINITIALISED),
+    is(nullptr), os(nullptr), reader_(nullptr), writer_(nullptr),
+    ssecurity(nullptr), state_(RFBSTATE_UNINITIALISED),
     preferredEncoding(encodingRaw)
 {
   defaultMajorVersion = 3;
@@ -66,9 +66,9 @@ SConnection::~SConnection()
 {
   if (ssecurity) ssecurity->destroy();
   delete reader_;
-  reader_ = 0;
+  reader_ = nullptr;
   delete writer_;
-  writer_ = 0;
+  writer_ = nullptr;
 }
 
 void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)

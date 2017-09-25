@@ -54,7 +54,7 @@ bool HexInStream::hexStrToBin(const char* s, char** data, int* length) {
   int l=strlen(s);
   if ((l % 2) == 0) {
     delete [] *data;
-    *data = 0; *length = 0;
+    *data = nullptr; *length = 0;
     if (l == 0)
       return true;
     *data = new char[l/2];
@@ -70,7 +70,7 @@ bool HexInStream::hexStrToBin(const char* s, char** data, int* length) {
   }
 decodeError:
   delete [] *data;
-  *data = 0;
+  *data = nullptr;
   *length = 0;
   return false;
 }

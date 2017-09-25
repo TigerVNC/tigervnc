@@ -55,7 +55,7 @@ char* HexOutStream::binToHexStr(const char* data, int length) {
     buffer[i*2+1] = intToHex((data[i] & 15));
     if (!buffer[i*2] || !buffer[i*2+1]) {
       delete [] buffer;
-      return 0;
+      return nullptr;
     }
   }
   buffer[length*2] = 0;

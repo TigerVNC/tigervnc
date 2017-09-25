@@ -75,15 +75,15 @@ LogWriter VNCServerST::connectionsLog("Connections");
 
 VNCServerST::VNCServerST(const char* name_, SDesktop* desktop_)
   : blHosts(&blacklist), desktop(desktop_), desktopStarted(false),
-    blockCounter(0), pb(0), ledState(ledUnknown),
-    name(strDup(name_)), pointerClient(0), comparer(0),
-    cursor(new Cursor(0, 0, Point(), NULL)),
+    blockCounter(0), pb(nullptr), ledState(ledUnknown),
+    name(strDup(name_)), pointerClient(nullptr), comparer(nullptr),
+    cursor(new Cursor(0, 0, Point(), nullptr)),
     renderedCursorInvalid(false),
-    queryConnectionHandler(0), keyRemapper(&KeyRemapper::defInstance),
+    queryConnectionHandler(nullptr), keyRemapper(&KeyRemapper::defInstance),
     lastConnectionTime(0), disableclients(false),
     frameTimer(this)
 {
-  lastUserInputTime = lastDisconnectTime = time(0);
+  lastUserInputTime = lastDisconnectTime = time(nullptr);
   slog.debug("creating single-threaded server %s", name.buf);
 }
 
@@ -137,7 +137,7 @@ void VNCServerST::addSocket(network::Socket* sock, bool outgoing)
   }
 
   if (clients.empty()) {
-    lastConnectionTime = time(0);
+    lastConnectionTime = time(nullptr);
   }
 
   auto* client = new VNCSConnectionST(this, sock, outgoing);
@@ -209,7 +209,7 @@ int VNCServerST::checkTimeouts()
   }
 
   int timeLeft;
-  time_t now = time(0);
+  time_t now = time(nullptr);
 
   // Check MaxDisconnectionTime 
   if (rfb::Server::maxDisconnectionTime && clients.empty()) {
@@ -308,7 +308,7 @@ void VNCServerST::setPixelBuffer(PixelBuffer* pb_, const ScreenSet& layout)
 
   pb = pb_;
   delete comparer;
-  comparer = 0;
+  comparer = nullptr;
 
   screenLayout = layout;
 
@@ -415,7 +415,7 @@ void VNCServerST::setName(const char* name_)
 
 void VNCServerST::add_changed(const Region& region)
 {
-  if (comparer == NULL)
+  if (comparer == nullptr)
     return;
 
   comparer->add_changed(region);
@@ -424,7 +424,7 @@ void VNCServerST::add_changed(const Region& region)
 
 void VNCServerST::add_copied(const Region& dest, const Point& delta)
 {
-  if (comparer == NULL)
+  if (comparer == nullptr)
     return;
 
   comparer->add_copied(dest, delta);
@@ -517,7 +517,7 @@ SConnection* VNCServerST::getSConnection(network::Socket* sock) {
     if ((*ci)->getSock() == sock)
       return *ci;
   }
-  return 0;
+  return nullptr;
 }
 
 bool VNCServerST::handleTimeout(Timer* t)
@@ -677,7 +677,7 @@ void VNCServerST::setConnStatus(ListConnInfo* listConn)
       if ((*i) == conn) {
         int status = listConn->iGetStatus();
         if (status == 3) {
-          (*i)->close(0);
+          (*i)->close(nullptr);
         } else {
           (*i)->setStatus(status);
         }

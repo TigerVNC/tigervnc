@@ -101,7 +101,7 @@ OptionsDialog::~OptionsDialog()
 
 void OptionsDialog::showDialog()
 {
-  static OptionsDialog *dialog = NULL;
+  static OptionsDialog *dialog = nullptr;
 
   if (!dialog)
     dialog = new OptionsDialog();
@@ -734,9 +734,9 @@ void OptionsDialog::createInputPage(int tx, int ty, int tw, int th)
 
   menuKeyChoice = new Fl_Choice(LBLLEFT(tx, ty, 150, CHOICE_HEIGHT, _("Menu key")));
 
-  fltk_menu_add(menuKeyChoice, _("None"), 0, NULL, (void*)0, FL_MENU_DIVIDER);
+  fltk_menu_add(menuKeyChoice, _("None"), 0, nullptr, (void*)nullptr, FL_MENU_DIVIDER);
   for (int i = 0; i < getMenuKeySymbolCount(); i++)
-    fltk_menu_add(menuKeyChoice, getMenuKeySymbols()[i].name, 0, NULL, 0, 0);
+    fltk_menu_add(menuKeyChoice, getMenuKeySymbols()[i].name, 0, nullptr, nullptr, 0);
 
   ty += CHOICE_HEIGHT + TIGHT_MARGIN;
 

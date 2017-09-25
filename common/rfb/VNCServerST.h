@@ -107,7 +107,7 @@ namespace rfb {
 
     // - Close all currently-connected clients, by calling
     //   their close() method with the supplied reason.
-    virtual void closeClients(const char* reason) {closeClients(reason, 0);}
+    virtual void closeClients(const char* reason) {closeClients(reason, nullptr);}
 
     // VNCServerST-only methods
 

@@ -112,7 +112,7 @@ namespace rfb {
 
     // getIdVerifier() returns the identity verifier associated with the connection.
     // Ownership of the IdentityVerifier is retained by the CConnection instance.
-    virtual IdentityVerifier* getIdentityVerifier() {return 0;}
+    virtual IdentityVerifier* getIdentityVerifier() {return nullptr;}
 
     // authSuccess() is called when authentication has succeeded.
     virtual void authSuccess();

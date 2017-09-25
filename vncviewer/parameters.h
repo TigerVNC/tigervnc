@@ -66,7 +66,7 @@ extern rfb::BoolParameter alertOnFatalError;
 extern rfb::StringParameter via;
 #endif
 
-void saveViewerParameters(const char *filename, const char *servername=NULL);
+void saveViewerParameters(const char *filename, const char *servername=nullptr);
 char* loadViewerParameters(const char *filename);
 
 #endif

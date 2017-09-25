@@ -116,7 +116,7 @@ void ServerDialog::run(const char* servername, char *newservername)
   dialog.show();
   while (dialog.shown()) Fl::wait();
 
-  if (dialog.serverName->value() == NULL) {
+  if (dialog.serverName->value() == nullptr) {
     newservername[0] = '\0';
     return;
   }
@@ -145,7 +145,7 @@ void ServerDialog::handleLoad(Fl_Widget *widget, void *data)
     Fl::wait();
   
   // Did the user hit cancel?
-  if (file_chooser->value() == NULL) {
+  if (file_chooser->value() == nullptr) {
     delete(file_chooser);
     return;
   }
@@ -182,7 +182,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
       Fl::wait();
     
     // Did the user hit cancel?
-    if (file_chooser->value() == NULL) {
+    if (file_chooser->value() == nullptr) {
       delete(file_chooser);
       return;
     }
@@ -195,7 +195,7 @@ void ServerDialog::handleSaveAs(Fl_Widget *widget, void *data)
       // The file already exists.
       fclose(f);
       int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"), 
-				       _("Overwrite"), _("No"), NULL, filename);
+				       _("Overwrite"), _("No"), nullptr, filename);
       if (overwrite_choice == 1) {
 
 	// If the user doesn't want to overwrite:
@@ -227,7 +227,7 @@ void ServerDialog::handleCancel(Fl_Widget *widget, void *data)
 {
   auto *dialog = (ServerDialog*)data;
 
-  dialog->serverName->value(NULL);
+  dialog->serverName->value(nullptr);
   dialog->hide();
 }
 
@@ -240,7 +240,7 @@ void ServerDialog::handleConnect(Fl_Widget *widget, void *data)
   dialog->hide();
   
   try {
-    saveViewerParameters(NULL, servername);
+    saveViewerParameters(nullptr, servername);
   } catch (rfb::Exception& e) {
     fl_alert("%s", e.str());
   }

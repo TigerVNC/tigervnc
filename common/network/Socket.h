@@ -67,7 +67,7 @@ namespace network {
     bool requiresQuery() const {return queryConnection;}
 
   protected:
-    Socket() : instream(0), outstream(0), ownStreams(false),
+    Socket() : instream(nullptr), outstream(nullptr), ownStreams(false),
       isShutdown_(false), queryConnection(false) {}
     Socket(rdr::FdInStream* i, rdr::FdOutStream* o, bool own)
       : instream(i), outstream(o), ownStreams(own),
@@ -87,7 +87,7 @@ namespace network {
 
   class SocketListener {
   public:
-    SocketListener() : fd(0), filter(0) {}
+    SocketListener() : fd(0), filter(nullptr) {}
     virtual ~SocketListener() {}
 
     // shutdown() stops the socket from accepting further connections

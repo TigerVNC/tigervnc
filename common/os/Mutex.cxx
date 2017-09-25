@@ -37,7 +37,7 @@ Mutex::Mutex()
   int ret;
 
   systemMutex = new pthread_mutex_t;
-  ret = pthread_mutex_init((pthread_mutex_t*)systemMutex, NULL);
+  ret = pthread_mutex_init((pthread_mutex_t*)systemMutex, nullptr);
   if (ret != 0)
     throw rdr::SystemException("Failed to create mutex", ret);
 #endif
@@ -91,7 +91,7 @@ Condition::Condition(Mutex* mutex)
   int ret;
 
   systemCondition = new pthread_cond_t;
-  ret = pthread_cond_init((pthread_cond_t*)systemCondition, NULL);
+  ret = pthread_cond_init((pthread_cond_t*)systemCondition, nullptr);
   if (ret != 0)
     throw rdr::SystemException("Failed to create condition variable", ret);
 #endif

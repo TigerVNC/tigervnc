@@ -292,7 +292,7 @@ FullFramePixelBuffer::FullFramePixelBuffer(const PixelFormat& pf, int w, int h,
 {
 }
 
-FullFramePixelBuffer::FullFramePixelBuffer() : data(0) {}
+FullFramePixelBuffer::FullFramePixelBuffer() : data(nullptr) {}
 
 FullFramePixelBuffer::~FullFramePixelBuffer() {}
 
@@ -332,7 +332,7 @@ ManagedPixelBuffer::ManagedPixelBuffer()
 };
 
 ManagedPixelBuffer::ManagedPixelBuffer(const PixelFormat& pf, int w, int h)
-  : FullFramePixelBuffer(pf, w, h, NULL, w), datasize(0)
+  : FullFramePixelBuffer(pf, w, h, nullptr, w), datasize(0)
 {
   checkDataSize();
 };
@@ -358,7 +358,7 @@ ManagedPixelBuffer::checkDataSize() {
   if (datasize < new_datasize) {
     if (data) {
       delete [] data;
-      datasize = 0; data = 0;
+      datasize = 0; data = nullptr;
     }
     if (new_datasize) {
       data = new U8[new_datasize];
