@@ -35,8 +35,7 @@ ComparingUpdateTracker::ComparingUpdateTracker(PixelBuffer* buffer)
 }
 
 ComparingUpdateTracker::~ComparingUpdateTracker()
-{
-}
+= default;
 
 
 #define BLOCK_SIZE 64

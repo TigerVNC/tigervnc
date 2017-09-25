@@ -68,8 +68,7 @@ ZRLEDecoder::ZRLEDecoder() : Decoder(DecoderOrdered)
 }
 
 ZRLEDecoder::~ZRLEDecoder()
-{
-}
+= default;
 
 void ZRLEDecoder::readRect(const Rect& r, rdr::InStream* is,
                            const ConnParams& cp, rdr::OutStream* os)

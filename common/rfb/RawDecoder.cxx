@@ -30,8 +30,7 @@ RawDecoder::RawDecoder() : Decoder(DecoderPlain)
 }
 
 RawDecoder::~RawDecoder()
-{
-}
+= default;
 
 void RawDecoder::readRect(const Rect& r, rdr::InStream* is,
                           const ConnParams& cp, rdr::OutStream* os)

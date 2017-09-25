@@ -83,7 +83,7 @@ namespace rfb {
     // the relevant RFB protocol messages from clients.
     // See InputHandler for method signatures.
   protected:
-    ~SDesktop() override {}
+    ~SDesktop() override = default;
   };
 
   // -=- SStaticDesktop

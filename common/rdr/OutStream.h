@@ -34,11 +34,11 @@ namespace rdr {
 
   protected:
 
-    OutStream() {}
+    OutStream() = default;
 
   public:
 
-    virtual ~OutStream() {}
+    virtual ~OutStream() = default;
 
     // check() ensures there is buffer space for at least one item of size
     // itemSize bytes.  Returns the number of items which fit (up to a maximum

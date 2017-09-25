@@ -92,8 +92,7 @@ public:
       line(s.inStream(), 256), sock(s),
       server(srv), state(ReadRequestLine), lastActive(time(nullptr)) {
   }
-  ~Session() {
-  }
+  ~Session() = default;
 
   void writeResponse(int result, const char* text);
   bool writeResponse(int code);
@@ -300,8 +299,7 @@ int HTTPServer::Session::checkIdleTimeout() {
 
 // -=- Constructor / destructor
 
-HTTPServer::HTTPServer() {
-}
+HTTPServer::HTTPServer() = default;
 
 HTTPServer::~HTTPServer() {
   std::list<Session*>::iterator i;

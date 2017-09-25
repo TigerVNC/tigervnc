@@ -36,8 +36,7 @@ CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
 }
 
 CMsgReader::~CMsgReader()
-{
-}
+= default;
 
 void CMsgReader::readServerInit()
 {

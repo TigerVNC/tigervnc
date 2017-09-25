@@ -64,8 +64,7 @@ SimpleUpdateTracker::SimpleUpdateTracker(bool use_copyrect) {
   copy_enabled = use_copyrect;
 }
 
-SimpleUpdateTracker::~SimpleUpdateTracker() {
-}
+SimpleUpdateTracker::~SimpleUpdateTracker() = default;
 
 void SimpleUpdateTracker::enable_copyrect(bool enable) {
   if (!enable && copy_enabled) {

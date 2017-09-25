@@ -28,8 +28,7 @@ CopyRectDecoder::CopyRectDecoder() : Decoder(DecoderPlain)
 }
 
 CopyRectDecoder::~CopyRectDecoder()
-{
-}
+= default;
 
 void CopyRectDecoder::readRect(const Rect& r, rdr::InStream* is,
                                const ConnParams& cp, rdr::OutStream* os)

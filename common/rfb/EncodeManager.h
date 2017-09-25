@@ -119,8 +119,8 @@ namespace rfb {
 
     class OffsetPixelBuffer : public FullFramePixelBuffer {
     public:
-      OffsetPixelBuffer() {}
-      ~OffsetPixelBuffer() override {}
+      OffsetPixelBuffer() = default;
+      ~OffsetPixelBuffer() override = default;
 
       void update(const PixelFormat& pf, int width, int height,
                   const rdr::U8* data_, int stride);

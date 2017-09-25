@@ -41,8 +41,7 @@ RREDecoder::RREDecoder() : Decoder(DecoderPlain)
 }
 
 RREDecoder::~RREDecoder()
-{
-}
+= default;
 
 void RREDecoder::readRect(const Rect& r, rdr::InStream* is,
                           const ConnParams& cp, rdr::OutStream* os)

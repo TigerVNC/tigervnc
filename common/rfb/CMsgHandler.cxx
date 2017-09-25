@@ -25,12 +25,10 @@
 using namespace rfb;
 
 CMsgHandler::CMsgHandler()
-{
-}
+= default;
 
 CMsgHandler::~CMsgHandler()
-{
-}
+= default;
 
 void CMsgHandler::setDesktopSize(int width, int height)
 {

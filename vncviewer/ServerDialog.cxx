@@ -103,8 +103,7 @@ ServerDialog::ServerDialog()
 
 
 ServerDialog::~ServerDialog()
-{
-}
+= default;
 
 
 void ServerDialog::run(const char* servername, char *newservername)

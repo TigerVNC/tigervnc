@@ -41,8 +41,7 @@ HextileDecoder::HextileDecoder() : Decoder(DecoderPlain)
 }
 
 HextileDecoder::~HextileDecoder()
-{
-}
+= default;
 
 void HextileDecoder::readRect(const Rect& r, rdr::InStream* is,
                               const ConnParams& cp, rdr::OutStream* os)

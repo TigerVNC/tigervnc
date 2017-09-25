@@ -33,7 +33,7 @@ using namespace rfb;
 static unsigned char d3desObfuscationKey[] = {23,82,107,6,35,78,88,7};
 
 
-PlainPasswd::PlainPasswd() {}
+PlainPasswd::PlainPasswd() = default;
 
 PlainPasswd::PlainPasswd(char* pwd) : CharArray(pwd) {
 }

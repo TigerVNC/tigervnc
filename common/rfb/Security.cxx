@@ -56,8 +56,7 @@ StringParameter Security::GnuTLSPriority("GnuTLSPriority",
 #endif
 
 Security::Security()
-{
-}
+= default;
 
 Security::Security(StringParameter &secTypes)
 {

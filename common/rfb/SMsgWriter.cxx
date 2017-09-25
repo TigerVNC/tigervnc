@@ -44,8 +44,7 @@ SMsgWriter::SMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
 }
 
 SMsgWriter::~SMsgWriter()
-{
-}
+= default;
 
 void SMsgWriter::writeServerInit()
 {

@@ -95,8 +95,7 @@ OptionsDialog::OptionsDialog()
 
 
 OptionsDialog::~OptionsDialog()
-{
-}
+= default;
 
 
 void OptionsDialog::showDialog()

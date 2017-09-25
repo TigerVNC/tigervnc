@@ -244,8 +244,7 @@ void Cursor::crop()
 }
 
 RenderedCursor::RenderedCursor()
-{
-}
+= default;
 
 const rdr::U8* RenderedCursor::getBuffer(const Rect& _r, int* stride) const
 {

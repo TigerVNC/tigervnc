@@ -147,7 +147,7 @@ namespace rfb {
     // the connection.
     enum queryResult { ACCEPT, REJECT, PENDING };
     struct QueryConnectionHandler {
-      virtual ~QueryConnectionHandler() {}
+      virtual ~QueryConnectionHandler() = default;
       virtual queryResult queryConnection(network::Socket* sock,
                                           const char* userName,
                                           char** reason) = 0;

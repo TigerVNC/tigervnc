@@ -26,7 +26,7 @@ namespace rfb {
     // result(s).
     virtual void getUserPasswd(bool secure, char** user, char** password)=0;
 
-    virtual ~UserPasswdGetter() {}
+    virtual ~UserPasswdGetter() = default;
   };
 }
 #endif

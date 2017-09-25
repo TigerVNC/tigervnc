@@ -44,8 +44,8 @@ namespace rfb {
 
   class UpdateTracker {
   public:
-    UpdateTracker() {};
-    virtual ~UpdateTracker() {};
+    UpdateTracker() = default;;
+    virtual ~UpdateTracker() = default;;
 
     virtual void add_changed(const Region &region) = 0;
     virtual void add_copied(const Region &dest, const Point &delta) = 0;

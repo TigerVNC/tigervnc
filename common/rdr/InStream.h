@@ -33,7 +33,7 @@ namespace rdr {
 
   public:
 
-    virtual ~InStream() {}
+    virtual ~InStream() = default;
 
     // check() ensures there is buffer data for at least one item of size
     // itemSize bytes.  Returns the number of items in the buffer (up to a
@@ -137,7 +137,7 @@ namespace rdr {
 
   protected:
 
-    InStream() {}
+    InStream() = default;
     const U8* ptr;
     const U8* end;
   };

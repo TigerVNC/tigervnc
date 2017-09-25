@@ -29,7 +29,7 @@ namespace rfb {
   class Palette {
   public:
     Palette() { clear(); }
-    ~Palette() {}
+    ~Palette() = default;
 
     int size() const { return numColours; }
 

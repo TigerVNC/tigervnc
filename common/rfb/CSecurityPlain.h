@@ -26,7 +26,7 @@ namespace rfb {
 
   class CSecurityPlain : public CSecurity {
   public:
-    CSecurityPlain() {}
+    CSecurityPlain() = default;
     bool processMsg(CConnection* cc) override;
     int getType() const override { return secTypePlain; }
     const char* description() const override { return "ask for username and password"; }

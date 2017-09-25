@@ -50,8 +50,7 @@ HextileEncoder::HextileEncoder(SConnection* conn) :
 }
 
 HextileEncoder::~HextileEncoder()
-{
-}
+= default;
 
 bool HextileEncoder::isSupported()
 {

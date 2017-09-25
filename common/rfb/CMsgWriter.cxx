@@ -37,8 +37,7 @@ CMsgWriter::CMsgWriter(ConnParams* cp_, rdr::OutStream* os_)
 }
 
 CMsgWriter::~CMsgWriter()
-{
-}
+= default;
 
 void CMsgWriter::writeClientInit(bool shared)
 {

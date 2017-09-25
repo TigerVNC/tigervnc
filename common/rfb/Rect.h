@@ -66,7 +66,7 @@ namespace rfb {
   // an offset specified in a Point structure.
 
   struct Rect {
-    Rect() {}
+    Rect() = default;
     Rect(Point tl_, Point br_) : tl(tl_), br(br_) {}
     Rect(int x1, int y1, int x2, int y2) : tl(x1, y1), br(x2, y2) {}
     inline void setXYWH(int x, int y, int w, int h) {

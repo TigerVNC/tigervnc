@@ -42,8 +42,7 @@ RREEncoder::RREEncoder(SConnection* conn) :
 }
 
 RREEncoder::~RREEncoder()
-{
-}
+= default;
 
 bool RREEncoder::isSupported()
 {

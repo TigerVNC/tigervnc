@@ -34,8 +34,7 @@ Decoder::Decoder(enum DecoderFlags flags) : flags(flags)
 }
 
 Decoder::~Decoder()
-{
-}
+= default;
 
 void Decoder::getAffectedRegion(const Rect& rect, const void* buffer,
                                 size_t buflen, const ConnParams& cp,

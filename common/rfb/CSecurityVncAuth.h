@@ -25,8 +25,8 @@ namespace rfb {
 
   class CSecurityVncAuth : public CSecurity {
   public:
-    CSecurityVncAuth() {}
-    ~CSecurityVncAuth() override {}
+    CSecurityVncAuth() = default;
+    ~CSecurityVncAuth() override = default;
     bool processMsg(CConnection* cc) override;
     int getType() const override {return secTypeVncAuth;};
     const char* description() const override {return "No Encryption";}

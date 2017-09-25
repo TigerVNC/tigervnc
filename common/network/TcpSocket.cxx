@@ -654,8 +654,7 @@ TcpFilter::TcpFilter(const char* spec) {
   }
 }
 
-TcpFilter::~TcpFilter() {
-}
+TcpFilter::~TcpFilter() = default;
 
 
 static bool

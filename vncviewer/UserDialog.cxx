@@ -63,12 +63,10 @@ static void button_cb(Fl_Widget *widget, void *val) {
 }
 
 UserDialog::UserDialog()
-{
-}
+= default;
 
 UserDialog::~UserDialog()
-{
-}
+= default;
 
 void UserDialog::getUserPasswd(bool secure, char** user, char** password)
 {

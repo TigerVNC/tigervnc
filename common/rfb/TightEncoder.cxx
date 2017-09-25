@@ -63,8 +63,7 @@ TightEncoder::TightEncoder(SConnection* conn) :
 }
 
 TightEncoder::~TightEncoder()
-{
-}
+= default;
 
 bool TightEncoder::isSupported()
 {

@@ -38,7 +38,7 @@ namespace rfb {
       { return validUser(username) ? validateInternal(sc, username, password) : false; }
     static StringParameter plainUsers;
 
-    virtual ~PasswordValidator() { }
+    virtual ~PasswordValidator() = default;
 
   protected:
     virtual bool validateInternal(SConnection* sc, const char *username, const char *password)=0;
@@ -52,7 +52,7 @@ namespace rfb {
     int getType() const override { return secTypePlain; };
     const char* getUserName() const override { return username.buf; }
 
-    ~SSecurityPlain() override { }
+    ~SSecurityPlain() override = default;
 
   private:
     PasswordValidator* valid;

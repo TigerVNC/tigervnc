@@ -52,7 +52,7 @@ namespace rfb {
 
   class SSecurity {
   public:
-    virtual ~SSecurity() {}
+    virtual ~SSecurity() = default;
     virtual bool processMsg(SConnection* sc)=0;
     virtual void destroy() { delete this; }
     virtual int getType() const = 0;

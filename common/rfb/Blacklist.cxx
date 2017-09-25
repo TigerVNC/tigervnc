@@ -30,8 +30,7 @@ IntParameter Blacklist::initialTimeout("BlacklistTimeout",
                               10);
 
 
-Blacklist::Blacklist() {
-}
+Blacklist::Blacklist() = default;
 
 Blacklist::~Blacklist() {
   // Free the map keys

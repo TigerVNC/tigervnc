@@ -62,7 +62,7 @@ namespace rfb {
   // dimensions.
 
   struct ScreenSet {
-    ScreenSet() {};
+    ScreenSet() = default;;
 
     using iterator = std::list<Screen>::iterator;
     using const_iterator = std::list<Screen>::const_iterator;

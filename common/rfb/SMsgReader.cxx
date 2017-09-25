@@ -39,8 +39,7 @@ SMsgReader::SMsgReader(SMsgHandler* handler_, rdr::InStream* is_)
 }
 
 SMsgReader::~SMsgReader()
-{
-}
+= default;
 
 void SMsgReader::readClientInit()
 {
