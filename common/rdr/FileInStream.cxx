@@ -18,7 +18,7 @@
  * USA.
  */
 
-#include <errno.h>
+#include <cerrno>
 
 #include <rdr/Exception.h>
 #include <rdr/FileInStream.h>

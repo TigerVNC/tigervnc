@@ -21,7 +21,7 @@
 #ifndef __RFB_LOG_WRITER_H__
 #define __RFB_LOG_WRITER_H__
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <rfb/Logger.h>
 #include <rfb/Configuration.h>
 

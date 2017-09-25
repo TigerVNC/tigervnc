@@ -20,7 +20,7 @@
 #ifndef __RDR_FILEINSTREAM_H__
 #define __RDR_FILEINSTREAM_H__
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <rdr/InStream.h>
 

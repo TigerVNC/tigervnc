@@ -16,9 +16,9 @@
  * USA.
  */
 
-#include <string.h>
-#include <assert.h>
-#include <math.h>
+#include <cstring>
+#include <cassert>
+#include <cmath>
 
 #include <rfb/Rect.h>
 #include <rfb/ScaleFilters.h>

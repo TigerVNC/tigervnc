@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <sys/ipc.h>

@@ -28,7 +28,7 @@
 #error "This header should not be compiled without HAVE_GNUTLS defined"
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 #ifndef WIN32
 #include <unistd.h>
 #endif

@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <math.h>
+#include <cmath>
 #include <sys/time.h>
 
 #include <FL/Fl.H>

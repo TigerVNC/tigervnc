@@ -22,13 +22,13 @@
 #include <config.h>
 #endif
 
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <locale.h>
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#include <cstdlib>
+#include <cerrno>
+#include <csignal>
+#include <clocale>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>

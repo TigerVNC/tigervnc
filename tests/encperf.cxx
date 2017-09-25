@@ -26,9 +26,9 @@
  * are not encoded in the file and must be specified by the user.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include <sys/time.h>
 
 #include <rdr/Exception.h>

@@ -40,10 +40,10 @@
 
 #include <FL/fl_utf8.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstring>
+#include <climits>
+#include <cerrno>
 
 #include "i18n.h"
 

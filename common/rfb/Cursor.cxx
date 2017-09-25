@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <rfb/Cursor.h>
 #include <rfb/LogWriter.h>
 #include <rfb/Exception.h>

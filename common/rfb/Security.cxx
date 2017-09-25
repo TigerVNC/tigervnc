@@ -21,9 +21,9 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>

@@ -24,8 +24,8 @@
 
 #include <rdr/TLSException.h>
 
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 #endif

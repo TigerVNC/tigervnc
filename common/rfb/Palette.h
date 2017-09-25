@@ -20,8 +20,8 @@
 #ifndef __RFB_PALETTE_H__
 #define __RFB_PALETTE_H__
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
 #include <rdr/types.h>
 

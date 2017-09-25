@@ -23,7 +23,7 @@
 
 #include <list>
 
-#include <limits.h>
+#include <climits>
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>

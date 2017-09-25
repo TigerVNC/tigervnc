@@ -20,7 +20,7 @@
 #include <windows.h>
 #else
 #include <pthread.h>
-#include <signal.h>
+#include <csignal>
 #include <unistd.h>
 #endif
 

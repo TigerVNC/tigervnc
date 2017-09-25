@@ -18,12 +18,12 @@
 
 // -=- LogWriter.cxx - client-side logging interface
 
-#include <string.h>
+#include <cstring>
 
 #include <rfb/LogWriter.h>
 #include <rfb/Configuration.h>
 #include <rfb/util.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 rfb::LogParameter rfb::logParams;
 

@@ -18,8 +18,8 @@
 
 // -=- Logger_file.cxx - Logger instance for a file
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include <os/Mutex.h>
 

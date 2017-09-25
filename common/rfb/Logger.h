@@ -21,8 +21,8 @@
 #ifndef __RFB_LOGGER_H__
 #define __RFB_LOGGER_H__
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 
 // Each log writer instance has a unique textual name,
 // and is attached to a particular Logger instance and

@@ -20,9 +20,9 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
 #include <sys/time.h>
 #ifdef _WIN32
 #include <winsock2.h>

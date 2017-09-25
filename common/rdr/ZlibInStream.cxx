@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <rdr/ZlibInStream.h>
 #include <rdr/Exception.h>

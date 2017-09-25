@@ -21,7 +21,7 @@
 #ifndef __RFB_LOGGER_SYSLOG_H__
 #define __RFB_LOGGER_SYSLOG_H__
 
-#include <time.h>
+#include <ctime>
 #include <rfb/Logger.h>
 
 namespace rfb {

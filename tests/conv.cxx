@@ -16,9 +16,9 @@
  * USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <rfb/PixelFormat.h>
 

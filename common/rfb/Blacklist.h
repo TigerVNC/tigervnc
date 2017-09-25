@@ -27,8 +27,8 @@
 #ifndef __RFB_BLACKLIST_H__
 #define __RFB_BLACKLIST_H__
 
-#include <string.h>
-#include <time.h>
+#include <cstring>
+#include <ctime>
 #include <map>
 
 #include <rfb/Configuration.h>

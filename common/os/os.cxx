@@ -22,12 +22,12 @@
 
 #include <os/os.h>
 
-#include <assert.h>
+#include <cassert>
 
 #ifndef WIN32
 #include <pwd.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <sys/types.h>
 #include <unistd.h>
 #else

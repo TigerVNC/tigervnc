@@ -22,7 +22,7 @@
 // This file is #included after having set the following macro:
 // BPP                - 8, 16 or 32
 
-#include <stdio.h>
+#include <cstdio>
 #include <rdr/InStream.h>
 #include <rdr/ZlibInStream.h>
 #include <rfb/Exception.h>

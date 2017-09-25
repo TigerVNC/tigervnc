@@ -21,7 +21,7 @@
 // This header will define the Server interface, from which ServerMT and
 // ServerST will be derived.
 
-#include <string.h>
+#include <cstring>
 #include <rfb/util.h>
 #include <rfb/ServerCore.h>
 

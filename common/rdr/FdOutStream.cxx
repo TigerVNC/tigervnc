@@ -21,9 +21,9 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
 #ifdef _WIN32
 #include <winsock2.h>
 #define write(s,b,l) send(s,(const char*)b,l,0)

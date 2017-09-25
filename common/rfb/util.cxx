@@ -34,8 +34,8 @@
 #include <config.h>
 #endif
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 #include <sys/time.h>
 
 #include <rfb/util.h>

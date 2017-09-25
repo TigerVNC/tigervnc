@@ -30,7 +30,7 @@
 #include <rfb/UpdateTracker.h>
 #include <rfb/Configuration.h>
 #include <network/Socket.h>
-#include <time.h>
+#include <ctime>
 
 namespace rfb {
 

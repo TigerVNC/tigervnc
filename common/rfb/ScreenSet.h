@@ -21,8 +21,8 @@
 #ifndef __RFB_SCREENSET_INCLUDED__
 #define __RFB_SCREENSET_INCLUDED__
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include <rdr/types.h>
 #include <rfb/Rect.h>

@@ -27,8 +27,8 @@
 #include <config.h>
 #endif
 
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
 
 struct timeval;
 

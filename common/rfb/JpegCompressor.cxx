@@ -24,11 +24,11 @@
 #include <rfb/PixelFormat.h>
 #include <rfb/ConnParams.h>
 
-#include <stdio.h>
+#include <cstdio>
 extern "C" {
 #include <jpeglib.h>
 }
-#include <setjmp.h>
+#include <csetjmp>
 
 using namespace rfb;
 

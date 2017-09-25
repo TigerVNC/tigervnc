@@ -19,8 +19,8 @@
 #include <rdr/HexInStream.h>
 #include <rdr/Exception.h>
 
-#include <stdlib.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cctype>
 
 using namespace rdr;
 

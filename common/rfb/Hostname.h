@@ -19,8 +19,8 @@
 #ifndef __RFB_HOSTNAME_H__
 #define __RFB_HOSTNAME_H__
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <rdr/Exception.h>
 #include <rfb/util.h>
 

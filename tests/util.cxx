@@ -16,9 +16,9 @@
  * USA.
  */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef WIN32
 #include <windows.h>

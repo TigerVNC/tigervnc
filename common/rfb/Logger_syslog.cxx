@@ -18,8 +18,8 @@
 
 // -=- Logger_syslog.cxx - Logger instance for a syslog
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <syslog.h>
 
 #include <rfb/util.h>

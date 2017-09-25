@@ -18,11 +18,11 @@
 
 #include <rdr/RandomStream.h>
 #include <rdr/Exception.h>
-#include <time.h>
-#include <stdlib.h>
+#include <ctime>
+#include <cstdlib>
 #ifndef WIN32
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #else
 #define getpid() GetCurrentProcessId()
 #ifndef RFB_HAVE_WINCRYPT

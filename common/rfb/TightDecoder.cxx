@@ -19,7 +19,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <rdr/InStream.h>
 #include <rdr/MemInStream.h>

@@ -26,7 +26,7 @@
 #include <rfb/hextileConstants.h>
 #include <rfb/Palette.h>
 
-#include <assert.h>
+#include <cassert>
 
 namespace rfb {
 

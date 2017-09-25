@@ -29,8 +29,8 @@
 #include <rfb/LogWriter.h>
 #include <rfb/util.h>
 #include <rfb/Exception.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 extern "C" {
 #include <rfb/d3des.h>
 }

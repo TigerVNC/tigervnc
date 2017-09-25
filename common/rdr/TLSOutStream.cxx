@@ -25,7 +25,7 @@
 #include <rdr/Exception.h>
 #include <rdr/TLSException.h>
 #include <rdr/TLSOutStream.h>
-#include <errno.h>
+#include <cerrno>
 
 #ifdef HAVE_GNUTLS
 using namespace rdr;

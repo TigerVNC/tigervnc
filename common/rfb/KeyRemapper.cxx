@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <os/Mutex.h>
 

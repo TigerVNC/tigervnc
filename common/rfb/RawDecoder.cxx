@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <rdr/OutStream.h>
 #include <rfb/ConnParams.h>

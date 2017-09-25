@@ -20,7 +20,7 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <list>
 

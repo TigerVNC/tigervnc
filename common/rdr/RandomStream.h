@@ -19,7 +19,7 @@
 #ifndef __RDR_RANDOMSTREAM_H__
 #define __RDR_RANDOMSTREAM_H__
 
-#include <stdio.h>
+#include <cstdio>
 #include <rdr/InStream.h>
 
 #ifdef WIN32

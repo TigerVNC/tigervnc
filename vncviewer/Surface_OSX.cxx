@@ -16,7 +16,7 @@
  * USA.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <ApplicationServices/ApplicationServices.h>
 

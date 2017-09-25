@@ -21,8 +21,8 @@
 // XXX not thread-safe, because d3des isn't - do we need to worry about this?
 //
 
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 
 #include <rfb/CConnection.h>
 #include <rfb/Password.h>

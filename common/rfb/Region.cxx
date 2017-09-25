@@ -24,8 +24,8 @@
 //
 
 #include <rfb/Region.h>
-#include <assert.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
 
 extern "C" {
 #include <Xregion/Xlibint.h>

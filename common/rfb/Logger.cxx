@@ -18,9 +18,9 @@
 
 // -=- Logger.cxx - support for the Logger and LogWriter classes
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 
 #include <rfb/Logger.h>
 #include <rfb/LogWriter.h>

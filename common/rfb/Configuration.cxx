@@ -19,9 +19,9 @@
 
 // -=- Configuration.cxx
 
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
+#include <cstdlib>
+#include <cctype>
+#include <cstring>
 
 #include <os/Mutex.h>
 

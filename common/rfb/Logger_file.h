@@ -21,7 +21,7 @@
 #ifndef __RFB_LOGGER_FILE_H__
 #define __RFB_LOGGER_FILE_H__
 
-#include <time.h>
+#include <ctime>
 #include <rfb/Logger.h>
 
 namespace os { class Mutex; }

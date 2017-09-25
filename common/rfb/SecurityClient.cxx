@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
+#include <cassert>
 #include <rfb/CSecurityNone.h>
 #include <rfb/CSecurityStack.h>
 #include <rfb/CSecurityVeNCrypt.h>

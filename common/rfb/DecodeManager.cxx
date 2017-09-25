@@ -16,8 +16,8 @@
  * USA.
  */
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
 #include <rfb/CConnection.h>
 #include <rfb/DecodeManager.h>

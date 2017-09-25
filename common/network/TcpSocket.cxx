@@ -33,13 +33,13 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
-#include <errno.h>
-#include <string.h>
-#include <signal.h>
+#include <cerrno>
+#include <cstring>
+#include <csignal>
 #include <fcntl.h>
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <network/TcpSocket.h>
 #include <rfb/util.h>

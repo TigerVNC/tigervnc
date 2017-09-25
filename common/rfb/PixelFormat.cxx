@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
 #include <rfb/Exception.h>

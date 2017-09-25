@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
+#include <cassert>
 #ifndef _WIN32
 #include <unistd.h>
 #endif

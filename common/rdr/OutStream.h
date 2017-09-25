@@ -26,7 +26,7 @@
 
 #include <rdr/types.h>
 #include <rdr/InStream.h>
-#include <string.h> // for memcpy
+#include <cstring> // for memcpy
 
 namespace rdr {
 

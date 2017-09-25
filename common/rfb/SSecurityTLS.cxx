@@ -27,7 +27,7 @@
 #error "This source should not be compiled without HAVE_GNUTLS defined"
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <rfb/SSecurityTLS.h>
 #include <rfb/SConnection.h>

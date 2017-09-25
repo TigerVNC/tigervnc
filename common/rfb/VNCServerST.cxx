@@ -48,8 +48,8 @@
 // otherwise blacklisted connections might be "forgotten".
 
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 
 #include <rfb/ServerCore.h>
 #include <rfb/VNCServerST.h>
