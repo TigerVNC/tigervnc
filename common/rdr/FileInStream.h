@@ -31,9 +31,9 @@ namespace rdr {
   public:
 
     FileInStream(const char *fileName);
-    ~FileInStream(void);
+    ~FileInStream();
 
-    void reset(void);
+    void reset();
 
     int pos();
 

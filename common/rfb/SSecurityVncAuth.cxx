@@ -48,7 +48,7 @@ VncAuthPasswdParameter SSecurityVncAuth::vncAuthPasswd
 ("Password", "Obfuscated binary encoding of the password which clients must supply to "
  "access the server", &SSecurityVncAuth::vncAuthPasswdFile);
 
-SSecurityVncAuth::SSecurityVncAuth(void)
+SSecurityVncAuth::SSecurityVncAuth()
   : sentChallenge(false), responsePos(0), pg(&vncAuthPasswd), accessRights(0)
 {
 }

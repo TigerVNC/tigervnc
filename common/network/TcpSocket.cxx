@@ -76,7 +76,7 @@ static rfb::BoolParameter UseIPv4("UseIPv4", "Use IPv4 for incoming and outgoing
 static rfb::BoolParameter UseIPv6("UseIPv6", "Use IPv6 for incoming and outgoing connections.", true);
 
 /* Tunnelling support. */
-int network::findFreeTcpPort (void)
+int network::findFreeTcpPort ()
 {
   int sock;
   struct sockaddr_in addr;

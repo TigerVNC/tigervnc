@@ -51,7 +51,7 @@ namespace rfb {
 
   class SSecurityVncAuth : public SSecurity {
   public:
-    SSecurityVncAuth(void);
+    SSecurityVncAuth();
     virtual bool processMsg(SConnection* sc);
     virtual int getType() const {return secTypeVncAuth;}
     virtual const char* getUserName() const {return 0;}

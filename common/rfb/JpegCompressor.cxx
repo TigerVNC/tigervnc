@@ -136,7 +136,7 @@ JpegCompressor::JpegCompressor(int bufferLen) : MemOutStream(bufferLen)
   cinfo->dest = (struct jpeg_destination_mgr *)dest;
 }
 
-JpegCompressor::~JpegCompressor(void)
+JpegCompressor::~JpegCompressor()
 {
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error

@@ -37,7 +37,7 @@ namespace rfb {
   // coordinates, an id and flags.
 
   struct Screen {
-    Screen(void) : id(0), flags(0) {};
+    Screen() : id(0), flags(0) {};
     Screen(rdr::U32 id_, int x_, int y_, int w_, int h_, rdr::U32 flags_) :
       id(id_), dimensions(x_, y_, x_+w_, y_+h_), flags(flags_) {};
 
@@ -62,17 +62,17 @@ namespace rfb {
   // dimensions.
 
   struct ScreenSet {
-    ScreenSet(void) {};
+    ScreenSet() {};
 
     typedef std::list<Screen>::iterator iterator;
     typedef std::list<Screen>::const_iterator const_iterator;
 
-    inline iterator begin(void) { return screens.begin(); };
-    inline const_iterator begin(void) const { return screens.begin(); };
-    inline iterator end(void) { return screens.end(); };
-    inline const_iterator end(void) const { return screens.end(); };
+    inline iterator begin() { return screens.begin(); };
+    inline const_iterator begin() const { return screens.begin(); };
+    inline iterator end() { return screens.end(); };
+    inline const_iterator end() const { return screens.end(); };
 
-    inline int num_screens(void) const { return screens.size(); };
+    inline int num_screens() const { return screens.size(); };
 
     inline void add_screen(const Screen screen) { screens.push_back(screen); };
     inline void remove_screen(rdr::U32 id) {

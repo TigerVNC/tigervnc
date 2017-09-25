@@ -86,12 +86,12 @@ namespace rfb {
     bool IsSupported(rdr::U32 secType);
 
     /* Get list of enabled security types without VeNCrypt subtypes */
-    const std::list<rdr::U8> GetEnabledSecTypes(void);
+    const std::list<rdr::U8> GetEnabledSecTypes();
     /* Get list of enabled VeNCrypt subtypes */
-    const std::list<rdr::U32> GetEnabledExtSecTypes(void);
+    const std::list<rdr::U32> GetEnabledExtSecTypes();
 
     /* Output char* is stored in static array */
-    char *ToString(void);
+    char *ToString();
 
 #ifdef HAVE_GNUTLS
     static StringParameter GnuTLSPriority;

@@ -41,22 +41,22 @@ typedef struct rusage syscounter_t;
 static syscounter_t _globalCounter[2];
 static cpucounter_t globalCounter = _globalCounter;
 
-void startCpuCounter(void)
+void startCpuCounter()
 {
   startCpuCounter(globalCounter);
 }
 
-void endCpuCounter(void)
+void endCpuCounter()
 {
   endCpuCounter(globalCounter);
 }
 
-double getCpuCounter(void)
+double getCpuCounter()
 {
   return getCpuCounter(globalCounter);
 }
 
-cpucounter_t newCpuCounter(void)
+cpucounter_t newCpuCounter()
 {
   syscounter_t *c;
 
@@ -140,7 +140,7 @@ static LARGE_INTEGER timeStart, timeEnd;
 static struct timeval timeStart, timeEnd;
 #endif
 
-void startTimeCounter(void)
+void startTimeCounter()
 {
 #ifdef WIN32
   QueryPerformanceCounter(&timeStart);
@@ -149,7 +149,7 @@ void startTimeCounter(void)
 #endif
 }
 
-void endTimeCounter(void)
+void endTimeCounter()
 {
 #ifdef WIN32
   QueryPerformanceCounter(&timeEnd);
@@ -158,7 +158,7 @@ void endTimeCounter(void)
 #endif
 }
 
-double getTimeCounter(void)
+double getTimeCounter()
 {
   double time;
 

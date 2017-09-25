@@ -39,16 +39,16 @@ protected:
   ~OptionsDialog();
 
 public:
-  static void showDialog(void);
+  static void showDialog();
 
   static void addCallback(OptionsCallback *cb, void *data = NULL);
   static void removeCallback(OptionsCallback *cb);
 
-  void show(void);
+  void show();
 
 protected:
-  void loadOptions(void);
-  void storeOptions(void);
+  void loadOptions();
+  void storeOptions();
 
   void createCompressionPage(int tx, int ty, int tw, int th);
   void createSecurityPage(int tx, int ty, int tw, int th);

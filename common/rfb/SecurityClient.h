@@ -30,12 +30,12 @@ namespace rfb {
 
   class SecurityClient : public Security {
   public:
-    SecurityClient(void) : Security(secTypes) {}
+    SecurityClient() : Security(secTypes) {}
 
     /* Create client side CSecurity class instance */
     CSecurity* GetCSecurity(rdr::U32 secType);
 
-    static void setDefaults(void);
+    static void setDefaults();
 
     static StringParameter secTypes;
   };

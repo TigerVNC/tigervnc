@@ -91,7 +91,7 @@ void PlatformPixelBuffer::commitBufferRW(const rfb::Rect& r)
   mutex.unlock();
 }
 
-rfb::Rect PlatformPixelBuffer::getDamage(void)
+rfb::Rect PlatformPixelBuffer::getDamage()
 {
   rfb::Rect r;
 

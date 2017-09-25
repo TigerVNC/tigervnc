@@ -42,7 +42,7 @@ public:
 
   virtual void commitBufferRW(const rfb::Rect& r);
 
-  rfb::Rect getDamage(void);
+  rfb::Rect getDamage();
 
   using rfb::FullFramePixelBuffer::width;
   using rfb::FullFramePixelBuffer::height;

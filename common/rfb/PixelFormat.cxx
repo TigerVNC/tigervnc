@@ -185,7 +185,7 @@ void PixelFormat::write(rdr::OutStream* os) const
 }
 
 
-bool PixelFormat::is888(void) const
+bool PixelFormat::is888() const
 {
   if (!trueColour)
     return false;
@@ -204,13 +204,13 @@ bool PixelFormat::is888(void) const
 }
 
 
-bool PixelFormat::isBigEndian(void) const
+bool PixelFormat::isBigEndian() const
 {
   return bigEndian;
 }
 
 
-bool PixelFormat::isLittleEndian(void) const
+bool PixelFormat::isLittleEndian() const
 {
   return ! bigEndian;
 }
@@ -615,7 +615,7 @@ static int bits(rdr::U16 value)
   return bits;
 }
 
-void PixelFormat::updateState(void)
+void PixelFormat::updateState()
 {
   int endianTest = 1;
 
@@ -641,7 +641,7 @@ void PixelFormat::updateState(void)
     endianMismatch = false;
 }
 
-bool PixelFormat::isSane(void)
+bool PixelFormat::isSane()
 {
   int totalBits;
 

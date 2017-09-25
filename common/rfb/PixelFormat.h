@@ -54,9 +54,9 @@ namespace rfb {
     void read(rdr::InStream* is);
     void write(rdr::OutStream* os) const;
 
-    bool is888(void) const;
-    bool isBigEndian(void) const;
-    bool isLittleEndian(void) const;
+    bool is888() const;
+    bool isBigEndian() const;
+    bool isLittleEndian() const;
 
     inline Pixel pixelFromBuffer(const rdr::U8* buffer) const;
     inline void bufferFromPixel(rdr::U8* buffer, Pixel pixel) const;
@@ -87,8 +87,8 @@ namespace rfb {
     bool parse(const char* str);
 
   protected:
-    void updateState(void);
-    bool isSane(void);
+    void updateState();
+    bool isSane();
 
   private:
     // Preprocessor generated, optimised methods

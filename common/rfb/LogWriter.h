@@ -61,7 +61,7 @@ namespace rfb {
 
     void setLog(Logger *logger);
     void setLevel(int level);
-    int getLevel(void) { return m_level; }
+    int getLevel() { return m_level; }
 
     inline void write(int level, const char* format, ...) __printf_attr(3, 4) {
       if (m_log && (level <= m_level)) {

@@ -46,7 +46,7 @@
 namespace network {
 
   /* Tunnelling support. */
-  int findFreeTcpPort (void);
+  int findFreeTcpPort ();
 
   class TcpSocket : public Socket {
   public:

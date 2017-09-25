@@ -104,7 +104,7 @@ JpegSkipInputData(j_decompress_ptr dinfo, long num_bytes)
   }
 }
 
-JpegDecompressor::JpegDecompressor(void)
+JpegDecompressor::JpegDecompressor()
 {
   dinfo = new jpeg_decompress_struct;
 
@@ -131,7 +131,7 @@ JpegDecompressor::JpegDecompressor(void)
   dinfo->src = (struct jpeg_source_mgr *)src;
 }
 
-JpegDecompressor::~JpegDecompressor(void)
+JpegDecompressor::~JpegDecompressor()
 {
   if(setjmp(err->jmpBuffer)) {
     // this will execute if libjpeg has an error

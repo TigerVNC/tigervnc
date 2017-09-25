@@ -365,7 +365,7 @@ void SConnection::enableContinuousUpdates(bool enable,
 {
 }
 
-void SConnection::writeFakeColourMap(void)
+void SConnection::writeFakeColourMap()
 {
   int i;
   rdr::U16 red[256], green[256], blue[256];

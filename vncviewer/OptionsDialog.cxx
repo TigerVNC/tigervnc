@@ -99,7 +99,7 @@ OptionsDialog::~OptionsDialog()
 }
 
 
-void OptionsDialog::showDialog(void)
+void OptionsDialog::showDialog()
 {
   static OptionsDialog *dialog = NULL;
 
@@ -125,7 +125,7 @@ void OptionsDialog::removeCallback(OptionsCallback *cb)
 }
 
 
-void OptionsDialog::show(void)
+void OptionsDialog::show()
 {
   /* show() gets called for raise events as well */
   if (!shown())
@@ -135,7 +135,7 @@ void OptionsDialog::show(void)
 }
 
 
-void OptionsDialog::loadOptions(void)
+void OptionsDialog::loadOptions()
 {
   /* Compression */
   autoselectCheckbox->value(autoSelect);
@@ -306,7 +306,7 @@ void OptionsDialog::loadOptions(void)
 }
 
 
-void OptionsDialog::storeOptions(void)
+void OptionsDialog::storeOptions()
 {
   /* Compression */
   autoSelect.setParam(autoselectCheckbox->value());

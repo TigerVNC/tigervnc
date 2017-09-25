@@ -21,12 +21,12 @@
 
 typedef void* cpucounter_t;
 
-void startCpuCounter(void);
-void endCpuCounter(void);
+void startCpuCounter();
+void endCpuCounter();
 
-double getCpuCounter(void);
+double getCpuCounter();
 
-cpucounter_t newCpuCounter(void);
+cpucounter_t newCpuCounter();
 void freeCpuCounter(cpucounter_t c);
 
 void startCpuCounter(cpucounter_t c);
@@ -34,9 +34,9 @@ void endCpuCounter(cpucounter_t c);
 
 double getCpuCounter(cpucounter_t c);
 
-void startTimeCounter(void);
-void endTimeCounter(void);
+void startTimeCounter();
+void endTimeCounter();
 
-double getTimeCounter(void);
+double getTimeCounter();
 
 #endif
